@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.8  2004/09/21 20:34:25  mast
+First changes to deal with new clipping plane structure
+
 Revision 3.7  2004/09/10 21:34:01  mast
 Eliminated long variables
 
@@ -46,8 +49,8 @@ Revision 3.4  2003/10/24 03:05:23  mast
 open as binary, strip program name and/or use routine for backup file
 
 Revision 3.3  2003/10/02 05:38:25  mast
-Fixed point info output so it does subareas correctly for scattered points or points
-with sizes; and made hush suppress individual point data
+Fixed point info output so it does subareas correctly for scattered points or 
+points with sizes; and made hush suppress individual point data
 
 Revision 3.2  2003/02/07 00:18:06  mast
 Divided all mesh triangles that cross boundaries with -x, -y, -z options
@@ -68,7 +71,6 @@ fixed exit status
 #define MINFO_STANDARD 1
 #define MINFO_CHART    2
 #define MINFO_DIST     3
-#define MINFO_INTERACTIVE 4
 #define MINFO_ASCII    5
 #define MINFO_LENGTH   6
 #define MINFO_SURFACE  7
@@ -84,10 +86,15 @@ static double info_contour_area(Icont *cont, int objflags,
                                 double pixsize, double zscale);
 static double info_contour_vol(Icont *cont, int objflags,
                                double pixsize, double zscale);
-static void imodinfo_surface(Imod *imod);
 static void imodinfo_points(Imod *imod, int subarea, Ipoint ptmin,
                             Ipoint ptmax, int useclip, int verbose);
 static void imodinfo_ratios(Imod *imod);
+static void imodinfo_object(struct Mod_Model *imod, int scaninside, 
+                            int subarea, Ipoint min, Ipoint max,
+                            int useclip);
+static void imodinfo_full_object_report(Imod *imod, int ob, int scaninside, 
+                                        int subarea, Ipoint ptmin,
+                                        Ipoint ptmax, int useclip);
 static int contour_stats(Icont *cont, int flags, double pixsize, 
                          double zscale);
 static Iobj *imodinfo_ObjectClip(Iobj *obj, Iplane *plane, int planes);
@@ -97,19 +104,35 @@ static void imodinfo_special(Imod *imod, char *fname);
 static void imodinfo_print_model(Imod *model, int verbose, int scaninside, 
                                  int subarea, Ipoint ptmin, Ipoint ptmax,
                                  int useclip);
-static void imodinfo_object(struct Mod_Model *imod);
 static void imodinfo_objndist(struct Mod_Model *imod, int bins);
 static void imodinfo_length(Imod *imod);
-static void imodinfo_interactive(Imod *imod);
-static void imodinfo_full_object_report(Imod *imod, int ob);
 float imeshSurfaceSubarea(Imesh *mesh, Ipoint *scale, Ipoint min, Ipoint max,
-                          int doclip, Iplane *plane);
+                          int doclip, Iplane *plane, int nPlanes);
 static int getContZValue(Icont *cont);
-static float scanned_volume(Iobj *obj, int subarea, Ipoint ptmin, 
-                            Ipoint ptmax, int doclip, Iplane *plane);
 static double scan_contour_area(struct Mod_Contour *cont);
 static void trim_scan_contour(Icont *cont, Ipoint min, Ipoint max, int doclip,
-                              Iplane *plane);
+                              Iplane *plane, int nPlanes);
+static void imodinfo_object(struct Mod_Model *imod, int scaninside, 
+                            int subarea, Ipoint min, Ipoint max,
+                            int useclip);
+static void computeObjectAreaVol(Imod *model, Iobj *obj, int scaninside, 
+                                 int subarea, Ipoint min, Ipoint max,
+                                 int useclip, double *surf, double *vol,
+                                 double *msurf, double *mvol, Ipoint *cent);
+static float contourVolumeFactor(Iobj *obj, Icont *cont, Ipoint min, 
+                                 Ipoint max);
+static float scanned_volume(Iobj *obj, int subarea, Ipoint ptmin, Ipoint ptmax,
+                            int doclip, Iplane *plane, int nPlanes, 
+                            double *meshVol);
+static int contourSubareaByScan(Icont *cont, Ipoint ptmin, Ipoint ptmax,
+                                int doclip, Iplane *plane, int nPlanes, 
+                                int makeScan, Icont **scancont, Ipoint *pmin,
+                                Ipoint *pmax, float *area);
+static double clippedTriangleArea(Imesh *mesh, int i, float zs, Ipoint min,
+                                  Ipoint max, int doclip, Iplane *plane,
+                                  int nPlanes);
+static void imodinfo_surface(Imod *imod, int scaninside, Ipoint min,
+                             Ipoint max, int useclip);
 
 
 static void imodinfo_usage(char *name)
@@ -123,7 +146,7 @@ static void imodinfo_usage(char *name)
   printf("\t-s\tPrint surface information.\n");
   printf("\t-p\tPrint point size information.\n");
   printf("\t-r\tPrint ratio of length to area for closed contours.\n");
-  printf("\t-o #\tPrint full report on given object #.\n");
+  printf("\t-o list\tPrint full report on list of objects.\n");
   printf("\t-i\tAnalyze for inside contours and adjust volume.\n");
   printf("\t-x min,max   Compute volume, mesh area, and point count and sizes\n");
   printf("\t-y min,max         between min and max in X (-x), Y (-y), or Z (-z).\n");
@@ -137,23 +160,26 @@ static void imodinfo_usage(char *name)
 }
 
 static FILE *fout;
+static int Debug = FALSE;
 
 int main( int argc, char *argv[])
 {
-  int                i,j,c;
-  int                verbose = 0;
-  int                scaninside = FALSE;
-  int                subarea = FALSE;
-  int                useclip = 0;
-  int                ob, co, pt;
-  int                mode = MINFO_STANDARD;
-  int                hush = FALSE;
-  FILE               *fin;
-  struct Mod_Model   model;
-  struct Mod_Object  *obj;
-  struct Mod_Contour *cont;
+  int    i,j,c;
+  int    verbose = 0;
+  int    scaninside = FALSE;
+  int    subarea = FALSE;
+  int    useclip = 0;
+  int    ob, co, pt;
+  int    mode = MINFO_STANDARD;
+  int    hush = FALSE;
+  FILE   *fin;
+  Imod   model;
+  Iobj   *obj;
+  Icont  *cont;
   int bins = 0;
   int sa,inlo, inhi;
+  int *list;
+  int nlist;
   double dist;
   double tsa, tvol;
   char *afname = NULL;
@@ -213,7 +239,11 @@ int main( int argc, char *argv[])
         break;
 
       case 'o':
-        ob = atoi(argv[++i]);
+        list = parselist(argv[++i], &nlist);
+        if (!list) {
+          fprintf(stderr, "%s: error parsing list %s\n", progname, argv[i]);
+          exit (2);
+        }
         mode = MINFO_OBJECT;
         break;
 
@@ -233,31 +263,29 @@ int main( int argc, char *argv[])
         hush = TRUE;
         break;
                
+      case 'D':
+        Debug = TRUE;
+        break;
+               
       case 't':
         sscanf(argv[++i], "%d", &useclip);
         scaninside = TRUE;
         break;
                
       case 'x':
-        sscanf(argv[++i], "%d%*c%d", &inlo, &inhi);
-        ptmin.x = inlo;
-        ptmax.x = inhi;
+        sscanf(argv[++i], "%f%*c%f", &ptmin.x, &ptmax.x);
         scaninside = TRUE;
         subarea = TRUE;
         break;
 
       case 'y':
-        sscanf(argv[++i], "%d%*c%d", &inlo, &inhi);
-        ptmin.y = inlo;
-        ptmax.y = inhi;
+        sscanf(argv[++i], "%f%*c%f", &ptmin.y, &ptmax.y);
         scaninside = TRUE;
         subarea = TRUE;
         break;
 
       case 'z':
-        sscanf(argv[++i], "%d%*c%d", &inlo, &inhi);
-        ptmin.z = inlo;
-        ptmax.z = inhi;
+        sscanf(argv[++i], "%f%*c%f", &ptmin.z, &ptmax.z);
         subarea = TRUE;
         break;
 
@@ -352,7 +380,7 @@ int main( int argc, char *argv[])
       break;
 
     case MINFO_SURFACE:
-      imodinfo_surface(&model);
+      imodinfo_surface(&model, scaninside, ptmin, ptmax, useclip);
       break;
 
     case MINFO_POINTS:
@@ -364,7 +392,7 @@ int main( int argc, char *argv[])
       break;
 
     case MINFO_CHART:
-      imodinfo_object(&model);
+      imodinfo_object(&model, scaninside, subarea, ptmin, ptmax, useclip);
       break;
     case MINFO_DIST:
       imodinfo_objndist(&model, bins);
@@ -372,11 +400,13 @@ int main( int argc, char *argv[])
     case MINFO_LENGTH:
       imodinfo_length(&model);
       break;
-    case MINFO_INTERACTIVE:
-      imodinfo_interactive(&model);
-      break;
     case MINFO_OBJECT:
-      imodinfo_full_object_report(&model, ob);
+      for (ob = 0; ob < nlist; ob++) {
+        if (ob)
+          fprintf(fout, "\n");
+        imodinfo_full_object_report(&model, list[ob], scaninside, subarea,
+                           ptmin, ptmax, useclip);
+      }
       break;
     default:
       break;
@@ -388,6 +418,17 @@ int main( int argc, char *argv[])
   exit(0);
 }
 
+/*
+ * The default model output.
+ * Inputs:  model - the model structure
+ *          verbose  - flag indicating verbose level
+ *          scaninside - flag that scan contours are needed to find inside
+ *                       contours and deal with subsets and clipping
+ *          subarea    - flag that a subarea is specified
+ *          min, max   - points with limits of subarea
+ *          useclip    - flag to use clipping planes, if any, to find region to
+ *                        include (1) or exclude (-1)
+ */
 static void imodinfo_print_model(Imod *model, int verbose, int scaninside,
                                  int subarea, Ipoint min, Ipoint max,
                                  int useclip)
@@ -395,12 +436,15 @@ static void imodinfo_print_model(Imod *model, int verbose, int scaninside,
   double tsa, tvol;
   double dist;
   double sa;
+  double mvol;
   int ob, co, pt, i, npt, coz;
-  struct Mod_Object  *obj;
-  struct Mod_Contour *cont;
+  Iobj  *obj;
+  Icont *cont;
   Ipoint mscale, p1;
-  Iplane plane;
-  int doclip, goodside;
+  Iplane plane[2 * IMOD_CLIPSIZE];
+  int doclip, goodside, nPlanes;
+  float volFac;
+  Iview *view = &model->view[model->cview];
 
   if (!model->objsize){
     fprintf(fout, "Model has no objects!!!\n");
@@ -409,15 +453,14 @@ static void imodinfo_print_model(Imod *model, int verbose, int scaninside,
 
   for (ob = 0; ob < model->objsize; ob++){
     obj = &(model->obj[ob]);
-    tsa = 0; tvol = 0;
-    doclip = 0;
-    if (useclip && obj->clips.count && (obj->clips.flags & 1)) {
-      /* Get clipping plane in 4 parameter form; c is already
-         multiplied by zscale so no need to 
-         multiply z coordinates by zscale for tests*/
-      imodPlaneSetPN(&plane, &(obj->clips.point[0]), &(obj->clips.normal[0]));
-      doclip = useclip;
-    }
+    tsa = 0; tvol = 0.; mvol = 0.;
+    nPlanes = 0;
+    /* Get clipping planes in 4 parameter form; c is already
+       multiplied by zscale so no need to 
+       multiply z coordinates by zscale for tests*/
+    imodPlaneSetFromClips(&obj->clips, &view->clips, plane, 2 * IMOD_CLIPSIZE,
+                          &nPlanes);
+    doclip = nPlanes ? useclip : 0;
 
     fprintf(fout, "OBJECT %d\n", ob + 1);
     fprintf(fout, "NAME:  %s\n", obj->name);
@@ -438,7 +481,7 @@ static void imodinfo_print_model(Imod *model, int verbose, int scaninside,
 
     if (scaninside && !(obj->flags & IMOD_OBJFLAG_OPEN)) {
       tvol = model->pixsize * model->pixsize * 
-        scanned_volume(obj, subarea, min, max, doclip, &plane);
+        scanned_volume(obj, subarea, min, max, doclip, plane, nPlanes, &mvol);
     } else {
       for(co = 0; co < obj->contsize; co++){
         cont = &(obj->cont[co]);
@@ -452,7 +495,7 @@ static void imodinfo_print_model(Imod *model, int verbose, int scaninside,
           for (pt = 0; pt < cont->psize; pt++) {
             p1 = cont->pts[pt];
             if (doclip) {
-              goodside = imodPlaneClip(&plane, &p1);
+              goodside = imodPlanesClip(plane, nPlanes, &p1);
               if ((goodside && doclip < 0) || 
                   (!goodside && doclip > 0))
                 continue;
@@ -482,6 +525,14 @@ static void imodinfo_print_model(Imod *model, int verbose, int scaninside,
           if (coz < min.z || coz > max.z) {
             if (verbose >= 0)
               fprintf(fout, "\n");
+            
+            /* But see if need to add contour to mesh volume */
+            if (!(obj->flags & IMOD_OBJFLAG_OPEN)) {
+              volFac = contourVolumeFactor(obj, cont, min, max);
+              if (volFac > 0.)
+                mvol += volFac * imodContourArea(cont) * model->pixsize *
+                  model->pixsize;
+            }
             continue;
           }
         }
@@ -501,6 +552,7 @@ static void imodinfo_print_model(Imod *model, int verbose, int scaninside,
               fprintf(fout, " area = %g\n", sa);
             tsa += dist;
             tvol += sa;
+            mvol += sa * contourVolumeFactor(obj, cont, min, max);
           }else{
             if (verbose >= 0)
               fprintf(fout, "\tlength = %g %s\n", dist, 
@@ -526,11 +578,15 @@ static void imodinfo_print_model(Imod *model, int verbose, int scaninside,
     }
     if (tvol > 0.0){
       tvol *= model->zscale * model->pixsize;
-      fprintf(fout, "\n\tTotal volume = %g\n", tvol);
+      fprintf(fout, "\n\tTotal cylinder volume = %g\n", (float)tvol);
+    }
+    if (mvol > 0.0){
+      mvol *= model->zscale * model->pixsize;
+      fprintf(fout, "\tTotal mesh volume = %g\n", (float)mvol);
     }
     if (tsa > 0.0){
       tsa *= (model->zscale * model->pixsize);
-      fprintf(fout, "\tTotal contour cylinder surface area = %g\n", tsa);
+      fprintf(fout, "\tTotal cylinder surface area = %g\n", (float)tsa);
     }
     if (obj->meshsize){
 
@@ -545,13 +601,13 @@ static void imodinfo_print_model(Imod *model, int verbose, int scaninside,
           if (subarea || doclip)
             tsa += imeshSurfaceSubarea 
               (&obj->mesh[mesh], &mscale, min, max,
-               doclip, &plane);
+               doclip, plane, nPlanes);
           else
             tsa += imeshSurfaceArea (&obj->mesh[mesh],
                                      &mscale);
         }
       tsa *= model->pixsize * model->pixsize; 
-      fprintf(fout, "\tTotal mesh surface area = %g\n", tsa);
+      fprintf(fout, "\tTotal mesh surface area = %g\n", (float)tsa);
     }
           
     fprintf(fout, "\n");
@@ -560,22 +616,34 @@ static void imodinfo_print_model(Imod *model, int verbose, int scaninside,
 }
 
 
-/* prints volume and surface area, for each surface. */
+/* prints volume and surface area, for each surface. Arguments defined as 
+   above*/
 
-static void imodinfo_surface(Imod *imod)
+static void imodinfo_surface(Imod *imod, int scaninside, Ipoint min,
+                             Ipoint max, int useclip)
 {
   Iobj *obj;
   Icont *cont;
-  int ob, co, pt, i;
-  float tvol, tsa;
+  Icont *scan;
+  Ipoint pmin, pmax;
+  int ob, co, pt, i, coz, skipz;
+  float tvol, tsa, volFac;
   double *sa = NULL;
   double *vol = NULL;
+  double *mvol = NULL;
   unsigned int *nofc = NULL;
   unsigned int maxsurf;
+  Iplane plane[2 * IMOD_CLIPSIZE];
+  int nPlanes = 0;
+  int doclip;
+  Iview *view = &imod->view[imod->cview];
 
 
   for (ob = 0; ob < imod->objsize; ob++){
     obj = &(imod->obj[ob]);
+    imodPlaneSetFromClips(&obj->clips, &view->clips, plane, 2 * IMOD_CLIPSIZE,
+                          &nPlanes);
+    doclip = nPlanes ? useclip : 0;
     maxsurf = 0;
     for(co = 0; co < obj->contsize; co++){
       cont = &(obj->cont[co]);
@@ -591,16 +659,23 @@ static void imodinfo_surface(Imod *imod)
       free(sa);
       return;
     }
+    mvol = (double *)malloc((obj->surfsize + 1) * sizeof(double));
+    if (!mvol){
+      free(sa);
+      free(vol);
+      return;
+    }
     nofc = (unsigned int *)malloc((obj->surfsize + 1) 
                                    * sizeof(unsigned int));
     if (!nofc){
       free(vol);
+      free(mvol);
       free(sa);
       return;
     }
 
     for(i = 0; i <= obj->surfsize; i++){
-      sa[i] = vol[i] = 0.0;
+      sa[i] = vol[i] = mvol[i] = 0.0;
       nofc[i] = 0;
     }
       
@@ -609,18 +684,35 @@ static void imodinfo_surface(Imod *imod)
       if (!cont->psize)
         continue;
       i = cont->surf;
-      tvol = info_contour_vol(cont, obj->flags,
-                              (double)imod->pixsize,
-                              (double)imod->zscale);
-      tsa = info_contour_surface_area
-        (cont, obj->flags,
-         (double)imod->pixsize,
-         (double)imod->zscale);
-      nofc[i]++;
-      vol[i] += tvol;
-      sa[i] += tsa;
+
+      coz = getContZValue(cont);
+      skipz = 0;
+      if (coz < min.z || coz > max.z)
+        skipz = 1;
+
+      volFac = contourVolumeFactor(obj, cont, min, max);
+
+      /* Compute subarea if there is a volume factor or this is a Z within
+         range; add to mesh volume always, to cylinder vol if within range */
+      if (((volFac > 0. && !(scaninside || doclip)) || !skipz) &&
+          contourSubareaByScan(cont, min, max, doclip, plane, nPlanes, 0, 
+                               &scan, &pmin, &pmax, &tvol)) {
+        tvol *= imod->pixsize * imod->pixsize * imod->pixsize * imod->zscale;
+        if (volFac)
+          mvol[i] += tvol * volFac;
+        if (!skipz) {
+          nofc[i]++;
+          vol[i] += tvol;
+        }
+      }
+
+      if (!(scaninside || doclip || skipz))
+        sa[i] += info_contour_surface_area(cont, obj->flags,
+                                           (double)imod->pixsize,
+                                           (double)imod->zscale);
     }
           
+
     fprintf(fout, "\n#Object %d data, %s\n", ob + 1, obj->name);
     if (obj->meshsize){
 
@@ -637,6 +729,7 @@ static void imodinfo_surface(Imod *imod)
       if (!msa) {
         free(nofc);
         free(vol);
+        free(mvol);
         free(sa);
         return;
       }
@@ -660,23 +753,14 @@ static void imodinfo_surface(Imod *imod)
             found = 0;
             while(mesh->list[i] != IMOD_MESH_ENDPOLY){
 
-              n.x = n.y = n.z = 0.0f;
+              psa += clippedTriangleArea(mesh, i, zs, min, max, doclip,
+                                         plane, nPlanes);
               p1 = &(mesh->vert[mesh->list[++i]]);
               i+=2;
               p2 = &(mesh->vert[mesh->list[i]]);
               i+=2;
               p3 = &(mesh->vert[mesh->list[i++]]);
                                    
-              n1.x = p1->x - p2->x;
-              n1.y = p1->y - p2->y;
-              n1.z = (p1->z - p2->z) * zs;
-              n2.x = p3->x - p2->x;
-              n2.y = p3->y - p2->y;
-              n2.z = (p3->z - p2->z) * zs;
-              imodPointCross(&n1, &n2, &n);
-
-              psa += sqrt(n.x*n.x + n.y*n.y + n.z*n.z) 
-                * 0.5;
               if (!found) {
                 /* Scan contours to find match */
                 for(co = 0; co < obj->contsize; co++){
@@ -688,15 +772,11 @@ static void imodinfo_surface(Imod *imod)
                     xx = cont->pts[pt].x;
                     yy = cont->pts[pt].y;
                     zz = cont->pts[pt].z;
-                    if (zz != p1->z && zz != 
-                        p2->z && zz != p3->z)
+                    if (zz != p1->z && zz != p2->z && zz != p3->z)
                       break;
-                    if ((xx == p1->x && yy ==
-                         p1->y && zz == p1->z) ||
-                        (xx == p2->x && yy ==
-                         p2->y && zz == p2->z) ||
-                        (xx == p3->x && yy ==
-                         p3->y && zz == p3->z)) {
+                    if ((xx == p1->x && yy == p1->y && zz == p1->z) ||
+                        (xx == p2->x && yy == p2->y && zz == p2->z) ||
+                        (xx == p3->x && yy == p3->y && zz == p3->z)) {
                       found = 1;
                       psurf = cont->surf;
                       break;
@@ -708,34 +788,34 @@ static void imodinfo_surface(Imod *imod)
               }
             }
             if (found)
-              msa[psurf] += psa * 
-                imod->pixsize * imod->pixsize;
+              msa[psurf] += psa * imod->pixsize * imod->pixsize;
           }
         }
       }               
-      fprintf(fout, "#Surface : Contours,     Volume, "
-              "Cyl. Surf. Area, Mesh Surf. Area\n");
+      fprintf(fout, "#Surface : Contours,  Cyl. Volume,  "
+              "Mesh Volume,  Cyl. Surface,  Mesh Surface\n");
       for(i = 0; i <= obj->surfsize; i++)
-        fprintf(fout, "%7d   %8d  %11.6g      %11.6g      %11.6g\n"
-                , i, nofc[i], vol[i], sa[i], msa[i]);
+        fprintf(fout, "%7d   %8d   %12.6g  %12.6g  %12.6g  %12.6g\n"
+                , i, nofc[i], vol[i], mvol[i], sa[i], msa[i]);
       free(msa);
     } else {
           
-      fprintf(fout, "#Surface : Contours,     Volume, Surf. Area\n");
+      fprintf(fout, "#Surface : Contours,  Cyl. Volume,  Cyl. Surface\n");
       for(i = 0; i <= obj->surfsize; i++)
-        fprintf(fout, "%7d   %8d  %11.6g  %11.6g\n", 
+        fprintf(fout, "%7d   %8d   %12.6g  %12.6g\n", 
                 i, nofc[i], vol[i], sa[i]);
     }
 
     free(sa);
     free(vol);
+    free(mvol);
     free(nofc);
   }
   return;
 }
 
-/* prints size information for every point, for each contour with sizes or for all
-   contours in scattered point objects */
+/* prints size information for every point, for each contour with sizes or for
+   all contours in scattered point objects.  Arguments defined as above */
 
 static void imodinfo_points(Imod *imod, int subarea, Ipoint min, Ipoint max,
                             int useclip, int verbose)
@@ -746,23 +826,22 @@ static void imodinfo_points(Imod *imod, int subarea, Ipoint min, Ipoint max,
   int objheader;
   double rsum, rsqsum, rcubsum;
   float rad, area, volume;
-  int nsum, clipOK;
+  int nsum;
   float pi = 3.14159;
   int skip, goodside;
   Ipoint *p1;
-  Iplane plane;
+  Iplane plane[2 * IMOD_CLIPSIZE];
+  int nPlanes;
+  Iview *view = &imod->view[imod->cview];
 
   for (ob = 0; ob < imod->objsize; ob++){
     obj = &(imod->obj[ob]);
-    clipOK = obj->clips.count && (obj->clips.flags & 1) ? 1 : 0;
+    nPlanes = 0;
+    imodPlaneSetFromClips(&obj->clips, &view->clips, plane, 2 * IMOD_CLIPSIZE,
+                          &nPlanes);
     objheader = 0;
     rsum = rsqsum = rcubsum = 0.0;
     nsum = 0;
-
-    if (useclip && clipOK) {
-      imodPlaneSetPN(&plane, &(obj->clips.point[0]), &(obj->clips.normal[0]));
-      /* plane.c *= imod->zscale; */
-    }
 
     for(co = 0; co < obj->contsize; co++){
       cont = &(obj->cont[co]);
@@ -775,7 +854,7 @@ static void imodinfo_points(Imod *imod, int subarea, Ipoint min, Ipoint max,
         if (verbose >= 0) {
           fprintf(fout, "\tCONTOUR #%d,%d,%d  %d points", 
                   co + 1, ob + 1,  cont->surf, cont->psize);
-          if (subarea || (useclip && clipOK))
+          if (subarea || (useclip && nPlanes))
             fprintf(fout, " total, before constraints");
           fprintf(fout,"\n");
         }
@@ -793,8 +872,8 @@ static void imodinfo_points(Imod *imod, int subarea, Ipoint min, Ipoint max,
 
           /* if using clipping plane, skip points that don't
              pass the test */
-          if (!skip && useclip && clipOK) {
-            goodside = imodPlaneClip(&plane, p1);
+          if (!skip && useclip && nPlanes) {
+            goodside = imodPlanesClip(plane, nPlanes, p1);
             if ((goodside && useclip < 0) || 
                 (!goodside && useclip > 0))
               skip = TRUE;
@@ -860,18 +939,19 @@ static void imodinfo_ratios(Imod *model)
 }
 
 
-static void imodinfo_full_object_report(Imod *imod, int ob)
+/* Prints full report on an object, whose object number (numbered from 1) is
+   ob.  Other arguments defined as above */
+static void imodinfo_full_object_report(Imod *imod, int ob, int scaninside, 
+                                 int subarea, Ipoint ptmin, Ipoint ptmax,
+                                 int useclip)
 {
-  Ipoint min, max, cent, ccent, mscale;
-  int co;
-  Icont *cont;
+  Ipoint min, max, cent;
+  int i, co;
   Iobj *obj;
-  Iobj *clip_obj;
   int contours_with_data = 0;
-  Iplane plane;
-  float surf, vol, tsa;
-  double weight, tweight, tpt;
-  int mesh, resol;
+  double surf, vol, msurf, mvol;
+  int numClips = 0;
+  Iview *view = &imod->view[imod->cview];
 
   if (ob < 1)
     return;
@@ -901,166 +981,179 @@ static void imodinfo_full_object_report(Imod *imod, int ob)
   fprintf(fout, "\n\tBounding Box   = { (%g, %g, %g), (%g, %g, %g)}\n",
           min.x, min.y, min.z, max.x, max.y, max.z);
 
-  surf = vol = 0.0f;
-  tpt = weight = tweight = 0;
-  cent.x = cent.y = cent.z = 0.0f;
-  for(co = 0; co < obj->contsize; co++){
-    cont = &(obj->cont[co]);
-    vol  += info_contour_vol(cont, obj->flags,
-                             (double)imod->pixsize,
-                             (double)imod->zscale);
-    surf += info_contour_length(cont, obj->flags,
-                                (double)imod->pixsize,
-                                (double)imod->zscale);
-    imodel_contour_centroid(cont, &ccent, &weight);
-    tweight += weight;
-    cent.x += ccent.x;
-    cent.y += ccent.y;
-    cent.z += ccent.z * imod->zscale;
-  }
-  if (tweight){
-    cent.x /= (float)tweight;
-    cent.y /= (float)tweight;
-    cent.z /= (float)tweight;
-  }
-  mscale.x = imod->xscale;
-  mscale.y = imod->yscale;
-  mscale.z = imod->zscale;
+  min.x = min.y = min.z = -1.e30;
+  max.x = max.y = max.z = 1.e30;
+
+  computeObjectAreaVol(imod, obj, 0, 0, min, max, 0,
+                         &surf, &vol, &msurf, &mvol, &cent);
   fprintf(fout, "\tCenter         = (%g, %g, %g)\n",cent.x, cent.y, cent.z);
-  surf *= imod->pixsize * imod->zscale;
+  fprintf(fout, "\tCylinder Volume         = %g ^3\n", vol);
+  if (mvol > 0.)
+    fprintf(fout, "\tMesh Volume             = %g ^3\n", mvol);
   fprintf(fout, "\tCylinder Surface Area   = %g ^2\n", surf);
+  if (msurf > 0.)
+    fprintf(fout, "\tMesh Surface Area       = %g ^2\n", msurf);
 
-  /* DNM: add mesh area if it exists */
-  if (obj->meshsize){
-    tsa = 0.0;
-    imodMeshNearestRes(obj->mesh, obj->meshsize, 0, &resol);
-    for(mesh = 0; mesh < obj->meshsize; mesh++)
-      if (imeshResol(obj->mesh[mesh].flag) == resol) {
-        tsa += imeshSurfaceArea (&obj->mesh[mesh],
-                                 &mscale);
-      }
-    tsa *= imod->pixsize * imod->pixsize; 
-    fprintf(fout, "\tMesh surface area       = %g ^2\n", tsa);
-  }
-  fprintf(fout, "\tVolume                  = %g ^3\n", vol);
-
-  if (obj->clips.count && (obj->clips.flags & 1)) {
-    /* DNM 8/3/01: divide normal.z by zscale for consistency with imod 
-       and SDA output */
-    fprintf(fout, "\tClip Normal    = (%g, %g, %g)\n", 
-            obj->clips.normal[0].x,
-            obj->clips.normal[0].y,
-            obj->clips.normal[0].z / imod->zscale);
-    fprintf(fout, "\tClip Point     = (%g, %g, %g)\n", 
-            obj->clips.point[0].x,
-            obj->clips.point[0].y,
-            obj->clips.point[0].z);
-    imodPlaneSetPN(&plane, &(obj->clips.point[0]), &(obj->clips.normal[0]));
-    clip_obj = imodinfo_ObjectClip(obj, &plane, 1);
-    if (!clip_obj){
-      fprintf(fout, "\tError getting clip data.\n");
-      return;
+  for (i = 0; i < obj->clips.count; i++) {
+    if (obj->clips.flags & (1 << i)) {
+      /* DNM 8/3/01: divide normal.z by zscale for consistency with imod 
+         and SDA output */
+      fprintf(fout, "\tClip %d Normal    = (%g, %g, %g)\n", i,
+              obj->clips.normal[i].x,
+              obj->clips.normal[i].y,
+              obj->clips.normal[i].z / imod->zscale);
+      fprintf(fout, "\tClip %d Point     = (%g, %g, %g)\n", i,
+              obj->clips.point[i].x,
+              obj->clips.point[i].y,
+              obj->clips.point[i].z);
+      numClips++;
     }
-    surf = vol = 0.0f;
-    for(co = 0; co < clip_obj->contsize; co++){
-      cont = &(clip_obj->cont[co]);
-      vol  += info_contour_vol(cont, clip_obj->flags,
-                               (double)imod->pixsize,
-                               (double)imod->zscale);
-    }
-
-    /* DNM 8/4/01: delete cylinder surface area as hopeless because of
-       the cut edge; add mesh surface area */
-    if (obj->meshsize){
-      tsa = 0.0;
-      min.x -= 100.;
-      min.y -= 100.;
-      min.z -= 100.;
-      max.x += 100.;
-      max.y += 100.;
-      max.z += 100.;
-      imodMeshNearestRes(obj->mesh, obj->meshsize, 0, &resol);
-      for(mesh = 0; mesh < obj->meshsize; mesh++)
-        if (imeshResol(obj->mesh[mesh].flag) == resol) {
-          tsa += imeshSurfaceSubarea 
-            (&obj->mesh[mesh], &mscale, min, max,
-             1, &plane);
-        }
-      tsa *= imod->pixsize * imod->pixsize; 
-      fprintf(fout, "\tClipped Mesh surface area = %g ^2\n", tsa);
-    }
-
-    fprintf(fout, "\tClipped Volume            = %g ^3\n", vol);
-  }else{
-    fprintf(fout, "\tNo Clipping Plane.\n");
   }
 
+  /* Add up view planes if they apply */
+  if (!(obj->clips.flags & (1 << 7))) {
+    for (i = 0; i < view->clips.count; i++)
+      if (view->clips.flags & (1 << i))
+        numClips++;
+  }
+
+  if (subarea || (useclip && numClips)) {
+    fprintf(fout, "    Clipped and/or subsetted values:\n");
+    computeObjectAreaVol(imod, obj, scaninside, subarea, ptmin, ptmax, useclip,
+                         &surf, &vol, &msurf, &mvol, &cent);
+    fprintf(fout, "\tCylinder Volume         = %g ^3\n", vol);
+    if (mvol > 0.)
+      fprintf(fout, "\tMesh Volume             = %g ^3\n", mvol);
+    if (surf > 0.)
+      fprintf(fout, "\tCylinder Surface Area   = %g ^2\n", surf);
+    if (msurf > 0.)
+      fprintf(fout, "\tMesh Surface Area       = %g ^2\n", msurf);
+  }
   return;
 }
 
-static void imodinfo_object(struct Mod_Model *imod)
+/* Prints summary of volume, area, and centroid for each object. 
+   Arguments defined as above */
+
+static void imodinfo_object(Imod *imod, int scaninside, 
+                                 int subarea, Ipoint min, Ipoint max,
+                                 int useclip)
 {
-  int ob, co, pt, tpt;
-  struct Mod_Object *obj;
-  struct Mod_Contour *cont;
-  struct Mod_Point   cent, ccent;
-  float surf, vol;
+  int ob;
+  Iobj *obj;
+  Ipoint  cent;
+  double surf, vol, msurf, mvol;
   int i;
-  float units = 1.0;
-  float pixsize, zscale;
-  double weight, tweight;
-  pixsize = imod->pixsize;
-  zscale = imod->zscale;
 
 
-  fprintf(fout, "#Obj       Surf \tVolume\t\tCenter\n");
-  fprintf(fout, "#------------------------------------------------------------\n");
+  fprintf(fout, "#Obj     Cyl. Vol      Mesh Vol       Mesh Surf   "
+          "             Center\n");
+  fprintf(fout, "#-----------------------------------------------------------"
+          "-------------------\n");
 
   for (ob = 0; ob < imod->objsize; ob++){
     obj = &(imod->obj[ob]);
-    surf = 0.0f;
-    vol = 0.0f;
-    tpt = 0;
-    cent.x = 0.0f;
-    cent.y = 0.0f;
-    cent.z = 0.0f;
-    tweight = 0;
-
-    for(co = 0; co < obj->contsize; co++){
-      cont = &(obj->cont[co]);
-      vol  += info_contour_vol(cont, obj->flags,
-                               (double)imod->pixsize,
-                               (double)imod->zscale);
-      surf += info_contour_length(cont, obj->flags,
-                                  (double)imod->pixsize,
-                                  (double)imod->zscale);
-      imodel_contour_centroid(cont, &ccent, &weight);
-      tweight += weight;
-      cent.x += ccent.x;
-      cent.y += ccent.y;
-      cent.z += ccent.z * zscale;
-    }
-    surf *= imod->pixsize * imod->zscale;
-    if (tweight){
-      cent.x /= (float)tweight;
-      cent.y /= (float)tweight;
-      cent.z /= (float)tweight;
-    }
+    computeObjectAreaVol(imod, obj, scaninside, subarea, min, max, useclip,
+                         &surf, &vol, &msurf, &mvol, &cent);
 
     if (!(iobjClose(obj->flags))){
-      surf = vol = 0.0;
+      surf = vol = msurf = mvol = 0.0;
     }
 
     if (obj->contsize)
-      fprintf(fout, "%4d  %10.2f  %10.2f \t%11.2f %11.2f %11.2f\n", 
-              ob + 1, surf, vol, cent.x, cent.y, cent.z);
+      fprintf(fout, "%4d   %12.6g  %12.6g  %12.6g  %9.2f %9.2f %9.2f\n", 
+              ob + 1, vol, mvol, msurf, cent.x, cent.y, cent.z);
     else
-      fprintf(fout, "%4d  0     0\t\t       x           x           x\n",
-              ob + 1);
+      fprintf(fout, "%4d           0           0           0"
+              "        x        x        x\n", ob + 1);
   }
   return;
 }
 
+/* 
+ * Computes cylinder and mesh volumes and surface areas for an object.
+ * Other than arguments specified above, 
+ * Inputs:  obj   - pointer to object 
+ * Outputs: surf  - pointer to cylinder surface area
+ *          vol   - pointer to cylinder volume
+ *          msurf - pointer to mesh surface area
+ *          mvol  - pointer to mesh volume
+ *          cent  - pointer to point to receive centroid
+ */
+static void computeObjectAreaVol(Imod *model, Iobj *obj, int scaninside, 
+                                 int subarea, Ipoint min, Ipoint max,
+                                 int useclip, double *surf, double *vol,
+                                 double *msurf, double *mvol, Ipoint *cent)
+{
+  Ipoint ccent, mscale;
+  Icont *cont;
+  Iplane plane[2 * IMOD_CLIPSIZE];
+  int nPlanes = 0;
+  Iview *view = &model->view[model->cview];
+  int doclip;
+  int mesh, resol, co, coz;
+  double tweight, weight;
+  double zscale = model->zscale;
+  double pixsize = model->pixsize;
+  float tvol;
+
+  *vol = *mvol = *surf = *msurf = 0.;
+  cent->x = 0.0f;
+  cent->y = 0.0f;
+  cent->z = 0.0f;
+  tweight = 0;
+  imodPlaneSetFromClips(&obj->clips, &view->clips, plane, 2 * IMOD_CLIPSIZE,
+                          &nPlanes);
+  doclip = nPlanes ? useclip : 0;
+  if (scaninside && !(obj->flags & IMOD_OBJFLAG_OPEN)) {
+    *vol = pow(pixsize, 3) * zscale *
+      scanned_volume(obj, subarea, min, max, doclip, plane, nPlanes, mvol);
+    *mvol *= pow(pixsize, 3) * zscale;
+  } else {
+    for(co = 0; co < obj->contsize; co++){
+      cont = &(obj->cont[co]);
+      tvol = info_contour_vol(cont, obj->flags, pixsize, zscale);
+      *mvol += tvol * contourVolumeFactor(obj, cont, min, max);
+      if (subarea && !(obj->flags & IMOD_OBJFLAG_OPEN)) {
+        coz = getContZValue(cont);
+        if (coz < min.z || coz > max.z)
+          continue;
+      }
+      
+      *vol += tvol;
+      *surf += info_contour_length(cont, obj->flags, pixsize, zscale);
+      imodel_contour_centroid(cont, &ccent, &weight);
+      tweight += weight;
+      cent->x += ccent.x;
+      cent->y += ccent.y;
+      cent->z += ccent.z * zscale;
+    }
+    *surf *= model->pixsize * model->zscale;
+    if (tweight){
+      cent->x /= (float)tweight;
+      cent->y /= (float)tweight;
+      cent->z /= (float)tweight;
+    }
+  }
+  
+  if (obj->meshsize){
+
+    *msurf = 0.0;
+    mscale.x = model->xscale;
+    mscale.y = model->yscale;
+    mscale.z = model->zscale;
+    imodMeshNearestRes(obj->mesh, obj->meshsize, 0, &resol);
+    for (mesh = 0; mesh < obj->meshsize; mesh++)
+      if (imeshResol(obj->mesh[mesh].flag) == resol) {
+        if (subarea || doclip)
+          *msurf += imeshSurfaceSubarea(&obj->mesh[mesh], &mscale, min, max,
+                                        doclip, plane, nPlanes);
+        else
+          *msurf+= imeshSurfaceArea (&obj->mesh[mesh], &mscale);
+      }
+    *msurf *= model->pixsize * model->pixsize; 
+  }
+}
 
 
 static void print_units(int units)
@@ -1102,13 +1195,13 @@ static void print_units(int units)
 
 
 /* nearest neighbor distence */
-static void imodinfo_objndist(struct Mod_Model *imod, int bins)
+static void imodinfo_objndist(Imod *imod, int bins)
 {
   int ob, co, pt, tpt, i;
-  struct Mod_Object *obj;
-  struct Mod_Contour *cont;
-  struct Mod_Contour *dcont;
-  struct Mod_Point    pnt;
+  Iobj *obj;
+  Icont *cont;
+  Icont *dcont;
+  Ipoint    pnt;
   int d, bin, level;
   double dist, mindist, min, max, binsize, binval, binmin, binmax;
   double pixsize, zscale;
@@ -1195,14 +1288,14 @@ static void imodinfo_objndist(struct Mod_Model *imod, int bins)
 }
 
 
-int imodinfo_objdist(struct Mod_Model *imod, int bins)
+int imodinfo_objdist(Imod *imod, int bins)
 {
 
   int ob, co, pt, tpt, i;
-  struct Mod_Object *obj;
-  struct Mod_Contour *cont;
-  struct Mod_Contour *dcont;
-  struct Mod_Point    pnt;
+  Iobj *obj;
+  Icont *cont;
+  Icont *dcont;
+  Ipoint    pnt;
   int d, bin, level;
   double *dist, min, max, binsize, binval, binmin, binmax;
   double pixsize;
@@ -1277,36 +1370,7 @@ int imodinfo_objdist(struct Mod_Model *imod, int bins)
   return(0);
 }
 
-static void imodinfo_interactive(Imod *imod)
-{
-  int c;
-  int ob, co, pt;
-  int done = FALSE;
-  ob = imod->cindex.object;
-  co = imod->cindex.contour;
-  pt = imod->cindex.point;
-
-  while(!done){
-
-    c = getchar();
-
-    switch(c){
-
-    case 'o':
-      break;
-    case 'O':
-      break;
-
-    case 'Q':
-    case 'q':
-      done = TRUE;
-      break;
-    }
-  }
-  return;
-}
-
-
+/* Prints statistics for a contour, with no clipping or subset adjustments */
 static int contour_stats(Icont *cont, int flags, double pixsize, 
                          double zscale)
 {
@@ -1389,6 +1453,7 @@ static void imodinfo_special(Imod *imod, char *fname)
 
 /****************************************************************************/
 
+/* Prints length of each contour in model */
 static void imodinfo_length(Imod *imod)
 {
   int ob,co;
@@ -1423,7 +1488,7 @@ static double pointdist(Ipoint *p1, Ipoint *p2)
   return(sqrt(dist));
 }
 
-
+/* COmputes contour length, taking account of open/closed character */
 static double info_contour_length(Icont *cont, int objflags,
                                   double pixsize, double zscale)
 {
@@ -1447,7 +1512,9 @@ static double info_contour_length(Icont *cont, int objflags,
       p2.z = cont->pts[pt+1].z * zscale;
       dist += pointdist(&p1, &p2);
     }
-    if (iobjClose(objflags)){
+
+    /* DNM 9/26/04: add test for open contour */
+    if (iobjClose(objflags) && !(cont->flags & ICONT_OPEN)) {
       p1.x = cont->pts[pt].x;
       p1.y = cont->pts[pt].y;
       p1.z = cont->pts[pt].z * zscale;
@@ -1461,6 +1528,8 @@ static double info_contour_length(Icont *cont, int objflags,
   return(dist);
 }
 
+/* Computes contribution of contour length to surface area by adjusting for
+   Z thickness */
 static double info_contour_surface_area(Icont *cont, int objflags,
                                         double pixsize, double zscale)
 {
@@ -1475,6 +1544,7 @@ static double info_contour_surface_area(Icont *cont, int objflags,
   return(ld * zscale * pixsize);
 }
 
+/* Computes contour area; multiplying by pixel size for closed contours only */
 static double info_contour_area(Icont *cont, int objflags,
                                 double pixsize, double zscale)
 {
@@ -1495,6 +1565,7 @@ static double info_contour_area(Icont *cont, int objflags,
   return(area);
 }
 
+/* COmputes contribution of contour to cylinder volume */
 static double info_contour_vol(Icont *cont, int objflags,
                                double pixsize, double zscale)
 {
@@ -1508,9 +1579,133 @@ static double info_contour_vol(Icont *cont, int objflags,
   vol *= pixsize * pixsize * pixsize * zscale;
   return(vol);
 }
-     
 
+/* Computes the factor by while a contour's area contributes to volume.
+   Finds the one or two mesh polygons that contain the contour and
+   add half of the spacing between contours in each direction.
+   Z limits are applied from min and max inputs to truncate the spacing.
+   Returns zero if no meshes are found.*/
+static float contourVolumeFactor(Iobj *obj, Icont *cont, Ipoint min, 
+                                 Ipoint max)
+{
+  Imesh *mesh;
+  int me, i, pt, found;
+  Ipoint *p1, *p2, *p3;
+  float volFac = 0.;
+  float xx, yy, zz, zmin, zmax, diff;
+  int resol;
+  int ind1, ind2, ind3, num1, num2, num3, numTri, indStart;
 
+  imodMeshNearestRes(obj->mesh, obj->meshsize, 0, &resol);
+
+  /* Loop on points until one is found in a mesh */
+  found = 0;
+  for (pt = 0; pt < cont->psize && !found; pt++) {
+    xx = cont->pts[pt].x;
+    yy = cont->pts[pt].y;
+    zz = cont->pts[pt].z;
+
+    for (me = 0; me < obj->meshsize; me++) {
+      mesh = &obj->mesh[me];
+      if (!mesh || !mesh->lsize || 
+          imeshResol(mesh->flag) != resol)
+        continue;
+      for (i = 0; i < mesh->lsize; i++){
+        if (mesh->list[i] == IMOD_MESH_BGNPOLYNORM) {
+          i++;
+          indStart = i;
+          while (mesh->list[i] != IMOD_MESH_ENDPOLY){
+          
+            p1 = &(mesh->vert[mesh->list[++i]]);
+            i+=2;
+            p2 = &(mesh->vert[mesh->list[i]]);
+            i+=2;
+            p3 = &(mesh->vert[mesh->list[i++]]);
+
+            /* Find an exactly matching point */
+            if ((xx == p1->x && yy == p1->y && zz == p1->z) ||
+                (xx == p2->x && yy == p2->y && zz == p2->z) ||
+                (xx == p3->x && yy == p3->y && zz == p3->z)) {
+
+              /* get the maximum difference between the points */
+              if (p1->z < zz || p2->z < zz || p3->z < zz) {
+                zmax = zz;
+                zmin = p1->z;
+                if (zmin > p2->z)
+                  zmin = p2->z;
+                if (zmin > p3->z)
+                  zmin = p3->z;
+                  
+              } else {
+                zmin = zz;
+                zmax = p1->z;
+                if (zmax < p2->z)
+                  zmax = p2->z;
+                if (zmax < p3->z)
+                  zmax = p3->z;
+              }
+              if (zmax >= max.z && min.z >= zmin)
+                diff = max.z - min.z;
+              else if (zmin < min.z)
+                diff = zmax - min.z;
+              else if (zmax > max.z)
+                diff = max.z - zmin;
+              else
+                diff = zmax - zmin;
+              if (Debug)
+                printf("%f %f %f %f %f\n", zz, p1->z, p2->z, p3->z, diff);
+
+              /* Go through the whole polygon checking for cap */
+              i = indStart;
+              ind1 = mesh->list[i + 1];
+              ind2 = mesh->list[i + 3];
+              ind3 = mesh->list[i + 5];
+              num1 = 0;
+              num2 = 0;
+              num3 = 0;
+              numTri = 0;
+              while (mesh->list[i] != IMOD_MESH_ENDPOLY){
+                if (mesh->list[i + 1] == ind1)
+                  num1++;
+                if (mesh->list[i + 3] == ind2)
+                  num2++;
+                if (mesh->list[i + 5] == ind3)
+                  num3++;
+                numTri++;
+                i += 6;
+              }
+              /* printf("Triangles: %d  shared indices: %d %d %d\n", numTri, 
+                     num1, num2, num3); */
+
+              /* If diff is still positive after clipping by Z, add half for
+               ordinary case or one-third for cap case */
+              if (diff > 0.) {
+                if (num1 == numTri || num2 == numTri || num3 == numTri)
+                  volFac += diff / 3.f;
+                else
+                  volFac += diff / 2.f;
+              }
+
+              /* If found two meshes, done */
+              if (found) {
+                if (Debug)
+                  printf("Found 2 polygons at z = %f, factor %f\n",zz, volFac);
+                return volFac;
+              }
+              found++;
+              break;
+            }
+          }
+        }
+      }
+    }
+  }
+  if (Debug)
+    printf("Found %d polygons at z = %f, factor %f\n",found, zz, volFac);
+  return volFac;
+}
+
+/* Now unused with new consistent computations in full report */
 static Iobj *imodinfo_ObjectClip(Iobj *obj, Iplane *plane, int planes)
 {
   Iobj *robj = imodObjectNew();
@@ -1545,11 +1740,12 @@ static Iobj *imodinfo_ObjectClip(Iobj *obj, Iplane *plane, int planes)
         tpt = 0;
                
       cpnt = cont->pts[tpt];
-      clp =  ( ((plane->a * cpnt.x) + (plane->b * cpnt.y) + 
+      /*      clp =  ( ((plane->a * cpnt.x) + (plane->b * cpnt.y) + 
                 (plane->c * cpnt.z ) + plane->d));
 
 
-      if (clp >= 0.0f){
+                if (clp >= 0.0f){ */
+      if (imodPlanesClip(plane, planes, &cpnt)) {
         imodPointAppend(cc, &cpnt);
       }
 
@@ -1592,85 +1788,38 @@ static Iobj *imodinfo_ObjectClip(Iobj *obj, Iplane *plane, int planes)
   return(robj);
 }
 
-/* Return area of mesh in square pixels, for all triangles wholly inside
-   the subset min and max limits.  Works only for POLYNORM meshes. */
+/* 
+ * Returns area of mesh in square pixels, as constrained by the subset min and 
+ * max limits and possible clipping planes.  Works only for POLYNORM meshes. 
+ * Inputs:  mesh -  pointer to mesh
+ *          scale - pointer to point with scale factors (for Z scaling)
+ *          min, max  - points with limits of subarea
+ *          doclip    - flag to use clipping planes to find region to
+ *                        include (1) or exclude (-1); it is 0 if no planes
+ *          plane     - pointer to array of Iplanes
+ *          nPlanes   - number of clipping planes
+ */
 float imeshSurfaceSubarea(Imesh *mesh, Ipoint *scale, Ipoint min, Ipoint max,
-                          int doclip, Iplane *plane)
+                          int doclip, Iplane *plane, int nPlanes)
 {
-  int i, inside1, inside2, inside3;
+  int i;
   double tsa = 0.0f;
-  float sa = 0.0f;
-     
-  Ipoint *p1, *p2, *p3, *p;
-  Ipoint n, n1, n2;
   float zs = 1.0f;
-  int nsum = 0;
-  float clipfrac;
 
   if ((!mesh) || (!mesh->lsize))
     return(0.0f);
-  if (scale) zs = scale->z;
+  if (scale)
+    zs = scale->z;
 
   for(i = 0; i < mesh->lsize; i++){
     switch(mesh->list[i]){
     case IMOD_MESH_BGNPOLYNORM:
       i++;
       while(mesh->list[i] != IMOD_MESH_ENDPOLY){
-        n.x = n.y = n.z = 0.0f;
-        p1 = &(mesh->vert[mesh->list[++i]]);
-        i+=2;
-        p2 = &(mesh->vert[mesh->list[i]]);
-        i+=2;
-        p3 = &(mesh->vert[mesh->list[i++]]);
-                    
-        /* Count the number of vertices that are inside the defined volume
-           first evaluate their relation to the clipping plane */
-        inside1 = 1;
-        inside2 = 1;
-        inside3 = 1;
-    
-        if (doclip) {
-          inside1 = imodPlaneClip(plane, p1);
-          inside2 = imodPlaneClip(plane, p2);
-          inside3 = imodPlaneClip(plane, p3);
-          if (doclip < 0) {
-            inside1 = 1 - inside1;
-            inside2 = 1 - inside2;
-            inside3 = 1 - inside3;
-          }
-        }
-    
-        /* Now see whether the vertices fit in the bounding box */
-        if (p1->x < min.x || p1->x >= max.x ||
-            p1->y < min.y || p1->y >= max.y ||
-            p1->z < min.z || p1->z >= max.z)
-          inside1 = 0;
-        if (p2->x < min.x || p2->x >= max.x ||
-            p2->y < min.y || p2->y >= max.y ||
-            p2->z < min.z || p2->z >= max.z)
-          inside2 = 0;
-        if (p3->x < min.x || p3->x >= max.x ||
-            p3->y < min.y || p3->y >= max.y ||
-            p3->z < min.z || p3->z >= max.z)
-          inside3 = 0;
-    
-        /*  just take a fraction equal to the fraction of vertices inside */
-        clipfrac = (inside1 + inside2 + inside3) / 3.;
-        if (clipfrac) {
-          n1.x = p1->x - p2->x;
-          n1.y = p1->y - p2->y;
-          n1.z = (p1->z - p2->z) * zs;
-          n2.x = p3->x - p2->x;
-          n2.y = p3->y - p2->y;
-          n2.z = (p3->z - p2->z) * zs;
-          imodPointCross(&n1, &n2, &n);
-      
-          tsa += clipfrac * sqrt((double)(n.x*n.x + n.y*n.y + 
-                                          n.z*n.z)) * 0.5;
-          nsum++;
-        }
+        tsa += clippedTriangleArea(mesh, i, zs, min, max, doclip, plane, 
+                                   nPlanes);
+        i += 6;
       }
-               
       break;
                
     case IMOD_MESH_END:
@@ -1680,6 +1829,72 @@ float imeshSurfaceSubarea(Imesh *mesh, Ipoint *scale, Ipoint min, Ipoint max,
           
   }
   return((float)tsa);
+}
+
+
+/* Return the area of the next mesh triangle, possibly clipped by subarea
+   limits and clipping planes.  Arguments are as above, except zs is Z scale */
+static double clippedTriangleArea(Imesh *mesh, int i, float zs, Ipoint min,
+                                  Ipoint max, int doclip, Iplane *plane,
+                                  int nPlanes)
+{
+  int inside1, inside2, inside3;
+     
+  Ipoint *p1, *p2, *p3, *p;
+  Ipoint n, n1, n2;
+  float clipfrac;
+
+  p1 = &(mesh->vert[mesh->list[++i]]);
+  i+=2;
+  p2 = &(mesh->vert[mesh->list[i]]);
+  i+=2;
+  p3 = &(mesh->vert[mesh->list[i++]]);
+                    
+  /* Count the number of vertices that are inside the defined volume
+     first evaluate their relation to the clipping plane */
+  inside1 = 1;
+  inside2 = 1;
+  inside3 = 1;
+    
+  if (doclip) {
+    inside1 = imodPlanesClip(plane, nPlanes, p1);
+    inside2 = imodPlanesClip(plane, nPlanes, p2);
+    inside3 = imodPlanesClip(plane, nPlanes, p3);
+    if (doclip < 0) {
+      inside1 = 1 - inside1;
+      inside2 = 1 - inside2;
+      inside3 = 1 - inside3;
+    }
+  }
+    
+  /* Now see whether the vertices fit in the bounding box */
+  if (p1->x < min.x || p1->x >= max.x ||
+      p1->y < min.y || p1->y >= max.y ||
+      p1->z < min.z || p1->z >= max.z)
+    inside1 = 0;
+  if (p2->x < min.x || p2->x >= max.x ||
+      p2->y < min.y || p2->y >= max.y ||
+      p2->z < min.z || p2->z >= max.z)
+    inside2 = 0;
+  if (p3->x < min.x || p3->x >= max.x ||
+      p3->y < min.y || p3->y >= max.y ||
+      p3->z < min.z || p3->z >= max.z)
+    inside3 = 0;
+    
+  /*  just take a fraction equal to the fraction of vertices inside */
+  clipfrac = (inside1 + inside2 + inside3) / 3.;
+  if (clipfrac) {
+    n1.x = p1->x - p2->x;
+    n1.y = p1->y - p2->y;
+    n1.z = (p1->z - p2->z) * zs;
+    n2.x = p3->x - p2->x;
+    n2.y = p3->y - p2->y;
+    n2.z = (p3->z - p2->z) * zs;
+    imodPointCross(&n1, &n2, &n);
+      
+    return clipfrac * sqrt((double)(n.x*n.x + n.y*n.y + n.z*n.z)) * 0.5;
+  }
+  return 0.;
 }
 
 static int getContZValue(Icont *cont)
@@ -1706,9 +1921,13 @@ typedef struct Nest_struct
   int *outside;  /* Numbers of contours outside */
   Icont *inscan; /* Scan contour of object interior, for odd levels */
 }Nesting;
-               
+
+/* Computes the cylinder and mesh volume with adjustments for inside contours,
+   subset areas, or clipping planes.  Arguments as above; mesh volume returned
+   in meshVol */
 static float scanned_volume(Iobj *obj, int subarea, Ipoint ptmin, Ipoint ptmax,
-                            int doclip, Iplane *plane)
+                            int doclip, Iplane *plane, int nPlanes, 
+                            double *meshVol)
 {
   int co;
   Icont *cont;
@@ -1717,8 +1936,8 @@ static float scanned_volume(Iobj *obj, int subarea, Ipoint ptmin, Ipoint ptmax,
   int i, j;
   int z, indz;
   int cz;
-  int nummax, inbox, clipsum;
-  Ipoint tmpmax, tmpmin, corner;
+  int nummax, inbox;
+  float frac1, frac2;
 
   int *contz;
   Ipoint *pmin, *pmax;
@@ -1727,13 +1946,14 @@ static float scanned_volume(Iobj *obj, int subarea, Ipoint ptmin, Ipoint ptmax,
   int  kis;
   int numnests;
   int eco;
-  float frac1, frac2;
   Nesting *nest, *nests;
   int *nestind;
   int inco, outco, level, more, ready, nind, oind;
   float *areas;
+  float *volFacs;
   double tvol = 0.;
 
+  *meshVol = 0.;
   if (!obj->contsize)
     return(0.);
      
@@ -1790,11 +2010,12 @@ static float scanned_volume(Iobj *obj, int subarea, Ipoint ptmin, Ipoint ptmax,
   pmax = (Ipoint *)malloc(nummax * sizeof(Ipoint));
   scancont = (Icont **)malloc(nummax * sizeof (Icont *)); 
   areas = (float *)malloc(nummax * sizeof(float));
+  volFacs = (float *)malloc(nummax * sizeof(float));
 
   /* Get array for pointers to inside/outside information */
   nestind = (int *)malloc(nummax * sizeof(int));
   nests = (Nesting *)malloc(nummax * sizeof(Nesting));
-  if (!pmin || !pmax || !scancont || !areas || !nestind || !nests)
+  if (!pmin || !pmax || !scancont || !areas || !nestind || !nests || !volFacs)
     return -1.;
 
   for (indz = 0; indz < zmax + 1 - zmin; indz++) {
@@ -1806,65 +2027,16 @@ static float scanned_volume(Iobj *obj, int subarea, Ipoint ptmin, Ipoint ptmax,
     for (kis = 0; kis < numatz[indz]; kis++) {
       co = contatz[indz][kis];
       cont = &(obj->cont[co]);
-      if (!cont->psize)
-        continue;
-      imodel_contour_mm(cont, &tmpmax, &tmpmin);
-      if (tmpmin.x > ptmax.x || tmpmax.x < ptmin.x ||
-          tmpmin.y > ptmax.y || tmpmax.y < ptmin.y)
-        continue;
 
-      if (doclip) {
-        /* Evaluate the corners of the bounding box: if all on 
-           wrong side of clip plane, skip */
-        corner = tmpmin;
-        clipsum = imodPlaneClip(plane, &corner);
-        corner.y = tmpmax.y;
-        clipsum += imodPlaneClip(plane, &corner);
-        corner.x = tmpmax.x;
-        clipsum += imodPlaneClip(plane, &corner);
-        corner.y = tmpmin.y;
-        clipsum += imodPlaneClip(plane, &corner);
-        if ((clipsum == 0 && doclip > 0) || 
-            (clipsum == 4 & doclip < 0))
-          continue;
+      if (contourSubareaByScan(cont, ptmin, ptmax, doclip, plane, nPlanes, 1,
+                               &scancont[inbox], &pmin[inbox], 
+                               &pmax[inbox], &areas[inbox])) {
+        volFacs[inbox] = contourVolumeFactor(obj, cont, ptmin, ptmax);
+        nestind[inbox++] = -1;
+        if (Debug)
+          printf ("contour %d  area %f  volume factor %f\n", co + 1,
+                  areas[inbox-1], volFacs[inbox-1]);
       }
-
-      scancont[inbox] = imodel_contour_scan(cont);
-
-      /* need to copy the z coordinate over! */
-      if (scancont[inbox]->psize)
-        scancont[inbox]->pts->z = cont->pts->z;
-
-      /* Start with true area of untrimmed contour */
-      areas[inbox] = imodContourArea(cont);
-
-      /* If contour is not wholly inside the box, or is not all on 
-         the good side of the clip plane, need to trim scan
-         contour down */
-      if (tmpmin.x < ptmin.x || tmpmax.x > ptmax.x ||
-          tmpmin.y < ptmin.y || tmpmax.y > ptmax.y || 
-          (doclip && (clipsum > 0 && clipsum < 4))) {
-        frac1 = scan_contour_area(scancont[inbox]);
-        trim_scan_contour(scancont[inbox], ptmin, ptmax, doclip,
-                          plane);
-        if(!scancont[inbox]->psize) {
-          /* If contour now empty, delete and skip it */
-          imodContourDelete(scancont[inbox]);
-          continue;
-        }
-        imodel_contour_mm(scancont[inbox], &tmpmax, &tmpmin);
-
-        /* Adjust true area down by ratio of trimmed to original
-           scan-contour area */
-        frac2 = scan_contour_area(scancont[inbox]);
-        if (frac1 && (frac2 < frac1)) 
-          areas[inbox] *= frac2 / frac1;
-      }
-
-      pmin[inbox] = tmpmin;
-      pmax[inbox] = tmpmax;
-      nestind[inbox++] = -1;
-      /*  printf ("contour %d  area %f\n", co + 1, areas[inbox-1]); */
     }
 
     /* Look for overlapping contours as in imodmesh */
@@ -1950,8 +2122,7 @@ static float scanned_volume(Iobj *obj, int subarea, Ipoint ptmin, Ipoint ptmax,
       level++;
     } while(more);
           
-    /* now add up areas of non-nested and odd levels, 
-       minus even levels */
+    /* now add up areas of non-nested and odd levels, minus even levels */
     for (co = 0; co < inbox; co++) {
       level = 1;
       if (nestind[co] >= 0)
@@ -1959,9 +2130,11 @@ static float scanned_volume(Iobj *obj, int subarea, Ipoint ptmin, Ipoint ptmax,
       if (level % 2) {
         /* printf ("adding %f at level %d\n", areas[co], level); */
         tvol += areas[co];
+        *meshVol += volFacs[co] * areas[co];
       } else {
         /* printf ("subtracting %f at level %d\n", areas[co], level); */
         tvol -= areas[co];
+        *meshVol -= volFacs[co] * areas[co];
       }
     }
 
@@ -1993,12 +2166,105 @@ static float scanned_volume(Iobj *obj, int subarea, Ipoint ptmin, Ipoint ptmax,
   free(pmin);
   free(pmax);
   free(areas);
+  free(volFacs);
   return ((float)tvol);
 }
+  
+/*
+ * Computes the area of a contour clipped by subarea and clipping planes, 
+ * using a scan contour to implement the clipping.  Returns 1 if the contour
+ * has non-zero area.  Arguments doclip, plane, nPlanes are as above.  Other
+ * inputs:  ptmin, ptmax - points with limits of subarea
+ *          makeScan     - Make a scan contour even if one is not needed and
+ *                          do not delete a created scan contour
+ * outputs: scancont     - pointer to address of created scan contour
+ *          pmin, pmax   - pointers to points for bounding box of contour
+ *          area         - pointer to computed area
+ */
+static int contourSubareaByScan(Icont *cont, Ipoint ptmin, Ipoint ptmax,
+                                int doclip, Iplane *plane, int nPlanes, 
+                                int makeScan, Icont **scancont, Ipoint *pmin,
+                                Ipoint *pmax, float *area)
+{
+  Ipoint tmpmax, tmpmin, corner;
+  int clipsum;
+  float frac1, frac2, cz;
+  *scancont = NULL;
+  *area = 0.;
+  
+  if (!cont->psize)
+    return 0;
 
-/* Slight mod of library function to assume it's already a scan cont, and to 
-   add up and return doubles not ints */
-static double scan_contour_area(struct Mod_Contour *cont)
+  /* Get limits and test in X and Y */
+  imodel_contour_mm(cont, &tmpmax, &tmpmin);
+  if (tmpmin.x > ptmax.x || tmpmax.x < ptmin.x ||
+      tmpmin.y > ptmax.y || tmpmax.y < ptmin.y)
+    return 0;
+
+  if (doclip) {
+    /* Evaluate the corners of the bounding box: if all on 
+       wrong side of clip plane, skip */
+    corner = tmpmin;
+    clipsum = imodPlanesClip(plane, nPlanes, &corner);
+    corner.y = tmpmax.y;
+    clipsum += imodPlanesClip(plane, nPlanes, &corner);
+    corner.x = tmpmax.x;
+    clipsum += imodPlanesClip(plane, nPlanes, &corner);
+    corner.y = tmpmin.y;
+    clipsum += imodPlanesClip(plane, nPlanes, &corner);
+    if ((clipsum == 0 && doclip > 0) || 
+        (clipsum == 4 & doclip < 0))
+      return 0;
+  }
+
+  /* Start with true area of untrimmed contour */
+  *area = imodContourArea(cont);
+
+  /* If contour is not wholly inside the box, or is not all on 
+     the good side of the clip plane, need to trim scan
+     contour down */
+  if (tmpmin.x < ptmin.x || tmpmax.x > ptmax.x ||
+      tmpmin.y < ptmin.y || tmpmax.y > ptmax.y || 
+      (doclip && (clipsum > 0 && clipsum < 4))) {
+    (*scancont) = imodel_contour_scan(cont);
+
+    /* need to copy the z coordinate over! */
+    if ((*scancont)->psize)
+      (*scancont)->pts->z = cont->pts->z;
+
+    frac1 = scan_contour_area((*scancont));
+    trim_scan_contour((*scancont), ptmin, ptmax, doclip,
+                      plane, nPlanes);
+    if(!(*scancont)->psize) {
+      /* If contour now empty, delete and skip it */
+      imodContourDelete((*scancont));
+      return 0;
+    }
+    imodel_contour_mm((*scancont), &tmpmax, &tmpmin);
+
+    /* Adjust true area down by ratio of trimmed to original
+       scan-contour area */
+    frac2 = scan_contour_area((*scancont));
+    if (frac1 && (frac2 < frac1)) 
+      *area *= frac2 / frac1;
+  }
+
+  /* Make scan contour if necessary and requested; delete if not requested */
+  if (makeScan && !(*scancont)) {
+    (*scancont) = imodel_contour_scan(cont);
+    if ((*scancont)->psize)
+      (*scancont)->pts->z = cont->pts->z;
+  } else if (!makeScan && *scancont)
+    imodContourDelete((*scancont));
+
+  *pmin = tmpmin;
+  *pmax = tmpmax;
+  return 1;
+}
+
+/* Compute area of scan contour.  Slight mod of library function to assume 
+   it's already a scan cont, and to add up and return doubles not ints */
+static double scan_contour_area(Icont *cont)
 {
   double pix = 0.;
   int i, j;
@@ -2041,13 +2307,16 @@ static double scan_contour_area(struct Mod_Contour *cont)
   return(pix);
 }
 
+/* Trims a scan contour based on subset area and clipping planes. 
+   Arguments as above */
 static void trim_scan_contour(Icont *cont, Ipoint min, Ipoint max, int doclip,
-                              Iplane *pl)
+                              Iplane *plane, int nPlanes)
 {
-  int i;
+  int i, ipl;
   Ipoint *pts;
   Ipoint tmin, tmax;
   float yline, ylast, crit, pmag, contz;
+  Iplane *pl;
 
   if (!cont)
     return;
@@ -2055,65 +2324,75 @@ static void trim_scan_contour(Icont *cont, Ipoint min, Ipoint max, int doclip,
     return;
   pts = cont->pts;
   contz = pts->z;
-  tmin = min;
-  tmax = max;
-  ylast = 1.e20;
-  if (doclip) {
-    pmag = sqrt((double)(pl->a * pl->a + pl->b * pl->b + pl->c * pl->c));
 
-    /* If a is small, compute y limit; but if b is small also, skip
-       checking for these limits.  In either case set doclip to 0 */
-    if (pl->a < 1.e-10 * pmag && pl->a > -1.e-10 * pmag) {
-      if (pl->b > 1.e-10 * pmag || pl->b < -1.e-10 * pmag) {
-        crit = -(pl->c * contz + pl->d) / pl->b;
-        if ((doclip > 0 && pl->b > 0.) ||
-            (doclip < 0 && pl->b < 0.)) {
-          tmin.y = crit;
-          /* printf("%f  tmin.y  %f\n", contz, crit); */
-        } else {
-          tmax.y = crit;
-          /* printf("%f  tmax.y  %f\n", contz, crit); */
+  /* DNM 9/26/04: just loop on multiple planes.  Fix probable bug; take max
+   of clipping crit and overall min, min of clipping crit and overall max */
+  for (ipl = 0; ipl < (doclip ? nPlanes : 1); ipl++) {
+    pl = &plane[ipl];
+    tmin = min;
+    tmax = max;
+    ylast = 1.e20;
+    if (doclip) {
+      pmag = sqrt((double)(pl->a * pl->a + pl->b * pl->b + pl->c * pl->c));
+
+      /* If a is small, compute y limit; but if b is small also, skip
+         checking for these limits.  In either case set doclip to 0 */
+      if (pl->a < 1.e-10 * pmag && pl->a > -1.e-10 * pmag) {
+        if (pl->b > 1.e-10 * pmag || pl->b < -1.e-10 * pmag) {
+          crit = -(pl->c * contz + pl->d) / pl->b;
+          if ((doclip > 0 && pl->b > 0.) ||
+              (doclip < 0 && pl->b < 0.)) {
+            if (tmin.y < crit)
+              tmin.y = crit;
+            /*printf("%f  tmin.y  %f\n", contz, crit);*/
+          } else {
+            if (tmax.y > crit)
+              tmax.y = crit;
+            /*printf("%f  tmax.y  %f\n", contz, crit);*/
+          }
         }
+        doclip = 0;
       }
-      doclip = 0;
-    }
-  }
-
-  for (i = 0; i < cont->psize; i++) {
-    yline = pts[i].y;
-    if (yline != ylast && doclip) {
-      /* If its a new line and clip needs to be checked, compute the
-         limit in X for this Y and assign it to min or max */
-      tmin = min;
-      tmax = max;
-      ylast = yline;
-      crit = -(pl->b * yline + pl->c * contz + pl->d) / pl->a;
-      if ((doclip > 0 && pl->a > 0.) ||
-          (doclip < 0 && pl->a < 0.)) {
-        tmin.x = crit;
-        /*  printf ("%f %d %f tmin.x %f\n", contz, i, yline, crit); */
-      } else {
-        tmax.x = crit;
-        /* printf ("%f %d %f tmax.x %f\n", contz, i, yline, crit); */
-      }
-
     }
 
-    if (yline == pts[i + 1].y) {
-      if (yline < tmin.y || yline > tmax.y || pts[i].x > tmax.x ||
-          pts[i + 1].x < tmin.x) {
-        /* If line is out of bounds in y or x, delete 2 points */
-        imodel_point_delete(cont, i);
-        imodel_point_delete(cont, i);
-        i--;
-      } else {
-        /* otherwise, check and truncate the left and right ends
-           of the scan line */
-        if (pts[i].x < tmin.x)
-          pts[i].x = tmin.x;
-        if (pts[i + 1].x > tmax.x)
-          pts[i + 1].x = tmax.x;
-        i++;
+    for (i = 0; i < cont->psize; i++) {
+      yline = pts[i].y;
+      if (yline != ylast && doclip) {
+        /* If its a new line and clip needs to be checked, compute the
+           limit in X for this Y and assign it to min or max */
+        tmin = min;
+        tmax = max;
+        ylast = yline;
+        crit = -(pl->b * yline + pl->c * contz + pl->d) / pl->a;
+        if ((doclip > 0 && pl->a > 0.) ||
+            (doclip < 0 && pl->a < 0.)) {
+          if (tmin.x < crit)
+            tmin.x = crit;
+          /*printf ("%f %d %f tmin.x %f\n", contz, i, yline, crit);*/
+        } else {
+          if (tmax.x > crit)
+            tmax.x = crit;
+          /*printf ("%f %d %f tmax.x %f\n", contz, i, yline, crit); */
+        }
+
+      }
+
+      if (yline == pts[i + 1].y) {
+        if (yline < tmin.y || yline > tmax.y || pts[i].x > tmax.x ||
+            pts[i + 1].x < tmin.x) {
+          /* If line is out of bounds in y or x, delete 2 points */
+          imodel_point_delete(cont, i);
+          imodel_point_delete(cont, i);
+          i--;
+        } else {
+          /* otherwise, check and truncate the left and right ends
+             of the scan line */
+          if (pts[i].x < tmin.x)
+            pts[i].x = tmin.x;
+          if (pts[i + 1].x > tmax.x)
+            pts[i + 1].x = tmax.x;
+          i++;
+        }
       }
     }
   }
