@@ -20,6 +20,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.4  2003/04/17 23:07:20  rickg
+ * <p> Added cleanup panel
+ * <p>
  * <p> Revision 2.3  2003/04/16 00:15:01  rickg
  * <p> Trimvol in progress
  * <p>
@@ -57,7 +60,9 @@ import etomo.type.AxisID;
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
  */
-public class PostProcessingDialog extends ProcessDialog {
+public class PostProcessingDialog
+  extends ProcessDialog
+  implements ContextMenu {
   public static final String rcsid =
     "$Id$";
 
@@ -82,6 +87,12 @@ public class PostProcessingDialog extends ProcessDialog {
 
     buttonAdvanced.setVisible(false);
     buttonExecute.setText("Done");
+
+
+		//  Mouse adapter for context menu
+		GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
+		rootPanel.addMouseListener(mouseAdapter);
+
     // Set the default advanced dialog state
     updateAdvanced();
   }
@@ -100,6 +111,22 @@ public class PostProcessingDialog extends ProcessDialog {
    */
   public void getTrimvolParams(TrimvolParam trimvolParam) {
     trimvolPanel.getParameters(trimvolParam);
+  }
+
+  /**
+   * Right mouse button context menu
+   */
+  public void popUpContextMenu(MouseEvent mouseEvent) {
+    String[] manPagelabel = { "Trimvol"};
+    String[] manPage = { "trimvol.html" };
+
+    //    ContextPopup contextPopup =
+    new ContextPopup(
+      rootPanel,
+      mouseEvent,
+      "POST-PROCESSING",
+      manPagelabel,
+      manPage);
   }
 
   /**
