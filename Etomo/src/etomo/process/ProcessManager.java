@@ -29,6 +29,9 @@ import java.util.ArrayList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.19  2003/07/01 22:52:58  rickg
+ * <p> Start process monitor thread before comscript thread
+ * <p>
  * <p> Revision 2.18  2003/07/01 19:28:27  rickg
  * <p> startComScript and mapThreadAxis now manage the
  * <p> processMonitor
@@ -207,12 +210,18 @@ public class ProcessManager {
    */
   public String eraser(AxisID axisID) {
 
+    // Create the process monitor
+    CCDEraserProcessMonitor ccdEraserProcessMonitor =
+      new CCDEraserProcessMonitor(appManager, axisID);
+
     //  Create the required command string
     String command = "eraser" + axisID.getExtension() + ".com";
 
     //  Start the com script in the background
-    ComScriptProcess comScript = startComScript(command, null, axisID);
-    return comScript.getName();
+    ComScriptProcess comScriptProcess =
+      startComScript(command, ccdEraserProcessMonitor, axisID);
+
+    return comScriptProcess.getName();
   }
 
   /**
@@ -221,16 +230,18 @@ public class ProcessManager {
    */
   public String crossCorrelate(AxisID axisID) {
 
+    //  Create the process monitor
+    XcorrProcessWatcher xcorrProcessWatcher =
+      new XcorrProcessWatcher(appManager, axisID);
+
     //  Create the required command string
     String command = "xcorr" + axisID.getExtension() + ".com";
 
     //  Start the com script in the background
-    ComScriptProcess comScript = startComScript(command, null, axisID);
-    XcorrProcessWatcher xcorrProcessWatcher =
-      new XcorrProcessWatcher(comScript, appManager, axisID);
-    Thread xcpwThread = new Thread(xcorrProcessWatcher);
-    xcpwThread.start();
-    return comScript.getName();
+    ComScriptProcess comScriptProcess =
+      startComScript(command, xcorrProcessWatcher, axisID);
+
+    return comScriptProcess.getName();
   }
 
   /**
@@ -247,9 +258,9 @@ public class ProcessManager {
       new PrenewstProcessMonitor(appManager, axisID);
 
     //  Start the com script in the background
-    ComScriptProcess comScript =
+    ComScriptProcess comScriptProcess =
       startComScript(command, prenewstProcessMonitor, axisID);
-    return comScript.getName();
+    return comScriptProcess.getName();
   }
 
   /**
@@ -291,8 +302,8 @@ public class ProcessManager {
     String command = "track" + axisID.getExtension() + ".com";
 
     //  Start the com script in the background
-    ComScriptProcess comScript = startComScript(command, null, axisID);
-    return comScript.getName();
+    ComScriptProcess comScriptProcess = startComScript(command, null, axisID);
+    return comScriptProcess.getName();
   }
 
   /**
@@ -306,8 +317,8 @@ public class ProcessManager {
     String command = "align" + axisID.getExtension() + ".com";
 
     //  Start the com script in the background
-    ComScriptProcess comScript = startComScript(command, null, axisID);
-    return comScript.getName();
+    ComScriptProcess comScriptProcess = startComScript(command, null, axisID);
+    return comScriptProcess.getName();
 
   }
 
@@ -360,8 +371,8 @@ public class ProcessManager {
     String command = "sample" + axisID.getExtension() + ".com";
 
     //  Start the com script in the background
-    ComScriptProcess comScript = startComScript(command, null, axisID);
-    return comScript.getName();
+    ComScriptProcess comScriptProcess = startComScript(command, null, axisID);
+    return comScriptProcess.getName();
 
   }
 
@@ -376,8 +387,8 @@ public class ProcessManager {
     String command = "tomopitch" + axisID.getExtension() + ".com";
 
     //  Start the com script in the background
-    ComScriptProcess comScript = startComScript(command, null, axisID);
-    return comScript.getName();
+    ComScriptProcess comScriptProcess = startComScript(command, null, axisID);
+    return comScriptProcess.getName();
 
   }
 
@@ -395,9 +406,9 @@ public class ProcessManager {
     NewstProcessMonitor newstProcessMonitor =
       new NewstProcessMonitor(appManager, axisID);
     //  Start the com script in the background
-    ComScriptProcess comScript =
+    ComScriptProcess comScriptProcess =
       startComScript(command, newstProcessMonitor, axisID);
-    return comScript.getName();
+    return comScriptProcess.getName();
 
   }
 
@@ -414,10 +425,10 @@ public class ProcessManager {
     //  Start the com script in the background
     TiltProcessMonitor tiltProcessMonitor =
       new TiltProcessMonitor(appManager, axisID);
-    ComScriptProcess comScript =
+    ComScriptProcess comScriptProcess =
       startComScript(command, tiltProcessMonitor, axisID);
 
-    return comScript.getName();
+    return comScriptProcess.getName();
 
   }
 
@@ -503,8 +514,9 @@ public class ProcessManager {
     String command = "combine.com";
 
     //  Start the com script in the background
-    ComScriptProcess comScript = startComScript(command, null, AxisID.ONLY);
-    return comScript.getName();
+    ComScriptProcess comScriptProcess =
+      startComScript(command, null, AxisID.ONLY);
+    return comScriptProcess.getName();
 
   }
 
@@ -517,8 +529,9 @@ public class ProcessManager {
     String command = "solvematchshift.com";
 
     //  Start the com script in the background
-    ComScriptProcess comScript = startComScript(command, null, AxisID.ONLY);
-    return comScript.getName();
+    ComScriptProcess comScriptProcess =
+      startComScript(command, null, AxisID.ONLY);
+    return comScriptProcess.getName();
 
   }
 
@@ -531,8 +544,9 @@ public class ProcessManager {
     String command = "solvematchmod.com";
 
     //  Start the com script in the background
-    ComScriptProcess comScript = startComScript(command, null, AxisID.ONLY);
-    return comScript.getName();
+    ComScriptProcess comScriptProcess =
+      startComScript(command, null, AxisID.ONLY);
+    return comScriptProcess.getName();
 
   }
 
@@ -545,8 +559,9 @@ public class ProcessManager {
     String command = "matchvol1.com";
 
     //  Start the com script in the background
-    ComScriptProcess comScript = startComScript(command, null, AxisID.ONLY);
-    return comScript.getName();
+    ComScriptProcess comScriptProcess =
+      startComScript(command, null, AxisID.ONLY);
+    return comScriptProcess.getName();
 
   }
 
@@ -559,8 +574,9 @@ public class ProcessManager {
     String command = "patchcorr.com";
 
     //  Start the com script in the background
-    ComScriptProcess comScript = startComScript(command, null, AxisID.ONLY);
-    return comScript.getName();
+    ComScriptProcess comScriptProcess =
+      startComScript(command, null, AxisID.ONLY);
+    return comScriptProcess.getName();
 
   }
 
@@ -573,8 +589,9 @@ public class ProcessManager {
     String command = "matchorwarp.com";
 
     //  Start the com script in the background
-    ComScriptProcess comScript = startComScript(command, null, AxisID.ONLY);
-    return comScript.getName();
+    ComScriptProcess comScriptProcess =
+      startComScript(command, null, AxisID.ONLY);
+    return comScriptProcess.getName();
 
   }
 
@@ -587,8 +604,9 @@ public class ProcessManager {
     String command = "volcombine.com";
 
     //  Start the com script in the background
-    ComScriptProcess comScript = startComScript(command, null, AxisID.ONLY);
-    return comScript.getName();
+    ComScriptProcess comScriptProcess =
+      startComScript(command, null, AxisID.ONLY);
+    return comScriptProcess.getName();
 
   }
 
@@ -720,17 +738,26 @@ public class ProcessManager {
     //  Check to see if the exit value is non-zero
     if (exitValue != 0) {
       String[] stdError = process.getStdError();
-      String[] message = new String[stdError.length + 3];
+      String[] message;
 
-      int j = 0;
-      message[j++] = "<html>Command failed: " + process.getCommandLine();
-      message[j++] = "  ";
-      message[j++] = "<html><U>Standard error output:</U>";
-      for (int i = 0; i < stdError.length; i++, j++) {
-        message[j] = stdError[i];
+      // Is the last string "Killed"
+      if (stdError[stdError.length - 1].trim().equals("Killed")) {
+        message = new String[1];
+        message[0] = "<html>Terminated: " + process.getCommandLine();
       }
-
-      appManager.openMessageDialog(message, process.getCommand() + " failed");
+      else {
+        int j = 0;
+        message = new String[stdError.length + 3];
+        message[j++] = "<html>Command failed: " + process.getCommandLine();
+        message[j++] = "  ";
+        message[j++] = "<html><U>Standard error output:</U>";
+        for (int i = 0; i < stdError.length; i++, j++) {
+          message[j] = stdError[i];
+        }
+      }
+      appManager.openMessageDialog(
+        message,
+        process.getCommand() + " terminated");
     }
 
     // Another possible error message source is ERROR: in the stdout stream
@@ -772,29 +799,50 @@ public class ProcessManager {
    * @param exitValue the exit value for the com script
    */
   public void msgComScriptDone(ComScriptProcess script, int exitValue) {
+    // Interrupt the process monitor and nulll out the appropriate references
+    if (threadAxisA == script) {
+      if (processMonitorA != null) {
+        processMonitorA.interrupt();
+        processMonitorA = null;
+      }
+      threadAxisA = null;
+    }
+    if (threadAxisB == script) {
+      if (processMonitorB != null) {
+        processMonitorB.interrupt();
+        processMonitorB = null;
+      }
+      threadAxisB = null;
+    }
 
     if (exitValue != 0) {
-      String[] message = script.getErrorMessage();
       String[] stdError = script.getStdError();
-      String[] combined = new String[message.length + stdError.length + 5];
-
-      int j = 0;
-      combined[j++] = "<html>Com script failed: " + script.getScriptName();
-      combined[j++] = "  ";
-      combined[j++] = "<html><U>Log file errors:</U>";
-
-      for (int i = 0; i < message.length; i++, j++) {
-        combined[j] = message[i];
+      String[] combined;
+      //    Is the last string "Killed"
+      if (stdError[stdError.length - 1].trim().equals("Killed")) {
+        combined = new String[1];
+        combined[0] = "<html>Terminated: " + script.getScriptName();
       }
-      combined[j++] = "  ";
-      combined[j++] = "<html><U>Standard error output:</U>";
-      for (int i = 0; i < stdError.length; i++, j++) {
-        combined[j] = stdError[i];
-      }
+      else {
+        String[] message = script.getErrorMessage();
+        combined = new String[message.length + stdError.length + 5];
+        int j = 0;
+        combined[j++] = "<html>Com script failed: " + script.getScriptName();
+        combined[j++] = "  ";
+        combined[j++] = "<html><U>Log file errors:</U>";
 
+        for (int i = 0; i < message.length; i++, j++) {
+          combined[j] = message[i];
+        }
+        combined[j++] = "  ";
+        combined[j++] = "<html><U>Standard error output:</U>";
+        for (int i = 0; i < stdError.length; i++, j++) {
+          combined[j] = stdError[i];
+        }
+      }
       appManager.openMessageDialog(
         combined,
-        script.getScriptName() + " failed");
+        script.getScriptName() + " terminated");
     }
     else {
       // Script specific post processing
@@ -825,21 +873,7 @@ public class ProcessManager {
       }
 
     }
-    // Interrupt the process monitor and nulll out the appropriate references
-    if (threadAxisA == script) {
-      if (processMonitorA != null) {
-        processMonitorA.interrupt();
-        processMonitorA = null;
-      }
-      threadAxisA = null;
-    }
-    if (threadAxisB == script) {
-      if (processMonitorB != null) {
-        processMonitorB.interrupt();
-        processMonitorB = null;
-      }
-      threadAxisB = null;
-    }
+
     appManager.processDone(script.getName(), exitValue);
   }
 
@@ -872,26 +906,28 @@ public class ProcessManager {
     Runnable processMonitor,
     AxisID axisID) {
 
+    //  Run the script as a thread in the background
+    ComScriptProcess comScriptProcess = new ComScriptProcess(command, this);
+    comScriptProcess.setWorkingDirectory(
+      new File(System.getProperty("user.dir")));
+    comScriptProcess.setDebug(appManager.isDebug());
+    comScriptProcess.setDemoMode(appManager.isDemo());
+    comScriptProcess.start();
+
+    if (appManager.isDebug()) {
+      System.err.println("Started " + command);
+      System.err.println("  Name: " + comScriptProcess.getName());
+    }
+
+    //  Start the process monitor thread if a runnable process is provided
     Thread processMonitorThread = null;
     if (processMonitor != null) {
       processMonitorThread = new Thread(processMonitor);
       processMonitorThread.start();
     }
 
-    //  Run the script as a thread in the background
-    ComScriptProcess comScript = new ComScriptProcess(command, this);
-    comScript.setWorkingDirectory(new File(System.getProperty("user.dir")));
-    comScript.setDebug(appManager.isDebug());
-    comScript.setDemoMode(appManager.isDemo());
-    comScript.start();
-
-    if (appManager.isDebug()) {
-      System.err.println("Started " + command);
-      System.err.println("  Name: " + comScript.getName());
-    }
-
-    mapThreadAxis(comScript, processMonitorThread, axisID);
-    return comScript;
+    mapThreadAxis(comScriptProcess, processMonitorThread, axisID);
+    return comScriptProcess;
   }
 
   /**
