@@ -57,6 +57,9 @@ import etomo.type.AxisID;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.8  2004/04/30 21:12:23  sueh
+ * <p> $bug# 428 opening ZaP window on open() when not in model view mode
+ * <p> $
  * <p> $Revision 1.7  2004/04/28 01:02:33  sueh
  * <p> $bug# 428 calling ImodProcess.viewModel() when reopening a
  * <p> $3dmod with a mode view window
@@ -442,6 +445,9 @@ public class ImodState {
   }
   public void setWarnedStaleFile(boolean warnedStaleFile) {
     this.warnedStaleFile = warnedStaleFile;
+  }
+  public void setBinning(int binning) {
+    process.setBinning(binning);
   }
 
 
