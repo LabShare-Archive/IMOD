@@ -31,6 +31,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.8  2003/10/28 23:35:48  rickg
+ * <p> Bug# 336 Context menu label capitalization
+ * <p>
  * <p> Revision 2.7  2003/10/28 00:23:47  rickg
  * <p> Bug# 336 Context menu label capitalization
  * <p>
@@ -320,7 +323,6 @@ public class TomogramPositioningDialog
         + "edges of the section in each sample.";
     btnCreateBoundary.setToolTipText(tooltipFormatter.setText(text).format());
 
-    //  FIXME: If log file is opened automatically remove second sentence.
     text =
       "Run tomopitch.  You need to examine the log file to determine the"
         + "Z shift, additional angle offset, and X-axis tilt.";
