@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<classpath>
-    <classpathentry kind="src" path="src"/>
-    <classpathentry kind="var" path="JRE_LIB" sourcepath="JRE_SRC"/>
-    <classpathentry kind="lib" path="/usr/local/eclipse/plugins/org.junit_3.8.1/junit.jar"/>
-    <classpathentry kind="output" path="bin"/>
-</classpath>
