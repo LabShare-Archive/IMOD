@@ -277,6 +277,11 @@ void XyzWindow::GetCIImages()
 
   xx->yzdata = (B3dCIImage *)b3dGetNewCIImageSize
     (xx->yzdata, App->depth, xdim, ydim1);
+
+  if (!xx->xydata || !xx->xzdata || !xx->yzdata)
+    wprint("\aInsufficient memory to run this Xyz window.\n"
+            "Try making it smaller or close it.\n");
+
   return;
 }
 
@@ -1727,6 +1732,9 @@ void XyzGL::mouseMoveEvent( QMouseEvent * event )
 
 /*
 $Log$
+Revision 4.4  2003/03/12 06:36:18  mast
+Fixed problem of adding or modifying contours at the wrong times
+
 Revision 4.3  2003/03/07 15:49:55  mast
 Fixed bug in drawing curretn point when no current contour
 

@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.2  2003/02/27 19:40:46  mast
+remove slow floor() calls
+
 Revision 4.1  2003/02/10 20:29:02  mast
 autox.cpp
 
@@ -1352,6 +1355,11 @@ void TumblerGL::resizeGL( int wdth, int hght )
   mTum->height = hght;
   b3dResizeViewportXY(wdth, hght);
   mTum->image   = b3dGetNewCIImageSize(mTum->image, App->depth, wdth, hght);
+  if (!mTum->image) {
+    wprint("\aInsufficient memory to run this Tumbler window.\n"
+           "Please close it\n");
+    return;
+  }
 
   mTum->dialog->setSlice(mTum);
 }

@@ -486,6 +486,12 @@ void zapResize(ZapStruct *zap, int winx, int winy)
   b3dResizeViewportXY(winx, winy);
 
   zap->image =  b3dGetNewCIImage(zap->image, App->depth);
+  if (!zap->image) {
+    wprint("\aInsufficient memory to run this Zap window.\n"
+            "Try making it smaller or close it.\n");
+    return;
+  }
+
   b3dBufferImage(zap->image);
   zap->ginit = 1;
 
@@ -2002,7 +2008,7 @@ static void zapResizeToFit(ZapStruct *zap)
 /****************************************************************************/
 /* drawing routines.                                                        */
 
-/* Draws the image.  Returns 1 if further drawing can be skipped */
+/* Draws the image */
 static void zapDrawGraphics(ZapStruct *zap)
 {
   ImodView *vi = zap->vi;
@@ -2035,18 +2041,6 @@ static void zapDrawGraphics(ZapStruct *zap)
     }
     imageData = ivwGetZSection(vi, zap->section);
   }
-
-  /* DNM: set sliders if doing float.  Set flag that the routine is
-     being called, so that it won't be called again when it initiates a
-     redraw.  If a redraw actually occurred, set the flag to skip drawing
-     on the rest of this invocation and in the rest of zapdraw */
-  /*  if(!doingBWfloat) {
-    doingBWfloat = 1;
-    if (imod_info_bwfloat(vi, zap->section, time) && App->rgba)
-      skipDraw = 1;
-    doingBWfloat = 0;
-    } */
-
 
   b3dDrawBoxout(zap->xborder, zap->yborder, 
 		zap->xborder + (int)(zap->xdrawsize * zap->zoom),
@@ -2595,6 +2589,9 @@ bool zapTimeMismatch(ImodView *vi, int timelock, Iobj *obj, Icont *cont)
 
 /*
 $Log$
+Revision 4.9  2003/03/12 06:36:53  mast
+Fixed problem of adding or modifying points at the wrong time
+
 Revision 4.8  2003/03/04 05:38:48  mast
 cleanup
 

@@ -1035,6 +1035,9 @@ static void fillImageArray(SlicerStruct *ss)
 
   int cindex;
   unsigned int *cmap = App->cvi->cramp->ramp;
+
+  if (!ss->image)
+      return;
   unsigned short *cidata = ss->image->id1;
   unsigned int   *idata = (unsigned int  *)cidata;
   int pixsize  = b3dGetImageType(NULL, NULL);
@@ -1508,6 +1511,10 @@ void slicerResize(SlicerStruct *ss, int winx, int winy)
 
   /* DNM: send 12 rather than App->depth to guarantee shorts */
   ss->image   = b3dGetNewCIImageSize(ss->image, 12, winx, winy);
+  if (!ss->image)
+    wprint("\aInsufficient memory to run this Slicer window.\n"
+           "Try making it smaller or close it.\n");
+ 
   ivwControlPriority(ss->vi, ss->ctrl);
 }
 
@@ -1611,6 +1618,9 @@ static void slicerUpdateImage(SlicerStruct *ss)
  */
 void slicerPaint(SlicerStruct *ss)
 {
+  if (!ss->image)
+    return;
+
   GLenum format = GL_COLOR_INDEX;
   GLenum type   = GL_UNSIGNED_SHORT;
   GLint unpack = b3dGetImageType(&type, &format);
@@ -1838,6 +1848,11 @@ void slicerCubePaint(SlicerStruct *ss)
 
 /*
 $Log$
+Revision 4.6  2003/03/12 06:40:27  mast
+Prevented adding or modifying points at the wrong time, made lock really
+lock image for all mouse events so that one can model on a locked image,
+added attach function.
+
 Revision 4.5  2003/03/03 22:44:44  mast
 Added +/- 15 degree hot keys.  Mode it display modeling cursor only
 in model mode
