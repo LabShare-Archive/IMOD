@@ -19,6 +19,7 @@ import etomo.comscript.BadComScriptException;
 import etomo.comscript.BeadtrackParam;
 import etomo.comscript.CCDEraserParam;
 import etomo.comscript.ComScriptManager;
+import etomo.comscript.CombineComscriptState;
 import etomo.comscript.CombineParams;
 import etomo.comscript.ConstCombineParams;
 import etomo.comscript.ConstTiltalignParam;
@@ -90,6 +91,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.95  2004/08/06 23:12:19  sueh
+ * <p> bug# 508 added commented out processMgr.combine() call
+ * <p> to combine()
+ * <p>
  * <p> Revision 3.94  2004/08/03 18:53:45  sueh
  * <p> bug# 519 get the correct tiltAngleSpec for axis B
  * <p>
@@ -924,6 +929,8 @@ public class ApplicationManager {
   public static final String rcsid = "$Id$";
 
   private static boolean debug = false;
+  
+  private static boolean selfTest = false;
 
   private boolean demo = false;
 
@@ -3764,6 +3771,7 @@ public class ApplicationManager {
         }
         loadPatchcorr();
         loadMatchorwarp();
+        loadCombineComscript();
         tomogramCombinationDialog.synchronize(
           TomogramCombinationDialog.lblSetup,
           false,
@@ -4173,6 +4181,77 @@ public class ApplicationManager {
     comScriptMgr.loadMatchorwarp();
     tomogramCombinationDialog.setMatchorwarpParams(comScriptMgr.getMatchorwarParam());
   }
+  
+  private CombineComscriptState getCombineComscript() {
+    CombineComscriptState combineComscriptState =
+      comScriptMgr.getCombineComscript();
+    if (combineComscriptState == null) {
+      try {
+        comScriptMgr.useTemplate(CombineComscriptState.COMSCRIPT_NAME, 
+          AxisType.DUAL_AXIS, AxisID.ONLY, true);
+      }
+      catch (Exception e) {
+        e.printStackTrace();
+        String[] message = new String[2];
+        message[0] = "Unable to copy combine com script";
+        message[1] = "Check file and directory permissions";
+        openMessageDialog(message, "Can't create a new combine.com");
+        return null;
+      }
+      comScriptMgr.loadCombine();
+      combineComscriptState = comScriptMgr.getCombineComscript();
+    }
+    return combineComscriptState;
+  }
+
+  /**
+   * Load the combine com script
+   */
+  private void loadCombineComscript() {
+    comScriptMgr.loadCombine();
+    CombineComscriptState combineComscriptState = getCombineComscript();
+    if (combineComscriptState == null) {
+      return;
+    }
+    tomogramCombinationDialog.setRunVolcombine(
+      combineComscriptState.isRunVolcombine());
+  }
+
+  /**
+  * 
+  * @return boolean
+  */
+  private CombineComscriptState updateCombineComscriptState(int startCommand) {
+    if (tomogramCombinationDialog == null) {
+      mainFrame.openMessageDialog(
+        "Can not update combine.com without an active tomogram generation dialog",
+        "Program logic error");
+      return null;
+    }
+    //set goto a the start of combine
+    CombineComscriptState combineComscriptState = getCombineComscript();
+    if (combineComscriptState == null) {
+      return null;
+    }
+    //set first command to run
+    combineComscriptState.setStartCommand(startCommand, comScriptMgr);
+    //set last command to run:
+    //last command is based on the "don't run volcombine checkbox" and whether
+    //the "Restart at volcombine" was pressed
+    if (startCommand == CombineComscriptState.VOLCOMBINE_INDEX
+      || tomogramCombinationDialog.isRunVolcombine()) {
+      combineComscriptState.setEndCommand(
+        CombineComscriptState.VOLCOMBINE_INDEX,
+        comScriptMgr);
+    }
+      else {
+        combineComscriptState.setEndCommand(
+          CombineComscriptState.VOLCOMBINE_INDEX - 1,
+          comScriptMgr);
+    }
+    return combineComscriptState;
+  }
+
 
   /**
    * Update the matchorwarp.com script from the information in the tomogram
@@ -4204,6 +4283,8 @@ public class ApplicationManager {
     }
     return true;
   }
+  
+
 
   /**
    * Initiate the combine process from the beginning
@@ -4212,7 +4293,11 @@ public class ApplicationManager {
     //  FIXME: what are the necessary updates
     //  Update the scripts from the dialog panel
     updateCombineParams();
-
+    CombineComscriptState combineComscriptState = 
+      updateCombineComscriptState(CombineComscriptState.SOLVEMATCH_INDEX);
+    if (combineComscriptState == null) {
+      return;
+    }
     if (!updateSolvematchCom()) {
       return;
     }
@@ -4227,26 +4312,35 @@ public class ApplicationManager {
     mainFrame.setTomogramCombinationState(ProcessState.INPROGRESS);
     warnStaleFile(ImodManager.PATCH_VECTOR_MODEL_KEY, true);
     //  Set the next process to execute when this is finished
-    nextProcess = "matchvol1";
+    //nextProcess = "matchvol1";
     String threadName;
     try {
-      threadName = processMgr.solvematch();
-      //threadName = processMgr.combine();
+      //threadName = processMgr.solvematch();
+      threadName = processMgr.combine(combineComscriptState);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
       String[] message = new String[2];
-      message[0] = "Can not execute solvematch.com";
+      message[0] = "Can not execute combine.com";
       message[1] = e.getMessage();
       mainFrame.openMessageDialog(message, "Unable to execute com script");
       return;
     }
     setThreadName(threadName, AxisID.FIRST);
-    tomogramCombinationDialog.showPane("Initial Match");
-    mainFrame.startProgressBar("Combine: solvematch", AxisID.FIRST);
+    //tomogramCombinationDialog.showPane(TomogramCombinationDialog.lblInitial);
+    //mainFrame.startProgressBar("Combine: solvematch", AxisID.FIRST);
+  }
+  
+  public void showPane(String comscript, String pane) {
+    if (comscript.equals(CombineComscriptState.COMSCRIPT_NAME)) {
+      tomogramCombinationDialog.showPane(pane);
+    }
   }
 
-  public void restartAtMatchvol1() {
+  /**
+   * Execute the matchvol1 com script and put patchcorr in the execution queue
+   */
+  public void matchvol1Combine() {
     //  FIXME: what are the necessary updates
     //  Update the scripts from the dialog panel
     updateCombineParams();
@@ -4256,45 +4350,42 @@ public class ApplicationManager {
     if (!updateMatchorwarpCom(false)) {
       return;
     }
-
-    matchvol1();
-  }
-  
-  /**
-   * Execute the matchvol1 com script and put patchcorr in the execution queue
-   */
-  public void matchvol1() {
     updateCombineParams();
+    CombineComscriptState combineComscriptState = 
+      updateCombineComscriptState(CombineComscriptState.MATCHVOL1_INDEX);
+    if (combineComscriptState == null) {
+      return;
+    }
     processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
     mainFrame.setTomogramCombinationState(ProcessState.INPROGRESS);
     warnStaleFile(ImodManager.PATCH_VECTOR_MODEL_KEY, true);
     //  Check to see if solve.xf exists first
     File solveXf = new File(System.getProperty("user.dir"), "solve.xf");
     if (!solveXf.exists()) {
-      nextProcess = "";
+      //nextProcess = "";
       String[] message = new String[2];
-      message[0] = "Can not execute matchvol1.com";
+      message[0] = "Can not execute combine.com";
       message[1] = "solve.xf must exist in the working";
       mainFrame.openMessageDialog(message, "Unable to execute com script");
       return;
     }
     //  Set the next process to execute when this is finished
-    nextProcess = "patchcorr";
+    //nextProcess = "patchcorr";
     String threadName;
     try {
-      threadName = processMgr.matchvol1();
+      threadName = processMgr.combine(combineComscriptState);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
       String[] message = new String[2];
-      message[0] = "Can not execute matchvol1.com";
+      message[0] = "Can not execute combine.com";
       message[1] = e.getMessage();
       mainFrame.openMessageDialog(message, "Unable to execute com script");
       return;
     }
     setThreadName(threadName, AxisID.FIRST);
-    tomogramCombinationDialog.showPane("Initial Match");
-    mainFrame.startProgressBar("Combine: matchvol1", AxisID.FIRST);
+    //tomogramCombinationDialog.showPane(TomogramCombinationDialog.lblInitial);
+    //mainFrame.startProgressBar("Combine: matchvol1", AxisID.FIRST);
   }
 
   /**
@@ -4302,6 +4393,11 @@ public class ApplicationManager {
    */
   public void patchcorrCombine() {
     updateCombineParams();
+    CombineComscriptState combineComscriptState =
+      updateCombineComscriptState(CombineComscriptState.PATCHCORR_INDEX);
+    if (combineComscriptState == null) {
+      return;
+    }
     if (!updatePatchcorrCom()) {
       return;
     }
@@ -4312,8 +4408,22 @@ public class ApplicationManager {
     processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
     mainFrame.setTomogramCombinationState(ProcessState.INPROGRESS);
     warnStaleFile(ImodManager.PATCH_VECTOR_MODEL_KEY, true);
-    patchcorr();
-
+    //  Set the next process to execute when this is finished
+    //nextProcess = "matchorwarp";
+    String threadName;
+    try {
+      threadName = processMgr.combine(combineComscriptState);
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Can not execute patchcorr.com";
+      message[1] = e.getMessage();
+      mainFrame.openMessageDialog(message, "Unable to execute com script");
+      return;
+    }
+    setThreadName(threadName, AxisID.FIRST);
+    //tomogramCombinationDialog.showPane(TomogramCombinationDialog.lblFinal);
   }
 
   protected void warnStaleFile(String key, boolean future) {
@@ -4353,36 +4463,35 @@ public class ApplicationManager {
   }
 
   /**
-   * Exececute the patchcorr com script and put matchorwarp in the execution
-   * queue
-   */
-  private void patchcorr() {
-    //  Set the next process to execute when this is finished
-    nextProcess = "matchorwarp";
-    String threadName;
-    try {
-      threadName = processMgr.patchcorr();
-    }
-    catch (SystemProcessException e) {
-      e.printStackTrace();
-      String[] message = new String[2];
-      message[0] = "Can not execute patchcorr.com";
-      message[1] = e.getMessage();
-      mainFrame.openMessageDialog(message, "Unable to execute com script");
-      return;
-    }
-    setThreadName(threadName, AxisID.FIRST);
-    tomogramCombinationDialog.showPane("Final Match");
-  }
-
-  /**
    * Initiate the combine process from matchorwarp step
    */
   public void matchorwarpCombine() {
+    CombineComscriptState combineComscriptState =
+      updateCombineComscriptState(CombineComscriptState.MATCHORWARP_INDEX);
+    if (combineComscriptState == null) {
+      return;
+    }
     if (updateMatchorwarpCom(false)) {
       processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
       mainFrame.setTomogramCombinationState(ProcessState.INPROGRESS);
-      matchorwarp("volcombine");
+    
+      //  Set the next process to execute when this is finished
+      //nextProcess = next;
+      String threadName;
+      try {
+        threadName = processMgr.combine(combineComscriptState);
+      }
+      catch (SystemProcessException e) {
+        e.printStackTrace();
+        String[] message = new String[2];
+        message[0] = "Can not execute combine.com";
+        message[1] = e.getMessage();
+        mainFrame.openMessageDialog(message, "Unable to execute com script");
+        return;
+      }
+      setThreadName(threadName, AxisID.FIRST);
+      //tomogramCombinationDialog.showPane(TomogramCombinationDialog.lblFinal);
+      //mainFrame.startProgressBar("Combine: matchorwarp", AxisID.FIRST);
     }
   }
 
@@ -4393,56 +4502,50 @@ public class ApplicationManager {
     if (updateMatchorwarpCom(true)) {
       processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
       mainFrame.setTomogramCombinationState(ProcessState.INPROGRESS);
-      matchorwarp("");
+      //  Set the next process to execute when this is finished
+      //nextProcess = next;
+      String threadName;
+      try {
+        threadName = processMgr.matchorwarp();
+      }
+      catch (SystemProcessException e) {
+        e.printStackTrace();
+        String[] message = new String[2];
+        message[0] = "Can not execute matchorwarp.com";
+        message[1] = e.getMessage();
+        mainFrame.openMessageDialog(message, "Unable to execute com script");
+        return;
+      }
+      setThreadName(threadName, AxisID.FIRST);
+      tomogramCombinationDialog.showPane(TomogramCombinationDialog.lblFinal);
+      mainFrame.startProgressBar("matchorwarp", AxisID.FIRST);
     }
   }
 
   /**
-   * Exececute the matchorwarp com script and put the process identefied by
-   * next in the execution queue
-   */
-  private void matchorwarp(String next) {
-    //  Set the next process to execute when this is finished
-    nextProcess = next;
-    String threadName;
-    try {
-      threadName = processMgr.matchorwarp();
-    }
-    catch (SystemProcessException e) {
-      e.printStackTrace();
-      String[] message = new String[2];
-      message[0] = "Can not execute matchorwarp.com";
-      message[1] = e.getMessage();
-      mainFrame.openMessageDialog(message, "Unable to execute com script");
-      return;
-    }
-    setThreadName(threadName, AxisID.FIRST);
-    tomogramCombinationDialog.showPane("Final Match");
-    mainFrame.startProgressBar("Combine: matchorwarp", AxisID.FIRST);
-  }
-
-  /**
-   * Execute the volcombine com script and clear the execution queue
+   * Execute the combine script starting at volcombine
    */
   public void volcombine() {
+    CombineComscriptState combineComscriptState = 
+      updateCombineComscriptState(CombineComscriptState.VOLCOMBINE_INDEX);
     processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
     mainFrame.setTomogramCombinationState(ProcessState.INPROGRESS);
     //  Set the next process to execute when this is finished
-    nextProcess = "";
+    //nextProcess = "";
     String threadName;
     try {
-      threadName = processMgr.volcombine();
+      threadName = processMgr.combine(combineComscriptState);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
       String[] message = new String[2];
-      message[0] = "Can not execute volcombine.com";
+      message[0] = "Can not execute combine.com";
       message[1] = e.getMessage();
       mainFrame.openMessageDialog(message, "Unable to execute com script");
       return;
     }
     setThreadName(threadName, AxisID.FIRST);
-    tomogramCombinationDialog.showPane("Final Match");
+    //tomogramCombinationDialog.showPane(TomogramCombinationDialog.lblFinal);
   }
 
   /**
@@ -5188,6 +5291,9 @@ public class ApplicationManager {
       if (args[i].equals("--test")) {
         test = true;
       }
+      if (args[i].equals("--selftest")) {
+        selfTest = true;
+      }
     }
     return testParamFilename;
   }
@@ -5382,6 +5488,15 @@ public class ApplicationManager {
   static public boolean isDebug() {
     return debug;
   }
+  
+  /**
+   * Returns the selfTest state.
+   * 
+   * @return boolean
+   */
+  static public boolean isSelfTest() {
+    return selfTest;
+  }
 
   /**
    * Returns the demo state.
@@ -5418,6 +5533,15 @@ public class ApplicationManager {
    */
   public void setProgressBar(String label, int nSteps, AxisID axisID) {
     mainFrame.setProgressBar(label, nSteps, axisID);
+  }
+  
+  /**
+   * Start generic progress bar
+   * @param value
+   * @param axisID
+   */
+  public void startProgressBar(String label, AxisID axisID) {
+    mainFrame.startProgressBar(label, axisID);
   }
 
   /**
@@ -5489,7 +5613,7 @@ public class ApplicationManager {
     if (nextProcess.equals("tilt")) {
       tiltProcess(axisID);
     }
-    if (nextProcess.equals("matchvol1")) {
+    /*if (nextProcess.equals("matchvol1")) {
       matchvol1();
       return;
     }
@@ -5506,7 +5630,7 @@ public class ApplicationManager {
         volcombine();
       }
       return;
-    }
+    }*/
     if (nextProcess.equals("checkUpdateFiducialModel")) {
       checkUpdateFiducialModel(axisID);
       return;
