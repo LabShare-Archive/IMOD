@@ -19,6 +19,10 @@ import etomo.comscript.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2004/12/30 17:59:29  sueh
+ * <p> bug# 567 Fixed set(ComScriptCommand): handle a missing keyword by
+ * <p> setting value to 0.
+ * <p>
  * <p> Revision 1.4  2004/12/29 23:47:59  sueh
  * <p> bug# 567 fixing set(ComScriptCommand):  Pass the string retrieved from
  * <p> scriptCommand to toInteger instead of checking whether the keyword is
@@ -80,7 +84,12 @@ public class EtomoBoolean extends ConstEtomoBoolean {
       value = 0;
     }
     else {
-      value = toInteger(scriptCommand.getValue(name));
+      try {
+        value = toInteger(scriptCommand.getValue(name));
+      }
+      catch (InvalidParameterException e) {
+        value = 1;
+      }
     }
     return this;
   }
