@@ -19,6 +19,11 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.15  2004/08/20 21:43:59  sueh
+ * bug# 508 split parseWarning() into two functions so that parseWarning
+ * can be used for all the .log files parsed by
+ * BackgroundComsScripProcess.
+ *
  * Revision 3.14  2004/08/19 02:06:34  sueh
  * bug# 508 Put the rename files functionality into a separate function,
  * so it can be overriden.  Placed the rename files code into a separate
@@ -269,16 +274,17 @@ public class ComScriptProcess
   private boolean demoMode = false;
   private int demoTime = 5000;
   protected boolean debug = false;
-  private String[] errorMessage;
+  protected String[] errorMessage;
   private String[] warningMessage;
   private SystemProgram vmstocsh;
   protected SystemProgram csh;
   protected StringBuffer cshProcessID;
   private AxisID axisID;
-  private String watchedFileName;
+  protected String watchedFileName;
 
   private boolean started = false;
   private boolean done = false;
+  private boolean error = false;
 
   public ComScriptProcess(
     String comScript,
@@ -318,18 +324,30 @@ public class ComScriptProcess
       }
     }
     else {
+      if (isComScriptBusy()) {
+        error = true;
+        errorMessage = new String[1];
+        errorMessage[0] = name + " is already running";
+        processManager.msgComScriptDone(this, 1);
+        return;
+      }
 
-      renameFiles();
+      if (!renameFiles()) {
+        error = true;
+        processManager.msgComScriptDone(this, 1);
+      }
       //  Covert the com script to a sequence of csh commands
       String[] commands;
       try {
         commands = vmsToCsh();
       }
       catch (SystemProcessException except) {
+        error = true;
         processManager.msgComScriptDone(this, vmstocsh.getExitValue());
         return;
       }
       catch (IOException except) {
+        error = true;
         errorMessage = new String[1];
         errorMessage[0] = except.getMessage();
         processManager.msgComScriptDone(this, vmstocsh.getExitValue());
@@ -371,35 +389,30 @@ public class ComScriptProcess
     done = true;
   }
   
-  protected void renameFiles() {
-    renameFiles(name, watchedFileName, workingDirectory);
-  }
-  
-  static protected void renameFiles(String name, String watchedFileName, 
-      File workingDirectory) {
-    // Rename the logfile so that any log file monitor does not get confused
-    // by an existing log file
-    String logFileName = parseBaseName(name, ".com") + ".log";
-    File logFile = new File(workingDirectory, logFileName);
-    File oldLog = new File(workingDirectory, logFileName + "~");
+  protected boolean renameFiles() {
     try {
-      Utilities.renameFile(logFile, oldLog);
+      renameFiles(name, watchedFileName, workingDirectory);
     }
     catch (IOException except) {
       except.printStackTrace();
       System.err.println(except.getMessage());
     }
-      
+    return true;
+  }
+  
+  static protected void renameFiles(String name, String watchedFileName, 
+      File workingDirectory) throws IOException {
+    // Rename the logfile so that any log file monitor does not get confused
+    // by an existing log file
+    String logFileName = parseBaseName(name, ".com") + ".log";
+    File logFile = new File(workingDirectory, logFileName);
+    File oldLog = new File(workingDirectory, logFileName + "~");
+    Utilities.renameFile(logFile, oldLog);
+    
     if (watchedFileName != null) {
       File watchedFile = new File(workingDirectory, watchedFileName);
       File oldWatchedFile = new File(workingDirectory, watchedFileName + "~");
-      try {
-        Utilities.renameFile(watchedFile, oldWatchedFile);
-      }
-      catch (IOException except) {
-        except.printStackTrace();
-        System.err.println(except.getMessage());
-      }
+      Utilities.renameFile(watchedFile, oldWatchedFile);
     }
   }
 
@@ -693,6 +706,15 @@ public class ComScriptProcess
   public boolean isStarted() {
     return started;
   }
+  
+  /**
+   * Returns true if an error was found before the com script process started
+   * running.
+   */
+  public boolean isError() {
+    return error;
+  }
+
 
   /**
    * Returns true if the com script process has completed and the process
@@ -727,5 +749,15 @@ public class ComScriptProcess
    */
   public int getDemoTime() {
     return demoTime;
+  }
+  
+  /**
+   * Used by BackgroundComScriptProcess.
+   * Always returns false in ComScriptProcess because two regular comscript
+   * processes cannot be run on the same axis.
+   * @return
+   */
+  protected boolean isComScriptBusy() {
+    return false;
   }
 }
