@@ -180,6 +180,9 @@ averages in the image file.  The same number of transforms are assumed to be
 present in a file of initial alignments entered with the 
 .B -initial
 option.
+.TP
+.B -P
+Output the process ID.
 .SH FILES
 When using prealignment by cross-correlation, the initial transforms will
 be placed into a file with the same root name as the transform output file but
