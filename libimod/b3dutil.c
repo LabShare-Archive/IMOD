@@ -13,6 +13,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.4  2004/01/17 20:35:48  mast
+Move file I/O and seek routines here, add rewind routine
+
 Revision 1.3  2003/11/01 16:41:56  mast
 changed to use new error processing routine
 
@@ -45,6 +48,12 @@ initial creation, consolidating routines from elsewhere
 #ifdef MAC103_BIGFILE
 #include <sys/types.h>
 #include <sys/uio.h>
+#endif
+
+#ifdef F77FUNCAP
+#define imodbackupfile_ IMODBACKUPFILE
+#define imodgetenv_ IMODGETENV
+#define b3dheaderitembytes_ B3DHEADERITEMBYTES
 #endif
 
 /* DNM 2/26/03: These need to be printf instead of fprintf(stderr) to not
@@ -120,10 +129,6 @@ int imodBackupFile(char *filename)
 }
 
 /* A fortran wrapper for the function to make backup file */
-#ifdef F77FUNCAP
-#define imodbackupfile_ IMODBACKUPFILE
-#define imodgetenv_ IMODGETENV
-#endif
 
 int imodbackupfile_(char *filename, int strlen)
 {
@@ -303,4 +308,22 @@ int mrc_big_seek(FILE *fp, int base, int size1, int size2, int flag)
     flag = SEEK_CUR;
   }
   return 0;
+}
+
+/* A central place to get the list of number of possible extra header items
+   and the number of bytes each, including a Fortran wrapper
+   nbytes is an array that should be dimensioned to 32 */
+#define FLAG_COUNT 5
+void b3dHeaderItemBytes(int *nflags, int *nbytes)
+{
+  int extra_bytes[FLAG_COUNT] = {2, 6, 4, 2, 2};
+  int i;
+  *nflags = FLAG_COUNT;
+  for (i = 0; i < *nflags; i++)
+    nbytes[i] = extra_bytes[i];
+}
+
+void b3dheaderitembytes_(int *nflags, int *nbytes) 
+{
+  b3dHeaderItemBytes(nflags, nbytes);
 }
