@@ -19,6 +19,10 @@ import etomo.storage.Storable;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.4  2004/12/16 02:28:11  sueh
+* <p> bug# 564 Remove recommendedValue from EtomoNumber.  Using
+* <p> resetValue instead.
+* <p>
 * <p> Revision 1.3  2004/11/23 22:32:17  sueh
 * <p> bug# 520 Converted finalStart and end to EtomoNumbers.  Added
 * <p> description strings to fields that will display error messages.
@@ -381,12 +385,12 @@ public abstract class ConstSectionTableRowData implements Storable {
       return new EtomoNumber(0);
     }
     if (rowNumber.equals(1)) {
-      return new EtomoNumber(EtomoNumber.INTEGER_TYPE, getSampleTopNumberSlices());
+      return (new EtomoNumber(EtomoNumber.INTEGER_TYPE)).set(getSampleTopNumberSlices());
     }
     if (rowNumber.equals(tableSize)) {
-      return new EtomoNumber(EtomoNumber.INTEGER_TYPE, getSampleBottomNumberSlices());
+      return (new EtomoNumber(EtomoNumber.INTEGER_TYPE)).set(getSampleBottomNumberSlices());
     }
-    return new EtomoNumber(EtomoNumber.INTEGER_TYPE, getSampleBottomNumberSlices() + getSampleTopNumberSlices());
+    return (new EtomoNumber(EtomoNumber.INTEGER_TYPE)).set(getSampleBottomNumberSlices() + getSampleTopNumberSlices());
   }
   
   public ConstEtomoNumber getFinalStart() {
