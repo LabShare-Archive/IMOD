@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.7  2004/11/07 23:06:09  mast
+Fixed sliceGradient to not saturate
+
 Revision 3.6  2004/11/05 18:53:04  mast
 Include local files with quotes, not brackets
 
@@ -1270,6 +1273,10 @@ Islice *sliceReadMRC(struct MRCheader *hin, int sno, char axis)
     return(NULL);
   slice->mean = hin->amean;
   buf = mrc_mread_slice(hin->fp, hin, sno, axis);
+  if (!buf) {
+    free(slice);
+    return(NULL);
+  }
   switch(axis){
   case 'x':
   case 'X':
