@@ -11,6 +11,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.3  2004/04/08 16:59:27  rickg
+ * <p> Account for binning in newstack command
+ * <p>
  * <p> Revision 3.2  2004/02/13 01:05:13  rickg
  * <p> Simplified ouputFile for newstack
  * <p>
@@ -101,7 +104,7 @@ public class NewstProcessMonitor extends FileSizeProcessMonitor {
     // the input file 
     long fileSize = 1024 + nX * nY * nZ * modeBytes;
     nKBytes = (int) (fileSize / 1024);
-    applicationManager.setProgressBar("Creating final stack", nKBytes, axisID);
+    applicationManager.setProgressBar("Creating aligned stack", nKBytes, axisID);
 
     // Create a file object describing the file to be monitored
     watchedFile = 
