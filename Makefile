@@ -191,7 +191,7 @@ configure : setup .version
 #
 # Install cstuff
 #
-install : configure man
+install : configure man sourcedoc
 	cd libimod   ; $(MAKE) $@
 	cd libiimod  ; $(MAKE) $@
 	cd libdiaqt  ; $(MAKE) $@
@@ -217,6 +217,12 @@ man : configure ALWAYS
 	(cd manpages ; $(MAKE) install)
 	(cd flib/man ; $(MAKE) install)
 	(cd autodoc  ; $(MAKE) install)
+
+#
+# Make sourcedoc for libdocs
+#
+sourcedoc : configure
+	cd sourcedoc ; $(MAKE)
 
 #
 # Install clibs only or all libs, helps if doing multiple architectures
@@ -246,6 +252,7 @@ clean : configure
 	cd midas     ; $(MAKE) $@
 	cd plugs     ; $(MAKE) $@
 	cd clip      ; $(MAKE) $@
+	cd sourcedoc ; $(MAKE) $@
 	cd scripts   ; $(MAKE) $@
 	cd manpages  ; $(MAKE) $@
 	cd flib      ; $(MAKE) $@
@@ -280,6 +287,7 @@ cleanqt : configure
 	cd midas     ; $(MAKE) clean
 	cd sendevent ; $(MAKE) clean
 	cd qtassist  ; $(MAKE) clean
+	cd sourcedoc ; $(MAKE) $@
 	cd flib/subrs ; \find . -type f -name '*dnmncar*' -exec /bin/rm -f '{}' \;
 	cd flib/subrs/graphics ; $(MAKE) clean
 	cd flib/ndasda ; $(MAKE) clean
@@ -392,9 +400,12 @@ csrc : ALWAYS
 	midas/Makefile.dummy \
 	sendevent/*.h sendevent/*.cpp sendevent/imodsendevent.pro \
 	sendevent/Makefile.dummy sendevent/imodsendevent.dsp \
-	qtassist/*.h qtassist/*.cpp qtassist/imodqtassist.pro \
+	qtassist/*qt*.h qtassist/*qt*.cpp qtassist/imodqtassist.pro \
 	qtassist/Makefile.dummy qtassist/imodqtassist.dsp \
+	sourcedoc/*.cpp sourcedoc/sourcedoc.pro \
+	sourcedoc/Makefile.dummy sourcedoc/imodsourcedoc.dsp \
 	html/*.* html/Makefile html/3dmodimages html/etomoImages \
+	html/libdoc/Makefile html/libdoc/*.html \
 	dist scripts com manpages autodoc \
 	plugs/*/*.[chf] plugs/*/*.cpp plugs/*/Makefile \
 	plugs/Makefile.unix plugs/Makefile.dummy \
@@ -436,6 +447,9 @@ ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.46  2005/01/18 22:34:21  mast
+#  Needed to remove dist file before making on Windows
+#
 #  Revision 3.45  2005/01/17 19:31:56  mast
 #  Switched shell to sh so parallel make will work on Linux
 #
