@@ -27,6 +27,14 @@
  *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 
 #ifndef XCRAMP_H
 #define XCRAMP_H
@@ -62,6 +70,10 @@ typedef struct xbldrcoloramp
      unsigned int   ramp[256];
 } Cramp;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 Cramp *xcramp_allinit(Display *display, XVisualInfo *visual, Colormap colormap,
 		      unsigned long low, unsigned long high);
 Cramp *xcramp_init(Display *display, XVisualInfo *visual, Colormap colormap);
@@ -84,6 +96,10 @@ void xcrampNewBase(Cramp *cr, int base);
 /* Scale and Ramp Pixels */
 #define xcrampSPixel(r,v)  ((r)->pixels[(v) * (r)->scale])
 #define xcrampRPixel(r,v) ((v) + (r)->rampbase)
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* XCRAMP_H */
 

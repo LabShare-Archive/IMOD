@@ -35,6 +35,9 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2002/11/25 19:13:31  mast
+    Added arguments to (*cb)() in function calls
+
 */
 
 #ifndef DIA_H
@@ -43,6 +46,10 @@
 #include <Xm/Xm.h>
 #include <xcramp.h>
 #include <stdio.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /*****************************************************************************/
 /* dia reason defines for callback functions.                                */
@@ -151,9 +158,6 @@ XtPointer  diaGetCallData(diaDialog *dia);
 void       diaPopup(diaDialog *dia);
 
 /***************************** Function prototypes ***************************/
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 XtAppContext dia_get_context(void);
 Widget       dia_get_toplevel(void);

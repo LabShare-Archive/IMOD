@@ -25,12 +25,24 @@
  *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 
 #ifndef ILIST_H
 #define ILIST_H
 
 #include <stdlib.h>
 #include <string.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define LIST_QUANTUM 1
 
@@ -62,6 +74,9 @@ void  ilistPush(Ilist *list, void *data);
 void *ilistPop(Ilist *list);
 void  ilistFloat(Ilist *list, int element);
 
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 

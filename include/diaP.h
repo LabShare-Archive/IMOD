@@ -28,6 +28,14 @@
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
 
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 
 #ifndef DIAP_H
 #define DIAP_H
@@ -38,8 +46,15 @@ extern XtAppContext  Dia_context;
 extern char         *Dia_title;
 extern Widget        Dia_toplevel;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 void dia_destroy_shell(Widget widget, XtPointer client, XtPointer call);
 void dia_map_cb(Widget w, XtPointer client_data, XtPointer call_data);     
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

@@ -1,8 +1,20 @@
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 #ifndef IIMAGE_H
 #define IIMAGE_H
 
 #include <mrcc.h>
 #include <math.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define IIFILE_UNKNOWN 0
 #define IIFILE_TIFF    1
@@ -91,5 +103,9 @@ int iiLoadPCoord(ImodImageFile *inFile, struct LoadInfo *li, int nx, int ny,
 int iiInit(ImodImageFile *i, int xsize, int ysize, int zsize, 
 	   int file, int format, int type);
 int iiWriteSection(ImodImageFile *inFile, char *buf, int inSection);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
