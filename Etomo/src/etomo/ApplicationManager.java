@@ -82,6 +82,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.42  2004/04/28 00:40:29  sueh
+ * <p> adding error message if rename filter file doesn't work
+ * <p>
  * <p> Revision 3.41  2004/04/27 23:20:13  sueh
  * <p> bug# 320 warn the user about a stale patch vector model after
  * <p> any button press that will lead to creating a new patch vector
@@ -3064,6 +3067,7 @@ public class ApplicationManager {
     processTrack.setPreProcessingState(ProcessState.INPROGRESS, axisID);
     mainFrame.setPreProcessingState(ProcessState.INPROGRESS, axisID);
     //don't have to rename full aligned stack because it is a generated file
+    fullAlignedStack.delete();
     if (!filteredFullAlignedStack.renameTo(fullAlignedStack)) {
       String[] message = new String[2];
       message[0] =
