@@ -17,10 +17,12 @@ c	stuff(1) = ispg and the real nbsym
 c	stuff(2) = next # of extra header bytes (stored here as nbsym)
 c       stuff(3) = first int*2 is creator id
 c	stuff(11) = bytes per section and flags for type of extended data
+c                   or number of integers and number of reals per section
 c	stuff(19) = idtype data type and lens
 c	stuff(20) = data value 1
 c	stuff(21) = data value 2
 c	stuff(22)-stuff(27) = 2 tilt sets
+c	  OLD HEADER
 c	stuff(28) - stuff(30)  wavelength info #wavele, values - 5 max
 c	stuff(31) = zorig
 C	  
@@ -40,6 +42,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.6  2002/07/21 19:17:43  mast
+c	  Standardized error output to ERROR: ROUTINE
+c	
 c	  Revision 3.5  2002/06/26 16:54:54  mast
 c	  Fixed bug in transferring extra header bytes from a swapped file
 c	  Need implicit none!
@@ -62,23 +67,33 @@ c	  appropriately
 c	
 c
 	SUBROUTINE IRDHDR(ISTREAM,INXYZ,MXYZ,IMODE,DMIN,DMAX,DMEAN)
-	DIMENSION INXYZ(3),MXYZ(3),LXYZ(3),LABELS(1),NXYZST(3)
-	DIMENSION TITLE(1),CELL(6),EXTRA(1),MCRS(3),delta(3),delt(3)
+	implicit none
+	integer*4 INXYZ(3),MXYZ(3),LXYZ(3),LABELS(1),NXYZST(3),MCRS(3)
+	real*4 TITLE(1),CELL(6),EXTRA(1),delta(3),delt(3)
 	DATA LXYZ/'X','Y','Z'/
 C
 	include 'imsubs.inc'
+	integer limtmp
 	parameter (limtmp = 4096)
-	dimension istuff(31,10),header(256),tilt(3),jbsym(*),wavelen(6)
-	dimension amat1(3,3),amat2(3,3),amat3(3,3),spibuf(9)
+	integer*4 istuff(27,maxunit),jbsym(*)
+	real*4 header(256),tilt(3)
+	real*4 amat1(3,3),amat2(3,3),amat3(3,3),spibuf(9)
 	integer*4 headtmp(limtmp/4)
 	logical cflag,onoff
-	integer*2 idat(6),iwavelen(6)
+	integer*2 idat(6)
 	character*(*) string
 	character*80 string80
-	character*28 string28
 	equivalence (istuff,stuff)
 	logical nbytes_and_flags
 c	SAVE /IMGCOM/
+c	  
+	integer*4 i,j,k,l,ier,lenrec,nbs,ispg,istream,imode,idtype,lens
+	integer*4 nints,nreal,ifshorts,nblockunits,iblocksize,nblocks
+	integer*4 nleft,iblock,nbread,indconv,nl,ml,ntflag,jstream
+	integer*4 itype,lensnum,n1,n2,istart,nextra,mbsym
+	integer*4 itype1,itype2,m,jextra
+	real*4 dmin,dmax,dmean,vd1,vd2,v1,v2,xorig,yorig,zorig
+
 C
 C Read header
 C
@@ -94,11 +109,31 @@ C
 	  CALL QREAD(J,CEL(1,J),NBW*6,IER)
 	  CALL QREAD(J,MAPCRS(1,J),NBW3,IER)
 	  CALL QREAD(J,DENMMM(1,J),NBW3,IER)
-	  CALL QREAD(J,STUFF(1,J),NBW*31,IER)
-	  CALL QREAD(J,ORIGXY(1,J),2*NBW,IER)
+	  CALL QREAD(J,STUFF(1,J),NBW*27,IER)
+	  CALL QREAD(J,ORIGXYZ(1,J),3*NBW,IER)
+	  call qread(j,cmap(1,j),nbw,ier)
+	  call qread(j,stamp(1,j),nbw,ier)
+	  call qread(j,rms(j),nbw,ier)
 	  CALL QREAD(J,NLAB(J),NBW,IER)
 	  CALL QREAD(J,LABLS(1,1,J),NBL,IER)
-C
+C	    
+c	    first detect old-style header and rearrange into memory properly
+c	    
+	  if (cmap(1,j).ne.ichar('M') .or. cmap(2,j).ne.ichar('A') .or.
+     &	      cmap(3,j).ne.ichar('P'))then
+c	      
+c	      obliterate old wavelength info then make up cmap and stamp
+c
+	    call move(origxyz(3,j),cmap(1,j),nbw)
+	    call move(origxyz(1,j),stamp(1,j),nbw)
+	    call move(origxyz(2,j),rms(j),nbw)
+	    rms(j) = 0.
+	    if (mrcflip(j)) call convert_floats(rms(j),4)
+	    call set_cmap_stamp(j)
+	    if (print) write(6,1005)
+1005	    format(/,20x,'This file has an old-style MRC header.')
+	  endif
+
 	  if(mrcflip(j))then
 	    call swap_mrc_header(j)
 	  endif
@@ -124,7 +159,7 @@ c
 	  denmmm(3,j)=spibuf(9)
 	  mode(j)=2
 	  nbs=0
-	  do k=1,31
+	  do k=1,27
 	    stuff(k,j)=0.
 	  enddo
 	  do k=1,3
@@ -133,12 +168,10 @@ c
 	    cel(k+3,j) = 90.0
 	    ncrst(k,j)=0
 	    mapcrs(k,j)=k
-	    if(k.lt.3)origxy(k,j)=0.
-	    idat(k)=0
-	    idat(k+3)=0
+	    origxyz(k,j)=0.
 	  enddo
+	  rms(j)=0.
 	  call move(stuff(19,j),idat,12)
-	  call move(stuff(28,j),idat,12)
 	  nlab(j)=0
 	endif
 c
@@ -176,23 +209,21 @@ c	  after reading the header, need to set to first section now
 c
 	call imposn(istream,0,0)
 C
-C Write out header information
+C	  Write out header information
+c	  DNM 7/30/01: eliminate wavelength
 C
 	do k = 1,3
 	  delt(k) = 1.0
 	  delt(k) = cel(mapcrs(k,j),j)/nxyz(mapcrs(k,j),j)
 	enddo
 	call move(idat,stuff(19,j),12)
-	call move(iwavelen,stuff(28,j),12)
 	idtype = idat(1)
 	lens = idat(2)
-	mwave = min(7,max(1,iwavelen(1)))
-	write(string28,'(7i4)')(iwavelen(k+1),k=1,mwave)
 	if (print)WRITE(6,1000) INXYZ,IMODE,(NCRST(K,J),K=1,3),MXYZ,
      .	delt,(CEL(K,J),K=4,6),(LXYZ(MAPCRS(K,J)),K=1,3),
-     .	(ORIGXY(K,J),K=1,2),stuff(31,j),DMIN,DMAX,DMEAN,
+     .	(ORIGXYZ(K,J),K=1,3),DMIN,DMAX,DMEAN,
      .	(stuff(k,j),k=22,27),ispg,nbsym(j),
-     .	idtype,lens,iwavelen(1),string28,
+     .	idtype,lens,
      .	nlab(j),((LABLS(I,K,J),I=1,20),K=1,NLAB(J))
 C       
 C         for unix output without carriagecontrol:
@@ -200,20 +231,19 @@ C         DNM changed leading 2X to 1X on each line, changed tilt angle output
 C         from 6f6.1 to f5.1,5f6.1, eliminated 1X before titles, eliminated 80th
 C         char by changing 20A4 to 19A4,A3
 C
-1000	FORMAT(/
-     .  1X,'Number of columns, rows, sections .........',3I6/
-     .  1X,'Map mode ..................................',I5/
-     .  1X,'Start cols, rows, sects, grid x,y,z.... ...',3I5,2X,3i5/
-     .  1X,'Pixel spacing .............................',3G11.4/
-     .  1X,'Cell angles ...............................',3F9.3/
-     .  1X,'Fast, medium, slow axes ...................',3(4X,A1)/
-     .	1X,'Origin on x,y,z ...........................',3G11.4,/
-     .  1X,'Minimum density ...........................',G13.5/
-     .  1X,'Maximum density ...........................',G13.5/
-     .  1X,'Mean density ..............................',G13.5/
+1000	FORMAT(/,
+     .  1X,'Number of columns, rows, sections .........',3I6,/,
+     .  1X,'Map mode ..................................',I5,/,
+     .  1X,'Start cols, rows, sects, grid x,y,z .......',3I5,2X,3i5,/,
+     .  1X,'Pixel spacing .............................',3G11.4,/,
+     .  1X,'Cell angles ...............................',3F9.3,/,
+     .  1X,'Fast, medium, slow axes ...................',3(4X,A1),/,
+     .	1X,'Origin on x,y,z ...........................',3G11.4,/,
+     .  1X,'Minimum density ...........................',G13.5,/,
+     .  1X,'Maximum density ...........................',G13.5,/,
+     .  1X,'Mean density ..............................',G13.5,/,
      .	1X,'tilt angles (original,current) ............',f5.1,5f6.1,/,
-     .	1X,'Space group # bytes symm,idtype,lens ......',4I6/
-     .  1X,'# wavelengths, wavelengths (nm)............',i4,a28,//,
+     .	1X,'Space group,# extra bytes,idtype,lens .....',4I8,//,
      .  1X,i5,' Titles :'/10(19A4,A3/))
 c
 c	  DNM changed definitions and output:
@@ -305,6 +335,7 @@ C
 	endif
 c	  
 c	  DNM 6/26/02: if byte-swapped file, swap header before and after
+c	  DNM 6/30/02: write in new format only
 c
 	if(mrcflip(j))call swap_mrc_header(j)
 	CALL QSEEK(J,1,1,1)
@@ -315,8 +346,11 @@ c
 	CALL QWRITE(J,CEL(1,J),NBW*6)
 	CALL QWRITE(J,MAPCRS(1,J),NBW3)
 	CALL QWRITE(J,DENMMM(1,J),NBW3)
-	CALL QWRITE(J,STUFF(1,J),NBW*31)
-	CALL QWRITE(J,ORIGXY(1,J),NBW*2)
+	CALL QWRITE(J,STUFF(1,J),NBW*27)
+	CALL QWRITE(J,ORIGXYZ(1,J),NBW*3)
+	call qwrite(j,cmap(1,j),nbw)
+	call qwrite(j,stamp(1,j),nbw)
+	call qwrite(j,rms(j),nbw)
 	CALL QWRITE(J,NLAB(J),NBW)
 	CALL QWRITE(J,LABLS(1,1,J),NBL)
 	if(mrcflip(j))call swap_mrc_header(j)
@@ -329,6 +363,7 @@ c
 	RETURN
 c
 c*igethdr(istream,header)
+c	  DNM 7.30.02: modified these two with little point
 c
 c	gets header from istream as 256 long word array
 c
@@ -342,8 +377,11 @@ c
 	call move(header(11),cel(1,j),nbw*6)
 	call move(header(17),mapcrs(1,j),nbw3)
 	call move(header(20),denmmm(1,j),nbw3)
-	call move(header(23),stuff(1,j),nbw*31)
-	call move(header(54),origxy(1,j),nbw*2)
+	call move(header(23),stuff(1,j),nbw*27)
+	call move(header(50),origxyz(1,j),nbw*3)
+	call move(header(53),cmap(1,j),4)
+	call move(header(54),stamp(1,j),4)
+	call move(header(55),rms(j),nbw)
 	call move(header(56),nlab(j),nbw)
 	call move(header(57),labls(1,1,j),nbl)
 	return
@@ -362,10 +400,12 @@ c
 	call move(cel(1,j),header(11),nbw*6)
 	call move(mapcrs(1,j),header(17),nbw3)
 	call move(denmmm(1,j),header(20),nbw3)
-	call move(stuff(1,j),header(23),nbw*31)
-	call move(origxy(1,j),header(54),nbw*2)
+	call move(stuff(1,j),header(23),nbw*27)
+	call move(origxyz(1,j),header(50),nbw*3)
+	call move(rms(j),header(55),nbw)
 	call move(nlab(j),header(56),nbw)
 	call move(labls(1,1,j),header(57),nbl)
+	call set_cmap_stamp(j)
 	return
 C
 C
@@ -386,8 +426,10 @@ C
 	CALL MOVE(CEL(1,J),CEL(1,K),NBW*6)
 	CALL MOVE(MAPCRS(1,J),MAPCRS(1,K),NBW3)
 	CALL MOVE(DENMMM(1,J),DENMMM(1,K),NBW3)
-	CALL MOVE(STUFF(1,J),STUFF(1,K),NBW*31)
-	CALL MOVE(ORIGXY(1,J),ORIGXY(1,K),NBW*2)
+	CALL MOVE(STUFF(1,J),STUFF(1,K),NBW*27)
+	CALL MOVE(ORIGXYZ(1,J),ORIGXYZ(1,K),NBW*3)
+	RMS(J) = RMS(K)
+	call set_cmap_stamp(j)
 	NLAB(J) = NLAB(K)
 	CALL MOVE(LABLS(1,1,J),LABLS(1,1,K),NBL)
 c	call move(ibsym(1,j),ibsym(1,k),nbsym(j))
@@ -530,9 +572,8 @@ C
 	ML = MIN(NL,10)
 	ML = MAX(ML,0)
 	NLAB(J) = ML
-	ORIGXY(1,J) = 0.0
-	ORIGXY(2,J) = 0.0
 	DO 200 K = 1,3
+	  ORIGXYZ(K,J) = 0.0
 	  NCRS(K,J) = INXYZ(K)
 	  NXYZ(K,J) = MXYZ(K)
 	  CEL(K,J) = MXYZ(K)
@@ -541,7 +582,9 @@ C
 	  MAPCRS(K,J) = K
 	  DENMMM(K,J) = 0.0
 200	CONTINUE
-	CALL ZERO(STUFF(1,J),NBW*31)
+	CALL ZERO(STUFF(1,J),NBW*27)
+	rms(j) = 0.
+	call set_cmap_stamp(j)
 c	call zero(ibsym(1,j),nbw*256)
 	nbsym(j) = 0
 c	  DNM: change fill that doesn't work to a zero
@@ -708,9 +751,9 @@ C
 	ENTRY IALORG(ISTREAM,XORIG,YORIG,ZORIG)
 C
 	J = LSTREAM(ISTREAM)
-	ORIGXY(1,J) = XORIG
-	ORIGXY(2,J) = YORIG
-	stuff(31,j) = zorig
+	ORIGXYZ(1,J) = XORIG
+	ORIGXYZ(2,J) = YORIG
+	ORIGXYZ(3,J) = ZORIG
 C
 	RETURN
 C
@@ -848,21 +891,8 @@ c
 	return
 c
 c*ialwav
+c	  DNM 7/30/02: eliminated
 c
-c	return wavelength info
-c	nwave = # of wavelengths (max 5)
-c	wave = vector of nwave wavelengths (in nm)
-	entry ialwav(istream,nwave,wavelen)
-c
-	j = lstream(istream)
-	mwave = min(5,nwave)
-	do k =1,mwave
-	  iwavelen(k+1) = nint(wavelen(k))
-	enddo
-	iwavelen(1) = mwave
-	call move(stuff(28,j),iwavelen,12)
-	return
-C
 c
 C
 C*IRTCEL
@@ -992,9 +1022,9 @@ C
 	ENTRY IRTORG(ISTREAM,XORIG,YORIG,ZORIG)
 C
 	J = LSTREAM(ISTREAM)
-	XORIG = ORIGXY(1,J)
-	YORIG = ORIGXY(2,J)
-	ZORIG = stuff(31,j)
+	XORIG = ORIGXYZ(1,J)
+	YORIG = ORIGXYZ(2,J)
+	ZORIG = ORIGXYZ(3,J)
 C
 	RETURN
 C
@@ -1122,19 +1152,7 @@ c
 c
 c
 c*irtwav
-c
-c	return wavelength info
-c	nwave = # of wavelengths (max 5)
-c	wave = vector of nwave wavelengths (in nm)
-	entry irtwav(istream,nwave,wavelen)
-c
-	j = lstream(istream)
-	call move(iwavelen,stuff(28,j),12)
-	nwave = iwavelen(1)
-	do k =1,nwave
-	  wavelen(k) = iwavelen(k+1)
-	enddo
-	return
+c	  DNM 7/30/02 eliminated
 c
 c
 99	WRITE(6,2000)
@@ -1160,9 +1178,36 @@ c
 	call convert_floats(stuff(13,j),6)
 	call convert_shorts(stuff(19,j),6)
 	call convert_floats(stuff(22,j),6)
-	call convert_shorts(stuff(28,j),6)
-	call convert_floats(stuff(31,j),1)
-	call convert_floats(origxy(1,j),2)
+c	  old-style header
+c	call convert_shorts(stuff(28,j),6)
+c	call convert_floats(stuff(31,j),1)
+c	  call convert_floats(origxy(1,j),2)
+	call convert_floats(origxyz(1,j),3)
+	call convert_floats(rms(j),1)
 	call convert_longs(nlab(j),1)
+	return
+	end
+
+
+c	  Set up cmap as 'MAP ' and stamp with first byte as 68 for little-
+c	  endian or 17 for big-endian file
+	subroutine set_cmap_stamp(j)
+	implicit none
+	include 'imsubs.inc'
+	include 'endian.inc'
+	integer j
+c
+	cmap(1,j) = ichar('M')
+	cmap(2,j) = ichar('A')
+	cmap(3,j) = ichar('P')
+	cmap(4,j) = ichar(' ')
+	if (lowbyte.eq.1 .xor. mrcflip(j)) then
+	  stamp(1,j) = 68
+	else
+	  stamp(1,j) = 17
+	endif
+	stamp(2,j) = 0
+	stamp(3,j) = 0
+	stamp(4,j) = 0
 	return
 	end
