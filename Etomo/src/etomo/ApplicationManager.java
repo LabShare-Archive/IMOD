@@ -81,6 +81,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.36  2004/04/26 17:15:54  sueh
+ * <p> bug# 83 removing generic progress bar from patchcorr
+ * <p>
  * <p> Revision 3.35  2004/04/26 00:24:59  rickg
  * <p> bug #426 Implemented full tomogram sampling
  * <p>
@@ -2248,18 +2251,47 @@ public class ApplicationManager {
     else {
       tomogramPositioningDialogA = tomogramPositioningDialog;
     }
+    // Get the original image size and pass it to the TomogramGenerationDialog.
+    // It is needed to set the full image size correctly
+    // TODO: get the right size for montaging using montagesize
+    // TODO: this functionality is the same as the openTomo...Gen.. method 
+    MRCHeader stackHeader = new MRCHeader(metaData.getDatasetName()
+      + axisID.getExtension() + ".st");
+    try {
+      stackHeader.read();
+      tomogramPositioningDialog.setFullImageSize(stackHeader.getNColumns(),
+        stackHeader.getNRows());
+    }
+    catch (IOException except) {
+      String[] errorMessage = new String[3];
+      errorMessage[0] = "Unable to read full image size from projection image stack";
+      errorMessage[1] = "Axis: " + axisID.getExtension();
+      errorMessage[2] = except.getMessage();
+      mainFrame.openMessageDialog(errorMessage, "MRCHeader IO Error");
+    }
+    catch (InvalidParameterException except) {
+      String[] errorMessage = new String[3];
+      errorMessage[0] = "Unable to read full image size from projection image stack";
+      errorMessage[1] = "Axis: " + axisID.getExtension();
+      errorMessage[2] = except.getMessage();
+      mainFrame.openMessageDialog(errorMessage,
+        "MRCHeader Invalid Parameter Error");
+    }
 
-    // Get the align{|a|b}.com, newst{|a|b}.com, and tilt{|a|b}.com parameters
+    // Read in the newst{|a|b}.com parameters.  WARNING this needs to be done
+    // before reading the tilt paramers below so that the GUI knows how to
+    // correctly scale the dimensions
+    comScriptMgr.loadNewst(axisID);
+    tomogramPositioningDialog.setNewstParams(comScriptMgr
+      .getNewstComNewstParam(axisID));
+
+    // Get the align{|a|b}.com and tilt{|a|b}.com parameters
     comScriptMgr.loadAlign(axisID);
     tomogramPositioningDialog.setAlignParams(comScriptMgr
       .getTiltalignParam(axisID));
 
     comScriptMgr.loadTilt(axisID);
     tomogramPositioningDialog.setTiltParams(comScriptMgr.getTiltParam(axisID));
-
-    comScriptMgr.loadNewst(axisID);
-    tomogramPositioningDialog.setNewstParams(comScriptMgr
-      .getNewstComNewstParam(axisID));
 
     //  Set the fidcialess state
     tomogramPositioningDialog.setFiducialessAlignment(metaData
@@ -2437,7 +2469,7 @@ public class ApplicationManager {
    * @param axisID
    */
   public void imodFullSample(AxisID axisID) {
-    String tomopitchModelName = "tomopitch" + axisID.getExtension() + "mod";
+    String tomopitchModelName = "tomopitch" + axisID.getExtension() + ".mod";
     try {
       imodManager.open(ImodManager.FULL_VOLUME_KEY, axisID);
       imodManager.model(ImodManager.FULL_VOLUME_KEY,axisID, tomopitchModelName);
@@ -2456,7 +2488,8 @@ public class ApplicationManager {
   }
   
   /**
-   * 
+   * Run the tomopitch com script for the specified axis
+   * @param axisID
    */
   public void tomopitch(AxisID axisID) {
     processTrack.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
