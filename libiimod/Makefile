@@ -30,11 +30,11 @@ $(LIBD) : tiffstub.$(O) ALWAYS
 	$(FIND) . -type f -name $(LIBD) -exec rm -f "{}" \;
 	$(MAKELIB)$(LIBD) tiffstub.$(O)
 	$(RANLIB) $(LIBD)
-	$(FIND) $(LIBDIR) -type f -name "*libtiff.*" -exec rm -f "{}" \;
+	$(FIND) $(LIBDIR) -type f -name "*libtiff.[^l]*" -exec rm -f "{}" \;
 	$(CP) $(LIBD) $(LIBDIR)
 
 install : $(LIBS)
-	$(FIND) $(INSTLIBDIR) -type f -name "*libtiff.*" -exec rm -f "{}" \;
+	$(FIND) $(INSTLIBDIR) -type f -name "*libtiff.[^l]*" -exec rm -f "{}" \;
 	$(CP) $(LIBS) $(INSTLIBDIR)
 
 clean : 
