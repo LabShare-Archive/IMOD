@@ -24,6 +24,10 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.6  2004/01/20 00:07:37  mast
+c	  Added option to apply a single transform, fixed initialization and a
+c	  problem with back-transforming with -xf
+c	
 c	  Revision 3.5  2004/01/16 18:08:04  mast
 c	  Fixed problem with how it decided if it needed image binning entry
 c	
@@ -268,7 +272,7 @@ c
 	iftrans=0
 	ifrotrans=0
 	ifmagrot = 0
-	lineUse = -1;
+	lineUse = -1
 	if (pipinput) then
 	  ierr = PipGetBoolean('TranslationOnly', iftrans)
 	  ierr = PipGetBoolean('RotationTranslation', ifrotrans)
