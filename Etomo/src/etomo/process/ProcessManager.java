@@ -20,6 +20,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.9  2004/05/21 02:16:26  sueh
+ * bug# 83 adding VolcombineProcessMonitor to volcombine()
+ *
  * Revision 3.8  2004/04/26 00:21:35  rickg
  * Comment change
  *
@@ -508,7 +511,7 @@ public class ProcessManager {
    * Copy the .rawtlt to the .tlt file
    * @param axisID
    */
-  public void setupNonFidicualAlign(AxisID axisID) throws IOException {
+  public void setupNonFiducialAlign(AxisID axisID) throws IOException {
     String workingDirectory = System.getProperty("user.dir");
     String axisDataset = appManager.getDatasetName() + axisID.getExtension();
 
@@ -549,16 +552,19 @@ public class ProcessManager {
    * @param axisID
    *          the AxisID to run midas on.
    */
-  public void midasRawStack(AxisID axisID) {
+  public void midasRawStack(AxisID axisID, float imageRotation) {
 
+    //  Construct the command line strings
     String[] commandArray = new String[3];
 
+    String options = "-a " + String.valueOf(-1 * imageRotation) + " ";
     String stack = appManager.getDatasetName() + axisID.getExtension() + ".st ";
     String xform = appManager.getDatasetName() + axisID.getExtension()
         + ".prexf ";
 
-    String commandLine = ApplicationManager.getIMODBinPath() + "midas " + stack
-        + xform;
+    String commandLine = ApplicationManager.getIMODBinPath() + "midas "
+        + options + stack + xform;
+
     //  Start the system program thread
     startSystemProgramThread(commandLine);
   }
@@ -888,8 +894,8 @@ public class ProcessManager {
     String command = "volcombine.com";
 
     //  Start the com script in the background
-    ComScriptProcess comScriptProcess = startComScript(command, volcombineProcessMonitor,
-      AxisID.ONLY);
+    ComScriptProcess comScriptProcess = startComScript(command,
+      volcombineProcessMonitor, AxisID.ONLY);
     return comScriptProcess.getName();
 
   }
@@ -921,7 +927,7 @@ public class ProcessManager {
   }
 
   /**
-   * Start an arbtrary command as an unmanaged background thread
+   * Start an arbitrary command as an unmanaged background thread
    */
   private void startSystemProgramThread(String command) {
 
