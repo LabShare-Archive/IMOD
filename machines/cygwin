@@ -97,7 +97,7 @@ if ($compiler == intel) then
             echo 'MAKELIBCPP = link -dll /NOLOGO /out:' >> $configure
             echo 'LIBIIMODDEF = /def:libiimod.def ../buildlib/libimod.lib ../buildlib/libtiff.lib'   >> $configure
             echo 'LIBIMODDEF = /def:libimod.def'     >> $configure
-            echo 'LIBIMDEF = /def:libim.def libifft.lib ../../buildlib/libimod.lib'  >> $configure
+            echo 'LIBIMDEF = /def:libim.def ../../buildlib/libifft.lib ../../buildlib/libimod.lib'  >> $configure
             echo 'LIBHVEMDEF = /def:libhvem.def libim.lib ../../buildlib/libimod.lib'  >> $configure
             echo 'LIBIFFTDEF = /def:libifft.def'     >> $configure
             echo 'LIBTRACKDEF = /def:libtrack.def'   >> $configure
