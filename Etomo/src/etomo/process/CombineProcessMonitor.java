@@ -7,6 +7,7 @@ import java.io.FileReader;
 import java.io.IOException;
 
 import etomo.ApplicationManager;
+import etomo.EtomoDirector;
 import etomo.comscript.CombineComscriptState;
 import etomo.type.AxisID;
 import etomo.util.Utilities;
@@ -29,6 +30,27 @@ import etomo.util.Utilities;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.6.2.3  2004/10/11 02:02:48  sueh
+ * <p> $bug# 520 Using a variable called propertyUserDir instead of the "user.dir"
+ * <p> $property.  This property would need a different value for each manager.
+ * <p> $This variable can be retrieved from the manager if the object knows its
+ * <p> $manager.  Otherwise it can retrieve it from the current manager using the
+ * <p> $EtomoDirector singleton.  If there is no current manager, EtomoDirector
+ * <p> $gets the value from the "user.dir" property.
+ * <p> $
+ * <p> $Revision 1.6.2.2  2004/10/08 15:56:41  sueh
+ * <p> $bug# 520 Since EtomoDirector is a singleton, made all functions and
+ * <p> $member variables non-static.
+ * <p> $
+ * <p> $Revision 1.6.2.1  2004/09/03 21:08:47  sueh
+ * <p> $bug# 520 calling isSelfTest from EtomoDirector
+ * <p> $
+ * <p> $Revision 1.6  2004/08/28 00:47:16  sueh
+ * <p> $bug# 508 setting "processRunning = true" only in the constructor.
+ * <p> $A kill monitor call from an error that happens very early
+ * <p> $(like combine.com is already running) was being ignored when
+ * <p> $processRunning was turned back on.
+ * <p> $
  * <p> $Revision 1.5  2004/08/24 20:31:18  sueh
  * <p> $bug# 508 make kill() interrupt the thread which is executing
  * <p> $the run function
@@ -104,7 +126,7 @@ public class CombineProcessMonitor implements Runnable, BackgroundProcessMonitor
     this.applicationManager = applicationManager;
     this.axisID = axisID;
     this.combineComscriptState = combineComscriptState;
-    selfTest = ApplicationManager.isSelfTest();
+    selfTest = EtomoDirector.getInstance().isSelfTest();
     runSelfTest(CONSTRUCTED_STATE);
   }
 
@@ -278,7 +300,7 @@ public class CombineProcessMonitor implements Runnable, BackgroundProcessMonitor
     initializeProgressBar();
     //  Instantiate the logFile object
     String logFileName = CombineComscriptState.COMSCRIPT_NAME + ".log";
-    logFile = new File(System.getProperty("user.dir"), logFileName);
+    logFile = new File(applicationManager.getPropertyUserDir(), logFileName);
 
     try {
       //  Wait for the log file to exist

@@ -1,7 +1,9 @@
 package etomo.type;
 
 import java.io.File;
+import java.util.Properties;
 
+import etomo.EtomoDirector;
 import etomo.comscript.ConstCombineParams;
 import etomo.comscript.CombineParams;
 import etomo.comscript.TransferfidParam;
@@ -20,6 +22,30 @@ import etomo.comscript.TrimvolParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.10.4.4  2004/11/19 00:15:59  sueh
+ * <p> bug# 520 Changed the file extension to contain the period.
+ * <p>
+ * <p> Revision 3.10.4.3  2004/10/11 02:07:25  sueh
+ * <p> bug# 520 Fixed a bug in ConstMetaData where the open edf file menu
+ * <p> item wasn't working because it was validating the propertyUserDir of the
+ * <p> current manager, not the parent of the edf file being opened.  Now able
+ * <p> to pass in the edf file to get the parent from to use in validation.
+ * <p>
+ * <p> Revision 3.10.4.2  2004/10/01 19:47:26  sueh
+ * <p> bug# 520 provide a standard way to get the identifier of a meta data file
+ * <p> (getName).  Define a new join string that will go in the menu.  Set a file
+ * <p> extension value.
+ * <p>
+ * <p> Revision 3.10.4.1  2004/09/29 19:23:26  sueh
+ * <p> bug# 520 Added base class BaseMetaData.  Made
+ * <p> latestRevisionNumber static.  Moved revision functionality to base class.
+ * <p> Moved axisType and invalid reason to base class.  Moved store()
+ * <p> functions to this class.  Implemented Storable with abstract load
+ * <p> functions.
+ * <p>
+ * <p> Revision 3.10  2004/06/22 02:01:52  sueh
+ * <p> bug# 441 added TrimvolParam, updated equals().
+ * <p>
  * <p> Revision 3.9  2004/06/01 18:54:49  rickg
  * <p> Bug #391 whole tomogram sampling state implementation
  * <p>
@@ -107,17 +133,17 @@ import etomo.comscript.TrimvolParam;
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
  */
-public class ConstMetaData {
+public abstract class ConstMetaData extends BaseMetaData {
   public static final String rcsid = "$Id$";
 
-  protected String latestRevisionNumber = "1.7";
-  protected String revisionNumber = "";
+  private static final String latestRevisionNumber = "1.7";
+  private static final String newTomogramTitle = "Setup Tomogram";
+  
   protected String datasetName = "";
   protected String backupDirectory = "";
   protected String distortionFile = "";
 
   protected DataSource dataSource = DataSource.CCD;
-  protected AxisType axisType = AxisType.NOT_SET;
   protected ViewType viewType = ViewType.SINGLE_VIEW;
   protected SectionType sectionType = SectionType.SINGLE;
 
@@ -142,11 +168,63 @@ public class ConstMetaData {
   protected CombineParams combineParams = new CombineParams();
   protected TrimvolParam trimvolParam = new TrimvolParam();
 
-  protected String invalidReason = "";
-
   protected int transferfidNumberViews = 5;
 
+  public abstract void load(Properties props);
+  public abstract void load(Properties props, String prepend);
+    
   public ConstMetaData() {
+    fileExtension = ".edf";
+  }
+
+  /**
+   *  Insert the objects attributes into the properties object.
+   */
+  public void store(Properties props, String prepend) {
+    String group;
+    if (prepend == "") {
+      group = "Setup.";
+    }
+    else {
+      group = prepend + ".Setup.";
+    }
+
+    props.setProperty(group + "RevisionNumber", latestRevisionNumber);
+    props.setProperty(group + "ComScriptsCreated", String
+        .valueOf(comScriptsCreated));
+    props.setProperty(group + "DatasetName", datasetName);
+    props.setProperty(group + "BackupDirectory", backupDirectory);
+
+    props.setProperty(group + "DataSource", dataSource.toString());
+    props.setProperty(group + "AxisType", axisType.toString());
+    props.setProperty(group + "ViewType", viewType.toString());
+    props.setProperty(group + "SectionType", sectionType.toString());
+
+    props.setProperty(group + "PixelSize", String.valueOf(pixelSize));
+    props.setProperty(group + "UseLocalAlignments", String
+        .valueOf(useLocalAlignments));
+    props.setProperty(group + "FiducialDiameter", String
+        .valueOf(fiducialDiameter));
+    props.setProperty(group + "ImageRotationA", String.valueOf(imageRotationA));
+    props.setProperty(group + "ImageRotationB", String.valueOf(imageRotationB));
+    tiltAngleSpecA.store(props, group + "AxisA");
+    props.setProperty(group + "AxisA.ExcludeProjections", String
+        .valueOf(excludeProjectionsA));
+
+    tiltAngleSpecB.store(props, group + "AxisB");
+    props.setProperty(group + "AxisB.ExcludeProjections", String
+        .valueOf(excludeProjectionsB));
+
+    props.setProperty(group + "TransferfidNumberViews", String
+        .valueOf(transferfidNumberViews));
+    combineParams.store(props, group);
+    props.setProperty(group + "DistortionFile", distortionFile);
+    props.setProperty(group + "Binning", String.valueOf(binning));
+    props.setProperty(group + "FiducialessAlignment", String
+        .valueOf(fiducialessAlignment));
+    props.setProperty(group + "WholeTomogramSample", String
+        .valueOf(wholeTomogramSample));
+    trimvolParam.store(props, group);
   }
 
   public TrimvolParam getTrimvolParam() {
@@ -157,12 +235,26 @@ public class ConstMetaData {
     param.setNumberViews(transferfidNumberViews);
   }
 
-  public String getRevisionNumber() {
-    return revisionNumber;
-  }
-
   public String getDatasetName() {
     return datasetName;
+  }
+  
+  public String getMetaDataFileName() {
+    if (datasetName.equals("")) {
+      return "";
+    }
+    return datasetName + fileExtension;
+  }
+  
+  public String getName() {
+    if (datasetName.equals("")) {
+      return newTomogramTitle;
+    }
+    return datasetName;
+  }
+  
+  public static String getNewFileTitle() {
+    return newTomogramTitle;
   }
 
   public String getBackupDirectory() {
@@ -175,10 +267,6 @@ public class ConstMetaData {
 
   public DataSource getDataSource() {
     return dataSource;
-  }
-
-  public AxisType getAxisType() {
-    return axisType;
   }
 
   public ViewType getViewType() {
@@ -239,23 +327,28 @@ public class ConstMetaData {
   public boolean isWholeTomogramSample() {
     return wholeTomogramSample;
   }
-  
-  public String getInvalidReason() {
-    return invalidReason;
-  }
 
   public ConstCombineParams getConstCombineParams() {
     return combineParams;
   }
 
   public boolean isValid() {
-    return isValid(true);
+    return isValid(true, null);
   }
-  public boolean isValid(boolean fromSetupScreen) {
+  
+  public boolean isValid(boolean fromScreen) {
+    return isValid(fromScreen, null);
+  }
+  
+  public boolean isValid(File paramFile) {
+    return isValid(false, paramFile);
+  }
+  
+  public boolean isValid(boolean fromScreen, File paramFile) {
     invalidReason = "";
     
     String helpString;
-    if (!fromSetupScreen) {
+    if (!fromScreen) {
       helpString = "  Check the Etomo data file."; 
     }
     else {
@@ -268,19 +361,19 @@ public class ConstMetaData {
       return false;
     }
 
-    if (!isDatasetNameValid()) {
+    if (!isDatasetNameValid(paramFile)) {
       invalidReason += helpString;
       return false;
     }
 
     // Is the pixel size greater than zero
-    if (fromSetupScreen && pixelSize <= 0.0) {
+    if (fromScreen && pixelSize <= 0.0) {
       invalidReason = "Pixel size is not greater than zero.";
       return false;
     }
 
     // Is the fiducial diameter greater than zero
-    if (fromSetupScreen && fiducialDiameter <= 0.0) {
+    if (fromScreen && fiducialDiameter <= 0.0) {
       invalidReason = "Fiducial diameter is not greater than zero.";
       return false;
     }
@@ -289,13 +382,24 @@ public class ConstMetaData {
   }
 
   public boolean isDatasetNameValid() {
+    return isDatasetNameValid(null);
+  }
+  
+  public boolean isDatasetNameValid(File paramFile) {
     invalidReason = "";
     if (datasetName.equals("")) {
       invalidReason = "Dataset name has not been set.";
       return false;
     }
-    if (getValidDatasetDirectory(System.getProperty("user.dir")) != null) {
-      return true;
+    if (paramFile == null) {
+      if (getValidDatasetDirectory(EtomoDirector.getInstance().getCurrentPropertyUserDir()) != null) {
+        return true;
+      }
+    }
+    else {
+      if (getValidDatasetDirectory(new File(paramFile.getParent()).getAbsolutePath()) != null) {
+        return true;
+      }
     }
     return false;
   }
@@ -465,11 +569,6 @@ public class ConstMetaData {
       return false;
 
     ConstMetaData cmd = (ConstMetaData) object;
-
-    // Ignore revision number, we are more concerned about the functional
-    // content of the object
-    //if (!revisionNumber.equals(cmd.getRevisionNumber()))
-    //  return false;
     if (!datasetName.equals(cmd.getDatasetName()))
       return false;
     if (!backupDirectory.equals(cmd.getBackupDirectory()))

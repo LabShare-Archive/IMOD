@@ -172,6 +172,16 @@ import etomo.type.AxisID;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.19.2.2  2004/09/22 22:07:52  sueh
+ * <p> $bug# 520 Added getSlicerAngles().
+ * <p> $
+ * <p> $Revision 1.19.2.1  2004/09/21 17:56:28  sueh
+ * <p> $bug# 520 Added ImodState(File), which sets the absolute path of the file
+ * <p> $to ImodProcess.datasetName.
+ * <p> $
+ * <p> $Revision 1.19  2004/08/31 01:09:03  sueh
+ * <p> $bug# 541 reset():  resetting each time 3dmod runs
+ * <p> $
  * <p> $Revision 1.18  2004/06/22 23:39:39  sueh
  * <p> $bug# 455 Removing usingOpenContours because it automatcally
  * <p> $gets reset to default when a new model is opened.
@@ -349,6 +359,11 @@ public class ImodState {
     process = new ImodProcess(datasetName, modelName);
     reset();
   }
+  
+  public ImodState(File file) {
+    process = new ImodProcess(file.getAbsolutePath());
+    reset();
+  }
 
   
   /**
@@ -488,6 +503,10 @@ public class ImodState {
 
   public Vector getRubberbandCoordinates() throws SystemProcessException {
     return process.getRubberbandCoordinates();
+  }
+  
+  public Vector getSlicerAngles() throws SystemProcessException {
+    return process.getSlicerAngles();
   }
 
   

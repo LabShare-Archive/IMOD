@@ -22,6 +22,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 
 import etomo.ApplicationManager;
+import etomo.EtomoDirector;
 import etomo.type.AxisID;
 
 public class AlignLogGenerator {
@@ -58,8 +59,7 @@ public class AlignLogGenerator {
     String[] stdError = alignlog.getStdError();
 
     BufferedWriter fileBuffer;
-    fileBuffer = new BufferedWriter(new FileWriter(System
-      .getProperty("user.dir")
+    fileBuffer = new BufferedWriter(new FileWriter(EtomoDirector.getInstance().getCurrentPropertyUserDir()
         + File.separator + logFile + axisID.getExtension() + ".log"));
 
     if (stdOutput == null) {

@@ -1,6 +1,5 @@
 package etomo.type;
 
-import etomo.storage.Storable;
 import etomo.process.ProcessState;
 import java.util.Properties;
 
@@ -17,6 +16,14 @@ import java.util.Properties;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.0.6.1  2004/09/29 19:31:50  sueh
+ * <p> bug# 520 Added base class BaseProcessTrack.  Moved Storable to base
+ * <p> class.  Moved generic load and store functions, modified functionality,
+ * <p> and revision functionality to base class.
+ * <p>
+ * <p> Revision 3.0  2003/11/07 23:19:01  rickg
+ * <p> Version 1.0.0
+ * <p>
  * <p> Revision 2.3  2003/01/27 17:36:28  rickg
  * <p> Fixed set* logic bug that set the A axis when B was selected
  * <p>
@@ -40,12 +47,10 @@ import java.util.Properties;
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
  */
-public class ProcessTrack implements Storable {
+public class ProcessTrack extends BaseProcessTrack {
   public static final String rcsid =
     "$Id$";
 
-  protected String revisionNumber = "2.0";
-  private boolean isModified = false;
   private ProcessState setup = ProcessState.NOTSTARTED;
 
   private ProcessState preProcessingA = ProcessState.NOTSTARTED;
@@ -66,14 +71,12 @@ public class ProcessTrack implements Storable {
   private ProcessState tomogramGenerationB = ProcessState.NOTSTARTED;
 
   public ProcessTrack() {
+    revisionNumber = "2.0";
   }
 
   /**
    *  Insert the objects attributes into the properties object.
    */
-  public void store(Properties props) {
-    store(props, "");
-  }
   public void store(Properties props, String prepend) {
     String group;
     if (prepend == "") {
@@ -121,9 +124,6 @@ public class ProcessTrack implements Storable {
   /**
    *  Get the objects attributes from the properties object.
    */
-  public void load(Properties props) {
-    load(props, "");
-  }
   public void load(Properties props, String prepend) {
     String group;
     if (prepend == "") {
@@ -223,17 +223,6 @@ public class ProcessTrack implements Storable {
 
     }
 
-  }
-  public String getRevisionNumber() {
-    return revisionNumber;
-  }
-
-  public boolean isModified() {
-    return isModified;
-  }
-
-  public void resetModified() {
-    isModified = false;
   }
 
   /**

@@ -18,6 +18,13 @@ import etomo.type.AxisID;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.2.4.1  2004/09/29 17:48:45  sueh
+ * <p> bug# 520 Removed MainPanel pass-through functions.
+ * <p>
+ * <p> Revision 3.2  2004/04/23 20:02:27  sueh
+ * <p> bug# 83 allowing initializeProgressBar() to be called before
+ * <p> nSections is set
+ * <p>
  * <p> Revision 3.1  2003/11/26 23:37:38  rickg
  * <p> Changed name of logFileReader
  * <p>
@@ -51,11 +58,11 @@ public class CCDEraserProcessMonitor extends LogFileProcessMonitor {
    */
   protected void initializeProgressBar() {
     if (nSections == Integer.MIN_VALUE) {
-      applicationManager.setProgressBar("CCD Eraser", 1, axisID);
-      applicationManager.setProgressBarValue(0, "Starting...", axisID);
+      applicationManager.getMainPanel().setProgressBar("CCD Eraser", 1, axisID);
+      applicationManager.getMainPanel().setProgressBarValue(0, "Starting...", axisID);
       return;
     }
-    applicationManager.setProgressBar("CCD Eraser", nSections, axisID);
+    applicationManager.getMainPanel().setProgressBar("CCD Eraser", nSections, axisID);
   }
 
   /* (non-Javadoc)

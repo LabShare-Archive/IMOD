@@ -1,6 +1,11 @@
 package etomo.process;
 import java.io.*;
 
+import etomo.EtomoDirector;
+import etomo.comscript.Command;
+import etomo.type.ConstEtomoNumber;
+import etomo.type.EtomoNumber;
+
 /*
  * <p>Description: InteractiveSystemProgram implements a Runable class that can
  * execute an arbitrary program under the host operating system.</p>
@@ -15,6 +20,34 @@ import java.io.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.0.6.5  2004/11/16 02:21:59  sueh
+ * <p> bug# 520 Replacing EtomoInteger, EtomoDouble, EtomoFloat, and
+ * <p> EtomoLong with EtomoNumber.
+ * <p>
+ * <p> Revision 3.0.6.4  2004/11/12 22:53:53  sueh
+ * <p> bug# 520 Removed pass-through commands to Command.  Added
+ * <p> Command getCommand().
+ * <p>
+ * <p> Revision 3.0.6.3  2004/10/28 17:05:51  sueh
+ * <p> bug# 520 Rename oldOutputFileTime to outputFileLastModified.
+ * <p>
+ * <p> Revision 3.0.6.2  2004/10/21 02:43:00  sueh
+ * <p> bug# 520 Created a constructor which takes a Command interface.  This
+ * <p> lets ProcessManager and JoinProcessManager do non-generic post
+ * <p> processing for this program type.  Added functions to be used during post
+ * <p> processing.
+ * <p>
+ * <p> Revision 3.0.6.1  2004/10/11 02:03:07  sueh
+ * <p> bug# 520 Using a variable called propertyUserDir instead of the "user.dir"
+ * <p> property.  This property would need a different value for each manager.
+ * <p> This variable can be retrieved from the manager if the object knows its
+ * <p> manager.  Otherwise it can retrieve it from the current manager using the
+ * <p> EtomoDirector singleton.  If there is no current manager, EtomoDirector
+ * <p> gets the value from the "user.dir" property.
+ * <p>
+ * <p> Revision 3.0  2003/11/07 23:19:00  rickg
+ * <p> Version 1.0.0
+ * <p>
  * <p> Revision 2.2  2003/03/20 17:26:48  rickg
  * <p> Comment update
  * <p>
@@ -37,6 +70,10 @@ public class InteractiveSystemProgram implements Runnable {
   public static final String rcsid =
     "$Id$";
 
+  private BaseProcessManager processManager = null;
+  private String threadName = null;
+  private EtomoNumber outputFileLastModified = new EtomoNumber(EtomoNumber.LONG_TYPE, "");
+  
   /**
    * The exit value of the command
    */
@@ -46,6 +83,7 @@ public class InteractiveSystemProgram implements Runnable {
    * The command to run
    */
   private String command = null;
+  private Command commandParam = null;
 
   /**
    * The buffered IO streams connecting to the commmand.
@@ -66,6 +104,20 @@ public class InteractiveSystemProgram implements Runnable {
   public InteractiveSystemProgram(String command) {
     this.command = command;
   }
+  
+  public InteractiveSystemProgram(Command commandParam, BaseProcessManager processManager) {
+    this.processManager = processManager;
+    this.commandParam = commandParam;
+    
+    if (commandParam == null) {
+      throw new IllegalArgumentException("CommandParam is null.");
+    }
+    command = commandParam.getCommandLine();
+  }
+  
+  public void setName(String threadName) {
+    this.threadName = threadName;
+  }
 
   /**
    * Specify the directory in which the program should be run.  If the working
@@ -75,6 +127,17 @@ public class InteractiveSystemProgram implements Runnable {
   public void setWorkingDirectory(File workingDirectory) {
     this.workingDirectory = workingDirectory;
   }
+  
+  public String getCommandLine() {
+    return command;
+  }
+  
+  public String getCommandName() {
+    if (commandParam == null) {
+      return null;
+    }
+    return commandParam.getCommandName();
+  }
 
   /**
    * Execute the command.
@@ -83,9 +146,14 @@ public class InteractiveSystemProgram implements Runnable {
 
     //  Setup the Process object and run the command
     Process process = null;
+    File outputFile = null;
+    if (commandParam != null) {
+      outputFile = commandParam.getOutputFile();
+      outputFileLastModified.set(outputFile.lastModified());
+    }
     try {
       if (workingDirectory == null) {
-        File currentUserDirectory = new File(System.getProperty("user.dir"));
+        File currentUserDirectory = new File(EtomoDirector.getInstance().getCurrentPropertyUserDir());
         process =
           Runtime.getRuntime().exec(command, null, currentUserDirectory);
       }
@@ -125,6 +193,10 @@ public class InteractiveSystemProgram implements Runnable {
       except.printStackTrace();
       exceptionMessage = except.getMessage();
     }
+    
+    if (processManager != null) {
+      processManager.msgInteractiveSystemProgramDone(this, exitValue);
+    }
   }
 
   /**
@@ -162,6 +234,14 @@ public class InteractiveSystemProgram implements Runnable {
     }
     return line;
   }
+  
+  public Command getCommand() {
+    return commandParam;
+  }
+  
+  public ConstEtomoNumber getOutputFileLastModified() {
+    return outputFileLastModified;
+  }
 
   /**
    * Read one line from the stderr buffer if available, if one isn't available
@@ -183,6 +263,10 @@ public class InteractiveSystemProgram implements Runnable {
 
   public int getExitValue() {
     return exitValue;
+  }
+  
+  public String getName() {
+    return threadName;
   }
 
   public String getExceptionMessage() {

@@ -19,6 +19,12 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.17.2.1  2004/09/29 17:49:24  sueh
+ * bug# 520 changing to BaseProcessManager.
+ *
+ * Revision 3.17  2004/08/30 18:42:14  sueh
+ * bug# 508 adding notifyKill()
+ *
  * Revision 3.16  2004/08/28 00:53:40  sueh
  * bug# 508 gave a descendent class access to watchedFileNAme and
  * errorMessage.
@@ -281,7 +287,7 @@ public class ComScriptProcess
 
   protected String name = null;
   protected File workingDirectory = null;
-  private ProcessManager processManager;
+  private BaseProcessManager processManager;
 
   private boolean demoMode = false;
   private int demoTime = 5000;
@@ -300,7 +306,7 @@ public class ComScriptProcess
 
   public ComScriptProcess(
     String comScript,
-    ProcessManager processManager,
+    BaseProcessManager processManager,
       AxisID axisID,
       String watchedFileName) {
     this.name = comScript;

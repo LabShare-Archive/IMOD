@@ -17,6 +17,27 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.9.2.4  2004/10/18 19:10:42  sueh
+ * <p> bug# 520 Added getCommandLine().
+ * <p>
+ * <p> Revision 3.9.2.3  2004/10/11 02:04:39  sueh
+ * <p> bug# 520 Using a variable called propertyUserDir instead of the "user.dir"
+ * <p> property.  This property would need a different value for each manager.
+ * <p> This variable can be retrieved from the manager if the object knows its
+ * <p> manager.  Otherwise it can retrieve it from the current manager using the
+ * <p> EtomoDirector singleton.  If there is no current manager, EtomoDirector
+ * <p> gets the value from the "user.dir" property.
+ * <p>
+ * <p> Revision 3.9.2.2  2004/10/06 01:51:00  sueh
+ * <p> bug# 520 Removed unnecessary import.
+ * <p>
+ * <p> Revision 3.9.2.1  2004/10/01 19:49:15  sueh
+ * <p> bug# 520 Add a static parseError(String[]) function that can be used to
+ * <p> parse stdOutput and stdError.
+ * <p>
+ * <p> Revision 3.9  2004/08/25 23:04:58  sueh
+ * <p> bug# 508 fixed null pointer bug in getRunTimestamp()
+ * <p>
  * <p> Revision 3.8  2004/08/25 18:36:40  sueh
  * <p> bug# 508 adding a timestamp that is set just before the process
  * <p> is run.
@@ -129,6 +150,8 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
 
+import etomo.EtomoDirector;
+
 
 public class SystemProgram implements Runnable {
   public static final String rcsid =
@@ -224,7 +247,7 @@ public class SystemProgram implements Runnable {
         System.err.println("null");
         System.err.println(
           "SystemProgram: using current user.dir "
-            + System.getProperty("user.dir"));
+            + EtomoDirector.getInstance().getCurrentPropertyUserDir());
       }
       else {
         System.err.println(workingDirectory.getAbsoluteFile());
@@ -238,7 +261,7 @@ public class SystemProgram implements Runnable {
         System.err.print("SystemProgram: Exec'ing process...");
 
       if (workingDirectory == null) {
-        workingDirectory = new File(System.getProperty("user.dir"));
+        workingDirectory = new File(EtomoDirector.getInstance().getCurrentPropertyUserDir());
       }
       runTimestamp = new Date();
       process = Runtime.getRuntime().exec(commandArray, null, workingDirectory);
@@ -460,6 +483,14 @@ public class SystemProgram implements Runnable {
     exitValue = value;
   }
 
+  String getCommandLine() {
+    StringBuffer buffer = new StringBuffer();
+    for (int i = 0; i < commandArray.length; i++) {
+      buffer.append(commandArray[i]);
+    }
+    return buffer.toString();
+  }
+  
   public String getExceptionMessage() {
     return exceptionMessage;
   }
@@ -501,7 +532,17 @@ public class SystemProgram implements Runnable {
     return new Timestamp(runTimestamp.getTime());
   }
  
-  
+ public static ArrayList parseError(String[] output) {  
+   ArrayList errors = new ArrayList();
+   for (int i = 0; i < output.length; i++) {
+     int index = output[i].indexOf("ERROR:");
+     if (index != -1) {
+       errors.add(output[i].substring(index));
+     }
+   }
+   return errors;
+ }
+
   /**
    * Runnable class to keep the output buffers of the child process from filling
    * up and locking up the process.

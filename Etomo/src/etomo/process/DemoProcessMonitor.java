@@ -12,6 +12,13 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.0.6.1  2004/09/29 17:52:13  sueh
+ * <p> bug# 520 Switched to BaseManager.  Removing pass-through function
+ * <p> calls.
+ * <p>
+ * <p> Revision 3.0  2003/11/07 23:19:00  rickg
+ * <p> Version 1.0.0
+ * <p>
  * <p> Revision 1.2  2003/10/01 18:17:46  rickg
  * <p> demoTime now specified in constructor
  * <p>
@@ -21,13 +28,13 @@
  */
 package etomo.process;
 
-import etomo.ApplicationManager;
+import etomo.BaseManager;
 import etomo.type.AxisID;
 
 public class DemoProcessMonitor implements Runnable {
   public static final String rcsid =
     "$Id$";
-  ApplicationManager applicationManager;
+  BaseManager manager;
   AxisID axisID;
   long processStartTime;
   int updatePeriod = 500;
@@ -35,11 +42,11 @@ public class DemoProcessMonitor implements Runnable {
   String message;
 
   public DemoProcessMonitor(
-    ApplicationManager appMgr,
+    BaseManager mgr,
     AxisID id,
     String message,
     int demoTime) {
-    applicationManager = appMgr;
+    manager = mgr;
     axisID = id;
     this.message = message;
     this.demoTime = demoTime;
@@ -49,15 +56,15 @@ public class DemoProcessMonitor implements Runnable {
 
     // Reset the progressBar 
     long processStartTime = System.currentTimeMillis();
-    applicationManager.setProgressBar(" ", 1, axisID);
-    applicationManager.setProgressBarValue(0, "Starting...", axisID);
+    manager.getMainPanel().setProgressBar(" ", 1, axisID);
+    manager.getMainPanel().setProgressBarValue(0, "Starting...", axisID);
     try {
       Thread.sleep(500);
     }
     catch (InterruptedException e) {
       return;
     }
-    applicationManager.setProgressBar(message, 100, axisID);
+    manager.getMainPanel().setProgressBar(message, 100, axisID);
     long elapsedTime = System.currentTimeMillis() - processStartTime;
     while (elapsedTime < (demoTime - 100)) {
       double fractionDone = (double) elapsedTime / demoTime;
@@ -78,7 +85,7 @@ public class DemoProcessMonitor implements Runnable {
       else {
         message = message + String.valueOf(seconds);
       }
-      applicationManager.setProgressBarValue(
+      manager.getMainPanel().setProgressBarValue(
         (int) (elapsedTime / (demoTime / 100)),
         message,
         axisID);

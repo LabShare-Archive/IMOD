@@ -24,6 +24,12 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.7.4.1  2004/09/29 17:54:02  sueh
+ * <p> bug# 520 Removing pass-through function calls.
+ * <p>
+ * <p> Revision 3.7  2004/06/28 22:49:18  rickg
+ * <p> Bug #478  Added calls to .close in any possible exception.
+ * <p>
  * <p> Revision 3.6  2004/06/17 23:55:51  rickg
  * <p> Bug #460 moved getting of current time into FileSizeProcessMonitor on
  * <p> instantiation
@@ -95,8 +101,8 @@ public abstract class FileSizeProcessMonitor implements Runnable {
   public void run() {
     try {
       // Reset the progressBar 
-      applicationManager.setProgressBar(" ", 1, axisID);
-      applicationManager.setProgressBarValue(0, "Starting...", axisID);
+      applicationManager.getMainPanel().setProgressBar(" ", 1, axisID);
+      applicationManager.getMainPanel().setProgressBarValue(0, "Starting...", axisID);
 
       //  Calculate the expected file size in bytes, initialize the progress bar
       //  and set the File object.
@@ -201,7 +207,7 @@ public abstract class FileSizeProcessMonitor implements Runnable {
       double remainingTime = elapsedTime / fractionDone - elapsedTime;
       String message = String.valueOf(percentage) + "%   ETC: "
         + Utilities.millisToMinAndSecs(remainingTime);
-      applicationManager.setProgressBarValue(currentLength, message, axisID);
+      applicationManager.getMainPanel().setProgressBarValue(currentLength, message, axisID);
 
       try {
         Thread.sleep(updatePeriod);

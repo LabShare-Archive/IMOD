@@ -5,6 +5,7 @@ import java.io.File;
 import java.util.Vector;
 
 import etomo.ApplicationManager;
+import etomo.EtomoDirector;
 
 /**
  * <p> Description: ImodProcess opens an instance of imod with the specfied stack
@@ -21,6 +22,21 @@ import etomo.ApplicationManager;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.17.4.3  2004/10/08 15:57:43  sueh
+ * <p> bug# 520 Since EtomoDirector is a singleton, made all functions and
+ * <p> member variables non-static.
+ * <p>
+ * <p> Revision 3.17.4.2  2004/09/22 22:07:25  sueh
+ * <p> bug# 520 Added get slicer angles functionality.
+ * <p>
+ * <p> Revision 3.17.4.1  2004/09/03 21:11:24  sueh
+ * <p> bug# 520 calling from EtomoDirector.isDebug
+ * <p>
+ * <p> Revision 3.17  2004/06/22 22:54:50  sueh
+ * <p> bug# 462 Removed fillCache.  bug# 455 added openWithModel
+ * <p> functionality to handle opening a model while preserving contrast.
+ * <p> Added open contours functions
+ * <p>
  * <p> Revision 3.16  2004/06/17 01:29:52  sueh
  * <p> added 3dmod command to err log because it is useful to see
  * <p>
@@ -185,11 +201,14 @@ public class ImodProcess {
   public static final String MESSAGE_RUBBERBAND = "10";
   public static final String MESSAGE_OBJ_PROPERTIES = "11";
   public static final String MESSAGE_NEWOBJ_PROPERTIES = "12";
+  public static final String MESSAGE_SLICER_ANGLES = "13";
   
   public static final String ERROR_STRING = "ERROR:";
   public static final String WARNING_STRING = "WARNING:";
   public static final String IMOD_SEND_EVENT_STRING = "imodsendevent returned:";
   public static final String RUBBERBAND_RESULTS_STRING = "Rubberband:";
+  public static final String SLICER_ANGLES_RESULTS_STRING1 = "Slicer";
+  public static final String SLICER_ANGLES_RESULTS_STRING2 = "angles:";
   
   public static final String TRUE = "1";
   public static final String FALSE = "0";
@@ -313,7 +332,7 @@ public class ImodProcess {
       commandBuffer.append(" " + modelName);
     }
     String command = commandBuffer.toString();
-    if(ApplicationManager.isDebug()) {
+    if(EtomoDirector.getInstance().isDebug()) {
       System.err.println(command);
     }
     imod = new InteractiveSystemProgram(command);
@@ -588,6 +607,12 @@ public class ImodProcess {
     args[0] = MESSAGE_RUBBERBAND;
     return imodSendAndReceive(args);
   }
+  
+  public Vector getSlicerAngles() throws SystemProcessException {
+    String[] args = new String[1];
+    args[0] = MESSAGE_SLICER_ANGLES;
+    return imodSendAndReceive(args);
+  }
 
   /**
    * Sends all messages collected in the argument list via imodSendEvent().
@@ -665,7 +690,7 @@ public class ImodProcess {
     for (int i = 0; i < args.length; i++) {
       command = command + args[i] + " ";
     }
-    if(ApplicationManager.isDebug()) {
+    if(EtomoDirector.getInstance().isDebug()) {
       System.err.print(command);
     }
     InteractiveSystemProgram imodSendEvent = new InteractiveSystemProgram(
@@ -680,7 +705,7 @@ public class ImodProcess {
     catch (Exception except) {
       except.printStackTrace();
     }
-    if(ApplicationManager.isDebug()) {
+    if(EtomoDirector.getInstance().isDebug()) {
       System.err.println("...done");
     }
 

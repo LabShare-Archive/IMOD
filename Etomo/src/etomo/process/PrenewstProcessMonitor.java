@@ -11,6 +11,24 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.3.4.3  2004/10/11 02:03:50  sueh
+ * <p> bug# 520 Using a variable called propertyUserDir instead of the "user.dir"
+ * <p> property.  This property would need a different value for each manager.
+ * <p> This variable can be retrieved from the manager if the object knows its
+ * <p> manager.  Otherwise it can retrieve it from the current manager using the
+ * <p> EtomoDirector singleton.  If there is no current manager, EtomoDirector
+ * <p> gets the value from the "user.dir" property.
+ * <p>
+ * <p> Revision 3.3.4.2  2004/09/29 19:09:42  sueh
+ * <p> bug# 520 Removing pass-through function calls.
+ * <p>
+ * <p> Revision 3.3.4.1  2004/09/07 17:55:50  sueh
+ * <p> bug# 520 getting dataset name from metadata
+ * <p>
+ * <p> Revision 3.3  2004/06/17 23:55:51  rickg
+ * <p> Bug #460 moved getting of current time into FileSizeProcessMonitor on
+ * <p> instantiation
+ * <p>
  * <p> Revision 3.2  2004/06/17 23:34:17  rickg
  * <p> Bug #460 added script starting time to differentiate old data files
  * <p>
@@ -56,8 +74,8 @@ public class PrenewstProcessMonitor extends FileSizeProcessMonitor {
     int modeBytes = 1;
 
     // Get the header from the raw stack to calculate the aligned stack stize
-    String dataSetPath = System.getProperty("user.dir") + "/"
-      + applicationManager.getDatasetName() + axisID.getExtension();
+    String dataSetPath = applicationManager.getPropertyUserDir() + "/"
+      + applicationManager.getMetaData().getDatasetName() + axisID.getExtension();
 
     MRCHeader rawStack = new MRCHeader(dataSetPath + ".st");
     rawStack.read();
@@ -80,7 +98,7 @@ public class PrenewstProcessMonitor extends FileSizeProcessMonitor {
     long fileSize = 1024 + nX * nY * nZ * modeBytes;
     nKBytes = (int) (fileSize / 1024);
 
-    applicationManager.setProgressBar("Creating coarse stack", nKBytes, axisID);
+    applicationManager.getMainPanel().setProgressBar("Creating coarse stack", nKBytes, axisID);
 
     // Create a file object describing the file to be monitored
     watchedFile = new File(dataSetPath + ".preali");

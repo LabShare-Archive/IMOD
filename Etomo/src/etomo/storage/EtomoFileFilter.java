@@ -16,6 +16,13 @@ import java.io.File;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.0.6.1  2004/10/15 00:15:23  sueh
+ * <p> bug# 520 Change class to inherit DataFileFilter so it can be used
+ * <p> generically.
+ * <p>
+ * <p> Revision 3.0  2003/11/07 23:19:01  rickg
+ * <p> Version 1.0.0
+ * <p>
  * <p> Revision 2.1  2003/11/03 19:32:10  sueh
  * <p> bug266 MainFrame:
  * <p> getTestParamFilename(): added datasetname.edf as the default when there are no .edf files.
@@ -30,7 +37,7 @@ import java.io.File;
  * <p> Initial revision
  * <p>
  */
-public class EtomoFileFilter extends javax.swing.filechooser.FileFilter implements java.io.FileFilter {
+public class EtomoFileFilter extends DataFileFilter {
   public static final String rcsid = "$Id:";
 
   /**

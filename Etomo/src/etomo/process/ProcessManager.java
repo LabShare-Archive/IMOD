@@ -20,6 +20,55 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.39.2.11  2004/11/12 22:55:13  sueh
+ * bug# 520 Using overloading to simiplify the postProcess function names.
+ *
+ * Revision 3.39.2.10  2004/10/25 23:12:05  sueh
+ * bug# 520 Added a call to backgroundErrorProcess() for post processing
+ * when BackgroundProcess fails.
+ *
+ * Revision 3.39.2.9  2004/10/21 02:46:29  sueh
+ * bug# 520 Added empty interactiveSystemProgramPostProcess().
+ *
+ * Revision 3.39.2.8  2004/10/18 19:10:24  sueh
+ * bug# 520 Added getManager().  Moved startSystemProgramThread() to
+ * base class.
+ *
+ * Revision 3.39.2.7  2004/10/11 02:04:22  sueh
+ * bug# 520 Using a variable called propertyUserDir instead of the "user.dir"
+ * property.  This property would need a different value for each manager.
+ * This variable can be retrieved from the manager if the object knows its
+ * manager.  Otherwise it can retrieve it from the current manager using the
+ * EtomoDirector singleton.  If there is no current manager, EtomoDirector
+ * gets the value from the "user.dir" property.
+ *
+ * Revision 3.39.2.6  2004/10/08 16:07:17  sueh
+ * bug# 520 Since EtomoDirector is a singleton, made all functions and
+ * member variables non-static.
+ *
+ * Revision 3.39.2.5  2004/10/06 01:48:00  sueh
+ * bug# 520 Move StartBackgroundProcess() to base class.  Put non-
+ * generic post processing for transferfid into backgroundPostProcess().
+ *
+ * Revision 3.39.2.4  2004/09/29 19:11:07  sueh
+ * bug# 520 Added base class.  Moved functionality in common with
+ * JoinProcessManager to base class.
+ *
+ * Revision 3.39.2.3  2004/09/15 22:35:09  sueh
+ * bug# 520 call openMessageDialog in mainPanel instead of mainFrame
+ *
+ * Revision 3.39.2.2  2004/09/07 17:56:08  sueh
+ * bug# 520 getting dataset name from metadata
+ *
+ * Revision 3.39.2.1  2004/09/03 21:13:07  sueh
+ * bug# 520 calling functions from EtomoDirector instead of
+ * ApplicationManager
+ *
+ * Revision 3.39  2004/08/30 18:43:55  sueh
+ * bug# 508 Use notifyKill() to tell this object that
+ * a kill has been requested.  This way kill() doesn't have to
+ * check the type of the thread object.
+ *
  * Revision 3.38  2004/08/28 00:59:26  sueh
  * bug# 508 In startComScript checking ComScriptProcess.isError() as
  * well as isStarted() in order to get out of a loop.
@@ -491,6 +540,8 @@ package etomo.process;
 import etomo.type.AxisID;
 import etomo.type.ProcessName;
 import etomo.ApplicationManager;
+import etomo.BaseManager;
+import etomo.EtomoDirector;
 import etomo.type.ConstMetaData;
 import etomo.ui.TextPageWindow;
 import etomo.util.InvalidParameterException;
@@ -507,24 +558,20 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
 
-public class ProcessManager {
+public class ProcessManager extends BaseProcessManager {
   public static final String rcsid = "$Id$";
 
+  //variables cast from base class variables
+  //initialized in constructor
   ApplicationManager appManager;
-  SystemProcessInterface threadAxisA = null;
-  SystemProcessInterface threadAxisB = null;
-  Thread processMonitorA = null;
-  Thread processMonitorB = null;
-  private HashMap killedList = new HashMap();
-
+  
   // save the transferfid command line so that we can identify when process is
   // complete.
   String transferfidCommandLine;
 
   public ProcessManager(ApplicationManager appMgr) {
+    super();
     appManager = appMgr;
   }
 
@@ -540,7 +587,7 @@ public class ProcessManager {
 
     CopyTomoComs copyTomoComs = new CopyTomoComs(metaData);
 
-    if (ApplicationManager.isDebug()) {
+    if (EtomoDirector.getInstance().isDebug()) {
       System.err.println("copytomocoms command line: "
         + copyTomoComs.getCommandLine());
     }
@@ -589,6 +636,10 @@ public class ProcessManager {
 
     return comScriptProcess.getName();
   }
+  
+  private String getDatasetName() {
+    return appManager.getMetaData().getDatasetName();
+  }
 
   /**
    * Calculate the cross-correlation for the specified axis
@@ -622,7 +673,6 @@ public class ProcessManager {
 
     //  Create the required tiltalign command
     String command = "prenewst" + axisID.getExtension() + ".com";
-
     //  Start the com script in the background
     PrenewstProcessMonitor prenewstProcessMonitor = new PrenewstProcessMonitor(
       appManager, axisID);
@@ -643,8 +693,8 @@ public class ProcessManager {
     xftoxg[0] = ApplicationManager.getIMODBinPath() + "xftoxg";
     xftoxg[1] = "-NumberToFit";
     xftoxg[2] = "0";
-    xftoxg[3] = appManager.getDatasetName() + axisID.getExtension() + ".prexf";
-    xftoxg[4] = appManager.getDatasetName() + axisID.getExtension() + ".prexg";
+    xftoxg[3] = getDatasetName() + axisID.getExtension() + ".prexf";
+    xftoxg[4] = getDatasetName() + axisID.getExtension() + ".prexg";
     runCommand(xftoxg);
   }
   
@@ -656,10 +706,10 @@ public class ProcessManager {
   public void generateNonFidXF(AxisID axisID) throws SystemProcessException {
     String[] xfproduct = new String[4];
     xfproduct[0] = ApplicationManager.getIMODBinPath() + "xfproduct";
-    xfproduct[1] = appManager.getDatasetName() + axisID.getExtension()
+    xfproduct[1] = getDatasetName() + axisID.getExtension()
       + ".prexg";
     xfproduct[2] = "rotation" + axisID.getExtension() + ".xf";
-    xfproduct[3] = appManager.getDatasetName() + axisID.getExtension()
+    xfproduct[3] = getDatasetName() + axisID.getExtension()
       + "_nonfid.xf";
 
     runCommand(xfproduct);
@@ -673,8 +723,8 @@ public class ProcessManager {
    */
   public void setupNonFiducialAlign(AxisID axisID) throws IOException,
     InvalidParameterException {
-    String workingDirectory = System.getProperty("user.dir");
-    String axisDataset = appManager.getDatasetName() + axisID.getExtension();
+    String workingDirectory = appManager.getPropertyUserDir();
+    String axisDataset = getDatasetName() + axisID.getExtension();
 
     File nonfidXF = new File(workingDirectory, axisDataset + "_nonfid.xf");
     File xf = new File(workingDirectory, axisDataset + ".xf");
@@ -695,8 +745,8 @@ public class ProcessManager {
    * @param axisID
    */
   public void setupFiducialAlign(AxisID axisID) throws IOException {
-    String workingDirectory = System.getProperty("user.dir");
-    String axisDataset = appManager.getDatasetName() + axisID.getExtension();
+    String workingDirectory = appManager.getPropertyUserDir();
+    String axisDataset = getDatasetName() + axisID.getExtension();
     // Files to be managed
     File xf = new File(workingDirectory, axisDataset + ".xf");
     File fidXF = new File(workingDirectory, axisDataset + "_fid.xf");
@@ -748,8 +798,8 @@ public class ProcessManager {
     String[] commandArray = new String[3];
 
     String options = "-a " + String.valueOf(-1 * imageRotation) + " ";
-    String stack = appManager.getDatasetName() + axisID.getExtension() + ".st ";
-    String xform = appManager.getDatasetName() + axisID.getExtension()
+    String stack = getDatasetName() + axisID.getExtension() + ".st ";
+    String xform = getDatasetName() + axisID.getExtension()
       + ".prexf ";
 
     String commandLine = ApplicationManager.getIMODBinPath() + "midas "
@@ -806,8 +856,8 @@ public class ProcessManager {
       alignLogGenerator.run();
     }
     catch (IOException except) {
-      appManager.openMessageDialog("Unable to create alignlog files",
-        "Alignlog Error");
+      appManager.getMainPanel().openMessageDialog(
+          "Unable to create alignlog files", "Alignlog Error");
     }
   }
 
@@ -818,8 +868,8 @@ public class ProcessManager {
    * @param axisID
    */
   public void copyFiducialAlignFiles(AxisID axisID) {
-    String workingDirectory = System.getProperty("user.dir");
-    String axisDataset = appManager.getDatasetName() + axisID.getExtension();
+    String workingDirectory = appManager.getPropertyUserDir();
+    String axisDataset = getDatasetName() + axisID.getExtension();
 
     try {
       if (Utilities.fileExists(appManager.getMetaData(), ".xf", axisID)) {
@@ -835,8 +885,8 @@ public class ProcessManager {
     }
     catch (IOException e) {
       e.printStackTrace();
-      appManager.openMessageDialog("Unable to copy protected align files:",
-        "Align Error");
+      appManager.getMainPanel().openMessageDialog(
+          "Unable to copy protected align files:", "Align Error");
     }
 
   }
@@ -1010,7 +1060,8 @@ public class ProcessManager {
    * @param axisID
    *          the AxisID to run tilt on.
    */
-  public String combine(CombineComscriptState combineComscriptState) throws SystemProcessException {
+  public String combine(CombineComscriptState combineComscriptState)
+      throws SystemProcessException {
     //  Create the required combine command
     String command = CombineComscriptState.COMSCRIPT_NAME + ".com";
     
@@ -1022,7 +1073,6 @@ public class ProcessManager {
       startBackgroundComScript(command, combineProcessMonitor, AxisID.ONLY, 
         combineComscriptState, CombineComscriptState.COMSCRIPT_WATCHED_FILE);
     return comScriptProcess.getName();
-
   }
 
   /**
@@ -1125,38 +1175,16 @@ public class ProcessManager {
    */
   public String test(String commandLine) {
     BackgroundProcess command = new BackgroundProcess(commandLine, this);
-    command.setWorkingDirectory(new File(System.getProperty("user.dir")));
-    command.setDebug(ApplicationManager.isDebug());
+    command.setWorkingDirectory(new File(appManager.getPropertyUserDir()));
+    command.setDebug(EtomoDirector.getInstance().isDebug());
     command.start();
 
-    if (ApplicationManager.isDebug()) {
+    if (EtomoDirector.getInstance().isDebug()) {
       System.err.println("Started " + commandLine);
       System.err.println("  Name: " + command.getName());
     }
     return command.getName();
   }
-
-  /**
-   * Start an arbitrary command as an unmanaged background thread
-   */
-  private void startSystemProgramThread(String command) {
-
-    // Initialize the SystemProgram object
-    SystemProgram sysProgram = new SystemProgram(command);
-    sysProgram.setWorkingDirectory(new File(System.getProperty("user.dir")));
-    sysProgram.setDebug(ApplicationManager.isDebug());
-
-    //  Start the system program thread
-    Thread sysProgThread = new Thread(sysProgram);
-    sysProgThread.start();
-    if (ApplicationManager.isDebug()) {
-      System.err.println("Started " + command);
-      System.err.println("  working directory: "
-        + System.getProperty("user.dir"));
-    }
-  }
-
-
   
   /**
    * Start a managed background command script for the specified axis
@@ -1174,25 +1202,7 @@ public class ProcessManager {
       watchedFileName, (BackgroundProcessMonitor) processMonitor, comscriptState),
       command, processMonitor, axisID);
   }
-  /**
-   * Start a managed command script for the specified axis
-   * @param command
-   * @param processMonitor
-   * @param axisID
-   * @return
-   * @throws SystemProcessException
-   */
-  private ComScriptProcess startComScript(
-    String command,
-    Runnable processMonitor,
-    AxisID axisID)
-    throws SystemProcessException {
-    return startComScript(
-      new ComScriptProcess(command, this, axisID, null),
-      command,
-      processMonitor,
-      axisID);
-  }
+
   /**
    * Start a managed command script for the specified axis
    * @param command
@@ -1214,262 +1224,7 @@ public class ProcessManager {
       processMonitor,
       axisID);
   }
-  /**
-   * Start a managed command script for the specified axis
-   * @param command
-   * @param processMonitor
-   * @param axisID
-   * @param watchedFileName watched file to delete
-   * @return
-   * @throws SystemProcessException
-   */
-  private ComScriptProcess startComScript(ComScriptProcess comScriptProcess, 
-    String command,
-    Runnable processMonitor,
-    AxisID axisID)
-    throws SystemProcessException {
-    // Make sure there isn't something going on in the current axis
-    isAxisBusy(axisID);
 
-    // Run the script as a thread in the background
-    comScriptProcess.setWorkingDirectory(new File(System
-      .getProperty("user.dir")));
-    comScriptProcess.setDebug(ApplicationManager.isDebug());
-    comScriptProcess.setDemoMode(appManager.isDemo());
-    comScriptProcess.start();
-
-    // Map the thread to the correct axis
-    mapAxisThread(comScriptProcess, axisID);
-
-    if (ApplicationManager.isDebug()) {
-      System.err.println("Started " + command);
-      System.err.println("  Name: " + comScriptProcess.getName());
-    }
-
-    Thread processMonitorThread = null;
-    // Replace the process monitor with a DemoProcessMonitor if demo mode is on
-    if (appManager.isDemo()) {
-      processMonitor = new DemoProcessMonitor(appManager, axisID, command,
-        comScriptProcess.getDemoTime());
-    }
-
-    //	Start the process monitor thread if a runnable process is provided
-    if (processMonitor != null) {
-      // Wait for the started flag within the comScriptProcess, this ensures
-      // that log file has already been moved
-      while (!comScriptProcess.isStarted() && !comScriptProcess.isError()) {
-        try {
-          Thread.sleep(100);
-        }
-        catch (InterruptedException e) {
-          break;
-        }
-      }
-      processMonitorThread = new Thread(processMonitor);
-      processMonitorThread.start();
-      mapAxisProcessMonitor(processMonitorThread, axisID);
-    }
-
-    return comScriptProcess;
-  }
-
-  /**
-   * A message specifying that a com script has finished execution
-   * 
-   * @param script
-   *          the ComScriptProcess execution object that finished
-   * @param exitValue
-   *          the exit value for the com script
-   */
-  public void msgComScriptDone(ComScriptProcess script, int exitValue) {
-    System.err.println("msgComScriptDone:scriptName=" + script.getScriptName()
-      + ",processName=" + script.getProcessName());
-    if (exitValue != 0) {
-      String[] stdError = script.getStdError();
-      String[] combined;
-      //    Is the last string "Killed"
-      if (stdError == null) {
-        stdError = new String[0];
-      }
-      if (stdError != null && stdError.length > 0
-        && stdError[stdError.length - 1].trim().equals("Killed")) {
-        combined = new String[1];
-        combined[0] = "<html>Terminated: " + script.getScriptName();
-      }
-      else {
-        String[] message = script.getErrorMessage();
-        combined = new String[message.length + stdError.length + 5];
-        int j = 0;
-        combined[j++] = "<html>Com script failed: " + script.getScriptName();
-        combined[j++] = "  ";
-        combined[j++] = "<html><U>Log file errors:</U>";
-
-        for (int i = 0; i < message.length; i++, j++) {
-          combined[j] = message[i];
-        }
-        combined[j++] = "  ";
-        combined[j++] = "<html><U>Standard error output:</U>";
-        for (int i = 0; i < stdError.length; i++, j++) {
-          combined[j] = stdError[i];
-        }
-      }
-      appManager.openMessageDialog(combined, script.getScriptName()
-        + " terminated");
-    }
-    else {
-      // TODO: Should this script specific processing be handled by the
-      // nextProcess attribute of the application manager.
-      // Script specific post processing
-      if (script.getProcessName() == ProcessName.ALIGN) {
-        generateAlignLogs(script.getAxisID());
-        copyFiducialAlignFiles(script.getAxisID());
-      }
-      if (script.getProcessName() == ProcessName.TOMOPITCH) {
-        appManager.openTomopitchLog(script.getAxisID());
-      }
-
-      String[] warningMessages = script.getWarningMessage();
-      String[] dialogMessage;
-      if (warningMessages != null && warningMessages.length > 0) {
-        dialogMessage = new String[warningMessages.length + 2];
-        dialogMessage[0] = "Com script: " + script.getScriptName();
-        dialogMessage[1] = "<html><U>Warnings:</U>";
-        int j = 2;
-        for (int i = 0; i < warningMessages.length; i++) {
-          dialogMessage[j++] = warningMessages[i];
-        }
-        appManager.openMessageDialog(dialogMessage, script.getScriptName()
-          + " warnings");
-      }
-
-    }
-
-    //  Null out the correct thread
-    // Interrupt the process monitor and nulll out the appropriate references
-    if (threadAxisA == script) {
-      if (processMonitorA != null) {
-        processMonitorA.interrupt();
-        processMonitorA = null;
-      }
-      threadAxisA = null;
-    }
-    if (threadAxisB == script) {
-      if (processMonitorB != null) {
-        processMonitorB.interrupt();
-        processMonitorB = null;
-      }
-      threadAxisB = null;
-    }
-
-    //  Inform the app manager that this process is complete
-    appManager.processDone(script.getName(), exitValue,
-      script.getProcessName(), script.getAxisID());
-  }
-
-  /**
-   * Start a managed background process
-   * 
-   * @param command
-   * @param axisID
-   * @throws SystemProcessException
-   */
-  private BackgroundProcess startBackgroundProcess(String command, AxisID axisID)
-    throws SystemProcessException {
-
-    isAxisBusy(axisID);
-
-    BackgroundProcess backgroundProcess = new BackgroundProcess(command, this);
-    backgroundProcess.setWorkingDirectory(new File(System
-      .getProperty("user.dir")));
-    backgroundProcess.setDemoMode(appManager.isDemo());
-    backgroundProcess.setDebug(ApplicationManager.isDebug());
-    backgroundProcess.start();
-    if (ApplicationManager.isDebug()) {
-      System.err.println("Started " + command);
-      System.err.println("  Name: " + backgroundProcess.getName());
-    }
-
-    mapAxisThread(backgroundProcess, axisID);
-    return backgroundProcess;
-  }
-
-  /**
-   * A message specifying that a background process has finished execution
-   * 
-   * @param script
-   *          the BackgroundProcess execution object that finished
-   * @param exitValue
-   *          the exit value for the process
-   */
-  public void msgBackgroundProcessDone(BackgroundProcess process, int exitValue) {
-
-    //  Check to see if the exit value is non-zero
-    if (exitValue != 0) {
-      String[] stdError = process.getStdError();
-      String[] message;
-
-      // Is the last string "Killed"
-      if ((stdError.length > 0)
-        && (stdError[stdError.length - 1].trim().equals("Killed"))) {
-        message = new String[1];
-        message[0] = "<html>Terminated: " + process.getCommandLine();
-      }
-      else {
-        int j = 0;
-        message = new String[stdError.length + 3];
-        message[j++] = "<html>Command failed: " + process.getCommandLine();
-        message[j++] = "  ";
-        message[j++] = "<html><U>Standard error output:</U>";
-        for (int i = 0; i < stdError.length; i++, j++) {
-          message[j] = stdError[i];
-        }
-      }
-      appManager.openMessageDialog(message, process.getCommand()
-        + " terminated");
-    }
-
-    // Another possible error message source is ERROR: in the stdout stream
-    String[] stdOutput = process.getStdOutput();
-    ArrayList errors = new ArrayList();
-    boolean foundError = false;
-    for (int i = 0; i < stdOutput.length; i++) {
-      if (!foundError) {
-        int index = stdOutput[i].indexOf("ERROR:");
-        if (index != -1) {
-          foundError = true;
-          errors.add(stdOutput[i]);
-        }
-      }
-      else {
-        errors.add(stdOutput[i]);
-      }
-    }
-    String[] errorMessage = (String[]) errors
-      .toArray(new String[errors.size()]);
-
-    if (errorMessage.length > 0) {
-      appManager.openMessageDialog(errorMessage, "Background Process Error");
-    }
-
-    // Command succeeded, check to see if we need to show any application
-    // specific info
-    else {
-      if (process.getCommandLine().equals(transferfidCommandLine)) {
-        handleTransferfidMessage(process);
-      }
-    }
-
-    // Null the reference to the appropriate thread
-    if (process == threadAxisA) {
-      threadAxisA = null;
-    }
-    if (process == threadAxisB) {
-      threadAxisB = null;
-    }
-
-    //	Inform the app manager that this process is complete
-    appManager.processDone(process.getName(), exitValue, null, null);
-  }
 
   /**
    * Unique case to parse the output of transferfid and save it to a file
@@ -1481,8 +1236,7 @@ public class ProcessManager {
 
       //  Write the standard output to a the log file
       String[] stdOutput = process.getStdOutput();
-      BufferedWriter fileBuffer = new BufferedWriter(new FileWriter(System
-        .getProperty("user.dir")
+      BufferedWriter fileBuffer = new BufferedWriter(new FileWriter(appManager.getPropertyUserDir()
         + "/transferfid.log"));
 
       for (int i = 0; i < stdOutput.length; i++) {
@@ -1493,326 +1247,15 @@ public class ProcessManager {
 
       //  Show a log file window to the user
       TextPageWindow logFileWindow = new TextPageWindow();
-      logFileWindow.setVisible(logFileWindow.setFile(System
-        .getProperty("user.dir")
+      logFileWindow.setVisible(logFileWindow.setFile(appManager.getPropertyUserDir()
         + File.separator + "transferfid.log"));
     }
     catch (IOException except) {
-      appManager
-        .openMessageDialog(except.getMessage(), "Transferfid log error");
+      appManager.getMainPanel().openMessageDialog(except.getMessage(),
+          "Transferfid log error");
     }
   }
-
-  /**
-   * Save the process thread reference for the appropriate axis
-   * 
-   * @param thread
-   * @param axisID
-   */
-  private void mapAxisThread(SystemProcessInterface thread, AxisID axisID) {
-    if (axisID == AxisID.SECOND) {
-      threadAxisB = thread;
-    }
-    else {
-      threadAxisA = thread;
-    }
-  }
-
-  /**
-   * Check to see if specified axis is busy, throw a system a
-   * ProcessProcessException if it is.
-   * 
-   * @param axisID
-   * @throws SystemProcessException
-   */
-  private void isAxisBusy(AxisID axisID) throws SystemProcessException {
-    // Check to make sure there is not another process already running on this
-    // axis.
-    if (axisID == AxisID.SECOND) {
-      if (threadAxisB != null) {
-        throw new SystemProcessException(
-          "A process is already executing in the current axis");
-      }
-    }
-    else {
-      if (threadAxisA != null) {
-        throw new SystemProcessException(
-          "A process is already executing in the current axis");
-      }
-    }
-  }
-
-  /**
-   * Save the process monitor thread reference for the appropriate axis
-   * 
-   * @param processMonitor
-   * @param axisID
-   */
-  private void mapAxisProcessMonitor(Thread processMonitor, AxisID axisID) {
-    if (axisID == AxisID.SECOND) {
-      processMonitorB = processMonitor;
-    }
-    else {
-      processMonitorA = processMonitor;
-    }
-  }
-
-  /**
-   * Kill the thread for the specified axis
-   */
-  public void kill(AxisID axisID) {
-    String processID = "";
-    SystemProcessInterface thread = null;
-    if (axisID == AxisID.SECOND) {
-      thread = threadAxisB;
-    }
-    else {
-      thread = threadAxisA;
-
-    }
-    if (thread != null) {
-      processID = thread.getShellProcessID();
-    }
     
-    killProcessGroup(processID);
-    killProcessAndDescendants(processID);
-    
-    thread.notifyKill();
-
-    /*
-    //  Loop over killing the children until there are none left
-    if (!processID.equals("")) {
-      String[] children;
-      while ((children = getChildProcessList(processID)) != null) {
-        String killCommand = "kill ";
-        for (int i = 0; i < children.length; i++) {
-          killCommand = killCommand + children[i] + " ";
-        }
-
-        SystemProgram kill = new SystemProgram(killCommand);
-        kill.run();
-      }
-
-      SystemProgram killShell = new SystemProgram("kill " + processID);
-      killShell.run();
-    }*/
-  }
-  
-  /**
-   * Recursively kill all the descendents of a process and then kill the
-   * process.  Function assumes that the process will continue spawning while
-   * the descendant processes are being killed.  Function attempts to stop
-   * spawning with a Stop signal.  The Stop signal may not work in all cases and
-   * OS's, so the function refreshes the list of child processes until there are
-   * no more child processes.  The function avoids getting stuck on an
-   * unkillable process by recording each PID it sent a "kill -9" to.
-   * 
-   * The algorithm:
-   * 1. Stop the root process.
-   * 2. Go down to a leaf, stopping each process encountered.
-   * 3. Kill the leaf.
-   * 4. Go up to the parent of the killed leaf.
-   * 5. If the parent is now a leaf, kill it and continue from step 4.
-   * 6. If the parent is not a leaf, continue from step 2.
-   * 
-   * @param processID
-   */
-  protected void killProcessAndDescendants(String processID) {
-    if (processID == null || processID.equals("")) {
-      return;
-    }
-    //try to prevent process from spawning with a SIGSTOP signal
-    kill("-19", processID);
-
-    //kill all decendents of process before killing process
-    String[] childProcessIDList = null;
-    do {
-      //get unkilled child processes
-      childProcessIDList = getChildProcessList(processID);
-      if (childProcessIDList != null) {
-        for (int i = 0; i < childProcessIDList.length; i++) {
-          killProcessAndDescendants(childProcessIDList[i]);
-        }
-      }
-    } while (childProcessIDList != null);
-    //there are no more unkilled child processes so kill process with a SIGKILL
-    //signal
-    kill("-9", processID);
-    //record killed process
-    killedList.put(processID, "");
-  }
-  
-  private void kill(String signal, String processID) {
-    SystemProgram killShell = new SystemProgram("kill " + signal + " " + processID);
-    killShell.run();
-    //System.out.println("kill " + signal + " " + processID + " at " + killShell.getRunTimestamp());
-    Utilities.debugPrint("kill " + signal + " " + processID + " at " + killShell.getRunTimestamp());
-  }
-  
-  protected void killProcessGroup(String processID) {
-    if (processID == null || processID.equals("")) {
-      return;
-    }
-    long pid = Long.parseLong(processID);
-    if (pid == 0 || pid == 1) {
-      return;
-    }
-    long groupPid = pid * -1;
-    String groupProcessID = Long.toString(groupPid);
-    kill("-19", groupProcessID);
-    kill("-9", groupProcessID);
-  }
-
-
-  /**
-   * Return a PID of a child process for the specified parent process.  A new
-   * ps command is run each time this function is called so that the most
-   * up-to-date list of child processes is used.  Only processes the have not
-   * already received a "kill -9" signal are returned.
-   * 
-   * @param processID
-   * @return A PID of a child process or null
-   */
-  protected String getChildProcess(String processID) {
-    Utilities.debugPrint("in getChildProcess: processID=" + processID);
-    //ps -l: get user processes on this terminal
-    SystemProgram ps = new SystemProgram("ps axl");
-    ps.run();
-
-    //  Find the index of the Parent ID and ProcessID
-    String[] stdout = ps.getStdOutput();
-    String header = stdout[0].trim();
-    String[] labels = header.split("\\s+");
-    int idxPID = -1;
-    int idxPPID = -1;
-    int idxCMD = -1;
-    int found = 0;
-    for (int i = 0; i < labels.length; i++) {
-      if (labels[i].equals("PID")) {
-        idxPID = i;
-        found++;
-      }
-      if (labels[i].equals("PPID")) {
-        idxPPID = i;
-        found++;
-      }
-      if (labels[i].equals("CMD") || labels[i].equals("COMMAND")) {
-        idxCMD = i;
-        found++;
-      }
-      if (found >= 3) {
-        break;
-      }
-    }
-    //  Return null if the PID or PPID fields are not found
-    if (idxPPID == -1 || idxPID == -1) {
-      return null;
-    }
-
-    // Walk through the process list finding the PID of the children
-    String[] fields;
-    for (int i = 1; i < stdout.length; i++) {
-      fields = stdout[i].trim().split("\\s+");
-      if (fields[idxPPID].equals(processID)
-        && !killedList.containsKey(fields[idxPID])) {
-        if (idxCMD != -1) {
-          Utilities.debugPrint(
-            "child found:PID="
-              + fields[idxPID]
-              + ",PPID="
-              + fields[idxPPID]
-              + ",name="
-              + fields[idxCMD]);
-        }
-        return fields[idxPID];
-      }
-    }
-    return null;
-  }
-
-
-  /**
-   * Return a the PIDs of child processes for the specified parent process.  A
-   * new ps command is run each time this function is called so that the most
-   * up-to-date list of child processes is used.  Only processes the have not
-   * already received a "kill -9" signal are returned.
-   * 
-   * @param processID
-   * @return A PID of a child process or null
-   */
-  private String[] getChildProcessList(String processID) {
-    Utilities.debugPrint("in getChildProcessList: processID=" + processID);
-    //ps -l: get user processes on this terminal
-    SystemProgram ps = new SystemProgram("ps axl");
-    ps.run();
-    //System.out.println("ps axl date=" +  ps.getRunTimestamp());
-    //  Find the index of the Parent ID and ProcessID
-    String[] stdout = ps.getStdOutput();
-    String header = stdout[0].trim();
-    String[] labels = header.split("\\s+");
-    int idxPID = -1;
-    int idxPPID = -1;
-    int idxCMD = -1;
-    int idxPGID = -1;
-    int found = 0;
-    for (int i = 0; i < labels.length; i++) {
-      if (labels[i].equals("PID")) {
-        idxPID = i;
-        found++;
-      }
-      if (labels[i].equals("PPID")) {
-        idxPPID = i;
-        found++;
-      }
-      if (labels[i].equals("CMD") || labels[i].equals("COMMAND")) {
-        idxCMD = i;
-        found++;
-      }
-      if (labels[i].equals("PGID")) {
-        idxPGID = i;
-      }
-      if (found >= 3) {
-        break;
-      }
-    }
-    //  Return null if the PID or PPID fields are not found
-    if (idxPPID == -1 || idxPID == -1) {
-      return null;
-    }
-
-    // Walk through the process list finding the PID of the children
-    ArrayList childrenPID = new ArrayList();
-    String[] fields;
-    //System.out.println(stdout[0]);
-    for (int i = 1; i < stdout.length; i++) {
-      //System.out.println(stdout[i]);
-      fields = stdout[i].trim().split("\\s+");
-      if (fields[idxPPID].equals(processID)
-        && !killedList.containsKey(fields[idxPID])) {
-        if (idxCMD != -1) {
-          Utilities.debugPrint(
-          "child found:PID="
-            + fields[idxPID]
-            + ",PPID="
-            + fields[idxPPID]
-            + ",name="
-            + fields[idxCMD]);
-        }
-        childrenPID.add(fields[idxPID]);
-      }
-    }
-
-    // If there are no children return null
-    if (childrenPID.size() == 0) {
-      return null;
-    }
-
-    // Connvert the ArrayList into a String[]
-    String[] children = (String[]) childrenPID.toArray(new String[childrenPID
-      .size()]);
-    return children;
-  }
-
 
   private void printPsOutput() {
     SystemProgram ps = new SystemProgram("ps axl");
@@ -1834,8 +1277,8 @@ public class ProcessManager {
    */
   private void runCommand(String[] commandArray) throws SystemProcessException {
     SystemProgram systemProgram = new SystemProgram(commandArray);
-    systemProgram.setWorkingDirectory(new File(System.getProperty("user.dir")));
-    systemProgram.setDebug(ApplicationManager.isDebug());
+    systemProgram.setWorkingDirectory(new File(appManager.getPropertyUserDir()));
+    systemProgram.setDebug(EtomoDirector.getInstance().isDebug());
 
     systemProgram.run();
     if (systemProgram.getExitValue() != 0) {
@@ -1863,5 +1306,34 @@ public class ProcessManager {
       }
       throw new SystemProcessException(message);
     }
+  }
+  
+  protected void postProcess(ComScriptProcess script) {
+    // TODO: Should this script specific processing be handled by the
+    // nextProcess attribute of the application manager.
+    // Script specific post processing
+    if (script.getProcessName() == ProcessName.ALIGN) {
+      generateAlignLogs(script.getAxisID());
+      copyFiducialAlignFiles(script.getAxisID());
+    }
+    if (script.getProcessName() == ProcessName.TOMOPITCH) {
+      appManager.openTomopitchLog(script.getAxisID());
+    }  
+  }
+  
+  protected void postProcess(BackgroundProcess process) {
+    if (process.getCommandLine().equals(transferfidCommandLine)) {
+      handleTransferfidMessage(process);
+    }
+  }
+  
+  protected void errorProcess(BackgroundProcess process) {
+  }
+  
+  protected void postProcess(InteractiveSystemProgram program) {
+  }
+  
+  protected BaseManager getManager() {
+    return appManager;
   }
 }

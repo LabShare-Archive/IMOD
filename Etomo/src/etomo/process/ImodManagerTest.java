@@ -8,7 +8,6 @@ package etomo.process;
 
 import junit.framework.TestCase;
 
-import etomo.ApplicationManager;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.AxisTypeException;
@@ -21,7 +20,6 @@ import etomo.type.MetaData;
  * Window - Preferences - Java - Code Generation - Code and Comments
  */
 public class ImodManagerTest extends TestCase {
-  ApplicationManager applicationManager;
   MetaData metaData;
   ImodManager imodManager;
   String datasetNameDual = new String("BB");
@@ -49,7 +47,6 @@ public class ImodManagerTest extends TestCase {
     super.setUp();
     String[] args = new String[1];
     args[0] = new String("--test");
-    applicationManager = new ApplicationManager(args);
     metaData = new MetaData();
   }
 
@@ -75,7 +72,7 @@ public class ImodManagerTest extends TestCase {
     ImodState tester;
     //Test single axis
     setUpSingle();
-    imodManager = new ImodManager(applicationManager);
+    imodManager = new ImodManager();
     imodManager.setMetaData(metaData);
     //rawStack
     tester = newTester(rawStack);
@@ -148,7 +145,7 @@ public class ImodManagerTest extends TestCase {
         trimmedVolume = new ImodProcess(datasetName + ".rec");
     */
     setUpDual();
-    imodManager = new ImodManager(applicationManager);
+    imodManager = new ImodManager();
     imodManager.setMetaData(metaData);
     AxisID a = AxisID.FIRST;
     AxisID b = AxisID.SECOND;

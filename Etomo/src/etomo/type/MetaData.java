@@ -6,7 +6,6 @@ import java.util.Properties;
 import etomo.comscript.CombineParams;
 import etomo.comscript.TransferfidParam;
 import etomo.comscript.TrimvolParam;
-import etomo.storage.Storable;
 
 /**
  * <p>Description: </p>
@@ -21,6 +20,14 @@ import etomo.storage.Storable;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.7.4.1  2004/09/29 19:30:10  sueh
+ * <p> bug# 520 Moved Storable to BaseMetaData.  Moved store() to
+ * <p> ConstMetaData and BaseMetaData.  Moved revision and axisType to
+ * <p> baseMEtaData.
+ * <p>
+ * <p> Revision 3.7  2004/06/22 02:02:35  sueh
+ * <p> bug# 441 Added TrimvolParam
+ * <p>
  * <p> Revision 3.6  2004/06/01 18:55:27  rickg
  * <p> Bug #391 whole tomogram sampling state implementation
  * <p>
@@ -95,7 +102,7 @@ import etomo.storage.Storable;
  * <p> </p>
  */
 
-public class MetaData extends ConstMetaData implements Storable {
+public class MetaData extends ConstMetaData {
   public static final String rcsid = "$Id$";
 
   public MetaData() {
@@ -108,6 +115,7 @@ public class MetaData extends ConstMetaData implements Storable {
   }
 
   protected void resetToDefault() {
+    revisionNumber = "";
     distortionFile = "";
     binning = 1;
   }
@@ -236,59 +244,6 @@ public class MetaData extends ConstMetaData implements Storable {
     wholeTomogramSample = state;
   }
 
-  /**
-   *  Insert the objects attributes into the properties object.
-   */
-  public void store(Properties props) {
-    store(props, "");
-  }
-
-  public void store(Properties props, String prepend) {
-    String group;
-    if (prepend == "") {
-      group = "Setup.";
-    }
-    else {
-      group = prepend + ".Setup.";
-    }
-
-    props.setProperty(group + "RevisionNumber", latestRevisionNumber);
-    props.setProperty(group + "ComScriptsCreated", String
-        .valueOf(comScriptsCreated));
-    props.setProperty(group + "DatasetName", datasetName);
-    props.setProperty(group + "BackupDirectory", backupDirectory);
-
-    props.setProperty(group + "DataSource", dataSource.toString());
-    props.setProperty(group + "AxisType", axisType.toString());
-    props.setProperty(group + "ViewType", viewType.toString());
-    props.setProperty(group + "SectionType", sectionType.toString());
-
-    props.setProperty(group + "PixelSize", String.valueOf(pixelSize));
-    props.setProperty(group + "UseLocalAlignments", String
-        .valueOf(useLocalAlignments));
-    props.setProperty(group + "FiducialDiameter", String
-        .valueOf(fiducialDiameter));
-    props.setProperty(group + "ImageRotationA", String.valueOf(imageRotationA));
-    props.setProperty(group + "ImageRotationB", String.valueOf(imageRotationB));
-    tiltAngleSpecA.store(props, group + "AxisA");
-    props.setProperty(group + "AxisA.ExcludeProjections", String
-        .valueOf(excludeProjectionsA));
-
-    tiltAngleSpecB.store(props, group + "AxisB");
-    props.setProperty(group + "AxisB.ExcludeProjections", String
-        .valueOf(excludeProjectionsB));
-
-    props.setProperty(group + "TransferfidNumberViews", String
-        .valueOf(transferfidNumberViews));
-    combineParams.store(props, group);
-    props.setProperty(group + "DistortionFile", distortionFile);
-    props.setProperty(group + "Binning", String.valueOf(binning));
-    props.setProperty(group + "FiducialessAlignment", String
-        .valueOf(fiducialessAlignment));
-    props.setProperty(group + "WholeTomogramSample", String
-        .valueOf(wholeTomogramSample));
-    trimvolParam.store(props, group);
-  }
 
   /**
    *  Get the objects attributes from the properties object.
@@ -296,7 +251,6 @@ public class MetaData extends ConstMetaData implements Storable {
   public void load(Properties props) {
     load(props, "");
   }
-
   public void load(Properties props, String prepend) {
     resetToDefault();
     String group;

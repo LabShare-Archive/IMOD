@@ -18,6 +18,12 @@ import etomo.type.AxisID;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.2.4.1  2004/09/29 19:12:10  sueh
+ * <p> $bug# 520 Removing pass-through function calls.
+ * <p> $
+ * <p> $Revision 1.2  2004/05/24 16:29:12  sueh
+ * <p> $removing prints
+ * <p> $
  * <p> $Revision 1.1  2004/05/21 02:20:26  sueh
  * <p> $bug# 83 volcombine process monitor uses the volcombine.log file
  * <p> $and the status lines which count which piece has been extracted.
@@ -49,11 +55,11 @@ public class VolcombineProcessMonitor extends LogFileProcessMonitor {
    */
   protected void initializeProgressBar() {
     if (nSections == Integer.MIN_VALUE) {
-      applicationManager.setProgressBar("Combine: volcombine", 1, axisID);
-      applicationManager.setProgressBarValue(0, "Starting...", axisID);
+      applicationManager.getMainPanel().setProgressBar("Combine: volcombine", 1, axisID);
+      applicationManager.getMainPanel().setProgressBarValue(0, "Starting...", axisID);
       return;
     }
-    applicationManager.setProgressBar("Combine: volcombine", nSections, axisID);
+    applicationManager.getMainPanel().setProgressBar("Combine: volcombine", nSections, axisID);
   }
 
   /* (non-Javadoc)

@@ -13,6 +13,13 @@ package etomo.process;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.4.4.1  2004/09/29 19:12:32  sueh
+ * <p> bug# 520 Removing pass-through function calls.
+ * <p>
+ * <p> Revision 3.4  2004/04/23 20:03:08  sueh
+ * <p> bug# 83 allowing initializeProgressBar() to be called before
+ * <p> nSections is set
+ * <p>
  * <p> Revision 3.3  2004/03/16 21:53:40  sueh
  * <p> bug# 413  when last line in the log file found, starting incrementing waitingForExit
  * <p> counter
@@ -61,11 +68,11 @@ public class XcorrProcessWatcher extends LogFileProcessMonitor {
    */
   protected void initializeProgressBar() {
     if (nSections == Integer.MIN_VALUE) {
-      applicationManager.setProgressBar("Cross-correlating stack", 1, axisID);
-      applicationManager.setProgressBarValue(0, "Starting...", axisID);
+      applicationManager.getMainPanel().setProgressBar("Cross-correlating stack", 1, axisID);
+      applicationManager.getMainPanel().setProgressBarValue(0, "Starting...", axisID);
       return;
     }
-    applicationManager.setProgressBar(
+    applicationManager.getMainPanel().setProgressBar(
       "Cross-correlating stack",
       nSections,
       axisID);
