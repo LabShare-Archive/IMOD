@@ -31,6 +31,11 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.13  2005/02/28 21:19:04  mast
+c	  Added distortion and mag gradient correction, test mode for adjusting
+c	  gradient, cubic and linear interpolation, and declarations (implicit
+c	  none is now used in all routines that include blend.inc)
+c	
 c	  Revision 3.12  2005/02/17 18:18:02  mast
 c	  Fixed a warning message
 c	
@@ -83,6 +88,7 @@ c
 	character*80 concat
 	character*4 edgeext(2)/'.xef','.yef'/
 	character*4 xcorrext/'.ecd'/
+	character*18 actionStr
 	integer*4 mxyzin(3),nxyzst(3)/0,0,0/
 	real*4 cell(6)/1.,1.,1.,0.,0.,0./
 	real*4 delta(3)
@@ -113,7 +119,7 @@ c
 	integer*4 iblend(2)			!blending width in x and y
 	integer*4 indoneedge(2),indedge4(3,2),nedgetmp(5,2)
 	integer*4 listz(limsect),izwant(limsect)
-	logical skipxforms
+	logical skipxforms,undistortOnly
 	character dat*9, tim*8
 	real*4 edgefrac(2),title(20),distout(2),edgefrac4(3,2)
 	real*4 edgefracx,edgefracy
@@ -183,7 +189,7 @@ c
 c	  cut and pasted from ../../manpages/autodoc2man -2 2 blendmont
 c
 	integer numOptions
-	parameter (numOptions = 36)
+	parameter (numOptions = 37)
 	character*(40 * numOptions) options(1)
 	options(1) =
      &      'imin:ImageInputFile:FN:@plin:PieceListInput:FN:@'//
@@ -195,10 +201,10 @@ c
      &      'imagebinned:ImagesAreBinned:I:@'//
      &      'gradient:GradientFile:FN:@adjusted:AdjustedFocus:B:@'//
      &      'addgrad:AddToGradient:FP:@tilt:TiltGeometry:FT:@'//
-     &      'test:TestMode:B:@sloppy:SloppyMontage:B:@'//
-     &      'shift:ShiftPieces:B:@edge:ShiftFromEdges:B:@'//
-     &      'xcorr:ShiftFromXcorrs:B:@readxcorr:ReadInXcorrs:B:@'//
-     &      'sections:SectionsToDo:LI:@'//
+     &      'justUndistort:JustUndistort:B:@test:TestMode:B:@'//
+     &      'sloppy:SloppyMontage:B:@shift:ShiftPieces:B:@'//
+     &      'edge:ShiftFromEdges:B:@xcorr:ShiftFromXcorrs:B:@'//
+     &      'readxcorr:ReadInXcorrs:B:@sections:SectionsToDo:LI:@'//
      &      'xminmax:StartingAndEndingX:IP:@'//
      &      'yminmax:StartingAndEndingY:IP:@'//
      &      'maxsize:MaximumNewSizeXandY:IP:@'//
@@ -238,6 +244,7 @@ c
 	inputBinning = 1
 	interpOrder = 2
 	testMode = .false.
+	undistortOnly = .false.
 c
 c	  
 c	  Pip startup: set error, parse options, check help, set flag if used
@@ -297,6 +304,7 @@ c
 	if (pipinput) then
 	  ierr = PipGetBoolean('FloatToRange', iffloat)
 	  ierr = PipGetString('TransformFile', filnam)
+	  ierr = PipGetLogical('JustUndistort', undistortOnly)
 	else
 	  write(*,'(1x,a,$)')
      &	      '1 to float each section to maximum range, 0 not to: '
@@ -307,7 +315,7 @@ c
 	  read(5,'(a)')filnam
 	endif
 	dogxforms=.false.
-	if(filnam.ne.' ')then
+	if(filnam.ne.' ' .and. .not.undistortOnly)then
 	  call dopen(3,filnam,'ro','f')
 	  call xfrdall(3,gl,nglist,*98)
 	  close(3)
@@ -366,11 +374,12 @@ c
 	  ierr = PipGetLogical('ShiftFromEdges', fromedge)
 	  ierr = PipGetLogical('ShiftFromXcorrs', xclegacy)
 	  ierr = PipGetLogical('ReadInXcorrs', xcreadin)
-	  if ((anyneg .or. ioptabs .ne. 0) .and. (shifteach .or. xcreadin))
+	  if ((anyneg .or. ioptabs .ne. 0) .and. (shifteach .or. xcreadin)
+     &	      .and. .not.undistortOnly)
      &	      call errorexit('you cannot use ShiftPieces or '//
      &	      'ReadInXcorrs with multiple negatives')
-	  if (fromedge .and. xclegacy) call errorexit(
-     &	      'you cannot use both ShiftFromEdges and ShiftFromXcorrs')
+	  if (fromedge .and. xclegacy .and. .not.undistortOnly) call errorexit
+     &	      ('you cannot use both ShiftFromEdges and ShiftFromXcorrs')
 	else
 	  if(anyneg)then
 	    print *,'There are multi-negative specifications in list file'
@@ -488,89 +497,100 @@ c
      &	      'file (ranges ok)','   or / to include all sections'
 	  call rdlist(5,izwant,nzwant)
 	endif
-c	  
-c	  output size limited by line length in X
-c	  
-	minxoverlap=2
-	minyoverlap=2
-	newxframe=maxlinelength
-	newyframe=65535
-	ntrial=0
-32	minxwant=minxpiece
-	minywant=minypiece
-	maxxwant=minxwant+nxtotpix-1
-	maxywant=minywant+nytotpix-1
-	if (pipinput) then
-	  ierr = PipGetTwoIntegers('StartingAndEndingX', minxwant, maxxwant)
-	  ierr = PipGetTwoIntegers('StartingAndEndingY', minywant, maxywant)
-	  ierr = PipGetTwoIntegers('MaximumNewSizeXandY', newxframe, newyframe)
-	  ierr = PipGetTwoIntegers('MinimumOverlapXandY', minxoverlap,
-     &	      minyoverlap)
+c
+	if (undistortOnly) then
+c	    
+c	    If undistorting, copy sizes etc.
+c
+	  newxframe = nxin
+	  newxoverlap = nxoverlap
+	  newxpieces = nxpieces
+	  newminxpiece = minxpiece
+	  newyframe = nyin
+	  newyoverlap = nyoverlap
+	  newypieces = nypieces
+	  newminypiece = minypiece
+	  actionStr = 'undistorted only'
 	else
-	  write(*,'(1x,a,/,a,4i6,a,$)')'Enter Min X, Max X, Min Y, and'//
-     &	      ' Max Y coordinates of desired output section,'
-     &	      ,'    or / for whole input section [='
-     &	      ,minxwant,maxxwant,minywant,maxywant,']: '
-	  read(5,*)minxwant,maxxwant,minywant,maxywant
-	  write(*,'(1x,a,$)')
-     &	      'Maximum new X and Y frame size, minimum overlap: '
-	  read(5,*)newxframe,newyframe,minxoverlap,minyoverlap
-	endif
-	nxtotwant=2*((maxxwant+2-minxwant)/2)
-	nytotwant=2*((maxywant+2-minywant)/2)
-	if(ntrial.le.1)then			!on first 2 trials, enforce min
-	  minxoverlap=max(2,minxoverlap)	!overlap of 2 so things look
-	  minyoverlap=max(2,minyoverlap)	!nice in wimp.  After that, let
-	endif					!the user have it.
-	ntrial=ntrial+1
-	if(newxframe.gt. maxlinelength) call errorexit
-     &	    ('output size is too large in X for arrays')
-c
-	call setoverlap(nxtotwant,minxoverlap,newxframe,2,newxpieces,
-     &	    newxoverlap,newxtotpix)
-	call setoverlap(nytotwant,minyoverlap,newyframe,2,newypieces,
-     &	    newyoverlap,newytotpix)
-c
-	if (.not.outputpl .and. (newxpieces.gt.1 .or. newypieces.gt.1))
-     &	    call errorexit('you must specify an output piece list file'//
-     &	    ' to have more than one output frame')
-	if (pipinput) print *,'Output file:'
-	write(*,115)newxtotpix,'X',newxpieces,newxframe,newxoverlap
-	write(*,115)newytotpix,'Y',newypieces,newyframe,newyoverlap
 c	  
-	if (.not.pipinput)then
-	  write(*,'(1x,a,$)')'1 to revise frame size/overlap: '
-	  read(5,*)ifrevise
-	  if(ifrevise.ne.0)go to 32	  
-	endif
+c	  Set up output size limited by line length in X
 c	  
-	newminxpiece=minxwant-(newxtotpix-nxtotwant)/2
-	newminypiece=minywant-(newytotpix-nytotwant)/2
+	  minxoverlap=2
+	  minyoverlap=2
+	  newxframe=maxlinelength
+	  newyframe=65535
+	  ntrial=0
+32	  minxwant=minxpiece
+	  minywant=minypiece
+	  maxxwant=minxwant+nxtotpix-1
+	  maxywant=minywant+nytotpix-1
+	  if (pipinput) then
+	    ierr = PipGetTwoIntegers('StartingAndEndingX', minxwant, maxxwant)
+	    ierr = PipGetTwoIntegers('StartingAndEndingY', minywant, maxywant)
+	    ierr = PipGetTwoIntegers('MaximumNewSizeXandY', newxframe,
+     &		newyframe)
+	    ierr = PipGetTwoIntegers('MinimumOverlapXandY', minxoverlap,
+     &		minyoverlap)
+	  else
+	    write(*,'(1x,a,/,a,4i6,a,$)')'Enter Min X, Max X, Min Y, and'//
+     &		' Max Y coordinates of desired output section,'
+     &		,'    or / for whole input section [='
+     &		,minxwant,maxxwant,minywant,maxywant,']: '
+	    read(5,*)minxwant,maxxwant,minywant,maxywant
+	    write(*,'(1x,a,$)')
+     &		'Maximum new X and Y frame size, minimum overlap: '
+	    read(5,*)newxframe,newyframe,minxoverlap,minyoverlap
+	  endif
+	  nxtotwant=2*((maxxwant+2-minxwant)/2)
+	  nytotwant=2*((maxywant+2-minywant)/2)
+	  if(ntrial.le.1)then			!on first 2 trials, enforce min
+	    minxoverlap=max(2,minxoverlap)	!overlap of 2 so things look
+	    minyoverlap=max(2,minyoverlap)	!nice in wimp.  After that, let
+	  endif					!the user have it.
+	  ntrial=ntrial+1
+	  if(newxframe.gt. maxlinelength) call errorexit
+     &	      ('output size is too large in X for arrays')
+c
+	  call setoverlap(nxtotwant,minxoverlap,newxframe,2,newxpieces,
+     &	      newxoverlap,newxtotpix)
+	  call setoverlap(nytotwant,minyoverlap,newyframe,2,newypieces,
+     &	      newyoverlap,newytotpix)
+c
+	  if (.not.outputpl .and. (newxpieces.gt.1 .or. newypieces.gt.1))
+     &	      call errorexit('you must specify an output piece list file'//
+     &	      ' to have more than one output frame')
+	  if (pipinput) print *,'Output file:'
+	  write(*,115)newxtotpix,'X',newxpieces,newxframe,newxoverlap
+	  write(*,115)newytotpix,'Y',newypieces,newyframe,newyoverlap
+c	  
+	  if (.not.pipinput)then
+	    write(*,'(1x,a,$)')'1 to revise frame size/overlap: '
+	    read(5,*)ifrevise
+	    if(ifrevise.ne.0)go to 32	  
+	  endif
+c	  
+	  newminxpiece=minxwant-(newxtotpix-nxtotwant)/2
+	  newminypiece=minywant-(newytotpix-nytotwant)/2
+	  actionStr = 'blended and recut'
+	endif
+c
 	nxout=newxframe
 	nyout=newyframe
-	nzout=1
+	nzout=0
 	dminout=1.e10
 	dmaxout=-1.e10
 	grandsum=0.
 	call ialsiz(2,nxyzout,nxyzst)
-	call ialsam(2,nxyzout)
-	call irtdel(1,delta)
-	cell(1)=nxout*delta(1)
-	cell(2)=nyout*delta(2)
-	cell(3)=nzout*delta(3)
-	call ialcel(2,cell)
 	call date(dat)
 	call time(tim)
 c
 c 7/7/00 CER: remove the encodes
 c
 c       encode(80,90,title) dat,tim
-        write(titlech,90) dat,tim
-90	format( 'BLENDMONT: Montage pieces blended and recut',
-     &	    13x, a9, 2x, a8 )
+        write(titlech,90) actionStr,dat,tim
+90	format( 'BLENDMONT: Montage pieces ',a, t57, a9, 2x, a8 )
 	read(titlech,'(20a4)')(title(kti),kti=1,20)
 	call iwrhdr(2,title,1,dmin,dmax,dmean)
-	nzout=0
 	hxcen=nxin/2.
 	hycen=nyin/2.
 c
@@ -629,18 +649,18 @@ c
 c	  
 c	  get edge file name root, parameters if doing a new one
 c
-	if (pipinput) then
+	if (pipinput .and. .not.undistortOnly) then
 	  ierr = PipGetBoolean('OldEdgeFunctions', ifoldedge)
 	  if (PipGetString('RootNameForEdges', rootname) .ne. 0) call
      &	      errorexit('NO ROOT NAME FOR EDGE FUNCTIONS SPECIFIED')
-	else
+	else if (.not.undistortOnly) then
 	  write(*,'(1x,a,$)')'0 for new edge files, 1 to read old ones: '
 	  read(5,*)ifoldedge
 	  write(*,'(1x,a,$)')'Root file name for edge function files: '
 	  read(5,'(a)')rootname
 	endif
 c
-	if(ifoldedge.ne.0)then
+	if(ifoldedge.ne.0 .and. .not.undistortOnly)then
 c	    
 c	    for old files, open, get edge count and # of grids in X and Y
 c
@@ -690,7 +710,7 @@ c
      &	      'FUNCTION FILE','NEW EDGE FUNCTIONS WILL BE COMPUTED'
 	endif
 
-54	if(ifoldedge.eq.0)then
+54	if(ifoldedge.eq.0 .and. .not.undistortOnly)then
 	  ifdiddle=0
 c	  write(*,'(1x,a,$)')
 c     &	      '1 to diddle with edge function parameters: '
@@ -752,7 +772,7 @@ c	      write header record
 	  enddo
 	endif
 c	  
-	if(xcreadin)then
+	if(xcreadin .and. .not.undistortOnly)then
 	  edgenam=concat(rootname,xcorrext)
 	  inquire(file=edgenam,exist=exist)
 	  if(.not.exist)then
@@ -868,6 +888,11 @@ c
 	  endif
 	endif
 	doFields = undistort .or. doMagGrad
+	if (undistortOnly .and. .not. doFields) call errorexit('YOU MUST'//
+     &	    'ENTER -gradient AND/OR -distort WITH -justUndistort')
+	if (undistortOnly .and. testMode) call errorexit(
+     &	    'YOU CANNOT ENTER BOTH -test AND -justUndistort')
+
 	call PipDone()
 c	  
 c	  initialize memory allocator
@@ -883,7 +908,8 @@ c
 	else
 	  maxload=min(maxsiz/npixin, memlim)
 	endif
-	if (maxload .lt. 2) call errorexit('IMAGES TOO LARGE FOR ARRAYS')
+	if (maxload .lt. 1 .or. (.not.UndistortOnly .and. maxload .lt. 2))
+     &	    call errorexit('IMAGES TOO LARGE FOR ARRAYS')
 	intgrcopy(1)=intgrid(1)
 	intgrcopy(2)=intgrid(2)
 c	    
@@ -899,14 +925,14 @@ c
 	  do iwant=1,nzwant
 	    if(izwant(iwant).eq.izsect)ifwant=1
 	  enddo
-	  if (ifwant .eq. 0 .and. testMode) go to 92
+	  if (ifwant .eq. 0 .and. (testMode .or. undistortOnly)) go to 92
 
 	  write(*,'(a,i4)')' working on section #',izsect
 	  call flush(6)
 	  multng=multineg(izsect+1-minzpc)
 	  xinlong=nxpieces .gt. nypieces
 c
-	  if(ifoldedge.eq.0)then 
+	  if(ifoldedge.eq.0 .and. .not. undistortOnly)then 
 c	      
 c	      first get edge functions if haven't already:
 c	      loop on short then long direction
@@ -972,7 +998,7 @@ c
 c		
 c		now if doing multinegatives, need to solve for h transforms
 c		
-	  if(multng)then
+	  if(multng .and. .not. undistortOnly)then
 c	      
 c	      first make index of negatives and find coordinates of each
 c	      
@@ -1169,56 +1195,59 @@ c
 	    enddo
 c
 	  endif					!end of multineg stuff
+
+	  if (.not. undistortOnly) then
 c	    
-c	    initialize edge buffer allocation
-c
-	  jusedgct=0
-	  do ixy=1,2
-	    do i=1,nedge(ixy)
-	      ibufedge(i,ixy)=0
+c	      initialize edge buffer allocation
+c	      
+	    jusedgct=0
+	    do ixy=1,2
+	      do i=1,nedge(ixy)
+		ibufedge(i,ixy)=0
+	      enddo
 	    enddo
-	  enddo
-	  do i=1,limedgbf
-	    iedgbflist(i)=-1
-	    lasedguse(i)=0
-	  enddo 
-c	    
-c	    if this section is not wanted in output, skip out
-c	    
-	  if(ifwant.eq.0)go to 92
-c	    
-c	    scan through all edges in this section to determine limits for when
-c	    a point is near an edge
-c	    
-	  do ixy=1,2
-	    edgelonear(ixy)=0.
-	    edgehinear(ixy)=nxyzin(ixy)-1.
-	    do iedge=1,nedge(ixy)
-	      if(izpclist(ipiecelower(iedge,ixy)).eq.izsect)then
-		if (needbyteswap.eq.0)then
-		  read(iunedge(ixy),rec=1+iedge)nxgr,nygr,(igridstr(i),
-     &		      iofset(i),i=1,2)
-		else
-		  read(iunedge(ixy),rec=1+iedge)nxgr,nygr
-		  call convert_longs(nxgr,1)
-		  call convert_longs(nygr,1)
-		  read(iunedge(ixy),rec=1+iedge)idum1,idum2,
-     &		      (igridstr(i), iofset(i),i=1,2)
-		  call convert_longs(igridstr,2)
-		  call convert_longs(iofset,2)
+	    do i=1,limedgbf
+	      iedgbflist(i)=-1
+	      lasedguse(i)=0
+	    enddo 
+c	      
+c	      if this section is not wanted in output, skip out
+c	      
+	    if(ifwant.eq.0)go to 92
+c	      
+c	      scan through all edges in this section to determine limits for
+c	      when a point is near an edge
+c	      
+	    do ixy=1,2
+	      edgelonear(ixy)=0.
+	      edgehinear(ixy)=nxyzin(ixy)-1.
+	      do iedge=1,nedge(ixy)
+		if(izpclist(ipiecelower(iedge,ixy)).eq.izsect)then
+		  if (needbyteswap.eq.0)then
+		    read(iunedge(ixy),rec=1+iedge)nxgr,nygr,(igridstr(i),
+     &			iofset(i),i=1,2)
+		  else
+		    read(iunedge(ixy),rec=1+iedge)nxgr,nygr
+		    call convert_longs(nxgr,1)
+		    call convert_longs(nygr,1)
+		    read(iunedge(ixy),rec=1+iedge)idum1,idum2,
+     &			(igridstr(i), iofset(i),i=1,2)
+		    call convert_longs(igridstr,2)
+		    call convert_longs(iofset,2)
+		  endif
+		  edgehinear(ixy)=min(edgehinear(ixy),
+     &		      float(igridstr(ixy)))
+		  edgelonear(ixy)=max(edgelonear(ixy),float
+     &		      ((min(nxgr,nygr)-1)*intgrid(1)+iofset(ixy)+10))
 		endif
-		edgehinear(ixy)=min(edgehinear(ixy),
-     &		    float(igridstr(ixy)))
-		edgelonear(ixy)=max(edgelonear(ixy),float
-     &		    ((min(nxgr,nygr)-1)*intgrid(1)+iofset(ixy)+10))
-	      endif
+	      enddo
 	    enddo
-	  enddo
+	  endif
 c	    
 c	    Now analyze for h transforms if need to shift each piece - set
 c	    multng because it is a flag that hinv exists and needs to be used
 c	    
-	  if(shifteach)then
+	  if(shifteach .and. .not. undistortOnly)then
 	    multng=.true.
 	    do ixy=1,2
 	      do iedge=1,nedge(ixy)
@@ -1400,6 +1429,33 @@ c
 	      endif
 	    enddo
 	  enddo
+c	    
+c	    UNDISTORTING ONLY: loop on all frames in section, in order as
+c	    they were in input file
+c	    
+	  if (undistortOnly) then
+	    call clearShuffle()
+	    doingEdgeFunc = .true.
+	    do ipc = 1, npclist
+	      if (izpclist(ipc) .eq. izsect) then
+		call shuffler(ipc, indbray)
+		tsum=0.
+		do i = 1, npixin
+		  val=pixscale*array(i + indbray - 1)+pixadd
+		  array(i + indbray - 1)=val
+		  dminout=min(dminout,val)
+		  dmaxout=max(dmaxout,val)
+		  tsum=tsum+val
+		enddo
+		grandsum=grandsum+tsum
+		nzout=nzout+1
+		call iwrsec(2, array(indbray))
+c		  
+		if (outputpl) write(3,'(2i6,i4)')newpcxll,newpcyll,izsect
+	      endif
+	    enddo
+	    go to 92
+	  endif
 c	    
 c	    GET THE PIXEL OUT
 c	    -  loop on output frames; within each frame loop on little boxes
@@ -2345,14 +2401,6 @@ c
 c		  write(*,'(a,i5)')' wrote new frame #',nzout
 		nzout=nzout+1
 c		  
-c		  keep header up to date in case of crashes
-c		  
-		call ialsiz(2,nxyzout,nxyzst)
-		call ialsam(2,nxyzout)
-		cell(3)=nzout*delta(3)
-		call ialcel(2,cell)
-		tmean=grandsum/(nzout*nxout*nyout)
-		call iwrhdr(2,title,-1,dminout,dmaxout, tmean)
 		if (outputpl) write(3,'(2i6,i4)')newpcxll,newpcyll,izsect
 	      endif
 c		
@@ -2361,7 +2409,20 @@ c
 92	enddo
 c
 	close(3)
+c	  
+c	  finalize the header
+c
+	call ialsiz(2,nxyzout,nxyzst)
+	call ialsam(2,nxyzout)
+	call irtdel(1,delta)
+	cell(1)=nxout*delta(1)
+	cell(2)=nyout*delta(2)
+	cell(3)=nzout*delta(3)
+	call ialcel(2,cell)
+	tmean=grandsum/(nzout*nxout*nyout)
+	call iwrhdr(2,title,-1,dminout,dmaxout, tmean)
 	call imclose(2)
+	if (undistortOnly) call exit(0)
 c	  
 c	  write edge correlations if they were not read in and if they were
 c	  computed in their entirety
