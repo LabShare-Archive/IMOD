@@ -251,8 +251,17 @@ installed.<br>
   <dd>For an SGI, we recommend using version 1.4.0 of the Java runtime
 environment, available <a
  href="http://bio3d.colorado.edu/imod/java/SGI-Java2v14-EA-eoe.tardist">here</a>
-. &nbsp;<br>
+. &nbsp;If it loses its extension in the download, make sure it ends in
+"tardist". For example, <br>
+    <code><br>
+mv SGI-Java-2v14-EA-eoe.tar SGI-Java-2v14-EA-eoe.tardist</code><br>
     <br>
+Then install it with <br>
+    <br>
+    <code>swmgr -f &nbsp;SGI-Java-2v14-EA-eoe.tardi</code>st &nbsp;
+&nbsp;<br>
+&nbsp;</dd>
+  <dd><br>
   </dd>
   <dd> <a name="InstallingMac">
     <h4>Installing IMOD on a Macintosh running OS X</h4>
@@ -427,8 +436,8 @@ paths in Windows format.  Press "New" to define a variable.</li>
 &nbsp; to be &nbsp; <code>C:\cygwin\home\username</code></li>
     <li> You also need to add the Cygwin bin to the systen path, e.g.,
 under "System variables", select <code>PATH</code>, press "Edit", and
-add <code>C:\cygwin\bin; </code>to the front of the path (the ";" is
-a separator).</li>
+add <code>C:\cygwin\bin; </code>to the front of the path (the ";" is a
+separator).</li>
   </ol>
   <br>
 Here are some optional steps:<br>
