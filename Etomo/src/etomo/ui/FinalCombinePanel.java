@@ -13,7 +13,6 @@ import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JPanel;
-import javax.swing.JTextField;
 
 import etomo.ApplicationManager;
 import etomo.comscript.ConstMatchorwarpParam;
@@ -40,6 +39,9 @@ import etomo.comscript.Patchcrawl3DParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.10  2003/03/26 00:52:56  rickg
+ * <p> Added button to convert patch_vector.mod to patch.out
+ * <p>
  * <p> Revision 1.9  2003/03/20 17:57:10  rickg
  * <p> Fixed combined volume button size
  * <p>
@@ -564,75 +566,3 @@ public class FinalCombinePanel implements ContextMenu {
   }
 }
 
-/**
- * CheckBoxTextField combines a JCheckBox with it's label and an editable text
- * field.  The included action listener enables/disables the text field to match
- * the state of the check box.
- * @author rickg
- */
-class CheckBoxTextField extends JPanel {
-  private JCheckBox checkBox;
-  private JTextField textField;
-
-  /**
-   * Default constructor
-   * @param label
-   */
-  public CheckBoxTextField(String label) {
-
-    checkBox = new JCheckBox(label);
-    textField = new JTextField();
-    this.setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
-    this.add(checkBox);
-    this.add(textField);
-
-    //  set the size of the text field
-    double height = checkBox.getPreferredSize().getHeight();
-    Dimension dim = textField.getPreferredSize();
-    dim.setSize(50 * height, height);
-    textField.setMaximumSize(dim);
-    textField.setEnabled(checkBox.isSelected());
-    checkBox.addActionListener(new CheckBoxActionListener(this));
-
-  }
-
-  String getCheckBoxLabel() {
-    return checkBox.getText();
-  }
-
-  void setCheckBoxSelected(boolean state) {
-    checkBox.setSelected(state);
-    textField.setEnabled(state);
-  }
-
-  boolean isCheckBoxSelected() {
-    return checkBox.isSelected();
-  }
-
-  void setTextField(String string) {
-    textField.setText(string);
-  }
-
-  String getTextField() {
-    return textField.getText();
-  }
-
-  //  Action event handler for the check box
-  void manageCheckBoxState(ActionEvent event) {
-    textField.setEnabled(checkBox.isSelected());
-  }
-
-  //  ActionListener class for the check box
-  class CheckBoxActionListener implements ActionListener {
-    CheckBoxTextField listenee;
-
-    CheckBoxActionListener(CheckBoxTextField checkBoxTextField) {
-      listenee = checkBoxTextField;
-    }
-
-    public void actionPerformed(ActionEvent event) {
-      listenee.manageCheckBoxState(event);
-    }
-  }
-
-}
