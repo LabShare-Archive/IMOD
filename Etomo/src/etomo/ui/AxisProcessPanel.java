@@ -24,6 +24,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.2  2003/02/24 23:24:15  rickg
+ * <p> Added process killing button that is not yet implemented
+ * <p>
  * <p> Revision 2.1  2003/01/27 23:54:07  rickg
  * <p> Align process panel along top
  * <p>
@@ -307,25 +310,44 @@ public class AxisProcessPanel implements ContextMenu {
   }
 
   /**
-   * Initialize the tooltip text for the main window objects
+   * Initialize the tooltip text for the axis panel objects
    */
   private void setToolTipText() {
-    procCtlPreProc.setToolTipText(
-      "<html>This process control panel opens a dialog box allowing<br>for the conversion of Digital Micrograph files, specifying<br>the CCD eraser parameters and performing the corr-<br>correlation required for coarse alignment.");
-    procCtlCoarseAlign.setToolTipText(
-      "<html>This process control panel opens a dialog box allowing<br>the generation and examination of a coarse aligned<br>stack and the ability to fix alignment problems using Midas.");
-    procCtlFiducialModel.setToolTipText(
-      "<html>This process control panel opens a dialog box allowing<br>for the construction of the fiducial model used to<br>develop the fine alignment of the projection images");
-    procCtlFineAlignment.setToolTipText(
-      "<html>This process control panel opens a dialog box allowing<br>for the generation and examination of a finely aligned stack.");
-    procCtlTomogramPositioning.setToolTipText(
-      "<html>This process control panel opens a dialog box allowing<br>for the bounding and positioning of the tomogram<br>volume and creating the final alignment parameters.");
-    procCtlTomogramGeneration.setToolTipText(
-      "<html>This process control panel opens a dialog box allowing<br>for the generation of the final aligned stack and generation<br>and examination of the tomogram.");
-    procCtlTomogramCombination.setToolTipText(
-      "<html>This process control panel is not yet complete<br>");
-    procCtlPostProcessing.setToolTipText(
-      "<html>This process control panel is not yet complete<br>");
+    String line1, line2, line3, line4;
+    line1 = "<html>Open the Pre-processing panel that allows<br>";
+    line2 = "for the conversion of Digital Micrograph files<br>";
+    line3 = "and running CCD eraser.";
+    procCtlPreProc.setToolTipText(line1 + line2 + line3);
+
+    line1 = "<html>Open the Coarse Alignment panel to generate a<br>";
+    line2 = "coarsely aligned stack using cross correlation and <br>";
+    line3 = "to fix coarse alignment problems with Midas.";
+    procCtlCoarseAlign.setToolTipText(line1 + line2 + line3);
+
+    line1 = "<html>Open the Fiducial Model Generation panel to create<br>";
+    line2 = "a fiducial model to be used in the fine alignment step.";
+    procCtlFiducialModel.setToolTipText(line1 + line2);
+
+    line1 = "<html>Open the Fine Alignment panel to use the generated<br>";
+    line2 = "fiducial model to sub-pixel align the project sequence.";
+    procCtlFineAlignment.setToolTipText(line1 + line2);
+
+    line1 = "<html>Open the Tomogram Position panel to optimally adjust<br>";
+    line2 = "the 3D location and size of the reconstruction volume.";
+    procCtlTomogramPositioning.setToolTipText(line1 + line2);
+
+    line1 = "<html>Open the Tomogram Generation panel to generate the final<br>";
+    line2 = "aligned stack and calcuate the tomographic reconstruction.";
+    procCtlTomogramGeneration.setToolTipText(line1 + line2);
+
+    line1 = "<html>Open the Tomogram Combination panel to combine the<br>";
+    line2 = "tomograms generated from the A and B axes into a single<br>";
+    line3 = "dual axis reconstruction.";
+    procCtlTomogramCombination.setToolTipText(line1 + line2 + line3);
+
+    line1 = "<html>Open the Post Processing panel to trim the final<br>";
+    line2 = "reconstruction to size and delete the intermediate files.";
+    procCtlPostProcessing.setToolTipText(line1 + line2);
   }
 
 }
