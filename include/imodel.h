@@ -26,6 +26,14 @@
  *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 
 #ifndef IMODEL_H
 #define IMODEL_H
@@ -589,6 +597,7 @@ unsigned char  imodGetByte(FILE *fp);
 int   imodGetBytes(FILE *fp, unsigned char *buf, int size);
 int   imodPutBytes(FILE *fp, unsigned char *buf, int size);
 int   imodPutByte(FILE *fp,  unsigned char *dat);
+void  imodFromVmsFloats(unsigned char *data, int amt);
 
 #ifdef __cplusplus
 }
