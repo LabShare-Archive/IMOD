@@ -111,7 +111,6 @@ EXPORTS
 	mrc_fftx
 	corr_conj3d
 	sliceByteAnisoDiff
-	allocate2D_double
 	tiffReadSectionByte
 	mrc_swap_longs
 	mrc_head_write
@@ -145,6 +144,7 @@ EXPORTS
 	sliceByteEdgePrewitt
 	tiffReadSection
 	sliceMirror
+	allocate2D_float
 	mrc_write_slice
 	sliceGradient
 	fgetline
