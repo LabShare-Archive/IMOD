@@ -1,6 +1,6 @@
 .nh
 .na
-.TH imodv 1 2.31 BL3DFS
+.TH imodv 1 2.7.2 BL3DFS
 .SH NAME
 imodv \- View an imod model.
 .SH SYNOPSIS
@@ -34,6 +34,10 @@ The color is a standard Xt Toolkit color name.
 .TP
 .B -cindex
 Use color index mode. Useful on systems with only 8-bit graphics.
+.TP
+.B -D
+Run in debug mode with diagnostic output and without becoming a background
+process.
 .P
 .SS Hot key shortcuts for imodv.
 .TP
