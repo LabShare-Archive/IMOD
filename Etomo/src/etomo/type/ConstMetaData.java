@@ -20,6 +20,9 @@ import etomo.comscript.TransferfidParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.10  2003/10/23 23:04:59  sueh
+ * <p> bug267 removing prints
+ * <p>
  * <p> Revision 2.9  2003/10/23 22:34:35  sueh
  * <p> bug267 removing prints
  * <p>
@@ -279,7 +282,7 @@ public class ConstMetaData {
    * @param writeable - If true, the file must be writeable
    * @return boolean
    */
-  protected boolean isValid(File file, boolean writeable) {
+  protected static boolean isValid(File file, boolean writeable) {
     if (file == null) {
       return false;
     }
@@ -303,14 +306,14 @@ public class ConstMetaData {
    * into ConstMetaData.invalidReason.
    * 
    * @param fileName - Name of file to look for
-   * @param curDir - The current directory
-   * @param altDir - The alternate directory
+   * @param curDir - The current directory.  This directory should be valid.
+   * @param altDir - The alternate directory.
    * @return Success:  directory where file found.  Failure: null.
    * @throws IllegalArgumentException if any parameter is null
    */
   protected File findValidFile(String fileName, File curDir, File altDir) {
 
-    if (fileName == null || curDir == null || altDir == null) {
+    if (fileName == null || curDir == null || altDir == null || !isValid(curDir, true)) {
       throw new IllegalArgumentException("ConstMetaData.findValidFile(String,File,File)");
     }
 
@@ -343,12 +346,12 @@ public class ConstMetaData {
    * into ConstMetaData.invalidReason.
    * 
    * @param fileName - Name of file to look for
-   * @param curDir - The current directory
+   * @param curDir - The current directory.  This directory should be valid.
    * @return Success:  directory where file found.  Failure: null.
    * @throws IllegalArgumentException if any parameter is null
    */
   protected File findValidFile(String fileName, File curDir) {
-    if (fileName == null || curDir == null) {
+    if (fileName == null || curDir == null || !isValid(curDir, true)) {
       throw new IllegalArgumentException("ConstMetaData.findValidFile(String,File)");
     }
 
