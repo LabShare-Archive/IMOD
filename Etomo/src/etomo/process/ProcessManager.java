@@ -20,6 +20,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.52  2005/01/21 22:55:38  sueh
+ * bug# 509 bug# 591  Converted transferfidParam.BToA to EtomoBoolean.
+ *
  * Revision 3.51  2005/01/12 00:42:12  sueh
  * bug# 579 Set usedLocalAlignments in TomogramState after tiltalign.
  *
@@ -1033,8 +1036,9 @@ public class ProcessManager extends BaseProcessManager {
     //  Create the required newst command
     //
     String command = "mtffilter" + axisID.getExtension() + ".com";
+    MtffilterProcessMonitor mtffilterProcessMonitor = new MtffilterProcessMonitor(appManager, axisID);
     //  Start the com script in the background
-    ComScriptProcess comScriptProcess = startComScript(command, null, axisID);
+    ComScriptProcess comScriptProcess = startComScript(command, mtffilterProcessMonitor, axisID);
     return comScriptProcess.getName();
   }
 
