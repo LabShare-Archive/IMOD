@@ -601,8 +601,8 @@ EOF
     \find $imod_dir -name 'imod*_menu.o' ! -newer .version -exec \rm -f '{}' \;
 
     set qt_libs = `sed -n '/^LIBS /s/^LIBS.*-L\$(QTDIR/-L\$(QTDIR/p' $sendevent_dir/Makefile`
-    echo 'GRAPHLIBS    = -ldnmncar -ldiaqt $(IMLIBS)'" $qt_libs $fort_cpplibs" >> $configure
-    echo 'XPLAX = ' >> $configure
+    echo 'GRAPHLIBS    = -ldnmncar $(IMLIBS)'" $qt_libs $fort_cpplibs" >> $configure
+    echo 'XPLAX = qtplax.o' >> $configure
 
     # Temporary fix for mac bug in qmake
     #
@@ -674,6 +674,9 @@ exit
 
 #
 #  $Log$
+#  Revision 3.20  2003/08/10 01:32:23  mast
+#  Added test for java compiler and setting of Etomo Makefile accordingly
+#
 #  Revision 3.19  2003/05/21 04:35:35  mast
 #  Find needed to use -size 0, not -empty
 #
