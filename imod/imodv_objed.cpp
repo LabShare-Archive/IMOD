@@ -39,6 +39,7 @@ Log at end of file
 #include <math.h>
 #include <qlabel.h>
 #include <qcheckbox.h>
+#include <qspinbox.h>
 #include <qpushbutton.h>
 #include <qbuttongroup.h>
 #include <qradiobutton.h>
@@ -95,7 +96,8 @@ static void fixMove_cb(void);
 static void mkSubsets_cb(int index);
 static void optionSetFlags (b3dUInt32 *flag);
 static void toggleObj(int ob, bool state);
-
+static void setStartEndModel(int &mst, int &mnd);
+static bool changeModelObject(int m, int ob);
 
 /* resident instance of the IModvObjed class, and pointers to the dialog
    box classes when they are created */
@@ -175,8 +177,8 @@ static void optionSetFlags (b3dUInt32 *flag)
 
 void imodvObjedDrawData(int option)
 {
-  int ob, m;
-     
+  int m, mst, mnd, ob;
+
   switch(option){
   case 0:
     setObjFlag(IMOD_OBJFLAG_OFF, 1);
@@ -211,31 +213,12 @@ void imodvObjedDrawData(int option)
 
     if (!Imodv->imod) return;
 
-    if (Imodv_objed_all){
-      if (Imodv->crosset){
-        for(m = 0; m < Imodv->nm; m++)
-          for(ob = 0; ob < Imodv->mod[m]->objsize; ob++)
-            if (Imodv_objed_all == editAll ||
-                !(Imodv->mod[m]->obj[ob].flags & 
-                  IMOD_OBJFLAG_OFF))
-              optionSetFlags(&Imodv->mod[m]->obj[ob].flags);
-      }else{
-        for(ob = 0; ob < Imodv->imod->objsize; ob++)
-          if (Imodv_objed_all == editAll ||
-              !(Imodv->imod->obj[ob].flags & IMOD_OBJFLAG_OFF))
-            optionSetFlags(&Imodv->imod->obj[ob].flags);
-      }     
-            
-    }else{
-      if (Imodv->crosset){
-        for(m = 0; m < Imodv->nm; m++) {
-          ob = Imodv->ob;
-          if (ob < Imodv->mod[m]->objsize)
-            optionSetFlags(&Imodv->mod[m]->obj[ob].flags);
-        }
-      }else
-        optionSetFlags(&Imodv->imod->obj[Imodv->ob].flags);
-            
+    setStartEndModel(mst, mnd);
+    
+    for (m = mst; m <= mnd; m++) {
+      for (ob = 0; ob < Imodv->mod[m]->objsize; ob++)
+        if (changeModelObject(m, ob)) 
+          optionSetFlags(&Imodv->mod[m]->obj[ob].flags);
     }
     objset(Imodv);
     break;
@@ -316,21 +299,18 @@ void ImodvObjed::toggleListSlot(int ob)
 
 static void toggleObj(int ob, bool state)
 {
-  int  m;
-   if (state) {
-    Imodv->imod->obj[ob].flags &= ~IMOD_OBJFLAG_OFF;
-    Imodv->ob = ob;
-  } else
-    Imodv->imod->obj[ob].flags |= IMOD_OBJFLAG_OFF;
-
-  /* Turn off same object in all other models if editing all and legal ob */
-  if (Imodv->crosset)
-    for (m = 0; m < Imodv->nm; m++)
-      if (Imodv->mod[m]->objsize > ob)
-        if (state)
-          Imodv->mod[m]->obj[ob].flags &= ~IMOD_OBJFLAG_OFF;
-        else
-          Imodv->mod[m]->obj[ob].flags |= IMOD_OBJFLAG_OFF;
+  int m, mst, mnd;
+  setStartEndModel(mst, mnd);
+    
+    /* Turn off same object in all other models if editing all and legal ob */
+  for (m = mst; m <= mnd; m++) {
+    if (Imodv->mod[m]->objsize > ob)
+      if (state) {
+        Imodv->mod[m]->obj[ob].flags &= ~IMOD_OBJFLAG_OFF;
+        Imodv->ob = ob;
+      } else
+        Imodv->mod[m]->obj[ob].flags |= IMOD_OBJFLAG_OFF;
+  }
 
   /* If the object is within legal limits for a button list, set that button
      in each list */
@@ -427,9 +407,16 @@ void imodvObjedHelp()
      "are used instead.  Select \"Light Both Sides\" to have the object "
      "lit on both its outside and inside surfaces.\n\n",
 
-     "\tPoints: Adjust scattered point rendering.  "
-     "The size of scattered points can be entered into the text box."
-     "\n\n",
+     "\tPoints: Adjust rendering of spheres that are displayed at individual "
+     "points.  The sphere radius can be incremented, decremented, or typed "
+     "in to the spin box.  Note that setting the radius non-zero will cause "
+     "points to be displayed at each point, even for open and closed contour "
+     "objects.  The quality of the spheres is controlled by the "
+     "two quality spin boxes, one to set the quality for the particular "
+     "object, and one to set the overall minimum quality for all objects.  "
+     "The display quality for an object is the maximum of its own "
+     "quality setting and the global setting (range 1 - 4).  The global "
+     "setting can also be controlled by the g and G hot keys.\n\n",
            
      "\tLines: The Width slider changes the line width used to "
      "draw the objects.  The \"Anti-Alias Rendering\" toggle "
@@ -840,30 +827,16 @@ static void setMaterial(Iobj *obj, int which, int value)
 
 void ImodvObjed::materialSlot(int which, int value, bool dragging)
 {
-  int ob,m;
+  int m, mst, mnd, ob;
 
   if (!Imodv->imod) return;
      
-  if (Imodv_objed_all){
-    for(ob = 0; ob < Imodv->imod->objsize; ob++)
-      if (Imodv_objed_all == editAll ||
-          !(Imodv->imod->obj[ob].flags & IMOD_OBJFLAG_OFF))
-        setMaterial(&(Imodv->imod->obj[ob]), which, value);
-
-    if (Imodv->crosset)
-      for(m = 0; m < Imodv->nm; m++)
-        for(ob = 0; ob < Imodv->mod[m]->objsize; ob++)
-          if (Imodv_objed_all == editAll ||
-              !(Imodv->mod[m]->obj[ob].flags & IMOD_OBJFLAG_OFF))
-            setMaterial(&(Imodv->mod[m]->obj[ob]), which, value);
-
-  } else {
-    setMaterial(Imodv->obj, which, value);
-    if (Imodv->crosset)
-      for(m = 0; m < Imodv->nm; m++)
-        if (Imodv->mod[m]->objsize > Imodv->ob)
-            setMaterial(&(Imodv->mod[m]->obj[Imodv->ob]), which, value);
-
+  setStartEndModel(mst, mnd);
+    
+  for (m = mst; m <= mnd; m++) {
+    for (ob = 0; ob < Imodv->mod[m]->objsize; ob++)
+      if (changeModelObject(m, ob)) 
+        setMaterial(&(Imodv->mod[m]->obj[ob]), which, value);
   }
   /*     printf("set mat %d, offset %d, value%d\n", *item, offset, cbs->value); */
      
@@ -923,49 +896,63 @@ static void mkMaterial_cb (int index)
 /*****************************************************************************
  * The point edit field
  *****************************************************************************/
-static ToolEdit *wPointEdit;
 
-void ImodvObjed::pointSizeSlot()
+static QSpinBox *wPointSizeBox;
+static QSpinBox *wPointQualityBox;
+static QSpinBox *wGlobalQualityBox;
+
+void ImodvObjed::pointSizeSlot(int i)
 {
-  int i,m,ob;
+  int m, mst, mnd, ob;
 
   if (!Imodv->imod) return;
 
-  // Possibly TODO: catch changes as they occur, recording object pointer;
-  // then apply them when this signal comes in
   objed_dialog->setFocus();
-  QString str = wPointEdit->text();
-  i = atoi(str.latin1());
-  if (i < 0)
-    i = 0;
 
-  if (Imodv->ob > (Imodv->imod->objsize - 1))
-    Imodv->ob = Imodv->imod->objsize - 1;
-
-     
-  if (Imodv_objed_all){
-    for(ob = 0; ob < Imodv->imod->objsize; ob++)
-      if (Imodv_objed_all == editAll ||
-          !(Imodv->imod->obj[ob].flags & IMOD_OBJFLAG_OFF))
-        Imodv->imod->obj[ob].pdrawsize = i;
-    if (Imodv->crosset)
-      for(m = 0; m < Imodv->nm; m++)
-        for(ob = 0; ob < Imodv->mod[m]->objsize; ob++)
-          if (Imodv_objed_all == editAll ||
-              !(Imodv->mod[m]->obj[ob].flags & 
-                IMOD_OBJFLAG_OFF))
-            Imodv->mod[m]->obj[ob].pdrawsize = i;
-  } else {
-
-    Imodv->imod->obj[Imodv->ob].pdrawsize = i;
-    if (Imodv->crosset)
-      for(m = 0; m < Imodv->nm; m++)
-        if (Imodv->mod[m]->objsize > Imodv->ob)
-          Imodv->mod[m]->obj[Imodv->ob].pdrawsize = i;
+  setStartEndModel(mst, mnd);
+    
+  for (m = mst; m <= mnd; m++) {
+    for (ob = 0; ob < Imodv->mod[m]->objsize; ob++)
+      if (changeModelObject(m, ob)) 
+        Imodv->mod[m]->obj[ob].pdrawsize = i;
   }
   imodvDraw(Imodv);     
   imodvDrawImodImages();
   return;
+}
+
+void ImodvObjed::pointQualitySlot(int value)
+{
+  int m, mst, mnd, ob;
+  value--;
+  if (!Imodv->imod) return;
+
+  objed_dialog->setFocus();
+
+  setStartEndModel(mst, mnd);
+     
+  for (m = mst; m <= mnd; m++) {
+    for (ob = 0; ob < Imodv->mod[m]->objsize; ob++)
+      if (changeModelObject(m, ob)) 
+        Imodv->mod[m]->obj[ob].mat1b3 = value;
+  }
+  imodvDraw(Imodv);     
+}
+
+void ImodvObjed::globalQualitySlot(int value)
+{
+  int m, mst, mnd;
+  if (!Imodv->imod) return;
+  value--;
+  objed_dialog->setFocus();
+
+  setStartEndModel(mst, mnd);
+
+  for (m = mst; m <= mnd; m++)
+    Imodv->mod[m]->view->world = 
+      (Imodv->mod[m]->view->world & ~WORLD_QUALITY_BITS) |
+      (value << WORLD_QUALITY_SHIFT);
+  imodvDraw(Imodv);     
 }
 
 static void setPoints_cb(void)
@@ -974,9 +961,12 @@ static void setPoints_cb(void)
   Iobj *obj = objedObject();
   if (!obj)
     return;
-     
-  str.sprintf("%d", obj->pdrawsize);
-  wPointEdit->setText(str);
+
+  diaSetSpinBox(wPointSizeBox, obj->pdrawsize);
+  diaSetSpinBox(wPointQualityBox, obj->mat1b3 + 1);
+  diaSetSpinBox(wGlobalQualityBox, 
+                ((Imodv->imod->view->world & WORLD_QUALITY_BITS) >> 
+                WORLD_QUALITY_SHIFT) + 1);
 }
 
 static void mkPoints_cb(int index)
@@ -985,15 +975,34 @@ static void mkPoints_cb(int index)
 
   QVBoxLayout *layout1 = new QVBoxLayout(oef->control, FIELD_MARGIN, 
                                          FIELD_SPACING, "points layout");
-  wPointEdit = new ToolEdit(oef->control, 6, "point edit");
-  layout1->addWidget(wPointEdit);
-  QObject::connect(wPointEdit, SIGNAL(returnPressed()), &imodvObjed,
-          SLOT(pointSizeSlot()));
-  QObject::connect(wPointEdit, SIGNAL(focusLost()), &imodvObjed,
-          SLOT(pointSizeSlot()));
-  QToolTip::add(wPointEdit, "Set radius of scattered points in pixels");
+  QGridLayout *grid = new QGridLayout(layout1, 3, 2);
+  QLabel *label = new QLabel("Sphere Size", oef->control);
+  wPointSizeBox = new QSpinBox(0, 255, 1, oef->control, "point spin box");
+  wPointSizeBox->setFocusPolicy(QWidget::ClickFocus);
+  grid->addWidget(label, 1, 1);
+  grid->addWidget(wPointSizeBox, 1, 2);
+  label = new QLabel("Object Quality", oef->control);
+  wPointQualityBox = new QSpinBox(1, 4, 1, oef->control, "quality spin box");
+  wPointQualityBox->setFocusPolicy(QWidget::ClickFocus);
+  grid->addWidget(label, 2, 1);
+  grid->addWidget(wPointQualityBox, 2, 2);
+  label = new QLabel("Global Quality", oef->control);
+  wGlobalQualityBox = new QSpinBox(1, 4, 1, oef->control, "global quality");
+  wGlobalQualityBox->setFocusPolicy(QWidget::ClickFocus);
+  grid->addWidget(label, 3, 1);
+  grid->addWidget(wGlobalQualityBox, 3, 2);
+  QToolTip::add(wPointSizeBox, "Set radius of sphere to draw at each point"
+                " in pixels");
+  QToolTip::add(wPointQualityBox, "Set quality of sphere-drawing for this "
+                "object");
+    QToolTip::add(wGlobalQualityBox, "Set overall quality of sphere-drawing");
 
-  diaLabel("Scattered Point Size", oef->control, layout1);
+  QObject::connect(wPointSizeBox, SIGNAL(valueChanged(int)), &imodvObjed,
+          SLOT(pointSizeSlot(int)));
+  QObject::connect(wPointQualityBox, SIGNAL(valueChanged(int)), &imodvObjed,
+          SLOT(pointQualitySlot(int)));
+  QObject::connect(wGlobalQualityBox, SIGNAL(valueChanged(int)), &imodvObjed,
+          SLOT(globalQualitySlot(int)));
 
   finalSpacer(oef->control, layout1);
 }
@@ -1009,33 +1018,17 @@ static char *widthLabel[] = {"Line Width"};
 
 void ImodvObjed::lineWidthSlot(int which, int value, bool dragging)
 {
-  int ob,m;
+  int m, mst, mnd, ob;
      
   if (!Imodv->imod)
     return;
      
-  if (Imodv->ob > (Imodv->imod->objsize - 1))
-    Imodv->ob = Imodv->imod->objsize - 1;
+  setStartEndModel(mst, mnd);
      
-  if (Imodv_objed_all){
-    for(ob = 0; ob < Imodv->imod->objsize; ob++)
-      if (Imodv_objed_all == editAll ||
-          !(Imodv->imod->obj[ob].flags & IMOD_OBJFLAG_OFF))
-        Imodv->imod->obj[ob].linewidth = value;
-    if (Imodv->crosset)
-      for(m = 0; m < Imodv->nm; m++)
-        for(ob = 0; ob < Imodv->mod[m]->objsize; ob++)
-          if (Imodv_objed_all == editAll ||
-              !(Imodv->mod[m]->obj[ob].flags & 
-                IMOD_OBJFLAG_OFF))
-            Imodv->mod[m]->obj[ob].linewidth = value;
-  } else {
-
-    Imodv->imod->obj[Imodv->ob].linewidth = value;
-    if (Imodv->crosset)
-      for(m = 0; m < Imodv->nm; m++)
-        if (Imodv->mod[m]->objsize > Imodv->ob)
-          Imodv->mod[m]->obj[Imodv->ob].linewidth = value;
+  for (m = mst; m <= mnd; m++) {
+    for (ob = 0; ob < Imodv->mod[m]->objsize; ob++)
+      if (changeModelObject(m, ob)) 
+        Imodv->mod[m]->obj[ob].linewidth = value;
   }
 
   if (!dragging || (hotSliderFlag() == HOT_SLIDER_KEYDOWN && ctrlPressed) ||
@@ -1530,58 +1523,44 @@ void ImodvOlist::keyReleaseEvent ( QKeyEvent * e )
 
 static void setObjFlag(long flag, int state)
 {
-  int ob, m;
+  int m, mst, mnd, ob;
 
   if (!Imodv->imod || !objedObject())
     return;
 
-
-  if (Imodv_objed_all){
-    if (Imodv->crosset){
-      for(m = 0; m < Imodv->nm; m++)
-        for(ob = 0; ob < Imodv->mod[m]->objsize; ob++)
-          if (Imodv_objed_all == editAll ||
-              !(Imodv->mod[m]->obj[ob].flags & 
-                IMOD_OBJFLAG_OFF))
-            if (state){
-              Imodv->mod[m]->obj[ob].flags |= flag;
-            }else{
-              Imodv->mod[m]->obj[ob].flags &= ~flag;
-            }
-    }else{
-      for(ob = 0; ob < Imodv->imod->objsize; ob++)
-        if (Imodv_objed_all == editAll ||
-            !(Imodv->imod->obj[ob].flags & IMOD_OBJFLAG_OFF))
-          if (state){
-            Imodv->imod->obj[ob].flags |= flag;
-          }else{
-            Imodv->imod->obj[ob].flags &= ~flag;
-          }     
-    }
-          
-  }else{
-    /* DNM: fixed probably bug: the changing for each model was not in the
-       for loop, and there was no test for whether the object existed */
-    if (Imodv->crosset){
-      for(m = 0; m < Imodv->nm; m++) {
-        ob = Imodv->ob;
-        if (ob < Imodv->mod[m]->objsize) {
-          if (state){
-            Imodv->mod[m]->obj[ob].flags |= flag;
-          }else{
-            Imodv->mod[m]->obj[ob].flags &= ~flag;
-          }
-        }
+  setStartEndModel(mst, mnd);
+    
+  for (m = mst; m <= mnd; m++) {
+    for (ob = 0; ob < Imodv->mod[m]->objsize; ob++)
+      if (changeModelObject(m, ob)) {
+        if (state)
+          Imodv->mod[m]->obj[ob].flags |= flag;
+        else
+          Imodv->mod[m]->obj[ob].flags &= ~flag;
       }
-    }else{
-      if (state)
-        Imodv->imod->obj[Imodv->ob].flags |= flag;
-      else
-        Imodv->imod->obj[Imodv->ob].flags &= ~flag;
-    }
   }
-  return;
 }
+
+/* Maintain Imodv->ob and set the starting and ending model to change */
+static void setStartEndModel(int &mst, int &mnd)
+{
+  if (Imodv->ob > (Imodv->imod->objsize - 1))
+    Imodv->ob = Imodv->imod->objsize - 1;
+
+  mst = 0;
+  mnd = Imodv->nm - 1;
+  if (!Imodv->crosset)
+    mst = mnd = Imodv->cm;
+}
+
+/* test whether the object ob should be changed in model m */
+static bool changeModelObject(int m, int ob)
+{
+  return ((ob == Imodv->ob) || (Imodv_objed_all == editAll) || 
+      (Imodv_objed_all && 
+       !(Imodv->mod[m]->obj[ob].flags & IMOD_OBJFLAG_OFF)));
+}
+
 
 /* Utility for adding final spacer  */
 static void finalSpacer(QWidget *parent, QVBoxLayout *layout)
@@ -1593,6 +1572,9 @@ static void finalSpacer(QWidget *parent, QVBoxLayout *layout)
 
 /*
 $Log$
+Revision 4.13  2003/06/01 05:43:47  mast
+Fixed problem with ambient slider
+
 Revision 4.12  2003/04/25 00:15:00  mast
 Moved Light both sides to material panel; implement program name change
 
