@@ -27,6 +27,10 @@ import etomo.type.JoinMetaData;
 * @version $Revision$
 *
 * <p> $Log$
+* <p> Revision 1.7  2004/12/08 21:23:33  sueh
+* <p> bug# 564 Changed FinishjoinParam statics SHIFT_IN_X_VALUE_NAME,
+* <p> etc to SHIFT_IN_X.
+* <p>
 * <p> Revision 1.6  2004/12/06 23:35:17  sueh
 * <p> Removed print statement.
 * <p>
@@ -179,7 +183,6 @@ public class JoinProcessManager extends BaseProcessManager {
     }
     if (commandName.equals(startjoinComscriptName)) {
       joinManager.getJoinMetaData().setSampleProduced(true);
-      joinManager.saveMetaData();
       joinManager.setMode();
     }
   }
@@ -232,7 +235,6 @@ public class JoinProcessManager extends BaseProcessManager {
         metaData.setFinishjoinTrialSizeInY(command.getIntegerValue(FinishjoinParam.SIZE_IN_Y));
         metaData.setFinishjoinTrialShiftInX(command.getIntegerValue(FinishjoinParam.SHIFT_IN_X));
         metaData.setFinishjoinTrialShiftInY(command.getIntegerValue(FinishjoinParam.SHIFT_IN_Y));
-        joinManager.saveMetaData();
       }
     }
   }
@@ -251,7 +253,6 @@ public class JoinProcessManager extends BaseProcessManager {
     }
     else if (commandName.equals(MakejoincomParam.getName())) {
       joinManager.getJoinMetaData().setSampleProduced(false);
-      joinManager.saveMetaData();
       joinManager.setMode();
     }
     else if (commandName.equals(FlipyzParam.getName())) {
@@ -271,7 +272,6 @@ public class JoinProcessManager extends BaseProcessManager {
     }
     if (commandName.equals(startjoinComscriptName)) {
       joinManager.getJoinMetaData().setSampleProduced(false);
-      joinManager.saveMetaData();
       joinManager.setMode();
     }
   }
