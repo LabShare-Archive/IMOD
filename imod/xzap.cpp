@@ -55,6 +55,8 @@ static void zapButton3(struct zapwin *zap, int x, int y, int controlDown);
 static void zapB1Drag(struct zapwin *zap, int x, int y);
 static void zapB2Drag(struct zapwin *zap, int x, int y, int controlDown);
 static void zapB3Drag(struct zapwin *zap, int x, int y, int controlDown);
+static void zapDelUnderCursor(ZapStruct *zap, int x, int y, Icont *cont);
+static void dragSelectContsCrossed(struct zapwin *zap, int x, int y);
 static void endContourShift(ZapStruct *zap);
 static Icont *checkContourShift(ZapStruct *zap, int &pt, int &err);
 static void setupContourShift(ZapStruct *zap);
@@ -100,154 +102,7 @@ static int subEndY = 0;
 
 void zapHelp()
 {
-  dia_vasmsg
-    ("3dmod Zap Help\n",
-     "---------------------------------------------------------------\n",
-     "Mouse Button Assignments\n\n",
-     "\tDescriptions below refer to the first, second, and third mouse "
-     "buttons.  By default, these correspond to left, middle, and right "
-     "buttons of a 3-button mouse, but you can change these assignments in "
-     "the 3dmod Preferences dialog, accessed via the Edit-Options menu entry."
-     "\n\n"
-     "The Tool Bar\n\n",
-     "\tThe Up and Down Arrows step the zoom factor up or down.\n",
-     "\tThe Zoom edit box shows the current zoom factor and allows ",
-     "one to type in a custom zoom.\n",
-     "\tThe checkerboard button toggles between fast rendering and ",
-     "slower but higher quality interpolated image rendering.\n",
-     "\tThe lock button can lock the Zap window at the current Z value.",
-     "  When locked, the Z value of a Zap window can be changed with "
-     "controls or hot keys in the window, but that will not change the current"
-     " Z value of other windows in the program.\n",
-     "\tThe centering button toggles between having the image always ",
-     "centered ",
-     "on the current model point, and recentering the image only when ",
-     "the current point comes near an edge (the default).\n"
-     "\tThe modeling direction button toggles between inserting new ",
-     "points after the current point (when pointing up) or before ",
-     "the current point (when pointing down).\n"
-     "\tThe Z slider allows one to riffle through images or select a "
-     "particular section to display.\n"
-     "\tThe section edit box shows the current section and allows one ",
-     "to go directly to a section by typing in a number.\n",
-     "\tThe Info button (I) brings the Information Window to the "
-     "front and prints information about window and image size (see the "
-     "I Hot Key below).\n"
-     "\tIf multiple image files have been loaded into 3dmod, three "
-     "additional controls appear.  The Time Lock button will prevent "
-     "changes in other windows from changing the time (image file) "
-     "displayed in this Zap window.  The left and right arrows will "
-     "step backward and forward in time.\n\n",
-     "---------------------------------------------------------------\n",
-     "\nHot Keys special to the Zap window\n\n"
-     "\ti toggles the modeling direction.\n",
-     "\tS or "CTRL_STRING"-S saves the Zap window, or the area inside the "
-     "rubber band, into a non-TIFF or TIFF file.  (Use the menu entry "
-     "Edit-Options and go to the Behavior tab to select the non-TIFF file "
-     "format.)\n"
-     "\tZ toggles auto section advance on and off.  When this is on, ",
-     "the section will change automatically after inserting a point if ",
-     "there was a section change between that point and the previous ",
-     "point.\n",
-     "\tb builds a contour when AutoContour window is open.\n",
-     "\ta advances to and fills next section when auto contouring.\n",
-     "\tu smooths a filled area when auto contouring.\n",
-     "\tB toggles the rubber band on and off.  The rubber band can be "
-     "used to select an area, then snapshot the area, resize the window "
-     "to that area, or find its coordinates.  After pressing B to turn on the "
-     "rubber band, position the mouse at the desired upper left corner, click "
-     "the first mouse button and hold it down while you move to the lower "
-     "right corner.  After initially defining the band, you can adjust its "
-     "size by placing the pointer near an edge or corner and "
-     "dragging with the first mouse button.  The band can be moved as a "
-     "unit by placing the pointer near an edge and dragging with the "
-     "second mouse button.\n",
-     "\tI prints information about the window and image size and "
-     "the coordinates of the image in the window.  If the rubber band "
-     "is on, the sizes and coordinates are relative to the rubber band "
-     "rather than the window.  The image "
-     "coordinates of the lower left and upper right corners, and of "
-     "the center, are printed in the 3dmod info window.  There is also "
-     "a fragment of a command line for extracting the image from the "
-     "stack with \"newstack\".  This key also brings the Information "
-     "Window to the front of the display.\n",
-     "\tR resizes the window.  With the rubber band off, the window "
-     "changes, "
-     "if possible, to match the size of the entire image at the "
-     "current zoom.  With the rubber band on, it changes to the size "
-     "of the rubber band and the image is shifted to display the area "
-     "previously in the rubber band.\n",
-     "\t"CTRL_STRING"-A adds multiple contours on the current section to the "
-     "contour selection list.  Selected contours will be shown with a "
-     "distinguishable line thickness.  Only contours from the current object "
-     "that are "
-     "confined to the current section will be added.  With the rubber band "
-     "off, all eligible contours on the section will be added; with the "
-     "rubber band on, only contours completely within the rubber band will be "
-     "selected.\n",
-     "\tP Allows you to shift the whole current "
-     "contour by dragging with the first mouse button held down.  After "
-     "pressing this key, position the mouse anywhere, press the first mouse "
-     "button, and shift the contour to the desired position.  Shifting mode "
-     "is terminated when you release the mouse button.  Shifting "
-     "works for any contours in closed contour objects and for coplanar "
-     "contours in open contour objects.\n"
-     "\tArrow keys and the keypad: In movie mode, the arrow keys and "
-     "the PageUp and PageDown keys move the current viewing point (the "
-     "small cross), while the keypad keys pan the image horizontally,"
-     " vertically, and diagonally.  In model mode, the arrow keys pan "
-     "the image, the numeric keypad arrows move the current model point "
-     "laterally, and the numeric keypad PageUp and PageDown keys move "
-     "the current model point in Z.\n"
-     "\tIns on the keypad: In model mode, this key works the same as "
-     "the second mouse button.  A single keystrike adds one point; "
-     "holding the key down allows points to be added continuously.\n"
-     "\tESC will close the Zap window.\n\n"
-     "For other keys, see Help - Hot Keys in the 3dmod Info Window.\n\n",
-     "---------------------------------------------------------------\n",
-     "\nMouse button function in movie mode\n\n",
-     "\tFirst Button Click: Select the current viewing point, marked by "
-     "a small cross.\n",
-     "\tFirst Button Drag: Pan the image if it is larger than the "
-     "window, or adjust the size of the rubber band."
-     "\n"
-     "\tSecond Button: Start movie in forward direction, or stop movie."
-     "\n"
-     "\tSecond Button Drag: Move the rubber band.\n",
-     "\tThird Button: Start movie in backward direction, or stop movie."
-     "\n\n"
-     "Mouse button function in model mode\n\n",
-     "\tFirst Button Click: Make the nearest visible model point be the "
-     "current model point.  If there is no point nearby, this detaches from "
-     "the current point and contour and selects a current viewing point "
-     "instead.\n",
-     "\t"CTRL_STRING" - First Button Click: Selects the nearest visible point "
-     "as the current point but also adds this contour to a list of selected "
-     "contours.  Selected contours in this list will be "
-     "displayed with a distinguishable line thickness.  If a contour is "
-     "already selected, "CTRL_STRING"-clicking on it will deselect it.  The "
-     "selection list is cleared by doing an ordinary first button selection "
-     "of any model point, or by a variety of other operations, mostly ones "
-     "that select a different contour from the current one.\n"
-     "\tFirst Button Drag: Pan the image if it is larger than the "
-     "window, or adjust the size of the rubber band."
-     "\n"
-     "\tSecond Button Click: Add one point to the current contour.\n"
-     "\tSecond Button Drag: Continually add points to the current "
-     "contour as the mouse is moved, or move the rubber band.\n",
-     "\tThird Button Click: Modify the current model point to be at the "
-     "selected position.\n",
-     "\tThird Button Drag: Continually modify points as the mouse is "
-     "moved.  This only works when the current model point is in the "
-     "interior of the contour, not at its end.\n",
-     "\t"CTRL_STRING" - Third Button Click: Delete any points under the "
-     "cursor in the current contour.\n",
-     "\t"CTRL_STRING" - Third Button Drag: Continually delete points under the"
-     " cursor as the mouse is moved.  At the end, the current point is "
-     "set before the last deletion (or after, if modeling direction is "
-     "inverted.)\n",
-     NULL);
-  return;
+  imodShowHelpPage("zap.html");
 }
 
 // This receives the close signal back from the controller, tells the
@@ -1353,23 +1208,27 @@ void zapMouseMove(ZapStruct *zap, QMouseEvent *event, bool mousePressed)
   /*  imodPrintStderr("mb  %d|%d|%d\n", button1, button2, button3); */
 
   if ( (button1) && (!button2) && (!button3)){
-    /* DNM: wait for a bit of time or until enough distance moved, but if we
-       do not replace original lmx, lmy, there is a disconcerting lurch */
-    cumdx = event->x() - firstmx;
-    cumdy = event->y() - firstmy;
-    if ((but1downt.elapsed()) > 250 || cumdx * cumdx + cumdy * cumdy >
-        cumthresh)
-      zapB1Drag(zap, event->x(), event->y());
+    if (ctrlDown) {
+      dragSelectContsCrossed(zap, event->x(), event->y());
+    } else {
+      /* DNM: wait for a bit of time or until enough distance moved, but if we
+         do not replace original lmx, lmy, there is a disconcerting lurch */
+      cumdx = event->x() - firstmx;
+      cumdy = event->y() - firstmy;
+      if ((but1downt.elapsed()) > 250 || cumdx * cumdx + cumdy * cumdy >
+          cumthresh)
+        zapB1Drag(zap, event->x(), event->y());
     }
+  }
 
-    if ( (!button1) && (button2) && (!button3))
-      zapB2Drag(zap, event->x(), event->y(), ctrlDown);
-
-    if ( (!button1) && (!button2) && (button3))
-      zapB3Drag(zap, event->x(), event->y(), ctrlDown);
-
-    zap->lmx = event->x();
-    zap->lmy = event->y();
+  if ( (!button1) && (button2) && (!button3))
+    zapB2Drag(zap, event->x(), event->y(), ctrlDown);
+  
+  if ( (!button1) && (!button2) && (button3))
+    zapB3Drag(zap, event->x(), event->y(), ctrlDown);
+  
+  zap->lmx = event->x();
+  zap->lmy = event->y();
 }
 
 
@@ -1897,6 +1756,91 @@ void zapB1Drag(ZapStruct *zap, int x, int y)
   zap->hqgfx = 0;
   zapDraw(zap);
   zap->hqgfx = zap->hqgfxsave;
+}
+
+/* Select contours in the current object crossed by a mouse move */
+static void dragSelectContsCrossed(struct zapwin *zap, int x, int y)
+{
+  ImodView *vi = zap->vi;
+  Imod *imod = vi->imod;
+  float dx1, dy1, x2s, x2e, y2s, y2e, dx2, dy2, dxs, dys, tnum, unum, den;
+  float x1s, x1e, y1s, y1e;
+  int ob, co, pt, ptStart, lastPt, thisZ, lastZ;
+  Iindex index;
+  Icont *cont;
+  Iobj *obj = imodObjectGet(imod);
+
+  // Skip for scattered objects or movie mode
+  if (!obj || imod->mousemode == IMOD_MMOVIE || iobjScat(obj->flags))
+    return;
+
+  // Get image positions of starting and current mouse positions
+  ob = imod->cindex.object;
+  zapGetixy(zap, x, y, &x1e, &y1e);
+  zapGetixy(zap, zap->lmx, zap->lmy, &x1s, &y1s);
+  dx1 = x1e - x1s;
+  dy1 = y1e - y1s;
+  if (imodDebug('z'))
+    imodPrintStderr("mouse segment %f,%f to %f,%f\n", x1s, y1s, x1e, y1e);
+
+  // Loop on contours
+  // Skip single point, ones already selected, or non-wild with Z not matching
+  for (co = 0; co < obj->contsize; co++) {
+    cont = &obj->cont[co];
+    if (cont->psize < 2)
+      continue;
+    if (imodSelectionListQuery(vi, ob, co) > -2 || imod->cindex.contour == co)
+      continue;
+    if (!(cont->flags & ICONT_WILD) && 
+        (int)floor(cont->pts->z + 0.5) != zap->section)
+      continue;
+
+    // Set up to loop on second point in segment, starting at first point
+    // in contour for closed contour
+    ptStart = iobjOpen(obj->flags) || (cont->flags & ICONT_OPEN) ? 1 : 0;
+    lastZ = zap->section;
+    if (imodDebug('z'))
+      imodPrintStderr("Examining contour %d\n", co);
+
+    // Loop on points, look for segments on the section
+    for (pt = ptStart; pt < cont->psize; pt++) {
+      lastPt = pt ? pt - 1 : cont->psize - 1;
+      thisZ = (int)floor(cont->pts[pt].z + 0.5);
+      if (lastZ == zap->section && thisZ == zap->section) {
+
+        // Straight from cross_cont in mkmesh.c
+        x2s = cont->pts[lastPt].x;
+        x2e = cont->pts[pt].x;
+        y2s = cont->pts[lastPt].y;
+        y2e = cont->pts[pt].y;
+        dx2 = x2s - x2e;
+        dy2 = y2s - y2e;
+        dxs = x2s - x1s;
+        dys = y2s - y1s;
+        den = dx1 * dy2 - dy1 * dx2;
+        tnum = dxs * dy2 - dys * dx2;
+        unum = dx1 * dys - dy1 * dxs;
+        if (imodDebug('z'))
+          imodPrintStderr("%f,%f to %f,%f  den %f  unum %f  tnum %f\n",
+                          x2s, y2s, x2e, y2e, den, unum, tnum);
+        if ((den <= 0 && tnum <= 0. && unum <= 0. && tnum >= den && 
+             unum >= den) || (den >= 0. && tnum >= 0. && unum >= 0. && 
+             tnum <= den && unum <= den)) {
+
+          // Crosses.  Select this contour; add current contour if list empty
+          index.object = ob;
+          index.contour = co;
+          index.point = pt;
+          if (!ilistSize(vi->selectionList) && imod->cindex.contour >= 0)
+            imodSelectionListAdd(vi, imod->cindex);
+          imodSelectionListAdd(vi, index);
+          imodDraw(zap->vi, IMOD_DRAW_MOD );
+          break;
+        }
+      }
+      lastZ = thisZ;
+    }
+  }
 }
 
 void zapB2Drag(ZapStruct *zap, int x, int y, int controlDown)
@@ -3170,6 +3114,9 @@ static int zapPointVisable(ZapStruct *zap, Ipoint *pnt)
 
 /*
 $Log$
+Revision 4.55  2004/11/29 19:25:21  mast
+Changes to do QImage instead of RGB snapshots
+
 Revision 4.54  2004/11/21 05:50:34  mast
 Switch from int to float for nearest point distance measurement
 
