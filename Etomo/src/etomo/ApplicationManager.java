@@ -26,6 +26,10 @@ import etomo.ui.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.25  2002/12/11 00:39:48  rickg
+ * <p> Basic handling of settings dialog
+ * <p> added setUserPreferences method
+ * <p>
  * <p> Revision 1.24  2002/12/09 04:18:50  rickg
  * <p> Better handling of current working directory, user.dir and
  * <p> metaData always agree now.
@@ -2050,6 +2054,21 @@ public class ApplicationManager {
     }
   }
 
+  public static void setUIFont (javax.swing.plaf.FontUIResource f){
+    //
+    // sets the default font for all Swing components.
+    // ex. 
+    //  setUIFont (new javax.swing.plaf.FontUIResource("Serif",Font.ITALIC,12));
+    // Taken from: http://www.rgagnon.com/javadetails/java-0335.html
+    java.util.Enumeration keys = UIManager.getDefaults().keys();
+    while (keys.hasMoreElements()) {
+      Object key = keys.nextElement();
+      Object value = UIManager.get (key);
+      if (value instanceof javax.swing.plaf.FontUIResource)
+        UIManager.put (key, f);
+      }
+  }
+  
   /**
    * Return the IMOD directory
    */
