@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.6  2004/11/04 23:31:07  mast
+Changes for rounded button style
+
 Revision 3.5  2004/06/04 02:57:28  mast
 Implement export/import macro for making libdiaqt be a DLL
 
@@ -64,6 +67,7 @@ class DLL_IM_EX ColorSelector : public DialogFrame
                 int hotFlag, int hotKey, bool rounded, const char *name = NULL,
                 WFlags fl =  Qt::WDestructiveClose | Qt::WType_TopLevel);
   ~ColorSelector();
+  bool hotSliding() {return mDragging;};
 
  signals:
   void newColor(int r, int g, int b);
@@ -87,6 +91,7 @@ class DLL_IM_EX ColorSelector : public DialogFrame
     void qtSelectorPressed();
     void imposeColor(bool setSliders, bool emitSignal);
     bool mCtrlPressed;
+    bool mDragging;
     int mHotKey;
     int mHotFlag;
     int mOriginalRGB[3];
