@@ -5,6 +5,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.1  2002/07/07 04:42:13  mast
+c	  Remove extra argument from one call to getbinspec
+c	
 
 
 c	  KNOWN BUG: It will not work on data with a zscale value modeled on
@@ -251,7 +254,8 @@ c
      &	    'windows in array',/,' 37/38/39: Add list of graphs/Read',
      &	    ' list of graphs from file/Read&Add from file',/,
      &	    ' 40: Save model with pores on surface     41: Compute ',
-     &	    'maximum extent in 3-D')
+     &	    'maximum extent in 3-D',/,
+     &	    ' 42: Export graph values or points for drawing to file')
 c
 40	write(*,'(1x,a,$)')'Option, or -1 for list of choices: '
 	read(5,*,err=40)iopt
@@ -262,7 +266,7 @@ c
      &	    210,212,213,213,215,216,217,218,219,220,
      &	    221,222,222,224,225,226,222,228,228,228,
      &	    228,228,228,234,235,222,228,228,228,240,
-     &	    241)
+     &	    241,228)
      &	    ,iopt
 	go to 40
 c	  
