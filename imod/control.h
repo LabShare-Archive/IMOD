@@ -22,7 +22,7 @@ Log at end of file
 #define IMOD_IMAGE   2
 
 /* Types of windows for finding geometries */
-enum {ZAP_WINDOW_TYPE, UNKNOWN_TYPE};
+enum {ZAP_WINDOW_TYPE, SLICER_WINDOW_TYPE, UNKNOWN_TYPE};
 
 typedef struct ilist_struct Ilist;
 
@@ -129,6 +129,9 @@ extern DLL_EX_IM DialogManager imodDialogManager;
 
 /*
 $Log$
+Revision 4.10  2004/05/31 23:10:56  mast
+Added macros for exporting/importing under Windows
+
 Revision 4.9  2004/05/05 17:33:19  mast
 Added function to get list of windows of one type
 
