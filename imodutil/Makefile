@@ -8,6 +8,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.7  2004/09/28 15:15:37  mast
+#  Add parselist for imodinfo
+#
 #  Revision 3.6  2003/11/01 14:36:23  mast
 #  Put libiimod befor libimod because of new error calls
 #
@@ -40,12 +43,12 @@ PROGS = imodauto$(E) imodinfo$(E) imodmesh$(E) imodtrans$(E) imodmop$(E) \
 
 all : $(PROGS)
 
-imodinfo$(E) : imodinfo.$(O) parselist.$(O)
-	$(CC) -o imodinfo imodinfo.$(O) parselist.$(O) $(LDFLAGS) $(LIMOD) \
+imodinfo$(E) : imodinfo.$(O)
+	$(CC) -o imodinfo imodinfo.$(O) $(LDFLAGS) $(LIMOD) \
 	$(CLIBS)
 
-imodmesh$(E) : imodmesh.$(O) mkmesh.$(O) parselist.$(O)
-	$(CC) -o imodmesh mkmesh.$(O) imodmesh.$(O) parselist.$(O) \
+imodmesh$(E) : imodmesh.$(O) mkmesh.$(O)
+	$(CC) -o imodmesh mkmesh.$(O) imodmesh.$(O) \
 	$(LDFLAGS) $(LIMOD) $(CLIBS)
 
 imodtrans.$(O) : imodtrans.c
@@ -78,17 +81,17 @@ imod2meta$(E) : imod2meta.$(O)
 wmod2imod$(E) : wmod2imod.$(O)
 	$(CC) -o wmod2imod wmod2imod.$(O) $(LDFLAGS) $(LIMOD) $(CLIBS)
 
-imodjoin$(E) :  imodjoin.$(O) parselist.$(O)
-	$(CC) -o imodjoin imodjoin.$(O) parselist.$(O) $(LDFLAGS) $(LIMOD) $(CLIBS)
+imodjoin$(E) :  imodjoin.$(O)
+	$(CC) -o imodjoin imodjoin.$(O) $(LDFLAGS) $(LIMOD) $(CLIBS)
 
-imodextract$(E) : imodextract.$(O) parselist.$(O)
-	$(CC) -o imodextract imodextract.$(O) parselist.$(O) $(LDFLAGS) $(LIMOD) $(CLIBS)
+imodextract$(E) : imodextract.$(O)
+	$(CC) -o imodextract imodextract.$(O) $(LDFLAGS) $(LIMOD) $(CLIBS)
 
-imodsortsurf$(E) : imodsortsurf.$(O) parselist.$(O)
-	$(CC) -o imodsortsurf imodsortsurf.$(O) parselist.$(O) $(LDFLAGS) $(LIMOD) $(CLIBS)
+imodsortsurf$(E) : imodsortsurf.$(O)
+	$(CC) -o imodsortsurf imodsortsurf.$(O) $(LDFLAGS) $(LIMOD) $(CLIBS)
 
-imodexplode$(E) : imodexplode.$(O) parselist.$(O)
-	$(CC) -o imodexplode imodexplode.$(O) parselist.$(O) $(LDFLAGS) $(LIMOD) $(CLIBS)
+imodexplode$(E) : imodexplode.$(O)
+	$(CC) -o imodexplode imodexplode.$(O) $(LDFLAGS) $(LIMOD) $(CLIBS)
 
 patch2imod$(E) : patch2imod.$(O) 
 	$(CC) -o patch2imod patch2imod.$(O) $(LDFLAGS) $(LIMOD) $(CLIBS)
@@ -99,8 +102,8 @@ imod2patch$(E) : imod2patch.$(O)
 echo2$(E) : echo2.$(O) 
 	$(CC) -o echo2 echo2.$(O) $(LDFLAGS)
 
-imodfillin$(E) : imodfillin.$(O) parselist.$(O)
-	$(CC) -o imodfillin imodfillin.$(O) parselist.$(O) $(LDFLAGS) $(LIMOD) $(CLIBS)
+imodfillin$(E) : imodfillin.$(O)
+	$(CC) -o imodfillin imodfillin.$(O) $(LDFLAGS) $(LIMOD) $(CLIBS)
 
 install : $(PROGS)
 	strip $(PROGS)
