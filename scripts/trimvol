@@ -4,6 +4,7 @@
 set flipyz = "0"
 set index = "0"
 set pn = "trimvol"
+set doflip = "0"
 
 if ($#argv == 0)then
   echo "Usage: $pn [options] input_file output_file"
@@ -19,6 +20,7 @@ cat <<EOF
      -c black,white  Contrast levels for scaling and converting to bytes
      -s start,end    Starting and ending slices (section # in flipped volume)
                            to use to find contrast levels for scaling to bytes
+     -yz             Flip Y and Z in output volume
      -i              Treat as index coordinates (numbered from 0) rather than
                            as Imod coordinates (numbered from 1, the default)
      -f              Treat coordinates as coming from a flipped volume
@@ -68,6 +70,10 @@ while ($#argv > 2)
     case -s:
       set slices = $argv[2]
       shift; shift
+      breaksw
+    case -yz:
+      set doflip = "1"
+      shift
       breaksw
     case -f:
       set flipyz = "1"
@@ -250,6 +256,9 @@ if ($?contrast) then
     set contout = "-mo 0 -co $contrast"
 endif
 
+set newstout = $argv[2]
+if ($doflip == "1") set newstout = $argv[1].tmp.$$
+
 if ($?slices) then
     set contslice = `echo $slices | sed 's/,/ /g'`
     if ($#contslice < 2) then
@@ -282,7 +291,7 @@ EOF
     set contout = "-mo 0 -co $bwout[1],$bwout[3]"
 endif
 
-newst -si $xsize,$ysize -of $xoffset,$yoffset $contout $secout $argv[1] $argv[2]
+newst -si $xsize,$ysize -of $xoffset,$yoffset $contout $secout $argv[1] $newstout
 
 if ($?slices) then
     echo " "
@@ -290,7 +299,13 @@ if ($?slices) then
 endif
 echo " "
 echo "The newstack command was:"
-echo "newst -si $xsize,$ysize -of $xoffset,$yoffset $contout $secout $argv[1] $argv[2]"
+echo "newst -si $xsize,$ysize -of $xoffset,$yoffset $contout $secout $argv[1] $newstout"
+
+if ($doflip == "1") then
+    echo "Flipping Y and Z..."
+    clip flipyz $newstout $argv[2]
+    \rm -f $newstout
+endif
 
 exit 0
 
