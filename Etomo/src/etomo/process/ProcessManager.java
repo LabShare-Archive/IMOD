@@ -29,6 +29,9 @@ import java.util.ArrayList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.30  2003/10/24 19:07:55  rickg
+ * <p> Bug# 333 Fixed null reference to stderr array
+ * <p>
  * <p> Revision 2.29  2003/10/09 23:11:12  sueh
  * <p> bug251 fixed Kill Process and fixed prevention of two processes
  * <p> on the same axis by shifting transferfid process to the correct
@@ -810,6 +813,16 @@ public class ProcessManager {
         generateAlignLogs(AxisID.ONLY);
       }
 
+			if (script.getScriptName().equals("tomopitcha.com")) {
+				appManager.openTomopitchLog(AxisID.FIRST);
+			}
+			if (script.getScriptName().equals("tomopitchb.com")) {
+				appManager.openTomopitchLog(AxisID.SECOND);
+			}
+			if (script.getScriptName().equals("tomopitch.com")) {
+				appManager.openTomopitchLog(AxisID.ONLY);
+			}
+			
       String[] warningMessages = script.getWarningMessage();
       String[] dialogMessage;
       if (warningMessages != null && warningMessages.length > 0) {
