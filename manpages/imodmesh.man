@@ -195,6 +195,15 @@ Override the default diameter used for making tubes with the
 option.  The diameter is given in pixels, the default value is the
 line width of the current object.
 .TP
+.B -E
+Cap the ends of tubes made with the 
+.B -t
+option.  This is only way to get tubes capped and is independent of the
+.B -c
+and
+.B -C
+options.
+.TP
 .B -T 
 Do more time consuming calculations by searching exhaustively through all
 possible sets of connections instead of guessing at one initial connection.
