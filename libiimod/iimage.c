@@ -14,6 +14,10 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.6  2004/11/30 03:46:44  mast
+Added ability to a caller to put an arbitrary file check and open function
+onto a list, after TIFF and MRC are checked
+
 Revision 3.5  2004/11/04 17:10:27  mast
 libiimod.def
 
@@ -39,9 +43,6 @@ upper limit of 0
 #include "iimage.h"
 #include "ilist.h"
 #include "b3dutil.h"
-
-int iiTIFFCheck(ImodImageFile *inFile);
-int iiMRCCheck(ImodImageFile *inFile);
 
 /* The resident check list */
 static Ilist *checkList = NULL;
