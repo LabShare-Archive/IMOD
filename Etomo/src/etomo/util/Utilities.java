@@ -12,6 +12,10 @@
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.4  2004/04/22 23:23:04  rickg
+ * <p> $Added copyFile
+ * <p> $Modified calling parameter in fileExists
+ * <p> $
  * <p> $Revision 3.3  2004/04/08 19:12:10  rickg
  * <p> $Added millisToMinAndSecs method
  * <p> $
@@ -34,6 +38,8 @@
  */
 package etomo.util;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -89,6 +95,8 @@ public class Utilities {
     // BufferedFileWriter approach
     FileInputStream sourceStream = new FileInputStream(source);
     FileOutputStream destStream = new FileOutputStream(destination);
+    BufferedInputStream sourceBuffer = null;
+    BufferedOutputStream destBuffer = null;
     FileChannel sourceChannel = null;
     FileChannel destChannel = null;
     try {
@@ -99,13 +107,18 @@ public class Utilities {
     }
 
     catch (IOException exception) {
+      // Buffer the stream for performance
+      sourceBuffer = new BufferedInputStream(sourceStream);
+      destBuffer = new BufferedOutputStream(destStream);
       int byteIn;
-      while ((byteIn = sourceStream.read()) != -1)
-         destStream.write(byteIn);
+      while ((byteIn = sourceBuffer.read()) != -1)
+        destBuffer.write(byteIn);
     }
-    sourceChannel.close();
+    
+    //  FIXME: does each object need to be closed indivudually
+    sourceBuffer.close();
     sourceStream.close();
-    destChannel.close();
+    destBuffer.close();
     destStream.close();
   }
 
