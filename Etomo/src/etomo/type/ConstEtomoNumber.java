@@ -21,6 +21,9 @@ import etomo.storage.Storable;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.14  2005/01/25 22:48:00  sueh
+ * <p> Added is(Number value) to convert value to a boolean.
+ * <p>
  * <p> Revision 1.13  2005/01/25 21:56:30  sueh
  * <p> Changing resetValue to displayValue.  Removing empty functionality.  Removing
  * <p> displayDefault functionality.  Adding boolean useDisplayValue, but not
@@ -124,7 +127,7 @@ public abstract class ConstEtomoNumber implements Storable {
   private static final double doubleNullValue = Double.NaN;
   private static final float floatNullValue = Float.NaN;
   public static final int INTEGER_NULL_VALUE = Integer.MIN_VALUE;
-  private static final long longNullValue = Long.MIN_VALUE;
+  public static final long LONG_NULL_VALUE = Long.MIN_VALUE;
 
   protected int type;
   protected String name;
@@ -169,7 +172,7 @@ public abstract class ConstEtomoNumber implements Storable {
   }
   
   /**
-   * Create an EtomoNumber that cannot be null.  Must include a resetValue to
+   * Create an EtomoNumber that cannot be null.  Must include a displayValue to
    * fall back to when a blank string is set.
    * @param type
    * @param name
@@ -196,8 +199,8 @@ public abstract class ConstEtomoNumber implements Storable {
   }
 
   /**
-   * Validate currentValue against preventNullValues.  Null and empty are checked.
-   * Validate currentValue against validValues.  Null and empty are ignored.
+   * Validate currentValue against preventNullValues.  Null is checked.
+   * Validate currentValue against validValues.  Null is ignored.
    * 
    * Sets invalidReason if invalid
    */
@@ -492,7 +495,7 @@ public abstract class ConstEtomoNumber implements Storable {
     case INTEGER_TYPE:
       return new Integer(INTEGER_NULL_VALUE);
     case LONG_TYPE:
-      return new Long(longNullValue);
+      return new Long(LONG_NULL_VALUE);
     default:
       throw new IllegalStateException("type=" + type);
     }
@@ -608,7 +611,7 @@ public abstract class ConstEtomoNumber implements Storable {
     case INTEGER_TYPE:
       return value.intValue() == INTEGER_NULL_VALUE;
     case LONG_TYPE:
-      return value.longValue() == longNullValue;
+      return value.longValue() == LONG_NULL_VALUE;
     default:
       throw new IllegalStateException("type=" + type);
     }
@@ -623,7 +626,7 @@ public abstract class ConstEtomoNumber implements Storable {
     case INTEGER_TYPE:
       return value == INTEGER_NULL_VALUE;
     case LONG_TYPE:
-      return value == longNullValue;
+      return value == LONG_NULL_VALUE;
     default:
       throw new IllegalStateException("type=" + type);
     }
