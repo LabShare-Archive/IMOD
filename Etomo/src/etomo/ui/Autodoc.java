@@ -25,6 +25,9 @@ import java.util.Iterator;
 * @version $$Revision$$
 *
 * <p> $$Log$
+* <p> $Revision 1.3  2003/12/31 01:24:44  sueh
+* <p> $bug# 372 added autodoc data storage and retrieval
+* <p> $
 * <p> $Revision 1.2  2003/12/23 21:31:04  sueh
 * <p> $bug# 372 reformat.  Pass this pointer to AutodocParser, so
 * <p> $autodoc info can be stored in Autodoc.
@@ -39,8 +42,9 @@ public class Autodoc implements AttributeInterface {
   public static final String rcsid =
     "$$Id$$";
 
-  public static final String PATH_ENVIRONMENT_VARIABLE =
-    new String("AUTODOC_PATH");
+  public static final String AUTODOC_DIR = new String("AUTODOC_DIR");
+  public static final String IMOD_DIR = new String("IMOD_DIR");
+  public static final String DEFAULT_AUTODOC_DIR = new String("autodoc");
   public static final String TILTXCORR = new String("tiltxcorr");
   public static final String TEST = new String("test");
 
@@ -49,12 +53,11 @@ public class Autodoc implements AttributeInterface {
   private static Autodoc tiltxcorr = null;
   private static Autodoc test = null;
 
-  private String dirName = null;
   private String fileName = null;
   private File file = null;
   private AutodocParser parser = null;
   private boolean testMode = false;
-  
+
   //data
   private HashMap metaData = null;
   private Vector sectionList = null;
@@ -79,24 +82,24 @@ public class Autodoc implements AttributeInterface {
   public String getName() {
     return fileName;
   }
-  
+
   public Section addSection(Token type, Token name) {
     if (sectionList == null) {
       sectionList = new Vector();
       sectionMap = new HashMap();
     }
-    Section  existingSection = null;
+    Section existingSection = null;
     String key = Section.getKey(type, name);
     existingSection = (Section) sectionMap.get(key);
     if (existingSection == null) {
-      Section newSection = new Section (type, name);
+      Section newSection = new Section(type, name);
       sectionList.add(newSection);
       sectionMap.put(newSection.getKey(), newSection);
       return newSection;
     }
     return existingSection;
   }
-  
+
   public AttributeInterface addAttribute(Token name) {
     if (metaData == null) {
       metaData = new HashMap();
@@ -123,7 +126,7 @@ public class Autodoc implements AttributeInterface {
     }
     return section;
   }
-  
+
   public final SectionLocation getFirstSectionLocation(String type) {
     if (sectionList == null) {
       return null;
@@ -137,7 +140,7 @@ public class Autodoc implements AttributeInterface {
     }
     return null;
   }
-  
+
   public final Section nextSection(SectionLocation location) {
     if (location == null) {
       return new Section();
@@ -152,7 +155,7 @@ public class Autodoc implements AttributeInterface {
     }
     return new Section();
   }
-  
+
   public void print() {
     System.out.println("Autodoc: " + fileName);
     if (metaData != null) {
@@ -185,32 +188,41 @@ public class Autodoc implements AttributeInterface {
 
   private Autodoc(String name) {
     fileName = new String(name + fileExt);
-    dirName =
-      new String(Utilities.getEnvironmentVariable(PATH_ENVIRONMENT_VARIABLE));
+    String dirName = new String(Utilities.getEnvironmentVariable(AUTODOC_DIR));
     file = new File(dirName, fileName);
+    if (file.exists()) {
+      return;
+    }
+    dirName = new String(Utilities.getEnvironmentVariable(IMOD_DIR));
+    File dir = new File(dirName, DEFAULT_AUTODOC_DIR);
+    if (dir.exists()) {
+      file = new File(dir, fileName);
+    }
+    if (file.exists()) {
+      return;
+    }
+    file = new File(fileName);
   }
 
   private void initialize() throws FileNotFoundException, IOException {
     String errorMessage = null;
     if (file == null) {
       errorMessage =
-        "Unable to open autodoc file, " + fileName + " , in " + dirName + ".";
-    }
-    if (!file.exists()) {
-      errorMessage =
-        "The autodoc file, "
+        "Can't find "
           + fileName
-          + " , in "
-          + dirName
-          + " does not exist.";
+          + ".  Set the environment variable "
+          + AUTODOC_DIR;
     }
-    if (!file.canRead()) {
+    else if (!file.exists()) {
       errorMessage =
-        "The autodoc file, "
-          + fileName
-          + " , in "
-          + dirName
-          + " is not readable.";
+        "Can't find "
+          + file.getAbsolutePath()
+          + ".  Set the environment variable "
+          + AUTODOC_DIR;
+    }
+
+    else if (!file.canRead()) {
+      errorMessage = "Can't read " + file.getAbsolutePath() + ".";
     }
     if (errorMessage != null) {
       throw new FileNotFoundException(errorMessage);
@@ -236,5 +248,5 @@ public class Autodoc implements AttributeInterface {
       parser.parse();
     }
   }
-  
+
 }
