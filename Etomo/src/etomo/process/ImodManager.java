@@ -21,6 +21,9 @@ import etomo.type.ConstMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.11  2003/05/09 17:50:58  rickg
+ * <p> Set appmgr on construction
+ * <p>
  * <p> Revision 2.10  2003/05/08 23:19:03  rickg
  * <p> Standardized debug setting
  * <p>
@@ -268,7 +271,7 @@ public class ImodManager {
       }
     }
 
-    SystemProgram imodv = new SystemProgram("imodv " + model);
+    SystemProgram imodv = new SystemProgram("3dmod -view " + model);
     imodv.setDebug(applicationManager.isDebug());
     Thread fiducialModel = new Thread(imodv);
     fiducialModel.start();
