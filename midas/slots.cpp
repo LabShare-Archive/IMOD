@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.6  2004/01/27 21:16:26  mast
+Made it flush data and retransform when box size changes
+
 Revision 3.5  2003/12/17 21:44:19  mast
 Changes to implement global rotations
 
@@ -792,11 +795,15 @@ void MidasSlots::rotate(float step)
 {
   struct Midas_transform *tr;
   int i, ist, ind;
+  float xofs = VW->xcenter - VW->xsize / 2.;
+  float yofs = VW->ycenter - VW->ysize / 2.;
   getChangeLimits(&ist, &ind);
 
   for (i = ist; i <= ind; i++) {
     tr = &(VW->tr[i]);
+    tramat_translate(tr->mat, -xofs, -yofs);
     tramat_rot(tr->mat, step); 
+    tramat_translate(tr->mat, xofs, yofs);
   }
   update_parameters();
   retransform_slice();
@@ -838,11 +845,15 @@ void MidasSlots::scale(float step)
 {
   struct Midas_transform *tr;
   int i, ist, ind;
+  float xofs = VW->xcenter - VW->xsize / 2.;
+  float yofs = VW->ycenter - VW->ysize / 2.;
   getChangeLimits(&ist, &ind);
 
   for (i = ist; i <= ind; i++) {
     tr = &(VW->tr[i]);
+    tramat_translate(tr->mat, -xofs, -yofs);
     tramat_scale(tr->mat, step, step); 
+    tramat_translate(tr->mat, xofs, yofs);
   }
   update_parameters();
   retransform_slice();
@@ -853,13 +864,17 @@ void MidasSlots::stretch(float step, float angle)
 {
   struct Midas_transform *tr;
   int i, ist, ind;
+  float xofs = VW->xcenter - VW->xsize / 2.;
+  float yofs = VW->ycenter - VW->ysize / 2.;
   getChangeLimits(&ist, &ind);
 
   for (i = ist; i <= ind; i++) {
     tr = &(VW->tr[i]);
+    tramat_translate(tr->mat, -xofs, -yofs);
     tramat_rot(tr->mat, -angle);
     tramat_scale(tr->mat, step, 1.0f); 
     tramat_rot(tr->mat, angle);
+    tramat_translate(tr->mat, xofs, yofs);
   }
   update_parameters();
   retransform_slice();

@@ -626,8 +626,8 @@ int midas_transform(Islice *slin, Islice *sout, float *trmat)
   float xrt, xlft, xst, xnd;
   float fx, fy;
   unsigned char *buf;
-  float xc = VW->xcenter;
-  float yc = VW->ycenter;
+  float xc = VW->xsize / 2.;
+  float yc = VW->ysize / 2.;
 
   mat = tramat_inverse(trmat);
   if (!mat)
@@ -1667,6 +1667,9 @@ static void solve_for_shifts(struct Midas_view *vw, float *a, float *b,
 
 /*
 $Log$
+Revision 3.6  2003/12/17 21:44:19  mast
+Changes to implement global rotations
+
 Revision 3.5  2003/12/04 21:46:04  mast
 Limited x limits before integer truncation to avoid crashes with reset to
 unit transform
