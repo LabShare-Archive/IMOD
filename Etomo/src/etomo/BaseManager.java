@@ -42,6 +42,9 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.10  2005/03/11 01:57:43  sueh
+* <p> bug# 612 Change nextProcess to support axis A and B.
+* <p>
 * <p> Revision 1.9  2005/03/01 20:50:37  sueh
 * <p> bug# 607 Catching Throwable in exitProgram and returning true to make
 * <p> sure that Etomo can always exit.
@@ -197,7 +200,7 @@ public abstract class BaseManager {
   
   protected boolean backgroundProcessA = false;
   protected String backgroundProcessNameA = null;
-  protected String propertyUserDir = null;
+  protected String propertyUserDir = null;//working directory for this manager
 
   
   //private static variables
