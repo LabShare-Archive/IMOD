@@ -116,6 +116,7 @@ typedef struct __imodv_struct
   float movieSpeed;    /* Speed in degrees per second */
   float throwFactor;   /* Speed multiplier if throw occurs */
   int movieTimes[MAX_MOVIE_TIMES];  /* Ring buffer of times */
+  int snap_fileno;     /* Snapshot file number */
 
   /* start-up flags */
   int  moveall;    /* move all models if true.                 */
@@ -157,6 +158,9 @@ void imodvQuit();
 
 /*
 $Log$
+Revision 3.12  2003/11/26 18:15:49  mast
+Add function to determine if byte images exist
+
 Revision 3.11  2003/11/12 18:52:52  mast
 Move quit function to imodv.cpp
 

@@ -139,6 +139,7 @@ static int imodv_init(ImodvApp *a, struct Mod_Draw *md)
   a->movie = 0;
   a->movieFrames = 0;
   a->movieSpeed = 36.;
+  a->snap_fileno = 0;
   a->wpid = 0;
   a->stereo = IMODV_STEREO_OFF;
   a->plax = 5.0f;
@@ -654,6 +655,9 @@ void imodvQuit()
 
 /*
 $Log$
+Revision 4.15  2003/11/26 18:16:07  mast
+Add function to determine if byte images exist
+
 Revision 4.14  2003/11/25 01:14:36  mast
 Repeat the window move after the show for Mac OS 10.3 when reopening window
 
