@@ -68,6 +68,7 @@ HEADERS	+= autox.h \
 	special_module.h \
 	xcorr.h \
 	undoredo.h \
+	imod_assistant.h \
 	pegged.xpm \
 	unpegged.xpm \
 	b3dicon.xpm \
@@ -128,6 +129,7 @@ SOURCES	+= autox.cpp \
 	beadfix.cpp \
 	xcorr.cpp \
 	undoredo.cpp \
+	imod_assistant.cpp \
 	iiqimage.cpp \
 	iirawimage.cpp
 FORMS	= form_object_edit.ui \
