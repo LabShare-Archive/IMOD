@@ -107,7 +107,7 @@ while ($ifile <= $nfiles)
     set listname = $tailname.s$ifile
     set outfile = $destdir$listname
     echo "Extracting sections $isec-$isecend into $outfile ..."
-    newst -sec $isec-$isecend $infile $outfile > /dev/null
+    newstack -sec $isec-$isecend $infile $outfile > /dev/null
     echo $listname >> $listfile
     echo 0-$nsecm1 >> $listfile
     @ ifile++
