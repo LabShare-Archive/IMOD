@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2002/11/05 23:27:46  mast
+    Changed copyright notice to use defined lab name and years
+
 */
 
 #include <Xm/Xm.h>
@@ -48,11 +51,15 @@
 /* Callback function for setting the background color in
  * the model view window.
  */
+static int bgColorOpen = False;
 void imodv_setbgcolor(Widget w, XtPointer client, XtPointer call)
 {
      DiaColorCallbackStruct *cbs = (DiaColorCallbackStruct *)call;
      ImodvApp *a = (ImodvApp *)client;
 
+     /* Keep track if it is closed */
+     if (cbs->reason == DIA_OK || cbs->reason == DIA_CANCEL)
+       bgColorOpen = False;
 
      if (ImodvClosed) return;
 
@@ -157,7 +164,7 @@ static void save_model_cb(Widget w,  XtPointer client, XtPointer call)
 	  if (!error) {
 	       if (a->imod->fileName)
 		    free(a->imod->fileName);
-	       a->imod->fileName = malloc(len);
+	       a->imod->fileName = (char *)malloc(len);
 	       if (a->imod->fileName)
 		    memcpy(a->imod->fileName, filename, len);
 	  
@@ -192,15 +199,21 @@ static void menu_objlist_cb(Widget w, XtPointer client, XtPointer call)
 {
      imodvObjectListDialog(Imodv, 1);
 }
-static void menu_bgcolor_cb(Widget w, XtPointer client, XtPointer call)
+
+/* DNM 12/1/02: make this the single path to opening the window, and have
+   it keep track of whether window is open or not, and return if it is */
+void menu_bgcolor_cb(Widget w, XtPointer client, XtPointer call)
 {
      short red, green, blue;
+     if (bgColorOpen)
+       return;
 
      red   = Imodv->rbgcolor.red / 256;
      green = Imodv->rbgcolor.green / 256;
      blue  = Imodv->rbgcolor.blue / 256;
      dia_setcolor(red, green, blue, "Imodv background color.",
 		  imodv_setbgcolor, Imodv);
+     bgColorOpen = True;
 }
 static void menu_model_cb(Widget w, XtPointer client, XtPointer call)
 {
