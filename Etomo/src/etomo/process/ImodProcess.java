@@ -21,6 +21,10 @@ import etomo.ApplicationManager;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.10  2004/05/06 20:21:47  sueh
+ * <p> bug# 33 added getRubberbandCoordinates(), passing back the
+ * <p> InteractiveSystemProgram from imodSendEvent()
+ * <p>
  * <p> Revision 3.9  2004/05/03 22:22:25  sueh
  * <p> bug# 416 added binning (-B)
  * <p>
@@ -154,6 +158,11 @@ public class ImodProcess {
   public static final String MESSAGE_ONE_ZAP_OPEN = "9";
   public static final String MESSAGE_RUBBERBAND = "10";
   
+  public static final String ERROR_STRING = "ERROR:";
+  public static final String WARNING_STRING = "WARNING:";
+  public static final String IMOD_SEND_EVENT_STRING = "imodsendevent returned:";
+  public static final String RUBBERBAND_RESULTS_STRING = "Rubberband:";
+
   private static final int defaultBinning = 1;
 
   private String datasetName = "";
@@ -166,6 +175,7 @@ public class ImodProcess {
   private boolean outputWindowID = true;
   private File workingDirectory = null;
   private int binning = defaultBinning;
+  InteractiveSystemProgram imod = null;
 
   private Thread imodThread;
 
@@ -258,7 +268,7 @@ public class ImodProcess {
     }
     String command = ApplicationManager.getIMODBinPath() + "3dmod " + options
         + datasetName + " " + modelName;
-    InteractiveSystemProgram imod = new InteractiveSystemProgram(command);
+    imod = new InteractiveSystemProgram(command);
     if (workingDirectory != null) {
       imod.setWorkingDirectory(workingDirectory);
     }
@@ -315,7 +325,7 @@ public class ImodProcess {
   public void quit() throws SystemProcessException {
     if (isRunning()) {
       String[] messages = new String[1];
-      messages[0] = "4";
+      messages[0] = MESSAGE_CLOSE;
       imodSendEvent(messages);
     }
   }
@@ -423,41 +433,66 @@ public class ImodProcess {
     imodSendEvent(args);
   }
   
-  public Vector getRubberBandCoordinates() throws SystemProcessException {
-    Vector coordinates = null;
+  public Vector getRubberbandCoordinates() throws SystemProcessException {
     String[] args = new String[1];
     args[0] = MESSAGE_RUBBERBAND;
-    InteractiveSystemProgram imodSendEvent = imodSendEvent(args);
-    //Wait for the result
-    String line;
-    int maxCoordinates = 4;
-    coordinates = new Vector(maxCoordinates);
-    boolean interrupted = false;
-    int timeout = 0;
-    int maxTimeout = 5;
-    while (coordinates.size() < maxCoordinates && !interrupted && timeout < maxTimeout) {
-      while ((line = imodSendEvent.readStderr()) != null) {
-        String[] words = line.split("\\s+");
-        for (int i = 0; i < words.length && i < maxCoordinates; i++) {
-          coordinates.add(words[i]);
-        }
-      }
-      //  Wait a litte while for 3dmod to generate some stderr output
-      try {
-        Thread.sleep(500);
-        timeout++;
-      }
-      catch (InterruptedException e) {
-        interrupted = true;
-      }
-    }
-    return coordinates;
+    return imodSendAndReceive(args, RUBBERBAND_RESULTS_STRING);
   }
 
+  protected Vector imodSendAndReceive(String[] args, String target) throws SystemProcessException {
+    Vector results = new Vector();
+    imodSendEvent(args, results);
+    //3dmod sends the results before it returns 
+    //the exit value to imodSendEvent - no waiting
+    if (imod == null) {
+      return results;
+    }
+    String line;
+    line = imod.readStderr();
+    if (line == null) {
+      return results;
+    }
+    //Currently assuming only one kind of result can be in standard error at a
+    //time.
+    //Currently assuming results can only be on one line.
+    do {
+      if (!parseError(line, results)) {
+        String[] words = line.split("\\s+");
+        if (words.length > 0) {
+          results.add(target);
+        }
+        for (int i = 0; i < words.length; i++) {
+          results.add(words[i]);
+        } 
+      }
+    } while ((line = imod.readStderr()) != null);
+    return results;
+  }
+  
+  protected boolean parseError(String line, Vector errorMessage) {
+    //Currently assuming that an error or warning message will be only one
+    //line and contain ERROR_STRING or WARNING_STRING.
+    int index = line.indexOf(ERROR_STRING);
+    if (index != -1) {
+      errorMessage.add(line.substring(index));
+      return true;
+    }
+    index = line.indexOf(WARNING_STRING);
+    if (index != -1) {
+      errorMessage.add(line.substring(index));
+      return true;
+    }
+    return false;
+  }
+
+
+  private void imodSendEvent(String[] args) throws SystemProcessException {
+    imodSendEvent(args, null);
+  }
   /**
    * Send an event to 3dmod using the imodsendevent command
    */
-  private InteractiveSystemProgram imodSendEvent(String[] args) throws SystemProcessException {
+  private void imodSendEvent(String[] args, Vector messages) throws SystemProcessException {
     if (windowID.equals("")) {
       throw (new SystemProcessException("No window ID available for imod"));
     }
@@ -484,7 +519,7 @@ public class ImodProcess {
     // was not loaded
     if (imodSendEvent.getExitValue() != 0) {
 
-      String message = "imodsendevent returned: "
+      String message = IMOD_SEND_EVENT_STRING + " "
           + String.valueOf(imodSendEvent.getExitValue()) + "\n";
 
       String line = imodSendEvent.readStderr();
@@ -498,10 +533,12 @@ public class ImodProcess {
         message = message + "stdout: " + line + "\n";
         line = imodSendEvent.readStdout();
       }
-
-      throw (new SystemProcessException(message));
+      
+      if (messages == null) {
+        throw (new SystemProcessException(message));
+      }
+      messages.add(message);
     }
-    return imodSendEvent;
   }
 
   /**
