@@ -24,6 +24,7 @@ import etomo.comscript.TiltParam;
 import etomo.comscript.TiltalignParam;
 import etomo.comscript.TomopitchParam;
 import etomo.type.AxisID;
+import etomo.type.MetaData;
 import etomo.util.InvalidParameterException;
 import etomo.util.MRCHeader;
 
@@ -40,6 +41,10 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.19  2004/12/02 20:42:52  sueh
+ * <p> bug# 566 ContextPopup can specify an anchor in both the tomo guide and
+ * <p> the join guide.  Need to specify the guide to anchor.
+ * <p>
  * <p> Revision 3.18  2004/11/20 00:06:50  sueh
  * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
  * <p>
@@ -368,6 +373,7 @@ public class TomogramPositioningDialog extends ProcessDialog
     catch (NumberFormatException except) {
       throw new NumberFormatException(except.getMessage());
     }
+    updateMetaData();
   }
 
   /**
@@ -377,6 +383,7 @@ public class TomogramPositioningDialog extends ProcessDialog
   public void getTomopitchParams(TomopitchParam tomopitchParam) {
     double binning = Double.parseDouble(spinBinning.getValue().toString());
     tomopitchParam.setScaleFactor(binning);
+    updateMetaData();
   }
 
   /**
@@ -407,6 +414,16 @@ public class TomogramPositioningDialog extends ProcessDialog
     catch (NumberFormatException except) {
       String message = "Axis " + axisID.getExtension() + except.getMessage();
       throw new NumberFormatException(message);
+    }
+    updateMetaData();
+  }
+  
+  private void updateMetaData() {
+    boolean wholeTomogram = cbWholeTomogram.isSelected();
+    MetaData metaData = applicationManager.getTomogramMetaData();
+    if (wholeTomogram != metaData.isWholeTomogramSample()) {
+      metaData.setWholeTomogramSample(wholeTomogram);
+      applicationManager.setDataParamDirty(true);
     }
   }
 
@@ -441,6 +458,7 @@ public class TomogramPositioningDialog extends ProcessDialog
     else {
       newstParam.setBinByFactor(Integer.MIN_VALUE);
     }
+    updateMetaData();
   }
 
   /**
