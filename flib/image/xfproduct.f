@@ -18,6 +18,14 @@ c	  in the other file.
 c
 c	  David Mastronarde 1989
 c
+c	  $Author$
+c
+c	  $Date$
+c
+c	  $Revision$
+c
+c	  $Log$
+c
 	parameter (nflimit=1000)
 	real*4 f(2,3,nflimit),g(2,3,nflimit),prod(2,3)
 	character*80 gfile
@@ -74,8 +82,8 @@ c
 	print *,nout,' new transforms written'
 	call exit(0)
 c
-92	print *,'error reading old f/g file'
-	stop
-94	print *,'error writing out g file'
-	stop
+92	print *,'ERROR: XFPRODUCT - reading old f/g file'
+	call exit(1)
+94	print *,'ERROR: XFPRODUCT - writing out g file'
+	call exit(1)
 	end
