@@ -411,12 +411,10 @@ void ZapGL::paintGL()
   zapPaint(mZap);
 }
 
-// When the timer fires after the first draw, set geometry again and do first
-// real draw
+// When the timer fires after the first draw, do first real draw
 void ZapGL::timerEvent(QTimerEvent * e )
 {
   killTimer(mTimerID);
-  mZap->qtWindow->setGeometry(mZap->startingGeom);
   updateGL();
 }
 
@@ -444,6 +442,9 @@ void ZapGL::mouseMoveEvent ( QMouseEvent * e )
 
 /*
 $Log$
+Revision 4.9  2003/09/18 00:48:14  mast
+Set the geometry when timer event comes in to do the first real draw
+
 Revision 4.8  2003/09/15 21:04:19  mast
 Allow zooms to 4 decimal places
 
