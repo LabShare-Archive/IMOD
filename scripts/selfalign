@@ -25,7 +25,16 @@ options:
 EOF
 exit 0
 endif
-if ($?IMOD_DIR) set path = ($IMOD_DIR/bin $path)
+
+if ($?IMOD_DIR) then
+    set path = ($IMOD_DIR/bin $path)
+endif
+
+set tmpdir = /usr/tmp
+if ($?IMOD_TMPDIR) then
+    if (-w $IMOD_TMPDIR) set tmpdir = $IMOD_TMPDIR
+endif
+if (! -w $tmpdir) set tmpdir = /tmp
 
 set opts = 1
 while ($opts == 1)
@@ -85,7 +94,6 @@ endif
 
 onintr clean
 
-set tmpdir = "/usr/tmp"
 set selfxf = $rootname".selfxf"
 set selfxg = $rootname".selfxg"
 set tmpxf = $tmpdir/tmpxf.$$
