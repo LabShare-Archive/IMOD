@@ -63,6 +63,8 @@ void InfoControls::init()
 		      QIconSet::On);
     iconSet.setPixmap(QPixmap(unpegged), QIconSet::Automatic, QIconSet::Normal,
 		      QIconSet::Off);
+    iconSet.setPixmap(QPixmap(nopeg), QIconSet::Automatic, QIconSet::Disabled,
+		      QIconSet::Off);
     keepOnTopButton->setIconSet(iconSet);
     keepOnTopButton->setOn(false);
     QSize hint = raiseButton->sizeHint();
@@ -70,8 +72,13 @@ void InfoControls::init()
     keepOnTopButton->setFixedWidth(hint.width());
     
 #ifndef _WIN32
+#ifdef __sgi
+    keepOnTopButton->setEnabled(false);
+    QToolTip::add(keepOnTopButton, "Keep window on top - not available on SGI");
+#else
     QToolTip::add(keepOnTopButton, "Keep window on top of other windows - "
                   "Use window menu if it fails");
+#endif
 #endif
 }
 

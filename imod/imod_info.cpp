@@ -351,8 +351,8 @@ void InfoWindow::keepOnTop(bool state)
   /* printf("before geom %d %d  pos %d %d\n", geometry().x(), geometry().y(),
      pos().x(), pos().y()); */
   reparent(0, flags, p, true);  
-  /*  printf("after geom %d %d  pos %d %d\n", geometry().x(), geometry().y(),
-      pos().x(), pos().y()); */
+  /* printf("after geom %d %d  pos %d %d\n", geometry().x(), geometry().y(),
+     pos().x(), pos().y()); */
 }
 
 
@@ -452,6 +452,9 @@ static char *truncate_name(char *name, int limit)
 
 /*
     $Log$
+    Revision 4.6  2003/03/14 21:28:09  mast
+    Making the reparent not move the window in some unix cases
+
     Revision 4.5  2003/03/14 17:27:53  mast
     Getting stays on top to work under Windows
 
