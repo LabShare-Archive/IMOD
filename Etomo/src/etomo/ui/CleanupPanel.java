@@ -37,6 +37,24 @@ import etomo.storage.IntermediateFileFilter;
  * 
  * <p>
  * $Log$
+ * Revision 3.2.4.3  2004/10/11 02:10:41  sueh
+ * bug# 520 Using a variable called propertyUserDir instead of the "user.dir"
+ * property.  This property would need a different value for each manager.
+ * This variable can be retrieved from the manager if the object knows its
+ * manager.  Otherwise it can retrieve it from the current manager using the
+ * EtomoDirector singleton.  If there is no current manager, EtomoDirector
+ * gets the value from the "user.dir" property.
+ *
+ * Revision 3.2.4.2  2004/09/15 22:39:14  sueh
+ * bug# 520 call openMessageDialog in mainPanel instead of mainFrame
+ *
+ * Revision 3.2.4.1  2004/09/07 17:58:53  sueh
+ * bug# 520 getting dataset name from metadata
+ *
+ * Revision 3.2  2004/01/30 22:44:54  sueh
+ * bug# 356 Changing buttons with html labels to
+ * MultiLineButton and MultiLineToggleButton
+ *
  * Revision 3.1  2003/11/10 07:38:21  rickg
  * Task tags moved to bugzilla
  *
@@ -103,7 +121,7 @@ public class CleanupPanel {
 
     //  Create the filechooser
     intermediateFileFilter =
-      new IntermediateFileFilter(applicationManager.getDatasetName());
+      new IntermediateFileFilter(applicationManager.getMetaData().getDatasetName());
     backupFileFilter = new BackupFileFilter();
 
     fileChooser = new JFileChooser();
@@ -112,7 +130,7 @@ public class CleanupPanel {
     fileChooser.setFileFilter(intermediateFileFilter);
     fileChooser.setMultiSelectionEnabled(true);
     fileChooser.setControlButtonsAreShown(false);
-    fileChooser.setCurrentDirectory(new File(System.getProperty("user.dir")));
+    fileChooser.setCurrentDirectory(new File(applicationManager.getPropertyUserDir()));
 
     pnlCleanup.setLayout(new BoxLayout(pnlCleanup, BoxLayout.Y_AXIS));
     pnlCleanup.setBorder(
@@ -157,9 +175,8 @@ public class CleanupPanel {
         String message[] = new String[2];
         message[0] = "Unable to delete " + deleteList[i].getName();
         message[1] = "Check file permissions";
-        applicationManager.openMessageDialog(
-          message,
-          "Unable to delete intermediate file");
+        applicationManager.getMainPanel().openMessageDialog(message,
+            "Unable to delete intermediate file");
       }
     }
     fileChooser.rescanCurrentDirectory();

@@ -36,6 +36,13 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.13.2.1  2004/10/11 02:18:46  sueh
+ * <p> bug# 520 Passed the manager to the ContextPopup object in order to get
+ * <p> the propertyUserDir.
+ * <p>
+ * <p> Revision 3.13  2004/08/31 17:43:34  sueh
+ * <p> Bug# 542 Adding function to turn on warning label in Setup tab.
+ * <p>
  * <p> Revision 3.12  2004/08/19 02:56:21  sueh
  * <p> bug# 508 Added a way to set the don't run volcombine checkbox
  * <p> Added:
@@ -482,7 +489,7 @@ public class TomogramCombinationDialog
         manPagelabel,
         manPage,
         logFileLabel,
-        logFileLabel);
+        logFileLabel, applicationManager);
   }
   
   /**

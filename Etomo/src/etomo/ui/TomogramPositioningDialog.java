@@ -40,6 +40,13 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.17.2.1  2004/10/11 02:19:56  sueh
+ * <p> bug# 520 Passed the manager to the ContextPopup object in order to get
+ * <p> the propertyUserDir.
+ * <p>
+ * <p> Revision 3.17  2004/07/02 17:43:11  sueh
+ * <p> bug# 461 scale z shift by preali binning
+ * <p>
  * <p> Revision 3.16  2004/06/28 20:44:45  sueh
  * <p> bug# 472
  * <p>
@@ -479,7 +486,7 @@ public class TomogramPositioningDialog extends ProcessDialog
     logFile[1] = "sample" + axisID.getExtension() + ".log";
 
     ContextPopup contextPopup = new ContextPopup(rootPanel, mouseEvent,
-      "TOMOGRAM POSITIONING", manPagelabel, manPage, logFileLabel, logFile);
+      "TOMOGRAM POSITIONING", manPagelabel, manPage, logFileLabel, logFile, applicationManager);
   }
 
   //  Button action handler methods

@@ -19,6 +19,13 @@ import javax.swing.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.3.4.1  2004/11/19 00:21:58  sueh
+ * <p> bug# 520 Added equals(String) to compare a String parameter against
+ * <p> getText().
+ * <p>
+ * <p> Revision 3.3  2004/04/16 02:10:04  sueh
+ * <p> bug# 409 added addKeyListener() to allow keystrokes to reacted to
+ * <p>
  * <p> Revision 3.2  2004/04/07 21:04:02  rickg
  * <p> Alignment is now set on the panel
  * <p>
@@ -84,6 +91,23 @@ public class LabeledTextField {
     textField.setMaximumSize(maxSize);
   }
 
+  public boolean equals(String thatText) {
+    String text = getText();
+    if (text == null) {
+      if (thatText == null) {
+        return true;
+      }
+      return false;
+    }
+    if (thatText == null) {
+      return false;
+    }
+    if (text.trim().equals(thatText.trim())) {
+      return true;
+    }     
+    return false;
+  }
+  
   public Container getContainer() {
     return panel;
   }

@@ -12,6 +12,37 @@
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.10.2.6  2004/11/15 22:26:49  sueh
+ * <p> $bug# 520 Moved all of file validation to Utilities so that is called be called
+ * <p> $from other places.
+ * <p> $
+ * <p> $Revision 3.10.2.5  2004/10/29 01:23:27  sueh
+ * <p> $bug# 520 Added isValidFile().
+ * <p> $
+ * <p> $Revision 3.10.2.4  2004/10/28 17:09:38  sueh
+ * <p> $bug# 520 Adding mostRecentFile.
+ * <p> $
+ * <p> $Revision 3.10.2.3  2004/10/11 02:29:06  sueh
+ * <p> $bug# 520 Using a variable called propertyUserDir instead of the "user.dir"
+ * <p> $property.  This property would need a different value for each manager.
+ * <p> $This variable can be retrieved from the manager if the object knows its
+ * <p> $manager.  Otherwise it can retrieve it from the current manager using the
+ * <p> $EtomoDirector singleton.  If there is no current manager, EtomoDirector
+ * <p> $gets the value from the "user.dir" property.
+ * <p> $
+ * <p> $Revision 3.10.2.2  2004/10/08 16:41:57  sueh
+ * <p> $bug# 520 Since EtomoDirector is a singleton, made all functions and
+ * <p> $member variables non-static.
+ * <p> $
+ * <p> $Revision 3.10.2.1  2004/09/03 21:19:31  sueh
+ * <p> $bug# 520 calling functions from EtomoDirector instead of
+ * <p> $ApplicationManager
+ * <p> $
+ * <p> $Revision 3.10  2004/08/06 23:11:30  sueh
+ * <p> $bug# 508 added a writeFile() function, which writes an array
+ * <p> $of strings to a file.  If newFile is true, it will call Utilities.renameFile(),
+ * <p> $and then write the strings to a new, empty file.
+ * <p> $
  * <p> $Revision 3.9  2004/07/16 23:01:27  sueh
  * <p> $bug# 501 sending System.out prints only when debug is set
  * <p> $
@@ -65,7 +96,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
 
-import etomo.ApplicationManager;
+import etomo.EtomoDirector;
 import etomo.type.ConstMetaData;
 import etomo.type.AxisID;
 import etomo.process.SystemProgram;
@@ -100,7 +131,7 @@ public class Utilities {
    */
   static public boolean fileExists(ConstMetaData metaData, String extension,
       AxisID axisID) {
-    String workingDirectory = System.getProperty("user.dir");
+    String workingDirectory = EtomoDirector.getInstance().getCurrentPropertyUserDir();
     File file = new File(workingDirectory, metaData.getDatasetName()
         + axisID.getExtension() + extension);
     if (file.exists()) {
@@ -163,6 +194,52 @@ public class Utilities {
       }
     }
   }
+  
+  public static File mostRecentFile(String file1Name, String file2Name, String file3Name, String file4Name) {
+    String workingDir = EtomoDirector.getInstance().getCurrentPropertyUserDir();
+    File file1 = null;
+    File file2 = null;
+    File file3 = null;
+    File file4 = null;
+    if (file1Name != null) {
+      file1 = new File(workingDir, file1Name);
+    }
+    if (file2Name != null) {
+      file2 = new File(workingDir, file2Name);
+    }
+    if (file3Name != null) {
+      file3 = new File(workingDir, file3Name);
+    }
+    if (file4Name != null) {
+      file4 = new File(workingDir, file4Name);
+    }
+    long file1Time = 0;
+    long file2Time = 0;
+    long file3Time = 0;
+    long file4Time = 0;
+    if (file1 != null && file1.exists()) {
+      file1Time = file1.lastModified();
+    }
+    if (file2 != null && file2.exists()) {
+      file2Time = file2.lastModified();
+    }
+    if (file3 != null && file3.exists()) {
+      file3Time = file3.lastModified();
+    }
+    if (file4 != null && file4.exists()) {
+      file4Time = file4.lastModified();
+    }
+    if (file1Time >= file2Time && file1Time >= file3Time && file1Time >= file4Time) {
+      return file1;
+    }
+    if (file2Time >= file3Time && file2Time >= file4Time) {
+      return file2;
+    }
+    if (file3Time >= file4Time) {
+      return file3;
+    }
+    return file4;
+  }
 
   /**
    * Copy a file using the fastest method available.
@@ -218,7 +295,7 @@ public class Utilities {
    * @param string
    */
   static public void debugPrint(String string, boolean toOut) {
-    if (ApplicationManager.isDebug()) {
+    if (EtomoDirector.getInstance().isDebug()) {
       if (toOut) {
         System.out.println(string);
       }
@@ -334,4 +411,54 @@ public class Utilities {
       bufferedWriter.close();
     }
   }
+  
+  /**
+   * validates a file and appends failure reason to invalidReason
+   * @param file
+   * @param invalidReason - must not be null
+   * @param exists
+   * @param canRead
+   * @param canWrite
+   * @param isDirectory
+   * @return
+   */
+  public static boolean isValidFile(File file, String fileDescription,
+      StringBuffer invalidReason, boolean exists, boolean canRead,
+      boolean canWrite, boolean isDirectory) {
+    boolean isValid = true;
+    if (file == null) {
+      if (fileDescription != null && !fileDescription.matches("\\s+")) {
+        invalidReason.append(fileDescription + " was not entered.\n");
+      } 
+      else if (isDirectory) {
+        invalidReason.append("No directory name was entered.\n");
+      }
+      else {
+        invalidReason.append("No file name was entered.\n");
+      }
+      return false;
+    }
+    if (exists && !file.exists()) {
+      invalidReason.append(file.getAbsolutePath() + " must exist.\n");
+      isValid = false;
+    }
+    if (canRead && !file.canRead()) {
+      invalidReason.append(file.getAbsolutePath() + " must be readable.\n");
+      isValid = false;
+    }
+    if (canWrite && !file.canWrite()) {
+      invalidReason.append(file.getAbsolutePath() + " must be writable.\n");
+      isValid = false;
+    }
+    if (isDirectory && !file.isDirectory()) {
+      invalidReason.append(file.getAbsolutePath() + " must be a directory.\n");
+      isValid = false;
+    }
+    if (!isDirectory && file.isDirectory()) {
+      invalidReason.append(file.getAbsolutePath() + " must be a file.\n");
+      isValid = false;
+    }
+    return isValid;
+  }
+  
 }

@@ -42,6 +42,14 @@ import etomo.type.FiducialMatch;
  * 
  * <p>
  * $Log$
+ * Revision 3.14.2.1  2004/10/11 02:17:32  sueh
+ * bug# 520 Passed the manager to the ContextPopup object in order to get
+ * the propertyUserDir.
+ *
+ * Revision 3.14  2004/08/31 17:41:03  sueh
+ * Bug# 542 Adding binning warning label to X, Y, and Z min and max
+ * fields.  Adding function to turn on warning label.
+ *
  * Revision 3.13  2004/06/25 23:24:52  sueh
  * bug# 485 fixed warning
  *
@@ -703,7 +711,7 @@ public class SetupCombinePanel
         "matchorwarp.log", "volcombine.log"};
 
     ContextPopup contextPopup = new ContextPopup(pnlRoot, mouseEvent,
-      "TOMOGRAM COMBINATION", manPagelabel, manPage, logFileLabel, logFile);
+      "TOMOGRAM COMBINATION", manPagelabel, manPage, logFileLabel, logFile, applicationManager);
   }
   //	Button action listener
   class SetupCombineActionListener implements ActionListener {

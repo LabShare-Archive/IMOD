@@ -14,6 +14,12 @@ import java.util.Vector;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.0.6.1  2004/10/11 02:28:24  sueh
+ * <p> bug# 520 Added toString() function for debugging purposes.
+ * <p>
+ * <p> Revision 3.0  2003/11/07 23:19:01  rickg
+ * <p> Version 1.0.0
+ * <p>
  * <p> Revision 2.1  2003/11/04 21:32:59  sueh
  * <p> bug329 fixing null pointer exception
  * <p>
@@ -44,6 +50,23 @@ public final class CircularBuffer {
     buffer.setSize(nElements);
     iHead = nElements - 1;
   }
+
+  public String toString() {
+    return getClass().getName() + "[" + paramString() + "]";
+  }
+
+  protected String paramString() {
+    StringBuffer stringBuffer = new StringBuffer("\niHead" + "=" + iHead);
+    int index = iHead;
+    while (index < buffer.size()) {
+      stringBuffer.append(",\nbuffer[" + index + "]=" + buffer.get(index++));
+    }
+    index = 0;
+    while (index < iHead && index < buffer.size()) {
+      stringBuffer.append(",\nbuffer[" + index + "]=" + buffer.get(index++));
+    }
+    return stringBuffer.toString();
+  } 
 
   /**
    * Return the number of elements available in the circular buffer.

@@ -14,6 +14,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 
 import etomo.ApplicationManager;
+import etomo.EtomoDirector;
 import etomo.type.AxisID;
 
 /**
@@ -29,6 +30,23 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.2.4.2  2004/10/11 02:12:11  sueh
+ * <p> bug# 520 Using a variable called propertyUserDir instead of the "user.dir"
+ * <p> property.  This property would need a different value for each manager.
+ * <p> This variable can be retrieved from the manager if the object knows its
+ * <p> manager.  Otherwise it can retrieve it from the current manager using the
+ * <p> EtomoDirector singleton.  If there is no current manager, EtomoDirector
+ * <p> gets the value from the "user.dir" property.  Passed the manager to the
+ * <p> ContextPopup object in order to get the propertyUserDir.
+ * <p>
+ * <p> Revision 3.2.4.1  2004/10/08 16:25:55  sueh
+ * <p> bug# 520 Since EtomoDirector is a singleton, made all functions and
+ * <p> member variables non-static.
+ * <p>
+ * <p> Revision 3.2  2004/06/05 00:55:28  sueh
+ * <p> bug# 433 call ApplicationManager.updateLog() when the command equals
+ * <p> the updateLogCommandName
+ * <p>
  * <p> Revision 3.1  2003/11/10 07:42:08  rickg
  * <p> No longer needs to be initialized with applicationManager since
  * <p> getIMODDirectory is static
@@ -209,7 +227,8 @@ public class ContextPopup {
     String[] manPageLabel,
     String[] manPage,
     String[] logFileLabel,
-    String[] logFile) {
+    String[] logFile,
+    final ApplicationManager applicationManager) {
 
     // Check to make sure that the menu label and man page arrays are the same
     // length
@@ -249,7 +268,7 @@ public class ContextPopup {
             TextPageWindow logFileWindow = new TextPageWindow();
             logFileWindow.setVisible(
               logFileWindow.setFile(
-                System.getProperty("user.dir")
+                applicationManager.getPropertyUserDir()
                   + File.separator
                   + logFileName[i]));
           }
@@ -345,7 +364,7 @@ public class ContextPopup {
             //  Create full path to the appropriate log file items
             String[] logFileList = (String[]) logFile.get(i);
             String[] logFileFullPath = new String[logFileList.length];
-            String path = System.getProperty("user.dir") + File.separator;
+            String path = applicationManager.getPropertyUserDir() + File.separator;
             for (int j = 0; j < logFileList.length; j++) {
               logFileFullPath[j] = path + logFileList[j];
             }
@@ -493,12 +512,12 @@ public class ContextPopup {
   private void calcImodURL() {
     try {
       imodURL =
-        ApplicationManager.getIMODDirectory().toURL().toString() + "/html/";
+        EtomoDirector.getInstance().getIMODDirectory().toURL().toString() + "/html/";
     }
     catch (MalformedURLException except) {
       except.printStackTrace();
       System.err.println("Malformed URL:");
-      System.err.println(ApplicationManager.getIMODDirectory().toString());
+      System.err.println(EtomoDirector.getInstance().getIMODDirectory().toString());
     }
   }
 }

@@ -43,6 +43,14 @@ import etomo.comscript.CombineParams;
  * 
  * <p>
  * $Log$
+ * Revision 3.15.2.1  2004/10/11 02:13:15  sueh
+ * bug# 520 Passed the manager to the ContextPopup object in order to get
+ * the propertyUserDir.
+ *
+ * Revision 3.15  2004/08/28 01:08:28  sueh
+ * bug# 507 changed the wording of the don't run volcombine
+ * checkbox
+ *
  * Revision 3.14  2004/08/19 02:48:33  sueh
  * bug# 508 Added a way to set the don't run volcombine checkbox
  * Added:
@@ -668,7 +676,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields {
     String[] logFile = {"patchcorr.log", "matchorwarp.log", "volcombine.log"};
     ContextPopup contextPopup = new ContextPopup(pnlRoot, mouseEvent,
       "Patch Problems in Combining", manPagelabel, manPage, logFileLabel,
-      logFile);
+      logFile, applicationManager);
   }
 
   private void buttonAction(ActionEvent event) {

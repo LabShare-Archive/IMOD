@@ -11,6 +11,13 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.9.4.1  2004/10/11 02:12:43  sueh
+ * <p> bug# 520 Passed the manager to the ContextPopup object in order to get
+ * <p> the propertyUserDir.
+ * <p>
+ * <p> Revision 3.9  2004/05/03 18:03:49  sueh
+ * <p> bug# 418 standardizing param gets and sets
+ * <p>
  * <p> Revision 3.8  2004/04/07 21:03:10  rickg
  * <p> Fixed layout using UIUtilities
  * <p>
@@ -92,6 +99,7 @@ import javax.swing.BoxLayout;
 import javax.swing.JCheckBox;
 import javax.swing.JPanel;
 
+import etomo.ApplicationManager;
 import etomo.comscript.ConstTiltxcorrParam;
 import etomo.comscript.FortranInputSyntaxException;
 import etomo.comscript.TiltxcorrParam;
@@ -104,6 +112,7 @@ public class CrossCorrelationPanel implements ContextMenu {
   private JPanel pnlAdvanced = new JPanel();
   private JPanel pnlXMinAndMax = new JPanel();
   private JPanel pnlYMinAndMax = new JPanel();
+  private ApplicationManager applicationManager;
 
   private JCheckBox cbExcludeCentralPeak = new JCheckBox(
     "Exclude central peak due to fixed pattern noise");
@@ -135,9 +144,10 @@ public class CrossCorrelationPanel implements ContextMenu {
 
   AxisID axisID;
 
-  public CrossCorrelationPanel(AxisID id) {
+  public CrossCorrelationPanel(ApplicationManager applicationManager, AxisID id) {
     setToolTipText();
     axisID = id;
+    this.applicationManager = applicationManager;
 
     // Construct the min and max subpanels
     pnlXMinAndMax.setLayout(new BoxLayout(pnlXMinAndMax, BoxLayout.X_AXIS));
@@ -297,7 +307,7 @@ public class CrossCorrelationPanel implements ContextMenu {
     logFile[0] = "xcorr" + axisID.getExtension() + ".log";
     ContextPopup contextPopup = new ContextPopup(pnlCrossCorrelation,
       mouseEvent, "COARSE ALIGNMENT", manPagelabel, manPage, logFileLabel,
-      logFile);
+      logFile, applicationManager);
   }
 
   class CrossCorrelationActionListener implements ActionListener {

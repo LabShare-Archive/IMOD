@@ -24,6 +24,7 @@ import javax.swing.JPanel;
 import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
 import etomo.ApplicationManager;
+import etomo.EtomoDirector;
 import etomo.comscript.ConstMTFFilterParam;
 import etomo.comscript.ConstTiltParam;
 import etomo.comscript.MTFFilterParam;
@@ -55,6 +56,23 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.24.2.4  2004/10/11 02:19:11  sueh
+ * bug# 520 Passed the manager to the ContextPopup object in order to get
+ * the propertyUserDir.
+ *
+ * Revision 3.24.2.3  2004/10/08 16:41:41  sueh
+ * bug# 520 Since EtomoDirector is a singleton, made all functions and
+ * member variables non-static.
+ *
+ * Revision 3.24.2.2  2004/09/15 22:48:16  sueh
+ * bug# 520 call openMessageDialog in mainPanel instead of mainFrame.
+ *
+ * Revision 3.24.2.1  2004/09/07 18:02:16  sueh
+ * bug# 520 getting dataset name from metadata
+ *
+ * Revision 3.24  2004/07/20 23:28:34  sueh
+ * bug# 514
+ *
  * Revision 3.23  2004/07/20 23:08:33  sueh
  * bug# 502 setting fiducialess in tilt (not getting fiducialess
  * from tilt).  Use local alignment is disabled when fiducialess is
@@ -651,7 +669,8 @@ public class TomogramGenerationDialog extends ProcessDialog
       }
 
       if (cbBoxUseLocalAlignment.isSelected()) {
-        tiltParam.setLocalAlignFile(applicationManager.getDatasetName()
+        tiltParam.setLocalAlignFile(applicationManager.getMetaData()
+            .getDatasetName()
             + axisID.getExtension() + "local.xf");
       }
       else {
@@ -875,13 +894,13 @@ public class TomogramGenerationDialog extends ProcessDialog
     //otherwise open in the working directory
     String currentMtfDirectory = ltfMtfFile.getText();
     if (currentMtfDirectory.equals("")) {
-      File calibrationDir = ApplicationManager.getIMODCalibDirectory();
+      File calibrationDir = EtomoDirector.getInstance().getIMODCalibDirectory();
       File cameraDir = new File(calibrationDir.getAbsolutePath(), "Camera");
       if (cameraDir.exists()) {
         currentMtfDirectory = cameraDir.getAbsolutePath();
       }
       else {
-        currentMtfDirectory = System.getProperty("user.dir");
+        currentMtfDirectory = applicationManager.getPropertyUserDir();
       }
     }
     JFileChooser chooser = new JFileChooser(new File(currentMtfDirectory));
@@ -912,7 +931,7 @@ public class TomogramGenerationDialog extends ProcessDialog
     logFile[0] = "newst" + axisID.getExtension() + ".log";
     logFile[1] = "tilt" + axisID.getExtension() + ".log";
     ContextPopup contextPopup = new ContextPopup(rootPanel, mouseEvent,
-        "TOMOGRAM GENERATION", manPagelabel, manPage, logFileLabel, logFile);
+        "TOMOGRAM GENERATION", manPagelabel, manPage, logFileLabel, logFile, applicationManager);
   }
 
   public void startingAndEndingZKeyReleased(KeyEvent event) {
@@ -987,7 +1006,7 @@ public class TomogramGenerationDialog extends ProcessDialog
         errorMessage[0] = "Missing trial tomogram filename:";
         errorMessage[1] = "A filename for the trial tomogram must be entered in the Trial"
             + " tomogram filename edit box.";
-        applicationManager.openMessageDialog(errorMessage,
+        applicationManager.getMainPanel().openMessageDialog(errorMessage,
             "Tilt Parameter Syntax Error");
         return;
       }

@@ -15,6 +15,15 @@ import java.awt.Dimension;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.0.6.2  2004/09/21 17:58:09  sueh
+ * <p> bug# 520 Correcting a typo.
+ * <p>
+ * <p> Revision 3.0.6.1  2004/09/16 18:30:33  sueh
+ * <p> bug# 520 added widths for SectionTablePanel
+ * <p>
+ * <p> Revision 3.0  2003/11/07 23:19:01  rickg
+ * <p> Version 1.0.0
+ * <p>
  * <p> Revision 2.0  2003/01/24 20:30:31  rickg
  * <p> Single window merge to main branch
  * <p>
@@ -39,4 +48,8 @@ public class FixedDim {
   public final static Dimension fileChooser = new Dimension(400, 400);
   public final static Dimension folderButton = new Dimension(32, 32);
   public final static Dimension button2Line = new Dimension(150, 50);
+  public final static int numericWidth = 50;
+  public final static int sectionsWidth = 75;
+  public final static int highlighterWidth = 40;
+  public final static int rowNumberWidth = 30;
 }

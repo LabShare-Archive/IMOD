@@ -22,6 +22,12 @@ import java.lang.String;
 * @version $Revision$
 *
 * <p> $Log$
+* <p> Revision 3.1.4.1  2004/09/17 21:37:56  sueh
+* <p> bug# 520 getDefaultUIColor() was moved to UIUtilities
+* <p>
+* <p> Revision 3.1  2004/04/26 03:16:22  rickg
+* <p> Set text margin to 2 all around
+* <p>
 * <p> Revision 3.0  2003/11/07 23:19:01  rickg
 * <p> Version 1.0.0
 * <p>
@@ -110,7 +116,7 @@ public class MultiLineButton extends JButton {
   }
 
   private ColorUIResource getDefaultUIColor(String property) {
-    ColorUIResource color = ButtonHelper.getDefaultUIColor(property);
+    ColorUIResource color = UIUtilities.getDefaultUIColor(property);
     if (color == null) {
       color = createDefaultColor(property);
     }

@@ -12,6 +12,16 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3.2.2  2004/09/22 22:19:09  sueh
+ * <p> bug# 520 Add an option to set button minimum size to setButtonSize().
+ * <p>
+ * <p> Revision 1.3.2.1  2004/09/17 21:49:45  sueh
+ * <p> bug# 520 Move getDefaultUIColor() and getDefaultUIResource() to this
+ * <p> class from ButtonHelper because they are used in non-buttons.
+ * <p>
+ * <p> Revision 1.3  2004/07/21 00:20:47  sueh
+ * <p> bug# 474 prevented JCheckBox from being set to button size
+ * <p>
  * <p> Revision 1.2  2004/06/17 21:49:21  sueh
  * <p> bug# 474 added setButtonSize(AbstractButton...)
  * <p>
@@ -30,6 +40,8 @@ import javax.swing.AbstractButton;
 import javax.swing.Box;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
+import javax.swing.UIManager;
+import javax.swing.plaf.ColorUIResource;
 
 public class UIUtilities {
   public static final String rcsid = "$Id$";
@@ -105,8 +117,37 @@ public class UIUtilities {
    * @param size
    */
   public static void setButtonSize(AbstractButton button, Dimension size) {
+    setButtonSize(button, size, false);
+  }
+  
+  public static void setButtonSize(AbstractButton button, Dimension size,
+      boolean setMinimum) {
     button.setPreferredSize(size);
     button.setMaximumSize(size);
+    if (setMinimum) {
+      button.setMinimumSize(size);
+    }
+  }
+
+  public static ColorUIResource getDefaultUIColor(String property) {
+    ColorUIResource color = new ColorUIResource(0, 0, 0);
+    color = (ColorUIResource) getDefaultUIResource(color, property);
+    return color;
+  }
+
+  public static Object getDefaultUIResource(Object target, String name) {
+    java.util.Enumeration keys = UIManager.getDefaults().keys();
+    if (target == null || name == null) {
+      return null;
+    }
+    while (keys.hasMoreElements()) {
+      Object key = keys.nextElement();
+      Object value = UIManager.get(key);
+      if (key.toString().equals(name) && value.getClass().equals(target.getClass())) {
+        return value;
+      }
+    }
+    return null;
   }
 
 }

@@ -11,6 +11,26 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.17.2.3  2004/10/11 02:18:09  sueh
+ * <p> bug# 520 Using a variable called propertyUserDir instead of the "user.dir"
+ * <p> property.  This property would need a different value for each manager.
+ * <p> This variable can be retrieved from the manager if the object knows its
+ * <p> manager.  Otherwise it can retrieve it from the current manager using the
+ * <p> EtomoDirector singleton.  If there is no current manager, EtomoDirector
+ * <p> gets the value from the "user.dir" property.
+ * <p>
+ * <p> Revision 3.17.2.2  2004/10/08 16:41:27  sueh
+ * <p> bug# 520 Since EtomoDirector is a singleton, made all functions and
+ * <p> member variables non-static.
+ * <p>
+ * <p> Revision 3.17.2.1  2004/09/15 22:47:53  sueh
+ * <p> bug# 520 call openMessageDialog in mainPanel instead of mainFrame.
+ * <p>
+ * <p> Revision 3.17  2004/08/20 23:07:58  sueh
+ * <p> bug# 515 add fields names for error messages about tilt angles
+ * <p> Changed:
+ * <p> getFields()
+ * <p>
  * <p> Revision 3.16  2004/08/20 22:56:19  sueh
  * <p> bug# 515 catching exceptions on numeric fields
  * <p> Changed:
@@ -208,6 +228,7 @@ import javax.swing.JRadioButton;
 import javax.swing.SpinnerNumberModel;
 
 import etomo.ApplicationManager;
+import etomo.EtomoDirector;
 import etomo.storage.StackFileFilter;
 import etomo.storage.DistortionFileFilter;
 import etomo.type.AxisID;
@@ -517,7 +538,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
   public void initializeFields(ConstMetaData metaData) {
 
     if (!metaData.getDatasetName().equals("")) {
-      String canonicalPath = System.getProperty("user.dir") + "/"
+      String canonicalPath = applicationManager.getPropertyUserDir() + "/"
           + metaData.getDatasetName();
       ltfDataset.setText(canonicalPath);
     }
@@ -575,8 +596,8 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
       tiltAnglesB.getFields(metaData.getTiltAngleSpecB());
     }
     catch (NumberFormatException e) {
-      applicationManager.openMessageDialog(
-        currentField + " must be numeric.", "Setup Dialog Error");
+      applicationManager.getMainPanel().openMessageDialog(
+          currentField + " must be numeric.", "Setup Dialog Error");
       return null;
     }
     metaData.setBinning(((Integer) spnBinning.getValue()).intValue());
@@ -595,7 +616,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
       metaData.setDatasetName(ltfDataset.getText());
     }
     else {
-      metaData.setDatasetName(System.getProperty("user.dir") + "/"
+      metaData.setDatasetName(applicationManager.getPropertyUserDir() + "/"
           + ltfDataset.getText());
     }
     return metaData;
@@ -608,16 +629,17 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     String panelErrorMessage;
 
     if (datasetText.equals("")) {
-      applicationManager.openMessageDialog(
-        "Dataset name has not been entered.", errorMessageTitle);
+      applicationManager.getMainPanel().openMessageDialog(
+          "Dataset name has not been entered.", errorMessageTitle);
       return false;
     }
     File dataset = new File(datasetText);
     String datasetFileName = dataset.getName();
     if (datasetFileName.equals("a.st") || datasetFileName.equals("b.st")
         || datasetFileName.equals(".")) {
-      applicationManager.openMessageDialog("The name " + datasetFileName
-          + " cannot be used as a dataset name.", errorMessageTitle);
+      applicationManager.getMainPanel().openMessageDialog(
+          "The name " + datasetFileName + " cannot be used as a dataset name.",
+          errorMessageTitle);
       return false;
     }
     //validate image distortion field file name
@@ -628,21 +650,22 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
       File distortionFile = new File(distortionFileText);
       if (!distortionFile.exists()) {
         String distortionFileName = distortionFile.getName();
-        applicationManager.openMessageDialog("The image distortion field file "
-            + distortionFileName + " does not exist.", errorMessageTitle);
+        applicationManager.getMainPanel().openMessageDialog(
+            "The image distortion field file " + distortionFileName
+                + " does not exist.", errorMessageTitle);
         return false;
       }
     }
     panelErrorMessage = tiltAnglesA.getErrorMessage();
     if (panelErrorMessage != null) {
-      applicationManager.openMessageDialog(panelErrorMessage + " in Axis A.",
-        errorMessageTitle);
+      applicationManager.getMainPanel().openMessageDialog(
+          panelErrorMessage + " in Axis A.", errorMessageTitle);
       return false;
     }
     panelErrorMessage = tiltAnglesB.getErrorMessage();
     if (panelErrorMessage != null) {
-      applicationManager.openMessageDialog(panelErrorMessage + " in Axis B.",
-        errorMessageTitle);
+      applicationManager.getMainPanel().openMessageDialog(
+          panelErrorMessage + " in Axis B.", errorMessageTitle);
       return false;
     }
 
@@ -655,7 +678,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     File dataset = new File(datasetText);
     if (!dataset.isAbsolute()) {
 
-      dataset = new File(System.getProperty("user.dir") + File.separator
+      dataset = new File(applicationManager.getPropertyUserDir() + File.separator
           + datasetText);
     }
     return dataset.getParentFile();
@@ -731,8 +754,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
   //
   private void btnDatasetAction(ActionEvent event) {
     //  Open up the file chooser in the working directory
-    JFileChooser chooser = new JFileChooser(new File(System
-      .getProperty("user.dir")));
+    JFileChooser chooser = new JFileChooser(new File(applicationManager.getPropertyUserDir()));
     StackFileFilter stackFilter = new StackFileFilter();
     chooser.setFileFilter(stackFilter);
     chooser.setPreferredSize(new Dimension(400, 400));
@@ -754,7 +776,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     //  Open up the file chooser in the working directory
     String currentBackupDirectory = ltfBackupDirectory.getText();
     if (currentBackupDirectory.equals("")) {
-      currentBackupDirectory = System.getProperty("user.dir");
+      currentBackupDirectory = applicationManager.getPropertyUserDir();
     }
     JFileChooser chooser = new JFileChooser(new File(currentBackupDirectory));
     chooser.setPreferredSize(new Dimension(400, 400));
@@ -776,14 +798,14 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     //otherwise open in the working directory
     String currentDistortionDirectory = ltfDistortionFile.getText();
     if (currentDistortionDirectory.equals("")) {
-      File calibrationDir = ApplicationManager.getIMODCalibDirectory();
+      File calibrationDir = EtomoDirector.getInstance().getIMODCalibDirectory();
       File distortionDir = new File(calibrationDir.getAbsolutePath(),
         "Distortion");
       if (distortionDir.exists()) {
         currentDistortionDirectory = distortionDir.getAbsolutePath();
       }
       else {
-        currentDistortionDirectory = System.getProperty("user.dir");
+        currentDistortionDirectory = applicationManager.getPropertyUserDir();
       }
     }
     JFileChooser chooser = new JFileChooser(
@@ -820,8 +842,8 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     // Get the dataset name from the UI object
     String datasetName = ltfDataset.getText();
     if (datasetName == null || datasetName.equals("")) {
-      applicationManager.openMessageDialog("Dataset name has not been entered",
-        "Missing dataset name");
+      applicationManager.getMainPanel().openMessageDialog(
+          "Dataset name has not been entered", "Missing dataset name");
       return;
     }
     //  Add the appropriate extension onto the filename if necessary 
@@ -842,11 +864,12 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
       header.read();
     }
     catch (InvalidParameterException except) {
-      applicationManager.openMessageDialog(except.getMessage(),
-        "Invalid Parameter Exception");
+      applicationManager.getMainPanel().openMessageDialog(except.getMessage(),
+          "Invalid Parameter Exception");
     }
     catch (IOException except) {
-      applicationManager.openMessageDialog(except.getMessage(), "IO Exception");
+      applicationManager.getMainPanel().openMessageDialog(except.getMessage(),
+          "IO Exception");
     }
 
     // Set the image rotation if available
@@ -859,22 +882,23 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     double xPixelSize = header.getXPixelSize();
     double yPixelSize = header.getYPixelSize();
     if (Double.isNaN(xPixelSize) || Double.isNaN(yPixelSize)) {
-      applicationManager.openMessageDialog(
+      applicationManager.getMainPanel().openMessageDialog(
         "Pixel size is not defined in the image file header",
         "Pixel size is missing");
+      
       return;
     }
 
     if (xPixelSize != yPixelSize) {
-      applicationManager.openMessageDialog(
-        "X & Y pixels sizes are different, don't know what to do",
-        "Pixel sizes are different");
+      applicationManager.getMainPanel().openMessageDialog(
+          "X & Y pixels sizes are different, don't know what to do",
+          "Pixel sizes are different");
       return;
     }
     if (xPixelSize == 1.0) {
-      applicationManager.openMessageDialog(
-        "Pixel size is not defined in the image file header",
-        "Pixel size is missing");
+      applicationManager.getMainPanel().openMessageDialog(
+          "Pixel size is not defined in the image file header",
+          "Pixel size is missing");
       return;
     }
     ltfPixelSize.setText(xPixelSize / 10.0);

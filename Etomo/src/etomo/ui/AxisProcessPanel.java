@@ -8,8 +8,6 @@ import java.awt.event.MouseEvent;
 import javax.swing.*;
 import java.awt.Rectangle;
 
-import etomo.ApplicationManager;
-import etomo.process.ProcessState;
 import etomo.type.AxisID;
 
 /**
@@ -25,6 +23,29 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.7.2.4  2004/10/11 02:09:17  sueh
+ * <p> bug# 520 moved responsibility for the manager member variable to child
+ * <p> classes.  Used abstract functions to use this variable in the base class.
+ * <p> This is more reliable and doesn't require casting.
+ * <p>
+ * <p> Revision 3.7.2.3  2004/09/15 22:39:00  sueh
+ * <p> bug# 520 This class must be abstract because the base constructor
+ * <p> cannot call the overridden version of createProcessControlPanel.  This
+ * <p> function may refer to member variables initialized in the child class.
+ * <p>
+ * <p> Revision 3.7.2.2  2004/09/08 20:04:43  sueh
+ * <p> butg# 520 class doesn't have to be abstract.  manager should be saved in
+ * <p> this base class because it is used here
+ * <p>
+ * <p> Revision 3.7.2.1  2004/09/08 19:46:06  sueh
+ * <p> bug# 520 Converted AxisProcessPanel to a base class.  Move
+ * <p> everything specific to creating tomograms to TomogramProcessPanel.
+ * <p>
+ * <p> Revision 3.7  2004/07/23 22:43:18  sueh
+ * <p> bug# 517, bug# 513 adding comments, moving tooSmall() to
+ * <p> MainFrame (renamed), hide() - get the width immediately before
+ * <p> deciding whether to hide
+ * <p>
  * <p> Revision 3.6  2004/07/23 00:03:05  sueh
  * <p> bug# 517 removing prints
  * <p>
@@ -99,12 +120,11 @@ import etomo.type.AxisID;
  * <p> </p>
  */
 
-public class AxisProcessPanel implements ContextMenu {
+public abstract class AxisProcessPanel implements ContextMenu {
   public static final String rcsid =
     "$Id$";
 
-  private ApplicationManager applicationManager;
-  private AxisID axisID;
+  protected AxisID axisID;
 
   private JPanel panelRoot = new JPanel();
   private JPanel panelProcessInfo = new JPanel();
@@ -116,31 +136,16 @@ public class AxisProcessPanel implements ContextMenu {
   JButton buttonKillProcess = new JButton("Kill Process");
 
   //  Process select panel
-  private JPanel panelProcessSelect = new JPanel();
-  private ProcessControlPanel procCtlPreProc =
-    new ProcessControlPanel("Pre-processing");
-  private ProcessControlPanel procCtlCoarseAlign =
-    new ProcessControlPanel("Coarse Alignment");
-  private ProcessControlPanel procCtlFiducialModel =
-    new ProcessControlPanel("Fiducial Model Gen.");
-  private ProcessControlPanel procCtlFineAlignment =
-    new ProcessControlPanel("Fine Alignment");
-  private ProcessControlPanel procCtlTomogramPositioning =
-    new ProcessControlPanel("Tomogram Positioning");
-  private ProcessControlPanel procCtlTomogramGeneration =
-    new ProcessControlPanel("Tomogram Generation");
-  private ProcessControlPanel procCtlTomogramCombination =
-    new ProcessControlPanel("Tomogram Combination");
-  private ProcessControlPanel procCtlPostProcessing =
-    new ProcessControlPanel("Post-processing");
+  protected JPanel panelProcessSelect = new JPanel();
+  
+  protected abstract void buttonKillAction(ActionEvent event);
 
   /**
    * Constructor
    * @param appManager
    * @param axis
    */
-  public AxisProcessPanel(ApplicationManager appManager, AxisID axis) {
-    applicationManager = appManager;
+  public AxisProcessPanel(AxisID axis) {
     axisID = axis;
 
     //  Create the status panel
@@ -153,10 +158,9 @@ public class AxisProcessPanel implements ContextMenu {
     panelStatus.add(buttonKillProcess);
     panelStatus.add(Box.createRigidArea(FixedDim.x0_y5));
     panelStatus.setLayout(new BoxLayout(panelStatus, BoxLayout.X_AXIS));
-
-    //  Create the process control panel    
-    createProcessControlPanel();
-
+  }
+  
+  protected void initializePanels() {
     panelProcessSelect.setAlignmentY(Component.TOP_ALIGNMENT);
     panelProcessInfo.setAlignmentY(Component.TOP_ALIGNMENT);
 
@@ -278,326 +282,10 @@ public class AxisProcessPanel implements ContextMenu {
   }
 
   /**
-   * 
-   * @param event
-   */
-  private void buttonKillAction(ActionEvent event) {
-    applicationManager.kill(axisID);
-  }
-
-  /**
-   * Invoke the appropriate ApplicationManager method for the button press
-   */
-  private void buttonProcessAction(ActionEvent event) {
-    String command = event.getActionCommand();
-
-    if (command.equals(procCtlPreProc.getName())) {
-      applicationManager.openPreProcDialog(axisID);
-      return;
-    }
-
-    if (command.equals(procCtlCoarseAlign.getName())) {
-      applicationManager.openCoarseAlignDialog(axisID);
-      return;
-    }
-
-    if (command.equals(procCtlFiducialModel.getName())) {
-      applicationManager.openFiducialModelDialog(axisID);
-      return;
-    }
-
-    if (command.equals(procCtlFineAlignment.getName())) {
-      applicationManager.openFineAlignmentDialog(axisID);
-      return;
-    }
-    if (command.equals(procCtlTomogramPositioning.getName())) {
-      applicationManager.openTomogramPositioningDialog(axisID);
-      return;
-    }
-
-    if (command.equals(procCtlTomogramGeneration.getName())) {
-      applicationManager.openTomogramGenerationDialog(axisID);
-      return;
-    }
-
-    if (command.equals(procCtlTomogramCombination.getName())) {
-      applicationManager.openTomogramCombinationDialog();
-      return;
-    }
-
-    if (command.equals(procCtlPostProcessing.getName())) {
-      applicationManager.openPostProcessingDialog();
-      return;
-    }
-  }
-
-  /**
-    * Pre-processing panel state control
-    */
-  public void setPreProcState(ProcessState state) {
-    procCtlPreProc.setState(state);
-  }
-
-  /**
-   * Coarse alignment panel state control
-   */
-  public void setCoarseAlignState(ProcessState state) {
-    procCtlCoarseAlign.setState(state);
-  }
-
-  /**
-   * Fiducial model panel state control
-   */
-  public void setFiducialModelState(ProcessState state) {
-    procCtlFiducialModel.setState(state);
-  }
-
-  /**
-   * 
-   * @param state
-   */
-  public void setFineAlignmentState(ProcessState state) {
-    procCtlFineAlignment.setState(state);
-  }
-
-  /**
-   * 
-   * @param state
-   */
-  public void setTomogramPositioningState(ProcessState state) {
-    procCtlTomogramPositioning.setState(state);
-  }
-
-  /**
-   * 
-   * @param state
-   */
-  public void setTomogramGenerationState(ProcessState state) {
-    procCtlTomogramGeneration.setState(state);
-  }
-
-  /**
-   * 
-   * @param state
-   */
-  public void setTomogramCombinationState(ProcessState state) {
-    procCtlTomogramCombination.setState(state);
-  }
-
-  /**
-   * 
-   * @param state
-   */
-  public void setPostProcessingState(ProcessState state) {
-    procCtlPostProcessing.setState(state);
-  }
-
-  /**
-   *  Build the process control panels
-   */
-  private void createProcessControlPanel() {
-
-    //  Bind each button to action listener and the generic mouse listener
-    ProcessButtonActionListener buttonListener =
-      new ProcessButtonActionListener(this);
-    GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
-
-    setToolTipText();
-
-    panelProcessSelect.setLayout(
-      new BoxLayout(panelProcessSelect, BoxLayout.Y_AXIS));
-
-    if (axisID == AxisID.FIRST) {
-      JLabel axisLabel = new JLabel("Axis A:");
-      axisLabel.setAlignmentX(Container.CENTER_ALIGNMENT);
-      panelProcessSelect.add(axisLabel);
-    }
-    if (axisID == AxisID.SECOND) {
-      JLabel axisLabel = new JLabel("Axis B:");
-      axisLabel.setAlignmentX(Container.CENTER_ALIGNMENT);
-      panelProcessSelect.add(axisLabel);
-    }
-    panelProcessSelect.add(Box.createRigidArea(FixedDim.x0_y20));
-    procCtlPreProc.setButtonActionListener(buttonListener);
-    procCtlPreProc.addMouseListener(mouseAdapter);
-    procCtlPreProc.getContainer().setAlignmentX(Container.CENTER_ALIGNMENT);
-    panelProcessSelect.add(procCtlPreProc.getContainer());
-
-    panelProcessSelect.add(Box.createRigidArea(FixedDim.x0_y20));
-    procCtlCoarseAlign.addMouseListener(mouseAdapter);
-    procCtlCoarseAlign.setButtonActionListener(buttonListener);
-    procCtlCoarseAlign.getContainer().setAlignmentX(Container.CENTER_ALIGNMENT);
-    panelProcessSelect.add(procCtlCoarseAlign.getContainer());
-
-    panelProcessSelect.add(Box.createRigidArea(FixedDim.x0_y20));
-    procCtlFiducialModel.addMouseListener(mouseAdapter);
-    procCtlFiducialModel.setButtonActionListener(buttonListener);
-    procCtlFiducialModel.getContainer().setAlignmentX(
-      Container.CENTER_ALIGNMENT);
-    panelProcessSelect.add(procCtlFiducialModel.getContainer());
-
-    panelProcessSelect.add(Box.createRigidArea(FixedDim.x0_y20));
-    procCtlFineAlignment.addMouseListener(mouseAdapter);
-    procCtlFineAlignment.setButtonActionListener(buttonListener);
-    procCtlFineAlignment.getContainer().setAlignmentX(
-      Container.CENTER_ALIGNMENT);
-    panelProcessSelect.add(procCtlFineAlignment.getContainer());
-
-    panelProcessSelect.add(Box.createRigidArea(FixedDim.x0_y20));
-    procCtlTomogramPositioning.addMouseListener(mouseAdapter);
-    procCtlTomogramPositioning.setButtonActionListener(buttonListener);
-    procCtlTomogramPositioning.getContainer().setAlignmentX(
-      Container.CENTER_ALIGNMENT);
-    panelProcessSelect.add(procCtlTomogramPositioning.getContainer());
-
-    panelProcessSelect.add(Box.createRigidArea(FixedDim.x0_y20));
-    procCtlTomogramGeneration.addMouseListener(mouseAdapter);
-    procCtlTomogramGeneration.setButtonActionListener(buttonListener);
-    procCtlTomogramGeneration.getContainer().setAlignmentX(
-      Container.CENTER_ALIGNMENT);
-    panelProcessSelect.add(procCtlTomogramGeneration.getContainer());
-
-    if (axisID == AxisID.FIRST) {
-      panelProcessSelect.add(Box.createRigidArea(FixedDim.x0_y20));
-      procCtlTomogramCombination.addMouseListener(mouseAdapter);
-      procCtlTomogramCombination.setButtonActionListener(buttonListener);
-      procCtlTomogramCombination.getContainer().setAlignmentX(
-        Container.CENTER_ALIGNMENT);
-      panelProcessSelect.add(procCtlTomogramCombination.getContainer());
-    }
-    if (axisID != AxisID.SECOND) {
-      panelProcessSelect.add(Box.createRigidArea(FixedDim.x0_y20));
-      procCtlPostProcessing.addMouseListener(mouseAdapter);
-      procCtlPostProcessing.setButtonActionListener(buttonListener);
-      procCtlPostProcessing.getContainer().setAlignmentX(
-        Container.CENTER_ALIGNMENT);
-      panelProcessSelect.add(procCtlPostProcessing.getContainer());
-    }
-  }
-
-  /**
-   * Select the requested button
-   * @param name
-   */
-  public void selectButton(String name) {
-    unSelectAll();
-    if (name.equals(procCtlPreProc.getName())) {
-      procCtlPreProc.setSelected(true);
-      return;
-    }
-    if (name.equals(procCtlCoarseAlign.getName())) {
-      procCtlCoarseAlign.setSelected(true);
-      return;
-    }
-    if (name.equals(procCtlFiducialModel.getName())) {
-      procCtlFiducialModel.setSelected(true);
-      return;
-    }
-    if (name.equals(procCtlFineAlignment.getName())) {
-      procCtlFineAlignment.setSelected(true);
-      return;
-    }
-    if (name.equals(procCtlTomogramPositioning.getName())) {
-      procCtlTomogramPositioning.setSelected(true);
-      return;
-    }
-    if (name.equals(procCtlTomogramGeneration.getName())) {
-      procCtlTomogramGeneration.setSelected(true);
-      return;
-    }
-    if (name.equals(procCtlTomogramCombination.getName())) {
-      procCtlTomogramCombination.setSelected(true);
-      return;
-    }
-    if (name.equals(procCtlPostProcessing.getName())) {
-      procCtlPostProcessing.setSelected(true);
-      return;
-    }
-  }
-
-  private void unSelectAll() {
-    procCtlPreProc.setSelected(false);
-    procCtlCoarseAlign.setSelected(false);
-    procCtlFiducialModel.setSelected(false);
-    procCtlFineAlignment.setSelected(false);
-    procCtlTomogramPositioning.setSelected(false);
-    procCtlTomogramGeneration.setSelected(false);
-    procCtlTomogramCombination.setSelected(false);
-    procCtlPostProcessing.setSelected(false);
-  }
-
-  /**
      * Right mouse button context menu
      */
   public void popUpContextMenu(MouseEvent mouseEvent) {
     ContextPopup contextPopup = new ContextPopup(panelRoot, mouseEvent, "");
-  }
-
-  /**
-     * Initialize the tooltip text for the axis panel objects
-     */
-  private void setToolTipText() {
-    String text;
-    TooltipFormatter tooltipFormatter = new TooltipFormatter();
-    text =
-      "Open the Pre-processing panel to erase x-rays, bad pixels and/or bad"
-        + " CCD rows from the raw projection stack.";
-    procCtlPreProc.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text =
-      "Open the Coarse Alignment panel to generate a coarsely aligned "
-        + "stack using cross correlation and to fix coarse alignment problems "
-        + "with Midas.";
-    procCtlCoarseAlign.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text =
-      "Open the Fiducial Model Generation panel to create a fiducial "
-        + "model to be used in the fine alignment step.";
-    procCtlFiducialModel.setToolTipText(
-      tooltipFormatter.setText(text).format());
-
-    text =
-      "Open the Fine Alignment panel to use the generated fiducial model to "
-        + "sub-pixel align the project sequence.";
-    procCtlFineAlignment.setToolTipText(
-      tooltipFormatter.setText(text).format());
-
-    text =
-      "Open the Tomogram Position panel to optimally adjust the 3D location "
-        + "and size of the reconstruction volume.";
-    procCtlTomogramPositioning.setToolTipText(
-      tooltipFormatter.setText(text).format());
-
-    text =
-      "Open the Tomogram Generation panel to generate the final aligned "
-        + "stack and calcuate the tomographic reconstruction.";
-    procCtlTomogramGeneration.setToolTipText(
-      tooltipFormatter.setText(text).format());
-
-    text =
-      "Open the Tomogram Combination panel to combine the tomograms generated "
-        + "from the A and B axes into a single dual axis reconstruction.";
-    procCtlTomogramCombination.setToolTipText(
-      tooltipFormatter.setText(text).format());
-
-    text =
-      "Open the Post Processing panel to trim the final reconstruction to size"
-        + " and delete the intermediate files.";
-    procCtlPostProcessing.setToolTipText(
-      tooltipFormatter.setText(text).format());
-  }
-
-  /**
-  *   Action listeners to handle process panel events
-  */
-  class ProcessButtonActionListener implements ActionListener {
-    AxisProcessPanel adaptee;
-    ProcessButtonActionListener(AxisProcessPanel adaptee) {
-      this.adaptee = adaptee;
-    }
-    public void actionPerformed(ActionEvent event) {
-      adaptee.buttonProcessAction(event);
-    }
   }
 
   /**
@@ -612,4 +300,21 @@ public class AxisProcessPanel implements ContextMenu {
       adaptee.buttonKillAction(event);
     }
   }
+  
+  protected void createProcessControlPanel() {
+    panelProcessSelect.setLayout(new BoxLayout(panelProcessSelect,
+        BoxLayout.Y_AXIS));
+
+    if (axisID == AxisID.FIRST) {
+      JLabel axisLabel = new JLabel("Axis A:");
+      axisLabel.setAlignmentX(Container.CENTER_ALIGNMENT);
+      panelProcessSelect.add(axisLabel);
+    }
+    if (axisID == AxisID.SECOND) {
+      JLabel axisLabel = new JLabel("Axis B:");
+      axisLabel.setAlignmentX(Container.CENTER_ALIGNMENT);
+      panelProcessSelect.add(axisLabel);
+    }
+  }
+
 }

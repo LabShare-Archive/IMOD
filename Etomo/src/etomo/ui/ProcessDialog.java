@@ -13,6 +13,13 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.2.4.1  2004/10/08 16:34:54  sueh
+ * <p> bug# 520 Since EtomoDirector is a singleton, made all functions and
+ * <p> member variables non-static.
+ * <p>
+ * <p> Revision 3.2  2004/04/26 03:18:54  rickg
+ * <p> Normalized button size
+ * <p>
  * <p> Revision 3.1  2004/03/15 20:33:55  rickg
  * <p> button variable name changes to btn...
  * <p>
@@ -51,6 +58,7 @@ import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 
 import etomo.ApplicationManager;
+import etomo.EtomoDirector;
 import etomo.type.AxisID;
 import etomo.type.DialogExitState;
 
@@ -90,7 +98,7 @@ public class ProcessDialog implements ExitButtons {
     this.axisID = axisID;
 
     //  Get the default initial advanced state
-    isAdvanced = applicationManager.getAdvanced();
+    isAdvanced = EtomoDirector.getInstance().getAdvanced();
     setAdvanced(isAdvanced);
     setToolTipText();
 

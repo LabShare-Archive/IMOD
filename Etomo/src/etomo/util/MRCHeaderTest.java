@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.IOException;
 
 import etomo.ApplicationManager;
+import etomo.EtomoDirector;
 import etomo.process.SystemProcessException;
 
 import junit.framework.TestCase;
@@ -22,6 +23,12 @@ import junit.framework.TestCase;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.8.4.1  2004/09/03 21:19:14  sueh
+ * <p> bug# 520 getting app mgr from EtomoDirector
+ * <p>
+ * <p> Revision 3.8  2004/04/06 02:49:03  rickg
+ * <p> Use TestUtilities methods
+ * <p>
  * <p> Revision 3.7  2004/04/02 18:44:43  rickg
  * <p> Uses TestUtilities class
  * <p>
@@ -109,7 +116,9 @@ public class MRCHeaderTest extends TestCase {
     // Need an application manger to get the IMOD_DIR environment
     // variable
     String[] args = {"--test"};
-    ApplicationManager appManager = new ApplicationManager(args);
+    EtomoDirector.createInstance(args);
+    ApplicationManager appManager = (ApplicationManager) EtomoDirector
+        .getInstance().getCurrentManager();
 
     // First test, should throw an exception because the image stack is not
     // present
