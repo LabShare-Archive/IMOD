@@ -54,24 +54,44 @@ Log at end of file
 
 static struct{
   ImodCacheFill *dia;
-  ImodView  *vw;
+  ImodView  *vi;
   int       autofill;
   int       fracfill;
   int       balance;
   int       overlap;
 }imodCacheFillData = {0, 0, 0, 0, 0, 0};
 
-static void set_z_limits(int *zstart, int *zend, int nfill, int cz, int zsize,
-                         int ovbefore, int ovafter);
-static void report_cache(ImodView *vw, char *string);
-static int fill_cache(ImodView *vw, int cz, int ovbefore, int ovafter);
 
+static void set_z_limits(ImodView *vi, int *zstart, int *zend, int nfill,
+                         int cz, int ovbefore, int ovafter);
+static void report_cache(ImodView *vi, char *string);
+static int fill_cache(ImodView *vi, int cz, int ovbefore, int ovafter);
+static void clean_fill(int *zstart, int *zend, int *zstall, int *zndall,
+                       int *loadtbl, unsigned char *buf);
+static int walk_in_z(ImodView *vi, int cz, int steps);
 
-static void set_z_limits(int *zstart, int *zend, int nfill, int cz, int zsize,
-                         int ovbefore, int ovafter)
+/* Move the given number of steps in Z, skipping missing sections in a piece
+   list and stopping one past the limits 0 and zsize - 1 */
+static int walk_in_z(ImodView *vi, int cz, int steps)
+{
+  int idir = steps > 0 ? 1 : -1;
+  while (steps != 0) {
+    cz += idir;
+    if (cz < 0 || cz >= vi->zsize)
+      break;
+    if (!ivwPlistBlank(vi, cz))
+      steps -= idir;
+  }
+  return cz;
+}
+
+static void set_z_limits(ImodView *vi, int *zstart, int *zend, int nfill,
+                         int cz, int ovbefore, int ovafter)
 {
   int nbefore, nafter;
+  int zsize = vi->zsize;
 
+  /* set the number before and after from overlap factors */
   if (ovbefore > ovafter) {
     nbefore = (ovbefore * nfill) / (ovbefore + ovafter);
     nafter = nfill - nbefore - 1;
@@ -81,80 +101,88 @@ static void set_z_limits(int *zstart, int *zend, int nfill, int cz, int zsize,
   }
 
   /* Set zstart and zend */
-  *zstart = cz - nbefore;
+  *zstart = walk_in_z(vi, cz, -nbefore);
   if (*zstart < 0) {
     *zstart = 0;
-    *zend = nfill - 1;
+    *zend = walk_in_z(vi, 0, nfill - 1);
     if (*zend >= zsize)
       *zend = zsize - 1;
   } else {
-    *zend = cz + nafter;
+    *zend = walk_in_z(vi, cz, nafter);
     if (*zend >= zsize) {
       *zend = zsize - 1;
-      *zstart = zsize - nfill;
+      *zstart = walk_in_z(vi, zsize - 1, -(nfill - 1));
       if (*zstart < 0)
 	*zstart = 0;
     }
   }
 }
 
-static void report_cache(ImodView *vw, char *string)
+static void report_cache(ImodView *vi, char *string)
 {
   int sl;
   printf("%s\n", string);
-  for (sl = 0; sl < vw->vmSize; sl++) {
-    printf (" %3d,%2d,%5d", vw->vmCache[sl].cz, vw->vmCache[sl].ct,
-	    vw->vmCache[sl].used);
-    if (sl % 6 == 5 || sl == vw->vmSize - 1)
+  for (sl = 0; sl < vi->vmSize; sl++) {
+    printf (" %3d,%2d,%5d", vi->vmCache[sl].cz, vi->vmCache[sl].ct,
+	    vi->vmCache[sl].used);
+    if (sl % 6 == 5 || sl == vi->vmSize - 1)
       printf("\n");
   }
 }
 
-static int fill_cache(ImodView *vw, int cz, int ovbefore, int ovafter)
+static int fill_cache(ImodView *vi, int cz, int ovbefore, int ovafter)
 {
   int filltable[3] = {1, 2, 4};
-  int ntimes = vw->nt ? vw->nt : 1;
-  int nfill = vw->vmSize / filltable[imodCacheFillData.fracfill];
-  int *zstart = (int *)malloc((ntimes + 1) * sizeof(int));
-  int *zend = (int *)malloc((ntimes + 1) * sizeof(int));
-  int *zstall = (int *)malloc((ntimes + 1) * sizeof(int));
-  int *zndall = (int *)malloc((ntimes + 1) * sizeof(int));
-  int curtime = vw->nt ? vw->ct : 1;
+  int ntimes = vi->nt ? vi->nt : 1;
+  int nfill = vi->vmSize / filltable[imodCacheFillData.fracfill];
+  int curtime = vi->nt ? vi->ct : 1;
   int nleft, nbase, nextra, i, nshare, tstart, tend, nadj, nadd;
   int time, ct, z, found, sl, llysave, urysave,nslice, sect, offset;
-  int minused, slmin, maxdtime, dtime, tdirlim, tdir; 
+  int minused, slmin, maxdtime, dtime, tdirlim, tdir, pixSize; 
   int maxdz, dz, zdirlim, zdir;
-  int *loadtbl;
-  unsigned char *buf;
+  int *loadtbl = NULL;
+  int *zstart, *zend, *zstall, *zndall;
+  unsigned char *buf = NULL;
+  QString message;
 
-  if (!zstart || !zend || !zstall || !zndall)
+  if (vi->fullCacheFlipped)
+    return 0;
+
+  zstart = (int *)malloc((ntimes + 1) * sizeof(int));
+  zend = (int *)malloc((ntimes + 1) * sizeof(int));
+  zstall = (int *)malloc((ntimes + 1) * sizeof(int));
+  zndall = (int *)malloc((ntimes + 1) * sizeof(int));
+  if (!zstart || !zend || !zstall || !zndall) {
+    clean_fill(zstart, zend, zstall, zndall, loadtbl, buf);
     return 1;
+  }
+
+  vi->loadingImage = 1;
 
   if (!nfill)
     nfill = 1;
 
-  /* report_cache(vw,"starting"); */
-  if (imodCacheFillData.balance >= 2 || !vw->nt) {
+  /* report_cache(vi,"starting"); */
+  if (imodCacheFillData.balance >= 2 || !vi->nt) {
 
     /* No times, or favor current time */
     /* Get number of slices before and after current one  for current
        time */
-    set_z_limits(&zstart[curtime], &zend[curtime], nfill, cz, vw->zsize,
-		 ovbefore, ovafter);
+    set_z_limits(vi, &zstart[curtime], &zend[curtime], nfill, cz,
+                 ovbefore, ovafter);
 
     /* Divide remaining slices among remaining times */
     if (ntimes > 1) {
       nleft = nfill - (zend[curtime] + 1 - zstart[curtime]);
       nbase = nleft / (ntimes - 1);
       nextra = nleft % (ntimes - 1);
-      for (i = 1; i <= vw->nt; i++) {
+      for (i = 1; i <= vi->nt; i++) {
 	if (i == curtime)
 	  continue;
 	nshare = nbase + (i <= nextra ? 1 : 0);
 	if (imodCacheFillData.balance == 3)
 	  nshare = 0;
-	set_z_limits(&zstart[i], &zend[i], nshare, cz, vw->zsize,
-		     ovbefore, ovafter);
+	set_z_limits(vi, &zstart[i], &zend[i], nshare, cz, ovbefore, ovafter);
       }
     }
 
@@ -166,14 +194,13 @@ static int fill_cache(ImodView *vw, int cz, int ovbefore, int ovafter)
     if (tstart < 1 )
       tstart = 1;
     tend = curtime + 1;
-    if (tend > vw->nt)
-      tend = vw->nt;
+    if (tend > vi->nt)
+      tend = vi->nt;
     nadj = tend + 1 - tstart;
     nshare = nfill / nadj;
     nleft = nfill;
     for (i = tstart; i <= tend; i++) {
-      set_z_limits(&zstart[i], &zend[i], nshare, cz, vw->zsize,
-		   ovbefore, ovafter);
+      set_z_limits(vi, &zstart[i], &zend[i], nshare, cz, ovbefore, ovafter);
       nleft -= zend[i] + 1 - zstart[i];
     }
 
@@ -181,12 +208,11 @@ static int fill_cache(ImodView *vw, int cz, int ovbefore, int ovafter)
     if (ntimes > nadj) {
       nbase = nleft / (ntimes - nadj);
       nextra = nleft % (ntimes - nadj);
-      for (i = 1; i <= vw->nt; i++) {
+      for (i = 1; i <= vi->nt; i++) {
 	if (i >= tstart && i <= tend)
 	  continue;
 	nshare = nbase + (i <= nextra ? 1 : 0);
-	set_z_limits(&zstart[i], &zend[i], nshare, cz, vw->zsize,
-		     ovbefore, ovafter);
+	set_z_limits(vi, &zstart[i], &zend[i], nshare, cz, ovbefore, ovafter);
       }
     }
   } else {
@@ -194,10 +220,9 @@ static int fill_cache(ImodView *vw, int cz, int ovbefore, int ovafter)
     /* Treat all times equally */
     nbase = nfill / ntimes;
     nextra = nfill % ntimes;
-    for (i = 1; i <= vw->nt; i++) {
+    for (i = 1; i <= vi->nt; i++) {
       nshare = nbase + (i <= nextra ? 1 : 0);
-      set_z_limits(&zstart[i], &zend[i], nshare, cz, vw->zsize,
-		   ovbefore, ovafter);
+      set_z_limits(vi, &zstart[i], &zend[i], nshare, cz, ovbefore, ovafter);
     }
   }
   /* for (i=1; i <= ntimes; i++) {
@@ -208,60 +233,46 @@ static int fill_cache(ImodView *vw, int cz, int ovbefore, int ovafter)
      already exist and are needed */
   for (time = 1; time <= ntimes; time++) {
     ct = time;
-    if (!vw->nt)
+    if (!vi->nt)
       ct = 0;
 
     zstall[time] = zstart[time];
     zndall[time] = zend[time];
     for (z = zstart[time]; z <= zend[time]; z++) {
-      found = 0;
-      for (sl = 0; sl < vw->vmSize; sl++) {
-	if (vw->vmCache[sl].ct == ct && 
-	    vw->vmCache[sl].cz == z) {
-	  vw->vmCache[sl].used = vw->vmCount + 1;
-	  found = 1;
-	  break;
-	} 
-      }
+
+      sl = vi->cacheIndex[z * vi->vmTdim + ct - vi->vmTbase];
+      if (sl >= 0) 
+        vi->vmCache[sl].used = vi->vmCount + 1;
                
       /* If flipped, stop if not found; need to load continguous
 	 slices only */
-      if (!found && vw->li->axis == 2) {
+      else if (vi->li->axis == 2)
 	break;
-      }
     }
 
     /* If flipped, go down from the top end also, finding contiguous
        slices that are loaded */
-    if (vw->li->axis == 2) {
+    if (vi->li->axis == 2) {
       zstart[time] = z;
       for (z = zend[time]; z >= zstart[time]; z--) {
-	found = 0;
-	for (sl = 0; sl < vw->vmSize; sl++) {
-	  if (vw->vmCache[sl].ct == ct && 
-	      vw->vmCache[sl].cz == z) {
-	    vw->vmCache[sl].used = vw->vmCount + 1;
-	    found = 1;
-	    break;
-	  } 
-	}
-               
-	if (!found) {
+        sl = vi->cacheIndex[z * vi->vmTdim + ct - vi->vmTbase];
+        if (sl >= 0) 
+          vi->vmCache[sl].used = vi->vmCount + 1;
+        else
 	  break;
-	}
       }
       zend[time] = z;
     }
   }
 
-  /*  report_cache(vw,"reprioritized");
+  /*  report_cache(vi,"reprioritized");
       for (i=1; i <= ntimes; i++) {
       printf("time = %d, zs = %d, ze = %d\n", i, zstart[i], zend[i]);
       } */
 
   /* Prepare to access multiple files */
-  if (vw->nt) {
-    iiClose(&vw->imageList[vw->ct-1]);
+  if (vi->nt) {
+    iiClose(&vi->imageList[vi->ct-1]);
     if (!Imod_IFDpath.isEmpty())
       QDir::setCurrent(Imod_IFDpath);
   }
@@ -272,130 +283,126 @@ static int fill_cache(ImodView *vw, int cz, int ovbefore, int ovafter)
       continue;
 
     ct = 0;
-    if (vw->nt) {
-      wprint("\nReading image file # %3.3d ", time);
+    if (vi->nt) {
       ct = time;
-      vw->hdr = vw->image = &vw->imageList[time-1];
-      ivwSetScale(vw);
-      iiReopen(vw->image);
-    } else
-      wprint("\nReading image file ");
+      vi->hdr = vi->image = &vi->imageList[time-1];
+      //ivwSetScale(vi);
+      iiReopen(vi->image);
+    }
 
-    /* DNM 4/18/03: process events so that text will show up and so that the
-       program can be killed */
-    imod_info_input();
-    if (App->exiting)
-      exit(0);
-    nadd = 0;
+    if (vi->li->axis != 2) {
 
-    if (vw->li->axis != 2) {
-
+      /* printf("loading %d %d\n", zstart[time], zend[time]); */
       /* For z slices, look for ones that are needed */
       for (z = zstart[time]; z <= zend[time]; z++) {
-	found = 0;
-	for (sl = 0; sl < vw->vmSize; sl++) {
-	  if (vw->vmCache[sl].ct == ct && 
-	      vw->vmCache[sl].cz == z) {
-	    found = 1;
-	    break;
-	  } 
-	}
-	if (found)
+        sl = vi->cacheIndex[z * vi->vmTdim + ct - vi->vmTbase];
+        if (sl >= 0 || ivwPlistBlank(vi, z)) 
 	  continue;
-
-	nadd++;
-	if (!(nadd % 10)) {
-	  wprint(".");
-          imod_info_input();
-          if (App->exiting)
-            exit(0);
-        }
+        
+        /* DNM 4/18/03: process events so that text will show up and so that 
+           the program can be killed */
+        if (vi->nt)
+          message.sprintf("Reading image file # %3.3d, Z = %d", time, z + 1);
+        else
+          message.sprintf("Reading image file, Z = %d", z + 1);
+        imod_imgcnt((char *)message.latin1());
 
 	/* Find oldest slice in cache */
-	minused = vw->vmCount + 1;
+	minused = vi->vmCount + 1;
 	slmin = 0;
-	for (sl = 0; sl < vw->vmSize; sl++)
-	  if (vw->vmCache[sl].used < minused) {
-	    minused = vw->vmCache[sl].used;
+	for (sl = 0; sl < vi->vmSize; sl++)
+	  if (vi->vmCache[sl].used < minused) {
+	    minused = vi->vmCache[sl].used;
 	    slmin = sl;
 	  }
+        if (vi->vmCache[slmin].cz >= 0 && vi->vmCache[slmin].ct >= vi->vmTbase)
+          vi->cacheIndex[vi->vmCache[slmin].cz * vi->vmTdim + 
+                         ct - vi->vmTbase] = -1;
 
 	/* Load data */
-	ivwReadZ(vw, vw->vmCache[slmin].sec->data.b, z);
-	vw->vmCache[slmin].cz = z;
-	vw->vmCache[slmin].ct = ct;
-	vw->vmCache[slmin].used = vw->vmCount + 1;
+	ivwReadZ(vi, vi->vmCache[slmin].sec->data.b, z);
+	vi->vmCache[slmin].cz = z;
+	vi->vmCache[slmin].ct = ct;
+	vi->vmCache[slmin].used = vi->vmCount + 1;
+        vi->cacheIndex[z * vi->vmTdim + ct - vi->vmTbase] = slmin;
                     
-	ivwScaleDepth8(vw, &vw->vmCache[slmin]);
+	ivwScaleDepth8(vi, &vi->vmCache[slmin]);
       }
     } else {
 
       /* For flipped data, save lly, ury and set them for
 	 reading in Z slices */
-      llysave = vw->image->lly;
-      urysave = vw->image->ury;
-      vw->image->lly = llysave + zstart[time];
-      vw->image->ury = llysave + zend[time];
-      vw->image->axis = 3;
+      llysave = vi->image->lly;
+      urysave = vi->image->ury;
+      vi->image->lly = llysave + zstart[time];
+      vi->image->ury = llysave + zend[time];
+      vi->image->axis = 3;
+      pixSize = ivwGetPixelBytes(vi->rawImageStore);
 
       nslice = zend[time] + 1 - zstart[time];
-      buf = (unsigned char *)malloc(vw->xsize * nslice);
-      if (!buf)
-	return 1;
+      buf = (unsigned char *)malloc(vi->xsize * nslice * pixSize);
       loadtbl = (int *)malloc(nslice * sizeof(int));
-      if (!loadtbl)
+      if (!buf || !loadtbl) {
+        clean_fill(zstart, zend, zstall, zndall, loadtbl, buf);
+        vi->loadingImage = 0;
 	return 1;
+      }
                
       /* Find oldest slices and enter them into table */
       for (i = 0; i < nslice; i++) {
-	minused = vw->vmCount + 1;
+	minused = vi->vmCount + 1;
 	slmin = 0;
-	for (sl = 0; sl < vw->vmSize; sl++)
-	  if (vw->vmCache[sl].used < minused) {
-	    minused = vw->vmCache[sl].used;
+	for (sl = 0; sl < vi->vmSize; sl++)
+	  if (vi->vmCache[sl].used < minused) {
+	    minused = vi->vmCache[sl].used;
 	    slmin = sl;
 	  }
 	loadtbl[i] = slmin;
-	vw->vmCache[slmin].used = vw->vmCount + 1;
+	vi->vmCache[slmin].used = vi->vmCount + 1;
+        if (vi->vmCache[slmin].cz >= 0 && vi->vmCache[slmin].ct >= vi->vmTbase)
+          vi->cacheIndex[vi->vmCache[slmin].cz * vi->vmTdim + 
+                         ct - vi->vmTbase] = -1;
       }
 
       /* Loop on true Z slices, read in, copy lines to cache slices */
-      for (sect = 0; sect < vw->ysize; sect++) {
-	nadd++;
-	if (!(nadd % 10))
-	  wprint(".");
-	iiReadSectionByte(vw->image, (char *)buf, 
-			  sect + vw->li->zmin);
-	offset = sect * vw->xsize;
+      for (sect = 0; sect < vi->ysize; sect++) {
+        z = sect + vi->li->zmin;
+        if (vi->nt)
+          message.sprintf("Reading image # %3.3d, file Z = %d", time, z);
+        else
+          message.sprintf("Reading image, file Z = %d", z);
+        imod_imgcnt((char *)message.latin1());
+
+	ivwReadBinnedSection(vi, (char *)buf, z);
+	offset = sect * vi->xsize * pixSize;
 	for (sl = 0; sl < nslice; sl++)
-	  memcpy(vw->vmCache[loadtbl[sl]].sec->data.b + offset, 
-		 buf + sl * vw->xsize, vw->xsize);
+	  memcpy(vi->vmCache[loadtbl[sl]].sec->data.b + offset, 
+		 buf + sl * vi->xsize * pixSize, vi->xsize * pixSize);
       }
 
       for (i = 0; i < nslice; i++) {
 	sl = loadtbl[i];
-	vw->vmCache[sl].cz = i + zstart[time];
-	vw->vmCache[sl].ct = ct;
-	ivwScaleDepth8(vw, &vw->vmCache[sl]);
+	vi->vmCache[sl].cz = i + zstart[time];
+	vi->vmCache[sl].ct = ct;
+        vi->cacheIndex[i + zstart[time] * vi->vmTdim + ct - vi->vmTbase] = sl;
+	ivwScaleDepth8(vi, &vi->vmCache[sl]);
       }
 
-      free(buf);
-      free(loadtbl);
-      vw->image->lly = llysave;
-      vw->image->ury = urysave;
-      vw->image->axis = 2;
+      vi->image->lly = llysave;
+      vi->image->ury = urysave;
+      vi->image->axis = 2;
     }
 
-    if (vw->nt)
-      iiClose(vw->image);
+    if (vi->nt)
+      iiClose(vi->image);
   }
-  wprint("Done!\n");
+  imod_imgcnt("");
 
   /* Restore current image to be open */
-  if (vw->nt) {
-    vw->hdr = vw->image = &vw->imageList[vw->ct-1];
-    ivwSetScale(vw);
-    iiReopen(vw->image);
+  if (vi->nt) {
+    vi->hdr = vi->image = &vi->imageList[vi->ct-1];
+    //ivwSetScale(vi);
+    iiReopen(vi->image);
     if (!Imod_IFDpath.isEmpty())
       QDir::setCurrent(Imod_cwdpath);
   }
@@ -412,7 +419,7 @@ static int fill_cache(ImodView *vw, int cz, int ovbefore, int ovafter)
       if (time < 1 || time > ntimes)
 	continue;
       ct = time;
-      if (!vw->nt)
+      if (!vi->nt)
 	ct = 0;
 
       /* Move from farthest out z in to current z */
@@ -428,26 +435,39 @@ static int fill_cache(ImodView *vw, int cz, int ovbefore, int ovafter)
 	    continue;
 
 	  /* Look for slice in cache and give it use count */
-	  for (sl = 0; sl < vw->vmSize; sl++) {
-	    if (vw->vmCache[sl].ct == ct && 
-		vw->vmCache[sl].cz == z) {
-	      vw->vmCount++;
-	      vw->vmCache[sl].used = vw->vmCount;
-	      break;
-	    } 
+          sl = vi->cacheIndex[z * vi->vmTdim + ct - vi->vmTbase];
+          if (sl >= 0) {
+            vi->vmCount++;
+            vi->vmCache[sl].used = vi->vmCount;
 	  }
 	}
       }
     }
   }
 
-  /*  report_cache(vw,"loaded"); */
-  free(zstart);
-  free(zend);
-  free(zstall);
-  free(zndall);
-  imodDraw(vw, IMOD_DRAW_IMAGE);
+  /*  report_cache(vi,"loaded"); */
+  clean_fill(zstart, zend, zstall, zndall, loadtbl, buf);
+  vi->loadingImage = 0;
+  imodDraw(vi, IMOD_DRAW_IMAGE);
   return 0;
+}
+
+/* Clean up memory allocations from fill_cache */
+static void clean_fill(int *zstart, int *zend, int *zstall, int *zndall,
+                      int *loadtbl, unsigned char *buf)
+{
+  if (zstart)
+    free(zstart);
+  if (zend)
+    free(zend);
+  if (zstall)
+    free(zstall);
+  if (zndall)
+    free(zndall);
+  if (loadtbl)
+    free(loadtbl);
+  if (buf)
+    free(buf);
 }
 
 int icfGetAutofill(void)
@@ -455,12 +475,14 @@ int icfGetAutofill(void)
   return imodCacheFillData.autofill;
 }
 
-void imodCacheFill(ImodView *vw)
+int imodCacheFill(ImodView *vi)
 {
-  fill_cache(vw, (int)vw->zmouse, 1, 1);
+  if (!vi->loadingImage)
+    return (fill_cache(vi, (int)vi->zmouse, 1, 1));
+  return -1;
 }
 
-unsigned char *icfDoAutofill(ImodView *vw, int cz)
+unsigned char *icfDoAutofill(ImodView *vi, int cz)
 {
   int sl;
   int ifbefore = 0;
@@ -469,15 +491,16 @@ unsigned char *icfDoAutofill(ImodView *vw, int cz)
   int ovafter = 1;
   int ovtable[3] = {1, 3, 7};
 
+  if (vi->loadingImage)
+    return NULL;
+
   /* Find out if Z before or after the current Z exists in the cache */
-  for (sl = 0; sl < vw->vmSize; sl++) {
-    if (vw->vmCache[sl].ct == vw->ct) {
-      if (vw->vmCache[sl].cz == cz - 1)
-	ifbefore = 1;
-      if (vw->vmCache[sl].cz == cz + 1)
-	ifafter = 1;
-    }
-  }
+  if (cz > 0 && vi->cacheIndex[(cz - 1) * vi->vmTdim + 
+                               vi->ct - vi->vmTbase] >= 0)
+    ifbefore = 1;
+  if (cz < vi->zsize - 1 && vi->cacheIndex[(cz + 1) * vi->vmTdim + 
+                               vi->ct - vi->vmTbase] >= 0)
+    ifafter = 1;
 
   /* Set the overlap factors before or after accordingly */
   if (ifafter && !ifbefore)
@@ -485,24 +508,24 @@ unsigned char *icfDoAutofill(ImodView *vw, int cz)
   if (!ifafter && ifbefore)
     ovafter = ovtable[imodCacheFillData.overlap];
 
-  if (fill_cache(vw, cz, ovbefore, ovafter))
+  if (fill_cache(vi, cz, ovbefore, ovafter))
     return NULL;
 
-  for (sl = 0; sl < vw->vmSize; sl++)
-    if (vw->vmCache[sl].ct == vw->ct && vw->vmCache[sl].cz == cz)
-      return (vw->vmCache[sl].sec->data.b);
+  sl = vi->cacheIndex[cz * vi->vmTdim + vi->ct - vi->vmTbase];
+  if (sl >= 0)
+    return (vi->vmCache[sl].sec->data.b);
 
   return NULL;
 }
 
-void imodCacheFillDialog(ImodView *vw)
+void imodCacheFillDialog(ImodView *vi)
 {
   if (imodCacheFillData.dia){
     imodCacheFillData.dia->raise();
     return;
   }
 
-  imodCacheFillData.vw = vw;
+  imodCacheFillData.vi = vi;
 
   imodCacheFillData.dia = new ImodCacheFill
     (imodDialogManager.parent(IMOD_DIALOG), "cache filler");
@@ -536,7 +559,7 @@ ImodCacheFill::ImodCacheFill(QWidget *parent, const char *name)
   connect(mFillGroup, SIGNAL(clicked(int)), this, SLOT(fractionSelected(int)));
   
   // Set up balance radio buttons only if times loaded
-  if (imodCacheFillData.vw->nt > 0) {
+  if (imodCacheFillData.vi->nt > 0) {
     mBalanceGroup = new QVButtonGroup("Balance between times", this, 
 				      "balance group");
     mLayout->addWidget(mBalanceGroup);
@@ -593,7 +616,9 @@ void ImodCacheFill::buttonPressed(int which)
 {
   switch(which) {
   case 0:
-    fill_cache(imodCacheFillData.vw, (int)imodCacheFillData.vw->zmouse, 1, 1);
+    if (!imodCacheFillData.vi->loadingImage)
+      fill_cache(imodCacheFillData.vi, (int)imodCacheFillData.vi->zmouse, 1,
+                 1);
     break;
   case 1:
     close();
@@ -705,6 +730,9 @@ void ImodCacheFill::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.5  2003/04/25 00:15:26  mast
+Display image after filling cache, change program name
+
 Revision 4.4  2003/04/18 20:08:48  mast
 Process events while loading to allow messages and exit
 
