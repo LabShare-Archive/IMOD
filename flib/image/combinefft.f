@@ -17,6 +17,11 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.1  2004/07/13 18:13:54  mast
+c	  Converted to PIP input, did declarations and error exits, 
+c	  incorporated old weighting stuff and added missing-wedge reduction
+c	  options
+c	
 c	  
 c	  David Mastronarde, November 1995
 c
@@ -61,7 +66,7 @@ c
 c	  fallbacks from ../../manpages/autodoc2man -2 2  combinefft
 c
 	integer numOptions
-	parameter (numOptions = 18)
+	parameter (numOptions = 19)
 	character*(40 * numOptions) options(1)
 	options(1) =
      &      'ainput:AInputFFT:FN:@binput:BInputFFT:FN:@'//
@@ -70,7 +75,8 @@ c
      &      'bhighest:BHighestTilts:FP:@'//
      &      'inverse:InverseTransformFile:FN:@'//
      &      'reduce:ReductionFraction:F:@'//
-     &      'separate:SeparateReduction:B:@ring:RingWidth:F:@'//
+     &      'separate:SeparateReduction:B:@'//
+     &      'interzone:InterzoneReduction:B:@ring:RingWidth:F:@'//
      &      'nslabs:NumberOfSlabsInY:I:@'//
      &      'radius:MinimumRadiusToReduce:F:@'//
      &      'points:MinimumPointsInRing:I:@verbose:VerboseOutput:B:@'//
@@ -147,9 +153,10 @@ c
      &	    bcritlo, bcrithi)
 	ierr = PipGetFloat('WeightingPower', weightPower)
 	ierr = PipGetFloat('ReductionFraction', reduceFrac)
-	if (reduceFrac .gt. 1.) call errorexit(
-     &	    'REDUCTION FRACTION MUST NOT BE BIGGER THAN 1')
+	if (reduceFrac .gt. 10.) call errorexit(
+     &	    'REDUCTION FRACTION MUST NOT BE BIGGER THAN 10')
 	ierr = PipGetLogical('SeparateReduction', independent)
+	ierr = PipGetLogical('InterzoneReduction', interZone)
 	ierr = PipGetLogical('VerboseOutput', verbose)
 c	  
 c	  set up reduction
@@ -344,8 +351,8 @@ c
 		  oneMean = thisMean
 		  if (.not.independent .and. .not.interZone) oneMean = 0.5 *
      &		      (sumTmp(1) + sumTmp(3)) /numInRing(ix,iy,2)
-		  target = (1. - reduceFrac) * oneMean +
-     &		      reduceFrac * bothMean
+		  target = max(0., (1. - reduceFrac) * oneMean +
+     &		      reduceFrac * bothMean)
 		  ringSum(ix, iy, iz) = min(1., target / oneMean)
 		  if (verbose) write(*,107)
      &		      ix,iy,iz,bothMean, thisMean,target,ringSum(ix,iy,iz)
