@@ -19,6 +19,9 @@ import etomo.BaseManager;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.4  2004/12/08 21:21:17  sueh
+* <p> bug# 564 Added getBooleanValue() to get a misc boolean value.
+* <p>
 * <p> Revision 1.3  2004/12/04 00:34:30  sueh
 * <p> bug# 569 Handling directory paths with spaces:  converting from a
 * <p> command line to a command array to prevent the command line from
@@ -107,7 +110,7 @@ public class FlipyzParam implements Command {
     return commandArray;
   }
   
-  public File getOutputFile() {
+  public File getCommandOutputFile() {
     return flipFile;
   }
   
@@ -119,11 +122,8 @@ public class FlipyzParam implements Command {
     return false;
   }
   
-  public int getMode() {
+  public int getCommandMode() {
     return 0;
   }
-  
-  public int getBinning() {
-    return 1;
-  }
+
 }
