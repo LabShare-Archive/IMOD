@@ -143,9 +143,10 @@ endif
 echo '#define STAY_ON_TOP_HACK' >> $hconfigure
 
 #
-# Do not use multiple threads in plax programs
+# Do not use multiple threads in plax programs - but give up on qtplax anyway
 #
 echo '#define QTPLAX_NO_THREAD' >> $hconfigure
+set xplax = xplax.o
 
 #
 # Set this because ordinary geometry saving method makes windows walk up and
@@ -156,8 +157,8 @@ echo '#define SGI_GEOMETRY_HACK' >> $hconfigure
 
 # Build tilt from Fortran subroutines, skip extra libraries, make sgi-specific
 echo 'TILTOBJS = bpsumnox.o bpsumxtilt.o bpsumlocal.o' >> $configure
-echo 'LINUXFLIBS = ' >> $configure
 echo 'RGBPROGS = frommrc tomrc mrcv'  >> $configure
+
 
 #
 # Set the switch point include file for the FBP algorithm in Tilt
@@ -184,6 +185,9 @@ set ld_lib_var      = LD_LIBRARYN32_PATH
 
 
 #  $Log$
+#  Revision 3.11  2003/09/24 17:31:39  mast
+#  Add geometry define
+#
 #  Revision 3.10  2003/08/29 16:58:24  mast
 #  Sepcify no threading for Plax applications
 #
