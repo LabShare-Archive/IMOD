@@ -12,6 +12,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.1  2003/09/06 00:01:34  mast
+c	  Conversion to PIP input, addition to IMOD
+c	
 
 	implicit none
 	include 'model.inc'
@@ -30,42 +33,28 @@ c	  $Log$
 	real*4 xshft, yshft, zshft, tmp, frac, xmax, ymax, zmax
 	integer*4 izst, iznd, newnin, iz, maxx, maxy, maxz, imodobj, imodcont
 
+	integer*4 numOptArg, numNonOptArg
+	integer*4 PipGetInteger,PipGetBoolean
+	integer*4 PipGetString,PipGetFloat
+	integer*4 PipGetNonOptionArg
+c	  
+c	  fallbacks from ../../manpages/autodoc2man -2 2  resamplemod
+c
 	integer numOptions
 	parameter (numOptions = 8)
-	character*(80 * numOptions) options(1)
-	logical pipinput
-
-	integer*4 numOptArg, numNonOptArg
-	integer*4 PipParseInput, PipGetInteger,PipGetBoolean
-	integer*4 PipGetString,PipGetFloat
-	integer*4 PipGetNonOptionArg, PipPrintHelp
+	character*(40 * numOptions) options(1)
 	options(1) =
-     &	    'input:InputFile:FN:Input model file@'//
-     &	    'output:OutputFile:FN:Output model file@'//
-     &	    'exclude:ExcludeObjects:LI:Objects to exclude from'//
-     &	    ' resampling@'//
-     &	    'direction:DirectionObjects:LI:Objects to use to determine'//
-     &	    ' mean direction of fibers@'//
-     &	    'main:MainAxis:I:Dominant axis along which fibers run'//
-     &	    ' (1 = X, 2 = Y, 3 = Z; default = 3)@'//
-     &	    'skip:SkipInversion:B:Do not invert contours that'//
-     &	    ' go from high to low along main axis@'//
-     &	    'param:ParameterFile:PF:Read parameter entries from file@'//
-     &	    'help:usage:B:Print help output'
-
+     &      'input:InputFile:FN:@output:OutputFile:FN:@'//
+     &      'exclude:ExcludeObjects:LI:@'//
+     &      'direction:DirectionObjects:LI:@main:MainAxis:I:@'//
+     &      'skip:SkipInversion:B:@param:ParameterFile:PF:@'//
+     &      'help:usage:B:'
 c	  
-c	  Pip startup: set error, parse options, set flag if used
+c	  Pip startup: set error, parse options, check help, set flag if used
 c
-	call PipExitOnError(0, "ERROR: RESAMPMOD - ")
-	call PipAllowCommaDefaults(1)
-	ierr = PipParseInput(options(1), numOptions, '@', numOptArg,
+	call PipReadOrParseOptions(options, numOptions, 'resamplemod',
+     &	    'ERROR: RESAMPLEMOD - ', .false., 2, 1, 1, numOptArg,
      &	    numNonOptArg)
-	pipinput = numOptArg + numNonOptArg .gt. 0
-c
-	if (.not.pipinput .or. PipGetBoolean('usage', ierr) .eq. 0) then
-	  ierr = PipPrintHelp('resampmod', 0, 1, 1)
-	  call exit(0)
-	endif
 c	    
 c	    Get an input file string; or if none, look on command line
 c
@@ -112,6 +101,7 @@ c
 	  invaxis = 3
 	  ierr = PipGetInteger('MainAxis', invaxis)
 	endif
+	call PipDone()
 c	  
 c	  invert objects if starting z > ending z. 
 c	  

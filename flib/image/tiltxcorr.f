@@ -103,6 +103,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.11  2003/06/21 00:48:00  mast
+c	  New version that uses PIP input - but documentation not revised yet
+c	
 c	  Revision 3.10  2003/05/12 18:58:21  mast
 c	  Fix problem with padding mean intensity when compiled to get
 c	  correlation output file
@@ -177,53 +180,28 @@ c
 	integer*4 niceframe
 	real*4 cosd
 
-	integer numOptions
-	parameter (numOptions = 20)
-	character*(80 * numOptions) options(1)
 	logical pipinput
 	integer*4 numOptArg, numNonOptArg
-	integer*4 PipParseInput, PipGetInteger,PipGetBoolean
-	integer*4 PipGetString,PipGetFloat, PipGetIntegerArray
-	integer*4 PipGetNonOptionArg, PipPrintHelp, ifpip
-	integer*4 nxytrim(2), nxypad(2), nxytap(2), izstnd(2)
-	equivalence (nxytrim(1), nxtrim), (nxytrim(2), nytrim)
-	equivalence (nxypad(1), nxpad), (nxypad(2), nypad)
-	equivalence (nxytap(1), nxtap), (nxytap(2), nytap)
-	equivalence (izstnd(1), izst), (izstnd(2), iznd)
+	integer*4 PipGetInteger,PipGetBoolean
+	integer*4 PipGetString,PipGetFloat, PipGetTwoIntegers
+	integer*4 PipGetNonOptionArg, ifpip
+c	  
+c	  fallbacks from ../../manpages/autodoc2man -2 2  tiltxcorr
+c
+	integer numOptions
+	parameter (numOptions = 20)
+	character*(40 * numOptions) options(1)
 	options(1) =
-     &	    'input:InputFile:FN:Input image file@'//
-     &	    'piece:PieceListFile:FN:Piece file with rearranged Z'//
-     &	    ' values@'//
-     &	    'output:OutputFile:FN:Output file for transforms@'//
-     &	    'rotation:RotationAngle:F:Rotation angle from the Y'//
-     &	    ' axis to the tilt axis@'//
-     &	    'first:FirstTiltAngle:F:Tilt angle of first view in'//
-     &	    ' degrees@'//
-     &	    'increment:TiltIncrement:F:Increment between tilt angles@'//
-     &	    'tiltfile:TiltFile:FN:File with tilt angles@'//
-     &	    'angles:TiltAngles:FAM:Individual tilt angles for each'//
-     &	    ' view@'//
-     &	    'radius1:FilterRadius1:F:Left cutoff radius for filter@'//
-     &	    'radius2:FilterRadius2:F:Right cutoff radius for filter@'//
-     &	    'sigma1:FilterSigma1:F:Sigma for low-frequency'//
-     &	    ' (1 - gaussian) filter@'//
-     &	    'sigma2:FilterSigma2:F:Sigma for gaussian rolloff below'//
-     &	    ' radius1 & above radius2@'//
-     &	    'exclude:ExcludeCentralPeak:B:Exclude central peak due to'//
-     &	    ' fixed pattern noise@'//
-     &	    'border:BordersInXandY:IA:Number of pixels to trim off in'//
-     &	    ' X and in Y@'//
-     &	    'pad:PadsInXandY:IA:Number of pixels to pad images in'//
-     &	    ' X and in Y@'//
-     &	    'taper:TapersInXandY:IA:Number of pixels to taper images'//
-     &	    ' in X and in Y@'//
-     &	    'views:StartingEndingViews:IA:Starting and ending view'//
-     &	    ' number for doing subset@'//
-     &	    'test:TestOutput:FN:File to save processed images and'//
-     &	    ' correlations in@'//
-     &	    'param:ParameterFile:PF:Read parameter entries from file@'//
-     &	    'help:usage:B:Print help output'
-
+     &      'input:InputFile:FN:@piece:PieceListFile:FN:@'//
+     &      'output:OutputFile:FN:@rotation:RotationAngle:F:@'//
+     &      'first:FirstTiltAngle:F:@increment:TiltIncrement:F:@'//
+     &      'tiltfile:TiltFile:FN:@angles:TiltAngles:FA:@'//
+     &      'radius1:FilterRadius1:F:@radius2:FilterRadius2:F:@'//
+     &      'sigma1:FilterSigma1:F:@sigma2:FilterSigma2:F:@'//
+     &      'exclude:ExcludeCentralPeak:B:@border:BordersInXandY:IP:@'//
+     &      'pad:PadsInXandY:IP:@taper:TapersInXandY:IP:@'//
+     &      'views:StartingEndingViews:IP:@test:TestOutput:FN:@'//
+     &      'param:ParameterFile:PF:@help:usage:B:'
 c	  
 c	  set defaults here where not dependent on image size
 c	  
@@ -241,21 +219,13 @@ c
 	maxbinsize=1024
 	ifpip = 0
 c	  
-c	  Pip startup: set error, parse options, set flag if used
+c	  Pip startup: set error, parse options, check help, set flag if used
 c
-	call PipExitOnError(0, "ERROR: TILTXCORR - ")
-	call PipAllowCommaDefaults(1)
-	ierr = PipParseInput(options, numOptions, '@', numOptArg, numNonOptArg)
+	call PipReadOrParseOptions(options, numOptions, 'tiltxcorr',
+     &	    'ERROR: TILTXCORR - ', .true., 0, 1, 1, numOptArg,
+     &	    numNonOptArg)
 	pipinput = numOptArg + numNonOptArg .gt. 0
-c
 	if (pipinput) then
-c	    
-c	    First action if pip used: check for help
-c
-	  if (PipGetBoolean('usage', ierr) .eq. 0) then
-	    ierr = PipPrintHelp('tiltxcorr', 0, 1, 1)
-	    call exit(0)
-	  endif
 	  ifpip = 1
 c	    
 c	    Get an input file string; or if none, look on command line
@@ -365,7 +335,7 @@ c
 	  call setctfwsr(sigma1,sigma2,radius1,radius2,ctfp,nx/nbin,
      &	      ny/nbin,deltap)
 	  ierr = PipGetBoolean('ExcludeCentralPeak', ifexclude)
-	  ierr = PipGetIntegerArray('BordersInXandY', nxytrim, 2, 2)
+	  ierr = PipGetTwoIntegers('BordersInXandY', nxtrim, nytrim)
 	else
 	  write(*,'(1x,a,$)')
      &	      'Rotation angle FROM vertical TO the tilt axis: '
@@ -399,7 +369,7 @@ c
 	nxbord = max(5,min(20,nint(0.05*nxuse)))
 	nybord = max(5,min(20,nint(0.05*nyuse)))
 	if (pipinput) then
-	  ierr = PipGetIntegerArray('PadsInXandY', nxypad, 2, 2)
+	  ierr = PipGetTwoIntegers('PadsInXandY', nxpad, nypad)
 	else
 	  write(*,'(1x,a,2i4,a,$)') 'Amounts to pad images on each side '
      &	      //'in X and Y (/ for',nxbord,nybord,'): '
@@ -415,7 +385,7 @@ c
 	nxtap = max(5,min(100,nint(0.1*nxuse)))
 	nytap = max(5,min(100,nint(0.1*nyuse)))
 	if (pipinput) then
-	  ierr = PipGetIntegerArray('TapersInXandY', nxytap, 2, 2)
+	  ierr = PipGetTwoIntegers('TapersInXandY', nxtap, nytap)
 	else
 	  write(*,'(1x,a,2i4,a,$)') 'Widths over which to taper images'
      &	      //' in X and Y (/ for',nxtap,nytap,'): '
@@ -427,12 +397,13 @@ c
 	izst=1
 	iznd=nz
 	if (pipinput) then
-	  ierr = PipGetIntegerArray('StartingEndingViews', izstnd, 2, 2)
+	  ierr = PipGetTwoIntegers('StartingEndingViews', izst, iznd)
 	else
 	  write(*,'(1x,a,$)') 'Starting and ending views'
      &	      //' to do (first is 1), or / for all: '
 	  read(*,*)izst,iznd
 	endif
+	call PipDone()
 	izst = max(1,min(nz,izst))
 	iznd = max(izst,min(nz,iznd))
 c	  
