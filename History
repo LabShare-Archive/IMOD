@@ -1,5 +1,14 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+IMOD_3-0-2
+3/6/03: Made the Z slider in the Zap window controllable with Ctrl key.
+
+3/4/03: Fixed a bug that crashed Imod when displaying the last image in a file
+zoomed down to 0.25.
+
+3/4/03: Made imodv update imod image windows and the object edit window
+upon changes in the view selection and other relevant object changes.
+
 IMOD_3-0-1
 3/3/03: In the Xyz window, added grab bars to the position sliders and color
 coded the sliders and image boxes to make it clear which slider controls which
