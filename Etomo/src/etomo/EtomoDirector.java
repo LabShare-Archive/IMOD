@@ -43,6 +43,9 @@ import etomo.util.Utilities;
  * 
  * <p>
  * $Log$
+ * Revision 1.2  2004/11/19 22:34:24  sueh
+ * bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+ *
  * Revision 1.1.2.11  2004/10/15 00:01:37  sueh
  * bug# 520 Added a public openManager() function to work with the Open..
  * menu item.  It will open either an AppManager or a JoinManager
@@ -143,7 +146,8 @@ public class EtomoDirector {
 
   public static EtomoDirector getInstance() {
     if (theEtomoDirector == null) {
-      throw new IllegalStateException();
+      String[] args = {"--test","--selftest","--debug"};
+      return createInstance(args);
     }
     return theEtomoDirector;
   }
@@ -314,6 +318,13 @@ public class EtomoDirector {
     return ((BaseManager) managerList.get(currentManagerKey)).getPropertyUserDir();
   }
   
+  public String setCurrentPropertyUserDir(String propertyUserDir) {
+    if (currentManagerKey == null) {
+      return System.setProperty("user.dir", propertyUserDir);
+    }
+    return ((BaseManager) managerList.get(currentManagerKey)).setPropertyUserDir(propertyUserDir);
+  }
+  
   public UniqueKey getManagerKey(int index) {
     return managerList.getKey(index);
   }
@@ -336,7 +347,9 @@ public class EtomoDirector {
     if (etomoDataFileName == null
         || etomoDataFileName.equals(ConstMetaData.getNewFileTitle())) {
       manager = new ApplicationManager("");
-      mainFrame.setEnabledNewTomogramMenuItem(false);
+      if (!test) {
+        mainFrame.setEnabledNewTomogramMenuItem(false);
+      }
     }
     else {
       manager = new ApplicationManager(etomoDataFileName);
