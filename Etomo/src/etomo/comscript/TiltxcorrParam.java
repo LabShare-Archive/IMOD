@@ -16,6 +16,9 @@ import etomo.type.TiltAngleType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.8  2004/04/12 16:51:15  sueh
+ * <p> bug# 409 changed interface class CommandParam
+ * <p>
  * <p> Revision 3.7  2004/03/13 02:27:10  sueh
  * <p> bug# 373 Changed updateComScriptCommand() - not saving default
  * <p> FortranInputStrings
@@ -249,150 +252,29 @@ public class TiltxcorrParam
     //  Switch to keyword/value pairs
     scriptCommand.useKeywordValue();
 
-    scriptCommand.setValue("InputFile", inputFile);
-
-    if (!pieceListFile.equals("")) {
-      scriptCommand.setValue("PieceListFile", pieceListFile);
-    }
-    else {
-      scriptCommand.deleteKey("PieceListFile");
-    }
-    if (!outputFile.equals("")) {
-      scriptCommand.setValue("OutputFile", outputFile);
-    }
-    else {
-      scriptCommand.deleteKey("OutputFile");
-    }
-    if (!Double.isNaN(firstTiltAngle)) {
-      scriptCommand.setValue("FirstTiltAngle", String.valueOf(firstTiltAngle));
-    }
-    else {
-      scriptCommand.deleteKey("FirstTiltAngle");
-    }
-    if (!Double.isNaN(tiltIncrement)) {
-      scriptCommand.setValue("TiltIncrement", String.valueOf(tiltIncrement));
-    }
-    else {
-      scriptCommand.deleteKey("TiltIncrement");
-    }
-    if (!tiltFile.equals("")) {
-      scriptCommand.setValue("TiltFile", tiltFile);
-    }
-    else {
-      scriptCommand.deleteKey("TiltFile");
-    }
-    if (tiltAngles != null && tiltAngles.length > 0) {
-      StringBuffer buffer = new StringBuffer();
-      for (int index = 0; index < tiltAngles.length; index++) {
-        buffer.append(String.valueOf(tiltAngles[index]));
-        if (index < tiltAngles.length - 1) {
-          buffer.append(",");
-        }
-      }
-      scriptCommand.setValue("TiltAngles", buffer.toString());
-    }
-    else {
-      scriptCommand.deleteKey("TiltAngles");
-    }
-    if (rotationAngle != Double.NaN) {
-      scriptCommand.setValue("RotationAngle", String.valueOf(rotationAngle));
-    }
-    else {
-      scriptCommand.deleteKey("RotationAngle");
-    }
-    if (!Double.isNaN(filterRadius1)) {
-      scriptCommand.setValue("FilterRadius1", String.valueOf(filterRadius1));
-    }
-    else {
-      scriptCommand.deleteKey("FilterRadius1");
-    }
-    if (!Double.isNaN(filterRadius2)) {
-      scriptCommand.setValue("FilterRadius2", String.valueOf(filterRadius2));
-    }
-    else {
-      scriptCommand.deleteKey("FilterRadius2");
-    }
-    if (!Double.isNaN(filterSigma1)) {
-      scriptCommand.setValue("FilterSigma1", String.valueOf(filterSigma1));
-    }
-    else {
-      scriptCommand.deleteKey("FilterSigma1");
-    }
-    if (!Double.isNaN(filterSigma2)) {
-      scriptCommand.setValue("FilterSigma2", String.valueOf(filterSigma2));
-    }
-    else {
-      scriptCommand.deleteKey("FilterSigma2");
-    }
-    if (excludeCentralPeak) {
-      scriptCommand.setValue("ExcludeCentralPeak", "");
-    }
-    else {
-      scriptCommand.deleteKey("ExcludeCentralPeak");
-    }
-    if (bordersInXandY.valuesSet() && !bordersInXandY.isDefault()) {
-      scriptCommand.setValue("BordersInXandY", bordersInXandY.toString());
-    }
-    else {
-      scriptCommand.deleteKey("BordersInXandY");
-    }
-    if (xMinAndMax.valuesSet() && !xMinAndMax.isDefault()) {
-      scriptCommand.setValue("XMinAndMax", xMinAndMax.toString());
-    }
-    else {
-      scriptCommand.deleteKey("XMinAndMax");
-    }
-    if (yMinAndMax.valuesSet() && !yMinAndMax.isDefault()) {
-      scriptCommand.setValue("YMinAndMax", yMinAndMax.toString());
-    }
-    else {
-      scriptCommand.deleteKey("YMinAndMax");
-    }
-
-    if (padsInXandY.valuesSet() && !padsInXandY.isDefault()) {
-      scriptCommand.setValue("PadsInXandY", padsInXandY.toString());
-    }
-    else {
-      scriptCommand.deleteKey("PadsInXandY");
-    }
-    if (tapersInXandY.valuesSet() && !tapersInXandY.isDefault()) {
-      scriptCommand.setValue("TapersInXandY", tapersInXandY.toString());
-    }
-    else {
-      scriptCommand.deleteKey("TapersInXandY");
-    }
-    if (cumulativeCorrelation) {
-      scriptCommand.setValue("CumulativeCorrelation", "");
-    }
-    else {
-      scriptCommand.deleteKey("CumulativeCorrelation");
-    }
-    if (absoluteCosineStretch) {
-      scriptCommand.setValue("AbsoluteCosineStretch", "");
-    }
-    else {
-      scriptCommand.deleteKey("AbsoluteCosineStretch");
-    }
-    if (noCosineStretch) {
-      scriptCommand.setValue("NoCosineStretch", "");
-    }
-    else {
-      scriptCommand.deleteKey("NoCosineStretch");
-    }
-    if (testOutput != null && testOutput.length() > 0) {
-      scriptCommand.setValue("TestOutput", testOutput);
-    }
-    else {
-      scriptCommand.deleteKey("TestOutput");
-    }
-    if (startingEndingViews.valuesSet() && !startingEndingViews.isDefault()) {
-      scriptCommand.setValue(
-        "StartingEndingViews",
-        startingEndingViews.toString());
-    }
-    else {
-      scriptCommand.deleteKey("StartingEndingViews");
-    }
+    ParamUtilities.updateParameter(scriptCommand, "InputFile", inputFile, true);
+    ParamUtilities.updateParameter(scriptCommand, "PieceListFile", pieceListFile);
+    ParamUtilities.updateParameter(scriptCommand, "OutputFile", outputFile);
+    ParamUtilities.updateParameter(scriptCommand, "FirstTiltAngle", firstTiltAngle);
+    ParamUtilities.updateParameter(scriptCommand, "TiltIncrement", tiltIncrement);
+    ParamUtilities.updateParameter(scriptCommand, "TiltFile", tiltFile);
+    ParamUtilities.updateParameter(scriptCommand, "TiltAngles", tiltAngles);
+    ParamUtilities.updateParameter(scriptCommand, "RotationAngle", rotationAngle);
+    ParamUtilities.updateParameter(scriptCommand, "FilterRadius1", filterRadius1);
+    ParamUtilities.updateParameter(scriptCommand, "FilterRadius2", filterRadius2);
+    ParamUtilities.updateParameter(scriptCommand, "FilterSigma1", filterSigma1);
+    ParamUtilities.updateParameter(scriptCommand, "FilterSigma2", filterSigma2);
+    ParamUtilities.updateParameter(scriptCommand, "ExcludeCentralPeak", excludeCentralPeak);
+    ParamUtilities.updateParameter(scriptCommand, "BordersInXandY", bordersInXandY);
+    ParamUtilities.updateParameter(scriptCommand, "XMinAndMax", xMinAndMax);
+    ParamUtilities.updateParameter(scriptCommand, "YMinAndMax", yMinAndMax);
+    ParamUtilities.updateParameter(scriptCommand, "PadsInXandY", padsInXandY);
+    ParamUtilities.updateParameter(scriptCommand, "TapersInXandY", tapersInXandY);
+    ParamUtilities.updateParameter(scriptCommand, "CumulativeCorrelation", cumulativeCorrelation);
+    ParamUtilities.updateParameter(scriptCommand, "AbsoluteCosineStretch", absoluteCosineStretch);
+    ParamUtilities.updateParameter(scriptCommand, "NoCosineStretch", noCosineStretch);
+    ParamUtilities.updateParameter(scriptCommand, "TestOutput", testOutput);
+    ParamUtilities.updateParameter(scriptCommand, "StartingEndingViews", startingEndingViews);
   }
   
   public void initializeDefaults() {
@@ -434,77 +316,57 @@ public class TiltxcorrParam
     this.outputFile = outputFile;
   }
 
-  public void setFilterRadius1(double filterRadius1) {
-    this.filterRadius1 = filterRadius1;
+  public void setFilterRadius1(String filterRadius1) {
+    this.filterRadius1 = ParamUtilities.getDouble(filterRadius1);
   }
-  public void setFilterRadius2(double filterRadius2) {
-    this.filterRadius2 = filterRadius2;
+  public void setFilterRadius2(String filterRadius2) {
+    this.filterRadius2 = ParamUtilities.getDouble(filterRadius2);
   }
-  public void setFilterSigma1(double filterSigma1) {
-    this.filterSigma1 = filterSigma1;
+  public void setFilterSigma1(String filterSigma1) {
+    this.filterSigma1 = ParamUtilities.getDouble(filterSigma1);
   }
-  public void setFilterSigma2(double filterSigma2) {
-    this.filterSigma2 = filterSigma2;
+  public void setFilterSigma2(String filterSigma2) {
+    this.filterSigma2 = ParamUtilities.getDouble(filterSigma2);
   }
 
   /**
    * Set the borders in x and y.
    */
-  public void setBordersInXandY(String newBordersInXandYValues)
+  public void setBordersInXandY(String bordersInXandY)
     throws FortranInputSyntaxException {
-    bordersInXandY.validateAndSet(newBordersInXandYValues);
+    ParamUtilities.set(bordersInXandY, this.bordersInXandY);
   }
   
   public void setXMin(String xMin) {
-    if (xMin.equals("")) {
-      xMinAndMax.setDefault(0);
-    }
-    else {
-      xMinAndMax.set(0, Double.parseDouble(xMin));
-    }
+    ParamUtilities.set(xMin, xMinAndMax, 0);
   }
   
   public void setXMax(String xMax) {
-    if (xMax.equals("")) {
-      xMinAndMax.setDefault(1);
-    }
-    else {
-      xMinAndMax.set(1, Double.parseDouble(xMax));
-    }
+    ParamUtilities.set(xMax, xMinAndMax, 1);
   }
 
   public void setYMin(String yMin) {
-    if (yMin.equals("")) {
-      yMinAndMax.setDefault(0);
-    }
-    else {
-      yMinAndMax.set(0, Double.parseDouble(yMin));
-    }
+    ParamUtilities.set(yMin, yMinAndMax, 0);
   }
   
   public void setYMax(String yMax) {
-    if (yMax.equals("")) {
-      yMinAndMax.setDefault(1);
-    }
-    else {
-      yMinAndMax.set(1, Double.parseDouble(yMax));
-    }
+    ParamUtilities.set(yMax, yMinAndMax, 1);
   }
   
   /**
    * Set the pads in x and y.
    */
-  public void setPadsInXandY(String newPadsInXandY)
+  public void setPadsInXandY(String padsInXandY)
     throws FortranInputSyntaxException {
-    padsInXandY.validateAndSet(newPadsInXandY);
+    ParamUtilities.set(padsInXandY, this.padsInXandY);
   }
 
   /**
    * Set the taper percentage.
    */
-  public void setTapersInXandY(String newTapersInXandY)
+  public void setTapersInXandY(String tapersInXandY)
     throws FortranInputSyntaxException {
-    tapersInXandY.validateAndSet(newTapersInXandY);
+    ParamUtilities.set(tapersInXandY, this.tapersInXandY);
   }
   
   public void setCumulativeCorrelation(boolean cumulativeCorrelation) {
@@ -521,9 +383,9 @@ public class TiltxcorrParam
   /**
    * Set the range of view to process.
    */
-  public void setStartingEndingViews(String newPair)
+  public void setStartingEndingViews(String startingEndingViews)
     throws FortranInputSyntaxException {
-    startingEndingViews.validateAndSet(newPair);
+    ParamUtilities.set(startingEndingViews, this.startingEndingViews);
   }
 
   /**
