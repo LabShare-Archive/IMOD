@@ -27,13 +27,16 @@
  *****************************************************************************/
 /*  $Author$
 
-    $Date$
+$Date$
 
-    $Revision$
+$Revision$
 
-    $Log$
-    Revision 3.1  2002/07/27 06:00:43  mast
-    Added ability to convert a residual listing from Tiltalign
+$Log$
+Revision 3.2  2002/07/27 23:50:47  mast
+Eliminated line for test output
+
+Revision 3.1  2002/07/27 06:00:43  mast
+Added ability to convert a residual listing from Tiltalign
 
 */
 
@@ -48,77 +51,78 @@
 static int fgetline(FILE *fp, char s[],int limit);
 struct Mod_Model *imod_from_patches(FILE *fin, float scale);
 
-main( int argc, char *argv[])
+int main( int argc, char *argv[])
 {
-     int i;
-     FILE *fin, *fout;
-     struct Mod_Model *Model;
-     float scale = 10.0;
-     char *filename;
-     struct stat buf;
+  int i;
+  FILE *fin, *fout;
+  struct Mod_Model *Model;
+  float scale = 10.0;
+  char *filename;
+  struct stat buf;
 
-     if (argc < 2){
-	  
-	  printf("patch2imod version 1.0 usage:\n");
-	  printf("patch2imod [-s scale] patch_file imod_model\n");
-	  printf("    Displacements are multiplied by \"scale\" (default %.1f)"
-		 " to make vectors.\n", scale);
-	  exit(1);
+  if (argc < 2){
+          
+    printf("patch2imod version 1.0 usage:\n");
+    printf("patch2imod [-s scale] patch_file imod_model\n");
+    printf("    Displacements are multiplied by \"scale\" (default %.1f)"
+	   " to make vectors.\n", scale);
+    exit(1);
 
-     }
-
-
-     for (i = 1; i < argc ; i++){
-	  if (argv[i][0] == '-'){
-	       switch (argv[i][1]){
-		    
-		  case 's':
-		    sscanf(argv[++i], "%f", &scale);
-		    break;
-
-		  default:
-		    fprintf(stderr, "Illegal argument\n");
-		    exit(1);
-		    break;
-	       }
-	  }else
-	       break;
-     }
-     if (i > (argc - 2)){
-	  printf("wrong # of arguments\n");
-	  printf("patch2imod version 1.0 usage:\n");
-	  printf("patch2imod [-s scale] patch_file imod_model\n");
-	  exit(1);
-     }
+  }
 
 
-     fin = fopen(argv[i++], "r");
-     if (!fin){
-	  fprintf(stderr, "Couldn't open %s\n", argv[--i]);
-	  exit(-1);
-     }
+  for (i = 1; i < argc ; i++){
+    if (argv[i][0] == '-'){
+      switch (argv[i][1]){
+                    
+      case 's':
+	sscanf(argv[++i], "%f", &scale);
+	break;
 
-     if (!stat(argv[i], &buf)) {
-	  filename = (char *)malloc(strlen(argv[i]) + 2);
-	  sprintf(filename, "%s~", argv[i]);
-	  if (rename(argv[i], filename)) {
-	       fprintf(stderr, "Error renaming existing output file to %s\n",
-		       filename);
-	       exit(1);
-	  }
-     }
+      default:
+	fprintf(stderr, "Illegal argument\n");
+	exit(1);
+	break;
+      }
+    }else
+      break;
+  }
+  if (i > (argc - 2)){
+    printf("wrong # of arguments\n");
+    printf("patch2imod version 1.0 usage:\n");
+    printf("patch2imod [-s scale] patch_file imod_model\n");
+    exit(1);
+  }
 
-     fout = fopen(argv[i], "w");
-     if (!fout){
-	  fprintf(stderr, "Couldn't open %s\n", argv[i]);
-	  exit(-1);
-     }
 
-     Model = (struct Mod_Model *)imod_from_patches(fin, scale);
+  fin = fopen(argv[i++], "r");
+  if (!fin){
+    fprintf(stderr, "Couldn't open %s\n", argv[--i]);
+    exit(-1);
+  }
+
+  if (!stat(argv[i], &buf)) {
+    filename = (char *)malloc(strlen(argv[i]) + 2);
+    sprintf(filename, "%s~", argv[i]);
+    if (rename(argv[i], filename)) {
+      fprintf(stderr, "Error renaming existing output file to %s\n",
+	      filename);
+      exit(1);
+    }
+  }
+
+  fout = fopen(argv[i], "w");
+  if (!fout){
+    fprintf(stderr, "Couldn't open %s\n", argv[i]);
+    exit(-1);
+  }
+
+  Model = (struct Mod_Model *)imod_from_patches(fin, scale);
      
-     imodWrite(Model, fout);
+  imodWrite(Model, fout);
 
-     imodFree(Model);
+  imodFree(Model);
+  exit(0);
 }
 
 
@@ -129,132 +133,138 @@ main( int argc, char *argv[])
 
 struct Mod_Model *imod_from_patches(FILE *fin, float scale)
 {
-     int len;
-     int i, npatch;
+  int len;
+  int i, npatch;
      
-     char line[MAXLINE];
-     struct Mod_Model *mod;
-     Ipoint *pts;
-     int ix, iy, iz;
-     int xmin, ymin, zmin, xmax, ymax, zmax;
-     float dx, dy, dz, xx, yy;
-     int residuals = 0;
+  char line[MAXLINE];
+  struct Mod_Model *mod;
+  Ipoint *pts;
+  int ix, iy, iz;
+  int xmin, ymin, zmin, xmax, ymax, zmax;
+  float dx, dy, dz, xx, yy;
+  int residuals = 0;
 
-     fgetline(fin,line,MAXLINE);
-     sscanf(line, "%d", &npatch);
-     if (npatch < 1) {
-	  fprintf(stderr, "Error - implausible number of patches = %d.\n",
-		  npatch);
-	  exit(1);
-     }
+  fgetline(fin,line,MAXLINE);
+  sscanf(line, "%d", &npatch);
+  if (npatch < 1) {
+    fprintf(stderr, "Error - implausible number of patches = %d.\n",
+	    npatch);
+    exit(1);
+  }
 
-     if (strstr(line, "residuals") != NULL)
-	  residuals = 1;
+  if (strstr(line, "residuals") != NULL)
+    residuals = 1;
 
-     mod = imodNew();     
-     if (!mod){
-	  fprintf(stderr, "Couldn't get new model\n");
-	  return(NULL);
-     }
-     imodNewObject(mod);
-     mod->obj->contsize = npatch;
-     mod->obj->cont = imodContoursNew(npatch);
-     mod->obj->flags |= IMOD_OBJFLAG_OPEN;
-     mod->obj->symbol = IOBJ_SYM_CIRCLE;
-     if (!residuals)
-	  mod->flags |= IMODF_FLIPYZ;
-     mod->pixsize = scale;
-     xmin = ymin= zmin = 1000000;
-     xmax = ymax = zmax = -1000000;
-     dz = 0.;
-     for (i = 0; i < npatch; i++) {
-	  pts = (Ipoint *)malloc(2 * sizeof(Ipoint));
-	  mod->obj->cont[i].pts = pts;
-	  mod->obj->cont[i].psize = 2;
-	  len = fgetline(fin,line, MAXLINE);
-	  if (len < 3) {
-	       fprintf(stderr, "Error reading file at line %d.\n", i + 1);
-	       exit(1);
-	  }
+  mod = imodNew();     
+  if (!mod){
+    fprintf(stderr, "Couldn't get new model\n");
+    return(NULL);
+  }
+  imodNewObject(mod);
+  mod->obj->contsize = npatch;
+  mod->obj->cont = imodContoursNew(npatch);
+  mod->obj->flags |= IMOD_OBJFLAG_OPEN;
+  mod->obj->symbol = IOBJ_SYM_CIRCLE;
+  if (!residuals)
+    mod->flags |= IMODF_FLIPYZ;
+  mod->pixsize = scale;
+  xmin = ymin= zmin = 1000000;
+  xmax = ymax = zmax = -1000000;
+  dz = 0.;
+  for (i = 0; i < npatch; i++) {
+    pts = (Ipoint *)malloc(2 * sizeof(Ipoint));
+    mod->obj->cont[i].pts = pts;
+    mod->obj->cont[i].psize = 2;
+    len = fgetline(fin,line, MAXLINE);
+    if (len < 3) {
+      fprintf(stderr, "Error reading file at line %d.\n", i + 1);
+      exit(1);
+    }
 
-	  /* DNM 7/26/02: read in residuals as real coordinates, without a 
-	     flip */
-	  if (residuals) {
-	       sscanf(line, "%f %f %d %f %f", &xx, &yy, &iz, &dx, &dy);
-	  } else {
-	       /* DNM 11/15/01: have to handle either with commas or without,
-		  depending on whether it was produced by patchcorr3d or 
-		  patchcrawl3d */
-	       if (strchr(line, ','))
-		    sscanf(line, "%d %d %d %f, %f, %f", &ix, &iz, &iy, &dx,
-			   &dz, &dy);
-	       else
-		    sscanf(line, "%d %d %d %f %f %f", &ix, &iz, &iy, &dx, &dz,
-			   &dy);
-	       xx = ix;
-	       yy = iy;
-	  }
+    /* DNM 7/26/02: read in residuals as real coordinates, without a 
+       flip */
+    if (residuals) {
+      sscanf(line, "%f %f %d %f %f", &xx, &yy, &iz, &dx, &dy);
+    } else {
+      /* DNM 11/15/01: have to handle either with commas or without,
+	 depending on whether it was produced by patchcorr3d or 
+	 patchcrawl3d */
+      if (strchr(line, ','))
+	sscanf(line, "%d %d %d %f, %f, %f", &ix, &iz, &iy, &dx,
+	       &dz, &dy);
+      else
+	sscanf(line, "%d %d %d %f %f %f", &ix, &iz, &iy, &dx, &dz,
+	       &dy);
+      xx = ix;
+      yy = iy;
+    }
 
-	  pts[0].x = xx;
-	  pts[0].y = yy;
-	  pts[0].z = iz;
-	  pts[1].x = xx + scale * dx;
-	  pts[1].y = yy + scale * dy;
-	  pts[1].z = iz + scale * dz;
-	  if (xx < xmin)
-	       xmin = xx;
-	  if (xx > xmax)
-	       xmax = xx;
-	  if (yy < ymin)
-	       ymin = yy;
-	  if (yy > ymax)
-	       ymax = yy;
-	  if (iz < zmin)
-	       zmin = iz;
-	  if (iz > zmax)
-	       zmax = iz;
-     }
+    pts[0].x = xx;
+    pts[0].y = yy;
+    pts[0].z = iz;
+    pts[1].x = xx + scale * dx;
+    pts[1].y = yy + scale * dy;
+    pts[1].z = iz + scale * dz;
+    if (xx < xmin)
+      xmin = xx;
+    if (xx > xmax)
+      xmax = xx;
+    if (yy < ymin)
+      ymin = yy;
+    if (yy > ymax)
+      ymax = yy;
+    if (iz < zmin)
+      zmin = iz;
+    if (iz > zmax)
+      zmax = iz;
+  }
      
-     mod->xmax = xmax + xmin;
-     mod->ymax = ymax + ymin;
-     mod->zmax = zmax + zmin;
-     return(mod);
+  if (residuals) {
+    mod->obj->symflags = IOBJ_SYMF_ENDS;
+    mod->obj->symbol = IOBJ_SYM_NONE;
+    mod->obj->symsize = 10;
+  }
+
+  mod->xmax = xmax + xmin;
+  mod->ymax = ymax + ymin;
+  mod->zmax = zmax + zmin;
+  return(mod);
      
 }
 
 static int fgetline(FILE *fp, char s[],int limit)
 {
-     int c, i, length;
+  int c, i, length;
 
-     if (fp == NULL){
-	  fprintf(stderr, "fgetline: file pointer not valid\n");
-	  return(0);
-     }
+  if (fp == NULL){
+    fprintf(stderr, "fgetline: file pointer not valid\n");
+    return(0);
+  }
 
-     if (limit < 3){
-	  fprintf(stderr, "fgetline: limit (%d) > 2,\n", limit);
-	  return(0);
-     }
+  if (limit < 3){
+    fprintf(stderr, "fgetline: limit (%d) > 2,\n", limit);
+    return(0);
+  }
      
-     for (i=0; ( ((c = getc(fp)) != EOF) && (i < (limit-1)) && (c != '\n') ); i++)
-	  s[i]=c;
+  for (i=0; ( ((c = getc(fp)) != EOF) && (i < (limit-1)) && (c != '\n') ); i++)
+    s[i]=c;
      
-     if (i == 1){
-	  if (c == EOF){
-	       return(0);
-	  }
-	  if (c == '\n'){
-	       s[++i] = '\0';
-	       return(1);
-	  }
-     }
-	       
+  if (i == 1){
+    if (c == EOF){
+      return(0);
+    }
+    if (c == '\n'){
+      s[++i] = '\0';
+      return(1);
+    }
+  }
+               
 
-     s[i]='\0';
-     length = i;
+  s[i]='\0';
+  length = i;
 
-     if (c == EOF)
-	  return (-1 * length);
-     else
-	  return (length);
+  if (c == EOF)
+    return (-1 * length);
+  else
+    return (length);
 }
