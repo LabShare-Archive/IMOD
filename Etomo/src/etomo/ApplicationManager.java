@@ -26,6 +26,9 @@ import etomo.ui.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.5  2003/01/30 00:43:32  rickg
+ * <p> Blank second axis panel when done with tomogram generation
+ * <p>
  * <p> Revision 2.4  2003/01/29 15:22:58  rickg
  * <p> Updated logic for combine step
  * <p>
@@ -349,7 +352,6 @@ public class ApplicationManager {
    */
   public void openProcessingPanel() {
     mainFrame.setLocation(0, 0);
-    //  FIXME should set main window size to user default
     mainFrame.setSize(
       new Dimension(
         userConfig.getMainWindowWidth(),
@@ -2410,6 +2412,14 @@ public class ApplicationManager {
         "Unknown thread finished!!!",
         "Thread name: " + threadName);
     }
+  }
+  
+  /**
+   * Interrupt the currently running thread for this axis
+   * @param axisID
+   */
+  public void interrupt(AxisID axisID) {
+    processMgr.interrupt(axisID);
   }
 
   private void setThreadName(String name, AxisID axisID) {
