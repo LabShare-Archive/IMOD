@@ -16,6 +16,9 @@ rotate, translate, and zoom processes.
 pieces) up to 10% of frame size, made it check for image size, and increased 
 buffer for blendmont and reducemont to hold two 4Kx4K images.
 
+1/14/05: Etomo tomogram generation has a new field to specify additional views
+to exclude
+
 1/12/05: Fixed clip 2D correlation, broken by changes on 11/4/04.
 
 1/11/05: IMOD_3-4-17
