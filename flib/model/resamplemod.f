@@ -12,6 +12,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.3  2003/10/10 20:42:32  mast
+c	  Used new subroutine for getting input/output files
+c	
 c	  Revision 3.2  2003/10/09 02:33:20  mast
 c	  Converted to use autodoc
 c	
@@ -394,6 +397,6 @@ c
 	subroutine errorexit(message)
 	character*(*) message
 	print *
-	print *,'ERROR: RESAMPMOD - ',message
+	print *,'ERROR: RESAMPLEMOD - ',message
 	call exit(1)
 	end
