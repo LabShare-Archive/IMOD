@@ -18,6 +18,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.9  2004/04/13 17:23:36  sueh
+ * bug# 409 add file choose for mtf filter.  Automatically goes to
+ * $IMOD_CALIB_DIR/Camera, if it exists.  File filter:  .mtf
+ *
  * Revision 3.8  2004/04/12 17:16:47  sueh
  * bug# 409  Change HighFrequencyRadiusSigma to LowPassRadiusSigma.
  *
@@ -232,6 +236,8 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -248,6 +254,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
+
 import etomo.ApplicationManager;
 import etomo.comscript.ConstMTFFilterParam;
 import etomo.comscript.ConstTiltParam;
@@ -368,6 +375,8 @@ public class TomogramGenerationDialog
     new MultiLineButton("View Filtered Stack");
   private MultiLineToggleButton btnUseFilter =
     new MultiLineToggleButton("Use Filtered Stack");
+  private LabeledTextField ltfStartingAndEndingZ = new LabeledTextField("Starting and ending views: ");
+  boolean enableFiltering = false;
 
   private MultiLineButton btnTrial =
     new MultiLineButton("<html><b>Generate Trial Tomogram</b>");
@@ -456,6 +465,8 @@ public class TomogramGenerationDialog
     btn3dmodTomogram.addActionListener(tomogramGenerationListener);
     btnDeleteStacks.addActionListener(tomogramGenerationListener);
     btnMtfFile.addActionListener(new MtfFileActionListener(this));
+    ltfStartingAndEndingZ.addKeyListener(
+      new StartingAndEndingZKeyListener(this));
 
     // Layout the newst button panel
     pnlAlignedStack.setLayout(new BoxLayout(pnlAlignedStack, BoxLayout.X_AXIS));
@@ -522,6 +533,13 @@ public class TomogramGenerationDialog
     // Set the default advanced dialog state
     updateAdvanced();
     setToolTipText();
+  }
+  
+  public void updateFilter(boolean enable) {
+    enableFiltering = enable;
+    btnFilter.setEnabled(enableFiltering);
+    btnViewFilter.setEnabled(enableFiltering);
+    enableUseFilter();
   }
 
   public void setNewstParams(ConstNewstParam newstParam) {
@@ -751,6 +769,7 @@ public class TomogramGenerationDialog
   public void getMTFFilterParam(MTFFilterParam mtfFilterParam)
     throws FortranInputSyntaxException {
     mtfFilterParam.setLowPassRadiusSigma(ltfLowPassRadiusSigma.getText());
+    mtfFilterParam.setStartingAndEndingZ(ltfStartingAndEndingZ.getText());
     mtfFilterParam.setMtfFile(ltfMtfFile.getText());
     mtfFilterParam.setMaximumInverse(ltfMaximumInverse.getText());
     mtfFilterParam.setInverseRolloffRadiusSigma(
@@ -762,8 +781,10 @@ public class TomogramGenerationDialog
     ltfMaximumInverse.setText(mtfFilterParam.getMaximumInverseString());
     ltfLowPassRadiusSigma.setText(
       mtfFilterParam.getLowPassRadiusSigmaString());
+    ltfStartingAndEndingZ.setText(mtfFilterParam.getStartingAndEndingZString());
     ltfInverseRolloffRadiusSigma.setText(
       mtfFilterParam.getInverseRolloffRadiusSigmaString());
+    enableUseFilter();
   }
 
   /**
@@ -856,6 +877,8 @@ public class TomogramGenerationDialog
   protected void layoutFilterPanel() {
     pnlFilter.setBorder(filterBorder.getBorder());
     pnlFilter.setLayout(new BoxLayout(pnlFilter, BoxLayout.Y_AXIS));
+    pnlFilter.add(ltfStartingAndEndingZ.getContainer());
+    pnlFilter.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlFilter.add(ltfLowPassRadiusSigma.getContainer());
     pnlFilter.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlInverseFilter.setLayout(
@@ -940,6 +963,27 @@ public class TomogramGenerationDialog
         logFile);
   }
 
+  public void startingAndEndingZKeyReleased(KeyEvent event) {
+    System.out.println("KeyReleased:text=" + ltfStartingAndEndingZ.getText());
+    enableUseFilter();
+  }
+  
+  protected void enableUseFilter() {
+    System.out.println("enableUseFilter:enableFiltering=" + enableFiltering);
+    if (!enableFiltering) {
+      btnUseFilter.setEnabled(false);
+      return;
+    }
+    String startingAndEndingZ = ltfStartingAndEndingZ.getText();
+    if (startingAndEndingZ.length() == 0 || startingAndEndingZ.matches("\\s+")) {
+      btnFilter.setSelected(false);
+      btnUseFilter.setEnabled(true);
+    }
+    else {
+      btnUseFilter.setEnabled(false);
+    }  
+  }
+  
   //  Action function overides for process state buttons
   public void buttonCancelAction(ActionEvent event) {
     super.buttonCancelAction(event);
@@ -1029,7 +1073,7 @@ public class TomogramGenerationDialog
     }
   }
   
-  class MtfFileActionListener implements ActionListener {
+  private class MtfFileActionListener implements ActionListener {
     TomogramGenerationDialog adaptee;
 
     MtfFileActionListener(TomogramGenerationDialog adaptee) {
@@ -1038,6 +1082,22 @@ public class TomogramGenerationDialog
 
     public void actionPerformed(ActionEvent event) {
       adaptee.btnMtfFileAction(event);
+    }
+  }
+
+  class StartingAndEndingZKeyListener implements KeyListener {
+    TomogramGenerationDialog adaptee;
+    public StartingAndEndingZKeyListener(TomogramGenerationDialog adaptee) {
+      this.adaptee = adaptee;
+    }
+    
+    public void keyReleased(KeyEvent event) {
+      adaptee.startingAndEndingZKeyReleased(event);
+    }
+    
+    public void keyPressed(KeyEvent event) {
+    }
+    public void keyTyped(KeyEvent event) {
     }
   }
 
@@ -1072,6 +1132,11 @@ public class TomogramGenerationDialog
     text = "Open the complete aligned stack in 3dmod";
     btn3dmodFull.setToolTipText(tooltipFormatter.setText(text).format());
     if (autodoc != null) {
+      text = TooltipFormatter.getText(autodoc, "StartingAndEndingZ");
+      if (text != null) {
+        ltfStartingAndEndingZ.setToolTipText(
+          tooltipFormatter.setText(text).format());
+      }
       text = TooltipFormatter.getText(autodoc, "LowPassRadiusSigma");
       if (text != null) {
         ltfLowPassRadiusSigma.setToolTipText(
