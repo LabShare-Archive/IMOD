@@ -130,6 +130,12 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.2  2002/05/20 15:47:33  mast
+c	  Made the DIFF function put out a very high value when the number of
+c	  pixels evaluated falls below 1% of total pixels, to keep it from
+c	  running away into impossible shifts.  Also increased dimensions of
+c	  input array to allow 4Kx4K images.
+c	
 c	  Revision 3.1  2002/04/29 16:18:37  mast
 c	  Added test to keep it from failing when images match perfectly
 c	
@@ -464,7 +470,7 @@ c
 	enddo
 C	  
 	CALL ICLavgsd(ARRAY,nx,ny,NX1,NX2,NY1,NY2
-     &	    ,DMIN1,DMAX1,DMEAN1,sd1)
+     &	    ,DMIN1,DMAX1,tsum,tsumsq,DMEAN1,sd1)
 C	  
 c	  get scale factor for floating second array densities to match that
 c	  of first
@@ -786,35 +792,6 @@ C
 C	  
 	END
 
-
-
-c	  calculate min, max, mean, and SD
-c
-	subroutine iclavgsd(array,nx,ny,ix0,ix1,iy0,iy1,dmin,dmax,avg,
-     &	    sd)
-	real*4 array(nx,ny)
-	sum=0.
-	sumsq=0.
-	dmin=1.e10
-	dmax=-1.e10
-	do iy=iy0,iy1
-	  smtm=0.
-	  smtmsq=0.
-	  do ix=ix0,ix1
-	    den=array(ix,iy)
-	    smtm=smtm+den
-	    smtmsq=smtmsq+den**2
-	    dmin=min(dmin,den)
- 	    dmax=max(dmax,den)
-	  enddo
-	  sum=sum+smtm
-	  sumsq=sumsq+smtmsq
-	enddo
-	nsum=nx*ny
-	avg=sum/nsum
-	sd=sqrt((sumsq-sum**2/nsum)/(nsum-1))
-	return
-	end
 
 
 c	  Function to be called by minimization routine

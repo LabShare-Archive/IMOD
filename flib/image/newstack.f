@@ -140,6 +140,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.6  2002/08/17 05:38:04  mast
+c	  Standardized error outputs
+c	
 c	  Revision 3.5  2002/05/20 15:59:38  mast
 c	  Changed all STOP statements to print the message then call exit(1)
 c	
@@ -820,8 +823,8 @@ c		mean
 c		
 	      if(.not.rescale.or.ifmean.ne.0)then
 		if(iffloat.eq.2)then
-		  call iclavgsd(array(ibchunk),nx3,nych,tmin2,tmax2,tsum,
-     &		      tsumsq, avgsec,sdsec)
+		  call iclavgsd(array(ibchunk),nx3,nych,1,nx3,1,nych,
+     &		      tmin2,tmax2,tsum, tsumsq, avgsec,sdsec)
 c		  print *,'chunk mean&sd',ichunk,avgsec,sdsec
 		  dsumsq=dsumsq+tsumsq
 		else
@@ -1094,40 +1097,6 @@ C
 96	call errorexit('ERROR READING TRANSFORM FILE')
 	END
 
-c	  
-c	  ICLAVGSD computes the min DMIN, max DMAX, mean AVG, and standard
-c	  deviation SD from data in ARRAY, dimensioned NX by NY.  It also
-c	  returns the sum in SUM and sum of squares in SUMSQ
-c
-	subroutine iclavgsd(array,nx,ny,dmin,dmax,sum,sumsq,avg,sd)
-	implicit none
-	real*4 array(*)
-	integer*4 nx,ny,iy,ibas,i,nsum
-	real*4 dmin,dmax,sum,sumsq,avg,sd,smtm,smtmsq,den
-	sum=0.
-	sumsq=0.
-	dmin=1.e10
-	dmax=-1.e10
-	do iy=0,ny-1
-	  smtm=0.
-	  smtmsq=0.
-	  ibas=iy*nx
-	  do i=1+ibas,nx+ibas
-	    den=array(i)
-	    smtm=smtm+den
-	    smtmsq=smtmsq+den**2
-	    dmin=min(dmin,den)
- 	    dmax=max(dmax,den)
-	  enddo
-	  sum=sum+smtm
-	  sumsq=sumsq+smtmsq
-	enddo
-	nsum=nx*ny
-	avg=sum/nsum
-	sd=sqrt((sumsq-sum**2/nsum)/(nsum-1))
-	return
-	end
-
 
 c	  IREPAK2 repacks an image from a portion of a 2-d array sequentially
 c	  into a 1-d array (which should not be the same array).  Pixels
@@ -1192,8 +1161,8 @@ c	    accumulate sums for mean and sd if float 2, otherwise
 c	    just the mean
 c	    
 	  if(iffloat.eq.2)then
-	    call iclavgsd(array,nx,nlines,tmin2,tmax2,tsum,tsumsq,
-     &		avgsec,sdsec)
+	    call iclavgsd(array,nx,nlines,1,nx,1,nlines,tmin2,tmax2,
+     &		tsum,tsumsq, avgsec,sdsec)
 	    dsumsq=dsumsq+tsumsq
 	  else
 	    call iclden(array,nx,nlines,1,nx,1,nlines,tmin2,
