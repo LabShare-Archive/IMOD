@@ -21,6 +21,11 @@ import etomo.ApplicationManager;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.14  2004/06/07 18:42:06  sueh
+ * <p> bug# 457 added functions to add messages to list.
+ * <p> Added a function to send the messages to 3dmod using
+ * <p> imodSendEvent.
+ * <p>
  * <p> Revision 3.13  2004/06/07 16:58:44  rickg
  * <p> Bug #452 added debug output for imodsendevent since we have
  * <p> been having diffuculty with it.
@@ -490,6 +495,12 @@ public class ImodProcess {
     imodSendEvent(args);
   }
 
+  /**
+   * Places arguments to open the beadfixer dialog on the argument list.
+   */
+  public void setOpenBeadFixerMessage() {
+    sendArguments.add(MESSAGE_OPEN_BEADFIXER);
+  }
   /**
    * Open the beadfixer dialog
    * 
