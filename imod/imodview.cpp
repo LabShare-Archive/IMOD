@@ -1722,8 +1722,9 @@ int ivwLoadIMODifd(ImodView *vi)
                
       if (imgdir){
         pathlen += strlen(imgdir);
-        filename = (char *)malloc(pathlen + 3);
+        filename = (char *)malloc(pathlen + 4);
         strcpy(filename, imgdir);
+        strcat(filename, "/");
         strcat(filename, (curdir->cleanDirPath(QString(&line[6]))).latin1());
       }else{
         filename = strdup((curdir->cleanDirPath(QString(&line[6]))).latin1());
@@ -2370,6 +2371,9 @@ static void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin,
 
 /*
 $Log$
+Revision 4.21  2004/01/06 16:55:32  mast
+Fixed handling of rgb files to do it first when processing image list
+
 Revision 4.20  2004/01/05 17:21:39  mast
 Added binning option, cleaned up file started, reorganized file
 
