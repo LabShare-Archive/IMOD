@@ -21,6 +21,7 @@ void imodvControlForm::setFontDependentWidths()
     int width;
     width =( (2 * 6 + 3) * scaleLineEdit->fontMetrics().width("888888")) / (2 * 6);
     scaleLineEdit->setFixedWidth(width);
+    speedLineEdit->setFixedWidth(width);
     width =( (2 * 7+ 3) * XLineEdit->fontMetrics().width("8888888")) / (2 * 7);
     XLineEdit->setFixedWidth(width);
     YLineEdit->setFixedWidth(width);
@@ -194,6 +195,28 @@ void imodvControlForm::rateChanged( int value )
 	imodvControlRate(value);
 }
 
+// Speed controls
+void imodvControlForm::newSpeed()
+{
+   QString str = speedLineEdit->text();
+    float value = atof(str.latin1());
+    if  (value < 0.1)
+	value = 0.1;
+    setSpeedText(value);
+    setFocus();
+    imodvControlSpeed(value);
+}
+
+void imodvControlForm::increaseSpeed()
+{
+    imodvControlIncSpeed(1);
+}
+
+void imodvControlForm::decreaseSpeed()
+{
+    imodvControlIncSpeed(-1);
+}
+
 void imodvControlForm::OKPressed()
 {
     imodvControlQuit();
@@ -250,6 +273,13 @@ void imodvControlForm::setRotationRate( int value )
 {
     diaSetSlider(degreesSlider, value);
     displayRateLabel(value);
+}
+
+void imodvControlForm::setSpeedText( float value )
+{
+    QString str;
+    str.sprintf("%.4g", value);
+    speedLineEdit->setText(str);
 }
 
 void imodvControlForm::closeEvent( QCloseEvent *e )
@@ -315,7 +345,6 @@ void imodvControlForm::rateReleased()
     rateChanged(mRateDisplayed);
 }
 
-
 // Key event: send quit signal if an escape, keep track of control key, and pass on to imodv_input
 void imodvControlForm::keyPressEvent( QKeyEvent * e )
 {
@@ -345,3 +374,4 @@ void imodvControlForm::fontChange( const QFont & oldFont )
 {
     setFontDependentWidths();
 }
+

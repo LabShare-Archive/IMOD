@@ -1,4 +1,4 @@
-<!DOCTYPE UI><UI version="3.0" stdsetdef="1">
+<!DOCTYPE UI><UI version="3.1" stdsetdef="1">
 <class>imodvControlForm</class>
 <widget class="QWidget">
     <property name="name">
@@ -8,8 +8,8 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>236</width>
-            <height>486</height>
+            <width>235</width>
+            <height>524</height>
         </rect>
     </property>
     <property name="caption">
@@ -186,6 +186,12 @@
                     <property name="focusPolicy">
                         <enum>ClickFocus</enum>
                     </property>
+                    <property name="frameShape">
+                        <enum>LineEditPanel</enum>
+                    </property>
+                    <property name="frameShadow">
+                        <enum>Sunken</enum>
+                    </property>
                     <property name="alignment">
                         <set>AlignRight</set>
                     </property>
@@ -219,9 +225,6 @@
                         </property>
                         <property name="margin">
                             <number>0</number>
-                        </property>
-                        <property name="spacing">
-                            <number>-1</number>
                         </property>
                         <widget class="QSlider">
                             <property name="name">
@@ -373,9 +376,6 @@
                         </property>
                         <property name="margin">
                             <number>0</number>
-                        </property>
-                        <property name="spacing">
-                            <number>-1</number>
                         </property>
                         <widget class="QSlider">
                             <property name="name">
@@ -898,6 +898,111 @@
                 </widget>
                 <widget class="QLayoutWidget">
                     <property name="name">
+                        <cstring>layout18</cstring>
+                    </property>
+                    <hbox>
+                        <property name="name">
+                            <cstring>unnamed</cstring>
+                        </property>
+                        <widget class="QToolButton">
+                            <property name="name">
+                                <cstring>SpeedUpToolButton</cstring>
+                            </property>
+                            <property name="sizePolicy">
+                                <sizepolicy>
+                                    <hsizetype>1</hsizetype>
+                                    <vsizetype>1</vsizetype>
+                                    <horstretch>0</horstretch>
+                                    <verstretch>0</verstretch>
+                                </sizepolicy>
+                            </property>
+                            <property name="text">
+                                <string></string>
+                            </property>
+                            <property name="pixmap">
+                                <pixmap>uparrow.png</pixmap>
+                            </property>
+                            <property name="autoRepeat">
+                                <bool>true</bool>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Increase speed of rotation</string>
+                            </property>
+                        </widget>
+                        <widget class="QToolButton">
+                            <property name="name">
+                                <cstring>SpeedDownToolButton</cstring>
+                            </property>
+                            <property name="text">
+                                <string></string>
+                            </property>
+                            <property name="pixmap">
+                                <pixmap>downarrow.png</pixmap>
+                            </property>
+                            <property name="autoRepeat">
+                                <bool>true</bool>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Decrease speed of rotation</string>
+                            </property>
+                        </widget>
+                        <widget class="QLineEdit">
+                            <property name="name">
+                                <cstring>speedLineEdit</cstring>
+                            </property>
+                            <property name="sizePolicy">
+                                <sizepolicy>
+                                    <hsizetype>0</hsizetype>
+                                    <vsizetype>0</vsizetype>
+                                    <horstretch>0</horstretch>
+                                    <verstretch>0</verstretch>
+                                </sizepolicy>
+                            </property>
+                            <property name="maximumSize">
+                                <size>
+                                    <width>60</width>
+                                    <height>32767</height>
+                                </size>
+                            </property>
+                            <property name="focusPolicy">
+                                <enum>ClickFocus</enum>
+                            </property>
+                            <property name="alignment">
+                                <set>AlignRight</set>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Enter a rotation speed in degrees per second</string>
+                            </property>
+                        </widget>
+                        <widget class="QLabel">
+                            <property name="name">
+                                <cstring>textLabel1</cstring>
+                            </property>
+                            <property name="text">
+                                <string>deg/sec</string>
+                            </property>
+                        </widget>
+                        <spacer>
+                            <property name="name">
+                                <cstring>Spacer6_2</cstring>
+                            </property>
+                            <property name="orientation">
+                                <enum>Horizontal</enum>
+                            </property>
+                            <property name="sizeType">
+                                <enum>Expanding</enum>
+                            </property>
+                            <property name="sizeHint">
+                                <size>
+                                    <width>10</width>
+                                    <height>16</height>
+                                </size>
+                            </property>
+                        </spacer>
+                    </hbox>
+                </widget>
+                <widget class="QLayoutWidget">
+                    <property name="name">
                         <cstring>Layout23</cstring>
                     </property>
                     <vbox>
@@ -1071,10 +1176,154 @@
 </widget>
 <connections>
     <connection>
+        <sender>degreesSlider</sender>
+        <signal>valueChanged(int)</signal>
+        <receiver>imodvControlForm</receiver>
+        <slot>displayRateLabel(int)</slot>
+    </connection>
+    <connection>
+        <sender>degreesSlider</sender>
+        <signal>sliderReleased()</signal>
+        <receiver>imodvControlForm</receiver>
+        <slot>rateReleased()</slot>
+    </connection>
+    <connection>
+        <sender>degreesSlider</sender>
+        <signal>valueChanged(int)</signal>
+        <receiver>imodvControlForm</receiver>
+        <slot>rateChanged(int)</slot>
+    </connection>
+    <connection>
+        <sender>degreesSlider</sender>
+        <signal>sliderPressed()</signal>
+        <receiver>imodvControlForm</receiver>
+        <slot>ratePressed()</slot>
+    </connection>
+    <connection>
+        <sender>farSlider</sender>
+        <signal>valueChanged(int)</signal>
+        <receiver>imodvControlForm</receiver>
+        <slot>farChanged(int)</slot>
+    </connection>
+    <connection>
+        <sender>farSlider</sender>
+        <signal>sliderPressed()</signal>
+        <receiver>imodvControlForm</receiver>
+        <slot>farPressed()</slot>
+    </connection>
+    <connection>
+        <sender>farSlider</sender>
+        <signal>sliderReleased()</signal>
+        <receiver>imodvControlForm</receiver>
+        <slot>farReleased()</slot>
+    </connection>
+    <connection>
+        <sender>farSlider</sender>
+        <signal>valueChanged(int)</signal>
+        <receiver>imodvControlForm</receiver>
+        <slot>displayFarLabel(int)</slot>
+    </connection>
+    <connection>
+        <sender>helpButton</sender>
+        <signal>clicked()</signal>
+        <receiver>imodvControlForm</receiver>
+        <slot>helpPressed()</slot>
+    </connection>
+    <connection>
+        <sender>nearSlider</sender>
+        <signal>valueChanged(int)</signal>
+        <receiver>imodvControlForm</receiver>
+        <slot>nearChanged(int)</slot>
+    </connection>
+    <connection>
+        <sender>nearSlider</sender>
+        <signal>sliderPressed()</signal>
+        <receiver>imodvControlForm</receiver>
+        <slot>nearPressed()</slot>
+    </connection>
+    <connection>
+        <sender>nearSlider</sender>
+        <signal>valueChanged(int)</signal>
+        <receiver>imodvControlForm</receiver>
+        <slot>displayNearLabel(int)</slot>
+    </connection>
+    <connection>
+        <sender>nearSlider</sender>
+        <signal>sliderReleased()</signal>
+        <receiver>imodvControlForm</receiver>
+        <slot>nearReleased()</slot>
+    </connection>
+    <connection>
+        <sender>OKButton</sender>
+        <signal>clicked()</signal>
+        <receiver>imodvControlForm</receiver>
+        <slot>OKPressed()</slot>
+    </connection>
+    <connection>
+        <sender>perspectiveSlider</sender>
+        <signal>sliderReleased()</signal>
+        <receiver>imodvControlForm</receiver>
+        <slot>perspectiveReleased()</slot>
+    </connection>
+    <connection>
+        <sender>perspectiveSlider</sender>
+        <signal>valueChanged(int)</signal>
+        <receiver>imodvControlForm</receiver>
+        <slot>perspectiveChanged(int)</slot>
+    </connection>
+    <connection>
+        <sender>perspectiveSlider</sender>
+        <signal>valueChanged(int)</signal>
+        <receiver>imodvControlForm</receiver>
+        <slot>displayPerspectiveLabel(int)</slot>
+    </connection>
+    <connection>
+        <sender>perspectiveSlider</sender>
+        <signal>sliderPressed()</signal>
+        <receiver>imodvControlForm</receiver>
+        <slot>perspectivePressed()</slot>
+    </connection>
+    <connection>
+        <sender>PushButton3</sender>
+        <signal>clicked()</signal>
+        <receiver>imodvControlForm</receiver>
+        <slot>startStop()</slot>
+    </connection>
+    <connection>
         <sender>scaleLineEdit</sender>
         <signal>returnPressed()</signal>
         <receiver>imodvControlForm</receiver>
         <slot>newScale()</slot>
+    </connection>
+    <connection>
+        <sender>scaleLineEdit</sender>
+        <signal>lostFocus()</signal>
+        <receiver>imodvControlForm</receiver>
+        <slot>newScale()</slot>
+    </connection>
+    <connection>
+        <sender>SpeedDownToolButton</sender>
+        <signal>clicked()</signal>
+        <receiver>imodvControlForm</receiver>
+        <slot>decreaseSpeed()</slot>
+    </connection>
+    <connection>
+        <sender>speedLineEdit</sender>
+        <signal>lostFocus()</signal>
+        <receiver>imodvControlForm</receiver>
+        <slot>newSpeed()</slot>
+    </connection>
+    <connection>
+        <sender>speedLineEdit</sender>
+        <signal>returnPressed()</signal>
+        <receiver>imodvControlForm</receiver>
+        <slot>newSpeed()</slot>
+    </connection>
+    <connection>
+        <sender>SpeedUpToolButton</sender>
+        <signal>clicked()</signal>
+        <receiver>imodvControlForm</receiver>
+        <slot>increaseSpeed()</slot>
     </connection>
     <connection>
         <sender>ToolButton5</sender>
@@ -1089,12 +1338,6 @@
         <slot>zoomDown()</slot>
     </connection>
     <connection>
-        <sender>XUpToolButton</sender>
-        <signal>clicked()</signal>
-        <receiver>imodvControlForm</receiver>
-        <slot>rotateXplus()</slot>
-    </connection>
-    <connection>
         <sender>XDownToolButton</sender>
         <signal>clicked()</signal>
         <receiver>imodvControlForm</receiver>
@@ -1107,10 +1350,10 @@
         <slot>newXrotation()</slot>
     </connection>
     <connection>
-        <sender>YUpToolButton</sender>
+        <sender>XUpToolButton</sender>
         <signal>clicked()</signal>
         <receiver>imodvControlForm</receiver>
-        <slot>rotateYplus()</slot>
+        <slot>rotateXplus()</slot>
     </connection>
     <connection>
         <sender>YDownToolButton</sender>
@@ -1125,10 +1368,10 @@
         <slot>newYrotation()</slot>
     </connection>
     <connection>
-        <sender>ZUpToolButton</sender>
+        <sender>YUpToolButton</sender>
         <signal>clicked()</signal>
         <receiver>imodvControlForm</receiver>
-        <slot>rotateZplus()</slot>
+        <slot>rotateYplus()</slot>
     </connection>
     <connection>
         <sender>ZDownToolButton</sender>
@@ -1143,108 +1386,6 @@
         <slot>newZrotation()</slot>
     </connection>
     <connection>
-        <sender>PushButton3</sender>
-        <signal>clicked()</signal>
-        <receiver>imodvControlForm</receiver>
-        <slot>startStop()</slot>
-    </connection>
-    <connection>
-        <sender>OKButton</sender>
-        <signal>clicked()</signal>
-        <receiver>imodvControlForm</receiver>
-        <slot>OKPressed()</slot>
-    </connection>
-    <connection>
-        <sender>helpButton</sender>
-        <signal>clicked()</signal>
-        <receiver>imodvControlForm</receiver>
-        <slot>helpPressed()</slot>
-    </connection>
-    <connection>
-        <sender>nearSlider</sender>
-        <signal>valueChanged(int)</signal>
-        <receiver>imodvControlForm</receiver>
-        <slot>displayNearLabel(int)</slot>
-    </connection>
-    <connection>
-        <sender>nearSlider</sender>
-        <signal>sliderPressed()</signal>
-        <receiver>imodvControlForm</receiver>
-        <slot>nearPressed()</slot>
-    </connection>
-    <connection>
-        <sender>nearSlider</sender>
-        <signal>valueChanged(int)</signal>
-        <receiver>imodvControlForm</receiver>
-        <slot>nearChanged(int)</slot>
-    </connection>
-    <connection>
-        <sender>nearSlider</sender>
-        <signal>sliderReleased()</signal>
-        <receiver>imodvControlForm</receiver>
-        <slot>nearReleased()</slot>
-    </connection>
-    <connection>
-        <sender>farSlider</sender>
-        <signal>valueChanged(int)</signal>
-        <receiver>imodvControlForm</receiver>
-        <slot>displayFarLabel(int)</slot>
-    </connection>
-    <connection>
-        <sender>farSlider</sender>
-        <signal>valueChanged(int)</signal>
-        <receiver>imodvControlForm</receiver>
-        <slot>farChanged(int)</slot>
-    </connection>
-    <connection>
-        <sender>farSlider</sender>
-        <signal>sliderReleased()</signal>
-        <receiver>imodvControlForm</receiver>
-        <slot>farReleased()</slot>
-    </connection>
-    <connection>
-        <sender>farSlider</sender>
-        <signal>sliderPressed()</signal>
-        <receiver>imodvControlForm</receiver>
-        <slot>farPressed()</slot>
-    </connection>
-    <connection>
-        <sender>perspectiveSlider</sender>
-        <signal>sliderReleased()</signal>
-        <receiver>imodvControlForm</receiver>
-        <slot>perspectiveReleased()</slot>
-    </connection>
-    <connection>
-        <sender>perspectiveSlider</sender>
-        <signal>sliderPressed()</signal>
-        <receiver>imodvControlForm</receiver>
-        <slot>perspectivePressed()</slot>
-    </connection>
-    <connection>
-        <sender>perspectiveSlider</sender>
-        <signal>valueChanged(int)</signal>
-        <receiver>imodvControlForm</receiver>
-        <slot>displayPerspectiveLabel(int)</slot>
-    </connection>
-    <connection>
-        <sender>perspectiveSlider</sender>
-        <signal>valueChanged(int)</signal>
-        <receiver>imodvControlForm</receiver>
-        <slot>perspectiveChanged(int)</slot>
-    </connection>
-    <connection>
-        <sender>zScaleSlider</sender>
-        <signal>valueChanged(int)</signal>
-        <receiver>imodvControlForm</receiver>
-        <slot>zScaleChanged(int)</slot>
-    </connection>
-    <connection>
-        <sender>zScaleSlider</sender>
-        <signal>sliderPressed()</signal>
-        <receiver>imodvControlForm</receiver>
-        <slot>zScalePressed()</slot>
-    </connection>
-    <connection>
         <sender>zScaleSlider</sender>
         <signal>valueChanged(int)</signal>
         <receiver>imodvControlForm</receiver>
@@ -1257,28 +1398,40 @@
         <slot>zScaleReleased()</slot>
     </connection>
     <connection>
-        <sender>degreesSlider</sender>
+        <sender>zScaleSlider</sender>
         <signal>sliderPressed()</signal>
         <receiver>imodvControlForm</receiver>
-        <slot>ratePressed()</slot>
+        <slot>zScalePressed()</slot>
     </connection>
     <connection>
-        <sender>degreesSlider</sender>
+        <sender>zScaleSlider</sender>
         <signal>valueChanged(int)</signal>
         <receiver>imodvControlForm</receiver>
-        <slot>rateChanged(int)</slot>
+        <slot>zScaleChanged(int)</slot>
     </connection>
     <connection>
-        <sender>degreesSlider</sender>
-        <signal>sliderReleased()</signal>
+        <sender>ZUpToolButton</sender>
+        <signal>clicked()</signal>
         <receiver>imodvControlForm</receiver>
-        <slot>rateReleased()</slot>
+        <slot>rotateZplus()</slot>
     </connection>
     <connection>
-        <sender>degreesSlider</sender>
-        <signal>valueChanged(int)</signal>
+        <sender>XLineEdit</sender>
+        <signal>lostFocus()</signal>
         <receiver>imodvControlForm</receiver>
-        <slot>displayRateLabel(int)</slot>
+        <slot>newXrotation()</slot>
+    </connection>
+    <connection>
+        <sender>YLineEdit</sender>
+        <signal>lostFocus()</signal>
+        <receiver>imodvControlForm</receiver>
+        <slot>newYrotation()</slot>
+    </connection>
+    <connection>
+        <sender>ZLineEdit</sender>
+        <signal>lostFocus()</signal>
+        <receiver>imodvControlForm</receiver>
+        <slot>newZrotation()</slot>
     </connection>
 </connections>
 <includes>
@@ -1328,12 +1481,16 @@
     <slot>newZrotation()</slot>
     <slot>startStop()</slot>
     <slot>rateChanged( int value )</slot>
+    <slot>newSpeed()</slot>
+    <slot>increaseSpeed()</slot>
+    <slot>decreaseSpeed()</slot>
     <slot>OKPressed()</slot>
     <slot>helpPressed()</slot>
     <slot>setAxisText( int axis, float value )</slot>
     <slot>setScaleText( float value )</slot>
     <slot>setViewSlider( int which, int value )</slot>
     <slot>setRotationRate( int value )</slot>
+    <slot>setSpeedText( float value )</slot>
     <slot>closeEvent( QCloseEvent * e )</slot>
     <slot>farPressed()</slot>
     <slot>farReleased()</slot>
