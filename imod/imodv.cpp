@@ -134,6 +134,7 @@ static int imodv_init(ImodvApp *a, struct Mod_Draw *md)
   a->update_dlist = 1;
   a->movie = 0;
   a->movieFrames = 0;
+  a->movieSpeed = 36.;
   a->wpid = 0;
   a->stereo = IMODV_STEREO_OFF;
   a->plax = 5.0f;
@@ -591,6 +592,9 @@ void imodvDrawImodImages()
 
 /*
 $Log$
+Revision 4.11  2003/11/01 18:12:17  mast
+changed to put out virtually all error messages to a window
+
 Revision 4.10  2003/07/17 14:41:32  mast
 Go back to scaling and centering model when opening imodv
 
