@@ -54,6 +54,9 @@ allows all unsigned short values to be stored as signed short integers in the
 MRC file.  Use this option if you do not want negative numbers and do not
 care about the loss of precision.  If the values in the input files are all
 less than 32768, then specify that the input data are short rather than ushort.
+.SH FILES
+If the output file already exists, it will be made a backup file by adding ~
+to its name.
 .SH AUTHORS
 Jim Kremer, David Mastronarde
 .SH SEE ALSO

@@ -42,6 +42,9 @@ If a background file is loaded its values are subtracted from
 the values in the rest of the files.
 The background file must have the same data type as the images from which
 it is being subtracted (8-bit or 16-bit grayscale).
+.SH FILES
+If the output file already exists, it will be made a backup file by adding ~
+to its name.
 .SH AUTHORS
 Jim Kremer and David Mastronarde
 .SH SEE ALSO
