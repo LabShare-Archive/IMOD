@@ -239,6 +239,7 @@ struct Midas_view
 
   int xtype;   /* transform type, section-to-section, global or ref. */
   char *xname; /* name of file containing transforms. */
+  char *oname;  /* Name of output file after reading in from xname */
   char *refname; /* name of file containing a reference image. */
   int refzsize; /* z size of reference file */
   int changed;  /* flag that transforms have changed */
@@ -385,6 +386,9 @@ void amat_to_rotmagstr(float *amat, float *theta, float *smag, float *str,
 
 /*
 $Log$
+Revision 3.7  2004/08/04 22:35:13  mast
+Changed unsigned long to b3dUInt32 for 64-bit use
+
 Revision 3.6  2004/07/12 18:42:31  mast
 Changes for chunk alignment and for switching to spin boxes
 

@@ -80,6 +80,7 @@ int new_view(struct Midas_view *vw)
 
   vw->xtype = XTYPE_XF;
   vw->xname = NULL;
+  vw->oname = NULL;
   vw->changed = 0;
   vw->didsave = 0;
   vw->refname = NULL;
@@ -382,6 +383,12 @@ int load_view(struct Midas_view *vw, char *fname)
   if (vw->didsave)
     load_transforms(vw, vw->xname);
   vw->didsave = 0;
+
+  if (vw->oname) {
+    if (vw->xname)
+      free(vw->xname);
+    vw->xname = vw->oname;
+  }
 
   vw->midasSlots->backup_current_mat();
   return(0);
@@ -1691,6 +1698,9 @@ static void solve_for_shifts(struct Midas_view *vw, float *a, float *b,
 
 /*
 $Log$
+Revision 3.10  2004/08/04 22:35:13  mast
+Changed unsigned long to b3dUInt32 for 64-bit use
+
 Revision 3.9  2004/07/12 18:42:43  mast
 Changes for chunk alignment
 

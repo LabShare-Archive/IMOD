@@ -86,6 +86,8 @@ static void usage(void)
        " max to 255\n";
      qstr += "\t-b <size>       set initial size for block copies\n";
      qstr += "\t-a <angle>      rotate all images by angle.\n";
+     qstr += "\t-o <filename>   output transforms to given file instead of "
+       "input file\n";
      qstr += "\t-S              use single-buffered visual\n";
      qstr += "\t-D              debug mode - do not run in background\n";
 #ifdef _WIN32
@@ -193,6 +195,10 @@ int main (int argc, char **argv)
       case 'c':
         chunkList = QStringList::split(',', QString(argv[++i]));
         vw->numChunks = chunkList.count();
+        break;
+
+      case 'o':
+        vw->oname = strdup(argv[++i]);
         break;
 
       default:
@@ -826,6 +832,9 @@ void midas_error(char *tmsg, char *bmsg, int retval)
 
 /*
     $Log$
+    Revision 3.12  2004/07/12 18:42:30  mast
+    Changes for chunk alignment and for switching to spin boxes
+
     Revision 3.11  2004/07/07 19:25:31  mast
     Changed exit(-1) to exit(3) for Cygwin
 
