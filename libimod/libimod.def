@@ -350,6 +350,7 @@ EXPORTS
 	imodContourSetTimeIndex
 	PUTSYMSIZE
 	PipGetFloatArray
+	PUTIMODROTATION
 	imodel_transform
 	PIPEXITONERROR
 	imodViewUse
@@ -375,6 +376,7 @@ EXPORTS
 	imodViewModelRead
 	imodel_point_add
 	PUTIMODFLAG
+	PUTIMODZSCALE
 	GETIMODSCALES
 	imodContourBreak
 	imodel_contour_sorty
