@@ -1,19 +1,6 @@
-package etomo.ui;
-
-import java.awt.Component;
-import java.awt.Container;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JProgressBar;
-import javax.swing.Timer;
-
 /**
- * <p>Description: </p>
+ * <p>Description: A progress bar with label and internal text, can be
+ *  determinate or indeterminate.</p>
  *
  * <p>Copyright: Copyright (c) 2002</p>
  *
@@ -25,6 +12,9 @@ import javax.swing.Timer;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.0  2003/11/07 23:19:01  rickg
+ * <p> Version 1.0.0
+ * <p>
  * <p> Revision 2.3  2003/07/01 22:57:12  rickg
  * <p> Cleaned progress panel layout
  * <p>
@@ -41,9 +31,25 @@ import javax.swing.Timer;
  * <p> Single window GUI layout initial revision
  * <p>
  */
+
+package etomo.ui;
+
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JProgressBar;
+import javax.swing.SwingUtilities;
+import javax.swing.Timer;
+
+
 public class ProgressPanel {
-  public static final String rcsid =
-    "$Id$";
+  public static final String rcsid = "$Id$";
 
   private JPanel panel = new JPanel();
   private JPanel progressPanel = new JPanel();
@@ -51,6 +57,14 @@ public class ProgressPanel {
   private JProgressBar progressBar = new JProgressBar();
   private int i = 0;
   private Timer timer;
+
+  // Keep these around so that SwingUtilities.invokeLater can update the
+  // the UI status 
+  private int currentValue;
+  private int currentMaximum;
+  private int currentMinimum;
+  private String currentString;
+  private String currentLabel;
 
   public ProgressPanel(String label) {
     taskLabel.setText(label);
@@ -62,72 +76,116 @@ public class ProgressPanel {
   }
 
   public void setLabel(String label) {
-    taskLabel.setText(label);
-    panel.revalidate();
-    panel.repaint();
+    currentLabel = label;
+    SwingUtilities.invokeLater(new SetLabelLater());
   }
 
+  private class SetLabelLater implements Runnable {
+    public void run() {
+      taskLabel.setText(currentLabel);
+      panel.revalidate();
+      panel.repaint();
+    }
+  }
+
+  
   public void start() {
     //  Setting the progress bar indeterminate causes it to move on its own
-    progressBar.setIndeterminate(true);
-    progressBar.setString("");
-    progressBar.setStringPainted(false);
-    i = 0;
+    SwingUtilities.invokeLater(new StartLater());
   }
-
+  private class StartLater implements Runnable {
+    public void run() {
+      progressBar.setIndeterminate(true);
+      progressBar.setString("");
+      progressBar.setStringPainted(false);
+      i = 0;
+    }
+  }
+  
   public void stop() {
-    i = 0;
-    progressBar.setValue(i);
-    progressBar.setIndeterminate(false);
-    progressBar.setString("done");
-    progressBar.setStringPainted(true);
+    SwingUtilities.invokeLater(new StopLater());
   }
-
+  private class StopLater implements Runnable {
+    public void run() {
+      i = 0;
+      progressBar.setValue(i);
+      progressBar.setIndeterminate(false);
+      progressBar.setString("done");
+      progressBar.setStringPainted(true);
+    }
+  }
+  
   void increment() {
-    progressBar.setValue(i);
-    panel.validate();
-    panel.repaint();
-    i++;
-    timer.restart();
+    SwingUtilities.invokeLater(new IncrementLater());
   }
-
-  public Container getContainer() {
-    return panel;
+  private class IncrementLater implements Runnable {
+    public void run() {
+      progressBar.setValue(i);
+      panel.validate();
+      panel.repaint();
+      i++;
+      timer.restart();
+    }
   }
-
+  
   /**
    * @param n
    */
   public void setMaximum(int n) {
-    progressBar.setMaximum(n);
-    progressBar.setIndeterminate(false);
-    progressBar.setStringPainted(true);
+    currentMaximum = n;
+    SwingUtilities.invokeLater(new SetMaximumLater());
   }
+  private class SetMaximumLater implements Runnable {
+    public void run() {
+      progressBar.setMaximum(currentMaximum);
+      progressBar.setIndeterminate(false);
+      progressBar.setStringPainted(true);
+    }
+  }
+  
 
-  /**
-   * @param n
-   */
   public void setMinimum(int n) {
-    progressBar.setMinimum(n);
+    currentMinimum = n;
+    SwingUtilities.invokeLater(new SetMinimumLater());
+  }
+  private class SetMinimumLater implements Runnable {
+    public void run() {
+      progressBar.setMinimum(currentMinimum);
+    }
   }
 
-  /**
-   * @param n
-   */
+
   public void setValue(int n) {
-    progressBar.setValue(n);
+    currentValue = n;
+    SwingUtilities.invokeLater(new SetValueLater());
   }
-
+  private class SetValueLater implements Runnable {
+    public void run() {
+      progressBar.setValue(currentValue);
+    }
+  }
   /**
    * 
    * @param n
    * @param string
    */
   public void setValue(int n, String string) {
-    progressBar.setValue(n);
-    progressBar.setString(string);
+    currentValue = n;
+    currentString = string;
+    SwingUtilities.invokeLater(new SetValueAndStringLater());
   }
-  
+
+  private class SetValueAndStringLater implements Runnable {
+    public void run() {
+      progressBar.setValue(currentValue);
+      progressBar.setString(currentString);
+    }
+  }
+
+  public Container getContainer() {
+    return panel;
+  }
+
   /**
    * @return
    */
@@ -148,14 +206,17 @@ public class ProgressPanel {
   public int getValue() {
     return progressBar.getValue();
   }
-}
 
-class ProgressTimerActionListener implements ActionListener {
-  ProgressPanel panel;
-  public ProgressTimerActionListener(ProgressPanel panel) {
-    this.panel = panel;
+  class ProgressTimerActionListener implements ActionListener {
+    ProgressPanel panel;
+
+    public ProgressTimerActionListener(ProgressPanel panel) {
+      this.panel = panel;
+    }
+
+    public void actionPerformed(ActionEvent event) {
+      panel.increment();
+    }
   }
-  public void actionPerformed(ActionEvent event) {
-    panel.increment();
-  }
+
 }
