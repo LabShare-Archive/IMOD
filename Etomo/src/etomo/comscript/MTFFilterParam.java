@@ -1,6 +1,3 @@
-
-package etomo.comscript;
-
 /**
  * <p>Description: </p>
  * 
@@ -14,8 +11,14 @@ package etomo.comscript;
  * 
  * @version $$Revision$$
  * 
- * <p> $$Log$$ </p>
+ * <p> $$Log$
+ * <p> $Revision 1.1  2004/03/24 18:15:51  sueh
+ * <p> $bug# 409 MTF filter params
+ * <p> $$ </p>
  */
+
+package etomo.comscript;
+
 public class MTFFilterParam
   extends ConstMTFFilterParam
   implements CommandParam {
@@ -25,7 +28,9 @@ public class MTFFilterParam
     throws FortranInputSyntaxException, InvalidParameterException {
     String[] cmdLineArgs = scriptCommand.getCommandLineArgs();
     if (scriptCommand.isKeywordValuePairs()) {
-      inputFile = scriptCommand.getValue("InputFile");
+      if (scriptCommand.hasKeyword("InputFile")) {
+        inputFile = scriptCommand.getValue("InputFile");
+      }
       if (scriptCommand.hasKeyword("OutputFile")) {
         outputFile = scriptCommand.getValue("OutputFile");
       }
@@ -38,6 +43,9 @@ public class MTFFilterParam
       if (scriptCommand.hasKeyword("HighFrequencyRadiusSigma")) {
         highFrequencyRadiusSigma.validateAndSet(scriptCommand.getValue("HighFrequencyRadiusSigma"));
       }
+      if (scriptCommand.hasKeyword("InverseRolloffRadiusSigma")) {
+        inverseRolloffRadiusSigma.validateAndSet(scriptCommand.getValue("InverseRolloffRadiusSigma"));
+      }
     }
     else {
       throw new InvalidParameterException("MTF Filter:  Missing parameter, -StandardInput.  Use Etomo to create .com file.");
@@ -47,68 +55,13 @@ public class MTFFilterParam
   public void updateComScriptCommand(ComScriptCommand scriptCommand)
     throws BadComScriptException {
     scriptCommand.useKeywordValue();
-    updateParameter(scriptCommand, "InputFile", inputFile, true);
-    updateParameter(scriptCommand, "OutputFile", outputFile);
-    updateParameter(scriptCommand, "MtfFile", mtfFile);
-    updateParameter(scriptCommand, "MaximumInverse", maximumInverse, defaultMaximumInverse);
-    updateParameter(scriptCommand, "HighFrequencyRadiusSigma", highFrequencyRadiusSigma);
+    ParamUtilities.updateParameter(scriptCommand, "InputFile", inputFile, true);
+    ParamUtilities.updateParameter(scriptCommand, "OutputFile", outputFile);
+    ParamUtilities.updateParameter(scriptCommand, "MtfFile", mtfFile);
+    ParamUtilities.updateParameter(scriptCommand, "MaximumInverse", maximumInverse);
+    ParamUtilities.updateParameter(scriptCommand, "HighFrequencyRadiusSigma", highFrequencyRadiusSigma);
+    ParamUtilities.updateParameter(scriptCommand, "InverseRolloffRadiusSigma", inverseRolloffRadiusSigma);
   }
-
-  protected void updateParameter(
-    ComScriptCommand scriptCommand,
-    String key,
-    String value)
-    throws BadComScriptException {
-    updateParameter(scriptCommand, key, value, false);
-  }
-
-  protected void updateParameter(
-    ComScriptCommand scriptCommand,
-    String key,
-    String value,
-    boolean required)
-    throws BadComScriptException {
-    if (key == null) {
-      throw new NullPointerException();
-    }
-    if (value != null && value.length() > 0) {
-      scriptCommand.setValue(key, value);
-    }
-    else {
-      scriptCommand.deleteKey(key);
-      if (required) {
-        throw new BadComScriptException(
-          "MTF Filter:  Missing parameter value, " + key + ".");
-      }
-    }
-  }
-  
-  protected void updateParameter(ComScriptCommand scriptCommand, String key, double value, double defaultValue)
-    throws BadComScriptException {
-    if (key == null) {
-      throw new NullPointerException();
-    }
-    if (value != Double.NaN && value != defaultValue) {
-      scriptCommand.setValue(key, Double.toString(value));
-    }
-    else {
-      scriptCommand.deleteKey(key);
-    }
-  }
-
-  protected void updateParameter(ComScriptCommand scriptCommand, String key, FortranInputString value)
-    throws BadComScriptException {
-    if (key == null) {
-      throw new NullPointerException();
-    }
-    if (!value.isDefault()) {
-      scriptCommand.setValue(key, value.toString());
-    }
-    else {
-      scriptCommand.deleteKey(key);
-    }
-  }
-
 
   public void setOutputFile(String outputFile) {
     this.outputFile = new String(outputFile);
@@ -117,18 +70,14 @@ public class MTFFilterParam
     this.mtfFile = new String(mtfFile);
   }
   public void setMaximumInverse(String maximumInverse) {
-    if (maximumInverse == null || !maximumInverse.matches("\\S+")) {
-      this.maximumInverse = Double.NaN;
-    }
-    else {
-      this.maximumInverse = Double.parseDouble(maximumInverse);
-    }
+    this.maximumInverse = ParamUtilities.setDouble(maximumInverse);
   }
   public void setHighFrequencyRadiusSigma(String highFrequencyRadiusSigma)
     throws FortranInputSyntaxException {
-    if (highFrequencyRadiusSigma == null) {
-      
-    }
-    this.highFrequencyRadiusSigma.validateAndSet(highFrequencyRadiusSigma);
+      ParamUtilities.set(highFrequencyRadiusSigma, this.highFrequencyRadiusSigma);
+  }
+  public void setInverseRolloffRadiusSigma(String inverseRolloffRadiusSigma)
+    throws FortranInputSyntaxException {
+      ParamUtilities.set(inverseRolloffRadiusSigma, this.inverseRolloffRadiusSigma);
   }
 }
