@@ -9,9 +9,9 @@ set DELPATCHXY = 100
 set NZPATCH3 = 75      # Thickness at which to do 3 patches in Z
 set NZPATCH4 = 150     # Thickness at which to do 4 patches in Z
 set MAXPIXELS = 20000  # KPixels for maximum FFT
-set MAXMEMORY = 8.e7   # Memory size for ffts = 4000 * MAXPIXELS
 set TAPERPADXZ = 8       # Size of taper/pad for 3D ffts in X and Z
 set TAPERPADY = 4       # Size of taper/pad for 3D ffts in Y
+set MAXPIECEY = 1       # Maximum pieces in Y
 set MINOVERLAP = 10     # Minimum overlap between pieces
 set MATCHSHIFTXZ = 100   # size of 3-D box in X and Z for matchshifts
 set MATCHSHIFTY  = (40 60 76 90)      # Y sizes per increment of Y dimension
@@ -470,10 +470,13 @@ sed -e s/$from_srcname/$fromname/g\
 
 \cp $srcdir/combine.com .
 
-set ranlist = `tomopieces $recfile $MAXMEMORY $TAPERPADXZ $TAPERPADY $MINOVERLAP | sed '/[^0-9, ]/s///g'`
+@ megamax = $MAXPIXELS
+@ megamax /= 1000
+set ranlist = `tomopieces -tomo $recfile -mega $megamax -xpad $TAPERPADXZ -ypad $TAPERPADY -zpad $TAPERPADXZ -min $MINOVERLAP -ymax $MAXPIECEY | sed '/[^ -z]/s///g'`
 
 if ($status) then
-    echo "Error running tomopieces - does $recfile exist?"
+    echo $ranlist
+    echo "ERROR running tomopieces - does $recfile exist?"
     exit 1
 endif
 
@@ -495,19 +498,24 @@ EOF
 
 @ npiecex = $ranlist[1]
 shift ranlist
+@ npiecey = $ranlist[1]
+shift ranlist
 @ npiecez = $ranlist[1]
 shift ranlist
 
-@ npiecetot = $npiecex * $npiecez
+@ npiecetot = $npiecex * $npiecey * $npiecez
 @ sumnum = 0
 @ znum = 0
 while ($znum < $npiecez)
     @ znum++
-    @ xnum = 0
-    while ($xnum < $npiecex)
-	@ xnum++
-	@ sumnum++
-	cat <<EOCAT | cat >> $volcombine
+    @ ynum = 0
+    while ($ynum < $npiecey)
+        @ ynum++
+        @ xnum = 0
+        while ($xnum < $npiecex)
+            @ xnum++
+            @ sumnum++
+            cat <<EOCAT | cat >> $volcombine
 #
 \$echo STATUS: EXTRACTING AND COMBINING PIECE  $sumnum  of $npiecetot
 \$echo
@@ -537,7 +545,8 @@ $btlt
 \$clip fft -3d -m $mode ${tmppath}mat.fft ${tmppath}sum$sumnum.rec
 \$\\rm ${tmppath}mat.fft
 EOCAT
-	shift ranlist
+            shift ranlist
+        end
     end
 end
 
@@ -548,16 +557,23 @@ cat <<EOCAT | cat >> $volcombine
 #
 \$assemblevol
 $sumname
-$npiecex,1,$npiecez
+$npiecex,$npiecey,$npiecez
 EOCAT
+
 @ xnum = 0
 while ($xnum < $npiecex)
     echo $ranlist[1] | cat >> $volcombine
     shift ranlist
     @ xnum++
 end
-echo $ranlist[1] | cat >> $volcombine
-shift ranlist
+
+@ ynum = 0
+while ($ynum < $npiecey)
+    echo $ranlist[1] | cat >> $volcombine
+    shift ranlist
+    @ ynum++
+end
+
 @ znum = 0
 while ($znum < $npiecez)
     echo $ranlist[1] | cat >> $volcombine
@@ -566,7 +582,7 @@ while ($znum < $npiecez)
 end
     
 @ sumnum = 0
-while ($sumnum < $npiecex * $npiecez)
+while ($sumnum < $npiecetot)
   @ sumnum++
   echo ${tmppath}sum$sumnum.rec | cat >> $volcombine
 end
@@ -596,6 +612,9 @@ echo '$'"if (-e $backupname) $backupname" | cat >> $volcombine
 
 #
 #  $Log$
+#  Revision 3.19  2004/06/10 22:46:08  mast
+#  Changes for new solvematch command file
+#
 #  Revision 3.18  2004/04/27 14:55:11  mast
 #  Removed warning for no xaxistilt line, it is fine if it is not there
 #
