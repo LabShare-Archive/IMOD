@@ -25,6 +25,9 @@ import javax.swing.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.4  2002/11/14 04:41:11  rickg
+ * <p> Fined matchorwarp man page entry
+ * <p>
  * <p> Revision 1.3  2002/10/09 00:06:28  rickg
  * <p> Added getting and setting of patch boundary parameters
  * <p>
@@ -307,7 +310,12 @@ public class SetupCombinePanel implements ContextMenu {
     String[] manPagelabel = { "matchorwarp" };
     String[] manPage = { "matchorwarp.html" };
     ContextPopup contextPopup =
-      new ContextPopup(contentPane, mouseEvent, manPagelabel, manPage);
+      new ContextPopup(
+        contentPane,
+        mouseEvent,
+        "COMBINING TWO TOMOGRAMS",
+        manPagelabel,
+        manPage);
   }
 
   /**

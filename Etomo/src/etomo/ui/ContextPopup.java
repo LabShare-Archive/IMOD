@@ -18,6 +18,9 @@ import etomo.ApplicationManager;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.3  2002/11/14 04:41:46  rickg
+ * <p> Had to move imodURL inside of inner class
+ * <p>
  * <p> Revision 1.2  2002/11/14 04:22:31  rickg
  * <p> HTMLPage and ContextPopup now work with URLS
  * <p>
@@ -42,7 +45,7 @@ public class ContextPopup {
   private String[] manPageName;
   private String[] logFileName;
 
-  private String imodURL;
+  private String anchor;
 
   /**
    * This constructor is used to set the static ApplicationMananger reference,
@@ -57,16 +60,28 @@ public class ContextPopup {
    * Simple context popup constructor.  Only the default menu items are
    * displayed.
    */
-  public ContextPopup(Component component, MouseEvent mouseEvent) {
+  public ContextPopup(
+    Component component,
+    MouseEvent mouseEvent,
+    String tomoAnchor) {
+
     this.mouseEvent = mouseEvent;
+    anchor = tomoAnchor;
 
     //  Instantiate a new ActionListener to handle the menu selection
     actionListener = new ActionListener() {
+
       public void actionPerformed(ActionEvent actionEvent) {
         String imodURL = "file://" + appManager.getIMODDirectory() + "/html/";
+        String tomoGuideLocation = "tomoguide.html";
+
+        if (anchor != null && !anchor.equals("")) {
+          tomoGuideLocation += "#" + anchor;
+        }
+
         if (actionEvent.getActionCommand() == tomoGuideItem.getText()) {
           HTMLPageWindow manpage = new HTMLPageWindow();
-          manpage.openURL(imodURL + "tomoguide.html");
+          manpage.openURL(imodURL + tomoGuideLocation);
           manpage.setVisible(true);
         }
 
@@ -92,6 +107,7 @@ public class ContextPopup {
   public ContextPopup(
     Component component,
     MouseEvent mouseEvent,
+    String tomoAnchor,
     String[] manPageLabel,
     String[] manPage) {
 
@@ -103,11 +119,18 @@ public class ContextPopup {
     }
 
     this.mouseEvent = mouseEvent;
+    anchor = tomoAnchor;
 
     //  Instantiate a new ActionListener to handle the menu selection
     actionListener = new ActionListener() {
       public void actionPerformed(ActionEvent actionEvent) {
         String imodURL = "file://" + appManager.getIMODDirectory() + "/html/";
+
+        String tomoGuideLocation = "tomoguide.html";
+        if (anchor != null && !anchor.equals("")) {
+          tomoGuideLocation += "#" + anchor;
+        }
+
         for (int i = 0; i < manPageItem.length; i++) {
           if (actionEvent.getActionCommand() == manPageItem[i].getText()) {
             HTMLPageWindow manpage = new HTMLPageWindow();
@@ -119,7 +142,7 @@ public class ContextPopup {
         //  Search the standard items
         if (actionEvent.getActionCommand() == tomoGuideItem.getText()) {
           HTMLPageWindow manpage = new HTMLPageWindow();
-          manpage.openURL(imodURL + "tomoguide.html");
+          manpage.openURL(imodURL + tomoGuideLocation);
           manpage.setVisible(true);
         }
 
@@ -147,6 +170,7 @@ public class ContextPopup {
   public ContextPopup(
     Component component,
     MouseEvent mouseEvent,
+    String tomoAnchor,
     String[] manPageLabel,
     String[] manPage,
     String[] logFileLabel,
@@ -165,11 +189,18 @@ public class ContextPopup {
     }
 
     this.mouseEvent = mouseEvent;
+    anchor = tomoAnchor;
 
     //  Instantiate a new ActionListener to handle the menu selection
     actionListener = new ActionListener() {
       public void actionPerformed(ActionEvent actionEvent) {
         String imodURL = "file://" + appManager.getIMODDirectory() + "/html/";
+
+        String tomoGuideLocation = "tomoguide.html";
+        if (anchor != null && !anchor.equals("")) {
+          tomoGuideLocation += "#" + anchor;
+        }
+
         for (int i = 0; i < manPageItem.length; i++) {
           if (actionEvent.getActionCommand() == manPageItem[i].getText()) {
             HTMLPageWindow manpage = new HTMLPageWindow();
@@ -191,7 +222,7 @@ public class ContextPopup {
         //  Search the standard items
         if (actionEvent.getActionCommand() == tomoGuideItem.getText()) {
           HTMLPageWindow manpage = new HTMLPageWindow();
-          manpage.openURL(imodURL + "tomoguide.html");
+          manpage.openURL(imodURL + tomoGuideLocation);
           manpage.setVisible(true);
         }
 

@@ -22,6 +22,10 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.4  2002/10/17 23:42:26  rickg
+ * <p> Spaced buttons some
+ * <p> Call default parameters methods in panelAlign objects
+ * <p>
  * <p> Revision 1.3  2002/10/17 22:38:47  rickg
  * <p> Added fileset name to window title
  * <p> this reference removed applicationManager messages
@@ -267,6 +271,7 @@ public class AlignmentEstimationDialog
       new ContextPopup(
         contentPane,
         mouseEvent,
+        "FINAL ALIGNMENT",
         manPagelabel,
         manPage,
         logFileLabel,

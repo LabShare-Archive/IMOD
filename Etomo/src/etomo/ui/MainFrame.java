@@ -22,6 +22,10 @@ import etomo.process.ProcessState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.2  2002/10/07 22:31:18  rickg
+ * <p> removed unused imports
+ * <p> reformat after emacs trashed it
+ * <p>
  * <p> Revision 1.1  2002/09/09 22:57:02  rickg
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
@@ -407,7 +411,7 @@ public class MainFrame extends JFrame implements ContextMenu {
 
   //  Right mouse button context menu
   public void popUpContextMenu(MouseEvent mouseEvent) {
-    ContextPopup contextPopup = new ContextPopup(mainPanel, mouseEvent);
+    ContextPopup contextPopup = new ContextPopup(mainPanel, mouseEvent, "");
   }
 
   /**

@@ -23,6 +23,10 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.3  2002/10/17 22:38:59  rickg
+ * <p> Added fileset name to window title
+ * <p> this reference removed applicationManager messages
+ * <p>
  * <p> Revision 1.2  2002/10/07 22:31:18  rickg
  * <p> removed unused imports
  * <p> reformat after emacs trashed it
@@ -274,6 +278,7 @@ public class CoarseAlignDialog extends ProcessDialog implements ContextMenu {
       new ContextPopup(
         panelCoarseAlign,
         mouseEvent,
+        "Preliminary Steps",
         manPagelabel,
         manPage,
         logFileLabel,

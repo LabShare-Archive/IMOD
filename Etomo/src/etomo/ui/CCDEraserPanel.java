@@ -19,6 +19,10 @@ import etomo.comscript.CCDEraserParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.2  2002/10/07 22:31:18  rickg
+ * <p> removed unused imports
+ * <p> reformat after emacs trashed it
+ * <p>
  * <p> Revision 1.1  2002/09/09 22:57:02  rickg
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
@@ -132,7 +136,12 @@ public class CCDEraserPanel implements ContextMenu {
     String[] label = { "ccdEraser" };
     String[] manPage = { "ccderaser.html" };
     ContextPopup contextPopup =
-      new ContextPopup(panelCCDEraser, mouseEvent, label, manPage);
+      new ContextPopup(
+        panelCCDEraser,
+        mouseEvent,
+        "Preliminary Steps",
+        label,
+        manPage);
   }
 
   public void setButtonCreateModelActionListener(ActionListener actionAdapter) {

@@ -22,6 +22,9 @@ import etomo.type.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.7  2002/11/14 04:21:47  rickg
+ * <p> HTMLPage and ContextPopup now work with URLS
+ * <p>
  * <p> Revision 1.6  2002/10/24 21:12:29  rickg
  * <p> Got folder icon working
  * <p>
@@ -487,7 +490,8 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
    * Right mouse button context menu
    */
   public void popUpContextMenu(MouseEvent mouseEvent) {
-    ContextPopup contextPopup = new ContextPopup(panelSetup, mouseEvent);
+    ContextPopup contextPopup =
+      new ContextPopup(panelSetup, mouseEvent, "INITIAL STEPS");
   }
 
   //

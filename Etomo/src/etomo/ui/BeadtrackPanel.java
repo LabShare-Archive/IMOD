@@ -1,6 +1,5 @@
 package etomo.ui;
 
-
 import java.awt.event.*;
 import javax.swing.*;
 
@@ -21,6 +20,10 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.2  2002/10/07 22:31:18  rickg
+ * <p> removed unused imports
+ * <p> reformat after emacs trashed it
+ * <p>
  * <p> Revision 1.1  2002/09/09 22:57:02  rickg
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
@@ -305,14 +308,15 @@ public class BeadtrackPanel implements ContextMenu {
     String[] logFileLabel = { "track" };
     String[] logFile = new String[1];
     logFile[0] = "track" + logSuffix + ".log";
-//    ContextPopup contextPopup =
-      new ContextPopup(
-        panelBeadtrack,
-        mouseEvent,
-        manPagelabel,
-        manPage,
-        logFileLabel,
-        logFile);
+    //    ContextPopup contextPopup =
+    new ContextPopup(
+      panelBeadtrack,
+      mouseEvent,
+      "TRACKING FIDUCIALS",
+      manPagelabel,
+      manPage,
+      logFileLabel,
+      logFile);
   }
 
   public void setButtonTrackActionListener(ActionListener actionAdapter) {

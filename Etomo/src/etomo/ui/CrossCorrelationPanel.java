@@ -18,28 +18,31 @@ import etomo.comscript.FortranInputSyntaxException;
  *
  * @version $Revision$
  *
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2002/09/09 22:57:02  rickg
+ * <p> Initial CVS entry, basic functionality not including combining
+ * <p> </p>
  */
 
 public class CrossCorrelationPanel implements ContextMenu {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
 
   private String logSuffix;
 
   private JPanel panelCrossCorrelation = new JPanel();
   private JPanel panelAdvanced = new JPanel();
 
-  private BeveledBorder borderCoarseAlignment = new
-    BeveledBorder("Cross-correlation");
+  private BeveledBorder borderCoarseAlignment =
+    new BeveledBorder("Cross-correlation");
 
-  private JCheckBox chkBoxExcludeCentralPeak = new
-    JCheckBox("Exclude central peak due to fixed pattern noise");
+  private JCheckBox chkBoxExcludeCentralPeak =
+    new JCheckBox("Exclude central peak due to fixed pattern noise");
 
   private JToggleButton buttonCrossCorrelate =
     new JToggleButton("<html>Calculate<br>cross-correlation");
 
-  private LabeledTextField ltfInputFile =
-    new LabeledTextField("Input file: ");
+  private LabeledTextField ltfInputFile = new LabeledTextField("Input file: ");
   private LabeledTextField ltfOutputFile =
     new LabeledTextField("Output file: ");
   private LabeledTextField ltfPieceListFile =
@@ -53,8 +56,7 @@ public class CrossCorrelationPanel implements ContextMenu {
     new LabeledTextField("Taper percent: ");
   private LabeledTextField ltfViewList = new LabeledTextField("View list: ");
 
-
-  public CrossCorrelationPanel(String suffix){
+  public CrossCorrelationPanel(String suffix) {
     logSuffix = suffix;
     panelAdvanced.setLayout(new BoxLayout(panelAdvanced, BoxLayout.Y_AXIS));
 
@@ -67,8 +69,8 @@ public class CrossCorrelationPanel implements ContextMenu {
     panelAdvanced.add(ltfTaperPercent.getContainer());
     panelAdvanced.add(ltfViewList.getContainer());
 
-    panelCrossCorrelation.setLayout(new
-      BoxLayout(panelCrossCorrelation, BoxLayout.Y_AXIS));
+    panelCrossCorrelation.setLayout(
+      new BoxLayout(panelCrossCorrelation, BoxLayout.Y_AXIS));
     chkBoxExcludeCentralPeak.setAlignmentX((float) 0.5);
     buttonCrossCorrelate.setAlignmentX(0.5F);
     buttonCrossCorrelate.setPreferredSize(FixedDim.button2Line);
@@ -122,9 +124,9 @@ public class CrossCorrelationPanel implements ContextMenu {
       currentParam = "View list: ";
       tiltXcorrParams.setViewList(ltfViewList.getText());
     }
-    catch(FortranInputSyntaxException except) {
-	String message = currentParam + except.getMessage();
-	throw new FortranInputSyntaxException(message);
+    catch (FortranInputSyntaxException except) {
+      String message = currentParam + except.getMessage();
+      throw new FortranInputSyntaxException(message);
     }
   }
 
@@ -132,7 +134,7 @@ public class CrossCorrelationPanel implements ContextMenu {
     panelCrossCorrelation.setVisible(state);
   }
 
-  void setAdvanced(boolean state){
+  void setAdvanced(boolean state) {
     panelAdvanced.setVisible(state);
   }
 
@@ -148,15 +150,20 @@ public class CrossCorrelationPanel implements ContextMenu {
    * Right mouse button context menu
    */
   public void popUpContextMenu(MouseEvent mouseEvent) {
-    String[] manPagelabel = {"tiltxcorr"};
-    String[] manPage = {"tiltxcorr.html"};
-    String[] logFileLabel = {"xcorr"};
+    String[] manPagelabel = { "tiltxcorr" };
+    String[] manPage = { "tiltxcorr.html" };
+    String[] logFileLabel = { "xcorr" };
     String[] logFile = new String[1];
     logFile[0] = "xcorr" + logSuffix + ".log";
     ContextPopup contextPopup =
-      new ContextPopup(panelCrossCorrelation, mouseEvent,
-			manPagelabel, manPage,
-			logFileLabel, logFile);
+      new ContextPopup(
+        panelCrossCorrelation,
+        mouseEvent,
+        "Preliminary Steps",
+        manPagelabel,
+        manPage,
+        logFileLabel,
+        logFile);
   }
 
 }

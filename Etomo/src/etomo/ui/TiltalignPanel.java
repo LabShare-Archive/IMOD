@@ -23,6 +23,9 @@ import etomo.comscript.StringList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.3  2002/10/17 23:40:32  rickg
+ * <p> Added methods to set titl/mag and distortion defaults.
+ * <p>
  * <p> Revision 1.2  2002/10/16 23:20:36  rickg
  * <p> Reformat
  * <p>
@@ -78,7 +81,8 @@ public class TiltalignPanel implements ContextMenu {
     new LabeledTextField("Tilt angle additional group list: ");
 
   //  Local tilt angle pane
-  private JRadioButton rbLocalTiltAngleFixed = new JRadioButton("Fixed tilt angles");
+  private JRadioButton rbLocalTiltAngleFixed =
+    new JRadioButton("Fixed tilt angles");
   private JRadioButton rbLocalTiltAngleAll =
     new JRadioButton("Solve for all except minimum tilt");
   private JRadioButton rbLocalTiltAngleAutomap =
@@ -147,7 +151,8 @@ public class TiltalignPanel implements ContextMenu {
     new LabeledTextField("Compression additional group list: ");
 
   // Distortion pane
-  private JRadioButton rbDistortionNone = new JRadioButton("No distortion solution");
+  private JRadioButton rbDistortionNone =
+    new JRadioButton("No distortion solution");
   private JRadioButton rbDistortionCombined =
     new JRadioButton("X-stretch and skew with the same parameters");
   private JRadioButton rbDistortionIndependent =
@@ -155,7 +160,8 @@ public class TiltalignPanel implements ContextMenu {
   private ButtonGroup bgDistortionSolution = new ButtonGroup();
   private JPanel panelDistortionSolution = new JPanel();
 
-  private JRadioButton rbXstretchAll = new JRadioButton("Independently for each tilt");
+  private JRadioButton rbXstretchAll =
+    new JRadioButton("Independently for each tilt");
   JRadioButton rbXstretchAutomapLinear =
     new JRadioButton("Group x-stretch (first order fit)");
   private JRadioButton rbXstretchAutomapFixed =
@@ -168,7 +174,8 @@ public class TiltalignPanel implements ContextMenu {
   private LabeledTextField ltfXstretchAdditionalGroups =
     new LabeledTextField("X-stretch additional group list: ");
 
-  private JRadioButton rbSkewAll = new JRadioButton("Independently for each tilt");
+  private JRadioButton rbSkewAll =
+    new JRadioButton("Independently for each tilt");
   private JRadioButton rbSkewAutomapLinear =
     new JRadioButton("Group skew (first order fit)");
   private JRadioButton rbSkewAutomapFixed =
@@ -176,7 +183,8 @@ public class TiltalignPanel implements ContextMenu {
   private ButtonGroup bgSkewSolution = new ButtonGroup();
   private JPanel panelSkewSolution = new JPanel();
 
-  private LabeledTextField ltfSkewGroupSize = new LabeledTextField("Skew group size: ");
+  private LabeledTextField ltfSkewGroupSize =
+    new LabeledTextField("Skew group size: ");
   private LabeledTextField ltfSkewAdditionalGroups =
     new LabeledTextField("Skew additional group list: ");
 
@@ -751,13 +759,13 @@ public class TiltalignPanel implements ContextMenu {
     panelAdvanced.setVisible(state);
   }
 
-  void setTiltAndMagnificationDefaults(){
+  void setTiltAndMagnificationDefaults() {
     rbTiltAngleAll.setSelected(true);
     rbDistortionNone.setSelected(true);
     rbLocalDistortionNone.setSelected(true);
     updateEnabled();
   }
-  
+
   void setDistortionDefaults() {
     rbTiltAngleAutomap.setSelected(true);
     ltfTiltAngleGroupSize.setText(10);
@@ -768,7 +776,7 @@ public class TiltalignPanel implements ContextMenu {
     rbSkewAutomapLinear.setSelected(true);
     ltfSkewGroupSize.setText(11);
 
-    rbLocalDistortionIndependent.setSelected(true);    
+    rbLocalDistortionIndependent.setSelected(true);
     rbLocalXstretchAutomapLinear.setSelected(true);
     ltfLocalXstretchGroupSize.setText(7);
     rbLocalSkewAutomapLinear.setSelected(true);
@@ -776,7 +784,7 @@ public class TiltalignPanel implements ContextMenu {
 
     updateEnabled();
   }
-  
+
   void setLargestTab() {
     tabPane.setSelectedComponent(panelDistortionSolution);
   }
@@ -802,6 +810,7 @@ public class TiltalignPanel implements ContextMenu {
       new ContextPopup(
         panelGeneral,
         mouseEvent,
+        "FINAL ALIGNMENT",
         manPagelabel,
         manPage,
         logFileLabel,

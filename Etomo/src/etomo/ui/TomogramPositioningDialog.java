@@ -24,6 +24,10 @@ import etomo.comscript.TiltalignParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.4  2002/10/17 22:40:29  rickg
+ * <p> Added fileset name to window title
+ * <p> this reference removed applicationManager messages
+ * <p>
  * <p> Revision 1.3  2002/10/07 22:31:18  rickg
  * <p> removed unused imports
  * <p> reformat after emacs trashed it
@@ -308,6 +312,7 @@ public class TomogramPositioningDialog
       new ContextPopup(
         contentPane,
         mouseEvent,
+        "GENERATING THE TOMOGRAM",
         manPagelabel,
         manPage,
         logFileLabel,
