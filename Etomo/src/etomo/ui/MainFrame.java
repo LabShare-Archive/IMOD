@@ -23,6 +23,10 @@ import etomo.storage.EtomoFileFilter;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.6  2003/05/07 17:49:12  rickg
+ * <p> System property user.dir now defines the working directory
+ * <p> Updated status bar
+ * <p>
  * <p> Revision 2.5  2003/04/24 17:46:54  rickg
  * <p> Changed fileset name to dataset name
  * <p>
@@ -444,6 +448,8 @@ public class MainFrame extends JFrame implements ContextMenu {
       axisPanelB.setTomogramGenerationState(
         processTrack.getTomogramGenerationState(AxisID.SECOND));
     }
+    axisPanelA.setPostProcessingState(processTrack.getPostProcessingState());
+    
   }
 
   public void setPreProcessingState(ProcessState state, AxisID axisID) {
