@@ -120,14 +120,28 @@ echo "Enter a list of the points in tilt series $tolet for which you"
 echo "are sure of the corresponding point in tilt series $fromlet"
 echo " (ranges may be entered)."
 echo "Or just Return if the points are in one-to-one correspondence."
-set corrlist1 = "$<"
+#
+# Need to strip spaces out of these lists
+#
+set corrlistin = ($<)
+set corrlist1 = ""
+while ($#corrlistin > 0)
+    set corrlist1 = ${corrlist1}$corrlistin[1]
+    shift corrlistin
+end
+
 set corrtext1 = "gibberish"
 set corrtext2 = "gibberish"
 set corrlist2 = " "
-if ("$corrlist1" != "") then
+if ($corrlist1 != "") then
     set corrtext1 = "list of points in 1st"
     echo "Enter a list of the corresponding points in tilt series $fromlet"
-    set corrlist2 = "$<"
+    set corrlistin = ($<)
+    set corrlist2 = ""
+    while ($#corrlistin > 0)
+        set corrlist2 = ${corrlist2}$corrlistin[1]
+        shift corrlistin
+    end
     set corrtext2 = "list of corresponding points"
 endif
 
@@ -584,6 +598,9 @@ echo '$'"if (-e $backupname) $backupname" | cat >> $volcombine
 
 #
 #  $Log$
+#  Revision 3.10  2003/05/19 22:50:25  mast
+#  *** empty log message ***
+#
 #  Revision 3.9  2003/05/13 22:00:48  mast
 #  Fix getting x axis tilt for Windows/Cygwin
 #
