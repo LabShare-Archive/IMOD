@@ -194,7 +194,8 @@ DDEESSCCRRIIPPTTIIOONN
   This line allows an offset of DELANG degrees to be applied to all
   tilt angles and indicates that the tilt axis is offset in the
   projection images, cutting the X-axis at  NX/2. + DELXX instead of
-  NX/2.  DELANG positive rotates reconstructed sections anticlockwise
+  NX/2.  DELANG positive rotates reconstructed sections anticlockwise.
+  The DELXX entry is optional and defaults to 0 when omitted.
 
   PERPENDICULAR or  PARALLEL
   ------
@@ -233,7 +234,8 @@ DDEESSCCRRIIPPTTIIOONN
   before it is output.  If XOFFSET is positive, the slice will be
   shifted to the right, and the output will contain the left part of
   the whole potentially reconstructable area.  If ZOFFSET is positive,
-  the slice is shifted upward.
+  the slice is shifted upward.  The ZOFFSET entry is optional and
+  defaults to 0 when omitted.
   
   SLICE   ISLICE JSLICE IDELSLICE
   ------
@@ -241,7 +243,8 @@ DDEESSCCRRIIPPTTIIOONN
   is useful for test purposes. A slab from column ISLICE to column
   JSLICE (that is, along the medium axis, perpendicular to the tilt
   axis) of the volume is reconstructed, at intervals of IDELSLICE.
-  Slices are numbered from 0.
+  Slices are numbered from 0.  The IDELSLICE entry is optional and
+  defaults to 1 when omitted.
 
   SUBSETSTART IX IY
   ------
