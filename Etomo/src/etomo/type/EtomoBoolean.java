@@ -19,6 +19,11 @@ import etomo.comscript.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2004/12/29 23:47:59  sueh
+ * <p> bug# 567 fixing set(ComScriptCommand):  Pass the string retrieved from
+ * <p> scriptCommand to toInteger instead of checking whether the keyword is
+ * <p> there.  Boolean may be stored in different ways in a comscript.
+ * <p>
  * <p> Revision 1.3  2004/12/29 00:06:47  sueh
  * <p> bug# 567 Added set(ComScriptCommand) to get the value in
  * <p> ComScriptCommand value where thekeyword in ComScriptCommand
@@ -69,7 +74,14 @@ public class EtomoBoolean extends ConstEtomoBoolean {
 
   public ConstEtomoBoolean set(ComScriptCommand scriptCommand)
       throws InvalidParameterException {
-    value = toInteger(scriptCommand.getValue(name));
+    //If the keyword is missing, set value to false
+    //Since a missing keyword can mean false, it value shouldn't be set to null
+    if (!scriptCommand.hasKeyword(name)) {
+      value = 0;
+    }
+    else {
+      value = toInteger(scriptCommand.getValue(name));
+    }
     return this;
   }
 
