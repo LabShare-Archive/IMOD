@@ -7,12 +7,17 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.7  2003/12/25 00:49:30  mast
+#  Change newst to newstack
+#
 #  Revision 3.6  2003/10/24 02:14:00  mast
 #  source settmpdir to get tmpdir, better for Windows
 #
 #  Revision 3.5  2003/06/20 20:14:44  mast
 #  Let tmpdir be defined and fall back to /tmp if /usr/tmp does not exist
 #
+
+nohup
 
 # default setting for entering flipped versus unflipped coordinates, index
 # versus imod coordinates

@@ -8,10 +8,14 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.4  2003/12/12 21:40:13  mast
+#  Fix change in alterheader entry
+#
 #  Revision 3.3  2003/12/12 20:28:24  mast
 #  Add binning option and option to preserve header pixel size
 #
 
+nohup
 if ($#argv < 2) then
 cat <<EOCAT 
 Usage: reduceby2 [-p | -b n] Input_file Output_file

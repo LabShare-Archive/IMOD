@@ -7,6 +7,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.6  2003/10/24 02:14:00  mast
+#  source settmpdir to get tmpdir, better for Windows
+#
 #  Revision 3.5  2003/07/29 16:08:24  mast
 #  For Windows, needed to run script files explicitly with csh
 #
@@ -23,6 +26,8 @@
 #  Revision 3.1  2002/04/29 22:03:34  mast
 #  Made first write to $seclist be via >! rather than >>
 #
+
+nohup
 
 set xcfilter = "0.01,0.05,0,0.25"
 

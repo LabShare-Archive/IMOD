@@ -6,9 +6,12 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.10  2004/06/15 23:18:05  mast
+#  Fix the message that it gives when copying
+#
 #  Revision 3.9  2004/06/10 05:40:24  mast
-#  Made it copy solvezero.xf to solve.xf when it already has shifts, so it can be
-#  called in all cases after running solvematch
+#  Made it copy solvezero.xf to solve.xf when it already has shifts, so it can
+#  be called in all cases after running solvematch
 #
 #  Revision 3.8  2003/10/24 02:14:00  mast
 #  source settmpdir to get tmpdir, better for Windows
@@ -37,6 +40,7 @@
 #  Decreased padding in X and Z to compensate for increased sizes in Y
 #
 
+nohup
 set SIZELIMIT = 1600
 set MAXERROR = 3.0
 
