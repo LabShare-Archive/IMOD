@@ -7,6 +7,9 @@ include ../configure
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.6  2003/08/29 17:36:05  mast
+#  Add imodpsview
+#
 #  Revision 3.5  2003/08/25 18:48:43  mast
 #  Add runimodqtapp and setlibpath, created by setup
 #
@@ -27,7 +30,7 @@ include ../configure
 SCRIPTS = copytomocoms finishjoin makejoincom matchorwarp matchshifts\
  newst onepatchcorr patchcorr3d patchcrawl3d recombine reduceby2 selfalign\
  setupcombine setupcoms setuplong splitmrc squeezevol trimvol xf2xg xfalign\
- dm2mrc alignlog transferfid submfg runimodqtapp setlibpath imodpsview
+ dm2mrc alignlog transferfid submfg imodpsview $(GENERATED_SCRIPTS)
 
 all:
 
