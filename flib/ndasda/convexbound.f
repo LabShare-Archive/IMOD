@@ -10,11 +10,19 @@ c	  the centroid of the points under consideration as XCEN, YCEN.  It
 c	  returns the set of NVERT boundary points in BX, BY.  If PAD is
 c	  nonzero, it makes the boundary points be that distance away from the
 c	  outermost SX, SY points.  It uses Graham's scan algorithm.
+c
+c	  $Author$
+c
+c	  $Date$
+c
+c	  $Revision$
+c
+c	  $Log$
 
 	subroutine convexbound(sx,syin,npnts,fracomit,pad,bx,by,nvert,
-     &	    xcen,ycen)
+     &	    xcen,ycen,maxverts)
 	real*4 sx(*),syin(*),bx(*),by(*)
-	parameter (limpts=1000)
+	parameter (limpts=5000)
 	real*4 cendist(limpts),sy(limpts)
 	integer*2 inddist(limpts),iangtopt(limpts)
 	logical*1 vertex(limpts)
@@ -28,6 +36,11 @@ c
 	if(fracomit.lt.0.)then
 	  call avgsd(sx,npnts,avgx,sdx,semx)
 	  call avgsd(syin,npnts,avgy,sdy,semy)
+	endif
+	if (npnts.gt.limpts) then
+	  print *,
+     &	      'There are too many points for the arrays in CONVEXBOUND'
+	  return
 	endif
 c	  
 c	  start with pointers in numerical order
@@ -123,6 +136,11 @@ c
 	do i=1,nptuse
 	  ind=iangtopt(i)
 	  if(vertex(ind))then
+	    if (nvert.ge.maxverts) then
+	      print *,
+     &		  'The contour has too many vertices for the arrays'
+	      return
+	    endif
 	    nvert=nvert+1
 	    padfrac=0.
 	    if(pad.gt.0..and.cendist(ind).gt.1.e-10)
