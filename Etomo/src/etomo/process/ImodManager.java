@@ -21,6 +21,9 @@ import etomo.type.ConstMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.18  2003/09/02 21:58:08  rickg
+ * <p> Changed naming structure to match trial tomogram structure
+ * <p>
  * <p> Revision 2.17  2003/08/25 22:18:50  rickg
  * <p> Removed errant model opening for the tomogram where a matching
  * <p> or patch region model had been previously opened
@@ -159,7 +162,7 @@ public class ImodManager {
       coarseAlignedA = new ImodProcess(datasetName + ".preali");
       fineAlignedA = new ImodProcess(datasetName + ".ali");
       sampleA = new ImodProcess("top.rec mid.rec bot.rec", "tomopitch.mod");
-      fullVolumeA = new ImodProcess("full.rec");
+      fullVolumeA = new ImodProcess(datasetName + "_full.rec");
       fullVolumeA.setSwapYZ(true);
       combinedTomogram = fullVolumeA;
     }
