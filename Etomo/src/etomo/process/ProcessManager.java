@@ -20,6 +20,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.56  2005/03/08 01:58:30  sueh
+ * bug# 533 Adding midasEdges() and preblend().
+ *
  * Revision 3.55  2005/02/17 19:26:04  sueh
  * bug# 606 Pass AxisID when setting and getting makeZFactors,
  * newstFiducialessAlignment, and usedLocalAlignments.
@@ -897,6 +900,24 @@ public class ProcessManager extends BaseProcessManager {
     //  Start the system program thread
     startSystemProgramThread(commandLine);
   }
+  
+  public void midasBlendStack(AxisID axisID, float imageRotation) {
+
+    //  Construct the command line strings
+    String[] commandArray = new String[3];
+
+    String options = "-a " + String.valueOf(-1 * imageRotation) + " ";
+    String stack = getDatasetName() + axisID.getExtension() + ".bl ";
+    String xform = getDatasetName() + axisID.getExtension()
+      + ".prexf ";
+
+    String commandLine = ApplicationManager.getIMODBinPath() + "midas "
+      + options + stack + xform;
+
+    //  Start the system program thread
+    startSystemProgramThread(commandLine);
+  }
+
   
   public void midasEdges(AxisID axisID) {
 
