@@ -32,53 +32,12 @@
 $Date$
 
 $Revision$
-
-$Log$
-Revision 1.1.2.12  2003/01/29 17:50:38  mast
-New floating logic - float in imodDraw
-
-Revision 1.1.2.11  2003/01/29 01:32:51  mast
-changes for poor colormapping on SGI
-
-Revision 1.1.2.10  2003/01/27 02:30:06  mast
-Eliminate X includes
-
-Revision 1.1.2.9  2003/01/26 23:22:16  mast
-Qt version
-
-Revision 1.1.2.8  2003/01/13 01:09:51  mast
-got rid of cursor routine
-
-Revision 1.1.2.7  2003/01/06 15:52:16  mast
-changes for Qt version of slicer
-
-Revision 1.1.2.6  2003/01/02 15:41:21  mast
-add include of control.h
-
-Revision 1.1.2.5  2003/01/01 05:41:31  mast
-add stereo testing to qt visual selection
-
-Revision 1.1.2.4  2002/12/30 06:38:49  mast
-draw model view if image view is on
-
-Revision 1.1.2.3  2002/12/17 18:39:12  mast
-Implemented code for picking GL visuals for Qt
-
-Revision 1.1.2.2  2002/12/14 17:53:13  mast
-*** empty log message ***
-
-Revision 1.1.2.1  2002/12/14 05:40:43  mast
-new visual-assessing code
-
-Revision 3.2  2002/12/01 15:34:41  mast
-Changes to get clean compilation with g++
-
-Revision 3.1  2002/11/25 19:20:45  mast
-In imodDraw, eliminated conditional on USE_IMOD_CONTROL and stopped drawing
-xyz window separately (it is now in control list)
-
+Log at end of file
 */
+
 #include <qgl.h>
+#include <qcursor.h>
+#include <qbitmap.h>
 
 #include "imod.h"
 #include "b3dgfx.h"
@@ -89,6 +48,9 @@ xyz window separately (it is now in control list)
 #include "control.h"
 #include "xcramp.h"
 #include "dia_qtutils.h"
+
+#include "qcursor.bits"
+#include "qcursor_mask.bits"
 
 
 char *ImodRes_SGIStereoCommand(void)
@@ -130,6 +92,12 @@ int imod_display_init(ImodApp *ap, char **argv)
   ap->wzoom   = 1;
 
   ap->depth = imodFindQGLFormat(ap, argv);
+
+  // Set up the cursor for model mode
+  QBitmap bmCursor(qcursor_width, qcursor_height, qcursor_bits, true);
+  QBitmap bmMask(qcursor_width, qcursor_height, qcursor_mask_bits, true);
+  ap->modelCursor = new QCursor(bmCursor, bmMask, qcursor_x_hot, 
+                                qcursor_y_hot);
 
   diaSetTitle("Imod");
   return(0);
@@ -572,3 +540,53 @@ int imodFindQGLFormat(ImodApp *ap, char **argv)
   }
   return visual->colorBits;
 }
+
+/*
+$Log$
+Revision 4.1  2003/02/10 20:29:00  mast
+autox.cpp
+
+Revision 1.1.2.12  2003/01/29 17:50:38  mast
+New floating logic - float in imodDraw
+
+Revision 1.1.2.11  2003/01/29 01:32:51  mast
+changes for poor colormapping on SGI
+
+Revision 1.1.2.10  2003/01/27 02:30:06  mast
+Eliminate X includes
+
+Revision 1.1.2.9  2003/01/26 23:22:16  mast
+Qt version
+
+Revision 1.1.2.8  2003/01/13 01:09:51  mast
+got rid of cursor routine
+
+Revision 1.1.2.7  2003/01/06 15:52:16  mast
+changes for Qt version of slicer
+
+Revision 1.1.2.6  2003/01/02 15:41:21  mast
+add include of control.h
+
+Revision 1.1.2.5  2003/01/01 05:41:31  mast
+add stereo testing to qt visual selection
+
+Revision 1.1.2.4  2002/12/30 06:38:49  mast
+draw model view if image view is on
+
+Revision 1.1.2.3  2002/12/17 18:39:12  mast
+Implemented code for picking GL visuals for Qt
+
+Revision 1.1.2.2  2002/12/14 17:53:13  mast
+*** empty log message ***
+
+Revision 1.1.2.1  2002/12/14 05:40:43  mast
+new visual-assessing code
+
+Revision 3.2  2002/12/01 15:34:41  mast
+Changes to get clean compilation with g++
+
+Revision 3.1  2002/11/25 19:20:45  mast
+In imodDraw, eliminated conditional on USE_IMOD_CONTROL and stopped drawing
+xyz window separately (it is now in control list)
+
+*/
