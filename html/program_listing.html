@@ -133,8 +133,9 @@ image data.  Includes the following processing abilities.
 <HR>
 This section lists Fortran image processing programs for MRC image files,
 Fortran programs that work with IMOD models, and
-shell scripts that run these programs.  The programs
-prompt users for input or use command files; the shell scripts generally
+shell scripts that run these programs.  Most of programs
+prompt users for input or use command files, but many have been converted to
+take command line and keyword-value input.  The shell scripts generally
 provide a
 command line interface.
 <I>
@@ -161,7 +162,10 @@ command line interface.
 <LI><B><A HREF="man/boxstartend.html">boxstartend</A></B>
 : Clip out portions of an image around specified model points.
 <LI><B><A HREF="man/ccderaser.html">ccderaser</A></B>
-: Erase spot and line flaws in image from CCD camera.
+: Automatically remove X-rays, and erase spot and line flaws in image from 
+CCD camera.
+<LI><B><A HREF="man/chunksetup.html">chunksetup</A></B>
+: Set up command files for processing a volume in chunks.
 <LI><B><A HREF="man/edgeeraser.html">edgeeraser</A></B>
 : Erase bad parts of image near edge.
 <LI><B><A HREF="man/edmont.html">edmont</A></B>
@@ -174,6 +178,9 @@ command line interface.
 : Erase small flaws in image.
 <LI><b><A HREF="man/excise.html">excise</a></b>
 : Extracts images from specified areas in an image file.
+<LI><b><A HREF="man/extractmagrad.html">extractmagrad</a></b>
+: Extract magnification gradients for each image from extra header of image 
+file.
 <LI><b><A HREF="man/extractpieces.html">extractpieces</a></b>
 : Extract piece coordinates from header of montaged image file.
 <LI><b><A HREF="man/extracttilts.html">extracttilts</a></b>
@@ -196,10 +203,14 @@ command line interface.
 : Compute mean and SD images and mean intensity in subareas.
 <LI><b><A HREF="man/montagesize.html">montagesize</a></b>
 : Report actual X, Y, and Z dimensions of a montaged image file.
+<LI><b><A HREF="man/mtffilter.html">mtffilter</a></b>
+: Apply low pass and/or inverse MTF filter to 2D images or 3D FFTs.
 <LI><b><A HREF="man/newstack.html">newstack</a></b>
-: Create a new MRC image stack.
+: Create a new MRC image stack from existing MRC file(s).
 <LI><B><A HREF="man/newst.html">newst</A></B>
-: Command line front end to the newstack program.
+: Old command line front end to the newstack program (no longer needed).
+<LI><B><A HREF="man/processchunks.html">processchunks</A></B>
+: Run command files in parallel on multiple processors.
 <LI><b><A HREF="man/recombine.html">recombine</a></b>
 : Recombine an MRC file split apart with <A HREF="man/splitmrc.html">splitmrc</a>.
 <LI><b><A HREF="man/reducemont.html">reducemont</a></b>
@@ -249,7 +260,7 @@ X, Y, or Z axis
 <LI><b><A HREF="man/xftoxg.html">xftoxg</a></b>
 : Converts transforms between sections into alignment transforms.
 <LI><b>xf2xg</b>
-: Simple command line front end to xftoxg.
+: Old command line front end to xftoxg (no longer needed).
 </UL>
 
 <P>
@@ -329,7 +340,7 @@ sections.
 <LI><B><A HREF="man/matchorwarp.html">matchorwarp</A></B>
 : Find final transformation(s) between two volumes and make matching volume.
 <LI><B><A HREF="man/matchshifts.html">matchshifts</A></B>
-: Find X, Y, and Z shifts between two volumes by cross-correlation.
+: Find X, Y, and Z shifts between two volumes by cross-correlation (obsolete).
 <LI><B><A HREF="man/matchvol.html">matchvol</A></B>
 : Transform a volume to match another with a general linear transformation.
 <LI><B><A HREF="man/onepatchcorr.html">onepatchcorr</A></B>
@@ -343,7 +354,7 @@ sections.
 <LI><B><A HREF="man/repackseed.html">repackseed</A></B>
 : Eliminate empty contours from seed model produced by <b><A HREF="man/transferfid.html">transferfid</a></b>.
 <LI><B>reduceby2</B>
-: Bin image stack down by 2 in X and Y with <b><A HREF="man/reducemont.html">reducemont</a></b>; restore pixel size to 1 with <b><A HREF="man/alterheader.html">alterheader</a></b>.
+: Bin image stack down by 2 or more in X and Y with <b><A HREF="man/reducemont.html">reducemont</a></b>.
 <LI><B>setupcombine</B>
 : Generate command file for combining two tomograms.
 <LI><B><A HREF="man/solvematch.html">solvematch</A></B>
