@@ -19,6 +19,9 @@ import etomo.ApplicationManager;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.3  2003/11/21 23:54:49  sueh
+ * <p> bug242 Added toString() function
+ * <p>
  * <p> Revision 3.2  2003/11/12 17:14:36  sueh
  * <p> removing debug prints
  * <p>
@@ -137,6 +140,7 @@ public class ImodProcess {
 	private boolean fillCache = false;
   private boolean useModv = false;
   private boolean outputWindowID = true;
+  private File workingDirectory = null;
   
 	private Thread imodThread;
 
@@ -185,6 +189,10 @@ public class ImodProcess {
 		this.modelName = modelName;
 	}
 
+
+  public void setWorkingDirectory(File workingDirectory) {
+    this.workingDirectory = workingDirectory;
+  }
 	/**
 	 * Open the 3dmod process if is not already open.
 	 */
@@ -227,6 +235,9 @@ public class ImodProcess {
 		String command =
 			imodBinPath + "3dmod " + options + datasetName + " " + modelName;
 		InteractiveSystemProgram imod = new InteractiveSystemProgram(command);
+    if (workingDirectory != null) {
+      imod.setWorkingDirectory(workingDirectory);
+    }
 
 		//  Start the 3dmod program thread and wait for it to finish
 		imodThread = new Thread(imod);

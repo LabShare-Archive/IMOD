@@ -3,6 +3,7 @@ package etomo.process;
 import java.lang.IllegalArgumentException;
 //import java.lang.IllegalStateException;
 import java.lang.NullPointerException;
+import java.io.File;
 
 import etomo.process.ImodProcess;
 import etomo.process.SystemProcessException;
@@ -56,6 +57,10 @@ import etomo.type.AxisID;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.4  2004/02/05 18:04:12  sueh
+ * <p> $bug# 306 added setSwapYZ - used to set swapYZ before
+ * <p> $opening 3dmod
+ * <p> $
  * <p> $Revision 1.3  2004/02/04 18:11:03  sueh
  * <p> $bug# 171 return window id when running 3dmodv, so that
  * <p> $3dmodv can be closed automatically
@@ -211,7 +216,12 @@ public class ImodState {
   public void setSwapYZ(boolean swapYZ) {
       this.swapYZ = swapYZ;
       process.setSwapYZ(swapYZ);
-    }
+  }
+  
+  public void setWorkingDirectory(File workingDirectory) {
+    process.setWorkingDirectory(workingDirectory);
+  }
+
 
   //Set functions
   
