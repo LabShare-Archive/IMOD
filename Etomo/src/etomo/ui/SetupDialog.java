@@ -23,6 +23,9 @@ import etomo.storage.StackFileFilter;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.11  2002/12/19 00:30:26  rickg
+ * <p> app manager and root pane moved to super class
+ * <p>
  * <p> Revision 1.10  2002/12/09 04:17:07  rickg
  * <p> Added stack file filter to open dialog
  * <p>
@@ -150,6 +153,11 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     buttonPostpone.setText("Use existing coms");
     buttonExecute.setText("Create com scripts");
 
+
+    // There are no advanced settings for this dialog, remove the advanced
+    // button
+    panelExitButtons.remove(buttonAdvanced);
+    
     //  Add the panes to the dialog box
     rootPanel.add(panelDataParameters);
     rootPanel.add(Box.createVerticalGlue());
@@ -163,6 +171,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     //  Mouse adapter for context menu
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
     rootPanel.addMouseListener(mouseAdapter);
+
 
     // Calcute the necessary window size
     pack();

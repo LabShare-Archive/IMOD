@@ -22,6 +22,9 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.6  2002/12/19 06:02:57  rickg
+ * <p> Implementing advanced parameters handling
+ * <p>
  * <p> Revision 1.5  2002/12/19 00:30:05  rickg
  * <p> app manager and root pane moved to super class
  * <p>
@@ -154,13 +157,13 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu {
     panelFiducialModel.addMouseListener(mouseAdapter);
 
     //  Set the advanced state to the default, this also calls pack()
-    setAdvanced(isAdvanced);
+    updateAdvanced(isAdvanced);
   }
 
   /**
    * Set the advanced state for the dialog box
    */
-  public void setAdvanced(boolean state) {
+  public void updateAdvanced(boolean state) {
     panelBeadtrackA.setAdvanced(state);
     panelBeadtrackB.setAdvanced(state);
     pack();
@@ -296,7 +299,7 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu {
 
   public void buttonAdvancedAction(ActionEvent event) {
     super.buttonAdvancedAction(event);
-    setAdvanced(isAdvanced);
+    updateAdvanced(isAdvanced);
   }
 }
 

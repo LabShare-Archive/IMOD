@@ -22,6 +22,9 @@ import etomo.comscript.CCDEraserParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.5  2002/12/19 00:30:26  rickg
+ * <p> app manager and root pane moved to super class
+ * <p>
  * <p> Revision 1.4  2002/11/19 02:40:37  rickg
  * <p> Label spelling correction
  * <p>
@@ -108,18 +111,9 @@ public class PreProcessingDialog extends ProcessDialog {
     panelCCDEraserB.setButtonErasePixelsActionListener(
       new PreProcDialogErasePixelsBActionAdapter(this));
 
-    //
-    //  Set the default advanced state for the window
-    //  FIXME: this needs to be defined by the options and
-    //  the last state it was opened in
-    //
-    panelCCDEraserA.setAdvanced(false);
-    panelCCDEraserB.setAdvanced(false);
-
-    //
-    // Calcute the necessary window size
-    //
-    pack();
+    //  Set the default advanced state for the window, this also executes
+    // pack()
+    updateAdvanced();
   }
 
   /**
@@ -149,19 +143,21 @@ public class PreProcessingDialog extends ProcessDialog {
       panelCCDEraserA.getParameters(ccdEraserParams);
     }
   }
+
   public void buttonAdvancedAction(ActionEvent event) {
     super.buttonAdvancedAction(event);
-    if (isAdvanced) {
-      panelCCDEraserA.setAdvanced(true);
-      panelCCDEraserB.setAdvanced(true);
-    }
-    else {
-      panelCCDEraserA.setAdvanced(false);
-      panelCCDEraserB.setAdvanced(false);
-    }
-    pack();
+    updateAdvanced();
   }
 
+  /**
+   * Update the dialog with the current advanced state
+   */
+  private void updateAdvanced() {
+    panelCCDEraserA.setAdvanced(isAdvanced);
+    panelCCDEraserB.setAdvanced(isAdvanced);
+    pack();
+  }
+  
   public void setEnabledB(boolean state) {
     panelCCDEraserB.setVisible(state);
   }

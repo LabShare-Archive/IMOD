@@ -18,6 +18,9 @@ import etomo.ApplicationManager;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.4  2002/12/19 00:30:26  rickg
+ * <p> app manager and root pane moved to super class
+ * <p>
  * <p> Revision 1.3  2002/10/17 22:39:55  rickg
  * <p> Added fileset name to window title
  * <p> this reference removed applicationManager messages
@@ -47,12 +50,17 @@ public class PostProcessingDialog extends ProcessDialog {
     rootPanel.add(panelExitButtons);
     rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
 
-    //
-    // Calcute the necessary window size
-    //
-    pack();
+    // Set the default advanced dialog state, also executes pack()
+    updateAdvanced();
+
   }
 
+  /**
+   * Update the dialog with the current advanced state
+   */
+  private void updateAdvanced() {
+    pack();
+  }
   //
   //  Action function overides for buttons
   //

@@ -24,6 +24,9 @@ import etomo.comscript.TiltalignParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.6  2002/12/19 00:30:26  rickg
+ * <p> app manager and root pane moved to super class
+ * <p>
  * <p> Revision 1.5  2002/11/14 21:18:37  rickg
  * <p> Added anchors into the tomoguide
  * <p>
@@ -97,7 +100,7 @@ public class TomogramPositioningDialog
 
   public TomogramPositioningDialog(ApplicationManager appMgr) {
     super(appMgr);
-    
+
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     setTitle("eTomo Tomogram Position: " + applicationManager.getFilesetName());
     buttonExecute.setText("Done");
@@ -177,20 +180,12 @@ public class TomogramPositioningDialog
     rootPanel.add(panelExitButtons);
     rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
 
-    //  Set the default advanced state for the window
-    //  FIXME: this needs to be defined by the options and
-    //  the last state it was opened in
-    setAdvanced(isAdvanced);
-
     //  Mouse adapter for context menu
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
     rootPanel.addMouseListener(mouseAdapter);
 
-    //
-    // Calcute the necessary window size
-    //
-    pack();
-
+    // Set the default advanced dialog state, also executes pack()
+    updateAdvanced();
   }
 
   //  Set the tilt.com parameters that are editable in this dialog
@@ -389,14 +384,13 @@ public class TomogramPositioningDialog
 
   public void buttonAdvancedAction(ActionEvent event) {
     super.buttonAdvancedAction(event);
-    setAdvanced(isAdvanced);
+    updateAdvanced();
   }
 
-  void setAdvanced(boolean state) {
-    ltfTiltAxisXShiftA.setVisible(state);
-    ltfTiltAxisXShiftB.setVisible(state);
+  void updateAdvanced() {
+    ltfTiltAxisXShiftA.setVisible(isAdvanced);
+    ltfTiltAxisXShiftB.setVisible(isAdvanced);
     pack();
-
   }
 }
 

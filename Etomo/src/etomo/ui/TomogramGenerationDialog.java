@@ -21,6 +21,9 @@ import etomo.comscript.TiltParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.5  2002/12/19 00:30:26  rickg
+ * <p> app manager and root pane moved to super class
+ * <p>
  * <p> Revision 1.4  2002/11/14 21:18:37  rickg
  * <p> Added anchors into the tomoguide
  * <p>
@@ -148,10 +151,8 @@ public class TomogramGenerationDialog
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
     rootPanel.addMouseListener(mouseAdapter);
 
-    //
-    // Calcute the necessary window size
-    //
-    pack();
+    // Set the default advanced dialog state, also executes pack()
+    updateAdvanced();
 
   }
 
@@ -228,6 +229,14 @@ public class TomogramGenerationDialog
     repaint();
   }
 
+
+  /**
+   * Update the dialog with the current advanced state
+   */
+  private void updateAdvanced() {
+    pack();
+  }
+  
   /**
    * Right mouse button context menu
    */
