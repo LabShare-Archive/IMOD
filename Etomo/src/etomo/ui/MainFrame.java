@@ -52,6 +52,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.7  2004/07/16 23:01:03  sueh
+ * <p> bug# 501 sending System.out prints only when debug is set
+ * <p>
  * <p> Revision 3.6  2004/07/16 22:05:13  sueh
  * <p> bug# 501 adjusting divider to fix problem with
  * <p> JsplitPane.resetToPreferedSizes() that happens when
@@ -210,7 +213,9 @@ public class MainFrame extends JFrame implements ContextMenu {
   private JMenuItem[] menuMRUList = new JMenuItem[nMRUFileMax];
 
   private JMenu menuOptions = new JMenu("Options");
-  private JMenuItem menuAdvanced = new JMenuItem("Advanced", KeyEvent.VK_A);
+  private JMenuItem menuAxisA = new JMenuItem("Axis A", KeyEvent.VK_A);
+  private JMenuItem menuAxisB = new JMenuItem("Axis B", KeyEvent.VK_B);
+  private JMenuItem menuAxisBoth = new JMenuItem("Both Axes", KeyEvent.VK_2);
   private JMenuItem menuSettings = new JMenuItem("Settings", KeyEvent.VK_S);
   private JMenuItem menuFitWindow = new JMenuItem("Fit Window", KeyEvent.VK_F);
 
@@ -572,9 +577,14 @@ public class MainFrame extends JFrame implements ContextMenu {
     if (command.equals(menuSettings.getActionCommand())) {
       applicationManager.openSettingsDialog();
     }
-    else if (command.equals(menuAdvanced.getActionCommand())) {
-      applicationManager.setAdvanced(!applicationManager.getAdvanced());
-      setAdvancedLabel();
+    else if (command.equals(menuAxisA.getActionCommand())) {
+      setDividerLocation(1);
+    }
+    else if (command.equals(menuAxisB.getActionCommand())) {
+      setDividerLocation(0);
+    }
+    else if (command.equals(menuAxisBoth.getActionCommand())) {
+      setDividerLocation(.5);
     }
     else if (command.equals(menuFitWindow.getActionCommand())) {
       //find out width before calling packAxis because setDividerLocation() with
@@ -974,18 +984,6 @@ public class MainFrame extends JFrame implements ContextMenu {
   }
 
   /**
-   * Set the advanced label to to the opposite state
-   */
-  private void setAdvancedLabel() {
-    if (applicationManager.getAdvanced()) {
-      menuAdvanced.setText("Advanced X");
-    }
-    else {
-      menuAdvanced.setText("Advanced");
-    }
-  }
-
-  /**
    * Create the menus for the main window
    */
   private void createMenus() {
@@ -998,9 +996,13 @@ public class MainFrame extends JFrame implements ContextMenu {
     menuSettings.setAccelerator(
       KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.CTRL_MASK));
 
-    menuAdvanced.setAccelerator(
+    menuAxisA.setAccelerator(
       KeyStroke.getKeyStroke(KeyEvent.VK_A, ActionEvent.CTRL_MASK));
-
+    menuAxisB.setAccelerator(
+      KeyStroke.getKeyStroke(KeyEvent.VK_B, ActionEvent.CTRL_MASK));
+    menuAxisBoth.setAccelerator(
+      KeyStroke.getKeyStroke(KeyEvent.VK_2, ActionEvent.CTRL_MASK));
+      
     menuFitWindow.setAccelerator(
       KeyStroke.getKeyStroke(KeyEvent.VK_F, ActionEvent.CTRL_MASK));
 
@@ -1016,8 +1018,10 @@ public class MainFrame extends JFrame implements ContextMenu {
       new OptionsActionListener(this);
     menuSettings.addActionListener(optionsActionListener);
     menuFitWindow.addActionListener(optionsActionListener);
-    menuAdvanced.addActionListener(optionsActionListener);
-
+    menuAxisA.addActionListener(optionsActionListener);
+    menuAxisB.addActionListener(optionsActionListener);
+    menuAxisBoth.addActionListener(optionsActionListener);
+    
     HelpActionListener helpActionListener = new HelpActionListener(this);
     menuTomoGuide.addActionListener(helpActionListener);
     menuImodGuide.addActionListener(helpActionListener);
@@ -1045,8 +1049,9 @@ public class MainFrame extends JFrame implements ContextMenu {
 
     // Options menu
     menuOptions.add(menuSettings);
-    setAdvancedLabel();
-    menuOptions.add(menuAdvanced);
+    menuOptions.add(menuAxisA);
+    menuOptions.add(menuAxisB);
+    menuOptions.add(menuAxisBoth);
     menuOptions.add(menuFitWindow);
 
     // Help menu
