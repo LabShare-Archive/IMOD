@@ -174,6 +174,16 @@ int main( int argc, char *argv[])
   App->cvi = &vi;
   App->base = Rampbase;
 
+  /* Set up fixed indexes */
+  App->background   = IMOD_BACKGROUND;
+  App->foreground   = IMOD_FOREGROUND;
+  App->select       = IMOD_SELECT;
+  App->shadow       = IMOD_SHADOW;
+  App->endpoint     = IMOD_ENDPOINT;
+  App->bgnpoint     = IMOD_BGNPOINT;
+  App->curpoint     = IMOD_CURPOINT;
+  App->ghost        = IMOD_GHOST;
+
   /*DNM: prescan for debug, ci and style flags before the display_init */
   /* Cancel forking on debug or -W output */
   for (i = 1; i < argc; i++){
@@ -991,6 +1001,9 @@ int imodColorValue(int inColor)
 
 /*
 $Log$
+Revision 4.38  2004/07/07 19:25:29  mast
+Changed exit(-1) to exit(3) for Cygwin
+
 Revision 4.37  2004/06/23 03:34:54  mast
 Change in exiting sequence to allow generic settings to be saved
 
