@@ -16,6 +16,9 @@ import etomo.type.EtomoNumber;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.8  2005/01/08 01:45:04  sueh
+ * <p> bug# 578 Place the logic to create the z factor file into a static function.
+ * <p>
  * <p> Revision 3.7  2005/01/06 18:09:28  sueh
  * <p> bug# 567 Changed setOutputZFactorFile() to set it based on member
  * <p> variable values.  Bug# 578 Made the logic of when to use outputZFileFile()
@@ -127,6 +130,7 @@ public class TiltalignParam extends ConstTiltalignParam implements CommandParam 
     else {
       modelFile = scriptCommand.getValue(modelFileString);
       imageFile = scriptCommand.getValue(imageFileString);
+      outputModelAndResidual = scriptCommand.getValue(outputModelAndResidualString);
       outputModelFile = scriptCommand.getValue(outputModelFileString);
       outputResidualFile = scriptCommand.getValue(outputResidualFileString);
 
@@ -301,6 +305,7 @@ public class TiltalignParam extends ConstTiltalignParam implements CommandParam 
     imageFile = oldParam.getImageFile();
     //OldTiltParam only looks for IMODFiducialPosFile.  It does not check for
     //the model file or the residual file
+    outputModelAndResidual = oldParam.getIMODFiducialPosFile();
     outputModelFile = oldParam.getIMODFiducialPosFile() + modelFileExtension;
     outputResidualFile = oldParam.getIMODFiducialPosFile()
         + residualFileExtension;
