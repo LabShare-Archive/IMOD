@@ -1,10 +1,19 @@
-/*
- * Created on May 22, 2003
- *
- * To change this generated comment go to 
- * Window>Preferences>Java>Code Generation>Code and Comments
- */
 package etomo.process;
+
+/**
+ * <p>Description: </p>
+ * 
+ * <p>Copyright: Copyright (c) 2002, 2003</p>
+ * 
+  * <p>Organization: Boulder Laboratory for 3D Electron Microscopy (BL3dEM),
+ * University of Colorado</p>
+ * 
+ * @author $Author$
+ * 
+ * @version $Revision$
+ * 
+ * <p> $Log$ </p>
+ */
 
 import java.io.BufferedReader;
 import java.io.File;
