@@ -32,6 +32,10 @@ import etomo.type.FiducialMatch;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.4  2004/03/22 23:22:49  sueh
+ * <p> bug# 250 synchronize tab with combineParams, matchorwarp does affect Setup
+ * <p> tab
+ * <p>
  * <p> Revision 3.3  2004/03/01 23:59:54  sueh
  * <p> bug# 250 add getCombineParams()
  * <p> Call combine and restart functions with tab information
@@ -103,8 +107,10 @@ public class InitialCombinePanel implements ContextMenu {
     new LabeledTextField("Residual Threshold: ");
 
   private JPanel pnlModelSelect = new JPanel();
+  private JPanel pnlModelSelectCheckBoxes = new JPanel();
   private JCheckBox cbUseModel =
     new JCheckBox("Use models of corresponding points, not cross-correlation");
+  private JCheckBox cbBinBy2 = new JCheckBox("Open 3dmod in binned by 2 mode");
   private MultiLineButton btnImodMatchModels =
     new MultiLineButton("<html><b>Create Matching Models in 3dmod</b>");
 
@@ -142,6 +148,11 @@ public class InitialCombinePanel implements ContextMenu {
 
     pnlModelSelect.setLayout(new BoxLayout(pnlModelSelect, BoxLayout.X_AXIS));
     pnlModelSelect.add(cbUseModel);
+    pnlModelSelect.add(cbBinBy2);
+    pnlModelSelectCheckBoxes.setLayout(new BoxLayout(pnlModelSelectCheckBoxes, BoxLayout.Y_AXIS));
+    pnlModelSelectCheckBoxes.add(cbUseModel);
+    pnlModelSelectCheckBoxes.add(cbBinBy2);
+    pnlModelSelect.add(pnlModelSelectCheckBoxes);
     pnlModelSelect.add(btnImodMatchModels);
     pnlSolvematch.add(pnlModelSelect);
     pnlSolvematch.add(Box.createRigidArea(FixedDim.x0_y5));
@@ -262,6 +273,14 @@ public class InitialCombinePanel implements ContextMenu {
   protected boolean getUseMatchingModels() {
     return cbUseModel.isSelected();
   }
+  
+  void setBinBy2(boolean state) {
+    cbBinBy2.setSelected(state);
+  }
+  
+  protected boolean getBinBy2() {
+    return cbBinBy2.isSelected();
+  }
 
   /**
    * Right mouse button context menu
@@ -293,7 +312,7 @@ public class InitialCombinePanel implements ContextMenu {
     if (event
       .getActionCommand()
       .equals(btnImodMatchModels.getActionCommand())) {
-      applicationManager.imodMatchingModel();
+      applicationManager.imodMatchingModel(TomogramCombinationDialog.INITIAL_TAB);
     }
 
     if (event.getActionCommand().equals(btnMatchcheck.getActionCommand())) {
@@ -371,7 +390,12 @@ public class InitialCombinePanel implements ContextMenu {
       "Use models of corresponding points instead of cross-correlation to find"
         + " the shifts between volumes.";
     cbUseModel.setToolTipText(tooltipFormatter.setText(text).format());
-
+    
+    text =
+      "Using binning by 2 when opening matching models to allow the two 3dmods "
+        + "to fit into the computer's memory.";
+    cbBinBy2.setToolTipText(tooltipFormatter.setText(text).format());
+    
     text = "Open both volumes in 3dmod to make models of corresponding points.";
     btnImodMatchModels.setToolTipText(tooltipFormatter.setText(text).format());
 
