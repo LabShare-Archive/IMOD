@@ -38,13 +38,6 @@ Log at end of file */
 #include <math.h>
 #include "mrcfiles.h"
 
-/* These defines are OK since all I/O in file is to MRC files */
-#ifdef WIN32_BIGFILE
-#define fseek b3dFseek 
-#define fread b3dFread 
-#define fwrite b3dFwrite 
-#endif
-
 static int mrcReadSectionAny(struct MRCheader *hdata, struct LoadInfo *li,
                              unsigned char *buf, int cz, int readY, int byte);
 
@@ -209,7 +202,7 @@ static int mrcReadSectionAny(struct MRCheader *hdata, struct LoadInfo *li,
     /* If reading Y, seek at end of line gets to next section, first seek
        is small and seek to starting Z is big */
     seek_endline = pixSize * (nx - urx - 1 + nx * ny - nx);
-    fseek(fin, hdata->headerSize + (cz * nx * pixSize),  SEEK_SET);
+    b3dFseek(fin, hdata->headerSize + (cz * nx * pixSize),  SEEK_SET);
     if (lly)
       mrc_big_seek(fin, 0, lly, nx * ny * pixSize, SEEK_CUR);
 
@@ -220,7 +213,7 @@ static int mrcReadSectionAny(struct MRCheader *hdata, struct LoadInfo *li,
     seek_endline = pixSize * (nx - urx - 1);
     mrc_big_seek(fin, hdata->headerSize, cz, nx * ny * pixSize,  SEEK_SET);
     if (lly)
-      fseek(fin, lly * nx * pixSize, SEEK_CUR);
+      b3dFseek(fin, lly * nx * pixSize, SEEK_CUR);
   }
   if (seek_endline < 0)
     seek_endline = 0;
@@ -228,8 +221,8 @@ static int mrcReadSectionAny(struct MRCheader *hdata, struct LoadInfo *li,
   /* Start loop on Y and read a line of data */
   for (j = lly; j <= ury; j++){
     if (seek_line)
-      fseek(fin, seek_line, SEEK_CUR);
-    if (fread(bdata, pixSize, xsize, fin) != xsize) {
+      b3dFseek(fin, seek_line, SEEK_CUR);
+    if (b3dFread(bdata, pixSize, xsize, fin) != xsize) {
       b3dError(stderr, "ERROR: mrcReadSectionAny - reading data from file.");
       if (needData)
         free(sdata);
@@ -313,7 +306,7 @@ static int mrcReadSectionAny(struct MRCheader *hdata, struct LoadInfo *li,
 
     /* End loop on Y */
     if (seek_endline)
-      fseek(fin, seek_endline, SEEK_CUR);
+      b3dFseek(fin, seek_endline, SEEK_CUR);
   }
 
   if (needData)
@@ -325,6 +318,9 @@ static int mrcReadSectionAny(struct MRCheader *hdata, struct LoadInfo *li,
 
 /*
 $Log$
+Revision 3.3  2004/01/08 06:42:19  mast
+Fixed reading of complex data and got scale factor from mrcfiles routines
+
 Revision 3.2  2004/01/05 17:37:12  mast
 Rewrote as a single input routine that branches for processing each line
 
