@@ -25,6 +25,10 @@ import junit.framework.TestCase;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.5  2004/11/24 22:15:47  sueh
+ * <p> bug# 520 Initializing, creating, and testing testDir in the constructor and
+ * <p> using it everywhere in MetaDataTest.
+ * <p>
  * <p> Revision 3.4  2004/11/24 01:28:41  sueh
  * <p> bug# 520 MetaDataTest(): Getting the correct file path for error reporting.
  * <p>
@@ -52,7 +56,7 @@ public class MetaDataTest extends TestCase {
   
   private File testDir;
 
-  public MetaDataTest() throws IOException, InvalidParameterException {
+  protected void setUp() throws Exception {
     testDir = new File(new File(EtomoDirector.getInstance().getCurrentPropertyUserDir(), TypeTests.testRoot), testDirectory);
     if (!testDir.exists()) {
       assertTrue(testDir.mkdirs());
