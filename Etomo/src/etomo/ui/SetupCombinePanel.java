@@ -43,6 +43,10 @@ import etomo.type.FiducialMatch;
  * 
  * <p>
  * $Log$
+ * Revision 3.3  2004/03/05 18:20:59  sueh
+ * bug# 250 change setUseMatchingModels() - set to Both Sides when
+ * Use Model is turned off, this is the default in the com script creation
+ *
  * Revision 3.2  2004/02/27 20:02:46  sueh
  * bug# 250 added getUseMatchingModels()
  * added setUseMatchingModels()
@@ -240,6 +244,7 @@ public class SetupCombinePanel implements ContextMenu {
   private LabeledTextField ltfYMax = new LabeledTextField("Y axis max: ");
   private LabeledTextField ltfZMin = new LabeledTextField("Z axis min: ");
   private LabeledTextField ltfZMax = new LabeledTextField("Z axis max: ");
+  private int maxZMax = 0;
 
   private JPanel pnlTempDirectory = new JPanel();
   private LabeledTextField ltfTempDirectory =
@@ -481,6 +486,7 @@ public class SetupCombinePanel implements ContextMenu {
     ltfYMax.setText(combineParams.getPatchYMax());
     ltfZMin.setText(combineParams.getPatchZMin());
     ltfZMax.setText(combineParams.getPatchZMax());
+    maxZMax = combineParams.getMaxPatchZMax();
 
     ltfTempDirectory.setText(combineParams.getTempDirectory());
 
@@ -540,6 +546,7 @@ public class SetupCombinePanel implements ContextMenu {
       combineParams.setPatchZMin(Integer.parseInt(ltfZMin.getText()));
       badParameter = ltfZMax.getLabel();
       combineParams.setPatchZMax(Integer.parseInt(ltfZMax.getText()));
+      combineParams.setMaxPatchZMax(maxZMax);
       badParameter = "unknown";
 
       combineParams.setTempDirectory(ltfTempDirectory.getText());
