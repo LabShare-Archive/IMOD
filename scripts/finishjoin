@@ -7,6 +7,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.9  2004/11/09 21:24:56  mast
+#  Change terminology to slices  in usage statement
+#
 #  Revision 3.8  2004/11/08 18:12:50  mast
 #  Name the trial output file differently
 #
@@ -56,6 +59,7 @@ cat <<EOF
                       pixels.
         -m[axsize]    Just compute the maximum size and offsets needed to
                       contain all of the transformed data, then exit
+        -P            Output process ID
 EOF
 exit 0
 endif
@@ -105,6 +109,10 @@ while ($#argv > 2 && $joinroot == "")
       breaksw
     case -m*:
       set maxsize = 1
+      shift
+      breaksw
+    case -P:
+      echo2 Shell PID: $$
       shift
       breaksw
     default:

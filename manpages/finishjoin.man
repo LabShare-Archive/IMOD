@@ -56,6 +56,9 @@ option is not entered.
 Just compute the maximum size and offsets needed to contain the transformed
 images from all of the sections, given the current transformations.  No
 image file will be created.
+.TP 
+.B -P
+Output process ID.
 .SH FILES
 The program assumes the existence of several files with the given root name,
 especially "root_name".info and "root_name".xf.
