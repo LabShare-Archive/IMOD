@@ -28,6 +28,10 @@ import etomo.type.ConstMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.29  2005/03/02 23:13:59  sueh
+ * <p> bug# 533 Adding -fr (frames) to ignore montaging information and
+ * <p> display the stack frame by frame.
+ * <p>
  * <p> Revision 3.28  2004/12/04 01:26:34  sueh
  * <p> bug# 557 Added SQUEEZED_VOLUME_KEY.
  * <p>
@@ -790,19 +794,31 @@ public class ImodManager {
     }
   }
   
-  public void setFrames(String key, AxisID axisID, 
-      boolean frames)
+  public void setFrames(String key, AxisID axisID, boolean frames)
       throws AxisTypeException, SystemProcessException {
-      key = getPrivateKey(key);
-      ImodState imodState = get(key, axisID);
-      if (imodState == null) {
-        newImod(key, axisID);
-      }
-      if (imodState != null) {
-        imodState.setFrames(frames);
-      }
+    key = getPrivateKey(key);
+    ImodState imodState = get(key, axisID);
+    if (imodState == null) {
+      newImod(key, axisID);
     }
-
+    if (imodState != null) {
+      imodState.setFrames(frames);
+    }
+  }
+  
+  public void setPieceListFileName(String key, AxisID axisID,
+      String pieceListFileName) throws AxisTypeException,
+      SystemProcessException {
+    key = getPrivateKey(key);
+    ImodState imodState = get(key, axisID);
+    if (imodState == null) {
+      newImod(key, axisID);
+    }
+    if (imodState != null) {
+      imodState.setPieceListFileName(pieceListFileName);
+    }
+  }
+  
   public void setWorkingDirectory(
     String key,
     AxisID axisID,

@@ -23,6 +23,10 @@ import etomo.EtomoDirector;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.22  2005/03/02 23:14:19  sueh
+ * <p> bug# 533 Adding -fr (frames) to ignore montaging information and
+ * <p> display the stack frame by frame.
+ * <p>
  * <p> Revision 3.21  2004/12/14 01:35:09  sueh
  * <p> bug# 373 Getting a list of dataset names with datasetNameArray.  Do not
  * <p> add the model name to the command if the model name is "".
@@ -247,6 +251,7 @@ public class ImodProcess {
   private Vector sendArguments = new Vector();
   private String[] datasetNameArray = null;
   private boolean frames = false;
+  private String pieceListFileName = null;
 
   private Thread imodThread;
 
@@ -304,6 +309,10 @@ public class ImodProcess {
   public void setFrames(boolean frames) {
     this.frames = frames;
   }
+  
+  public void setPieceListFileName(String pieceListFileName) {
+    this.pieceListFileName = pieceListFileName;
+  }
 
   /**
    * Specify or change the model name
@@ -353,6 +362,11 @@ public class ImodProcess {
     }
     if (frames) {
       commandOptions.add("-f");
+    }
+    
+    if (pieceListFileName != null && pieceListFileName.matches("\\S+")) {
+      commandOptions.add("-p");
+      commandOptions.add(pieceListFileName);
     }
 
     if (modelView) {

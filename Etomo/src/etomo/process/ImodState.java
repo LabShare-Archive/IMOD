@@ -172,6 +172,10 @@ import etomo.type.AxisID;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.23  2005/03/02 23:14:54  sueh
+ * <p> $bug# 533 Adding -fr (frames) to ignore montaging information and
+ * <p> $display the stack frame by frame.
+ * <p> $
  * <p> $Revision 1.22  2004/12/14 01:36:21  sueh
  * <p> $bug# 373 Putting a list of dataset names in a string array.
  * <p> $
@@ -563,6 +567,7 @@ public class ImodState {
     openContours = defaultOpenContours;
     process.setBinning(defaultBinning);
     process.setFrames(defaultFrames);
+    process.setPieceListFileName(null);
   }
 
   protected String getModeString(int mode) {
@@ -702,6 +707,10 @@ public class ImodState {
 
   public void setFrames(boolean frames) {
     process.setFrames(frames);
+  }
+  
+  public void setPieceListFileName(String pieceListFileName) {
+    process.setPieceListFileName(pieceListFileName);
   }
   
   /**
