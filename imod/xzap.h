@@ -51,6 +51,7 @@ typedef struct zapwin
   int    xdrawsize, ydrawsize;
   int    xtrans,    ytrans,    ztrans;
   int    lmx,       lmy;
+  QRect  startingGeom;
 
   int    ginit;
 
@@ -124,9 +125,14 @@ int  imod_zap_open(struct ViewInfo *vi);
 void zapMaximumWindowSize(int &width, int &height);
 void zapLimitWindowSize(int &width, int &height);
 void zapLimitWindowPos(int neww, int newh, int &newdx, int &newdy);
+int zapSubsetLimits(ViewInfo *vi, int &ixStart, int &iyStart, int &nxUse, 
+                    int &nyUse);
 
 /*
 $Log$
+Revision 3.7  2003/09/17 04:43:51  mast
+Add declarations for window size functions
+
 Revision 3.6  2003/09/16 02:56:21  mast
 Added an xzoom variable to keep track of actually displayed fractional zoom
 
