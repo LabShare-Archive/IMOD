@@ -160,6 +160,9 @@ echo 'TILTOBJS = bpsumnox.o bpsumxtilt.o bpsumlocal.o' >> $configure
 set rgbprogs = "frommrc tomrc mrcv"
 
 
+# Set up for a dummy tiff library 
+set dummytiff = nolibtiff.$(LIBEXT)
+
 #
 # Set the switch point include file for the FBP algorithm in Tilt
 #
@@ -187,6 +190,9 @@ set ld_lib_var      = LD_LIBRARYN32_PATH
 
 
 #  $Log$
+#  Revision 3.17  2003/11/01 16:38:58  mast
+#  put libiimod before libimod
+#
 #  Revision 3.16  2003/10/25 16:46:45  mast
 #  changes for moving line tracker to special module
 #
