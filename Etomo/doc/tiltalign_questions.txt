@@ -1,0 +1,82 @@
+1. why have two options for name of the image file or to enter image structure
+   parameters?
+2. what are X-Y-Z coordinates, X-Y-Z coordinates of what?
+3. why have two places to put the solved X-Y-Z coordinates?
+4. what is meant by the term solution?
+5. what is meant by include points with all z values, points that describe
+   what?
+6. is initial angle of rotation the same as "Angle of rotation of the tilt axis
+   in the image" in the other programs?  Why is it described from vertical, I
+   would assume vertical to mean in the z-direction (along the optical axis of
+   the microscope)
+7. why is the above parameter called initial is it some sort of guess or
+   starting point?
+8. The set of parameters when choosing automap for tilts appears to be a different
+   structure than that of magnification and the other variable to be estimated.  But
+   the man page implies that are of the same structure.  The man page entry for the
+   automapped tilts is:
+
+	  IF 5 to 8 was selected, next enter the default number of views to
+	      group together, and the number of ranges of views that should
+	      have some grouping other than the default.  If a negative number
+	      of views is entered, then reshoot sets will NOT be segregated
+	      from the rest of the views in this default mapping.
+	  
+	      IF you entered a non-zero number of ranges to be treated
+	   	 separately, then for each such range, enter the starting and
+	   	 ending view number and the number of views that should be
+	   	 grouped in that range.	 If a negative number of views is
+	   	 entered, then reshoot sets will NOT be segregated from the
+	   	 rest of the views in this range.
+   
+
+   that would appear to look something like:
+   
+   nDefView,nOtherRange
+   otherRange1
+   otherRange2
+   :
+   :
+   otherRangeN
+   
+
+   The man page entry for automapping of the magnifications is:
+
+   	  0 to fix all magnifications at 1.0,
+	      or 1 to vary all magnifications independently,
+	      or 2 to specify a mapping of magnification variables
+	      or 3 or 4 for automapping of variables; 3 for linearly changing 
+	      values or 4 for values all the same within a group 
+
+	  IF 2 was selected, enter a magnification variable number for each
+	      view.  As for tilts, these variable numbers can be completely
+	      arbitrary.  The reference view (typically the one at minimum
+	      tilt angle) will be constrained to a mag of 1.0; to constrain
+	      any other views to a mag of 1.0, simply map them to the same
+	      variable number as for the reference view.
+
+   	  IF 3 or 4 was selected, enter default group size, number of special
+	      ranges, and group size for each such range just as for tilt
+	      variable automapping.   
+
+
+   I am not sure exactly how this would appear, what is meant by group size, that
+   does not seem to coincide with the tilt automap description
+   
+
+9. How is it decided when the "transformations are being computed" is it the same 
+   state as putting the transformations in the output file (entry #7)?
+
+	
+10. What is the purpose of having an entry for the number of view sets to treat
+    separately and the following list (the entry follwing the rotation angle
+    solution selection entry) as well as having this for type of question for
+    each type of solution?
+    
+11. In the first stage of running tiltalign the documentation seems to imply
+    that we are attempting to solve for the tilt angles.  But, the
+    documentation also says that we should "set # of the reference view..."
+    which appears to be the magnification reference view.  In the first stage
+    what should we be solving for?
+	
+	
