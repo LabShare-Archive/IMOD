@@ -6,7 +6,6 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.HeadlessException;
-import java.awt.Toolkit;
 import java.io.File;
 import java.util.ArrayList;
 
@@ -37,6 +36,10 @@ import etomo.type.AxisType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.5  2005/02/09 20:51:56  sueh
+ * <p> bug# 594 Moved maximumSize from MainPanel to MainFrame so that it
+ * <p> will work with the tabbedPane.
+ * <p>
  * <p> Revision 1.4  2005/01/27 20:22:18  sueh
  * <p> bug# 513 Synchronizing fit window code.
  * <p>
