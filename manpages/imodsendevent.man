@@ -43,6 +43,8 @@ Currently, 3dmod will accept the following commands:
               triangles; add 8 for filled symbols
           Symbol size (>= 1)
           3D point radius
+  13  Report the three angles of a slicer window (the active one if a 
+        slicer is the active window, otherwise the first one)
 .P
 If 3dmod is run in standalone model-view mode (run as 3dmodv or 3dmod -view)
 it will accept the following commands:
