@@ -65,6 +65,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.3  2003/06/20 20:19:07  mast
+c	  Standardized error exits
+c	
 c	  Revision 3.2  2002/08/19 05:00:47  mast
 c	  Corrected some declaration errors
 c	
@@ -276,7 +279,7 @@ c
 	call ialsam(2,nxyzout)
 	cell(1)=nint(nxout*nreduce*delt(1))
 	cell(2)=nint(nyout*nreduce*delt(2))
-	cell(3)=nzout
+	cell(3)=nint(nzout*delt(3))
 	call ialcel(2,cell)
 	call date(dat)
 	call time(tim)
