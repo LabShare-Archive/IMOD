@@ -6,6 +6,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.1  2002/07/21 05:52:35  mast
+#  Decreased padding in X and Z to compensate for increased sizes in Y
+#
 
 set SIZELIMIT = 1600
 
@@ -64,8 +67,10 @@ if ($nzuse > $SIZELIMIT) @ nzuse = $SIZELIMIT
 @ iz0 = ($nxyz[3] - $nzuse) / 2
 @ iz1 = ($nxyz[3] + $nzuse) / 2 - 1
 
+echo " "
+echo "MATCHSHIFTS: PROJECTING $recfile1"
 
-xyzproj <<EOF
+xyzproj <<EOF > /dev/null
 $recfile1
 $proj1file
 $ix0,$ix1,,,$iz0,$iz1
@@ -77,7 +82,9 @@ Z
 /
 EOF
 
-xyzproj <<EOF
+echo "MATCHSHIFTS: PROJECTING $recfile2"
+
+xyzproj <<EOF  > /dev/null
 $recfile2
 $proj2file
 $iz0,$iz1,,,$ix0,$ix1
@@ -93,7 +100,9 @@ set sol = `cat $infile`
 echo "1 0 0 1 0 0" > $rotxf
 echo "$sol[1] $sol[3] $sol[9] $sol[11] 0 0" >> $rotxf
 
-newstack <<EOF
+echo "MATCHSHIFTS: STACKING PROJECTIONS WITH ROTATION"
+
+newstack <<EOF > /dev/null
 2
 $proj1file
 0
@@ -114,6 +123,9 @@ EOF
 @ nyin = $nxyz[2]
 @ xtrim = $nxuse / 10
 @ ytrim = $nzuse / 10
+
+echo "MATCHSHIFTS: CORRELATING WITH TILTXCORR"
+echo " "
 
 tiltxcorr <<EOF
 $projst
@@ -141,7 +153,10 @@ echo "$sol[9]   $sol[10]   $sol[11]   $txcshift[6]"  >> $midfile
 @ izlo = ($nzt / 2) - ($nz / 2)
 @ izhi = $izlo + $nz - 1
 
-matchvol <<HERESTRING
+echo " "
+echo "MATCHSHIFTS: EXTRACTING SMALL MATCHING VOLUME FROM $recfile2"
+
+matchvol <<HERESTRING > /dev/null
 $recfile2
 $matfile
 $tmpdir
@@ -161,7 +176,9 @@ HERESTRING
 @ nycen = $ny / 2
 @ nzcen = $nz / 2
 
-tapervoledge <<HERESTRING
+echo "MATCHSHIFTS: GETTING TAPERED, PADDED VOLUMES FOR CORRELATING"
+
+tapervoledge <<HERESTRING > /dev/null
 $matfile
 $pad2file
 $nx,$ny,$nz
@@ -174,7 +191,7 @@ HERESTRING
 @ nycen = $nxyz[2] / 2
 @ nzcen = $nxyz[3] / 2
 
-tapervoledge <<HERESTRING
+tapervoledge <<HERESTRING > /dev/null
 $recfile1
 $pad1file
 $nx,$ny,$nz
@@ -183,8 +200,11 @@ $nxpad,$nypad,$nzpad
 $nxtap,$nytap,$nztap
 HERESTRING
 
+
 #clip resize -ox $nx -oy $ny -oz $nz $recfile1 $clipfile
 #newst -se $izlo-$izhi -si $nx,$ny $recfile1 $clipfile
+
+echo "MATCHSHIFTS: CORRELATING VOLUMES TO GET 3-D SHIFTS"
 
 #invert order of files to get amount to shift mat file to match clip file
 
