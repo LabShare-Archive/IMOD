@@ -13,7 +13,15 @@ package etomo.type;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2005/01/10 23:36:03  sueh
+* <p> bug# 578 Class to handle state with four values:  null, no result, false, and
+* <p> true.  It inherits EtomoNumber and uses validValues to maintain a strict
+* <p> set; invalid values cause a runtime error.  It overides toString(Number)
+* <p> and newNumber(String, StringBuffer) to translate its valid values to
+* <p> meaningful strings.  It overides is() to make its true value return true and
+* <p> its other values return false.
+* <p> </p>
 */
 
 public class EtomoState extends EtomoNumber {
@@ -31,8 +39,6 @@ public class EtomoState extends EtomoNumber {
   public EtomoState(String name) {
     super(EtomoNumber.INTEGER_TYPE, name);
     setValidValues(new int[] { NO_RESULT_VALUE, FALSE_VALUE, TRUE_VALUE });
-    setDefault(FALSE_VALUE);
-    setDisplayDefault(true);
   }
   
   /**
@@ -62,7 +68,7 @@ public class EtomoState extends EtomoNumber {
    * @return
    */
   public boolean is() {
-    int intValue = getValue(displayDefault).intValue();
+    int intValue = getValue().intValue();
     if (intValue == TRUE_VALUE) {
       return true;
     }
