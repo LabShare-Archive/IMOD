@@ -84,6 +84,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.66  2004/06/10 17:27:53  sueh
+ * <p> bug# 462 remove ImodManager.reset() calls
+ * <p>
  * <p> Revision 3.65  2004/06/05 00:59:36  sueh
  * <p> bug# 433 add updateLog to call ProcessManager.generateAlignLogs()
  * <p> when the ta logs are out of date
@@ -3222,10 +3225,6 @@ public class ApplicationManager {
    */
   public void mtffilter(AxisID axisID) {
     if (updateMTFFilterCom(axisID)) {
-      MTFFilterParam mtfFilterParam;
-      comScriptMgr.loadMTFFilter(axisID);
-      mtfFilterParam = comScriptMgr.getMTFFilterParam(axisID);
-      comScriptMgr.saveMTFFilter(mtfFilterParam, axisID);
       processTrack.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
       mainFrame.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
       String threadName;
@@ -3569,10 +3568,9 @@ public class ApplicationManager {
     try {
       tomogramCombinationDialog.synchronize(fromTab,
         TomogramCombinationDialog.PATCH_REGION_MODEL_FIELDS);
+      // Get the latest combine parameters from the dialog
       updateCombineParams();
-      CombineParams combineParams = new CombineParams();
-      tomogramCombinationDialog.getCombineParams(combineParams);
-      if (combineParams.getMatchBtoA()) {
+      if (metaData.getCombineParams().getMatchBtoA()) {
         imodManager.model(ImodManager.FULL_VOLUME_KEY, AxisID.FIRST,
           "patch_region.mod", true);
       }
