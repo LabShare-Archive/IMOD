@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.5  2004/11/20 05:05:27  mast
+Changes for undo/redo capability
+
 Revision 1.4  2004/07/11 18:19:38  mast
 Functions to set time of new contour and get/make contour for adding points
 
@@ -115,6 +118,11 @@ Imod DLL_EX_IM *ivwGetModel(ImodView *inImodView);
  *  Get the extra object
  */
 Iobj DLL_EX_IM *ivwGetExtraObject(ImodView *inImodView);
+
+/*
+ * Delete all contours in extra object
+ */
+void DLL_EX_IM ivwClearExtraObject(ImodView *inImodView);
 
 /*
  * Get the current contour or make a new one if there is none, at the current

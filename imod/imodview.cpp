@@ -2302,6 +2302,20 @@ Iobj *ivwGetExtraObject(ImodView *inImodView)
   return(inImodView->extraObj);
 }
 
+/* Delete all contours in extra object */
+void ivwClearExtraObject(ImodView *inImodView)
+{
+  Iobj *obj;
+  if (inImodView == NULL) 
+    return;
+  obj = inImodView->extraObj;
+  if (!obj->contsize)
+    return;
+  imodContoursDelete(obj->cont, obj->contsize);
+  obj->contsize = 0;
+  obj->cont = NULL;
+}
+
 // Get the current contour, the last contour if it is empty, or a new contour
 Icont *ivwGetOrMakeContour(ImodView *vw, Iobj *obj, int timeLock)
 {
@@ -2497,6 +2511,9 @@ void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin,
 
 /*
 $Log$
+Revision 4.33  2004/12/02 21:42:23  mast
+Changes for raw image loading
+
 Revision 4.32  2004/11/20 05:05:27  mast
 Changes for undo/redo capability
 
