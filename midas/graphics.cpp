@@ -524,17 +524,35 @@ void MidasGL::resizeGL(int wdth, int hght)
 // Mouse event processing
 void MidasGL::mousePressEvent(QMouseEvent * e )
 {
+  unsigned int state = e->state();
+  unsigned int button = e->button();
+  bool button1 = (button == Qt::LeftButton);
+  bool button2 = (button == Qt::MidButton);
+  bool button3 = (button == Qt::RightButton);
 
   // Button press: record position (adjust for inverted Y),
   // set new center if Ctrl-middle
   VW->lastmx = e->x();
   VW->lastmy = VW->height - e->y();
 
-  if (e->button() == Qt::MidButton && (e->state() & Qt::ControlButton) &&
+  if (button2 && (state & Qt::ControlButton) &&
       VW->xtype != XTYPE_MONT) {
     VW->xcenter = (VW->lastmx - VW->xoffset) / VW->truezoom;
     VW->ycenter = (VW->lastmy - VW->yoffset) / VW->truezoom;
     draw();
+  } else if (button1 && (state & Qt::ControlButton))
+    VW->mouseLabel->setText("PANNING IMAGE");
+  else if (button1 && ! (state & Qt::ShiftButton))
+    VW->mouseLabel->setText("TRANSLATING");
+  else if (VW->xtype != XTYPE_MONT) {
+    if (button2 && !(state & (Qt::ControlButton | Qt::ShiftButton)))
+      VW->mouseLabel->setText("ROTATING");
+    if (button3 && !(state & Qt::ControlButton)) {
+      if (state & Qt::ShiftButton)
+        VW->mouseLabel->setText("CHANGING MAG");
+      else
+        VW->mouseLabel->setText("STRETCHING");
+    }
   }
   mMousePressed = true;
 }
@@ -543,6 +561,7 @@ void MidasGL::mousePressEvent(QMouseEvent * e )
 void MidasGL::mouseReleaseEvent ( QMouseEvent * e )
 {
   VW->midasSlots->update_parameters();
+  VW->mouseLabel->setText(" ");
   mMousePressed = false;
 }
 
