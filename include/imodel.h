@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.4  2002/08/03 22:46:56  mast
+    Changed some comments
+
     Revision 3.3  2002/07/20 23:26:44  mast
     Define a flag to signify that refImage.otrans has image origin info
 
@@ -201,13 +204,19 @@ typedef struct Mod_Object_View
      Ipoint clip_point;
 
      /* Added info IMAT */
-     UBYTE ambient;
-     UBYTE diffuse;
-     UBYTE specular;  /* specular IS shininess   */
-     UBYTE shininess; /* shininess used as flags */
-     UINT  mat1; /* set to 0, use as material color future. ABGR */
-     UINT  mat2; /* set to 0, use as flags. */
-     UINT  mat3; /* used  byte0 = bright, byte1 = contrast */
+     UBYTE ambient;   /* Ambient multiplier to color */
+     UBYTE diffuse;   /* Diffuse multiplier to color */
+     UBYTE specular;  /* Specular property, added to color */
+     UBYTE shininess; /* shininess exponent */
+     UBYTE mat1;      /* Fill color red */
+     UBYTE mat1b1;    /* Fill color green */
+     UBYTE mat1b2;    /* Fill color blue */
+     UBYTE mat1b3;    /* Unused */
+     UINT  mat2;      /* set to 0, use as flags.  Unused */
+     UBYTE mat3;      /* Black level for showing normal magnitudes in mesh */
+     UBYTE mat3b1;    /* Black level for showing normal magnitudes in mesh */
+     UBYTE mat3b2;    /* Unused */
+     UBYTE mat3b3;    /* Unused */
 }Iobjview;
 
 typedef struct
