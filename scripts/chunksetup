@@ -8,6 +8,10 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.5  2004/06/24 23:07:29  mast
+#  Made parallel script run the finish when done, and report on numbers of
+#  ones undone upon interrupt
+#
 #  Revision 3.4  2004/06/24 15:33:28  mast
 #  Added -c option to subm and an if test to the removal of input file
 #
@@ -42,7 +46,6 @@ Usage: $pn [options] master_com_file input_image_file output_image_file
      -m #    Maximum # of megavoxels in each subvolume
      -xm #   Maximum # of pieces in X direction
      -ym #   Maximum # of pieces in Y direction
-     -f list Farm out chunks to machines in list (comma-separated, no spaces)
 EOF
     exit 0
 endif
@@ -84,11 +87,6 @@ while ($#argv > 3)
       shift; shift
       breaksw
 
-    case -f:
-      set farmout = `echo $argv[2] | sed '/,/s// /g'`
-      shift; shift
-      breaksw
-
     default:
         echo "Unrecognized option $argv[1]"
         exit 1
@@ -127,6 +125,10 @@ if ($status) then
     echo $ranlist
     exit 1
 endif
+
+# Remove any previous files now in case the number has changed
+#
+\find . -type f -name  "$rootname-[0-9]*.*" -exec rm -f "{}" \;
 
 @ npiecex = $ranlist[1]
 shift ranlist
@@ -178,7 +180,7 @@ EOF
             sed -e "/$masterin/s//$imagein/g" -e "/$masterout/s//$imageout/g" \
                 $mastercom >> $comfile
             cat <<EOF >> $comfile
-\$if (-e $imagein) \\rm $imagein
+\$if (-e $imagein) \\rm -f $imagein
 \$echo CHUNK DONE
 EOF
 
@@ -238,111 +240,21 @@ cat <<EOF >> $allname
 \$vmstocsh $rootname-finish.log < $finishname | csh -ef
 EOF
 
-if ($?farmout) then
-    set parallel = $rootname-parallel
-    cat <<EOF >! $parallel
-#!/bin/csh -f
-\rm -f $rootname-[0-9]*.log
-EOF
-    set thishost = `hostname`
-    set hostroot = $thishost:r:r:r
-    set curdir = `pwd | sed "/localscratch/s//scratch\/$hostroot/"`
-    @ numproc = $#farmout
-    @ basenum = $npiecetot / $numproc
-    @ extra = $npiecetot - $basenum * $numproc
-    @ proc = 0
-    @ sumnum = 0
-    @ limit = 0
-    while ($proc < $numproc)
-        @ proc++
-        @ limit += $basenum
-        if ($proc <= $extra) @ limit++
-        set coms = ()
-        while ($sumnum < $limit)
-            @ sumnum++
-            set numtext = $sumnum
-            if ($sumnum < 10) then
-                set numtext = 00"$numtext"
-            else if ($sumnum < 100) then
-                set numtext = 0"$numtext"
-            endif
-            set coms = ($coms $rootname-$numtext)
-        end
-        if ($#coms > 0) then
-            cat <<EOF >> $parallel
-ssh $farmout[$proc] "cd $curdir ; subm -c $coms" &
-EOF
-        endif
-    end
-    cat <<EOF >> $parallel
-set flags = ()
-@ num = 0
-while (\$num < $npiecetot)
-    @ num++
-    set flags = (\$flags 0)
-end
-onintr report
-@ numdone = 0
-@ lastdone = 0
-while (\$numdone < $npiecetot)
-    sleep 3
-    @ num = 0
-    @ numdone = 0
-    while (\$num < $npiecetot)
-        @ num++
-        if (\$flags[\$num] == 0) then
-            set numtext = \$num
-            if (\$num < 10) then
-                set numtext = 00"\$num"
-            else if (\$num < 100) then
-                set numtext = 0"\$num"
-            endif
-            if (-e $rootname-\$numtext.log) then
-                set lastline = "\`tail -1 $rootname-\$numtext.log\`"
-                if ("\$lastline" == "CHUNK DONE") set flags[\$num] = 1
-            endif
-        endif
-        if (\$flags[\$num] == 1) @ numdone++
-    end
-    
-    if (\$numdone > \$lastdone) echo \$numdone DONE SO FAR
-    @ lastdone = \$numdone
-end
-echo "ALL DONE - going to run $rootname-finish to reassemble"
-vmstocsh $rootname-finish.log < $rootname-finish.com | csh -ef
-exit
-report:
-echo -n "Still undone: "
-@ num = 0
-while (\$num < $npiecetot)
-    @ num++
-    if (\$flags[\$num] == 0) echo -n " \$num"
-end
-echo " "
-EOF
-
-
-    chmod a+x $parallel
-endif
 
 cat <<EOF
 
 $npiecetot command files were generated and are ready to run.
-EOF
-if ($?farmout) then
-cat <<EOF
-
-Run the shell script, $rootname-parallel to use the $numproc different processors.  
-Just run this directly (without subm) to start all of the processes.
-EOF
-endif
-cat <<EOF
 
 You can run $allname (with subm) to run all command files in 
 sequence, reassemble the volume, and clean up intermediate image and 
 command files.
 
-Or, you can run them individually (e.g., some on different machines or 
-processors) and, when they are all done, run $finishname to 
-reassemble the volume and clean up intermediate files.
+If you have multiple processors available, you can use 
+  processchunks machine_list $rootname
+to do these operations in parallel, where machine_list is a comma-separated 
+list of available machines
+
+Or, you can run the files individually and, when they are all done,
+run $finishname to reassemble the volume and 
+clean up intermediate files.
 EOF
