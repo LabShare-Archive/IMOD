@@ -13,7 +13,8 @@ DDEESSCCRRIIPPTTIIOONN
   Mtffilter can restore contrast in CCD camera images by multiplying them by
   the inverse of the camera's modulation transfer function (MTF).  It can
   also apply a low pass filter to reduce high frequency noise.  One, the
-  other, or both of these filters may be applied.
+  other, or both of these filters may be applied.  It can filter either
+  real-space images in 2D planes, or 3D Fourier transforms in 3D.
 
   Simply multiplying by the inverse of an MTF would amplify noise too much,
   so the inverse MTF filter is shaped by three parameters.  The first
@@ -45,6 +46,13 @@ DDEESSCCRRIIPPTTIIOONN
 
   To apply only the low-pass filter, omit the -mtf and -stock options; to
   apply only an inverse filter, omit the -lowpass option.
+
+  If the input file is a real image, then the program will take the FFT of
+  each section, apply the filter, take the inverse FFT, and write out the
+  filtered section.  If the input file is a Fourier transform, it must be a 
+  3D FFT (obtained from "clip fft -3d").  In this case the program will
+  apply the filter to the transforms in three dimensions and write out a
+  filtered FFT.
 
   Mtffilter uses the PIP package for input (see the manual page for pip(1)).
   The following options can be specified either as command line arguments
