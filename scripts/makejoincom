@@ -7,24 +7,12 @@
 #  $Date$
 #
 #  $Revision$
-#
-#  $Log$
-#  Revision 3.4  2004/07/21 16:20:50  mast
-#  Added commands for averaging the sample slices
-#
-#  Revision 3.3  2004/07/21 14:18:50  mast
-#  Added messages about optional xfalign commands
-#
-#  Revision 3.2  2004/07/12 19:03:07  mast
-#  Added an output of the command line for running Midas with the -c size list
-#
-#  Revision 3.1  2004/06/29 03:52:22  mast
-#  Fixed path-setting
+#  Log at end of file
 #
 
 set MIDASLIMIT = 1024
 set pn = "makejoincom"
-set version = 3
+set version = 4
 set defdir = ""
 set defsrcext = "rec"
 set deftmpext = "tmp"
@@ -43,6 +31,7 @@ set chunklist = ""
 set avglist = ""
 set scalelist = ""
 @ scaleref = 1
+set newmode = 0
 
 if ($?IMOD_DIR) then
     set path = ($IMOD_DIR/bin $path)
@@ -408,7 +397,7 @@ while ($itomo <= $ntomo)
         endif
     endif
 
-    # KEEP TRACK OF MAXIMUM NX, NY
+    # KEEP TRACK OF MAXIMUM NX, NY AND MODE
     if ($nxformax > $nxmax) @ nxmax = $nxformax
     if ($nyformax > $nymax) @ nymax = $nyformax
 
@@ -578,17 +567,13 @@ if ($xymax > $MIDASLIMIT) then
     echo "$expand 0. 0. $expand 0. 0." > $joinroot.xpndxf
 endif
 
-# OUTPUT INFO FILE
-
-if (-e $joinroot.info) \mv $joinroot.info $joinroot.info~
-echo "$ntomo  $ifsquoze  $nxmax  $nymax $version" > $joinroot.info
-echo $invertlist >> $joinroot.info
-
 # GET THE SCALING
 @ itomo = 1
 while ($itomo <= $ntomo)
     if ($itomo == $scaleref) then
         set scaling = (1. 0.)
+        set newmode = `header "$reclist[$itomo]" | sed -n '/Map mode/p'| awk '{print $4}'`
+        if ($#newmode == 0) set newmode = 0
     else
         echo "Determining scaling for tomogram # $itomo ..."
         set scaling = `densmatch -report "$reclist[$scaleref]" "$reclist[$itomo]" | sed -n '/Scale factor.*:/s///p'`
@@ -600,6 +585,12 @@ while ($itomo <= $ntomo)
     set scalelist = ($scalelist $scaling[1],$scaling[2])
     @ itomo++
 end
+
+# OUTPUT INFO FILE
+
+if (-e $joinroot.info) \mv $joinroot.info $joinroot.info~
+echo "$ntomo  $ifsquoze  $nxmax  $nymax $version $newmode" > $joinroot.info
+echo $invertlist >> $joinroot.info
 echo $scalelist >> $joinroot.info
 
 # OUTPUT THE FILE NAMES
@@ -656,6 +647,7 @@ while ($itomo <= $ntomo)
     @ itomo++
 end
 
+echo "ModeToOutput $newmode" >> $joincom
 echo "OutputFile $joinroot.sample" >> $joincom
 echo "SizeToOutputInXandY $newsize" >> $joincom
 
@@ -724,3 +716,22 @@ Usage: makejoincom [options] tomogram1 [options] tomogram2 ... root_name
                        or rotated) to "ext"
     -reference #    Use given tomogram as reference for density scaling
 EOF
+
+#
+#  $Log$
+#  Revision 3.5  2004/08/27 05:45:53  mast
+#  Changed to take command line arguments, do densmatch to get scaling,
+#  put out filenames on separate lines
+#
+#  Revision 3.4  2004/07/21 16:20:50  mast
+#  Added commands for averaging the sample slices
+#
+#  Revision 3.3  2004/07/21 14:18:50  mast
+#  Added messages about optional xfalign commands
+#
+#  Revision 3.2  2004/07/12 19:03:07  mast
+#  Added an output of the command line for running Midas with the -c size list
+#
+#  Revision 3.1  2004/06/29 03:52:22  mast
+#  Fixed path-setting
+#
