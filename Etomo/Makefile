@@ -3,43 +3,51 @@
 # $Revision$
 
 JAVAC_EXE = javac
-#JAVAC_EXE = /usr/local/IBMJava2-13/bin/javac
 
-#CLASSPATH = -classpath /home/rickg/Src/Java/Etomo
-VPATH = src:src/etomo:src/etomo/comscript:src/etomo/process:src/etomo/storage:src/etomo/ui:src/etomo/utils
-SOURCEPATH = -sourcepath src
-CLASSPATH = -classpath classes
-OUTPUT = -d classes
+# CLASSPATH and SOURCEPATH definitions match Eclipse structure
+SOURCEPATH = src
+CLASSPATH = bin
+
+CLASS_FILES = $(CLASSPATH)/etomo/ApplicationManager.class
+JAR_FILE = jar/etomo.jar
 
 PACKAGES = etomo etomo.comscript etomo.process etomo.storage etomo.type etomo.ui etomo.util
 
-JAVAC_OPTIONS =
-JAVAC = $(JAVAC_EXE) $(CLASSPATH) $(OUTPUT) $(JAVAC_OPTIONS)
+JAVAC_OPTIONS = -verbose
+JAVAC = $(JAVAC_EXE) -d $(CLASSPATH) -sourcepath $(SOURCEPATH) $(JAVAC_OPTIONS)
 
 JAVADOC_OPTIONS = -author -version -private -use -breakiterator -doctitle "Etomo API" -windowtitle "Etomo API"
 
-
 TEST_BIN = \
-bin/test/test_CircularBuffer.class \
-bin/test/test_DataSource.class \
+$(OUTPUT)/test/test_CircularBuffer.class \
+$(OUTPUT)/test/test_DataSource.class \
 
 
-MainTarget : $(CLASS_FILES)
+MainTarget: $(JAR_FILE)
 	echo "Make completed."
+
+$(JAR_FILE): cpimages compile
+	echo jar  -cvmf MANIFEST.MF $(JAR_FILE) -C $(CLASSPATH) etomo -C $(CLASSPATH) images
+
+cpimages:
+	cp -a $(SOURCEPATH)/images $(CLASSPATH)
+	rm -rf  $(CLASSPATH)/images/CVS
+
+compile: 
+	$(JAVAC)  $(SOURCEPATH)/etomo/ApplicationManager.java
 
 tests: $(CLASS_FILES) $(TEST_BIN)
 	echo "Make tests completed"
 
 javadocs:
-	javadoc $(CLASSPATH) $(SOURCEPATH) $(JAVADOC_OPTIONS) -d doc/javadoc \
+	javadoc -classpath $(CLASSPATH) $(SOURCEPATH) $(JAVADOC_OPTIONS) -d doc/javadoc \
 	$(PACKAGES)
 
-
-%.class: %.java
-	$(JAVAC) $<
-
-jar: $(CLASS_FILES)
-	jar -cvmf MANIFEST.MF etomo.jar etomo images
+.PHONY: clean
+clean:
+	rm -rf bin/etomo/*
+	rm -rf doc/javadocs
+	rm $(JAR_FILE)
 
 .PHONY: linecount
 linecount:
@@ -68,12 +76,3 @@ linecount:
 	grep "^\s*$$" src/etomo/ui/*.java | wc -l
 	grep "^\s*$$" src/etomo/util/*.java | wc -l
 
-.PHONY: clean
-clean:
-	rm -rf bin/etomo/*.class
-	rm -rf bin/etomo/comscript/*.class
-	rm -rf bin/etomo/process/*.class
-	rm -rf bin/etomo/storage/*.class
-	rm -rf bin/etomo/ui/*.class
-	rm -rf bin/etomo/util/*.class
-	rm -rf doc/javadocs
