@@ -254,6 +254,8 @@ tolerance and z-increment values are not entered with the
 or
 .B -z
 options, relatively large default values are used to generate a coarse mesh.
+The low resolution mesh can be toggled on and off in the 3dmod Model View
+window with the View-Low Res menu entry or the "R" hot key.
 .TP
 .B -a
 Append the mesh data to objects, replacing only the existing mesh in the
