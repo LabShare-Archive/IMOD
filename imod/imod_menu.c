@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.10  2002/12/01 15:34:41  mast
+Changes to get clean compilation with g++
+
 Revision 3.9  2002/11/05 23:26:39  mast
 Changed copyright notice to use lab name and years
 
@@ -89,7 +92,6 @@ Added calls for cache filling
 
 void ioew_sgicolor_cb(Widget w, XtPointer client, XtPointer call);
 void imod_file_cb(Widget w, XtPointer client, XtPointer call);
-static void named_rawTIF_cb(Widget w,  XtPointer client, XtPointer call);
 
 extern int Imod_debug;
 
@@ -98,6 +100,8 @@ void imod_file_cb(Widget w, XtPointer client, XtPointer call)
   int item = (int)client;
   int returnValue;
   char *filestr = NULL;
+  int limits[4];
+  unsigned char *data;
 
   if (ImodForbidLevel){
     if (item == 6)
@@ -112,12 +116,12 @@ void imod_file_cb(Widget w, XtPointer client, XtPointer call)
     break;
 	  
   case 1: /* open */
-    //  RJG: Clear the message queue of any pending info messages ???
+    //  forbid input during file dialog; swallow any pending events
     imod_info_forbid();
     imod_info_input();
-    imod_info_enable();
 
     returnValue = openModel(filestr);
+    imod_info_enable();
 
     if(returnValue == IMOD_IO_SUCCESS) {
       wprint("Model loaded.\n");
@@ -129,25 +133,29 @@ void imod_file_cb(Widget w, XtPointer client, XtPointer call)
     else if(returnValue == IMOD_IO_READ_ERROR) {
       wprint("Error reading model. New model not loaded");
     }
-    else {
-      wprint("Unknow return code, new model not loaded!!\n");
+    else if(returnValue != IMOD_IO_SAVE_CANCEL && 
+            returnValue != IMOD_IO_READ_CANCEL) {
+      wprint("Unknown return code, new model not loaded!!\n");
     }
     break;
       
   case 2: /* save */
+    imod_info_forbid();
+    imod_info_input();
     App->cvi->imod->blacklevel = App->cvi->black;
     App->cvi->imod->whitelevel = App->cvi->white;
     if (SaveModel(App->cvi->imod));
     /*	       wprint("Error Saving Model."); DNM: it already has message*/
+    imod_info_enable();
     break;
 
   case 3: /* save as */
     imod_info_forbid();
     imod_info_input();
-    imod_info_enable();
     App->cvi->imod->blacklevel = App->cvi->black;
     App->cvi->imod->whitelevel = App->cvi->white;
     SaveasModel(App->cvi->imod);
+    imod_info_enable();
     break;
 	  
   case 4:
@@ -157,9 +165,22 @@ void imod_file_cb(Widget w, XtPointer client, XtPointer call)
   case 5:  /* Save raw image to tiff file */
     if (!App->cvi->rawImageStore)
       wprint("This option works only with color images.\n");
-    else
-      diaEasyFileAct("TIFF File to save section from memory",
-                     named_rawTIF_cb, (XtPointer)0);
+    else {
+      /* DNM 12/2/02: switch to dia_filename so that the forbid/enable can
+         be used, and move saving functionality into this case */
+      imod_info_forbid();
+      imod_info_input();
+      filestr = dia_filename("TIFF File to save section from memory");
+      imod_info_enable();
+      if (!filestr)
+        break;
+      data = ivwGetCurrentZSection(App->cvi);
+      limits[0] = limits[1] = 0;
+      limits[2] = App->cvi->xsize;
+      limits[3] = App->cvi->ysize;
+      b3dSnapshot_TIF(filestr, 0, limits, data);
+      XtFree(filestr);
+    }
     break;
 
 
@@ -200,17 +221,20 @@ void imod_file_write_cb(Widget w, XtPointer client, XtPointer call)
   if (ImodForbidLevel)
     return;
 
+  /* DNM 12/2/02: add the forbid, change returns to breaks */
+  imod_info_forbid();
+  imod_info_input();
 
   switch (item){
 
   case 0: /* write imod */
     filename = dia_filename("Write file as Imod");
     if (!filename)
-      return;
+      break;
     fout =  fopen(filename, "w");
     if (!fout){
       free(filename);
-      return;
+      break;
     }
     imodWrite(App->cvi->imod, fout);
     free(filename);
@@ -220,11 +244,11 @@ void imod_file_write_cb(Widget w, XtPointer client, XtPointer call)
   case 1: /* write wimp */
     filename = dia_filename("Write file as wimp");
     if (!filename)
-      return;
+      break;
     fout =  fopen(filename, "w");
     if (!fout){
       free(filename);
-      return;
+      break;
     }
     imod_to_wmod(App->cvi->imod, fout, filename);
     free(filename);
@@ -234,11 +258,11 @@ void imod_file_write_cb(Widget w, XtPointer client, XtPointer call)
   case 2: /* write NFF */
     filename = dia_filename("Write file as NFF");
     if (!filename)
-      return;
+      break;
     fout =  fopen(filename, "w");
     if (!fout){
       free(filename);
-      return;
+      break;
     }
     imod_to_nff(App->cvi->imod, fout);
     free(filename);
@@ -250,7 +274,7 @@ void imod_file_write_cb(Widget w, XtPointer client, XtPointer call)
     break;
 
   }
-
+  imod_info_enable();
 }
 
 
@@ -1051,15 +1075,4 @@ void imod_help_cb(Widget w, XtPointer client, XtPointer call)
     break;
   }
   return;
-}
-
-static void named_rawTIF_cb(Widget w,  XtPointer client, XtPointer call)
-{
-  char *filename = (char *)call;
-  int limits[4];
-  unsigned char *data = ivwGetCurrentZSection(App->cvi);
-  limits[0] = limits[1] = 0;
-  limits[2] = App->cvi->xsize;
-  limits[3] = App->cvi->ysize;
-  b3dSnapshot_TIF(filename, 0, limits, data);
 }
