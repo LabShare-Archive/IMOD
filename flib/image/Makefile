@@ -5,6 +5,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.5  2004/10/24 20:44:10  mast
+#  Added dependecies on ftbuf.inc
+#
 #  Revision 3.4  2004/03/30 18:53:13  mast
 #  Added mtffilter
 #
@@ -33,7 +36,7 @@ PROGS = addtostack$(E) alterheader$(E) assemblevol$(E) avganova$(E) \
  newstack$(E) rotatevol$(E) rotmont$(E) subimage$(E) subimanova$(E) \
  subimstat$(E) taperoutvol$(E) tapervoledge$(E) tiltxcorr$(E) tomopieces$(E) \
  vmstocsh$(E) warpvol$(E) xcorr$(E) xfinverse$(E) xfproduct$(E) xfsimplex$(E) \
- xftoxg$(E) xyzproj$(E) extractmagrad$(E) mtffilter$(E)
+ xftoxg$(E) xyzproj$(E) extractmagrad$(E) mtffilter$(E) maxjoinsize$(E)
  
 LIBS = $(FORTCLIBS)
 
@@ -125,6 +128,9 @@ header$(E): header.$(O)
 
 matchvol$(E): matchvol.$(O) rotmatwarpsubs.$(O)
 	$(FC) -o matchvol matchvol.$(O) rotmatwarpsubs.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
+
+maxjoinsize$(E): maxjoinsize.$(O)
+	$(FC) -o maxjoinsize maxjoinsize.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
 montagesize$(E): montagesize.$(O)
 	$(FC) -o montagesize montagesize.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
