@@ -11,6 +11,12 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.4  2004/03/12 00:00:22  rickg
+ * <p> Bug #410 Newstack PIP transition
+ * <p> Check for default values in FortranInputStrings, don't write out the
+ * <p> parameter in this case.
+ * <p> Removed setSize method
+ * <p>
  * <p> Revision 3.3  2004/02/18 00:51:22  rickg
  * <p> Removed CVS tag
  * <p>
@@ -248,6 +254,11 @@ public class NewstParam extends ConstNewstParam implements CommandParam {
     int nArgs = cmdLineArgs.size();
     scriptCommand.setCommandLineArgs(
     (String[]) cmdLineArgs.toArray(new String[nArgs]));
+    
+    // If the command is currently newst change it to newstack
+    if(scriptCommand.getCommand().equals("newst")) {
+      scriptCommand.setCommand("newstack");
+    }
   }
 
   public void setOffset(String newOffset) throws FortranInputSyntaxException {
