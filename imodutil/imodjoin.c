@@ -32,6 +32,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.6  2004/07/07 19:25:30  mast
+Changed exit(-1) to exit(3) for Cygwin
+
 Revision 3.5  2004/06/16 21:06:42  mast
 Forgot to delete copies of library functions from debugging
 
@@ -52,7 +55,7 @@ Open output file in binary mode
 
 */
 
-#include <imodel.h>
+#include "imodel.h"
 int *parselist (char *line, int *nlist);
 
 static void usage()

@@ -30,7 +30,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <mrcfiles.h>
+#include "mrcfiles.h"
 #include "imodel.h"
 
 #define NTSCX 688

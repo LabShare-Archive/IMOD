@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.3  2004/10/29 22:16:55  mast
+    Fixed some scaling problems
+
     Revision 3.2  2004/09/24 18:15:55  mast
     Fixed bug in Sobel filter
 
@@ -45,7 +48,7 @@
    so that the corners would not have spurious data */
 
 #include <math.h>
-#include <mrcc.h>
+#include "mrcc.h"
 #include "sliceproc.h"
 
 #define RANGE(s, i, j)  (((i)>0)&&((j)>0)&&((i)<(s)->xsize)&&((j)<(s)->ysize))

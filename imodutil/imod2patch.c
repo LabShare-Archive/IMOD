@@ -32,6 +32,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.4  2004/09/21 22:30:28  mast
+Fixed stray ~ in error string
+
 Revision 3.3  2004/07/07 19:25:30  mast
 Changed exit(-1) to exit(3) for Cygwin
 
@@ -46,7 +49,7 @@ fixed exit status
 #include <stdio.h>
 #include <string.h>
 
-#include <imodel.h>
+#include "imodel.h"
 
 
 static int fgetline(FILE *fp, char s[],int limit);

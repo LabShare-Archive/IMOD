@@ -37,12 +37,12 @@ Log at end of file
 #ifndef IMODP_H
 #define IMODP_H
 
-#include <imodconfig.h>
+#include "imodconfig.h"
 
 #include <stdio.h>
 #include <qstring.h>
-#include <imodel.h> 
-#include <imodi.h>
+#include "imodel.h"
+#include "imodi.h"
 
 class QGLColormap;
 class QCursor;
@@ -270,6 +270,9 @@ QString imodCaption(char *intro);
 
 /*
 $Log$
+Revision 3.27  2004/11/01 22:51:48  mast
+Added selection list
+
 Revision 3.26  2004/07/11 18:16:27  mast
 Added new ghost mode flags
 

@@ -18,7 +18,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <imodel.h>
+#include "imodel.h"
 
 
 static float Zscale = 1.0f;

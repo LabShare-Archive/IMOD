@@ -32,6 +32,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.3  2004/07/07 19:25:30  mast
+Changed exit(-1) to exit(3) for Cygwin
+
 Revision 3.2  2003/10/24 03:05:24  mast
 open as binary, strip program name and/or use routine for backup file
 
@@ -40,7 +43,7 @@ Open output file in binary mode
 
 */
 
-#include <imodel.h>
+#include "imodel.h"
 
 static void usage(char *prog)
 {

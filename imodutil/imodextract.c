@@ -32,6 +32,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.5  2004/07/07 19:25:30  mast
+Changed exit(-1) to exit(3) for Cygwin
+
 Revision 3.4  2003/10/24 03:05:23  mast
 open as binary, strip program name and/or use routine for backup file
 
@@ -47,7 +50,7 @@ Fixed report of illegal object number
 */
 
 
-#include <imodel.h>
+#include "imodel.h"
 
 static void usage()
 {

@@ -33,12 +33,15 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.1  2003/08/26 03:49:00  mast
+Added flag definition for capping ends of tubes
+
 */
 
 #ifndef MKMESH_H
 #define MKMESH_H
 
-#include <imodel.h>
+#include "imodel.h"
 
 /* make mesh flags. */
 #define IMESH_MK_FAST  (1l << 2) /* do things sloppy and fast. */

@@ -32,6 +32,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.6  2004/07/07 19:25:30  mast
+Changed exit(-1) to exit(3) for Cygwin
+
 Revision 3.5  2004/04/28 05:29:31  mast
 Set flag to draw current contour thicker
 
@@ -52,7 +55,7 @@ Added ability to convert a residual listing from Tiltalign
 #include <stdio.h>
 #include <string.h>
 
-#include <imodel.h>
+#include "imodel.h"
 
 
 static int fgetline(FILE *fp, char s[],int limit);

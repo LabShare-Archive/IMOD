@@ -29,7 +29,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <imodel.h>
+#include "imodel.h"
 
 float Xscale = 1.0;
 float Yscale = 1.0;

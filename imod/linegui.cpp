@@ -30,6 +30,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.6  2004/11/04 23:30:55  mast
+Changes for rounded button style
+
 Revision 1.5  2004/07/11 18:26:30  mast
 Made it set contour time correctly when copying
 
@@ -80,7 +83,6 @@ added a Copy button.
 #include <qpushbutton.h>
 #include <qsignalmapper.h>
 #include <qlayout.h>
-#include <tooledit.h>
 #include <qlabel.h>
 #include <qtooltip.h>
 
@@ -89,6 +91,7 @@ added a Copy button.
    limited imodplug.h and model.h from include directory */
 
 #include "dia_qtutils.h"
+#include "tooledit.h"
 #ifdef LINE_PLUGIN
 #include "../../imod/imod.h"
 #include "../../imod/imodplug.h"
@@ -643,7 +646,6 @@ void LineTrack::track(int client)
                &plug->copypool,
                &plug->copyfit);
 
-    imodPuts("Got index");
     free(p_copy);
   }
   plug->cont->psize = maxpoint;

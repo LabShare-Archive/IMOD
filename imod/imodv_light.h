@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.2  2004/09/21 20:18:51  mast
+Moved clipping function to imodv_ogl
+
 Revision 4.1  2003/02/10 20:41:55  mast
 Merge Qt source
 
@@ -24,7 +27,7 @@ initial creation
 #define IMODV_LIGHT_H
 
 // This has to be included because Iview has no struct name
-#include <imodel.h>
+#include "imodel.h"
 
 /* light functions */
 void light_init(void);

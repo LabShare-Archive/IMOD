@@ -57,7 +57,6 @@ Log at end of file
 
 #include "imod.h"
 #include "imod_input.h"
-#include <imat.h>
 #include "b3dgfx.h"
 
 #include "lowres.bits"
@@ -1313,6 +1312,9 @@ void TumblerGL::paintGL()
 
 /*
 $Log$
+Revision 4.19  2004/11/04 23:30:55  mast
+Changes for rounded button style
+
 Revision 4.18  2004/09/10 02:31:03  mast
 replaced long with int
 

@@ -36,14 +36,14 @@ $Revision$
 Log at end of file
 */
 
+#include <math.h>
 #include <qlineedit.h>
-#include <tooledit.h>
 #include <qcheckbox.h>
 #include <qlabel.h>
 #include <qlayout.h>
 #include <qtooltip.h>
 #include "dia_qtutils.h"
-#include <math.h>
+#include "tooledit.h"
 
 #include "imod.h"
 #include "imod_display.h"
@@ -495,6 +495,9 @@ void ModelOffsetWindow::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.8  2004/11/04 23:30:55  mast
+Changes for rounded button style
+
 Revision 4.7  2004/11/01 23:29:01  mast
 Added resolution scaling and help screen
 

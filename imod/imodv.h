@@ -38,9 +38,9 @@ Log at end of file
 #define IMODV_H
 
 #include <limits.h>
-#include <imodconfig.h>
+#include "imodconfig.h"
 
-#include <imodel.h>       /* imod library include. */
+#include "imodel.h"       /* imod library include. */
 
 /* used for finding bounding box. */
 #ifndef FLT_MAX
@@ -151,6 +151,9 @@ void imodvQuit();
 
 /*
 $Log$
+Revision 3.14  2004/06/06 21:27:21  mast
+Eliminated stereo-command related items
+
 Revision 3.13  2003/12/30 06:32:16  mast
 Make snap_fileno be part of imodvApp structure
 

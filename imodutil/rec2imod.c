@@ -30,7 +30,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <imodel.h>
+#include "imodel.h"
 #include "recfile.h"
 
 static void usage(void)

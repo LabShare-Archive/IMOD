@@ -33,6 +33,12 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.9  2004/09/28 22:20:31  mast
+Overhauled to add mesh volume computation that takes account of spacing
+between connected contours; to handle multiple clipping planes; and
+to give consistent results with inside contours, clipping and subset
+volumes for main output, full object, surface, and centroid outputs.
+
 Revision 3.8  2004/09/21 20:34:25  mast
 First changes to deal with new clipping plane structure
 
@@ -64,7 +70,7 @@ fixed exit status
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <imodel.h>
+#include "imodel.h"
 #include <math.h>
 
 #define MINFO_SPECIAL  99

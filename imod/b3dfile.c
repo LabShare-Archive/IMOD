@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.5  2004/09/10 02:31:03  mast
+    replaced long with int
+
     Revision 3.4  2003/03/28 05:08:33  mast
     Use new unique little endian flag
 
@@ -57,7 +60,7 @@
 */
 
 #include <stdio.h>
-#include <imodconfig.h>
+#include "imodconfig.h"
 
 #ifdef __vms
 #define B3DFILE_LTLENDIAN

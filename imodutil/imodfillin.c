@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.7  2004/07/07 19:25:30  mast
+Changed exit(-1) to exit(3) for Cygwin
+
 Revision 3.6  2003/10/26 14:46:41  mast
 fixed problem in eliminating getopt
 
@@ -56,7 +59,7 @@ First version of program
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <imodel.h>
+#include "imodel.h"
 
 int *parselist (char *line, int *nlist);
 void fillin_from_mesh(Imod *imod, int ob, int newobj, int zinc, float tol);

@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.6  2004/07/07 19:25:30  mast
+Changed exit(-1) to exit(3) for Cygwin
+
 Revision 3.5  2004/06/24 15:36:39  mast
 Added -X, -Y, -Z options for doing subvolume
 
@@ -53,8 +56,8 @@ Added option to set color of model object
 #include <math.h>
 #include <limits.h>
 #include <stdio.h>
-#include <mrcc.h>
-#include <imodel.h>
+#include "mrcc.h"
+#include "imodel.h"
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
