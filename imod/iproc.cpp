@@ -40,6 +40,7 @@ Log at end of file
 #include <qtooltip.h>
 #include <qcombobox.h>
 #include <qlistbox.h>
+#include <qspinbox.h>
 #include <qvbox.h>
 #include <qpushbutton.h>
 #include "dia_qtutils.h"
@@ -48,6 +49,8 @@ Log at end of file
 #include "imod_display.h"
 #include "iproc.h"
 #include "sliceproc.h"
+#include "xcorr.h"
+#include "imod_info.h"
 #include "imod_info_cb.h"
 #include "control.h"
 #include "preferences.h"
@@ -59,6 +62,7 @@ static void clearsec(ImodIProc *ip);
 static void savesec(ImodIProc *ip);
 static void cpdslice(Islice *sl, ImodIProc *ip);
 static void copyAndDisplay();
+static void setSliceMinMax(bool actual);
 
 static void edge_cb();
 static void mkedge_cb(IProcWindow *win, QWidget *parent, QVBoxLayout *layout);
@@ -69,9 +73,16 @@ static void smooth_cb();
 static void sharpen_cb();
 static void grow_cb();
 static void shrink_cb();
+static void mkFourFilt_cb(IProcWindow *win, QWidget *parent, 
+                          QVBoxLayout *layout);
+static void fourFilt_cb();
+static void mkFFT_cb(IProcWindow *win, QWidget *parent, QVBoxLayout *layout);
+static void fft_cb();
 
 /* The table of entries and callbacks */
 ImodIProcData proc_data[] = {
+  {"Fourier filter", fourFilt_cb, mkFourFilt_cb, NULL},
+  {"FFT", fft_cb, mkFFT_cb, NULL},
   {"edge", edge_cb, mkedge_cb, NULL},
   {"threshold", thresh_cb, mkthresh_cb, NULL},
   {"smooth", smooth_cb, NULL, "Smooth Image."},
@@ -89,6 +100,10 @@ static Islice s;
  * CALLBACK FUNCTIONS FOR THE VARIOUS FILTERS
  */
 
+// New rule 11/07/04: Set the desired output min and max before calling 
+// routines in sliceproc or xcorr to either the data range with 
+// setSliceMinMax(false) or the existing input range with  setSliceMinMax(true)
+
 // Edge enhancement
 static void edge_cb()
 {
@@ -97,22 +112,22 @@ static void edge_cb()
 
   switch (ip->edge){
   case 0:
+    setSliceMinMax(false);
     sliceByteEdgeSobel(&s);
-    if(App->depth == 8)
-      sliceByteAdd(&s, ip->vi->rampbase);
     break;
 
   case 1:
+    setSliceMinMax(false);
     sliceByteEdgePrewitt(&s);
-    if(App->depth == 8)
-      sliceByteAdd(&s, ip->vi->rampbase);
     break;
 
   case 2:
+    setSliceMinMax(false);
     sliceByteEdgeLaplacian(&s);
     break;
 	  
   case 3:
+    setSliceMinMax(false);
     sliceByteGraham(&s);
     break;
 
@@ -140,7 +155,7 @@ static void thresh_cb()
     thresh = (int)
       ((((float)ip->vi->rampsize/256.0f)*thresh) + ip->vi->rampbase);
     minv = ip->vi->rampbase;
-    maxv = ip->vi->rampsize + minv;
+    maxv = ip->vi->rampsize + minv - 1;
   }else{
     minv = 0; maxv = 255;
   }
@@ -159,6 +174,7 @@ static void thresh_cb()
 static void smooth_cb()
 {
   ImodIProc *ip = &proc;
+  setSliceMinMax(true);
   sliceByteSmooth(&s);
 }
 
@@ -166,6 +182,7 @@ static void smooth_cb()
 static void sharpen_cb()
 {
   ImodIProc *ip = &proc;
+  setSliceMinMax(true);
   sliceByteSharpen(&s);
 }
 
@@ -174,12 +191,7 @@ static void grow_cb()
 {
   ImodIProc *ip = &proc;
 
-  if (App->depth == 8){
-    s.min = ip->vi->rampbase;
-    s.max = ip->vi->rampsize + s.min;
-  }else{
-    s.min = 0; s.max = 255;
-  }
+  setSliceMinMax(false);
 
   // If the slice is not modified, run a threshold on it
   if (!ip->modified)
@@ -193,18 +205,40 @@ static void shrink_cb()
 {
   ImodIProc *ip = &proc;
 
-  if (App->depth == 8){
-    s.min = ip->vi->rampbase;
-    s.max = ip->vi->rampsize + s.min;
-  }else{
-    s.min = 0; s.max = 255;
-  }
+  setSliceMinMax(false);
 
   // If the slice is not modified, run a threshold on it
   if (!ip->modified)
     thresh_cb();
 
   sliceByteShrink(&s,  (int)s.max);
+}
+
+static void fourFilt_cb()
+{
+  ImodIProc *ip = &proc;
+  setSliceMinMax(true);
+  sliceFourierFilter(&s, ip->sigma1, ip->sigma2, ip->radius1, ip->radius2);
+}
+
+static void fft_cb()
+{
+  setSliceMinMax(false);
+  proc.fftScale = sliceByteBinnedFFT(&s, proc.fftBinning);
+}
+
+// Set the min and max of the static slice to full range, or actual values
+static void setSliceMinMax(bool actual)
+{
+  if (actual) {
+    sliceMinMax(&s);
+  } else if (App->depth == 8){
+    s.min = proc.vi->rampbase;
+    s.max = proc.vi->rampsize + s.min - 1;
+  } else {
+    s.min = 0;
+    s.max = 255;
+  }
 }
 
 
@@ -232,6 +266,7 @@ int iprocRethink(struct ViewInfo *vi)
       proc.dia->close();
       return 1;
     }
+    proc.dia->limitFFTbinning();
   }
   return 0;
 }
@@ -244,6 +279,12 @@ int inputIProcOpen(struct ViewInfo *vi)
       proc.procnum = 0;
       proc.threshold = 128;
       proc.edge = 0;
+      proc.sigma1 = 0.;
+      proc.sigma2 = 0.05f;
+      proc.radius1 = 0.;
+      proc.radius2 = 0.5f;
+      proc.fftBinning = 1;
+      proc.fftScale = 0.;
     }
     proc.vi = vi;
     proc.idatasec = -1;
@@ -269,6 +310,12 @@ int inputIProcOpen(struct ViewInfo *vi)
   return(0);
 }
 
+bool iprocBusy(void)
+{
+  if (!proc.dia)
+    return false;
+  return proc.dia->mRunningProc;
+}
 
 /*
  * DATA COPYING FUNCTIONS
@@ -300,7 +347,7 @@ static void cpdslice(Islice *sl, ImodIProc *ip)
 static void copyAndDisplay()
 {
   ImodIProc *ip = &proc;
-  unsigned char **to = ivwGetCurrentZSection(ip->vi);
+  unsigned char **to = ivwGetZSectionTime(ip->vi, ip->idatasec, ip->idatatime);
   unsigned char *from = ip->iwork;
   int i, j;
   int cz =  (int)(ip->vi->zmouse + 0.5f);
@@ -359,6 +406,7 @@ static void savesec(ImodIProc *ip)
   // Make sure there is floating info for this data so it can be saved when
   // it is cleared
   imod_info_bwfloat(ip->vi, ip->idatasec, ip->idatatime);
+  imodInfoSaveNextClear();
 }
 
 
@@ -389,6 +437,45 @@ static void mkthresh_cb(IProcWindow *win, QWidget *parent, QVBoxLayout *layout)
   layout->addLayout(slider->getLayout());
 }
 
+static void mkFourFilt_cb(IProcWindow *win, QWidget *parent,
+                          QVBoxLayout *layout)
+{
+  char *sliderLabel[] = {"Low-frequency sigma", "High-frequency cutoff",
+                         "High-frequency falloff"};
+  diaLabel("Filtering in Fourier Space", parent, layout);
+  MultiSlider *slider = new MultiSlider(parent, 3, sliderLabel, 0, 200, 3);
+  slider->setRange(1, 0, 500);
+  slider->setRange(2, 1, 200);
+  slider->setValue(0, (int)(1000. * proc.sigma1));
+  slider->setValue(1, (int)(1000. * proc.radius2));
+  slider->setValue(2, (int)(1000. * proc.sigma2));
+  QObject::connect(slider, SIGNAL(sliderChanged(int, int, bool)), win, 
+          SLOT(fourFiltChanged(int, int, bool)));
+  layout->addLayout(slider->getLayout());
+  QToolTip::add((QWidget *)slider->getSlider(0), "Sigma for inverted Gaussian"
+                " high-pass filter (0 at origin)");
+  QToolTip::add((QWidget *)slider->getSlider(1), "Cutoff radius for Gaussian"
+                " low-pass filter");
+  QToolTip::add((QWidget *)slider->getSlider(0), "Sigma for Gaussian"
+                "low-pass filter starting at cutoff");
+}
+
+static void mkFFT_cb(IProcWindow *win, QWidget *parent, QVBoxLayout *layout)
+{
+  diaLabel("Fourier transform", parent, layout);
+  QHBoxLayout *hLayout = new QHBoxLayout(layout);
+  QLabel *label = new QLabel("Binning", parent);
+  label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+  hLayout->addWidget(label);
+  proc.fftBinSpin = new QSpinBox(1, 8, 1, parent);
+  hLayout->addWidget(proc.fftBinSpin);
+  proc.fftBinSpin->setFocusPolicy(QWidget::ClickFocus);
+  QObject::connect(proc.fftBinSpin, SIGNAL(valueChanged(int)), win, 
+                   SLOT(binningChanged(int)));
+  proc.fftLabel1 = diaLabel("  ", parent, layout);
+  proc.fftLabel2 = diaLabel("  ", parent, layout);
+  win->limitFFTbinning();
+}
 
 
 /* THE WINDOW CLASS CONSTRUCTOR */
@@ -409,6 +496,7 @@ IProcWindow::IProcWindow(QWidget *parent, const char *name)
   QString str;
   QVBoxLayout *vLayout;
   QWidget *control;
+  mRunningProc = false;
 
   // Put an H layout inside the main layout, then fill that with the
   // List box and the widget stack
@@ -476,6 +564,23 @@ void IProcWindow::threshChanged(int which, int value, bool dragging)
   proc.threshold = value;
 }
 
+void IProcWindow::fourFiltChanged(int which, int value, bool dragging)
+{
+  if (!which)
+    proc.sigma1 = 0.001 * value;
+  else if (which == 1)
+    proc.radius2 = 0.001 * value;
+  else if (which == 2)
+    proc.sigma2 = 0.001 * value;
+}
+
+void IProcWindow::binningChanged(int val)
+{
+  setFocus();
+  proc.fftBinning = val;
+  
+}
+
 // To switch filters, set the size policy of the current widget back to ignored
 // raise the new widget, set its size policy, make the stack process geometry
 // again then adjust window size
@@ -497,7 +602,8 @@ void IProcWindow::filterHighlighted(int which)
 void IProcWindow::filterSelected(int which)
 {
   filterHighlighted(which);
-  apply();
+  if (!proc.dia->mRunningProc)
+    apply();
 }
 
 void IProcWindow::edgeSelected(int which)
@@ -528,11 +634,8 @@ void IProcWindow::buttonClicked(int which)
     }
 
     /* Otherwise operate on the current data without restoring it */
-    if ( proc_data[ip->procnum].cb) {
-      proc_data[ip->procnum].cb();
-      copyAndDisplay();
-      ip->modified = 1;
-    }
+    if (proc_data[ip->procnum].cb)
+      startProcess();
     break;
 
   case 2:  // Toggle
@@ -566,16 +669,45 @@ void IProcWindow::buttonClicked(int which)
        "Single-click in the list of filters to select the current filter "
        "to be applied to the data; in some cases there will be further "
        "parameters to select.\n\n"
-       "Selecting the [Apply] button will apply the current filter to the "
+       "Pressing the [Apply] button will apply the current filter to the "
        "ORIGINAL image data.  Double-clicking in the filter list is the "
-       "same as selecting the [Apply] button.\n\n"
-       "Selecting the [More] button will apply the filter to the CURRENT "
+       "same as pressing the [Apply] button.\n\n"
+       "Pressing the [More] button will apply the filter to the CURRENT "
        "image data, as modified by previous filter operations.\n\n"
-       "Selecting the [Reset] button, applying a filter to a different "
+       "Pressing the [Reset] button, applying a filter to a different "
        "section, closing the window with [Done], or flipping the data "
        "volume will all restore the original image data for a section, "
-       "unless you select the [Save] button.  [Save] will permanently "
+       "unless you press the [Save] button.  [Save] will permanently "
        "replace the image data in memory with the processed data.\n\n",
+       "The Fourier filter is done by taking Fourier transforms and its "
+       "parameters are the \"radius\" and \"sigma\" parameters used in "
+       "several other IMOD programs.  Namely, the \"Low frequency sigma\" is "
+       "the sigma of an inverted Gaussian starting at the origin, used to "
+       "attenuate low frequencies.  Low pass filtering is done with a "
+       "Gaussian starting at the \"High-frequency cutoff\" and  "
+       "with a sigma given by the \"High-frequency falloff\".  The units are "
+       "cycles per pixel, ranging from 0 to 0.5.\n\n",
+       "To take a Fourier transform (FFT), the program will pad the image "
+       "into a square array slightly larger than the original image, taper "
+       "the image at its edges to minimize edge artifacts, take the FFT, "
+       "apply log scaling, and clip out the portion that fits into the "
+       "original image size.  For a non-square image, the FFT will thus be "
+       "isotropic (X and Y scales the same) but truncated in one dimension.  "
+       "The panel will show the range of frequencies that appear in the X "
+       "and Y dimensions.  Binning can be used to see the whole transform for "
+       "a non-square image, and also to reduce noise and execution time.  "
+       "With binning, the smaller FFT will be embedded into a black "
+       "background.\n"
+       "The panel also shows a scale that can be used to convert from pixels "
+       "in the FFT to frequency units.  To determine the frequency at a "
+       "location, measure the distance from the origin (at the center of the "
+       "image) to the given location.  (For example, draw a model line "
+       "between them and use \"Edit-Point-Distance\".)  Multiply the distance "
+       "in pixels times the scale to get the frequency in cycles/pixel.  "
+       "To determine the frequency in actual units such as reciprocal "
+       "nanometers, divide this frequency by the pixel size (e.g., in nm).  "
+       "To get a resolution value in real-space units, "
+       "divide the pixel size by the frequency in cycles/pixel.",
        NULL);
     break;
   }
@@ -626,12 +758,85 @@ void IProcWindow::apply()
   }
     
   /* Operate on the original data */
-  if ( proc_data[ip->procnum].cb) {
-    proc_data[ip->procnum].cb();
-    ip->modified = 1;
-    copyAndDisplay();
+  startProcess();
+}
+
+void IProcWindow::startProcess()
+{
+  ImodIProc *ip = &proc;
+  int i;
+  if (!proc_data[ip->procnum].cb)
+    return;
+#ifdef QT_THREAD_SUPPORT
+
+  // If running in a thread, set flag, disable buttons except help,
+  // start timer and start thread
+  mRunningProc = true;
+  for (i = 0; i < mNumButtons - 1; i++)
+    mButtons[i]->setEnabled(false);
+  ImodInfoWin->manageMenus();
+  mTimerID = startTimer(50);
+  mProcThread = new IProcThread;
+  mProcThread->start(QThread::LowPriority);
+#else
+
+  // Otherwise just start the process directly
+  proc_data[ip->procnum].cb();
+#endif
+}
+
+void IProcWindow::finishProcess()
+{
+  ImodIProc *ip = &proc;
+  QString str;
+  float xrange, yrange;
+  ip->modified = 1;
+  copyAndDisplay();
+  if (ip->fftScale < 0.) {
+    wprint("\aMemory error trying to do FFT!\n");
+  } else if (ip->fftScale > 0.) {
+    str.sprintf("Scale: %.3g/pixel per FFT pixel", ip->fftScale);
+    ip->fftLabel1->setText(str);
+    xrange = 0.5 * ip->fftScale * ip->vi->xsize;
+    xrange = xrange <= 0.5 ? xrange : 0.5f;
+    yrange = 0.5 * ip->fftScale * ip->vi->ysize;
+    yrange = yrange <= 0.5 ? yrange : 0.5f;
+    str.sprintf("Range: +/- %.4f in X, +/- %.4f in Y", xrange, yrange);
+    ip->fftLabel2->setText(str);
   }
 }
+
+
+void IProcWindow::timerEvent(QTimerEvent *e)
+{
+  int i;
+  if (mProcThread->running())
+    return;
+  killTimer(mTimerID);
+  for (i = 0; i < mNumButtons - 1; i++)
+    mButtons[i]->setEnabled(true);
+  delete mProcThread;
+  mRunningProc = false;
+  finishProcess();
+  ImodInfoWin->manageMenus();
+}
+
+void IProcWindow::limitFFTbinning()
+{
+  ImodIProc *ip = &proc;
+  int limit = 16;
+  if (limit > ip->vi->xsize)
+    limit = ip->vi->xsize;
+  if (limit > ip->vi->ysize)
+    limit = ip->vi->ysize;
+  if (ip->fftBinning > limit)
+    ip->fftBinning = limit;
+  ip->fftBinSpin->blockSignals(true);
+  ip->fftBinSpin->setMaxValue(limit);
+  ip->fftBinSpin->setValue(ip->fftBinning);
+  ip->fftBinSpin->blockSignals(false);
+}
+
 
 void IProcWindow::fontChange( const QFont & oldFont )
 {
@@ -643,7 +848,7 @@ void IProcWindow::fontChange( const QFont & oldFont )
 void IProcWindow::closeEvent ( QCloseEvent * e )
 {
   ImodIProc *ip = &proc;
-  if (!ip->dia)
+  if (!ip->dia || mRunningProc)
     return;
   clearsec(ip);
   imodDialogManager.remove((QWidget *)ip->dia);
@@ -670,9 +875,18 @@ void IProcWindow::keyReleaseEvent ( QKeyEvent * e )
   ivwControlKey(1, e);
 }
 
+// A very simple thread run command!
+void IProcThread::run()
+{
+  proc_data[proc.procnum].cb();
+}
+
 /*
 
     $Log$
+    Revision 4.8  2004/11/04 23:30:55  mast
+    Changes for rounded button style
+
     Revision 4.7  2004/02/12 00:16:18  mast
     Changed the setSizePolicy calls to be compatible to Qt 3.0.5
 
