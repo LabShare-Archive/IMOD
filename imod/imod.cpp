@@ -1,31 +1,13 @@
-/*  IMOD VERSION 2.50
- *
- *  imod.c -- Main imod program; Display MRC Images and build Models.
+/*
+ *  imod.c -- Main 3dmod program; Display MRC Images and build Models.
  *
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
+ *
+ *  Copyright (C) 1995-2004 by Boulder Laboratory for 3-Dimensional Electron
+ *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  */
-
-/*****************************************************************************
- *   Copyright (C) 1995-2001 by Boulder Laboratory for 3-Dimensional Fine    *
- *   Structure ("BL3DFS") and the Regents of the University of Colorado.     *
- *                                                                           *
- *   BL3DFS reserves the exclusive rights of preparing derivative works,     *
- *   distributing copies for sale, lease or lending and displaying this      *
- *   software and documentation.                                             *
- *   Users may reproduce the software and documentation as long as the       *
- *   copyright notice and other notices are preserved.                       *
- *   Neither the software nor the documentation may be distributed for       *
- *   profit, either in original form or in derivative works.                 *
- *                                                                           *
- *   THIS SOFTWARE AND/OR DOCUMENTATION IS PROVIDED WITH NO WARRANTY,        *
- *   EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTY OF          *
- *   MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.       *
- *                                                                           *
- *   This work is supported by NIH biotechnology grant #RR00592,             *
- *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
- *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
- *****************************************************************************/
 
 /*  $Author$
 
@@ -53,6 +35,7 @@ Log at the end of file
 #endif
 #include "imod_workprocs.h"
 #include "imodv.h"
+#include "imodv_menu.h"
 #include "imodv_views.h"
 #include "xzap.h"
 #include "imod_display.h"
@@ -124,6 +107,7 @@ void imod_usage(char *name)
   qstr += "         -G    Display RGB-mode MRC file in gray-scale.\n";
   qstr += "         -M    Do not mirror FFT data around Y axis.\n";
   qstr += "         -ci   Display images in color index mode with colormap.\n";
+  qstr += "         -E <keys>  Open windows specified by key letters.\n";
   qstr += "         -h    Print this help message.\n";
   imodPrintInfo(qstr.latin1());
   return;
@@ -751,8 +735,10 @@ int main( int argc, char *argv[])
     xxyz_open(&vi);
   if (sliceropen && !vi.rawImageStore)
     sslice_open(&vi);
-  if (modelViewOpen)
+  if (modelViewOpen) {
     imodv_open();
+    imodvOpenSelectedWindows(windowKeys);
+  }
   if (zapOpen || !(xyzwinopen || sliceropen || modelViewOpen))
     imod_zap_open(&vi); 
   if (Imod_debug)  
@@ -801,7 +787,7 @@ void imod_quit(void)
 {
   int done, err;
 
-  if (!imod_model_changed(Model)){
+  if (imodDebug('T') || !imod_model_changed(Model)){
     imod_cleanup_autosave();
     imod_exit(0);
     return;
@@ -1022,6 +1008,9 @@ int imodColorValue(int inColor)
 
 /*
 $Log$
+Revision 4.43  2004/11/20 05:05:27  mast
+Changes for undo/redo capability
+
 Revision 4.42  2004/11/04 23:52:19  mast
 Undoing erroreous checking of test version
 
