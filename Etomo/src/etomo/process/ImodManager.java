@@ -3,6 +3,7 @@ package etomo.process;
 import java.lang.IllegalArgumentException;
 import java.lang.UnsupportedOperationException;
 import java.util.HashMap;
+import java.util.Vector;
 
 import etomo.ApplicationManager;
 import etomo.type.AxisID;
@@ -26,6 +27,10 @@ import etomo.type.ConstMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.7  2003/12/02 23:16:40  sueh
+ * <p> bug242 changed from ImodAssistant to ImodState, added
+ * <p> reset() function to handle FullVolume.
+ * <p>
  * <p> Revision 3.6  2003/12/01 17:09:54  sueh
  * <p> bug242 Allowing ImodAssistants to be created on the fly.
  * <p>
@@ -350,31 +355,39 @@ public class ImodManager {
     else {
       loadDualAxisMap();
     }
-
   }
+  
   
   //Interface
   
-
-  public void create(String key) {
+  public int create(String key) {
+    Vector vector;
+    ImodState imodState;
     key = getPrivateKey(key);
-    ImodState imodState = get(key);
-    if (imodState == null) {
-      imodState = newImodState(key);
-      imodMap.put(key, imodState);
+    vector = getVector(key);
+    if (vector == null) {
+      vector = newVector(key);
+      imodMap.put(key, vector);
     }
+    imodState = newImodState(key);
+    vector.add(imodState);
+    return vector.lastIndexOf(imodState);
   }
   
-  public void create(String key, AxisID axisID) throws SystemProcessException {
+  public int create(String key, AxisID axisID) throws SystemProcessException {
+    Vector vector;
+    ImodState imodState;
     key = getPrivateKey(key);
-    ImodState imodState = get(key, axisID);
-    if (imodState == null) {
-      imodState = newImodState(key, axisID);
-      imodMap.put(key + axisID.getExtension(), imodState);
+    vector = getVector(key, axisID);
+    if (vector == null) {
+      vector = newVector(key, axisID);
+      imodMap.put(key + axisID.getExtension(), vector);
     }
+    imodState = newImodState(key, axisID);
+    vector.add(imodState);
+    return vector.lastIndexOf(imodState);
   }
 
-  
   public void open(String key) throws SystemProcessException {
     key = getPrivateKey(key);
     ImodState imodState = get(key);
@@ -530,29 +543,24 @@ public class ImodManager {
       imodState.reset();
     }
   }
-  
-  public void delete(String key, AxisID axisID) throws SystemProcessException {
-    key = getPrivateKey(key);
-    ImodState imodState = get(key, axisID);
-    if (imodState != null) {
-      imodState.quit();
-      imodMap.remove(key + axisID.getExtension());
-    }
-  }
-  
-  public void delete(String key) throws SystemProcessException {
-    key = getPrivateKey(key);
-    ImodState imodState = get(key);
-    if (imodState != null) {
-      imodState.quit();
-      imodMap.remove(key);
-    }
-  }
-
 
 
 
   //protected methods
+  
+  protected Vector newVector(ImodState imodState) {
+    Vector vector = new Vector(1);
+    vector.add(imodState);
+    return vector;
+  }
+  
+  protected Vector newVector(String key) {
+    return newVector(newImodState(key));
+  }
+  
+  protected Vector newVector(String key, AxisID axisID) {
+    return newVector(newImodState(key, axisID));
+  }
   
   protected ImodState newImodState(String key) {
     return newImodState(key, AxisID.ONLY);
@@ -616,37 +624,37 @@ public class ImodManager {
   protected void loadSingleAxisMap() {
     ImodState imodState;
     imodMap = new HashMap(singleAxisImodMapSize);
-    imodMap.put(rawStackKey, newRawStack(AxisID.ONLY));
-    imodMap.put(erasedStackKey, newErasedStack(AxisID.ONLY));
-    imodMap.put(coarseAlignedKey, newCoarseAligned(AxisID.ONLY));
-    imodMap.put(fineAlignedKey, newFineAligned(AxisID.ONLY));
-    imodMap.put(sampleKey, newSample(AxisID.ONLY));
-    imodMap.put(fullVolumeKey, newFullVolume(AxisID.ONLY));
-    imodMap.put(fiducialModelKey, newFiducialModel());
-    imodMap.put(trimmedVolumeKey, newTrimmedVolume());
+    imodMap.put(rawStackKey, newVector(newRawStack(AxisID.ONLY)));
+    imodMap.put(erasedStackKey, newVector(newErasedStack(AxisID.ONLY)));
+    imodMap.put(coarseAlignedKey, newVector(newCoarseAligned(AxisID.ONLY)));
+    imodMap.put(fineAlignedKey, newVector(newFineAligned(AxisID.ONLY)));
+    imodMap.put(sampleKey, newVector(newSample(AxisID.ONLY)));
+    imodMap.put(fullVolumeKey, newVector(newFullVolume(AxisID.ONLY)));
+    imodMap.put(fiducialModelKey, newVector(newFiducialModel()));
+    imodMap.put(trimmedVolumeKey, newVector(newTrimmedVolume()));
   }
 
   protected void loadDualAxisMap() {
     ImodState imodState;
     imodMap = new HashMap(dualAxisImodMapSize);
-    imodMap.put(rawStackKey + AxisID.FIRST.getExtension(), newRawStack(AxisID.FIRST));
-    imodMap.put(rawStackKey + AxisID.SECOND.getExtension(), newRawStack(AxisID.SECOND));
-    imodMap.put(erasedStackKey + AxisID.FIRST.getExtension(), newErasedStack(AxisID.FIRST));
-    imodMap.put(erasedStackKey + AxisID.SECOND.getExtension(), newErasedStack(AxisID.SECOND));
-    imodMap.put(coarseAlignedKey + AxisID.FIRST.getExtension(), newCoarseAligned(AxisID.FIRST));
-    imodMap.put(coarseAlignedKey + AxisID.SECOND.getExtension(), newCoarseAligned(AxisID.SECOND));
-    imodMap.put(fineAlignedKey + AxisID.FIRST.getExtension(), newFineAligned(AxisID.FIRST));
-    imodMap.put(fineAlignedKey + AxisID.SECOND.getExtension(), newFineAligned(AxisID.SECOND));
-    imodMap.put(sampleKey + AxisID.FIRST.getExtension(), newSample(AxisID.FIRST));
-    imodMap.put(sampleKey + AxisID.SECOND.getExtension(), newSample(AxisID.SECOND));
-    imodMap.put(fullVolumeKey + AxisID.FIRST.getExtension(), newFullVolume(AxisID.FIRST));
-    imodMap.put(fullVolumeKey + AxisID.SECOND.getExtension(), newFullVolume(AxisID.SECOND));
-    imodMap.put(combinedTomogramKey, newCombinedTomogram());
-    imodMap.put(patchVectorModelKey, newPatchVectorModel());
-    imodMap.put(matchCheckKey, newMatchCheck());
-    imodMap.put(fiducialModelKey + AxisID.FIRST.getExtension(), newFiducialModel());
-    imodMap.put(fiducialModelKey + AxisID.SECOND.getExtension(), newFiducialModel());
-    imodMap.put(trimmedVolumeKey, newTrimmedVolume());
+    imodMap.put(rawStackKey + AxisID.FIRST.getExtension(), newVector(newRawStack(AxisID.FIRST)));
+    imodMap.put(rawStackKey + AxisID.SECOND.getExtension(), newVector(newRawStack(AxisID.SECOND)));
+    imodMap.put(erasedStackKey + AxisID.FIRST.getExtension(), newVector(newErasedStack(AxisID.FIRST)));
+    imodMap.put(erasedStackKey + AxisID.SECOND.getExtension(), newVector(newErasedStack(AxisID.SECOND)));
+    imodMap.put(coarseAlignedKey + AxisID.FIRST.getExtension(), newVector(newCoarseAligned(AxisID.FIRST)));
+    imodMap.put(coarseAlignedKey + AxisID.SECOND.getExtension(), newVector(newCoarseAligned(AxisID.SECOND)));
+    imodMap.put(fineAlignedKey + AxisID.FIRST.getExtension(), newVector(newFineAligned(AxisID.FIRST)));
+    imodMap.put(fineAlignedKey + AxisID.SECOND.getExtension(), newVector(newFineAligned(AxisID.SECOND)));
+    imodMap.put(sampleKey + AxisID.FIRST.getExtension(), newVector(newSample(AxisID.FIRST)));
+    imodMap.put(sampleKey + AxisID.SECOND.getExtension(), newVector(newSample(AxisID.SECOND)));
+    imodMap.put(fullVolumeKey + AxisID.FIRST.getExtension(), newVector(newFullVolume(AxisID.FIRST)));
+    imodMap.put(fullVolumeKey + AxisID.SECOND.getExtension(), newVector(newFullVolume(AxisID.SECOND)));
+    imodMap.put(combinedTomogramKey, newVector(newCombinedTomogram()));
+    imodMap.put(patchVectorModelKey, newVector(newPatchVectorModel()));
+    imodMap.put(matchCheckKey, newVector(newMatchCheck()));
+    imodMap.put(fiducialModelKey + AxisID.FIRST.getExtension(), newVector(newFiducialModel()));
+    imodMap.put(fiducialModelKey + AxisID.SECOND.getExtension(), newVector(newFiducialModel()));
+    imodMap.put(trimmedVolumeKey, newVector(newTrimmedVolume()));
   }
 
   protected ImodState newRawStack(AxisID axisID) {
@@ -733,50 +741,71 @@ public class ImodManager {
 
 
   protected ImodState get(String key) {
-    ImodState imodState;
-    if (!useMap) {
-      throw new UnsupportedOperationException("This operation is not supported when useMap is false");
+    Vector vector = getVector(key);
+    if (vector == null) {
+      return null;
     }
-    if (axisType == AxisType.SINGLE_AXIS && isDualAxisOnly(key)) {
-      throw new IllegalArgumentException(key + " cannot be found in " + axisType.toString());
-    }
-    if (isDualAxisOnly(key) && isPerAxis(key)) {
-      throw new UnsupportedOperationException(key + " cannot be found without axisID information");
-    }
-    
-    if (isPerAxis(key)) { 
-      imodState = (ImodState) imodMap.get(key + AxisID.ONLY.getExtension());
-    }
-    else {
-      imodState = (ImodState) imodMap.get(key);
-    }
-    return imodState;
+    return (ImodState) vector.lastElement();
   }
   
   protected ImodState get(String key, AxisID axisID) {
-    ImodState imodState;
-    if (!useMap) {
-      throw new UnsupportedOperationException("This operation is not supported when useMap is false");
+    Vector vector = getVector(key, axisID);
+    if (vector == null) {
+      return null;
     }
-    if (axisType == AxisType.SINGLE_AXIS) {
-      if (isDualAxisOnly(key)) {
-        throw new IllegalArgumentException(key + " cannot be found in " + axisType.toString());
-      }
-      if (axisID != AxisID.ONLY) {
-        axisID = AxisID.ONLY;
-      }
-    }
-    if (!isPerAxis(key)) { 
-      imodState = (ImodState) imodMap.get(key);
-    }
-    else {
-      imodState = (ImodState) imodMap.get(key + axisID.getExtension());
-    }
-    return imodState;
+    return (ImodState) vector.lastElement();
   }
   
 
+  protected Vector getVector(String key) {
+     Vector vector;
+     if (!useMap) {
+       throw new UnsupportedOperationException("This operation is not supported when useMap is false");
+     }
+     if (axisType == AxisType.SINGLE_AXIS && isDualAxisOnly(key)) {
+       throw new IllegalArgumentException(key + " cannot be found in " + axisType.toString());
+     }
+     if (isDualAxisOnly(key) && isPerAxis(key)) {
+       throw new UnsupportedOperationException(key + " cannot be found without axisID information");
+     }
+    
+     if (isPerAxis(key)) {
+       vector = (Vector) imodMap.get(key + AxisID.ONLY.getExtension());
+     }
+     else {
 
+       vector = (Vector) imodMap.get(key);
+     }
+     if (vector == null) {
+       return null;
+     }
+     return (Vector) vector;
+   }
+  
+   protected Vector getVector(String key, AxisID axisID) {
+     Vector vector;
+     if (!useMap) {
+       throw new UnsupportedOperationException("This operation is not supported when useMap is false");
+     }
+     if (axisType == AxisType.SINGLE_AXIS) {
+       if (isDualAxisOnly(key)) {
+         throw new IllegalArgumentException(key + " cannot be found in " + axisType.toString());
+       }
+       if (axisID != AxisID.ONLY) {
+         axisID = AxisID.ONLY;
+       }
+     }
+     if (!isPerAxis(key)) { 
+       vector = (Vector) imodMap.get(key);
+     }
+     else {
+       vector = (Vector) imodMap.get(key + axisID.getExtension());
+     }
+     if (vector == null) {
+       return null;
+     }
+     return (Vector) vector;
+   }
 
 
 
