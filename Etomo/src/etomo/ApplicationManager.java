@@ -94,6 +94,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.134  2005/03/08 18:29:54  sueh
+ * <p> bug# 533 In midasRawStack() call midasBlendStack() instead of
+ * <p> midasRawStack() for montaging.
+ * <p>
  * <p> Revision 3.133  2005/03/08 00:39:09  sueh
  * <p> bug# 533 CoarseAlign(): get the preblend command file name from
  * <p> BlendmontParam.
@@ -1969,7 +1973,7 @@ public class ApplicationManager extends BaseManager {
       if (!updateXcorrCom(axisID)) {
         return;
       }
-      if (!updatePrenewstCom(axisID)) {
+      if (metaData.getViewType() != ViewType.MONTAGE && !updatePrenewstCom(axisID)) {
         return;
       }
       if (!updateFiducialessParams(coarseAlignDialog, axisID)) {
@@ -2034,7 +2038,7 @@ public class ApplicationManager extends BaseManager {
       mainPanel.setCoarseAlignState(ProcessState.INPROGRESS, axisID);
       String threadName;
       try {
-        threadName = processMgr.crossCorrelate(axisID);
+        threadName = processMgr.crossCorrelate(axisID, updateBlendmontInXcorrCom(axisID));
       }
       catch (SystemProcessException e) {
         e.printStackTrace();
@@ -2142,20 +2146,6 @@ public class ApplicationManager extends BaseManager {
       TiltxcorrParam tiltXcorrParam = comScriptMgr.getTiltxcorrParam(axisID);
       coarseAlignDialog.getCrossCorrelationParams(tiltXcorrParam);
       comScriptMgr.saveXcorr(tiltXcorrParam, axisID);
-      //handle montaging
-      if (metaData.getViewType() == ViewType.MONTAGE) {
-        BlendmontParam blendmontParam = comScriptMgr
-            .getBlendmontParamFromTiltxcorr(axisID);
-        GotoParam gotoParam = comScriptMgr.getGotoParamFromTiltxcorr(axisID);
-        if (blendmontParam.setBlendmontState()) {
-          gotoParam.setLabel(BlendmontParam.GOTO_LABEL);
-        }
-        else {
-          gotoParam.setLabel(TiltxcorrParam.GOTO_LABEL);
-        }
-        comScriptMgr.saveXcorr(gotoParam, axisID);
-        comScriptMgr.saveXcorr(blendmontParam, axisID);
-      }
     }
     catch (FortranInputSyntaxException except) {
       except.printStackTrace();
@@ -2176,6 +2166,26 @@ public class ApplicationManager extends BaseManager {
       return false;
     }
     return true;
+  }
+  
+  private boolean updateBlendmontInXcorrCom(AxisID axisID) {
+    boolean runningBlendmont = false;
+    //handle montaging
+    if (metaData.getViewType() == ViewType.MONTAGE) {
+      BlendmontParam blendmontParam = comScriptMgr
+          .getBlendmontParamFromTiltxcorr(axisID);
+      GotoParam gotoParam = comScriptMgr.getGotoParamFromTiltxcorr(axisID);
+      runningBlendmont = blendmontParam.setBlendmontState();
+      if (runningBlendmont) {
+        gotoParam.setLabel(BlendmontParam.GOTO_LABEL);
+      }
+      else {
+        gotoParam.setLabel(TiltxcorrParam.GOTO_LABEL);
+      }
+      comScriptMgr.saveXcorr(gotoParam, axisID);
+      comScriptMgr.saveXcorr(blendmontParam, axisID);
+    }
+    return runningBlendmont;
   }
 
   /**
@@ -2213,8 +2223,7 @@ public class ApplicationManager extends BaseManager {
   }
   
   /**
-   * Get the preblend parameters from the dialog box and update the preblend
-   * com script.
+   * Get the set the blendmont parameters and update the preblend com script.
    * @param axisID
    * @return
    */
@@ -2222,6 +2231,18 @@ public class ApplicationManager extends BaseManager {
     BlendmontParam preblendParam = comScriptMgr.getPreblendParam(axisID);
     preblendParam.setBlendmontState();
     comScriptMgr.savePreblend(preblendParam, axisID);
+  }
+  
+  
+  /**
+   * Get the set the blendmont parameters and update the blend com script.
+   * @param axisID
+   * @return
+   */
+  private void updateBlendCom(AxisID axisID) {
+    BlendmontParam blendParam = comScriptMgr.getBlendParam(axisID);
+    blendParam.setBlendmontState();
+    comScriptMgr.saveBlend(blendParam, axisID);
   }
 
 
@@ -3818,8 +3839,13 @@ public class ApplicationManager extends BaseManager {
     // Read in the newst{|a|b}.com parameters. WARNING this needs to be done
     // before reading the tilt paramers below so that the GUI knows how to
     // correctly scale the dimensions
-    comScriptMgr.loadNewst(axisID);
-    tomogramGenerationDialog.setNewstParams(comScriptMgr.getNewstComNewstParam(axisID));
+    if (metaData.getViewType() == ViewType.MONTAGE) {
+      comScriptMgr.loadBlend(axisID);
+    }
+    else {
+      comScriptMgr.loadNewst(axisID);
+      tomogramGenerationDialog.setNewstParams(comScriptMgr.getNewstComNewstParam(axisID));
+    }
     // Read in the tilt{|a|b}.com parameters and display the dialog panel
     comScriptMgr.loadTilt(axisID);
     comScriptMgr.loadMTFFilter(axisID);
@@ -3857,7 +3883,7 @@ public class ApplicationManager extends BaseManager {
       if (!updateFiducialessParams(tomogramGenerationDialog, axisID)) {
         return;
       }
-      if (updateNewstCom(axisID) == null) {
+      if (metaData.getViewType() != ViewType.MONTAGE && updateNewstCom(axisID) == null) {
         return;
       }
       if (!updateTiltCom(axisID, true)) {
@@ -4077,9 +4103,15 @@ public class ApplicationManager extends BaseManager {
     if (!updateFiducialessParams(tomogramGenerationDialog, axisID)) {
       return;
     }
-    ConstNewstParam newstParam = updateNewstCom(axisID); 
-    if (newstParam == null) {
-      return;
+    ConstNewstParam newstParam = null;
+    if (metaData.getViewType() == ViewType.MONTAGE) {
+      updateBlendCom(axisID);
+    }
+    else {
+      newstParam = updateNewstCom(axisID); 
+      if (newstParam == null) {
+        return;
+      }
     }
 
     processTrack.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
