@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.3  2003/03/26 06:23:32  mast
+Adjust to font changes
+
 Revision 3.2  2003/02/28 21:35:11  mast
 renamed lostFocus
 
@@ -29,7 +32,9 @@ added column width setting
 #ifndef TOOLEDIT_H
 #define TOOLEDIT_H
 #include <qlineedit.h>
-class ToolEdit : public QLineEdit
+#include "dllexport.h"
+
+class DLL_IM_EX ToolEdit : public QLineEdit
 {
   Q_OBJECT
 

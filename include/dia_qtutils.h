@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.1  2003/02/10 20:57:02  mast
+Merge Qt source
+
 Revision 1.1.2.1  2003/01/26 20:37:00  mast
 includes for library
 
@@ -34,6 +37,9 @@ Initial creation
 
 #ifndef DIA_QTUTILS_H
 #define DIA_QTUTILS_H
+
+#include "dllexport.h"
+
 class QCheckBox;
 class QLabel;
 class QPushButton;
@@ -45,29 +51,31 @@ class QSpinBox;
 class QButtonGroup;
 class QString;
 
-extern char *Dia_title;
+extern DLL_IM_EX char *Dia_title;
 
-void diaSetSpinBox(QSpinBox *box, int value);
-void diaSetGroup(QButtonGroup *group, int value);
-void diaSetSlider(QSlider *slider, int value);
-void diaSetChecked(QCheckBox *button, bool state);
-QLabel *diaLabel(char *text, QWidget *parent, QVBoxLayout *layout);
-QRadioButton *diaRadioButton(char *text, QWidget *parent);
-QPushButton *diaPushButton(char *text, QWidget *parent, 
+void DLL_IM_EX diaSetSpinBox(QSpinBox *box, int value);
+void DLL_IM_EX diaSetGroup(QButtonGroup *group, int value);
+void DLL_IM_EX diaSetSlider(QSlider *slider, int value);
+void DLL_IM_EX diaSetChecked(QCheckBox *button, bool state);
+QLabel DLL_IM_EX *diaLabel(char *text, QWidget *parent, QVBoxLayout *layout);
+QRadioButton DLL_IM_EX *diaRadioButton(char *text, QWidget *parent);
+QPushButton DLL_IM_EX *diaPushButton(char *text, QWidget *parent, 
 			   QVBoxLayout *layout);
-QCheckBox *diaCheckBox(char *text, QWidget *parent, QVBoxLayout *layout);
-void diaSetTitle(char *title);
+QCheckBox DLL_IM_EX *diaCheckBox(char *text, QWidget *parent, 
+                                 QVBoxLayout *layout);
+void DLL_IM_EX diaSetTitle(char *title);
 
 // Get a single existing file name with a set of filters
-QString diaOpenFileName(QWidget *parent, char *caption, int numFilters, 
-                        char *filters[]);
+QString DLL_IM_EX diaOpenFileName(QWidget *parent, char *caption, 
+                                  int numFilters, char *filters[]);
 
-int dia_err(char *message);
-int dia_puts(char *message);
-int dia_ask(char *question);
-int dia_choice(char *question, char *lab1, char *lab2, char *lab3);
-int diaQInput(int *value, int low, int high, int decimal, char *prompt);
-void dia_vasmsg(char *msg, ...);
-void dia_smsg(char **msg);
+int DLL_IM_EX dia_err(char *message);
+int DLL_IM_EX dia_puts(char *message);
+int DLL_IM_EX dia_ask(char *question);
+int DLL_IM_EX dia_choice(char *question, char *lab1, char *lab2, char *lab3);
+int DLL_IM_EX diaQInput(int *value, int low, int high, int decimal, 
+                        char *prompt);
+void DLL_IM_EX dia_vasmsg(char *msg, ...);
+void DLL_IM_EX dia_smsg(char **msg);
 
 #endif

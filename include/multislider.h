@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.1  2003/02/10 20:57:02  mast
+Merge Qt source
+
 Revision 1.1.2.1  2003/01/26 20:37:04  mast
 includes for library
 
@@ -26,12 +29,13 @@ Initial creation
 #ifndef MULTISLIDER_H
 #define MULTISLIDER_H
 #include <qobject.h>
+#include "dllexport.h"
 
 class QSlider;
 class QVBoxLayout;
 class QLabel;
 
-class MultiSlider : public QObject
+class DLL_IM_EX MultiSlider : public QObject
 {
   Q_OBJECT
 

@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.4  2004/03/22 00:43:29  mast
+Renamed buttonPressed to buttonClicked
+
 Revision 3.3  2003/04/14 05:05:27  mast
 add initial redraw
 
@@ -43,12 +46,13 @@ Initial creation
 
 #include "dialog_frame.h"
 #include <qgl.h>
+#include "dllexport.h"
 
 class MultiSlider;
 class QFrame;
 class ColorSelectorGL;
 
-class ColorSelector : public DialogFrame
+class DLL_IM_EX ColorSelector : public DialogFrame
 {
   Q_OBJECT
 
@@ -89,7 +93,7 @@ class ColorSelector : public DialogFrame
     ColorSelectorGL *mGLw;
 };
 
-class ColorSelectorGL : public QGLWidget
+class DLL_IM_EX ColorSelectorGL : public QGLWidget
 {
  public:
   ColorSelectorGL(int *currentRGB, QWidget * parent = 0, 

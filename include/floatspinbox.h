@@ -12,14 +12,18 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1  2003/12/16 23:52:01  mast
+initial creation
+
 */
 
 #ifndef FLOATSPINBOX_H
 #define FLOATSPINBOX_H
 #include <qspinbox.h>
+#include "dllexport.h"
 
 // A floating spin button class
-class FloatSpinBox : public QSpinBox
+class DLL_IM_EX FloatSpinBox : public QSpinBox
 {
   Q_OBJECT
     public:

@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.4  2004/01/22 19:06:35  mast
+Added actionClicked signal
+
 Revision 3.3  2003/03/26 06:23:15  mast
 Make fontChange virtual
 
@@ -41,13 +44,14 @@ Initial creation
 #ifndef DIALOG_FRAME_H
 #define DIALOG_FRAME_H
 #include <qwidget.h>
+#include "dllexport.h"
 
 #define BUTTON_ARRAY_MAX 10
 
 class QVBoxLayout;
 class QPushButton;
 
-class DialogFrame : public QWidget
+class DLL_IM_EX DialogFrame : public QWidget
 {
   Q_OBJECT
 

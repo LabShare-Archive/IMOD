@@ -1,5 +1,10 @@
+#ifndef ARROWBUTTON_H
+#define ARROWBUTTON_H
+
 #include <qtoolbutton.h>
-class ArrowButton : public QToolButton
+#include "dllexport.h"
+
+class DLL_IM_EX ArrowButton : public QToolButton
 {
   Q_OBJECT
     public:
@@ -7,3 +12,4 @@ class ArrowButton : public QToolButton
   ArrowButton ( ArrowType type, QWidget * parent, const char * name = 0 );
   ~ArrowButton();
 };
+#endif
