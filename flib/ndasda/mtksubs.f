@@ -5,6 +5,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.2  2003/10/26 05:33:27  mast
+c	  change command files to use unit 4 instead reopening 5
+c	
 c	  Revision 3.1  2003/08/08 17:53:03  mast
 c	  Change terminology from points to objects
 c	
@@ -223,7 +226,7 @@ c
      &	    ibast, iband,baseval,sum)
 	real*4 graphs(*),areas(*)
 	baseline=baseval
-	if(ibast.le.iband.and.(ibast.ne.0.or.ibend.ne.0))then
+	if(ibast.le.iband.and.(ibast.ne.0.or.iband.ne.0))then
 	  baseline=0.
 	  do ibin=ibast,iband
 	    baseline=baseline+graphs(ibin)

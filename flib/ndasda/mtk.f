@@ -13,6 +13,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.6  2004/04/20 04:26:49  mast
+c	  Fixed some uninitialized variables
+c	
 c	  Revision 3.5  2003/10/27 06:36:40  mast
 c	  Fix number of options needing model
 c	
@@ -100,6 +103,7 @@ c
 	ibinnd = 1
 	baseval = 0
 	padbound = 0.
+	iwin = 1
 
 	call opencomfile
 c
@@ -951,7 +955,7 @@ c
 c	  
 c	  general setup to do series of control runs and gather statistics
 c
-319	jrgfadd=0
+319	jgrfadd=0
 	if(nregion.gt.1)jgrfadd=ngraph
 	write(*,'(1x,a,$)')'0 to specify integral for each graph '//
      &	    'separately, 1 to use same bins for all: '
@@ -968,7 +972,7 @@ c
      &		.or.integend(jj).gt.nbins)go to 321
 c
 322	    write(*,'(1x,a,$)')'Start & end bins to compute baseline'//
-     &		' from, or 0,0 to used fixed value: '
+     &		' from, or 0,0 to use fixed value: '
 	    read(in5,*)ibasestrt(jj),ibasend(jj)
 	    if((ibasestrt(jj).ne.0.or.ibasend(jj).ne.0) .and.
      &		(ibasend(jj).lt.ibasestrt(jj) .or. ibasend(jj).gt.nbins
