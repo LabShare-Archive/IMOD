@@ -126,9 +126,13 @@ void zapLimitWindowSize(int &width, int &height);
 void zapLimitWindowPos(int neww, int newh, int &newdx, int &newdy);
 int zapSubsetLimits(ViewInfo *vi, int &ixStart, int &iyStart, int &nxUse, 
                     int &nyUse);
+void zapReportRubberband();
 
 /*
 $Log$
+Revision 3.9  2003/09/25 21:10:34  mast
+Removed unneeded starting geometry member
+
 Revision 3.8  2003/09/18 00:44:13  mast
 Added declaration for function to get subset boundaries
 
