@@ -19,6 +19,9 @@ import etomo.comscript.TransferfidParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.6  2003/09/26 19:46:16  sueh
+ * <p> bug223 removed task marks
+ * <p>
  * <p> Revision 2.5  2003/09/26 19:43:48  sueh
  * <p> bug223 no field should be persistant.  Changed MetaData.
  * <p> Added TransferfidNumberViews.
@@ -85,7 +88,7 @@ public class ConstMetaData {
 
   protected String invalidReason = "";
 
-  protected int transferfidNumberViews;
+  protected int transferfidNumberViews = 5;
 
   public ConstMetaData() {
   }
@@ -242,5 +245,7 @@ public class ConstMetaData {
 
     return true;
   }
-
 }
+  
+  
+ 
