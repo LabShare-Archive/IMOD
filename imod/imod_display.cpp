@@ -419,13 +419,16 @@ static void imodAssessVisual(int ind, int db, int rgba, int depth)
     depthEnabled = format.depth() ? 1 : 0;
     delete glw;
   }
-  if (Imod_debug)
-    fprintf(stderr, "for db %d rgba %d depth %d: direct %d db %d "
-            "rgba %d color %d depth %d enabled %d\n", db, rgba, depth, 
-            glVisualTable[ind].validDirect,
+  if (Imod_debug) {
+    QString str;
+    str.sprintf("for db %d rgba %d depth %d: direct %d db %d "
+            "rgba %d color %d depth %d enabled %d stereo %d\n", db, rgba,
+            depth, glVisualTable[ind].validDirect,
             glVisualTable[ind].doubleBuffer,  glVisualTable[ind].rgba,
             glVisualTable[ind].colorBits, glVisualTable[ind].depthBits,
-            depthEnabled);
+            depthEnabled, glVisualTable[ind].stereo);
+    imodPrintInfo(str.latin1());
+  }
 }
 
 void imodAssessVisuals()
@@ -548,6 +551,9 @@ int imodFindQGLFormat(ImodApp *ap, char **argv)
 
 /*
 $Log$
+Revision 4.8  2003/11/01 18:12:17  mast
+changed to put out virtually all error messages to a window
+
 Revision 4.7  2003/09/19 19:19:47  mast
 Change required color depth for rgba visuals from 16 to 15
 
