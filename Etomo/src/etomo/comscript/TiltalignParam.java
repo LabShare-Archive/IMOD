@@ -16,6 +16,9 @@ import etomo.type.EtomoNumber;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.11  2005/01/13 00:44:58  sueh
+ * <p> bug# 576 Converted includeStartEndInc to FortranInputString.
+ * <p>
  * <p> Revision 3.10  2005/01/11 20:18:15  sueh
  * <p> bug# 567 Added fixXYZCoordinates, localMagReferenceView, and
  * <p> localOutputOptions.  In updateComScriptCommand(), changed the order
@@ -164,69 +167,69 @@ public class TiltalignParam extends ConstTiltalignParam implements CommandParam 
           includeStartEndIncString, includeStartEndInc);
       includeList.parseString(scriptCommand.getValue(includeListString));
       excludeList.parseString(scriptCommand.getValue(excludeListString));
-      rotationAngle.set(scriptCommand);
+      rotationAngle.parse(scriptCommand);
       separateGroup.parseString(scriptCommand.getValues(separateGroupString));
       tiltAngleSpec.set(scriptCommand, firstTiltAngleShortString,
           tiltIncrementShortString, tiltFileShortString);
-      angleOffset.set(scriptCommand);
+      angleOffset.parse(scriptCommand);
       projectionStretch.set(scriptCommand);
-      rotOption.set(scriptCommand);
-      rotDefaultGrouping.set(scriptCommand);
+      rotOption.parse(scriptCommand);
+      rotDefaultGrouping.parse(scriptCommand);
       rotNondefaultGroup = ParamUtilities.setParamIfPresent(scriptCommand,
           rotNondefaultGroupString, nondefaultGroupSize,
           nondefaultGroupIntegerType);
-      rotationFixedView.set(scriptCommand);
-      localRotOption.set(scriptCommand);
-      localRotDefaultGrouping.set(scriptCommand);
+      rotationFixedView.parse(scriptCommand);
+      localRotOption.parse(scriptCommand);
+      localRotDefaultGrouping.parse(scriptCommand);
       localRotNondefaultGroup = ParamUtilities.setParamIfPresent(scriptCommand,
           localRotNondefaultGroupString, nondefaultGroupSize,
           nondefaultGroupIntegerType);
-      tiltOption.set(scriptCommand);
-      tiltDefaultGrouping.set(scriptCommand);
+      tiltOption.parse(scriptCommand);
+      tiltDefaultGrouping.parse(scriptCommand);
       tiltNondefaultGroup = ParamUtilities.setParamIfPresent(scriptCommand,
           tiltNondefaultGroupString, nondefaultGroupSize,
           nondefaultGroupIntegerType);
-      localTiltDefaultGrouping.set(scriptCommand);
+      localTiltDefaultGrouping.parse(scriptCommand);
       localTiltNondefaultGroup = ParamUtilities.setParamIfPresent(
           scriptCommand, localTiltNondefaultGroupString, nondefaultGroupSize,
           nondefaultGroupIntegerType);
-      magReferenceView.set(scriptCommand);
-      magOption.set(scriptCommand);
-      magDefaultGrouping.set(scriptCommand);
+      magReferenceView.parse(scriptCommand);
+      magOption.parse(scriptCommand);
+      magDefaultGrouping.parse(scriptCommand);
       magNondefaultGroup = ParamUtilities.setParamIfPresent(scriptCommand,
           magNondefaultGroupString, nondefaultGroupSize,
           nondefaultGroupIntegerType);
-      localMagReferenceView.set(scriptCommand);
-      localMagOption.set(scriptCommand);
-      localMagDefaultGrouping.set(scriptCommand);
+      localMagReferenceView.parse(scriptCommand);
+      localMagOption.parse(scriptCommand);
+      localMagDefaultGrouping.parse(scriptCommand);
       localMagNondefaultGroup = ParamUtilities.setParamIfPresent(scriptCommand,
           localMagNondefaultGroupString, nondefaultGroupSize,
           nondefaultGroupIntegerType);
-      xStretchOption.set(scriptCommand);
-      xStretchDefaultGrouping.set(scriptCommand);
+      xStretchOption.parse(scriptCommand);
+      xStretchDefaultGrouping.parse(scriptCommand);
       xStretchNondefaultGroup = ParamUtilities.setParamIfPresent(scriptCommand,
           xStretchNondefaultGroupString, nondefaultGroupSize,
           nondefaultGroupIntegerType);
-      localXStretchOption.set(scriptCommand);
-      localXStretchDefaultGrouping.set(scriptCommand);
+      localXStretchOption.parse(scriptCommand);
+      localXStretchDefaultGrouping.parse(scriptCommand);
       localXStretchNondefaultGroup = ParamUtilities.setParamIfPresent(
           scriptCommand, localXStretchNondefaultGroupString,
           nondefaultGroupSize, nondefaultGroupIntegerType);
-      skewOption.set(scriptCommand);
-      skewDefaultGrouping.set(scriptCommand);
+      skewOption.parse(scriptCommand);
+      skewDefaultGrouping.parse(scriptCommand);
       skewNondefaultGroup = ParamUtilities.setParamIfPresent(scriptCommand,
           skewNondefaultGroupString, nondefaultGroupSize,
           nondefaultGroupIntegerType);
-      localSkewOption.set(scriptCommand);
-      localSkewDefaultGrouping.set(scriptCommand);
+      localSkewOption.parse(scriptCommand);
+      localSkewDefaultGrouping.parse(scriptCommand);
       localSkewNondefaultGroup = ParamUtilities.setParamIfPresent(
           scriptCommand, localSkewNondefaultGroupString, nondefaultGroupSize,
           nondefaultGroupIntegerType);
-      residualReportCriterion.set(scriptCommand);
-      surfacesToAnalyze.set(scriptCommand);
-      metroFactor.set(scriptCommand);
-      maximumCycles.set(scriptCommand);
-      axisZShift.set(scriptCommand);
+      residualReportCriterion.parse(scriptCommand);
+      surfacesToAnalyze.parse(scriptCommand);
+      metroFactor.parse(scriptCommand);
+      maximumCycles.parse(scriptCommand);
+      axisZShift.parse(scriptCommand);
       localAlignments.set(scriptCommand);
       outputLocalFile = scriptCommand.getValue(outputLocalFileString);
       ParamUtilities.setParamIfPresent(scriptCommand,
