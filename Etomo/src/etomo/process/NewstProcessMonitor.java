@@ -11,6 +11,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.5  2004/06/17 23:34:17  rickg
+ * <p> Bug #460 added script starting time to differentiate old data files
+ * <p>
  * <p> Revision 3.4  2004/04/26 00:22:32  rickg
  * <p> bug# 426 Changed progress bar text to reflect that it is not
  * <p> always the final alignment
@@ -45,9 +48,8 @@ import etomo.util.MRCHeader;
 public class NewstProcessMonitor extends FileSizeProcessMonitor {
   public static final String rcsid = "$Id$";
 
-  public NewstProcessMonitor(ApplicationManager appMgr, AxisID id,
-    long startTime) {
-    super(appMgr, id, startTime);
+  public NewstProcessMonitor(ApplicationManager appMgr, AxisID id) {
+    super(appMgr, id);
   }
 
   /* (non-Javadoc)

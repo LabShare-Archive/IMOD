@@ -11,6 +11,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.2  2004/06/17 23:34:17  rickg
+ * <p> Bug #460 added script starting time to differentiate old data files
+ * <p>
  * <p> Revision 3.1  2004/04/08 16:59:27  rickg
  * <p> Account for binning in newstack command
  * <p>
@@ -37,9 +40,8 @@ public class PrenewstProcessMonitor extends FileSizeProcessMonitor {
 
   public static final String rcsid = "$Id$";
 
-  public PrenewstProcessMonitor(ApplicationManager appMgr, AxisID id,
-    long startTime) {
-    super(appMgr, id, startTime);
+  public PrenewstProcessMonitor(ApplicationManager appMgr, AxisID id) {
+    super(appMgr, id);
   }
 
   /**

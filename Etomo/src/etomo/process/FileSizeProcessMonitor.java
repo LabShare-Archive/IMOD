@@ -24,6 +24,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.5  2004/06/17 23:34:17  rickg
+ * <p> Bug #460 added script starting time to differentiate old data files
+ * <p>
  * <p> Revision 3.4  2004/06/17 23:06:21  rickg
  * <p> Bug #460 Using nio FileChannle.size() method to monitor file since it seems 
  * <p> to be much more reliable than the File.length() method
@@ -72,11 +75,10 @@ public abstract class FileSizeProcessMonitor implements Runnable {
 
   int updatePeriod = 250;
 
-  public FileSizeProcessMonitor(ApplicationManager appMgr, AxisID id,
-    long startTime) {
+  public FileSizeProcessMonitor(ApplicationManager appMgr, AxisID id) {
     applicationManager = appMgr;
     axisID = id;
-    scriptStartTime = startTime;
+    scriptStartTime = System.currentTimeMillis();
   }
 
   // The dervied class must implement this function to 
@@ -123,7 +125,6 @@ public abstract class FileSizeProcessMonitor implements Runnable {
    * time since we don't have access to the file creation time.  
    */
   void waitForFile() throws InterruptedException {
-    long lastSize = 0;
     long currentSize = 0;
     boolean newOutputFile = false;
     boolean needChannel = true;
@@ -141,28 +142,17 @@ public abstract class FileSizeProcessMonitor implements Runnable {
           }
           watchedChannel = stream.getChannel();
           needChannel = false;
-          try {
-            lastSize = watchedChannel.size();
-            System.err.println(lastSize);
-          }
-          catch (IOException except) {
-            except.printStackTrace();
-          }
+          processStartTime = System.currentTimeMillis();
         }
 
         try {
           currentSize = watchedChannel.size();
-          System.err.print("lastSize ");
-          System.err.println(lastSize);
-          System.err.print("currentSize ");
-          System.err.println(currentSize);
 
-          if (currentSize > lastSize) {
+          // Hang out in this loop until the current size is something greater
+          // than zero, otherwise the progress bar update with have a divide
+          // by zero
+          if (currentSize > 0) {
             newOutputFile = true;
-            processStartTime = System.currentTimeMillis();
-          }
-          else {
-            lastSize = currentSize;
           }
         }
         catch (IOException except) {
@@ -206,7 +196,6 @@ public abstract class FileSizeProcessMonitor implements Runnable {
         + Utilities.millisToMinAndSecs(remainingTime);
       applicationManager.setProgressBarValue(currentLength, message, axisID);
 
-      //  TODO: need to put a fail safe in here to
       try {
         Thread.sleep(updatePeriod);
       }

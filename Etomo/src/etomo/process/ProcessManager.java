@@ -20,6 +20,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.15  2004/06/17 23:34:17  rickg
+ * Bug #460 added script starting time to differentiate old data files
+ *
  * Revision 3.14  2004/06/15 20:07:09  rickg
  * Bug #469 Rotation.xf was not getting the axisID inserted into the
  * filename.
@@ -499,7 +502,7 @@ public class ProcessManager {
 
     //  Start the com script in the background
     PrenewstProcessMonitor prenewstProcessMonitor = new PrenewstProcessMonitor(
-      appManager, axisID, System.currentTimeMillis());
+      appManager, axisID);
 
     //  Start the com script in the background
     ComScriptProcess comScriptProcess = startComScript(command,
@@ -773,7 +776,7 @@ public class ProcessManager {
 
     //  Start the com script in the background
     NewstProcessMonitor newstProcessMonitor = new NewstProcessMonitor(
-      appManager, axisID, System.currentTimeMillis());
+      appManager, axisID);
     //  Start the com script in the background
     ComScriptProcess comScriptProcess = startComScript(command,
       newstProcessMonitor, axisID);
@@ -811,7 +814,7 @@ public class ProcessManager {
 
     //  Instantiate the process monitor
     TiltProcessMonitor tiltProcessMonitor = new TiltProcessMonitor(appManager,
-      axisID, System.currentTimeMillis());
+      axisID);
 
     //  Start the com script in the background
     ComScriptProcess comScriptProcess = startComScript(command,
