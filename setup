@@ -74,6 +74,8 @@ set lifft           = -lifft
 set ldfflags        =
 set moc             = '$(QTDIR)/bin/moc'
 set rgbprogs        = 
+set makestaticlib   = "ar ruv "
+set staticranlib    = ranlib
 
 set b3dbyte         = "char"
 set ubyte           = "unsigned char"
@@ -661,6 +663,8 @@ endif
 
 echo "RGBPROGS = $rgbprogs" >> $configure
 echo "LDFFLAGS = $ldfflags" >> $configure
+echo "MAKESTATICLIB = $makestaticlib" >> $configure
+echo "STATICRANLIB = $staticranlib" >> $configure
 
 # Take care of Fortran graphics variations
 #
@@ -740,6 +744,9 @@ exit
 
 #
 #  $Log$
+#  Revision 3.33  2003/11/08 02:11:58  mast
+#  create buildlib earlier for windows and mac to copy files to
+#
 #  Revision 3.32  2003/11/01 16:38:09  mast
 #  put libiimod before libimod, prevent unneeded copying of fbpswitch
 #
