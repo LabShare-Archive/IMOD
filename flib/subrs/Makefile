@@ -62,7 +62,7 @@ $(LIBDTRIGS):	dtrigs/*.f
 	$(RANLIB) $(LIBDTRIGS)
 	$(CP) $(LIBDTRIGS) $(LIBDIR)
 
-$(LIBRANDM):	randm/*.f randm/*.c
+$(LIBRANDM):	randm/ransub.f randm/ourrnd.c
 	(cd randm; $(MAKE) all)
 	\rm -f $(LIBRANDM)
 	$(AR) $(ARFLAGS) $(LIBRANDM) randm/*.o
