@@ -55,6 +55,9 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.18  2004/06/17 21:25:47  sueh
+ * bug# 473
+ *
  * Revision 3.17  2004/06/17 20:18:22  sueh
  * bug# 472
  *
@@ -511,27 +514,26 @@ public class TomogramGenerationDialog extends ProcessDialog
         tiltParam.resetWidth();
       }
 
+      //set Z offset
+      if (ltfZOffset.getText().matches("\\S+")) {
+        badParameter = ltfZOffset.getLabel();
+        tiltParam.setZOffset(Float.parseFloat(ltfZOffset.getText()) / binning);
+      }
+      else {
+        tiltParam.resetZOffset();
+      }
+      
+      //set X offset
       if (ltfXOffset.getText().matches("\\S+")) {
         badParameter = ltfXOffset.getLabel();
         tiltParam.setXOffset(Float.parseFloat(ltfXOffset.getText()) / binning);
-        if (ltfZOffset.getText().matches("\\S+")) {
-          badParameter = ltfZOffset.getLabel();
-          tiltParam
-              .setZOffset(Float.parseFloat(ltfZOffset.getText()) / binning);
-        }
-        else {
-          tiltParam.resetZOffset();
-        }
+      } 
+      else if (ltfZOffset.getText().matches("\\S+")) {
+        tiltParam.setXOffset(0);
+        ltfXOffset.setText(0.0);
       }
       else {
         tiltParam.resetXOffset();
-        if (ltfZOffset.getText().matches("\\S+")) {
-          throw (new InvalidParameterException(
-              "You must supply an X offset to supply a Z offset"));
-        }
-        else {
-          tiltParam.resetZOffset();
-        }
       }
 
       boolean sliceRangeSpecified = false;
