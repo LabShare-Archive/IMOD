@@ -1625,7 +1625,7 @@ int ivwLoadImage(ImodView *iv)
 
     /* DNM: set the axis flag based on the model flip flag */
     if (iv->li->axis == 2) 
-      fprintf(stderr, "The -Y is flag ignored when loading a model"
+      fprintf(stderr, "The -Y flag is ignored when loading a model"
               " without an image.\nUse Edit-Image-Flip to flip the"
               " model if desired");
     iv->li->axis = 3;
@@ -2180,6 +2180,10 @@ int  ivwGetObjectColor(ImodView *inImodView, int inObject)
 
 /*
 $Log$
+Revision 4.11  2003/09/16 02:46:18  mast
+Changed to return line pointers to images instead of actually flipping data
+and consolidated fast pixel access routines from xyz, slicer, and tumbler.
+
 Revision 4.10  2003/08/02 22:44:14  mast
 Made it possible to kill program during flip operation
 
