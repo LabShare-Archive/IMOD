@@ -31,35 +31,7 @@
 $Date$
 
 $Revision$
-
-$Log$
-Revision 4.3  2003/04/11 22:30:29  mast
-return value from new event watcher
-
-Revision 4.2  2003/04/11 18:56:34  mast
-switch to watching event types to manage hide/show events
-
-Revision 4.1  2003/02/10 20:29:02  mast
-autox.cpp
-
-Revision 1.1.2.6  2003/01/13 07:21:38  mast
-Changes to use new dialog manager class
-
-Revision 1.1.2.5  2003/01/13 01:15:43  mast
-changes for Qt version of info window
-
-Revision 1.1.2.4  2003/01/01 05:40:21  mast
-add timer to workaround iconifying problem
-
-Revision 1.1.2.3  2002/12/30 06:42:47  mast
-On show and hide events, make calls to show or hide dialogs
-
-Revision 1.1.2.2  2002/12/17 22:04:00  mast
-cleanup
-
-Revision 1.1.2.1  2002/12/17 18:46:08  mast
-Initial creation
-
+Log at end of file 
 */
 
 #include <stdio.h>
@@ -266,8 +238,8 @@ bool ImodvWindow::event(QEvent *e)
       !mMinimized) {
     mMinimized = true;
     imodvDialogManager.hide();
-  } else if ((e->type() == QEvent::ShowNormal || e->type() == QEvent::Show ||
-              e->type() == QEvent::WindowActivate) && mMinimized) {
+  } else if ((e->type() == QEvent::ShowNormal || e->type() == QEvent::Show)
+             && mMinimized) {
     mMinimized = false;
     imodvDialogManager.show();
   }
@@ -323,3 +295,37 @@ void ImodvGL::mouseMoveEvent ( QMouseEvent * e )
   if (mMousePressed)
     imodvMouseMove(e);
 }
+
+/*
+$Log$
+Revision 4.4  2003/04/16 18:46:51  mast
+hide/show changes
+
+Revision 4.3  2003/04/11 22:30:29  mast
+return value from new event watcher
+
+Revision 4.2  2003/04/11 18:56:34  mast
+switch to watching event types to manage hide/show events
+
+Revision 4.1  2003/02/10 20:29:02  mast
+autox.cpp
+
+Revision 1.1.2.6  2003/01/13 07:21:38  mast
+Changes to use new dialog manager class
+
+Revision 1.1.2.5  2003/01/13 01:15:43  mast
+changes for Qt version of info window
+
+Revision 1.1.2.4  2003/01/01 05:40:21  mast
+add timer to workaround iconifying problem
+
+Revision 1.1.2.3  2002/12/30 06:42:47  mast
+On show and hide events, make calls to show or hide dialogs
+
+Revision 1.1.2.2  2002/12/17 22:04:00  mast
+cleanup
+
+Revision 1.1.2.1  2002/12/17 18:46:08  mast
+Initial creation
+
+*/

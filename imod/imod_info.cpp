@@ -313,17 +313,17 @@ void InfoWindow::closeEvent ( QCloseEvent * e )
 // Watch for both event types in each case due to further X11/Mac differences
 bool InfoWindow::event(QEvent *e)
 {
-  //  fprintf(stderr, "event type %d\n", e->type());
+  // fprintf(stderr, "event type %d\n", e->type());
   if ((e->type() == QEvent::ShowMinimized || e->type() == QEvent::Hide) &&
       !mMinimized) {
     //  puts("minimizing");
     mMinimized = true;
     imodDialogManager.hide();
-  } else if ((e->type() == QEvent::ShowNormal || e->type() == QEvent::Show ||
-              e->type() == QEvent::WindowActivate) && mMinimized) {
+  } else if ((e->type() == QEvent::ShowNormal || e->type() == QEvent::Show)
+             && mMinimized) {
     //  puts("maximizing");
     mMinimized = false;
-     imodDialogManager.show();
+    imodDialogManager.show();
   }
   return QWidget::event(e);
 }
@@ -468,6 +468,9 @@ static char *truncate_name(char *name, int limit)
 
 /*
     $Log$
+    Revision 4.15  2003/04/16 18:46:51  mast
+    hide/show changes
+
     Revision 4.14  2003/04/11 22:30:29  mast
     return value from new event watcher
 
