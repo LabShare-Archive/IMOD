@@ -86,6 +86,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.114  2004/12/16 02:51:52  sueh
+ * <p> bug# 559 Updating status bar with param file when ending setup dialog.
+ * <p>
  * <p> Revision 3.113  2004/12/16 01:29:04  sueh
  * <p> bug# check whether squeezvol output file is flipped before displaying it in
  * <p> 3dmod.
@@ -2553,13 +2556,13 @@ public class ApplicationManager extends BaseManager {
     comScriptMgr.loadTilt(currentAxis);
     TiltParam tiltParam = comScriptMgr.getTiltParam(currentAxis);
     String alignFileExtension = currentAxis.getExtension() + "local.xf";
-    if (tiltalignParam.getLocalAlignments()) {
+    if (tiltalignParam.getLocalAlignments().is()) {
       tiltParam.setLocalAlignFile(metaData.getDatasetName() + alignFileExtension);
     }
     else {
       tiltParam.setLocalAlignFile("");
     }
-    tiltParam.setExcludeList(tiltalignParam.getIncludeExcludeList());
+    tiltParam.setExcludeList(tiltalignParam.getExcludeList());
     comScriptMgr.saveTilt(tiltParam, currentAxis);
   }
 
