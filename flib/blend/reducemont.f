@@ -65,6 +65,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.2  2002/08/19 05:00:47  mast
+c	  Corrected some declaration errors
+c	
 c	  Revision 3.1  2002/08/19 04:23:33  mast
 c	  Changed to use new include file; made declarations for implicit
 c	  none.
@@ -575,7 +578,7 @@ c
 	close(3)
 	call imclose(2)
 	call exit(0)
-98	stop 'error reading xforms'
+98	call errorexit('reading transforms')
 	end
 
 
@@ -720,4 +723,11 @@ c
 	  nlong=nypieces
 	endif
 	return
+	end
+
+	subroutine errorexit(message)
+	character*(*) message
+	print *
+	print *,'ERROR: REDUCEMONT - ',message
+	call exit(1)
 	end
