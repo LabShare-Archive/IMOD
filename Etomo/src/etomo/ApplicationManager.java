@@ -58,6 +58,7 @@ import etomo.type.ProcessName;
 import etomo.type.ProcessTrack;
 import etomo.type.TiltAngleSpec;
 import etomo.type.TomogramState;
+import etomo.type.ViewType;
 import etomo.ui.AlignmentEstimationDialog;
 import etomo.ui.CoarseAlignDialog;
 import etomo.ui.FiducialModelDialog;
@@ -91,6 +92,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.129  2005/03/01 22:07:03  sueh
+ * <p> bug# 610 getDialog():  test for dialogType is null and return null.
+ * <p>
  * <p> Revision 3.128  2005/03/01 20:49:42  sueh
  * <p> bug# 607 Catching Throwable in exitProgram and returning true to make
  * <p> sure that Etomo can always exit.  Bug# 610 Keeping track of current
@@ -1719,6 +1723,9 @@ public class ApplicationManager extends BaseManager {
       + "_peak.mod";
     try {
       imodManager.setPreserveContrast(ImodManager.RAW_STACK_KEY, axisID, true);
+      if (metaData.getViewType() == ViewType.MONTAGE) {
+        imodManager.setFrames(ImodManager.RAW_STACK_KEY, axisID, true);
+      }
       imodManager.open(ImodManager.RAW_STACK_KEY, axisID, xRayModel);
     }
     catch (AxisTypeException except) {
