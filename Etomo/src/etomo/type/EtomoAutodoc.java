@@ -58,11 +58,15 @@ public class EtomoAutodoc {
   
   public static String getTooltip(Section section, String enumValueName) {
     try {
-      return section.getAttribute("enum").getAttribute(enumValueName)
+      String enumTooltip = section.getAttribute("enum").getAttribute(enumValueName)
           .getAttribute(tooltipAttributeName).getUnformattedValue();
+      if (enumTooltip == null) {
+        return getTooltip(section);
+      }
+      return enumTooltip;
     }
     catch (NullPointerException e) {
-      return null;
+      return getTooltip(section);
     }
   }
   
@@ -73,6 +77,10 @@ public class EtomoAutodoc {
 
 /**
  * <p> $Log$
+ * <p> Revision 1.3  2005/02/18 01:28:47  sueh
+ * <p> bug# 600 Adding getTooltip(Section, int) to get an enum with the value of
+ * <p> the radio button choice.
+ * <p>
  * <p> Revision 1.2  2005/02/15 19:29:24  sueh
  * <p> bug# 602 Getting unformatted value from attribute for tooltips.
  * <p>
