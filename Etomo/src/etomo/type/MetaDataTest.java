@@ -25,6 +25,12 @@ import junit.framework.TestCase;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.3  2004/11/23 00:27:38  sueh
+ * <p> bug# 520 Using get and setPropertyUserDir instead of Property.  Don't
+ * <p> use File.separator with propertyUserDir since it may end in "/".  Construct
+ * <p> a new file with originalDirectory as the base directory and get the absolute
+ * <p> file.
+ * <p>
  * <p> Revision 3.2  2004/06/01 18:56:00  rickg
  * <p> Import fix for javadoc
  * <p>
@@ -45,8 +51,7 @@ public class MetaDataTest extends TestCase {
     //  Check out the test vectors from the CVS repository
 
     //  Create the test directory
-    TestUtilites.makeDirectories(TypeTests.testRoot + File.separator
-        + testDirectory);
+    TestUtilites.makeDirectories(new File(TypeTests.testRoot, testDirectory).getAbsolutePath());
 
     // Set the working directory to the current test directory for this package
     EtomoDirector etomoDirector = EtomoDirector.getInstance();
@@ -61,8 +66,7 @@ public class MetaDataTest extends TestCase {
       catch (SystemProcessException except) {
         etomoDirector.setCurrentPropertyUserDir(originalDirectory);
         System.err.println(except.getMessage());
-        fail("Error checking out test vector: " + TypeTests.testRoot
-            + File.separator + testDirectory + edfList[i]);
+        fail("Error checking out test vector: " + new File(testDirectory, edfList[i]).getAbsolutePath());
       }
     }
 
