@@ -144,36 +144,30 @@ static void imodvSetViewbyModel(ImodvApp *a, Imod *imod)
   znear *= 5.;
   zfar *= 5.;
 
-  if (vw->fovy < 1.0f){
-    cdist = zfar - znear;
-    znear += cdist * vw->cnear;
-    zfar  -= cdist * (1.0 - vw->cfar);
+  // DNM 6/9/04: simplified a bit and kicked the clipping planes way out
+  // if no clipping is selected
+  cdist = zfar - znear;
+  znear += cdist * vw->cnear;
+  zfar  -= cdist * (1.0 - vw->cfar);
+
+  if (vw->fovy < 1.0f) {
+    if (!vw->cnear)
+      znear -= cdist * 100.;
+    if (vw->cfar == 1.0f)
+      zfar += cdist * 100.;
 
     glOrtho(-xs, xs, -ys, ys,
             znear + depthShift , zfar + depthShift);
     return;
-
   }
      
   if (fovytan)
     cdist = rad/fovytan;
   else
     cdist = rad;
-     
 
   zn = znear + cdist;
   zf = zfar + cdist;
-  {
-    float cres = zf - zn;
-    /*
-      imodPrintStderr("clipnf %g %g : sliders %g %g\n",
-      zn, zf, vw->cnear, vw->cfar);
-    */ 
-    zn += (vw->cnear * cres);
-    zf -= (1.0 - vw->cfar) * cres;
-
-  }
-     
 
   glFrustum(-xs, xs, -ys, ys, zn, zf); 
 
@@ -1786,6 +1780,9 @@ static void imodvDrawScalarMesh(Imesh *mesh, double zscale,
 
 /*
 $Log$
+Revision 4.12  2004/06/08 15:41:24  mast
+Changes to get top/bottom stereo to work with monitor passthroughs
+
 Revision 4.11  2004/05/31 23:35:26  mast
 Switched to new standard error functions for all debug and user output
 
