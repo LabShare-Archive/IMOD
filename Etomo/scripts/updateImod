@@ -1,7 +1,25 @@
 #!/bin/sh
 
 IMOD_DIR=/usr/local/IMOD
+
 # copy the necessary jar and script to run the program
-cp etomo.jar $IMOD_DIR/bin
-cp etomo $IMOD_DIR/bin
-cp vmstocsh.sh $IMOD_DIR/bin
+if [ -e etomo.jar ]; then
+  cp etomo.jar $IMOD_DIR/bin
+else 
+  echo "this script needs to be run from the project root directory"
+fi
+
+if [ -e scripts/etomo ]; then
+  cp scripts/etomo $IMOD_DIR/bin
+else
+  echo "Could not find etomo (shell script)"
+  echo "this script needs to be run from the project root directory"
+fi
+
+
+if [ -e scripts/etomo ]; then
+  cp scripts/vmstocsh.sh $IMOD_DIR/bin
+else
+  echo "Could not find vmstocsh.sh:
+  echo "this script needs to be run from the project root directory"
+fi
