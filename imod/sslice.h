@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.3  2003/02/10 20:41:56  mast
+    Merge Qt source
+
     Revision 3.2.2.2  2003/01/10 23:55:34  mast
     moved declaration of cubicFillin to include file
 
@@ -80,49 +83,50 @@ typedef struct Super_slicer{
   int          mapped;
   int          locked;
   int          imageFilled;
+  int          mousemode;    /* value for keeping track of cursor */
 
-     struct ViewInfo *vi;
-     B3dCIImage   *image;
-
-     int    winx, winy;
-     float  cx, cy, cz;  /* current x, y, z */
-     float  lx, ly, lz;  /* last set point for x, y, z */
-     float  zoom;
-     float  depth;
-     int    lastangle;   /* Last angle slider that was used */
-
-     /* coords for plane intersection */
+  struct ViewInfo *vi;
+  B3dCIImage   *image;
+  
+  int    winx, winy;
+  float  cx, cy, cz;  /* current x, y, z */
+  float  lx, ly, lz;  /* last set point for x, y, z */
+  float  zoom;
+  float  depth;
+  int    lastangle;   /* Last angle slider that was used */
+  
+  /* coords for plane intersection */
      /* used for show slice location  */
-     int zx1, zx2;
-     int zy1, zy2;
+  int zx1, zx2;
+  int zy1, zy2;
+  
+  /* data for high res slicer */
+  int   hq;
+  float xs, ys;
+  float xsz, ysz, zsz;
+  float xo, yo, zo;
+  int   yline;
+  
+  /* slicer version 3 data. */
+  float inangle[3]; /* three user input angles.                      */
+  float tang[3];    /* transform angles in order given by order.     */
+  float xstep[3];   /* change in x, y, z image for step in x' slicer */
+  float ystep[3];   /* change in x, y, z image for step in y' slicer */
+  float zstep[3];
+  float bcoord[3];  /* beginning point in image to start rendering.  */
+  float ccoord[3];  /* current point in rendering for workproc.      */
+  
+  
+  float xzoom, yzoom;
 
-     /* data for high res slicer */
-     int   hq;
-     float xs, ys;
-     float xsz, ysz, zsz;
-     float xo, yo, zo;
-     int   yline;
-
-     /* slicer version 3 data. */
-     float inangle[3]; /* three user input angles.                      */
-     float tang[3];    /* transform angles in order given by order.     */
-     float xstep[3];   /* change in x, y, z image for step in x' slicer */
-     float ystep[3];   /* change in x, y, z image for step in y' slicer */
-     float zstep[3];
-     float bcoord[3];  /* beginning point in image to start rendering.  */
-     float ccoord[3];  /* current point in rendering for workproc.      */
-
-
-     float xzoom, yzoom;
-
-     float xshift, yshift;   /* Shifts to apply to raster for low-res draw */
-     float zslast;           /* Value of zscale on last draw_cb */
-     int pending;            /* Flag that there are pending coords from hit */
-     float pendx, pendy, pendz;   /* pending coords */
-
-     short nslice;
-     Imat  *mat;
-     int   ctrl;
+  float xshift, yshift;   /* Shifts to apply to raster for low-res draw */
+  float zslast;           /* Value of zscale on last draw_cb */
+  int pending;            /* Flag that there are pending coords from hit */
+  float pendx, pendy, pendz;   /* pending coords */
+  
+  short nslice;
+  Imat  *mat;
+  int   ctrl;
 } SlicerStruct;     
 
 void slicerCubicFillin(unsigned short *cidata, int winx, int winy, int izoom,
