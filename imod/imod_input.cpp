@@ -70,32 +70,51 @@ int mouse_in_box(int llx, int lly, int urx, int  ury, int mousex, int mousey)
     return(0);
 }
 
-
+/* DNM 3/11/03: This is used only by slicer.  Modified to behave like zap
+   with respect to time matches */
 void inputInsertPoint(ImodView *vw)
 {
+  Iobj *obj = imodObjectGet(vw->imod);
   Icont *cont = imodContourGet(vw->imod);
   Ipoint point;
   int pt;
 
-  if (!cont)
-    return;
-  if (vw->imod->mousemode == IMOD_MMODEL){
-    point.x = vw->xmouse;
-    point.y = vw->ymouse;
-    point.z = vw->zmouse;
-          
-    pt = vw->imod->cindex.point;
-    if ((cont->psize - 1) == pt)
-      imodNewPoint(vw->imod, &point);
-    else{
-      if (vw->insertmode)
-        InsertPoint(vw->imod, &point, pt);
-      else
-        InsertPoint(vw->imod, &point, pt + 1);
+  /* create a new contour if there is no current contour */
+  if (obj && vw->imod->mousemode == IMOD_MMODEL) {
+    if (!cont) {
+      vw->imod->cindex.contour = obj->contsize - 1;
+      NewContour(vw->imod);
+      cont = imodContourGet(vw->imod);
+      if (!cont)
+	return;
+      if (iobjFlagTime(obj)){
+	cont->type = vw->ct;
+	cont->flags |= ICONT_TYPEISTIME;
+      }
     }
-    imodDraw(vw, IMOD_DRAW_XYZ | IMOD_DRAW_MOD);
+    
+    /* Set time of empty contour to current time */
+    if (!cont->psize && zapTimeMismatch(vw, 0, obj, cont))
+      cont->type = vw->ct;
+
+    /* Add point only if at current time */
+    if (!zapTimeMismatch(vw, 0, obj, cont)) {
+      point.x = vw->xmouse;
+      point.y = vw->ymouse;
+      point.z = vw->zmouse;
+      
+      pt = vw->imod->cindex.point;
+      if ((cont->psize - 1) == pt)
+	imodNewPoint(vw->imod, &point);
+      else{
+	if (vw->insertmode)
+	  InsertPoint(vw->imod, &point, pt);
+	else
+	  InsertPoint(vw->imod, &point, pt + 1);
+      }
+    }
   }
-  return;
+  imodDraw(vw, IMOD_DRAW_XYZ | IMOD_DRAW_MOD);
 }
 
 void inputDeletePoint(ImodView *vw)
@@ -123,11 +142,12 @@ void inputDeletePoint(ImodView *vw)
 
 void inputModifyPoint(ImodView *vw)
 {
+  Iobj *obj = imodObjectGet(vw->imod);
+  Icont *cont = imodContourGet(vw->imod);
   Ipoint *point = imodPointGet(vw->imod);
      
-  if (!point)
-    return;
-  if (vw->imod->mousemode == IMOD_MMODEL){
+  if (point && cont && obj && !zapTimeMismatch(vw, 0, obj, cont) &&
+      vw->imod->mousemode == IMOD_MMODEL) {
     /* DNM: if z value is changing, need to set contour's wild flag */
     if (point->z != vw->zmouse) {
       Icont *cont = imodContourGet(vw->imod);
@@ -136,9 +156,8 @@ void inputModifyPoint(ImodView *vw)
     point->x = vw->xmouse;
     point->y = vw->ymouse;
     point->z = vw->zmouse;
-    imodDraw(vw, IMOD_DRAW_MOD);
   }
-  return;
+  imodDraw(vw, IMOD_DRAW_MOD);
 }
 
 void inputNextz(ImodView *vw)
@@ -1107,6 +1126,9 @@ void inputQDefaultKeys(QKeyEvent *event, ImodView *vw)
 
 /*
 $Log$
+Revision 4.3  2003/02/27 23:45:42  mast
+Add function to truncate contour
+
 Revision 4.2  2003/02/14 01:15:20  mast
 Try to prevent bad pageup's
 
