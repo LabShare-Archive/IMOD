@@ -15,6 +15,10 @@ import java.io.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.3  2002/10/10 18:53:29  rickg
+ * <p> Enabled SystemProgram debugging and remove local
+ * <p> writing to stdout.
+ * <p>
  * <p> Revision 1.2  2002/10/03 01:47:53  rickg
  * <p> Reformat after emacs whitespace trashed it
  * <p>
@@ -62,6 +66,11 @@ public class RunComScript extends Thread {
         + ".com "
         + comBaseName
         + ".log ";
+
+    command =
+      "csh -c vmstocsh " + comBaseName + ".log < " + comBaseName + ".com";
+
+    command = "bash -c \"/bin/cat <file.txt \"\" ";
 
     SystemProgram systemProgram = new SystemProgram(command);
     systemProgram.setWorkingDirectory(workingDirectory);
@@ -113,5 +122,22 @@ public class RunComScript extends Thread {
     if (idxExtension > 0)
       base = filename.substring(0, idxExtension);
     return base;
+  }
+  /**
+   * Convert the com script to a sequence of csh command commands
+   * @return A string array containing the csh command sequence
+   */
+  //private String[]
+  //  Redirecting stdin for the command does not work even when a shell is called,
+
+  /**
+   * Load the file into a StringArray
+   */
+  private String[] loadFile() {
+
+    InputStream fileStream =
+      new FileInputStream(workingDirectory.getAbsolutePath() + command);
+      
+    
   }
 }
