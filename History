@@ -1,5 +1,35 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/23/04: Added options for controlling whether contours are joined by adding
+all of their points together end to end, versus connecting them or splicing
+them together at nearest or selected points.  The default settings will now be
+best for joining fragmentary contours.  Multiple contours can be selected and
+joined at once.
+
+11/22/04: Implemented a new help system for 3dmod using Qt Assistant, and set
+up a framework for transitioning help pages into the system.
+
+11/22/04: eTomo now includes an interface for joining serial section
+tomograms, with the ability to select the component tomograms, specify
+slices for samples, align samples automatically or with Midas, build a trial
+joined volume with a small subset of images, and easily set the size and
+offset of the joined volume.
+
+11/21/04: Added undo and redo capability to 3dmod.  Virtually all modeling
+changes can now be undone.
+
+11/11/04: Fixed model view not being able to turn off Low Res mode if a file
+was saved in that mode.
+
+11/11/04: Made line widths for current image point marker and slicer lines in 
+Zap window be 1, made markers on current object have its width.
+
+11/11/04: Added ability to take FFT of subset area from image processing 
+dialog.
+
+11/9/04: Fixed a problem in the way warpvol determined range of data to load
+for each cube, which was giving gray areas in interior of volume.
+
 11/9/04: IMOD_3-4-12
 11/8/04: Fixed problem with insufficient array size in contour copying
 function of Line Track.
@@ -144,7 +174,7 @@ to open or reread align log file in Bead Fixer.
 
 9/21/04: Added ability to use multiple clipping planes per object, and to set
 up global clipping planes also (up to 6 in each case).  Added surface labels
-that can be input in the Surface/Countour/Point window.  Added ability to
+that can be input in the Surface/Contour/Point window.  Added ability to
 adjust the colors of multiple objects at once.  Changed the model view object
 list window to embed checkboxes in a scrolling view, not truncate names nearly
 as much, allow 512 objects, and display colors of objects.  Fixed
