@@ -1,3 +1,11 @@
+c	  $Author$
+c
+c	  $Date$
+c
+c	  $Revision$
+c
+c	  $Log$
+c
 c	  GETBINSPEC gets a bin specification appropriate for the type of
 c	  graphs being done
 c
@@ -80,9 +88,9 @@ c
 	  read(5,*)ngraph
 c	    
 	  do ii=1,ngraph
-	    write(*,102)ii,'reference'
-102	    format(' For graph #',i3,', enter list of objects for ',
-     &		'points to be considered',/,5x,a,' points',
+	    write(*,102)ii,'from (reference'
+102	    format(' For graph #',i3,', enter list of objects to ',
+     &		'measure distances',/,5x,a,' objects)',
      &		' (Return for all, ranges OK)')
 	    call rdlist(5,itypref(1,ii),nreftyp(ii))
 	    if(nreftyp(ii).eq.0)then
@@ -90,7 +98,7 @@ c
 	      itypref(1,ii)=itypall
 	    endif
 c	      
-	    write(*,102)ii,'neighboring'
+	    write(*,102)ii,'to (neighboring'
 	    call rdlist(5,itypneigh(1,ii),nneightyp(ii))
 	    if(nneightyp(ii).eq.0)then
 	      nneightyp(ii)=1
