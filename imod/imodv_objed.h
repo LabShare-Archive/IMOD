@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.2  2003/03/26 17:15:31  mast
+Adjust sizes for font changes
+
 Revision 4.1  2003/02/10 20:41:55  mast
 Merge Qt source
 
@@ -91,7 +94,9 @@ class ImodvObjed : public QObject
   void bothSidesSlot(bool state);
   void fillColorSlot(int color, int value, bool dragging);
   void materialSlot(int which, int value, bool dragging);
-  void pointSizeSlot();
+  void pointSizeSlot(int value);
+  void pointQualitySlot(int value);
+  void globalQualitySlot(int value);
   void lineWidthSlot(int which, int value, bool dragging);
   void lineAliasSlot(bool state);
   void meshNormalSlot(bool state);
