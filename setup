@@ -585,7 +585,7 @@ EOF
 
     (cd $midas_dir ; qmake midas.pro)
     (cd $sendevent_dir ; qmake imodsendevent.pro)
-    (cd $imod_dir ; touch imodhelp.h ; qmake imod.pro ; \rm -f imodhelp.h imodv mkargv mkargv.o ; ln -s 3dmod 3dmodv)
+    (cd $imod_dir ; touch imodhelp.h ; qmake imod.pro ; \rm -f imodhelp.h 3dmodv mkargv mkargv.o ; ln -s 3dmod 3dmodv)
 
     set qt_libs = `sed -n '/^LIBS /s/^LIBS.*-L\$(QTDIR/-L\$(QTDIR/p' $sendevent_dir/Makefile`
     echo 'GRAPHLIBS    = -ldnmncar -ldiaqt $(IMLIBS)'" $qt_libs $fort_cpplibs" >> $configure
@@ -650,6 +650,9 @@ exit
 
 #
 #  $Log$
+#  Revision 3.15  2003/04/25 03:27:19  mast
+#  Changes for 3dmod naem change
+#
 #  Revision 3.14  2003/04/17 19:29:39  mast
 #  Changes for Mac
 #
