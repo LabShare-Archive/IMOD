@@ -2148,11 +2148,11 @@ static void setControlAndLimits(ZapStruct *zap)
   if (subStartX < 0)
     subStartX = 0;
   if (subEndX >= zap->vi->xsize)
-    subEndX = zap->vi->xsize;
+    subEndX = zap->vi->xsize - 1;
   if (subStartY < 0)
     subStartY = 0;
   if (subEndY >= zap->vi->ysize)
-    subEndY = zap->vi->ysize;
+    subEndY = zap->vi->ysize - 1;
 }     
 
 // Return the subset limits from the active window
@@ -2652,7 +2652,7 @@ static void zapDrawCurrentPoint(ZapStruct *zap, int undraw)
 
 static void zapDrawGhost(ZapStruct *zap)
 {
-  int co, i;
+  int co, i, base;
   int red, green, blue;
   struct Mod_Object *obj;
   struct Mod_Contour *cont;
@@ -2672,12 +2672,15 @@ static void zapDrawGhost(ZapStruct *zap)
   if(iobjScat(obj->flags))
     return;
 
-  red = (int)((obj->red * 255.0) / 3.0);
-  green = (int)((obj->green * 255.0) / 3.0);
-  blue = (int)((obj->blue * 255.0) / 3.0);
+  // Set base to 2 to make color get brighter instead of darker
+  base = 0;
+  red = (int)(((base + obj->red) * 255.0) / 3.0);
+  green = (int)(((base + obj->green) * 255.0) / 3.0);
+  blue = (int)(((base + obj->blue) * 255.0) / 3.0);
 
   mapcolor(App->ghost, red, green, blue); 
   b3dColorIndex(App->ghost);  
+  b3dLineWidth(obj->linewidth2);
 
   /* DNM: if it's RGB, just have to set the color here */
   if (App->rgba)
@@ -2866,6 +2869,9 @@ bool zapTimeMismatch(ImodView *vi, int timelock, Iobj *obj, Icont *cont)
 
 /*
 $Log$
+Revision 4.44  2004/06/23 04:46:28  mast
+Fixed hang on opening window at 0.1 zoom in Windows
+
 Revision 4.43  2004/05/31 23:35:26  mast
 Switched to new standard error functions for all debug and user output
 
