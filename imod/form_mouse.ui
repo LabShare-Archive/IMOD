@@ -78,13 +78,13 @@
                                 </property>
                                 <widget class="QRadioButton">
                                     <property name="name">
-                                        <cstring>RadioButton1</cstring>
+                                        <cstring>ctrlRadioButton</cstring>
                                     </property>
                                     <property name="text">
                                         <string>Ctrl</string>
                                     </property>
                                     <property name="toolTip" stdset="0">
-                                        <string>Make Ctrl key control whether sliders are continuously active (will not work on Mac)</string>
+                                        <string></string>
                                     </property>
                                 </widget>
                                 <widget class="QRadioButton">
@@ -355,8 +355,9 @@ Third = movie down, modify point)</string>
     </connection>
 </connections>
 <includes>
-    <include location="local" impldecl="in implementation">dia_qtutils.h</include>
+    <include location="local" impldecl="in implementation">imodconfig.h</include>
     <include location="local" impldecl="in implementation">preferences.h</include>
+    <include location="local" impldecl="in implementation">dia_qtutils.h</include>
     <include location="local" impldecl="in implementation">form_mouse.ui.h</include>
 </includes>
 <forwards>

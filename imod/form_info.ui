@@ -78,7 +78,7 @@
                         <iconset>raisewindow.png</iconset>
                     </property>
                     <property name="toolTip" stdset="0">
-                        <string>Raise all Imod windows above other windows (hotkey Ctrl-R)</string>
+                        <string></string>
                     </property>
                 </widget>
                 <widget class="QCheckBox">
@@ -904,14 +904,15 @@
     </connection>
 </connections>
 <includes>
-    <include location="local" impldecl="in implementation">pegged.xpm</include>
-    <include location="local" impldecl="in implementation">imod_input.h</include>
-    <include location="local" impldecl="in implementation">dia_qtutils.h</include>
-    <include location="local" impldecl="in implementation">imod_info_cb.h</include>
-    <include location="global" impldecl="in implementation">qsignalmapper.h</include>
-    <include location="global" impldecl="in implementation">stdio.h</include>
-    <include location="local" impldecl="in implementation">imod_info.h</include>
+    <include location="local" impldecl="in implementation">imodconfig.h</include>
     <include location="local" impldecl="in implementation">unpegged.xpm</include>
+    <include location="local" impldecl="in implementation">imod_info.h</include>
+    <include location="global" impldecl="in implementation">stdio.h</include>
+    <include location="global" impldecl="in implementation">qsignalmapper.h</include>
+    <include location="local" impldecl="in implementation">imod_info_cb.h</include>
+    <include location="local" impldecl="in implementation">dia_qtutils.h</include>
+    <include location="local" impldecl="in implementation">imod_input.h</include>
+    <include location="local" impldecl="in implementation">pegged.xpm</include>
     <include location="local" impldecl="in implementation">form_info.ui.h</include>
 </includes>
 <variables>

@@ -10,6 +10,9 @@
 void MouseForm::init()
 {
     mPrefs = ImodPrefs->getDialogPrefs();
+    ctrlRadioButton->setText(CTRL_STRING);
+    QToolTip::add(ctrlRadioButton, "Make "CTRL_STRING
+		  " key control whether sliders are continuously active");
     update();
 }
 

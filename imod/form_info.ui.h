@@ -39,6 +39,8 @@ void InfoControls::init()
     mXYZLabel[1] = maxYLabel;
     mXYZLabel[2] = maxZLabel;
     
+    QToolTip::add(raiseButton, "Raise all Imod windows above other windows (hotkey "
+		  CTRL_STRING"-R)");
     // Get signal mappers for the combo boxes
     QSignalMapper *ocpMapper = new QSignalMapper(this);
     QSignalMapper *xyzMapper = new QSignalMapper(this);
