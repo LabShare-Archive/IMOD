@@ -9,6 +9,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.9  2003/05/13 20:16:09  mast
+#  Eliminate using $0 to get temp file name, doesn't work on Windows
+#
 #  Revision 3.8  2003/02/07 00:01:35  mast
 #  Added option to go from B to A easily
 #
@@ -177,8 +180,12 @@ while ($#argv > 1)
       breaksw
     case -h:
       goto usage
+    case -P:
+      echo $pn PID: $$
+      shift
+      breaksw
     default:
-      echo "${pn}: bad argument $argv[1]"
+      echo "ERROR: ${pn} - bad argument $argv[1]"
       goto usage
   endsw
 end
@@ -186,7 +193,7 @@ end
 set setname = $argv[1]
 
 if ($nviews < 1) then
-    echo "The number of views to sample must be at least 1; you entered $nviews"
+    echo "ERROR: $pn - The number of views to sample must be at least 1; you entered $nviews"
     exit 1
 endif
 
@@ -207,13 +214,13 @@ endif
 #
 
 if (($imagea == "" || $radius == "") && (! -e track$src.com)) then
-    echo "track$src.com not found - it is needed unless you enter both "
+    echo "ERROR: $pn - track$src.com not found - it is needed unless you enter both "
     echo " the $AA image file with -i$src and the bead radius with -r"
     exit 1
 endif
 
 if ($imageb == "" && (! -e track$dst.com)) then
-    echo "track$dst.com not found - it is needed unless you enter"
+    echo "ERROR: $pn - track$dst.com not found - it is needed unless you enter"
     echo " the $BB image file with -i$dst"
     exit 1
 endif
@@ -221,12 +228,12 @@ endif
 set tiltfilea = ${setname}$src.rawtlt
 set tiltfileb = ${setname}$dst.rawtlt
 if ($zeroa == "" && (! -e $tiltfilea)) then
-    echo "$tiltfilea not found - it is needed unless you enter"
+    echo "ERROR: $pn - $tiltfilea not found - it is needed unless you enter"
     echo " the zero-tilt view number for $AA with -z$src"
     exit 1
 endif
 if ($zerob == "" && (! -e $tiltfileb)) then
-    echo "$tiltfileb not found - it is needed unless you enter"
+    echo "ERROR: $pn - $tiltfileb not found - it is needed unless you enter"
     echo " the zero-tilt view number for $BB with -z$dst"
     exit 1
 endif
@@ -241,7 +248,7 @@ if ($imagea == "") then
 endif
 
 if (! -e $imagea) then
-    echo "Image file $imagea does not exist"
+    echo "ERROR: $pn - Image file $imagea does not exist"
     exit 1
 endif
 
@@ -252,7 +259,7 @@ if ($imageb == "") then
 endif
 
 if (! -e $imageb) then
-    echo "Image file $imageb does not exist"
+    echo "ERROR: $pn - Image file $imageb does not exist"
     exit 1
 endif
 
@@ -261,7 +268,7 @@ endif
 #
 if ($fidfile == "") set fidfile = ${setname}$src.fid
 if (! -e $fidfile) then
-    echo "Fiducial file $fidfile not found"
+    echo "ERROR: $pn - Fiducial file $fidfile not found"
     exit 1
 endif
 if ($outfile == "") set outfile = ${setname}$dst.seed
@@ -339,11 +346,11 @@ end
 # Check section numbers
 # 
 if ($asecstr < 0 || $asecend >= $nza) then
-    echo "The starting or ending section numbers for $AA are out of range ($asecstr and $asecend)"
+    echo "ERROR: $pn - The starting or ending section numbers for $AA are out of range ($asecstr and $asecend)"
     exit 1
 endif
 if ($bsecstr < 0 || $bsecend >= $nzb) then
-    echo "The starting or ending section numbers for $BB are out of range ($bsecstr and $bsecend)"
+    echo "ERROR: $pn - The starting or ending section numbers for $BB are out of range ($bsecstr and $bsecend)"
     exit 1
 endif
 
@@ -813,6 +820,7 @@ Usage: $pn [options] setname
      -r radius     Bead radius for Beadtrack; default is taken from tracka.com
      -l            Search for light rather than dark beads (only works with -r)
      -t            Leave temporary files in $tmpdir
+     -P            Output process ID (PID)
      -h            Help - print this usage
 EOF
 exit 1
