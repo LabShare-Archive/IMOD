@@ -1,0 +1,59 @@
+Version = 1.0
+Pip = 1
+
+[Field = InputFile]
+short = input
+long = InputFile
+type = FN
+usage = Image file with header information to extract
+tooltip = 
+manpage = 
+
+[Field = OutputFile]
+short = output
+long = OutputFile
+type = FN
+usage = Output file for header values (optional)
+tooltip = 
+manpage = Output file for header values.  If no output file is given, the
+values are printed to standard output
+
+[Field = TiltAngles]
+short = tilts
+long = TiltAngles
+type = B
+usage = Extract tilt angles from header (the default behavior)
+tooltip = 
+manpage = 
+
+[Field = StagePositions]
+short = stage
+long = StagePositions
+type = B
+usage = Extract stage positions from header
+tooltip = 
+manpage = 
+
+[Field = Magnifications]
+short = mag
+long = Magnifications
+type = B
+usage = Extract magnifications from header
+tooltip = 
+manpage = 
+
+[Field = Intensities]
+short = intensities
+long = Intensities
+type = B
+usage = Extract intensities (C2 values) from header
+tooltip = 
+manpage = 
+
+[Field = usage]
+short = help
+long = usage
+type = B
+usage = Print help output
+tooltip = 
+manpage = 
