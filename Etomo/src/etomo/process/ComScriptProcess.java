@@ -16,6 +16,9 @@ import java.util.ArrayList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.3  2003/05/27 08:43:16  rickg
+ * <p> Set started flag in com script execution
+ * <p>
  * <p> Revision 1.2  2003/05/23 14:27:24  rickg
  * <p> Implements SystemProcessInterface
  * <p>
@@ -83,7 +86,7 @@ import java.util.ArrayList;
 public class ComScriptProcess
   extends Thread
   implements SystemProcessInterface {
-    
+
   public static final String rcsid =
     "$Id$";
 
@@ -119,7 +122,7 @@ public class ComScriptProcess
    * function for the thread.
    */
   public void run() {
-    
+
     if (demoMode) {
       try {
         csh = new SystemProgram("nothing");
@@ -148,6 +151,16 @@ public class ComScriptProcess
         return;
       }
 
+      // Remove the existing log file
+      String logFileName = parseBaseName(name, ".com") + ".log";
+      File logFile =
+        new File(workingDirectory, logFileName);
+      if (logFile.exists()) {
+        File oldLog = new File(workingDirectory, logFileName+"~");
+        if (!logFile.renameTo(oldLog)) {
+          // FIXME: what do if log file is not renamed
+        }
+      }
       // Execute the csh commands
       started = true;
       try {
@@ -411,7 +424,7 @@ public class ComScriptProcess
   }
 
   public boolean isStarted() {
-    return started;    
+    return started;
   }
 
   public boolean isDone() {
