@@ -11,6 +11,11 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.5  2004/03/12 00:16:37  rickg
+ * <p> Bug #410 Newstack PIP transition
+ * <p> Change instances of newst command to newstack when updating
+ * <p> the com script
+ * <p>
  * <p> Revision 3.4  2004/03/12 00:00:22  rickg
  * <p> Bug #410 Newstack PIP transition
  * <p> Check for default values in FortranInputStrings, don't write out the
@@ -77,16 +82,15 @@
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
  */
+
 package etomo.comscript;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Vector;
 
-
 public class NewstParam extends ConstNewstParam implements CommandParam {
-  public static final String rcsid = 
-  "$Id$";
+  public static final String rcsid = "$Id$";
 
   /**
    * Get the parameters from the ComScriptCommand
@@ -94,7 +98,7 @@ public class NewstParam extends ConstNewstParam implements CommandParam {
    * and parameters.
    */
   public void parseComScriptCommand(ComScriptCommand scriptCommand)
-  throws FortranInputSyntaxException, InvalidParameterException {
+      throws FortranInputSyntaxException, InvalidParameterException {
     String[] cmdLineArgs = scriptCommand.getCommandLineArgs();
     reset();
     for (int i = 0; i < cmdLineArgs.length; i++) {
@@ -109,30 +113,85 @@ public class NewstParam extends ConstNewstParam implements CommandParam {
           outputFile.add(cmdLineArgs[i]);
         }
         else if (cmdLineArgs[i].startsWith("-filei")
-        || cmdLineArgs[i].startsWith("-FileOfI")) {
+            || cmdLineArgs[i].startsWith("-FileOfI")) {
           i++;
           fileOfInputs = cmdLineArgs[i];
         }
-        else if (cmdLineArgs[i].startsWith("-filei")
-        || cmdLineArgs[i].startsWith("-FileOfI")) {
+        else if (cmdLineArgs[i].startsWith("-fileo")
+            || cmdLineArgs[i].startsWith("-FileOfO")) {
           i++;
-          fileOfInputs = cmdLineArgs[i];
+          fileOfOutputs = cmdLineArgs[i];
+        }
+        else if (cmdLineArgs[i].toLowerCase().startsWith("-se")) {
+          i++;
+          sectionsToRead.add(cmdLineArgs[i]);
+        }
+        else if (cmdLineArgs[i].toLowerCase().startsWith("-nu")) {
+          i++;
+          numberToOutput.add(cmdLineArgs[i]);
         }
         else if (cmdLineArgs[i].toLowerCase().startsWith("-si")) {
           i++;
           sizeToOutputInXandY.validateAndSet(cmdLineArgs[i]);
         }
+        else if (cmdLineArgs[i].toLowerCase().startsWith("-mo")) {
+          i++;
+          modeToOutput = Integer.parseInt(cmdLineArgs[i]);
+        }
         else if (cmdLineArgs[i].toLowerCase().startsWith("-of")) {
           i++;
           offsetsInXandY.add(cmdLineArgs[i]);
         }
+        else if (cmdLineArgs[i].toLowerCase().startsWith("-a")) {
+          applyOffsetsFirst = true;
+        }
         else if (cmdLineArgs[i].startsWith("-x")
-          || cmdLineArgs[i].startsWith("-Tr")) {
+            || cmdLineArgs[i].startsWith("-Tr")) {
           i++;
           transformFile = cmdLineArgs[i];
         }
+        else if (cmdLineArgs[i].toLowerCase().startsWith("-use")) {
+          i++;
+          useTransformLines = cmdLineArgs[i];
+        }
+        else if (cmdLineArgs[i].toLowerCase().startsWith("-r")) {
+          i++;
+          rotateByAngle = Float.parseFloat(cmdLineArgs[i]);
+        }       
+        else if (cmdLineArgs[i].toLowerCase().startsWith("-e")) {
+          i++;
+          expandByFactor = Float.parseFloat(cmdLineArgs[i]);
+        }
+        else if (cmdLineArgs[i].toLowerCase().startsWith("-b")) {
+          i++;
+          binByFactor = Integer.parseInt(cmdLineArgs[i]);
+        }
         else if (cmdLineArgs[i].toLowerCase().startsWith("-l")) {
           linearInterpolation = true;
+        }
+        else if (cmdLineArgs[i].toLowerCase().startsWith("-fl")) {
+          i++;
+          floatDensities = Integer.parseInt(cmdLineArgs[i]);
+        }
+        else if (cmdLineArgs[i].toLowerCase().startsWith("-c")) {
+          i++;
+          contrastBlackWhite.validateAndSet(cmdLineArgs[i]);
+        }
+        else if (cmdLineArgs[i].toLowerCase().startsWith("-sc")) {
+          i++;
+          scaleMinAndMax.validateAndSet(cmdLineArgs[i]);
+        }
+        else if (cmdLineArgs[i].toLowerCase().startsWith("-d")) {
+          i++;
+          distortionField = cmdLineArgs[i];
+        }
+        else if (cmdLineArgs[i].toLowerCase().startsWith("-im")) {
+          i++;
+          imagesAreBinned = Integer.parseInt(cmdLineArgs[i]);
+        }        
+        else if (cmdLineArgs[i].toLowerCase().startsWith("-te")) {
+          i++;
+          testLimits.validateAndSet(cmdLineArgs[i]);
         }
         else {
           String message = "Unknown argument: " + cmdLineArgs[i];
@@ -157,15 +216,15 @@ public class NewstParam extends ConstNewstParam implements CommandParam {
    * @param scriptCommand the script command to be updated
    */
   public void updateComScriptCommand(ComScriptCommand scriptCommand)
-  throws BadComScriptException {
+      throws BadComScriptException {
     // Create a new command line argument array
 
     ArrayList cmdLineArgs = new ArrayList(20);
-    for (Iterator i = inputFile.iterator(); i.hasNext(); ) {
+    for (Iterator i = inputFile.iterator(); i.hasNext();) {
       cmdLineArgs.add("-InputFile");
       cmdLineArgs.add((String) i.next());
     }
-    for (Iterator i = outputFile.iterator(); i.hasNext(); ) {
+    for (Iterator i = outputFile.iterator(); i.hasNext();) {
       cmdLineArgs.add("-OutputFile");
       cmdLineArgs.add((String) i.next());
     }
@@ -177,11 +236,11 @@ public class NewstParam extends ConstNewstParam implements CommandParam {
       cmdLineArgs.add("-FileOfOutputs");
       cmdLineArgs.add(fileOfOutputs);
     }
-    for (Iterator i = sectionsToRead.iterator(); i.hasNext(); ) {
+    for (Iterator i = sectionsToRead.iterator(); i.hasNext();) {
       cmdLineArgs.add("-SectionsToRead");
       cmdLineArgs.add((String) i.next());
     }
-    for (Iterator i = numberToOutput.iterator(); i.hasNext(); ) {
+    for (Iterator i = numberToOutput.iterator(); i.hasNext();) {
       cmdLineArgs.add("-NumberToOutput");
       cmdLineArgs.add((String) i.next());
     }
@@ -193,7 +252,7 @@ public class NewstParam extends ConstNewstParam implements CommandParam {
       cmdLineArgs.add("-ModeToOutput");
       cmdLineArgs.add(String.valueOf(modeToOutput));
     }
-    for (Iterator i = offsetsInXandY.iterator(); i.hasNext(); ) {
+    for (Iterator i = offsetsInXandY.iterator(); i.hasNext();) {
       cmdLineArgs.add("-OffsetsInXandY");
       cmdLineArgs.add((String) i.next());
     }
@@ -252,11 +311,11 @@ public class NewstParam extends ConstNewstParam implements CommandParam {
       cmdLineArgs.add(parameterFile);
     }
     int nArgs = cmdLineArgs.size();
-    scriptCommand.setCommandLineArgs(
-    (String[]) cmdLineArgs.toArray(new String[nArgs]));
-    
+    scriptCommand.setCommandLineArgs((String[]) cmdLineArgs
+      .toArray(new String[nArgs]));
+
     // If the command is currently newst change it to newstack
-    if(scriptCommand.getCommand().equals("newst")) {
+    if (scriptCommand.getCommand().equals("newst")) {
       scriptCommand.setCommand("newstack");
     }
   }
@@ -288,7 +347,7 @@ public class NewstParam extends ConstNewstParam implements CommandParam {
    * @param contrast The contrastBlackWhite to set.
    */
   public void setContrastBlackWhite(String contrast)
-  throws FortranInputSyntaxException {
+      throws FortranInputSyntaxException {
     contrastBlackWhite.validateAndSet(contrast);
   }
 
@@ -420,7 +479,7 @@ public class NewstParam extends ConstNewstParam implements CommandParam {
    * @param sizeToOutputInXandY The sizeToOutputInXandY to set.
    */
   public void setSizeToOutputInXandY(String size)
-  throws FortranInputSyntaxException {
+      throws FortranInputSyntaxException {
     sizeToOutputInXandY.validateAndSet(size);
   }
 
