@@ -24,6 +24,9 @@ import java.io.IOException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.5  2002/10/10 23:39:56  rickg
+ * <p> refactored createCombineScripts to setupCombineScripts
+ * <p>
  * <p> Revision 1.4  2002/10/10 18:47:16  rickg
  * <p> Enabled debugging output from the SystemProgram object
  * <p>
@@ -293,13 +296,18 @@ public class ProcessManager {
    * A message specifying that a com script has finished execution
    * @param exitValue the exit value for the com script
    */
-  public void msgComScriptDone(int exitValue, String command) {
-    //
+  public void msgComScriptDone(RunComScript script, 
+    int exitValue, String command) {
+    
     //  increment the state machine forward to allow for
-    //
     System.out.println("Process complete:");
     System.out.println("  script: " + command);
     System.out.println("  Exit value: " + String.valueOf(exitValue));
+
+    if(exitValue != 0) {
+        appManager.openMessageDialog(script.getMessage(),
+        command + "failed");
+    }
   }
 
   //  Internal utility functions
