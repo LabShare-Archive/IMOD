@@ -1,10 +1,14 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/8/03: Modified PIP to read newly invented "autodoc" files to determine
+program options and generate manual pages sections.
+
 10/6/03: IMOD_3-0-22
-10/6/03: Fixed the default number of views value for transferfid, it was not being
-initialized in etomo
-10/6/03: Reordered thread control to eliminate race condition that often prevented
-matchvol1 from running right after any preceeding com script
+10/6/03: Fixed the default number of views value for transferfid; it was not
+being initialized in etomo.
+
+10/6/03: Reordered thread control to eliminate race condition that often 
+prevented matchvol1 from running right after any preceeding com script.
 
 10/2/03: IMOD_3-0-21
 10/2/03: Modified Rotatevol, Matchvol, and Warpvol to work on volumes up to 
