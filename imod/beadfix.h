@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.2  2004/04/29 00:28:51  mast
+Added button to keep window on top
+
 Revision 1.1  2003/10/01 05:10:58  mast
 Incorporation as internal module in 3dmod
 
@@ -29,6 +32,21 @@ class BeadFixerModule : public SpecialModule
  public:
   BeadFixerModule();
 };
+
+#ifdef QT_THREAD_SUPPORT
+#include <qthread.h>
+
+class AlignThread : public QThread
+{
+ public:
+  AlignThread() {};
+  ~AlignThread() {};
+
+ protected:
+  void run();
+};
+#endif
+
 
 class QPushButton;
 class QCheckBox;
@@ -53,6 +71,7 @@ class BeadFixer : public DialogFrame
   void clearList();
   void onceToggled(bool state);
   void keepOnTop(bool state);
+  void runAlign();
 
  protected:
   void closeEvent ( QCloseEvent * e );
@@ -71,7 +90,14 @@ class BeadFixer : public DialogFrame
   QPushButton *movePointBut;
   QPushButton *undoMoveBut;
   QPushButton *clearListBut;
+  QPushButton *runAlignBut;
+  QPushButton *openFileBut;
+  bool mStayOnTop;
+  bool mRunningAlign;
   int mTopTimerID;
+#ifdef QT_THREAD_SUPPORT
+  AlignThread *mTaThread;
+#endif
 };
 
 #endif
