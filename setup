@@ -584,7 +584,7 @@ if ($machine != cygwin) then
     # manage qconfigure files
     #
     echo INCLUDEPATH += $inc_dir >> $midas_qconf
-    echo LIBS += -L$lib_dir -liimod -limod -ldiaqt -ltiff >> $midas_qconf
+    echo LIBS += -L$lib_dir -liimod -limod -ldiaqt -ltiff -lqassistantclient >> $midas_qconf
     echo MOC_DIR = tmp >> $midas_qconf
     echo OBJECTS_DIR = tmp >> $midas_qconf
     echo target.path = $inst_bin_dir >> $midas_qconf
@@ -784,6 +784,9 @@ exit
 
 #
 #  $Log$
+#  Revision 3.46  2004/10/28 03:44:01  mast
+#  Add quotes in runimodqtapp
+#
 #  Revision 3.45  2004/08/31 14:55:51  mast
 #  Added explicit -m64 flags for qconfigure files
 #
