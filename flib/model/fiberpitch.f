@@ -118,6 +118,14 @@ c	  trajectory of the fibers.
 c	  
 c	  David Mastronarde, 5/3/01
 c
+c	  $Author$
+c
+c	  $Date$
+c
+c	  $Revision$
+c
+c	  $Log$
+c
 	include 'model.inc'
 	parameter (limcpts=2000,limimobj=255)
 	character*80 modelfile,fileout
@@ -127,7 +135,7 @@ c
 	integer*4 iobjuse(limimobj),iwhichend(limimobj)
 	integer*4 invertfib(limimobj),invertcen(limimobj)
 	real*4 delxyz(3,max_obj_num),xyzan(3,max_obj_num)
-	integer getimodhead
+	integer getimodhead,getimodscales
 	real*4 bx(limcpts),by(limcpts)
 	logical failed,inside
 	character*4 boundtxt,identxt
@@ -189,6 +197,13 @@ c
      &	      'model header; enter it now: '
 	  read(5,*)zscale
 	endif
+	ierr=getimodscales(ximscale,yimscale,zimscale)
+c	  print *,'Offsets:',xofs,yofs,zofs
+	do i=1,n_point
+	  p_coord(1,i)=(p_coord(1,i)-xofs)/ximscale
+	  p_coord(2,i)=(p_coord(2,i)-yofs)/yimscale
+	  p_coord(3,i)=(p_coord(3,i)-zofs)/zimscale
+	enddo
 c	    
 c	  if no scale or scale comes back as 1.e6, set it to 1 to be pixels;
 c	  otherwise convert from microns to nanometers
