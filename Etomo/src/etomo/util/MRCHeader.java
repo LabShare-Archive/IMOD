@@ -18,6 +18,9 @@ import etomo.process.SystemProgram;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.1  2003/05/08 23:17:50  rickg
+ * <p> Standardized debug setting
+ * <p>
  * <p> Revision 2.0  2003/01/24 20:30:31  rickg
  * <p> Single window merge to main branch
  * <p>
@@ -43,6 +46,10 @@ public class MRCHeader {
   private int nColumns = -1;
   private int nRows = -1;
   private int nSections = -1;
+  private double xPixelSize = Double.NaN;
+  private double yPixelSize = Double.NaN;
+  private double zPixelSize = Double.NaN;
+  private double imageRotation = Double.NaN;
 
   public MRCHeader(String name) {
     filename = new String(name);
@@ -77,15 +84,35 @@ public class MRCHeader {
     }
 
     for (int i = 0; i < stdOutput.length; i++) {
+      //  Parse the size of the data
       //  Note the initial space in the string below
       if (stdOutput[i].startsWith(" Number of columns, rows, section")) {
         String[] tokens = stdOutput[i].split("\\s+");
-        if (tokens.length < 4) {
+        if (tokens.length < 10) {
           throw new IOException("Header returned less than three parameters for image size");
         }
         nColumns = Integer.parseInt(tokens[7]);
         nRows = Integer.parseInt(tokens[8]);
         nSections = Integer.parseInt(tokens[9]);
+      }
+
+      // Parse the pixels size
+      if (stdOutput[i].startsWith(" Pixel spacing")) {
+        String[] tokens = stdOutput[i].split("\\s+");
+        if (tokens.length < 7) {
+          throw new IOException("Header returned less than three parameters for pixel size");
+        }
+        xPixelSize = Double.parseDouble(tokens[4]);
+        yPixelSize = Double.parseDouble(tokens[5]);
+        zPixelSize = Double.parseDouble(tokens[6]);
+      }
+
+      // Parse the rotation angle
+      if (stdOutput[i].startsWith("          Tilt axis rotation angle")) {
+        String[] tokens = stdOutput[i].split("\\s+");
+        if (tokens.length > 6) {
+          imageRotation = Double.parseDouble(tokens[6]);
+        }
       }
     }
   }
@@ -127,6 +154,36 @@ public class MRCHeader {
    */
   public void setFilename(String filename) {
     this.filename = filename;
+  }
+
+  /**
+   * Return the image rotation in degrees if present in the header.  If the
+   * header has not been read or the image rotation is not available return
+   * Double.NaN
+   * @return
+   */
+  public double getImageRotation() {
+    return imageRotation;
+  }
+  /**
+   * @return
+   */
+  public double getXPixelSize() {
+    return xPixelSize;
+  }
+
+  /**
+   * @return
+   */
+  public double getYPixelSize() {
+    return yPixelSize;
+  }
+
+  /**
+   * @return
+   */
+  public double getZPixelSize() {
+    return zPixelSize;
   }
 
 }
