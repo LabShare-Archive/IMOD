@@ -1,5 +1,17 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/5/04: Added option for linear interpolation to squeezevol and made it
+adjust pixel size in the output file.
+
+1/13/04: Added splitrgb and joinrgb options to Clip so that color files could
+be disassembled into gray-scale components that can be operated on separately
+and recombined.
+
+1/13/04: Fixed problem with Xfmodel and Newstack deciding that they needed
+to know binning when undistorting images.
+
+1/13/04: Fixed problem with imodpsview when printing.
+
 1/13/04: Changed default scaling in tilt.com from 1000 to 500 to avoid 
 saturation in extreme cases.
 

@@ -39,7 +39,10 @@ Calculate a fft or inverse fft transform.
 Calculate a bandpass filter.
 .TP
 .I flip[xyz]
-flip an image by x y or z.
+Flip an image by x y or z.
+.TP
+.I joinrgb
+Join images from 3 byte files into one RGB file.
 .TP
 .I resize
 Box out image to a new size.
@@ -53,6 +56,9 @@ Adjust darkness of image using linear interpolation.
 .I sharpen
 Adjust image sharpness, or blur image.
 .TP
+.I splitrgb
+Split an RGB file into 3 byte files.
+.TP
 .I stats
 Print min, max, location of max and std. dev.
 .TP
@@ -60,13 +66,13 @@ Print min, max, location of max and std. dev.
 Translate an image.
 .TP
 .I zoom		
-Magnifiy or demagnifiy an image.
+Magnify or demagnify an image.
 .PD
 .SH Options
-These options are available to all processes.
+These options are available to most processes.
 .TP
 .B \-v
-View output data file using mrcv.
+View output data file using 3dmod.
 .TP
 .B \-2d
 Use 2d instead of 3d (default) processes if a
@@ -229,7 +235,7 @@ Calculate auto or cross correlation functions.
 3d correlation takes 1 or 2 volumes and does an
 auto or cross correlation respectively.  If the volumes
 are fourier transforms, the output file will be a fourier 
-transform. All other input types are automaticlly padded,
+transform. All other input types are automatically padded,
 fft transformed, correlated and inverse fft transformed.
 2d correlation takes 1 or 2 slices for input and does an
 auto or cross correlation respectively. Select the slices
@@ -282,18 +288,31 @@ image image transformations.  The flipx, flipy, and flipz
 commands will each create a new file that is the mirror 
 image of the input file along the x, y, or z axis.
 The flipxy, flipyz, flipzx commands will flip the
-xy, yz or zx indicies and change the size of the
+xy, yz or zx indices and change the size of the
 output file to match.
+.TP
+.B joinrgb
+Combine 3 input files containing red, green, and blue information into one 
+RGB file.  The 3 input files must all be byte mode and their names must
+be entered in the order red, green, and blue, followed by the output file name.
+The 
+.B -r, -g,
+and
+.B -b
+options can be used to scale the components (default scaling is 1).  
+No other options except 
+.B -v
+will work with this process.
 .TP
 .B resize 
 Cut out or pad an image to a new size.
-Resize cuts out an image of size ix, iy, iz, centerd
+Resize cuts out an image of size ix, iy, iz, centered
 around cx, cy, and cz.  The output size of the file is 
 ox, oy, and oz.  The default input size is the size of the 
 input file, the default center is the center of the input 
 file and the default output size is the same as the input 
-size.  The default pading is the average value of the 
-input file, the pading can be changed with the -p option.
+size.  The default padding is the average value of the 
+input file; the padding can be changed with the -p option.
 .TP
 .B rotation 
 Rotate an image (3d only).
@@ -315,10 +334,18 @@ Shadows will change depending upon the -n value given.
 The default value is 1.0. Values less than 1 make the image
 darker, values greater then 1 make the image brighter.
 .TP
+.B splitrgb
+Output the 3 color channels of an RGB file into three separate files, so that
+other operations can be performed on them (such as transformations).  With
+this process, the output file name will be used as a root for three filenames
+ending in .r, .g, and .b.  No options except
+.B -v
+will work with this process.
+.TP
 .B stat
 Calculate stats on a file. A table is printed with the
 Min, Max and Std. Deviation.  The location of the maximum
-is also printed.  The location is calcualted by doing a
+is also printed.  The location is calculated by doing a
 quadratic fit to the maximum value.  The -s option is
 used to report the location for a cross-correlation.
 .TP
@@ -344,6 +371,8 @@ Jim Kremer
 mrcv(1), newstack(1), rotatevol(1)
 
 .SH BUGS
-Clip has still not been fully tested with all types of data.
+Clip has still not been fully tested with all types of data.  Not all options
+work with all processes.  Some processes load all data into memory 
+unnecessarily, leading to slow performance or insufficient memory.
 
 Email bug reports to mast@colorado.edu.

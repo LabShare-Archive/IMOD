@@ -42,12 +42,14 @@
 #define IP_FFT         8
 #define IP_FILTER      9
 #define IP_FLIP       10
+#define IP_JOINRGB    21
 #define IP_PEAK       11
 #define IP_PROJECT    20
 #define IP_RESIZE     12
 #define IP_ROTATE     13
 #define IP_SHADOW     14
 #define IP_SHARPEN    15
+#define IP_SPLITRGB   20
 #define IP_STAT       16
 #define IP_TRANSLATE  17
 #define IP_ZOOM       18
@@ -133,6 +135,9 @@ int clip2d_color(struct MRCheader *hin, struct MRCheader *hout,
 		 struct Grap_options *opt);
 int grap_average(struct MRCheader *h1, struct MRCheader *h2,
 		 struct MRCheader *hout, struct Grap_options *opt);
+int clip_joinrgb(struct MRCheader *h1, struct MRCheader *h2,
+		 struct MRCheader *hout, struct Grap_options *opt);
+int clip_splitrgb(struct MRCheader *h1, struct Grap_options *opt);
 int clip2d_average(struct MRCheader *hin, struct MRCheader *hout,
 		   struct Grap_options *opt);
 int clip_parxyz(struct MRCvolume *v,
