@@ -14,7 +14,10 @@ import java.util.ArrayList;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 2.1  2003/03/02 23:30:41  rickg
+ * <p> Combine layout in progress
+ * <p> </p>
  */
 
 public class MatchorwarpParam
@@ -222,7 +225,15 @@ public class MatchorwarpParam
   public void setModelFile(String modelFile) {
     this.modelFile = modelFile;
   }
-
+  
+  /**
+   * Set the default patch region model file
+   * @param patchFile
+   */
+  public void setDefaultModelFile() {
+    modelFile = ConstMatchorwarpParam.getDefaultPatchRegionModel();
+  }
+  
   /**
    * Sets the patchFile.
    * @param patchFile The patchFile to set

@@ -209,17 +209,17 @@ public class FinalCombinePanel {
    * @param patchrawlParam
    * @throws NumberFormatException
    */
-  public void getPatchcrawl3DParams(Patchcrawl3DParam patchrawlParam)
+  public void getPatchcrawl3DParams(Patchcrawl3DParam patchcrawl3DParam)
     throws NumberFormatException {
     String badParameter = "";
 
     try {
       badParameter = "X patch size";
-      patchrawlParam.setXPatchSize(Integer.parseInt(ltfXPatchSize.getText()));
+      patchcrawl3DParam.setXPatchSize(Integer.parseInt(ltfXPatchSize.getText()));
       badParameter = "Y patch size";
-      patchrawlParam.setYPatchSize(Integer.parseInt(ltfYPatchSize.getText()));
+      patchcrawl3DParam.setYPatchSize(Integer.parseInt(ltfYPatchSize.getText()));
       badParameter = "Z patch size";
-      patchrawlParam.setZPatchSize(Integer.parseInt(ltfZPatchSize.getText()));
+      patchcrawl3DParam.setZPatchSize(Integer.parseInt(ltfZPatchSize.getText()));
     }
     catch (NumberFormatException except) {
       String message = badParameter + " " + except.getMessage();
@@ -233,6 +233,7 @@ public class FinalCombinePanel {
    * @param matchorwarpParam
    */
   public void setMatchorwarpParams(ConstMatchorwarpParam matchorwarpParam) {
+    cbUsePatchRegionModel.setSelected(matchorwarpParam.getModelFile().equals(""));
     ltfWarpLimit.setText(matchorwarpParam.getWarpLimit());
     ltfRefineLimit.setText(matchorwarpParam.getRefineLimit());
 
@@ -270,6 +271,14 @@ public class FinalCombinePanel {
     String badParameter = "";
 
     try {
+      badParameter = cbUsePatchRegionModel.getText();
+      if(cbUsePatchRegionModel.isSelected()) {
+        matchorwarpParam.setDefaultModelFile();
+      }
+      else {
+        matchorwarpParam.setModelFile("");
+      }
+      
       badParameter = ltfWarpLimit.getLabel();
       matchorwarpParam.setWarpLimit(ltfWarpLimit.getText());
 
@@ -282,11 +291,17 @@ public class FinalCombinePanel {
         matchorwarpParam.setXLowerExclude(
           Integer.parseInt(cbtfXLowerExclude.getTextField()));
       }
+      else {
+        matchorwarpParam.setXLowerExclude(0);
+      }
 
       badParameter = cbtfXUpperExclude.getCheckBoxLabel();
       if (cbtfXUpperExclude.isCheckBoxSelected()) {
         matchorwarpParam.setXUpperExclude(
           Integer.parseInt(cbtfXUpperExclude.getTextField()));
+      }
+      else {
+        matchorwarpParam.setXUpperExclude(0);
       }
 
       badParameter = cbtfZLowerExclude.getCheckBoxLabel();
@@ -294,11 +309,17 @@ public class FinalCombinePanel {
         matchorwarpParam.setZLowerExclude(
           Integer.parseInt(cbtfZLowerExclude.getTextField()));
       }
+      else {
+        matchorwarpParam.setZLowerExclude(0);
+      }
 
       badParameter = cbtfZUpperExclude.getCheckBoxLabel();
       if (cbtfZUpperExclude.isCheckBoxSelected()) {
         matchorwarpParam.setZUpperExclude(
           Integer.parseInt(cbtfZUpperExclude.getTextField()));
+      }
+      else {
+        matchorwarpParam.setZUpperExclude(0);
       }
 
     }
@@ -312,11 +333,13 @@ public class FinalCombinePanel {
     if (event
       .getActionCommand()
       .equals(buttonPatchcorrRestart.getActionCommand())) {
+        applicationManager.patchcorrCombine();
     }
 
     if (event
       .getActionCommand()
       .equals(buttonPatchRegionModel.getActionCommand())) {
+        //TODO call imod on the patch region model
     }
 
     if (event
@@ -328,15 +351,18 @@ public class FinalCombinePanel {
     if (event
       .getActionCommand()
       .equals(buttonMatchorwarpTrial.getActionCommand())) {
+        //TODO add the trial flag and run matchorwarp
         
     }
     if (event
       .getActionCommand()
       .equals(buttonPatchVectorModel.getActionCommand())) {
+        //TODO open imod on the patch vector model
     }
     if (event
       .getActionCommand()
       .equals(buttonImodMatchedTo.getActionCommand())) {
+        //TODO open imod on the tomogram being matched to
     }
 
   }
@@ -392,6 +418,7 @@ class CheckBoxTextField extends JPanel {
 
   void setCheckBoxSelected(boolean state) {
     checkBox.setSelected(state);
+    textField.setEnabled(state);
   }
 
   boolean isCheckBoxSelected() {

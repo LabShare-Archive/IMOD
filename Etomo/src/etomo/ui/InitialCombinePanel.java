@@ -9,6 +9,8 @@ import javax.swing.JButton;
 import javax.swing.JPanel;
 
 import etomo.ApplicationManager;
+import etomo.comscript.ConstSolvematchshiftParam;
+import etomo.comscript.SolvematchshiftParam;
 
 /**
  * <p>Description: </p>
@@ -26,7 +28,8 @@ import etomo.ApplicationManager;
  * <p> </p>
  */
 public class InitialCombinePanel {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
 
   private ApplicationManager applicationManager;
 
@@ -103,11 +106,19 @@ public class InitialCombinePanel {
     return rootPanel;
   }
 
-  public void setSolveMatchParams() {
-
+  public void setSolvematchshiftParams(ConstSolvematchshiftParam solvematchshiftParam) {
+    ltfFiducialMatchListA.setText(
+      solvematchshiftParam.getFiducialMatchListA().toString());
+    ltfFiducialMatchListB.setText(
+      solvematchshiftParam.getFiducialMatchListB().toString());
+    ltfResidulThreshold.setText(solvematchshiftParam.getResidualThreshold());
   }
 
-  public void getSolveMatchParams() {
+  public void getSolvematchshiftParams(SolvematchshiftParam solvematchshiftParam) {
+    solvematchshiftParam.setFiducialMatchListA(ltfFiducialMatchListA.getText());
+    solvematchshiftParam.setFiducialMatchListB(ltfFiducialMatchListB.getText());
+    solvematchshiftParam.setResidualThreshold(
+      Double.parseDouble(ltfResidulThreshold.getText()));
   }
 
 }

@@ -18,6 +18,9 @@ import javax.swing.text.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.0  2003/01/24 20:30:31  rickg
+ * <p> Single window merge to main branch
+ * <p>
  * <p> Revision 1.1.2.1  2003/01/24 18:43:37  rickg
  * <p> Single window GUI layout initial revision
  * <p>
@@ -39,7 +42,7 @@ public class TextPageWindow extends JFrame {
     editorPane.setEditorKit(new StyledEditorKit());
     mainPanel = getContentPane();
     mainPanel.add(scrollPane, BorderLayout.CENTER);
-    //  FIXME setable it properties
+    //  TODO: make the window size setable in properties
     setSize(625, 800);
   }
 

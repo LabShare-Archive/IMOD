@@ -17,6 +17,9 @@ import java.util.Iterator;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.2  2003/03/06 01:19:17  rickg
+ * <p> Combine changes in progress
+ * <p>
  * <p> Revision 2.1  2003/02/24 23:29:05  rickg
  * <p> comment fix to match Eclipse tags
  * <p>
@@ -212,20 +215,20 @@ public class ComScript {
   }
 
   /**
-   * Return the first instance of ComScriptCommand with the specified command or
-   * null if the command is not found in the current com script
+   * Return the first instance of ComScriptCommand with the specified command 
    * @param cmdName a String containing the name of the command.
    * @return the first ComScriptCommand in the collection that matches cmdName,
    * null if no command with the specified name is found.
    */
-  public ComScriptCommand getScriptCommand(String cmdName) {
+  public ComScriptCommand getScriptCommand(String cmdName)
+    throws BadComScriptException {
     for (int i = 0; i < scriptCommands.size(); i++) {
       ComScriptCommand command = (ComScriptCommand) scriptCommands.get(i);
       if (command.getCommand().equals(cmdName)) {
         return command;
       }
     }
-    return null;
+    throw (new BadComScriptException("Did not find command: " + cmdName));
   }
 
   /**

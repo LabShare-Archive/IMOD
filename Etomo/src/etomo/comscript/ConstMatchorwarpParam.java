@@ -12,7 +12,10 @@ package etomo.comscript;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 2.1  2003/03/02 23:30:41  rickg
+ * <p> Combine layout in progress
+ * <p> </p>
  */
 public class ConstMatchorwarpParam {
   public static final String rcsid = "$Id$";
@@ -162,6 +165,14 @@ public class ConstMatchorwarpParam {
    */
   public String getRefineFile() {
     return refineFile;
+  }
+  
+  /**
+   * Return the default patch region model file name
+   * @return String
+   */
+  public static String getDefaultPatchRegionModel() {
+    return "patch_region.mod";
   }
 
 }

@@ -22,6 +22,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.1  2003/02/24 23:28:15  rickg
+ * <p> Added default patch region model setter
+ * <p>
  * <p> Revision 2.0  2003/01/24 20:30:31  rickg
  * <p> Single window merge to main branch
  * <p>
@@ -124,7 +127,7 @@ public class CombineParams extends ConstCombineParams implements Storable {
   }
 
   public void setDefaultPatchRegionModel() {
-    patchRegionModel = "patch_region.mod";
+    patchRegionModel = ConstMatchorwarpParam.getDefaultPatchRegionModel();
   }
   
   /**

@@ -19,6 +19,9 @@ import etomo.type.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.2  2003/03/06 01:19:17  rickg
+ * <p> Combine changes in progress
+ * <p>
  * <p> Revision 2.1  2003/03/02 23:30:41  rickg
  * <p> Combine layout in progress
  * <p>
@@ -414,7 +417,7 @@ public class ComScriptManager {
   }
 
   /**
-   * Parse the patchrawl3D command from the patchcorr script
+   * Parse the solvematch command from the solvematchshift script
    * @return MatchorwarpParam
    */
   public SolvematchshiftParam getSolvematchshift() {
@@ -431,8 +434,9 @@ public class ComScriptManager {
   }
 
   /**
-   * Save the solvematchshift com script updating the patchcrawl3d parameters
-   * @param patchcrawl3DParam
+   * Save the solvematchshift com script updating the solveMatchshiftParam
+   * parameters
+   * @param solveMatchshiftParam
    */
   public void saveSolvematchshift(SolvematchshiftParam solveMatchshiftParam) {
 
@@ -451,6 +455,37 @@ public class ComScriptManager {
   }
 
   /**
+   * Parse the solvematch command from the solvematchmod script
+   * @return MatchorwarpParam
+   */
+  public SolvematchmodParam getSolvematchmod() {
+
+    // Initialize a SolvematchmodParam object from the com script command
+    // object
+    SolvematchmodParam solveMatchmodParam = new SolvematchmodParam();
+    initialize(
+      solveMatchmodParam,
+      scriptSolvematchmod,
+      "solvematch",
+      AxisID.ONLY);
+    return solveMatchmodParam;
+  }
+
+  /**
+   * Save the solvematchmod com script updating the solveMatchmodParam
+   * parameters
+   * @param solveMatchmodParam
+   */
+  public void saveSolvematchmod(SolvematchmodParam solveMatchmodParam) {
+
+    updateComScript(
+      scriptSolvematchmod,
+      solveMatchmodParam,
+      "solvematch",
+      AxisID.ONLY);
+  }
+
+  /**
    * Load the patchcorr com script
    */
   public void loadPatchcorr() {
@@ -463,7 +498,7 @@ public class ComScriptManager {
    */
   public Patchcrawl3DParam getPatchcrawl3D() {
 
-    // Initialize a CCDEraserParam object from the com script command object
+    // Initialize a Patchcrawl3DParam object from the com script command object
     Patchcrawl3DParam patchcrawl3DParam = new Patchcrawl3DParam();
     initialize(patchcrawl3DParam, scriptPatchcorr, "patchcrawl3d", AxisID.ONLY);
     return patchcrawl3DParam;
@@ -478,7 +513,7 @@ public class ComScriptManager {
     updateComScript(
       scriptPatchcorr,
       patchcrawl3DParam,
-      "patchcrawl3D",
+      "patchcrawl3d",
       AxisID.ONLY);
   }
 
@@ -495,7 +530,7 @@ public class ComScriptManager {
    */
   public MatchorwarpParam getMatchorwarParam() {
 
-    // Initialize a CCDEraserParam object from the com script command object
+    // Initialize a MatchorwarpParam object from the com script command object
     MatchorwarpParam matchorwarpParam = new MatchorwarpParam();
     initialize(matchorwarpParam, scriptMatchorwarp, "matchorwarp", AxisID.ONLY);
     return matchorwarpParam;
@@ -530,9 +565,13 @@ public class ComScriptManager {
     }
     catch (Exception except) {
       except.printStackTrace();
+      String[] errorMessage = new String[2];
+      errorMessage[0] = "Com file: " + comScript.getComFileName();
+      errorMessage[1] = except.getMessage();
+      
       JOptionPane.showMessageDialog(
         null,
-        except.getMessage(),
+        errorMessage,
         "Can't parse "
           + scriptName
           + axisID.getExtension()
@@ -558,22 +597,27 @@ public class ComScriptManager {
     AxisID axisID) {
 
     //  Update the specified com script command from the CommandParam object
-    ComScriptCommand comScriptCommand = script.getScriptCommand(command);
+    ComScriptCommand comScriptCommand = null;
     try {
+      comScriptCommand = script.getScriptCommand(command);
       params.updateComScript(comScriptCommand);
     }
     catch (BadComScriptException except) {
       except.printStackTrace();
+      String[] errorMessage = new String[3];
+      errorMessage[0] = "Com file: " + script.getComFileName();
+      errorMessage[1] = "Command: " + command;
+      errorMessage[2] = except.getMessage();
       JOptionPane.showMessageDialog(
         null,
-        except.getMessage(),
-        "Can't update " + command + " command in " + script.getComFileName(),
+        errorMessage,
+        "Can't update " + command + " in " + script.getComFileName(),
         JOptionPane.ERROR_MESSAGE);
+      return;
     }
 
     // Replace the first script command with the updated ComScriptCommand
     // object
-
     script.setScriptComand(0, comScriptCommand);
 
     //  Write the script back out to disk
@@ -582,6 +626,10 @@ public class ComScriptManager {
     }
     catch (Exception except) {
       except.printStackTrace();
+      String[] errorMessage = new String[3];
+      errorMessage[0] = "Com file: " + script.getComFileName();
+      errorMessage[1] = "Command: " + command;
+      errorMessage[2] = except.getMessage();
       JOptionPane.showMessageDialog(
         null,
         except.getMessage(),
@@ -612,14 +660,14 @@ public class ComScriptManager {
     }
     catch (Exception except) {
       except.printStackTrace();
+      String[] errorMessage = new String[3];
+      errorMessage[0] = "Com file: " + comScript.getComFileName();
+      errorMessage[1] = "Command: " + command;
+      errorMessage[2] = except.getMessage();
       JOptionPane.showMessageDialog(
         null,
-        except.getMessage(),
-        "Can't parse "
-          + command
-          + axisID.getExtension()
-          + ".com file: "
-          + comScript.getComFileName(),
+        except.getClass().getName() + except.getMessage(),
+        "Can't parse " + command + " from " + comScript.getComFileName(),
         JOptionPane.ERROR_MESSAGE);
       return false;
     }

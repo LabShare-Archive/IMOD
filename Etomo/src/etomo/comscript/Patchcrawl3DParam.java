@@ -12,7 +12,10 @@ package etomo.comscript;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 2.1  2003/03/02 23:30:41  rickg
+ * <p> Combine layout in progress
+ * <p> </p>
  */
 /**
  * @author rickg
@@ -35,7 +38,7 @@ public class Patchcrawl3DParam
     // FIXME this needs to throw some exceptions
     String[] cmdLineArgs = scriptCommand.getCommandLineArgs();
     reset();
-    if (cmdLineArgs.length < 16 || cmdLineArgs.length > 19) {
+    if (cmdLineArgs.length < 16 || cmdLineArgs.length > 22) {
       throw (new BadComScriptException("Incorrect number of arguments"));
     }
 
@@ -52,6 +55,7 @@ public class Patchcrawl3DParam
     yHigh = Integer.parseInt(cmdLineArgs[i++]);
     zLow = Integer.parseInt(cmdLineArgs[i++]);
     zHigh = Integer.parseInt(cmdLineArgs[i++]);
+    System.err.println(cmdLineArgs[i]);
     maxShift = Integer.parseInt(cmdLineArgs[i++]);
     fileA = cmdLineArgs[i++];
     fileB = cmdLineArgs[i++];
@@ -81,6 +85,8 @@ public class Patchcrawl3DParam
     cmdLineArgs[1] = String.valueOf(yPatchSize);
     badParameter = "Z patch size";
     cmdLineArgs[2] = String.valueOf(zPatchSize);
+    
+    scriptCommand.setCommandLineArgs(cmdLineArgs);
   }
   /**
    * Sets the fileA.

@@ -8,8 +8,10 @@ import etomo.comscript.ConstCombineParams;
 import etomo.comscript.CombineParams;
 import etomo.comscript.ConstMatchorwarpParam;
 import etomo.comscript.ConstPatchcrawl3DParam;
+import etomo.comscript.ConstSolvematchshiftParam;
 import etomo.comscript.MatchorwarpParam;
 import etomo.comscript.Patchcrawl3DParam;
+import etomo.comscript.SolvematchshiftParam;
 import etomo.type.AxisID;
 
 /**
@@ -25,6 +27,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.4  2003/03/06 01:19:17  rickg
+ * <p> Combine changes in progress
+ * <p>
  * <p> Revision 2.3  2003/03/02 23:30:41  rickg
  * <p> Combine layout in progress
  * <p>
@@ -136,6 +141,26 @@ public class TomogramCombinationDialog extends ProcessDialog {
     panelSetupCombine.getParameters(combineParams);
   }
 
+  /**
+   * Set the solvematchshift parameters of the UI from the the
+   * ConstSolvematchshiftParams object
+   * @param solvematchshiftParams
+   */
+  public void setSolvematchshiftParams(ConstSolvematchshiftParam solvematchshiftParams) {
+    panelInitialCombine.setSolvematchshiftParams(solvematchshiftParams);
+  }
+  
+  /**
+   * Get the the patchcrawl3d parameters of the UI returning them in the 
+   * modified SolvematchshiftParam object
+   * @param solvematchshiftParams
+   * @throws NumberFormatException
+   */
+  public void getSolvematchshiftParams(SolvematchshiftParam solvematchshiftParams)
+    throws NumberFormatException {
+    panelInitialCombine.getSolvematchshiftParams(solvematchshiftParams);
+  }
+  
   /**
    * Set the patchcrawl3D parameters of the UI from the the
    * ConstPatchcrawl3DParam object

@@ -26,6 +26,9 @@ import etomo.ui.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.8  2003/03/06 01:19:17  rickg
+ * <p> Combine changes in progress
+ * <p>
  * <p> Revision 2.7  2003/03/02 23:30:41  rickg
  * <p> Combine layout in progress
  * <p>
@@ -1673,10 +1676,9 @@ public class ApplicationManager {
     tomogramCombinationDialog.setMatchorwarpParams(
       comScriptMgr.getMatchorwarParam());
 
-    //  FIXME
     comScriptMgr.loadPatchcorr();
-    /*tomogramCombinationDialog.setPatchcrawl3DParams(
-          comScriptMgr.getPa());*/
+    tomogramCombinationDialog.setPatchcrawl3DParams(
+      comScriptMgr.getPatchcrawl3D());
 
     mainFrame.showProcess(
       tomogramCombinationDialog.getContainer(),
@@ -1714,6 +1716,30 @@ public class ApplicationManager {
           openPostProcessingDialog();
         }
       }
+    }
+  }
+
+  /**
+   * Initiate the combine process from the beginning
+   */
+  public void combine() {
+    if (updateSolvematchshiftCom()
+      && updatePatchcorrCom()
+      && updateMatchorwarpCom()) {
+
+    }
+
+    /*    String threadName = processMgr.combine();
+        setThreadName(threadName, AxisID.FIRST);
+        mainFrame.startProgressBar("Combining tomograms", AxisID.FIRST);*/
+  }
+
+  /**
+   * Initiate the combine process from patchcorr step
+   */
+  public void patchcorrCombine() {
+    if (updatePatchcorrCom() && updateMatchorwarpCom()) {
+
     }
   }
 
@@ -1756,6 +1782,36 @@ public class ApplicationManager {
   }
 
   /**
+   * Update the solvematchshift.com script from the information in the tomogram
+   * combination dialog box
+   * @return boolean
+   */
+  private boolean updateSolvematchshiftCom() {
+    //  Set a reference to the correct object
+    if (tomogramCombinationDialog == null) {
+      openMessageDialog(
+        "Can not update solvematchshift.com without an active tomogram generation dialog",
+        "Program logic error");
+      return false;
+    }
+
+    try {
+      SolvematchshiftParam solvematchshiftParam =
+        comScriptMgr.getSolvematchshift();
+      tomogramCombinationDialog.getSolvematchshiftParams(solvematchshiftParam);
+      comScriptMgr.saveSolvematchshift(solvematchshiftParam);
+    }
+    catch (NumberFormatException except) {
+      String[] errorMessage = new String[2];
+      errorMessage[0] = "Solvematchshift Parameter Syntax Error";
+      errorMessage[1] = except.getMessage();
+      openMessageDialog(errorMessage, "Solvematchshift Parameter Syntax Error");
+      return false;
+    }
+    return true;
+  }
+
+  /**
    * Update the matchorwarp.com script from the information in the tomogram
    * combination dialog box
    * @return boolean
@@ -1782,15 +1838,6 @@ public class ApplicationManager {
       return false;
     }
     return true;
-  }
-
-  /**
-   * Combine the two tomograms
-   */
-  public void combine() {
-    String threadName = processMgr.combine();
-    setThreadName(threadName, AxisID.FIRST);
-    mainFrame.startProgressBar("Combining tomograms", AxisID.FIRST);
   }
 
   /**
