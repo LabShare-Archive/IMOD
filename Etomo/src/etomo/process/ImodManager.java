@@ -28,6 +28,11 @@ import etomo.type.ConstMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.24  2004/06/10 18:21:49  sueh
+ * <p> bug# 463 changed create() to newImod(), changed
+ * <p> openBeadFixer() to setOpenBeadFixer() and made it a state
+ * <p> change function rather then a message sending function
+ * <p>
  * <p> Revision 3.23  2004/06/10 17:24:16  sueh
  * <p> bug# 462 remove reset() function, only set initial and unchanging
  * <p> settings when constructing and initializing ImodState
@@ -409,14 +414,44 @@ public class ImodManager {
         imodState.open();
       }
       else {
-        imodState.setOpenWithModel(true);
         imodState.open(model);
       }
     }
     //used for:
     //openFiducialModel
   }
+  
+  /**
+   * 
+   * @param key
+   * @param axisID
+   * @param model
+   * @param modelMode
+   * @throws AxisTypeException
+   * @throws SystemProcessException
+   */
+  public void open(String key, AxisID axisID, String model, boolean modelMode)
+    throws AxisTypeException, SystemProcessException {
+    key = getPrivateKey(key);
+    ImodState imodState = get(key, axisID);
+    if (imodState == null) {
+      newImod(key, axisID);
+      imodState = get(key, axisID);
+    }
+    if (imodState != null) {
+      imodState.open(model, modelMode);
+    }
+    //    rawStack.model(modelName, modelMode);
+  }
 
+  /**
+   * 
+   * @param key
+   * @param axisID
+   * @param vectorIndex
+   * @throws AxisTypeException
+   * @throws SystemProcessException
+   */
   public void open(String key, AxisID axisID, int vectorIndex)
     throws AxisTypeException, SystemProcessException {
     key = getPrivateKey(key);
@@ -462,59 +497,6 @@ public class ImodManager {
     return false;
   }
 
-  public void model(String key, AxisID axisID, String modelName)
-    throws AxisTypeException, SystemProcessException {
-    key = getPrivateKey(key);
-    ImodState imodState = get(key, axisID);
-    if (imodState == null) {
-      newImod(key, axisID);
-      imodState = get(key, axisID);
-    }
-    if (imodState != null) {
-      imodState.open(modelName);
-    }
-    // erasedStack.model(modelName);
-  }
-
-  public void model(
-    String key,
-    AxisID axisID,
-    String modelName,
-    boolean modelMode)
-    throws AxisTypeException, SystemProcessException {
-    key = getPrivateKey(key);
-    ImodState imodState = get(key, axisID);
-    if (imodState == null) {
-      newImod(key, axisID);
-      imodState = get(key, axisID);
-    }
-    if (imodState != null) {
-      imodState.open(modelName, modelMode);
-    }
-    //    rawStack.model(modelName, modelMode);
-  }
-
-  public void model(
-    String key,
-    AxisID axisID,
-    String modelName,
-    boolean modelMode,
-    boolean preserveContrast)
-    throws AxisTypeException, SystemProcessException {
-    key = getPrivateKey(key);
-    ImodState imodState = get(key, axisID);
-    if (imodState == null) {
-      newImod(key, axisID);
-      imodState = get(key, axisID);
-    }
-    if (imodState != null) {
-      imodState.setPreserveContrast(preserveContrast);
-      imodState.open(modelName, modelMode);
-    }
-    //coarseAligned.setPreserveContrast(preserveConstrast);
-    //coarseAligned.model(modelName, modelMode);
-  }
-  
   public String getModelName(String key, AxisID axisID) throws AxisTypeException {
     key = getPrivateKey(key);
     ImodState imodState = get(key, axisID);
@@ -601,6 +583,31 @@ public class ImodManager {
     }
     if (imodState != null) {
       imodState.setBinning(binning);
+    }
+  }
+  
+  public void setOpenContours(String key, AxisID axisID, boolean openContours)
+    throws AxisTypeException, SystemProcessException {
+    key = getPrivateKey(key);
+    ImodState imodState = get(key, axisID);
+    if (imodState == null) {
+      newImod(key, axisID);
+    }
+    if (imodState != null) {
+      imodState.setOpenContours(openContours);
+    }
+  }
+
+  public void setPreserveContrast(String key, AxisID axisID, 
+    boolean preserveContrast)
+    throws AxisTypeException, SystemProcessException {
+    key = getPrivateKey(key);
+    ImodState imodState = get(key, axisID);
+    if (imodState == null) {
+      newImod(key, axisID);
+    }
+    if (imodState != null) {
+      imodState.setPreserveContrast(preserveContrast);
     }
   }
 
@@ -819,7 +826,6 @@ public class ImodManager {
   protected ImodState newSample(AxisID axisID) {
     ImodState imodState =
       new ImodState(axisID, "top", "mid", "bot", ".rec", "tomopitch", ".mod");
-    imodState.setInitialUseMode(true);
     imodState.setInitialMode(ImodState.MODEL_MODE);
     return imodState;
   }
@@ -841,7 +847,6 @@ public class ImodManager {
   }
   protected ImodState newPatchVectorModel() {
     ImodState imodState = new ImodState("patch_vector.mod", ImodState.MODEL_VIEW);
-    imodState.setInitialUseMode(true);
     imodState.setInitialMode(ImodState.MODEL_MODE);
     return imodState;
   }
