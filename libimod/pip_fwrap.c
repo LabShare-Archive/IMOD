@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.1  2003/06/05 00:24:02  mast
+Addition to IMOD
+
 */
 
 #include "parse_params.h"
@@ -93,7 +96,7 @@ void pipnumberofargs(int *numOptArgs, int *numNonOptArgs)
 
 int pipgetnonoptionarg(int *argNo, char *arg, int stringSize)
 {
-  char *argPtr;
+  char *argPtr = NULL;
   int err;
   err = PipGetNonOptionArg(*argNo - 1, &argPtr);
   if (!err && c2fString(argPtr, arg, stringSize)) {
@@ -109,7 +112,7 @@ int pipgetnonoptionarg(int *argNo, char *arg, int stringSize)
 
 int pipgetstring(char *option, char *string, int optionSize, int stringSize)
 {
-  char *strPtr;
+  char *strPtr = NULL;
   char *cStr;
   int err;
   if (!(cStr = f2cString(option, optionSize)))
@@ -201,7 +204,7 @@ int pipprinthelp(char *string, int *useStdErr, int *inputFiles,
 
 int pipgeterror(char *errString, int stringSize)
 {
-  char *strPtr;
+  char *strPtr = NULL;
   int err;
   int copyLen = stringSize - 1;
 
