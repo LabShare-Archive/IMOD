@@ -84,44 +84,6 @@ ImodIProcData proc_data[] = {
 static ImodIProc proc = {0, 0};
 static Islice s;
 
-/* Copy data from a generated slice into the working buffer and free slice */
-static void cpdslice(Islice *sl, ImodIProc *ip)
-{
-  register unsigned char *from, *to, *last;
-  int rampbase = ip->vi->rampbase;
-  from = sl->data.b;
-  to = ip->iwork;
-  if (!to) return;
-
-  last = to + (ip->vi->xsize * ip->vi->ysize);
-  if (App->depth > 8){
-    do{
-      *to++ = *from++;
-    }while (to !=  last);
-  }else{
-    do{
-      *to++ = *from++ + rampbase;
-    }while (to !=  last);
-  }
-  sliceFree(sl);
-}
-
-/* Copy the working buffer back to the display memory and draw */
-static void copyAndDisplay()
-{
-  ImodIProc *ip = &proc;
-  unsigned char **to = ivwGetCurrentZSection(ip->vi);
-  unsigned char *from = ip->iwork;
-  int i, j;
-  
-  for (j = 0; j < ip->vi->ysize; j++)
-    for (i = 0; i < ip->vi->xsize; i++)
-      to[j][i] = *from++;
-
-  imodDraw(ip->vi, IMOD_DRAW_IMAGE);
-}
-
-
 /*
  * CALLBACK FUNCTIONS FOR THE VARIOUS FILTERS
  */
@@ -306,6 +268,51 @@ int inputIProcOpen(struct ViewInfo *vi)
   return(0);
 }
 
+
+/*
+ * DATA COPYING FUNCTIONS
+ */
+
+/* Copy data from a generated slice into the working buffer and free slice */
+static void cpdslice(Islice *sl, ImodIProc *ip)
+{
+  register unsigned char *from, *to, *last;
+  int rampbase = ip->vi->rampbase;
+  from = sl->data.b;
+  to = ip->iwork;
+  if (!to) return;
+
+  last = to + (ip->vi->xsize * ip->vi->ysize);
+  if (App->depth > 8){
+    do{
+      *to++ = *from++;
+    }while (to !=  last);
+  }else{
+    do{
+      *to++ = *from++ + rampbase;
+    }while (to !=  last);
+  }
+  sliceFree(sl);
+}
+
+/* Copy the working buffer back to the display memory and draw */
+static void copyAndDisplay()
+{
+  ImodIProc *ip = &proc;
+  unsigned char **to = ivwGetCurrentZSection(ip->vi);
+  unsigned char *from = ip->iwork;
+  int i, j;
+  int cz =  (int)(ip->vi->zmouse + 0.5f);
+  
+  for (j = 0; j < ip->vi->ysize; j++)
+    for (i = 0; i < ip->vi->xsize; i++)
+      to[j][i] = *from++;
+
+  imod_info_float_clear(cz, ip->vi->ct);
+  imodDraw(ip->vi, IMOD_DRAW_IMAGE);
+}
+
+
 /* clear the section back to original data. */
 static void clearsec(ImodIProc *ip)
 {
@@ -347,6 +354,10 @@ static void savesec(ImodIProc *ip)
   for (j = 0; j < ip->vi->ysize; j++)
     for (i = 0; i < ip->vi->xsize; i++)
       *to++ = *to2++ = from[j][i];
+
+  // Make sure there is floating info for this data so it can be saved when
+  // it is cleared
+  imod_info_bwfloat(ip->vi, ip->idatasec, ip->idatatime);
 }
 
 
@@ -369,7 +380,7 @@ static void mkedge_cb(IProcWindow *win, QWidget *parent, QVBoxLayout *layout)
 
 static void mkthresh_cb(IProcWindow *win, QWidget *parent, QVBoxLayout *layout)
 {
-  char *sliderLabel[] = {"Threshold filter value"};
+  char *sliderLabel[] = {"Threshold filter value" };
   MultiSlider *slider = new MultiSlider(parent, 1, sliderLabel, 0, 254);
   slider->setValue(0, proc.threshold);
   QObject::connect(slider, SIGNAL(sliderChanged(int, int, bool)), win, 
@@ -380,20 +391,20 @@ static void mkthresh_cb(IProcWindow *win, QWidget *parent, QVBoxLayout *layout)
 
 
 /* THE WINDOW CLASS CONSTRUCTOR */
-static char *buttonLabels[] = {"Apply", "More", "Reset", "Save", "Done",
-                               "Help"};
+static char *buttonLabels[] = {"Apply", "More", "Toggle", "Reset", "Save", 
+                               "Done", "Help"};
 static char *buttonTips[] = {"Operate on current section",
                              "Reiterate operation on current section",
+                             "Toggle between processed and original image",
                              "Reset section to unprocessed image",
                              "Replace section in memory with processed image",
                              "Close dialog box", "Open help window"};
 
 IProcWindow::IProcWindow(QWidget *parent, const char *name)
-  : DialogFrame(parent, 6, buttonLabels, buttonTips, true, 
+  : DialogFrame(parent, 7, buttonLabels, buttonTips, false, 
                 " ", "", name)
 {
   int i;
-  int width = 0, height = 0;
   QString str;
   QVBoxLayout *vLayout;
   QWidget *control;
@@ -407,6 +418,12 @@ IProcWindow::IProcWindow(QWidget *parent, const char *name)
 
   mStack = new QWidgetStack(this);
   hLayout->addWidget(mStack);
+
+  // Put a spacer on the right to keep the list box position from changing
+  QHBox *hspace = new QHBox(this);
+  hLayout->addWidget(hspace);
+  hLayout->setStretchFactor(hspace, 5);
+  
 
   for (i = 0; (proc_data[i].name); i++) {
 
@@ -427,14 +444,9 @@ IProcWindow::IProcWindow(QWidget *parent, const char *name)
     vLayout->addWidget(spacer);
     vLayout->setStretchFactor(spacer, 100);
 
-    // Add widget to layout first, and get a size; then add to stack
-    hLayout->addWidget(control);
-    QSize size = control->sizeHint();
-    if (width < size.width())
-      width = size.width();
-    if (height < size.height())
-      height = size.height();
+    // Add widget to stack and set size policy to ignored
     mStack->addWidget(control, i);
+    control->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
   }
 
   // Finalize list box setting and connections
@@ -445,12 +457,12 @@ IProcWindow::IProcWindow(QWidget *parent, const char *name)
   if (i > MAX_LIST_TO_SHOW)
     i = MAX_LIST_TO_SHOW;
   mListBox->setMinimumHeight(i * mListBox->itemHeight() + 4);
+  QSize size = mListBox->sizeHint();
+  //  mListBox->setFixedWidth(size.width());
 
-  // Set minimum size of stack
-  mStack->setMinimumWidth(width);
-  mStack->setMinimumHeight(height);
-  mStack->raiseWidget(proc.procnum);
+  filterHighlighted(proc.procnum);
 
+  connect(this, SIGNAL(actionClicked(int)), this, SLOT(buttonClicked(int)));
   connect(this, SIGNAL(actionPressed(int)), this, SLOT(buttonPressed(int)));
   setCaption(imodCaption("3dmod Image Processing"));
   show();
@@ -462,10 +474,20 @@ void IProcWindow::threshChanged(int which, int value, bool dragging)
   proc.threshold = value;
 }
 
+// To switch filters, set the size policy of the current widget back to ignored
+// raise the new widget, set its size policy, make the stack process geometry
+// again then adjust window size
 void IProcWindow::filterHighlighted(int which)
 {
+  QWidget *control = mStack->visibleWidget();
+  if (control)
+    control->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
   proc.procnum = which;
   mStack->raiseWidget(which);
+  control = mStack->visibleWidget();
+  control->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+  mStack->adjustSize();
+  adjustSize();
 }
 
 void IProcWindow::filterSelected(int which)
@@ -479,14 +501,14 @@ void IProcWindow::edgeSelected(int which)
   proc.edge = which;
 }
 
-// Respond to button press
-void IProcWindow::buttonPressed(int which)
+// Respond to button click (release)
+void IProcWindow::buttonClicked(int which)
 {
   ImodIProc *ip = &proc;
 
   int cz =  (int)(ip->vi->zmouse + 0.5f);
 
-  if (which < 4 && ip->vi->loadingImage)
+  if (which < 5 && ip->vi->loadingImage)
     return;
 
   switch (which) {
@@ -503,28 +525,32 @@ void IProcWindow::buttonPressed(int which)
 
     /* Otherwise operate on the current data without restoring it */
     if ( proc_data[ip->procnum].cb) {
-      imod_info_float_clear(cz, ip->vi->ct);
       proc_data[ip->procnum].cb();
       copyAndDisplay();
       ip->modified = 1;
     }
     break;
 
-  case 2: // reset
+  case 2:  // Toggle
+    if (ip->modified && cz == ip->idatasec && ip->vi->ct == ip->idatatime)
+      copyAndDisplay();
+    break;
+
+  case 3: // reset
     clearsec(ip);
     imodDraw(ip->vi, IMOD_DRAW_IMAGE);
     break;
 
-  case 3: // save
+  case 4: // save
     ip->modified = 0;
     ip->idatasec = -1;
     break;
 
-  case 4: // Done
+  case 5: // Done
     close();
     break;
 
-  case 5: // Help
+  case 6: // Help
     dia_vasmsg
       ("~~~~~~~~~~~~~~~~~~~~~~~~\n"
        "3dmod Image Processing \n"
@@ -551,6 +577,32 @@ void IProcWindow::buttonPressed(int which)
   }
 }
 
+// Respond to button press for toggle button only - redisplay original data
+// but re-mark as modified
+void IProcWindow::buttonPressed(int which)
+{
+  unsigned char *from;
+  unsigned char **to2;
+  int i, j;
+  ImodIProc *ip = &proc;
+  int cz =  (int)(ip->vi->zmouse + 0.5f);
+
+  if (which != 2 || !ip->modified || cz != ip->idatasec || 
+      ip->vi->ct != ip->idatatime)
+    return;
+     
+  from = ip->isaved;
+  to2 = ivwGetZSectionTime(ip->vi, ip->idatasec, ip->idatatime);
+  if (!to2)
+    return;
+  for (j = 0; j < ip->vi->ysize; j++)
+    for (i = 0; i < ip->vi->xsize; i++)
+      to2[j][i] = *from++;
+
+  imod_info_float_clear(ip->idatasec, ip->idatatime);
+  imodDraw(ip->vi, IMOD_DRAW_IMAGE);
+}
+
 // Apply the current filter
 void IProcWindow::apply()
 {
@@ -571,7 +623,6 @@ void IProcWindow::apply()
     
   /* Operate on the original data */
   if ( proc_data[ip->procnum].cb) {
-    imod_info_float_clear(cz, ip->vi->ct);
     proc_data[ip->procnum].cb();
     ip->modified = 1;
     copyAndDisplay();
@@ -612,6 +663,9 @@ void IProcWindow::keyReleaseEvent ( QKeyEvent * e )
 /*
 
     $Log$
+    Revision 4.5  2004/01/05 18:04:56  mast
+    Prevented operating on images while data being loaded; renamed vw to vi
+
     Revision 4.4  2003/09/16 02:10:26  mast
     Changed to make a working copy of the image data using the new line
     pointers, operate on the working copy, and save back into the display
