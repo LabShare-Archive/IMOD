@@ -44,7 +44,7 @@ Print area of object in column output.
 Print lengths of open contours in column output.
 .TP
 .B -s
-Print surface information.
+Print volumes and surface areas for each separate surface in an object.
 .TP
 .B -p
 Print point size information, including a summary of mean radius, and the

@@ -60,11 +60,13 @@ Length Type Name          Description
 4      int   contour       model editing.
 4      int   point 
 
-4      int   res           Number of pixels between points for drag drawing.
+4      int   res           Minimum number of pixels between points when adding
+                           points by dragging mouse with middle button down.
 4      int   thresh        Threshold level for auto contour generator.
 
-4      float pixsize       Size of unit 1.0 pixel
-4      int   units         Units of given size.
+4      float pixsize       Size of one pixel, in the units given next
+4      int   units         0 = pixels, 3 = km, 1 = m, -2 = cm, -3 = mm, 
+                           -6 = microns, -9 = nm, -10 = Angstroms, -12 = pm
 
 4      long  csum          Checksum storage. Used for autosave only.
 
@@ -93,34 +95,42 @@ Length Type  Name       Description
                         Bit 8 on : Fill - draw filled polygons
                         Bit 9 on : Scattered - contours have scattered points
                         Bit 10 on : Mesh - draw mesh data in 3D
-                        Bit 11 on : Lines - draw contours in 3D
+                        Bit 11 on : Lines - do not draw contours in 3D
                         Bit 14 on : Fill color - use instead of regular color
                         Bit 15 on : Anti-aliasing on
                         Bit 16 on : Normals have magnitudes
                         Bit 17 on : Draw normal maginitudes with false color
                         Bit 18 on : Time - contours have time indexes
                         Bit 19 on : Light both sides of surface
+  
+                        In Imodv, Draw Data Type - Contour = Mesh flag off,
+                                                   Mesh    = Mesh flag on
+                        Drawing Style - Points = Lines flag on, Fill flag off
+                                        Lines  = Lines flag off, Fill flag off
+                                        Fill   = Lines flag on, Fill flag on
+                                 Fill Outline  = Lines flag off, Fill flag on
 
 4      int   axis       Z = 0, X = 1, Y = 2.
-4      int   drawmode   Tells type of points to draw.
+4      int   drawmode   Tells type of scattered points to draw (unused)
 
 4      float red        Color values, range is (0.0 - 1.0)
 4      float green      
 4      float blue       
 
-4      int   pdrawsize    Size to draw points in 3D.
+4      int   pdrawsize    Default radius in pixels of scattered points in 3D.
 
-1      uchar symbol       Point Draw symbol, default is 0.
+1      uchar symbol       Point Draw symbol in 2D, default is 1.
                              0 = circle, 1 = none, 2 = square, 3 = triangle,
 	                     4 = star.
-1      uchar symsize      Size of symbol; radius.
+1      uchar symsize      Size of 2D symbol; radius in pixels.
 1      uchar linewidth2   Linewidth in 2-D view.
 1      uchar linewidth    Linewidth in 3-D view.
 1      uchar linesty      Line draw style default is 0 = solid. 1 = dashed.
 1      uchar symflags     Bit 0 on : Fill the symbol.
-                          Bit 1 on : Draw begining and end symbols.
+                          Bit 1 on : Draw beginning and end symbols.
 1      uchar sympad       Set to 0, for future use.
-1      uchar trans        Transparency
+1      uchar trans        Transparency, range is (0 to 100), maps to
+                             (1.0 to 0.0) in call to glColor4f or glMaterialfv
 
 4      int   meshsize     Number of meshes in object.
 4      int   surfsize     Max surfaces in object.
@@ -291,15 +301,26 @@ Length Type      Description
 <HR>
 IMAT  material definition for object.        (16 bytes data)
 <pre>
-Length Type      Description
+Length Type         Description
 -------------------------------------------------------------------
-1  UBYTE ambient 
-1  UBYTE diffuse 
-1  UBYTE specular   /* specular IS shininess   */
-1  UBYTE shininess  /* shininess used as flags */
-4  UINT  mat1  /* set to 0, use as material color future. ABGR */
-4  UINT  mat2  /* set to 0, use as flags. */
-4  UINT  mat3  /* used  byte0 = bright, byte1 = contrast */
+1  UBYTE ambient    Ambient property.  Range 0-255, scaled to 0-1, multiplied
+                       by red, green and blue to set the GL_AMBIENT property.
+1  UBYTE diffuse    Diffuse property.  Range 0-255, scaled to 0-1, multiplied
+                       by red, green and blue to set the GL_DIFFUSE property.
+1  UBYTE specular   Specular property.  Range 0-255, scaled to 0-1, added
+                       to red, green and blue to set the GL_SPECULAR property.
+1  UBYTE shininess  Shininess exponent in specular term.  Range 0-255, scaled
+                       to 6.1 to 1.1 to set the GL_SHININESS property.
+  
+1  UBYTE mat1       Fill color red.
+1  UBYTE mat1b1     Fill color green.
+1  UBYTE mat1b2     Fill color blue.
+1  UBYTE mat1b3     Unused.
+4  UINT  mat2       Set to 0, use as flags.  Unused.
+1  UBYTE mat3       Black level for showing normal magnitudes in mesh.
+1  UBYTE mat3b1     White level for showing normal magnitudes in mesh.
+1  UBYTE mat3b2     Unused.
+1  UBYTE mat3b3     Unused.
 </pre>
 
 <HR>
