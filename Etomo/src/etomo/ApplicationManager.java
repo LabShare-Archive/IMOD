@@ -74,6 +74,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.5  2003/12/05 01:25:01  sueh
+ * <p> bug242 moved getEnvironmentVariable() to Utilities
+ * <p>
  * <p> Revision 3.4  2003/12/04 22:09:03  sueh
  * <p> bug242 Converting to new interface.
  * <p>
@@ -1088,6 +1091,34 @@ public class ApplicationManager {
     mainFrame.stopProgressBar(axisID);
   }
 
+  public void imodRawStack(AxisID axisID) {
+    if (imodManager == null) {
+      if (setupDialog != null) {  
+        metaData = setupDialog.getFields();
+      }
+      if (metaData.isDatasetNameValid()) {
+        imodManager = new ImodManager(this, metaData);
+      }
+      else {
+        mainFrame.openMessageDialog(metaData.getInvalidReason(), "Raw Image Stack");
+        return;
+      }
+    }
+    try {
+      imodManager.open(ImodManager.RAW_STACK_KEY, axisID);
+    }
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      mainFrame.openMessageDialog(except.getMessage(), "AxisType problem");
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      mainFrame.openMessageDialog(
+        except.getMessage(),
+        "Problem opening raw stack");
+    }
+
+  }
   /**
    * Open the coarse alignment dialog
    */
