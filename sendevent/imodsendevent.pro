@@ -1,7 +1,7 @@
 SOURCES += imodsendevent.cpp
 HEADERS += imodsendevent.h
 TEMPLATE = app
-CONFIG += qt
+CONFIG += qt console
 INCLUDEPATH += . ../include
 
 include (qconfigure)
