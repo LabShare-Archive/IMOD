@@ -24,6 +24,10 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.2  2002/07/28 20:28:30  mast
+c	  Added better analysis of mapping based on fiducial coordinate file
+c	  from Tiltalign
+c	
 c	  Revision 3.1  2002/05/23 04:42:15  mast
 c	  Creation of program
 c	
@@ -35,7 +39,7 @@ c
 	character*120 fidname,seedname,outfile,xyzname
 	integer*4 ifid_in_a(idim),maplist(idim)
 	integer*4 ixyzcont(idim),ixyzpnt(idim),ixyzobj(idim)
-	integer*4 iobj,nmap,noriginal,i,imodobj,imodcont,nxyz
+	integer*4 iobj,nmap,noriginal,i,imodobj,imodcont,nxyz,nmaplen
 	real*4 dum
 	logical*4 readw_or_imod
 c	  
@@ -132,9 +136,10 @@ c
 102	format(//,' Make the following entries to Setupcombine or ',
      &	    'Solvematch to describe how ',/,
      &	    ' fiducials correspond between the first and second axes',/,
-     &	    ' Points in A:',$)
+     &	    ' Points in A: ',$)
 	call wrlist(maplist,nmap)
-	write(*,'(a,i4)')' Points in B: 1-',nmap
+	call int_iwrite(outfile, nmap, nmaplen)
+	write(*,'(a,a)')' Points in B: 1-',outfile(1:nmaplen)
 	if (nxyz.eq.0)then
 	  write(*,103)
 103	  format(/,' These lists may be wrong if they include a contour',
