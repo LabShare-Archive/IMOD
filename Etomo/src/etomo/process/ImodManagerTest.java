@@ -8,14 +8,11 @@ package etomo.process;
 
 import junit.framework.TestCase;
 
-import java.io.File;
-
 import etomo.ApplicationManager;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.AxisTypeException;
 import etomo.type.MetaData;
-import etomo.util.Utilities;
 
 /**
  * @author sueh
@@ -30,8 +27,6 @@ public class ImodManagerTest extends TestCase {
   String datasetNameDual = new String("BB");
   String datasetNameSingle = new String("BBa");
   String datasetName;
-  String oldUserDirName;
-  String testSubDirName = new String("vectors/stacks");
 
   /*
    * @see TestCase#setUp()
@@ -39,18 +34,7 @@ public class ImodManagerTest extends TestCase {
   protected void setUp() throws Exception {
     super.setUp();
     String[] args = new String[1];
-    File testDir;
     args[0] = new String("");
-    oldUserDirName = new String(System.getProperty("user.dir"));
-    String etomoTestDirName = Utilities.getEnvironmentVariable("ETOMO_TEST");
-    if (etomoTestDirName.equals("")) {
-      testDir = new File(oldUserDirName, "workspace/Etomo_test/" + testSubDirName);
-    }
-    else {
-      testDir = new File(etomoTestDirName, testSubDirName);
-    }
-    assertTrue(testDir.exists());
-    System.setProperty("user.dir", testDir.getAbsolutePath());
     applicationManager = new ApplicationManager(args);
     metaData = new MetaData();
   }
@@ -60,7 +44,6 @@ public class ImodManagerTest extends TestCase {
    */
   protected void tearDown() throws Exception {
     super.tearDown();
-    System.setProperty("user.dir", oldUserDirName);
   }
 
   /**
