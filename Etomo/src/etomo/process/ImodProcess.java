@@ -15,6 +15,9 @@ package etomo.process;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.3  2003/03/02 23:30:41  rickg
+ * <p> Combine layout in progress
+ * <p>
  * <p> Revision 2.2  2003/01/31 05:34:08  rickg
  * <p> Support for foreground imod/qtimod through -W
  * <p>
@@ -62,7 +65,8 @@ public class ImodProcess {
   private String modelName = "";
   private String windowID = "";
   private boolean swapYZ = false;
-
+  private boolean modelView = false;
+  
   private Thread imodThread;
 
   /**
@@ -94,11 +98,17 @@ public class ImodProcess {
     //  Reset the window string
     windowID = "";
 
-    String stringYZ = "";
+    //  Collect the command line options
+    String options = "";
     if (swapYZ) {
-      stringYZ = "-Y ";
+      options = "-Y ";
     }
-    String command = "imod -D -W " + stringYZ + datasetName + " " + modelName;
+    
+    if(modelView) {
+      options = "-V ";
+    }
+    
+    String command = "imod -D -W " + options + datasetName + " " + modelName;
     InteractiveSystemProgram imod = new InteractiveSystemProgram(command);
 
     //  Start the imod program thread and wait for it to finish
@@ -287,6 +297,21 @@ public class ImodProcess {
    */
   public void setSwapYZ(boolean state) {
     swapYZ = state;
+  }
+
+  /**
+   * @return boolean
+   */
+  public boolean isModelView() {
+    return modelView;
+  }
+
+  /**
+   * Sets the modelView.
+   * @param modelView The modelView to set
+   */
+  public void setModelView(boolean modelView) {
+    this.modelView = modelView;
   }
 
 }
