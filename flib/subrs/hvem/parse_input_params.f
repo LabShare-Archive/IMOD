@@ -19,6 +19,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.5  2003/10/08 17:20:16  mast
+c	  Changes to work with autodoc files
+c	
 c	  Revision 3.4  2003/08/09 17:03:28  mast
 c	  Fix bug (add declarations) in new getlogical function
 c	
@@ -184,6 +187,44 @@ c
      &	    PipGetBoolean('help', ierr) .eq. 0) then
 	  ierr = PipPrintHelp(progName, 0, numInFiles, numOutFiles)
 	  call exit(0)
+	endif
+	return
+	end
+
+
+c	  PipGetInOutFile gets one of the input or output files specified by
+c	  "option", or found at the "nonOptArgNo' non-option argument position
+c	  The name is returned in "filename"
+c	  If there no such entry, it returns with an error
+c	  If PIP input is not being used, it used "prompt" to ask for the name
+c
+	integer*4 function PipGetInOutFile(option, nonOptArgNo, prompt,
+     &	    filename)
+	implicit none
+	character*(*) option
+	character*(*) prompt
+	character*(*) filename
+	integer*4 nonOptArgNo, numOptArg, numNonOptArg
+	integer*4 PipGetString, PipGetNonOptionArg
+c	  
+	PipGetInOutFile = 0
+	call PipNumberOfArgs(numOptArg, numNonOptArg)
+c	  
+c	  if there is PIP input, first look for explicit option by the name
+c	  then get the given non-option argument if there are enough
+c
+	if (numOptArg + numNonOptArg .gt. 0) then
+	  PipGetInOutFile = PipGetString(option, filename)
+	  if (PipGetInOutFile .ne. 0) then
+	    if (numNonOptArg .lt. nonOptArgNo) return
+	    PipGetInOutFile = PipGetNonOptionArg(nonOptArgNo, filename)
+	  endif
+	else
+c	    
+c	    Otherwise get interactive input with the prompt
+c
+	  write(*,'(1x,a,a,$)')prompt,': '
+	  read(5,*)filename
 	endif
 	return
 	end
