@@ -307,12 +307,14 @@ echo VCEXEDIR = $vcexedir >> $configure
 #
 echo 'QTINSTLIBDIR = bin' >> $configure
 
-# Add scripts for running from command line
+# Add scripts for running from command line.  The chmod doesn't work but it
+# might be needed in the future
 #
-echo '3dmod $* &' >! $imod_dir/3dmodbg
-echo '3dmod -view $* &' >! $imod_dir/3dmodv
+echo '3dmod $* &' >! $scripts_dir/3dmodbg
+echo '3dmod -view $* &' >! $scripts_dir/3dmodv
+chmod +x  $scripts_dir/3dmodbg  $scripts_dir/3dmodv
+echo "GENERATED_SCRIPTS = 3dmodbg 3dmodv" >> $configure
 
 # Make sure critical scripts are in unix mode
 #
 (cd scripts ; dos2unix copytomocoms setupcombine makejoincom transferfid xfalign matchorwarp >& /dev/null)
-
