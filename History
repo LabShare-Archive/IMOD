@@ -17,6 +17,9 @@ run temporary script files with csh, to make it work on Windows.
 cause by the "view" changes of 6/26/03, and changed 3dmodv back to recomputing
 scaling and center for the current view when first displaying a model.
 
+7/11/03: Discovered that fast backprojection needed to be padded to a nice
+thickness, and implemented a temporary fix for case of X-axis tilting.
+
 7/10/03: Made newst able to take multiple input files and stack all sections
 from all files into one output file.
 
