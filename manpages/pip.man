@@ -443,7 +443,7 @@ string is allocated with malloc() and should be freed with free().
 .nf
 int PipGetString(char *\fIoption\fB, char **\fIstring\fB);
 
-integer*4 function PipGetString(char *\fIoption\fB, char **\fIstring\fB)
+integer*4 function PipGetString(\fIoption\fB, \fIstring\fB)
 character*N \fIoption\fB
 character*N \fIstring\fB        [Returned argument]
 .ft R
