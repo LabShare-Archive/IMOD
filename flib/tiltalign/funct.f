@@ -35,6 +35,11 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.2  2004/10/09 23:51:12  mast
+c	  Switched to matrix formulation to simplify code, speeded up
+c	  computation 2-fold by saving intermediate residual products for
+c	  gradients, added declarations.
+c	
 c	  Revision 3.1  2002/07/28 22:39:19  mast
 c	  Standardized error exit and output
 c	
@@ -61,13 +66,14 @@ c	  aprime is derivative of a with respect to tilt angle
 c
 	real*4 a(ms),b(ms),c(ms),d(ms),e(ms),f(ms)
 	real*4 aon(ms),bon(ms),con(ms),don(ms),eon(ms),fon(ms)
-	real*4 cthet(ms),sthet(ms),calf(ms),salf(ms)
-	real*4 cphi(ms),sphi(ms),cdel(ms),sdel(ms),xmag(ms)
+	real*4 cbeta(ms),sbeta(ms),calf(ms),salf(ms)
+	real*4 cgam(ms),sgam(ms),cdel(ms),sdel(ms),xmag(ms)
 c
 	integer*2 indvreal(maxprojpt)
 	integer*4 nptinview(maxview),indvproj(maxprojpt)
 	real*4 coefx(3*maxreal),coefy(3*maxreal), resprod(6,maxprojpt)
 	real*4 dmat(9,ms), xtmat(9,ms), ytmat(6,ms), rmat(4,ms), dermat(9)
+	real*4 projMat(4)
 	save xbar,ybar,nptinview,realinview,indvproj,indvreal
 c	  
 	logical firsttime,xyzfixed
@@ -76,7 +82,8 @@ c
 	integer*4 nprojpt, iv, jpt, i, ivbase,nvmat,icoordbas,kxlas,kylas,kzlas
 	integer*4 kz,kx,ky,ipt,ivar,iptinv,jx,jy,jz,iy,ix,kpt,jj, istrType
 	real*4 afac,bfac,cfac,dfac,efac,ffac,xpxrlas,xpyrlas,xpzrlas,ypxrlas
-	real*4 ypyrlas,ypzrlas,valadd
+	real*4 ypyrlas,ypzrlas,valadd,cosPSkew,sinPSkew
+	real*8 gradientSum
 c	  
 c	  Stretch type: 1 for dmag = stretch on X axis, skew = X axis rotation
 c	  2 for dmag = stretch on X axis, skew = +Y-axis and -X-axis rotation
@@ -129,54 +136,18 @@ c	  matrices to use for computing gradient coefficients
 c
 	call remap_params(var)
 c	  
+	call fill_proj_matrix(projStretch, projSkew, projMat, cosPSkew,
+     &	    sinPSkew)
 	do i=1,nview
-	  cthet(i)=cos(tilt(i))
-	  sthet(i)=sin(tilt(i))
-	  cphi(i)=cos(rot(i))
-	  sphi(i)=sin(rot(i))
-	  cdel(i)=cos(skew(i))
-	  sdel(i)=sin(skew(i))
 	  xmag(i)=gmag(i)+dmag(i)
-
-	  call zero_matrix(dmat(1,i), 9)
-	  call zero_matrix(xtmat(1,i), 9)
-	  call zero_matrix(ytmat(1,i), 6)
-	  if (istrType .eq. 1)then
-	    dmat(1,i)=xmag(i)*cdel(i)
-	    dmat(4,i)=xmag(i)*sdel(i)
-	    dmat(5,i)=gmag(i)
-	  else if (istrType .eq. 2) then
-	    dmat(1,i)=xmag(i)*cdel(i)
-	    dmat(2,i)=-xmag(i)*sdel(i)
-	    dmat(4,i)=-gmag(i)*sdel(i)
-	    dmat(5,i)=gmag(i)*cdel(i)
-	  else
-	    dmat(1,i)=(gmag(i)-dmag(i))*cdel(i)
-	    dmat(2,i)=-xmag(i)*sdel(i)
-	    dmat(4,i)=-(gmag(i)-dmag(i))*sdel(i)
-	    dmat(5,i)=xmag(i)*cdel(i)
-	  endif
-	  dmat(9,i)=gmag(i)*comp(i)
-	  xtmat(1,i)=1.
-	  xtmat(5,i)=1.
-	  xtmat(9,i)=1.
-	  if(ifanyalf.ne.0)then
-	    calf(i)=cos(alf(i))
-	    salf(i)=sin(alf(i))
-	    xtmat(5,i)=calf(i)
-	    xtmat(6,i)=-salf(i)
-	    xtmat(8,i)=salf(i)
-	    xtmat(9,i)=calf(i)
-	  endif
-	  ytmat(1,i)=cthet(i)
-	  ytmat(3,i)=sthet(i)
-	  ytmat(5,i)=1.
-	  rmat(1,i)=cphi(i)
-	  rmat(2,i)=-sphi(i)
-	  rmat(3,i)=sphi(i)
-	  rmat(4,i)=cphi(i)
-	  call matrix_to_coef(dmat(1,i), xtmat(1,i), ytmat(1,i), rmat(1,i),
-     &	      a(i), b(i), c(i), d(i), e(i), f(i))
+	  call fill_dist_matrix(gmag(i), dmag(i), skew(i), comp(i),
+     &	      istrType, dmat(1,i), cdel(i), sdel(i))
+	  call fill_xtilt_matrix(alf(i), ifanyalf, xtmat(1,i), calf(i),
+     &	      salf(i))
+	  call fill_ytilt_matrix(tilt(i), ytmat(1,i), cbeta(i), sbeta(i))
+	  call fill_rot_matrix(rot(i), rmat(1,i), cgam(i), sgam(i))
+	  call matrix_to_coef(dmat(1,i), xtmat(1,i), ytmat(1,i),
+     &	      projMat, rmat(1,i), a(i), b(i), c(i), d(i), e(i), f(i))
 	enddo
 c
 	do i=1,nview
@@ -290,32 +261,21 @@ c
 	  ivbase=(iv-1)*nrealpt
 c	    
 c	    rotation: gradient for each view's angle adds to gradient for that
-c	    variable and to gradient for variable 1, global rotation; unless
-c	    rotation for one of the views is fixed (ifrotfix)
+c	    variable and to gradient for variable 1, global rotation, if
+c	    ifrotfix is 0
 c	    These equations are valid as long as rotation is the last operation
 c	    
 	  gradsum=0.
-	  if(ifrotfix.lt.0)then
-	    if(maprot(iv).gt.0)then
-	      do iptinv=1,nptinview(iv)
-		ipt=indvproj(ivbase+iptinv)
-		gradsum=gradsum+2.*
-     &		    ((ybar(iv)-yproj(ipt))*xresid(ipt)
-     &		    +(xproj(ipt)-xbar(iv))*yresid(ipt))
-	      enddo
-	      grad(maprot(iv))=grad(maprot(iv))+frcrot(iv)*gradsum
-	      if(linrot(iv).gt.0) grad(linrot(iv))=grad(linrot(iv))+
-     &		  (1.-frcrot(iv))*gradsum
-	    endif
-	  elseif(iv.ne.ifrotfix)then
+	  if(maprot(iv).gt.0)then
 	    do iptinv=1,nptinview(iv)
 	      ipt=indvproj(ivbase+iptinv)
 	      gradsum=gradsum+2.*
      &		  ((ybar(iv)-yproj(ipt))*xresid(ipt)
      &		  +(xproj(ipt)-xbar(iv))*yresid(ipt))
 	    enddo
-	    ivar=ivar+1
-	    grad(ivar)=gradsum
+	    grad(maprot(iv))=grad(maprot(iv))+frcrot(iv)*gradsum
+	    if(linrot(iv).gt.0) grad(linrot(iv))=grad(linrot(iv))+
+     &		(1.-frcrot(iv))*gradsum
 	    if(iv.gt.1.and.ifrotfix.eq.0)grad(1)=grad(1)+gradsum
 	  endif
 c	    
@@ -324,17 +284,12 @@ c	    from, if any
 c	    
 	  if(maptilt(iv).ne.0)then
 	    call zero_matrix(dermat, 6)
-	    dermat(1)=-sthet(iv)
-	    dermat(3)=cthet(iv)
-	    call matrix_to_coef(dmat(1,iv),xtmat(1,iv),dermat,rmat(1,iv),
-     &		afac,bfac,cfac,dfac,efac,ffac)
-	    gradsum=0.
-	    do iptinv=1,nptinview(iv)
-	      ipt=indvproj(ivbase+iptinv)
-	      gradsum = gradsum + afac * resprod(1,ipt) + bfac * resprod(2,ipt)+
-     &		  cfac * resprod(3,ipt) + dfac * resprod(4,ipt) +
-     &		  efac * resprod(5,ipt) + ffac * resprod(6,ipt)
-	    enddo
+	    dermat(1)=-sbeta(iv)
+	    dermat(3)=cbeta(iv)
+	    call matrix_to_coef(dmat(1,iv),xtmat(1,iv),dermat,projMat,
+     &		rmat(1,iv), afac,bfac,cfac,dfac,efac,ffac)
+	    gradsum = gradientSum(indvproj, ivbase, nptinview(iv), resprod,
+     &		afac, bfac, cfac, dfac, efac, ffac)
 	    grad(maptilt(iv))=grad(maptilt(iv))+frctilt(iv)*gradsum
 	    if(lintilt(iv).gt.0) grad(lintilt(iv))=grad(lintilt(iv))+
      &		  (1.-frctilt(iv))*gradsum
@@ -344,7 +299,6 @@ c
 c	    mag: add gradient for this view to the variable it is mapped from
 c	    
 	  if(mapgmag(iv).gt.0)then
-	    gradsum=0.
 	    call zero_matrix(dermat, 9)
 	    if (istrType .eq. 1)then
 	      dermat(1)=cdel(iv)
@@ -357,14 +311,10 @@ c
 	      dermat(5)=cdel(iv)
 	    endif
 	    dermat(9)=comp(iv)
-	    call matrix_to_coef(dermat,xtmat(1,iv),ytmat(1,iv),rmat(1,iv),
-     &		afac,bfac,cfac,dfac,efac,ffac)
-	    do iptinv=1,nptinview(iv)
-	      ipt=indvproj(ivbase+iptinv)
-	      gradsum = gradsum + afac * resprod(1,ipt) + bfac * resprod(2,ipt)+
-     &		  cfac * resprod(3,ipt) + dfac * resprod(4,ipt) +
-     &		  efac * resprod(5,ipt) + ffac * resprod(6,ipt)
-	    enddo
+	    call matrix_to_coef(dermat,xtmat(1,iv),ytmat(1,iv),projMat,
+     &		rmat(1,iv), afac,bfac,cfac,dfac,efac,ffac)
+	    gradsum = gradientSum(indvproj, ivbase, nptinview(iv), resprod,
+     &		afac, bfac, cfac, dfac, efac, ffac)
 c	    write(*,'(i4,3f9.5,f16.10)')iv, gmag(iv),dmag(iv),skew(iv),gradsum
 	    grad(mapgmag(iv))=grad(mapgmag(iv))+frcgmag(iv)*gradsum
 	    if(lingmag(iv).gt.0) grad(lingmag(iv))=grad(lingmag(iv))+
@@ -382,7 +332,7 @@ c
 	    do iptinv=1,nptinview(iv)
 	      ipt=indvproj(ivbase+iptinv)
 	      jpt=indvreal(ivbase+iptinv)
-	      gradsum = gradsum +  cfac * resprod(3,ipt) + ffac * resprod(6,ipt)
+	      gradsum = gradsum +  cfac * resprod(3,ipt) + ffac*resprod(6,ipt)
 	    enddo
 	    grad(mapcomp(iv))=grad(mapcomp(iv))+frccomp(iv)*gradsum
 	    if(lincomp(iv).gt.0) grad(lincomp(iv))=grad(lincomp(iv))+
@@ -392,7 +342,6 @@ c
 c	    dmag: add gradient for this view to the variable it is mapped from
 c	    
 	  if(mapdmag(iv).gt.0)then
-	    gradsum=0.
 	    call zero_matrix(dermat, 9)
 	    if (istrType .eq. 1)then
 	      dermat(1)=cdel(iv)
@@ -406,14 +355,10 @@ c
 	      dermat(4)=sdel(iv)
 	      dermat(5)=cdel(iv)
 	    endif
-	    call matrix_to_coef(dermat,xtmat(1,iv),ytmat(1,iv),rmat(1,iv),
-     &		afac,bfac,cfac,dfac,efac,ffac)
-	    do iptinv=1,nptinview(iv)
-	      ipt=indvproj(ivbase+iptinv)
-	      gradsum = gradsum + afac * resprod(1,ipt) + bfac * resprod(2,ipt)+
-     &		  cfac * resprod(3,ipt) + dfac * resprod(4,ipt) +
-     &		  efac * resprod(5,ipt) + ffac * resprod(6,ipt)
-	    enddo
+	    call matrix_to_coef(dermat,xtmat(1,iv),ytmat(1,iv),projMat,
+     &		rmat(1,iv), afac,bfac,cfac,dfac,efac,ffac)
+	    gradsum = gradientSum(indvproj, ivbase, nptinview(iv), resprod,
+     &		afac, bfac, cfac, dfac, efac, ffac)
 c	      
 c	      if this parameter maps to the dummy dmag, then need to subtract
 c	      the fraction times the gradient sum from gradient of every real
@@ -442,7 +387,6 @@ c
 c	    skew: add gradient for this view to the variable it is mapped from
 c	    
 	  if(mapskew(iv).gt.0)then
-	    gradsum=0.
 	    call zero_matrix(dermat, 9)
 	    if (istrType .eq. 1)then
 	      dermat(1)=-xmag(iv)*sdel(iv)
@@ -458,14 +402,10 @@ c
 	      dermat(4)=-(gmag(iv)-dmag(iv))*cdel(iv)
 	      dermat(5)=-xmag(iv)*sdel(iv)
 	    endif
-	    call matrix_to_coef(dermat,xtmat(1,iv),ytmat(1,iv),rmat(1,iv),
-     &		afac,bfac,cfac,dfac,efac,ffac)
-	    do iptinv=1,nptinview(iv)
-	      ipt=indvproj(ivbase+iptinv)
-	      gradsum = gradsum + afac * resprod(1,ipt) + bfac * resprod(2,ipt)+
-     &		  cfac * resprod(3,ipt) + dfac * resprod(4,ipt) +
-     &		  efac * resprod(5,ipt) + ffac * resprod(6,ipt)
-	    enddo
+	    call matrix_to_coef(dermat,xtmat(1,iv),ytmat(1,iv),projMat,
+     &		rmat(1,iv), afac,bfac,cfac,dfac,efac,ffac)
+	    gradsum = gradientSum(indvproj, ivbase, nptinview(iv), resprod,
+     &		afac, bfac, cfac, dfac, efac, ffac)
 	    grad(mapskew(iv))=grad(mapskew(iv))+frcskew(iv)*gradsum
 	    if(linskew(iv).gt.0) grad(linskew(iv))=grad(linskew(iv))+
      &		(1.-frcskew(iv))*gradsum
@@ -475,20 +415,15 @@ c
 c	    alpha: add gradient for this view to the variable it is mapped from
 c	    
 	  if(mapalf(iv).gt.0)then
-	    gradsum=0.
 	    call zero_matrix(dermat, 9)
 	    dermat(5)=-salf(iv)
 	    dermat(6)=-calf(iv)
 	    dermat(8)=calf(iv)
 	    dermat(9)=-salf(iv)
-	    call matrix_to_coef(dmat(1,iv),dermat,ytmat(1,iv),rmat(1,iv),
-     &		afac,bfac,cfac,dfac,efac,ffac)
-	    do iptinv=1,nptinview(iv)
-	      ipt=indvproj(ivbase+iptinv)
-	      gradsum = gradsum + afac * resprod(1,ipt) + bfac * resprod(2,ipt)+
-     &		  cfac * resprod(3,ipt) + dfac * resprod(4,ipt) +
-     &		  efac * resprod(5,ipt) + ffac * resprod(6,ipt)
-	    enddo
+	    call matrix_to_coef(dmat(1,iv),dermat,ytmat(1,iv),projMat,
+     &		rmat(1,iv), afac,bfac,cfac,dfac,efac,ffac)
+	    gradsum = gradientSum(indvproj, ivbase, nptinview(iv), resprod,
+     &		afac, bfac, cfac, dfac, efac, ffac)
 c	    write(*,'(3i4,f7.4,f16.10)')iv,mapalf(iv),linalf(iv)
 c     &		,frcalf(iv),gradsum
 	    grad(mapalf(iv))=grad(mapalf(iv))+frcalf(iv)*gradsum
@@ -496,6 +431,38 @@ c     &		,frcalf(iv),gradsum
      &		(1.-frcalf(iv))*gradsum
 	  endif
 	enddo
+c	  
+c	  projection stretch : first gradient for stretch, then for skew
+c	  
+	if (mapProjStretch .gt. 0) then
+	  grad(mapProjStretch) = 0.
+	  grad(mapProjStretch + 1) = 0.
+	  dermat(1) = -cosPSkew
+	  dermat(2) = -sinPSkew
+	  dermat(3) = sinPSkew
+	  dermat(4) = cosPSkew
+	  do iv =1 ,nview
+	    ivbase=(iv-1)*nrealpt
+	    call matrix_to_coef(dmat(1,iv),xtmat(1,iv),ytmat(1,iv),dermat,
+     &		rmat(1,iv), afac,bfac,cfac,dfac,efac,ffac)
+	    gradsum = gradientSum(indvproj, ivbase, nptinview(iv), resprod,
+     &		afac, bfac, cfac, dfac, efac, ffac)
+	    grad(mapProjStretch) = grad(mapProjStretch) + gradsum
+	  enddo
+c	    
+	  dermat(1) = -(1 - projStretch) * sinPSkew
+	  dermat(2) = -(1 + projStretch) * cosPSkew
+	  dermat(3) = -(1 - projStretch) * cosPSkew
+	  dermat(4) = -(1 + projStretch) * sinPSkew
+	  do iv =1 ,nview
+	    ivbase=(iv-1)*nrealpt
+	    call matrix_to_coef(dmat(1,iv),xtmat(1,iv),ytmat(1,iv),dermat,
+     &		rmat(1,iv), afac,bfac,cfac,dfac,efac,ffac)
+	    gradsum = gradientSum(indvproj, ivbase, nptinview(iv), resprod,
+     &		afac, bfac, cfac, dfac, efac, ffac)
+	    grad(mapProjStretch + 1) = grad(mapProjStretch + 1) + gradsum
+	  enddo
+	endif
 c	  
 c	  loop on points, get derivatives w/r to x, y, or z
 c
@@ -595,10 +562,32 @@ c	write(*,'(i4,2f16.10)')(i,var(i),grad(i),i=1,nvarsrch)
 	end
 
 
+c	  GRADIENTSUM forms the standard gradient sum over the points 
+c	  in a view for the given factors AFAC - FFAC
+c	  INDVPROJ has indices from point in view to residual products in
+c	  RESPROD, IVBASE is the base point number for the view,
+c	  NPTINVIEW is the number of points in the VIEW
+c
+	real*8 function gradientSum(indvproj, ivbase, nptinview, resprod,
+     &	    afac, bfac, cfac, dfac, efac, ffac)
+	implicit none
+	integer*4 indvproj(*), ivbase, nptinview,iptinv,ipt
+	real*4 resprod(6,*), afac, bfac, cfac, dfac, efac, ffac
+	real*8 gradsum
+	gradsum = 0.
+	do iptinv=1,nptinview
+	  ipt=indvproj(ivbase+iptinv)
+	  gradsum = gradsum + afac * resprod(1,ipt) + bfac * resprod(2,ipt)
+     &	      + cfac * resprod(3,ipt) + dfac * resprod(4,ipt) +
+     &	      efac * resprod(5,ipt) + ffac * resprod(6,ipt)
+	enddo
+	gradientSum = gradsum
+	return
+	end
 
-c***	  REMAP_PARAMS returns the complete set of rotation, tilt, mag and
-c	  compression variables based on the current values of the search
-c	  parameters.
+
+c***	  REMAP_PARAMS returns the complete set of geometric variables based
+c	  on the current values of the search parameters.
 
 	subroutine remap_params(varlist)
 	implicit none
@@ -606,34 +595,25 @@ c	  parameters.
 c
 	real*4 varlist(*)
 	real*4 globrot,sum,varsave
-	integer*4 i
-c
-	if(ifrotfix.ge.0)then
+	integer*4 i,mapExclude
 c	  
-c	    if no rotations are fixed, then the first view has the global
-c	    rotation angle, which is the first variable on the list
-c	    Otherwise, there are nview-1 rotation variables on the list and all
-c	    of the variables are relative to the view with fixed rotation angle
-c
-	  if(ifrotfix.eq.0)then
-	    globrot=varlist(1)
-	    rot(1)=globrot
-	  else
-	    globrot=rot(ifrotfix)
-	  endif
-c
-	  do i=1,nview
-	    if((ifrotfix.eq.0.and.i.gt.1) .or. i.lt.ifrotfix)then
-	      rot(i)=globrot+varlist(i)
-	    elseif(ifrotfix.gt.0 .and. i.gt.ifrotfix)then
-	      rot(i)=globrot+varlist(i-1)
-	    endif
-	  enddo
+c	  If the first variable is a global rotation variable, get global value
+c	  from the variable; if there is a fixed rotation, get global value
+c	  from it; in either case don't add value to variables mapped to it
+c	  
+	if(ifrotfix.eq.0)then
+	  globrot=varlist(1)
+	  mapExclude = 1
+	else if (ifrotfix.gt.0)then
+	  globrot=rot(ifrotfix)
+	  mapExclude = maprot(ifrotfix)
 	else
-c	    
-	  call map_one_var(varlist,rot,maprot,frcrot,linrot,fixedrot,
-     &	      nview,glbrot,incrrot)
+	  globrot = 0.
+	  mapExclude = 0
 	endif
+c	  
+	call map_one_var(varlist,rot,maprot,frcrot,linrot,fixedrot,
+     &	    nview,glbrot,incrrot,globrot, mapExclude)
 c
 	do i=1,nview
 	  if(maptilt(i).gt.0)then
@@ -653,13 +633,13 @@ c
 	enddo
 c
 	call map_one_var(varlist,gmag,mapgmag,frcgmag,lingmag,fixedgmag,
-     &	    nview,glbgmag,incrgmag)
+     &	    nview,glbgmag,incrgmag, 0., 0)
 c
 	call map_one_var(varlist,comp,mapcomp,frccomp,lincomp,fixedcomp,
-     &	    nview,glbgmag,0)
+     &	    nview,glbgmag,0, 0., 0)
 c
 	call map_one_var(varlist,skew,mapskew,frcskew,linskew,fixedskew,
-     &	    nview,glbskew,incrskew)
+     &	    nview,glbskew,incrskew, 0., 0)
 c	  
 	if(mapdumdmag.gt.mapdmagstart) then
 c	  
@@ -677,61 +657,54 @@ c
 	endif
 c
 	call map_one_var(varlist,dmag,mapdmag,frcdmag,lindmag,fixeddmag,
-     &	    nview,glbdmag,incrdmag)
+     &	    nview,glbdmag,incrdmag, 0., 0)
 	if(mapdumdmag.gt.mapdmagstart)varlist(mapdumdmag)=varsave
 c	    
 	if(ifanyalf.ne.0)call map_one_var(varlist,alf,mapalf,frcalf,
-     &	    linalf,fixedalf, nview,glbalf,incralf)
+     &	    linalf,fixedalf, nview,glbalf,incralf, 0., 0)
 c
+	if (mapProjStretch .gt. 0) then
+	  projStretch = varlist(mapProjStretch)
+	  projSkew = varlist(mapProjStretch + 1)
+	endif
 	return
 	end
 
 
 	
 	subroutine map_one_var(varlist,val,map,frc,lin,fixed,nview,glb,
-     &	    incr)
+     &	    incr,base,mapExclude)
 	implicit none
-	real*4 varlist(*),val(*),frc(*),glb(*),fixed
-	integer*4 map(*),lin(*),nview,incr
+	real*4 varlist(*),val(*),frc(*),glb(*),fixed,base
+	integer*4 map(*),lin(*),nview,incr,mapExclude
 	integer*4 i
-	if(incr.eq.0)then
-	  do i=1,nview
-	    if(map(i).gt.0)then
-	      if(lin(i).gt.0)then
-		val(i)=frc(i)*varlist(map(i))+(1.-frc(i))*
-     &		    varlist(lin(i))
-	      elseif(lin(i).lt.0)then
-		val(i)=frc(i)*varlist(map(i))+(1.-frc(i))*fixed
-	      else
-		val(i)=varlist(map(i))
-	      endif
+	do i=1,nview
+	  if(map(i).gt.0)then
+	    if(lin(i).gt.0)then
+	      val(i) =frc(i) * varlist(map(i))+ (1.-frc(i)) * varlist(lin(i))
+	    elseif(lin(i).lt.0)then
+	      val(i)=frc(i)*varlist(map(i))+(1.-frc(i))*fixed
+	    else
+	      val(i)=varlist(map(i))
 	    endif
-	  enddo
-	else
-	  do i=1,nview
-	    if(map(i).gt.0)then
-	      if(lin(i).gt.0)then
-		val(i)=glb(i)+frc(i)*varlist(map(i))+(1.-frc(i))*
-     &		    varlist(lin(i))
-	      elseif(lin(i).lt.0)then
-		val(i)=glb(i)+frc(i)*varlist(map(i))+(1.-frc(i))*fixed
-	      else
-		val(i)=glb(i)+varlist(map(i))
-	      endif
-	    endif
-	  enddo
-	endif
+	    if (incr.ne.0) val(i) = val(i) + glb(i)
+	    if (map(i) .ne. mapExclude) val(i) = val(i) + base
+	  endif
+	enddo
 	return
 	end
 
 
 c	  MATRIX_TO_COEF takes the distortion matrix DIST, x-axis tilt matrix
-c	  XTILT, Y axis tilt matrix YTILT, and rotation matrix ROT, and computes
-c	  the 6 components of the 2x3 product in A, B, C, D, E, F
+c	  XTILT, Y axis tilt matrix YTILT, projection stretch matrix PROJSTR,
+c	  and rotation matrix ROT, and computes the 6 components of the 2x3
+c	  product in A, B, C, D, E, F
 c
-	subroutine matrix_to_coef(dist, xtilt, ytilt, rot, a, b, c, d, e, f)
+	subroutine matrix_to_coef(dist, xtilt, ytilt, projStr, rot, a,
+     &	    b, c, d, e, f)
 	implicit none
-	real*4 dist(*), xtilt(*), ytilt(*), rot(*), a, b, c, d, e, f
+	real*4 dist(*), xtilt(*), ytilt(*), rot(*), projStr(*)
+	real*4 a, b, c, d, e, f
 	real*8 tmp(9)
 	integer*4 i
 
@@ -740,6 +713,7 @@ c
 	enddo
 	call mat_product(tmp, 3, 3, xtilt, 3, 3)
 	call mat_product(tmp, 3, 3, ytilt, 2, 3)
+	call mat_product(tmp, 2, 3, projStr, 2, 2)
 	call mat_product(tmp, 2, 3, rot, 2, 2)
 	a = tmp(1)
 	b = tmp(2)
@@ -779,6 +753,8 @@ c
 	return
 	end
 
+c	  ZERO_MATRIX fills a matrix with zeros
+c
 	subroutine zero_matrix(rmat, n)
 	implicit none
 	real*4 rmat(*)
@@ -789,3 +765,110 @@ c
 	return
 	end
 
+c	  ROUTINES FOR FILLING MATRICES: they all fill a matrix of a defined
+c	  geometry for the particular transformation, take angles in radians,
+c	  and return cosine and sine of the relevant angle
+
+c	  FILL_DIST_MATRIX fills a 3x3 matrix DMAT for in-plane distortions,
+c	  given mag GMAG, x-stretch DMAG, X-axis rotation angle SKEW,
+c	  compression COMP, and stretch type istrType
+c
+	subroutine fill_dist_matrix(gmag, dmag, skew, comp, istrType,
+     &	    dmat, cdel, sdel)
+	implicit none
+	real*4 gmag, dmag, skew, comp, dmat(*), cdel, sdel,xmag
+	integer*4 istrType
+
+	xmag = gmag + dmag
+	cdel = cos(skew)
+	sdel = sin(skew)
+	call zero_matrix(dmat, 9)
+	if (istrType .eq. 1)then
+	  dmat(1)=xmag*cdel
+	  dmat(4)=xmag*sdel
+	  dmat(5)=gmag
+	else if (istrType .eq. 2) then
+	  dmat(1)=xmag*cdel
+	  dmat(2)=-xmag*sdel
+	  dmat(4)=-gmag*sdel
+	  dmat(5)=gmag*cdel
+	else
+	  dmat(1)=(gmag-dmag)*cdel
+	  dmat(2)=-xmag*sdel
+	  dmat(4)=-(gmag-dmag)*sdel
+	  dmat(5)=xmag*cdel
+	endif
+	dmat(9)=gmag*comp
+	return
+	end
+
+c	  FILL_XTILT_MATRIX fills 3x3 matrix XTMAT given X-axis tilt angle ALF,
+c	  if IFANYALF is not zero; otherwise it assumes alpha = 0
+c
+	subroutine fill_xtilt_matrix(alf, ifanyalf, xtmat, calf, salf)
+	implicit none
+	real*4 alf, xtmat(*), calf, salf
+	integer*4 ifanyalf
+c
+	call zero_matrix(xtmat, 9)
+	xtmat(1)=1.
+	xtmat(5)=1.
+	xtmat(9)=1.
+	if(ifanyalf.ne.0)then
+	  calf=cos(alf)
+	  salf=sin(alf)
+	  xtmat(5)=calf
+	  xtmat(6)=-salf
+	  xtmat(8)=salf
+	  xtmat(9)=calf
+	else
+	  calf = 1.
+	  salf = 0.
+	endif
+	return
+	end
+
+c	  FILL_YTILT_MATRIX fills 2x3 matrix YTMAT given tilt angle TILT
+c
+	subroutine fill_ytilt_matrix(tilt, ytmat, cbeta, sbeta)
+	implicit none
+	real*4 tilt, ytmat(*), cbeta, sbeta
+c
+	call zero_matrix(ytmat, 6)
+	cbeta=cos(tilt)
+	sbeta=sin(tilt)
+	ytmat(1)=cbeta
+	ytmat(3)=sbeta
+	ytmat(5)=1.
+	return
+	end
+
+c	  FILL_PROJ_MATRIX fills 2x2 matrix PROJMAT for projection stretch
+c	  given stretch PROJSTRETCH and skew and PROJSKEW
+c
+	subroutine fill_proj_matrix(projStretch, projSkew, projMat,
+     &	    cosPSkew, sinPSkew)
+	implicit none
+	real *4 projStretch, projSkew, projMat(*), cosPSkew, sinPSkew
+	cosPSkew = cos(projSkew)
+	sinPSkew = sin(projSkew)
+	projMat(1) = (1. - projStretch) * cosPSkew
+	projMat(2) = -(1. + projStretch) * sinPSkew
+	projMat(3) = -(1. - projStretch) * sinPSkew
+	projMat(4) = (1. + projStretch) * cosPSkew
+	return
+	end
+
+c	  FILL_ROT_MATRIX fills 2x2 matrix RMAT given rotation angle ROT
+c
+	subroutine fill_rot_matrix(rot, rmat, cgam, sgam)
+	implicit none
+	real*4 rot, rmat(*), cgam, sgam
+	cgam=cos(rot)
+	sgam=sin(rot)
+	rmat(1)=cgam
+	rmat(2)=-sgam
+	rmat(3)=sgam
+	rmat(4)=cgam
+	return
+	end
