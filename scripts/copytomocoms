@@ -696,7 +696,8 @@ EOF
         cat << EOF >> $dstfile
 \$sed -e '/^[\$#]/d' -e '/SUBSETSTART.*/s//SUBSETSTART 0 $ymin/' \
  -e '/$setname.*\.rec/s//$bmtarr[$ind]/' -e '/SLICE/d' -e '/WIDTH/d' \
- -e '/THICKNESS/a SLICE $slmin $slmax 1' tilt$dstext |tilt
+ -e '/THICKNESS/a\\\\\\
+SLICE $slmin $slmax 1' tilt$dstext |tilt
 EOF
     end
 
@@ -835,6 +836,11 @@ EOF
 endif
 #
 #  $Log$
+#  Revision 3.13  2003/10/16 20:51:14  mast
+#  Increased Y dimension of aligned stacks used to make samples, modified
+#  sample.com to use the central 10 slices, and protected samples from
+#  existing slice and width statements in tilt.com
+#
 #  Revision 3.12  2003/09/19 20:06:15  mast
 #  Changed sample.com so that Tilt puts out the top...rec files directly, to
 #  avoid name conflicts and overwriting real reconstructions
