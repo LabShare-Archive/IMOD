@@ -74,6 +74,11 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.18  2004/03/05 18:26:55  sueh
+ * <p> bug# 250 changed patchcorrCombine() - updating CombineParams
+ * <p> changed updateCombineCom(int) - change the parameter name because
+ * <p> its only necessary when a copy to Setup is required
+ * <p>
  * <p> Revision 3.17  2004/03/02 00:09:04  sueh
  * <p> bug #250 added updateCombineCom(int fromTab) - update CombineParams
  * <p> from a tab
@@ -3146,35 +3151,7 @@ public class ApplicationManager {
    * message dialog describing the invalid parameters is presented to the user.
    */
   private boolean updateCombineCom() {
-    if (tomogramCombinationDialog == null) {
-      mainFrame.openMessageDialog(
-        "Can not update combine.com without an active tomogram combination dialog",
-        "Program logic error");
-      return false;
-    }
-
-    CombineParams combineParams = new CombineParams();
-    try {
-      tomogramCombinationDialog.getCombineParams(combineParams);
-      if (!combineParams.isValid()) {
-        mainFrame.openMessageDialog(
-          combineParams.getInvalidReasons(),
-          "Invlaid combine parameters");
-        return false;
-      }
-
-    }
-    catch (NumberFormatException except) {
-      mainFrame.openMessageDialog(except.getMessage(), "Number format error");
-      return false;
-    }
-
-    CombineParams originalCombineParams = metaData.getCombineParams();
-    if (!originalCombineParams.equals(combineParams)) {
-      metaData.setCombineParams(combineParams);
-      isDataParamDirty = true;
-    }
-    return true;
+    return updateCombineCom(TomogramCombinationDialog.NO_TAB);
   }
 
   /**
