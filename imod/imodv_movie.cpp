@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 4.6  2004/05/03 19:11:13  mast
+    Added X, Y, Z slices to movie parameters
+
     Revision 4.5  2003/12/30 06:29:51  mast
     Switched to having montage compose and save whole image
 
@@ -351,6 +354,7 @@ static void imodvMakeMovie(int frames)
   if (!frame)
     frame = 1;
 
+  xImStep = yImStep = zImStep = 0.;
   setstep(0, frame, 0, &astart, &astep);
   setstep(1, frame, 0, &bstart, &bstep);
   setstep(2, frame, 0, &gstart, &gstep);
@@ -419,8 +423,8 @@ static void imodvMakeMovie(int frames)
   }
 
   /* Return if nothing is going to change */
-  if(fabs((double)delangle) < 1.e-3 && zstep == 0. && xtstep == 0. &&
-     ytstep == 0. && ztstep == 0.)
+  if(fabs((double)delangle) < 1.e-3 && !zstep && !xtstep &&
+     !ytstep && !ztstep && !xImStep && !yImStep && !zImStep)
     return;
 
 
