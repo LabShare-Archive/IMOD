@@ -22,6 +22,7 @@ Log at end of file
 #include <qgl.h>
 #include "formv_depthcue.h"
 #include "dia_qtutils.h"
+#include "imod.h"
 #include "imodv.h"
 #include "imodv_gfx.h"
 #include "imodv_input.h"
@@ -38,25 +39,7 @@ static struct{
 
 void imodvDepthcueHelp()
 {
-  dia_vasmsg
-    ("~~~~~~~~~~~~~~~~~~~~~~~~\n"
-     "Depth Cue Edit Dialog Help.\n"
-     "~~~~~~~~~~~~~~~~~~~~~~~~"
-     "\n\n",
-     "\tDepth cueing is implemented by having objects blend into the "
-     "background color with increasing distance from the viewer.  "
-     "The range of distances over which this blending occurs is "
-     "controlled by the sliders.\n",
-     "\tThe [Start] slider controls the distance at which the blending "
-     "starts - everything in front of this distance will not be "
-     "fogged.  Typically you would move this slider until the frontmost "
-     "features in your model appear at full intensity.\n",
-     "\tThe [End] slider controls the distance beyond which everything "
-     "will disappear.  Move this slider to change how fast the blending "
-     "into the background occurs.\n",
-     "\tUse the [Depth Cue] checkbox to turn the cueing on and off.\n",
-     NULL);
-  return;
+  imodShowHelpPage("depthcue.html");
 }
 
 // Send the values to the form; make sure they are within limits
@@ -155,6 +138,9 @@ void imodvDepthcueToggle(int state)
 
 /*
 $Log$
+Revision 4.4  2004/11/21 06:07:49  mast
+Changes for undo/redo
+
 Revision 4.3  2003/04/17 18:43:38  mast
 adding parent to window creation
 
