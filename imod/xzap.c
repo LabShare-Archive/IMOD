@@ -34,6 +34,9 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2001/12/17 18:52:40  mast
+    Added hotkeys to do smoothing and next section in autocontouring
+
 */
 #include <stdio.h>
 #include <Xm/Xm.h>
@@ -2680,7 +2683,7 @@ static int zapDrawGraphics(struct zapwin *zap)
 				   zap->image,
 				   vi->rampbase, 
 				   zap->zoom, zap->zoom,
-				   zap->hqgfx);
+				   zap->hqgfx, zap->section);
      }
      return(skipDraw);
 }
