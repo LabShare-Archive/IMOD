@@ -22,6 +22,10 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.3  2002/10/17 22:38:47  rickg
+ * <p> Added fileset name to window title
+ * <p> this reference removed applicationManager messages
+ * <p>
  * <p> Revision 1.2  2002/10/07 22:30:28  rickg
  * <p> removed unused imports
  * <p> reformat after emacs trashed it
@@ -108,13 +112,13 @@ public class AlignmentEstimationDialog
     //  Create the first panel
     panelButtonA.setLayout(new BoxLayout(panelButtonA, BoxLayout.Y_AXIS));
     panelButtonA.add(buttonTiltDefaultsA);
-    panelButtonA.add(Box.createRigidArea(FixedDim.x0_y10));
+    panelButtonA.add(Box.createRigidArea(FixedDim.x0_y5));
     panelButtonA.add(buttonTiltEstA);
-    panelButtonA.add(Box.createRigidArea(FixedDim.x0_y10));
+    panelButtonA.add(Box.createRigidArea(FixedDim.x0_y20));
     panelButtonA.add(buttonDistortionDefaultsA);
-    panelButtonA.add(Box.createRigidArea(FixedDim.x0_y10));
+    panelButtonA.add(Box.createRigidArea(FixedDim.x0_y5));
     panelButtonA.add(buttonDistortionEstA);
-    panelButtonA.add(Box.createRigidArea(FixedDim.x0_y10));
+    panelButtonA.add(Box.createRigidArea(FixedDim.x0_y40));
     panelButtonA.add(buttonImodA);
 
     panelAlignEstA.setLayout(new BoxLayout(panelAlignEstA, BoxLayout.X_AXIS));
@@ -127,13 +131,13 @@ public class AlignmentEstimationDialog
     //  Create the second panel
     panelButtonB.setLayout(new BoxLayout(panelButtonB, BoxLayout.Y_AXIS));
     panelButtonB.add(buttonTiltDefaultsB);
-    panelButtonB.add(Box.createRigidArea(FixedDim.x0_y10));
+    panelButtonB.add(Box.createRigidArea(FixedDim.x0_y5));
     panelButtonB.add(buttonTiltEstB);
-    panelButtonB.add(Box.createRigidArea(FixedDim.x0_y10));
+    panelButtonB.add(Box.createRigidArea(FixedDim.x0_y20));
     panelButtonB.add(buttonDistortionDefaultsB);
-    panelButtonB.add(Box.createRigidArea(FixedDim.x0_y10));
+    panelButtonB.add(Box.createRigidArea(FixedDim.x0_y5));
     panelButtonB.add(buttonDistortionEstB);
-    panelButtonB.add(Box.createRigidArea(FixedDim.x0_y10));
+    panelButtonB.add(Box.createRigidArea(FixedDim.x0_y40));
     panelButtonB.add(buttonImodB);
 
     panelAlignEstB.setLayout(new BoxLayout(panelAlignEstB, BoxLayout.X_AXIS));
@@ -271,10 +275,7 @@ public class AlignmentEstimationDialog
 
   //  Action funtions for process buttons
   void buttonTiltDefaultsAAction(ActionEvent event) {
-    panelTiltalignA.rbTiltAngleAll.setSelected(true);
-    panelTiltalignA.rbDistortionNone.setSelected(true);
-
-    panelTiltalignA.updateEnabled();
+    panelTiltalignA.setTiltAndMagnificationDefaults();
   }
 
   void buttonTiltEstAAction(ActionEvent event) {
@@ -287,16 +288,7 @@ public class AlignmentEstimationDialog
   }
 
   void buttonDistortionDefaultsAAction(ActionEvent event) {
-    panelTiltalignA.rbTiltAngleAutomap.setSelected(true);
-    panelTiltalignA.ltfTiltAngleGroupSize.setText(10);
-
-    panelTiltalignA.rbDistortionIndependent.setSelected(true);
-    panelTiltalignA.rbXstretchAutomapLinear.setSelected(true);
-    panelTiltalignA.ltfXstretchGroupSize.setText(7);
-    panelTiltalignA.rbSkewAutomapLinear.setSelected(true);
-    panelTiltalignA.ltfSkewGroupSize.setText(11);
-
-    panelTiltalignA.updateEnabled();
+    panelTiltalignA.setDistortionDefaults();
   }
 
   void buttonDistortionEstAAction(ActionEvent event) {
@@ -318,10 +310,8 @@ public class AlignmentEstimationDialog
   }
 
   void buttonTiltDefaultsBAction(ActionEvent event) {
-    panelTiltalignB.rbTiltAngleAll.setSelected(true);
-    panelTiltalignB.rbDistortionNone.setSelected(true);
+    panelTiltalignB.setTiltAndMagnificationDefaults();
 
-    panelTiltalignB.updateEnabled();
   }
 
   void buttonTiltEstBAction(ActionEvent event) {
@@ -329,16 +319,7 @@ public class AlignmentEstimationDialog
   }
 
   void buttonDistortionDefaultsBAction(ActionEvent event) {
-    panelTiltalignB.rbTiltAngleAutomap.setSelected(true);
-    panelTiltalignB.ltfTiltAngleGroupSize.setText(10);
-
-    panelTiltalignB.rbDistortionIndependent.setSelected(true);
-    panelTiltalignB.rbXstretchAutomapLinear.setSelected(true);
-    panelTiltalignB.ltfXstretchGroupSize.setText(7);
-    panelTiltalignB.rbSkewAutomapLinear.setSelected(true);
-    panelTiltalignB.ltfSkewGroupSize.setText(11);
-
-    panelTiltalignB.updateEnabled();
+    panelTiltalignB.setDistortionDefaults();
   }
 
   void buttonDistortionEstBAction(ActionEvent event) {
