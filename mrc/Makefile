@@ -30,6 +30,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.2  2002/11/05 23:56:07  mast
+#  Added -limod to be able to call imodCopyright
+#
 #  Revision 3.1  2001/12/31 19:21:25  mast
 #  Added dm3props
 #
@@ -49,7 +52,7 @@ all : $(PROGS)
 #
 
 raw2mrc : raw2mrc.o 
-	$(CC) -o raw2mrc raw2mrc.o  $(LDFLAGS) -limod $(CLIBS)
+	$(CC) -o raw2mrc raw2mrc.o  $(LDFLAGS) $(IILIBS) $(CLIBS)
 
 tif2mrc : tif2mrc.o tiff.o 
 	$(CC) -o tif2mrc tif2mrc.o tiff.o $(LDFLAGS) $(IILIBS) $(CLIBS)
