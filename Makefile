@@ -316,7 +316,7 @@ cleansrc : ALWAYS
 csrc : ALWAYS
 	if (! (-e $(ARCDIR)_src)) mkdir $(ARCDIR)_src/
 	cp Makefile setup README History .version original_dates vcimod.dsw \
-	$(ARCDIR)_src/
+	installqtlib $(ARCDIR)_src/
 	tar cBf - \
 	machines \
 	lib*/*.[ch] lib*/*.cpp libi*/Makefile libdiaqt/Makefile.dummy \
@@ -355,6 +355,9 @@ ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.13  2003/05/08 20:24:30  mast
+#  Add copy of qt libraries to distributions
+#
 #  Revision 3.12  2003/04/29 05:25:15  mast
 #  Make src depend on configure so a fresh checkout will work for make src
 #
