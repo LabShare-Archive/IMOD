@@ -29,6 +29,10 @@ import java.util.ArrayList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.21  2003/08/20 22:01:34  rickg
+ * <p> Explicitly wait for the comScriptProcess to start before starting the
+ * <p> process monitor thread.
+ * <p>
  * <p> Revision 2.20  2003/08/05 21:40:53  rickg
  * <p> Implemented CCDEraserProcessMonitor
  * <p> LogFileProcessMonitors now are passed to startComScriptProcess
@@ -213,7 +217,7 @@ public class ProcessManager {
    * Erase the specified pixels
    * @param axisID the AxisID to erase.
    */
-  public String eraser(AxisID axisID) {
+  public String eraser(AxisID axisID) throws SystemProcessException {
 
     // Create the process monitor
     CCDEraserProcessMonitor ccdEraserProcessMonitor =
@@ -233,7 +237,7 @@ public class ProcessManager {
    * Calculate the cross-correlation for the specified axis
    * @param axisID the AxisID to cross-correlate.
    */
-  public String crossCorrelate(AxisID axisID) {
+  public String crossCorrelate(AxisID axisID) throws SystemProcessException {
 
     //  Create the process monitor
     XcorrProcessWatcher xcorrProcessWatcher =
@@ -253,7 +257,7 @@ public class ProcessManager {
    * Calculate the coarse alignment for the specified axis
    * @param axisID the identifyer of the axis to coarse align.
    */
-  public String coarseAlign(AxisID axisID) {
+  public String coarseAlign(AxisID axisID) throws SystemProcessException {
 
     //  Create the required tiltalign command
     String command = "prenewst" + axisID.getExtension() + ".com";
@@ -300,7 +304,7 @@ public class ProcessManager {
   * Run the appropriate track com file for the given axis ID
   * @param axisID the AxisID to run track.com on.
   */
-  public String fiducialModelTrack(AxisID axisID) {
+  public String fiducialModelTrack(AxisID axisID) throws SystemProcessException {
     //
     //  Create the required beadtrack command
     //
@@ -315,7 +319,7 @@ public class ProcessManager {
    * Run the appropriate align com file for the given axis ID
    * @param axisID the AxisID to run align.com on.
    */
-  public String fineAlignment(AxisID axisID) {
+  public String fineAlignment(AxisID axisID) throws SystemProcessException {
     //
     //  Create the required tiltalign command
     //
@@ -369,7 +373,7 @@ public class ProcessManager {
    * Run the appropriate sample com file for the given axis ID
    * @param axisID the AxisID to run sample.com on.
    */
-  public String createSample(AxisID axisID) {
+  public String createSample(AxisID axisID) throws SystemProcessException {
     //
     //  Create the required tiltalign command
     //
@@ -385,7 +389,7 @@ public class ProcessManager {
    * Run the appropriate tomopitch com file for the given axis ID
    * @param axisID the AxisID to run tomoptich on.
    */
-  public String tomopitch(AxisID axisID) {
+  public String tomopitch(AxisID axisID) throws SystemProcessException {
     //
     //  Create the required tiltalign command
     //
@@ -401,7 +405,7 @@ public class ProcessManager {
    * Run the appropriate newst com file for the given axis ID
    * @param axisID the AxisID to run newst on.
    */
-  public String newst(AxisID axisID) {
+  public String newst(AxisID axisID) throws SystemProcessException {
     //
     //  Create the required newst command
     //
@@ -421,7 +425,7 @@ public class ProcessManager {
    * Run the appropriate tilt com file for the given axis ID
    * @param axisID the AxisID to run tilt on.
    */
-  public String tilt(AxisID axisID) {
+  public String tilt(AxisID axisID) throws SystemProcessException{
     //
     //  Create the required tilt command
     //
@@ -514,7 +518,7 @@ public class ProcessManager {
    * Run the combine com file
    * @param axisID the AxisID to run tilt on.
    */
-  public String combine() {
+  public String combine() throws SystemProcessException {
     //  Create the required combine command
     String command = "combine.com";
 
@@ -529,7 +533,7 @@ public class ProcessManager {
    * Run the solvematchshift com file 
    * @return String
    */
-  public String solvematchshift() {
+  public String solvematchshift() throws SystemProcessException {
     //  Create the required combine command
     String command = "solvematchshift.com";
 
@@ -544,7 +548,7 @@ public class ProcessManager {
    * Run the solvematchmod com file 
    * @return String
    */
-  public String solvematchmod() {
+  public String solvematchmod() throws SystemProcessException {
     //  Create the required combine command
     String command = "solvematchmod.com";
 
@@ -559,7 +563,7 @@ public class ProcessManager {
    * Run the matchvol1 com file 
    * @return String
    */
-  public String matchvol1() {
+  public String matchvol1() throws SystemProcessException {
     //  Create the required combine command
     String command = "matchvol1.com";
 
@@ -574,7 +578,7 @@ public class ProcessManager {
    * Run the patchcorr com file 
    * @return String
    */
-  public String patchcorr() {
+  public String patchcorr() throws SystemProcessException {
     //  Create the required combine command
     String command = "patchcorr.com";
 
@@ -589,7 +593,7 @@ public class ProcessManager {
    * Run the matchorwarp com file 
    * @return String
    */
-  public String matchorwarp() {
+  public String matchorwarp() throws SystemProcessException {
     //  Create the required combine command
     String command = "matchorwarp.com";
 
@@ -604,7 +608,7 @@ public class ProcessManager {
    * Run the volcombine com file 
    * @return String
    */
-  public String volcombine() {
+  public String volcombine() throws SystemProcessException {
     //  Create the required combine command
     String command = "volcombine.com";
 
@@ -909,7 +913,19 @@ public class ProcessManager {
   private ComScriptProcess startComScript(
     String command,
     Runnable processMonitor,
-    AxisID axisID) {
+    AxisID axisID)
+    throws SystemProcessException {
+
+    if (axisID == AxisID.SECOND) {
+      if (threadAxisB != null) {
+        throw new SystemProcessException("A process is already executing in the current axis");
+      }
+    }
+    else {
+      if (threadAxisA != null) {
+        throw new SystemProcessException("A process is already executing in the current axis");
+      }
+    }
 
     //  Run the script as a thread in the background
     ComScriptProcess comScriptProcess = new ComScriptProcess(command, this);
