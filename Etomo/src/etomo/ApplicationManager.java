@@ -92,6 +92,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.100  2004/08/31 16:52:53  sueh
+ * <p> bug# 508 removing JUnit tests that require an X server
+ * <p>
  * <p> Revision 3.99  2004/08/26 01:09:51  sueh
  * <p> bug# 508 handling exiting while a background process is
  * <p> running: adding setBackgroundThreadName() and variables
@@ -3870,16 +3873,16 @@ public class ApplicationManager {
         imodManager.setBinning(ImodManager.FULL_VOLUME_KEY, AxisID.FIRST, 2);
         imodManager.setBinning(ImodManager.FULL_VOLUME_KEY, AxisID.SECOND, 2);
       }
-      else {
-        imodManager.setBinning(ImodManager.FULL_VOLUME_KEY, AxisID.FIRST, 1);
-        imodManager.setBinning(ImodManager.FULL_VOLUME_KEY, AxisID.SECOND, 1);
-      }
-      imodManager.open(ImodManager.FULL_VOLUME_KEY, AxisID.FIRST,
-        metaData.getDatasetName() + AxisID.FIRST.getExtension() + ".matmod",
-        true);
-      imodManager.open(ImodManager.FULL_VOLUME_KEY, AxisID.SECOND,
-        metaData.getDatasetName() + AxisID.SECOND.getExtension() + ".matmod",
-        true);
+      imodManager.setOpenContours(ImodManager.FULL_VOLUME_KEY, AxisID.FIRST,
+          true);
+      imodManager.setOpenContours(ImodManager.FULL_VOLUME_KEY, AxisID.SECOND,
+          true);
+      imodManager.open(ImodManager.FULL_VOLUME_KEY, AxisID.FIRST, metaData
+          .getDatasetName()
+          + AxisID.FIRST.getExtension() + ".matmod", true);
+      imodManager.open(ImodManager.FULL_VOLUME_KEY, AxisID.SECOND, metaData
+          .getDatasetName()
+          + AxisID.SECOND.getExtension() + ".matmod", true);
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
