@@ -252,7 +252,7 @@ QMAKE_LFLAGS_RELEASE += /LIBPATH:"..\buildlib" /NODEFAULTLIB:libc.lib /NODEFAULT
 QMAKE_LFLAGS_DEBUG += /LIBPATH:"..\buildlib" /NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:msvcrt.lib
 EOF
 
-set qdir = ($midas_dir $imod_dir $sendevent_dir $qtassist)
+set qdir = ($midas_dir $imod_dir $sendevent_dir $qtassist_dir)
 set qpro = (midas.pro imod.pro imodsendevent.pro imodqtassist.pro)
 set warn = (warn_on warn_off warn_on warn_on)
 @ i = 0
