@@ -16,6 +16,10 @@ import java.util.Vector;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.2  2004/04/27 00:54:26  sueh
+ * <p> $bug# 427 added reset model files, so models can be changed
+ * <p> $fixing model files, making model files required
+ * <p> $
  * <p> $Revision 1.1  2004/04/26 21:19:05  sueh
  * <p> $bug# 427
  * <p> $$ </p>
@@ -48,31 +52,31 @@ public class TomopitchParam
     }
     String[] cmdLineArgs = scriptCommand.getCommandLineArgs();
     if (scriptCommand.isKeywordValuePairs()) {
-      if (scriptCommand.hasKeyword("ModelFile")) {
-        String[] modelFiles = scriptCommand.getValues("ModelFile");
+      if (scriptCommand.hasKeyword(MODEL_FILE)) {
+        String[] modelFiles = scriptCommand.getValues(MODEL_FILE);
         for (int i = 0; i < modelFiles.length; i++) {
           this.modelFiles.add(modelFiles[i]);
         }
       }
-      if (scriptCommand.hasKeyword("ExtraThickness")) {
+      if (scriptCommand.hasKeyword(EXTRA_THICKNESS)) {
         extraThickness =
-          Double.parseDouble(scriptCommand.getValue("ExtraThickness"));    
+          Double.parseDouble(scriptCommand.getValue(EXTRA_THICKNESS));    
       }
-      if (scriptCommand.hasKeyword("SpacingInY")) {
-        spacingInY = Double.parseDouble(scriptCommand.getValue("SpacingInY"));
+      if (scriptCommand.hasKeyword(SPACING_IN_Y)) {
+        spacingInY = Double.parseDouble(scriptCommand.getValue(SPACING_IN_Y));
       }
-      if (scriptCommand.hasKeyword("ScaleFactor")) {
-        scaleFactor = Double.parseDouble(scriptCommand.getValue("ScaleFactor"));
+      if (scriptCommand.hasKeyword(SCALE_FACTOR)) {
+        scaleFactor = Double.parseDouble(scriptCommand.getValue(SCALE_FACTOR));
       }
-      if (scriptCommand.hasKeyword("ParameterFile")) {
-        parameterFile = scriptCommand.getValue("ParameterFile");
+      if (scriptCommand.hasKeyword(PARAMETER_FILE)) {
+        parameterFile = scriptCommand.getValue(PARAMETER_FILE);
       } 
       return;
     }
     int inputLine = 0;
     extraThickness = Double.parseDouble(inputArgs[inputLine++].getArgument());
     spacingInY = Double.parseDouble(inputArgs[inputLine++].getArgument());
-    numberOfModelFiles = Integer.parseInt(inputArgs[inputLine++].getArgument());
+    int numberOfModelFiles = Integer.parseInt(inputArgs[inputLine++].getArgument());
     for (int i = 0; i < numberOfModelFiles; i++) {
       modelFiles.add(inputArgs[inputLine++].getArgument());
     }
@@ -98,31 +102,19 @@ public class TomopitchParam
     scriptCommand.useKeywordValue();
     ParamUtilities.updateParameterStrings(
       scriptCommand,
-      "ModelFile",
+      MODEL_FILE,
       modelFiles,
       true);
     ParamUtilities.updateParameter(
       scriptCommand,
-      "ExtraThickness",
+      EXTRA_THICKNESS,
       extraThickness);
-    if (!Double.isNaN(spacingInY)) {
-      scriptCommand.setValue("SpacingInY", Double.toString(spacingInY));
-    }
-    else {
-      scriptCommand.deleteKey("SpacingInY");
-    }
-    if (!Double.isNaN(scaleFactor)) {
-      scriptCommand.setValue("ScaleFactor", Double.toString(scaleFactor));
-    }
-    else {
-      scriptCommand.deleteKey("ScaleFactor");
-    }
-    if (!Double.isNaN(scaleFactor)) {
-      scriptCommand.setValue("ScaleFactor", Double.toString(scaleFactor));
-    }
-    else {
-      scriptCommand.deleteKey("ScaleFactor");
-    }
+    ParamUtilities.updateParameter(scriptCommand, SPACING_IN_Y, spacingInY);
+    ParamUtilities.updateParameter(scriptCommand, SCALE_FACTOR, scaleFactor);
+    ParamUtilities.updateParameter(
+      scriptCommand,
+      PARAMETER_FILE,
+      parameterFile);
   }
   
   public void initializeDefaults() {
@@ -146,36 +138,6 @@ public class TomopitchParam
   public void setParameterFile(String parameterFile) {
     this.parameterFile = parameterFile;
   }
-  /**
-   * Return a multiline string describing the class attributes.
-   */
-  public String toString() {
-    StringBuffer modelFileString = new StringBuffer();
-    for (int i = 0; i < modelFiles.size(); i++) {
-      if (i != 0) {
-        modelFileString.append(",");
-      }
-      modelFileString.append(modelFiles.get(i));
-    }
-    return "Model files: "
-      + modelFileString
-      + "\n"
-      + "Extra Thickness: "
-      + extraThickness
-      + "\n"
-      + "Space in Y: "
-      + spacingInY
-      + "\n"
-      + "Scale Factor: "
-      + scaleFactor
-      + "\n"
-      + "Parameter file: "
-      + parameterFile
-      + "\n"
-      + "Number of Model Files (old-style comscript): "
-      + Integer.toString(numberOfModelFiles)
-      + "\n";
-  }
 
   /**
    * Get the standand input arguments from the ComScriptCommand validating the
@@ -186,8 +148,8 @@ public class TomopitchParam
     throws BadComScriptException {
 
     //  Check to be sure that it is a tiltxcorr xommand
-    if (!scriptCommand.getCommand().equals("tomopitch")) {
-      throw (new BadComScriptException("Not a tomopitch command"));
+    if (!scriptCommand.getCommand().equals(COMMAND)) {
+      throw (new BadComScriptException("Not a " + COMMAND + " command"));
     }
 
     //  Get the input arguments parameters to preserve the comments
