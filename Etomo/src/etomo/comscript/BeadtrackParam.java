@@ -19,6 +19,9 @@ import etomo.type.TiltAngleType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.1  2004/04/12 16:48:32  sueh
+ * <p> bug# 409 changed interface class CommandParam
+ * <p>
  * <p> Revision 3.0  2003/11/07 23:19:00  rickg
  * <p> Version 1.0.0
  * <p>
@@ -114,19 +117,23 @@ public class BeadtrackParam
       tiltAngleGroupParams.validateAndSet(inputArgs[inputLine++].getArgument());
       int nGroups = tiltAngleGroupParams.getInt(1);
       if (nGroups > 0) {
-        tiltAngleGroups = new StringList(nGroups);
+        StringList tiltAngleGroupsList = new StringList(nGroups);
         for (int i = 0; i < nGroups; i++) {
-          tiltAngleGroups.set(i, inputArgs[inputLine++].getArgument());
+          tiltAngleGroupsList.set(i, inputArgs[inputLine++].getArgument());
         }
+        tiltAngleGroups = ParamUtilities.parse(tiltAngleGroupsList,
+            nondefaultGroupIntegerType, nondefaultGroupSize);
       }
       magnificationGroupParams.validateAndSet(
         inputArgs[inputLine++].getArgument());
       nGroups = magnificationGroupParams.getInt(1);
       if (nGroups > 0) {
-        magnificationGroups = new StringList(nGroups);
+        StringList magnificationGroupsList = new StringList(nGroups);
         for (int i = 0; i < nGroups; i++) {
-          magnificationGroups.set(i, inputArgs[inputLine++].getArgument());
+          magnificationGroupsList.set(i, inputArgs[inputLine++].getArgument());
         }
+        magnificationGroups = ParamUtilities.parse(magnificationGroupsList,
+            nondefaultGroupIntegerType, nondefaultGroupSize);
       }
       nMinViews = Integer.parseInt(inputArgs[inputLine++].getArgument());
       fiducialParams.validateAndSet(inputArgs[inputLine++].getArgument());
@@ -166,6 +173,8 @@ public class BeadtrackParam
   }
   
   public void initializeDefaults() {
+    tiltAngleGroups = null;
+    magnificationGroups = null;
   }
 
   /**
@@ -224,18 +233,28 @@ public class BeadtrackParam
     tiltAngleGroupParams.set(0, groupSize);
   }
 
-  public void setTiltAngleGroups(String newTiltAngleGroups) {
-    tiltAngleGroups.parseString(newTiltAngleGroups);
-    tiltAngleGroupParams.set(1, tiltAngleGroups.getNElements());
+  public void setTiltAngleGroups(String newTiltAngleGroups) throws FortranInputSyntaxException {
+    tiltAngleGroups = ParamUtilities.parse(newTiltAngleGroups, true, nondefaultGroupSize);
+    if (tiltAngleGroups == null) {
+      tiltAngleGroupParams.setDefault(1);
+    }
+    else {
+      tiltAngleGroupParams.set(1, tiltAngleGroups.length);
+    }
   }
 
   public void setMagnificationGroupSize(int groupSize) {
     magnificationGroupParams.set(0, groupSize);
   }
 
-  public void setMagnificationGroups(String newMagnificationGroups) {
-    this.magnificationGroups.parseString(newMagnificationGroups);
-    magnificationGroupParams.set(1, magnificationGroups.getNElements());
+  public void setMagnificationGroups(String newMagnificationGroups) throws FortranInputSyntaxException {
+    magnificationGroups = ParamUtilities.parse(newMagnificationGroups, true, nondefaultGroupSize);
+    if (tiltAngleGroups == null) {
+      magnificationGroupParams.setDefault(1);
+    }
+    else {
+      magnificationGroupParams.set(1, magnificationGroups.length);
+    }
   }
 
   public void setNMinViews(int nMinViews) {
@@ -418,7 +437,7 @@ public class BeadtrackParam
     srcListCount = srcListCount + nSrcSets;
     for (int i = 0; i < tiltAngleGroupParams.getInt(1); i++) {
       ComScriptInputArg tiltAngleGroup = new ComScriptInputArg();
-      tiltAngleGroup.setArgument(tiltAngleGroups.get(i));
+      tiltAngleGroup.setArgument(tiltAngleGroups[i].toString());
       inputArgList.add(tiltAngleGroup);
     }
 
@@ -454,7 +473,7 @@ public class BeadtrackParam
     srcListCount = srcListCount + nSrcSets;
     for (int i = 0; i < magnificationGroupParams.getInt(1); i++) {
       ComScriptInputArg magnificationGroup = new ComScriptInputArg();
-      magnificationGroup.setArgument(magnificationGroups.get(i));
+      magnificationGroup.setArgument(magnificationGroups[i].toString());
       inputArgList.add(magnificationGroup);
     }
 

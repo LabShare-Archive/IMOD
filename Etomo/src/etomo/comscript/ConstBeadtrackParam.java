@@ -17,6 +17,9 @@ import etomo.type.TiltAngleSpec;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.0  2003/11/07 23:19:00  rickg
+ * <p> Version 1.0.0
+ * <p>
  * <p> Revision 2.1  2003/03/02 23:30:41  rickg
  * <p> Combine layout in progress
  * <p>
@@ -35,6 +38,9 @@ public class ConstBeadtrackParam {
   public static final String rcsid =
     "$Id$";
 
+  protected static final int nondefaultGroupSize = 3;
+  protected static final boolean[] nondefaultGroupIntegerType = { true, true, true };
+  
   protected String inputFile;
   protected String pieceListFile;
   protected String seedModelFile;
@@ -45,9 +51,9 @@ public class ConstBeadtrackParam {
   protected StringList additionalViewGroups;
   protected TiltAngleSpec tiltAngleSpec;
   protected FortranInputString tiltAngleGroupParams;
-  protected StringList tiltAngleGroups;
+  protected FortranInputString[] tiltAngleGroups;
   protected FortranInputString magnificationGroupParams;
-  protected StringList magnificationGroups;
+  protected FortranInputString[] magnificationGroups;
   protected int nMinViews;
   protected FortranInputString fiducialParams;
   protected boolean fillGaps;
@@ -76,12 +82,10 @@ public class ConstBeadtrackParam {
     tiltAngleGroupParams = new FortranInputString(2);
     tiltAngleGroupParams.setIntegerType(0, true);
     tiltAngleGroupParams.setIntegerType(1, true);
-    tiltAngleGroups = new StringList(0);
 
     magnificationGroupParams = new FortranInputString(2);
     magnificationGroupParams.setIntegerType(0, true);
     magnificationGroupParams.setIntegerType(1, true);
-    magnificationGroups = new StringList(0);
 
     fiducialParams = new FortranInputString(2);
     fiducialParams.setIntegerType(1, true);
@@ -178,7 +182,7 @@ public class ConstBeadtrackParam {
   }
 
   public String getTiltAngleGroups() {
-    return tiltAngleGroups.toString();
+    return ParamUtilities.valueOf(tiltAngleGroups);
   }
 
   public String getMagnificationGroupParams() {
@@ -190,7 +194,7 @@ public class ConstBeadtrackParam {
   }
 
   public String getMagnificationGroups() {
-    return magnificationGroups.toString();
+    return ParamUtilities.valueOf(magnificationGroups);
   }
 
   public int getNMinViews() {
