@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.3  2002/09/03 20:05:14  mast
+    Changed some casts in the mat1 and mat3 calls
+
     Revision 3.2  2002/09/03 19:38:52  mast
     Made it save and restore mat1 and mat3 as 4 bytes instead of integers
 
@@ -91,7 +94,7 @@ static int imodel_read_contour(Icont *cont, FILE *fin);
 static int imodel_read_contour_v01(Icont *cont, FILE *fin);
 static int imodel_read_mesh(Imesh *mesh, FILE *fin);
 static int imodel_read_clip(Iobj *obj, FILE *fin);
-static int imodel_read_imat(Iobj *obj, FILE *fin);
+static int imodel_read_imat(Iobj *obj, FILE *fin, UINT flags);
 static int imodel_read_ptsizes(Icont *cont, FILE *fin);
 
 #ifdef IMOD_DATA_SWAP
@@ -251,6 +254,9 @@ static int imodel_write(struct Mod_Model *mod, FILE *fout)
      
      rewind(fout);
      
+     /* DNM 9/4/02: set flag that mat1 and mat3 are written as bytes */
+     mod->flags |= IMODF_MAT1_IS_BYTES;
+
      id = ID_IMOD;
      imodPutInt(fout, &id);
      id = ID_VERSION;
@@ -337,6 +343,8 @@ static int imodel_write_object(struct Mod_Object *obj, FILE *fout)
 	  id =  SIZE_IMAT;
 	  imodPutInt(fout, &id);
 	  imodPutBytes(fout, &obj->ambient, 4);
+
+	  /* DNM 9/4/02: write mat1 and mat3 as bytes */
 	  imodPutBytes(fout, (unsigned char *)&obj->mat1, 4);
 	  imodPutInts(fout, (int *)&obj->mat2, 1);
 	  imodPutBytes(fout, (unsigned char *)&obj->mat3, 4);
@@ -574,9 +582,9 @@ static int imodel_read(Imod *imod, long version)
 	       imodel_read_clip(obj, imod->file); 
 	       break; 
 
-
+	       /* DNM 9/4/02: pass flags so mat1 & mat3 can be read two ways */
 	     case ID_IMAT:
-	       imodel_read_imat(obj, imod->file); 
+	       imodel_read_imat(obj, imod->file, imod->flags); 
 	       break; 
 
 	     case ID_VIEW:
@@ -901,16 +909,21 @@ static int imodel_read_clip(Iobj *obj, FILE *fin)
      return(ferror(fin));
 }
 
-static int imodel_read_imat(Iobj *obj, FILE *fin)
+static int imodel_read_imat(Iobj *obj, FILE *fin, UINT flags)
 {
      int size;
 
      size = imodGetInt(fin);
 
      imodGetBytes(fin, (unsigned char *)&obj->ambient, 4);
-     imodGetBytes(fin, (unsigned char *)&obj->mat1, 4);     
-     imodGetInts(fin, (int *)&obj->mat2, 1);     
-     imodGetBytes(fin, (unsigned char *)&obj->mat3, 4);     
+
+     /* DNM 9/4/03: read mat1 and mat3 as bytes, or as ints for old model */
+     if (flags & IMODF_MAT1_IS_BYTES) {
+	  imodGetBytes(fin, (unsigned char *)&obj->mat1, 4);     
+	  imodGetInts(fin, (int *)&obj->mat2, 1);     
+	  imodGetBytes(fin, (unsigned char *)&obj->mat3, 4);
+     } else
+	  imodGetInts(fin, (int *)&obj->mat1, 3);     
      return 0;
 }
 
