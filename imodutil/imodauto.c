@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2002/06/18 17:23:03  mast
+    Added option to set color of model object
+
 */
 
 #include <math.h>
@@ -77,6 +80,7 @@ static void usage(void)
      fprintf(stderr, "\t-l #\tLow threshold level.\n");
      fprintf(stderr, "\t-h #\tHigh threshold level.\n");
      fprintf(stderr, "\t-d #\tThreshold flag 1=absolute 2=section-mean 3=stack-mean.\n");
+     fprintf(stderr, "\t-u\tInterpret threshold levels as unscaled intensities.\n");
      fprintf(stderr, "\t-n\tFind inside contours at same threshold level.\n");
      fprintf(stderr, "\t-f #\tFollow diagonals: 0=never, 1=above high, 2=below low, 3=always.\n");
 
@@ -119,6 +123,9 @@ int main(int argc, char *argv[])
      float red = 0.;
      float green = 1.;
      float blue = 0.;
+     int unscaled = 0;
+     int hentered = 0;
+     int lentered = 0;
 
      if (argc < 3){
 	  imodVersion(argv[0]);
@@ -142,9 +149,11 @@ int main(int argc, char *argv[])
 		    break;
 		  case 'h':
 		    ht = atof(argv[++i]);
+		    hentered = 1;
 		    break;
 		  case 'l':
 		    lt = atof(argv[++i]);
+		    lentered = 1;
 		    break;
 		  case 'r':
 		    shave = atof(argv[++i]);
@@ -182,6 +191,9 @@ int main(int argc, char *argv[])
 		  case 'n':
 		    inside = 1;
 		    break;
+		  case 'u':
+		    unscaled = 1;
+		    break;
 		  case 'f':
 		    followdiag = atoi(argv[++i]);
 		    break;
@@ -218,7 +230,7 @@ int main(int argc, char *argv[])
      }
 
      if (inside) {
-	  if (ht != 255.0 && lt != 0.0) {
+	  if (hentered && lentered) {
 	       fprintf(stderr, "Only a high or a low threshold, not both, "
 		       "may be entered when using\n the -n flag to find "
 		       "inside contours.\n");
@@ -226,12 +238,14 @@ int main(int argc, char *argv[])
 	  }
 	  /* Set thresholds equal, and set to follow diagonals only on the
 	     primary threshold */
-	  if (ht != 255.0) {
+	  if (hentered) {
 	       lt = ht;
 	       followdiag = 1;
+	       lentered = 1;
 	  } else {
 	       ht = lt;
 	       followdiag = 2;
+	       hentered = 1;
 	  }
      }
 
@@ -253,6 +267,14 @@ int main(int argc, char *argv[])
 	  li.smax = hdata.amax;
      }
      mrc_fix_li(&li, hdata.nx, hdata.ny, hdata.nz);
+
+     /* DNM 6/19/02: scale entered values if unscaled option taken */
+     if (unscaled) {
+	  if (hentered)
+	       ht = 255. * (ht - li.smin) / (li.smax - li.smin);
+	  if (lentered)
+	       lt = 255. * (lt - li.smin) / (li.smax - li.smin);
+     }
 
      /* Rename existing file if any */
      sprintf(backupname, "%s~", argv[i]);
