@@ -18,6 +18,9 @@ import etomo.process.SystemProgram;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.3  2003/07/01 19:30:22  rickg
+ * <p> added mode parsing
+ * <p>
  * <p> Revision 2.2  2003/05/20 21:26:18  rickg
  * <p> Added pixel size and image rotation parsers
  * <p>
@@ -73,7 +76,7 @@ public class MRCHeader {
     // Throw an exception if the file can not be read
     String[] stdError = header.getStdError();
     if (stdError.length > 0) {
-      String message = "header returned an erorr:\n";
+      String message = "header returned an error:\n";
       for (int i = 0; i < stdError.length; i++) {
 
         message = message + stdError[i] + "\n";
