@@ -113,6 +113,7 @@ echo  'MAKEF77PLUGIN  = ld $(LDFLAGS) -shared -all -lftn -o'  >> $configure
 echo 'FLCC      = $(CC)'  >> $configure
 echo 'F77LIBS   = '                  >> $configure
 #echo "F77LIBS      = -lF77 -lU77 -lI77 -lisam" >> $configure
+echo 'LIBTRACKDEF   = -lftn'                  >> $configure
 
 set foptimization = $optimization
 if ($debug == true) then
@@ -201,6 +202,9 @@ if ($distname == "") set distname = _irix6.5
 
 
 #  $Log$
+#  Revision 3.23  2004/04/22 02:30:19  mast
+#  Added sgi.bashrc to INSTALL_FILES
+#
 #  Revision 3.22  2004/04/08 17:01:18  mast
 #  Changes for separate library-building flags
 #
