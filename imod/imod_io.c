@@ -37,6 +37,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.1  2002/12/01 15:34:41  mast
+Changes to get clean compilation with g++
+
 Revision 4.0  2002/09/27 20:15:24  rickg
 Significant restructuring of the model io code
 - io funtionality moved imod_menu_cb to this module
@@ -242,34 +245,8 @@ int imod_autosave(struct Mod_Model *mod)
   return(IMOD_IO_SUCCESS);
 }
 
-
-int SaveModelQuit(Imod *mod)
-{
-  FILE *fout = NULL;
-  int retval = 0;
-
-  lastError = IMOD_IO_SUCCESS;
-     
-  /* DNM 8./4/01: Here and in next two functions, if imodv window is open,
-     save the view if appropriate */
-  if (!ImodvClosed)
-    imodvAutoStoreView(Imodv);
-
-  imod_make_backup(Imod_filename);
-
-  fout = fopen(Imod_filename, "w+");
-
-  if (fout == NULL){
-    imod_undo_backup();
-    return(mapErrno(errno));
-  }
-
-  retval = imodWrite(mod, fout);
-  fclose(fout);
-
-  imod_finish_backup();
-  return(retval);
-}
+/* DNM 12/2/02: eliminated SaveModelQuit - SaveModel is fine and allows user
+   to Save As if no model file is defined yet */
 
 
 int SaveModel(struct Mod_Model *mod)
@@ -280,6 +257,8 @@ int SaveModel(struct Mod_Model *mod)
      
   lastError = IMOD_IO_SUCCESS;
 
+  /* DNM 8./4/01: Here and in next functions, if imodv window is open,
+     save the view if appropriate */
   if (!ImodvClosed)
     imodvAutoStoreView(Imodv);
 
@@ -305,29 +284,38 @@ int SaveModel(struct Mod_Model *mod)
     mod->csum = imodChecksum(mod);
     imod_cleanup_autosave();
   }
-  else
+  else {
     wprint("Imod: Error Saving Model.");
+    lastError = IMOD_IO_SAVE_ERROR;
+  }
 
   fclose(fout);
      
 
-  return(0);
+  return(lastError);
 }
 
 
-static void save_model(Widget w, XtPointer client, XtPointer call)
+/* DNM 12/2/02: made this call dia_filename, which returns directly, and moved
+   code from save_model into here after filename is gotten */
+int SaveasModel(struct Mod_Model *mod)
 {
-  Imod *mod = (Imod *)client;
-  char *filename = (char *)call;
+  char *filename;
   FILE *fout = NULL;
   int retval = -1;
 
   lastError = IMOD_IO_SUCCESS;
      
+  filename = dia_filename("Model Save File");
   if ((filename == NULL) || (filename[0] == 0x00)) {
-    wprint("No file selected. Model not saved.");
-    XBell(imodDisplay(), 100);
-    return;
+    /* this dialog doesn't return if no file selected, so this is a cancel
+       and needs no message */
+    /* wprint("No file selected. Model not saved."); */
+    /* XBell(imodDisplay(), 100); */
+    if (filename)
+      XtFree(filename);
+    lastError = IMOD_IO_SAVE_CANCEL;
+    return IMOD_IO_SAVE_CANCEL;
   }
 
   if (!ImodvClosed)
@@ -338,8 +326,10 @@ static void save_model(Widget w, XtPointer client, XtPointer call)
   if (fout == NULL){
     wprint("Error: Couldn't open %s .  Model not saved.\n", filename);
     XBell(imodDisplay(), 100);
+    XtFree(filename);
     imod_undo_backup();
-    return;
+    lastError = mapErrno(errno);
+    return lastError;
   }
 
   mod->xmax = App->cvi->xsize;
@@ -350,7 +340,7 @@ static void save_model(Widget w, XtPointer client, XtPointer call)
   fclose(fout);
 
   strcpy(Imod_filename, filename);
-  free(filename); 
+  XtFree(filename); 
      
   if (!retval) {
     wprint("Done saving Model\n%s\n", Imod_filename);
@@ -361,58 +351,14 @@ static void save_model(Widget w, XtPointer client, XtPointer call)
   else {
     wprint("Imod: Error Saving Model.");
     XBell(imodDisplay(), 100);
+    lastError = IMOD_IO_SAVE_ERROR;
+    return lastError;
   }
   MaintainModelName(mod);
 
-}
-
-
-
-int SaveasModel(struct Mod_Model *mod)
-{
-  lastError = IMOD_IO_SUCCESS;
-
-  diaEasyFileAct("Model Save File", save_model, 
-                 (XtPointer)mod);
   return(0);
 }
 
-/*  THIS IS NOT USED
-    static void load_model(Widget w, XtPointer client, XtPointer call)
-    {
-    Imod **rmod = (Imod **)client;
-    Imod *imod = NULL;
-    char *filename = (char *)call;
-    FILE *fout = NULL;
-
-    if ((filename == NULL) || (filename[0] == '/0')) {
-    wprint("No file selected for model load.\n");
-    if (filename) free(filename);
-    return;
-    }
-
-    imod = imodRead(filename);
-    if (!imod){
-    wprint("Error loading %s.\n", filename);
-    return;
-    }
-    fclose (imod->file);
-    free(filename);
-    strcpy(Imod_filename, filename);
-    *rmod = imod;
-     
-    imod->csum = imodChecksum(imod);
-    if (!imod_autosave(imod)){
-    filename = (char *)malloc(strlen(Imod_filename) +
-    strlen(Imod_autosave_string) + 2);
-    sprintf(filename, "%s%s", Imod_filename, Imod_autosave_string);
-    remove(filename);
-    if (filename)
-    free(filename);
-    }
-    return;
-    }
-*/
 
 Imod *LoadModel(FILE *mfin) {
   Imod *imod;
@@ -472,12 +418,14 @@ Imod *LoadModelFile(char *filename) {
   if (filename == NULL) {
     filename = dia_filename("Enter model file name to LOAD.");
     if (filename == NULL || filename[0] == '\0') {
-      lastError = IMOD_IO_NO_FILE_SELECTED;
-      show_status("File not selected. Model not loaded.");
+      lastError = IMOD_IO_READ_CANCEL;
+      /*  show_status("File not selected. Model not loaded."); */
+      if (filename)
+        XtFree(filename);
       return((Imod *)NULL);
     }
     strcpy(Imod_filename, filename);
-    free(filename);
+    XtFree(filename);
     filename = NULL;
   }
   else {
@@ -500,158 +448,22 @@ Imod *LoadModelFile(char *filename) {
 }
 
 
-/*************************************************************************/
-/* Testing : future code */
-
-#ifdef WHEN_IMAGE_IO_IS_ADDED
-
-int SaveImage(struct ViewInfo *vi)
-{
-  char filename[256];
-  FILE *fout = NULL;
-  int retval = -1;
-     
-  /* get file name */
-  filename[0] = 0x00;
-  imod_getline("Enter filename for saved image."  , filename);
-     
-  /* open file */
-  if (fout == NULL){
-    show_status("Couldn't open File.");
-    fprintf(stderr, "Imod: couldn't open %s\n",filename);
-    return(-1);
-  }
-     
-     
-  retval = WriteImage(fout, vi, NULL);
-  if (retval)
-    show_status("Error saving image file.");
-  else
-    show_status("Done saving Image.");
-     
-  fclose( fout);
-  return(retval);
-}
-
-int WriteImage(FILE *fout, struct ViewInfo *vi, struct LoadInfo *li)
-{
-
-  struct MRCheader hdata;
-  double min, max, mean;
-  int i, j, k;
-  long xysize;
-  int error= -1;
-  int xmin, xmax, ymin, ymax, zmin, zmax;
-  int xsize, xoff;
-
-  xsize = li->xmax - li->xmin;
-
-  mrc_head_new(&hdata, vi->xsize, vi->ysize, vi->zsize, 0);
-  mrc_byte_mmm(&hdata, vi->idata);
-
-  if (li){
-    mrc_head_new(&hdata, xsize,
-                 li->ymax - li->ymin, li->zmax - li->zmin, 0);
-    xoff = li->xmin;
-    xsize = li->xmax - li->xmin - 1;
-    xmin = li->xmin;
-    xmax = li->xmax;
-    ymin = li->ymin;
-    ymax = li->ymax;
-    zmin = li->zmin;
-    zmax = li->zmax;
-  }else{
-    xsize = vi->xsize;
-    xmin = 0;
-    xmax = vi->xsize - 1;
-    ymin = 0;
-    ymax = vi->ysize - 1;
-    zmin = 0;
-    zmax = vi->zsize - 1;
-  }
-	  
-  mrc_head_label(&hdata, "Imod: Wrote sub image.   ");
-  mrc_head_write(fout, &hdata);
-     
-  for (k = zmin; k <= zmax; k++){
-	  
-    for(j = ymin; j <= ymax; j++){
-	       
-      error = fwrite(&(vi->idata[k][(j * vi->xsize) + xmin]), 
-                     1, xsize, fout);
-    }
-  }
-  return(error);
-}
-#endif
-
-unsigned char **imod_io_image_load(ImodImageFile *im,
-                                   struct LoadInfo *li,
-                                   void (*func)(char *))
-{
-  unsigned char **idata;
-  struct MRCheader *mrchead;
-  struct MRCheader savehdr;
-
-  if (im->file == IIFILE_MRC){
-    if (!im->fp)
-      iiReopen(im);
-    if (!im->fp) return NULL;
-    mrchead = (struct MRCheader *)im->header;
-    
-    /* DNM: save and restore header after call to mrc_read_byte */
-    savehdr = *mrchead;
-    idata = (unsigned char **)mrc_read_byte(im->fp, mrchead, li, func);
-    *mrchead = savehdr;
-    
-    return(idata);
-  }
-  
-  {
-    int i;
-    int xsize, ysize, zsize, xysize;
-    unsigned char **idata, *bdata;
-    
-    /* ignore load info for now. */
-    xsize = im->nx;
-    ysize = im->ny;
-    zsize = im->nz;
-    xysize = xsize * ysize;
-    
-    im->llx = 0;
-    im->lly = 0;
-    im->urx = xsize;
-    im->ury = ysize;
-    
-    im->slope  = li->slope;
-    im->offset = li->offset;
-    im->imin   = li->imin;
-    im->imax   = li->imax;
-    im->axis   = li->axis;
-    
-    idata = (unsigned char **)malloc(zsize * sizeof(unsigned char *));
-    if (!idata) return NULL;
-    bdata = (unsigned char *)malloc(xysize * zsize * sizeof(unsigned char));
-    if (!bdata) return NULL;
-    for(i = 0; i < zsize; i++){
-      idata[i] = bdata + (xysize * i);
-      iiReadSectionByte(im, (char *)idata[i], i);
-    }
-    return(idata);
-  }
-}
-
 /* DNM 9/12/02: deleted old version of imod_io_image_reload */
 // openModel    opens a IMOD model specified by modeFilename
 //
 int openModel(char *modelFilename) {
   Imod *tmod;
+  int err;
+  int answer;
+
   if (imod_model_changed(Model)){
-    if (dia_ask("Save current model?")){
-      if (SaveModel(App->cvi->imod)){
-        return IMOD_IO_SAVE_ERROR;
+    answer = dia_choice("Save current model?", "Yes", "No", "Cancel");
+    if (answer == 1) {
+      if ((err = SaveModel(App->cvi->imod))){
+        return err;
       }
-    }
+    } else if (answer != 2)
+      return IMOD_IO_SAVE_CANCEL;
   }
   imod_cleanup_autosave();
 
@@ -741,24 +553,31 @@ static void initModelData(Imod *newModel) {
 //
 //  Description:
 //  createNewModel first checks to see if the existing model needs to be saved
-//  and cleaned up.  A new mode is then allocated, if the modelFilename
+//  and cleaned up.  A new model is then allocated, if the modelFilename
 //  argument is non-NULL then the filename for the model is set.  Finally, the
 //  App data structure is initialized for the new model.
 int createNewModel(char *modelFilename) {
   int mode;
   int nChars;
+  int err, answer;
   Iobj *obj;
 
   lastError = IMOD_IO_SUCCESS;
 
   if (imod_model_changed(Model)){
-    if (dia_ask("Save old model?")){
-      if (SaveModel(App->cvi->imod)){
-        wprint("Error Saving Model. New model aborted.\n");
-        lastError = IMOD_IO_NOMEM;
-        return IMOD_IO_SAVE_ERROR;
+    answer = dia_choice("Save current model?", "Yes", "No", "Cancel");
+    if (answer == 1) {
+
+      /* DNM 12/2/02: it comes back with a valid error now, so give message
+         only if not a cancel, and return actual error */
+      if ((err = SaveModel(App->cvi->imod))){
+        if (err != IMOD_IO_SAVE_CANCEL)
+          wprint("\aError Saving Model. New model aborted.\n");
+        lastError = err;
+        return err;
       }
-    } 
+    } else if (answer != 2)
+      return IMOD_IO_SAVE_CANCEL;
   }
   imod_cleanup_autosave();
 
@@ -829,6 +648,64 @@ int createNewModel(char *modelFilename) {
   return IMOD_IO_SUCCESS;
 }
 
+
+unsigned char **imod_io_image_load(ImodImageFile *im,
+                                   struct LoadInfo *li,
+                                   void (*func)(char *))
+{
+  unsigned char **idata;
+  struct MRCheader *mrchead;
+  struct MRCheader savehdr;
+
+  if (im->file == IIFILE_MRC){
+    if (!im->fp)
+      iiReopen(im);
+    if (!im->fp) return NULL;
+    mrchead = (struct MRCheader *)im->header;
+    
+    /* DNM: save and restore header after call to mrc_read_byte */
+    savehdr = *mrchead;
+    idata = (unsigned char **)mrc_read_byte(im->fp, mrchead, li, func);
+    *mrchead = savehdr;
+    
+    return(idata);
+  }
+  
+  {
+    int i;
+    int xsize, ysize, zsize, xysize;
+    unsigned char **idata, *bdata;
+    
+    /* ignore load info for now. */
+    xsize = im->nx;
+    ysize = im->ny;
+    zsize = im->nz;
+    xysize = xsize * ysize;
+    
+    im->llx = 0;
+    im->lly = 0;
+    im->urx = xsize;
+    im->ury = ysize;
+    
+    im->slope  = li->slope;
+    im->offset = li->offset;
+    im->imin   = li->imin;
+    im->imax   = li->imax;
+    im->axis   = li->axis;
+    
+    idata = (unsigned char **)malloc(zsize * sizeof(unsigned char *));
+    if (!idata) return NULL;
+    bdata = (unsigned char *)malloc(xysize * zsize * sizeof(unsigned char));
+    if (!bdata) return NULL;
+    for(i = 0; i < zsize; i++){
+      idata[i] = bdata + (xysize * i);
+      iiReadSectionByte(im, (char *)idata[i], i);
+    }
+    return(idata);
+  }
+}
+
+
 // imodIOGetError   return the last error code
 int imodIOGetError() {
   return lastError;
@@ -867,3 +744,88 @@ static int mapErrno(int errorCode) {
   }
   
 }
+
+/*************************************************************************/
+/* Testing : future code */
+
+#ifdef WHEN_IMAGE_IO_IS_ADDED
+
+int SaveImage(struct ViewInfo *vi)
+{
+  char filename[256];
+  FILE *fout = NULL;
+  int retval = -1;
+     
+  /* get file name */
+  filename[0] = 0x00;
+  imod_getline("Enter filename for saved image."  , filename);
+     
+  /* open file */
+  if (fout == NULL){
+    show_status("Couldn't open File.");
+    fprintf(stderr, "Imod: couldn't open %s\n",filename);
+    return(-1);
+  }
+     
+     
+  retval = WriteImage(fout, vi, NULL);
+  if (retval)
+    show_status("Error saving image file.");
+  else
+    show_status("Done saving Image.");
+     
+  fclose( fout);
+  return(retval);
+}
+
+int WriteImage(FILE *fout, struct ViewInfo *vi, struct LoadInfo *li)
+{
+
+  struct MRCheader hdata;
+  double min, max, mean;
+  int i, j, k;
+  long xysize;
+  int error= -1;
+  int xmin, xmax, ymin, ymax, zmin, zmax;
+  int xsize, xoff;
+
+  xsize = li->xmax - li->xmin;
+
+  mrc_head_new(&hdata, vi->xsize, vi->ysize, vi->zsize, 0);
+  mrc_byte_mmm(&hdata, vi->idata);
+
+  if (li){
+    mrc_head_new(&hdata, xsize,
+                 li->ymax - li->ymin, li->zmax - li->zmin, 0);
+    xoff = li->xmin;
+    xsize = li->xmax - li->xmin - 1;
+    xmin = li->xmin;
+    xmax = li->xmax;
+    ymin = li->ymin;
+    ymax = li->ymax;
+    zmin = li->zmin;
+    zmax = li->zmax;
+  }else{
+    xsize = vi->xsize;
+    xmin = 0;
+    xmax = vi->xsize - 1;
+    ymin = 0;
+    ymax = vi->ysize - 1;
+    zmin = 0;
+    zmax = vi->zsize - 1;
+  }
+	  
+  mrc_head_label(&hdata, "Imod: Wrote sub image.   ");
+  mrc_head_write(fout, &hdata);
+     
+  for (k = zmin; k <= zmax; k++){
+	  
+    for(j = ymin; j <= ymax; j++){
+	       
+      error = fwrite(&(vi->idata[k][(j * vi->xsize) + xmin]), 
+                     1, xsize, fout);
+    }
+  }
+  return(error);
+}
+#endif
