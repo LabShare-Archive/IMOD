@@ -9,6 +9,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.3  2003/10/24 02:30:40  mast
+#  Changes for windows/Intel compiler
+#
 #  Revision 3.2  2003/02/28 18:09:32  mast
 #  Changes for cygwin/windows
 #
@@ -36,7 +39,7 @@ all : $(PROG)
 $(PROG) : $(OBJS)
 	@echo "Making clip: libifft is in the flib source code."
 	$(FLCC) -o clip $(OBJS) $(LDFLAGS)  \
-	$(LIMOD) $(LIIMOD) $(LIFFT) $(TIFFLIBS) $(LIBS) $(F77LIBS)
+	$(LIIMOD) $(LIMOD) $(LIFFT) $(TIFFLIBS) $(LIBS) $(F77LIBS)
 
 install : $(PROG)
 	strip $(PROG)

@@ -8,6 +8,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.5  2003/10/24 02:30:40  mast
+#  Changes for windows/Intel compiler
+#
 #  Revision 3.4  2003/02/28 18:09:32  mast
 #  Changes for cygwin/windows
 #
@@ -24,6 +27,8 @@ include ../configure
 
 O = $(OBJEXT)
 E = $(BINEXT)
+
+IILIBS    = $(LIMOD) $(LIIMOD) $(TIFFLIBS)
 
 PROGS = imodauto$(E) imodinfo$(E) imodmesh$(E) imodtrans$(E) imodmop$(E) \
  imodcmopp$(E) rec2imod$(E) imod2rib$(E) imod2vrml$(E) imod2meta$(E) \
@@ -45,16 +50,14 @@ imodtrans$(E) : imodtrans.$(O)
 	$(CC) -o imodtrans imodtrans.$(O) $(LDFALLBACK) $(LIMOD) $(CLIBS)
 
 imodmop$(E) : imodmop.$(O) moplib.$(O)
-	$(CC) -o imodmop imodmop.$(O) moplib.$(O) $(LDFLAGS) $(LIMOD) \
-	$(LIIMOD) $(TIFFLIBS) $(CLIBS)
+	$(CC) -o imodmop imodmop.$(O) moplib.$(O) $(LDFLAGS) $(IILIBS) $(CLIBS)
 
 imodcmopp$(E) : imodcmopp.$(O) moplib.$(O)
 	$(CC) -o imodcmopp imodcmopp.$(O) moplib.$(O) \
-	$(LDFLAGS) $(LIMOD) $(LIIMOD) $(TIFFLIBS) $(CLIBS)
+	$(LDFLAGS) $(IILIBS) $(CLIBS)
 
 imodauto$(E) : imodauto.$(O) 
-	$(CC) -o imodauto imodauto.$(O) $(LDFLAGS) $(LIMOD) $(LIIMOD) $(TIFFLIBS) \
-	$(CLIBS)
+	$(CC) -o imodauto imodauto.$(O) $(LDFLAGS) $(IILIBS) $(CLIBS)
 
 rec2imod$(E) : rec2imod.$(O) recfile.$(O)
 	$(CC) -o rec2imod rec2imod.$(O) recfile.$(O) $(LDFLAGS) $(LIMOD) $(CLIBS)
