@@ -15,7 +15,7 @@ option.  The second argument is a numeric code for an action.  The third is
 an optional text string, such as the name of a model file when opening a 
 model.
 .P
-Currently, 3dmod will accept 7 commands:
+Currently, 3dmod will accept 8 commands:
    1  Open model file (follow with file name)
    2  Save model file
    3  Open model view window
