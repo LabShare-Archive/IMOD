@@ -9,82 +9,14 @@ c
 c	  See Man page for all details.
 c
 c	  David Mastronarde  March 1989
-c	  5/19/89 added model output, changed format of output table
-c	  6/21/89 added mean residual output to find_surfaces, changed to
-c	  get recommendation on maximum FIXED tilt angle
-c	  4/9/93 allow full mapping of compression variables
-c	  10/30/95 added distortion, automapping, point & angle output.
-c	  10/17/98 added linear combinations to automapping
-c	  2/12/98 added local alignments; changed find_surfaces to find and
-c	  recommend an X-axis tilt.
 c
 c	  $Author$
 c
 c	  $Date$
 c
 c	  $Revision$
-c
-c	  $Log$
-c	  Revision 3.17  2004/10/08 17:29:57  mast
-c	  Eliminated manual info
-c	
-c	  Revision 3.16  2004/10/08 17:27:14  mast
-c	  Fixed failure to get both model and residual output with a filename
-c	  containing a period.
-c	
-c	  Revision 3.15  2004/09/16 16:12:30  mast
-c	  Made it try new metro factors upon error; switched to opening
-c	  fid.xyz only when ready to write it.
-c	
-c	  Revision 3.14  2004/07/16 23:24:21  mast
-c	  Added pixel size to local alignment file
-c	
-c	  Revision 3.13  2004/06/10 05:39:18  mast
-c	  Output pixel size in fiducial file
-c	
-c	  Revision 3.12  2004/05/21 20:06:34  mast
-c	  Put out iteration limit error as a formal WARNING
-c	
-c	  Revision 3.11  2004/05/07 23:41:21  mast
-c	  Fixed problem with Z shift being setto zero
-c	
-c	  Revision 3.10  2004/05/05 05:50:26  mast
-c	  Output real 3D coordinates, fix bug in getting local residuals,
-c	  and finally added +/-10% to the messages about metro factor
-c	
-c	  Revision 3.9  2003/10/24 03:31:54  mast
-c	  remove tab from label scanned by alignlog
-c	
-c	  Revision 3.8  2003/10/03 00:59:07  mast
-c	  Changed terminology to refered to tilt angle offset
-c	
-c	  Revision 3.7  2003/01/30 20:54:51  mast
-c	  Made fields for residuals bigger, amplified IER error messages
-c	
-c	  Revision 3.6  2002/12/21 00:00:33  mast
-c	  Add ability to get both residual output and 3D model
-c	
-c	  Revision 3.5  2002/10/17 23:18:31  mast
-c	  Added proper error message and exit for minimum number of beads too
-c	  high in local alignments
-c	
-c	  Revision 3.4  2002/07/28 23:02:54  mast
-c	  Needed to declare lnblnk for SGI
-c	
-c	  Revision 3.3  2002/07/28 22:42:35  mast
-c	  Changes to output a residual listing file and to standardize error
-c	  exits and output
-c	
-c	  Revision 3.2  2002/05/09 03:48:38  mast
-c	  Fixed a line length that did not compile on SGI
-c	
-c	  Revision 3.1  2002/05/07 02:05:19  mast
-c	  Changes to handle subset of views better: output of transforms and
-c	  tilt angles for all views in file, and interpretation of user input
-c	  and all output in terms of view numbers in file rather than in
-c	  program.  Also changed the surface analysis output to make it more
-c	  understandable and machine readable.
-c	
+c	  
+c	  Log and history at end of file
 c
 	implicit none
 	include 'alivar.inc'
@@ -282,8 +214,8 @@ c
      &	      ' points are on 1 or 2 surfaces: '
 	  read(5,*)nsurface
 c	    
-	  write(*,'(1x,a,f5.2,i5,a,$)')
-     &	      'Factor for METRO, limit on # of cycles [',facm,ncycle,']: '
+	  write(*,'(1x,a,f5.2,i5,a,$)')'Factor for METRO, limit on # '//
+     &	      'of cycles [',facm,ncycle,']: '
 	  read(5,*)facm,ncycle
 c	    
 	  if(iwhichout.ge.0)then
@@ -1399,3 +1331,77 @@ c
 	print *,'ERROR: TILTALIGN - ', message
 	call exit(1)
 	end
+
+c
+c	  $Log$
+c	  Revision 3.18  2004/10/24 22:30:27  mast
+c	  Converted to PIP input
+c	
+c	  Revision 3.17  2004/10/08 17:29:57  mast
+c	  Eliminated manual info
+c	
+c	  Revision 3.16  2004/10/08 17:27:14  mast
+c	  Fixed failure to get both model and residual output with a filename
+c	  containing a period.
+c	
+c	  Revision 3.15  2004/09/16 16:12:30  mast
+c	  Made it try new metro factors upon error; switched to opening
+c	  fid.xyz only when ready to write it.
+c	
+c	  Revision 3.14  2004/07/16 23:24:21  mast
+c	  Added pixel size to local alignment file
+c	
+c	  Revision 3.13  2004/06/10 05:39:18  mast
+c	  Output pixel size in fiducial file
+c	
+c	  Revision 3.12  2004/05/21 20:06:34  mast
+c	  Put out iteration limit error as a formal WARNING
+c	
+c	  Revision 3.11  2004/05/07 23:41:21  mast
+c	  Fixed problem with Z shift being setto zero
+c	
+c	  Revision 3.10  2004/05/05 05:50:26  mast
+c	  Output real 3D coordinates, fix bug in getting local residuals,
+c	  and finally added +/-10% to the messages about metro factor
+c	
+c	  Revision 3.9  2003/10/24 03:31:54  mast
+c	  remove tab from label scanned by alignlog
+c	
+c	  Revision 3.8  2003/10/03 00:59:07  mast
+c	  Changed terminology to refered to tilt angle offset
+c	
+c	  Revision 3.7  2003/01/30 20:54:51  mast
+c	  Made fields for residuals bigger, amplified IER error messages
+c	
+c	  Revision 3.6  2002/12/21 00:00:33  mast
+c	  Add ability to get both residual output and 3D model
+c	
+c	  Revision 3.5  2002/10/17 23:18:31  mast
+c	  Added proper error message and exit for minimum number of beads too
+c	  high in local alignments
+c	
+c	  Revision 3.4  2002/07/28 23:02:54  mast
+c	  Needed to declare lnblnk for SGI
+c	
+c	  Revision 3.3  2002/07/28 22:42:35  mast
+c	  Changes to output a residual listing file and to standardize error
+c	  exits and output
+c	
+c	  Revision 3.2  2002/05/09 03:48:38  mast
+c	  Fixed a line length that did not compile on SGI
+c	
+c	  Revision 3.1  2002/05/07 02:05:19  mast
+c	  Changes to handle subset of views better: output of transforms and
+c	  tilt angles for all views in file, and interpretation of user input
+c	  and all output in terms of view numbers in file rather than in
+c	  program.  Also changed the surface analysis output to make it more
+c	  understandable and machine readable.
+c	
+c	  5/19/89 added model output, changed format of output table
+c	  6/21/89 added mean residual output to find_surfaces, changed to
+c	  get recommendation on maximum FIXED tilt angle
+c	  4/9/93 allow full mapping of compression variables
+c	  10/30/95 added distortion, automapping, point & angle output.
+c	  10/17/98 added linear combinations to automapping
+c	  2/12/98 added local alignments; changed find_surfaces to find and
+c	  recommend an X-axis tilt.
