@@ -1,5 +1,6 @@
 package etomo.ui;
 
+import java.awt.GridLayout;
 import java.awt.event.*;
 import javax.swing.*;
 
@@ -22,6 +23,10 @@ import etomo.comscript.TransferfidParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.14  2003/01/06 17:35:43  rickg
+ * <p> Check for dual axis before calling second axis panel
+ * <p> or transferfid components in advanced
+ * <p>
  * <p> Revision 1.13  2003/01/06 04:55:04  rickg
  * <p> Changed layout to a single transferfid panel
  * <p>
@@ -95,6 +100,9 @@ public class AlignmentEstimationDialog
   private JButton buttonView3DModelA =
     new JButton("<html><b>View 3D<br>model</b>");
 
+  private JButton buttonViewResidualsA = 
+    new JButton("<html><b>View residual<br>vectors</b>");  
+    
   private JButton buttonTransferFiducialsA =
     new JButton("<html><b>Transfer fiducials<br>to the B axis</b>");
 
@@ -113,6 +121,9 @@ public class AlignmentEstimationDialog
 
   private JButton buttonImodB =
     new JButton("<html><b>View/Edit model<br>in imod<</b>");
+
+  private JButton buttonViewResidualsB = 
+    new JButton("<html><b>View residual<br>vectors</b>");  
 
   private JButton buttonTransferFiducialsB =
     new JButton("<html><b>Transfer fiducials<br>to the A axis</b>");
@@ -141,14 +152,16 @@ public class AlignmentEstimationDialog
     buttonExecute.setText("Done");
 
     //  Create the first panel
-    panelButtonA.setLayout(new BoxLayout(panelButtonA, BoxLayout.X_AXIS));
+    GridLayout buttonLayout = new GridLayout(1,4);
+    buttonLayout.setHgap(10);
+    panelButtonA.setLayout(buttonLayout);
+    
     panelButtonA.add(buttonComputeAlignmentA);
-    panelButtonA.add(Box.createRigidArea(FixedDim.x10_y0));
     panelButtonA.add(buttonImodA);
-    panelButtonA.add(Box.createRigidArea(FixedDim.x10_y0));
+    panelButtonA.add(buttonViewResidualsA);
     panelButtonA.add(buttonView3DModelA);
     if (applicationManager.isDualAxis()) {
-      panelButtonA.add(Box.createRigidArea(FixedDim.x10_y0));
+      buttonLayout.setColumns(5);
       panelButtonA.add(buttonTransferFiducialsA);
     }
     buttonView3DModelA.setEnabled(false);
@@ -165,15 +178,13 @@ public class AlignmentEstimationDialog
     panelAlignEstA.add(panelButtonA);
 
     //  Create the second panel
-    panelButtonB.setLayout(new BoxLayout(panelButtonB, BoxLayout.X_AXIS));
+    panelButtonB.setLayout(buttonLayout);
     panelButtonB.add(buttonComputeAlignmentB);
-    panelButtonB.add(Box.createRigidArea(FixedDim.x10_y0));
     panelButtonB.add(buttonImodB);
-    panelButtonB.add(Box.createRigidArea(FixedDim.x10_y0));
+    panelButtonB.add(buttonViewResidualsB);
     panelButtonB.add(buttonView3DModelB);
 
     if (applicationManager.isDualAxis()) {
-      panelButtonB.add(Box.createRigidArea(FixedDim.x10_y0));
       panelButtonB.add(buttonTransferFiducialsB);
     }
 
@@ -208,11 +219,13 @@ public class AlignmentEstimationDialog
     //  Bind the action listeners to the buttons
     buttonComputeAlignmentA.addActionListener(new AlignmentComputeA(this));
     buttonView3DModelA.addActionListener(new AlignmentView3DModelA(this));
+    buttonViewResidualsA.addActionListener(new AlignmentViewResidualsA(this));
     buttonImodA.addActionListener(new AlignmentImodA(this));
     buttonTransferFiducialsA.addActionListener(new AlignmentTransferA(this));
 
     buttonComputeAlignmentB.addActionListener(new AlignmentComputeB(this));
-    buttonView3DModelB.addActionListener(new AlignmentCompute3DModelB(this));
+    buttonView3DModelB.addActionListener(new AlignmentView3DModelB(this));
+    buttonViewResidualsB.addActionListener(new AlignmentViewResidualsB(this));
     buttonImodB.addActionListener(new AlignmentImodB(this));
     buttonTransferFiducialsB.addActionListener(new AlignmentTransferB(this));
 
@@ -331,6 +344,15 @@ public class AlignmentEstimationDialog
   void buttonView3DModelAAction(ActionEvent event) {
   }
 
+  void buttonResidualAAction(ActionEvent event) {
+    if (applicationManager.isDualAxis()) {
+      applicationManager.imodViewResiduals(AxisID.FIRST);
+    }
+    else {
+      applicationManager.imodViewResiduals(AxisID.ONLY);
+    }
+  }
+  
   void buttonTransferFiducialsAAction() {
     applicationManager.transferfid(AxisID.FIRST);
   }
@@ -345,6 +367,10 @@ public class AlignmentEstimationDialog
 
   void buttonView3DModelBAction(ActionEvent event) {
 
+  }
+
+  void buttonResidualBAction(ActionEvent event) {
+    applicationManager.imodViewResiduals(AxisID.SECOND);
   }
 
   void buttonTransferFiducialsBAction() {
@@ -411,6 +437,19 @@ class AlignmentView3DModelA implements ActionListener {
   }
 }
 
+class AlignmentViewResidualsA implements ActionListener {
+
+  AlignmentEstimationDialog adaptee;
+
+  AlignmentViewResidualsA(AlignmentEstimationDialog adaptee) {
+    this.adaptee = adaptee;
+  }
+
+  public void actionPerformed(ActionEvent event) {
+    adaptee.buttonResidualAAction(event);
+  }
+}
+
 class AlignmentImodA implements ActionListener {
 
   AlignmentEstimationDialog adaptee;
@@ -450,11 +489,11 @@ class AlignmentComputeB implements ActionListener {
   }
 }
 
-class AlignmentCompute3DModelB implements ActionListener {
+class AlignmentView3DModelB implements ActionListener {
 
   AlignmentEstimationDialog adaptee;
 
-  AlignmentCompute3DModelB(AlignmentEstimationDialog adaptee) {
+  AlignmentView3DModelB(AlignmentEstimationDialog adaptee) {
     this.adaptee = adaptee;
   }
 
@@ -473,6 +512,19 @@ class AlignmentImodB implements ActionListener {
 
   public void actionPerformed(ActionEvent event) {
     adaptee.buttonImodBAction(event);
+  }
+}
+
+class AlignmentViewResidualsB implements ActionListener {
+
+  AlignmentEstimationDialog adaptee;
+
+  AlignmentViewResidualsB(AlignmentEstimationDialog adaptee) {
+    this.adaptee = adaptee;
+  }
+
+  public void actionPerformed(ActionEvent event) {
+    adaptee.buttonResidualBAction(event);
   }
 }
 
