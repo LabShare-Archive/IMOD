@@ -37,6 +37,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.11  2004/06/17 18:50:08  sueh
+ * <p> bug# 472
+ * <p>
  * <p> Revision 3.10  2004/06/01 18:56:32  rickg
  * <p> Bug #391 whole tomogram sampling state implementation
  * <p>
@@ -163,7 +166,7 @@ public class TomogramPositioningDialog extends ProcessDialog
     "Create Sample Tomograms");
 
   private MultiLineToggleButton btnCreateBoundary = new MultiLineToggleButton(
-    "<html><b>Create Boundary Models</b>");
+    "<html><b>Create Boundary Model</b>");
 
   private MultiLineToggleButton btnTomopitch = new MultiLineToggleButton(
     "<html><b>Compute Z Shift & Pitch Angles</b>");
@@ -540,5 +543,21 @@ public class TomogramPositioningDialog extends ProcessDialog
 
     text = "Run tiltalign with these final offset parameters.";
     btnAlign.setToolTipText(tooltipFormatter.setText(text).format());
+    
+    text = "Generate an entire tomogram instead of 3 samples and draw boundary "
+        + "lines in this tomogram.";
+    cbWholeTomogram.setToolTipText(tooltipFormatter.setText(text).format());
+    
+    text = "Set the binning for the whole tomogram to be used for positioning."
+        + "  With a binned tomogram, the tomopitch output and entries for "
+        + "offset and thickness will still be in unbinned pixels.";
+    spinBinning.setToolTipText(tooltipFormatter.setText(text).format()); 
+    
+    text = "Use cross-correlation alignment only.";
+    cbFiducialess.setToolTipText(tooltipFormatter.setText(text).format()); 
+    
+    text = "Rotation angle of tilt axis for generating aligned stack from "
+        + "cross-correlation alignment only.";
+    ltfRotation.setToolTipText(tooltipFormatter.setText(text).format()); 
   }
 }

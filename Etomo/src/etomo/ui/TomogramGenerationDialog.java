@@ -55,6 +55,9 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.16  2004/06/17 18:49:55  sueh
+ * bug# 472
+ *
  * Revision 3.15  2004/06/01 19:02:33  rickg
  * Bug #391 moved fiducialess parameters in with newstack
  * parameters, fixed trash javadoc header
@@ -1096,7 +1099,9 @@ public class TomogramGenerationDialog extends ProcessDialog
         + "reconstructable area.";
     ltfXOffset.setToolTipText(tooltipFormatter.setText(text).format());
     text = "Amount to shift the reconstructed slices in Z before output.  A "
-        + "positive offset will shift the slice upward.";
+        + "positive offset will shift the slice upward.  Do not use this option"
+        + " if you have fiducials and the tomogram is part of a dual-axis "
+        + "series.";
     ltfZOffset.setToolTipText(tooltipFormatter.setText(text).format());
     text = "This line allows one to rotate the reconstruction around the X axis, so "
         + "that a section that appears to be tilted around the X axis can be "
@@ -1108,8 +1113,9 @@ public class TomogramGenerationDialog extends ProcessDialog
         + " be 1.1 (the arc sine of 10/500).";
     ltfXAxisTilt.setToolTipText(tooltipFormatter.setText(text).format());
     text = "Offset in degrees to apply to the tilt angles; a positive offset will "
-        + "rotate the reconstructed slices counterclockwise.  Do not use "
-        + "this option for a tomogram that is part of a dual-axis series.";
+        + "rotate the reconstructed slices counterclockwise.  Do not use this "
+        + "option if you have fiducials and the tomogram is part of a dual-axis"
+        + " series.";
     ltfTiltAngleOffset.setToolTipText(tooltipFormatter.setText(text).format());
     text = "The spatial frequency at which to switch from the R-weighted radial "
         + "filter to a Gaussian falloff.  Frequency is in cycles/pixel and "
@@ -1159,6 +1165,15 @@ public class TomogramGenerationDialog extends ProcessDialog
         + "tomogram is calculated these intermediate files are not used and can be "
         + "" + "deleted to free up disk space.";
     btnDeleteStacks.setToolTipText(tooltipFormatter.setText(text).format());
+    text = "Use cross-correlation alignment only.";
+    cbFiducialess.setToolTipText(tooltipFormatter.setText(text).format()); 
+    text = "Rotation angle of tilt axis for generating aligned stack from "
+        + "cross-correlation alignment only.";
+    ltfRotation.setToolTipText(tooltipFormatter.setText(text).format()); 
+    text = "Set the binning for the aligned image stack and tomogram.  With a "
+        + "binned tomogram, all of the thickness, position, and size parameters"
+        + " below are still entered in unbinned pixels.";
+    spinBinning.setToolTipText(tooltipFormatter.setText(text).format()); 
   }
 
   /**
