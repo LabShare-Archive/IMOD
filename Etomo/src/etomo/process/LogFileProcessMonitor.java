@@ -23,6 +23,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.3  2004/03/16 21:52:26  sueh
+ * <p> bug# 413 reset process bar after waiting for exit if exit signal doesn't come
+ * <p>
  * <p> Revision 3.2  2004/03/13 01:55:29  sueh
  * <p> bug# 413 possible solution infinite run() loop in comments
  * <p>
@@ -58,6 +61,8 @@ public abstract class LogFileProcessMonitor implements Runnable {
 
   protected int updatePeriod = 500;
   protected int stopWaiting = 20;
+  
+  boolean standardLogFileName = true;
 
   //  This needs to be set in the concrete class constructor
   protected String logFileBasename;
@@ -79,10 +84,14 @@ public abstract class LogFileProcessMonitor implements Runnable {
 
   public void run() {
     //  Instantiate the logFile object
-    logFile =
-      new File(
-        System.getProperty("user.dir"),
-        logFileBasename + axisID.getExtension() + ".log");
+    String logFileName;
+    if (standardLogFileName) {
+      logFileName = logFileBasename + axisID.getExtension() + ".log";
+    }
+    else {
+      logFileName = logFileBasename;
+    }
+    logFile = new File(System.getProperty("user.dir"), logFileName);
 
     boolean processRunning = true;
     try {
@@ -152,7 +161,7 @@ public abstract class LogFileProcessMonitor implements Runnable {
    * Search the log file for the header section and extract the number of
    * sections
    */
-  private void findNSections()
+  protected void findNSections()
     throws InterruptedException, NumberFormatException, IOException {
 
     //  Search for the number of sections, we should see a header ouput first
