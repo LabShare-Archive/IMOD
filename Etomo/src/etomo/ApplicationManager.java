@@ -27,6 +27,9 @@ import etomo.ui.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.34  2003/01/10 18:33:16  rickg
+ * <p> Added test parameter filename to command line args
+ * <p>
  * <p> Revision 1.33  2003/01/08 21:04:38  rickg
  * <p> More descriptive error dialog when the are not
  * <p> available for combining.
@@ -202,7 +205,7 @@ public class ApplicationManager {
       (screenSize.height - frameSize.height) / 2);
 
     // Open the etomo data file if one was found on the command line
-    if (! testParamFilename.equals("")) {
+    if (!testParamFilename.equals("")) {
       File etomoDataFile = new File(testParamFilename);
       openTestParamFile(etomoDataFile);
     }
@@ -278,6 +281,8 @@ public class ApplicationManager {
 
       if (exitState == DialogExitState.POSTPONE) {
         metaData.setComScriptCreated(true);
+        processTrack.setSetupState(ProcessState.COMPLETE);
+        mainFrame.setSetupState(ProcessState.COMPLETE);
       }
       else {
         try {
