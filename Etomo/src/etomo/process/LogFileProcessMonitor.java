@@ -22,6 +22,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2003/08/05 21:17:23  rickg
+ * <p> Initial revision (really)
+ * <p>
  * <p> Revision 1.1  2003/08/04 22:23:16  rickg
  * <p> Initial revision
  * <p> </p>
@@ -162,6 +165,12 @@ public abstract class LogFileProcessMonitor implements Runnable {
     //  Calculate the percetage done
     double fractionDone = (double) currentSection / nSections;
     int percentage = (int) Math.round(fractionDone * 100);
+    if (percentage < 0) {
+      percentage = 0;
+    }
+    if (percentage > 99) {
+      percentage = 99;
+    }
 
     // Convert the remainingTime to minutes and seconds
     int minutes = (int) Math.floor(remainingTime / 60000);

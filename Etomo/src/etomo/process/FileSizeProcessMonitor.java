@@ -20,6 +20,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2003/08/04 22:22:57  rickg
+ * <p> Fixed typo
+ * <p>
  * <p> Revision 1.3  2003/07/01 22:55:02  rickg
  * <p> Added starting text to progress for slow startup scripts
  * <p>
@@ -122,7 +125,13 @@ public abstract class FileSizeProcessMonitor implements Runnable {
       int currentLength = (int) (watchedFile.length() / 1024);
       double fractionDone = (double) currentLength / nKBytes;
       int percentage = (int) Math.round(fractionDone * 100);
-
+      if(percentage < 0) {
+        percentage = 0;
+      }
+      if(percentage > 99) {
+        percentage = 99;
+      }
+      
       long elapsedTime = System.currentTimeMillis() - processStartTime;
       double remainingTime = elapsedTime / fractionDone - elapsedTime;
       int minutes = (int) Math.floor(remainingTime / 60000);
