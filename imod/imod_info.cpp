@@ -335,6 +335,14 @@ void InfoWindow::manageMenus()
 			      App->cvi->vmSize != 0 || App->cvi->nt > 0);
 }
 
+void InfoWindow::keepOnTop(bool state)
+{
+  if (state)
+    setWFlags(getWFlags() | WStyle_StaysOnTop);
+  else
+    setWFlags(getWFlags() & ~WStyle_StaysOnTop);
+}
+
 
 /* 1/12/03: removed unused imod_info_force, imod_info_pending and 
    imod_info_dispatch; moved imod_info_input to imof_info_cb */
@@ -362,7 +370,7 @@ int imod_info_open()
     ImodInfoWidget->setImageName(" ");
 
   // Initialize the model line (could we use MaintainModelName?)
-  filename = imodwGivenName("Model:", Imod_filename);
+  filename = imodwGivenName(" ", Imod_filename);
   filename = truncate_name(filename, 23);
   if (filename) {
     ImodInfoWidget->setModelName(filename);
@@ -388,7 +396,7 @@ void MaintainModelName(Imod *mod)
   char *filestr;
   int namelen;
      
-  filestr = imodwGivenName("Model:", Imod_filename);
+  filestr = imodwGivenName(" ", Imod_filename);
   filestr = truncate_name(filestr, 23);
   if(!filestr) {
     filestr = (char *) malloc(1);
@@ -432,6 +440,10 @@ static char *truncate_name(char *name, int limit)
 
 /*
     $Log$
+    Revision 4.3  2003/03/03 22:19:53  mast
+    Added function for enabling menu items after menu creation, reorganized
+    menus
+
     Revision 4.2  2003/02/27 19:33:01  mast
     fixing window size for windows
 
