@@ -9,7 +9,6 @@ import etomo.storage.ParameterStore;
 import etomo.storage.Storable;
 import etomo.util.InvalidParameterException;
 import etomo.util.TestUtilites;
-import etomo.util.Utilities;
 import junit.framework.TestCase;
 
 /**
@@ -26,6 +25,11 @@ import junit.framework.TestCase;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.11  2004/12/08 21:31:41  sueh
+ * <p> bug# 520 Setting the working directory in TestUtilities.checkoutVector().
+ * <p> Also setting the fail message for SystemProcessException in
+ * <p> TestUtilities.checkoutVector().
+ * <p>
  * <p> Revision 3.10  2004/12/08 03:47:42  sueh
  * <p> bug# 520 improving failure message!!!!!!!!!!!#!@$@!#%#Q$^#%&#$
  * <p>
