@@ -37,6 +37,7 @@ Log at end of file
 #include <stdlib.h>
 #include <math.h>
 #include <qglcolormap.h>
+#include <qdir.h>
 #include "imod.h"
 #include "b3dgfx.h"
 #include "b3dfile.h"
@@ -1405,7 +1406,8 @@ void b3dAutoSnapshot(char *name, int format_type, int *limits)
     else
       sprintf(fname, "%s%d.%s", name, fileno++, fext);
           
-  }while ((tfp = fopen(fname, "rb")));
+  }while ((tfp = fopen((QDir::convertSeparators(QString(fname))).latin1(),
+    "rb")));
 
   if (tfp){
     fclose(tfp);
@@ -1468,7 +1470,7 @@ void b3dSnapshot_RGB(char *fname, int rgbmode, int *limits)
   int rpWidth = CurWidth;
   int rpHeight = CurHeight;
 
-  fout = fopen(fname, "wb");
+  fout = fopen((QDir::convertSeparators(QString(fname))).latin1(), "wb");
   if (!fout){
     perror("Snapshot: error opening file ");
     return;
@@ -1577,7 +1579,7 @@ void b3dSnapshot_TIF(char *fname, int rgbmode, int *limits,
   int rpWidth = CurWidth;
   int rpHeight = CurHeight;
 
-  fout = fopen(fname, "wb");
+  fout = fopen((QDir::convertSeparators(QString(fname))).latin1(), "wb");
   if (!fout){
     perror("Snapshot: error opening file ");
     return;
@@ -1790,6 +1792,9 @@ void b3dSnapshot(char *fname)
 
 /*
 $Log$
+Revision 4.3  2003/02/21 23:56:34  mast
+open snapshot files in binary mode
+
 Revision 4.2  2003/02/14 01:13:43  mast
 cleanup unused variables
 

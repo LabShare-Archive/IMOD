@@ -35,6 +35,7 @@ Log at end of file
 */
 
 #include <qfiledialog.h>
+#include <qdir.h>
 #include "colorselector.h"
 #include "imodv_window.h"
 #include "dia_qtutils.h"
@@ -307,7 +308,8 @@ void imodvFileSave()
 
 
   if (a->imod->fileName)
-    fout = fopen(a->imod->fileName, "wb");
+    fout = fopen((QDir::convertSeparators(QString(a->imod->fileName))).
+      latin1(), "wb");
 
   if (fout){
     a->imod->file = fout;
@@ -358,7 +360,7 @@ void imodvSaveModelAs()
   sprintf(nfname1, "%s~", filename);
   rename(filename, nfname1);
 
-  fout = fopen(filename, "wb");
+  fout = fopen((QDir::convertSeparators(QString(filename))).latin1(), "wb");
   if (fout){
     a->imod->file = fout;
     error = imodWrite(Imodv->imod, fout);
@@ -576,6 +578,9 @@ void ImodvBkgColor::keyReleaseSlot ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.2  2003/02/21 23:20:55  mast
+Open model save file in binary mode
+
 Revision 4.1  2003/02/10 20:29:01  mast
 autox.cpp
 

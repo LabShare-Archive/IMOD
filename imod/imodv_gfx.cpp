@@ -39,6 +39,7 @@ Log at end of file
 #include <stdlib.h>
 #include <math.h>
 #include <limits.h>
+#include <qdir.h>
 #include "imodv_window.h"
 
 #include "imod.h"
@@ -313,7 +314,7 @@ static int imodv_snapshot(ImodvApp *a, char *fname)
   GLint xoffset;
   char iname[80];
 
-  fout = fopen(fname, "wb");
+  fout = fopen((QDir::convertSeparators(QString(fname))).latin1(), "wb");
   if (!fout){
     perror("imodv: error opening file ");
     return(-1);
@@ -382,6 +383,9 @@ static int imodv_snapshot(ImodvApp *a, char *fname)
 
 /*
 $Log$
+Revision 4.2  2003/02/21 23:21:41  mast
+Open snapshot file in binary mode
+
 Revision 4.1  2003/02/10 20:29:01  mast
 autox.cpp
 
