@@ -8,8 +8,8 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>403</width>
-            <height>797</height>
+            <width>382</width>
+            <height>752</height>
         </rect>
     </property>
     <property name="caption">
@@ -1127,19 +1127,111 @@
     </vbox>
 </widget>
 <connections>
+    <connection>
+        <sender>startAsGroup</sender>
+        <signal>clicked(int)</signal>
+        <receiver>StartupForm</receiver>
+        <slot>startAsClicked(int)</slot>
+    </connection>
+    <connection>
+        <sender>cacheGroup</sender>
+        <signal>clicked(int)</signal>
+        <receiver>StartupForm</receiver>
+        <slot>cacheTypeClicked(int)</slot>
+    </connection>
+    <connection>
+        <sender>showMontageBox</sender>
+        <signal>toggled(bool)</signal>
+        <receiver>StartupForm</receiver>
+        <slot>showMontageToggled(bool)</slot>
+    </connection>
+    <connection>
+        <sender>windowSizeGroup</sender>
+        <signal>clicked(int)</signal>
+        <receiver>StartupForm</receiver>
+        <slot>modvSizeClicked(int)</slot>
+    </connection>
+    <connection>
+        <sender>PushButton1</sender>
+        <signal>clicked()</signal>
+        <receiver>StartupForm</receiver>
+        <slot>imageSelectClicked()</slot>
+    </connection>
+    <connection>
+        <sender>modelSelectButton</sender>
+        <signal>clicked()</signal>
+        <receiver>StartupForm</receiver>
+        <slot>modelSelectClicked()</slot>
+    </connection>
+    <connection>
+        <sender>pieceSelectButton</sender>
+        <signal>clicked()</signal>
+        <receiver>StartupForm</receiver>
+        <slot>pieceSelectClicked()</slot>
+    </connection>
+    <connection>
+        <sender>imageFilesEdit</sender>
+        <signal>textChanged(const QString&amp;)</signal>
+        <receiver>StartupForm</receiver>
+        <slot>imageChanged(const QString&amp;)</slot>
+    </connection>
+    <connection>
+        <sender>modelFileEdit</sender>
+        <signal>textChanged(const QString&amp;)</signal>
+        <receiver>StartupForm</receiver>
+        <slot>modelChanged(const QString&amp;)</slot>
+    </connection>
+    <connection>
+        <sender>pieceFileEdit</sender>
+        <signal>textChanged(const QString&amp;)</signal>
+        <receiver>StartupForm</receiver>
+        <slot>pfileChanged(const QString&amp;)</slot>
+    </connection>
+    <connection>
+        <sender>PushButton13</sender>
+        <signal>clicked()</signal>
+        <receiver>StartupForm</receiver>
+        <slot>accept()</slot>
+    </connection>
+    <connection>
+        <sender>PushButton14</sender>
+        <signal>clicked()</signal>
+        <receiver>StartupForm</receiver>
+        <slot>reject()</slot>
+    </connection>
 </connections>
 <includes>
     <include location="local" impldecl="in implementation">form_startup.ui.h</include>
 </includes>
 <variables>
+    <variable>int mArgc</variable>
+    <variable>char **mArgv</variable>
+    <variable>bool mFilesChanged</variable>
+    <variable>bool mJoinedWithSpace</variable>
+    <variable>QString mModelFile</variable>
+    <variable>QStringList mImageFileList</variable>
+    <variable>QString mPieceFile</variable>
+    <variable>QString mImageFiles</variable>
     <variable>bool mModvMode</variable>
     <variable>int mModvSizeOption</variable>
     <variable>int mCacheOption</variable>
+    <variable>bool mShowMontage</variable>
 </variables>
 <slots>
     <slot>init()</slot>
     <slot>manageForModView()</slot>
-    <slot>modelViewSlot()</slot>
+    <slot>manageMontage()</slot>
+    <slot>manageModvSize()</slot>
+    <slot>modvSizeClicked( int id )</slot>
+    <slot>cacheTypeClicked( int id )</slot>
+    <slot>showMontageToggled( bool state )</slot>
+    <slot>startAsClicked( int id )</slot>
+    <slot>imageChanged( const QString &amp; images )</slot>
+    <slot>modelChanged( const QString &amp; model )</slot>
+    <slot>pfileChanged( const QString &amp; pfile )</slot>
+    <slot>imageSelectClicked()</slot>
+    <slot>modelSelectClicked()</slot>
+    <slot>pieceSelectClicked()</slot>
 </slots>
 <pixmapinproject/>
 <layoutdefaults spacing="6" margin="11"/>

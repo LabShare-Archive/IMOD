@@ -11,6 +11,7 @@ void StartupForm::init()
 {
     // Set up radio buttons and other defaults
     mModvMode = false;
+    mShowMOntage = false;
     mCacheOption = 0;
     mModvSizeOption = 0;
     startAsGroup->setButton(0);
@@ -20,12 +21,13 @@ void StartupForm::init()
     
     manageForModView();
     
+    mFilesChanged = false;
 }
 
 void StartupForm::manageForModView()
 {
    imageFilesLabel->setText(mModvMode ? "Model file(s)" : "Image file(s):");
-   modelFileLabel->setEnabled(!mModvMode);
+   modelFileLabel->setEnabled();
    modelFileEdit->setEnabled(!mModvMode);
    modelSelectButton->setEnabled(!mModvMode);
    pieceFileLabel->setEnabled(!mModvMode);
@@ -64,26 +66,88 @@ void StartupForm::manageForModView()
    loadFramesBox->setEnabled(!mModvMode);
    loadUnscaledBox->setEnabled(!mModvMode);
    showMontageBox->setEnabled(!mModvMode);
-   xMontageSpinBox->setEnabled(!mModvMode);
    xMontageLabel->setEnabled(!mModvMode);
-   xOverlapLabel->setEnabled(!mModvMode);
-   xOverlapSpinBox->setEnabled(!mModvMode);
-   yMontageSpinBox->setEnabled(!mModvMode);
    yMontageLabel->setEnabled(!mModvMode);
-   yOverlapLabel->setEnabled(!mModvMode);
-   yOverlapSpinBox->setEnabled(!mModvMode);
+   manageMontage();
    
    windowSizeGroup->setEnabled(mModvMode);
    defaultSizeButton->setEnabled(mModvMode);
    fullScreenButton->setEnabled(mModvMode);
    setSizeButton->setEnabled(mModvMode);
-   xSizeSpinBox->setEnabled(mModvMode);
-   ySizeSpinBox->setEnabled(mModvMode);
    ySizeLabel->setEnabled(mModvMode);
+   manageModvSize();
 }
 
 
-void StartupForm::modelViewSlot()
+
+void StartupForm::manageMontage()
+{
+    bool enable = !mModvMode && mShowMontage;
+    xMontageSpinBox->setEnabled(enable);
+   xOverlapLabel->setEnabled(enable);
+   xOverlapSpinBox->setEnabled(enable);
+   yMontageSpinBox->setEnabled(enable);
+   yOverlapLabel->setEnabled(enable);
+   yOverlapSpinBox->setEnabled(enable);
+}
+
+void StartupForm::manageModvSize()
+{
+    xSizeSpinBox->setEnabled(mModvMode && mModvOption == 2);
+    ySizeSpinBox->setEnabled(mModvMode && mModvOption == 2);
+}
+
+
+void StartupForm::modvSizeClicked( int id )
+{
+    mModvSizeOption = id;
+    manageModvSize();
+}
+
+void StartupForm::cacheTypeClicked( int id )
+{
+    mCacheOption = id;
+}
+
+void StartupForm::showMontageToggled( bool state )
+{
+    mShowMontage = state;
+    manageMontage();
+}
+
+void StartupForm::startAsClicked( int id )
+{
+    mModvMode = id != 0;
+    manageForModView();
+}
+
+
+void StartupForm::imageChanged( const QString & images )
+{
+
+}
+
+void StartupForm::modelChanged( const QString & model )
+{
+
+}
+
+void StartupForm::pfileChanged( const QString & pfile )
+{
+
+}
+
+void StartupForm::imageSelectClicked()
+{
+
+}
+
+void StartupForm::modelSelectClicked()
+{
+
+}
+
+void StartupForm::pieceSelectClicked()
 {
 
 }
