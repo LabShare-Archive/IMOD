@@ -237,7 +237,8 @@ cleanqt : configure
 	cd sendevent ; $(MAKE) clean
 	cd flib/subrs ; \find . -type f -name '*dnmncar*' -exec /bin/rm -f '{}' \;
 	cd flib/subrs/graphics ; $(MAKE) clean
-	cd flib/subrs/ndasda ; $(MAKE) clean
+	cd flib/ndasda ; $(MAKE) clean
+	cd flib/graphics ; $(MAKE) clean
 
 #
 # Clean up executables in Windows
@@ -377,6 +378,9 @@ ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.31  2003/12/30 17:28:29  mast
+#  spare .exes in bin from cleanexe
+#
 #  Revision 3.30  2003/12/04 16:30:52  mast
 #  Remove unused dsp's from make src and add tests entry
 #
