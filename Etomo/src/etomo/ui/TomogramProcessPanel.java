@@ -28,6 +28,9 @@ import etomo.type.DialogType;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2005/03/21 18:34:52  sueh
+ * <p> bug# 622 Adding buttons to change axis.
+ * <p>
  * <p> Revision 1.4  2005/03/01 21:00:56  sueh
  * <p> Bug# 610 Keeping track of current dialog type in ApplicationManager by
  * <p> setting it in each open function.  Changing saveDialog to
@@ -77,6 +80,8 @@ public class TomogramProcessPanel extends AxisProcessPanel {
       DialogType.TOMOGRAM_COMBINATION);
   private ProcessControlPanel procCtlPostProcessing = new ProcessControlPanel(
       DialogType.POST_PROCESSING);
+  private ProcessControlPanel procCtlCleanUp = new ProcessControlPanel(
+      DialogType.CLEAN_UP);
   private JButton btnBothAxis = new JButton("Both");
   private JButton btnOtherAxis = null;
   
@@ -143,6 +148,10 @@ public class TomogramProcessPanel extends AxisProcessPanel {
       applicationManager.openPostProcessingDialog();
       return;
     }
+    if (command.equals(procCtlCleanUp.getName())) {
+      applicationManager.openCleanUpDialog();
+      return;
+    }
   }
 
   /**
@@ -205,6 +214,14 @@ public class TomogramProcessPanel extends AxisProcessPanel {
   public void setPostProcessingState(ProcessState state) {
     procCtlPostProcessing.setState(state);
   }
+  
+  /**
+   * 
+   * @param state
+   */
+  public void setCleanUpState(ProcessState state) {
+    procCtlCleanUp.setState(state);
+  }
 
   protected void createProcessControlPanel() {
     super.createProcessControlPanel();
@@ -235,34 +252,34 @@ public class TomogramProcessPanel extends AxisProcessPanel {
     procCtlPreProc.getContainer().setAlignmentX(Container.CENTER_ALIGNMENT);
     panelProcessSelect.add(procCtlPreProc.getContainer());
 
-    panelProcessSelect.add(Box.createRigidArea(FixedDim.x0_y20));
+    panelProcessSelect.add(Box.createRigidArea(FixedDim.x0_y10));
     procCtlCoarseAlign.addMouseListener(mouseAdapter);
     procCtlCoarseAlign.setButtonActionListener(buttonListener);
     procCtlCoarseAlign.getContainer().setAlignmentX(Container.CENTER_ALIGNMENT);
     panelProcessSelect.add(procCtlCoarseAlign.getContainer());
 
-    panelProcessSelect.add(Box.createRigidArea(FixedDim.x0_y20));
+    panelProcessSelect.add(Box.createRigidArea(FixedDim.x0_y10));
     procCtlFiducialModel.addMouseListener(mouseAdapter);
     procCtlFiducialModel.setButtonActionListener(buttonListener);
     procCtlFiducialModel.getContainer().setAlignmentX(
         Container.CENTER_ALIGNMENT);
     panelProcessSelect.add(procCtlFiducialModel.getContainer());
 
-    panelProcessSelect.add(Box.createRigidArea(FixedDim.x0_y20));
+    panelProcessSelect.add(Box.createRigidArea(FixedDim.x0_y10));
     procCtlFineAlignment.addMouseListener(mouseAdapter);
     procCtlFineAlignment.setButtonActionListener(buttonListener);
     procCtlFineAlignment.getContainer().setAlignmentX(
         Container.CENTER_ALIGNMENT);
     panelProcessSelect.add(procCtlFineAlignment.getContainer());
 
-    panelProcessSelect.add(Box.createRigidArea(FixedDim.x0_y20));
+    panelProcessSelect.add(Box.createRigidArea(FixedDim.x0_y10));
     procCtlTomogramPositioning.addMouseListener(mouseAdapter);
     procCtlTomogramPositioning.setButtonActionListener(buttonListener);
     procCtlTomogramPositioning.getContainer().setAlignmentX(
         Container.CENTER_ALIGNMENT);
     panelProcessSelect.add(procCtlTomogramPositioning.getContainer());
 
-    panelProcessSelect.add(Box.createRigidArea(FixedDim.x0_y20));
+    panelProcessSelect.add(Box.createRigidArea(FixedDim.x0_y10));
     procCtlTomogramGeneration.addMouseListener(mouseAdapter);
     procCtlTomogramGeneration.setButtonActionListener(buttonListener);
     procCtlTomogramGeneration.getContainer().setAlignmentX(
@@ -270,7 +287,7 @@ public class TomogramProcessPanel extends AxisProcessPanel {
     panelProcessSelect.add(procCtlTomogramGeneration.getContainer());
 
     if (axisID == AxisID.FIRST) {
-      panelProcessSelect.add(Box.createRigidArea(FixedDim.x0_y20));
+      panelProcessSelect.add(Box.createRigidArea(FixedDim.x0_y10));
       procCtlTomogramCombination.addMouseListener(mouseAdapter);
       procCtlTomogramCombination.setButtonActionListener(buttonListener);
       procCtlTomogramCombination.getContainer().setAlignmentX(
@@ -278,12 +295,18 @@ public class TomogramProcessPanel extends AxisProcessPanel {
       panelProcessSelect.add(procCtlTomogramCombination.getContainer());
     }
     if (axisID != AxisID.SECOND) {
-      panelProcessSelect.add(Box.createRigidArea(FixedDim.x0_y20));
+      panelProcessSelect.add(Box.createRigidArea(FixedDim.x0_y10));
       procCtlPostProcessing.addMouseListener(mouseAdapter);
       procCtlPostProcessing.setButtonActionListener(buttonListener);
       procCtlPostProcessing.getContainer().setAlignmentX(
           Container.CENTER_ALIGNMENT);
       panelProcessSelect.add(procCtlPostProcessing.getContainer());
+      
+      panelProcessSelect.add(Box.createRigidArea(FixedDim.x0_y10));
+      procCtlCleanUp.addMouseListener(mouseAdapter);
+      procCtlCleanUp.setButtonActionListener(buttonListener);
+      procCtlCleanUp.getContainer().setAlignmentX(Container.CENTER_ALIGNMENT);
+      panelProcessSelect.add(procCtlCleanUp.getContainer());
     }
   }
 
@@ -325,6 +348,10 @@ public class TomogramProcessPanel extends AxisProcessPanel {
       procCtlPostProcessing.setSelected(true);
       return;
     }
+    if (name.equals(procCtlCleanUp.getName())) {
+      procCtlCleanUp.setSelected(true);
+      return;
+    }
   }
 
   private void unSelectAll() {
@@ -336,6 +363,7 @@ public class TomogramProcessPanel extends AxisProcessPanel {
     procCtlTomogramGeneration.setSelected(false);
     procCtlTomogramCombination.setSelected(false);
     procCtlPostProcessing.setSelected(false);
+    procCtlCleanUp.setSelected(false);
   }
   
   /**
@@ -379,9 +407,13 @@ public class TomogramProcessPanel extends AxisProcessPanel {
         .format());
 
     text = "Open the Post Processing panel to trim the final reconstruction to size"
-        + " and delete the intermediate files.";
+        + " and squeeze the final reconstruction volume.";
     procCtlPostProcessing.setToolTipText(tooltipFormatter.setText(text)
         .format());
+    
+    text = "Open the Clean Up panel to delete the intermediate files.";
+  procCtlCleanUp.setToolTipText(tooltipFormatter.setText(text)
+      .format());
   }
 
   /**
