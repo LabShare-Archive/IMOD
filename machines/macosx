@@ -142,7 +142,7 @@ echo  'MAKEF77PLUGIN  = $(FC)  -bundle -dynamic -bundle_loader '"$plug_loader"' 
 #
 cat <<EOF >! $imod_dir/runimod
 #!/bin/csh -f
-setenv DYLD_LIBRARY_PATH \${IMOD_QTLIBDIR}:\$DYLD_LIBRARY_PATH
+setenv DYLD_LIBRARY_PATH "\${IMOD_QTLIBDIR}:\$DYLD_LIBRARY_PATH"
 set background = 1
 foreach i (\$*)
     if ("\$i" == '-D' || "\$i" == '-W') set background = 0
@@ -156,7 +156,7 @@ EOF
 
 cat <<EOF >! $imod_dir/runimodv
 #!/bin/csh -f
-setenv DYLD_LIBRARY_PATH \${IMOD_QTLIBDIR}:\$DYLD_LIBRARY_PATH
+setenv DYLD_LIBRARY_PATH "\${IMOD_QTLIBDIR}:\$DYLD_LIBRARY_PATH"
 set background = 1
 foreach i (\$*)
     if ("\$i" == '-D') set background = 0
@@ -170,13 +170,13 @@ EOF
 
 cat <<EOF >! $sendevent_dir/runsendevent
 #!/bin/csh -f
-setenv DYLD_LIBRARY_PATH \${IMOD_QTLIBDIR}:\$DYLD_LIBRARY_PATH
+setenv DYLD_LIBRARY_PATH "\${IMOD_QTLIBDIR}:\$DYLD_LIBRARY_PATH"
 \$IMOD_DIR/bin/${send_target} \$*
 EOF
 
 cat <<EOF >! $midas_dir/runmidas
 #!/bin/csh -f
-setenv DYLD_LIBRARY_PATH \${IMOD_QTLIBDIR}:\$DYLD_LIBRARY_PATH
+setenv DYLD_LIBRARY_PATH "\${IMOD_QTLIBDIR}:\$DYLD_LIBRARY_PATH"
 set background = 1
 foreach i (\$*)
     if ("\$i" == '-D') set background = 0
