@@ -123,7 +123,8 @@ echo "Or just Return if the points are in one-to-one correspondence."
 #
 # Need to strip spaces out of these lists
 #
-set corrlistin = ($<)
+set corrlistin = "$<"
+set corrlistin = ($corrlistin)
 set corrlist1 = ""
 while ($#corrlistin > 0)
     set corrlist1 = ${corrlist1}$corrlistin[1]
@@ -136,7 +137,8 @@ set corrlist2 = " "
 if ($corrlist1 != "") then
     set corrtext1 = "list of points in 1st"
     echo "Enter a list of the corresponding points in tilt series $fromlet"
-    set corrlistin = ($<)
+    set corrlistin = "$<"
+    set corrlistin = ($corrlistin)
     set corrlist2 = ""
     while ($#corrlistin > 0)
         set corrlist2 = ${corrlist2}$corrlistin[1]
@@ -610,6 +612,9 @@ echo '$'"if (-e $backupname) $backupname" | cat >> $volcombine
 
 #
 #  $Log$
+#  Revision 3.15  2003/10/24 02:14:00  mast
+#  source settmpdir to get tmpdir, better for Windows
+#
 #  Revision 3.14  2003/10/16 20:43:06  mast
 #  Make matchshift patches bigger in X and Y to reduce check volume failures
 #

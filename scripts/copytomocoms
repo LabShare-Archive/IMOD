@@ -335,7 +335,8 @@ while ($iaxis < $numax)
 
     echo "Enter list of views to exclude from tracking, alignment, and reconstruction,"
     echo "  or Return if none (enter ranges separated by commas, e.g. 1,77-80)"
-    set excludelistin = ($<)
+    set excludelistin = "$<"
+    set excludelistin = ($excludelistin)
     set excludelist = ""
     while ($#excludelistin > 0)
         set excludelist = ${excludelist}$excludelistin[1]
@@ -871,6 +872,9 @@ EOF
 endif
 #
 #  $Log$
+#  Revision 3.17  2003/12/22 19:15:37  mast
+#  Allow the B axis data file to not exist yet and issue appropriate warnings
+#
 #  Revision 3.16  2003/12/09 00:07:36  mast
 #  Make the sed append command in sample add new line after SLICE for Mac 10.2
 #
