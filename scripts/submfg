@@ -8,6 +8,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.4  2004/06/24 15:32:55  mast
+#  Added -c option to continue if one file fails
+#
 #  Revision 3.3  2004/06/15 01:55:55  mast
 #  Added an option to get time output
 #
@@ -21,22 +24,28 @@
 if ($#argv < 1) then
 cat <<EOF
 subm or submfg will execute a series of command files in sequence
-Usage:  submfg [-t | -c] command_file1 command_file2 ...
+Usage:  submfg [options] command_file1 command_file2 ...
         Command files must have extension .com
         If the filename is comfile.com, you can enter 
                  comfile    comfile.    or  comfile.com
         submfg will execute the files in the foreground
         To run jobs in the background, set up an alias:  
                alias subm 'submfg \!* &'
-        The -t option will report the execution time
-        The -c option will continue with the next command file if one fails
         Set the environment variable SUBM_MESSAGE to modify the message upon
                 completion
+    Options:
+        -t     report the execution time
+        -c     continue with the next command file if one fails
+        -n #   Run niced with # as nice increment (range 1 to 19)
 EOF
 exit 0
 endif
 
-if ($?IMOD_DIR) set path = ($IMOD_DIR/bin $path)
+if ($?IMOD_DIR) then
+    set path = ($IMOD_DIR/bin $path)
+endif
+
+nohup
 
 set message = " finished successfully"
 if ($?SUBM_MESSAGE) then
@@ -45,9 +54,10 @@ endif
 set bell = ""
 
 set dotime = 0
-set comtmp = submtimer.$$
+set comtmp = submtemp.$$
 set done = 0
 set continue = 0
+set nice = 0
 
 while ($#argv > 2 && $done == 0)
     switch ($argv[1])
@@ -62,13 +72,17 @@ while ($#argv > 2 && $done == 0)
         shift
         breaksw
 
+    case -n:
+        set nice = $argv[2]
+        shift; shift
+        onintr clean
+        breaksw
+
     default:
         set done = 1
         breaksw
     endsw
 end
-
-
 
 while ($#argv > 0)
     set rootname = $argv[1]:r
@@ -77,15 +91,25 @@ while ($#argv > 0)
 	goto clean
     endif
     echo -n "Running $rootname.com ...  "
-    if ($dotime == 0) then
+
+    if ($dotime == 0 && $nice == 0) then
         vmstocsh $rootname.log < $rootname.com | csh -ef
         set exitstat = $status
     else
-        vmstocsh $rootname.log < $rootname.com >! $comtmp
+
+        # For nice or time, set up the com script, put nice in it
+        echo -n >! $comtmp
+        if ($nice != 0) echo nice +$nice >> $comtmp
+        vmstocsh $rootname.log < $rootname.com >> $comtmp
         set exitstat = $status
         if ($exitstat == 0) then
-            time csh -ef < $comtmp
-            set exitstat = $status
+            if ($dotime != 0) then
+                time csh -ef < $comtmp
+                set exitstat = $status
+            else
+                csh -ef < $comtmp
+                set exitstat = $status
+            endif
         endif
     endif
     if ($exitstat) then
@@ -99,4 +123,4 @@ while ($#argv > 0)
 end
 
 clean:
-if ($dotime == 1) \rm -f $comtmp 
+if ($dotime == 1 || $nice != 0) \rm -f $comtmp 
