@@ -37,6 +37,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.13  2004/06/22 02:07:12  sueh
+ * <p> bug# 481 Fixed display error.
+ * <p>
  * <p> Revision 3.12  2004/06/17 20:18:53  sueh
  * <p> bug# 472
  * <p>
@@ -186,6 +189,9 @@ public class TomogramPositioningDialog extends ProcessDialog
     "<html><b>Create Final Alignment</b>");
 
   private Dimension fullImageSize = new Dimension();
+  
+  private static final String SAMPLE_TOMOGRAMS_TOOLTIP =
+    "Build 3 sample tomograms for finding location and angles of section.";
 
   public TomogramPositioningDialog(ApplicationManager appMgr, AxisID axisID) {
     super(appMgr, axisID);
@@ -460,6 +466,8 @@ public class TomogramPositioningDialog extends ProcessDialog
   }
 
   public void updateUIState() {
+    TooltipFormatter tooltipFormatter = new TooltipFormatter();
+    String text;
     ltfTiltAngleOffset.setEnabled(!cbFiducialess.isSelected());
     ltfTiltAxisZShift.setEnabled(!cbFiducialess.isSelected());
     btnAlign.setEnabled(!cbFiducialess.isSelected());
@@ -467,10 +475,14 @@ public class TomogramPositioningDialog extends ProcessDialog
     if (cbWholeTomogram.isSelected()) {
       spinBinning.setEnabled(true);
       btnSample.setText("Create Whole Tomogram");
+      text = "Create whole tomogram for drawing positioning model.";
+      btnSample.setToolTipText(tooltipFormatter.setText(text).format());
     }
     else {
       spinBinning.setEnabled(false);
       btnSample.setText("Create Sample Tomograms");
+      text = SAMPLE_TOMOGRAMS_TOOLTIP;
+      btnSample.setToolTipText(tooltipFormatter.setText(text).format());
     }
   }
 
@@ -525,7 +537,7 @@ public class TomogramPositioningDialog extends ProcessDialog
         + " thickness to see borders of section.";
     ltfSampleTomoThickness.setToolTipText(tooltipFormatter.setText(text)
       .format());
-    text = "Build 3 sample tomograms for finding location and angles of section.";
+    text = SAMPLE_TOMOGRAMS_TOOLTIP;
     btnSample.setToolTipText(tooltipFormatter.setText(text).format());
 
     text = "Open samples in 3dmod to make a model with lines along top and bottom "
