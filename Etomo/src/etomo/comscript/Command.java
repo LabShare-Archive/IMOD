@@ -16,6 +16,9 @@ import java.io.File;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.4  2004/12/08 21:17:00  sueh
+* <p> bug# 564 Added getBooleanValue() to get a misc boolean value.
+* <p>
 * <p> Revision 1.3  2004/12/04 00:34:11  sueh
 * <p> bug# 569 Handling directory paths with spaces:  converting from a
 * <p> command line to a command array to prevent the command line from
@@ -41,12 +44,11 @@ import java.io.File;
 public interface Command {
   public static  final String  rcsid =  "$Id$";
   
-  public String getCommandLine();
   public String getCommandName();
-  public File getOutputFile();
-  public int getMode();
-  public int getBinning();
+  public String getCommandLine();
+  public String[] getCommandArray();
+  public int getCommandMode();
+  public File getCommandOutputFile();
   public int getIntegerValue(int name);
   public boolean getBooleanValue(int name);
-  public String[] getCommandArray();
 }
