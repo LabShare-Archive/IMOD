@@ -18,17 +18,20 @@ import etomo.ui.FixedDim;
  *
  * @version $Revision$
  *
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2002/09/09 22:57:02  rickg
+ * <p> Initial CVS entry, basic functionality not including combining
+ * <p> </p>
  */
 public class ProcessProgressDialog extends JDialog implements Runnable {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
 
   private JPanel contentPane;
   private JLabel label;
   public JProgressBar progressBar;
 
-
-  private Thread thread ;
+  private Thread thread;
   public int stepTimeMS;
 
   public ProcessProgressDialog(String newLabel, Thread current) {
@@ -46,8 +49,9 @@ public class ProcessProgressDialog extends JDialog implements Runnable {
     pack();
     Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
     Dimension size = getSize();
-    setLocation((screenSize.width - size.width)/2,
-      (screenSize.height - size.height)/2);
+    setLocation(
+      (screenSize.width - size.width) / 2,
+      (screenSize.height - size.height) / 2);
   }
 
   public void run() {
@@ -56,14 +60,14 @@ public class ProcessProgressDialog extends JDialog implements Runnable {
 
     try {
       int i = 0;
-      while(true) {
-	thread.sleep(stepTimeMS);
-	progressBar.setValue(i);
-	repaint();
-	i++;
-       }
+      while (true) {
+        thread.sleep(stepTimeMS);
+        progressBar.setValue(i);
+        repaint();
+        i++;
+      }
     }
-    catch(InterruptedException except) {
+    catch (InterruptedException except) {
     }
     dispose();
   }
