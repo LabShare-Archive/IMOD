@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.3  2002/07/31 17:34:44  mast
+    Changes to accommodate new header format for origin values
+
     Revision 3.2  2002/06/26 17:06:37  mast
     Added type casts to calls to mrc_swap_shorts and _floats
 
@@ -73,7 +76,7 @@ int mrc_head_read(FILE *fin, struct MRCheader *hdata)
      
      
      if (fread(hdata, 56, 4, fin) == 0){
-	  fprintf(stderr, "mrc_head_read: Error reading header data.\n");
+	  fprintf(stderr, "ERROR: mrc_head_read - reading header data.\n");
 	  return(-1);
      }
 
@@ -101,18 +104,21 @@ int mrc_head_read(FILE *fin, struct MRCheader *hdata)
 	  if (hdata->swapped)
 	       mrc_swap_floats(&hdata->rms, 1);
 	  mrc_set_cmap_stamp(hdata);
+     }
 
-     if (hdata->swapped)
+     if (hdata->swapped) {
 	  mrc_swap_header(hdata);
 
 	  /* Test that this swapping makes values acceptable */
+	  /* Let calling program issue error message */
 	  if (hdata->nx <= 0 || hdata->nx > 60000 ||
 	      hdata->ny <= 0 || hdata->ny > 60000 ||
 	      hdata->nz <= 0 || hdata->nz > 60000 ||
 	      hdata->mapc < 0 || hdata->mapc > 4 ||
 	      hdata->mapr < 0 || hdata->mapr > 4 ||
-	      hdata->maps < 0 || hdata->maps > 4)
+	      hdata->maps < 0 || hdata->maps > 4) {
 	       return(1);
+	  }
      }
 	  
 
@@ -123,7 +129,7 @@ int mrc_head_read(FILE *fin, struct MRCheader *hdata)
 
      for ( i = 0; i < MRC_NLABELS; i ++){
        if (fread(hdata->labels[i], MRC_LABEL_SIZE, 1, fin) == 0){  
-	       fprintf(stderr, "mrc_head_read: Error reading label %d.\n",
+	       fprintf(stderr, "ERROR: mrc_head_read - reading label %d.\n",
 		       i);
 	       hdata->labels[i][MRC_LABEL_SIZE] = 0;
 	       return(-1);
@@ -131,11 +137,19 @@ int mrc_head_read(FILE *fin, struct MRCheader *hdata)
 	  hdata->labels[i][MRC_LABEL_SIZE] = 0;
      }
 
-     if ((hdata->mode > 31) || (hdata->mode < 0))
+     if ((hdata->mode > 31) || (hdata->mode < 0)) {
+	  fprintf(stderr, "ERROR: mrc_head_read - bad file mode %d.\n",
+		  hdata->mode);
 	  return(1);
-     if (hdata->nlabl > MRC_NLABELS)
+     }
+     if (hdata->nlabl > MRC_NLABELS) {
+	  fprintf(stderr, "ERROR: mrc_head_read - impossible number of "
+		  "labels, %d.\n", hdata->nlabl);
 	  return(1);
+     }
 
+     /* DNM 7/2/02: This calculation is won't work for big files and is
+	a bad idea anyway, so comment out the test below */
      datasize = hdata->nx * hdata->ny * hdata->nz;
      switch(hdata->mode){
 	case 0:
@@ -154,16 +168,19 @@ int mrc_head_read(FILE *fin, struct MRCheader *hdata)
 	  datasize *= 3;
 	  break;
 	default:
+	  fprintf(stderr, "ERROR: mrc_head_read - bad file mode %d.\n",
+		  hdata->mode);
 	  return(1);
      }
      fseek(fin, 0, 2);
      filesize = ftell(fin);
      rewind(fin);
 
-     if ((filesize - datasize) < 0)
+     /* if ((filesize - datasize) < 0)
 	  return(0);
      if ((filesize - datasize) > 512)
-	  return(0);
+     return(0); */
+
      hdata->fp = fin;
 
      return(retval);
@@ -524,7 +541,7 @@ mrc_write_idata(FILE *fout, struct MRCheader *hdata, void *data[])
      float         **fdata;
 
      if (hdata->swapped) {
-	  fprintf(stderr, "mrc_write_idata: cannot write to a"
+	  fprintf(stderr, "ERROR: mrc_write_idata - cannot write to a"
 		  " byte-swapped file.\n");
 	  return(-1);
      }
@@ -553,7 +570,7 @@ mrc_write_idata(FILE *fout, struct MRCheader *hdata, void *data[])
 	       break;
 
 	     default:
-	       fprintf(stderr, "mrc_write: unknown mode\n");
+	       fprintf(stderr, "ERROR: mrc_write - unknown mode\n");
 	       return(0);
 	  }
 
@@ -675,18 +692,18 @@ void *mrc_mread_slice(FILE *fin, struct MRCheader *hdata,
 	       break;
 
 	     default:
-	       fprintf(stderr, "mrc_mread_slice: axis error.\n");
+	       fprintf(stderr, "ERROR: mrc_mread_slice - axis error.\n");
 	       return(NULL);
 	  }
 
      if (mrc_getdcsize(hdata->mode, &dsize, &csize)){
-	  fprintf(stderr, "mrc_mread_slice: unknown mode.\n");
+	  fprintf(stderr, "ERROR: mrc_mread_slice - unknown mode.\n");
 	  return(NULL);
      }
      buf = (unsigned char *)malloc(dsize * csize * bsize);
      
      if (!buf){
-	  fprintf(stderr, "mrc_mread_slice: couldn't get memory.\n");
+	  fprintf(stderr, "ERROR: mrc_mread_slice - couldn't get memory.\n");
 	  return(NULL);
      }
 
@@ -716,7 +733,7 @@ int mrc_read_slice(void *buf, FILE *fin, struct MRCheader *hdata,
      data = (unsigned char *)buf;
 
      if (mrc_getdcsize(hdata->mode, &dsize, &csize)){
-	  fprintf(stderr, "mrc_read_slice: unknown mode.\n");
+	  fprintf(stderr, "ERROR: mrc_read_slice - unknown mode.\n");
 	  return(-1);
      }
 
@@ -732,7 +749,7 @@ int mrc_read_slice(void *buf, FILE *fin, struct MRCheader *hdata,
 	       for (j = 0; j < hdata->ny; j++){
 		    if (fread(data, dsize * csize, 1, fin) != 1){
 			 fprintf(stderr, 
-				 "mrc_read_slice x: fread error.\n");
+				 "ERROR: mrc_read_slice x - fread error.\n");
 			 return(-1);
 		    }
 		    data += dsize * csize;
@@ -750,7 +767,8 @@ int mrc_read_slice(void *buf, FILE *fin, struct MRCheader *hdata,
 	  for(k = 0; k < hdata->nz; k++){
 	       if (fread(data, dsize * csize, hdata->nx, fin) != 
 		   hdata->nx){
-		    fprintf(stderr, "mrc_read_slice y: fread error.\n");
+		    fprintf(stderr, 
+			    "ERROR: mrc_read_slice y - fread error.\n");
 		    return(-1);
 	       }
 	       data += dsize * csize * hdata->nx;
@@ -768,13 +786,13 @@ int mrc_read_slice(void *buf, FILE *fin, struct MRCheader *hdata,
 	  mrc_big_seek( fin, 0, slice, hdata->nx * hdata->ny * dsize * csize,
 		SEEK_CUR);
 	  if (fread(data, (dsize * csize), xysize, fin) != xysize){
-	       fprintf(stderr, "mrc_read_slice z: fread error.\n");
+	       fprintf(stderr, "ERROR: mrc_read_slice z - fread error.\n");
 	       return(-1);
 	  }
 	  break;
 	  
 	default:
-	  fprintf(stderr, "mrcfiles.c, mrc_read_slice: axis error.\n");
+	  fprintf(stderr, "ERROR: mrc_read_slice - axis error.\n");
 	  return(-1);
      }
 
@@ -818,7 +836,7 @@ int mrc_write_slice(void *buf, FILE *fout, struct MRCheader *hdata,
      data = (unsigned char *)buf;
 
      if (mrc_getdcsize(hdata->mode, &dsize, &csize)){
-	  fprintf(stderr, "mrc_write_slice: unknown mode.\n");
+	  fprintf(stderr, "ERROR: mrc_write_slice - unknown mode.\n");
 	  return(-1);
      }
 
@@ -846,7 +864,7 @@ int mrc_write_slice(void *buf, FILE *fout, struct MRCheader *hdata,
 	  slicesize = xysize;
 	  break;
 	default:
-	  fprintf(stderr, "mrc_write_slice: axis error.\n");
+	  fprintf(stderr, "ERROR: mrc_write_slice - axis error.\n");
 	  return(-1);
      }
      
@@ -855,8 +873,8 @@ int mrc_write_slice(void *buf, FILE *fout, struct MRCheader *hdata,
      if (hdata->swapped && dsize > 1) {
 	  data = malloc(slicesize * dsize * csize);
 	  if (!data) {
-	       fprintf(stderr,
-		       "mrc_write_slice: failure to allocate memory.\n");
+	       fprintf(stderr, "ERROR: mrc_write_slice - "
+		       "failure to allocate memory.\n");
 	       return(-1);
 	  }
 	  memcpy(data, buf, slicesize * dsize * csize);
@@ -874,8 +892,8 @@ int mrc_write_slice(void *buf, FILE *fout, struct MRCheader *hdata,
 	       for(k = 0; k < hdata->nz; k++){
 		    for (j = 0; j < hdata->ny; j++){
 			 if (fwrite(data, dsize * csize, 1, fout) != 1){
-			      fprintf(stderr, 
-				      "mrc_write_slice x: fwrite error.\n");
+			      fprintf(stderr, "ERROR: mrc_write_slice x"
+				      " - fwrite error.\n");
 			      if (hdata->swapped && dsize > 1)
 				   free(data);
 			      return(-1);
@@ -893,7 +911,8 @@ int mrc_write_slice(void *buf, FILE *fout, struct MRCheader *hdata,
 	       for(k = 0; k < hdata->nz; k++){
 		    if (fwrite(data, dsize * csize, hdata->nx, fout) != 
 			hdata->nx){
-			 fprintf(stderr, "mrc_write_slice y: fwrite error.\n");
+			 fprintf(stderr, 
+				 "ERROR: mrc_write_slice y - fwrite error.\n");
 			 return(-1);
 			 if (hdata->swapped && dsize > 1)
 			      free(data);
@@ -911,7 +930,8 @@ int mrc_write_slice(void *buf, FILE *fout, struct MRCheader *hdata,
 	       mrc_big_seek( fout, 0, slice, hdata->nx * hdata->ny * 
 			     csize * dsize, SEEK_CUR);
 	       if (fwrite(data, dsize * csize, xysize, fout) != xysize){
-		    fprintf(stderr, "mrc_write_slice z: fwrite error.\n");
+		    fprintf(stderr, 
+			    "ERROR: mrc_write_slice z - fwrite error.\n");
 		    if (hdata->swapped && dsize > 1)
 			 free(data);
 		    return(-1);
@@ -919,7 +939,7 @@ int mrc_write_slice(void *buf, FILE *fout, struct MRCheader *hdata,
 	       break;
 	       
 	     default:
-	       fprintf(stderr, "mrc_write_slice: axis error.\n");
+	       fprintf(stderr, "ERROR: mrc_write_slice - axis error.\n");
 	       return(-1);
 	  }
      if (hdata->swapped && dsize > 1)
@@ -1022,7 +1042,7 @@ unsigned char *get_short_map(float slope, float offset, int imin, int imax,
 
      unsigned char *map = (unsigned char *)malloc(65536);
      if (!map) {
-	  fprintf(stderr, "get_short_map: Error getting memory");
+	  fprintf(stderr, "ERROR: get_short_map - getting memory");
 	  return 0;
      }
      for (i = 0; i < 65536; i++) {
@@ -1169,7 +1189,8 @@ unsigned char **mrc_read_byte(FILE *fin,
 	       idata[i] = (unsigned char *)
 		    malloc(xysize * sizeof(unsigned char));
 	       if (!idata[i]){
-		    fprintf(stderr, "Not enough memory to load image data.\n");
+		    fprintf(stderr, "ERROR: mrc_read_byte - "
+			    "Not enough memory to load image data.\n");
 		    /* Todo: Free Stuff */
 		    for(i = 0; i < zsize; i++)
 			 if(idata[i])
@@ -1516,7 +1537,7 @@ unsigned char **mrc_read_byte(FILE *fin,
 	  break ;
 	  
 	default:
-	  fprintf(stderr, "mrc_read: Unknown Data Type\n");
+	  fprintf(stderr, "ERROR: mrc_read - Unknown Data Type\n");
 	  return(NULL);
      }
 
@@ -1777,7 +1798,7 @@ int loadtilts(struct TiltInfo *ti, struct MRCheader *hdata)
     getfilename(filename, "Enter tilt info filename. >");
     fin = fopen(filename, "r");
     if (!fin){
-      fprintf(stderr, "Couldn't load %s.\n", filename);
+      fprintf(stderr, "ERROR: loadtilts - Couldn't load %s.\n", filename);
       return(0);
     }
     for (i = 0; i < hdata->nz; i++)
