@@ -12,6 +12,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.6  2004/07/06 16:55:20  mast
+#  Switch from link to rename for Mac
+#
 #  Revision 3.5  2004/07/04 13:47:31  mast
 #  Added details for user and made it work with spaces in directory path
 #
@@ -216,8 +219,16 @@ else
     while ($ind <= $#scripts)
         set sysfil = $sysfiles[$ind]
         if (-e $scripts[$ind] && -e $sysfil) then
-            set already = `grep 'IMOD.*source' $sysfil`
+            set already = `grep "^[^#].*source.*$installdir.*IMOD" $sysfil`
             if ($status) then
+                set wrong = `grep -i "^[^#].*source.*imod" $sysfil`
+                if ($status == 0) then
+                    echo ""
+                    echo "WARNING: $sysfil has an older, inappropriate source command"
+                    echo "You should edit $sysfil to remove this line (or lines):"
+                    grep -i "^[^#].*source.*imod" $sysfil
+                    echo ""
+                endif
                 echo "Adding source of startup script to $sysfil"
                 echo "# Set environment for IMOD" >> $sysfil
                 echo "" >> $sysfil
@@ -233,6 +244,8 @@ endif
 set vernum = `echo $version | sed '/[^0-9.]/s///g'`
 echo ""
 echo "The installation of IMOD $vernum is complete."
+echo "You may need to start a new terminal window for changes to take effect"
+echo ""
 echo "It is up to you to remove any previous versions when you are sure"
 echo " that you are done with them."
 echo "IMOD-related files in $installdir :"
