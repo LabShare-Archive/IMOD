@@ -11,20 +11,18 @@ set packname = $this:r.tar.gz
 set tempdir = IMODtempDir
 
 # Find the end of this script
-# Make sure this starting number is safely past the test for the string!
+# Make sure this number is safely past the end of this file - just want to
+# limit the awk to a small part of the file
 #
-@ skip = 30
-while ($skip < 1000)
-    set stubend = `head -$skip $this | tail -1 | grep 'END OF STUB'`
-    if (! $status) break;
-    @ skip++
-end
+set maxlines = 1000
 
-if ($skip == 1000) then
+set stublines = `head -$maxlines $this | awk '/END OF STUB/ {print NR}'`
+if ($#stublines < 2) then
     echo "Could not find package in this file!"
     exit 1
 endif
 
+@ skip = $stublines[2]
 @ skip++
 
 set extract = 0
@@ -74,7 +72,6 @@ if ($status) then
     tar xzf $packname $version/$installer
 else
     gzcat $packname | tar xf - $version/$installer
-    echo "(Ignore possible gzcat: unexpected end of file error)"
 endif
 
 if (! -e $version/$installer) then
@@ -109,6 +106,9 @@ exit 0
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.3  2004/04/24 04:32:27  mast
+#  Fixes for SGI
+#
 #  Revision 3.2  2004/04/24 03:04:50  mast
 #  Add a blank line and use \mv
 #
