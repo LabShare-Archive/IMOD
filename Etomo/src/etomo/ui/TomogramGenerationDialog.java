@@ -33,6 +33,11 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.9  2003/09/08 05:47:09  rickg
+ * <p> Added trial tilt
+ * <p> Output for a single axis tomogram is changed to
+ * <p> dataset_full.rec
+ * <p>
  * <p> Revision 2.8  2003/06/25 22:14:57  rickg
  * <p> Constructed a panel for the tilt parameters
  * <p>
@@ -143,8 +148,8 @@ public class TomogramGenerationDialog
     new JButton("<html><b>Generate trial tomogram</b>");
   private JButton btn3dmodTrial =
     new JButton("<html><b>View trial tomogram in 3dmod</b>");
-  private JButton btnCommit =
-    new JButton("<html><b>Commmit current trial tomogram</b>");
+  private JToggleButton btnCommit =
+    new JToggleButton("<html><b>Commit current trial tomogram</b>");
 
   private JToggleButton btnTilt =
     new JToggleButton("<html><b>Generate<br>tomogram</b>");
@@ -305,7 +310,7 @@ public class TomogramGenerationDialog
         tiltParam.useShift(false);
       }
 
-      //    TODO: Error checking to be sure that all parameters are supplied
+      //  TODO: Error checking to be sure that all parameters are supplied
       if (ltfSliceStart.getText().matches("\\S+")
         || ltfSliceStop.getText().matches("\\S+")
         || ltfSliceStep.getText().matches("\\S+")) {
@@ -563,15 +568,14 @@ public class TomogramGenerationDialog
       applicationManager.trialTilt(axisID);
     }
     else if (command.equals(btn3dmodTrial.getActionCommand())) {
-
+      applicationManager.imodTestVolume(axisID);
     }
     else if (command.equals(btnCommit.getActionCommand())) {
-
+      applicationManager.commitTestVolume(axisID);
     }
     else if (command.equals(btnTilt.getActionCommand())) {
       applicationManager.tilt(axisID);
     }
-
     else if (command.equals(btn3dmod.getActionCommand())) {
       applicationManager.imodFullVolume(axisID);
     }
