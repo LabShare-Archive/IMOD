@@ -153,10 +153,9 @@ endif
 echo '#define STAY_ON_TOP_HACK' >> $hconfigure
 
 #
-# Do not use multiple threads in plax programs; use single-thread library?
+# Do not use multiple threads in plax programs; other thread stuff seems OK
 #
 echo '#define QTPLAX_NO_THREAD' >> $hconfigure
-set qtthread = false
 
 #
 # Set this because ordinary geometry saving method makes windows walk up and
@@ -202,6 +201,9 @@ if ($distname == "") set distname = _irix6.5
 
 
 #  $Log$
+#  Revision 3.25  2004/11/07 23:07:56  mast
+#  Added libifft to 3dmod build
+#
 #  Revision 3.24  2004/06/04 17:38:43  mast
 #  Added definition of LIBTRACKDEF to get -lftn into libtrack.so build
 #
