@@ -17,6 +17,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.8  2004/08/25 18:36:40  sueh
+ * <p> bug# 508 adding a timestamp that is set just before the process
+ * <p> is run.
+ * <p>
  * <p> Revision 3.7  2004/08/19 02:45:11  sueh
  * <p> bug# 508 Took the get process exit value functionality out of run() and
  * <p> placed it into a function so that it can be overridden.  Did the same
@@ -491,6 +495,9 @@ public class SystemProgram implements Runnable {
   }
   
   public Timestamp getRunTimestamp() {
+    if (runTimestamp == null) {
+      return null;
+    }
     return new Timestamp(runTimestamp.getTime());
   }
  
