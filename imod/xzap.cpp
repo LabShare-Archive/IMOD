@@ -45,6 +45,8 @@ Log at end of file
 #include "preferences.h"
 #include "undoredo.h"
 
+#define RADIANS_PER_DEGREE 0.0174532925
+
 static void zapDraw_cb(ImodView *vi, void *client, int drawflag);
 static void zapClose_cb(ImodView *vi, void *client, int drawflag);
 static void zapKey_cb(ImodView *vi, void *client, int released, QKeyEvent *e);
@@ -54,16 +56,20 @@ static void zapButton2(struct zapwin *zap, int x, int y, int controlDown);
 static void zapButton3(struct zapwin *zap, int x, int y, int controlDown);
 static void zapB1Drag(struct zapwin *zap, int x, int y);
 static void zapB2Drag(struct zapwin *zap, int x, int y, int controlDown);
-static void zapB3Drag(struct zapwin *zap, int x, int y, int controlDown);
+static void zapB3Drag(struct zapwin *zap, int x, int y, int controlDown, 
+                      int shiftDown);
 static void zapDelUnderCursor(ZapStruct *zap, int x, int y, Icont *cont);
 static void dragSelectContsCrossed(struct zapwin *zap, int x, int y);
 static void endContourShift(ZapStruct *zap);
 static Icont *checkContourShift(ZapStruct *zap, int &pt, int &err);
 static void setupContourShift(ZapStruct *zap);
-static void startShiftingContour(ZapStruct *zap, int x, int y);
-static void shiftContour(ZapStruct *zap, int x, int y);
+static void startShiftingContour(ZapStruct *zap, int x, int y, int button);
+static void shiftContour(ZapStruct *zap, int x, int y, int button, 
+                         int shiftDown);
 static void startMovieCheckSnap(ZapStruct *zap, int dir);
 static void registerDragAdditions(ZapStruct *zap);
+static int mouseXformMatrix(ZapStruct *zap, int x, int y, int type, 
+                            float mat[2][2]);
 
 static void zapDrawGraphics(ZapStruct *zap);
 static void zapDrawModel(ZapStruct *zap);
@@ -560,6 +566,7 @@ int imod_zap_open(struct ViewInfo *vi)
   zap->rubberband = 0;
   zap->startingBand = 0;
   zap->shiftingCont = 0;
+  zap->shiftRegistered = 0;
   zap->movieSnapCount = 0;
   zap->drawCurrentOnly = 0;
   zap->dragAddCount = 0;
@@ -976,7 +983,10 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
           
   case Qt::Key_P:
     if (shifted) {
-      setupContourShift(zap);
+      if (zap->shiftingCont)
+        endContourShift(zap);
+      else
+        setupContourShift(zap);
       handled = 1;
     }
     break;
@@ -1124,7 +1134,7 @@ void zapMousePress(ZapStruct *zap, QMouseEvent *event)
     firstmx = event->x();
     firstmy = event->y();
     if (zap->shiftingCont)
-      startShiftingContour(zap, firstmx, firstmy);
+      startShiftingContour(zap, firstmx, firstmy, 1);
     else if (zap->startingBand)
       zapButton1(zap, firstmx, firstmy, ctrlDown);
     else
@@ -1132,14 +1142,17 @@ void zapMousePress(ZapStruct *zap, QMouseEvent *event)
       
   } else if (event->button() == ImodPrefs->actualButton(2) &&
 	     !button1 && !button3) {
-    endContourShift(zap);
-    zapButton2(zap, event->x(), event->y(), ctrlDown);
+    if (zap->shiftingCont)
+      startShiftingContour(zap, firstmx, firstmy, 2);
+    else
+      zapButton2(zap, event->x(), event->y(), ctrlDown);
 
   } else if (event->button() == ImodPrefs->actualButton(3) &&
 	     !button1 && !button2) {
-    endContourShift(zap);
-    zapButton3(zap, event->x(), event->y(), ctrlDown);
-
+    if (zap->shiftingCont)
+      startShiftingContour(zap, firstmx, firstmy, 3);
+    else
+      zapButton3(zap, event->x(), event->y(), ctrlDown);
   }
   zap->lmx = event->x();
   zap->lmy = event->y();
@@ -1150,8 +1163,12 @@ void zapMousePress(ZapStruct *zap, QMouseEvent *event)
 void zapMouseRelease(ZapStruct *zap, QMouseEvent *event)
 {
   setControlAndLimits(zap);
+  if (zap->shiftRegistered) {
+    zap->shiftRegistered = 0;
+    zap->vi->undo->finishUnit();
+  }
+
   if (event->button() == ImodPrefs->actualButton(1)){
-    endContourShift(zap);
     if (dragband) {
       dragband = 0;
       zapSetCursor(zap, zap->mousemode);
@@ -1195,6 +1212,7 @@ void zapMouseMove(ZapStruct *zap, QMouseEvent *event, bool mousePressed)
   int cumdx, cumdy;
   int cumthresh = 6 * 6;
   int ctrlDown = event->state() & Qt::ControlButton;
+  int shiftDown = event->state() & Qt::ShiftButton;
 
   if (!(mousePressed || insertDown))
     return;
@@ -1225,7 +1243,7 @@ void zapMouseMove(ZapStruct *zap, QMouseEvent *event, bool mousePressed)
     zapB2Drag(zap, event->x(), event->y(), ctrlDown);
   
   if ( (!button1) && (!button2) && (button3))
-    zapB3Drag(zap, event->x(), event->y(), ctrlDown);
+    zapB3Drag(zap, event->x(), event->y(), ctrlDown, shiftDown);
   
   zap->lmx = event->x();
   zap->lmy = event->y();
@@ -1566,11 +1584,6 @@ void zapButton3(ZapStruct *zap, int x, int y, int controlDown)
   int   pt;
   float ix, iy;
 
-  if (zap->shiftingCont) {
-    startShiftingContour(zap, x, y);
-    return;
-  }
-
   zapGetixy(zap, x, y, &ix, &iy);
 
   if (vi->ax){
@@ -1629,7 +1642,7 @@ void zapB1Drag(ZapStruct *zap, int x, int y)
   double transFac = zap->zoom < 1. ? 1. / zap->zoom : 1.;
 
   if (zap->shiftingCont) {
-    shiftContour(zap, x, y);
+    shiftContour(zap, x, y, 1, 0);
     return;
   }
 
@@ -1841,6 +1854,11 @@ void zapB2Drag(ZapStruct *zap, int x, int y, int controlDown)
   double dist;
   int pt;
      
+  if (zap->shiftingCont) {
+    shiftContour(zap, x, y, 2, 0);
+    return;
+  }
+
   if (vi->ax){
     if (vi->ax->altmouse == AUTOX_ALTMOUSE_PAINT){
       zapGetixy(zap, x, y, &ix, &iy);
@@ -1956,7 +1974,7 @@ void zapB2Drag(ZapStruct *zap, int x, int y, int controlDown)
   }
 }
 
-void zapB3Drag(ZapStruct *zap, int x, int y, int controlDown)
+void zapB3Drag(ZapStruct *zap, int x, int y, int controlDown, int shiftDown)
 {
   ImodView *vi = zap->vi;
   Iobj *obj;
@@ -1964,6 +1982,11 @@ void zapB3Drag(ZapStruct *zap, int x, int y, int controlDown)
   Ipoint *lpt;
   Ipoint pt;
   float ix, iy;
+
+  if (zap->shiftingCont) {
+    shiftContour(zap, x, y, 3, shiftDown);
+    return;
+  }
 
   if (vi->ax){
     if (vi->ax->altmouse == AUTOX_ALTMOUSE_PAINT){
@@ -2046,6 +2069,10 @@ static void registerDragAdditions(ZapStruct *zap)
   zap->vi->undo->finishUnit();
 }
 
+/*
+ * CONTOUR SHIFTING/TRANSFORMING
+ */
+
 // Turn off contour shifting and reset mouse
 static void endContourShift(ZapStruct *zap)
 {
@@ -2095,40 +2122,202 @@ static void setupContourShift(ZapStruct *zap)
 static Ipoint contShiftBase;
 
 // Start the actual shift once the mouse goes down
-static void startShiftingContour(ZapStruct *zap, int x, int y)
+static void startShiftingContour(ZapStruct *zap, int x, int y, int button)
 {
-  int   pt, err;
-  float ix, iy;
+  int   pt, err, co, ob, curco;
+  float ix, iy, area, areaSum;
+  Ipoint cent, centSum;
+  Iobj *obj = imodObjectGet(zap->vi->imod);
   Icont *cont = checkContourShift(zap, pt, err);
   if (err)
     return;
 
-  zapGetixy(zap, x, y, &ix, &iy);
-  contShiftBase.x = cont->pts[pt].x - ix;
-  contShiftBase.y = cont->pts[pt].y - iy;
+  if (button == 1) {
+    
+    // Get base for shift as current point minus mouse position
+    zapGetixy(zap, x, y, &ix, &iy);
+    contShiftBase.x = cont->pts[pt].x - ix;
+    contShiftBase.y = cont->pts[pt].y - iy;
+  } else {
+
+    // Get center for transforms as center of mass
+    // Loop on contours and analyze current or selected ones
+    imodGetIndex(zap->vi->imod, &ob, &curco, &pt);
+    contShiftBase.x = contShiftBase.y = 0;
+    centSum.x = centSum.y = 0;
+    areaSum = 0;
+    for (co = 0; co < obj->contsize; co++) {
+      if (co == curco || imodSelectionListQuery(zap->vi, ob, co) > -2) {
+        cont = &obj->cont[co];
+        
+        // For each contour add centroid to straight sum, 
+        // accumulate area-weighted sum also
+        imodContourCenterOfMass(cont, &cent);
+        area = imodContourArea(cont);
+        areaSum += area;
+        contShiftBase.x += cent.x;
+        contShiftBase.y += cent.y;
+        centSum.x += cent.x * area;
+        centSum.y += cent.y * area;
+        err++;
+      }
+    }
+
+    // Use plain sum if area small or if only one contour, otherwise
+    // use an area-weighted sum
+    if (areaSum < 1. || err == 1) {
+      contShiftBase.x /= err;
+      contShiftBase.y /= err;
+    } else if (areaSum >= 1. && err > 1) {
+      contShiftBase.x = centSum.x / areaSum;
+      contShiftBase.y = centSum.y / areaSum;
+    }
+
+  }
 }
 
-// Shift contour upon mouse move
-static void shiftContour(ZapStruct *zap, int x, int y)
+// Shift or transform contour upon mouse move
+static void shiftContour(ZapStruct *zap, int x, int y, int button, 
+                         int shiftDown)
 {
-  int   pt, err;
+  int   pt, err, ob, co, curco;
   float ix, iy;
+  float mat[2][2];
+  Iobj *obj = imodObjectGet(zap->vi->imod);
   Icont *cont = checkContourShift(zap, pt, err);
   if (err)
     return;
 
-  zapGetixy(zap, x, y, &ix, &iy);
+  if (button == 1) {
+    
+    // Shift by change from original mouse pos minus change in current 
+    // point position
+    zapGetixy(zap, x, y, &ix, &iy);
+    ix += contShiftBase.x - cont->pts[pt].x;
+    iy += contShiftBase.y - cont->pts[pt].y;
+  } else {
 
-  ix += contShiftBase.x - cont->pts[pt].x;
-  iy += contShiftBase.y - cont->pts[pt].y;
-
-  zap->vi->undo->contourDataChg();
-  for (pt = 0; pt < cont->psize; pt++) {
-    cont->pts[pt].x += ix;
-    cont->pts[pt].y += iy;
+    // Get transformation matrix if 2nd or 3rd button
+    err = button + (button == 3 && shiftDown ? 1 : 0);
+    if (mouseXformMatrix(zap, x, y, err, mat))
+      return;
   }
-  zap->vi->undo->finishUnit();
+
+  imodGetIndex(zap->vi->imod, &ob, &curco, &pt);
+
+  // Loop on contours and act on current or selected ones
+  for (co = 0; co < obj->contsize; co++) {
+    if (co == curco || imodSelectionListQuery(zap->vi, ob, co) > -2) {
+
+      // Register changes first time only
+      if (!zap->shiftRegistered)
+        zap->vi->undo->contourDataChg(ob, co);
+      cont = &obj->cont[co];
+      if (button == 1) {
+        
+        // Shift points
+        for (pt = 0; pt < cont->psize; pt++) {
+          cont->pts[pt].x += ix;
+          cont->pts[pt].y += iy;
+        }
+      } else {
+        
+        // Transform points
+        for (pt = 0; pt < cont->psize; pt++) {
+          ix = mat[0][0] * (cont->pts[pt].x - contShiftBase.x) +
+            mat[0][1] * (cont->pts[pt].y - contShiftBase.y) + contShiftBase.x;
+          iy = mat[1][0] * (cont->pts[pt].x - contShiftBase.x) +
+            mat[1][1] * (cont->pts[pt].y - contShiftBase.y) + contShiftBase.y;
+          cont->pts[pt].x = ix;
+          cont->pts[pt].y = iy;
+        }
+      }
+    }
+  }
+
+  zap->shiftRegistered = 1;
   imodDraw(zap->vi, IMOD_DRAW_XYZ | IMOD_DRAW_MOD );
+}
+
+// Compute transform matrix from the mouse move
+static int mouseXformMatrix(ZapStruct *zap, int x, int y, int type, 
+                            float mat[2][2])
+{
+  float strThresh = 0.001;
+  float rotThresh = 0.05;
+  float delCrit = 20.;
+  double delx, dely, startang, endang, radst, radnd, delrad, drot, scale;
+  double costh, sinth, cosphi, sinphi, cosphisq, sinphisq, f1, f2, f3;
+  int xcen, ycen;
+
+  xcen = zapXpos(zap, contShiftBase.x);
+  ycen = zapYpos(zap, contShiftBase.y);
+
+  // Compute starting/ending  angle and radii as in midas
+  delx = zap->lmx - xcen;
+  dely = zap->winy - 1 - zap->lmy - ycen;
+  if(delx > -delCrit && delx < delCrit && dely > -delCrit && dely < delCrit)
+    return 1;
+  radst = sqrt((delx*delx + dely*dely));
+  startang = atan2(dely, delx) / RADIANS_PER_DEGREE;
+  //imodPrintStderr("%d %d %f %f %f %f\n", xcen, ycen, delx, dely, radst, 
+  //                startang);
+
+  delx = x - xcen;
+  dely = zap->winy - 1 - y - ycen;
+  if(delx > -delCrit && delx < delCrit && dely > -delCrit && dely < delCrit)
+    return 1;
+  radnd = sqrt((delx*delx + dely*dely));
+  endang = atan2(dely, delx) / RADIANS_PER_DEGREE;
+  //imodPrintStderr("%f %f %f %f\n", delx, dely, radnd, endang);
+
+  drot = 0.;
+  scale = 1.;
+  delrad = 1.;
+  if (type == 2) {
+
+    // Compute rotation from change in angle
+    drot = endang - startang;
+    if (drot < -360.)
+      drot += 360.;
+    if (drot > 360.)
+      drot -= 360.;
+    drot = rotThresh * floor(drot / rotThresh + 0.5);
+    endang = 0.;
+    if (!drot)
+      return 1;
+  } else {
+
+    // Compute stretch from change in radius; set up as stretch or scale
+    delrad = (radnd - radst) / radst;
+    delrad = strThresh * floor(delrad / strThresh + 0.5);
+    if (!delrad)
+      return 1;
+    delrad += 1.;
+    if (type == 4) {
+      scale = delrad;
+      delrad = 1.;
+      endang = 0.;
+    }
+  }
+
+  // Compute matrix as in rotmagstr_to_amat
+  costh = cos(drot * RADIANS_PER_DEGREE);
+  sinth = sin(drot * RADIANS_PER_DEGREE);
+  cosphi = cos(endang * RADIANS_PER_DEGREE);
+  sinphi = sin(endang * RADIANS_PER_DEGREE);
+  cosphisq = cosphi * cosphi;
+  sinphisq = sinphi * sinphi;
+  f1 = scale * (delrad * cosphisq + sinphisq);
+  f2 = scale * (delrad - 1.) * cosphi * sinphi;
+  f3 = scale * (delrad * sinphisq + cosphisq);
+  mat[0][0] = (float)(f1 * costh - f2 * sinth);
+  mat[0][1] = (float)(f2 * costh - f3 * sinth);
+  mat[1][0] = (float)(f1 * sinth + f2 * costh);
+  mat[1][1] = (float)(f2 * sinth + f3 * costh);
+  //imodPrintStderr("%f %f %f %f %f %f %f %f\n", drot, scale, delrad, endang,
+  //              mat[0][0], mat[0][1], mat[1][0], mat[1][1]);
+  return 0;
 }
 
 /********************************************************
@@ -3105,6 +3294,9 @@ static int zapPointVisable(ZapStruct *zap, Ipoint *pnt)
 
 /*
 $Log$
+Revision 4.58  2004/12/22 15:21:15  mast
+Fixed problems discovered with Visual C compiler
+
 Revision 4.57  2004/12/02 21:41:59  mast
 Fixed method for detecting segment crossing in new drag select
 
