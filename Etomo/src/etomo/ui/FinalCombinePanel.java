@@ -43,6 +43,9 @@ import etomo.comscript.CombineParams;
  * 
  * <p>
  * $Log$
+ * Revision 3.10  2004/06/17 00:31:44  sueh
+ * adding call to setToolTipText()
+ *
  * Revision 3.9  2004/06/14 23:39:53  rickg
  * Bug #383 Transitioned to using solvematch
  *
@@ -233,7 +236,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields {
     pnlPatchRegionModel.add(Box.createRigidArea(FixedDim.x10_y0));
     pnlPatchRegionModel.add(btnPatchRegionModel);
     pnlPatchRegionModel.add(Box.createHorizontalGlue());
-    UIUtilities.setButtonSizeAll(pnlPatchRegionModel, UIParameters
+    UIUtilities.setButtonSize(btnPatchRegionModel, UIParameters
       .getButtonDimension());
 
     // Layout the Patchcorr panel

@@ -42,6 +42,9 @@ import etomo.type.FiducialMatch;
  * 
  * <p>
  * $Log$
+ * Revision 3.11  2004/06/15 21:37:16  rickg
+ * Bug #383 Correct synchronization of solvematch sub-panel
+ *
  * Revision 3.10  2004/06/14 23:39:53  rickg
  * Bug #383 Transitioned to using solvematch
  *
@@ -321,7 +324,7 @@ public class SetupCombinePanel
     pnlPatchRegionModel.add(cbPatchRegionModel);
     pnlPatchRegionModel.add(btnPatchRegionModel);
     pnlPatchParams.add(pnlPatchRegionModel);
-    UIUtilities.setButtonSizeAll(pnlPatchRegionModel, UIParameters.dimButton);
+    UIUtilities.setButtonSize(btnPatchRegionModel, UIParameters.dimButton);
 
     //  Patch boundary
     pnlPatchRegion.setLayout(new GridLayout(2, 3, 10, 10));
