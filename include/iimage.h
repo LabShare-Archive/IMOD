@@ -5,6 +5,9 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2002/12/01 15:39:50  mast
+    Declare extern C if c++
+
 */
 #ifndef IIMAGE_H
 #define IIMAGE_H
@@ -68,7 +71,7 @@ struct  ImodImageFileStruct
 
      /* load info: change these for loading sub sections. */
      int   llx, lly, llz, urx, ury, urz;
-     float slope, offset, imin, imax;
+     float slope, offset, smin, smax;
      int   axis;
 
      /* extra storage used by each file format functions. */
@@ -92,7 +95,7 @@ ImodImageFile *iiOpen(char *filename, char *mode);
 int  iiReopen(ImodImageFile *inFile);
 void iiClose(ImodImageFile *inFile);
 void iiDelete(ImodImageFile *inFile);
-int  iiSetMM(ImodImageFile *inFile, double inMin, double inMax);
+int  iiSetMM(ImodImageFile *inFile, float inMin, float inMax);
 
 int iiReadSection(ImodImageFile *inFile, char *buf, int inSection);
 int iiReadSectionByte(ImodImageFile *inFile, char *buf, int inSection);
