@@ -100,8 +100,7 @@ public class WindowSwitch {
 
   /**
    * Rename a window.  Change the menu item, rekey the menuList and the
-   * mainPanelList.  Change tabbedPane title (this may be unnecessary
-   * because tabbedPane is rebuilt each time getPanel() is called.
+   * mainPanelList.
    * @param oldKey
    * @param newKey
    */
@@ -114,7 +113,7 @@ public class WindowSwitch {
     menuItem.setText(Integer.toString(index + 1) + menuItemDivider + newKey.getName());
     menuList.rekey(oldKey, newKey);
     mainPanelList.rekey(oldKey, newKey);
-    tabbedPane.setTitleAt(index, newKey.getName());
+    EtomoDirector.getInstance().setCurrentManager(newKey);
   }
 
   /**
@@ -294,5 +293,8 @@ public class WindowSwitch {
 }
 
 /**
- * <p>$Log$</p>
+ * <p>$Log$
+ * <p>Revision 1.1  2005/02/07 22:57:18  sueh
+ * <p>bug# 594 Class to synchronize windows menu and tabs.
+ * <p></p>
  */
