@@ -1,14 +1,3 @@
-c	  Inputs needed:
-c	  image file
-c	  pairs of sections to analyze (successive for now)
-c	  grid spacing for output
-c	  grid spacing for entering data into regressions
-c	  grid spacing for edge functions
-c	  box size
-c	  minimum indent
-c	  The parameters for smoothing can be adopted; there is no short
-c	  and long direction
-c	  There is no need for any of these to be X and Y or short/long
 c	  
 	implicit none
 	integer maxImDim, maxGrids, iGridDim, msiz, maxVars, matLim
@@ -26,8 +15,8 @@ c
 	equivalence (nx,nxyz(1)),(ny,nxyz(2)),(nz,nxyz(3))
 	character*120 infile,tempfile, strFile
 	character*320 comString
-	character*12 endvStr, ypadStr, quietStr
-	character*80 concat,outRoot,outfile,xffile, stFile, patchFile
+	character*12 endvStr, ypadStr
+	character*80 concat,outRoot,outfile,xffile, stFile, patchFile, quietStr
 	logical exist
 
 	real*4 array(maxImDim * maxImDim), brray(maxImDim * maxImDim)
@@ -116,7 +105,7 @@ c
      &	    'iterations:Iterations:I:@'//
      &	    'multr:SolveWithMultr:B:@'//
      &	    'usexf:UseOldTransforms:B:@'//
-     &	    'quiet:QuietCalledPrograms:B:@'//
+     &	    'redirect:RedirectOutput:CH:@'//
      &	    'strfile:StretchFile:FN:@'//
      &	    'patch:PatchOutput:B:@'//
      &	    'binning:ImageBinning:I:@'//
@@ -124,14 +113,14 @@ c
 c	  
 c	  set defaults
 c	  
-	iboxsize = 16
-	indent = 8
+	iboxsize = 24
+	indent = 4
 	intgrid = 16
 	radius2 = 0.25
 	sigma1 = 0.03
 	sigma2 = 0.25
-	intdata = 32
-	intfield = 64
+	intdata = 20
+	intfield = 40
 	intscan = 6
 	sdcritSmooth=2.
 	devcritSmooth=2.
@@ -153,7 +142,7 @@ c
 	makePatch = .false.
 	iBinning = 2
 	fieldChange = 100000.
-	quietStr = ' '
+	quietStr = '> /dev/null'
 
 	call PipReadOrParseOptions(options, numOptions, 'finddistort',
      &	    'ERROR: FINDDISTORT - ', .false., 2, 1, 1, numOptArg,
@@ -207,13 +196,14 @@ c
 	ierr = PipGetString('StretchFile', strFile)
 	ierr = PipGetLogical('PatchOutput', makePatch)
 	ierr = PipGetInteger('FieldSpacing', intField)
+	ierr = PipGetInteger('GridIndent', indent)
 	ierr = PipGetInteger('GridSpacing', intGrid)
 	ierr = PipGetInteger('DataSpacing', intData)
 	ierr = PipGetInteger('Iterations', numIter)
 	ierr = PipGetLogical('SolveWithMultr', doMultr)
 	ierr = PipGetInteger('ImageBinning', iBinning)
-	if (PipGetBoolean('QuietCalledPrograms', ierr) .eq. 0)
-     &	    quietStr = ' > /dev/null'
+	ierr = PipGetInteger('BoxSize', iBoxsize)
+	ierr = PipGetString('RedirectOutput', quietStr)
 	call PipDone()
 
 c	tempfile = temp_filename(infile, ' ', 'xf')
@@ -250,9 +240,9 @@ c
 	    write(comString, 102)'newstack -sec 0-', endvStr(1:lenEndv),
      &		' -image ', iBinning, ' -dist ', outfile(1:lnblnk(outfile)), 
      &		infile(1:lnblnk(infile)), stFile(1:lnblnk(stFile)),
-     &		quietStr
-102	    format(a,a,a,i3,a,a,1x,a,1x,a,a)
-c	    print *,comString
+     &		quietStr(1:lnblnk(quietStr))
+102	    format(a,a,a,i3,a,a,1x,a,1x,a,1x,a)
+	    print *,comString
 c	    
 c		check for result
 c	    
@@ -280,8 +270,8 @@ c
      &		  nx / 2, ',', ypadStr(1:lenYpad), ' -views ',
      &		  izRef + 1, ',', endvStr(1:lenEndv),
      &		  stFile(1:lnblnk(stFile)), tempfile(1:lnblnk(tempfile)),
-     &		  quietStr
-101	      format(a,f5.2,a,f5.2,a,f5.2,a,i5,a,a,a,i4,a,a,1x,a,1x,a,a)
+     &		  quietStr(1:lnblnk(quietStr))
+101	      format(a,f5.2,a,f5.2,a,f5.2,a,i5,a,a,a,i4,a,a,1x,a,1x,a,1x,a)
 
 c	    print *,comString
 c	    
