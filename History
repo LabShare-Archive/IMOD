@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/8/03: Fixed the sed command in sample.com to work under Mac OS 10.2 and
+changed Tilt to accept blank lines, in case this fix makes some sed somewhere
+generate a blank line.
+
 12/5/03: IMOD_3-2-1
 12/5/03: Eliminated dependence on test data in Junit tests of eTomo.
 
