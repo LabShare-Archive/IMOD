@@ -22,6 +22,9 @@ import java.util.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.1  2003/01/29 20:44:01  rickg
+ * <p> Only write in debug mode if strings are available
+ * <p>
  * <p> Revision 2.0  2003/01/24 20:30:31  rickg
  * <p> Single window merge to main branch
  * <p>
@@ -151,7 +154,6 @@ public class SystemProgram implements Runnable {
         System.err.print("SystemProgram: Exec'ing process...");
 
       if (workingDirectory == null) {
-
         File currentUserDirectory = new File(System.getProperty("user.dir"));
         process =
           Runtime.getRuntime().exec(command, null, currentUserDirectory);
@@ -257,9 +259,13 @@ public class SystemProgram implements Runnable {
       exceptionMessage = except.getMessage();
     }
 
+    // Kill the underlying system command if we receive an interrupt exception
     catch (InterruptedException except) {
-      except.printStackTrace();
-      exceptionMessage = except.getMessage();
+      if (debug) {
+        System.err.println(
+          "Received InterruptedException...destroying process");
+      }
+      process.destroy();
     }
 
     if (debug) {
