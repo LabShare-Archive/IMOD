@@ -8,6 +8,9 @@
 # $Revision$
 #
 # $Log$
+# Revision 2.3  2003/10/29 16:22:23  sueh
+# added automatic testing during build
+#
 # Revision 2.2  2003/08/26 15:36:49  rickg
 # Added comments
 #
@@ -50,7 +53,7 @@ JAVAC = $(JAVAC_EXE) -d $(CLASSPATH) -sourcepath $(SOURCEPATH) $(JAVAC_OPTIONS)
 
 JAVADOC_OPTIONS = -author -version -private -use -breakiterator -doctitle "Etomo API" -windowtitle "Etomo API"
 
-all: $(JAR_FILE) testjarfile tests
+all: $(JAR_FILE)
 	echo "Make completed."
 
 $(JAR_FILE): cpimages compile
