@@ -302,8 +302,8 @@ end
 
 # take care of dependencies on version
 #
-\find $imod_dir -name imod.o ! -newer .version -exec \rm -f '{}' \;
-\find $imod_dir -name 'imod*_menu.o' ! -newer .version -exec \rm -f '{}' \;
+\find $imod_dir -name 'imod.o*' ! -newer .version -exec \rm -f '{}' \;
+\find $imod_dir -name 'imod*_menu.o*' ! -newer .version -exec \rm -f '{}' \;
 
 # Make new project files for 3dmod and midas if needed
 # set QMAKESPEC here for msvc, now that real makefiles are done
