@@ -30,6 +30,14 @@ c	  minimum when the centroid of the measured projection points in one
 c	  view matches the centroid of the projection of the real-space
 c	  points.  ANGLES ARE EXPECTED TO BE RADIANS.
 c
+c	  $Author$
+c
+c	  $Date$
+c
+c	  $Revision$
+c
+c	  $Log$
+c
 	subroutine funct(nvarsrch,var,ferror,grad)
 c	
 	include 'alivar.inc'
@@ -67,8 +75,8 @@ c	  and build indexes to the points in each view.
 c	  
 	nprojpt=irealstr(nrealpt+1)-1
 	if(firsttime)then
-	  if(nrealpt*nview.gt.maxprojpt)stop
-     &	      'TOO MANY 3-D POINTS AND VIEWS FOR ARRAYS IN FUNCT'
+	  if(nrealpt*nview.gt.maxprojpt)call errorexit(
+     &	      'TOO MANY 3-D POINTS AND VIEWS FOR ARRAYS IN FUNCT', 0)
 	  do iv=1,nview
 	    xbar(iv)=0.
 	    ybar(iv)=0.

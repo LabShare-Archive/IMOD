@@ -9,6 +9,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.2  2002/05/09 03:53:18  mast
+c	  Fixed some line lengths that would not compile on SGI
+c	
 c	  Revision 3.1  2002/05/07 02:06:30  mast
 c	  Changes to make things work well with a subset of views
 c	
@@ -759,8 +762,9 @@ c
 	    endif
 	  enddo
 	  if(nsum.eq.0)then
-	    print *,'Nothing mapped to variable',m
-	    stop
+	    print *
+	    print *,'ERROR: TILTALIGN - Nothing mapped to variable',m
+	    call exit(1)
 	  endif
 	  var(m)=sum/nsum
 	enddo
