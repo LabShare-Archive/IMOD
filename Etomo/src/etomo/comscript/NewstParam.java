@@ -1,13 +1,7 @@
-package etomo.comscript;
-
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Vector;
-
 /*
- * <p>Description: </p>
+ * <p>Description: Newstack command model</p>
  *
- * <p>Copyright: Copyright (c) 2002</p>
+ * <p>Copyright: Copyright (c) 2002,2003,2004</p>
  *
  * <p>Organization: Boulder Laboratory for 3D Fine Structure,
  * University of Colorado</p>
@@ -17,6 +11,9 @@ import java.util.Vector;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.3  2004/02/18 00:51:22  rickg
+ * <p> Removed CVS tag
+ * <p>
  * <p> Revision 3.2  2004/02/14 00:14:30  rickg
  * <p> Parse all command line opts
  * <p>
@@ -74,6 +71,13 @@ import java.util.Vector;
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
  */
+package etomo.comscript;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.Vector;
+
+
 public class NewstParam extends ConstNewstParam implements CommandParam {
   public static final String rcsid = 
   "$Id$";
@@ -175,7 +179,7 @@ public class NewstParam extends ConstNewstParam implements CommandParam {
       cmdLineArgs.add("-NumberToOutput");
       cmdLineArgs.add((String) i.next());
     }
-    if (sizeToOutputInXandY.valuesSet()) {
+    if (sizeToOutputInXandY.valuesSet() && (!sizeToOutputInXandY.isDefault())) {
       cmdLineArgs.add("-SizeToOutputInXandY");
       cmdLineArgs.add(sizeToOutputInXandY.toString());
     }
@@ -217,11 +221,11 @@ public class NewstParam extends ConstNewstParam implements CommandParam {
       cmdLineArgs.add("-FloatDensities");
       cmdLineArgs.add(String.valueOf(floatDensities));
     }
-    if (contrastBlackWhite.valuesSet()) {
+    if (contrastBlackWhite.valuesSet() && (!contrastBlackWhite.isDefault())) {
       cmdLineArgs.add("-ContrastBlackWhite");
       cmdLineArgs.add(String.valueOf(contrastBlackWhite.toString()));
     }
-    if (scaleMinAndMax.valuesSet()) {
+    if (scaleMinAndMax.valuesSet() && (!scaleMinAndMax.isDefault())) {
       cmdLineArgs.add("-ScaleMinAndMax");
       cmdLineArgs.add(String.valueOf(scaleMinAndMax.toString()));
     }
@@ -233,7 +237,7 @@ public class NewstParam extends ConstNewstParam implements CommandParam {
       cmdLineArgs.add("-ImagesAreBinned");
       cmdLineArgs.add(String.valueOf(imagesAreBinned));
     }
-    if (testLimits.valuesSet()) {
+    if (testLimits.valuesSet() && (!testLimits.isDefault())) {
       cmdLineArgs.add("-TestLimits");
       cmdLineArgs.add(String.valueOf(testLimits.toString()));
     }
@@ -244,10 +248,6 @@ public class NewstParam extends ConstNewstParam implements CommandParam {
     int nArgs = cmdLineArgs.size();
     scriptCommand.setCommandLineArgs(
     (String[]) cmdLineArgs.toArray(new String[nArgs]));
-  }
-
-  public void setSize(String newSize) throws FortranInputSyntaxException {
-    sizeToOutputInXandY.validateAndSet(newSize);
   }
 
   public void setOffset(String newOffset) throws FortranInputSyntaxException {
