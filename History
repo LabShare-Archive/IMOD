@@ -1,7 +1,25 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-12/4/01: IMOD_2-6-1
+12/17/01: IMOD_2-6-2
+12/13/01: Added hotkeys to the zap window for smoothing and advancing to the
+next section when using autocontouring; removed the b hotkey from the xyz 
+window.
 
+12/13/01: Added ability to fill the cache to a selected degree and with
+several possibilities for apportioning the filling among multiple image
+files.  Also added an autofill option.  This can provide faster, more 
+efficient loading of Y-Z flipped slices from large image files.  The window is
+opened via Edit-Image-Cache Filler.
+
+12/10/01: Added program imodfillin to interpolate contours on sections that
+are missing them.
+
+12/10/01: In libiimod.so, added a test that extra header information be
+consistent with being produced by our programs before a file would be
+recognized and treated as a montage; also excluded Deltavision files from
+being montages.
+
+12/4/01: IMOD_2-6-1
 12/3/01: Restored capability of Fortran programs to read old Wimp binary
 models even though the package is compiled to convert IEEE floats rather than
 VMS floats, and made this work on both little and big endian machines.
