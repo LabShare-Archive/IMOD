@@ -50,9 +50,17 @@ C	Bug fix  1.07	31.December.88	DNM		FOR uVAX	*
 C       Ported to unix	07.December.94  DNM		FOR SGI		*
 C									*
 C************************************************************************
+c
+c	  $Author$
+c
+c	  $Date$
+c
+c	  $Revision$
+c
+c	  $Log$
 C
 c	  DNM: set this parameter for true buffer size
-	parameter (ibufreal=3100*3100)
+	parameter (ibufreal=4100*4100)
 	COMMON//NX,NY,NZ
 	COMMON/FTBUF/MAXSIZ,ARRAY(ibufreal)
 	DIMENSION TITLE(20),NXYZR(3),MXYZR(3),NXYZF(3),NXYZST(3)
@@ -121,8 +129,11 @@ C
 	NXYZF(3) = NZ
 c	  DNM: use the true buffer size here, it's much faster to do regular
 	IF (NXP2*NY .GT. ibufreal) LARGE = .TRUE.
-	IF (LARGE .AND. NZ .GT. 1) STOP '*** ONLY SINGLE SECTIONS 
-     .	FOR LARGE IMAGES ****'
+	IF (LARGE .AND. NZ .GT. 1) then
+	  write(6,1202)
+1202	  format(/,' ERROR: FFTRANS - ONLY SINGLE SECTIONS CAN BE DONE',
+     &	      'FOR LARGE IMAGES')
+	endif
 	CALL IALMOD(2,4)
 	CALL IALSIZ(2,NXYZF,NXYZST)
 c
@@ -130,7 +141,7 @@ c 7/7/00 CER: remove the encodes
 c
 c       ENCODE(80,1500,TITLE) DAT,TIM
         write(titlech,1500) DAT,TIM
-1500    FORMAT('FFTRANS: Foward Fourier Transform Calculated',12X,A9,
+1500    FORMAT('FFTRANS: Forward Fourier Transform Calculated',12X,A9,
      .  2X,A8)
 	read(titlech,'(20a4)')(TITLE(kti),kti=1,20)
 	CALL IWRHDR(2,TITLE,1,ZERO,ZERO,ZERO)
@@ -170,8 +181,10 @@ C
 	NXYZF(3) = NZ
 c	  DNM: use the true buffer size here, it's much faster to do regular
 	IF (NXP2*NY .GT. ibufreal) LARGE = .TRUE.
-	IF (LARGE .AND. NZ .GT. 1) STOP '*** ONLY SINGLE SECTIONS 
-     .	FOR LARGE IMAGES ****'
+	IF (LARGE .AND. NZ .GT. 1) then
+	  write(6,1202)
+	  call exit(1)
+	endif
 	INDEX = NXP2*NY2 + 1
 	CALL IALMOD(2,2)
 	CALL IALSIZ(2,NXYZF,NXYZST)
@@ -179,7 +192,7 @@ c
 c 7/7/00 CER: remove the encodes
 c
 c       ENCODE(80,1700,TITLE) DAT,TIM
-        write(titlech,1500) DAT,TIM
+        write(titlech,1700) DAT,TIM
 1700    FORMAT('FFTRANS: Inverse Fourier Transform Calculated',12X,A9,
      .  2X,A8)
 	read(titlech,'(20a4)')(TITLE(kti),kti=1,20)
@@ -217,7 +230,9 @@ C
 	CALL IMCLOSE(2)
 	CALL EXIT(0)
 C
-99	STOP 'END-OF-FILE ERROR ON READ'
+99	print *
+	print *,'ERROR: FFTRANS - END-OF-FILE ERROR ON READ'
+	call exit(1)
 	END
 
 
