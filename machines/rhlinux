@@ -108,9 +108,7 @@ echo "F77LIBS   = $wrapper"                  >> $configure
 # 
 # tell the C routines to swap the bytes for INTEL
 #
-echo '#ifndef LITTLE_ENDIAN' >> $hconfigure
-echo '#define LITTLE_ENDIAN' >> $hconfigure
-echo '#endif' >> $hconfigure
+echo '#define B3D_LITTLE_ENDIAN' >> $hconfigure
 echo '#define SWAP_IEEE_FLOATS' >> $hconfigure
 
 #
