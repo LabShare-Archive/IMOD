@@ -9,6 +9,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.10  2004/10/24 22:49:34  mast
+c	  fixed line length and lnblnk declaration problems
+c	
 c	  Revision 3.9  2004/10/24 22:29:44  mast
 c	  Chnages for pip input and projection stretch
 c	
@@ -72,7 +75,7 @@ c
 	integer*4 iref2,ioptmag,irefcomp,ioptcomp,iffix,iv,jv,ioptdel
 	integer*4 irefdmag,nvartmp,ivdum,idist,ioptdist,ioptalf
 	integer*4 ireftilt,ndmagvar,ivl,ivh, lenOpt, ioptdmag, ioptskew
-	integer*4 nearest_view,ifpip,mapfix,ierr,lnblnk
+	integer*4 nearest_view,ifpip,mapfix,ierr,lnblnk,ifall
 	character*1024 listString
 c
 	integer*4 PipGetInteger,PipNumberOfEntries
@@ -233,17 +236,27 @@ c
 	call analyze_maps(rot,maprot,linrot,frcrot,fixedrot,fixdum,
      &	    iflin, maplist,nview, iref1,0,defrot,rotText,var,varname,
      &	    nvarsrch,mapviewtofile)
-c	write(6,111)(maprot(i),i=1,nview)
+C	write(6,111)(maprot(i),i=1,nview)
 c	  
-c	  Fix global variable 1 or the fixed one
+c	  Fix global variable 1 and anything in its block, or the fixed one,
+c	  which with linear mapping is not where it was
 c	  
 	if (ifrotfix .eq. 0)then
 	  var(1)=rotstart
 	  varname(1)='rot all'
-	  rot(1)=rotstart
-	  maprot(1) = 1
+	  do i = 1, nview
+	    if (maprot(i) .eq. 0) then
+	      rot(i)=rotstart
+	      maprot(i) = 1
+	    endif
+	  enddo
 	else if (ifrotfix .gt. 0) then
-	  rot(ifrotfix)=rotstart
+	  do i = 1, nview
+	    if (maprot(i) .eq. 0) then
+	      ifrotfix = i
+	      rot(i)=rotstart
+	    endif
+	  enddo
 	endif
 c
 	if (.not. pipinput .and. iflocal .eq. 0) then
@@ -827,7 +840,9 @@ c
 	    dump(i)='  fixed '
 	  enddo
 	  dump(3)='        '
-	  call setdumpname(maprot(iv),linrot(iv),-1,varname,1,dump(1))
+	  ifall = 1
+	  if (ifrotfix .gt. 0) ifall = 0
+	  call setdumpname(maprot(iv),linrot(iv),-1,varname,ifall,dump(1))
 	  if(maptilt(iv).gt.0)then
 	    call setdumpname(maptilt(iv),lintilt(iv),-1,varname,0,dump(2))
 	    if(abs(tiltinc(iv)).gt.5.e-3.and.
@@ -868,7 +883,7 @@ c
 	else
 	  if(lin.eq.0)then
 	    dump=varname(map)
-	  elseif(lin.lt.0.and.ifall.ne.0)then
+	  elseif(lin.lt.0.and.ifall.gt.0)then
 	    dump=varname(map)(1:1)//varname(map)(6:8)//'+all'
 	  elseif(lin.lt.0)then
 	    dump=varname(map)(1:1)//varname(map)(6:8)//'+fix'
