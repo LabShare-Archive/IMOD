@@ -4,14 +4,22 @@ c	  The routine looks to see if it is already in memory; if not, it loads
 c	  the section, replacing the frame that has not been used in the
 c	  longest time, and returns the index of the frame's start in INDEX
 c
-	subroutine shuffler(array,izwant,index)
+c	  $Author$
 c
-	parameter (memlim=128)
-	integer*4 izmemlist(memlim),lastused(memlim)
-	common /shuffl/ npixin,limsec,jusecount,izmemlist,lastused
+c	  $Date$
 c
-	real*4 array(*)
+c	  $Revision$
+c
+c	  $Log$
+c
+	subroutine shuffler(izwant,index)
+c	  
+	implicit none
+	include 'blend.inc'
+c
+c	real*4 array(*)
 	logical alreadyin
+	integer*4 minused,i,index,izwant,ioldest
 c	  
 	minused=jusecount+1
 	do i=1,limsec
