@@ -15,8 +15,13 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1  2005/02/25 02:46:52  mast
+Addition to package
+
 */
 
+#include <stdlib.h>
+#include <stdio.h>
 #include <qstring.h>
 #include <qstringlist.h>
 #include <qfile.h>
@@ -54,7 +59,7 @@ int main(int argc, char *argv[])
   int ind, ind1, ind2, i;
   unsigned int ui;
   char *progname = imodProgName(argv[0]);
-  bool fortran = false;
+  bool fort77 = false;
   QString docStart = "/\\*!";
   QString docEnd = "\\*/";
   QString docContinue = "\\*";
@@ -74,7 +79,7 @@ int main(int argc, char *argv[])
     if (argv[ind][0] == '-'){
       switch (argv[ind][1]){
       case 'f':
-        fortran = true;
+        fort77 = true;
         docStart = "^[Cc][ \t]*!";
         docEnd = docStart;
         docContinue = "[cC]";
@@ -203,7 +208,7 @@ int main(int argc, char *argv[])
             if (ind >= 0) {
 
               // Found end sequence; strip it and add to list if not empty
-              if (fortran) {
+              if (fort77) {
                 ind = str.find("!");
                 str = str.right(str.length() - ind - 1);
               } else {
@@ -251,7 +256,7 @@ int main(int argc, char *argv[])
               
               // In C, if in a comment or comment contains /*, set flag
               // for continuation if we don't find */
-              if (!fortran && (inComment || str.find("/*") >= 0))
+              if (!fort77 && (inComment || str.find("/*") >= 0))
                 inComment = str.find("*/") < 0;
 
               // clear string and skip the line
@@ -267,8 +272,8 @@ int main(int argc, char *argv[])
             if (ind > 0)
               str.truncate(ind + 1);
 
-            // Fortran continuation: strip it off
-            if (fortran && funcList.count()) {
+            // Fort77 continuation: strip it off
+            if (fort77 && funcList.count()) {
               str = str.right(str.length() - 1);
               str = str.stripWhiteSpace();
             }
