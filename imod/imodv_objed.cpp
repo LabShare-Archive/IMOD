@@ -818,7 +818,7 @@ static void setMaterial(Iobj *obj, int which, int value)
 {
   switch (which) {
   case 0:
-    obj->diffuse = (unsigned char)value;
+    obj->ambient = (unsigned char)value;
     break;
   case 1:
     obj->diffuse = (unsigned char)value;
@@ -1593,6 +1593,9 @@ static void finalSpacer(QWidget *parent, QVBoxLayout *layout)
 
 /*
 $Log$
+Revision 4.12  2003/04/25 00:15:00  mast
+Moved Light both sides to material panel; implement program name change
+
 Revision 4.11  2003/04/17 18:43:38  mast
 adding parent to window creation
 
