@@ -36,7 +36,7 @@ import java.lang.IllegalStateException;
 * 
 * Tokenizing Rules:
 * 
-* Currently the COMMENT, SEPARATOR, OPEN, and CLOSE symbols must be single
+* Currently the COMMENT, SEPARATOR, OPEN, CLOSE, and BREAK symbols must be single
 * character.
 * 
 * The delimiter may contain multiple characters.  It may not contain symbols
@@ -65,6 +65,9 @@ import java.lang.IllegalStateException;
 * @version $$Revision$$
 *
 * <p> $$Log$
+* <p> $Revision 1.5  2005/02/15 19:53:12  sueh
+* <p> $bug# 602 Tokenizing BREAK.  "^" is now a matched character.
+* <p> $
 * <p> $Revision 1.4  2003/12/31 17:48:07  sueh
 * <p> $bug# 372 change doc
 * <p> $
