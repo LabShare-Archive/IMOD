@@ -55,8 +55,13 @@ Chunksetup divides the chunks equally among the machines and
 produces a shell script, comfile-parallel, that you can run directly
 (without using subm) to start the processing on all of the machines.  The
 remote processing is run with ssh and each ssh command is started in the
-background, then the script exits.  Each machine must have access to the
-current directory.  If the directory path includes "localscratch" this will
+background so that the script can then go on and watch the progress.
+You must already be set up to log into each of the
+machines without requests for passwords or other interactive input, such as
+the request for confirmation when you first log in to a machine.
+Each machine must have access to the
+current directory.
+If the directory path includes "localscratch" this will
 be replaced by "scratch/hostname" where "hostname" is the name of the current
 machine.  (This works for the scratch filesystem at the BL3DEMC.)
 If you need to use temporary files with parallel processing, then you should
@@ -71,8 +76,14 @@ $if (-e chunktemp.$tmpext) rm -f chunktemp.$tmpext
 .br
 The script includes a
 loop to watch the log files for completion and report on how many chunks are
-done periodically.  It will not run the finishing command when the chunks
+done periodically.  It will run the finishing command when the chunks
 are done.
+
+If errors occur and some chunks fail to be made, the script will not exit.
+In this case, you can interrupt the script with Ctrl-C and it will report
+the numbers of the chunks that it thinks failed.  You should then check which
+of these output files are truly absent, and then run the individual command
+files to finish the job.
 
 .SS Options
 .TP
