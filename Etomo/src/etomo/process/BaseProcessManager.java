@@ -24,6 +24,9 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.2  2004/11/19 23:17:50  sueh
+* <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+* <p>
 * <p> Revision 1.1.2.8  2004/11/12 22:52:59  sueh
 * <p> bug# 520 Using overloading to simiplify the postProcess function names.
 * <p>
@@ -77,7 +80,7 @@ public abstract class BaseProcessManager {
   private HashMap killedList = new HashMap();
   
   protected abstract void postProcess(ComScriptProcess script);
-  protected abstract void postProcess(BackgroundProcess process);
+  protected abstract void postProcess(BackgroundProcess process, int exitValue);
   protected abstract void errorProcess(BackgroundProcess process);
   protected abstract BaseManager getManager();
   protected abstract void postProcess(InteractiveSystemProgram program);
@@ -710,7 +713,7 @@ public abstract class BaseProcessManager {
     // Command succeeded, check to see if we need to show any application
     // specific info
     else {
-      postProcess(process);
+      postProcess(process, exitValue);
     }
 
     // Null the reference to the appropriate thread

@@ -27,6 +27,9 @@ import etomo.type.JoinMetaData;
 * @version $Revision$
 *
 * <p> $Log$
+* <p> Revision 1.2  2004/11/19 23:22:15  sueh
+* <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+* <p>
 * <p> Revision 1.1.2.14  2004/11/19 00:01:55  sueh
 * <p> bug# 520 Saving meta data after post processing and error processing
 * <p> that changes the meta data.
@@ -159,7 +162,7 @@ public class JoinProcessManager extends BaseProcessManager {
   /**
    * non-generic post processing for a successful BackgroundProcess.
    */
-  protected void postProcess(BackgroundProcess process) {
+  protected void postProcess(BackgroundProcess process, int exitValue) {
     String commandName = process.getCommandName();
     if (commandName == null) {
       return;
@@ -169,7 +172,12 @@ public class JoinProcessManager extends BaseProcessManager {
       return;
     }
     if (commandName.equals(FlipyzParam.getName())) {
-      joinManager.addSection(command.getOutputFile());
+      if (exitValue == 0) {
+        joinManager.addSection(command.getOutputFile());
+      }
+      else {
+        joinManager.abortAddSection();
+      }
     }
     else if (commandName.equals(XfalignParam.getName())) {
       joinManager.copyXfFile(command.getOutputFile());

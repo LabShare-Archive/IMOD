@@ -20,6 +20,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.40  2004/11/19 23:24:22  sueh
+ * bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+ *
  * Revision 3.39.2.11  2004/11/12 22:55:13  sueh
  * bug# 520 Using overloading to simiplify the postProcess function names.
  *
@@ -1321,7 +1324,7 @@ public class ProcessManager extends BaseProcessManager {
     }  
   }
   
-  protected void postProcess(BackgroundProcess process) {
+  protected void postProcess(BackgroundProcess process, int exitValue) {
     if (process.getCommandLine().equals(transferfidCommandLine)) {
       handleTransferfidMessage(process);
     }
