@@ -16,6 +16,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.2  2005/01/29 20:27:31  mast
+Added nested contour routines
+
 */
 
 #ifndef ICONT_H
@@ -186,8 +189,8 @@ int imodel_contour_nearest(struct Mod_Contour *cont, int x, int y);
 int imodel_contour_overlap(struct Mod_Contour *c1, struct Mod_Contour *c2);
 int imodel_scans_overlap(Icont *cs1, Ipoint pmin1, Ipoint pmax1,
 			 Icont *cs2, Ipoint pmin2, Ipoint pmax2);
-int imodel_overlap_fractions(Icont *cs1, Ipoint pmin1, Ipoint pmax1,
-			     Icont *cs2, Ipoint pmin2, Ipoint pmax2,
+int imodel_overlap_fractions(Icont **cs1p, Ipoint pmin1, Ipoint pmax1,
+			     Icont **cs2p, Ipoint pmin2, Ipoint pmax2,
 			     float *frac1, float *frac2);
 int imodel_contour_centroid(struct Mod_Contour *icont, struct Mod_Point *rcp,
 			    double *rtw);
