@@ -45,6 +45,7 @@ Log at end of file
 #include <imodi.h>
 
 class QGLColormap;
+class QCursor;
 
 /* DNM 12/22/02: eliminated multiple view structures */
 typedef struct imod_application
@@ -56,6 +57,7 @@ typedef struct imod_application
   int          doublebuffer;
   int          rgba;
   int         qtEnableDepth;
+  QCursor *modelCursor;
   
   /* Global color pixel values */
   int base;
@@ -279,6 +281,9 @@ void ivwReadZ(ImodView *iv, unsigned char *buf, int cz);
 
 /*
 $Log$
+Revision 3.10  2003/02/27 18:17:36  mast
+Changes for using Qt directory functions
+
 Revision 3.9  2003/02/10 20:36:28  mast
 Merge Qt source
 
