@@ -134,8 +134,8 @@ set qt_libs = `sed -n '/^LIBS /s/^LIBS.*-L\$(QTDIR/-L\$(QTDIR/p' $sendevent_dir/
 # Tell plugins where imod is
 #
 set plug_loader = ${source_dir}/${imod_dir}/${imod_target}
-echo 'MAKELIBSO = $(ARCPP) -bundle -dynamic -bundle_loader '"$plug_loader"' $(LDFLAGS) -limod -ldiaqt '"$qt_libs -o" >> $configure
-echo  'MAKEF77PLUGIN  = $(FC)  -bundle -dynamic -bundle_loader '"$plug_loader"' $(LDFLAGS) -limod -ldiaqt -ldtrigs '"$qt_libs $fort_cpplibs -o" >> $configure
+echo 'MAKELIBSO = $(ARCPP) -bundle -dynamic -bundle_loader '"$plug_loader"' $(LDFLAGS) -limod -ldiaqt '"$qt_libs -o " >> $configure
+echo  'MAKEF77PLUGIN  = $(FC)  -bundle -dynamic -bundle_loader '"$plug_loader"' $(LDFLAGS) -limod -ldiaqt -ldtrigs '"$qt_libs $fort_cpplibs -o " >> $configure
 
 # make script files to run programs
 # Set DYLD_LIBRARY_PATH with qtlib before running program

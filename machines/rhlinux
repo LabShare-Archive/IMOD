@@ -63,7 +63,7 @@ endif
 
 echo 'MAKELIB   = $(AR) $(ARFLAGS)' >> $configure
 echo 'MAKELIBCPP = $(ARCPP) $(ARFLAGS)' >> $configure
-echo "MAKELIBSO = g++ $flags -shared -o" >> $configure
+echo "MAKELIBSO = g++ $flags -shared -o " >> $configure
 
 
 echo "CLIBS   = -lc -lm" >> $configure

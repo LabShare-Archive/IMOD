@@ -133,7 +133,6 @@ else
 endif
 
 echo 'MAKELIB   = $(AR) $(ARFLAGS)' >> $configure
-echo "MAKELIBSO = g++ $flags -shared -o " >> $configure
 
 
 if ($compiler == intel) then
@@ -157,7 +156,6 @@ endif
 echo 'LIBS    = $(CLIBS)'  >> $configure
 echo 'FORTCLIBS = '  >> $configure
 
-# skip MAKF77PLUGIN
 
 echo 'FLCC      = $(FC)'              >> $configure
 echo "F77LIBS   = $wrapper"                  >> $configure
@@ -328,6 +326,9 @@ endif
 if ($compiler == intel) then
     set qt_libs = `sed -n '/^LIBS[ 	]*=/s/^[^"]*\("[^"]*"\).*$/\1/p' $sendevent_dir/Makefile | sed '/\\/s//\\\\/g'`
     set qt_libs = '/LIBPATH:"$(QTDIR)\\lib"'" $qt_libs"
+
+    echo "MAKELIBSO = link -dll $qt_libs ../../buildlib/libimod.lib ../../imod/3dmod.lib ../../buildlib/libdiaqt.lib /out:" >> $configure
+
     cat <<EOF >> $imod_dir/Makefile
 
 mkargv : mkargv.c
@@ -336,8 +337,6 @@ imodhelp.h : imodhelp mkargv
 	./mkargv imodhelp imodhelp.h "Imod_help_text[]"
 EOF
 
-    set makefile_ext = unix
-    set makefile_dirs = ($libdiaqt_dir)
     # Output variables for libraries to copy to bin
     #
     echo 'DLLSOURCEDIR1 = C:/Program Files/Intel/Compiler70/IA32/Bin' >> $configure
@@ -346,7 +345,7 @@ EOF
     echo 'DLLSTOCOPY2 = libtiff.dll libjpeg.dll zlib.dll' >> $configure
 else
     set makefile_ext = dummy
-    set makefile_dirs = ($midas_dir $imod_dir $sendevent_dir $libdiaqt_dir)
+    set makefile_dirs = ($midas_dir $imod_dir $sendevent_dir $libdiaqt_dir $plugsrc_dir)
 endif
 
 
