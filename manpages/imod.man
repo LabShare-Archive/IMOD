@@ -1,6 +1,6 @@
 .na
 .nh
-.TH imod 1 2.7.2 BL3DFS
+.TH imod 1 3.0.1 BL3DFS
 .SH NAME
 imod \- Make a model from a 3-D image stack.
 .SH SYNOPSIS
@@ -74,7 +74,7 @@ Most manual model editing is done within the ZaP Window.
 .P
 Additional windows that may be
 opened via menu selection are the Slicer, XYZ, Tumbler, 
-Tilt, Graph, Pixel View, and Model View windows.
+Graph, Pixel View, and Model View windows.
    The Slicer Window allows one to view slices through the 3-D 
 image data.  If the image cache is turned on, only images in
 the cache will be displayed in views that contain data from 
@@ -83,8 +83,6 @@ multiple Z sections.
 planes perpendicular to the X,Y and Z axis.
    The Tumbler Window allows one to view a small projected view
 of the area around the current point.
-   The Tilt Window allows one to load a tilt image file and have 
-it linked to the XYZ Image Window.
    The Graph Window graphs intensity along a given
 axis or along a given contour.
    The Pixel View Window shows the actual pixel values from the
@@ -94,8 +92,8 @@ while it's being built.
 .P
 
 .SS Options
-imod will accept the standard
-Xt toolkit options along with the following options:
+imod will accept some
+Qt options (such as -style) along with the following options:
 .TP
 .B -x <min,max>
 .PD 0
@@ -126,6 +124,19 @@ XYZ window instead of the ZaP window.
 .B -S
 This option causes a slicer window
 instead of the ZaP window to be opened when the program starts.
+.TP
+.B -V
+This option causes a model view window
+instead of the ZaP window to be opened when the program starts.
+.TP
+.B -Z
+This option causes a ZaP window to be opened even if one of 
+.B -xyz,
+.B -S,
+or
+.B -V
+is entered.  These 4 options can all be used together to open a selected
+set of windows.
 .TP
 .B -Y
 This option causes the image data to be flipped after it
@@ -208,27 +219,10 @@ automatically load such a file as a montage, so this option is available to
 override this behavior and force loading as individual frames.
 
 .TP
-.B -c <value>
-The 
-.B -c
-option selects a starting color table used for displaying
-image data.  This allows additional copies of imod to run and
-display images with different contrasts.  The default 
-.I value 
-is 1 and the allowed range is 1-12.  This option is ignored on
-8-bit and RGB graphics displays.  On SGI machines, imod attempts to
-determine the number of other imods that are already running and selects a
-color table value one
-higher than this number.  The color table can be changed from within imod
-using the
-.I Edit Image 
-menu item 
-.I Colormap.
-.TP
-.B -rgb
-Display images in 24-bit color mode rather than using a color table.  This 
-option is needed on an SGI when trying to display color images, i.e. MRC files 
-in RGB-mode or TIFF files containing RGB images.
+.B -ci
+Display images in color index mode using a color table, rather than in
+24-bit color mode.  Color index mode only has 8 bits and works rather
+poorly under Qt. 
 .TP
 .B -G
 Display an RGB-mode MRC file in gray-scale rather than in color.  If there are
@@ -245,14 +239,12 @@ option, intensities are scaled between the minimum and maximum intensities in
 the image file.  Images can be rescaled after imod is running using the
 .TP
 .B -W
-Output the window ID of the imod Information Window.
+Output the window ID of the imod Information Window and do not put put imod
+in the background automatically.
 .TP
 .B -D
 Run in debug mode with diagnostic output and without becoming a background
 process.
-.I Edit Image 
-menu item 
-.I Reload.
 
 .SH Information Window
 The Information Window is imod's main control window and it is
@@ -315,7 +307,7 @@ F12     Toggle False Color.
 .I The Float Checkbox.
 When this box is checked, imod will attempt to maintain comparable image
 contrast when going from one section to the next.  It automatically adjusts
-the sliders when you change sections in a ZaP window, based on the mean and
+the sliders when you change sections, based on the mean and
 standard deviation of image intensity in the sections.
 .TP
 .I The Mode Toggle Buttons.
@@ -344,7 +336,6 @@ Memory to TIFF... Write the whole section of a raw color image
                     stored inside imod to a TIFF file, in order to
                     turn a montaged image bigger than the screen
                     into a single large image.
-About             Info about imod.
 Quit              Quit imod.
 
 .I Edit Menu
@@ -361,9 +352,8 @@ Model
 Object
    New       Create a new object.  Opens Object Type dialog box.
    Delete    Delete current object.
-   Color...  Open requester for changing object color.
    Type...   Edit Object type.
-   Go To...  Select the current object with a slider.
+   Color...  Open requester for changing object color.
    Move...   Move all contours from current object to another
                 object.
    Info      Calculate volume and surface area of current object.
@@ -377,55 +367,52 @@ Surface
                 a different surface using the Contour Move window.
 
 Contour
-   New       Create a new contour.  (n)
-   Delete    Deletes the current contour.  (D)
-   Move...   Move current contour to a different object or
-               surface.
-   Sort      Sort contours in the object by their Z values and by 
-                their time values.
-   Auto...   Make new contours using threshold.
-   Type...   Edit contour internal data, such as
-                surface #, time index and labels.
-   Go To...  Select the current contour with a slider.
-   Info      Print area and/or length of contour.
-   Break...  Break contour into two contours.  Closed contours can
-                have two break points.
-   Fix by Z  Break a closed contour at every change in Z, creating
-                as many contours as necessary so that each lies in
-                a single Z plane.
-   Join...   Join two contours together.  Closed contours will be 
-                joined at the nearest point; open contours will be
-                joined such that the joined contour will have
-                points up to the first selected point from the
-                first contour and from the second selected point
-                to the last point from the second contour.
-   Invert    Invert the order of points in the current contour.
-   Copy...   Copy contours to a different object, Z-level, or
-                time.
-   Loopback  Add points to the end of a contour so that it loops
-                back from its current end to its start along the 
-                same path.  Such a contour can be used to make a
-                complex cap over an elongated, oddly shaped
-                contour.
-   Fill In   For an open contour that traverses through Z, add
-                points by interpolation to fill in any gaps where
-                the contour skips one or more sections.
+   New        Create a new contour.  (n)
+   Delete     Deletes the current contour.  (D)
+   Move...    Move current contour to a different object or
+                surface.
+   Copy...    Copy contours to a different object, Z-level, or
+                 time.
+   Sort       Sort contours in the object by their Z values and by 
+                 their time values.
+   Break...   Break contour into two contours.  Closed contours
+                 can have two break points.
+   Join...    Join two contours together.  Closed contours will be 
+                 joined at the nearest point; open contours will
+                 be joined such that the joined contour will have
+                 points up to the first selected point from the
+                 first contour and from the second selected point
+                 to the last point from the second contour.
+   Fill In Z  For an open contour that traverses through Z, add
+                 points by interpolation to fill in any gaps where
+                 the contour skips one or more sections.
+   Break by Z Break a closed contour at every change in Z,
+                 creating as many contours as necessary so that 
+                 each lies in a single Z plane.
+   Loopback   Add points to the end of a contour so that it loops
+                 back from its current end to its start along the 
+                 same path.  Such a contour can be used to make a
+                 complex cap over an elongated, oddly shaped
+                 contour.
+   Invert     Invert the order of points in the current contour.
+   Info       Print area and/or length of contour.
+   Auto...    Make new contours using threshold.
+   Type...    Edit contour internal data, such as
+                 surface #, time index and labels.
 
 Point
    Delete        Delete Current point.  (Delete)
-   Sort by dist  Sort points in a contour by interpoint distance.
-   Sort by Z     Sort points in a contour by Z value.
+   Size...       Set size of individual points.
+   Value         Show current voxel value from image file.
    Distance      Show distance between current and last model
                     points.
-   Value         Show current voxel value from image file.
-   Go To...      Select the current point with a slider.
-   Size...       Set size of individual points.
+   Sort by Z     Sort points in a contour by Z value.
+   Sort by dist  Sort points in a contour by interpoint distance.
 
 Image
-   Process...      Process images by filtering.
-   Colormap...     Change color table number.
-   Reload...       Open the image scale reload requester.
    Flip            Exchange Y and Z dimensions of the image data.
+   Process...      Process images by filtering.
+   Reload...       Open the image scale reload requester.
    Fill Cache      Fill the cache if there is one.
    Cache Filler... Open a dialog box to control cache filling and
                       select autofilling.
@@ -434,19 +421,18 @@ Movies...    Open window to control movie limits in X, Y, Z and
                  time.
 
 .I Image Menu
-   Graph       Open an image Graph window.  (G)
-   Slicer      Open an image Slicer window.  (\\)
-   Tumbler     Open a 3-D Tumbler window.
-   Tilt...     Load Extra Tilt Image for viewing.
-   Model View  Open an imod model view window.  (v)
-   ZaP         Open the ZaP window.
+   ZaP         Open the ZaP window.  (Z)
    XYZ         Open the XYZ window.
+   Slicer      Open an image Slicer window.  (\\)
+   Model View  Open an imod model view window.  (v)
    Pixel View  Open window displaying pixel values.
+   Graph       Open an image Graph window.  (G)
+   Tumbler     Open a 3-D Tumbler window.
 
 .I Special menu
 .fi
 This menu provides access to plugins found by imod when it starts.  Plugins
-may include ones for working with data from 4D microscopes, the Bead Fixer
+may include the Bead Fixer
 to assist with correcting models of fiducial markers for aligning tilt series,
 and the Line Tracker, which performs semi-automated modeling of linear
 features such as membranes.
@@ -552,7 +538,7 @@ s  -  Save Model File
 f  -  Print current pixel value in information window
 F  -  Find the maximum pixel within 10 pixels and report its value
 ,  -  Decrease movie speed
- .  -  Increase movie speed
+.  -  Increase movie speed
 -  -  Decrease Zoom
 =  -  Increase Zoom
 3  -  Start or stop a movie through time in the forward direction
@@ -637,6 +623,7 @@ X/Y/Z  - Align first and last points of current contour along
 Numeric Keypad:
 4/6  -  (Left/Right) Decrease/Increase last adjusted angle by 0.1
 2/8  -  (Down/Up) Decrease/Increase last adjusted angle by 0.5
+1/3  -  (End/PgDn) Decrease/Increase last adjusted angle by 15.0
 0    -  (Insert) Set last adjusted angle to 0
 .fi
 
@@ -657,6 +644,9 @@ mouse to riffle through images in a plane.
 .nf
 -/=  -  Decrease/Increase zoom
 r    -  Toggle between low and high resolution display modes
+P    -  Toggle on or off showing a projection of the current 
+          contour in the XZ and YZ planes, and of a current 
+          contour that is open in the XY plane
 S    -  Snapshot to RGB file
 Ctrl-S - Snapshot to TIFF file
 .fi
@@ -698,53 +688,22 @@ points to the current contour.
 current model point to that location.
 .SH Tumbler Window
 The Tumbler Window is opened by selecting the Tumbler item
-from the Image menu.  The area around the current point
-will be shown in the Tumbler Window.
+from the Image menu.  A projection of a volume around the current point
+will be shown in the Tumbler Window.  Various toolbar controls allow you to
+change the size of the volume and the zoom, lock the position, select a
+high-resolution display, or set thresholds for truncating pixels as black
+or white.  The hotkeys in the tumbler window are:
 .nf
-The arrow keys tumble the image.
-The -/= keys zoom the image.
-The F1,F2,F3,F4 keys adjust the contrast.
-The 'b' key toggles on/off the bounding box.
-.fi
-.SH Tilt Window
-The Tilt Window is opened by selecting the Tilt menu item
-from the Image menu. 
-Once the Tilt Window is selected a file requester appears.
-One can enter an mrc file name or enter an ascii file name
-with the following format.
-.nf
-	tilt	First line is mrc image file name.
-	0	Lines 2-4 are translation values for x,y,z
-	0 
-	0 
-	1	Lines 5-7 are scale values for x,y,z.
-	1 
-	1 
-	0	Lines 8-10 are angles x,y,z.
-	0 
-	0 
-	-10	Lines 11-end are a list of tilts.
-	5
-	0
-	5
-	10
-.fi
-If a file name is given the tilt image is then loaded; otherwise
-the current image in imod is used.
-The tilt window will draw the current contour.
-.TP
-Keyboard control hot keys for the tilt window image area.
-.nf
-m 	Toggle Movie on / off.
--	Decrease Stereo Parallax.
-+	Increase Stereo Parallax.
-
-Page Up     - Increase tilt angle view.
-Page Down   - Decrease tilt angle view.
-
-Function Keys 
-F1-F2 Adjust Black level.
-F3-F4 Adjust White level.
+Keypad up and down arrow keys tumble the volume around the X axis.
+Keypad left and right arrow keys tumble the volume around the Y axis.
+Keypad PgUp and PgDn keys tumble the volume around the Z axis.
+-/=     Decrease/Increase the zoom
+F5/F6   Decrease/Increase black threshold level
+F7/F8   Decrease/Increase white threshold level
+b       Toggle the bounding box on or off
+,/.     Decrease/Increase angular increment when rotating
+S    -  Snapshot to RGB file
+Ctrl-S - Snapshot to TIFF file
 .fi
 .SH Graph Window
 This window graphs image intensity along the image 
@@ -771,7 +730,7 @@ saved yet, the name of the autosave file is just #autosave#.  The
 autosave file is
 eliminated whenever the model is saved, and when the program exits normally.
 The IMOD_AUTOSAVE environment variable sets the number of
-seconds between automatic saves.  If it is set to 0 then
+minutes between automatic saves.  If it is set to 0 then
 this feature will be disabled.  The first time that you save a model file,
 the existing model file will be renamed to model_file_name~, and any existing
 file by that name will be deleted.  This backup file will not be overwritten
@@ -785,7 +744,7 @@ a local disk (e.g., /usr/tmp) and avoid the long delays required to write
 a large model to a disk over the network.
 
 .SH SURFACES, OPEN CONTOURS, LABELS, AND POINT SIZES
-Several features can be controlled from the Contour Type window.  One is
+Several features can be controlled from the Surf/Cont/Point window.  One is
 the surface, which is an optional level of organization between contours and
 objects.  With surfaces, one can keep track of, navigate between, and
 manipulate groups of contours without having to use a separate object for each
@@ -793,37 +752,45 @@ group.  Each contour in an object has a surface number, which is 0 if surfaces
 are never employed.  To start a new surface, use 
 .B N
 or the New Surf button 
-in the Contour Type window to obtain a new, empty contour
+in the Surface section of the window to obtain a new, empty contour
 with the new surface number.  
 Thereafter, each new contour will have the same
 surface number as the previous contour being modeled, until a new surface is
-started again.  The Contour Type window has controls for moving within and
-between surfaces and for visualizing contours of the current surface.  The
+started again.  The Surface section of this window has controls for moving 
+within and
+between surfaces and for visualizing contours of the current surface, using
+the Ghost button.  The
 Contour Move window has options for moving contours from one surface to
 another or for moving an entire surface to a new object.
 
-The Contour Type window has buttons for controlling two kinds of ghost
-displays.  The Surface Ghost button allows one to highlight contours of the
-current surface.  The Section Ghost buttons control the display of ghost
-contours from adjacent sections, which is also toggled by the g hotkey.
-
-The Contour Type window has a button for defining individual contours as
+The Contour section of the Surf/Cont/Point window has radio buttons for
+defining individual contours as
 open in an object defined as having closed contours.  This is useful for
 displaying a partially cut edge of an object.  See imodmesh(1) for more
 details.
 
-This window also has a text box for displaying and editing the time index of
+This part of the window also has a text box for displaying and editing the
+time index of
 the current contour.  If you have loaded multiple image files and want to
 model contours at specific times (i.e., displayed only on images from a 
 specific file), you must first activate time editing with a button in
 the Edit-Object-Type window.  Once this feature is selected,
 newly created contours will be assigned to the currently displayed time.
 
-The Contour Type window also has text boxes in which one can enter labels
-for individual contours and points.  Finally, it has a text box and slider for
-assigning a size value to an individual point.  While this value can be
-anything, not just a size, it is interpreted as a size when the type of the 
-object is scattered points rather than contours.
+The Point section of the Surf/Cont/Point window has a text box and slider for
+assigning a size value to an individual point.  Any point with an individual
+size will be displayed as a sphere, just like points in scattered point
+contours.
+
+The  window also has text boxes in which one can enter labels
+for individual contours and points.  
+
+The Section Ghost section of the Surf/Cont/Point 
+window has controls 
+to enable the display of ghost
+contours from adjacent sections, which is also toggled by the g hotkey.
+Ghosts can be displayed from above or below the current section, and 
+from variable numbers of sections away.
 
 .SH IMAGE LIST FILES
 An image list file can be entered instead of an image file on the imod
