@@ -74,6 +74,7 @@ char *ImodRes_SGIRestoreCommand(void)
 #endif
 }
 
+// The numbers are single/double buffer, rgba, colorBits, depthBits, stereo
 static ImodGLRequest qtPseudo12DB = {1, 0, 12, 0, 0};
 static ImodGLRequest qtPseudo12SB = {0, 0, 12, 0, 0};
 static ImodGLRequest qtPseudo8DB = {1, 0, 8, 0, 0};
@@ -528,8 +529,8 @@ int imodFindQGLFormat(ImodApp *ap, char **argv)
 
     visual = imodFindGLVisual(*qtGLRequestList[i]);
 
-    /* If it returns one, and it is rgb, make sure depth is at least 16 */
-    if (visual && (!visual->rgba || visual->colorBits >= 16)) {
+    /* If it returns one, and it is rgb, make sure depth is at least 15 */
+    if (visual && (!visual->rgba || visual->colorBits >= 15)) {
       ap->doublebuffer = visual->dbRequested;
       ap->rgba = visual->rgbaRequested;
       ap->qtEnableDepth = visual->depthEnabled;
@@ -547,6 +548,9 @@ int imodFindQGLFormat(ImodApp *ap, char **argv)
 
 /*
 $Log$
+Revision 4.6  2003/05/18 22:59:13  mast
+Remove icon-creating form here
+
 Revision 4.5  2003/05/18 22:08:48  mast
 Changes to add an application icon
 
