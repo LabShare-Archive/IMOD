@@ -32,6 +32,12 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.2  2003/07/31 21:45:47  mast
+Transfer object views appropriately from each model file, add new
+views from later files if they have more views than the first file,
+and stop big memory leaks by deleting contours and meshes of unused
+objects.
+
 Revision 3.1  2003/02/21 23:18:03  mast
 Open output file in binary mode
 
@@ -91,7 +97,6 @@ int main(int argc, char **argv)
   int replace = 0;
   int iarg = 1;
   char option;
-  char backname[257];
     
   if (argc < 4) usage();
 
@@ -272,8 +277,7 @@ int main(int argc, char **argv)
   inModel->cindex.contour = -1;
   inModel->cindex.object = 0;
 
-  sprintf(backname, "%s~", argv[argc - 1]);
-  rename (argv[argc - 1], backname);
+  imodBackupFile(argv[argc - 1]);
   if (imodOpenFile(argv[argc - 1], "wb", inModel)) {
     fprintf(stderr, "imodjoin: Fatal error opening new model\n");
     exit (1);

@@ -60,10 +60,11 @@ int main( int argc, char *argv[])
      struct MRCheader hdata;
      int i;
      int invert = 0;
+     char *progname = imodProgName(argv[0]);
 
 
      if (argc == 1){
-	  imodVersion(argv[0]);
+	  imodVersion(progname);
 	  imodCopyright();
 	  fprintf(stderr,
 		  "Usage: mop [-hrgbi] [model file] [input image] [output image]\n");
@@ -113,20 +114,20 @@ int main( int argc, char *argv[])
      }
 
 
-     mfin = fopen(argv[i++], "r");
+     mfin = fopen(argv[i++], "rb");
      if (mfin == NULL){
 	  fprintf(stderr, "MOP: Couldn't open %s\n", argv[1]);
 	  exit(-1);
      }
      
-     gfin = fopen(argv[i++], "r");
+     gfin = fopen(argv[i++], "rb");
      if (gfin == NULL){
 	  fprintf(stderr, "MOP: Couldn't open %s\n", argv[2]);
 	  exit(-1);
      }
      
 
-     gfout = fopen(argv[i], "w");
+     gfout = fopen(argv[i], "wb");
      if (gfout == NULL){
 	  fprintf(stderr, "MOP: Couldn't open %s\n", argv[3]);
 	  exit(-1);

@@ -31,7 +31,7 @@ main( int argc, char *argv[])
      }
 
      i = 1;
-     fin = fopen(argv[i], "r");
+     fin = fopen(argv[i], "rb");
      if (!fin){
 	  fprintf(stderr, "%s: Error, couldn't open file %s\n",
 		  argv[0], argv[i]);
@@ -47,7 +47,7 @@ main( int argc, char *argv[])
      
      
      i = 2;
-     fout = fopen(argv[i], "w");
+     fout = fopen(argv[i], "wb");
      if (!fout){
 	  fprintf(stderr, "%s: Error, couldn't open file %s\n",
 		  argv[0], argv[i]);

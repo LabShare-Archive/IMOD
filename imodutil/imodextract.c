@@ -32,6 +32,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.3  2003/07/31 21:42:46  mast
+Extract object views for the particular objects being extracted
+
 Revision 3.2  2003/02/21 23:18:44  mast
 Open output file in binary mode
 
@@ -58,7 +61,6 @@ int main(int argc, char **argv)
   int ob, nob, iview;
   int *list;
   int i, nlist, origsize;
-  char backname[257];
     
   if (argc != 4) usage();
     
@@ -114,8 +116,7 @@ int main(int argc, char **argv)
     inModel->view[iview].objvsize = nlist;
       
 
-  sprintf(backname, "%s~", argv[argc - 1]);
-  rename (argv[argc - 1], backname);
+  imodBackupFile(argv[argc - 1]);
   if (imodOpenFile(argv[argc - 1], "wb", inModel)) {
     fprintf(stderr, "imodextract: Fatal error opening new model\n");
     exit (1);

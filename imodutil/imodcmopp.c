@@ -30,7 +30,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <mrcfiles.h>
 #include "imodel.h"
 
@@ -138,12 +137,13 @@ int main( int argc, char *argv[])
     rgb[64];
 
   char *theTempDir = ".";
+  char *progname = imodProgName(argv[0]);
 
   if (argc < 4){
-    imodVersion(argv[0]);
+    imodVersion(progname);
     imodCopyright();
     fprintf(stderr,
-	    "Usage: %s <model file> <tomogram> <movie file>\n", argv[0]);
+	    "Usage: %s <model file> <tomogram> <movie file>\n", progname);
     fprintf(stderr, "[-x] [-z] [-n] [-m] [-T <temp>] "
 	    "-t <start, end, increment>]\n");
     exit(1);
@@ -210,19 +210,19 @@ int main( int argc, char *argv[])
   }
 
   if ((start_tilt > end_tilt) && (inc_tilt > 0)){
-    fprintf(stderr, "%s: Error, bad tilt input.\n", argv[0]);
+    fprintf(stderr, "%s: Error, bad tilt input.\n", progname);
     exit(-1);
   }
   if ((end_tilt > start_tilt) && (inc_tilt < 0)){
-    fprintf(stderr, "%s: Error, bad tilt input.\n", argv[0]);
+    fprintf(stderr, "%s: Error, bad tilt input.\n", progname);
     exit(-1);
   }
   if (!inc_tilt){
-    fprintf(stderr, "%s: Error, bad tilt input.\n", argv[0]);
+    fprintf(stderr, "%s: Error, bad tilt input.\n", progname);
     exit(-1);
   }
   if (! (end_tilt - start_tilt)){
-    fprintf(stderr, "%s: Error, bad tilt input.\n", argv[0]);
+    fprintf(stderr, "%s: Error, bad tilt input.\n", progname);
     exit(-1);
   }
 
@@ -234,13 +234,13 @@ int main( int argc, char *argv[])
     exit(-1);
   }
 
-  /*     mfin = fopen(argv[1], "r");
+  /*     mfin = fopen(argv[1], "rb");
 	 if (mfin == NULL){
 	 fprintf(stderr, "rgbmop: Couldn't open %s\n", argv[1]);
 	 exit(-1);
 	 }
   */
-  gfin = fopen(argv[2], "r");
+  gfin = fopen(argv[2], "rb");
   if (gfin == NULL){
     fprintf(stderr, "rgbmop: Couldn't open %s\n", argv[2]);
     exit(-1);
@@ -272,12 +272,12 @@ int main( int argc, char *argv[])
   idata = mrc_read_byte(gfin, &hdata, &li, mrc_default_status);
 
   if (!idata){
-    fprintf(stderr, "%s: Error reading image data\n", argv[0]);
+    fprintf(stderr, "%s: Error reading image data\n", progname);
     exit(-1);
   }
-  rfout = fopen(rtom, "w");
-  gfout = fopen(gtom, "w");
-  bfout = fopen(btom, "w");
+  rfout = fopen(rtom, "wb");
+  gfout = fopen(gtom, "wb");
+  bfout = fopen(btom, "wb");
      
   rgbmodpaint(imod, &hdata, idata, rfout, gfout, bfout);
 
@@ -292,7 +292,7 @@ int main( int argc, char *argv[])
   fclose(gfin);
   /*     fclose(mfin); */
 
-  fin = fopen(rtom, "r");
+  fin = fopen(rtom, "rb");
   mrc_head_read(fin, &hdata);
   xmax = hdata.nx - 1;
   ymax = hdata.ny - 1;
@@ -325,7 +325,7 @@ int main( int argc, char *argv[])
   if (Cmopp_zscale)
     cmopp_zscale(Cmopp_zscale, rtom);
 
-  fout = fopen(xyz, "w");
+  fout = fopen(xyz, "wb");
   fprintf(fout, "%s\n%s\n", rtom, rxyz);
   fprintf(fout, "0,%d,0,%d,0,%d\n", xmax, ymax, zmax);
   if (xaxis)
@@ -349,7 +349,7 @@ int main( int argc, char *argv[])
   printf("Projecting green channel.\n");
   if (Cmopp_zscale)
     cmopp_zscale(Cmopp_zscale, gtom);
-  fout = fopen(xyz, "w");
+  fout = fopen(xyz, "wb");
   fprintf(fout, "%s\n%s\n", gtom, gxyz);
   fprintf(fout, "0,%d,0,%d,0,%d\n", xmax, ymax, zmax);
   if (xaxis)
@@ -374,7 +374,7 @@ int main( int argc, char *argv[])
   if (Cmopp_zscale)
     cmopp_zscale(Cmopp_zscale, btom);
 
-  fout = fopen(xyz, "w");
+  fout = fopen(xyz, "wb");
   fprintf(fout, "%s\n%s\n", btom, bxyz);
   fprintf(fout, "0,%d,0,%d,0,%d\n", xmax, ymax, zmax);
   if (xaxis)
@@ -404,9 +404,9 @@ int main( int argc, char *argv[])
 
   printf("creating rgb files\n");     
 
-  rfin = fopen(rxyz, "r");
-  gfin = fopen(gxyz, "r");
-  bfin = fopen(bxyz, "r");
+  rfin = fopen(rxyz, "rb");
+  gfin = fopen(gxyz, "rb");
+  bfin = fopen(bxyz, "rb");
 
   if (mrc)
     cmopp_write_mrc(argv[3], rfin, gfin, bfin);
@@ -434,7 +434,7 @@ int cmopp_write_mrc(char *moviename, FILE *rfin, FILE *gfin, FILE *bfin)
   int i, j, k;
   float min, max, mean;
 
-  of = fopen(moviename, "w");
+  of = fopen(moviename, "wb");
   if (!of)
     return(-1);
 
@@ -550,7 +550,7 @@ int cmopp_write_movie(char *moviename,
     fflush(stdout);
     sprintf(iname, "%s.%3.3d.rgb", moviename, k);
           
-    if (NULL == (of  = fopen(iname, "w"))){
+    if (NULL == (of  = fopen(iname, "wb"))){
       fprintf(stderr, "rgbmop: Couldn't open rgb file\n");
       exit(-1);
     }
@@ -853,7 +853,7 @@ int cmopp_zscale(int zscale, char *fname)
   unsigned char **idata;
   struct MRCheader hdata;
 
-  fp = fopen(fname, "r+");
+  fp = fopen(fname, "rb+");
   mrc_head_read(fp, &hdata);
   idata = mrc_read_byte(fp, &hdata, NULL, NULL);
   hdata.nz *= zscale;

@@ -32,6 +32,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.3  2002/12/23 21:32:55  mast
+Fixed exit status and made residual model have end-markers set
+
 Revision 3.2  2002/07/27 23:50:47  mast
 Eliminated line for test output
 
@@ -42,8 +45,6 @@ Added ability to convert a residual listing from Tiltalign
 
 #include <stdio.h>
 #include <string.h>
-#include <sys/types.h>
-#include <sys/stat.h>
 
 #include <imodel.h>
 
@@ -57,38 +58,36 @@ int main( int argc, char *argv[])
   FILE *fin, *fout;
   struct Mod_Model *Model;
   float scale = 10.0;
-  char *filename;
-  struct stat buf;
 
   if (argc < 2){
           
     printf("patch2imod version 1.0 usage:\n");
     printf("patch2imod [-s scale] patch_file imod_model\n");
     printf("    Displacements are multiplied by \"scale\" (default %.1f)"
-	   " to make vectors.\n", scale);
+       " to make vectors.\n", scale);
     exit(1);
 
   }
 
-
+  
   for (i = 1; i < argc ; i++){
     if (argv[i][0] == '-'){
       switch (argv[i][1]){
-                    
+        
       case 's':
-	sscanf(argv[++i], "%f", &scale);
-	break;
+        sscanf(argv[++i], "%f", &scale);
+        break;
 
       default:
-	fprintf(stderr, "Illegal argument\n");
-	exit(1);
-	break;
+        printf("ERROR: patch2imod - Illegal argument %s\n", argv[i]);
+        exit(1);
+        break;
       }
-    }else
+    } else
       break;
   }
   if (i > (argc - 2)){
-    printf("wrong # of arguments\n");
+    printf("ERROR: patch2imod - wrong # of arguments\n");
     printf("patch2imod version 1.0 usage:\n");
     printf("patch2imod [-s scale] patch_file imod_model\n");
     exit(1);
@@ -97,26 +96,20 @@ int main( int argc, char *argv[])
 
   fin = fopen(argv[i++], "r");
   if (!fin){
-    fprintf(stderr, "Couldn't open %s\n", argv[--i]);
+    printf("ERROR: patch2imod - Couldn't open %s\n", argv[--i]);
     exit(-1);
   }
 
-  if (!stat(argv[i], &buf)) {
-    filename = (char *)malloc(strlen(argv[i]) + 2);
-    sprintf(filename, "%s~", argv[i]);
-    if (rename(argv[i], filename)) {
-      fprintf(stderr, "Error renaming existing output file to %s\n",
-	      filename);
-      exit(1);
-    }
+  if (imodBackupFile(argv[i])) {
+    printf( "ERROR: patch2imod - renaming existing output file "
+            "to %s~\n", argv[i]);
+    exit(1);
   }
-
-  fout = fopen(argv[i], "w");
+  fout = fopen(argv[i], "wb");
   if (!fout){
-    fprintf(stderr, "Couldn't open %s\n", argv[i]);
+    printf("ERROR: patch2imod - couldn't open %s\n", argv[i]);
     exit(-1);
   }
-
   Model = (struct Mod_Model *)imod_from_patches(fin, scale);
      
   imodWrite(Model, fout);
@@ -148,7 +141,7 @@ struct Mod_Model *imod_from_patches(FILE *fin, float scale)
   sscanf(line, "%d", &npatch);
   if (npatch < 1) {
     fprintf(stderr, "Error - implausible number of patches = %d.\n",
-	    npatch);
+        npatch);
     exit(1);
   }
 
@@ -187,14 +180,14 @@ struct Mod_Model *imod_from_patches(FILE *fin, float scale)
       sscanf(line, "%f %f %d %f %f", &xx, &yy, &iz, &dx, &dy);
     } else {
       /* DNM 11/15/01: have to handle either with commas or without,
-	 depending on whether it was produced by patchcorr3d or 
-	 patchcrawl3d */
+     depending on whether it was produced by patchcorr3d or 
+     patchcrawl3d */
       if (strchr(line, ','))
-	sscanf(line, "%d %d %d %f, %f, %f", &ix, &iz, &iy, &dx,
-	       &dz, &dy);
+    sscanf(line, "%d %d %d %f, %f, %f", &ix, &iz, &iy, &dx,
+           &dz, &dy);
       else
-	sscanf(line, "%d %d %d %f %f %f", &ix, &iz, &iy, &dx, &dz,
-	       &dy);
+    sscanf(line, "%d %d %d %f %f %f", &ix, &iz, &iy, &dx, &dz,
+           &dy);
       xx = ix;
       yy = iy;
     }
@@ -268,3 +261,4 @@ static int fgetline(FILE *fp, char s[],int limit)
   else
     return (length);
 }
+

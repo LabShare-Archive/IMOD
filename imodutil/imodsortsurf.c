@@ -27,21 +27,24 @@
  *****************************************************************************/
 /*  $Author$
 
-    $Date$
+$Date$
 
-    $Revision$
+$Revision$
 
-    $Log$
+$Log$
+Revision 3.1  2003/02/21 23:16:15  mast
+Open output file in binary mode
+
 */
 
 #include <imodel.h>
 
 static void usage(char *prog)
 {
-    fprintf(stderr, "Usage: %s [-o list_of_objects] input_model"
-	    " output_model\n", prog);
-    fprintf(stderr, "       The optional list of object numbers can include ranges, e.g. 1-3,6-9,13\n");
-    exit(-1);
+  fprintf(stderr, "Usage: %s [-o list_of_objects] input_model"
+          " output_model\n", prog);
+  fprintf(stderr, "       The optional list of object numbers can include ranges, e.g. 1-3,6-9,13\n");
+  exit(-1);
 }
 
 int *parselist (char *line, int *nlist);
@@ -49,244 +52,242 @@ int imodObjSortSurf(Iobj *obj);
 
 int main(int argc, char **argv)
 {
-    Imod *inModel;
-    int ob, objdo;
-    int *list;
-    int i, nlist, origsize;
-    char backname[257];
+  Imod *inModel;
+  int ob, objdo;
+  int *list;
+  int i, nlist, origsize;
     
-    if (argc == 1) usage(argv[0]);
+  if (argc == 1) usage(argv[0]);
 
-    if (strcmp(argv[1], "-o") == 0) {
-      if (argc != 5) usage(argv[0]);
-      list = parselist(argv[2], &nlist);
-      if (!list) {
-	fprintf(stderr, "%s: Error parsing object list\n", argv[0]);
-	exit(1);
-      } 
-    } else {
-      if (argc != 3) usage(argv[0]);
-      nlist = 0;
-    }
-	
-
-    inModel = imodRead(argv[argc-2]);
-    if (!inModel) {
-      fprintf(stderr, "%s: Fatal error reading model\n", argv[0]);
+  if (strcmp(argv[1], "-o") == 0) {
+    if (argc != 5) usage(argv[0]);
+    list = parselist(argv[2], &nlist);
+    if (!list) {
+      fprintf(stderr, "%s: Error parsing object list\n", argv[0]);
       exit(1);
-    }
+    } 
+  } else {
+    if (argc != 3) usage(argv[0]);
+    nlist = 0;
+  }
+    
 
-    for (ob = 0; ob < inModel->objsize; ob++) {
-      objdo = 1;
-      if (nlist) {
-	objdo = 0;
-	for (i = 0; i < nlist; i++)
-	  if (list[i] == ob + 1)
-	    objdo = 1;
-      }
-      if (objdo) {
-	if (inModel->obj[ob].meshsize) {
-	  if (inModel->obj[ob].surfsize)
-	    printf("Object %d already has surface information which will"
-		   " be replaced\n", ob + 1);
-	  if (imodObjSortSurf(&(inModel->obj[ob])) ) 
-	    printf("Error sorting object %d\n", ob + 1);
-	  else
-	    printf("Object %d sorted into %d surfaces\n",ob + 1,
-		   inModel->obj[ob].surfsize);
-	} else
-	  printf("Object %d has no mesh data and cannot be sorted\n", ob + 1);
-      }
-    }	
+  inModel = imodRead(argv[argc-2]);
+  if (!inModel) {
+    fprintf(stderr, "%s: Fatal error reading model\n", argv[0]);
+    exit(1);
+  }
 
-    sprintf(backname, "%s~", argv[argc - 1]);
-    rename (argv[argc - 1], backname);
-    if (imodOpenFile(argv[argc - 1], "wb", inModel)) {
-      fprintf(stderr, "%s: Fatal error opening new model\n", argv[0]);
-      exit (1);
+  for (ob = 0; ob < inModel->objsize; ob++) {
+    objdo = 1;
+    if (nlist) {
+      objdo = 0;
+      for (i = 0; i < nlist; i++)
+        if (list[i] == ob + 1)
+          objdo = 1;
     }
-    imodWriteFile(inModel);
-    exit(0);
+    if (objdo) {
+      if (inModel->obj[ob].meshsize) {
+        if (inModel->obj[ob].surfsize)
+          printf("Object %d already has surface information which will"
+                 " be replaced\n", ob + 1);
+        if (imodObjSortSurf(&(inModel->obj[ob])) ) 
+          printf("Error sorting object %d\n", ob + 1);
+        else
+          printf("Object %d sorted into %d surfaces\n",ob + 1,
+                 inModel->obj[ob].surfsize);
+      } else
+        printf("Object %d has no mesh data and cannot be sorted\n", ob + 1);
+    }
+  } 
+
+  imodBackupFile(argv[argc - 1]);
+  if (imodOpenFile(argv[argc - 1], "wb", inModel)) {
+    fprintf(stderr, "%s: Fatal error opening new model\n", argv[0]);
+    exit (1);
+  }
+  imodWriteFile(inModel);
+  exit(0);
 }
 
 
 
 int imodObjSortSurf(Iobj *obj)
 {
-     int npoly, me, i, j, poly, ninpoly, iwork, nwork, scan, found;
-     int refvert, work, nsurfs, co, pt, ind, resol;
-     int *listp, *surfs, *meshes, *nverts, *towork, *refp, *scanp;
-     int **starts;
-     float *zmins, *zmaxs;
-     Ipoint *vertp;
-     float zmin, zmax, ptx, pty, ptz;
+  int npoly, me, i, j, poly, ninpoly, iwork, nwork, scan, found;
+  int refvert, work, nsurfs, co, pt, ind, resol;
+  int *listp, *surfs, *meshes, *nverts, *towork, *refp, *scanp;
+  int **starts;
+  float *zmins, *zmaxs;
+  Ipoint *vertp;
+  float zmin, zmax, ptx, pty, ptz;
 
-     imodMeshNearestRes(obj->mesh, obj->meshsize, 0, &resol);
+  imodMeshNearestRes(obj->mesh, obj->meshsize, 0, &resol);
 
-     /* Count polygons in all meshes based on start flags */
+  /* Count polygons in all meshes based on start flags */
 
-     npoly = 0;
-     for (me = 0; me < obj->meshsize; me++) {
-	  if (imeshResol(obj->mesh[me].flag) == resol) {
-	       listp = obj->mesh[me].list;
-	       for (i = 0; i < obj->mesh[me].lsize; i++)
-		    if (*listp++ == IMOD_MESH_BGNPOLYNORM)
-			 npoly++;
-	  }
-     }
+  npoly = 0;
+  for (me = 0; me < obj->meshsize; me++) {
+    if (imeshResol(obj->mesh[me].flag) == resol) {
+      listp = obj->mesh[me].list;
+      for (i = 0; i < obj->mesh[me].lsize; i++)
+        if (*listp++ == IMOD_MESH_BGNPOLYNORM)
+          npoly++;
+    }
+  }
 
-     if (!npoly)
-       return (1);
+  if (!npoly)
+    return (1);
      
-     /* Get arrays for Z values and surface assignment for each polygon, which
-	mesh it is in, address of start of polygons, for number of
-	vertices in the polygon, and for list of polys to work on */
+  /* Get arrays for Z values and surface assignment for each polygon, which
+     mesh it is in, address of start of polygons, for number of
+     vertices in the polygon, and for list of polys to work on */
 
-     zmins = (float *)malloc (npoly * sizeof(float));
-     zmaxs = (float *)malloc (npoly * sizeof(float));
-     surfs = (int *)malloc (npoly * sizeof(int));
-     meshes = (int *)malloc (npoly * sizeof(int));
-     starts = (int **)malloc (npoly * sizeof(int *));
-     nverts = (int *)malloc (npoly * sizeof(int));
-     towork = (int *)malloc (npoly * sizeof(int));
+  zmins = (float *)malloc (npoly * sizeof(float));
+  zmaxs = (float *)malloc (npoly * sizeof(float));
+  surfs = (int *)malloc (npoly * sizeof(int));
+  meshes = (int *)malloc (npoly * sizeof(int));
+  starts = (int **)malloc (npoly * sizeof(int *));
+  nverts = (int *)malloc (npoly * sizeof(int));
+  towork = (int *)malloc (npoly * sizeof(int));
      
-     if (!zmins || !zmaxs || !surfs || !meshes || !starts || !nverts || 
-	 !towork) {
-       if (zmins) free(zmins);
-       if (zmaxs) free(zmaxs);
-       if (meshes) free(meshes);
-       if (surfs) free(surfs);
-       if (starts) free(starts);
-       if (nverts) free(nverts);
-       if (towork) free(towork);
+  if (!zmins || !zmaxs || !surfs || !meshes || !starts || !nverts || 
+      !towork) {
+    if (zmins) free(zmins);
+    if (zmaxs) free(zmaxs);
+    if (meshes) free(meshes);
+    if (surfs) free(surfs);
+    if (starts) free(starts);
+    if (nverts) free(nverts);
+    if (towork) free(towork);
 
-       return (2);
-     }
+    return (2);
+  }
 
-     /* Find min and max Z values of each polygon, and collect other info */
+  /* Find min and max Z values of each polygon, and collect other info */
 
-     poly = 0;
-     for (me = 0; me < obj->meshsize; me++) {
-       if (imeshResol(obj->mesh[me].flag) != resol)
-	    continue;
-       listp = obj->mesh[me].list;
-       vertp = obj->mesh[me].vert;
-       i = 0;
-       while (i < obj->mesh[me].lsize) {
-	 if (listp[i++] == IMOD_MESH_BGNPOLYNORM) {
-	   zmin = vertp[listp[i + 1]].z;
-	   zmax = zmin;
-	   surfs[poly] = 0;
-	   meshes[poly] = me;
-	   starts[poly] = listp + i + 1;    /* point to first vertex index */
-	   ninpoly = 0;
-	   while (listp[i++] != IMOD_MESH_ENDPOLY) {
-	     ind = listp[i++];
-	     if (vertp[ind].z < zmin)
-	       zmin = vertp[ind].z;
-	     if (vertp[ind].z > zmax)
-	       zmax = vertp[ind].z;
-	     ninpoly++;
-	   }
-	   nverts[poly] = ninpoly;
-	   zmins[poly] = zmin;
-	   zmaxs[poly++] = zmax;
-	 }
-       }
-     }
+  poly = 0;
+  for (me = 0; me < obj->meshsize; me++) {
+    if (imeshResol(obj->mesh[me].flag) != resol)
+      continue;
+    listp = obj->mesh[me].list;
+    vertp = obj->mesh[me].vert;
+    i = 0;
+    while (i < obj->mesh[me].lsize) {
+      if (listp[i++] == IMOD_MESH_BGNPOLYNORM) {
+        zmin = vertp[listp[i + 1]].z;
+        zmax = zmin;
+        surfs[poly] = 0;
+        meshes[poly] = me;
+        starts[poly] = listp + i + 1;    /* point to first vertex index */
+        ninpoly = 0;
+        while (listp[i++] != IMOD_MESH_ENDPOLY) {
+          ind = listp[i++];
+          if (vertp[ind].z < zmin)
+            zmin = vertp[ind].z;
+          if (vertp[ind].z > zmax)
+            zmax = vertp[ind].z;
+          ninpoly++;
+        }
+        nverts[poly] = ninpoly;
+        zmins[poly] = zmin;
+        zmaxs[poly++] = zmax;
+      }
+    }
+  }
 
-     /* loop through all polygons, looking for next one that's not assigned
-	yet */
+  /* loop through all polygons, looking for next one that's not assigned
+     yet */
 
-     nsurfs = 0;
-     for (poly = 0; poly < npoly; poly ++) {
-       if (!surfs[poly]) {
-	 nsurfs++;
-	 surfs[poly] = nsurfs;
-	 towork[0] = poly;
-	 nwork = 1;
-	 iwork = 0;
-	 while (iwork < nwork) {
+  nsurfs = 0;
+  for (poly = 0; poly < npoly; poly ++) {
+    if (!surfs[poly]) {
+      nsurfs++;
+      surfs[poly] = nsurfs;
+      towork[0] = poly;
+      nwork = 1;
+      iwork = 0;
+      while (iwork < nwork) {
 
-	   /* To work on a polygon, scan through all the rest that are not
-	      assigned yet, find ones that overlap in Z */
+        /* To work on a polygon, scan through all the rest that are not
+           assigned yet, find ones that overlap in Z */
 
-	   work = towork[iwork];
-	   for (scan = 0; scan < npoly; scan++) {
-	     if (!surfs[scan] && zmins[work] <= zmaxs[scan] &&
-		 zmins[scan] <= zmaxs[work]) {
-	       
-	       /* Look for common vertices between the polygons */
-	       
-	       refp = starts[work];
-	       found = 0;
-	       i = 0;
-	       while (i < nverts[work] && !found) {
-		 refvert = *refp++;
-		 refp++;
-		 scanp = starts[scan];
-		 for (j = 0; j < nverts[scan]; j++) {
-		   if (*scanp++ == refvert) {
-		     found = 1;
-		     break;
-		   }
-		   scanp++;
-		 }
-		 i++;
-	       }
+        work = towork[iwork];
+        for (scan = 0; scan < npoly; scan++) {
+          if (!surfs[scan] && zmins[work] <= zmaxs[scan] &&
+              zmins[scan] <= zmaxs[work]) {
+           
+            /* Look for common vertices between the polygons */
+           
+            refp = starts[work];
+            found = 0;
+            i = 0;
+            while (i < nverts[work] && !found) {
+              refvert = *refp++;
+              refp++;
+              scanp = starts[scan];
+              for (j = 0; j < nverts[scan]; j++) {
+                if (*scanp++ == refvert) {
+                  found = 1;
+                  break;
+                }
+                scanp++;
+              }
+              i++;
+            }
 
-	       /* If found a match, then add the scan polygon to work list as 
-		  well as assigning it to this surface */
+            /* If found a match, then add the scan polygon to work list as 
+               well as assigning it to this surface */
 
-	       if (found) {
-		 towork[nwork++] = scan;
-		 surfs[scan] = nsurfs;
-	       }
-	     }
-	   }
-	   iwork++;
-	 }
-       }
-     }
+            if (found) {
+              towork[nwork++] = scan;
+              surfs[scan] = nsurfs;
+            }
+          }
+        }
+        iwork++;
+      }
+    }
+  }
 
-     /* Now go through contours, looking for polygons with a matching vertex */
+  /* Now go through contours, looking for polygons with a matching vertex */
 
-     for (co = 0; co < obj->contsize; co++) {
-       found = 0;
-       for (pt = 0; pt < obj->cont[co].psize; pt++) {
-	 ptx = obj->cont[co].pts[pt].x;
-	 pty = obj->cont[co].pts[pt].y;
-	 ptz = obj->cont[co].pts[pt].z;
-	 for (poly = 0; poly < npoly; poly++) {
-	   if (ptz >= zmins[poly] && ptz <= zmaxs[poly]) {
-	     vertp = obj->mesh[meshes[poly]].vert;
-	     scanp = starts[poly];
-	     for (j = 0; j < nverts[poly]; j++) {
-	       ind = *scanp++;
-	       if (vertp[ind].x == ptx && vertp[ind].y == pty && 
-		   vertp[ind].z == ptz) {
-		 found = 1;
-		 obj->cont[co].surf = surfs[poly];
-		 if (surfs[poly] > obj->surfsize)
-		   obj->surfsize = surfs[poly];
-		 break;
-	       }
-	       scanp++;
-	     }
-	   }
-	   if (found)
-	     break;
-	 }
-	 if (found)
-	   break;
-       } 
-     }
-     free(zmins);
-     free(zmaxs);
-     free(meshes);
-     free(surfs);
-     free(starts);
-     free(nverts);
-     free(towork);
-     return (0);
+  for (co = 0; co < obj->contsize; co++) {
+    found = 0;
+    for (pt = 0; pt < obj->cont[co].psize; pt++) {
+      ptx = obj->cont[co].pts[pt].x;
+      pty = obj->cont[co].pts[pt].y;
+      ptz = obj->cont[co].pts[pt].z;
+      for (poly = 0; poly < npoly; poly++) {
+        if (ptz >= zmins[poly] && ptz <= zmaxs[poly]) {
+          vertp = obj->mesh[meshes[poly]].vert;
+          scanp = starts[poly];
+          for (j = 0; j < nverts[poly]; j++) {
+            ind = *scanp++;
+            if (vertp[ind].x == ptx && vertp[ind].y == pty && 
+                vertp[ind].z == ptz) {
+              found = 1;
+              obj->cont[co].surf = surfs[poly];
+              if (surfs[poly] > obj->surfsize)
+                obj->surfsize = surfs[poly];
+              break;
+            }
+            scanp++;
+          }
+        }
+        if (found)
+          break;
+      }
+      if (found)
+        break;
+    } 
+  }
+  free(zmins);
+  free(zmaxs);
+  free(meshes);
+  free(surfs);
+  free(starts);
+  free(nverts);
+  free(towork);
+  return (0);
 }

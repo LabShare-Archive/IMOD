@@ -129,7 +129,7 @@ main (int argc, char **argv)
 	  exit(-1);
      }
      
-     fout = fopen(argv[i], "w");
+     fout = fopen(argv[i], "wb");
      if (!fout){
 	  fprintf(stderr, "Couldn't open %s\n", argv[i]);
 	  exit(-1);

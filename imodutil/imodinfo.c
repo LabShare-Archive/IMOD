@@ -33,6 +33,10 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.3  2003/10/02 05:38:25  mast
+Fixed point info output so it does subareas correctly for scattered points or points
+with sizes; and made hush suppress individual point data
+
 Revision 3.2  2003/02/07 00:18:06  mast
 Divided all mesh triangles that cross boundaries with -x, -y, -z options
 so that no area is lost
@@ -115,7 +119,7 @@ static void imodinfo_usage(char *name)
   printf("\t-t 1/-1\tApply clipping plane in normal (1) or inverted (-1) orientation\n");
   printf("\t-v\tBe verbose on model output.\n");
   printf("\t-vv\tBe more verbose on model output (prints points).\n");
-  printf("\t-h\tSuppress (hush) contour or point data in standard or point output.\n");
+  printf("\t-h\tHush - no contour or point data in standard or point output.\n");
   printf("\t-f filename  Write output to file.\n");
   return;
 }
@@ -144,133 +148,137 @@ int main( int argc, char *argv[])
   int errcode;
   Ipoint ptmin = {-1.e30, -1.e30, -1.e30};
   Ipoint ptmax = {1.e30, 1.e30, 1.e30};
+  char *progname = imodProgName(argv[0]);
 
-  char *options = "o:b:f:x:y:z:t:aclvsprih";
-  extern char *optarg;
-  extern int optind;
      
   if (argc == 1){
-    imodVersion(argv[0]);
+    imodVersion(progname);
     imodCopyright();
-    imodinfo_usage(argv[0]);
+    imodinfo_usage(progname);
     exit(1);
   }
   fout = stdout;
 
-  while ((c = getopt(argc, argv, options)) != EOF)
-    switch (c){
+  for (i = 1; i < argc ; i++){
+    if (argv[i][0] == '-'){
+      switch (argv[i][1]){
                
-    case 'b':
-      bins = atoi(optarg);
-      break;
+      case 'b':
+        bins = atoi(argv[++i]);
+        break;
                
-    case 'l':
-      mode = MINFO_LENGTH;
-      break;
+      case 'l':
+        mode = MINFO_LENGTH;
+        break;
                
-    case 'f':
-      fout = fopen(optarg, "w");
-      if (!fout) {
-        fprintf(stderr, "%s: Error opening output file %s\n",
-                argv[0], optarg);
-        exit(1);
-      }
-      break;
+      case 'f':
+        fout = fopen(argv[++i], "w");
+        if (!fout) {
+          fprintf(stderr, "%s: Error opening output file %s\n",
+                  progname, argv[++i]);
+          exit(1);
+        }
+        break;
                     
-    case 'a':
-      mode = MINFO_ASCII;
-      break;
+      case 'a':
+        mode = MINFO_ASCII;
+        break;
 
-    case 's':
-      mode = MINFO_SURFACE;
-      break;
+      case 's':
+        mode = MINFO_SURFACE;
+        break;
 
-    case 'p':
-      mode = MINFO_POINTS;
-      break;
+      case 'p':
+        mode = MINFO_POINTS;
+        break;
 
-    case 'r':
-      mode = MINFO_RATIOS;
-      break;
+      case 'r':
+        mode = MINFO_RATIOS;
+        break;
 
-    case 'v':
-      verbose++;
-      break;
+      case 'v':
+        verbose++;
+        break;
 
-    case 'o':
-      ob = atoi(optarg);
-      mode = MINFO_OBJECT;
-      break;
+      case 'o':
+        ob = atoi(argv[++i]);
+        mode = MINFO_OBJECT;
+        break;
 
-    case 'c':
-      mode = MINFO_CHART;
-      break;
+      case 'c':
+        mode = MINFO_CHART;
+        break;
                
-    case 'n':
-      mode = MINFO_DIST;
-      break;
+      case 'n':
+        mode = MINFO_DIST;
+        break;
                
-    case 'i':
-      scaninside = TRUE;
-      break;
+      case 'i':
+        scaninside = TRUE;
+        break;
                
-    case 'h':
-      hush = TRUE;
-      break;
+      case 'h':
+        hush = TRUE;
+        break;
                
-    case 't':
-      sscanf(optarg, "%d", &useclip);
-      scaninside = TRUE;
-      break;
+      case 't':
+        sscanf(argv[++i], "%d", &useclip);
+        scaninside = TRUE;
+        break;
                
-    case 'x':
-      sscanf(optarg, "%d%*c%d", &inlo, &inhi);
-      ptmin.x = inlo;
-      ptmax.x = inhi;
-      scaninside = TRUE;
-      subarea = TRUE;
-      break;
+      case 'x':
+        sscanf(argv[++i], "%d%*c%d", &inlo, &inhi);
+        ptmin.x = inlo;
+        ptmax.x = inhi;
+        scaninside = TRUE;
+        subarea = TRUE;
+        break;
 
-    case 'y':
-      sscanf(optarg, "%d%*c%d", &inlo, &inhi);
-      ptmin.y = inlo;
-      ptmax.y = inhi;
-      scaninside = TRUE;
-      subarea = TRUE;
-      break;
+      case 'y':
+        sscanf(argv[++i], "%d%*c%d", &inlo, &inhi);
+        ptmin.y = inlo;
+        ptmax.y = inhi;
+        scaninside = TRUE;
+        subarea = TRUE;
+        break;
 
-    case 'z':
-      sscanf(optarg, "%d%*c%d", &inlo, &inhi);
-      ptmin.z = inlo;
-      ptmax.z = inhi;
-      subarea = TRUE;
-      break;
+      case 'z':
+        sscanf(argv[++i], "%d%*c%d", &inlo, &inhi);
+        ptmin.z = inlo;
+        ptmax.z = inhi;
+        subarea = TRUE;
+        break;
 
-    default:
-      imodinfo_usage(argv[0]);
-      exit(2);
-      break;
+      default:
+        fprintf(stderr, "%s: unknown option %s\n", progname, argv[i]);
+        imodinfo_usage(progname);
+        exit(2);
+        break;
 
+      }
     }
-
+  }
   /* DNM: took out section that was #ifdef OLDOPT, it's irrelevant */
-
-  i = optind;
+      
+  if (i >= argc) {
+    imodinfo_usage(progname);
+    exit(2);
+  }
 
   if (hush && !verbose)
     verbose = -1;
   for (; i < argc; i++){
-    fin = fopen(argv[i], "r");
+    fin = fopen(argv[i], "rb");
     if (!fin){
       fprintf(stderr, "%s: Error, couldn't read file %s\n",
-              argv[0], argv[i]);
+              progname, argv[i]);
       exit(-1);
     }
     model.file = fin;
     errcode = imodReadFile(&model);
     if (errcode){
       fprintf(stderr, "%s: Error (%d) reading imod model. (%s)\n", 
-              argv[0], errcode, argv[i]);
+              progname, errcode, argv[i]);
       /*             exit(-1); */
 
     }

@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.3  2002/12/23 21:38:08  mast
+fixed exit status
+
 Revision 3.2  2002/06/20 00:09:21  mast
 Added option to interpret thresholds as unscaled values
 
@@ -119,7 +122,6 @@ int main(int argc, char *argv[])
   int i, co;
   float zscale = 1.0f;
   float finalarea;
-  char backupname[256];
   int smoothflags = 0;
   int followdiag = 0;
   int inside = 0;
@@ -129,9 +131,10 @@ int main(int argc, char *argv[])
   int unscaled = 0;
   int hentered = 0;
   int lentered = 0;
+  char *progname = imodProgName(argv[0]);
 
   if (argc < 3){
-    imodVersion(argv[0]);
+    imodVersion(progname);
     imodCopyright();
     usage();
     exit(-1);
@@ -252,7 +255,7 @@ int main(int argc, char *argv[])
     }
   }
 
-  fin = fopen(argv[i++], "r");
+  fin = fopen(argv[i++], "rb");
   if (fin == NULL){
     fprintf(stderr, "Error opening image file %s.\n", argv[i-1]);
     if (errno)
@@ -280,10 +283,9 @@ int main(int argc, char *argv[])
   }
 
   /* Rename existing file if any */
-  sprintf(backupname, "%s~", argv[i]);
-  rename(argv[i], backupname);
+  imodBackupFile(argv[i]);
 
-  fout = fopen(argv[i], "w");
+  fout = fopen(argv[i], "wb");
   if (!fout){
     fprintf(stderr, "Error opening %s\n", argv[i]);
     if (errno)
@@ -301,7 +303,7 @@ int main(int argc, char *argv[])
      
   idata = mrc_read_byte(fin, &hdata, &li, mrc_default_status);
   if (!idata){
-    fprintf(stderr, "%s: Error reading image data\n", argv[0]);
+    fprintf(stderr, "%s: Error reading image data\n", progname);
     exit(-1);
   }
   fclose(fin);
