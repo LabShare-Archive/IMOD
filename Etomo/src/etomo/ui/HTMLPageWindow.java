@@ -7,6 +7,7 @@ import java.net.URL;
 import javax.swing.JEditorPane;
 import javax.swing.JFrame;
 import javax.swing.JScrollPane;
+import javax.swing.WindowConstants;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 import javax.swing.text.html.HTMLEditorKit;
@@ -24,6 +25,10 @@ import javax.swing.text.html.HTMLEditorKit;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.1  2003/11/27 00:04:06  rickg
+ * <p> Fixed imports
+ * <p> Removed unused member reader
+ * <p>
  * <p> Revision 3.0  2003/11/07 23:19:01  rickg
  * <p> Version 1.0.0
  * <p>
@@ -68,6 +73,7 @@ public class HTMLPageWindow extends JFrame implements HyperlinkListener {
     // how
     setSize(625, 800);
     editorPane.addHyperlinkListener(this);
+    setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
   }
 
   public void openURL(String newURL) {
