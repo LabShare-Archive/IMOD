@@ -127,6 +127,34 @@ is mapped to 0 and
 is mapped to 255.  The default for these values are the minimum and maximum
 from the image file header.
 .TP
+.B -X <min,max>
+Load and model a subset in X from 
+.I min
+to
+.I max,
+where the coordinates are numbered from 0.  
+.TP
+.B -Y <min,max>
+Load and model a subset in Y from 
+.I min
+to
+.I max,
+where the coordinates are numbered from 0.  If the 
+.B -e
+option is used with
+.B -X
+or
+.B -Y,
+then decisions about contours are made based on the edges of the loaded
+subset of the image, not of the full image.
+.TP
+.B -Z <min,max>
+Load and model a subset in Z from 
+.I min
+to
+.I max,
+where the coordinates are numbered from 0.
+.TP
 .B -z <value>
 Set the zscale for the model.  The zscale is a factor that compensates for
 3 dimensional data that is sampled at a different z resolution than the
