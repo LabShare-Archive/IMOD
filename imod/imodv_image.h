@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.1  2003/02/10 20:41:55  mast
+Merge Qt source
+
 Revision 1.1.2.4  2003/01/27 00:30:07  mast
 Pure Qt version and general cleanup
 
@@ -31,6 +34,10 @@ initial creation
 
 typedef struct __imodv_struct ImodvApp;
 
+#define IMODV_DRAW_CZ 1
+#define IMODV_DRAW_CY (1 << 1)
+#define IMODV_DRAW_CX (1 << 2)
+
 /* Image Control functions. */
 void imodvDrawImage(ImodvApp *a);
 void imodvImageEditDialog(ImodvApp *a, int state);
@@ -47,14 +54,18 @@ class ImodvImage : public DialogFrame
  public:
   ImodvImage(QWidget *parent, const char *name = NULL) ;
   ~ImodvImage() {};
+  void viewToggled(bool state, int flag);
 
-  QCheckBox *mViewBox;
+  QCheckBox *mViewXBox, *mViewYBox, *mViewZBox;
+  MultiSlider *mSliders;
 
   public slots:
-    void viewToggled(bool state);
-  void falseToggled(bool state);
-  void sliderMoved(int which, int value, bool dragging);
-  void buttonPressed(int which);
+    void viewXToggled(bool state) {viewToggled(state, IMODV_DRAW_CX);};
+    void viewYToggled(bool state) {viewToggled(state, IMODV_DRAW_CY);};
+    void viewZToggled(bool state) {viewToggled(state, IMODV_DRAW_CZ);};
+    void falseToggled(bool state);
+    void sliderMoved(int which, int value, bool dragging);
+    void buttonPressed(int which);
 
  protected:
   void closeEvent ( QCloseEvent * e );
@@ -63,7 +74,6 @@ class ImodvImage : public DialogFrame
 
  private:
   bool mCtrlPressed;
-  MultiSlider *mSliders;
   QCheckBox *mFalseBox;
 };
 
