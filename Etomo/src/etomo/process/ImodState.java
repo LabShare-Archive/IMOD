@@ -57,6 +57,10 @@ import etomo.type.AxisID;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.7  2004/04/28 01:02:33  sueh
+ * <p> $bug# 428 calling ImodProcess.viewModel() when reopening a
+ * <p> $3dmod with a mode view window
+ * <p> $
  * <p> $Revision 1.6  2004/04/27 23:18:07  sueh
  * <p> $bug# 320 adding boolean warnedStaleFile, to prevent ImodManager
  * <p> $from asking to close a 3dmod over and over.
@@ -274,8 +278,13 @@ public class ImodState {
     if (useModv) {
       process.setUseModv(useModv);
     }
-    if (modelView && process.isRunning()) {
-      process.viewModel();
+    if (process.isRunning()) {
+      if (modelView) {
+        process.viewModel();
+      }
+      else {
+        process.openZapWindow();
+      }
     }
     process.open();
     warnedStaleFile = false;
