@@ -77,7 +77,6 @@ InfoWindow::InfoWindow(QWidget * parent, const char * name, WFlags f)
   : QMainWindow(parent, name, f)
 {
   mMinimized = false;
-  mDeferredItem = -1;
 
   QMenuBar *menuBar = new QMenuBar(this);
   mFileMenu = new QPopupMenu();
@@ -249,11 +248,6 @@ InfoWindow::InfoWindow(QWidget * parent, const char * name, WFlags f)
   setFocusPolicy(StrongFocus);
   mStatusEdit->setFocusPolicy(NoFocus);
   wprintWidget(mStatusEdit);
-
-#ifdef Q_OS_MACX
-  mDeferTimer = new QTimer(this, "imod info defer timer");
-  connect(mDeferTimer, SIGNAL(timeout()), this, SLOT(deferTimeout()));
-#endif
 }
 
 void InfoWindow::setFontDependentWidths()
@@ -319,24 +313,19 @@ void InfoWindow::closeEvent ( QCloseEvent * e )
 // Watch for both event types in each case due to further X11/Mac differences
 bool InfoWindow::event(QEvent *e)
 {
+  //  fprintf(stderr, "event type %d\n", e->type());
   if ((e->type() == QEvent::ShowMinimized || e->type() == QEvent::Hide) &&
       !mMinimized) {
+    //  puts("minimizing");
     mMinimized = true;
     imodDialogManager.hide();
-  } else if ((e->type() == QEvent::ShowNormal || e->type() == QEvent::Show) &&
-             mMinimized) {
+  } else if ((e->type() == QEvent::ShowNormal || e->type() == QEvent::Show ||
+              e->type() == QEvent::WindowActivate) && mMinimized) {
+    //  puts("maximizing");
     mMinimized = false;
      imodDialogManager.show();
   }
   return QWidget::event(e);
-}
-
-void InfoWindow::deferTimeout()
-{
-  // fprintf(stderr, "Defer timer fired item %d\n", mDeferredItem);
-  if (mDeferredItem >= 0)
-    imageSlot(mDeferredItem);
-  mDeferredItem = -1;
 }
 
 // Enable menu items based on new information
@@ -479,6 +468,9 @@ static char *truncate_name(char *name, int limit)
 
 /*
     $Log$
+    Revision 4.14  2003/04/11 22:30:29  mast
+    return value from new event watcher
+
     Revision 4.13  2003/04/11 18:56:34  mast
     switch to watching event types to manage hide/show events
 

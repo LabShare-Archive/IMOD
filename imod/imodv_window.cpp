@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.3  2003/04/11 22:30:29  mast
+return value from new event watcher
+
 Revision 4.2  2003/04/11 18:56:34  mast
 switch to watching event types to manage hide/show events
 
@@ -263,8 +266,8 @@ bool ImodvWindow::event(QEvent *e)
       !mMinimized) {
     mMinimized = true;
     imodvDialogManager.hide();
-  } else if ((e->type() == QEvent::ShowNormal || e->type() == QEvent::Show) &&
-             mMinimized) {
+  } else if ((e->type() == QEvent::ShowNormal || e->type() == QEvent::Show ||
+              e->type() == QEvent::WindowActivate) && mMinimized) {
     mMinimized = false;
     imodvDialogManager.show();
   }

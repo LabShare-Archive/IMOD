@@ -11,47 +11,7 @@
     $Date$
 
     $Revision$
-
-    $Log$
-    Revision 3.8  2003/03/28 23:51:10  mast
-    changes for Mac problems
-
-    Revision 3.7  2003/03/26 17:15:31  mast
-    Adjust sizes for font changes
-
-    Revision 3.6  2003/03/24 17:58:09  mast
-    Changes for new preferences capability
-
-    Revision 3.5  2003/03/18 19:30:36  mast
-    Add timer to keep window on top
-
-    Revision 3.4  2003/03/14 15:54:29  mast
-    New function to keep window on top
-
-    Revision 3.3  2003/02/27 19:33:51  mast
-    Add function to manage menus based on current state
-
-    Revision 3.2  2003/02/10 20:41:55  mast
-    Merge Qt source
-
-    Revision 3.1.2.5  2003/01/27 00:30:07  mast
-    Pure Qt version and general cleanup
-
-    Revision 3.1.2.4  2003/01/14 21:49:54  mast
-    add dialog hiding/showing control
-
-    Revision 3.1.2.3  2003/01/13 01:05:05  mast
-    Qt version
-
-    Revision 3.1.2.2  2002/12/19 04:37:13  mast
-    Cleanup of unused global variables and defines
-
-    Revision 3.1.2.1  2002/12/17 21:37:47  mast
-    Move global variable declarations outside extern "C" construct
-
-    Revision 3.1  2002/12/01 15:34:41  mast
-    Changes to get clean compilation with g++
-
+    Log at end of file
 */
 #ifndef IMOD_INFO_H
 #define IMOD_INFO_H
@@ -118,7 +78,6 @@ class InfoWindow : public QMainWindow
   void imageSlot(int item);
   void pluginSlot(int item);
   void helpSlot(int item);
-  void deferTimeout();
 
  protected:
     void keyPressEvent ( QKeyEvent * e );
@@ -143,14 +102,58 @@ class InfoWindow : public QMainWindow
   QPopupMenu *mEImageMenu;
   QPopupMenu *mPlugMenu;
   QTextEdit *mStatusEdit;
-  QTimer *mDeferTimer;
   bool mMinimized;
   int mTopTimerID;
-  int mDeferredItem;
 };
 
 /* GLOBAL FUNCTIONS */
 void MaintainModelName(Imod *mod);
 int imod_info_open();
+
+/*
+    $Log$
+    Revision 3.9  2003/04/11 18:56:34  mast
+    switch to watching event types to manage hide/show events
+
+    Revision 3.8  2003/03/28 23:51:10  mast
+    changes for Mac problems
+
+    Revision 3.7  2003/03/26 17:15:31  mast
+    Adjust sizes for font changes
+
+    Revision 3.6  2003/03/24 17:58:09  mast
+    Changes for new preferences capability
+
+    Revision 3.5  2003/03/18 19:30:36  mast
+    Add timer to keep window on top
+
+    Revision 3.4  2003/03/14 15:54:29  mast
+    New function to keep window on top
+
+    Revision 3.3  2003/02/27 19:33:51  mast
+    Add function to manage menus based on current state
+
+    Revision 3.2  2003/02/10 20:41:55  mast
+    Merge Qt source
+
+    Revision 3.1.2.5  2003/01/27 00:30:07  mast
+    Pure Qt version and general cleanup
+
+    Revision 3.1.2.4  2003/01/14 21:49:54  mast
+    add dialog hiding/showing control
+
+    Revision 3.1.2.3  2003/01/13 01:05:05  mast
+    Qt version
+
+    Revision 3.1.2.2  2002/12/19 04:37:13  mast
+    Cleanup of unused global variables and defines
+
+    Revision 3.1.2.1  2002/12/17 21:37:47  mast
+    Move global variable declarations outside extern "C" construct
+
+    Revision 3.1  2002/12/01 15:34:41  mast
+    Changes to get clean compilation with g++
+
+*/
 
 #endif    /* IMOD_INFO_H */
