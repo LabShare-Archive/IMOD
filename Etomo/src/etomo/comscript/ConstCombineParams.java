@@ -19,6 +19,9 @@ import etomo.type.FiducialMatch;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.0  2003/11/07 23:19:00  rickg
+ * <p> Version 1.0.0
+ * <p>
  * <p> Revision 2.5  2003/10/20 16:51:29  rickg
  * <p> Removed scriptsCreated flag, use existence of combine com scripts instead
  * <p>
@@ -72,6 +75,7 @@ public class ConstCombineParams {
   protected int patchYMax = 0;
   protected int patchZMin = 0;
   protected int patchZMax = 0;
+  protected int maxPatchZMax = 0;
 
   protected String patchRegionModel = "";
   protected String tempDirectory = "";
@@ -196,6 +200,13 @@ public class ConstCombineParams {
       valid = false;
       invalidReasons.add("ZX max value is less than 1");
     }
+    if (maxPatchZMax > 0 && patchZMax > maxPatchZMax) {
+      valid = false;
+      invalidReasons.add(
+        "Z max value is greater than the maximum Z max value ("
+          + maxPatchZMax
+          + ")");
+    }
     if (patchZMin > patchZMax) {
       valid = false;
       invalidReasons.add("Z min value is greater than the Z max value");
@@ -291,6 +302,10 @@ public class ConstCombineParams {
    */
   public int getPatchZMin() {
     return patchZMin;
+  }
+  
+  public int getMaxPatchZMax() {
+    return maxPatchZMax;
   }
 
   /**
