@@ -4,7 +4,7 @@ include ../configure
 default : configure all
 
 configure : ALWAYS
-	if ( ! -e configure) ln -s ../configure configure
+	if [ ! -e configure ] ; then ln -s ../configure configure ; fi
 
 
 

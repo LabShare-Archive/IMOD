@@ -9,6 +9,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.3  2004/11/22 05:31:37  mast
+#  Add 3dmodHelp
+#
 #  Revision 3.2  2003/11/08 03:43:50  mast
 #  *** empty log message ***
 #
@@ -27,7 +30,7 @@ include ../configure
 NOEXT = 3dmodimages etomoImages 3dmodHelp
 
 install : clean
-	if (`pwd` != $(INSTDIR)/html) $(CP) -r *.* $(NOEXT) $(INSTDIR)/html
+	if [ `pwd` != $(INSTDIR)/html ] ; then $(CP) -r *.* $(NOEXT) $(INSTDIR)/html ; fi
 
 clean : 
 	$(FIND) . -type f -name "*~"    -exec rm "{}" \;
