@@ -26,6 +26,9 @@ import etomo.ui.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.20  2002/10/25 19:30:43  rickg
+ * <p> Modifies several catches to explicilty specify exception
+ * <p>
  * <p> Revision 1.19  2002/10/24 19:52:55  rickg
  * <p> Added command line --demo argument
  * <p>
@@ -324,54 +327,44 @@ public class ApplicationManager {
         ccdEraserParam = comScriptMgr.getCCDEraserParam(AxisID.SECOND);
         preProcDialog.getCCDEraserParams(ccdEraserParam, AxisID.SECOND);
         comScriptMgr.saveEraserCom(ccdEraserParam, AxisID.SECOND);
-        try {
-          if (imodManager.isRawStackOpen(AxisID.FIRST)
-            || imodManager.isRawStackOpen(AxisID.SECOND)) {
-            String[] message = new String[2];
-            message[0] = "There are raw stack imod processes open";
-            message[1] = "Should they be closed?";
-            boolean answer = openYesNoDialog(message);
-            if (answer) {
-              imodManager.quitRawStack(AxisID.FIRST);
-              imodManager.quitRawStack(AxisID.SECOND);
-            }
-          }
-        }
-        catch (AxisTypeException except) {
-          except.printStackTrace();
-          openMessageDialog(except.getMessage(), "AxisType problem");
-        }
-        catch (SystemProcessException except) {
-          except.printStackTrace();
-          openMessageDialog(except.getMessage(), "Problem closing raw stack");
-        }
 
       }
       else {
         ccdEraserParam = comScriptMgr.getCCDEraserParam(AxisID.FIRST);
         preProcDialog.getCCDEraserParams(ccdEraserParam, AxisID.ONLY);
         comScriptMgr.saveEraserCom(ccdEraserParam, AxisID.ONLY);
-        try {
-          if (imodManager.isRawStackOpen(AxisID.ONLY)) {
-            String[] message = new String[2];
-            message[0] = "There are raw stack imod processes open";
-            message[1] = "Should they be closed?";
-            boolean answer = openYesNoDialog(message);
-            if (answer) {
+      }
+
+      // If there are raw stack imod processes open ask the user if they
+      // should be closed.
+      try {
+        if (imodManager.isRawStackOpen(AxisID.FIRST)
+          || imodManager.isRawStackOpen(AxisID.SECOND)) {
+          String[] message = new String[2];
+          message[0] = "There are raw stack imod processes open";
+          message[1] = "Should they be closed?";
+          boolean answer = openYesNoDialog(message);
+          if (answer) {
+            if (isDualAxis()) {
+              imodManager.quitRawStack(AxisID.FIRST);
+              imodManager.quitRawStack(AxisID.SECOND);
+
+            }
+            else {
               imodManager.quitRawStack(AxisID.ONLY);
             }
           }
         }
-        catch (AxisTypeException except) {
-          except.printStackTrace();
-          openMessageDialog(except.getMessage(), "AxisType problem");
-        }
-        catch (SystemProcessException except) {
-          except.printStackTrace();
-          openMessageDialog(except.getMessage(), "Problem closing raw stack");
-        }
-
       }
+      catch (AxisTypeException except) {
+        except.printStackTrace();
+        openMessageDialog(except.getMessage(), "AxisType problem");
+      }
+      catch (SystemProcessException except) {
+        except.printStackTrace();
+        openMessageDialog(except.getMessage(), "Problem closing raw stack");
+      }
+
       if (exitState == DialogExitState.EXECUTE) {
         processTrack.setPreProcessingState(ProcessState.COMPLETE);
         mainFrame.setPreProcState(ProcessState.COMPLETE);
@@ -1950,7 +1943,8 @@ public class ApplicationManager {
       catch (IOException excep) {
         excep.printStackTrace();
         openMessageDialog(
-          "IOException: unable to save user parameters\n" + excep.getMessage(), "Unable to save user parameters");
+          "IOException: unable to save user parameters\n" + excep.getMessage(),
+          "Unable to save user parameters");
       }
     }
     return true;
