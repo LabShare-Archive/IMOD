@@ -25,6 +25,9 @@ import etomo.type.JoinMetaData;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.2  2004/11/19 23:58:44  sueh
+* <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+* <p>
 * <p> Revision 1.1.2.8  2004/10/29 01:23:01  sueh
 * <p> bug# 520 Fixing updateDataParameters.  Only use "No data set loaded"
 * <p> is joinMetaData is not valid (has not rootName set).
@@ -67,6 +70,10 @@ public class MainJoinPanel extends MainPanel {
    */
   public MainJoinPanel(JoinManager joinManager) {
     super(joinManager);
+  }
+  
+  public void saveDisplayState() {
+    
   }
   
   protected DataFileFilter getDataFileFilter() {
