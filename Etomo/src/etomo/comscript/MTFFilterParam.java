@@ -12,6 +12,10 @@
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.4  2004/04/12 17:15:46  sueh
+ * <p> $bug# 409  Change HighFrequencyRadiusSigma to LowPassRadiusSigma.  Add
+ * <p> $initializeDefaults() to set the default comscript values.
+ * <p> $
  * <p> $Revision 1.3  2004/03/29 20:51:46  sueh
  * <p> $bug# 409 add inputFile
  * <p> $
@@ -53,6 +57,9 @@ public class MTFFilterParam
       if (scriptCommand.hasKeyword("InverseRolloffRadiusSigma")) {
         inverseRolloffRadiusSigma.validateAndSet(scriptCommand.getValue("InverseRolloffRadiusSigma"));
       }
+      if (scriptCommand.hasKeyword("StartingAndEndingZ")) {
+        startingAndEndingZ.validateAndSet(scriptCommand.getValue("StartingAndEndingZ"));
+      }
     }
     else {
       throw new InvalidParameterException("MTF Filter:  Missing parameter, -StandardInput.  Use Etomo to create .com file.");
@@ -65,9 +72,22 @@ public class MTFFilterParam
     ParamUtilities.updateParameter(scriptCommand, "InputFile", inputFile, true);
     ParamUtilities.updateParameter(scriptCommand, "OutputFile", outputFile);
     ParamUtilities.updateParameter(scriptCommand, "MtfFile", mtfFile);
-    ParamUtilities.updateParameter(scriptCommand, "MaximumInverse", maximumInverse);
-    ParamUtilities.updateParameter(scriptCommand, "LowPassRadiusSigma", lowPassRadiusSigma);
-    ParamUtilities.updateParameter(scriptCommand, "InverseRolloffRadiusSigma", inverseRolloffRadiusSigma);
+    ParamUtilities.updateParameter(
+      scriptCommand,
+      "MaximumInverse",
+      maximumInverse);
+    ParamUtilities.updateParameter(
+      scriptCommand,
+      "LowPassRadiusSigma",
+      lowPassRadiusSigma);
+    ParamUtilities.updateParameter(
+      scriptCommand,
+      "InverseRolloffRadiusSigma",
+      inverseRolloffRadiusSigma);
+    ParamUtilities.updateParameter(
+      scriptCommand,
+      "StartingAndEndingZ",
+      startingAndEndingZ);
   }
   
   public void initializeDefaults() {
@@ -92,10 +112,14 @@ public class MTFFilterParam
   }
   public void setLowPassRadiusSigma(String lowPassRadiusSigma)
     throws FortranInputSyntaxException {
-      ParamUtilities.set(lowPassRadiusSigma, this.lowPassRadiusSigma);
+    ParamUtilities.set(lowPassRadiusSigma, this.lowPassRadiusSigma);
   }
   public void setInverseRolloffRadiusSigma(String inverseRolloffRadiusSigma)
     throws FortranInputSyntaxException {
-      ParamUtilities.set(inverseRolloffRadiusSigma, this.inverseRolloffRadiusSigma);
+    ParamUtilities.set(inverseRolloffRadiusSigma, this.inverseRolloffRadiusSigma);
+  }
+  public void setStartingAndEndingZ(String startingAndEndingZ)
+    throws FortranInputSyntaxException {
+    ParamUtilities.set(startingAndEndingZ, this.startingAndEndingZ); 
   }
 }
