@@ -526,8 +526,10 @@ int imodFindQGLFormat(ImodApp *ap, char **argv)
     visual = NULL;
   }
   if (!visual) {
-    imodError(NULL, "%s: couldn't get appropriate GL format for Qt windows.\n",
-            argv[0]);
+    imodError(NULL, "%s: couldn't get appropriate GL format for Qt windows.\n"
+              "Make sure your display format is set for at least 15 bits "
+              "of color\nAt least 24 bits of color is recommended for proper "
+              "model viewing", argv[0]);
     exit(-1);
   }
   return visual->colorBits;
@@ -535,6 +537,9 @@ int imodFindQGLFormat(ImodApp *ap, char **argv)
 
 /*
 $Log$
+Revision 4.12  2004/06/06 21:27:20  mast
+Eliminated stereo-command related items
+
 Revision 4.11  2004/06/05 23:46:38  mast
 Set stereo in gl format when stereo requested - gets stereo visuals!
 
