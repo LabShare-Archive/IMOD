@@ -1,4 +1,4 @@
-<!DOCTYPE UI><UI version="3.1" stdsetdef="1">
+<!DOCTYPE UI><UI version="3.3" stdsetdef="1">
 <class>AppearanceForm</class>
 <widget class="QWidget">
     <property name="name">
@@ -8,8 +8,8 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>295</width>
-            <height>259</height>
+            <width>299</width>
+            <height>328</height>
         </rect>
     </property>
     <property name="caption">
@@ -27,7 +27,7 @@
         </property>
         <widget class="QLayoutWidget">
             <property name="name">
-                <cstring>layout31</cstring>
+                <cstring>layout11</cstring>
             </property>
             <vbox>
                 <property name="name">
@@ -242,6 +242,67 @@
                         </widget>
                     </hbox>
                 </widget>
+                <widget class="QLayoutWidget">
+                    <property name="name">
+                        <cstring>layout10</cstring>
+                    </property>
+                    <hbox>
+                        <property name="name">
+                            <cstring>unnamed</cstring>
+                        </property>
+                        <widget class="QPushButton">
+                            <property name="name">
+                                <cstring>markerColorButton</cstring>
+                            </property>
+                            <property name="text">
+                                <string>Set Color For</string>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Open color selector to set color of current point marker</string>
+                            </property>
+                        </widget>
+                        <widget class="QComboBox">
+                            <item>
+                                <property name="text">
+                                    <string>Current point</string>
+                                </property>
+                            </item>
+                            <item>
+                                <property name="text">
+                                    <string>First point</string>
+                                </property>
+                            </item>
+                            <item>
+                                <property name="text">
+                                    <string>Last point</string>
+                                </property>
+                            </item>
+                            <item>
+                                <property name="text">
+                                    <string>Foreground</string>
+                                </property>
+                            </item>
+                            <item>
+                                <property name="text">
+                                    <string>Background</string>
+                                </property>
+                            </item>
+                            <item>
+                                <property name="text">
+                                    <string>Surface ghost</string>
+                                </property>
+                            </item>
+                            <item>
+                                <property name="text">
+                                    <string>Cur pt shadow</string>
+                                </property>
+                            </item>
+                            <property name="name">
+                                <cstring>colorComboBox</cstring>
+                            </property>
+                        </widget>
+                    </hbox>
+                </widget>
                 <widget class="QGroupBox">
                     <property name="name">
                         <cstring>groupBox7</cstring>
@@ -383,7 +444,7 @@
                     <property name="sizeHint">
                         <size>
                             <width>16</width>
-                            <height>53</height>
+                            <height>41</height>
                         </size>
                     </property>
                 </spacer>
@@ -401,7 +462,7 @@
             </property>
             <property name="sizeHint">
                 <size>
-                    <width>19</width>
+                    <width>16</width>
                     <height>16</height>
                 </size>
             </property>
@@ -451,6 +512,12 @@
         <receiver>AppearanceForm</receiver>
         <slot>setTargetClicked()</slot>
     </connection>
+    <connection>
+        <sender>markerColorButton</sender>
+        <signal>clicked()</signal>
+        <receiver>AppearanceForm</receiver>
+        <slot>markerColorClicked()</slot>
+    </connection>
 </connections>
 <includes>
     <include location="local" impldecl="in implementation">dia_qtutils.h</include>
@@ -461,6 +528,7 @@
     <include location="global" impldecl="in implementation">qstylefactory.h</include>
     <include location="local" impldecl="in implementation">imod.h</include>
     <include location="local" impldecl="in implementation">imod_info_cb.h</include>
+    <include location="global" impldecl="in implementation">qcolordialog.h</include>
     <include location="local" impldecl="in implementation">form_appearance.ui.h</include>
 </includes>
 <forwards>
@@ -475,6 +543,7 @@
     <slot>fontPressed()</slot>
     <slot>imagePtChanged( int value )</slot>
     <slot>modelPtChanged( int value )</slot>
+    <slot>markerColorClicked()</slot>
     <slot>autoMeanChanged( int value )</slot>
     <slot>autoSDChanged( int value )</slot>
     <slot>styleSelected( const QString &amp; key )</slot>
