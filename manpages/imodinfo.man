@@ -113,7 +113,8 @@ option will increase the level of output information even further.  These
 options override the
 .B -h
 option.
-.TP -h
+.TP
+.B -h
 Suppress the information about each contour in the standard model output.
 Use this option to extract summary information more easily from large models.
 .TP

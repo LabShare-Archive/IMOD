@@ -131,7 +131,8 @@ option is used; otherwise this parameter is taken from tracka.com (or
 trackb.com with the
 .B -b
 option.)
-.TP -t
+.TP 
+.B -t
 Leave temporary files in /usr/tmp for diagnosing problems.
 .SH FILES
 Whether or not they fit the default naming conventions, the image files for
