@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.1  2003/02/10 20:41:55  mast
+Merge Qt source
+
 Revision 1.1.2.6  2003/01/29 01:29:05  mast
 remove imodv_exit
 
@@ -36,7 +39,6 @@ initial creation
 #define IMODV_INPUT_H
 
 #include <qevent.h>
-#include <time.h>
 
 typedef struct __imodv_struct ImodvApp;
 
@@ -49,6 +51,6 @@ void imodvMouseMove(QMouseEvent *event);
 void imodv_rotate_model(ImodvApp *a, int x, int y, int z);
 void imodv_zoomd(ImodvApp *a, double zoom);
 void imodvQuit();
-clock_t imodv_sys_time(void);
+int imodv_sys_time(void);
   
 #endif
