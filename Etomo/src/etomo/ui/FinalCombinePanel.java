@@ -6,6 +6,8 @@ import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -45,6 +47,9 @@ import etomo.comscript.SetParam;
  * 
  * <p>
  * $Log$
+ * Revision 3.17  2004/11/30 00:35:49  sueh
+ * bug# 556 Adding reduction factor and get and set params for volcombine.
+ *
  * Revision 3.16  2004/11/19 23:54:04  sueh
  * bug# 520 merging Etomo_3-4-6_JOIN branch to head.
  *
@@ -413,6 +418,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields {
     pnlBoundary.setVisible(state);
     ltfRefineLimit.setVisible(state);
     cbUseLinearInterpolation.setVisible(state);
+    this.ltfReductionFactor.setVisible(state);
   }
 
   /**
@@ -781,6 +787,17 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields {
   private void setToolTipText() {
     String text;
     TooltipFormatter tooltipFormatter = new TooltipFormatter();
+    Autodoc autodoc = null;
+
+    try {
+      autodoc = Autodoc.get(Autodoc.COMBINE_FFT);
+    }
+    catch (FileNotFoundException except) {
+      except.printStackTrace();
+    }
+    catch (IOException except) {
+      except.printStackTrace();
+    }
 
     text = "Size of correlation patches in X.";
     ltfXPatchSize.setToolTipText(tooltipFormatter.setText(text).format());
@@ -889,5 +906,13 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields {
 
     text = "View the final combined volume.";
     btnImodCombined.setToolTipText(tooltipFormatter.setText(text).format());
+    
+    if (autodoc != null) {
+      text = TooltipFormatter.getText(autodoc, "ReductionFraction");
+      if (text != null) {
+        ltfReductionFactor.setToolTipText(tooltipFormatter.setText(text)
+            .format());
+      }
+    }
   }
 }
