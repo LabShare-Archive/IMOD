@@ -19,6 +19,18 @@ import etomo.comscript.InvalidParameterException;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.4  2005/01/10 23:31:00  sueh
+* <p> bug# 578 Standardized class so that every use of value goes through
+* <p> getValue().  GetValue() tries to find a non-null value by looking first at
+* <p> value, then resetValue, and then defaultValue (if displayDefault is set).
+* <p> Replacing isNull() with isSet().  IsSet() does not use getValue(), since it is
+* <p> querying whether the value was set (by set(), resetValue() with a non-null
+* <p> resetValue, or with an initialValue).  Added a new isNull() that uses
+* <p> getValue().  Also added is() to ConstEtomoNumber.  Add added
+* <p> toString(Number) and toString(Vector) to ConstEtomoNumber.
+* <p> toString(Number) was created to be overidden by EtomoState.  In this
+* <p> class it wraps Number.toString().
+* <p>
 * <p> Revision 1.3  2004/12/29 00:07:40  sueh
 * <p> bug# 567 Added set(ComScriptCommand) to get the value in
 * <p> ComScriptCommand value where thekeyword in ComScriptCommand
@@ -89,22 +101,25 @@ public class EtomoNumber extends ConstEtomoNumber {
     return this;
   }
   
-  public EtomoNumber set(ComScriptCommand scriptCommand)
+  public ConstEtomoNumber parse(ComScriptCommand scriptCommand)
       throws InvalidParameterException {
+    if (!scriptCommand.hasKeyword(name)) {
+      value = newNumber();
+      return this;
+    }
     return set(scriptCommand.getValue(name));
   }
   
-  public EtomoNumber set(Object value) {
-    Number newValue = (Number) value;
+  public EtomoNumber set(Number value) {
     invalidReason = null;
     if (value == null) {
       this.value = newNumber();
     }
-    else if (!isNull(ceilingValue) && !isNull(newValue) && gt(newValue, ceilingValue)) {
+    else if (!isNull(ceilingValue) && !isNull(value) && gt(value, ceilingValue)) {
       this.value = newNumber(ceilingValue);
     }
     else {
-      this.value = newNumber(newValue);
+      this.value = newNumber(value);
     }
     validate();
     return this;
