@@ -49,6 +49,8 @@ Log at end of file
 #include "imodv.h"
 #include "imodv_views.h"
 #include "imod.h"
+#include "imod_info_cb.h"
+#include "xzap.h"
 #include "imod_object_edit.h"
 #include "imod_display.h"
 #include "imodv_gfx.h"
@@ -298,10 +300,9 @@ static int getVisuals(ImodvApp *a)
 // OPEN THE MAIN WINDOW
 static int openWindow(ImodvApp *a)
 {
-  int deskWidth = QApplication::desktop()->width();
-  int deskHeight = QApplication::desktop()->height();
   int newWidth = a->winx;
   int needy = a->winy;
+  int xleft, ytop, newHeight;
 
   a->lighting = Imodv->imod->view->world & VIEW_WORLD_LIGHT;
   a->lowres = Imodv->imod->view->world & VIEW_WORLD_LOWRES;
@@ -315,52 +316,53 @@ static int openWindow(ImodvApp *a)
   imodvSetCaption();
   a->mainWin->setIcon(*(a->iconPixmap));
 
-  // If windows was open before, set size and position the same
-  if (onceOpened) {
-    a->mainWin->resize(lastGeom.width(), lastGeom.height());
-    a->mainWin->move(lastGeom.x(), lastGeom.y());
-    a->mainWin->show();
+  // This call gets the window size to be right after the setuplayout
+  imod_info_input();
 
-    // 11/24/03: OS 10.3 needs to move after the show
-#ifdef Q_OS_MACX
-    a->mainWin->move(lastGeom.x(), lastGeom.y());
-#endif
-
-  // If the user did not enter a window size, just resize to that before
-  // showing
-  } else if (a->winx == DEFAULT_XSIZE && a->winy == DEFAULT_YSIZE) {
-    a->mainWin->resize(a->winx, a->winy);
-    if (a->fullscreen)
-      a->mainWin->showMaximized();
+  // If fullscreen, set that and show
+  if (a->fullscreen) {
+    a->mainWin->showMaximized();
     a->mainWin->show();
   } else {
 
-    // Otherwise, show the window and then set the size and fix the position
-    // This seems not to cause two initial draws, but it might someday
+    // If windows was open before, set size and position the same
+    if (onceOpened) {
+      newWidth = lastGeom.width();
+      newHeight = lastGeom.height();
+      xleft = lastGeom.x();
+      ytop = lastGeom.y();
+    } else {
+
+      // Otherwise, set the size, allowing for menu based on the current size
+      newHeight = needy + a->mainWin->height() - a->winy;
+      QPoint pos = a->mainWin->pos();
+      xleft = pos.x();
+      ytop = pos.y();
+    }
+
+    // Fix positions same as for zap window and set and draw
+    zapLimitWindowSize(newWidth, newHeight);
+    zapLimitWindowPos(newWidth, newHeight, xleft, ytop);
+
+    if (Imod_debug){
+      QString str;
+      str.sprintf("Sizes: imodv %d %d, GL %d %d: "
+                  "resize %d %d\nnew pos %d %d\n",
+                  a->mainWin->width(), a->mainWin->height(),
+                  a->mainWin->mCurGLw->width(), 
+                  a->mainWin->mCurGLw->height(),
+                  newWidth, newHeight, xleft, ytop);
+      imodPrintInfo(str);
+    }
+    a->mainWin->resize(newWidth, newHeight);
+    a->mainWin->move(xleft, ytop);
     a->mainWin->show();
-    int newHeight = needy + a->mainWin->height() - a->winy;
-    if (newHeight > deskHeight - 50)
-      newHeight = deskHeight - 50;
-    if (newWidth > deskWidth - 30)
-      newWidth = deskWidth -30;
-
-    QPoint pos = a->mainWin->pos();
-    int xleft = pos.x();
-    int ytop = pos.y();
-    if (xleft + newWidth > deskWidth - 16)
-      xleft = deskWidth - 16 - newWidth;
-    if (ytop + newHeight > deskHeight - 40)
-      ytop = deskHeight - 40 - newHeight;
-
-    if (Imod_debug)
-      fprintf(stderr, "Sizes: imodv %d %d, GL %d %d: "
-            "resize %d %d\n", a->mainWin->width(), a->mainWin->height(),
-             a->mainWin->mCurGLw->width(), 
-            a->mainWin->mCurGLw->height(),
-            newWidth, newHeight);
-    a->mainWin->setGeometry(xleft, ytop, newWidth, newHeight);
+    
+    // 11/24/03: OS 10.3 needs to move after the show
+#ifdef Q_OS_MACX
+    a->mainWin->move(xleft, ytop);
+#endif
   }
-
   return(0);
 }
 
@@ -655,6 +657,9 @@ void imodvQuit()
 
 /*
 $Log$
+Revision 4.16  2003/12/30 06:32:16  mast
+Make snap_fileno be part of imodvApp structure
+
 Revision 4.15  2003/11/26 18:16:07  mast
 Add function to determine if byte images exist
 
