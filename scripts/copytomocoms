@@ -716,6 +716,11 @@ EOF
 
 	    # IF MONTAGED, START THE FILE WITH PREBLEND - LIMIT SIZE
 
+            cat >> $dstfile <<EOF
+# Set the following goto to 'doxcorr' to skip the blend
+\$goto doblend
+\$doblend:
+EOF
 	    set preblend = "1"
 	    set srcfile = $srcdir/"blend"$srcext
 	    @ xcxsize = $xsize
@@ -736,6 +741,8 @@ EOF
 		-e "/^StartingAndEndingY/s/[ 	].*/	$ystart $yend/"\
                 -e /mrctaper/d\
 		    <$srcfile >>$dstfile
+
+            echo '$doxcorr:' >> $dstfile
 	endif
 
         set srcfile = $srcdir/"xcorr"$srcext
@@ -1281,6 +1288,10 @@ exit 0
 
 #
 #  $Log$
+#  Revision 3.34  2005/02/11 23:14:20  mast
+#  Handle distortion and mag gradient filenames better in case of spaces
+#  in path or Windows filenames
+#
 #  Revision 3.33  2005/01/28 16:20:20  mast
 #  Fixed bug in processing exclude list in align.com
 #
