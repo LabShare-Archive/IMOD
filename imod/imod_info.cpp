@@ -123,10 +123,10 @@ InfoWindow::InfoWindow(QWidget * parent, const char * name, WFlags f)
   // Edit object submenu
   mEObjectMenu->insertItem("&New", EOBJECT_MENU_NEW);
   mEObjectMenu->insertItem("&Delete", EOBJECT_MENU_DELETE);
-  mEObjectMenu->insertItem("&Color...", EOBJECT_MENU_COLOR);
   mEObjectMenu->insertItem("&Type...", EOBJECT_MENU_TYPE);
-  mEObjectMenu->insertItem("&Info", EOBJECT_MENU_INFO);
+  mEObjectMenu->insertItem("&Color...", EOBJECT_MENU_COLOR);
   mEObjectMenu->insertItem("&Move...", EOBJECT_MENU_MOVE);
+  mEObjectMenu->insertItem("&Info", EOBJECT_MENU_INFO);
   mEObjectMenu->insertItem("C&lean", EOBJECT_MENU_CLEAN);
 
   // Edit Surface submenu
@@ -157,41 +157,37 @@ InfoWindow::InfoWindow(QWidget * parent, const char * name, WFlags f)
 
   // Edit Point submenu
   mEPointMenu->insertItem("&Delete", EPOINT_MENU_DELETE);
-  mEPointMenu->insertItem("S&ort by dist", EPOINT_MENU_SORTDIST);
-  mEPointMenu->insertItem("&Sort by Z", EPOINT_MENU_SORTZ);
+  mEPointMenu->insertItem("Si&ze...", EPOINT_MENU_SIZE);
   mEPointMenu->insertItem("D&istance", EPOINT_MENU_DIST);
   mEPointMenu->insertItem("&Value", EPOINT_MENU_VALUE);
-  mEPointMenu->insertItem("Si&ze...", EPOINT_MENU_SIZE);
+  mEPointMenu->insertItem("&Sort by Z", EPOINT_MENU_SORTZ);
+  mEPointMenu->insertItem("S&ort by dist", EPOINT_MENU_SORTDIST);
 
   // Edit Image submenu
-  mEImageMenu->insertItem("P&rocess...", EIMAGE_MENU_PROCESS);
-  mEImageMenu->insertItem("C&olormap...", EIMAGE_MENU_COLORMAP);
-  mEImageMenu->setItemEnabled(EIMAGE_MENU_COLORMAP, App->rgba == 0 && 
-			      App->depth > 8);
-  mEImageMenu->insertItem("R&eload...", EIMAGE_MENU_RELOAD);
   mEImageMenu->insertItem("F&lip", EIMAGE_MENU_FLIP);
+  mEImageMenu->insertItem("P&rocess...", EIMAGE_MENU_PROCESS);
+  /*  mEImageMenu->insertItem("C&olormap...", EIMAGE_MENU_COLORMAP);
+      mEImageMenu->setItemEnabled(EIMAGE_MENU_COLORMAP, App->rgba == 0 && 
+      App->depth > 8); */
+  mEImageMenu->insertItem("R&eload...", EIMAGE_MENU_RELOAD);
   mEImageMenu->insertItem("F&ill Cache", EIMAGE_MENU_FILLCACHE);
   mEImageMenu->insertItem("C&ache Filler...", EIMAGE_MENU_FILLER);
-  mEImageMenu->setItemEnabled(EIMAGE_MENU_FILLCACHE, 
-			      App->cvi->vmSize != 0 || App->cvi->nt > 0);
-  mEImageMenu->setItemEnabled(EIMAGE_MENU_FILLER, 
-			      App->cvi->vmSize != 0 || App->cvi->nt > 0);
 
   // The image menu
   mImageMenu = new QPopupMenu();
   menuBar->insertItem("&Image", mImageMenu);
 
-  mImageMenu->insertItem("&Graph", IMAGE_MENU_GRAPH);
-  mImageMenu->setAccel(SHIFT + Key_G, IMAGE_MENU_GRAPH);
-  mImageMenu->insertItem("&Slicer", IMAGE_MENU_SLICER);
-  mImageMenu->setAccel(Key_Backslash, IMAGE_MENU_SLICER);
-  mImageMenu->insertItem("&Tumbler", IMAGE_MENU_TUMBLER);
-  mImageMenu->insertItem("&Model View", IMAGE_MENU_MODV);
-  mImageMenu->setAccel(Key_V, IMAGE_MENU_MODV);
   mImageMenu->insertItem("&ZaP", IMAGE_MENU_ZAP);
   mImageMenu->setAccel(Key_Z, IMAGE_MENU_ZAP);
   mImageMenu->insertItem("&XYZ", IMAGE_MENU_XYZ);
+  mImageMenu->insertItem("&Slicer", IMAGE_MENU_SLICER);
+  mImageMenu->setAccel(Key_Backslash, IMAGE_MENU_SLICER);
+  mImageMenu->insertItem("&Model View", IMAGE_MENU_MODV);
+  mImageMenu->setAccel(Key_V, IMAGE_MENU_MODV);
   mImageMenu->insertItem("&Pixel View", IMAGE_MENU_PIXEL);
+  mImageMenu->insertItem("&Graph", IMAGE_MENU_GRAPH);
+  mImageMenu->setAccel(SHIFT + Key_G, IMAGE_MENU_GRAPH);
+  mImageMenu->insertItem("&Tumbler", IMAGE_MENU_TUMBLER);
 
   // plugin menu
   int plugs   = imodPlugLoaded(IMOD_PLUG_MENU);
@@ -333,6 +329,10 @@ void InfoWindow::hideTimeout()
 void InfoWindow::manageMenus()
 {
   mFileMenu->setItemEnabled(FILE_MENU_TIFF, App->cvi->rawImageStore != 0);
+  mEImageMenu->setItemEnabled(EIMAGE_MENU_FILLCACHE, 
+			      App->cvi->vmSize != 0 || App->cvi->nt > 0);
+  mEImageMenu->setItemEnabled(EIMAGE_MENU_FILLER, 
+			      App->cvi->vmSize != 0 || App->cvi->nt > 0);
 }
 
 
@@ -432,6 +432,9 @@ static char *truncate_name(char *name, int limit)
 
 /*
     $Log$
+    Revision 4.2  2003/02/27 19:33:01  mast
+    fixing window size for windows
+
     Revision 4.1  2003/02/10 20:29:00  mast
     autox.cpp
 
