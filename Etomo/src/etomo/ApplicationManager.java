@@ -86,6 +86,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.53  2004/05/15 00:41:00  sueh
+ * <p> bug# 302 changing function name updateCombineParams()
+ * <p>
  * <p> Revision 3.52  2004/05/13 20:15:10  sueh
  * <p> bug# 33  imodGetRubberbandCoordinates() checks for rubberband data
  * <p>
@@ -5001,26 +5004,29 @@ public class ApplicationManager {
                 + excep.getMessage(), "Unable to save user parameters");
         }
       }
-    }
-    try {
-      if (imodManager.isOpen()) {
-        String[] message = new String[3];
-        message[0] = "There are still 3dmod programs running.";
-        message[1] = "Do you wish to end these programs?";
-        if (mainFrame.openYesNoDialog(message)) {
-          imodManager.quit();
+      try {
+        if (imodManager.isOpen()) {
+          String[] message = new String[3];
+          message[0] = "There are still 3dmod programs running.";
+          message[1] = "Do you wish to end these programs?";
+          if (mainFrame.openYesNoDialog(message)) {
+            imodManager.quit();
+          }
         }
       }
+      catch (AxisTypeException except) {
+        except.printStackTrace();
+        mainFrame.openMessageDialog(except.getMessage(), "AxisType problem");
+      }
+      catch (SystemProcessException except) {
+        except.printStackTrace();
+        mainFrame.openMessageDialog(
+          except.getMessage(),
+          "Problem closing 3dmod");
+      }
+      return true;
     }
-    catch (AxisTypeException except) {
-      except.printStackTrace();
-      mainFrame.openMessageDialog(except.getMessage(), "AxisType problem");
-    }
-    catch (SystemProcessException except) {
-      except.printStackTrace();
-      mainFrame.openMessageDialog(except.getMessage(), "Problem closing 3dmod");
-    }
-    return true;
+    return false;
   }
 
   /**
