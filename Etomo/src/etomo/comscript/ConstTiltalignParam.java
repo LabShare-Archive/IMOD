@@ -20,6 +20,10 @@ import etomo.type.TiltAngleSpec;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.2  2004/12/29 01:51:57  sueh
+ * <p> bug# 567 Adding reset value for rotDefaultGrouping.  Getting
+ * <p> rotNondefaultGroup as a string.
+ * <p>
  * <p> Revision 3.1  2004/12/28 23:59:58  sueh
  * <p> bug# 567 Placed the version of ConstTiltalignParam for the old-style comscript
  * <p> into OldTiltalignParam.  This version contains only the new parameters,
@@ -183,7 +187,7 @@ public class ConstTiltalignParam {
     localRotDefaultGrouping.setResetValue(6);
     tiltOption = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "TiltOption");
     tiltOption.setValidValues(tiltOptionValidValues).setResetValue(tiltAllOption);
-    tiltDefaultGrouping = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "tiltDefaultGrouping");
+    tiltDefaultGrouping = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "TiltDefaultGrouping");
     tiltDefaultGrouping.setResetValue(5);
     localTiltOption = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "LocalTiltOption");
     localTiltOption.setValidValues(localTiltOptionValidValues).setResetValue(TILT_AUTOMAPPED_OPTION);
