@@ -7,37 +7,16 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2002/11/30 07:24:00  mast
+    add ability to exclude X11 definitions for Qt use
+
 */
 
-#ifndef NO_X_INCLUDES
-#include <X11/Xmd.h>
-#endif
 
 #include <sys/types.h>
 
-#ifndef NO_X_INCLUDES
-typedef BOOL     BOOLEAN;
-#endif
-typedef char           CHAR;
-typedef unsigned char  UCHAR;
-typedef float          FLOAT;
-typedef double         DOUBLE;
-
-typedef unsigned char  UBYTE;   /* unsigned  8 bit int. */
-typedef short          SHORT;   /* signed   16 bit int. */
-typedef unsigned short USHORT;  /* unsigned 16 bit int. */
-typedef int            INT;     /* signed   32 bit int. */
-typedef unsigned int   UINT;    /* unsigned 32 bit int. */
-
-typedef unsigned char bdBYTE;
-typedef short         bdSHORT;
-typedef int           bdINT;
-typedef unsigned int  bdUINT;
-typedef float         bdFLOAT;
-typedef double        bdDOUBLE;
-
-/* typedef int64_t;   bdLONG  */
-/* typedef u_int64_t; bdULONG */
+/* Read the definitions of the b3d... data types of defined bit size */
+#include "imodconfig.h"
 
 #ifndef FALSE
 #define FALSE 0
