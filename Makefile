@@ -376,7 +376,7 @@ etomosrc :
 #
 tests : ImodTests
 	cd Etomo ; $(MAKE) tests
-	cd ImodTests ; cvs update ; $(MAKE) tests ; /bin/rm -rf ImodTests
+	cd ImodTests ; cvs update ; $(MAKE) tests
 
 ImodTests : 
 	cvs co ImodTests 
@@ -385,6 +385,9 @@ ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.33  2004/01/27 05:15:33  mast
+#  Added .distname to dist file name, added make for ImodTests
+#
 #  Revision 3.32  2004/01/17 20:32:00  mast
 #  Fix cleanqt for ndasda and graphics
 #
