@@ -75,45 +75,45 @@
 extern "C" {
 #endif
 
-/*
- *  Create or delete a mesh that is not part of an object or model.
- *
- *  NOTE: There is no imodMeshGet, imodMeshGetFirst or imodMeshGetNext
- *        functions because the model doesn't store a current mesh 
- *        because mesh data is not editable directly by the user.
- */
-Imesh *imodMeshesNew(int size);
-Imesh *imodMeshNew(void);
-int    imodMeshDelete(Imesh *mesh);
-int    imodMeshesDelete(Imesh *mesh, int size);
-int    imodMeshCopy(Imesh *from, Imesh *to);
+  /*
+   *  Create or delete a mesh that is not part of an object or model.
+   *
+   *  NOTE: There is no imodMeshGet, imodMeshGetFirst or imodMeshGetNext
+   *        functions because the model doesn't store a current mesh 
+   *        because mesh data is not editable directly by the user.
+   */
+  Imesh *imodMeshesNew(int size);
+  Imesh *imodMeshNew(void);
+  int    imodMeshDelete(Imesh *mesh);
+  int    imodMeshesDelete(Imesh *mesh, int size);
+  int    imodMeshCopy(Imesh *from, Imesh *to);
+  Imesh *imodMeshDup(Imesh *mesh);
 
-int    imodMeshAddIndex(Imesh *mesh, int index);
-void   imodMeshDeleteIndex(Imesh *mesh, int index);
-int    imodMeshAddVert(Imesh *mesh, Ipoint *vert);
-void   imodMeshInsertIndex(Imesh *mesh, int val, int place);
-Imesh *imodMeshContour(Icont *cont, int side);
+  int    imodMeshAddIndex(Imesh *mesh, int index);
+  void   imodMeshDeleteIndex(Imesh *mesh, int index);
+  int    imodMeshAddVert(Imesh *mesh, Ipoint *vert);
+  void   imodMeshInsertIndex(Imesh *mesh, int val, int place);
+  Imesh *imodMeshContour(Icont *cont, int side);
 
-int     imodMeshGetIndex(Imesh *mesh, int index);
-int     imodMeshGetMaxIndex(Imesh *mesh);
-int     imodMeshGetMaxVert(Imesh *mesh);
-Ipoint *imodMeshGetVert(Imesh *mesh, int index);
-Ipoint *imodMeshGetVerts(Imesh *mesh);
-int     imodMeshAddNormal(Imesh *mesh, Ipoint *normal);
+  int     imodMeshGetIndex(Imesh *mesh, int index);
+  int     imodMeshGetMaxIndex(Imesh *mesh);
+  int     imodMeshGetMaxVert(Imesh *mesh);
+  Ipoint *imodMeshGetVert(Imesh *mesh, int index);
+  Ipoint *imodMeshGetVerts(Imesh *mesh);
+  int     imodMeshAddNormal(Imesh *mesh, Ipoint *normal);
 
-int     imodMeshNearestRes(Imesh *mesh, int size, int inres, int *outres);
+  int     imodMeshNearestRes(Imesh *mesh, int size, int inres, int *outres);
 
-Imesh *imodel_mesh_add(struct Mod_Mesh *nmesh,
-				 struct Mod_Mesh *mray, int *size);
+  Imesh *imodel_mesh_add(Imesh *nmesh, Imesh *mray, int *size);
 
 
-/* get info from meshes. */
-float imeshSurfaceArea(Imesh *mesh, Ipoint *mscale);
-float imeshVolume(Imesh *mesh, Ipoint *mscale);
+  /* get info from meshes. */
+  float imeshSurfaceArea(Imesh *mesh, Ipoint *mscale);
+  float imeshVolume(Imesh *mesh, Ipoint *mscale);
 
-/** internal functions **/
-int imodel_mesh_addlist(struct Mod_Mesh *mesh, int val);
-int imodel_mesh_addvert(struct Mod_Mesh *mesh, struct Mod_Point *pt);
+  /** internal functions **/
+  int imodel_mesh_addlist(Imesh *mesh, int val);
+  int imodel_mesh_addvert(Imesh *mesh, struct Mod_Point *pt);
 
 
 #ifdef __cplusplus
