@@ -20,6 +20,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.0  2003/11/07 23:19:01  rickg
+ * <p> Version 1.0.0
+ * <p>
  * <p> Revision 2.5  2003/10/30 21:05:06  rickg
  * <p> Bug# 340 Added context menu
  * <p>
@@ -85,11 +88,11 @@ public class PostProcessingDialog
     rootPanel.add(cleanupPanel.getContainer());
     rootPanel.add(Box.createVerticalGlue());
     rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
-    rootPanel.add(panelExitButtons);
+    rootPanel.add(pnlExitButtons);
     rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
 
-    buttonAdvanced.setVisible(false);
-    buttonExecute.setText("Done");
+    btnAdvanced.setVisible(false);
+    btnExecute.setText("Done");
 
 
 		//  Mouse adapter for context menu

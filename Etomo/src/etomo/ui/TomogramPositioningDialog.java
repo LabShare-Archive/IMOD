@@ -30,6 +30,10 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.1  2004/01/30 22:45:28  sueh
+ * <p> bug# 356 Changing buttons with html labels to
+ * <p> MultiLineButton and MultiLineToggleButton
+ * <p>
  * <p> Revision 3.0  2003/11/07 23:19:01  rickg
  * <p> Version 1.0.0
  * <p>
@@ -129,7 +133,7 @@ public class TomogramPositioningDialog
     fixRootPanel(rootSize);
 
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
-    buttonExecute.setText("Done");
+    btnExecute.setText("Done");
 
     ltfSampleTomoThickness.setTextPreferredSize(new Dimension(50, 20));
     btnSample.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -178,7 +182,7 @@ public class TomogramPositioningDialog
     rootPanel.add(panelPosition);
     rootPanel.add(Box.createVerticalGlue());
     rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
-    rootPanel.add(panelExitButtons);
+    rootPanel.add(pnlExitButtons);
     rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
 
     //  Mouse adapter for context menu

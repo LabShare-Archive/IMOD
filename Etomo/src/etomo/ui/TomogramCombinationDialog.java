@@ -35,6 +35,10 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.3  2004/03/05 18:23:18  sueh
+ * <p> bug# 250 changed getCombineParams(int, CombineParams) - handle
+ * <p> Final tab
+ * <p>
  * <p> Revision 3.2  2004/03/02 00:03:11  sueh
  * <p> bug# 250 getCombineParams(fromTab, combineParams) -
  * <p> get CombineParams from a tab
@@ -162,8 +166,8 @@ public class TomogramCombinationDialog
     rootPanel.add(tabbedPane);
     rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
     rootPanel.add(Box.createVerticalGlue());
-    buttonExecute.setText("Done");
-    rootPanel.add(panelExitButtons);
+    btnExecute.setText("Done");
+    rootPanel.add(pnlExitButtons);
     rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
 
     // Set the default advanced dialog state

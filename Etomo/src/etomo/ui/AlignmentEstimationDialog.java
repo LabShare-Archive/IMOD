@@ -30,6 +30,10 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.1  2004/01/30 22:44:22  sueh
+ * <p> bug# 356 Changing buttons with html labels to
+ * <p> MultiLineButton and MultiLineToggleButton
+ * <p>
  * <p> Revision 3.0  2003/11/07 23:19:01  rickg
  * <p> Version 1.0.0
  * <p>
@@ -183,7 +187,7 @@ public class AlignmentEstimationDialog
     fixRootPanel(rootSize);
 
     panelTiltalign = new TiltalignPanel(axisID);
-    buttonExecute.setText("Done");
+    btnExecute.setText("Done");
 
     //  Create the first tiltalign panel
     panelButton.setLayout(new BoxLayout(panelButton, BoxLayout.X_AXIS));
@@ -219,7 +223,7 @@ public class AlignmentEstimationDialog
     rootPanel.add(panelAlignEst, BorderLayout.CENTER);
     rootPanel.add(Box.createVerticalGlue());
     rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
-    rootPanel.add(panelExitButtons, BorderLayout.SOUTH);
+    rootPanel.add(pnlExitButtons, BorderLayout.SOUTH);
     rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
 
     //  Bind the action listeners to the buttons

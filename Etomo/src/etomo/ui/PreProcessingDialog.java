@@ -22,6 +22,9 @@ import etomo.comscript.CCDEraserParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.0  2003/11/07 23:19:01  rickg
+ * <p> Version 1.0.0
+ * <p>
  * <p> Revision 2.5  2003/10/30 01:43:44  rickg
  * <p> Bug# 338 Remapped context menu entries
  * <p>
@@ -100,7 +103,7 @@ public class PreProcessingDialog extends ProcessDialog {
     disableDM2MRC();
 
     //  Build the base panel
-    buttonExecute.setText("Done");
+    btnExecute.setText("Done");
     pnlDMConvert.setAlignmentX(Component.CENTER_ALIGNMENT);
     rootPanel.add(pnlDMConvert);
 
@@ -111,7 +114,7 @@ public class PreProcessingDialog extends ProcessDialog {
     rootPanel.add(pnlEraser);
     rootPanel.add(Box.createVerticalGlue());
     rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
-    rootPanel.add(panelExitButtons);
+    rootPanel.add(pnlExitButtons);
     rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
 
    //  Set the default advanced state for the window, this also executes

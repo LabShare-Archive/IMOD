@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.3  2004/03/13 00:34:13  rickg
+ * <p> Bug# 390 Add set/get prenewst parameters
+ * <p>
  * <p> Revision 3.2  2004/02/05 04:35:07  rickg
  * <p> Added prenewst panel with binning
  * <p>
@@ -114,7 +117,7 @@ public class CoarseAlignDialog extends ProcessDialog implements ContextMenu {
     fixRootPanel(rootSize);
     pnlCrossCorrelation = new CrossCorrelationPanel(axisID);
     pnlPrenewst = new PrenewstPanel(axisID);
-    buttonExecute.setText("Done");
+    btnExecute.setText("Done");
     buttonCrossCorrelate.setAlignmentX(Component.CENTER_ALIGNMENT);
     buttonCrossCorrelate.setPreferredSize(FixedDim.button2Line);
     buttonCrossCorrelate.setMaximumSize(FixedDim.button2Line);
@@ -145,7 +148,7 @@ public class CoarseAlignDialog extends ProcessDialog implements ContextMenu {
     rootPanel.add(panelCoarseAlign);
     rootPanel.add(Box.createVerticalGlue());
     rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
-    rootPanel.add(panelExitButtons);
+    rootPanel.add(pnlExitButtons);
     rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
 
     //  Action listener assignment for the buttons

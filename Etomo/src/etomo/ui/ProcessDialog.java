@@ -1,14 +1,3 @@
-package etomo.ui;
-
-import java.awt.Container;
-import java.awt.Dimension;
-import java.awt.event.*;
-import javax.swing.*;
-
-import etomo.ApplicationManager;
-import etomo.type.AxisID;
-import etomo.type.DialogExitState;
-
 /**
  * <p>Description:A generic process dialog box with a set of exit buttons
  * and the action adapter to handle their processing.  The action functions
@@ -24,6 +13,9 @@ import etomo.type.DialogExitState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.0  2003/11/07 23:19:01  rickg
+ * <p> Version 1.0.0
+ * <p>
  * <p> Revision 2.1  2003/10/13 20:27:21  sueh
  * <p> bug270
  * <p> changed tooltips
@@ -45,6 +37,20 @@ import etomo.type.DialogExitState;
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
  */
+package etomo.ui;
+
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JPanel;
+
+import etomo.ApplicationManager;
+import etomo.type.AxisID;
+import etomo.type.DialogExitState;
+
 public class ProcessDialog implements ExitButtons {
   public static final String rcsid =
     "$Id$";
@@ -58,11 +64,11 @@ public class ProcessDialog implements ExitButtons {
   protected JPanel rootPanel = new JPanel();
 
   //  Exit buttons
-  protected JPanel panelExitButtons = new JPanel();
-  protected JButton buttonCancel = new JButton("Cancel");
-  protected JButton buttonPostpone = new JButton("Postpone");
-  protected JButton buttonExecute = new JButton("Execute");
-  protected JButton buttonAdvanced = new JButton("Advanced");
+  protected JPanel pnlExitButtons = new JPanel();
+  protected MultiLineButton btnCancel = new MultiLineButton("Cancel");
+  protected MultiLineButton btnPostpone = new MultiLineButton("Postpone");
+  protected MultiLineButton btnExecute = new MultiLineButton("Execute");
+  protected MultiLineButton btnAdvanced = new MultiLineButton("Advanced");
 
   /**
    * Create a new process dialog with a set of exit buttons (cancel, postpone
@@ -78,25 +84,35 @@ public class ProcessDialog implements ExitButtons {
     setAdvanced(isAdvanced);
     setToolTipText();
 
+    //  Set the button sizes
+    //btnCancel.setPreferredSize(UIParameters.getButtonDimension());
+    btnCancel.setMaximumSize(UIParameters.getButtonDimension());
+    //btnPostpone.setPreferredSize(UIParameters.getButtonDimension());
+    btnPostpone.setMaximumSize(UIParameters.getButtonDimension());
+    //btnExecute.setPreferredSize(UIParameters.getButtonDimension());
+    btnExecute.setMaximumSize(UIParameters.getButtonDimension());
+    //btnAdvanced.setPreferredSize(UIParameters.getButtonDimension());
+    btnAdvanced.setMaximumSize(UIParameters.getButtonDimension());
+    
     //  Layout the buttons
-    panelExitButtons.setLayout(
-      new BoxLayout(panelExitButtons, BoxLayout.X_AXIS));
+    pnlExitButtons.setLayout(
+      new BoxLayout(pnlExitButtons, BoxLayout.X_AXIS));
 
-    panelExitButtons.add(Box.createHorizontalGlue());
-    panelExitButtons.add(buttonCancel);
-    panelExitButtons.add(Box.createHorizontalGlue());
-    panelExitButtons.add(buttonPostpone);
-    panelExitButtons.add(Box.createHorizontalGlue());
-    panelExitButtons.add(buttonExecute);
-    panelExitButtons.add(Box.createHorizontalGlue());
-    panelExitButtons.add(buttonAdvanced);
-    panelExitButtons.add(Box.createHorizontalGlue());
+    pnlExitButtons.add(Box.createHorizontalGlue());
+    pnlExitButtons.add(btnCancel);
+    pnlExitButtons.add(Box.createHorizontalGlue());
+    pnlExitButtons.add(btnPostpone);
+    pnlExitButtons.add(Box.createHorizontalGlue());
+    pnlExitButtons.add(btnExecute);
+    pnlExitButtons.add(Box.createHorizontalGlue());
+    pnlExitButtons.add(btnAdvanced);
+    pnlExitButtons.add(Box.createHorizontalGlue());
 
     //  Exit action listeners
-    buttonCancel.addActionListener(new buttonCancelActionAdapter(this));
-    buttonPostpone.addActionListener(new buttonPostponeActionAdapter(this));
-    buttonExecute.addActionListener(new buttonExecuteActionAdapter(this));
-    buttonAdvanced.addActionListener(new buttonAdvancedActionAdapter(this));
+    btnCancel.addActionListener(new buttonCancelActionAdapter(this));
+    btnPostpone.addActionListener(new buttonPostponeActionAdapter(this));
+    btnExecute.addActionListener(new buttonExecuteActionAdapter(this));
+    btnAdvanced.addActionListener(new buttonAdvancedActionAdapter(this));
   }
 
   public Container getContainer() {
@@ -149,10 +165,10 @@ public class ProcessDialog implements ExitButtons {
   void setAdvanced(boolean state) {
     isAdvanced = state;
     if (isAdvanced) {
-      buttonAdvanced.setText("Basic");
+      btnAdvanced.setText("Basic");
     }
     else {
-      buttonAdvanced.setText("Advanced");
+      btnAdvanced.setText("Advanced");
     }
   }
 
@@ -172,23 +188,23 @@ public class ProcessDialog implements ExitButtons {
 
     line1 = "<html>This button will abort any changes to the parameters<br>";
     line2 = "in this dialog box and return you to the main window.";
-    buttonCancel.setToolTipText(line1 + line2);
+    btnCancel.setToolTipText(line1 + line2);
 
     line1 = "<html>This button will save any changes to the parameters<br>";
     line2 = "in this dialog box and return you to the main window<br>";
     line3 = "without executing any of the processing.  Any parameter<br>";
     line4 = "changes will also be written to the com scripts.";
-    buttonPostpone.setToolTipText(line1 + line2 + line3 + line4);
+    btnPostpone.setToolTipText(line1 + line2 + line3 + line4);
 
     line1 = "<html>This button will save any changes to the parameters<br>";
     line2 = "in this dialog box and execute the specified operation<br>";
     line3 = "on the data.  Any parameter changes will also be written<br>";
     line4 = "to the com scripts.";
-    buttonExecute.setToolTipText(line1 + line2 + line3 + line4);
+    btnExecute.setToolTipText(line1 + line2 + line3 + line4);
 
     line1 = "<html>This button will present a more detailed set of<br>";
     line2 = "options for each of the underlying processes.";
-    buttonAdvanced.setToolTipText(line1 + line2);
+    btnAdvanced.setToolTipText(line1 + line2);
   }
 }
 

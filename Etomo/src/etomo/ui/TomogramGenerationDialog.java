@@ -42,6 +42,9 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.2  2004/02/13 00:09:26  rickg
+ * Updated for PIP based newstack
+ *
  * Revision 3.1  2004/01/30 22:45:23  sueh
  * bug# 356 Changing buttons with html labels to
  * MultiLineButton and MultiLineToggleButton
@@ -306,7 +309,7 @@ public class TomogramGenerationDialog
     fixRootPanel(rootSize);
 
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
-    buttonExecute.setText("Done");
+    btnExecute.setText("Done");
 
     cbBoxUseLinearInterpolation.setAlignmentX(Component.CENTER_ALIGNMENT);
     cbBoxUseLocalAlignment.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -394,7 +397,7 @@ public class TomogramGenerationDialog
     rootPanel.add(pnlTilt);
     rootPanel.add(Box.createVerticalGlue());
     rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
-    rootPanel.add(panelExitButtons);
+    rootPanel.add(pnlExitButtons);
     rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
 
     //  Mouse adapter for context menu
