@@ -15,16 +15,17 @@ set Xlibdir = /usr/X11R6/lib
 set opengl_inc = /usr/include/GL
 set opengl_lib = /usr/lib
 
-# add -I$opengl_inc if it's not on the system include path
-set c_includes =  "-I$Xincdir -I$Mincdir"
-
-# add -I$opengl_lib if it's not on the system library path
-echo 'LDFLAGS = -L$(LIBDIR)' "-L$Xlibdir" >> $configure
-
 #### !!!! has sto be changed
 set glwincdir = /usr/include/GL
 set glwlibdir = /usr/lib
 set glwlibname = MesaGLwM
+
+# add -I$opengl_inc if it's not on the system include path
+set c_includes =  "-I$Xincdir -I$Mincdir -I$glwincdir"
+
+# add -I$opengl_lib if it's not on the system library path
+echo 'LDFLAGS = -L$(LIBDIR)' "-L$Xlibdir" >> $configure
+
 
 echo "SHELL     = /bin/csh"         >> $configure
 echo "CC        = gcc"              >> $configure
