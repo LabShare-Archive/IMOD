@@ -24,6 +24,10 @@ import etomo.comscript.TransferfidParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.18  2003/01/08 18:47:54  rickg
+ * <p> Added a preferred size for the buttons so that the
+ * <p> window size is more reasonable
+ * <p>
  * <p> Revision 1.17  2003/01/08 05:28:25  rickg
  * <p> Still working to fix window layout :(
  * <p>
@@ -181,7 +185,6 @@ public class AlignmentEstimationDialog
       buttonLayout.setColumns(5);
       panelButtonA.add(buttonTransferFiducialsA);
     }
-    buttonView3DModelA.setEnabled(false);
 
     panelAlignEstA.setLayout(new BoxLayout(panelAlignEstA, BoxLayout.Y_AXIS));
     panelAlignEstA.setBorder(borderA.getBorder());
@@ -211,8 +214,6 @@ public class AlignmentEstimationDialog
       panelButtonB.add(buttonViewResidualsB);
       panelButtonB.add(buttonView3DModelB);
       panelButtonB.add(buttonTransferFiducialsB);
-
-      buttonView3DModelB.setEnabled(false);
 
       panelAlignEstB.setLayout(new BoxLayout(panelAlignEstB, BoxLayout.Y_AXIS));
       panelAlignEstB.setBorder(borderB.getBorder());
@@ -369,6 +370,12 @@ public class AlignmentEstimationDialog
   }
 
   void buttonView3DModelAAction(ActionEvent event) {
+    if (applicationManager.isDualAxis()) {
+      applicationManager.imodView3DModel(AxisID.FIRST);
+    }
+    else {
+      applicationManager.imodView3DModel(AxisID.ONLY);
+    }
   }
 
   void buttonResidualAAction(ActionEvent event) {
@@ -393,7 +400,7 @@ public class AlignmentEstimationDialog
   }
 
   void buttonView3DModelBAction(ActionEvent event) {
-
+    applicationManager.imodView3DModel(AxisID.SECOND);
   }
 
   void buttonResidualBAction(ActionEvent event) {

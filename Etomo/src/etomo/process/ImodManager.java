@@ -21,6 +21,9 @@ import etomo.type.ConstMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.8  2003/01/07 00:30:46  rickg
+ * <p> Fixed javadoc text
+ * <p>
  * <p> Revision 1.7  2002/10/29 18:21:00  rickg
  * <p> Check to see if the ImodProcess is non-null before calling open isRunning
  * <P> in is*Open() functions.  Return false if the object is null so that they
@@ -69,6 +72,8 @@ public class ImodManager {
   private ImodProcess tomogramB;
   private ImodProcess combinedTomogram;
 
+  private Thread fiducialModelA;
+  private Thread fiducialModelB;
   /**
    * Default constructor
    * @param metaData this class is used to initialize the
@@ -192,6 +197,36 @@ public class ImodManager {
     ImodProcess coarseAligned = selectCoarseAligned(axisID);
     coarseAligned.quit();
   }
+
+  /**
+   * Open the 3D fiducial model in imodv
+   */
+  public void openFiducialModel(String model, AxisID axisID) {
+    SystemProgram imodv;
+    
+    if(axisID == AxisID.SECOND) {
+      if(fiducialModelB != null && fiducialModelB.isAlive()) {
+          return;
+      }
+    }
+    else {
+      if(fiducialModelA != null && fiducialModelA.isAlive()) {
+        return;
+      }
+    }
+    
+    imodv = new SystemProgram("imodv " + model);
+    Thread fiducialModel = new Thread(imodv);
+    fiducialModel.start();
+    
+    if(axisID == AxisID.SECOND) {
+      fiducialModelB = fiducialModel;
+    }
+    else {
+      fiducialModelA = fiducialModel;
+    }
+  }
+
 
   /**
    * Open the specified fine aligned stack in imod if it is not already open

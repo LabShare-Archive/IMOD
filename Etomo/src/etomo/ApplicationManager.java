@@ -27,6 +27,10 @@ import etomo.ui.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.35  2003/01/10 18:39:58  rickg
+ * <p> Using existing com scripts now gives the correct
+ * <p> process state
+ * <p>
  * <p> Revision 1.34  2003/01/10 18:33:16  rickg
  * <p> Added test parameter filename to command line args
  * <p>
@@ -974,6 +978,15 @@ public class ApplicationManager {
         except.getMessage(),
         "Can't open imod on coarse aligned stack with model: " + fiducialModel);
     }
+  }
+
+  /**
+   * Open imodv with the new fidcuial model
+   */
+  public void imodView3DModel(AxisID axisID) {
+    String fiducialModel =
+      metaData.getFilesetName() + axisID.getExtension() + ".3dmod";
+    imodManager.openFiducialModel(fiducialModel, axisID);
   }
 
   /**
