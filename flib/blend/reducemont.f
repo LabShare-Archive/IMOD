@@ -65,6 +65,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.7  2005/01/13 17:24:33  mast
+c	  Put in error check for image size and allowed negative overlaps
+c	
 c	  Revision 3.6  2003/12/12 22:01:35  mast
 c	  remove test output
 c	
@@ -109,8 +112,8 @@ c
 	integer*4 minyoverlap,ntrial,nreduce,minxwant,minywant,maxxwant
 	integer*4 maxywant,nxtotwant,nytotwant,newxpieces,newypieces
 	integer*4 newxtotpix,newytotpix,newxframe,newyframe,newminxpiece
-	integer*4 newminypiece,ilistz,ifwant
-	real*4 xorig,yorig,zorig,dmin,dmax,dmean,outmin,outmax,definmin
+	integer*4 newminypiece,ifwant
+	real*4 xorig,yorig,zorig,dmin,dmax,outmin,outmax,definmin
 	real*4 definmax,reduce,curinmin,curinmax,pixscale,pixadd,tsum
 	integer*4 ixfrm,iyfrm,ipc,nshort,nlong,ishort,ilong,indbray
 	integer*4 newuse,newpcxll,newpcyll,nxfast,nyfast,iyfast,ixfast
@@ -293,13 +296,9 @@ c
 c	  
 c	  initialize memory allocator
 c	  
-	jusecount=0
-	do i=1,memlim
-	  izmemlist(i)=-1
-	  lastused(i)=0
-	enddo
+	call clearShuffle()
 	npixin=nxin*nyin
-	limsec=min(maxsiz/npixin,memlim)
+	maxload=min(maxsiz/npixin,memlim)
 c	    
 c	    loop on z: do everything within each section for maximum efficiency
 c	  
@@ -365,7 +364,7 @@ c
 	    do ishort=1,nshort
 	      call crossvalue(xinlong,ishort,ilong,ixfrm,iyfrm)
 	      if(mappiece(ixfrm,iyfrm).gt.0)then
-		do i=1,limsec
+		do i=1,maxload
 		  if(izmemlist(i).eq.mappiece(ixfrm,iyfrm))then
 		    lastused(i)=newuse
 		    newuse=newuse-1
