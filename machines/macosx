@@ -140,7 +140,18 @@ else
 endif
 EOF
 
-echo 'imod -view $* &' >! $imod_dir/runimodv
+cat <<EOF >! $imod_dir/runimodv
+#!/bin/csh -f
+set background = 1
+foreach i (\$*)
+    if ("\$i" == '-D') set background = 0
+end
+if (\$background == 0) then
+    \$IMOD_DIR/bin/${imod_target} -view \$*
+else
+    \$IMOD_DIR/bin/${imod_target} -view \$* &
+endif
+EOF
 
 echo '$IMOD_DIR/bin/'"$send_target"' $*' >! $sendevent_dir/runsendevent
 
