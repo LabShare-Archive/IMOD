@@ -27,6 +27,13 @@ c	---			  This allows pre-processing by only	---
 c	---			  selecting good objects for (1), yet	---
 c	---			  retains center information in (2).	---
 c	-------------------------------------------------------------------
+c	  $Author$
+c
+c	  $Date$
+c
+c	  $Revision$
+c
+c	  $Log$
 
 
 	parameter ( maxarr=2100*2100 )	!--- Maximum array size ---
@@ -199,7 +206,7 @@ c	      --- Loop over the subsection points for each extraction ---
 
 c		 --- Extract the subsection using calculated parameters ---
 		 call cubinterp( array, brray, nxa, nya, nxb, nyb, amat,
-	2			xc, yc, xt, yt, scale, dmean )
+	2			xc, yc, xt, yt, scale, dmean, 0)
 
 		 call iclden( brray, nxb, nyb, 1, nxb, 1, nyb,
 	2		      dmint, dmaxt, dmeant )
