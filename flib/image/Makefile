@@ -5,6 +5,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.2  2003/10/24 02:30:57  mast
+#  Changes for windows/Intel compiler
+#
 #  Revision 3.1  2003/10/10 20:46:01  mast
 #  Changed rotatevol, matchvol, warpvol to use common include and subroutines
 #
@@ -24,7 +27,7 @@ PROGS = addtostack$(E) alterheader$(E) assemblevol$(E) avganova$(E) \
  newstack$(E) rotatevol$(E) rotmont$(E) subimage$(E) subimanova$(E) \
  subimstat$(E) taperoutvol$(E) tapervoledge$(E) tiltxcorr$(E) tomopieces$(E) \
  vmstocsh$(E) warpvol$(E) xcorr$(E) xfinverse$(E) xfproduct$(E) xfsimplex$(E) \
- xftoxg$(E) xyzproj$(E)
+ xftoxg$(E) xyzproj$(E) extractmagrad$(E)
  
 LIBS = $(FORTCLIBS)
 
@@ -83,6 +86,9 @@ extposition$(E): extposition.$(O)
 
 extractpieces$(E): extractpieces.$(O)
 	$(FC) -o extractpieces extractpieces.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
+
+extractmagrad$(E): extractmagrad.$(O)
+	$(FC) -o extractmagrad extractmagrad.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
 extracttilts$(E): extracttilts.$(O)
 	$(FC) -o extracttilts extracttilts.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
