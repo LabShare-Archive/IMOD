@@ -34,6 +34,14 @@
     </jar>
   </target>
 
+  <target name="EtomoTestJar" depends="compile">
+    <mkdir dir="${jar-dir}" />
+    <jar jarfile="${jar-dir}/etomoTests.jar"
+     basedir="${build}"
+     manifest="TEST_MANIFEST.MF" >
+    </jar>
+  </target>
+
   <target name="DataFlowTestJar" depends="compile">
     <mkdir dir="${jar-dir}" />
     <jar jarfile="${jar-dir}/dataFlowTests.jar"
