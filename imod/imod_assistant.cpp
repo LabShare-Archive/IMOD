@@ -1,5 +1,6 @@
-/*
- *  imod_assistant.cpp - Opens Qt Assistant for help pages
+/*  imod_assistant.cpp - Opens Qt Assistant for help pages
+ *
+ *  WARNING: EDIT ONLY THE ORIGINAL FILE IN THE imod DIRECTORY
  *
  *  Author: David Mastronarde   email: mast@colorado.edu
  *
@@ -67,13 +68,14 @@ ImodAssistant::~ImodAssistant()
  * Shows a help file with file name given by {page}, {absolute} (default
  * false) should be [true] if {page} gives an absolute path and [false] if
  * it gives a path relative to the path defined in the constructor. ^
- * Returns 0 if the page is found, 1 if not
+ * Returns 0 if the page is found, 1 if not, and -1 if the adp file is not
+ * found.
  */
 int ImodAssistant::showPage(const char *page, bool absolute)
 {
   QString fullPath;
   QString fileOnly, assPath;
-  int len;
+  int len, retval = 0;
   char sep = QDir::separator();
 
   // Get the assistant object the first time
@@ -100,8 +102,13 @@ int ImodAssistant::showPage(const char *page, bool absolute)
 #if QT_VERSION >= 0x030200
     QStringList args;
     args << "-hideSidebar";
-    if (!mAdp.isEmpty())
-      args << "-profile" <<  mPath + sep + mAdp;
+    if (!mAdp.isEmpty()) {
+      fileOnly = mPath + sep + mAdp;
+      if (QFile::exists(fileOnly))
+        args << "-profile" <<  fileOnly;
+      else
+        retval = -1;
+    }
     mAssistant->setArguments(args);
 #endif
   }
@@ -125,13 +132,13 @@ int ImodAssistant::showPage(const char *page, bool absolute)
     if (!mTitle.isEmpty())
       QMessageBox::warning(0, mTitle, fileOnly, QMessageBox::Ok,
                            QMessageBox::NoButton, QMessageBox::NoButton);
-    return 1;
+    retval = 1;
   } else {
 
     // Just show the page without opening assistant first
     mAssistant->showPage(fullPath);
   }
-  return 0;
+  return retval;
 }
 
 // Report errors.  Sadly, it will not report a bad page
@@ -147,6 +154,9 @@ void ImodAssistant::assistantError(const QString &msg)
 
 /*
     $Log$
+    Revision 1.7  2004/12/06 04:39:19  mast
+    Made truly standalone, took out of library back into 3dmod
+
     Revision 1.2  2004/12/04 19:22:38  mast
     Converted path to absolute before call assistant, RH 9.0 seemed to need
 
