@@ -13,6 +13,9 @@ package etomo.comscript;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.2  2004/04/12 16:48:55  sueh
+ * <p> bug# 409 changed interface class CommandParam
+ * <p>
  * <p> Revision 3.1  2003/11/18 17:59:34  rickg
  * <p> Bug #363 Spelling error correction on AllSectionObjects
  * <p>
@@ -78,7 +81,7 @@ public class CCDEraserParam
       growCriterion = scriptCommand.getValue("GrowCriterion");
       scanCriterion = scriptCommand.getValue("ScanCriterion");
       maximumRadius = scriptCommand.getValue("MaximumRadius");
-      outerRadius = scriptCommand.getValue("OuterRadius");
+      annulusWidth = scriptCommand.getValue(ANNULUS_WIDTH);
       xyScanSize = scriptCommand.getValue("XYScanSize");
       edgeExclusion = scriptCommand.getValue("EdgeExclusionWidth");
       pointModel = scriptCommand.getValue("PointModel");
@@ -92,6 +95,12 @@ public class CCDEraserParam
       borderPixels = scriptCommand.getValue("BorderSize");
       polynomialOrder = scriptCommand.getValue("PolynomialOrder");
       includeAdjacentPoints = !scriptCommand.hasKeyword("ExcludeAdjacent");
+      
+      //handle out-of-date parameters
+      outerRadius = scriptCommand.getValue("OuterRadius");
+      if (!outerRadius.equals("")) {
+        convertOuterRadius();
+      }
     }
     else {
       inputFile = inputArgs[0].getArgument();
@@ -114,7 +123,7 @@ public class CCDEraserParam
       edgeExclusion = "4";
       pointModel = datasetName + "_peak.mod";
       maximumRadius = "2.1";
-      outerRadius = "4.0";
+      annulusWidth = "2.0";
       xyScanSize = "100";
       scanCriterion = "3.0";
     }
@@ -184,11 +193,11 @@ public class CCDEraserParam
       scriptCommand.deleteKey("MaximumRadius");
     }
 
-    if (!outerRadius.equals("")) {
-      scriptCommand.setValue("OuterRadius", outerRadius);
+    if (!annulusWidth.equals("")) {
+      scriptCommand.setValue(ANNULUS_WIDTH, annulusWidth);
     }
     else {
-      scriptCommand.deleteKey("OuterRadius");
+      scriptCommand.deleteKey(ANNULUS_WIDTH);
     }
 
     if (!xyScanSize.equals("")) {
@@ -260,11 +269,31 @@ public class CCDEraserParam
     else {
       scriptCommand.deleteKey("TrialMode");
     }
+    
+    //remove out-of-date parameters
+    if (!outerRadius.equals("")) {
+      scriptCommand.deleteKey("OuterRadius");
+    }
   }
   
   public void initializeDefaults() {
   }
 
+  /**
+   * Converts outerRadius to annulusWidth.
+   * Does nothing if annulusWidth has a value.
+   * Ccderaser handles empty annulusWidth and maximumRadius.
+   * Conversion from outerRadius to annulusWidth is
+   * annulusWidth = outerRadius - maximumWidth.
+   */
+  protected void convertOuterRadius() {
+    //if annulusWidth already set then return
+    if (!annulusWidth.equals("") || outerRadius.equals("") || maximumRadius.equals("")) {
+      return;
+    }
+    annulusWidth = String.valueOf(Float.parseFloat(outerRadius) -  Float.parseFloat(maximumRadius));
+  }
+  
   public void setInputFile(String inputFile) {
     this.inputFile = inputFile;
   }
@@ -334,8 +363,8 @@ public class CCDEraserParam
   /**
    * @param string
    */
-  public void setOuterRadius(String string) {
-    outerRadius = string;
+  public void setAnnulusWidth(String string) {
+    annulusWidth = string;
   }
 
   /**
