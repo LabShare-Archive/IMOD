@@ -1,7 +1,7 @@
 ############################################################################# 
 # Makefile for BL3DFS IMOD distribution.
 #
-# Copyright (C) 1996-2001
+# Copyright (C) 1996-2002
 # by Boulder Laboratory for 3-Dimensional Fine Structure ("BL3DFS" or "3DFS")
 # and the Regents of the University of Colorado.
 #
@@ -72,6 +72,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.1  2001/12/06 15:26:28  mast
+#  Added History to make src
+#
 #  Revision 3.0  2001/11/29 17:25:14  rickg
 #  *** empty log message ***
 #
@@ -120,7 +123,7 @@ default : all
 #
 # Make all the fortran programs then all the C programs.
 #
-all : configure clibs
+all : configure installglw clibs
 	cd flib      ; $(MAKE) all
 	cd imod      ; $(MAKE) all
 	cd imodutil  ; $(MAKE) all
@@ -138,7 +141,7 @@ configure : setup .version
 #
 # Install cstuff
 #
-install : configure man
+install : configure installglw man
 	cd libimod   ; $(MAKE) $@
 	cd libiimod  ; $(MAKE) $@
 	cd libdia    ; $(MAKE) $@
@@ -190,6 +193,9 @@ clean : configure
 	cd flib/man  ; $(MAKE) $@
 	cd com       ; $(MAKE) $@
 	cd html      ; $(MAKE) $@
+	cd GLw       ; $(MAKE) $@
+	(cd include ; \find . -type f -name "GLw*.h" -exec rm "{}" \;)
+	(cd buildlib ; \find . -type f -name "libGLw.a" -exec rm "{}" \;)
 	\find . -type f -name "configure" -exec rm "{}" \;
 
 #
