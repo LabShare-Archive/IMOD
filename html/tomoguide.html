@@ -1090,7 +1090,14 @@ alignment file, i.e., add
 <A HREF = "man/tomopitch.html">Tomopitch</A>,
 be sure to ADD the recommended X-axis tilt to the value already
 applied in tilt.com.
-
+<P>
+With X-axis tilting, the first and last few slices in each sample may
+have incomplete data.  You may need to increase the number of slices
+to get usable samples.  To do so, edit sample.com and, for
+non-montaged data, increase the "-size" argument for all three "newst"
+commands.  For montaged data, increase the "max Y coordinate" entered
+into each of the three runs of
+<A HREF = "man/blendmont.html">Blendmont</A>.
 
 <A NAME = "Final Runs"><H4>
 6.4. The Final Runs
