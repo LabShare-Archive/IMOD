@@ -19,6 +19,9 @@ package etomo.comscript;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.7  2004/03/12 20:01:21  sueh
+ * <p> bug# 412 added setDefault(int), toString(int)
+ * <p>
  * <p> Revision 3.6  2004/03/12 17:30:33  sueh
  * <p> bug# 412 fixed null pointer bug, added valueSet(int) and isDefault(int)
  * <p>
@@ -196,6 +199,12 @@ public class FortranInputString {
    */
   public void set(int index, double newValue) {
     value[index] = new Double(newValue);
+  }
+  
+  public void setDefault() {
+    for(int i=0; i <nParams; i++) {
+      value[i] = new Double(Double.NaN);
+    }
   }
   
   public void setDefault(int index) {
