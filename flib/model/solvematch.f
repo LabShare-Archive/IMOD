@@ -12,6 +12,10 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.6  2003/12/24 19:03:20  mast
+c	  Incorporated new method for handling fiducials on one surface and
+c	  converted to PIP input.
+c	
 c	  Revision 3.5  2003/05/20 23:43:45  mast
 c	  Add space before wrlist output
 c	
@@ -544,7 +548,7 @@ c
 
 	filename = ' '
 	if (pipinput) then
-	  if (PipGetInOutFile('OutputFile', 0, ' ', filename)
+	  if (PipGetInOutFile('OutputFile', 1, ' ', filename)
      &	    .ne. 0) call errorexit('NO OUTPUT FILE SPECIFIED')
 	else
 	  print *,'Enter name of file to place transformation in, or ',
