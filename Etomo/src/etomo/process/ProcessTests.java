@@ -21,7 +21,7 @@ public class ProcessTests {
     TestSuite suite = new TestSuite("Test for etomo.process");
     //$JUnit-BEGIN$
     suite.addTestSuite(ImodManagerTest.class);
-    //suite.addTest(new ImodManagerTest("testPatchRegionModel"));
+    //suite.addTest(new ImodManagerTest("testFiducialModel"));
     //$JUnit-END$
     return suite;
   }
