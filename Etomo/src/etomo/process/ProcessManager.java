@@ -20,6 +20,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.28  2004/08/02 23:50:18  sueh
+ * bug# 519 improving error handling in
+ * setupNonFiducialAlign
+ *
  * Revision 3.27  2004/08/02 23:02:37  sueh
  * bug# 519 call ApplicationManager.makeRawtltFile() if .rawtlt
  * doesn't exist
@@ -943,7 +947,7 @@ public class ProcessManager {
     String command = "combine.com";
 
     //  Start the com script in the background
-    ComScriptProcess comScriptProcess = startComScript(command, null,
+    ComScriptProcess comScriptProcess = startBackgroundComScript(command, null,
       AxisID.ONLY);
     return comScriptProcess.getName();
 
@@ -1083,35 +1087,86 @@ public class ProcessManager {
 
   
   /**
-   * Start a managed command script for the specified axis
+   * Start a managed background command script for the specified axis
    * @param command
    * @param processMonitor
    * @param axisID
    * @return
    * @throws SystemProcessException
    */
-  private ComScriptProcess startComScript(String command,
-    Runnable processMonitor, AxisID axisID) throws SystemProcessException {
-    return startComScript(command, processMonitor, axisID, null);  
+  private ComScriptProcess startBackgroundComScript(
+    String command,
+    Runnable processMonitor,
+    AxisID axisID)
+    throws SystemProcessException {
+    return startComScript(
+      new BackgroundComScriptProcess(command, this, axisID, null),
+      command,
+      processMonitor,
+      axisID,
+      null);
   }
   /**
    * Start a managed command script for the specified axis
    * @param command
    * @param processMonitor
    * @param axisID
-   * @param watchedFile
    * @return
    * @throws SystemProcessException
    */
-  private ComScriptProcess startComScript(String command,
-    Runnable processMonitor, AxisID axisID, String watchedFileName) throws SystemProcessException {
-
+  private ComScriptProcess startComScript(
+    String command,
+    Runnable processMonitor,
+    AxisID axisID)
+    throws SystemProcessException {
+    return startComScript(
+      new ComScriptProcess(command, this, axisID, null),
+      command,
+      processMonitor,
+      axisID,
+      null);
+  }
+  /**
+   * Start a managed command script for the specified axis
+   * @param command
+   * @param processMonitor
+   * @param axisID
+   * @param watchedFileName watched file to delete
+   * @return
+   * @throws SystemProcessException
+   */
+  private ComScriptProcess startComScript(
+    String command,
+    Runnable processMonitor,
+    AxisID axisID,
+    String watchedFileName)
+    throws SystemProcessException {
+    return startComScript(
+      new ComScriptProcess(command, this, axisID, watchedFileName),
+      command,
+      processMonitor,
+      axisID,
+      null);
+  }
+  /**
+   * Start a managed command script for the specified axis
+   * @param command
+   * @param processMonitor
+   * @param axisID
+   * @param watchedFileName watched file to delete
+   * @return
+   * @throws SystemProcessException
+   */
+  private ComScriptProcess startComScript(ComScriptProcess comScriptProcess, 
+    String command,
+    Runnable processMonitor,
+    AxisID axisID,
+    String watchedFileName)
+    throws SystemProcessException {
     // Make sure there isn't something going on in the current axis
     isAxisBusy(axisID);
 
     // Run the script as a thread in the background
-    ComScriptProcess comScriptProcess = new ComScriptProcess(command, this,
-      axisID, watchedFileName);
     comScriptProcess.setWorkingDirectory(new File(System
       .getProperty("user.dir")));
     comScriptProcess.setDebug(ApplicationManager.isDebug());
