@@ -1,9 +1,17 @@
-	subroutine conttrack(array,nx,ny,p_coord,ninobj,iptcur,maxlen,
-     &	    inksize,inkern,sigma,h,ifdark,step,redtol,offset,limshift
-     &	    ,inpool,infit)
-	parameter (limkern=5,limksize=21,limpath=2000,ndlim=20,limfit=9)
+c	  $Author$
+c
+c	  $Date$
+c
+c	  $Revision$
+c
+c	  $Log$
+
+	subroutine conttrack(array,nx,ny,p_coord,ninobj,iptcur,p_copy,
+     &	    maxlen, inksize,inkern,sigma,h,ifdark,step,redtol,offset,
+     &	    limshift ,inpool,infit)
+	parameter (limkern=5,limksize=21,ndlim=20,limfit=9)
 	byte array(nx,ny)
-	real*4 p_coord(3,maxlen),p_copy(2,limpath),xt(limfit),yt(limfit)
+	real*4 p_coord(3,maxlen),p_copy(2,maxlen),xt(limfit),yt(limfit)
 c
 	real*4 orig(3),bkern(limkern*limksize**2)
 	data orig/0.,0.,0./
