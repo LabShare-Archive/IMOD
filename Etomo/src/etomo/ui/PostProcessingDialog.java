@@ -1,11 +1,17 @@
 package etomo.ui;
 
+import java.awt.Component;
+import java.awt.Container;
 import java.awt.event.*;
+
 import javax.swing.*;
 
 import etomo.ApplicationManager;
+import etomo.comscript.FinishjoinParam;
 import etomo.comscript.TrimvolParam;
+import etomo.process.ImodManager;
 import etomo.type.AxisID;
+import etomo.type.ConstJoinMetaData;
 
 /**
  * <p>Description: </p>
@@ -20,6 +26,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.1  2004/03/15 20:33:55  rickg
+ * <p> button variable name changes to btn...
+ * <p>
  * <p> Revision 3.0  2003/11/07 23:19:01  rickg
  * <p> Version 1.0.0
  * <p>
@@ -71,10 +80,19 @@ public class PostProcessingDialog
   implements ContextMenu {
   public static final String rcsid =
     "$Id$";
-
+  
   private TrimvolPanel trimvolPanel;
   private CleanupPanel cleanupPanel;
-
+  
+  private LabeledTextField ltfReductionFactorXY;
+  private LabeledTextField ltfReductionFactorZ;
+  private JCheckBox cbLinearInterpolation;
+  
+  private MultiLineToggleButton btnSqueezeVolume;
+  private MultiLineButton btnImodSqueezedVolume;
+  
+  private PostProcessingDialogActionListener actionListener = new PostProcessingDialogActionListener(this);
+  
   public PostProcessingDialog(ApplicationManager appMgr) {
     super(appMgr, AxisID.ONLY);
     fixRootPanel(rootSize);
@@ -83,7 +101,7 @@ public class PostProcessingDialog
 
     trimvolPanel = new TrimvolPanel(applicationManager);
     rootPanel.add(trimvolPanel.getContainer());
-
+    rootPanel.add(createSqueezeVolPanel());
     cleanupPanel = new CleanupPanel(applicationManager);
     rootPanel.add(cleanupPanel.getContainer());
     rootPanel.add(Box.createVerticalGlue());
@@ -101,6 +119,36 @@ public class PostProcessingDialog
 
     // Set the default advanced dialog state
     updateAdvanced();
+  }
+  
+  private Container createSqueezeVolPanel() {
+    SpacedPanel squeezeVolPanel = new SpacedPanel(FixedDim.x0_y5, true, false);
+    squeezeVolPanel.setLayout(new BoxLayout(squeezeVolPanel.getContainer(), BoxLayout.Y_AXIS));
+    squeezeVolPanel.setBorder(new EtchedBorder("Squeeze Volume").getBorder());
+    //first component
+    SpacedPanel squeezeVolPanel1 = new SpacedPanel(FixedDim.x5_y0);
+    squeezeVolPanel1.setLayout(new BoxLayout(squeezeVolPanel1.getContainer(), BoxLayout.X_AXIS));
+    ltfReductionFactorXY = new LabeledTextField("Reduction factor in X and Y ");
+    squeezeVolPanel1.add(ltfReductionFactorXY);
+    ltfReductionFactorZ = new LabeledTextField("in Z ");
+    squeezeVolPanel1.add(ltfReductionFactorZ);
+    squeezeVolPanel.add(squeezeVolPanel1);
+    //second component
+    cbLinearInterpolation = new JCheckBox("Linear interpolation");
+    cbLinearInterpolation.setAlignmentX(Component.RIGHT_ALIGNMENT);
+    squeezeVolPanel.add(cbLinearInterpolation);
+    //third component
+    SpacedPanel squeezeVolPanel2 = new SpacedPanel(SpacedPanel.HORIZONTAL_GLUE, true);
+    squeezeVolPanel2.setLayout(new BoxLayout(squeezeVolPanel2.getContainer(), BoxLayout.X_AXIS));
+    btnSqueezeVolume = new MultiLineToggleButton("Squeeze Volume");
+    btnSqueezeVolume.addActionListener(actionListener);
+    squeezeVolPanel2.addMultiLineButton(btnSqueezeVolume);
+    btnImodSqueezedVolume = new MultiLineButton("Open Squeezed Volume in 3dmod");
+    btnImodSqueezedVolume.addActionListener(actionListener);
+    squeezeVolPanel2.addMultiLineButton(btnImodSqueezedVolume);
+    squeezeVolPanel.add(squeezeVolPanel2);
+    
+    return squeezeVolPanel.getContainer();
   }
 
   /**
@@ -141,6 +189,19 @@ public class PostProcessingDialog
   private void updateAdvanced() {
     applicationManager.packMainWindow();
   }
+  
+  private void action(ActionEvent event) {
+    String command = event.getActionCommand();
+    if (command.equals(btnSqueezeVolume.getActionCommand())) {
+    }
+    else if (command.equals(btnImodSqueezedVolume.getActionCommand())) {
+    }
+    else {
+      throw new IllegalStateException("Unknown command " + command);
+    }
+  }
+
+  
   //
   //  Action function overides for buttons
   //
@@ -158,4 +219,17 @@ public class PostProcessingDialog
     super.buttonExecuteAction(event);
     applicationManager.donePostProcessing();
   }
+  
+  class PostProcessingDialogActionListener implements ActionListener {
+    PostProcessingDialog adaptee;
+
+    PostProcessingDialogActionListener(PostProcessingDialog adaptee) {
+      this.adaptee = adaptee;
+    }
+
+    public void actionPerformed(ActionEvent event) {
+      adaptee.action(event);
+    }
+  }
+
 }
