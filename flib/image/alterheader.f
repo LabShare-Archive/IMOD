@@ -16,6 +16,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.2  2002/08/17 05:45:50  mast
+c	  Moved big array to common to avoid stack size problem on SGI
+c	
 c	  Revision 3.1  2002/08/17 05:37:29  mast
 c	  Made mmm compute rms, and added rms option to do same thing.
 c	  Also made declarations for implicit none, standardized error exit
@@ -285,7 +288,8 @@ c
 	do iz=1,nz
 	  call irdsec(2,array,*99)
 c	  call iclden(array,nx,ny,1,nx,1,ny,dmins,dmaxs,dmeans)
-	  call iclavgsd(array,nx,ny,dmins,dmaxs,sums,sumsqs,dmeans,sd)
+	  call iclavgsd(array,nx,ny,1,nx,1,ny,dmins,dmaxs,sums,sumsqs,
+     &	      dmeans,sd)
 	  dmin=min(dmin,dmins)
 	  dmax=max(dmax,dmaxs)
 	  tsum=tsum+dmeans
@@ -356,39 +360,3 @@ c
 	print *,'ERROR: ALTERHEADER - reading file'
 	call exit(1)
 	END
-
-c	  
-c	  ICLAVGSD computes the min DMIN, max DMAX, mean AVG, and standard
-c	  deviation SD from data in ARRAY, dimensioned NX by NY.  It also
-c	  returns the sum in SUM and sum of squares in SUMSQ
-c
-	subroutine iclavgsd(array,nx,ny,dmin,dmax,sum,sumsq,avg,sd)
-	implicit none
-	real*4 array(*)
-	integer*4 nx,ny,iy,ibas,i,nsum
-	real*4 dmin,dmax,sum,sumsq,avg,sd,smtm,smtmsq,den
-	sum=0.
-	sumsq=0.
-	dmin=1.e10
-	dmax=-1.e10
-	do iy=0,ny-1
-	  smtm=0.
-	  smtmsq=0.
-	  ibas=iy*nx
-	  do i=1+ibas,nx+ibas
-	    den=array(i)
-	    smtm=smtm+den
-	    smtmsq=smtmsq+den**2
-	    dmin=min(dmin,den)
- 	    dmax=max(dmax,den)
-	  enddo
-	  sum=sum+smtm
-	  sumsq=sumsq+smtmsq
-	enddo
-	nsum=nx*ny
-	avg=sum/nsum
-	sd=sqrt((sumsq-sum**2/nsum)/(nsum-1))
-	return
-	end
-
-
