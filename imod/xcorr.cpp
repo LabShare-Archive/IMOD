@@ -13,6 +13,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1  2004/11/07 22:59:09  mast
+Initial creation
+
 */
 
 #include <stdlib.h>
@@ -368,23 +371,23 @@ void XCorrExtractConvert(float *array, int nxdim, int ixlo, int iylo,
       break;
 
     case SLICE_MODE_SHORT:
-      intout = (b3dInt32 *)brray + iy * nx;
+      intout = (b3dInt16 *)brray + iy * nx;
       if (scale)
         for (ix = 0; ix < nx; ix++)
-          *intout++ = (b3dInt32 )(*in++ * scale + base);
+          *intout++ = (b3dInt16 )(*in++ * scale + base);
       else
         for (ix = 0; ix < nx; ix++)
-          *intout++ = (b3dInt32 )*in++;
+          *intout++ = (b3dInt16 )*in++;
       break;
 
     case SLICE_MODE_USHORT:
-      uintout = (b3dUInt32 *)brray + iy * nx;
+      uintout = (b3dUInt16 *)brray + iy * nx;
       if (scale)
         for (ix = 0; ix < nx; ix++)
-          *intout++ = (b3dUInt32 )(*in++ * scale + base);
+          *intout++ = (b3dUInt16 )(*in++ * scale + base);
       else
         for (ix = 0; ix < nx; ix++)
-          *intout++ = (b3dUInt32 )*in++;
+          *intout++ = (b3dUInt16 )*in++;
       break;
 
     case SLICE_MODE_FLOAT:
