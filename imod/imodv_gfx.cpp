@@ -286,7 +286,6 @@ int imodv_auto_snapshot(char *inName, int format_type)
   printf("3dmodv: Saving image to %s", usename);
   fflush(stdout);
 
-
   if (a->db)
     a->mainWin->mCurGLw->setBufferSwapAuto(false);
   glReadBuffer(a->db ? GL_BACK : GL_FRONT);
@@ -308,8 +307,7 @@ int imodv_auto_snapshot(char *inName, int format_type)
     a->mainWin->mCurGLw->setBufferSwapAuto(true);
   }
 
-  if (inName)
-    free(inName);
+  /* DNM 12/3/03: need to not free the inName since it is Qt's latin1 string */
   return(0);
 }
 
@@ -391,6 +389,9 @@ static int imodv_snapshot(ImodvApp *a, char *fname)
 
 /*
 $Log$
+Revision 4.5  2003/06/04 23:30:15  mast
+Change to not overwriting modv snapshot files.
+
 Revision 4.4  2003/04/25 03:28:32  mast
 Changes for name change to 3dmod
 
