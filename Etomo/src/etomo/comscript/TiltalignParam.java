@@ -16,6 +16,10 @@ import etomo.type.EtomoNumber;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.6  2005/01/05 19:47:35  sueh
+ * <p> bug# 567 Changed setProjectionStretch() to accept booleans.  Bug# 578
+ * <p> Added AxisID to the constructor.
+ * <p>
  * <p> Revision 3.5  2004/12/30 19:49:26  sueh
  * <p> bug# 567 Removed OutputModelAndResidual when writing command file.
  * <p> Already converting it to OutputModelFile and OutputResidualFile.
@@ -97,8 +101,8 @@ public class TiltalignParam extends ConstTiltalignParam implements CommandParam 
   /**
    * Constructor for TiltalignParam.
    */
-  public TiltalignParam(AxisID axisID) {
-    super(axisID);
+  public TiltalignParam(String datasetName, AxisID axisID) {
+    super(datasetName, axisID);
   }
 
   /**
@@ -290,6 +294,8 @@ public class TiltalignParam extends ConstTiltalignParam implements CommandParam 
       throws FortranInputSyntaxException {
     modelFile = oldParam.getModelFile();
     imageFile = oldParam.getImageFile();
+    //OldTiltParam only looks for IMODFiducialPosFile.  It does not check for
+    //the model file or the residual file
     outputModelFile = oldParam.getIMODFiducialPosFile() + modelFileExtension;
     outputResidualFile = oldParam.getIMODFiducialPosFile()
         + residualFileExtension;
@@ -355,6 +361,7 @@ public class TiltalignParam extends ConstTiltalignParam implements CommandParam 
     numberOfLocalPatchesXandY = oldParam.getNLocalPatches();
     minSizeOrOverlapXandY = oldParam.getMinLocalPatchSize();
     minFidsTotalAndEachSurface = oldParam.getMinLocalFiducials();
+    setOutputZFactorFile();
   }
 
   private FortranInputString[] setSolution(EtomoNumber option,
@@ -747,10 +754,28 @@ public class TiltalignParam extends ConstTiltalignParam implements CommandParam 
   }
 
   /**
+   * This must called after skewOption, or localAlignment, and localSkewOption
+   * have been set.
    * @param outputZFactorFile The outputZFactorFile to set.
    */
-  public void setOutputZFactorFile(String outputZFactorFile) {
-    this.outputZFactorFile = outputZFactorFile;
+  public void setOutputZFactorFile() {
+    if (useOutputZFactorFile()) {
+      outputZFactorFile = datasetName + axisID.getExtension()
+          + zFactorFileExtension;
+    }
+    else {
+      outputZFactorFile = "";
+    }
+  }
+   
+  /**
+   * This must called after skewOption, or localAlignment, and localSkewOption
+   * have been set.
+   * @return
+   */
+  public boolean useOutputZFactorFile() {
+    return !skewOption.equals(FIXED_OPTION)
+        || (localAlignments.is() && !localSkewOption.equals(FIXED_OPTION));
   }
 
   /**
