@@ -1,18 +1,3 @@
-package etomo.ui;
-
-import java.awt.Component;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseEvent;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.JPanel;
-import etomo.ApplicationManager;
-import etomo.comscript.ConstTiltxcorrParam;
-import etomo.comscript.FortranInputSyntaxException;
-import etomo.comscript.TiltxcorrParam;
-import etomo.type.AxisID;
-
 /**
  * <p>Description: </p>
  *
@@ -26,6 +11,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.2  2004/02/05 04:35:07  rickg
+ * <p> Added prenewst panel with binning
+ * <p>
  * <p> Revision 3.1  2004/01/30 22:45:01  sueh
  * <p> bug# 356 Changing buttons with html labels to
  * <p> MultiLineButton and MultiLineToggleButton
@@ -78,6 +66,24 @@ import etomo.type.AxisID;
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
  */
+package etomo.ui;
+
+import java.awt.Component;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JPanel;
+import etomo.ApplicationManager;
+import etomo.comscript.ConstNewstParam;
+import etomo.comscript.ConstTiltxcorrParam;
+import etomo.comscript.FortranInputSyntaxException;
+import etomo.comscript.NewstParam;
+import etomo.comscript.TiltxcorrParam;
+import etomo.type.AxisID;
+
+
 public class CoarseAlignDialog extends ProcessDialog implements ContextMenu {
   public static final String rcsid = 
   "$Id$";
@@ -86,7 +92,7 @@ public class CoarseAlignDialog extends ProcessDialog implements ContextMenu {
 
   private BeveledBorder borderA = new BeveledBorder("Coarse Alignment");
 
-  private CrossCorrelationPanel panelCrossCorrelation;
+  private CrossCorrelationPanel pnlCrossCorrelation;
 
   private MultiLineToggleButton buttonCrossCorrelate = 
   new MultiLineToggleButton("<html><b>Calculate<br>Cross-Correlation</b>");
@@ -106,7 +112,7 @@ public class CoarseAlignDialog extends ProcessDialog implements ContextMenu {
     super(appMgr, axisID);
     setToolTipText();
     fixRootPanel(rootSize);
-    panelCrossCorrelation = new CrossCorrelationPanel(axisID);
+    pnlCrossCorrelation = new CrossCorrelationPanel(axisID);
     pnlPrenewst = new PrenewstPanel(axisID);
     buttonExecute.setText("Done");
     buttonCrossCorrelate.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -124,7 +130,7 @@ public class CoarseAlignDialog extends ProcessDialog implements ContextMenu {
     panelCoarseAlign.setLayout(
     new BoxLayout(panelCoarseAlign, BoxLayout.Y_AXIS));
     panelCoarseAlign.setBorder(borderA.getBorder());
-    panelCoarseAlign.add(panelCrossCorrelation.getPanel());
+    panelCoarseAlign.add(pnlCrossCorrelation.getPanel());
     panelCoarseAlign.add(Box.createRigidArea(FixedDim.x0_y10));
     panelCoarseAlign.add(buttonCrossCorrelate);
     panelCoarseAlign.add(Box.createRigidArea(FixedDim.x0_y10));
@@ -161,7 +167,7 @@ public class CoarseAlignDialog extends ProcessDialog implements ContextMenu {
    * Set the parameters for the cross correlation panel
    */
   public void setCrossCorrelationParams(ConstTiltxcorrParam tiltXcorrParams) {
-    panelCrossCorrelation.setParameters(tiltXcorrParams);
+    pnlCrossCorrelation.setParameters(tiltXcorrParams);
   }
 
   /**
@@ -169,9 +175,25 @@ public class CoarseAlignDialog extends ProcessDialog implements ContextMenu {
    */
   public void getCrossCorrelationParams(TiltxcorrParam tiltXcorrParams)
   throws FortranInputSyntaxException {
-    panelCrossCorrelation.getParameters(tiltXcorrParams);
+    pnlCrossCorrelation.getParameters(tiltXcorrParams);
   }
 
+  /**
+   * Set the prenewst params of the prenewst panel
+   * @param prenewstParam
+   */
+  public void setPrenewstParams(ConstNewstParam prenewstParam){
+    pnlPrenewst.setParameters(prenewstParam);
+  }
+  
+  /**
+   * Get thre prenewst params from the prenewst panel
+   * @param prenewstParam
+   */
+  public void getPrenewstParams(NewstParam prenewstParam) {
+    pnlPrenewst.getParameters(prenewstParam);
+  }
+  
   /**
    * Return the rootPanel object
    */
@@ -181,7 +203,7 @@ public class CoarseAlignDialog extends ProcessDialog implements ContextMenu {
   }
 
   void updateAdvanced() {
-    panelCrossCorrelation.setAdvanced(isAdvanced);
+    pnlCrossCorrelation.setAdvanced(isAdvanced);
     pnlPrenewst.getPanel().setVisible(isAdvanced);
     applicationManager.packMainWindow();
   }
@@ -190,11 +212,10 @@ public class CoarseAlignDialog extends ProcessDialog implements ContextMenu {
    * Right mouse button context menu
    */
   public void popUpContextMenu(MouseEvent mouseEvent) {
-    String[] manPagelabel = {"Xftoxg", "Newst", "Newstack", "3dmod", "Midas"};
+    String[] manPagelabel = {"Xftoxg", "Newstack", "3dmod", "Midas"};
     String[] manPage =
     {
     "xftoxg.html", 
-    "newst.html", 
     "newstack.html", 
     "3dmod.html", 
     "midas.html"};
