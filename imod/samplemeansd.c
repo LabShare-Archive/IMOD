@@ -8,11 +8,14 @@
 */
 /*  $Author$
 
-    $Date$
+$Date$
 
-    $Revision$
+$Revision$
 
-    $Log$
+$Log$
+Revision 3.1  2002/12/01 15:34:41  mast
+Changes to get clean compilation with g++
+
 */
 
 #include <stdlib.h>
@@ -24,21 +27,21 @@
 #define SIGNED_SHORT 3
 #define FLOAT 6
 
-int sampleMeanSD(unsigned char *image, int type, int nx, int ny, float sample, 
-		 float matt, float *mean, float *sd)
+int sampleMeanSD(unsigned char **image, int type, int nx, int ny, 
+                 float sample, float matt, float *mean, float *sd)
 {
   int nxUse, nyUse, nxMatt, nyMatt;
   int nLo, nHi, nSample, nPixUse;
 
   /* pointers for data of different types */
-  char *bytep;
-  unsigned char *ubytep;
-  unsigned short int *ushortp;
-  short int *shortp;
-  float *floatp;
+  char **bytep;
+  unsigned char **ubytep;
+  unsigned short int **ushortp;
+  short int **shortp;
+  float **floatp;
 
   int ixUse, iyUse, dxSample;
-  int i, j, offset;
+  int i, j;
   int val;
   unsigned int uval;
   double sum, sumsq;
@@ -46,7 +49,7 @@ int sampleMeanSD(unsigned char *image, int type, int nx, int ny, float sample,
   int nsum;
   
   if (!image)
-       return (-1);
+    return (-1);
 
   /* get the area that will be used and offsets into it */  
   nxMatt = (int)(nx * matt);
@@ -66,119 +69,121 @@ int sampleMeanSD(unsigned char *image, int type, int nx, int ny, float sample,
   nSample = nPixUse / dxSample;
 
 
-/* get pointer based on type of data */
+  /* get pointer based on type of data */
   switch (type) {
-    case BYTE :
-      ubytep = image;
-      break;
+  case BYTE :
+    ubytep = image;
+    break;
 
-    case SIGNED_BYTE :
-      bytep = (char *) image;
-      break;
+  case SIGNED_BYTE :
+    bytep = (char **) image;
+    break;
 
-    case SIGNED_SHORT :
-      shortp = (short int *)image;
-      break;
+  case SIGNED_SHORT :
+    shortp = (short int **)image;
+    break;
 
-    case UNSIGNED_SHORT :
-      ushortp = (unsigned short int *)image;
-      break;
+  case UNSIGNED_SHORT :
+    ushortp = (unsigned short int **)image;
+    break;
 
-    case FLOAT :
-      floatp = (float *)image;
-      break;
+  case FLOAT :
+    floatp = (float **)image;
+    break;
 
   }
 
   sum = 0.;
   sumsq = 0.;
   if (dxSample == 1 && nxMatt == 0 && nyMatt == 0) {
-    switch (type) {
+
+    for (j = 0; j < nyUse; j++) {
+      switch (type) {
       case BYTE:
-	for (i = 0; i < nPixUse; i++) {
-	  uval = *ubytep++;
-	  sum += uval;
-	  sumsq += uval * uval;
-	}
-	break;
+        for (i = 0; i < nxUse; i++) {
+          uval = ubytep[j][i];
+          sum += uval;
+          sumsq += uval * uval;
+        }
+        break;
 
       case SIGNED_BYTE :
-	for (i = 0; i < nPixUse; i++) {
-	  val = *bytep++;
-	  sum += val;
-	  sumsq += val * val;
-	}
-	break;
+        for (i = 0; i < nxUse; i++) {
+          val = bytep[j][i];
+          sum += val;
+          sumsq += val * val;
+        }
+        break;
 
       case SIGNED_SHORT :
-	for (i = 0; i < nPixUse; i++) {
-	  val = *shortp++;
-	  sum += val;
-	  sumsq += val * val;
-	}	
-	break;
+        for (i = 0; i < nxUse; i++) {
+          val = shortp[j][i];
+          sum += val;
+          sumsq += val * val;
+        } 
+        break;
 
       case UNSIGNED_SHORT :
-	for (i = 0; i < nPixUse; i++) {
-	  uval = *ushortp++;
-	  sum += uval;
-	  sumsq += uval * uval;
-	}
-	break;
+        for (i = 0; i < nxUse; i++) {
+          uval = ushortp[j][i];
+          sum += uval;
+          sumsq += uval * uval;
+        }
+        break;
 
       case FLOAT :
-	for (i = 0; i < nPixUse; i++) {
-	  fval = *floatp++;
-	  sum += fval;
-	  sumsq += fval * fval;
-	}
-	break;
+        for (i = 0; i < nxUse; i++) {
+          fval = floatp[j][i];
+          sum += fval;
+          sumsq += fval * fval;
+        }
+        break;
 
+      }
     }
-
     nsum = nPixUse;
-
+    
   } else {
     ixUse = 0;
     iyUse = 0;
 
     for (j = 0; j < nSample; j++) {
 
-      /* get offset in actual image, and move indexes to next spot in use area */
-      offset = nx * (iyUse + nyMatt) + ixUse + nxMatt;
-      ixUse += dxSample;
-      while (ixUse >= nxUse) {
-	ixUse -= nxUse;
-	iyUse++;
-      }
-
       /* get the value */
       switch (type) {
-        case BYTE :
-	  fval = *(ubytep + offset);
-	  break;
-	
-        case SIGNED_BYTE :
-	  fval = *(bytep + offset);
-	  break;
-	
-	case SIGNED_SHORT :
-	  fval = *(shortp + offset);
-	  break;
+      case BYTE :
+        fval = ubytep[iyUse + nyMatt][ixUse + nxMatt];
+        break;
+    
+      case SIGNED_BYTE :
+        fval = bytep[iyUse + nyMatt][ixUse + nxMatt];
+        break;
+    
+      case SIGNED_SHORT :
+        fval = shortp[iyUse + nyMatt][ixUse + nxMatt];
+        break;
 
-	case UNSIGNED_SHORT :
-	  fval = *(ushortp + offset);
-	  break;
+      case UNSIGNED_SHORT :
+        fval = ushortp[iyUse + nyMatt][ixUse + nxMatt];
+        break;
 
-	case FLOAT :
-	  fval = *(floatp + offset);
-	  break;
+      case FLOAT :
+        fval = floatp[iyUse + nyMatt][ixUse + nxMatt];
+        break;
 
-	default :
-	  return(2);
+      default :
+        return(2);
       }
       sum += fval;
       sumsq += fval * fval;
+
+      /* move indexes to next spot in use area */
+      ixUse += dxSample;
+      while (ixUse >= nxUse) {
+        ixUse -= nxUse;
+        iyUse++;
+      }
+
     }
     nsum = nSample;
   }
