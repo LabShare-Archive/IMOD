@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/15/04: Computed factors correctly for displaying multiple slices in the
+model view window, which improves the display.
+
 5/11/04: IMOD_3-2-14  (eTomo unstable)
 5/11/04: Fixed problem caused by removing the Run Tiltalign button.
 
