@@ -22,6 +22,9 @@ import java.util.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.3  2003/03/20 17:27:23  rickg
+ * <p> Comment update
+ * <p>
  * <p> Revision 2.2  2003/02/24 23:46:37  rickg
  * <p> Handle interrupted exception to destroy the process
  * <p>
@@ -157,14 +160,10 @@ public class SystemProgram implements Runnable {
         System.err.print("SystemProgram: Exec'ing process...");
 
       if (workingDirectory == null) {
-        File currentUserDirectory = new File(System.getProperty("user.dir"));
-        process =
-          Runtime.getRuntime().exec(command, null, currentUserDirectory);
+        workingDirectory = new File(System.getProperty("user.dir"));
       }
-      else {
-        process = Runtime.getRuntime().exec(command, null, workingDirectory);
-      }
-
+      process = Runtime.getRuntime().exec(command, null, workingDirectory);
+      
       if (debug)
         System.err.println("done");
 
@@ -319,7 +318,18 @@ public class SystemProgram implements Runnable {
     return exceptionMessage;
   }
 
-  public void enableDebug(boolean state) {
+  /**
+   * @return
+   */
+  public boolean isDebug() {
+    return debug;
+  }
+
+  /**
+   * @param b
+   */
+  public void setDebug(boolean state) {
     debug = state;
   }
+
 }
