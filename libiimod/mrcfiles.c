@@ -489,7 +489,6 @@ int mrc_data_new(FILE *fout, struct MRCheader *hdata)
   dsize = hdata->nx * hdata->ny * hdata->nz;
   rewind(fout);
 
-  if (hdata->headerSize < 1024) hdata->headerSize = 1024;
   fseek(fout, hdata->headerSize, SEEK_CUR);
 
   switch(hdata->mode)
@@ -617,7 +616,6 @@ float mrc_read_point( FILE *fin, struct MRCheader *hdata, int x, int y, int z)
     channel = 2;
 
   rewind(fin);
-  if (hdata->headerSize < 1024) hdata->headerSize = 1024;
   /*     fseek(fin, (hdata->headerSize + (channel * pixsize *  
          ( (z * hdata->nx * hdata->ny) + (y * hdata->nx) + (x)))),
          SEEK_CUR); */
@@ -732,7 +730,6 @@ int mrc_read_slice(void *buf, FILE *fin, struct MRCheader *hdata,
   int i,j,k;
 
   rewind(fin);
-  if (hdata->headerSize < 1024) hdata->headerSize = 1024;
   fseek(fin, hdata->headerSize, SEEK_SET);
   xysize = hdata->nx * hdata->ny;
   data = (unsigned char *)buf;
@@ -835,7 +832,6 @@ int mrc_write_slice(void *buf, FILE *fout, struct MRCheader *hdata,
     return(-1);
 
   rewind(fout);
-  if (hdata->headerSize < 1024) hdata->headerSize = 1024;
   fseek(fout, hdata->headerSize, SEEK_SET);
   xysize = hdata->nx * hdata->ny;
   data = (unsigned char *)buf;
@@ -962,7 +958,6 @@ void *mrc_read_image(FILE *fin, struct MRCheader *hdata, int z)
   int xysize;
      
   rewind(fin);
-  if (hdata->headerSize < 1024) hdata->headerSize = 1024;
   fseek(fin, hdata->headerSize, SEEK_CUR);
   xysize = hdata->nx * hdata->ny;
      
@@ -1345,8 +1340,6 @@ unsigned char **mrc_read_byte(FILE *fin,
 
   k = 0;
   rewind(fin);
-  if (hdata->headerSize < 1024)
-    hdata->headerSize = 1024;
   fseek(fin, hdata->headerSize, SEEK_CUR);
   switch(hdata->mode){
   case MRC_MODE_BYTE:
@@ -2098,6 +2091,9 @@ void mrc_swap_floats(float *data, int amt)
 
 /*
 $Log$
+Revision 3.19  2004/11/04 17:10:27  mast
+libiimod.def
+
 Revision 3.18  2004/09/10 21:33:52  mast
 Eliminated long variables
 

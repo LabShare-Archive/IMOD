@@ -242,9 +242,7 @@ static int mrcReadSectionAny(struct MRCheader *hdata, struct LoadInfo *li,
     }
   }
 
-  /* Fix header size in case it is weird */
-  if (hdata->headerSize < 1024) 
-    hdata->headerSize = 1024;
+  /* 12/1/04: no longer fix header size in case it is weird */
 
   /* Seek distance at start of line */
   seek_line    = llx * pixSize;
@@ -445,6 +443,9 @@ static int mrcReadSectionAny(struct MRCheader *hdata, struct LoadInfo *li,
 
 /*
 $Log$
+Revision 3.7  2004/11/12 15:22:36  mast
+Changed to use new min/max functions
+
 Revision 3.6  2004/11/04 17:10:27  mast
 libiimod.def
 
