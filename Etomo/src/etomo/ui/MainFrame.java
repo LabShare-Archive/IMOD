@@ -51,6 +51,13 @@ import etomo.type.ProcessTrack;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.9  2004/07/23 00:08:16  sueh
+ * <p> bug# 517 Don't use setSize() anymore because the layout
+ * <p> manager doesn't reliably fix the layout after this call.
+ * <p> To get the layout manager to limit the size of the dialogs
+ * <p> to the viewable area, and a new rootPanel with a BoxLayout,
+ * <p> make it the root of the mainPanel.
+ * <p>
  * <p> Revision 3.8  2004/07/21 21:08:33  sueh
  * <p> bug# 512 added options menu items Axis A, Axis B, and Both
  * <p> Axes.  Removed options menu item Advanced
@@ -244,7 +251,13 @@ public class MainFrame extends JFrame implements ContextMenu {
   private JScrollPane scrollPaneB;
 
   private JSplitPane splitPane;
-
+  private boolean screenLock = false;
+  
+  private static final int estimatedMenuHeight = 60;
+  private static final int extraScreenWidthMultiplier = 2;
+  private static final Dimension frameBorder = new Dimension(10, 48);
+  
+  
   //  Application manager object
   private ApplicationManager applicationManager;
 
@@ -265,11 +278,11 @@ public class MainFrame extends JFrame implements ContextMenu {
 
     Toolkit toolkit = Toolkit.getDefaultToolkit();
     Dimension screenSize = toolkit.getScreenSize();
-    screenSize.height -= 60;
-    screenSize.width *= 2;
+    screenSize.height -= estimatedMenuHeight;
+    screenSize.width *= extraScreenWidthMultiplier;
     Dimension mainPanelSize = new Dimension(screenSize);
-    mainPanelSize.height -= 48;
-    mainPanelSize.width -= 10;
+    mainPanelSize.height -= frameBorder.height;
+    mainPanelSize.width -= frameBorder.width;
     
     rootPanel = (JPanel) getContentPane();
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.PAGE_AXIS));
@@ -335,13 +348,19 @@ public class MainFrame extends JFrame implements ContextMenu {
     }
   }
 
+  /**
+   * set divider location
+   * @param value
+   */
   public void setDividerLocation(double value) {
     if (splitPane != null) {
-      scrollPaneA.doLayout();
-      scrollPaneB.doLayout();
-      splitPane.doLayout();
-      splitPane.revalidate();
-      splitPane.validate();
+      //removing commands that cause the divider location to change incorrectly
+      //when the window is taller then the screen
+      //scrollPaneA.doLayout();
+      //scrollPaneB.doLayout();
+      //splitPane.doLayout();
+      //splitPane.revalidate();
+      //splitPane.validate();
       splitPane.setDividerLocation(value);
     }
   }
@@ -361,7 +380,7 @@ public class MainFrame extends JFrame implements ContextMenu {
     AxisProcessPanel axisPanel = mapAxis(axisID);
     axisPanel.replaceDialogPanel(processPanel);
     if (applicationManager.getUserConfiguration().isAutoFit()) {
-      fitScreen();
+      fitWindow();
     }
   }
 
@@ -543,17 +562,25 @@ public class MainFrame extends JFrame implements ContextMenu {
     applicationManager.openExistingDataset(new File(event.getActionCommand()));
   }
 
-
-  protected void packAxis(int widthA, int widthB) {
+  /**
+   * if A or B is hidden, hide the panel which the user has hidden before
+   * calling pack().
+   *
+   */
+  protected void packAxis() {
     if (applicationManager.isDualAxis()) {
-      boolean hideA = axisPanelA.hide(widthA);
-      boolean hideB = axisPanelB.hide(widthB);
+      boolean hideA = axisPanelA.hide();
+      boolean hideB = axisPanelB.hide();
       pack();
       splitPane.resetToPreferredSizes();
-      if (!hideA && !hideB && axisPanelA.tooSmall()) {
-        setDividerLocation(.8);
+      
+      //handle bug in Windows where divider goes all the way to the left
+      //when the frame is wider then the screen
+      if (!hideA && !hideB && isFitScreenError(axisPanelA)) {
+        setDividerLocation(.8); //.8 currently works.  Adjust as needed.
         splitPane.resetToPreferredSizes();
       }
+      
       axisPanelA.show();
       axisPanelB.show();
       if (hideA) {
@@ -568,8 +595,27 @@ public class MainFrame extends JFrame implements ContextMenu {
     }
   }
   
-  protected void setScrollBarPolicy(boolean always) {
-    int policy = always ? JScrollPane.VERTICAL_SCROLLBAR_ALWAYS : JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED;
+  /**
+   * checks for a bug in windows that causes MainFrame.fitScreen() to move the
+   * divider almost all the way to the left
+   * @return
+   */
+  protected boolean isFitScreenError(AxisProcessPanel axisPanel) {
+    if (axisPanel.getWidth() <= 16) {
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * set vertical scrollbar policy
+   * @param always
+   */
+  protected void setVerticalScrollBarPolicy(boolean always) {
+    int policy =
+      always
+        ? JScrollPane.VERTICAL_SCROLLBAR_ALWAYS
+        : JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED;
     if (scrollPaneA != null) {
       scrollPaneA.setVerticalScrollBarPolicy(policy);
     }
@@ -587,10 +633,8 @@ public class MainFrame extends JFrame implements ContextMenu {
     String command = event.getActionCommand();
     if (command.equals(menuSettings.getActionCommand())) {
       applicationManager.openSettingsDialog();
-      return;
     }
-    //actions that may require a fitScreen() call
-    if (command.equals(menuAxisA.getActionCommand())) {
+    else if (command.equals(menuAxisA.getActionCommand())) {
       setDividerLocation(1);
     }
     else if (command.equals(menuAxisB.getActionCommand())) {
@@ -599,29 +643,25 @@ public class MainFrame extends JFrame implements ContextMenu {
     else if (command.equals(menuAxisBoth.getActionCommand())) {
       setDividerLocation(.5);
     }
-    if (command.equals(menuFitWindow.getActionCommand())
-      || applicationManager.getUserConfiguration().isAutoFit())
-    {
-      fitScreen();
+    else if (command.equals(menuFitWindow.getActionCommand())) {
+      fitWindow();
     }
   }
-    
-  protected void fitScreen() {
-    System.out.println();
-    int widthA = 0;
-    int widthB = 0;
-    if (axisPanelA != null) {
-      widthA = axisPanelA.getWidth();
-    }
-    if (axisPanelB != null) {
-      widthB = axisPanelB.getWidth();
-    }
-    packAxis(widthA, widthB);
-    
-    if (getSize().height - mainPanel.getSize().height > 48) {
-      setScrollBarPolicy(true);
-      packAxis(widthA, widthB);
-      setScrollBarPolicy(false);
+  
+  /**
+   * fit window to its components and to the screen
+   *
+   */
+  protected void fitWindow() {
+    packAxis();
+    //the mainPanel has a limited size, but the frame does not
+    //if the frame has a greater height then the mainPanel + the frame's border
+    //height, then a scroll bar will be uses.
+    //Make room for the scroll bar when calling pack()
+    if (getSize().height - mainPanel.getSize().height > frameBorder.height) {
+      setVerticalScrollBarPolicy(true);
+      packAxis();
+      setVerticalScrollBarPolicy(false);
     }
   }
   
