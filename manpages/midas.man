@@ -26,6 +26,12 @@ independently to ease comparisons.  The program can produce a copy of the
 image stack with these individual contrast changes applied (but not with the
 transformations applied).
 
+The input image files for midas must be MRC files.  They can be byte, integer,
+or real images, and can also be RGB images, which will be displayed in
+grayscale.  The latter option can be used to align model contours displayed on
+an image by snapshotting the Zap window in 3dmod(1) and creating a color MRC 
+stack with tif2mrc(1).
+
 .SS Alignment modes
 Midas maintains a list of transformations, one for each section in the image
 file. 
@@ -306,6 +312,6 @@ treated in 3dmod),
 and to provide completely new controls, menus, and help windows.  In the latest
 version, the graphical interface was rewritten in Qt.
 .SH SEE ALSO
-xftoxg(1), imodtrans(1), newstack(1), blendmont(1)
+xftoxg(1), imodtrans(1), newstack(1), blendmont(1), 3dmod(1), tif2mrx(1)
 .SH BUGS
 Email bug reports to mast@colorado.edu.
