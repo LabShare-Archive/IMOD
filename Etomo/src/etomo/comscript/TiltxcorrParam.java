@@ -15,8 +15,15 @@ import etomo.type.TiltAngleType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.4  2003/07/25 22:52:14  rickg
+ * <p> *** empty log message ***
+ * <p>
  * <p> Revision 2.3  2003/06/25 22:16:29  rickg
  * <p> changed name of com script parse method to parseComScript
+ * <p>
+ * <p> Revision 2.2.2.1  2003/07/25 22:41:41  rickg
+ * <p> Fixed bug in parsing tilt angle specification (created beta2a
+ * <p> branch).
  * <p>
  * <p> Revision 2.2  2003/03/20 17:25:05  rickg
  * <p> Comment update
@@ -62,11 +69,29 @@ public class TiltxcorrParam
     inputFile = inputArgs[inputLine++].getArgument();
     pieceListFile = inputArgs[inputLine++].getArgument();
     outputFile = inputArgs[inputLine++].getArgument();
+
     int typeSpec = Integer.parseInt(inputArgs[inputLine++].getArgument());
-    tiltAngleSpec.setType(TiltAngleType.parseInt(typeSpec));
-    // NOTE what if the next argument is not a filename!
-    tiltAngleSpec.setTiltAngleFilename(inputArgs[inputLine++].getArgument());
-    imageRotation = Double.parseDouble(inputArgs[inputLine++].getArgument());
+		tiltAngleSpec.setType(TiltAngleType.parseInt(typeSpec));
+		if (tiltAngleSpec.getType() == TiltAngleType.FILE) {
+			tiltAngleSpec.setTiltAngleFilename(inputArgs[inputLine++].getArgument());
+		}
+		else if (tiltAngleSpec.getType() == TiltAngleType.RANGE) {
+			String pair = inputArgs[inputLine++].getArgument();
+			String values[] = pair.split(",");
+			if (values.length != 2) {
+				throw new BadComScriptException("Incorrect tilt angle specification type");
+			}
+			tiltAngleSpec.setRangeMin(Double.parseDouble(values[0]));
+			tiltAngleSpec.setRangeStep(Double.parseDouble(values[1]));
+		}
+		else if (tiltAngleSpec.getType() == TiltAngleType.LIST) {
+			throw new BadComScriptException("Unimplemented tilt angle specification type");
+		}
+		else {
+			throw new BadComScriptException("Incorrect tilt angle specification type");
+		}
+
+  	imageRotation = Double.parseDouble(inputArgs[inputLine++].getArgument());
     try {
       filterParams.validateAndSet(inputArgs[inputLine++].getArgument());
       excludeCentralPeak =

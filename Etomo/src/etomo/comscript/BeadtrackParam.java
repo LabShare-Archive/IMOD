@@ -19,6 +19,9 @@ import etomo.type.TiltAngleType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.4  2003/07/25 22:46:57  rickg
+ * <p> CommandParam method name changes
+ * <p>
  * <p> Revision 2.3  2003/06/25 22:16:29  rickg
  * <p> changed name of com script parse method to parseComScript
  * <p>
@@ -82,7 +85,24 @@ public class BeadtrackParam
 
     int typeSpec = Integer.parseInt(inputArgs[inputLine++].getArgument());
     tiltAngleSpec.setType(TiltAngleType.parseInt(typeSpec));
-    tiltAngleSpec.setTiltAngleFilename(inputArgs[inputLine++].getArgument());
+		if (tiltAngleSpec.getType() == TiltAngleType.FILE) {
+			tiltAngleSpec.setTiltAngleFilename(inputArgs[inputLine++].getArgument());
+		}
+		else if (tiltAngleSpec.getType() == TiltAngleType.RANGE) {
+			String pair = inputArgs[inputLine++].getArgument();
+			String values[] = pair.split(",");
+			if (values.length != 2) {
+				throw new BadComScriptException("Incorrect tilt angle specification type");
+			}
+			tiltAngleSpec.setRangeMin(Double.parseDouble(values[0]));
+			tiltAngleSpec.setRangeStep(Double.parseDouble(values[1]));
+		}
+		else if (tiltAngleSpec.getType() == TiltAngleType.LIST) {
+			throw new BadComScriptException("Unimplemented tilt angle specification type");
+		}
+		else {
+			throw new BadComScriptException("Incorrect tilt angle specification type");
+		}
 
     try {
       tiltAngleGroupParams.validateAndSet(inputArgs[inputLine++].getArgument());
@@ -351,7 +371,7 @@ public class BeadtrackParam
       inputArgList.add(viewSet);
     }
 
-    // Tilt angle source and filenames are not modified by this class
+    // Tilt angle source and filenames/ranges are not modified by this class
     inputArgList.add(inputArgs[srcListCount++]);
     inputArgList.add(inputArgs[srcListCount++]);
 
