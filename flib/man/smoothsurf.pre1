@@ -34,8 +34,11 @@ DDEESSCCRRIIPPTTIIOONN
   corresponds more closely to distance in the X/Y planes than to true 3D
   distance.  The default parameters may be a good starting point, but here
   it may be appropriate to increase the maximum distance more relative to
-  the number of sections.
+  the number of sections (e.g., start with "-dist 25").
   
+  Smoothsurf moves only the contours, not the points in any existing
+  meshes.  To see the resulting surface, you need to rerun imodmesh(1).
+
   Smoothsurf uses the PIP package for input (see the manual page for pip(1)).
   The following options can be specified either as command line arguments
   (with the -) or one per line in a command file or parameter file (without
