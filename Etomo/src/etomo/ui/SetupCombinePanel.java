@@ -42,6 +42,11 @@ import etomo.type.FiducialMatch;
  * 
  * <p>
  * $Log$
+ * Revision 3.12  2004/06/17 21:48:18  sueh
+ * bug# 474 UIUtilities.setButtonSizeAll() causes this, called
+ * UIUtilities.setButtonSize(AbstractButton), since there is only
+ * one button on the panel in this case.
+ *
  * Revision 3.11  2004/06/15 21:37:16  rickg
  * Bug #383 Correct synchronization of solvematch sub-panel
  *
@@ -231,7 +236,7 @@ public class SetupCombinePanel
   private ButtonGroup bgToSelector = new ButtonGroup();
   private JPanel pnlRBToSelector = new JPanel();
   private JLabel lblEffectWarning = new JLabel(
-    "You must create new combine script for changes in these parameters to take effect.");
+    "You must create new combine scripts for some changes in these parameters to take effect.");
   private JRadioButton rbBtoA = new JRadioButton("Match the B tomogram to A");
   private JRadioButton rbAtoB = new JRadioButton("Match the A tomogram to B");
 
