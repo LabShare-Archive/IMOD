@@ -18,6 +18,11 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.6  2004/03/29 20:57:09  sueh
+ * bug# 409 added actions for MTF Filter buttons, shortened screen by putting some
+ * numeric fields side-by-side, stopped recreating the panel each time Basic/Advanced
+ * is pressed to prevent the panels from moving
+ *
  * Revision 3.5  2004/03/24 18:17:12  sueh
  * bug# 409 added some MTF filter fields without placing anything on the screen,
  * reformatted
@@ -222,6 +227,8 @@ import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Vector;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -301,7 +308,7 @@ public class TomogramGenerationDialog
     new LabeledTextField("Radial filter cutoff: ");
 
   private LabeledTextField ltfRadialFallOff =
-    new LabeledTextField("falloff: ");
+    new LabeledTextField("Falloff: ");
 
   private LabeledTextField ltfDensityOffset =
     new LabeledTextField("Offset: ");
@@ -763,13 +770,6 @@ public class TomogramGenerationDialog
     pnlNewstParams.setVisible(isAdvanced);
     pnlFilter.setVisible(isAdvanced);
     applicationManager.packMainWindow();
-
-    // Set the width of the newstack border to the width of the tilt
-    // parameters
-    //Dimension dimNewstack = pnlNewstParams.getSize();
-    //Dimension dimTilt = pnlTiltParams.getSize();
-    //dimNewstack.setSize(dimTilt.getWidth(), dimNewstack.getHeight());
-    //pnlNewstParams.setSize(dimNewstack);
   }
 
   /**
@@ -981,6 +981,18 @@ public class TomogramGenerationDialog
   private void setToolTipText() {
     String text;
     TooltipFormatter tooltipFormatter = new TooltipFormatter();
+    Autodoc autodoc = null;
+
+    try {
+      autodoc = Autodoc.get(Autodoc.MTF_FILTER);
+    }
+    catch (FileNotFoundException except) {
+      except.printStackTrace();
+    }
+    catch (IOException except) {
+      except.printStackTrace();
+    }
+
     text =
       "Make aligned stack with linear instead of cubic interpolation to "
         + "reduce noise.";
@@ -992,6 +1004,34 @@ public class TomogramGenerationDialog
     btnNewst.setToolTipText(tooltipFormatter.setText(text).format());
     text = "Open the complete aligned stack in 3dmod";
     btn3dmodFull.setToolTipText(tooltipFormatter.setText(text).format());
+    if (autodoc != null) {
+      text = TooltipFormatter.getText(autodoc, "HighFrequencyRadiusSigma");
+      if (text != null) {
+        ltfHighFrequencyRadiusSigma.setToolTipText(
+          tooltipFormatter.setText(text).format());
+      }
+      text = TooltipFormatter.getText(autodoc, "MtfFile");
+      if (text != null) {
+        ltfMtfFile.setToolTipText(tooltipFormatter.setText(text).format());
+      }
+      text = TooltipFormatter.getText(autodoc, "MaximumInverse");
+      if (text != null) {
+        ltfMaximumInverse.setToolTipText(
+          tooltipFormatter.setText(text).format());
+      }
+      text = TooltipFormatter.getText(autodoc, "InverseRolloffRadiusSigma");
+      if (text != null) {
+        ltfInverseRolloffRadiusSigma.setToolTipText(
+          tooltipFormatter.setText(text).format());
+      }
+    }
+    text = "Run mtffilter on the full aligned stack.";
+    btnFilter.setToolTipText(tooltipFormatter.setText(text).format());
+    text = "View the results of running mtffilter on the full aligned stack.";
+    btnViewFilter.setToolTipText(tooltipFormatter.setText(text).format());
+    text =
+      "Use the results of running mtffilter as the new full aligned stack.";
+    btnUseFilter.setToolTipText(tooltipFormatter.setText(text).format());
     text =
       "Thickness, in pixels, along the z-axis of the reconstructed volume.";
     ltfTomoThickness.setToolTipText(tooltipFormatter.setText(text).format());
