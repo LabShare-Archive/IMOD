@@ -1,0 +1,174 @@
+<html><head> <title>IMOD Tomography Guide - Advanced Topics</title> </head>
+<body>
+<H2 ALIGN=center>Tomography Guide for IMOD Version 3.1.0<BR>
+</H2>
+<H3 ALIGN=center>Boulder Laboratory for 3-D Electron Microscopy of Cells</H3>
+<HR>
+<H3>Table of Contents</H3>
+
+
+<A NAME = "Command Files"><H4>
+1.2. Command Files
+</H4></A>
+Nearly all of the processing for tomography is done by running command
+files.  The format of these files was originally based on the batch files used
+in VMS.  In our command files, every line that runs a command or program must
+start with "$" or "%"; comments can be inserted anywhere in the file on lines
+that start with "$!" or "#".  To skip over part of a command file, you can
+insert the lines:
+<PRE>
+  $goto label             ("label" can be any label you choose)
+  ...
+  $label:                 (This must be on a line by itself)
+</PRE>
+You can run a command file with the "subm" alias, which is defined in the
+IMOD startup files:
+<BR><CODE>     alias subm 'submbg \!* &'
+<BR></CODE>
+(An equivalent function is provided for bash users.)  Submbg is a shell script
+that will run one or more command
+files in sequence, creating a log file for each and reporting on their
+success or failure.  It uses the program Vmstocsh to
+converts a command file to a script that can be run
+by the C shell, csh.
+With this alias, you can enter, e.g., "subm track", and a file named
+track.com will be executed in the background, a log file will be created
+called track.log.  The bell will ring and a message will be printed 
+when the command file is completed.
+You can also enter "subm track." or "subm xcorr.com prenewst".
+<P>
+     If you need to interrupt a command file after you have started it,
+one way is to use the "kill" command with the process ID (PID) that was
+printed out
+when you entered the "subm" command.  For example, if the PID was 1234, enter
+"kill 1234".  Another way is to bring the process to
+the foreground with "fg", then used CTRL-C to interrupt it.  If there is
+more than one process in the background, give the command "jobs" first to
+determine which one is the process in question, then use, for example, "fg %2"
+to bring job 2 to the foreground.
+
+<A NAME = "Entries to Programs"><H4>
+1.3. Entries to Programs
+</H4></A>
+The programs that you will run have many parameters or options to control
+their behavior.  There are three basic ways that options and
+parameters
+can be entered: as arguments
+on the command line after the program name, interactively in response to
+queries from the program after it starts, or as a set of lines
+containing keyword and values.  The first way follows the
+conventions that are common for Unix commands, the most typical form being
+<BR><CODE>    command [options] input_file output_file
+<BR></CODE>
+ The [ ] around "options" signifies that this is an optional entry; this is a
+common convention when summarizing how to invoke a program.  Optional
+arguments are usually single letters or abbreviations starting with a dash
+(-).  Some options must be followed by another entry, which could be a
+filename, a single number, or a list of numbers.  Other options stand on their
+own, without an additional entry.  Command line entries are finicky in that
+they require spaces separating all of the elements, including a space between
+an option and its value, and no embedded spaces in the entries.  For example:
+<BR><CODE>     newst -sec 0-7,13-21 -xf images.xg images.st images.ali
+<BR></CODE>
+ Here the -sec option is followed by a list of section numbers (with no
+embedded spaces), the -xf option is followed by the name of file with
+transformations in it, and the last two arguments are the names of the input
+and output files.
+<P>
+A program that takes command line arguments will almost always print a
+summary of its usage when you type in the program name with no
+arguments, or with the argument -h.
+<P>
+Programs that take entries interactively print out a query for an entry,
+accept a line of input, then go on to the next entry.  In the command files
+used to run the tomography software, the answer to each query will appear on a
+separate line after the line on which such a program is invoked.  When you
+look at the log file produced by running a command file, you will see all of
+the queries but none of the entries, because the entries are not echoed into
+the log file.
+<P>
+Because there are several disadvantages to the latter approach, a new
+input method was devised called <A HREF = "man/pip.html">PIP</A>,
+which stands for "parse input
+parameters".  A program that uses <A HREF = "man/pip.html">PIP</A>
+can take parameters either as
+command line arguments or as a set of lines of input, with each line
+containing the keyword for an option and its value.  Typically each option
+has a short name and a long name defined for it.  The short names are meant
+to be used on the command line, while the long names are more explanatory
+and are suitable for command files.  Option names can be abbreviated to
+a unique set of characters, which makes command line use even more
+convenient, although it is better not to abbreviated options in command files.
+All text starting with a '#' is treated as a comment and ignored.
+
+<P>
+It may help to be aware of the underlying structure of the programs in
+the IMOD package.  They are written in three languages: C, Fortran, and shell
+script language.  The C programs take command line arguments; none have yet
+been converted to use <A HREF = "man/pip.html">PIP</A> for input.  Most of the
+shell scripts also take command line arguments, the main exceptions being
+Copytomocoms, Setupcombine, and Makejoincom, which take inputs interactively.
+The Fortran programs, which are the predominant programs used for tomography,
+originally all took inputs interactively.  Some of them also took input and
+output filenames on the command line, particularly ones which need no other
+entries (e.g., Header and Fftrans).  Fortran programs used for tomography
+are gradually being converted to use <A HREF = "man/pip.html">PIP</A> for
+input whenever new entries are needed.
+<P>
+Fortran programs have several conventions for numeric interactive input,
+and <A HREF = "man/pip.html">PIP</A> follows essentially the same conventions:
+<OL>
+<LI>When several numbers are expected in response to a query, they can be
+separated by commas or spaces.  In addition, they can be entered on more than
+one line.  However, in command files processed by eTomo, numbers should be
+separated only by commas and should not continue on more than one line.
+<LI>A slash (/) at the beginning of an entry will accept the default values
+for all of the entries expected on that line.
+<LI>When several numbers are being entered, specific values can be entered
+for some of the numbers, followed by a slash to accept the defaults for the
+rest of the entries (e.g., if 6 numbers are expected, 128,384/ will enter two
+and accept the defaults for the other four).
+<LI>Entering a comma without a number will accept the default for the
+number expected before that comma (e.g., ,,,,128,384 will accept the defaults
+for the first four numbers and enter values for the last two).
+<LI>Once the program has received all the numbers that it is expecting, it
+ignores the text on the rest of the line, as long as it is appropriately
+separated from the last numeric entry (by a tab or space).  Command files
+can take
+advantage of this feature by having comments after numeric entries.
+However, when eTomo processes command files, it places such comments on
+a separate line before the entry.
+</OL>
+<P>
+Filename or other text entries do not follow these conventions for
+numeric input, and cannot be followed by comments on the same line in the
+command file.
+<P>
+Some Fortran programs accept lists of numbers for specific entries.
+Lists are comma-separated ranges of numbers, such as 1,3,6-9,12-10, which
+would enter the numbers 1,3,6,7,8,9,12,11,10.  Lists follow slightly different
+conventions:
+</OL>
+<LI>A list must be confined to a single line (which can be 1024 characters
+long).
+<LI>A slash (/) at the beginning of the entry will accept the default
+values for the list (or leave a previous entry unmodified), but there is no
+way to enter defaults for only some of the numbers in the list.
+<LI>A character other than space, minus, comma, or a digit will terminate
+the list; text after that character will be ignored, thus allowing comments
+after lists.
+</OL>
+
+<A NAME = "Running Copytomocoms"><H4>
+3.1. Running Copytomocoms Manually
+</H4></A>
+     If you need to get command files for a situation that Etomo cannot handle,
+go to the directory where you will be working and enter
+<CODE><BR>     copytomocoms</CODE><BR>
+ No command-line arguments are needed; the program will ask you a series of
+questions about whether you have a tilt series about one axis or two, whether
+the data are from CCD camera or film, etc.  The program works best if your
+data files are already present in the current directory.
+<P>
+     Copytomocoms fetches the command files from $IMOD_DIR/com.  If 
+something goes wrong, you can copy files from there manually.
