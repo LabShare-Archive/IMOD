@@ -2430,7 +2430,7 @@ static void zapDrawContour(ZapStruct *zap, int co, int ob)
   if (iobjScat(obj->flags) || cont->sizes || obj->pdrawsize) {
     for (pt = 0; pt < cont->psize; pt++){
 
-      drawsize = imodPointGetSize(obj, cont, pt);
+      drawsize = imodPointGetSize(obj, cont, pt) / zap->vi->xybin;
       if (drawsize > 0)
         if (zapPointVisable(zap, &(cont->pts[pt]))){
           /* DNM: make the product cast to int, not drawsize */
@@ -2504,7 +2504,7 @@ void zapCurrentPointSize(Iobj *obj, int *modPtSize, int *backupSize,
   if (obj->symbol != IOBJ_SYM_NONE && obj->symsize > 0)
     symSize = obj->symsize;
   if (!symSize && obj->pdrawsize > 0)
-    symSize = obj->pdrawsize;
+    symSize = obj->pdrawsize / App->cvi->xybin;
 
   // Make sure symbol and point sizes differ by at least 2
   if (symSize - *modPtSize < 2 && *modPtSize - symSize < 2)
@@ -2805,6 +2805,10 @@ bool zapTimeMismatch(ImodView *vi, int timelock, Iobj *obj, Icont *cont)
 
 /*
 $Log$
+Revision 4.38  2003/12/18 22:47:27  mast
+Fixed problem with float when starting movie snapshots, implemented ability
+to start at current point, and made changes because of slicer movies
+
 Revision 4.37  2003/11/25 01:15:02  mast
 Move the window again after the show for Mac OS 10.3
 
