@@ -34,6 +34,10 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2002/05/20 15:32:39  mast
+    Added -S option to open slicer first; made it set a new model so that time
+    index modeling is the default if multiple files are opened.
+
 */
 
 #include <stdio.h>
@@ -716,6 +720,15 @@ char *imodwfname(char *intro)
 {
      char *filename;
      filename = Imod_imagefile;
+
+     /* DNM 7/21/02: if multiple files, output number of image files */
+     if (!filename && App->cvi->nt > 1) {
+	  filename = (char *)malloc(20 + strlen(intro));
+	  if (!filename)
+	       return NULL;
+	  sprintf(filename, "%s %d image files", intro, App->cvi->nt);
+	  return(filename);
+     }
      return (imodwEithername(intro, filename));
 }
 
