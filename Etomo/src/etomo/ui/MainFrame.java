@@ -22,6 +22,9 @@ import etomo.process.ProcessState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.3  2002/11/14 21:18:37  rickg
+ * <p> Added anchors into the tomoguide
+ * <p>
  * <p> Revision 1.2  2002/10/07 22:31:18  rickg
  * <p> removed unused imports
  * <p> reformat after emacs trashed it
@@ -489,7 +492,7 @@ public class MainFrame extends JFrame implements ContextMenu {
     procCtlPanelPreProc.setToolTipText(
       "<html>This process control panel opens a dialog box allowing<br>for the conversion of Digital Micrograph files, specifying<br>the CCD eraser parameters and performing the corr-<br>correlation required for coarse alignment.");
     procCtlPanelCoarseAlign.setToolTipText(
-      "<html>This process control panel opens a dialog box allowing<br>the generation and examination of a coarse aligned<br>stack and the ability fix alignment problems using Midas.");
+      "<html>This process control panel opens a dialog box allowing<br>the generation and examination of a coarse aligned<br>stack and the ability to fix alignment problems using Midas.");
     procCtlPanelFiducialModel.setToolTipText(
       "<html>This process control panel opens a dialog box allowing<br>for the construction of the fiducial model used to<br>develop the fine alignment of the projection images");
     procCtlPanelAlignmentEst.setToolTipText(
