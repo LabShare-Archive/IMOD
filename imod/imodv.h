@@ -152,10 +152,14 @@ void imodv_new_model(Imod *mod);
 int  imodv_main(int argc, char **argv);
 void imodvSetCaption();
 void imodvDrawImodImages();
+int imodvByteImagesExist();
 void imodvQuit();
 
 /*
 $Log$
+Revision 3.11  2003/11/12 18:52:52  mast
+Move quit function to imodv.cpp
+
 Revision 3.10  2003/11/04 04:41:07  mast
 Add new movie variables
 

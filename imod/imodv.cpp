@@ -621,6 +621,16 @@ void imodvDrawImodImages()
   imod_object_edit_draw();
 }
 
+// Inform other parts of program whether byte images exist in memory
+int imodvByteImagesExist()
+{
+  if (Imodv->standalone)
+    return 0;
+  if (App->cvi->rawImageStore || App->cvi->fakeImage)
+    return 0;
+  return 1;
+}
+
 // Quit imodv
 void imodvQuit()
 {
@@ -644,6 +654,9 @@ void imodvQuit()
 
 /*
 $Log$
+Revision 4.14  2003/11/25 01:14:36  mast
+Repeat the window move after the show for Mac OS 10.3 when reopening window
+
 Revision 4.13  2003/11/12 18:54:23  mast
 Add ability to receive messages & save and restore window position from 3dmod
 
