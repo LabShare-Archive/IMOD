@@ -17,6 +17,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.6  2004/05/25 23:23:03  rickg
+ * <p> Bug #391 ignore IOExceptions in the stream monitor under the
+ * <p> assumption that the program has ended
+ * <p>
  * <p> Revision 3.5  2004/04/06 02:46:59  rickg
  * <p> Added method to get the standard error as a single string
  * <p>
@@ -218,12 +222,7 @@ public class SystemProgram implements Runnable {
         workingDirectory = new File(System.getProperty("user.dir"));
       }
       process = Runtime.getRuntime().exec(commandArray, null, workingDirectory);
-      try {
-        Thread.sleep(100);
-      }
-      catch (InterruptedException except) {
-
-      }
+      waitForProcess();
       if (debug)
         System.err.println("returned, process started");
 
@@ -301,7 +300,7 @@ public class SystemProgram implements Runnable {
       if (debug)
         System.err.println("done");
 
-      exitValue = process.exitValue();
+      exitValue = getProcessExitValue(process);
 
       if (debug)
         System.err.println(
@@ -390,6 +389,27 @@ public class SystemProgram implements Runnable {
     done = true;
   }
 
+  /**
+   *
+   */
+  protected void waitForProcess() {
+    try {
+      Thread.sleep(100);
+    }
+    catch (InterruptedException except) {
+
+    }
+  }
+  
+  /**
+   * 
+   * @param process
+   * @return
+   */
+  protected int getProcessExitValue(Process process) {
+    return process.exitValue();
+  }
+  
   /**
    * Get the standard output from the execution of the program.
    * @return String[] An array of strings containing the standard output from
