@@ -12,6 +12,9 @@
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.3  2004/03/29 20:51:46  sueh
+ * <p> $bug# 409 add inputFile
+ * <p> $
  * <p> $Revision 1.2  2004/03/25 00:47:18  sueh
  * <p> $bug# 409, bug# 418 added InverseRooloffRadiusSigma, moved utilities functions
  * <p> $to ParamUtilities
@@ -44,8 +47,8 @@ public class MTFFilterParam
       if (scriptCommand.hasKeyword("MaximumInverse")) {
         maximumInverse = Double.parseDouble(scriptCommand.getValue("MaximumInverse"));
       }
-      if (scriptCommand.hasKeyword("HighFrequencyRadiusSigma")) {
-        highFrequencyRadiusSigma.validateAndSet(scriptCommand.getValue("HighFrequencyRadiusSigma"));
+      if (scriptCommand.hasKeyword("LowPassRadiusSigma")) {
+        lowPassRadiusSigma.validateAndSet(scriptCommand.getValue("LowPassRadiusSigma"));
       }
       if (scriptCommand.hasKeyword("InverseRolloffRadiusSigma")) {
         inverseRolloffRadiusSigma.validateAndSet(scriptCommand.getValue("InverseRolloffRadiusSigma"));
@@ -63,8 +66,16 @@ public class MTFFilterParam
     ParamUtilities.updateParameter(scriptCommand, "OutputFile", outputFile);
     ParamUtilities.updateParameter(scriptCommand, "MtfFile", mtfFile);
     ParamUtilities.updateParameter(scriptCommand, "MaximumInverse", maximumInverse);
-    ParamUtilities.updateParameter(scriptCommand, "HighFrequencyRadiusSigma", highFrequencyRadiusSigma);
+    ParamUtilities.updateParameter(scriptCommand, "LowPassRadiusSigma", lowPassRadiusSigma);
     ParamUtilities.updateParameter(scriptCommand, "InverseRolloffRadiusSigma", inverseRolloffRadiusSigma);
+  }
+  
+  public void initializeDefaults() {
+    maximumInverse = 4.0;
+    inverseRolloffRadiusSigma.set(0, 0.12);
+    inverseRolloffRadiusSigma.set(1, 0.05);
+    lowPassRadiusSigma.set(0, 0.35);
+    lowPassRadiusSigma.set(1, 0.05);
   }
 
   public void setInputFile(String inputFile) {
@@ -79,9 +90,9 @@ public class MTFFilterParam
   public void setMaximumInverse(String maximumInverse) {
     this.maximumInverse = ParamUtilities.setDouble(maximumInverse);
   }
-  public void setHighFrequencyRadiusSigma(String highFrequencyRadiusSigma)
+  public void setLowPassRadiusSigma(String lowPassRadiusSigma)
     throws FortranInputSyntaxException {
-      ParamUtilities.set(highFrequencyRadiusSigma, this.highFrequencyRadiusSigma);
+      ParamUtilities.set(lowPassRadiusSigma, this.lowPassRadiusSigma);
   }
   public void setInverseRolloffRadiusSigma(String inverseRolloffRadiusSigma)
     throws FortranInputSyntaxException {
