@@ -61,6 +61,9 @@
     $Revision$
 
     $Log$
+    Revision 3.2  2002/07/31 20:16:35  mast
+    *** empty log message ***
+
     Revision 3.1  2002/07/31 20:07:33  mast
     Changes to accommodate new or old style MRC headers
 
@@ -79,10 +82,10 @@
 #include <mrcfiles.h>
 
 /* prototypes */
-void convertBytes(FILE  *fp, UCHAR *buffer, int   noBytes, int   direction); 
-void convertShorts(FILE  *fp, UCHAR *buffer, int   noShorts, int   direction);
-void convertFloats(FILE  *fp, UCHAR *buffer, int   noFloats, int   direction);
-void convertLongs(FILE  *fp, UCHAR *buffer, int   noLongs, int   direction); 
+void convertBytes(FILE  *fp, b3dUByte *buffer, int   noBytes, int direction); 
+void convertShorts(FILE  *fp, b3dUByte *buffer, int   noShorts, int direction);
+void convertFloats(FILE  *fp, b3dUByte *buffer, int   noFloats, int direction);
+void convertLongs(FILE  *fp, b3dUByte *buffer, int   noLongs, int direction); 
 void convertBody(void (*convertFunc)(), struct MRCheader *header, int size,
 		 int factor, int direction, FILE *infp, FILE *outfp);
 void convertHeader(void (*floatFunc)(), int nextra, struct MRCheader  *header,
@@ -341,9 +344,9 @@ output file*/
 
 {
   unsigned long lcv;       
-  UCHAR *scanLine;  /*converted scanline*/
+  b3dUByte *scanLine;  /*converted scanline*/
   long   scans = 0;
-  UCHAR  pix;
+  b3dUByte  pix;
   int i;
 
   if (size == 1){
@@ -358,7 +361,7 @@ output file*/
        return;
   }
 
-  scanLine = (UCHAR *)malloc(header->nx * size * factor);
+  scanLine = (b3dUByte *)malloc(header->nx * size * factor);
   
   scans = header->ny * header->nz;
 
@@ -376,7 +379,7 @@ output file*/
 
 /*****************************************************************************/
 void convertBytes(FILE  *fp,        /*file to read from*/
-		  UCHAR *buffer,    /*buffer to write the converted values to*/
+		  b3dUByte *buffer, /*buffer to write the converted values to*/
 		  int   noBytes,    /*number of bytes to convert*/
 		  int   direction)  /*conversion direction*/
 
@@ -396,7 +399,7 @@ void convertBytes(FILE  *fp,        /*file to read from*/
 
 /*****************************************************************************/
 void convertFloats(FILE  *fp,       /*file to read from*/
-		   UCHAR *buffer,   /*buffer to write the converted values to*/
+		   b3dUByte *buffer,/*buffer to write the converted values to*/
 		   int   noFloats,  /*number of floats to convert*/
 		   int   direction) /*conversion direction*/
 
@@ -409,10 +412,10 @@ number is typically stored big endian.
 */
 
 {
-  UCHAR exp;
-  UINT  lcv;
-  UINT  noBytes;
-  UCHAR temp;   /*temporary place holder*/
+  b3dUByte exp;
+  b3dUInt32  lcv;
+  b3dUInt32  noBytes;
+  b3dUByte temp;   /*temporary place holder*/
 
   noBytes = noFloats * sizeof(float);
 
@@ -493,81 +496,81 @@ void convertHeader(void (*floatFunc)(),
 
 {
      int lcv;
-     UCHAR extra;
+     b3dUByte extra;
 
-     convertLongs(infp, (UCHAR *)&header->nx, 1, direction);
-     convertLongs(infp, (UCHAR *)&header->ny, 1, direction);
-     convertLongs(infp, (UCHAR*)&header->nz, 1, direction);
+     convertLongs(infp, (b3dUByte *)&header->nx, 1, direction);
+     convertLongs(infp, (b3dUByte *)&header->ny, 1, direction);
+     convertLongs(infp, (b3dUByte*)&header->nz, 1, direction);
      
-     convertLongs(infp, (UCHAR*)&header->mode, 1, direction);
+     convertLongs(infp, (b3dUByte*)&header->mode, 1, direction);
 
-     convertLongs(infp, (UCHAR *)&header->nxstart, 1, direction);
-     convertLongs(infp, (UCHAR *)&header->nystart, 1, direction);
-     convertLongs(infp, (UCHAR *)&header->nzstart, 1, direction);
-     convertLongs(infp, (UCHAR *)&header->mx, 1, direction);
-     convertLongs(infp, (UCHAR *)&header->my, 1, direction);
-     convertLongs(infp, (UCHAR *)&header->mz, 1, direction);
-     floatFunc(infp, (UCHAR *)&header->xlen, 1, direction);
-     floatFunc(infp, (UCHAR *)&header->ylen, 1, direction);
-     floatFunc(infp, (UCHAR *)&header->zlen, 1, direction);
-     floatFunc(infp, (UCHAR *)&header->alpha, 1, direction);
-     floatFunc(infp, (UCHAR *)&header->beta, 1, direction);
-     floatFunc(infp, (UCHAR *)&header->gamma, 1, direction);
-     convertLongs(infp, (UCHAR *)&header->mapc, 1, direction);
-     convertLongs(infp, (UCHAR *)&header->mapr, 1, direction);
-     convertLongs(infp, (UCHAR *)&header->maps, 1, direction);
-     floatFunc(infp, (UCHAR *)&header->amin, 1, direction);
-     floatFunc(infp, (UCHAR *)&header->amax, 1, direction);
-     floatFunc(infp, (UCHAR *)&header->amean, 1, direction);
-     convertShorts(infp, (UCHAR *)&header->ispg, 1, direction);
-     convertShorts(infp, (UCHAR *)&header->nsymbt, 1, direction);
-     /*     convertLongs(infp, (UCHAR *)header->extra, 16, direction); */
-     convertLongs(infp, (UCHAR *)&header->next, 1, direction);
-     convertShorts(infp, (UCHAR *)&header->creatid, 1, direction);
-     convertBytes(infp, (UCHAR *)&header->blank, 30, direction);
-     convertShorts(infp, (UCHAR *)&header->nint, 4, direction);
-     floatFunc(infp, (UCHAR *)&header->min2, 6, direction);
+     convertLongs(infp, (b3dUByte *)&header->nxstart, 1, direction);
+     convertLongs(infp, (b3dUByte *)&header->nystart, 1, direction);
+     convertLongs(infp, (b3dUByte *)&header->nzstart, 1, direction);
+     convertLongs(infp, (b3dUByte *)&header->mx, 1, direction);
+     convertLongs(infp, (b3dUByte *)&header->my, 1, direction);
+     convertLongs(infp, (b3dUByte *)&header->mz, 1, direction);
+     floatFunc(infp, (b3dUByte *)&header->xlen, 1, direction);
+     floatFunc(infp, (b3dUByte *)&header->ylen, 1, direction);
+     floatFunc(infp, (b3dUByte *)&header->zlen, 1, direction);
+     floatFunc(infp, (b3dUByte *)&header->alpha, 1, direction);
+     floatFunc(infp, (b3dUByte *)&header->beta, 1, direction);
+     floatFunc(infp, (b3dUByte *)&header->gamma, 1, direction);
+     convertLongs(infp, (b3dUByte *)&header->mapc, 1, direction);
+     convertLongs(infp, (b3dUByte *)&header->mapr, 1, direction);
+     convertLongs(infp, (b3dUByte *)&header->maps, 1, direction);
+     floatFunc(infp, (b3dUByte *)&header->amin, 1, direction);
+     floatFunc(infp, (b3dUByte *)&header->amax, 1, direction);
+     floatFunc(infp, (b3dUByte *)&header->amean, 1, direction);
+     convertShorts(infp, (b3dUByte *)&header->ispg, 1, direction);
+     convertShorts(infp, (b3dUByte *)&header->nsymbt, 1, direction);
+     /*     convertLongs(infp, (b3dUByte *)header->extra, 16, direction); */
+     convertLongs(infp, (b3dUByte *)&header->next, 1, direction);
+     convertShorts(infp, (b3dUByte *)&header->creatid, 1, direction);
+     convertBytes(infp, (b3dUByte *)&header->blank, 30, direction);
+     convertShorts(infp, (b3dUByte *)&header->nint, 4, direction);
+     floatFunc(infp, (b3dUByte *)&header->min2, 6, direction);
 
-     convertShorts(infp, (UCHAR *)&header->idtype, 1, direction);
-     convertShorts(infp, (UCHAR *)&header->lens, 1, direction);
+     convertShorts(infp, (b3dUByte *)&header->idtype, 1, direction);
+     convertShorts(infp, (b3dUByte *)&header->lens, 1, direction);
 
-     convertShorts(infp, (UCHAR *)&header->nd1, 1, direction);
-     convertShorts(infp, (UCHAR *)&header->nd2, 1, direction);
-     convertShorts(infp, (UCHAR *)&header->vd1, 1, direction);
-     convertShorts(infp, (UCHAR *)&header->vd2, 1, direction);
+     convertShorts(infp, (b3dUByte *)&header->nd1, 1, direction);
+     convertShorts(infp, (b3dUByte *)&header->nd2, 1, direction);
+     convertShorts(infp, (b3dUByte *)&header->vd1, 1, direction);
+     convertShorts(infp, (b3dUByte *)&header->vd2, 1, direction);
 
-     floatFunc(infp, (UCHAR *)header->tiltangles, 6, direction);
+     floatFunc(infp, (b3dUByte *)header->tiltangles, 6, direction);
 
      if (cmap[0] != 'M' || cmap[1] != 'A' || cmap[2] != 'P') {
 	  /* Old-style header, swap wavelength then origin data */
-	  convertShorts(infp, (UCHAR *)&header->xorg, 6, direction);
-	  floatFunc(infp, (UCHAR *)&header->cmap[0], 3, direction);
+	  convertShorts(infp, (b3dUByte *)&header->xorg, 6, direction);
+	  floatFunc(infp, (b3dUByte *)&header->cmap[0], 3, direction);
 	  printf("Preserving old-style MRC header.\n");
      } else {
 	  /* new style, swap floats and retain cmap; flip stamp */
-	  floatFunc(infp, (UCHAR *)&header->xorg, 1, direction);
-	  floatFunc(infp, (UCHAR *)&header->yorg, 1, direction);
-	  floatFunc(infp, (UCHAR *)&header->zorg, 1, direction);
-	  convertBytes(infp, (UCHAR *)&header->cmap[0], 8, direction);
-	  floatFunc(infp, (UCHAR *)&header->rms, 1, direction);
+	  floatFunc(infp, (b3dUByte *)&header->xorg, 1, direction);
+	  floatFunc(infp, (b3dUByte *)&header->yorg, 1, direction);
+	  floatFunc(infp, (b3dUByte *)&header->zorg, 1, direction);
+	  convertBytes(infp, (b3dUByte *)&header->cmap[0], 8, direction);
+	  floatFunc(infp, (b3dUByte *)&header->rms, 1, direction);
 	  header->stamp[0] = (header->stamp[0] == 17) ? 68 : 17;
      }
-     convertLongs(infp, (UCHAR *)&header->nlabl, 1, direction);
+     convertLongs(infp, (b3dUByte *)&header->nlabl, 1, direction);
 
 
      for (lcv = 0; lcv < MRC_NLABELS; lcv++){
-	  convertBytes(infp, (UCHAR *)header->labels[lcv], MRC_LABEL_SIZE, 
+	  convertBytes(infp, (b3dUByte *)header->labels[lcv], MRC_LABEL_SIZE, 
 		       direction);  
 	  header->labels[lcv][MRC_LABEL_SIZE] = '\0';
      }
 
      /* THIS WILL NOT WORK WITH DATA CONSISTING OF INTEGERS AND REALS */
      if (nextra > 0){
-	  header->symops = (UCHAR *)malloc(nextra);
-	  convertShorts(infp, (UCHAR *)header->symops, 
+	  header->symops = (b3dUByte *)malloc(nextra);
+	  convertShorts(infp, (b3dUByte *)header->symops, 
 		       nextra/2, direction);  
 	  if (nextra % 2)
-	       convertBytes(infp, (UCHAR *)header->symops + nextra - 1, 1, 
+	       convertBytes(infp, (b3dUByte *)header->symops + nextra - 1, 1, 
 			    direction);
      }
      
@@ -578,15 +581,15 @@ void convertHeader(void (*floatFunc)(),
 
 /******************************************************************************/
 void convertLongs(FILE  *fp,        /*file to read from*/
-		  UCHAR *buffer,    /*buffer to write the converted values to*/
+		  b3dUByte *buffer, /*buffer to write the converted values to*/
 		  int   noLongs,    /*number of longwords to convert*/
 		  int   direction)  /*conversion direction*/
 
 /*converts a vax longword to a "unix" long word*/
 
 {
-  UINT  lcv;
-  UINT  noBytes;  /*no bytes to read*/
+  b3dUInt32  lcv;
+  b3dUInt32  noBytes;  /*no bytes to read*/
   unsigned int lw;        /*long word place holder*/
 
   /* Read in data */
@@ -606,16 +609,16 @@ void convertLongs(FILE  *fp,        /*file to read from*/
 
 /******************************************************************************/
 void convertShorts(FILE  *fp,       /*file to read from*/
-		   UCHAR *buffer,   /*buffer to write the converted values to*/
+		   b3dUByte *buffer,/*buffer to write the converted values to*/
 		   int   noShorts,  /*number of shortwords to convert*/
 		   int   direction) /*conversion direction*/
 
 /*converts a vax shortword to a "unix" shortword*/
 
 {
-  UINT   lcv;
-  UINT   noBytes;  /*no bytes to read from the input file*/
-  USHORT s;        /*short word place holder*/
+  b3dUInt32   lcv;
+  b3dUInt32   noBytes;  /*no bytes to read from the input file*/
+  b3dUInt16   s;        /*short word place holder*/
 
   /* Read in data */
 
