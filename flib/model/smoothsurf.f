@@ -20,6 +20,11 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.2  2004/06/17 16:38:03  mast
+c	  Fixed to work with index coordinates instead of pixel-size dependent
+c	  model coordinates, fixed bug in contour smoothing that might have
+c	  kept it from happened, converted to PIP and provided defaults
+c	
 c	  Revision 3.1  2003/09/22 19:29:08  mast
 c	  removed mysterious common /dumcom/dummy(1500000) - failed on Cygwin
 c	
@@ -110,6 +115,8 @@ c
 	ierr = PipGetInteger('ContourOrder', iorder2)
 	ierr = PipGetInteger('SurfaceOrder', iorder)
 	ierr = PipGetFloat('MaximumDistance', distlim)
+	call PipDone()
+
 	if (nzfit .lt. 1) call errorexit('NUMBER OF SECTIONS IS TOO SMALL')
 	if (iorder2 .lt. 0 .or. iorder2 .gt. 4) call errorexit(
      &	    'CONTOUR SMOOTHING ORDER IS OUTSIDE OF ALLOWED RANGE')
@@ -560,7 +567,7 @@ c
 	  p_coord(3,i)=zimscale*p_coord(3,i)+zofs
 	enddo
 	call write_wmod(filout)
-	print *,'DONE'
+	print *,'DONE - Be sure to remesh the smoothed objects with imodmesh'
 	call exit(0)
 	end
 
