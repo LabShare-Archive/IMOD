@@ -123,6 +123,8 @@ typedef struct
   int    curArea;                       /* Current local area index */
   AreaData *areaList;                   /* Data about areas */
   int    areaMax;                       /* Size allocated */
+  QStringList qlines;
+  int currentLine;
   
 }PlugData;
 
@@ -132,6 +134,9 @@ static PlugData thisPlug = { 0, 0 };
 #define ERROR_NO_IMOD_DIR -64352
 // Place for qalign thread to leave its exit code
 static int alignExitCode;
+
+// A resident copy of the data
+
 
 /*
  * Called by the imod plugin load function. 
@@ -223,7 +228,6 @@ void imodPlugExecute(ImodView *inImodView)
    * Initialize data. 
    */
   plug->filename = NULL;
-  plug->fp = NULL;
   plug->ifdidgap = 0;
   plug->residok = 0;
   plug->lastob = -1;
@@ -239,6 +243,7 @@ void imodPlugExecute(ImodView *inImodView)
   plug->curArea = -1;
   plug->areaList = NULL;
   plug->areaMax = 0;
+  plug->currentLine = -1;
 
   /*
    * This creates the plug window.
@@ -270,7 +275,7 @@ void BeadFixer::openFile()
   plug->filename = strdup(qname.latin1());
   reread(0);
 
-  if (plug->fp != NULL) {
+  if (plug->currentLine >= 0) {
     rereadBut->setEnabled(true);    
     nextLocalBut->setEnabled(true);    
 #ifdef FIXER_CAN_RUN_ALIGN
@@ -301,11 +306,22 @@ void BeadFixer::reread(int skipopen)
 
   if (plug->filename == NULL) 
     return;
+
   if (!skipopen) {
-    if (plug->fp != NULL)
-      fclose(plug->fp);
-    plug->fp = fopen(plug->filename, "r");
-    wprint("Rereading file.\n");
+    plug->qlines.clear();
+    plug->currentLine = -1;
+    QFile file(QString(plug->filename));
+    if ( file.open( IO_ReadOnly ) ) {
+      wprint("Rereading file.\n");
+      QTextStream stream( &file );
+      QString line;
+      while ( !stream.atEnd() ) {
+        line = stream.readLine(); // line of text excluding '\n'
+        plug->qlines += line;
+      }
+      file.close();
+      plug->currentLine = 0;
+    }
 
     plug->curArea = 0;
     if (!plug->areaMax) {
@@ -324,7 +340,7 @@ void BeadFixer::reread(int skipopen)
     backUpBut->setEnabled(false);    
 
   } else {
-    while (!found && fgets(line, MAXLINE, plug->fp) != NULL) {
+    while (!found && getNextLine(line, MAXLINE) != NULL) {
       arealine = strstr(line,"Doing local area");
       if (arealine) {
         arealine[22]=0x00;
@@ -355,12 +371,12 @@ void BeadFixer::reread(int skipopen)
     }
   }
 
-  if(plug->fp == NULL) {
-    wprint("Error opening file!\n");
+  if (plug->currentLine < 0) {
+    wprint("\aError opening %s!", plug->filename);
     return;
   }
-    
-  while(fgets(line, MAXLINE, plug->fp) != NULL) {
+
+  while(getNextLine(line, MAXLINE) != NULL) {
     newstyle = strstr(line,"   #     #     #      X         Y        X")
       != NULL;
     if (!newstyle)
@@ -382,6 +398,17 @@ void BeadFixer::reread(int skipopen)
   return;
 }
 
+// Get the string on the next line
+// This replaces the fgets for reading from the file 
+int BeadFixer::getNextLine(char *line, int maxline)
+{
+  PlugData *plug = &thisPlug;
+  if (plug->currentLine < 0 || plug->currentLine >= plug->qlines.count())
+    return 0;
+  strncpy(line, plug->qlines[plug->currentLine++], maxline);
+  line[maxline - 1] = 0x00;
+  return 1;
+}
 
 /* Jump to the next point with a big residual */
 
@@ -404,11 +431,12 @@ void BeadFixer::nextRes()
   Imod *theModel = ivwGetModel(plug->view);
   ivwControlActive(plug->view, 0);
 
-  if(plug->fp == NULL || plug->residok == 0) return;
+  if (plug->currentLine < 0 || plug->residok == 0)
+    return;
 
   do {
-    offsetBefore = ftell(plug->fp);
-    getres = fgets(line, MAXLINE, plug->fp);
+    offsetBefore = plug->currentLine;
+    getres = getNextLine(line, MAXLINE);
     // wprint("%s", line);
     if(getres == NULL || strlen(line) <3) {
       wprint("No more residuals in this list\n");
@@ -578,7 +606,7 @@ void BeadFixer::backUp()
 
   // Back up offset and seek to file position before line
   plug->offsetSize -= 2;
-  fseek(plug->fp, plug->offsetList[plug->offsetSize], SEEK_SET);
+  plug->currentLine = plug->offsetList[plug->offsetSize];
 
   // Look for point last seen in previous area and if so, change area
   for (i = 0; i < plug->curArea; i++) {
@@ -624,7 +652,7 @@ void BeadFixer::movePoint()
   Imod *theModel = ivwGetModel(plug->view);
   ivwControlActive(plug->view, 0);
      
-  if(plug->fp == NULL || plug->curmoved  || plug->objlook < 0) 
+  if(plug->currentLine < 0 || plug->curmoved  || plug->objlook < 0) 
     return;
   imodGetIndex(theModel, &obj, &cont, &pt);
   if (obj != plug->objlook || cont != plug->contlook || pt != plug->ptlook) {
@@ -666,7 +694,7 @@ void BeadFixer::undoMove()
   Imod *theModel = ivwGetModel(plug->view);
   ivwControlActive(plug->view, 0);
      
-  if(plug->fp == NULL || !plug->didmove) 
+  if(plug->currentLine < 0 || !plug->didmove) 
     return;
   imodGetIndex(theModel, &obsav, &cosav, &ptsav);
 
@@ -1111,9 +1139,6 @@ void BeadFixer::runAlign()
 #ifdef FIXER_CAN_RUN_ALIGN
   inputSaveModel(plug->view);
   mTaThread = new AlignThread;
-  if (plug->fp != NULL)
-    fclose(plug->fp);
-  plug->fp = NULL;
   mTaThread->start();
   alignExitCode = 0;
 
@@ -1193,6 +1218,9 @@ void AlignThread::run()
 
 /*
     $Log$
+    Revision 1.9  2004/05/11 14:17:53  mast
+    Needed to put an enable of the run align button inside conditional
+
     Revision 1.8  2004/05/07 22:14:53  mast
     Switched to a variable other than QT_THREAD_SUPPORT for the run align button
 

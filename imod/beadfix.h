@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.5  2004/05/28 18:57:42  mast
+Enable fixer to run align if thread support exists
+
 Revision 1.4  2004/05/07 22:14:26  mast
 Defined a variable instead of QT_THREAD_SUPPORT for the the Run Align button
 
@@ -93,6 +96,8 @@ class BeadFixer : public DialogFrame
   void reread(int which);
   int foundgap(int obj, int cont, int ipt, int before);
   void clearExtraObj();
+  int getNextLine(char *line, int maxline);
+
   QPushButton *rereadBut;
   QPushButton *nextLocalBut;
   QPushButton *nextResBut;
