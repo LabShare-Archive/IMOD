@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.20  2005/02/07 22:55:44  sueh
+ * <p> bug# 594 Added setDatasetString() to return the value of the dataset field.
+ * <p>
  * <p> Revision 3.19  2005/01/14 03:11:06  sueh
  * <p> bug# 511 Added DialogType to super constructor.
  * <p>
@@ -242,7 +245,6 @@ import etomo.type.AxisType;
 import etomo.type.ConstMetaData;
 import etomo.type.DialogType;
 import etomo.type.MetaData;
-import etomo.type.SectionType;
 import etomo.type.ViewType;
 import etomo.util.InvalidParameterException;
 import etomo.util.MRCHeader;
@@ -276,10 +278,6 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
   private JRadioButton rbMontage = new JRadioButton("Montage");
   private ButtonGroup bgViewType = new ButtonGroup();
 
-  private JPanel pnlSectionType = new JPanel();
-  private JRadioButton rbSingleSection = new JRadioButton("Single tomogram");
-  private JRadioButton rbSerialSection = new JRadioButton("Serial tomogram");
-  private ButtonGroup bgSectionType = new ButtonGroup();
   private MultiLineButton btnViewRawStackA = new MultiLineButton(
     "View Raw Image Stack");
   private MultiLineButton btnViewRawStackB = new MultiLineButton(
@@ -404,7 +402,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
 
   private void createDataTypePanel() {
 
-    //  Datatype subpnls: DataSource AxisType Viewtype SectionType
+    //  Datatype subpnls: DataSource AxisType Viewtype
     Dimension dimDataTypePref = new Dimension(150, 80);
 
     bgAxisType.add(rbSingleAxis);
@@ -425,17 +423,6 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     pnlViewType.add(rbSingleView);
     pnlViewType.add(rbMontage);
 
-    bgSectionType.add(rbSerialSection);
-    bgSectionType.add(rbSingleSection);
-    pnlSectionType.setLayout(new BoxLayout(pnlSectionType, BoxLayout.Y_AXIS));
-    pnlSectionType.setPreferredSize(dimDataTypePref);
-    pnlSectionType.setBorder(new EtchedBorder("Tomogram Type").getBorder());
-    pnlSectionType.add(rbSingleSection);
-    pnlSectionType.add(rbSerialSection);
-
-    rbSingleSection.setEnabled(false);
-    rbSerialSection.setEnabled(false);
-
     //  Datatype panel
     pnlDataType.setLayout(new BoxLayout(pnlDataType, BoxLayout.X_AXIS));
     pnlDataType.setBorder(new EtchedBorder("Data Type").getBorder());
@@ -443,7 +430,6 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     pnlDataType.add(Box.createHorizontalGlue());
     pnlDataType.add(pnlViewType);
     pnlDataType.add(Box.createHorizontalGlue());
-    pnlDataType.add(pnlSectionType);
 
     //  Pixel & Alignment panel
     ltfPixelSize.setColumns(5);
@@ -554,7 +540,6 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     ltfDistortionFile.setText(metaData.getDistortionFile());
     setAxisType(metaData.getAxisType());
     setViewType(metaData.getViewType());
-    setSectionType(metaData.getSectionType());
     if(!Double.isNaN(metaData.getPixelSize())) {
       ltfPixelSize.setText(metaData.getPixelSize());
     }
@@ -586,7 +571,6 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     metaData.setBackupDirectory(ltfBackupDirectory.getText());
     metaData.setDistortionFile(ltfDistortionFile.getText());
     metaData.setViewType(getViewType());
-    metaData.setSectionType(getSectionType());
     String currentField = "";
     try {
       currentField = "Pixel Size";
@@ -730,25 +714,6 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     }
     else {
       return ViewType.MONTAGE;
-    }
-  }
-
-  //  Section type radio button
-  void setSectionType(SectionType sectionType) {
-    if (sectionType == SectionType.SINGLE) {
-      rbSingleSection.setSelected(true);
-    }
-    else {
-      rbSerialSection.setSelected(true);
-    }
-  }
-
-  SectionType getSectionType() {
-    if (rbSingleSection.getSelectedObjects() != null) {
-      return SectionType.SINGLE;
-    }
-    else {
-      return SectionType.SERIAL;
     }
   }
 
@@ -988,11 +953,6 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     pnlViewType.setToolTipText(tooltipFormatter.setText(text).format());
     rbSingleView.setToolTipText(tooltipFormatter.setText(text).format());
     rbMontage.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "This radio button selector will choose whether the data consists of a single tomogram or several serial tomograms.";
-    pnlSectionType.setToolTipText(tooltipFormatter.setText(text).format());
-    rbSingleSection.setToolTipText(tooltipFormatter.setText(text).format());
-    rbSerialSection.setToolTipText(tooltipFormatter.setText(text).format());
 
     text = "Enter the view image pixel size in nanometers here.";
     ltfPixelSize.setToolTipText(tooltipFormatter.setText(text).format());
