@@ -143,12 +143,22 @@ static int imodPlugLoad(QString plugpath)
 
   library = new QLibrary(plugpath);
 
+  if (!library->load()) {
+    if (Imod_debug)
+      imodPrintStderr("Warning: %s cannot be loaded as a 3dmod plugin.\n",
+                      plugpath.latin1());
+    delete library;
+    return(2);
+  }
+
+
   /* find address of function and data objects */
   fptr = (SpecialInfo)library->resolve("imodPlugInfo");
 
   if (!fptr){
     if (Imod_debug)
-      imodPrintStderr("Warning: %s not a 3dmod plugin.\n", plugpath.latin1());
+      imodPrintStderr("Warning: imodPlugInfo cannot be resolved in %s.\n",
+                      plugpath.latin1());
     delete library;
     return(2);
   }
@@ -477,6 +487,9 @@ int imodPlugImageHandle(char *filename)
 
 /*
 $Log$
+Revision 4.11  2004/09/24 18:08:11  mast
+Added ability to pass a message for execution
+
 Revision 4.10  2004/06/01 01:30:52  mast
 Eliminate unused variable
 
