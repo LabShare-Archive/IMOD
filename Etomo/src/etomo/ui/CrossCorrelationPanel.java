@@ -20,6 +20,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.0  2003/01/24 20:30:31  rickg
+ * <p> Single window merge to main branch
+ * <p>
  * <p> Revision 1.2.2.1  2003/01/24 18:43:37  rickg
  * <p> Single window GUI layout initial revision
  * <p>
@@ -56,7 +59,7 @@ public class CrossCorrelationPanel implements ContextMenu {
     new LabeledTextField("Pad percent: ");
   private LabeledTextField ltfTaperPercent =
     new LabeledTextField("Taper percent: ");
-  private LabeledTextField ltfViewList = new LabeledTextField("View list: ");
+  private LabeledTextField ltfViewRange = new LabeledTextField("View range: ");
 
   AxisID axisID;
 
@@ -71,7 +74,7 @@ public class CrossCorrelationPanel implements ContextMenu {
     panelAdvanced.add(ltfTrim.getContainer());
     panelAdvanced.add(ltfPadPercent.getContainer());
     panelAdvanced.add(ltfTaperPercent.getContainer());
-    panelAdvanced.add(ltfViewList.getContainer());
+    panelAdvanced.add(ltfViewRange.getContainer());
 
     panelCrossCorrelation.setLayout(
       new BoxLayout(panelCrossCorrelation, BoxLayout.Y_AXIS));
@@ -102,7 +105,7 @@ public class CrossCorrelationPanel implements ContextMenu {
     ltfTrim.setText(tiltXcorrParams.getTrim());
     ltfPadPercent.setText(tiltXcorrParams.getPadPercent());
     ltfTaperPercent.setText(tiltXcorrParams.getTaperPercent());
-    ltfViewList.setText(tiltXcorrParams.getViewList());
+    ltfViewRange.setText(tiltXcorrParams.getViewRange());
   }
 
   /**
@@ -126,8 +129,8 @@ public class CrossCorrelationPanel implements ContextMenu {
       tiltXcorrParams.setPadPercent(ltfPadPercent.getText());
       currentParam = ltfTaperPercent.getLabel();
       tiltXcorrParams.setTaperPercent(ltfTaperPercent.getText());
-      currentParam = ltfViewList.getLabel();
-      tiltXcorrParams.setViewList(ltfViewList.getText());
+      currentParam = ltfViewRange.getLabel();
+      tiltXcorrParams.setViewRange(ltfViewRange.getText());
     }
     catch (FortranInputSyntaxException except) {
       String message = currentParam + except.getMessage();
