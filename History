@@ -1,5 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/22/03: Added button to image process window so that one could toggle between
+original and processed image, and made intensity floating work with processing.
+
+1/20/03: Stopped trying to free a static array when loading data.
+
+1/19/03: IMOD_3-2-5
 1/19/03: Added an option to Xfmodel to apply a single line of the transform
 file to the whole model, made this behavior the default when there is just
 one line of input, and fixed two problems with transforming and
