@@ -28,13 +28,16 @@
  *****************************************************************************/
 /*  $Author$
 
-    $Date$
+$Date$
 
-    $Revision$
+$Revision$
 
-    $Log$
-    Revision 3.1  2002/11/05 23:28:23  mast
-    Changed imodCopyright to use defined lab name
+$Log$
+Revision 3.2  2003/02/27 00:34:40  mast
+add projects' *.dsw *.dsp
+
+Revision 3.1  2002/11/05 23:28:23  mast
+Changed imodCopyright to use defined lab name
 
 */
 
@@ -72,12 +75,12 @@
 #include "imodel.h"
 
 /* DNM 2/26/03: These need to be printf instead of fprintf(stderr) to not crash 
-  imod under Windows */
+   imod under Windows */
 int imodVersion(char *pname)
 {
   if (pname)
     printf("%s Version %s %s %s\n",
-		  pname, VERSION_NAME, __DATE__, __TIME__);
+           pname, VERSION_NAME, __DATE__, __TIME__);
   return(VERSION);
 }
 
@@ -85,275 +88,276 @@ void imodCopyright(void)
 {
   char *uofc =   "the Regents of the University of Colorado";
   printf("Copyright (C) %s by %s\n%s & %s\n", COPYRIGHT_YEARS,
-    LAB_NAME1, LAB_NAME2, uofc);
+         LAB_NAME1, LAB_NAME2, uofc);
   return;
 }
 
 
 Imod *imodNew(void)
 {
-     Imod *model;
+  Imod *model;
 
-     model = (struct Mod_Model *)malloc(sizeof(struct Mod_Model));
-     if (model == NULL)
-	  return((struct Mod_Model *)NULL);
-     model->file     = NULL;
-     imodDefault(model);
-     return(model);
+  model = (struct Mod_Model *)malloc(sizeof(struct Mod_Model));
+  if (model == NULL)
+    return((struct Mod_Model *)NULL);
+  model->file     = NULL;
+  imodDefault(model);
+  return(model);
 }
 
 int imodDefault(Imod *model)
 {
-     int  i;
-     char *newmodname = "IMOD-NewModel";
+  int  i;
+  char *newmodname = "IMOD-NewModel";
 
-     model->objsize  = 0;
-     model->flags = 0;
-     for (i = 0; i < 13; i++)
-	  model->name[i] = newmodname[i];
-     model->name[i]    = 0x00;
-     model->drawmode   = 1;
-     model->mousemode  = IMOD_MMOVIE;
-     model->blacklevel = 0;
-     model->whitelevel = 255;
+  model->objsize  = 0;
+  model->flags = 0;
+  for (i = 0; i < 13; i++)
+    model->name[i] = newmodname[i];
+  model->name[i]    = 0x00;
+  model->drawmode   = 1;
+  model->mousemode  = IMOD_MMOVIE;
+  model->blacklevel = 0;
+  model->whitelevel = 255;
   
-     model->xoffset = 0;
-     model->yoffset = 0;
-     model->zoffset = 0;
+  model->xoffset = 0;
+  model->yoffset = 0;
+  model->zoffset = 0;
      
-     model->xscale = 1;
-     model->yscale = 1;
-     model->zscale = 1;
+  model->xscale = 1;
+  model->yscale = 1;
+  model->zscale = 1;
      
-     model->cindex.object  = -1;
-     model->cindex.contour = -1;
-     model->cindex.point   = -1;
-     model->ctime = 0;
+  model->cindex.object  = -1;
+  model->cindex.contour = -1;
+  model->cindex.point   = -1;
+  model->ctime = 0;
   
-     model->res = 3;
-     model->thresh = 128;
-     model->pixsize = 1.0;  
-     model->units = 0;      /* if unit is 0, pixsize is undefined */
+  model->res = 3;
+  model->thresh = 128;
+  model->pixsize = 1.0;  
+  model->units = 0;      /* if unit is 0, pixsize is undefined */
      
-     model->csum  = 0;
-     model->tmax  = 0;
+  model->csum  = 0;
+  model->tmax  = 0;
 
-     model->alpha = 0.0f;
-     model->beta  = 0.0f;
-     model->gamma = 0.0f;
+  model->alpha = 0.0f;
+  model->beta  = 0.0f;
+  model->gamma = 0.0f;
     
-     model->view     = NULL; /* available views. */
-     model->cview    = 0;    /* current view.    */
-     model->viewsize = 0;    /* number of views. */
-     imodViewModelNew(model); /* default view */
+  model->view     = NULL; /* available views. */
+  model->cview    = 0;    /* current view.    */
+  model->viewsize = 0;    /* number of views. */
+  imodViewModelNew(model); /* default view */
 
-     model->clipList = NULL;
-     model->refImage = NULL;
-     model->fileName = NULL;
-     model->store    = NULL;
-     return(0);
+  model->clipList = NULL;
+  model->refImage = NULL;
+  model->fileName = NULL;
+  model->store    = NULL;
+  return(0);
 }
 
 void imodDelete(Imod *imod)
 {
-     imodFree(imod);
+  imodFree(imod);
 }
 void imodFree(Imod *imod)
 {
-     if (!imod)
-	  return;
-     imodObjectsDelete(imod->obj, imod->objsize);
-     if (imod->fileName)
-	  free(imod->fileName);
-     free(imod);
+  if (!imod)
+    return;
+  imodObjectsDelete(imod->obj, imod->objsize);
+  if (imod->fileName)
+    free(imod->fileName);
+  free(imod);
 }
 
 void imodGetIndex(Imod *imod, int *object, int *contour, int *point)
 {
-     *object  = imod->cindex.object;
-     *contour = imod->cindex.contour;
-     *point   = imod->cindex.point;
-     return;
+  *object  = imod->cindex.object;
+  *contour = imod->cindex.contour;
+  *point   = imod->cindex.point;
+  return;
 }
 
 void imodSetIndex(Imod *imod, int object, int contour, int point)
 {
-     Iobj *obj;
-     Icont *cont;
+  Iobj *obj;
+  Icont *cont;
      
-     if (object < 0)
-	  object = contour = point = -1;
-     if (object >= imod->objsize)
-	  object = 0;
+  if (object < 0)
+    object = contour = point = -1;
+  if (object >= imod->objsize)
+    object = 0;
 
-     imod->cindex.object  = object;
-     obj = imodel_object_get(imod);
-     if (!obj){
-	  imod->cindex.contour = imod->cindex.point = -1;
-	  return;
-     }
+  imod->cindex.object  = object;
+  obj = imodel_object_get(imod);
+  if (!obj){
+    imod->cindex.contour = imod->cindex.point = -1;
+    return;
+  }
 
-     /* check for contour # out of bounds and set contour index. */
-     if (contour < 0) contour = point = -1;
-     if (contour >= obj->contsize) contour = obj->contsize - 1;
-     imod->cindex.contour = contour;
-     cont = imodContourGet(imod);
-     if (!cont){
-	  imod->cindex.point = -1;
-	  return;
-     }
+  /* check for contour # out of bounds and set contour index. */
+  if (contour < 0) contour = point = -1;
+  if (contour >= obj->contsize) contour = obj->contsize - 1;
+  imod->cindex.contour = contour;
+  cont = imodContourGet(imod);
+  if (!cont){
+    imod->cindex.point = -1;
+    return;
+  }
 
-     /* check for point # out of bounds */
-     if (point >= cont->psize) point = cont->psize - 1;
-     if (point < 0) point = -1;
-     if (cont->psize < 1) point = -1;
-     imod->cindex.point   = point;
+  /* check for point # out of bounds */
+  if (point >= cont->psize) point = cont->psize - 1;
+  if (point < 0) point = -1;
+  if (cont->psize < 1) point = -1;
+  imod->cindex.point   = point;
      
-     return;
+  return;
 }
 
 
 void imodel_maxpt(struct Mod_Model *imod, struct Mod_Point *pnt)
 {
-     int ob, co, pt;
-     struct Mod_Object *obj;
-     struct Mod_Contour *cont;
+  int ob, co, pt;
+  struct Mod_Object *obj;
+  struct Mod_Contour *cont;
 
-     /* Get first point */
-     for (ob = 0; ob < imod->objsize; ob++){
-	  obj = &(imod->obj[ob]);
-	  for(co = 0; co < obj->contsize; co++){
-	       cont = &(obj->cont[co]);
-	       for (pt = 0; pt < cont->psize; pt++){
-		    pnt->x = cont->pts[pt].x;
-		    pnt->y = cont->pts[pt].y;
-		    pnt->z = cont->pts[pt].z;
-		    co = obj->contsize;
-		    ob = imod->objsize;
-	       }
-	  }
-     }
+  /* Get first point */
+  for (ob = 0; ob < imod->objsize; ob++){
+    obj = &(imod->obj[ob]);
+    for(co = 0; co < obj->contsize; co++){
+      cont = &(obj->cont[co]);
+      for (pt = 0; pt < cont->psize; pt++){
+        pnt->x = cont->pts[pt].x;
+        pnt->y = cont->pts[pt].y;
+        pnt->z = cont->pts[pt].z;
+        co = obj->contsize;
+        ob = imod->objsize;
+      }
+    }
+  }
 
-     for (ob = 0; ob < imod->objsize; ob++){
-	  obj = &(imod->obj[ob]);
-	  for(co = 0; co < obj->contsize; co++){
-	       cont = &(obj->cont[co]);
-	       for (pt = 0; pt < cont->psize; pt++){
-		    if (cont->pts[pt].x > pnt->x)
-			 pnt->x = cont->pts[pt].x;
-		    if (cont->pts[pt].y > pnt->y)
-			 pnt->y = cont->pts[pt].y;
-		    if (cont->pts[pt].z > pnt->z)
-			 pnt->z = cont->pts[pt].z;
-	       }
-	  }
-     }
-     return;
+  for (ob = 0; ob < imod->objsize; ob++){
+    obj = &(imod->obj[ob]);
+    for(co = 0; co < obj->contsize; co++){
+      cont = &(obj->cont[co]);
+      for (pt = 0; pt < cont->psize; pt++){
+        if (cont->pts[pt].x > pnt->x)
+          pnt->x = cont->pts[pt].x;
+        if (cont->pts[pt].y > pnt->y)
+          pnt->y = cont->pts[pt].y;
+        if (cont->pts[pt].z > pnt->z)
+          pnt->z = cont->pts[pt].z;
+      }
+    }
+  }
+  return;
 }
 
 void imodel_minpt(struct Mod_Model *imod, struct Mod_Point *pnt)
 {
-     int ob, co, pt;
-     struct Mod_Object *obj;
-     struct Mod_Contour *cont;
+  int ob, co, pt;
+  struct Mod_Object *obj;
+  struct Mod_Contour *cont;
      
-     /* Get first point */
-     for (ob = 0; ob < imod->objsize; ob++){
-	  obj = &(imod->obj[ob]);
-	  for(co = 0; co < obj->contsize; co++){
-	       cont = &(obj->cont[co]);
-	       for (pt = 0; pt < cont->psize; pt++){
-		    pnt->x = cont->pts[pt].x;
-		    pnt->y = cont->pts[pt].y;
-		    pnt->z = cont->pts[pt].z;
-		    co = obj->contsize;
-		    ob = imod->objsize;
-	       }
-	  }
-     }
+  /* Get first point */
+  for (ob = 0; ob < imod->objsize; ob++){
+    obj = &(imod->obj[ob]);
+    for(co = 0; co < obj->contsize; co++){
+      cont = &(obj->cont[co]);
+      for (pt = 0; pt < cont->psize; pt++){
+        pnt->x = cont->pts[pt].x;
+        pnt->y = cont->pts[pt].y;
+        pnt->z = cont->pts[pt].z;
+        co = obj->contsize;
+        ob = imod->objsize;
+      }
+    }
+  }
 
-     for (ob = 0; ob < imod->objsize; ob++){
-	  obj = &(imod->obj[ob]);
-	  for(co = 0; co < obj->contsize; co++){
-	       cont = &(obj->cont[co]);
-	       for (pt = 0; pt < cont->psize; pt++){
-		    if (cont->pts[pt].x < pnt->x)
-			 pnt->x = cont->pts[pt].x;
-		    if (cont->pts[pt].y < pnt->y)
-			 pnt->y = cont->pts[pt].y;
-		    if (cont->pts[pt].z < pnt->z)
-			 pnt->z = cont->pts[pt].z;
-	       }
-						       }
-     }
-     return;
+  for (ob = 0; ob < imod->objsize; ob++){
+    obj = &(imod->obj[ob]);
+    for(co = 0; co < obj->contsize; co++){
+      cont = &(obj->cont[co]);
+      for (pt = 0; pt < cont->psize; pt++){
+        if (cont->pts[pt].x < pnt->x)
+          pnt->x = cont->pts[pt].x;
+        if (cont->pts[pt].y < pnt->y)
+          pnt->y = cont->pts[pt].y;
+        if (cont->pts[pt].z < pnt->z)
+          pnt->z = cont->pts[pt].z;
+      }
+    }
+  }
+  return;
 }
 
 void imodGetBoundingBox(Imod *imod, Ipoint *min, Ipoint *max)
 {
-     int ob, co, pt;
-     struct Mod_Object *obj;
-     struct Mod_Contour *cont;
+  int ob, co, pt;
+  struct Mod_Object *obj;
+  struct Mod_Contour *cont;
      
-     /* Get first point */
-     for (ob = 0; ob < imod->objsize; ob++){
-	  obj = &(imod->obj[ob]);
-	  for(co = 0; co < obj->contsize; co++){
-	       cont = &(obj->cont[co]);
-	       for (pt = 0; pt < cont->psize; pt++){
-		    min->x = max->x = cont->pts[pt].x;
-		    min->y = max->y = cont->pts[pt].y;
-		    min->z = max->z = cont->pts[pt].z;
-		    co = obj->contsize;
-		    ob = imod->objsize;
-	       }
-	  }
-     }
+  /* Get first point */
+  for (ob = 0; ob < imod->objsize; ob++){
+    obj = &(imod->obj[ob]);
+    for(co = 0; co < obj->contsize; co++){
+      cont = &(obj->cont[co]);
+      for (pt = 0; pt < cont->psize; pt++){
+        min->x = max->x = cont->pts[pt].x;
+        min->y = max->y = cont->pts[pt].y;
+        min->z = max->z = cont->pts[pt].z;
+        co = obj->contsize;
+        ob = imod->objsize;
+      }
+    }
+  }
 
-     for (ob = 0; ob < imod->objsize; ob++){
-	  obj = &(imod->obj[ob]);
-	  for(co = 0; co < obj->contsize; co++){
-	       cont = &(obj->cont[co]);
-	       for (pt = 0; pt < cont->psize; pt++){
-		    if (cont->pts[pt].x < min->x)
-			 min->x = cont->pts[pt].x;
-		    if (cont->pts[pt].y < min->y)
-			 min->y = cont->pts[pt].y;
-		    if (cont->pts[pt].z < min->z)
-			 min->z = cont->pts[pt].z;
-		    if (cont->pts[pt].x > max->x)
-			 max->x = cont->pts[pt].x;
-		    if (cont->pts[pt].y > max->y)
-			 max->y = cont->pts[pt].y;
-		    if (cont->pts[pt].z > max->z)
-			 max->z = cont->pts[pt].z;
-	       }
-						       }
-     }
-     return;
+  for (ob = 0; ob < imod->objsize; ob++){
+    obj = &(imod->obj[ob]);
+    for(co = 0; co < obj->contsize; co++){
+      cont = &(obj->cont[co]);
+      for (pt = 0; pt < cont->psize; pt++){
+        if (cont->pts[pt].x < min->x)
+          min->x = cont->pts[pt].x;
+        if (cont->pts[pt].y < min->y)
+          min->y = cont->pts[pt].y;
+        if (cont->pts[pt].z < min->z)
+          min->z = cont->pts[pt].z;
+        if (cont->pts[pt].x > max->x)
+          max->x = cont->pts[pt].x;
+        if (cont->pts[pt].y > max->y)
+          max->y = cont->pts[pt].y;
+        if (cont->pts[pt].z > max->z)
+          max->z = cont->pts[pt].z;
+      }
+    }
+  }
+  return;
 }
 
 
 double imodel_dist(struct Mod_Model *imod)
 {
-     double x, y;
+  double x, y;
 
-     if (imod->cindex.point < 1)
-	  return(0.0);
+  if (imod->cindex.point < 1)
+    return(0.0);
     
-     x =  imod->obj[imod->cindex.object].cont[imod->cindex.contour].pts[imod->cindex.point].x;
-     y =  imod->obj[imod->cindex.object].cont[imod->cindex.contour].pts[imod->cindex.point].y;
-     x -= imod->obj[imod->cindex.object].cont[imod->cindex.contour].pts[imod->cindex.point - 1].x;
-     y -= imod->obj[imod->cindex.object].cont[imod->cindex.contour].pts[imod->cindex.point - 1].y;
+  x =  imod->obj[imod->cindex.object].cont[imod->cindex.contour].pts[imod->cindex.point].x;
+  y =  imod->obj[imod->cindex.object].cont[imod->cindex.contour].pts[imod->cindex.point].y;
+  x -= imod->obj[imod->cindex.object].cont[imod->cindex.contour].pts[imod->cindex.point - 1].x;
+  y -= imod->obj[imod->cindex.object].cont[imod->cindex.contour].pts[imod->cindex.point - 1].y;
 
-     x *= x;
-     y *= y;
+  x *= x;
+  y *= y;
 
-     return(sqrt(x+y));
+  return(sqrt(x+y));
 
 }
 
-static float basered = 0.5, basegreen = 0.5, baseblue = 0.5;
+/* static float basered = 0.5, basegreen = 0.5, baseblue = 0.5; */
+#define MAX_STOCK_COLORS  35
 
 /*****************************************************************************/
 /* Function imodNewObject()                                                  */
@@ -362,138 +366,161 @@ static float basered = 0.5, basegreen = 0.5, baseblue = 0.5;
 /*****************************************************************************/
 int imodNewObject(struct Mod_Model *mod)
 {
-     Iobj *obj;
+  Iobj *obj;
+  int colorInd;
 
-     /* Default Colors for Objects */
-     float colors[13][3]  = { 
-	  0.0,  1.0,  0.0,   /* Green       */
-	  0.0,  1.0,  1.0,   /* Cyan        */
-	  1.0,  0.0,  1.0,   /* Magenta     */
-	  1.0,  1.0,  0.0,   /* Yellow      */
-	  0.0,  0.0,  1.0,   /* Blue        */
-	  1.0,  0.0,  0.0,   /* Red         */
+  /* Default Colors for Objects */
+  float colors[MAX_STOCK_COLORS][3]  = { 
+    0.0, 1.0, 0.0,   /* Green       */
+    0.0, 1.0, 1.0,   /* Cyan        */
+    1.0, 0.0, 1.0,   /* Magenta     */
+    1.0, 1.0, 0.0,   /* Yellow      */
+    0.0, 0.0, 1.0,   /* Blue        */
+    1.0, 0.0, 0.0,   /* Red         */
+    0.0, 1.0, 0.5,
+    0.2, 0.2, 0.8,
+    0.8, 0.2, 0.2,
+    0.9, 0.6, 0.4,
+    0.6, 0.4, 0.9,
+    0.1, 0.6, 0.4,
+    0.6, 0.1, 0.4,
+    0.2, 0.6, 0.8,
+    1.0, 0.5, 0.0,
+    0.4, 0.6, 0.1,
+    0.1, 0.1, 0.6,
+    0.9, 0.9, 0.4,
+    0.9, 0.4, 0.6,
+    0.4, 0.9, 0.9,
+    0.6, 0.2, 0.2,
+    0.2, 0.8, 0.6,
+    0.4, 0.6, 0.9,
+    0.1, 0.6, 0.1,
+    0.8, 0.5, 0.2,
+    1.0, 0.0, 0.5,
+    0.0, 0.5, 1.0,
+    0.6, 0.2, 0.8,
+    0.5, 1.0, 0.0,
+    0.1, 0.4, 0.6,
+    0.6, 0.4, 0.1,
+    0.8, 0.2, 0.6,
+    0.4, 0.1, 0.6,
+    0.2, 0.8, 0.2,
+    0.9, 0.4, 0.9
+  };
 
-	  0.9, 0.82, 0.37,   /* Dim Yellow  */
-	  0.54, 0.51, 0.01,  /* Olive Brown */
-	  0.94, 0.49, 0.0,   /* Orange      */
+  if (mod->objsize == 0)
+    obj = (struct Mod_Object *)malloc( sizeof(struct Mod_Object) );
+  else
+    obj = (struct Mod_Object *)realloc
+      (mod->obj, sizeof(struct Mod_Object) * (mod->objsize + 1));
 
-	  0.5,  1.0,  0.5,
-	  1.0,  0.5,  0.5,
-	  0.5,  0.5,  1.0
-	  
-     };
+  if (obj == NULL){
+    mod->cindex.object = -1;
+    mod->cindex.contour = -1;
+    mod->cindex.point = -1;
+    return(1);
+  }
 
-     if (mod->objsize == 0)
-	  obj = (struct Mod_Object *)malloc( sizeof(struct Mod_Object) );
-     else
-	  obj = (struct Mod_Object *)realloc(mod->obj, 
-			sizeof(struct Mod_Object) * (mod->objsize + 1));
-
-     if (obj == NULL){
-	  mod->cindex.object = -1;
-	  mod->cindex.contour = -1;
-	  mod->cindex.point = -1;
-     	  return(1);
-     }
-
-     ++mod->objsize;
-     mod->obj = obj;
-     imodObjectDefault(&(obj[mod->objsize - 1]));
+  ++mod->objsize;
+  mod->obj = obj;
+  imodObjectDefault(&(obj[mod->objsize - 1]));
      
-     if (mod->objsize < 12){
-	  obj[mod->objsize - 1].red      = colors [mod->objsize - 1] [0];
-	  obj[mod->objsize - 1].green    = colors [mod->objsize - 1] [1];
-	  obj[mod->objsize - 1].blue     = colors [mod->objsize - 1] [2];
-     }else{
+  /*  if (mod->objsize < 12){ */
 
-          /* DNM: Cycle through colors at different rates; base it on an
-	     initially fixed constant rather than on the last object */
-          basered += 0.27;
-          basegreen += 0.37;
-          baseblue += 0.63;
-	  if (basered > 1.0)
-	       basered -= 1.0;
-	  if (basegreen > 1.0)
-	       basegreen -= 1.0;
-	  if (baseblue > 1.0)
-	       baseblue -= 1.0;
+  colorInd = (mod->objsize - 1) % MAX_STOCK_COLORS;
+  obj[mod->objsize - 1].red      = colors[colorInd][0];
+  obj[mod->objsize - 1].green    = colors[colorInd][1];
+  obj[mod->objsize - 1].blue     = colors[colorInd][2];
+    /*  }else{ */
 
-	  obj[mod->objsize - 1].red      = basered;
-	  obj[mod->objsize - 1].green    = basegreen;
-	  obj[mod->objsize - 1].blue     = baseblue;
+    /* DNM: Cycle through colors at different rates; base it on an
+       initially fixed constant rather than on the last object */
+    /*    basered += 0.27;
+    basegreen += 0.37;
+    baseblue += 0.63;
+    if (basered > 1.0)
+      basered -= 1.0;
+    if (basegreen > 1.0)
+      basegreen -= 1.0;
+    if (baseblue > 1.0)
+      baseblue -= 1.0;
 
-     }
+    obj[mod->objsize - 1].red      = basered;
+    obj[mod->objsize - 1].green    = basegreen;
+    obj[mod->objsize - 1].blue     = baseblue;
+
+    } */
      
-     mod->cindex.object  = mod->objsize - 1;
-     mod->cindex.contour = -1;
-     mod->cindex.point   = -1;
+  mod->cindex.object  = mod->objsize - 1;
+  mod->cindex.contour = -1;
+  mod->cindex.point   = -1;
 
-     return(0);
+  return(0);
 }
 
 
 void   imodDeleteObject(Imod *imod, int index)
 {
-     imodFreeObject(imod, index);
+  imodFreeObject(imod, index);
 }
 
 int imodFreeObject(struct Mod_Model *mod, int index)
 {
 
-     int i;
-     struct Mod_Object *obj = NULL;
-     struct Mod_Object *tobj = NULL;
+  int i;
+  struct Mod_Object *obj = NULL;
+  struct Mod_Object *tobj = NULL;
      
-     obj = &(mod->obj[index]);
-     if (!obj)
-	  return(-1);
+  obj = &(mod->obj[index]);
+  if (!obj)
+    return(-1);
 
-     mod->cindex.object = index;
+  mod->cindex.object = index;
 
-     /* Delete all contours in object before we delete object. */
-     imodContoursDelete(obj->cont, obj->contsize);
+  /* Delete all contours in object before we delete object. */
+  imodContoursDelete(obj->cont, obj->contsize);
      
-     /* Copy objects above deleted object down one. */
-     if (index != mod->objsize - 1 )
-	  for (i = index; i < mod->objsize; i++){
-	       imodObjectCopy(&(mod->obj[i + 1]), &(mod->obj[i]));
-	  } 
+  /* Copy objects above deleted object down one. */
+  if (index != mod->objsize - 1 )
+    for (i = index; i < mod->objsize; i++){
+      imodObjectCopy(&(mod->obj[i + 1]), &(mod->obj[i]));
+    } 
 
-     if (mod->objsize > 1){
+  if (mod->objsize > 1){
 
-	  tobj = (Iobj *)realloc (mod->obj, mod->objsize * sizeof(Iobj));
-	  if (!tobj)
-	       return(-1);
-	  mod->obj = tobj;
-	  if (index)
-	       mod->cindex.object   = index - 1;
+    tobj = (Iobj *)realloc (mod->obj, mod->objsize * sizeof(Iobj));
+    if (!tobj)
+      return(-1);
+    mod->obj = tobj;
+    if (index)
+      mod->cindex.object   = index - 1;
 
-	  mod->objsize--;
-	  tobj = &(mod->obj[mod->cindex.object]);
+    mod->objsize--;
+    tobj = &(mod->obj[mod->cindex.object]);
 
-	  if (mod->cindex.contour >= mod->obj[mod->cindex.object].contsize)
-               mod->cindex.contour = mod->obj[mod->cindex.object].contsize - 1;
-	  
-	  if ((!tobj->contsize) || (tobj->cont == NULL)){
-	       mod->cindex.point = -1;
-	       mod->cindex.contour = -1;
-	  }
-	  else
-	  if (mod->cindex.point >= tobj->cont[mod->cindex.contour].psize)
-	       mod->cindex.point  = tobj->cont[mod->cindex.contour].psize  - 1;
+    if (mod->cindex.contour >= mod->obj[mod->cindex.object].contsize)
+      mod->cindex.contour = mod->obj[mod->cindex.object].contsize - 1;
+      
+    if ((!tobj->contsize) || (tobj->cont == NULL)){
+      mod->cindex.point = -1;
+      mod->cindex.contour = -1;
+    }
+    else
+      if (mod->cindex.point >= tobj->cont[mod->cindex.contour].psize)
+        mod->cindex.point  = tobj->cont[mod->cindex.contour].psize  - 1;
 
-     }
+  }
 
-     /* Delete last object in model */
-     else{
-	  free(mod->obj);
-	  mod->cindex.point  = -1;
-	  mod->cindex.contour = -1;
-	  mod->cindex.object = -1;
-	  mod->objsize = 0;
-	  
-     }
-     return(0);
+  /* Delete last object in model */
+  else{
+    free(mod->obj);
+    mod->cindex.point  = -1;
+    mod->cindex.contour = -1;
+    mod->cindex.object = -1;
+    mod->objsize = 0;
+      
+  }
+  return(0);
 }
 
 
@@ -503,33 +530,33 @@ int imodFreeObject(struct Mod_Model *mod, int index)
 /*****************************************************************************/
 int imodNextObject(Imod *imod)
 {
-     Iobj  *obj;
-     Icont *cont;
+  Iobj  *obj;
+  Icont *cont;
 
-     if ((imod == NULL) || (imod->objsize == 0))
-	  return(-1);
-     if (imod->cindex.object >= imod->objsize - 1)
-	  return(imod->cindex.object);
+  if ((imod == NULL) || (imod->objsize == 0))
+    return(-1);
+  if (imod->cindex.object >= imod->objsize - 1)
+    return(imod->cindex.object);
 
-     ++imod->cindex.object;
-     if (imod->cindex.object < 0) imod->cindex.object = 0;
-     obj = imodel_object_get(imod);
+  ++imod->cindex.object;
+  if (imod->cindex.object < 0) imod->cindex.object = 0;
+  obj = imodel_object_get(imod);
      
-     /* check for contour # out of bounds. */
-     if ( imod->cindex.contour >= obj->contsize)
-	  imod->cindex.contour = obj->contsize - 1;
-     cont = imodContourGet(imod);
+  /* check for contour # out of bounds. */
+  if ( imod->cindex.contour >= obj->contsize)
+    imod->cindex.contour = obj->contsize - 1;
+  cont = imodContourGet(imod);
 
-     /* check for point # out of bounds */
-     if ((imod->cindex.contour >= 0) && (cont)){
-	  if (imod->cindex.point >= cont->psize)
-	       imod->cindex.point = cont->psize - 1;
-	  if (cont->psize < 1)
-	       imod->cindex.point = -1;
-     }else
-	  imod->cindex.point = -1;
+  /* check for point # out of bounds */
+  if ((imod->cindex.contour >= 0) && (cont)){
+    if (imod->cindex.point >= cont->psize)
+      imod->cindex.point = cont->psize - 1;
+    if (cont->psize < 1)
+      imod->cindex.point = -1;
+  }else
+    imod->cindex.point = -1;
 
-     return(imod->cindex.object);
+  return(imod->cindex.object);
 }
 
 
@@ -539,34 +566,34 @@ int imodNextObject(Imod *imod)
 /*****************************************************************************/
 int imodPrevObject(struct Mod_Model *mod)
 {
-     struct Mod_Object *obj;
-     struct Mod_Contour *cont;
+  struct Mod_Object *obj;
+  struct Mod_Contour *cont;
 
-     if (mod == NULL)
-	  return(-1);
-     /* If no object selected or if object is # 0, leave index alone*/
-     if (mod->cindex.object <= 0)
-	  return(mod->cindex.object);
+  if (mod == NULL)
+    return(-1);
+  /* If no object selected or if object is # 0, leave index alone*/
+  if (mod->cindex.object <= 0)
+    return(mod->cindex.object);
 
-     if (mod->cindex.object > mod->objsize)
-	  mod->cindex.object = mod->objsize;
+  if (mod->cindex.object > mod->objsize)
+    mod->cindex.object = mod->objsize;
 
-     --mod->cindex.object;
-     obj = imodel_object_get(mod);
-     if ( mod->cindex.contour >= obj->contsize)
-	  mod->cindex.contour = obj->contsize - 1;
-     cont = (struct Mod_Contour *)imodContourGet(mod);
+  --mod->cindex.object;
+  obj = imodel_object_get(mod);
+  if ( mod->cindex.contour >= obj->contsize)
+    mod->cindex.contour = obj->contsize - 1;
+  cont = (struct Mod_Contour *)imodContourGet(mod);
 
-     /* check for point # out of bounds */
-     if ((mod->cindex.contour > -1) && (cont)){
-	  if (mod->cindex.point >= cont->psize)
-	       mod->cindex.point = cont->psize - 1;
-	  if (cont->psize < 1)
-	       mod->cindex.point = -1;
-     }else
-	  mod->cindex.point = -1;
+  /* check for point # out of bounds */
+  if ((mod->cindex.contour > -1) && (cont)){
+    if (mod->cindex.point >= cont->psize)
+      mod->cindex.point = cont->psize - 1;
+    if (cont->psize < 1)
+      mod->cindex.point = -1;
+  }else
+    mod->cindex.point = -1;
 
-     return(mod->cindex.object);
+  return(mod->cindex.object);
 }
 
 
@@ -575,210 +602,210 @@ int imodPrevObject(struct Mod_Model *mod)
 /*****************************************************************************/
 int imodNewContour(Imod *imod)
 {
-     return(NewContour(imod));
+  return(NewContour(imod));
 }
 
 int NewContour(struct Mod_Model *mod)
 {
-     struct Mod_Object *obj;
-     struct Mod_Contour *cont, *ocont;
+  struct Mod_Object *obj;
+  struct Mod_Contour *cont, *ocont;
 
-     obj = imodel_object_get(mod);
+  obj = imodel_object_get(mod);
 
-     if (obj == NULL)
-	  return(-1);
+  if (obj == NULL)
+    return(-1);
 
-     /* Allocate Memory for new contour. */
-     if (obj->contsize == 0)
-	  cont = (struct Mod_Contour *)
-	       malloc(sizeof(struct Mod_Contour));
-     else
-	  cont = (struct Mod_Contour *)
-	       realloc(obj->cont,
-		       sizeof(struct Mod_Contour) * (obj->contsize + 1));
+  /* Allocate Memory for new contour. */
+  if (obj->contsize == 0)
+    cont = (struct Mod_Contour *)
+      malloc(sizeof(struct Mod_Contour));
+  else
+    cont = (struct Mod_Contour *)
+      realloc(obj->cont,
+              sizeof(struct Mod_Contour) * (obj->contsize + 1));
 
-     if (cont == NULL){
-	  fprintf(stderr,
-		  "IMOD: NewContour memory Error, "
-		  "Suggest you save and restart.");
-	  return(-1);
-     }
+  if (cont == NULL){
+    fprintf(stderr,
+            "IMOD: NewContour memory Error, "
+            "Suggest you save and restart.");
+    return(-1);
+  }
 
-     /* Update object. */
-     ++obj->contsize;
-     obj->cont = cont;
+  /* Update object. */
+  ++obj->contsize;
+  obj->cont = cont;
 
-     cont = &(obj->cont[obj->contsize -1]);
+  cont = &(obj->cont[obj->contsize -1]);
 
-     /* Default values for new contour */     
-     cont->pts = NULL;
-     cont->psize = 0;
-     cont->flags = 0;
-     cont->type = 0;
-     cont->surf = 0;
-     cont->label = NULL;
-     cont->sizes = NULL;
+  /* Default values for new contour */     
+  cont->pts = NULL;
+  cont->psize = 0;
+  cont->flags = 0;
+  cont->type = 0;
+  cont->surf = 0;
+  cont->label = NULL;
+  cont->sizes = NULL;
 
-     /* Reset current index. */
-     ocont = imodContourGet(mod);
-     if (ocont) {
-	  cont->surf = ocont->surf;
-	  /* DNM 10/24/01: inherent the open flag from previous contour */
-	  if (ocont->flags & ICONT_OPEN)
-	       cont->flags = ICONT_OPEN;
-     }
-     mod->cindex.contour = obj->contsize - 1;
-     mod->cindex.point = -1;
+  /* Reset current index. */
+  ocont = imodContourGet(mod);
+  if (ocont) {
+    cont->surf = ocont->surf;
+    /* DNM 10/24/01: inherent the open flag from previous contour */
+    if (ocont->flags & ICONT_OPEN)
+      cont->flags = ICONT_OPEN;
+  }
+  mod->cindex.contour = obj->contsize - 1;
+  mod->cindex.point = -1;
 
-     return(0);
+  return(0);
 }
 
 
 void imodDeleteContour(Imod *imod)
 {
-     DelContour(imod, imod->cindex.contour);
-     return;
+  DelContour(imod, imod->cindex.contour);
+  return;
 }
 
 int DelContour(struct Mod_Model *mod, int index)
 {
-     struct Mod_Object *obj;
-     int i;
+  struct Mod_Object *obj;
+  int i;
      
 
-     obj = imodel_object_get(mod);
-     if (!obj)
-       return(0);
+  obj = imodel_object_get(mod);
+  if (!obj)
+    return(0);
 
 
-     /* If contour has any points, free them. */
-     /* DNM: this was &(obj->cont[index].pts) but that seems wrong! */
-     if ((  obj->cont[index].pts != NULL) && (obj->cont[index].psize))
-	  free( obj->cont[index].pts );
+  /* If contour has any points, free them. */
+  /* DNM: this was &(obj->cont[index].pts) but that seems wrong! */
+  if ((  obj->cont[index].pts != NULL) && (obj->cont[index].psize))
+    free( obj->cont[index].pts );
 
-     if (obj->cont[index].sizes)
-	  free (obj->cont[index].sizes);
+  if (obj->cont[index].sizes)
+    free (obj->cont[index].sizes);
 
-     /* DNM: need to delete labels if any */
-     imodLabelDelete(obj->cont[index].label);
+  /* DNM: need to delete labels if any */
+  imodLabelDelete(obj->cont[index].label);
      
-     /* Push extra contours into hole */
-     if (index != obj->contsize - 1)
-	  for(i = index; i < (obj->contsize - 1); i++){
-	       imodContourCopy(&(obj->cont[i + 1]), &(obj->cont[i]));
-	  }
+  /* Push extra contours into hole */
+  if (index != obj->contsize - 1)
+    for(i = index; i < (obj->contsize - 1); i++){
+      imodContourCopy(&(obj->cont[i + 1]), &(obj->cont[i]));
+    }
 
-     /* Change contour array to new size */
-     if (obj->contsize > 1){
-	  obj->contsize--;
-	  obj->cont = (struct Mod_Contour *)
-	       realloc(obj->cont, obj->contsize * sizeof(struct Mod_Contour));
+  /* Change contour array to new size */
+  if (obj->contsize > 1){
+    obj->contsize--;
+    obj->cont = (struct Mod_Contour *)
+      realloc(obj->cont, obj->contsize * sizeof(struct Mod_Contour));
      
-	  if (obj->contsize >= mod->cindex.contour)
-	       mod->cindex.contour = obj->contsize - 1;
+    if (obj->contsize >= mod->cindex.contour)
+      mod->cindex.contour = obj->contsize - 1;
 
-	  if (obj->cont[mod->cindex.contour].psize >= mod->cindex.point)
-	       mod->cindex.point= obj->cont[mod->cindex.contour].psize - 1;
-	  
-     }else{
-	  free(obj->cont);
-	  obj->cont = NULL;
-	  obj->contsize = 0;
+    if (obj->cont[mod->cindex.contour].psize >= mod->cindex.point)
+      mod->cindex.point= obj->cont[mod->cindex.contour].psize - 1;
+      
+  }else{
+    free(obj->cont);
+    obj->cont = NULL;
+    obj->contsize = 0;
 
-     }
+  }
 
-     mod->cindex.contour = -1;
-     mod->cindex.point   = -1;
-     return(obj->contsize);
+  mod->cindex.contour = -1;
+  mod->cindex.point   = -1;
+  return(obj->contsize);
 
 }
 
 int imodPrevContour(Imod *imod)
 {
-    return(PrevContour(imod));
+  return(PrevContour(imod));
 }
 
 int PrevContour(struct Mod_Model *mod)
 {
-     struct Mod_Object *obj;
+  struct Mod_Object *obj;
 
-     if (mod == NULL)
-	  return(-1);
+  if (mod == NULL)
+    return(-1);
 
-     /* no object selected. */
-     if (mod->cindex.object < 0){
-	  mod->cindex.contour = -1;
-	  return(-1);
-     }
-     obj = &(mod->obj[mod->cindex.object]);
-     if (!obj){
-	  mod->cindex.contour = -1;
-	  return(-1);
-     }
+  /* no object selected. */
+  if (mod->cindex.object < 0){
+    mod->cindex.contour = -1;
+    return(-1);
+  }
+  obj = &(mod->obj[mod->cindex.object]);
+  if (!obj){
+    mod->cindex.contour = -1;
+    return(-1);
+  }
 
-     /* If object has no contours, return. */
-     if (!obj->contsize)
-	  return(-1);
+  /* If object has no contours, return. */
+  if (!obj->contsize)
+    return(-1);
 
-     /* if no contour or first contour selected exit. */
-     if (mod->cindex.contour == 0)
-	  return(mod->cindex.contour);
-     if (mod->cindex.contour < 0)
-	  mod->cindex.contour = obj->contsize - 1;
-     else
-	  /* move index to previous contour */
-	  mod->cindex.contour--;
+  /* if no contour or first contour selected exit. */
+  if (mod->cindex.contour == 0)
+    return(mod->cindex.contour);
+  if (mod->cindex.contour < 0)
+    mod->cindex.contour = obj->contsize - 1;
+  else
+    /* move index to previous contour */
+    mod->cindex.contour--;
 
-     /* if point index is to high change it. */
-     if (mod->cindex.point > obj->cont[mod->cindex.contour].psize - 1)
-	  mod->cindex.point = obj->cont[mod->cindex.contour].psize - 1;
+  /* if point index is to high change it. */
+  if (mod->cindex.point > obj->cont[mod->cindex.contour].psize - 1)
+    mod->cindex.point = obj->cont[mod->cindex.contour].psize - 1;
 
-     return(mod->cindex.contour);
+  return(mod->cindex.contour);
 }
 
 int   imodNextContour(Imod *imod)
 {
-    return(NextContour(imod));
+  return(NextContour(imod));
 }
 
 int NextContour(Imod *imod)
 {
-     Iobj *obj;
+  Iobj *obj;
 
-     if (imod == NULL)
-	  return(-1);
+  if (imod == NULL)
+    return(-1);
 
-     /* if no object selected, forget it. */
-     if (imod->cindex.object < 0)
-	  return(-1);
+  /* if no object selected, forget it. */
+  if (imod->cindex.object < 0)
+    return(-1);
 
-     /* Selected Object. */
-     obj = &(imod->obj[imod->cindex.object]);
+  /* Selected Object. */
+  obj = &(imod->obj[imod->cindex.object]);
 
-     /* If object has no contours, return. */
-     if (!obj->contsize)
-	  return(-1);
+  /* If object has no contours, return. */
+  if (!obj->contsize)
+    return(-1);
 
-     /* if contour is last one, return */
-     if (imod->cindex.contour == obj->contsize - 1)
-	  return(imod->cindex.contour);
+  /* if contour is last one, return */
+  if (imod->cindex.contour == obj->contsize - 1)
+    return(imod->cindex.contour);
 
 
-     /* if no contour selected, select the first one */
-     if (imod->cindex.contour < 0){
-	  imod->cindex.contour = 0;
-	  if (imod->cindex.point >= obj->cont[0].psize)
-	       imod->cindex.point = obj->cont[0].psize - 1;
-	  return(imod->cindex.contour);
-     }
+  /* if no contour selected, select the first one */
+  if (imod->cindex.contour < 0){
+    imod->cindex.contour = 0;
+    if (imod->cindex.point >= obj->cont[0].psize)
+      imod->cindex.point = obj->cont[0].psize - 1;
+    return(imod->cindex.contour);
+  }
      
-     imod->cindex.contour++;
+  imod->cindex.contour++;
 
-     /* if point index is to high change it. */
-     if (imod->cindex.point >= obj->cont[imod->cindex.contour].psize)
-	  imod->cindex.point = obj->cont[imod->cindex.contour].psize - 1;
+  /* if point index is to high change it. */
+  if (imod->cindex.point >= obj->cont[imod->cindex.contour].psize)
+    imod->cindex.point = obj->cont[imod->cindex.contour].psize - 1;
 
-     return(obj->contsize);
+  return(obj->contsize);
 }
      
 
@@ -792,19 +819,19 @@ int NextContour(Imod *imod)
 
 int NewPoint(struct Mod_Model *mod, struct Mod_Point *pt)
 {
-     return(imodNewPoint(mod,pt));
+  return(imodNewPoint(mod,pt));
 }
  
 int imodNewPoint(Imod *imod, Ipoint *pt)
 {
-     struct Mod_Contour *cont;
-     struct Mod_Point *tpts;
-     long size;
+  struct Mod_Contour *cont;
+  struct Mod_Point *tpts;
+  long size;
 
-     cont = imodContourGet(imod);
-     if (!cont) return(0);
-     imod->cindex.point++;
-     return(imodPointAppend(cont, pt));
+  cont = imodContourGet(imod);
+  if (!cont) return(0);
+  imod->cindex.point++;
+  return(imodPointAppend(cont, pt));
 }
 
 
@@ -815,28 +842,28 @@ int imodNewPoint(Imod *imod, Ipoint *pt)
 /*****************************************************************************/
 int InsertPoint(struct Mod_Model *mod, struct Mod_Point *pt, int index)
 {
-    return(imodInsertPoint(mod, pt, index));
+  return(imodInsertPoint(mod, pt, index));
 }
 
 int imodInsertPoint(Imod *imod, Ipoint *point, int index)
 {
-    Icont *cont;
-    int retval;
+  Icont *cont;
+  int retval;
 
-    if (!imod)  return 0;
-    if (!point) return 0;
-    cont = imodContourGet(imod);
-    if (!cont)  return(0);
+  if (!imod)  return 0;
+  if (!point) return 0;
+  cont = imodContourGet(imod);
+  if (!cont)  return(0);
     
-    if (index < 0)
-	 index = 0;
-    if (index >= cont->psize)
-	index = cont->psize - 1;
+  if (index < 0)
+    index = 0;
+  if (index >= cont->psize)
+    index = cont->psize - 1;
 
-    retval = imodPointAdd(cont, point, index);
+  retval = imodPointAdd(cont, point, index);
 
-    imod->cindex.point = index;
-    return retval;
+  imod->cindex.point = index;
+  return retval;
 }
      
 
@@ -849,182 +876,182 @@ int imodInsertPoint(Imod *imod, Ipoint *point, int index)
 
 int DelPoint(struct Mod_Model *mod)
 {
-    return(imodDeletePoint(mod));
+  return(imodDeletePoint(mod));
 }
 
 int imodDeletePoint(Imod *imod)
 {
-    Icont *cont;
-    int    index, size;
+  Icont *cont;
+  int    index, size;
 
 
-     cont = imodContourGet(imod);
-     if (!cont) return(0);
+  cont = imodContourGet(imod);
+  if (!cont) return(0);
 
-     if (imod->cindex.point < 0)
-	  return(0);
+  if (imod->cindex.point < 0)
+    return(0);
 
-     if (cont->psize == 1){
-	  DelContour(imod, imod->cindex.contour);
-	  return(0);
-     }
+  if (cont->psize == 1){
+    DelContour(imod, imod->cindex.contour);
+    return(0);
+  }
 
-     size = cont->psize;
-     index = imod->cindex.point;
+  size = cont->psize;
+  index = imod->cindex.point;
 
-     if (size == 1){
-	  if (cont->pts)
-	       free (cont->pts);
-	  imod->cindex.point = -1;
-	  return(0);
-     }
+  if (size == 1){
+    if (cont->pts)
+      free (cont->pts);
+    imod->cindex.point = -1;
+    return(0);
+  }
 
-    if (index)
-	 imod->cindex.point = index - 1;
-    return(imodPointDelete(cont, index));
+  if (index)
+    imod->cindex.point = index - 1;
+  return(imodPointDelete(cont, index));
 
 }
 
 int   imodPrevPoint(Imod *imod){ 
-    return(PrevPoint(imod)); 
+  return(PrevPoint(imod)); 
 }
 int PrevPoint(struct Mod_Model *mod)
 {
-     if (mod == NULL)
-	  return(-1);
+  if (mod == NULL)
+    return(-1);
      
-     if (mod->cindex.object < 0)
-	  return(-1);
+  if (mod->cindex.object < 0)
+    return(-1);
      
-     if (mod->cindex.contour < 0)
-	  return(-1);
+  if (mod->cindex.contour < 0)
+    return(-1);
 
-     if (mod->cindex.point <= 0)
-	  return(mod->cindex.point);
+  if (mod->cindex.point <= 0)
+    return(mod->cindex.point);
 
-     mod->cindex.point--;
+  mod->cindex.point--;
 
-     return(mod->cindex.point);
+  return(mod->cindex.point);
 }
 
 int   imodNextPoint(Imod *imod){ 
-    return(NextPoint(imod));
+  return(NextPoint(imod));
 }
 
 int NextPoint(struct Mod_Model *mod)
 {
 
-     struct Mod_Contour *cont = NULL;
+  struct Mod_Contour *cont = NULL;
 
-     cont = imodContourGet(mod);
+  cont = imodContourGet(mod);
 
-     if (cont == NULL)
-	  return(0);
+  if (cont == NULL)
+    return(0);
 
-     mod->cindex.point++;
+  mod->cindex.point++;
    
-     if ( mod->cindex.point >= cont->psize)
-	  mod->cindex.point = cont->psize - 1;
+  if ( mod->cindex.point >= cont->psize)
+    mod->cindex.point = cont->psize - 1;
 
-     return(mod->cindex.point);
+  return(mod->cindex.point);
 }
 
 int imodTransform(Imod *imod, Imat *mat)
 {
-     Iobj  *obj;
-     Icont *cont;
-     Ipoint pnt;
-     int ob, co, pt;
+  Iobj  *obj;
+  Icont *cont;
+  Ipoint pnt;
+  int ob, co, pt;
      
-     if ((!imod) || (!mat)) return -1;
-     for(ob = 0; ob < imod->objsize; ob++){
-	  obj = &(imod->obj[ob]);
-	  for(co = 0; co < obj->contsize; co++){
-	       cont = &(obj->cont[co]);
-	       for(pt = 0; pt < cont->psize; pt++){
-		    imodMatTransform(mat, &cont->pts[pt], &pnt);
-		    cont->pts[pt] = pnt;
-	       }
-	  }
-     }
-     return(0);
+  if ((!imod) || (!mat)) return -1;
+  for(ob = 0; ob < imod->objsize; ob++){
+    obj = &(imod->obj[ob]);
+    for(co = 0; co < obj->contsize; co++){
+      cont = &(obj->cont[co]);
+      for(pt = 0; pt < cont->psize; pt++){
+        imodMatTransform(mat, &cont->pts[pt], &pnt);
+        cont->pts[pt] = pnt;
+      }
+    }
+  }
+  return(0);
 }
 
 
 int imodel_transform(struct Mod_Transform *tr)
 {
-     double cosx, cosy, cosz;
-     double sinx, siny, sinz;
-     float x, y, z;
-     double rad = 0.017453293;
+  double cosx, cosy, cosz;
+  double sinx, siny, sinz;
+  float x, y, z;
+  double rad = 0.017453293;
 
-     sinx = sin(tr->xrot * rad);
-     siny = sin(tr->yrot * rad);
-     sinz = sin(tr->zrot * rad);
-     cosx = cos(tr->xrot * rad);
-     cosy = cos(tr->yrot * rad);
-     cosz = cos(tr->zrot * rad);
+  sinx = sin(tr->xrot * rad);
+  siny = sin(tr->yrot * rad);
+  sinz = sin(tr->zrot * rad);
+  cosx = cos(tr->xrot * rad);
+  cosy = cos(tr->yrot * rad);
+  cosz = cos(tr->zrot * rad);
 
-     /* translate */
-     x = tr->x + tr->xtrans;
-     y = tr->y + tr->ytrans;
-     z = tr->z + tr->ztrans;
+  /* translate */
+  x = tr->x + tr->xtrans;
+  y = tr->y + tr->ytrans;
+  z = tr->z + tr->ztrans;
      
-     /* scale */
-     x *= tr->xscale;
-     y *= tr->yscale;
-     z *= tr->zscale;
+  /* scale */
+  x *= tr->xscale;
+  y *= tr->yscale;
+  z *= tr->zscale;
 
-     /* rotate x */
-     tr->xout = x;
-     tr->yout = (y * cosx) - (z * sinx);
-     tr->zout = (y * sinx) + (z * cosx);
-     x = tr->xout;
-     y = tr->yout;
-     z = tr->zout;
+  /* rotate x */
+  tr->xout = x;
+  tr->yout = (y * cosx) - (z * sinx);
+  tr->zout = (y * sinx) + (z * cosx);
+  x = tr->xout;
+  y = tr->yout;
+  z = tr->zout;
 
-     /* rotate y */
-     tr->xout = (x * cosy) + (z * siny);
-     tr->yout = y;
-     tr->zout = (z * cosy) - (x * siny);
-     x = tr->xout;
-     y = tr->yout;
-     z = tr->zout;
+  /* rotate y */
+  tr->xout = (x * cosy) + (z * siny);
+  tr->yout = y;
+  tr->zout = (z * cosy) - (x * siny);
+  x = tr->xout;
+  y = tr->yout;
+  z = tr->zout;
 
-     /* rotate z */
-     tr->xout = (x * cosz) - (y * sinz);
-     tr->yout = (x * sinz) + (y * cosz);
-     tr->zout = z;
+  /* rotate z */
+  tr->xout = (x * cosz) - (y * sinz);
+  tr->yout = (x * sinz) + (y * cosz);
+  tr->zout = z;
      
-     return(0);
+  return(0);
 }
 
 int imodel_transform_slice(struct Mod_Model *model, float *mat, int slice)
 {
-     int ob, co, pt;
-     struct Mod_Object *obj;
-     struct Mod_Contour *cont;
-     int zval;
-     float x, y;
+  int ob, co, pt;
+  struct Mod_Object *obj;
+  struct Mod_Contour *cont;
+  int zval;
+  float x, y;
      
-     for(ob = 0; ob < model->objsize; ob++){
-	  obj = &(model->obj[ob]);
-	  for(co = 0; co < obj->contsize; co++){
-	       cont = &(obj->cont[co]);
-	       for(pt = 0; pt < cont->psize; pt++){
-		    zval = (cont->pts[pt].z + 0.5f);
-		    if (zval == slice){
-			 x = cont->pts[pt].x;
-			 y = cont->pts[pt].y;
-			 cont->pts[pt].x =
-			      (x * mat[0]) + (y * mat[3]) + mat[6];
-			 cont->pts[pt].y =
-			      (x * mat[1]) + (y * mat[4]) + mat[7];
-		    }
-	       }
-	  }
-     }
-     return(0);
+  for(ob = 0; ob < model->objsize; ob++){
+    obj = &(model->obj[ob]);
+    for(co = 0; co < obj->contsize; co++){
+      cont = &(obj->cont[co]);
+      for(pt = 0; pt < cont->psize; pt++){
+        zval = (cont->pts[pt].z + 0.5f);
+        if (zval == slice){
+          x = cont->pts[pt].x;
+          y = cont->pts[pt].y;
+          cont->pts[pt].x =
+            (x * mat[0]) + (y * mat[3]) + mat[6];
+          cont->pts[pt].y =
+            (x * mat[1]) + (y * mat[4]) + mat[7];
+        }
+      }
+    }
+  }
+  return(0);
 }
 
 /*****************************************************************************/
@@ -1034,294 +1061,294 @@ int imodel_transform_slice(struct Mod_Model *model, float *mat, int slice)
  */
 int imodel_lock(struct Mod_Model *mod, int flag)
 {
-     if (mod->lock){
-	  if (flag)
-	       return(0);
+  if (mod->lock){
+    if (flag)
+      return(0);
 
 #ifdef __sgi__oldlock
-	  else
-	       /* wait for data to become available. */
-	       /* To do: wait for signal instead of polling. */
+    else
+      /* wait for data to become available. */
+      /* To do: wait for signal instead of polling. */
 
-	       while (mod->lock)
-		    sginap(1);
+      while (mod->lock)
+        sginap(1);
 #endif
-     }
+  }
      
-     mod->lock = TRUE;
-     return(1);
+  mod->lock = TRUE;
+  return(1);
 }
 
 /* Unlock data after locking. */
 int imodel_unlock(struct Mod_Model *mod)
 {
-     mod->lock = FALSE;
-     return(0);
+  mod->lock = FALSE;
+  return(0);
 }
 
 
 
 int imodel_model_clean(struct Mod_Model *mod, int keepEmptyObjs)
 {
-     int ob, co, pt;
-     struct Mod_Object *obj;
-     struct Mod_Contour *cont;
+  int ob, co, pt;
+  struct Mod_Object *obj;
+  struct Mod_Contour *cont;
 
-     /* push all points inside of boundries. */
-     for(ob = 0 ; ob < mod->objsize; ob++){
-	  obj = &(mod->obj[ob]);
-/*	  printf("ob = %d, size = %d\n", ob, mod->objsize); */
-	  if (!obj->contsize && !keepEmptyObjs){
-	       mod->cindex.object = ob;
-	       imodFreeObject(mod, ob);
-	       ob--;
-	       continue;
-	  }
-	       
-	  for(co = 0; co < obj->contsize; co++){
-	       cont = &(obj->cont[co]);
-/*	       printf("ob %d: co = %d, size = %d\n", ob, co, obj->contsize); */
-	       if(!cont->psize){
-		    mod->cindex.object = ob;
-		    mod->cindex.contour = co;
-		    DelContour(mod, co);
-		    co--;
-		    continue;
-	       }
-	       for(pt = 0; pt < cont->psize; pt++){
-		    
-		    if (cont->pts[pt].x > mod->xmax)
-			 cont->pts[pt].x = mod->xmax;
-		    if (cont->pts[pt].y > mod->ymax)
-			 cont->pts[pt].y = mod->ymax;
-		    if (mod->zmax)
-			if (cont->pts[pt].z > mod->zmax)
-			    cont->pts[pt].z = mod->zmax;
+  /* push all points inside of boundries. */
+  for(ob = 0 ; ob < mod->objsize; ob++){
+    obj = &(mod->obj[ob]);
+    /*    printf("ob = %d, size = %d\n", ob, mod->objsize); */
+    if (!obj->contsize && !keepEmptyObjs){
+      mod->cindex.object = ob;
+      imodFreeObject(mod, ob);
+      ob--;
+      continue;
+    }
+           
+    for(co = 0; co < obj->contsize; co++){
+      cont = &(obj->cont[co]);
+      /*         printf("ob %d: co = %d, size = %d\n", ob, co, obj->contsize); */
+      if(!cont->psize){
+        mod->cindex.object = ob;
+        mod->cindex.contour = co;
+        DelContour(mod, co);
+        co--;
+        continue;
+      }
+      for(pt = 0; pt < cont->psize; pt++){
+            
+        if (cont->pts[pt].x > mod->xmax)
+          cont->pts[pt].x = mod->xmax;
+        if (cont->pts[pt].y > mod->ymax)
+          cont->pts[pt].y = mod->ymax;
+        if (mod->zmax)
+          if (cont->pts[pt].z > mod->zmax)
+            cont->pts[pt].z = mod->zmax;
 
-		    if (!( (obj->flags & IMOD_OBJFLAG_OPEN)
-			|| (obj->flags & IMOD_OBJFLAG_WILD)
-			|| (obj->flags & IMOD_OBJFLAG_SCAT)))
-			 cont->pts[pt].z = cont->pts[0].z;
-	       }
-	  }
-     }
-     return(0);
+        if (!( (obj->flags & IMOD_OBJFLAG_OPEN)
+               || (obj->flags & IMOD_OBJFLAG_WILD)
+               || (obj->flags & IMOD_OBJFLAG_SCAT)))
+          cont->pts[pt].z = cont->pts[0].z;
+      }
+    }
+  }
+  return(0);
 }
 
 
 char *imodUnits(Imod *mod)
 {
-     int units = mod->units;
-     char *retval = NULL;
+  int units = mod->units;
+  char *retval = NULL;
 
-     switch(units){
-	case IMOD_UNIT_PIXEL:
-	  retval ="pixels";
-	  break;
-	case IMOD_UNIT_KILO:
-	  retval = "km";
-	  break;
-	case IMOD_UNIT_METER:
-	  retval = "m";
-	  break;
-	case IMOD_UNIT_CM:
-	  retval = "cm";
-	  break;
-	case IMOD_UNIT_MM:
-	  retval = "mm";
-	  break;
-	case IMOD_UNIT_UM:
-	  retval = "um";
-	  break;
-	case IMOD_UNIT_NM:
-	  retval = "nm";
-	  break;
-	case IMOD_UNIT_ANGSTROM:
-	  retval = "A";
-	  break;
-	case IMOD_UNIT_PM:
-	  retval = "pm";
-	  break;
-	default:
-	  retval = "unknown units";
-	  break;
-     }
-     return(retval);
+  switch(units){
+  case IMOD_UNIT_PIXEL:
+    retval ="pixels";
+    break;
+  case IMOD_UNIT_KILO:
+    retval = "km";
+    break;
+  case IMOD_UNIT_METER:
+    retval = "m";
+    break;
+  case IMOD_UNIT_CM:
+    retval = "cm";
+    break;
+  case IMOD_UNIT_MM:
+    retval = "mm";
+    break;
+  case IMOD_UNIT_UM:
+    retval = "um";
+    break;
+  case IMOD_UNIT_NM:
+    retval = "nm";
+    break;
+  case IMOD_UNIT_ANGSTROM:
+    retval = "A";
+    break;
+  case IMOD_UNIT_PM:
+    retval = "pm";
+    break;
+  default:
+    retval = "unknown units";
+    break;
+  }
+  return(retval);
 }
 
 /*
-int imod_obj_nearest\(Iobj *obj, Iindex *ind, Ipoint *pt)
-{
-     return(0);
-}
-Ipoint *imodNearestPoint(Imod *imod, Ipoint *pt)
-{
-     Ipoint *spnt = NULL;
-     Iindex index;
-     int i;
-     int distance = -1;
-     int temp_distance;
+  int imod_obj_nearest\(Iobj *obj, Iindex *ind, Ipoint *pt)
+  {
+  return(0);
+  }
+  Ipoint *imodNearestPoint(Imod *imod, Ipoint *pt)
+  {
+  Ipoint *spnt = NULL;
+  Iindex index;
+  int i;
+  int distance = -1;
+  int temp_distance;
 
-     if ((!imod)||(!pt)) return(NULL);
+  if ((!imod)||(!pt)) return(NULL);
 
-     for (i = 0; i < imod->objsize; i++){
-	  index.object = i;
-	  temp_distance = imod_obj_nearest
-	       (&(imod->obj[i]), &index , pt);
-	  if (temp_distance == -1)
-	       continue;
-	  if (distance == -1){
-	       distance      = temp_distance;
-	       imod->cindex.object  = index.object;
-	       imod->cindex.contour = index.contour;
-	       imod->cindex.point   = index.point;
-	       spnt = imodPointGet(imod);
-	  }
-	  if (distance > temp_distance){
-	       distance      = temp_distance;
-	       imod->cindex.object  = index.object;
-	       imod->cindex.contour = index.contour;
-	       imod->cindex.point  = index.point;
-	       spnt = imodPointGet(imod);
-	  }
-     }
-     return(spnt);
-}
+  for (i = 0; i < imod->objsize; i++){
+  index.object = i;
+  temp_distance = imod_obj_nearest
+  (&(imod->obj[i]), &index , pt);
+  if (temp_distance == -1)
+  continue;
+  if (distance == -1){
+  distance      = temp_distance;
+  imod->cindex.object  = index.object;
+  imod->cindex.contour = index.contour;
+  imod->cindex.point   = index.point;
+  spnt = imodPointGet(imod);
+  }
+  if (distance > temp_distance){
+  distance      = temp_distance;
+  imod->cindex.object  = index.object;
+  imod->cindex.contour = index.contour;
+  imod->cindex.point  = index.point;
+  spnt = imodPointGet(imod);
+  }
+  }
+  return(spnt);
+  }
 
 */
 
 int imodGetMaxTime(Imod *imod)
 {
-    int maxtime = 0;
-    int ob,co;
-    Iobj *obj;
-    if (!imod)
-	return maxtime;
-    for(ob = 0; ob < imod->objsize; ob++){
-	obj= &imod->obj[ob];
-	for(co = 0; co < obj->contsize; co++){
-	    if (obj->cont[co].type > maxtime)
-		maxtime = obj->cont[co].type;
-	}
-    }
+  int maxtime = 0;
+  int ob,co;
+  Iobj *obj;
+  if (!imod)
     return maxtime;
+  for(ob = 0; ob < imod->objsize; ob++){
+    obj= &imod->obj[ob];
+    for(co = 0; co < obj->contsize; co++){
+      if (obj->cont[co].type > maxtime)
+        maxtime = obj->cont[co].type;
+    }
+  }
+  return maxtime;
 }
 
 long imodChecksum(Imod *imod)
 {
-     int ob, co, pt;
-     Iobj *obj;
-     Icont *cont;
-     long sum = 0;
-     long osum, psum;
+  int ob, co, pt;
+  Iobj *obj;
+  Icont *cont;
+  long sum = 0;
+  long osum, psum;
 
-     sum += imod->zscale;
-     sum += imod->pixsize;
-     sum += imod->objsize;
-     sum += imod->blacklevel;
-     sum += imod->whitelevel;
-     sum += imod->res;
-     sum += imod->thresh;
-     sum += imod->units;
+  sum += imod->zscale;
+  sum += imod->pixsize;
+  sum += imod->objsize;
+  sum += imod->blacklevel;
+  sum += imod->whitelevel;
+  sum += imod->res;
+  sum += imod->thresh;
+  sum += imod->units;
 
-     /* DNM: add # of contours, # of points, and point sizes */
+  /* DNM: add # of contours, # of points, and point sizes */
 
-     for(ob = 0; ob < imod->objsize; ob++){
-	  osum = ob;
-	  psum = 0;
-	  obj = &(imod->obj[ob]);
-	  osum += obj->red + obj->green + obj->blue;
-	  osum += obj->flags;
-	  osum += obj->pdrawsize;
-	  osum += obj->symbol;
-	  osum += obj->symsize;
-	  osum += obj->linewidth2;
-	  osum += obj->linewidth;
-	  osum += obj->symflags;
-	  osum += obj->trans;	  
-	  osum += obj->contsize;	  
-	  for(co = 0; co < obj->contsize; co++){
-	       cont = &(obj->cont[co]);
-	       psum += cont->surf;
-	       psum += cont->psize;
-	       for(pt = 0; pt < cont->psize; pt++){
-		    psum += cont->pts[pt].x;
-		    psum += cont->pts[pt].y;
-		    psum += cont->pts[pt].z;
-	       }
-	       if (cont->sizes)
-		    for(pt = 0; pt < cont->psize; pt++)
-			 psum += cont->sizes[pt];
-	  }
-	  /* DNM: switch to adding up everything and  reducing when it gets
-	   very big */
-	  sum += osum + psum;
-	  if (sum > 1000000000) 
-	       sum -= 1000000000;
-     }
-     return(sum);
+  for(ob = 0; ob < imod->objsize; ob++){
+    osum = ob;
+    psum = 0;
+    obj = &(imod->obj[ob]);
+    osum += obj->red + obj->green + obj->blue;
+    osum += obj->flags;
+    osum += obj->pdrawsize;
+    osum += obj->symbol;
+    osum += obj->symsize;
+    osum += obj->linewidth2;
+    osum += obj->linewidth;
+    osum += obj->symflags;
+    osum += obj->trans;     
+    osum += obj->contsize;      
+    for(co = 0; co < obj->contsize; co++){
+      cont = &(obj->cont[co]);
+      psum += cont->surf;
+      psum += cont->psize;
+      for(pt = 0; pt < cont->psize; pt++){
+        psum += cont->pts[pt].x;
+        psum += cont->pts[pt].y;
+        psum += cont->pts[pt].z;
+      }
+      if (cont->sizes)
+        for(pt = 0; pt < cont->psize; pt++)
+          psum += cont->sizes[pt];
+    }
+    /* DNM: switch to adding up everything and  reducing when it gets
+       very big */
+    sum += osum + psum;
+    if (sum > 1000000000) 
+      sum -= 1000000000;
+  }
+  return(sum);
 }
 
 /* clean model file due to dirty surface info */
 void imodCleanSurf(Imod *imod)
 {
-     Iobj *obj;
-     Icont *cont;
-     int ob, co, maxsurf;
+  Iobj *obj;
+  Icont *cont;
+  int ob, co, maxsurf;
      
-     for (ob = 0; ob < imod->objsize; ob++){
-	  obj = &(imod->obj[ob]);
-	  maxsurf = 0;
-	  for(co = 0; co < obj->contsize; co++){
-	       cont = &(obj->cont[co]);
-	       if (cont->surf > maxsurf)
-		    maxsurf = cont->surf;
-	  }
-	  obj->surfsize = maxsurf;
-     }
-     return;
+  for (ob = 0; ob < imod->objsize; ob++){
+    obj = &(imod->obj[ob]);
+    maxsurf = 0;
+    for(co = 0; co < obj->contsize; co++){
+      cont = &(obj->cont[co]);
+      if (cont->surf > maxsurf)
+        maxsurf = cont->surf;
+    }
+    obj->surfsize = maxsurf;
+  }
+  return;
 }
 
 int imodVirtIn(Imod *imod)
 {
-     int ob;
+  int ob;
 
-     for(ob = 0; ob < imod->objsize; ob++)
-	  imodObjectVirtIn(&(imod->obj[ob]));
-     return(0);
+  for(ob = 0; ob < imod->objsize; ob++)
+    imodObjectVirtIn(&(imod->obj[ob]));
+  return(0);
 }
 
 void  imodFlipYZ(Imod *imod)
 {
-     Iobj  *obj;
-     Icont *cont;
-     Imesh *mesh;
-     float tmp;
-     int    ob, co, pt;
+  Iobj  *obj;
+  Icont *cont;
+  Imesh *mesh;
+  float tmp;
+  int    ob, co, pt;
 
-     for(ob = 0; ob < imod->objsize; ob++){
-	  obj = &(imod->obj[ob]);
-	  for(co = 0; co < obj->contsize; co++){
-	       cont = &(obj->cont[co]);
-	       for(pt = 0; pt < cont->psize; pt++){
-		    tmp = cont->pts[pt].y;
-		    cont->pts[pt].y = cont->pts[pt].z;
-		    cont->pts[pt].z = tmp;
-	       }
-	  }
-	  for(co = 0; co < obj->meshsize; co++){
-	       mesh = &(obj->mesh[co]);
-	       for(pt = 0; pt < mesh->vsize; pt++){
-		    tmp = mesh->vert[pt].y;
-		    mesh->vert[pt].y = mesh->vert[pt].z;
-		    mesh->vert[pt].z = tmp;
-	       }
-	  }
-     }
-     tmp = imod->ymax;
-     imod->ymax = imod->zmax;
-     imod->zmax = tmp;
-     return;
+  for(ob = 0; ob < imod->objsize; ob++){
+    obj = &(imod->obj[ob]);
+    for(co = 0; co < obj->contsize; co++){
+      cont = &(obj->cont[co]);
+      for(pt = 0; pt < cont->psize; pt++){
+        tmp = cont->pts[pt].y;
+        cont->pts[pt].y = cont->pts[pt].z;
+        cont->pts[pt].z = tmp;
+      }
+    }
+    for(co = 0; co < obj->meshsize; co++){
+      mesh = &(obj->mesh[co]);
+      for(pt = 0; pt < mesh->vsize; pt++){
+        tmp = mesh->vert[pt].y;
+        mesh->vert[pt].y = mesh->vert[pt].z;
+        mesh->vert[pt].z = tmp;
+      }
+    }
+  }
+  tmp = imod->ymax;
+  imod->ymax = imod->zmax;
+  imod->zmax = tmp;
+  return;
 }
 
 int   imodGetMaxObject(Imod *imod) { return(imod->objsize); }
