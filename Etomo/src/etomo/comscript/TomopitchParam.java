@@ -16,6 +16,9 @@ import java.util.Vector;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.4  2004/04/30 16:20:44  sueh
+ * <p> $bug# 427 changing comment
+ * <p> $
  * <p> $Revision 1.3  2004/04/29 20:25:01  sueh
  * <p> $bug# 427 used statics to avoid typos, added ParameterFile to
  * <p> $updateComSCriptCommand, moved toString() to const
@@ -131,10 +134,10 @@ public class TomopitchParam
     modelFiles.add(modelFile);
   }
   public void setExtraThickness(String extraThickness) {
-    this.extraThickness = ParamUtilities.setDouble(extraThickness);
+    this.extraThickness = ParamUtilities.getDouble(extraThickness);
   }
   public void setSpacingInY(String spacingInY) {
-    this.spacingInY = ParamUtilities.setDouble(spacingInY);
+    this.spacingInY = ParamUtilities.getDouble(spacingInY);
   }
   public void setScaleFactor(double scaleFactor) {
     this.scaleFactor = scaleFactor;
