@@ -113,6 +113,9 @@ public class WindowSwitch {
     menuItem.setText(Integer.toString(index + 1) + menuItemDivider + newKey.getName());
     menuList.rekey(oldKey, newKey);
     mainPanelList.rekey(oldKey, newKey);
+    if (mainPanelList.size() > 1 && tabbedPane != null && tabbedPane.getTabCount() > index) {
+      tabbedPane.setTitleAt(index, newKey.getName());
+    }
     EtomoDirector.getInstance().setCurrentManager(newKey);
   }
 
@@ -294,6 +297,10 @@ public class WindowSwitch {
 
 /**
  * <p>$Log$
+ * <p>Revision 1.2  2005/02/11 16:48:13  sueh
+ * <p>bug# 594 bug fix:  trying to rename a tab when there is only one window,
+ * <p>which means that the tab pane may not exist.
+ * <p>
  * <p>Revision 1.1  2005/02/07 22:57:18  sueh
  * <p>bug# 594 Class to synchronize windows menu and tabs.
  * <p></p>
