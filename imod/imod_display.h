@@ -9,6 +9,9 @@
 $Date$
 
 $Log$
+Revision 4.2  2004/06/06 21:27:21  mast
+Eliminated stereo-command related items
+
 Revision 4.1  2003/02/10 20:41:55  mast
 Merge Qt source
 
@@ -63,6 +66,7 @@ void imod_cmap(Imod *m);
 void imodSetObjectColor(int ob);
 int  imodDraw(ImodView *vw, int flag);
 int mapcolor(int color, int red, int green, int blue);
+void mapNamedColors(void);
 
 
 #endif
