@@ -26,6 +26,9 @@ import etomo.ui.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.4  2003/01/29 15:22:58  rickg
+ * <p> Updated logic for combine step
+ * <p>
  * <p> Revision 2.3  2003/01/28 20:42:53  rickg
  * <p> Bug fix: save current dialog state when running align.com
  * <p>
@@ -1488,6 +1491,9 @@ public class ApplicationManager {
         mainFrame.setTomogramGenerationState(ProcessState.COMPLETE, axisID);
         if (isDualAxis()) {
           openTomogramCombinationDialog();
+          if(axisID == AxisID.SECOND) {
+            mainFrame.showBlankProcess(axisID);
+          }
         }
         else {
           openPostProcessingDialog();
@@ -2080,9 +2086,9 @@ public class ApplicationManager {
       userConfigFile.createNewFile();
     }
     catch (IOException except) {
-      System.out.println(
+      System.err.println(
         "Could not create file:" + userConfigFile.getAbsolutePath());
-      System.out.println(except.getMessage());
+      System.err.println(except.getMessage());
       return "";
     }
 
@@ -2184,12 +2190,12 @@ public class ApplicationManager {
       userConfigFile.createNewFile();
     }
     catch (IOException except) {
-      System.out.println(
+      System.err.println(
         "IOException: Could not create file:"
           + userConfigFile.getAbsolutePath()
           + "\n"
           + except.getMessage());
-      System.out.println(except.getMessage());
+      System.err.println(except.getMessage());
       return true;
     }
 
@@ -2226,7 +2232,7 @@ public class ApplicationManager {
 
     //UIManager.LookAndFeelInfo plaf[] = UIManager.getInstalledLookAndFeels();
     //for(int i = 0; i < plaf.length; i++) {
-    //  System.out.println(plaf[i].getClassName());
+    //  System.err.println(plaf[i].getClassName());
     //}
     if (nativeLookAndFeel) {
       lookAndFeelClassName = "com.sun.java.swing.plaf.motif.MotifLookAndFeel";
@@ -2239,7 +2245,7 @@ public class ApplicationManager {
       UIManager.setLookAndFeel(lookAndFeelClassName);
     }
     catch (Exception excep) {
-      System.out.println(
+      System.err.println(
         "Could not set " + lookAndFeelClassName + " look and feel");
     }
   }
@@ -2289,13 +2295,13 @@ public class ApplicationManager {
     //  since the primary method was deprecated
     SystemProgram echoHome = new SystemProgram("env");
     try {
-      echoHome.enableDebug(true);
+      echoHome.enableDebug(debug);
       echoHome.run();
     }
     catch (Exception excep) {
       excep.printStackTrace();
-      System.out.println(excep.getMessage());
-      System.out.println(
+      System.err.println(excep.getMessage());
+      System.err.println(
         "Unable to run env command to find "
           + varName
           + " environment variable");
@@ -2304,9 +2310,9 @@ public class ApplicationManager {
     }
     String[] stderr = echoHome.getStdError();
     if (stderr.length > 0) {
-      System.out.println("Error running 'env' command");
+      System.err.println("Error running 'env' command");
       for (int i = 0; i < stderr.length; i++) {
-        System.out.println(stderr[i]);
+        System.err.println(stderr[i]);
       }
     }
 
