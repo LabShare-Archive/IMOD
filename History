@@ -1,8 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-12/3/03: Fixed bug that crashed Midas when reverting to unit transform.
+12/4/03: IMOD_3-2-0 and branch to IMOD_3-1-4
+12/4/03: Fixed bug that crashed Midas when reverting to unit transform.
 
-12/3/03: Fixed bug that was crashing Snap as Tif... from model view menu.
+12/4/03: Fixed bug that was crashing Snap as Tif... from model view menu.
 
 12/2/03: Added instructions for making samples with more slices to sample.com.
 
