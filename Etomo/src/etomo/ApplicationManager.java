@@ -83,6 +83,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.108  2004/12/04 01:25:59  sueh
+ * <p> bug# 557 Added imodSqueezedVolume().
+ * <p>
  * <p> Revision 3.107  2004/12/03 20:18:50  sueh
  * <p> bug# 556 Do not load SetupParam into combine dialog or update it in
  * <p> volcombine if SetParam not valid (has the wrong set name) or is null.
@@ -4725,7 +4728,7 @@ public class ApplicationManager extends BaseManager {
       TrimvolParam trimvolParam = metaData.getTrimvolParam();
       try {
         trimvolParam.setDefaultRange(
-          TrimvolParam.getInputFile(
+          TrimvolParam.getInputFileName(
             metaData.getAxisType(),
             metaData.getDatasetName()));
       }
@@ -4736,7 +4739,7 @@ public class ApplicationManager extends BaseManager {
         detailedMessage[2] = "";
         detailedMessage[3] = except.getMessage();
         mainPanel.openMessageDialog(detailedMessage, "Invalid parameter: "
-          + trimvolParam.getInputFile());
+          + trimvolParam.getInputFileName());
         //    Delete the dialog
         postProcessingDialog = null;
         return;
@@ -4744,7 +4747,7 @@ public class ApplicationManager extends BaseManager {
       catch (IOException except) {
         except.printStackTrace();
         mainPanel.openMessageDialog(except.getMessage(), "IO Error: "
-          + trimvolParam.getInputFile());
+          + trimvolParam.getInputFileName());
         //      Delete the dialog
         postProcessingDialog = null;
         return;
@@ -4946,10 +4949,10 @@ public class ApplicationManager extends BaseManager {
       isDataParamDirty = true;
     }
     //Add input and output files.
-    trimvolParam.setInputFile(
+    trimvolParam.setInputFileName(
       metaData.getAxisType(),
       metaData.getDatasetName());
-    trimvolParam.setOutputFile(metaData.getDatasetName());
+    trimvolParam.setOutputFileName(metaData.getDatasetName());
     return trimvolParam;
   }
   
