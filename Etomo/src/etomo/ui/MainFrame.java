@@ -23,6 +23,9 @@ import etomo.storage.EtomoFileFilter;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.2  2003/01/28 00:15:43  rickg
+ * <p> Main window now remembers its size
+ * <p>
  * <p> Revision 2.1  2003/01/27 23:51:23  rickg
  * <p> Added a split pane manager to the mane window for dual
  * <p> axis layout
@@ -481,6 +484,10 @@ public class MainFrame extends JFrame implements ContextMenu {
     else {
       axisPanelA.setTomogramGenerationState(state);
     }
+  }
+
+  public void setTomogramCombinationState(ProcessState state) {
+    axisPanelA.setTomogramCombinationState(state);
   }
 
   public void setPostProcessingState(ProcessState state) {
