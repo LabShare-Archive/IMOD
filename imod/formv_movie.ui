@@ -1036,7 +1036,7 @@
                                 <string>RGBs</string>
                             </property>
                             <property name="toolTip" stdset="0">
-                                <string>Write frames as RGB files</string>
+                                <string>Write frames as files in current non-TIFF format</string>
                             </property>
                         </widget>
                         <widget class="QRadioButton">
@@ -1462,6 +1462,7 @@
     <include location="local" impldecl="in implementation">imodv_movie.h</include>
     <include location="global" impldecl="in implementation">stdlib.h</include>
     <include location="local" impldecl="in implementation">imodv.h</include>
+    <include location="local" impldecl="in implementation">preferences.h</include>
     <include location="local" impldecl="in implementation">formv_movie.ui.h</include>
 </includes>
 <variables>
@@ -1476,6 +1477,7 @@
 </variables>
 <slots>
     <slot>init()</slot>
+    <slot>setNonTifLabel()</slot>
     <slot>fullXPressed()</slot>
     <slot>fullYPressed()</slot>
     <slot>setStartPressed()</slot>

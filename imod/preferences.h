@@ -12,30 +12,7 @@ $Date$
 $Revision$
 
 $Log$
-Revision 1.8  2004/11/02 20:17:00  mast
-Added color settings
-
-Revision 1.7  2004/06/23 03:33:10  mast
-New functions for generic settings
-
-Revision 1.6  2003/09/24 17:35:54  mast
-Change to routine that sets info window geometry directly
-
-Revision 1.5  2003/09/18 05:57:29  mast
-Add members for autocontrast targets
-
-Revision 1.4  2003/09/17 04:47:24  mast
-Added members for remembering window geometry
-
-Revision 1.3  2003/03/26 23:06:42  mast
-only check status of a style once
-
-Revision 1.2  2003/03/26 22:49:09  mast
-Change style handling to use list of styles
-
-Revision 1.1  2003/03/24 17:56:59  mast
-Initial creation
-
+Log at end of file
 */
 
 #ifndef IMOD_PREFERENCES_H
@@ -43,6 +20,7 @@ Initial creation
 
 #include <qfont.h>
 #include <qstring.h>
+#include <qstringlist.h>
 #include <qstyle.h>
 
 class QTabDialog;
@@ -135,6 +113,12 @@ typedef struct imod_pref_struct
   QRgb namedColor[MAX_NAMED_COLORS];
   QRgb namedColorDflt[MAX_NAMED_COLORS];
   bool namedColorChgd[MAX_NAMED_COLORS];
+  QString snapFormat;     // Format for non-tif snapshot
+  QString snapFormatDflt;
+  bool snapFormatChgd;
+  int snapQuality;        // Quality factor, controls compression
+  int snapQualityDflt;
+  bool snapQualityChgd;
 
 } ImodPrefStruct;
 
@@ -180,6 +164,9 @@ class ImodPreferences : public QObject
   QSettings *getSettingsObject();
   void recordZapGeometry();
   bool getRoundedStyle();
+  QString snapFormat() {return mCurrentPrefs.snapFormat;};
+  int snapQuality() {return mCurrentPrefs.snapQuality;};
+  QStringList snapFormatList();
 
   public slots:
     void donePressed();
@@ -211,3 +198,33 @@ extern ImodPreferences *ImodPrefs;
 
 
 #endif // IMOD_PREFERENCES_H
+
+/*
+Revision 1.9  2004/11/04 23:30:55  mast
+Changes for rounded button style
+
+Revision 1.8  2004/11/02 20:17:00  mast
+Added color settings
+
+Revision 1.7  2004/06/23 03:33:10  mast
+New functions for generic settings
+
+Revision 1.6  2003/09/24 17:35:54  mast
+Change to routine that sets info window geometry directly
+
+Revision 1.5  2003/09/18 05:57:29  mast
+Add members for autocontrast targets
+
+Revision 1.4  2003/09/17 04:47:24  mast
+Added members for remembering window geometry
+
+Revision 1.3  2003/03/26 23:06:42  mast
+only check status of a style once
+
+Revision 1.2  2003/03/26 22:49:09  mast
+Change style handling to use list of styles
+
+Revision 1.1  2003/03/24 17:56:59  mast
+Initial creation
+
+*/

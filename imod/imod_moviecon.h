@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.2  2003/12/18 22:44:23  mast
+New functions for starting at current point and slicer movies
+
 Revision 4.1  2003/02/10 20:41:55  mast
 Merge Qt source
 
@@ -33,6 +36,7 @@ void imodMovieConDialog(ImodView *vw);
 float imcGetInterval(void);
 void imcSetMovierate(ImodView *vw, int newrate);
 void imcResetAll(ImodView *vw);
+void imcUpdateDialog();
 int imcGetLoopMode(ImodView *vw);
 int imcGetSnapshot(ImodView *vw);
 int imcStartSnapHere(ImodView *vw);

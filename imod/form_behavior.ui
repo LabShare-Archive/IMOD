@@ -8,8 +8,8 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>347</width>
-            <height>428</height>
+            <width>350</width>
+            <height>435</height>
         </rect>
     </property>
     <property name="caption">
@@ -264,131 +264,75 @@
         </widget>
         <widget class="QGroupBox">
             <property name="name">
-                <cstring>GroupBox4</cstring>
+                <cstring>groupBox7</cstring>
             </property>
             <property name="title">
-                <string>Zoom factors</string>
+                <string>Non-TIFF snapshots</string>
             </property>
             <vbox>
                 <property name="name">
                     <cstring>unnamed</cstring>
                 </property>
-                <property name="margin">
-                    <number>11</number>
-                </property>
-                <property name="spacing">
-                    <number>6</number>
-                </property>
                 <widget class="QLayoutWidget">
                     <property name="name">
-                        <cstring>Layout27</cstring>
+                        <cstring>layout19</cstring>
                     </property>
                     <hbox>
                         <property name="name">
                             <cstring>unnamed</cstring>
                         </property>
-                        <property name="margin">
-                            <number>0</number>
-                        </property>
-                        <property name="spacing">
-                            <number>6</number>
-                        </property>
                         <widget class="QLabel">
                             <property name="name">
-                                <cstring>TextLabel4</cstring>
+                                <cstring>textLabel1</cstring>
                             </property>
                             <property name="text">
-                                <string>Index:</string>
-                            </property>
-                            <property name="alignment">
-                                <set>AlignVCenter|AlignRight</set>
+                                <string>File format for non-TIFF snapshots</string>
                             </property>
                         </widget>
-                        <widget class="QSpinBox">
+                        <widget class="QComboBox">
                             <property name="name">
-                                <cstring>zoomIndexSpinBox</cstring>
-                            </property>
-                            <property name="minValue">
-                                <number>1</number>
+                                <cstring>formatComboBox</cstring>
                             </property>
                             <property name="toolTip" stdset="0">
-                                <string>Set index of zoom value to modify</string>
-                            </property>
-                        </widget>
-                        <widget class="QLabel">
-                            <property name="name">
-                                <cstring>defaultZoomLabel</cstring>
-                            </property>
-                            <property name="text">
-                                <string>Default 20.00</string>
-                            </property>
-                        </widget>
-                        <widget class="QLabel">
-                            <property name="name">
-                                <cstring>TextLabel6</cstring>
-                            </property>
-                            <property name="text">
-                                <string>Value:</string>
-                            </property>
-                            <property name="alignment">
-                                <set>AlignVCenter|AlignRight</set>
-                            </property>
-                        </widget>
-                        <widget class="QLineEdit">
-                            <property name="name">
-                                <cstring>zoomEdit</cstring>
-                            </property>
-                            <property name="toolTip" stdset="0">
-                                <string>Enter a new zoom value for given index</string>
+                                <string>Select file format for "RGB" snapshots</string>
                             </property>
                         </widget>
                     </hbox>
                 </widget>
                 <widget class="QLayoutWidget">
                     <property name="name">
-                        <cstring>Layout28</cstring>
+                        <cstring>layout6</cstring>
                     </property>
                     <hbox>
                         <property name="name">
                             <cstring>unnamed</cstring>
                         </property>
-                        <property name="margin">
-                            <number>0</number>
-                        </property>
-                        <property name="spacing">
-                            <number>6</number>
-                        </property>
-                        <widget class="QPushButton">
+                        <widget class="QLabel">
                             <property name="name">
-                                <cstring>PushButton25</cstring>
+                                <cstring>textLabel2</cstring>
                             </property>
                             <property name="text">
-                                <string>Restore Defaults</string>
+                                <string>Quality factor for JPEG images (%)</string>
                             </property>
                             <property name="toolTip" stdset="0">
-                                <string>Restore all default zoom values</string>
+                                <string>Factor determining compression/quality of JPEG images</string>
                             </property>
                         </widget>
-                        <widget class="QPushButton">
+                        <widget class="QSpinBox">
                             <property name="name">
-                                <cstring>PushButton26</cstring>
+                                <cstring>qualitySpinBox</cstring>
                             </property>
-                            <property name="text">
-                                <string>Shift Up</string>
+                            <property name="maxValue">
+                                <number>100</number>
+                            </property>
+                            <property name="minValue">
+                                <number>-1</number>
+                            </property>
+                            <property name="value">
+                                <number>80</number>
                             </property>
                             <property name="toolTip" stdset="0">
-                                <string>Move each zoom value to the next index</string>
-                            </property>
-                        </widget>
-                        <widget class="QPushButton">
-                            <property name="name">
-                                <cstring>PushButton27</cstring>
-                            </property>
-                            <property name="text">
-                                <string>Shift Down</string>
-                            </property>
-                            <property name="toolTip" stdset="0">
-                                <string>Move each zoom value to the previous index</string>
+                                <string>Factor determining compression/quality of JPEG images (-1 for default)</string>
                             </property>
                         </widget>
                     </hbox>
@@ -416,36 +360,6 @@
 </widget>
 <connections>
     <connection>
-        <sender>zoomIndexSpinBox</sender>
-        <signal>valueChanged(int)</signal>
-        <receiver>BehaviorForm</receiver>
-        <slot>newZoomIndex(int)</slot>
-    </connection>
-    <connection>
-        <sender>zoomEdit</sender>
-        <signal>textChanged(const QString&amp;)</signal>
-        <receiver>BehaviorForm</receiver>
-        <slot>newZoomValue()</slot>
-    </connection>
-    <connection>
-        <sender>PushButton25</sender>
-        <signal>clicked()</signal>
-        <receiver>BehaviorForm</receiver>
-        <slot>restoreDefaultZooms()</slot>
-    </connection>
-    <connection>
-        <sender>PushButton26</sender>
-        <signal>clicked()</signal>
-        <receiver>BehaviorForm</receiver>
-        <slot>shiftZoomsUp()</slot>
-    </connection>
-    <connection>
-        <sender>PushButton27</sender>
-        <signal>clicked()</signal>
-        <receiver>BehaviorForm</receiver>
-        <slot>shiftZoomsDown()</slot>
-    </connection>
-    <connection>
         <sender>tooltipBox</sender>
         <signal>toggled(bool)</signal>
         <receiver>BehaviorForm</receiver>
@@ -464,8 +378,6 @@
     <forward>typedef struct imod_pref_struct ImodPrefStruct</forward>
 </forwards>
 <variables>
-    <variable>int mZoomIndex</variable>
-    <variable>bool mZoomValChanged</variable>
     <variable>ImodPrefStruct *mPrefs</variable>
 </variables>
 <slots>
@@ -473,13 +385,6 @@
     <slot>setFontDependentWidths()</slot>
     <slot>update()</slot>
     <slot>unload()</slot>
-    <slot>displayCurrentZoom()</slot>
-    <slot>newZoomIndex( int value )</slot>
-    <slot>unloadZoomValue()</slot>
-    <slot>newZoomValue()</slot>
-    <slot>shiftZoomsDown()</slot>
-    <slot>restoreDefaultZooms()</slot>
-    <slot>shiftZoomsUp()</slot>
     <slot>toolTipsToggled( bool state )</slot>
 </slots>
 <pixmapinproject/>

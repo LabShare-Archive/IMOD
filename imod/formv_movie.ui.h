@@ -56,7 +56,13 @@ void imodvMovieForm::init()
     thickLabel->setFixedHeight(1);
   }
   adjustSize();
-}  
+  setNonTifLabel();
+}
+
+void imodvMovieForm::setNonTifLabel()
+{
+    rgbRadioButton->setText(ImodPrefs->snapFormat() + "s");
+}
 
 void imodvMovieForm::fullXPressed()
 {

@@ -24,11 +24,17 @@ void MovieController::init()
     QToolTip::add(mSliders->getSlider(1), "Set ending section of movie range");
     QToolTip::add(mSliders->getSlider(2), 
 		  "Set spacing between sections shown during movie");
+    setNonTifLabel();
 }
 
 void MovieController::setFontDependentWidths()
 {
     rateLineEdit->setMaximumWidth(fontMetrics().width("8888.888"));
+}
+
+void MovieController::setNonTifLabel()
+{
+    rgbRadioButton->setText(ImodPrefs->snapFormat());
 }
 
 // Pass on actions directly to imod_moviecon

@@ -1,31 +1,12 @@
-/*  IMOD VERSION 2.50
- *
- *  b3dgfx.c -- Custom graphics routines for IrisGL, OpenGL and X-Windows.
+/*  b3dgfx.c -- Custom graphics routines for OpenGL.
  *
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
+ *
+ *  Copyright (C) 1995-2004 by Boulder Laboratory for 3-Dimensional Electron
+ *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  */
-
-/*****************************************************************************
- *   Copyright (C) 1995-2001 by Boulder Laboratory for 3-Dimensional Fine    *
- *   Structure ("BL3DFS") and the Regents of the University of Colorado.     *
- *                                                                           *
- *   BL3DFS reserves the exclusive rights of preparing derivative works,     *
- *   distributing copies for sale, lease or lending and displaying this      *
- *   software and documentation.                                             *
- *   Users may reproduce the software and documentation as long as the       *
- *   copyright notice and other notices are preserved.                       *
- *   Neither the software nor the documentation may be distributed for       *
- *   profit, either in original form or in derivative works.                 *
- *                                                                           *
- *   THIS SOFTWARE AND/OR DOCUMENTATION IS PROVIDED WITH NO WARRANTY,        *
- *   EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTY OF          *
- *   MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.       *
- *                                                                           *
- *   This work is supported by NIH biotechnology grant #RR00592,             *
- *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
- *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
- *****************************************************************************/
 /*  $Author$
 
 $Date$
@@ -39,6 +20,7 @@ Log at end of file
 #include <errno.h>
 #include <qglcolormap.h>
 #include <qdir.h>
+#include <qimage.h>
 #include "imod.h"
 #include "b3dgfx.h"
 #include "b3dfile.h"
@@ -1459,13 +1441,16 @@ void b3dGetSnapshotName(char *fname, char *name, int format_type, int digits,
                         int &fileno)
 {
   FILE *tfp = NULL;
-  char *fext;
   char format[12];
+  QString snapFormat, fext;
   sprintf(format, "%%s%%0%dd.%%s", digits);
 
   switch(format_type){
   case SnapShot_RGB:
-    fext = "rgb";
+    snapFormat = ImodPrefs->snapFormat();
+    if (snapFormat == "JPEG")
+      snapFormat = "JPG";
+    fext = snapFormat.lower();
     break;
   case SnapShot_TIF:
     fext = "tif";
@@ -1474,17 +1459,17 @@ void b3dGetSnapshotName(char *fname, char *name, int format_type, int digits,
     fext = "image";
   }
 
-  do{
-    if (tfp){
+  do {
+    if (tfp) {
       fclose(tfp);
       tfp = NULL;
     }
     if (fileno < (int)pow(10., double(digits)))
-      sprintf(fname, format, name, fileno++, fext);
+      sprintf(fname, format, name, fileno++, fext.latin1());
     else
-      sprintf(fname, "%s%d.%s", name, fileno++, fext);
+      sprintf(fname, "%s%d.%s", name, fileno++, fext.latin1());
           
-  }while ((tfp = fopen((QDir::convertSeparators(QString(fname))).latin1(),
+  } while ((tfp = fopen((QDir::convertSeparators(QString(fname))).latin1(),
     "rb")));
 }
 
@@ -1501,7 +1486,7 @@ int b3dAutoSnapshot(char *name, int format_type, int *limits)
 
   switch (format_type){
   case SnapShot_RGB:
-    retval = b3dSnapshot_RGB(fname, App->rgba, limits);
+    retval = b3dSnapshot_NonTIF(fname, App->rgba, limits);
     break;
   case SnapShot_TIF:
     retval = b3dSnapshot_TIF(fname, App->rgba, limits, NULL);
@@ -1541,9 +1526,15 @@ static void puttiffentry(short tag, short type,
   return;
 }
 
-int b3dSnapshot_RGB(char *fname, int rgbmode, int *limits)
+/*
+ * Snapshot from current GL window into RGB or other non-TIFF file format
+ * Output file is given by fname
+ * rgbmode non-zero indicates rgb rather than color index
+ * if limits is non-NULL, it contains lower left X, Y and size X,Y for a subset
+ */
+int b3dSnapshot_NonTIF(char *fname, int rgbmode, int *limits)
 {
-  FILE *fout;
+  FILE *fout = NULL;
   int i;
   unsigned char *pixels = NULL;
   b3dInt32 xysize;
@@ -1551,31 +1542,42 @@ int b3dSnapshot_RGB(char *fname, int rgbmode, int *limits)
   int mapsize;
   b3dUInt32 *fcmapr, *fcmapg, *fcmapb;
   b3dUInt32 *cindex, ci;
+  b3dUInt32 *rgbout;
+  unsigned char *pixin;
+  int j;
+  bool imret = true;
   unsigned char *pixout, tmp;
   int rpx = 0; 
   int rpy = 0;
   int rpWidth = CurWidth;
   int rpHeight = CurHeight;
+  QString format = ImodPrefs->snapFormat();
 
   errno = 0;
-  fout = fopen((QDir::convertSeparators(QString(fname))).latin1(), "wb");
-  if (!fout){
-    QString qerr = "Snapshot: error opening file\n";
-    if (errno)
-      qerr +=  QString("System error: ") + strerror(errno);
-    imodPrintStderr(qerr.latin1());
-    return 1;
+
+  // Open file if RGB mode
+  if (format == "RGB") {
+    fout = fopen((QDir::convertSeparators(QString(fname))).latin1(), "wb");
+    if (!fout) {
+      QString qerr = "Snapshot: error opening file\n";
+      if (errno)
+        qerr +=  QString("System error: ") + strerror(errno);
+      imodPrintStderr(qerr.latin1());
+      return 1;
+    }
   }
 
+  // Apply limits if any, get pixel array
   if (limits) {
     rpx = limits[0];
     rpy = limits[1];
     rpWidth = limits[2];
     rpHeight = limits[3];
   }
-  pixels = (unsigned char *)malloc(rpWidth * rpHeight * 4);
+  pixels = (unsigned char *)malloc(rpWidth * (rpHeight + 1) * 4);
   if (!pixels){
-    fclose(fout);
+    if (fout)
+      fclose(fout);
     return 1;
   }
   glPixelZoom(1.0,1.0);
@@ -1586,9 +1588,10 @@ int b3dSnapshot_RGB(char *fname, int rgbmode, int *limits)
     glReadPixels(rpx, rpy, rpWidth, rpHeight,
                  GL_RGBA, GL_UNSIGNED_BYTE, pixels);
     glFlush();
+
     pixout = (unsigned char *)pixels;
-    /* have to swap bytes and fill in 0 for A, because routine wants
-       AGBR*/
+    /* have to swap bytes and fill in 0 for A, because RGB routine wants
+       ABGR*/
     for (i = 0; i < xysize; i++) {
       pixout[3] = pixout[0];
       pixout[0] = 0;
@@ -1601,14 +1604,24 @@ int b3dSnapshot_RGB(char *fname, int rgbmode, int *limits)
 
   } else {
 
+    // Color index mode: get tables and read image as indices
     mapsize = 1 << App->depth;
     fcmapr = (unsigned int *)malloc((mapsize+1) * sizeof(unsigned int));
-    if (!fcmapr) return 1;
     fcmapg = (unsigned int *)malloc((mapsize+1) * sizeof(unsigned int));
-    if (!fcmapg) return 1;
     fcmapb = (unsigned int *)malloc((mapsize+1) * sizeof(unsigned int));
-    if (!fcmapb) return 1;
-          
+    if (!fcmapr || !fcmapg || !fcmapb) {
+      free(pixels);
+      if (fcmapr)
+        free(fcmapr);
+      if (fcmapg)
+        free(fcmapg);
+      if (fcmapb)
+        free(fcmapb);
+      if (fout)
+        fclose(fout);
+      return 1;
+    }
+    
     for(i = 0; i < mapsize; i++){
       QColor qcolor = App->qColormap->entryColor(i);
       fcmapr[i] = qcolor.red();
@@ -1625,7 +1638,7 @@ int b3dSnapshot_RGB(char *fname, int rgbmode, int *limits)
       ci = *cindex;
       if (ci > mapsize) ci = 0;
       /* DNM: switch from using endian-dependent shifts to packing
-         the array as AGBR */
+         the array as ABGR */
       *pixout++ = 0;
       *pixout++ = fcmapb[ci];
       *pixout++ = fcmapg[ci];
@@ -1637,19 +1650,45 @@ int b3dSnapshot_RGB(char *fname, int rgbmode, int *limits)
 
   }
 
-  bdRGBWrite(fout, (int)rpWidth, (int)rpHeight, pixels);
+  // Ordinary RGB, call routine
+  if (fout) {
+    bdRGBWrite(fout, (int)rpWidth, (int)rpHeight, pixels);
+    fclose(fout);
+  } else {
 
-  fclose(fout);
+    // Qt image writing: need to reorder lines as well as encode into rgb's
+    for (j = 0; j < (rpHeight + 1) / 2; j++) {
+      rgbout = (b3dUInt32 *)pixels + (rpHeight - 1 - j) * rpWidth;
+      pixin = pixels + 4 * j * rpWidth;
+      memcpy(pixels + 4 * xysize, rgbout, 4 * rpWidth);
+      for (i = 0; i < rpWidth; i++) {
+        *rgbout++ = qRgb(pixin[3], pixin[2], pixin[1]);
+        pixin += 4;
+      }
+      pixin = pixels + 4 * xysize;
+      rgbout = (b3dUInt32 *)pixels + j * rpWidth;
+      for (i = 0; i < rpWidth; i++) {
+        *rgbout++ = qRgb(pixin[3], pixin[2], pixin[1]);
+        pixin += 4;
+      }
+    }
+
+    // Save the image with the given format and quality (JPEG only)
+    QImage *qim = new QImage(pixels, rpWidth, rpHeight, 32, NULL, 0, 
+                             QImage::IgnoreEndian);
+    j = format == "JPEG" ? ImodPrefs->snapQuality() : -1;
+    imret = qim->save(QString(fname), format.latin1(), j);
+    delete qim;
+  }
   free(pixels);
 
-  return 0;
+  return imret ? 0 : 1;
 }
 
 /*
  * Snapshot from current GL window into a TIFF file given by fname 
  * rgbmode non-zero indicates rgb rather than color index
- * if limits is non-NULL, it contains lower left and upper right X and Y
- * coordinates (0 to n, not 0 too n-1) for a subset
+ * if limits is non-NULL, it contains lower left X, Y and size X,Y for a subset
  * If data is non-NULL, it supplies the data already as line pointers, and
  * rgbmode should be 3 for RGB and 4 for RGBA data 
  */
@@ -1890,7 +1929,7 @@ int b3dSnapshot_TIF(char *fname, int rgbmode, int *limits,
 int b3dSnapshot(char *fname)
 {
   if (SnapShotFormat == SnapShot_RGB)
-    return(b3dSnapshot_RGB(fname, App->rgba, NULL));
+    return(b3dSnapshot_NonTIF(fname, App->rgba, NULL));
   else
     return(b3dSnapshot_TIF(fname, App->rgba, NULL, NULL));
 }
@@ -1898,6 +1937,9 @@ int b3dSnapshot(char *fname)
 
 /*
 $Log$
+Revision 4.24  2004/11/02 20:14:10  mast
+Switch to get named colors from preferences
+
 Revision 4.23  2004/11/02 00:51:59  mast
 Fixed tiff writing to allow proper numbmber of bytes after image
 

@@ -1,4 +1,4 @@
-<!DOCTYPE UI><UI version="3.3" stdsetdef="1">
+<!DOCTYPE UI><UI version="3.1" stdsetdef="1">
 <class>AppearanceForm</class>
 <widget class="QWidget">
     <property name="name">
@@ -8,14 +8,14 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>299</width>
-            <height>328</height>
+            <width>340</width>
+            <height>390</height>
         </rect>
     </property>
     <property name="caption">
         <string>Appearance</string>
     </property>
-    <hbox>
+    <vbox>
         <property name="name">
             <cstring>unnamed</cstring>
         </property>
@@ -27,288 +27,15 @@
         </property>
         <widget class="QLayoutWidget">
             <property name="name">
-                <cstring>layout11</cstring>
+                <cstring>layout18</cstring>
             </property>
-            <vbox>
+            <hbox>
                 <property name="name">
                     <cstring>unnamed</cstring>
                 </property>
                 <widget class="QLayoutWidget">
                     <property name="name">
-                        <cstring>Layout1</cstring>
-                    </property>
-                    <hbox>
-                        <property name="name">
-                            <cstring>unnamed</cstring>
-                        </property>
-                        <property name="margin">
-                            <number>0</number>
-                        </property>
-                        <property name="spacing">
-                            <number>6</number>
-                        </property>
-                        <spacer>
-                            <property name="name">
-                                <cstring>Spacer2</cstring>
-                            </property>
-                            <property name="orientation">
-                                <enum>Horizontal</enum>
-                            </property>
-                            <property name="sizeType">
-                                <enum>Expanding</enum>
-                            </property>
-                            <property name="sizeHint">
-                                <size>
-                                    <width>30</width>
-                                    <height>0</height>
-                                </size>
-                            </property>
-                        </spacer>
-                        <widget class="QPushButton">
-                            <property name="name">
-                                <cstring>fontButton</cstring>
-                            </property>
-                            <property name="text">
-                                <string>Choose Font</string>
-                            </property>
-                            <property name="toolTip" stdset="0">
-                                <string>Open a font selector to pick font, style and size</string>
-                            </property>
-                        </widget>
-                        <spacer>
-                            <property name="name">
-                                <cstring>Spacer1</cstring>
-                            </property>
-                            <property name="orientation">
-                                <enum>Horizontal</enum>
-                            </property>
-                            <property name="sizeType">
-                                <enum>Expanding</enum>
-                            </property>
-                            <property name="sizeHint">
-                                <size>
-                                    <width>30</width>
-                                    <height>0</height>
-                                </size>
-                            </property>
-                        </spacer>
-                    </hbox>
-                </widget>
-                <widget class="QLayoutWidget">
-                    <property name="name">
-                        <cstring>Layout4</cstring>
-                    </property>
-                    <hbox>
-                        <property name="name">
-                            <cstring>unnamed</cstring>
-                        </property>
-                        <property name="margin">
-                            <number>0</number>
-                        </property>
-                        <property name="spacing">
-                            <number>6</number>
-                        </property>
-                        <spacer>
-                            <property name="name">
-                                <cstring>Spacer4</cstring>
-                            </property>
-                            <property name="orientation">
-                                <enum>Horizontal</enum>
-                            </property>
-                            <property name="sizeType">
-                                <enum>Expanding</enum>
-                            </property>
-                            <property name="sizeHint">
-                                <size>
-                                    <width>30</width>
-                                    <height>0</height>
-                                </size>
-                            </property>
-                        </spacer>
-                        <widget class="QLabel">
-                            <property name="name">
-                                <cstring>TextLabel1</cstring>
-                            </property>
-                            <property name="text">
-                                <string>Select Style:</string>
-                            </property>
-                            <property name="alignment">
-                                <set>AlignVCenter|AlignRight</set>
-                            </property>
-                        </widget>
-                        <widget class="QComboBox">
-                            <property name="name">
-                                <cstring>styleComboBox</cstring>
-                            </property>
-                            <property name="toolTip" stdset="0">
-                                <string>Change the style in which controls are drawn</string>
-                            </property>
-                        </widget>
-                        <spacer>
-                            <property name="name">
-                                <cstring>Spacer3</cstring>
-                            </property>
-                            <property name="orientation">
-                                <enum>Horizontal</enum>
-                            </property>
-                            <property name="sizeType">
-                                <enum>Expanding</enum>
-                            </property>
-                            <property name="sizeHint">
-                                <size>
-                                    <width>30</width>
-                                    <height>0</height>
-                                </size>
-                            </property>
-                        </spacer>
-                    </hbox>
-                </widget>
-                <widget class="QLayoutWidget">
-                    <property name="name">
-                        <cstring>Layout3</cstring>
-                    </property>
-                    <hbox>
-                        <property name="name">
-                            <cstring>unnamed</cstring>
-                        </property>
-                        <property name="margin">
-                            <number>0</number>
-                        </property>
-                        <property name="spacing">
-                            <number>6</number>
-                        </property>
-                        <widget class="QLabel">
-                            <property name="name">
-                                <cstring>TextLabel2</cstring>
-                            </property>
-                            <property name="text">
-                                <string>Size of current image point marker:</string>
-                            </property>
-                            <property name="alignment">
-                                <set>AlignVCenter|AlignRight</set>
-                            </property>
-                        </widget>
-                        <widget class="QSpinBox">
-                            <property name="name">
-                                <cstring>imagePtSpinBox</cstring>
-                            </property>
-                            <property name="minValue">
-                                <number>1</number>
-                            </property>
-                            <property name="toolTip" stdset="0">
-                                <string>Minimum size for current image point marker (cross)</string>
-                            </property>
-                        </widget>
-                    </hbox>
-                </widget>
-                <widget class="QLayoutWidget">
-                    <property name="name">
-                        <cstring>Layout3_2</cstring>
-                    </property>
-                    <hbox>
-                        <property name="name">
-                            <cstring>unnamed</cstring>
-                        </property>
-                        <property name="margin">
-                            <number>0</number>
-                        </property>
-                        <property name="spacing">
-                            <number>6</number>
-                        </property>
-                        <widget class="QLabel">
-                            <property name="name">
-                                <cstring>TextLabel2_2</cstring>
-                            </property>
-                            <property name="text">
-                                <string>Size of current model point marker:</string>
-                            </property>
-                            <property name="alignment">
-                                <set>AlignVCenter|AlignRight</set>
-                            </property>
-                            <property name="toolTip" stdset="0">
-                                <string>Minimum size for current point and current contour endpoint markers</string>
-                            </property>
-                        </widget>
-                        <widget class="QSpinBox">
-                            <property name="name">
-                                <cstring>modelPtSpinBox</cstring>
-                            </property>
-                            <property name="minValue">
-                                <number>1</number>
-                            </property>
-                            <property name="toolTip" stdset="0">
-                                <string>Minimum size for current model point marker (circle)</string>
-                            </property>
-                        </widget>
-                    </hbox>
-                </widget>
-                <widget class="QLayoutWidget">
-                    <property name="name">
-                        <cstring>layout10</cstring>
-                    </property>
-                    <hbox>
-                        <property name="name">
-                            <cstring>unnamed</cstring>
-                        </property>
-                        <widget class="QPushButton">
-                            <property name="name">
-                                <cstring>markerColorButton</cstring>
-                            </property>
-                            <property name="text">
-                                <string>Set Color For</string>
-                            </property>
-                            <property name="toolTip" stdset="0">
-                                <string>Open color selector to set color of current point marker</string>
-                            </property>
-                        </widget>
-                        <widget class="QComboBox">
-                            <item>
-                                <property name="text">
-                                    <string>Current point</string>
-                                </property>
-                            </item>
-                            <item>
-                                <property name="text">
-                                    <string>First point</string>
-                                </property>
-                            </item>
-                            <item>
-                                <property name="text">
-                                    <string>Last point</string>
-                                </property>
-                            </item>
-                            <item>
-                                <property name="text">
-                                    <string>Foreground</string>
-                                </property>
-                            </item>
-                            <item>
-                                <property name="text">
-                                    <string>Background</string>
-                                </property>
-                            </item>
-                            <item>
-                                <property name="text">
-                                    <string>Surface ghost</string>
-                                </property>
-                            </item>
-                            <item>
-                                <property name="text">
-                                    <string>Cur pt shadow</string>
-                                </property>
-                            </item>
-                            <property name="name">
-                                <cstring>colorComboBox</cstring>
-                            </property>
-                        </widget>
-                    </hbox>
-                </widget>
-                <widget class="QGroupBox">
-                    <property name="name">
-                        <cstring>groupBox7</cstring>
-                    </property>
-                    <property name="title">
-                        <string>Autocontrast targets</string>
+                        <cstring>layout11</cstring>
                     </property>
                     <vbox>
                         <property name="name">
@@ -316,18 +43,154 @@
                         </property>
                         <widget class="QLayoutWidget">
                             <property name="name">
-                                <cstring>layout29</cstring>
+                                <cstring>Layout1</cstring>
                             </property>
                             <hbox>
                                 <property name="name">
                                     <cstring>unnamed</cstring>
                                 </property>
-                                <widget class="QLabel">
+                                <property name="margin">
+                                    <number>0</number>
+                                </property>
+                                <property name="spacing">
+                                    <number>6</number>
+                                </property>
+                                <spacer>
                                     <property name="name">
-                                        <cstring>textLabel1</cstring>
+                                        <cstring>Spacer2</cstring>
+                                    </property>
+                                    <property name="orientation">
+                                        <enum>Horizontal</enum>
+                                    </property>
+                                    <property name="sizeType">
+                                        <enum>Expanding</enum>
+                                    </property>
+                                    <property name="sizeHint">
+                                        <size>
+                                            <width>30</width>
+                                            <height>0</height>
+                                        </size>
+                                    </property>
+                                </spacer>
+                                <widget class="QPushButton">
+                                    <property name="name">
+                                        <cstring>fontButton</cstring>
                                     </property>
                                     <property name="text">
-                                        <string>Mean:</string>
+                                        <string>Choose Font</string>
+                                    </property>
+                                    <property name="toolTip" stdset="0">
+                                        <string>Open a font selector to pick font, style and size</string>
+                                    </property>
+                                </widget>
+                                <spacer>
+                                    <property name="name">
+                                        <cstring>Spacer1</cstring>
+                                    </property>
+                                    <property name="orientation">
+                                        <enum>Horizontal</enum>
+                                    </property>
+                                    <property name="sizeType">
+                                        <enum>Expanding</enum>
+                                    </property>
+                                    <property name="sizeHint">
+                                        <size>
+                                            <width>30</width>
+                                            <height>0</height>
+                                        </size>
+                                    </property>
+                                </spacer>
+                            </hbox>
+                        </widget>
+                        <widget class="QLayoutWidget">
+                            <property name="name">
+                                <cstring>Layout4</cstring>
+                            </property>
+                            <hbox>
+                                <property name="name">
+                                    <cstring>unnamed</cstring>
+                                </property>
+                                <property name="margin">
+                                    <number>0</number>
+                                </property>
+                                <property name="spacing">
+                                    <number>6</number>
+                                </property>
+                                <spacer>
+                                    <property name="name">
+                                        <cstring>Spacer4</cstring>
+                                    </property>
+                                    <property name="orientation">
+                                        <enum>Horizontal</enum>
+                                    </property>
+                                    <property name="sizeType">
+                                        <enum>Expanding</enum>
+                                    </property>
+                                    <property name="sizeHint">
+                                        <size>
+                                            <width>30</width>
+                                            <height>0</height>
+                                        </size>
+                                    </property>
+                                </spacer>
+                                <widget class="QLabel">
+                                    <property name="name">
+                                        <cstring>TextLabel1</cstring>
+                                    </property>
+                                    <property name="text">
+                                        <string>Select Style:</string>
+                                    </property>
+                                    <property name="alignment">
+                                        <set>AlignVCenter|AlignRight</set>
+                                    </property>
+                                </widget>
+                                <widget class="QComboBox">
+                                    <property name="name">
+                                        <cstring>styleComboBox</cstring>
+                                    </property>
+                                    <property name="toolTip" stdset="0">
+                                        <string>Change the style in which controls are drawn</string>
+                                    </property>
+                                </widget>
+                                <spacer>
+                                    <property name="name">
+                                        <cstring>Spacer3</cstring>
+                                    </property>
+                                    <property name="orientation">
+                                        <enum>Horizontal</enum>
+                                    </property>
+                                    <property name="sizeType">
+                                        <enum>Expanding</enum>
+                                    </property>
+                                    <property name="sizeHint">
+                                        <size>
+                                            <width>30</width>
+                                            <height>0</height>
+                                        </size>
+                                    </property>
+                                </spacer>
+                            </hbox>
+                        </widget>
+                        <widget class="QLayoutWidget">
+                            <property name="name">
+                                <cstring>Layout3</cstring>
+                            </property>
+                            <hbox>
+                                <property name="name">
+                                    <cstring>unnamed</cstring>
+                                </property>
+                                <property name="margin">
+                                    <number>0</number>
+                                </property>
+                                <property name="spacing">
+                                    <number>6</number>
+                                </property>
+                                <widget class="QLabel">
+                                    <property name="name">
+                                        <cstring>TextLabel2</cstring>
+                                    </property>
+                                    <property name="text">
+                                        <string>Size of current image point marker:</string>
                                     </property>
                                     <property name="alignment">
                                         <set>AlignVCenter|AlignRight</set>
@@ -335,108 +198,255 @@
                                 </widget>
                                 <widget class="QSpinBox">
                                     <property name="name">
-                                        <cstring>autoMeanSpinBox</cstring>
-                                    </property>
-                                    <property name="maxValue">
-                                        <number>250</number>
+                                        <cstring>imagePtSpinBox</cstring>
                                     </property>
                                     <property name="minValue">
-                                        <number>5</number>
+                                        <number>1</number>
                                     </property>
                                     <property name="toolTip" stdset="0">
-                                        <string>Mean intensity to display</string>
-                                    </property>
-                                </widget>
-                                <widget class="QLabel">
-                                    <property name="name">
-                                        <cstring>textLabel2</cstring>
-                                    </property>
-                                    <property name="text">
-                                        <string>  SD:</string>
-                                    </property>
-                                    <property name="alignment">
-                                        <set>AlignVCenter|AlignRight</set>
-                                    </property>
-                                </widget>
-                                <widget class="QSpinBox">
-                                    <property name="name">
-                                        <cstring>autoSDspinBox</cstring>
-                                    </property>
-                                    <property name="maxValue">
-                                        <number>100</number>
-                                    </property>
-                                    <property name="minValue">
-                                        <number>5</number>
-                                    </property>
-                                    <property name="toolTip" stdset="0">
-                                        <string>Contrast range occupied by one Standard Deviation</string>
+                                        <string>Minimum size for current image point marker (cross)</string>
                                     </property>
                                 </widget>
                             </hbox>
                         </widget>
                         <widget class="QLayoutWidget">
                             <property name="name">
-                                <cstring>layout30</cstring>
+                                <cstring>Layout3_2</cstring>
                             </property>
                             <hbox>
                                 <property name="name">
                                     <cstring>unnamed</cstring>
                                 </property>
-                                <spacer>
+                                <property name="margin">
+                                    <number>0</number>
+                                </property>
+                                <property name="spacing">
+                                    <number>6</number>
+                                </property>
+                                <widget class="QLabel">
                                     <property name="name">
-                                        <cstring>spacer12</cstring>
-                                    </property>
-                                    <property name="orientation">
-                                        <enum>Horizontal</enum>
-                                    </property>
-                                    <property name="sizeType">
-                                        <enum>Expanding</enum>
-                                    </property>
-                                    <property name="sizeHint">
-                                        <size>
-                                            <width>40</width>
-                                            <height>20</height>
-                                        </size>
-                                    </property>
-                                </spacer>
-                                <widget class="QPushButton">
-                                    <property name="name">
-                                        <cstring>setTargetButton</cstring>
+                                        <cstring>TextLabel2_2</cstring>
                                     </property>
                                     <property name="text">
-                                        <string>Set from Current Contrast</string>
+                                        <string>Size of current model point marker:</string>
+                                    </property>
+                                    <property name="alignment">
+                                        <set>AlignVCenter|AlignRight</set>
                                     </property>
                                     <property name="toolTip" stdset="0">
-                                        <string>Set the target mean and SD so that they would generate the contrast currently seen</string>
+                                        <string>Minimum size for current point and current contour endpoint markers</string>
                                     </property>
                                 </widget>
-                                <spacer>
+                                <widget class="QSpinBox">
                                     <property name="name">
-                                        <cstring>spacer11</cstring>
+                                        <cstring>modelPtSpinBox</cstring>
                                     </property>
-                                    <property name="orientation">
-                                        <enum>Horizontal</enum>
+                                    <property name="minValue">
+                                        <number>1</number>
                                     </property>
-                                    <property name="sizeType">
-                                        <enum>Expanding</enum>
+                                    <property name="toolTip" stdset="0">
+                                        <string>Minimum size for current model point marker (circle)</string>
                                     </property>
-                                    <property name="sizeHint">
-                                        <size>
-                                            <width>40</width>
-                                            <height>20</height>
-                                        </size>
-                                    </property>
-                                </spacer>
+                                </widget>
                             </hbox>
+                        </widget>
+                        <widget class="QLayoutWidget">
+                            <property name="name">
+                                <cstring>layout10</cstring>
+                            </property>
+                            <hbox>
+                                <property name="name">
+                                    <cstring>unnamed</cstring>
+                                </property>
+                                <widget class="QPushButton">
+                                    <property name="name">
+                                        <cstring>markerColorButton</cstring>
+                                    </property>
+                                    <property name="text">
+                                        <string>Set Color For</string>
+                                    </property>
+                                    <property name="toolTip" stdset="0">
+                                        <string>Open color selector to set color of current point marker</string>
+                                    </property>
+                                </widget>
+                                <widget class="QComboBox">
+                                    <item>
+                                        <property name="text">
+                                            <string>Current point</string>
+                                        </property>
+                                    </item>
+                                    <item>
+                                        <property name="text">
+                                            <string>First point</string>
+                                        </property>
+                                    </item>
+                                    <item>
+                                        <property name="text">
+                                            <string>Last point</string>
+                                        </property>
+                                    </item>
+                                    <item>
+                                        <property name="text">
+                                            <string>Foreground</string>
+                                        </property>
+                                    </item>
+                                    <item>
+                                        <property name="text">
+                                            <string>Background</string>
+                                        </property>
+                                    </item>
+                                    <item>
+                                        <property name="text">
+                                            <string>Surface ghost</string>
+                                        </property>
+                                    </item>
+                                    <item>
+                                        <property name="text">
+                                            <string>Cur pt shadow</string>
+                                        </property>
+                                    </item>
+                                    <property name="name">
+                                        <cstring>colorComboBox</cstring>
+                                    </property>
+                                </widget>
+                            </hbox>
+                        </widget>
+                        <widget class="QGroupBox">
+                            <property name="name">
+                                <cstring>groupBox7</cstring>
+                            </property>
+                            <property name="title">
+                                <string>Autocontrast targets</string>
+                            </property>
+                            <vbox>
+                                <property name="name">
+                                    <cstring>unnamed</cstring>
+                                </property>
+                                <widget class="QLayoutWidget">
+                                    <property name="name">
+                                        <cstring>layout29</cstring>
+                                    </property>
+                                    <hbox>
+                                        <property name="name">
+                                            <cstring>unnamed</cstring>
+                                        </property>
+                                        <widget class="QLabel">
+                                            <property name="name">
+                                                <cstring>textLabel1</cstring>
+                                            </property>
+                                            <property name="text">
+                                                <string>Mean:</string>
+                                            </property>
+                                            <property name="alignment">
+                                                <set>AlignVCenter|AlignRight</set>
+                                            </property>
+                                        </widget>
+                                        <widget class="QSpinBox">
+                                            <property name="name">
+                                                <cstring>autoMeanSpinBox</cstring>
+                                            </property>
+                                            <property name="maxValue">
+                                                <number>250</number>
+                                            </property>
+                                            <property name="minValue">
+                                                <number>5</number>
+                                            </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Mean intensity to display</string>
+                                            </property>
+                                        </widget>
+                                        <widget class="QLabel">
+                                            <property name="name">
+                                                <cstring>textLabel2</cstring>
+                                            </property>
+                                            <property name="text">
+                                                <string>  SD:</string>
+                                            </property>
+                                            <property name="alignment">
+                                                <set>AlignVCenter|AlignRight</set>
+                                            </property>
+                                        </widget>
+                                        <widget class="QSpinBox">
+                                            <property name="name">
+                                                <cstring>autoSDspinBox</cstring>
+                                            </property>
+                                            <property name="maxValue">
+                                                <number>100</number>
+                                            </property>
+                                            <property name="minValue">
+                                                <number>5</number>
+                                            </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Contrast range occupied by one Standard Deviation</string>
+                                            </property>
+                                        </widget>
+                                    </hbox>
+                                </widget>
+                                <widget class="QLayoutWidget">
+                                    <property name="name">
+                                        <cstring>layout30</cstring>
+                                    </property>
+                                    <hbox>
+                                        <property name="name">
+                                            <cstring>unnamed</cstring>
+                                        </property>
+                                        <spacer>
+                                            <property name="name">
+                                                <cstring>spacer12</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>40</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
+                                        <widget class="QPushButton">
+                                            <property name="name">
+                                                <cstring>setTargetButton</cstring>
+                                            </property>
+                                            <property name="text">
+                                                <string>Set from Current Contrast</string>
+                                            </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Set the target mean and SD so that they would generate the contrast currently seen</string>
+                                            </property>
+                                        </widget>
+                                        <spacer>
+                                            <property name="name">
+                                                <cstring>spacer11</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>40</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
+                                    </hbox>
+                                </widget>
+                            </vbox>
                         </widget>
                     </vbox>
                 </widget>
                 <spacer>
                     <property name="name">
-                        <cstring>Spacer11</cstring>
+                        <cstring>Spacer13</cstring>
                     </property>
                     <property name="orientation">
-                        <enum>Vertical</enum>
+                        <enum>Horizontal</enum>
                     </property>
                     <property name="sizeType">
                         <enum>Expanding</enum>
@@ -444,30 +454,163 @@
                     <property name="sizeHint">
                         <size>
                             <width>16</width>
-                            <height>41</height>
+                            <height>16</height>
                         </size>
                     </property>
                 </spacer>
+            </hbox>
+        </widget>
+        <widget class="QGroupBox">
+            <property name="name">
+                <cstring>GroupBox4</cstring>
+            </property>
+            <property name="title">
+                <string>Zoom factors</string>
+            </property>
+            <vbox>
+                <property name="name">
+                    <cstring>unnamed</cstring>
+                </property>
+                <property name="margin">
+                    <number>11</number>
+                </property>
+                <property name="spacing">
+                    <number>6</number>
+                </property>
+                <widget class="QLayoutWidget">
+                    <property name="name">
+                        <cstring>Layout27</cstring>
+                    </property>
+                    <hbox>
+                        <property name="name">
+                            <cstring>unnamed</cstring>
+                        </property>
+                        <property name="margin">
+                            <number>0</number>
+                        </property>
+                        <property name="spacing">
+                            <number>6</number>
+                        </property>
+                        <widget class="QLabel">
+                            <property name="name">
+                                <cstring>TextLabel4</cstring>
+                            </property>
+                            <property name="text">
+                                <string>Index:</string>
+                            </property>
+                            <property name="alignment">
+                                <set>AlignVCenter|AlignRight</set>
+                            </property>
+                        </widget>
+                        <widget class="QSpinBox">
+                            <property name="name">
+                                <cstring>zoomIndexSpinBox</cstring>
+                            </property>
+                            <property name="minValue">
+                                <number>1</number>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Set index of zoom value to modify</string>
+                            </property>
+                        </widget>
+                        <widget class="QLabel">
+                            <property name="name">
+                                <cstring>defaultZoomLabel</cstring>
+                            </property>
+                            <property name="text">
+                                <string>Default 20.00</string>
+                            </property>
+                        </widget>
+                        <widget class="QLabel">
+                            <property name="name">
+                                <cstring>TextLabel6</cstring>
+                            </property>
+                            <property name="text">
+                                <string>Value:</string>
+                            </property>
+                            <property name="alignment">
+                                <set>AlignVCenter|AlignRight</set>
+                            </property>
+                        </widget>
+                        <widget class="QLineEdit">
+                            <property name="name">
+                                <cstring>zoomEdit</cstring>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Enter a new zoom value for given index</string>
+                            </property>
+                        </widget>
+                    </hbox>
+                </widget>
+                <widget class="QLayoutWidget">
+                    <property name="name">
+                        <cstring>Layout28</cstring>
+                    </property>
+                    <hbox>
+                        <property name="name">
+                            <cstring>unnamed</cstring>
+                        </property>
+                        <property name="margin">
+                            <number>0</number>
+                        </property>
+                        <property name="spacing">
+                            <number>6</number>
+                        </property>
+                        <widget class="QPushButton">
+                            <property name="name">
+                                <cstring>PushButton25</cstring>
+                            </property>
+                            <property name="text">
+                                <string>Restore Defaults</string>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Restore all default zoom values</string>
+                            </property>
+                        </widget>
+                        <widget class="QPushButton">
+                            <property name="name">
+                                <cstring>PushButton26</cstring>
+                            </property>
+                            <property name="text">
+                                <string>Shift Up</string>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Move each zoom value to the next index</string>
+                            </property>
+                        </widget>
+                        <widget class="QPushButton">
+                            <property name="name">
+                                <cstring>PushButton27</cstring>
+                            </property>
+                            <property name="text">
+                                <string>Shift Down</string>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Move each zoom value to the previous index</string>
+                            </property>
+                        </widget>
+                    </hbox>
+                </widget>
             </vbox>
         </widget>
         <spacer>
             <property name="name">
-                <cstring>Spacer13</cstring>
+                <cstring>spacer14</cstring>
             </property>
             <property name="orientation">
-                <enum>Horizontal</enum>
+                <enum>Vertical</enum>
             </property>
             <property name="sizeType">
                 <enum>Expanding</enum>
             </property>
             <property name="sizeHint">
                 <size>
-                    <width>16</width>
-                    <height>16</height>
+                    <width>20</width>
+                    <height>40</height>
                 </size>
             </property>
         </spacer>
-    </hbox>
+    </vbox>
 </widget>
 <connections>
     <connection>
@@ -518,6 +661,36 @@
         <receiver>AppearanceForm</receiver>
         <slot>markerColorClicked()</slot>
     </connection>
+    <connection>
+        <sender>PushButton25</sender>
+        <signal>clicked()</signal>
+        <receiver>AppearanceForm</receiver>
+        <slot>restoreDefaultZooms()</slot>
+    </connection>
+    <connection>
+        <sender>PushButton26</sender>
+        <signal>clicked()</signal>
+        <receiver>AppearanceForm</receiver>
+        <slot>shiftZoomsUp()</slot>
+    </connection>
+    <connection>
+        <sender>PushButton27</sender>
+        <signal>clicked()</signal>
+        <receiver>AppearanceForm</receiver>
+        <slot>shiftZoomsDown()</slot>
+    </connection>
+    <connection>
+        <sender>zoomIndexSpinBox</sender>
+        <signal>valueChanged(int)</signal>
+        <receiver>AppearanceForm</receiver>
+        <slot>newZoomIndex(int)</slot>
+    </connection>
+    <connection>
+        <sender>zoomEdit</sender>
+        <signal>textChanged(const QString&amp;)</signal>
+        <receiver>AppearanceForm</receiver>
+        <slot>newZoomValue()</slot>
+    </connection>
 </connections>
 <includes>
     <include location="local" impldecl="in implementation">dia_qtutils.h</include>
@@ -535,10 +708,13 @@
     <forward>typedef struct imod_pref_struct ImodPrefStruct</forward>
 </forwards>
 <variables>
-    <variable>ImodPrefStruct *mPrefs</variable>
+    <variable>bool mZoomValChanged;</variable>
+    <variable>ImodPrefStruct *mPrefs;</variable>
+    <variable>int mZoomIndex;</variable>
 </variables>
 <slots>
     <slot>init()</slot>
+    <slot>setFontDependentWidths()</slot>
     <slot>update()</slot>
     <slot>fontPressed()</slot>
     <slot>imagePtChanged( int value )</slot>
@@ -548,8 +724,17 @@
     <slot>autoSDChanged( int value )</slot>
     <slot>styleSelected( const QString &amp; key )</slot>
     <slot>setTargetClicked()</slot>
-    <slot>destroy()</slot>
+    <slot>displayCurrentZoom()</slot>
+    <slot>newZoomIndex( int value )</slot>
+    <slot>unloadZoomValue()</slot>
+    <slot>newZoomValue()</slot>
+    <slot>shiftZoomsDown()</slot>
+    <slot>shiftZoomsUp()</slot>
+    <slot>restoreDefaultZooms()</slot>
 </slots>
+<functions>
+    <function access="private" specifier="non virtual">destroy()</function>
+</functions>
 <pixmapinproject/>
 <layoutdefaults spacing="6" margin="11"/>
 </UI>

@@ -330,7 +330,7 @@
                                 <string>RGB</string>
                             </property>
                             <property name="toolTip" stdset="0">
-                                <string>Take RGB snapshots of movie</string>
+                                <string>Take snapshots of movie in current non-TIFF format</string>
                             </property>
                         </widget>
                     </vbox>
@@ -556,6 +556,7 @@
     <include location="local" impldecl="in implementation">multislider.h</include>
     <include location="local" impldecl="in implementation">imod_moviecon.h</include>
     <include location="local" impldecl="in implementation">dia_qtutils.h</include>
+    <include location="local" impldecl="in implementation">preferences.h</include>
     <include location="local" impldecl="in implementation">form_moviecon.ui.h</include>
 </includes>
 <forwards>
@@ -587,6 +588,9 @@
     <slot>keyReleaseEvent( QKeyEvent * e )</slot>
     <slot>fontChange( const QFont &amp; oldFont )</slot>
 </slots>
+<functions>
+    <function>setNonTifLabel()</function>
+</functions>
 <pixmapinproject/>
 <layoutdefaults spacing="6" margin="11"/>
 </UI>

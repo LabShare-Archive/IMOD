@@ -104,7 +104,7 @@ void imodvHelpMenu(int item)
        "     Open Model\t\tLoad a new model to view.\n",
        "     Save Model\t\tSave the current model.\n",
        "     Save Model As...\tSave model under a different name.\n",
-       "     Snap RGB As...\tSave a snapshot to a specified RGB file.\n",
+       "     Snap RGB As...\tSave a snapshot to a specified non-TIFF file.\n",
        "     Snap TIFF As...\tSave a snapshot a specified TIFF file.\n",
        "     Zero Snap File #\tReset the counter for snapshot files to 0.\n",
        "     Movie...\t\tProgram a sequence of displays and save them.\n",
@@ -142,7 +142,7 @@ void imodvHelpMenu(int item)
        "      \tmovie mode on/off\n"
        " Esc/q\tQuit this program\n",
        "  s   \tToggle stereo mode\n",
-       "  S   \tSnapshot image as an RGB file to modvnnnn.rgb\n",
+       "  S   \tSnapshot image as a non-TIFF file to modvnnnn.xxx\n",
        CTRL_STRING"-S\tSnapshot image as a TIFF file to modvnnnn.tif\n",
        "  o   \tOutput transformation information and movie frames/sec\n",
        "  c   \tOutput clipping plane information\n",
@@ -396,7 +396,7 @@ void imodvSaveModelAs()
 // The file menu dispatch function
 void imodvFileMenu(int item)
 {
-  QString qname;
+  QString qname, format;
 
   switch (item) {
   case VFILE_MENU_LOAD:
@@ -415,8 +415,10 @@ void imodvFileMenu(int item)
   case VFILE_MENU_SNAPRGB:
   case VFILE_MENU_SNAPTIFF:
     Imodv->mainWin->releaseKeyboard();
+    format = (item == VFILE_MENU_SNAPRGB) ? ImodPrefs->snapFormat() : "TIFF";
     qname = QFileDialog::getSaveFileName (QString::null, QString::null, 0, 0, 
-                                          "File to snapshot into:");
+                                          QString("File to save ") + format +
+                                          " snapshot into:");
     if (qname.isEmpty())
       break;
     imodv_auto_snapshot((char *)qname.latin1(), item == VFILE_MENU_SNAPRGB ? 
@@ -613,6 +615,9 @@ void ImodvBkgColor::keyReleaseSlot ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.16  2004/11/22 21:02:24  mast
+Added image window to selection
+
 Revision 4.15  2004/11/21 06:07:49  mast
 Changes for undo/redo
 

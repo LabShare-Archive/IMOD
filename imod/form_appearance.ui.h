@@ -10,6 +10,9 @@
 void AppearanceForm::init()
 {
   mPrefs = ImodPrefs->getDialogPrefs();
+  mZoomIndex = MAXZOOMS / 3;
+  zoomIndexSpinBox->setMaxValue(MAXZOOMS);
+  diaSetSpinBox(zoomIndexSpinBox, mZoomIndex + 1);
   update();
   
   // Load the style combo box and figure  out which one is the current one
@@ -58,6 +61,14 @@ void AppearanceForm::init()
     autoMeanSpinBox->setEnabled(false);
     autoSDspinBox->setEnabled(false);
   }
+  setFontDependentWidths();
+}
+
+
+void AppearanceForm::setFontDependentWidths()
+{
+    int width = (6 * 2 + 3) * fontMetrics().width("999999") / (6 * 2);
+    zoomEdit->setMaximumWidth(width);
 }
 
 // Update the dialog based on current values
@@ -67,6 +78,7 @@ void AppearanceForm::update()
   diaSetSpinBox(modelPtSpinBox, mPrefs->minModPtSize);
   diaSetSpinBox(autoMeanSpinBox, mPrefs->autoTargetMean);
   diaSetSpinBox(autoSDspinBox, mPrefs->autoTargetSD);
+  displayCurrentZoom();
 }
 
 // New font was selected
@@ -156,6 +168,72 @@ void AppearanceForm::setTargetClicked()
   diaSetSpinBox(autoSDspinBox, targetSD);
   mPrefs->autoTargetMean = autoMeanSpinBox->value();
   mPrefs->autoTargetSD = autoSDspinBox->value();
+}
+
+
+void AppearanceForm::displayCurrentZoom()
+{
+    QString str;
+    double zoom = mPrefs->zooms[mZoomIndex];
+    str.sprintf("%.4f", zoom);
+    if (str.endsWith("00"))
+        str.truncate(str.length() - 2);
+    zoomEdit->setText(str);
+    str = "Default " + str;
+    defaultZoomLabel->setText(str);
+    mZoomValChanged = false;
+}
+
+void AppearanceForm::newZoomIndex( int value )
+{
+    unloadZoomValue();
+    mZoomIndex = value - 1;
+    displayCurrentZoom();
+}
+
+void AppearanceForm::unloadZoomValue()
+{
+    if (!mZoomValChanged)
+	return;
+    double zoom = zoomEdit->text().toDouble();
+    if (zoom < 0.01)
+	zoom = 0.01;
+    if (zoom > 100.)
+	zoom = 100.;
+    double roundfac = zoom < 1.0 ? 1000. : 100.;
+    mPrefs->zooms[mZoomIndex] = ((int)(roundfac * zoom + 0.5)) / roundfac;
+    mPrefs->zoomsChgd = true;
+}
+
+void AppearanceForm::newZoomValue()
+{
+    mZoomValChanged = true;
+}
+
+void AppearanceForm::shiftZoomsDown()
+{
+    unloadZoomValue();
+    for (int i = 0; i < MAXZOOMS - 1; i++)
+	mPrefs->zooms[i] = mPrefs->zooms[i + 1];
+    mPrefs->zoomsChgd = true;
+    displayCurrentZoom();
+}
+
+void AppearanceForm::shiftZoomsUp()
+{
+    unloadZoomValue();
+    for (int i = MAXZOOMS - 1; i > 0; i--)
+	mPrefs->zooms[i] = mPrefs->zooms[i - 1];
+    mPrefs->zoomsChgd = true;
+    displayCurrentZoom();
+}
+
+void AppearanceForm::restoreDefaultZooms()
+{
+    for (int i = 0; i < MAXZOOMS; i++)
+	mPrefs->zooms[i] = mPrefs->zoomsDflt[i];
+    mPrefs->zoomsChgd = true;
+    displayCurrentZoom();
 }
 
 // When the window is closing, inform the preference manager

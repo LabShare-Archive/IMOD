@@ -44,6 +44,7 @@ Log at end of file
 #include "imodv_window.h"
 
 #include "imod.h"
+#include "preferences.h"
 #include "b3dgfx.h"
 #include "b3dfile.h"
 #include "imodv.h"
@@ -263,10 +264,14 @@ int imodv_auto_snapshot(char *inName, int format_type)
     a->mainWin->mCurGLw->setBufferSwapAuto(false);
   glReadBuffer(a->db ? GL_BACK : GL_FRONT);
 
-  if (format_type == SnapShot_TIF) {
+  if (format_type == SnapShot_TIF || 
+      (format_type == SnapShot_RGB && ImodPrefs->snapFormat() != "RGB")) {
     imodvDraw(Imodv);
     b3dSetCurSize(Imodv->winx, Imodv->winy);
-    b3dSnapshot_TIF(usename, 1, NULL, NULL);
+    if (format_type == SnapShot_TIF)
+      b3dSnapshot_TIF(usename, 1, NULL, NULL);
+    else
+      b3dSnapshot_NonTIF(usename, 1, NULL);
     imodPrintStderr(".\n");
   } else {
     if (imodv_snapshot(Imodv, usename))
@@ -366,6 +371,9 @@ static int imodv_snapshot(ImodvApp *a, char *fname)
 
 /*
 $Log$
+Revision 4.11  2004/06/08 15:40:45  mast
+Restore clears for stereo drawing, needed for SGI
+
 Revision 4.10  2004/06/06 21:28:44  mast
 Eliminated stereo clears in hardware stereo case
 

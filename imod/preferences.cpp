@@ -1,30 +1,12 @@
-/*  IMOD VERSION 3.0.4
- *
- *  preferences.cpp - Manage preferences for Imod, using Qt settings file
+/*  preferences.cpp - Manage preferences for Imod, using Qt settings file
  *
  *  Author: David Mastronarde   email: mast@colorado.edu
+ *
+ *  Copyright (C) 1995-2004 by Boulder Laboratory for 3-Dimensional Electron
+ *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  */
 
-/*****************************************************************************
- *   Copyright (C) 1995-2003 by Boulder Laboratory for 3-Dimensional Fine    *
- *   Structure ("BL3DEMC") and the Regents of the University of Colorado.    *
- *                                                                           *
- *   BL3DFS reserves the exclusive rights of preparing derivative works,     *
- *   distributing copies for sale, lease or lending and displaying this      *
- *   software and documentation.                                             *
- *   Users may reproduce the software and documentation as long as the       *
- *   copyright notice and other notices are preserved.                       *
- *   Neither the software nor the documentation may be distributed for       *
- *   profit, either in original form or in derivative works.                 *
- *                                                                           *
- *   THIS SOFTWARE AND/OR DOCUMENTATION IS PROVIDED WITH NO WARRANTY,        *
- *   EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTY OF          *
- *   MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.       *
- *                                                                           *
- *   This work is supported by NIH biotechnology grant #RR00592,             *
- *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
- *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
- *****************************************************************************/
 /*  $Author$
 
 $Date$
@@ -33,6 +15,17 @@ $Revision$
 
 Log at end of file
 */
+/* Checklist for adding an item:
+ * Add structure variable for item, default value, and boolean for change
+ * Add function for returning current value
+ * Set default value
+ * Read the setting, including any checks on validity
+ * Write the setting if changed in saveSettings()
+ * In donePressed, record change in value
+ * In defaultPressed, restore value in appropriate section
+ * Update program state if needed in timerEvent or pointSizeChanged
+ * In designer, build interface, load interface and unload it
+ */
 
 #include <stdlib.h>
 #include "preferences.h"
@@ -42,6 +35,7 @@ Log at end of file
 #include <qstylefactory.h>
 #include <qapplication.h>
 #include <qdir.h>
+#include <qimage.h>
 #include <qwidgetlist.h>
 #include <qobjectlist.h>
 #include "form_appearance.h"
@@ -51,6 +45,8 @@ Log at end of file
 #include "xzap.h"
 #include "imod_info.h"
 #include "imod_display.h"
+#include "imod_moviecon.h"
+#include "imodv_movie.h"
 #include "imod_workprocs.h"
 #include "control.h"
 
@@ -99,6 +95,7 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
   int i, left, top, width, height;
   bool readin;
   QString str;
+  QStringList strList;
   ImodPrefStruct *prefs = &mCurrentPrefs;
   QSettings *settings = getSettingsObject();
   mTabDlg = NULL;
@@ -140,6 +137,8 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
   prefs->namedColorDflt[5] = qRgb(255, 255, 128);
   prefs->namedColorDflt[6] = qRgb( 64,  64,  96);
   prefs->namedColorDflt[7] = qRgb( 16,  16,  16);  
+  prefs->snapFormatDflt = "RGB";
+  prefs->snapQualityDflt = 80;
 
   prefs->hotSliderKey = settings->readNumEntry(IMOD_NAME"hotSliderKey", 
                                               prefs->hotSliderKeyDflt,
@@ -186,6 +185,17 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
   prefs->autoTargetSD = settings->readNumEntry(IMOD_NAME"autoTargetSD",
                                         prefs->autoTargetSDDflt,
                                         &prefs->autoTargetSDChgd);
+  prefs->snapFormat = settings->readEntry(IMOD_NAME"snapFormat",
+                                          prefs->snapFormatDflt,
+                                          &prefs->snapFormatChgd);
+  prefs->snapQuality = settings->readNumEntry(IMOD_NAME"snapQuality",
+                                        prefs->snapQualityDflt,
+                                        &prefs->snapQualityChgd);
+
+  // Make sure an output format is on the list; if not drop back to RGB
+  strList = (snapFormatList()).grep(prefs->snapFormat);
+  if (strList.isEmpty())
+    prefs->snapFormat = "RGB";
 
   // Read each zoom with a separate key
   prefs->zoomsChgd = false;
@@ -203,7 +213,6 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
     prefs->namedColor[i] = settings->readNumEntry
       (str, (int)prefs->namedColorDflt[i], &prefs->namedColorChgd[i]);
   }
-    
 
   // Read the geometry information with separate keys
   for (i = 0; i < MAX_GEOMETRIES; i++) {
@@ -415,6 +424,10 @@ void ImodPreferences::saveSettings()
     settings->writeEntry(IMOD_NAME"autoTargetMean", prefs->autoTargetMean);
   if (prefs->autoTargetSDChgd)
     settings->writeEntry(IMOD_NAME"autoTargetSD", prefs->autoTargetSD);
+  if (prefs->snapFormatChgd)
+    settings->writeEntry(IMOD_NAME"snapFormat", prefs->snapFormat);
+  if (prefs->snapQualityChgd)
+    settings->writeEntry(IMOD_NAME"snapQuality", prefs->snapQuality);
 
   if (prefs->zoomsChgd) {
     for (i = 0; i < MAXZOOMS; i++) {
@@ -526,6 +539,7 @@ void ImodPreferences::donePressed()
   int i;
   bool autosaveChanged = false;
   mBehaveForm->unload();
+  mAppearForm->unloadZoomValue();
   mCurrentPrefs = mDialogPrefs;
 
   curp->hotSliderKeyChgd |= newp->hotSliderKey != oldp->hotSliderKey;
@@ -551,6 +565,8 @@ void ImodPreferences::donePressed()
   curp->rememberGeomChgd |= !equiv(newp->rememberGeom, oldp->rememberGeom);
   curp->autoTargetMeanChgd |= newp->autoTargetMean != oldp->autoTargetMean;
   curp->autoTargetSDChgd |= newp->autoTargetSD != oldp->autoTargetSD;
+  curp->snapFormatChgd |= newp->snapFormat != oldp->snapFormat;
+  curp->snapQualityChgd |= newp->snapQuality != oldp->snapQuality;
 
   for (i = 0; i < MAXZOOMS; i++)
       curp->zoomsChgd |= newp->zooms[i] != oldp->zooms[i];
@@ -576,9 +592,11 @@ void ImodPreferences::donePressed()
 
   findCurrentTab();
   mTabDlg = NULL;
+  imcUpdateDialog();
+  imodvMovieUpdate();
 }
 
-// When cancel is pressed, getthe current tab then go through common cancel
+// When cancel is pressed, get the current tab then go through common cancel
 void ImodPreferences::cancelPressed()
 {
   findCurrentTab();
@@ -626,6 +644,8 @@ void ImodPreferences::defaultPressed()
     prefs->autoTargetMean = prefs->autoTargetMeanDflt;
     prefs->autoTargetSD = prefs->autoTargetSDDflt;
     pointSizeChanged();
+    for (i = 0; i < MAXZOOMS; i++)
+      prefs->zooms[i] = prefs->zoomsDflt[i];
     mAppearForm->update();
     break;
 
@@ -640,9 +660,9 @@ void ImodPreferences::defaultPressed()
     prefs->autosaveInterval = prefs->autosaveIntervalDflt;
     prefs->autosaveOn = prefs->autosaveOnDflt;
     prefs->autosaveDir = prefs->autosaveDirDflt;
-    for (i = 0; i < MAXZOOMS; i++)
-      prefs->zooms[i] = prefs->zoomsDflt[i];
     QToolTip::setGloballyEnabled(prefs->tooltipsOn);
+    prefs->snapFormat = prefs->snapFormatDflt;
+    prefs->snapQuality = prefs->snapQualityDflt;
     mBehaveForm->update();
     break;
 
@@ -707,6 +727,18 @@ void ImodPreferences::changeStyle(QString newKey)
   else
     changeFont(mCurrentPrefs.font);
     //    changeFont(QApplication::font());
+}
+
+// Return a doctored list of snapshot formats, starting with RGB and leaving
+// out binary formats
+QStringList ImodPreferences::snapFormatList()
+{
+  QStringList retList = "RGB";
+  QStringList formats = QImage::outputFormatList();
+  for (int i = 0; i < formats.count(); i++)
+    if (formats[i] != "PBM" && formats[i] != "XBM")
+      retList << formats[i];
+  return retList;
 }
 
 
@@ -943,6 +975,9 @@ int ImodPreferences::getGenericSettings(char *key, double *values, int maxVals)
 
 /*
 $Log$
+Revision 1.18  2004/11/04 23:30:55  mast
+Changes for rounded button style
+
 Revision 1.17  2004/11/02 20:18:05  mast
 Added color settings, simplified dialog unload code, made default panel-only
 

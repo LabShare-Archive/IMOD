@@ -142,7 +142,9 @@ void zapHelp()
      "\nHot Keys special to the Zap window\n\n"
      "\ti toggles the modeling direction.\n",
      "\tS or "CTRL_STRING"-S saves the Zap window, or the area inside the "
-     "rubber band, into an RGB or TIFF file.\n"
+     "rubber band, into a non-TIFF or TIFF file.  (Use the menu entry "
+     "Edit-Options and go to the Behavior tab to select the non-TIFF file "
+     "format.)\n"
      "\tZ toggles auto section advance on and off.  When this is on, ",
      "the section will change automatically after inserting a point if ",
      "there was a section change between that point and the previous ",
@@ -3168,6 +3170,9 @@ static int zapPointVisable(ZapStruct *zap, Ipoint *pnt)
 
 /*
 $Log$
+Revision 4.54  2004/11/21 05:50:34  mast
+Switch from int to float for nearest point distance measurement
+
 Revision 4.53  2004/11/20 05:05:27  mast
 Changes for undo/redo capability
 

@@ -1,30 +1,12 @@
-/*  IMOD VERSION 2.50
- *
- *  imod_moviecon.c -- Movie controller dialog
+/*  imod_moviecon.c -- Movie controller dialog
  *
  *  Author: David Mastronarde   email: mast@colorado.edu
+ *
+ *  Copyright (C) 1995-2004 by Boulder Laboratory for 3-Dimensional Electron
+ *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  */
 
-/*****************************************************************************
- *   Copyright (C) 1995-2001 by Boulder Laboratory for 3-Dimensional Fine    *
- *   Structure ("BL3DFS") and the Regents of the University of Colorado.     *
- *                                                                           *
- *   BL3DFS reserves the exclusive rights of preparing derivative works,     *
- *   distributing copies for sale, lease or lending and displaying this      *
- *   software and documentation.                                             *
- *   Users may reproduce the software and documentation as long as the       *
- *   copyright notice and other notices are preserved.                       *
- *   Neither the software nor the documentation may be distributed for       *
- *   profit, either in original form or in derivative works.                 *
- *                                                                           *
- *   THIS SOFTWARE AND/OR DOCUMENTATION IS PROVIDED WITH NO WARRANTY,        *
- *   EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTY OF          *
- *   MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.       *
- *                                                                           *
- *   This work is supported by NIH biotechnology grant #RR00592,             *
- *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
- *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
- *****************************************************************************/
 /*  $Author$
 
 $Date$
@@ -116,6 +98,13 @@ void imcResetAll(ImodView *vw)
   firsttime = 0;
   if (dia)
     set_sliders();
+}
+
+/* Update the dialog if open */
+void imcUpdateDialog()
+{
+  if (dia)
+    dia->setNonTifLabel();
 }
 
 /* Get the increment for an axis */
@@ -266,53 +255,7 @@ void imodMovieConDialog(ImodView *vw)
 
 void imcHelp()
 {
-  dia_vasmsg
-    ("~~~~~~~~~~~~~~~~~~~~~~~~\n"
-     "3dmod Movie Controller \n"
-     "~~~~~~~~~~~~~~~~~~~~~~~~"
-     "\n\n",
-     "This window allows you to control the starting and ending "
-     "coordinates within which a movie will run, the increment between "
-     "successive frames, and the frame rate.\n\n"
-     "Use the axis radio buttons to select whether the sliders will adjust "
-     "the start, end, and increment for X, Y, Z or Time.  The initial "
-     "default setting is for the sliders to adjust movies in Z.\n\n"
-     "The [Reset] button will reset the start, end, and increment to "
-     "their initial settings (the minimum and maximum coordinates and "
-     "an increment of 1) for all four axes.\n\n"
-     "The [Done] button will close the window and reset these values in "
-     "the same way.\n\n"
-     "The Rate text box will display the current frame rate as it is "
-     "changed by the down and up Arrows or by \",\" and \".\" and will "
-     "also allow you to enter a custom value.  You must type Enter to "
-     "have your value take effect.\n\n",
-     "The next line shows two actual frame rates, the first averaged "
-     "over the time since the current movie was started, the second "
-     "an instantaneous rate since the last frame was displayed.  The "
-     "actual rate will be less than the selected rate if the display is "
-     "too slow to keep up, and can also differ from the selected rate "
-     "due to lack of precision of the system clock.\n\n"
-     "If [Round Trip] is selected, then movies will loop from one "
-     "end to the other then from that end back to the start; "
-     "if [One Way] is selected, then movies will always go in one "
-     "direction and jump back to the start when the end is reached.\n\n",
-     "If one of the Snapshot buttons [RGB] or [TIFF] is selected, "
-     "and a movie is started in a Zap or Slicer window, then that window "
-     "will automatically take an RGB or Tiff snapshot of each frame for "
-     "one complete cycle of the movie.  If [Start/end] is selected, the "
-     "movie will start at the "
-     "starting or the ending section depending on whether it is started "
-     "with the middle or the right mouse button.  It will stop when it "
-     "reaches the opposite end if [One Way] is selected; otherwise it "
-     "will loop back to the end at which it started.  If [Current pt] is "
-     "selected, the movie will start at the currently displayed section and "
-     "come back to that point in a full round trip; in this case [One way] "
-     "will not give useful results.\n"
-     "If you stop the movie before it is done, "
-     "then another mouse click in that or a different window will "
-     "start a completely new movie.\n",
-     NULL);
-  return;
+  imodShowHelpPage("imageMovie.html");
 }
 
 /* Buttons pressed */
@@ -407,6 +350,10 @@ void imcIncrementRate(int dir)
 
 /*
 $Log$
+Revision 4.5  2003/12/18 22:43:50  mast
+Changes for keeping track of which window started movie and for doing
+movie from current point
+
 Revision 4.4  2003/04/25 03:28:32  mast
 Changes for name change to 3dmod
 

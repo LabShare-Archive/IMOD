@@ -1,59 +1,19 @@
-/*  IMOD VERSION 2.42
- *
- *  imodv_movie.c -- Movie creation dialog for imodv.
+/*  imodv_movie.c -- Movie creation dialog for imodv.
  *
  *  Original Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
+ *
+ *  Copyright (C) 1995-2004 by Boulder Laboratory for 3-Dimensional Electron
+ *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  */
 
-/*****************************************************************************
- *   Copyright (C) 1995-2001 by Boulder Laboratory for 3-Dimensional Fine    *
- *   Structure ("BL3DFS") and the Regents of the University of Colorado.     *
- *                                                                           *
- *   BL3DFS reserves the exclusive rights of preparing derivative works,     *
- *   distributing copies for sale, lease or lending and displaying this      *
- *   software and documentation.                                             *
- *   Users may reproduce the software and documentation as long as the       *
- *   copyright notice and other notices are preserved.                       *
- *   Neither the software nor the documentation may be distributed for       *
- *   profit, either in original form or in derivative works.                 *
- *                                                                           *
- *   THIS SOFTWARE AND/OR DOCUMENTATION IS PROVIDED WITH NO WARRANTY,        *
- *   EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTY OF          *
- *   MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.       *
- *                                                                           *
- *   This work is supported by NIH biotechnology grant #RR00592,             *
- *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
- *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
- *****************************************************************************/
 /*  $Author$
 
     $Date$
 
     $Revision$
-
-    $Log$
-    Revision 4.8  2004/05/31 23:35:26  mast
-    Switched to new standard error functions for all debug and user output
-
-    Revision 4.7  2004/05/17 05:01:33  mast
-    Allow it to movie if only slices are changing
-
-    Revision 4.6  2004/05/03 19:11:13  mast
-    Added X, Y, Z slices to movie parameters
-
-    Revision 4.5  2003/12/30 06:29:51  mast
-    Switched to having montage compose and save whole image
-
-    Revision 4.4  2003/04/25 03:28:32  mast
-    Changes for name change to 3dmod
-
-    Revision 4.3  2003/04/17 18:43:38  mast
-    adding parent to window creation
-
-    Revision 4.2  2003/02/27 17:29:20  mast
-    Use new b3dX,Y,Z
-
+    Log at end of file
 */
 
 #include <qapplication.h>
@@ -88,7 +48,8 @@ struct imodvMovieDialogStruct
 };
 
 /* The resident structure and pointer to it */
-static struct imodvMovieDialogStruct movieStruct;
+static struct imodvMovieDialogStruct movieStruct = 
+  {NULL, NULL, 0,0,0,0,0,0,0,0,0,0};
 static struct imodvMovieDialogStruct *movie = &movieStruct;
 
 /* Local functions */
@@ -100,54 +61,7 @@ static void setstep(int index, int frame, int loLim, int hiLim, float *start,
 
 void imodvMovieHelp()
 {
-  dia_vasmsg
-    ("Make Movie Dialog Help.\n\n",
-     "Movie Making\n\n",
-     "The upper controls make a movie by stepping through "
-     "from the values in the left column of text boxes (starting values) to "
-     "the values in the right column (ending values).\n\n"
-     "Press the \"Set Start\" button to set the starting values to the "
-     "values of the current display, or the \"Set End\" button to set "
-     "the ending values.  You can also edit the values.\n\n"
-     "If the model view window is opened from 3dmod, then text boxes will "
-     "appear for starting and ending image slices in X, Y, and Z.  These "
-     "values will be relevant if you use the Edit-Image dialog to turn on "
-     "display of image slices in the model view window.  There are also boxes "
-     "showing the transparency of the image display and the thickness, or "
-     "number of slices displayed.\n\n"
-     "Pressing the \"Make\" button will cause 3dmodv to "
-     "display the number of frames given.  The rotation between the "
-     "starting and ending positions will be resolved into a rotation "
-     "around a single axis, and the rotation will occur at even "
-     "increments around that axis.\n\n"
-     "Press the \"Stop\" button to stop after the next display.\n\n"
-     "If \"Write Files\" is selected then a snapshot will "
-     "be taken of each image.  The file will be an RGB or a TIFF file, "
-     "depending on which radio button is selected.\n\n"
-     "To make a movie through 360 degrees around the X or the Y axis, "
-     "select the \"Full 360 X\" or \"Full 360 Y\" button.  Then select the "
-     "\"Make\" button.  The number of frames can be set before or "
-     "after selecting a Full 360 button.  Pressing \"Set Start\" or "
-     "\"Set End\" will cancel the Full 360 selection.\n\n",
-     "If \"Reverse\" is selected, the movie will run in reverse, from "
-     "the ending to the starting position, or rotate in the opposite "
-     "direction for a Full 360 movie.\n\n"
-     "If \"Long way\" is selected, the rotation will go the long way "
-     "around, through an angle greater instead of less than 180 "
-     "degrees.\n\n\n",
-     "Montage Making\n\n",
-     "The lower controls allow one to save a montage of zoomed-up views "
-     "of the model into a single TIFF file, in order to get a high-resolution "
-     "rendering of the model.  The model will be zoomed up by a "
-     "factor equal to the number of montage frames, then translated to a "
-     "regular array of positions.  "
-     "If \"Write Files\" is selected, then images will be montaged into an "
-     "array that is saved into a TIFF "
-     "file at the end.  Perspective must be set to zero in order for "
-     "this to work correctly.\n",
-     NULL);
-                
-  return;
+  imodShowHelpPage("modelMovie.html");
 }
 
 static void xinput(void)
@@ -343,6 +257,11 @@ static void setstep(int index, int frame, int loLim, int hiLim, float *start,
   }
 }
 
+void imodvMovieUpdate()
+{
+  if (movie->dia)
+    movie->dia->setNonTifLabel();
+}
 
 static void imodvMakeMovie(int frames)
 {
@@ -652,3 +571,31 @@ static void imodvMakeMontage(int frames, int overlap)
   imodMatDelete(mat);
   return;
 }
+
+/*
+    $Log$
+    Revision 4.9  2004/06/15 01:15:18  mast
+    Added image transparency and thickness
+
+    Revision 4.8  2004/05/31 23:35:26  mast
+    Switched to new standard error functions for all debug and user output
+
+    Revision 4.7  2004/05/17 05:01:33  mast
+    Allow it to movie if only slices are changing
+
+    Revision 4.6  2004/05/03 19:11:13  mast
+    Added X, Y, Z slices to movie parameters
+
+    Revision 4.5  2003/12/30 06:29:51  mast
+    Switched to having montage compose and save whole image
+
+    Revision 4.4  2003/04/25 03:28:32  mast
+    Changes for name change to 3dmod
+
+    Revision 4.3  2003/04/17 18:43:38  mast
+    adding parent to window creation
+
+    Revision 4.2  2003/02/27 17:29:20  mast
+    Use new b3dX,Y,Z
+
+*/
