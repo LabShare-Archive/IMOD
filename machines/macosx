@@ -74,9 +74,11 @@ echo '#define SWAP_IEEE_FLOATS' >> $hconfigure
 # Fork does not work
 # Clipboard works WITHOUT the timer hack and not with it
 # GLU quadric objects seem to be context specific
+# Clipboard is unreliable so resend events at given interval
 #
 echo '#define NO_IMOD_FORK' >> $hconfigure
 echo '#define GLU_QUADRIC_HACK' >> $hconfigure
+echo '#define SENDEVENT_RETRY_HACK 300' >> $hconfigure
 
 set optimization = "-O3 -w"
 if ($debug == true) set optimization = "-g -O0"
