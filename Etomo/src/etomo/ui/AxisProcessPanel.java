@@ -24,6 +24,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.6  2003/05/27 08:49:12  rickg
+ * <p> Determinant progress bar now takes a string
+ * <p>
  * <p> Revision 2.5  2003/05/23 14:23:53  rickg
  * <p> Progress bar determinant delegate methods
  * <p>
@@ -96,6 +99,7 @@ public class AxisProcessPanel implements ContextMenu {
 
     //  Create the status panel
     buttonKillProcess.addActionListener(new KillButtonActionListener(this));
+    buttonKillProcess.setEnabled(false);
     panelStatus.add(progressPanel.getContainer());
     panelStatus.add(buttonKillProcess);
 
@@ -151,7 +155,8 @@ public class AxisProcessPanel implements ContextMenu {
   public void setProgressBar(String label, int nSteps) {
     progressPanel.setLabel(label);
     progressPanel.setMinimum(0);
-    progressPanel.setMaximum(nSteps); 
+    progressPanel.setMaximum(nSteps);
+    buttonKillProcess.setEnabled(true);
   }
 
   /**
@@ -177,6 +182,7 @@ public class AxisProcessPanel implements ContextMenu {
   public void startProgressBar(String label) {
     progressPanel.setLabel(label);
     progressPanel.start();
+    buttonKillProcess.setEnabled(true);
   }
 
   /**
@@ -185,6 +191,7 @@ public class AxisProcessPanel implements ContextMenu {
    */
   public void stopProgressBar() {
     progressPanel.stop();
+    buttonKillProcess.setEnabled(false);
   }
 
   /**
