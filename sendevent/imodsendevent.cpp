@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.6  2004/05/31 02:17:40  mast
+Allowed multiple arguments after the action
+
 Revision 1.5  2004/04/18 22:33:45  mast
 Allowed SENDEVENT_RETRY_HACK to be defined as zero to set data a second time
 after processing events.
@@ -208,7 +211,7 @@ void ImodSendEvent::timerEvent(QTimerEvent *e)
     return;
   }
   fprintf(stderr, "ERROR: imodsendevent - timeout before response received "
-          "from target Imod\n");
+          "from target 3dmod\n");
   ::exit(2);
 }
 
