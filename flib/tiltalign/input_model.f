@@ -10,6 +10,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.7  2003/01/30 20:55:11  mast
+c	  Fixed xyz model output (again)
+c	
 c	  Revision 3.6  2003/01/18 00:02:52  mast
 c	  Fixed bug in model output when there are many contours with one point
 c	
@@ -357,6 +360,7 @@ c	  loop on model objects that are non-zero, stuff point coords into
 c	  first point of object (now only point), and set color by group
 c
 c	  get scaling factors, might as well apply each one to each coordinate
+c	  invert Z so that model can be visualized on tomogram by shifting
 c
 	ierr=getimodscales(ximscale,yimscale,zimscale)
 	ireal=0
@@ -366,7 +370,7 @@ c
 	    ireal=ireal+1
 	    p_coord(1,ipt)=xyz(1,ireal)*ximscale
 	    p_coord(2,ipt)=xyz(2,ireal)*yimscale
-	    p_coord(3,ipt)=xyz(3,ireal)*zimscale
+	    p_coord(3,ipt)=-xyz(3,ireal)*zimscale
 c
 c	      DNM 5/15/02: only change color if there is a group
 c	      assignment, but then double the object numbers to keep them
