@@ -16,7 +16,7 @@ import etomo.type.ConstMetaData;
  * <p>Description: This class manages the opening, closing and sending of 
  * messages to the appropriate imod processes. This class is state based in the
  * sense that is initialized with MetaData information and uses that information
- * to know which data sets to work with.  Thus if the </p>
+ * to know which data sets to work with.</p>
  *
  * <p>Copyright: Copyright (c) 2002</p>
  *
@@ -28,6 +28,9 @@ import etomo.type.ConstMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.19  2004/04/28 22:16:39  sueh
+ * <p> bug# 320 user interaction goes in app manager
+ * <p>
  * <p> Revision 3.18  2004/04/28 00:39:43  sueh
  * <p> bug# 320 changed warnStaleFile() message
  * <p>
@@ -558,11 +561,25 @@ public class ImodManager {
     }
   }
 
-  public void setSwapYZ(String key, boolean swapYZ) throws AxisTypeException {
+  public void setSwapYZ(String key, boolean swapYZ)
+    throws AxisTypeException, SystemProcessException {
     key = getPrivateKey(key);
     ImodState imodState = get(key);
+    if (imodState == null) {
+      create(key);
+    }
+    imodState.setSwapYZ(swapYZ);
+  }
+  
+  public void setBinning(String key, AxisID axisID, int binning)
+    throws AxisTypeException, SystemProcessException {
+    key = getPrivateKey(key);
+    ImodState imodState = get(key, axisID);
+    if (imodState == null) {
+      create(key, axisID);
+    }
     if (imodState != null) {
-      imodState.setSwapYZ(swapYZ);
+      imodState.setBinning(binning);
     }
   }
 
@@ -583,7 +600,9 @@ public class ImodManager {
     throws AxisTypeException, SystemProcessException {
     key = getPrivateKey(key);
     ImodState imodState = get(key, axisID);
-    if (!imodState.isWarnedStaleFile() && imodState.isOpen()) {
+    if (imodState != null
+      && !imodState.isWarnedStaleFile()
+      && imodState.isOpen()) {
       imodState.setWarnedStaleFile(true);
       return true;
     }
