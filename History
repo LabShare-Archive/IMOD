@@ -1,5 +1,14 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/29/03: Set up and documented installation procedures on the Mac.
+
+8/29/03: Changed the Fortran graphics routines to run the graphics window in
+a separate thread from the Fortran program.  This only works properly under
+Linux, where the window refreshes itself when resized or exposed.  On the Mac,
+the window can now be moved but not resized.
+
+8/25/03: Added the -E option to Imodmesh to cap the ends of tubes.
+
 8/13/03: IMOD_3-0-15
 8/12/03: Made the Qt-based graphics routines used in Fortran programs work on
 the Mac without hanging when the window opened.
