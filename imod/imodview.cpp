@@ -911,10 +911,10 @@ void ivwSetTime(ImodView *vw, int time)
 
 char *ivwGetTimeIndexLabel(ImodView *inImodView, int inIndex)
 {
-  if (!inImodView) return NULL;
-  if (inIndex < 1) return NULL;
-  if (inIndex > inImodView->nt) return NULL;
-  if (inImodView->fakeImage) return NULL;
+  if (!inImodView) return "";
+  if (inIndex < 1) return "";
+  if (inIndex > inImodView->nt) return "";
+  if (inImodView->fakeImage) return "";
   return(inImodView->imageList[inIndex-1].description);
 }
 
@@ -2051,6 +2051,9 @@ int  ivwGetObjectColor(ImodView *inImodView, int inObject)
 
 /*
 $Log$
+Revision 4.4  2003/02/27 19:42:14  mast
+Changes to filename and directory handling to work under windows
+
 Revision 4.3  2003/02/22 00:00:29  mast
 Open image files in binary mode
 
