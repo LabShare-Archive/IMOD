@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/31/03: IMOD_3-0-25
+10/31/03: Most new documentation added for etomo.
+
 10/29/03: Added the A hot key to 3dmod to do autocontrast.
 
 10/29/03: Modified Tiltxcorr to implement Christian Renkin's method of

@@ -171,7 +171,7 @@ currently handle the command files tailored to
 data from film.  
 If your data 
 are already in very good alignment, the only disadvantage to
-processing it in eTomo is that you will have to run a prealignment
+processing it in eTomo is that you will have to run the prealignment
 step.  This is worth it to avoid editing and running command files by hand.
 
 <P>
@@ -237,7 +237,8 @@ the data files or the name of the data set, excluding "a", "b", and
 ".st".  The easiest way to specify the name is to push the browse
 button and select one of the data stacks.
 
-<LI>Backup Directory: See the section above on 
+<LI>Backup Directory: This field can remain blank, but see the section above 
+on 
 <A HREF = "#Using Insecure Storage">Using Temporary or Insecure
 Storage</A>
 for an explanation of this option.
@@ -415,7 +416,8 @@ the middle.  If you have a big magnification change, you could also
 correct for this using the right mouse button while holding the Shift
 key down.
 <P>
-After fixing transformations, you must generate a new coarse aligned stack.
+After fixing and saving transformations, you must generate a new coarse 
+aligned stack.
 
 <P>
 <A NAME = "GETTING FIDUCIAL"><H3>
@@ -436,12 +438,16 @@ The more beads you have, the better the alignment will be, up to a point, but
 the more work it may take for you to complete the model.
 If the beads are all on one surface, there is
 not much point in having more than 12 or so; if they are on both surfaces, 20
-or more may be useful.  (If you will be using local alignments, these numbers
-should be much higher; see the recommendations in 
+or more may be useful.  However, for areas larger than 1000x1000 pixels,
+you will probably need to use local alignments, in which case you should have 
+at least 
+8-12 fiducials per 1000 by 1000 pixel area 
+acquired with a CCD camera, or
+6-8 fiducials per 500 by 500 pixel area digitized from film.  (See
 <A HREF = "#Using Local Alignments">Using Local Alignments</A>.)
-Save the model when you are done.
+Save the seed model when you are done.
 <P>
-     <A HREF = "man/beadtrack.html">Beadtrack</A>
+<A HREF = "man/beadtrack.html">Beadtrack</A>
  proceeds from one view to the next, tracking as many beads as
 possible on the new view.  Once it has bead positions on enough views, it runs
 a simplified tilt alignment to get improved predictions of where beads should
@@ -452,7 +458,8 @@ should work well, so in Basic mode eTomo shows only a few of the many
 parameters.
 <OL>
 <LI>  <B>View skip list</B> Enter or adjust the list of views to be
-skipped over.  
+skipped over.  If you put entries into the <B>Exclude views</B> field in the
+eTomo Setup window, these values will be carried over to this box.
 Skip over a view if
 there is a big mag change for that view only, or a particularly poor image for
 that view.
@@ -487,7 +494,7 @@ If several beads fail to track past a particular view, you might want to
 add that view to the list of views to be skipped and rerun the tracking.
 <P>
 Next press <B>Fix Fiducial Model Using Bead Fixer</B> to read the new
-model into <A HREF = "man/3dmod.html">3dmod</A>,
+fiducial model into <A HREF = "man/3dmod.html">3dmod</A>,
 and activate the Bead Fixer
 under the "Special" menu.  This will allow you to jump from one gap in
 the data to the next and fill in missing points if appropriate.  It is
@@ -541,23 +548,30 @@ to make the most reliable estimate of how fiducials
 correspond between the two series, you also need to run Tiltalign at
 least once.  If you want, you can do this even before fixing
 the first fiducial model; just press <B>Compute Alignment</B> on the
-<B>Fine Alignment</B> page for the first axis.  If your
+<B>Fine Alignment</B> panel for the first axis.  This process also requires a
+coarse aligned stack for the second axis, so proceed through the coarse
+alignment steps for the second axis until you reach the 
+<B>Fiducial Model Generation</B> panel.
+If your
 tilt angles are not in ".rawtlt" files, you also must fill in the view
 numbers of the zero-tilt views in the <B>Center view</B> text boxes
 (visible in Advanced mode).
-In any case, once the preconditions are met, press <B>Transfer
-Fiducials from Other Axis</B> on the <B>Fiducial Model Generation</B>
-panel for the second axis.
+Press <B>Transfer Fiducials from Other Axis</B> to begin the operation.
 <A HREF = "man/transferfid.html">Transferfid</A>
 will search for the pair of views in the two series
 that correspond the best, then transfer the fiducials from the first
 series to make the seed model for the second series.  At the end, the
-program indicates how corresponding fiducials should be specified when
+program indicates the number of fiducials that failed to transfer and how
+corresponding fiducials should be specified when
 setting up to combine the tomograms; this information is saved in a 
-transferfid.log file.
+transferfid.log file.  The output file that 
+<A HREF = "man/transferfid.html">Transferfid</A> creates is the seed model
+for the second axis.
 <P>
 If <A HREF = "man/transferfid.html">Transferfid</A> fails to work
-on the first attempt, you may need to set the translational and
+on the first attempt (as indicated by an unusually large number of fiducials
+that failed to transfer or a seed model that contains incorrect model
+points), you may need to set the translational and
 rotational alignment between the two series manually with 
 <A HREF = "man/midas.html">Midas</A>.  To do this, just check 
 <B>Run midas</B> and run the transfer again.  
@@ -570,7 +584,7 @@ exit.  The search for the best corresponding pair of views will
 proceed using this starting alignment.
 <P>
 The Advanced mode allows you to specify the views to search around 
-and limit or expand the number of views in the search.  As a last
+and to limit or expand the number of views in the search.  As a last
 resort, you could set the <B>Number of views in the search</B> to 1
 and set the alignment as well as possible in <A HREF =
 "man/midas.html">Midas</A>, including a magnification change and stretch.
@@ -617,7 +631,8 @@ with all tilt angles independently variable and no
 distortion; this will reveal bad fiducials, and
 reveal some sudden changes in alignment that may need to be taken into account
 when grouping views together.  The parameters that initially appear
-in the <B>Fine Alignment</B> panel provide for this kind of alignment.  
+in the <B>Global Variables</B> page of the 
+<B>Fine Alignment</B> panel provide for this kind of alignment.  
 At a later stage, typically after fixing
 fiducials, you would include distortion and
 group the tilt angles as appropriate.
@@ -625,21 +640,23 @@ group the tilt angles as appropriate.
 Before computing an alignment for the first time, check the following
 settings in the <B>General</B> parameter page:
 <OL>
-<LI> <B>Separate view groups</B> Specify one or more lists of views
+<LI> <B>Separate view groups</B>.  Specify one or more lists of views
 that should be kept out of groupings with adjacent
 views.  See the discussion of the corresponding entry to 
 <A HREF = "man/beadtrack.html">Beadtrack</A> under
 <A HREF = "#Getting Fiducial"> Fiducial Model Generation </A>
-<LI> <B>List of views to exclude</B>Add to or adjust the views to be
-excluded, if necessary, in this text box.
-<LI> <B>Assume beads on 1 or 2 surfaces for surface analysis</B>Change this
+<LI> <B>List of views to exclude</B>.  Add to or adjust the views to be
+excluded, if necessary, in this text box.  Again, if you entered 
+<B>Views to exclude</B> in the eTomo Setup
+window, they will be carried over to this box.
+<LI> <B>Assume beads on 1 or 2 surfaces for surface analysis</B>.  Change this
 to 1 if the beads are not located on two distinct surfaces.  Note that
 this setting does not affect the actual alignment solution, just the
 analysis of the orientation of the section surface in space, which is done
 after the alignment solution is obtained.
 </OL>
 <P>
-Press <B>Compute Alignment</B>and examine the results in the log file after
+Press <B>Compute Alignment</B> and examine the results in the log file after
 the process is done.  The lengthy log file has been split into useful
 sections under different tabs.  The first page that you see, <B>Errors</B>,
 shows two useful summary values.  One is the ratio of measured values to
@@ -648,7 +665,11 @@ random errors and of whether there might be too many independent variables
 being solved for.  The other is the residual error mean, a global measure of
 the quality of the fit.  A residual error is the distance in pixels between the
 measured position of a fiducial on a view and the position predicted by the
-alignment solution.
+alignment solution.  You can view a model of the residuals at every point,
+exaggerated by a factor of 10, by pressing the <B>View Residual Vectors</B>
+button (see <A HREF = "#Residual Model Output">Residual Model Output</A>.
+This feature is particularly useful for assessing whether you need
+to use local alignments.
 <P>
 The <B>Solution</B> page shows the value of some of the alignment variables
 for each view.
@@ -656,8 +677,8 @@ Examine the tilt angles, looking for places where
 they change by unusual amounts.  The column labeled "deltilt" shows the
 difference between the solved
 tilt angle and the original, nominal tilt angle.  This column should change
-gradually (except at reshoots), varying from one view to the next by only
-0.1 to 0.2
+gradually (except at pictures taken out of sequence), varying from one view
+to the next by only 0.1 to 0.2
 degrees.  Low tilt angles cannot be solved for as accurately, so variability
 might be somewhat greater there, but should not be much greater.  The
 "mag" column shows the effect of overall shrinkage and slight magnification
@@ -787,8 +808,9 @@ would be:
 <P>
      You would want to pick the low end of these ranges of group sizes if an
 alignment run reveals that one of the distortion variables changes especially
-quickly (but don't be fooled by big changes for reshoots).  Conversely, if the
-ratio of measurements to unknowns is lower than 10-12, you would want to make
+quickly (but don't be fooled by big changes for pictures taken out of
+sequence).  Conversely, if the ratio of measurements to unknowns is lower
+than 10-12, you would want to make
 the default group sizes large.  In this case, you could also switch to grouping
 magnification variables as well, provided that the solution for this
 variable already looks fairly smooth.
@@ -829,14 +851,15 @@ series, then enter "1,20,5 102,121,5".  Separate different non-default
 groupings with spaces, as in the example.
 <P>
      A good alignment has a mean residual error of 0.25 to 0.5 pixels, or more
-for larger gold particles.
+for larger gold particles or images acquired at smaller pixel sizes (less
+than 1-1.5 nm).
 
 <P>
 <A NAME = "Distortion One"><H4>
 7.4. Solving for Distortion - Fiducials on Only One Surface
 </A></H4>
 If you have fiducials on only one surface, or only a few fiducials on one
-surface , you can't properly solve for
+surface, you can't properly solve for
 both tilt angle and distortion.  If the section has thinned but not distorted,
 then allowing the tilt angles to vary will correct for the thinning.  If the
 section has distorted but not thinned, then solving for distortion with fixed
@@ -881,7 +904,8 @@ referred to as local patches.  The default size of the patches is determined
 by the number of patches in each dimension and the amount of overlap
 required between adjacent patches (50%, by default).  However, patches are
 also required to contain a minimum number of fiducials, and each patch will
-be expanded from the default size until it contains that number.  In fact,
+be automatically expanded from the default size until it contains that
+number.  In fact,
 there are two minimum requirements: one for the total number in an area, and
 one for the number on each fiducial surface.  The latter requirement is
 needed to ensure that there is enough information to 
@@ -942,7 +966,7 @@ the points with the largest residuals in the local solutions.  The Bead
 Fixer in <A HREF = "man/3dmod.html">3dmod</A> will allow you step from one
 local area to the next and bring up each point with a large residual.  With
 the <B>Examine points once</B> feature turned on, a point will be seen only
-once, even it it appears in the large residual list for several overlapping
+once, even if it appears in the large residual list for several overlapping
 patches.
 </OL>
 
@@ -994,13 +1018,14 @@ reduce resolution.  The steps to follow are:
 <OL>
 <LI> Set the <B>Sample tomogram thickness</B> to a number at least 50%
 bigger than the expected thickness of the section in the tomogram, so that
-the whole section will show up in the samples.  If you have fiducials
+both the top and bottom boundaries of the section will show up in the
+samples.  If you have fiducials
 entirely or almost all on one surface, or if the surface analysis in the
 alignment log file indicated a big tilt around the X-axis (e.g., more than 2
 degrees), you may need double the expected section thickness.
 <LI> Press <B>Create Sample Tomograms</B>.  Three samples will be generated,
 named top.rec, mid.rec, and bot.rec (or topa.rec, etc.)
-<LI> Press <B>Create Boundray Models</B>.  This will 
+<LI> Press <B>Create Boundary Models</B>.  This will 
 load all 3 sample tomograms into 3dmod and set up the proper filename for
 the boundary model.
 Model each edge of the section by drawing a line along
@@ -1102,21 +1127,21 @@ DeRosier, and Klug (1970) can provide a rough guide for how to adjust
 the radial filter, even though it is strictly applicable only to the case of a
 full 180&ordm; range of angles.  The formula is:
 <pre>
-    d = D * &#916;&beta;
+    d = D * &#916;&#946;
 where d is the resolution in real-space units (nm or pixels), 
       D is the diameter of volume reconstructed, 
-  and &#916;&beta; is the angular increment in radians.  
+  and &#916;&#946; is the angular increment in radians.  
 </pre>
-Alternatively, if &#916;&beta; is in degrees, the resolution f in 
+Alternatively, if &#916;&#946; is in degrees, the resolution f in 
 reciprocal-space (frequency) units is
 <pre>
-    f = 57.3 / (D * &#916;&beta;)
+    f = 57.3 / (D * &#916;&#946;)
 </pre>
 
 Or, the equation can be expressed in terms of n, the number of views, and
-the maximum tilt angle &beta;<sub>max</sub>:
+the maximum tilt angle &#946;<sub>max</sub>:
 <pre>
-    f = (28.5 * n) / (D * &beta;<sub>max</sub>)
+    f = (28.5 * n) / (D * &#946;<sub>max</sub>)
 </pre>
 which for the case of a tilt range of &plusmn;60&ordm;, reduces to:
 <pre>
@@ -1377,7 +1402,7 @@ the setup page will not have any effect unless you recreate the command files.
 Check free disk space (df -k). Typically, you need 3 times as much free
 space as one tomogram occupies.  You may need to delete the aligned tilt
 series, which you can do with the <B>Delete Aligned Image Stacks</B>
-button on the <B>TOmogram Generation</B> panel.  You may even need to 
+button on the <B>Tomogram Generation</B> panel.  You may even need to 
 archive and delete raw tilt series before proceeding.
 <P>
 Press <B>Start Combine</B> to start the operation.  Once the matchorwarp
@@ -1408,10 +1433,11 @@ If the combine operation fails right away, this is probably because of a bad
 correspondence between fiducial points, but might also occur with large
 volumes that have substantial distortion between the two tomograms.  To
 distinguish these two situations, examine the mean and maximum
-residuals in the solvematch log file.  If the mean is fairly large (around
-4 as opposed to 1), and the maximum is not very large (less than 20), this
-is a sign that the fiducial positions do not fit a linear transformation 
-very well because of
+residuals in the solvematchshift log file (or in the solvematchmod log file,
+if you used models of corresponding points).  If the mean is fairly large
+(around 4 as opposed to 1), and the maximum is not very large (less than
+20), this is a sign that the fiducial positions do not fit a linear
+transformation very well because of
 distortions.  In this case, enter a number higher than the maximum residual
 in the <B>Residual threshold</B> text box on the <B>Initial Match</B> page.
 Then press the <B>Restart Combine</B> button to start over from the beginning.
@@ -1439,7 +1465,8 @@ them.  If this shift is too high, the combine processing stops.  You
 should then look at the two volumes by pressing 
 <B>Examine Match Check Volumes</B> 
 to see whether the volumes differ in position by just a few pixels or
-are very different.  If the position is close, you can just resume
+are very different.  If the position is seems to be within a few pixels,
+you can just resume
 processing with the <B>Restart at Matchvol1</B> button.
 <P>
 If the check volumes do not match up, then 
@@ -1510,8 +1537,9 @@ the region contours (and thus not a problem) unless you rerun patchcorr to
 generate new patches that are constrained to be within the region.
 
 <LI> <B>Edit out scattered bad patches.</B>  If bad patches are fairly scattered and not too numerous, it is most
-appropriate to edit them out.  To do this, first open a Zap window from 
-the Info window of the 3dmod that is being used to show the patch vector model.
+appropriate to edit them out.  To do this, press the <B>Examine Patch Vector
+Model</B> button and open a Zap window from 
+the Info window of the 3dmod that displays the patch vector model.
 Position the mouse on an aberrant
 vector in the model
 view window and press the third mouse button to select

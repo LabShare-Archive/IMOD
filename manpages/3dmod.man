@@ -368,6 +368,9 @@ F9      Select Color map ramp # 1.
 F10     Cycle through Color map ramps, 1 - 2 - 3 - 4 - 1.
 F11     Toggle the reversed colormap.
 F12     Toggle False Color.
+A       Autocontrast (see
+.I Auto Button
+below.)
 .fi
 .TP
 .I The Float Checkbox.
@@ -375,6 +378,26 @@ When this box is checked, 3dmod will attempt to maintain comparable image
 contrast when going from one section to the next.  It automatically adjusts
 the sliders when one changes sections, based on the mean and
 standard deviation of image intensity in the sections.
+.TP
+.I The Auto Button
+This button is for setting contrast automatically.  When you press it,
+the program will attempt to adjust the black and white sliders so that the
+displayed image has a defined mean and standard deviation.  The settings
+for the target mean and standard deviation can be changed in the
+3dmod Preferences dialog box, available from the Edit-Options menu entry.
+Increase the target mean to make images brighter when you press the button,
+or reduce the standard deviation to make images have less contrast.
+.TP
+.I The Subarea Checkbox
+When this box is checked, both the float operation when
+going between sections and the autocontrast operation
+will be based only on the image area displayed in the most recently 
+active Zap window.  
+If there is a rubberband in the active Zap window, the area inside the 
+rubberband is used instead.
+When this box is not checked, these operations are based on the entire 
+section.
+
 .TP
 .I The Mode Toggle Buttons.
 One can toggle between 
@@ -416,14 +439,18 @@ Model
                   points).
 
 Object
-   New       Create a new object.  Opens Object Type dialog box.
-   Delete    Delete current object.
-   Type...   Edit Object type.
-   Color...  Open requester for changing object color.
-   Move...   Move all contours from current object to another
-                object.
-   Info      Calculate volume and surface area of current object.
-   Clean     Delete empty contours in the current object.
+   New        Create a new object.  Opens Object Type dialog box.
+   Delete     Delete current object.
+   Type...    Edit Object type.
+   Color...   Open requester for changing object color.
+   Move...    Move all contours from current object to another
+                 object.
+   Info       Calculate volume and surface area of current object.
+   Clean      Delete empty contours in the current object.
+   Break by Z Break every contour in the object at every change in
+                 Z, creating as many contours as necessary so that 
+                 each lies in a single Z plane.  The program will
+                 ask you to confirm the operation.
 
 Surface
    New       Create a new contour with a new surface number.  (N)

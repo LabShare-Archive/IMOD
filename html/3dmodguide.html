@@ -140,6 +140,7 @@ When this command is run a window similar to the one below will open up.
 A secondary window containing the image of the image file and model
 file is opened after the data has been loaded.
 
+<P>
 <A NAME = "Information Window"> 
 <H3>The Information Window</H3></A> 
 <CENTER> <IMG SRC="3dmodimages/infowin.png" ALT="3dmod Information Window"> 
@@ -222,12 +223,23 @@ you do this, the numeric value will be continuously displayed but the
 image will not be updated until you release the slider.
 
 <p>
-Below the sliders is the
-"Float" control.  When this is checked,
+Below the sliders are several controls related to setting the contrast.
+<UL>
+<LI> When the "Float" box is checked,
 the program will adjust the black and white sliders automatically when
 you change from one section to another in an attempt to maintain a
 constant contrast and brightness between the images.
-
+<LI> The "Auto" button is for setting contrast automatically; when you
+press it the program will adjust the black and white sliders so that the
+displayed image has a defined mean and standard deviation.  The settings
+for the target mean and standard deviation can be changed in the
+3dmod Preferences dialog box, available from the Edit-Options menu entry.
+For example, you could increase the target mean to make images brighter,
+or reduce the standard deviation to make images have less contrast.
+<LI> When the "Subarea" box is checked, both the "Float" operation when
+going between sections and the "Auto" contrast-setting operation
+will be performed using only the image area displayed in the Zap window.
+</UL>
 <p>
 The "Movie" and "Model" radio buttons allow a user to select one
 of the two modes.  When "Movie" is selected, pressing the middle or right
@@ -240,6 +252,7 @@ The bottom panel of the Info Window contains
 additional information and status messages.  You can expand the window
 vertically to see more of the information at once.
 
+<P>
 <A NAME = "Zap Window">
 <H3>The Zap Window</H3></A>
 <table border="0" align="center">
@@ -323,6 +336,7 @@ central section to show that the point was deposited on that section;
 if this does not make it clear enough you can also
 make a separate symbol be displayed only on the central section.
 </UL>
+<P>
 <A NAME = "Object Edit">
 <H4>The Object Edit Dialog</H4></A>
 The type of contours in an object, and the symbols displayed at
@@ -352,6 +366,7 @@ here no symbol is
 selected but the sphere radius for points has been set to 14.
 
 
+<P>
 <A NAME = "Modeling in Zap">
 <H4>Modeling in the Zap Window</H4></A>
 Model points are added or changed using a 3-button mouse with the
@@ -424,6 +439,7 @@ moving or deleting them.  Use this button alone to move one or more
 points; hold down the Ctrl key to delete points under the cursor while
 clicking or holding down the right button.
 
+<P>
 <A NAME = "Zap Toolbar"> 
 <H4>The Zap Toolbar</H4></A>
 <CENTER> 
@@ -498,6 +514,7 @@ t          Toggle model drawing off or on
 </DD>
 
 
+<P>
 <A NAME = "XYZ Window"> 
 <DD><H3>The XYZ Window</H3></A>
 <CENTER> 
@@ -540,6 +557,7 @@ mouse button
 functions as in the Zap window.  
 </DD>
 
+<P>
 <A NAME = "Slicer Window"> 
 <DD><H3>The Slicer Window</H3></A>
 <CENTER> 
@@ -610,6 +628,7 @@ very slow slicer window, remember that the hot sliders can be tamed
 with the Ctrl key.
 </DD>
 
+<P>
 <A NAME = "Setting Z-scale"> 
 <DD> <H3>Setting Z-scale and Pixel Size</H3></A>
 In order for your model to look right in 3D, you may need to set a property
@@ -637,6 +656,7 @@ Units can be one of the following; A, nm, um, mm, m, km.  For example,
 you could enter "0.015 um" or "15 nm".
 </DD>
 
+<P>
 <A NAME = "Viewing Model"> 
 <DD><H3>Viewing the Model in 3D</H3></A>
 <table border="0" align="center">
@@ -744,9 +764,14 @@ and right views of the model by pressing the "g" hot key twice to
 increase sphere drawing quality.  When there are many spheres, this
 degree of quality could
 significantly increase drawing time for the display, so it is not the default.
+The sphere drawing quality can also be controlled in the "Points"
+panel, which allows one to change the global quality setting (just as
+with the "G" and "G" hot keys) as well as set a quality for individual
+objects.
 
 </DD>
 
+<P>
 <A NAME = "Skinning Model"> 
 <DD> <H3>Putting a skin on model data</H3></A>
 
