@@ -61,6 +61,10 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.36  2005/03/09 18:12:29  sueh
+ * bug# 533 In the final alignment box disable linear interpolation and binning
+ * when the view type is montage.
+ *
  * Revision 3.35  2005/03/02 00:13:49  sueh
  * Corrected label.
  *
@@ -796,8 +800,14 @@ public class TomogramGenerationDialog extends ProcessDialog
         integerModel);
 
     pnlNewstParams.setLayout(new BoxLayout(pnlNewstParams, BoxLayout.Y_AXIS));
-    pnlNewstParams.setBorder(new EtchedBorder("Newstack Parameters")
-        .getBorder());
+    if (applicationManager.getMetaData().getViewType() == ViewType.MONTAGE) {
+      pnlNewstParams.setBorder(new EtchedBorder("Blendmont Parameters")
+          .getBorder());
+    }
+    else {
+      pnlNewstParams.setBorder(new EtchedBorder("Newstack Parameters")
+          .getBorder());
+    }
     if (applicationManager.getMetaData().getViewType() == ViewType.MONTAGE) {
       cbBoxUseLinearInterpolation.setEnabled(false);
       spinBinning.setEnabled(false);
@@ -986,11 +996,27 @@ public class TomogramGenerationDialog extends ProcessDialog
    * Right mouse button context menu
    */
   public void popUpContextMenu(MouseEvent mouseEvent) {
-    String[] manPagelabel = {"Newst", "Tilt", "3dmod"};
-    String[] manPage = {"newst.html", "tilt.html", "3dmod.html"};
-    String[] logFileLabel = {"Newst", "Tilt"};
+    String alignManpageLabel;
+    String alignManpage;
+    String alignLogfileLabel;
+    String alignLogfile;
+    if (applicationManager.getMetaData().getViewType() == ViewType.MONTAGE) {
+      alignManpageLabel = "Blendmont";
+      alignManpage = "blendmont";
+      alignLogfileLabel = "Blend";
+      alignLogfile = "blend";
+    }
+    else {
+      alignManpageLabel = "Newstack";
+      alignManpage = "newstack";
+      alignLogfileLabel = "Newst";
+      alignLogfile = "newst";
+    }
+    String[] manPagelabel = {alignManpageLabel, "Tilt", "3dmod"};
+    String[] manPage = {alignManpage + ".html", "tilt.html", "3dmod.html"};
+    String[] logFileLabel = {alignLogfileLabel, "Tilt"};
     String[] logFile = new String[2];
-    logFile[0] = "newst" + axisID.getExtension() + ".log";
+    logFile[0] = alignLogfile + axisID.getExtension() + ".log";
     logFile[1] = "tilt" + axisID.getExtension() + ".log";
     ContextPopup contextPopup = new ContextPopup(rootPanel, mouseEvent,
         "TOMOGRAM GENERATION", ContextPopup.TOMO_GUIDE, manPagelabel, manPage, logFileLabel, logFile, applicationManager);
