@@ -1,5 +1,14 @@
 #! /bin/csh -f
 # To extract portions of a tiltalign log file
+#
+#  $Author$
+#
+#  $Date$
+#
+#  $Revision$
+#
+#  $Log$
+#
 set pn = alignlog
 if ($#argv == 0) then
 cat <<EOF
@@ -27,16 +36,18 @@ if (! -r $file) then
 	set file = alignb.log
     else
         set file = align.log
+	@ numarg = 0
     endif
     if (! -r $file) then
 	echo "No file name specified, and align.log does not exist"
         exit 1
     endif
-else
-    @ numarg = 0
 endif
 
 set output = 0
+
+grep "SURFACE ANALYSIS" $file > /dev/null
+set newsurface = $status
 
 while ($#argv > $numarg)
     switch ($argv[1])
@@ -91,7 +102,11 @@ while ($#argv > $numarg)
 		echo "* * * * * * * * * * * * * * * * * * * * * * * * * * * *"
 		echo " "
 	    endif
-	    awk '/^ *Projection points/, /^ Fit to all/' $file | sed '/Fit t/d'
+	    if ($newsurface == 1) then
+		awk '/^ *Projection points/, /^ Fit to all/' $file | sed '/Fit t/d'
+	    else
+		awk '/^ *Projection points/, /^ SURFACE ANALYSIS/' $file | sed '/SURFACE/d'
+	    endif
 	    set output = 1
 	    shift
 	breaksw
@@ -102,7 +117,11 @@ while ($#argv > $numarg)
 		echo "* * * * * * * * * * * * * * * * * * * * * * * * * * * *"
 		echo " "
 	    endif
-	    awk '/^ Fit to all/, /^ 1 to do/' $file | sed '/1 to do/d'
+	    if ($newsurface == 1) then
+		awk '/^ Fit to all/, /^ 1 to do/' $file | sed '/1 to do/d'
+	    else
+		awk '/^ SURFACE ANALYSIS/, /^ 1 to do/' $file | sed '/1 to do/d'
+	    endif
 	    set output = 1
 	    shift
 	    breaksw
