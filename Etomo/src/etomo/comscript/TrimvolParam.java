@@ -12,16 +12,14 @@ package etomo.comscript;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
- */
-/**
- * @author rickg
- *
- * To change this generated comment go to 
- * Window>Preferences>Java>Code Generation>Code Template
+ * <p> $Log$
+ * <p> Revision 1.1  2003/04/09 23:36:57  rickg
+ * <p> In progress
+ * <p> </p>
  */
 public class TrimvolParam {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
 
   private int xMin = -1;
   private int xMax = -1;
@@ -30,8 +28,8 @@ public class TrimvolParam {
   private int zMin = -1;
   private int zMax = -1;
   private boolean fixedScaling = false;
-  private int scaleSectionMin = -1;
-  private int scaleSectionMax = -1;
+  private int sectionScaleMin = -1;
+  private int sectionScaleMax = -1;
   private int fixedScaleMin = -1;
   private int fixedScaleMax = -1;
   private boolean swapYZ = false;
@@ -67,21 +65,20 @@ public class TrimvolParam {
       commandLine.append(",");
       commandLine.append(String.valueOf(zMax));
     }
-    if(fixedScaling) {
+    if (fixedScaling) {
       commandLine.append(" -c ");
       commandLine.append(String.valueOf(fixedScaleMin));
       commandLine.append(",");
       commandLine.append(String.valueOf(fixedScaleMax));
-      
+
     }
     else {
       commandLine.append(" -s ");
-      commandLine.append(String.valueOf(scaleSectionMin));
+      commandLine.append(String.valueOf(sectionScaleMin));
       commandLine.append(",");
-      commandLine.append(String.valueOf(scaleSectionMax));
+      commandLine.append(String.valueOf(sectionScaleMax));
     }
-    
-    
+
     // TODO check to see that filenames are apropriate
     commandLine.append(" ");
     commandLine.append(inputFile);
@@ -129,15 +126,15 @@ public class TrimvolParam {
   /**
    * @return int
    */
-  public int getScaleSectionMax() {
-    return scaleSectionMax;
+  public int getSectionScaleMax() {
+    return sectionScaleMax;
   }
 
   /**
    * @return int
    */
-  public int getScaleSectionMin() {
-    return scaleSectionMin;
+  public int getSectionScaleMin() {
+    return sectionScaleMin;
   }
 
   /**
@@ -233,16 +230,16 @@ public class TrimvolParam {
    * Sets the scaleSectionMax.
    * @param scaleSectionMax The scaleSectionMax to set
    */
-  public void setScaleSectionMax(int scaleSectionMax) {
-    this.scaleSectionMax = scaleSectionMax;
+  public void setSectionScaleMax(int scaleSectionMax) {
+    this.sectionScaleMax = scaleSectionMax;
   }
 
   /**
    * Sets the scaleSectionMin.
    * @param scaleSectionMin The scaleSectionMin to set
    */
-  public void setScaleSectionMin(int scaleSectionMin) {
-    this.scaleSectionMin = scaleSectionMin;
+  public void setSectionScaleMin(int scaleSectionMin) {
+    this.sectionScaleMin = scaleSectionMin;
   }
 
   /**
