@@ -25,6 +25,13 @@
  *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
+/*  $Author$
+
+$Date$
+
+$Revision$
+
+Log at end of file */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -38,668 +45,283 @@
 #define fwrite b3dFwrite 
 #endif
 
-/* DNM 12/24/00: Changed the Byte_Byte and Byte_Short routines to call 
-   get_byte_map and get_short_map, and use the maps for scaling the raw data */
+static int mrcReadSectionAny(struct MRCheader *hdata, struct LoadInfo *li,
+                             unsigned char *buf, int cz, int readY, int byte);
 
-void mrcReadZByte_Byte(struct MRCheader *hdata, struct LoadInfo *li,
-		       unsigned char *buf, int cz)
+/*
+ * Routines for accessing particular kinds of data as bytes or raw, Y or Z
+ * axis
+ */
+int mrcReadZByte(struct MRCheader *hdata, struct LoadInfo *li,
+              unsigned char *buf, int z)
 {
-     FILE *fin = hdata->fp;
-     int  nx = hdata->nx;
-     int  ny = hdata->ny;
-
-     int  llx = li->xmin;
-     int  lly = li->ymin;
-     int  urx = li->xmax;
-     int  ury = li->ymax;
-
-     float slope  = li->slope;
-     float offset = li->offset;
-     int   imin   = li->imin;
-     int   imax   = li->imax;
-
-     int xsize = urx - llx + 1;
-     int ysize = ury - lly + 1;
-     int seek_line    = llx;
-     int seek_endline = nx - urx - 1;
-     int pindex = 0;
-     int pixel, i, j;
-     unsigned char *bdata = buf;
-     unsigned char *map;
-
-     /* DNM: add scaling to the loop if it's needed */
-     int doscale = (offset <= -1.0 || offset >= 1.0 || 
-		    slope < 0.995 || slope > 1.005);
-     if (doscale)
-	  map = get_byte_map(slope, offset, imin, imax);
-     /* printf ("read slope %f  offset %f\n", slope, offset); */
-
-     if (hdata->headerSize < 1024) hdata->headerSize = 1024;
-     
-     /* fseek(fin, hdata->headerSize + (cz * nx * ny),  SEEK_SET); */
-     mrc_big_seek(fin, hdata->headerSize, cz, nx * ny,  SEEK_SET);
-     if (seek_endline < 0)
-	  seek_endline = 0;
-     
-     if (lly)
-	  fseek(fin, lly * nx, SEEK_CUR);
-     
-     for (j = lly; j <= ury; j++){
-	  if (seek_line)
-	       fseek(fin, seek_line, SEEK_CUR);
-	  fread(bdata, 1, xsize, fin);
-	  if (doscale)
-	       for (i = 0; i < xsize; i++)
-		    bdata[i] = map[bdata[i]];
-	  bdata += xsize;
-	  if (seek_endline)
-	       fseek(fin, seek_endline, SEEK_CUR);
-     }
-     return;
+  return (mrcReadSectionAny(hdata, li, buf, z, 0, 1));
+}
+int mrcReadYByte(struct MRCheader *hdata, struct LoadInfo *li,
+              unsigned char *buf, int z)
+{
+  return (mrcReadSectionAny(hdata, li, buf, z, 1, 1));
 }
 
-void mrcReadYByte_Byte(struct MRCheader *hdata, struct LoadInfo *li,
-		       unsigned char *buf, int cy)
+int mrcReadZ(struct MRCheader *hdata, struct LoadInfo *li,
+              unsigned char *buf, int z)
 {
-     FILE *fin = hdata->fp;
-
-     int  nx = hdata->nx;
-     int  ny = hdata->ny;
-     int  nz = hdata->nz;
-
-     int  llx = li->xmin;
-     int  lly = li->zmin;
-     int  urx = li->xmax;
-     int  ury = li->zmax;
-
-     float slope  = li->slope;
-     float offset = li->offset;
-     int   imin   = li->imin;
-     int   imax   = li->imax;
-
-     int xsize = urx - llx + 1;
-     int ysize = ury - lly + 1;
-     int seek_line    = llx;
-     int seek_endline = (nx - urx - 1) + (nx * ny) - (nx);
-     int pindex = 0;
-     int pixel, i, j;
-     unsigned char *bdata = buf;
-     unsigned char *map;
-     int doscale = (offset <= -1.0 || offset >= 1.0 || 
-		    slope < 0.995 || slope > 1.005);
-     
-     if (doscale)
-	  map = get_byte_map(slope, offset, imin, imax);
-
-     if (seek_endline < 0)
-	  seek_endline = 0;
-
-     if (hdata->headerSize < 1024) hdata->headerSize = 1024;
-
-     fseek(fin, hdata->headerSize + (cy * nx),  SEEK_SET);
-    
-     if (lly)
-	  /* fseek(fin, lly * (nx * ny), SEEK_CUR); */
-	  mrc_big_seek(fin, 0, lly, nx * ny, SEEK_CUR);
-     
-     for (j = lly; j <= ury; j++){
-	  if (seek_line)
-	       fseek(fin, seek_line, SEEK_CUR);
-	  fread(bdata, 1, xsize, fin);
-	  if (doscale)
-	       for (i = 0; i < xsize; i++)
-		    bdata[i] = map[bdata[i]];
-	  bdata += xsize;
-	  if (seek_endline)
-	       fseek(fin, seek_endline, SEEK_CUR);
-     }
-     return;
+  return (mrcReadSectionAny(hdata, li, buf, z, 0, 0));
+}
+int mrcReadY(struct MRCheader *hdata, struct LoadInfo *li,
+              unsigned char *buf, int z)
+{
+  return (mrcReadSectionAny(hdata, li, buf, z, 1, 0));
 }
 
-void mrcReadZByte_Short(struct MRCheader *hdata, struct LoadInfo *li,
-			unsigned char *buf, int cz)
+int mrcReadSection(struct MRCheader *hdata, struct LoadInfo *li,
+                    unsigned char *buf, int z)
 {
-     FILE *fin = hdata->fp;
-     int  nx = hdata->nx;
-     int  ny = hdata->ny;
-
-     int  llx = li->xmin;
-     int  lly = li->ymin;
-     int  urx = li->xmax;
-     int  ury = li->ymax;
-
-     float slope  = li->slope;
-     float offset = li->offset;
-     int   imin   = li->imin;
-     int   imax   = li->imax;
-     
-     int xsize = urx - llx + 1;
-     int ysize = ury - lly + 1;
-     int seek_line    = llx * 2;
-     int seek_endline = 2 * (nx - urx - 1);
-     int pindex = 0;
-     int pixel, i, j;
-     float fpixel;
-     short *sdata;
-     unsigned short *usdata;
-     /* The map takes care of swapping */
-     unsigned char *map= get_short_map(slope, offset, imin, imax, 
-				       MRC_RAMP_LIN, hdata->swapped, 1);
-     if (seek_endline < 0)
-	  seek_endline = 0;
-     if (hdata->headerSize < 1024) hdata->headerSize = 1024;
-     /* fseek(fin, hdata->headerSize + (cz * nx * ny * 2),  SEEK_SET); */
-     mrc_big_seek(fin, hdata->headerSize, cz, nx * ny * 2,  SEEK_SET);
-     sdata = (short *)malloc(sizeof(short) * xsize);
-     usdata = (unsigned short *)sdata;
-     if (lly)
-	  fseek(fin, lly * nx * 2, SEEK_CUR);
-     
-     for (j = lly; j <= ury; j++){
-	  if (seek_line)
-	       fseek(fin, seek_line, SEEK_CUR);
-	  fread(sdata, sizeof(short), xsize, fin);
-	  for(i = 0; i < xsize; i++, pindex++)
-	       buf[pindex] = map[usdata[i]];
-	  if (seek_endline)
-	       fseek(fin, seek_endline, SEEK_CUR);
-     }
-     free(map);
-     free(sdata);
+  int readY = (li->axis == 2) ? 1 : 0;
+  return (mrcReadSectionAny(hdata, li, buf, z, readY, 0));
 }
 
-/* DNM: minor changes to make it work */
-
-void mrcReadYByte_Short(struct MRCheader *hdata, struct LoadInfo *li,
-			unsigned char *buf, int cy)
+int mrcReadSectionByte(struct MRCheader *hdata, struct LoadInfo *li,
+                    unsigned char *buf, int z)
 {
-     FILE *fin = hdata->fp;
-     int  nx = hdata->nx;
-     int  ny = hdata->ny;
-
-     int  llx = li->xmin;
-     int  lly = li->zmin;
-     int  urx = li->xmax;
-     int  ury = li->zmax;
-
-     float slope  = li->slope;
-     float offset = li->offset;
-     int   imin   = li->imin;
-     int   imax   = li->imax;
-     
-     int xsize = urx - llx + 1;
-     int ysize = ury - lly + 1;
-     int seek_line    = llx * 2;
-     int seek_endline = 2 * (nx - urx - 1 + nx * ny - nx);
-     int pindex = 0;
-     int pixel, i, j;
-     float fpixel;
-     short *sdata;
-     unsigned short *usdata;
-     /* The map takes care of swapping */
-     unsigned char *map= get_short_map(slope, offset, imin, imax, 
-				       MRC_RAMP_LIN, hdata->swapped, 1);
-     
-     if (seek_endline < 0)
-	  seek_endline = 0;
-
-     if (hdata->headerSize < 1024) hdata->headerSize = 1024;
-     fseek(fin, hdata->headerSize + (cy * nx * 2),  SEEK_SET);
-     sdata = (short *)malloc(sizeof(short) * xsize);
-     usdata = (unsigned short *)sdata;
-     if (lly)
-	  /*  fseek(fin, lly * nx * ny * 2, SEEK_CUR); */
-	  mrc_big_seek(fin, 0, lly, nx * ny * 2, SEEK_CUR);
-     
-     for (j = lly; j <= ury; j++){
-	  if (seek_line)
-	       fseek(fin, seek_line, SEEK_CUR);
-	  fread(sdata, sizeof(short), xsize, fin);
-	  for(i = 0; i < xsize; i++, pindex++)
-	       buf[pindex] = map[usdata[i]];
-	  if (seek_endline)
-	       fseek(fin, seek_endline, SEEK_CUR);
-     }
-     free(map);
-     free(sdata);
+  int readY = (li->axis == 2) ? 1 : 0;
+  return (mrcReadSectionAny(hdata, li, buf, z, readY, 1));
 }
 
-void mrcReadZByte_Float(struct MRCheader *hdata, struct LoadInfo *li,
-			       int dsize,
-			       unsigned char *buf, int cz)
+/*
+ * Generic routine for reading the data line-by-line and scaling it properly
+ */
+static int mrcReadSectionAny(struct MRCheader *hdata, struct LoadInfo *li,
+                              unsigned char *buf, int cz, int readY, int byte)
 {
-     FILE *fin = hdata->fp;
-     int  nx = hdata->nx;
-     int  ny = hdata->ny;
+  FILE *fin = hdata->fp;
+  int  nx = hdata->nx;
+  int  ny = hdata->ny;
      
-     int  llx = li->xmin;
-     int  lly = li->ymin;
-     int  urx = li->xmax;
-     int  ury = li->ymax;
+  int  llx = li->xmin;
+  int  urx = li->xmax;
+  int  lly = readY ? li->zmin : li->ymin;
+  int  ury = readY ? li->zmax : li->ymax;
+  int xsize = urx - llx + 1;
+  int ysize = ury - lly + 1;
      
-     float slope  = li->slope;
-     float offset = li->offset;
-     int   imin   = li->imin;
-     int   imax   = li->imax;
+  float slope  = li->slope;
+  float offset = li->offset;
+  int   outmin = li->outmin;
+  int   outmax = li->outmax;
+  int seek_line, seek_endline;
      
-     int xsize = urx - llx + 1;
-     int ysize = ury - lly + 1;
-     int seek_line    = llx * 4 * dsize;
-     int seek_endline = dsize * 4 * (nx - urx - 1);
-     int pindex = 0;
-     int pixel, i, j;
-     float fpixel;
-     float *fdata;
-     
-     if (seek_endline < 0)
-	  seek_endline = 0;
-     if (hdata->headerSize < 1024) hdata->headerSize = 1024;
-     /* fseek(fin, hdata->headerSize + 
-	(cz * nx * ny * dsize * sizeof(float)),  SEEK_SET); */
-     mrc_big_seek(fin, hdata->headerSize, 
-	   cz, nx * ny * dsize * sizeof(float),  SEEK_SET);
-     fdata = (float *)malloc(dsize * sizeof(float) * xsize);
-     if (lly)
-	  fseek(fin, lly * nx * dsize * sizeof(float), SEEK_CUR);
-     
-     for (j = lly; j <= ury; j++){
-	  if (seek_line)
-	       fseek(fin, seek_line, SEEK_CUR);
-	  fread(fdata, sizeof(float), dsize * xsize, fin);
-	  if (hdata->swapped)
-	       mrc_swap_floats(fdata, dsize * xsize);
-	  for(i = 0; i < xsize; i++, pindex++){
-	       if (dsize == 2){
-		    fpixel = sqrt((double)((fdata[i*2] * fdata[i*2]) + 
-				  (fdata[(i*2)-1] * fdata[(i*2)-1])));
-		    fpixel = log((double)(1.0f + (5.0f * fpixel)));
-	       }else
-		    fpixel = fdata[i];
+  int pindex = 0;
+  int pixel, i, j;
+  int pixSize = 1;
+  int needData = 0;
+  b3dFloat fpixel;
+  b3dFloat *fdata;
 
-	       fpixel *= slope;
-	       pixel = fpixel + offset;
-	       if (pixel < imin)
-		    pixel = imin;
-	       if (pixel > imax)
-		    pixel = imax;
-	       buf[pindex] = pixel;
-	       
-	  }
-	  if (seek_endline)
-	       fseek(fin, seek_endline, SEEK_CUR);
-     }
-     free(fdata);
+  /* Buffer to read lines into; may be replaced by temporary buffer for 
+     reading */
+  unsigned char *bdata = buf;
+  unsigned char *map = NULL;
+  unsigned char *inptr;
+  b3dInt16 *sdata;
+  b3dUInt16 *usdata;
+
+  int doscale = (offset <= -1.0 || offset >= 1.0 || 
+                 slope < 0.995 || slope > 1.005);
+  /* printf ("read slope %f  offset %f\n", slope, offset); */
+
+  /* get pixel size based on mode, and prepare scaling and set flags if
+     need another data array */
+  switch(hdata->mode){
+  case MRC_MODE_BYTE:
+    pixSize = 1;
+    if (byte && doscale) {
+      map = get_byte_map(slope, offset, outmin, outmax);
+      if (!map)
+        return 2;
+    }
+    break;
+
+  case MRC_MODE_SHORT:
+    pixSize = 2;
+    if (byte) {
+      map= get_short_map(slope, offset, outmin, outmax, MRC_RAMP_LIN,
+                         hdata->swapped, 1);
+      if (!map)
+        return 2;
+      needData = 1;
+    }
+    break;
+
+  case MRC_MODE_RGB:
+    pixSize = 3;
+    needData = byte;
+    break;
+
+  case MRC_MODE_FLOAT:
+    pixSize = 4;
+    needData = byte;
+    break;
+
+  case MRC_MODE_COMPLEX_SHORT:
+    pixSize = 4;
+    if (byte)
+      return 1;
+    break;
+
+  case MRC_MODE_COMPLEX_FLOAT:
+    pixSize = 8;
+    needData = byte;
+    break;
+
+  default:
+    if (byte)
+      b3dError(stderr, "ERROR: mrcReadSectionAny - unsupported data type.");
+      return 1;
+    break;
+  }
+
+  /* Get the supplemental data array, set all pointers to it */
+  if (needData) {
+    bdata = (unsigned char *)malloc(pixSize * xsize);
+    sdata = (b3dInt16 *)bdata;
+    usdata = (b3dUInt16 *)bdata;
+    fdata = (b3dFloat *)bdata;
+    if (!bdata) {
+      if (map)
+        free(map);
+      b3dError(stderr, "ERROR: mrcReadSectionAny - getting memory for "
+               "temporary array.");
+      return 2;
+    }
+  }
+
+  /* Fix header size in case it is weird */
+  if (hdata->headerSize < 1024) 
+    hdata->headerSize = 1024;
+
+  /* Seek distance at start of line */
+  seek_line    = llx * pixSize;
+     
+  if (readY) {
+
+    /* If reading Y, seek at end of line gets to next section, first seek
+       is small and seek to starting Z is big */
+    seek_endline = pixSize * (nx - urx - 1 + nx * ny - nx);
+    fseek(fin, hdata->headerSize + (cz * nx * pixSize),  SEEK_SET);
+    if (lly)
+      mrc_big_seek(fin, 0, lly, nx * ny * pixSize, SEEK_CUR);
+
+  } else {
+
+    /* If reading X, seek at end of line gets to end of line, first seek
+       is in Z and big, seek to starting Y is small */
+    seek_endline = pixSize * (nx - urx - 1);
+    mrc_big_seek(fin, hdata->headerSize, cz, nx * ny * pixSize,  SEEK_SET);
+    if (lly)
+      fseek(fin, lly * nx * pixSize, SEEK_CUR);
+  }
+  if (seek_endline < 0)
+    seek_endline = 0;
+
+  /* Start loop on Y and read a line of data */
+  for (j = lly; j <= ury; j++){
+    if (seek_line)
+      fseek(fin, seek_line, SEEK_CUR);
+    if (fread(bdata, pixSize, xsize, fin) != xsize) {
+      b3dError(stderr, "ERROR: mrcReadSectionAny - reading data from file.");
+      if (needData)
+        free(sdata);
+      if (map)
+        free(map);
+      return 3;
+    }
+
+    /* Do data-dependent processing for byte conversions */
+    if (byte) {
+      switch(hdata->mode){
+      case MRC_MODE_BYTE:
+        if (doscale)
+          for (i = 0; i < xsize; i++)
+            bdata[i] = map[bdata[i]];
+        bdata += xsize;
+        break;
+        
+      case MRC_MODE_SHORT:
+        for (i = 0; i < xsize; i++, pindex++)
+          buf[pindex] = map[usdata[i]];
+        break;
+
+      case MRC_MODE_RGB:
+        inptr = bdata;
+        for (i = 0; i < xsize; i++, pindex++) {
+          pixel = *inptr++;
+          pixel += *inptr++;
+          pixel += *inptr++;
+          buf[pindex] = pixel / 3;
+        }
+        break;
+        
+      case MRC_MODE_FLOAT:
+        if (hdata->swapped)
+          mrc_swap_floats(fdata, xsize);
+        for (i = 0; i < xsize; i++, pindex++){
+          pixel =  fdata[i] * slope + offset;
+          if (pixel < outmin)
+            pixel = outmin;
+          if (pixel > outmax)
+            pixel = outmax;
+          buf[pindex] = pixel;
+        }
+        break;
+
+      case MRC_MODE_COMPLEX_FLOAT:
+        if (hdata->swapped)
+          mrc_swap_floats(fdata, xsize * 2);
+        for (i = 0; i < xsize; i++, pindex++) {
+          fpixel = sqrt((double)((fdata[i*2] * fdata[i*2]) + 
+                                 (fdata[(i*2)-1] * fdata[(i*2)-1])));
+          pixel = log((double)(1.0f + (5.0f * fpixel))) * slope + offset;
+          if (pixel < outmin)
+            pixel = outmin;
+          if (pixel > outmax)
+            pixel = outmax;
+          buf[pindex] = pixel;
+        }
+        break;
+      }
+
+    } else {
+
+      /* Raw data - do some swaps, advance buffer pointer */
+      if (hdata->swapped)
+        switch(hdata->mode) {
+        case MRC_MODE_SHORT:
+        case MRC_MODE_COMPLEX_SHORT:
+          mrc_swap_shorts((b3dInt16 *)bdata, xsize * pixSize / 2);
+        break;
+        case MRC_MODE_FLOAT:
+        case MRC_MODE_COMPLEX_FLOAT:
+          mrc_swap_floats((b3dFloat *)bdata, xsize * pixSize / 4);
+          break;
+        default:
+          break;
+      }
+      bdata += xsize * pixSize;
+    }
+
+    /* End loop on Y */
+    if (seek_endline)
+      fseek(fin, seek_endline, SEEK_CUR);
+  }
+
+  if (needData)
+    free(sdata);
+  if (map)
+    free(map);
+  return 0;
 }
 
-/* DNM: minor changes to make it work; made sure sqrt and log got doubles */
-void mrcReadYByte_Float(struct MRCheader *hdata, struct LoadInfo *li,
-			       int dsize,
-			       unsigned char *buf, int cy)
-{
-     FILE *fin = hdata->fp;
-     int  nx = hdata->nx;
-     int  ny = hdata->ny;
-     
-     int  llx = li->xmin;
-     int  lly = li->zmin;
-     int  urx = li->xmax;
-     int  ury = li->zmax;
-     
-     float slope  = li->slope;
-     float offset = li->offset;
-     int   imin   = li->imin;
-     int   imax   = li->imax;
-     
-     int xsize = urx - llx + 1;
-     int ysize = ury - lly + 1;
-     int seek_line    = dsize * llx * 4;
-     int seek_endline = dsize * 4 * (nx - urx - 1 + nx * ny - nx);
-     int pindex = 0;
-     int pixel, i, j;
-     float fpixel;
-     float *fdata;
-
-     if (seek_endline < 0)
-	  seek_endline = 0;
-     if (hdata->headerSize < 1024) hdata->headerSize = 1024;
-     fseek(fin, hdata->headerSize + 
-	   (cy * nx * dsize * sizeof(float)),  SEEK_SET);
-     fdata = (float *)malloc(sizeof(float) * xsize * dsize);
-     if (lly)
-	  /* fseek(fin, lly * nx * ny * sizeof(float) * dsize, SEEK_CUR); */
-	  mrc_big_seek(fin, 0, lly , nx * ny * sizeof(float) * dsize, 
-		       SEEK_CUR);
-     
-     for (j = lly; j <= ury; j++){
-	  if (seek_line)
-	       fseek(fin, seek_line, SEEK_CUR);
-	  fread(fdata, sizeof(float), xsize * dsize, fin);
-	  if (hdata->swapped)
-	       mrc_swap_floats(fdata, dsize * xsize);
-	  for(i = 0; i < xsize; i++, pindex++){
-	       if (dsize == 2){
-		    fpixel = sqrt((double)((fdata[i*2] * fdata[i*2]) + 
-				  (fdata[(i*2)-1] * fdata[(i*2)-1])));
-		    fpixel = log((double)(1.0f + (5.0f * fpixel)));
-	       }else
-		    fpixel = fdata[i];
-	       
-	       fpixel *= slope;
-	       pixel = fpixel + offset;
-	       if (pixel < imin)
-		    pixel = imin;
-	       if (pixel > imax)
-		    pixel = imax;
-	       buf[pindex] = pixel;
-	       
-	  }
-	  if (seek_endline)
-	       fseek(fin, seek_endline, SEEK_CUR);
-     }
-     free(fdata);
-}
-
-/* DNM 8/28/01: add this so that midas can read rgb images and display in
-   grayscale */
-void mrcReadZByte_RGB(struct MRCheader *hdata, struct LoadInfo *li,
-			unsigned char *buf, int cz)
-{
-     FILE *fin = hdata->fp;
-     int  nx = hdata->nx;
-     int  ny = hdata->ny;
-
-     int  llx = li->xmin;
-     int  lly = li->ymin;
-     int  urx = li->xmax;
-     int  ury = li->ymax;
-
-     int xsize = urx - llx + 1;
-     int ysize = ury - lly + 1;
-     int seek_line    = llx * 3;
-     int seek_endline = 3 * (nx - urx - 1);
-     int pindex = 0;
-     int pixel, i, j;
-     unsigned char *sdata, *inptr;
-
-     if (seek_endline < 0)
-	  seek_endline = 0;
-     if (hdata->headerSize < 1024) hdata->headerSize = 1024;
-
-     mrc_big_seek(fin, hdata->headerSize, cz, nx * ny * 3,  SEEK_SET);
-     sdata = (unsigned char *)malloc(3 * xsize);
-
-     if (lly)
-	  fseek(fin, lly * nx * 3, SEEK_CUR);
-     
-     for (j = lly; j <= ury; j++){
-	  if (seek_line)
-	       fseek(fin, seek_line, SEEK_CUR);
-	  fread(sdata, 3, xsize, fin);
-	  inptr = sdata;
-	  for(i = 0; i < xsize; i++, pindex++) {
-	       pixel = *inptr++;
-	       pixel += *inptr++;
-	       pixel += *inptr++;
-	       buf[pindex] = pixel / 3;
-	  }
-	  if (seek_endline)
-	       fseek(fin, seek_endline, SEEK_CUR);
-     }
-     free(sdata);
-}
-
-
-void mrcReadZByte(struct MRCheader *hdata, struct LoadInfo *li,
-		  unsigned char *buf, int z)
-{
-     switch(hdata->mode){
-	case MRC_MODE_BYTE:
-	  mrcReadZByte_Byte(hdata, li, buf, z);
-	  break;
-	case MRC_MODE_SHORT:
-	  mrcReadZByte_Short(hdata, li, buf, z);
-	  break;
-	case MRC_MODE_FLOAT:
-	  mrcReadZByte_Float(hdata, li, 1, buf, z);
-	  break;
-	case MRC_MODE_COMPLEX_FLOAT:
-	  mrcReadZByte_Float(hdata, li, 2, buf, z);
-	  break;
-	case MRC_MODE_RGB:
-	  mrcReadZByte_RGB(hdata, li, buf, z);
-	  break;
-	default:
-	  break;
-     }
-     return;
-}
-
-void mrcReadYByte(struct MRCheader *hdata, struct LoadInfo *li,
-		  unsigned char *buf, int y)
-
-{
-     switch(hdata->mode){
-	case MRC_MODE_BYTE:
-	  mrcReadYByte_Byte(hdata, li, buf, y);
-	  break;
-	case MRC_MODE_SHORT:
-	  mrcReadYByte_Short(hdata, li, buf, y);
-	  break;
-	case MRC_MODE_FLOAT:
-	  mrcReadYByte_Float(hdata, li, 1, buf, y);
-	  break;
-	case MRC_MODE_COMPLEX_FLOAT:
-	  mrcReadYByte_Float(hdata, li, 2, buf, y);
-	  break;
-	default:
-	  break;
-     }
-     return;
-}
-
-void mrcReadSectionByte(struct MRCheader *hdata, struct LoadInfo *li,
-			unsigned char *buf, int z)
-{
-     switch(li->axis){
-	case 0:
-	case 3:
-	  mrcReadZByte(hdata, li, buf, z);
-	  break;
-	case 2:
-	  mrcReadYByte(hdata, li, buf, z);
-	  break;
-	case 1:
-	default:
-	  break;
-     }
-}
-
-
-/* DNM: added some modes and fixed obvious errors when added byte swapping */
-void mrcReadZ(struct MRCheader *hdata, struct LoadInfo *li,
-	      unsigned char *buf, int cz)
-{
-     FILE *fin = hdata->fp;
-     int  nx = hdata->nx;
-     int  ny = hdata->ny;
-     int  pixSize = 1;
-     int  llx = li->xmin;
-     int  lly = li->ymin;
-     int  urx = li->xmax;
-     int  ury = li->ymax;
-     
-     float slope  = li->slope;
-     float offset = li->offset;
-     int   imin   = li->imin;
-     int   imax   = li->imax;
-     
-     int xsize = urx - llx + 1;
-     int ysize = ury - lly + 1;
-     int pindex = 0;
-     int pixel, i, j;
-     int seek_line, seek_endline;
-
-
-     switch(hdata->mode){
-	case MRC_MODE_BYTE:
-	  pixSize = 1;
-	  break;
-	case MRC_MODE_SHORT:
-	  pixSize = 2;
-	  break;
-	case MRC_MODE_RGB:
-	  pixSize = 3;
-	  break;
-	case MRC_MODE_FLOAT:
-	case MRC_MODE_COMPLEX_SHORT:
-	  pixSize = 4;
-	  break;
-	case MRC_MODE_COMPLEX_FLOAT:
-	  pixSize = 8;
-	  break;
-	default:
-	  break;
-     }
-
-     /* DNM : moved these below place where pixSize is set, and added pixSize
-	to the initial seek */
-     seek_line    = llx * pixSize;
-     seek_endline = pixSize * (nx - urx - 1);
-     
-     if (hdata->headerSize < 1024) hdata->headerSize = 1024;
-     fseek(fin, hdata->headerSize + (cz * nx * ny * pixSize),  SEEK_SET);
-     if (seek_endline < 0)
-	  seek_endline = 0;
-     
-     if (lly)
-	  fseek(fin, lly * nx * pixSize, SEEK_CUR);
-     
-     for (j = lly; j <= ury; j++){
-	  if (seek_line)
-	       fseek(fin, seek_line, SEEK_CUR);
-	  fread(buf, pixSize, xsize, fin);
-	  buf += xsize * pixSize;
-	  if (seek_endline)
-	       fseek(fin, seek_endline, SEEK_CUR);
-	  if (hdata->swapped)
-	       switch(hdata->mode){
-		  case MRC_MODE_SHORT:
-		  case MRC_MODE_COMPLEX_SHORT:
-		    mrc_swap_shorts((short *)buf, xsize * pixSize / 2);
-		    break;
-		  case MRC_MODE_FLOAT:
-		  case MRC_MODE_COMPLEX_FLOAT:
-		    mrc_swap_floats((float *)buf, xsize * pixSize / 4);
-		    break;
-		  default:
-		    break;
-	       }
-     }
-     return;
-}
-
-/* DNM: fixed obvious errors when added byte swapping */
-void mrcReadY(struct MRCheader *hdata, struct LoadInfo *li,
-			unsigned char *buf, int cy)
-{
-     FILE *fin = hdata->fp;
-     int  nx = hdata->nx;
-     int  ny = hdata->ny;
-     
-     int  llx = li->xmin;
-     int  lly = li->ymin;
-     int  urx = li->xmax;
-     int  ury = li->ymax;
-     short pixSize = 1;
-     float slope  = li->slope;
-     float offset = li->offset;
-     int   imin   = li->imin;
-     int   imax   = li->imax;
-     
-     int xsize = urx - llx + 1;
-     int ysize = ury - lly + 1;
-     int seek_line;
-     int seek_endline;
-     int pindex = 0;
-     int pixel, i, j;
-     int cz = 0;
-
-     switch(hdata->mode){
-	case MRC_MODE_BYTE:
-	  pixSize = 1;
-	  break;
-	case MRC_MODE_SHORT:
-	  pixSize = 2;
-	  break;
-	case MRC_MODE_RGB:
-	  pixSize = 3;
-	  break;
-	case MRC_MODE_FLOAT:
-	case MRC_MODE_COMPLEX_SHORT:
-	  pixSize = 4;
-	  break;
-	case MRC_MODE_COMPLEX_FLOAT:
-	  pixSize = 8;
-	  break;
-	default:
-	  break;
-     }
-
-     /* DNM : moved these below place where pixSize is set, and added pixSize
-	to the initial seek, and made seek_endline skip to next section */
-     seek_line    = llx * pixSize;
-     seek_endline = pixSize * (nx - urx - 1 + nx * ny - nx);
-
-     /*     return;*/
-
-     if (seek_endline < 0)
-	  seek_endline = 0;
-     if (hdata->headerSize < 1024) hdata->headerSize = 1024;
-     /* fseek(fin, hdata->headerSize + (cz * nx * ny * pixSize),  SEEK_SET); */
-     mrc_big_seek(fin, hdata->headerSize, cz, nx * ny * pixSize,  SEEK_SET);
-
-     if (lly)
-	  fseek(fin, lly * nx * pixSize, SEEK_CUR);
-     
-     for (j = lly; j <= ury; j++){
-	  if (seek_line)
-	       fseek(fin, seek_line, SEEK_CUR);
-	  fread(buf, pixSize, xsize, fin);
-
-	  buf += xsize*pixSize;
-	  if (seek_endline)
-	       fseek(fin, seek_endline, SEEK_CUR);
-	  if (hdata->swapped)
-	       switch(hdata->mode){
-		  case MRC_MODE_SHORT:
-		  case MRC_MODE_COMPLEX_SHORT:
-		    mrc_swap_shorts((short *)buf, xsize * pixSize / 2);
-		    break;
-		  case MRC_MODE_FLOAT:
-		  case MRC_MODE_COMPLEX_FLOAT:
-		    mrc_swap_floats((float *)buf, xsize * pixSize / 4);
-		    break;
-		  default:
-		    break;
-	       }
-     }
-}
-
-
-void mrcReadSection(struct MRCheader *hdata, struct LoadInfo *li,
-		    unsigned char *buf, int z)
-{
-     switch(li->axis){
-	case 0:
-	case 3:
-	  mrcReadZ(hdata, li, buf, z);
-	  break;
-	case 2:
-	  mrcReadY(hdata, li, buf, z);
-	  break;
-	case 1:
-	default:
-	  break;
-     }
-
-}
+/*
+$Log$
+*/
