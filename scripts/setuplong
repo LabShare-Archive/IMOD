@@ -7,6 +7,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.1  2003/11/13 19:49:32  mast
+#  Inserted -f flags on csh invocations
+#
 #
 set FILTERPARAMS=".01,.05,0,.1"
 #
@@ -16,7 +19,9 @@ if ($#argv < 1) then
   echo "Usage: setuplong image_name.ext [X and Y size of average (default 168 by 168)]"
   exit 0
 endif
-if ($?IMOD_DIR) set path = ($IMOD_DIR/bin $path)
+if ($?IMOD_DIR) then
+    set path = ($IMOD_DIR/bin $path)
+endif
 #
 # GET BASE NAME = BN
 #

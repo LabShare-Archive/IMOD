@@ -1,5 +1,13 @@
 #! /bin/csh -f
 # INTERACTIVE SHELL SCRIPT TO MAKE INITIAL COMMAND FILE FOR JOINING TOMOGRAMS
+#  $Author$
+#
+#  $Date$
+#
+#  $Revision$
+#
+#  $Log$
+
 set MIDASLIMIT = 1024
 set defdir = ""
 set defunflipext = "rec"
@@ -15,7 +23,9 @@ set toplist = ""
 set anglelist = ""
 set sizelist = ""
 set ifrotlist = ""
-if ($?IMOD_DIR) set path = ($IMOD_DIR/bin $path)
+if ($?IMOD_DIR) then
+    set path = ($IMOD_DIR/bin $path)
+endif
 
 echo " "
 echo "This program will set up a command file to do the initial steps in"

@@ -9,6 +9,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.2  2003/11/13 19:48:45  mast
+#  Set starting line of coms correctly
+#
 #  Revision 3.1  2003/11/13 19:45:29  mast
 #  Added -f flag to csh invocations
 #
@@ -31,7 +34,9 @@ if ($#argv < 1) then
   exit 0
 endif
 #
-if ($?IMOD_DIR) set path = ($IMOD_DIR/bin $path)
+if ($?IMOD_DIR)
+    set path = ($IMOD_DIR/bin $path)
+endif
 set P1 = $argv[1]
 set SELF = "0"
 #
