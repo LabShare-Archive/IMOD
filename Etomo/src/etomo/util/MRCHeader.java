@@ -18,6 +18,10 @@ import etomo.process.SystemProgram;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.2  2002/10/03 19:17:48  rickg
+ * <p> Added new InvalidParameterException.
+ * <p> Corrected parsing of header output to account for leading space.
+ * <p>
  * <p> Revision 1.1  2002/10/03 03:58:46  rickg
  * <p> Initial revision, in development
  * <p>
@@ -67,8 +71,8 @@ public class MRCHeader {
           throw new IOException(
             "Header returned less than three parameters for image size");
         }
-        nRows = Integer.parseInt(tokens[7]);
-        nColumns = Integer.parseInt(tokens[8]);
+        nColumns = Integer.parseInt(tokens[7]);
+        nRows = Integer.parseInt(tokens[8]);
         nSections = Integer.parseInt(tokens[9]);
       }
     }
