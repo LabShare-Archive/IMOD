@@ -31,6 +31,9 @@ import etomo.comscript.SolvematchshiftParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.10  2003/06/05 04:42:37  rickg
+ * <p> Label change for view match shift results
+ * <p>
  * <p> Revision 1.9  2003/04/28 23:25:25  rickg
  * <p> Changed visible imod references to 3dmod
  * <p>
@@ -65,13 +68,13 @@ public class InitialCombinePanel implements ContextMenu {
 
   private JPanel pnlModelSelect = new JPanel();
   private JButton btnImodMatchModels =
-    new JButton("<html><b>Create matching models in 3dmod</b>");
+    new JButton("<html><b>Create Matching Models in 3dmod</b>");
   private JCheckBox cbUseModel = new JCheckBox("Model based initial match");
 
   private JPanel pnlButton = new JPanel();
   private JButton btnMatchcheck =
-    new JButton("<html><b>View match check volume</b>");
-  private JButton btnRestart = new JButton("<html><b>Restart combine</b>");
+    new JButton("<html><b>View Match Check Volume</b>");
+  private JButton btnRestart = new JButton("<html><b>Restart Combine</b>");
 
   /**
    * Default constructor
@@ -119,9 +122,10 @@ public class InitialCombinePanel implements ContextMenu {
     pnlButton.add(Box.createHorizontalGlue());
 
     pnlRoot.add(pnlSolvematch);
-    pnlRoot.add(Box.createVerticalGlue());
+		pnlRoot.add(Box.createRigidArea(FixedDim.x0_y10));
     pnlRoot.add(pnlButton);
-
+		pnlRoot.add(Box.createVerticalGlue());
+		
     //  Bind the UI objects to their ActionListeners
     ButtonActionListener buttonAction = new ButtonActionListener(this);
     btnImodMatchModels.addActionListener(buttonAction);
@@ -192,13 +196,13 @@ public class InitialCombinePanel implements ContextMenu {
   }
 
   /**
-   * Right mouse btn context menu
+   * Right mouse button context menu
    */
   public void popUpContextMenu(MouseEvent mouseEvent) {
-    String[] manPagelabel = { "solvematch", "matchshifts" };
+    String[] manPagelabel = { "Solvematch", "Matchshifts" };
     String[] manPage = { "solvematch.html", "matchshifts.html" };
     String[] logFileLabel =
-      { "transferfid", "solvematchshift", "solvematchmod" };
+      { "Transferfid", "Solvematchshift", "Solvematchmod" };
     String[] logFile =
       { "transferfid.log", "solvematchshift.log", "solvematchmod.log" };
 
@@ -206,7 +210,7 @@ public class InitialCombinePanel implements ContextMenu {
       new ContextPopup(
         pnlRoot,
         mouseEvent,
-        "Initial Problems in Combinging",
+        "Initial Problems in Combining",
         manPagelabel,
         manPage,
         logFileLabel,
