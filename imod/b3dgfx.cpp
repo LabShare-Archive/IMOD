@@ -1057,8 +1057,8 @@ static void b3dDrawGreyScalePixels15
 
     }
   }
-  printf("1.5 wx %d wy %d sw %d sh %d window %d %d\n",
-     wxdraw, wy, drawwidth, sh, CurWidth, CurHeight);
+  /* printf("1.5 wx %d wy %d sw %d sh %d window %d %d\n",
+     wxdraw, wy, drawwidth, sh, CurWidth, CurHeight); */
 
   glPixelZoom((GLfloat)1.0f, (GLfloat)1.0f);
 
@@ -1891,6 +1891,9 @@ void b3dSnapshot(char *fname)
 
 /*
 $Log$
+Revision 4.14  2003/09/16 03:52:46  mast
+Fixed test for integer zoom to not fail on 0.01, and fixed bug in 1.5 zoom
+
 Revision 4.13  2003/09/16 03:01:26  mast
 Changed pixel drawing routines to take image data as line pointers
 Added faster fractional zoom drawing when fraction is near 1/integer
