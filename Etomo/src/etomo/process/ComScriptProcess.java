@@ -9,6 +9,8 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 
 import etomo.ApplicationManager;
+import etomo.type.AxisID;
+import etomo.type.ProcessName;
 import etomo.util.Utilities;
 
 /**
@@ -31,6 +33,9 @@ import etomo.util.Utilities;
  * 
  * <p>
  * $Log$
+ * Revision 3.3  2004/04/10 00:52:01  sueh
+ * bug# 409 fixed a possible bug in parseWarning()
+ *
  * Revision 3.2  2004/04/09 17:03:39  sueh
  * bug# 409 parsing multi-line "PIP WARNING:" message
  *
@@ -218,14 +223,19 @@ public class ComScriptProcess
   private SystemProgram vmstocsh;
   private SystemProgram csh;
   private StringBuffer cshProcessID;
+  private AxisID axisID;
 
   private boolean started = false;
   private boolean done = false;
 
-  public ComScriptProcess(String comScript, ProcessManager processManager) {
+  public ComScriptProcess(
+    String comScript,
+    ProcessManager processManager,
+    AxisID axisID) {
     this.name = comScript;
     this.processManager = processManager;
     cshProcessID = new StringBuffer("");
+    this.axisID = axisID;
   }
 
   /**
@@ -371,6 +381,14 @@ public class ComScriptProcess
    */
   public String getScriptName() {
     return name;
+  }
+  
+  public ProcessName getProcessName() {
+    return ProcessName.fromFileName(name, axisID, ".com");
+  }
+  
+  public AxisID getAxisID() {
+    return axisID;
   }
 
   /**
