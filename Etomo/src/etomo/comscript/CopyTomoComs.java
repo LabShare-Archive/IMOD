@@ -31,6 +31,10 @@ import etomo.type.ViewType;
  * 
  * <p>
  * $Log$
+ * Revision 3.1  2004/02/20 02:32:35  sueh
+ * bug# 385 add getOptions() - places command line options
+ * into a Vector.  Place all options on the command line
+ *
  * Revision 3.0  2003/11/07 23:19:00  rickg
  * Version 1.0.0
  *
@@ -157,6 +161,7 @@ public class CopyTomoComs {
       commandLine.append(" " + options.get(i));
     }
     copytomocoms = new SystemProgram(commandLine.toString());
+    //genStdInputSequence();
   }
 
 	/**
@@ -213,7 +218,14 @@ public class CopyTomoComs {
     if (!excludeProjections.equals("")) {
       options.add("-skip " + excludeProjections);
     }
-    //Take tilt angle from a .rawtlt file
+
+    //Undistort images with the given .idf file
+    String distortionFile = metaData.getDistortionFile();
+    if (!distortionFile.equals("")) {
+      options.add("-distort " + distortionFile);
+    }
+    //Binning of raw stacks (needed to undistort if ambiguous)
+    options.add("-binning " + metaData.getBinning());
     //  Axis type: single or dual
     if (metaData.getAxisType() == AxisType.DUAL_AXIS) {
       options.add("-dual");
@@ -242,10 +254,6 @@ public class CopyTomoComs {
         options.add("-bskip " + excludeProjections);
       }
     }
-    //TODO
-    //Undistort images with the given .idf file
-    //Binning of raw stacks (needed to undistort if ambiguous)
-
     // Options removed:
     //  CCDEraser and local alignment entries
     //  Always yes tiltalign relies on local entries to save default values
