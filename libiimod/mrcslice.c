@@ -1183,7 +1183,7 @@ int sliceWriteMRCfile(char *filename, Islice *slice)
   hout.amax  = slice->max;
   hout.amean = slice->mean;
   mrc_head_write(fp, &hout);
-  fwrite(slice->data.b, slice->dsize, 
+  b3dFwrite(slice->data.b, slice->dsize, 
 	 slice->csize * slice->xsize * slice->ysize, fp);
   error = ferror(fp);
   fclose(fp);

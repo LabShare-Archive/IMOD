@@ -20,6 +20,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.5  2003/10/24 03:40:33  mast
+open file as binary; delete ~ before renaming for Windows/Intel
+
 Revision 3.4  2002/10/23 21:01:06  mast
 Directed error messages to stdout instead of stderr because that is
 where Fortran program messages go
@@ -46,9 +49,9 @@ Include Files
 #include <sys/stat.h>
 #include <string.h>   /* JRK: added for strcmp */
 #include <math.h>
- 
+
 #include "environ.h"
- 
+
 /******************************************************************************
 Private Defines
 ******************************************************************************/
@@ -86,6 +89,16 @@ Private Defines
 #define qwrite     qwrite_
 #define zero       zero_
 
+#endif
+
+#ifdef WIN32_BIGFILE
+#include <io.h>
+#define fseek myfseek 
+#define fread myfread 
+#define fwrite myfwrite 
+PRIVATE int myfseek(FILE *fp, int offset, int flag);
+PRIVATE size_t myfread(void *buf, size_t size, size_t count, FILE *fp);
+PRIVATE size_t myfwrite(void *buf, size_t size, size_t count, FILE *fp);
 #endif
  
 #define MAX_MODE 17    /* JRK: max mode from 5 to 17 */
@@ -375,7 +388,8 @@ void qwrite(iunit, array, nitems)
                     SEEK_SET))
          {
            fprintf(stdout, "ERROR: qseek - Error on big_seek\n");
-           exit(-1);
+           perror("");
+          exit(-1);
          }
      }
  }
@@ -667,6 +681,28 @@ PRIVATE int big_seek(FILE *fp, int base, int size1, int size2, int flag)
   }
   return 0;
 }
+
+#ifdef WIN32_BIGFILE
+PRIVATE int myfseek(FILE *fp, int offset, int flag)
+{
+  int handle = _fileno(fp);
+  __int64 err;
+  err = _lseeki64(handle, (_int64)offset, flag);
+  return (err == -1 ? -1 : 0);
+}
+
+PRIVATE size_t myfread(void *buf, size_t size, size_t count, FILE *fp)
+{
+  int handle = _fileno(fp);
+  return (size_t)_read(handle, buf, size * count);
+}
+ 
+PRIVATE size_t myfwrite(void *buf, size_t size, size_t count, FILE *fp)
+{
+  int handle = _fileno(fp);
+  return (size_t)_write(handle, buf, size * count);
+}
+#endif
  
 /************************************************************************
 Private undefines

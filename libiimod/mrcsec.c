@@ -31,6 +31,13 @@
 #include <math.h>
 #include "mrcfiles.h"
 
+/* These defines are OK since all I/O in file is to MRC files */
+#ifdef WIN32_BIGFILE
+#define fseek b3dFseek 
+#define fread b3dFread 
+#define fwrite b3dFwrite 
+#endif
+
 /* DNM 12/24/00: Changed the Byte_Byte and Byte_Short routines to call 
    get_byte_map and get_short_map, and use the maps for scaling the raw data */
 

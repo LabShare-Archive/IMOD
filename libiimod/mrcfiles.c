@@ -32,39 +32,7 @@ $Date$
 
 $Revision$
 
-$Log$
-Revision 3.9  2003/03/28 05:08:02  mast
-Use new unique little endian flag
-
-Revision 3.8  2003/03/26 01:51:27  mast
-Do not have mrc_read_byte decide when to load non-contiguous, but have it drop
-back to non-contiguous when contiguous fails
-
-Revision 3.7  2003/03/12 03:50:28  mast
-Avoid trying to allocate more than 2 GB of contiguous memory, add error
-message in contiguous allocation
-
-Revision 3.6  2002/09/27 20:51:25  rickg
-Added include of time.h to fix call to ctime.
-
-Revision 3.5  2002/09/14 00:58:41  mast
-Invert sense of scale factors in mrc_set_scale and mrc_get_scale to conform
-to usage
-
-Revision 3.4  2002/08/02 17:18:19  mast
-Fixed bug in reading swapped files, standardized error outputs
-
-Revision 3.3  2002/07/31 17:34:44  mast
-Changes to accommodate new header format for origin values
-
-Revision 3.2  2002/06/26 17:06:37  mast
-Added type casts to calls to mrc_swap_shorts and _floats
-
-Revision 3.1  2002/06/26 16:52:38  mast
-Added ability to write header back to byte-swapped file, and to write
-data to byte-swapped file with mrc_data_new and mrc_write_slice
-
-*/
+Log at end of file */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -76,6 +44,14 @@ data to byte-swapped file with mrc_data_new and mrc_write_slice
 #include <math.h>
 #include "mrcfiles.h"
 #include "b3dutil.h"
+
+/* These defines are OK since all I/O in file is to MRC files */
+#ifdef WIN32_BIGFILE
+#include <io.h>
+#define fseek b3dFseek 
+#define fread b3dFread 
+#define fwrite b3dFwrite 
+#endif
 
 #ifndef FLT_MAX
 #define FLT_MAX 3.40282347E+38F
@@ -135,11 +111,11 @@ int mrc_head_read(FILE *fin, struct MRCheader *hdata)
     /* Test that this swapping makes values acceptable */
     /* Let calling program issue error message */
     if (hdata->nx <= 0 || hdata->nx > 60000 ||
-	hdata->ny <= 0 || hdata->ny > 60000 ||
-	hdata->nz <= 0 || hdata->nz > 60000 ||
-	hdata->mapc < 0 || hdata->mapc > 4 ||
-	hdata->mapr < 0 || hdata->mapr > 4 ||
-	hdata->maps < 0 || hdata->maps > 4) {
+        hdata->ny <= 0 || hdata->ny > 60000 ||
+        hdata->nz <= 0 || hdata->nz > 60000 ||
+        hdata->mapc < 0 || hdata->mapc > 4 ||
+        hdata->mapr < 0 || hdata->mapr > 4 ||
+        hdata->maps < 0 || hdata->maps > 4) {
       return(1);
     }
   }
@@ -153,7 +129,7 @@ int mrc_head_read(FILE *fin, struct MRCheader *hdata)
   for ( i = 0; i < MRC_NLABELS; i ++){
     if (fread(hdata->labels[i], MRC_LABEL_SIZE, 1, fin) == 0){  
       b3dError(stderr, "ERROR: mrc_head_read - reading label %d.\n",
-	      i);
+               i);
       hdata->labels[i][MRC_LABEL_SIZE] = 0;
       return(-1);
     }
@@ -162,12 +138,12 @@ int mrc_head_read(FILE *fin, struct MRCheader *hdata)
 
   if ((hdata->mode > 31) || (hdata->mode < 0)) {
     b3dError(stderr, "ERROR: mrc_head_read - bad file mode %d.\n",
-	    hdata->mode);
+             hdata->mode);
     return(1);
   }
   if (hdata->nlabl > MRC_NLABELS) {
     b3dError(stderr, "ERROR: mrc_head_read - impossible number of "
-	    "labels, %d.\n", hdata->nlabl);
+             "labels, %d.\n", hdata->nlabl);
     return(1);
   }
 
@@ -192,7 +168,7 @@ int mrc_head_read(FILE *fin, struct MRCheader *hdata)
     break;
   default:
     b3dError(stderr, "ERROR: mrc_head_read - bad file mode %d.\n",
-	    hdata->mode);
+             hdata->mode);
     return(1);
   }
   fseek(fin, 0, 2);
@@ -255,11 +231,11 @@ int mrc_head_label(struct MRCheader *hdata, char *label)
     gettimeofday(&tp, &tzp);
     for(i = 0; i < MRC_LABEL_SIZE; i++){
       if (label[i])
-	hdata->labels[hdata->nlabl][i] = label[i];
+        hdata->labels[hdata->nlabl][i] = label[i];
       else
-	endoflabel = TRUE;
+        endoflabel = TRUE;
       if (endoflabel)
-	hdata->labels[hdata->nlabl][i] = ' ';
+        hdata->labels[hdata->nlabl][i] = ' ';
     }
     i = 55;
     time = ctime(&(tp.tv_sec));
@@ -314,7 +290,7 @@ int mrc_head_label_cp(struct MRCheader *hin, struct MRCheader *hout)
 
 /* Fills in the header structure to default settings. */
 int mrc_head_new(struct MRCheader *hdata,
-		 int x, int y, int z, int mode)
+                 int x, int y, int z, int mode)
 {
 
   hdata->swapped = 0;
@@ -424,13 +400,13 @@ int mrc_byte_mmm( struct MRCheader *hdata, unsigned char **idata)
   for (k = 0; k < hdata->nz; k++)
     for (j = 0; j < hdata->ny; j++)
       for(i = 0; i < hdata->nx; i++){
-	if (idata[k][i + (j * hdata->nx)] > max)
-	  max = idata[k][i + (j * hdata->nx)];
+        if (idata[k][i + (j * hdata->nx)] > max)
+          max = idata[k][i + (j * hdata->nx)];
 
-	if (idata[k][i + (j * hdata->nx)] < min)
-	  min = idata[k][i + (j * hdata->nx)];
+        if (idata[k][i + (j * hdata->nx)] < min)
+          min = idata[k][i + (j * hdata->nx)];
 
-	mean += idata[k][i + (j * hdata->nx)];
+        mean += idata[k][i + (j * hdata->nx)];
 
 
       }
@@ -514,20 +490,20 @@ int mrc_data_new(FILE *fout, struct MRCheader *hdata)
     {
     case MRC_MODE_BYTE:
       for (i = 0; i < dsize; i++)
-	if (!fwrite(&cdata, 1, 1, fout))
-	  return(-1);
+        if (!fwrite(&cdata, 1, 1, fout))
+          return(-1);
       break;
 
     case MRC_MODE_SHORT:
       for (i = 0; i < dsize; i++)
-	if (!fwrite(&sdata, 2, 1, fout))
-	  return(-1);
+        if (!fwrite(&sdata, 2, 1, fout))
+          return(-1);
       break;
 
     case MRC_MODE_FLOAT:
       for (i = 0; i < dsize; i++)
-	if (!fwrite(&fdata, 4, 1, fout))
-	  return(-1);
+        if (!fwrite(&fdata, 4, 1, fout))
+          return(-1);
       break;
 
     default:
@@ -547,7 +523,7 @@ int mrc_write_byte(FILE *fout, struct MRCheader *hdata, unsigned char **data)
     fwrite(data[k], 1, xysize, fout);
 
   /*                  for (j = 0 ; j < xysize; j++)
-		      fputc(bdata[k][j], fout);*/
+                      fputc(bdata[k][j], fout);*/
 
   return(0);
 }
@@ -565,7 +541,7 @@ mrc_write_idata(FILE *fout, struct MRCheader *hdata, void *data[])
 
   if (hdata->swapped) {
     b3dError(stderr, "ERROR: mrc_write_idata - cannot write to a"
-	    " byte-swapped file.\n");
+             " byte-swapped file.\n");
     return(-1);
   }
 
@@ -577,19 +553,19 @@ mrc_write_idata(FILE *fout, struct MRCheader *hdata, void *data[])
     case MRC_MODE_BYTE:
       bdata = (unsigned char **)data;
       for (k = 0; k < hdata->nz; k++)
-	fwrite(data[k], 1, xysize, fout);
+        fwrite(data[k], 1, xysize, fout);
       break;
 
     case MRC_MODE_SHORT:
       sdata = (short **)data;
       for (k = 0; k < hdata->nz; k++)
-	fwrite(&(sdata[k][j]), sizeof(short), xysize, fout);
+        fwrite(&(sdata[k][j]), sizeof(short), xysize, fout);
       break;
 
     case MRC_MODE_FLOAT:
       fdata = (float **)data;
       for (k = 0; k < hdata->nz; k++)
-	fwrite(&(fdata[k][j]), sizeof(float), xysize, fout);
+        fwrite(&(fdata[k][j]), sizeof(float), xysize, fout);
       break;
 
     default:
@@ -637,11 +613,11 @@ float mrc_read_point( FILE *fin, struct MRCheader *hdata, int x, int y, int z)
   rewind(fin);
   if (hdata->headerSize < 1024) hdata->headerSize = 1024;
   /*     fseek(fin, (hdata->headerSize + (channel * pixsize *  
-	 ( (z * hdata->nx * hdata->ny) + (y * hdata->nx) + (x)))),
-	 SEEK_CUR); */
+         ( (z * hdata->nx * hdata->ny) + (y * hdata->nx) + (x)))),
+         SEEK_CUR); */
   mrc_big_seek(fin, hdata->headerSize + channel * pixsize *  
-	       (y * hdata->nx + x), channel * pixsize * z, hdata->nx * hdata->ny,
-	       SEEK_CUR);
+               (y * hdata->nx + x), channel * pixsize * z, hdata->nx * hdata->ny,
+               SEEK_CUR);
   switch(hdata->mode){
   case 0:
     fread(&bdata, pixsize, 1, fin);     
@@ -770,13 +746,13 @@ int mrc_read_slice(void *buf, FILE *fin, struct MRCheader *hdata,
     fseek( fin, slice * dsize * csize, SEEK_CUR);
     for(k = 0; k < hdata->nz; k++){
       for (j = 0; j < hdata->ny; j++){
-	if (fread(data, dsize * csize, 1, fin) != 1){
-	  b3dError(stderr, 
-		  "ERROR: mrc_read_slice x - fread error.\n");
-	  return(-1);
-	}
-	data += dsize * csize;
-	fseek(fin, dsize * csize * (hdata->nx - 1), SEEK_CUR);
+        if (fread(data, dsize * csize, 1, fin) != 1){
+          b3dError(stderr, 
+                   "ERROR: mrc_read_slice x - fread error.\n");
+          return(-1);
+        }
+        data += dsize * csize;
+        fseek(fin, dsize * csize * (hdata->nx - 1), SEEK_CUR);
       }
     }
     break;
@@ -789,10 +765,10 @@ int mrc_read_slice(void *buf, FILE *fin, struct MRCheader *hdata,
     fseek( fin, slice * hdata->nx * dsize * csize, SEEK_CUR);
     for(k = 0; k < hdata->nz; k++){
       if (fread(data, dsize * csize, hdata->nx, fin) != 
-	  hdata->nx){
-	b3dError(stderr, 
-		"ERROR: mrc_read_slice y - fread error.\n");
-	return(-1);
+          hdata->nx){
+        b3dError(stderr, 
+                 "ERROR: mrc_read_slice y - fread error.\n");
+        return(-1);
       }
       data += dsize * csize * hdata->nx;
       fseek(fin, dsize * csize * (xysize - hdata->nx), SEEK_CUR);
@@ -805,9 +781,9 @@ int mrc_read_slice(void *buf, FILE *fin, struct MRCheader *hdata,
     if (slice >= hdata->nz)
       return(-1);
     /*  fseek( fin, slice * hdata->nx * hdata->ny * dsize * csize,
-	SEEK_CUR); */
+        SEEK_CUR); */
     mrc_big_seek( fin, 0, slice, hdata->nx * hdata->ny * dsize * csize,
-		  SEEK_CUR);
+                  SEEK_CUR);
     if (fread(data, (dsize * csize), xysize, fin) != xysize){
       b3dError(stderr, "ERROR: mrc_read_slice z - fread error.\n");
       return(-1);
@@ -897,7 +873,7 @@ int mrc_write_slice(void *buf, FILE *fout, struct MRCheader *hdata,
     data = malloc(slicesize * dsize * csize);
     if (!data) {
       b3dError(stderr, "ERROR: mrc_write_slice - "
-	      "failure to allocate memory.\n");
+               "failure to allocate memory.\n");
       return(-1);
     }
     memcpy(data, buf, slicesize * dsize * csize);
@@ -913,18 +889,18 @@ int mrc_write_slice(void *buf, FILE *fout, struct MRCheader *hdata,
     case 'X':
       fseek( fout, slice * dsize * csize, SEEK_CUR);
       for(k = 0; k < hdata->nz; k++){
-	for (j = 0; j < hdata->ny; j++){
-	  if (fwrite(data, dsize * csize, 1, fout) != 1){
-	    b3dError(stderr, "ERROR: mrc_write_slice x"
-		    " - fwrite error.\n");
-	    if (hdata->swapped && dsize > 1)
-	      free(data);
-	    return(-1);
-	  }
-	  data += dsize * csize;
-	  fseek(fout, csize * dsize * (hdata->nx - 1),  
-		SEEK_CUR);
-	}
+        for (j = 0; j < hdata->ny; j++){
+          if (fwrite(data, dsize * csize, 1, fout) != 1){
+            b3dError(stderr, "ERROR: mrc_write_slice x"
+                     " - fwrite error.\n");
+            if (hdata->swapped && dsize > 1)
+              free(data);
+            return(-1);
+          }
+          data += dsize * csize;
+          fseek(fout, csize * dsize * (hdata->nx - 1),  
+                SEEK_CUR);
+        }
       }
       break;
 
@@ -932,32 +908,32 @@ int mrc_write_slice(void *buf, FILE *fout, struct MRCheader *hdata,
     case 'Y':
       fseek( fout, slice * hdata->nx * csize * dsize, SEEK_CUR);
       for(k = 0; k < hdata->nz; k++){
-	if (fwrite(data, dsize * csize, hdata->nx, fout) != 
-	    hdata->nx){
-	  b3dError(stderr, 
-		  "ERROR: mrc_write_slice y - fwrite error.\n");
-	  return(-1);
-	  if (hdata->swapped && dsize > 1)
-	    free(data);
-	}
-	data += dsize * hdata->nx * csize;
-	fseek(fout, csize * dsize * (xysize - hdata->nx), 
-	      SEEK_CUR);
+        if (fwrite(data, dsize * csize, hdata->nx, fout) != 
+            hdata->nx){
+          b3dError(stderr, 
+                   "ERROR: mrc_write_slice y - fwrite error.\n");
+          return(-1);
+          if (hdata->swapped && dsize > 1)
+            free(data);
+        }
+        data += dsize * hdata->nx * csize;
+        fseek(fout, csize * dsize * (xysize - hdata->nx), 
+              SEEK_CUR);
       }
       break;
 
     case 'z':
     case 'Z':
       /*  fseek( fout, slice * hdata->nx * hdata->ny * csize * dsize, 
-	  SEEK_CUR); */
+          SEEK_CUR); */
       mrc_big_seek( fout, 0, slice, hdata->nx * hdata->ny * 
-		    csize * dsize, SEEK_CUR);
+                    csize * dsize, SEEK_CUR);
       if (fwrite(data, dsize * csize, xysize, fout) != xysize){
-	b3dError(stderr, 
-		"ERROR: mrc_write_slice z - fwrite error.\n");
-	if (hdata->swapped && dsize > 1)
-	  free(data);
-	return(-1);
+        b3dError(stderr, 
+                 "ERROR: mrc_write_slice z - fwrite error.\n");
+        if (hdata->swapped && dsize > 1)
+          free(data);
+        return(-1);
       }
       break;
                
@@ -992,7 +968,7 @@ void *mrc_read_image(FILE *fin, struct MRCheader *hdata, int z)
       mrc_big_seek(fin, 0, z, xysize * sizeof(char), SEEK_CUR);
       cdata = (unsigned char *)malloc(xysize * sizeof(char));
       if (cdata == NULL)
-	return(cdata);
+        return(cdata);
       fread(cdata, sizeof(char), xysize, fin);
       return(cdata);
                
@@ -1001,10 +977,10 @@ void *mrc_read_image(FILE *fin, struct MRCheader *hdata, int z)
       mrc_big_seek(fin, 0, z , xysize * sizeof(short), SEEK_CUR);
       sdata = (short *)malloc(xysize * sizeof(short));
       if (sdata == NULL)
-	return(sdata);
+        return(sdata);
       fread(sdata, sizeof(short), xysize, fin);
       if (hdata->swapped)
-	mrc_swap_shorts(sdata, xysize);
+        mrc_swap_shorts(sdata, xysize);
       return(sdata);
                
     case MRC_MODE_FLOAT:
@@ -1012,10 +988,10 @@ void *mrc_read_image(FILE *fin, struct MRCheader *hdata, int z)
       mrc_big_seek(fin, 0, z, xysize * sizeof(float), SEEK_CUR);
       fdata = (float *)malloc(xysize * sizeof(float));
       if (fdata == NULL)
-	return(fdata);
+        return(fdata);
       fread(fdata, sizeof(float), xysize, fin);
       if (hdata->swapped)
-	mrc_swap_floats(fdata, xysize);
+        mrc_swap_floats(fdata, xysize);
       return(fdata);
                
     default:
@@ -1057,7 +1033,7 @@ unsigned char *get_byte_map(float slope, float offset, int imin, int imax)
 }
 
 unsigned char *get_short_map(float slope, float offset, int imin, int imax,
-			     int ramptype, int swapbytes, int signedint)
+                             int ramptype, int swapbytes, int signedint)
 {
   int i, ival;
   unsigned short int index;
@@ -1205,7 +1181,7 @@ unsigned char **mrc_read_byte(FILE *fin,
     bdata = malloc(xysize * zsize * sizeof(unsigned char));
     if (!bdata) {
       b3dError(stderr, "WARNING: mrc_read_byte - "
-	      "Not enough contiguous memory to load image data.\n");
+               "Not enough contiguous memory to load image data.\n");
       contig = 0;
       if (li)
         li->contig = 0;
@@ -1220,7 +1196,7 @@ unsigned char **mrc_read_byte(FILE *fin,
       idata[i] = (unsigned char *)malloc(xysize * sizeof(unsigned char));
       if (!idata[i]){
         b3dError(stderr, "ERROR: mrc_read_byte - Not enough memory"
-                " for image data after %d sections.\n", i);
+                 " for image data after %d sections.\n", i);
 
         for (i = 0; i < zsize; i++)
           if (idata[i])
@@ -1290,7 +1266,7 @@ unsigned char **mrc_read_byte(FILE *fin,
   if (func != ( void (*)() ) NULL){
     if (zsize > 1)
       sprintf(statstr, "Image size %d x %d, %d sections.\n", 
-	      xsize, ysize, zsize);
+              xsize, ysize, zsize);
     else{
       sprintf(statstr,"Image size %d x %d.\n",xsize, ysize);
     }
@@ -1340,7 +1316,7 @@ unsigned char **mrc_read_byte(FILE *fin,
   case MRC_MODE_BYTE:
     dsize = 1;
     doscale = (offset <= -1.0 || offset >= 1.0 ||
-	       slope < 0.995 || slope > 1.005);
+               slope < 0.995 || slope > 1.005);
     if (MRC_MODE_RGB == hdata->mode)
       dsize = 3;
     else if(doscale)
@@ -1353,39 +1329,39 @@ unsigned char **mrc_read_byte(FILE *fin,
     bdata = (unsigned char *)malloc(dsize * xsize);
     for (k = 0; k < zsize; k++){
       if (func != ( void (*)() ) NULL){
-	sprintf(statstr, "\rReading Image # %3.3d\0",k+1); 
-	(*func)(statstr);
+        sprintf(statstr, "\rReading Image # %3.3d\0",k+1); 
+        (*func)(statstr);
       }
       pindex = 0;
       if (seek_row)
-	fseek(fin, seek_row, SEEK_CUR);
+        fseek(fin, seek_row, SEEK_CUR);
       for(j = yoff; j < yoff + ysize; j++){
-	if (seek_line)
-	  fseek(fin, seek_line, SEEK_CUR);
+        if (seek_line)
+          fseek(fin, seek_line, SEEK_CUR);
 
-	fread(bdata, 1, (xsize * dsize), fin);
-	if (MRC_MODE_RGB == hdata->mode){
-	  for(i = 0; i < xsize; i++,pindex++){
-	    fpixel = bdata[i * 3];
-	    fpixel += bdata[(i * 3) + 1];
-	    fpixel += bdata[(i * 3) + 2];
-	    fpixel /= 3;
-	    pixel = fpixel + 0.5;
-	    idata[k][pindex] = pixel;
-	  }
-	}else{
-	  if (doscale)
-	    for(i = 0; i < xsize; i++,pindex++)
-	      idata[k][pindex] = map[bdata[i]];
-	  else
-	    for(i = 0; i < xsize; i++,pindex++)
-	      idata[k][pindex] = bdata[i];
-	}
-	if (seek_endline)
-	  fseek(fin, seek_endline, SEEK_CUR);
+        fread(bdata, 1, (xsize * dsize), fin);
+        if (MRC_MODE_RGB == hdata->mode){
+          for(i = 0; i < xsize; i++,pindex++){
+            fpixel = bdata[i * 3];
+            fpixel += bdata[(i * 3) + 1];
+            fpixel += bdata[(i * 3) + 2];
+            fpixel /= 3;
+            pixel = fpixel + 0.5;
+            idata[k][pindex] = pixel;
+          }
+        }else{
+          if (doscale)
+            for(i = 0; i < xsize; i++,pindex++)
+              idata[k][pindex] = map[bdata[i]];
+          else
+            for(i = 0; i < xsize; i++,pindex++)
+              idata[k][pindex] = bdata[i];
+        }
+        if (seek_endline)
+          fseek(fin, seek_endline, SEEK_CUR);
       }
       if (seek_endrow)
-	fseek(fin, seek_endrow, SEEK_CUR);
+        fseek(fin, seek_endrow, SEEK_CUR);
     }
     free(bdata);
     break;
@@ -1395,27 +1371,27 @@ unsigned char **mrc_read_byte(FILE *fin,
     sdata = (short *)malloc(sizeof(short) * xsize);
     usdata = (unsigned short *)sdata;
     map = get_short_map(slope, offset, 0, 255, ramptype, hdata->swapped,
-			1);
+                        1);
     for (k = 0; k < zsize; k++){
       if (func != ( void (*)() ) NULL){
-	sprintf(statstr, "\rReading Image # %3.3d\0",k+1); 
-	(*func)(statstr);
+        sprintf(statstr, "\rReading Image # %3.3d\0",k+1); 
+        (*func)(statstr);
       }
       pindex = 0;                     
       if (seek_row)
-	fseek(fin, seek_row, SEEK_CUR);
+        fseek(fin, seek_row, SEEK_CUR);
       for (j = yoff; j < yoff + ysize; j++){
-	if (seek_line)
-	  fseek(fin, seek_line, SEEK_CUR);
-	fread(sdata, sizeof(short), xsize, fin);
-	for(i = 0; i < xsize; i++, pindex++){
-	  idata[k][pindex] = map[usdata[i]];
-	}
-	if (seek_endline)
-	  fseek(fin, seek_endline, SEEK_CUR);
+        if (seek_line)
+          fseek(fin, seek_line, SEEK_CUR);
+        fread(sdata, sizeof(short), xsize, fin);
+        for(i = 0; i < xsize; i++, pindex++){
+          idata[k][pindex] = map[usdata[i]];
+        }
+        if (seek_endline)
+          fseek(fin, seek_endline, SEEK_CUR);
       }
       if (seek_endrow)
-	fseek(fin, seek_endrow, SEEK_CUR);
+        fseek(fin, seek_endrow, SEEK_CUR);
     }
     free(sdata);
     free(map);
@@ -1430,38 +1406,38 @@ unsigned char **mrc_read_byte(FILE *fin,
     fdata = (float *)malloc(sizeof(float) * xsize);
     for (k = 0; k < zsize; k++){
       if (func != ( void (*)() ) NULL){
-	sprintf(statstr, "\rReading Image # %3.3d",k+1); 
-	(*func)(statstr);
+        sprintf(statstr, "\rReading Image # %3.3d",k+1); 
+        (*func)(statstr);
       }
       min *= conscale;
       if (seek_row)
-	fseek(fin, seek_row, SEEK_CUR);
+        fseek(fin, seek_row, SEEK_CUR);
       pindex = 0;
       for(j = yoff; j < yoff + ysize; j++){
-	if (seek_line)
-	  fseek(fin, seek_line, SEEK_CUR);
-	fread(fdata, sizeof(float), xsize, fin);
-	if (hdata->swapped)
-	  mrc_swap_floats(fdata, xsize);
-	for(i = 0; i < xsize; i++, pindex++){
-	  fpixel = fdata[i];
-	  if (ramptype == MRC_RAMP_EXP)
-	    fpixel = (float)exp(fpixel);
-	  if (ramptype == MRC_RAMP_LOG)
-	    fpixel = (float)log(fpixel);
-	  fpixel *= slope;
-	  fpixel += offset;
-	  if (fpixel < 0.0)
-	    fpixel = 0.0;
-	  if (fpixel > 255.0)
-	    fpixel = 255.0;
-	  idata[k][pindex] = fpixel + 0.5;
-	}
-	if (seek_endline)
-	  fseek(fin, seek_endline, SEEK_CUR);
+        if (seek_line)
+          fseek(fin, seek_line, SEEK_CUR);
+        fread(fdata, sizeof(float), xsize, fin);
+        if (hdata->swapped)
+          mrc_swap_floats(fdata, xsize);
+        for(i = 0; i < xsize; i++, pindex++){
+          fpixel = fdata[i];
+          if (ramptype == MRC_RAMP_EXP)
+            fpixel = (float)exp(fpixel);
+          if (ramptype == MRC_RAMP_LOG)
+            fpixel = (float)log(fpixel);
+          fpixel *= slope;
+          fpixel += offset;
+          if (fpixel < 0.0)
+            fpixel = 0.0;
+          if (fpixel > 255.0)
+            fpixel = 255.0;
+          idata[k][pindex] = fpixel + 0.5;
+        }
+        if (seek_endline)
+          fseek(fin, seek_endline, SEEK_CUR);
       }
       if (seek_endrow)
-	fseek(fin, seek_endrow, SEEK_CUR);
+        fseek(fin, seek_endrow, SEEK_CUR);
     }
     free(fdata);
     break ;
@@ -1472,40 +1448,40 @@ unsigned char **mrc_read_byte(FILE *fin,
       fread( &spixel, 2, 1, fin);
     for (k = 0; k < zsize; k++){
       if (func != ( void (*)() ) NULL){
-	sprintf(statstr, "\rReading Image # %3.3d\0",k+1); 
-	(*func)(statstr);
+        sprintf(statstr, "\rReading Image # %3.3d\0",k+1); 
+        (*func)(statstr);
       }
       pindex = 0;                     
       if (seek_row)
-	fseek(fin, seek_row, SEEK_CUR);
+        fseek(fin, seek_row, SEEK_CUR);
       for (j = yoff; j < yoff + ysize; j++){
-	if (seek_line)
-	  fseek(fin, seek_line, SEEK_CUR);
+        if (seek_line)
+          fseek(fin, seek_line, SEEK_CUR);
                     
-	for(i = xoff; i < xoff + xsize; i++, pindex++){
-	  fread(&spixel, 2, 1, fin);
-	  if (hdata->swapped)
-	    mrc_swap_shorts(&spixel, 1);
-	  fpixel = spixel;
-	  if (ramptype == MRC_RAMP_EXP)
-	    fpixel = (float)exp((float)fpixel);
-	  if (ramptype == MRC_RAMP_LOG)
-	    fpixel = (float)log((float)fpixel);
+        for(i = xoff; i < xoff + xsize; i++, pindex++){
+          fread(&spixel, 2, 1, fin);
+          if (hdata->swapped)
+            mrc_swap_shorts(&spixel, 1);
+          fpixel = spixel;
+          if (ramptype == MRC_RAMP_EXP)
+            fpixel = (float)exp((float)fpixel);
+          if (ramptype == MRC_RAMP_LOG)
+            fpixel = (float)log((float)fpixel);
                          
-	  fpixel *= slope;
-	  fpixel += offset;
-	  if (fpixel < 0)
-	    fpixel = 0;
-	  if (fpixel > 255)
-	    fpixel = 255;
-	  idata[k][pindex] = fpixel + 0.5;
-	  fread( &spixel, 2, 1, fin);
-	}
-	if (seek_endline)
-	  fseek(fin, seek_endline, SEEK_CUR);
+          fpixel *= slope;
+          fpixel += offset;
+          if (fpixel < 0)
+            fpixel = 0;
+          if (fpixel > 255)
+            fpixel = 255;
+          idata[k][pindex] = fpixel + 0.5;
+          fread( &spixel, 2, 1, fin);
+        }
+        if (seek_endline)
+          fseek(fin, seek_endline, SEEK_CUR);
       }
       if (seek_endrow)
-	fseek(fin, seek_endrow, SEEK_CUR);
+        fseek(fin, seek_endrow, SEEK_CUR);
     }
     break ;
           
@@ -1527,41 +1503,41 @@ unsigned char **mrc_read_byte(FILE *fin,
     */
     for (k = 0; k < zsize; k++){
       if (func != ( void (*)() ) NULL){
-	sprintf(statstr, "\rReading Image # %3.3d",k+1); 
-	(*func)(statstr);
+        sprintf(statstr, "\rReading Image # %3.3d",k+1); 
+        (*func)(statstr);
       }
       min *= conscale;
       if (seek_row)
-	fseek(fin, seek_row, SEEK_CUR);
+        fseek(fin, seek_row, SEEK_CUR);
       pindex = 0;
       for(j = yoff; j < yoff + ysize; j++){
-	if (seek_line)
-	  fseek(fin, seek_line, SEEK_CUR);
+        if (seek_line)
+          fseek(fin, seek_line, SEEK_CUR);
 
-	/* DNM: switched to reading whole line at once and
-	   processing, when implemented swapping */
-	fread(fdata, 4, xsize * 2, fin);
-	if (hdata->swapped)
-	  mrc_swap_floats(fdata, xsize * 2);
-	for(i = 0; i < xsize; i++, pindex++){
-	  fpixel = fdata[2 * i];
-	  ipixel = fdata[2 * i + 1];
-	  val = (fpixel * fpixel) + (ipixel * ipixel);
-	  val = (float)sqrt(val);
-	  val = (float)log(1 + (kscale * val));
-	  /* DNM 2/15/01: add offset */
-	  fpixel = val * slope + offset;
-	  if (fpixel < 0)
-	    fpixel = 0;
-	  if (fpixel > 255)
-	    fpixel = 255;
-	  idata[k][pindex] = fpixel + 0.5;
-	}
-	if (seek_endline)
-	  fseek(fin, seek_endline, SEEK_CUR);
+        /* DNM: switched to reading whole line at once and
+           processing, when implemented swapping */
+        fread(fdata, 4, xsize * 2, fin);
+        if (hdata->swapped)
+          mrc_swap_floats(fdata, xsize * 2);
+        for(i = 0; i < xsize; i++, pindex++){
+          fpixel = fdata[2 * i];
+          ipixel = fdata[2 * i + 1];
+          val = (fpixel * fpixel) + (ipixel * ipixel);
+          val = (float)sqrt(val);
+          val = (float)log(1 + (kscale * val));
+          /* DNM 2/15/01: add offset */
+          fpixel = val * slope + offset;
+          if (fpixel < 0)
+            fpixel = 0;
+          if (fpixel > 255)
+            fpixel = 255;
+          idata[k][pindex] = fpixel + 0.5;
+        }
+        if (seek_endline)
+          fseek(fin, seek_endline, SEEK_CUR);
       }
       if (seek_endrow)
-	fseek(fin, seek_endrow, SEEK_CUR);
+        fseek(fin, seek_endrow, SEEK_CUR);
     }
     free(fdata);
     break ;
@@ -1606,7 +1582,7 @@ int mrc_fix_li(struct LoadInfo *li, int nx, int ny, int nz)
   }
 
   /*        printf("before: x (%d, %d), y (%d, %d), z (%d, %d)\n",
-	    li->xmin, li->xmax, li->ymin, li->ymax, li->zmin, li->zmax);
+            li->xmin, li->xmax, li->ymin, li->ymax, li->zmin, li->zmax);
   */
   if (li->xmax < 0)
     if ((li->xmin > 0) && (li->xmin < mx)){
@@ -1657,7 +1633,7 @@ int mrc_fix_li(struct LoadInfo *li, int nx, int ny, int nz)
     li->axis = 3;
 
   /*        printf(" x (%d, %d), y (%d, %d), z (%d, %d)\n",
-	    li->xmin, li->xmax, li->ymin, li->ymax, li->zmin, li->zmax);
+            li->xmin, li->xmax, li->ymin, li->ymax, li->zmin, li->zmax);
   */
   return(0);
 }
@@ -2047,14 +2023,14 @@ void mrc_swap_floats(float *data, int amt)
   while (ptr < maxptr){
 
     if ((exp = (ptr[1] << 1) | (ptr[0] >> 7 & 0x01)) > 3 &&
-	exp != 0)
+        exp != 0)
       ptr[1] -= 1;
     else if (exp <= 3 && exp != 0)  /*must zero out the mantissa*/
       {
-	/*we want manitssa 0 & exponent 1*/
-	ptr[0] = 0x80;
-	ptr[1] &= 0x80;
-	ptr[2] = ptr[3] = 0;
+        /*we want manitssa 0 & exponent 1*/
+        ptr[0] = 0x80;
+        ptr[1] &= 0x80;
+        ptr[2] = ptr[3] = 0;
       }
           
     temp = ptr[0];
@@ -2083,10 +2059,10 @@ void mrc_swap_floats(float *data, int amt)
       ptr[0] += 1;
     else if (exp >= 253) /*must also max out the exp & mantissa*/
       {
-	/*we want manitssa all 1 & exponent 255*/
-	ptr[0] |= 0x7F;
-	ptr[1] = 0xFF;
-	ptr[2] = ptr[3] = 0xFF;
+        /*we want manitssa all 1 & exponent 255*/
+        ptr[0] |= 0x7F;
+        ptr[1] = 0xFF;
+        ptr[2] = ptr[3] = 0xFF;
       }
           
     temp = ptr[0];
@@ -2143,3 +2119,76 @@ int mrc_big_seek(FILE *fp, int base, int size1, int size2, int flag)
   }
   return 0;
 }
+
+/* These routines will simply call the standard C routine unless under Windows,
+   then they will get the matching file handle and call the low-level Windows
+   routine */
+int b3dFseek(FILE *fp, int offset, int flag)
+{
+#ifdef WIN32_BIGFILE
+  int handle = _fileno(fp);
+  __int64 err;
+  err = _lseeki64(handle, (_int64)offset, flag);
+  return (err == -1 ? -1 : 0);
+#else
+  return fseek(fp, offset, flag);
+#endif
+}
+
+size_t b3dFread(void *buf, size_t size, size_t count, FILE *fp)
+{
+#ifdef WIN32_BIGFILE
+  int handle = _fileno(fp);
+  return (size_t)(_read(handle, buf, size * count) / size);
+#else
+  return fread(buf, size, count, fp);
+#endif
+}
+ 
+size_t b3dFwrite(void *buf, size_t size, size_t count, FILE *fp)
+{
+#ifdef WIN32_BIGFILE
+  int handle = _fileno(fp);
+  return (size_t)(_write(handle, buf, size * count) / size);
+#else
+  return fwrite(buf, size, count, fp);
+#endif
+}
+
+/*
+$Log$
+Revision 3.10  2003/11/01 16:42:16  mast
+changed to use new error processing routine
+
+Revision 3.9  2003/03/28 05:08:02  mast
+Use new unique little endian flag
+
+Revision 3.8  2003/03/26 01:51:27  mast
+Do not have mrc_read_byte decide when to load non-contiguous, but have it drop
+back to non-contiguous when contiguous fails
+
+Revision 3.7  2003/03/12 03:50:28  mast
+Avoid trying to allocate more than 2 GB of contiguous memory, add error
+message in contiguous allocation
+
+Revision 3.6  2002/09/27 20:51:25  rickg
+Added include of time.h to fix call to ctime.
+
+Revision 3.5  2002/09/14 00:58:41  mast
+Invert sense of scale factors in mrc_set_scale and mrc_get_scale to conform
+to usage
+
+Revision 3.4  2002/08/02 17:18:19  mast
+Fixed bug in reading swapped files, standardized error outputs
+
+Revision 3.3  2002/07/31 17:34:44  mast
+Changes to accommodate new header format for origin values
+
+Revision 3.2  2002/06/26 17:06:37  mast
+Added type casts to calls to mrc_swap_shorts and _floats
+
+Revision 3.1  2002/06/26 16:52:38  mast
+Added ability to write header back to byte-swapped file, and to write
+data to byte-swapped file with mrc_data_new and mrc_write_slice
+
+*/

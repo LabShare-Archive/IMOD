@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.4  2003/02/21 22:18:06  mast
+    implement new b3d types
+
     Revision 3.3  2002/07/31 17:39:04  mast
     *** empty log message ***
 
@@ -386,6 +389,10 @@ void mrc_swap_floats(float *data, int amt);
 int mrc_big_seek(FILE *fp, int base, int size1, int size2, int flag);
 void mrc_swap_header(struct MRCheader *hdata);
 void mrc_set_cmap_stamp(struct MRCheader *hdata);
+
+int b3dFseek(FILE *fp, int offset, int flag);
+size_t b3dFread(void *buf, size_t size, size_t count, FILE *fp);
+size_t b3dFwrite(void *buf, size_t size, size_t count, FILE *fp);
 
 #ifdef __cplusplus
 }
