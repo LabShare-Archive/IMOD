@@ -25,6 +25,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.5  2004/12/04 01:27:19  sueh
+ * <p> bug# 557 Added call to imodSqueezedVolume().
+ * <p>
  * <p> Revision 3.4  2004/12/02 20:41:48  sueh
  * <p> bug# 566 ContextPopup can specify an anchor in both the tomo guide and
  * <p> the join guide.  Need to specify the guide to anchor.
@@ -166,7 +169,7 @@ public class PostProcessingDialog
    * @param squeezevolParam
    */
   public void setParameters(ConstSqueezevolParam squeezevolParam) {
-    ltfReductionFactorXY.setText(squeezevolParam.getReductionFactorXY().toString());
+    ltfReductionFactorXY.setText(squeezevolParam.getReductionFactorX().toString());
     ltfReductionFactorZ.setText(squeezevolParam.getReductionFactorZ().toString());
     cbLinearInterpolation.setSelected(squeezevolParam.isLinearInterpolation());
   }
@@ -176,7 +179,8 @@ public class PostProcessingDialog
    * @param squeezevolParam
    */
   public void getParameters(SqueezevolParam squeezevolParam) {
-    squeezevolParam.setReductionFactorXY(ltfReductionFactorXY.getText());
+    squeezevolParam.setReductionFactorX(ltfReductionFactorXY.getText());
+    squeezevolParam.setReductionFactorY(ltfReductionFactorXY.getText());
     squeezevolParam.setReductionFactorZ(ltfReductionFactorZ.getText());
     squeezevolParam.setLinearInterpolation(cbLinearInterpolation.isSelected());
   }
