@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/12/03: Changed reducemont to preserve Z pixel size, added options to 
+reduceby2 to preserve pixel size and to specify binning.
+
 12/8/03: Fixed Fiberpitch to ignore pixel size from image file.
 
 12/8/03: Fixed the sed command in sample.com to work under Mac OS 10.2 and
