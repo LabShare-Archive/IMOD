@@ -44,9 +44,11 @@ public class BlendmontProcessMonitor extends LogFileProcessMonitor {
       line = line.trim();
       if (line.startsWith("working on section #")) {
         String[] strings = line.split("\\s+");
+        //set currentSection - section in log starts from 0
         currentSection = Integer.parseInt(strings[4]) + 1;
       }
     }
+    //Start timeout on last section
     if (currentSection >= nSections) {
       waitingForExit++;
     }
@@ -69,6 +71,10 @@ public class BlendmontProcessMonitor extends LogFileProcessMonitor {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.2  2005/03/09 18:01:36  sueh
+* <p> bug# 533 Passing the mode (xcorr, blend, preblend) to the blendmont
+* <p> process monitor.
+* <p>
 * <p> Revision 1.1  2005/03/08 01:56:09  sueh
 * <p> bug# 533 Process monitor for blendmont.
 * <p> </p>
