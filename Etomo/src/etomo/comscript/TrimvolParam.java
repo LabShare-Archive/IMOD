@@ -20,6 +20,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.11  2003/11/06 16:50:27  rickg
+ * <p> Removed -e flag for tcsh execution for all but the com scripts
+ * <p>
  * <p> Revision 1.10  2003/11/04 20:56:11  rickg
  * <p> Bug #345 IMOD Directory supplied by a static function from ApplicationManager
  * <p>
@@ -380,13 +383,14 @@ public class TrimvolParam {
     zMax = mrcHeader.getNSections();
 
     // Check the swapped YZ state to decide which dimension to use for the 
-    // section range 
-    sectionScaleMin = 1;
+    // section range
     if (swapYZ) {
-      sectionScaleMax = yMax;
+      sectionScaleMin = yMax / 3;
+      sectionScaleMax = yMax * 2 / 3;
     }
     else {
-      sectionScaleMax = zMax;
+      sectionScaleMin = zMax / 3;
+      sectionScaleMax = zMax * 2 / 3;
     }
   }
 }
