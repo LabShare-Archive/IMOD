@@ -31,6 +31,10 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.3  2003/08/09 23:21:44  mast
+c	  Converted to PIP input and fixed some error reporting.  Also made it
+c	  fall back to building new edge functions if it can't open old ones.
+c	
 c	  Revision 3.2  2003/06/20 20:18:13  mast
 c	  Standardized error reporting
 c	
@@ -101,62 +105,36 @@ c	  the former rotrans structures
 	integer*4  minxwant, maxxwant
 	integer*4  minywant, maxywant
 c	  
-	integer numOptions
-	parameter (numOptions = 25)
-	character*(80 * numOptions) options(1)
 	logical pipinput
 	integer*4 numOptArg, numNonOptArg
-	integer*4 PipParseInput, PipGetInteger,PipGetBoolean
+	integer*4 PipGetInteger,PipGetBoolean
 	integer*4 PipGetString,PipGetFloat, PipGetIntegerArray
 	integer*4 PipGetTwoIntegers, PipGetTwoFloats,PipGetLogical
-	integer*4 PipGetNonOptionArg, PipPrintHelp
+	integer*4 PipGetNonOptionArg
+c	  
+c	  cut and pasted from ../../manpages/autodoc2man -2 2 blendmont
+c
+	integer numOptions
+	parameter (numOptions = 25)
+	character*(40 * numOptions) options(1)
 	options(1) =
-     &	    'imin:ImageInputFile:FN:Montaged image input file to be'//
-     &	    ' blended@'//
-     &	    'plin:PieceListInput:FN:File with list of piece'//
-     &	    ' coordinates for image input file@'//
-     &	    'imout:ImageOutputFile:FN:Output file for blended images@'//
-     &	    'plout:PieceListOutput:FN:File for list of coordinates of'//
-     &	    ' pieces in output image file@'//
-     &	    'rootname:RootNameForEdges:CH:Root name for edge function'//
-     &	    ' and .ecd files@'//
-     &	    'mode:ModeToOutput:I:Mode for output file - 0 for bytes,'//
-     &	    ' 1 for integers, 2 for reals@'//
-     &	    'float:FloatToRange:B:Stretch intensities of each output'//
-     &	    ' section to fill range of data mode@'//
-     &	    'xform:TransformFile:FN:File with transformations to'//
-     &	    ' apply@'//
-     &	    'center:TransformCenterXandY:TF:X and Y coordinates of'//
-     &	    ' center of transformations@'//
-     &	    'sloppy:SloppyMontage:B:Do initial cross-correlations for'//
-     &	    ' finding edge functions@'//
-     &	    'shift:ShiftPieces:B:Shift pieces to minimize'//
-     &	    ' displacements in the overlap zones@'//
-     &	    'edge:ShiftFromEdges:B:Use only edge functions for'//
-     &	    ' shifting pieces@'//
-     &	    'xcorr:ShiftFromXcorrs:B:Use only cross-correlations of'//
-     &	    ' overlap zones for shifting pieces (legacy behavior)@'//
-     &	    'readxcorr:ReadInXcorrs:B:Read displacements from .ecd'//
-     &	    ' file instead of computing correlations@'//
-     &	    'sections:SectionsToDo:LI:Sections to blend into output'//
-     &	    ' file@'//
-     &	    'xminmax:StartingAndEndingX:TI:Minimum and maximum X index'//
-     &	    ' coordinates to output@'//
-     &	    'yminmax:StartingAndEndingY:TI:Minimum and maximum Y index'//
-     &	    ' coordinates to output@'//
-     &	    'maxsize:MaximumNewSizeXandY:TI:Maximum size in X and Y of'//
-     &	    ' pieces in output file@'//
-     &	    'minoverlap:MinimumOverlapXandY:TI:Minimum overlap between'//
-     &	    ' pieces in X and Y in output file@'//
-     &	    'oldedge:OldEdgeFunctions:B:Use existing edge functions@'//
-     &	    'perneg:FramesPerNegativeXandY:TI:Number of frames per'//
-     &	    ' negative for multi-negative montage@'//
-     &	    'missing:MissingFromFirstNegativeXandY:TI:Number of pieces'//
-     &	    ' missing from first negative in X and Y@'//
-     &	    'width:BlendingWidthXandY:TI:Width in X and Y across which'//
-     &	    ' to blend overlaps@'//
-     &	    'param:ParameterFile:PF:Read parameter entries from file@'//
-     &	    'help:usage:B:Print help output'
+     &      'imin:ImageInputFile:FN:@plin:PieceListInput:FN:@'//
+     &      'imout:ImageOutputFile:FN:@plout:PieceListOutput:FN:@'//
+     &      'rootname:RootNameForEdges:CH:@mode:ModeToOutput:I:@'//
+     &      'float:FloatToRange:B:@xform:TransformFile:FN:@'//
+     &      'center:TransformCenterXandY:FP:@sloppy:SloppyMontage:B:@'//
+     &      'shift:ShiftPieces:B:@edge:ShiftFromEdges:B:@'//
+     &      'xcorr:ShiftFromXcorrs:B:@readxcorr:ReadInXcorrs:B:@'//
+     &      'sections:SectionsToDo:LI:@'//
+     &      'xminmax:StartingAndEndingX:IP:@'//
+     &      'yminmax:StartingAndEndingY:IP:@'//
+     &      'maxsize:MaximumNewSizeXandY:IP:@'//
+     &      'minoverlap:MinimumOverlapXandY:IP:@'//
+     &      'oldedge:OldEdgeFunctions:B:@'//
+     &      'perneg:FramesPerNegativeXandY:IP:@'//
+     &      'missing:MissingFromFirstNegativeXandY:IP:@'//
+     &      'width:BlendingWidthXandY:IP:@param:ParameterFile:PF:@'//
+     &      'help:usage:B:'
 c
 c	  initialization of elements in common; this is done with statements
 c	  to avoid huge executables on SGI
@@ -181,22 +159,14 @@ c
 	xcreadin = .false.
 c
 c	  
-c	  Pip startup: set error, parse options, set flag if used
+c	  Pip startup: set error, parse options, check help, set flag if used
 c
-	call PipExitOnError(0, "ERROR: TILTXCORR - ")
-	call PipAllowCommaDefaults(1)
-	ierr = PipParseInput(options, numOptions, '@', numOptArg, numNonOptArg)
+	call PipReadOrParseOptions(options, numOptions, 'blendmont',
+     &	    'ERROR: BLENDMONT - ', .true., 0, 0, 0, numOptArg,
+     &	    numNonOptArg)
 	pipinput = numOptArg + numNonOptArg .gt. 0
 c
 	if (pipinput) then
-c	    
-c	    First action if pip used: check for help
-c
-	  if (PipGetBoolean('usage', ierr) .eq. 0) then
-	    ierr = PipPrintHelp('blendmont', 0, 0, 0)
-	    call exit(0)
-	  endif
-
 	  if (PipGetString('ImageInputFile', filnam) .ne. 0) call
      &	      errorexit('NO INPUT IMAGE FILE SPECIFIED')
 	else
