@@ -11,6 +11,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.4  2004/12/08 21:22:34  sueh
+ * <p> bug# 564 Implemented Command.  Provided access to swapYZ.
+ * <p>
  * <p> Revision 3.3  2004/12/02 18:27:49  sueh
  * <p> bug# 557 Added a static getOutputFile(String datasetName) to put the
  * <p> responsibility of knowing how to build the trimvol output file in
@@ -611,12 +614,13 @@ public class TrimvolParam implements Command {
   }
   
   public String[] getCommandArray() {
+    createCommand();
     return commandArray;
   }
   
   public String getCommandLine() {
     if (commandArray == null) {
-      createCommand();
+      return "";
     }
     StringBuffer buffer = new StringBuffer();
     for (int i = 0; i < commandArray.length; i++) {
