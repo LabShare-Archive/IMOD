@@ -22,6 +22,9 @@ set seedname = "empty.seed"
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.11  2003/08/09 23:18:41  mast
+#  Changes for using PIP input in blendmont
+#
 #  Revision 3.10  2003/07/08 21:06:49  mast
 #  Add test for existence of .resid file in align.com before running patch2imod
 #
@@ -706,8 +709,8 @@ EOF
 
     @ ymin = $ofsize / 2 - 5
     cat << EOF >> $dstfile
-\$sed -e '/^[\$#]/d' -e '/SUBSETSTART.*/s//SUBSETSTART 0 $ymin/' tilt$dstext |tilt
-\$ \\mv $setname.rec mid$recext
+\$sed -e '/^[\$#]/d' -e '/SUBSETSTART.*/s//SUBSETSTART 0 $ymin/' \
+ -e '/$setname.*\.rec/s//mid$recext/' tilt$dstext |tilt
 EOF
 
     # THESE () WERE NEEDED TO KEEP IT FROM BEING EVALED RIGHT TO LEFT
@@ -734,8 +737,8 @@ EOF
     endif
 
     cat << EOF >> $dstfile
-\$sed -e '/^[\$#]/d' -e '/SUBSETSTART.*/s//SUBSETSTART 0 $ymin/' tilt$dstext |tilt
-\$ \\mv $setname.rec top$recext
+\$sed -e '/^[\$#]/d' -e '/SUBSETSTART.*/s//SUBSETSTART 0 $ymin/' \
+ -e '/$setname.*\.rec/s//top$recext/' tilt$dstext |tilt
 EOF
 
     @ ymin = ($ofsize / 2 - $offset) - 5
@@ -761,8 +764,8 @@ EOF
     endif
 
     cat << EOF >> $dstfile
-\$sed -e '/^[\$#]/d' -e '/SUBSETSTART.*/s//SUBSETSTART 0 $ymin/' tilt$dstext |tilt
-\$ \\mv $setname.rec bot$recext
+\$sed -e '/^[\$#]/d' -e '/SUBSETSTART.*/s//SUBSETSTART 0 $ymin/' \
+ -e '/$setname.*\.rec/s//bot$recext/' tilt$dstext |tilt
 EOF
     echo '$'"if (-e $backupname) $backupname" >> $dstfile
 
