@@ -1,5 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/22/04: IMOD_3-2-8
 3/21/04: Added magnification gradient correction to Newstack and Xfmodel.
 Added a program, Extractmagrad, to extract intensity information from the
 image file header and compose the file of mag gradients needed by the other
