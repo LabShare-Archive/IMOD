@@ -56,7 +56,6 @@ Log at end of file
 
 
 static void imodvDraw_spheres(Iobj *obj, double zscale, int style);
-static void imodvDraw_filled_spheres(Iobj *obj, double zscale);
 static void imodvDraw_mesh(Imesh *mesh, int style);
 static void imodvDraw_filled_mesh(Imesh *mesh, double zscale);
 static void imodvDrawScalarMesh(Imesh *mesh, double zscale, Iobj *obj);
@@ -563,6 +562,7 @@ static void imodvDraw_object(Iobj *obj, Imod *imod)
   double zscale;
   Imesh *mesh;
   int checkTime = (int)iobjTime(obj->flags);
+  bool hasSpheres = iobjScat(obj->flags) || obj->pdrawsize > 0;
   if (!CTime)
     checkTime = 0;
 
@@ -575,21 +575,33 @@ static void imodvDraw_object(Iobj *obj, Imod *imod)
   if (!obj->contsize)
     return;
 
+  // Check for individual point sizes if not scattered and no sphere size
+  if (!hasSpheres) {
+    for (co = 0; co < obj->contsize; co++) {
+      if (obj->cont[co].sizes) {
+        hasSpheres = true;
+        break;
+      }
+    }
+  }
+
+  
   /* DNM: Made sure there was an "imodvSetObject(obj, 0)" before each
      return from this, and before any repeated call to imodvSetObject.
      The IMOD_OBJFLAG_LINE has an inverted sense (off
      if line or fill outline is selected, so switched to using iobjLine
      instead of testing this flag to avoid confusion */
 
-  if (iobjScat(obj->flags)){
+  if (hasSpheres){
     /* DNM: has to be the model being drawn, not the current one */
     zscale = imod->zscale;
     /* scattered points: if they are filled, draw as fill; then draw the
-       lines on top if "Fill outline" is selected */
-    if (iobjFill(obj->flags)){
+       lines on top if "Fill outline" is selected
+       Also draw points non-scattered point objects as filled */
+    if (iobjFill(obj->flags) || !iobjScat(obj->flags)){
       imodvSetObject(obj, DRAW_FILL);
       imodvDraw_spheres(obj, zscale, DRAW_FILL );
-      if (iobjLine(obj->flags)){
+      if (iobjLine(obj->flags) && iobjFill(obj->flags)){
         imodvSetObject(obj, 0);
         imodvSetObject(obj, DRAW_LINES);
         imodvDraw_spheres(obj, zscale, DRAW_LINES );
@@ -606,7 +618,8 @@ static void imodvDraw_object(Iobj *obj, Imod *imod)
       }
     }
     imodvSetObject(obj, 0);
-    return;
+    if (iobjScat(obj->flags))
+      return;
   }
 
   if (Imodv->doPick){
@@ -1149,16 +1162,26 @@ static void imodvDraw_spheres(Iobj *obj, double zscale, int style)
     if (Imodv->current_subset / 2 == 2 && curcont >= 0 && co != curcont)
       continue;
 
+    // Skip contour if not scattered and no sizes
+    if (!iobjScat(obj->flags) && !obj->pdrawsize && !cont->sizes)
+      continue;
+
     glPushName(NO_NAME);
     for(pt = 0; pt < cont->psize; pt++){
+
+      /* get the real point size, convert to number of pixels and
+         look up step size based on current quality */
+      drawsize = imodPointGetSize(obj, cont, pt);
+
+      // Only draw zero-size points with scattered point objects
+      if (!iobjScat(obj->flags) && !drawsize) 
+        continue;
+
       glLoadName(pt);
       glPushMatrix();
       glTranslatef(cont->pts[pt].x, cont->pts[pt].y,
                    cont->pts[pt].z*z);
                
-      /* get the real point size, convert to number of pixels and
-         look up step size based on current quality */
-      drawsize = imodPointGetSize(obj, cont, pt);
       if (drawsize == obj->pdrawsize)
         /* Use the display list if default size */
         glCallList(listIndex);
@@ -1703,6 +1726,9 @@ static void imodvDrawScalarMesh(Imesh *mesh, double zscale,
 
 /*
 $Log$
+Revision 4.2  2003/02/27 17:30:03  mast
+Had to include qgl.h instead of GL/gl.h under windows
+
 Revision 4.1  2003/02/10 20:29:02  mast
 autox.cpp
 
