@@ -1,6 +1,27 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-7/15/04: IMOD_3-4-1
+7/21/04: IMOD_3-4-2
+7/21/04: Made makejoincom put out commands to make a stack with averages
+of the top and bottom slices in each section.  Added new options to Xfalign to
+break the alignment at given sections instead of just skipping sections, and
+to work with averaged samples from serial tomograms and produce only one
+transform per tomogram.
+
+7/21/04: Added scripts Splittilt and Splitcombine for splitting up
+backprojection and volcombine operations to run on multiple processors with
+Processchunks.
+
+7/20/04: More changes in eTomo process-killing, including using the right ps 
+command to work on Mac, Windows, and Linux regardless of how eTomo is started.
+
+7/16/04: Made Tiltalign put out pixel size in ...local.xf file and Tilt use
+this pixel size to scale local alignment information, which is needed for
+local alignments to work right with binning of aligned OR prealigned stacks.
+
+7/16/04: Fixed a bug in Tilt in which an EXCLUDELIST line would turn on the
+LOG processing with 0 base.
+
+7/15/04: IMOD_3-4-1 (not tagged)
 7/14/04: eTomo process killing improved to handle the multi-layered processes
 in combining and fixed to work on Windows again.
 
@@ -8,13 +29,14 @@ in combining and fixed to work on Windows again.
 
 7/13/04: Converted Combinefft to PIP input and added an option for reducing
 amplitudes in the missing wedge regions to match the reduction in the combined
-data region, and an option for more sophisticated weighting.
+data region, and an option for more sophisticated weighting. (Not in 3.3)
 
 7/12/04: Implemented a mode in Midas to make it easier to align chunks of 
 sections (e.g., slices from serial tomograms) to each other.  Makejoincom
 will output the appropriate command line for running Midas in this mode.
+(Not in 3.3)
 
-7/12/04: Fixed copytomocoms problem with starting and increment til angles.
+7/12/04: Fixed copytomocoms problem with starting and increment tilt angles.
 
 7/11/04: Fixed failure to start new contour on a different section after
 autocontouring.  Fixed problems with autocontouring not setting surface number
