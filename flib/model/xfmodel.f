@@ -165,6 +165,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.2  2003/10/26 15:31:48  mast
+c	  switch from long prints to formatted writes for Intel compiler
+c	
 c	  Revision 3.1  2002/09/05 05:36:45  mast
 c	  Changes to take scaling information from model header and to scale
 c	  coordinates properly to index coordinates.  Also put in error
@@ -174,7 +177,7 @@ c
 c
 	implicit none
 	include 'model.inc'
-	integer nflimit,limpcl,idim
+	integer nflimit,limpcl,idim,lmGrid
 	parameter (nflimit=1001,limpcl=100000)
 	real*4 f(2,3,nflimit),g(2,3,nflimit),gtmp(2,3)
 	integer*4 nxyz(3),mxyz(3),nx,ny,nz,mode
@@ -183,19 +186,20 @@ c	real*4 delt(3)
 	integer*4 nsec(nflimit),listz(nflimit),indfl(nflimit)
 	integer*4 ixpclist(limpcl),iypclist(limpcl),izpclist(limpcl)
 	parameter (idim=400)
+	parameter (lmGrid = 200)
 	include 'statsize.inc'
 	real*4 xr(msiz,idim), sx(msiz), xm(msiz), sd(msiz)
-     1	    , ss(msiz,msiz), ssd(msiz,msiz), d(msiz,msiz), r(msiz,msiz)
-     2	    , b(msiz), b1(msiz)
-	character*80 modelfile,newmodel,oldxfgfile,oldxffile,newxffile
+     &	    , ss(msiz,msiz), ssd(msiz,msiz), d(msiz,msiz), r(msiz,msiz)
+     &	    , b(msiz), b1(msiz)
+	character*120 modelfile,newmodel,oldxfgfile,oldxffile,newxffile,idfFile
 	logical gotthis,gotlast,exist,readw_or_imod
-	integer*4 getimodhead,getimodscales
+	integer*4 getimodhead,getimodscales,getimodmaxes
 	integer*4 limpnts/4/			!min # of points for regression
 c	  
 	integer*4 i,nlistz,nfout,npclist,izrange,iffillgap,indf,indval
 	integer*4 minxpiece,nxpieces,nxoverlap,minypiece,nypieces,nyoverlap
 	real*4 xhaf,yhaf,xcen,ycen,critmean,critmax,dmin,dmax,dmean
-	integer*4 ifxfmod,iftrans,ifrotrans,ifprealign,ntofind
+	integer*4 ifxfmod,iftrans,ifrotrans,ifprealign,ntofind, ifmagrot
 	integer*4 ifsingle,izsingle,iffullrpt,ierr,ierr2,ifflip,indg
 	real*4 xyscal,zscale,xofs,yofs,zofs
 	real*4 ximscale, yimscale, zimscale,zz,zdex,zthis,zlast
@@ -203,23 +207,76 @@ c
 	integer*4 lastsec,npnts,iobject,ninobj,ipnt,isol,ipntmax,j
 	real*4 const,rsq,fra,theta,sinth,costh,gmag,devsum,devmax
 	real*4 xdev,ydev,devpnt,devavg,xx,yy
-	integer*4 loop,noldg,izsec,il,indobj
+	integer*4 loop,noldg,izsec,il,indobj,maxx,maxy,maxz
 	real*4 atan2d
+c
+	integer*4 ifDistort, idfBinning, iBinning, idfNx, idfNy
+	integer*4 ixGridStrt, iyGridStrt, nxGrid, nyGrid
+	real*4 xGridIntrv, yGridIntrv, pixelIdf, binRatio, dx, dy
+	real*4 fieldDx(lmGrid, lmGrid), fieldDy(lmGrid, lmGrid)
+	character*10240 stringList
+c	  
+	logical pipinput
+	integer*4 numOptArg, numNonOptArg
+	integer*4 PipGetInteger,PipGetBoolean, PipNumberOfEntries
+	integer*4 PipGetString,PipGetTwoIntegers, PipGetFloatArray, PipGetFloat
+	integer*4 PipGetIntegerArray, PipGetNonOptionArg, PipGetTwoFloats
+	integer*4 PipGetInOutFile
+c	  
+c	  fallbacks from ../../manpages/autodoc2man -2 2  xfmodel
+c
+	integer numOptions
+	parameter (numOptions = 20)
+	character*(40 * numOptions) options(1)
+	options(1) =
+     &      'input:InputFile:FN:@output:OutputFile:FN:@'//
+     &      'image:ImageFile:FN:@piece:PieceListFile:FN:@'//
+     &      'center:CenterInXandY:FP:@transonly:TranslationOnly:B:@'//
+     &      'rottrans:RotationTranslation:B:@magrot:MagRotTrans:B:@'//
+     &      'back:BackTransform:B:@edit:EditTransforms:FN:@'//
+     &      'sections:SectionsToAnalyze:LI:@single:SingleSection:I:@'//
+     &      'full:FullReportMeanAndMax:FP:@'//
+     &      'prealign:PrealignTransforms:FN:@'//
+     &      'xforms:XformsToApply:FN:@allz:AllZhaveTransforms:B:@'//
+     &      'distort:DistortionField:FN:@binning:BinningOfImages:I:@'//
+     &      'param:ParameterFile:PF:@help:usage:B:'
+c	  
+c	  set defaults
+c	  
+	modelfile = ' '
+	xcen = 0.
+	ycen = 0.
+c	  
+c	  Pip startup: set error, parse options, check help, set flag if used
+c
+	call PipReadOrParseOptions(options, numOptions, 'xfmodel',
+     &	    'ERROR: XFMODEL - ', .true., 3, 1, 1, numOptArg,
+     &	    numNonOptArg)
+	pipinput = numOptArg + numNonOptArg .gt. 0
+
 c
 c   get parameters
 c
-	write(*,'(1x,a,$)')
-     &	    'Image file (or Return to enter Xcen, Ycen directly): '
-	read(*,'(a)')modelfile
+	if (pipinput) then
+	  ierr = PipGetString('ImageFile', modelfile)
+	else
+	  write(*,'(1x,a,$)')
+     &	      'Image file (or Return to enter Xcen, Ycen directly): '
+	  read(*,'(a)')modelfile
+	endif
 c
 c	  if no image file, get crucial info directly
 c	  DNM 8/28/02: just get xcen, ycen since origin and delta aren't needed
 c
 	if(modelfile.eq.' ')then
-	  print *,char(7),
-     &	      'Be SURE to enter CENTER coordinates, NOT NX and NY'
-	  write(*,'(1x,a,$)')'Xcen, Ycen: '
-	  read(*,*)xcen,ycen
+	  if (pipinput) then
+	    ierr = PipGetTwoFloats('CenterInXandY', xcen, ycen)
+	  else
+	    print *,char(7),
+     &		'Be SURE to enter CENTER coordinates, NOT NX and NY'
+	    write(*,'(1x,a,$)')'Xcen, Ycen: '
+	    read(*,*)xcen,ycen
+	  endif
 	  do i=1,nflimit
 	    listz(i)=i-1
 	  enddo
@@ -237,9 +294,14 @@ c	  call irtorg(1,xorig,yorig,zorig)
 c	  write(*,'(/,a,a,/)')' This header info MUST be the'
 c     &	      ,' same as when model was built'
 c
-	  write(*,'(1x,a,$)') 'Piece list file if image is a'//
-     &	      ' montage, otherwise Return: '
-	  read(*,'(a)')modelfile
+	  modelfile = ' '
+	  if (pipinput) then
+	    ierr = PipGetString('PieceListFile', modelfile)
+	  else
+	    write(*,'(1x,a,$)') 'Piece list file if image is a'//
+     &		' montage, otherwise Return: '
+	    read(*,'(a)')modelfile
+	  endif
 	  call read_piece_list(modelfile,ixpclist,iypclist,izpclist,
      &	      npclist)
 	  if (npclist.gt.limpcl)call errorexit(
@@ -257,7 +319,7 @@ c	    if no pieces, set up mocklist
 c	    get ordered list of z values 
 	  call fill_listz(izpclist,npclist,listz,nlistz)
 	  if (nlistz.gt.nflimit)call errorexit(
-     &	      'too Z values coordinates for arrays')
+     &	      'too many Z values for arrays')
 	  
 	  call checklist(ixpclist,npclist,1,nx,minxpiece
      &	      ,nxpieces,nxoverlap)
@@ -289,12 +351,24 @@ c
 	izrange=listz(nlistz)+1-listz(1)
 	iffillgap=0
 	if(izrange.gt.nlistz)then
-	  write(*,'(1x,a,i4,a,/,a,/,a$)')'There are',izrange-nlistz,
-     &	      ' gaps in section Z values',' Enter 0 for xform lists'//
-     &	      ' that have xforms only for existing sections,',
-     &	      '    or 1 for xform lists that have xforms for'//
-     &	      ' all Z values in range: '
-	  read(*,*)iffillgap
+	  write(*,'(1x,a,i4,a)')'There are',izrange-nlistz,
+     &	      ' gaps in section Z values'
+	  if (pipinput) then
+	    ierr = PipGetBoolean('AllZhaveTransforms', iffillgap)
+	    if (iffillgap .eq. 0) then
+	      print *,'Xform lists will be assumed to have xforms ',
+     &		  'only for existing sections'
+	    else
+	      print *,'Xform lists will be assumed to have xforms ',
+     &		  'for all sections'
+	    endif
+	  else
+	    write(*,'(1x,a,/,a$)')'Enter 0 for xform lists'//
+     &		' that have xforms only for existing sections,',
+     &		'    or 1 for xform lists that have xforms for'//
+     &		' all Z values in range: '
+	    read(*,*)iffillgap
+	  endif
 	endif
 c	  
 c	  make index from z values to transform list: index=0 for non-existent
@@ -311,99 +385,180 @@ c
 	if(nfout.gt.0)nfout=indfl(listz(nlistz)+1-listz(1))
 
 c
-	write(*,'(1x,a,$)')'Input model file: '
-	read(*,'(a)')modelfile
-c
-	write(*,'(1x,a,/,a,/,a/,a,$)') 'Enter 0 to find '//
-     &	    'transformations, 2 to find X/Y translations only,',
-     &	    '    3 to find translations and rotations only,',
-     &	    '    4 to find translation, rotation and mag change only,',
-     &	    '    1 to transform model, or -1 to back-transform model: '
-	read(*,*)ifxfmod
+	ifxfmod = 0
+	if (PipGetInOutFile('InputFile', 1, 'Input model file', modelfile)
+     &	    .ne. 0) call errorexit('NO INPUT FILE SPECIFIED')
+	oldxfgfile = ' '
+	oldxffile = ' '
+	idfFile = ' '
 	iftrans=0
 	ifrotrans=0
+	ifmagrot = 0
+	if (pipinput) then
+	  ierr = PipGetBoolean('TranslationOnly', iftrans)
+	  ierr = PipGetBoolean('RotationTranslation', ifrotrans)
+	  ierr = PipGetBoolean('MagRotTrans', ifmagrot)
+
+	  if (PipGetString('XformsToApply', oldxffile) .eq. 0) ifxfmod = 1
+	  if (PipGetString('DistortionField', idfFile) .eq. 0) ifxfmod = 1
+	  if (PipGetString('BackTransform', oldxfgfile) .eq. 0) then
+	    if (ifxfmod .ne. 0) call errorexit('You cannot enter both'
+     &		//' -back and -xform or -distort')
+	    ifxfmod = -1
+	    ifprealign = 1
+	  endif
+	  if (iftrans + ifrotrans + ifmagrot .gt. 1 .or. (iftrans +
+     &	      ifrotrans + ifmagrot .gt. 0 .and. ifxfmod .ne. 0))
+     &	      call errorexit('Only one of -trans, -rottrans, -magrot,'//
+     &	      '-back or -distort, and -xform may be entered')
+	  if (iftrans .ne. 0) ifxfmod = 2
+	  if (ifrotrans .ne. 0) ifxfmod = 3
+	  if (ifmagrot .ne. 0) ifxfmod = 4
+
+	else
+c
+	  write(*,'(1x,a,/,a,/,a/,a,$)') 'Enter 0 to find '//
+     &	      'transformations, 2 to find X/Y translations only,',
+     &	      '    3 to find translations and rotations only,',
+     &	      '    4 to find translation, rotation and mag change only,',
+     &	      '    1 to transform model, or -1 to back-transform model: '
+	  read(*,*)ifxfmod
+	endif
+c	  
+c	  set variables for restricted fits
+c
 	if(ifxfmod.eq.2)then
 	  ifxfmod=0
 	  iftrans=1
 	  limpnts=1
-	endif
-	if(ifxfmod.eq.3)then
+	elseif(ifxfmod.eq.3)then
 	  ifrotrans=1
 	  ifxfmod=0
 	  limpnts=2
-	endif
-	if(ifxfmod.eq.4)then
+	elseif(ifxfmod.eq.4)then
 	  ifrotrans=2
 	  ifxfmod=0
 	  limpnts=3
 	endif
+c	  
 c
-	if(ifxfmod.lt.0)then
-	  ifprealign=1
-	else
-	  write(*,'(1x,a,$)')
-     &	      'Model built on raw sections (0) or prealigned ones(1): '
-	  read(*,*)ifprealign
-	endif
-c
-	if(ifprealign.ne.0)then
-	  write(*,'(1x,a,$)')
-     &	      'File of old g transforms used in prealignment: '
-	  read(*,'(a)')oldxfgfile
-	endif
-c
-	if(ifxfmod.eq.0)then
-	  write(*,'(1x,a,$)') 'Name of old file of f transforms'//
-     &	      ' to edit (Return if none): '
-	  read(*,'(a)')oldxffile
-c
-	  write(*,'(1x,a,$)')'Name of new file of f transforms: '
-	  read(*,'(a)')newxffile
-c
-	  write(*,118)
-118	  format(' Enter / to find transforms for all section pairs,',/,
-     &	      '      or -999 to find transforms relative to a single',
-     &	      ' section,',/,
-     &	      '      or a list of the section numbers to find',
-     &	      ' transforms for',/,'         (enter number of second',
-     &	      ' section of each pair, ranges are ok)')
-	  ntofind=0
-	  ifsingle=0
-	  call rdlist(5,nsec,ntofind)
-	  if(ntofind.eq.1.and.nsec(1).eq.-999)then
-	    write(*,'(1x,a,$)')'Number of single section to find'//
-     &		' transforms relative to: '
-	    read(*,*)izsingle
-	    ifsingle=1
-	    print *,'Now enter list of sections to find transforms',
-     &		' for (/ for all)'
-	    ntofind=0
-	    call rdlist(5,nsec,ntofind)
+	ifsingle=0
+	iffullrpt = 0
+	ntofind=0
+	if (pipinput) then
+	  if (PipGetString('PrealignTransforms', oldxfgfile) .eq. 0)then
+	    if (ifxfmod .lt. 0) call errorexit('You cannot specify '//
+     &		'both -prealign and -back')
+	    ifprealign = 1
 	  endif
+	  if (PipGetInOutFile('OutputFile', 2, ' ', newxffile) .ne. 0)
+     &	      call errorexit('NO OUTPUT FILE SPECIFIED')
+	  if(ifxfmod.eq.0)then
+	    oldxffile = ' '
+	    ierr = PipGetString('EditTransforms', oldxffile)
+
+	    if (PipGetTwoFloats('FullReportMeanAndMax', critmean, critmax)
+     &		.eq. 0) iffullrpt = 1
+	    if (PipGetInteger('SingleSection', izsingle) .eq. 0) ifsingle = 1
+	    if (PipGetString('SectionsToAnalyze', stringList) .eq. 0)
+     &		call parselist(stringList, nsec, ntofind)
+	  else
+	    newmodel = newxffile
+	    if (idfFile .ne. ' ') then
+	      ifDistort = 1
+	      call readDistortions(idfFile, fieldDx, fieldDy, lmGrid, idfNx,
+     &		  idfNy, idfBinning, pixelIdf, ixGridStrt, xGridIntrv, nxGrid,
+     &		  iyGridStrt, yGridIntrv, nyGrid)
+c
+	      if (PipGetInteger('BinningOfImages', iBinning) .ne. 0)
+     &		  call errorexit
+     &		  ('FOR NOW, YOU MUST SPECIFY BINNING OF IMAGES')
+	      if (iBinning .ne. idfBinning) then
+		binRatio = idfBinning / float(iBinning)
+		ixGridStrt = nint(ixGridStrt * binRatio)
+		iyGridStrt = nint(iyGridStrt * binRatio)
+		xGridIntrv = xGridIntrv * binRatio
+		yGridIntrv = yGridIntrv * binRatio
+		do j = 1, nyGrid
+		  do i = 1, nxGrid
+		    fieldDx(i, j) = fieldDx(i, j) * binRatio
+		    fieldDy(i, j) = fieldDy(i, j) * binRatio
+		  enddo
+		enddo
+	      endif
+	      
+	    endif
+	  endif
+	else
 c	    
-	  write(*,'(1x,a,$)')'1 for full reports of deviations for'//
-     &	      ' sections with bad fits, 0 for none: '
-	  read(*,*)iffullrpt
+c	    old input: get prealignment or back transforms
 c
-	  if(iffullrpt.ne.0)then
-	    write(*,'(1x,a,$)')'Enter criterion mean deviation and'//
-     &		' max deviation; full reports will be given',
-     &		'     for sections with mean OR max greater than'//
-     &		' these criteria: '
-	    read(*,*)critmean,critmax
-	  endif
-c
-	else
-	  write(*,'(1x,a,$)')'New model file name: '
-	  read(*,'(a)')newmodel
-c
-	  if(ifxfmod.gt.0)then
+	  if(ifxfmod.lt.0)then
+	    ifprealign=1
+	  else
 	    write(*,'(1x,a,$)')
-     &		'File for list of g transforms to apply: '
-	    read(*,'(a)')oldxffile
+     &		'Model built on raw sections (0) or prealigned ones(1): '
+	    read(*,*)ifprealign
 	  endif
 c
+	  if(ifprealign.ne.0)then
+	    write(*,'(1x,a,$)')
+     &		'File of old g transforms used in prealignment: '
+	    read(*,'(a)')oldxfgfile
+	  endif
+c
+	  if(ifxfmod.eq.0)then
+	    write(*,'(1x,a,$)') 'Name of old file of f transforms'//
+     &		' to edit (Return if none): '
+	    read(*,'(a)')oldxffile
+c	      
+	    write(*,'(1x,a,$)')'Name of new file of f transforms: '
+	    read(*,'(a)')newxffile
+c
+	    write(*,118)
+118	    format(' Enter / to find transforms for all section pairs,',/,
+     &		'      or -999 to find transforms relative to a single',
+     &		' section,',/,
+     &		'      or a list of the section numbers to find',
+     &		' transforms for',/,'         (enter number of second',
+     &		' section of each pair, ranges are ok)')
+	    call rdlist(5,nsec,ntofind)
+	    if(ntofind.eq.1.and.nsec(1).eq.-999)then
+	      write(*,'(1x,a,$)')'Number of single section to find'//
+     &		  ' transforms relative to: '
+	      read(*,*)izsingle
+	      ifsingle=1
+	      print *,'Now enter list of sections to find transforms',
+     &		  ' for (/ for all)'
+	      ntofind=0
+	      call rdlist(5,nsec,ntofind)
+	    endif
+c	    
+	    write(*,'(1x,a,$)')'1 for full reports of deviations for'//
+     &		' sections with bad fits, 0 for none: '
+	    read(*,*)iffullrpt
+c
+	    if(iffullrpt.ne.0)then
+	      write(*,'(1x,a,$)')'Enter criterion mean deviation and'//
+     &		  ' max deviation; full reports will be given',
+     &		  '     for sections with mean OR max greater than'//
+     &		  ' these criteria: '
+	      read(*,*)critmean,critmax
+	    endif
+c
+	  else
+	    write(*,'(1x,a,$)')'New model file name: '
+	    read(*,'(a)')newmodel
+c	      
+	    if(ifxfmod.gt.0)then
+	      write(*,'(1x,a,$)')
+     &		  'File for list of g transforms to apply: '
+	      read(*,'(a)')oldxffile
+	    endif
+c
+	  endif
 	endif
+	call PipDone()
 c
 c	  read in the model
 c
@@ -414,7 +569,16 @@ c
 	ierr2 = getimodscales(ximscale, yimscale, zimscale)
 	if (ierr .ne. 0 .or. ierr2 .ne. 0) call errorexit(
      &	    'getting model header')
-
+c	  
+c	  if the center is not yet defined, use the model header sizes
+c
+	if (xcen .eq. 0. .and. ycen .eq. 0.) then
+	  ierr = getimodmaxes(maxx, maxy, maxz)
+	  xcen = maxx / 2.
+	  ycen = maxy / 2.
+	  write(*,'(a,2f8.1)')'Using model header to determine '//
+     &	      'center coordinates:', xcen, ycen
+	endif
 c	  
 c	  shift the data to display coordinates before using
 c
@@ -437,6 +601,9 @@ c	  back-transform if necessary
 c
 c	    get g transforms into g list
 	  call xfrdall(3,g,noldg,*92)
+	  if (noldg.gt.nflimit)call errorexit(
+     &	      'too many transforms for arrays')	
+	  close(3)
 c	    
 c	    invert the g's into the g list
 	  do indg=1,noldg
@@ -445,43 +612,13 @@ c	    invert the g's into the g list
 	  enddo
 c	    
 c	    apply inverse g's to all points in model
-	  nundefine=0
-	  do iobj=1,max_mod_obj
-	    do ipt=1,npt_in_obj(iobj)
-	      i=abs(object(ibase_obj(iobj)+ipt))
-	      zz=p_coord(3,i)
-c		zdex=(zz+zorig)/delt(3)
-	      zdex=zz
-	      iz=int(zdex-nint(zdex)+0.5) + nint(zdex)
-	      indind=iz+1 -listz(1)
-	      if(indind.lt.1.or.indind.gt.nflimit)then
-		nundefine=nundefine+1
-	      else
-		indg=indfl(indind)
-		if(indg.lt.1.or.indg.gt.noldg)then
-		  nundefine=nundefine+1
-		else
-		  call xfapply(g(1,1,indg),xcen,ycen,p_coord(1,i),
-     &		      p_coord(2,i),p_coord(1,i),p_coord(2,i))
-		endif
-	      endif
-	    enddo
-	  enddo
+	  call transformModel(g, noldg, nflimit, xcen, ycen, indfl,
+     &		listz, nundefine)
+	    
 	  if(ifxfmod.lt.0)then
 c
 c	      write out back-transformed model
-	    if(nundefine.gt.0)print *,nundefine,
-     &		' points with Z values out of range of transforms'
-c	  
-c	      shift the data back for saving
-c
-	    do i=1,n_point
-	      p_coord(1,i)=ximscale*p_coord(1,i)+xofs
-	      p_coord(2,i)=yimscale*p_coord(2,i)+yofs
-	      p_coord(3,i)=zimscale*p_coord(3,i)+zofs
-	    enddo
-	    call write_wmod(newmodel)
-	    close(2)
+	    call rescaleWriteModel(newmodel, nundefine)
 	    call exit(0)
 	  endif
 	endif
@@ -494,49 +631,43 @@ c
 	  call xfrdall(1,f,nfgin,*92)
 	  if (nfgin.gt.nflimit)call errorexit(
      &	      'too many transforms for arrays')	
+	  close(1)
 	endif
 	if(ifxfmod.ne.0)then
-c
-c	    transform the model
-c
-	  nundefine=0
-	  do iobj=1,max_mod_obj
-	    do ipt=1,npt_in_obj(iobj)
-	      i=abs(object(ibase_obj(iobj)+ipt))
-	      zz=p_coord(3,i)
-c	      zdex=(zz+zorig)/delt(3)
-	      zdex=zz
-	      iz=int(zdex-nint(zdex)+0.5) + nint(zdex)
-	      indind=iz+1 -listz(1)
-	      if(indind.lt.1.or.indind.gt.nflimit)then
-		nundefine=nundefine+1
-	      else
-		indg=indfl(indind)
-		if(indg.lt.1.or.indg.gt.nfgin)then
-		  nundefine=nundefine+1
-		else
-		  call xfapply(f(1,1,indg),xcen,ycen,p_coord(1,i),
-     &		      p_coord(2,i),p_coord(1,i),p_coord(2,i))
-		endif
-	      endif
-	    enddo
-	  enddo
-c
-c	    write it out
-	  if(nundefine.gt.0)print *,nundefine,
-     &	      ' points with Z values out of range of transforms'
-c	  
-c	    shift the data back for saving
+	  if (ifDistort .ne. 0) then
 c	    
-	  do i=1,n_point
-	    p_coord(1,i)=ximscale*p_coord(1,i)+xofs
-	    p_coord(2,i)=yimscale*p_coord(2,i)+yofs
-	    p_coord(3,i)=zimscale*p_coord(3,i)+zofs
-	  enddo
-	  call write_wmod(newmodel)
+c	    undistort the model
+c	      
+	    do i=1,n_point
+	      call interpolateGrid(p_coord(1,i), p_coord(2,i), fieldDx,
+     &		  fieldDy, lmGrid, idfNx, idfNy, ixGridstrt, xGridIntrv,
+     &		  iyGridStrt, yGridIntrv, dx, dy)
+	      p_coord(1,i) = p_coord(1,i) - dx
+	      p_coord(2,i) = p_coord(2,i) - dy
+	    enddo
+c	      
+c	      if there was prealignment and no new transforms, get the 
+c	      prealignment transforms back by inversion and set up to use them
+c	      
+	    if (nfgin .eq. 0 .and. ifprealign .ne. 0) then
+	      do indg=1,noldg
+		call xfinvert(g(1,1,indg), f(1,1,indg))
+	      enddo
+	      nfgin = noldg
+	    endif
+	  endif
+c	    
+	  nundefine = 0
+c
+c	      transform the model
+c
+	  if (nfgin .ne. 0) call transformModel(f, nfgin, nflimit,
+     &	      xcen, ycen, indfl, listz, nundefine)
+	    
+	  call rescaleWriteModel(newmodel, nundefine)
 	else
 c
-c	    search for points to derive xforms from
+c	    SEARCH FOR POINTS TO DERIVE XFORMS FROM
 c
 c	    first find min and max z in model
 	  izmin=100000
@@ -750,8 +881,9 @@ c
 	  do i=1,nfout
 	    call xfwrite(2,f(1,1,i),*94)
 	  enddo
+	  close(2)
 	endif
-	stop
+	call exit(0)
 91	call errorexit('reading model file')
 92	call errorexit('reading old f/g file')
 93	print *
@@ -767,3 +899,139 @@ c
 	print *,'ERROR: XFMODEL - ',message
 	call exit(1)
 	end
+
+
+	subroutine transformModel(f, nfgin, nflimit, xcen, ycen,
+     &	    indfl, listz, nundefine)
+	implicit none
+	include 'model.inc'
+	real*4 f(2,3,*), xcen, ycen
+	integer*4 nfgin, nflimit, nundefine, indfl(*), listz(*)
+	integer*4 iobj, ipt, i, iz, indind, indg
+	real*4 zdex,zz
+c
+	nundefine=0
+	do iobj=1,max_mod_obj
+	  do ipt=1,npt_in_obj(iobj)
+	    i=abs(object(ibase_obj(iobj)+ipt))
+	    zz=p_coord(3,i)
+c	      zdex=(zz+zorig)/delt(3)
+	    zdex=zz
+	    iz=int(zdex-nint(zdex)+0.5) + nint(zdex)
+	    indind=iz+1 -listz(1)
+	    if(indind.lt.1.or.indind.gt.nflimit)then
+	      nundefine=nundefine+1
+	    else
+	      indg=indfl(indind)
+	      if(indg.lt.1.or.indg.gt.nfgin)then
+		nundefine=nundefine+1
+	      else
+		call xfapply(f(1,1,indg),xcen,ycen,p_coord(1,i),
+     &		    p_coord(2,i),p_coord(1,i),p_coord(2,i))
+	      endif
+	    endif
+	  enddo
+	enddo
+	return
+	end
+
+	subroutine rescaleWriteModel(newmodel, nundefine)
+	implicit none
+	include 'model.inc'
+	integer*4 nundefine
+	character*(*) newmodel
+	integer*4 getimodhead,getimodscales,ifflip,i,ierr
+	real*4 xyscal,zscale,xofs,yofs,zofs
+	real*4 ximscale, yimscale, zimscale
+	
+	ierr=getimodhead(xyscal,zscale,xofs,yofs,zofs,ifflip)
+	ierr = getimodscales(ximscale, yimscale, zimscale)
+c
+	if(nundefine.gt.0)print *,nundefine,
+     &		' points with Z values out of range of transforms'
+c	    
+c	  write model out
+c	  shift the data back for saving
+c	  
+	do i=1,n_point
+	  p_coord(1,i)=ximscale*p_coord(1,i)+xofs
+	  p_coord(2,i)=yimscale*p_coord(2,i)+yofs
+	  p_coord(3,i)=zimscale*p_coord(3,i)+zofs
+	enddo
+	call write_wmod(newmodel)
+	return
+	end
+
+
+
+	subroutine readDistortions(idfFile, fieldDx, fieldDy, lmGrid, idfNx,
+     &	    idfNy, idfBinning, pixelIdf, ixGridStrt, xGridIntrv, nxGrid,
+     &	    iyGridStrt, yGridIntrv, nyGrid)
+	character*(*) idfFile
+	integer*4  idfBinning, idfNx, idfNy, lmGrid
+	integer*4 ixGridStrt, iyGridStrt, nxGrid, nyGrid
+	real*4 xGridIntrv, yGridIntrv, pixelIdf
+	real*4 fieldDx(lmGrid, lmGrid), fieldDy(lmGrid, lmGrid)
+c	  
+	integer*4 idfVersion, i, j
+c	  
+	call dopen(14, idfFile, 'ro', 'f')
+	read(14, *) idfVersion
+	if (idfVersion .eq. 1) then
+	  read(14, *)idfNx, idfNy, idfBinning, pixelIdf
+	  read(14, *)ixGridStrt, xGridIntrv, nxGrid, iyGridStrt,
+     &	      yGridIntrv, nyGrid
+	  if (nxGrid .gt. lmGrid .or. nyGrid .gt. lmGrid) then
+	    print *
+	    print *,'ERROR: readDistortions - too many grid points for arrays'
+	    call exit(1)
+	  endif
+	  do j = 1, nyGrid
+	    read(14, *)(fieldDx(i, j), fieldDy(i,j), i = 1, nxGrid)
+	  enddo
+	else
+	  print *
+	  print *,'ERROR: readDistortions - version',idfVersion,
+     &	      ' of idf file not recognized'
+	  call exit(1)
+	endif
+	close(14)
+	return
+	end
+
+	subroutine interpolateGrid(x, y, dxGrid, dyGrid, ixgDim,
+     &	    nxGrid, nyGrid, ixGridStrt, xGridIntrv, iyGridStrt,
+     &	    yGridIntrv, dx, dy)
+	implicit none
+	integer*4 ixgDim, nxGrid, nyGrid, ixGridStrt, iyGridStrt
+	real*4 dxGrid(ixgDim, *), dyGrid(ixgDim, *)
+	real*4 xGridIntrv, yGridIntrv, x, y, dx, dy
+	real*4 xgrid,ygrid,fx1,fx,fy1,fy,c00,c10,c01,c11
+	integer*4 ixg,iyg,ixg1,iyg1
+
+	xgrid = 1. + (x - ixGridStrt) / xGridIntrv
+	ixg=xgrid
+	ixg=max(1,min(nxGrid-1,ixg))
+	fx1=max(0.,min(1.,xgrid-ixg))		!NO EXTRAPOLATIONS ALLOWED
+	fx=1.-fx1
+	ixg1=ixg+1
+	ygrid = 1. + (y - iyGridStrt) / yGridIntrv
+	iyg=ygrid
+	iyg=max(1,min(nyGrid-1,iyg))
+	fy1=max(0.,min(1.,ygrid-iyg))
+	fy=1.-fy1
+	iyg1=iyg+1
+	c00=fx*fy
+	c10=fx1*fy
+	c01=fx*fy1
+	c11=fx1*fy1
+c	  
+c	  interpolate
+c
+	dx = c00*dxGrid(ixg,iyg) + c10*dxGrid(ixg1,iyg)
+     &	    + c01*dxGrid(ixg,iyg1) + c11*dxGrid(ixg1,iyg1)
+	dy = c00*dyGrid(ixg,iyg) + c10*dyGrid(ixg1,iyg)
+     &	    + c01*dyGrid(ixg,iyg1) + c11*dyGrid(ixg1,iyg1)
+	return
+	end
+
