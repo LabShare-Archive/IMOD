@@ -2,6 +2,7 @@
 package etomo.process;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Vector;
 
 import etomo.ApplicationManager;
@@ -22,6 +23,9 @@ import etomo.EtomoDirector;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.19  2004/11/24 18:10:36  sueh
+ * <p> bug# 520 Added binning in XY.
+ * <p>
  * <p> Revision 3.18  2004/11/19 23:21:39  sueh
  * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
  * <p>
@@ -307,44 +311,49 @@ public class ImodProcess {
 
     //  Reset the window string
     windowID = "";
-
+    ArrayList commandOptions = new ArrayList();
+    commandOptions.add(ApplicationManager.getIMODBinPath() + "3dmod");
     //  Collect the command line options
-    StringBuffer options = new StringBuffer();
+
     if (outputWindowID) {
-      options.append("-W ");
+      commandOptions.add("-W");
     }
 
     if (swapYZ) {
-      options.append("-Y ");
+      commandOptions.add("-Y");
     }
 
     if (modelView) {
-      options.append("-V ");
+      commandOptions.add("-V");
     }
 
     if (useModv) {
-      options.append("-view ");
+      commandOptions.add("-view");
     }
     
     if (binning > defaultBinning) {
-      options.append("-B " + binning + " ");
+      commandOptions.add("-B");
+      commandOptions.add(Integer.toString(binning));
     }
     
     if (binningXY > defaultBinning) {
-      options.append("-b " + binningXY + " ");
+      commandOptions.add("-b");
+      commandOptions.add(Integer.toString(binningXY));
     }
     
-    StringBuffer commandBuffer =
-      new StringBuffer(
-        ApplicationManager.getIMODBinPath() + "3dmod " + options + datasetName);
+    commandOptions.add(datasetName);
+
     if (openWithModel) {
-      commandBuffer.append(" " + modelName);
+      commandOptions.add(modelName);
     }
-    String command = commandBuffer.toString();
-    if(EtomoDirector.getInstance().isDebug()) {
-      System.err.println(command);
+    String[] commandArray = new String[commandOptions.size()];
+    for (int i = 0; i < commandOptions.size(); i++) {
+      commandArray[i] = (String) commandOptions.get(i);
+      if (EtomoDirector.getInstance().isDebug()) {
+        System.err.println(commandArray[i]);
+      }
     }
-    imod = new InteractiveSystemProgram(command);
+    imod = new InteractiveSystemProgram(commandArray);
     if (workingDirectory != null) {
       imod.setWorkingDirectory(workingDirectory);
     }

@@ -20,6 +20,9 @@ import etomo.type.EtomoNumber;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.1  2004/11/19 23:22:01  sueh
+ * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+ * <p>
  * <p> Revision 3.0.6.5  2004/11/16 02:21:59  sueh
  * <p> bug# 520 Replacing EtomoInteger, EtomoDouble, EtomoFloat, and
  * <p> EtomoLong with EtomoNumber.
@@ -83,6 +86,7 @@ public class InteractiveSystemProgram implements Runnable {
    * The command to run
    */
   private String command = null;
+  private String[] commandArray = null;
   private Command commandParam = null;
 
   /**
@@ -105,6 +109,15 @@ public class InteractiveSystemProgram implements Runnable {
     this.command = command;
   }
   
+  /**
+   * Creates a SystemProgram object to execute the program specified by the
+   * argument <i>command</i>
+   * @param command The string containng the command to run
+   */
+  public InteractiveSystemProgram(String[] commandArray) {
+    this.commandArray = commandArray;
+  }
+  
   public InteractiveSystemProgram(Command commandParam, BaseProcessManager processManager) {
     this.processManager = processManager;
     this.commandParam = commandParam;
@@ -112,6 +125,7 @@ public class InteractiveSystemProgram implements Runnable {
     if (commandParam == null) {
       throw new IllegalArgumentException("CommandParam is null.");
     }
+    commandArray = commandParam.getCommandArray();
     command = commandParam.getCommandLine();
   }
   
@@ -153,12 +167,25 @@ public class InteractiveSystemProgram implements Runnable {
     }
     try {
       if (workingDirectory == null) {
-        File currentUserDirectory = new File(EtomoDirector.getInstance().getCurrentPropertyUserDir());
-        process =
-          Runtime.getRuntime().exec(command, null, currentUserDirectory);
+        File currentUserDirectory = new File(EtomoDirector.getInstance()
+            .getCurrentPropertyUserDir());
+        if (commandArray != null) {
+          process = Runtime.getRuntime().exec(commandArray, null,
+              currentUserDirectory);
+        }
+        else {
+          process = Runtime.getRuntime().exec(command, null,
+              currentUserDirectory);
+        }
       }
       else {
-        process = Runtime.getRuntime().exec(command, null, workingDirectory);
+        if (commandArray != null) {
+          process = Runtime.getRuntime().exec(commandArray, null,
+              workingDirectory);
+        }
+        else {
+          process = Runtime.getRuntime().exec(command, null, workingDirectory);
+        }
       }
 
       //  Create a buffered writer to handle the stdin, stdout and stderr
@@ -193,7 +220,7 @@ public class InteractiveSystemProgram implements Runnable {
       except.printStackTrace();
       exceptionMessage = except.getMessage();
     }
-    
+
     if (processManager != null) {
       processManager.msgInteractiveSystemProgramDone(this, exitValue);
     }
