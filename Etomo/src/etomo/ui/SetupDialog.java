@@ -23,6 +23,9 @@ import etomo.storage.StackFileFilter;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.13  2003/01/06 20:18:33  rickg
+ * <p> Changed edit boxes to LabeledTextFields
+ * <p>
  * <p> Revision 1.12  2002/12/19 17:45:22  rickg
  * <p> Implemented advanced dialog state processing
  * <p> including:
@@ -186,12 +189,6 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     //  Set the preferred and max sizes for the fileset GUI objects
     //  so that the box layout happens correctly
     //
-/*   Dimension dimTextPref = new Dimension(120, 20);
-    Dimension dimTextMax = new Dimension(1000, 20);
-    textFieldFileset.setPreferredSize(dimTextPref);
-    textFieldFileset.setMaximumSize(dimTextMax);
-    textFieldBackupDirectory.setPreferredSize(dimTextPref);
-    textFieldBackupDirectory.setMaximumSize(dimTextMax);*/
     buttonFileset.setPreferredSize(FixedDim.folderButton);
     buttonFileset.setMaximumSize(FixedDim.folderButton);
     buttonBackupDirectory.setPreferredSize(FixedDim.folderButton);
@@ -402,23 +399,25 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
 
     //  The fileset name needs to be set after the axis type so the metadata
     // object modifies the ending correctly
-    metaData.setFilesetName(ltfFileset.getText());
+    if (ltfFileset.getText().startsWith("/")) {
+      metaData.setFilesetName(ltfFileset.getText());
+    }
+    else {
+      metaData.setFilesetName(
+        applicationManager.getWorkingDirectory() + "/" + ltfFileset.getText());
+    }
     metaData.setViewType(getViewType());
     metaData.setSectionType(getSectionType());
     metaData.setPixelSize(Double.parseDouble(ltfPixelSize.getText()));
     metaData.setFiducialDiameter(
       Double.parseDouble(ltfFiducialDiameter.getText()));
     metaData.setImageRotation(Double.parseDouble(ltfImageRotation.getText()));
-
     tiltAnglesA.getFields(metaData.getTiltAngleSpecA());
     metaData.setExcludeProjectionsA(ltfExcludeListA.getText());
     tiltAnglesB.getFields(metaData.getTiltAngleSpecB());
     metaData.setExcludeProjectionsB(ltfExcludeListB.getText());
-
     return metaData;
-  }
-
-  //
+  } //
   // Data source radio button control
   //
   void setDataSource(DataSource dataSource) {
@@ -437,9 +436,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     else {
       return DataSource.FILM;
     }
-  }
-
-  //
+  } //
   //  Axis type radio button
   //
   void setAxisType(AxisType axisType) {
@@ -458,9 +455,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     else {
       return AxisType.DUAL_AXIS;
     }
-  }
-
-  //
+  } //
   //  View type radio button
   //
   void setViewType(ViewType viewType) {
@@ -479,9 +474,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     else {
       return ViewType.MONTAGE;
     }
-  }
-
-  //
+  } //
   //  Section type radio button
   //
   void setSectionType(SectionType sectionType) {
@@ -500,20 +493,15 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     else {
       return SectionType.SERIAL;
     }
-  }
-
-  /**
-   * Right mouse button context menu
-   */
+  } /**
+      * Right mouse button context menu
+      */
   public void popUpContextMenu(MouseEvent mouseEvent) {
     ContextPopup contextPopup =
       new ContextPopup(rootPanel, mouseEvent, "INITIAL STEPS");
-  }
-
-  //
+  } //
   //  Action functions for buttons
   //
-
   void buttonFilesetAction(ActionEvent event) {
     //
     //  Open up the file chooser in the working directory
@@ -525,7 +513,6 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     chooser.setPreferredSize(new Dimension(400, 400));
     chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
     int returnVal = chooser.showOpenDialog(this);
-
     if (returnVal == JFileChooser.APPROVE_OPTION) {
       File filesetName = chooser.getSelectedFile();
       try {
@@ -549,7 +536,6 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     chooser.setPreferredSize(new Dimension(400, 400));
     chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
     int returnVal = chooser.showOpenDialog(this);
-
     if (returnVal == JFileChooser.APPROVE_OPTION) {
       File backupDirectory = chooser.getSelectedFile();
       try {
@@ -569,30 +555,24 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
   void rbDualAxisAction(ActionEvent event) {
     tiltAnglesB.setEnabled(true);
     ltfExcludeListB.setEnabled(true);
-  }
-
-  /**
-   * Action to take when the cancel button is pressed, the default action is
-   * to set the exitState attribute to CANCEL.
-   */
+  } /**
+          * Action to take when the cancel button is pressed, the default action is
+          * to set the exitState attribute to CANCEL.
+          */
   public void buttonCancelAction(ActionEvent event) {
     super.buttonCancelAction(event);
     applicationManager.doneSetupDialog();
-  }
-
-  /**
-   * Action to take when the postpone button is pressed, the default action is
-   * to set the exitState attribute to POSTPONE.
-   */
+  } /**
+          * Action to take when the postpone button is pressed, the default action is
+          * to set the exitState attribute to POSTPONE.
+          */
   public void buttonPostponeAction(ActionEvent event) {
     super.buttonPostponeAction(event);
     applicationManager.doneSetupDialog();
-  }
-
-  /**
-   * Action to take when the execute button is pressed, the default action is
-   * to set the exitState attribute to EXECUTE.
-   */
+  } /**
+          * Action to take when the execute button is pressed, the default action is
+          * to set the exitState attribute to EXECUTE.
+          */
   public void buttonExecuteAction(ActionEvent event) {
     super.buttonExecuteAction(event);
     applicationManager.doneSetupDialog();
@@ -600,59 +580,46 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
 
   private void setToolTipText() {
     String line1, line2, line3, line4, line5, line6, line7, line8;
-
     line1 = "<html>Enter the name of projection data file(s). You can<br>";
     line2 = "also select the projection data file  by pressing the<br>";
     line3 = "folder button. Remember to omit the .st for single axis<br>";
     line4 = "data sets or the a.st for dual axis data sets.";
     ltfFileset.setToolTipText(line1 + line2 + line3 + line4);
-
     line1 = "<html>This button will open a file chooser dialog box<br>";
     line2 = "allowing you to select the projection data file.<br>";
     line3 = "Remember to remove the .st for single axis data sets<br>";
     line4 = "or the a.st for dual axis data sets.";
     buttonFileset.setToolTipText(line1 + line2 + line3);
-
     line1 = "<html>Enter the name of the directory where you want the<br>";
     line2 = "small data files .com and .log files to be backed up.  You<br>";
     line3 = "can use the folder button on the right to create a new<br>";
     line4 = "directory to store the backups.";
     ltfBackupDirectory.setToolTipText(line1 + line2 + line3 + line4);
-
-
     line1 = "<html>This button will open a file chooser dialog box<br>";
     line2 = "allowing you to select and/or create the backup directory.";
     buttonBackupDirectory.setToolTipText(line1 + line2);
-
     line1 = "<html>This radio button selector will choose whether the data<br>";
     line2 = "has been collected using a CCD or film.";
     panelDataSource.setToolTipText(line1 + line2);
-
     line1 = "<html>This radio button selector will choose whether the data<br>";
     line2 = "consists of one or two tilt axis.";
     panelAxisType.setToolTipText(line1 + line2);
-
     line1 = "<html>This radio button selector will choose whether the data<br>";
     line2 = "consists of a single view per projection or multiple views<br>";
     line3 = "per projection (montaged).";
     panelViewType.setToolTipText(line1 + line2 + line3);
-
     line1 = "<html>This radio button selector will choose whether the data<br>";
     line2 = "consists of a single tomogram or several serial tomograms";
     panelSectionType.setToolTipText(line1 + line2);
-
     line1 = "<html>Enter the projection image pixel size in nanometers here.";
     ltfPixelSize.setToolTipText(line1);
-
     line1 = "<html>Enter the fiducial size in nanometers here.";
     ltfFiducialDiameter.setToolTipText(line1);
-
     line1 = "<html>Enter the projection image rotation in degrees. This is<br>";
     line2 = "the rotation (CCW positive) from the Y-axis (the tilt axis<br>";
     line3 = "after the views are aligned) to the suspected tilt axis in<br>";
     line4 = "the unaligned views.";
     ltfImageRotation.setToolTipText(line1 + line2 + line3 + line4);
-
     line1 = "<html>Specify the source of the projection tilt angles";
     line2 = "<ul><li>Select the Extract option if the raw stack data<br>";
     line3 = "contains the tilt angle data";
@@ -664,7 +631,6 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
       line1 + line2 + line3 + line4 + line5 + line6 + line7);
     tiltAnglesB.setToolTipText(
       line1 + line2 + line3 + line4 + line5 + line6 + line7);
-
     line1 =
       "<html>Enter the projection images to <b>exclude</b> from the processing<br>";
     line2 = "of this axis.  Ranges are allowed, separate ranges by<br>";
@@ -672,29 +638,23 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     line4 = "four images of a 60 projection stack enter 1-4,57-60.";
     ltfExcludeListA.setToolTipText(line1 + line2 + line3 + line4);
     ltfExcludeListB.setToolTipText(line1 + line2 + line3 + line4);
-
     line1 = "<html>The button will setup the processing for existing<br>";
     line2 = "command scripts.  <b>Be sure that parameters entered match<br>";
     line3 = "the existing command scripts.</b>";
     buttonPostpone.setToolTipText(line1 + line2 + line3);
-
     line1 = "<html>This button will create a new set of command scripts<br>";
     line2 = "overwriting any of the same name in the specified working<br>";
     line3 = "directory.  Be sure to save the data file after creating the<br>";
     line4 = "command script if you wish keep the results.";
     buttonExecute.setToolTipText(line1 + line2 + line3 + line4);
-
   }
 
-}
-
-//
+} //
 //  Button action listener classes
 //
 class SetupDialogFilesetActionAdapter implements ActionListener {
 
   SetupDialog adaptee;
-
   SetupDialogFilesetActionAdapter(SetupDialog adaptee) {
     this.adaptee = adaptee;
   }
@@ -707,7 +667,6 @@ class SetupDialogFilesetActionAdapter implements ActionListener {
 class SetupDialogBackupDirectoryActionAdapter implements ActionListener {
 
   SetupDialog adaptee;
-
   SetupDialogBackupDirectoryActionAdapter(SetupDialog adaptee) {
     this.adaptee = adaptee;
   }
@@ -720,7 +679,6 @@ class SetupDialogBackupDirectoryActionAdapter implements ActionListener {
 class SetupDialogSingleAxisActionAdapter implements ActionListener {
 
   SetupDialog adaptee;
-
   SetupDialogSingleAxisActionAdapter(SetupDialog adaptee) {
     this.adaptee = adaptee;
   }
@@ -733,7 +691,6 @@ class SetupDialogSingleAxisActionAdapter implements ActionListener {
 class SetupDialogDualAxisActionAdapter implements ActionListener {
 
   SetupDialog adaptee;
-
   SetupDialogDualAxisActionAdapter(SetupDialog adaptee) {
     this.adaptee = adaptee;
   }
