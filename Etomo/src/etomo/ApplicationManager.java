@@ -74,6 +74,11 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.12  2004/02/07 03:12:02  sueh
+ * <p> bug# 169 Create ImodManager just once, set metadata
+ * <p> separately, reformatted, changed imodRawStack() to
+ * <p> ImodPreview()
+ * <p>
  * <p> Revision 3.11  2004/02/05 18:05:32  sueh
  * <p> bug# 306 get the trimvol params from the screen and set
  * <p> swapYZ for 3dmod
@@ -1526,6 +1531,73 @@ public class ApplicationManager {
       setThreadName(threadName, axisID);
       mainFrame.startProgressBar("Tracking fiducials", axisID);
     }
+  }
+
+  /**
+   * Replace the raw stack with the fixed stack created from eraser
+   * @param axisID
+   */
+  public void makeFiducialModelSeedModel(AxisID axisID) {
+    mainFrame.setProgressBar("Using Fiducial Model as Seed", 1, axisID);
+    //.seed file must exist
+    String seedModelFilename =
+      System.getProperty("user.dir")
+        + File.separator
+        + metaData.getDatasetName()
+        + axisID.getExtension()
+        + ".seed";
+    File seedModel = new File(seedModelFilename);
+    if (!seedModel.exists()) {
+      mainFrame.openMessageDialog(
+        "The seed model doesn't exist.  Create the seed model first",
+        "Seed model missing");
+      return;
+    }
+    processTrack.setFiducialModelState(ProcessState.INPROGRESS, axisID);
+    mainFrame.setFiducialModelState(ProcessState.INPROGRESS, axisID);
+    String origSeedModelFilename =
+      System.getProperty("user.dir")
+        + File.separator
+        + metaData.getDatasetName()
+        + axisID.getExtension()
+        + "_orig.seed";
+    File origSeedModel = new File(origSeedModelFilename);
+    String fiducialModelFilename =
+    System.getProperty("user.dir")
+      + File.separator
+      + metaData.getDatasetName()
+      + axisID.getExtension()
+      + ".fid";
+    File fiducialModel = new File(fiducialModelFilename);
+    //backup original seed model file, if necessary
+    //rename fiducial model file to seed model file
+    if (!origSeedModel.exists()) {
+      seedModel.renameTo(origSeedModel);
+    }
+    fiducialModel.renameTo(seedModel);
+    try {
+      if (imodManager.isOpen(ImodManager.COARSE_ALIGNED_KEY, axisID)) {
+        System.out.println("makeFiducialModelSeedModel: seedModel.getName()=" + seedModel.getName());
+        if (seedModel.getName().equals(imodManager.getModelName(ImodManager.COARSE_ALIGNED_KEY, axisID))) {
+        String[] message = new String[2];
+        message[0] = "The old seed model file is open in 3dmod";
+        message[1] = "Should it be closed?";
+        if (mainFrame.openYesNoDialog(message)) {
+          imodManager.quit(ImodManager.COARSE_ALIGNED_KEY, axisID);
+        }
+        }
+      }
+    }
+    catch (AxisTypeException e) {
+      e.printStackTrace();
+      System.err.println("Axis type exception in replaceRawStack");
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      System.err.println("System process exception in replaceRawStack");
+    }
+
+    mainFrame.stopProgressBar(axisID);
   }
 
   /**
