@@ -14,6 +14,9 @@ package etomo.comscript;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.0  2003/11/07 23:19:00  rickg
+ * <p> Version 1.0.0
+ * <p>
  * <p> Revision 2.2  2003/07/11 23:15:53  rickg
  * <p> new ccderaser mode
  * <p>
@@ -35,6 +38,7 @@ public class ConstCCDEraserParam {
   public static final String rcsid =
     "$Id$";
 
+  public static final String ANNULUS_WIDTH = "AnnulusWidth";
   protected String inputFile = "";
   protected String outputFile = "";
 
@@ -45,7 +49,7 @@ public class ConstCCDEraserParam {
   protected String scanCriterion = "";
   protected String edgeExclusion = "";
   protected String maximumRadius = "";
-  protected String outerRadius = "";
+  protected String annulusWidth;
   protected String xyScanSize = "";
   protected String pointModel = "";
   protected boolean trialMode;
@@ -56,7 +60,10 @@ public class ConstCCDEraserParam {
   protected String borderPixels = "";
   protected String polynomialOrder = "";
   protected boolean includeAdjacentPoints = true;
-
+      
+  //out of date parameter
+  String outerRadius = ""; //replaced by annulusWidth
+  
   public boolean isValid() {
     boolean valid = true;
 
@@ -137,8 +144,8 @@ public class ConstCCDEraserParam {
   /**
    * @return
    */
-  public String getOuterRadius() {
-    return outerRadius;
+  public String getAnnulusWidth() {
+    return annulusWidth;
   }
 
   /**
