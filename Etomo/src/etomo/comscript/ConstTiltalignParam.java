@@ -16,6 +16,9 @@ import etomo.type.TiltAngleSpec;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.3  2002/12/10 21:37:21  rickg
+ * <p> changed reportStddevThreshold to residualThreshold
+ * <p>
  * <p> Revision 1.2  2002/12/03 05:22:56  rickg
  * <p> added getLocalRotationSolutionGroupSize
  * <p>
@@ -291,6 +294,14 @@ public class ConstTiltalignParam {
     return minimizationParams.toString();
   }
 
+  public double getMetroFactor() {
+    return minimizationParams.getDouble(0);
+  }
+  
+  public int getCycleLimit() {
+    return minimizationParams.getInt(1);
+  }
+  
   public double getTiltAxisZShift() {
     return tiltAxisZShift;
   }
