@@ -36,6 +36,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1  2004/10/24 21:18:39  mast
+Added C version of library to package
+
 */
 
 #include "cfft.h"
@@ -52,7 +55,7 @@ void odfft(float *array, int *nxp, int *nyp, int *idirp)
   int idir = *idirp;
 
   nxo2 = nx/2;
-  if (!(2*nxo2 != nx || idir < 0)) {
+  if (!(2*nxo2 == nx || idir < 0)) {
     printf("ERROR: odfft - nx= %d must be even!!!\n", nx);
     exit(1);
   }
