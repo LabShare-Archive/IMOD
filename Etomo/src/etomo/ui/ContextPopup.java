@@ -4,7 +4,11 @@ import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.net.MalformedURLException;
+import java.util.Vector;
 
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
@@ -24,6 +28,9 @@ import etomo.ApplicationManager;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.5  2003/05/23 22:14:38  rickg
+ * <p> Put log files before man pages in context menu
+ * <p>
  * <p> Revision 2.4  2003/05/12 01:27:13  rickg
  * <p> Keep imod URL as a static object, don't need appManager
  * <p> Windows compliant now
@@ -76,6 +83,7 @@ public class ContextPopup {
    * This constructor is used to set the static ApplicationMananger reference,
    * this must be called before any other instances are constructred or a null
    * reference exception will be thrown.
+   * @param appMgr
    */
   public ContextPopup(ApplicationManager appMgr) {
     ApplicationManager appManager = appMgr;
@@ -92,6 +100,9 @@ public class ContextPopup {
   /**
    * Simple context popup constructor.  Only the default menu items are
    * displayed.
+   * @param component
+   * @param mouseEvent
+   * @param tomoAnchor
    */
   public ContextPopup(
     Component component,
@@ -103,10 +114,9 @@ public class ContextPopup {
 
     //  Instantiate a new ActionListener to handle the menu selection
     actionListener = new ActionListener() {
-
       public void actionPerformed(ActionEvent actionEvent) {
         String tomoGuideLocation = "tomoguide.html";
-        System.err.println(imodURL);
+
         if (anchor != null && !anchor.equals("")) {
           tomoGuideLocation += "#" + anchor;
         }
@@ -135,6 +145,11 @@ public class ContextPopup {
   /**
    * Constructor to show a man page list in addition to the the standard menu
    * items.
+   * @param component
+   * @param mouseEvent
+   * @param tomoAnchor
+   * @param manPageLabel
+   * @param manPage
    */
   public ContextPopup(
     Component component,
@@ -196,6 +211,13 @@ public class ContextPopup {
   /**
    * Constructor to show a man page list and log file items in addition to the
    * the standard menu items.
+   * @param component
+   * @param mouseEvent
+   * @param tomoAnchor
+   * @param manPageLabel
+   * @param manPage
+   * @param logFileLabel
+   * @param logFile
    */
   public ContextPopup(
     Component component,
@@ -240,10 +262,12 @@ public class ContextPopup {
         //  Search the logfile items
         for (int i = 0; i < logFileItem.length; i++) {
           if (actionEvent.getActionCommand() == logFileItem[i].getText()) {
-            TextPageWindow logFile = new TextPageWindow();
-            logFile.setVisible(
-              logFile.setFile(
-                System.getProperty("user.dir") + "/" + logFileName[i]));
+            TextPageWindow logFileWindow = new TextPageWindow();
+            logFileWindow.setVisible(
+              logFileWindow.setFile(
+                System.getProperty("user.dir")
+                  + File.separator
+                  + logFileName[i]));
           }
         }
 
@@ -273,6 +297,117 @@ public class ContextPopup {
     showMenu(component);
   }
 
+  /**
+   * Constructor to show a man page list and tabbed log file items in addition
+   * to the the standard menu items.
+   * @param component
+   * @param mouseEvent
+   * @param tomoAnchor
+   * @param manPageLabel
+   * @param manPage
+   * @param logFileLabel
+   * @param logFile
+   */
+  public ContextPopup(
+    Component component,
+    MouseEvent mouseEvent,
+    String tomoAnchor,
+    String[] manPageLabel,
+    String[] manPage,
+    final String[] logWindowLabel,
+    final Vector logFileLabel,
+    final Vector logFile) {
+
+    // Check to make sure that the menu label and man page arrays are the same
+    // length
+    if (manPageLabel.length != manPage.length) {
+      String message = "menu label and man page arrays must be the same length";
+      throw new IllegalArgumentException(message);
+    }
+    if (logFileLabel.size() != logFile.size()) {
+      String message =
+        "log file label and log file vectors must be the same length";
+      throw new IllegalArgumentException(message);
+    }
+
+    this.mouseEvent = mouseEvent;
+    anchor = tomoAnchor;
+
+    //  Instantiate a new ActionListener to handle the menu selection
+    actionListener = new ActionListener() {
+
+      public void actionPerformed(ActionEvent actionEvent) {
+        String tomoGuideLocation = "tomoguide.html";
+        if (anchor != null && !anchor.equals("")) {
+          tomoGuideLocation += "#" + anchor;
+        }
+
+        for (int i = 0; i < manPageItem.length; i++) {
+          if (actionEvent.getActionCommand() == manPageItem[i].getText()) {
+            HTMLPageWindow manpage = new HTMLPageWindow();
+            manpage.openURL(imodURL + "man/" + manPageName[i]);
+            manpage.setVisible(true);
+          }
+        }
+
+        //  Search the logfile items
+        for (int i = 0; i < logFileItem.length; i++) {
+          if (actionEvent.getActionCommand() == logFileItem[i].getText()) {
+            //  Create full path to the appropriate log file items
+            String[] logFileList = (String[]) logFile.get(i);
+            String[] logFileFullPath = new String[logFileList.length];
+            String path = System.getProperty("user.dir") + File.separator;
+            for (int j = 0; j < logFileList.length; j++) {
+              logFileFullPath[j] = path + logFileList[j];
+            }
+            TabbedTextWindow logFileWindow =
+              new TabbedTextWindow(logWindowLabel[i]);
+
+            try {
+              logFileWindow.openFiles(logFileFullPath);
+            }
+            catch (FileNotFoundException e) {
+              // TODO Auto-generated catch block
+              e.printStackTrace();
+            }
+            catch (IOException e) {
+              // TODO Auto-generated catch block
+              e.printStackTrace();
+            }
+
+            logFileWindow.setVisible(true);
+          }
+        }
+
+        //  Search the standard items
+        if (actionEvent.getActionCommand() == tomoGuideItem.getText()) {
+          HTMLPageWindow manpage = new HTMLPageWindow();
+          manpage.openURL(imodURL + tomoGuideLocation);
+          manpage.setVisible(true);
+        }
+
+        if (actionEvent.getActionCommand() == modelGuideItem.getText()) {
+          HTMLPageWindow manpage = new HTMLPageWindow();
+          manpage.openURL(imodURL + "guide.html");
+          manpage.setVisible(true);
+        }
+
+        //  Close the  the menu
+        contextMenu.setVisible(false);
+      }
+    };
+
+    addTabbedLogFileMenuItems(logWindowLabel);
+    contextMenu.add(new JPopupMenu.Separator());
+    addManPageMenuItems(manPageLabel, manPage);
+    contextMenu.add(new JPopupMenu.Separator());
+    addStandardMenuItems();
+    showMenu(component);
+  }
+
+  /**
+   *
+   */
   private void addStandardMenuItems() {
     //  Construct the context menu
     contextMenu.add(tomoGuideItem);
@@ -281,6 +416,11 @@ public class ContextPopup {
     modelGuideItem.addActionListener(actionListener);
   }
 
+  /**
+   * 
+   * @param manPageLabel
+   * @param manPage
+   */
   private void addManPageMenuItems(String[] manPageLabel, String manPage[]) {
     manPageItem = new JMenuItem[manPageLabel.length];
     manPageName = new String[manPage.length];
@@ -293,6 +433,11 @@ public class ContextPopup {
     }
   }
 
+  /**
+   * 
+   * @param logFileLabel
+   * @param logFile
+   */
   private void addLogFileMenuItems(String[] logFileLabel, String logFile[]) {
     logFileItem = new JMenuItem[logFileLabel.length];
     logFileName = new String[logFile.length];
@@ -305,6 +450,20 @@ public class ContextPopup {
     }
   }
 
+  private void addTabbedLogFileMenuItems(String[] logWindowLabel) {
+    logFileItem = new JMenuItem[logWindowLabel.length];
+    for (int i = 0; i < logFileItem.length; i++) {
+      logFileItem[i] = new JMenuItem();
+      logFileItem[i].setText(logWindowLabel[i] + " log file ...");
+      logFileItem[i].addActionListener(actionListener);
+      contextMenu.add(logFileItem[i]);
+    }
+
+  }
+  /**
+   * 
+   * @param component
+   */
   private void showMenu(Component component) {
     contextMenu.show(component, mouseEvent.getX(), mouseEvent.getY());
     contextMenu.setVisible(true);
