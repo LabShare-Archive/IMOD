@@ -1,8 +1,8 @@
 /*   undoredo.h  -  declarations for undoredo.cpp
  *
- *   Copyright (C) 1995-2002 by Boulder Laboratory for 3-Dimensional Electron
+ *   Copyright (C) 1995-2004 by Boulder Laboratory for 3-Dimensional Electron
  *   Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
- *   Colorado.  See implementation file for full copyright notice.
+ *   Colorado.  See dist/COPYRIGHT for full copyright notice.
  */                                                                           
 
 /*  $Author$
@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.1  2004/11/20 05:04:40  mast
+initial addition
+
 */
 #ifndef UNDOREDO_H
 #define UNDOREDO_H
@@ -129,7 +132,7 @@ class UndoRedo
   enum ChangeTypes {ContourData, ContourProperty, ContourRemoved, 
                     ContourAdded, ContourMoved, ObjectChanged, ObjectRemoved,
                     ObjectAdded, ObjectMoved, ModelChanged, PointsAdded,
-                    PointsRemoved, PointShifted, ModelShifted};
+                    PointsRemoved, PointShifted, ModelShifted, ViewChanged};
   enum ItemTypes {Model, Object, Contour, Points};
   enum ErrorTypes {NoError = 0, NoneAvailable, StateMismatch, MemoryError,
                    NoBackupItem};
