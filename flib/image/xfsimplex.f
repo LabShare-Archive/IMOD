@@ -123,6 +123,13 @@ c
 *	  David Mastronarde 4/5/91 (adapted from XFSEARCH)
 *   
 ************************************************************************
+c	  $Author$
+c
+c	  $Date$
+c
+c	  $Revision$
+c
+c	  $Log$
 *   
 	parameter (ixlim=2100,iylim=2100)
 	parameter (isub=ixlim*iylim/3,limspir=1000)
@@ -519,39 +526,43 @@ c
 	ntrial=0
 	deltmin=1.e30
 c	  
-	ptfac=ptol1
-	if(ftol2.gt.0.or.ptol2.gt.0)ptfac=ptol2
-	do j=1,ivend+1
-	  do i=1,ivend
-	    pp(j,i)=a(i)
-	    if(j.gt.1.and.i.eq.j-1)pp(j,i)=a(i)+delfac*da(i)
-	    ptmp(i)=pp(j,i)
-	    ptol(i)=da(i)*ptfac
-	  enddo
-	  yy(j)=func(ptmp)
-	enddo
-	if(ftol2.gt.0.or.ptol2.gt.0)then
-	  call amoeba(pp,yy,7,7,ivend,ftol2,func,iter,ptol,jmin)
-	  if(trace)print *,'restarting'
-	  deltmin=1.e30
-	  do i=1,ivend
-	    pp(1,i)=pp(jmin,i)
-	    ptol(i)=da(i)*ptol1
-	  enddo
+c	  DNM 4/29/02: search fails if images match perfectly, so skip if so
+c
+	if (delmin.gt.0.) then
+	  ptfac=ptol1
+	  if(ftol2.gt.0.or.ptol2.gt.0)ptfac=ptol2
 	  do j=1,ivend+1
-	    do i=1,6
-	      pp(j,i)=pp(1,i)
-	      if(j.gt.1.and.i.eq.j-1)pp(j,i)=pp(1,i)+delfac*da(i)
+	    do i=1,ivend
+	      pp(j,i)=a(i)
+	      if(j.gt.1.and.i.eq.j-1)pp(j,i)=a(i)+delfac*da(i)
 	      ptmp(i)=pp(j,i)
+	      ptol(i)=da(i)*ptfac
 	    enddo
 	    yy(j)=func(ptmp)
 	  enddo
+	  if(ftol2.gt.0.or.ptol2.gt.0)then
+	    call amoeba(pp,yy,7,7,ivend,ftol2,func,iter,ptol,jmin)
+	    if(trace)print *,'restarting'
+	    deltmin=1.e30
+	    do i=1,ivend
+	      pp(1,i)=pp(jmin,i)
+	      ptol(i)=da(i)*ptol1
+	    enddo
+	    do j=1,ivend+1
+	      do i=1,6
+		pp(j,i)=pp(1,i)
+		if(j.gt.1.and.i.eq.j-1)pp(j,i)=pp(1,i)+delfac*da(i)
+		ptmp(i)=pp(j,i)
+	      enddo
+	      yy(j)=func(ptmp)
+	    enddo
+	  endif
+	  call amoeba(pp,yy,7,7,ivend,ftol1,func,iter,ptol,jmin)
+C	    
+	  do i=1,ivend
+	    a(i)=pp(jmin,i)
+	  enddo
 	endif
-	call amoeba(pp,yy,7,7,ivend,ftol1,func,iter,ptol,jmin)
-C	  
-	do i=1,ivend
-	  a(i)=pp(jmin,i)
-	enddo
 c
 	PRINT *,' FINAL VALUES'
 	write(*,72)ntrial,yy(jmin),(a(ii),ii=3,6),rds*a(1),rds*a(2)
