@@ -168,7 +168,7 @@ void imodvViewsHelp()
      " View window is closed.  If this view is precious to you, you"
      " should either store it as a separate view, or redisplay it before"
      " exiting Model View.\n\n",
-     "\tHotkeys: The regular up and down arrow keys (not the ones in the "
+     "\tHot keys: The regular up and down arrow keys (not the ones in the "
      "numeric keypad) can be used go up or down by one view, and PageUp and "
      "PageDown can be used to go up or down in the list by many views.  Escape"
      " will close the dialog box, and "
@@ -379,6 +379,9 @@ static void build_list(ImodvApp *a)
 /*
 
     $Log$
+    Revision 4.4  2003/04/25 03:28:32  mast
+    Changes for name change to 3dmod
+
     Revision 4.3  2003/04/17 18:43:38  mast
     adding parent to window creation
 
