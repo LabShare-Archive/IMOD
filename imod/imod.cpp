@@ -104,14 +104,17 @@ void imod_usage(char *name)
   qstr += "         -z min,max  Load in sub image.\n";
   qstr += "         -s min,max  Scale input to range [min,max].\n";
   qstr += "         -C #  Set # of sections or Mbytes to cache (#M or #m for"
-         " Mbytes).\n";
+    " Mbytes).\n";
   qstr += "         -F    Fill cache right after starting program.\n";
-  qstr += "         -Y    Flip volume to model planes normal to y axis.\n";
+  qstr += "         -Y    Flip volume to model planes normal to Y axis.\n";
+  qstr += "         -B #  Bin images by # in X, Y, and Z.\n";
+  qstr += "         -b nxy,nz  Bin images by nxy in X and Y, by nz in Z (nz "
+    "default=1).\n";
   qstr += "         -p <file name>  Load piece list file.\n";
   qstr += "         -P nx,ny  Display images as montage in nx by ny array.\n";
-  qstr += "         -o nx,ny  Set x and y overlaps for montage display.\n";
+  qstr += "         -o nx,ny  Set X and X overlaps for montage display.\n";
   qstr += "         -f    Load as frames even if image file has piece "
-         "coordinates.\n";
+    "coordinates.\n";
   qstr += "         -m    Load model with model coords (override scaling).\n";
   qstr += "         -2    Treat model as 2D only.\n";
   qstr += "         -T    Display multiple single-image files as times not "
@@ -297,13 +300,12 @@ int main( int argc, char *argv[])
       case 'C':
         /* value ending in m or M is megabytes, store as minus */
         pathlen = strlen(argv[++i]);
-        sscanf(argv[i], "%d%*c", &cacheSize);
-        /* if (cacheSize < 0)
-        cacheSize = 0; */
-        if (argv[i][pathlen - 1] == 'M' ||
-          argv[i][pathlen - 1] == 'm')
-          cacheSize = -cacheSize;
-        vi.vmSize = cacheSize;
+        sscanf(argv[i], "%d%*c", &vi.vmSize);
+        if (argv[i][pathlen - 1] == 'M' || argv[i][pathlen - 1] == 'm')
+          vi.vmSize = -vi.vmSize;
+        else if (!vi.vmSize)
+          vi.vmSize = 2000000000;
+        vi.keepCacheFull = 0;
         break;
         
       case 'F':
@@ -344,6 +346,17 @@ int main( int argc, char *argv[])
         sscanf(argv[++i], "%f%*c%f", &(li.smin), &(li.smax));
         break;
         
+      case 'b':
+        sscanf(argv[++i], "%d%*c%d", &(vi.xybin), &(vi.zbin));
+        if (!vi.zbin)
+          vi.zbin = 1;
+        break;
+
+      case 'B':
+        sscanf(argv[++i], "%d", &(vi.xybin));
+        vi.zbin = vi.xybin;
+        break;
+
       case 'i':
       case 'D':
         Imod_debug = TRUE;
@@ -504,8 +517,8 @@ int main( int argc, char *argv[])
       
     } else {
       /* Or, just set the image file name */
-      Imod_imagefile = strdup
-                      ((curdir->cleanDirPath(QString(argv[firstfile]))).latin1());
+      Imod_imagefile = strdup((curdir->cleanDirPath(QString(argv[firstfile])))
+                              .latin1());
     }
     
     if (Imod_debug){
@@ -523,58 +536,73 @@ int main( int argc, char *argv[])
     * IMOD image file desc. 
      * or mrc image file.
      */
-    /* Note no need to set the current working directory when just
-       determining if it's an IFD */
-
     vi.ifd = imodImageFileDesc(fin);
 
     if (Imod_debug)
       printf( "Image file type %d\n", vi.ifd);
 
-    /* The file is an image, not an image list */
-    if (!vi.ifd){
-      
-      errno = 0;
-      vi.image = iiOpen(Imod_imagefile, "rb");
-      if (!vi.image){
-        qname = b3dGetError();
-        qname += QString("3dmod error: Failed to load input file ") + 
-          Imod_imagefile + "\n";
-        if (errno) 
-          qname += QString("System error: ") + strerror(errno);
-        imodError(NULL, qname.latin1());
-        exit(-1);
+    if (vi.ifd) {
+
+      /* The file is an image list */
+      if (vi.ifd > 1) {
+        imodError(NULL, "3dmod: Image list file version too high.\n");
+        exit (11);
       }
-      
-      if (vi.image->file == IIFILE_MRC && 
-        ((vi.image->format != IIFORMAT_RGB) || grayrgbs)) {
-        vi.hdr = vi.image;
-        
-        if (li.smin == li.smax){
-          li.smin = vi.image->imin;
-          li.smax = vi.image->imax;
-        }
-        
-        iiSetMM(vi.image, (double)li.smin, (double)li.smax);
-        /* Removed alternative code to USEIMODI which seemed to 
-        allow plugin reading */
-        
-      } else {
-      /* If it's not an MRC file or has color, call the 
-        multiple file handler, set ifd -1 */
-        iiClose(vi.image);
-        ivwMultipleFiles(&vi, &Imod_imagefile, 0, 0);
-        vi.ifd = -1;
-        vi.hdr = (ImodImageFile *)ilistItem((Ilist *)vi.imageList, 0);
+
+      /* take directory path to IFD file as new current directory for reading
+         images */
+      Imod_cwdpath = QDir::currentDirPath();
+
+      Imod_IFDpath = QString(Imod_imagefile);
+      pathlen = Imod_IFDpath.findRev('/');
+      if (pathlen < 0)
+        Imod_IFDpath = "";
+      else {
+        Imod_IFDpath.truncate(pathlen + 1);
+        QDir::setCurrent(Imod_IFDpath);
+        if (Imod_debug)
+          printf("chdir %s\n", Imod_IFDpath.latin1());
       }
+
+      /* Load list of images and reset current directory */
+      ivwLoadIMODifd(&vi);
+      if (!Imod_IFDpath.isEmpty())
+        QDir::setCurrent(Imod_cwdpath);
+
+    } else {
+
+      /* It is a single image file - build list with this image */
+      ivwMultipleFiles(&vi, &Imod_imagefile, 0, 0);
     }
   } else {
 
-    /* Multiple image files, set ifd -2 */
+    /* Multiple image files - build list of images */
     ivwMultipleFiles(&vi, argv, firstfile, lastimage);
-    vi.ifd = -2;
   }
              
+  /* Now look for piece coordinates - moved up from below 1/2/04 */
+  if (vi.nt <= 1 && !vi.li->plist) {
+    /* Check for piece list file and read it */
+    iiPlistLoad(plistfname, vi.li, 
+                vi.hdr->nx, vi.hdr->ny, vi.hdr->nz);
+
+    /* Or use the -P specification */
+    if (!vi.li->plist && nframex > 0 && nframey > 0)
+      mrc_plist_create(vi.li, vi.hdr->nx, vi.hdr->ny, vi.hdr->nz,
+                       nframex, nframey, overx, overy);
+
+    /* Or, check for piece coordinates in image header */
+    if (!vi.li->plist && !frames && vi.image->file == IIFILE_MRC)
+      iiLoadPCoord(vi.image, vi.li,
+                   vi.hdr->nx, vi.hdr->ny, vi.hdr->nz);
+          
+    /* DNM 1/2/04: move adjusting of loading coordinates to fix_li call,
+       and move that call into list processing */
+    /* Only need to say it is not flippable unless cache full */
+    if (vi.li->plist) 
+      vi.flippable = 0;
+  }
+
   /* set the model filename, or get a new model with null name */
   if (Model) {
     nChars = strlen((curdir->cleanDirPath(QString(argv[argc - 1]))).latin1());
@@ -588,14 +616,10 @@ int main( int argc, char *argv[])
     new_model_created = TRUE;
   }
 
-  /* If new model created, make first object, and 
-     if there are multiple image files, set time flag by default */
+  /* If new model created, initialize views and make first object */
   if (new_model_created) {
     imodvViewsInitialize(Model);
     imodNewObject(Model);
-    obj = imodObjectGet(Model);
-    if (vi.nt)
-      obj->flags |= IMOD_OBJFLAG_TIME;
   }
 
   Model->mousemode = IMOD_MMOVIE;
@@ -633,63 +657,8 @@ int main( int argc, char *argv[])
 
   /********************************************/
   /* Load in image data, set up image buffer. */
-  /* change the current directory in case there's an IFD file */
-  if (!vi.fakeImage && vi.ifd > 0) {
 
-    Imod_cwdpath = QDir::currentDirPath();
-
-    Imod_IFDpath = QString(Imod_imagefile);
-    pathlen = Imod_IFDpath.findRev('/');
-    if (pathlen < 0)
-      Imod_IFDpath = "";
-    else {
-      Imod_IFDpath.truncate(pathlen + 1);
-      QDir::setCurrent(Imod_IFDpath);
-      if (Imod_debug)
-        printf("chdir %s\n", Imod_IFDpath.latin1());
-    }
-  }
-
-  if ((vi.ifd == 0 || vi.ifd == -1) && (!vi.fakeImage)) {
-    /* Check for piece list file and read it */
-    iiPlistLoad(plistfname, vi.li, 
-                vi.hdr->nx, vi.hdr->ny, vi.hdr->nz);
-
-    if (!vi.li->plist && nframex > 0 && nframey > 0)
-      mrc_plist_create(vi.li, vi.hdr->nx, vi.hdr->ny, vi.hdr->nz,
-                       nframex, nframey, overx, overy);
-
-    /* Or, check for piece coordinates in image header */
-    if (!vi.li->plist && !frames)
-      iiLoadPCoord(vi.image, vi.li,
-                   vi.hdr->nx, vi.hdr->ny, vi.hdr->nz);
-          
-    if (vi.li->plist) {
-    /* If pieces, change loading coordinates by the offset in piece
-      coordinates */
-      if (li.xmin != -1)
-        li.xmin -= (int)li.opx;
-      if (li.xmax != -1)
-        li.xmax -= (int)li.opx;
-      if (li.ymin != -1)
-        li.ymin -= (int)li.opy;
-      if (li.ymax != -1)
-        li.ymax -= (int)li.opy;
-      if (li.zmin != -1)
-        li.zmin -= (int)li.opz;
-      if (li.zmax != -1)
-        li.zmax -= (int)li.opz;
-      /* nip the -Y flag in the bud to avoid misunderstanding */
-      li.axis = 3;
-      vi.flippable = 0;
-      /* need to fix the coordinates now if not standard MRC */
-      if (vi.ifd < 0)
-        mrc_fix_li(&li, (int)li.px, (int)li.py, (int)li.pz);
-    }
-
-  }
-
-  /* Finish loading/setting up images, reading IFD if necessary */
+  /* Finish setting up and loading images */
   errno = 0;
   if (ivwLoadImage(&vi)){
     qname = b3dGetError();
@@ -700,17 +669,21 @@ int main( int argc, char *argv[])
     exit(-1);
   }
 
+  /* If new model and multiple image files, set time flag by default */
+  if (new_model_created && vi.nt) {
+    obj = imodObjectGet(Model);
+    obj->flags |= IMOD_OBJFLAG_TIME;
+    Model->csum = imodChecksum(Model);
+  }
+
+  /* Fill cache if user specified it - loader already filled if keepCacheFull*/
   if (fillCache && vi.vmSize)
     imodCacheFill(&vi);
 
-  if (!Imod_IFDpath.isEmpty())
-    QDir::setCurrent(Imod_cwdpath);
-
   if (Imod_debug) puts("Read image data OK.");
-  if (Imod_imagefile)
-    wprint("\nImage %s\n", 
-      (QDir::convertSeparators(QString(Imod_imagefile))).latin1());
-  else if (vi.fakeImage)
+
+  /* DNM 1/1/04: eliminate filename output, it is all over the place */
+  if (vi.fakeImage)
     wprint("\nNo image loaded.\n");
 
   delete curdir;
@@ -730,7 +703,7 @@ int main( int argc, char *argv[])
   xcramp_setlevels(App->cvi->cramp,App->cvi->black,App->cvi->white);
 
   /*********************************/
-  /* Open up default Image Window. */
+  /* Open up default Image Windows. */
   if (xyzwinopen && !vi.rawImageStore)
     xxyz_open(&vi);
   if (sliceropen && !vi.rawImageStore)
@@ -963,6 +936,9 @@ int imodColorValue(int inColor)
 
 /*
 $Log$
+Revision 4.28  2003/12/30 06:36:44  mast
+Add option for multifile Z display
+
 Revision 4.27  2003/11/24 16:47:39  mast
 needed to cast argument to printInfo to char *
 
