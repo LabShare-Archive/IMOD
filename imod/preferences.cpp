@@ -32,6 +32,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1  2003/03/24 17:55:19  mast
+Initial implementation
+
 */
 
 #include <stdlib.h>
@@ -55,6 +58,20 @@ ImodPreferences *ImodPrefs;
 
 #define IMOD_NAME "/imod/"
 
+#ifdef EXCLUDE_STYLES
+// These are the styles that crash in RH 7.3
+static char *styleList[] = {"highcolor", "b3", "default", ""};
+#else
+// These are the styles that do not crash RH 7.3 and that exist there, because
+// non-existent style makes it search and generate "already exists" messages
+static char *styleList[] = {"Windows", "compact", 
+                            "Platinum", "Motif", "MotifPlus", "SGI", 
+                            "CDE", "marble", "System", "Systemalt", "riscos", 
+                            "Light, 2nd revision", "Light, 3rd revision", ""};
+#endif
+
+/* CONSTRUCTOR TO READ PREFERENCES AND FUNCTION TO SAVE UPON EXIT */
+
 ImodPreferences::ImodPreferences(char *cmdLineStyle)
 {
   double szoomvals[MAXZOOMS] =
@@ -62,7 +79,6 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
     10.0, 12.0, 16.0, 20.0};
   int i;
   bool readin;
-  char *autoDir;
   QString str;
   ImodPrefStruct *prefs = &mCurrentPrefs;
   mTabDlg = NULL;
@@ -169,14 +185,16 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
     
   // If user entered a valid style on the command line, save that style as the
   // current key and set changed flag to false
-  if (cmdLineStyle &&  QStyleFactory::create(QString(cmdLineStyle)) != NULL) {
+  // Just forbid highcolor due to crashes under RH 7.3
+  str = cmdLineStyle ? cmdLineStyle : "";
+  if (styleOK(str) && QStyleFactory::create(str) != NULL) {
     prefs->styleChgd = false;
-    prefs->styleKey = cmdLineStyle;
+    prefs->styleKey = str;
 
     // Otherwise, look for a key and use it; or set the key to windows
   } else {
     str = settings.readEntry(IMOD_NAME"styleKey");
-    prefs->styleChgd = !str.isEmpty() && QStyleFactory::create(str) != NULL;
+    prefs->styleChgd = styleOK(str) &&  QStyleFactory::create(str) != NULL;
     if (prefs->styleChgd)
       prefs->styleKey = str;
     else
@@ -184,6 +202,37 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
     QApplication::setStyle(prefs->styleKey);
   }
 
+}
+
+bool ImodPreferences::styleOK(QString key)
+{
+  int i;
+  QString str;
+  if (key.isEmpty())
+    return false;
+#ifdef EXCLUDE_STYLES
+
+  // If the list is of styles to exclude, return false if key is on the list
+  for (i = 0; ; i++) {
+    str = styleList[i];
+    if (str.isEmpty())
+      break;
+    if (str.lower() == key.lower())
+      return false;
+  }
+  return true;
+#else
+
+  // If the list is of styles to include, return true if on list and valid
+  for (i = 0; ; i++) {
+    str = styleList[i];
+    if (str.isEmpty())
+      break;
+    if (str.lower() == key.lower() && QStyleFactory::create(str) != NULL)
+      return true;
+  }
+  return false;
+#endif
 }
 
 void ImodPreferences::saveSettings()
@@ -241,87 +290,10 @@ void ImodPreferences::saveSettings()
   
 }
 
-int hotSliderFlag()
-{
-  return ImodPrefs->hotSliderFlag();
-}
 
-int hotSliderKey() 
-{
-  int keys[3] = {Qt::Key_Control, Qt::Key_Shift, Qt::Key_Alt};
-  return keys[ImodPrefs->hotSliderKey()];
-}
+/* FUNCTIONS RELATED TO THE PREFERENCE SETTING DIALOG */
 
-// Determine code for actual mouse button given the logical button number
-// (1, 2, or 3)
-int ImodPreferences::actualButton(int logicalButton)
-{
-  int qtButtons[3] = {Qt::LeftButton, Qt::MidButton, Qt::RightButton};
-  int mapping, index;
-
-  mapping = mCurrentPrefs.mouseMapping;
-  index = (mapping + (1 - 2 * (mapping / 3)) * (logicalButton - 1)) % 3;
-  return qtButtons[index];
-}
-
-QString ImodPreferences::autosaveDir()
-{
-  char *envDir = getenv("IMOD_AUTOSAVE_DIR");
-  
-  // if the autosave dir was read in or changed, or if there is no
-  // environment setting, use the autosave dir
-  if (mCurrentPrefs.autosaveDirChgd || !envDir)
-    return mCurrentPrefs.autosaveDir;
-
-  // Otherwise convert and use the environment variable, convert to /
-  QDir *curdir = new QDir();
-  QString convDir = curdir->cleanDirPath(QString(envDir));
-  delete curdir;
-  return convDir;
-}
-
-// Return the autosave interval in seconds
-int ImodPreferences::autosaveSec()
-{
-  int autosave_timeout;
-  char *userto = getenv("IMOD_AUTOSAVE");
-
-  // If anything has been read inor set by user, or if there is no
-  // environment variable setting, use the current values
-  if (mCurrentPrefs.autosaveOnChgd || mCurrentPrefs.autosaveIntervalChgd || 
-      !userto) {
-    if (mCurrentPrefs.autosaveOn)
-      return 60 * mCurrentPrefs.autosaveInterval;
-    return 0;
-  }
-
-  // Otherwise use the environment variable, have negative numbers specify
-  // seconds rather than minutes
-  autosave_timeout = atoi(userto);
-  if (autosave_timeout < 0)
-    return (-autosave_timeout);
-  return (60 * autosave_timeout);
-}
-
-int ImodPreferences::minCurrentImPtSize()
-{
-  if (mTabDlg)
-    return mDialogPrefs.minImPtSize;
-  return mCurrentPrefs.minImPtSize;
-}
-
-int ImodPreferences::minCurrentModPtSize() 
-{
-  if (mTabDlg)
-    return mDialogPrefs.minModPtSize;
-  return mCurrentPrefs.minModPtSize;
-}
-
-void ImodPreferences::pointSizeChanged()
-{
-  imodDraw(App->cvi, IMOD_DRAW_MOD);
-}
-
+// Open the dialog to set preferences
 void ImodPreferences::editPrefs()
 {
   mDialogPrefs = mCurrentPrefs;
@@ -347,6 +319,11 @@ void ImodPreferences::editPrefs()
   else if (mCurrentTab == 2)
     mTabDlg->showPage(mMouseForm);
   mTabDlg->show();
+}
+
+char **ImodPreferences::getStyleList()
+{
+  return &styleList[0];
 }
 
 // When done is pressed, unload the properties, mark if any changed
@@ -519,6 +496,7 @@ void ImodPreferences::findCurrentTab()
     mCurrentTab = 2;
 }
 
+// Change the font of all widgets by iteration
 void ImodPreferences::changeFont(QFont newFont)
 {
   QApplication::setFont(newFont);
@@ -546,7 +524,100 @@ void ImodPreferences::changeFont(QFont newFont)
   delete topList;
 }
 
+// Set the style - no iteration seems to be needed
 void ImodPreferences::changeStyle(QString newKey)
 {
   QApplication::setStyle(newKey);
+
+  // Lazy way to get the sizes right, just call the font setting pathway
+  changeFont(QApplication::font());
 }
+
+
+/* FUNCTIONS TO RETURN PREFERENCES SETTINGS TO THOSE WHO NEED THEM */
+
+// Hot slider flag and key, accessed by global functions since they started
+// that way
+int hotSliderFlag()
+{
+  return ImodPrefs->hotSliderFlag();
+}
+
+int hotSliderKey() 
+{
+  int keys[3] = {Qt::Key_Control, Qt::Key_Shift, Qt::Key_Alt};
+  return keys[ImodPrefs->hotSliderKey()];
+}
+
+// Determine code for actual mouse button given the logical button number
+// (1, 2, or 3)
+int ImodPreferences::actualButton(int logicalButton)
+{
+  int qtButtons[3] = {Qt::LeftButton, Qt::MidButton, Qt::RightButton};
+  int mapping, index;
+
+  mapping = mCurrentPrefs.mouseMapping;
+  index = (mapping + (1 - 2 * (mapping / 3)) * (logicalButton - 1)) % 3;
+  return qtButtons[index];
+}
+
+QString ImodPreferences::autosaveDir()
+{
+  char *envDir = getenv("IMOD_AUTOSAVE_DIR");
+  
+  // if the autosave dir was read in or changed, or if there is no
+  // environment setting, use the autosave dir
+  if (mCurrentPrefs.autosaveDirChgd || !envDir)
+    return mCurrentPrefs.autosaveDir;
+
+  // Otherwise convert and use the environment variable, convert to /
+  QDir *curdir = new QDir();
+  QString convDir = curdir->cleanDirPath(QString(envDir));
+  delete curdir;
+  return convDir;
+}
+
+// Return the autosave interval in seconds
+int ImodPreferences::autosaveSec()
+{
+  int autosave_timeout;
+  char *userto = getenv("IMOD_AUTOSAVE");
+
+  // If anything has been read inor set by user, or if there is no
+  // environment variable setting, use the current values
+  if (mCurrentPrefs.autosaveOnChgd || mCurrentPrefs.autosaveIntervalChgd || 
+      !userto) {
+    if (mCurrentPrefs.autosaveOn)
+      return 60 * mCurrentPrefs.autosaveInterval;
+    return 0;
+  }
+
+  // Otherwise use the environment variable, have negative numbers specify
+  // seconds rather than minutes
+  autosave_timeout = atoi(userto);
+  if (autosave_timeout < 0)
+    return (-autosave_timeout);
+  return (60 * autosave_timeout);
+}
+
+// The minimum sizes of current point markers
+int ImodPreferences::minCurrentImPtSize()
+{
+  if (mTabDlg)
+    return mDialogPrefs.minImPtSize;
+  return mCurrentPrefs.minImPtSize;
+}
+
+int ImodPreferences::minCurrentModPtSize() 
+{
+  if (mTabDlg)
+    return mDialogPrefs.minModPtSize;
+  return mCurrentPrefs.minModPtSize;
+}
+
+// A call to draw when the point size has changed
+void ImodPreferences::pointSizeChanged()
+{
+  imodDraw(App->cvi, IMOD_DRAW_MOD);
+}
+
