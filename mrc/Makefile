@@ -30,6 +30,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.3  2002/11/05 23:20:19  mast
+#  Made raw2mrc use libiimod also
+#
 #  Revision 3.2  2002/11/05 23:56:07  mast
 #  Added -limod to be able to call imodCopyright
 #
@@ -109,9 +112,14 @@ install : $(PROGS)
 #	if (-x raw2mrc) $(CP) raw2mrc $(INSTBINDIR)
 #	if (-x ../xmrcv/xmrcv) $(CP) ../xmrcv/xmrcv $(INSTBINDIR)
 
+cyginstall : $(PROGS)
+	$(FIND) . -name "*.exe" -exec strip "{}" \; -exec $(CP) "{}" $(INSTBINDIR) \;
+
 clean : 
 	$(FIND) . -type f -name "*.o" -exec rm "{}" \;
 	$(FIND) . -name "*~" -exec rm "{}" \;
+	$(FIND) . -type f -name "core*" -exec rm "{}" \;
+	$(FIND) . -type f -name "*.exe" -exec rm "{}" \;
 	$(FIND) . -type f -perm 755 -exec rm "{}" \;
 #	if (-e mrcv) \rm -f $(PROGS) endif
 

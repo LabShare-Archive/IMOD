@@ -19,6 +19,9 @@ all install : configure
 	cd beadtrack; $(MAKE) $@
 	cd tilt;      $(MAKE) $@
 
+cyginstall : configure
+	$(FIND) . -name "*.exe" -exec strip "{}" \; -exec $(CP) "{}" $(INSTBINDIR) \;
+
 libs : configure
 	cd subrs; $(MAKE) all
 

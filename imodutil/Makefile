@@ -8,6 +8,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.3  2003/02/27 16:43:46  mast
+#  Remove imodsendevent
+#
 #  Revision 3.2  2002/09/13 22:08:17  mast
 #  Added imodsendevent
 #
@@ -89,10 +92,14 @@ install : $(PROGS)
 	strip $(PROGS)
 	$(CP) $(PROGS) $(INSTBINDIR)
 
+cyginstall : $(PROGS)
+	$(FIND) . -name "*.exe" -exec strip "{}" \; -exec $(CP) "{}" $(INSTBINDIR) \;
+
 clean : 
 	$(FIND) . -type f -name "*.o" -exec rm "{}" \;
 	$(FIND) . -type f -name "*~" -exec rm "{}" \;
-	$(FIND) . -type f -name "core" -exec rm "{}" \;
+	$(FIND) . -type f -name "core*" -exec rm "{}" \;
+	$(FIND) . -type f -name "*.exe" -exec rm "{}" \;
 	$(FIND) . -type f -perm 755 -exec rm "{}" \;
 
 

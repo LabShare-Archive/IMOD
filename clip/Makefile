@@ -9,6 +9,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.1  2002/11/05 23:25:43  mast
+#  Add -limod to call copyright function
+#
 #  Revision 3.0  2001/11/29 18:10:05  rickg
 #  *** empty log message ***
 #
@@ -33,11 +36,16 @@ install : clip
 	strip clip
 	$(CP) clip $(INSTBINDIR)
 
+cyginstall : clip
+	strip clip.exe
+	$(CP) clip.exe $(INSTBINDIR)
+
 clean : 
 	$(FIND) . -type f -name "*.o" -exec rm "{}" \;
 	$(FIND) . -name "*~" -exec rm "{}" \;
-	$(FIND) . -type f -name "core" -exec rm "{}" \;
+	$(FIND) . -type f -name "core*" -exec rm "{}" \;
 	$(FIND) . -type f -name "clip" -exec rm "{}" \;
+	$(FIND) . -type f -name "clip.exe" -exec rm "{}" \;
 
 $(OBJS) : clip.h
 clip.o : ../.version

@@ -72,6 +72,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.5  2003/02/27 20:25:32  mast
+#  Add new sendevent directory
+#
 #  Revision 3.4  2003/02/10 23:30:36  mast
 #  fixing new o32lib commands
 #
@@ -169,6 +172,22 @@ install : configure man
 	cd flib      ; $(MAKE) $@
 	cd com       ; $(MAKE) $@
 	cd html      ; $(MAKE) $@
+
+#
+# Install under cygwin
+#
+cyginstall : configure man
+	cd imod      ; $(MAKE) install
+	cd imodutil  ; $(MAKE) $@
+	cd sendevent ; $(MAKE) install
+	cd mrc       ; $(MAKE) $@
+	cd midas     ; $(MAKE) install
+	cd plugs     ; $(MAKE) install
+	cd clip      ; $(MAKE) $@
+	cd scripts   ; $(MAKE) install
+	cd flib      ; $(MAKE) $@
+	cd com       ; $(MAKE) install
+	cd html      ; $(MAKE) install
 
 #
 # Make the manual pages .1 from .man, and .html from .1, copy to directories
