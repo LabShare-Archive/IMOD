@@ -2150,7 +2150,8 @@ static void setupContourShift(ZapStruct *zap)
   if (err)
     return;
   zap->shiftingCont = 1;
-  zap->startingBand = 0;
+  if (zap->startingBand)
+    zapToggleRubberband(zap);
   zap->centerDefined = 0;
   zap->centerMarked = 0;
   zapSetCursor(zap, zap->mousemode);
@@ -2644,7 +2645,9 @@ static void zapResizeToFit(ZapStruct *zap)
     newh = zap->rbMouseY1 -1 - zap->rbMouseY0 + height - zap->winy;
     zap->xtrans = (int)(-(xr + xl - zap->vi->xsize) / 2);
     zap->ytrans = (int)(-(yt + yb - zap->vi->ysize) / 2);
-    zap->rubberband = 0;
+
+    // 3/6/05: turn off through common function to keep synchronized
+    zapToggleRubberband(zap);
   } else {
     /* Otherwise, make window the right size for the image */
     neww = (int)(zap->zoom * zap->vi->xsize + width - zap->winx);
@@ -2717,6 +2720,10 @@ void zapToggleRubberband(ZapStruct *zap)
     zap->shiftingCont = 0;
     /* Eliminated old code for making initial band */
   }
+ 
+  // 3/6/05: synchronize the toolbar button
+  zap->qtWindow->setToggleState(ZAP_TOGGLE_RUBBER, 
+                                zap->rubberband + zap->startingBand);
   zapSetCursor(zap, zap->mousemode);
   zapDraw(zap);
 }
@@ -3410,6 +3417,10 @@ static int zapPointVisable(ZapStruct *zap, Ipoint *pnt)
 
 /*
 $Log$
+Revision 4.61  2005/02/24 22:36:00  mast
+Implemented multiple-object selection for Ctrl-A and the drag-select,
+and allowed contours from multiple objects to be shifted/transformed
+
 Revision 4.60  2005/02/19 01:30:46  mast
 Set center of rotation wih ctrl-button 2; allow shift/xform when no
 current point is defined
