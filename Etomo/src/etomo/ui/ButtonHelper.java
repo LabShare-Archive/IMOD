@@ -12,6 +12,13 @@
 * @version $Revision$
 *
 * <p> $Log$
+* <p> Revision 3.2.2.1  2004/09/17 21:34:38  sueh
+* <p> bug# 520 the get ui functions are needed by non-buttons, so move then
+* <p> to UIUtilities.
+* <p>
+* <p> Revision 3.2  2004/08/19 02:46:26  sueh
+* <p> was using == when I should have been using .equals()
+* <p>
 * <p> Revision 3.1  2004/03/15 20:31:48  rickg
 * <p> Bug# 414 Fixed short string handling
 * <p>
@@ -29,7 +36,6 @@
 package etomo.ui;
 
 import java.lang.String;
-import javax.swing.plaf.ColorUIResource;
 import javax.swing.UIManager;
 
 /**
@@ -47,27 +53,6 @@ public class ButtonHelper {
     }
     text = "<html><b>".concat(text).concat("</b>");
     return text;
-  }
-
-  public static ColorUIResource getDefaultUIColor(String property) {
-    ColorUIResource color = new ColorUIResource(0, 0, 0);
-    color = (ColorUIResource) getDefaultUIResource(color, property);
-    return color;
-  }
-
-  public static Object getDefaultUIResource(Object target, String name) {
-    java.util.Enumeration keys = UIManager.getDefaults().keys();
-    if (target == null || name == null) {
-      return null;
-    }
-    while (keys.hasMoreElements()) {
-      Object key = keys.nextElement();
-      Object value = UIManager.get(key);
-      if (key.toString().equals(name) && value.getClass().equals(target.getClass())) {
-        return value;
-      }
-    }
-    return null;
   }
 
   /**
