@@ -27,6 +27,9 @@ import etomo.ui.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.29  2002/12/19 00:35:20  rickg
+ * <p> Implemented persitent advanced state handling
+ * <p>
  * <p> Revision 1.27  2002/12/11 21:26:31  rickg
  * <p> Added font setting into user prefs setting
  * <p>
@@ -950,6 +953,28 @@ public class ApplicationManager {
 
   }
 
+  /**
+   * Run transferfid
+   */
+  public void transferfid(AxisID sourceAxisID) {
+    if(alignmentEstimationDialog != null) {
+      TransferfidParam transferfidParam = new TransferfidParam();
+      // Setup the default parameters depending upon the axis to transfer the
+      // fiducials from
+      String fileSetName = metaData.getFilesetName();
+      transferfidParam.setFileSetName(fileSetName);
+      if(sourceAxisID == AxisID.SECOND) {
+        transferfidParam.setInputImageFile(fileSetName + "b.st");
+        transferfidParam.setInputModelFile(fileSetName + "b.fid");
+        transferfidParam.setOutputModelFile(fileSetName + "a.seed");
+      }
+
+      // Get any user specified changes
+      alignmentEstimationDialog.getTransferFidParams(transferfidParam, sourceAxisID);
+      processMgr.transferFiducials(transferfidParam);
+    }
+  }
+  
   /**
    * updateAlignCom updates the align{|a|b}.com scripts with the parameters from
    * the alignment estimation dialog.  This also updates the local alignment
@@ -2190,6 +2215,14 @@ public class ApplicationManager {
    */
   public boolean isDemo() {
     return demo;
+  }
+  
+  /**
+   * Run the specified command as a background process with a indeterminate
+   * progress bar.
+   */
+  public void backgroundProcess(String commandLine) {
+    processMgr.test(commandLine);
   }
 
 }
