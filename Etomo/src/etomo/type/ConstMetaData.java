@@ -32,6 +32,7 @@ public abstract class ConstMetaData extends BaseMetaData {
   protected String datasetName = "";
   protected String backupDirectory = "";
   protected String distortionFile = "";
+  protected String magGradientFile = "";
 
   protected DataSource dataSource = DataSource.CCD;
   protected ViewType viewType = ViewType.SINGLE_VIEW;
@@ -115,6 +116,7 @@ public abstract class ConstMetaData extends BaseMetaData {
 
     combineParams.store(props, group);
     props.setProperty(group + "DistortionFile", distortionFile);
+    props.setProperty(group + "MagGradientFile", magGradientFile);
     props.setProperty(group + "Binning", String.valueOf(binning));
     props.setProperty(group + "FiducialessAlignmentA", String
         .valueOf(fiducialessAlignmentA));
@@ -176,6 +178,10 @@ public abstract class ConstMetaData extends BaseMetaData {
 
   public String getDistortionFile() {
     return distortionFile;
+  }
+  
+  public String getMagGradientFile() {
+    return magGradientFile;
   }
 
   public DataSource getDataSource() {
@@ -553,6 +559,10 @@ public abstract class ConstMetaData extends BaseMetaData {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.21  2005/02/19 00:09:01  sueh
+ * <p> bug# 606 Removed MetaData (Setup) zfactors, fiducialess, wholetomogram,
+ * <p> and localalignments.  Add them for A and B.
+ * <p>
  * <p> Revision 3.20  2005/02/15 21:05:30  sueh
  * <p> bug# 603 Removed SectionType (single or serial sections).
  * <p>

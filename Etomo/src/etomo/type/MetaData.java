@@ -19,6 +19,10 @@ import etomo.comscript.TransferfidParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.16  2005/02/19 00:09:57  sueh
+ * <p> bug# 606 Removed MetaData (Setup) zfactors, fiducialess, wholetomogram,
+ * <p> and localalignments.  Add them for A and B.
+ * <p>
  * <p> Revision 3.15  2005/02/15 21:05:46  sueh
  * <p> bug# 603 Removed SectionType (single or serial sections).
  * <p>
@@ -147,6 +151,7 @@ public class MetaData extends ConstMetaData {
   protected void resetToDefault() {
     revisionNumber = "";
     distortionFile = "";
+    magGradientFile = "";
     binning = 1;
     useLocalAlignmentsA = true;
     useLocalAlignmentsB = true;
@@ -206,6 +211,10 @@ public class MetaData extends ConstMetaData {
 
   public void setDistortionFile(String distortionFile) {
     this.distortionFile = distortionFile;
+  }
+  
+  public void setMagGradientFile(String magGradientFile) {
+    this.magGradientFile = magGradientFile;
   }
 
   public void setAxisType(AxisType at) {
@@ -362,6 +371,8 @@ public class MetaData extends ConstMetaData {
     combineParams.load(props, group);
     distortionFile = props
         .getProperty(group + "DistortionFile", distortionFile);
+    magGradientFile = props
+    .getProperty(group + "MagGradientFile", magGradientFile);
     binning = Integer.parseInt(props.getProperty(group + "Binning", Integer
         .toString(binning)));
 

@@ -18,6 +18,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.6  2005/01/14 02:58:44  sueh
+ * Prevented non-error messages from showing up in the err.log  file unless
+ * debug is on.
+ *
  * Revision 3.5  2004/11/19 22:53:54  sueh
  * bug# 520 merging Etomo_3-4-6_JOIN branch to head.
  *
@@ -244,6 +248,11 @@ public class CopyTomoComs {
     }
     //Binning of raw stacks (needed to undistort if ambiguous)
     options.add("-binning " + metaData.getBinning());
+    // Mag gradients correction file
+    String magGradientFile = metaData.getMagGradientFile();
+    if (!magGradientFile.equals("")) {
+      options.add("-gradient " + magGradientFile);
+    }
     //  Axis type: single or dual
     if (metaData.getAxisType() == AxisType.DUAL_AXIS) {
       options.add("-dual");
