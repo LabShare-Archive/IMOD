@@ -526,7 +526,6 @@ while ($znum < $npiecez)
             @ sumnum++
             cat <<EOCAT | cat >> $volcombine
 #
-\$dopiece${sumnum}:
 \$echo STATUS: EXTRACTING AND COMBINING PIECE  $sumnum  of $npiecetot
 \$echo
 #
@@ -544,12 +543,13 @@ $ranlist[1]
 $TAPERPADXZ,$TAPERPADY,$TAPERPADXZ
 \$clip fft -3d ${tmppath}mat.st ${tmppath}mat.fft
 \$\\rm ${tmppath}mat.st
-\$combinefft \$combinefft_options -StandardInput
-AInputFFT	${tmppath}rec.fft
-BInputFFT	${tmppath}mat.fft
-InverseTransformFile	$invfile
-ATiltFile	$atlt
-BTiltFile	$btlt
+\$combinefft
+${tmppath}rec.fft
+${tmppath}mat.fft
+
+$invfile
+$atlt
+$btlt
 \$\\rm ${tmppath}rec.fft
 \$clip fft -3d -m $mode ${tmppath}mat.fft ${tmppath}sum$sumnum.rec
 \$\\rm ${tmppath}mat.fft
@@ -621,10 +621,6 @@ echo '$'"if (-e $backupname) $backupname" | cat >> $volcombine
 
 #
 #  $Log$
-#  Revision 3.23  2004/07/13 18:15:40  mast
-#  Changed to PIP format for combinefft with an option variable, added a
-#  label for each piece for a goto at the start to jump to
-#
 #  Revision 3.22  2004/06/20 15:32:30  mast
 #  Restore new solvematch and cut patch thickness to fit in limits
 #
