@@ -21,9 +21,11 @@ Currently, 3dmod will accept 7 commands:
    3  Open model view window
    4  Quit 3dmod
    5  Raise windows (bring all windows to the front)
-   6  Switch to model or movie mode (follow with 0 for movie mode, a nonzero
-         number or nothing for model mode)
-   7  Open model file but keep current black/white levels (follow with file)
+   6  Switch to model or movie mode (follow with 0 for movie mode, a 
+         nonzero number or nothing for model mode)
+   7  Open model file but keep current black/white levels (follow with
+         file)
+   8  Open Bead Fixer window or raise it if already open
 .SH AUTHOR
 David Mastronarde,  mast@colorado.edu
 .SH SEE ALSO
