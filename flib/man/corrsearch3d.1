@@ -22,7 +22,10 @@ DDEESSCCRRIIPPTTIIOONN
   outward, analyzing patches in the X, then the Y, then the Z
   direction.  An optional model file can be entered with contours
   enclosing the area where patches should be analyzed; patches outside
-  this area are excluded.
+  this area are excluded.  Also, information about the source volume
+  for the file being transformed can be entered so that the program
+  can analyze patches only from regions that are good in the second
+  image file.
   
   Inputs to the program:
   
@@ -48,6 +51,18 @@ DDEESSCCRRIIPPTTIIOONN
   Number of pixels over which to taper the patches in X, Y and Z
   
   Maximum displacement to determine by searching
+  
+  Either the X, Y, and Z size or the name of the original source
+  volume for the second image file.  Return to omit analysis of
+  positions in this file.
+  
+  Name of the 3-D transformation file used to generate the second
+  image file from its source volume, or Return to omit analysis of
+  positions in the second file.
+  
+  Size of borders to be excluded on the lower and upper sides in X
+  and the lower and upper sides in Z in the original source volume
+  for the second image file.
   
   The program outputs an initial line with the total number of
   patches, then one line for each patch, containing the X, Y, and Z
