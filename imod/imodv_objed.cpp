@@ -1,32 +1,15 @@
-/*  IMOD VERSION 2.50
- *
+/*
  *  imodv_objed.c -- The object edit and object list dialogs for imodv
  *                   The main form class is imodvObjedForm in formv_objed.cpp
  *
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
+ *
+ *  Copyright (C) 1995-2004 by Boulder Laboratory for 3-Dimensional Electron
+ *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  */
 
-/*****************************************************************************
- *   Copyright (C) 1995-2001 by Boulder Laboratory for 3-Dimensional Fine    *
- *   Structure ("BL3DFS") and the Regents of the University of Colorado.     *
- *                                                                           *
- *   BL3DFS reserves the exclusive rights of preparing derivative works,     *
- *   distributing copies for sale, lease or lending and displaying this      *
- *   software and documentation.                                             *
- *   Users may reproduce the software and documentation as long as the       *
- *   copyright notice and other notices are preserved.                       *
- *   Neither the software nor the documentation may be distributed for       *
- *   profit, either in original form or in derivative works.                 *
- *                                                                           *
- *   THIS SOFTWARE AND/OR DOCUMENTATION IS PROVIDED WITH NO WARRANTY,        *
- *   EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTY OF          *
- *   MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.       *
- *                                                                           *
- *   This work is supported by NIH biotechnology grant #RR00592,             *
- *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
- *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
- *****************************************************************************/
 /*  $Author$
 
 $Date$
@@ -222,8 +205,10 @@ void imodvObjedDrawData(int option)
     
     for (m = mst; m <= mnd; m++) {
       for (ob = 0; ob < Imodv->mod[m]->objsize; ob++)
-        if (changeModelObject(m, ob)) 
+        if (changeModelObject(m, ob)) {
+          imodvRegisterObjectChg(ob);
           optionSetFlags(&Imodv->mod[m]->obj[ob].flags);
+        }
     }
     objset(Imodv);
     break;
@@ -231,6 +216,7 @@ void imodvObjedDrawData(int option)
   default:
     break;
   }
+  imodvFinishChgUnit();
   setOnoffButtons();
   imodvDraw(Imodv);
   imodvDrawImodImages();
@@ -260,6 +246,7 @@ void imodvObjedStyleData(int option)
   default:
     break;
   }
+  imodvFinishChgUnit();
   imodvDraw(Imodv);
 }
 
@@ -281,8 +268,9 @@ void imodvObjedName(const char *name)
 {
   int i, mi;
   Iobj *obj = objedObject();
-   if (!obj) return;
-      
+  if (!obj) return;
+  
+  imodvRegisterObjectChg(Imodv->ob); 
   mi = strlen(name);
   if (mi >= IOBJ_STRSIZE)
     mi = IOBJ_STRSIZE - 1;
@@ -290,6 +278,7 @@ void imodvObjedName(const char *name)
     obj->name[i] = name[i];
   obj->name[i] = 0x00;
   setOnoffButtons();
+  imodvFinishChgUnit();
   imod_object_edit_draw();
 }
 
@@ -312,6 +301,7 @@ static void toggleObj(int ob, bool state)
     /* Turn off same object in all other models if editing all and legal ob */
   for (m = mst; m <= mnd; m++) {
     if (Imodv->mod[m]->objsize > ob)
+      imodvRegisterObjectChg(ob);
       if (state) {
         Imodv->mod[m]->obj[ob].flags &= ~IMOD_OBJFLAG_OFF;
         Imodv->ob = ob;
@@ -328,6 +318,7 @@ static void toggleObj(int ob, bool state)
 
   if (objed_dialog)
     objset(Imodv);
+  imodvFinishChgUnit();
   imodvDraw(Imodv);
   imodvDrawImodImages();
 }
@@ -723,6 +714,7 @@ void ImodvObjed::lineColorSlot(int color, int value, bool dragging)
   int m, mst, mnd, ob, numChanged = 0;
   float red, green, blue;
   Iobj *obj = Imodv->obj;
+  static bool sliding = false;
 
   // Compose the entire modified RGB triplet so all objects will change color
   // together if desired
@@ -748,6 +740,8 @@ void ImodvObjed::lineColorSlot(int color, int value, bool dragging)
   for (m = mst; m <= mnd; m++) {
     for (ob = 0; ob < Imodv->mod[m]->objsize; ob++)
       if (changeModelObject(m, ob, multipleColorOK)) {
+        if (!sliding)
+          imodvRegisterObjectChg(ob);
         obj = &(Imodv->mod[m]->obj[ob]);
         numChanged++;
         if (color < 3) {
@@ -758,6 +752,12 @@ void ImodvObjed::lineColorSlot(int color, int value, bool dragging)
           obj->trans = value;
       }
   }
+
+  // Set sliding flag after first change is registered; it should be reset 
+  // when slider is dropped
+  if (!sliding)
+    imodvFinishChgUnit();
+  sliding = dragging;
 
   obj = Imodv->obj;
   if (!dragging || (hotSliderFlag() == HOT_SLIDER_KEYDOWN && ctrlPressed) ||
@@ -832,6 +832,7 @@ void ImodvObjed::fillToggleSlot(bool state)
 {
   setObjFlag(IMOD_OBJFLAG_FCOLOR, state ? 1 : 0);
   objset(Imodv);
+  imodvFinishChgUnit();
   imodvDraw(Imodv);
 }
 
@@ -839,10 +840,18 @@ void ImodvObjed::fillColorSlot(int color, int value, bool dragging)
 {
   Iobj *obj = objedObject();
   unsigned char *colors;
+  static bool sliding = false;
 
   if (!obj) return;
   colors = (unsigned char *)&(obj->mat1);
   colors[color] = value;
+
+  // Register an object change the first time, set flag after that
+  if (!sliding) {
+    imodvRegisterObjectChg(Imodv->ob);
+    imodvFinishChgUnit();
+  }
+  sliding = dragging;
 
   if (!dragging || (hotSliderFlag() == HOT_SLIDER_KEYDOWN && ctrlPressed) ||
       (hotSliderFlag() == HOT_SLIDER_KEYUP && !ctrlPressed)) {
@@ -921,6 +930,7 @@ static void setMaterial(Iobj *obj, int which, int value)
 void ImodvObjed::materialSlot(int which, int value, bool dragging)
 {
   int m, mst, mnd, ob;
+  static bool sliding = false;
 
   if (!Imodv->imod) return;
      
@@ -928,11 +938,16 @@ void ImodvObjed::materialSlot(int which, int value, bool dragging)
     
   for (m = mst; m <= mnd; m++) {
     for (ob = 0; ob < Imodv->mod[m]->objsize; ob++)
-      if (changeModelObject(m, ob)) 
+      if (changeModelObject(m, ob)) {
+        if (!sliding)
+          imodvRegisterObjectChg(ob);
         setMaterial(&(Imodv->mod[m]->obj[ob]), which, value);
+      }
   }
   /*     imodPrintStderr("set mat %d, offset %d, value%d\n", *item, offset, cbs->value); */
      
+  sliding = dragging;
+  imodvFinishChgUnit();
   if (!dragging || (hotSliderFlag() == HOT_SLIDER_KEYDOWN && ctrlPressed) ||
       (hotSliderFlag() == HOT_SLIDER_KEYUP && !ctrlPressed))
     imodvDraw(Imodv);
@@ -942,6 +957,7 @@ void ImodvObjed::bothSidesSlot(bool state)
 {
   setObjFlag(IMOD_OBJFLAG_TWO_SIDE, state ? 1 : 0);
   objset(Imodv);
+  imodvFinishChgUnit();
   imodvDraw(Imodv);
 }
 
@@ -1006,9 +1022,12 @@ void ImodvObjed::pointSizeSlot(int i)
     
   for (m = mst; m <= mnd; m++) {
     for (ob = 0; ob < Imodv->mod[m]->objsize; ob++)
-      if (changeModelObject(m, ob)) 
+      if (changeModelObject(m, ob)) {
+        imodvRegisterObjectChg(ob);
         Imodv->mod[m]->obj[ob].pdrawsize = i;
+      }
   }
+  imodvFinishChgUnit();
   imodvDraw(Imodv);     
   imodvDrawImodImages();
   return;
@@ -1026,9 +1045,12 @@ void ImodvObjed::pointQualitySlot(int value)
      
   for (m = mst; m <= mnd; m++) {
     for (ob = 0; ob < Imodv->mod[m]->objsize; ob++)
-      if (changeModelObject(m, ob)) 
+      if (changeModelObject(m, ob)) {
+        imodvRegisterObjectChg(ob);
         Imodv->mod[m]->obj[ob].mat1b3 = value;
+      }
   }
+  imodvFinishChgUnit();
   imodvDraw(Imodv);     
 }
 
@@ -1039,12 +1061,14 @@ void ImodvObjed::globalQualitySlot(int value)
   value--;
   objed_dialog->setFocus();
 
+  imodvRegisterModelChg();
   setStartEndModel(mst, mnd);
 
   for (m = mst; m <= mnd; m++)
     Imodv->mod[m]->view->world = 
       (Imodv->mod[m]->view->world & ~WORLD_QUALITY_BITS) |
       (value << WORLD_QUALITY_SHIFT);
+  imodvFinishChgUnit();
   imodvDraw(Imodv);     
 }
 
@@ -1113,6 +1137,7 @@ static char *widthLabel[] = {"Line Width"};
 void ImodvObjed::lineWidthSlot(int which, int value, bool dragging)
 {
   int m, mst, mnd, ob;
+  static bool sliding = false;
      
   if (!Imodv->imod)
     return;
@@ -1121,10 +1146,15 @@ void ImodvObjed::lineWidthSlot(int which, int value, bool dragging)
      
   for (m = mst; m <= mnd; m++) {
     for (ob = 0; ob < Imodv->mod[m]->objsize; ob++)
-      if (changeModelObject(m, ob)) 
+      if (changeModelObject(m, ob)) {
+        if (!sliding)
+          imodvRegisterObjectChg(ob);
         Imodv->mod[m]->obj[ob].linewidth = value;
+      }
   }
 
+  sliding = dragging;
+  imodvFinishChgUnit();
   if (!dragging || (hotSliderFlag() == HOT_SLIDER_KEYDOWN && ctrlPressed) ||
       (hotSliderFlag() == HOT_SLIDER_KEYUP && !ctrlPressed))
     imodvDraw(Imodv);
@@ -1134,6 +1164,7 @@ void ImodvObjed::lineAliasSlot(bool state)
 {
   setObjFlag(IMOD_OBJFLAG_ANTI_ALIAS, state ? 1 : 0);
   objset(Imodv);
+  imodvFinishChgUnit();
   imodvDraw(Imodv);
 }
 
@@ -1141,6 +1172,7 @@ void ImodvObjed::lineThickenSlot(bool state)
 {
   setObjFlag(IMOD_OBJFLAG_THICK_CONT, state ? 1 : 0);
   objset(Imodv);
+  imodvFinishChgUnit();
   imodvDraw(Imodv);
 }
 
@@ -1198,6 +1230,7 @@ void ImodvObjed::meshNormalSlot(bool state)
 {
   setObjFlag(IMOD_OBJFLAG_SCALAR, state ? 1 : 0);
   objset(Imodv);
+  imodvFinishChgUnit();
   imodvDraw(Imodv);
 }
 
@@ -1205,6 +1238,7 @@ void ImodvObjed::meshFalseSlot(bool state)
 {
   setObjFlag(IMOD_OBJFLAG_MCOLOR, state ? 1 : 0);
   objset(Imodv);
+  imodvFinishChgUnit();
   imodvDraw(Imodv);
 }
 
@@ -1276,10 +1310,12 @@ void ImodvObjed::clipGlobalSlot(int value)
 void ImodvObjed::clipSkipSlot(bool state)
 {
   Iobj *obj = objedObject();     
+  imodvRegisterObjectChg(Imodv->ob);
   if (state)
     obj->clips.flags |= (1 << 7);
   else
     obj->clips.flags &= ~(1 << 7);
+  imodvFinishChgUnit();
   imodvDraw(Imodv);
 }
 
@@ -1287,10 +1323,14 @@ void ImodvObjed::clipPlaneSlot(int value)
 {
   Iobj *obj = objedObject();     
   objed_dialog->setFocus();
-  if (Imodv->imod->editGlobalClip)
+  if (Imodv->imod->editGlobalClip) {
+    imodvRegisterModelChg();
     Imodv->imod->view->clips.plane = value - 1;
-  else 
+  } else {
+    imodvRegisterObjectChg(Imodv->ob);
     obj->clips.plane = value - 1;
+  }
+  imodvFinishChgUnit();
   setClip_cb();
 }
 
@@ -1302,9 +1342,11 @@ void ImodvObjed::clipResetSlot()
   Iobj *obj = objedObject();     
 
   if (Imodv->imod->editGlobalClip) {
+    imodvRegisterModelChg();
     clips = &Imodv->imod->view->clips;
     imodGetBoundingBox(Imodv->imod, &min, &max);
   } else {
+    imodvRegisterObjectChg(Imodv->ob);
     clips = &obj->clips;
     imodObjectGetBBox(obj, &min, &max);
   }
@@ -1316,6 +1358,7 @@ void ImodvObjed::clipResetSlot()
   clips->point[ip] = mid;
   clips->normal[ip].x = clips->normal[ip].y = 0.0f;
   clips->normal[ip].z = -1.0f;
+  imodvFinishChgUnit();
   imodvDraw(Imodv);
 }
 
@@ -1325,9 +1368,15 @@ void ImodvObjed::clipInvertSlot()
   IclipPlanes *clips = Imodv->imod->editGlobalClip ? 
     &Imodv->imod->view->clips : &obj->clips;
   int ip = clips->plane;
+
+  if (Imodv->imod->editGlobalClip)
+    imodvRegisterModelChg();
+  else
+    imodvRegisterObjectChg(Imodv->ob);
   clips->normal[ip].x = -clips->normal[ip].x;
   clips->normal[ip].y = -clips->normal[ip].y;
   clips->normal[ip].z = -clips->normal[ip].z;
+  imodvFinishChgUnit();
   imodvDraw(Imodv);
 }
 
@@ -1340,6 +1389,10 @@ void ImodvObjed::clipToggleSlot(bool state)
   IclipPlanes *clips = Imodv->imod->editGlobalClip ? 
     &Imodv->imod->view->clips : &obj->clips;
   ip = clips->plane;
+  if (Imodv->imod->editGlobalClip)
+    imodvRegisterModelChg();
+  else
+    imodvRegisterObjectChg(Imodv->ob);
      
   if (!state)
     clips->flags &= ~(1 << ip);
@@ -1366,6 +1419,7 @@ void ImodvObjed::clipToggleSlot(bool state)
     }
   }
   objset(Imodv);
+  imodvFinishChgUnit();
   imodvDraw(Imodv);
 }
 
@@ -1383,12 +1437,9 @@ static void setClip_cb(void)
   diaSetChecked(wClipSkipGlobal, !editGlobal && (clips->flags & (1 << 7)));
 
   // Set spin box max to one past number of clip planes up to max size
-  wClipPlaneSpin->blockSignals(true);
   if (max > clips->count + 1)
     max = clips->count + 1;
-  wClipPlaneSpin->setMaxValue(max);
-  wClipPlaneSpin->setValue(clips->plane + 1);
-  wClipPlaneSpin->blockSignals(false);
+  diaSetSpinMMVal(wClipPlaneSpin, 1, max, clips->plane + 1);
 
   diaSetChecked(wClipToggle, (clips->flags & (1 << clips->plane)) != 0);
 }
@@ -1782,6 +1833,7 @@ static void setObjFlag(long flag, int state)
   for (m = mst; m <= mnd; m++) {
     for (ob = 0; ob < Imodv->mod[m]->objsize; ob++)
       if (changeModelObject(m, ob)) {
+        imodvRegisterObjectChg(ob);
         if (state)
           Imodv->mod[m]->obj[ob].flags |= flag;
         else
@@ -1823,6 +1875,9 @@ static void finalSpacer(QWidget *parent, QVBoxLayout *layout)
 
 /*
 $Log$
+Revision 4.20  2004/11/11 15:54:35  mast
+Fixed call for setting width of Done in Object list window
+
 Revision 4.19  2004/11/04 23:30:55  mast
 Changes for rounded button style
 

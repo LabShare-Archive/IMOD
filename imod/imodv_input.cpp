@@ -1,31 +1,14 @@
-/*  IMOD VERSION 2.50
- *
+/*
  *  imodv_input.c -- Keyboard and mouse input handlers for imodv.
  *
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
+ *
+ *  Copyright (C) 1995-2004 by Boulder Laboratory for 3-Dimensional Electron
+ *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  */
 
-/*****************************************************************************
- *   Copyright (C) 1995-2001 by Boulder Laboratory for 3-Dimensional Fine    *
- *   Structure ("BL3DFS") and the Regents of the University of Colorado.     *
- *                                                                           *
- *   BL3DFS reserves the exclusive rights of preparing derivative works,     *
- *   distributing copies for sale, lease or lending and displaying this      *
- *   software and documentation.                                             *
- *   Users may reproduce the software and documentation as long as the       *
- *   copyright notice and other notices are preserved.                       *
- *   Neither the software nor the documentation may be distributed for       *
- *   profit, either in original form or in derivative works.                 *
- *                                                                           *
- *   THIS SOFTWARE AND/OR DOCUMENTATION IS PROVIDED WITH NO WARRANTY,        *
- *   EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTY OF          *
- *   MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.       *
- *                                                                           *
- *   This work is supported by NIH biotechnology grant #RR00592,             *
- *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
- *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
- *****************************************************************************/
 /*  $Author$
 
     $Date$
@@ -76,6 +59,7 @@ static void imodv_rotate(ImodvApp *a, int throwFlag);
 static int  imodvStepTime(ImodvApp *a, int tstep);
 static void processHits (ImodvApp *a, GLint hits, GLuint buffer[]);
 static void imodv_start_movie(ImodvApp *a);
+static void registerClipPlaneChg(ImodvApp *a);
 
 static int pickedObject = -1;
 static int pickedContour = -1;
@@ -85,6 +69,7 @@ static unsigned int shiftDown = 0;
 static unsigned int leftDown = 0;
 static unsigned int midDown = 0;
 static unsigned int rightDown = 0;
+static int firstMove = 0;
 
 // Look up current position of pointer and report last state of buttons/keys
 static unsigned int imodv_query_pointer(ImodvApp *a, int *wx, int *wy)
@@ -109,6 +94,8 @@ void imodvKeyPress(QKeyEvent *event)
   float elapsed;
   int state = event->state();
   int keypad = event->state() & Qt::Keypad;
+  int shifted = state & Qt::ShiftButton;
+  int ctrl = state & Qt::ControlButton;
   QString qstr, qstr2;
 
   if (inputTestMetaKey(event))
@@ -116,18 +103,18 @@ void imodvKeyPress(QKeyEvent *event)
 
   inputConvertNumLock(keysym, keypad);
 
-  if (state & Qt::ShiftButton)
+  if (shifted)
     tstep = 10;
 
   if (!Imodv->imod) return;
 
-  if (Imod_debug)
+  if (imodDebug('k'))
     imodPrintStderr("key %x\n", keysym);
 
   switch(keysym){
 
   case Qt::Key_B:
-    if (state & Qt::ShiftButton){
+    if (shifted){
 
       /* DNM 12/1/02: call this so it can keep track of open/closed state */
       imodvMenuBgcolor(1);
@@ -139,7 +126,7 @@ void imodvKeyPress(QKeyEvent *event)
                
     /* Kludge, add clip data to model/object later. */
   case Qt::Key_C: /* print the current clipping plane parameters */
-    if (state & Qt::ShiftButton){
+    if (shifted){
       imodv_control(a, 1);
     }else{
       if (a->obj){
@@ -164,7 +151,7 @@ void imodvKeyPress(QKeyEvent *event)
   case Qt::Key_G: /* gooder (sic) */
     fastdraw = (a->imod->view->world & WORLD_QUALITY_BITS) >>
       WORLD_QUALITY_SHIFT;
-    if (!(state & Qt::ShiftButton))
+    if (!(shifted))
       fastdraw++;
     else
       fastdraw--;
@@ -173,6 +160,8 @@ void imodvKeyPress(QKeyEvent *event)
     if (fastdraw > 3)
       fastdraw = 3;
     imodPrintStderr("Sphere draw quality %d\n", fastdraw + 1);
+    imodvRegisterModelChg();
+    imodvFinishChgUnit();
     a->imod->view->world = (a->imod->view->world & ~WORLD_QUALITY_BITS) |
       (fastdraw << WORLD_QUALITY_SHIFT);
     imodvDraw(Imodv);
@@ -200,9 +189,9 @@ void imodvKeyPress(QKeyEvent *event)
     break;
 
   case Qt::Key_S:
-    if (state & Qt::ShiftButton)
+    if (shifted)
       imodv_auto_snapshot(NULL, SnapShot_RGB);
-    else if (state & Qt::ControlButton)
+    else if (ctrl)
       imodv_auto_snapshot(NULL, SnapShot_TIF);
     else
       imodvStereoToggle();
@@ -222,7 +211,7 @@ void imodvKeyPress(QKeyEvent *event)
     break;
 
   case Qt::Key_L:
-    if (state & Qt::ShiftButton)
+    if (shifted)
       imodvObjectListDialog(a, 1);
     else {
       a->plax *= -1.0f;
@@ -250,7 +239,7 @@ void imodvKeyPress(QKeyEvent *event)
     break;
 
   case Qt::Key_M:
-    if (state & Qt::ShiftButton){
+    if (shifted){
       imodvModelEditDialog(Imodv, 1);
     }else{
       imodvMovieDialog(Imodv, 1);
@@ -258,12 +247,12 @@ void imodvKeyPress(QKeyEvent *event)
     break;
 
   case Qt::Key_I:
-    if (state & Qt::ShiftButton && imodvByteImagesExist())
+    if (shifted && imodvByteImagesExist())
       imodvImageEditDialog(Imodv, 1);
     break;
 
   case Qt::Key_V:
-    if (state & Qt::ShiftButton)
+    if (shifted)
       imodvViewEditDialog(a, 1);
     break;
 
@@ -342,9 +331,9 @@ void imodvKeyPress(QKeyEvent *event)
     break;
                
   case Qt::Key_O:
-    if ((state & Qt::ShiftButton)){
+    if ((shifted)){
       objed(Imodv);
-    } else if (state & Qt::ControlButton){
+    } else if (ctrl){
       if (a->standalone && imodvLoadModel() < 0)
           dia_err("Error reading model file.  No model loaded.");
     } else {
@@ -381,9 +370,18 @@ void imodvKeyPress(QKeyEvent *event)
   case Qt::Key_Z:
     if (a->standalone)
       break;
-    a->texMap = 1 - a->texMap;
-    imodvImageUpdate(a);
-    imodvDraw(a);
+    if (ctrl) 
+      inputUndoRedo(a->vi, 0);
+    else {
+      a->texMap = 1 - a->texMap;
+      imodvImageUpdate(a);
+      imodvDraw(a);
+    }
+    break;
+
+  case Qt::Key_Y:
+    if (!a->standalone && ctrl) 
+      inputUndoRedo(a->vi, 1);
     break;
 
   case Qt::Key_R:
@@ -392,15 +390,15 @@ void imodvKeyPress(QKeyEvent *event)
     break;
 
   case Qt::Key_A:
-    if (state & Qt::ControlButton && a->standalone)
+    if (ctrl && a->standalone)
       imodvSaveModelAs();
     break;
 
   case Qt::Key_D:
-    if ((state & Qt::ShiftButton) && !a->standalone && pickedContour >= 0 &&
+    if (shifted && !a->standalone && pickedContour >= 0 &&
         a->imod->cindex.object == pickedObject && 
         a->imod->cindex.contour == pickedContour) {
-      inputDeleteContour(App->cvi);
+      inputDeleteContour(a->vi);
       pickedContour = -1;
     }
     break;
@@ -452,6 +450,9 @@ void imodvMousePress(QMouseEvent *event)
   leftDown = event->stateAfter() & Qt::LeftButton;
   midDown = event->stateAfter() & Qt::MidButton;
   rightDown = event->stateAfter() & Qt::RightButton;
+
+  // Set flag for any operation that needs to do something only on first move
+  firstMove = 1;
 
   switch(event->button()){
   case Qt::LeftButton:
@@ -523,7 +524,11 @@ static void imodv_light_move(ImodvApp *a)
   unsigned int maskr = imodv_query_pointer(a,&mx,&my);
 
   if ((maskr & Qt::MidButton) && (maskr & Qt::ShiftButton)){
-
+    if (firstMove) {
+      imodvRegisterModelChg();
+      imodvFinishChgUnit();
+      firstMove = 0;
+    }
     /*        a->lightx += 10 * (mx - a->lmx);
               a->lighty += 10 * (my - a->lmy);
               light_move(&(a->lightx), &(a->lighty));
@@ -565,6 +570,19 @@ void imodv_zoomd(ImodvApp *a, double zoom)
   }
 
   return;
+}
+
+/* Register a clip plane change for model or object on the first move */
+static void registerClipPlaneChg(ImodvApp *a)
+{
+  if (firstMove) {
+    if (a->imod->editGlobalClip)
+      imodvRegisterModelChg();
+    else
+      imodvRegisterObjectChg(a->ob);
+    imodvFinishChgUnit();
+    firstMove = 0;
+  }
 }
 
 static void imodv_translated(ImodvApp *a, int x, int y, int z)
@@ -616,6 +634,7 @@ static void imodv_translated(ImodvApp *a, int x, int y, int z)
     
     if (maskr & Qt::ControlButton){
       if (a->obj){
+        registerClipPlaneChg(a);
         clips = a->imod->editGlobalClip ? 
           &a->imod->view->clips : &a->obj->clips;
         ip = clips->plane;
@@ -722,6 +741,8 @@ static void imodv_compute_rotation(ImodvApp *a, float x, float y, float z)
   } else if (clips->flags & (1 << ip)) {
 
     /* Clipping plane rotation: apply to current model only */
+
+    registerClipPlaneChg(a);
 
     /* Find the normal in scaled model coordinates by scaling
        each of the components appropriately */
@@ -1055,6 +1076,9 @@ void imodvMovieTimeout()
 
 /*
     $Log$
+    Revision 4.16  2004/09/21 20:29:10  mast
+    Changes to deal with new clipping plane structures
+
     Revision 4.15  2004/05/31 23:35:26  mast
     Switched to new standard error functions for all debug and user output
 

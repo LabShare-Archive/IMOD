@@ -1,33 +1,16 @@
-/*  IMOD VERSION 2.40
- *
+/*
  *  imodv_depthcue.cpp -- Depth cue dialog for imodv.
  *                        Companion form class is imodvDepthcueFrom in
  *                           formv_depthcue.cpp
  *
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
+ *
+ *  Copyright (C) 1995-2004 by Boulder Laboratory for 3-Dimensional Electron
+ *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  */
 
-/*****************************************************************************
- *   Copyright (C) 1995-2000 by Boulder Laboratory for 3-Dimensional Fine    *
- *   Structure ("BL3DFS") and the Regents of the University of Colorado.     *
- *                                                                           *
- *   BL3DFS reserves the exclusive rights of preparing derivative works,     *
- *   distributing copies for sale, lease or lending and displaying this      *
- *   software and documentation.                                             *
- *   Users may reproduce the software and documentation as long as the       *
- *   copyright notice and other notices are preserved.                       *
- *   Neither the software nor the documentation may be distributed for       *
- *   profit, either in original form or in derivative works.                 *
- *                                                                           *
- *   THIS SOFTWARE AND/OR DOCUMENTATION IS PROVIDED WITH NO WARRANTY,        *
- *   EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTY OF          *
- *   MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.       *
- *                                                                           *
- *   This work is supported by NIH biotechnology grant #RR00592,             *
- *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
- *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
- *****************************************************************************/
 /*  $Author$
 
 $Date$
@@ -136,19 +119,22 @@ void imodvDepthCueEditDialog(ImodvApp *a, int state)
 /****************************************************************************/
 /* Dialog controls.                                                 */
 
-void imodvDepthcueStart(int value)
+void imodvDepthcueStartEnd(int value, bool end, bool dragging)
 {
-  idcData.fstart = value;
+  static bool sliding = false;
 
-  Imodv->imod->view->dcstart = (float)value * 0.01f;
-  imodvDraw(Imodv);
-}
-
-void imodvDepthcueEnd(int value)
-{
-  idcData.fend = value;
-
-  Imodv->imod->view->dcend = (float)value * 0.01f;
+  if (!sliding) {
+    imodvRegisterModelChg();
+    imodvFinishChgUnit();
+  }
+  sliding = dragging;
+  if (end) {
+    idcData.fend = value;
+    Imodv->imod->view->dcend = (float)value * 0.01f;
+  } else {
+    idcData.fstart = value;
+    Imodv->imod->view->dcstart = (float)value * 0.01f;
+  }
   imodvDraw(Imodv);
 }
 
@@ -156,6 +142,8 @@ void imodvDepthcueToggle(int state)
 {
   ImodvApp *a = Imodv;
  
+  imodvRegisterModelChg();
+  imodvFinishChgUnit();
   a->depthcue = state;
   if (!state)
     a->imod->view->world &= ~VIEW_WORLD_DEPTH_CUE;
@@ -167,6 +155,9 @@ void imodvDepthcueToggle(int state)
 
 /*
 $Log$
+Revision 4.3  2003/04/17 18:43:38  mast
+adding parent to window creation
+
 Revision 4.2  2003/02/27 17:39:06  mast
 Had to include qgl.h instead of GL/gl.h under windows
 

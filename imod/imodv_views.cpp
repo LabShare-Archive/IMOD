@@ -1,33 +1,16 @@
-/*  IMOD VERSION 2.7.9
- *
+/*
  *  imodv_views.cpp -- Edit, store, and access view list in model
  *                     Companion form class is imodvViewsForm in 
  *                     formv_views.ui[.h]
  *
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
+ *
+ *  Copyright (C) 1995-2004 by Boulder Laboratory for 3-Dimensional Electron
+ *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  */
 
-/*****************************************************************************
- *   Copyright (C) 1995-2002 by Boulder Laboratory for 3-Dimensional Fine    *
- *   Structure ("BL3DFS") and the Regents of the University of Colorado.     *
- *                                                                           *
- *   BL3DFS reserves the exclusive rights of preparing derivative works,     *
- *   distributing copies for sale, lease or lending and displaying this      *
- *   software and documentation.                                             *
- *   Users may reproduce the software and documentation as long as the       *
- *   copyright notice and other notices are preserved.                       *
- *   Neither the software nor the documentation may be distributed for       *
- *   profit, either in original form or in derivative works.                 *
- *                                                                           *
- *   THIS SOFTWARE AND/OR DOCUMENTATION IS PROVIDED WITH NO WARRANTY,        *
- *   EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTY OF          *
- *   MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.       *
- *                                                                           *
- *   This work is supported by NIH biotechnology grant #RR00592,             *
- *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
- *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
- *****************************************************************************/
 /*  $Author$
     
 $Date$
@@ -52,6 +35,7 @@ Log at end of file
 #include "imodv_depthcue.h"
 #include "imodv_objed.h"
 #include "control.h"
+#include "undoredo.h"
 
 
 struct imodv_viewed
@@ -82,15 +66,17 @@ static void imodvUpdateView(ImodvApp *a)
   imodvMenuLowres(a->imod->view->world & VIEW_WORLD_LOWRES);
 }
 
-/* Update when a different model is being displayed */
-void imodvUpdateModel(ImodvApp *a)
+/* Update when a different model is being displayed (setView true) or when
+   a model is being restored by undo/redo (setView false) */
+void imodvUpdateModel(ImodvApp *a, bool setView)
 {
   imodvUpdateView(a);
   if (!ved->dia)
     return;
   ved->dia->removeAllItems();
   build_list(a);
-  imodvViewsGoto(a->imod->cview - 1, false);
+  if (setView)
+    imodvViewsGoto(a->imod->cview - 1, false, false);
   ved->dia->selectItem(a->imod->cview - 1, true);
 }
 
@@ -119,6 +105,7 @@ void imodvAutoStoreView(ImodvApp *a)
 
   if (!auto_store || !a->imod->cview)
     return;
+
   manage_world_flags(a, a->imod->view);
   imodViewStore(a->imod, a->imod->cview);
 }
@@ -241,11 +228,19 @@ void imodvViewsSave()
  * The goto view callback.
  * item is numbered from 0 and incremented internally
  */
-void imodvViewsGoto(int item, bool draw)
+void imodvViewsGoto(int item, bool draw, bool regChg)
 {
   item++;
-   if (!ved->a->imod)
-     return;
+  if (!ved->a->imod)
+    return;
+
+  /* If registering changes, do so before the autostore to capture revertable
+     state */
+  if (regChg) {
+    if (!ved->a->standalone)
+      ved->a->vi->undo->modelChange(UndoRedo::ViewChanged);
+    imodvFinishChgUnit();
+  }
 
   /* If changing views, store the current view before changing */
   if (item != ved->a->imod->cview)
@@ -257,7 +252,7 @@ void imodvViewsGoto(int item, bool draw)
   imodvDrawImodImages();
 
   imodvUpdateView(ved->a);
-  if (draw)
+  if (draw) 
     imodvDraw(Imodv);
 }
 
@@ -273,9 +268,10 @@ void imodvViewsStore(int item)
   item++;
   Iview *view = ved->a->imod->view;
 
-  /* If changing views, store the current view before changing */
-  if (item != ved->a->imod->cview)
-    imodvAutoStoreView(ved->a);
+  /* 11/20/04: eliminated autostore if changing views; this is always current
+     view */
+  imodvRegisterModelChg();
+  imodvFinishChgUnit();
 
   ved->a->imod->cview = item;
      
@@ -291,6 +287,9 @@ void imodvViewsNew(const char *label)
   Iview *view = ved->a->imod->view;
 
   if (!ved->a->imod) return;
+
+  imodvRegisterModelChg();
+  imodvFinishChgUnit();
 
   imodvAutoStoreView(ved->a);
 
@@ -327,6 +326,10 @@ void imodvViewsDelete(int item, int newCurrent)
   if (!imod || item <= 0 || imod->viewsize < 2)
     return;
 
+  if (!ved->a->standalone)
+    ved->a->vi->undo->modelChange(UndoRedo::ViewChanged);
+  imodvFinishChgUnit();
+
   // Need to free object views of the view being deleted
   if (imod->view[item].objvsize)
     free (imod->view[item].objview);
@@ -340,7 +343,7 @@ void imodvViewsDelete(int item, int newCurrent)
 
   imod->viewsize--;
   imod->cview = (newCurrent >= 0 ? newCurrent : 0) + 1;
-  imodvViewsGoto(imod->cview - 1, true);
+  imodvViewsGoto(imod->cview - 1, true, false);
 
   /* DNM 7/31/03: at least on RH 9, new selection doesn't show after deletion
      unless select another item first */
@@ -352,6 +355,8 @@ void imodvViewsDelete(int item, int newCurrent)
 // A new label has been entered
 void imodvViewsLabel(const char *label, int item)
 {
+  imodvRegisterModelChg();
+  imodvFinishChgUnit();
   strcpy( ved->a->imod->view[item + 1].label, label);
 }
 
@@ -401,6 +406,9 @@ static void build_list(ImodvApp *a)
 /*
 
     $Log$
+    Revision 4.8  2003/11/01 18:12:17  mast
+    changed to put out virtually all error messages to a window
+
     Revision 4.7  2003/08/01 00:12:57  mast
     Fix some bugs from the new numbering mismatch between indexes in list box
     and the actual views, free object views when view is deleted

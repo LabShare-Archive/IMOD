@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.2  2003/06/27 19:59:05  mast
+Remove call to go to default view
+
 Revision 4.1  2003/02/10 20:41:55  mast
 Merge Qt source
 
@@ -37,14 +40,14 @@ initial creation
 typedef struct __imodv_struct ImodvApp;
 
 /* view editing functions */
-void imodvUpdateModel(ImodvApp *a);
+void imodvUpdateModel(ImodvApp *a, bool setView);
 void imodvViewEditDialog(ImodvApp *a, int state);
 void imodvAutoStoreView(ImodvApp *a);
 void imodvViewsHelp();
 void imodvViewsDone();
 void imodvViewsClosing();
 void imodvViewsSave();;
-void imodvViewsGoto(int item, bool draw);
+void imodvViewsGoto(int item, bool draw, bool regChg = true);
 void imodvViewsStore(int item);
 void imodvViewsNew(const char *label);;
 void imodvViewsDelete(int item, int newCurrent);

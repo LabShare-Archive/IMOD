@@ -1,31 +1,14 @@
-/*  IMOD VERSION 2.50
- *
+/*
  *  imodv_control.c -- The imodv control edit dialog.
  *
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
+ *
+ *  Copyright (C) 1995-2004 by Boulder Laboratory for 3-Dimensional Electron
+ *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  */
 
-/*****************************************************************************
- *   Copyright (C) 1995-2001 by Boulder Laboratory for 3-Dimensional Fine    *
- *   Structure ("BL3DFS") and the Regents of the University of Colorado.     *
- *                                                                           *
- *   BL3DFS reserves the exclusive rights of preparing derivative works,     *
- *   distributing copies for sale, lease or lending and displaying this      *
- *   software and documentation.                                             *
- *   Users may reproduce the software and documentation as long as the       *
- *   copyright notice and other notices are preserved.                       *
- *   Neither the software nor the documentation may be distributed for       *
- *   profit, either in original form or in derivative works.                 *
- *                                                                           *
- *   THIS SOFTWARE AND/OR DOCUMENTATION IS PROVIDED WITH NO WARRANTY,        *
- *   EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTY OF          *
- *   MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.       *
- *                                                                           *
- *   This work is supported by NIH biotechnology grant #RR00592,             *
- *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
- *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
- *****************************************************************************/
 /*  $Author$
     
 $Date$
@@ -111,15 +94,22 @@ void imodvControlZoom(int zoom)
 
 /* Set the clipping or perspective values: near = plane 1, far = plane 0,
    perspective (fovy) = plane 2 */
-void imodvControlClip(int plane, int value)
+void imodvControlClip(int plane, int value, bool dragging)
 {
   ImodvApp *a = Imodv;
   Iview *view, *vwv;
   int m;
+  static bool sliding = false;
 
   if (!Imodv->imod) return;
   /*     view = &Imodv->imod->view[Imodv->imod->cview];*/
   view = Imodv->imod->view;
+
+  if (!sliding) {
+    imodvRegisterModelChg();
+    imodvFinishChgUnit();
+  }
+  sliding = dragging;
 
   if (plane == IMODV_CONTROL_FAR){
     Imodv->cfar = value;
@@ -166,8 +156,15 @@ void imodvControlClip(int plane, int value)
   imodvDraw(Imodv);
 }
 
-void imodvControlZscale(int value)
+void imodvControlZscale(int value, bool dragging)
 {
+  static bool sliding = false;
+  if (!sliding) {
+    imodvRegisterModelChg();
+    imodvFinishChgUnit();
+  }
+  sliding = dragging;
+
   /*  int m, nm;
       nm = Imodv->nm; */
   Imodv->mod[Imodv->cm]->zscale = value / 100.0;
@@ -419,6 +416,9 @@ int imodv_control(ImodvApp *a, int state)
 
 /*
     $Log$
+    Revision 4.7  2004/06/10 00:33:02  mast
+    Documented new behavior of clip planes
+
     Revision 4.6  2003/11/04 04:42:46  mast
     Add new calls for rotation speed and remove code for changing [xyz]rotm
 
