@@ -5,6 +5,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.4  2004/03/30 18:53:13  mast
+#  Added mtffilter
+#
 #  Revision 3.3  2004/03/22 05:40:15  mast
 #  Added extractmagrad
 #
@@ -200,3 +203,6 @@ rotatevol.$(O): rotmatwarp.inc
 matchvol.$(O): rotmatwarp.inc
 warpvol.$(O): rotmatwarp.inc
 rotmatwarpsubs.$(O): rotmatwarp.inc
+giantfft.$(O): $(INCDIR)/ftbuf.inc
+enhance.$(O): $(INCDIR)/ftbuf.inc
+fftrans.$(O): $(INCDIR)/ftbuf.inc
