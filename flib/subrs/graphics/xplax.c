@@ -133,6 +133,8 @@ void plax_flush(void)
      return;
 }
 
+void plax_erase(void) {}
+
 void plax_mapcolor(int *color, int *ired, int *igreen, int *iblue)
 {
      XColor c;
