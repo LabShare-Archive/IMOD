@@ -248,11 +248,11 @@ such values should then be proportional to projected mass density for imaging
 dominated by amplitude (aperture) contrast.  Because of this, the command file
 to run the backprojection program, <A HREF = "man/tilt.html">Tilt</A>,
 contains an entry to take the log
-of the numbers after subtracting a base value (which might correspond to the
+of the numbers after adding a base value (which might correspond to the
 fog level of film).  If your images are already mass-normalized, you should
 remove the "LOG" entry in tilt.com; if your images are in arbitrarily scaled
 units, you may need to remove that line or at least adjust the base value
-that is subtracted before taking the log.
+that is added before taking the log.
 <P>
      If electron density appears as white in your images, 
 <A HREF = "man/beadtrack.html">Beadtrack</A> will
@@ -906,7 +906,9 @@ reduce resolution.
 statement if any.  Make the thickness be about 40 pixels bigger than the
 estimated thickness of the section.
 <P>
-     Now run the sample.com file.  When it is finished, you have two choices,
+     Now run the sample.com file.  When it is finished, you will have 3
+sample tomograms, bot.rec, mid.rec, and top.rec (or bota.rec, etc., for
+a dual-axis data set).  You have two choices,
 automatically finding the section with
  <A HREF = "man/findsection.html">Findsection</A>, or modeling the edges of
 the section and computing angles with 
@@ -917,8 +919,8 @@ so you may prefer to skip it completely and just use
 <A HREF = "man/tomopitch.html">Tomopitch</A>.
 <P>
      To use <A HREF = "man/tomopitch.html">Tomopitch</A>,
- first load each of the 3 tomograms (bot.rec, mid.rec,
-top.rec) into Imod.  Model each edge of the section by drawing a line along
+ first load each of the 3 tomograms into Imod.
+Model each edge of the section by drawing a line along
 the boundary.  Just use two points, one on the left and one on the right side
 of the tomogram.  Put the lines for the top and bottom edges in separate
 contours.  In other words, the model should have one object, two contours, two
