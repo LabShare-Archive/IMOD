@@ -20,6 +20,9 @@ import etomo.storage.Storable;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.4  2004/11/30 00:35:03  sueh
+* <p> bug# 556 Making isValid() error message clearer.
+* <p>
 * <p> Revision 1.3  2004/11/24 01:04:01  sueh
 * <p> bug# 520 Allow class to display its own error message when required
 * <p> (isValue).
@@ -70,7 +73,6 @@ public abstract class ConstEtomoNumber implements Storable {
   protected boolean displayDefault = false;
   protected Number value;
   protected Number defaultValue;
-  protected Number recommendedValue;
   protected Number resetValue;
   protected Number ceilingValue;
 
@@ -101,7 +103,6 @@ public abstract class ConstEtomoNumber implements Storable {
     description = that.description;
     value = newNumber(that.value);
     defaultValue = newNumber(that.defaultValue);
-    recommendedValue = newNumber(that.recommendedValue);
     resetValue = newNumber(that.resetValue);
     ceilingValue = newNumber(that.ceilingValue);
   }
@@ -136,8 +137,7 @@ public abstract class ConstEtomoNumber implements Storable {
   protected String paramString() {
     return ",\ntype=" + type + ",\nname=" + name + ",\ndescription=" + description
         + ",\ninvalidReason=" + invalidReason + ",\nvalue="
-        + value + ",\ndefaultValue=" + defaultValue + ",\nrecommendedValue="
-        + recommendedValue + ",\nresetValue=" + resetValue
+        + value + ",\ndefaultValue=" + defaultValue + ",\nresetValue=" + resetValue
         + ",\nceilingValue=" + ceilingValue;
   }
   
@@ -165,14 +165,24 @@ public abstract class ConstEtomoNumber implements Storable {
     return this;
   }
   
-  public void setRecommendedValue(int recommendedValue) {
-    this.recommendedValue = newNumber(recommendedValue);
-    setResetValue();
+  /**
+   * Set the value will be used if the user does not set a value or there is no
+   * value to load.  Also used in reset().
+   * @param resetValue
+   * @return
+   */
+  public void setResetValue(int resetValue) {
+    this.resetValue = newNumber(resetValue);
   }
   
-  public void setRecommendedValue(double recommendedValue) {
-    this.recommendedValue = newNumber(recommendedValue);
-    setResetValue();
+  /**
+   * Set the value will be used if the user does not set a value or there is no
+   * value to load.  Also used in reset().
+   * @param resetValue
+   * @return
+   */
+  public void setResetValue(double resetValue) {
+    this.resetValue = newNumber(resetValue);
   }
   
   public void setDescription(String description) {
@@ -231,7 +241,7 @@ public abstract class ConstEtomoNumber implements Storable {
   public ConstEtomoNumber getNegation() {
     EtomoNumber that = new EtomoNumber(this);
     that.value = newNumberMultiplied(value, -1);
-    that.recommendedValue = newNumberMultiplied(recommendedValue, -1);
+    that.resetValue = newNumberMultiplied(resetValue, -1);
     that.defaultValue = newNumberMultiplied(defaultValue, -1);
     return that;
   }
@@ -268,7 +278,6 @@ public abstract class ConstEtomoNumber implements Storable {
   private void initialize() {
     value = newNumber();
     defaultValue = newNumber();
-    recommendedValue = newNumber();
     resetValue = newNumber();
     ceilingValue = newNumber();
   }
@@ -276,18 +285,8 @@ public abstract class ConstEtomoNumber implements Storable {
   private void initialize(int initialValue) {
     value = newNumber(initialValue);
     defaultValue = newNumber();
-    recommendedValue = newNumber();
     resetValue = newNumber();
     ceilingValue = newNumber();
-  }
-  
-  private void setResetValue() {
-    if (!isNull(recommendedValue)) {
-      resetValue = recommendedValue;
-    }
-    else {
-      resetValue = newNumber();
-    }
   }
   
   private Number getValue() {

@@ -17,7 +17,10 @@ import etomo.storage.Storable;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2004/12/14 21:43:15  sueh
+* <p> bug# 564 A three state boolean (null, true, false).
+* <p> </p>
 */
 public abstract class ConstEtomoBoolean implements Storable {
   public static  final String  rcsid =  "$Id$";
@@ -29,11 +32,19 @@ public abstract class ConstEtomoBoolean implements Storable {
   protected boolean displayDefault = false;
   protected int value;
   protected int defaultValue;
-  protected int recommendedValue;
   protected int resetValue;
+  protected boolean useBackwardCompatibleValue;
+  protected int backwardCompatibleValue;
   public abstract void load(Properties props);
   public abstract void load(Properties props, String prepend);
 
+  
+  protected ConstEtomoBoolean() {
+    name = super.toString();
+    description = name;
+    initialize();
+  }
+  
   protected ConstEtomoBoolean(String name) {
     this.name = name;
     description = name;
@@ -50,8 +61,7 @@ public abstract class ConstEtomoBoolean implements Storable {
   
   protected String paramString() {
     return ",\nname=" + name + ",\ndescription=" + description + ",\nvalue="
-        + value + ",\ndefaultValue=" + defaultValue + ",\nrecommendedValue="
-        + recommendedValue + ",\nresetValue=" + resetValue;
+        + value + ",\ndefaultValue=" + defaultValue + ",\nresetValue=" + resetValue;
   }
   
   public ConstEtomoBoolean setDefault(boolean defaultValue) {
@@ -64,9 +74,27 @@ public abstract class ConstEtomoBoolean implements Storable {
     return this;
   }
   
-  public void setRecommendedValue(boolean recommendedValue) {
-    this.recommendedValue = toInteger(recommendedValue);
-    setResetValue();
+  /**
+   * Set the value will be used if the user does not set a value or there is no
+   * value to load.  Also used in reset().
+   * @param resetValue
+   * @return
+   */
+  public ConstEtomoBoolean setResetValue(boolean resetValue) {
+    this.resetValue = toInteger(resetValue);
+    return this;
+  }
+  
+  /**
+   * Set the value that will be used if the variable cannot be loaded
+   * Overrides resetValue in load().
+   * @param value
+   * @return
+   */
+  public ConstEtomoBoolean setBackwardCompatibleValue(ConstEtomoBoolean value) {
+    useBackwardCompatibleValue = true;
+    backwardCompatibleValue = value.toInteger();
+    return this;
   }
   
   public void setDescription(String description) {
@@ -101,6 +129,13 @@ public abstract class ConstEtomoBoolean implements Storable {
   public boolean isSetAndNotDefault() {
     return !isNull() && (isNull(defaultValue) || value != defaultValue);
   }
+  
+  public boolean is() {
+    if (isNull() || value == 0) {
+      return false;
+    }
+     return true;
+  }
 
   public boolean isNull() {
     return isNull(value);
@@ -126,24 +161,17 @@ public abstract class ConstEtomoBoolean implements Storable {
   private void initialize() {
     value = Integer.MIN_VALUE;
     defaultValue = Integer.MIN_VALUE;
-    recommendedValue = Integer.MIN_VALUE;
     resetValue = Integer.MIN_VALUE;
+    useBackwardCompatibleValue = false;
+    backwardCompatibleValue = Integer.MIN_VALUE;
   }
   
   private void initialize(boolean initialValue) {
     value = toInteger(initialValue);
     defaultValue = Integer.MIN_VALUE;
-    recommendedValue = Integer.MIN_VALUE;
     resetValue = Integer.MIN_VALUE;
-  }
-  
-  private void setResetValue() {
-    if (!isNull(recommendedValue)) {
-      resetValue = recommendedValue;
-    }
-    else {
-      resetValue = Integer.MIN_VALUE;
-    }
+    useBackwardCompatibleValue = false;
+    backwardCompatibleValue = Integer.MIN_VALUE;
   }
   
   private int getValue() {
@@ -168,6 +196,10 @@ public abstract class ConstEtomoBoolean implements Storable {
       return 1;
     }
     return 0;
+  }
+  
+  private int toInteger() {
+    return value;
   }
   
   protected int toInteger(String value) {
