@@ -293,17 +293,20 @@ static void setStereoProjection(ImodvApp *a)
     break;
 
   case -IMODV_STEREO_TB:
-    glViewport(0, 0, a->winx, a->winy);
+    glViewport(0, -(imodvStereoVoffset() / 2), a->winx, a->winy);
     glTranslatef(a->winx/2, a->winy/2, 0.0f);
     glRotatef(a->plax * 0.5f, 0.0f, 1.0f, 0.0f);
     glTranslatef(-a->winx/2, -a->winy/2, 0.0f);
+    glScalef(1.0f, 0.5f, 0.5f);
     break;
 
   case IMODV_STEREO_TB:
     glTranslatef(a->winx/2, a->winy/2, 0.0f);
     glRotatef(-a->plax * 0.5f, 0.0f, 1.0f, 0.0f);
     glTranslatef(-a->winx/2, -a->winy/2, 0.0f);
-    glViewport(0, a->winy, a->winx, a->winy);
+    glScalef(1.0f, 0.5f, 0.5f);
+    glViewport(0, a->winy + imodvStereoVoffset() - (imodvStereoVoffset() / 2),
+               a->winx, a->winy);
     break;
 
   case -IMODV_STEREO_HW:
@@ -1783,6 +1786,9 @@ static void imodvDrawScalarMesh(Imesh *mesh, double zscale,
 
 /*
 $Log$
+Revision 4.11  2004/05/31 23:35:26  mast
+Switched to new standard error functions for all debug and user output
+
 Revision 4.10  2004/05/16 20:19:35  mast
 Switched to drawing solid image data before and transparent image data
 after the model data; moved stereo setup of matrices to another routine;
