@@ -1,3 +1,4 @@
+	integer maxview,maxprojpt,maxreal
 	parameter (maxview=720)
 	parameter (maxprojpt=60000,maxreal=500)
 c
@@ -12,7 +13,7 @@ c
 	integer*4 lintilt(maxview),lingmag(maxview),lincomp(maxview)
 	integer*4 lindmag(maxview),linskew(maxview),linrot(maxview)
 	integer*4 mapalf(maxview),linalf(maxview)
-	integer*4 mapdmagstart,mapdumdmag,ifanyalf
+	integer*4 mapdmagstart,mapdumdmag,ifanyalf,nview,ifrotfix
 	real*4 dumdmagfac
 	real*4 frctilt(maxview),frcgmag(maxview),frccomp(maxview)
 	real*4 frcdmag(maxview),frcskew(maxview),frcrot(maxview)
@@ -21,13 +22,16 @@ c
 	real*4 frcalf(maxview),alf(maxview)
 	real*4 fixedtilt,fixedgmag,fixedcomp,fixeddmag,fixedskew
 	real*4 fixedtilt2,fixedrot,fixedalf
+	integer*4 mapviewtofile(maxview),mapfiletoview(maxview)
+	integer*4 nfileviews
 	common /tltvar/nview,ifrotfix,mapdmagstart,mapdumdmag,
      &      dumdmagfac,ifanyalf,rot,tilt,comp,gmag,dmag,skew,alf,mapalf,
      &	    maptilt,mapgmag,mapcomp,mapdmag,mapskew,maprot,tiltinc,
      &	    lintilt,lingmag,lincomp,lindmag,linskew,linrot,linalf,
      &	    frctilt,frcgmag,frccomp,frcdmag,frcskew,frcrot,frcalf,
      &	    fixedtilt,fixedgmag,fixedcomp,fixeddmag,fixedskew,
-     &      fixedtilt2,fixedrot,fixedalf
+     &      fixedtilt2,fixedrot,fixedalf,mapviewtofile,mapfiletoview,
+     &      nfileviews
 c
 	real*4 glbrot(maxview),glbtilt(maxview),glbalf(maxview)
 	real*4 glbgmag(maxview),glbdmag(maxview),glbskew(maxview)
