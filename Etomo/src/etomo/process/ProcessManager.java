@@ -20,6 +20,15 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.48  2005/01/05 19:56:00  sueh
+ * bug# 578 Moved startBackgroundComScript(String, Runnable, AxisID,
+ * ComscriptState, String) and startComScript(String, Runnable, AxisID,
+ * String) from ProcessManager to BaseProcessManager since they are
+ * generic.  Added startComScript(Command, Runnable, AxisID) to handle
+ * situations where postProcess(ComScriptProcess) needs to query the
+ * command.  Added ConstTiltalignParam parameter to fineAlignment so
+ * that it can be queried by postProcess().
+ *
  * Revision 3.47  2004/12/16 02:26:20  sueh
  * bug# 564 Save flipped state in Squeezevol post processing.
  *
@@ -585,6 +594,7 @@ import etomo.comscript.CopyTomoComs;
 import etomo.comscript.BadComScriptException;
 import etomo.comscript.SetupCombine;
 import etomo.comscript.SqueezevolParam;
+import etomo.comscript.TiltalignParam;
 import etomo.comscript.TransferfidParam;
 import etomo.comscript.TrimvolParam;
 
@@ -1324,6 +1334,13 @@ public class ProcessManager extends BaseProcessManager {
     if (processName == ProcessName.ALIGN) {
       generateAlignLogs(script.getAxisID());
       copyFiducialAlignFiles(script.getAxisID());
+      Command command = script.getCommand();
+      if (command != null) {
+        appManager.getState().setAlignSkewOption(
+            command.getIntegerValue(TiltalignParam.SKEW_OPTION_PARAM));
+        appManager.getState().setAlignXStretchOption(
+            command.getIntegerValue(TiltalignParam.X_STRETCH_OPTION_PARAM));
+      }
     }
     else if (processName == ProcessName.TOMOPITCH) {
       appManager.openTomopitchLog(script.getAxisID());
