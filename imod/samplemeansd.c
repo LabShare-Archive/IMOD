@@ -13,6 +13,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.2  2003/09/16 02:59:10  mast
+Changed to access image data via line pointers
+
 Revision 3.1  2002/12/01 15:34:41  mast
 Changes to get clean compilation with g++
 
@@ -28,9 +31,9 @@ Changes to get clean compilation with g++
 #define FLOAT 6
 
 int sampleMeanSD(unsigned char **image, int type, int nx, int ny, 
-                 float sample, float matt, float *mean, float *sd)
+                 float sample, int nxMatt, int nyMatt, int nxUse, int nyUse,
+                 float *mean, float *sd)
 {
-  int nxUse, nyUse, nxMatt, nyMatt;
   int nLo, nHi, nSample, nPixUse;
 
   /* pointers for data of different types */
@@ -52,10 +55,11 @@ int sampleMeanSD(unsigned char **image, int type, int nx, int ny,
     return (-1);
 
   /* get the area that will be used and offsets into it */  
-  nxMatt = (int)(nx * matt);
+  // Not any more!
+  /*  nxMatt = (int)(nx * matt);
   nxUse = nx - nxMatt;
   nyMatt = (int)(ny * matt);
-  nyUse = ny - nyMatt;
+  nyUse = ny - nyMatt; */
   nPixUse = nxUse * nyUse;
 
   /* get the number of points to sample, and sampling interval */
