@@ -30,38 +30,7 @@
 $Date$
 
 $Revision$
-
-$Log$
-Revision 1.1.2.10  2003/01/30 06:17:05  mast
-Allow range of slider to change
-
-Revision 1.1.2.9  2003/01/30 00:48:53  mast
-new timer logic
-
-Revision 1.1.2.8  2003/01/10 23:56:56  mast
-move some declarations out of slots
-
-Revision 1.1.2.7  2002/12/17 17:30:22  mast
-Adding timer for redraws
-
-Revision 1.1.2.6  2002/12/14 05:23:42  mast
-backing out the fancy subclass, adjusting for new visual detection
-
-Revision 1.1.2.5  2002/12/13 07:09:19  mast
-GLMainWindow needed different name for mouse event processors
-
-Revision 1.1.2.4  2002/12/13 06:06:29  mast
-using new glmainwindow and mainglwidget classes
-
-Revision 1.1.2.3  2002/12/12 01:25:23  mast
-added Z slider
-
-Revision 1.1.2.2  2002/12/09 23:24:12  mast
-*** empty log message ***
-
-Revision 1.1.2.1  2002/12/09 17:48:09  mast
-Initial addition to source
-
+Log at end of file
 */
 #ifndef ZAP_CLASSES_H
 #define ZAP_CLASSES_H
@@ -113,6 +82,8 @@ class ZapWindow : public QMainWindow
     void newZoom();
     void newSection();
     void sliderChanged(int value);
+    void secPressed();
+    void secReleased();
     void timeBack();
     void timeForward();
     void toggleClicked(int index);
@@ -133,6 +104,9 @@ class ZapWindow : public QMainWindow
     ToolEdit *mSectionEdit;
     QLabel *mTimeLabel;
     QSlider *mSecSlider;
+    bool mSecPressed;
+    int mDisplayedSection;
+    bool mCtrlPressed;
 };
 
 class ZapGL : public QGLWidget
@@ -158,4 +132,42 @@ protected:
   bool mFirstDraw;
   int mTimerID;
 };
+
+/*
+$Log$
+Revision 4.1  2003/02/10 20:41:56  mast
+Merge Qt source
+
+Revision 1.1.2.10  2003/01/30 06:17:05  mast
+Allow range of slider to change
+
+Revision 1.1.2.9  2003/01/30 00:48:53  mast
+new timer logic
+
+Revision 1.1.2.8  2003/01/10 23:56:56  mast
+move some declarations out of slots
+
+Revision 1.1.2.7  2002/12/17 17:30:22  mast
+Adding timer for redraws
+
+Revision 1.1.2.6  2002/12/14 05:23:42  mast
+backing out the fancy subclass, adjusting for new visual detection
+
+Revision 1.1.2.5  2002/12/13 07:09:19  mast
+GLMainWindow needed different name for mouse event processors
+
+Revision 1.1.2.4  2002/12/13 06:06:29  mast
+using new glmainwindow and mainglwidget classes
+
+Revision 1.1.2.3  2002/12/12 01:25:23  mast
+added Z slider
+
+Revision 1.1.2.2  2002/12/09 23:24:12  mast
+*** empty log message ***
+
+Revision 1.1.2.1  2002/12/09 17:48:09  mast
+Initial addition to source
+
+*/
+
 #endif     // ZAP_CLASSES_H

@@ -49,6 +49,7 @@ Log at end of file
 #include "tooledit.h"
 #include "arrowbutton.h"
 #include "dia_qtutils.h"
+#include "hotslider.h"
 
 #define AUTO_RAISE true
 #define MIN_SLIDER_WIDTH 20
@@ -104,6 +105,8 @@ ZapWindow::ZapWindow(struct zapwin *zap, QString timeLabel, bool rgba,
   ArrowButton *arrow;
 
   mZap = zap;
+  mSecPressed = false;
+  mCtrlPressed = false;
 
   // Get the toolbar, add zoom arrows
   mToolBar = new QToolBar(this, "zap toolbar");
@@ -146,6 +149,9 @@ ZapWindow::ZapWindow(struct zapwin *zap, QString timeLabel, bool rgba,
   mSecSlider->setFixedWidth(swidth + hint.width() + 5);
   connect(mSecSlider, SIGNAL(valueChanged(int)), this, 
 	  SLOT(sliderChanged(int)));
+  connect(mSecSlider, SIGNAL(sliderPressed()), this, SLOT(secPressed()));
+  connect(mSecSlider, SIGNAL(sliderReleased()), this, SLOT(secReleased()));
+  
 
   // Section edit box
   mSectionEdit = new ToolEdit(mToolBar, 4, "section edit box");
@@ -252,7 +258,22 @@ void ZapWindow::newSection()
 
 void ZapWindow::sliderChanged(int value)
 {
-  zapEnteredSection(mZap, value);
+    if (!mSecPressed || (hotSliderFlag() == HOT_SLIDER_KEYDOWN && mCtrlPressed)
+        || (hotSliderFlag() == HOT_SLIDER_KEYUP && !mCtrlPressed))
+      zapEnteredSection(mZap, value);
+    else
+      setSectionText(value);
+}
+
+void ZapWindow::secPressed()
+{
+  mSecPressed = true;
+}
+
+void ZapWindow::secReleased()
+{
+  mSecPressed = false;
+  zapEnteredSection(mZap, mDisplayedSection);
 }
 
 void ZapWindow::help()
@@ -304,6 +325,7 @@ void ZapWindow::setSectionText(int section)
   str.sprintf("%d", section);
   mSectionEdit->setText(str);
   diaSetSlider(mSecSlider, section);
+  mDisplayedSection = section;
 }
 
 void ZapWindow::setMaxZ(int maxZ)
@@ -320,10 +342,19 @@ void ZapWindow::setTimeLabel(QString label)
 
 void ZapWindow::keyPressEvent ( QKeyEvent * e )
 {
+  if (hotSliderFlag() != NO_HOT_SLIDER && e->key() == hotSliderKey()) {
+    mCtrlPressed = true;
+    grabKeyboard();
+  }
   zapKeyInput(mZap, e);
 }
+
 void ZapWindow::keyReleaseEvent (QKeyEvent * e )
 {
+  if (e->key() == hotSliderKey()) {
+    mCtrlPressed = false;
+    releaseKeyboard();
+  }
   zapKeyRelease(mZap, e);
 }
 
@@ -386,6 +417,9 @@ void ZapGL::mouseMoveEvent ( QMouseEvent * e )
 
 /*
 $Log$
+Revision 4.3  2003/03/03 22:28:02  mast
+Pass on all mouse move events with the pressed flag to allow tracking
+
 Revision 4.2  2003/02/28 21:40:15  mast
 Changing name of tooledit focus signal
 
