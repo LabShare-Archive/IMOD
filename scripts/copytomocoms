@@ -936,10 +936,10 @@ EOF
 	-e "/^$incDelText/d"\
 	-e "/^RotationAngle/s/[ 	].*/	$axisangle/"\
 	-e "/ImageSizeXandY/s/[ 	].*/	$alxsize,$alysize/"\
-	-e "/.*ExcludeList.*/s//ExcludeList	$excludelist/"\
+	-e "/^#*ExcludeList.*/s//ExcludeList	$excludelist/"\
 	-e "s/$stackname/$tracksrc/"\
 	-e "s/$setname.xf/$tiltxf/"\
-	-e "/$wipeexclude/d"\
+	-e "/^#*$wipeexclude/d"\
 	-e "/$wipexyz/d"\
 	<$srcfile >$dstfile
 
@@ -1276,6 +1276,9 @@ exit 0
 
 #
 #  $Log$
+#  Revision 3.32  2005/01/25 19:29:24  mast
+#  Converted blendmont commands to use 0/1 instead of commenting out
+#
 #  Revision 3.31  2005/01/03 20:25:15  mast
 #  Changed for new PIP version of align.com
 #
