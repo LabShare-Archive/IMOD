@@ -51,6 +51,7 @@ Log at end of file
 #include "imod_workprocs.h"
 
 static int ivwSetCacheFromList(ImodView *iv, Ilist *ilist);
+static int ivwManageInitialFlips(ImodView *iv);
 char Ivw_string[64];
 int  ivwLoadIMODifd(ImodView *iv);
 int  ifioLoadIMODifd(ImodView *iv);
@@ -656,8 +657,10 @@ int ivwFlip(ImodView *vw)
       tflag = (unsigned char *)malloc(nyz);
       idata = (unsigned char **)malloc(nz * sizeof(unsigned char *));
           
-      if (!idata)
+      if (!trow || !tflag || !idata) {
+        fprintf(stderr, "Not enough memory to flip image data.\n");
         return(-1);
+      }
       for (i = 0; i < nz; i++)
         idata[i] = vw->idata[0] + (nx * ny * i);
                
@@ -707,8 +710,7 @@ int ivwFlip(ImodView *vw)
         idata[i] = (unsigned char *)
           malloc(nx * ny * sizeof(unsigned char));
         if (!idata[i]){
-          fprintf(stderr, 
-                  "Not enough memory to load image data.\n");
+          fprintf(stderr, "Not enough memory to flip image data.\n");
           /* Todo: Free Stuff */
           for(i = 0;i < nz; i++)
             if(idata[i])
@@ -1466,9 +1468,10 @@ void ivwTransModel(ImodView *iv)
 }
 
 /* Take care of scaling the model, and flipping data and model as needed */
-static void ivwManageInitialFlips(ImodView *iv)
+static int ivwManageInitialFlips(ImodView *iv)
 {
   int flipit;
+  int retcode;
 
   /* Transform model to match new image. */
   ivwTransModel(iv); 
@@ -1482,9 +1485,12 @@ static void ivwManageInitialFlips(ImodView *iv)
   /* Flip data and model if called for, but only if not montage */
   flipit = (iv->li->axis == 2)?1:0;
   iv->li->axis = 3;
-  if (flipit)
-    ivwFlip(iv);
-     
+  if (flipit) {
+    retcode = ivwFlip(iv);
+    if (retcode)
+      return (retcode);
+  }
+
   /* set model max values */
   iv->imod->xmax = iv->xsize;
   iv->imod->ymax = iv->ysize;
@@ -1494,12 +1500,14 @@ static void ivwManageInitialFlips(ImodView *iv)
 
   /* DNM: check wild flag here, after all the flipping is done */
   ivwCheckWildFlag(iv->imod);
+  return 0;
 }    
 
 
 /* Load images initially, use for all kinds of data */
 int ivwLoadImage(ImodView *iv)
 {
+  unsigned int xsize, ysize, xysize, zsize;
   Ilist *ilist;
 
   if (iv->fakeImage){
@@ -1558,15 +1566,26 @@ int ivwLoadImage(ImodView *iv)
  
   /* check load info is up to date for image header. */
   mrc_fix_li(iv->li, iv->image->nx, iv->image->ny, iv->image->nz);
+  xsize = iv->li->xmax - iv->li->xmin + 1;
+  ysize = iv->li->ymax - iv->li->ymin + 1;
+  zsize = iv->li->zmax - iv->li->zmin + 1;
+  xysize = xsize * ysize;
   
-  /* load image data into contiguous memory, if possible */
+  /* load image data into contiguous memory, if possible
+     If not flipped, split it up at the 2 GB limit
+     If flipped, need to be contiguous to avoid trying to allocate double
+     memory.  In this case let it go and see if it fails later */
   iv->li->contig = 1; 
-     
+  if (iv->li->axis == 2) {
+    if (4200000000 / xysize < zsize)
+      iv->li->contig = 0;
+  } else if (2000000000 / xysize < zsize)
+    iv->li->contig = 0;
+  /*printf("contig = %d  axis = %d  xysize %d  % dzsize %d \n", iv->li->contig,
+    iv->li->axis, xysize, 4200000000 / xysize, zsize); */
+
   /* print load status */
-  wprint("Image size %d x %d, %d sections.\n",
-         iv->li->xmax - iv->li->xmin + 1,
-         iv->li->ymax - iv->li->ymin + 1,
-         iv->li->zmax - iv->li->zmin + 1);
+  wprint("Image size %d x %d, %d sections.\n", xsize, ysize, zsize);
      
   /* copy limits to image structure, in case loading is via cache */
   iv->image->llx = iv->li->xmin;
@@ -1589,9 +1608,7 @@ int ivwLoadImage(ImodView *iv)
   if (App->depth == 8)
     ivwScale(iv);
      
-  ivwManageInitialFlips(iv);
-
-  return(0);
+  return (ivwManageInitialFlips(iv));
 }
 
 
@@ -1994,7 +2011,7 @@ static int ivwSetCacheFromList(ImodView *iv, Ilist *ilist)
   ivwSetScale(iv);
   wprint("\r");
 
-  ivwManageInitialFlips(iv);
+  retcode = ivwManageInitialFlips(iv);
   imod_info_input();
   return(retcode);
 }
@@ -2051,6 +2068,9 @@ int  ivwGetObjectColor(ImodView *inImodView, int inObject)
 
 /*
 $Log$
+Revision 4.5  2003/03/13 01:19:23  mast
+Make ivwGetTimeIndexLabel return empty string instead of NULL
+
 Revision 4.4  2003/02/27 19:42:14  mast
 Changes to filename and directory handling to work under windows
 
