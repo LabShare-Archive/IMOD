@@ -59,6 +59,7 @@
 // to imod.h and control.h
 //#include "imodplugin.h"
 #include "imod.h"
+#include "imod_client_message.h"
 #include "control.h"
 #include "dia_qtutils.h"
 #include "beadfix.h"
@@ -73,12 +74,15 @@
 static char *imodPlugInfo(int *type);
 static int imodPlugKeys(ImodView *vw, QKeyEvent *event);
 static void imodPlugExecute(ImodView *inImodView);
+static  int imodPlugExecuteMessage(ImodView *vw, QStringList *strings,
+                                   int *arg);
 
 BeadFixerModule::BeadFixerModule()
 {
   mInfo = imodPlugInfo;
   mExecuteType = NULL;
   mExecute = imodPlugExecute;
+  mExecuteMessage = imodPlugExecuteMessage;
   mKeys = imodPlugKeys;
 }
 
@@ -110,7 +114,7 @@ static PlugData thisPlug = { 0, 0, 0, 0, 0, NULL };
 char *imodPlugInfo(int *type)
 {
   if (type)
-    *type = IMOD_PLUG_MENU + IMOD_PLUG_KEYS;
+    *type = IMOD_PLUG_MENU + IMOD_PLUG_KEYS + IMOD_PLUG_MESSAGE;
   return("Bead Fixer");
 }
 
@@ -219,6 +223,23 @@ void imodPlugExecute(ImodView *inImodView)
   plug->window->show();
 }
 
+/* Execute the message in the strings.
+   Keep the action definitions in imod_client_message.h */
+
+int imodPlugExecuteMessage(ImodView *vw, QStringList *strings, int *arg)
+{
+  PlugData *plug = &thisPlug;
+  int action = (*strings)[*arg].toInt();
+  if (!plug->window)
+    return 1;
+  switch (action) {
+  case MESSAGE_BEADFIX_OPENFILE:
+    return plug->window->openFileByName((*strings)[++(*arg)].latin1());
+  case MESSAGE_BEADFIX_REREAD:
+    return plug->window->reread();
+  }
+  return 1;
+}
 
 /* Open a tiltalign log file to find points with big residuals */
 
@@ -232,20 +253,26 @@ void BeadFixer::openFile()
   
   if (qname.isEmpty())
     return;
-
+  openFileByName(qname.latin1());
+}
+ 
+/* Open the log file with the given name, returning 1 if error */
+ 
+int BeadFixer::openFileByName(const char *filename)
+{
+  PlugData *plug = &thisPlug;
   if (plug->filename != NULL)
     free(plug->filename);
-      
-  plug->filename = strdup(qname.latin1());
+  plug->filename = strdup(filename);
   
-  if (!reread()) {
-    rereadBut->setEnabled(true);    
-#ifdef FIXER_CAN_RUN_ALIGN
-    runAlignBut->setEnabled(true);
-#endif
-  }
+  if (reread())
+    return 1;
 
-  return;
+  rereadBut->setEnabled(true);    
+#ifdef FIXER_CAN_RUN_ALIGN
+  runAlignBut->setEnabled(true);
+#endif
+  return 0;
 }
 
 
@@ -284,7 +311,6 @@ int BeadFixer::reread()
   mNumAreas = 0;
   mNumResid = 0;
   mCurrentRes = -1;
-  mCurArea = 0;
   mIndlook = -1;
 
   // Outer loop searching for lines at top of residuals
@@ -384,8 +410,8 @@ int BeadFixer::reread()
   }
   fclose(fp);
 
+  setCurArea(0);
   nextResBut->setEnabled(mNumResid);
-  nextLocalBut->setEnabled(mNumAreas > 1);
   backUpBut->setEnabled(false);    
   if (!mNumResid)
     wprint("\aResidual data not found\n");
@@ -394,6 +420,14 @@ int BeadFixer::reread()
   return 0;
 }
 
+// Set current area, manage next local set button enabling and text
+void BeadFixer::setCurArea(int area)
+{
+  mCurArea = area;
+  nextLocalBut->setEnabled(mCurArea < mNumAreas - 1);
+  nextLocalBut->setText(mCurArea ? 
+                        "Go to Next Local Set" : "Go to First Local Set");
+}
 
 /* Jump to the next point with a big residual */
 
@@ -476,8 +510,7 @@ void BeadFixer::nextRes()
     wprint("Entering local area %d  %d,  %d residuals\n",
            mAreaList[rpt->area].areaX,
            mAreaList[rpt->area].areaY, mAreaList[rpt->area].numPts);
-    mCurArea = rpt->area;
-    nextLocalBut->setEnabled(mCurArea < mNumAreas - 1);
+    setCurArea(rpt->area);
     if (!bell)
       bell = 1;
   }
@@ -642,7 +675,7 @@ void BeadFixer::backUp()
   // Give message if moved between areas, set the bell flag
   rpt = &(mResidList[newRes]);
   if (rpt->area != mCurArea) {
-    mCurArea = rpt->area;
+    setCurArea(rpt->area);
     areaX = mAreaList[rpt->area].areaX;
     areaY = mAreaList[rpt->area].areaY;
     if (!areaX && !areaY)
@@ -1004,7 +1037,7 @@ BeadFixer::BeadFixer(QWidget *parent, const char *name)
   rereadBut->setFixedWidth(width);
   QToolTip::add(rereadBut, "Read the previously specified file again");
 
-  nextLocalBut = diaPushButton("Go to Next Local Set", this, mLayout);
+  nextLocalBut = diaPushButton("Go to First Local Set", this, mLayout);
   connect(nextLocalBut, SIGNAL(clicked()), this, SLOT(nextLocal()));
   nextLocalBut->setEnabled(false);
   nextLocalBut->setFixedWidth(width);
@@ -1311,6 +1344,9 @@ void AlignThread::run()
 
 /*
     $Log$
+    Revision 1.17  2004/07/09 21:26:55  mast
+    Strip directory path off when running align, to avoid spaces in path
+
     Revision 1.16  2004/06/25 20:05:40  mast
     Based the move by residual on residual data instead of current point value,
     and rewrote to make most plug variables be class members
