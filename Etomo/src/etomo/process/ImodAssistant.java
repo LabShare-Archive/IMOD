@@ -24,6 +24,10 @@ import etomo.type.AxisID;
  * Settings:
  * - All options are initially false, except for outputWindowID.
  * 
+ * Testing:
+ * Functions to check the state of both ImodAssistant and ImodProcess are
+ * available.
+ * 
  * <p>Copyright: Copyright(c) 2002, 2003</p>
  * 
  * <p>Organization:
@@ -34,24 +38,33 @@ import etomo.type.AxisID;
  * 
  * @version $$Revision$$
  * 
- * <p> $$Log$$ </p>
+ * <p> $$Log$
+ * <p> $Revision 1.1  2003/11/15 01:40:12  sueh
+ * <p> $bug242 created class to run ImodProcess functions for
+ * <p> $ImodManager
+ * <p> $$ </p>
  */
 
 public class ImodAssistant {
   public static final String rcsid = "$$Id$$";
 
-  private ImodProcess process = null;
-  private boolean useModv = false;
-  private boolean outputWindowID = true;
-  private boolean preserveContrast = false;
+  protected ImodProcess process = null;
+  
 
+
+  private boolean openWithModel = false;
+  private String modelName = "";
+  private boolean useModv = false;
+
+  private boolean setToMode = false;
+  private boolean modelMode = false;
+  
+  private boolean preserveContrast = false;
   /**
    * Use this constructor to create an instance of ImodProcess using
    * ImodProcess().
    */
   public ImodAssistant() {
-    System.out.println("in ImodAssistant()");
-    System.out.println(toString());
     process = new ImodProcess();
   }
   
@@ -59,11 +72,18 @@ public class ImodAssistant {
    * Use this constructor to create an instance of ImodProcess using
    * ImodProcess(String dataset).
    */
-  public ImodAssistant(String name) {
-    System.out.println("in ImodAssistant(String name)");
-    System.out.println(toString());
-    process = new ImodProcess(name);
+  public ImodAssistant(String dataset) {
+    process = new ImodProcess(dataset);
   }
+  
+  /**
+   * Use this constructor to create an instance of ImodProcess using
+   * ImodProcess(String dataset, String model).
+   */
+  public ImodAssistant(String dataset, String model) {
+    process = new ImodProcess(dataset, model);
+  }
+
   
   /**
    * Use this constructor to insert the axis letter and create an instance of
@@ -78,8 +98,6 @@ public class ImodAssistant {
    * ImodProcess("datasetb_fixed.st");
    */
   public ImodAssistant(AxisID tempAxisID, String datasetName, String datasetExt) {
-    System.out.println("in  ImodAssistant(AxisID tempAxisID, String datasetName, String datasetExt)");
-    System.out.println(toString());
     String axisExtension = tempAxisID.getExtension();
     if (axisExtension == "ERROR") {
       throw new IllegalArgumentException(tempAxisID.toString());
@@ -107,8 +125,6 @@ public class ImodAssistant {
     String datasetExt,
     String modelName,
     String modelExt) {
-    System.out.println("in ImodAssistant(AxisID tempAxisID, String datasetName1, String datasetName2, String datasetName3, String datasetExt, String modelName, String modelExt)");
-    System.out.println(toString());
     String axisExtension = tempAxisID.getExtension();
     if (axisExtension == "ERROR") {
       throw new IllegalArgumentException(tempAxisID.toString());
@@ -132,14 +148,12 @@ public class ImodAssistant {
 
   /**
    * Configures the ImodProcess instance.  Use when necessary before calling
-   * open.
+   * configuration and open.
    * @param swapYZ
    * @param fillCache
    * @param modelView
    */
   public void setup(boolean swapYZ, boolean fillCache, boolean modelView) {
-    System.out.println("in setup");
-    System.out.println(toString());
     if (swapYZ) {
       process.setSwapYZ(swapYZ);
     }
@@ -150,85 +164,157 @@ public class ImodAssistant {
       process.setModelView(modelView);
     }
   }
+
   
+
+
+
+  //Configuration functions
   /**
-   * Calls ImodProcess.open().  Use when opening a model is unnecessary or will
-   * be done later.
-   * @throws SystemProcessException
+   * Configures opening a process with a given model name.
    */
-  public void open() throws SystemProcessException {
-    System.out.println("in open");
-    System.out.println(toString());
-    process.open();
+  public void configureOpenWithModel(String modelName) {
+    openWithModel = true;
+    configureModel(modelName);
   }
   
   /**
-   * Sets the model name and calls ImodProcess.open().
+   * Configures opening process with a given model name and setting the mode to
+   * model if setModelMode is true.
+   *  
+   * @param modelName
+   * @param setModelMode
+   */
+  public void configureOpenWithModel(String modelName, boolean setToModelMode){
+    openWithModel = true;
+    configureModel(modelName, setToModelMode);
+  }
+  /**
+   * Sets the model name.
    * 
-   * To use "imod -view", call setUseModv(true) and setOutputWindowID(false)
-   * before calling this function.
+   * @param modelName
+   */
+  public void configureModel(String modelName){
+    this.modelName = modelName;
+  }
+  
+  /**
+   * Sets the model name and configures setting the mode to model if
+   * setModelMode is true.
+   *  
+   * @param modelName
+   * @param setModelMode
+   */
+  public void configureModel(String modelName, boolean setToModelMode){
+    configureModel(modelName);
+    if (setToModelMode) {
+      configureSetToMode(true);
+    }
+  }
+  
+  /**
+   * Configures opening a process and setting the mode to model or movie.
+   */
+  public void configureSetToMode(boolean modelMode){
+    this.setToMode = true;
+    this.modelMode = modelMode;
+  }
+  
+  /**
+   * Configures the mode (model or movie)
+   * 
+   * @param newModelMode
+   */
+  public void configureMode(boolean modelMode) {
+    this.modelMode = modelMode;
+  }
+  
+  /**
+   * Configures opening a process using the -view option
+   *
+   */
+  public void configureUseModv(boolean useModv) {
+    this.useModv = useModv;
+  }
+  
+  public void configurePreserveContrast(boolean preserveContrast) {
+    this.preserveContrast = preserveContrast;
+  }
+  
+  
+  //functionality
+  /**
+   * Opens a process.
+   * 
+   * Configuration functions you can use with this function:
+   * configureOpenWithModel()
+   * configureSetToMode()
+   * configureUseModv()
    * 
    * @param modelName
    * @throws SystemProcessException
    */
-  public void openWithModel(String modelName) throws SystemProcessException {
-    System.out.println("in openWithModel(String modelName)");
-    System.out.println(toString());
+  public void open() throws SystemProcessException{
+    if (openWithModel) {
+      open(modelName, setToMode);
+    }
+    else {
+      process.open();
+      if (setToMode) {
+        setMode(modelMode);
+      }
+    }
+  }
+  /**
+   * Opens a process using modelName.  Ignores configuration effecting mode.
+   * 
+   * Configuration functions you can use with this function:
+   * configureUseModv()
+   * 
+   * @param modelName
+   * @throws SystemProcessException
+   */
+  public void open(String modelName) throws SystemProcessException {
     if (modelName == null) {
       throw new NullPointerException(toString()); 
     }
     process.setModelName(modelName);
     if (useModv) {
       process.setUseModv(useModv);
-    }
-    if (!outputWindowID) {
-      process.setOutputWindowID(outputWindowID);
+      process.setOutputWindowID(false);
     }
     process.open();
   }
   
   /**
-   * Sets the model name, calls ImodProcess.open(), and sets the mode to model
-   * if setModelMode is true.
+   * Opens a process using modelName.  Sets the mode if setToMode = true.
    * 
-   * This will use "imod -view" if useModv is true.
+   * Configuration functions you can use with this function:
+   * configureSetMode()
+   * configureUseModv()
    *  
    * @param modelName
    * @param setModelMode
    * @throws SystemProcessException
    */
-  public void openWithModel(String modelName, boolean setModelMode) throws SystemProcessException {
-    System.out.println("in openWithModel(String modelName, boolean setModelMode)");
-    System.out.println(toString());
-    openWithModel(modelName);
-    if (setModelMode) {
-      process.modelMode();
+  public void open(String modelName, boolean setToMode) throws SystemProcessException {
+    open(modelName);
+    if (setToMode) {
+      setMode(modelMode);
     }
   }
   
-  /**
-   * Calls ImodProcess.open() and sets the mode to model.
-   * @throws SystemProcessException
-   */
-  public void openInModelMode() throws SystemProcessException {
-    System.out.println("in openInModelMode");
-    System.out.println(toString());
-    process.open();
-    process.modelMode();
-  }
 
   /**
-   * Opens a model.
+   * Opens a model using modelName.  Ignores configuration effecting mode.
    * 
-   * To preserve contrast, call setPreserveContrast(true) before calling this
-   * function.
+   * Configuration functions you can use with this function:
+   * configurePreserveContrast()
    * 
    * @param modelName
    * @throws SystemProcessException
    */
   public void model(String modelName) throws SystemProcessException {
-    System.out.println("in model(String modelName)");
-    System.out.println(toString());
     if (modelName == null) {
       throw new NullPointerException(toString()); 
     }
@@ -238,24 +324,31 @@ public class ImodAssistant {
     else {
       process.openModel(modelName);
     }
+
   }
-  
+
   /**
-   * Opens a model.
-   * Sets the mode to model if modelMode is true.
-   * Sets the mode to movie if modelMode is false.
+   * Opens a model.  Sets the mode.  Ignores model and mode configuration.
    * 
-   * To preserve contrast, call setPreserveContrast(true) before calling this
-   * function.
+   * Configuration functions you can use with this function:
+   * configurePreserveContrast()
    * 
    * @param modelName
    * @param modelMode
    * @throws SystemProcessException
    */
   public void model(String modelName, boolean modelMode) throws SystemProcessException {
-    System.out.println("in model(String modelName, boolean modelMode)");
-    System.out.println(toString());
     model(modelName);
+    setMode(modelMode);
+  }
+  
+  /**
+   * Sets the mode.  Ignores mode configuration.
+   * 
+   * @param modelModeIn
+   * @throws SystemProcessException
+   */
+  public void setMode(boolean modelMode) throws SystemProcessException {
     if (modelMode) {
       process.modelMode();
     }
@@ -265,56 +358,54 @@ public class ImodAssistant {
   }
   
   /**
-   * Calls ImodProcess.openBeadFixer().
+   * Opens the Bead Fixer window.
+   * 
    * @throws SystemProcessException
    */
   public void openBeadFixer() throws SystemProcessException {
-    System.out.println("in openBeadFixer");
-    System.out.println(toString());
     process.openBeadFixer();
   }
   /**
-   * Calls ImodProcess.isRunning().
-   * @return
+   * @return true if process is running
    */
   public boolean isOpen() {
-    System.out.println("in isOpen");
-    System.out.println(toString());
     return process.isRunning();
   }
   
   /**
-   * Calls ImodProcess.quit().
+   * Tells process to quit.
+   * 
    * @throws SystemProcessException
    */
   public void quit() throws SystemProcessException {
-    System.out.println("in quit");
-    System.out.println(toString());
     process.quit();
   }
 
 
-  public void setPreserveContrast(boolean setPreserveContrast) {
-    preserveContrast = setPreserveContrast;
-  }
-  public void setUseModv(boolean setUseModv) {
-    useModv = setUseModv;
-  }
-  public void setOutputWindowID(boolean setOutputWindowID) {
-    outputWindowID = setOutputWindowID;
-  }
-
+  
   public boolean isPreserveContrast() {
     return preserveContrast;
   }
+  
   public boolean isUseModv() {
     return useModv;
   }
-  public boolean isOutputWindowID() {
-    return outputWindowID;
+  
+  public boolean isOpenWithModel() {
+    return openWithModel;
+  }
+  public String getModelName() {
+    return modelName;
+  }
+  public boolean isSetToMode() {
+    return setToMode;
+  }
+  public boolean isModelMode() {
+    return modelMode;
   }
   
-  
+
+
   public String toString() {
     return getClass().getName() + "[" + paramString() + "]";
   }
@@ -324,11 +415,20 @@ public class ImodAssistant {
       + process
       + ", useModv="
       + useModv
-      + ", outputWindowID="
-      + outputWindowID
       + ", preserveContrast="
-      + preserveContrast;
+      + preserveContrast
+      + ", openWithModel="
+      + openWithModel
+      + ", modelName="
+      + modelName
+      + ", setToMode="
+      + setToMode
+      + ", modelMode="
+      + modelMode;
   }
+
+  
+
 
 
 }
