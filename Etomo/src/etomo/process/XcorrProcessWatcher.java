@@ -13,6 +13,9 @@ package etomo.process;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.1  2003/11/26 23:38:03  rickg
+ * <p> Changed name of logFileReader
+ * <p>
  * <p> Revision 3.0  2003/11/07 23:19:01  rickg
  * <p> Version 1.0.0
  * <p>
@@ -33,7 +36,7 @@ import etomo.ApplicationManager;
 import etomo.type.AxisID;
 
 public class XcorrProcessWatcher extends LogFileProcessMonitor {
-
+//  String lastLineRead = null;
   /**
    * Construct a xcorr process watcher
    * @param appMgr
@@ -63,13 +66,15 @@ public class XcorrProcessWatcher extends LogFileProcessMonitor {
     String line;
     while ((line = logFileReader.readLine()) != null) {
       if (line.startsWith("View")) {
-        String[] fields = line.split("\\s+");
-        if (fields.length > 1) {
-          String number = fields[1];
-          currentSection =
-            Integer.parseInt(number.substring(0, number.length() - 1));
-        }
+        currentSection++;
       }
+//TODO
+//      lastLineRead = line;
     }
+//TODO
+//    if (lastLineRead != null
+//      && lastLineRead.trim().startsWith("PROGRAM EXECUTED TO END.")) {
+//      waitingForExit++;
+//    }
   }
 }
