@@ -6,6 +6,10 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.9  2004/06/10 05:40:24  mast
+#  Made it copy solvezero.xf to solve.xf when it already has shifts, so it can be
+#  called in all cases after running solvematch
+#
 #  Revision 3.8  2003/10/24 02:14:00  mast
 #  source settmpdir to get tmpdir, better for Windows
 #
@@ -94,7 +98,7 @@ set deltas = `awk '{print 1000. * $4}' $infile`
 if ($deltax != 0 || $deltay != 0 || $deltaz != 0) then
     if (-e $outfile) \mv -f $outfile $outfile~
     \cp $infile $outfile
-    echo "SOLVEMATCH: Found non-zero shifts in $infile, copied it to $outfile"
+    echo "MATCHSHIFTS: Found non-zero shifts in $infile, copied it to $outfile"
     exit 0
 endif
 
