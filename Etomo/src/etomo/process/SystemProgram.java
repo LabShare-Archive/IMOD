@@ -22,6 +22,9 @@ import java.util.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.5  2002/10/10 23:39:00  rickg
+ * <p> call println with the correct object for stderror output
+ * <p>
  * <p> Revision 1.4  2002/10/10 18:52:30  rickg
  * <p> Added enableDebug method and functionality
  * <p> Closed IO stream of the process when done
@@ -119,12 +122,13 @@ public class SystemProgram implements Runnable {
 
     if (debug) {
       System.err.println("");
-      System.err.println("command string: " + command);
-      System.err.print("working directory: ");
+      System.err.println("SystemProgram: command string: " + command);
+      System.err.print("SystemProgram: working directory: ");
       if (workingDirectory == null) {
         System.err.println("null");
         System.err.println(
-          "using current user.dir " + System.getProperty("user.dir"));
+          "SystemProgram: using current user.dir "
+            + System.getProperty("user.dir"));
       }
       else {
         System.err.println(workingDirectory.getAbsoluteFile());
@@ -135,7 +139,7 @@ public class SystemProgram implements Runnable {
     Process process = null;
     try {
       if (debug)
-        System.err.print("Exec'ing process...");
+        System.err.print("SystemProgram: Exec'ing process...");
 
       if (workingDirectory == null) {
 
@@ -177,7 +181,7 @@ public class SystemProgram implements Runnable {
 
       if (debug) {
         if (stdInput != null) {
-          System.err.println("Wrote to process stdin:");
+          System.err.println("SystemProgram: Wrote to process stdin:");
           System.err.println(
             "------------------------------------------------------------");
           for (int i = 0; i < stdInput.length; i++) {
@@ -186,14 +190,14 @@ public class SystemProgram implements Runnable {
           System.err.println("");
         }
         else {
-          System.err.println("No input for process stdin");
+          System.err.println("SystemProgram: No input for process stdin");
         }
       }
 
       //  Wait for the process to exit
       //  why can we read the stdout and stderr above before this completes
       if (debug)
-        System.err.print("Waiting for process to end...");
+        System.err.print("SystemProgram: Waiting for process to end...");
 
       process.waitFor();
 
@@ -203,14 +207,15 @@ public class SystemProgram implements Runnable {
       exitValue = process.exitValue();
 
       if (debug)
-        System.err.println("Exit value: " + String.valueOf(exitValue));
+        System.err.println(
+          "SystemProgram: Exit value: " + String.valueOf(exitValue));
 
       //  Read in the command's stdout and stderr
       String line;
       int count = 0;
 
       if (debug)
-        System.err.print("Reading from process stdout: ");
+        System.err.print("SystemProgram: Reading from process stdout: ");
 
       while ((line = cmdOutputBuffer.readLine()) != null) {
         stdOutput.add(line);
@@ -221,8 +226,9 @@ public class SystemProgram implements Runnable {
       if (debug)
         System.err.println(String.valueOf(count) + " lines");
 
+
       if (debug)
-        System.err.print("Reading from process stderr: ");
+        System.err.print("SystemProgram: Reading from process stderr: ");
 
       count = 0;
       while ((line = cmdErrorBuffer.readLine()) != null) {
@@ -249,7 +255,7 @@ public class SystemProgram implements Runnable {
     }
 
     if (debug) {
-      System.err.println("Read from process stdout:");
+      System.err.println("SystemProgram: Read from process stdout:");
       System.err.println(
         "------------------------------------------------------------");
       for (int i = 0; i < stdOutput.size(); i++) {
@@ -257,7 +263,7 @@ public class SystemProgram implements Runnable {
       }
       System.err.println("");
 
-      System.err.println("Read from process stderr:");
+      System.err.println("SystemProgram: Read from process stderr:");
       System.err.println(
         "------------------------------------------------------------");
       for (int i = 0; i < stdError.size(); i++) {
