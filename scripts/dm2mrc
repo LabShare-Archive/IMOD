@@ -9,6 +9,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.4  2003/10/24 02:14:00  mast
+#  source settmpdir to get tmpdir, better for Windows
+#
 #  Revision 3.3  2003/06/20 20:04:28  mast
 #  Let tmpdir be defined and fall back to /tmp if /usr/tmp does not exist
 #
@@ -26,18 +29,52 @@ if ($?IMOD_DIR) then
 endif
 
 if ($#argv < 2) then
-	echo "Usage: dm2mrc [-d] Input_files Output_file"
-	echo "     Use -d option if files may have different headers, sizes, or types;"
-        echo "        the program will scan each one for header offset, size, and type"
+cat <<EOF
+Usage: dm2mrc [options] Input_files Output_file
+  Options:
+    -d    Files may have different headers, sizes, or types so scan each 
+             one for header offset, size, and type
+    -s    Treat unsigned data as signed (use if < 32768)
+    -r    Reduce (divide by 2) unsigned 16-bit data or 32-bit integer data
+    -c    Convert 32-bit integer data to 16-bit integers instead of floats
+EOF
 	exit 0
 endif
 
 set scan = 0
-if ("$argv[1]" == "-d") then 
-    set scan = 1
-    shift
-endif
+set divide
+set convert
+set done = 0
+set signed = 0
 
+while ($#argv > 2 && $done == 0)
+    switch ($argv[1])
+    case -d:
+        set scan = 1
+        shift
+        breaksw
+
+    case -c:
+        set convert = "-c"
+        shift
+        breaksw
+
+    case -r:
+        set divide = "-d"
+        shift
+        breaksw
+
+    case -s:
+        set signed = 1
+        shift
+        breaksw
+
+    default:
+        set done = 1
+        breaksw
+    endsw
+end
+        
 
 # Build a wordlist of critical values if we do scan the data
 
@@ -170,12 +207,14 @@ while ($num < $end)
 	    breaksw
 	case "10"
 	    set type = "ushort"
+            if ($signed == 1) set type = "short"
 	    breaksw
 	case "1"
 	    set type = "short"
 	    breaksw
 	case "11"
 	    set type = "ulong"
+            if ($signed == 1) set type = "long"
 	    breaksw
 	case "7"
 	    set type = "long"
@@ -202,7 +241,8 @@ endif
 # No differences: all in one operation
 
 if ($differ == 0) then
-    raw2mrc -f -o $offset $swap -t $type -x $xsize -y $ysize $argv
+    raw2mrc -f -o $offset $swap -t $type -x $xsize -y $ysize $convert $divide \
+      $argv
     exit 0
 endif
 
@@ -217,7 +257,8 @@ echo $num >! $newstfil
 
 while ($i < $#argv)
     set outfil = $tmpdir/$argv[$i].$$
-    raw2mrc -f -o $offsets[$i] $swap -t $types[$i] -x $xsizes[$i] -y $ysizes[$i] $argv[$i] $outfil
+    raw2mrc -f -o $offsets[$i] $swap -t $types[$i] -x $xsizes[$i] \
+      -y $ysizes[$i] $convert $divide $argv[$i] $outfil
     echo $outfil >> $newstfil
     echo 0 >> $newstfil
     @ i++
