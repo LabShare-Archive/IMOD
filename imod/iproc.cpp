@@ -446,7 +446,8 @@ IProcWindow::IProcWindow(QWidget *parent, const char *name)
 
     // Add widget to stack and set size policy to ignored
     mStack->addWidget(control, i);
-    control->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
+    control->setSizePolicy(QSizePolicy(QSizePolicy::Ignored,
+                                       QSizePolicy::Ignored));
   }
 
   // Finalize list box setting and connections
@@ -481,11 +482,13 @@ void IProcWindow::filterHighlighted(int which)
 {
   QWidget *control = mStack->visibleWidget();
   if (control)
-    control->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
+    control->setSizePolicy(QSizePolicy(QSizePolicy::Ignored, 
+                                       QSizePolicy::Ignored));
   proc.procnum = which;
   mStack->raiseWidget(which);
   control = mStack->visibleWidget();
-  control->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+  control->setSizePolicy(QSizePolicy(QSizePolicy::Expanding,
+                                     QSizePolicy::Expanding));
   mStack->adjustSize();
   adjustSize();
 }
@@ -663,6 +666,10 @@ void IProcWindow::keyReleaseEvent ( QKeyEvent * e )
 /*
 
     $Log$
+    Revision 4.6  2004/01/22 19:09:38  mast
+    Added a button to toggle between processed and original image, and changed
+    geometry management to resize to the widget so large panels can be inserted
+
     Revision 4.5  2004/01/05 18:04:56  mast
     Prevented operating on images while data being loaded; renamed vw to vi
 
