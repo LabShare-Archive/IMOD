@@ -34,6 +34,9 @@
     $Revision$
 
     $Log$
+    Revision 3.4  2002/11/05 23:35:08  mast
+    Changed to call imodCopyright
+
     Revision 3.3  2001/12/29 01:30:23  mast
     Fixed byte swapping for 4-byte entities
 
@@ -363,44 +366,16 @@ main( int argc, char *argv[] )
      printf("Min = %g, Max = %g, Mean = %g\n", min, max, mean);
 
      /* write out MRC header */
+     /* DNM 11/5/02: change from raw writes of each element to calling
+	library routines.  Added label */
      rewind(fout);
-     fwrite(&x, 4, 1, fout);
-     fwrite(&y, 4, 1, fout);
-     fwrite(&nsecs, 4, 1, fout);
-     fwrite(&outtype, 4, 1, fout);
+     mrc_head_new(&hdata, x, y, nsecs, outtype);
+     hdata.amin = min;
+     hdata.amax = max;
+     hdata.amean = mean;
+     mrc_head_label(&hdata, "raw2mrc: Converted to mrc format.");
+     mrc_head_write(fout, &hdata);
 
-     fwrite(&start, 4, 1, fout);
-     fwrite(&start, 4, 1, fout);
-     fwrite(&start, 4, 1, fout);
-
-     fwrite(&x, 4, 1, fout);
-     fwrite(&y, 4, 1, fout);
-     fwrite(&nsecs, 4, 1, fout);
-     
-     xlen = x;
-     ylen = y;
-     zlen = nsecs;
-
-     fwrite(&xlen, 4, 1, fout);
-     fwrite(&ylen, 4, 1, fout);
-     fwrite(&zlen, 4, 1, fout);
-
-     fwrite(&angle, 4, 1, fout);
-     fwrite(&angle, 4, 1, fout);
-     fwrite(&angle, 4, 1, fout);
-     
-     x = 1;
-     y = 2;
-     z = 3;
-     
-     fwrite(&x, 4, 1, fout);
-     fwrite(&y, 4, 1, fout);
-     fwrite(&z, 4, 1, fout);
-     
-     fwrite(&min, 4, 1, fout);
-     fwrite(&max, 4, 1, fout);
-     fwrite(&mean, 4, 1, fout);
-  
      fclose(fout);
 
      exit(0);
