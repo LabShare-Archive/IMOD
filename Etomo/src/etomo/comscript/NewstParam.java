@@ -17,6 +17,9 @@ import java.util.Vector;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.1  2004/02/13 01:04:17  rickg
+ * <p> *** empty log message ***
+ * <p>
  * <p> Revision 3.0  2003/11/07 23:19:00  rickg
  * <p> Version 1.0.0
  * <p>
@@ -78,29 +81,62 @@ public class NewstParam extends ConstNewstParam implements CommandParam {
    * and parameters.
    */
   public void parseComScriptCommand(ComScriptCommand scriptCommand)
-  throws FortranInputSyntaxException {
+  throws FortranInputSyntaxException, InvalidParameterException {
     // TODO error checking - throw exceptions for bad syntax
     String[] cmdLineArgs = scriptCommand.getCommandLineArgs();
     reset();
-    for (int i = 0; i < cmdLineArgs.length - 2; i++) {
-      if (cmdLineArgs[i].startsWith("-si")) {
-        i++;
-        sizeToOutputInXandY.validateAndSet(cmdLineArgs[i]);
+    for (int i = 0; i < cmdLineArgs.length; i++) {
+      //  Is it an argument or filename
+      if (cmdLineArgs[i].startsWith("-")) {
+        if (cmdLineArgs[i].toLowerCase().startsWith("-in")) {
+          i++;
+          inputFile.add(cmdLineArgs[i]);
+        }
+        else if (cmdLineArgs[i].toLowerCase().startsWith("-ou")) {
+          i++;
+          outputFile.add(cmdLineArgs[i]);
+        }
+        else if (cmdLineArgs[i].startsWith("-filei")
+        || cmdLineArgs[i].startsWith("-FileOfI")) {
+          i++;
+          fileOfInputs = cmdLineArgs[i];
+        }
+        else if (cmdLineArgs[i].startsWith("-filei")
+        || cmdLineArgs[i].startsWith("-FileOfI")) {
+          i++;
+          fileOfInputs = cmdLineArgs[i];
+        }
+        else if (cmdLineArgs[i].toLowerCase().startsWith("-si")) {
+          i++;
+          sizeToOutputInXandY.validateAndSet(cmdLineArgs[i]);
+        }
+        else if (cmdLineArgs[i].toLowerCase().startsWith("-of")) {
+          i++;
+          offsetsInXandY.add(cmdLineArgs[i]);
+        }
+        else if (cmdLineArgs[i].startsWith("-x")
+          || cmdLineArgs[i].startsWith("-Tr")) {
+          i++;
+          transformFile = cmdLineArgs[i];
+        }
+        else if (cmdLineArgs[i].toLowerCase().startsWith("-l")) {
+          linearInterpolation = true;
+        }
+        else {
+          String message = "Unknown argument: " + cmdLineArgs[i];
+          throw new InvalidParameterException(message);
+        }
       }
-      if (cmdLineArgs[i].startsWith("-o")) {
-        i++;
-        offsetsInXandY.add(cmdLineArgs[i]);
-      }
-      if (cmdLineArgs[i].startsWith("-x")) {
-        i++;
-        transformFile = cmdLineArgs[i];
-      }
-      if (cmdLineArgs[i].startsWith("-l")) {
-        linearInterpolation = true;
+      // input and output filename arguments
+      else {
+        if (i == (cmdLineArgs.length - 1)) {
+          outputFile.add(cmdLineArgs[i]);
+        }
+        else {
+          inputFile.add(cmdLineArgs[i]);
+        }
       }
     }
-    inputFile.add(cmdLineArgs[cmdLineArgs.length - 2]);
-    outputFile.add(cmdLineArgs[cmdLineArgs.length - 1]);
   }
 
   /**
@@ -113,121 +149,97 @@ public class NewstParam extends ConstNewstParam implements CommandParam {
     // Create a new command line argument array
 
     ArrayList cmdLineArgs = new ArrayList(20);
-    
-    for(Iterator i = inputFile.iterator(); i.hasNext(); ) {
-        cmdLineArgs.add("-InputFile");
-        cmdLineArgs.add((String) i.next());
-     }
-
-    for(Iterator i = outputFile.iterator(); i.hasNext();) {
+    for (Iterator i = inputFile.iterator(); i.hasNext(); ) {
+      cmdLineArgs.add("-InputFile");
+      cmdLineArgs.add((String) i.next());
+    }
+    for (Iterator i = outputFile.iterator(); i.hasNext(); ) {
       cmdLineArgs.add("-OutputFile");
       cmdLineArgs.add((String) i.next());
     }
-    
-    if(!fileOfInputs.equals("")) {
+    if (!fileOfInputs.equals("")) {
       cmdLineArgs.add("-FileOfInputs");
       cmdLineArgs.add(fileOfInputs);
     }
-    
-    if(!fileOfOutputs.equals("")) {
+    if (!fileOfOutputs.equals("")) {
       cmdLineArgs.add("-FileOfOutputs");
       cmdLineArgs.add(fileOfOutputs);
     }
-    
-    for(Iterator i = sectionsToRead.iterator(); i.hasNext();) {
+    for (Iterator i = sectionsToRead.iterator(); i.hasNext(); ) {
       cmdLineArgs.add("-SectionsToRead");
       cmdLineArgs.add((String) i.next());
     }
-    
-    for(Iterator i = numberToOutput.iterator(); i.hasNext();) {
+    for (Iterator i = numberToOutput.iterator(); i.hasNext(); ) {
       cmdLineArgs.add("-NumberToOutput");
       cmdLineArgs.add((String) i.next());
     }
-    
     if (sizeToOutputInXandY.valuesSet()) {
       cmdLineArgs.add("-SizeToOutputInXandY");
       cmdLineArgs.add(sizeToOutputInXandY.toString());
     }
-
     if (modeToOutput > Integer.MIN_VALUE) {
       cmdLineArgs.add("-ModeToOutput");
       cmdLineArgs.add(String.valueOf(modeToOutput));
     }
-    
-    for(Iterator i = offsetsInXandY.iterator(); i.hasNext();) {
+    for (Iterator i = offsetsInXandY.iterator(); i.hasNext(); ) {
       cmdLineArgs.add("-OffsetsInXandY");
       cmdLineArgs.add((String) i.next());
     }
-
     if (applyOffsetsFirst) {
       cmdLineArgs.add("-ApplyOffsetsFirst");
     }
-  	
-    if(!transformFile.equals("")) {
-  	  cmdLineArgs.add("-TransformFile");
+    if (!transformFile.equals("")) {
+      cmdLineArgs.add("-TransformFile");
       cmdLineArgs.add(transformFile);
     }
-  	
-  	if(!useTransformLines.equals("")) {
-  	  cmdLineArgs.add("-UseTransformLines");
-  	  cmdLineArgs.add(useTransformLines);
-  	}
-  	
-  	if(!Float.isNaN(rotateByAngle)) {
-  	  cmdLineArgs.add("-RotateByAngle");
-  	  cmdLineArgs.add(String.valueOf(rotateByAngle));
-  	}
-  	
-  	if(!Float.isNaN(expandByFactor)) {
-  	  cmdLineArgs.add("-ExpandByFactor");
-  	  cmdLineArgs.add(String.valueOf(expandByFactor));
-  	}
-
-  	if (binByFactor > Integer.MIN_VALUE) {
-  	  cmdLineArgs.add("-BinByFactor");
-  	  cmdLineArgs.add(String.valueOf(binByFactor));
-  	}
-
-  	if (linearInterpolation) {
+    if (!useTransformLines.equals("")) {
+      cmdLineArgs.add("-UseTransformLines");
+      cmdLineArgs.add(useTransformLines);
+    }
+    if (!Float.isNaN(rotateByAngle)) {
+      cmdLineArgs.add("-RotateByAngle");
+      cmdLineArgs.add(String.valueOf(rotateByAngle));
+    }
+    if (!Float.isNaN(expandByFactor)) {
+      cmdLineArgs.add("-ExpandByFactor");
+      cmdLineArgs.add(String.valueOf(expandByFactor));
+    }
+    if (binByFactor > Integer.MIN_VALUE) {
+      cmdLineArgs.add("-BinByFactor");
+      cmdLineArgs.add(String.valueOf(binByFactor));
+    }
+    if (linearInterpolation) {
       cmdLineArgs.add("-LinearInterpolation");
     }
-  	
-  	if (floatDensities > Integer.MIN_VALUE) {
-  	  cmdLineArgs.add("-FloatDensities");
-  	  cmdLineArgs.add(String.valueOf(floatDensities));
-  	}
-    
-  	if (contrastBlackWhite.valuesSet()) {
-  	  cmdLineArgs.add("-ContrastBlackWhite");
-  	  cmdLineArgs.add(String.valueOf(contrastBlackWhite.toString()));
-  	}
-  	
-  	if (scaleMinAndMax.valuesSet()) {
-  	  cmdLineArgs.add("-ScaleMinAndMax");
-  	  cmdLineArgs.add(String.valueOf(scaleMinAndMax.toString()));
-  	}
-
-  	if(!distortionField.equals("")) {
-  	  cmdLineArgs.add("-DistortionField");
-  	  cmdLineArgs.add(distortionField);
-  	}
-  	
-  	if (imagesAreBinned > Integer.MIN_VALUE) {
-  	  cmdLineArgs.add("-ImagesAreBinned");
-  	  cmdLineArgs.add(String.valueOf(imagesAreBinned));
-  	}
-  	
-  	if (testLimits.valuesSet()) {
-  	  cmdLineArgs.add("-TestLimits");
-  	  cmdLineArgs.add(String.valueOf(testLimits.toString()));
-  	}
-  	
-  	if(!parameterFile.equals("")) {
-  	  cmdLineArgs.add("-ParameterFile");
-  	  cmdLineArgs.add(parameterFile);
-  	}
-  	
-  	int nArgs = cmdLineArgs.size();
+    if (floatDensities > Integer.MIN_VALUE) {
+      cmdLineArgs.add("-FloatDensities");
+      cmdLineArgs.add(String.valueOf(floatDensities));
+    }
+    if (contrastBlackWhite.valuesSet()) {
+      cmdLineArgs.add("-ContrastBlackWhite");
+      cmdLineArgs.add(String.valueOf(contrastBlackWhite.toString()));
+    }
+    if (scaleMinAndMax.valuesSet()) {
+      cmdLineArgs.add("-ScaleMinAndMax");
+      cmdLineArgs.add(String.valueOf(scaleMinAndMax.toString()));
+    }
+    if (!distortionField.equals("")) {
+      cmdLineArgs.add("-DistortionField");
+      cmdLineArgs.add(distortionField);
+    }
+    if (imagesAreBinned > Integer.MIN_VALUE) {
+      cmdLineArgs.add("-ImagesAreBinned");
+      cmdLineArgs.add(String.valueOf(imagesAreBinned));
+    }
+    if (testLimits.valuesSet()) {
+      cmdLineArgs.add("-TestLimits");
+      cmdLineArgs.add(String.valueOf(testLimits.toString()));
+    }
+    if (!parameterFile.equals("")) {
+      cmdLineArgs.add("-ParameterFile");
+      cmdLineArgs.add(parameterFile);
+    }
+    int nArgs = cmdLineArgs.size();
     scriptCommand.setCommandLineArgs(
     (String[]) cmdLineArgs.toArray(new String[nArgs]));
   }
@@ -260,10 +272,11 @@ public class NewstParam extends ConstNewstParam implements CommandParam {
   }
 
   /**
-   * @param contrastBlackWhite The contrastBlackWhite to set.
+   * @param contrast The contrastBlackWhite to set.
    */
-  public void setContrastBlackWhite(FortranInputString contrastBlackWhite) {
-    this.contrastBlackWhite = contrastBlackWhite;
+  public void setContrastBlackWhite(String contrast)
+  throws FortranInputSyntaxException {
+    contrastBlackWhite.validateAndSet(contrast);
   }
 
   /**
@@ -311,8 +324,11 @@ public class NewstParam extends ConstNewstParam implements CommandParam {
   /**
    * @param inputFile The inputFile to set.
    */
-  public void setInputFile(Vector inputFile) {
-    this.inputFile = inputFile;
+  public void setInputFile(Vector files) {
+    // Defensively copy argument, since the objects are strings we only need
+    // copy the collection of references
+    inputFile.clear();
+    inputFile.addAll(files);
   }
 
   /**
@@ -339,15 +355,21 @@ public class NewstParam extends ConstNewstParam implements CommandParam {
   /**
    * @param offsetsInXandY The offsetsInXandY to set.
    */
-  public void setOffsetsInXandY(Vector offsetsInXandY) {
-    this.offsetsInXandY = offsetsInXandY;
+  public void setOffsetsInXandY(Vector offsets) {
+    // Defensively copy argument, since the objects are primatives we only need
+    // copy the collection of references
+    offsetsInXandY.clear();
+    offsetsInXandY.addAll(offsets);
   }
 
   /**
    * @param outputFile The outputFile to set.
    */
-  public void setOutputFile(Vector outputFile) {
-    this.outputFile = outputFile;
+  public void setOutputFile(Vector files) {
+    // Defensively copy argument, since the objects are strings we only need
+    // copy the collection of references
+    outputFile.clear();
+    outputFile.addAll(files);
   }
 
   /**
@@ -374,22 +396,26 @@ public class NewstParam extends ConstNewstParam implements CommandParam {
   /**
    * @param sectionsToRead The sectionsToRead to set.
    */
-  public void setSectionsToRead(Vector sectionsToRead) {
-    this.sectionsToRead = sectionsToRead;
+  public void setSectionsToRead(Vector sections) {
+    // Defensively copy argument, since the objects are primatives we only need
+    // copy the collection of references
+    sectionsToRead.clear();
+    sectionsToRead.addAll(sections);
   }
 
   /**
    * @param sizeToOutputInXandY The sizeToOutputInXandY to set.
    */
-  public void setSizeToOutputInXandY(FortranInputString sizeToOutputInXandY) {
-    this.sizeToOutputInXandY = sizeToOutputInXandY;
+  public void setSizeToOutputInXandY(String size)
+  throws FortranInputSyntaxException {
+    sizeToOutputInXandY.validateAndSet(size);
   }
 
   /**
    * @param testLimits The testLimits to set.
    */
-  public void setTestLimits(FortranInputString testLimits) {
-    this.testLimits = testLimits;
+  public void setTestLimits(String limits) throws FortranInputSyntaxException {
+    testLimits.validateAndSet(limits);
   }
 
   /**
