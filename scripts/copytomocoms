@@ -21,6 +21,9 @@ set dual_srcname = "g5"
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.5  2003/05/16 15:33:23  mast
+#  Made it work with spaces in names for current and backup directories
+#
 #  Revision 3.4  2002/12/21 00:01:07  mast
 #  Add conversion of tiltalign residual file to model
 #
@@ -328,7 +331,12 @@ while ($iaxis < $numax)
 
     echo "Enter list of views to exclude from tracking, alignment, and reconstruction,"
     echo "  or Return if none (enter ranges separated by commas, e.g. 1,77-80)"
-    set excludelist = $<
+    set excludelistin = ($<)
+    set excludelist = ""
+    while ($#excludelistin > 0)
+        set excludelist = ${excludelist}$excludelistin[1]
+        shift excludelistin
+    end
 
     set backuplist = ($backuplist $setname.pl $setname.rawtlt track$logext align$logext findsec$logext tomopitch$logext)
 
