@@ -19,6 +19,14 @@ set tmp_srcname = "g5tmpdir"
 set backupname = "./savework"
 set backupsed = ".\/savework"
 
+#  $Author$
+#
+#  $Date$
+#
+#  $Revision$
+#
+#  $Log$
+#
 if ($?IMOD_DIR) then
     set srcdir = "$IMOD_DIR/com"
     set path = ($IMOD_DIR/bin $path)
@@ -119,7 +127,7 @@ echo -n "   2 if there are fiducials on both surfaces: "
 set modsurf = $<
 end
 
-set gotomodel = '$\!goto'
+set gotomodel = '#$goto'
 if ($modsurf == "0") set gotomodel = '$goto'
 
 @ nx = $size[1]
@@ -254,7 +262,7 @@ while ($ifok == "0")
     if ($tmproot == "") then
 	set tmpdir = ""
 	set tmppath = ""
-	set ifmkdir = '$\!if'
+	set ifmkdir = '#$if'
         set tempdirarg = " -tempdir "
 	set tmpmatfile = $matfile
 	set sedtmpdir = ""
