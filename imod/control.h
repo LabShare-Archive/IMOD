@@ -42,6 +42,15 @@ typedef void (*ImodControlKey)(struct ViewInfo *, void *, int,  QKeyEvent *);
 #include "controlP.h"
 #endif
 
+/* Define macro for export of functions under Windows */
+#ifndef DLL_EX_IM
+#ifdef _WIN32
+#define DLL_EX_IM _declspec(dllexport)
+#else
+#define DLL_EX_IM
+#endif
+#endif
+
 extern "C" {
 
 /****************************************************************************/
@@ -57,40 +66,40 @@ extern "C" {
  *
  */
 
-int ivwNewControl(ImodView *inImodView,
-		  ImodControlProc inDrawFunction,
-		  ImodControlProc inQuitFunction,
-		  ImodControlKey inKeyFunction,
-		  void *data);
+int DLL_EX_IM ivwNewControl(ImodView *inImodView,
+                            ImodControlProc inDrawFunction,
+                            ImodControlProc inQuitFunction,
+                            ImodControlKey inKeyFunction,
+                            void *data);
 
 /* delete the control associated with the inCtrlId value.
  * this will also call the close or quit method of the control.
  */
-int ivwDeleteControl(ImodView *iv, int inCtrlId);
+int DLL_EX_IM ivwDeleteControl(ImodView *iv, int inCtrlId);
 
 /* remove the control associated with the inCtrlId value.
  * do not call the close method of the control
  */
-int ivwRemoveControl(ImodView *iv, int inCtrlId);
+int DLL_EX_IM ivwRemoveControl(ImodView *iv, int inCtrlId);
 
 /* move control to top of control Q if it exists
  * also sets or clears the control active flag.
  * returns the id of the highest priority control id.
  */
-int ivwControlPriority(ImodView *iv, int inCtrlId);
+int DLL_EX_IM ivwControlPriority(ImodView *iv, int inCtrlId);
 
 /* make the given control the active one.
  * A zero value for inCtrlId make no control the active one.
  */
-void ivwControlActive(ImodView *iv, int inCtrlId);    
+void DLL_EX_IM ivwControlActive(ImodView *iv, int inCtrlId);    
 
 /* Pass a key event on to the first control on the list that has a callback
  */
-void ivwControlKey(int released, QKeyEvent *e);
+void DLL_EX_IM ivwControlKey(int released, QKeyEvent *e);
 
 
 // A dialog manager class for hiding, showing, and closing windows in concert
-class DialogManager
+class DLL_EX_IM DialogManager
 {
  public:
   DialogManager();
@@ -113,13 +122,16 @@ class DialogManager
 };
 
 /* Global instances */
-extern DialogManager imodvDialogManager;
-extern DialogManager imodDialogManager;
+extern DLL_EX_IM DialogManager imodvDialogManager;
+extern DLL_EX_IM DialogManager imodDialogManager;
 }
 #endif
 
 /*
 $Log$
+Revision 4.9  2004/05/05 17:33:19  mast
+Added function to get list of windows of one type
+
 Revision 4.8  2004/04/28 23:52:39  mast
 Added windowCount method
 

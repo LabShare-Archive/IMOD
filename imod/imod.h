@@ -42,6 +42,15 @@ class QKeyEvent;
 #include "imodP.h"
 #endif
 
+/* Define macro for export of functions under Windows */
+#ifndef DLL_EX_IM
+#ifdef _WIN32
+#define DLL_EX_IM _declspec(dllexport)
+#else
+#define DLL_EX_IM
+#endif
+#endif
+
 /*********************** Graphics functions. *********************************/
 
 /* defines for imodDraw(); */
@@ -66,7 +75,7 @@ extern "C" {
  *  Draw the model using a 2D line renderer implemented with OpenGL functions.
  *  You will need to set up the view matrix yourself.
  */
-void imodDrawModel(ImodView *inImodView, Imod *inModel);
+void DLL_EX_IM imodDrawModel(ImodView *inImodView, Imod *inModel);
 
 /* imod plugin */
 /************************************* defines *******************************/
@@ -101,9 +110,9 @@ int           imodDepth(void);
 #define COLOR_MAX       10  /* The index of the maximum image value. */
 
 /*
- * return the pixal value of the given IMOD_COLOR value.
+ * return the pixel value of the given IMOD_COLOR value.
  */
-int imodColorValue(int inColor);
+int DLL_EX_IM imodColorValue(int inColor);
 
 
 /************************ utility functions. *********************************/
@@ -112,12 +121,26 @@ int imodColorValue(int inColor);
  * the usage of this function is similar to the usage of the
  * stdio function printf.
  */
-void wprint(char *fmt, ...);
+void DLL_EX_IM wprint(char *fmt, ...);
 
-/* 1/13/02: removed inputDefaultKeys
- *  Call a keyevent, execute imod hot keys.
- */
-void imodDefaultKeys(QKeyEvent *event, ImodView *vw);
+/* Print an error message with printf-type arguments
+   This function will output a message box if "out" is NULL or under Windows;
+   otherwise it will print to "out" */
+void DLL_EX_IM imodError(FILE *out, const char *format, ...);
+
+/* Print a message to standard error with printf-type arguments
+   This function will flush stderr under Windows */
+void DLL_EX_IM imodPrintStderr(const char *format, ...);
+
+/* Print a message to standard out, or to a message box under Windows */
+void DLL_EX_IM imodPrintInfo(const char *message);
+
+/* Put a message to standard error like "puts", but flush under Windows */
+void DLL_EX_IM imodPuts(const char *message);
+
+
+/* Call with a keyevent to execute 3dmod hot keys */
+void DLL_EX_IM imodDefaultKeys(QKeyEvent *event, ImodView *vw);
 
 
 /*****************************************************************************/
@@ -126,6 +149,9 @@ void imodDefaultKeys(QKeyEvent *event, ImodView *vw);
 
 /*
     $Log$
+    Revision 3.6  2003/10/01 05:04:44  mast
+    Changes for creation of imodview.h
+
     Revision 3.5  2003/09/16 02:49:06  mast
     Changed declarations ofr functions that return image line pointers
 
