@@ -89,6 +89,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.122  2005/01/26 04:23:18  sueh
+ * <p> bug# 83 mtfFilter():  Removed called to startProgressBar().
+ * <p>
  * <p> Revision 3.121  2005/01/21 22:05:55  sueh
  * <p> bug# 509 bug# 591  Moved the management of MetaData to the Controller
  * <p> class.  Moved the set/get of tranferfid metadata fields to TransferfidPanel.
@@ -1244,12 +1247,29 @@ public class ApplicationManager extends BaseManager {
   public void setAdvanced(DialogType dialogType, boolean advanced) {
     advancedA[dialogType.toIndex()] = advanced;   
   }
+  
   /**
    * 
    */
   public boolean isNewManager() {
     return setupDialog != null;
   }
+
+   /**
+   * Check if setup dialog has been modified by the user.
+   * Return true if there is text in the dataset field.
+   * @return
+   */
+  public boolean isSetupChanged() {
+    if (setupDialog == null) {
+      return false;
+    }
+    if (setupDialog.getDatasetString() == null || setupDialog.getDatasetString().matches("\\s*")) {
+      return false;
+    }
+    return true;
+  }
+  
   /**
    * Open the setup dialog
    */
