@@ -88,6 +88,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.83  2004/06/28 04:36:39  rickg
+ * <p> Bug #470 Added method to update prexf and _nonfid.xf
+ * <p>
  * <p> Revision 3.82  2004/06/25 23:26:51  sueh
  * <p> bug# 485 In openTomogramCombinationDialog, after loading
  * <p> the comscripts, synchronize from initial and final tabs to setup
@@ -1714,20 +1717,6 @@ public class ApplicationManager {
     }
     metaData.setFiducialessAlignment(dialog.isFiducialessAlignment());
     metaData.setImageRotation(tiltAxisAngle, axisID);
-
-    try {
-      if (metaData.isFiducialessAlignment()) {
-        updateRotationXF(tiltAxisAngle, axisID);
-        processMgr.setupNonFiducialAlign(axisID);
-      }
-      else {
-        processMgr.setupFiducialAlign(axisID);
-      }
-    }
-    catch (IOException except) {
-      mainFrame.openMessageDialog(except.getMessage(), "IOException");
-      return false;
-    }
     return true;
   }
 
@@ -2590,6 +2579,19 @@ public class ApplicationManager {
     if(metaData.isFiducialessAlignment()) {
       generateFiducialessTransforms(axisID);
     }
+    else {
+      try {
+        processMgr.setupFiducialAlign(axisID);
+      }
+      catch (IOException except) {
+        except.printStackTrace();
+        String[] message = new String[2];
+        message[0] = "Problem copying fiducial alignment files";
+        message[1] = except.getMessage();
+        mainFrame.openMessageDialog(message, "Unable to copy fiducial alignment files");
+      }
+    }
+    
     String threadName;
     try {
       threadName = processMgr.createSample(axisID);
@@ -2631,6 +2633,18 @@ public class ApplicationManager {
     // selected
     if(metaData.isFiducialessAlignment()) {
       generateFiducialessTransforms(axisID);
+    }
+    else {
+      try {
+        processMgr.setupFiducialAlign(axisID);
+      }
+      catch (IOException except) {
+        except.printStackTrace();
+        String[] message = new String[2];
+        message[0] = "Problem copying fiducial alignment files";
+        message[1] = except.getMessage();
+        mainFrame.openMessageDialog(message, "Unable to copy fiducial alignment files");
+      }
     }
 
     nextProcess = "tilt";
@@ -2907,7 +2921,8 @@ public class ApplicationManager {
   }
   
   /**
-   * Generate the prexg and _nonfid.xf for the specified axis
+   * Generate the prexg and _nonfid.xf for the specified axis and setup the 
+   * transform files for fiducialless mode
    * @param axisID
    */
   private void generateFiducialessTransforms(AxisID axisID) {
@@ -2930,6 +2945,16 @@ public class ApplicationManager {
       message[0] = "Unable to generate _nonfid.xf";
       message[1] = except.getMessage();
       mainFrame.openMessageDialog(message, "Unable to generate _nonfid.xf");
+    }
+    try {
+      processMgr.setupNonFiducialAlign(axisID);
+    }
+    catch (IOException except) {
+      except.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Unable to setup fiducialless align files";
+      message[1] = except.getMessage();
+      mainFrame.openMessageDialog(message, "Unable to setup fiducialless align files");
     }
   }
 
@@ -3251,6 +3276,18 @@ public class ApplicationManager {
     if(metaData.isFiducialessAlignment()) {
       generateFiducialessTransforms(axisID);
     }
+    else {
+      try {
+        processMgr.setupFiducialAlign(axisID);
+      }
+      catch (IOException except) {
+        except.printStackTrace();
+        String[] message = new String[2];
+        message[0] = "Problem copying fiducial alignment files";
+        message[1] = except.getMessage();
+        mainFrame.openMessageDialog(message, "Unable to copy fiducial alignment files");
+      }
+    }
 
     String threadName;
     try {
@@ -3265,7 +3302,6 @@ public class ApplicationManager {
       return;
     }
     setThreadName(threadName, axisID);
-
   }
 
   /**

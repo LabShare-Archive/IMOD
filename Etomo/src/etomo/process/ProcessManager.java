@@ -20,6 +20,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.18  2004/06/25 23:13:46  rickg
+ * Bug #470 Added generatePreXG method.
+ *
  * Revision 3.17  2004/06/18 05:46:27  rickg
  * Shortened sleep while waited com script to start, this should
  * help but not totally solve the extremely short run com problem
@@ -624,7 +627,6 @@ public class ProcessManager {
       xf.delete();
       tlt.delete();
     }
-
   }
 
   /**
