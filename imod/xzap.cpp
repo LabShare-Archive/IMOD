@@ -66,11 +66,12 @@ static void zapClose_cb(ImodView *vi, void *client, int drawflag);
 static void zapKey_cb(ImodView *vi, void *client, int released, QKeyEvent *e);
 static void zapDraw(ZapStruct *zap);
 static void zapButton1(struct zapwin *zap, int x, int y, int controlDown);
-static void zapButton2(struct zapwin *zap, int x, int y);
+static void zapButton2(struct zapwin *zap, int x, int y, int controlDown);
 static void zapButton3(struct zapwin *zap, int x, int y, int controlDown);
 static void zapB1Drag(struct zapwin *zap, int x, int y);
-static void zapB2Drag(struct zapwin *zap, int x, int y);
+static void zapB2Drag(struct zapwin *zap, int x, int y, int controlDown);
 static void zapB3Drag(struct zapwin *zap, int x, int y, int controlDown);
+static void shiftContour(ZapStruct *zap, int x, int y);
 static void startMovieCheckSnap(ZapStruct *zap, int dir);
 
 static void zapDrawGraphics(ZapStruct *zap);
@@ -236,6 +237,10 @@ void zapHelp()
      "\tSecond Button Click: Add one point to the current contour.\n"
      "\tSecond Button Drag: Continually add points to the current "
      "contour as the mouse is moved, or move the rubber band.\n",
+     "\t"CTRL_STRING" - Second Button Click or Drag: Shift the whole current "
+     "contour by moving the current point to the mouse position.  Shifting "
+     "works for any contours in closed contour objects and for coplanar "
+     "contours in open contour objects.\n"
      "\tThird Button Click: Modify the current model point to be at the "
      "selected position.\n",
      "\tThird Button Drag: Continually modify points as the mouse is "
@@ -1076,9 +1081,9 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
     insertTime.restart();
     /* imodPrintStderr(" %d %d %d\n ", rx, ix, iy); */
     if(rx > 250)
-      zapButton2(zap, ix, iy);
+      zapButton2(zap, ix, iy, 0);
     else
-      zapB2Drag(zap, ix, iy); 
+      zapB2Drag(zap, ix, iy, 0); 
 
     zap->lmx = ix;
     zap->lmy = iy;
@@ -1272,6 +1277,7 @@ static int firstmx, firstmy;
 void zapMousePress(ZapStruct *zap, QMouseEvent *event)
 {
   int button1, button2, button3;
+  int ctrlDown = event->state() & Qt::ControlButton;
   setControlAndLimits(zap);
 
   button1 = event->stateAfter() & ImodPrefs->actualButton(1) ? 1 : 0;
@@ -1285,18 +1291,18 @@ void zapMousePress(ZapStruct *zap, QMouseEvent *event)
       firstmx = event->x();
       firstmy = event->y();
       if (zap->startingBand)
-        zapButton1(zap, firstmx, firstmy, event->state() & Qt::ControlButton);
+        zapButton1(zap, firstmx, firstmy, ctrlDown);
       else
         firstdrag = 1;
       
   } else if (event->button() == ImodPrefs->actualButton(2) &&
 	     !button1 && !button3) {
-      zapButton2(zap, event->x(), event->y());
+    zapButton2(zap, event->x(), event->y(), ctrlDown);
 
   } else if (event->button() == ImodPrefs->actualButton(3) &&
 	     !button1 && !button2) {
-      zapButton3(zap, event->x(), event->y(), 
-                 event->state() & Qt::ControlButton);
+    zapButton3(zap, event->x(), event->y(), ctrlDown);
+
   }
   zap->lmx = event->x();
   zap->lmy = event->y();
@@ -1347,6 +1353,7 @@ void zapMouseMove(ZapStruct *zap, QMouseEvent *event, bool mousePressed)
   int button1, button2, button3;
   int cumdx, cumdy;
   int cumthresh = 6 * 6;
+  int ctrlDown = event->state() & Qt::ControlButton;
 
   if (!(mousePressed || insertDown))
     return;
@@ -1370,11 +1377,10 @@ void zapMouseMove(ZapStruct *zap, QMouseEvent *event, bool mousePressed)
     }
 
     if ( (!button1) && (button2) && (!button3))
-      zapB2Drag(zap, event->x(), event->y());
+      zapB2Drag(zap, event->x(), event->y(), ctrlDown);
 
     if ( (!button1) && (!button2) && (button3))
-      zapB3Drag(zap, event->x(), event->y(),
-                event->state() & Qt::ControlButton);
+      zapB3Drag(zap, event->x(), event->y(), ctrlDown);
 
     zap->lmx = event->x();
     zap->lmy = event->y();
@@ -1536,7 +1542,7 @@ void zapButton1(ZapStruct *zap, int x, int y, int controlDown)
 
 /* In model mode, add a model point, creating a new contour if necessary */
 
-void zapButton2(ZapStruct *zap, int x, int y)
+void zapButton2(ZapStruct *zap, int x, int y, int controlDown)
 {
   ImodView *vi = zap->vi;
   Iobj  *obj;
@@ -1550,6 +1556,11 @@ void zapButton2(ZapStruct *zap, int x, int y)
   int dxll, dxur,dyll, dyur;
   int cz, pz;
   int curTime = zap->timeLock ? zap->timeLock : vi->ct;
+
+  if (controlDown) {
+    shiftContour(zap, x, y);
+    return;
+  }
 
   zapGetixy(zap, x, y, &ix, &iy);
 
@@ -1905,7 +1916,7 @@ void zapB1Drag(ZapStruct *zap, int x, int y)
   zap->hqgfx = zap->hqgfxsave;
 }
 
-void zapB2Drag(ZapStruct *zap, int x, int y)
+void zapB2Drag(ZapStruct *zap, int x, int y, int controlDown)
 {
   ImodView *vi = zap->vi;
   Iobj *obj;
@@ -1916,6 +1927,11 @@ void zapB2Drag(ZapStruct *zap, int x, int y)
   int pt;
   int dx, dy;
      
+  if (controlDown) {
+    shiftContour(zap, x, y);
+    return;
+  }
+
   if (vi->ax){
     if (vi->ax->altmouse == AUTOX_ALTMOUSE_PAINT){
       zapGetixy(zap, x, y, &ix, &iy);
@@ -1982,7 +1998,7 @@ void zapB2Drag(ZapStruct *zap, int x, int y)
   if ((iobjClose(obj->flags) && !(cont->flags & ICONT_WILD) && 
       (int)floor(lpt->z + 0.5) != (int)cpt.z) ||
        zapTimeMismatch(vi, zap->timeLock, obj, cont)) {
-    zapButton2(zap, x, y);
+    zapButton2(zap, x, y, 0);
     return;
   }
 
@@ -2083,6 +2099,44 @@ void zapB3Drag(ZapStruct *zap, int x, int y, int controlDown)
   return;
 }
 
+static void shiftContour(ZapStruct *zap, int x, int y)
+{
+  ImodView *vi = zap->vi;
+  Iobj *obj;
+  Icont *cont;
+  int   pt;
+  float ix, iy;
+  static int warned;
+  
+  obj = imodObjectGet(vi->imod);
+  cont = imodContourGet(vi->imod);
+  pt = vi->imod->cindex.point;
+
+  if (vi->imod->mousemode != IMOD_MMODEL || !obj || !cont || pt < 0)
+    return;
+
+  if (iobjScat(obj->flags) ||
+      (!iobjClose(obj->flags) && (cont->flags & ICONT_WILD))) {
+    if (!warned)
+      wprint("\aYou cannot shift scattered point or non-planar open contours."
+             "To shift this contour, temporarily make the object type be "
+             "closed.\n");
+    warned = 1;
+    return;
+  }
+
+  zapGetixy(zap, x, y, &ix, &iy);
+  vi->xmouse = ix;
+  vi->ymouse = iy;
+
+  ix -= cont->pts[pt].x;
+  iy -= cont->pts[pt].y;
+  for (pt = 0; pt < cont->psize; pt++) {
+    cont->pts[pt].x += ix;
+    cont->pts[pt].y += iy;
+  }
+  imodDraw(vi, IMOD_DRAW_XYZ | IMOD_DRAW_MOD );
+}
 
 /********************************************************
  * conversion functions between image and window cords. */
@@ -2791,7 +2845,7 @@ static void zapDrawCurrentPoint(ZapStruct *zap, int undraw)
   if ((vi->imod->mousemode == IMOD_MMOVIE)||(!pnt)){
     x = zapXpos(zap, (float)((int)vi->xmouse + 0.5));
     y = zapYpos(zap, (float)((int)vi->ymouse + 0.5));
-    b3dColorIndex(App->foreground);
+    b3dColorIndex(App->curpoint);
     b3dDrawPlus(x, y, imPtSize);
           
   }else{
@@ -2807,7 +2861,7 @@ static void zapDrawCurrentPoint(ZapStruct *zap, int undraw)
       y = zapYpos(zap, pnt->y);
       if (zapPointVisable(zap, pnt) && 
 	  !zapTimeMismatch(vi, zap->timeLock, obj, cont)) {
-        b3dColorIndex(App->foreground);
+        b3dColorIndex(App->curpoint);
       }else{
         b3dColorIndex(App->shadow);
       }
@@ -3068,6 +3122,9 @@ bool zapTimeMismatch(ImodView *vi, int timelock, Iobj *obj, Icont *cont)
 
 /*
 $Log$
+Revision 4.49  2004/11/02 00:52:32  mast
+Added multiple selection logic and image-based rubber band
+
 Revision 4.48  2004/09/10 02:31:04  mast
 replaced long with int
 
