@@ -25,6 +25,14 @@
  *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 
 #include <string.h>
 #include <imodel.h>
@@ -279,9 +287,9 @@ static int getpadlen(char *string)
 
 int imodLabelWrite(Ilabel *lab, FILE *fout)
 {
-     UINT id;
-     INT l, len, pad, lpad;
-     INT bgnpos, endpos, datasize;
+     b3dUInt32 id;
+     b3dInt32 l, len, pad, lpad;
+     b3dInt32 bgnpos, endpos, datasize;
 
      if (!lab) return -1;
 
@@ -340,7 +348,7 @@ Ilabel *imodLabelRead(FILE *fin, int *err)
 {
      int retcode = 0;
      Ilabel *lab = imodLabelNew();
-     INT ml, l;
+     b3dInt32 ml, l;
 
      if (!lab){
 	  *err = IMOD_ERROR_MEMORY;

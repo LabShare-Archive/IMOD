@@ -31,22 +31,7 @@
     $Date$
 
     $Revision$
-
-    $Log$
-    Revision 3.4  2002/09/04 23:12:50  mast
-    Read mat1 and mat3 the old way if a new flag is not set.  Set the flag
-    when writing a file.
-
-    Revision 3.3  2002/09/03 20:05:14  mast
-    Changed some casts in the mat1 and mat3 calls
-
-    Revision 3.2  2002/09/03 19:38:52  mast
-    Made it save and restore mat1 and mat3 as 4 bytes instead of integers
-
-    Revision 3.1  2001/12/05 16:00:46  mast
-    Make conversion of VMS floats be a globally available function instead of
-    conditionally compiled static
-
+    Log at end of file
 */
 
 /*
@@ -98,7 +83,7 @@ static int imodel_read_contour(Icont *cont, FILE *fin);
 static int imodel_read_contour_v01(Icont *cont, FILE *fin);
 static int imodel_read_mesh(Imesh *mesh, FILE *fin);
 static int imodel_read_clip(Iobj *obj, FILE *fin);
-static int imodel_read_imat(Iobj *obj, FILE *fin, UINT flags);
+static int imodel_read_imat(Iobj *obj, FILE *fin, b3dUInt32 flags);
 static int imodel_read_ptsizes(Icont *cont, FILE *fin);
 
 #ifdef IMOD_DATA_SWAP
@@ -913,7 +898,7 @@ static int imodel_read_clip(Iobj *obj, FILE *fin)
      return(ferror(fin));
 }
 
-static int imodel_read_imat(Iobj *obj, FILE *fin, UINT flags)
+static int imodel_read_imat(Iobj *obj, FILE *fin, b3dUInt32 flags)
 {
      int size;
 
@@ -1457,7 +1442,7 @@ int imodPutInts(FILE *fp, void *buf, int size)
 }
 
 /* imod file stores USHORT as 2 bytes 21 */
-short imodGetShort(FILE *fp)
+b3dInt16 imodGetShort(FILE *fp)
 {
      short buf;
      fread(&buf, 2, 1, fp);
@@ -1501,3 +1486,24 @@ int imodPutByte(FILE *fp, unsigned char *dat)
      fwrite(dat, 1, 1, fp);
      return(ferror(fp));
 }
+
+/*
+    $Log$
+    Revision 3.5  2002/11/25 19:04:42  mast
+    Added "int" in front of imodFgetline
+
+    Revision 3.4  2002/09/04 23:12:50  mast
+    Read mat1 and mat3 the old way if a new flag is not set.  Set the flag
+    when writing a file.
+
+    Revision 3.3  2002/09/03 20:05:14  mast
+    Changed some casts in the mat1 and mat3 calls
+
+    Revision 3.2  2002/09/03 19:38:52  mast
+    Made it save and restore mat1 and mat3 as 4 bytes instead of integers
+
+    Revision 3.1  2001/12/05 16:00:46  mast
+    Make conversion of VMS floats be a globally available function instead of
+    conditionally compiled static
+
+*/

@@ -31,62 +31,7 @@
     $Date$
 
     $Revision$
-
-    $Log$
-    Revision 1.1.2.16  2003/01/29 01:28:53  mast
-    replace imodv_exit with direct window close calls
-
-    Revision 1.1.2.15  2003/01/27 00:30:07  mast
-    Pure Qt version and general cleanup
-
-    Revision 1.1.2.14  2003/01/23 20:10:18  mast
-    Add include of imod_input
-
-    Revision 1.1.2.13  2003/01/18 01:13:24  mast
-    remove X workproc stuff
-
-    Revision 1.1.2.12  2003/01/13 07:21:38  mast
-    Changes to use new dialog manager class
-
-    Revision 1.1.2.11  2003/01/01 19:12:31  mast
-    changes to start Qt application in standalone mode
-
-    Revision 1.1.2.10  2003/01/01 05:46:29  mast
-    changes for qt version of stereo
-
-    Revision 1.1.2.9  2002/12/30 06:47:47  mast
-    Implement Z key correctly and call new dialog closing function
-
-    Revision 1.1.2.8  2002/12/27 01:24:54  mast
-    Using new background color dialog
-
-    Revision 1.1.2.7  2002/12/23 05:01:54  mast
-    Do not process more events before quitting imodv
-
-    Revision 1.1.2.6  2002/12/19 04:37:13  mast
-    Cleanup of unused global variables and defines
-
-    Revision 1.1.2.5  2002/12/18 04:15:14  mast
-    new includes for imodv modules
-
-    Revision 1.1.2.4  2002/12/17 22:28:21  mast
-    cleanup of unused variables and SGI errors
-
-    Revision 1.1.2.3  2002/12/17 21:38:49  mast
-    include imodconfig so NO_SYS_TIMES can be acted on
-
-    Revision 1.1.2.2  2002/12/17 17:44:59  mast
-    Changes for Qt version
-
-    Revision 1.1.2.1  2002/12/15 21:14:02  mast
-    conversion to cpp
-
-    Revision 3.2  2002/12/01 16:51:34  mast
-    Changes to eliminate warnings on SGI
-
-    Revision 3.1  2002/12/01 15:34:41  mast
-    Changes to get clean compilation with g++
-
+    Log at end of file
 */
 
 #include <stdlib.h>
@@ -723,9 +668,9 @@ static void imodv_compute_rotation(ImodvApp *a, float x, float y, float z)
 
   /* IF movieing, save the current increments as ones to movie on */
   if (a->movie){
-    a->md->xrotm = (INT)x;
-    a->md->yrotm = (INT)y;
-    a->md->zrotm = (INT)z;
+    a->md->xrotm = (int)x;
+    a->md->yrotm = (int)y;
+    a->md->zrotm = (int)z;
     /* DNM: new workproc approach, start it here and go on */
     if (!a->wpid) {
       a->wpid = a->mainWin->mTimer->start
@@ -1078,3 +1023,64 @@ void imodvMovieTimeout()
     a->mainWin->mTimer->stop();
   }
 }
+
+/*
+    $Log$
+    Revision 4.1  2003/02/10 20:29:01  mast
+    autox.cpp
+
+    Revision 1.1.2.16  2003/01/29 01:28:53  mast
+    replace imodv_exit with direct window close calls
+
+    Revision 1.1.2.15  2003/01/27 00:30:07  mast
+    Pure Qt version and general cleanup
+
+    Revision 1.1.2.14  2003/01/23 20:10:18  mast
+    Add include of imod_input
+
+    Revision 1.1.2.13  2003/01/18 01:13:24  mast
+    remove X workproc stuff
+
+    Revision 1.1.2.12  2003/01/13 07:21:38  mast
+    Changes to use new dialog manager class
+
+    Revision 1.1.2.11  2003/01/01 19:12:31  mast
+    changes to start Qt application in standalone mode
+
+    Revision 1.1.2.10  2003/01/01 05:46:29  mast
+    changes for qt version of stereo
+
+    Revision 1.1.2.9  2002/12/30 06:47:47  mast
+    Implement Z key correctly and call new dialog closing function
+
+    Revision 1.1.2.8  2002/12/27 01:24:54  mast
+    Using new background color dialog
+
+    Revision 1.1.2.7  2002/12/23 05:01:54  mast
+    Do not process more events before quitting imodv
+
+    Revision 1.1.2.6  2002/12/19 04:37:13  mast
+    Cleanup of unused global variables and defines
+
+    Revision 1.1.2.5  2002/12/18 04:15:14  mast
+    new includes for imodv modules
+
+    Revision 1.1.2.4  2002/12/17 22:28:21  mast
+    cleanup of unused variables and SGI errors
+
+    Revision 1.1.2.3  2002/12/17 21:38:49  mast
+    include imodconfig so NO_SYS_TIMES can be acted on
+
+    Revision 1.1.2.2  2002/12/17 17:44:59  mast
+    Changes for Qt version
+
+    Revision 1.1.2.1  2002/12/15 21:14:02  mast
+    conversion to cpp
+
+    Revision 3.2  2002/12/01 16:51:34  mast
+    Changes to eliminate warnings on SGI
+
+    Revision 3.1  2002/12/01 15:34:41  mast
+    Changes to get clean compilation with g++
+
+*/

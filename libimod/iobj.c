@@ -26,6 +26,14 @@
  *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 
 #include <stdio.h>
 #include <string.h>
@@ -624,7 +632,7 @@ int   imodObjectGetValue(Iobj *inObject, int inValueType)
      }
 }
 
-static void setObjFlag(Iobj *inObject, UINT flag, int state)
+static void setObjFlag(Iobj *inObject, b3dUInt32 flag, int state)
 {
     if (!inObject) return;
     if (state){
