@@ -1,5 +1,31 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/24/04: Changed Tiltalign to use matrix products instead of explicit
+equations for computing the projection matrix and its derivatives, converted
+to PIP input, added an option to solve for a single stretch during projection,
+added ability to group rotation angles during global solution, and added
+outputs of factors for adjusting back-porjection position as a function of Z
+height, both into a separate file for global factors and into the local
+alignment file.
+
+10/24/04: Switched to a C version of the FFT library (a translation of the
+Fortran version), added a 3D FFT option to Fftrans, and speeded up clip fft 3d.
+
+10/22/04: Under Linux, made 3dmod clear file system cache for each section
+that it reads (only effective with 2.6 kernel/FC 2).  This is to prevent image
+memory from being swapped out in favor of file data; it may need to be
+controlled with a preference or environment variable.
+
+10/21/04: Changed Combinefft so that the default method of reducing the power
+in the missing wedge regions is to use spherical shells and comparisons
+between the different regions.
+
+10/21/04: Added ability for Tilt to adjust the backprojection position for
+Z-height in the reconstructed slice, which is needed when there is specimen
+stretch along an oblique axis.
+
+10/15/04: Fixed bug in xfalign that prevented using a filter.
+
 10/13/04: IMOD_3-4-11
 10/12/04: Fixed a bug in writing meshes in a model to an NFF file.
 
