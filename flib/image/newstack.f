@@ -30,6 +30,11 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.18  2004/03/22 05:39:44  mast
+c	  Added mag gradient correction, applied on per-section basis prior
+c	  to distortion correction and transforms.  Fixed problem with
+c	  undistorting a subset of the full camera area.
+c	
 c	  Revision 3.17  2004/01/16 18:07:54  mast
 c	  Fixed problem with how it decided if it needed image binning entry
 c	
@@ -185,7 +190,7 @@ c
      &      'contrast:ContrastBlackWhite:IP:@'//
      &      'scale:ScaleMinAndMax:FP:@distort:DistortionField:FN:@'//
      &      'imagebinned:ImagesAreBinned:I:@'//
-     &      'maggrad:MagGradientFile:FN:@test:TestLimits:IP:@'//
+     &      'gradient:GradientFile:FN:@test:TestLimits:IP:@'//
      &      'param:ParameterFile:PF:@help:usage:B:'
 c	  
 c	  Pip startup: set error, parse options, check help, set flag if used
@@ -595,7 +600,7 @@ c
 	  ierr = PipGetFloat('ExpandByFactor', expandFactor)
 	  ierr = PipGetInteger('BinByFactor', iBinning)
 	  ierr = PipGetString('DistortionField', idfFile)
-	  ierr = PipGetString('MagGradientFile', magGradFile)
+	  ierr = PipGetString('GradientFile', magGradFile)
 	  ierr = PipGetTwoIntegers('TestLimits', limdim, lenTemp)
 	  limdim = min(limdim, maxdim)
 	  lenTemp = min(lenTemp, maxTemp)
