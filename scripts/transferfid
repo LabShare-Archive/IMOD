@@ -9,6 +9,11 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.5  2002/07/28 21:59:44  mast
+#  Modified high-pass filter from 0.1 (which was based on default in xfalign)
+#  to match new value of 0.03 for Tiltxcorr, based on alignment failures in
+#  SerialEM
+#
 #  Revision 3.4  2002/07/28 20:23:23  mast
 #  Changed to require setname argument, call repackseed with a fiducial
 #  coordinate file if an appropriate on exists, and have option to call midas
@@ -606,6 +611,8 @@ endif
 #
 # run beadtrack.  REALLY BAD, BUT HERE IT IS
 #
+@ aview = $asecbest + 1
+@ bview = $bsecbest + 1
 echo "Transferring fiducials from view $aview in A to view $bview in B with Beadtrack:"
 echo "              (Type Ctrl-C to interrupt)"
 beadtrack >! $tmpbtlog <<EOF
@@ -636,8 +643,6 @@ $radiusdark
 9,5
 .04,2
 EOF
-@ aview = $asecbest + 1
-@ bview = $bsecbest + 1
 set btresult = `tail -1 $tmpbtlog`
 echo "Number of fiducials that failed to transfer: $btresult[$#btresult]"
     
