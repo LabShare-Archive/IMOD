@@ -339,6 +339,18 @@ imodhelp.h : imodhelp mkargv
 	./mkargv imodhelp imodhelp.h "Imod_help_text[]"
 EOF
 
+    # Set up dependencies on real source in imod for users of Qt assistant
+
+    foreach dir ($qtassist_dir)
+        cat <<EOF >> $dir/Makefile
+imod_assistant.cpp: ../imod/imod_assistant.cpp
+	\cp ../imod/imod_assistant.cpp .
+
+imod_assistant.h: ../imod/imod_assistant.h
+	\cp ../imod/imod_assistant.h .
+EOF
+    end
+
     # Output variables for libraries to copy to bin
     #
     echo 'DLLSOURCEDIR1 = C:/Program Files/Intel/Compiler70/IA32/Bin' >> $configure
