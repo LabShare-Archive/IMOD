@@ -15,4 +15,4 @@ clean:
 	$(FIND) . -type f -name "*~" -exec rm "{}" \;
 	$(FIND) . -type f -name "#*#" -exec rm "{}" \;
 
-$(OBJS): $(INCDIR)statsize.inc
+$(OBJS): $(INCDIR)/statsize.inc

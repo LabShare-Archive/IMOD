@@ -9,6 +9,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.8  2004/09/28 22:18:55  mast
+#  Added parselist
+#
 #  Revision 3.7  2004/04/08 17:03:56  mast
 #  Changed to use a separate LIBCFLAGS variable
 #
@@ -77,7 +80,7 @@ work : clean
 #
 # Some depends.
 #
-$(IMODELOBJS) : $(INCDIR)imodel.h
+$(IMODELOBJS) : $(INCDIR)/imodel.h
 imodel.$(O) : $(INCDIR)/iobj.h $(INCDIR)/icont.h \
 $(INCDIR)/ipoint.h $(INCDIR)/imesh.h $(INCDIR)/b3dutil.h
 iobj.$(O)   : $(INCDIR)/iobj.h $(INCDIR)/icont.h $(INCDIR)/ipoint.h
@@ -91,5 +94,5 @@ ilist.$(O)  : $(INCDIR)/ilist.h
 b3dutil.$(O) : $(INCDIR)/b3dutil.h  ../.version
 imodel_files.$(O) : $(INCDIR)/b3dutil.h
 imodel_from.$(O) : $(INCDIR)/b3dutil.h
-$(PIPOBJS) : $(INCDIR)parse_params.h
+$(PIPOBJS) : $(INCDIR)/parse_params.h
 pip_fwrap.$(O) : $(INCDIR)/b3dutil.h
