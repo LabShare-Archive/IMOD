@@ -54,7 +54,6 @@ EXPORTS
 	imodViewStore
 	imodGetPixelSize
 	PIPREADOPTIONFILE
-	imodel_contour_move
 	imodPlaneClip
 	imodMeshDelete
 	imodCleanSurf
