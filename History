@@ -1,15 +1,32 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/2/04: Fixed problem with eTomo not swapping corresponding point lists when
+matching A to B.
+
+8/2/04: Made get_nxyz subroutine handle numeric filename properly.
+
+8/2/04: Made Transferfid require that A and B prealigned stacks have the same
+pixel size to protect against them having different binnings.
+
+7/23/04: Added progress output to Rotatevol, Matchvol, and Warpvol.  
+(Not in 3.3)
+
+7/22/04: Fixed problem with contours no longer being considered coplanar after
+adding a point.
+
+7/22/04: Changed to better sed command for stripping Ctrl M in Cygwin; previous
+way broke several things with the sed version in Redhat AWS for AMD64.
+
 7/21/04: IMOD_3-4-2
 7/21/04: Made makejoincom put out commands to make a stack with averages
 of the top and bottom slices in each section.  Added new options to Xfalign to
 break the alignment at given sections instead of just skipping sections, and
 to work with averaged samples from serial tomograms and produce only one
-transform per tomogram.
+transform per tomogram.  (Not in 3.3)
 
 7/21/04: Added scripts Splittilt and Splitcombine for splitting up
 backprojection and volcombine operations to run on multiple processors with
-Processchunks.
+Processchunks.  (Not in 3.3)
 
 7/20/04: More changes in eTomo process-killing, including using the right ps 
 command to work on Mac, Windows, and Linux regardless of how eTomo is started.
