@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.1  2003/02/10 20:29:02  mast
+autox.cpp
+
 Revision 1.1.2.6  2003/01/13 07:21:38  mast
 Changes to use new dialog manager class
 
@@ -183,8 +186,6 @@ ImodvWindow::ImodvWindow(bool standAlone, int enableDepthDB,
 
   mTimer = new QTimer(this, "imodv timer");
   connect(mTimer, SIGNAL(timeout()), this, SLOT(timeoutSlot()));
-  mHideTimer = new QTimer(this, "imodv hide timer");
-  connect(mHideTimer, SIGNAL(timeout()), this, SLOT(hideTimeout()));
 }
 
 ImodvWindow::~ImodvWindow()
@@ -251,30 +252,20 @@ void ImodvWindow::closeEvent ( QCloseEvent * e )
   e->accept();
 }
 
-void ImodvWindow::showEvent(QShowEvent *e)
+// Manage the hiding and showing of other windows when this
+// window is minimized or brought back
+bool ImodvWindow::event(QEvent *e)
 {
-  if (mMinimized) {
-     imodvDialogManager.show();
-  }
-  mMinimized = false;
-}
-
-// For a hide event, hide dialogs if the window is minimized; but 
-// if not, do a one-shot timer to check again; workaround to bug 
-// in RH  7.3/ Qt 3.0.5
-void ImodvWindow::hideEvent(QHideEvent *e)
-{
-  hideTimeout();
-  if (!mMinimized)
-    mHideTimer->start(1, true);
-}
-
-void ImodvWindow::hideTimeout()
-{
-  if (isMinimized()) {
+  if ((e->type() == QEvent::ShowMinimized || e->type() == QEvent::Hide) &&
+      !mMinimized) {
     mMinimized = true;
     imodvDialogManager.hide();
+  } else if ((e->type() == QEvent::ShowNormal || e->type() == QEvent::Show) &&
+             mMinimized) {
+    mMinimized = false;
+    imodvDialogManager.show();
   }
+  QWidget::event(e);
 }
 
 void ImodvWindow::timeoutSlot()

@@ -13,6 +13,9 @@
     $Revision$
 
     $Log$
+    Revision 3.8  2003/03/28 23:51:10  mast
+    changes for Mac problems
+
     Revision 3.7  2003/03/26 17:15:31  mast
     Adjust sizes for font changes
 
@@ -115,17 +118,15 @@ class InfoWindow : public QMainWindow
   void imageSlot(int item);
   void pluginSlot(int item);
   void helpSlot(int item);
-  void hideTimeout();
   void deferTimeout();
 
  protected:
     void keyPressEvent ( QKeyEvent * e );
     void keyReleaseEvent ( QKeyEvent * e );
     void closeEvent ( QCloseEvent * e );
-    void showEvent(QShowEvent *e);
-    void hideEvent(QHideEvent *e);
     void timerEvent(QTimerEvent *e);
     void fontChange( const QFont & oldFont );
+    bool event(QEvent *e);
 
  private:
   QPopupMenu *mFileMenu;
@@ -142,7 +143,6 @@ class InfoWindow : public QMainWindow
   QPopupMenu *mEImageMenu;
   QPopupMenu *mPlugMenu;
   QTextEdit *mStatusEdit;
-  QTimer *mHideTimer;
   QTimer *mDeferTimer;
   bool mMinimized;
   int mTopTimerID;

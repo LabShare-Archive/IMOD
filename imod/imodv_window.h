@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.1  2003/02/10 20:41:56  mast
+Merge Qt source
+
 Revision 1.1.2.4  2003/01/01 05:40:21  mast
 add timer to workaround iconifying problem
 
@@ -71,14 +74,12 @@ public slots:
   void viewMenuSlot(int which);
   void helpMenuSlot(int which);
   void timeoutSlot();
-  void hideTimeout();
 
  protected:
   void keyPressEvent ( QKeyEvent * e );
   void keyReleaseEvent ( QKeyEvent * e );
   void closeEvent ( QCloseEvent * e );
-  void showEvent(QShowEvent *e);
-  void hideEvent(QHideEvent *e);
+  bool event(QEvent *e);
 
  private:
   QWidgetStack *mStack;    // The stack holding the two widgets
@@ -86,7 +87,6 @@ public slots:
   QPopupMenu *mEditMenu;
   QPopupMenu *mViewMenu;
   bool mMinimized;
-  QTimer *mHideTimer;
 };
 
 class ImodvGL : public QGLWidget

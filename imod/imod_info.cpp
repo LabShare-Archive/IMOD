@@ -250,9 +250,7 @@ InfoWindow::InfoWindow(QWidget * parent, const char * name, WFlags f)
   mStatusEdit->setFocusPolicy(NoFocus);
   wprintWidget(mStatusEdit);
 
-  mHideTimer = new QTimer(this, "imod info hide timer");
-  connect(mHideTimer, SIGNAL(timeout()), this, SLOT(hideTimeout()));
-#ifdef __ppc__
+#ifdef Q_OS_MACX
   mDeferTimer = new QTimer(this, "imod info defer timer");
   connect(mDeferTimer, SIGNAL(timeout()), this, SLOT(deferTimeout()));
 #endif
@@ -314,32 +312,23 @@ void InfoWindow::closeEvent ( QCloseEvent * e )
   e->ignore();
 }
 
-// Routines to manage the hiding and showing of other windows when this
+// Manage the hiding and showing of other windows when this
 // window is minimized or brought back
-void InfoWindow::showEvent(QShowEvent *e)
+// hideEvent override does not occur on Mac, and the isMinimized() function
+// is not reliable in RH 7.3/ Qt 3.0.5
+// Watch for both event types in each case due to further X11/Mac differences
+bool InfoWindow::event(QEvent *e)
 {
-  if (mMinimized) {
-     imodDialogManager.show();
-  }
-  mMinimized = false;
-}
-
-// For a hide event, hide dialogs if the window is minimized; but 
-// if not, do a one-shot timer to check again; workaround to bug 
-// in RH  7.3/ Qt 3.0.5
-void InfoWindow::hideEvent(QHideEvent *e)
-{
-  hideTimeout();
-  if (!mMinimized)
-    mHideTimer->start(1, true);
-}
-
-void InfoWindow::hideTimeout()
-{
-  if (isMinimized()) {
+  if ((e->type() == QEvent::ShowMinimized || e->type() == QEvent::Hide) &&
+      !mMinimized) {
     mMinimized = true;
     imodDialogManager.hide();
+  } else if ((e->type() == QEvent::ShowNormal || e->type() == QEvent::Show) &&
+             mMinimized) {
+    mMinimized = false;
+     imodDialogManager.show();
   }
+  QWidget::event(e);
 }
 
 void InfoWindow::deferTimeout()
@@ -490,6 +479,9 @@ static char *truncate_name(char *name, int limit)
 
 /*
     $Log$
+    Revision 4.12  2003/03/28 23:51:10  mast
+    changes for Mac problems
+
     Revision 4.11  2003/03/26 23:23:15  mast
     switched from hotslider.h to preferences.h
 
