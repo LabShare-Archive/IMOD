@@ -30,6 +30,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.4  2004/06/21 17:16:37  rickg
+ * <p> Bug #461 z shift is scaled by the prealigned binning
+ * <p>
  * <p> Revision 3.3  2004/06/05 00:51:25  sueh
  * <p> bug# 433 passing applicationManager to ContextPopup so that new
  * <p> versions of the ta* align logs can be generated.
@@ -192,7 +195,12 @@ public class AlignmentEstimationDialog extends ProcessDialog
     super(appMgr, axisID);
     fixRootPanel(rootSize);
 
-    pnlTiltalign = new TiltalignPanel(axisID);
+    pnlTiltalign =
+      new TiltalignPanel(
+        axisID,
+        appMgr.getFidXyz(axisID),
+        appMgr.getMrcHeader(axisID, ".preali"),
+        appMgr.getMrcHeader(axisID, ".st"));
     btnExecute.setText("Done");
 
     //  Create the first tiltalign panel
