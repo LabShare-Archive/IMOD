@@ -30,6 +30,10 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.4  2003/10/10 20:38:04  mast
+c	  Changed to use subroutines in rotmatwarpsubs.f and include file.
+c	  Converted to PIP/autodoc input and added linear interpolation option.
+c	
 c	  Revision 3.3  2003/10/02 19:41:21  mast
 c	  Changed method of writing sections to avoid having to fit output
 c	  section into array all at once.
@@ -85,7 +89,7 @@ c
 c	  Pip startup: set error, parse options, check help, set flag if used
 c
 	call PipReadOrParseOptions(options, numOptions, 'rotatevol',
-     &	    'ERROR: ROTATEVOL - ', .true., 4, 1, 1, numOptArg,
+     &	    'ERROR: ROTATEVOL - ', .true., 3, 1, 1, numOptArg,
      &	    numNonOptArg)
 	pipinput = numOptArg + numNonOptArg .gt. 0
 
@@ -96,6 +100,8 @@ c
 	call irdhdr(5,nxyzin,mxyzin,mode,dminin,dmaxin,dmeanin)
 	do i=1,3
 	  cenind(i)=nxyzin(i)/2
+	  nxyzout(i) = nxyzin(i)
+	  angles(i) = 0.
 	enddo
 c
 	if (PipGetInOutFile('OutputFile', 2, 'Name of output file', fileout)
@@ -105,13 +111,10 @@ c
 	  ierr = PipGetString('TemporaryDirectory', tempdir)
 	  ierr = PipGetThreeFloats('RotationCenterXYZ', cenind(1),
      &	      cenind(2), cenind(3))
-	  print *,(cenind(i),i=1,3)
 	  ierr = PipGetInteger('InterpolationOrder', interpOrder)
-	  if (PipGetThreeIntegers('OutputSizeXYZ', nxout, nyout, nzout)
-     &	      .ne. 0) call errorexit('NO OUTPUT FILE SIZE SPECIFIED')
-	  if (PipGetThreeFloats('RotationAnglesZYX', angles(3), angles(2),
-     &	      angles(1)) .ne. 0)
-     &	      call errorexit('NO ROTATION ANGLES SPECIFIED')
+	  ierr = PipGetThreeIntegers('OutputSizeXYZ', nxout, nyout, nzout)
+	  ierr = PipGetThreeFloats('RotationAnglesZYX', angles(3), angles(2),
+     &	      angles(1))
 	else
 c	    
 	  write(*,'(1x,a,/,a,$)')'Enter path name of directory for '//
