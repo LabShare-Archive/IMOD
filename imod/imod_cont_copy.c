@@ -26,6 +26,14 @@
  *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 
 #include <Xm/Xm.h>
 #include <Xm/RowColumn.h>
@@ -37,17 +45,9 @@
 #include <stdio.h>
 #include <unistd.h>
 
-#ifdef __linux
-#define NOLIBGEN
-#endif
-#ifdef SVR3
-#define NOLIBGEN
-#endif
-#ifdef __vms
-#define NOLIBGEN
-#endif
-
-#ifndef NOLIBGEN
+/* 9/10/02: This include is not known to be unneeded on sun but is generally
+   unavailable and unneeded on SGI - so leave it just for sun */
+#ifdef __sun
 #include <libgen.h>
 #endif
 #include <math.h>
