@@ -1,5 +1,12 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/7/03: IMOD_3-1-0 released
+11/7/03: Added Windows installation instructions, revised other documentation.
+Made final highest-priority changes in eTomo before release.
+
+11/5/03: Integrated Eileen O'Toole's tutorial for building tomograms with
+eTomo.
+
 11/4/03: IMOD_3-0-26
 11/4/03: Changed eTomo so that it runs everything by an absolute path
 determined from IMOD_DIR.  This should allow it to work under Windows without

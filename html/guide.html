@@ -388,9 +388,9 @@ to add libbz2-1 and libpcre0 from the Libs category.<br>
     <li> Start a Cygwin terminal window.  You can adjust the font,
 length, and background color of this window and make it the default for
 Cygwin terminals.</li>
-    <li> Move your copy of IMOD to <code>/usr/local</code> either from
-the command line or from an Explorer window, where the location will
-appear as <code>\C:\cygwin\usr\local</code>.</li>
+    <li> Move your copy of the IMOD distribution to <code>/usr/local</code>
+either from the command line or from an Explorer window, where the
+location will appear as <code>C:\cygwin\usr\local</code>.</li>
     <li>&nbsp;Unpack the tar file and rename it to IMOD: <br>
       <code>cd /usr/local </code><br>
       <code>tar -xvzf imod_3.1.0.tar.gz </code><br>
@@ -421,11 +421,14 @@ you are done, you can delete any Java icons from your desktop.</li>
     <li> To define environment variables, right click My Computer,
 select Properties, Advanced, Environment Variables. Define all of these
 paths in Windows format.  Press "New" to define a variable.</li>
-    <li>Define &nbsp;<code>IMOD_DIR</code> &nbsp;to be &nbsp;<code>C:\cygwin\usr\local\IMOD</code></li>
-    <li>Define <code>&nbsp;HOME</code> &nbsp; to be &nbsp; <code>C:\cygwin\home\username</code></li>
-    <li> You also need to add the Cygwin bin to your path, e.g., select <code>PATH</code>,
-press "Edit", and add <code>C:\cygwin\bin; </code>to the front of the
-path (the ";" is a separator).</li>
+    <li>Under "System variables", define &nbsp;<code>IMOD_DIR</code>
+&nbsp;to be &nbsp;<code>C:\cygwin\usr\local\IMOD</code></li>
+    <li>Under "User variables for username", define <code>&nbsp;HOME</code>
+&nbsp; to be &nbsp; <code>C:\cygwin\home\username</code></li>
+    <li> You also need to add the Cygwin bin to the systen path, e.g.,
+under "System variables", select <code>PATH</code>, press "Edit", and
+add <code>C:\cygwin\bin; </code>to the front of the path (the ";" is
+a separator).</li>
   </ol>
   <br>
 Here are some optional steps:<br>
@@ -634,12 +637,14 @@ list from an "f" transform list use the <a href="man/xftoxg.html">xftoxg</a>
 program. <code>xftoxg</code> has options to  leave long term trends in
 the data, which are invoked by default when you call it with the <code>xf2xg</code>
 shell script. </dd>
-  <dd> <a name="FiducialAlignment">
-    <h4>Image Alignment using Fiducial Markers.</h4>
-    </a> The program <a href="man/xfmodel.html">xfmodel</a> will create
-a list of xf transforms from a model containing fiducial points.   See
-the <a href="3dmodguide.html">Introduction to 3dmod</a> to see  how to
-make models.
+  <dd> <a name="FiducialAlignment"> </a>
+    <h4><a name="FiducialAlignment">Image Alignment using Fiducial
+Markers.</a></h4>
+    <a name="FiducialAlignment"> </a> The program <a
+ href="man/xfmodel.html">xfmodel</a> will create a list of xf transforms
+from a model containing fiducial points.   See the <a
+ href="3dmodguide.html">Introduction to 3dmod</a> to see  how to make
+models.
     <p> Steps and Programs used in fiducial marker alignment. </p>
     <ul>
 	<li><code>imod</code> : Creates a model in which points in each contour
@@ -772,8 +777,8 @@ serial sections.</a> </li>
 <br>
 <br>
 <hr><i>Last updated: November 7, 2003</i> [<a
- href="http://bio3d.colorado.edu/imod/index.html">IMOD Home Page</a>] 
-[<a href="http://bio3d.colorado.edu/index.html">BL3DEMC Home Page</a>] <br>
+ href="http://bio3d.colorado.edu/imod/index.html">IMOD Home Page</a>] [<a
+ href="http://bio3d.colorado.edu/index.html">BL3DEMC Home Page</a>] <br>
 <br>
 <br>
 </body>
