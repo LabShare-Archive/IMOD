@@ -51,6 +51,10 @@ import etomo.type.ProcessTrack;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.11  2004/07/24 01:48:04  sueh
+ * <p> bug# 513 making fitWindow() public so that app manager can
+ * <p> call it
+ * <p>
  * <p> Revision 3.10  2004/07/23 23:00:00  sueh
  * <p> bug# 517, bug# 513 comments, renamed functions for clarity,
  * <p> removed code in setDividerPostion() which was making
@@ -575,7 +579,9 @@ public class MainFrame extends JFrame implements ContextMenu {
    *
    */
   protected void packAxis() {
-    if (applicationManager.isDualAxis()) {
+    if (applicationManager.isDualAxis()
+      && axisPanelA != null
+      && axisPanelB != null) {
       boolean hideA = axisPanelA.hide();
       boolean hideB = axisPanelB.hide();
       pack();
