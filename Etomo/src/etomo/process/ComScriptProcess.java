@@ -16,6 +16,9 @@ import java.util.ArrayList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.2  2003/05/23 14:27:24  rickg
+ * <p> Implements SystemProcessInterface
+ * <p>
  * <p> Revision 1.1  2003/05/23 02:34:56  rickg
  * <p> Change RunComScript to ComScriptProcess
  * <p>
@@ -116,7 +119,6 @@ public class ComScriptProcess
    * function for the thread.
    */
   public void run() {
-    started = true;
     
     if (demoMode) {
       try {
@@ -147,6 +149,7 @@ public class ComScriptProcess
       }
 
       // Execute the csh commands
+      started = true;
       try {
         execCsh(commands);
       }
