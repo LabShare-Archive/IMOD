@@ -203,7 +203,7 @@ typedef struct Mod_Object_View
   b3dUByte mat1;      /* Fill color red */
   b3dUByte mat1b1;    /* Fill color green */
   b3dUByte mat1b2;    /* Fill color blue */
-  b3dUByte mat1b3;    /* Unused */
+  b3dUByte mat1b3;    /* Sphere quality */
   b3dUInt32  mat2;    /* set to 0, use as flags.  Unused */
   b3dUByte mat3;      /* Black level for showing normal magnitudes in mesh */
   b3dUByte mat3b1;    /* Black level for showing normal magnitudes in mesh */
@@ -356,7 +356,7 @@ typedef struct Mod_Object
   b3dUByte mat1;      /* Fill color red */
   b3dUByte mat1b1;    /* Fill color green */
   b3dUByte mat1b2;    /* Fill color blue */
-  b3dUByte mat1b3;    /* Unused */
+  b3dUByte mat1b3;    /* Sphere quality */
   b3dUInt32  mat2;      /* set to 0, use as flags.  Unused */
   b3dUByte mat3;      /* Black level for showing normal magnitudes in mesh */
   b3dUByte mat3b1;    /* Black level for showing normal magnitudes in mesh */
@@ -713,6 +713,9 @@ mesh (index) (vert size) (list size)
 
 /*    
     $Log$
+    Revision 3.15  2004/04/28 05:30:00  mast
+    defined world flags with bit shifts
+
     Revision 3.14  2004/01/05 17:22:25  mast
     Added binning run-time member of model structure
 
