@@ -34,6 +34,9 @@
     $Revision$
 
     $Log$
+    Revision 3.5  2002/09/14 18:32:43  mast
+    Eliminate unneeded argument from fprintf
+
     Revision 3.4  2002/09/13 23:44:44  mast
     Changes after testing out most error conditions for messages
 
@@ -70,6 +73,7 @@ void ioew_sgicolor_cb(Widget w, XtPointer client, XtPointer call);
 void imod_file_cb(Widget w, XtPointer client, XtPointer call);
 static void named_rawTIF_cb(Widget w,  XtPointer client, XtPointer call);
 
+extern int Imod_debug;
 static int message_action = MESSAGE_NO_ACTION;
 static int packets_left = 0;
 static int message_index;
@@ -1164,23 +1168,38 @@ void imodHandleClientMessage(Widget w, XtPointer client_data, XEvent *event)
 {
      int OKtoFreeString = 0;
      XClientMessageEvent *cmEvent = (XClientMessageEvent *)event;
+
+     /* Since there could easily be other events around, only put out the
+	first four error message in debug mode */
      if (event->type != ClientMessage) {
-	  /* fprintf(stderr, "received non client message\n"); */
+	  if (Imod_debug)
+	       fprintf(stderr, "imodHandleClientMessage: received non client"
+		       " message\n");
 	  return;
      }
      
      /* fprintf(stderr, "got client message\n"); */
 
      if (cmEvent->format == 16) {
-	  fprintf(stderr, "imodHandleClientMessage: received message in "
-		  "16-bit format\n");
+	  if (Imod_debug)
+	       fprintf(stderr, "imodHandleClientMessage: received message in "
+		       "16-bit format\n");
 	  return;
      }
 
      /* If it is a string packet, and we are not expecting one, forget it */
      if (cmEvent->format == 8 && !packets_left) {
-	  fprintf(stderr, "imodHandleClientMessage: received byte packet when"
-		  " not expecting one\n");
+	  if (Imod_debug)
+	       fprintf(stderr, "imodHandleClientMessage: received byte packet"
+		       " when not expecting one\n");
+	  return;
+     }
+
+     /* If it is an action packet without the signature, skip it */
+     if (cmEvent->format == 32 && cmEvent->data.l[0] != ID_IMOD) {
+	  if (Imod_debug)
+	       fprintf(stderr, "imodHandleClientMessage: received client "
+		       "message without IMOD signature\n");
 	  return;
      }
 
@@ -1198,8 +1217,8 @@ void imodHandleClientMessage(Widget w, XtPointer client_data, XEvent *event)
      if (cmEvent->format == 32) {
 
 	  /* action message: get the action type and number of packets */
-	  message_action = cmEvent->data.l[0];
-	  packets_left = cmEvent->data.l[1];
+	  message_action = cmEvent->data.l[1];
+	  packets_left = cmEvent->data.l[2];
 	  if (packets_left) {
 
 	       /* If there are packets coming, allocate memory, set up index,
