@@ -88,12 +88,12 @@ static Islice s;
 static void cpdslice(Islice *sl, ImodIProc *ip)
 {
   register unsigned char *from, *to, *last;
-  int rampbase = ip->vw->rampbase;
+  int rampbase = ip->vi->rampbase;
   from = sl->data.b;
   to = ip->iwork;
   if (!to) return;
 
-  last = to + (ip->vw->xsize * ip->vw->ysize);
+  last = to + (ip->vi->xsize * ip->vi->ysize);
   if (App->depth > 8){
     do{
       *to++ = *from++;
@@ -110,15 +110,15 @@ static void cpdslice(Islice *sl, ImodIProc *ip)
 static void copyAndDisplay()
 {
   ImodIProc *ip = &proc;
-  unsigned char **to = ivwGetCurrentZSection(ip->vw);
+  unsigned char **to = ivwGetCurrentZSection(ip->vi);
   unsigned char *from = ip->iwork;
   int i, j;
   
-  for (j = 0; j < ip->vw->ysize; j++)
-    for (i = 0; i < ip->vw->xsize; i++)
+  for (j = 0; j < ip->vi->ysize; j++)
+    for (i = 0; i < ip->vi->xsize; i++)
       to[j][i] = *from++;
 
-  imodDraw(ip->vw, IMOD_DRAW_IMAGE);
+  imodDraw(ip->vi, IMOD_DRAW_IMAGE);
 }
 
 
@@ -136,13 +136,13 @@ static void edge_cb()
   case 0:
     sliceByteEdgeSobel(&s);
     if(App->depth == 8)
-      sliceByteAdd(&s, ip->vw->rampbase);
+      sliceByteAdd(&s, ip->vi->rampbase);
     break;
 
   case 1:
     sliceByteEdgePrewitt(&s);
     if(App->depth == 8)
-      sliceByteAdd(&s, ip->vw->rampbase);
+      sliceByteAdd(&s, ip->vi->rampbase);
     break;
 
   case 2:
@@ -175,14 +175,14 @@ static void thresh_cb()
      
   if (App->depth == 8){
     thresh = (int)
-      ((((float)ip->vw->rampsize/256.0f)*thresh) + ip->vw->rampbase);
-    minv = ip->vw->rampbase;
-    maxv = ip->vw->rampsize + minv;
+      ((((float)ip->vi->rampsize/256.0f)*thresh) + ip->vi->rampbase);
+    minv = ip->vi->rampbase;
+    maxv = ip->vi->rampsize + minv;
   }else{
     minv = 0; maxv = 255;
   }
 
-  xysize = ip->vw->xsize * ip->vw->ysize;
+  xysize = ip->vi->xsize * ip->vi->ysize;
   idat = ip->iwork;
   for(last = idat + xysize; idat != last; idat++){
     if (*idat > thresh)
@@ -212,8 +212,8 @@ static void grow_cb()
   ImodIProc *ip = &proc;
 
   if (App->depth == 8){
-    s.min = ip->vw->rampbase;
-    s.max = ip->vw->rampsize + s.min;
+    s.min = ip->vi->rampbase;
+    s.max = ip->vi->rampsize + s.min;
   }else{
     s.min = 0; s.max = 255;
   }
@@ -231,8 +231,8 @@ static void shrink_cb()
   ImodIProc *ip = &proc;
 
   if (App->depth == 8){
-    s.min = ip->vw->rampbase;
-    s.max = ip->vw->rampsize + s.min;
+    s.min = ip->vi->rampbase;
+    s.max = ip->vi->rampsize + s.min;
   }else{
     s.min = 0; s.max = 255;
   }
@@ -246,7 +246,7 @@ static void shrink_cb()
 
 
 /* Reset and get new data buffer */
-int iprocRethink(struct ViewInfo *vw)
+int iprocRethink(struct ViewInfo *vi)
 {
   if (proc.dia){
     if (proc.isaved) {
@@ -255,14 +255,14 @@ int iprocRethink(struct ViewInfo *vw)
       free(proc.isaved);
       free(proc.iwork);
     }
-    proc.isaved = (unsigned char *)malloc(vw->xsize * vw->ysize);
+    proc.isaved = (unsigned char *)malloc(vi->xsize * vi->ysize);
     if (!proc.isaved) {
       proc.iwork = NULL;
       proc.dia->close();
       return 1;
     }
 
-    proc.iwork = (unsigned char *)malloc(vw->xsize * vw->ysize);
+    proc.iwork = (unsigned char *)malloc(vi->xsize * vi->ysize);
     if (!proc.iwork) {
       free(proc.isaved);
       proc.isaved = NULL;
@@ -274,24 +274,24 @@ int iprocRethink(struct ViewInfo *vw)
 }
 
 /* Open the processing dialog box */
-int inputIProcOpen(struct ViewInfo *vw)
+int inputIProcOpen(struct ViewInfo *vi)
 {
   if (!proc.dia){
-    if (!proc.vw) {
+    if (!proc.vi) {
       proc.procnum = 0;
       proc.threshold = 128;
       proc.edge = 0;
     }
-    proc.vw = vw;
+    proc.vi = vi;
     proc.idatasec = -1;
     proc.idatatime = 0;
     proc.modified = 0;
-    proc.isaved = (unsigned char *)malloc(vw->xsize * vw->ysize);
+    proc.isaved = (unsigned char *)malloc(vi->xsize * vi->ysize);
 
     if (!proc.isaved)
       return(-1);
 
-    proc.iwork = (unsigned char *)malloc(vw->xsize * vw->ysize);
+    proc.iwork = (unsigned char *)malloc(vi->xsize * vi->ysize);
     if (!proc.iwork) {
       free(proc.isaved);
       return(-1);
@@ -318,11 +318,11 @@ static void clearsec(ImodIProc *ip)
 
   from = ip->isaved;
   to = ip->iwork;
-  to2 = ivwGetZSectionTime(ip->vw, ip->idatasec, ip->idatatime);
+  to2 = ivwGetZSectionTime(ip->vi, ip->idatasec, ip->idatatime);
   if (!to2)
     return;
-  for (j = 0; j < ip->vw->ysize; j++)
-    for (i = 0; i < ip->vw->xsize; i++)
+  for (j = 0; j < ip->vi->ysize; j++)
+    for (i = 0; i < ip->vi->xsize; i++)
       *to++ = to2[j][i] = *from++;
 
   ip->modified = 0;
@@ -341,11 +341,11 @@ static void savesec(ImodIProc *ip)
 
   to   = ip->isaved;
   to2  = ip->iwork;
-  from = ivwGetZSectionTime(ip->vw, ip->idatasec, ip->idatatime);
+  from = ivwGetZSectionTime(ip->vi, ip->idatasec, ip->idatatime);
   if (!from) 
     return;
-  for (j = 0; j < ip->vw->ysize; j++)
-    for (i = 0; i < ip->vw->xsize; i++)
+  for (j = 0; j < ip->vi->ysize; j++)
+    for (i = 0; i < ip->vi->xsize; i++)
       *to++ = *to2++ = from[j][i];
 }
 
@@ -484,7 +484,10 @@ void IProcWindow::buttonPressed(int which)
 {
   ImodIProc *ip = &proc;
 
-  int cz =  (int)(ip->vw->zmouse + 0.5f);
+  int cz =  (int)(ip->vi->zmouse + 0.5f);
+
+  if (which < 4 && ip->vi->loadingImage)
+    return;
 
   switch (which) {
   case 0:  // Apply
@@ -493,14 +496,14 @@ void IProcWindow::buttonPressed(int which)
 
   case 1:  // More
     /* If this is not the same section, treat it as an Apply */
-    if (cz != ip->idatasec || ip->vw->ct != ip->idatatime) {
+    if (cz != ip->idatasec || ip->vi->ct != ip->idatatime) {
       apply();
       break;
     }
 
     /* Otherwise operate on the current data without restoring it */
     if ( proc_data[ip->procnum].cb) {
-      imod_info_float_clear(cz, ip->vw->ct);
+      imod_info_float_clear(cz, ip->vi->ct);
       proc_data[ip->procnum].cb();
       copyAndDisplay();
       ip->modified = 1;
@@ -509,7 +512,7 @@ void IProcWindow::buttonPressed(int which)
 
   case 2: // reset
     clearsec(ip);
-    imodDraw(ip->vw, IMOD_DRAW_IMAGE);
+    imodDraw(ip->vi, IMOD_DRAW_IMAGE);
     break;
 
   case 3: // save
@@ -552,23 +555,23 @@ void IProcWindow::buttonPressed(int which)
 void IProcWindow::apply()
 {
   ImodIProc *ip = &proc;
-  sliceInit(&s, ip->vw->xsize, ip->vw->ysize, 0, ip->iwork);
+  sliceInit(&s, ip->vi->xsize, ip->vi->ysize, 0, ip->iwork);
 
-  int cz =  (int)(ip->vw->zmouse + 0.5f);
+  int cz =  (int)(ip->vi->zmouse + 0.5f);
 
   /* Unconditionally restore data if modified */
   clearsec(ip);
 
   /* If this is a new section, save the data */
-  if (cz != ip->idatasec || ip->vw->ct != ip->idatatime) {
+  if (cz != ip->idatasec || ip->vi->ct != ip->idatatime) {
     ip->idatasec = cz;
-    ip->idatatime = ip->vw->ct;
+    ip->idatatime = ip->vi->ct;
     savesec(ip);
   }
     
   /* Operate on the original data */
   if ( proc_data[ip->procnum].cb) {
-    imod_info_float_clear(cz, ip->vw->ct);
+    imod_info_float_clear(cz, ip->vi->ct);
     proc_data[ip->procnum].cb();
     ip->modified = 1;
     copyAndDisplay();
@@ -583,7 +586,7 @@ void IProcWindow::closeEvent ( QCloseEvent * e )
     return;
   clearsec(ip);
   imodDialogManager.remove((QWidget *)ip->dia);
-  imodDraw(ip->vw, IMOD_DRAW_IMAGE);
+  imodDraw(ip->vi, IMOD_DRAW_IMAGE);
   if (ip->isaved)
     free(ip->isaved);
   if (ip->iwork)
@@ -609,6 +612,11 @@ void IProcWindow::keyReleaseEvent ( QKeyEvent * e )
 /*
 
     $Log$
+    Revision 4.4  2003/09/16 02:10:26  mast
+    Changed to make a working copy of the image data using the new line
+    pointers, operate on the working copy, and save back into the display
+    data as needed.
+
     Revision 4.3  2003/04/25 03:28:32  mast
     Changes for name change to 3dmod
 
