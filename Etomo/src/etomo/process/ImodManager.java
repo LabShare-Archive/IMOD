@@ -26,6 +26,12 @@ import etomo.type.ConstMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.3  2003/11/21 23:53:11  sueh
+ * <p> bug242 ImodManager -  incorporated new ImodAssistant
+ * <p> interface changes, created generic functions, created the
+ * <p> map of ImodAssistants, allow existing functions to use the
+ * <p> map
+ * <p>
  * <p> Revision 3.2  2003/11/15 01:42:05  sueh
  * <p> bug242 switched from ImodProcess to ImodAssistant
  * <p> without generalizing the code
@@ -695,7 +701,7 @@ public class ImodManager {
     throws AxisTypeException, SystemProcessException {
     checkAxisID(axisID);
     ImodAssistant fineAligned = selectCoarseAligned(axisID);
-    fineAlignedB.quit();
+    fineAligned.quit();
   }
 
   /**
