@@ -13,6 +13,11 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2004/11/24 01:30:24  sueh
+ * <p> bug# 520 Getting working directory from EtomoDirector instead of
+ * <p> property.  makeDirectories:  making sure to get a valid path for
+ * <p> badDirectory.
+ * <p>
  * <p> Revision 1.3  2004/04/06 22:56:56  rickg
  * <p> Workaround for buggy cvs exports
  * <p>
@@ -69,14 +74,14 @@ public class TestUtilites {
    */
   public static void checkoutVector(String directory, String vector)
       throws SystemProcessException, InvalidParameterException {
-
+    System.err.println("checkoutVector:directory=" + directory + ",vector=" + vector);
     if (vector.matches(File.separator)) {
       throw new InvalidParameterException(
         "vector can not contain path separators");
     }
     File fileVector = new File(EtomoDirector.getInstance().getCurrentPropertyUserDir() + directory,
       vector);
-
+    System.err.println("fileVector=" + fileVector.getAbsolutePath());
     if (fileVector.exists()) {
       if (!fileVector.delete()) {
         throw new SystemProcessException("Cannot delete vector: " + vector);
@@ -91,6 +96,7 @@ public class TestUtilites {
     cvsCommand[5] = directory;
     cvsCommand[6] = "ImodTests/EtomoTests/vectors/" + vector;
     SystemProgram cvs = new SystemProgram(cvsCommand);
+    cvs.setDebug(true);
     cvs.run();
 
     if (cvs.getExitValue() > 0) {
