@@ -67,6 +67,19 @@ public class ConstTiltalignParam implements Command {
   public static final String SKEW_DEFAULT_GROUPING_KEY = "SkewDefaultGrouping";
   public static final String SKEW_NONDEFAULT_GROUP_KEY = "SkewNondefaultGroup";
   public static final String LOCAL_ROT_OPTION_KEY = "LocalRotOption";
+  public static final String LOCAL_ROT_DEFAULT_GROUPING_KEY = "LocalRotDefaultGrouping";
+  public static final String LOCAL_ROT_NONDEFAULT_GROUP_KEY = "LocalRotNondefaultGroup";
+  public static final String LOCAL_TILT_OPTION_KEY ="LocalTiltOption";
+  public static final String LOCAL_TILT_DEFAULT_GROUPING_KEY = "LocalTiltDefaultGrouping";
+  public static final String LOCAL_TILT_NONDEFAULT_GROUP_KEY = "LocalTiltNondefaultGroup";
+  public static final String LOCAL_MAG_OPTION_KEY = "LocalMagOption";
+  public static final String LOCAL_MAG_DEFAULT_GROUPING_KEY = "LocalMagDefaultGrouping";
+  public static final String LOCAL_SKEW_OPTION_KEY = "LocalSkewOption";
+  public static final String LOCAL_X_STRETCH_DEFAULT_GROUPING_KEY = "LocalXStretchDefaultGrouping";
+  public static final String LOCAL_X_STRETCH_NONDEFAULT_GROUP_KEY = "LocalXStretchNondefaultGroup";
+  public static final String LOCAL_SKEW_DEFAULT_GROUPING_KEY = "LocalSkewDefaultGrouping";
+  public static final String LOCAL_SKEW_NONDEFAULT_GROUP_KEY = "LocalSkewNondefaultGroup";
+  public static final String PROJECTION_STRETCH_KEY = "ProjectionStretch";
   
   protected static final String modelFileString = "ModelFile";
   protected static final String imageFileString = "ImageFile";
@@ -82,11 +95,7 @@ public class ConstTiltalignParam implements Command {
   protected static final String firstTiltAngleShortString = "first";
   protected static final String tiltIncrementShortString = "increment";
   protected static final String tiltFileShortString = "tiltFile";
-  protected static final String localRotNondefaultGroupString = "LocalRotNondefaultGroup";
-  protected static final String localTiltNondefaultGroupString = "LocalTiltNondefaultGroup";
   protected static final String localMagNondefaultGroupString = "LocalMagNondefaultGroup";
-  protected static final String localXStretchNondefaultGroupString = "LocalXStretchNondefaultGroup";
-  protected static final String localSkewNondefaultGroupString = "LocalSkewNondefaultGroup";
   protected static final String outputLocalFileString = "OutputLocalFile";
   protected static final String localOutputOptionsString = "LocalOutputOptions";
   
@@ -178,7 +187,7 @@ public class ConstTiltalignParam implements Command {
     rotationAngle = new ScriptParameter(EtomoNumber.DOUBLE_TYPE, "RotationAngle");
     tiltAngleSpec = new TiltAngleSpec("FirstTiltAngle", "TiltIncrement", "TiltFile");
     angleOffset = new ScriptParameter(EtomoNumber.DOUBLE_TYPE, ANGLE_OFFSET_KEY);
-    projectionStretch = new EtomoBoolean2("ProjectionStretch");
+    projectionStretch = new EtomoBoolean2(PROJECTION_STRETCH_KEY);
     projectionStretch.setDefault(false).setDisplayValue(false);
     rotOption = new ScriptParameter(EtomoNumber.INTEGER_TYPE, ROT_OPTION_KEY);
     rotOption.setValidValues(optionValidValues).setDisplayValue(AUTOMAPPED_OPTION);
@@ -187,15 +196,15 @@ public class ConstTiltalignParam implements Command {
     rotationFixedView = new ScriptParameter(EtomoNumber.INTEGER_TYPE, "RotationFixedView");
     localRotOption = new ScriptParameter(EtomoNumber.INTEGER_TYPE, LOCAL_ROT_OPTION_KEY);
     localRotOption.setValidValues(localOptionValidValues).setDisplayValue(AUTOMAPPED_OPTION);
-    localRotDefaultGrouping = new ScriptParameter(EtomoNumber.INTEGER_TYPE, "LocalRotDefaultGrouping");
+    localRotDefaultGrouping = new ScriptParameter(EtomoNumber.INTEGER_TYPE, LOCAL_ROT_DEFAULT_GROUPING_KEY);
     localRotDefaultGrouping.setDisplayValue(6);
     tiltOption = new ScriptParameter(EtomoNumber.INTEGER_TYPE, TILT_OPTION_KEY);
     tiltOption.setValidValues(tiltOptionValidValues).setDisplayValue(TILT_ALL_OPTION);
     tiltDefaultGrouping = new ScriptParameter(EtomoNumber.INTEGER_TYPE, TILT_DEFAULT_GROUPING_KEY);
     tiltDefaultGrouping.setDisplayValue(5);
-    localTiltOption = new ScriptParameter(EtomoNumber.INTEGER_TYPE, "LocalTiltOption");
+    localTiltOption = new ScriptParameter(EtomoNumber.INTEGER_TYPE, LOCAL_TILT_OPTION_KEY);
     localTiltOption.setValidValues(localTiltOptionValidValues).setDisplayValue(TILT_AUTOMAPPED_OPTION);
-    localTiltDefaultGrouping = new ScriptParameter(EtomoNumber.INTEGER_TYPE, "LocalTiltDefaultGrouping");
+    localTiltDefaultGrouping = new ScriptParameter(EtomoNumber.INTEGER_TYPE, LOCAL_TILT_DEFAULT_GROUPING_KEY);
     localTiltDefaultGrouping.setDisplayValue(6);
     magReferenceView = new ScriptParameter(EtomoNumber.INTEGER_TYPE, MAG_REFERENCE_VIEW_KEY);
     magOption = new ScriptParameter(EtomoNumber.INTEGER_TYPE, MAG_OPTION_KEY);
@@ -203,9 +212,9 @@ public class ConstTiltalignParam implements Command {
     magDefaultGrouping = new ScriptParameter(EtomoNumber.INTEGER_TYPE, MAG_DEFAULT_GROUPING_KEY);
     magDefaultGrouping.setDisplayValue(4);
     localMagReferenceView = new ScriptParameter(EtomoNumber.INTEGER_TYPE, "LocalMagReferenceView");
-    localMagOption = new ScriptParameter(EtomoNumber.INTEGER_TYPE, "LocalMagOption");
+    localMagOption = new ScriptParameter(EtomoNumber.INTEGER_TYPE, LOCAL_MAG_OPTION_KEY);
     localMagOption.setValidValues(localOptionValidValues).setDisplayValue(AUTOMAPPED_OPTION);
-    localMagDefaultGrouping = new ScriptParameter(EtomoNumber.INTEGER_TYPE, "LocalMagDefaultGrouping");
+    localMagDefaultGrouping = new ScriptParameter(EtomoNumber.INTEGER_TYPE, LOCAL_MAG_DEFAULT_GROUPING_KEY);
     localMagDefaultGrouping.setDisplayValue(7);
     xStretchOption = new ScriptParameter(EtomoNumber.INTEGER_TYPE, "XStretchOption");
     xStretchOption.setValidValues(distortionOptionValidValues).setDisplayValue(NONE_OPTION);
@@ -213,15 +222,15 @@ public class ConstTiltalignParam implements Command {
     xStretchDefaultGrouping.setDisplayValue(7);
     localXStretchOption = new ScriptParameter(EtomoNumber.INTEGER_TYPE, "LocalXStretchOption");
     localXStretchOption.setValidValues(localOptionValidValues).setDisplayValue(AUTOMAPPED_OPTION);
-    localXStretchDefaultGrouping = new ScriptParameter(EtomoNumber.INTEGER_TYPE, "LocalXStretchDefaultGrouping");
+    localXStretchDefaultGrouping = new ScriptParameter(EtomoNumber.INTEGER_TYPE, LOCAL_X_STRETCH_DEFAULT_GROUPING_KEY);
     localXStretchDefaultGrouping.setDisplayValue(7);
     skewOption = new ScriptParameter(EtomoNumber.INTEGER_TYPE, SKEW_OPTION_KEY);
     skewOption.setValidValues(distortionOptionValidValues).setDisplayValue(NONE_OPTION);
     skewDefaultGrouping = new ScriptParameter(EtomoNumber.INTEGER_TYPE, SKEW_DEFAULT_GROUPING_KEY);
     skewDefaultGrouping.setDisplayValue(11);
-    localSkewOption = new ScriptParameter(EtomoNumber.INTEGER_TYPE, "LocalSkewOption");
+    localSkewOption = new ScriptParameter(EtomoNumber.INTEGER_TYPE, LOCAL_SKEW_OPTION_KEY);
     localSkewOption.setValidValues(optionValidValues).setDisplayValue(AUTOMAPPED_OPTION);
-    localSkewDefaultGrouping = new ScriptParameter(EtomoNumber.INTEGER_TYPE, "LocalSkewDefaultGrouping");
+    localSkewDefaultGrouping = new ScriptParameter(EtomoNumber.INTEGER_TYPE, LOCAL_SKEW_DEFAULT_GROUPING_KEY);
     localSkewDefaultGrouping.setDisplayValue(11);
     residualReportCriterion = new ScriptParameter(EtomoNumber.DOUBLE_TYPE, RESIDUAL_REPORT_CRITERION_KEY);
     surfacesToAnalyze = new ScriptParameter(EtomoNumber.INTEGER_TYPE, SURFACES_TO_ANALYZE_KEY);
@@ -757,6 +766,10 @@ public class ConstTiltalignParam implements Command {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.13  2005/02/18 01:27:23  sueh
+ * <p> bug# 600 Moving parameter names to public statics, so they can be used
+ * <p> for tooltips.
+ * <p>
  * <p> Revision 3.12  2005/01/25 21:36:55  sueh
  * <p> bug# 567 Adding a way to generate OutputLocalFile.  Converting
  * <p> EtomoNumbers to ScriptParameter.
