@@ -274,10 +274,10 @@ The 3dmod Preferences dialog also allows the function of the three
 mouse buttons to be
 remapped in any desired way.  Because of this flexibility, mouse
 functions are described here and in the help windows of 3dmod in terms
-of the "first", "second", and "third" buttons.  By default, these
+of the first, second, and third buttons.  By default, these
 correspond to the left, middle, and right buttons.
 
-By default, the sliders in 3dmod are continuously active, or "hot",
+By default, the sliders in 3dmod are continuously active, or hot,
 which means that the program will attempt to update the display as a
 slider is dragged.  If the program can not keep up well enough, the
 continuous update can be stopped by pressing the Ctrl key while
@@ -298,8 +298,8 @@ open at all times while 3dmod is running.  All other windows can
 be opened and closed without restarting 3dmod.
 .TP
 .I Window Control Buttons
-The "peg" toolbutton can be used to keep the Information Window on top
-of all other windows, including windows from other programs.  The
+The toolbutton with the pushpin can be used to keep the Information Window on 
+top of all other windows, including windows from other programs.  The
 toolbutton with two up arrows can be used to raise all of the windows
 of the current 3dmod above windows from other programs.
 .TP 

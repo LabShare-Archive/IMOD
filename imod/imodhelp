@@ -264,11 +264,11 @@ UUsseerr IInntteerrffaaccee FFeeaattuurreess
        the three mouse buttons to be remapped in any desired way.
        Because of this flexibility, mouse functions are described
        here and in the help windows of 3dmod in terms of the
-       "first", "second", and "third" buttons.  By default, these
-       correspond to the left, middle, and right buttons.
+       first, second, and third buttons.  By default, these cor­
+       respond to the left, middle, and right buttons.
 
        By default, the sliders in 3dmod are continuously active,
-       or "hot", which means that the program will attempt to
+       or hot, which means that the program will attempt to
        update the display as a slider is dragged.  If the program
        can not keep up well enough, the continuous update can be
        stopped by pressing the Ctrl key while dragging the
@@ -293,12 +293,12 @@ IInnffoorrmmaattiioonn WWiinnddooww
        windows can be opened and closed without restarting 3dmod.
 
        _W_i_n_d_o_w _C_o_n_t_r_o_l _B_u_t_t_o_n_s
-              The "peg" toolbutton can be used to keep the Infor­
-              mation Window on top of all other windows, includ­
-              ing windows from other programs.  The toolbutton
-              with two up arrows can be used to raise all of the
-              windows of the current 3dmod above windows from
-              other programs.
+              The toolbutton with the pushpin can be used to keep
+              the Information Window on top of all other windows,
+              including windows from other programs.  The tool­
+              button with two up arrows can be used to raise all
+              of the windows of the current 3dmod above windows
+              from other programs.
 
        _T_h_e _M_o_d_e_l _S_e_l_e_c_t_i_o_n _D_i_s_p_l_a_y _C_o_n_t_r_o_l_s_.
               The current _O_b_j_e_c_t_, _C_o_n_t_o_u_r and _P_o_i_n_t are displayed
@@ -943,4 +943,4 @@ SSEEEE AALLSSOO
 
 
 
-BL3DFS                        3.0.6                       imod(1)
+BL3DFS                        3.0.7                       imod(1)
