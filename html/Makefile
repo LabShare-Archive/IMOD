@@ -9,16 +9,19 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.0  2001/11/29 18:10:45  rickg
+#  *** empty log message ***
+#
 #  Revision 1.1  2001/11/28 15:39:48  mast
 #  Added Makefile so that make install will install these files
 #
 #
 include ../configure
 
-NOEXT = 
+NOEXT = 3dmodimages
 
 install : clean
-	if (`pwd` != $(INSTDIR)/html) $(CP) *.* $(NOEXT) $(INSTDIR)/html
+	if (`pwd` != $(INSTDIR)/html) $(CP) -r *.* $(NOEXT) $(INSTDIR)/html
 
 clean : 
 	$(FIND) . -type f -name "*~"    -exec rm "{}" \;
