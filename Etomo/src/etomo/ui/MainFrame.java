@@ -48,6 +48,9 @@ import etomo.type.ProcessTrack;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.13  2003/05/27 08:54:18  rickg
+ * <p> Determinant progress bar now takes a string
+ * <p>
  * <p> Revision 2.12  2003/05/23 14:22:38  rickg
  * <p> Progress bar determinant delegate methods
  * <p> axisPanel mapping method
@@ -603,6 +606,14 @@ public class MainFrame extends JFrame implements ContextMenu {
     axisPanelA.setPostProcessingState(state);
   }
 
+  /**
+   * Set the specified button as selected
+   * @param axisID
+   * @param name
+   */
+  public void selectButton(AxisID axisID, String name) {
+    mapAxis(axisID).selectButton(name);
+  }
   //  TODO Need a way to repaint the existing font
   public void repaintWindow() {
     repaintContainer(this);

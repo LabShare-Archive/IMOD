@@ -74,6 +74,10 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.49  2003/06/09 04:28:21  rickg
+ * <p> Set state to in progress if any thing is exected for a given
+ * <p> process panel
+ * <p>
  * <p> Revision 2.48  2003/06/05 21:19:13  rickg
  * <p> Explicit transferfid B to A false setting
  * <p>
@@ -574,6 +578,7 @@ public class ApplicationManager {
       return;
     }
 
+    mainFrame.selectButton(axisID, "Pre-processing");
     // TODO: When a panel is overwriten by another should it be nulled and
     // closed or left and and reshown when needed?
     // Problem with stale data for align and tilt info since they are on
@@ -749,6 +754,8 @@ public class ApplicationManager {
       setupRequestDialog();
       return;
     }
+
+    mainFrame.selectButton(axisID, "Coarse Alignment");
     if (showIfExists(coarseAlignDialogA, coarseAlignDialogB, axisID)) {
       return;
     }
@@ -920,6 +927,8 @@ public class ApplicationManager {
       setupRequestDialog();
       return;
     }
+
+    mainFrame.selectButton(axisID, "Fiducial Model Gen.");
     if (showIfExists(fiducialModelDialogA, fiducialModelDialogB, axisID)) {
       return;
     }
@@ -1108,6 +1117,8 @@ public class ApplicationManager {
       setupRequestDialog();
       return;
     }
+    
+    mainFrame.selectButton(axisID, "Fine Alignment");
     if (showIfExists(fineAlignmentDialogA, fineAlignmentDialogB, axisID)) {
       return;
     }
@@ -1409,6 +1420,8 @@ public class ApplicationManager {
       setupRequestDialog();
       return;
     }
+    
+    mainFrame.selectButton(axisID, "Tomogram Positioning");
     if (showIfExists(tomogramPositioningDialogA,
       tomogramPositioningDialogB,
       axisID)) {
@@ -1664,6 +1677,8 @@ public class ApplicationManager {
       setupRequestDialog();
       return;
     }
+
+    mainFrame.selectButton(axisID, "Tomogram Generation");
     if (showIfExists(tomogramGenerationDialogA,
       tomogramGenerationDialogB,
       axisID)) {
@@ -1862,6 +1877,7 @@ public class ApplicationManager {
       return;
     }
 
+    mainFrame.selectButton(AxisID.FIRST, "Tomogram Combination");
     if (tomogramCombinationDialog == null) {
       tomogramCombinationDialog = new TomogramCombinationDialog(this);
     }
@@ -2327,7 +2343,7 @@ public class ApplicationManager {
     if (updateSolvematchmodCom()
       && updatePatchcorrCom()
       && updateMatchorwarpCom(false)) {
-      
+
       processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
       mainFrame.setTomogramCombinationState(ProcessState.INPROGRESS);
 
@@ -2461,6 +2477,8 @@ public class ApplicationManager {
 
     //  Open the dialog in the appropriate mode for the current state of
     //  processing
+
+    mainFrame.selectButton(AxisID.ONLY, "Post Processing");
     if (postProcessingDialog == null) {
       postProcessingDialog = new PostProcessingDialog(this);
     }
