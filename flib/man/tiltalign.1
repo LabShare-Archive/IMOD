@@ -128,10 +128,6 @@ DDEESSCCRRIIPPTTIIOONN
 	  resulting reconstruction that could be difficult to account for when
 	  trying to combine reconstructions from tilts around two axes.
 
-	  NOTE that the set of N views whose alignment is being solved for are
-	  referred to by number from 1 to N, while the Z values in the model
-	  file would generally start at 0.
-
 	  Parameters are entered in the following order.  Lines starting with
 	  IF are entered only for particular choices on the preceding line.
 
@@ -159,17 +155,19 @@ DDEESSCCRRIIPPTTIIOONN
 	   	into the output file,
 	      or 0 to put both in the file.
 
-	  0 to include points with all of the Z values in the model file (these
-	   	Z values are linearly related to view number, so a selection
-	   	of Z values is in effect a selection of views to solve for)
-	      or 1 to specify the starting, ending, and increment Z to include
-	      or 2 to specify individually all of the Z values to include
+	  0 to include all views that have points in the model file
+	      or 1 to specify the starting, ending, and increment views to
+	        include
+	      or 2 to enter a list of the individual views to include
+	      or 3 to enter a list of views to exclude
 
-	  IF 1 was selected, next enter the starting and ending Z and the
-	      increment to use between those values
+	  IF 1 was selected, next enter the starting and ending view number
+	       and the increment to use between those values
 
-	  OR IF 2 was selected, enter the Z values to be included.  Ranges may
-	      be entered; e.g. 0-3,6-8
+	  OR IF 2 was selected, enter a list of views to be included.  Ranges 
+	      may be entered; e.g. 0-3,6-8
+	  
+	  OR IF 3 was selected, enter a list of views to be excluded
 
 	  Initial angle of rotation in the plane of projection.	 This is the
 	      rotation (CCW positive) from the Y-axis (the tilt axis after the

@@ -6,8 +6,8 @@ $tiltalign
 # next line, name of fiducial model file
 g5a.fid
 # next line, name of image file, or blank line followed by NX,NY/
-
-1024,1024/	size and origin information; comment out if use image file
+g5a.st
+#1024,1024/	size and origin information; comment out if use image file
 # next line, filename for model output of X-Y-Z coordinates, blank for none
 
 # next line, filename for text output of X-Y-Z coordinates, blank for none
@@ -17,7 +17,11 @@ g5a.tlt
 # next line, filename for solution/transform output
 g5a.xf
 1	-1 solutions only, 1 xforms only, or 0 both in output file
-0	0 all z values, 1 specify start, end, increment, or 2 specify all z
+3	0 do all views, 1 start, end, inc, 2 list to include, 3 list to exclude
+#
+# SPECIFY LIST OF VIEWS TO EXCLUDE ON THE FOLLOWING LINE OR LEAVE EMPTY
+#
+	!list of views to exclude
 0.0	Initial rotation angle (90 horizontal)
 0	0 to vary all rotations, or # of view to fix at initial angle
 #
