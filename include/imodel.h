@@ -168,6 +168,10 @@ typedef struct Mod_Index
 #define VIEW_WORLD_UPDOWN   64
 #define VIEW_WORLD_LOWRES  128
 
+/* Shift and actual bits reserved for point quality */
+#define WORLD_QUALITY_SHIFT  8
+#define WORLD_QUALITY_BITS   (7l << WORLD_QUALITY_SHIFT)
+
 /* Properties of an object that are stored in a view */
 typedef struct Mod_Object_View
 {
@@ -542,7 +546,7 @@ extern "C" {
   int     imodGetMaxTime(Imod *imod);
   char   *imodUnits(Imod *mod);
   Ipoint *imodNearestPoint(Imod *imod, Ipoint *pt);
-  long    imodChecksum(Imod *imod);
+  int    imodChecksum(Imod *imod);
   int     imodel_lock(struct Mod_Model *mod, int flag);
   int     imodel_unlock(struct Mod_Model *mod);
   int     imodel_transform_slice(struct Mod_Model *model, float *mat, 
@@ -706,6 +710,9 @@ mesh (index) (vert size) (list size)
 
 /*    
     $Log$
+    Revision 3.10  2003/03/03 22:45:31  mast
+    Changes sizes and a few other variables from unsigned to signed ints
+
     Revision 3.9  2003/02/21 22:17:47  mast
     Implement new b3d types
 
