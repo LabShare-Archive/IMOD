@@ -29,6 +29,7 @@ class BeadFixer : public DialogFrame
  private:
   void reread(int which);
   int foundgap(int obj, int cont, int ipt, int before);
+  void clearExtraObj();
   QPushButton *rereadBut;
   QPushButton *nextLocalBut;
   QPushButton *nextResBut;
