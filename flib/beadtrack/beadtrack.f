@@ -210,6 +210,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.4  2003/04/11 17:28:42  mast
+c	  added cgx, cgy to tltcntrl common to make them available to tiltali
+c	
 c	  Revision 3.3  2002/07/28 22:55:53  mast
 c	  Scale model coordinates correctly in Z; standardize error output
 c	
@@ -1232,7 +1235,7 @@ c
 	    if(nlistz.ne.0)then
 	      call objtocont(iobj,obj_color,imodobj,imodcont)
 	      write(*,117)imodobj,imodcont
-117	      format(i2,i4,':',$)
+117	      format(i2,i4,': ',$)
 	      call wrlist(listz,nlistz)
 	    endif
 	    misstot=misstot+nlistz

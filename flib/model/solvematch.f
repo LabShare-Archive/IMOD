@@ -150,6 +150,10 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.4  2002/11/11 22:26:37  mast
+c	  Added argument to calls to do3multr and solve_wo_outlier for
+c	  fixed column
+c	
 c	  Revision 3.3  2002/07/28 00:24:47  mast
 c	  Added a second level of indexing so that point numbers in the
 c	  fiducial coordinate file are read and used to refer to points.
@@ -299,7 +303,7 @@ c
      &	      ' MINIMUM NUMBER OF POINTS IN A AND B')
 	write (*,114)
 114	format('Enter a list of the corresponding points in the',
-     &	    ' second series ',/,' - enter / for', $)
+     &	    ' second series ',/,' - enter / for ', $)
 	call wrlist(listcorrb, nlist)
 	nlistb=nlista
 	call rdlist(5,listcorrb,nlistb)
