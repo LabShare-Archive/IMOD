@@ -59,6 +59,7 @@ static void imodvDrawTImage(Ipoint *p1, Ipoint *p2, Ipoint *p3, Ipoint *p4,
                             Ipoint *clamp,
                             unsigned char *data,
                             int width, int height);
+static void setAlpha(int iz, int zst, int znd, int izdir);
 
 static GLubyte tdata[TexImageSize][TexImageSize][3];
 static GLubyte Cmap[3][256];
@@ -219,8 +220,6 @@ static void imodvDrawTImage(Ipoint *p1, Ipoint *p2, Ipoint *p3, Ipoint *p4,
 static void setSliceLimits(int ciz, int miz, bool invertZ, int &zst, int &znd,
                            int &izdir)
 {
-  unsigned char alpha = 0xff;
-  double dalpha;
   zst = ciz - numSlices / 2;
   znd = zst + numSlices - 1;
   if (zst < 0)
@@ -229,24 +228,28 @@ static void setSliceLimits(int ciz, int miz, bool invertZ, int &zst, int &znd,
     znd = miz - 1;
   izdir = 1;
 
-  // Based on adjusting transparencies with increasing numbers of planes,
-  // with 3 different starting transparencies.
-  dalpha = 2.55 * (100 - ImageTrans);
-  if (znd > zst)
-    dalpha *= 1.1 * pow((double)(znd + 1 - zst), -0.86);
-  if (dalpha > 255.)
-    dalpha = 255.;
-  alpha = (unsigned char)dalpha;
-  
   if (invertZ) {
     izdir = zst;
     zst = znd;
     znd = izdir;
     izdir = -1;
   }
-  
-  glColor4ub(alpha, alpha, alpha,alpha);
-  if (ImageTrans){
+}
+
+// Set the alpha factor based on transparency, number of images and which image
+// this one is
+static void setAlpha(int iz, int zst, int znd, int izdir)
+{
+  float alpha, b;
+  int nDraw = (znd - zst) / izdir + 1;
+  int m = (iz - zst) / izdir + 1;
+
+  // b is the final alpha factor for each plane after all drawing
+  // alpha is computed from b for the plane # m
+  b = (float)(0.01 * (100 - ImageTrans) / nDraw);
+  alpha = (float)(b / (1. - (nDraw - m) * b));
+  glColor4f(alpha, alpha, alpha, alpha);
+  if (ImageTrans || nDraw > 1) {
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA);
   }
@@ -328,6 +331,7 @@ void imodvDrawImage(ImodvApp *a)
     setSliceLimits(ciz, miz, invertZ, zst, znd, izdir);
 
     for (iz = zst; izdir * (znd - iz) >= 0 ; iz += izdir) {
+      setAlpha(iz, zst, znd, izdir);
       ll.z = iz; lr.z = iz; ur.z = iz; ul.z = iz;
       idata = ivwGetZSection(a->vi, iz);
       if (!idata)
@@ -382,6 +386,7 @@ void imodvDrawImage(ImodvApp *a)
     setSliceLimits(cix, mix, invertX, zst, znd, izdir);
 
     for (iz = zst; izdir * (znd - iz) >= 0 ; iz += izdir) {
+      setAlpha(iz, zst, znd, izdir);
       ll.x = iz; lr.x = iz; ur.x = iz; ul.x = iz;
 
       for(x = 0; x < miy; x += tstep){
@@ -464,6 +469,7 @@ void imodvDrawImage(ImodvApp *a)
     setSliceLimits(ciy, miy, invertY, zst, znd, izdir);
 
     for (iz = zst; izdir * (znd - iz) >= 0 ; iz += izdir) {
+      setAlpha(iz, zst, znd, izdir);
       ll.y = iz; lr.y = iz; ur.y = iz; ul.y = iz;
 
       for (x = 0; x < mix; x += tstep) {
@@ -747,6 +753,9 @@ void ImodvImage::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.10  2004/05/03 19:18:26  mast
+Added ability to display multiple slices and X, Y, or Z planes
+
 Revision 4.9  2004/01/22 19:12:43  mast
 changed from pressed() to clicked() or accomodated change to actionClicked
 
