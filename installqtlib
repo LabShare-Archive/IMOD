@@ -8,6 +8,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.11  2003/10/03 05:04:45  mast
+#  Discovered extension can go before (SGI) or after (Mac) version numbers
+#
 #  Revision 3.10  2003/09/25 00:04:08  mast
 #  Improve test for no entry in configure
 #
@@ -51,7 +54,11 @@ set qtlib = `sed -n '/^LIBS.*=/s/^.*-lqt/libqt/p' sendevent/Makefile`
 
 # If the library goes to bin, it is Windows and need to copy a dll
 if ($qtlibdir == "bin") then
-    set qtlib = $qtlib[2]
+    if ($#qtlib < 2) then
+        set qtlib = `sed -n '/^LIBS[ 	]*=/s/^[^"]*"[^\]*\\lib\\\([^\.]*\).*$/\1/p' sendevent/Makefile`
+    else
+        set qtlib = $qtlib[2]
+    endif
     \cp $QTDIR/lib/${qtlib}*.dll $instdir/$qtlibdir
     exit 0
 endif
