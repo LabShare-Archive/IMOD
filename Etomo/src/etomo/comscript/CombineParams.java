@@ -22,6 +22,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.0  2003/11/07 23:19:00  rickg
+ * <p> Version 1.0.0
+ * <p>
  * <p> Revision 2.5  2003/10/20 16:51:41  rickg
  * <p> Removed scriptsCreated flag, use existence of combine com scripts instead
  * <p>
@@ -189,6 +192,10 @@ public class CombineParams extends ConstCombineParams implements Storable {
   public void setPatchZMin(int patchZMin) {
     this.patchZMin = patchZMin;
   }
+  
+  public void setMaxPatchZMax(int maxPatchZMax) {
+    this.maxPatchZMax = maxPatchZMax;
+  }
 
   public void setTempDirectory(String directoryName) {
     if (directoryName.matches("^\\s+$")) {
@@ -246,6 +253,9 @@ public class CombineParams extends ConstCombineParams implements Storable {
     props.setProperty(group + "TempDirectory", tempDirectory);
     props.setProperty(group + "ManualCleanup", String.valueOf(manualCleanup));
     props.setProperty(group + "ModelBased", String.valueOf(modelBased));
+    props.setProperty(
+      group + "MaxPatchBoundaryZMax",
+      String.valueOf(maxPatchZMax));
   }
 
   /**
@@ -349,6 +359,11 @@ public class CombineParams extends ConstCombineParams implements Storable {
             Boolean.toString(modelBased)))
         .booleanValue();
     
+    maxPatchZMax =
+      Integer.parseInt(
+        props.getProperty(
+          group + "MaxPatchBoundaryZMax",
+          String.valueOf(maxPatchZMax)));
   }
 
   /**
@@ -379,5 +394,6 @@ public class CombineParams extends ConstCombineParams implements Storable {
     patchYMax = mrcHeader.getNSections() - xyborder;
     patchZMin = 1;
     patchZMax = mrcHeader.getNRows();
+    maxPatchZMax = patchZMax;
   }
 }
