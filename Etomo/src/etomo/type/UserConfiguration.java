@@ -17,6 +17,9 @@ import java.util.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.2  2002/12/11 00:36:17  rickg
+ * <p> Added revision number
+ * <p>
  * <p> Revision 1.1  2002/09/09 22:57:02  rickg
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
@@ -26,13 +29,15 @@ public class UserConfiguration implements Storable {
   public static final String rcsid =
     "$Id$";
 
-  private String revisionNumber = "1.0";
+  private String revisionNumber = "1.1";
   private boolean nativeLookAndFeel = false;
   private boolean advancedDialogs = false;
   private int toolTipsInitialDelay = 500;
   private int toolTipsDismissDelay = 120000;
   private int nMRUFiles = 4;
   private CircularBuffer MRUFileList;
+  private String fontFamily = "Dialog";
+  private int fontSize = 12;
 
   public UserConfiguration() {
     MRUFileList = new CircularBuffer(4);
@@ -69,6 +74,9 @@ public class UserConfiguration implements Storable {
     props.setProperty(
       group + "ToolTipsDismissDelay",
       String.valueOf(toolTipsDismissDelay));
+    props.setProperty(group + "FontFamily", String.valueOf(fontFamily));
+    props.setProperty(group + "FontSize", String.valueOf(fontSize));
+
     props.setProperty(group + "NMRUFiles", String.valueOf(nMRUFiles));
     for (int i = 0; i < nMRUFiles; i++) {
       props.setProperty(
@@ -113,6 +121,9 @@ public class UserConfiguration implements Storable {
     toolTipsDismissDelay =
       Integer.parseInt(
         props.getProperty(group + "ToolTipsDismissDelay", "30000"));
+    fontFamily = props.getProperty(group + "FontFamily", "Dialog");
+    fontSize = Integer.parseInt(props.getProperty(group + "FontSize", "12"));
+
     nMRUFiles = Integer.parseInt(props.getProperty(group + "NMRUFiles", "4"));
     MRUFileList = new CircularBuffer(nMRUFiles);
     for (int i = nMRUFiles - 1; i >= 0; i--) {
@@ -219,4 +230,36 @@ public class UserConfiguration implements Storable {
     }
     return list;
   }
+  /**
+   * Returns the fontFamily.
+   * @return String
+   */
+  public String getFontFamily() {
+    return fontFamily;
+  }
+
+  /**
+   * Returns the fontSize.
+   * @return int
+   */
+  public int getFontSize() {
+    return fontSize;
+  }
+
+  /**
+   * Sets the fontFamily.
+   * @param fontFamily The fontFamily to set
+   */
+  public void setFontFamily(String fontFamily) {
+    this.fontFamily = fontFamily;
+  }
+
+  /**
+   * Sets the fontSize.
+   * @param fontSize The fontSize to set
+   */
+  public void setFontSize(int fontSize) {
+    this.fontSize = fontSize;
+  }
+
 }
