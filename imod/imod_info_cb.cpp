@@ -50,12 +50,17 @@ Log at end of file
 #include "imod_info_cb.h"
 #include "preferences.h"
 #include "xcramp.h"
+#include "xzap.h"
 #include "control.h"
 
 extern "C" {
 int sampleMeanSD(unsigned char **image, int type, int nx, int ny,
-                 float sample, float matt, float *mean, float *sd);
+                 float sample, int nxMatt, int myMatt, int nxUse, int nyUse,
+                 float *mean, float *sd);
 }
+
+static void getSampleLimits(ViewInfo *vw, int &ixStart, int &iyStart, 
+                            int &nxUse, int &nyUse, float &sample);
 
 /* Global variable: the forbid level, hope to eliminate */
 int ImodForbidLevel = 0;
@@ -64,6 +69,7 @@ static int ctrlPressed = 0;
 static int Imod_obj_cnum = -1;
 static int float_on = 0;
 static int doingFloat = 0;
+static int float_subsets = 1;
 
 /*
  * FUNCTIONS FOR THE CONTROLS TO REPORT CHANGES
@@ -191,6 +197,11 @@ void imodInfoFloat(int state)
     imod_info_setbw(App->cvi->black, App->cvi->white);
   } else
     float_on = 0;
+}
+
+void imodInfoSubset(int state)
+{
+  float_subsets = state;
 }
 
 /* DNM 6/8/01: fixed bug in getting mode, changed to pass mode to function */
@@ -328,17 +339,25 @@ void imod_info_setxyz(void)
   ImodInfoWidget->updateXYZ(xyz, xyzs);
 }
 
-/* Static variables for the keeping track of floating */
-static int ref_section;
-static int ref_black = 0;
-static int ref_white = 255;
+// A structure to store means and SD's of areas
+typedef struct {
+  float mean;
+  float sd;
+  int ixStart;
+  int iyStart;
+  int nxUse;
+  int nyUse;
+} MeanSDData;
+
+/* Static variables for keeping track of floating */
+static float ref_black = 0.;
+static float ref_white = 255.;
 static int last_section = 0;
-static int ref_time;
 static int last_time = 0;
-static float *sec_mean = NULL;
-static float *sec_sd = NULL;
+static MeanSDData *secData = NULL;
 static int table_size = 0;
 static int tdim = 0;
+
 
 /*
  * Set the black/white sliders, draw if necessary
@@ -371,24 +390,38 @@ void imod_info_setbw(int black, int white)
 
   /* DNM: set this information as values for a new reference section for
      floated intensities */
-  ref_section = last_section;
-  ref_time = last_time;
   ref_black = black;
   ref_white = white;
   return;
 }
 
+// Get the limits for sampling: if we are not using subset floating or if
+// there is no useful data from a zap window, use the whole image
+static void getSampleLimits(ViewInfo *vw, int &ixStart, int &iyStart, 
+                            int &nxUse, int &nyUse, float &sample)
+{
+  float matt = 0.05;
+  if (!float_subsets || zapSubsetLimits(vw, ixStart, iyStart, nxUse, nyUse)) {
+    ixStart = matt * vw->xsize;
+    nxUse = vw->xsize - 2 * ixStart;
+    iyStart = matt * vw->ysize;
+    nyUse = vw->ysize - 2 * iyStart;
+  }
+  sample = 10000.0/(nxUse * nyUse);
+  if (sample > 1.0)
+    sample = 1.0;
+}
 
 /* Implements floating; i.e. adjusting of sliders according to changes in the
    mean and SD between images 
    Returns 0 if nothing was changed, or 1 if black/white levels changed */
 int imod_info_bwfloat(ImodView *vw, int section, int time)
 {
-  float sample, matt;
+  float sample;
   int i, newwhite, newblack, err1;
-  int save_ref_sec,save_ref_black, save_ref_white, save_ref_time;
   int needsize, iref, isec;
-  float sloperatio;
+  int ixStart, iyStart, nxUse, nyUse;
+  float sloperatio, tmp_black, tmp_white;
   unsigned char **image;
   int retval = 0;
 
@@ -397,16 +430,12 @@ int imod_info_bwfloat(ImodView *vw, int section, int time)
     /* Make sure table exists and is the right size */
     tdim = ivwGetMaxTime(vw) + 1;
     needsize = vw->zsize * tdim;
-    if (table_size == 0) {
-      sec_mean = (float *)malloc(needsize * sizeof(float));
-      sec_sd = (float *)malloc(needsize * sizeof(float));
-    } else if (table_size != needsize) {
-      sec_mean = (float *)realloc(sec_mean, 
-                                  needsize * sizeof(float));
-      sec_sd = (float *)realloc(sec_sd, needsize * sizeof(float));
-    }
+    if (table_size == 0)
+      secData = (MeanSDData *)malloc(needsize * sizeof(MeanSDData));
+    else if (table_size != needsize)
+      secData = (MeanSDData *)realloc(secData, needsize * sizeof(MeanSDData));
 
-    if (!sec_mean || !sec_sd) {
+    if (!secData) {
       imod_info_float_clear(-1, -1);
       return 0;
     }
@@ -414,78 +443,93 @@ int imod_info_bwfloat(ImodView *vw, int section, int time)
     /* Clear out any new entries */
     if (table_size < needsize)
       for (i = table_size; i < needsize; i++)
-        sec_mean[i] = sec_sd[i] = -1;
+        secData[i].mean = secData[i].sd = -1;
     table_size = needsize;
 
-    if ((ref_section + 1) * (ref_time + 1) > table_size ||
+    if ((last_section + 1) * (last_time + 1) > table_size ||
         (section + 1) * (time + 1) > table_size)
       return 0;
 
-    /* Get information about reference and 
-       current sections if necessary */
+    if (time > 0 && last_time == 0)
+      last_time = 1;
 
-    if (time > 0 && ref_time == 0)
-      ref_time = 1;
-
-    matt = 0.05;
-    sample = 10000.0/(vw->xsize*vw->ysize);
-    if (sample > 1.0)
-      sample = 1.0;
-	  
-    err1 = 0;
-    iref = tdim * ref_section + ref_time;
+    // Get the limits for sampling and if they do not match the last limits
+    // then set up to recompute the mean/sd
+    getSampleLimits(vw, ixStart, iyStart, nxUse, nyUse, sample);
+    iref = tdim * last_section + last_time;
     isec = tdim * section + time;
-    if (sec_sd[iref] < 0 ) {
-      image = ivwGetZSectionTime(vw, ref_section, ref_time);
+
+    /* Get information about reference and current sections if necessary;
+     i.e. if there is no SD already or if area doesn't match*/
+    err1 = 0;
+    if (secData[iref].sd < 0. || ixStart != secData[iref].ixStart || 
+        iyStart != secData[iref].iyStart || 
+        nxUse != secData[iref].nxUse || nyUse != secData[iref].nyUse) {
+      image = ivwGetZSectionTime(vw, last_section, last_time);
       err1 = sampleMeanSD(image, 0, vw->xsize, vw->ysize, sample,
-                          matt, &sec_mean[iref], &sec_sd[iref]);
+                          ixStart, iyStart, nxUse, nyUse, 
+                          &secData[iref].mean, &secData[iref].sd);
 
       /* Adjust for compressed data in 8-bit CI mode */
       if (!err1 && App->depth == 8)
-	sec_mean[iref] = (sec_mean[iref] - vw->rampbase) * 256. / vw->rampsize;
+	secData[iref].mean = (secData[iref].mean - vw->rampbase) * 256. /
+          vw->rampsize;
     }
 	       
-    if (!err1 && sec_sd[isec] < 0 ) {
+    if (!err1 && (secData[isec].sd < 0. || ixStart != secData[isec].ixStart || 
+        iyStart != secData[isec].iyStart || 
+        nxUse != secData[isec].nxUse || nyUse != secData[isec].nyUse)) {
       image = ivwGetZSectionTime(vw, section, time);
       err1 = sampleMeanSD(image, 0, vw->xsize, vw->ysize, sample,
-                          matt, &sec_mean[isec], &sec_sd[isec]);
+                          ixStart, iyStart, nxUse, nyUse, 
+                          &secData[isec].mean, &secData[isec].sd);
       if (!err1 && App->depth == 8)
-	sec_mean[isec] = (sec_mean[isec] - vw->rampbase) * 256. / vw->rampsize;
+	secData[isec].mean = (secData[isec].mean - vw->rampbase) * 256. /
+          vw->rampsize;
     }
 	       
     if (!err1) {
-	    
-      /* Compute new black and white sliders */
-      sloperatio = sec_sd[isec] / sec_sd[iref];
+      secData[iref].ixStart = secData[isec].ixStart = ixStart;
+      secData[iref].nxUse = secData[isec].nxUse = nxUse;
+      secData[iref].iyStart = secData[isec].iyStart = iyStart;
+      secData[iref].nyUse = secData[isec].nyUse = nyUse;
 
-      newblack = (int)(sec_mean[isec] - 
-        (sec_mean[iref] - ref_black) * sloperatio + 0.5);
-      newwhite = (int)(newblack + sloperatio * (ref_white - ref_black) + 0.5);
+      /*printf("ref %.2f %.2f  sec %.2f %.2f\n", secData[iref].mean,
+        secData[iref].sd, secData[isec].mean, secData[isec].sd); */
+
+      /* Compute new black and white sliders; keep floating values */
+      sloperatio = secData[isec].sd / secData[iref].sd;
+
+      tmp_black = (secData[isec].mean - 
+        (secData[iref].mean - ref_black) * sloperatio);
+      tmp_white = (tmp_black + sloperatio * (ref_white - ref_black));
 		    
-      if (newblack < 0)
-        newblack = 0;
-      if (newwhite > 255)
-        newwhite = 255;
+      /* printf("ref_bw %.2f %.2f  tmp_bw %.2f %.2f\n", ref_black, ref_white,
+         tmp_black, tmp_white); */
+      if (tmp_black < 0)
+        tmp_black = 0.;
+      if (tmp_white > 255.)
+        tmp_white = 255.;
 
-      /* Set the sliders and the ramp; save and restore
-         reference section information */
+      newblack = (int)(tmp_black + 0.5);
+      newwhite = (int)(tmp_white + 0.5);
+      /* int meanmap = 255 * (secData[isec].mean - newblack) / (newwhite - newblack);
+      float sdmap = 255 * (secData[isec].sd) / (newwhite - newblack);
+      printf("mean = %d  sd = %.2f\n", meanmap, sdmap); */
+
+
+      /* Set the sliders and the ramp if the integer values changed*/
       if (newwhite != vw->white || newblack != vw->black) {
         vw->black = newblack;
         vw->white = newwhite;
         xcramp_setlevels(vw->cramp, vw->black, vw->white);
-        save_ref_sec = ref_section;
-        save_ref_time = ref_time;
-        save_ref_black = ref_black;
-        save_ref_white = ref_white;
 	doingFloat = 1;
         imod_info_setbw(vw->black, vw->white);
 	doingFloat = 0;
-        ref_section = save_ref_sec;
-        ref_time = save_ref_time;
-        ref_black = save_ref_black;
-        ref_white = save_ref_white;
         retval = 1;
       }
+      ref_black = tmp_black;
+      ref_white = tmp_white;
     }
   }
 
@@ -504,25 +548,69 @@ void imod_info_float_clear(int section, int time)
   int i;
 
   if (section < 0 && time < 0) {
-    if (sec_mean)
-      free(sec_mean);
-    if (sec_sd)
-      free(sec_sd);
-    sec_mean = NULL;
-    sec_sd = NULL;
+    if (secData)
+      free(secData);
+    secData = NULL;
     table_size = 0;
   } else if (section < 0) {
     if ((-section) * tdim + time >= table_size)
       return;
     for (i = 0; i < -section; i++) {
-      sec_mean[i * tdim + time] = -1;
-      sec_sd[i * tdim + time] = -1;
+      secData[i * tdim + time].mean = -1;
+      secData[i * tdim + time].sd = -1;
     }
   } else if (section * tdim + time < table_size) {
-    sec_mean[section * tdim + time] = -1;
-    sec_sd[section * tdim + time] = -1;
+    secData[section * tdim + time].mean = -1;
+    secData[section * tdim + time].sd = -1;
   }
   return;
+}
+
+// Change the contrast to meet the target mean and SD
+void imodInfoAutoContrast(int targetMean, int targetSD)
+{
+  float mean, sd;
+  int black, white, floatSave;
+  if (imodInfoCurrentMeanSD(mean, sd))
+    return;
+  black = (int)(mean - sd * targetMean / targetSD + 0.5);
+  white = (int)(mean + sd * (255 - targetMean) / targetSD + 0.5);
+  if (black < 0)
+    black = 0;
+  if (white > 255)
+    white = 255;
+  App->cvi->black = black;
+  App->cvi->white = white;
+  xcramp_setlevels(App->cvi->cramp, black, white);
+  floatSave = float_on;
+  float_on = 0;
+  imod_info_setbw(black, white);
+  float_on = floatSave;
+}
+
+// Return the mean and Sd of the current image, potentially a subarea
+int imodInfoCurrentMeanSD(float &mean, float &sd)
+{
+  float sample;
+  int ixStart, iyStart, nxUse, nyUse;
+  unsigned char **image;
+  ViewInfo *vi = App->cvi;
+
+  // Get the limits to compute within, get images, get the mean & sd
+  getSampleLimits(vi, ixStart, iyStart, nxUse, nyUse, sample);
+  image = ivwGetZSectionTime(vi, (int)floor(vi->zmouse + 0.5), vi->ct);
+  if (!image)
+    return 1;
+  if (sampleMeanSD(image, 0, vi->xsize, vi->ysize, sample,
+                    ixStart, iyStart, nxUse, nyUse, &mean, &sd))
+    return 1;
+  /* printf("%d %d %d %d %.2f %.2f\n", ixStart, iyStart, nxUse, nyUse, mean,
+     sd); */
+
+  /* Adjust for compressed data in 8-bit CI mode */
+  if (App->depth == 8)
+    mean = (mean - vi->rampbase) * 256. / vi->rampsize;
+  return 0;
 }
 
 /****************************************************************************/
@@ -624,6 +712,9 @@ void imod_imgcnt(char *string)
 
 /*
 $Log$
+Revision 4.7  2003/09/16 02:55:14  mast
+Changed to access image data using new line pointers
+
 Revision 4.6  2003/04/18 20:14:57  mast
 In function that reports loading, add test for exiting
 
