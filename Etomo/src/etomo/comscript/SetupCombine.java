@@ -18,6 +18,9 @@ import etomo.process.SystemProgram;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.7  2003/05/13 20:01:13  rickg
+ * <p> Added -f option, removed -e  to tcsh call
+ * <p>
  * <p> Revision 2.6  2003/05/12 23:23:58  rickg
  * <p> Explicitly call tcsh -ec for windows
  * <p>
@@ -79,7 +82,7 @@ public class SetupCombine {
 
     //  Create a new SystemProgram object for setupcombine, set the
     //  working directory and stdin array.
-    setupcombine = new SystemProgram("tcsh -fc setupcombine");
+    setupcombine = new SystemProgram("tcsh -efc setupcombine");
 
     String[] tempStdInput = new String[15];
 
