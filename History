@@ -1,5 +1,25 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/8/05: IMOD_3-4-19
+2/8/05: Added ability to rotate, stretch and scale contours as well as shift
+them in the Zap window, using same mouse buttons as in Midas.  This mode now
+stays on until turned off.  It works with multiply selected contours.
+
+2/8/05: Added tabs for multiple data sets loaded into eTomo.
+
+2/4/05: Fixed tomosnapshot problems for Windows, added file headers.
+
+2/3/05: Fixed problem in Tomopitch with model on very thick whole tomogram.
+
+2/3/05: Fixed Imod2vrml output when the model mesh has empty polygons.
+ 
+1/29/05: Made Sumdensity work properly with nested contours.
+
+1/28/05: Made Imodsortsurf remove existing surface information to avoid empty
+surfaces. 
+
+1/28/05: Fixed bug in Copytomocom's handling of exclude list in new align.com.
+
 1/27/05: Added 2D anisotropic diffusion to 3dmod image processing and to clip.
 
 1/27/05: When tilt angles are specified as start and increment values, eTomo

@@ -12,6 +12,7 @@
 <DCF ref="./index.html" icon="b3dicon.png" title="3dmod Help Pages">
     <section ref="./zap.html" title="Zap Window"/>
     <section ref="./contourJoin.html" title="Contour Joining"/>
+    <section ref="./contourMove.html" title="Contour Moving"/>
     <section ref="./imageMovie.html" title="Image Movie Control"/>
     <section ref="./imageProc.html" title="Image Processing"/>
     <section ref="./modelMovie.html" title="Model Movie &amp; Montage Control"/>
