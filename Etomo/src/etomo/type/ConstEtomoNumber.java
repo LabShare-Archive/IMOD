@@ -22,6 +22,15 @@ import etomo.storage.Storable;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.8  2005/01/10 23:26:46  sueh
+ * <p> bug# 578 Standardized class so that every use of value goes through
+ * <p> getValue().  GetValue() tries to find a non-null value by looking first at
+ * <p> value, then resetValue, and then defaultValue (if displayDefault is set).
+ * <p> Replacing isNull() with isSet().  IsSet() does not use getValue(), since it is
+ * <p> querying whether the value was set (by set(), resetValue() with a non-null
+ * <p> resetValue, or with an initialValue).  Added a new isNull() that uses
+ * <p> getValue().
+ * <p>
  * <p> Revision 1.7  2005/01/06 18:16:29  sueh
  * <p> bug# 578 Make integer null value static public.
  * <p>
@@ -424,7 +433,7 @@ public abstract class ConstEtomoNumber implements Storable {
    * @param displayDefault
    * @return
    */
-  private Number getValue() {
+  protected Number getValue() {
     return getValue(displayDefault);
   }
 
