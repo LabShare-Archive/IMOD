@@ -20,6 +20,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.57  2005/03/08 18:31:00  sueh
+ * bug# 533 Added midasBlendStack() to run midas with the .bl stack.
+ *
  * Revision 3.56  2005/03/08 01:58:30  sueh
  * bug# 533 Adding midasEdges() and preblend().
  *
@@ -724,19 +727,25 @@ public class ProcessManager extends BaseProcessManager {
    * @param axisID
    *          the AxisID to cross-correlate.
    */
-  public String crossCorrelate(AxisID axisID) throws SystemProcessException {
-
-    //  Create the process monitor
-    XcorrProcessWatcher xcorrProcessWatcher = new XcorrProcessWatcher(
-      appManager, axisID);
-
+  public String crossCorrelate(AxisID axisID, boolean blendmont)
+      throws SystemProcessException {
     //  Create the required command string
     String command = "xcorr" + axisID.getExtension() + ".com";
-
-    //  Start the com script in the background
-    ComScriptProcess comScriptProcess = startComScript(command,
-      xcorrProcessWatcher, axisID);
-
+    ComScriptProcess comScriptProcess = null;
+    //  Create the process monitor
+    if (blendmont) {
+      XcorrProcessWatcher xcorrProcessWatcher = new XcorrProcessWatcher(
+          appManager, axisID, true);
+      //  Start the com script in the background
+      comScriptProcess = startComScript(command, xcorrProcessWatcher, axisID);
+    }
+    else {
+      TiltxcorrProcessWatcher tiltxcorrProcessWatcher = new TiltxcorrProcessWatcher(
+          appManager, axisID);
+      //  Start the com script in the background
+      comScriptProcess = startComScript(command, tiltxcorrProcessWatcher,
+          axisID);
+    }
     return comScriptProcess.getName();
   }
 
@@ -767,7 +776,7 @@ public class ProcessManager extends BaseProcessManager {
         + axisID.getExtension() + ".com";
     //  Start the com script in the background
     BlendmontProcessMonitor blendmontProcessMonitor = new BlendmontProcessMonitor(
-      appManager, axisID);
+      appManager, axisID, BlendmontParam.PREBLEND_MODE);
 
     //  Start the com script in the background
     ComScriptProcess comScriptProcess = startComScript(command,
