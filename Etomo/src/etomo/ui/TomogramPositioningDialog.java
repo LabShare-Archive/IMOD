@@ -23,7 +23,10 @@ import etomo.comscript.TiltalignParam;
  *
  * @version $Revision$
  *
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2002/09/09 22:57:02  rickg
+ * <p> Initial CVS entry, basic functionality not including combining
+ * <p> </p>
  */
 public class TomogramPositioningDialog
   extends ProcessDialog implements ContextMenu {
@@ -310,7 +313,6 @@ public class TomogramPositioningDialog
 
   //  Button action handler methods
   void buttonSampleA(ActionEvent event) {
-    System.out.println("sample");
     if(applicationManager.isDualAxis()) {
       applicationManager.createSample(AxisID.FIRST, this);
     }
@@ -320,7 +322,6 @@ public class TomogramPositioningDialog
   }
 
   void buttonCreateBoundaryA(ActionEvent event) {
-    System.out.println("Imod sample top");
     if(applicationManager.isDualAxis()) {
       applicationManager.imodSample(AxisID.FIRST);
     }
@@ -330,7 +331,6 @@ public class TomogramPositioningDialog
   }
 
   void buttonTomopitchA(ActionEvent event) {
-    System.out.println("tomopitch");
     if(applicationManager.isDualAxis()) {
       applicationManager.tomopitch(AxisID.FIRST);
     }
@@ -340,7 +340,6 @@ public class TomogramPositioningDialog
   }
 
   void buttonFinalAlignA(ActionEvent event) {
-    System.out.println("final alignment");
     if(applicationManager.isDualAxis()) {
       applicationManager.finalAlign(this, AxisID.FIRST);
     }
@@ -358,12 +357,10 @@ public class TomogramPositioningDialog
   }
 
   void buttonTomopitchB(ActionEvent event) {
-    System.out.println("tomopitch");
     applicationManager.tomopitch(AxisID.SECOND);
   }
 
   void buttonFinalAlignB(ActionEvent event) {
-    System.out.println("final alignment");
     applicationManager.finalAlign(this, AxisID.SECOND);
   }
 
