@@ -16,7 +16,9 @@ import etomo.comscript.CombineParams;
 import etomo.comscript.ConstCombineParams;
 import etomo.comscript.ConstMatchorwarpParam;
 import etomo.comscript.ConstPatchcrawl3DParam;
+import etomo.comscript.ConstSetParam;
 import etomo.comscript.ConstSolvematchParam;
+import etomo.comscript.SetParam;
 
 import etomo.comscript.MatchorwarpParam;
 import etomo.comscript.Patchcrawl3DParam;
@@ -36,6 +38,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.14  2004/11/20 00:06:29  sueh
+ * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+ * <p>
  * <p> Revision 3.13.2.1  2004/10/11 02:18:46  sueh
  * <p> bug# 520 Passed the manager to the ContextPopup object in order to get
  * <p> the propertyUserDir.
@@ -282,6 +287,10 @@ public class TomogramCombinationDialog
   public void setPatchcrawl3DParams(ConstPatchcrawl3DParam patchcrawl3DParams) {
     pnlFinal.setPatchcrawl3DParams(patchcrawl3DParams);
   }
+  
+  public void setVolcombineParams(ConstSetParam setParam) {
+    pnlFinal.setVolcombineParams(setParam);
+  }
 
   /**
    * Get the the patchcrawl3d parameters of the UI returning them in the 
@@ -292,6 +301,10 @@ public class TomogramCombinationDialog
   public void getPatchcrawl3DParams(Patchcrawl3DParam patchcrawl3DParams)
     throws NumberFormatException {
     pnlFinal.getPatchcrawl3DParams(patchcrawl3DParams);
+  }
+  
+  public void getVolcombineParams(SetParam setParam) {
+    pnlFinal.getVolcombineParams(setParam);
   }
 
   /**
