@@ -124,6 +124,22 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
   prefs->rememberGeomDflt = true;
   prefs->autoTargetMeanDflt = 150;
   prefs->autoTargetSDDflt = 40;
+  prefs->namedIndex[0] = App->select; 
+  prefs->namedIndex[1] = App->shadow; 
+  prefs->namedIndex[2] = App->endpoint;
+  prefs->namedIndex[3] = App->bgnpoint;
+  prefs->namedIndex[4] = App->curpoint;
+  prefs->namedIndex[5] = App->foreground;
+  prefs->namedIndex[6] = App->background;
+  prefs->namedIndex[7] = App->ghost;
+  prefs->namedColorDflt[0] = qRgb(255, 255,   0);
+  prefs->namedColorDflt[1] = qRgb(128, 128,   0);
+  prefs->namedColorDflt[2] = qRgb(255,   0,   0);
+  prefs->namedColorDflt[3] = qRgb(  0, 255,   0);
+  prefs->namedColorDflt[4] = qRgb(255, 255, 128);
+  prefs->namedColorDflt[5] = qRgb(255, 255, 128);
+  prefs->namedColorDflt[6] = qRgb( 64,  64,  96);
+  prefs->namedColorDflt[7] = qRgb( 16,  16,  16);  
 
   prefs->hotSliderKey = settings->readNumEntry(IMOD_NAME"hotSliderKey", 
                                               prefs->hotSliderKeyDflt,
@@ -180,6 +196,14 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
     if (readin)
       prefs->zoomsChgd = true;
   }
+
+  // Read colors with separate keys
+  for (i = 0; i < MAX_NAMED_COLORS; i++) {
+    str.sprintf(IMOD_NAME"namedColors/%d", i);
+    prefs->namedColor[i] = settings->readNumEntry
+      (str, (int)prefs->namedColorDflt[i], &prefs->namedColorChgd[i]);
+  }
+    
 
   // Read the geometry information with separate keys
   for (i = 0; i < MAX_GEOMETRIES; i++) {
@@ -399,6 +423,13 @@ void ImodPreferences::saveSettings()
     }
   }
 
+  for (i = 0; i < MAX_NAMED_COLORS; i++) {
+    if (prefs->namedColorChgd[i]) {
+      str.sprintf(IMOD_NAME"namedColors/%d", i);
+      settings->writeEntry(str, (int)prefs->namedColor[i]);
+    }
+  }
+
   if (prefs->autosaveIntervalChgd)
     settings->writeEntry(IMOD_NAME"autosaveInterval", 
                             prefs->autosaveInterval);
@@ -454,7 +485,7 @@ void ImodPreferences::editPrefs()
   mTabDlg = new QTabDialog(NULL, NULL, true, Qt::WDestructiveClose);
   mTabDlg->setOKButton("Done");
   mTabDlg->setCancelButton("Cancel");
-  mTabDlg->setDefaultButton("Defaults");
+  mTabDlg->setDefaultButton("Defaults for Tab");
   mAppearForm = new AppearanceForm();
   mTabDlg->addTab(mAppearForm, "Appearance");
   mBehaveForm = new BehaviorForm();
@@ -489,104 +520,53 @@ int *ImodPreferences::getStyleStatus()
 void ImodPreferences::donePressed()
 {
   ImodPrefStruct *newp = &mDialogPrefs;
+  ImodPrefStruct oldPrefs = mCurrentPrefs;
+  ImodPrefStruct *oldp = &oldPrefs;
   ImodPrefStruct *curp = &mCurrentPrefs;
+  int i;
   bool autosaveChanged = false;
   mBehaveForm->unload();
+  mCurrentPrefs = mDialogPrefs;
 
-  if (newp->hotSliderKey != curp->hotSliderKey) {
-    curp->hotSliderKey = newp->hotSliderKey;
-    curp->hotSliderKeyChgd = true;
-  }
-
-  if (newp->hotSliderFlag != curp->hotSliderFlag) {
-    curp->hotSliderFlag = newp->hotSliderFlag;
-    curp->hotSliderFlagChgd = true;
-  }
-
-  if (newp->mouseMapping != curp->mouseMapping) {
-    curp->mouseMapping = newp->mouseMapping;
-    curp->mouseMappingChgd = true;
-  }
-
-  if (!equiv(newp->silentBeep, curp->silentBeep)) {
-    curp->silentBeep = newp->silentBeep;
-    curp->silentBeepChgd = true;
-  }
-
-  if (!equiv(newp->tooltipsOn, curp->tooltipsOn)) {
-    curp->tooltipsOn = newp->tooltipsOn;
+  curp->hotSliderKeyChgd |= newp->hotSliderKey != oldp->hotSliderKey;
+  curp->hotSliderFlagChgd |= newp->hotSliderFlag != oldp->hotSliderFlag;
+  curp->mouseMappingChgd |= newp->mouseMapping != oldp->mouseMapping;
+  curp->silentBeepChgd |= !equiv(newp->silentBeep, oldp->silentBeep);
+  if (!equiv(newp->tooltipsOn, oldp->tooltipsOn)) {
     curp->tooltipsOnChgd = true;
     QToolTip::setGloballyEnabled(curp->tooltipsOn);
   }
 
+  curp->fontChgd |= newp->font != oldp->font;
+  curp->styleChgd |= newp->styleKey.lower() != oldp->styleKey.lower();
+  curp->bwStepChgd |= newp->bwStep != oldp->bwStep;
+  curp->iconifyImodvDlgChgd |= !equiv(newp->iconifyImodvDlg, 
+                                     oldp->iconifyImodvDlg);
+  curp->iconifyImodDlgChgd |= !equiv(newp->iconifyImodDlg, 
+                                    oldp->iconifyImodDlg);
+  curp->iconifyImageWinChgd |= !equiv(newp->iconifyImageWin, 
+                                     oldp->iconifyImageWin);
+  curp->minModPtSizeChgd |= newp->minModPtSize != oldp->minModPtSize;
+  curp->minImPtSizeChgd |= newp->minImPtSize != oldp->minImPtSize;
+  curp->rememberGeomChgd |= !equiv(newp->rememberGeom, oldp->rememberGeom);
+  curp->autoTargetMeanChgd |= newp->autoTargetMean != oldp->autoTargetMean;
+  curp->autoTargetSDChgd |= newp->autoTargetSD != oldp->autoTargetSD;
 
-  if (newp->font != curp->font) {
-    curp->font = newp->font;
-    curp->fontChgd = true;
-  }
-  if (newp->styleKey.lower() != curp->styleKey.lower()) {
-    curp->styleKey = newp->styleKey;
-    curp->styleChgd = true;
-  }
+  for (i = 0; i < MAXZOOMS; i++)
+      curp->zoomsChgd |= newp->zooms[i] != oldp->zooms[i];
 
-  if (newp->bwStep != curp->bwStep) {
-    curp->bwStep = newp->bwStep;
-    curp->bwStepChgd = true;
-  }
+  for (i = 0; i < MAX_NAMED_COLORS; i++)
+    curp->namedColorChgd[i] |= newp->namedColor[i] != oldp->namedColor[i];
 
-  if (!equiv(newp->iconifyImodvDlg, curp->iconifyImodvDlg)) {
-    curp->iconifyImodvDlg = newp->iconifyImodvDlg;
-    curp->iconifyImodvDlgChgd = true;
-  }
-  if (!equiv(newp->iconifyImodDlg, curp->iconifyImodDlg)) {
-    curp->iconifyImodDlg = newp->iconifyImodDlg;
-    curp->iconifyImodDlgChgd = true;
-  }
-  if (!equiv(newp->iconifyImageWin, curp->iconifyImageWin)) {
-    curp->iconifyImageWin = newp->iconifyImageWin;
-    curp->iconifyImageWinChgd = true;
-  }
-
-  if (newp->minModPtSize != curp->minModPtSize) {
-    curp->minModPtSize = newp->minModPtSize;
-    curp->minModPtSizeChgd = true;
-  }
-  if (newp->minImPtSize != curp->minImPtSize) {
-    curp->minImPtSize = newp->minImPtSize;
-    curp->minImPtSizeChgd = true;
-  }
-  if (!equiv(newp->rememberGeom, curp->rememberGeom)) {
-    curp->rememberGeom = newp->rememberGeom;
-    curp->rememberGeomChgd = true;
-  }
-  if (newp->autoTargetMean != curp->autoTargetMean) {
-    curp->autoTargetMean = newp->autoTargetMean;
-    curp->autoTargetMeanChgd = true;
-  }
-  if (newp->autoTargetSD != curp->autoTargetSD) {
-    curp->autoTargetSD = newp->autoTargetSD;
-    curp->autoTargetSDChgd = true;
-  }
-
-  for (int i = 0; i < MAXZOOMS; i++) {
-    if (newp->zooms[i] != curp->zooms[i]) {
-      curp->zooms[i] = newp->zooms[i];
-      curp->zoomsChgd = true;
-    }
-  }
-
-  if (newp->autosaveInterval != curp->autosaveInterval) {
-    curp->autosaveInterval = newp->autosaveInterval;
+  if (newp->autosaveInterval != oldp->autosaveInterval) {
     curp->autosaveIntervalChgd = true;
     autosaveChanged = true;
   }
-  if (!equiv(newp->autosaveOn, curp->autosaveOn)) {
-    curp->autosaveOn = newp->autosaveOn;
+  if (!equiv(newp->autosaveOn, oldp->autosaveOn)) {
     curp->autosaveOnChgd = true;
     autosaveChanged = true;
   }
-  if (newp->autosaveDir != curp->autosaveDir) {
-    curp->autosaveDir = newp->autosaveDir;
+  if (newp->autosaveDir != oldp->autosaveDir) {
     curp->autosaveDirChgd = true;
     autosaveChanged = true;
   }
@@ -629,34 +609,49 @@ void ImodPreferences::timerEvent(QTimerEvent *e)
   pointSizeChanged();
 }
 
-// Restore all defaults and update the dialogs
+// Restore defaults for the tab and update the dialogs
 void ImodPreferences::defaultPressed()
 {
+  int i;
   ImodPrefStruct *prefs = &mDialogPrefs;
-  prefs->hotSliderKey = prefs->hotSliderKeyDflt;    
-  prefs->hotSliderFlag = prefs->hotSliderFlagDflt;
-  prefs->mouseMapping = prefs->mouseMappingDflt;
-  prefs->silentBeep = prefs->silentBeepDflt;
-  prefs->tooltipsOn = prefs->tooltipsOnDflt;
-  prefs->bwStep = prefs->bwStepDflt;
-  prefs->iconifyImodvDlg = prefs->iconifyImodvDlgDflt;
-  prefs->iconifyImodDlg = prefs->iconifyImodDlgDflt;
-  prefs->iconifyImageWin = prefs->iconifyImageWinDflt;
-  prefs->minModPtSize = prefs->minModPtSizeDflt;
-  prefs->minImPtSize = prefs->minImPtSizeDflt;
-  prefs->rememberGeom = prefs->rememberGeomDflt;
-  prefs->autoTargetMean = prefs->autoTargetMeanDflt;
-  prefs->autoTargetSD = prefs->autoTargetSDDflt;
-  prefs->autosaveInterval = prefs->autosaveIntervalDflt;
-  prefs->autosaveOn = prefs->autosaveOnDflt;
-  prefs->autosaveDir = prefs->autosaveDirDflt;
-  for (int i = 0; i < MAXZOOMS; i++)
-    prefs->zooms[i] = prefs->zoomsDflt[i];
-  mAppearForm->update();
-  mBehaveForm->update();
-  mMouseForm->update();
-  QToolTip::setGloballyEnabled(prefs->tooltipsOn);
-  pointSizeChanged();
+  findCurrentTab();
+  
+  switch(mCurrentTab) {
+  case 0:
+    prefs->minModPtSize = prefs->minModPtSizeDflt;
+    prefs->minImPtSize = prefs->minImPtSizeDflt;
+    for (i = 0; i < MAX_NAMED_COLORS; i++)
+      prefs->namedColor[i] = prefs->namedColorDflt[i];
+    prefs->autoTargetMean = prefs->autoTargetMeanDflt;
+    prefs->autoTargetSD = prefs->autoTargetSDDflt;
+    pointSizeChanged();
+    mAppearForm->update();
+    break;
+
+  case 1: 
+    prefs->silentBeep = prefs->silentBeepDflt;
+    prefs->tooltipsOn = prefs->tooltipsOnDflt;
+    prefs->bwStep = prefs->bwStepDflt;
+    prefs->iconifyImodvDlg = prefs->iconifyImodvDlgDflt;
+    prefs->iconifyImodDlg = prefs->iconifyImodDlgDflt;
+    prefs->iconifyImageWin = prefs->iconifyImageWinDflt;
+    prefs->rememberGeom = prefs->rememberGeomDflt;
+    prefs->autosaveInterval = prefs->autosaveIntervalDflt;
+    prefs->autosaveOn = prefs->autosaveOnDflt;
+    prefs->autosaveDir = prefs->autosaveDirDflt;
+    for (i = 0; i < MAXZOOMS; i++)
+      prefs->zooms[i] = prefs->zoomsDflt[i];
+    QToolTip::setGloballyEnabled(prefs->tooltipsOn);
+    mBehaveForm->update();
+    break;
+
+  case 2: 
+    prefs->hotSliderKey = prefs->hotSliderKeyDflt;    
+    prefs->hotSliderFlag = prefs->hotSliderFlagDflt;
+    prefs->mouseMapping = prefs->mouseMappingDflt;
+    mMouseForm->update();
+    break;
+  }
 }
 
 // Determine the currently shown tab so it can be set next time
@@ -792,8 +787,23 @@ int ImodPreferences::minCurrentModPtSize()
 // A call to draw when the point size has changed
 void ImodPreferences::pointSizeChanged()
 {
+  mapNamedColors();
   imodDraw(App->cvi, IMOD_DRAW_MOD);
 }
+
+QColor ImodPreferences::namedColor(int index)
+{
+  int i;
+  for (i = 0; i < MAX_NAMED_COLORS; i++) {
+    if (mCurrentPrefs.namedIndex[i] == index) {
+      if (mTabDlg)
+        return QColor(mDialogPrefs.namedColor[i]);
+      return QColor(mCurrentPrefs.namedColor[i]);
+    }
+  }
+  return QColor(0, 0, 0);
+}
+
 
 // Set the geometry for the info window that matches current image or
 // fall back to last one used
@@ -913,6 +923,9 @@ int ImodPreferences::getGenericSettings(char *key, double *values, int maxVals)
 
 /*
 $Log$
+Revision 1.16  2004/06/23 03:32:52  mast
+Added ability to save generic settings from random callers
+
 Revision 1.15  2004/05/31 23:35:26  mast
 Switched to new standard error functions for all debug and user output
 
