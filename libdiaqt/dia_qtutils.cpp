@@ -32,6 +32,9 @@ $Date$
 
 $Revision$
 $Log$
+Revision 1.4  2004/11/04 23:32:44  mast
+Changes for rounded button style
+
 Revision 1.3  2003/11/01 18:14:29  mast
 Allow repeated setting of title without leaking
 
@@ -78,7 +81,7 @@ char *Dia_title = NULL;
 
 // Make a new push button, add it to the vertical box layout, set for no focus
 QPushButton *diaPushButton(char *text, QWidget *parent, 
-                                  QVBoxLayout *layout)
+                                  QBoxLayout *layout)
 {
   QPushButton *button = new QPushButton(text, parent);
   button->setFocusPolicy(QWidget::NoFocus);
@@ -87,7 +90,7 @@ QPushButton *diaPushButton(char *text, QWidget *parent,
 }
 
 // Make a new check box, add it to the vertical box layout, set for no focus
-QCheckBox *diaCheckBox(char *text, QWidget *parent, QVBoxLayout *layout)
+QCheckBox *diaCheckBox(char *text, QWidget *parent, QBoxLayout *layout)
 {
   QCheckBox *button = new QCheckBox(text, parent);
   button->setFocusPolicy(QWidget::NoFocus);
@@ -104,7 +107,7 @@ QRadioButton *diaRadioButton(char *text, QWidget *parent)
 }
 
 // Make a new label and add it to the vertical box layout
-QLabel *diaLabel(char *text, QWidget *parent, QVBoxLayout *layout)
+QLabel *diaLabel(char *text, QWidget *parent, QBoxLayout *layout)
 {
   QLabel *label = new QLabel(text, parent);
   layout->addWidget(label);
@@ -131,6 +134,16 @@ void diaSetSlider(QSlider *slider, int value)
 void diaSetSpinBox(QSpinBox *box, int value)
 {
   box->blockSignals(true);
+  box->setValue(value);
+  box->blockSignals(false);
+}
+
+// Set a spin box including min and max and block signals
+void diaSetSpinMMVal(QSpinBox *box, int min, int max, int value)
+{
+  box->blockSignals(true);
+  box->setMinValue(min);
+  box->setMaxValue(max);
   box->setValue(value);
   box->blockSignals(false);
 }
