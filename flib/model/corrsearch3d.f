@@ -69,6 +69,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.3  2002/07/21 19:44:11  mast
+c	  Added declaration of lnblnk
+c	
 c	  Revision 3.2  2002/07/20 23:56:52  mast
 c	  Added analysis of regions to exclude based on their positions in the
 c	  source file for the second volume.  Standardized error outputs and
@@ -253,8 +256,8 @@ c
 c
 c	    compute revised lower and upper limits for X
 c	    
-	  ixlo2 = max(nbxlo, xvert(2))
-	  ixhi2 = min(nx - nbxhi, xvert(3))
+	  ixlo2 = max(nbxlo, nint(xvert(2)))
+	  ixhi2 = min(nx - nbxhi, nint(xvert(3)))
 	  if (numxpat .gt. 1) then
 c	      
 c	      get new number of intervals inside the limits, and a new delta
@@ -292,8 +295,8 @@ c
 c
 c	    compute revised lower and upper limits for Z
 c	    
-	  izlo2 = max(nbzlo, yvert(2))
-	  izhi2 = min(nz - nbzhi, yvert(3))
+	  izlo2 = max(nbzlo, nint(yvert(2)))
+	  izhi2 = min(nz - nbzhi, nint(yvert(3)))
 	  if (numzpat .gt. 1) then
 c
 	    izspan = izhi2 - izlo2 - nzpatch
