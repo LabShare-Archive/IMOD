@@ -5,6 +5,14 @@ c	  pixels NXTOTPIX, the # of pieces NXPIECES, and the overlap NXOVERLAP
 c	  It also checks that ALL coordinates on the list are multiples of
 c	  frame size minus overlap
 c
+c	  $Author$
+c
+c	  $Date$
+c
+c	  $Revision$
+c
+c	  $Log$
+c
 	subroutine checklist(ixpclist,npclist,iredfac,nxframe,minxpiece
      &	    ,nxpieces,nxoverlap)
 c
@@ -36,9 +44,9 @@ c
 	  nxpieces=1
 	  nxoverlap=0
 	else
-	  if(minxdiff.gt.nxframe)then
+	  if(minxdiff.gt. 1.1 * nxframe)then
 c	      
-c	      If difference is bigger than frame size, find out how many
+c	      If difference is much bigger than frame size, find out how many
 c	      frame sizes to add back to difference to make it positive, then
 c	      divide positive difference by this # of times to get overlap
 c	      THIS WILL FAIL UNDER EXTREME CONDITIONS
