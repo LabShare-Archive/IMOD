@@ -2,6 +2,7 @@ package etomo.comscript;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Vector;
 
 import etomo.ApplicationManager;
 import etomo.process.SystemProgram;
@@ -29,6 +30,9 @@ import etomo.type.FiducialMatch;
  * 
  * <p>
  * $Log$
+ * Revision 3.0  2003/11/07 23:19:00  rickg
+ * Version 1.0.0
+ *
  * Revision 2.11  2003/11/06 16:50:27  rickg
  * Removed -e flag for tcsh execution for all but the com scripts
  *
@@ -135,6 +139,7 @@ public class SetupCombine {
 	String commandLine;
 	int exitValue;
 	ConstMetaData metaData;
+  Vector warningMessage;
 
 	public SetupCombine(ConstMetaData metaData) {
 
@@ -263,6 +268,7 @@ public class SetupCombine {
 		if (exitValue != 0) {
 			throw (new IOException(setupcombine.getExceptionMessage()));
 		}
+    parseWarning();
 		return exitValue;
 	}
 
@@ -273,5 +279,50 @@ public class SetupCombine {
 	public String[] getStdOutput() {
 		return setupcombine.getStdOutput();
 	}
-
+  
+  public String[] getWarningMessage() {
+    return (String[]) warningMessage.toArray(new String[warningMessage.size()]);
+  }
+  /**
+   * Parse the log file for warnings. Since the fortran code is no smart enough
+   * handle formatted output we need find WARNING: in the middle of the output
+   * stream. The error report starts with the WARNING: text instead of the
+   * whole line.
+   * 
+   * @return A String[] containing any errors. If the com script has not been
+   *         run then null is returned. If the com script ran with no warnings
+   *         then zero length array will be returned.
+   */
+  private void parseWarning() throws IOException {
+    boolean nextLineIsWarning = false;
+    String[] stdError = getStdError();
+    warningMessage = new Vector();
+    warningMessage.add("SetupCombine Warnings");
+    warningMessage.add("Standard error output:");
+    for (int i = 0; i < stdError.length; i++) {
+      int index = stdError[i].indexOf("WARNING:");
+      if (index != -1) {
+        nextLineIsWarning = false;
+        int trimIndex = stdError[i].trim().indexOf("PIP WARNING:");
+        if (trimIndex != -1
+          && stdError[i].trim().length()
+            <= trimIndex + 1 + "PIP WARNING:".length()) {
+          nextLineIsWarning = true;
+        }
+        warningMessage.add(stdError[i].substring(index));
+      }
+      else if (nextLineIsWarning) {
+        if (!stdError[i].matches("\\s+")) {
+          warningMessage.add(stdError[i].trim());
+          if (stdError[i].indexOf("Using fallback options in Fortran code")
+            != -1) {
+            nextLineIsWarning = false;
+          }
+        }
+        else {
+          nextLineIsWarning = false;
+        }
+      }
+    }
+  }
 }
