@@ -39,15 +39,15 @@ Log at the end of file
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
-#ifndef NO_IMOD_FORK
-#include <unistd.h>
-#endif
 #include <qfiledialog.h>
 #include <qapplication.h>
 #include <qdir.h>
 #include "xxyz.h"
 
 #include "imod.h" 
+#ifndef NO_IMOD_FORK
+#include <unistd.h>
+#endif
 #include "imod_workprocs.h"
 #include "imodv.h"
 #include "xzap.h"
@@ -143,7 +143,6 @@ int main( int argc, char *argv[])
   float font_scale = 0.;
   int styleSet = 0;
   Iobj *obj;
-  char *tmpCwd;
   QString qname;
   int doFork = 1;
 
@@ -870,6 +869,9 @@ int imodColorValue(int inColor)
 
 /*
 $Log$
+Revision 4.5  2003/02/27 23:07:13  mast
+fiddling with includes some more
+
 Revision 4.4  2003/02/27 19:23:51  mast
 Changes for windows version
 
