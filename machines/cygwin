@@ -377,5 +377,5 @@ echo "GENERATED_SCRIPTS = 3dmodbg 3dmodv" >> $configure
 
 # Make sure critical scripts are in unix mode
 #
-(cd scripts ; dos2unix copytomocoms setupcombine makejoincom transferfid xfalign matchorwarp newst dm2mrc matchrotpairs chunksetup >& /dev/null)
+(cd scripts ; dos2unix copytomocoms setupcombine makejoincom transferfid xfalign matchorwarp newst dm2mrc matchrotpairs chunksetup finishjoin >& /dev/null)
 (cd dist ; dos2unix installIMOD installStub >& /dev/null)
