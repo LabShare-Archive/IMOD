@@ -60,6 +60,7 @@ typedef struct zapwin
   int    dragAddEnd;   /* Ending or last point not registered */
 
   int movieSnapCount; /* Counter if this window is doing movie snapshots */
+  int recordSubarea;  /* Record the subarea on the next draw */
 
   float  zoom;
   float  xzoom;    /* Possibly slightly different X zoom */
@@ -123,6 +124,9 @@ void zapReportRubberband();
 
 /*
 $Log$
+Revision 3.15  2005/02/19 01:31:05  mast
+Added variables for center of rotation
+
 Revision 3.14  2005/02/09 01:19:48  mast
 Added flag for keeping track of changes started when shifted contours
 
