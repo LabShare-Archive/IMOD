@@ -16,6 +16,9 @@ import java.util.ArrayList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.1  2003/05/23 02:34:56  rickg
+ * <p> Change RunComScript to ComScriptProcess
+ * <p>
  * <p> Revision 2.7  2003/05/21 22:55:14  rickg
  * <p> Moved ParsePID to its own class so that BackgroundProcess
  * <p> can also use it.
@@ -74,7 +77,10 @@ import java.util.ArrayList;
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
  */
-public class ComScriptProcess extends Thread {
+public class ComScriptProcess
+  extends Thread
+  implements SystemProcessInterface {
+    
   public static final String rcsid =
     "$Id$";
 
@@ -88,6 +94,9 @@ public class ComScriptProcess extends Thread {
   private SystemProgram vmstocsh;
   private SystemProgram csh;
   private StringBuffer cshProcessID;
+
+  private boolean started = false;
+  private boolean done = false;
 
   public ComScriptProcess(String comScript, ProcessManager processManager) {
     this.name = comScript;
@@ -107,7 +116,8 @@ public class ComScriptProcess extends Thread {
    * function for the thread.
    */
   public void run() {
-
+    started = true;
+    
     if (demoMode) {
       try {
         csh = new SystemProgram("nothing");
@@ -167,6 +177,7 @@ public class ComScriptProcess extends Thread {
     // Send a message back to the ProcessManager that this thread is done.
     //  FIXME this modifies swing element within this thread!!!
     processManager.msgComScriptDone(this, csh.getExitValue());
+    done = true;
   }
 
   /**
@@ -396,4 +407,11 @@ public class ComScriptProcess extends Thread {
     return (String[]) errors.toArray(new String[errors.size()]);
   }
 
+  public boolean isStarted() {
+    return started;    
+  }
+
+  public boolean isDone() {
+    return done;
+  }
 }

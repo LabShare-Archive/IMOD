@@ -14,6 +14,9 @@ import java.io.File;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 2.3  2003/05/12 23:24:54  rickg
+ * <p> Comment fixes
+ * <p>
  * <p> Revision 2.2  2003/05/08 23:19:03  rickg
  * <p> Standardized debug setting
  * <p>
@@ -37,7 +40,10 @@ import java.io.File;
  * <p>
  * <p> </p>
  */
-public class BackgroundProcess extends Thread {
+public class BackgroundProcess
+  extends Thread
+  implements SystemProcessInterface {
+    
   public static final String rcsid =
     "$Id$";
   private String commandLine = null;
@@ -50,6 +56,9 @@ public class BackgroundProcess extends Thread {
 
   private String stdoutLogFile = "";
   private String stderrLogFile = "";
+
+  private boolean started = false;
+  private boolean done = false;
 
   public BackgroundProcess(String commandLine, ProcessManager processManager) {
     this.commandLine = commandLine.trim();
@@ -123,10 +132,11 @@ public class BackgroundProcess extends Thread {
    * Execute the command and notify the ProcessManager when it is done
    */
   public void run() {
+    started = true;
     SystemProgram command = new SystemProgram(commandLine);
     command.setWorkingDirectory(workingDirectory);
     command.setDebug(debug);
-    
+
     if (demoMode) {
       try {
         sleep(3000);
@@ -148,6 +158,7 @@ public class BackgroundProcess extends Thread {
 
     // Send a message back to the ProcessManager that this thread is done.
     processManager.msgBackgroundProcessDone(this, command.getExitValue());
+    done = true;
   }
 
   /**
@@ -165,5 +176,13 @@ public class BackgroundProcess extends Thread {
   public String[] getStdOutput() {
     return stdOutput;
   }
+  
+  public boolean isStarted() {
+    return started;    
+  }
 
+  public boolean isDone() {
+    return done;
+  }
+    
 }
