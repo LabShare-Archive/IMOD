@@ -91,6 +91,41 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.96  2004/08/19 03:09:24  sueh
+ * <p> bug# 508 Added a --selftest option to tell objects to perform extra tests.
+ * <p> Used "selftest" because "test" was already taken.  Created load and
+ * <p> update functions for the combine comscript.  The update function uses
+ * <p> CombineComscriptState to set the start and end command that
+ * <p> combine.com will run. Changed the combine functions matchvol1,
+ * <p> matchorwarp, etc so that they run combine.com.  Removed combine
+ * <p> functions from startNextProcess().  Pulled together functions that had
+ * <p> been split up so they could run from either nextProcess or restart; now
+ * <p> there is no next process for combine.  Add functions to control the
+ * <p> progressBar and the TomogramCombination tab panes.
+ * <p> Added:
+ * <p> static boolean selfTest
+ * <p> getCombineComscript()
+ * <p> boolean isSelfTest()
+ * <p> loadCombineComscript()
+ * <p> matchvol1Combine()
+ * <p> showPane(String comscript, String pane)
+ * <p> startProgressBar(String label, AxisID axisID)
+ * <p> updateCombineComscriptState(int startCommand)
+ * <p> Changed:
+ * <p> combine()
+ * <p> matchorwarpCombine()
+ * <p> matchorwarpTrial()
+ * <p> openTomogramCombinationDialog()
+ * <p> parseCommandLine(String[] args)
+ * <p> patchcorrCombine()
+ * <p> startNextProcess(AxisID axisID)
+ * <p> volcombine()
+ * <p> Deleted:
+ * <p> matchorwarp(String next)
+ * <p> matchvol1()
+ * <p> patchcorr()
+ * <p> restartAtMatchvol1()
+ * <p>
  * <p> Revision 3.95  2004/08/06 23:12:19  sueh
  * <p> bug# 508 added commented out processMgr.combine() call
  * <p> to combine()
@@ -934,7 +969,7 @@ public class ApplicationManager {
 
   private boolean demo = false;
 
-  private boolean test = false;
+  private static boolean test = false;
 
   private boolean isDataParamDirty = false;
 
@@ -982,7 +1017,7 @@ public class ApplicationManager {
 
   private TomogramGenerationDialog tomogramGenerationDialogB = null;
 
-  private TomogramCombinationDialog tomogramCombinationDialog = null;
+  protected TomogramCombinationDialog tomogramCombinationDialog = null;
 
   private PostProcessingDialog postProcessingDialog = null;
 
@@ -1019,8 +1054,8 @@ public class ApplicationManager {
     //imodManager should be created only once.
     imodManager = new ImodManager(this);
     //  Create a new main window and wait for an event from the user
-    if (!test) {
-      mainFrame = new MainFrame(this);
+
+      mainFrame = new MainFrame(this);   
       mainFrame.setMRUFileLabels(userConfig.getMRUFileList());
       //  Initialize the static UIParameter object
       UIParameters uiparameters = new UIParameters();
@@ -1037,9 +1072,14 @@ public class ApplicationManager {
       else {
         openSetupDialog();
       }
+    if (!test) { 
       mainFrame.pack();
       mainFrame.show();
     }
+  }
+  
+  public static boolean getTest() {
+    return test;
   }
 
   /**
@@ -4221,7 +4261,7 @@ public class ApplicationManager {
   * 
   * @return boolean
   */
-  private CombineComscriptState updateCombineComscriptState(int startCommand) {
+  protected CombineComscriptState updateCombineComscriptState(int startCommand) {
     if (tomogramCombinationDialog == null) {
       mainFrame.openMessageDialog(
         "Can not update combine.com without an active tomogram generation dialog",
