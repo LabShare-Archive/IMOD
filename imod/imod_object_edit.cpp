@@ -42,6 +42,7 @@ Log at end of file
 #include "colorselector.h"
 #include "control.h"
 #include "imod_info_cb.h"
+#include "imodv_objed.h"
 #include "dia_qtutils.h"
 
 static objectEditForm *Ioew_dialog;
@@ -115,9 +116,9 @@ void ioew_draw(int state)
   if (!obj)
     return;
   if (state)
-    obj->flags = obj->flags & ~IMOD_OBJFLAG_OFF;
+    obj->flags &= ~IMOD_OBJFLAG_OFF;
   else
-    obj->flags = obj->flags | IMOD_OBJFLAG_OFF;
+    obj->flags |= IMOD_OBJFLAG_OFF;
 
   imodDraw(App->cvi, IMOD_DRAW_MOD);
 }
@@ -130,9 +131,9 @@ void ioew_fill(int state)
   if (!obj)
     return;
   if (!state)
-    obj->symflags = obj->symflags & ~IOBJ_SYMF_FILL;
+    obj->symflags &= ~IOBJ_SYMF_FILL;
   else
-    obj->symflags = obj->symflags | IOBJ_SYMF_FILL;
+    obj->symflags |= IOBJ_SYMF_FILL;
 
   imodDraw(App->cvi, IMOD_DRAW_MOD);
 }
@@ -143,9 +144,9 @@ void ioew_ends(int state)
   if (!obj)
     return;
   if (!state)
-    obj->symflags = obj->symflags & ~IOBJ_SYMF_ENDS;
+    obj->symflags &= ~IOBJ_SYMF_ENDS;
   else
-    obj->symflags = obj->symflags | IOBJ_SYMF_ENDS;
+    obj->symflags |= IOBJ_SYMF_ENDS;
      
   imodDraw(App->cvi, IMOD_DRAW_MOD);
 }
@@ -167,17 +168,15 @@ void ioew_open(int value)
 
   switch (value){
   case 0:
-    obj->flags = obj->flags & (~IMOD_OBJFLAG_OPEN);
-    obj->flags = obj->flags & (~IMOD_OBJFLAG_SCAT);
+    obj->flags &= ~(IMOD_OBJFLAG_OPEN | IMOD_OBJFLAG_SCAT);
     break;
   case 1:
-    obj->flags = obj->flags | IMOD_OBJFLAG_OPEN;
-    obj->flags = obj->flags & (~IMOD_OBJFLAG_SCAT);
+    obj->flags |= IMOD_OBJFLAG_OPEN;
+    obj->flags &= ~IMOD_OBJFLAG_SCAT;
     break;
   case 2:
     /* scattered */
-    obj->flags = obj->flags | IMOD_OBJFLAG_SCAT;
-    obj->flags = obj->flags | IMOD_OBJFLAG_OPEN;
+    obj->flags |= IMOD_OBJFLAG_SCAT | IMOD_OBJFLAG_OPEN;
     break;
   }
   imodDraw(App->cvi, IMOD_DRAW_MOD);
@@ -207,6 +206,7 @@ void ioew_pointsize(int value)
     return;
   obj->pdrawsize = value;
   imodDraw(App->cvi, IMOD_DRAW_MOD);
+  imodvObjedNewView();
 }
 
 void ioew_nametext(const char *name)
@@ -482,6 +482,9 @@ void ImodObjColor::keyReleaseSlot ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.7  2004/01/05 18:23:29  mast
+Add explanation of point size being in unbinned size to help.
+
 Revision 4.6  2003/04/28 04:02:36  mast
 Rearranged and clarified point sphere radius
 
