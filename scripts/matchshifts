@@ -6,6 +6,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.5  2003/06/20 20:04:59  mast
+#  Let tmpdir be defined and fall back to /tmp if /usr/tmp does not exist
+#
 #  Revision 3.4  2003/03/21 22:25:52  mast
 #  Fix error test and output when displacement is too large
 #
@@ -187,14 +190,13 @@ echo "$sol[9]   $sol[10]   $sol[11]   $txcshift[6]"  >> $midfile
 echo " "
 echo "MATCHSHIFTS: EXTRACTING SMALL MATCHING VOLUME FROM $recfile2"
 
-matchvol <<HERESTRING >! $logfile
-$recfile2
-$matfile
-$tmpdir
-$nx $ny $nz
-1
-$midfile
-
+matchvol -StandardInput <<HERESTRING >! $logfile
+InputFile $recfile2
+OutputFile $matfile
+TemporaryDirectory $tmpdir
+OutputSizeXYZ $nx $ny $nz
+TransformFile $midfile
+InterpolationOrder 1
 HERESTRING
 
 if ($status) goto error
@@ -259,14 +261,13 @@ echo "MATCHSHIFTS: GETTING VOLUMES TO CHECK THE MATCH"
 
 @ nxextract = $nx * 3
 
-matchvol <<HERESTRING >! $logfile
-$recfile2
-$matfile
-$tmpdir
-$nxextract $ny $nz
-1
-$outfile
-
+matchvol -StandardInput <<HERESTRING >! $logfile
+InputFile $recfile2
+OutputFile $matfile
+TemporaryDirectory $tmpdir
+OutputSizeXYZ $nxextract $ny $nz
+TransformFile $outfile
+InterpolationOrder 1
 HERESTRING
 
 if ($status) goto error
