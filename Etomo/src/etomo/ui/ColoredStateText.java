@@ -1,6 +1,8 @@
 package etomo.ui;
 import java.awt.Color;
 
+import etomo.util.InvalidParameterException;
+
 /**
  * <p>Description: </p>
  *
@@ -14,6 +16,9 @@ import java.awt.Color;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.0  2003/11/07 23:19:01  rickg
+ * <p> Version 1.0.0
+ * <p>
  * <p> Revision 2.1  2003/03/20 17:29:53  rickg
  * <p> Comment update
  * <p>
@@ -29,25 +34,31 @@ import java.awt.Color;
  */
 
 public class ColoredStateText {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
 
   private String[] labels;
   private Color[] colors;
   private int nItems = 0;
   private int currentSelected = -1;
 
-  public ColoredStateText(String[] labels, Color[] colors) {
+  public ColoredStateText(String[] labels, Color[] colors)
+    throws InvalidParameterException {
     nItems = labels.length;
-    // TODO throw an exception if the two arrays are not of equal length
+    if (nItems != colors.length) {
+      throw new InvalidParameterException("The length of the labels and colors arrays do not match");
+    }
     this.labels = labels;
     this.colors = colors;
   }
 
-  public void setSelected(int index) {
-
-    //TODO should throw a parameter out of range exception
+  public void setSelected(int index) throws InvalidParameterException {
     if (index < 0 & index >= nItems) {
-      index = -1;
+      throw new InvalidParameterException(
+        "Index out of range, nItems: "
+          + String.valueOf(nItems)
+          + " index: "
+          + String.valueOf(index));
     }
     currentSelected = index;
   }
