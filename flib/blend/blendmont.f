@@ -200,12 +200,17 @@ c	  12/11/00: implemented byte-swapping when reading edge function files
 c	  built on other machines
 c	  6/1/01: implemented ability to write and read in edge correlation
 c	  displacements; added a search step to improve on cross-correlations  
-
+c
+c	  $Author$
+c
+c	  $Date$
+c
+c	  $Revision$
+c
+c	  $Log$
+c
 	include 'recl_bytes.inc'
-	parameter (maxsiz=1024*1024*12)		!# of pixels
-	real*4 array(maxsiz)
-	parameter (ifastsiz=32,maxlinelength=30720)
-	real brray(ifastsiz*maxlinelength)
+	include 'blend.inc'
 	character*80 filnam,edgenam
 	character*80 concat
 	character*4 edgeext(2)/'.xef','.yef'/
@@ -224,66 +229,12 @@ c	structure /rotrans/
 c	  real*4 theta,dx,dy,xcen,ycen
 c	end structure
 c
-	parameter (limxypc=50,limnpc=50000,limedge=50000,limsect=1000)
-	integer*4 nxyzin(3),nxyzout(3),nxin,nyin,nzin,nxout,nyout,nzout
-	integer*4 noverlap(2),nedge(2),nxoverlap,nyoverlap
-	integer*4 ixpclist(limnpc),iypclist(limnpc) !piece coords in x,y
-	integer*4 izpclist(limnpc),neglist(limnpc) !section #, negative #
-	integer*4 iedgelower(limnpc,2),iedgeupper(limnpc,2)
-	integer*4 ipiecelower(limedge,2),ipieceupper(limedge,2)
-	integer*4 indent(2)			!minimum indent short & long
-	integer*4 intgrid(2)			!grid interval short & long
-	integer*4 iboxsiz(2)			!box size short & long
-	real*4 edgelonear(2),edgehinear(2)	!limits for values near edges
-	equivalence (nxin,nxyzin(1))
-	equivalence (nxout,nxyzout(1))
-	equivalence (noverlap(1),nxoverlap)
-	common /pclist/nxin,nyin,nzin,nxout,nyout,nzout,nxpieces,
-     &	    nypieces ,nxoverlap,nyoverlap,npclist,minxpiece,minypiece,
-     &	    nedge ,ixpclist,iypclist,izpclist,neglist,iedgelower,
-     &	    iedgeupper ,ipiecelower,ipieceupper,indent,intgrid,iboxsiz,
-     &	    edgelonear,edgehinear
-c
-	integer*4 inpiece(5)			!piece # of pieces point in
-	integer*4 inedge(5,2)			!edge # of edges point is in
-	integer*4 numedges(2)			!number of edges in x and y
-	real*4 xinpiece(5),yinpiece(5)		!x,y coordinates within piece
-	integer*4 inedlower(5,2),inedupper(5,2)	!list index of piece be&ab edge
-	integer*4 mappiece(limxypc,limxypc)	!map of pieces in this section
-	logical dogxforms,multng		!if doing g's, if negs in sect
-	real*4 hxcen,hycen			!coord of center of input frame
-	real*4 gxcen,gycen			!coord of output image center
-	real*4 ginv(2,3),hinv(2,3,limnpc)	!inverse of g and h xforms
-	common /edgcnt/ inpiece,inedge,numedges,xinpiece,yinpiece,
-     &	    inedlower, inedupper,mappiece,dogxforms,multng,numpieces,
-     &	    hxcen,hycen, gxcen,gycen, ginv,hinv
 c
 	integer*4 nskip(2)/1,2/			!regression position skip s&l
 	integer*4 nfit(2)/5,7/			!# to include in regression s&l
 	integer*4 nxgrid(2),nygrid(2)		!# of grid points for x&y edges
 	integer*4 igridstr(2),iofset(2)		!just temp usage here
 c
-	parameter (memlim=128)
-	integer*4 izmemlist(memlim),lastused(memlim)
-	common /shuffl/ npixin,limsec,jusecount,izmemlist,lastused
-c
-	parameter (limedgbf=20,ixgdim=256,iygdim=256)
-	integer*4 ibufedge(limedge,2),iedgbflist(limedgbf)
-     &	    ,ixybflist(limedgbf),lasedguse(limedgbf)
-	integer*4 iunedge(2)
-	integer*4 nxgrbf(limedgbf),nygrbf(limedgbf)
-     &	    ,ixgrdstbf(limedgbf),iygrdstbf(limedgbf)
-     &	    ,ixofsbf(limedgbf),iyofsbf(limedgbf)
-     &	    ,intxgrbf(limedgbf),intygrbf(limedgbf)
-	integer*4 intgrcopy(2)
-	real*4 dxgrbf(ixgdim,iygdim,limedgbf)
-     &	    ,dygrbf(ixgdim,iygdim,limedgbf)
-     &	    ,ddengrbf(ixgdim,iygdim,limedgbf)
-	common /edgebf/ iunedge,jusedgct,needbyteswap,ibufedge,
-     &	    iedgbflist, ixybflist,
-     &	    lasedguse, nxgrbf ,nygrbf,ixgrdstbf,iygrdstbf, ixofsbf,
-     &	    iyofsbf,intxgrbf,intygrbf,dxgrbf,dygrbf ,ddengrbf,intgrcopy
-c	  
 	parameter (limneg=30)
 	integer*4 minnegx(limneg),maxnegx(limneg) !min and max coords of
 	integer*4 minnegy(limneg),maxnegy(limneg) !each neg
@@ -803,7 +754,7 @@ c
 		  docross=ifsloppy.ne.0.and.(shifteach.or.(
      &		      anyneg.and.neglist(ipiecelower(iedge,ixy))
      &		      .ne.neglist(ipieceupper(iedge,ixy))))
-		  call doedge(array,iedge,ixy,edgedone,sdcrit,devcrit,
+		  call doedge(iedge,ixy,edgedone,sdcrit,devcrit,
      &		      nfit, norder, nskip, docross, xcreadin, xclegacy,
      &		      edgedispx, edgedispy)
 c		    
@@ -819,7 +770,7 @@ c
 			  docross=ifsloppy.ne.0.and.(shifteach.or.(
      &			      anyneg.and.neglist(ipiecelower(jedge,iyx))
      &			      .ne.neglist(ipieceupper(jedge,iyx))))
-			  call doedge(array,jedge,iyx,edgedone,sdcrit,
+			  call doedge(jedge,iyx,edgedone,sdcrit,
      &			      devcrit,nfit, norder, nskip, docross,
      &			      xcreadin, xclegacy, edgedispx, edgedispy)
 			endif
@@ -1175,8 +1126,8 @@ c		      correlation, so here is this option.  Compute the
 c		      correlations unless doing this by edges only,
 c		      if they aren't already available
 c		      
-		    call shuffler(array,ipiecelower(iedge,ixy),indlow)
-		    call shuffler(array,ipieceupper(iedge,ixy),indup)
+		    call shuffler(ipiecelower(iedge,ixy),indlow)
+		    call shuffler(ipieceupper(iedge,ixy),indup)
 		    call xcorredge(array(indlow),array(indup),
      &			nxyzin, noverlap,ixy,xdisp,ydisp,xclegacy)
 		    edgedispx(iedge,ixy)=xdisp
@@ -1193,13 +1144,17 @@ c		  endif
 		endif
 	      enddo
 	    enddo
+c	      
+c	      DNM 8/18/02: pass array to find_best_shifts, but do not pass
+c	      hinv since it is in common
+c
 	    if(.not.fromedge)then
-	      call find_best_shifts(edgedispx,edgedispy,-1,izsect,h,hinv,
+	      call find_best_shifts(array,edgedispx,edgedispy,-1,izsect,h,
      &		  nbestedge,beforemean,beforemax,aftermean(1),aftermax(1))
 	      indbest=1
 	    endif
 	    if(.not.xclegacy)then
-	      call find_best_shifts(dxgridmean,dygridmean,1,izsect,h,hinv,
+	      call find_best_shifts(array,dxgridmean,dygridmean,1,izsect,h,
      &		  nbestedge,beforemean,beforemax,aftermean(2),aftermax(2))
 	      indbest=2
 	    endif
@@ -1209,11 +1164,11 @@ c	      index to 1
 c
 	    if(.not.(xclegacy.or.fromedge).and.(aftermean(1).lt.aftermean(2)))
      &		then
-	      call find_best_shifts(edgedispx,edgedispy,-1,izsect,h,hinv,
+	      call find_best_shifts(array,edgedispx,edgedispy,-1,izsect,h,
      &		  nbestedge,beforemean,beforemax,aftermean(1),aftermax(1))
 	      indbest=1
 	    endif
-	    write(*,'(i3,a,2f6.2,a,a,2f6.2)')nbestedge,
+	    write(*,'(i4,a,2f6.2,a,a,2f6.2)')nbestedge,
      &		' edges, mean, max error before:', beforemean,beforemax,
      &		', after from ', edgexcorrtext(indbest),
      &		aftermean(indbest),aftermax(indbest)
@@ -1249,7 +1204,7 @@ c
 	    do ishort=nshort,1,-1
 	      call crossvalue(xinlong,ishort,ilong,ixfrm,iyfrm)
 	      if(mappiece(ixfrm,iyfrm).gt.0)then
-		call shuffler(array,mappiece(ixfrm,iyfrm),indbray)
+		call shuffler(mappiece(ixfrm,iyfrm),indbray)
 		do iy=1,nyin
 		  tsum=0.
 		  do i=indbray+(iy-1)*nxin,indbray+iy*nxin-1
@@ -1379,7 +1334,7 @@ c
 		    fastf(1,3)=fastf(1,3)+1.
 		    fastf(2,3)=fastf(2,3)+1.
 c		      
-		    call shuffler(array,inonepiece,indbray)
+		    call shuffler(inonepiece,indbray)
 		    call fastinterp(brray,nxout,nlinesout,
      &			array(indbray),nxin,nyin,indxlo,indxhi,indylo,
      &			indyhi,newpcxll,fastf,fastf(1,3),
@@ -1653,7 +1608,7 @@ c
 			  endif
 			  if(nactivep.eq.0)indpidef=1
 c			    
-			  call shuffler(array,inpiece(indpidef),indbray)
+			  call shuffler(inpiece(indpidef),indbray)
 			  pixval=oneintrp(array(indbray),nxin,nyin,
      &			      xinpiece(indpidef),yinpiece(indpidef),
      &			      dmean)
@@ -1754,18 +1709,18 @@ c			    and adjust density by the difference across edge
 c			    Except average them within 4 pixels of center!
 c			    
 			  if(abs(w1-w2)*max(iblend(1),iblend(2)).lt.2.5)then
-			    call shuffler(array,ipiece1,indbray1)
-			    call shuffler(array,ipiece2,indbray2)
+			    call shuffler(ipiece1,indbray1)
+			    call shuffler(ipiece2,indbray2)
 			    pixval=w1*oneintrp(array(indbray1),nxin,
      &				nyin, x1,y1,dmean) +
      &				w2*oneintrp(array(indbray2),nxin,
      &				nyin, x2,y2,dmean)
 			  elseif(w1.gt.w2)then
-			    call shuffler(array,ipiece1,indbray)
+			    call shuffler(ipiece1,indbray)
 			    pixval=oneintrp(array(indbray),nxin,nyin,
      &				x1,y1,dmean) + w2*dden
 			  else
-			    call shuffler(array,ipiece2,indbray)
+			    call shuffler(ipiece2,indbray)
 			    pixval=oneintrp(array(indbray),nxin,nyin,
      &				x2,y2,dmean) - w1*dden
 			  endif
@@ -1936,15 +1891,15 @@ c
 c			    take pixel from the piece with the highest weight
 c			    
 			  if(w1.eq.wmax)then
-			    call shuffler(array,ipiece1,indbray)
+			    call shuffler(ipiece1,indbray)
 			    pixval=oneintrp(array(indbray),nxin,nyin,
      &				x1,y1,dmean)
 			  elseif(w2.eq.wmax)then
-			    call shuffler(array,ipiece2,indbray)
+			    call shuffler(ipiece2,indbray)
 			    pixval=oneintrp(array(indbray),nxin,nyin,
      &				x2,y2,dmean)
 			  else
-			    call shuffler(array,ipiece3,indbray)
+			    call shuffler(ipiece3,indbray)
 			    pixval=oneintrp(array(indbray),nxin,nyin,
      &				x3,y3,dmean)
 			  endif
@@ -2153,7 +2108,7 @@ c			    take pixel from the piece with the highest weight
 c			    and adjust density appropriately for case
 c			    
 			  if(w1.eq.wmax)then
-			    call shuffler(array,ipiece1,indbray)
+			    call shuffler(ipiece1,indbray)
 			    pixval=oneintrp(array(indbray),nxin,nyin,
      &				x1,y1,dmean)
 			    if(icortyp.eq.1)then
@@ -2163,7 +2118,7 @@ c
      &				  -w4*dden43
 			    endif
 			  elseif(w2.eq.wmax)then
-			    call shuffler(array,ipiece2,indbray)
+			    call shuffler(ipiece2,indbray)
 			    pixval=oneintrp(array(indbray),nxin,nyin,
      &				x2,y2,dmean)
 			    if(icortyp.eq.1)then
@@ -2174,7 +2129,7 @@ c
      &				  -w4*dden43
 			    endif
 			  elseif(w3.eq.wmax)then
-			    call shuffler(array,ipiece3,indbray)
+			    call shuffler(ipiece3,indbray)
 			    pixval=oneintrp(array(indbray),nxin,nyin,
      &				x3,y3,dmean)
 			    if(icortyp.eq.1)then
@@ -2185,7 +2140,7 @@ c
      &				  -w4*dden43
 			    endif
 			  else
-			    call shuffler(array,ipiece4,indbray)
+			    call shuffler(ipiece4,indbray)
 			    pixval=oneintrp(array(indbray),nxin,nyin,
      &				x4,y4,dmean)
 			    if(icortyp.eq.1)then
