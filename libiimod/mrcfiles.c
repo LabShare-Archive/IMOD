@@ -33,6 +33,10 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.7  2003/03/12 03:50:28  mast
+Avoid trying to allocate more than 2 GB of contiguous memory, add error
+message in contiguous allocation
+
 Revision 3.6  2002/09/27 20:51:25  rickg
 Added include of time.h to fix call to ctime.
 
@@ -1112,8 +1116,9 @@ unsigned char **mrc_read_byte(FILE *fin,
                               void (*func)(char *))
 {
   int  i, j, k;
+  unsigned int ui;
   int  pindex;
-  long xysize;               /* Size of each image.       */
+  unsigned long xysize;               /* Size of each image.       */
   long xsize, ysize, zsize;  /* Size needed to be loaded. */
   long xoff,  yoff,  zoff;   /* Offsets into image data.  */
   float conscale = 1.0f;
@@ -1177,12 +1182,11 @@ unsigned char **mrc_read_byte(FILE *fin,
   }
   xysize = xsize * ysize;
 
-  /* If data are too large, do not try for contiguous memory */
-  if (2000000000 / xysize < zsize)
-    contig = 0;
-      
   /*****************************/
   /* Get memory for image data */
+  /* DNM 3/25/03: try to load contiguous if directed, then drop back to
+     separate chunks to get the message about where it failed */
+
   idata = (unsigned char **)malloc(zsize * sizeof(unsigned char *)); 
   if (idata == (unsigned char **)NULL)
     return((unsigned char **)NULL); 
@@ -1191,29 +1195,30 @@ unsigned char **mrc_read_byte(FILE *fin,
      
   if (contig){
     bdata = malloc(xysize * zsize * sizeof(unsigned char));
-    if (!bdata){
-      fprintf(stderr, "ERROR: mrc_read_byte - "
+    if (!bdata) {
+      fprintf(stderr, "WARNING: mrc_read_byte - "
 	      "Not enough contiguous memory to load image data.\n");
-      free(idata);
-      return(NULL);
+      contig = 0;
+      if (li)
+        li->contig = 0;
+    } else {
+      for(ui = 0; ui < zsize; ui++)
+        idata[ui] = bdata + (xysize * ui);
     }
-    for(i = 0; i < zsize; i++){
-      idata[i] = bdata + (xysize * i);
-    }
+  }
 
-  }else{
+  if (!contig) {
     for(i = 0; i < zsize; i++){
-      idata[i] = (unsigned char *)
-	malloc(xysize * sizeof(unsigned char));
+      idata[i] = (unsigned char *)malloc(xysize * sizeof(unsigned char));
       if (!idata[i]){
-	fprintf(stderr, "ERROR: mrc_read_byte - Not enough memory"
-		" for image data after %d sections.\n", i);
+        fprintf(stderr, "ERROR: mrc_read_byte - Not enough memory"
+                " for image data after %d sections.\n", i);
 
-	for(i = 0; i < zsize; i++)
-	  if(idata[i])
-	    free(idata[i]);
-	free(idata);
-	return(NULL);
+        for (i = 0; i < zsize; i++)
+          if (idata[i])
+            free(idata[i]);
+        free(idata);
+        return(NULL);
       }
     }
   }
