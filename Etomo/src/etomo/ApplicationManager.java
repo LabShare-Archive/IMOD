@@ -74,6 +74,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.50  2003/06/10 05:15:23  rickg
+ * <p> *** empty log message ***
+ * <p>
  * <p> Revision 2.49  2003/06/09 04:28:21  rickg
  * <p> Set state to in progress if any thing is exected for a given
  * <p> process panel
@@ -1117,7 +1120,7 @@ public class ApplicationManager {
       setupRequestDialog();
       return;
     }
-    
+
     mainFrame.selectButton(axisID, "Fine Alignment");
     if (showIfExists(fineAlignmentDialogA, fineAlignmentDialogB, axisID)) {
       return;
@@ -1420,7 +1423,7 @@ public class ApplicationManager {
       setupRequestDialog();
       return;
     }
-    
+
     mainFrame.selectButton(axisID, "Tomogram Positioning");
     if (showIfExists(tomogramPositioningDialogA,
       tomogramPositioningDialogB,
@@ -1880,61 +1883,67 @@ public class ApplicationManager {
     mainFrame.selectButton(AxisID.FIRST, "Tomogram Combination");
     if (tomogramCombinationDialog == null) {
       tomogramCombinationDialog = new TomogramCombinationDialog(this);
+
+      // Get the setupcombine parameters and set the default patch boundaries if
+      // they have not already been set
+      CombineParams combineParams =
+        new CombineParams(metaData.getCombineParams());
+
+      if (!combineParams.isPatchBoundarySet()) {
+        String recFileName;
+        if (combineParams.getMatchBtoA()) {
+          recFileName = metaData.getDatasetName() + "a.rec";
+        }
+        else {
+          recFileName = metaData.getDatasetName() + "b.rec";
+        }
+        try {
+          combineParams.setDefaultPatchBoundaries(recFileName);
+        }
+        catch (InvalidParameterException except) {
+          String[] detailedMessage = new String[4];
+          detailedMessage[0] = "Unable to set default patch boundaries";
+          detailedMessage[1] = "Are both tomograms computed and available?";
+          detailedMessage[2] = "";
+          detailedMessage[3] = except.getMessage();
+
+          openMessageDialog(
+            detailedMessage,
+            "Invalid parameter: " + recFileName);
+          // Delete the dialog
+          tomogramCombinationDialog = null;
+          return;
+        }
+        catch (IOException except) {
+          except.printStackTrace();
+          openMessageDialog(except.getMessage(), "IO Error: " + recFileName);
+          //Delete the dialog
+          tomogramCombinationDialog = null;
+          return;
+        }
+      }
+
+      // Fill in the dialog box params and set it to the appropriate state
+      tomogramCombinationDialog.setCombineParams(combineParams);
+
+      // If setupcombine has been run load the com scripts, otherwise disable the
+      // apropriate panels in the tomogram combination dialog
+      tomogramCombinationDialog.enableCombineTabs(
+        metaData.getCombineParams().isScriptsCreated());
+
+      if (metaData.getCombineParams().isScriptsCreated()) {
+        if (metaData.getCombineParams().isModelBased()) {
+          loadSolvematchMod();
+        }
+        else {
+          loadSolvematchShift();
+        }
+        loadPatchcorr();
+        loadMatchorwarp();
+      }
     }
 
-    // Get the setupcombine parameters and set the default patch boundaries if
-    // they have not already been set
-    CombineParams combineParams =
-      new CombineParams(metaData.getCombineParams());
-
-    if (!combineParams.isPatchBoundarySet()) {
-      String recFileName;
-      if (combineParams.getMatchBtoA()) {
-        recFileName = metaData.getDatasetName() + "a.rec";
-      }
-      else {
-        recFileName = metaData.getDatasetName() + "b.rec";
-      }
-      try {
-        combineParams.setDefaultPatchBoundaries(recFileName);
-      }
-      catch (InvalidParameterException except) {
-        String[] detailedMessage = new String[4];
-        detailedMessage[0] = "Unable to set default patch boundaries";
-        detailedMessage[1] = "Are both tomograms computed and available?";
-        detailedMessage[2] = "";
-        detailedMessage[3] = except.getMessage();
-
-        openMessageDialog(detailedMessage, "Invalid parameter: " + recFileName);
-        //Close the dialog
-        return;
-      }
-      catch (IOException except) {
-        except.printStackTrace();
-        openMessageDialog(except.getMessage(), "IO Error: " + recFileName);
-        //Close the dialog
-        return;
-      }
-    }
-
-    // Fill in the dialog box params and set it to the appropriate state
-    tomogramCombinationDialog.setCombineParams(combineParams);
-
-    // If setupcombine has been run load the com scripts, otherwise disable the
-    // apropriate panels in the tomogram combination dialog
-    tomogramCombinationDialog.enableCombineTabs(
-      metaData.getCombineParams().isScriptsCreated());
-
-    if (metaData.getCombineParams().isScriptsCreated()) {
-      if (metaData.getCombineParams().isModelBased()) {
-        loadSolvematchMod();
-      }
-      else {
-        loadSolvematchShift();
-      }
-      loadPatchcorr();
-      loadMatchorwarp();
-    }
+    //  Show the process panel
     mainFrame.showProcess(
       tomogramCombinationDialog.getContainer(),
       AxisID.FIRST);
@@ -2481,51 +2490,54 @@ public class ApplicationManager {
     mainFrame.selectButton(AxisID.ONLY, "Post Processing");
     if (postProcessingDialog == null) {
       postProcessingDialog = new PostProcessingDialog(this);
-    }
 
-    // Rename the full reconstruction volume so that it does not get written
-    // over
-    if ((metaData.getAxisType() == AxisType.SINGLE_AXIS)
-      && (!fullReconRename())) {
-      String[] detailedMessage = new String[2];
-      detailedMessage[0] = "Unable to rename the output from tilt to full.rec";
-      detailedMessage[1] = "Does the reconstruction file exist yet?";
-      openMessageDialog(detailedMessage, "File rename error");
-      //Close the dialog
-      return;
-    }
+      // Rename the full reconstruction volume so that it does not get written
+      // over
+      if ((metaData.getAxisType() == AxisType.SINGLE_AXIS)
+        && (!fullReconRename())) {
+        String[] detailedMessage = new String[2];
+        detailedMessage[0] =
+          "Unable to rename the output from tilt to full.rec";
+        detailedMessage[1] = "Does the reconstruction file exist yet?";
+        openMessageDialog(detailedMessage, "File rename error");
+        // Delete the dialog
+        postProcessingDialog = null;
+        return;
+      }
 
-    TrimvolParam trimvolParam = new TrimvolParam(IMODDirectory);
-    String inputFile = "";
-    if (metaData.getAxisType() == AxisType.SINGLE_AXIS) {
-      inputFile = "full.rec";
-    }
-    else {
-      inputFile = "sum.rec";
-    }
-    try {
-      trimvolParam.setDefaultRange(inputFile);
-    }
-    catch (InvalidParameterException except) {
-      String[] detailedMessage = new String[4];
-      detailedMessage[0] = "Unable to set trimvol range";
-      detailedMessage[1] = "Does the reconstruction file exist yet?";
-      detailedMessage[2] = "";
-      detailedMessage[3] = except.getMessage();
+      TrimvolParam trimvolParam = new TrimvolParam(IMODDirectory);
+      String inputFile = "";
+      if (metaData.getAxisType() == AxisType.SINGLE_AXIS) {
+        inputFile = "full.rec";
+      }
+      else {
+        inputFile = "sum.rec";
+      }
+      try {
+        trimvolParam.setDefaultRange(inputFile);
+      }
+      catch (InvalidParameterException except) {
+        String[] detailedMessage = new String[4];
+        detailedMessage[0] = "Unable to set trimvol range";
+        detailedMessage[1] = "Does the reconstruction file exist yet?";
+        detailedMessage[2] = "";
+        detailedMessage[3] = except.getMessage();
 
-      openMessageDialog(detailedMessage, "Invalid parameter: " + inputFile);
-      //Close the dialog
-      return;
-    }
-    catch (IOException except) {
-      except.printStackTrace();
-      openMessageDialog(except.getMessage(), "IO Error: " + inputFile);
-      //Close the dialog
-      return;
-    }
+        openMessageDialog(detailedMessage, "Invalid parameter: " + inputFile);
+        //    Delete the dialog
+        postProcessingDialog = null;
+        return;
+      }
+      catch (IOException except) {
+        except.printStackTrace();
+        openMessageDialog(except.getMessage(), "IO Error: " + inputFile);
+        //      Delete the dialog
+        postProcessingDialog = null;
+        return;
+      }
 
-    postProcessingDialog.setTrimvolParams(trimvolParam);
-
+      postProcessingDialog.setTrimvolParams(trimvolParam);
+    }
     mainFrame.showProcess(postProcessingDialog.getContainer(), AxisID.ONLY);
   }
 
