@@ -16,15 +16,15 @@ if (! $?IMOD_DIR) setenv IMOD_DIR /usr/local/IMOD
 # Put the IMOD programs on the path
 #
 if ($?PATH) then
-    setenv PATH $IMOD_DIR/bin:$PATH
+    setenv PATH "$IMOD_DIR"/bin:"$PATH"
 else
-    setenv PATH $IMOD_DIR/bin
+    setenv PATH "$IMOD_DIR"/bin
 endif
 
 #
 # Set variable with location of the IMOD plugins
 #
-setenv IMOD_PLUGIN_DIR $IMOD_DIR/lib/imodplug
+setenv IMOD_PLUGIN_DIR "$IMOD_DIR"/lib/imodplug
 
 #
 # A subm alias to run command files in the background with submfg
