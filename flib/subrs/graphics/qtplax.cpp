@@ -5,6 +5,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.8  2003/09/24 23:04:43  mast
+Reinstate resident QPainter for single thread case, flush painter at end
+
 Revision 1.7  2003/09/24 20:41:41  mast
 Made it compilable without multi-thread support
 
@@ -180,8 +183,10 @@ void PlaxWindow::customEvent ( QCustomEvent * e )
 {
   if (!Plax_open)
     hide();
-  else
+  else {
     show();
+    raise();
+  }
 }
 void PlaxWindow::lock()
 {
@@ -304,6 +309,7 @@ int plax_open(void)
     PlaxPainter = new QPainter(PlaxWidget);
   } else
     PlaxWidget->show();
+  PlaxWidget->raise();
 
 #else
 
