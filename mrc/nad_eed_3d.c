@@ -14,6 +14,9 @@
     $Revision$
 
     $Log$
+    Revision 3.3  2005/03/12 15:50:45  mast
+    Added imodel.h include for parselist
+
     Revision 3.2  2005/03/11 22:33:48  mast
     Added output mode option and slice # and iterations to title
 
@@ -1036,7 +1039,7 @@ int main (int argc, char **argv)
         writeArg = iarg;
         break;
       default:
-        printf("ERROR: %s - Invalid option %s\n", progname, argv[i]);
+        printf("ERROR: %s - Invalid option %s\n", progname, argv[iarg]);
         exit(3);
         break;
       }
