@@ -530,7 +530,6 @@ extern "C" {
   int   imodNextPoint(Imod *imod);
   int NewPoint(struct Mod_Model *mod, struct Mod_Point *pt);
   int InsertPoint(struct Mod_Model *mod, struct Mod_Point *pt, int index);
-  int DelPoint(struct Mod_Model *mod);
   int PrevPoint(struct Mod_Model *mod);
   int NextPoint(struct Mod_Model *mod);
 
@@ -718,6 +717,9 @@ mesh (index) (vert size) (list size)
 
 /*    
     $Log$
+    Revision 3.20  2004/11/20 04:05:26  mast
+    removed virtual stuff, added contour store and function to move object
+
     Revision 3.19  2004/11/05 18:52:53  mast
     Include local files with quotes, not brackets
 
