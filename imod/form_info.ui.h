@@ -70,7 +70,8 @@ void InfoControls::init()
     keepOnTopButton->setFixedWidth(hint.width());
     
 #ifndef _WIN32
-    keepOnTopButton->hide();
+    QToolTip::add(keepOnTopButton, "Keep window on top of other windows - "
+                  "Use window menu if it fails");
 #endif
 }
 
