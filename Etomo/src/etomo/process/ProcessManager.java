@@ -29,6 +29,9 @@ import java.util.Calendar;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.6  2003/04/24 17:46:54  rickg
+ * <p> Changed fileset name to dataset name
+ * <p>
  * <p> Revision 2.5  2003/04/16 00:14:26  rickg
  * <p> Trimvol in progress
  * <p>
@@ -248,7 +251,6 @@ public class ProcessManager {
   public String transferFiducials(TransferfidParam transferfidParam) {
     BackgroundProcess transferfid =
       new BackgroundProcess(transferfidParam.getCommandString(), this);
-    transferfid.setWorkingDirectory(new File(appManager.getWorkingDirectory()));
     transferfid.setDemoMode(appManager.isDemo());
     transferfid.setDebug(appManager.isDebug());
     transferfid.start();
@@ -352,8 +354,7 @@ public class ProcessManager {
     //  Copy the old patch.out to patch.out~
     SystemProgram savePatchOut =
       new SystemProgram("mv -f patch.out patch.out~");
-    savePatchOut.setWorkingDirectory(
-      new File(appManager.getWorkingDirectory()));
+    savePatchOut.setWorkingDirectory(new File(System.getProperty("user.dir")));
     savePatchOut.run();
     if (savePatchOut.getExitValue() != 0) {
       String message = "";
@@ -367,7 +368,7 @@ public class ProcessManager {
     // Convert the new patchvector.mod  
     SystemProgram patch2imod =
       new SystemProgram("imod2patch patch_vector.mod patch.out");
-    patch2imod.setWorkingDirectory(new File(appManager.getWorkingDirectory()));
+    patch2imod.setWorkingDirectory(new File(System.getProperty("user.dir")));
     patch2imod.run();
     if (patch2imod.getExitValue() != 0) {
       String message = "";
@@ -471,7 +472,7 @@ public class ProcessManager {
     BackgroundProcess trimvol =
       new BackgroundProcess(trimvolParam.getCommandString(), this);
     System.out.println(trimvolParam.getCommandString());
-    trimvol.setWorkingDirectory(new File(appManager.getWorkingDirectory()));
+    trimvol.setWorkingDirectory(new File(System.getProperty("user.dir")));
     trimvol.setDemoMode(appManager.isDemo());
     trimvol.setDebug(appManager.isDebug());
     trimvol.start();
@@ -502,7 +503,7 @@ public class ProcessManager {
    */
   public String test(String commandLine) {
     BackgroundProcess command = new BackgroundProcess(commandLine, this);
-    command.setWorkingDirectory(new File(appManager.getWorkingDirectory()));
+    command.setWorkingDirectory(new File(System.getProperty("user.dir")));
     command.setDebug(appManager.isDebug());
     command.start();
 
@@ -606,7 +607,7 @@ public class ProcessManager {
   //  Internal utility functions
   private void startSystemProgramThread(String command) {
     SystemProgram sysProgram = new SystemProgram(command);
-    sysProgram.setWorkingDirectory(new File(appManager.getWorkingDirectory()));
+    sysProgram.setWorkingDirectory(new File(System.getProperty("user.dir")));
 
     sysProgram.enableDebug(appManager.isDebug());
 
@@ -615,13 +616,13 @@ public class ProcessManager {
     sysProgThread.start();
     System.err.println("Started " + command);
     System.err.println(
-      "  working directory: " + appManager.getWorkingDirectory());
+      "  working directory: " + System.getProperty("user.dir"));
   }
 
   private String startComScript(String command, AxisID axisID) {
     //  Run the script as a thread in the background
     RunComScript comScript = new RunComScript(command, this);
-    comScript.setWorkingDirectory(new File(appManager.getWorkingDirectory()));
+    comScript.setWorkingDirectory(new File(System.getProperty("user.dir")));
     comScript.setEnableDebug(appManager.isDebug());
     comScript.setDemoMode(appManager.isDemo());
     comScript.start();
@@ -643,8 +644,7 @@ public class ProcessManager {
 
       BufferedWriter fileBuffer =
         new BufferedWriter(
-          new FileWriter(
-            appManager.getWorkingDirectory() + "/transferfid.log"));
+          new FileWriter(System.getProperty("user.dir") + "/transferfid.log"));
 
       for (int i = 0; i < stdOutput.length; i++) {
         fileBuffer.write(stdOutput[i]);
