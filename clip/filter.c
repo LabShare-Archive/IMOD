@@ -81,7 +81,8 @@ int clip_bandpass_filter(struct MRCheader *hin, struct MRCheader *hout,
 	       mrc_bandpass_filter(slice, opt->high, opt->low);
 	  }
 	  
-	  mrc_write_slice((void *)slice->data.b, hout->fp, hout, z, 'z');
+	  if (mrc_write_slice((void *)slice->data.b, hout->fp, hout, z, 'z'))
+        return -1;
 
 	  sliceMMM(slice);
 
@@ -95,8 +96,7 @@ int clip_bandpass_filter(struct MRCheader *hin, struct MRCheader *hout,
      }
      if (opt->nofsecs)
 	  hout->amean /= opt->nofsecs;
-     mrc_head_write(hout->fp, hout);
-     return(0);
+     return mrc_head_write(hout->fp, hout);
 }
 
 #endif

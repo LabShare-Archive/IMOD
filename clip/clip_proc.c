@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.5  2004/01/17 20:32:33  mast
+Remove unneeded rewind
+
 Revision 3.4  2004/01/16 18:09:52  mast
 Added functions to split and join rgb images
 
@@ -134,7 +137,8 @@ int grap_oresize(struct MRCheader *hin, struct MRCheader *hout,
 
   for(k = opt->cz - (opt->oz / 2) + zs, z = zs; k < ks, z < ze; k++, z++){
     if ( (k >= 0) && (k < hin->nz) && (z >= 0) && (z < opt->oz)){
-      mrc_read_slice((void *)s->data.b, hin->fp, hin, k, 'z');
+      if (mrc_read_slice((void *)s->data.b, hin->fp, hin, k, 'z'))
+        return -1;
 
       for (j = opt->cy - (opt->oy/2), y = ys; 
            j < s->ysize, y < ye; j++, y++){
@@ -227,13 +231,13 @@ int clip2d_brightness(struct MRCheader *hin, struct MRCheader *hout,
     hout->mode  = slice->mode;
     hout->nx    = slice->xsize;
     hout->ny    = slice->ysize;
-    mrc_write_slice((void *)slice->data.b, hout->fp, hout, z, 'z');
+    if (mrc_write_slice((void *)slice->data.b, hout->fp, hout, z, 'z'))
+      return -1;
     sliceFree(slice);
   }
   if (opt->nofsecs)
     hout->amean /= opt->nofsecs;
-  mrc_head_write(hout->fp, hout);
-  return(0);
+  return mrc_head_write(hout->fp, hout);
 }
 
 
@@ -309,13 +313,13 @@ int clip2d_contrast(struct MRCheader *hin, struct MRCheader *hout,
     hout->mode  = slice->mode;
     hout->nx    = slice->xsize;
     hout->ny    = slice->ysize;
-    mrc_write_slice((void *)slice->data.b, hout->fp, hout, z, 'z');
+    if (mrc_write_slice((void *)slice->data.b, hout->fp, hout, z, 'z'))
+      return -1;
     sliceFree(slice);
   }
   if (opt->nofsecs)
     hout->amean /= opt->nofsecs;
-  mrc_head_write(hout->fp, hout);
-  return(0);
+  return mrc_head_write(hout->fp, hout);
 }
 
 
@@ -388,13 +392,13 @@ int clip2d_shadow(struct MRCheader *hin, struct MRCheader *hout,
     hout->mode  = slice->mode;
     hout->nx    = slice->xsize;
     hout->ny    = slice->ysize;
-    mrc_write_slice((void *)slice->data.b, hout->fp, hout, z, 'z');
+    if (mrc_write_slice((void *)slice->data.b, hout->fp, hout, z, 'z'))
+      return -1;
     sliceFree(slice);
   }
   if (opt->nofsecs)
     hout->amean /= opt->nofsecs;
-  mrc_head_write(hout->fp, hout);
-  return(0);
+  return mrc_head_write(hout->fp, hout);
 }
 
 
@@ -451,13 +455,16 @@ int grap_flip(struct MRCheader *hin, struct MRCheader *hout,
     hout->zlen = hin->zlen;
     hout->xlen = hin->ylen;
     hout->ylen = hin->xlen;
-    mrc_head_write(hout->fp, hout);
+    if (mrc_head_write(hout->fp, hout))
+      return -1;
     sl = sliceCreate(hout->nx, hout->nz, hout->mode);
     for(i = 0, j = 0; i < hin->nx; i++, j++){
-      mrc_read_slice(sl->data.b, hin->fp, hin, i, 'x');
+      if (mrc_read_slice(sl->data.b, hin->fp, hin, i, 'x'))
+        return -1;
       if (opt->sano)
         sliceMirror(sl, 'y');
-      mrc_write_slice(sl->data.b, hout->fp, hout, j, 'y');
+      if (mrc_write_slice(sl->data.b, hout->fp, hout, j, 'y'))
+        return -1;
     }
     sliceFree(sl);
     puts(" Done!");
@@ -475,20 +482,23 @@ int grap_flip(struct MRCheader *hin, struct MRCheader *hout,
     hout->nz = hin->nx;
     hout->mz = hin->mx;
     hout->zlen = hin->xlen;
-    mrc_head_write(hout->fp, hout);
+    if (mrc_head_write(hout->fp, hout))
+      return -1;
     sl = sliceCreate(hin->ny, hin->nz, hout->mode);
 
     /* DNM 3/23/01: need to transpose into a new slice because it is
        read in as a y by z slice, not a z by y slice */
     tsl = sliceCreate(hout->nx, hout->ny, hout->mode);
     for(k = 0; k < hin->nx; k++){
-      mrc_read_slice(sl->data.b, hin->fp, hin, k, 'x');
+      if (mrc_read_slice(sl->data.b, hin->fp, hin, k, 'x'))
+        return -1;
       for (i = 0; i < hin->ny; i++)
         for (j = 0; j < hin->nz; j++) {
           sliceGetVal(sl, i, j, val);
           slicePutVal(tsl, j, i, val);
         }
-      mrc_write_slice(tsl->data.b, hout->fp, hout, k, 'z');
+      if (mrc_write_slice(tsl->data.b, hout->fp, hout, k, 'z'))
+        return -1;
     }
     sliceFree(sl);
     sliceFree(tsl);
@@ -506,11 +516,14 @@ int grap_flip(struct MRCheader *hin, struct MRCheader *hout,
     hout->nz = hin->ny;
     hout->mz = hin->my;
     hout->zlen = hin->ylen;
-    mrc_head_write(hout->fp, hout);
+    if (mrc_head_write(hout->fp, hout))
+      return -1;
     sl = sliceCreate(hout->nx, hout->ny, hout->mode);
     for(k = 0, j = 0; k < hin->ny; k++,j++){
-      mrc_read_slice(sl->data.b, hin->fp, hin, j, 'y');
-      mrc_write_slice(sl->data.b, hout->fp, hout, k, 'z');
+      if (mrc_read_slice(sl->data.b, hin->fp, hin, j, 'y'))
+        return -1;
+      if (mrc_write_slice(sl->data.b, hout->fp, hout, k, 'z'))
+        return -1;
     }
     sliceFree(sl);
     puts(" Done!");
@@ -522,12 +535,15 @@ int grap_flip(struct MRCheader *hin, struct MRCheader *hout,
     hout->ny = hin->ny;
     hout->nz = hin->nz;
     /* DNM 3/21/01: added head_write here and below */
-    mrc_head_write(hout->fp, hout);
+    if (mrc_head_write(hout->fp, hout))
+      return -1;
     sl = sliceCreate(hout->nx, hout->ny, hout->mode);
     for (k = 0; k < hin->nz; k++){
-      mrc_read_slice(sl->data.b, hin->fp, hin, k, 'z');
+      if (mrc_read_slice(sl->data.b, hin->fp, hin, k, 'z'))
+        return -1;
       sliceMirror(sl, opt->command[4]);
-      mrc_write_slice(sl->data.b, hout->fp, hout, k, 'z');
+      if (mrc_write_slice(sl->data.b, hout->fp, hout, k, 'z'))
+        return -1;
     }
     sliceFree(sl);
     puts(" Done!");
@@ -537,14 +553,16 @@ int grap_flip(struct MRCheader *hin, struct MRCheader *hout,
     hout->nx = hin->nx;
     hout->ny = hin->ny;
     hout->nz = hin->nz;
-    mrc_head_write(hout->fp, hout);
+    if (mrc_head_write(hout->fp, hout))
+      return -1;
     sl = sliceCreate(hout->nx, hout->ny, hout->mode);
     tsl = sliceCreate(hout->nx, hout->ny, hout->mode);
     for (k = 0; k < hin->nz/2; k++){
-      mrc_read_slice(sl->data.b, hin->fp, hin, k, 'z');
-      mrc_read_slice(tsl->data.b, hin->fp, hin, hout->nz-k-1, 'z');
-      mrc_write_slice(tsl->data.b, hout->fp, hout, k, 'z');
-      mrc_write_slice(sl->data.b, hout->fp, hout, hout->nz-k-1, 'z');
+      if (mrc_read_slice(sl->data.b, hin->fp, hin, k, 'z') ||
+          mrc_read_slice(tsl->data.b, hin->fp, hin, hout->nz-k-1, 'z') ||
+          mrc_write_slice(tsl->data.b, hout->fp, hout, k, 'z') ||
+          mrc_write_slice(sl->data.b, hout->fp, hout, hout->nz-k-1, 'z'))
+        return -1;
     }
     sliceFree(sl);
     sliceFree(tsl);
@@ -590,7 +608,8 @@ int grap_color(struct MRCheader *hin, struct MRCheader *hout,
   hout->ny = hin->ny;
   hout->nz = hin->nz;
   hout->mode =  MRC_MODE_RGB;
-  mrc_head_write(hout->fp, hout);
+  if (mrc_head_write(hout->fp, hout))
+    return -1;
 
   for (k = 0; k < hout->nz; k++){
     for (i = 0; i < xysize; i++){
@@ -679,8 +698,7 @@ int clip2d_color(struct MRCheader *hin, struct MRCheader *hout,
     hout->amean /= opt->nofsecs;
 
   /* DNM 1/17/03: remove unneeded rewind */
-  mrc_head_write(hout->fp, hout);
-  return(0);
+  return mrc_head_write(hout->fp, hout);
 }
 
 
@@ -711,7 +729,8 @@ int grap_average(struct MRCheader *h1, struct MRCheader *h2,
 
   mrc_head_new(hout, h1->nx, h1->ny, h1->nz, 2);
   mrc_head_label(hout, "3D Averaged");
-  mrc_head_write(hout->fp, hout);
+  if (mrc_head_write(hout->fp, hout))
+    return -1;
 
   s = mrc_slice_create(h1->nx, h1->ny, h1->mode);
   if (h1->mode == MRC_MODE_COMPLEX_FLOAT){
@@ -754,7 +773,8 @@ int grap_average(struct MRCheader *h1, struct MRCheader *h2,
     printf("\r3D - Averaging section %d of %d", k + 1, h1->nz);
     fflush(stdout);
 	  
-    mrc_read_slice((void *)s->data.b, hdr[0]->fp, hdr[0], k, 'z');
+    if (mrc_read_slice((void *)s->data.b, hdr[0]->fp, hdr[0], k, 'z'))
+      return -1;
     for (j = 0; j < h1->ny; j++)
       for(i = 0; i < h1->nx; i ++){
         sliceGetVal(s, i, j, val);
@@ -762,7 +782,8 @@ int grap_average(struct MRCheader *h1, struct MRCheader *h2,
       }
 
     for (f = 1; f < opt->infiles; f++){
-      mrc_read_slice((void *)s->data.b, hdr[f]->fp, hdr[f], k, 'z');
+      if (mrc_read_slice((void *)s->data.b, hdr[f]->fp, hdr[f], k, 'z'))
+        return -1;
       for (j = 0; j < h1->ny; j++)
         for(i = 0; i < h1->nx; i ++){
           sliceGetVal(s, i, j,   val);
@@ -780,13 +801,15 @@ int grap_average(struct MRCheader *h1, struct MRCheader *h2,
       mrc_slice_valscale(so, valscale);
     }
 
-    mrc_write_slice((void *)so->data.b, hout->fp, hout, k, 'z');
+    if (mrc_write_slice((void *)so->data.b, hout->fp, hout, k, 'z'))
+      return -1;
     mrc_slice_calcmmm(so);
     if (!k){
       hout->amin = so->min;
       hout->amax = so->max;
       hout->amean = so->mean;
-      mrc_head_write(hout->fp, hout);
+      if (mrc_head_write(hout->fp, hout))
+        return -1;
     }else{
       if (so->min < hout->amin)
         hout->amin = so->min;
@@ -797,7 +820,8 @@ int grap_average(struct MRCheader *h1, struct MRCheader *h2,
   }
   puts("");
   hout->amean /= k;
-  mrc_head_write(hout->fp, hout);
+  if (mrc_head_write(hout->fp, hout))
+    return -1;
   mrc_slice_free(s);
   mrc_slice_free(so);
   return(0);
@@ -855,7 +879,8 @@ int clip_joinrgb(struct MRCheader *h1, struct MRCheader *h2,
   /* Set up mode and label */
   hout->mode = MRC_MODE_RGB;
   mrc_head_label(hout, "CLIP Join 3 files into RGB");
-  mrc_head_write(hout->fp, hout);
+  if (mrc_head_write(hout->fp, hout))
+    return -1;
 
   s = mrc_slice_create(h1->nx, h1->ny, MRC_MODE_RGB);
   for (i = 0; i < 3; i++) {
@@ -873,7 +898,8 @@ int clip_joinrgb(struct MRCheader *h1, struct MRCheader *h2,
 
     /* Read three slices */
     for (l = 0; l < 3; l++)
-      mrc_read_slice((void *)srgb[l]->data.b, hdr[l].fp, &hdr[l], k, 'z');
+      if (mrc_read_slice((void *)srgb[l]->data.b, hdr[l].fp, &hdr[l], k, 'z'))
+        return -1;
 
     /* Get the components, scale, and put into output slice */
     for (j = 0; j < h1->ny; j++) {
@@ -887,7 +913,8 @@ int clip_joinrgb(struct MRCheader *h1, struct MRCheader *h2,
       }
     }
   
-    mrc_write_slice((void *)s->data.b, hout->fp, hout, k, 'z');
+    if (mrc_write_slice((void *)s->data.b, hout->fp, hout, k, 'z'))
+      return -1;
   }
   puts("");
 
@@ -943,8 +970,10 @@ int clip_splitrgb(struct MRCheader *h1, struct Grap_options *opt)
     hdr[i].amean = 0;
     hdr[i].amax = 0;
     hdr[i].headerSize = 1024;
+    hdr[i].next = 0;
     mrc_head_label(&hdr[i], "CLIP Split RGB into 3 files");
-    mrc_head_write(hdr[i].fp, &hdr[i]);
+    if (mrc_head_write(hdr[i].fp, &hdr[i]))
+      return -1;
     srgb[i] = mrc_slice_create(h1->nx, h1->ny, MRC_MODE_BYTE);
     if (!s || !srgb[i]) {
       fprintf(stderr, "ERROR: CLIP - getting memory for slices\n");
@@ -958,7 +987,8 @@ int clip_splitrgb(struct MRCheader *h1, struct Grap_options *opt)
     fflush(stdout);
 	  
     /* Read slice and put its 3 components into output slices */
-    mrc_read_slice((void *)s->data.b, h1->fp, h1, k, 'z');
+    if (mrc_read_slice((void *)s->data.b, h1->fp, h1, k, 'z'))
+      return -1;
     for (j = 0; j < h1->ny; j++) {
       for(i = 0; i < h1->nx; i ++) {
         sliceGetVal(s, i, j, val);
@@ -969,7 +999,8 @@ int clip_splitrgb(struct MRCheader *h1, struct Grap_options *opt)
 
     /* Maintain min/max/mean */
     for (i = 0; i < 3; i++) {
-      mrc_write_slice((void *)srgb[i]->data.b, hdr[i].fp, &hdr[i], k, 'z');
+      if (mrc_write_slice((void *)srgb[i]->data.b, hdr[i].fp, &hdr[i], k, 'z'))
+        return -1;
       mrc_slice_calcmmm(srgb[i]);
       if (srgb[i]->min < hdr[i].amin)
         hdr[i].amin = srgb[i]->min;
@@ -983,7 +1014,8 @@ int clip_splitrgb(struct MRCheader *h1, struct Grap_options *opt)
 
   for (i = 0; i < 3; i++) {
     hdr[i].amean /= k;
-    mrc_head_write(hdr[i].fp, &hdr[i]);
+    if (mrc_head_write(hdr[i].fp, &hdr[i]))
+      return -1;
     mrc_slice_free(srgb[i]);
   }
   mrc_slice_free(s);
@@ -1075,9 +1107,11 @@ int clip2d_average(struct MRCheader *hin, struct MRCheader *hout,
   hout->amean = slice->mean;
   hout->amax = slice->max;
   hout->mode = slice->mode;
-  mrc_write_slice((void *)slice->data.b, hout->fp, hout, z, 'z');
+  if (mrc_write_slice((void *)slice->data.b, hout->fp, hout, z, 'z'))
+    return -1;
   hout->nz -= (opt->nofsecs - 1);
-  mrc_head_write(hout->fp, hout);
+  if (mrc_head_write(hout->fp, hout))
+    return -1;
   sliceFree(avgs);
   sliceFree(cnts);
   return(0);
@@ -1371,7 +1405,8 @@ int write_vol(struct MRCslice **vol, struct MRCheader *hout)
   int k;
 
   for (k = 0; k < hout->nz; k++){
-    mrc_write_slice((void *)vol[k]->data.b, hout->fp, hout, k, 'z');
+    if (mrc_write_slice((void *)vol[k]->data.b, hout->fp, hout, k, 'z'))
+      return -1;
     mrc_slice_calcmmm(vol[k]);
     if (!k){
       hout->amin = vol[k]->min;
@@ -1386,8 +1421,7 @@ int write_vol(struct MRCslice **vol, struct MRCheader *hout)
     }
   }
   hout->amean /= hout->nz;
-  mrc_head_write(hout->fp, hout);
-  return(0);
+  return mrc_head_write(hout->fp, hout);
 }
 
 int free_vol(struct MRCslice **vol, int z)

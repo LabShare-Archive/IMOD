@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.2  2003/10/24 03:09:45  mast
+    open files as binary
+
     Revision 3.1  2002/08/01 00:00:16  mast
     Preserve pixel size and lables when doing 3D FFT
 
@@ -243,7 +246,8 @@ int clip_fftfile3(struct MRCheader *hdata, int idir)
 			 SLICE_MODE_COMPLEX_FLOAT);
 
      for(y = 0; y < vysize; y++){
-	  mrc_read_slice(slice->data.f, hdata->fp, hdata, y, 'y');
+       if (mrc_read_slice(slice->data.f, hdata->fp, hdata, y, 'y'))
+         return -1;
 	  
 	  for(j = 0; j < ny; j++)
 	       for(i = 0; i < nx; i++){
@@ -259,7 +263,8 @@ int clip_fftfile3(struct MRCheader *hdata, int idir)
 		    slicePutComplexFloatVal(slice, i, j, val);
 	       }
 	  
-	  mrc_write_slice(slice->data.f, hdata->fp, hdata, y, 'y');
+	  if (mrc_write_slice(slice->data.f, hdata->fp, hdata, y, 'y'))
+        return (-1);
      }
      sliceFree(slice);
      return(0);
@@ -311,8 +316,10 @@ int clip_wrapfile(struct MRCheader *hdata)
      s2 = sliceCreate(hdata->nx, hdata->ny, hdata->mode);
 
      for(k = 0, k2 = hnz; k < hnz; k++, k2++){
-	  mrc_read_slice(s1->data.f, hdata->fp, hdata, k, 'z');
-	  mrc_read_slice(s2->data.f, hdata->fp, hdata, k2, 'z');
+       if (mrc_read_slice(s1->data.f, hdata->fp, hdata, k, 'z'))
+         return -1;
+       if (mrc_read_slice(s2->data.f, hdata->fp, hdata, k2, 'z'))
+         return -1;
 	  
 	  for(i = 0; i < nx; i++){
 	       for(j = 0, j2 = hny; j < hny; j++,j2++){
@@ -327,8 +334,9 @@ int clip_wrapfile(struct MRCheader *hdata)
 	       }
 	  }
 
-	  mrc_write_slice(s1->data.f, hdata->fp, hdata, k2, 'z');
-	  mrc_write_slice(s2->data.f, hdata->fp, hdata, k, 'z');
+	  if (mrc_write_slice(s1->data.f, hdata->fp, hdata, k2, 'z') ||
+          mrc_write_slice(s2->data.f, hdata->fp, hdata, k, 'z'))
+        return -1;
      }
      sliceFree(s1);
      sliceFree(s2);
@@ -421,27 +429,32 @@ int clip_3difft_swap(struct MRCheader *hin, struct MRCheader *hout,
 
      mrc_head_new(hout,  s->xsize - 2, hin->ny, hin->nz, opt->mode);
      mrc_head_label(hout, "clip: 3D Inverse FFT");
-     mrc_head_write(hout->fp, hout);
+     if (mrc_head_write(hout->fp, hout))
+       return -1;
      show_status("Inverse 2nd and 1st dim.\n");
 
      for(k = 0; k < nz; k++){
-	  mrc_read_slice(s->data.f, hin->fp, hin, k, 'z');
+       if (mrc_read_slice(s->data.f, hin->fp, hin, k, 'z'))
+         return -1;
 	  mrcToDFFT(s->data.f, (hin->nx - 1) * 2, hin->ny, -1);
 	  sout = sliceBox(s, 0, 0, s->xsize - 2, s->ysize);
 	  sliceNewMode(sout, opt->mode);
-	  mrc_write_slice(sout->data.b, hout->fp, hout, k, 'z');
+	  if (mrc_write_slice(sout->data.b, hout->fp, hout, k, 'z'))
+        return -1;
 	  sliceFree(sout);
      }
      sliceFree(s);
 
      s = sliceCreate(hout->nx, hout->ny, hout->mode);
-     mrc_read_slice((void *)s->data.b, hout->fp, hout, 0, 'z');
+     if (mrc_read_slice((void *)s->data.b, hout->fp, hout, 0, 'z'))
+       return -1;
      sliceMMM(s);
      hout->amin = s->min;
      hout->amax = s->max;
      hout->amean = s->mean;
      for(k = 1; k < hout->nz; k++){
-	  mrc_read_slice((void *)s->data.b, hout->fp, hout, k, 'z');
+       if (mrc_read_slice((void *)s->data.b, hout->fp, hout, k, 'z'))
+         return -1;
 	  sliceMMM(s);
 	  hout->amean += s->mean;
 	  if (s->min < hout->amin)
@@ -450,7 +463,8 @@ int clip_3difft_swap(struct MRCheader *hin, struct MRCheader *hout,
 	       hout->amax = s->max;
      }
      hout->amean /= hout->nz;
-     mrc_head_write(hout->fp, hout);
+     if (mrc_head_write(hout->fp, hout))
+       return -1;
      sliceFree(s);
 
      return(0);
@@ -477,12 +491,14 @@ int clip_3dffft_swap(struct MRCheader *hin, struct MRCheader *hout,
      mrc_head_new(hout,  (opt->ix + 2)/2, opt->iy, opt->iz, 
 		  SLICE_MODE_COMPLEX_FLOAT);
      mrc_head_label(hout, "clip: 3D FFT");     
-     mrc_head_write(hout->fp, hout);
+     if (mrc_head_write(hout->fp, hout))
+       return -1;
      ts->mean = opt->pad;
 
      for(z = 0; z < opt->iz; k++, z++){
 	  if (k >= 0){
-	       mrc_read_slice((void *)ts->data.b, hin->fp, hin, k, 'z');
+        if (mrc_read_slice((void *)ts->data.b, hin->fp, hin, k, 'z'))
+          return -1;
 	       s = sliceBox(ts, llx, lly, urx + 2, ury);
 	       sliceFloat(s);
 	  }else{
@@ -492,7 +508,8 @@ int clip_3dffft_swap(struct MRCheader *hin, struct MRCheader *hout,
 	  mrcToDFFT(s->data.f, s->xsize - 2, s->ysize, 0);
 	  s->xsize = (s->xsize+2)/2;
 	  s->mode = SLICE_MODE_COMPLEX_FLOAT;
-	  mrc_write_slice((void *)s->data.b, hout->fp, hout, z, 'z');
+	  if (mrc_write_slice((void *)s->data.b, hout->fp, hout, z, 'z'))
+        return -1;
 	  sliceFree(s);
      }
 
@@ -505,13 +522,15 @@ int clip_3dffft_swap(struct MRCheader *hin, struct MRCheader *hout,
      clip_wrapfile(hout);
 
      s = mrc_slice_create(hout->nx, hout->ny, hout->mode);
-     mrc_read_slice((void *)s->data.b, hout->fp, hout, 0, 'z');
+     if (mrc_read_slice((void *)s->data.b, hout->fp, hout, 0, 'z'))
+       return -1;
      sliceMMM(s);
      hout->amin = s->min;
      hout->amax = s->max;
      hout->amean = s->mean;
      for(z = 1; z < hout->nz; z++){
-	  mrc_read_slice((void *)s->data.b, hout->fp, hout, z, 'z');
+       if (mrc_read_slice((void *)s->data.b, hout->fp, hout, z, 'z'))
+         return -1;
 	  sliceMMM(s);
 	  hout->amean += s->mean;
 	  if (s->min < hout->amin)
@@ -520,7 +539,8 @@ int clip_3dffft_swap(struct MRCheader *hin, struct MRCheader *hout,
 	       hout->amax = s->max;
      }
      hout->amean /= hout->nz;
-     mrc_head_write(hout->fp, hout);
+     if (mrc_head_write(hout->fp, hout))
+       return -1;
      sliceFree(s);
      return(0);
 }
@@ -596,7 +616,8 @@ int clip_3dfft(struct MRCheader *hin, struct MRCheader *hout,
      hout->xlen = hin->xlen;
      hout->ylen = hin->ylen;
      hout->zlen = hin->zlen;
-     mrc_head_write(hout->fp, hout);
+     if (mrc_head_write(hout->fp, hout))
+       return -1;
 
      grap_volume_free(v);
      return(0);
@@ -640,14 +661,14 @@ int clip_fft(struct MRCheader *hin, struct MRCheader *hout,
 	  hout->mode  = slice->mode;
 	  hout->nx    = slice->xsize;
 	  hout->ny    = slice->ysize;
-	  mrc_write_slice((void *)slice->data.b, hout->fp, hout, z, 'z');
+	  if (mrc_write_slice((void *)slice->data.b, hout->fp, hout, z, 'z'))
+        return -1;
 	  sliceFree(slice);
      }
 
      if (opt->nofsecs)
 	  hout->amean /= opt->nofsecs;
-     mrc_head_write(hout->fp, hout);
-     return(0);
+     return mrc_head_write(hout->fp, hout);
 }
 
 

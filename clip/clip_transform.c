@@ -72,7 +72,8 @@ int grap_rotate(struct MRCheader *hin, struct MRCheader *hout,
 
      for(k = 0; k < opt->oz; k++){
 	  if (((k + ko) >= 0) && ((k + ko) < hin->nz)){
-	       mrc_read_slice((void *)sin->data.b, hin->fp, hin, k + ko, 'z');
+        if (mrc_read_slice((void *)sin->data.b, hin->fp, hin, k + ko, 'z'))
+          return -1;
 	       vol[k] = mrc_slice_rotate(sin, (double)opt->z, 
 					 opt->ox, opt->oy,
 					 (double)opt->cx,
@@ -160,14 +161,16 @@ int grap_trans(struct MRCheader *hin, struct MRCheader *hout,
      v.zsize = hin->nz;
 
      for(k = 0; k < hin->nz; k++){
-	  mrc_read_slice((void *)sin->data.b, hin->fp, hin, k, 'z');
+       if (mrc_read_slice((void *)sin->data.b, hin->fp, hin, k, 'z'))
+         return -1;
 	  vol[k] = mrc_slice_translate(sin, 
 				       (double)opt->x, (double)opt->y,
 				       opt->ox, opt->oy);
      }
 
      mrc_slice_free(sin);
-     mrc_head_write(hout->fp, hout);
+     if (mrc_head_write(hout->fp, hout))
+       return -1;
 
      if (opt->z == 0){
 	  /* write vol */
@@ -183,7 +186,8 @@ int grap_trans(struct MRCheader *hin, struct MRCheader *hout,
 	  sin  = mrc_slice_getvol(&v, j, 'y');
 	  sout = mrc_slice_translate(sin, (double)0.0, (double)opt->z,
 				     opt->ox, opt->oz);
-	  mrc_write_slice((void *)sout->data.b, hout->fp, hout, j, 'y');
+	  if (mrc_write_slice((void *)sout->data.b, hout->fp, hout, j, 'y'))
+        return -1;
 	  mrc_slice_calcmmm(sout);
 	  if (!j){
 	       hout->amin = sout->min;
@@ -198,7 +202,8 @@ int grap_trans(struct MRCheader *hin, struct MRCheader *hout,
 	  }
      }
      hout->amean /= hout->ny;
-     mrc_head_write(hout->fp, hout);
+     if (mrc_head_write(hout->fp, hout))
+       return -1;
      free_vol(vol, hin->nz);
      mrc_slice_free(sout);
      mrc_slice_free(sin);
@@ -266,14 +271,16 @@ int grap_zoom(struct MRCheader *hin, struct MRCheader *hout,
      v.zsize = hin->nz;
 
      for(k = 0; k < hin->nz; k++){
-	  mrc_read_slice((void *)sin->data.b, hin->fp, hin, k, 'z');
+       if (mrc_read_slice((void *)sin->data.b, hin->fp, hin, k, 'z'))
+         return -1;
 	  vol[k] = mrc_slice_zoom(sin, (double)opt->x, (double)opt->y,
 				  opt->ox, opt->oy, 
 				  (double)opt->cx, (double)opt->cy);
      }
 
      mrc_slice_free(sin);
-     mrc_head_write(hout->fp, hout);
+     if (mrc_head_write(hout->fp, hout))
+       return -1;
 
      if ((opt->z == 1.0) && (hout->nz == hin->nz)){
 	  /* write vol */
@@ -291,7 +298,8 @@ int grap_zoom(struct MRCheader *hin, struct MRCheader *hout,
 				opt->ox, opt->oz,
 				(double)opt->ox * 0.5, 
 				(double)opt->cz);
-	  mrc_write_slice((void *)sout->data.b, hout->fp, hout, j, 'y');
+	  if (mrc_write_slice((void *)sout->data.b, hout->fp, hout, j, 'y'))
+        return -1;
 	  mrc_slice_calcmmm(sout);
 	  if (!j){
 	       hout->amin = sout->min;
@@ -306,7 +314,8 @@ int grap_zoom(struct MRCheader *hin, struct MRCheader *hout,
 	  }
      }
      hout->amean /= hout->ny;
-     mrc_head_write(hout->fp, hout);
+     if (mrc_head_write(hout->fp, hout))
+       return -1;
 
      /* free vol */
      for (k = 0; k < hin->nz; k++){
