@@ -12,6 +12,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.7  2004/01/29 03:12:11  mast
+c	  Fixed bug in getting output file for Pip input
+c	
 c	  Revision 3.6  2003/12/24 19:03:20  mast
 c	  Incorporated new method for handling fiducials on one surface and
 c	  converted to PIP input.
@@ -55,18 +58,22 @@ c
         integer*4 mapab(idim),nxyz(3,2),jxyz(3)/1,3,2/
 	integer*4 iconta(idim),icontb(idim),icont2pta(idim)
         character*80 filename
-        logical readw_or_imod
 	integer*4 nstartmin,itry,npnta,npntb,nlist,nlista,nlistb,ndat
 	integer*4 ia,nsurf,model,iftransp,nmodpt,ipt,ip,iobj,i,ndata
 	integer*4 mod,j,ifadded,ipntmax,ipta,iptb,iptamin,iptbmin
-	integer*4 maxdrop,ndrop,idum,iofs,ixyz
+	integer*4 maxdrop,ndrop,idum,iofs,ixyz, ierrFactor
 	real*4 addratio,cosa,cosb,tmpy,addcrit,distmin,devavg,devsd
 	real*4 devmax,dx,dist,crit,elimmin,critabs,stoplim,xtilta,xtiltb
-	real*4 sina,sinb,dy,dz
-	integer*4 ierr,ifflip,ncolfit,maxconta,maxcontb,icolfix
-	integer*4 getimodhead,getimodscales
+	real*4 sina,sinb,dy,dz,aScale, bScale, absFidCrit
+	integer*4 ierr,ifflip,ncolfit,maxconta,maxcontb,icolfix,k
 	real*4 xyscal,zscale,xofs,yofs,zofs,ximscale, yimscale, zimscale
+	real*4 loMaxAvgRatio, hiMaxAvgRatio, loMaxLimRatio, hiMaxLimRatio
+	real*4 aDelta, bDelta, aPixelSize, bPixelSize
+	logical relativeFids
+
+        logical readw_or_imod
 	real*4 sind,cosd
+	integer*4 getimodhead,getimodscales
 c
 	logical pipinput
 	integer*4 numOptArg, numNonOptArg
@@ -80,14 +87,14 @@ c
 c	  fallbacks from ../../manpages/autodoc2man -2 2  solvematch
 c	  
 	integer numOptions
-	parameter (numOptions = 14)
+	parameter (numOptions = 15)
 	character*(40 * numOptions) options(1)
 	options(1) =
      &      'output:OutputFile:FN:@afiducials:AFiducialFile:FN:@'//
      &      'bfiducials:BFiducialFile:FN:@'//
      &      'alist:ACorrespondenceList:LI:@'//
-     &      'blist:BCorrespondenceList:LI:@xtilts:XAxisTilts:FP:@'//
-     &      'surfaces:SurfacesOrUseModels:I:@'//
+     &      'blist:BCorrespondenceList:LI:@scales:ScaleFactors:FP:@'//
+     &      'xtilts:XAxisTilts:FP:@surfaces:SurfacesOrUseModels:I:@'//
      &      'maxresid:MaximumResidual:F:@amatch:AMatchingModel:FN:@'//
      &      'bmatch:BMatchingModel:FN:@'//
      &      'atomogram:ATomogramOrSizeXYZ:CH:@'//
@@ -117,6 +124,13 @@ c
 	xtilta = 0.
 	xtiltb = 0.
 	stoplim = 8.
+	aScale = 1.
+	bScale = 1.
+	aDelta = 0.
+	bDelta = 0.
+	aPixelSize = 0.
+	bPixelSize = 0.
+	relativeFids = .true.
 c	  
 c	  Pip startup: set error, parse options, check help, set flag if used
 c
@@ -125,32 +139,33 @@ c
      &	    numNonOptArg)
 	pipinput = numOptArg + numNonOptArg .gt. 0
 c
+c	  Get first fid filename if any
+c	  Also get the surfaces option; if it's -2, then force models only
+c	  even if there are fids
+c
 	if (pipinput) then
 	  ierr = PipGetString('AFiducialFile', filename)
+	  nsurf = 2
+	  ierr = PipGetInteger('SurfacesOrUseModels', nsurf)
+	  if (nsurf .eq. -2) then
+	    nsurf = 0
+	    filename = ' '
+	  endif
 	else
 	  write(*,'(1x,a,/,a$)') 'Name of file with 3-D fiducial'//
      &	      ' coordinates for first tilt series,',
      &	      ' or Return to align with matching model files only: '
 	  read(*,'(a)')filename
 	endif
-	if (filename .eq. ' ')go to 40
-
-	call dopen(1,filename,'old','f')
+c	  
+c	  If no fiducials are to be used, skip down to maximum residual entry
 c
-c	  invert the Z coordinates because the tomogram built by TILT is
-c	  inverted relative to the solution produced by TILTALIGN
+	if (filename .eq. ' ')go to 40
 c
 	ncolfit = 4
-	itry=0
-10	read(1,*,end=15)iconta(npnta+1),(pnta(j,npnta+1),j=1,3)
-	npnta=npnta+1
-	pnta(3,npnta)=-pnta(3,npnta)
-	if (npnta.ge.idim)call errorexit(
-     &	    'TOO MANY POINTS IN A FOR ARRAYS')
-	go to 10
-15	print *,npnta,' points from A'
-	close(1)
-
+	call getFiducials(filename, iconta, pnta, npnta, idim,
+     &	    'first tomogram', aPixelSize)
+c
 	if (pipinput) then
 	  if (PipGetString('BFiducialFile', filename) .gt. 0) call errorexit
      &	      ('NO FILE SPECIFIED FOR FIDUCIALS IN SECOND TILT SERIES')
@@ -159,16 +174,8 @@ c
      &	      ' coordinates for second tilt series: '
 	  read(*,'(a)')filename
 	endif
-	call dopen(1,filename,'old','f')
-
-20	read(1,*,end=25)icontb(npntb+1),(pntb(j,npntb+1),j=1,3)
-	npntb=npntb+1
-	pntb(3,npntb)=-pntb(3,npntb)
-	if (npntb.ge.idim)call errorexit(
-     &	    'TOO MANY POINTS IN B FOR ARRAYS')
-	go to 20
-25	print *,npntb,' points from B'
-	close(1)
+	call getFiducials(filename, icontb, pntb, npntb, idim,
+     &	    'second tomogram', bPixelSize)
 c	  
 c	  fill listcorr with actual contour numbers, and find maximum contours
 c
@@ -280,8 +287,41 @@ c
 	  mapped(iptb)=ipta
 	enddo
 c	  
+c	  Get tilt axis angle, plus try to get tomogram pixel size (delta)
+c	  and compute scaling factors, overriden by an entry
+c	  
 	if (pipinput) then
 	  ierr = PipGetTwoFloats('XAxisTilts', xtilta, xtiltb)
+	  call getDelta('ATomogramOrSizeXYZ', aDelta, nxyz(1,1)) 
+	  call getDelta('BTomogramOrSizeXYZ', bDelta, nxyz(1,2))
+	  if (aDelta * aPixelSize .gt. 0.) aScale = aPixelSize / aDelta
+	  if (bDelta * bPixelSize .gt. 0.) bScale = bPixelSize / bDelta
+	  ierrFactor = PipGetTwoFloats('ScaleFactors', aScale, bScale)
+c	  print *,aDelta,bDelta,aPixelSize,bPixelSize,ierrFactor
+c	    
+c	    Conditions for absolute fiducials are that the pixel sizes be
+c	    available (meaning new absolute coordinates) and that either
+c	    the tomogram pixel sizes were available too or scale factors
+c	    were entered and tomogram sizes were provided by getDelta
+c
+	  if (nsurf .ne. 0 .and. aPixelSize .gt. 0. .and. bPixelSize .gt. 0.
+     &	      .and. (aDelta .gt. 0. .or. (ierrFactor .eq. 0 .and.
+     &	      aDelta .eq. 0.)) .and. (bDelta .gt. 0 .or.
+     &	      (ierrFactor .eq. 0 .and. bDelta .eq. 0.))) then
+c
+c	      Shift the original X and Y to the center of the volume
+c	      hove to divide size by scale because points aren't scaled up yet
+c
+	    do i = 1, npnta
+	      pnta(1, i) = pnta(1, i) - 0.5 * nxyz(1, 1) / aScale
+	      pnta(2, i) = pnta(2, i) - 0.5 * nxyz(jxyz(2), 1) / aScale
+	    enddo
+	    do i = 1, npntb
+	      pntb(1, i) = pntb(1, i) - 0.5 * nxyz(1, 2) / bScale
+	      pntb(2, i) = pntb(2, i) - 0.5 * nxyz(jxyz(2), 2) / bScale
+	    enddo
+	    relativeFids = .false.
+	  endif
 	else
 	  write(*,'(1x,a,$)')'Tilts around the X-axis applied in '//
      &	      'generating tomograms A and B: '
@@ -290,20 +330,23 @@ c
 c	  
 c	  use the negative of the angle to account for the inversion of the
 c	  tomogram; rotate the 3-d points about the X axis
+c	  This is a good place to impose the scaling too
 c
-	cosa=cosd(-xtilta)
-	sina=sind(-xtilta)
+	cosa=cosd(-xtilta) * aScale
+	sina=sind(-xtilta) * aScale
 	do i=1,npnta
 	  tmpy=cosa*pnta(2,i)-sina*pnta(3,i)
 	  pnta(3,i)=sina*pnta(2,i)+cosa*pnta(3,i)
 	  pnta(2,i)=tmpy
+	  pnta(1,i) = pnta(1,i) *aScale
 	enddo
-	cosb=cosd(-xtiltb)
-	sinb=sind(-xtiltb)
+	cosb=cosd(-xtiltb) * bScale
+	sinb=sind(-xtiltb) * bScale
 	do i=1,npntb
 	  tmpy=cosb*pntb(2,i)-sinb*pntb(3,i)
 	  pntb(3,i)=sinb*pntb(2,i)+cosb*pntb(3,i)
 	  pntb(2,i)=tmpy
+	  pntb(1,i) = pntb(1,i) *bScale
 	enddo
 c	  
 40	if (pipinput) then
@@ -313,6 +356,9 @@ c
      &	      'this program should',' exit with an error: '
 	  read(5,*)stoplim
 	endif
+c	  
+c	  if no fiducials, now skip to model entry section
+c
 	if (npnta.eq.0) go to 50
 c       
 c       fill array for regression
@@ -326,14 +372,13 @@ c
             enddo
             xr(4,ndat)=1.
 	    iorig(ndat)=iconta(ia)
+c	    print *,(xr(j,ndat),j=1,3),(xr(j,ndat),j=6,8)
 	  endif
         enddo
 c
 	print *,ndat,' pairs of fiducial points'
-	nsurf = 2
-	if (pipinput) then
-	  ierr = PipGetInteger('SurfacesOrUseModels', nsurf)
-	else
+	if (.not. pipinput) then
+	  nsurf = 2
 	  write(*,'(1x,a,/,a,/,a,/,a,$)')'Enter 0 to solve for '//
      &	      'displacements using matching model files, or -1, 1 or 2'
      &	      ,'  to solve only for 3x3 matrix (2 if fiducials are on 2'
@@ -343,6 +388,9 @@ c
      &	      //' and tomograms are inverted relative to each other): '
 	  read(5,*)nsurf
 	endif
+c	  
+c	  Enter matching models if nsurf is 0
+c
 50	if(nsurf.eq.0)then
 	  iofs=ncolfit+1
 	  do model=1,2
@@ -437,7 +485,8 @@ c
 	  do iptb=1,npntb
 	    if(mapped(iptb).eq.0)then
 	      do ixyz=1,3
-		ptrot(ixyz)=dxyz(ixyz)+a(ixyz,4)
+		ptrot(ixyz)=dxyz(ixyz)
+		if (ncolfit .eq. 4) ptrot(ixyz)=dxyz(ixyz) + a(ixyz,4)
 		do j=1,3
 		  ptrot(ixyz)=ptrot(ixyz)+
      &		      a(ixyz,j)*pntb(jxyz(j),iptb)
@@ -509,7 +558,7 @@ c
 	  call wrlist(listcorrb,nlistb)
 	endif
 
-c	write(*,105)((xr(i,j),i=1,4),(xr(i,j),i=6,8),j=1,ndat)
+c	write(*,105)((xr(i,j),i=1,4),(xr(i,j),i=1+iofs,3+iofs),j=1,ndat)
 105	format(7f9.2)
 	maxdrop=nint(0.1*ndat)
 	crit=0.01
@@ -529,19 +578,37 @@ c
 	endif
 c
         write(*,101)devavg,devmax,iorig(ipntmax),(devxyzmax(i),i=1,3)
-101     format(//,' Mean residual',f8.3,',  maximum',f8.3,
-     &      ' at point #',i4,' (in A)'/,'  Deviations:',3f8.3)
+101     format(//,' Mean residual',f8.3,',  maximum',f9.3,
+     &      ' at point #',i4,' (in A)'/,'  Deviations:',3f9.3)
 c
 	if (ncolfit .gt. 3) then
+c	    
+c	    fit to both: report the dummy variable offset, make sure that
+c	    the dxyz are non-zero for matchshifts scanning
+c
 	  write(*,103)(a(i,4),i=1,3)
 103	  format(/,' X, Y, Z offsets for fiducial dummy variable:',3f10.3)
-	else if (nmodpt .eq. 0) then
+	  if (abs(dxyz(1)) .lt. 0.001 .and. abs(dxyz(2)) .lt. 0.001 .and.
+     &	      abs(dxyz(3)) .lt. 0.001) dxyz(1) = 0.0013
+c
+	else if (nmodpt .eq. 0 .and. relativeFids) then
+c	    
+c	    No matching models and relative fiducials: set dxyz to zero
+c	    and report the offset from the fit
+c
 	  write(*,107)(dxyz(i),i=1,3)
 107	  format(/,' X, Y, Z offsets from fiducial fit:',3f10.3)
 	  dxyz(1) = 0.
 	  dxyz(2) = 0.
 	  dxyz(3) = 0.
+	else
+c	    
+c	    Absolute fiducials: just make sure they are not exactly zero
+c
+	  if (abs(dxyz(1)) .lt. 0.001 .and. abs(dxyz(2)) .lt. 0.001 .and.
+     &	      abs(dxyz(3)) .lt. 0.001) dxyz(1) = 0.0013
 	endif
+c
 	print *,'Transformation matrix for matchvol:'
         write(*,102)((a(i,j),j=1,3),dxyz(i),i=1,3)
 102     format(3f10.6,f10.3)
@@ -560,10 +627,133 @@ c
 	  write(1,102)((a(i,j),j=1,3),dxyz(i),i=1,3)
 	  close(1)
 	endif
-	if (devmax.gt.stoplim) call errorexit(
-     &	    'MAXIMUM RESIDUAL IS TOO HIGH TO PROCEED')
+c
+	if (devmax.gt.stoplim) then
+c
+c	    Give some guidance based upon the ratios between max and mean
+c	    deviation and max deviation and stopping limit
+c	    
+	  print *
+	  write(*,106)devmax
+106	  format(/, 'The maximum residual is',f8.2,', too high to proceed')
+	  loMaxAvgRatio = 4.
+	  hiMaxAvgRatio = 12.
+	  loMaxLimRatio = 2.
+	  hiMaxLimRatio = 3.
+	  if (devmax .lt. loMaxAvgRatio * devavg .and.
+     &	      devmax .lt. loMaxLimRatio * stoplim) then
+	    write(*,111)loMaxAvgRatio, devavg, loMaxLimRatio
+111	    format('Since the maximum residual is less than',f6.1,
+     &		' times the mean residual (', f8.2,')',/,' and less than',
+     &		f6.1, ' times the specified residual limit,',/,
+     &		' this is probably due to distortion between the volumes,',/,
+     &		' and you should probably just raise the residual limit')
+	  elseif (devmax .gt. hiMaxAvgRatio * devavg .or.
+     &		devmax .gt. hiMaxLimRatio * stoplim) then
+	    if (devmax .gt. hiMaxAvgRatio * devavg)
+     &		write(*,108)hiMaxAvgRatio, devavg
+108	    format('The maximum residual is more than', f6.1,
+     &		' times the mean residual (', f8.2,')')
+	    if (devmax .gt. hiMaxLimRatio * stoplim)
+     &		write(*,109)hiMaxLimRatio
+109	    format('The maximum residual is more than', f6.1,
+     &		' times the specified residual limit')
+	    print *,'This is probably due to a bad correspondence list.'
+	    write (*,110)iorig(ipntmax)
+110	    format('Check the points (especially',i4,
+     &		') or start with a subset of the list')
+	  else
+	    print *,'The situation is ambiguous but could be due to a',
+     &		' bad correspondence list.'
+	    write (*,110)iorig(ipntmax)
+	  endif
+	  call errorexit('MAXIMUM RESIDUAL IS TOO HIGH TO PROCEED')
+	endif
 	call exit(0)
         end
+
+
+c	  GETDELTA returns the "delta" or pixel size from a tomogram as well
+c	  as the nxyz
+c	  OPTION is the option that specifies the tomogram or nx,ny,nz
+c	  DELTA is returned with -1 if the option was not entered at all,
+c	  0 if sizes were entered, or the actual delta value from the file
+c
+	subroutine getDelta(option, delta, nxyz)
+	implicit none
+	integer*4 nxyz(3),mxyz(3),mode,i, PipGetString
+	character*(*) option
+	character*80 line
+	real*4 dmin,dmax,dmean,deltmp(3),delta
+c
+	delta = -1.
+	if (PipGetString(option, line) .gt. 0)  return
+	delta = 0.
+	read(line,*,err=10)(nxyz(i),i=1,3)
+	return
+c
+10	call ialprt(.false.)
+	call imopen(5,line,'ro')
+	call irdhdr(5,nxyz,mxyz,mode,dmin,dmax,dmean)
+	call irtdel(5, deltmp)
+	call imclose(5)
+	call ialprt(.true.)
+	delta = deltmp(1)
+	return
+	end
+
+
+c	  getFiducials reads the fiducials from FILENAME, storing the
+c	  sequential point number in ICONTA, the X,Y,Z coordinates in PNTA,
+c	  and the number of points in NPNTA
+c	  IDIM specifies the dimensions of the arrays
+c	  AXIS specifies the axis for a message
+c	  If a pixel size is found on the first line, it is returned in
+c	  PIXELSIZE, otherwise this is set to 0
+c
+	subroutine getFiducials(filename, iconta, pnta, npnta, idim, axis,
+     &	    pixelSize)
+	implicit none
+	character*(*) filename
+	character*(*) axis
+	character*80 line
+	integer*4 iconta(*),idim,npnta,len,lnblnk,i,j
+	real*4 pnta(3, idim), pixelSize
+c
+	npnta = 0
+	pixelSize = 0.
+	call dopen(1,filename,'old','f')
+c	  
+c	  get the first line and search for PixelSize:
+c
+	read(1,'(a)',end=15)line
+	len = lnblnk(line)
+	i = 1
+	do while (i .lt. len - 11)
+	  if (line(i:i+10) .eq. 'Pixel size:')
+     &	      read(line(i+11:len),*, err=8)pixelSize
+	  i = i + 1
+	enddo
+c	  
+c	  process first line then loop until end
+c
+8	read(line, *)iconta(1),(pnta(j,1),j=1,3)
+	go to 12
+c
+10	read(1,*,end=15)iconta(npnta+1),(pnta(j,npnta+1),j=1,3)
+12	npnta=npnta+1
+c
+c	  invert the Z coordinates because the tomogram built by TILT is
+c	  inverted relative to the solution produced by TILTALIGN
+c
+	pnta(3,npnta) = -pnta(3,npnta)
+	if (npnta.ge.idim)call errorexit('TOO MANY POINTS FOR ARRAYS')
+	go to 10
+15	print *,npnta,' points from ', axis
+	close(1)
+	return
+	end
+
 
 	subroutine errorexit(message)
 	character*(*) message
@@ -571,3 +761,5 @@ c
 	print *,'ERROR: SOLVEMATCH - ',message
 	call exit(1)
 	end
+
+
