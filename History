@@ -1,11 +1,14 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/10/04: IMOD_3-2-10  (Etomo unstable)
+4/9/04: Incorporated changes for building under Amd64 into Linux build scripts.
+
 4/3/04: IMOD_3-2-9  (Etomo unstable)
 4/3/04: Added ability to pack QT library into Linux distribution since message
 passing to 3dmod won't work with Qt 3.2 or 3.3.
 
-4/1/04: Fixed uninitialized variable in new version of Extracttilts that made it
-fail on Windows, possibly on Mac.
+4/1/04: Fixed uninitialized variable in new version of Extracttilts that made
+it fail on Windows, possibly on Mac.
 
 3/31/04: Reduced the artifacts that Tilt produces when taking logs of numbers
 that would be negative after adding the log offset.
@@ -17,8 +20,8 @@ command files for running it between Newstack and Tilt.
 3/30/04: Made initial size-setting of model view windows work the same as for
 Zap window, so now it works in Windows.
 
-3/25/04: Fixed problem causing crashes when opening 3dmod with no image, possibly
-caused by reorganizations on 1/9/04.
+3/25/04: Fixed problem causing crashes when opening 3dmod with no image,
+possibly caused by reorganizations on 1/9/04.
 
 3/22/04: IMOD_3-2-8
 3/21/04: Added magnification gradient correction to Newstack and Xfmodel.
