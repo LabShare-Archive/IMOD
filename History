@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/26/02: The 1/25/02 change to xyzproj broke it for the SGI, so the array 
+dimensions were reduced so that it can do either very large images or very 
+many projections,
+
 1/28/02: IMOD_2-6-8
 1/28/02: Fixed new bug in xyz drawing routine.
 
