@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.2  2002/05/20 15:27:15  mast
+    Fix documentation of contour type and surf
+
     Revision 3.1  2001/12/05 16:02:06  mast
     Add declaration of imodFromVmsFloats in imodel_files.c
 
@@ -123,6 +126,7 @@
 /* model flags. */
 #define IMODF_FLIPYZ (1l << 16)  /* data is stored with y,z coords flipped. */
 #define IMODF_TILTOK (1l << 15)  /* current tilt angles properly stored */
+#define IMODF_OTRANS_ORIGIN (1l << 14)  /* otrans has image origin values */
 
 
 /****************************** Structures ***********************************/
