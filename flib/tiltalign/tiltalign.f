@@ -404,6 +404,10 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.15  2004/09/16 16:12:30  mast
+c	  Made it try new metro factors upon error; switched to opening
+c	  fid.xyz only when ready to write it.
+c	
 c	  Revision 3.14  2004/07/16 23:24:21  mast
 c	  Added pixel size to local alignment file
 c	
@@ -474,7 +478,7 @@ c
 	real*4 viewerrsum(maxview),viewerrsq(maxview)
 	real*4 viewmeanres(maxview),viewsdres(maxview)
 	
-	logical ordererr,nearbyerr,residualout, resbothout
+	logical ordererr,nearbyerr,residualout, resbothout, gotdot
 	character*120 modelfile,residualfile,pointFile
 c
 	real*4 fl(2,3,maxview),fa(2,3),fb(2,3),fc(2,3)
@@ -1073,12 +1077,11 @@ c	      model
 c	      
 	    residualout = .false.
 	    resbothout = modelfile .ne. ' '
-	    
-	    do i = 1, lnblnk(modelfile)-3
-	      if (modelfile(i:i).eq.'.' .and. modelfile(i+1:i+1).eq.'r'
-     &		  .and. modelfile(i+2:i+2).eq.'e' .and.
-     &		  modelfile(i+3:i+3).eq.'s') residualout = .true.
-	      if (modelfile(i:i).eq.'.')  resbothout = .false.
+	    gotdot = .false.
+	    do i = 1, lnblnk(modelfile)-2
+	      if (gotdot .and. modelfile(i:i+2).eq.'res')residualout = .true.
+	      if (gotdot .and. modelfile(i:i+2).eq.'mod')resbothout = .false.
+	      if (modelfile(i:i).eq.'.')  gotdot = .true.
 	    enddo
 	    if (residualout.or.resbothout) then
 	      if (residualout) then
