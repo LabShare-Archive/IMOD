@@ -18,6 +18,10 @@ import etomo.process.SystemProgram;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.6  2003/01/04 00:06:08  rickg
+ * <p> Swapped order for to/from fiducial mapping when
+ * <p> matching from b to a.
+ * <p>
  * <p> Revision 1.5  2002/10/24 23:49:53  rickg
  * <p> Added getStdout method
  * <p>
@@ -66,8 +70,8 @@ public class SetupCombine {
     if (combineParams.getMatchBtoA()) {
       tempStdInput[lineCount++] = "a";
       if (combineParams.getFiducialMatchListA() != "") {
-        tempStdInput[lineCount++] = combineParams.getFiducialMatchListB();
         tempStdInput[lineCount++] = combineParams.getFiducialMatchListA();
+        tempStdInput[lineCount++] = combineParams.getFiducialMatchListB();
       }
       else {
         tempStdInput[lineCount++] = "";
@@ -76,8 +80,8 @@ public class SetupCombine {
     else {
       tempStdInput[lineCount++] = "b";
       if (combineParams.getFiducialMatchListB() != "") {
-        tempStdInput[lineCount++] = combineParams.getFiducialMatchListA();
         tempStdInput[lineCount++] = combineParams.getFiducialMatchListB();
+        tempStdInput[lineCount++] = combineParams.getFiducialMatchListA();
       }
       else {
         tempStdInput[lineCount++] = "";
