@@ -16,6 +16,9 @@ import java.io.File;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.1  2004/11/19 23:28:43  sueh
+ * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+ * <p>
  * <p> Revision 3.0.6.1  2004/10/15 00:15:23  sueh
  * <p> bug# 520 Change class to inherit DataFileFilter so it can be used
  * <p> generically.
@@ -45,7 +48,7 @@ public class EtomoFileFilter extends DataFileFilter {
    */
   public boolean accept(File f) {
     //  If this is a file test its extension, all others should return true
-    if (f.isFile() && !f.getAbsolutePath().endsWith(".edf")) {
+    if (f.isDirectory() || (f.isFile() && !f.getAbsolutePath().endsWith(".edf"))) {
       return false;
     }
     return true;
