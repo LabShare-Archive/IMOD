@@ -1,9 +1,16 @@
 package etomo.ui;
 
-import java.io.*;
-import java.awt.*;
-import javax.swing.*;
-import javax.swing.text.*;
+import java.awt.BorderLayout;
+import java.awt.Container;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+
+import javax.swing.JEditorPane;
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
+import javax.swing.JScrollPane;
+import javax.swing.text.StyledEditorKit;
 
 /**
  * <p>Description: </p>
@@ -18,6 +25,9 @@ import javax.swing.text.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.1  2003/03/06 05:53:28  rickg
+ * <p> Combine interface in progress
+ * <p>
  * <p> Revision 2.0  2003/01/24 20:30:31  rickg
  * <p> Single window merge to main branch
  * <p>
@@ -46,7 +56,7 @@ public class TextPageWindow extends JFrame {
     setSize(625, 800);
   }
 
-  public void setFile(String filename) {
+  public boolean setFile(String filename) {
     this.filename = filename;
     setTitle(filename);
 
@@ -65,6 +75,7 @@ public class TextPageWindow extends JFrame {
         messages,
         filename + " not found",
         JOptionPane.ERROR_MESSAGE);
+      return false;
     }
     catch (IOException except) {
       JOptionPane.showMessageDialog(
@@ -72,7 +83,8 @@ public class TextPageWindow extends JFrame {
         except.getMessage(),
         filename + " IO Exception",
         JOptionPane.ERROR_MESSAGE);
-
+      return false;
     }
+    return true;
   }
 }
