@@ -4,7 +4,7 @@
   <title>IMOD User's Guide</title>
 </head>
 <body>
-<h1 align="center">IMOD User's Guide for Version 3.3.4 </h1>
+<h1 align="center">IMOD User's Guide for Version 3.5.2 </h1>
 <h3 align="center">Boulder Laboratory for 3-D Electron Microscopy of
 Cells</h3>
 <hr>
@@ -27,17 +27,17 @@ OS X</a> </li>
     <li><a href="#TIFFLibrary"> TIFF Library Support</a> </li>
     <li><a href="#FastBackprojection"> Fast Backprojection Support</a> </li>
   </ul>
-  <li><a href="#Getting Started">Getting Started</a> </li>
-  <li><a href="#Aligning Images">Aligning Images</a> </li>
+  <li><a href="#Getting%20Started">Getting Started</a> </li>
+  <li><a href="#Aligning%20Images">Aligning Images</a> </li>
   <ul>
     <li><a href="#ManualAlignment">Manual Image Alignment</a> </li>
     <li><a href="#AutomaticAlignment">Automatic Image Alignment</a> </li>
     <li><a href="#FiducialAlignment">Image Alignment using Fiducial
 Markers.</a> </li>
   </ul>
-  <li><a href="#Quantitative Information">Getting Quantitative
+  <li><a href="#Quantitative%20Information">Getting Quantitative
 Information</a> </li>
-  <li><a href="#Other Output">Output to Other Model Formats</a> </li>
+  <li><a href="#Other%20Output">Output to Other Model Formats</a> </li>
   <li><a href="#Special">Special Help Topics</a> </li>
 </ul>
 <p> An <a href="3dmodguide.html">introduction to 3dmod</a>, the image
@@ -59,17 +59,22 @@ install to the default location in the system and set up the IMOD
 environment for all users in the default way, then you can install
 simply by running this
 script, e.g.,<br>
-&nbsp;&nbsp;&nbsp;<code>csh imod_3.3.4_rh9.0.csh</code><br>
+&nbsp;&nbsp;&nbsp;<code>csh imod_3.5.2_RH9.0.csh</code><br>
   <br>
 (In this guide, the specific filenames are used as an example; your
 copy may have higher version numbers.)&nbsp;Moreover, if you have
 followed our recommended installation procedures
 since IMOD 3.0.8, you should be able to upgrade using the same
-command. Note that older versions will be renamed but not automatically
+command. If you want to install to a location other than the default,
+on all systems except Windows, you can specify the desired location,
+e.g.,<br>
+&nbsp;&nbsp; <code>csh imod_3.5.2_RH9.0.csh -dir /opt</code><br>
+  <br>
+Note that older versions will be renamed but not automatically
 removed by the installation procedure.&nbsp;If you need to work with
 the tar file instead, you can
 just extract it with:<br>
-&nbsp;&nbsp;<code>imod_3.3.4_rh9.0.csh -extract<br>
+&nbsp;&nbsp;<code>imod_3.5.2_RH9.0.csh -extract<br>
   </code><br>
 The sections below on individual machine types describe what will be
 done by the default installation procedure and list the steps for
@@ -87,7 +92,7 @@ Video Card: any relatively modern Nvidia card (GeForce or Quadro, 64 MB
 or 128 MB cards preferred)<br>
 Minimum memory size: 256MB <br>
 Minimum disk size: 10 GB <br>
-Operating System: Red Hat 8.0 or higher Workstation class installation<br>
+Operating System: Red Hat 9.0 or higher Workstation class installation<br>
 Nvidia Linux device drivers and OpenGL libraries from <a
  href="http://www.nvidia.com">Nvidia</a>, at least version 3123 or
 higher. <br>
@@ -112,7 +117,9 @@ KDE version), then "Window Behavior" then the "Moving" panel. </p>
     <a name="InstallingLinuxSGI">
     <h4>Installing IMOD on a Linux PC or an SGI</h4>
     </a>
-    <p> The self-installing package will install to <code>/usr/local/IMOD</code>.&nbsp;
+    <p> The self-installing package will install to <code>/usr/local/IMOD</code>
+unless given an alternate location with the <code>-dir</code>
+option.&nbsp;
 Under Linux, it will copy <code>IMOD-linux.sh </code>and <code>IMOD-linux.csh
     </code>to <code>/etc/profile.d</code>.&nbsp; On an SGI, it will
 place an appropriate "source" command into <code>/etc/cshrc</code> if
@@ -120,7 +127,7 @@ it is not there already, but it will not modify <code>/etc/profile</code>
 for bash users (see step 9B below to do this.)&nbsp; To accomplish all
 of this, change directory to the place where the package is located and
 enter, for example:<br>
-&nbsp;&nbsp;&nbsp;&nbsp; <code>sudo csh </code><code>imod_3.3.4_rh9.0.csh</code><br>
+&nbsp;&nbsp;&nbsp;&nbsp; <code>sudo csh </code><code>imod_3.5.2_RH9.0.csh</code><br>
     <br>
 You will have to open a new window, or possibly even log out and
 log back in, for the installation to take effect.<br>
@@ -147,10 +154,10 @@ will be easier, especially if the startup files change.</dd>
     <ol>
       <li> Log in as root or do all of these commands with sudo </li>
       <li> cd to the directory where you downloaded IMOD, and <br>
-        <code> mv imod_3.3.4_rh9.0.tar.gz /usr/local</code> </li>
+        <code> mv imod_3.5.2_RH9.0.tar.gz /usr/local</code> </li>
       <li><code> cd /usr/local</code> </li>
-      <li><code> gunzip imod_3.3.4_rh9.0.tar.gz</code> </li>
-      <li><code> tar xvf imod_3.3.4_rh9.0.tar</code> </li>
+      <li><code> gunzip imod_3.5.2_RH9.0.tar.gz</code> </li>
+      <li><code> tar xvf imod_3.5.2_RH9.0.tar</code> </li>
       <li>To see if you already have a /usr/local/IMOD, <br>
         <code> ls -l</code> </li>
       <li>If you do have a /usr/local/IMOD and it is a link (e.g., it
@@ -158,7 +165,7 @@ shows up as <code> IMOD -&gt; imod_2.7.6</code>), then enter <br>
         <code> rm IMOD</code> <br>
 Otherwise, rename the existing directory, e.g.: <br>
         <code> mv IMOD oldIMOD</code> </li>
-      <li><code> ln -s imod_3.3.4 IMOD</code> </li>
+      <li><code> ln -s imod_3.5.2 IMOD</code> </li>
       <li> (A) Under Linux, enter <br>
         <code> cp IMOD/IMOD-linux.* /etc/profile.d</code> <br>
 (B) On an SGI, insert the text in <code>IMOD/sgi.cshrc</code> into <code>/etc/cshrc</code>,
@@ -177,11 +184,8 @@ specifically the command <br>
 <dl>
   <dd><br>
   </dd>
-  <dd>If you want to install at another location, change <code>/usr/local/IMOD</code>
-to the name of the top IMOD directory in the relevant <code>IMOD-*.*</code>
-files and in the source command placed in <code>/etc/cshrc</code> on
-an
-SGI.</dd>
+  <dd><br>
+  </dd>
 </dl>
 <dl>
   <dd>If you do not want a system wide installation, instead of step 9
@@ -257,7 +261,8 @@ without deleting <code>IMOD-linux.*sh</code>.<code><br>
 environment (JRE) with a version of 1.4 or better to be installed. We
 recommend using the 1.4.0 or 1.4.2 series since we have encountered
 bugs
-in version 1.4.1 Sun's Java runtime. &nbsp;Sun's JRE version 1.4.2_5 is
+in version 1.4.1 of Sun's Java runtime.&nbsp; Sun's JRE version 1.4.2_5
+is
 available <a
  href="http://bio3d.colorado.edu/imod/java/j2re-1_4_2_05-linux-i586.bin">here</a>&nbsp;for
 Linux (this version or higher is required on an AMD64 machine). <br>
@@ -279,7 +284,7 @@ and&nbsp; execute the bin by entering</p>
 j2re-1_4_2_05-linux-i586.bin</code><br>
   </span></p>
   <p class="western">on the command line. &nbsp;</p>
-  <p class="western">This will install the JRE in <code>/usr/local/j2re1.4.2_0</code>5.
+  <p class="western">This will install the JRE in <code>/usr/local/j2re1.4.2_05</code>.
 &nbsp;The IMOD startup scripts assume that the JRE is in <code>/usr/local/java</code>,
 so next create a link: </p>
   <p class="western"><span style="font-family: monospace;"><code>ln
@@ -307,13 +312,14 @@ Then install it with <br>
 &nbsp;<br>
   <a name="InstallingMac">
   <h4>Installing IMOD on a Macintosh running OS X</h4>
-  </a>The self-installing package will install to /Applications and
+  </a>The self-installing package will install to /Applications or to
+an alternate location with the <code>-dir</code> option.&nbsp; It will
 place appropriate "source" commands for defining the user environment
 in <code>/etc/csh.login<span style="font-family: sans-serif;"> </span></code>and
   <code>/etc/profile</code>.&nbsp;You
 need to be able to use sudo. &nbsp;Open a terminal window, change
 directory to the place where the package is located, and enter, e.g.:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<code>sudo csh imod_3.3.4_osx.csh</code><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<code>sudo csh imod_3.5.2_osx.csh</code><br>
   <br>
 You will need to exit and restart Terminal for these changes to take
 effect, or you can just source <code>/etc/csh.login</code>&nbsp;(if
@@ -330,7 +336,7 @@ other environment-setting commands from various files, such as <code>/etc/csh.lo
 or <code>.profile</code>&nbsp;files.<br>
   <br>
 Once you have verified that IMOD programs run after
-installing them, you can make some links in <code>/usr/lib</code>to
+installing them, you can make some links in <code>/usr/lib</code> to
 libraries
 in the IMOD directories that will allow you to start 3dmod by clicking
 on its icon. &nbsp;Run the <code>linklibs-mac </code>script by
@@ -348,9 +354,9 @@ alternatives.&nbsp;To do it from the command line, open a Terminal
 window and:<br>
   <ol>
     <li> cd to the directory where you downloaded IMOD, and <br>
-      <code>sudo mv imod_3.3.4_osx.tar.gz /Applications</code></li>
+      <code>sudo mv imod_3.5.2_osx.tar.gz /Applications</code></li>
     <li><code>cd /Applications</code></li>
-    <li><code>sudo tar xvzf imod_3.3.4_osx.0.tar</code></li>
+    <li><code>sudo tar xvzf imod_3.5.2_osx.0.tar</code></li>
     <li>To see if you already have a /Applications/IMOD, <br>
       <code> ls -l</code> </li>
     <li>If you do have a /Applications/IMOD and it is a link (e.g., it
@@ -358,14 +364,14 @@ shows up as <code> IMOD -&gt; imod_3.1.6</code>), then enter <br>
       <code>sudo rm IMOD</code> <br>
 Otherwise, rename the existing directory, e.g.: <br>
       <code>sudo mv IMOD oldIMOD</code> </li>
-    <li><code> sudo mv imod_3.3.4 IMOD</code></li>
+    <li><code> sudo mv imod_3.5.2 IMOD</code></li>
   </ol>
   <br>
 If you are on a single user-machine or have administrative privileges
 from the desktop, you can use the following alternative approach:
   <ol>
     <li>Click on the downloaded file to unpack it with Stuffit Expander
-and create the IMOD folder, e.g. <code>imod_3.3.4</code></li>
+and create the IMOD folder, e.g. <code>imod_3.5.2</code></li>
     <li>Drag this folder into the /Applications folder.</li>
     <li>If you already have an IMOD folder in /Applications, rename it
 or move it elsewhere.</li>
@@ -447,17 +453,17 @@ next to "All" to switch from "Default" to "Install"</li>
 icons on the desktop and start menu.</li>
   </ol>
   <br>
-The installation will create a Unix-like directory tree under <code>C:\cygwin</code>.&nbsp;
-Terminal windows and Cygwin programs such as the Unix tools will
+The installation will create a Unix-like directory tree under <code>C:\cygwin</code>.&nbsp;Terminal
+windows and Cygwin programs such as the Unix tools will
 display and work with paths that are relative to the Cygwin
-installation.&nbsp; For example, if you have installed Cygwin in <code>C:\cygwin</code>
-then the <code>/usr/local/IMOD</code> directory will exist in the
+installation.&nbsp;For example, if you have installed Cygwin in <code>C:\cygwin</code>&nbsp;
+then the <code>/usr/local/IMOD</code>&nbsp;directory will exist in the
 windows file systems as <code>C:\cygwin\usr\local\IMOD</code>.<br>
   <br>
 After installation you will get an icon that
 will
 start up a shell under bash.&nbsp;The first time that you run this, a
-home directory is created in&nbsp;<code>/home</code> (<code>C:\cygwin\home</code>)
+home directory is created in&nbsp;<code>/home</code>&nbsp;(<code>C:\cygwin\home</code>)
 and some bash
 startup files are copied there.<br>
   <br>
@@ -512,7 +518,7 @@ copy <code>IMOD-cygwin.sh</code>&nbsp;and <code>IMOD-cygwin.csh</code>&nbsp;to
   <code>/etc/profile.d</code>.&nbsp;To
 install IMOD, start a Cygwin terminal window, change to the
 directory where the package is located, and enter, e.g.:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<code>csh imod_3.3.4_win.csh<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<code>csh imod_3.5.2_win.csh<br>
   </code><br>
   <ol>
   </ol>
@@ -545,6 +551,11 @@ separator).</li>
   </ol>
   <br>
 Here are some optional steps:<br>
+  <br>
+If you installed to a drive other than C:, you should define&nbsp; <code>IMOD_DIR</code>
+as an environment variable in Windows as described above, but with the
+appropriate letter instead of C, so that <code>3dmod</code> will be
+able to find help files if it is started by clicking on an icon.<br>
   <br>
 You can add <code>C:\cygwin\usr\local\IMOD\bin</code>&nbsp;to the
 Windows
@@ -583,8 +594,8 @@ mv IMOD oldIMOD</code><br>
     </li>
     <li>&nbsp;Unpack the tar file, rename it to IMOD, and copy startup
 files: <br>
-      <code></code><code>tar -xzf imod_3.3.4.tar.gz </code><br>
-      <code>mv imod_3.3.4 IMOD </code><br>
+      <code></code><code>tar -xzf imod_3.5.2.tar.gz </code><br>
+      <code>mv imod_3.5.2 IMOD </code><br>
       <code>cp IMOD/IMOD-cygwin.* /etc/profile.d</code></li>
   </ol>
   <br>
@@ -735,10 +746,6 @@ convert a binary IMOD file (binary.imod) to an ASCII IMOD file
 or <br>
     <code>imodinfo -a -f ascii.imod binary.imod</code> <br>
 will both create an ASCII model file from the binary.imod model. </p>
-    <p><i> There exists an older model format which was used on our
-VaxStation running the WIMP program. The programs written in Fortran
-use the WIMP format internally. They will read models in either
-WIMP or IMOD format and output models in IMOD format. </i> </p>
     <p> </p>
   </dd>
 </dl>
@@ -941,7 +948,7 @@ serial sections.</a> </li>
 </dl>
 <br>
 <br>
-<hr><i>Last updated: July 21, 2004</i> [<a
+<hr><i>Last updated: March 20, 2005</i> [<a
  href="http://bio3d.colorado.edu/imod/index.html">IMOD Home Page</a>] [<a
  href="http://bio3d.colorado.edu/index.html">BL3DEMC Home Page</a>] <br>
 <br>
