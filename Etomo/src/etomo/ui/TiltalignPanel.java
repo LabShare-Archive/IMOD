@@ -2,6 +2,7 @@ package etomo.ui;
 
 import java.awt.Container;
 import java.awt.Dimension;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
@@ -37,6 +38,11 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.6  2004/12/29 01:54:46  sueh
+ * <p> bug# 567 Adding rotation solution panel.  Putting global and local rotation
+ * <p> solution next to tilt angle solution panel.  Putting global and local
+ * <p> xstretch and skew side-by-side.
+ * <p>
  * <p> Revision 3.5  2004/12/29 00:16:18  sueh
  * <p> bug# 567 Converted distortion checkbox and local distortion checkbox to
  * <p> radio button groups.  Moved default values to ConstTiltalignParam.
@@ -1130,24 +1136,14 @@ private LabeledTextField ltfRotationNonDefaultGroups = new LabeledTextField(
     pnlGeneral.add(pnlMinimizationParams);
     pnlGeneral.add(Box.createRigidArea(FixedDim.x0_y10));
 
-    pnlLocalParameters.setLayout(new BoxLayout(pnlLocalParameters,
-      BoxLayout.Y_AXIS));
-    pnlLocalParameters.setBorder(new EtchedBorder("Local Alignment Parameters")
-      .getBorder());
-    pnlLocalParameters.add(cbLocalAlignments);
-    cbLocalAlignments.setAlignmentX(Container.RIGHT_ALIGNMENT);
-    pnlLocalParameters.add(Box.createRigidArea(FixedDim.x0_y5));
+    //local alignment
+    createVariablePanel(pnlLocalParameters, cbLocalAlignments,
+        ltfNLocalPatches, ltfMinLocalPatchSize, ltfMinLocalFiducials,
+        "Local Alignment Parameters");
     LocalAlignmentsListener localAlignmentsListener = new LocalAlignmentsListener(
-      this);
+        this);
     cbLocalAlignments.addActionListener(localAlignmentsListener);
 
-    pnlLocalParameters.add(ltfNLocalPatches.getContainer());
-    pnlLocalParameters.add(Box.createRigidArea(FixedDim.x0_y5));
-
-    pnlLocalParameters.add(ltfMinLocalPatchSize.getContainer());
-    pnlLocalParameters.add(Box.createRigidArea(FixedDim.x0_y5));
-
-    pnlLocalParameters.add(ltfMinLocalFiducials.getContainer());
     pnlGeneral.add(pnlLocalParameters);
     pnlGeneral.add(Box.createVerticalGlue());
 
@@ -1162,7 +1158,8 @@ private LabeledTextField ltfRotationNonDefaultGroups = new LabeledTextField(
       BoxLayout.Y_AXIS));
 
     //  Layout the global rotation variable parameters
-    pnlRotationSolution.setLayout(new BoxLayout(pnlRotationSolution,
+    JPanel pnlRBRotation = new JPanel();
+    pnlRBRotation.setLayout(new BoxLayout(pnlRBRotation,
       BoxLayout.Y_AXIS));
     JRadioButton[] items = new JRadioButton[3];
     items[0] = rbRotationNone;
@@ -1170,58 +1167,39 @@ private LabeledTextField ltfRotationNonDefaultGroups = new LabeledTextField(
     items[2] = rbRotationAutomap;
     RotationRadioListener rotationRadioListener = new RotationRadioListener(
       this);
-    createRadioBox(pnlRotationSolution, bgRotationSolution, items,
+    createRadioBox(pnlRBRotation, bgRotationSolution, items,
         rotationRadioListener);
-    pnlRotationSolution.add(ltfRotationGroupSize.getContainer());
-    pnlRotationSolution.add(Box.createRigidArea(FixedDim.x0_y5));
-
-    pnlRotationSolution.add(ltfRotationNonDefaultGroups
-      .getContainer());
-    pnlRotationSolution.setBorder(new EtchedBorder(
-      "Rotation Solution Type").getBorder());
+    createVariablePanel(pnlRotationSolution, pnlRBRotation,
+        ltfRotationGroupSize, ltfRotationNonDefaultGroups, "Rotation Solution Type");
 
     //  Layout the global tilt angle estimate pane
-    pnlTiltAngleSolution.setLayout(new BoxLayout(pnlTiltAngleSolution,
-      BoxLayout.Y_AXIS));
-
+    JPanel pnlRBTiltAngle = new JPanel();
+    pnlRBTiltAngle.setLayout(new BoxLayout(pnlRBTiltAngle, BoxLayout.Y_AXIS));
     items = new JRadioButton[3];
     items[0] = rbTiltAngleFixed;
     items[1] = rbTiltAngleAll;
     items[2] = rbTiltAngleAutomap;
     TiltAngleRadioListener tiltAngleRadioListener = new TiltAngleRadioListener(
       this);
-    createRadioBox(pnlTiltAngleSolution, bgTiltAngleSolution, items,
+    createRadioBox(pnlRBTiltAngle, bgTiltAngleSolution, items,
       tiltAngleRadioListener);
-    pnlTiltAngleSolution.add(Box.createRigidArea(FixedDim.x0_y5));
-    pnlTiltAngleSolution.add(ltfTiltAngleGroupSize.getContainer());
-    pnlTiltAngleSolution.add(Box.createRigidArea(FixedDim.x0_y5));
-    pnlTiltAngleSolution.add(ltfTiltAngleNonDefaultGroups.getContainer());
-
-    pnlTiltAngleSolution.setBorder(new EtchedBorder("Tilt Angle Solution Type")
-      .getBorder());
+    createVariablePanel(pnlTiltAngleSolution, pnlRBTiltAngle,
+        ltfTiltAngleGroupSize, ltfTiltAngleNonDefaultGroups, "Tilt Angle Solution Type");
 
     //  Layout the global magnification variable parameters
-    pnlMagnificationSolution.setLayout(new BoxLayout(pnlMagnificationSolution,
-      BoxLayout.Y_AXIS));
+    JPanel pnlRBMagnification = new JPanel();
+    pnlRBMagnification.setLayout(new BoxLayout(pnlRBMagnification, BoxLayout.Y_AXIS));
     items = new JRadioButton[3];
     items[0] = rbMagnificationFixed;
     items[1] = rbMagnificationAll;
     items[2] = rbMagnificationAutomap;
     MagnificationRadioListener magnificationRadioListener = new MagnificationRadioListener(
       this);
-    createRadioBox(pnlMagnificationSolution, bgMagnificationSolution, items,
+    createRadioBox(pnlRBMagnification, bgMagnificationSolution, items,
       magnificationRadioListener);
-
-    pnlMagnificationSolution.add(ltfMagnificationReferenceView.getContainer());
-    pnlMagnificationSolution.add(Box.createRigidArea(FixedDim.x0_y5));
-
-    pnlMagnificationSolution.add(ltfMagnificationGroupSize.getContainer());
-    pnlMagnificationSolution.add(Box.createRigidArea(FixedDim.x0_y5));
-
-    pnlMagnificationSolution.add(ltfMagnificationNonDefaultGroups
-      .getContainer());
-    pnlMagnificationSolution.setBorder(new EtchedBorder(
-      "Magnification Solution Type").getBorder());
+    createVariablePanel(pnlMagnificationSolution, pnlRBMagnification,
+        ltfMagnificationReferenceView, ltfMagnificationGroupSize,
+        ltfMagnificationNonDefaultGroups, null, "Magnification Solution Type");
 
     // Layout the global distortion pane
     
@@ -1243,12 +1221,10 @@ private LabeledTextField ltfRotationNonDefaultGroups = new LabeledTextField(
       ltfSkewNonDefaultGroups, "Distortion Solution Type");
 
     //  Add the individual panes to the tab
-    SpacedPanel panel1 = new SpacedPanel(FixedDim.x5_y0);
-    panel1.setLayout(new BoxLayout(panel1.getContainer(), BoxLayout.X_AXIS));
-    panel1.add(pnlRotationSolution);
-    panel1.add(pnlTiltAngleSolution);
     pnlGlobalVariable.add(Box.createRigidArea(FixedDim.x0_y10));
-    pnlGlobalVariable.add(panel1.getContainer());
+    pnlGlobalVariable.add(pnlRotationSolution);
+    pnlGlobalVariable.add(Box.createRigidArea(FixedDim.x0_y10));
+    pnlGlobalVariable.add(pnlTiltAngleSolution);
     pnlGlobalVariable.add(Box.createRigidArea(FixedDim.x0_y10));
     pnlGlobalVariable.add(Box.createVerticalGlue());
     pnlGlobalVariable.add(pnlMagnificationSolution);
@@ -1337,15 +1313,14 @@ private LabeledTextField ltfRotationNonDefaultGroups = new LabeledTextField(
       ltfLocalSkewGroupSize, ltfLocalSkewNonDefaultGroups,
       "Local Distortion Solution Type");
     
-    SpacedPanel panel1 = new SpacedPanel(FixedDim.x5_y0);
-    panel1.setLayout(new BoxLayout(panel1.getContainer(), BoxLayout.X_AXIS));
-    panel1.add(pnlLocalRotationSolution);
-    panel1.add(pnlLocalTiltAngleSolution);
-    
     pnlLocalSolution.add(Box.createVerticalGlue());
     pnlLocalSolution.add(Box.createRigidArea(FixedDim.x0_y10));
-    pnlLocalSolution.add(panel1.getContainer());
+    pnlLocalSolution.add(pnlLocalRotationSolution);
 
+    pnlLocalSolution.add(Box.createVerticalGlue());
+    pnlLocalSolution.add(Box.createRigidArea(FixedDim.x0_y10));
+    pnlLocalSolution.add(pnlLocalTiltAngleSolution);
+    
     pnlLocalSolution.add(Box.createVerticalGlue());
     pnlLocalSolution.add(Box.createRigidArea(FixedDim.x0_y10));
     pnlLocalSolution.add(pnlLocalMagnificationSolution);
@@ -1359,63 +1334,56 @@ private LabeledTextField ltfRotationNonDefaultGroups = new LabeledTextField(
 
   private void createVariablePanel(JPanel panel, JCheckBox checkBox,
     LabeledTextField groupSize, LabeledTextField additionalGroups, String title) {
-
-    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-
-    //  Add the check box
-    //    checkBox.setAlignmentX(Component.LEFT_ALIGNMENT);
-    panel.add(checkBox);
-
-    //  Add the group size labeled text field
-    //    groupSize.setAlignmentX(Component.LEFT_ALIGNMENT);
-    panel.add(groupSize.getContainer());
-
-    //  Add the additional groups labeled text field
-    panel.add(Box.createRigidArea(FixedDim.x0_y5));
-    //    additionalGroups.setAlignmentX(Component.LEFT_ALIGNMENT);
-    panel.add(additionalGroups.getContainer());
-
-    panel.setBorder(new EtchedBorder(title).getBorder());
+    createVariablePanel(panel, checkBox, groupSize, additionalGroups,
+        null, title);
   }
+  
+  private void createVariablePanel(JPanel panel, JCheckBox checkBox,
+      LabeledTextField field1, LabeledTextField field2, LabeledTextField field3,
+      String title) {
+      JPanel buttonPanel = new JPanel();
+      buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.Y_AXIS));
+      buttonPanel.add(checkBox);
+      createVariablePanel(panel, buttonPanel, field1, field2,
+          field3, null, title);
+    }
   
   /*
    * create a variable panel with an internal panel (can contain a radio button
    * group
    */
-  private void createVariablePanel(JPanel panel, JPanel internalPanel,
+  private void createVariablePanel(JPanel panel, JPanel buttonPanel,
       LabeledTextField groupSize, LabeledTextField additionalGroups,
       String title) {
-    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-    panel.add(internalPanel);
-    panel.add(groupSize.getContainer());
-    panel.add(Box.createRigidArea(FixedDim.x0_y5));
-    panel.add(additionalGroups.getContainer());
+    createVariablePanel(panel, buttonPanel, groupSize, additionalGroups,
+        null, null, title);
+  }
+  
+  private void createVariablePanel(JPanel panel, JPanel buttonPanel,
+      LabeledTextField field1, LabeledTextField field2,
+      LabeledTextField field3, LabeledTextField field4,
+      String title) {
+    panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
+    panel.add(Box.createRigidArea(FixedDim.x10_y0));
+    panel.add(buttonPanel);
+    panel.add(Box.createRigidArea(FixedDim.x20_y0));
+    panel.add(Box.createRigidArea(FixedDim.x20_y0));
+    SpacedPanel fieldPanel = new SpacedPanel(FixedDim.x0_y5);
+    fieldPanel.setLayout(new BoxLayout(fieldPanel.getContainer(), BoxLayout.Y_AXIS));
+    fieldPanel.add(field1);
+    if (field2 != null) {
+      fieldPanel.add(field2);
+    }
+    if (field3 != null) {
+      fieldPanel.add(field3);
+    }
+    if (field4 != null) {
+      fieldPanel.add(field4);
+    }
+    panel.add(fieldPanel.getContainer());
     panel.setBorder(new EtchedBorder(title).getBorder());
   }
   
-  private void createVariablePanel(JPanel panel, JPanel internalPanel,
-      LabeledTextField groupSize1, LabeledTextField additionalGroups1,
-      LabeledTextField groupSize2, LabeledTextField additionalGroups2,
-      String title) {
-    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-    internalPanel.setAlignmentX(Container.RIGHT_ALIGNMENT);
-    panel.add(internalPanel);
-    //Add the two sets of text fields side by side
-    DoubleSpacedPanel panel1 = new DoubleSpacedPanel(false, FixedDim.x5_y0,
-        FixedDim.x0_y5, BorderFactory.createEtchedBorder());
-    panel1.add(groupSize1);
-    panel1.add(additionalGroups1);
-    DoubleSpacedPanel panel2 = new DoubleSpacedPanel(false, FixedDim.x5_y0,
-        FixedDim.x0_y5, BorderFactory.createEtchedBorder());
-    panel2.add(groupSize2);
-    panel2.add(additionalGroups2);
-    SpacedPanel panel3 = new SpacedPanel(FixedDim.x5_y0);
-    panel3.setLayout(new BoxLayout(panel3.getContainer(), BoxLayout.X_AXIS));
-    panel3.add(panel1);
-    panel3.add(panel2);
-    panel.add(panel3.getContainer());
-    panel.setBorder(new EtchedBorder(title).getBorder());
-  }
   
   class ResidualRadioListener implements ActionListener {
     TiltalignPanel panel;
