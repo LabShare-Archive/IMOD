@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.4  2004/04/21 17:06:17  rickg
+ * <p> Bug #424 simplified panel layout using UIUtilities
+ * <p>
  * <p> Revision 3.3  2004/01/30 22:44:47  sueh
  * <p> bug# 356 Changing buttons with html labels to
  * <p> MultiLineButton and MultiLineToggleButton
@@ -133,8 +136,8 @@ public class CCDEraserPanel implements ContextMenu {
     "Edge exclusion:");
   private LabeledTextField ltfMaximumRadius = new LabeledTextField(
     "Maximum radius:");
-  private LabeledTextField ltfOuterRadius = new LabeledTextField(
-    "Outer radius:");
+  private LabeledTextField ltfAnnulusWidth = new LabeledTextField(
+    "Annulus width:");
   private LabeledTextField ltfScanRegionSize = new LabeledTextField(
     "XY scan size:");
   private LabeledTextField ltfScanCriterion = new LabeledTextField(
@@ -195,7 +198,7 @@ public class CCDEraserPanel implements ContextMenu {
     UIUtilities.addWithYSpace(pnlXRayReplacement, ltfMaximumRadius
       .getContainer());
     UIUtilities
-      .addWithYSpace(pnlXRayReplacement, ltfOuterRadius.getContainer());
+      .addWithYSpace(pnlXRayReplacement, ltfAnnulusWidth.getContainer());
     UIUtilities.addWithYSpace(pnlXRayReplacement, ltfScanRegionSize
       .getContainer());
     UIUtilities.addWithYSpace(pnlXRayReplacement, ltfScanCriterion
@@ -294,7 +297,7 @@ public class CCDEraserPanel implements ContextMenu {
     ltfGrowCriterion.setText(ccdEraserParams.getGrowCriterion());
     ltfScanCriterion.setText(ccdEraserParams.getScanCriterion());
     ltfMaximumRadius.setText(ccdEraserParams.getMaximumRadius());
-    ltfOuterRadius.setText(ccdEraserParams.getOuterRadius());
+    ltfAnnulusWidth.setText(ccdEraserParams.getAnnulusWidth());
     ltfScanRegionSize.setText(ccdEraserParams.getXyScanSize());
     ltfEdgeExclusion.setText(ccdEraserParams.getEdgeExclusion());
 
@@ -318,7 +321,7 @@ public class CCDEraserPanel implements ContextMenu {
     ccdEraserParams.setGrowCriterion(ltfGrowCriterion.getText());
     ccdEraserParams.setScanCriterion(ltfScanCriterion.getText());
     ccdEraserParams.setMaximumRadius(ltfMaximumRadius.getText());
-    ccdEraserParams.setOuterRadius(ltfOuterRadius.getText());
+    ccdEraserParams.setAnnulusWidth(ltfAnnulusWidth.getText());
     ccdEraserParams.setXyScanSize(ltfScanRegionSize.getText());
     ccdEraserParams.setEdgeExclusion(ltfEdgeExclusion.getText());
     ccdEraserParams.setInputFile(ltfInputImage.getText());
@@ -363,8 +366,7 @@ public class CCDEraserPanel implements ContextMenu {
     cbXrayReplacement.setVisible(state);
     ltfGrowCriterion.setVisible(state);
     ltfEdgeExclusion.setVisible(state);
-    ltfMaximumRadius.setVisible(state);
-    ltfOuterRadius.setVisible(state);
+    ltfAnnulusWidth.setVisible(state);
     ltfScanRegionSize.setVisible(state);
     ltfScanCriterion.setVisible(state);
     pnlManualReplacement.setVisible(state);
@@ -427,7 +429,7 @@ public class CCDEraserPanel implements ContextMenu {
     ltfGrowCriterion.setEnabled(state);
     ltfEdgeExclusion.setEnabled(state);
     ltfMaximumRadius.setEnabled(state);
-    ltfOuterRadius.setEnabled(state);
+    ltfAnnulusWidth.setEnabled(state);
     ltfScanRegionSize.setEnabled(state);
     ltfScanCriterion.setEnabled(state);
     btnFindXRays.setEnabled(state);
@@ -478,9 +480,9 @@ public class CCDEraserPanel implements ContextMenu {
     text = "Maximum radius of peak area to erase (the default is 2.1 pixels).";
     ltfMaximumRadius.setToolTipText(tooltipFormatter.setText(text).format());
 
-    text = "Outer radius of annulus around a peak in which to calculate local"
-        + " mean and SD (the default is 4.0 pixels).";
-    ltfOuterRadius.setToolTipText(tooltipFormatter.setText(text).format());
+    text = "Width of the annulus around a peak in which to calculate local"
+        + " mean and SD (the default is 2.0 pixels).";
+    ltfAnnulusWidth.setToolTipText(tooltipFormatter.setText(text).format());
 
     text = "Size of regions to compute mean and SD in for initial scans (the "
         + "default is 100 pixels).";
