@@ -72,6 +72,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.3  2003/02/10 20:57:47  mast
+#  *** empty log message ***
+#
 #  Revision 3.2.2.1  2003/01/27 00:38:37  mast
 #  fine-tuning the build after pure Qt imod
 #
@@ -235,14 +238,14 @@ o32clibs : configure
 	cd libiimod  ; $(MAKE) all
 
 o32libs : o32clibs
-	cd flib; $(MAKE) $@
+	cd flib; $(MAKE) libs
 
 installo32clibs : configure
 	cd libimod   ; $(MAKE) install
 	cd libiimod  ; $(MAKE) install
 
 installo32libs : installo32clibs
-	cd flib; $(MAKE) install
+	cd flib; $(MAKE) installlibs
 
 #CER
 #CER Shortcut for making FORTRAN libs only
