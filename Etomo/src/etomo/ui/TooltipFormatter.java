@@ -13,6 +13,9 @@ package etomo.ui;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.0  2003/11/07 23:19:01  rickg
+ * <p> Version 1.0.0
+ * <p>
  * <p> Revision 1.3  2003/08/21 22:16:56  rickg
  * <p> Fixed loss of last character.
  * <p>
@@ -87,5 +90,25 @@ public class TooltipFormatter {
       }
     }
     return htmlFormat.toString();
+  }
+  
+  public static String getText(Autodoc autodoc, String fieldName) {
+    Section section = autodoc.getSection("field", fieldName);
+    if (section.isNull()) {
+      return null;
+    }
+    String text = section.getAttribute("tooltip").getValue();
+    if (text != null) {
+      return text;
+    }
+    text = section.getAttribute("usage").getValue();
+    if (text != null) {
+      return text;
+    }
+    text = section.getAttribute("manpage").getValue();
+    if (text != null) {
+      return text;
+    }
+    return null;
   }
 }
