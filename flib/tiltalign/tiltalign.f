@@ -402,6 +402,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.11  2004/05/07 23:41:21  mast
+c	  Fixed problem with Z shift being setto zero
+c	
 c	  Revision 3.10  2004/05/05 05:50:26  mast
 c	  Output real 3D coordinates, fix bug in getting local residuals,
 c	  and finally added +/-10% to the messages about metro factor
@@ -694,8 +697,7 @@ C Error returns:
 	    call errorexit('IER=4  Matrix non-positive definite; try '
      &		//'changing metro factor by +/-10%', iflocal)
 	  else
-	    WRITE(6,930)
-930	    FORMAT(/' IER=3  Iteration limit exceeded....')
+	    call errorexit('IER=3  Iteration limit exceeded....', 1)
 	  endif
 	  metroerror=metroerror+1
 	END IF
