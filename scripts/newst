@@ -7,6 +7,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.5  2003/06/20 20:02:46  mast
+#  Let tmpdir be defined and fall back to /tmp if /usr/tmp does not exist
+#
 #  Revision 3.4  2003/03/14 02:00:28  mast
 #  Added linear interpolation option
 #
@@ -19,7 +22,7 @@
 
 if ($#argv == 0) then
 cat <<EOF
-Usage: newst [options] input.file output.file
+Usage: newst [options] input.file(s) output.file
   options:  -se[cs] section_list         (default is entire file)
             -si[ze] X,Y
             -m[ode] new_mode
@@ -59,8 +62,9 @@ set float = "0"
 set minmax = "/"
 set ifcontrast = "0"
 set linear = "0"
+set done = "0"
 @ numxf = 0
-while ($#argv > 2)
+while (($#argv > 2) && ($done == "0"))
   switch ($argv[1])
     case -se*:
       set sec = $argv[2]
@@ -74,7 +78,7 @@ while ($#argv > 2)
       set mode = $argv[2]
       @ modenum = $mode
       if ($modenum < 0 || ($modenum > 4 && $modenum < 9) || $modenum > 15)then
-        echo "newst: Bad mode value $mode"
+        echo "ERROR: newst - Bad mode value $mode"
         exit 1
       endif
       shift; shift
@@ -88,7 +92,7 @@ while ($#argv > 2)
       set ifxf = "1"
       set xfile = $argv[2]
 	if (! -e $xfile) then
-          echo "newst: transform file $argv[2] does not exist"
+          echo "ERROR: newst - transform file $argv[2] does not exist"
           exit 1
         endif
       shift; shift
@@ -119,22 +123,43 @@ while ($#argv > 2)
       shift; shift
       breaksw
     default:
-      echo "newst: bad argument $argv[1]"
-      exit 1
+      set done = "1"
+      breaksw
   endsw
 end
-if (! -e $argv[1])then
-  echo "newst: input file $argv[1] does not exist"
-  exit 1
+
+if ($#argv < 2) then
+    echo "ERROR: newst - only one argument left after parsing options"
+    exit 1
 endif
-if ($sec == "u") then
-  @ numsec =  `header $argv[1] | sed -n '/rows, sections/p'| awk '{print $9}'`
-  @ numsec--
-  set sec = "0-"$numsec
+
+# check existence of remaining input files
+@ i = 1
+while ($i < $#argv)
+    if (! -e $argv[$i])then
+        echo "ERROR: newst - $argv[$i] is a bad argument or a nonexistent input file"
+        exit 1
+    endif
+    @ i++
+end
+
+# if multiple input files, forbid section entry; otherwise get sections
+if ($#argv > 2) then
+    if ($sec != "u") then
+        echo "ERROR: newst - you cannot make a section entry with multiple input files"
+        exit 1
+    endif
+else
+    if ($sec == "u") then
+        @ numsec =  `header $argv[1] | sed -n '/rows, sections/p'| awk '{print $9}'`
+        @ numsec--
+        set sec = "0-"$numsec
+    endif
 endif
+
 @ floatnum = $float
 if ($floatnum < -2 || $floatnum > 4) then
-  echo "newst: bad float option $float"
+  echo "ERROR: newst - bad float option $float"
   exit 1
 endif
 
@@ -154,9 +179,16 @@ else
     endif
 endif
 
+# Get transform line list, but multiple transforms not allowed for multiple 
+# input files
 if ($ifxf == "1") then
   @ numxfl = `cat $xfile |wc -l`
   if ($numxfl > 1) then
+    if ($#argv > 2) then
+        echo "ERROR: newst - you cannot us a transform file containing more"
+        echo "  than one transform with multiple input files"
+        exit 1
+    endif
      set xfsec = $sec
   else
      set xfsec = "0"
@@ -257,13 +289,28 @@ endif
 if ($ifxf != "0" && $linear != "0") set ifxf = 2
 
 onintr clean
+
+@ numinfiles = $#argv
+@ numinfiles--
+
 cat >! $tmpfil <<EOCAT
 newstack <<EOF
+$numinfiles
+EOCAT
+while ($#argv > 1)
+    echo $argv[1] >> $tmpfil
+    if ($sec == "u") then
+        @ numsec =  `header $argv[1] | sed -n '/rows, sections/p'| awk '{print $9}'`
+        @ numsec--
+        echo "0-"$numsec >> $tmpfil
+    else
+        echo $sec >> $tmpfil
+    endif
+    shift
+end
+cat >> $tmpfil <<EOCAT
 1
 $argv[1]
-$sec
-1
-$argv[2]
 $size
 $mode
 $ifoffset
