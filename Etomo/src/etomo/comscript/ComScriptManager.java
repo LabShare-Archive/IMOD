@@ -31,6 +31,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.26  2005/03/09 18:00:35  sueh
+ * <p> bug# 533 Added the blend script.
+ * <p>
  * <p> Revision 3.25  2005/03/08 01:53:37  sueh
  * <p> bug# 533 Added preblend script.
  * <p>
@@ -1435,6 +1438,7 @@ public class ComScriptManager {
     String command, AxisID axisID, boolean addNew) {
 
     if (script == null) {
+      (new IllegalStateException()).printStackTrace();
       String[] errorMessage = new String[2];
       errorMessage[0] = "Failed attempt to update the comscript containing the command: "
         + command;
