@@ -592,7 +592,7 @@ EOF
     if (! -e $imod_dir/imodhelp.h) touch $imod_dir/imodhelp.h
 
     (cd $imod_dir ; qmake imod.pro ; \rm -f 3dmodv ; ln -s 3dmod 3dmodv)
-    \find $imod_dir -name imodhelp.h -empty -exec \rm -f '{}' \;
+    \find $imod_dir -name imodhelp.h -size 0 -exec \rm -f '{}' \;
 
     # take care of dependencies on version
     #
@@ -662,6 +662,10 @@ exit
 
 #
 #  $Log$
+#  Revision 3.18  2003/05/12 15:13:44  mast
+#  Keeping it from removing imodhelp and making sure 3dmod is recompiled when
+#  version changes.
+#
 #  Revision 3.17  2003/05/03 00:55:20  mast
 #  fixing 3dmod links for Mac
 #
