@@ -99,10 +99,6 @@ SOURCE=multislider.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\plax.cpp
-# End Source File
-# Begin Source File
-
 SOURCE=tooledit.cpp
 # End Source File
 # End Group
