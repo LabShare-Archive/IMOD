@@ -143,10 +143,9 @@ endif
 echo '#define STAY_ON_TOP_HACK' >> $hconfigure
 
 #
-# Do not use multiple threads in plax programs - but give up on qtplax anyway
+# Do not use multiple threads in plax programs
 #
 echo '#define QTPLAX_NO_THREAD' >> $hconfigure
-set xplax = xplax.o
 
 #
 # Set this because ordinary geometry saving method makes windows walk up and
@@ -185,6 +184,9 @@ set ld_lib_var      = LD_LIBRARYN32_PATH
 
 
 #  $Log$
+#  Revision 3.12  2003/09/24 20:40:48  mast
+#  Back off from using Qt plax and go back to X plax routines
+#
 #  Revision 3.11  2003/09/24 17:31:39  mast
 #  Add geometry define
 #
