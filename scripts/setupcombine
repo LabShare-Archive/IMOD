@@ -23,8 +23,7 @@ set tmp_srcname = "g5tmpdir"
 set backupname = "./savework"
 set backupsed = ".\/savework"
 
-set matchshift = solvematchshift.com
-set matchmod = solvematchmod.com
+set matchshift = solvematch.com
 set matchvol1 = matchvol1.com
 set patchcorr = patchcorr.com
 set matchorwarp = matchorwarp.com
@@ -121,7 +120,8 @@ echo "Specify the correspondence between fiducial points in the two tilt alignme
 echo "Enter a list of the points in tilt series $tolet for which you"
 echo "are sure of the corresponding point in tilt series $fromlet"
 echo " (ranges may be entered)."
-echo "Or just Return if the points are in one-to-one correspondence."
+echo "Or just Return if the points are in one-to-one correspondence"
+echo "   or if there are no fiducial points"
 #
 # Need to strip spaces out of these lists
 #
@@ -133,11 +133,8 @@ while ($#corrlistin > 0)
     shift corrlistin
 end
 
-set corrtext1 = "gibberish"
-set corrtext2 = "gibberish"
-set corrlist2 = " "
+set corrlist2 = "\/"
 if ($corrlist1 != "") then
-    set corrtext1 = "list of points in 1st"
     echo "Enter a list of the corresponding points in tilt series $fromlet"
     set corrlistin = "$<"
     set corrlistin = ($corrlistin)
@@ -146,30 +143,24 @@ if ($corrlist1 != "") then
         set corrlist2 = ${corrlist2}$corrlistin[1]
         shift corrlistin
     end
-    set corrtext2 = "list of corresponding points"
+else
+    set corrlist1 = "\/"
 endif
 
+
 set modsurf = "z"
-while ($modsurf != "0" && $modsurf != "1" && $modsurf != "-1" && $modsurf != "2")
+while ($modsurf != "0" && $modsurf != "1" && $modsurf != "-1" && $modsurf != "2" && $modsurf != "-2")
 echo ""
-echo "Enter 0 to use models of corresponding points ($toname.matmod and"
+echo "Enter -2 to use just models of corresponding points ($toname.matmod and"
 echo " $fromname.matmod) to specify initial registration between tomograms;"
-echo " otherwise enter:"
+echo " or 0 to use models of corresponding points along with relative fiducial"
+echo "    coordinates (for old fiducial coordinates); otherwise enter:"
 echo "   1 if fiducials are on only one surface and tomograms are NOT inverted,"
 echo "  -1 if fiducials are on only one surface and tomograms are inverted"
 echo "           relative to each other, or"
 echo -n "   2 if there are fiducials on both surfaces: "
 set modsurf = $<
 end
-
-set uncomment = $matchshift
-set comment = $matchmod
-set surftext = "0 to use models"
-if ($modsurf == "0") then
-    set comment = $matchshift
-    set uncomment = $matchmod
-    set surftext = "gibberish"
-endif
 
 @ nx = $size[1]
 @ ny = $size[3]
@@ -322,6 +313,15 @@ if ($PATCHZ[$indpatch] > (2 * ($patchzu - $patchzl)) / 3) then
     echo2 "WARNING: Only one layer of patches will be computed in Z"
 endif
 
+# If patch thickness is greater than extent cut it down
+#
+@ patchnz = $PATCHZ[$indpatch]
+if ($patchnz > $patchzu + 1 - $patchzl) then
+    @ patchnz = $patchzu + 1 - $patchzl
+    echo " "
+    echo2 "WARNING: Patch thickness set to $patchnz to fit within Z limits"
+endif
+
 # compute disk space needed before asking about temp directory
 @ kpixel = ((($nx * $nz) / 100) * $ny) / 10
 @ mbytes = ((6 * $kpixel) + ($kpixel / 2)) / 1000
@@ -408,7 +408,6 @@ echo "   (Y and Z are not flipped on the PATCHCRAWL3D command line)"
 
 if (-e combine.com) \mv -f combine.com combine.com~
 if (-e $matchshift) \mv -f $matchshift $matchshift~
-if (-e $matchmod) \mv -f $matchmod $matchmod~
 if (-e $matchvol1) \mv -f $matchvol1 $matchvol1~
 if (-e $matchvol2) \mv -f $matchvol2 $matchvol2~
 if (-e $warpvol) \mv -f $warpvol $warpvol~
@@ -416,19 +415,13 @@ if (-e $patchcorr) \mv -f $patchcorr $patchcorr~
 if (-e $matchorwarp) \mv -f $matchorwarp $matchorwarp~
 if (-e $volcombine) \mv -f $volcombine $volcombine~
 
-sed -e s/$from_srcname/$fromname/g\
-    -e s/$to_srcname/$toname/g\
-    -e "/$corrtext1/s/.*	/$corrlist1	/g"\
-    -e "/$corrtext2/s/.*	/$corrlist2	/g"\
-    -e "/X-axis tilt/s/.*	/$xaxisa[2],$xaxisb[2]	/g"\
-	<$srcdir/$matchmod | cat >$matchmod
 
 sed -e s/$from_srcname/$fromname/g\
     -e s/$to_srcname/$toname/g\
-    -e "/$corrtext1/s/.*	/$corrlist1	/g"\
-    -e "/$corrtext2/s/.*	/$corrlist2	/g"\
-    -e "/X-axis tilt/s/.*	/$xaxisa[2],$xaxisb[2]	/g"\
-    -e "/$surftext/s/.*	/$modsurf	/g"\
+    -e "/^ACorrespondenceList/s/[ 	].*/	$corrlist1/"\
+    -e "/^BCorrespondenceList/s/[ 	].*/	$corrlist2/"\
+    -e "/^XAxisTilts/s/[ 	].*/	$xaxisa[2],$xaxisb[2]/"\
+    -e "/^SurfacesOrUseModel/s/[ 	].*/	$modsurf/"\
     -e "/matchshifts.*64 32 64/s/64 32 64/$msxz $msy $msxz/"\
 	<$srcdir/$matchshift | cat >$matchshift
 
@@ -460,7 +453,7 @@ sed -e s/$from_srcname/$fromname/g\
     -e "/OutputSizeXYZ/s/\//$size/g"\
 	<$srcdir/$warpvol | cat >$warpvol
 
-sed -e "/patchcrawl3d *[0-9]/s/3d[ 0-9]*/3d  $PATCHXY[$indpatch] $PATCHZ[$indpatch] $PATCHXY[$indpatch]   $npatchx $npatchz $npatchy   $patchxl $patchxu   $patchzl $patchzu   $patchyl $patchyu /g"\
+sed -e "/patchcrawl3d *[0-9]/s/3d[ 0-9]*/3d  $PATCHXY[$indpatch] $patchnz $PATCHXY[$indpatch]   $npatchx $npatchz $npatchy   $patchxl $patchxu   $patchzl $patchzu   $patchyl $patchyu /g"\
     -e s/$from_srcname/$fromname/g\
     -e s/$to_srcname/$toname/g\
     -e s/$matfile/$sedmatfile/g\
@@ -484,9 +477,7 @@ sed -e s/$from_srcname/$fromname/g\
     -e "/savework-file/s//$backupsed/g"\
     	<$srcdir/$volcombine | cat >$volcombine
 
-sed -e "/$comment/s/"'^[\$#]*\([ve]\)/#\$\1/g'\
-    -e "/$uncomment/s/"'^[\$#]*\([ve]\)/\$\1/g'\
-	<$srcdir/combine.com | cat >combine.com
+\cp $srcdir/combine.com .
 
 @ megamax = $MAXPIXELS
 @ megamax /= 1000
@@ -630,6 +621,13 @@ echo '$'"if (-e $backupname) $backupname" | cat >> $volcombine
 
 #
 #  $Log$
+#  Revision 3.20  2004/06/14 19:29:10  mast
+#  Changed to handle general 3D output of tomopieces but constrained to
+#  one layer in Y
+#
+#  Revision 3.19  2004/06/10 22:46:08  mast
+#  Changes for new solvematch command file
+#
 #  Revision 3.18  2004/04/27 14:55:11  mast
 #  Removed warning for no xaxistilt line, it is fine if it is not there
 #
