@@ -8,6 +8,7 @@ import java.awt.event.ActionListener;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JPanel;
 
 import etomo.ApplicationManager;
@@ -47,10 +48,12 @@ public class InitialCombinePanel {
   private LabeledTextField ltfResidulThreshold =
     new LabeledTextField("Residual Threshold: ");
 
-  private JPanel panelButton = new JPanel();
-
-  private JButton imodMatchModels =
+  private JPanel pnlModelSelect = new JPanel();
+  private JButton btnImodMatchModels =
     new JButton("<html><b>Create matching models in imod</b>");
+  private JCheckBox cbUseModel = new JCheckBox("Model based initial match");
+
+  private JPanel panelButton = new JPanel();
   private JButton buttonCombineRestart =
     new JButton("<html><b>Restart combine</b>");
   private JButton buttonModelCombine =
@@ -71,8 +74,8 @@ public class InitialCombinePanel {
     //  Set the button sizes
     Dimension dimButton = new Dimension();
     dimButton.setSize(10 * height, 3 * height);
-    imodMatchModels.setPreferredSize(dimButton);
-    imodMatchModels.setMaximumSize(dimButton);
+    btnImodMatchModels.setPreferredSize(dimButton);
+    btnImodMatchModels.setMaximumSize(dimButton);
     buttonCombineRestart.setPreferredSize(dimButton);
     buttonCombineRestart.setMaximumSize(dimButton);
     buttonModelCombine.setPreferredSize(dimButton);
@@ -81,8 +84,13 @@ public class InitialCombinePanel {
     panelSolvematchshift.setLayout(
       new BoxLayout(panelSolvematchshift, BoxLayout.Y_AXIS));
     panelSolvematchshift.setBorder(
-      new EtchedBorder("Solvematchshift Parameters").getBorder());
+      new EtchedBorder("Solvematch Parameters").getBorder());
 
+    pnlModelSelect.setLayout(new BoxLayout(pnlModelSelect, BoxLayout.X_AXIS));
+    pnlModelSelect.add(cbUseModel);
+    pnlModelSelect.add(btnImodMatchModels);
+    panelSolvematchshift.add(pnlModelSelect);
+    panelSolvematchshift.add(Box.createRigidArea(FixedDim.x0_y5));    
     panelSolvematchshift.add(ltfFiducialMatchListA.getContainer());
     panelSolvematchshift.add(Box.createRigidArea(FixedDim.x0_y5));
     panelSolvematchshift.add(ltfFiducialMatchListB.getContainer());
@@ -94,18 +102,16 @@ public class InitialCombinePanel {
     panelButton.add(Box.createHorizontalGlue());
     panelButton.add(buttonCombineRestart);
     panelButton.add(Box.createHorizontalGlue());
-    panelButton.add(imodMatchModels);
-    panelButton.add(Box.createHorizontalGlue());
     panelButton.add(buttonModelCombine);
     panelButton.add(Box.createHorizontalGlue());
 
     rootPanel.add(panelSolvematchshift);
     rootPanel.add(Box.createVerticalGlue());
     rootPanel.add(panelButton);
-    
+
     //  Bind the buttons to the ActionListener
     ButtonActionListener buttonAction = new ButtonActionListener(this);
-    imodMatchModels.addActionListener(buttonAction);
+    btnImodMatchModels.addActionListener(buttonAction);
     buttonCombineRestart.addActionListener(buttonAction);
     buttonModelCombine.addActionListener(buttonAction);
   }
@@ -113,11 +119,15 @@ public class InitialCombinePanel {
   public Container getContainer() {
     return rootPanel;
   }
-  
-  public void setAdvanced(boolean state){
-    
+
+  public void setAdvanced(boolean state) {
+
   }
 
+  /**
+   * Set the solvematchshift parameters of the UI 
+   * @param solvematchshiftParam
+   */
   public void setSolvematchshiftParams(ConstSolvematchshiftParam solvematchshiftParam) {
     ltfFiducialMatchListA.setText(
       solvematchshiftParam.getFiducialMatchListA().toString());
@@ -126,18 +136,25 @@ public class InitialCombinePanel {
     ltfResidulThreshold.setText(solvematchshiftParam.getResidualThreshold());
   }
 
+  /**
+   * Get the solvematchshift parameters from the UI
+   * @param solvematchshiftParam
+   */
   public void getSolvematchshiftParams(SolvematchshiftParam solvematchshiftParam) {
     solvematchshiftParam.setFiducialMatchListA(ltfFiducialMatchListA.getText());
     solvematchshiftParam.setFiducialMatchListB(ltfFiducialMatchListB.getText());
     solvematchshiftParam.setResidualThreshold(
       Double.parseDouble(ltfResidulThreshold.getText()));
   }
-  
-  private void buttonAction(ActionEvent event) {
 
+  /**
+   * Respond to button actions
+   * @param event
+   */
+  private void buttonAction(ActionEvent event) {
     if (event
       .getActionCommand()
-      .equals(imodMatchModels.getActionCommand())) {
+      .equals(btnImodMatchModels.getActionCommand())) {
       applicationManager.imodMatchingModel();
     }
 
@@ -154,7 +171,28 @@ public class InitialCombinePanel {
     }
 
   }
+
+  /**
+   * Respond to checkbox actions
+   * @param event
+   */
+  private void checkboxAction(ActionEvent event) {
+    if (event.getActionCommand().equals(cbUseModel.getActionCommand())) {
+      //  FIXME!! wrong method
+      if (cbUseModel.isSelected()) {
+        applicationManager.updateSolvematchmodCom();
+      }
+      else {
+        applicationManager.updateSolvematchshiftCom();
+      }
+
+    }
+  }
   
+  
+  /**
+   * Button action listener class
+   */
   class ButtonActionListener implements ActionListener {
     InitialCombinePanel listenee;
 
@@ -167,4 +205,18 @@ public class InitialCombinePanel {
     }
   }
 
+  /**
+   * Checkbox action listener class
+   */
+  class CheckBoxActionListener implements ActionListener {
+    InitialCombinePanel listenee;
+
+    CheckBoxActionListener(InitialCombinePanel initialCombinePanel) {
+      listenee = initialCombinePanel;
+    }
+
+    public void actionPerformed(ActionEvent event) {
+      listenee.checkboxAction(event);
+    }
+  }
 }
