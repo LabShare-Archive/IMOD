@@ -34,6 +34,9 @@
     $Revision$
 
     $Log$
+    Revision 3.3  2002/07/21 20:29:50  mast
+    changed number of columns for section number to 4
+
     Revision 3.2  2002/01/28 16:53:59  mast
     Added section number to call to b3dDrawGreyScalePixelsHQ
 
@@ -243,7 +246,15 @@ static void help_cb(Widget w, XtPointer client, XtPointer call)
 	   "points after the current point (when pointing up) or before ",
 	   "the current point (when pointing down).\n"
 	   "\tThe section edit box shows the current section and allows one ",
-	   "to go directly to a section by typing in a number.\n"
+	   "to go directly to a section by typing in a number.\n",
+	   "\tThe Info button (I) brings the Information Window to the "
+	   "front and prints information about window and image size (see the "
+	   "I Hot Key below).\n"
+	   "\tIf multiple image files have been loaded into Imod, three "
+	   "additional controls appear.  The Time Lock button will prevent "
+	   "changes in other windows  from changing the time (image file) "
+	   "displayed in this Zap window.  The left and right arrows will "
+	   "step backward and forward in time.\n"
 	   "\tPress the space bar to hide or show the tool bar.\n\n",
 	   "---------------------------------------------------------------\n",
 	   "\nHot Keys special to the Zap window\n\n"
@@ -271,7 +282,8 @@ static void help_cb(Widget w, XtPointer client, XtPointer call)
 	   "coordinates of the lower left and upper right corners, and of "
 	   "the center, are printed in the Imod info window.  There is also "
 	   "a fragment of a command line for extracting the image from the "
-	   "stack with \"newst\"\n",
+	   "stack with \"newst\".  This key also brings the Information "
+	   "Window to the front of the display.\n",
 	   "\tR resizes the window.  With the rubber band off, the window "
 	   "changes, "
 	   "if possible, to match the size of the entire image at the "
@@ -894,6 +906,15 @@ static void insert_cb(Widget w, XtPointer client, XtPointer call)
      return;
 }
 
+/* DNm 7/28/02: new button to bring info window to top */
+static void info_cb(Widget w, XtPointer client, XtPointer call)
+{
+     struct zapwin *zap = (struct zapwin *)client;
+
+     ivwControlPriority(zap->vi, zap->ctrl);
+     zapPrintInfo(zap);
+}
+
 static void seclabel_cb(Widget w, XtPointer client, XtPointer call)
 {
      struct zapwin *zap = (struct zapwin *)client;
@@ -1203,13 +1224,20 @@ puts("Got a zap dialog");
 			seclabel_cb, (XtPointer)zap);
 
 	  button = XtVaCreateManagedWidget
+	       ("I", xmPushButtonWidgetClass, tool_row,
+		XmNuserData, (XtPointer)zap, 
+		XmNmarginWidth, 3, 
+		NULL);
+	  XtAddCallback(button, XmNactivateCallback, info_cb, (XtPointer)zap);
+	  imodOverrideTranslations(button, transtable);
+
+	  button = XtVaCreateManagedWidget
 	       ("Help", xmPushButtonWidgetClass, tool_row,
 		XmNuserData, (XtPointer)zap, 
 		XmNmarginWidth, 3, 
 		NULL);
 	  XtAddCallback(button, XmNactivateCallback, help_cb, (XtPointer)zap);
 	  imodOverrideTranslations(button, transtable);
-
 
 	  /* Time data controls. */
 	  if (vi->nt){
@@ -2531,6 +2559,7 @@ static void zapPrintInfo(ZapWindow *zap)
      float xl, xr, yb, yt;
      int ixl, ixr, iyb, iyt;
      int ixcen, iycen, ixofs, iyofs;
+     XRaiseWindow(App->display, XtWindow(App->toplevel));
      if (zap->rubberband) {
 	  zapGetixy(zap, zap->bandllx + 1, zap->bandlly + 1, &xl, &yt);
 	  zapGetixy(zap, zap->bandurx - 1, zap->bandury - 1, &xr, &yb);
