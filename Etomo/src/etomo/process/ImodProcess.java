@@ -21,6 +21,10 @@ import etomo.ApplicationManager;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.15  2004/06/10 18:23:11  sueh
+ * <p> bug# 463 add setOpenBeadFixerMessage() to add the open
+ * <p> bead fixer message to the message list
+ * <p>
  * <p> Revision 3.14  2004/06/07 18:42:06  sueh
  * <p> bug# 457 added functions to add messages to list.
  * <p> Added a function to send the messages to 3dmod using
@@ -288,6 +292,9 @@ public class ImodProcess {
     }
     String command = ApplicationManager.getIMODBinPath() + "3dmod " + options
         + datasetName + " " + modelName;
+    if(ApplicationManager.isDebug()) {
+      System.err.println(command);
+    }
     imod = new InteractiveSystemProgram(command);
     if (workingDirectory != null) {
       imod.setWorkingDirectory(workingDirectory);
