@@ -26,6 +26,9 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.12  2003/10/28 00:13:41  rickg
+ * <p> Bug# 309 Capitalized align log tabs
+ * <p>
  * <p> Revision 2.11  2003/10/20 20:08:37  sueh
  * <p> Bus322 corrected labels
  * <p>
@@ -239,13 +242,13 @@ public class AlignmentEstimationDialog
    * Right mouse button context menu
    */
   public void popUpContextMenu(MouseEvent mouseEvent) {
-    String[] manPagelabel = { "tiltalign", "xfproduct", "3dmod" };
+    String[] manPagelabel = { "Tiltalign", "Xfproduct", "3dmod" };
     String[] manPage = { "tiltalign.html", "xfproduct.html", "3dmod.html" };
     Vector logFileLabel = new Vector(1);
-    String[] logWindowLabel = { "align" };
+    String[] logWindowLabel = { "Align" };
 
     if (axisID != AxisID.ONLY) {
-      logWindowLabel[0] = "Align";
+      logWindowLabel[0] = "Align Axis:" + axisID.getExtension();  
     }
 
     String[] alignLabels =
