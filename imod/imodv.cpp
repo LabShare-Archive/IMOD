@@ -43,6 +43,7 @@ Log at end of file
 #include "control.h"
 #include "imod_client_message.h"
 #include "undoredo.h"
+#include "imod_assistant.h"
 
 #include "b3dicon.xpm"
 
@@ -654,6 +655,8 @@ void imodvQuit()
   delete a->rbgcolor;
   if (a->standalone) {
     // imod_info_input();   // This made it crash
+    if (ImodHelp)
+      delete ImodHelp;
     QApplication::exit(0);
   }
   return;
@@ -661,6 +664,9 @@ void imodvQuit()
 
 /*
 $Log$
+Revision 4.23  2004/11/21 06:02:17  mast
+Provided window opening by key letter and routines for undo calls
+
 Revision 4.22  2004/11/12 01:20:55  mast
 Fixed bug that made it impossible to turn off stored low res mode
 
