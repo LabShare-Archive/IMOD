@@ -24,6 +24,9 @@ import etomo.type.ProcessTrack;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.2  2004/11/19 23:59:02  sueh
+* <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+* <p>
 * <p> Revision 1.1.2.6  2004/10/15 00:50:34  sueh
 * <p> bug# 520 Added implementation of getDataFileFilter.
 * <p>
@@ -230,13 +233,8 @@ public class MainTomogramPanel extends MainPanel {
       else {
         buffer.append("Data file: " + paramFile.getAbsolutePath());
       }
-
-      buffer.append("   Source: ");
-      buffer.append(metaData.getDataSource().toString());
-      buffer.append("   Axis type: ");
-      buffer.append(metaData.getAxisType().toString());
-      buffer.append("   Tomograms: ");
-      buffer.append(metaData.getSectionType().toString());
+      //buffer.append("   Axis type: ");
+      //buffer.append(metaData.getAxisType().toString());
     }
     statusBar.setText(buffer.toString());
   }
