@@ -50,11 +50,12 @@ page. </p>
 All of the IMOD programs are available via the <a
  href="http://bio3d.colorado.edu/imod/download.html">IMOD Download Page</a>.
 &nbsp;The distribution is bundled together using the Unix tar program
-and compressed using the gzip program. <dd> <a name="SettingUpLinux">
-<P>
-    <h4>Setting Up a Linux PC to Run IMOD.</h4>
-    </a> The recommended configuration for running the IMOD software is:
- <p> Processor:  Intel Pentium III or 4 or AMD Athlon <br>
+and compressed using the gzip program. <dd> <a name="SettingUpLinux"> </a>
+    <p> <a name="SettingUpLinux"> </a></p>
+    <h4><a name="SettingUpLinux">Setting Up a Linux PC to Run IMOD.</a></h4>
+    <a name="SettingUpLinux"> </a> The recommended configuration for
+running the IMOD software is:
+    <p> Processor:  Intel Pentium III or 4 or AMD Athlon <br>
 Video Card:  GeForce 2 MX, Geforce2 GTS, Geforce2 GTS  Ultra, GeForce3,
 GeForce 4 (64 MB or 128 MB cards preferred) <br>
 Minimum memory size:  256MB <br>
@@ -193,7 +194,19 @@ under <code>tcsh</code>,       enter:</dd>
   <dd>and similarly on the SGI, sourcing <code>IMOD-sgi.csh</code>. On
 Linux under <code>bash</code>, enter:</dd>
   <dd><code>export IMOD_DIR=`pwd`</code></dd>
-  <dd><code>source IMOD-linux.sh</code></dd>
+  <dd><code>source IMOD-linux.sh<br>
+    <br>
+    </code>Under Linux, <code>3dmod</code> may fail to run if another
+installed package has placed an incompatible Qt or OpenGL library on
+your library load path. &nbsp;The sign of a problem with the Qt library
+is an error message about an undefined symbol, usually a very long
+string containing "QGLWidget". &nbsp;The top IMOD directory contains
+two files, <code>IMOD-qtconflict.sh</code> and <code>IMOD-qtconflict.csh</code>,
+that can be used to solve this problem. &nbsp;Try sourcing the
+appropriate file, then try following the directions in the file and
+sourcing it again. &nbsp;If this solves the problem, make any needed
+changes to both files and copy them to <code>/etc/profile.d</code>.<code><br>
+    </code></dd>
 </dl>
 <dl>
   <dd> <a name="InstallingJavaLinux">
@@ -358,12 +371,12 @@ including a <code>/home</code> with a home directory for you the
 installing user. &nbsp;After installation you will get an icon that will
 start up a shell under bash. <br>
   <br>
-If you want to customize your Cygwin installation instead of using our package, go to <a
- href="http://www.cygwin.com">www.cygwin.com</a> , click on "Setup", and
-follow the installation procedures. &nbsp;In addition to the default
-installation, it is essential that you select <code>tcsh</code> from the
-Shells category. &nbsp;In November 2003, it was also necessary to add
-libbz2-1 and libpcre0 from the Libs category.<br>
+If you want to customize your Cygwin installation instead of using our
+package, go to <a href="http://www.cygwin.com">www.cygwin.com</a> ,
+click on "Setup", and follow the installation procedures. &nbsp;In
+addition to the default installation, it is essential that you select <code>tcsh</code>
+from the Shells category. &nbsp;In November 2003, it was also necessary
+to add libbz2-1 and libpcre0 from the Libs category.<br>
   <br>
   <a name="InstallingWindows">
   <h4>Installing IMOD on a Windows PC</h4>
@@ -448,7 +461,7 @@ for Windows.<br>
 <dl>
   <dd> <a name="TIFFLibrary">
     <h4>TIFF Library Support</h4>
-    </a> The 3dmod program is able to read TIFF files on the PC or Mac, 
+    </a> The 3dmod program is able to read TIFF files on the PC or Mac,
 and will be able to read them on an SGI if the library <code>libtiff.so</code>
 is available.  Versions compiled for IRIX 6.5 assume     that the
 library is available.
@@ -468,11 +481,11 @@ in the <code>IMOD/lib</code> directory. </p>
     <a name="FastBackprojection">
     <h4>Fast Backprojection Support</h4>
     </a> The Tilt program now contains a fast backprojection algorithm
-developed by Gregory Beylkin and Kristian Sandberg at the University 
-of Colorado. This method produces reconstructions 1.5-2.5 times faster,
-depending on   the computer architecture and the size of the slice
-being reconstructed (the larger, the  better).  It works    when there
-is tilt around the X-axis but not with local alignments. Unfortunately,
+developed by Gregory Beylkin and Kristian Sandberg at the University of
+Colorado. This method produces reconstructions 1.5-2.5 times faster,
+depending on   the computer architecture and the size of the slice being
+reconstructed (the larger, the  better).  It works    when there is
+tilt around the X-axis but not with local alignments. Unfortunately,
 the advantage is very small on Pentium 4 machines with our current
 distribution, compiled with gnu compilers. To take advantage of the
 algorithm, you need a license to  use the USFFT library, which is
@@ -504,9 +517,9 @@ files, SGI rgb files and raw data into the MRC file format.
 convert a series of TIFF image  files into a single MRC image file.  The <code>tif2mrc</code>
 program has an option for converting 24-bit color to 8-bit grayscale
 images, and options for dealing with unsigned 16 bit images, which are a
-potential    problem because the MRC format supports only signed 16-bit
-images.  The  following example will create a MRC file from a list of
-TIFF  files (cell01.tif, cell02.tif  ...). </p>
+potential problem because the MRC format supports only signed 16-bit
+images. The  following example will create a MRC file from a list of
+TIFF files (cell01.tif, cell02.tif  ...). </p>
     <p><code> tif2mrc cell??.tif  cell.mrc </code> </p>
     <p>See the <a href="man/tif2mrc.html">tif2mrc manual page</a> for
 more information on how to use <code>tif2mrc</code>.</p>
@@ -587,19 +600,19 @@ Sometimes images in a data set are not in register with one another.
 When this happens, a series of transforms will need to be found that
 will align the whole stack of images.   This series of transformations
 is obtained    in two stages.  First, each successive pair of images is
-considered  separately,    and a transform is found that aligns the
+considered separately,    and a transform is found that aligns the
 images when applied  to the second    image in the pair. This procedure
 yields a list of transforms  that align each image to the previous
 image; the programs consistently  refer to this as a list of "f"
-transforms.  If you think about it, you  will realize that simply
-applying these f transforms to all of the images in the stack will
-not help, because each section would be aligned to the previous one only
-if that previous one were not itself transformed. A second stage is
-thus   necessary: one must obtain the transforms for each image that
-will produce   an aligned stack when actually applied to the images.
-This list is consistently   referred to as a list of "g" transforms. In
+transforms. If you think about it, you  will realize that simply
+applying these f transforms to all of the images in the stack will not
+help, because each section would be aligned to the previous one only if
+that previous one were not itself transformed. A second stage is thus  
+necessary: one must obtain the transforms for each image that will
+produce   an aligned stack when actually applied to the images. This
+list is consistently   referred to as a list of "g" transforms. In
 summary, "f" transforms align each section to the preceding one; "g"
-transforms  align each section to the  whole stack.
+transforms align each section to the  whole stack.
 <p>There are three general methods for obtaining alignment transforms:
 manual adjustment of transformation parameters, solving for a transform
 from a set of fiducial points that correspond between two sections, and
@@ -610,16 +623,16 @@ automated search for the best fit between two images. </p>
   <dd> <a name="ManualAlignment">
     <h4>Manual Image Alignment</h4>
     </a> The program <a href="man/midas.html">midas</a> is used for
-manual alignment or manual adjustments to automated alignment of
-images. <code>Midas</code> can be used to create a transform list or to
-edit an  existing list;  it can work with either "f" or "g" transform
-lists. To get a "g" transform list from an "f" transform list use the <a
- href="man/xftoxg.html">xftoxg</a> program. <code>xftoxg</code> has
-options to  leave long term trends in the data, which are invoked by
-default when you call it with the <code>xf2xg</code> shell script. </dd>
+manual alignment or manual adjustments to automated alignment of images. <code>Midas</code>
+can be used to create a transform list or to edit an  existing list;  it
+can work with either "f" or "g" transform lists. To get a "g" transform
+list from an "f" transform list use the <a href="man/xftoxg.html">xftoxg</a>
+program. <code>xftoxg</code> has options to  leave long term trends in
+the data, which are invoked by default when you call it with the <code>xf2xg</code>
+shell script. </dd>
   <dd> <a name="FiducialAlignment">
     <h4>Image Alignment using Fiducial Markers.</h4>
-    </a> The program <a href="man/xfmodel.html">xfmodel</a> will create 
+    </a> The program <a href="man/xfmodel.html">xfmodel</a> will create
 a list of xf transforms from a model containing fiducial points.   See
 the <a href="3dmodguide.html">Introduction to 3dmod</a> to see  how to
 make models.
@@ -637,13 +650,13 @@ long term trends in the data. 	</li>
       <li><code>newstack</code> : Creates an aligned image stack. </li>
     </ul>
   </dd>
-  <dd> <a name="AutomaticAlignment">
-    <h4>Automatic Image Alignment</h4>
-    </a> Several programs are used for automated image alignment.  The 
-programs used are <a href="man/xfalign.html">xfalign</a>, <a
- href="man/xftoxg.html">xftoxg</a>, <a href="man/midas.html">midas</a>
-and <a href="man/newstack.html">newstack</a>.    Xfalign is a csh
-script that  generates a "f" transform list using the <a
+  <dd> <a name="AutomaticAlignment"> </a>
+    <h4><a name="AutomaticAlignment">Automatic Image Alignment</a></h4>
+    <a name="AutomaticAlignment"> </a> Several programs are used for
+automated image alignment.  The programs used are <a
+ href="man/xfalign.html">xfalign</a>, <a href="man/xftoxg.html">xftoxg</a>,<a
+ href="man/midas.html">midas</a> and <a href="man/newstack.html">newstack</a>.
+Xfalign is a csh script that  generates a "f" transform list using the <a
  href="man/xfsimplex.html">xfsimplex</a> program.  It can prefilter
 images using the <a href="man/enhance.html">enhance</a> program. It also
 has an option to get an initial alignment of the images by

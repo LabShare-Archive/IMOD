@@ -362,8 +362,12 @@ model.  Points are sorted into different objects based on how much they
 exceeded a criterion (less than 1 SD for object 1, 1-2 SDs for object
 2, etc.).  You will probably be surprised at how many points are
 marked, possibly on the order of 100 points per image for a 2K by 2K
-camera.  In our experience, the default critera are conservative and
-all of these points are indeed X-rays.
+camera.  In our experience, the default criteria are conservative for
+unbinned images and
+all of these points are indeed X-rays.  However, in binned images, the
+difference criterion may pick up some pixels on the edge of gold
+particles used as fiducials.  If you see this happen, you can prevent it by
+raising the difference criterion to 10 or more.
 <P> 
 If you want see the effects of changing criteria, you can save time by
 running in trial mode, using the <B>Find X-rays</B> button.  The
@@ -379,7 +383,8 @@ the original file to "setname_orig.st" and replace it with the fixed stack.
 If your images have features that do not get corrected by the
 automatic X-ray removal, you can specify the pixels to erase in a
 model file.  Press the <B>Advanced</B> button to reveal the controls
-for this option, and see the man page for Ccderaser for
+for this option, and see the man page for 
+<A HREF = "man/ccderaser.html">Ccderaser</A> for
 details on how to construct the model file.
 
 <P>
@@ -1401,8 +1406,10 @@ the setup page will not have any effect unless you recreate the command files.
 <P>
 Check free disk space (df -k). Typically, you need 3 times as much free
 space as one tomogram occupies.  You may need to delete the aligned tilt
-series, which you can do with the <B>Delete Aligned Image Stacks</B>
-button on the <B>Tomogram Generation</B> panel.  You may even need to 
+series, which you can do with the <B>Delete Aligned Image Stack</B>
+button on the <B>Tomogram Generation</B> panel.  (Deleting the pre-aligned 
+stacks will also help, but this currently must be done from the command line.)
+You may even need to 
 archive and delete raw tilt series before proceeding.
 <P>
 Press <B>Start Combine</B> to start the operation.  Once the matchorwarp
