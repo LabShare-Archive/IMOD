@@ -266,13 +266,6 @@ void imodvDraw_models(ImodvApp *a)
 {
   int m;
 
-  if (!a->standalone){
-    if (!a->texTrans) {
-      imodvSetViewbyModel(a, a->imod);
-      imodvDrawImage(a);
-    }
-  }
-
   /* DNM 11/30/02: change all glPushName(-1) to NO_NAME since it is supposed
      to be unsigned */
   glPushName(NO_NAME);
@@ -308,11 +301,11 @@ void imodvDraw_models(ImodvApp *a)
     break;
   }
 
+  // DNM 5/14/04: switched to drawing all after, instead of only transparent 
+  // after and non-transparent before; this fixed several problems
   if (!a->standalone){
-    if (a->texTrans > 0) {
       imodvSetViewbyModel(a, a->imod);
       imodvDrawImage(a);
-    }
   }
      
   glPopName();
@@ -1764,6 +1757,9 @@ static void imodvDrawScalarMesh(Imesh *mesh, double zscale,
 
 /*
 $Log$
+Revision 4.8  2004/04/28 14:49:04  mast
+Changed to be able to draw current contour thicker
+
 Revision 4.7  2004/01/05 18:36:53  mast
 Divide point sizes by binning if not in standalone mode
 
