@@ -47,7 +47,7 @@ endif
 set wrapper = ""
 
 if ($shared_libs != false) then
-	echo "AR      = ld"                 >> $configure
+	echo "AR      = g++"                 >> $configure
 	echo "ARCPP   = g++"                >> $configure
 	echo "ARFLAGS = $flags $libflags -shared -o "    >> $configure
 	echo "RANLIB    = true"                     >> $configure
