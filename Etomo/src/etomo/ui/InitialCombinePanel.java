@@ -16,6 +16,7 @@ import etomo.comscript.ConstSolvematchmodParam;
 import etomo.comscript.ConstSolvematchshiftParam;
 import etomo.comscript.SolvematchmodParam;
 import etomo.comscript.SolvematchshiftParam;
+import etomo.comscript.CombineParams;
 
 /**
  * <p>Description: </p>
@@ -30,6 +31,10 @@ import etomo.comscript.SolvematchshiftParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.2  2004/02/27 20:01:58  sueh
+ * <p> bug# 250 renamed setMatchingModels() to setUseMatchingModels()
+ * <p> added getUseMatchingModels()
+ * <p>
  * <p> Revision 3.1  2004/01/30 22:45:13  sueh
  * <p> bug# 356 Changing buttons with html labels to
  * <p> MultiLineButton and MultiLineToggleButton
@@ -228,6 +233,15 @@ public class InitialCombinePanel implements ContextMenu {
     solvematchmodParam.setResidualThreshold(
       Double.parseDouble(ltfResidulThreshold.getText()));
   }
+  
+  /**
+   * Get the combine parameters from the UI
+   * @param combineParams
+   */
+  public void getCombineParameters(CombineParams combineParams) {
+    combineParams.setFiducialMatchListA(ltfFiducialMatchListA.getText());
+    combineParams.setFiducialMatchListB(ltfFiducialMatchListB.getText());
+  }
 
   /**
    * Set the state of the matching model checkbox.
@@ -280,16 +294,16 @@ public class InitialCombinePanel implements ContextMenu {
 
     if (event.getActionCommand().equals(btnRestart.getActionCommand())) {
       if (cbUseModel.isSelected()) {
-        applicationManager.modelCombine();
+        applicationManager.modelCombine(TomogramCombinationDialog.INITIAL_TAB);
       }
       else {
-        applicationManager.combine();
+        applicationManager.combine(TomogramCombinationDialog.INITIAL_TAB);
       }
     }
     if (event
       .getActionCommand()
       .equals(btnMatchvolRestart.getActionCommand())) {
-      applicationManager.matchvol1();
+      applicationManager.matchvol1(TomogramCombinationDialog.INITIAL_TAB);
     }
   }
 
