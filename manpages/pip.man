@@ -164,10 +164,11 @@ int PipParseInput(int argc, char \fI*argv[]\fB, char \fI*options[]\fB,
                   int \fInumOptions\fB, int \fI*numOptArgs\fB, 
                   int \fI*numNonOptArgs\fB);
 
-integer*4 function PipParseInput(\fIoptions\fB, \fInumOptions\fB, 
+integer*4 function PipParseInput(\fIoptions\fB, \fInumOptions\fB, \fIseparator\fB
                                  \fInumOptArg\fB, \fInumNonOptArg\fB)
 character*N \fIoptions\fB(N)
 integer*4 \fInumOptions\fB
+character \fIseparator\fB
 integer*4 \fInumOptArg\fB, \fInumNonOptArg\fB    [Returned arguments]
 .ft R
 .fi
@@ -183,6 +184,15 @@ non-option arguments in \fInumNonOptArg\fB.  The C version receives the command
 line arguments directly while the Fortran version fetches them with 
 \fBgetarg\fR.
 
+There are two alternatives for Fortran usage.  Each option specification
+can placed in a separate element of the \fIoptions\fR array.  In this case,
+\fIoptions\fR should be dimensioned to the number of options, \fIseparator\fR
+should be a space character, and the length of the character elements of the
+array should at least as big as the longest option description.  Alternatively,
+all of the options can be placed in one character string, separated by the
+character given in \fIseparator\fR.  In this case, set the dimension 
+of \fIoptions\fR
+to 1 and make its length be big enough for the entire string.
 
 .ft B
 .nf
