@@ -35,6 +35,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.5  2004/05/03 22:27:28  sueh
+ * <p> bug# 416 adding get and set BinBy2 functions.
+ * <p>
  * <p> Revision 3.4  2004/03/15 20:33:55  rickg
  * <p> button variable name changes to btn...
  * <p>
@@ -131,10 +134,13 @@ public class TomogramCombinationDialog
   implements ContextMenu {
   public static final String rcsid =
     "$Id$";
-  public static final int NO_TAB = -1;
-  public static final int SETUP_TAB = 0;
-  public static final int INITIAL_TAB = 1;
-  public static final int FINAL_TAB = 2;
+  public static final int NO_TAB = 0;
+  public static final int SETUP_TAB = 1;
+  public static final int INITIAL_TAB = 2;
+  public static final int FINAL_TAB = 3;
+  public static final int ALL_FIELDS = 10;
+  public static final int MATCHING_MODEL_FIELDS = 11;
+  public static final int PATCH_REGION_MODEL_FIELDS = 12;
   private SetupCombinePanel pnlSetup;
   private InitialCombinePanel pnlInitial;
   private FinalCombinePanel pnlFinal;
@@ -193,34 +199,15 @@ public class TomogramCombinationDialog
   /**
    * Get the the setupcombine parameters of the UI returning them in the 
    * modified CombineParams object
+   * assumes synchronize is done
    * @param combineParams
    * @throws NumberFormatException
    */
   public void getCombineParams(CombineParams combineParams)
     throws NumberFormatException {
-    getCombineParams(SETUP_TAB, combineParams);
+      pnlSetup.getParameters(combineParams);
   }
   
-  /**
-   * Get the the setupcombine parameters of the UI returning them in the 
-   * modified CombineParams object
-   * @param combineParams
-   * @throws NumberFormatException
-   */
-  public void getCombineParams(int fromTab, CombineParams combineParams)
-    throws NumberFormatException {
-    if (fromTab == SETUP_TAB) {
-      pnlSetup.getParameters(combineParams);
-      return;
-    }
-    if (fromTab == INITIAL_TAB) {
-      pnlInitial.getCombineParameters(combineParams);
-    }
-    if (fromTab == FINAL_TAB) {
-      pnlFinal.getCombineParameters(combineParams);
-    }
-  }
-
   /**
    * Set the solvematchshift parameters of the UI from the the
    * ConstSolvematchshiftParams object
@@ -290,45 +277,100 @@ public class TomogramCombinationDialog
     pnlFinal.setMatchorwarpParams(matchorwarpParams);
   }
   
+  public boolean isUseMatchingModels(int fromTab) {
+    if (fromTab == SETUP_TAB) {
+      return pnlSetup.isUseMatchingModels();
+    }
+    if (fromTab == INITIAL_TAB) {
+      return pnlInitial.isUseMatchingModels();
+    }
+    return false;
+  }
+
+  public boolean isBinBy2(int fromTab) {
+    if (fromTab == SETUP_TAB) {
+      return pnlSetup.isBinBy2();
+    }
+    if (fromTab == INITIAL_TAB) {
+      return pnlInitial.isBinBy2();
+    }
+    return false;
+  }
+  
+  public void synchronize(int currentTab) {
+    synchronize(currentTab, true, ALL_FIELDS);
+  }
+  public void synchronize(int currentTab, int values) {
+    synchronize(currentTab, true, values);
+  }
+  public void synchronize(
+    int currentTab,
+    boolean copyFromCurrentTab) {
+      synchronize(currentTab, copyFromCurrentTab, ALL_FIELDS);
+    }
   /**
-   * get Use matching model from a tab
-   * @param tab
+   * synchronizes setup panel to/from initial and final panels
+   * @param currentTab
+   * @param copyFromCurrentTab True when synchronizing data from the current tab
+   * to the other tab(s).  False when copying data into the current tab (when
+   * running combine on the setup tab).
    */
-  public boolean getUseMatchingModels(int tab) {
-    if (tab == SETUP_TAB) {
-      return pnlSetup.getUseMatchingModels();
+  public void synchronize(
+    int currentTab,
+    boolean copyFromCurrentTab,
+    int fieldSet) {
+    if (currentTab == NO_TAB) {
+      return;
     }
-    if (tab == INITIAL_TAB) {
-      return pnlInitial.getUseMatchingModels();
+    if ((currentTab == SETUP_TAB && copyFromCurrentTab)
+      || (currentTab != SETUP_TAB && !copyFromCurrentTab)) {
+      synchronize(pnlSetup, pnlInitial, fieldSet);
+      synchronize(pnlSetup, pnlFinal, fieldSet);
+      return;
     }
-    return pnlSetup.getUseMatchingModels();
+    if (currentTab == SETUP_TAB || currentTab == INITIAL_TAB) {
+      synchronize(pnlInitial, pnlSetup, fieldSet);
+    }
+    if (currentTab == SETUP_TAB || currentTab == FINAL_TAB) {
+      synchronize(pnlFinal, pnlSetup, fieldSet);
+    }
   }
   
-  public void setUseMatchingModels(int tab, boolean setting) {
-    if (tab == SETUP_TAB) {
-      pnlSetup.setUseMatchingModels(setting);
+  protected void synchronize(
+    InitialCombineFields fromPanel,
+    InitialCombineFields toPanel,
+    int fieldSet) {
+    if (fieldSet == ALL_FIELDS) {
+      toPanel.setUseMatchingModels(fromPanel.isUseMatchingModels());
+      toPanel.setBinBy2(fromPanel.isBinBy2());
+      toPanel.setFiducialMatchListA(fromPanel.getFiducialMatchListA());
+      toPanel.setFiducialMatchListB(fromPanel.getFiducialMatchListB());
+      return;
     }
-    else if (tab == INITIAL_TAB) {
-      pnlInitial.setUseMatchingModels(setting);
+    if (fieldSet == MATCHING_MODEL_FIELDS) {
+      toPanel.setUseMatchingModels(fromPanel.isUseMatchingModels());
+      toPanel.setBinBy2(fromPanel.isBinBy2());
+      return;
     }
   }
-  
-  public boolean getBinBy2(int tab) {
-    if (tab == SETUP_TAB) {
-      return pnlSetup.getBinBy2();
+
+  protected void synchronize(
+    FinalCombineFields fromPanel,
+    FinalCombineFields toPanel,
+    int fieldSet) {
+    if (fieldSet == ALL_FIELDS) {
+      toPanel.setUsePatchRegionModel(fromPanel.isUsePatchRegionModel());
+      toPanel.setXMin(fromPanel.getXMin());
+      toPanel.setXMax(fromPanel.getXMax());
+      toPanel.setYMin(fromPanel.getYMin());
+      toPanel.setYMax(fromPanel.getYMax());
+      toPanel.setZMin(fromPanel.getZMin());
+      toPanel.setZMax(fromPanel.getZMax());
+      return;
     }
-    if (tab == INITIAL_TAB) {
-      return pnlInitial.getBinBy2();
-    }
-    return pnlSetup.getBinBy2();
-  }
-  
-  public void setBinBy2(int tab, boolean setting) {
-    if (tab == SETUP_TAB) {
-      pnlSetup.setBinBy2(setting);
-    }
-    else if (tab == INITIAL_TAB) {
-      pnlInitial.setBinBy2(setting);
+    if (fieldSet == PATCH_REGION_MODEL_FIELDS) {
+      toPanel.setUsePatchRegionModel(fromPanel.isUsePatchRegionModel());
+      return;
     }
   }
 
