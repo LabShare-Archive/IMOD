@@ -26,6 +26,14 @@
  *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 #include <string.h>
 #include <stdlib.h>
 #include <math.h>
@@ -70,8 +78,8 @@ static void build_area_matrices(Icont *bc, int bdir,
 				float *up, float *down);
 static Icont *connect_orphans(Iobj *obj, Icont *cout, int *list, int *used,
 			   int *justinl, int njustin, int *inlist, int joindir,
-			   int surf, int time, Ipoint *scale, Icont **scancont,
-			   Ipoint *pmin, Ipoint *pmax);
+			   int oddeven, int surf, int time, Ipoint *scale,
+			      Icont **scancont, Ipoint *pmin, Ipoint *pmax);
 static float evaluate_break(Icont *cout, int *list, int *used,
 			    int *justinl, int njustin, Icont **scancont,
 			    Ipoint *pmin, Ipoint *pmax, int st1, int st2,
@@ -977,6 +985,25 @@ static Imesh *imeshContoursCost(Icont *bc, Icont *tc, Ipoint *scale,
      imodMeshAddIndex(mesh, IMOD_MESH_END);
      return(mesh);
 }
+static void dump_lists(char *message, int *blist, int nb, int *tlist, int nt,
+		       int *blook, int *tlook)
+{
+     int i;
+     printf("%s:\nbottom: ", message);
+     for (i = 0; i < nb; i++)
+	  if (blook)
+	       printf(" %d", blook[blist[i]]+1);
+	  else
+	       printf(" %d", blist[i]+1);
+     printf("\ntop: ");
+     for (i = 0; i < nt; i++)
+	  if (tlook)
+	       printf(" %d", tlook[tlist[i]]+1);
+	  else
+	       printf(" %d", tlist[i]+1);
+     printf("\n");
+}
+
 
 
 #define CONNECT_TOP     ICONT_CONNECT_TOP
@@ -1302,9 +1329,10 @@ int SkinObject
 
      /* Compose a scan contour excluding inner areas for each outer contour
 	at an odd level */
+     /* DNM 12/18/01: Need to include even levels also now */
      for (nind = 0; nind < numnests; nind++) {
-	  nest = &nests[nind];
-	  if ((nest->level % 2) == 1 && nest->ninside > 0) {
+	  nest = &nests[nind];	
+	  if (/*(nest->level % 2) == 1 && */ nest->ninside > 0) {
 	       nest->inscan = imodContourDup(scancont[nest->co]);
 	       for (i = 0; i < nest->ninside; i++)
 		    subtract_scan_contours(nest->inscan, 
@@ -1519,7 +1547,7 @@ int SkinObject
 	       float fracmax;
 	       int imax, jmax, tlevel, blevel, nbjustin, ntjustin, found;
 	       int ntopout, nbotout, ntopin, nbotin, istr, icur, k;
-	       int ntopsame, nbotsame;
+	       int ntopsame, nbotsame, oddeven;
 	       Ipoint bpmin, bpmax, tpmin, tpmax; 
 
 	       minfrac = (float *)malloc(ntop * nbot * sizeof(float));
@@ -1543,6 +1571,7 @@ int SkinObject
 		    return(-1);
 	       }
 		   
+	       /* dump_lists("initial", blist, nbot, tlist, ntop, NULL, NULL);*/
 	       /* Make tables of overlap fractions between top and bottom */
 	       for (i = 0; i < ntop; i++) {
 		    tused[i] = 0;
@@ -1553,7 +1582,8 @@ int SkinObject
 		    if (nestind[tlist[i]] >= 0) {
 			 nest = &nests[nestind[tlist[i]]];
 			 tlevels[i] = nest->level;
-			 if (nest->level % 2 && nest->ninside) {
+			 /* DNM 12/18/01: Need to include even levels also */
+			 if (/*nest->level % 2 &&*/ nest->ninside) {
 			      tcont = nest->inscan;
 			      imodel_contour_mm(tcont, &tpmax, &tpmin);
 			 }
@@ -1567,7 +1597,7 @@ int SkinObject
 			 if (nestind[blist[j]] >= 0) {
 			      bnest = &nests[nestind[blist[j]]];
 			      blevels[j] = bnest->level;
-			      if (bnest->level % 2 && bnest->ninside) {
+			      if (/*bnest->level % 2 &&*/ bnest->ninside) {
 				   bcont = bnest->inscan;
 				   imodel_contour_mm(bcont, &bpmax, &bpmin);
 			      }
@@ -1586,12 +1616,14 @@ int SkinObject
 	       }
 
 	       /* Loop, starting with the maximum overlap pair of odd levels */
+	       oddeven = 1;
 	       for (;;) {
 		    fracmax = -1.;
 		    for (i = 0; i < ntop; i++) {
-			 if (!tused[i] && tlevels[i] % 2)
+			 if (!tused[i] && (tlevels[i] % 2 == oddeven))
 			      for (j = 0; j < nbot; j++) {
-				   if (!bused[j] && blevels[j] % 2) {
+				   if (!bused[j] && 
+				       (blevels[j] % 2 == oddeven)) {
 					frac1 = minfrac[i * nbot + j];
 					if (frac1 > fracmax) {
 					     fracmax = frac1;
@@ -1601,8 +1633,17 @@ int SkinObject
 				   }
 			      }
 		    }
-		    if (fracmax <= overlap)
-			 break;
+
+		    /* If there is no overlap, switch to doing even levels and
+		       restart, or break out if evens are done also */
+		    if (fracmax <= overlap) {
+			 if (oddeven) {
+			      oddeven = 0;
+			      continue;
+			 } else
+			      break;
+		    }
+
 		    /* Start new lists with best pair, take them off original
 		       lists */
 		    tlevel = tlevels[imax];
@@ -1648,6 +1689,7 @@ int SkinObject
 			 }
 		    } while(found_data);
 
+		    /*dump_lists("outside", boutlist, nbotout, toutlist, ntopout,blist, tlist);*/
 		    /* Next, build lists of contours just inside 
 		       this set of contours */
 		    nbjustin = 0;
@@ -1688,6 +1730,8 @@ int SkinObject
 			      }
 			 }
 		    }
+		    /*dump_lists("just inside", bjustinl, nbjustin, tjustinl, 
+		      ntjustin, blist, tlist);*/
 		    
 		    /* Now iteratively find overlapping sets of inside conts */
 		    for (istr = 0; istr < nbjustin; istr++) {
@@ -1734,6 +1778,8 @@ int SkinObject
 				   }
 			      } while(found_data);
 
+			      /*dump_lists("inside", binlist, nbotin, tinlist, 
+				ntopin, blist, tlist);*/
 			      /* If got top contours, process and mesh the
 				 set of top and bottoms */
 			      if (ntopin) {
@@ -1827,10 +1873,13 @@ int SkinObject
 
 				   } while(found_data);
 
+				   /*dump_lists("inside enhanced", binlist, 
+				     nbotin, tinlist, ntopin, blist, tlist); */
 				   for (i = 0; i < ntopin; i++)
 					tinlist[i] = tlist[tinlist[i]];
 				   for (i = 0; i < nbotin; i++)
 					binlist[i] = blist[binlist[i]];
+
 				   bcont = join_all_contours(obj, binlist,
 							     nbotin, nbotsame,
 							     1, tinlist,
@@ -1843,7 +1892,7 @@ int SkinObject
 							     NULL);
 				   if (mesh_contours(obj, bcont, tcont, 
 						     cont->surf, cont->type,
-						     scale, 1))
+						     scale, oddeven))
 					return (-1);
 			      } else
 				   bused[bjustinl[istr]] = 0;
@@ -1857,6 +1906,7 @@ int SkinObject
 			 toutlist[i] = tlist[toutlist[i]];
 		    for (i = 0; i < nbotout; i++)
 			 boutlist[i] = blist[boutlist[i]];
+
 		    boutcont = join_all_contours(obj, boutlist, nbotout, 
 						 nbotout, 1, toutlist, ntopout,
 						 ntopout, NULL);
@@ -1868,16 +1918,18 @@ int SkinObject
 
 		    boutcont = connect_orphans(obj, boutcont, tlist, tused, 
 					       tjustinl, ntjustin, tinlist,
-					       -1, cont->surf, cont->type, 
+					       -1, oddeven,
+					       cont->surf, cont->type, 
 					       scale, scancont, pmin, pmax);
 		    toutcont = connect_orphans(obj, toutcont, blist, bused,
 					       bjustinl, nbjustin, binlist, 
-					       1, cont->surf, cont->type,
+					       1, oddeven, cont->surf,
+					       cont->type,
 					       scale, scancont, pmin, pmax);
 		    /* finally ready to mesh the outside contours, possibly
 		       changed by orphan handling */
-		    if (mesh_contours(obj, boutcont, toutcont, 
-				      cont->surf, cont->type, scale, 0))
+		    if (mesh_contours(obj, boutcont, toutcont, cont->surf,
+				      cont->type, scale, 1 - oddeven))
 			 return (-1);
 
 		    /* All of this continues until no more overlapping outside
@@ -2100,7 +2152,7 @@ int SkinObject
 
      for (nind = 0; nind < numnests; nind++) {
 	  nest = &nests[nind];
-	  if ((nest->level % 2) == 1 && nest->ninside > 0)
+	  if (/*(nest->level % 2) == 1 &&*/ nest->ninside > 0)
 	       imodContourDelete(nest->inscan);
 	  if (nest->ninside)
 	       free(nest->inside);
@@ -2158,13 +2210,17 @@ static void add_whole_nest(int nind, Iobj *obj, Nesting *nests, int *nestind,
      }
 }
 
+/* Routine to connect orphan contours */
+/* DNM 12/18/01: Add the oddeven argument, although it has not been verified 
+   that it works for even ones */
+
 #define NSECT 38
 #define MAXTEST 100
 #define NSEARCH  13
 static Icont *connect_orphans(Iobj *obj, Icont *cout, int *list, int *used,
 			   int *justinl, int njustin, int *inlist, int joindir,
-			   int surf, int time, Ipoint *scale, Icont **scancont,
-			   Ipoint *pmin, Ipoint *pmax)
+			   int oddeven, int surf, int time, Ipoint *scale,
+			      Icont **scancont, Ipoint *pmin, Ipoint *pmax)
 {
      Ipoint pminout, pmaxout, pminin, pmaxin, incen;
      Icont *outscan, *inscan, *c1, *c2, *cinmin, *coutmin, *cont;
@@ -2480,7 +2536,7 @@ static Icont *connect_orphans(Iobj *obj, Icont *cout, int *list, int *used,
 		    c1 = cinmin;
 		    cinmin = c2;
 	       }
-	       if (mesh_contours(obj, c1, cinmin, surf, time, scale, 1))
+	       if (mesh_contours(obj, c1, cinmin, surf, time, scale, oddeven))
 		    return NULL;
 	       imodContourDelete(cout);
      	       cout = coutmin;
