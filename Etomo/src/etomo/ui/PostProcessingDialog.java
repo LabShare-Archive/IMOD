@@ -4,6 +4,7 @@ import java.awt.event.*;
 import javax.swing.*;
 
 import etomo.ApplicationManager;
+import etomo.comscript.TrimvolParam;
 import etomo.type.AxisID;
 
 /**
@@ -19,6 +20,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.1  2003/04/10 23:43:23  rickg
+ * <p> Added trimvol panel
+ * <p>
  * <p> Revision 2.0  2003/01/24 20:30:31  rickg
  * <p> Single window merge to main branch
  * <p>
@@ -51,15 +55,16 @@ public class PostProcessingDialog extends ProcessDialog {
   public static final String rcsid =
     "$Id$";
 
-  private TrimvolPanel trimvolPanel = new TrimvolPanel();
-  
+  private TrimvolPanel trimvolPanel;
+
   public PostProcessingDialog(ApplicationManager appManager) {
     super(appManager, AxisID.ONLY);
     fixRootPanel(rootSize);
 
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
-
+    trimvolPanel = new TrimvolPanel(applicationManager);
     rootPanel.add(trimvolPanel.getContainer());
+    
     rootPanel.add(Box.createVerticalGlue());
     rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
     rootPanel.add(panelExitButtons);
@@ -70,6 +75,22 @@ public class PostProcessingDialog extends ProcessDialog {
 
   }
 
+  /**
+   * Set the trimvol panel values with the specified parameters
+   * @param trimvolParam
+   */
+  public void setTrimvolParams(TrimvolParam trimvolParam) {
+    trimvolPanel.setParameters(trimvolParam);
+  }
+
+  /**
+   * Get the trimvol parameter values from the panel 
+   * @param trimvolParam
+   */
+  public void getTrimvolParams(TrimvolParam trimvolParam) {
+    trimvolPanel.setParameters(trimvolParam);
+  }
+  
   /**
    * Update the dialog with the current advanced state
    */

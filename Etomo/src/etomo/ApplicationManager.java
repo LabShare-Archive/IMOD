@@ -30,6 +30,7 @@ import etomo.comscript.TiltParam;
 import etomo.comscript.TiltalignParam;
 import etomo.comscript.TiltxcorrParam;
 import etomo.comscript.TransferfidParam;
+import etomo.comscript.TrimvolParam;
 import etomo.process.ImodManager;
 import etomo.process.ProcessManager;
 import etomo.process.ProcessState;
@@ -73,6 +74,10 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.20  2003/04/10 23:40:03  rickg
+ * <p> Initial exit function handling of imod and other processes
+ * <p> Initial openPostProcessingDialog
+ * <p>
  * <p> Revision 2.19  2003/03/26 00:52:25  rickg
  * <p> Added button to convert patch_vector.mod to patch.out
  * <p>
@@ -2309,6 +2314,8 @@ public class ApplicationManager {
     //  processing
     PostProcessingDialog postProcessingDialog = new PostProcessingDialog(this);
 
+    TrimvolParam trimvolParam = new TrimvolParam();
+    postProcessingDialog.setTrimvolParams(trimvolParam);
 
     mainFrame.showProcess(
       postProcessingDialog.getContainer(),
@@ -2316,6 +2323,7 @@ public class ApplicationManager {
 
   }
 
+  
   //
   //  Utility functions
   //
