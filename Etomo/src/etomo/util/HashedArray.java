@@ -17,6 +17,9 @@ import java.util.Vector;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.2  2004/11/20 00:11:14  sueh
+* <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+* <p>
 * <p> Revision 1.1.2.2  2004/10/28 22:19:27  sueh
 * <p> bug# 520 Clarified code by improving names for functions, member
 * <p> variables, and parameters.
@@ -40,6 +43,12 @@ public class HashedArray extends ConstHashedArray {
     super(keyArray);
   }
   
+  /**
+   * Add a new value with a new uniqueKey
+   * @param keyName
+   * @param value
+   * @return
+   */
   public synchronized UniqueKey add(String keyName, Object value) {
     UniqueKey key = new UniqueKey(keyName, this);
     keyArray.add(key);
@@ -47,6 +56,12 @@ public class HashedArray extends ConstHashedArray {
     return key;
   }
   
+  /**
+   * Set an existing UniqueKey to a new value by index
+   * @param keyIndex
+   * @param value
+   * @return
+   */
   public synchronized UniqueKey set(int keyIndex, Object value) {
     UniqueKey key = (UniqueKey) keyArray.get(keyIndex);
     map.remove(key);
