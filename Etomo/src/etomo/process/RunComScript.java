@@ -14,14 +14,18 @@ import java.io.*;
  *
  * @version $Revision$
  *
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2002/09/09 22:57:02  rickg
+ * <p> Initial CVS entry, basic functionality not including combining
+ * <p> </p>
  */
 public class RunComScript extends Thread {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
 
   private String comBaseName = null;
   private String command = null;
-  private File  workingDirectory = null;
+  private File workingDirectory = null;
   private ProcessManager processManager;
   private boolean isDemo = false;
 
@@ -47,8 +51,14 @@ public class RunComScript extends Thread {
     //
     // FIXME need to include the script below in the code or find a work around
     // for the exisisting scripts
-    command = "bash " + IMODDIR + "/bin/vmstocsh.sh " + comBaseName + ".com "
-      + comBaseName + ".log ";
+    command =
+      "bash "
+        + IMODDIR
+        + "/bin/vmstocsh.sh "
+        + comBaseName
+        + ".com "
+        + comBaseName
+        + ".log ";
 
     System.out.println(command);
     SystemProgram systemProgram = new SystemProgram(command);
@@ -62,40 +72,40 @@ public class RunComScript extends Thread {
     progressBarThread.start();
 
     int exitValue = 0;
-    if(isDemo) {
+    if (isDemo) {
       try {
-	sleep(5000);
+        sleep(5000);
       }
-      catch(InterruptedException except) {
-	System.out.println("Sleep interrupted");
+      catch (InterruptedException except) {
+        System.out.println("Sleep interrupted");
       }
     }
     else {
       try {
-	systemProgram.run();
-	exitValue = systemProgram.getExitValue();
+        systemProgram.run();
+        exitValue = systemProgram.getExitValue();
       }
-      catch(Exception excep) {
-	excep.printStackTrace();
-	System.exit(-1);
+      catch (Exception excep) {
+        excep.printStackTrace();
+        System.exit(-1);
       }
 
       System.out.println("Exit value:" + String.valueOf(exitValue));
 
       System.out.println("Stdout:");
       System.out.println(
-	"------------------------------------------------------------");
+        "------------------------------------------------------------");
       String[] stdout = systemProgram.getStdOutput();
-      for(int i=0; i < stdout.length; i++) {
-	System.out.println(stdout[i]);
+      for (int i = 0; i < stdout.length; i++) {
+        System.out.println(stdout[i]);
       }
       System.out.println("");
       System.out.println("Stderr:");
       System.out.println(
-	"------------------------------------------------------------");
+        "------------------------------------------------------------");
       String[] stderr = systemProgram.getStdError();
-      for(int i=0; i < stderr.length; i++) {
-	System.out.println(stderr[i]);
+      for (int i = 0; i < stderr.length; i++) {
+        System.out.println(stderr[i]);
       }
       System.out.println("");
       System.out.println("");
@@ -108,7 +118,6 @@ public class RunComScript extends Thread {
     processManager.msgComScriptDone(exitValue, command);
   }
 
-
   /**
    * Extract the basename from a filename given the filename and the expected
    * extension.
@@ -116,7 +125,7 @@ public class RunComScript extends Thread {
   private String parseBaseName(String filename, String extension) {
     int idxExtension = filename.indexOf(extension);
     String base = null;
-    if(idxExtension > 0)
+    if (idxExtension > 0)
       base = filename.substring(0, idxExtension);
     return base;
   }
