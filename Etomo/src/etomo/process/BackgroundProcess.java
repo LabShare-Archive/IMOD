@@ -14,6 +14,9 @@ import java.io.File;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2003/01/03 00:56:19  rickg
+ * <p> Initial revision
+ * <p>
  * <p> </p>
  */
 public class BackgroundProcess extends Thread {
@@ -28,17 +31,11 @@ public class BackgroundProcess extends Thread {
 
 
   public BackgroundProcess(String commandLine, ProcessManager processManager) {
-    this.commandLine = commandLine;
+    this.commandLine = commandLine.trim();
     this.processManager = processManager;
   }
 
-  /**
-   * Set the working directory in which the com script is to be run.
-   */
-  public void setWorkingDirectory(File workingDirectory) {
-    this.workingDirectory = workingDirectory;
-  }
-
+  
   /**
    * Returns the demoMode.
    * @return boolean
@@ -62,6 +59,30 @@ public class BackgroundProcess extends Thread {
   public File getWorkingDirectory() {
     return workingDirectory;
   }
+
+  /**
+   * Returns the workingDirectory.
+   * @return File
+   */
+  public String getCommandLine() {
+    return commandLine;
+  }
+
+  /**
+   * Returns the workingDirectory.
+   * @return File
+   */
+  public String getCommand() {
+    String[] words = commandLine.split("\\s");
+    return words[0];
+  }
+  /**
+   * Set the working directory in which the com script is to be run.
+   */
+  public void setWorkingDirectory(File workingDirectory) {
+    this.workingDirectory = workingDirectory;
+  }
+
 
   /**
    * Sets the demoMode.
@@ -107,8 +128,15 @@ public class BackgroundProcess extends Thread {
       // Execute the command
       command.run();
     }
+
+    //  Get any output from the command
     stdError = command.getStdError();
     stdOutput = command.getStdOutput();
+    
+    // Stop the progress bar and send a message back to the ProcessManager
+    // that this thread is done.
+    progressBarThread.interrupt();
+    processManager.msgBackgroundProcessDone(this, command.getExitValue());
   }
   /**
    * Returns the stdError.
