@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.10  2004/11/04 23:30:55  mast
+Changes for rounded button style
+
 Revision 1.9  2004/09/24 18:00:36  mast
 Added message capability
 
@@ -141,7 +144,6 @@ class BeadFixer : public DialogFrame
 
  private:
   int foundgap(int obj, int cont, int ipt, int before);
-  void clearExtraObj();
   void setCurArea(int area);
 
   int    mIfdidgap;

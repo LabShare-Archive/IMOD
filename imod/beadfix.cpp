@@ -293,7 +293,7 @@ int BeadFixer::reread()
   ResidPt *rpt;
 
   // Initialize extra object
-  clearExtraObj();
+  ivwClearExtraObject(plug->view);
   imodObjectSetColor(xobj, 1., 0., 0.);
   imodObjectSetValue(xobj, IobjFlagClosed, 0);
 
@@ -588,7 +588,7 @@ void BeadFixer::nextRes()
       // Make an arrow in the extra object
       con = imodContourNew();
       if (con) {
-	clearExtraObj();
+        ivwClearExtraObject(plug->view);
         ob = ivwGetExtraObject(plug->view);
         tpt.x = rpt->xcen;
         tpt.y = rpt->ycen;
@@ -819,25 +819,6 @@ int BeadFixer::foundgap(int obj, int cont, int ipt, int before)
   ivwRedraw(plug->view);
   return 0;
 }
-
-void BeadFixer::clearExtraObj()
-{
-  PlugData *plug = &thisPlug;
-  Iobj *obj = ivwGetExtraObject(plug->view);
-  int ncont = imodObjectGetMaxContour(obj);
-  int co;
-  Icont *cont;
-  if (!ncont)
-    return;
-
-  // Get the contour pointer.  "Remove" contours from the end, then delete
-  // and free the contour data
-  cont = imodObjectGetContour(obj, 0);
-  for (co = ncont - 1; co >= 0; co--)
-    imodObjectRemoveContour(obj, co);
-  imodContoursDelete(cont, ncont);
-}
-
 
 /* Jump to next gap in the model, or place where it is not tracked to first
    or last section */
@@ -1255,7 +1236,7 @@ void BeadFixer::closeEvent ( QCloseEvent * e )
   ImodPrefs->saveGenericSettings("BeadFixer", 2, posValues);
 
   imodDialogManager.remove((QWidget *)plug->window);
-  clearExtraObj();
+  ivwClearExtraObject(plug->view);
 
   if (mTopTimerID)
     killTimer(mTopTimerID);
@@ -1358,6 +1339,9 @@ void AlignThread::run()
 
 /*
     $Log$
+    Revision 1.21  2004/12/22 22:22:05  mast
+    Fixed bug in reading "old" log files
+
     Revision 1.20  2004/11/20 05:05:27  mast
     Changes for undo/redo capability
 
