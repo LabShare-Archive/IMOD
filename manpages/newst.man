@@ -31,7 +31,7 @@ is entered), then rotated (if
 .B -rotate
 is entered, then expanded (if
 .B -expand
-is entered.
+is entered.)
 
 
 .TP
@@ -81,6 +81,17 @@ option is entered, then the X and Y sizes of the image will be transposed so
 the the output file will show the whole rotated image.  For any other rotation 
 angles, you will get the same output size as the input image unless you
 enter a new size explicitly.
+.TP
+.B -linear
+Use linear interpolation rather than the default, cubic interpolation, when
+transforming images.  Linear interpolation is more suitable when images are
+very noisy, but cubic interpolation will preserve fine detail better when
+noise is not an issue.  Images are
+transformed when the 
+.B -xform, -expand,
+or
+.B -rotate
+option is entered. 
 .TP
 .B -float <value>
 Adjust the contrast and relative brightness of images in one
