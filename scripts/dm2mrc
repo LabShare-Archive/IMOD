@@ -9,6 +9,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.5  2004/06/06 00:48:12  mast
+#  Added options for dealing with long and unsigned data better
+#
 #  Revision 3.4  2003/10/24 02:14:00  mast
 #  source settmpdir to get tmpdir, better for Windows
 #
@@ -100,8 +103,8 @@ while ($num < $#argv)
     # Byte dump is most easily interpreted, short decimal dump is used to
     # detect if swapping is needed
 
-    set header = `od -t u1 $argv[$num] | head -2`
-    if ("$swap" == 0) set ddump = `od -d $argv[1] | head -1`
+    set header = `od -t u1 $argv[$num] | head -n 2`
+    if ("$swap" == 0) set ddump = `od -d $argv[1] | head -n 1`
     @ byte2 = $header[3]
     @ byte4 = $header[5]
 
