@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.1  2003/02/10 20:29:02  mast
+autox.cpp
+
 Revision 1.1.2.3  2003/01/29 01:34:08  mast
 implement colormaps
 
@@ -601,7 +604,7 @@ void TumblerWindow::keyPressEvent ( QKeyEvent * event)
   // Do the draws as needed
   if (dodraw && newdata)
     newData(xtum);
-  if (dodraw);
+  if (dodraw)
     draw(xtum);
 }
 
@@ -623,15 +626,15 @@ void TumblerWindow::computeRotation(float x, float y, float z)
   matp = imodMatNew(3);
 
   imodMatId(mat);
-  imodMatRot(mat, (double)z, Z);
-  imodMatRot(mat, (double)y, Y);
-  imodMatRot(mat, (double)x, X);
+  imodMatRot(mat, (double)z, b3dZ);
+  imodMatRot(mat, (double)y, b3dY);
+  imodMatRot(mat, (double)x, b3dX);
 
   /* Compute current rotation matrix */
   imodMatId(mato);
-  imodMatRot(mato, (double)mTum->gamma, Z);
-  imodMatRot(mato, (double)mTum->beta, Y);
-  imodMatRot(mato, (double)mTum->alpha, X);
+  imodMatRot(mato, (double)mTum->gamma, b3dZ);
+  imodMatRot(mato, (double)mTum->beta, b3dY);
+  imodMatRot(mato, (double)mTum->alpha, b3dX);
 
   /* Multiply by the new rotation, then get back to 3 angles */
   imodMatMult(mato, mat, matp);
@@ -919,9 +922,11 @@ void TumblerWindow::fillASlice(TumblerStruct *xtum)
       xt = x; yt = y; zt = z;
       cindex = j * isize;
       for(i = 0; i < isize; i++){
-        xi = (int)floor((double)x);
-        yi = (int)floor((double)y);
-        zi = (int)floor((double)(z + 0.5));
+
+        /* DNM 2/25/03: eliminate floor as in slicer */
+        xi = (int)x;
+        yi = (int)y;
+        zi = (int)(z + 0.5);
 
         if ((xi >= xmin) && (xi <= xmax) &&
             (yi >= ymin) && (yi <= ymax) &&
