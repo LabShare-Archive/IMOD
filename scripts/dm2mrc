@@ -9,12 +9,15 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.1  2001/12/31 19:18:58  mast
+#  Addition to IMOD suite
+#
 
 set tmpdir = /usr/tmp
 if ($?IMOD_DIR) set path = ($IMOD_DIR/bin $path)
 
 if ($#argv < 2) then
-	echo "Usage: dm3mrc [-d] Input_files Output_file"
+	echo "Usage: dm2mrc [-d] Input_files Output_file"
 	echo "     Use -d option if files may have different headers, sizes, or types;"
         echo "        the program will scan each one for header offset, size, and type"
 	exit 0
