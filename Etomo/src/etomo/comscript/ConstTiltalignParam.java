@@ -24,6 +24,9 @@ import etomo.type.TiltAngleSpec;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.4  2005/01/05 18:56:00  sueh
+ * <p> bug# 578 Adding AxisID to constructor.  Implementing Command.
+ * <p>
  * <p> Revision 3.3  2004/12/29 23:30:51  sueh
  * <p> bug# 567 Corrected a parameter name in the constructor.
  * <p>
@@ -73,6 +76,9 @@ public class ConstTiltalignParam implements Command {
   public static final int AUTOMAPPED_OPTION = 3;
   public static final int TILT_AUTOMAPPED_OPTION = 5;
   
+  public static final int SKEW_OPTION_PARAM = -1;
+  public static final int X_STRETCH_OPTION_PARAM = -2;
+  
   protected static final String modelFileString = "ModelFile";
   protected static final String imageFileString = "ImageFile";
   protected static final String outputModelFileString = "OutputModelFile";
@@ -106,6 +112,7 @@ public class ConstTiltalignParam implements Command {
   
   protected static final String modelFileExtension = ".3dmod";
   protected static final String residualFileExtension = ".resid";
+  protected static final String zFactorFileExtension = ".zfac";
   protected static final boolean[] nondefaultGroupIntegerType = { true, true, true };
   protected static final int nondefaultGroupSize = 3;
   
@@ -179,10 +186,12 @@ public class ConstTiltalignParam implements Command {
   protected FortranInputString minSizeOrOverlapXandY;
   protected FortranInputString minFidsTotalAndEachSurface;
   
-  private AxisID axisID;
+  protected AxisID axisID;
+  protected String datasetName;
 
-  public ConstTiltalignParam(AxisID axisID) {
+  public ConstTiltalignParam(String datasetName, AxisID axisID) {
     this.axisID = axisID;
+    this.datasetName = datasetName;
     rotationAngle = new EtomoNumber(EtomoNumber.DOUBLE_TYPE, "RotationAngle");
     tiltAngleSpec = new TiltAngleSpec("FirstTiltAngle", "TiltIncrement", "TiltFile");
     angleOffset = new EtomoNumber(EtomoNumber.DOUBLE_TYPE, "AngleOffset");
@@ -367,8 +376,15 @@ public class ConstTiltalignParam implements Command {
   }
   
   public int getIntegerValue(int name) {
-    return 0;
+    switch (name) {
+    case SKEW_OPTION_PARAM:
+      return skewOption.getInteger();
+    case X_STRETCH_OPTION_PARAM:
+      return xStretchOption.getInteger();
+    }
+    return EtomoNumber.INTEGER_NULL_VALUE;
   }
+  
   public boolean getBooleanValue(int name) {
     return false;
   }
