@@ -7,6 +7,10 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.4  2003/07/28 16:43:37  mast
+#  Switch from using 'file' command to using 'header' to test for MRC file
+#  versus text input file, because there is no 'file' in cygwin
+#
 #  Revision 3.3  2003/06/20 20:10:33  mast
 #  Let tmpdir be defined and fall back to /tmp if /usr/tmp does not exist
 #
@@ -163,7 +167,7 @@ set PCRANGES = ",,,,"
 # below.
 #
 cat >! $prepfile <<EOCAT
-$runenhance
+csh -f $runenhance
 EOCAT
 # ----------------------------------------------------------------------
 #                      YOU ARE DONE SETTING DEFAULT PARAMETERS
@@ -316,14 +320,13 @@ if ($prexffile != "") set tmpxfin = $tmpdir/$com.xfin.$$
 if ( ($FILTERPARAM  == "0.,0.,0.,0.")  ||  ($FILTERPARAM == "NONE") ) then
    echo "mv -f $tmppic $tmpprp" >! $runenhance
 else
-   cat >! $runenhance <<EOCAT
+   cat !> $runenhance <<EOCAT
 enhance $tmppic $tmpprp > /dev/null <<EOF
 $FILTERPARAM
 1
 EOF
 EOCAT
 endif
-chmod +x $runenhance $prepfile
 #
 #     Initialize xflist file
 #
@@ -361,7 +364,6 @@ $PCRANGES
 EOF
 EOCAT
 endif
-chmod +x $runsearch
 
 #
 #	parse the skip list
@@ -460,7 +462,7 @@ EOF
 #
 # 	prep the file next with enhance or whatever
 
-	$prepfile
+	csh -f $prepfile
 
 	if ($firsttime == "0") then
 #
@@ -479,7 +481,7 @@ EOF
 #
 #      Now do search for transform
 #
-	    $runsearch
+	    csh -f $runsearch
 #
 #      Add transform to file
 #
