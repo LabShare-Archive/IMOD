@@ -343,8 +343,16 @@ void InfoWindow::keepOnTop(bool state)
     flags |= WStyle_StaysOnTop | WStyle_Customize;
   else
     flags ^= WStyle_StaysOnTop;
-  QPoint p(geometry().x(), geometry().y());   // Using pos() jumps on Windows
+  QPoint p(geometry().x(), geometry().y());
+  // Using pos() jumps on Windows
+  // Also, pos() jumps up-left on Unix, geometry() jumps down-right
+  // Unless we access the pos !
+  QPoint p2 = pos();
+  /* printf("before geom %d %d  pos %d %d\n", geometry().x(), geometry().y(),
+     pos().x(), pos().y()); */
   reparent(0, flags, p, true);  
+  /*  printf("after geom %d %d  pos %d %d\n", geometry().x(), geometry().y(),
+      pos().x(), pos().y()); */
 }
 
 
@@ -444,6 +452,9 @@ static char *truncate_name(char *name, int limit)
 
 /*
     $Log$
+    Revision 4.5  2003/03/14 17:27:53  mast
+    Getting stays on top to work under Windows
+
     Revision 4.4  2003/03/14 15:54:00  mast
     Adding new function to keep window on top
 
