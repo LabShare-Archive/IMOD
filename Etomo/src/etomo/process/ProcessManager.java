@@ -27,6 +27,9 @@ import java.io.IOException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.0  2003/01/24 20:30:31  rickg
+ * <p> Single window merge to main branch
+ * <p>
  * <p> Revision 1.14.2.1  2003/01/24 18:36:17  rickg
  * <p> Single window GUI layout initial revision
  * <p>
@@ -456,9 +459,11 @@ public class ProcessManager {
     comScript.setDemoMode(appManager.isDemo());
     comScript.start();
 
-    System.err.println("Started " + command);
-    System.err.println("  Name: " + comScript.getName());
-
+    if(appManager.isDebug()) {
+      System.err.println("Started " + command);
+      System.err.println("  Name: " + comScript.getName());
+    }
+    
     return comScript.getName();
   }
 
