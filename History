@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/27/03: IMOD_3-2-2
+12/27/03: Converted Xfmodel to PIP input and implemented ability to undistort
+a model built on distorted images.
+
 12/24/03: Converted subimage to PIP input and made it default to subtracting
 all pairs of sections in two volumes.
 
