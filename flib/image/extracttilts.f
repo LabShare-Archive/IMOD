@@ -17,13 +17,21 @@ c	  Output file for tilt angles
 c	  
 c	  David Mastronarde, 1/2/00
 c
+c	  $Author$
+c
+c	  $Date$
+c
+c	  $Revision$
+c
+c	  $Log$
+c
 	parameter (maxextra = 1000000, maxtilts = 1000, maxpiece=50000)
 	DIMENSION NXYZ(3),MXYZ(3)
 	real*4 tilt(maxtilts)
 	real*4 array(maxextra/4)
 	integer*4 ixpiece(maxpiece),iypiece(maxpiece),izpiece(maxpiece)
 C
-	CHARACTER*80 FILIN,filout
+	CHARACTER*120 FILIN,filout
 C	  
 	EQUIVALENCE (Nz,NXYZ(3))
 C
@@ -33,8 +41,12 @@ c
 	CALL IRDHDR(1,NXYZ,MXYZ,MODE,DMIN,DMAX,DMEAN)
 C
 	call irtnbsym(1,nbsym)
-	if(nbsym.gt.maxextra)
-     &	    stop '- ARRAYS NOT LARGE ENOUGH FOR EXTRA HEADER DATA'
+	if(nbsym.gt.maxextra) then
+	  print *
+	  print *,'ERROR: EXTRACTTILTS - ARRAYS NOT LARGE ENOUGH ',
+     &	    'FOR EXTRA HEADER DATA'
+	  call exit(1)
+	endif
 	call irtsym(1,nbsym,array)
 	call irtsymtyp(1,nbyte,iflags)
 	call get_extra_header_pieces (array,nbsym,nbyte,iflags,nz,

@@ -16,6 +16,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.2  2002/02/26 23:08:19  mast
+c	  *** empty log message ***
+c	
 c	  Revision 3.1  2002/02/26 23:07:14  mast
 c	  Added test for whether piece coordinates are packed as shorts or
 c	  reals, and ability to retrieve them if they are reals
@@ -34,8 +37,13 @@ c
 	
 	npiece =0
 	if(nbsym.eq.0) return
-	if (nz.gt.maxpiece) stop
-     &	    '- ARRAYS NOT LARGE ENOUGH FOR PIECE LISTS'
+	if (nz.gt.maxpiece) then
+	  print *
+	  print *,'ERROR: GET_EXTRA_HEADER_PIECES ',
+     &	      '- ARRAYS NOT LARGE ENOUGH FOR PIECE LISTS'
+	  call exit(1)
+	endif
+
 	shorts=nbytes_and_flags(nbyte,iflags)
 	if(shorts) then
 c	    

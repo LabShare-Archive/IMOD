@@ -17,6 +17,10 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.1  2002/02/26 23:09:22  mast
+c	  Added test for whether tilt angles are packed as shorts or reals,
+c	  and ability to retrieve them if they are the first real
+c	
 c
 	subroutine get_extra_header_tilts
      &	    (array,nbsym,nbyte,iflags,nz,tilt,ntilt,maxtilts,izpiece)
@@ -51,10 +55,18 @@ c
 c
 	do i=1,nz
 	  itilt=izpiece(i)+1
-	  if(itilt.lt.1)stop
-     &	      ' - TILT ARRAY NOT DESIGNED FOR NEGATIVE Z VALUES'
-	  if(itilt.gt.maxtilts)stop
+	  if(itilt.lt.1)then
+	    print *
+	    print *,'ERROR: GET_EXTRA_HEADER_TILTS',
+     &		' - TILT ARRAY NOT DESIGNED FOR NEGATIVE Z VALUES'
+	    call exit(1)
+	  endif
+	  if(itilt.gt.maxtilts)then
+	    print *
+	    print *,'ERROR: GET_EXTRA_HEADER_TILTS',
      &	      ' - ARRAY NOT BIG ENOUGH FOR TILT DATA'
+	    call exit(1)
+	  endif
 	  ntilt=max(ntilt,itilt)
 	  if(shorts)then
 	    call move(temp,array(ind),2)
