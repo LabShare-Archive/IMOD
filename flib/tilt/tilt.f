@@ -353,6 +353,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.19  2004/10/11 05:15:28  mast
+c	  Fixed integer truncation of pixel size from local file
+c	
 c	  Revision 3.18  2004/09/24 18:24:52  mast
 c	  Incorporated reprojection capability from old code
 c	
@@ -625,6 +628,7 @@ c
 			iyp=max(1.,yp)
 			minslice=min(minslice,iyp)
 			maxslice=max(maxslice,min(mprj,iyp+1))
+c			print *,xx,yy,zz,iyp,minslice,maxslice
 		      enddo
 		    enddo
 		  enddo
@@ -1834,7 +1838,7 @@ c
 	real*4 vd1,vd2,dtheta,theta,thetanv,rmax,sdg,oversamp,scalescl
 	integer*4 nprjp,nwidep,needwrk,needzwrk,neediw,needrw,needout,minsup
 	integer*4 maxsup,nshift,nprj2,nsneed,ninp,nexclist,j,needzw,ind
-	integer*4 npadtmp,nprpad
+	integer*4 npadtmp,nprpad,ithicknew,nocosPlanes
 	real*4 pixelLocal
 	integer*4 inum,licenseusfft,niceframe
 	external inum
@@ -2589,64 +2593,65 @@ c
 c	      new-style X-axis tilt
 c
 	    nbase=imap+ithwid*(nvertneed+1)
+	    ipextra=0
+	    nsneed = 1
+	    ithicknew = ithick
+	    nocosPlanes = (maxStack-nbase+1) / iplane
+c	    print *,'nocosplanes',nocosplanes
+c
+c	      find out what cosine stretch adds if called for
+c
 	    if(interpfac.gt.0)then
 	      call set_cos_stretch(nsneed)
-c		
 	      iplane=max(iplane,indstretch(nviews+1))
 	      ipextra=iplane
-	      if((maxSTACK-NBASE-ipextra+1)/IPLANE.lt.nsneed)then
-c		  
-c		  cancel the cosine stretch provisionally if it doesn't fit
-c		  
-		ipextra=0
-		iplane=nprj2*nviews
-	      endif
 	    endif
-	    if(ipextra.eq.0)then
-c		
-c		if not setup for cosine stretch, first see if new-style even
-c		fits in stack space.
+c	      
+c	      Does everything fit?  If not, drop back to old style tilting
 c
-	      if(maxstack-nbase.gt.iplane)then
-		if(interpfac.gt.0)then
+	    if((maxSTACK-NBASE-ipextra+1)/IPLANE.lt.nsneed)then
+	      ifalpha=1
+	      ithick=ithickout
+	      ithwid=iwide*ithick
+	      YCEN=ITHICK/2+0.5+yoffset
+	      NBASE=IMAP+ITHWID
+c		
+c		re-evaluate cosine stretch with these conditions
+c		
+	      ipextra=0
+	      iplane=nprj2*nviews
+	      if(interpfac.gt.0)then
+		call set_cos_stretch(nsneed)
+		iplane=max(iplane,indstretch(nviews+1))
+		ipextra=iplane
+c		print *,iplane,nsneed,maxSTACK-NBASE-ipextra+1
+		if((maxSTACK-NBASE-ipextra+1)/IPLANE.lt.nsneed)then
+c		    
+c		    cosine stretch won't work.  Can we restore new-style?
+c		    
+		  ipextra=0
+		  iplane=nprj2*nviews
 		  interpfac=0
 		  write(*,62)
-		endif
-	      else
-c
-c		  if not, drop back to old style tilting - first try
-c		  for cosine stretching again
-c		  
-		ifalpha=1
-		ithick=ithickout
-		ithwid=iwide*ithick
-		NBASE=IMAP+ITHWID
-		write(*,'(/,a)')'Insufficient stack space for '//
-     &		    'new-style X-axis tilting'
-		if(interpfac.gt.0)then
-		  call set_cos_stretch(nsneed)
-c		    
-		  iplane=max(iplane,indstretch(nviews+1))
-		  ipextra=iplane
-		  if((maxSTACK-NBASE-ipextra+1)/IPLANE.lt.nsneed)then
-c		      
-c		      old style tilt, no cosine stretch
-c		      
-		    ipextra=0
-		    iplane=nprj2*nviews
-		    interpfac=0
-		    write(*,62)
+		  if (nocosPlanes.gt.0) then
+		    ifalpha=-1
+		    ithick=ithicknew
+		    ithwid=iwide*ithick
+		    YCEN=ITHICK/2+0.5+yoffset
+		    NBASE=IMAP+ITHWID
 		  endif
 		endif
 	      endif
 	    endif
+	    if (ifalpha .gt. 0)write(*,'(/,a)')'Insufficient stack space '//
+     &		'for new-style X-axis tilting'
 	  endif
-c	  print *,interpfac,ipextra,ifalpha,nvertneed
-c
-C Set up radial weighting
+c	    print *,interpfac,ipextra,ifalpha,nvertneed
+c	    
+C	    Set up radial weighting
 	  CALL RADWT(IRMAX,IFALL)
 	endif
-c	
+c	  
 c	if doing warping, convert the angles to radians and set sign
 c
 	if(nxwarp.gt.0)then
@@ -2950,7 +2955,7 @@ c
 	  nstretch(iv)=interpfac*(xpmax-xpmin)/cbet(iv)+2.
 	  indstretch(iv+1)=indstretch(iv)+nstretch(iv)
 c	    print *,iv,xpmin,xpmax,ofstretch(iv),nstretch(iv),indstretch(iv)
-	  if(ifalpha.gt.0)nsneed=max(nsneed,int(ithick*sal(iv)+2))
+	  if(ifalpha.gt.0)nsneed=max(nsneed,int(abs(ithick*sal(iv))+2))
 	enddo
 	return
 	end
