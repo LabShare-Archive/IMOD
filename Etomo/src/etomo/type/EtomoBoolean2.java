@@ -1,4 +1,8 @@
 package etomo.type;
+
+import etomo.comscript.ComScriptCommand;
+import etomo.comscript.InvalidParameterException;
+
 /**
 * <p>Description: </p>
 * 
@@ -12,23 +16,56 @@ package etomo.type;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2005/01/13 19:03:01  sueh
+* <p> Inherits EtomoNumber to create a boolean which does not allow nulls and
+* <p> can't read/write itself  to/from .edf and .com files.
+* <p> </p>
 */
 public class EtomoBoolean2 extends EtomoNumber {
   public static  final String  rcsid =  "$Id$";
   
   public static final int FALSE_VALUE = 0;
   public static final int TRUE_VALUE = 1;
-  public static final int booleanResetValue = FALSE_VALUE;
+  public static final int booleanNullValue = FALSE_VALUE;
   
   private static final String falseString = "false";
   private static final String falseStrings[] = {"f", "no"};
   private static final String trueString = "true";
   private static final String trueStrings[] = {"t","yes"};
+  private boolean updateAsInteger = false;
 
   public EtomoBoolean2(String name) {
     super(EtomoNumber.INTEGER_TYPE, name);
     setValidValues(new int[] { FALSE_VALUE, TRUE_VALUE });
+    //Don't force it have defaults
+    defaultValue = new Integer(INTEGER_NULL_VALUE);
+  }
+  
+  /**
+   * Have to override newNumber() to prevent it from setting null.  This means
+   * that we also must override initialize() to set defaultValue and 
+   * ceilingValue to null to prevent them from being used unless the user sets
+   * them.
+   */
+  protected void initialize() {
+    value = newNumber();
+    defaultValue = super.newNumber();
+    resetValue = newNumber();
+    ceilingValue = super.newNumber();
+  }
+  
+  /**
+   * Have to override newNumber() to prevent it from setting null.  This means
+   * that we also must override initialize(int) to set defaultValue and 
+   * ceilingValue to null to prevent them from being used unless the user sets
+   * them.
+   */
+  protected void initialize(int initialValue) {
+    value = newNumber(initialValue);
+    defaultValue = super.newNumber();
+    resetValue = newNumber();
+    ceilingValue = super.newNumber();
   }
   
   /**
@@ -77,6 +114,39 @@ public class EtomoBoolean2 extends EtomoNumber {
       return super.toString(value);
     }
   }
+
+  /**
+   * Override parse(ComScriptCommand) to handle a boolean being true when
+   * it has no value in the script.
+   */
+  public ConstEtomoNumber parse(ComScriptCommand scriptCommand)
+      throws InvalidParameterException {
+    if (scriptCommand.hasKeyword(name)) {
+      String scriptValue = scriptCommand.getValue(name);
+      if (scriptValue == null || scriptValue.matches("\\s*")) {
+        return set(TRUE_VALUE);
+      }
+    }
+    return super.parse(scriptCommand);
+  }
+  
+  /**
+   * Override update(ComScriptCommand) to handle writing the boolean as an
+   * integer in the script (use super.toString()).  Also handle writing the
+   * boolean as a parameter without a value.
+   */
+  public ConstEtomoNumber update(ComScriptCommand scriptCommand) {
+    if (!updateAsInteger && !is()) {
+      scriptCommand.deleteKey(name);
+    }
+    else if (updateAsInteger) {
+      scriptCommand.setValue(name, super.toString());
+    }
+    else {
+      scriptCommand.setValue(name, "");
+    }
+    return this;
+  }
   
   /**
    * To convert from strings such as "false"
@@ -114,7 +184,7 @@ public class EtomoBoolean2 extends EtomoNumber {
    * Override newNumber() by calling newNumber(int) with a const.
    */
   protected Number newNumber() {
-    return super.newNumber(booleanResetValue);
+    return newNumber(booleanNullValue);
   }
 
 }
