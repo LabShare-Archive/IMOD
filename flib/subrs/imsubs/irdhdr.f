@@ -40,6 +40,10 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.3  2002/04/18 20:04:21  mast
+c	  Made itrhdr/itrextra swap bytes correctly for integer/real extra
+c	  header data; also stopped irtsym from swapping 4 times too much data
+c	
 c	  Revision 3.2  2002/02/26 23:04:01  mast
 c	  *** empty log message ***
 c	
@@ -88,24 +92,7 @@ C
 	  CALL QREAD(J,LABLS(1,1,J),NBL,IER)
 C
 	  if(mrcflip(j))then
-	    call convert_longs(ncrs(1,j),3)
-	    call convert_longs(mode(j),1)
-	    call convert_longs(ncrst(1,j),3)
-	    call convert_longs(nxyz(1,j),3)
-	    call convert_floats(cel(1,j),6)
-	    call convert_longs(mapcrs(1,j),3)
-	    call convert_floats(denmmm(1,j),3)
-	    call convert_shorts(stuff(1,j),2)
-	    call convert_longs(stuff(2,j),1)
-	    call convert_shorts(stuff(3,j),1)
-	    call convert_shorts(stuff(11,j),4)
-	    call convert_floats(stuff(13,j),6)
-	    call convert_shorts(stuff(19,j),6)
-	    call convert_floats(stuff(22,j),6)
-	    call convert_shorts(stuff(28,j),6)
-	    call convert_floats(stuff(31,j),1)
-	    call convert_floats(origxy(1,j),2)
-	    call convert_longs(nlab(j),1)
+	    call swap_mrc_header(j)
 	  endif
 	  call move(idat,stuff(1,j),2)
 	  ispg = idat(1)
@@ -303,8 +290,14 @@ c
 	DENMMM(2,J) = DMAX
 	DENMMM(3,J) = DMEAN
 C	  
-	if(spider(j))STOP 'TRYING TO WRITE TO SPIDER FILE'
-	if(mrcflip(j))STOP 'TRYING TO WRITE TO UNCONVERTED FILE'
+	if(spider(j))then
+	  print *,'IWRHDR ERROR: TRYING TO WRITE TO SPIDER FILE'
+	  call exit(1)
+	endif
+c	  
+c	  DNM 6/26/02: if byte-swapped file, swap header before and after
+c
+	if(mrcflip(j))call swap_mrc_header(j)
 	CALL QSEEK(J,1,1,1)
 	CALL QWRITE(J,NCRS(1,J),NBW3)
 	CALL QWRITE(J,MODE(J),NBW)
@@ -317,6 +310,7 @@ C
 	CALL QWRITE(J,ORIGXY(1,J),NBW*2)
 	CALL QWRITE(J,NLAB(J),NBW)
 	CALL QWRITE(J,LABLS(1,1,J),NBL)
+	if(mrcflip(j))call swap_mrc_header(j)
 c	if (nbsym(j) .gt. 0) call qwrite(j,ibsym(1,j),nbsym(j))	!write out sym
 c	  
 c	  now have to set to first section, to skip extra header
@@ -402,6 +396,11 @@ c
 127	J = LSTREAM(ISTREAM)
 	K = LSTREAM(JSTREAM)
 	if (nbsym(k).eq.0) return
+	if (mrcflip(j)) then
+	  print *,'ITRHDR/ITEXTRA ERROR: Cannot transfer extra ',
+     &	      'header to a byte-swapped file'
+	  call exit(1)
+	endif
 c	  
 c	  DNM 4/18/02
 c	  figure out a block size for the transfer; if the data need to be
@@ -422,7 +421,7 @@ c
 	    if(iblocksize.eq.0) then
 	      print *,'ITRHDR/ITREXTRA: array size too small to ',
      &		  'transfer extra header data'
-	      stop
+	      call exit(1)
 	    endif
 	  endif
 	endif
@@ -627,8 +626,10 @@ C
 	ENTRY IALEXT(ISTREAM,EXTRA,ISTART,NEXTRA)
 C
 	J = LSTREAM(ISTREAM)
-	IF (ISTART .GT. 16 .OR. ISTART .LT. 1) 
-     .	 STOP 'IALEXT: ERROR IN START NUMBER'
+	IF (ISTART .GT. 16 .OR. ISTART .LT. 1)  then
+	  print *, 'IALEXT: ERROR IN START NUMBER'
+	  call exit(1)
+	endif
 	JEXTRA = MIN(NEXTRA + ISTART,17) - ISTART
 	CALL MOVE(STUFF(ISTART+2,J),EXTRA,NBW*JEXTRA)
 C
@@ -756,6 +757,11 @@ c	jbsym = array with sym info
 c
 	entry ialsym(istream,mbsym,jbsym)
 	j = lstream(istream)
+	if (mrcflip(j)) then
+	  print *,'IALSYM ERROR: Cannot alter extra ',
+     &	      'header in a byte-swapped file'
+	  call exit(1)
+	endif
 c	nbsym(j) = min(1024,mbsym)
 	nbsym(j) = mbsym
 	istuff(2,j) = nbsym(j)
@@ -911,8 +917,10 @@ C
 	ENTRY IRTEXT(ISTREAM,EXTRA,ISTART,NEXTRA)
 C
 	J = LSTREAM(ISTREAM)
-	IF (ISTART .GT. 16 .OR. ISTART .LT. 1) 
-     .	STOP 'IRTEXT: ERROR IN START NUMBER'
+	IF (ISTART .GT. 16 .OR. ISTART .LT. 1) then
+	  print *, 'IRTEXT: ERROR IN START NUMBER'
+	  call exit(1)
+	endif
 	JEXTRA = MIN(NEXTRA + ISTART,17) - ISTART
 	CALL MOVE(EXTRA,STUFF(ISTART+2,J),NBW*JEXTRA)
 C
@@ -1117,5 +1125,30 @@ c
 c
 99	WRITE(6,2000)
 2000	FORMAT(' IRDHDR: End-of-File error !!!')
-	STOP 'ERROR'
+	call exit(1)
 	END
+
+	subroutine swap_mrc_header(j)
+	implicit none
+	include 'imsubs.inc'
+	integer*4 j
+	call convert_longs(ncrs(1,j),3)
+	call convert_longs(mode(j),1)
+	call convert_longs(ncrst(1,j),3)
+	call convert_longs(nxyz(1,j),3)
+	call convert_floats(cel(1,j),6)
+	call convert_longs(mapcrs(1,j),3)
+	call convert_floats(denmmm(1,j),3)
+	call convert_shorts(stuff(1,j),2)
+	call convert_longs(stuff(2,j),1)
+	call convert_shorts(stuff(3,j),1)
+	call convert_shorts(stuff(11,j),4)
+	call convert_floats(stuff(13,j),6)
+	call convert_shorts(stuff(19,j),6)
+	call convert_floats(stuff(22,j),6)
+	call convert_shorts(stuff(28,j),6)
+	call convert_floats(stuff(31,j),1)
+	call convert_floats(origxy(1,j),2)
+	call convert_longs(nlab(j),1)
+	return
+	end
