@@ -66,6 +66,9 @@ package etomo.ui;
 * @version $$Revision$$
 *
 * <p> $$Log$
+* <p> $Revision 1.4  2003/12/31 17:48:42  sueh
+* <p> $bug# 372 change doc
+* <p> $
 * <p> $Revision 1.3  2003/12/31 01:32:01  sueh
 * <p> $bug# 372 added doc, added link list connectors
 * <p> $
@@ -94,6 +97,8 @@ public class Token {
   public static final int DELIMITER = -11;
   public static final int WORD = -12;
   public static final int KEYWORD = -13;
+  public static final int BREAK = -14;
+  public static final int INDENT = -15;
 
   private int type = NULL;
   private String value = null;
@@ -187,6 +192,12 @@ public class Token {
     else if (type == KEYWORD) {
       return "KEYWORD";
     }
+    else if (type == BREAK) {
+      return "BREAK";
+    }
+    else if (type == INDENT) {
+      return "INDENT";
+    }
     return "UNKNOWN";
   }
 
@@ -249,6 +260,76 @@ public class Token {
       token = token.next;
     }
     return buffer.toString();
+  }
+  
+  /**
+   * Finds the number of contiguous searchChars, start from fromIndex.
+   * @param searchChar
+   * @param fromIndex
+   * @return
+   */
+  public final int numberOf(char searchChar, int fromIndex) {
+    if (value == null) {
+      System.out.println("valid is null");
+      return 0;
+    }
+    boolean found = false;
+    int numberFound = 0;
+    for (int i = 0; i < value.length(); i++) {
+      if (!found) {
+        if (value.charAt(i) == searchChar) {
+          found = true;
+          numberFound++;
+        }
+      }
+      else {
+        if (value.charAt(i) == searchChar) {
+          numberFound++;
+        }
+        else {
+          return numberFound;
+        }
+      }
+    }
+    return numberFound;
+  }
+  
+  /**
+   * Returns the number of characters in the value.
+   * @return
+   */
+  public final int length() {
+    if (value == null) {
+      return 0;
+    }
+    return value.length();
+  }
+  
+  /**
+   * Split off a new token from this token.  Set the new token type to the type
+   * parameter.  Set the new token value to a substring of the value in this
+   * token, starting from startIndex and going for size characters.  Remove this substring from
+   * this token.
+   * @param type
+   * @param startIndex
+   * @param size
+   */
+  public final Token split(int type, int startIndex, int size) {
+    if (value == null || value.length() <= startIndex + size) {
+      throw new IndexOutOfBoundsException("startIndex + size, " + startIndex
+          + size + ", must be less then value.length," + value.length() + ".");
+    }
+    Token newToken = new Token();
+    newToken.set(type, value.substring(startIndex, startIndex + size));
+    value = value.substring(size);
+    if (next != null || previous != null) {
+      newToken.next = this;
+      if (previous != null) {
+        newToken.previous = previous;
+      }
+      previous = newToken;
+    }
+    return newToken;
   }
 
   /**
