@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.1  2003/02/10 20:41:55  mast
+Merge Qt source
+
 Revision 1.1.2.1  2003/01/26 23:34:22  mast
 Initial creation
 
@@ -31,5 +34,5 @@ int imod_obj_nearest(struct Mod_Object *obj,
 		     struct Mod_Index *index,
 		     struct Mod_Point *pnt,
 		     float selsize);
-int ivwRedraw(ImodView *vw);
+int imod_redraw(ImodView *vw);
 #endif

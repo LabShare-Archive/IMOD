@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.2  2003/02/14 01:14:30  mast
+cleanup unused variables
+
 Revision 4.1  2003/02/10 20:29:00  mast
 autox.cpp
 
@@ -73,10 +76,10 @@ static int imod_distance( float *x, float *y, struct Mod_Point *pnt);
 
 int imod_setxyzmouse()
 {
-  return(ivwRedraw(App->cvi));
+  return(imod_redraw(App->cvi));
 }
 
-int ivwRedraw(ImodView *vw)
+int imod_redraw(ImodView *vw)
 {
   Imod *imod = ivwGetModel(vw);
   Iobj  *obj = NULL;
