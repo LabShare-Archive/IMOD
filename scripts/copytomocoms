@@ -964,8 +964,8 @@ EOF
     set alxsize = $xsize
     set alysize = $ysize
     if ($preblend == "1") then
-	set alxsize = `echo $xsize | goodframe`
-	set alysize = `echo $ysize | goodframe`
+	set alxsize = `goodframe $xsize`
+	set alysize = `goodframe $ysize`
     endif
 
     # 5/3/02: change to using image file name, keep dimensions commented out
@@ -1053,6 +1053,11 @@ EOF
     set delexclude = "gibberish"
     if ($excludelist == "") set delexclude = "EXCLUDELIST"
 
+    if ($montage == "1") then
+	set alxsize = `goodframe $xsize`
+	set alysize = `goodframe $ysize`
+    endif
+
     set srcfile = $srcdir/"tilt"$srcext
     set dstfile = "tilt"$dstext
     set backuplist = ($backuplist $dstfile)
@@ -1060,7 +1065,7 @@ EOF
     sed -e s/$srcname/$dstname/g\
         -e "/^LOG/s/LOG.*/LOG $logbase/"\
         -e "/MODE/s/MODE.*/MODE $mode/"\
-	-e "/FULLIMAGE/s//FULLIMAGE $xsize $ysize/"\
+	-e "/FULLIMAGE/s//FULLIMAGE $alxsize $alysize/"\
 	-e "/EXCLUDELIST/s//EXCLUDELIST $excludelist/"\
 	-e "/$delexclude/d"\
         <$srcfile >$dstfile
@@ -1322,6 +1327,9 @@ exit 0
 
 #
 #  $Log$
+#  Revision 3.37  2005/03/01 22:08:04  mast
+#  Added distortion and mag gradient correction for montages
+#
 #  Revision 3.36  2005/03/01 18:34:59  mast
 #  Changed test for negative densities in stack to be based on mean density
 #  instead of max density
