@@ -8,6 +8,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.12  2003/10/25 02:52:27  mast
+#  find library in cygwin/Intel makefile
+#
 #  Revision 3.11  2003/10/03 05:04:45  mast
 #  Discovered extension can go before (SGI) or after (Mac) version numbers
 #
@@ -49,6 +52,15 @@ set libext = `sed -n '/LIBEXT/s/^.*= *//p' configure`
 # ever-useful sendevent Makefile
 #
 set instdir = `sed -n '/INSTDIR/s/^.*= *//p' configure`
+
+set dlldir = `sed -n '/DLLSOURCEDIR/s/^.*= *//p' configure`
+
+set dlllist = `sed -n '/DLLSTOCOPY/s/^.*= *//p' configure`
+if ("$dlllist" != "") then
+    foreach i ($dlllist)
+        \cp "$dlldir"/$i $instdir/$qtlibdir
+    end
+endif
 
 set qtlib = `sed -n '/^LIBS.*=/s/^.*-lqt/libqt/p' sendevent/Makefile`
 
