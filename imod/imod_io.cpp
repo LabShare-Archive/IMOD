@@ -396,7 +396,7 @@ Imod *LoadModelFile(char *filename) {
   Imod *imod;
   int nChars;
   QString qname;
-  char *filter[] = {"Model files (*.*mod *.fid *.seed)"};
+  char *filter[] = {"Model files (*.*mod *.*fid *.*seed)"};
   
   lastError = IMOD_IO_SUCCESS;
 
@@ -821,6 +821,9 @@ int WriteImage(FILE *fout, struct ViewInfo *vi, struct LoadInfo *li)
 
 /*
 $Log$
+Revision 4.17  2005/03/23 16:52:12  mast
+Add seed to filter
+
 Revision 4.16  2005/03/20 19:55:36  mast
 Eliminating duplicate functions
 
