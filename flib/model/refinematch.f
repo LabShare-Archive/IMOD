@@ -69,6 +69,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.4  2003/12/24 19:03:53  mast
+c	  Changed to fit new form of get_nxyz
+c	
 c	  Revision 3.3  2002/10/23 15:40:22  mast
 c	  Added ability to get a solution with only one layer of patches in
 c	  one of the dimensions, but fixing the column of the matrix for that
@@ -209,7 +212,9 @@ c
 	    enddo
 	  endif
         enddo
+
 	close(1)
+	if (ndat .lt. 4) call errorexit('TOO FEW DATA POINTS FOR FITTING')
 	ndat=nfill
         print *,ndat,' data points will be used for fit'
 c	  
