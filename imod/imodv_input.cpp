@@ -84,24 +84,6 @@ static unsigned int leftDown = 0;
 static unsigned int midDown = 0;
 static unsigned int rightDown = 0;
 
-void imodvQuit()
-{
-  ImodvApp *a = Imodv;
-  ImodvClosed = 1;
-
-  stereoHWOff();
-  imodvDialogManager.close();
-
-  imodMatDelete(a->mat);
-  imodMatDelete(a->rmat);
-  delete a->rbgcolor;
-  if (a->standalone) {
-    // imod_info_input();   // This made it crash
-    QApplication::exit(0);
-  }
-  return;
-}
-
 // Look up current position of pointer and report last state of buttons/keys
 static unsigned int imodv_query_pointer(ImodvApp *a, int *wx, int *wy)
 {
@@ -995,6 +977,17 @@ int imodv_sys_time(void)
            + curTime.second()) * 1000 + curTime.msec());
 }
 
+void imodvInputRaise()
+{
+  if (Imodv->mainWin->isVisible())
+    Imodv->mainWin->raise();
+  imodvDialogManager.raise(IMODV_DIALOG);
+#ifdef _WIN32
+  Imodv->mainWin->setActiveWindow();
+#endif
+}
+
+
 /**************imodv movie workproc **************************/
 
 /* DNM 11/5/00: changed logic from using interlocked time-outs and workprocs
@@ -1043,6 +1036,9 @@ void imodvMovieTimeout()
 
 /*
     $Log$
+    Revision 4.10  2003/11/04 04:43:49  mast
+    Implement new method for constant rotation speed
+
     Revision 4.9  2003/11/01 18:12:17  mast
     changed to put out virtually all error messages to a window
 

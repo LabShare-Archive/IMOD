@@ -7,6 +7,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.7  2003/10/24 02:14:00  mast
+#  source settmpdir to get tmpdir, better for Windows
+#
 #  Revision 3.6  2003/07/10 23:41:49  mast
 #  Added ability to specify multiple input files
 #
@@ -326,7 +329,7 @@ endif
 echo $float >> $tmpfil
 if ($float == "-1" || $float == "-2" || $float == "4") echo $minmax >> $tmpfil
 echo EOF >>$tmpfil
-csh $tmpfil
+csh -f $tmpfil
 if ($status) goto clean
 \rm -f $tmpfil $tmpexpxf $tmprotxf $tmpexprot $tmpprod
 exit 0

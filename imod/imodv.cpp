@@ -55,6 +55,8 @@ Log at end of file
 #include "imodv_stereo.h"
 #include "imodv_modeled.h"
 #include "preferences.h"
+#include "control.h"
+#include "imod_client_message.h"
 
 #include "b3dicon.xpm"
 
@@ -79,6 +81,8 @@ int ImodvClosed = 1;
 #define DEFAULT_XSIZE  512
 #define DEFAULT_YSIZE  512
 
+static int onceOpened = 0;
+static QRect lastGeom;
 
 /* the default graphics rendering attributes for OpenGL */
 static ImodGLRequest True24 = {1, 1, 24, 1, 1};
@@ -310,9 +314,15 @@ static int openWindow(ImodvApp *a)
   imodvSetCaption();
   a->mainWin->setIcon(*(a->iconPixmap));
 
+  // If windows was open before, set size and position the same
+  if (onceOpened) {
+    a->mainWin->resize(lastGeom.width(), lastGeom.height());
+    a->mainWin->move(lastGeom.x(), lastGeom.y());
+    a->mainWin->show();
+
   // If the user did not enter a window size, just resize to that before
   // showing
-  if (a->winx == DEFAULT_XSIZE && a->winy == DEFAULT_YSIZE) {
+  } else if (a->winx == DEFAULT_XSIZE && a->winy == DEFAULT_YSIZE) {
     a->mainWin->resize(a->winx, a->winy);
     if (a->fullscreen)
       a->mainWin->showMaximized();
@@ -404,6 +414,8 @@ static int load_models(int n, char **fname, ImodvApp *a)
 int imodv_main(int argc, char **argv)
 {
   int i;
+  int printID = 0;
+  ImodClipboard *clipHandler;
   ImodvApp *a = Imodv;
   a->standalone = 1;
   diaSetTitle("3dmodv");
@@ -430,6 +442,10 @@ int imodv_main(int argc, char **argv)
 
       case 's':
 	sscanf(argv[++i], "%d%*c%d", &a->winx, &a->winy);
+	break;
+
+      case 'W':
+	printID = 1;
 	break;
 
       case 'h':
@@ -472,8 +488,18 @@ int imodv_main(int argc, char **argv)
 
   a->iconPixmap = new QPixmap(QImage(b3dicon));
 
-  openWindow(Imodv);
+  if (openWindow(Imodv))
+    exit(-1);
 
+  if (printID) {
+    unsigned int winID = (unsigned int)a->mainWin->winId();
+    qstr.sprintf("Window id = %u\n", winID);
+    fprintf(stderr, qstr.latin1());
+    fflush(stderr);    // Needed on Windows
+    clipHandler = new ImodClipboard();
+    if (Imod_debug)
+      imodPrintInfo(qstr.latin1());
+  }
 
   return qApp->exec();
 }
@@ -590,8 +616,32 @@ void imodvDrawImodImages()
   imod_object_edit_draw();
 }
 
+// Quit imodv
+void imodvQuit()
+{
+  ImodvApp *a = Imodv;
+  ImodvClosed = 1;
+  onceOpened = 1;
+  lastGeom = ivwRestorableGeometry(a->mainWin);
+
+  stereoHWOff();
+  imodvDialogManager.close();
+
+  imodMatDelete(a->mat);
+  imodMatDelete(a->rmat);
+  delete a->rbgcolor;
+  if (a->standalone) {
+    // imod_info_input();   // This made it crash
+    QApplication::exit(0);
+  }
+  return;
+}
+
 /*
 $Log$
+Revision 4.12  2003/11/04 04:41:32  mast
+Initialize rotation speed
+
 Revision 4.11  2003/11/01 18:12:17  mast
 changed to put out virtually all error messages to a window
 

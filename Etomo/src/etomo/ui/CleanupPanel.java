@@ -38,6 +38,9 @@ import etomo.storage.IntermediateFileFilter;
  * 
  * <p>
  * $Log$
+ * Revision 3.0  2003/11/07 23:19:01  rickg
+ * Version 1.0.0
+ *
  * Revision 1.5  2003/10/29 20:49:11  rickg
  * Bug# 308 Tooltips
  *
@@ -195,15 +198,14 @@ public class CleanupPanel {
 
     text = "The list of files in this text box will be deleted.";
     fileChooser.setToolTipText(tooltipFormatter.setText(text).format());
-    
+
     text = "Select the type of files to show in the file selection box.";
-		//  TODO: is there a way to set the filter drop down tooltip?
-		
+
     text = "Delete the files listed in the \"File name\" text box.";
     btnDelete.setToolTipText(tooltipFormatter.setText(text).format());
-    
+
     text =
       "Read the directory again to update the list in the file selection box.";
-      btnRescanDir.setToolTipText(tooltipFormatter.setText(text).format());
+    btnRescanDir.setToolTipText(tooltipFormatter.setText(text).format());
   }
 }

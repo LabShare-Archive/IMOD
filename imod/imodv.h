@@ -152,9 +152,13 @@ void imodv_new_model(Imod *mod);
 int  imodv_main(int argc, char **argv);
 void imodvSetCaption();
 void imodvDrawImodImages();
+void imodvQuit();
 
 /*
 $Log$
+Revision 3.10  2003/11/04 04:41:07  mast
+Add new movie variables
+
 Revision 3.9  2003/06/27 19:43:46  mast
 Eliminate the fastdraw flag in favor of bits in the world flag
 

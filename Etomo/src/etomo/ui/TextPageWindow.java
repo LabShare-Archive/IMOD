@@ -25,6 +25,9 @@ import javax.swing.text.StyledEditorKit;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.0  2003/11/07 23:19:01  rickg
+ * <p> Version 1.0.0
+ * <p>
  * <p> Revision 2.2  2003/03/20 17:44:32  rickg
  * <p> setFile now returns a boolean if it was successful
  * <p>
@@ -55,7 +58,6 @@ public class TextPageWindow extends JFrame {
     editorPane.setEditorKit(new StyledEditorKit());
     mainPanel = getContentPane();
     mainPanel.add(scrollPane, BorderLayout.CENTER);
-    //  TODO: make the window size setable in properties
     setSize(625, 800);
   }
 

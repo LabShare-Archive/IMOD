@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.2  2003/02/27 23:12:09  mast
+Change type of imodv_sys_time
+
 Revision 4.1  2003/02/10 20:41:55  mast
 Merge Qt source
 
@@ -50,7 +53,7 @@ void imodvMouseRelease(QMouseEvent *event);
 void imodvMouseMove(QMouseEvent *event);
 void imodv_rotate_model(ImodvApp *a, int x, int y, int z);
 void imodv_zoomd(ImodvApp *a, double zoom);
-void imodvQuit();
 int imodv_sys_time(void);
+void imodvInputRaise();
   
 #endif

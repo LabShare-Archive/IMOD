@@ -5,6 +5,7 @@ import java.awt.event.*;
 import javax.swing.*;
 
 import etomo.process.ProcessState;
+import etomo.util.InvalidParameterException;
 
 /**
  * <p>Description: </p>
@@ -19,6 +20,9 @@ import etomo.process.ProcessState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.0  2003/11/07 23:19:01  rickg
+ * <p> Version 1.0.0
+ * <p>
  * <p> Revision 2.2  2003/10/23 17:16:55  rickg
  * <p> Bug# Label consistency
  * <p>
@@ -57,13 +61,22 @@ public class ProcessControlPanel {
   private JToggleButton buttonRun = new JToggleButton();
 
   private JPanel panelState;
-  private ColoredStateText highlightState =
-    new ColoredStateText(textStates, colorState);
+  private ColoredStateText highlightState;
 
   ProcessControlPanel(String label) {
     name = label;
     panelRoot.setLayout(new BoxLayout(panelRoot, BoxLayout.Y_AXIS));
-    highlightState.setSelected(0);
+
+    try {
+      highlightState = new ColoredStateText(textStates, colorState);
+      highlightState.setSelected(0);
+    }
+    catch (InvalidParameterException e) {
+      e.printStackTrace();
+      System.err.println("Unable to create or set highlightState object");
+      System.err.println(e.getMessage());
+    }
+
     updateLabel();
     panelRoot.add(buttonRun);
     buttonRun.setActionCommand(label);
@@ -82,15 +95,24 @@ public class ProcessControlPanel {
   }
 
   void setState(ProcessState state) {
-    if (state == ProcessState.NOTSTARTED) {
-      highlightState.setSelected(0);
+    try {
+      if (state == ProcessState.NOTSTARTED) {
+
+        highlightState.setSelected(0);
+      }
+      if (state == ProcessState.INPROGRESS) {
+        highlightState.setSelected(1);
+      }
+      if (state == ProcessState.COMPLETE) {
+        highlightState.setSelected(2);
+      }
     }
-    if (state == ProcessState.INPROGRESS) {
-      highlightState.setSelected(1);
+    catch (InvalidParameterException e) {
+      e.printStackTrace();
+      System.err.println("Unable to set highlightState object");
+      System.err.println(e.getMessage());
     }
-    if (state == ProcessState.COMPLETE) {
-      highlightState.setSelected(2);
-    }
+
     updateLabel();
   }
 
@@ -98,10 +120,10 @@ public class ProcessControlPanel {
    * Set the selected state of the buuton
    * @param state
    */
-  void setSelected(boolean state){
+  void setSelected(boolean state) {
     buttonRun.setSelected(state);
   }
-  
+
   private void updateLabel() {
     buttonRun.setText(
       "<HTML><CENTER>"

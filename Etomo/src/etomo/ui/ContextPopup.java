@@ -28,6 +28,9 @@ import etomo.ApplicationManager;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.0  2003/11/07 23:19:01  rickg
+ * <p> Version 1.0.0
+ * <p>
  * <p> Revision 2.9  2003/11/04 20:56:11  rickg
  * <p> Bug #345 IMOD Directory supplied by a static function from ApplicationManager
  * <p>
@@ -90,36 +93,15 @@ public class ContextPopup {
   private String[] manPageName;
   private String[] logFileName;
 
-  private static String imodURL;
+  private String imodURL;
   private String anchor;
-
-  /**
-   * This constructor is used to set the static ApplicationMananger reference,
-   * this must be called before any other instances are constructred or a null
-   * reference exception will be thrown.
-   * @param appMgr
-   */
-  
-  // FIXME:  The application manager is no longer needed since getIMODDirectory
-  // call is now static
-  public ContextPopup(ApplicationManager appMgr) {
-    ApplicationManager appManager = appMgr;
-    try {
-      imodURL = ApplicationManager.getIMODDirectory().toURL().toString() + "/html/";
-    }
-    catch (MalformedURLException except) {
-      except.printStackTrace();
-      System.err.println("Malformed URL:");
-      System.err.println(ApplicationManager.getIMODDirectory().toString());
-    }
-  }
 
   /**
    * Simple context popup constructor.  Only the default menu items are
    * displayed.
-   * @param component
-   * @param mouseEvent
-   * @param tomoAnchor
+   * @param component The component to which the popup is attached.
+   * @param mouseEvent The mouse event that opened the menu.
+   * @param tomoAnchor The tomography guide HTML anchor for the current popup.
    */
   public ContextPopup(
     Component component,
@@ -128,6 +110,7 @@ public class ContextPopup {
 
     this.mouseEvent = mouseEvent;
     anchor = tomoAnchor;
+    calcImodURL();
 
     //  Instantiate a new ActionListener to handle the menu selection
     actionListener = new ActionListener() {
@@ -150,11 +133,11 @@ public class ContextPopup {
   /**
    * Constructor to show a man page list in addition to the the standard menu
    * items.
-   * @param component
-   * @param mouseEvent
-   * @param tomoAnchor
-   * @param manPageLabel
-   * @param manPage
+   * @param component The component to which the popup is attached.
+   * @param mouseEvent The mouse event that opened the menu.
+   * @param tomoAnchor The tomography guide HTML anchor for the current popup.
+   * @param manPageLabel The string array of man page labels for the menu.
+   * @param manPage The name of the HTML man pages.
    */
   public ContextPopup(
     Component component,
@@ -172,6 +155,7 @@ public class ContextPopup {
 
     this.mouseEvent = mouseEvent;
     anchor = tomoAnchor;
+    calcImodURL();
 
     //  Instantiate a new ActionListener to handle the menu selection
     actionListener = new ActionListener() {
@@ -205,13 +189,13 @@ public class ContextPopup {
   /**
    * Constructor to show a man page list and log file items in addition to the
    * the standard menu items.
-   * @param component
-   * @param mouseEvent
-   * @param tomoAnchor
-   * @param manPageLabel
-   * @param manPage
-   * @param logFileLabel
-   * @param logFile
+   * @param component The component to which the popup is attached.
+   * @param mouseEvent The mouse event that opened the menu.
+   * @param tomoAnchor The tomography guide HTML anchor for the current popup.
+   * @param manPageLabel The string array of man page labels for the menu.
+   * @param manPage The name of the HTML man pages.
+   * @param logFileLabel The tring array of log file labels for the menu.
+   * @param logFile The names of the log files.
    */
   public ContextPopup(
     Component component,
@@ -236,6 +220,7 @@ public class ContextPopup {
 
     this.mouseEvent = mouseEvent;
     anchor = tomoAnchor;
+    calcImodURL();
 
     //  Instantiate a new ActionListener to handle the menu selection
     actionListener = new ActionListener() {
@@ -284,13 +269,15 @@ public class ContextPopup {
   /**
    * Constructor to show a man page list and tabbed log file items in addition
    * to the the standard menu items.
-   * @param component
-   * @param mouseEvent
-   * @param tomoAnchor
-   * @param manPageLabel
-   * @param manPage
-   * @param logFileLabel
-   * @param logFile
+   * @param component The component to which the popup is attached.
+   * @param mouseEvent The mouse event that opened the menu.
+   * @param tomoAnchor The tomography guide HTML anchor for the current popup.
+   * @param manPageLabel The string array of man page labels for the menu.
+   * @param manPage The name of the HTML man pages.
+   * @param logWindowLabel The window title for each tabbed window. 
+   * @param logFileLabel The vector string arrays of log file labels for the
+   * menu.
+   * @param logFile The vector of string arrays of names of the log files.
    */
   public ContextPopup(
     Component component,
@@ -316,6 +303,7 @@ public class ContextPopup {
 
     this.mouseEvent = mouseEvent;
     anchor = tomoAnchor;
+    calcImodURL();
 
     //  Instantiate a new ActionListener to handle the menu selection
     actionListener = new ActionListener() {
@@ -353,14 +341,13 @@ public class ContextPopup {
                 (String[]) logFileLabel.get(i));
             }
             catch (FileNotFoundException e) {
-              // TODO Auto-generated catch block
               e.printStackTrace();
+              System.err.println("File not file exception: " + logFileFullPath);
             }
             catch (IOException e) {
-              // TODO Auto-generated catch block
               e.printStackTrace();
+              System.err.println("IO exception: " + logFileFullPath);
             }
-
             logFileWindow.setVisible(true);
           }
         }
@@ -473,6 +460,7 @@ public class ContextPopup {
     }
 
   }
+
   /**
    * 
    * @param component
@@ -480,5 +468,20 @@ public class ContextPopup {
   private void showMenu(Component component) {
     contextMenu.show(component, mouseEvent.getX(), mouseEvent.getY());
     contextMenu.setVisible(true);
+  }
+
+  /**
+   * Calculate the IMOD URL
+   */
+  private void calcImodURL() {
+    try {
+      imodURL =
+        ApplicationManager.getIMODDirectory().toURL().toString() + "/html/";
+    }
+    catch (MalformedURLException except) {
+      except.printStackTrace();
+      System.err.println("Malformed URL:");
+      System.err.println(ApplicationManager.getIMODDirectory().toString());
+    }
   }
 }

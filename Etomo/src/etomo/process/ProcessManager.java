@@ -3,6 +3,7 @@ package etomo.process;
 import etomo.type.AxisID;
 import etomo.ApplicationManager;
 import etomo.type.ConstMetaData;
+import etomo.ui.TextPageWindow;
 import etomo.comscript.CopyTomoComs;
 import etomo.comscript.BadComScriptException;
 import etomo.comscript.SetupCombine;
@@ -36,6 +37,9 @@ import java.util.ArrayList;
  * 
  * <p>
  * $Log$
+ * Revision 3.0  2003/11/07 23:19:00  rickg
+ * Version 1.0.0
+ *
  * Revision 2.33  2003/11/04 20:56:11  rickg
  * Bug #345 IMOD Directory supplied by a static function from ApplicationManager
  *
@@ -331,1000 +335,994 @@ import java.util.ArrayList;
  */
 
 public class ProcessManager {
-	public static final String rcsid =
-		"$Id$";
-
-	ApplicationManager appManager;
-	SystemProcessInterface threadAxisA = null;
-	SystemProcessInterface threadAxisB = null;
-	Thread processMonitorA = null;
-	Thread processMonitorB = null;
-
-	// save the transferfid command line so that we can identify when process is
-	// complete.
-	String transferfidCommandLine;
-
-	public ProcessManager(ApplicationManager appMgr) {
-		appManager = appMgr;
-	}
-
-	/**
-	 * Run the copytomocoms script
-	 * 
-	 * @param metaData
-	 *          a read-only MetaData object containing the information to run the
-	 *          copytomocoms script
-	 */
-	public void setupComScripts(ConstMetaData metaData)
-		throws BadComScriptException, IOException {
-
-		CopyTomoComs copyTomoComs = new CopyTomoComs(metaData);
-
-		if (appManager.isDebug()) {
-			System.err.println(
-				"copytomocoms command line: " + copyTomoComs.getCommandLine());
-		}
-
-		int exitValue = copyTomoComs.run();
-
-		if (exitValue != 0) {
-			System.err.println("Exit value: " + String.valueOf(exitValue));
-
-			//  Compile the exception message from the stderr stream
-			String[] stdError = copyTomoComs.getStdError();
-			if (stdError.length < 1) {
-				stdError = new String[1];
-				stdError[0] =
-					"Get David to add some std error reporting to copytomocoms";
-			}
-			StringBuffer buffer = new StringBuffer();
-			buffer.append("Copytomocoms Error\n");
-			buffer.append("Standard error output:\n");
-			for (int i = 0; i < stdError.length; i++) {
-				buffer.append(stdError[i]);
-				buffer.append("\n");
-			}
-
-			throw (new BadComScriptException(buffer.toString()));
-		}
-	}
-
-	/**
-	 * Erase the specified pixels
-	 * 
-	 * @param axisID
-	 *          the AxisID to erase.
-	 */
-	public String eraser(AxisID axisID) throws SystemProcessException {
-
-		// Create the process monitor
-		CCDEraserProcessMonitor ccdEraserProcessMonitor =
-			new CCDEraserProcessMonitor(appManager, axisID);
-
-		//  Create the required command string
-		String command = "eraser" + axisID.getExtension() + ".com";
-
-		//  Start the com script in the background
-		ComScriptProcess comScriptProcess =
-			startComScript(command, ccdEraserProcessMonitor, axisID);
-
-		return comScriptProcess.getName();
-	}
-
-	/**
-	 * Calculate the cross-correlation for the specified axis
-	 * 
-	 * @param axisID
-	 *          the AxisID to cross-correlate.
-	 */
-	public String crossCorrelate(AxisID axisID) throws SystemProcessException {
-
-		//  Create the process monitor
-		XcorrProcessWatcher xcorrProcessWatcher =
-			new XcorrProcessWatcher(appManager, axisID);
-
-		//  Create the required command string
-		String command = "xcorr" + axisID.getExtension() + ".com";
-
-		//  Start the com script in the background
-		ComScriptProcess comScriptProcess =
-			startComScript(command, xcorrProcessWatcher, axisID);
-
-		return comScriptProcess.getName();
-	}
-
-	/**
-	 * Calculate the coarse alignment for the specified axis
-	 * 
-	 * @param axisID
-	 *          the identifyer of the axis to coarse align.
-	 */
-	public String coarseAlign(AxisID axisID) throws SystemProcessException {
-
-		//  Create the required tiltalign command
-		String command = "prenewst" + axisID.getExtension() + ".com";
-
-		//  Start the com script in the background
-		PrenewstProcessMonitor prenewstProcessMonitor =
-			new PrenewstProcessMonitor(appManager, axisID);
-
-		//  Start the com script in the background
-		ComScriptProcess comScriptProcess =
-			startComScript(command, prenewstProcessMonitor, axisID);
-		return comScriptProcess.getName();
-	}
-
-	/**
-	 * Run midas on the specified raw stack
-	 * 
-	 * @param axisID
-	 *          the AxisID to run midas on.
-	 */
-	public void midasRawStack(AxisID axisID) {
-		String stack = "";
-		String xform = "";
-
-		//  Create the required midas command
-		if (axisID == AxisID.ONLY) {
-			stack = appManager.getDatasetName() + ".st ";
-			xform = appManager.getDatasetName() + ".prexf ";
-		}
-		if (axisID == AxisID.FIRST) {
-			stack = appManager.getDatasetName() + "a.st ";
-			xform = appManager.getDatasetName() + "a.prexf ";
-		}
-		if (axisID == AxisID.SECOND) {
-			stack = appManager.getDatasetName() + "b.st ";
-			xform = appManager.getDatasetName() + "b.prexf ";
-		}
-
-		String imodBinPath =
-			ApplicationManager.getIMODDirectory().getAbsolutePath()
-				+ File.separator
-				+ "bin"
-				+ File.separator;
-		String commandLine = imodBinPath + "midas " + stack + xform;
-		//  Start the system program thread
-		startSystemProgramThread(commandLine);
-	}
-
-	/**
-	 * Run the appropriate track com file for the given axis ID
-	 * 
-	 * @param axisID
-	 *          the AxisID to run track.com on.
-	 */
-	public String fiducialModelTrack(AxisID axisID)
-		throws SystemProcessException {
-		//
-		//  Create the required beadtrack command
-		//
-		String command = "track" + axisID.getExtension() + ".com";
-
-		//  Start the com script in the background
-		ComScriptProcess comScriptProcess = startComScript(command, null, axisID);
-		return comScriptProcess.getName();
-	}
-
-	/**
-	 * Run the appropriate align com file for the given axis ID
-	 * 
-	 * @param axisID
-	 *          the AxisID to run align.com on.
-	 */
-	public String fineAlignment(AxisID axisID) throws SystemProcessException {
-		//
-		//  Create the required tiltalign command
-		//
-		String command = "align" + axisID.getExtension() + ".com";
-
-		//  Start the com script in the background
-		ComScriptProcess comScriptProcess = startComScript(command, null, axisID);
-		return comScriptProcess.getName();
-
-	}
-
-	/**
-	 * Generate the split align log file for the given axis ID
-	 * 
-	 * @param axisID
-	 */
-	public void generateAlignLogs(AxisID axisID) {
-		AlignLogGenerator alignLogGenerator = new AlignLogGenerator(axisID);
-
-		try {
-			alignLogGenerator.run();
-		}
-		catch (IOException except) {
-			appManager.openMessageDialog(
-				"Unable to create alignlog files",
-				"Alignlog Error");
-		}
-	}
-
-	/**
-	 * Run the transferfid script
-	 */
-	public String transferFiducials(TransferfidParam transferfidParam)
-		throws SystemProcessException {
-		AxisID axisID = AxisID.SECOND;
-		//Run transferfid on the destination axis.
-		if (transferfidParam.isBToA()) {
-			axisID = AxisID.FIRST;
-		}
-
-		BackgroundProcess backgroundProcess =
-			startBackgroundProcess(transferfidParam.getCommandString(), axisID);
-		transferfidCommandLine = backgroundProcess.getCommandLine();
-		return backgroundProcess.getName();
-	}
-
-	/**
-	 * Run the appropriate sample com file for the given axis ID
-	 * 
-	 * @param axisID
-	 *          the AxisID to run sample.com on.
-	 */
-	public String createSample(AxisID axisID) throws SystemProcessException {
-		//
-		//  Create the required tiltalign command
-		//
-		String command = "sample" + axisID.getExtension() + ".com";
-
-		//  Start the com script in the background
-		ComScriptProcess comScriptProcess = startComScript(command, null, axisID);
-		return comScriptProcess.getName();
-
-	}
-
-	/**
-	 * Run the appropriate tomopitch com file for the given axis ID
-	 * 
-	 * @param axisID
-	 *          the AxisID to run tomoptich on.
-	 */
-	public String tomopitch(AxisID axisID) throws SystemProcessException {
-		//
-		//  Create the required tiltalign command
-		//
-		String command = "tomopitch" + axisID.getExtension() + ".com";
-
-		//  Start the com script in the background
-		ComScriptProcess comScriptProcess = startComScript(command, null, axisID);
-		return comScriptProcess.getName();
-
-	}
-
-	/**
-	 * Run the appropriate newst com file for the given axis ID
-	 * 
-	 * @param axisID
-	 *          the AxisID to run newst on.
-	 */
-	public String newst(AxisID axisID) throws SystemProcessException {
-		//
-		//  Create the required newst command
-		//
-		String command = "newst" + axisID.getExtension() + ".com";
-
-		//  Start the com script in the background
-		NewstProcessMonitor newstProcessMonitor =
-			new NewstProcessMonitor(appManager, axisID);
-		//  Start the com script in the background
-		ComScriptProcess comScriptProcess =
-			startComScript(command, newstProcessMonitor, axisID);
-		return comScriptProcess.getName();
-
-	}
-
-	/**
-	 * Run the appropriate tilt com file for the given axis ID
-	 * 
-	 * @param axisID
-	 *          the AxisID to run tilt on.
-	 */
-	public String tilt(AxisID axisID) throws SystemProcessException {
-		//
-		//  Create the required tilt command
-		//
-		String command = "tilt" + axisID.getExtension() + ".com";
-
-		//  Start the com script in the background
-		TiltProcessMonitor tiltProcessMonitor =
-			new TiltProcessMonitor(appManager, axisID);
-		ComScriptProcess comScriptProcess =
-			startComScript(command, tiltProcessMonitor, axisID);
-
-		return comScriptProcess.getName();
-
-	}
-
-	/**
-	 * Execute the setupcombine script
-	 * 
-	 * @param combineParam
-	 *          A read-only object containing the parameters for setupcombine
-	 *          script
-	 */
-	public void setupCombineScripts(ConstMetaData metaData)
-		throws BadComScriptException, IOException {
-
-		SetupCombine setupCombine = new SetupCombine(metaData);
-
-		int exitValue = setupCombine.run();
-
-		if (exitValue != 0) {
-			System.err.println("Exit value: " + String.valueOf(exitValue));
-
-			//  Compile the exception message from the stderr stream
-			String[] stdError = setupCombine.getStdError();
-			if (stdError.length < 1) {
-				stdError = new String[1];
-				stdError[0] =
-					"Get David to add some std error reporting to setupCombine";
-			}
-			StringBuffer buffer = new StringBuffer();
-			buffer.append("SetupCombine Error\n");
-			buffer.append("Standard error output:\n");
-			for (int i = 0; i < stdError.length; i++) {
-				buffer.append(stdError[i]);
-				buffer.append("\n");
-			}
-
-			throw (new BadComScriptException(buffer.toString()));
-		}
-	}
-
-	/**
-	 * Run the imod2patch command
-	 */
-	public void modelToPatch() throws SystemProcessException {
-		//  Copy the old patch.out to patch.out~
-		SystemProgram savePatchOut =
-			new SystemProgram("mv -f patch.out patch.out~");
-		savePatchOut.setWorkingDirectory(new File(System.getProperty("user.dir")));
-		savePatchOut.setDebug(appManager.isDebug());
-
-		savePatchOut.run();
-		if (savePatchOut.getExitValue() != 0) {
-			String message = "";
-			String[] stderr = savePatchOut.getStdError();
-
-			for (int i = 0; i < stderr.length; i++) {
-				message = message + stderr[i] + "\n";
-			}
-			throw new SystemProcessException(message);
-		}
-
-		// Convert the new patchvector.mod
-		String imodBinPath =
-			ApplicationManager.getIMODDirectory().getAbsolutePath()
-				+ File.separator
-				+ "bin"
-				+ File.separator;
-		String commandLine = imodBinPath + "imod2patch patch_vector.mod patch.out";
-		SystemProgram patch2imod = new SystemProgram(commandLine);
-		patch2imod.setWorkingDirectory(new File(System.getProperty("user.dir")));
-		patch2imod.setDebug(appManager.isDebug());
-
-		patch2imod.run();
-		if (patch2imod.getExitValue() != 0) {
-			String message = "";
-			String[] stderr = patch2imod.getStdError();
-
-			for (int i = 0; i < stderr.length; i++) {
-				message = message + stderr[i] + "\n";
-			}
-			throw new SystemProcessException(message);
-		}
-	}
-
-	/**
-	 * Run the combine com file
-	 * 
-	 * @param axisID
-	 *          the AxisID to run tilt on.
-	 */
-	public String combine() throws SystemProcessException {
-		//  Create the required combine command
-		String command = "combine.com";
-
-		//  Start the com script in the background
-		ComScriptProcess comScriptProcess =
-			startComScript(command, null, AxisID.ONLY);
-		return comScriptProcess.getName();
-
-	}
-
-	/**
-	 * Run the solvematchshift com file
-	 * 
-	 * @return String
-	 */
-	public String solvematchshift() throws SystemProcessException {
-		//  Create the required combine command
-		String command = "solvematchshift.com";
-
-		//  Start the com script in the background
-		ComScriptProcess comScriptProcess =
-			startComScript(command, null, AxisID.ONLY);
-		return comScriptProcess.getName();
-
-	}
-
-	/**
-	 * Run the solvematchmod com file
-	 * 
-	 * @return String
-	 */
-	public String solvematchmod() throws SystemProcessException {
-		//  Create the required combine command
-		String command = "solvematchmod.com";
-
-		//  Start the com script in the background
-		ComScriptProcess comScriptProcess =
-			startComScript(command, null, AxisID.ONLY);
-		return comScriptProcess.getName();
-
-	}
-
-	/**
-	 * Run the matchvol1 com file
-	 * 
-	 * @return String
-	 */
-	public String matchvol1() throws SystemProcessException {
-		//  Create the required combine command
-		String command = "matchvol1.com";
-
-		//  Start the com script in the background
-		ComScriptProcess comScriptProcess =
-			startComScript(command, null, AxisID.ONLY);
-		return comScriptProcess.getName();
-
-	}
-
-	/**
-	 * Run the patchcorr com file
-	 * 
-	 * @return String
-	 */
-	public String patchcorr() throws SystemProcessException {
-		//  Create the required combine command
-		String command = "patchcorr.com";
-
-		//  Start the com script in the background
-		ComScriptProcess comScriptProcess =
-			startComScript(command, null, AxisID.ONLY);
-		return comScriptProcess.getName();
-
-	}
-
-	/**
-	 * Run the matchorwarp com file
-	 * 
-	 * @return String
-	 */
-	public String matchorwarp() throws SystemProcessException {
-		//  Create the required combine command
-		String command = "matchorwarp.com";
-
-		//  Start the com script in the background
-		ComScriptProcess comScriptProcess =
-			startComScript(command, null, AxisID.ONLY);
-		return comScriptProcess.getName();
-
-	}
-
-	/**
-	 * Run the volcombine com file
-	 * 
-	 * @return String
-	 */
-	public String volcombine() throws SystemProcessException {
-		//  Create the required combine command
-		String command = "volcombine.com";
-
-		//  Start the com script in the background
-		ComScriptProcess comScriptProcess =
-			startComScript(command, null, AxisID.ONLY);
-		return comScriptProcess.getName();
-
-	}
-
-	/**
-	 * Run trimvol
-	 */
-	public String trimVolume(TrimvolParam trimvolParam)
-		throws SystemProcessException {
-		BackgroundProcess backgroundProcess =
-			startBackgroundProcess(trimvolParam.getCommandString(), AxisID.ONLY);
-		return backgroundProcess.getName();
-	}
-
-	/**
-	 * Run the comand specified by the argument string
-	 */
-	public String test(String commandLine) {
-		//TODO: move to trimVolume format
-
-		BackgroundProcess command = new BackgroundProcess(commandLine, this);
-		command.setWorkingDirectory(new File(System.getProperty("user.dir")));
-		command.setDebug(appManager.isDebug());
-		command.start();
-
-		if (appManager.isDebug()) {
-			System.err.println("Started " + commandLine);
-			System.err.println("  Name: " + command.getName());
-		}
-		return command.getName();
-	}
-
-	/**
-	 * Start an arbtrary command as an unmanaged background thread
-	 */
-	private void startSystemProgramThread(String command) {
-
-		// Initialize the SystemProgram object
-		SystemProgram sysProgram = new SystemProgram(command);
-		sysProgram.setWorkingDirectory(new File(System.getProperty("user.dir")));
-		sysProgram.setDebug(appManager.isDebug());
-
-		//  Start the system program thread
-		Thread sysProgThread = new Thread(sysProgram);
-		sysProgThread.start();
-		if (appManager.isDebug()) {
-			System.err.println("Started " + command);
-			System.err.println(
-				"  working directory: " + System.getProperty("user.dir"));
-		}
-	}
-
-	/**
-	 * Start a managed command script for the specified axis
-	 * 
-	 * @param command
-	 * @param axisID
-	 * @return
-	 */
-	private ComScriptProcess startComScript(
-		String command,
-		Runnable processMonitor,
-		AxisID axisID)
-		throws SystemProcessException {
-
-		isAxisBusy(axisID);
-
-		//  Run the script as a thread in the background
-		ComScriptProcess comScriptProcess = new ComScriptProcess(command, this);
-		comScriptProcess.setWorkingDirectory(
-			new File(System.getProperty("user.dir")));
-		comScriptProcess.setDebug(appManager.isDebug());
-		comScriptProcess.setDemoMode(appManager.isDemo());
-		comScriptProcess.start();
-
-		// Map the thread to the correct axis
-		mapAxisThread(comScriptProcess, axisID);
-
-		if (appManager.isDebug()) {
-			System.err.println("Started " + command);
-			System.err.println("  Name: " + comScriptProcess.getName());
-		}
-
-		Thread processMonitorThread = null;
-		// Replace the process monitor with a DemoProcessMonitor if demo mode is on
-		if (appManager.isDemo()) {
-			processMonitor =
-				new DemoProcessMonitor(
-					appManager,
-					axisID,
-					command,
-					comScriptProcess.getDemoTime());
-		}
-
-		//	Start the process monitor thread if a runnable process is provided
-		if (processMonitor != null) {
-			// Wait for the started flag within the comScriptProcess, this ensures
-			// that log file has already been moved
-			while (!comScriptProcess.isStarted()) {
-				try {
-					Thread.sleep(1000);
-				}
-				catch (InterruptedException e) {
-					break;
-				}
-			}
-			processMonitorThread = new Thread(processMonitor);
-			processMonitorThread.start();
-			mapAxisProcessMonitor(processMonitorThread, axisID);
-		}
-
-		return comScriptProcess;
-	}
-
-	/**
-	 * A message specifying that a com script has finished execution
-	 * 
-	 * @param script
-	 *          the ComScriptProcess execution object that finished
-	 * @param exitValue
-	 *          the exit value for the com script
-	 */
-	public void msgComScriptDone(ComScriptProcess script, int exitValue) {
-		if (exitValue != 0) {
-			String[] stdError = script.getStdError();
-			String[] combined;
-			//    Is the last string "Killed"
-			if ((stdError.length > 0)
-				&& (stdError[stdError.length - 1].trim().equals("Killed"))) {
-				combined = new String[1];
-				combined[0] = "<html>Terminated: " + script.getScriptName();
-			}
-			else {
-				String[] message = script.getErrorMessage();
-				combined = new String[message.length + stdError.length + 5];
-				int j = 0;
-				combined[j++] = "<html>Com script failed: " + script.getScriptName();
-				combined[j++] = "  ";
-				combined[j++] = "<html><U>Log file errors:</U>";
-
-				for (int i = 0; i < message.length; i++, j++) {
-					combined[j] = message[i];
-				}
-				combined[j++] = "  ";
-				combined[j++] = "<html><U>Standard error output:</U>";
-				for (int i = 0; i < stdError.length; i++, j++) {
-					combined[j] = stdError[i];
-				}
-			}
-			appManager.openMessageDialog(
-				combined,
-				script.getScriptName() + " terminated");
-		}
-		else {
-			// Script specific post processing
-
-			if (script.getScriptName().equals("aligna.com")) {
-				generateAlignLogs(AxisID.FIRST);
-			}
-			if (script.getScriptName().equals("alignb.com")) {
-				generateAlignLogs(AxisID.SECOND);
-			}
-			if (script.getScriptName().equals("align.com")) {
-				generateAlignLogs(AxisID.ONLY);
-			}
-
-			if (script.getScriptName().equals("tomopitcha.com")) {
-				appManager.openTomopitchLog(AxisID.FIRST);
-			}
-			if (script.getScriptName().equals("tomopitchb.com")) {
-				appManager.openTomopitchLog(AxisID.SECOND);
-			}
-			if (script.getScriptName().equals("tomopitch.com")) {
-				appManager.openTomopitchLog(AxisID.ONLY);
-			}
-
-			String[] warningMessages = script.getWarningMessage();
-			String[] dialogMessage;
-			if (warningMessages != null && warningMessages.length > 0) {
-				dialogMessage = new String[warningMessages.length + 2];
-				dialogMessage[0] = "Com script: " + script.getScriptName();
-				dialogMessage[1] = "<html><U>Warnings:</U>";
-				int j = 2;
-				for (int i = 0; i < warningMessages.length; i++) {
-					dialogMessage[j++] = warningMessages[i];
-				}
-				appManager.openMessageDialog(
-					dialogMessage,
-					script.getScriptName() + " warnings");
-			}
-
-		}
-
-		//  Null out the correct thread
-		// Interrupt the process monitor and nulll out the appropriate references
-		if (threadAxisA == script) {
-			if (processMonitorA != null) {
-				processMonitorA.interrupt();
-				processMonitorA = null;
-			}
-			threadAxisA = null;
-		}
-		if (threadAxisB == script) {
-			if (processMonitorB != null) {
-				processMonitorB.interrupt();
-				processMonitorB = null;
-			}
-			threadAxisB = null;
-		}
-
-		//  Inform the app manager that this process is complete
-		appManager.processDone(script.getName(), exitValue);
-	}
-
-	/**
-	 * Start a managed background process
-	 * 
-	 * @param command
-	 * @param axisID
-	 * @throws SystemProcessException
-	 */
-	private BackgroundProcess startBackgroundProcess(
-		String command,
-		AxisID axisID)
-		throws SystemProcessException {
-
-		isAxisBusy(axisID);
-
-		BackgroundProcess backgroundProcess = new BackgroundProcess(command, this);
-		backgroundProcess.setWorkingDirectory(
-			new File(System.getProperty("user.dir")));
-		backgroundProcess.setDemoMode(appManager.isDemo());
-		backgroundProcess.setDebug(appManager.isDebug());
-		backgroundProcess.start();
-		if (appManager.isDebug()) {
-			System.err.println("Started " + command);
-			System.err.println("  Name: " + backgroundProcess.getName());
-		}
-
-		mapAxisThread(backgroundProcess, axisID);
-		return backgroundProcess;
-	}
-
-	/**
-	 * A message specifying that a background process has finished execution
-	 * 
-	 * @param script
-	 *          the BackgroundProcess execution object that finished
-	 * @param exitValue
-	 *          the exit value for the process
-	 */
-	public void msgBackgroundProcessDone(
-		BackgroundProcess process,
-		int exitValue) {
-
-		//  Check to see if the exit value is non-zero
-		if (exitValue != 0) {
-			String[] stdError = process.getStdError();
-			String[] message;
-
-			// Is the last string "Killed"
-			if ((stdError.length > 0)
-				&& (stdError[stdError.length - 1].trim().equals("Killed"))) {
-				message = new String[1];
-				message[0] = "<html>Terminated: " + process.getCommandLine();
-			}
-			else {
-				int j = 0;
-				message = new String[stdError.length + 3];
-				message[j++] = "<html>Command failed: " + process.getCommandLine();
-				message[j++] = "  ";
-				message[j++] = "<html><U>Standard error output:</U>";
-				for (int i = 0; i < stdError.length; i++, j++) {
-					message[j] = stdError[i];
-				}
-			}
-			appManager.openMessageDialog(
-				message,
-				process.getCommand() + " terminated");
-		}
-
-		// Another possible error message source is ERROR: in the stdout stream
-		String[] stdOutput = process.getStdOutput();
-		ArrayList errors = new ArrayList();
-		boolean foundError = false;
-		for (int i = 0; i < stdOutput.length; i++) {
-			if (!foundError) {
-				int index = stdOutput[i].indexOf("ERROR:");
-				if (index != -1) {
-					foundError = true;
-					errors.add(stdOutput[i]);
-				}
-			}
-			else {
-				errors.add(stdOutput[i]);
-			}
-		}
-		String[] errorMessage =
-			(String[]) errors.toArray(new String[errors.size()]);
-
-		if (errorMessage.length > 0) {
-			appManager.openMessageDialog(errorMessage, "Background Process Error");
-		}
-
-		// Command succeeded, check to see if we need to show any application
-		// specific info
-		else {
-			if (process.getCommandLine().equals(transferfidCommandLine)) {
-				handleTransferfidMessage(process);
-			}
-		}
-
-		// Null the reference to the appropriate thread
-		if (process == threadAxisA) {
-			threadAxisA = null;
-		}
-		if (process == threadAxisB) {
-			threadAxisB = null;
-		}
-
-		//	Inform the app manager that this process is complete
-		appManager.processDone(process.getName(), exitValue);
-	}
-
-	/**
-	 * Unique case to parse the output of transferfid and save it to a file
-	 * 
-	 * @param process
-	 */
-	private void handleTransferfidMessage(BackgroundProcess process) {
-		try {
-
-			//  Write the standard output to a the log file
-			String[] stdOutput = process.getStdOutput();
-			BufferedWriter fileBuffer =
-				new BufferedWriter(
-					new FileWriter(System.getProperty("user.dir") + "/transferfid.log"));
-
-			for (int i = 0; i < stdOutput.length; i++) {
-				fileBuffer.write(stdOutput[i]);
-				fileBuffer.newLine();
-			}
-			fileBuffer.close();
-
-			//  Show a dialog box to the user
-			String[] message = new String[stdOutput.length + 1];
-			int j = 0;
-			message[j++] = "<html><U>" + process.getCommand() + ": output</U>";
-			for (int i = 0; i < stdOutput.length; i++, j++) {
-				message[j] = stdOutput[i];
-			}
-
-			appManager.openMessageDialog(message, "Transferfid output");
-		}
-		catch (IOException except) {
-			appManager.openMessageDialog(
-				except.getMessage(),
-				"Transferfid log error");
-		}
-	}
-	/**
-	 * Save the process thread reference for the appropriate axis
-	 * 
-	 * @param thread
-	 * @param axisID
-	 */
-	private void mapAxisThread(SystemProcessInterface thread, AxisID axisID) {
-		if (axisID == AxisID.SECOND) {
-			threadAxisB = thread;
-		}
-		else {
-			threadAxisA = thread;
-		}
-	}
-
-	/**
-	 * Check to see if specified axis is busy, throw a system a
-	 * ProcessProcessException if it is.
-	 * 
-	 * @param axisID
-	 * @throws SystemProcessException
-	 */
-	private void isAxisBusy(AxisID axisID) throws SystemProcessException {
-		// Check to make sure there is not another process already running on this
-		// axis.
-		if (axisID == AxisID.SECOND) {
-			if (threadAxisB != null) {
-				throw new SystemProcessException("A process is already executing in the current axis");
-			}
-		}
-		else {
-			if (threadAxisA != null) {
-				throw new SystemProcessException("A process is already executing in the current axis");
-			}
-		}
-	}
-
-	/**
-	 * Save the process monitor thread reference for the appropriate axis
-	 * 
-	 * @param processMonitor
-	 * @param axisID
-	 */
-	private void mapAxisProcessMonitor(Thread processMonitor, AxisID axisID) {
-		if (axisID == AxisID.SECOND) {
-			processMonitorB = processMonitor;
-		}
-		else {
-			processMonitorA = processMonitor;
-		}
-	}
-
-	/**
-	 * Kill the thread for the specified axis
-	 */
-	public void kill(AxisID axisID) {
-		String processID = "";
-		if (axisID == AxisID.SECOND) {
-			if (threadAxisB != null) {
-				processID = threadAxisB.getShellProcessID();
-			}
-		}
-		else {
-			System.out.print(threadAxisA);
-			if (threadAxisA != null) {
-				processID = threadAxisA.getShellProcessID();
-			}
-		}
-
-		//  Loop over killing the children until there are none left
-		if (!processID.equals("")) {
-			String[] children;
-			while ((children = getChildProcessList(processID)) != null) {
-				String killCommand = "kill ";
-				for (int i = 0; i < children.length; i++) {
-					killCommand = killCommand + children[i] + " ";
-				}
-
-				SystemProgram kill = new SystemProgram(killCommand);
-				kill.run();
-			}
-
-			SystemProgram killShell = new SystemProgram("kill " + processID);
-			killShell.run();
-		}
-	}
-
-	/**
-	 * Return a string array of the PIDs of children processes for the specified
-	 * process.
-	 * 
-	 * @param processID
-	 * @return A string array of the child processes or null if they don't exist
-	 */
-	private String[] getChildProcessList(String processID) {
-		//  Run the appropriate version of ps
-		SystemProgram ps = new SystemProgram("ps -l");
-		ps.run();
-
-		//  Find the index of the Parent ID and ProcessID
-		String[] stdout = ps.getStdOutput();
-		String header = stdout[0].trim();
-		String[] labels = header.split("\\s+");
-		int idxPID = -1;
-		int idxPPID = -1;
-		for (int i = 0; i < labels.length; i++) {
-			if (labels[i].equals("PID")) {
-				idxPID = i;
-			}
-			if (labels[i].equals("PPID")) {
-				idxPPID = i;
-			}
-		}
-		//  Return null if the PID or PPID fields are not found
-		if (idxPPID == -1 || idxPID == -1) {
-			return null;
-		}
-
-		// Walk through the process list finding the PID of the children
-		ArrayList childrenPID = new ArrayList();
-		String[] fields;
-		for (int i = 1; i < stdout.length; i++) {
-			fields = stdout[i].trim().split("\\s+");
-			if (fields[idxPPID].equals(processID)) {
-				childrenPID.add(fields[idxPID]);
-			}
-		}
-
-		// If there are no children return null
-		if (childrenPID.size() == 0) {
-			return null;
-		}
-
-		// Connvert the ArrayList into a String[]
-		String[] children =
-			(String[]) childrenPID.toArray(new String[childrenPID.size()]);
-		return children;
-	}
+  public static final String rcsid =
+    "$Id$";
+
+  ApplicationManager appManager;
+  SystemProcessInterface threadAxisA = null;
+  SystemProcessInterface threadAxisB = null;
+  Thread processMonitorA = null;
+  Thread processMonitorB = null;
+
+  // save the transferfid command line so that we can identify when process is
+  // complete.
+  String transferfidCommandLine;
+
+  public ProcessManager(ApplicationManager appMgr) {
+    appManager = appMgr;
+  }
+
+  /**
+   * Run the copytomocoms script
+   * 
+   * @param metaData
+   *          a read-only MetaData object containing the information to run the
+   *          copytomocoms script
+   */
+  public void setupComScripts(ConstMetaData metaData)
+    throws BadComScriptException, IOException {
+
+    CopyTomoComs copyTomoComs = new CopyTomoComs(metaData);
+
+    if (appManager.isDebug()) {
+      System.err.println(
+        "copytomocoms command line: " + copyTomoComs.getCommandLine());
+    }
+
+    int exitValue = copyTomoComs.run();
+
+    if (exitValue != 0) {
+      System.err.println("Exit value: " + String.valueOf(exitValue));
+
+      //  Compile the exception message from the stderr stream
+      String[] stdError = copyTomoComs.getStdError();
+      if (stdError.length < 1) {
+        stdError = new String[1];
+        stdError[0] =
+          "Get David to add some std error reporting to copytomocoms";
+      }
+      StringBuffer buffer = new StringBuffer();
+      buffer.append("Copytomocoms Error\n");
+      buffer.append("Standard error output:\n");
+      for (int i = 0; i < stdError.length; i++) {
+        buffer.append(stdError[i]);
+        buffer.append("\n");
+      }
+
+      throw (new BadComScriptException(buffer.toString()));
+    }
+  }
+
+  /**
+   * Erase the specified pixels
+   * 
+   * @param axisID
+   *          the AxisID to erase.
+   */
+  public String eraser(AxisID axisID) throws SystemProcessException {
+
+    // Create the process monitor
+    CCDEraserProcessMonitor ccdEraserProcessMonitor =
+      new CCDEraserProcessMonitor(appManager, axisID);
+
+    //  Create the required command string
+    String command = "eraser" + axisID.getExtension() + ".com";
+
+    //  Start the com script in the background
+    ComScriptProcess comScriptProcess =
+      startComScript(command, ccdEraserProcessMonitor, axisID);
+
+    return comScriptProcess.getName();
+  }
+
+  /**
+   * Calculate the cross-correlation for the specified axis
+   * 
+   * @param axisID
+   *          the AxisID to cross-correlate.
+   */
+  public String crossCorrelate(AxisID axisID) throws SystemProcessException {
+
+    //  Create the process monitor
+    XcorrProcessWatcher xcorrProcessWatcher =
+      new XcorrProcessWatcher(appManager, axisID);
+
+    //  Create the required command string
+    String command = "xcorr" + axisID.getExtension() + ".com";
+
+    //  Start the com script in the background
+    ComScriptProcess comScriptProcess =
+      startComScript(command, xcorrProcessWatcher, axisID);
+
+    return comScriptProcess.getName();
+  }
+
+  /**
+   * Calculate the coarse alignment for the specified axis
+   * 
+   * @param axisID
+   *          the identifyer of the axis to coarse align.
+   */
+  public String coarseAlign(AxisID axisID) throws SystemProcessException {
+
+    //  Create the required tiltalign command
+    String command = "prenewst" + axisID.getExtension() + ".com";
+
+    //  Start the com script in the background
+    PrenewstProcessMonitor prenewstProcessMonitor =
+      new PrenewstProcessMonitor(appManager, axisID);
+
+    //  Start the com script in the background
+    ComScriptProcess comScriptProcess =
+      startComScript(command, prenewstProcessMonitor, axisID);
+    return comScriptProcess.getName();
+  }
+
+  /**
+   * Run midas on the specified raw stack
+   * 
+   * @param axisID
+   *          the AxisID to run midas on.
+   */
+  public void midasRawStack(AxisID axisID) {
+    String stack = "";
+    String xform = "";
+
+    //  Create the required midas command
+    if (axisID == AxisID.ONLY) {
+      stack = appManager.getDatasetName() + ".st ";
+      xform = appManager.getDatasetName() + ".prexf ";
+    }
+    if (axisID == AxisID.FIRST) {
+      stack = appManager.getDatasetName() + "a.st ";
+      xform = appManager.getDatasetName() + "a.prexf ";
+    }
+    if (axisID == AxisID.SECOND) {
+      stack = appManager.getDatasetName() + "b.st ";
+      xform = appManager.getDatasetName() + "b.prexf ";
+    }
+
+    String imodBinPath =
+      ApplicationManager.getIMODDirectory().getAbsolutePath()
+        + File.separator
+        + "bin"
+        + File.separator;
+    String commandLine = imodBinPath + "midas " + stack + xform;
+    //  Start the system program thread
+    startSystemProgramThread(commandLine);
+  }
+
+  /**
+   * Run the appropriate track com file for the given axis ID
+   * 
+   * @param axisID
+   *          the AxisID to run track.com on.
+   */
+  public String fiducialModelTrack(AxisID axisID)
+    throws SystemProcessException {
+    //
+    //  Create the required beadtrack command
+    //
+    String command = "track" + axisID.getExtension() + ".com";
+
+    //  Start the com script in the background
+    ComScriptProcess comScriptProcess = startComScript(command, null, axisID);
+    return comScriptProcess.getName();
+  }
+
+  /**
+   * Run the appropriate align com file for the given axis ID
+   * 
+   * @param axisID
+   *          the AxisID to run align.com on.
+   */
+  public String fineAlignment(AxisID axisID) throws SystemProcessException {
+    //
+    //  Create the required tiltalign command
+    //
+    String command = "align" + axisID.getExtension() + ".com";
+
+    //  Start the com script in the background
+    ComScriptProcess comScriptProcess = startComScript(command, null, axisID);
+    return comScriptProcess.getName();
+
+  }
+
+  /**
+   * Generate the split align log file for the given axis ID
+   * 
+   * @param axisID
+   */
+  public void generateAlignLogs(AxisID axisID) {
+    AlignLogGenerator alignLogGenerator = new AlignLogGenerator(axisID);
+
+    try {
+      alignLogGenerator.run();
+    }
+    catch (IOException except) {
+      appManager.openMessageDialog(
+        "Unable to create alignlog files",
+        "Alignlog Error");
+    }
+  }
+
+  /**
+   * Run the transferfid script
+   */
+  public String transferFiducials(TransferfidParam transferfidParam)
+    throws SystemProcessException {
+    AxisID axisID = AxisID.SECOND;
+    //Run transferfid on the destination axis.
+    if (transferfidParam.isBToA()) {
+      axisID = AxisID.FIRST;
+    }
+
+    BackgroundProcess backgroundProcess =
+      startBackgroundProcess(transferfidParam.getCommandString(), axisID);
+    transferfidCommandLine = backgroundProcess.getCommandLine();
+    return backgroundProcess.getName();
+  }
+
+  /**
+   * Run the appropriate sample com file for the given axis ID
+   * 
+   * @param axisID
+   *          the AxisID to run sample.com on.
+   */
+  public String createSample(AxisID axisID) throws SystemProcessException {
+    //
+    //  Create the required tiltalign command
+    //
+    String command = "sample" + axisID.getExtension() + ".com";
+
+    //  Start the com script in the background
+    ComScriptProcess comScriptProcess = startComScript(command, null, axisID);
+    return comScriptProcess.getName();
+
+  }
+
+  /**
+   * Run the appropriate tomopitch com file for the given axis ID
+   * 
+   * @param axisID
+   *          the AxisID to run tomoptich on.
+   */
+  public String tomopitch(AxisID axisID) throws SystemProcessException {
+    //
+    //  Create the required tiltalign command
+    //
+    String command = "tomopitch" + axisID.getExtension() + ".com";
+
+    //  Start the com script in the background
+    ComScriptProcess comScriptProcess = startComScript(command, null, axisID);
+    return comScriptProcess.getName();
+
+  }
+
+  /**
+   * Run the appropriate newst com file for the given axis ID
+   * 
+   * @param axisID
+   *          the AxisID to run newst on.
+   */
+  public String newst(AxisID axisID) throws SystemProcessException {
+    //
+    //  Create the required newst command
+    //
+    String command = "newst" + axisID.getExtension() + ".com";
+
+    //  Start the com script in the background
+    NewstProcessMonitor newstProcessMonitor =
+      new NewstProcessMonitor(appManager, axisID);
+    //  Start the com script in the background
+    ComScriptProcess comScriptProcess =
+      startComScript(command, newstProcessMonitor, axisID);
+    return comScriptProcess.getName();
+
+  }
+
+  /**
+   * Run the appropriate tilt com file for the given axis ID
+   * 
+   * @param axisID
+   *          the AxisID to run tilt on.
+   */
+  public String tilt(AxisID axisID) throws SystemProcessException {
+    //
+    //  Create the required tilt command
+    //
+    String command = "tilt" + axisID.getExtension() + ".com";
+
+    //  Start the com script in the background
+    TiltProcessMonitor tiltProcessMonitor =
+      new TiltProcessMonitor(appManager, axisID);
+    ComScriptProcess comScriptProcess =
+      startComScript(command, tiltProcessMonitor, axisID);
+
+    return comScriptProcess.getName();
+
+  }
+
+  /**
+   * Execute the setupcombine script
+   * 
+   * @param combineParam
+   *          A read-only object containing the parameters for setupcombine
+   *          script
+   */
+  public void setupCombineScripts(ConstMetaData metaData)
+    throws BadComScriptException, IOException {
+
+    SetupCombine setupCombine = new SetupCombine(metaData);
+
+    int exitValue = setupCombine.run();
+
+    if (exitValue != 0) {
+      System.err.println("Exit value: " + String.valueOf(exitValue));
+
+      //  Compile the exception message from the stderr stream
+      String[] stdError = setupCombine.getStdError();
+      if (stdError.length < 1) {
+        stdError = new String[1];
+        stdError[0] =
+          "Get David to add some std error reporting to setupCombine";
+      }
+      StringBuffer buffer = new StringBuffer();
+      buffer.append("SetupCombine Error\n");
+      buffer.append("Standard error output:\n");
+      for (int i = 0; i < stdError.length; i++) {
+        buffer.append(stdError[i]);
+        buffer.append("\n");
+      }
+
+      throw (new BadComScriptException(buffer.toString()));
+    }
+  }
+
+  /**
+   * Run the imod2patch command
+   */
+  public void modelToPatch() throws SystemProcessException {
+    //  Copy the old patch.out to patch.out~
+    SystemProgram savePatchOut =
+      new SystemProgram("mv -f patch.out patch.out~");
+    savePatchOut.setWorkingDirectory(new File(System.getProperty("user.dir")));
+    savePatchOut.setDebug(appManager.isDebug());
+
+    savePatchOut.run();
+    if (savePatchOut.getExitValue() != 0) {
+      String message = "";
+      String[] stderr = savePatchOut.getStdError();
+
+      for (int i = 0; i < stderr.length; i++) {
+        message = message + stderr[i] + "\n";
+      }
+      throw new SystemProcessException(message);
+    }
+
+    // Convert the new patchvector.mod
+    String imodBinPath =
+      ApplicationManager.getIMODDirectory().getAbsolutePath()
+        + File.separator
+        + "bin"
+        + File.separator;
+    String commandLine = imodBinPath + "imod2patch patch_vector.mod patch.out";
+    SystemProgram patch2imod = new SystemProgram(commandLine);
+    patch2imod.setWorkingDirectory(new File(System.getProperty("user.dir")));
+    patch2imod.setDebug(appManager.isDebug());
+
+    patch2imod.run();
+    if (patch2imod.getExitValue() != 0) {
+      String message = "";
+      String[] stderr = patch2imod.getStdError();
+
+      for (int i = 0; i < stderr.length; i++) {
+        message = message + stderr[i] + "\n";
+      }
+      throw new SystemProcessException(message);
+    }
+  }
+
+  /**
+   * Run the combine com file
+   * 
+   * @param axisID
+   *          the AxisID to run tilt on.
+   */
+  public String combine() throws SystemProcessException {
+    //  Create the required combine command
+    String command = "combine.com";
+
+    //  Start the com script in the background
+    ComScriptProcess comScriptProcess =
+      startComScript(command, null, AxisID.ONLY);
+    return comScriptProcess.getName();
+
+  }
+
+  /**
+   * Run the solvematchshift com file
+   * 
+   * @return String
+   */
+  public String solvematchshift() throws SystemProcessException {
+    //  Create the required combine command
+    String command = "solvematchshift.com";
+
+    //  Start the com script in the background
+    ComScriptProcess comScriptProcess =
+      startComScript(command, null, AxisID.ONLY);
+    return comScriptProcess.getName();
+
+  }
+
+  /**
+   * Run the solvematchmod com file
+   * 
+   * @return String
+   */
+  public String solvematchmod() throws SystemProcessException {
+    //  Create the required combine command
+    String command = "solvematchmod.com";
+
+    //  Start the com script in the background
+    ComScriptProcess comScriptProcess =
+      startComScript(command, null, AxisID.ONLY);
+    return comScriptProcess.getName();
+
+  }
+
+  /**
+   * Run the matchvol1 com file
+   * 
+   * @return String
+   */
+  public String matchvol1() throws SystemProcessException {
+    //  Create the required combine command
+    String command = "matchvol1.com";
+
+    //  Start the com script in the background
+    ComScriptProcess comScriptProcess =
+      startComScript(command, null, AxisID.ONLY);
+    return comScriptProcess.getName();
+
+  }
+
+  /**
+   * Run the patchcorr com file
+   * 
+   * @return String
+   */
+  public String patchcorr() throws SystemProcessException {
+    //  Create the required combine command
+    String command = "patchcorr.com";
+
+    //  Start the com script in the background
+    ComScriptProcess comScriptProcess =
+      startComScript(command, null, AxisID.ONLY);
+    return comScriptProcess.getName();
+
+  }
+
+  /**
+   * Run the matchorwarp com file
+   * 
+   * @return String
+   */
+  public String matchorwarp() throws SystemProcessException {
+    //  Create the required combine command
+    String command = "matchorwarp.com";
+
+    //  Start the com script in the background
+    ComScriptProcess comScriptProcess =
+      startComScript(command, null, AxisID.ONLY);
+    return comScriptProcess.getName();
+
+  }
+
+  /**
+   * Run the volcombine com file
+   * 
+   * @return String
+   */
+  public String volcombine() throws SystemProcessException {
+    //  Create the required combine command
+    String command = "volcombine.com";
+
+    //  Start the com script in the background
+    ComScriptProcess comScriptProcess =
+      startComScript(command, null, AxisID.ONLY);
+    return comScriptProcess.getName();
+
+  }
+
+  /**
+   * Run trimvol
+   */
+  public String trimVolume(TrimvolParam trimvolParam)
+    throws SystemProcessException {
+    BackgroundProcess backgroundProcess =
+      startBackgroundProcess(trimvolParam.getCommandString(), AxisID.ONLY);
+    return backgroundProcess.getName();
+  }
+
+  /**
+   * Run the comand specified by the argument string
+   */
+  public String test(String commandLine) {
+    BackgroundProcess command = new BackgroundProcess(commandLine, this);
+    command.setWorkingDirectory(new File(System.getProperty("user.dir")));
+    command.setDebug(appManager.isDebug());
+    command.start();
+
+    if (appManager.isDebug()) {
+      System.err.println("Started " + commandLine);
+      System.err.println("  Name: " + command.getName());
+    }
+    return command.getName();
+  }
+
+  /**
+   * Start an arbtrary command as an unmanaged background thread
+   */
+  private void startSystemProgramThread(String command) {
+
+    // Initialize the SystemProgram object
+    SystemProgram sysProgram = new SystemProgram(command);
+    sysProgram.setWorkingDirectory(new File(System.getProperty("user.dir")));
+    sysProgram.setDebug(appManager.isDebug());
+
+    //  Start the system program thread
+    Thread sysProgThread = new Thread(sysProgram);
+    sysProgThread.start();
+    if (appManager.isDebug()) {
+      System.err.println("Started " + command);
+      System.err.println(
+        "  working directory: " + System.getProperty("user.dir"));
+    }
+  }
+
+  /**
+   * Start a managed command script for the specified axis
+   * 
+   * @param command
+   * @param axisID
+   * @return
+   */
+  private ComScriptProcess startComScript(
+    String command,
+    Runnable processMonitor,
+    AxisID axisID)
+    throws SystemProcessException {
+
+    isAxisBusy(axisID);
+
+    //  Run the script as a thread in the background
+    ComScriptProcess comScriptProcess = new ComScriptProcess(command, this);
+    comScriptProcess.setWorkingDirectory(
+      new File(System.getProperty("user.dir")));
+    comScriptProcess.setDebug(appManager.isDebug());
+    comScriptProcess.setDemoMode(appManager.isDemo());
+    comScriptProcess.start();
+
+    // Map the thread to the correct axis
+    mapAxisThread(comScriptProcess, axisID);
+
+    if (appManager.isDebug()) {
+      System.err.println("Started " + command);
+      System.err.println("  Name: " + comScriptProcess.getName());
+    }
+
+    Thread processMonitorThread = null;
+    // Replace the process monitor with a DemoProcessMonitor if demo mode is on
+    if (appManager.isDemo()) {
+      processMonitor =
+        new DemoProcessMonitor(
+          appManager,
+          axisID,
+          command,
+          comScriptProcess.getDemoTime());
+    }
+
+    //	Start the process monitor thread if a runnable process is provided
+    if (processMonitor != null) {
+      // Wait for the started flag within the comScriptProcess, this ensures
+      // that log file has already been moved
+      while (!comScriptProcess.isStarted()) {
+        try {
+          Thread.sleep(1000);
+        }
+        catch (InterruptedException e) {
+          break;
+        }
+      }
+      processMonitorThread = new Thread(processMonitor);
+      processMonitorThread.start();
+      mapAxisProcessMonitor(processMonitorThread, axisID);
+    }
+
+    return comScriptProcess;
+  }
+
+  /**
+   * A message specifying that a com script has finished execution
+   * 
+   * @param script
+   *          the ComScriptProcess execution object that finished
+   * @param exitValue
+   *          the exit value for the com script
+   */
+  public void msgComScriptDone(ComScriptProcess script, int exitValue) {
+    if (exitValue != 0) {
+      String[] stdError = script.getStdError();
+      String[] combined;
+      //    Is the last string "Killed"
+      if ((stdError.length > 0)
+        && (stdError[stdError.length - 1].trim().equals("Killed"))) {
+        combined = new String[1];
+        combined[0] = "<html>Terminated: " + script.getScriptName();
+      }
+      else {
+        String[] message = script.getErrorMessage();
+        combined = new String[message.length + stdError.length + 5];
+        int j = 0;
+        combined[j++] = "<html>Com script failed: " + script.getScriptName();
+        combined[j++] = "  ";
+        combined[j++] = "<html><U>Log file errors:</U>";
+
+        for (int i = 0; i < message.length; i++, j++) {
+          combined[j] = message[i];
+        }
+        combined[j++] = "  ";
+        combined[j++] = "<html><U>Standard error output:</U>";
+        for (int i = 0; i < stdError.length; i++, j++) {
+          combined[j] = stdError[i];
+        }
+      }
+      appManager.openMessageDialog(
+        combined,
+        script.getScriptName() + " terminated");
+    }
+    else {
+      // Script specific post processing
+
+      if (script.getScriptName().equals("aligna.com")) {
+        generateAlignLogs(AxisID.FIRST);
+      }
+      if (script.getScriptName().equals("alignb.com")) {
+        generateAlignLogs(AxisID.SECOND);
+      }
+      if (script.getScriptName().equals("align.com")) {
+        generateAlignLogs(AxisID.ONLY);
+      }
+
+      if (script.getScriptName().equals("tomopitcha.com")) {
+        appManager.openTomopitchLog(AxisID.FIRST);
+      }
+      if (script.getScriptName().equals("tomopitchb.com")) {
+        appManager.openTomopitchLog(AxisID.SECOND);
+      }
+      if (script.getScriptName().equals("tomopitch.com")) {
+        appManager.openTomopitchLog(AxisID.ONLY);
+      }
+
+      String[] warningMessages = script.getWarningMessage();
+      String[] dialogMessage;
+      if (warningMessages != null && warningMessages.length > 0) {
+        dialogMessage = new String[warningMessages.length + 2];
+        dialogMessage[0] = "Com script: " + script.getScriptName();
+        dialogMessage[1] = "<html><U>Warnings:</U>";
+        int j = 2;
+        for (int i = 0; i < warningMessages.length; i++) {
+          dialogMessage[j++] = warningMessages[i];
+        }
+        appManager.openMessageDialog(
+          dialogMessage,
+          script.getScriptName() + " warnings");
+      }
+
+    }
+
+    //  Null out the correct thread
+    // Interrupt the process monitor and nulll out the appropriate references
+    if (threadAxisA == script) {
+      if (processMonitorA != null) {
+        processMonitorA.interrupt();
+        processMonitorA = null;
+      }
+      threadAxisA = null;
+    }
+    if (threadAxisB == script) {
+      if (processMonitorB != null) {
+        processMonitorB.interrupt();
+        processMonitorB = null;
+      }
+      threadAxisB = null;
+    }
+
+    //  Inform the app manager that this process is complete
+    appManager.processDone(script.getName(), exitValue);
+  }
+
+  /**
+   * Start a managed background process
+   * 
+   * @param command
+   * @param axisID
+   * @throws SystemProcessException
+   */
+  private BackgroundProcess startBackgroundProcess(
+    String command,
+    AxisID axisID)
+    throws SystemProcessException {
+
+    isAxisBusy(axisID);
+
+    BackgroundProcess backgroundProcess = new BackgroundProcess(command, this);
+    backgroundProcess.setWorkingDirectory(
+      new File(System.getProperty("user.dir")));
+    backgroundProcess.setDemoMode(appManager.isDemo());
+    backgroundProcess.setDebug(appManager.isDebug());
+    backgroundProcess.start();
+    if (appManager.isDebug()) {
+      System.err.println("Started " + command);
+      System.err.println("  Name: " + backgroundProcess.getName());
+    }
+
+    mapAxisThread(backgroundProcess, axisID);
+    return backgroundProcess;
+  }
+
+  /**
+   * A message specifying that a background process has finished execution
+   * 
+   * @param script
+   *          the BackgroundProcess execution object that finished
+   * @param exitValue
+   *          the exit value for the process
+   */
+  public void msgBackgroundProcessDone(
+    BackgroundProcess process,
+    int exitValue) {
+
+    //  Check to see if the exit value is non-zero
+    if (exitValue != 0) {
+      String[] stdError = process.getStdError();
+      String[] message;
+
+      // Is the last string "Killed"
+      if ((stdError.length > 0)
+        && (stdError[stdError.length - 1].trim().equals("Killed"))) {
+        message = new String[1];
+        message[0] = "<html>Terminated: " + process.getCommandLine();
+      }
+      else {
+        int j = 0;
+        message = new String[stdError.length + 3];
+        message[j++] = "<html>Command failed: " + process.getCommandLine();
+        message[j++] = "  ";
+        message[j++] = "<html><U>Standard error output:</U>";
+        for (int i = 0; i < stdError.length; i++, j++) {
+          message[j] = stdError[i];
+        }
+      }
+      appManager.openMessageDialog(
+        message,
+        process.getCommand() + " terminated");
+    }
+
+    // Another possible error message source is ERROR: in the stdout stream
+    String[] stdOutput = process.getStdOutput();
+    ArrayList errors = new ArrayList();
+    boolean foundError = false;
+    for (int i = 0; i < stdOutput.length; i++) {
+      if (!foundError) {
+        int index = stdOutput[i].indexOf("ERROR:");
+        if (index != -1) {
+          foundError = true;
+          errors.add(stdOutput[i]);
+        }
+      }
+      else {
+        errors.add(stdOutput[i]);
+      }
+    }
+    String[] errorMessage =
+      (String[]) errors.toArray(new String[errors.size()]);
+
+    if (errorMessage.length > 0) {
+      appManager.openMessageDialog(errorMessage, "Background Process Error");
+    }
+
+    // Command succeeded, check to see if we need to show any application
+    // specific info
+    else {
+      if (process.getCommandLine().equals(transferfidCommandLine)) {
+        handleTransferfidMessage(process);
+      }
+    }
+
+    // Null the reference to the appropriate thread
+    if (process == threadAxisA) {
+      threadAxisA = null;
+    }
+    if (process == threadAxisB) {
+      threadAxisB = null;
+    }
+
+    //	Inform the app manager that this process is complete
+    appManager.processDone(process.getName(), exitValue);
+  }
+
+  /**
+   * Unique case to parse the output of transferfid and save it to a file
+   * 
+   * @param process
+   */
+  private void handleTransferfidMessage(BackgroundProcess process) {
+    try {
+
+      //  Write the standard output to a the log file
+      String[] stdOutput = process.getStdOutput();
+      BufferedWriter fileBuffer =
+        new BufferedWriter(
+          new FileWriter(System.getProperty("user.dir") + "/transferfid.log"));
+
+      for (int i = 0; i < stdOutput.length; i++) {
+        fileBuffer.write(stdOutput[i]);
+        fileBuffer.newLine();
+      }
+      fileBuffer.close();
+
+      //  Show a log file window to the user
+      TextPageWindow logFileWindow = new TextPageWindow();
+      logFileWindow.setVisible(
+        logFileWindow.setFile(
+          System.getProperty("user.dir") + File.separator + "transferfid.log"));
+    }
+    catch (IOException except) {
+      appManager.openMessageDialog(
+        except.getMessage(),
+        "Transferfid log error");
+    }
+  }
+  /**
+   * Save the process thread reference for the appropriate axis
+   * 
+   * @param thread
+   * @param axisID
+   */
+  private void mapAxisThread(SystemProcessInterface thread, AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      threadAxisB = thread;
+    }
+    else {
+      threadAxisA = thread;
+    }
+  }
+
+  /**
+   * Check to see if specified axis is busy, throw a system a
+   * ProcessProcessException if it is.
+   * 
+   * @param axisID
+   * @throws SystemProcessException
+   */
+  private void isAxisBusy(AxisID axisID) throws SystemProcessException {
+    // Check to make sure there is not another process already running on this
+    // axis.
+    if (axisID == AxisID.SECOND) {
+      if (threadAxisB != null) {
+        throw new SystemProcessException("A process is already executing in the current axis");
+      }
+    }
+    else {
+      if (threadAxisA != null) {
+        throw new SystemProcessException("A process is already executing in the current axis");
+      }
+    }
+  }
+
+  /**
+   * Save the process monitor thread reference for the appropriate axis
+   * 
+   * @param processMonitor
+   * @param axisID
+   */
+  private void mapAxisProcessMonitor(Thread processMonitor, AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      processMonitorB = processMonitor;
+    }
+    else {
+      processMonitorA = processMonitor;
+    }
+  }
+
+  /**
+   * Kill the thread for the specified axis
+   */
+  public void kill(AxisID axisID) {
+    String processID = "";
+    if (axisID == AxisID.SECOND) {
+      if (threadAxisB != null) {
+        processID = threadAxisB.getShellProcessID();
+      }
+    }
+    else {
+      System.out.print(threadAxisA);
+      if (threadAxisA != null) {
+        processID = threadAxisA.getShellProcessID();
+      }
+    }
+
+    //  Loop over killing the children until there are none left
+    if (!processID.equals("")) {
+      String[] children;
+      while ((children = getChildProcessList(processID)) != null) {
+        String killCommand = "kill ";
+        for (int i = 0; i < children.length; i++) {
+          killCommand = killCommand + children[i] + " ";
+        }
+
+        SystemProgram kill = new SystemProgram(killCommand);
+        kill.run();
+      }
+
+      SystemProgram killShell = new SystemProgram("kill " + processID);
+      killShell.run();
+    }
+  }
+
+  /**
+   * Return a string array of the PIDs of children processes for the specified
+   * process.
+   * 
+   * @param processID
+   * @return A string array of the child processes or null if they don't exist
+   */
+  private String[] getChildProcessList(String processID) {
+    //  Run the appropriate version of ps
+    SystemProgram ps = new SystemProgram("ps -l");
+    ps.run();
+
+    //  Find the index of the Parent ID and ProcessID
+    String[] stdout = ps.getStdOutput();
+    String header = stdout[0].trim();
+    String[] labels = header.split("\\s+");
+    int idxPID = -1;
+    int idxPPID = -1;
+    for (int i = 0; i < labels.length; i++) {
+      if (labels[i].equals("PID")) {
+        idxPID = i;
+      }
+      if (labels[i].equals("PPID")) {
+        idxPPID = i;
+      }
+    }
+    //  Return null if the PID or PPID fields are not found
+    if (idxPPID == -1 || idxPID == -1) {
+      return null;
+    }
+
+    // Walk through the process list finding the PID of the children
+    ArrayList childrenPID = new ArrayList();
+    String[] fields;
+    for (int i = 1; i < stdout.length; i++) {
+      fields = stdout[i].trim().split("\\s+");
+      if (fields[idxPPID].equals(processID)) {
+        childrenPID.add(fields[idxPID]);
+      }
+    }
+
+    // If there are no children return null
+    if (childrenPID.size() == 0) {
+      return null;
+    }
+
+    // Connvert the ArrayList into a String[]
+    String[] children =
+      (String[]) childrenPID.toArray(new String[childrenPID.size()]);
+    return children;
+  }
 
 }

@@ -26,6 +26,9 @@ import javax.swing.text.StyledEditorKit;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.0  2003/11/07 23:19:01  rickg
+ * <p> Version 1.0.0
+ * <p>
  * <p> Revision 1.2  2003/06/04 23:38:52  rickg
  * <p> Added independent labels for tabs
  * <p>
@@ -45,7 +48,6 @@ public class TabbedTextWindow extends JFrame {
     mainPanel = getContentPane();
     mainPanel.add(tabPane);
     setTitle(label);
-    //  TODO: make the window size setable in properties
     setSize(625, 800);
   }
 

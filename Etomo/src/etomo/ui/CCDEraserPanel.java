@@ -30,6 +30,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.0  2003/11/07 23:19:01  rickg
+ * <p> Version 1.0.0
+ * <p>
  * <p> Revision 2.14  2003/10/30 01:43:44  rickg
  * <p> Bug# 338 Remapped context menu entries
  * <p>
@@ -150,7 +153,8 @@ public class CCDEraserPanel implements ContextMenu {
   private JCheckBox cbIncludeAdjacentPoints =
     new JCheckBox("Include adjacent points");
 
-  private JToggleButton btnErase = new JToggleButton("<html><b>Create Fixed Stack</b>");
+  private JToggleButton btnErase =
+    new JToggleButton("<html><b>Create Fixed Stack</b>");
   private JButton btnViewErased = new JButton("<html><b>View Fixed Stack</b>");
   private JToggleButton btnReplaceRawStack =
     new JToggleButton("<html><b>Use Fixed Stack</b>");
@@ -232,8 +236,6 @@ public class CCDEraserPanel implements ContextMenu {
     pnlEraseButtons.add(Box.createHorizontalGlue());
     pnlCCDEraser.add(pnlEraseButtons);
 
-    // Set the button sizes relative to the font size
-    // FIXME: button sizes
     double height = cbXrayReplacement.getPreferredSize().getHeight();
     Dimension dimButton = new Dimension();
     dimButton.setSize(6 * height, 2 * height);
@@ -350,7 +352,7 @@ public class CCDEraserPanel implements ContextMenu {
    * @param state
    */
   void setAdvanced(boolean state) {
-		cbXrayReplacement.setVisible(state);
+    cbXrayReplacement.setVisible(state);
     ltfGrowCriterion.setVisible(state);
     ltfEdgeExclusion.setVisible(state);
     ltfMaximumRadius.setVisible(state);
@@ -401,11 +403,11 @@ public class CCDEraserPanel implements ContextMenu {
   public void popUpContextMenu(MouseEvent mouseEvent) {
     String[] label = { "CCDEraser" };
     String[] manPage = { "ccderaser.html" };
-    
+
     String[] logFileLabel = { "Eraser" };
     String[] logFile = new String[1];
     logFile[0] = "eraser" + axisID.getExtension() + ".log";
-    
+
     ContextPopup contextPopup =
       new ContextPopup(
         pnlCCDEraser,
@@ -501,9 +503,10 @@ public class CCDEraserPanel implements ContextMenu {
     ltfLocalReplacementList.setToolTipText(
       tooltipFormatter.setText(text).format());
 
-	text = "Use a manually created model to specify regions and lines to replace.";
-	cbManualReplacement.setToolTipText(tooltipFormatter.setText(text).format());
-	
+    text =
+      "Use a manually created model to specify regions and lines to replace.";
+    cbManualReplacement.setToolTipText(tooltipFormatter.setText(text).format());
+
     text =
       "List of objects with points to be replaced on all sections.  "
         + "Ranges can be entered, and / to specify all objects.";
@@ -520,11 +523,12 @@ public class CCDEraserPanel implements ContextMenu {
         + "which includes terms in x, y, x**2, y**2 and x*y).";
     ltfPolynomialOrder.setToolTipText(tooltipFormatter.setText(text).format());
 
-    text = 
+    text =
       "Include pixels adjacent to the patch being replaced in the pixels "
-      + "being fit.";
-    cbIncludeAdjacentPoints.setToolTipText(tooltipFormatter.setText(text).format());
-    
+        + "being fit.";
+    cbIncludeAdjacentPoints.setToolTipText(
+      tooltipFormatter.setText(text).format());
+
     text =
       "Run ccderaser in trial mode creating a x-ray model which can be viewed "
         + "in 3dmod.  This will not create an output stack.";
@@ -538,7 +542,7 @@ public class CCDEraserPanel implements ContextMenu {
 
     text =
       "Run ccderaser, erasing the raw stack and writing the modified stack "
-        + "to the output file specified (the default is *_fixed.st).  " 
+        + "to the output file specified (the default is *_fixed.st).  "
         + "NOTE: subsequent processing uses the "
         + "raw stack filename, therefore for ccderaser to have an effect on "
         + "your data you must commit the raw stack when you are satisfied with"

@@ -8,9 +8,9 @@
 # Place this file in /etc/profile.d
 
 #
-# Set IMOD_DIR if it is not set already
+# Set IMOD_DIR if it is not set already, use Windows path format
 #
-if (! $?IMOD_DIR) setenv IMOD_DIR /usr/local/IMOD
+if (! $?IMOD_DIR) setenv IMOD_DIR C:\cygwin\usr\local\IMOD
 
 #
 # Put the IMOD programs on the path

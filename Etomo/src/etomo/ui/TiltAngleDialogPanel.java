@@ -23,6 +23,9 @@ import etomo.ui.TooltipFormatter;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.0  2003/11/07 23:19:01  rickg
+ * <p> Version 1.0.0
+ * <p>
  * <p> Revision 2.2  2003/10/09 20:27:43  sueh
  * <p> bug264
  * <p> UI Changes
@@ -139,6 +142,27 @@ public class TiltAngleDialogPanel {
     tiltAngleSpec.setRangeStep(Double.parseDouble(ltfAngleStep.getText()));
   }
 
+  /**
+   * Validates and return an error messaage.  This panel does not use
+   * isValid() because it does not have enough information to display a
+   * complete error message.
+   * @return partial error message
+   */
+  String getErrorMessage() {
+    if (rbTiltAngleSpecify.isSelected()) {
+      if (ltfAngleMin.getText().equals("")) {
+        return new String("Minimum range cannot be empty");
+      }
+      if (ltfAngleMax.getText().equals("")) {
+        return new String("Maximum range cannot be empty");
+      }
+      if (ltfAngleStep.getText().equals("")) {
+        return new String("Step cannot be empty");
+      }
+    }
+    return null;
+  }
+
   //
   //  Walk through all of the objects applying the appropriate state
   //
@@ -155,11 +179,14 @@ public class TiltAngleDialogPanel {
     String text;
     TooltipFormatter tooltipFormatter = new TooltipFormatter();
     text = "Specify the source of the view tilt angles";
-    panelTiltAngleSource.setToolTipText(tooltipFormatter.setText(text).format());
-    text = "Select the Extract option if the extended header of the "
+    panelTiltAngleSource.setToolTipText(
+      tooltipFormatter.setText(text).format());
+    text =
+      "Select the Extract option if the extended header of the "
         + "raw data stack contains the angles";
     rbTiltAngleExtract.setToolTipText(tooltipFormatter.setText(text).format());
-    text = "Select the Specify option if you wish to manually "
+    text =
+      "Select the Specify option if you wish to manually "
         + "specify the tilt angles in the edit boxes below";
     rbTiltAngleSpecify.setToolTipText(tooltipFormatter.setText(text).format());
     text = "Starting tilt angle of the series";
@@ -168,7 +195,8 @@ public class TiltAngleDialogPanel {
     ltfAngleMax.setToolTipText(tooltipFormatter.setText(text).format());
     text = "Tilt increment between views";
     ltfAngleStep.setToolTipText(tooltipFormatter.setText(text).format());
-    text = "Select the File option if the tilt angles already exist "
+    text =
+      "Select the File option if the tilt angles already exist "
         + "in a *.rawtlt file";
     rbTiltAngleFile.setToolTipText(tooltipFormatter.setText(text).format());
   }
