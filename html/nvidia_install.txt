@@ -1,14 +1,14 @@
 These instructions may be helpful with the steps required if you are
 installing an Nvidia card to use with IMOD.  They were correct as of
-November 2001.  The list of steps assume that you have already installed
-Red Hat Linux 7.1 with the XFree86 4.0.x drivers.
+August 2002.  The list of steps assume that you have already installed
+Red Hat Linux 7.1-7.3 with the XFree86 drivers.
 
 1. Go to the Nvidia web site (http://www.nvidia.com) and find the page
 offering Linux drivers (e.g. select Support Center, Drivers, Back to
-Driver Library).  Select the latest version for XFree86 4.0.x and by
+Driver Library).  Select the latest version for XFree86 4.x and by
 either ftp or http download, get two tar.gz files:
-   NVIDIA_kernel-1.0-1541.tar.gz
-   NVIDIA_GLX-1.0-1541.tar.gz
+   NVIDIA_kernel-1.0-2960.tar.gz
+   NVIDIA_GLX-1.0-2960.tar.gz
 
 Notice links to the README and Installation Guide on this site; you will need
 to access this if you run into trouble or are deviating from our narrow path
@@ -39,12 +39,12 @@ for both the kernel and glx tar files.
 
 5. Go to the directory which contains the unpacked/untarred Nvidia kernel
 files.  Type make.  This will build the interface files from your version of
-Linux to the 1.0-1541 version of the Nvidia drivers.  Do a /sbin/lsmod to
+Linux to the 1.0-2960 version of the Nvidia drivers.  Do a /sbin/lsmod to
 double check - you will see a new entry for NVdriver.
 
 6. Go to the directory in which the Nvidia GLX file was unpacked/untarred.
 Type "make".  The message which comes out should indicate success. This will
-install the 1.0-1541 version of OpenGL from Nvidia.
+install the 1.0-2960 version of OpenGL from Nvidia.
 
 7. Edit your /etc/X11/XF86Config file.
 Make sure the modules section loads "glx".
@@ -55,14 +55,35 @@ A sample XF86Config file is attached for your reference.
 desktop.  Failure is a message saying the X server cannot come up.  A
 frequent message is a complaint about no/missing screens.  This really
 means that the nvidia driver could not start for one reason or another.
-You can examine the start up process in details by looking in the file
+You can examine the start up process in detail by looking in the file
 /var/log/XFree86.0.log.  Make sure that the number of bits specified in
 the Display line matches up with one of the screens that is declared.
 
-9. Install the real OpenMotif libraries.  From the Gnome worksurface
-(as root), insert the RH7 PowerTools Applications CD and start up
-GNORPM.  (It should offer to start up automatically; if not, do
+9. Install the real OpenMotif libraries.  
+A. If you are running Red Hat 7.3, you need the OpenMotif 2.1 compatibility
+libraries.  If you did a custom installation and selected "Legacy
+Applications", you should have them already.  Check whether they are present 
+with:
+
+rpm -qa | grep motif
+
+If this yields openmotif21-2.1.30-1, you are all set.  Otherwise insert
+the (second?) Binary CD of the 7.3 distribution and start up GnoRPM.
+(It should offer to start up automatically; if not, do
 Paw-Programs-System-GnoRPM.)
+
+Click the "install" icon on GNORPM to get the second window that
+indicates packages available on the CD.
+
+Under system environment, libraries, select "OpenMotif21-2.1.30-1" then 
+push "Install" to complete the installation.
+
+B. For systems below Red Hat 7.3, you can install OpenMotif 2.1 from
+the PowerTools CD (for Red Hat 7.0 or 7.1) or (possibly) from the Utilities
+CD (for Red Hat 7.2).  
+
+Insert the relevant CD and start up
+GNORPM.  
 
 Click the "install" icon on GNORPM to get the second window that
 indicates packages available on the CD.
@@ -72,31 +93,35 @@ Under system environment, libraries, select "OpenMotif".
 If you are building IMOD from source, then under development, libraries,
 select "OpenMotif".
 
-Do a query, make sure one or both are still selected as desired, then
-"install" both.
+Push "Install" to complete the installation.
 
-After the install, go back to the first window and examine the installed
-configuration to verify that they are now in place.
+C. Alternatively, for systems below Red Hat 7.3, you can install or upgrade to
+OpenMotif 2.2 plus the 2.1 compatibility libaries.  This will allow you to run 
+IMOD 2.7.0 and should be compatible with future releases of IMOD that are built
+against OpenMotif 2.2.  Go to the Red Hat site (http://www.redhat.com) and
+search Linux sites for the following RPMs:
 
-10. If you are building IMOD from source, then you need to install the
-elusive GLw library and headers.  In the directory where you have
-unpacked IMOD source, do
-  make glw
-  make installglw     (this step requires that you be root)
+openmotif21-2.1.30-1
+openmotif-2.2.2-5
+openmotif-devel-2.2.2-5   (if you are building from source)
 
-11. You are strongly encouraged to replace the Mesa libGLU.so with a version
-built from SGI's source code.  This is essential if you are building IMOD
-from source.  Mesa 3.5 apparently has such a libGLU, but the version of
-Mesa distributed in Redhat 7.1 has a different libGLU that is broken in
-some respects.  The Mesa site (http://www.mesa3d.org) has a link under
-"SGI's GLU" to an rpm built by Olivier Michel.  Download this and
-install with
+Download these RPMs and install with
+
+rpm -Uhv openmotif*
+
+10. If you are running a system lower than Red Hat 7.3, you are strongly
+encouraged to replace the Mesa libGLU.so with a version built from SGI's
+source code.  This is essential if you are building IMOD from source.  Mesa
+3.5 apparently has such a libGLU, but the version of Mesa distributed in
+Redhat 7.1 has a different libGLU that is broken in some respects.  The Mesa
+site (http://www.mesa3d.org) has a link under "SGI's GLU" to an rpm built by
+Olivier Michel.  Download this and install with
    rpm -i  --replacefiles oss-opengl-glu-20000925-1.i386.rpm
 
-12. Modify /etc/inittab to set the run mode to graphical and boot into X
+11. Modify /etc/inittab to set the run mode to graphical and boot into X
 by default, if desired.
 
-13. Log in as a normal user.  Set up to run IMOD programs (e.g., source the
+12. Log in as a normal user.  Set up to run IMOD programs (e.g., source the
 file "pcinstall" or "bashinstall" while sitting in the top IMOD directory).
 Run imodv on the file yeastpore.mod
    imodv yeastpore.mod
@@ -109,7 +134,8 @@ any conflicting Mesa libraries are eliminated. More information on this
 subject may be found at the Nvidia driver site as well as at
 www.tomshardware.com.  If the rate is somewhat slower (e.g. around 100), you
 may have problems with the AGP support.  Do 
-   cat /proc/nv/card0
+     cat /proc/nv/card0                   
+  or cat  /proc/driver/nvidia/agp/status   (if the latter doesn't work).
  and see if AGP is Disabled.  If so, you may need to upgrade your kernel,
 because the Redhat 7.1 distribution included a module that broke AGP support
 for some processor/motherboard types.

@@ -33,10 +33,11 @@ SETTING WINDOW MANAGER PROPERTIES
 
      Next you should change some features of the Sawfish window manager
 in the Gnome Control Center, selected with the Toolbox icon in your task
-bar.  In the menu on the left is a section under "Sawfish window
-manager" that has the entries for selecting the panels of interest.
-When you change the settings in a panel, press the "OK" button before
-selecting another panel to minimize confusion.
+bar.  (The panels can also be selected from the Gnome menu under
+Programs-Settings-Sawfish Window Manager.)  In the menu on the left is a
+section under "Sawfish window manager" that has the entries for selecting the
+panels of interest.  When you change the settings in a panel, press the "OK"
+button before selecting another panel to minimize confusion.
 
 "Focus behavior" panel:
      "When does the mouse pointer affect the input focus": If you are

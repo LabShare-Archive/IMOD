@@ -1,6 +1,6 @@
 <html><head> <title>IMOD User's Guide</title> </head>
 <body> 
-<H1>IMOD Users's Guide for Version 2.50</H1>
+<H1>IMOD Users's Guide for Version 2.7.0</H1>
 
 <HR>
 <H3>Table of Contents</H3>
@@ -28,58 +28,52 @@ The recommended configuration for running the IMOD software is:
 <P>
 Processor:  Intel Pentium III or 4 or AMD Athlon
 <BR>
-Video Card:  Nvidia Geforce 256, GeForce 2 MX, Geforce2 GTS, Geforce2 GTS Ultra, GeForce3
-(Ultra or GeForce3 preferred)
+Video Card:  Nvidia Geforce 256, GeForce 2 MX, Geforce2 GTS, Geforce2 GTS 
+Ultra, GeForce3, GeForce 4 (64 MB or 128 MB cards preferred)
 <BR>
 Minimum memory size:  256MB
 <BR>
 Minimum disk size:          10 GB
 <BR>
-Operating System:  Red Hat 7.0 or 7.1 Workstation class installation
+Operating System:  Red Hat 7.1-7.3 Workstation class installation.  In order
+to use over 800 MB of memory, you should be running at least Red Hat 7.1.
 <BR>
-OpenMotif from the Red Hat 7.0 or 7.1 PowerTools CD
+OpenMotif 2.1.30 from the Red Hat 7.1 PowerTools CD, or OpenMotif 2.2.2
+plus the 2.1.30 compatibility library
 <BR>
 Nvidia Linux device drivers and OpenGL libraries from
-<A HREF = "http://www.nvidia.com">Nvidia</A>
+<A HREF = "http://www.nvidia.com">Nvidia</A>, at least version 1541 or higher.
 <BR>
-A version of the OpenGL library libGLU.so based on the SGI sample
-implementation, available through links at 
+For Red Hat 7.1 or 7.2, a version of the OpenGL library libGLU.so based on the
+SGI sample implementation, available through links at 
 <A HREF = "http://www.mesa3d.org">Mesa</A>
 <BR>
 <P>
 The steps required to install the Nvidia card and drivers are somewhat tricky.
 These
 <A HREF = "nvidia_install.txt">instructions</A> are based on our
-current procedures and may be helpful.  In addition, here are samples of
-a <A HREF = "XF86Config.txt">/etc/X11/XF86Config</A> file from Red Hat 7.0
-and a <A HREF = "XF86Config7.1.txt">/etc/X11/XF86Config-4</A> file from Red Hat
+current procedures and may be helpful.  In addition, here is a sample of
+a <A HREF = "XF86Config7.1.txt">/etc/X11/XF86Config-4</A> file from Red Hat
 7.1.
 <P>
-You should get the latest Nvidia drivers.  
-There were several bugs in the 0.95 drivers that were
-fixed in the 0.96 drivers.
-As of IMOD 2.50, imod has been compiled
-without the workarounds to these bugs.
-<P>
-You are encouraged to get a copy of libGLU.so based on SGI's source code
+If you are running a system lower than Red Hat 7.3, you are encouraged to get
+a copy of libGLU.so based on SGI's source code
 because the version from Mesa distributed with Red Hat 7.1 is missing some
 functions, which will make imod crash if you attempt to display an object
 in "Contour-Fill" mode in the model view window.  Earlier versions of the
 Mesa libGLU had a bug which sometimes crashed imod in this display mode.  As
-of IMOD 2.50, imod has been compiled without the workaround that prevented
+of IMOD 2.50, Imod has been compiled without the workaround that prevented
 these crashes, another reason to get a better libGLU.  See our <A HREF =
 "nvidia_install.txt">Nvidia instructions</A> for details.
 <P>
-In order
-to use over 800 MB of memory, you should be running Red Hat 7.1, but if you
-are stuck with 7.0, you need to recompile the kernel with
-support for "BIGMEMORY".  Here are some <A HREF = "bigmem_kernel.txt">
-instructions</A> based on our experience in building such kernels.
+To run Imod, you need version 2.1 of OpenMotif.  However, future releases will
+probably be built against version 2.2.  You may wish to install or upgrade
+to version 2.2 plus the the 2.1 compatibility libraries.  See our <A HREF =
+"nvidia_install.txt">Nvidia instructions</A> for details.
 <P>
 Red Hat 7.1 also shipped with a version of the MTRR module that broke the
 accelerated graphics support for AMD processors.  For proper graphics
-performance, you may need to upgrade your kernel.  We have good success
-with the 2.4.3-12 upgrade kernel from Red Hat; here are some simplified
+performance, you may need to upgrade your kernel.  Here are some simplified
 <A HREF = "kernel_upgrade.txt">
 instructions</A>
 for installing an upgrade kernel with Nvidia drivers.
@@ -102,7 +96,7 @@ manager describes the important settings and some other helpful ones when
 using imod. 
 <P>
 As of IMOD 2.6.0, programs have been compiled to work with files bigger than 2
-GB.  However, the <code>tcsh 6.10</code> distributed with Red Hat 7.1 had
+GB.  However, the <code>tcsh 6.10</code> distributed with Red Hat 7.1-7.3 has
 problems with large files,
 and some of the IMOD shell scripts will fail with large files under this tcsh.
 For doing
@@ -956,7 +950,7 @@ Quick Draw 3D</A> Home Page for more information.
 <LI> <A HREF="tomojoin.html"> Guide for joining tomograms from serial sections.</A>
 <LI> <A HREF = "serialalign.txt">Guide to serial section alignment.</A>
 <HR>
-<I>Last updated: November 19, 2001</I>
+<I>Last updated: August 21, 2002</I>
 [<A HREF="../index.html">IMOD Home Page</A>] 
 [<A HREF="../../index.html">BL3DFS Home Page</A>]
 </BODY>
