@@ -22,6 +22,9 @@ import etomo.type.ViewType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.8  2003/05/12 01:21:05  rickg
+ * <p> Added explici tcsh call to copytomocoms
+ * <p>
  * <p> Revision 2.7  2003/05/08 23:19:03  rickg
  * <p> Standardized debug setting
  * <p>
@@ -78,7 +81,7 @@ public class CopyTomoComs {
     //  Create a new SystemProgram object for copytomocom, set the
     //  working directory and stdin array.
     //
-    copytomocoms = new SystemProgram("tcsh -c copytomocoms");
+    copytomocoms = new SystemProgram("tcsh -ec copytomocoms");
 
     String[] tempStdInput = new String[19];
 
