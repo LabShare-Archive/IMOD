@@ -74,6 +74,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.27  2003/04/30 18:48:51  rickg
+ * <p> Changed matchcheck* to a single imod instance
+ * <p>
  * <p> Revision 2.26  2003/04/28 23:25:25  rickg
  * <p> Changed visible imod references to 3dmod
  * <p>
@@ -414,17 +417,20 @@ public class ApplicationManager {
     DialogExitState exitState = setupDialog.getExitState();
 
     if (exitState != DialogExitState.CANCEL) {
-      // TODO  should this totally write over the metaData object?
+
+      // Set the current working directory for the application saving the
+      // old user.dir property until the meta data is valid
+      String oldUserDir = System.getProperty("user.dir");
+      System.setProperty(
+        "user.dir",
+        setupDialog.getWorkingDirectory().getAbsolutePath());
+
       metaData = setupDialog.getFields();
 
       if (metaData.isValid()) {
-        mainFrame.updateDataParameters(metaData);
+        mainFrame.updateDataParameters(null, metaData);
         processTrack.setSetupState(ProcessState.INPROGRESS);
 
-        //  Set the current working directory for the application
-        if (metaData.getWorkingDirectory().length() > 0) {
-          System.setProperty("user.dir", getWorkingDirectory());
-        }
         isDataParamDirty = true;
 
         //  Initialize a new IMOD manager
@@ -435,9 +441,11 @@ public class ApplicationManager {
         errorMessage[0] = "Setup Parameter Error";
         errorMessage[1] = metaData.getInvalidReason();
         openMessageDialog(errorMessage, "Setup Parameter Error");
+        System.setProperty("user.dir", oldUserDir);
         return;
       }
 
+      // This is really the method to use the existing com scripts
       if (exitState == DialogExitState.POSTPONE) {
         metaData.setComScriptCreated(true);
         processTrack.setSetupState(ProcessState.COMPLETE);
@@ -955,7 +963,8 @@ public class ApplicationManager {
       except.printStackTrace();
       openMessageDialog(
         except.getMessage(),
-        "Can't open 3dmod on coarse aligned stack with model: " + fiducialModel);
+        "Can't open 3dmod on coarse aligned stack with model: "
+          + fiducialModel);
     }
   }
 
@@ -1085,7 +1094,8 @@ public class ApplicationManager {
           if (imodManager.isCoarseAlignedOpen(AxisID.FIRST)
             || imodManager.isCoarseAlignedOpen(AxisID.SECOND)) {
             String[] message = new String[2];
-            message[0] = "There are coarsely aligned stack 3dmod processes open";
+            message[0] =
+              "There are coarsely aligned stack 3dmod processes open";
             message[1] = "Should they be closed?";
             boolean answer = openYesNoDialog(message);
             if (answer) {
@@ -1152,7 +1162,8 @@ public class ApplicationManager {
       except.printStackTrace();
       openMessageDialog(
         except.getMessage(),
-        "Can't open 3dmod on coarse aligned stack with model: " + fiducialModel);
+        "Can't open 3dmod on coarse aligned stack with model: "
+          + fiducialModel);
     }
   }
 
@@ -2378,13 +2389,10 @@ public class ApplicationManager {
    * tomogram
    */
   private boolean fullReconRename() {
-
-    File fullReconstruction =
-      new File(metaData.getWorkingDirectory(), "full.rec");
+    String workingDirectory = System.getProperty("user.dir");
+    File fullReconstruction = new File(workingDirectory, "full.rec");
     File finalReconstuction =
-      new File(
-        metaData.getWorkingDirectory(),
-        metaData.getDatasetName() + ".rec");
+      new File(workingDirectory, metaData.getDatasetName() + ".rec");
 
     //  If neither of the files exist return false
     if ((!fullReconstruction.exists()) && (!finalReconstuction.exists())) {
@@ -2561,14 +2569,6 @@ public class ApplicationManager {
   }
 
   /**
-   * Return the current working directory.
-   * @return a string containing the current working directory.
-   */
-  public String getWorkingDirectory() {
-    return metaData.getWorkingDirectory();
-  }
-
-  /**
    * A message asking the ApplicationManager to load in the information from the
    * test parameter file.
    * @param paramFile the File object specifiying the data parameter file.
@@ -2583,16 +2583,16 @@ public class ApplicationManager {
       storable[0] = metaData;
       storable[1] = processTrack;
       paramStore.load(storable);
+
+      // Set the current working directory for the application, this is the
+      // path to the EDF file.  The working directory is defined by the current
+      // user.dir system property.
+      System.setProperty("user.dir", paramFile.getParent());
       setTestParamFile(paramFile);
 
-      //  Update the MRU test data filename list
+      // Update the MRU test data filename list
       userConfig.putDataFile(paramFile.getAbsolutePath());
       mainFrame.setMRUFileLabels(userConfig.getMRUFileList());
-
-      //  Set the current working directory for the application
-      if (metaData.getWorkingDirectory().length() > 0) {
-        System.setProperty("user.dir", getWorkingDirectory());
-      }
 
       //  Initialize a new IMOD manager
       imodManager = new ImodManager(metaData);
@@ -2664,7 +2664,7 @@ public class ApplicationManager {
     this.paramFile = paramFile;
 
     //  Update main window information and status bar
-    mainFrame.updateDataParameters(metaData);
+    mainFrame.updateDataParameters(paramFile, metaData);
   }
 
   /**
@@ -2728,7 +2728,7 @@ public class ApplicationManager {
 
     // Get the HOME directory environment variable to find the program
     // configuration file
-    homeDirectory = getEnvironmentVariable("HOME");
+    homeDirectory = System.getProperty("user.home");
     if (homeDirectory == "") {
       String[] message = new String[2];
       message[0] =
@@ -2748,9 +2748,7 @@ public class ApplicationManager {
       openMessageDialog(message, "Program Initialization Error");
     }
     else {
-      // Set both the metadata object for persistence and the user.dir
-      // property for objects that can't directly access this object
-      metaData.setWorkingDirectory(workingDirectory);
+      // Set the System property user.dir to the current working directory
       System.setProperty("user.dir", workingDirectory);
     }
 
