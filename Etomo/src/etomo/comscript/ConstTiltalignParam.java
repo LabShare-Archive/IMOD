@@ -6,7 +6,9 @@ import etomo.type.AxisID;
 import etomo.type.ConstEtomoBoolean;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoBoolean;
+import etomo.type.EtomoBoolean2;
 import etomo.type.EtomoNumber;
+import etomo.type.ScriptParameter;
 import etomo.type.TiltAngleSpec;
 
 /**
@@ -23,6 +25,10 @@ import etomo.type.TiltAngleSpec;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.11  2005/01/13 19:01:28  sueh
+ * <p> bug# 567 Changed isExcludeListAvailable():  taking the null value and the
+ * <p> default value into account.
+ * <p>
  * <p> Revision 3.10  2005/01/13 00:44:45  sueh
  * <p> bug# 576 Converted includeStartEndInc to FortranInputString.
  * <p>
@@ -136,6 +142,7 @@ public class ConstTiltalignParam implements Command {
   protected static final String modelFileExtension = ".3dmod";
   protected static final String residualFileExtension = ".resid";
   protected static final String zFactorFileExtension = ".zfac";
+  protected static final String localFileExtension = "local.xf";
   protected static final boolean[] nondefaultGroupIntegerType = { true, true, true };
   protected static final int nondefaultGroupSize = 3;
   
@@ -162,49 +169,49 @@ public class ConstTiltalignParam implements Command {
   protected FortranInputString includeStartEndInc;
   protected StringList includeList;
   protected StringList excludeList;
-  protected EtomoNumber rotationAngle;
+  protected ScriptParameter rotationAngle;
   protected StringList separateGroup;
   protected TiltAngleSpec tiltAngleSpec;
-  protected EtomoNumber angleOffset;
-  protected EtomoBoolean projectionStretch;
-  protected EtomoNumber rotOption;
-  protected EtomoNumber rotDefaultGrouping;
+  protected ScriptParameter angleOffset;
+  protected EtomoBoolean2 projectionStretch;
+  protected ScriptParameter rotOption;
+  protected ScriptParameter rotDefaultGrouping;
   protected FortranInputString[] rotNondefaultGroup;
-  protected EtomoNumber rotationFixedView;
-  protected EtomoNumber localRotOption;
-  protected EtomoNumber localRotDefaultGrouping;
+  protected ScriptParameter rotationFixedView;
+  protected ScriptParameter localRotOption;
+  protected ScriptParameter localRotDefaultGrouping;
   protected FortranInputString[] localRotNondefaultGroup;
-  protected EtomoNumber tiltOption;
-  protected EtomoNumber tiltDefaultGrouping;
+  protected ScriptParameter tiltOption;
+  protected ScriptParameter tiltDefaultGrouping;
   protected FortranInputString[] tiltNondefaultGroup;
-  protected EtomoNumber localTiltOption;
-  protected EtomoNumber localTiltDefaultGrouping;
+  protected ScriptParameter localTiltOption;
+  protected ScriptParameter localTiltDefaultGrouping;
   protected FortranInputString[] localTiltNondefaultGroup;
-  protected EtomoNumber magReferenceView;
-  protected EtomoNumber magOption;
-  protected EtomoNumber magDefaultGrouping;
+  protected ScriptParameter magReferenceView;
+  protected ScriptParameter magOption;
+  protected ScriptParameter magDefaultGrouping;
   protected FortranInputString[] magNondefaultGroup;
-  protected EtomoNumber localMagReferenceView;
-  protected EtomoNumber localMagOption;
-  protected EtomoNumber localMagDefaultGrouping;
+  protected ScriptParameter localMagReferenceView;
+  protected ScriptParameter localMagOption;
+  protected ScriptParameter localMagDefaultGrouping;
   protected FortranInputString[] localMagNondefaultGroup;
-  protected EtomoNumber xStretchOption;
-  protected EtomoNumber xStretchDefaultGrouping;
+  protected ScriptParameter xStretchOption;
+  protected ScriptParameter xStretchDefaultGrouping;
   protected FortranInputString[] xStretchNondefaultGroup;
-  protected EtomoNumber localXStretchOption;
-  protected EtomoNumber localXStretchDefaultGrouping;
+  protected ScriptParameter localXStretchOption;
+  protected ScriptParameter localXStretchDefaultGrouping;
   protected FortranInputString[] localXStretchNondefaultGroup;
-  protected EtomoNumber skewOption;
-  protected EtomoNumber skewDefaultGrouping;
+  protected ScriptParameter skewOption;
+  protected ScriptParameter skewDefaultGrouping;
   protected FortranInputString[] skewNondefaultGroup;
-  protected EtomoNumber localSkewOption;
-  protected EtomoNumber localSkewDefaultGrouping;
+  protected ScriptParameter localSkewOption;
+  protected ScriptParameter localSkewDefaultGrouping;
   protected FortranInputString[] localSkewNondefaultGroup;
-  protected EtomoNumber residualReportCriterion;
-  protected EtomoNumber surfacesToAnalyze;
-  protected EtomoNumber metroFactor;
-  protected EtomoNumber maximumCycles;
-  protected EtomoNumber axisZShift;
+  protected ScriptParameter residualReportCriterion;
+  protected ScriptParameter surfacesToAnalyze;
+  protected ScriptParameter metroFactor;
+  protected ScriptParameter maximumCycles;
+  protected ScriptParameter axisZShift;
   protected EtomoBoolean localAlignments;
   protected String outputLocalFile;
   protected FortranInputString numberOfLocalPatchesXandY;
@@ -219,61 +226,61 @@ public class ConstTiltalignParam implements Command {
   public ConstTiltalignParam(String datasetName, AxisID axisID) {
     this.axisID = axisID;
     this.datasetName = datasetName;
-    rotationAngle = new EtomoNumber(EtomoNumber.DOUBLE_TYPE, "RotationAngle");
+    rotationAngle = new ScriptParameter(EtomoNumber.DOUBLE_TYPE, "RotationAngle");
     tiltAngleSpec = new TiltAngleSpec("FirstTiltAngle", "TiltIncrement", "TiltFile");
-    angleOffset = new EtomoNumber(EtomoNumber.DOUBLE_TYPE, "AngleOffset");
-    projectionStretch = new EtomoBoolean("ProjectionStretch");
-    projectionStretch.setDefault(false).setDisplayDefault(true);
-    rotOption = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "RotOption");
-    rotOption.setValidValues(optionValidValues).setResetValue(AUTOMAPPED_OPTION);
-    rotDefaultGrouping = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "RotDefaultGrouping");
-    rotDefaultGrouping.setResetValue(3);
-    rotationFixedView = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "RotationFixedView");
-    localRotOption = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "LocalRotOption");
-    localRotOption.setValidValues(localOptionValidValues).setResetValue(AUTOMAPPED_OPTION);
-    localRotDefaultGrouping = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "LocalRotDefaultGrouping");
-    localRotDefaultGrouping.setResetValue(6);
-    tiltOption = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "TiltOption");
-    tiltOption.setValidValues(tiltOptionValidValues).setResetValue(tiltAllOption);
-    tiltDefaultGrouping = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "TiltDefaultGrouping");
-    tiltDefaultGrouping.setResetValue(5);
-    localTiltOption = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "LocalTiltOption");
-    localTiltOption.setValidValues(localTiltOptionValidValues).setResetValue(TILT_AUTOMAPPED_OPTION);
-    localTiltDefaultGrouping = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "LocalTiltDefaultGrouping");
-    localTiltDefaultGrouping.setResetValue(6);
-    magReferenceView = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "MagReferenceView");
-    magOption = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "MagOption");
-    magOption.setValidValues(optionValidValues).setResetValue(allOption);
-    magDefaultGrouping = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "MagDefaultGrouping");
-    magDefaultGrouping.setResetValue(4);
-    localMagReferenceView = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "LocalMagReferenceView");
-    localMagOption = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "LocalMagOption");
-    localMagOption.setValidValues(localOptionValidValues).setResetValue(AUTOMAPPED_OPTION);
-    localMagDefaultGrouping = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "LocalMagDefaultGrouping");
-    localMagDefaultGrouping.setResetValue(7);
-    xStretchOption = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "XStretchOption");
-    xStretchOption.setValidValues(distortionOptionValidValues).setResetValue(NONE_OPTION);
-    xStretchDefaultGrouping = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "XStretchDefaultGrouping");
-    xStretchDefaultGrouping.setResetValue(7);
-    localXStretchOption = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "LocalXStretchOption");
-    localXStretchOption.setValidValues(localOptionValidValues).setResetValue(AUTOMAPPED_OPTION);
-    localXStretchDefaultGrouping = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "LocalXStretchDefaultGrouping");
-    localXStretchDefaultGrouping.setResetValue(7);
-    skewOption = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "SkewOption");
-    skewOption.setValidValues(distortionOptionValidValues).setResetValue(NONE_OPTION);
-    skewDefaultGrouping = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "SkewDefaultGrouping");
-    skewDefaultGrouping.setResetValue(11);
-    localSkewOption = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "LocalSkewOption");
-    localSkewOption.setValidValues(optionValidValues).setResetValue(AUTOMAPPED_OPTION);
-    localSkewDefaultGrouping = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "LocalSkewDefaultGrouping");
-    localSkewDefaultGrouping.setResetValue(11);
-    residualReportCriterion = new EtomoNumber(EtomoNumber.DOUBLE_TYPE, "ResidualReportCriterion");
-    surfacesToAnalyze = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "SurfacesToAnalyze");
+    angleOffset = new ScriptParameter(EtomoNumber.DOUBLE_TYPE, "AngleOffset");
+    projectionStretch = new EtomoBoolean2("ProjectionStretch");
+    projectionStretch.setDefault(false).setDisplayValue(false);
+    rotOption = new ScriptParameter(EtomoNumber.INTEGER_TYPE, "RotOption");
+    rotOption.setValidValues(optionValidValues).setDisplayValue(AUTOMAPPED_OPTION);
+    rotDefaultGrouping = new ScriptParameter(EtomoNumber.INTEGER_TYPE, "RotDefaultGrouping");
+    rotDefaultGrouping.setDisplayValue(3);
+    rotationFixedView = new ScriptParameter(EtomoNumber.INTEGER_TYPE, "RotationFixedView");
+    localRotOption = new ScriptParameter(EtomoNumber.INTEGER_TYPE, "LocalRotOption");
+    localRotOption.setValidValues(localOptionValidValues).setDisplayValue(AUTOMAPPED_OPTION);
+    localRotDefaultGrouping = new ScriptParameter(EtomoNumber.INTEGER_TYPE, "LocalRotDefaultGrouping");
+    localRotDefaultGrouping.setDisplayValue(6);
+    tiltOption = new ScriptParameter(EtomoNumber.INTEGER_TYPE, "TiltOption");
+    tiltOption.setValidValues(tiltOptionValidValues).setDisplayValue(tiltAllOption);
+    tiltDefaultGrouping = new ScriptParameter(EtomoNumber.INTEGER_TYPE, "TiltDefaultGrouping");
+    tiltDefaultGrouping.setDisplayValue(5);
+    localTiltOption = new ScriptParameter(EtomoNumber.INTEGER_TYPE, "LocalTiltOption");
+    localTiltOption.setValidValues(localTiltOptionValidValues).setDisplayValue(TILT_AUTOMAPPED_OPTION);
+    localTiltDefaultGrouping = new ScriptParameter(EtomoNumber.INTEGER_TYPE, "LocalTiltDefaultGrouping");
+    localTiltDefaultGrouping.setDisplayValue(6);
+    magReferenceView = new ScriptParameter(EtomoNumber.INTEGER_TYPE, "MagReferenceView");
+    magOption = new ScriptParameter(EtomoNumber.INTEGER_TYPE, "MagOption");
+    magOption.setValidValues(optionValidValues).setDisplayValue(allOption);
+    magDefaultGrouping = new ScriptParameter(EtomoNumber.INTEGER_TYPE, "MagDefaultGrouping");
+    magDefaultGrouping.setDisplayValue(4);
+    localMagReferenceView = new ScriptParameter(EtomoNumber.INTEGER_TYPE, "LocalMagReferenceView");
+    localMagOption = new ScriptParameter(EtomoNumber.INTEGER_TYPE, "LocalMagOption");
+    localMagOption.setValidValues(localOptionValidValues).setDisplayValue(AUTOMAPPED_OPTION);
+    localMagDefaultGrouping = new ScriptParameter(EtomoNumber.INTEGER_TYPE, "LocalMagDefaultGrouping");
+    localMagDefaultGrouping.setDisplayValue(7);
+    xStretchOption = new ScriptParameter(EtomoNumber.INTEGER_TYPE, "XStretchOption");
+    xStretchOption.setValidValues(distortionOptionValidValues).setDisplayValue(NONE_OPTION);
+    xStretchDefaultGrouping = new ScriptParameter(EtomoNumber.INTEGER_TYPE, "XStretchDefaultGrouping");
+    xStretchDefaultGrouping.setDisplayValue(7);
+    localXStretchOption = new ScriptParameter(EtomoNumber.INTEGER_TYPE, "LocalXStretchOption");
+    localXStretchOption.setValidValues(localOptionValidValues).setDisplayValue(AUTOMAPPED_OPTION);
+    localXStretchDefaultGrouping = new ScriptParameter(EtomoNumber.INTEGER_TYPE, "LocalXStretchDefaultGrouping");
+    localXStretchDefaultGrouping.setDisplayValue(7);
+    skewOption = new ScriptParameter(EtomoNumber.INTEGER_TYPE, "SkewOption");
+    skewOption.setValidValues(distortionOptionValidValues).setDisplayValue(NONE_OPTION);
+    skewDefaultGrouping = new ScriptParameter(EtomoNumber.INTEGER_TYPE, "SkewDefaultGrouping");
+    skewDefaultGrouping.setDisplayValue(11);
+    localSkewOption = new ScriptParameter(EtomoNumber.INTEGER_TYPE, "LocalSkewOption");
+    localSkewOption.setValidValues(optionValidValues).setDisplayValue(AUTOMAPPED_OPTION);
+    localSkewDefaultGrouping = new ScriptParameter(EtomoNumber.INTEGER_TYPE, "LocalSkewDefaultGrouping");
+    localSkewDefaultGrouping.setDisplayValue(11);
+    residualReportCriterion = new ScriptParameter(EtomoNumber.DOUBLE_TYPE, "ResidualReportCriterion");
+    surfacesToAnalyze = new ScriptParameter(EtomoNumber.INTEGER_TYPE, "SurfacesToAnalyze");
     surfacesToAnalyze.setValidValues(surfacesToAnalyzeValidValues);
-    metroFactor = new EtomoNumber(EtomoNumber.DOUBLE_TYPE, "MetroFactor");
-    maximumCycles = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "MaximumCycles");
-    maximumCycles.setDefault(500).setDisplayDefault(true);
-    axisZShift = new EtomoNumber(EtomoNumber.DOUBLE_TYPE, "AxisZShift");
+    metroFactor = new ScriptParameter(EtomoNumber.DOUBLE_TYPE, "MetroFactor");
+    maximumCycles = new ScriptParameter(EtomoNumber.INTEGER_TYPE, "MaximumCycles");
+    maximumCycles.setDefault(500).setDisplayValue(500);
+    axisZShift = new ScriptParameter(EtomoNumber.DOUBLE_TYPE, "AxisZShift");
     localAlignments = new EtomoBoolean("LocalAlignments");
     localAlignments.setUpdateAs(EtomoBoolean.UPDATE_AS_INTEGER).setResetValue(false);
     fixXYZCoordinates = new EtomoBoolean("FixXYZCoordinates");
@@ -678,11 +685,15 @@ public class ConstTiltalignParam implements Command {
   public static String getOutputZFactorFileName(String datasetName, AxisID axisID) {
     return datasetName + axisID.getExtension() + zFactorFileExtension;
   }
+
+  public static String getOutputLocalFileName(String datasetName, AxisID axisID) {
+    return datasetName + axisID.getExtension() + localFileExtension;
+  }
   
   /**
    * @return Returns the projectionStretch.
    */
-  public ConstEtomoBoolean getProjectionStretch() {
+  public ConstEtomoNumber getProjectionStretch() {
     return projectionStretch;
   }
   /**
