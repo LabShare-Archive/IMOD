@@ -14,25 +14,31 @@ import java.io.IOException;
  * 
  * <p>Copyright: Copyright (c) 2004</p>
  * 
- * <p>Organization: Boulder Laboratory for 3D Fine Structure,
+ * <p>Organization:
+ * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
  * University of Colorado</p>
  * 
  * @author $$Author$$
  * 
  * @version $$Revision$$
  * 
- * <p> $$Log$$ </p>
+ * <p> $$Log$
+ * <p> $Revision 1.1  2004/08/06 23:02:52  sueh
+ * <p> $bug# 508 get PID from the first line in a file.
+ * <p> $Timeout if can't retrieve PID
+ * <p> $$ </p>
  */
 
 public class ParseBackgroundPID implements Runnable {
   public static final String rcsid = "$$Id$$";
+  private static final long sleep = 100;
+  private static final double timeoutMinutes = 1;
+  private static final double timeoutCount = timeoutMinutes * 60 * 1000 / sleep;
   SystemProgram csh;
   StringBuffer PID;
   private File outFile;
   boolean error = false;
-  private static long sleep = 100;
-  private static double timeoutMinutes = 1;
-  private static double timeoutCount = timeoutMinutes * 60 * 1000 / sleep;
+
   private long sleepCount = 0;
   
   /**
