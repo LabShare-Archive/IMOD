@@ -12,6 +12,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2004/03/13 00:32:11  rickg
+ * <p> New setValue(int) method
+ * <p>
  * <p> Revision 1.1  2004/02/05 04:37:15  rickg
  * <p> Initial revision
  * <p> </p>
@@ -107,7 +110,7 @@ public class LabeledSpinner {
    * @param size
    */
   public void setTextMaxmimumSize(Dimension size) {
-    spinner.setMinimumSize(size);
+    spinner.setMaximumSize(size);
   }
 
   /**
