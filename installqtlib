@@ -148,12 +148,16 @@ while ($whichlib < 2)
     # Copy libqassistantclient the same way if it is a shared lib
     #
     set qtlib = libqassistantclient
+    if (! -e $QTDIR/lib/${qtlib}.${libext}) break;
     @ whichlib++
 end
 exit 0
 
 #
 #  $Log$
+#  Revision 3.21  2004/11/22 00:19:51  mast
+#  Added Qt assistant and library if needed
+#
 #  Revision 3.20  2004/06/26 02:46:51  mast
 #  Needed to make all DLLs read/execute by all
 #
