@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.8  2004/06/24 22:22:59  sueh
+ * <p> bug# 451 switching to short param names
+ * <p>
  * <p> Revision 3.7  2004/04/12 16:49:51  sueh
  * <p> bug# 409 changed interface class CommandParam
  * <p>
@@ -95,9 +98,14 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Vector;
 
+import etomo.type.AxisID;
+
 public class NewstParam extends ConstNewstParam implements CommandParam {
   public static final String rcsid = "$Id$";
 
+  public NewstParam(AxisID axisID) {
+    super(axisID);
+  }
   /**
    * Get the parameters from the ComScriptCommand
    * @param scriptCommand the ComScriptCommand containg the newst command
@@ -394,6 +402,10 @@ public class NewstParam extends ConstNewstParam implements CommandParam {
   public void setFloatDensities(int floatDensities) {
     this.floatDensities = floatDensities;
   }
+  
+  public void setFiducialessAlignment(boolean fiducialessAlignment) {
+    this.fiducialessAlignment = fiducialessAlignment;
+  }
 
   /**
    * @param imagesAreBinned The imagesAreBinned to set.
@@ -511,5 +523,9 @@ public class NewstParam extends ConstNewstParam implements CommandParam {
    */
   public void setUseTransformLines(String useTransformLines) {
     this.useTransformLines = useTransformLines;
+  }
+  
+  public void setCommandMode(int commandMode) {
+    this.commandMode = commandMode;
   }
 }
