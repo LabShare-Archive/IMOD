@@ -10,6 +10,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.9  2004/06/10 05:39:35  mast
+c	  Return a pixel size to main program
+c	
 c	  Revision 3.8  2004/05/05 05:44:49  mast
 c	  Output the 3D model with inverted Z to match tomogram
 c	
@@ -388,6 +391,8 @@ c
 	    call putscatsize(imodobj,isize)
 	  endif
 	enddo
+	call putimodzscale(1.)
+	call putimodrotation(0., 0., 0.)
 c	  
 	n_object=ireal
 	call write_wmod(modelfile)
