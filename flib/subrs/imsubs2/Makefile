@@ -9,6 +9,9 @@ include ../../configure
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.5  2004/10/24 20:42:29  mast
+#  Added dependencies on ftbuf.inc
+#
 #  Revision 3.4  2004/04/18 22:22:41  mast
 #  Added LIBFFLAGS etc for 64-bit compilation
 #
@@ -27,7 +30,7 @@ FFLAGS = $(LIBFFLAGS)
 O        = $(OBJEXT)
 OBJS =  bigfft.$(O) bigfilt.$(O) cinterp.$(O) filter.$(O) icalc_angles.$(O) \
  icalc_matrix.$(O) iclcdn.$(O) iclden.$(O) iclscl.$(O) inside.$(O) \
- interp.$(O) qdinterp.$(O) filterpart.$(O) cubinterp.$(O) \
+ interp.$(O) qdinterp.$(O) filterpart.$(O) cubinterp.$(O) undistinterp.$(O) \
  strupcase.$(O) iclavgsd.$(O)
 
 bigfft.$(O): $(INCDIR)/ftbuf.inc
