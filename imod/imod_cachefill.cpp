@@ -48,6 +48,7 @@ Log at end of file
 #include "imod_cachefill.h"
 #include "imod.h"
 #include "imod_info_cb.h"
+#include "imod_display.h"
 #include "control.h"
 
 
@@ -445,6 +446,7 @@ static int fill_cache(ImodView *vw, int cz, int ovbefore, int ovafter)
   free(zend);
   free(zstall);
   free(zndall);
+  imodDraw(vw, IMOD_DRAW_IMAGE);
   return 0;
 }
 
@@ -582,7 +584,7 @@ ImodCacheFill::ImodCacheFill(QWidget *parent, const char *name)
 
   connect(this, SIGNAL(actionPressed(int)), this, SLOT(buttonPressed(int)));
 
-  setCaption(imodCaption("Imod Cache Filler"));
+  setCaption(imodCaption("3dmod Cache Filler"));
   show();
 }
 
@@ -599,7 +601,7 @@ void ImodCacheFill::buttonPressed(int which)
   case 2:
     dia_vasmsg
       ("~~~~~~~~~~~~~~~~~~~~~~~~\n"
-       "Imod Cache Filler \n"
+       "3dmod Cache Filler \n"
        "~~~~~~~~~~~~~~~~~~~~~~~~"
        "\n\n",
        "The Cache Filler can be used to fill some or all of the image ",
@@ -640,7 +642,7 @@ void ImodCacheFill::buttonPressed(int which)
        "settings, and has the same effect as the \"Edit-Image-Fill Cache\""
        " menu entry.\n\n",
        "To visualize large image files in flipped mode most conveniently, "
-       "start imod without the -Y option and with the desired cache size "
+       "start 3dmod without the -Y option and with the desired cache size "
        "specified in megabytes (e.g., -C 100M).  Select the Z "
        "level that you want to see after flipping by clicking at the "
        "corresponding Y level in the Zap window with the left mouse "
@@ -703,6 +705,9 @@ void ImodCacheFill::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.4  2003/04/18 20:08:48  mast
+Process events while loading to allow messages and exit
+
 Revision 4.3  2003/04/17 18:43:38  mast
 adding parent to window creation
 
