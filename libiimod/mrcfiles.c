@@ -33,16 +33,16 @@ Log at end of file */
 #define rewind b3dRewind
 #endif
 
+/* 1/16/05: Back off limits for the purposes of this file, forget FLT_MIN */
 #ifndef FLT_MAX
-#define FLT_MAX 3.40282347E+38F
-#define FLT_MIN 1.17549435E-38F
+#define FLT_MAX 1.E+37F
 #endif
 
 /*
  * Header functions
  */
 
-int mrc_head_read(FILE *fin, struct MRCheader *hdata)
+int mrc_head_read(FILE *fin, MrcHeader *hdata)
 {
   int i;
   int retval = 0;
@@ -167,11 +167,11 @@ int mrc_head_read(FILE *fin, struct MRCheader *hdata)
 
 
 /* Write the header to the given file */
-int mrc_head_write(FILE *fout, struct MRCheader *hdata)
+int mrc_head_write(FILE *fout, MrcHeader *hdata)
 {
   int i;
-  struct MRCheader hcopy;
-  struct MRCheader *hptr;
+  MrcHeader hcopy;
+  MrcHeader *hptr;
   hptr = hdata;
 
   if (!fout)
@@ -203,7 +203,7 @@ int mrc_head_write(FILE *fout, struct MRCheader *hdata)
 
 
 /* Add a label to the header or replace the last one if it is full */
-int mrc_head_label(struct MRCheader *hdata, char *label)
+int mrc_head_label(MrcHeader *hdata, char *label)
 {
   struct tm *tmp;
   char *outlab;
@@ -232,7 +232,7 @@ int mrc_head_label(struct MRCheader *hdata, char *label)
 }
 
 /* Copy all labels from one header to another */
-int mrc_head_label_cp(struct MRCheader *hin, struct MRCheader *hout)
+int mrc_head_label_cp(MrcHeader *hin, MrcHeader *hout)
 {
   int i, j;
      
@@ -246,7 +246,7 @@ int mrc_head_label_cp(struct MRCheader *hin, struct MRCheader *hout)
 }
 
 /* Fills in the header structure to default settings. */
-int mrc_head_new(struct MRCheader *hdata,
+int mrc_head_new(MrcHeader *hdata,
                  int x, int y, int z, int mode)
 {
 
@@ -271,13 +271,10 @@ int mrc_head_new(struct MRCheader *hdata,
   hdata->mapc  = 1;
   hdata->mapr  = 2;
   hdata->maps  = 3;
-#ifdef __sgi
+
+  /* 1/16/05: use FLT_MAX instead of INT_MIN/INT_MAX for non-sgi */
   hdata->amin  = FLT_MAX;
-  hdata->amax  = FLT_MIN;
-#else
-  hdata->amin = INT_MAX;
-  hdata->amax = INT_MIN;
-#endif
+  hdata->amax  = -FLT_MAX;
   hdata->amean = 0;
   hdata->ispg  = 0;
   hdata->nsymbt = 0;
@@ -337,7 +334,7 @@ int mrc_head_new(struct MRCheader *hdata,
 
 
 /* fills in min, max and mean structures in header */
-int mrc_byte_mmm( struct MRCheader *hdata, unsigned char **idata)
+int mrc_byte_mmm( MrcHeader *hdata, unsigned char **idata)
 {
 
   int i, j, k;
@@ -377,7 +374,7 @@ int mrc_byte_mmm( struct MRCheader *hdata, unsigned char **idata)
 }
 
 /* Swap each section of the header as appropriate for its data type */
-void mrc_swap_header(struct MRCheader *hdata)
+void mrc_swap_header(MrcHeader *hdata)
 {
   mrc_swap_longs(&hdata->nx, 10);
   mrc_swap_floats(&hdata->xlen, 6);
@@ -402,7 +399,7 @@ void mrc_swap_header(struct MRCheader *hdata)
 
 /* DNM 7/30/02: set cmap and stamp correctly for a new header or
    for converting an old style header on reading in */
-void mrc_set_cmap_stamp(struct MRCheader *hdata)
+void mrc_set_cmap_stamp(MrcHeader *hdata)
 {
   hdata->cmap[0] = 'M';
   hdata->cmap[1] = 'A';
@@ -425,7 +422,7 @@ void mrc_set_cmap_stamp(struct MRCheader *hdata)
 
 /* stupid function: check who is using it. JRK  */
 /* 2 calls from clip_transform.c.  DNM */
-int mrc_data_new(FILE *fout, struct MRCheader *hdata)
+int mrc_data_new(FILE *fout, MrcHeader *hdata)
 {
   int dsize, i;
   unsigned char cdata = 0;
@@ -470,7 +467,7 @@ int mrc_data_new(FILE *fout, struct MRCheader *hdata)
 }
 
 /* changed 8-95 to increase speed: JRK */
-int mrc_write_byte(FILE *fout, struct MRCheader *hdata, unsigned char **data)
+int mrc_write_byte(FILE *fout, MrcHeader *hdata, unsigned char **data)
 {
   int k;
   int xysize = hdata->nx * hdata->ny;
@@ -487,7 +484,7 @@ int mrc_write_byte(FILE *fout, struct MRCheader *hdata, unsigned char **data)
 
 /* writes image data */
 /* changed 8-95 to increase speed: JRK */
-mrc_write_idata(FILE *fout, struct MRCheader *hdata, void *data[])
+mrc_write_idata(FILE *fout, MrcHeader *hdata, void *data[])
 {
   int i,j=0,k;
   int  xysize;
@@ -533,7 +530,7 @@ mrc_write_idata(FILE *fout, struct MRCheader *hdata, void *data[])
 }
 
 
-float mrc_read_point( FILE *fin, struct MRCheader *hdata, int x, int y, int z)
+float mrc_read_point( FILE *fin, MrcHeader *hdata, int x, int y, int z)
 {
   int pixsize = 1;
   unsigned char bdata;
@@ -622,7 +619,7 @@ float mrc_read_point( FILE *fin, struct MRCheader *hdata, int x, int y, int z)
 
 
 
-void *mrc_mread_slice(FILE *fin, struct MRCheader *hdata,
+void *mrc_mread_slice(FILE *fin, MrcHeader *hdata,
                       int slice, char axis)
 {
   unsigned char *buf = NULL;
@@ -668,7 +665,7 @@ void *mrc_mread_slice(FILE *fin, struct MRCheader *hdata,
   return(NULL);
 }
 
-int mrc_read_slice(void *buf, FILE *fin, struct MRCheader *hdata, 
+int mrc_read_slice(void *buf, FILE *fin, MrcHeader *hdata, 
                    int slice, char axis)
 {
   unsigned char *data = NULL;
@@ -771,7 +768,7 @@ int mrc_read_slice(void *buf, FILE *fin, struct MRCheader *hdata,
 }
 
 
-int mrc_write_slice(void *buf, FILE *fout, struct MRCheader *hdata, 
+int mrc_write_slice(void *buf, FILE *fout, MrcHeader *hdata, 
                     int slice, char axis)
 {
   int dsize, csize = 1;
@@ -900,7 +897,7 @@ int mrc_write_slice(void *buf, FILE *fout, struct MRCheader *hdata,
 }
 
 
-void *mrc_read_image(FILE *fin, struct MRCheader *hdata, int z)
+void *mrc_read_image(FILE *fin, MrcHeader *hdata, int z)
 {
 
   unsigned char *cdata;
@@ -1138,7 +1135,7 @@ void mrc_default_status(char *string)
 
 /* old function compatibility. sends status to stdout. */
 unsigned char **read_mrc_byte(FILE *fin,
-                              struct MRCheader *hdata,
+                              MrcHeader *hdata,
                               struct LoadInfo *li)
 {
   return(mrc_read_byte(fin, hdata, li, mrc_default_status));
@@ -1148,7 +1145,7 @@ unsigned char **read_mrc_byte(FILE *fin,
 
 
 unsigned char **mrc_read_byte(FILE *fin, 
-                              struct MRCheader *hdata, 
+                              MrcHeader *hdata, 
                               struct LoadInfo *li,
                               void (*func)(char *))
 {
@@ -1598,7 +1595,7 @@ int mrc_fix_li(struct LoadInfo *li, int nx, int ny, int nz)
   return(0);
 }
 
-int mrc_init_li(struct LoadInfo *li, struct MRCheader *hd)
+int mrc_init_li(struct LoadInfo *li, MrcHeader *hd)
 {
 
   if (li == NULL)
@@ -1634,7 +1631,7 @@ int mrc_init_li(struct LoadInfo *li, struct MRCheader *hd)
 }
 
 
-void mrc_liso(struct MRCheader *hdata, struct LoadInfo *li)
+void mrc_liso(MrcHeader *hdata, struct LoadInfo *li)
 {
   float min, max;
   float range, rscale;
@@ -1667,13 +1664,13 @@ void mrc_liso(struct MRCheader *hdata, struct LoadInfo *li)
 /*****************************************************************************/
 /*  Function get_loadinfo - fills the LoadInfo structure.                    */
 /*                                                                           */
-/*  Input - pointer to struct MRCheader *hdata used for error checking.      */
+/*  Input - pointer to MrcHeader *hdata used for error checking.      */
 /*        - pointer to struct LoadInfo  *li defined in mrcfiles.h            */
 /*                                                                           */
 /*  Returns 1 if no errors, 0 if LoadInfo wasn't filled.                     */
 /*****************************************************************************/
 
-int get_loadinfo(struct MRCheader *hdata, struct LoadInfo *li)
+int get_loadinfo(MrcHeader *hdata, struct LoadInfo *li)
 {
   int c;
   char line[128];
@@ -1719,7 +1716,7 @@ int get_loadinfo(struct MRCheader *hdata, struct LoadInfo *li)
 /* Old function, need to auto read tilt data from header                     */
 /*****************************************************************************/
 
-int loadtilts(struct TiltInfo *ti, struct MRCheader *hdata)
+int loadtilts(struct TiltInfo *ti, MrcHeader *hdata)
 {
   char filename[128];
   int i,c;
@@ -1864,7 +1861,7 @@ int mrc_getdcsize(int mode, int *dsize, int *csize)
    nx, ny, nz below to mx, my, mz.  But also return 0 instead of 1 if cell
    size is zero; so that the mrc_set_scale will fix both cell and sample */
 /* DNM 9/13/02: Invert these to correspond to all other usage */
-void mrc_get_scale(struct MRCheader *h, float *xs, float *ys, float *zs)
+void mrc_get_scale(MrcHeader *h, float *xs, float *ys, float *zs)
 {
   *xs = *ys = *zs = 0.0f;
   if (h->xlen)
@@ -1877,7 +1874,7 @@ void mrc_get_scale(struct MRCheader *h, float *xs, float *ys, float *zs)
 
 /* DNM 12/25/00: change this 1) if 0 scale comes in, set both cell and sample
    sizes to image sizes; 2) compute xlen as mx/x scale, not nx/ x scale, etc */
-void mrc_set_scale(struct MRCheader *h,
+void mrc_set_scale(MrcHeader *h,
                    double x, double y, double z)
 {
   if (!x) {
@@ -1900,7 +1897,7 @@ void mrc_set_scale(struct MRCheader *h,
 
 }
 
-void mrc_coord_cp(struct MRCheader *hout, struct MRCheader *hin)
+void mrc_coord_cp(MrcHeader *hout, MrcHeader *hin)
 {
   float xs, ys, zs;
 
@@ -2042,6 +2039,11 @@ void mrc_swap_floats(float *data, int amt)
 
 /*
 $Log$
+Revision 3.21  2005/01/06 17:57:54  mast
+Made label copy set label number, fixed label adding function to work on
+all platforms using only time.h functions and strftime, and to replace the
+last label when label list is full
+
 Revision 3.20  2004/12/02 21:53:27  mast
 Removed setting of header size to min of 1024 so raw reader can use
 
