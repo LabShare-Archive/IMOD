@@ -1,5 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/20/04: Fixed fatal problem in beadfixer from 6/11/04 change.
+
+6/20/04: Fixed one-pixel shift in mirror image side of FFT produced by clip.
+
+6/20/04: Setupcombine will reduce patch thickness to keep it within Z limits.
+
 6/19/04: IMOD_3-2-20 (eTomo unstable, Setupcombine backed down to match 3.2.19)
 6/19/04: Mtffilter can now filter a 3D FFT, allowing inverse filtering and 
 general low-pass 3D filtering to be applied to tomograms.
@@ -46,7 +52,7 @@ data from large numbers of files in X and Y.
 6/11/04: Fixed bug in Imodjoin that made it crash on models that had not
 been through 3dmod.
 
-6/11/04: Made Refinematch exit with error if insuffient data are available.
+6/11/04: Made Refinematch exit with error if insufficient data are available.
 
 6/11/04: Improved error messages from PIP to include the option when there is
 a problem with the values entered for an option.
