@@ -37,6 +37,9 @@ import etomo.type.FiducialMatch;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.9  2003/10/15 16:56:56  rickg
+ * <p> Bug# 294 Label changes
+ * <p>
  * <p> Revision 2.8  2003/09/25 23:29:28  rickg
  * <p> Bug #246 fixed to the appropriate combine method in the app manager
  * <p>
@@ -100,11 +103,13 @@ public class SetupCombinePanel implements ContextMenu {
 
   private JPanel pnlToSelector = new JPanel();
   private ButtonGroup bgToSelector = new ButtonGroup();
+  private JPanel pnlRBToSelector = new JPanel();
   private JRadioButton rbBtoA = new JRadioButton("Match the B tomogram to A");
-  private JRadioButton rbAtoB =
-    new JRadioButton("Match the A tomogram to B                                               ");
+  private JRadioButton rbAtoB = new JRadioButton("Match the A tomogram to B");
 
   private JPanel pnlFiducialParams = new JPanel();
+  private JPanel pnlFiducialRadio = new JPanel();
+  private JPanel pnlFiducialSelect = new JPanel();
   private ButtonGroup bgFiducialParams = new ButtonGroup();
   private JRadioButton rbBothSides =
     new JRadioButton("Fiducials on both sides");
@@ -114,6 +119,8 @@ public class SetupCombinePanel implements ContextMenu {
     new JRadioButton("Fiducials on one side, inverted");
   private JRadioButton rbUseModel =
     new JRadioButton("Use models of corresponding points, not cross-correlation");
+  private JButton btnImodMatchModels =
+    new JButton("<html><b>Create Matching Models in 3dmod</b>");
 
   private LabeledTextField ltfFiducialMatchListA =
     new LabeledTextField("Corresponding fiducial list A: ");
@@ -139,7 +146,7 @@ public class SetupCombinePanel implements ContextMenu {
   private LabeledTextField ltfZMin = new LabeledTextField("Z axis min: ");
   private LabeledTextField ltfZMax = new LabeledTextField("Z axis max: ");
 
-  private JPanel pnlTemdDirectory = new JPanel();
+  private JPanel pnlTempDirectory = new JPanel();
   private LabeledTextField ltfTempDirectory =
     new LabeledTextField("Temporary directory: ");
   private JCheckBox chkManualCleanup = new JCheckBox("Manual cleanup");
@@ -166,11 +173,16 @@ public class SetupCombinePanel implements ContextMenu {
     bgToSelector.add(rbBtoA);
     pnlToSelector.setBorder(
       new EtchedBorder("Tomogram Matching Relationship").getBorder());
-    pnlToSelector.setLayout(new BoxLayout(pnlToSelector, BoxLayout.Y_AXIS));
-    pnlToSelector.add(rbBtoA);
-    pnlToSelector.add(rbAtoB);
+    pnlToSelector.setLayout(new BoxLayout(pnlToSelector, BoxLayout.X_AXIS));
+    pnlRBToSelector.setLayout(new BoxLayout(pnlRBToSelector, BoxLayout.Y_AXIS));
+    pnlRBToSelector.add(rbBtoA);
+    pnlRBToSelector.add(rbAtoB);
+    pnlToSelector.add(pnlRBToSelector);
+    pnlToSelector.add(Box.createHorizontalGlue());
 
     //  Create the fiducial relationship panel
+    pnlFiducialRadio.setLayout(
+      new BoxLayout(pnlFiducialRadio, BoxLayout.Y_AXIS));
     rbBothSides.setAlignmentX(Component.LEFT_ALIGNMENT);
     rbOneSide.setAlignmentX(Component.LEFT_ALIGNMENT);
     rbOneSideInverted.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -179,14 +191,21 @@ public class SetupCombinePanel implements ContextMenu {
     bgFiducialParams.add(rbOneSide);
     bgFiducialParams.add(rbOneSideInverted);
     bgFiducialParams.add(rbUseModel);
+    pnlFiducialRadio.add(rbBothSides);
+    pnlFiducialRadio.add(rbOneSide);
+    pnlFiducialRadio.add(rbOneSideInverted);
+    pnlFiducialRadio.add(rbUseModel);
+
+    pnlFiducialSelect.setLayout(
+      new BoxLayout(pnlFiducialSelect, BoxLayout.X_AXIS));
+    pnlFiducialSelect.add(pnlFiducialRadio);
+    pnlFiducialSelect.add(btnImodMatchModels);
+
     pnlFiducialParams.setBorder(
       new EtchedBorder("Initial Volume Alignment Method").getBorder());
     pnlFiducialParams.setLayout(
       new BoxLayout(pnlFiducialParams, BoxLayout.Y_AXIS));
-    pnlFiducialParams.add(rbBothSides);
-    pnlFiducialParams.add(rbOneSide);
-    pnlFiducialParams.add(rbOneSideInverted);
-    pnlFiducialParams.add(rbUseModel);
+    pnlFiducialParams.add(pnlFiducialSelect);
     pnlFiducialParams.add(Box.createRigidArea(FixedDim.x0_y10));
     pnlFiducialParams.add(ltfFiducialMatchListA.getContainer());
     pnlFiducialParams.add(Box.createRigidArea(FixedDim.x0_y5));
@@ -202,12 +221,17 @@ public class SetupCombinePanel implements ContextMenu {
     pnlPatchParams.setBorder(
       new EtchedBorder("Patch Parameters for Refining Alignment").getBorder());
     pnlPatchParams.setLayout(new BoxLayout(pnlPatchParams, BoxLayout.Y_AXIS));
-    pnlPatchParams.add(rbSmallPatch);
-    pnlPatchParams.add(rbMediumPatch);
-    pnlPatchParams.add(rbLargePatch);
+    JPanel pnlPatchRB = new JPanel();
+    pnlPatchRB.setLayout(new BoxLayout(pnlPatchRB, BoxLayout.Y_AXIS));
+    pnlPatchRB.add(rbSmallPatch);
+    pnlPatchRB.add(rbMediumPatch);
+    pnlPatchRB.add(rbLargePatch);
 
     pnlPatchRegionModel.setLayout(
       new BoxLayout(pnlPatchRegionModel, BoxLayout.X_AXIS));
+    pnlPatchRegionModel.add(pnlPatchRB);
+    pnlPatchRegionModel.add(Box.createRigidArea(FixedDim.x20_y0));
+    pnlPatchRegionModel.add(Box.createRigidArea(FixedDim.x20_y0));
     pnlPatchRegionModel.add(cbPatchRegionModel);
     pnlPatchRegionModel.add(btnPatchRegionModel);
     pnlPatchParams.add(pnlPatchRegionModel);
@@ -223,37 +247,47 @@ public class SetupCombinePanel implements ContextMenu {
     pnlPatchParams.add(pnlPatchRegion);
 
     //  Create the temporary storage panel
-    pnlTemdDirectory.setBorder(
+    pnlTempDirectory.setBorder(
       new EtchedBorder("Intermediate Data Storage").getBorder());
-    pnlTemdDirectory.setLayout(
-      new BoxLayout(pnlTemdDirectory, BoxLayout.Y_AXIS));
-    pnlTemdDirectory.add(ltfTempDirectory.getContainer());
-    pnlTemdDirectory.add(chkManualCleanup);
+    pnlTempDirectory.setLayout(
+      new BoxLayout(pnlTempDirectory, BoxLayout.Y_AXIS));
+    pnlTempDirectory.add(ltfTempDirectory.getContainer());
+    pnlTempDirectory.add(chkManualCleanup);
 
-    //  Bind the btns to the action listener
+    //  Bind the buttons to the action listener
     SetupCombineActionListener actionListener =
       new SetupCombineActionListener(this);
+    btnImodMatchModels.addActionListener(actionListener);
     btnPatchRegionModel.addActionListener(actionListener);
     btnImodVolumeA.addActionListener(actionListener);
     btnImodVolumeB.addActionListener(actionListener);
     btnCreate.addActionListener(actionListener);
     btnCombine.addActionListener(actionListener);
 
+    //  Bind the radio buttons to the action listener
+    SetupCombineFiducialRBListener radioButtonListener =
+      new SetupCombineFiducialRBListener(this);
+    rbBothSides.addActionListener(radioButtonListener);
+    rbOneSide.addActionListener(radioButtonListener);
+    rbOneSideInverted.addActionListener(radioButtonListener);
+    rbUseModel.addActionListener(radioButtonListener);
+
     //  Get the current text height from one of the 
     double height = cbPatchRegionModel.getPreferredSize().getHeight();
 
     //  Set the button sizes
     Dimension dimButton = new Dimension();
-    dimButton.setSize(8 * height, 2 * height);
-    btnPatchRegionModel.setPreferredSize(dimButton);
+    dimButton.setSize(7 * height, 2 * height);
+    btnImodMatchModels.setPreferredSize(dimButton);
+    btnImodMatchModels.setMaximumSize(dimButton);
     btnPatchRegionModel.setMaximumSize(dimButton);
-    btnImodVolumeA.setSize(dimButton);
+    btnImodVolumeA.setPreferredSize(dimButton);
     btnImodVolumeA.setMaximumSize(dimButton);
-    btnImodVolumeB.setSize(dimButton);
+    btnImodVolumeB.setPreferredSize(dimButton);
     btnImodVolumeB.setMaximumSize(dimButton);
-    btnCreate.setSize(dimButton);
+    btnCreate.setPreferredSize(dimButton);
     btnCreate.setMaximumSize(dimButton);
-    btnCombine.setSize(dimButton);
+    btnCombine.setPreferredSize(dimButton);
     btnCombine.setMaximumSize(dimButton);
 
     //  Button panel
@@ -277,17 +311,16 @@ public class SetupCombinePanel implements ContextMenu {
     pnlRoot.add(Box.createRigidArea(FixedDim.x0_y10));
     pnlRoot.add(pnlPatchParams);
     pnlRoot.add(Box.createRigidArea(FixedDim.x0_y10));
-    pnlRoot.add(pnlTemdDirectory);
+    pnlRoot.add(pnlTempDirectory);
     pnlRoot.add(Box.createRigidArea(FixedDim.x0_y10));
     pnlRoot.add(Box.createVerticalGlue());
-    pnlRoot.add(Box.createRigidArea(FixedDim.x0_y10));
-    pnlRoot.add(Box.createRigidArea(FixedDim.x0_y10));
+    pnlRoot.add(Box.createRigidArea(FixedDim.x0_y20));
     pnlRoot.add(pnlButton);
 
     // Mouse listener for context menu
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
     pnlRoot.addMouseListener(mouseAdapter);
-
+    checkUseFiducialModel();
   }
 
   public Container getContainer() {
@@ -344,7 +377,7 @@ public class SetupCombinePanel implements ContextMenu {
 
   public void getParameters(CombineParams combineParams)
     throws NumberFormatException {
-    String badParameter = "uknown";
+    String badParameter = "unknown";
     try {
 
       combineParams.setMatchBtoA(rbBtoA.isSelected());
@@ -404,9 +437,14 @@ public class SetupCombinePanel implements ContextMenu {
 
   }
 
-  //  Action functions for setup panel btns
-  void buttonAction(ActionEvent event) {
+  //  Action functions for setup panel buttons
+  private void buttonAction(ActionEvent event) {
     String command = event.getActionCommand();
+    if (event
+      .getActionCommand()
+      .equals(btnImodMatchModels.getActionCommand())) {
+      applicationManager.imodMatchingModel();
+    }
     if (event
       .getActionCommand()
       .equals(btnPatchRegionModel.getActionCommand())) {
@@ -429,9 +467,20 @@ public class SetupCombinePanel implements ContextMenu {
         applicationManager.combine();
       }
     }
-
   }
 
+  private void radioButtonAction(ActionEvent event) {
+    checkUseFiducialModel();
+  }
+
+  private void checkUseFiducialModel() {
+    if (rbUseModel.isSelected()) {
+      btnImodMatchModels.setEnabled(true);
+    }
+    else {
+      btnImodMatchModels.setEnabled(false);
+    }
+  }
   /**
    * Right mouse btn context menu
    */
@@ -471,17 +520,28 @@ public class SetupCombinePanel implements ContextMenu {
         logFileLabel,
         logFile);
   }
-}
+  //	Button action listener
+  class SetupCombineActionListener implements ActionListener {
 
-//  Button action listener
-class SetupCombineActionListener implements ActionListener {
+    SetupCombinePanel adaptee;
+    public SetupCombineActionListener(SetupCombinePanel adaptee) {
+      this.adaptee = adaptee;
+    }
 
-  SetupCombinePanel adaptee;
-  public SetupCombineActionListener(SetupCombinePanel adaptee) {
-    this.adaptee = adaptee;
+    public void actionPerformed(ActionEvent event) {
+      adaptee.buttonAction(event);
+    }
+
   }
+  class SetupCombineFiducialRBListener implements ActionListener {
 
-  public void actionPerformed(ActionEvent event) {
-    adaptee.buttonAction(event);
+    SetupCombinePanel adaptee;
+    public SetupCombineFiducialRBListener(SetupCombinePanel adaptee) {
+      this.adaptee = adaptee;
+    }
+
+    public void actionPerformed(ActionEvent event) {
+      adaptee.radioButtonAction(event);
+    }
   }
 }
