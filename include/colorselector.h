@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.1  2003/02/10 20:57:02  mast
+Merge Qt source
+
 Revision 1.1.2.1  2003/01/26 20:37:08  mast
 includes for library
 
@@ -33,6 +36,7 @@ Initial creation
 */
 
 #include "dialog_frame.h"
+#include <qgl.h>
 
 class MultiSlider;
 class QFrame;
@@ -75,4 +79,18 @@ class ColorSelector : public DialogFrame
     int mCurrentRGB[3];
     MultiSlider *mSliders;
     QFrame *mColorBox;
+    QGLWidget *mGLw;
+};
+
+class ColorSelectorGL : public QGLWidget
+{
+ public:
+  ColorSelectorGL(int *currentRGB, QWidget * parent = 0, 
+		  const char * name = 0);
+  ~ColorSelectorGL() {};
+ protected:
+  void paintGL();
+
+ private:
+  int *mRGB;
 };

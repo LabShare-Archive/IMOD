@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.2  2003/02/10 20:51:22  mast
+Merge Qt source
+
 Revision 1.1.2.1  2003/01/26 20:35:46  mast
 adding as library file
 
@@ -103,10 +106,13 @@ ColorSelector::ColorSelector(QWidget *parent, QString label, int red,
   QLabel *topLabel = new QLabel(label, this);
   mLayout->addWidget(topLabel);
   
+  // Make the color box, a GL widget because palette background works poorly
+  // on SGI
   mColorBox = new QFrame(this);
   mColorBox->setFrameStyle(QFrame::Plain);
   mColorBox->setFixedHeight(50);
   mLayout->addWidget(mColorBox);
+  mGLw = new ColorSelectorGL(&mCurrentRGB[0], mColorBox);
 
   // Get the sliders, connect them and initialize them to current color
   mSliders = new MultiSlider(this, 3, sliderLabels);
@@ -176,8 +182,8 @@ void ColorSelector::imposeColor(bool setSliders, bool emitSignal)
   if (setSliders)
     for (int i = 0; i < 3; i++)
       mSliders->setValue(i, mCurrentRGB[i]);
-  mColorBox->setPaletteBackgroundColor(QColor(mCurrentRGB[0], mCurrentRGB[1],
-                                              mCurrentRGB[2]));
+
+  mGLw->updateGL();
   if (emitSignal)
     emit newColor(mCurrentRGB[0], mCurrentRGB[1], mCurrentRGB[2]);
 }
@@ -213,3 +219,15 @@ void ColorSelector::keyReleaseEvent ( QKeyEvent * e )
   emit (keyRelease(e));
 }
 
+ColorSelectorGL::ColorSelectorGL(int *currentRGB, QWidget * parent,
+				 const char * name)
+  : QGLWidget(parent, name)
+{
+  mRGB = currentRGB;
+}
+
+void ColorSelectorGL::paintGL()
+{
+  glClearColor(mRGB[0] / 255., mRGB[1] / 255., mRGB[2] / 255., 0.);
+  glClear(GL_COLOR_BUFFER_BIT);
+}
