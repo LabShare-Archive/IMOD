@@ -268,6 +268,10 @@ bool ImodClipboard::executeMessage()
     inputRaiseWindows();
     break;
 
+  case MESSAGE_MODEL_MODE:
+    imod_set_mmode(IMOD_MMODEL);
+    break;
+
   default:
     fprintf(stderr, "imodExecuteMessage: action %d not recognized\n"
             , message_action);
@@ -295,6 +299,9 @@ void ImodClipboard::sendResponse(int succeeded)
 
 /*
 $Log$
+Revision 4.4  2003/05/23 02:45:29  mast
+Add message to raise windows, make open model raise windows also
+
 Revision 4.3  2003/02/27 20:57:42  mast
 Adjusting timing on quit for the SGI
 
