@@ -42,6 +42,10 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.11  2003/10/09 20:27:43  sueh
+ * <p> bug264
+ * <p> UI Changes
+ * <p>
  * <p> Revision 2.10  2003/10/08 22:03:21  sueh
  * <p> Bug263
  * <p> UI Changes
@@ -435,9 +439,10 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     String datasetText = ltfDataset.getText();
     File dataset = new File(datasetText);
     if (!dataset.isAbsolute()) {
+      //SUEH 265 done use File.separator to get "/"
       dataset =
         new File(
-          System.getProperty("user.dir") + File.pathSeparator + datasetText);
+          System.getProperty("user.dir") + File.separator + datasetText);
     }
     return dataset.getParentFile();
   }
