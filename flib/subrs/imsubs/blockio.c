@@ -20,6 +20,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.11  2004/06/15 04:42:36  mast
+Fixed bugs created by unneeded cosmetic changes!
+
 Revision 3.10  2004/06/14 20:05:58  mast
 Added check and error reporting for illegal unit number and unit not open
 
@@ -572,6 +575,7 @@ static  void mybzero(a, n)
 
 static Unit *check_unit(int unit, char *function, int doExit)
 {
+  Unit *u = units + unit;
   if (unit < 0 || unit >= MAX_UNIT) {
     fprintf(stdout, "\nERROR: %s - %d is not a legal unit number.\n", function,
             unit + 1);
@@ -579,7 +583,6 @@ static Unit *check_unit(int unit, char *function, int doExit)
       exit(-1);
     return NULL;
   }
-  Unit *u = units + unit;
   if (!u->being_used) {
     fprintf(stdout, "\nERROR: %s - unit %d is not open.\n", function, 
             unit + 1);
