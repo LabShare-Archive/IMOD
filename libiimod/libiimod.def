@@ -73,7 +73,6 @@ EXPORTS
 	mrc_3dfft
 	mrc_head_label_cp
 	mrc_read_byte
-	b3dFwrite
 	sliceComplexFloat
 	mrc_bandpass_filter
 	mrc_slice_mmm
@@ -105,7 +104,6 @@ EXPORTS
 	mrc_slice_init
 	mrc_plist_load
 	mrc_slice_calcmmm
-	b3dFread
 	iiTIFFCheck
 	mrcReadYByte
 	mrc_slice_wrap
@@ -121,7 +119,6 @@ EXPORTS
 	mrc_bilinear
 	mrc_slice_translate
 	mrc_slice_rotate
-	mrc_big_seek
 	mrc_swap_shorts
 	mrc_slice_real
 	mrc_write_byte
@@ -141,7 +138,6 @@ EXPORTS
 	mrc_read_slice
 	sliceInit
 	mrc_byte_mmm
-	b3dFseek
 	mrc_fft
 	mrc_slice_getvol
 	mrc_head_label

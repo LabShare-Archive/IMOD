@@ -4,6 +4,11 @@ LIBRARY      "libimod"
 DESCRIPTION  'libimod Windows Dynamic Link Library'
 
 EXPORTS
+	mrc_big_seek
+	b3dFseek
+	b3dFwrite
+	b3dFread
+	b3dRewind
 	imodPointIsEqual
 	imodContourGetName
 	imodTransform
