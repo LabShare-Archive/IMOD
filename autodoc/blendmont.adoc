@@ -208,6 +208,42 @@ manpage = Width in X and Y across which to blend overlaps.  The default is:
 50 pixels for overlap width between 63 and 100, or
 50% of the overlap width for overlap width greater than 100.
 
+[Field = BoxSizeShortAndLong]
+short = boxsize
+long = BoxSizeShortAndLong
+type = IP
+usage = Size of box for finding edge functions in short and long directions
+tooltip = 
+manpage = Size of box for finding edge functions in short and long directions.
+The short direction is across an overlap zone, the long direction is along it.
+The default size is 10 pixels in the short direction for frame sizes up to 
+1024 pixels, increasing proportional to the maximum dimension of the frame 
+above 1024.  The default in the long direction is 1.5 times the size in the 
+short direction.
+
+[Field = GridSpacingShortAndLong]
+short = grid
+long = GridSpacingShortAndLong
+type = IP
+usage = Spacing of edge function grid in short and long directions
+tooltip = 
+manpage = Spacing of edge function grid in short and long directions.  The
+default is 10 pixels in each direction for frame sizes up to 1024 pixels,
+increasing proportional to the maximum dimension of the frame above 1024.
+
+[Field = IndentShortAndLong]
+short = indents
+long = IndentShortAndLong
+type = IP
+usage = Indentation of edge function from edge of overlap in short and long 
+directions
+tooltip = 
+manpage = Borders at the edge of the overlap zone in the short and long 
+directions which will be excluded when finding edge functions.  The default
+size is 5 pixels in each direction for frame sizes up to 1024 pixels,
+increasing proportional to the maximum dimension of the frame above 1024.
+
+
 [Field = ParameterFile]
 short = param
 long = ParameterFile
