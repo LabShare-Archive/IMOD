@@ -15,6 +15,9 @@ package etomo.process;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.8  2003/05/15 20:19:41  rickg
+ * <p> Removed extraneous debug printing
+ * <p>
  * <p> Revision 2.7  2003/05/12 23:26:29  rickg
  * <p> imod -D -> 3dmod
  * <p> commad line reporting (need to check debug state)
@@ -127,7 +130,6 @@ public class ImodProcess {
       //options = "-F ";
     }
 
-    // TODO: Change imod command to 3dmod and remove debug flag
     String command = "3dmod -W " + options + datasetName + " " + modelName;
     InteractiveSystemProgram imod = new InteractiveSystemProgram(command);
 
