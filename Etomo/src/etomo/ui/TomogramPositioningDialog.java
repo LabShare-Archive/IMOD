@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.5  2004/04/26 18:32:05  rickg
+ * <p> bug #426 Added full image code
+ * <p>
  * <p> Revision 3.4  2004/04/26 00:20:21  rickg
  * <p> bug #426 Implemented full tomogram sampling
  * <p>
@@ -111,9 +114,11 @@ import etomo.ApplicationManager;
 import etomo.comscript.ConstNewstParam;
 import etomo.comscript.ConstTiltParam;
 import etomo.comscript.ConstTiltalignParam;
+import etomo.comscript.ConstTomopitchParam;
 import etomo.comscript.NewstParam;
 import etomo.comscript.TiltParam;
 import etomo.comscript.TiltalignParam;
+import etomo.comscript.TomopitchParam;
 import etomo.type.AxisID;
 
 public class TomogramPositioningDialog extends ProcessDialog
@@ -263,6 +268,15 @@ public class TomogramPositioningDialog extends ProcessDialog
   }
 
   /**
+   * Get the tomopitch.com parameters from the dialog
+   * @param TomopitchParam
+   */
+  public void getTomopitchParams(TomopitchParam tomopitchParam) {
+    //TODO set ScaleFactor
+    int binning = ((Integer) spinBinning.getValue()).intValue();
+  }
+
+  /**
    * Set the tilt.com parameters in the dialog
    * @param tiltParam
    */
@@ -302,6 +316,9 @@ public class TomogramPositioningDialog extends ProcessDialog
     if (binning > 1) {
       spinBinning.setValue(binning);
     }
+  }
+  
+  public void setTomopitchParams(ConstTomopitchParam tomopitchParam) {
   }
 
   /**
