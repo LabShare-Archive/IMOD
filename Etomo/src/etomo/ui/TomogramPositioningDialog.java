@@ -5,6 +5,7 @@ import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
+import java.io.IOException;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -23,6 +24,8 @@ import etomo.comscript.TiltParam;
 import etomo.comscript.TiltalignParam;
 import etomo.comscript.TomopitchParam;
 import etomo.type.AxisID;
+import etomo.util.InvalidParameterException;
+import etomo.util.MRCHeader;
 
 /**
  * <p>Description: Tomogram Positioning User Interface</p>
@@ -37,6 +40,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.16  2004/06/28 20:44:45  sueh
+ * <p> bug# 472
+ * <p>
  * <p> Revision 3.15  2004/06/28 20:40:44  sueh
  * <p> bug# 472
  * <p>
@@ -197,12 +203,18 @@ public class TomogramPositioningDialog extends ProcessDialog
 
   private Dimension fullImageSize = new Dimension();
   
+  private MRCHeader prealiHeader = null;
+  private MRCHeader rawstackHeader = null;
+  
   private static final String SAMPLE_TOMOGRAMS_TOOLTIP =
     "Build 3 sample tomograms for finding location and angles of section.";
 
   public TomogramPositioningDialog(ApplicationManager appMgr, AxisID axisID) {
     super(appMgr, axisID);
     fixRootPanel(rootSize);
+    
+    prealiHeader = appMgr.getMrcHeader(axisID, ".preali");
+    rawstackHeader = appMgr.getMrcHeader(axisID, ".st");
 
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     btnExecute.setText("Done");
@@ -292,8 +304,25 @@ public class TomogramPositioningDialog extends ProcessDialog
    * @param tiltalignParam
    */
   public void setAlignParams(ConstTiltalignParam tiltalignParam) {
+    try {
+      prealiHeader.read();
+      rawstackHeader.read();
+    }
+    catch (IOException except) {
+      except.printStackTrace();
+      return;
+    }
+    catch (InvalidParameterException except) {
+      except.printStackTrace();
+      return;
+    }
     ltfTiltAngleOffset.setText(tiltalignParam.getTiltAngleOffset());
-    ltfTiltAxisZShift.setText(tiltalignParam.getTiltAxisZShift());
+    
+    //multiply by the binning previously used to create the .preali file
+    //assume that align.com is up-to-date and has the same pixel size as .preali
+    ltfTiltAxisZShift.setText(tiltalignParam.getTiltAxisZShift()
+    * Math.round(
+      prealiHeader.getXPixelSpacing() / rawstackHeader.getXPixelSpacing()));
   }
 
   /**
@@ -304,8 +333,27 @@ public class TomogramPositioningDialog extends ProcessDialog
   public void getAlignParams(TiltalignParam tiltalignParam)
       throws NumberFormatException {
     try {
+      prealiHeader.read();
+      //raw stack won't change and doesn't really have to be read again
+      rawstackHeader.read();
+    }
+    catch (IOException except) {
+      except.printStackTrace();
+      return;
+    }
+    catch (InvalidParameterException except) {
+      except.printStackTrace();
+      return;
+    }
+    try {
       tiltalignParam.setTiltAngleOffset(ltfTiltAngleOffset.getText());
-      tiltalignParam.setTiltAxisZShift(ltfTiltAxisZShift.getText());
+      
+      //divide by the binning used to create the .preali file
+      tiltalignParam.setTiltAxisZShift(
+        Double.parseDouble(ltfTiltAxisZShift.getText())
+          / Math.round(
+            prealiHeader.getXPixelSpacing()
+              / rawstackHeader.getXPixelSpacing()));
     }
     catch (NumberFormatException except) {
       throw new NumberFormatException(except.getMessage());
