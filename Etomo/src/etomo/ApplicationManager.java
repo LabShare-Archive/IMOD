@@ -74,6 +74,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.54  2003/07/01 19:24:30  rickg
+ * <p> Fixed progress bars for prenewst, newst and tomogram generation
+ * <p>
  * <p> Revision 2.53  2003/06/27 20:33:28  rickg
  * <p> Changed below method to public
  * <p>
@@ -644,7 +647,7 @@ public class ApplicationManager {
       mainFrame.showBlankProcess(axisID);
     }
     else {
-      updateEraserCom(axisID);
+      updateEraserCom(axisID, false);
 
       // If there are raw stack imod processes open ask the user if they
       // should be closed.
@@ -700,9 +703,9 @@ public class ApplicationManager {
   }
 
   /**
-   * Open 3dmod to create the erase model
+   * Open 3dmod to create the manual erase model
    */
-  public void imodErase(AxisID axisID) {
+  public void imodManualErase(AxisID axisID) {
     String eraseModelName =
       metaData.getDatasetName() + axisID.getExtension() + ".erase";
     try {
@@ -725,7 +728,7 @@ public class ApplicationManager {
   /**
    * Get the eraser{|a|b}.com script
    */
-  private void updateEraserCom(AxisID axisID) {
+  private void updateEraserCom(AxisID axisID, boolean trialMode) {
     PreProcessingDialog preProcDialog;
     if (axisID == AxisID.SECOND) {
       preProcDialog = preProcDialogB;
@@ -741,20 +744,124 @@ public class ApplicationManager {
     CCDEraserParam ccdEraserParam = new CCDEraserParam();
     ccdEraserParam = comScriptMgr.getCCDEraserParam(axisID);
     preProcDialog.getCCDEraserParams(ccdEraserParam);
+    ccdEraserParam.setTrialMode(trialMode);
     comScriptMgr.saveEraser(ccdEraserParam, axisID);
-
   }
 
   /**
    * Run the eraser script
    */
   public void eraser(AxisID axisID) {
-    updateEraserCom(axisID);
+    updateEraserCom(axisID, false);
     processTrack.setPreProcessingState(ProcessState.INPROGRESS, axisID);
     mainFrame.setPreProcessingState(ProcessState.INPROGRESS, axisID);
     String threadName = processMgr.eraser(axisID);
     setThreadName(threadName, axisID);
     mainFrame.startProgressBar("Erasing pixels", axisID);
+  }
+
+  /**
+   * Run CCDeraser in trial mode 
+   * @param axisID
+   */
+  public void findXrays(AxisID axisID) {
+    updateEraserCom(axisID, true);
+    processTrack.setPreProcessingState(ProcessState.INPROGRESS, axisID);
+    mainFrame.setPreProcessingState(ProcessState.INPROGRESS, axisID);
+    String threadName = processMgr.eraser(axisID);
+    setThreadName(threadName, axisID);
+    mainFrame.startProgressBar("Finding x-rays", axisID);
+  }
+
+  /**
+   * Open 3dmod to view the xray model on the raw stack
+   */
+  public void imodXrayModel(AxisID axisID) {
+    String xRayModel =
+      metaData.getDatasetName() + axisID.getExtension() + "_peak.mod";
+    try {
+      imodManager.modelRawStack(xRayModel, axisID);
+    }
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      openMessageDialog(except.getMessage(), "AxisType problem");
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      openMessageDialog(except.getMessage(), "Problem opening coarse stack");
+    }
+  }
+
+  /**
+   * Open 3dmod to view the erased stack
+   */
+  public void imodErasedStack(AxisID axisID) {
+    try {
+      imodManager.openErasedStack(axisID);
+    }
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      openMessageDialog(except.getMessage(), "AxisType problem");
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      openMessageDialog(except.getMessage(), "Problem opening erased stack");
+    }
+  }
+
+  /**
+   * Replace the raw stack with the fixed stack created from eraser
+   * @param axisID
+   */
+  public void replaceRawStack(AxisID axisID) {
+    // Instantiate file objects for the original raw stack and the fixed stack
+    String rawStackFilename =
+      System.getProperty("user.dir")
+        + File.separator
+        + metaData.getDatasetName()
+        + axisID.getExtension()
+        + ".st";
+    File rawStack = new File(rawStackFilename);
+    
+    String fixedStackFilename =
+      System.getProperty("user.dir")
+        + File.separator
+        + metaData.getDatasetName()
+        + axisID.getExtension()
+        + "_fixed.st";
+    File fixedStack = new File(fixedStackFilename);
+
+    if (!fixedStack.exists()) {
+      openMessageDialog(
+        "The erased stack doesn't exist.  Create the erased stack first",
+        "Erased stack missing");
+        return;
+    }
+
+    processTrack.setPreProcessingState(ProcessState.INPROGRESS, axisID);
+    mainFrame.setPreProcessingState(ProcessState.INPROGRESS, axisID);
+
+    //  Rename the fixed stack to the raw stack file name
+    fixedStack.renameTo(rawStack);
+    
+    if(imodManager.isRawStackOpen(axisID)) {
+      String[] message = new String[2];
+      message[0] = "The replaced raw stack is still open in 3dmod";
+      message[1] = "Should it be closed?";
+      if(openYesNoDialog(message)) {
+        try {
+          imodManager.quitRawStack(axisID);
+        }
+        catch (AxisTypeException e) {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
+        }
+        catch (SystemProcessException e) {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
+        }
+      }
+    }
   }
 
   /**
@@ -2698,7 +2805,7 @@ public class ApplicationManager {
   public ComScriptManager getComScriptManager() {
     return comScriptMgr;
   }
-  
+
   /**
    * Check if the current data set is a dual axis data set
    * @return true if the data set is a dual axis data set
