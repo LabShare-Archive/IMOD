@@ -55,6 +55,9 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.19  2004/06/17 22:30:15  sueh
+ * bug# 475 set X offset to 0 if X offset is empty and Z offset is set
+ *
  * Revision 3.18  2004/06/17 21:25:47  sueh
  * bug# 473
  *
@@ -336,6 +339,8 @@ public class TomogramGenerationDialog extends ProcessDialog
       "<html><b>View Tomogram In 3dmod</b>");
   private MultiLineToggleButton btnDeleteStacks = new MultiLineToggleButton(
       "<html><b>Delete Aligned Image Stack</b>");
+      
+  private JPanel pnlTiltButtons = new JPanel();
 
   public TomogramGenerationDialog(ApplicationManager appMgr, AxisID axisID) {
     super(appMgr, axisID);
@@ -349,6 +354,13 @@ public class TomogramGenerationDialog extends ProcessDialog
     layoutTiltPanel();
     layoutTrialPanel();
 
+    //tilt buttons panel
+    pnlTiltButtons.setLayout(new BoxLayout(pnlTiltButtons, BoxLayout.X_AXIS));
+    UIUtilities.addWithXSpace(pnlTiltButtons, btnTilt);
+    UIUtilities.addWithXSpace(pnlTiltButtons, btn3dmodTomogram);
+    UIUtilities.addWithXSpace(pnlTiltButtons, btnDeleteStacks);
+    UIUtilities.setButtonSizeAll(pnlTiltButtons, UIParameters.dimButton);
+    
     // Layout the main panel and add it to the root panel
     pnlTilt.setBorder(new BeveledBorder("Tomogram Generation").getBorder());
     pnlTilt.setLayout(new BoxLayout(pnlTilt, BoxLayout.Y_AXIS));
@@ -356,11 +368,8 @@ public class TomogramGenerationDialog extends ProcessDialog
     UIUtilities.addWithYSpace(pnlTilt, pnlAlignedStack);
     UIUtilities.addWithYSpace(pnlTilt, pnlFilter);
     UIUtilities.addWithYSpace(pnlTilt, pnlTiltParams);
-    UIUtilities.addWithYSpace(pnlTilt, btnTilt);
-    UIUtilities.addWithYSpace(pnlTilt, btn3dmodTomogram);
-    UIUtilities.addWithYSpace(pnlTilt, btnDeleteStacks);
+    UIUtilities.addWithYSpace(pnlTilt, pnlTiltButtons);
     UIUtilities.alignComponentsX(pnlTilt, Component.CENTER_ALIGNMENT);
-    UIUtilities.setButtonSizeAll(pnlTilt, UIParameters.dimButton);
 
     rootPanel.add(pnlTilt);
     rootPanel.add(Box.createVerticalGlue());
@@ -682,7 +691,8 @@ public class TomogramGenerationDialog extends ProcessDialog
     pnlAdvanced3.setVisible(isAdvanced);
     pnlTrial.setVisible(isAdvanced);
     cbBoxUseLinearInterpolation.setVisible(isAdvanced);
-    pnlFilter.setVisible(isAdvanced);
+    ltfStartingAndEndingZ.setVisible(isAdvanced);
+    pnlInverseFilter.setVisible(isAdvanced);
     applicationManager.packMainWindow();
   }
 
