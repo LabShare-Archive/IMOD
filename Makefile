@@ -351,7 +351,7 @@ dist : ALWAYS
 	@echo "Compressing..."
 	$(ARC) $(ARCHIVE) $(ARCNAME); $(COMPRESS) $(ARCHIVE)
 	@echo "Making self-installing file..."
-	if [ -e $(ARCCSH) ] ; then /bin/rm -rf $(ARCCSH)/ ; fi
+	if [ -e $(ARCCSH) ] ; then /bin/rm -f $(ARCCSH) ; fi
 	cat dist/installStub $(ARCCOMP) > $(ARCCSH) ; chmod a+x $(ARCCSH)
 
 
@@ -447,6 +447,9 @@ ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.49  2005/03/31 22:49:24  mast
+#  Added setup2 to src
+#
 #  Revision 3.48  2005/03/31 22:28:59  mast
 #  Fixed sourcedoc entry in make src
 #
