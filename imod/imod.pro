@@ -22,7 +22,7 @@ mkargvtarget.commands = gcc -o mkargv mkargv.o
 QMAKE_EXTRA_UNIX_TARGETS += mkargvtarget helptarget
 
 INSTALLS += target 3dmodv
-FORMS	= form_object_edit.ui formv_control.ui formv_movie.ui formv_modeled.ui formv_views.ui formv_depthcue.ui formv_objed.ui form_info.ui form_moviecon.ui form_autox.ui form_cont_edit.ui form_appearance.ui form_behavior.ui form_mouse.ui 
+FORMS	= form_object_edit.ui formv_control.ui formv_movie.ui formv_modeled.ui formv_views.ui formv_depthcue.ui formv_objed.ui form_info.ui form_moviecon.ui form_autox.ui form_cont_edit.ui form_appearance.ui form_behavior.ui form_mouse.ui form_startup.ui 
 IMAGES	= uparrow.png downarrow.png rightarrow.png leftarrow.png raisewindow.png 
 TEMPLATE	=app
 CONFIG	+= qt opengl
