@@ -11,7 +11,10 @@
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2004/02/05 04:37:15  rickg
+ * <p> Initial revision
+ * <p> </p>
  */
 package etomo.ui;
 
@@ -72,6 +75,10 @@ public class LabeledSpinner {
 
   public void setValue(Object value) {
     spinner.setValue(value);
+  }
+  
+  public void setValue(int value){
+    spinner.setValue(new Integer(value));
   }
 
   public void setEnabled(boolean isEnabled) {
