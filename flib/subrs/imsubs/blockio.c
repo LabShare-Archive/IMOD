@@ -20,6 +20,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.6  2003/11/18 19:19:09  mast
+changes for 2GB problem on Windows
+
 Revision 3.5  2003/10/24 03:40:33  mast
 open file as binary; delete ~ before renaming for Windows/Intel
 
@@ -49,8 +52,10 @@ Include Files
 #include <sys/stat.h>
 #include <string.h>   /* JRK: added for strcmp */
 #include <math.h>
+#include <errno.h>
 
 #include "environ.h"
+#include "b3dutil.h"
 
 /******************************************************************************
 Private Defines
@@ -91,16 +96,6 @@ Private Defines
 
 #endif
 
-#ifdef WIN32_BIGFILE
-#include <io.h>
-#define fseek myfseek 
-#define fread myfread 
-#define fwrite myfwrite 
-PRIVATE int myfseek(FILE *fp, int offset, int flag);
-PRIVATE size_t myfread(void *buf, size_t size, size_t count, FILE *fp);
-PRIVATE size_t myfwrite(void *buf, size_t size, size_t count, FILE *fp);
-#endif
- 
 #define MAX_MODE 17    /* JRK: max mode from 5 to 17 */
 #define MAX_UNIT 20    /* JRK: max unit from 5 to 10; DNM to 20 */
 
@@ -161,7 +156,6 @@ PRIVATE fcmp();
 PRIVATE find_unit();
 PRIVATE void get_fstr();
 PRIVATE void set_fstr();
-PRIVATE int big_seek(FILE *fp, int base, int size1, int size2, int flag);
  
 /******************************************************************************
 Private Global Declarations
@@ -322,7 +316,7 @@ void qclose(iunit)
            fprintf(stdout, "ERROR: qread - file is write only.\n");
            exit(-1);
          }
-       if (fread(array, 1, bc, u->fp) != bc)
+       if (b3dFread(array, 1, bc, u->fp) != bc)
          {
            fprintf(stdout, "ERROR: qread - read error\n");
            perror("");
@@ -353,7 +347,7 @@ void qwrite(iunit, array, nitems)
            fprintf(stdout, "ERROR: qwrite - file is read only.\n");
            exit(-1);
          }
-       if (fwrite(array, 1, bc, u->fp) != bc)
+       if (b3dFwrite(array, 1, bc, u->fp) != bc)
          {
            fprintf(stdout, "ERROR: qwrite - error writing file.\n");
            perror("");
@@ -382,7 +376,7 @@ void qwrite(iunit, array, nitems)
                  (unsigned int)(*ielement - 1)) * 
          (unsigned int)u->num_char_per_item;
        /*  if (lseek(u->fp, u->pos = pos, 0) < 0) */
-       if (big_seek(u->fp, (*ielement - 1) * u->num_char_per_item,
+       if (mrc_big_seek(u->fp, (*ielement - 1) * u->num_char_per_item,
                     *irecord - 1, 
                     *ireclength * u->num_char_per_item, 
                     SEEK_SET))
@@ -407,7 +401,7 @@ void qwrite(iunit, array, nitems)
        Unit *u = units + unit;
        int amt = -(*ireclength * u->num_char_per_item);
        u->pos += amt;
-       if (fseek(u->fp, amt, SEEK_CUR))
+       if (b3dFseek(u->fp, amt, SEEK_CUR))
          {
            fprintf(stdout, "ERROR: qskip - Error on seek\n");
            exit(-1);
@@ -425,7 +419,7 @@ void qwrite(iunit, array, nitems)
        Unit *u = units + unit;
        int amt = *ireclength * u->num_char_per_item;
        u->pos += amt;
-       if (fseek(u->fp, amt, SEEK_CUR))
+       if (b3dFseek(u->fp, amt, SEEK_CUR))
          {
            fprintf(stdout, "ERROR: qskip - Error on seek\n");
            exit(-1);
@@ -639,70 +633,7 @@ void qinquire(iunit, filename, flen, filename_l)
        *a++ = 0;
      }
  } 
- 
-#define SEEK_LIMIT 2000000000
- 
-PRIVATE int big_seek(FILE *fp, int base, int size1, int size2, int flag)
-{
-  int smaller, bigger, ntodo, ndo, abs1, abs2;
-  int steplimit, err;
 
-  /* Do the base seek if it is non-zero, or if the rest of the seek is
-     zero and we are doing a SEEK_SET */
-  if (base || ((!size1 || !size2) && (flag == SEEK_SET))) {
-    if (err = fseek(fp, base, flag))
-      return err;
-    flag = SEEK_CUR;
-  }
-
-  if (!size1 || !size2)
-    return 0;
-
-  /* Find smaller and larger size */
-  abs1 = size1 >= 0 ? size1 : -size1;
-  abs2 = size2 >= 0 ? size2 : -size2;
-  smaller = abs1 < abs2 ? abs1 : abs2;
-  bigger = abs1 < abs2 ? abs2 : abs1;
-
-  /* Step by multiples of the larger size, but not by more than the limit */
-  steplimit = SEEK_LIMIT / bigger;
-  ntodo = smaller;
-
-  /* If one of the size entries is negative, negate the steps */
-  if ((size1 < 0 && size2 >= 0) || (size1 >= 0 && size2 < 0))
-    bigger = -bigger;
-
-  while (ntodo > 0) {
-    ndo = ntodo <= steplimit ? ntodo : steplimit;
-    if (err = fseek(fp, ndo * bigger, flag))
-      return err;
-    ntodo -= ndo;
-    flag = SEEK_CUR;
-  }
-  return 0;
-}
-
-#ifdef WIN32_BIGFILE
-PRIVATE int myfseek(FILE *fp, int offset, int flag)
-{
-  int handle = _fileno(fp);
-  __int64 err;
-  err = _lseeki64(handle, (_int64)offset, flag);
-  return (err == -1 ? -1 : 0);
-}
-
-PRIVATE size_t myfread(void *buf, size_t size, size_t count, FILE *fp)
-{
-  int handle = _fileno(fp);
-  return (size_t)_read(handle, buf, size * count);
-}
- 
-PRIVATE size_t myfwrite(void *buf, size_t size, size_t count, FILE *fp)
-{
-  int handle = _fileno(fp);
-  return (size_t)_write(handle, buf, size * count);
-}
-#endif
  
 /************************************************************************
 Private undefines
