@@ -1,31 +1,14 @@
-/*  IMOD VERSION 2.50
- *
+/*
  *  imod_info_cb.c -- Callback functions for the Information Window.
  *
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
+ *
+ *  Copyright (C) 1995-2004 by Boulder Laboratory for 3-Dimensional Electron
+ *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  */
 
-/*****************************************************************************
- *   Copyright (C) 1995-2001 by Boulder Laboratory for 3-Dimensional Fine    *
- *   Structure ("BL3DFS") and the Regents of the University of Colorado.     *
- *                                                                           *
- *   BL3DFS reserves the exclusive rights of preparing derivative works,     *
- *   distributing copies for sale, lease or lending and displaying this      *
- *   software and documentation.                                             *
- *   Users may reproduce the software and documentation as long as the       *
- *   copyright notice and other notices are preserved.                       *
- *   Neither the software nor the documentation may be distributed for       *
- *   profit, either in original form or in derivative works.                 *
- *                                                                           *
- *   THIS SOFTWARE AND/OR DOCUMENTATION IS PROVIDED WITH NO WARRANTY,        *
- *   EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTY OF          *
- *   MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.       *
- *                                                                           *
- *   This work is supported by NIH biotechnology grant #RR00592,             *
- *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
- *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
- *****************************************************************************/
 /*  $Author$
 
 $Date$
@@ -244,7 +227,7 @@ void imod_info_setobjcolor(void)
   double clev, th = 32.;
   Iobj *obj;
 
-  obj = imodel_object_get(Model);
+  obj = imodObjectGet(Model);
   if (!obj){
     red = green = blue = 128;
   }else{
@@ -282,7 +265,7 @@ void imod_info_setocp(void)
   Iobj *obj;
   Icont *cont;
      
-  obj = imodel_object_get(imod);
+  obj = imodObjectGet(imod);
   cont = imodContourGet(imod);
      
   // Object is either present or not
@@ -800,6 +783,10 @@ void imod_imgcnt(char *string)
 
 /*
 $Log$
+Revision 4.17  2005/02/12 01:35:31  mast
+Initialized clearedSd properly, prevented b/w values out of range in
+float, and called bwfloat when float is turned on to get things going
+
 Revision 4.16  2004/11/07 23:03:42  mast
 Fixed saving of cleared float info by saving only once and saving b/w also
 

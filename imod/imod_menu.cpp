@@ -293,7 +293,7 @@ void InfoWindow::editModelSlot(int item)
         if (!hasdata) {
           /* delete object if it is empty */
           vi->undo->objectRemoval(ob);
-          imodFreeObject(imod, ob);
+          imodDeleteObject(imod, ob);
           if (ob < obsave) 
             /*If this object is less than than the current
               one, then decrease current object */
@@ -346,7 +346,7 @@ void InfoWindow::editObjectSlot(int item)
   if (ImodForbidLevel)
     return;
 
-  obj = imodel_object_get(imod);
+  obj = imodObjectGet(imod);
   if (!obj && item != EOBJECT_MENU_NEW)
     return;
      
@@ -361,7 +361,7 @@ void InfoWindow::editObjectSlot(int item)
     if (!obj || !dia_ask("Delete Object?"))
       break;
     vi->undo->objectRemoval();
-    imodFreeObject(imod, imod->cindex.object);
+    imodDeleteObject(imod, imod->cindex.object);
     vi->undo->finishUnit();
     imodSelectionListClear(vi);
     imodDraw(vi, IMOD_DRAW_MOD);
@@ -483,7 +483,7 @@ void InfoWindow::editObjectSlot(int item)
         /* delete contour if it is empty */
         imod->cindex.contour = co;
         vi->undo->contourRemoval();
-        DelContour(imod, co);
+        imodDeleteContour(imod, co);
         if (co < cosave) 
           /* And if this contour is less than than the current
              one, then decrease current contour */
@@ -621,7 +621,7 @@ void InfoWindow::editSurfaceSlot(int item)
     for (co = obj->contsize - 1; co >= 0; co--) {
       if (obj->cont[co].surf == surfDel) {
         App->cvi->undo->contourRemoval(co);
-        DelContour(imod, co);
+        imodDeleteContour(imod, co);
         if (coNew && coNew == co)
           coNew--;
       }
@@ -668,7 +668,7 @@ void InfoWindow::editContourSlot(int item)
   case ECONTOUR_MENU_SORT: /* sort */
     if (imod->mousemode == IMOD_MMODEL){
       vi->undo->clearUnits();
-      imodObjectSort(imodel_object_get(imod));
+      imodObjectSort(imodObjectGet(imod));
       imod->cindex.contour = -1;
       imod->cindex.point   = -1;
       imodSelectionListClear(vi);
@@ -693,7 +693,7 @@ void InfoWindow::editContourSlot(int item)
       return;
     if (!cont->psize)
       return;
-    obj = imodel_object_get(imod);
+    obj = imodObjectGet(imod);
     if (!obj) break;      
     wprint("Obj: %d, Cont %d\n", 
            imod->cindex.object+1, 
@@ -749,7 +749,7 @@ void InfoWindow::editContourSlot(int item)
     break;
 
   case ECONTOUR_MENU_FIXZ: /* break a contour at z transitions */
-    obj = imodel_object_get(imod);
+    obj = imodObjectGet(imod);
     if (!obj)
       break;      
     if (!cont)
@@ -802,7 +802,7 @@ void InfoWindow::editContourSlot(int item)
     break;
 
   case ECONTOUR_MENU_FILLIN: /* fill in a contour at every z level: Open contours only */
-    obj = imodel_object_get(imod);
+    obj = imodObjectGet(imod);
     if (!obj)
       break;      
     if (!cont)
@@ -1161,6 +1161,9 @@ static Icont *imodContourBreakByZ(ImodView *vi, Iobj *obj, int ob, int co)
 
 /*
   $Log$
+  Revision 4.22  2004/12/24 02:18:31  mast
+  Use man page insetad of out-of-date imodhelp
+
   Revision 4.21  2004/11/20 05:05:27  mast
   Changes for undo/redo capability
 

@@ -673,7 +673,7 @@ void XyzWindow::B2Drag(int x, int y)
   if (box != 3)
     return;
 
-  obj = imodel_object_get(xx->vi->imod);
+  obj = imodObjectGet(xx->vi->imod);
   if (!obj)
     return;
   cont = imodContourGet(xx->vi->imod);
@@ -1713,6 +1713,9 @@ void XyzGL::mouseMoveEvent( QMouseEvent * event )
 
 /*
 $Log$
+Revision 4.24  2004/11/21 05:50:34  mast
+Switch from int to float for nearest point distance measurement
+
 Revision 4.23  2004/11/20 05:05:27  mast
 Changes for undo/redo capability
 

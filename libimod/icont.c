@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 3.9  2005/02/03 18:45:52  mast
+    Needed to allocate bigger contatz for imodmesh
+
     Revision 3.8  2005/01/30 17:44:03  mast
     Changed imodel_contour_overlap to take addresses of contour pointers and
     convert to scanline contours only when needed
@@ -67,13 +70,13 @@
 
 Icont *imodContourNew(void)
 {
-  struct Mod_Contour *cont;
+  Icont *cont;
      
-  cont = (struct Mod_Contour *)
-    malloc(sizeof(struct Mod_Contour));
+  cont = (Icont *)
+    malloc(sizeof(Icont));
 
   if (cont == NULL)
-    return((struct Mod_Contour *)NULL);
+    return((Icont *)NULL);
   imodContourDefault(cont);
   return(cont);
 }
@@ -200,8 +203,8 @@ int imodContoursDeleteToEnd(Iobj *obj, int keep)
   obj->contsize = keep;
   /* Change contour array to new size */
   if (obj->contsize){
-    obj->cont = (struct Mod_Contour *)
-      realloc(obj->cont, obj->contsize * sizeof(struct Mod_Contour));
+    obj->cont = (Icont *)
+      realloc(obj->cont, obj->contsize * sizeof(Icont));
     if (!obj->cont)
       return(-1);
      
@@ -212,18 +215,18 @@ int imodContoursDeleteToEnd(Iobj *obj, int keep)
   return(0);
 }
 
-Icont *imodContourGet(struct Mod_Model *imod)
+Icont *imodContourGet(Imod *imod)
 {
-  struct Mod_Object *obj;
+  Iobj *obj;
      
-  obj = imodel_object_get(imod);
+  obj = imodObjectGet(imod);
   if (obj == NULL)
-    return((struct Mod_Contour *)NULL);
+    return((Icont *)NULL);
 
   /* DNM 3/9/01: need to test for index too high also in case of corrupt
      model */
   if (imod->cindex.contour < 0 || imod->cindex.contour >= obj->contsize)
-    return( (struct Mod_Contour *)NULL);
+    return( (Icont *)NULL);
      
   return( &(obj->cont[imod->cindex.contour]));
 }
@@ -370,7 +373,7 @@ void imodContourReduce(Icont *cont, float tol)
 /* internal functions                                                        */
 /*****************************************************************************/
 
-int imodel_contour_clear(struct Mod_Contour *cont)
+int imodel_contour_clear(Icont *cont)
 {
   if (!cont)
     return(-1);
@@ -394,7 +397,7 @@ int imodel_contour_clear(struct Mod_Contour *cont)
 
 
 
-int imodel_contour_newsurf(struct Mod_Object *obj, struct Mod_Contour *cont)
+int imodel_contour_newsurf(Iobj *obj, Icont *cont)
 {
   int co;
   int max;
@@ -412,7 +415,7 @@ int imodel_contour_newsurf(struct Mod_Object *obj, struct Mod_Contour *cont)
 }
 
 /* Find first unused surface number */
-int imodel_unused_surface(struct Mod_Object *obj)
+int imodel_unused_surface(Iobj *obj)
 {
   int co;
   int max;
@@ -478,9 +481,9 @@ float imodContourArea(Icont *cont)
   return(retval);
 }
 
-int imodel_contour_area(struct Mod_Contour *icont)
+int imodel_contour_area(Icont *icont)
 {
-  struct Mod_Contour *cont;
+  Icont *cont;
   int pix = 0;
   int i, j;
   int xmin, xmax;
@@ -529,7 +532,7 @@ int imodel_contour_area(struct Mod_Contour *icont)
 
 
 
-double imodel_contour_length(struct Mod_Contour *cont)
+double imodel_contour_length(Icont *cont)
 {
   double dist = 0;
   int pt;
@@ -836,10 +839,10 @@ double imodContourPrincipalAxis(Icont *cont)
 /*****************************************************************************/
 /* Old version of centroid calculation
  */
-int imodel_contour_centroid(struct Mod_Contour *icont, struct Mod_Point *rcp,
+int imodel_contour_centroid(Icont *icont, Ipoint *rcp,
                             double *rtw)
 {
-  struct Mod_Contour *cont;
+  Icont *cont;
   float xval, yval, weight;
   int pix = 0;
   int i, j, y;
@@ -916,7 +919,7 @@ int imodel_contour_centroid(struct Mod_Contour *icont, struct Mod_Point *rcp,
 /* returns non zero if point is in contour list.                            */
 /* list.                                                                    */
 /****************************************************************************/
-int imodel_contour_on(struct Mod_Contour *cont, int x, int y)
+int imodel_contour_on(Icont *cont, int x, int y)
 {
   int i;
   int retval = 0;
@@ -970,12 +973,8 @@ int imodel_contour_on(struct Mod_Contour *cont, int x, int y)
 /*****************************************************************************/
 int imodContourUnique(Icont *cont)
 {
-  return(imodel_contour_unique(cont));
-}
-int imodel_contour_unique(struct Mod_Contour *cont)
-{
   int i,j;
-  struct Mod_Point *pnt;
+  Ipoint *pnt;
 
   if (cont == NULL)
     return(-1);
@@ -987,7 +986,7 @@ int imodel_contour_unique(struct Mod_Contour *cont)
     if ((pnt->x == cont->pts[j].x) &&
         (pnt->y == cont->pts[j].y) &&
         (pnt->z == cont->pts[j].z))
-      imodel_point_delete(cont, j);
+      imodPointDelete(cont, j);
     else
       i++;
   }
@@ -995,11 +994,11 @@ int imodel_contour_unique(struct Mod_Contour *cont)
   return(0);
 }
 
-int imodel_contour_sorty(struct Mod_Contour *cont, int bgnpt, int endpt)
+int imodel_contour_sorty(Icont *cont, int bgnpt, int endpt)
 {
   int i, j;
   int sindex;
-  struct Mod_Point point;
+  Ipoint point;
   float size;
 
   if (cont == NULL)
@@ -1033,11 +1032,11 @@ int imodel_contour_sorty(struct Mod_Contour *cont, int bgnpt, int endpt)
   return(0);
 }
 
-int imodel_contour_sortx(struct Mod_Contour *cont, int bgnpt, int endpt)
+int imodel_contour_sortx(Icont *cont, int bgnpt, int endpt)
 {
   int i, j;
   int sindex;
-  struct Mod_Point point;
+  Ipoint point;
   float size;
 
   if (cont == NULL)
@@ -1071,11 +1070,11 @@ int imodel_contour_sortx(struct Mod_Contour *cont, int bgnpt, int endpt)
   return(0);
 }
 
-int imodel_contour_sortz(struct Mod_Contour *cont, int bgnpt, int endpt)
+int imodel_contour_sortz(Icont *cont, int bgnpt, int endpt)
 {
   int i, j;
   int sindex;
-  struct Mod_Point point;
+  Ipoint point;
   float size;
 
   if (cont == NULL)
@@ -1109,9 +1108,9 @@ int imodel_contour_sortz(struct Mod_Contour *cont, int bgnpt, int endpt)
   return(0);
 }
 
-int imodel_contour_sort(struct Mod_Contour *cont)
+int imodel_contour_sort(Icont *cont)
 {
-  struct Mod_Point point;
+  Ipoint point;
   int i, j;
   int sindex;
   double distance;
@@ -1121,7 +1120,7 @@ int imodel_contour_sort(struct Mod_Contour *cont)
   if (cont == NULL)
     return(-1);
 
-  imodel_contour_unique(cont);
+  imodContourUnique(cont);
 
   for (i = 0; i < cont->psize - 1; i++){
     sindex = i + 1;
@@ -1129,7 +1128,7 @@ int imodel_contour_sort(struct Mod_Contour *cont)
     for(j = i + 2; j < cont->psize; j++){
       distance = imodel_point_dist(&(cont->pts[i]), &(cont->pts[j]) );
       if (sdist == distance){
-        imodel_point_delete(cont, j); 
+        imodPointDelete(cont, j); 
       }
       else
         if (sdist > distance){
@@ -1153,7 +1152,7 @@ int imodel_contour_sort(struct Mod_Contour *cont)
 
 /* DNM: invert the direction of a contour */
 
-int imodel_contour_invert(struct Mod_Contour *cont)
+int imodel_contour_invert(Icont *cont)
 {
   Ipoint tpt;
   float tval;
@@ -1207,10 +1206,6 @@ void imodel_contour_check_wild(Icont *cont)
 
 int imodContourShave(Icont *cont, double dist)
 {
-  return(imodel_contour_shave(cont,dist));
-}
-int imodel_contour_shave(struct Mod_Contour *cont, double dist)
-{
   int i;
   double pdist, ndist;
 
@@ -1222,12 +1217,12 @@ int imodel_contour_shave(struct Mod_Contour *cont, double dist)
     ndist = imodel_point_dist( &(cont->pts[i + 1]), &(cont->pts[i]));
     if (dist > 0)
       if ((pdist < dist) && (ndist < dist)){
-        imodel_point_delete(cont, i);
+        imodPointDelete(cont, i);
         i--;
       }
     if (dist < 0)
       if (pdist > (-dist) && (ndist > (-dist))){
-        imodel_point_delete(cont, i);
+        imodPointDelete(cont, i);
         i--;
       }
   }
@@ -1241,58 +1236,33 @@ int imodContourGetBBox(Icont *cont, Ipoint *ll, Ipoint *ur)
 {
   int pt;
 
-  if (!cont) return(-1);
-  if (!cont->psize) return(-1);
+  if (!cont)
+    return(-1);
+  if (!cont->psize)
+    return(-1);
 
   ll->x = ur->x = cont->pts->x;
   ll->y = ur->y = cont->pts->y;
   ll->z = ur->z = cont->pts->z;
 
   for(pt = 0; pt < cont->psize; pt++){
-    if (cont->pts[pt].x < ll->x) ll->x = cont->pts[pt].x;
-    if (cont->pts[pt].y < ll->y) ll->y = cont->pts[pt].y;
-    if (cont->pts[pt].z < ll->z) ll->z = cont->pts[pt].z;
-    if (cont->pts[pt].x > ur->x) ur->x = cont->pts[pt].x;
-    if (cont->pts[pt].y > ur->y) ur->y = cont->pts[pt].y;
-    if (cont->pts[pt].z > ur->z) ur->z = cont->pts[pt].z;
+    if (cont->pts[pt].x < ll->x)
+      ll->x = cont->pts[pt].x;
+    if (cont->pts[pt].y < ll->y)
+      ll->y = cont->pts[pt].y;
+    if (cont->pts[pt].z < ll->z)
+      ll->z = cont->pts[pt].z;
+    if (cont->pts[pt].x > ur->x)
+      ur->x = cont->pts[pt].x;
+    if (cont->pts[pt].y > ur->y)
+      ur->y = cont->pts[pt].y;
+    if (cont->pts[pt].z > ur->z)
+      ur->z = cont->pts[pt].z;
   }
   return(0);
 }
 
-int imodel_contour_mm(struct Mod_Contour *cont,
-                      struct Mod_Point *max,
-                      struct Mod_Point *min)
-{
-  int i;
-     
-  if (!cont)
-    return(-1);
-     
-  max->x = cont->pts->x;
-  max->y = cont->pts->y;
-  max->z = cont->pts->z;
-  min->x = max->x;
-  min->y = max->y;
-  min->z = max->z;
-
-  for (i = 1; i < cont->psize; i++){
-    if (cont->pts[i].x > max->x)
-      max->x = cont->pts[i].x;
-    if (cont->pts[i].y > max->y)
-      max->y = cont->pts[i].y;
-    if (cont->pts[i].z > max->z)
-      max->z = cont->pts[i].z;
-
-    if (cont->pts[i].x < min->x)
-      min->x = cont->pts[i].x;
-    if (cont->pts[i].y < min->y)
-      min->y = cont->pts[i].y;
-    if (cont->pts[i].z < min->z)
-      min->z = cont->pts[i].z;
-  }
-  return(0);
-}
-
+/* 3/19/05: removed imodel_contour_mm, same actions as above */
 
 /*
  * FUNCTION: imodContourSplice
@@ -1375,7 +1345,7 @@ Icont *imodContourBreak(Icont *cont, int p)
 /*****************************************************************************/
 int imodel_contour_move(void){return(0);}
 
-void imodel_contour_whole(struct Mod_Contour *cont)
+void imodel_contour_whole(Icont *cont)
 {
   int i, x, y;
      
@@ -1414,7 +1384,7 @@ Icont *imodel_contour_scan(Icont *incont)
     return(NULL);
   if (incont->pts == NULL){
     b3dError(stderr, "imodel_contour_scan: NULL point array\n");
-    return((struct Mod_Contour *)NULL);
+    return((Icont *)NULL);
   }
 
 
@@ -1425,10 +1395,10 @@ Icont *imodel_contour_scan(Icont *incont)
   if (!ocont)
     return((Icont *)NULL);
   imodel_contour_whole(ocont);
-  imodel_contour_unique(ocont);
+  imodContourUnique(ocont);
 
   if (ocont->psize == 1){
-    cont = imodel_contour_create();
+    cont = imodContourNew();
     if (cont){
       imodPointAppend(cont, ocont->pts);
       imodPointAppend(cont, ocont->pts);
@@ -1441,7 +1411,7 @@ Icont *imodel_contour_scan(Icont *incont)
 
   /* DNM: eliminate getting rid of lines parallel to y scan */
 
-  imodel_contour_mm(ocont, &pmax, &pmin);
+  imodContourGetBBox(ocont, &pmax, &pmin);
   ymin = pmin.y;
   ymax = pmax.y;
 
@@ -1449,7 +1419,7 @@ Icont *imodel_contour_scan(Icont *incont)
      contour from starting and ending points */
   if (ymin == ymax) {
     imodel_contour_sortx(ocont, 0, ocont->psize - 1);
-    cont = imodel_contour_create();
+    cont = imodContourNew();
     if (cont){
       imodPointAppend(cont, &ocont->pts[0]);
       imodPointAppend(cont, &ocont->pts[ocont->psize - 1]);
@@ -1460,15 +1430,15 @@ Icont *imodel_contour_scan(Icont *incont)
   }
       
   /* active edge table */
-  aet = imodel_contour_create();
+  aet = imodContourNew();
   if (aet == NULL){
     imodContourDelete(ocont);
-    return((struct Mod_Contour *)NULL);
+    return((Icont *)NULL);
   }
 
   /* contour to be returned */
   /* DNM 3/31/01: allocate a whole chuck for points */
-  cont = imodel_contour_create();
+  cont = imodContourNew();
   if (cont) {
     cont->pts = (Ipoint *)malloc(chunksize * sizeof(Ipoint));
     allocsize = chunksize;
@@ -1481,7 +1451,7 @@ Icont *imodel_contour_scan(Icont *incont)
   if (cont == NULL){
     imodContourDelete(aet);
     imodContourDelete(ocont);
-    return((struct Mod_Contour *)NULL);
+    return((Icont *)NULL);
   }
   cont->surf = pmin.x - 1;
   cont->flags |= ICONT_SCANLINE;
@@ -1515,7 +1485,7 @@ Icont *imodel_contour_scan(Icont *incont)
       free(ptsaty);
     if (numaty)
       free(numaty);
-    return((struct Mod_Contour *)NULL);
+    return((Icont *)NULL);
   }
   for (i = 0; i <= ymax - ymin + 1; i++){
     numaty[i] = 0;
@@ -1626,7 +1596,7 @@ Icont *imodel_contour_scan(Icont *incont)
     for (j = 0; j < aet->psize; j++){
       point.x = aet->pts[j].x;
 
-      /* DNM 3/31/01: eliminate calling imodel_point_add with its
+      /* DNM 3/31/01: eliminate calling imodPointAdd with its
          repeated realloc's; just allocate when the chunk is full 
          Sorry, too lazy to clean up here if the realloc fails! */
       if (cont->psize == allocsize) {
@@ -1634,14 +1604,14 @@ Icont *imodel_contour_scan(Icont *incont)
         cont->pts = (Ipoint *)realloc(cont->pts,
                                       allocsize * sizeof(Ipoint));
         if (cont->pts == NULL)
-          return((struct Mod_Contour *)NULL);
+          return((Icont *)NULL);
       }
       cont->pts[cont->psize++] = point;
 
       if (aet->pts[j].y <= i + ymin){
 
         /* Remove point from aet if it's done 
-           DNM 3/26/01: can't use imodel_point_delete after fixing
+           DNM 3/26/01: can't use imodPointDelete after fixing
            it to free the pts array, so do removal here */
         for ( ii = j; ii < aet->psize - 1; ii++)
           aet->pts[ii] = aet->pts[ii + 1];
@@ -1658,7 +1628,7 @@ Icont *imodel_contour_scan(Icont *incont)
   /* Trim the contour down */
   cont->pts = (Ipoint *)realloc(cont->pts, cont->psize * sizeof(Ipoint));
   if (cont->pts == NULL)
-    return((struct Mod_Contour *)NULL);
+    return((Icont *)NULL);
 
   /* make sure each scanline has an even pair. */
   for(i = 0; i < cont->psize; i++){
@@ -1670,7 +1640,7 @@ Icont *imodel_contour_scan(Icont *incont)
     endpt = i;
 
     if (! ( (endpt-bgnpt)% 2)){
-      imodel_point_add(cont, &(cont->pts[i]), i);
+      imodPointAdd(cont, &(cont->pts[i]), i);
       i++;
     }
   }
@@ -1719,7 +1689,7 @@ int imodContourNearest(Icont *cont, Ipoint *pnt)
 }
 
 /* returns index of point in contour nearest to (x, y) */
-int imodel_contour_nearest(struct Mod_Contour *cont, int x, int y)
+int imodel_contour_nearest(Icont *cont, int x, int y)
 {
   int i, index = 0;
   double dist, tdist;
@@ -1743,15 +1713,15 @@ int imodel_contour_nearest(struct Mod_Contour *cont, int x, int y)
 
 
 /* returns TRUE if c1 overlapes c2 in a given section. */
-int imodel_contour_overlap(struct Mod_Contour *c1, struct Mod_Contour *c2)
+int imodel_contour_overlap(Icont *c1, Icont *c2)
 {
   Icont *cs1, *cs2;
   Ipoint pmax1, pmin1, pmax2, pmin2;
   int i, j, jstrt;
 
   /* first check an see if bounding box overlaps. */
-  imodel_contour_mm(c1, &pmax1, &pmin1);
-  imodel_contour_mm(c2, &pmax2, &pmin2);
+  imodContourGetBBox(c1, &pmax1, &pmin1);
+  imodContourGetBBox(c2, &pmax2, &pmin2);
 
   if (pmax1.x < pmin2.x)
     return(0);
@@ -1996,28 +1966,28 @@ int imodContZDirection(Icont *cont)
 
 
 
-struct Mod_Contour *imodel_contour_double(struct Mod_Contour *cont)
+Icont *imodel_contour_double(Icont *cont)
 {
   int pt, index;
-  struct Mod_Contour *fcont;
-  struct Mod_Point point;
+  Icont *fcont;
+  Ipoint point;
 
-  fcont = imodel_contour_create();
+  fcont = imodContourNew();
   if (fcont == NULL)
     return(NULL);
 
   for (pt = 0, index = 0; pt < (cont->psize - 1); pt ++){
-    imodel_point_add(fcont, &(cont->pts[pt]), index++);
+    imodPointAdd(fcont, &(cont->pts[pt]), index++);
     point.x = (cont->pts[pt].x + cont->pts[pt + 1].x) / 2;
     point.y = (cont->pts[pt].y + cont->pts[pt + 1].y) / 2;
     point.z = (cont->pts[pt].z + cont->pts[pt + 1].z) / 2;
-    imodel_point_add(fcont, &point, index++);
+    imodPointAdd(fcont, &point, index++);
   }
-  imodel_point_add(fcont, &(cont->pts[cont->psize - 1]), index++);
+  imodPointAdd(fcont, &(cont->pts[cont->psize - 1]), index++);
   point.x = (cont->pts[0].x + cont->pts[cont->psize - 1].x) / 2;
   point.y = (cont->pts[0].y + cont->pts[cont->psize - 1].y) / 2;
   point.z = (cont->pts[0].z + cont->pts[cont->psize - 1].z) / 2;
-  imodel_point_add(fcont, &point, index++);
+  imodPointAdd(fcont, &point, index++);
   return(fcont);
 }
 
@@ -2080,7 +2050,7 @@ int imodContourStrip(Icont *cont)
     if (cont->pts[npt].x == cont->pts[nnpt].x)
       nis = TRUE;
     if ( is && nis ){
-      imodel_point_delete(cont, npt);
+      imodPointDelete(cont, npt);
       pt--;
       continue;
     }
@@ -2093,7 +2063,7 @@ int imodContourStrip(Icont *cont)
       (cont->pts[nnpt].x - cont->pts[npt].x);
 
     if (slope == nslope){
-      imodel_point_delete(cont, npt);
+      imodPointDelete(cont, npt);
       pt--;
     }
   }
@@ -2425,7 +2395,7 @@ Icont *imodContoursFromImagePoints(unsigned char *data, int xsize, int ysize,
                                    int z, unsigned char testmask, 
                                    int diagonal, int *ncont)
 {
-  struct Mod_Point point;
+  Ipoint point;
   Icont *contarr = NULL;
   Icont *cont;
   int i, j, itst, jtst;
@@ -2571,7 +2541,7 @@ Icont *imodContoursFromImagePoints(unsigned char *data, int xsize, int ysize,
           /* add the point and clear the edge */
           point.x = i + delx[iedge];
           point.y = j + dely[iedge];
-          imodel_point_add(cont, &point, cont->psize);
+          imodPointAdd(cont, &point, cont->psize);
           data[i + j * xsize] &= ~edgemask[iedge];
           /* printf ("at %d %d %d, adding %f %f\n", 
              i, j, iedge, point.x, point.y); */
@@ -2586,7 +2556,7 @@ Icont *imodContoursFromImagePoints(unsigned char *data, int xsize, int ysize,
   
 int imodContourAutoSort(Icont *cont)
 {
-  struct Mod_Point point;
+  Ipoint point;
   float cx, cy;
   int i, j;
   int sindex;

@@ -1,5 +1,4 @@
-/*  IMOD VERSION 2.50
- *
+/*
  *  imod_io.c -- File I/O for imod.
  *
  *  The functions in imod_io provide an interface for load and saving imod
@@ -8,28 +7,12 @@
  *
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
+ *
+ *  Copyright (C) 1995-2004 by Boulder Laboratory for 3-Dimensional Electron
+ *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  */
 
-/*****************************************************************************
- *   Copyright (C) 1995-2001 by Boulder Laboratory for 3-Dimensional Fine    *
- *   Structure ("BL3DFS") and the Regents of the University of Colorado.     *
- *                                                                           *
- *   BL3DFS reserves the exclusive rights of preparing derivative works,     *
- *   distributing copies for sale, lease or lending and displaying this      *
- *   software and documentation.                                             *
- *   Users may reproduce the software and documentation as long as the       *
- *   copyright notice and other notices are preserved.                       *
- *   Neither the software nor the documentation may be distributed for       *
- *   profit, either in original form or in derivative works.                 *
- *                                                                           *
- *   THIS SOFTWARE AND/OR DOCUMENTATION IS PROVIDED WITH NO WARRANTY,        *
- *   EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTY OF          *
- *   MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.       *
- *                                                                           *
- *   This work is supported by NIH biotechnology grant #RR00592,             *
- *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
- *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
- *****************************************************************************/
 /*  $Author$
 
 $Date$
@@ -507,7 +490,7 @@ static void initModelData(Imod *newModel, bool keepBW) {
   /* DNM 1/23/03: no longer free or allocate object colors */
   /* DNM: no longer causes a crash once we notify imodv of the
      new model */
-  imodFree(App->cvi->imod);
+  imodDelete(App->cvi->imod);
 	       
   Model = App->cvi->imod = newModel;
 
@@ -591,7 +574,7 @@ int createNewModel(char *modelFilename) {
   mode = App->cvi->imod->mousemode;
 
   /* DNM 1/23/03: no longer free or allocate object colors */
-  imodFree(App->cvi->imod);
+  imodDelete(App->cvi->imod);
   
   //  Allocate the new model
   Model = imodNew();
@@ -838,6 +821,9 @@ int WriteImage(FILE *fout, struct ViewInfo *vi, struct LoadInfo *li)
 
 /*
 $Log$
+Revision 4.15  2004/11/04 17:01:31  mast
+Changes for loading FFTs with internal mirroring
+
 Revision 4.14  2004/10/22 22:16:18  mast
 Added call to start cache dumping for mrc_read_byte data load
 

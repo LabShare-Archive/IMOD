@@ -1297,7 +1297,7 @@ int getimodnesting(int *ob, int *inOnly, int *level, int *inIndex,
     level[co] = 0;
     nestind[co] = -1;
     if (obj->cont[co].psize) {
-      imodel_contour_mm(&(obj->cont[co]), &(pmax[co]), &(pmin[co]));
+      imodContourGetBBox(&(obj->cont[co]), &(pmax[co]), &(pmin[co]));
       scancont[co] = &(obj->cont[co]);
     }
   }
@@ -1364,6 +1364,9 @@ int getimodnesting(int *ob, int *inOnly, int *level, int *inIndex,
 
 /*
 $Log$
+Revision 3.15  2005/01/30 17:44:39  mast
+Make scanlines contours only when needed for nesting analysis
+
 Revision 3.14  2005/01/29 20:26:19  mast
 Added routine to return information on nested contours
 

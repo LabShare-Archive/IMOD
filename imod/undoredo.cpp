@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 4.3  2005/02/24 22:31:06  mast
+    Added some debugging output
+
     Revision 4.2  2004/11/21 05:54:41  mast
     Changes for working from model view; essay added
 
@@ -363,7 +366,7 @@ void UndoRedo::modelChange(int type, Ipoint *point)
     if (mod->viewsize) {
       item.p.mod->view = imodViewNew(mod->viewsize);
       if (!item.p.mod->view) {
-        imodFree(item.p.mod);
+        imodDelete(item.p.mod);
         memoryError();
         return;
       }
@@ -381,7 +384,7 @@ void UndoRedo::modelChange(int type, Ipoint *point)
         vwo = &(item.p.mod->view[i]);
         vwo->objview = (Iobjview *)malloc(vwi->objvsize * sizeof(Iobjview));
         if (!vwo->objview) {
-          imodFree(item.p.mod);
+          imodDelete(item.p.mod);
           memoryError();
           return;
         }
@@ -395,7 +398,7 @@ void UndoRedo::modelChange(int type, Ipoint *point)
 
   // Add item to pool
   if (ilistAppend(mItemPool, &item)) {
-    imodFree(item.p.mod);
+    imodDelete(item.p.mod);
     memoryError();
     return;
   }

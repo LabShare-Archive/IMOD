@@ -2004,7 +2004,7 @@ void zapB2Drag(ZapStruct *zap, int x, int y, int controlDown)
     zap->dragAddCount++;
 
 
-    InsertPoint(vi->imod, &cpt, pt);
+    imodInsertPoint(vi->imod, &cpt, pt);
 
     imodDraw(vi, IMOD_DRAW_MOD | IMOD_DRAW_XYZ | IMOD_DRAW_NOSYNC);
   }
@@ -3425,6 +3425,9 @@ static int zapPointVisable(ZapStruct *zap, Ipoint *pnt)
 
 /*
 $Log$
+Revision 4.63  2005/03/08 02:30:21  mast
+Made sure subarea is set properly after a resize and translations
+
 Revision 4.62  2005/03/07 06:17:23  mast
 Synchronized toolbar button properly when turning off rubberband
 

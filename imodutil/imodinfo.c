@@ -1170,7 +1170,7 @@ static void imodinfo_objndist(Imod *imod, int bins)
   if (zscale == 0)
     zscale = 1.0;
           
-  dcont = imodel_contour_create();
+  dcont = imodContourNew();
 
   fprintf(fout, "#distance   number\n\n");
 
@@ -1193,7 +1193,7 @@ static void imodinfo_objndist(Imod *imod, int bins)
     pnt.x /= (float)tpt;
     pnt.y /= (float)tpt;
     pnt.z /= (float)tpt;
-    imodel_point_add(dcont, &pnt, dcont->psize);
+    imodPointAdd(dcont, &pnt, dcont->psize);
   }
 
   mindist = pixsize *
@@ -1260,7 +1260,7 @@ int imodinfo_objdist(Imod *imod, int bins)
   if (pixsize == 0)
     pixsize = 1;
 
-  dcont = imodel_contour_create();
+  dcont = imodContourNew();
 
   for (ob = imod->objsize; ob > 1; ob--)
     comps += ob - 1;
@@ -1287,7 +1287,7 @@ int imodinfo_objdist(Imod *imod, int bins)
     pnt.x /= (float)tpt;
     pnt.y /= (float)tpt;
     pnt.z /= (float)tpt;
-    imodel_point_add(dcont, &pnt, dcont->psize);
+    imodPointAdd(dcont, &pnt, dcont->psize);
   }
 
   for(i = 0, d = 0; i < dcont->psize - 1; i++)
@@ -1393,8 +1393,8 @@ static void imodinfo_special(Imod *imod, char *fname)
   imod->cindex.object = 137;
   imod->cindex.contour = 0;
   imod->cindex.point = 0;
-  imodFreeObject(imod, 137);
-  imodFreeObject(imod, 136);
+  imodDeleteObject(imod, 137);
+  imodDeleteObject(imod, 136);
 
   imodWrite(imod, fout);
   fclose(fout);
@@ -1994,7 +1994,7 @@ static int contourSubareaByScan(Icont *cont, Ipoint ptmin, Ipoint ptmax,
     return 0;
 
   /* Get limits and test in X and Y */
-  imodel_contour_mm(cont, &tmpmax, &tmpmin);
+  imodContourGetBBox(cont, &tmpmax, &tmpmin);
   if (tmpmin.x > ptmax.x || tmpmax.x < ptmin.x ||
       tmpmin.y > ptmax.y || tmpmax.y < ptmin.y)
     return 0;
@@ -2038,7 +2038,7 @@ static int contourSubareaByScan(Icont *cont, Ipoint ptmin, Ipoint ptmax,
       imodContourDelete((*scancont));
       return 0;
     }
-    imodel_contour_mm((*scancont), &tmpmax, &tmpmin);
+    imodContourGetBBox((*scancont), &tmpmax, &tmpmin);
 
     /* Adjust true area down by ratio of trimmed to original
        scan-contour area */
@@ -2179,8 +2179,8 @@ static void trim_scan_contour(Icont *cont, Ipoint min, Ipoint max, int doclip,
         if (yline < tmin.y || yline > tmax.y || pts[i].x > tmax.x ||
             pts[i + 1].x < tmin.x) {
           /* If line is out of bounds in y or x, delete 2 points */
-          imodel_point_delete(cont, i);
-          imodel_point_delete(cont, i);
+          imodPointDelete(cont, i);
+          imodPointDelete(cont, i);
           i--;
         } else {
           /* otherwise, check and truncate the left and right ends
@@ -2198,6 +2198,10 @@ static void trim_scan_contour(Icont *cont, Ipoint min, Ipoint max, int doclip,
 
 /*
 $Log$
+Revision 3.12  2005/01/29 20:28:57  mast
+Pulled out routines for making Z tables and doing nested contour
+analysis; fixed bug in clipping plane volume measurement
+
 Revision 3.11  2004/12/06 22:39:54  mast
 Fixed use of -f with ascii output of model
 

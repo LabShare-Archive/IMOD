@@ -1,31 +1,13 @@
-/*  IMOD VERSION 2.50
- *
+/*
  *  imodel.h -- Image model header file.
  *
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
+ *
+ *  Copyright (C) 1995-2004 by Boulder Laboratory for 3-Dimensional Electron
+ *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  */
-
-/*****************************************************************************
- *   Copyright (C) 1995-2001 by Boulder Laboratory for 3-Dimensional Fine    *
- *   Structure ("BL3DFS") and the Regents of the University of Colorado.     *
- *                                                                           *
- *   BL3DFS reserves the exclusive rights of preparing derivative works,     *
- *   distributing copies for sale, lease or lending and displaying this      *
- *   software and documentation.                                             *
- *   Users may reproduce the software and documentation as long as the       *
- *   copyright notice and other notices are preserved.                       *
- *   Neither the software nor the documentation may be distributed for       *
- *   profit, either in original form or in derivative works.                 *
- *                                                                           *
- *   THIS SOFTWARE AND/OR DOCUMENTATION IS PROVIDED WITH NO WARRANTY,        *
- *   EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTY OF          *
- *   MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.       *
- *                                                                           *
- *   This work is supported by NIH biotechnology grant #RR00592,             *
- *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
- *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
- *****************************************************************************/
 /*  $Author$
 
 $Date$
@@ -501,11 +483,9 @@ extern "C" {
 #endif
 
   Imod *imodNew       (void);
-  void  imodFree      (Imod *imod);
   void  imodDelete(Imod *imod);
   int   imodNewObject (Imod *imod);
   void  imodDeleteObject(Imod *imod, int index);
-  int   imodFreeObject(Imod *imod, int index);
   int   imodNextObject(Imod *imod);
   int   imodPrevObject(Imod *imod);
   int   imodMoveObject(Imod *imod, int obOld, int obNew);
@@ -516,22 +496,14 @@ extern "C" {
   int   imodNewContour(Imod *imod);
   int   imodPrevContour(Imod *imod);
   int   imodNextContour(Imod *imod);
-  int NewContour (Imod *imod);
-  int FreeContour (Imod *imod, int index);
-  int PrevContour(Imod *imod);
-  int NextContour(Imod *imod);
-  int DelContour(Imod *imod, int index);
-  void imodDeleteContour(Imod *imod);
+  int imodDeleteContour(Imod *imod, int index);
+  void imodDelCurrentContour(Imod *imod);
 
   int   imodNewPoint(Imod *imod, Ipoint *pt);
   int   imodInsertPoint(Imod *imod, Ipoint *point, int index);
   int   imodDeletePoint(Imod *imod);
   int   imodPrevPoint(Imod *imod);
   int   imodNextPoint(Imod *imod);
-  int NewPoint(struct Mod_Model *mod, struct Mod_Point *pt);
-  int InsertPoint(struct Mod_Model *mod, struct Mod_Point *pt, int index);
-  int PrevPoint(struct Mod_Model *mod);
-  int NextPoint(struct Mod_Model *mod);
 
   void  imodGetIndex(Imod *imod, int *object, int *contour, int *point);
   void  imodSetIndex(Imod *imod, int object, int contour, int point);
@@ -549,12 +521,12 @@ extern "C" {
   char   *imodUnits(Imod *mod);
   Ipoint *imodNearestPoint(Imod *imod, Ipoint *pt);
   int    imodChecksum(Imod *imod);
-  int     imodel_lock(struct Mod_Model *mod, int flag);
-  int     imodel_unlock(struct Mod_Model *mod);
-  int     imodel_transform_slice(struct Mod_Model *model, float *mat, 
+  int     imodel_lock(Imod *mod, int flag);
+  int     imodel_unlock(Imod *mod);
+  int     imodel_transform_slice(Imod *model, float *mat, 
                                  int slice);
   int     imodel_transform(struct Mod_Transform *tr);
-  int     imodel_model_clean(struct Mod_Model *mod, int keepEmptyObjs);
+  int     imodel_model_clean(Imod *mod, int keepEmptyObjs);
 
   /***************************************************************************/
   /* imodel_from.c functions                                                 */
@@ -570,7 +542,7 @@ extern "C" {
   /***************************************************************************/
   int imod_to_nff(Imod  *mod, FILE *fout);
   int imod_to_wmod(Imod *mod, FILE *fout, char *filename);
-  int imod_to_synu(struct Mod_Model *mod);
+  int imod_to_synu(Imod *mod);
 
   /***************************************************************************/
   /* imodel_files.c functions                                                */
@@ -717,6 +689,9 @@ mesh (index) (vert size) (list size)
 
 /*    
     $Log$
+    Revision 3.21  2004/12/06 22:00:08  mast
+    Removed DelPoint
+
     Revision 3.20  2004/11/20 04:05:26  mast
     removed virtual stuff, added contour store and function to move object
 

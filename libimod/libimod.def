@@ -38,7 +38,6 @@ EXPORTS
 	imodObjviewComplete
 	imodMeshDeleteIndex
 	imodel_contour_whole
-	NewContour
 	PipAllowCommaDefaults
 	ilistNext
 	imod_to_nff
@@ -143,7 +142,6 @@ EXPORTS
 	imodel_overlap_fractions
 	ilistPush
 	imodLabelItemMove
-	imodel_object_get
 	PIPINITIALIZE
 	imodContourUnique
 	imodMeshAddVert
@@ -166,9 +164,7 @@ EXPORTS
 	imodContourSplice
 	imodel_contour_scan
 	imodContourPrincipalAxis
-	imodel_contour_shave
 	imodClipsFixCount
-	imodel_contour_mm
 	imodel_contour_nearest
 	imodObjectInsertContour
 	imodSetIndex
@@ -176,7 +172,6 @@ EXPORTS
 	imodObjectDup
 	imodContoursFromImagePoints
 	b3dSetStoreError
-	imodFree
 	imodIMNXWrite
 	PipDone
 	imodPutFloats
@@ -218,19 +213,16 @@ EXPORTS
 	imodMeshAddNormal
 	PIPSETERROR
 	imodObjectGet
-	PrevPoint
 	c2fString
 	PipExitOnError
 	imod_to_wmod
 	imodContourShave
 	imodContourSetSurface
 	PipInitialize
-	NextContour
 	imodViewModelDefault
 	PipNumberOfArgs
 	PUTSYMTYPE
 	imodLabelItemAdd
-	imodFreeObject
 	imodPlaneSetFromClips
 	PipMemoryError
 	imodel_contour_invert
@@ -240,7 +232,6 @@ EXPORTS
 	imodContourCenterOfMass
 	PipGetFloat
 	PipSetError
-	NextPoint
 	PipGetIntegerArray
 	imodContourFindPoint
 	imodContourArea
@@ -321,7 +312,7 @@ EXPORTS
 	imodPutByte
 	imodObjviewToObject
 	PipGetThreeFloats
-	DelContour
+	imodDelCurrentContour
 	imodMeshesNew
 	imodContourSetPointData
 	imodPutInt
@@ -334,7 +325,6 @@ EXPORTS
 	imodNextPoint
 	imodMatInverse
 	imodel_contour_area
-	imodel_contour_unique
 	imodContourSetLabel
 	imodObjectSetName
 	GETIMOD
@@ -356,7 +346,6 @@ EXPORTS
 	IMODGETENV
 	imod_mesh_to_synu
 	imodContourDefault
-	NewPoint
 	getimodheado
 	imodLabelMatch
 	imodPutFloat
@@ -389,11 +378,9 @@ EXPORTS
 	imeshVolume
 	imodPlanesClip
 	imodGetMaxTime
-	PrevContour
 	imodGetBoundingBox
 	imodNextContour
 	imodViewModelRead
-	imodel_point_add
 	PUTIMODFLAG
 	PUTIMODZSCALE
 	GETIMODSCALES
@@ -408,7 +395,6 @@ EXPORTS
 	imodContourGetBBox
 	b3dFseek
 	imodVersion
-	imodel_point_delete
 	imodPointDistance
 	imodPlaneInit
 	imodGetBytes
@@ -416,7 +402,6 @@ EXPORTS
 	PIPGETFLOAT
 	DELETEIMOD
 	PipPrintHelp
-	InsertPoint
 	imodLabelItemMatch
 	PUTIMODMESH
 	PipGetNonOptionArg

@@ -1,5 +1,4 @@
-/*  IMOD VERSION 2.50
- *
+/*
  *  imod_input.c -- Handels general mouse/keyboard input.
  *
  *  Original author: James Kremer
@@ -472,14 +471,14 @@ void inputAdjacentContInSurf(ImodView *vw, int direction)
 
 void inputNextContour(ImodView *vw)
 {
-  NextContour(vw->imod);
+  imodNextContour(vw->imod);
   inputRestorePointIndex(vw);
   imod_setxyzmouse();
 }
 
 void inputPrevContour(ImodView *vw)
 {
-  PrevContour(vw->imod);
+  imodPrevContour(vw->imod);
   inputRestorePointIndex(vw);
   imod_setxyzmouse();
 }
@@ -500,7 +499,7 @@ void inputRestorePointIndex(ImodView *vw)
 
 void inputNextPoint(ImodView *vw)
 {
-  NextPoint(vw->imod);
+  imodNextPoint(vw->imod);
   imod_setxyzmouse();
   return;
 }
@@ -509,7 +508,7 @@ void inputNextPoint(ImodView *vw)
 void inputPrevPoint(ImodView *vw)
 {
   Icont *cont;
-  if (PrevPoint(vw->imod) < 0) {
+  if (imodPrevPoint(vw->imod) < 0) {
     cont = imodContourGet(vw->imod);
     if (cont)
       if (cont->psize)
@@ -641,7 +640,7 @@ void inputDeleteContour(ImodView *vw)
     if (!imodContourGet(imod))
       return;
     vw->undo->contourRemoval();
-    DelContour(imod, imod->cindex.contour);
+    imodDelCurrentContour(imod);
 
   } else {
 
@@ -661,7 +660,7 @@ void inputDeleteContour(ImodView *vw)
       for (i = obj->contsize - 1; i >= 0; i--) {
         if (imodSelectionListQuery(vw, ob, i) > -2) {
           vw->undo->contourRemoval(ob, i);
-          DelContour(imod, i);
+          imodDeleteContour(imod, i);
           if (ob == obnew)
             conew = i - 1;
         }
@@ -1293,6 +1292,9 @@ bool inputTestMetaKey(QKeyEvent *event)
 
 /*
 $Log$
+Revision 4.23  2005/02/24 22:36:46  mast
+Switched to ability to delete selected contours from multiple objects
+
 Revision 4.22  2004/12/03 17:24:50  mast
 Fixed bug in deleting point with no contour, and changed Delete behavior
 

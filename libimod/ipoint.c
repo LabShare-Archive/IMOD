@@ -1,31 +1,14 @@
-/*  IMOD VERSION 2.50
- *
+/*
  *  ipoint.c -- Point editing functions for imodel models.
  *
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
+ *
+ *  Copyright (C) 1995-2004 by Boulder Laboratory for 3-Dimensional Electron
+ *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  */
 
-/*****************************************************************************
- *   Copyright (C) 1995-2001 by Boulder Laboratory for 3-Dimensional Fine    *
- *   Structure ("BL3DFS") and the Regents of the University of Colorado.     *
- *                                                                           *
- *   BL3DFS reserves the exclusive rights of preparing derivative works,     *
- *   distributing copies for sale, lease or lending and displaying this      *
- *   software and documentation.                                             *
- *   Users may reproduce the software and documentation as long as the       *
- *   copyright notice and other notices are preserved.                       *
- *   Neither the software nor the documentation may be distributed for       *
- *   profit, either in original form or in derivative works.                 *
- *                                                                           *
- *   THIS SOFTWARE AND/OR DOCUMENTATION IS PROVIDED WITH NO WARRANTY,        *
- *   EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTY OF          *
- *   MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.       *
- *                                                                           *
- *   This work is supported by NIH biotechnology grant #RR00592,             *
- *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
- *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
- *****************************************************************************/
 /*  $Author$
 
     $Date$
@@ -33,6 +16,9 @@
     $Revision$
 
     $Log$
+    Revision 3.5  2004/12/02 21:56:04  mast
+    Revamped imodPointIntersect for segment intersections in zap window
+
     Revision 3.4  2004/11/20 04:29:23  mast
     Changes to add point function
 
@@ -47,7 +33,7 @@
 #include <math.h>
 #include "imodel.h"
 
-Ipoint *imodPointGet(struct Mod_Model *imod)
+Ipoint *imodPointGet(Imod *imod)
 {
   Icont *cont;
 
@@ -96,17 +82,12 @@ Ipoint *imodPointGetNext(Imod *imod)
 
 int imodPointAppend(Icont *cont, Ipoint *pnt)
 {
-  return(imodel_point_add(cont, pnt, cont->psize));
-}
-
-int     imodPointAdd(Icont *cont, Ipoint *pnt, int index)
-{
-  return(imodel_point_add(cont, pnt, index));
+  return(imodPointAdd(cont, pnt, cont->psize));
 }
 
 /* Add a point to a contour at the given index.  Returns number of points
    in contour, or 0 if an error occurs */
-int imodel_point_add(Icont *cont, Ipoint *pnt, int index)
+int imodPointAdd(Icont *cont, Ipoint *pnt, int index)
 {
   Ipoint ipnt, *tpts;     
   int size;
@@ -172,10 +153,6 @@ int imodel_point_add(Icont *cont, Ipoint *pnt, int index)
 
 
 int imodPointDelete(Icont *cont, int index)
-{
-  return(imodel_point_delete(cont, index));
-}
-int imodel_point_delete(Icont *cont, int index)
 {
   int i;
   
@@ -248,7 +225,7 @@ float imodPointGetSize(Iobj *obj, Icont *cont, int pt)
            
 
 
-double imodel_point_dist(struct Mod_Point *pnt1, struct Mod_Point *pnt2)
+double imodel_point_dist(Ipoint *pnt1, Ipoint *pnt2)
 {
 
   float distance;

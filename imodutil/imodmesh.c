@@ -16,6 +16,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.8  2005/02/11 01:42:33  mast
+Warning cleanup: implicit declarations, main return type, parentheses, etc.
+
 Revision 3.7  2005/01/25 01:42:04  mast
 Fixed problem with extending cap exclusion list
 
@@ -492,8 +495,8 @@ int main(int argc, char **argv)
         
     imodWrite(simod, fout);
     fclose(fout);
-    imodFree(imod);
-    imodFree(simod);
+    imodDelete(imod);
+    imodDelete(simod);
     i++;
   }
   exit(0);

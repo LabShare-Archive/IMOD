@@ -16,6 +16,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.3  2005/01/30 17:45:02  mast
+changes arguments to imodel_overlap_fractions
+
 Revision 3.2  2005/01/29 20:27:31  mast
 Added nested contour routines
 
@@ -171,7 +174,6 @@ int    imodContourUnique(Icont *cont);
 Icont *imodContourTracer(Icont *ic); /* broken */
 void   imodel_contour_swapxy(Icont *cont);
 int    imodel_contour_clear(Icont *cont);
-int    imodel_contour_mm(Icont *cont, Ipoint *max, Ipoint *min);
 int    imodel_contour_on(struct Mod_Contour *cont, int x, int y);
 int    imodel_contour_unique(Icont *cont);
 int    imodel_contour_sortx (Icont *cont, int bgnpt, int endpt);
@@ -180,7 +182,6 @@ int    imodel_contour_sortz (Icont *cont, int bgnpt, int endpt);
 int    imodel_contour_sort  (Icont *cont);
 int    imodel_contour_invert  (Icont *cont);
 void   imodel_contour_check_wild(Icont *cont);
-int    imodel_contour_shave (Icont *cont, double dist);
 void   imodel_contour_whole (Icont *cont);
 Icont *imodel_contour_scan  (Icont *ocont);
 Icont *imodel_contour_double(Icont *cont);
@@ -197,9 +198,6 @@ int imodel_contour_centroid(struct Mod_Contour *icont, struct Mod_Point *rcp,
 int imodel_contour_newsurf(struct Mod_Object *obj, struct Mod_Contour *cont);
 int imodel_unused_surface(struct Mod_Object *obj);
 int imodel_contour_move(void);
-#define imodel_contour_create imodContourNew
-#define imodel_contour_delete imodContourDelete
-#define imodel_contour_get    imodContourGet
 
 int imodel_contour_area(struct Mod_Contour *icont);
 

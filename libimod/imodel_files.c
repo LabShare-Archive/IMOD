@@ -167,7 +167,7 @@ Imod *imodRead(char *filename)
 
   fin = fopen(filename, "rb");
   if (!fin){
-    imodFree(imod);
+    imodDelete(imod);
     return(NULL);
   }
   imod->file = fin;
@@ -177,7 +177,7 @@ Imod *imodRead(char *filename)
 #ifdef IMODEL_FILES_DEBUG
     b3dError(stderr, "imodel_files.c error %d\n", error);
 #endif
-    imodFree(imod);
+    imodDelete(imod);
     fclose(fin);
     return(NULL);
   }
@@ -1514,6 +1514,9 @@ int imodPutByte(FILE *fp, unsigned char *dat)
 
 /*
   $Log$
+  Revision 3.16  2005/02/11 01:42:34  mast
+  Warning cleanup: implicit declarations, main return type, parentheses, etc.
+
   Revision 3.15  2004/11/20 04:15:58  mast
   Eliminated virtual stiff
 
