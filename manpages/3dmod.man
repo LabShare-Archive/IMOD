@@ -25,7 +25,6 @@ If 3dmod is invoked
 with options but no filenames, then a dialog window will open to allow
 selection of an image file.  
 
-.P
 The model must be in the IMOD model format.  Images must be in the MRC
 image format, or in the TIFF format, if the appropriate TIFF library is
 available.  MRC files of almost any mode can be read in: byte, 16-bit integer,
@@ -47,11 +46,10 @@ Edit-Image-Cache Filler menu entry.
 Several other restrictions on image files exist.
 If any TIFF or RGB-mode files are loaded,
 the image volume cannot be flipped (Y and Z exchanged).  The Pixel View
-window, high-resolution mode in the Graph window, and the f and F hotkeys
+window, high-resolution mode in the Graph window, and the f and F hot keys
 for finding pixel values will all give zeros for a TIFF file.  If RGB files are
 loaded, only the Zap and Model View windows can be opened.
 
-.P
 Two windows will open upon startup: the Information Window 
 and an image window.
 The Information Window is the main control window; it has
@@ -71,7 +69,6 @@ The ZaP Window is the default image display window used by
 to pan the image around inside a resizable window. 
 Most manual model editing is done within the ZaP Window.
 
-.P
 Additional windows that may be
 opened via menu selection are the Slicer, XYZ, Tumbler, 
 Graph, Pixel View, and Model View windows.
@@ -89,7 +86,6 @@ axis or along a given contour.
 image file around a given point.
    The Model View Window views the model in a 3D rendering
 while it's being built.
-.P
 
 .SS Options
 3dmod will accept some
@@ -251,25 +247,76 @@ in the background automatically.
 Run in debug mode with diagnostic output and without becoming a background
 process.
 
+.SH User Interface Features
+A large number of dialog boxes can be opened from the menus of the Information
+Window and the Model View Window.  Nearly all of these are tool
+windows that can be left open while doing other tasks in the program.
+These tool windows pass hot keys on to image windows, so that one can
+use hot keys to perform actions in an image window without having to make that
+window have the keyboard focus.  Tool windows opened from the
+Information Window menu will pass keystrokes on to the most recently
+active image display window.  Tool windows opened from the Model View
+Window menu (i.e., 3dmodv dialog boxes) will pass keystrokes on to the
+Model View Window.
+
+Preferences for some aspects of the appearance and behavior of 3dmod
+can be set and saved between sessions of the program, using the
+3dmod Preferences dialog box available through the Edit-Options menu
+entry.  Among other features, the font size and type and the style of
+the interface may be
+changed, the size of marker points can be adjusted, and custom zoom
+values can be defined.  On Unix systems, preferences are saved to the
+file $HOME/.qt/3dmodrc.  Only those properties that the user has
+changed are saved to and restored from this file, while properties
+that have never been changed will be set to the current program defaults.
+
+The 3dmod Preferences dialog also allows the function of the three
+mouse buttons to be
+remapped in any desired way.  Because of this flexibility, mouse
+functions are described here and in the help windows of 3dmod in terms
+of the "first", "second", and "third" buttons.  By default, these
+correspond to the left, middle, and right buttons.
+
+By default, the sliders in 3dmod are continuously active, or "hot",
+which means that the program will attempt to update the display as a
+slider is dragged.  If the program can not keep up well enough, the
+continuous update can be stopped by pressing the Ctrl key while
+dragging the slider.  In the Preferences dialog, a different key can
+be selected to control this behavior, and the behavior can be inverted
+so that sliders are hot only when the control key is pressed.
+
+Nearly all controls in 3dmod have tooltips that will appear when the
+mouse pointer is left over a control for about half a second.  These
+tooltips can be disabled in the Preferences dialog.
+
+The Escape key can be used to close all windows except the Information
+Window, or the 3dmodv window when running 3dmodv.
+
 .SH Information Window
 The Information Window is 3dmod's main control window and it is
 open at all times while 3dmod is running.  All other windows can
 be opened and closed without restarting 3dmod.
-
+.TP
+.I Window Control Buttons
+The "peg" toolbutton can be used to keep the Information Window on top
+of all other windows, including windows from other programs.  The
+toolbutton with two up arrows can be used to raise all of the windows
+of the current 3dmod above windows from other programs.
 .TP 
-.I The Model Selection Display Gadgets.
+.I The Model Selection Display Controls.
 The current 
 .I Object, Contour
 and
 .I Point
-are displayed and can be changed using the arrow buttons.
+are displayed and can be changed using the arrow buttons or by typing
+numbers into the text boxes.
 Models are a collection of objects, and each object has
 its own display color, drawing style and list of contours.  
 Each contour in turn contains a list of points.
 When drawing the current contour the beginning point is green,
 the end point is red and the current point is yellow.
 One can also move between the current Object, Contour and Point
-using hot keys in selected image windows.
+using hot keys.
 .br
 .B p/o
 \- Go to the next/previous Object.
@@ -280,9 +327,18 @@ using hot keys in selected image windows.
 .B ]/[
 \- Go to the next/previous Point.
 .TP
-.I The Image Position Display Gadgets.
-The current image size and position is displayed and can be
-edited using the arrow buttons.  The arrow keys on the keyboard
+.I The Show point Checkbox
+This checkbox controls whether the new current model point will be
+displayed in image windows when the object, contour, or point is
+changed using the spin boxes just described.  By default, image
+windows will show the current model point, changing section if
+necessary.  Turn off this checkbox to prevent this action.
+.TP
+.I The Image Position Display Controls.
+The current image size and position is displayed, and the current
+image point can be
+changed using the arrow buttons or the text boxes.
+The arrow keys on the keyboard
 can also be used to move the current image point. The current
 Z coordinate can be moved with the
 .B Page Up 
@@ -295,7 +351,7 @@ The Black and White sliders can be used to adjust the contrast
 and brightness of the input image for all the image windows.
 A linear intensity ramp is made from the black level to the
 white level.  The Function keys also can be used to control the
-image level from other image windows.
+image level, with changes having a default step size of 3.
 .nf
 F1, F2  Controls the Black slider level.
 F3, F4  Controls the White slider level.
@@ -312,7 +368,7 @@ F12     Toggle False Color.
 .I The Float Checkbox.
 When this box is checked, 3dmod will attempt to maintain comparable image
 contrast when going from one section to the next.  It automatically adjusts
-the sliders when you change sections, based on the mean and
+the sliders when one changes sections, based on the mean and
 standard deviation of image intensity in the sections.
 .TP
 .I The Mode Toggle Buttons.
@@ -320,14 +376,14 @@ One can toggle between
 .I Movie mode
 and
 .I Model mode.
-The model can't be edited while in movie mode.
+The model can't be edited with keys and mouse buttons while in movie mode.
 When 3dmod first opens a new model it switches to movie mode.  
-
 .TP
 .I The Menu bar
 Menus for 3dmod are selected by holding down the left mouse 
 button while inside the information window.  Some menus have
-keyboard shortcuts (shown in parentheses).  Menu entries with ... open a
+keyboard shortcuts (hot keys, shown in parentheses).  
+Menu entries with ... open a
 dialog box, control window, or display window.
 .nf
 
@@ -338,9 +394,9 @@ Save Model        Save model.  (s)
 Save Model as...  Save model with new name.
 Write Model as    Write model as Imod, wimp, NFF or Synu files.
 Memory to TIFF... Write the whole section of a raw color image
-                    stored inside 3dmod to a TIFF file, in order to
-                    turn a montaged image bigger than the screen
-                    into a single large image.
+                    stored inside 3dmod to a TIFF file, in order
+                    to turn a montaged image bigger than the
+                    screen into a single large image.
 Quit              Quit 3dmod.
 
 .I Edit Menu
@@ -453,63 +509,64 @@ and
 .SH ZaP Window
 The ZaP window allows one to zoom and pan inside of
 a model window that shows image sections perpendicular to the
-Z-axis.
+Z-axis.  Multiple ZaP windows can be opened.
 .P
-   To Zoom press the - and = Keys.  
-To pan, press the left mouse button and drag the mouse.  Alternatively, use
-the arrow keys: the ones on the numeric keypad in movie mode, or the set of
+To Zoom press the - and = keys.
+To pan, press the first mouse button and drag the mouse.  Alternatively, use
+the keyboard arrow keys: the ones on the numeric keypad in movie mode,
+or the set of
 4 arrow keys in model mode.
 
-.P
-   There is a toolbar at the top of the ZaP window that
+There is a toolbar at the top of the ZaP window that
 controls additional behavior.  Press the help button on the
-toolbar for help.  The space bar on the
-keyboard can toggle the toolbar visibility.
-.P 
-   The mouse buttons are assigned different functions in movie 
+toolbar for help.  The toolbar may be detached from the window to get
+the maximum vertical extent of window area.
+
+The mouse buttons are assigned different functions in movie 
 and model modes.  The keyboard 
 .B m 
 key toggles between movie and model modes.  
 Other sub modes can further change the mouse controls.
 .TP
-Left mouse button
+First mouse button
 One can drag the image in the ZaP Window by moving the mouse
-while holding down the left mouse button.  If the rubber band is on and the
+while holding down the first mouse button.  If the rubber band is on and the
 button is held down while the pointer is near the band, one can drag a
 corner or edge of the band to adjust its size.
-When the button is clicked in model mode, the nearest modeling point is 
-selected.  If no points
+When the button is clicked in movie mode, the current image position is
+selected.  In model mode, the nearest modeling point is 
+selected and highlighted with a yellow circle.  If no points
 are in proximity to the cursor, then no
-point is selected.  The selected point's
-color is yellow.  In movie mode the current position is selected.
+model point is selected and just the current image point is set.
 .TP
-Middle mouse button
-In model mode, this creates a point after the current model point (or before,
-if the modeling direction is set with 
+Second mouse button
+In movie mode, this button starts the movie through sections in the
+forward direction.
+In model mode, this button creates a point after the current model
+point (or before, if the modeling direction is set with 
 .B i
 or the toolbar button.)
-Holding down the middle mouse button will
+Holding down the second mouse button will
 create additional points as the mouse moves.
-In movie mode, this starts the movie through sections in the
-forward direction.
 If the rubber band is on and the button is held down while the pointer is near
 the band, one can drag the whole band to a new position.
 .TP
-Right mouse button
+Third mouse button
+In movie mode, the this button starts the movie through sections in the
+reverse direction.
 In model mode, the selected point is modified to be at the current
 location.
-Holding down the right mouse button will cause 
+Holding down the third mouse button will cause 
 additional points to be moved, until the end of the contour is reached.
 If the Ctrl key is held down, then this mouse button can be used to delete
 points under the cursor.  Clicking the button will delete the point(s) at
-the curretn mouse position; holding the button down and moving the mouse will
-delete all of the points that the cursor sweeps over.
-In movie mode, the right mouse button starts the movie through sections in the
-reverse direction.
+the current mouse position; holding the button down and moving the mouse will
+delete all of the points that the cursor sweeps over inthe current contour.
 
 .TP
 Keyboard Controls
-Controls that edit models are disabled in movie mode.
+Most controls that edit models are disabled in movie mode.  Keypad
+keys work regardless of whether NumLock is on.
 .nf    
 
         Modeling and display control keys
@@ -562,8 +619,8 @@ R  -  Resize window to size of image or rubber band
 Keypad Ins - Add point(s) in model mode, like middle mouse button
 Esc - Close ZaP window
 
-        Keys to control position or move the current viewing point
-        -----------------------------------------------------------
+        Keys to control position or move current viewing point
+        ------------------------------------------------------
 Page Up       -  Increase Z
 Page Down     -  Decrease Z
 Up Arrow      -  Increase Y
@@ -589,29 +646,39 @@ z  -  Open ZaP window (from XYZ window)
 .fi
 
 .SH Slicer Window
-Multiple Slicer Windows can be opened. Each Slicer Window
-shows a different slice through a 3-D volume.  Three sliders
+Multiple Slicer Windows can be opened.  Each Slicer Window
+shows a different slice through a 3-D volume.  The Slicer window has
+two movable toolbars.  The large toolbar contains three sliders that
 are used to select the orientation of the slice by setting the angles of
 rotation of the data volume around the X, Y and Z axes.
 A small
 display next to the sliders gives a visual cue to the slice
-location.  One can model in the Slicer Window, using the middle mouse button
-to insert a point after the current point, or the right button to modify the
-current point.
-The Tool bar on top of the Slicer has the following buttons, from
+location.  This toolbar also has two spin boxes, one to select the
+thickness of the slice being displayed, the other to select the
+thickness of model that will be projected onto the slice.
+
+The narrow toolbar at the top of the Slicer has the following buttons, from
 left to right.
    The Up and Down arrows adjust the magnification in the
 slicer display window.
+   The text box shows the zoom and allows one to type in an arbitrary
+zoom factor.
+   The checkerboard button toggles between nearest neighbor
+and slower, cubic interpolation.
+   The Lock button will keep the Slicer from changing its
+current position when locked.
    The Show Slice button will draw where the slice
 intersects the X- Y- and Z-planes in the XYZ window, and the Z-plane in the
 ZaP window.  
-   The Lock button will keep the Slicer from changing its
-current position when locked.
-   The checkerboard button toggles between nearest neighbor
-and slower, cubic interpolation.
-   The option menu selects whether the angle sliders, depth controls, or 
-just the Slicer image will be displayed.
-   The Help button opens up on line help.
+   The Z-Scale control determines whether the model's Z-scale will be
+applied to stretch the volume in the Z dimension and compensate for thinning.
+   The Help button opens up on-line help.
+
+One can model in the Slicer Window, using the first mouse
+button to select the current point, the second mouse button
+to insert a point after the current point, or the third button to modify the
+current point.
+
 .TP
 .I Hot Keys in the Slicer
 .nf
@@ -635,14 +702,17 @@ Numeric Keypad:
 .SH XYZ Window
 The XYZ window displays three slices: through an XY plane in the lower
 left, through a YZ plane in the lower right, and through an XZ plane in
-the upper left.  Marker lines and crosses indicate the position of the
+the upper left.  The intersection of the model with these planes will
+be drawn.  Marker lines and crosses indicate the position of the
 current point and of the slices within the volume.  Like the ZaP window,
-it can be resized, and the image can be zoomed with hotkeys and panned
-with the left mouse button.  Limited modeling capability is available 
-in the XY plane.  One can movie through one or more of the planes 
+the XYZ window can be resized, and the image can be zoomed with hot
+keys and panned with the left mouse button.  Basic modeling capability
+is available in the XY plane.  One can movie through one or more of the planes 
 simultaneously.  
-In addition, the marker lines can be dragged with the
-mouse to riffle through images in a plane.
+In addition, the marker lines have handles that can be dragged with the
+mouse to riffle through images in a plane.  Each marker
+line's color matches the color of the border around the plane that is
+controlled by its handle.
 .P
 .TP
 .I Hot Keys in the XYZ Window
@@ -666,38 +736,39 @@ coordinate and the plane displayed in the YZ panel.  Clicking in the
 vertical gutter region will select a new Y coordinate and XZ plane.  Clicking
 in the upper right region will select a new Z coordinate and XY plane, as
 indicated by the crossed marker lines.
-    Dragging with the left mouse button depressed will either pan the image
+    Dragging with the first mouse button depressed will either pan the image
 within the window or riffle through one of the planes, depending on where
 the mouse is when the button is first pressed.  If it is in one of the
 image panels, dragging will pan the image (provided it is larger than the 
 window.)
 In the horizontal or vertical gutter regions, dragging will riffle through
 YZ or XZ planes, respectively.  In the upper right region, dragging will
-change the XY plane; this is most effective if the mouse is moved along
-the diagonal in this region.
-    Clicking the middle mouse button in one of the image panels will start
+change the XY plane; this is most effective if one grabs the handle
+there and moves diagonally.
+    Clicking the second mouse button in one of the image panels will start
 or stop a movie in the forward direction in that panel.
-    Clicking the right mouse button in one of the image panels will start
+    Clicking the third mouse button in one of the image panels will start
 or stop a movie in the backward direction in that panel.
 
  Actions in Model Mode:
-    Clicking the left mouse button near a model point in the XY plane will
+    Clicking the firdt mouse button near a model point in the XY plane will
 select that point as the current model point.  Clicking anywhere else will
 cause the same result as in movie mode.
-    Dragging with the left mouse button is the same as in movie mode.
-    Clicking with the middle mouse button in the XY plane will add a point 
+    Dragging with the first mouse button is the same as in movie mode.
+    Clicking with the second mouse button in the XY plane will add a point 
 to the current contour and has no effect elsewhere.
-    Dragging with the middle mouse button depressed will add a series of
+    Dragging with the second mouse button depressed will add a series of
 points to the current contour.
     Clicking with the right mouse button in the XY plane will move the
 current model point to that location.
+
 .SH Tumbler Window
 The Tumbler Window is opened by selecting the Tumbler item
 from the Image menu.  A projection of a volume around the current point
 will be shown in the Tumbler Window.  Various toolbar controls allow you to
 change the size of the volume and the zoom, lock the position, select a
 high-resolution display, or set thresholds for truncating pixels as black
-or white.  The hotkeys in the tumbler window are:
+or white.  The hot keys in the tumbler window are:
 .nf
 Keypad up and down arrow keys tumble the volume around the X axis.
 Keypad left and right arrow keys tumble the volume around the Y axis.
@@ -715,8 +786,8 @@ This window graphs image intensity along the image
 X-axis, Y-axis, Z-axis or along the current contour.
 A histogram of image intensities can also be graphed.
 The type of graph can be chosen by using the option menu
-located in the tool bar.
-The [+] and [-] buttons in the tool bar adjust the zoom
+located in the toolbar.
+The [+] and [-] buttons in the toolbar adjust the zoom
 in the drawing area.
 The [LOCK] button stops the window from tracking the current point.
 The [RESOLUTION] button toggles between taking data from the
@@ -725,28 +796,8 @@ image buffer and taking data from the file.
 .SH Model View Window
 This window shows the model in 3D, continually updated as the model is
 edited.  The window behaves the same as when it is started with the
-3dmodv command.
+3dmodv command, except that some menu items are unavailable.
 See the manual page for 3dmodv(1).
-
-.SH AUTOSAVE AND BACKUP FILES
-The program will back up the current model to the file 
-model_file_name#autosave# every few minutes.  If no model file has been
-saved yet, the name of the autosave file is just #autosave#.  The
-autosave file is
-eliminated whenever the model is saved, and when the program exits normally.
-The IMOD_AUTOSAVE environment variable sets the number of
-minutes between automatic saves.  If it is set to 0 then
-this feature will be disabled.  The first time that you save a model file,
-the existing model file will be renamed to model_file_name~, and any existing
-file by that name will be deleted.  This backup file will not be overwritten
-each time that you save thereafter, so that it will preserve the state of the
-model when 3dmod was started.
-
-The IMOD_AUTOSAVE_DIR environment variable can be set 
-to specify a directory in which
-the autosave file will be written.  Thus, one can specify a directory on
-a local disk (e.g., /usr/tmp) and avoid the long delays required to write
-a large model to a disk over the network.
 
 .SH SURFACES, OPEN CONTOURS, LABELS, AND POINT SIZES
 Several features can be controlled from the Surf/Cont/Point window.  One is
@@ -793,9 +844,36 @@ for individual contours and points.
 The Section Ghost section of the Surf/Cont/Point 
 window has controls 
 to enable the display of ghost
-contours from adjacent sections, which is also toggled by the g hotkey.
+contours from adjacent sections, which is also toggled by the g hot key.
 Ghosts can be displayed from above or below the current section, and 
 from variable numbers of sections away.
+
+.SH AUTOSAVE AND BACKUP FILES
+The program will back up the current model to the file 
+model_file_name#autosave# every few minutes.  If no model file has been
+saved yet, the name of the autosave file is just #autosave#.  The
+autosave file is
+eliminated whenever the model is saved, and when the program exits normally.
+The first time that you save a model file,
+the existing model file will be renamed to model_file_name~, and any existing
+file by that name will be deleted.  This backup file will not be overwritten
+each time that you save thereafter, so that it will preserve the state of the
+model when 3dmod was started.
+
+Automatic saves can be controlled or disabled by using the 3dmod
+Preferences dialog or by setting environment variables (obsolete).
+The Preferences dialog has a checkbox to enable autosaving, a spin box
+to set the number of minutes between automatic saves, and a text box
+to specify a directory in which the autosave file will be written.
+Thus, one can specify a directory on a local disk (e.g., /usr/tmp) and
+avoid the long delays required to write a large model to a disk over
+the network.  Formerly, these features were controlled by the
+IMOD_AUTOSAVE environment variable, which specified the minutes
+between autosaves or 0 to disable autosaving, and by the
+IMOD_AUTOSAVE_DIR variable.  If these variables are defined, the
+Preferences dialog will initially show their values; but once the user
+has changed these settings through the Preferences dialog, the
+environment variables will be ignored.
 
 .SH IMAGE LIST FILES
 An image list file can be entered instead of an image file on the 3dmod
@@ -846,7 +924,7 @@ variable.  The directories /usr/IMOD/plugins, /usr/local/IMOD/plugins,
 and /usr/freeware/lib/imodplugs/ are loaded by default if they
 exist.  To write your own plugins, look for the IMOD
 software development kit on the IMOD home page at 
-http://bio3d.colorado.edu/imod
+http://bio3d.colorado.edu/imod.  (Not yet available for the Qt version.)
 
 .SH AUTHORS
 .nf

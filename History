@@ -1,5 +1,12 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+IMOD_3-0-7
+4/27/03: Renamed programs to 3dmod/3dmodv, modified man page and help text.
+
+4/24/03: Added option to fill cache upon program startup, moved "light both
+sides" in imodv object edit window from Fill Color panel to material panel
+to make it clear it has nothing to do with fill color.
+
 IMOD_3-0-6
 4/18/03: Added a script to run command files, which can run several files in
 sequence, report on successful completion or give an error report, and can

@@ -9,7 +9,7 @@
             <x>0</x>
             <y>0</y>
             <width>221</width>
-            <height>439</height>
+            <height>429</height>
         </rect>
     </property>
     <property name="caption">
@@ -272,6 +272,47 @@
         </widget>
         <widget class="QLayoutWidget">
             <property name="name">
+                <cstring>Layout9</cstring>
+            </property>
+            <hbox>
+                <property name="name">
+                    <cstring>unnamed</cstring>
+                </property>
+                <property name="margin">
+                    <number>0</number>
+                </property>
+                <property name="spacing">
+                    <number>6</number>
+                </property>
+                <widget class="QLabel">
+                    <property name="name">
+                        <cstring>TextLabel6</cstring>
+                    </property>
+                    <property name="text">
+                        <string>Sphere radius for points</string>
+                    </property>
+                    <property name="alignment">
+                        <set>AlignVCenter|AlignRight</set>
+                    </property>
+                </widget>
+                <widget class="QSpinBox">
+                    <property name="name">
+                        <cstring>radiusSpinBox</cstring>
+                    </property>
+                    <property name="focusPolicy">
+                        <enum>ClickFocus</enum>
+                    </property>
+                    <property name="maxValue">
+                        <number>999</number>
+                    </property>
+                    <property name="toolTip" stdset="0">
+                        <string>Increase, decrease, or enter a radius for spheres to be drawn at each point</string>
+                    </property>
+                </widget>
+            </hbox>
+        </widget>
+        <widget class="QLayoutWidget">
+            <property name="name">
                 <cstring>Layout10</cstring>
             </property>
             <hbox>
@@ -330,20 +371,6 @@
                     </property>
                 </spacer>
             </hbox>
-        </widget>
-        <widget class="QCheckBox">
-            <property name="name">
-                <cstring>timeCheckBox</cstring>
-            </property>
-            <property name="focusPolicy">
-                <enum>NoFocus</enum>
-            </property>
-            <property name="text">
-                <string>Contours have time values</string>
-            </property>
-            <property name="toolTip" stdset="0">
-                <string>Select whether contours should be drawn at all times (on all image files) or just at one time</string>
-            </property>
         </widget>
         <widget class="QLayoutWidget">
             <property name="name">
@@ -491,46 +518,19 @@
                 </widget>
             </hbox>
         </widget>
-        <widget class="QLayoutWidget">
+        <widget class="QCheckBox">
             <property name="name">
-                <cstring>Layout9</cstring>
+                <cstring>timeCheckBox</cstring>
             </property>
-            <hbox>
-                <property name="name">
-                    <cstring>unnamed</cstring>
-                </property>
-                <property name="margin">
-                    <number>0</number>
-                </property>
-                <property name="spacing">
-                    <number>6</number>
-                </property>
-                <widget class="QLabel">
-                    <property name="name">
-                        <cstring>TextLabel6</cstring>
-                    </property>
-                    <property name="text">
-                        <string>Scattered point radius</string>
-                    </property>
-                    <property name="alignment">
-                        <set>AlignVCenter|AlignRight</set>
-                    </property>
-                </widget>
-                <widget class="QSpinBox">
-                    <property name="name">
-                        <cstring>radiusSpinBox</cstring>
-                    </property>
-                    <property name="focusPolicy">
-                        <enum>ClickFocus</enum>
-                    </property>
-                    <property name="maxValue">
-                        <number>999</number>
-                    </property>
-                    <property name="toolTip" stdset="0">
-                        <string>Increase, decrease, or enter a 3-D radius for scattered points</string>
-                    </property>
-                </widget>
-            </hbox>
+            <property name="focusPolicy">
+                <enum>NoFocus</enum>
+            </property>
+            <property name="text">
+                <string>Contours have time values</string>
+            </property>
+            <property name="toolTip" stdset="0">
+                <string>Select whether contours should be drawn at all times (on all image files) or just at one time</string>
+            </property>
         </widget>
         <widget class="Line">
             <property name="name">
