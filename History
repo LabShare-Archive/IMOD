@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/17/03: Added global rotation mode to Midas so that tilt series images can
+be rotated to make the tilt axis vertical.
+
 12/12/03: Changed reducemont to preserve Z pixel size, added options to 
 reduceby2 to preserve pixel size and to specify binning.
 
