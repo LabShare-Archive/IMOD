@@ -74,6 +74,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.38  2003/05/14 21:45:27  rickg
+ * <p> New trimvol constructor for windows
+ * <p>
  * <p> Revision 2.37  2003/05/14 14:36:08  rickg
  * <p> Temporary change to volcombine
  * <p>
@@ -2790,10 +2793,11 @@ public class ApplicationManager {
       if (imodDirectoryName == "") {
         String[] message = new String[3];
         message[0] =
-          "Can not find IMOD directory! Unable to view documentation";
+          "Can not find IMOD directory!";
         message[1] =
           "Set IMOD_DIR environment variable and restart program to fix this problem";
         openMessageDialog(message, "Program Initialization Error");
+        System.exit(-1);
       }
       else {
         if (debug) {
