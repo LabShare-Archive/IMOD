@@ -9,6 +9,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.4  2003/11/01 14:36:02  mast
+#  Put libiimod befor libimod because of new error calls
+#
 #  Revision 3.3  2003/10/24 02:30:40  mast
 #  Changes for windows/Intel compiler
 #
@@ -35,11 +38,10 @@ PROG = clip$(BINEXT)
 
 all : $(PROG)
 
-# DNM 3/12/01: put $(F77LIBS) back on the link list just in case it's needed
+# DNM 10/24/04: removed F77LIBS now that libifft is C
 $(PROG) : $(OBJS)
-	@echo "Making clip: libifft is in the flib source code."
-	$(FLCC) -o clip $(OBJS) $(LDFLAGS)  \
-	$(LIIMOD) $(LIMOD) $(LIFFT) $(TIFFLIBS) $(LIBS) $(F77LIBS)
+	$(CC) -o clip $(OBJS) $(LDFLAGS)  \
+	$(LIIMOD) $(LIMOD) $(LIFFT) $(TIFFLIBS) $(LIBS)
 
 install : $(PROG)
 	strip $(PROG)
@@ -54,12 +56,4 @@ clean :
 
 $(OBJS) : clip.h
 clip.$(O) : ../.version
-
-
-#
-# If there is no fortran compiler available and hence
-# no fftlib then uncomment the following rule
-# to make a clip with to fft ability.
-#.c.o:
-#	$(CC) -c $(CFLAGS) -DNOFFTLIB $<
 
