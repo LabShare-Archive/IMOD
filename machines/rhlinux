@@ -90,9 +90,9 @@ echo 'GRAPHLIBS    = -ldnmncar $(IMLIBS) $(XLIBS)' >> $configure
 # If using plugins, need to tell linker to export symbols
 echo 'PLUGLIBS  = -ldl -Wl,-E' >> $configure
 echo 'IMODCC    = $(CC)'              >> $configure
-echo  'MAKEF77PLUGIN  = $(FC) -shared $(LDFLAGS) -ldtrigs -o'  >> $configure
+echo  'MAKEF77PLUGIN  = $(FC) '"$wrapper"' -shared $(LDFLAGS) -ldtrigs -o'  >> $configure
 echo 'FLCC      = $(FC)'              >> $configure
-echo 'F77LIBS   = '                  >> $configure
+echo "F77LIBS   = $wrapper"                  >> $configure
 
 # 
 # tell the C routines to swap the bytes for INTEL
