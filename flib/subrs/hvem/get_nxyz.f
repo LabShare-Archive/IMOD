@@ -16,6 +16,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.1  2003/12/24 18:09:38  mast
+c	  Converted to take PIP input
+c	
 c	  Revision 3.1  2002/07/21 19:36:30  mast
 c	  Fixed treatment of / to just return and added ability for blank line
 c	  to do the same
@@ -41,7 +44,7 @@ c
 	  endif
 	endif
 	if(line(1:1).eq.'/'.or.line.eq.' ')return
-	read(line,*,err=10)(nxyz(i),i=1,3)
+	read(line,*,err=10,end=10)(nxyz(i),i=1,3)
 	return
 10	call ialprt(.false.)
 	call imopen(iunit,line,'ro')
