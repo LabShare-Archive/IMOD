@@ -1441,20 +1441,14 @@ void b3dAutoSnapshot(char *name, int format_type, int *limits)
       fclose(tfp);
       tfp = NULL;
     }
-    if (fileno < 10)
-      sprintf(fname, "%s00%d.%s", name, fileno++, fext);
-    else if (fileno < 100)
-      sprintf(fname, "%s0%d.%s", name, fileno++, fext);
+    if (fileno < 100)
+      sprintf(fname, "%s%03d.%s", name, fileno++, fext);
     else
       sprintf(fname, "%s%d.%s", name, fileno++, fext);
           
   }while ((tfp = fopen((QDir::convertSeparators(QString(fname))).latin1(),
     "rb")));
 
-  if (tfp){
-    fclose(tfp);
-    tfp = NULL;
-  }
   wprint("%s: Saving image to %s\n", name, fname);
 
   switch (format_type){
@@ -1834,6 +1828,9 @@ void b3dSnapshot(char *fname)
 
 /*
 $Log$
+Revision 4.10  2003/05/05 15:06:21  mast
+Copy-fill top and right of array when drawing non-integer nonHQ zooms
+
 Revision 4.9  2003/04/17 19:02:59  mast
 adding hack for GL-context dependent gluQuadric
 
