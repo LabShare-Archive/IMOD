@@ -339,6 +339,7 @@ static void toggleObj(int ob, bool state)
   if (objed_dialog)
     objset(Imodv);
   imodvDraw(Imodv);
+  imodvDrawImodImages();
 }
 
 // User selected a new frame; update the frame
@@ -948,6 +949,7 @@ void ImodvObjed::pointSizeSlot()
           Imodv->mod[m]->obj[Imodv->ob].pdrawsize = i;
   }
   imodvDraw(Imodv);     
+  imodvDrawImodImages();
   return;
 }
 
@@ -1563,6 +1565,9 @@ int hotSliderKey()
 
 /*
 $Log$
+Revision 4.4  2003/02/28 21:40:32  mast
+Changing name of tooledit focus signal
+
 Revision 4.3  2003/02/27 17:35:27  mast
 Fixed bug in setting material with multiple models
 
