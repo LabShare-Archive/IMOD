@@ -162,7 +162,7 @@ Generating or Editing an Alignment with Fiducial Points
      The program Xfmodel can solve for the parameters of a transformation
 between sections from the locations of points that are known or assumed to
 correspond between the sections.  Xfmodel works with a model of connected
-fiducial points built in Imod.  There are options to solve for the full linear
+fiducial points built in 3dmod.  There are options to solve for the full linear
 transformation, translations only, translations and rotations, or
 translations, rotations, and magnifications.  Although it is most common to
 use this method to align an entire image stack, one can also use Xfmodel to

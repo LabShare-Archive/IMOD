@@ -80,7 +80,7 @@ slices across the boundary if this rotation is already corrected.  2) If the
 surface of one section is pitched and can be made flat by a small rotation,
 then the boundary between sections can be made smaller by correcting this
 pitch.
-     If you do want to use Rotatevol, then load the section into Imod
+     If you do want to use Rotatevol, then load the section into 3dmod
 unflipped (use Edit-Image-Flip to unflip it if you have already loaded it
 flipped).  Open a Slicer window and adjust the angles to achieve the desired
 rotation.  One or more of the angles will need to be set near +90 or -90.  In
@@ -114,16 +114,16 @@ rotated.
 and answer all of the questions.  Then run the command file startjoin.com.
 
 Aligning the Sample Slices
-     Load the sample file (&quot;join_name.sample&quot;) into Imod.  This will allow you
+     Load the sample file (&quot;join_name.sample&quot;) into 3dmod.  This will allow you
 to decide which slices are best for aligning, and to discern any trends in
 structure positions that need to be accounted for.  You will probably want to
-park the Imod and Zap windows so that they are readily available when running
+park the 3dmod and Zap windows so that they are readily available when running
 Midas.
      Run Midas on the sample file and make the output file for transforms be
 &quot;join_name.xf&quot;.  For each section boundary, you want to load in the desired
 slice from the top of the lower section as the &quot;reference&quot; section and a slice
 from the bottom of the upper section as the &quot;current&quot; section.  (Remember that
-section numbers in Midas are one less than in Imod.)  Since these are
+section numbers in Midas are one less than in 3dmod.)  Since these are
 generally not adjacent sections, you will need to turn off the &quot;Keep Curr -
 Ref diff = 1&quot; toggle button.  If you want to scroll through the sections to
 select the pair to align, an easy way to do this is first to keep that button

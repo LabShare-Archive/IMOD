@@ -18,7 +18,7 @@ machine architecture.
 <H3>The File Header</H3>
 
 All binary model files begin with a 8 byte ID followed by a 184 byte header.
-The ID format begins with the imod file id, (IMOD = 0x494d4f44)
+The ID format begins with the IMOD file id, (IMOD = 0x494d4f44)
 followed by the 4 byte version id, (V1.2 =  0x56312e32).
 The end of the file is marked by an end of data marker, (IEOF = 0x49454f46).
 
@@ -26,7 +26,7 @@ The end of the file is marked by an end of data marker, (IEOF = 0x49454f46).
 <H3>The Model Data Structure</H3>
 <p>
 The Model structure data is 184 bytes long and contains the following data.
-A lot of this data is used by the imod program to retain user settings.
+A lot of this data is used by the 3dmod program to retain user settings.
 <pre>
 Length Type Name          Description
 -----------------------------------------------------------------------------
@@ -104,8 +104,8 @@ Length Type  Name       Description
                         Bit 18 on : Time - contours have time indexes
                         Bit 19 on : Light both sides of surface
   
-                        In Imodv, Draw Data Type - Contour = Mesh flag off,
-                                                   Mesh    = Mesh flag on
+                        In 3dmodv, Draw Data Type - Contour = Mesh flag off,
+                                                    Mesh    = Mesh flag on
                         Drawing Style - Points = Lines flag on, Fill flag off
                                         Lines  = Lines flag off, Fill flag off
                                         Fill   = Lines flag on, Fill flag on
@@ -235,7 +235,7 @@ IMNX  Model to image transformation information.  (72 bytes data)
 <p>
 Coordinates are stored in an IMOD model file as image index coordinates 
 relative to the last subset of image file that the model was displayed on.
-The information here has two main uses.  1) It is used by Imod to display
+The information here has two main uses.  1) It is used by 3dmod to display
 the model
 correctly when going between having a subset or the full image file loaded,
 or when displaying on an image file with different origin, scaling, or rotation
@@ -261,7 +261,7 @@ the model was displayed on: <code>cscale</code> is pixel spacing
 <code>crot</code> is taken from the current tilt angles; 
 <code>ctrans</code> is based on
 the origin minus the scale times the starting index coordinate of the image
-loaded into Imod; <code>otrans</code> has the origin values.
+loaded into 3dmod; <code>otrans</code> has the origin values.
 <p>
 To get from coordinates in a model file to an image file coordinate system,
 first Y and Z are exchanged if the FLIPYZ flag is set, then coordinates
@@ -340,7 +340,7 @@ Length   Type       Description
 VIEW  Stored model and object view data structures.   (Variable size)
 <BR>
 This chunk can be as short as 4 bytes, in which case it contains just
-the value of the INT cview.  Various versions of imod have stored 56, 156, or
+the value of the INT cview.  Various versions of 3dmod have stored 56, 156, or
 176 bytes; after stored views began to contain properties for each object,
 this chunk became larger than that and variable-sized.
 <pre>
