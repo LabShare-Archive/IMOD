@@ -40,7 +40,7 @@ RSC=rc.exe
 # PROP Output_Dir "Release"
 # PROP Intermediate_Dir "Release"
 # PROP Target_Dir ""
-# ADD CPP /nologo /MD /O1 /I "..\include" /I "$(QTDIR)\include" /I "$(QTDIR)\mkspecs\win32-msvc" /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /D "UNICODE" /D "QT_DLL" /D "QT_THREAD_SUPPORT" /FD -Zm200 /c
+# ADD CPP /nologo /MD /O1 /I "..\include" /I "$(QTDIR)\include" /I "$(QTDIR)\mkspecs\win32-msvc" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /D "UNICODE" /D "QT_DLL" /D "QT_THREAD_SUPPORT" /FD -Zm200 /c
 # ADD BASE RSC /l 0x409
 # ADD RSC /l 0x409 /d "NDEBUG"
 BSC32=bscmake.exe
@@ -60,7 +60,7 @@ LIB32=xilink6.exe -lib
 # PROP Output_Dir "Debug"
 # PROP Intermediate_Dir "Debug"
 # PROP Target_Dir ""
-# ADD CPP /nologo /MDd /Z7 /Od /I "..\include" /I "$(QTDIR)\include" /I "$(QTDIR)\mkspecs\win32-msvc" /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /D "UNICODE" /D "QT_DLL" /D "QT_THREAD_SUPPORT" /FD /GZ -Zm200 /c
+# ADD CPP /nologo /MDd /Z7 /Od /I "..\include" /I "$(QTDIR)\include" /I "$(QTDIR)\mkspecs\win32-msvc" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /D "UNICODE" /D "QT_DLL" /D "QT_THREAD_SUPPORT" /FD /GZ -Zm200 /c
 # ADD BASE RSC /l 0x409
 # ADD RSC /l 0x409 /d "_DEBUG"
 BSC32=bscmake.exe
@@ -206,6 +206,35 @@ SOURCE=..\include\floatspinbox.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\include\floatspinbox.h
+
+!IF  "$(CFG)" == "diaqt - Win32 Release"
+
+USERDEP__FLOAT="$(QTDIR)\bin\moc.exe"	
+# Begin Custom Build - Moc'ing ..\include\floatspinbox.h...
+InputPath=..\include\floatspinbox.h
+
+"..\include\moc_floatspinbox.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	$(QTDIR)\bin\moc ..\include\floatspinbox.h -o ..\include\moc_floatspinbox.cpp
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "diaqt - Win32 Debug"
+
+USERDEP__FLOAT="$(QTDIR)\bin\moc.exe"	
+# Begin Custom Build - Moc'ing ..\include\floatspinbox.h...
+InputPath=..\include\floatspinbox.h
+
+"..\include\moc_floatspinbox.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	$(QTDIR)\bin\moc ..\include\floatspinbox.h -o ..\include\moc_floatspinbox.cpp
+
+# End Custom Build
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
 SOURCE=..\include\multislider.h
 
 !IF  "$(CFG)" == "diaqt - Win32 Release"
@@ -266,35 +295,6 @@ InputPath=..\include\tooledit.h
 !ENDIF 
 
 # End Source File
-# Begin Source File
-
-SOURCE=..\include\floatspinbox.h
-
-!IF  "$(CFG)" == "diaqt - Win32 Release"
-
-USERDEP__TOOLE="$(QTDIR)\bin\moc.exe"	
-# Begin Custom Build - Moc'ing ..\include\floatspinbox.h...
-InputPath=..\include\floatspinbox.h
-
-"..\include\moc_floatspinbox.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	$(QTDIR)\bin\moc ..\include\floatspinbox.h -o ..\include\moc_floatspinbox.cpp
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "diaqt - Win32 Debug"
-
-USERDEP__TOOLE="$(QTDIR)\bin\moc.exe"	
-# Begin Custom Build - Moc'ing ..\include\floatspinbox.h...
-InputPath=..\include\floatspinbox.h
-
-"..\include\moc_floatspinbox.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	$(QTDIR)\bin\moc ..\include\floatspinbox.h -o ..\include\moc_floatspinbox.cpp
-
-# End Custom Build
-
-!ENDIF 
-
-# End Source File
 # End Group
 # Begin Group "Resource Files"
 
@@ -326,15 +326,15 @@ SOURCE=..\include\moc_dialog_frame.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=..\include\moc_floatspinbox.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=..\include\moc_multislider.cpp
 # End Source File
 # Begin Source File
 
 SOURCE=..\include\moc_tooledit.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\include\moc_floatspinbox.cpp
 # End Source File
 # End Group
 # End Target
