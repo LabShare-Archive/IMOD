@@ -5,12 +5,23 @@ import etomo.ui.TomogramCombinationDialog;
 import junit.framework.TestCase;
 
 /**
- * @author sueh
- *
- * To change the template for this generated type comment go to
- * Window - Preferences - Java - Code Generation - Code and Comments
- */
+* <p>Description: Uses functions in ApplicationManager and ComScriptManager to 
+* test the saving, changing, and loading of start and end commmands.</p>
+*
+* <p>Copyright: Copyright 2004 </p>
+*
+* <p>Organization:
+* Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
+* Univeristy of Colorado</p>
+*
+* @author $Author$
+*
+* @version $Revision$
+*
+* <p> $Log$ </p>
+*/
 public class CombineComscriptStateTest extends TestCase {
+  public static final String rcsid = "$$Id$$";
   ApplicationManagerTestHarness testHarness = null;
   ComScriptManager comScriptManager = null;
   /*
