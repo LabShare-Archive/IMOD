@@ -23,6 +23,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.4  2003/12/12 20:47:42  mast
+c	  Moved FINDEDGEFUNC, SETGRIDCHARS, and LOCALMEAN to edgesubs.f
+c	
 c	  Revision 3.3  2003/08/09 23:21:59  mast
 c	  Changes for PIP input
 c	
@@ -55,11 +58,12 @@ c
      &	    'error reading file, line',
      &	    'bad number of values on line',
      &	    'bad multinegative specification'/ 
+	integer*4 PipGetString
 c	  
 c	  get file name and open file
 c	  
 	if (pipinput) then
-	  if (PipGetString('PieceListInput', filnam) .eq. 0) call errorexit
+	  if (PipGetString('PieceListInput', filnam) .ne. 0) call errorexit
      &	      ('NO INPUT PIECE LIST FILE SPECIFIED')
 	else
 	  write(*,'(1x,a,$)')'name of input piece list file: '
