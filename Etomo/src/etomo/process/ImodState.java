@@ -136,6 +136,12 @@ import etomo.type.AxisID;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.14  2004/06/10 17:27:17  sueh
+ * <p> $bug# 462 update comments, clarify how each state variable
+ * <p> $is being used, add equals() functions for testing, update sets
+ * <p> $and gets to distinguish between initial state and current state,
+ * <p> $add some unchanging state variables to the constructor.
+ * <p> $
  * <p> $Revision 1.13  2004/06/07 18:33:29  sueh
  * <p> $bug# 457 In open(), collect all messages to be sent to 3dmod in process.
  * <p> $Send all messages to 3dmod before exiting open().
@@ -213,6 +219,7 @@ public class ImodState {
   //reset to default state
   private boolean openWithModel;
   private boolean preserveContrast;
+  private boolean openBeadFixer;
   
   //reset values
   //initial state information
@@ -223,6 +230,7 @@ public class ImodState {
   //default state information
   private static final boolean defaultOpenWithModel = false;
   private static final boolean defaultPreserveContrast = false;
+  private static final boolean defaultOpenBeadFixer = false;
     
   //internal state information
   private ImodProcess process = null;
@@ -359,6 +367,10 @@ public class ImodState {
       //open
       process.open();
       warnedStaleFile = false;
+      //open bead fixer
+      if (openBeadFixer) {
+        process.setOpenBeadFixerMessage();
+      }
       //open model
       if (!openWithModel && modelName != null && modelName.matches("\\S+")) {
         if (preserveContrast) {
@@ -377,6 +389,10 @@ public class ImodState {
       }
       else {
         process.setRaise3dmodMessage();
+      }
+      //open bead fixer
+      if (openBeadFixer) {
+        process.setOpenBeadFixerMessage();
       }
       //reopen model
       if (!useModv && modelName != null && modelName.matches("\\S+")) {
@@ -421,15 +437,6 @@ public class ImodState {
     open();
   } 
 
-  /**
-   * Opens the Bead Fixer window.
-   * 
-   * @throws SystemProcessException
-   */
-  public void openBeadFixer() throws SystemProcessException {
-    process.openBeadFixer();
-  }
-  
   public Vector getRubberbandCoordinates() throws SystemProcessException {
     return process.getRubberbandCoordinates();
   }
@@ -471,6 +478,7 @@ public class ImodState {
     //reset to default state
     openWithModel = defaultOpenWithModel;
     preserveContrast = defaultPreserveContrast;
+    openBeadFixer = defaultOpenBeadFixer;
   }
 
   protected String getModeString(int mode) {
@@ -600,6 +608,20 @@ public class ImodState {
   public void setPreserveContrast(boolean preserveContrast) {
     this.preserveContrast = preserveContrast;
   }
+  
+  /**
+   * @return openBeadFixer
+   */
+  public boolean isOpenBeadFixer() {
+    return openBeadFixer;
+  }
+  /**
+   * @param openBeadFixer
+   */
+  public void setOpenBeadFixer(boolean openBeadFixer) {
+    this.openBeadFixer = openBeadFixer;
+  }
+
 
   //initial state information
   /**
@@ -722,7 +744,7 @@ public class ImodState {
    * @return string
    */
   protected String paramString() {
-    Vector params = new Vector(17);
+    Vector params = new Vector(18);
     params.add("datasetName=" + getDatasetName());
     params.add("modelView=" + isModelView());
     params.add("useModv=" + isUseModv());
@@ -735,14 +757,15 @@ public class ImodState {
     params.add("openWithModel=" + isOpenWithModel());
     params.add("preserveContrast=" + isPreserveContrast());
     
+    params.add("openBeadFixer=" + isOpenBeadFixer());
     params.add("initialModelName=" + getInitialModelName());
     params.add("initialUseMode=" + isInitialUseMode());
-    params.add("initialMode=" + getInitialModeString());
     
+    params.add("initialMode=" + getInitialModeString());
     params.add("initialSwapYZ=" + isInitialSwapYZ());
     params.add("defaultOpenWithModel=" + isDefaultOpenWithModel());
-    params.add("defaultPreserveContrast=" + isDefaultPreserveContrast());
     
+    params.add("defaultPreserveContrast=" + isDefaultPreserveContrast());
     params.add("process=" + process.toString());
     params.add("warnedStaleFile=" + isWarnedStaleFile());
     return params.toString();
@@ -754,13 +777,13 @@ public class ImodState {
    * @return true if unchanging and initial state information is the same
    */
   public boolean equalsInitialConfiguration(ImodState imodState) {
-    if (getDatasetName().equals(imodState.getDatasetName())
-        && isModelView() == imodState.isModelView()
-        && isUseModv() == imodState.isUseModv()
-        && getInitialModelName().equals(imodState.getInitialModelName())
-        && isInitialUseMode() == imodState.isInitialUseMode()
-        && getInitialMode() == imodState.getInitialMode()
-        && isInitialSwapYZ() == imodState.isInitialSwapYZ()) {
+    if (datasetName.equals(imodState.getDatasetName())
+        && modelView == imodState.isModelView()
+        && useModv == imodState.isUseModv()
+        && initialModelName.equals(imodState.getInitialModelName())
+        && initialUseMode == imodState.isInitialUseMode()
+        && initialMode == imodState.getInitialMode()
+        && initialSwapYZ == imodState.isInitialSwapYZ()) {
       return true;
     }
     return false;
@@ -772,15 +795,16 @@ public class ImodState {
    * @return true if unchanging and current state information is the same
    */
   public boolean equalsCurrentConfiguration(ImodState imodState) {
-    if (getDatasetName().equals(imodState.getDatasetName())
-      && isModelView() == imodState.isModelView()
-        && isUseModv() == imodState.isUseModv()
-        && getModelName().equals(imodState.getModelName())
-        && isUseMode() == imodState.isUseMode()
-        && getMode() == imodState.getMode()
-        && isSwapYZ() == imodState.isSwapYZ()
-        && isOpenWithModel() == imodState.isOpenWithModel()
-        && isPreserveContrast() == imodState.isPreserveContrast()) {
+    if (datasetName.equals(imodState.getDatasetName())
+        && modelView == imodState.isModelView()
+        && useModv == imodState.isUseModv()
+        && modelName.equals(imodState.getModelName())
+        && useMode == imodState.isUseMode()
+        && mode == imodState.getMode()
+        && swapYZ == imodState.isSwapYZ()
+        && openWithModel == imodState.isOpenWithModel()
+        && preserveContrast == imodState.isPreserveContrast()
+        && openBeadFixer == imodState.isOpenBeadFixer()) {
       return true;
     }
     return false;
