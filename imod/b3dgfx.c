@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.2  2002/01/28 16:40:45  mast
+    Also added button 1 up to list of standard translations; xyz window needed.
+
     Revision 3.1  2002/01/28 16:38:46  mast
     Modified drawing routines to accept a slice number and pass it on to
     routine that checks for identity of temporary buffer, instead of assuming
@@ -2318,13 +2321,15 @@ static double wzoomvals[] =
 { 0.25, 0.5, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 8.0, 10.0, 
        12.0, 15.0, 18.0, 20.0, 25.0, 30.0};
 
+/* DNM 7/28/02: this is the one that gets used, but better maintain zoomvals
+   to have MAXZOOMI + 1 values too */
 static double szoomvals[] =
-{ 0.1, 0.25, 0.5, 1.0, 1.5, 2.0, 3.0, 4.0, 5.0, 6.0, 8.0, 10.0, 
-  12.0, 15.0, 18.0, 20.0};
+{ 0.1, 0.16, 0.25, 0.35, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0, 4.0, 5.0, 6.0, 8.0,
+  10.0, 12.0, 15.0, 18.0, 20.0};
 
 static double zoomvals[] =
-{ 0.1, 0.25, 0.33, 0.5, 0.75, 1.0,
-       1.25, 1.5, 1.75, 2.0, 2.5, 3.0, 4.0, 6.0, 10.0, 15.0};
+{ 0.1, 0.16, 0.25, 0.33, 0.5, 0.75, 1.0,
+       1.25, 1.5, 1.75, 2.0, 2.5, 3.0, 4.0, 6.0, 8.0, 10.0, 12.0, 15.0};
 
 #define MAXZOOMI 15
 
