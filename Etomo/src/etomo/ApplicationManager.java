@@ -25,6 +25,9 @@ import etomo.ui.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.13  2002/10/14 19:04:18  rickg
+ * <p> openMessageDialog made public
+ * <p>
  * <p> Revision 1.12  2002/10/10 23:40:33  rickg
  * <p> refactored createCombineScripts to setupCombineScripts
  * <p>
@@ -793,8 +796,10 @@ public class ApplicationManager {
   }
 
   /**
-   *
-   *
+   * Execute the fine alignment script (align.com) for the appropriate axis
+   * @param the AxisID identifying the axis to align.
+   * @param the AlignmentEstimationDialog that contains the parameters for the
+   * alignment script.
    */
   public void fineAlignment(
     AxisID axisID,
@@ -1372,6 +1377,7 @@ public class ApplicationManager {
         processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
 
         if (exitState == DialogExitState.EXECUTE) {
+          processMgr.combine();
           processTrack.setTomogramCombinationState(ProcessState.COMPLETE);
         }
 
