@@ -10,6 +10,12 @@
 # $Revision$
 # 
 # $Log$
+# Revision 1.5  2003/04/25 22:04:07  rickg
+# Added echoing at startup
+#
+
+#  Workaround for java 1.4.0 / new threading library clash
+export LD_ASSUME_KERNEL=2.4.1
 
 # Test for existance of IMOD_DIR
 if [ -z "$IMOD_DIR" ]; then
