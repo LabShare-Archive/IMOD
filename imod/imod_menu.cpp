@@ -34,94 +34,13 @@
 $Date$
 
 $Revision$
-
-$Log$
-Revision 4.1  2003/02/10 20:29:00  mast
-autox.cpp
-
-Revision 1.1.2.11  2003/01/29 01:33:15  mast
-changes for colormap switching
-
-Revision 1.1.2.10  2003/01/27 00:30:07  mast
-Pure Qt version and general cleanup
-
-Revision 1.1.2.9  2003/01/23 20:07:02  mast
-add include for imod_cont_copy
-
-Revision 1.1.2.8  2003/01/18 01:15:56  mast
-add include for cache filler
-
-Revision 1.1.2.7  2003/01/14 21:52:38  mast
-include new movie controller include file
-
-Revision 1.1.2.6  2003/01/13 01:00:28  mast
-Qt version
-
-Revision 1.1.2.5  2003/01/10 23:52:17  mast
-Changes for Qt version of tumbler and elimination of tilt window
-
-Revision 1.1.2.4  2003/01/06 15:52:39  mast
-changes for Qt version of slicer and new object color routines
-
-Revision 1.1.2.3  2002/12/19 04:37:13  mast
-Cleanup of unused global variables and defines
-
-Revision 1.1.2.2  2002/12/17 18:40:24  mast
-Changes and new includes with Qt version of imodv
-
-Revision 1.1.2.1  2002/12/13 06:15:49  mast
-include file changes
-
-Revision 3.10.2.2  2002/12/11 00:41:00  mast
-Prevent flipping while loading data
-
-Revision 3.10.2.1  2002/12/05 16:23:52  mast
-No changes - CVS detected as modified in branch
-
-Revision 3.11  2002/12/03 15:49:07  mast
-consistently set the forbid-level before any potential file dialog to
-prevent multiple file dialogs from appearing; switched memory save to
-using dia_filename so that this would work there as well.
-
-Revision 3.10  2002/12/01 15:34:41  mast
-Changes to get clean compilation with g++
-
-Revision 3.9  2002/11/05 23:26:39  mast
-Changed copyright notice to use lab name and years
-
-Revision 3.8  2002/09/27 20:24:57  rickg
-Moved IO functionality into imod_io
-Move client message functionality into imod_client_message since it was no
-longer dependent upon any code in this model due to the changes to imod_io.
-
-Revision 3.7  2002/09/19 22:52:54  rickg
-Added MESSAGE_QUIT case for receiving of events.
-
-Revision 3.6  2002/09/17 18:52:44  mast
-Changed event handler to expect a signature (IMOD), and to give error
-messages about unexpected packets only in debig mode
-
-Revision 3.5  2002/09/14 18:32:43  mast
-Eliminate unneeded argument from fprintf
-
-Revision 3.4  2002/09/13 23:44:44  mast
-Changes after testing out most error conditions for messages
-
-Revision 3.3  2002/09/13 21:09:54  mast
-Added message handler to process external ClientMessage events for opening
-and saving model files.
-
-Revision 3.2  2002/05/20 15:34:04  mast
-Made time index modeling be the default for a new object (or new model)
-if multiple files are open
-
-Revision 3.1  2001/12/17 18:45:54  mast
-Added calls for cache filling
-
+Log at end of file
 */
+
 #include <stdio.h>
 #include <math.h>
 #include <qfiledialog.h>
+#include <qdir.h>
 #include "xxyz.h"
 #include "imod_object_edit.h"
 #include "pixelview.h"
@@ -283,7 +202,7 @@ void InfoWindow::fileWriteSlot(int item)
                                        "File to save as Imod:");
     if (qname.isEmpty())
       break;
-    fout =  fopen(qname.latin1(), "wb");
+    fout =  fopen((QDir::convertSeparators(qname)).latin1(), "wb");
     if (!fout)
       break;
     imodWrite(App->cvi->imod, fout);
@@ -296,7 +215,7 @@ void InfoWindow::fileWriteSlot(int item)
                                        "File to save as Wimp:");
     if (qname.isEmpty())
       break;
-    fout =  fopen(qname.latin1(), "w");
+    fout =  fopen((QDir::convertSeparators(qname)).latin1(), "w");
     if (!fout)
       break;
     imod_to_wmod(App->cvi->imod, fout, (char *)qname.latin1());
@@ -309,7 +228,7 @@ void InfoWindow::fileWriteSlot(int item)
                                        "File to save as Wimp:");
     if (qname.isEmpty())
       break;
-    fout =  fopen(qname.latin1(), "w");
+    fout =  fopen((QDir::convertSeparators(qname)).latin1(), "w");
     if (!fout)
       break;
     imod_to_nff(App->cvi->imod, fout);
@@ -1080,3 +999,92 @@ void InfoWindow::helpSlot(int item)
   }
   return;
 }
+
+/*
+$Log$
+Revision 4.2  2003/02/12 21:39:51  mast
+Fix problem with getting new object after deleting all objects
+
+Revision 4.1  2003/02/10 20:29:00  mast
+autox.cpp
+
+Revision 1.1.2.11  2003/01/29 01:33:15  mast
+changes for colormap switching
+
+Revision 1.1.2.10  2003/01/27 00:30:07  mast
+Pure Qt version and general cleanup
+
+Revision 1.1.2.9  2003/01/23 20:07:02  mast
+add include for imod_cont_copy
+
+Revision 1.1.2.8  2003/01/18 01:15:56  mast
+add include for cache filler
+
+Revision 1.1.2.7  2003/01/14 21:52:38  mast
+include new movie controller include file
+
+Revision 1.1.2.6  2003/01/13 01:00:28  mast
+Qt version
+
+Revision 1.1.2.5  2003/01/10 23:52:17  mast
+Changes for Qt version of tumbler and elimination of tilt window
+
+Revision 1.1.2.4  2003/01/06 15:52:39  mast
+changes for Qt version of slicer and new object color routines
+
+Revision 1.1.2.3  2002/12/19 04:37:13  mast
+Cleanup of unused global variables and defines
+
+Revision 1.1.2.2  2002/12/17 18:40:24  mast
+Changes and new includes with Qt version of imodv
+
+Revision 1.1.2.1  2002/12/13 06:15:49  mast
+include file changes
+
+Revision 3.10.2.2  2002/12/11 00:41:00  mast
+Prevent flipping while loading data
+
+Revision 3.10.2.1  2002/12/05 16:23:52  mast
+No changes - CVS detected as modified in branch
+
+Revision 3.11  2002/12/03 15:49:07  mast
+consistently set the forbid-level before any potential file dialog to
+prevent multiple file dialogs from appearing; switched memory save to
+using dia_filename so that this would work there as well.
+
+Revision 3.10  2002/12/01 15:34:41  mast
+Changes to get clean compilation with g++
+
+Revision 3.9  2002/11/05 23:26:39  mast
+Changed copyright notice to use lab name and years
+
+Revision 3.8  2002/09/27 20:24:57  rickg
+Moved IO functionality into imod_io
+Move client message functionality into imod_client_message since it was no
+longer dependent upon any code in this model due to the changes to imod_io.
+
+Revision 3.7  2002/09/19 22:52:54  rickg
+Added MESSAGE_QUIT case for receiving of events.
+
+Revision 3.6  2002/09/17 18:52:44  mast
+Changed event handler to expect a signature (IMOD), and to give error
+messages about unexpected packets only in debig mode
+
+Revision 3.5  2002/09/14 18:32:43  mast
+Eliminate unneeded argument from fprintf
+
+Revision 3.4  2002/09/13 23:44:44  mast
+Changes after testing out most error conditions for messages
+
+Revision 3.3  2002/09/13 21:09:54  mast
+Added message handler to process external ClientMessage events for opening
+and saving model files.
+
+Revision 3.2  2002/05/20 15:34:04  mast
+Made time index modeling be the default for a new object (or new model)
+if multiple files are open
+
+Revision 3.1  2001/12/17 18:45:54  mast
+Added calls for cache filling
+
+*/
