@@ -1230,25 +1230,14 @@ float ivwGetFileValue(ImodView *vi, int cx, int cy, int cz)
   if (vi->li){
 
     /* get to index values in file from screen index values */
+    /* DNM 7/13/04: changed to apply ymin, zmin after switching y and z */
     fx = cx + vi->li->xmin;
-    fy = cy + vi->li->ymin;
-    fz = cz + vi->li->zmin;
-    if (vi->li->axis){
-      switch(vi->li->axis){
-      case 1:
-        tmp = fx;
-        fx = fz;
-        fz = tmp;
-        break;
-      case 2:
-        tmp = fy;
-        fy = fz;
-        fz = tmp;
-        break;
-      case 3:
-      default:
-        break;
-      }
+    if (vi->li->axis == 3) {
+      fy = cy + vi->li->ymin;
+      fz = cz + vi->li->zmin;
+    } else {
+      fy = cz + vi->li->ymin;
+      fz = cy + vi->li->zmin;
     }
 
     /* For multi-file sections in Z, make sure z is legal, reopen the right
@@ -2404,6 +2393,9 @@ static void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin,
 
 /*
 $Log$
+Revision 4.25  2004/07/11 18:19:38  mast
+Functions to set time of new contour and get/make contour for adding points
+
 Revision 4.24  2004/07/07 19:25:29  mast
 Changed exit(-1) to exit(3) for Cygwin
 
