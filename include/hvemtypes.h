@@ -1,11 +1,23 @@
 #ifndef HVEMTYPES_H
 #define HVEMTYPES_H
+/*  $Author$
 
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
+
+#ifndef NO_X_INCLUDES
 #include <X11/Xmd.h>
+#endif
 
 #include <sys/types.h>
 
+#ifndef NO_X_INCLUDES
 typedef BOOL     BOOLEAN;
+#endif
 typedef char           CHAR;
 typedef unsigned char  UCHAR;
 typedef float          FLOAT;
