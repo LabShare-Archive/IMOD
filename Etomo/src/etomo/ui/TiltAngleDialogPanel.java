@@ -22,6 +22,9 @@ import etomo.type.TiltAngleSpec;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.0  2003/01/24 20:30:31  rickg
+ * <p> Single window merge to main branch
+ * <p>
  * <p> Revision 1.2.2.1  2003/01/24 18:43:37  rickg
  * <p> Single window GUI layout initial revision
  * <p>
@@ -142,6 +145,12 @@ public class TiltAngleDialogPanel {
 
   void setToolTipText(String text) {
     panelTiltAngleSource.setToolTipText(text);
+    rbTiltAngleExtract.setToolTipText(text);
+    rbTiltAngleSpecify.setToolTipText(text);
+    rbTiltAngleFile.setToolTipText(text);
+    ltfAngleMax.setToolTipText(text);
+    ltfAngleMin.setToolTipText(text);
+    ltfAngleStep.setToolTipText(text);
   }
 
   //  Set the state of the text fields depending upon the radio button state
