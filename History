@@ -1,5 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/13/04: IMOD_3-4-11
 10/12/04: Fixed a bug in writing meshes in a model to an NFF file.
 
 10/12/04: Fixed a bug in Tilt in the Y-positioning of a tomogram when it falls
