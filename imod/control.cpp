@@ -329,7 +329,7 @@ void DialogManager::add(QWidget *widget, int dlgClass, int dlgType)
   if (!mDialogList) {
     mDialogList = ilistNew(sizeof(ImodvDialog), 4);
     if (!mDialogList) {
-      fprintf(stderr, "3DMOD WARNING: Failure to get memory for dialog list\n"
+      imodError(NULL, "3DMOD WARNING: Failure to get memory for dialog list\n"
 	      );
       return;
     }
@@ -372,7 +372,7 @@ void DialogManager::remove(QWidget * widget)
     dia = (ImodvDialog *)ilistNext(mDialogList);
     index++;
   }
-  fprintf(stderr, "3DMOD WARNING: Failed to find closing dialog on list\n");
+  imodError(NULL, "3DMOD WARNING: Failed to find closing dialog on list\n");
 }
 
 // Close all dialogs and delete the list
@@ -507,6 +507,9 @@ QRect ivwRestorableGeometry(QWidget *widget)
 
 /*
 $Log$
+Revision 4.12  2003/09/24 17:32:44  mast
+Add and use restorable geometry routine
+
 Revision 4.11  2003/09/24 00:48:48  mast
 Switched from keeping track of geometry to keeping track of pos() and
 size() when saving and restoring positions and sizes

@@ -37,6 +37,7 @@ Log at the end of file
 
 #include <limits.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include <string.h>
 #include <errno.h>
 #include <qfiledialog.h>
@@ -89,33 +90,34 @@ static int loopStarted = 0;
 
 void imod_usage(char *name)
 {
-  imodVersion(name);
+  QString qstr; 
+  char *progName = imodProgName(name);
+  imodVersion(progName);
   imodCopyright();
-  printf("%s: Usage, %s [options] <Image files> <model file>\n",
-         name, name);
-  printf("Options: -xyz  Open xyz window first.\n");
-  printf("         -S    Open slicer window first.\n");
-  printf("         -V    Open model view window first.\n");
-  printf("         -Z    Open Zap window (use with -S, -xyz, or -V)\n");
-  printf("         -x min,max  Load in sub image.\n");
-  printf("         -y min,max  Load in sub image.\n");
-  printf("         -z min,max  Load in sub image.\n");
-  printf("         -s min,max  Scale input to range [min,max].\n");
-  printf("         -C #  Set # of sections or Mbytes to cache (#M or #m for"
-         " Mbytes).\n");
-  printf("         -F    Fill cache right after starting program.\n");
-  printf("         -Y    Flip volume to model planes normal to y axis.\n");
-  printf("         -p <file name>  Load piece list file.\n");
-  printf("         -P nx,ny  Display images as montage in nx by ny array.\n");
-  printf("         -o nx,ny  Set x and y overlaps for montage display.\n");
-  printf("         -f    Load as frames even if image file has piece "
-         "coordinates.\n");
-  printf("         -m    Load model with model coords (override scaling).\n");
-  printf("         -2    Treat model as 2D only.\n");
-  printf("         -G    Display RGB-mode MRC file in gray-scale.\n");
-  printf("         -ci   Display images in color index mode with colormap.\n");
-  printf("         -h    Print this help message.\n");
-  printf("\n");
+  qstr.sprintf("Usage: %s [options] <Image files> <model file>\n", progName);
+  qstr += "Options: -xyz  Open xyz window first.\n";
+  qstr += "         -S    Open slicer window first.\n";
+  qstr += "         -V    Open model view window first.\n";
+  qstr += "         -Z    Open Zap window (use with -S, -xyz, or -V)\n";
+  qstr += "         -x min,max  Load in sub image.\n";
+  qstr += "         -y min,max  Load in sub image.\n";
+  qstr += "         -z min,max  Load in sub image.\n";
+  qstr += "         -s min,max  Scale input to range [min,max].\n";
+  qstr += "         -C #  Set # of sections or Mbytes to cache (#M or #m for"
+         " Mbytes).\n";
+  qstr += "         -F    Fill cache right after starting program.\n";
+  qstr += "         -Y    Flip volume to model planes normal to y axis.\n";
+  qstr += "         -p <file name>  Load piece list file.\n";
+  qstr += "         -P nx,ny  Display images as montage in nx by ny array.\n";
+  qstr += "         -o nx,ny  Set x and y overlaps for montage display.\n";
+  qstr += "         -f    Load as frames even if image file has piece "
+         "coordinates.\n";
+  qstr += "         -m    Load model with model coords (override scaling).\n";
+  qstr += "         -2    Treat model as 2D only.\n";
+  qstr += "         -G    Display RGB-mode MRC file in gray-scale.\n";
+  qstr += "         -ci   Display images in color index mode with colormap.\n";
+  qstr += "         -h    Print this help message.\n";
+  imodPrintInfo(qstr.latin1());
   return;
 }
 
@@ -208,6 +210,10 @@ int main( int argc, char *argv[])
   
   QApplication qapp(argc, argv);
   
+  /* Set title for error dialogs, and set up to store error strings */
+  diaSetTitle("3dmod");
+  b3dSetStoreError(1);
+
   ImodPrefs = new ImodPreferences(cmdLineStyle);
 
   // Set up the application icon for windows to use
@@ -268,7 +274,7 @@ int main( int argc, char *argv[])
   for (i = 1; i < argc; i++){
     if (argv[i][0] == '-'){
       if (firstfile) {
-        fprintf(stderr, "3dmod: invalid to have argument %s after"
+        imodError(NULL, "3dmod: invalid to have argument %s after"
           " first filename\n", argv[i]);
         exit(1);
       }
@@ -279,7 +285,7 @@ int main( int argc, char *argv[])
           break;
         cmap = atoi(argv[++i]);
         if ((cmap > 12) || (cmap < 1)){
-          fprintf(stderr, "3dmod: valid -c range is 1 - 12\n");
+          imodError(NULL, "3dmod: valid -c range is 1 - 12\n");
           exit(-1);
         }
         Rampbase  = 256 + ((cmap - 1) * 330);
@@ -438,12 +444,12 @@ int main( int argc, char *argv[])
       
       /* Fail to open, and it is the only filename, then exit */
       if (firstfile == argc - 1) {
-        printf("Couldn't open input file %s.\n", argv[argc - 1]);
+        imodError(NULL, "Couldn't open input file %s.\n", argv[argc - 1]);
         exit(10);
       }
       
       /* But if there are other files, open new model with that name*/
-      fprintf(stderr, "Model file (%s) not found: opening "
+      printf("Model file (%s) not found: opening "
         "new model by that name.\n", argv[argc - 1]);
 
       Model = imodNew();
@@ -485,7 +491,7 @@ int main( int argc, char *argv[])
       qname = QFileDialog::getOpenFileName(QString::null, QString::null, 0, 0, 
                                            "3dmod: Select Image file to load:");
       if (qname.isEmpty()) {
-        fprintf(stderr, "3DMOD: file not selected\n");
+        imodError(NULL, "3DMOD: file not selected\n");
         exit(-1);
       }
       Imod_imagefile = strdup(qname.latin1());
@@ -503,7 +509,7 @@ int main( int argc, char *argv[])
     vi.fp = fin = fopen
       ((QDir::convertSeparators(QString(Imod_imagefile))).latin1(), "r");
     if (fin == NULL){
-      printf("Couldn't open input file %s.\n", Imod_imagefile);
+      imodError(NULL, "Couldn't open input file %s.\n", Imod_imagefile);
       exit(10);
     }
     
@@ -522,12 +528,15 @@ int main( int argc, char *argv[])
     /* The file is an image, not an image list */
     if (!vi.ifd){
       
+      errno = 0;
       vi.image = iiOpen(Imod_imagefile, "rb");
       if (!vi.image){
-        fprintf(stderr, "3dmod error: "
-          "Failed to load input file %s\n",
-          Imod_imagefile);
-        if (errno) perror("image open");
+        qname = b3dGetError();
+        qname += QString("3dmod error: Failed to load input file ") + 
+          Imod_imagefile + "\n";
+        if (errno) 
+          qname += QString("System error: ") + strerror(errno);
+        imodError(NULL, qname.latin1());
         exit(-1);
       }
       
@@ -675,10 +684,13 @@ int main( int argc, char *argv[])
   }
 
   /* Finish loading/setting up images, reading IFD if necessary */
+  errno = 0;
   if (ivwLoadImage(&vi)){
-    fprintf(stderr, "3dmod: Fatal Error --" 
-            " while reading image data.\n");
-    perror("3dmod LoadImage");
+    qname = b3dGetError();
+    qname += "3dmod: Fatal Error -- while reading image data.\n";
+    if (errno) 
+      qname += QString("System error: ") + strerror(errno);
+    imodError(NULL, qname.latin1());
     exit(-1);
   }
 
@@ -873,6 +885,32 @@ QString imodCaption(char *intro)
   return qstr;
 }
 
+void imodError(FILE *out, const char *format, ...)
+{
+  char errorMess[512];
+  va_list args;
+  va_start(args, format);
+  
+  vsprintf(errorMess, format, args);
+#ifdef _WIN32
+  out = NULL;
+#endif
+  if (out)
+    fprintf(out, errorMess);
+  else
+    dia_err(errorMess);
+}
+
+void imodPrintInfo(const char *message)
+{
+#ifdef _WIN32
+  dia_puts(message);
+#else
+  printf(message);
+#endif
+}
+
+
 /***********************************************************************
  * Core application plugin lookup functions.
  *
@@ -919,6 +957,9 @@ int imodColorValue(int inColor)
 
 /*
 $Log$
+Revision 4.25  2003/10/01 05:13:56  mast
+Added functions for rationalizing plugin compilation
+
 Revision 4.24  2003/09/24 17:33:09  mast
 Remove setting of info window geometry from here - wanted it sooner
 

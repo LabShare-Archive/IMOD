@@ -279,7 +279,7 @@ void ImageScaleWindow::applyLimits()
       (vw->image, vw->li, imod_imgcnt);
 
     if (!vw->idata){
-      fprintf(stderr, "3DMOD: Fatal Error. Image LOST!\n");
+      imodError(NULL, "3DMOD: Fatal Error. Image LOST!\n");
       exit(-1);
     }
           
@@ -321,6 +321,9 @@ void ImageScaleWindow::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.5  2003/06/04 23:30:55  mast
+Add timer to prevent crash if window closed before reload done
+
 Revision 4.4  2003/04/25 03:28:32  mast
 Changes for name change to 3dmod
 

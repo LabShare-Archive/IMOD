@@ -539,7 +539,7 @@ int imodFindQGLFormat(ImodApp *ap, char **argv)
     visual = NULL;
   }
   if (!visual) {
-    fprintf(stderr, "%s: couldn't get appropriate GL format for Qt windows.\n",
+    imodError(NULL, "%s: couldn't get appropriate GL format for Qt windows.\n",
             argv[0]);
     exit(-1);
   }
@@ -548,6 +548,9 @@ int imodFindQGLFormat(ImodApp *ap, char **argv)
 
 /*
 $Log$
+Revision 4.7  2003/09/19 19:19:47  mast
+Change required color depth for rgba visuals from 16 to 15
+
 Revision 4.6  2003/05/18 22:59:13  mast
 Remove icon-creating form here
 

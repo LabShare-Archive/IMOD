@@ -35,6 +35,7 @@ $Revision$
 Log at end of file
 */
 #include <stdlib.h>
+#include <errno.h>
 #include <limits.h>
 #include <math.h>
 #include <string.h>
@@ -667,7 +668,7 @@ int ivwLoadMrc(ImodView *vi)
   /* DNM: only one mode won't work now; just exit in either case */
   if (vi->vmSize)
     if (vi->hdr->mode == MRC_MODE_COMPLEX_SHORT){
-      fprintf(stderr, "3DMOD Error: "
+      imodError(NULL, "3DMOD Error: "
               "Image cache and piece lists do not work with "
               "complex short data.\n");
       exit(-1);
@@ -714,7 +715,7 @@ int ivwLoadMrc(ImodView *vi)
     vi->idata = (unsigned char **)imod_io_image_load
       (vi->image, vi->li, imod_imgcnt);
     if (!vi->idata){
-      printf("3dmod: Error reading image data.\n");
+      /* Let caller do error message */
       return(-1);
     }
   }
@@ -1630,7 +1631,7 @@ int ivwLoadImage(ImodView *iv)
 
     /* DNM: set the axis flag based on the model flip flag */
     if (iv->li->axis == 2) 
-      fprintf(stderr, "The -Y flag is ignored when loading a model"
+      imodError(NULL, "The -Y flag is ignored when loading a model"
               " without an image.\nUse Edit-Image-Flip to flip the"
               " model if desired");
     iv->li->axis = 3;
@@ -1652,7 +1653,7 @@ int ivwLoadImage(ImodView *iv)
    *        return(ifioLoadIMODifd(iv));
    */
   if (iv->ifd > 1) {
-    fprintf(stderr, "3dmod: Image list file version too high.\n");
+    b3dError(NULL, "3dmod: Image list file version too high.\n");
     return (-1);
   }
 
@@ -1702,7 +1703,7 @@ int ivwLoadImage(ImodView *iv)
 
   loadingImage = 1;
   if (ivwLoadMrc(iv)){
-    fprintf(stderr, "3dmod: Error loading image data.\n");
+    /* DNM 10/31/03: let top level report error */
     loadingImage = 0;
           
     return(-1);
@@ -1820,7 +1821,7 @@ static int ivwLoadIMODifd(ImodView *iv)
       if (ilist->size == 1)
         image = (ImodImageFile *)ilistItem(ilist, ilist->size - 1);
       else {
-        fprintf(stderr, "3DMOD Error: " 
+        imodError(NULL, "3DMOD Error: " 
                 "Image list file must specify one image file"
                 " before the XYZ option.\n");
         exit(-1);
@@ -1876,21 +1877,21 @@ static int ivwLoadIMODifd(ImodView *iv)
         filename = strdup((curdir->cleanDirPath(QString(&line[6]))).latin1());
       }
 
-
+      errno = 0;
       image = iiOpen((char *)
         (QDir::convertSeparators(QString(filename))).latin1(), "rb");
       if (!image){
         if (!xsize || !ysize) {
-          fprintf(stderr, "3DMOD Error: " 
+          imodError(NULL, "3DMOD Error: " 
                   "couldn't open %s, first file in image list,"
                   "\n and no SIZE specified before this.\n",
                   filename);
           exit(-1);
         }
-        wprint("warning couldn't open %s\n\r",
+        wprint("Warning: couldn't open %s\n\r",
                filename);
-        printf("warning couldn't open %s\n", filename);
-        perror("OSerr");
+        imodError(stdout, "Warning: couldn't open %s\n%s%s", filename, 
+                  errno ? "System error: " : "", errno ? strerror(errno): "");
         image = iiNew();
         image->nx = xsize;
         image->ny = ysize;
@@ -1927,7 +1928,7 @@ static int ivwLoadIMODifd(ImodView *iv)
       continue;
     }
 
-    fprintf(stderr, "3dmod warning: "
+    imodError(NULL, "3dmod warning: "
             "Unknown image list option (%s)\n", line);
 
   }
@@ -1955,7 +1956,7 @@ void ivwMultipleFiles(ImodView *iv, char *argv[], int firstfile, int lastimage)
     image = iiOpen((char *)
       (QDir::convertSeparators(QString(convarg))).latin1(), "rb");
     if (!image){
-      fprintf(stderr, "3DMOD Error: " 
+      imodError(NULL, "3DMOD Error: " 
               "couldn't open image file %s.\n", argv[i]);
       exit(-1);
     }
@@ -2042,13 +2043,13 @@ static int ivwSetCacheFromList(ImodView *iv, Ilist *ilist)
 
   if (rgbs) {
     if (rgbs < ilist->size) {
-      fprintf(stderr, "3DMOD Error: Only %d files out of %d are "
+      imodError(NULL, "3DMOD Error: Only %d files out of %d are "
               "RGB type and all files must be.\n", rgbs, ilist->size);
       exit(-1);
     }
                
     if (!App->rgba) {
-      fprintf(stderr, "3DMOD Error: You must not start 3dmod with "
+      imodError(NULL, "3DMOD Error: You must not start 3dmod with "
               "the -ci option to display RGB files.\n");
       exit(-1);
     }
@@ -2067,7 +2068,8 @@ static int ivwSetCacheFromList(ImodView *iv, Ilist *ilist)
 
     iv->hdr = iv->image = iiNew();
     if (!iv->image){
-      fprintf(stderr, "Not enough memory.\n"); exit(-1);
+      imodError(NULL, "Not enough memory.\n"); 
+      exit(-1);
     }
     memcpy(iv->image, ilist->data, sizeof(ImodImageFile));
     iiReopen(iv->image);
@@ -2105,7 +2107,7 @@ static int ivwSetCacheFromList(ImodView *iv, Ilist *ilist)
   iv->li->axis = i;
 
   if (eret){
-    fprintf(stderr, "3DMOD Fatal Error. init image cache. (%d)\n",
+    imodError(NULL, "3DMOD Fatal Error. init image cache. (%d)\n",
             eret);
     exit(-1);
   }
@@ -2188,6 +2190,9 @@ int  ivwGetObjectColor(ImodView *inImodView, int inObject)
 
 /*
 $Log$
+Revision 4.15  2003/10/01 05:09:11  mast
+Changes for recreation of plugin compilation capability
+
 Revision 4.14  2003/09/26 00:07:36  mast
 No longer ask for contiguous memory for more than 1 GB or image data
 

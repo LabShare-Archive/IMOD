@@ -125,6 +125,7 @@ void imodvKeyPress(QKeyEvent *event)
   float elapsed;
   int state = event->state();
   int keypad = event->state() & Qt::Keypad;
+  QString qstr, qstr2;
 
   if (inputTestMetaKey(event))
     return;
@@ -159,7 +160,7 @@ void imodvKeyPress(QKeyEvent *event)
     }else{
       if (a->obj){
         /* DNM 7/31/01 remove pixsize from D */
-        printf("Current Object clip data = (A B C D) "
+        qstr.sprintf("Current Object clip data = (A B C D) "
                "= %g %g %g %g.\n",
                a->obj->clip_normal.x,
                a->obj->clip_normal.y,
@@ -170,6 +171,7 @@ void imodvKeyPress(QKeyEvent *event)
                  a->obj->clip_point.y) +
                 (a->obj->clip_normal.z * 
                  a->obj->clip_point.z)));
+        imodPrintInfo(qstr.latin1());
       }
     }
     break;
@@ -360,30 +362,31 @@ void imodvKeyPress(QKeyEvent *event)
           dia_err("Error reading model file.  No model loaded.");
     } else {
       /* output info */
-      printf("Zoom = %g\n", a->md->zoom);
+      qstr.sprintf("Zoom = %g\n", a->md->zoom);
       if (a->imod->view->world & VIEW_WORLD_ON){
-        printf("Transformation matrix:");
+        qstr += qstr2.sprintf("Transformation matrix:");
         for(tstep = 0; tstep < 16; tstep++){
           if (!(tstep%4))
-            printf("\n");
-          printf("%7.3f ", a->imod->view->mat[tstep]);
+            qstr += qstr2.sprintf("\n");
+          qstr += qstr2.sprintf("%7.3f ", a->imod->view->mat[tstep]);
         }
-        printf("\n");
+        qstr += qstr2.sprintf("\n");
       }
-      printf("Trans (x,y,z) = (%g, %g, %g)\n",
+      qstr += qstr2.sprintf("Trans (x,y,z) = (%g, %g, %g)\n",
              a->imod->view->trans.x,
              a->imod->view->trans.y,
              a->imod->view->trans.z);
-      printf("Rotate (x,y,z) = (%g, %g, %g)\n",
+      qstr += qstr2.sprintf("Rotate (x,y,z) = (%g, %g, %g)\n",
              a->imod->view->rot.x,
              a->imod->view->rot.y,
              a->imod->view->rot.z);
       if (a->movieFrames) {
         elapsed = (float)(a->movieCurrent - a->movieStart) / 1000.f;
-        printf("%d frames / %.3f sec = %.3f FPS\n", 
+        qstr += qstr2.sprintf("%d frames / %.3f sec = %.3f FPS\n", 
                a->movieFrames, elapsed, 
                a->movieFrames / elapsed);
       }
+      imodPrintInfo(qstr.latin1());
     }
     break;
 
@@ -1013,6 +1016,9 @@ void imodvMovieTimeout()
 
 /*
     $Log$
+    Revision 4.8  2003/06/27 20:01:36  mast
+    Changes to use world flag for quality instead of fastdraw flag
+
     Revision 4.7  2003/04/18 20:13:40  mast
     Reject Ctrl Key (Meta) on Mac
 

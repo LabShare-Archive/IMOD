@@ -300,7 +300,7 @@ void imodvViewsNew(const char *label)
   ved->a->imod->cview = ved->a->imod->viewsize - 1;
     
   if (cview == ved->a->imod->cview) {
-    fprintf(stderr,"3dmodv: create view error\n");
+    imodError(NULL,"3dmodv: error creating view\n");
     return; /* no view created. */
   }
 
@@ -401,6 +401,10 @@ static void build_list(ImodvApp *a)
 /*
 
     $Log$
+    Revision 4.7  2003/08/01 00:12:57  mast
+    Fix some bugs from the new numbering mismatch between indexes in list box
+    and the actual views, free object views when view is deleted
+
     Revision 4.6  2003/06/27 20:00:07  mast
     Added a function to initialize views and make sure view 1 is always present;
     changed indices, etc. to eliminate the "default view"

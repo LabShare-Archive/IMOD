@@ -98,14 +98,16 @@ static ImodGLRequest *OpenGLAttribList[] = {
 
 static void usage(char *pname)
 {
+  QString qstr;
   imodVersion(pname);
   imodCopyright();
-  fprintf(stderr, "options: all Qt options plus:\n");
-  fprintf(stderr, "\t-f                Open window to max size.\n");
-  fprintf(stderr, "\t-b color_name     Background color for rendering.\n");
-  fprintf(stderr, "\t-s width,height   Window size in pixels.\n");
-  fprintf(stderr, "\t-D                Debug mode.\n");
-  fprintf(stderr, "\t-h                Print this help message.\n");
+  qstr = "options: all Qt options plus:\n";
+  qstr += "\t-f                Open window to max size.\n";
+  qstr += "\t-b color_name     Background color for rendering.\n";
+  qstr += "\t-s width,height   Window size in pixels.\n";
+  qstr += "\t-D                Debug mode.\n";
+  qstr += "\t-h                Print this help message.\n";
+  imodPrintInfo(qstr.latin1());
   exit(-1);
 }
 
@@ -268,16 +270,16 @@ static int getVisuals(ImodvApp *a)
     return 1;
 
   if (!depthDB || !depthSB)
-    fprintf(stderr, "3dmodv warning: using a visual with"
+    imodError(NULL, "3dmodv warning: using a visual with"
             " no depth buffer\n");
 
   if (depthDB < 0)
-    fprintf(stderr, "3dmodv warning: no double buffer visual available.\n");
+    imodError(NULL, "3dmodv warning: no double buffer visual available.\n");
   else if (Imod_debug)
     printf("DB visual: %d color bits, %d depth bits, stereo %d\n",
 	   colorDB, depthDB, a->stereoDB);
   if (depthSB < 0)
-    fprintf(stderr, "3dmodv warning: no single buffer visual available.\n");
+    imodError(NULL, "3dmodv warning: no single buffer visual available.\n");
   else if (Imod_debug)
     printf("SB visual: %d color bits, %d depth bits, stereo %d\n",
 	   colorSB, depthSB, a->stereoSB);
@@ -361,7 +363,7 @@ static int load_models(int n, char **fname, ImodvApp *a)
     a->mod[i] = imodRead((char *)(QDir::convertSeparators(QString(fname[i]))).
       latin1());
     if (!a->mod[i]){
-      fprintf(stderr, "Error loading %s\n", fname[i]);
+      imodError(NULL, "Error loading %s\n", fname[i]);
       return(-1);
     }
     mod = a->mod[i];
@@ -403,6 +405,7 @@ int imodv_main(int argc, char **argv)
   int i;
   ImodvApp *a = Imodv;
   a->standalone = 1;
+  diaSetTitle("3dmodv");
   imodv_init(a, &Imodv_mdraw);
 
   // DNM 5/17/03: The Qt application and preferences are already gotten
@@ -436,8 +439,7 @@ int imodv_main(int argc, char **argv)
       default:
         if (strcmp("-modv", argv[i]) && 
             strcmp("-view", argv[i])) {
-          fprintf(stderr, "3dmodv error: illegal option %s\n", 
-                  argv[i]);
+          imodError(NULL, "3dmodv error: illegal option %s\n", argv[i]);
           exit(1);
         }
 
@@ -455,7 +457,7 @@ int imodv_main(int argc, char **argv)
     a->rbgcolor->setRgb(0, 0, 0);
 
   if (getVisuals(a) != 0) {
-    fprintf(stderr, "3dmodv error: Couldn't get rendering visual.\n");
+    imodError(NULL, "3dmodv error: Couldn't get rendering visual.\n");
     exit(-1);
   }
 
@@ -471,7 +473,6 @@ int imodv_main(int argc, char **argv)
 
   openWindow(Imodv);
 
-  diaSetTitle("3dmodv");
 
   return qApp->exec();
 }
@@ -590,6 +591,9 @@ void imodvDrawImodImages()
 
 /*
 $Log$
+Revision 4.10  2003/07/17 14:41:32  mast
+Go back to scaling and centering model when opening imodv
+
 Revision 4.9  2003/06/27 20:04:47  mast
 Changes for new scheme in which there is always a view 1: initialize
 views when reading in a model; adjust scaling when opening model view
