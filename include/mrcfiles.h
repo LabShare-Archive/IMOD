@@ -26,6 +26,14 @@
  *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 
 #ifndef MRCFILES_H
 #define MRCFILES_H
@@ -353,6 +361,7 @@ void mrc_swap_shorts(short int *data, int amt);
 void mrc_swap_longs(int *data, int amt);
 void mrc_swap_floats(float *data, int amt);
 int mrc_big_seek(FILE *fp, int base, int size1, int size2, int flag);
+void mrc_swap_header(struct MRCheader *hdata);
 
 #ifdef __cplusplus
 }
