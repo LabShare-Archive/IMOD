@@ -5,16 +5,17 @@
 
 typedef struct
 {
-     FILE *fp;
-     double dpi;  /* resolution in dots per inch */
-
-     double cx, cy;  /* Current position. */
-     double xoffset, yoffset;
-     int    font_center;
-     double fontSize;
-     double pointSize;
-     int    pointStyle;
-     char   fontName[80];
+  FILE *fp;
+  double dpi;  /* resolution in dots per inch */
+  
+  double cx, cy;  /* Current position. */
+  double xoffset, yoffset;
+  double lineWidth;
+  int    font_center;
+  double fontSize;
+  double pointSize;
+  int    pointStyle;
+  char   fontName[80];
     
 }PS;
 
@@ -50,6 +51,10 @@ void  PSclose(PS *ps);  /* close ps file and send to output device. */
 void  PSsetPoint(PS *ps, double x, double y);
 void  PSdrawPoint(PS *ps, double x, double y);
 void  PSdrawVector(PS *ps, double x, double y);
+void  PSsetLineWidth(PS *ps, double width);
+void  PSdrawCircle(PS *ps, double x, double y, double rad, int fill);
+void  PSdrawTriangle(PS *ps, double *x, double *y, int fill);
+void  PSdrawQuadrangle(PS *ps, double *x, double *y, int fill);
 
 /*void  PSdrawLine(PS *ps, double x1, double y1, double x2, double y2); */
 
