@@ -12,6 +12,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.23  2004/03/13 00:35:05  rickg
+ * <p> Bug# 390 Add prenewst and xfproduct management
+ * <p>
  * <p> Revision 3.22  2004/03/11 23:58:14  rickg
  * <p> Bug #410 Newstack PIP transition
  * <p> Formatted code
@@ -3463,6 +3466,7 @@ private boolean updatePrenewstCom(AxisID axisID) {
   private void patchcorr() {
     //  Set the next process to execute when this is finished   
     nextProcess = "matchorwarp";
+    mainFrame.startProgressBar("Combine: patchcorr", AxisID.FIRST);
     String threadName;
     try {
       threadName = processMgr.patchcorr();
@@ -3477,7 +3481,6 @@ private boolean updatePrenewstCom(AxisID axisID) {
     }
     setThreadName(threadName, AxisID.FIRST);
     tomogramCombinationDialog.showPane("Final Match");
-    mainFrame.startProgressBar("Combine: patchcorr", AxisID.FIRST);
   }
 
   /**
