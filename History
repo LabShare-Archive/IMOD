@@ -1,6 +1,26 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-9/13/03: IMOD_3-0-18  (branched to work on flipping problem)
+9/18/03: IMOD_3-0-19
+9/18/03: Added the ability to float (match contrast between sections) based
+on a subarea, either the image displayed or the area inside of a rubberband
+in the active Zap window.  Also added an autocontrast button to the Info
+window with target contrasts settable from the options dialog.
+
+9/17/03: Made the Zap window pan by one display pixel per pixel of mouse move
+for zooms less than one.
+
+9/16/03: Made 3dmod save and restore sizes and positions of the Zap and Info
+windows, with different settings saved for different image sizes.  Zoom is
+adjusted to fit the whole image to the window.  If there are no application
+saved settings, the Zap window now opens up wit a size that fits a zoomed-down
+image if appropriate.
+
+9/15/03: Eliminated physical flipping of data in 3dmod to avoid very bad
+performance when the image data gets into swap space.
+
+9/15/03: Optimized image drawing for zooms equal to the inverse of an integer.
+
+9/13/03: IMOD_3-0-18
 9/12/03: Prevented buffer overruns in an array that holds the filename in
 3dmod, fixed problems with model checksums that were leading to queries to
 save an unchanged model, arranged the startup page in two columns, fixed a
