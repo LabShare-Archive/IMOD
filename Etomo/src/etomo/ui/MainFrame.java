@@ -51,6 +51,13 @@ import etomo.type.ProcessTrack;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.10  2004/07/23 23:00:00  sueh
+ * <p> bug# 517, bug# 513 comments, renamed functions for clarity,
+ * <p> removed code in setDividerPostion() which was making
+ * <p> fitWindow() fail when the frame was taller then the screen,
+ * <p> moved tooSmall() from AxisPanelPRocess and renamed it
+ * <p> isFitScreenError.
+ * <p>
  * <p> Revision 3.9  2004/07/23 00:08:16  sueh
  * <p> bug# 517 Don't use setSize() anymore because the layout
  * <p> manager doesn't reliably fix the layout after this call.
@@ -652,7 +659,7 @@ public class MainFrame extends JFrame implements ContextMenu {
    * fit window to its components and to the screen
    *
    */
-  protected void fitWindow() {
+  public void fitWindow() {
     packAxis();
     //the mainPanel has a limited size, but the frame does not
     //if the frame has a greater height then the mainPanel + the frame's border
