@@ -35,6 +35,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.9  2003/03/20 17:45:07  rickg
+ * <p> Added right button context menu
+ * <p>
  * <p> Revision 2.8  2003/03/18 23:45:28  rickg
  * <p> Added combine tab enabling and solvematchmod parameter
  * <p> pass through
@@ -97,10 +100,11 @@ public class TomogramCombinationDialog
   implements ContextMenu {
   public static final String rcsid =
     "$Id$";
-  SetupCombinePanel pnlSetup;
-  InitialCombinePanel pnlInitial;
-  FinalCombinePanel pnlFinal;
-
+  private SetupCombinePanel pnlSetup;
+  private InitialCombinePanel pnlInitial;
+  private FinalCombinePanel pnlFinal;
+  private boolean combinePanelEnabled;
+  
   private JTabbedPane tabbedPane = new JTabbedPane();
 
   public TomogramCombinationDialog(ApplicationManager appMgr) {
@@ -229,10 +233,24 @@ public class TomogramCombinationDialog
     pnlFinal.setMatchorwarpParams(matchorwarpParams);
   }
 
+  /**
+   * Set the state of the initial and final match to the specified state.
+   * @param state
+   */
   public void enableCombineTabs(boolean state) {
+    combinePanelEnabled = state;
     tabbedPane.setEnabledAt(tabbedPane.indexOfTab("Initial Match"), state);
     tabbedPane.setEnabledAt(tabbedPane.indexOfTab("Final Match"), state);
   }
+  
+  /**
+   * Return true if the initial and final match panels are enabled. 
+   * @return The state of the initial and final match panels
+   */
+  public boolean isCombinePanelEnabled() {
+    return combinePanelEnabled;
+  }
+  
   /**
    * Get the the matchorwarp parameters of the UI returning them in the 
    * modified MatchorwarpParam object  * 
