@@ -65,6 +65,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.6  2003/12/12 22:01:35  mast
+c	  remove test output
+c	
 c	  Revision 3.5  2003/12/12 22:00:09  mast
 c	  Fixed problems with setting cell sizes and consolidated header entry
 c	  settings at end of file - no more intermediate saving of header
@@ -122,6 +125,8 @@ c
 	read(5,'(a)')filnam
 	call imopen(1,filnam,'ro')
 	call irdhdr(1,nxyzin,mxyzin,modein,dmin,dmax,dmean)
+	if (nxin * nyin .gt. maxsiz) call errorexit(
+     &	    'IMAGES TOO LARGE FOR ARRAYS')
 c	  
 	call irtdel(1,delt)
 	call irtorg(1,xorig,yorig,zorig)
@@ -257,7 +262,7 @@ c
 	endif					!the user have it.
 	ntrial=ntrial+1
 	if(newxframe.gt. maxlinelength)then
-	  print *,'too large in X'
+	  print *,'too large in X for arrays'
 	  go to 32
 	endif
 c
@@ -657,6 +662,11 @@ c
 	  ipcy=ipcy-1
 	  iyinpc=iyinpc+nydel
 	endif
+c	  
+c	  if outside a piece in either coordinate (negative overlap) then
+c	  return on blank location
+c	  
+	if (ixinpc .ge. nxin .or. iyinpc .ge. nyin) return
 c	  
 c	  if the piece exist, done
 c
