@@ -8,6 +8,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.2  2003/05/20 23:39:52  mast
+#  Change to echo -n for "Running..." to accommodate PID output
+#
 #  Revision 3.1  2003/04/18 22:52:21  mast
 #  Initial addition to package
 #
@@ -15,13 +18,14 @@
 if ($#argv < 1) then
 cat <<EOF
 subm or submfg will execute a series of command files in sequence
-Usage:  submfg command_file1 command_file2 ...
+Usage:  submfg [-t] command_file1 command_file2 ...
         Command files must have extension .com
         If the filename is comfile.com, you can enter 
                  comfile    comfile.    or  comfile.com
         submfg will execute the files in the foreground
         To run jobs in the background, set up an alias:  
                alias subm 'submfg \!* &'
+        The -t option will report the execution time
         Set the environment variable SUBM_MESSAGE to modify the message upon
                 completion
 EOF
@@ -36,21 +40,41 @@ if ($?SUBM_MESSAGE) then
 endif
 set bell = ""
 
+set dotime = 0
+set comtmp = submtimer.$$
+if ("$argv[1]" == "-t") then
+    set dotime = 1
+    shift
+    onintr clean
+endif
+
 while ($#argv > 0)
     set rootname = $argv[1]:r
     if (! -e $rootname.com) then
 	echo ERROR: $rootname.com does not exist $bell
-	exit 1
+	goto clean
     endif
     echo -n "Running $rootname.com ...  "
-    vmstocsh $rootname.log < $rootname.com | csh -ef
-    if ($status) then
+    if ($dotime == 0) then
+        vmstocsh $rootname.log < $rootname.com | csh -ef
+        set exitstat = $status
+    else
+        vmstocsh $rootname.log < $rootname.com >! $comtmp
+        set exitstat = $status
+        if ($exitstat == 0) then
+            time csh -ef < $comtmp
+            set exitstat = $status
+        endif
+    endif
+    if ($exitstat) then
 	echo Error executing $rootname.com $bell
 	if (-e $rootname.log) tail -1 $rootname.log
-	exit 1
+	goto clean
     else
 	echo $rootname.com $message
     endif
     shift
 end
-exit 0
+
+clean:
+if ($dotime == 1) \rm $comtmp 
