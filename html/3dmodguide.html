@@ -1,0 +1,517 @@
+<DT><HR><A NAME = "Building Models"><H3>Chapter 4: Building Models</H3></A>
+<P>
+
+<DD><H4>Model Organization</H4>
+It is helpful to understand the model data structure before trying
+to create a model.  
+A model is basically a collection of points that refer to or mark
+interesting locations in an image.
+These points are stored in groups that are called contours.  In the
+simplest case, a contour is a closed boundary around a region in an
+image.  However, you should think of a contour more generally as a set
+of associated points, which may or may not be connected by lines.
+You will typically want to keep track of more than one type
+of feature in an image.  This is facilitated by allowing contours to be
+grouped together into separate objects.  Each object can be given its own
+name and all contours in the object share common attributes such as
+color and line thickness.  This table shows how
+objects, contours, and points are organized in a hierarchy in the model.
+
+<p>
+<H5>Model Layout</H5>
+
+<CENTER>
+<TABLE BORDER=2>
+<TR>
+<TD COLSPAN=3 TD ALIGN=LEFT>
+<B>Model header:</B><BR>
+includes pixel size, zscale, and information relating model to 
+image coordinates. </TD>
+</TR>
+
+<TR>
+<TD VALIGN=TOP>
+<TABLE BORDER=1>
+<TR><TH>Object 1 </TH></TR>
+<TR><TD>Name = blobs<BR>
+Color = green<BR>
+Type = scattered points.
+<TR><TD>Contour 1<BR>
+Point 1<BR>
+Point 2
+</TD></TR>
+<TR><TD>Contour 2<BR>
+Point 1<BR>
+Point 2<BR>
+Point 3
+</TD></TR>
+<TR><TD>Contour 3<BR>
+Point 1<BR>
+Point 2
+</TD></TR>
+</TABLE>
+</TD>
+
+<TD VALIGN=TOP>
+<TABLE BORDER=1>
+<TR><TH>Object 2 </TH></TR>
+<TR><TD>Name = round thing.<BR>
+Color = red<BR>
+Type  = closed.
+<TR><TD>Contour 1<BR>
+Point 1<BR>
+Point 2<BR>
+Point 3<BR>
+Point 4<BR>
+Point 5<BR>
+Point 6
+</TD></TR>
+</TABLE>
+</TD>
+
+<TD VALIGN=TOP>
+<TABLE BORDER=1>
+<TR><TH>Object 3 </TH></TR>
+<TR><TD>Name = stick<BR>
+Color = white<BR>
+Type = open.
+<TR><TD>Contour 1<BR>
+Point 1<BR>
+Point 2<BR>
+Point 3<BR>
+Point 4<BR>
+Point 5
+</TD></TR>
+<TR><TD>Contour 2<BR>
+Point 1<BR>
+Point 2<BR>
+Point 3<BR>
+Point 4
+</TD></TR>
+
+</TABLE>
+</TD>
+
+
+</TR>
+</TABLE>
+</CENTER>
+
+<p>
+</DD>
+<DD><H4>Interactive Model Building</H4>
+<P>To create a model for a MRC image file called 
+
+<CODE>example.mrc</CODE> run the following 3dmod command.
+This command will cause a new model to be created, ready to edit.
+<br>
+<CODE>3dmod example.mrc</CODE>
+<P>
+
+If a model has already been saved but needs further editing run the
+command
+<br><CODE>3dmod example.mrc example.imod</CODE>
+<p>
+When this command is run a window similar to the one below will open up.
+A secondary window containing the image of the image file and model
+file is opened after the data has been loaded.
+
+<p> <HR> <CENTER> 
+<A NAME = "Information Window"> 
+<H5>The 3dmod Information Window</H5></A> 
+<IMG SRC="infowin.png" ALT="3dmod Information Window"> 
+</CENTER> 
+
+<P> 
+The 3dmod Information Window above is the main control window of the
+program.  It contains menus for performing file operations, 
+selecting model editing functions, and
+opening various kinds of image windows.
+It displays information about the
+model and the current image point.  There are also some controls that
+govern the overall behavior of the program, and a status pane where
+messages
+are printed.  Let us consider it from the top d
+<p>
+The title bar of the Info Window shows the name of the image file and
+also contains controls for minimizing the window or closing it, which
+is a quick way to exit the program.
+Below the menu line are some buttons that control window behavior, 
+with the name of the current model file shown on the right.  The peg
+button allows you to keep the Info Window on top of windows from all
+other programs.  The raise button (two up arrows) will bring all of
+the windows of the current 3dmod above windows from other programs.
+The "Show point" button will be explained in a moment.
+
+<P>Below these buttons are a set of controls called spin boxes, which are
+now used extensively in 3dmod.  A spin box shows a current value of some
+parameter, and lets you change that parameter either by increasing or
+decreasing it with the up and down arrow buttons, or by typing in a
+new value.  The three spin boxes on the left
+show the current model object, contour and point.
+The current model being edited above has 7 objects; the 7th object
+is currently selected.  The 7th object has 46 contours and
+the 11th contour is currently selected.  
+This contour has 65 points and the 39th point
+is the current point.  Generally, when you change object, contour, or
+point with one of these controls, the program will show the new
+current point in the image windows and change the section being
+displayed if necessary.  Sometimes you will not want this to happen,
+such as when you want to switch between objects without having the
+displayed section change.  In that case, just turn off the "Show
+point" checkbox.
+
+<P>The three spin boxes on the right are the image position controls.
+They show that the image dimensions are 572 by 378 and that
+there are 76 sections.  The current image point is at the location
+(286,178) with the origin at the lower left corner of the image.  The
+current section is number 21.  If you change the Z value, a different
+section will be shown in image windows.  You can change X and Y values
+to move the current image point.  The current image point is not the
+same as the current model point.  It is marked by a cross when the
+program is not in modeling mode, and it determines what coordinates are
+displayed in some of the image windows.
+
+<P>
+At the bottom of the Info Window are the Black and White sliders,
+which you
+can use to adjust the contrast and
+brightness of the displayed image.  Pixel values between the selected black and
+white levels are stretched out to occupy the full dynamic range of the
+display.  Moving the sliders toward each other will increase contrast,
+while moving one or both to the left will increase brightness.  These
+sliders have features common to nearly all of the slider controls in
+3dmod.  Clicking to one side of the handle with the left mouse button
+will change the value by one.  Clicking with the middle mouse button
+will jump the slider to the position of the mouse pointer.  Dragging
+the handle by clicking and holding the left mouse button will cause
+the image contrast to be
+continuously updated until you release the button.  In other words,
+these sliders are continuously active, or "hot".  Sometimes the program
+will not perform well when a slider is continuously active, such as
+with very large images or models.  You can keep a slider from being
+hot by holding down the Ctrl key (Apple key on the Macintosh).  When
+you do this, the numeric value will be continuously displayed but the
+image will not be updated until you release the slider.
+
+<p>
+Below the sliders is the
+"Float" control.  When this is checked,
+the program will adjust the black and white sliders automatically when
+you change from one section to another in an attempt to maintain a
+constant contrast and brightness.
+
+<p>
+The "Movie" and "Model" radio buttons allow a user to select one
+of the two modes.  When "Movie" is selected, mouse actions will
+cause the image
+to movie back and forth.  When "Model" is selected, mouse
+actions will edit the model, as described below.
+<p>
+The bottom panel of the Info Window contains
+additional information and status messages.  You can expand the window
+vertically to see more of the information at once.
+
+<p>
+The table below gives an overview of the mouse controls with each mode.
+<TABLE  BORDER=2>
+<CAPTION><B> Mouse Controls </B></CAPTION>
+<TR>
+<TH> Mouse Button </TH>
+<TH COLSPAN=3> Movie Mode   </TH>
+<TH COLSPAN=3> Model Mode   </TH>
+</TR>
+
+<TR>
+<TD>Left </TD>
+<TD ALIGN=LEFT COLSPAN=3> Select position or drag mouse to pan image.</TD>
+<TD ALIGN=LEFT COLSPAN=3> Attach to nearby model point or drag mouse to 
+pan image.</TD>
+</TR>
+
+<TR>
+<TD> Middle </TD>
+<TD ALIGN=LEFT COLSPAN=3>Movie image forward, or stop movie.</TD>
+<TD ALIGN=LEFT COLSPAN=3>Add new model point
+or drag mouse to add several points. </TD>
+</TR>
+
+<TR>
+<TD> Right </TD>
+<TD ALIGN=LEFT COLSPAN=3> Movie image backward, or stop movie.</TD>
+<TD ALIGN=LEFT COLSPAN=3> Modify the current model point or 
+drag mouse to modify several points.</TD>
+</TR>
+
+</TABLE>
+
+See the
+<A HREF = "man/3dmod.html">3dmod</A> 
+manual page section on mouse controls for more details.  
+<p>
+
+<HR>
+<CENTER>
+<A NAME = "Zap Window">
+<H5>The 3dmod Zap Window</H5></A>
+<IMG SRC="zapwin.gif" ALT="3dmod Zap Window">
+</CENTER>
+The main image display and model editing window within 3dmod
+is the "ZaP" window.  The window name is an acronym for
+"Zoom and Pan".
+This display illustrates the three kinds of model objects: closed
+contours, open contours, and scattered points.
+<UL>
+<LI>Closed contours are
+used to draw closed boundaries around features in one image plane
+(COLOR).  As the
+two different slices show, a separate contour is drawn in each section
+where the feature appears.  You can draw as many separate contours as
+necessary to enclose the 
+feature belonging to an object on one section.  After you have drawn
+the model, you run a separate program,
+<A HREF = "man/imodmesh.html">imodmesh</A>,
+to connect the contours across the sections and create a surface that
+can be viewed.  Closed contours are the default when a new object is created.
+
+<LI>Open contours are used when the end of a contour should not be connected
+back to the starting point.  There are two cases where this is
+useful.  If only part of an extended feature in present in the images,
+you would draw an open contour in each section along the boundary of
+the object (COLOR).  The other main use is to model trajectories in
+3D, between sections.  For example, open contours are used to
+model microtubules through space as in the example images, and to track gold
+fiducial particles through a tilt series.
+
+<LI>Scattered points are used when you do not want connecting lines between
+the successive
+points of a contour.  Such points are usually displayed as a sphere in a 
+3D view of the model, or a circle in cross-sections such as in the ZaP window.
+A scattered point will typically show up on more than one section,
+with the circle becoming smaller away from the central section where
+the point was placed.  A cross is drawn inside the circle on the
+central section to show that the point was drawn on that section; 
+if this does not make it clear enough you can also
+make a separate symbol be displayed only on the central section.
+</UL>
+<P>
+The type of contours in an object, and the symbols displayed at
+individual points, can be selected with the the Object Edit dialog box.
+Here are three examples.  On the left is a box for a closed contour
+object, showing the default settings for point display.  In the middle
+is a box for an open contour object that is used to track objects
+between sections.  A circle is selected for the symbol display, and
+the symbol size has been set to 7, so that it will be easy to see the
+symbol when there is only one point on a particular section.  On the
+right is a box for a scattered point object; here no symbol is
+selected but the sphere radius for points has been set to 5, which
+makes circles show up on 4 sections before or after the central slice.
+
+<P>
+The zoom can be adjusted by either clicking with 
+the left mouse button on the arrows in the
+upper left hand corner or by selecting the
+text field next to the arrows and entering in a
+number.  The current zoom level in the image above
+is 1.25x.  </I>( Fractional zooms may be slower on some machines. )</i>
+To pan the image press and hold the left mouse
+button in the image area of the window and
+drag the image.
+
+<P>
+Some of the other controls at the top of the Zap window
+are the Checkerboard button,
+the Lock button, the Centering button, the Insert button and the section
+selector.
+<UL>
+<LI>The Checkerboard button will toggle between fast and slow 
+drawing methods.  
+<LI>The Lock button is used to keep the image from centering on the current
+point.  When the lock is closed, the image will not move when the current model
+point changes, but it can be moved with the mouse or the PageUp and PageDown
+keys.  When the lock is open, the image may automatically pan to the current
+point, depending on the setting of the Centering button.  This panning does
+not happen when the current point is selected or added by a mouse button.
+<LI>The Centering button toggles between two centering modes.  In one mode,
+the image will be centered on the current point only if it falls near the
+edge of the window, that is, outside of a central box.  (Thus, the icon shows
+one box inside another.)  In the other mode, the
+image will be recentered on the current point each time you change the 
+current point.  (The icon shows a point inside the outer box.  Sorry, this
+button does not appear in the example shown above.)
+<LI>The Insert, or Modeling Direction, button toggles between inserting 
+points before and inserting points after the current model point.
+<LI>The section selector shows the value of the current section
+being viewed in the Zap window.
+You can change sections by selecting this field and entering a 
+section number.
+</UL>
+<P>
+<I>Editing the model in the Zap Window</I>
+The left mouse button can be used to select a point for editing.
+The middle mouse button is used to insert model points.
+The right mouse button is used to alter the position of
+the current model point.
+</DD>
+<P>
+
+<DD><H4>Automated Model Building</H4>
+<P>
+3dmod has controls for automatically creating 
+contours.  The Auto Contour Window can be opened
+up by selecting the Edit->Contour->Auto menu
+item in the 
+<A HREF ="#Information Window">Information Window</A>
+<P>
+<CENTER>
+<H5>The Auto Contour Window</H5>
+<IMG SRC="autocont.gif" ALT="3dmod Auto Contour Window">
+</CENTER>
+To build a contour automatically, first select the
+<B>High Contrast</B> button and then adjust the <B>Threshold</B>
+until you can see a feature that you wish to model
+outlined in the Zap window.  When the <B>Regular Contrast</B>
+button is selected no change of the image in the Zap window
+will be seen.  Next select the <B>Alt mouse</B> button
+to enable the auto contour mouse functions in the Zap window.
+In the Zap window, select the area you would like to 
+create a contour around with the
+<B>Left mouse button</B>.  You should see a red highlight
+around the area that the contour will enclose.
+If the area looks rough you can smooth it with the 
+<B>Smooth</B> button.
+If you don't like the area that is highlighted select the
+<B>Clear</B> button to erase the highlighted area.
+To build a contour around the selected area use the <B>Build</B>
+button.
+To return to manual editing in the Zap window, de-select the
+<B>Alt mouse</B> button.
+Select the <B>Help</B> button for a more detailed explanation of all
+of the controls.
+</DD>
+</DT>
+<p>
+<i>See also</i>: Manual pages for 
+<code><A HREF = "man/3dmod.html">3dmod</a></code> and
+<code><A HREF = "man/imodauto.html">imodauto</a></code>.
+
+
+<DT><HR><A NAME = "Viewing Models"><H3>Chapter 5: Viewing Models</H3></A>
+Once a model has been made one can get
+quantitative information about the objects and contours within the model
+using the
+<A HREF = "man/imodinfo.html">imodinfo</A> program.
+
+One can also view the model in an interactive renderer using
+<A HREF = "man/3dmodv.html">3dmodv</A>.
+
+It is also possible to use a conversion program to convert
+the IMOD model into other formats for use in other 3rd party programs,
+such as photo-realistic renderers or web browsers.
+
+
+<DD> <H4>Interactive Viewing</H4>
+The main interactive viewing program for IMOD model files is the
+<A HREF = "man/3dmodv.html">3dmodv</A> program.  The viewer can also
+be run within the <A HREF = "man/3dmod.html">3dmod</A> image visualization
+and modeling program by selecting the "Model View" item from the Image
+menu in the 3dmod <A HREF ="#Information Window">Information Window</A>.
+
+
+<DD> <H4>Putting a skin on model data.</H4>
+
+Skinning is the name used for calculating a three-dimensional 
+surface from contour data.  This surface, once calculated, is represented by
+a mesh of triangles that can be stored within each object.
+If any contour points within that object are edited then the mesh
+for that object must be recalculated in order for it to match
+the contour data.
+The <A HREF="man/imodmesh.html">imodmesh</A> program must be used
+to calculate the mesh from the contour data within a model
+since the skinning calculation cannot be done in real time with
+current computer processing.
+
+<P>
+Here are some example uses of imodmesh, assuming that the model file is titled
+cell.imod.
+<p>
+All meshes by default have a hole at the top and bottom of the data;
+the program cannot know a priori if the hole should be there or not.
+The -C in the command below tells imodmesh to fill in the holes at
+the ends or "Cap" them off.
+<br><code>imodmesh -C cell.imod</code>
+<p>
+Sometimes the mesh data structure can get so large that interactive
+viewing is very slow.  The -r or -R options can be used to make a mesh
+with a lower resolution.  In the example here, points on the mesh
+will be no less than 20 pixels apart.
+<br><code>imodmesh -C -r 20 cell.imod</code>
+<p>
+The -R option can give a more faithful rendition of a complex object because it
+removes only points that are within a certain distance of the remaining line 
+segments, thus preserving the shape of curves.  In this example, points will
+be removed, but the surface defined by the mesh will always be within 0.75
+pixel of the original data.
+<br><code>imodmesh -C -R 0.75 cell.imod</code>
+<p>If you make a mistake, don't worry, a backup file called
+cell.imod~ was made.  You can also erase all of the mesh data by
+using this last example.
+<br><code>imodmesh -e cell.imod</code>
+
+
+<DD> <H4>Quantitative Information.</H4>
+In order to get accurate information the fields in the model header
+have to be set properly.  To adjust the fields in the model header
+select the Model Header menu item from Edit menu in the
+3dmod <A HREF ="#Information Window">Information Window</A>.
+The model edit dialog will pop up.  The "Z-Scale" and the
+"Pixel Size" fields will be used for calculating length, surface area
+or volume from object, contour or mesh data.
+
+The Pixel Size field should contain the value that describes the
+dimensions used in digitizing an image along with the units.
+Units can be one of the following; nm, um, mm, m, km.  For example,
+you could enter "0.015 um" or "15 nm".
+The Z-Scale is the ratio of the thickness between successive images
+to the Pixel Size.
+
+<p>
+Selecting the Edit->Object->Info or Edit->Contour->Info menu item from
+the 3dmod <A HREF ="#Information Window">Information Window</A> will
+cause the quantitative information to be printed out in the bottom
+panel of the 3dmod <A HREF ="#Information Window">Information Window</A>.
+
+<p>
+Use the 
+<A HREF="man/imodinfo.html">imodinfo</a> command to get basic information
+from a model and print it out to a terminal or file.
+<br><code>
+imodinfo cell.imod
+</code>
+<pre>
+# MODEL cell.imod
+# NAME  A little cell
+# PIX SCALE:  x = 1
+#             y = 1
+#             z = 9.17
+# PIX SIZE      = 0.00654
+# UNITS: um
+
+OBJECT 1
+NAME:  spindle pole
+       5 contours
+       object uses closed contours.
+       color (red, green, blue) = (0, 1, 1)
+
+       	CONTOUR #1,2,0  16 points, length = 0.464513,  area = 0.0134249
+        CONTOUR #2,2,0  14 points, length = 0.458311,  area = 0.0125642
+        CONTOUR #3,2,0  8 points,  length = 0.200755,  area = 0.00277481
+        CONTOUR #4,2,0  13 points, length = 0.313501,  area = 0.00664029
+        CONTOUR #5,2,0  9 points,  length = 0.232374,  area = 0.00272134
+
+        Total volume = 0.00228646
+        Total contour cylinder surface area = 0.10012.
+        Total mesh surface area = 0.0349499.
+</pre>
+</DD>
+<p>

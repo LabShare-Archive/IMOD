@@ -63,12 +63,12 @@ a <a href="XF86Config7.1.txt">/etc/X11/XF86Config-4</a> file from Red Hat
 7.1.
 </p><p>
 
-    <b>Qt 3.0.5 upgrade (Red Hat 7.3).</b> 3dmod for Red Hat 7.3 was compiled against version 3.0.5 of Qt and will not run on the basic installation of 7.3. &nbsp;Use <code>rpm -qa | grep qt</code>&nbsp;to check which version is installed. <code></code> To upgrade, download <a href="http://bio3d.colorado.edu/imod/rh7.3/qt-3.0.5-7.14.i386.rpm">Qt 3.0.5</a> and, as root, enter <code>rpm -Uhv qt-3.0.5*.rpm .</code>&nbsp;</p></dd><dd>
+    <b>Qt 3.0.5 upgrade (Red Hat 7.3).</b> 3dmod for Red Hat 7.3 was compiled against version 3.0.5 of Qt and will not run on the basic installation of 7.3.  Use <code>rpm -qa | grep qt</code> to check which version is installed. <code></code> To upgrade, download <a href="http://bio3d.colorado.edu/imod/rh7.3/qt-3.0.5-7.14.i386.rpm">Qt 3.0.5</a> and, as root, enter <code>rpm -Uhv qt-3.0.5*.rpm .</code> </p></dd><dd>
     <p><b>Window manager settings (all systems).</b>  To keep 3dmod from bogging down
 when it is displaying complex models, the window
-manager needs to be set to display only the outline and not the contents of windows when they are moved or resized.&nbsp;
+manager needs to be set to display only the outline and not the contents of windows when they are moved or resized. 
 In Red Hat 7.3, this could be done by selecting "box" rather than "opaque"
-in the "Moving and Resizing" panel of the Gnome control center. &nbsp;In Red Hat 8.0, this
+in the "Moving and Resizing" panel of the Gnome control center.  In Red Hat 8.0, this
 cannot be done under Gnome but it can under KDE, by selecting the menu entry
 "Preferences - Look and Feel - Window Behavior" then the "Moving" panel.
  </p>
@@ -120,26 +120,33 @@ The easiest thing to do is to install to our recommended location,
   <dd>If you want to install at another location, change <code>/usr/local/IMOD</code> to the name of the top IMOD directory in the relevant <code>IMOD-*.*</code> files and in the source command placed in <code>/etc/cshrc</code> on an SGI.</dd>
 </dl>
 <dl>
-  <dd>If you do not want a system wide installation, instead of step 9 above, then under Linux, place the following in the <code>.cshrc</code> files of individual users of <code>tcsh</code> (where &lt;locationof IMOD&gt; is the absolute path to the IMOD directory):</dd>
+  <dd>If you do not want a system wide installation, instead of step 9 above, then under Linux, place the following in the <code>.cshrc</code> files of individual users of <code>tcsh</code> (where &lt;location of IMOD&gt; is the absolute path to the IMOD directory):</dd>
   <dd><code>setenv IMOD_DIR &lt;location of IMOD&gt;</code></dd>
-  <dd><code>if (-e $IMOD_DIR/IMOD-linux.csh) source $IMOD_DIR/IMOD-linux.csh<br>
+  <dd><code>if (-e $IMOD_DIR/IMOD-linux.csh) source $IMOD_DIR/IMOD-linux.csh
     </code></dd>
 </dl>
-&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; or, place the following in the <code>.bashrc</code> of individual users under <code>bash</code>:<code><br>
-</code><code></code>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; <code>export IMOD_DIR=&lt;location of IMOD&gt;</code><code></code><code><br>
-&nbsp;&nbsp;&nbsp; if [ -e $IMOD_DIR/IMOD-linux.sh ] ; then source $IMOD_DIR/IMOD-linux.sh ; fi</code><br>
-<br>
-&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; or, on an SGI, place the following in the <code>.cshrc</code> files of individual users:<br>
-&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; <code>setenv IMOD_DIR &lt;location of IMOD&gt;</code><br>
-&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; <code>if (-e $IMOD_DIR/IMOD-sgi.csh) source $IMOD_DIR/IMOD-sgi.csh</code>
-<blockquote>Finally, if you just want to try running the programs in a particular
-copy of IMOD, cd to the top IMOD directory and, on Linux under <code>tcsh</code>, enter:<br>
-  <code>setenv IMOD_DIR `pwd`<br>
-source IMOD-linux.csh<br>
-  </code><br>
-and similarly on the SGI, sourcing <code>IMOD-sgi.sh</code>.  On Linux under <code>bash</code>, enter:<br>
-  <code>export IMOD_DIR=`pwd`<br>
-source IMOD-linux.sh</code></blockquote>
+<dl>
+<dd>or, place the following in the <code>.bashrc</code> of individual users under <code>bash</code>:</dd>
+<dd><code>export IMOD_DIR=&lt;location of IMOD&gt;</code></dd>
+<dd><code>if [ -e $IMOD_DIR/IMOD-linux.sh ] ; then source $IMOD_DIR/IMOD-linux.sh ; fi</code></dd>
+</dl>
+<dl>
+<dd>or, on an SGI, place the following in the <code>.cshrc</code> files of individual users:</dd>
+<dd><code>setenv IMOD_DIR &lt;location of IMOD&gt;</code></dd>
+<dd><code>if (-e $IMOD_DIR/IMOD-sgi.csh) source $IMOD_DIR/IMOD-sgi.csh</code></dd>
+</dl>
+<dl>
+<dd>Finally, if you just want to try running the programs in a particular
+copy of IMOD, cd to the top IMOD directory and, on Linux under <code>tcsh</code>, enter:</dd>
+<dd>  <code>setenv IMOD_DIR `pwd`</code></dd>
+<dd><code>source IMOD-linux.csh
+  </code></dd>
+</dl>
+<dl>
+<dd>and similarly on the SGI, sourcing <code>IMOD-sgi.sh</code>.  On Linux under <code>bash</code>, enter:</dd>
+  <dd><code>export IMOD_DIR=`pwd`</code></dd>
+<dd><code>source IMOD-linux.sh</code></dd>
+</dl>
 <dl>
   <dd>
     <h4>TIFF Library Support.</h4>
@@ -181,7 +188,7 @@ non-profit organizations.  To obtain a license, contact
 David Mastronarde</a> with a request
 and a description of your institution.  Once you have the license, you need
 to set environment variable USFFT2_LICENSE_FILE to point to the license file.
-This is already done in the startup&nbsp; files suppiled with IMOD. &nbsp;The
+This is already done in the startup files suppiled with IMOD.  The
 program will use standard backprojection if there is no license.  </dd>
 <dt><hr><a name="Getting Started"><h3>Chapter 2: Getting Started.</h3></a>
 The initial problem will be getting data into a format usable by
