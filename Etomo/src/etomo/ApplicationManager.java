@@ -26,6 +26,10 @@ import etomo.ui.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.5  2002/09/20 18:56:09  rickg
+ * <p> Added private message and yes/no dialog methods
+ * <p> Check to see if the raw stack and coarsely aligned stacks should be closed by the user
+ * <p>
  * <p> Revision 1.4  2002/09/19 22:57:56  rickg
  * <p> Imod mangement is now handled through the ImodManager
  * <p>
@@ -1068,7 +1072,9 @@ public class ApplicationManager {
    * updateAlignCom updates the align{|a|b}.com scripts with the parameters from
    * the tomogram positioning dialog.
    */
-  private boolean updateAlignCom(TomogramPositioningDialog tomogramPositioningDialog) {
+  private boolean updateAlignCom(
+    TomogramPositioningDialog tomogramPositioningDialog) {
+
     TiltalignParam tiltalignParam;
     AxisID currentAxis = AxisID.ONLY;
     try {
@@ -1281,7 +1287,12 @@ public class ApplicationManager {
       return;
     }
 
-    // FIXME need to check if this is a dual axis tomogram, if not open a dialog
+    // Verify that this process is applicable
+    if(metaData.getAxisType() == AxisType.SINGLE_AXIS) {
+      openMessageDialog("This step is valid only for a dual axis tomogram",
+        "Invalid tomogram combination selection");
+      return;
+    }
 
     //  Open the dialog in the appropriate mode for the current state of
     //  processing
@@ -1293,13 +1304,14 @@ public class ApplicationManager {
       (screenSize.height - size.height) / 2);
     tomogramCombinationDialog.setModal(false);
     tomogramCombinationDialog.setVisible(true);
-    //  Fill in the dialog box params and set it to the appropriate state
 
+    //  Fill in the dialog box params and set it to the appropriate state
     tomogramCombinationDialog.setCombineParams(metaData.getCombineParams());
 
   }
 
-  public void doneTomogramCombinationDialog(TomogramCombinationDialog tomogramCombinationDialog) {
+  public void doneTomogramCombinationDialog(
+    TomogramCombinationDialog tomogramCombinationDialog) {
 
     DialogExitState exitState = tomogramCombinationDialog.getExitState();
 
