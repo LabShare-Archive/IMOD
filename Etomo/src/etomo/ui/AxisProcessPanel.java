@@ -6,6 +6,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import javax.swing.*;
+import java.awt.Rectangle;
 
 import etomo.ApplicationManager;
 import etomo.process.ProcessState;
@@ -24,6 +25,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.0  2003/11/07 23:19:01  rickg
+ * <p> Version 1.0.0
+ * <p>
  * <p> Revision 2.12  2003/10/23 18:13:16  rickg
  * <p> Bug# 309
  * <p>
@@ -141,6 +145,20 @@ public class AxisProcessPanel implements ContextMenu {
     panelRoot.add(panelProcessSelect);
     panelRoot.add(panelProcessInfo);
   }
+
+  public void hide() {
+    Rectangle size = new Rectangle();
+    panelRoot.computeVisibleRect(size);
+    if (size.getWidth() != 0) {
+      return;
+    }
+    panelRoot.setVisible(false);
+  }
+
+  public void show() {
+    panelRoot.setVisible(true);
+  }
+  
 
   /**
    * 
