@@ -23,6 +23,9 @@ import etomo.comscript.StringList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.10  2002/12/04 01:19:10  rickg
+ * <p> Redesign in progress
+ * <p>
  * <p> Revision 1.9  2002/12/03 05:41:13  rickg
  * <p> redesign in progress
  * <p>
@@ -234,7 +237,7 @@ public class TiltalignPanel implements ContextMenu {
   private LabeledTextField ltfLocalSkewAdditionalGroups =
     new LabeledTextField("Skew additional group list: ");
 
-  private Dimension dimLTF = new Dimension(10000, 30);
+  private Dimension dimLTF = new Dimension(1000, 30);
 
   public TiltalignPanel(String suffix) {
     logSuffix = suffix;
@@ -733,8 +736,8 @@ public class TiltalignPanel implements ContextMenu {
   }
 
   void setLargestTab() {
-    //    tabPane.setSelectedComponent(panelDistortionSolution);
-    tabPane.setSelectedComponent(panelLocalSolution);
+    tabPane.setSelectedComponent(panelDistortionSolution);
+    //tabPane.setSelectedComponent(panelLocalSolution);
   }
 
   void setFirstTab() {
@@ -1049,86 +1052,53 @@ public class TiltalignPanel implements ContextMenu {
     //panelLocalSolution.setPreferredSize(new Dimension(400, 350));
 
     //  Construct the rotation solution objects
-    panelLocalRotationSolution.setLayout(
-      new BoxLayout(panelLocalRotationSolution, BoxLayout.Y_AXIS));
-
-    panelLocalRotationSolution.add(chkLocalRotation);
-
-    ltfLocalRotationGroupSize.setMaximumSize(dimLTF);
-    panelLocalRotationSolution.add(ltfLocalRotationGroupSize.getContainer());
-
-    ltfLocalRotationAdditionalGroups.setMaximumSize(dimLTF);
-    panelLocalRotationSolution.add(
-      ltfLocalRotationAdditionalGroups.getContainer());
-    panelLocalRotationSolution.add(Box.createRigidArea(FixedDim.x0_y5));
-
+    createVariablePanel(
+      panelLocalRotationSolution,
+      chkLocalRotation,
+      dimLTF,
+      ltfLocalRotationGroupSize,
+      ltfLocalRotationAdditionalGroups);
     LocalRotationCheckListener localRotationCheckListener =
       new LocalRotationCheckListener(this);
     chkLocalRotation.addActionListener(localRotationCheckListener);
 
     //  Construct the tilt angle solution objects
-    panelLocalTiltAngleSolution.setLayout(
-      new BoxLayout(panelLocalTiltAngleSolution, BoxLayout.Y_AXIS));
-
-    panelLocalTiltAngleSolution.add(chkLocalTiltAngle);
-
-    ltfLocalTiltAngleGroupSize.setMaximumSize(dimLTF);
-    panelLocalTiltAngleSolution.add(ltfLocalTiltAngleGroupSize.getContainer());
-
-    ltfLocalTiltAngleAdditionalGroups.setMaximumSize(dimLTF);
-    panelLocalTiltAngleSolution.add(
-      ltfLocalTiltAngleAdditionalGroups.getContainer());
-    panelLocalTiltAngleSolution.add(Box.createRigidArea(FixedDim.x0_y5));
+    createVariablePanel(
+      panelLocalTiltAngleSolution,
+      chkLocalTiltAngle,
+      dimLTF,
+      ltfLocalTiltAngleGroupSize,
+      ltfLocalTiltAngleAdditionalGroups);
 
     LocalTiltAngleCheckListener localTiltAngleCheckListener =
       new LocalTiltAngleCheckListener(this);
     chkLocalTiltAngle.addActionListener(localTiltAngleCheckListener);
 
     //  Construct the local magnification pane
-    panelLocalMagnificationSolution.setLayout(
-      new BoxLayout(panelLocalMagnificationSolution, BoxLayout.Y_AXIS));
-
-    panelLocalMagnificationSolution.add(chkLocalMagnification);
-
-    ltfLocalMagnificationGroupSize.setMaximumSize(dimLTF);
-    panelLocalMagnificationSolution.add(
-      ltfLocalMagnificationGroupSize.getContainer());
-    ltfLocalMagnificationAdditionalGroups.setMaximumSize(dimLTF);
-    panelLocalMagnificationSolution.add(
-      ltfLocalMagnificationAdditionalGroups.getContainer());
-    panelLocalMagnificationSolution.add(Box.createRigidArea(FixedDim.x0_y5));
-
-    ltfLocalMagnificationGroupSize.setMaximumSize(dimLTF);
-    panelLocalMagnificationSolution.add(
-      ltfLocalMagnificationGroupSize.getContainer());
-    ltfLocalMagnificationAdditionalGroups.setMaximumSize(dimLTF);
-    panelLocalMagnificationSolution.add(
-      ltfLocalMagnificationAdditionalGroups.getContainer());
-    panelLocalMagnificationSolution.add(Box.createRigidArea(FixedDim.x0_y5));
+    createVariablePanel(
+      panelLocalMagnificationSolution,
+      chkLocalMagnification,
+      dimLTF,
+      ltfLocalMagnificationGroupSize,
+      ltfLocalMagnificationAdditionalGroups);
 
     LocalMagnificationCheckListener localMagnificationCheckListener =
       new LocalMagnificationCheckListener(this);
     chkLocalMagnification.addActionListener(localMagnificationCheckListener);
 
     //  Construction the local distortion pane
-    panelLocalDistortionSolution.setLayout(
-      new BoxLayout(panelLocalDistortionSolution, BoxLayout.Y_AXIS));
-
-    panelLocalDistortionSolution.add(chkLocalDistortion);
-
-    ltfLocalXstretchGroupSize.setMaximumSize(dimLTF);
-    panelLocalDistortionSolution.add(ltfLocalXstretchGroupSize.getContainer());
-    ltfLocalXstretchAdditionalGroups.setMaximumSize(dimLTF);
-    panelLocalDistortionSolution.add(
-      ltfLocalXstretchAdditionalGroups.getContainer());
-    panelLocalDistortionSolution.add(Box.createRigidArea(FixedDim.x0_y5));
-
-    panelLocalDistortionSolution.setMaximumSize(dimLTF);
+    createVariablePanel(
+      panelLocalDistortionSolution,
+      chkLocalDistortion,
+      dimLTF,
+      ltfLocalXstretchGroupSize,
+      ltfLocalXstretchAdditionalGroups);
+    
+    ltfLocalSkewGroupSize.setMaximumSize(dimLTF);
     panelLocalDistortionSolution.add(ltfLocalSkewGroupSize.getContainer());
     ltfLocalSkewAdditionalGroups.setMaximumSize(dimLTF);
     panelLocalDistortionSolution.add(
       ltfLocalSkewAdditionalGroups.getContainer());
-    panelLocalDistortionSolution.add(Box.createRigidArea(FixedDim.x0_y5));
 
     LocalDistortionCheckListener localDistortionCheckListener =
       new LocalDistortionCheckListener(this);
@@ -1151,15 +1121,25 @@ public class TiltalignPanel implements ContextMenu {
     Dimension dimLTF,
     LabeledTextField groupSize,
     LabeledTextField additionalGroups) {
-      
-      //  Add the check box
-      
-      //  Add the group size labeled text field
-      
-      //  Add the additional groups labeled text field
-      
+
+    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+
+    //  Add the check box
+    panel.add(checkBox);
+
+    //  Add the group size labeled text field
+    groupSize.setMaximumSize(dimLTF);
+    panel.add(groupSize.getContainer());
+
+    //  Add the additional groups labeled text field
+    additionalGroups.setMaximumSize(dimLTF);
+    panel.add(additionalGroups.getContainer());
+
+    panel.add(Box.createRigidArea(FixedDim.x0_y5));
+
   }
 }
+
 class LocalAlignmentsListener implements ActionListener {
   TiltalignPanel panel;
 
