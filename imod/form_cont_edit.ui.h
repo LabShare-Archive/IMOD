@@ -199,7 +199,9 @@ void ContSurfPoint::setSurface( int value, int maxVal )
 // Set the time index value and maximum, or just disable and set to no time
 void ContSurfPoint::setTimeIndex( int value, int maxVal )
 {
-   timeSpinBox->setEnabled(value >= 0); 
+   timeSpinBox->setEnabled(value >= 0 && maxVal > 0);
+   if (!maxVal && value > 0)
+     maxVal = value;
     if (value < 0) {
 	timeSpinBox->setSpecialValueText(value < -1 ? "No Time" : "No Cont");
 	timeSpinBox->setValue(0);
