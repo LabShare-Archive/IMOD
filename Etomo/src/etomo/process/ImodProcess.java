@@ -15,6 +15,9 @@ package etomo.process;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.2  2002/09/17 23:20:31  rickg
+ * <p> Complete basic operation
+ * <p>
  * <p> Revision 1.1  2002/09/13 21:28:44  rickg
  * <p> initial entry
  * <p>
@@ -31,29 +34,42 @@ public class ImodProcess {
   private String datasetName = "";
   private String modelName = "";
   private String windowID = "";
+  private String processID = "";
+  private boolean swapYZ = false;
 
   /**
    * Dataset only constructor
    * @param A string specifying the path to the projection stack file
    */
-  public ImodProcess(String dataset) throws Exception {
+  public ImodProcess(String dataset) {
     datasetName = dataset;
-    openImod();
   }
+
 
   /**
    * Dataset and model file constructor
    * @param dataset A string specifying the path to the projection stack file
    * @param model A string specifying the path to the IMOD model file
    */
-  public ImodProcess(String dataset, String model) throws Exception {
+  public ImodProcess(String dataset, String model) {
     datasetName = dataset;
     modelName = model;
-    openImod();
   }
 
-  private void openImod() throws Exception {
-    String command = "imod -W " + datasetName + " " + modelName;
+  
+  /**
+   * Open the imod process if is not already open.
+   */
+  public void open() throws Exception {
+    if(isRunning()) {
+      return;
+    }
+
+    String stringYZ = "";
+    if(swapYZ) {
+      stringYZ = "-Y ";
+    }
+    String command = "imod -W " + stringYZ + datasetName + " " + modelName;
     InteractiveSystemProgram imod = new InteractiveSystemProgram(command);
 
     //  Start the imod program thread and wait for it to finish
@@ -82,6 +98,17 @@ public class ImodProcess {
       } 
       windowID = words[3];
 
+      line = imod.readStderr();
+      if(line == null) {
+        throw(new Exception("Did not find process ID from imod\n"));
+      }
+
+      words = line.split("\\s+");
+      if(words.length < 4) {
+         throw(new Exception("Could not parse process ID from imod\n"));
+      } 
+      processID = words[3];
+
     }
     else {
       String message = "imod returned: " + String.valueOf(imod.getExitValue())
@@ -103,15 +130,34 @@ public class ImodProcess {
     }
   }
 
+
+  /**
+   * Check to see if this imod process is running
+   */
+  private boolean isRunning() {
+    SystemProgram checkImod = new SystemProgram("ps -p " + processID);
+    checkImod.run();
+    String[] stdout = checkImod.getStdOutput();
+
+    if(stdout.length < 2) {
+      return false;
+    }
+    if(stdout[1].indexOf("imod") == -1) {
+      return false;
+    }
+    return true;
+  }
   /**
    * Open a new model file
    */
-  public void openModel(String modelName) throws Exception {
+  public void openModel(String newModelName) throws Exception {
+    modelName = newModelName;
     String[] args = new String[2];
     args[0] = MESSAGE_OPEN_MODEL;
-    args[1] = modelName;
+    args[1] = newModelName;
     imodSendEvent(args);
   }
+
 
   /**
    * Save the current model file
@@ -122,6 +168,7 @@ public class ImodProcess {
     imodSendEvent(args);
   }
 
+
   /**
    * View the current model file
    */
@@ -131,6 +178,7 @@ public class ImodProcess {
     imodSendEvent(args);
   }
 
+
   /**
    * Send an event to imod using the imodsendevent command
    */
@@ -139,12 +187,11 @@ public class ImodProcess {
       throw(new Exception("No window ID available for imod"));
     }
 
-    String command = "imodsendevent " + windowID + " " + modelName;
+    String command = "imodsendevent " + windowID + " ";
     for(int i = 0;i < args.length; i++) {
       command  = command + args[i] + " ";
     }
     
-    System.out.println(command);
     InteractiveSystemProgram imodSendEvent = 
       new InteractiveSystemProgram(command);
 
@@ -181,8 +228,8 @@ public class ImodProcess {
       
       throw(new Exception(message));
     }
-
   }
+  
   
   /**
    * Returns the datasetName.
@@ -192,6 +239,7 @@ public class ImodProcess {
     return datasetName;
   }
 
+
   /**
    * Returns the modelName.
    * @return String
@@ -199,6 +247,7 @@ public class ImodProcess {
   public String getModelName() {
     return modelName;
   }
+
 
   /**
    * Returns the windowID.
@@ -208,20 +257,21 @@ public class ImodProcess {
     return windowID;
   }
 
+
   /**
-   * Sets the datasetName.
-   * @param datasetName The datasetName to set
+   * Returns the swapYZ.
+   * @return String
    */
-  public void setDatasetName(String datasetName) {
-    this.datasetName = datasetName;
+  public boolean getSwapYZ() {
+    return swapYZ;
   }
 
   /**
-   * Sets the modelName.
-   * @param modelName The modelName to set
+   * Returns the windowID.
+   * @return String
    */
-  public void setModelName(String modelName) {
-    this.modelName = modelName;
+  public void setSwapYZ(boolean state) {
+    swapYZ = state;
   }
 
 }
