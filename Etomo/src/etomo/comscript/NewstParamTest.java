@@ -11,6 +11,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.3  2004/02/18 00:52:42  rickg
+ * <p> Restructured testing to match newstack PIP
+ * <p> Remove == from string comparisons
+ * <p>
  */
 
 package etomo.comscript;
@@ -113,8 +117,10 @@ public class NewstParamTest extends TestCase {
     NewstParam np = new NewstParam();
     //test Parse
     testParseAllOptions(np, csc);
+    
     //test Update
     String[] commandLine = testUpdate(np);
+    
     //test compatibility of Update and Parse
     csc = new ComScriptCommand();
     csc.setCommandLineArgs(commandLine);
@@ -166,10 +172,17 @@ public class NewstParamTest extends TestCase {
   }
 
   private String[] testUpdate(NewstParam np) throws BadComScriptException {
+    //  Create a new ComScriptCommand with a newstack command
     ComScriptCommand csc = new ComScriptCommand();
+    csc.setCommand("newstack");
+    
+    //  Update the command with suppplied parameters
     np.updateComScriptCommand(csc);
+    
+    //  Exctract the command line from the ComScriptCommand
     String[] commandLine = csc.getCommandLineArgs();
 
+    //  Analysze the command line
     assertTrue("Testing -SizeToOutputInXandY ", findStringPair(commandLine,
       sizeOption, size) >= 0);
     assertTrue("Testing -OffsetsInXandY ", findStringPair(commandLine,
@@ -200,6 +213,7 @@ public class NewstParamTest extends TestCase {
     s[i - 1] = outputFile;
     ComScriptCommand csc = new ComScriptCommand();
     csc.setCommandLineArgs(s);
+    csc.setCommand("newstack");
     return csc;
   }
 
@@ -212,6 +226,7 @@ public class NewstParamTest extends TestCase {
     s[3] = "";
     ComScriptCommand csc = new ComScriptCommand();
     csc.setCommandLineArgs(s);
+    csc.setCommand("newstack");
     return csc;
   }
 
