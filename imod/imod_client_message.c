@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.0  2002/09/27 20:30:06  rickg
+Initital version of code moved from imod_menu_cb.c
+
 */
 
 #include <stdio.h>
@@ -137,14 +140,14 @@ void imodHandleClientMessage(Widget w, XtPointer client_data, XEvent *event)
     message_index += 20;
     if (--packets_left)
       return;
-
-    executeMessage();
   }
+
+  //  Execute the compiled message
+  executeMessage();
 }
 
 static void executeMessage() {
   int returnValue;
-
   /* Execute the action */
   /* Each individual action is responsible for setting message_string NULL 
      if it has been freed already, and for setting OKtoFreeString if
@@ -214,4 +217,3 @@ static void executeMessage() {
   }
   message_action = MESSAGE_NO_ACTION;
 }
-
