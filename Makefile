@@ -48,6 +48,9 @@
 #
 # BUILDING UNDER CYGWIN/WINDOWS
 #
+# 0. If the source came from a unix tar, convert the project files with:
+#    find . -name '*.ds*' -exec unix2dos '{}' \;
+#
 # 1. "setup -i [install directory]" to set the install directory.
 #
 # 2. "make" to make all the non-graphical programs under Cygwin
@@ -75,7 +78,7 @@
 #	set LD_LIBRARY_PATH to include the buildlib directory.
 #
 # MAKE TAR ARCHIVES:
-# 	To make the full distribution run "make dist"
+# 	To make the full distribution run "make dist" or "make cygdist"
 # 	To archive the source code run "make src"
 #
 #############################################################################
@@ -84,45 +87,7 @@
 #  $Date$
 #
 #  $Revision$
-#
-#  $Log$
-#  Revision 3.6  2003/02/28 18:09:32  mast
-#  Changes for cygwin/windows
-#
-#  Revision 3.5  2003/02/27 20:25:32  mast
-#  Add new sendevent directory
-#
-#  Revision 3.4  2003/02/10 23:30:36  mast
-#  fixing new o32lib commands
-#
-#  Revision 3.3  2003/02/10 20:57:47  mast
-#  *** empty log message ***
-#
-#  Revision 3.2.2.1  2003/01/27 00:38:37  mast
-#  fine-tuning the build after pure Qt imod
-#
-#  Revision 3.2  2002/07/30 05:35:51  mast
-#  Changes to include GLw in standard build
-#
-#  Revision 3.1  2001/12/06 15:26:28  mast
-#  Added History to make src
-#
-#  Revision 3.0  2001/11/29 17:25:14  rickg
-#  *** empty log message ***
-#
-#  Revision 1.5  2001/11/28 15:33:57  mast
-#  Changes so that man pages install under "install", various fixes after
-#  checking function on the SGI, updated instructions, and general cleanup of
-#  unused variables.
-#
-#  Revision 1.4  2001/11/27 16:00:37  mast
-#  Eliminate CVS directories when make dist; make configure depend on .version
-#
-#  Revision 1.3  2001/11/26 23:10:20  mast
-#  Added original_dates to source copy
-#
-#  Revision 1.2  2001/11/22 00:36:23  mast
-#  Updated make src to include .version and exclude CVS directories
+#  Log at end of file
 #
 #############################################################################
 # For making distribution, all files will be put in a
@@ -311,6 +276,17 @@ dist : ALWAYS
 	echo "Compressing..."
 	$(ARC) $(ARCHIVE) $(ARCNAME); $(COMPRESS) $(ARCHIVE)
 
+cygdist : ALWAYS
+	if (-e $(ARCDIR)) /bin/rm -rf $(ARCDIR)/
+	if (! (-e $(ARCDIR)))  mkdir $(ARCDIR)
+	setup -inst $(ARCDIR) $(SETUP_OPTIONS)
+	(cd dist ; \find . -type f -name "*~" -exec rm "{}" \;)
+	($(MAKE) cyginstall)
+	\cp -r dist/* $(ARCDIR)/
+	\find $(ARCDIR) -name CVS -depth -exec /bin/rm -rf {} \;
+	echo "Compressing..."
+	$(ARC) $(ARCHIVE) $(ARCNAME); $(COMPRESS) $(ARCHIVE)
+
 
 ##################################################################
 # Make the full IMOD source distribution
@@ -326,6 +302,7 @@ cleansrc : ALWAYS
 	\find dist -type f -name "*~" -exec rm "{}" \;
 	\find machines -type f -name "*~" -exec rm "{}" \;
 	\find libdiaqt -type f -name "moc_*.cpp" -exec rm "{}" \;
+	\find sendevent -type f -name "moc_*.cpp" -exec rm "{}" \;
 	\find plugs -type f -name "moc_*.cpp" -exec rm "{}" \;
 	(cd manpages ; make clean)
 	(cd flib/man ; make clean)
@@ -336,21 +313,27 @@ cleansrc : ALWAYS
 #
 csrc : ALWAYS
 	if (! (-e $(ARCDIR)_src)) mkdir $(ARCDIR)_src/
-	cp Makefile setup README History .version original_dates $(ARCDIR)_src/
+	cp Makefile setup README History .version original_dates vcimod.dsw \
+	$(ARCDIR)_src/
 	tar cBf - \
 	machines \
-	lib*/*.[ch] lib*/*.cpp lib*/Makefile \
+	lib*/*.[ch] lib*/*.cpp libi*/Makefile libdiaqt/Makefile.dummy \
+	libdiaqt/Makefile.unix lib*/*.dsp libimod/libimod.dsw \
 	USFFTlib/*/*.a \
 	imod/*.[ch] imod/*.cpp imod/*.ui imod/imod.pro imod/imodhelp \
-	imod/*.bits imod/*.png imod/README \
+	imod/*.bits imod/*.png imod/README imod/imod.dsp imod/imod.dsw \
+	imod/Makefile.dummy \
 	imodutil/*.[ch] imodutil/Makefile \
 	mrc/*.[ch]    mrc/Makefile \
 	clip/*.[ch]   clip/Makefile \
-	midas/*.[ch] midas/*.cpp midas/midas.pro  \
-	sendevent/*.h sendevent/*.cpp sendevent/sendevent.pro  \
+	midas/*.[ch] midas/*.cpp midas/midas.pro midas/midas.dsp \
+	midas/Makefile.dummy \
+	sendevent/*.h sendevent/*.cpp sendevent/imodsendevent.pro \
+	sendevent/Makefile.dummy sendevent/imodsendevent.dsp \
 	html/*.* html/Makefile \
 	dist scripts com manpages \
-	plugs/*/*.[chf] plugs/*/*.cpp plugs/*/Makefile plugs/Makefile \
+	plugs/*/*.[chf] plugs/*/*.cpp plugs/*/Makefile \
+	plugs/Makefile.unix plugs/Makefile.dummy \
 	devkit/*.[ch] devkit/*++ devkit/README devkit/Makefile \
 	include/*.h include/*.inc | (cd $(ARCDIR)_src; tar xBf -)
 
@@ -368,3 +351,47 @@ fsrc :
 
 ALWAYS:
 
+############################################################################
+#  $Log$
+#  Revision 3.7  2003/02/28 19:46:55  mast
+#  Adding instructions for windows
+#
+#  Revision 3.6  2003/02/28 18:09:32  mast
+#  Changes for cygwin/windows
+#
+#  Revision 3.5  2003/02/27 20:25:32  mast
+#  Add new sendevent directory
+#
+#  Revision 3.4  2003/02/10 23:30:36  mast
+#  fixing new o32lib commands
+#
+#  Revision 3.3  2003/02/10 20:57:47  mast
+#  *** empty log message ***
+#
+#  Revision 3.2.2.1  2003/01/27 00:38:37  mast
+#  fine-tuning the build after pure Qt imod
+#
+#  Revision 3.2  2002/07/30 05:35:51  mast
+#  Changes to include GLw in standard build
+#
+#  Revision 3.1  2001/12/06 15:26:28  mast
+#  Added History to make src
+#
+#  Revision 3.0  2001/11/29 17:25:14  rickg
+#  *** empty log message ***
+#
+#  Revision 1.5  2001/11/28 15:33:57  mast
+#  Changes so that man pages install under "install", various fixes after
+#  checking function on the SGI, updated instructions, and general cleanup of
+#  unused variables.
+#
+#  Revision 1.4  2001/11/27 16:00:37  mast
+#  Eliminate CVS directories when make dist; make configure depend on .version
+#
+#  Revision 1.3  2001/11/26 23:10:20  mast
+#  Added original_dates to source copy
+#
+#  Revision 1.2  2001/11/22 00:36:23  mast
+#  Updated make src to include .version and exclude CVS directories
+#
+#############################################################################
