@@ -260,14 +260,15 @@ char *imodwfname(char *intro);
 char *imodwEithername(char *intro, char *filein, int modelFirst);
 char *imodwGivenName(char *intro, char *filein);
 QString imodCaption(char *intro);
-void imodError(FILE *out, const char *format, ...);
-void imodPrintInfo(const char *message);
 
 #endif     
 
 
 /*
 $Log$
+Revision 3.24  2004/05/28 23:30:23  mast
+*** empty log message ***
+
 Revision 3.23  2004/01/06 16:43:30  mast
 Add flag for gray-scale RGB reading
 
