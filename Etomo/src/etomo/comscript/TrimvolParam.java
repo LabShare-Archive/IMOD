@@ -11,6 +11,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.1  2004/04/22 23:27:28  rickg
+ * <p> Switched getIMODBinPath method
+ * <p>
  * <p> Revision 3.0  2003/11/07 23:19:00  rickg
  * <p> Version 1.0.0
  * <p>
@@ -55,8 +58,10 @@
 package etomo.comscript;
 
 import java.io.IOException;
+import java.util.Properties;
 
 import etomo.ApplicationManager;
+import etomo.type.AxisType;
 import etomo.util.MRCHeader;
 import etomo.util.InvalidParameterException;
 
@@ -64,21 +69,178 @@ import etomo.util.InvalidParameterException;
 public class TrimvolParam {
   public static final String rcsid = "$Id$";
 
-  private int xMin = -1;
-  private int xMax = -1;
-  private int yMin = -1;
-  private int yMax = -1;
-  private int zMin = -1;
-  private int zMax = -1;
+  public static final String PARAM_ID = "Trimvol";
+  public static final String XMIN = "XMin";
+  public static final String XMAX = "XMax";
+  public static final String YMIN = "YMin";
+  public static final String YMAX = "YMax";
+  public static final String ZMIN = "ZMin";
+  public static final String ZMAX = "ZMax";
+  public static final String CONVERT_TO_BYTES = "ConvertToBytes";
+  public static final String FIXED_SCALING = "FixedScaling";
+  public static final String SECTION_SCALE_MIN = "SectionScaleMin";
+  public static final String SECTION_SCALE_MAX = "SectionScaleMax";
+  public static final String FIXED_SCALE_MIN = "FixedScaleMin";
+  public static final String FIXED_SCALE_MAX = "FixedScaleMax";
+  public static final String SWAPYZ = "SwapYZ";
+  public static final String INPUT_FILE = "InputFile";
+  public static final String OUTPUT_FILE = "OutputFile";
+  
+  private int xMin = Integer.MIN_VALUE;
+  private int xMax = Integer.MIN_VALUE;
+  private int yMin = Integer.MIN_VALUE;
+  private int yMax = Integer.MIN_VALUE;
+  private int zMin = Integer.MIN_VALUE;
+  private int zMax = Integer.MIN_VALUE;
   private boolean convertToBytes = true;
   private boolean fixedScaling = false;
-  private int sectionScaleMin = -1;
-  private int sectionScaleMax = -1;
-  private int fixedScaleMin = -1;
-  private int fixedScaleMax = -1;
+  private int sectionScaleMin = Integer.MIN_VALUE;
+  private int sectionScaleMax = Integer.MIN_VALUE;
+  private int fixedScaleMin = Integer.MIN_VALUE;
+  private int fixedScaleMax = Integer.MIN_VALUE;
   private boolean swapYZ = true;
   private String inputFile = "";
   private String outputFile = "";
+
+  /**
+   *  Insert the objects attributes into the properties object.
+   */
+  public void store(Properties props) {
+    store(props, "");
+  }
+  public void store(Properties props, String prepend) {
+    String group;
+    if (prepend == "") {
+      group = PARAM_ID + ".";
+    }
+    else {
+      group = prepend + PARAM_ID + ".";
+    }
+    props.setProperty(group + XMIN, String.valueOf(xMin));
+    props.setProperty(group + XMAX, String.valueOf(xMax));
+    props.setProperty(group + YMIN, String.valueOf(yMin));
+    props.setProperty(group + YMAX, String.valueOf(yMax));
+    props.setProperty(group + ZMIN, String.valueOf(zMin));
+    props.setProperty(group + ZMAX, String.valueOf(zMax));
+    props.setProperty(group + CONVERT_TO_BYTES, String.valueOf(convertToBytes));
+    props.setProperty(group + FIXED_SCALING, String.valueOf(fixedScaling));
+    props.setProperty(
+      group + SECTION_SCALE_MIN,
+      String.valueOf(sectionScaleMin));
+    props.setProperty(
+      group + SECTION_SCALE_MAX,
+      String.valueOf(sectionScaleMax));
+    props.setProperty(group + FIXED_SCALE_MIN, String.valueOf(fixedScaleMin));
+    props.setProperty(group + FIXED_SCALE_MAX, String.valueOf(fixedScaleMax));
+    props.setProperty(group + SWAPYZ, String.valueOf(swapYZ)  );
+    props.setProperty(group + INPUT_FILE, inputFile);
+    props.setProperty(group + OUTPUT_FILE, outputFile);
+  }
+
+  /**
+   *  Get the objects attributes from the properties object.
+   */
+  public void load(Properties props) {
+    load(props, "");
+  }
+  public void load(Properties props, String prepend) {
+    String group;
+    if (prepend == "") {
+      group = PARAM_ID + ".";
+    }
+    else {
+      group = prepend + PARAM_ID + ".";
+    }
+
+    // Load the trimvol values if they are present, don't change the
+    // current value if the property is not present
+    xMin =
+      Integer
+        .valueOf(props.getProperty(group + XMIN, Integer.toString(xMin)))
+        .intValue();
+        
+    xMax =
+      Integer
+        .valueOf(props.getProperty(group + XMAX, Integer.toString(xMax)))
+        .intValue();
+        
+    yMin =
+      Integer
+        .valueOf(props.getProperty(group + YMIN, Integer.toString(yMin)))
+        .intValue();
+
+    yMax =
+      Integer
+        .valueOf(props.getProperty(group + YMAX, Integer.toString(yMax)))
+        .intValue();
+        
+    zMin =
+      Integer
+        .valueOf(props.getProperty(group + ZMIN, Integer.toString(zMin)))
+        .intValue();
+
+    zMax =
+      Integer
+        .valueOf(props.getProperty(group + ZMAX, Integer.toString(zMax)))
+        .intValue();
+
+    convertToBytes =
+      Boolean
+        .valueOf(
+          props.getProperty(
+            group + CONVERT_TO_BYTES,
+            Boolean.toString(convertToBytes)))
+        .booleanValue();
+
+    fixedScaling =
+      Boolean
+        .valueOf(
+          props.getProperty(
+            group + FIXED_SCALING,
+            Boolean.toString(fixedScaling)))
+        .booleanValue();
+
+    sectionScaleMin =
+      Integer
+        .valueOf(
+          props.getProperty(
+            group + SECTION_SCALE_MIN,
+            Integer.toString(sectionScaleMin)))
+        .intValue();
+
+    sectionScaleMax =
+      Integer
+        .valueOf(
+          props.getProperty(
+            group + SECTION_SCALE_MAX,
+            Integer.toString(sectionScaleMax)))
+        .intValue();
+
+    fixedScaleMin =
+      Integer
+        .valueOf(
+          props.getProperty(
+            group + FIXED_SCALE_MIN,
+            Integer.toString(fixedScaleMin)))
+        .intValue();
+
+    fixedScaleMax =
+      Integer
+        .valueOf(
+          props.getProperty(
+            group + FIXED_SCALE_MAX,
+            Integer.toString(fixedScaleMax)))
+        .intValue();
+        
+    swapYZ =
+      Boolean
+        .valueOf(props.getProperty(group + SWAPYZ, Boolean.toString(swapYZ)))
+        .booleanValue();
+        
+    inputFile = props.getProperty(group + INPUT_FILE, inputFile);
+      
+    outputFile = props.getProperty(group + OUTPUT_FILE, outputFile);
+  }
 
   /**
    * @return
@@ -177,20 +339,6 @@ public class TrimvolParam {
   }
 
   /**
-   * @return String
-   */
-  public String getInputFile() {
-    return inputFile;
-  }
-
-  /**
-   * @return String
-   */
-  public String getOutputFile() {
-    return outputFile;
-  }
-
-  /**
    * @return int
    */
   public int getSectionScaleMax() {
@@ -278,22 +426,6 @@ public class TrimvolParam {
   }
 
   /**
-   * Sets the inputFile.
-   * @param inputFile The inputFile to set
-   */
-  public void setInputFile(String inputFile) {
-    this.inputFile = inputFile;
-  }
-
-  /**
-   * Sets the outputFile.
-   * @param outputFile The outputFile to set
-   */
-  public void setOutputFile(String outputFile) {
-    this.outputFile = outputFile;
-  }
-
-  /**
    * Sets the scaleSectionMax.
    * @param scaleSectionMax The scaleSectionMax to set
    */
@@ -369,9 +501,15 @@ public class TrimvolParam {
    * Sets the range to match the full volume
    * @param fileName The MRC iamge stack file name used to set the range
    */
+  public void setDefaultRange() throws InvalidParameterException, IOException {
+    setDefaultRange(inputFile);
+  }
   public void setDefaultRange(String fileName)
       throws InvalidParameterException, IOException {
-
+    //Don't override existing values
+    if (xMin != Integer.MIN_VALUE) {
+      return;
+    }
     // Get the data size limits from the image stack
     MRCHeader mrcHeader = new MRCHeader(fileName);
     mrcHeader.read();
@@ -394,4 +532,105 @@ public class TrimvolParam {
       sectionScaleMax = zMax * 2 / 3;
     }
   }
+
+  /**
+   * 
+   * @return
+   */
+  public String getInputFile() {
+    return inputFile;
+  }
+  /**
+   * 
+   * @param axisType
+   * @param datasetName
+   * @return
+   */
+  public static String getInputFile(AxisType axisType, String datasetName) {
+    if (axisType == AxisType.SINGLE_AXIS) {
+      return datasetName + "_full.rec";
+    }
+    return "sum.rec";
+  }
+  /**
+   * 
+   * @param axisType
+   * @param datasetName
+   */
+  public void setInputFile(AxisType axisType, String datasetName) {
+    inputFile = getInputFile(axisType, datasetName);
+  }
+
+  /**
+   * 
+   * @return
+   */
+  public String getOutputFile() {
+    return outputFile;
+  }
+  /**
+   * 
+   * @param datasetName
+   */
+  public void setOutputFile(String datasetName) {
+    outputFile = datasetName + ".rec";
+  }
+  
+
+  /**
+   * 
+   * @param trim
+   * @return
+   */
+  public boolean equals(TrimvolParam trim) {
+    if (xMin != trim.getXMin()) {
+      return false;
+    }
+    if (xMax != trim.getXMax()) {
+      return false;
+    }
+    if (yMin != trim.getYMin()) {
+      return false;
+    }
+    if (yMax != trim.getYMax()) {
+      return false;
+    }
+    if (zMin != trim.getZMin()) {
+      return false;
+    }
+    if (zMax != trim.getZMax()) {
+      return false;
+    }
+    if (convertToBytes != trim.isConvertToBytes()) {
+      return false;
+    }
+    if (fixedScaling != trim.isFixedScaling()) {
+      return false;
+    }
+    if (sectionScaleMin != trim.getSectionScaleMin()) {
+      return false;
+    }
+    if (sectionScaleMax != trim.getSectionScaleMax()) {
+      return false;
+    }
+    if (fixedScaleMin != trim.getFixedScaleMin()) {
+      return false;
+    }
+    if (fixedScaleMax != trim.getFixedScaleMax()) {
+      return false;
+    }
+    if (swapYZ != trim.isSwapYZ()) {
+      return false;
+    }
+    if (!inputFile.equals(trim.getInputFile())
+      && (inputFile.equals("\\S+") || trim.getInputFile().equals("\\S+"))) {
+      return false;
+    }
+    if (!outputFile.equals(trim.getOutputFile())
+      && (outputFile.equals("\\S+") || trim.getOutputFile().equals("\\S+"))) {
+      return false;
+    }   
+    return true;
+  }
+
 }
