@@ -22,11 +22,11 @@ endif
 #
 if ($shared_libs != false) then
 	echo "AR      = ld"               >> $configure
-	echo "ARFLAGS = -shared -all -o"  >> $configure
+	echo "ARFLAGS = -shared -all -o "  >> $configure
 	echo 'LDFLAGS = -L$(LIBDIR) ' >> $configure
 else
 	echo "AR      = ar"          >> $configure
-	echo "ARFLAGS = clq"         >> $configure
+	echo "ARFLAGS = clq "         >> $configure
 	echo 'LDFLAGS = -L$(LIBDIR)' >> $configure
 endif
 
@@ -68,9 +68,8 @@ echo "CFALLBACK   = $flags -D -DGLWINCINX $defines $optimization $include_flags"
 echo 'LDFALLBACK = $(LDFLAGS)'       >> $configure
 echo 'NOOPFFALLBACK = $(NOOPFFLAGS)' >> $configure
 
-# Build tilt from Fortran subroutines, skip Linux libs and SGI programs
+# Build tilt from Fortran subroutines, skip Linux libs
 echo 'TILTOBJS = bpsumnox.o bpsumxtilt.o bpsumlocal.o' >> $configure
 echo 'LINUXFLIBS = ' >> $configure
-echo 'RGBPROGS = '  >> $configure
 
 set usfftdir = $source_dir/USFFTlib/alpha

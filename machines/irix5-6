@@ -81,11 +81,11 @@ endif
 
 if ($shared_libs != false) then
 	echo "AR      = ld"                 >> $configure
-	echo "ARFLAGS = $flags -shared -all -o"    >> $configure
+	echo "ARFLAGS = $flags -shared -all -o "    >> $configure
 	echo "LIBEXT  = so"                 >> $configure
 else
 	echo "AR      = ar"                 >> $configure
-	echo "ARFLAGS = clq"                >> $configure
+	echo "ARFLAGS = clq "                >> $configure
 	echo 'MAKELIB = $(AR) $(ARFLAGS)'   >> $configure
 	echo "LIBEXT  = a"                  >> $configure
 endif
@@ -156,7 +156,7 @@ echo '#define SGI_GEOMETRY_HACK' >> $hconfigure
 
 # Build tilt from Fortran subroutines, skip extra libraries, make sgi-specific
 echo 'TILTOBJS = bpsumnox.o bpsumxtilt.o bpsumlocal.o' >> $configure
-echo 'RGBPROGS = frommrc tomrc mrcv'  >> $configure
+st rgbprogs = "frommrc tomrc mrcv"
 
 
 #
@@ -184,6 +184,9 @@ set ld_lib_var      = LD_LIBRARYN32_PATH
 
 
 #  $Log$
+#  Revision 3.13  2003/09/24 23:06:05  mast
+#  reinstate qtplax!
+#
 #  Revision 3.12  2003/09/24 20:40:48  mast
 #  Back off from using Qt plax and go back to X plax routines
 #

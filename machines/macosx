@@ -37,13 +37,13 @@ set wrapper = ""
 if ($shared_libs != false) then
 	echo "AR      = c++"                 >> $configure
 	echo "ARCPP   = c++"                >> $configure
-	echo "ARFLAGS = $flags -dynamiclib -Wl,-single_module -Wl,-flat_namespace -Wl,-undefined,suppress -o"    >> $configure
+	echo "ARFLAGS = $flags -dynamiclib -Wl,-single_module -Wl,-flat_namespace -Wl,-undefined,suppress -o "    >> $configure
 	echo "RANLIB    = true"                     >> $configure
 	echo "LIBEXT  = dylib"                 >> $configure
 else
 	echo "AR      = ar"                 >> $configure
 	echo "ARCPP   = ar"                 >> $configure
-	echo "ARFLAGS = ruv"                >> $configure
+	echo "ARFLAGS = ruv "                >> $configure
 	echo "RANLIB    = ranlib"            >> $configure
 	echo "LIBEXT  = a"                  >> $configure
 endif
@@ -98,10 +98,9 @@ echo "FFALLBACK  = $flags $optimization $include_flags" >> $configure
 echo 'LDFALLBACK = $(LDFLAGS)'       >> $configure
 echo 'NOOPFFALLBACK = $(NOOPFFLAGS)' >> $configure
 
-# Use fortran code for tilt program, make extra fortran libs, skip SGI progs
+# Use fortran code for tilt program, make extra fortran libs
 echo 'TILTOBJS = bpsumnox.o bpsumxtilt.o bpsumlocal.o' >> $configure
 echo 'LINUXFLIBS = $(LIBDTRIGS) $(LIBRANDM)' >> $configure
-echo 'RGBPROGS = '  >> $configure
 
 #
 # Set the switch point include file for the FBP algorithm in Tilt

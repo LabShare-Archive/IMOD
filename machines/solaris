@@ -26,15 +26,15 @@ echo "AR        = ar"               >> $configure
 echo "CP        = \cp"               >> $configure
 echo "FIND      = \find"             >> $configure
 if ($shared_libs != false) then
-	echo "MAKELIB = ld $flags -G -o" >> $configure
+	echo "MAKELIB = ld $flags -G -o " >> $configure
 	echo "LIBEXT  = so"                 >> $configure
 	echo "AR        = ld"               >> $configure
-	echo "ARFLAGS   = $flags -G -o"     >> $configure
+	echo "ARFLAGS   = $flags -G -o "     >> $configure
 else
-	echo "MAKELIB = ar q"                >> $configure
+	echo "MAKELIB = ar q "                >> $configure
 	echo "LIBEXT  = a"                  >> $configure
 	echo "AR        = ar"               >> $configure
-	echo "ARFLAGS   = q"              >> $configure
+	echo "ARFLAGS   = q "              >> $configure
 endif
 
 echo "MAKELIBSO = ld $flags -G -o" >> $configure
@@ -81,10 +81,9 @@ if ($swap_ieee == true) then
     echo "#define SWAP_IEEE_FLOATS"                 >> $hconfigure
 endif
 
-# Build tilt from Fortran subroutines, skip Linux libs and SGI programs
+# Build tilt from Fortran subroutines, skip Linux libs
 echo 'TILTOBJS = bpsumnox.o bpsumxtilt.o bpsumlocal.o' >> $configure
 echo 'LINUXFLIBS = ' >> $configure
-echo 'RGBPROGS = '  >> $configure
 
 set usfftdir = $source_dir/USFFTlib/sun
 #
