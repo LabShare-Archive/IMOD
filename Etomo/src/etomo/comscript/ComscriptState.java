@@ -13,7 +13,14 @@ package etomo.comscript;
 *
 * @version $$Revision$$
 *
-* <p> $$Log$$ </p>
+* <p> $$Log$
+* <p> $Revision 1.1  2004/08/19 01:29:34  sueh
+* <p> $Interface to CombineComscriptState used by
+* <p> $BackgroundComscriptProcess and BackgroundSystemProgram.
+* <p> $It only interfaces one object, but an object specific to one comscript
+* <p> $does not belong in BackgroundComscriptProcess or
+* <p> $BackgroundSystemProgram.
+* <p> $$ </p>
 */
 public interface ComscriptState {
   public static final String rcsid = "$$Id$$";
@@ -22,4 +29,6 @@ public interface ComscriptState {
   public int getEndCommand();
   public String getCommand(int commandIndex);
   public String getWatchedFile(int commandIndex);
+  public String getComscriptName();
+  public String getComscriptWatchedFile();
 }
