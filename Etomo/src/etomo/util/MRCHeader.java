@@ -18,6 +18,9 @@ import etomo.process.SystemProgram;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.2  2003/05/20 21:26:18  rickg
+ * <p> Added pixel size and image rotation parsers
+ * <p>
  * <p> Revision 2.1  2003/05/08 23:17:50  rickg
  * <p> Standardized debug setting
  * <p>
@@ -46,6 +49,7 @@ public class MRCHeader {
   private int nColumns = -1;
   private int nRows = -1;
   private int nSections = -1;
+  private int mode = -1;
   private double xPixelSize = Double.NaN;
   private double yPixelSize = Double.NaN;
   private double zPixelSize = Double.NaN;
@@ -96,6 +100,15 @@ public class MRCHeader {
         nSections = Integer.parseInt(tokens[9]);
       }
 
+      //  Parse the mode
+      if (stdOutput[i].startsWith(" Map mode")) {
+        String[] tokens = stdOutput[i].split("\\s+");
+        if (tokens.length < 5) {
+          throw new IOException("Header returned less than one parameter for the mode");
+        }
+        mode = Integer.parseInt(tokens[4]);
+      }
+
       // Parse the pixels size
       if (stdOutput[i].startsWith(" Pixel spacing")) {
         String[] tokens = stdOutput[i].split("\\s+");
@@ -138,6 +151,14 @@ public class MRCHeader {
    */
   public int getNSections() {
     return nSections;
+  }
+
+  /**
+   * Return the mode (type) of data in the file.
+   * @return
+   */
+  public int getMode() {
+    return mode;
   }
 
   /**
