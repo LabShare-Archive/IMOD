@@ -47,6 +47,7 @@ Log at end of file
 #define MESSAGE_OPEN_KEEP_BW 7
 #define MESSAGE_OPEN_BEADFIXER 8
 #define MESSAGE_ONE_ZAP_OPEN 9
+#define MESSAGE_RUBBERBAND 10
 
 #include <qobject.h>
 #include <qstring.h>
@@ -82,6 +83,9 @@ class ImodClipboard : public QObject
 #endif /* IMOD_CLIENT_MESSAGE_H */
 /*
 $Log$
+Revision 3.7  2004/04/28 23:51:26  mast
+Added message to open zap
+
 Revision 3.6  2003/11/12 18:48:55  mast
 Added method to get relevant window ID
 

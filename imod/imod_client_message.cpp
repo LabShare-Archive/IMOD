@@ -343,6 +343,10 @@ bool ImodClipboard::executeMessage()
         imod_zap_open(App->cvi);
       break;
 
+    case MESSAGE_RUBBERBAND:
+      zapReportRubberband();
+      break;
+
     default:
       fprintf(stderr, "imodExecuteMessage: action %d not recognized\n"
               , message_action);
@@ -397,6 +401,9 @@ unsigned int ImodClipboard::ourWindowID()
 
 /*
 $Log$
+Revision 4.12  2004/04/28 23:51:44  mast
+Added ability to open zap if none are open
+
 Revision 4.11  2004/01/07 01:54:51  mast
 Add capability to start movie on any axis with negative value to 6
 
