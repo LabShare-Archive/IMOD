@@ -63,6 +63,7 @@ c	   October 28, 2001 The tan of the angles are now copied into w (the
 c		            array that is passed to  fbp.f). This is necessary
 c			    for handling vertical shifts.
 c          November 7, 2001  DNM fixed expression for memory needs for zw
+c          August 1, 2003   DNM added paddedin thickness
 c
 c
 cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -194,13 +195,12 @@ c
      &              Nwide,Nthick,
      &              Nwidep,NprjP,lenpad,sdgpad,
      &              nf,df,flow,ifl,ifh,
-     &              iw(iptco),iw(iptsmin),iw(iptsmax),
+     &              iw(iptco),iw(iptsmin),iw(iptsmax),NthickP,
      &              widecen,thickcen)
 
 c
 c ===========================================================
 
-      
        isize=Nviews*(Nwidep/2+1)
     
 
@@ -219,7 +219,7 @@ c     x1:      isize           (Phase parameters for  call to fbpt2f.)
 c     ini1:    (13*(NwideP/2+1)+NprjP)*Nviews   
 c                              (Stuff needed by fbpt2f.)
 c     x2:      isize           (Phase parameters for  call to angsum).
-c     ini2:    (13*Nviews+Nthick)*(NwideP/2+1)
+c     ini2:    (13*Nviews+NthickP)*(NwideP/2+1)
 c                              (Stuff needed by angsum.) 
 c     filt:    isize           (Filter, |omega| & interpolation filter.)
 c     upad:    NprjP*Nviews    (Working area for fbp that has to be clean
@@ -228,10 +228,10 @@ c     rp:      6+Nviews        (Number of parameters packed, see end of code).
 c
 c     
 c Total memory: 3*Nviews*(NwideP/2+1)+Nviews*(13*(NwideP/2+1)+2*NprjP*Nviews+
-c               +Nviews*(13*NwideP/2+13)+Nthick*(NwideP/2+1)+6+Nviews=
+c               +Nviews*(13*NwideP/2+13)+NthickP*(NwideP/2+1)+6+Nviews=
 c               
 c
-c        ->     (30*Nviews+Nthick)*(Nwidep/2+1)+2*NprjP*Nviews+6
+c        ->     (30*Nviews+NthickP)*(Nwidep/2+1)+2*NprjP*Nviews+6
 c
 c	 or, only one NprojP*Nviews if padding in place
 c	 (Do not rearrange the division by 2!)
@@ -243,7 +243,7 @@ c
        iptx2=iptini1+(13*(ifh+1)+NprjP)*Nviews
        iptini2=iptx2+isize
        
-       iptfilt=iptini2+(13*Nviews+Nthick)*(ifh+1)
+       iptfilt=iptini2+(13*Nviews+NthickP)*(ifh+1)
 
        iptupad=iptfilt+isize
 
@@ -269,16 +269,16 @@ c
 c     diag1:       isize               (Diagonal factors for fbpt2f.)   
 c     fft1:        (4*NprjP+8)*Nviews  (Stuff to be used for FFT for fbpt2f.)
 c     diag2:       isize               (Diagonal factors for angsum.) 
-c     fft2:        (4*Nthick+8)*(NwideP/2+1)
+c     fft2:        (4*NthickP+8)*(NwideP/2+1)
 c                                      (Stuff to be used for FFT for angsum.)
 c     zu:          isize               (Working area for fbp that has to
 c                                       to be clean upon entry to fbp.)
 c
 c
 c Total memory:  3*(NwideP/2+1)*Nviews+(4*NprjP+8)*Nviews
-c                +(4*Nthick+8)*(NwideP/2+1)=
+c                +(4*NthickP+8)*(NwideP/2+1)=
 c
-c	->       (3*Nviews+4*Nthick+8)*(NwideP/2+1)+(4*NprjP+8)*Nviews
+c	->       (3*Nviews+4*NthickP+8)*(NwideP/2+1)+(4*NprjP+8)*Nviews
 c	 DNM: Do not rearrange to divide Nviews by 2!
 c
 
@@ -288,7 +288,7 @@ c
        iptdiag2=iptfft1+(4*NprjP+8)*Nviews
        iptfft2=iptdiag2+isize
 
-       iptzu=iptfft2+(4*Nthick+8)*(NwideP/2+1)
+       iptzu=iptfft2+(4*NthickP+8)*(NwideP/2+1)
       
 c
 c __________________________________________________________
@@ -327,7 +327,7 @@ c
 c Intialization of angsum ("Angular Summation") routine called from fbp.
 c
 
-       call angsumi(ifl,ifh,df,flow,Nthick,Nviews,wrk(iptci),
+       call angsumi(ifl,ifh,df,flow,NthickP,Nviews,wrk(iptci),
      &              wrk(iptt),widecen,w(iptx2),zw(iptdiag2),
      &              zw(iptfft2),w(iptini2))
 
@@ -365,6 +365,7 @@ c =========== PACK PARAMETERS INTO iw AND w ARRAYS ==========
 c
 
 c	 DNM: eliminate irmax and breakfreq
+c	 replace irmax with NthickP
        
 c_______________ Integer parameters _________________________
 c
@@ -374,7 +375,7 @@ c
        iw(iptip+2)=lenpad
        iw(iptip+3)=nf
        iw(iptip+4)=ifh
-c       iw(iptip+5)=irmax
+       iw(iptip+5)=NthickP
        iw(iptip+6)=iptrp
 
 c	 DNM: pass the inplace flag to fbp also

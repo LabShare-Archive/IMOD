@@ -67,7 +67,7 @@ c
      &              Nwide,Nthick,
      &              Nwidep,NprjP,lenpad,sdgpad,
      &              nf,df,flow,ifl,ifh,
-     &              iw(iptco),iw(iptsmin),iw(iptsmax),
+     &              iw(iptco),iw(iptsmin),iw(iptsmax),NthickP,
      &              widecen,thickcen)
 
 c	 
@@ -75,12 +75,12 @@ c	 compute the needed space based on all the requirements listed above
 c	 and in fbp.f
 c
 	needwrk=max((4*Nviews), (6*NwideP+15))
-	needzwrk=(3*NprjP+NwideP/2+3*Nthick+Nviews+1)
+	needzwrk=(3*NprjP+NwideP/2+3*NthickP+Nviews+1)
 	neediw=(3*Nviews+8)
-	needrw=((30*Nviews+Nthick)*(Nwidep/2+1)+2*NprjP*Nviews+6)
+	needrw=((30*Nviews+NthickP)*(Nwidep/2+1)+2*NprjP*Nviews+6)
 	if(inplace.ne.0)needrw=needrw-NprjP*Nviews
-	needzw=((3*Nviews+4*Nthick+8)*(NwideP/2+1)+(4*NprjP+8)*Nviews)
-	needout=(NwideP+2)*Nthick
+	needzw=((3*Nviews+4*NthickP+8)*(NwideP/2+1)+(4*NprjP+8)*Nviews)
+	needout=(NwideP+2)*NthickP
 
 c	  
 c	  get the min and max support indexes

@@ -25,7 +25,7 @@ c	  interpord  interpolation order for cosine stretching
 c	  nvertneed  # of vertical slices needed to make tilted output slice
 c	  intordxtilt  order for interpolating X-tilted slice
 c
-        parameter (limstack=80000000)
+        parameter (limstack=60000000)
 c        parameter (limstack=2200000)
 	parameter (limmask=4096)
 	parameter (limview=720,limwidth=20000)

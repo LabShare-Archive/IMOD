@@ -43,6 +43,7 @@ c                                            for each angle.
 c             supmax      integer*4(array)   Largest projection index
 c                                            contributing to output image
 c                                            for each angle.
+c	      NthickP     integer*4          Padded thickness of output image
 c             widecen     real*4             Center of coord-system in wide
 c                                            direction.
 c             thickcen    real*4             Center of coord-system in thick
@@ -57,6 +58,7 @@ c         SETTING FOR NwideP and sdgpad TEMPORARILY CHANGED FOR DEBUGGING!!!
 c	  
 c	  DNM: eliminated rmax and sdg as input parameters, and irmax and
 c	  breakfreq as output parameters; the latter are no longer used
+c	  Added thickness padding parameter
 c
 c 010506
 c
@@ -67,7 +69,7 @@ cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
      &                    Nwide,Nthick,
      &                    Nwidep,NprjP,lenpad,sdgpad,
      &                    nf,df,flow,ifl,ifh,
-     &                    cutoff,supmin,supmax,
+     &                    cutoff,supmin,supmax,NthickP,
      &                    widecen,thickcen)
 
 
@@ -135,11 +137,9 @@ ccccccccccccc
        call prin('  Oversampling factor:*',temp,1)
 
 c
-c -----------------------------------------------------------
-
-
-
-
+c ------------------ Pad the thickness too -----------------
+c
+	call nice_pad(Nthick, NthickP)
 
 c -------------- For input data -----------------------------
 c
@@ -200,7 +200,7 @@ c ________________ Derive center parameters _________________
 c
 
        widecen=Nwidep/2-0.5
-       thickcen=Nthick/2+0.5
+       thickcen=NthickP/2+0.5
 
 c
 c ___________________________________________________________
@@ -211,7 +211,7 @@ c ________________ Compute support of used data _____________
 c
 
        M2=Nwide/2
-       N2=Nthick/2
+       N2=NthickP/2
 c	 
 c	 DNM: changed to make the supports centered on nrpj/2 not nwide/2,
 c	 and limited by nprj not nwide
