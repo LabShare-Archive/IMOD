@@ -1469,20 +1469,21 @@ double b3dStepPixelZoom(double czoom, int step)
 /* DNM 12/15/02 : eliminated unused iput functions, identical to ones in
    imodv_gfx.cpp */
 
-
-#ifdef __vms
+/* DNM 12/28/03: just define default as TIF (not really used) */
 static int SnapShotFormat = SnapShot_TIF;
-#else
-static int SnapShotFormat = SnapShot_RGB;
-#endif
 
-void b3dAutoSnapshot(char *name, int format_type, int *limits)
+/*
+ * Create a filename in fname with the prefix in name, based on the
+ * format_type, and with at least the given number of digits.  The starting
+ * candidate file number is in fileno
+ */
+void b3dGetSnapshotName(char *fname, char *name, int format_type, int digits,
+                        int &fileno)
 {
-  char fname[256];
   FILE *tfp = NULL;
-  static int fileno;
   char *fext;
-
+  char format[12];
+  sprintf(format, "%%s%%0%dd.%%s", digits);
 
   switch(format_type){
   case SnapShot_RGB:
@@ -1495,20 +1496,27 @@ void b3dAutoSnapshot(char *name, int format_type, int *limits)
     fext = "image";
   }
 
-
-  fileno = 0;
   do{
     if (tfp){
       fclose(tfp);
       tfp = NULL;
     }
-    if (fileno < 100)
-      sprintf(fname, "%s%03d.%s", name, fileno++, fext);
+    if (fileno < (int)pow(10., double(digits)))
+      sprintf(fname, format, name, fileno++, fext);
     else
       sprintf(fname, "%s%d.%s", name, fileno++, fext);
           
   }while ((tfp = fopen((QDir::convertSeparators(QString(fname))).latin1(),
     "rb")));
+}
+
+/* Take a snapshot of the current window with prefix in name */
+void b3dAutoSnapshot(char *name, int format_type, int *limits)
+{
+  char fname[256];
+  int fileno = 0;
+
+  b3dGetSnapshotName(fname, name, format_type, 3, fileno);
 
   wprint("%s: Saving image to %s\n", name, fname);
 
@@ -1651,7 +1659,14 @@ void b3dSnapshot_RGB(char *fname, int rgbmode, int *limits)
   return;
 }
 
-
+/*
+ * Snapshot from current GL window into a TIFF file given by fname 
+ * rgbmode non-zero indicates rgb rather than color index
+ * if limits is non-NULL, it contains lower left and upper right X and Y
+ * coordinates (0 to n, not 0 too n-1) for a subset
+ * If data is non-NULL, it supplies the data already as line pointers, and
+ * rgbmode should be 3 for RGB and 4 for RGBA data 
+ */
 void b3dSnapshot_TIF(char *fname, int rgbmode, int *limits, 
                      unsigned char **data)
 {
@@ -1701,9 +1716,7 @@ void b3dSnapshot_TIF(char *fname, int rgbmode, int *limits,
   }
   glPixelZoom(1.0,1.0);
     
-  if (data) {
-    rgbmode = 1;
-  } else if (rgbmode) {
+  if (!data && rgbmode) {
     glReadPixels(rpx, rpy, rpWidth, rpHeight,
                  GL_RGBA, GL_UNSIGNED_BYTE, pixels);
     glFlush();
@@ -1711,7 +1724,7 @@ void b3dSnapshot_TIF(char *fname, int rgbmode, int *limits,
        so set up a depth variable that works in later tests regardless */
     depth = 8;
 
-  } else {
+  } else if (!data) {
     depth = App->depth;
     mapsize = 1 << depth;
     fcmapr = (unsigned int *)malloc((mapsize+1) * sizeof(unsigned int));
@@ -1771,10 +1784,14 @@ void b3dSnapshot_TIF(char *fname, int rgbmode, int *limits,
     return;
   }
 
-  /* Use the line pointers to write each line */
   if (data) {
+    /* Use the line pointers to write each line */
     for(j = ysize - 1; j >= 0; j--)
-      fwrite(data[j], 1, 3 * xsize, fout);
+      if (rgbmode == 3) 
+        fwrite(data[j], 1, 3 * xsize, fout);
+      else
+        for(i = 0; i < xsize; i++)
+          fwrite(&data[j][4*i], 1, 3, fout);
 
   } else if (rgbmode) {
     for(j = ysize - 1; j >= 0; j--)
@@ -1890,6 +1907,9 @@ void b3dSnapshot(char *fname)
 
 /*
 $Log$
+Revision 4.16  2003/09/16 05:54:32  mast
+Ditto!
+
 Revision 4.15  2003/09/16 05:52:23  mast
 Forgot to comment out diagnostic output
 
