@@ -43,6 +43,10 @@ import etomo.type.FiducialMatch;
  * 
  * <p>
  * $Log$
+ * Revision 3.1  2004/01/30 22:45:18  sueh
+ * bug# 356 Changing buttons with html labels to
+ * MultiLineButton and MultiLineToggleButton
+ *
  * Revision 3.0  2003/11/07 23:19:01  rickg
  * Version 1.0.0
  *
@@ -544,6 +548,15 @@ public class SetupCombinePanel implements ContextMenu {
 
   }
 
+  protected boolean getUseMatchingModels() {
+    return rbUseModel.isSelected();
+  }
+  
+  void setUseMatchingModels(boolean state) {
+    rbUseModel.setSelected(state);
+    updateUseFiducialModel();
+  }
+  
   //  Action functions for setup panel buttons
   private void buttonAction(ActionEvent event) {
     String command = event.getActionCommand();
@@ -620,7 +633,7 @@ public class SetupCombinePanel implements ContextMenu {
    */
   private void updateUseFiducialModel() {
     btnImodMatchModels.setEnabled(rbUseModel.isSelected());
-    initialCombinePanel.setMatchingModels(rbUseModel.isSelected());
+    //initialCombinePanel.setMatchingModels(rbUseModel.isSelected());
   }
 
   /**
