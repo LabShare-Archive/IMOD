@@ -5,6 +5,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.1  2003/02/10 20:29:00  mast
+autox.cpp
+
 Revision 1.1.2.2  2003/01/27 00:30:07  mast
 Pure Qt version and general cleanup
 
@@ -20,6 +23,9 @@ Changes to get clean compilation with g++
   #define NOPLUGS
   #endif */
 #ifdef __vms
+#define NOPLUGS
+#endif
+#ifdef _WIN32
 #define NOPLUGS
 #endif
 #ifdef SVR3
