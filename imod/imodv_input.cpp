@@ -77,6 +77,8 @@ static int  imodvStepTime(ImodvApp *a, int tstep);
 static void processHits (ImodvApp *a, GLint hits, GLuint buffer[]);
 static void imodv_start_movie(ImodvApp *a);
 
+static int pickedObject = -1;
+static int pickedContour = -1;
 
 static unsigned int ctrlDown = 0;
 static unsigned int shiftDown = 0;
@@ -390,6 +392,15 @@ void imodvKeyPress(QKeyEvent *event)
   case Qt::Key_A:
     if (state & Qt::ControlButton && a->standalone)
       imodvSaveModelAs();
+    break;
+
+  case Qt::Key_D:
+    if ((state & Qt::ShiftButton) && !a->standalone && pickedContour >= 0 &&
+        a->imod->cindex.object == pickedObject && 
+        a->imod->cindex.contour == pickedContour) {
+      inputDeleteContour(App->cvi);
+      pickedContour = -1;
+    }
     break;
 
   case Qt::Key_F1:
@@ -906,6 +917,8 @@ static void processHits (ImodvApp *a, GLint hits, GLuint buffer[])
   imodSetIndex(a->imod, ob, co, pt);     
   if (!a->standalone){
     imod_setxyzmouse();
+    pickedContour = co;
+    pickedObject = ob;
   }
 }
 
@@ -1035,6 +1048,10 @@ void imodvMovieTimeout()
 
 /*
     $Log$
+    Revision 4.13  2003/12/01 20:00:30  mast
+    Fixed problem with movie not changing direction when a different keypad key
+    is pressed
+
     Revision 4.12  2003/11/26 18:15:09  mast
     Disable image menu entry unless byte images exist
 
