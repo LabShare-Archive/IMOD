@@ -402,6 +402,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.13  2004/06/10 05:39:18  mast
+c	  Output pixel size in fiducial file
+c	
 c	  Revision 3.12  2004/05/21 20:06:34  mast
 c	  Put out iteration limit error as a formal WARNING
 c	
@@ -1319,8 +1322,11 @@ c
 	ipatchy=1
 	ixspatch=nxpmin/2
 	iyspatch=nypmin/2
-	write(iunlocal,'(7i6)')npatchx,npatchy,ixspatch,iyspatch,
-     &	    idxpatch,idypatch,mapalfend+1-mapalfstart
+c	  
+c	  DNM 7/16/04: Add pixel size to local file
+c
+	write(iunlocal,'(7i6,f12.5)')npatchx,npatchy,ixspatch,iyspatch,
+     &	    idxpatch,idypatch,mapalfend+1-mapalfstart,xdelt
 c	  
 c	  START OR CONTINUE LOOPING ON LOCAL REGIONS
 c
