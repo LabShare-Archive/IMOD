@@ -74,6 +74,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.6  2003/12/08 22:34:32  sueh
+ * <p> bug# 169 adding new function imodRawStack
+ * <p>
  * <p> Revision 3.5  2003/12/05 01:25:01  sueh
  * <p> bug242 moved getEnvironmentVariable() to Utilities
  * <p>
@@ -565,7 +568,7 @@ public class ApplicationManager {
 
   private static boolean debug = false;
   private boolean demo = false;
-
+  private boolean test = false;
   private boolean isDataParamDirty = false;
   private String homeDirectory;
   private static File IMODDirectory;
@@ -623,29 +626,30 @@ public class ApplicationManager {
     String testParamFilename = initProgram(args);
 
     //  Create a new main window and wait for an event from the user
-    mainFrame = new MainFrame(this);
-    mainFrame.setMRUFileLabels(userConfig.getMRUFileList());
+    if (!test) {
+      mainFrame = new MainFrame(this);
+      mainFrame.setMRUFileLabels(userConfig.getMRUFileList());
 
-    //  Initialize the static UIParameter object
-    UIParameters uiparameters = new UIParameters();
+      //  Initialize the static UIParameter object
+      UIParameters uiparameters = new UIParameters();
 
-    // Open the etomo data file if one was found on the command line
-    if (!testParamFilename.equals("")) {
-      File etomoDataFile = new File(testParamFilename);
-      if (loadTestParamFile(etomoDataFile)) {
-        openProcessingPanel();
+      // Open the etomo data file if one was found on the command line
+      if (!testParamFilename.equals("")) {
+        File etomoDataFile = new File(testParamFilename);
+        if (loadTestParamFile(etomoDataFile)) {
+          openProcessingPanel();
+        }
+        else {
+          openSetupDialog();
+        }
       }
       else {
         openSetupDialog();
       }
+      mainFrame.pack();
+      mainFrame.show();
     }
-    else {
-      openSetupDialog();
-    }
-    mainFrame.pack();
-    mainFrame.show();
   }
-
   /**
    * 
    */
@@ -836,7 +840,9 @@ public class ApplicationManager {
       // If there are raw stack imod processes open ask the user if they
       // should be closed.
       try {
-        if (imodManager.isOpen(ImodManager.RAW_STACK_KEY, axisID)/*imodManager.isRawStackOpen(axisID)*/) {
+        if (imodManager.isOpen(ImodManager.RAW_STACK_KEY, axisID)
+          /*imodManager.isRawStackOpen(axisID)*/
+          ) {
           String[] message = new String[2];
           message[0] = "The raw stack is open in 3dmod";
           message[1] = "Should it be closed?";
@@ -889,7 +895,11 @@ public class ApplicationManager {
       metaData.getDatasetName() + axisID.getExtension() + ".erase";
     try {
       //imodManager.modelRawStack(eraseModelName, axisID, true);
-      imodManager.model(ImodManager.RAW_STACK_KEY, axisID, eraseModelName, true);
+      imodManager.model(
+        ImodManager.RAW_STACK_KEY,
+        axisID,
+        eraseModelName,
+        true);
       processTrack.setPreProcessingState(ProcessState.INPROGRESS, axisID);
       mainFrame.setPreProcessingState(ProcessState.INPROGRESS, axisID);
     }
@@ -1069,7 +1079,9 @@ public class ApplicationManager {
     fixedStack.renameTo(rawStack);
 
     try {
-      if (imodManager.isOpen(ImodManager.RAW_STACK_KEY, axisID)/*imodManager.isRawStackOpen(axisID)*/) {
+      if (imodManager.isOpen(ImodManager.RAW_STACK_KEY, axisID)
+        /*imodManager.isRawStackOpen(axisID)*/
+        ) {
         String[] message = new String[2];
         message[0] = "The replaced raw stack is open in 3dmod";
         message[1] = "Should it be closed?";
@@ -1093,14 +1105,16 @@ public class ApplicationManager {
 
   public void imodRawStack(AxisID axisID) {
     if (imodManager == null) {
-      if (setupDialog != null) {  
+      if (setupDialog != null) {
         metaData = setupDialog.getFields();
       }
       if (metaData.isDatasetNameValid()) {
         imodManager = new ImodManager(this, metaData);
       }
       else {
-        mainFrame.openMessageDialog(metaData.getInvalidReason(), "Raw Image Stack");
+        mainFrame.openMessageDialog(
+          metaData.getInvalidReason(),
+          "Raw Image Stack");
         return;
       }
     }
@@ -1435,7 +1449,12 @@ public class ApplicationManager {
       metaData.getDatasetName() + axisID.getExtension() + ".seed";
     try {
       //imodManager.modelCoarseAligned(seedModel, axisID, true, true);
-      imodManager.model(ImodManager.COARSE_ALIGNED_KEY, axisID, seedModel, true, true);
+      imodManager.model(
+        ImodManager.COARSE_ALIGNED_KEY,
+        axisID,
+        seedModel,
+        true,
+        true);
       processTrack.setFiducialModelState(ProcessState.INPROGRESS, axisID);
       mainFrame.setFiducialModelState(ProcessState.INPROGRESS, axisID);
     }
@@ -1484,7 +1503,12 @@ public class ApplicationManager {
       metaData.getDatasetName() + axisID.getExtension() + ".fid";
     try {
       //imodManager.modelCoarseAligned(fiducialModel, axisID, true, false);
-      imodManager.model(ImodManager.COARSE_ALIGNED_KEY, axisID, fiducialModel, true, false);
+      imodManager.model(
+        ImodManager.COARSE_ALIGNED_KEY,
+        axisID,
+        fiducialModel,
+        true,
+        false);
       //imodManager.openBeadFixer(axisID);
       imodManager.openBeadFixer(ImodManager.COARSE_ALIGNED_KEY, axisID);
     }
@@ -1629,7 +1653,9 @@ public class ApplicationManager {
         // Check to see if the user wants to keep any coarse aligned imods
         // open
         try {
-          if (imodManager.isOpen(ImodManager.COARSE_ALIGNED_KEY, axisID)/*imodManager.isCoarseAlignedOpen(axisID)*/) {
+          if (imodManager.isOpen(ImodManager.COARSE_ALIGNED_KEY, axisID)
+            /*imodManager.isCoarseAlignedOpen(axisID)*/
+            ) {
             String[] message = new String[2];
             message[0] = "The coarsely aligned stack is open in 3dmod";
             message[1] = "Should it be closed?";
@@ -1697,7 +1723,12 @@ public class ApplicationManager {
       metaData.getDatasetName() + axisID.getExtension() + ".resmod";
     try {
       //imodManager.modelCoarseAligned(fiducialModel, axisID, false, true);
-      imodManager.model(ImodManager.COARSE_ALIGNED_KEY, axisID, fiducialModel, false, true);
+      imodManager.model(
+        ImodManager.COARSE_ALIGNED_KEY,
+        axisID,
+        fiducialModel,
+        false,
+        true);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
@@ -1985,7 +2016,9 @@ public class ApplicationManager {
         openTomogramGenerationDialog(axisID);
 
         try {
-          if (imodManager.isOpen(ImodManager.SAMPLE_KEY, axisID)/*imodManager.isSampleOpen(axisID)*/) {
+          if (imodManager.isOpen(ImodManager.SAMPLE_KEY, axisID)
+            /*imodManager.isSampleOpen(axisID)*/
+            ) {
             String[] message = new String[2];
             message[0] = "The sample reconstruction is open in 3dmod";
             message[1] = "Should it be closed?";
@@ -2531,7 +2564,10 @@ public class ApplicationManager {
     String trialTomogramName = tomogramGenerationDialog.getTrialTomogramName();
 
     try {
-      imodManager.create(ImodManager.TRIAL_TOMOGRAM_KEY, axisID, trialTomogramName);
+      imodManager.create(
+        ImodManager.TRIAL_TOMOGRAM_KEY,
+        axisID,
+        trialTomogramName);
       imodManager.open(ImodManager.TRIAL_TOMOGRAM_KEY, axisID);
     }
     catch (SystemProcessException except) {
@@ -2777,11 +2813,19 @@ public class ApplicationManager {
       tomogramCombinationDialog.getCombineParams(combineParams);
       if (combineParams.getMatchBtoA()) {
         //imodManager.patchRegionModel(AxisID.FIRST);
-        imodManager.model(ImodManager.FULL_VOLUME_KEY, AxisID.FIRST, "patch_region.mod", true);
+        imodManager.model(
+          ImodManager.FULL_VOLUME_KEY,
+          AxisID.FIRST,
+          "patch_region.mod",
+          true);
       }
       else {
         //imodManager.patchRegionModel(AxisID.SECOND);
-        imodManager.model(ImodManager.FULL_VOLUME_KEY, AxisID.SECOND, "patch_region.mod", true);
+        imodManager.model(
+          ImodManager.FULL_VOLUME_KEY,
+          AxisID.SECOND,
+          "patch_region.mod",
+          true);
       }
     }
     catch (SystemProcessException except) {
@@ -4031,6 +4075,10 @@ public class ApplicationManager {
       if (args[i].equals("--demo")) {
         demo = true;
       }
+      
+			if (args[i].equals("--test")) {
+				test = true;
+			}
     }
     return testParamFilename;
   }
@@ -4192,7 +4240,6 @@ public class ApplicationManager {
   private String getHomeDirectory() {
     return homeDirectory;
   }
-
 
   /**
    * Returns the debug state.
