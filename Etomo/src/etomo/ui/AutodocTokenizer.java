@@ -5,9 +5,44 @@ import java.io.File;
 //import java.io.FileReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.lang.IllegalStateException;
 
 /**
-* <p>Description:</p>
+* <p>Description:
+* Creates the tokens required for autodoc functionality.  It can recognize the
+* following tokens:  EOF, EOL, WHITESPACE, COMMENT, SEPARATOR, OPEN, CLOSE,
+* DELIMITER, WORD, and KEYWORD.
+* 
+* To Use:
+* construct with a file.
+* call initialize().
+* call next() to get the next token, until the end of file is reached.
+* 
+* Testing:
+* Do not call initialize() when testing.
+* Call test() to test this class.
+* Call testPrimativeTokenizer() to test the PrimativeTokenizer.
+* Call testStreamTokenizer() to test the StreamTokenizer.
+*
+* 
+* Tokenizing Rules:
+* 
+* Currently the COMMENT, SEPARATOR, OPEN, and CLOSE symbols must be single
+* character.
+* 
+* The delimiter may contain multiple characters.
+* 
+* COMMENT, SEPARATOR, OPEN, CLOSE, and Delimiter should not contain alphanumeric
+* or whitespace characters.
+* 
+* Whitespace, eol, and eof are defined in PrimativeTokenizer.
+* 
+* A word is the longest possible set of characters that are alphanumeric and
+* unmatched symbols, and do not match the current delimiter string.
+* 
+* A keyword is a word that completely matches a keyword constant.  Embedded
+* keywords are ignored.
+</p>
 *
 * <p>Copyright: Copyright © 2002, 2003</p>
 *
@@ -20,6 +55,9 @@ import java.io.IOException;
 * @version $$Revision$$
 *
 * <p> $$Log$
+* <p> $Revision 1.2  2003/12/23 21:33:08  sueh
+* <p> $bug# 372 Reformating.
+* <p> $
 * <p> $Revision 1.1  2003/12/22 23:49:28  sueh
 * <p> $bug# 372 creates tokens for AutodocParser
 * <p> $$ </p>
@@ -28,21 +66,25 @@ public class AutodocTokenizer {
   public static final String rcsid =
     "$$Id$$";
 
-  public static final String COMMENT_CHAR = "#";
-  public static final String SEPARATOR_CHAR = ".";
-  public static final String OPEN_CHAR = "[";
-  public static final String CLOSE_CHAR = "]";
+  public static final char COMMENT_CHAR = '#';
+  public static final char SEPARATOR_CHAR = '.';
+  public static final char OPEN_CHAR = '[';
+  public static final char CLOSE_CHAR = ']';
   public static final String defaultDelimiter = "=";
-  public static final String VERSION_KEYWORD = "version";
-  public static final String PIP_KEYWORD = "pip";
-  public static final String DELIMITER_KEYWORD = "keyvaluedelimiter";
+  public static final String VERSION_KEYWORD = "Version";
+  public static final String PIP_KEYWORD = "Pip";
+  public static final String DELIMITER_KEYWORD = "KeyValueDelimiter";
   private String delimiterString = defaultDelimiter;
+  private StringBuffer restrictedSymbols =
+    new StringBuffer(COMMENT_CHAR + SEPARATOR_CHAR + OPEN_CHAR + CLOSE_CHAR);
   private PrimativeTokenizer primative = null;
   private File file = null;
-  private Token primativeToken;
+  private Token primativeToken = null;
+  private Token autodocToken = null;
   private Token token = new Token();
-  boolean nextTokenFound = false;
   private Token nextToken = new Token();
+  private boolean useNextToken = false;
+  private StringBuffer wordBuffer = null;
 
   AutodocTokenizer(File file) {
     this.file = file;
@@ -51,132 +93,51 @@ public class AutodocTokenizer {
 
   public void initialize() throws FileNotFoundException, IOException {
     primative.initialize();
-    primativeToken = primative.next();
   }
 
   public Token getToken() {
-    return token;
+    return autodocToken;
   }
-
-  public void setDelimiter(String delimiter) {
-    delimiterString = delimiter;
-  }
-
-  public String getDelimiter() {
+  public String getDelimiterString() {
     return delimiterString;
   }
 
-  public Token next() throws IOException {
-    //System.out.println("AutodocTokenizer.next");
-    boolean found = false;
-    token.reset();
-    StringBuffer valueBuffer = null;
-    boolean wordFound = false;
-    StringBuffer wordBuffer = null;
-
-    if (nextTokenFound) {
-      found = true;
-      token.set(nextToken);
-      nextToken.reset();
-      nextTokenFound = false;
-      primativeToken = primative.next();
+  public boolean setDelimiterString(String delimiterString) {
+    if (delimiterString == null) {
+      return false;
     }
-    while (!found) {
-      if (primativeToken.is(Token.EOF)
-        || primativeToken.is(Token.EOL)
-        || primativeToken.is(Token.WHITESPACE)) {
-        token.set(primativeToken);
-        found = true;
+    char character;
+    String symbols = primative.getSymbols();
+    for (int i = 0; i < delimiterString.length(); i++) {
+      character = delimiterString.charAt(i);
+      if (restrictedSymbols.toString().indexOf(character) != -1) {
+        return false;
       }
-      else if (primativeToken.equals(Token.SYMBOL, COMMENT_CHAR)) {
-        token.set(Token.COMMENT, COMMENT_CHAR);
-        found = true;
-      }
-      else if (primativeToken.equals(Token.SYMBOL, SEPARATOR_CHAR)) {
-        token.set(Token.SEPARATOR, SEPARATOR_CHAR);
-        found = true;
-      }
-      else if (primativeToken.equals(Token.SYMBOL, OPEN_CHAR)) {
-        token.set(Token.OPEN, OPEN_CHAR);
-        found = true;
-      }
-      else if (primativeToken.equals(Token.SYMBOL, CLOSE_CHAR)) {
-        token.set(Token.CLOSE, CLOSE_CHAR);
-        found = true;
-      }
-      else if (primativeToken.equals(Token.SYMBOL, delimiterString)) {
-        token.set(Token.DELIMITER, delimiterString);
-        found = true;
-      }
-      else if (
-        primativeToken.is(Token.SYMBOL)
-          && delimiterString.indexOf(primativeToken.getValue()) == 0) {
-        valueBuffer = new StringBuffer().append(primativeToken.getValue());
-        int index = 1;
-        while (primative.next().is(Token.SYMBOL)
-          && index <= delimiterString.length()
-          && delimiterString.indexOf(primative.getToken().getValue()) == index) {
-          valueBuffer.append(primative.getToken().getValue());
-          index++;
-        }
-        if (index == delimiterString.length()) {
-          token.set(Token.DELIMITER, delimiterString);
-          found = true;
-        }
-      }
-      if (!found) {
-        if (!wordFound) {
-          wordFound = true;
-          if (valueBuffer == null) {
-            wordBuffer = new StringBuffer().append(primativeToken.getValue());
-          }
-          else {
-            wordBuffer =
-              new StringBuffer().append(valueBuffer).append(
-                primative.getToken().getValue());
-          }
-        }
-        else {
-          wordBuffer.append(primativeToken.getValue());
-        }
-      }
-
-      if (found) {
-        if (wordFound) {
-          nextTokenFound = true;
-          nextToken.set(token);
-          if (valueBuffer != null) {
-            nextToken.set(valueBuffer.toString());
-          }
-          token.set(Token.WORD, wordBuffer.toString());
-          wordBuffer = null;
-          wordFound = false;
-        }
-      }
-      if (!nextTokenFound
-        && (token.is(Token.DELIMITER) || delimiterString.length() == 1)) {
-        primativeToken = primative.next();
-      }
-      else {
-        primativeToken = primative.getToken();
+      if (symbols.indexOf(character) == -1) {
+        return false;
       }
     }
-
-    if (token.is(Token.WORD)) {
-      if (token.equals(VERSION_KEYWORD)
-        || token.equals(PIP_KEYWORD)
-        || token.equals(DELIMITER_KEYWORD)) {
-        token.set(Token.KEYWORD);
-      }
-    }
-    return token;
+    this.delimiterString = delimiterString;
+    return true;
   }
 
-  public void testPrimativeTokenizer(boolean tokens) throws IOException {
-    primative.initialize();
-    Token token;
+  public Token next() throws IOException {
+    if (useNextToken) {
+      useNextToken = false;
+      autodocToken = new Token(nextToken);
+      return autodocToken;
+    }
+    primativeToken = primative.next();
+    autodocToken = new Token(findToken());
+    return autodocToken;
+  }
+  
+  
+  public void test(boolean tokens) throws IOException {
+    initialize();
+    Token token = null;
     do {
-      token = primative.next();
+      token = next();
       if (tokens) {
         System.out.println(token.toString());
       }
@@ -190,8 +151,154 @@ public class AutodocTokenizer {
     while (!token.is(Token.EOF));
   }
 
+  public void testPrimativeTokenizer(boolean tokens) throws IOException {
+    primative.test(tokens);
+  }
+
   public void testStreamTokenizer(boolean tokens) throws IOException {
     primative.testStreamTokenizer(tokens);
+  }
+
+
+  private Token findToken() throws IOException {
+    boolean buildingWord = false;
+    do {
+      if (findSimpleToken()) {
+        if (buildingWord) {
+          buildingWord = false;
+          makeWord();
+          return token;
+        }
+        return token;
+      }
+      if (primativeToken.is(Token.ALPHANUM)) {
+        buildingWord = true;
+        buildWord();
+        primativeToken = primative.next();
+      }
+      else {
+        if (findDelimiter()) {
+          if (buildingWord) {
+            buildingWord = false;
+            makeWord();
+            return token;
+          }
+          return token;
+        }
+        buildingWord = true;
+      }
+    }
+    while (buildingWord);
+    throw new IllegalStateException();
+  }
+
+  private boolean findSimpleToken() {
+    if (primativeToken.is(Token.EOF)
+      || primativeToken.is(Token.EOL)
+      || primativeToken.is(Token.WHITESPACE)) {
+      token.set(primativeToken);
+      return true;
+    }
+    else if (primativeToken.equals(Token.SYMBOL, COMMENT_CHAR)) {
+      token.set(Token.COMMENT, COMMENT_CHAR);
+      return true;
+    }
+    else if (primativeToken.equals(Token.SYMBOL, SEPARATOR_CHAR)) {
+      token.set(Token.SEPARATOR, SEPARATOR_CHAR);
+      return true;
+    }
+    else if (primativeToken.equals(Token.SYMBOL, OPEN_CHAR)) {
+      token.set(Token.OPEN, OPEN_CHAR);
+      return true;
+    }
+    else if (primativeToken.equals(Token.SYMBOL, CLOSE_CHAR)) {
+      token.set(Token.CLOSE, CLOSE_CHAR);
+      return true;
+    }
+    else if (primativeToken.equals(Token.SYMBOL, delimiterString)) {
+      //Found a one character DELIMITER.
+      token.set(Token.DELIMITER, delimiterString);
+      return true;
+    }
+    return false;
+  }
+
+  private boolean findDelimiter() throws IOException {
+    int length = delimiterString.length();
+    int index = 0;
+    StringBuffer delimiterBuffer = null;
+    boolean found = false;
+    while (!found
+      && primativeToken.is(Token.SYMBOL) && index < length
+      && delimiterString.indexOf(primativeToken.getValue(), index) == index) {
+      //Build a buffer containing only symbols that could be part of the delimiter
+      if (delimiterBuffer == null) {
+        delimiterBuffer = new StringBuffer(primativeToken.getValue());
+      }
+      else {
+        delimiterBuffer.append(primativeToken.getValue());
+      }
+      if (index == length - 1) {
+        //set found - do not get next primative token
+        found = true;
+      }
+      else {
+        //haven't check the entire delimiter string - get next primative token
+        index++;
+        primativeToken = primative.next();
+      }
+    }
+    if (found) {
+      token.set(Token.DELIMITER, delimiterBuffer);
+      return true;
+    }
+    //delimiter contains only symbols not found in the findSimpleTokens()
+    //delimiter failed - must be a word
+    if (delimiterBuffer == null) {
+      //never went into while loop - stale primative token
+      buildWord();
+      primativeToken = primative.next();
+    }
+    else {
+      buildWord(delimiterBuffer);
+    }
+    return false;
+  }
+
+  private void buildWord() {
+    if (wordBuffer == null) {
+      wordBuffer = new StringBuffer(primativeToken.getValue());
+    }
+    else {
+      wordBuffer.append(primativeToken.getValue());
+    }
+  }
+
+  private void buildWord(StringBuffer buffer) {
+    if (wordBuffer == null) {
+      wordBuffer = new StringBuffer(buffer.toString());
+    }
+    else {
+      wordBuffer.append(buffer);
+    }
+  }
+
+  private void makeWord() {
+    //the entire word is found when the next token is found
+    nextToken.set(token);
+    useNextToken = true;
+    token.set(Token.WORD, wordBuffer);
+    wordBuffer = null;
+    findKeyword();
+  }
+
+  private void findKeyword() {
+    if (token.is(Token.WORD)) {
+      if (token.equals(VERSION_KEYWORD)
+        || token.equals(PIP_KEYWORD)
+        || token.equals(DELIMITER_KEYWORD)) {
+        token.set(Token.KEYWORD); }
+    }
   }
 
 }
