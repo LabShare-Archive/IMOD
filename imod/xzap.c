@@ -34,6 +34,9 @@
     $Revision$
 
     $Log$
+    Revision 3.2  2002/01/28 16:53:59  mast
+    Added section number to call to b3dDrawGreyScalePixelsHQ
+
     Revision 3.1  2001/12/17 18:52:40  mast
     Added hotkeys to do smoothing and next section in autocontouring
 
@@ -1193,7 +1196,7 @@ puts("Got a zap dialog");
 	  
 	  zap->seclabel = XtVaCreateManagedWidget
 	       ("Section", xmTextWidgetClass, tool_row, 
-		XmNcolumns, 3,
+		XmNcolumns, 4,
 		XmNmarginHeight, 2,
 		NULL);
 	  XtAddCallback(zap->seclabel, XmNactivateCallback,
