@@ -12,18 +12,20 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.2  2004/03/17 05:33:15  mast
+c	  Modified for new short value for intensity
+c	
 c	  Revision 3.1  2002/02/26 23:05:32  mast
 c	  Initial addition of file
 c	
 c
 	logical function nbytes_and_flags(nint,nreal)
 	implicit none
-	integer nflags
-	parameter (nflags=5)
-	integer*4 nint,nreal
-	integer*4 nbytes_per_item(nflags)/2, 6, 4, 2, 2/
+	integer*4 nint,nreal,nflags
+	integer*4 nbytes_per_item(32)
 	integer*4 i,nbyte_total,ntmp
 c	  
+	call b3dHeaderItemBytes(nflags, nbytes_per_item)
 	nbyte_total=0
 	ntmp=nreal
 	do i=1,nflags
