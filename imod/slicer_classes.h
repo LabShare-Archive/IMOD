@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.3  2003/12/16 23:54:22  mast
+Move floatspinbox to libdiaqt
+
 Revision 4.2  2003/03/26 17:15:31  mast
 Adjust sizes for font changes
 
@@ -73,6 +76,7 @@ class SlicerWindow : public QMainWindow
   SlicerCube *mCube;
   HotToolBar *mToolBar;
   HotToolBar *mToolBar2;
+  SlicerStruct *mSlicer;
 
   public slots:
     void zoomUp();
@@ -99,7 +103,6 @@ class SlicerWindow : public QMainWindow
 			 int index);
   void setFontDependentWidths();
   
-  SlicerStruct *mSlicer;
   QToolButton *mToggleButs[MAX_SLICER_TOGGLES];
   int mToggleStates[MAX_SLICER_TOGGLES];
   ToolEdit *mZoomEdit;
