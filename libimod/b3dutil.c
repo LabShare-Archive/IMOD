@@ -13,6 +13,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.5  2004/03/18 17:55:32  mast
+Added routine with extra header byte information
+
 Revision 1.4  2004/01/17 20:35:48  mast
 Move file I/O and seek routines here, add rewind routine
 
@@ -313,12 +316,11 @@ int mrc_big_seek(FILE *fp, int base, int size1, int size2, int flag)
 /* A central place to get the list of number of possible extra header items
    and the number of bytes each, including a Fortran wrapper
    nbytes is an array that should be dimensioned to 32 */
-#define FLAG_COUNT 5
 void b3dHeaderItemBytes(int *nflags, int *nbytes)
 {
-  int extra_bytes[FLAG_COUNT] = {2, 6, 4, 2, 2};
+  b3dByte extra_bytes[] = {2, 6, 4, 2, 2, 4, 2, 4, 2, 4, 2};
   int i;
-  *nflags = FLAG_COUNT;
+  *nflags = sizeof(extra_bytes);
   for (i = 0; i < *nflags; i++)
     nbytes[i] = extra_bytes[i];
 }
