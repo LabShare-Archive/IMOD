@@ -1773,12 +1773,12 @@ int b3dSnapshot_TIF(char *fname, int rgbmode, int *limits,
     return 1;
   }
 
+
+  // 11/1/04: fix to allow 3 more words (2 front of the image, 1 after)
   ifd = xysize;
   if (depth > 8 || rgbmode)
     ifd *= 3;
-  ifd /= 4;
-  ifd += 1;
-  ifd *= 4;
+  ifd = 4 * ((ifd + 3) / 4 + 3);
 
   if (!fwrite(&ifd, 4, 1, fout)){
     fclose(fout);
@@ -1914,6 +1914,9 @@ int b3dSnapshot(char *fname)
 
 /*
 $Log$
+Revision 4.22  2004/10/04 18:29:01  mast
+Changed snapshot functions to give error returnd
+
 Revision 4.21  2004/09/10 02:31:03  mast
 replaced long with int
 
