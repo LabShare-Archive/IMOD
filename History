@@ -1,6 +1,12 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-10/1/03: IMOD_3-0-21
+10/2/03: IMOD_3-0-21
+10/2/03: Modified Rotatevol, Matchvol, and Warpvol to work on volumes up to 
+16K in any dimension; Rotatevol was failing for an output X/Y size of 4K by 4K.
+
+10/1/03: Made imodinfo work properly for counting scattered points on subsets
+of the volume.
+
 10/1/03: Added message for opening bead fixer window.
 
 10/1/03: Added ability to turn a plugin into an internal module that is added
