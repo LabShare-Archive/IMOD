@@ -280,7 +280,7 @@ dist : ALWAYS
 cygdist : ALWAYS
 	if (-e $(ARCDIR)) /bin/rm -rf $(ARCDIR)/
 	if (! (-e $(ARCDIR)))  mkdir $(ARCDIR)
-	setup -inst $(ARCDIR) $(SETUP_OPTIONS)
+	./setup -inst $(ARCDIR) $(SETUP_OPTIONS)
 	(cd dist ; \find . -type f -name "*~" -exec rm "{}" \;)
 	($(MAKE) cyginstall)
 	\cp -r dist/* $(ARCDIR)/
@@ -364,6 +364,9 @@ ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.18  2003/08/10 02:18:35  mast
+#  Add hidden files to Etomo source
+#
 #  Revision 3.17  2003/08/10 02:05:01  mast
 #  Added etomo to the src make, fixed this make from 3dmod name change
 #
