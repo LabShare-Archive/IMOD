@@ -17,6 +17,9 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2002/08/01 00:29:01  mast
+    Increased array sizes to 10000
+
 */
 
 #define MSIZ 10000
@@ -78,8 +81,8 @@ int gaussj(float *a, int n, int np, float *b, int m, int mp)
 	  for (l = 0; l < m; l++)
 	       b[icolum*mp+l]=b[icolum*mp+l]/pivotmp;
 	  for (l1 = 0; l1 < n; l1++) {
-	       if(l1 != icolum) {
-		    t=a[l1*np+icolum];
+	       t=a[l1*np+icolum];
+	       if (t != 0. && l1 != icolum) {
 		    a[l1*np+icolum]=0.;
 		    for (l = 0; l < n; l++) 
 			 a[l1*np+l]=a[l1*np+l]-a[icolum*np+l]*t;
