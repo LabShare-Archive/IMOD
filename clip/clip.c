@@ -43,7 +43,7 @@ void usage(void)
   fprintf(stderr, "\nprocess:\n");
   /*     fprintf(stderr, "\tadd         - add images together.(future)\n"); */
   fprintf(stderr, "\taverage     - average files together.\n");
-  fprintf(stderr, "\tbrighten    - Increase or decrease brightness.\n");
+  fprintf(stderr, "\tbrightness  - Increase or decrease brightness.\n");
   fprintf(stderr, "\tcolor       - add false color.\n");
   fprintf(stderr, "\tcontrast    - Increase or decrease contrast.\n");
   fprintf(stderr, "\tcorrelation - do a auto/cross correlation.\n");
@@ -597,6 +597,9 @@ int *clipMakeSecList(char *clst, int *nofsecs)
 
 /*
 $Log$
+Revision 3.11  2005/01/07 20:06:52  mast
+Added various filters including simple 3dmod ones and median filter
+
 Revision 3.10  2004/11/04 17:04:21  mast
 Switched to producing and using non-mirrored FFTs
 
