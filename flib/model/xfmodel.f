@@ -24,6 +24,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.9  2004/03/22 15:33:30  mast
+c	  Had to declare lnblnk
+c	
 c	  Revision 3.8  2004/03/22 05:37:17  mast
 c	  Added mag gradient corrections, resolved some problems with
 c	  back-transforming with distortion corrections.
@@ -67,9 +70,7 @@ c	real*4 delt(3)
 	parameter (idim=400)
 	parameter (lmGrid = 200)
 	include 'statsize.inc'
-	real*4 xr(msiz,idim), sx(msiz), xm(msiz), sd(msiz)
-     &	    , ss(msiz,msiz), ssd(msiz,msiz), d(msiz,msiz), r(msiz,msiz)
-     &	    , b(msiz), b1(msiz)
+	real*4 xr(msiz,idim)
 	character*120 modelfile,newmodel,oldxfgfile,oldxffile,newxffile,idfFile
 	character*120 magGradFile
 	logical gotthis,gotlast,exist,readw_or_imod
@@ -85,8 +86,8 @@ c
 	real*4 ximscale, yimscale, zimscale,zz,zdex,zthis,zlast
 	integer*4 nundefine,iobj,ipt,iz,nfgin,indind,izmin,izmax,ibase
 	integer*4 lastsec,npnts,iobject,ninobj,ipnt,isol,ipntmax,j
-	real*4 const,rsq,fra,theta,sinth,costh,gmag,devsum,devmax
-	real*4 xdev,ydev,devpnt,devavg,xx,yy,xlast,ylast,xnew,ynew
+	real*4 const,rsq,fra,theta,sinth,costh,gmag,devmax
+	real*4 xdev,ydev,devpnt,devavg,devsd,xx,yy,xlast,ylast,xnew,ynew
 	integer*4 loop,noldg,izsec,il,indobj,maxx,maxy,maxz, ifBack, iter
 	integer*4 lineUse, lineToUse, ifMagGrad
 	logical done
@@ -814,84 +815,15 @@ c		  x and y
 c		  save results in xform for izsec
 c
 		indf=indfl(izsec+1-listz(1))
-		if(indf.le.0)go to 93
-		if(ifrotrans.eq.0)then
-		  do isol=1,2
-		    if(iftrans.eq.0)then
-c
-c			move 4th or 5th column into 3rd for regression
-c		      
-		      do i=1,npnts
-			xr(3,i)=xr(3+isol,i)
-		      enddo
-		      call multr(xr,3,npnts,sx,ss,ssd,d,r,xm,sd,b,b1,
-     &			  const, rsq ,fra)
-		      f(isol,1,indf)=b1(1)
-		      f(isol,2,indf)=b1(2)
-		    else
-c		      
-c			or, if getting translations only, find difference in
-c			means for X or Y
-c
-		      const=0.
-		      do i=1,npnts
-			const=const+xr(3+isol,i)-xr(isol,i)
-		      enddo
-		      const=const/npnts
-		    endif
-		    f(isol,3,indf)=const
-		  enddo
-		else
-c
-c		    or find rotations and translations only by getting means
-c		    and sums of squares and cross-products of deviations
-c
-		  call correl(xr,5,npnts,sx,ss,ssd,d,r,xm,sd,1)
-		  theta=atan(-(ssd(2,4)-ssd(1,5))/(ssd(1,4)+ssd(2,5)))
-		  sinth=sin(theta)
-		  costh=cos(theta)
-		  if(ifrotrans.eq.2)then
-		    gmag=((ssd(1,4)+ssd(2,5))*costh
-     &			-(ssd(2,4)-ssd(1,5))*sinth)/(ssd(1,1)+ssd(2,2))
-		    sinth=sinth*gmag
-		    costh=costh*gmag
-		  endif
-		  f(1,1,indf)=costh
-		  f(1,2,indf)=-sinth
-		  f(2,1,indf)=sinth
-		  f(2,2,indf)=costh
-		  f(1,3,indf)=xm(4)-xm(1)*costh+xm(2)*sinth
-		  f(2,3,indf)=xm(5)-xm(1)*sinth-xm(2)*costh
+		if(indf.le.0)then
+		  print *
+		  print *,'ERROR: XFMODEL - z value out of range for ',
+     &		      'transforms: ',zz
+		  call exit(1)
 		endif
-c		  
-c		  compute mean and max deviation between points in adjacent
-c		  sections after the transformation is applied
-c		  
-		devsum=0.
-		devmax=-1.
-		do ipnt=1,npnts
-		  call xfapply(f(1,1,indf),0.,0.,xr(1,ipnt),xr(2,ipnt),xx,
-     &		      yy)
-		  xdev=xr(4,ipnt)-xx
-		  ydev=xr(5,ipnt)-yy
-		  devpnt=sqrt(xdev**2+ydev**2)
-		  xr(8,ipnt)=xr(4,ipnt)+xcen
-		  xr(9,ipnt)=xr(5,ipnt)+ycen
-		  xr(10,ipnt)=xdev
-		  xr(11,ipnt)=ydev
-		  if(abs(xdev).gt.1.e-6.and.abs(ydev).gt.1.e-6)then
-		    xr(12,ipnt)=atan2d(ydev,xdev)
-		  else
-		    xr(12,ipnt)=0.
-		  endif
-		  xr(13,ipnt)=devpnt
-		  devsum=devsum+devpnt
-		  if(devpnt.gt.devmax)then
-		    devmax=devpnt
-		    ipntmax=ipnt
-		  endif
-		enddo
-		devavg=devsum/npnts
+c
+		call findxf(xr,npnts,xcen,ycen,iftrans,ifrotrans,2,f(1,1,indf),
+     &		    devavg, devsd,devmax,ipntmax)
 C
 c		  keep track of the highest & lowest transforms obtained
 c
@@ -926,10 +858,6 @@ c
 	call exit(0)
 91	call errorexit('reading model file')
 92	call errorexit('reading old f/g file')
-93	print *
-	print *,'ERROR: XFMODEL - z value out of range for ',
-     &	    'transforms: ',zz
-	call exit(1)
 94	call errorexit('writing out f file')
 	end
 
