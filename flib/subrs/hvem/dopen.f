@@ -23,29 +23,26 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.1  2002/10/23 21:27:02  mast
+c	  Added check for existence of old file, and err= clauses to open
+c	  statements, to get a good error output and exit with error
+c	
 C------------------------------------------------------
 	SUBROUTINE DOPEN(IUNIT,FNAME,ITYPE,IFORM)
+	logical exist
 	CHARACTER*(*) FNAME,ITYPE
 	CHARACTER*1 IFORM
 	CHARACTER*11 FORMAT
 	CHARACTER*120 FULLNAM
-c       add definition of concat subroutine from hvem directory
-        character*80 concat
+	integer*4 imodBackupFile
 c	  
 c	  special for unix/SGI: if 'NEW' and file exists, rename to file~
+c	  DNM 10/20/03: changed to call subroutine, and clean up old stuff
 c
-	logical exist
-	integer rename
 	if(itype.eq.'NEW'.or.itype.eq.'new')then
-	  inquire(file=fname,exist=exist)
-	  if(exist)then
-	    namlen=lnblnk(fname)
-c	    CER patch up string concatenation issue
-c	    ierr=rename(fname,fname(1:namlen)//'~')
-	    ierr=rename(fname,concat(fname(1:namlen),'~'))
+	  ierr = imodBackupFile(fname)
 	    if(ierr.ne.0)write(6,*)
-     &		' Error attempting to rename existing file'
-	  endif
+     &		' WARNING: dopen - Error attempting to rename existing file'
 	endif
 c
 c	  check existence of old file to get a nice error message
