@@ -1680,15 +1680,10 @@ int ivwLoadImage(ImodView *iv)
   zsize = iv->li->zmax - iv->li->zmin + 1;
   xysize = xsize * ysize;
   
-  /* load image data into contiguous memory, if possible
-     If not flipped, split it up at the 2 GB limit
-     If flipped, need to be contiguous to avoid trying to allocate double
-     memory.  In this case let it go and see if it fails later */
+  /* DNM 9/25/03: it probably no longer matters if data are ever contiguous
+     so switch to noncontiguous for anything above 1 GB */
   iv->li->contig = 1; 
-  if (iv->li->axis == 2) {
-    if (4200000000 / xysize < zsize)
-      iv->li->contig = 0;
-  } else if (2000000000 / xysize < zsize)
+  if (1000000000 / xysize < zsize)
     iv->li->contig = 0;
   /*printf("contig = %d  axis = %d  xysize %d  % dzsize %d \n", iv->li->contig,
     iv->li->axis, xysize, 4200000000 / xysize, zsize); */
@@ -2187,6 +2182,9 @@ int  ivwGetObjectColor(ImodView *inImodView, int inObject)
 
 /*
 $Log$
+Revision 4.13  2003/09/24 17:33:31  mast
+Add setting of info window geometry as soon as image size is known
+
 Revision 4.12  2003/09/18 00:42:43  mast
 Fixed an error message
 
