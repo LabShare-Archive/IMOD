@@ -120,7 +120,7 @@ The easiest thing to do is to install to our recommended location,
   <dd>If you want to install at another location, change <code>/usr/local/IMOD</code> to the name of the top IMOD directory in the relevant <code>IMOD-*.*</code> files and in the source command placed in <code>/etc/cshrc</code> on an SGI.</dd>
 </dl>
 <dl>
-  <dd>If you do not want a system wide installation, instead of step 9 above, then under Linux, place the following in &nbsp;the <code>.cshrc</code> files of individual users of <code>tcsh</code> (where &lt;locationof IMOD&gt; is the absolute path to the IMOD directory):</dd>
+  <dd>If you do not want a system wide installation, instead of step 9 above, then under Linux, place the following in the <code>.cshrc</code> files of individual users of <code>tcsh</code> (where &lt;locationof IMOD&gt; is the absolute path to the IMOD directory):</dd>
   <dd><code>setenv IMOD_DIR &lt;location of IMOD&gt;</code></dd>
   <dd><code>if (-e $IMOD_DIR/IMOD-linux.csh) source $IMOD_DIR/IMOD-linux.csh<br>
     </code></dd>
@@ -137,7 +137,7 @@ copy of IMOD, cd to the top IMOD directory and, on Linux under <code>tcsh</code>
   <code>setenv IMOD_DIR `pwd`<br>
 source IMOD-linux.csh<br>
   </code><br>
-and similarly on the SGI, sourcing <code>IMOD-sgi.sh</code>. &nbsp;On Linux under <code>bash</code>, enter:<br>
+and similarly on the SGI, sourcing <code>IMOD-sgi.sh</code>.  On Linux under <code>bash</code>, enter:<br>
   <code>export IMOD_DIR=`pwd`<br>
 source IMOD-linux.sh</code></blockquote>
 <dl>
