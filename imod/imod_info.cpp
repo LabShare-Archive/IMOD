@@ -325,6 +325,7 @@ bool InfoWindow::event(QEvent *e)
 // Enable menu items based on new information
 void InfoWindow::manageMenus()
 {
+  bool imageOK = !(App->cvi->fakeImage || App->cvi->rawImageStore);
   mFileMenu->setItemEnabled(FILE_MENU_TIFF, App->cvi->rawImageStore != 0);
   mEImageMenu->setItemEnabled(EIMAGE_MENU_FILLCACHE, 
 			      App->cvi->vmSize != 0 || App->cvi->nt > 0);
@@ -332,8 +333,9 @@ void InfoWindow::manageMenus()
 			      App->cvi->vmSize != 0 || App->cvi->nt > 0);
   mImageMenu->setItemEnabled(IMAGE_MENU_SLICER, App->cvi->rawImageStore == 0);
   mImageMenu->setItemEnabled(IMAGE_MENU_XYZ, App->cvi->rawImageStore == 0);
-  if (App->cvi->fakeImage || App->cvi->rawImageStore) {
+  if (!imageOK) {
     ImodInfoWidget->setFloat(-1);
+    mEImageMenu->setItemEnabled(EIMAGE_MENU_PROCESS, false);
     mImageMenu->setItemEnabled(IMAGE_MENU_GRAPH, false);
     mImageMenu->setItemEnabled(IMAGE_MENU_TUMBLER, false);
     mImageMenu->setItemEnabled(IMAGE_MENU_PIXEL, false);
@@ -342,7 +344,7 @@ void InfoWindow::manageMenus()
   // These are run-time items.  If more instances appear this should be
   // split into initial and runtime calls
   mEImageMenu->setItemEnabled(EIMAGE_MENU_FLIP, !iprocBusy());
-  mEImageMenu->setItemEnabled(EIMAGE_MENU_RELOAD, !iprocBusy());
+  mEImageMenu->setItemEnabled(EIMAGE_MENU_RELOAD, !iprocBusy() && imageOK);
 }
 
 
@@ -380,6 +382,7 @@ void InfoWindow::timerEvent(QTimerEvent *e)
 
 void InfoWindow::openSelectedWindows(char *keys)
 {
+  bool imageOK = !(App->cvi->fakeImage || App->cvi->rawImageStore);
   if (!keys)
     return;
   if (strchr(keys, 't'))
@@ -402,21 +405,21 @@ void InfoWindow::openSelectedWindows(char *keys)
     editContourSlot(ECONTOUR_MENU_JOIN);
   if (strchr(keys, 'c'))
     editContourSlot(ECONTOUR_MENU_COPY);
-  if (strchr(keys, 'p'))
+  if (strchr(keys, 'p') && imageOK)
     editImageSlot(EIMAGE_MENU_PROCESS);
-  if (strchr(keys, 'r'))
+  if (strchr(keys, 'r') && imageOK)
     editImageSlot(EIMAGE_MENU_RELOAD);
-  if (strchr(keys, 'f'))
+  if (strchr(keys, 'f') && (App->cvi->vmSize != 0 || App->cvi->nt > 0))
     editImageSlot(EIMAGE_MENU_FILLER);
-  if (strchr(keys, 'g'))
+  if (strchr(keys, 'g') && imageOK)
     imageSlot(IMAGE_MENU_GRAPH);
-  if (strchr(keys, 'u'))
+  if (strchr(keys, 'u') && imageOK)
     imageSlot(IMAGE_MENU_TUMBLER);
-  if (strchr(keys, 'x'))
+  if (strchr(keys, 'x') && imageOK)
     imageSlot(IMAGE_MENU_PIXEL);
   if (strchr(keys, 'T'))
     imodPlugOpenByName("Line Track");
-  if (strchr(keys, 'F'))
+  if (strchr(keys, 'F') && imageOK)
     imodPlugOpenByName("Bead Fixer");
 }
 
@@ -517,6 +520,9 @@ static char *truncate_name(char *name, int limit)
 
 /*
     $Log$
+    Revision 4.29  2004/11/21 05:59:42  mast
+    Rationalized key letters for opening windows
+
     Revision 4.28  2004/11/20 05:05:27  mast
     Changes for undo/redo capability
 
