@@ -15,6 +15,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.1  2002/07/26 19:16:29  mast
+#  Added dependency on fbpswitch.inc
+#
 
 include ../configure
 
@@ -29,6 +32,7 @@ libfbp.a: fbplib/*.f
 
 nolibfbp.a: nolibfbp.o
 	ar cr nolibfbp.a nolibfbp.o
+	ranlib nolibfbp.a
 
 handnox.o: handnox.s
 handxtilt.o: handxtilt.s
@@ -42,5 +46,5 @@ install: tilt
 
 clean:
 	(cd fbplib ; $(MAKE) clean)
-	-\rm -f *.o *.a *~ tilt fasttilt
+	-\rm -f *.o *.a *~ tilt
 
