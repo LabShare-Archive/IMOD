@@ -7,6 +7,9 @@ include ../configure
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.9  2004/03/11 18:46:16  mast
+#  Added matchrotpairs
+#
 #  Revision 3.8  2003/10/24 02:03:50  mast
 #  Add the sourceable file to set tmpdir
 #
@@ -37,7 +40,7 @@ SCRIPTS = copytomocoms finishjoin makejoincom matchorwarp matchshifts\
  newst onepatchcorr patchcorr3d patchcrawl3d recombine reduceby2 selfalign\
  setupcombine setupcoms setuplong splitmrc squeezevol trimvol xf2xg xfalign\
  dm2mrc alignlog transferfid submfg imodpsview settmpdir matchrotpairs\
- $(GENERATED_SCRIPTS)
+ chunksetup $(GENERATED_SCRIPTS)
 
 all:
 
