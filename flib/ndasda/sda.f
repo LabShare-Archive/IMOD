@@ -5,6 +5,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.2  2003/08/08 16:41:16  mast
+c	  Added option to export graph
+c	
 c	  Revision 3.1  2002/07/07 04:42:13  mast
 c	  Remove extra argument from one call to getbinspec
 c	
@@ -14,6 +17,11 @@ c	  KNOWN BUG: It will not work on data with a zscale value modeled on
 c	  a data stack flipped inside IMOD.  Make a flipped volume BEFORE
 c	  modeling.
 c
+	call plax_initialize('sda')
+	call exit(0)
+	end
+
+	subroutine realgraphicsmain()
 	include 'sda.inc'
 	parameter (limgraphs=50,limbins=301,limregion=200,itypall=999)
 	parameter (limtyp=50,limrand=1000)

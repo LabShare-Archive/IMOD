@@ -152,7 +152,20 @@ c	  appended to the file.
 c	  
 c	  
 c	  David Mastronarde  1/23/90
+c
+c	  $Author$
+c
+c	  $Date$
+c
+c	  $Revision$
+c
+c	  $Log$
 
+	call plax_initialize('avgstatplot')
+	call exit(0)
+	end
+
+	subroutine realgraphicsmain()
 	parameter (limarea=5000,limset=400,limdat=100000)
 	real*4 avg(limarea,limset),sd(limarea,limset)
      &	    ,sem(limarea,limset),xx(limdat),yy(limdat),semadd(limdat),

@@ -233,6 +233,19 @@ c	  examples (these files may call this program "COMSYMP").
 c	  
 c	  David Mastronarde 1993
 c
+c	  $Author$
+c
+c	  $Date$
+c
+c	  $Revision$
+c
+c	  $Log$
+c
+	call plax_initialize('mtpairing')
+	call exit(0)
+	end
+
+	subroutine realgraphicsmain()
 	parameter (limbun=200,limmt=10000,limdsp=2000,limtyp=60)
 	parameter (limpt=1000000,limpair=20000,limclust=600,limgrf=90)
 	real*4 zstrt(limmt),zend(limmt),datdisp(3,limdsp)

@@ -13,7 +13,16 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.2  2003/08/08 17:56:05  mast
+c	  Added ability to start with no model, added option to export graph,
+c	  made general changes in terminology, added report of object names
+c	
 c
+	call plax_initialize('mtk')
+	call exit(0)
+	end
+
+	subroutine realgraphicsmain()
 	parameter (limgraphs=50,limbins=301,limwobj=30000,limxyz=100000,
      &	    limregion=200,itypall=999)
 	parameter (limtyp=50,limrand=1000,limflag=512)

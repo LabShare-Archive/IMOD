@@ -19,6 +19,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.3  2003/08/08 16:38:17  mast
+c	  Allow startup without model file and add export option
+c	
 c	  Revision 3.2  2002/07/07 04:42:24  mast
 c	  Remove extra argument from one call to getbinspec
 c	
@@ -26,6 +29,11 @@ c	  Revision 3.1  2002/06/05 21:09:56  mast
 c	  Pass size of vertex array to get_boundary_obj
 c	
 c
+	call plax_initialize('nda')
+	call exit(0)
+	end
+
+	subroutine realgraphicsmain()
 	parameter (limgraphs=50,limbins=301,limpnts=50000,
      &	    limvert=5000,limregion=200,itypall=999)
 	parameter (limtyp=50,limrand=1000)

@@ -368,6 +368,19 @@ c	  .        at the bottom of each set to obviate need to invert drawing
 c	  6/14/96: added plotting output
 c	  4/28/97: changes for IMOD models
 c
+c	  $Author$
+c
+c	  $Date$
+c
+c	  $Revision$
+c
+c	  $Log$
+c
+	call plax_initialize('mtoverlap')
+	call exit(0)
+	end
+
+	subroutine realgraphicsmain()
 	parameter (limbun=200,limmt=10000,limdsp=2000,limtyp=60)
 	parameter (limpt=1000000,limgrf=60)
 	real*4 zstrt(limmt),zend(limmt),center(limbun),datdisp(3,limdsp)

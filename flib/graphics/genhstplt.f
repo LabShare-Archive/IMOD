@@ -159,10 +159,18 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.2  2003/08/12 19:53:46  mast
+c	  Initialize iflogxin to 0, needed on Mac
+c	
 c	  Revision 3.1  2002/01/28 16:06:05  mast
 c	  Added ability to select data based on values in columns
 c	
 
+	call plax_initialize('genhstplt')
+	call exit(0)
+	end
+
+	subroutine realgraphicsmain()
 	parameter (len=100000,leng=5000)
 	dimension dmat(len*10),xx(len),ngx(len),zz(len)
      1,yy(len),itype(len),itgrp(50,50),nsymb(50),ntypg(50)
@@ -176,6 +184,7 @@ c
 	ncol=2
 	nskip=0
 	iflogxin=0
+	nx = 0
 	zadd=0
 	nselect=0
 5	continue
@@ -303,13 +312,13 @@ c
 50	write(*,104)
 104	format(' Enter 1 for new column,',
      &	    '   2 for plot of this column versus previous column,',/,
-     &	    '       3 for X/Y plot of averages of groups of points'
+     &	    '       3 for X/Y plot of averages of groups of points',
      &	    ' or 11 with column ratios',/,
      &	    '       4 to define new groups/symbols,',
      &	    '   5 to open a new file,',/,
      &	    '       6 or 7 to plot metacode file on screen or printer,',
      &	    '   8 to exit program,',/,
-     &	    '       9 for Tukey box plots,'
+     &	    '       9 for Tukey box plots,',
      &	    '   10 for X/Y plot with error bars using S.D.''s,',/,
      &	    '       12 to set columns to select on')
 	read(5,*)iopt
