@@ -1,6 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-7/16/03: Fixed problem with the 3D model of finducials created by Tiltalign 
+7/16/03: Fixed problem with the 3D model of fiducials created by Tiltalign 
 cause by the "view" changes of 6/26/03, and changed 3dmodv back to recomputing
 scaling and center for the current view when first displaying a model.
 
