@@ -23,6 +23,9 @@ import etomo.type.TiltAngleSpec;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.9  2005/01/12 00:41:12  sueh
+ * <p> bug# 579 Make localAlignments available to the Command interface.
+ * <p>
  * <p> Revision 3.8  2005/01/11 20:15:25  sueh
  * <p> bug# 567 Added fixXYZCoordinates, localMagReferenceView, and
  * <p> localOutputOptions.
@@ -153,7 +156,7 @@ public class ConstTiltalignParam implements Command {
   protected String outputTiltFile;
   protected String outputTransformFile;
   protected String outputZFactorFile;
-  protected StringList includeStartEndInc;
+  protected FortranInputString includeStartEndInc;
   protected StringList includeList;
   protected StringList excludeList;
   protected EtomoNumber rotationAngle;
@@ -284,7 +287,8 @@ public class ConstTiltalignParam implements Command {
     outputTiltFile = "";
     outputTransformFile = "";
     outputZFactorFile = "";
-    includeStartEndInc = new StringList();
+    includeStartEndInc = new FortranInputString(3);
+    includeStartEndInc.setIntegerType(new boolean[] {true, true, true});
     includeList = new StringList();
     excludeList = new StringList();
     rotationAngle.reset();
@@ -380,7 +384,7 @@ public class ConstTiltalignParam implements Command {
   }
 
   public boolean isExcludeListAvailable() {
-    return includeStartEndInc.getNElements() == 0 && includeList.getNElements() == 0;
+    return includeStartEndInc.isDefault() && includeList.getNElements() == 0;
   }
 
   

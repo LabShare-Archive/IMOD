@@ -16,6 +16,11 @@ import etomo.type.EtomoNumber;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.10  2005/01/11 20:18:15  sueh
+ * <p> bug# 567 Added fixXYZCoordinates, localMagReferenceView, and
+ * <p> localOutputOptions.  In updateComScriptCommand(), changed the order
+ * <p> of updates to match the align.com file coming from copytomocoms.
+ * <p>
  * <p> Revision 3.9  2005/01/11 01:00:36  sueh
  * <p> bug# 567 Getting outputModelAndResidual, in case we want to
  * <p> use it.
@@ -155,8 +160,8 @@ public class TiltalignParam extends ConstTiltalignParam implements CommandParam 
       outputTiltFile = scriptCommand.getValue(outputTiltFileString);
       outputTransformFile = scriptCommand.getValue(outputTransformFileString);
       outputZFactorFile = scriptCommand.getValue(outputZFactorFileString);
-      includeStartEndInc.parseString(scriptCommand
-          .getValue(includeStartEndIncString));
+      ParamUtilities.setParamIfPresent(scriptCommand,
+          includeStartEndIncString, includeStartEndInc);
       includeList.parseString(scriptCommand.getValue(includeListString));
       excludeList.parseString(scriptCommand.getValue(excludeListString));
       rotationAngle.set(scriptCommand);
