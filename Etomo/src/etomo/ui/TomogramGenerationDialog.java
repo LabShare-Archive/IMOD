@@ -18,6 +18,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.7  2004/03/30 17:43:16  sueh
+ * bug# 409 adding tooltips to new fields
+ *
  * Revision 3.6  2004/03/29 20:57:09  sueh
  * bug# 409 added actions for MTF Filter buttons, shortened screen by putting some
  * numeric fields side-by-side, stopped recreating the panel each time Basic/Advanced
@@ -336,8 +339,8 @@ public class TomogramGenerationDialog
   //MTF Filter
   private JPanel pnlFilter = new JPanel();
   private EtchedBorder filterBorder = new EtchedBorder("MTF Filtering");
-  private LabeledTextField ltfHighFrequencyRadiusSigma =
-    new LabeledTextField("High frequency rolloff (radius,sigma): ");
+  private LabeledTextField ltfLowPassRadiusSigma =
+    new LabeledTextField("Low pass (radius,sigma): ");
   private JPanel pnlInverseFilter = new JPanel();
   private EtchedBorder inverseFilterBorder =
     new EtchedBorder("Inverse Filtering Parameters: ");
@@ -732,8 +735,7 @@ public class TomogramGenerationDialog
 
   public void getMTFFilterParam(MTFFilterParam mtfFilterParam)
     throws FortranInputSyntaxException {
-    mtfFilterParam.setHighFrequencyRadiusSigma(
-      ltfHighFrequencyRadiusSigma.getText());
+    mtfFilterParam.setLowPassRadiusSigma(ltfLowPassRadiusSigma.getText());
     mtfFilterParam.setMtfFile(ltfMtfFile.getText());
     mtfFilterParam.setMaximumInverse(ltfMaximumInverse.getText());
     mtfFilterParam.setInverseRolloffRadiusSigma(
@@ -743,8 +745,8 @@ public class TomogramGenerationDialog
   public void setMTFFilterParam(ConstMTFFilterParam mtfFilterParam) {
     ltfMtfFile.setText(mtfFilterParam.getMtfFile());
     ltfMaximumInverse.setText(mtfFilterParam.getMaximumInverseString());
-    ltfHighFrequencyRadiusSigma.setText(
-      mtfFilterParam.getHighFrequencyRadiusSigmaString());
+    ltfLowPassRadiusSigma.setText(
+      mtfFilterParam.getLowPassRadiusSigmaString());
     ltfInverseRolloffRadiusSigma.setText(
       mtfFilterParam.getInverseRolloffRadiusSigmaString());
   }
@@ -839,7 +841,7 @@ public class TomogramGenerationDialog
   protected void layoutFilterPanel() {
     pnlFilter.setBorder(filterBorder.getBorder());
     pnlFilter.setLayout(new BoxLayout(pnlFilter, BoxLayout.Y_AXIS));
-    pnlFilter.add(ltfHighFrequencyRadiusSigma.getContainer());
+    pnlFilter.add(ltfLowPassRadiusSigma.getContainer());
     pnlFilter.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlInverseFilter.setLayout(
       new BoxLayout(pnlInverseFilter, BoxLayout.Y_AXIS));
@@ -1005,9 +1007,9 @@ public class TomogramGenerationDialog
     text = "Open the complete aligned stack in 3dmod";
     btn3dmodFull.setToolTipText(tooltipFormatter.setText(text).format());
     if (autodoc != null) {
-      text = TooltipFormatter.getText(autodoc, "HighFrequencyRadiusSigma");
+      text = TooltipFormatter.getText(autodoc, "LowPassRadiusSigma");
       if (text != null) {
-        ltfHighFrequencyRadiusSigma.setToolTipText(
+        ltfLowPassRadiusSigma.setToolTipText(
           tooltipFormatter.setText(text).format());
       }
       text = TooltipFormatter.getText(autodoc, "MtfFile");
