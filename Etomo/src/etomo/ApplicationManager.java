@@ -13,6 +13,7 @@ import etomo.comscript.ComScriptManager;
 import etomo.comscript.CombineComscriptState;
 import etomo.comscript.CombineParams;
 import etomo.comscript.ConstCombineParams;
+import etomo.comscript.ConstNewstParam;
 import etomo.comscript.ConstSetParam;
 import etomo.comscript.ConstSqueezevolParam;
 import etomo.comscript.ConstTiltalignParam;
@@ -86,6 +87,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.116  2005/01/05 18:53:12  sueh
+ * <p> bug# 578 Pass tiltalign to processManager.fineAlignment() by passing it
+ * <p> back from updateAlignCom().
+ * <p>
  * <p> Revision 3.115  2004/12/28 23:40:35  sueh
  * <p> bug# 567 In updateTiltCom(), adapt to new TiltalignParam names and types.
  * <p>
@@ -2684,7 +2689,7 @@ public class ApplicationManager extends BaseManager {
       if (!updateFiducialessParams(tomogramPositioningDialog, axisID)) {
         return;
       }
-      if (!updateNewstCom(tomogramPositioningDialog, axisID)) {
+      if (updateNewstCom(tomogramPositioningDialog, axisID) == null) {
         return;
       }
 
@@ -2800,7 +2805,8 @@ public class ApplicationManager extends BaseManager {
     if (!updateFiducialessParams(tomogramPositioningDialog, axisID)) {
       return;
     }
-    if (!updateNewstCom(tomogramPositioningDialog, axisID)) {
+    ConstNewstParam newstParam = updateNewstCom(tomogramPositioningDialog, axisID); 
+    if (newstParam == null) {
       return;
     }
     if (!updateSampleTiltCom(axisID)) {
@@ -2830,7 +2836,7 @@ public class ApplicationManager extends BaseManager {
     nextProcess = "tilt";
     String threadName;
     try {
-      threadName = processMgr.newst(axisID);
+      threadName = processMgr.newst(newstParam, axisID);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
@@ -3085,7 +3091,7 @@ public class ApplicationManager extends BaseManager {
    * @param axisID
    * @return
    */
-  private boolean updateNewstCom(
+  private ConstNewstParam updateNewstCom(
     TomogramPositioningDialog tomogramPositioningDialog, AxisID axisID) {
 
     //  Get the whole tomogram positions state
@@ -3096,13 +3102,14 @@ public class ApplicationManager extends BaseManager {
     try {
       // Make sure the size output is removed, it was only there as a 
       // copytomocoms template
+      newstParam.setCommandMode(NewstParam.WHOLE_TOMOGRAM_SAMPLE_MODE);
       newstParam.setSizeToOutputInXandY("/");
     }
     catch (FortranInputSyntaxException e) {
       e.printStackTrace();
     }
     comScriptMgr.saveNewst(newstParam, axisID);
-    return true;
+    return newstParam;
   }
   
   /**
@@ -3202,6 +3209,28 @@ public class ApplicationManager extends BaseManager {
       bufferedWriter.close();
     }
   }
+  
+  public void enableZFactors(AxisID axisID) {
+    TomogramGenerationDialog tomogramGenerationDialog = mapGenerationDialog(axisID);
+    if (tomogramGenerationDialog == null) {
+      return;
+    }
+    boolean madeZFactors;
+    if (state.getMadeZFactors().isNull()) {
+      madeZFactors = state.getBackwordCompatibleMadeZFactors(axisID);
+    }
+    else {
+      madeZFactors = state.getMadeZFactors().is();
+    }
+    boolean newstFiducialessAlignment;
+    if (state.getNewstFiducialessAlignment().isNull()) {
+      newstFiducialessAlignment = state.getBackwordCompatibleNewstFiducialessAlignment(axisID);
+    }
+    else {
+      newstFiducialessAlignment = state.getNewstFiducialessAlignment().is();
+    }
+    tomogramGenerationDialog.enableUseZFactors(madeZFactors && !newstFiducialessAlignment);
+  }
 
   /**
    * Open the tomogram generation dialog
@@ -3269,6 +3298,7 @@ public class ApplicationManager extends BaseManager {
     //  Set the fidcialess state and tilt axis angle
     tomogramGenerationDialog.setFiducialessAlignment(metaData.isFiducialessAlignment());
     tomogramGenerationDialog.setTiltAxisAngle(metaData.getImageRotation(axisID));
+    enableZFactors(axisID);
 
     mainPanel.showProcess(tomogramGenerationDialog.getContainer(), axisID);
   }
@@ -3291,16 +3321,16 @@ public class ApplicationManager extends BaseManager {
     }
     else {
       //  Get the user input data from the dialog box
-      if (!updateNewstCom(axisID)) {
+      if (!updateFiducialessParams(tomogramGenerationDialog, axisID)) {
+        return;
+      }
+      if (updateNewstCom(axisID) == null) {
         return;
       }
       if (!updateTiltCom(axisID, true)) {
         return;
       }
       if (!updateMTFFilterCom(axisID)) {
-        return;
-      }
-      if (!updateFiducialessParams(tomogramGenerationDialog, axisID)) {
         return;
       }
 
@@ -3451,24 +3481,28 @@ public class ApplicationManager extends BaseManager {
 
   /**
    * Update the newst.com from the TomogramGenerationDialog
+   * reads metaData
    * 
    * @param axisID
    * @return true if successful
    */
-  private boolean updateNewstCom(AxisID axisID) {
+  private ConstNewstParam updateNewstCom(AxisID axisID) {
     //  Set a reference to the correct object
     TomogramGenerationDialog tomogramGenerationDialog = mapGenerationDialog(axisID);
     if (tomogramGenerationDialog == null) {
       mainPanel.openMessageDialog(
         "Can not update newst?.com without an active tomogram generation dialog",
         "Program logic error");
-      return false;
+      return null;
     }
+    NewstParam newstParam = null;
     try {
-      NewstParam newstParam = comScriptMgr.getNewstComNewstParam(axisID);
+      newstParam = comScriptMgr.getNewstComNewstParam(axisID);
       // Make sure the size output is removed, it was only there for a
       // copytomocoms template
       newstParam.setSizeToOutputInXandY("/");
+      newstParam.setCommandMode(NewstParam.FULL_ALIGNED_STACK_MODE);
+      newstParam.setFiducialessAlignment(metaData.isFiducialessAlignment());
       tomogramGenerationDialog.getNewstParams(newstParam);
       comScriptMgr.saveNewst(newstParam, axisID);
     }
@@ -3478,12 +3512,12 @@ public class ApplicationManager extends BaseManager {
       errorMessage[1] = "Axis: " + axisID.getExtension();
       errorMessage[2] = except.getMessage();
       mainPanel.openMessageDialog(errorMessage, "Newst Parameter Syntax Error");
-      return false;
+      return null;
     }
     catch (FortranInputSyntaxException except) {
       except.printStackTrace();
     }
-    return true;
+    return newstParam;
   }
 
   /**
@@ -3510,7 +3544,8 @@ public class ApplicationManager extends BaseManager {
     if (!updateFiducialessParams(tomogramGenerationDialog, axisID)) {
       return;
     }
-    if (!updateNewstCom(axisID)) {
+    ConstNewstParam newstParam = updateNewstCom(axisID); 
+    if (newstParam == null) {
       return;
     }
 
@@ -3537,7 +3572,7 @@ public class ApplicationManager extends BaseManager {
 
     String threadName;
     try {
-      threadName = processMgr.newst(axisID);
+      threadName = processMgr.newst(newstParam, axisID);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
