@@ -211,6 +211,14 @@ c	  with an increment of REPIN degrees added to the original angles for
 c	  each replication.  For example, if you can assume 9-fold symmetry,
 c	  enter REPLICATE 8 40.  More than one REPLICATE line can be entered.
 C	  
+C	  REPROJECT
+C	  ------
+C	  With this line, the program will output a single image, a
+C	  reprojection at zero degrees.  To get a reprojection at an arbitrary
+C	  angle, combine this with an OFFSET entry; you will have to increase
+C	  the reconstructed thickness to get a proper reprojection with high
+C	  angles.
+C
 C	  SCALE   FLEVL SCALE
 C	  ------
 C	  This line allows a linear change of density in the  reconstructed
@@ -345,6 +353,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.17  2004/07/19 04:10:54  mast
+c	  Needed to declare inum external for Intel/Windows
+c	
 c	  Revision 3.16  2004/07/16 23:38:13  mast
 c	  Made it determine local scale from pixel sizes if present; fixed a bug
 c	  that was setting log base 0 after read the fullimage line; added
@@ -774,7 +785,7 @@ c	  call flush(6)
 c	    
 c	    write out header periodically, restore writing position
 c
-	  if(perp.and.interhsave.gt.0)then
+	  if(perp.and.interhsave.gt.0.and..not.reproj)then
 	    nsliceout=nsliceout+1
 	    nxyztmp(1)=iwide
 	    nxyztmp(2)=ithickout
@@ -796,7 +807,7 @@ C
 C Close files
 	CALL IMCLOSE(1)
 	DMEAN=DTOT/(float(NSLICE)*IWIDE*ITHICK)
-	if(perp.and.interhsave.gt.0)then
+	if(perp.and.interhsave.gt.0.and..not.reproj)then
 	  nxyztmp(3)=nslice
 	  call ialsiz(2,nxyztmp,nxyzst)
 	endif
@@ -1700,6 +1711,37 @@ C
 C Scale
 c	  DNM simplified and fixed bug in getting min/max/mean
 	dtmp=0.
+c	  
+c	  DNM 9/23/04: incorporate reproj option
+c
+	if(reproj)then
+	  DO I=IMAP,IEND
+	    IF(MASK.and.array(i).eq.tmask)THEN
+C--------------mask
+	      ARRAY(I)=RMASK
+	    ELSE
+C--------------Scale
+	      ARRAY(I)=(ARRAY(I)+FLEVL)*SCALE
+	    END IF
+	  enddo
+	  index=imap+iwide
+	  do j=2,ithick
+	    do i=0,iwide-1
+	      array(imap+i)=array(imap+i)+array(index+i)
+	    enddo
+	    index=index+iwide
+	  enddo
+	  do i=imap,imap+iwide-1
+	    array(i)=array(i)/ithick
+	    DMIN=AMIN1(ARRAY(I),DMIN)
+	    DMAX=AMAX1(ARRAY(I),DMAX)
+	    DTmp=DTmp+ARRAY(I)
+	  enddo
+	  dtot=dtot+dtmp
+	  call iwrlin(2,array(imap))
+	  return
+	endif
+c
 	DO 1 I=IMAP,IEND
 	  IF(MASK.and.array(i).eq.tmask)THEN
 C--------------mask
@@ -1764,7 +1806,7 @@ c 7/7/00 CER: remove the encode's; titlech is the temp space
 c
         character*80 titlech
 C
-	CHARACTER TAGS(33)*20,CARD*80
+	CHARACTER TAGS(34)*20,CARD*80
 	CHARACTER*80 FILIN,FILOUT
 	DATA TAGS/'*TITLE','SLICE','THICKNESS','MASK','RADIAL',
      &	    'OFFSET','SCALE','PERPENDICULAR','PARALLEL','MODE',
@@ -1773,7 +1815,7 @@ C
      &	    'COMPFRACTION','DENSWEIGHT','*TILTFILE','WIDTH','SHIFT',
      &	    '*XTILTFILE','XAXISTILT','*LOCALFILE','LOCALSCALE',
      &	    'FULLIMAGE','SUBSETSTART','COSINTERP','FBPINTERP',
-     &	    'XTILTINTERP','DONE'/
+     &	    'XTILTINTERP','REPROJECT','DONE'/
 	integer*4 ntags, nfields
 	real*4 XNUM(50)
 	COMMON /CARDS/NTAGS,XNUM,NFIELDS
@@ -1793,7 +1835,7 @@ c
 	integer*4 inum,licenseusfft,niceframe
 	external inum
 c
-	NTAGS = 33
+	NTAGS = 34
 	WRITE(6,50)
 	call getinout(2,filin,filout)
 C-------------------------------------------------------------
@@ -1871,6 +1913,8 @@ c......Default double-width linear interpolation in cosine stretching
 	interpord=1
 	intordxtilt=1
 	interpfbp=-1
+	perp=.true.
+	reproj=.false.
 c
 c......Default title
 	CALL DATE(DAT)
@@ -1889,7 +1933,7 @@ C
 1	CALL CREAD(CARD,TAGS,LABEL,*999)
 	GO TO (100,200,300,400,500,600,700,800,900,1000,1100,1200,1250,
      &	    1250,1300,1400,1500,1600,1700,1800,1900,2000,2100,2200,2300,
-     &	    2400,2500, 2600,2700,2800,2900,3000,999),LABEL
+     &	    2400,2500, 2600,2700,2800,2900,3000,3100,999),LABEL
 C
 C TITLE card
 C100     ENCODE(80,49,TITLE)CARD(1:50),DAT,TIM
@@ -2173,6 +2217,11 @@ c	  XTILTINTERP card
 	  write(6,3001)intordxtilt
 	endif
 	go to 1
+C
+C REPROJECT card
+3100	reproj=.TRUE.
+	WRITE(6,3101)
+	GO TO 1
 c
 C End of data deck
 C-------------------------------------------------------------
@@ -2270,6 +2319,12 @@ c
 		cell(3)=ithick*delta(1)
 		cell(2)=abs(nslice*idelslice)*delta(2)
 	END IF
+	if (reproj)then
+	  NOXYZ(2)=NSLICE
+	  NOXYZ(3)=1
+	  cell(2)=abs(nslice*idelslice)*delta(2)
+	  cell(3)=delta(1)
+	endif
 	CALL IMOPEN(2,FILOUT,'NEW')
 	CALL ICRHDR(2,NOXYZ,NOXYZ,newmode,title,0)
 	CALL ITRLAB(2,1)
@@ -2694,6 +2749,7 @@ C
      &	    'interpolation order', i2)
 3001	format(/,' X-tilting with vertical slices, if any, will have ',
      &	    'interpolation order', i2)
+3101	format(/,' Output will be a reprojection at zero degrees')
 
 	END
 C
