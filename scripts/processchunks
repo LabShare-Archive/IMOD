@@ -8,6 +8,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.2  2004/06/29 03:41:48  mast
+#  Added nohup
+#
 #  Revision 3.1  2004/06/29 02:47:09  mast
 #  Initial addition to package
 #
@@ -66,6 +69,8 @@ end
 if ("$argv[1]" == "ALL" || "$argv[1]" == "all") then
     if ($?IMOD_ALL_MACHINES) then
         set machines = `echo $IMOD_ALL_MACHINES | sed '/,/s// /g'`
+        echo "The All-machine list is:"
+        echo "$IMOD_ALL_MACHINES"
     else
         echo "ERROR: $pn - Environment variable IMOD_ALL_MACHINES is not defined"
         exit 1
