@@ -13,6 +13,12 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.5  2004/04/12 17:11:25  sueh
+ * <p> bug# 409  In initialize() allow the param to initialize itself if necessary.  In update
+ * <p> ComScript, get the commandIndex after running
+ * <p> script.getScriptCommand(command) to make sure that the command exists in
+ * <p> the ComScript object.
+ * <p>
  * <p> Revision 3.4  2004/03/29 20:46:57  sueh
  * <p> bug# 409 add MTF Filter
  * <p>
@@ -804,7 +810,7 @@ public class ComScriptManager {
 
     //  Update the specified com script command from the CommandParam object
     ComScriptCommand comScriptCommand = null;
-    //int commandIndex = script.getScriptCommandIndex(command);
+    int commandIndex = script.getScriptCommandIndex(command);
     try {
       comScriptCommand = script.getScriptCommand(command);
       params.updateComScriptCommand(comScriptCommand);
@@ -824,7 +830,9 @@ public class ComScriptManager {
     }
 
     // Replace the specified command by the updated comScriptCommand
-    int commandIndex = script.getScriptCommandIndex(command);
+    if (commandIndex == -1) {
+      commandIndex = script.getScriptCommandIndex(command);
+    }
     script.setScriptComand(commandIndex, comScriptCommand);
 
     //  Write the script back out to disk
