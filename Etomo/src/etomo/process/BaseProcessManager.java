@@ -24,6 +24,10 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.7  2004/12/13 19:08:56  sueh
+* <p> bug# 565 Saving process track to edf file as well as meta data in the
+* <p> start... functions.
+* <p>
 * <p> Revision 1.6  2004/12/09 05:04:34  sueh
 * <p> bug# 565 Added save meta data to each msg...Done function regardless
 * <p> of success or failure.
@@ -552,7 +556,7 @@ public abstract class BaseProcessManager {
       }
 
     }
-    getManager().saveMetaData();
+    getManager().saveTestParamFile();
     //  Null out the correct thread
     // Interrupt the process monitor and nulll out the appropriate references
     if (threadAxisA == script) {
@@ -739,7 +743,7 @@ public abstract class BaseProcessManager {
       else {
         postProcess(process);
       }
-      getManager().saveMetaData();
+      getManager().saveTestParamFile();
     }
 
     // Null the reference to the appropriate thread
@@ -756,7 +760,7 @@ public abstract class BaseProcessManager {
   
   public void msgInteractiveSystemProgramDone(InteractiveSystemProgram program, int exitValue) {
     postProcess(program);
-    getManager().saveMetaData();
+    getManager().saveTestParamFile();
   }
 
 }
