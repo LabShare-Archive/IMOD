@@ -604,15 +604,6 @@ EOF
     echo 'GRAPHLIBS    = -ldnmncar $(IMLIBS)'" $qt_libs $fort_cpplibs" >> $configure
     echo 'XPLAX = qtplax.o' >> $configure
 
-    # Temporary fix for mac bug in qmake
-    #
-    if ($machine == "macosx") then
-        foreach i ($imod_dir $sendevent_dir $midas_dir)
-            sed '/DEL_DIR.*QMAKE_TARGET/s/\$(DEL_DIR)/-\$(DEL_FILE) -r/' $i/Makefile >! makefile.tmp
-            \mv -f makefile.tmp $i/Makefile
-        end
-    endif
-
 endif
 echo "# end of configure"          >> $configure
 
@@ -674,6 +665,9 @@ exit
 
 #
 #  $Log$
+#  Revision 3.21  2003/08/12 04:47:44  mast
+#  Remove libdiaqt from GRAPHICS definition and output qtplax.o for PLAX
+#
 #  Revision 3.20  2003/08/10 01:32:23  mast
 #  Added test for java compiler and setting of Etomo Makefile accordingly
 #
