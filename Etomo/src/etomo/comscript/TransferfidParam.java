@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.1  2004/04/22 23:27:47  rickg
+ * <p> Switched getIMODBinPath method
+ * <p>
  * <p> Revision 3.0  2003/11/07 23:19:00  rickg
  * <p> Version 1.0.0
  * <p>
@@ -77,26 +80,163 @@
 
 package etomo.comscript;
 
+import java.util.Properties;
+
 import etomo.ApplicationManager;
+import etomo.EtomoDirector;
+import etomo.storage.Storable;
+import etomo.type.AxisID;
+import etomo.type.ConstEtomoNumber;
+import etomo.type.EtomoBoolean2;
+import etomo.type.EtomoNumber;
+import etomo.type.MetaData;
+import etomo.type.TiltAngleSpec;
+import etomo.type.TiltAngleType;
 
-public class TransferfidParam {
+public class TransferfidParam implements Storable {
   public static final String rcsid = "$Id$";
-  String inputImageFile = "";
-  String outputImageFile = "";
-  String inputModelFile = "";
-  String outputModelFile = "";
-  String datasetName = "";
-  boolean bToA = false;
-  boolean runMidas = false;
-  int searchDirection = 0; // 0 - both, -1 => -90, 1=> +90  
-  int centerViewA = 0; // 0 => default selected by script
-  int centerViewB = 0;
+  
+  protected static final String group = "Transferfid";
+  
+  String inputImageFile;
+  String outputImageFile;
+  String inputModelFile;
+  String outputModelFile;
+  String datasetName;
+  EtomoBoolean2 bToA = new EtomoBoolean2("BToA");
+  EtomoBoolean2 runMidas = new EtomoBoolean2("RunMidas");
+  //null => both, -1 => -90, 1=> +90  
+  EtomoNumber searchDirection = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "SearchDirection"); 
+  EtomoNumber centerViewA = new EtomoNumber(EtomoNumber.LONG_TYPE, "CenterViewA");
+  EtomoNumber centerViewB = new EtomoNumber(EtomoNumber.LONG_TYPE, "CenterViewB");
+  EtomoNumber numberViews = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "NumberViews");
 
-  int numberViews;
-
+  private MetaData metaData = null;
   boolean createLog = false;
+  private String groupString;
 
-  public TransferfidParam() {
+  public TransferfidParam(AxisID axisID) {
+    //MetaData always uses FIRST and SECOND to store, so create groupString with
+    //FIRST or SECOND
+    if (axisID == AxisID.ONLY) {
+      axisID = AxisID.FIRST;
+    }
+    groupString = group + axisID.getExtension();
+    searchDirection.setValidValues(new int[] {-1,1});
+    numberViews.setResetValue(5).setDefault(5);
+    reset();
+  }
+  
+  private void reset() {
+    inputImageFile = "";
+    outputImageFile = "";
+    inputModelFile = "";
+    outputModelFile = "";
+    datasetName = "";
+    bToA.reset();
+    resetStorableFields();
+  }
+  
+  /**
+   * reset fields that are loaded and stored
+   *
+   */
+  private void resetStorableFields() {
+    runMidas.reset();
+    searchDirection.reset();
+    centerViewA.reset();
+    centerViewB.reset();
+    numberViews.reset();
+  }
+  
+  public void initialize() {
+    setCenterViewAResetValue();
+    setCenterViewBResetValue();
+    centerViewA.reset();
+    centerViewB.reset();
+  }
+  
+  private void setCenterViewAResetValue() {
+    if (metaData == null) {
+      metaData = EtomoDirector.getInstance().getCurrentReconstructionMetaData();
+    }
+    setCenterViewResetValue(centerViewA, metaData.getTiltAngleSpecA());
+  }
+  
+  private void setCenterViewBResetValue() {
+    if (metaData == null) {
+      metaData = EtomoDirector.getInstance().getCurrentReconstructionMetaData();
+    }
+    setCenterViewResetValue(centerViewB, metaData.getTiltAngleSpecB());
+  }
+  
+  private void setCenterViewResetValue(EtomoNumber centerView,
+      TiltAngleSpec tiltAngleSpec) {
+    if (tiltAngleSpec.getType() != TiltAngleType.RANGE) {
+      return;
+    }
+    centerView.setResetValue(Math.round(1 - tiltAngleSpec.getRangeMin()
+        / tiltAngleSpec.getRangeStep()));
+  }
+  
+  /**
+   * get deep copies of fields that are loaded and stored
+   * @param that
+   */
+  public void getStorableFields(TransferfidParam that) {
+    that.runMidas.set(runMidas);
+    that.searchDirection.set(searchDirection);
+    that.centerViewA.set(centerViewA);
+    that.centerViewB.set(centerViewB);
+    that.numberViews.set(numberViews);
+  }
+  
+  /**
+   * set deep copies of fields that are loaded and stored
+   * @param that
+   */
+  public void setStorableFields(TransferfidParam that) {
+    runMidas.set(that.runMidas);
+    searchDirection.set(that.searchDirection);
+    centerViewA.set(that.centerViewA);
+    centerViewB.set(that.centerViewB);
+    numberViews.set(that.numberViews);
+  }
+  
+  public void store(Properties props) {
+    store(props, "");
+  }
+  
+  public void store(Properties props, String prepend) {
+    prepend = createPrepend(prepend);
+
+    runMidas.store(props, prepend);
+    searchDirection.store(props, prepend);
+    centerViewA.store(props, prepend);
+    centerViewB.store(props, prepend);
+    numberViews.store(props, prepend);
+  }
+  
+  public void load(Properties props) {
+    load(props, "");
+  }
+
+  public void load(Properties props, String prepend) {
+    resetStorableFields();
+    prepend = createPrepend(prepend);
+    
+    runMidas.load(props, prepend);
+    searchDirection.load(props, prepend);
+    centerViewA.load(props, prepend);
+    centerViewB.load(props, prepend);
+    numberViews.load(props, prepend);
+  } 
+
+  protected String createPrepend(String prepend) {
+    if (prepend == "") {
+      return groupString;
+    }
+    return prepend + "." + groupString;
   }
 
   /**
@@ -109,7 +249,7 @@ public class TransferfidParam {
     StringBuffer commandLine = new StringBuffer("tcsh -f "
         + ApplicationManager.getIMODBinPath() + "transferfid -P ");
 
-    if (bToA) {
+    if (bToA.is()) {
       commandLine.append("-b ");
     }
     if (!inputImageFile.equals("")) {
@@ -128,27 +268,27 @@ public class TransferfidParam {
       commandLine.append("-o " + outputModelFile + " ");
     }
 
-    if (centerViewA > 0) {
-      commandLine.append("-za " + String.valueOf(centerViewA) + " ");
+    if (centerViewA.isUpdateCommand()) {
+      commandLine.append("-za " + centerViewA.toString() + " ");
     }
 
-    if (centerViewB > 0) {
-      commandLine.append("-zb " + String.valueOf(centerViewA) + " ");
+    if (centerViewB.isUpdateCommand()) {
+      commandLine.append("-zb " + centerViewB.toString() + " ");
     }
 
-    if (numberViews != 5) {
-      commandLine.append("-n " + String.valueOf(numberViews) + " ");
+    if (numberViews.isUpdateCommand()) {
+      commandLine.append("-n " + numberViews.toString() + " ");
     }
 
-    if (searchDirection > 0) {
+    if (searchDirection.isPositive()) {
       commandLine.append("-a 90 ");
     }
 
-    if (searchDirection < 0) {
+    if (searchDirection.isNegative()) {
       commandLine.append("-a -90 ");
     }
 
-    if (runMidas) {
+    if (runMidas.is()) {
       commandLine.append("-m ");
     }
 
@@ -192,7 +332,7 @@ public class TransferfidParam {
    * Returns the runMidas.
    * @return boolean
    */
-  public boolean isRunMidas() {
+  public ConstEtomoNumber getRunMidas() {
     return runMidas;
   }
 
@@ -200,7 +340,7 @@ public class TransferfidParam {
    * Returns numberViews 
    * @return int
    */
-  public int getNumberViews() {
+  public ConstEtomoNumber getNumberViews() {
     return numberViews;
   }
 
@@ -208,7 +348,7 @@ public class TransferfidParam {
    * @param numberViews
    */
   public void setNumberViews(int numberViews) {
-    this.numberViews = numberViews;
+    this.numberViews.set(numberViews);
   }
 
   /**
@@ -248,7 +388,7 @@ public class TransferfidParam {
    * @param runMidas The runMidas to set
    */
   public void setRunMidas(boolean runMidas) {
-    this.runMidas = runMidas;
+    this.runMidas.set(runMidas);
   }
 
   /**
@@ -271,7 +411,7 @@ public class TransferfidParam {
    * Returns the bToA.
    * @return boolean
    */
-  public boolean isBToA() {
+  public ConstEtomoNumber getBToA() {
     return bToA;
   }
 
@@ -280,14 +420,14 @@ public class TransferfidParam {
    * @param bToA The bToA to set
    */
   public void setBToA(boolean bToA) {
-    this.bToA = bToA;
+    this.bToA.set(bToA);
   }
 
   /**
    * Returns the centerViewA.
    * @return int
    */
-  public int getCenterViewA() {
+  public EtomoNumber getCenterViewA() {
     return centerViewA;
   }
 
@@ -295,7 +435,7 @@ public class TransferfidParam {
    * Returns the centerViewB.
    * @return int
    */
-  public int getCenterViewB() {
+  public EtomoNumber getCenterViewB() {
     return centerViewB;
   }
 
@@ -303,7 +443,7 @@ public class TransferfidParam {
    * Returns the searchDirection.
    * @return int
    */
-  public int getSearchDirection() {
+  public EtomoNumber getSearchDirection() {
     return searchDirection;
   }
 
@@ -311,16 +451,16 @@ public class TransferfidParam {
    * Sets the centerViewA.
    * @param centerViewA The centerViewA to set
    */
-  public void setCenterViewA(int centerViewA) {
-    this.centerViewA = centerViewA;
+  public void setCenterViewA(String centerViewA) {
+    this.centerViewA.set(centerViewA);
   }
 
   /**
    * Sets the centerViewB.
    * @param centerViewB The centerViewB to set
    */
-  public void setCenterViewB(int centerViewB) {
-    this.centerViewB = centerViewB;
+  public void setCenterViewB(String centerViewB) {
+    this.centerViewB.set(centerViewB);
   }
 
   /**
@@ -328,7 +468,7 @@ public class TransferfidParam {
    * @param searchDirection The searchDirection to set
    */
   public void setSearchDirection(int searchDirection) {
-    this.searchDirection = searchDirection;
+    this.searchDirection.set(searchDirection);
   }
 
   /**
