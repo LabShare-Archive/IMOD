@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.4  2003/02/10 20:41:54  mast
+    Merge Qt source
+
     Revision 3.3.2.4  2003/02/07 01:03:33  mast
     a little cleanup
 
@@ -57,13 +60,7 @@
 #ifndef B3DGFX_H
 #define B3DGFX_H
 
-//#include <stdio.h>
-//#include <X11/Xlib.h>
-//#include <Xm/Xm.h>
-
-#include <GL/gl.h>
-#include <GL/glu.h>
-
+#include <qgl.h>
 
 #define SnapShot_Default 0
 #define SnapShot_RGB     1
