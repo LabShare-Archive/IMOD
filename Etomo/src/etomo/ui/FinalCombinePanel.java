@@ -43,6 +43,10 @@ import etomo.comscript.CombineParams;
  * 
  * <p>
  * $Log$
+ * Revision 3.12  2004/06/25 23:24:25  sueh
+ * bug# 485 also set patch region model checkbox based on
+ * matchorwarp
+ *
  * Revision 3.11  2004/06/17 21:47:17  sueh
  * bug# 474 UIUtilities.setButtonSizeAll() causes this, called
  * UIUtilities.setButtonSize(AbstractButton), since there is only
@@ -218,7 +222,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields {
     "<html><b>Open Volume Being Matched To</b>");
   private MultiLineButton btnImodCombined = new MultiLineButton(
     "<html><b>Open Combined Volume</b>");
-
+  private JCheckBox cbNoVolcombine = new JCheckBox("Don't run volcombine");
   /**
    * Default constructor
    * 
@@ -329,8 +333,12 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields {
     pnlMatchorwarp.add(pnlMatchorwarpButtons);
     pnlMatchorwarp.add(Box.createRigidArea(FixedDim.x0_y5));
 
-    pnlVolcombine.setLayout(new BoxLayout(pnlVolcombine, BoxLayout.X_AXIS));
+    pnlVolcombine.setLayout(new BoxLayout(pnlVolcombine, BoxLayout.Y_AXIS));
+    pnlVolcombine.add(cbNoVolcombine);
+    pnlVolcombine.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlVolcombine.add(btnVolcombineRestart);
+    cbNoVolcombine.setAlignmentX(Component.CENTER_ALIGNMENT);
+    btnVolcombineRestart.setAlignmentX(Component.CENTER_ALIGNMENT);
     UIUtilities.setButtonSizeAll(pnlVolcombine, UIParameters
       .getButtonDimension());
 
@@ -446,6 +454,10 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields {
 
   public String getZMax() {
     return ltfYHigh.getText();
+  }
+  
+  boolean isRunVolcombine() {
+    return !cbNoVolcombine.isSelected();
   }
 
   /**
