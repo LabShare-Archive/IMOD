@@ -19,6 +19,10 @@ import etomo.storage.Storable;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.5  2005/01/21 23:21:24  sueh
+* <p> bug# 509 bug# 591  Removed initialValue from EtomoNumber constructor.
+* <p> Using set() instead.
+* <p>
 * <p> Revision 1.4  2004/12/16 02:28:11  sueh
 * <p> bug# 564 Remove recommendedValue from EtomoNumber.  Using
 * <p> resetValue instead.
@@ -112,9 +116,9 @@ public abstract class ConstSectionTableRowData implements Storable {
   protected EtomoNumber sampleTopEnd = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "SampleTopEnd");
   protected EtomoNumber finalStart = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "FinalStart");
   protected EtomoNumber finalEnd = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "FinalEnd");
-  protected EtomoNumber rotationAngleX = new EtomoNumber(EtomoNumber.DOUBLE_TYPE, "RotationAngleX");
-  protected EtomoNumber rotationAngleY = new EtomoNumber(EtomoNumber.DOUBLE_TYPE, "RotationAngleY");
-  protected EtomoNumber rotationAngleZ = new EtomoNumber(EtomoNumber.DOUBLE_TYPE, "RotationAngleZ");
+  protected ScriptParameter rotationAngleX = new ScriptParameter(EtomoNumber.DOUBLE_TYPE, "RotationAngleX");
+  protected ScriptParameter rotationAngleY = new ScriptParameter(EtomoNumber.DOUBLE_TYPE, "RotationAngleY");
+  protected ScriptParameter rotationAngleZ = new ScriptParameter(EtomoNumber.DOUBLE_TYPE, "RotationAngleZ");
   protected EtomoNumber xMax = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "XMax");
   protected EtomoNumber yMax = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "YMax");
   protected int zMax = Integer.MIN_VALUE;
@@ -130,14 +134,11 @@ public abstract class ConstSectionTableRowData implements Storable {
     sampleTopStart.setDescription("Sample Slices, Top, Start");
     sampleTopEnd.setDescription("Sample Slices, Top, End");
     finalStart.setDescription("Final, Start");
-    finalStart.setResetValue(1);
+    finalStart.setDisplayValue(1);
     finalEnd.setDescription("Final, End");
-    rotationAngleX.setDescription("Rotation Angles, X");
-    rotationAngleX.setDefault(0);
-    rotationAngleY.setDescription("Rotation Angles, Y");
-    rotationAngleY.setDefault(0);
-    rotationAngleZ.setDescription("Rotation Angles, Z");
-    rotationAngleZ.setDefault(0);
+    rotationAngleX.setDefault(0).setUseScreenDisplayValue(false).setDisplayValue(0).setDescription("Rotation Angles, X");
+    rotationAngleY.setDefault(0).setUseScreenDisplayValue(false).setDisplayValue(0).setDescription("Rotation Angles, Y");
+    rotationAngleZ.setDefault(0).setUseScreenDisplayValue(false).setDisplayValue(0).setDescription("Rotation Angles, Z");
   }
   
   protected ConstSectionTableRowData(ConstSectionTableRowData that) {
@@ -152,9 +153,9 @@ public abstract class ConstSectionTableRowData implements Storable {
     sampleTopEnd = new EtomoNumber(that.sampleTopEnd);
     finalStart = that.finalStart;
     finalEnd = that.finalEnd;
-    rotationAngleX = new EtomoNumber(that.rotationAngleX);
-    rotationAngleY = new EtomoNumber(that.rotationAngleY);
-    rotationAngleZ = new EtomoNumber(that.rotationAngleZ);
+    rotationAngleX = new ScriptParameter(that.rotationAngleX);
+    rotationAngleY = new ScriptParameter(that.rotationAngleY);
+    rotationAngleZ = new ScriptParameter(that.rotationAngleZ);
     xMax = new EtomoNumber(that.xMax);
     yMax = new EtomoNumber(that.yMax);
     zMax = that.zMax;
@@ -277,24 +278,33 @@ public abstract class ConstSectionTableRowData implements Storable {
       return false;
     }
     if (!sampleBottomStart.equals(that.sampleBottomStart)) {
+      System.out.println("equalsSample:sampleBottomStart failed");
+      System.out.println("sampleBottomStart="+sampleBottomStart.classInfoString());
+      System.out.println("that.sampleBottomStart="+that.sampleBottomStart.classInfoString());
       return false;
     }
     if (!sampleBottomEnd.equals(that.sampleBottomEnd)) {
+      System.out.println("equalsSample:sampleBottomEnd failed");
       return false;
     }
     if (!sampleTopStart.equals(that.sampleTopStart)) {
+      System.out.println("equalsSample:sampleTopStart failed");
       return false;
     }
     if (!sampleTopEnd.equals(that.sampleTopEnd)) {
+      System.out.println("equalsSample:sampleTopEnd failed");
       return false;
     }
     if (!rotationAngleX.equals(that.rotationAngleX)) {
+      System.out.println("equalsSample:rotationAngleX failed");
       return false;
     }
     if (!rotationAngleY.equals(that.rotationAngleY)) {
+      System.out.println("equalsSample:rotationAngleY failed");
       return false;
     }
-    if (!rotationAngleZ.equals(that.rotationAngleY)) {
+    if (!rotationAngleZ.equals(that.rotationAngleZ)) {
+      System.out.println("equalsSample:rotationAngleZ failed");
       return false;
     }
     return true;
@@ -404,12 +414,21 @@ public abstract class ConstSectionTableRowData implements Storable {
   public ConstEtomoNumber getRotationAngleX() {
     return rotationAngleX;
   }
+  public ScriptParameter getRotationAngleXParameter() {
+    return rotationAngleX;
+  }
   
   public ConstEtomoNumber getRotationAngleY() {
     return rotationAngleY;
   }
+  public ScriptParameter getRotationAngleYParameter() {
+    return rotationAngleY;
+  }
 
   public ConstEtomoNumber getRotationAngleZ() {
+    return rotationAngleZ;
+  }
+  public ScriptParameter getRotationAngleZParameter() {
     return rotationAngleZ;
   }
   
