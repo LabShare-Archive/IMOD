@@ -29,6 +29,9 @@
  * @version $$Revision$$
  * 
  * <p> $$Log$$
+ * <p> Revision 1.8  2004/06/13 17:03:23  rickg
+ * <p> Solvematch mid change
+ * <p> 
  * <p> Revision 1.7  2004/06/09 21:18:12  rickg
  * <p> Changed upateParameter method to updateScriptParameter
  * <p> 
