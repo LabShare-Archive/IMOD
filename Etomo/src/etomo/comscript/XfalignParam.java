@@ -22,6 +22,9 @@ import etomo.type.ConstJoinMetaData;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.6  2005/01/08 01:46:38  sueh
+* <p> bug# 578 Updated Command interface.
+* <p>
 * <p> Revision 1.5  2004/12/08 21:22:43  sueh
 * <p> bug# 564 Added getBooleanValue() to get a misc boolean value.
 * <p>
@@ -187,9 +190,8 @@ public class XfalignParam implements Command {
         .getCutoffHighFrequency();
     ConstEtomoNumber sigmaHighFrequency = metaData.getSigmaHighFrequency();
     //optional
-    if (sigmaLowFrequency.isSetAndNotDefault()
-        || cutoffHighFrequency.isSetAndNotDefault()
-        || sigmaHighFrequency.isSetAndNotDefault()) {
+    if (sigmaLowFrequency.isUpdateCommand() || cutoffHighFrequency.isUpdateCommand()
+        || sigmaHighFrequency.isUpdateCommand()) {
       options.add("-fil");
       //all three numbers must exist
       options.add(sigmaLowFrequency.toString(true) + "," + sigmaHighFrequency.toString(true) + ",0,"
