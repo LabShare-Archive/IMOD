@@ -13,6 +13,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2004/12/06 23:37:05  sueh
+ * <p> bug# 520 Adding print statements.
+ * <p>
  * <p> Revision 1.4  2004/11/24 01:30:24  sueh
  * <p> bug# 520 Getting working directory from EtomoDirector instead of
  * <p> property.  makeDirectories:  making sure to get a valid path for
@@ -74,14 +77,15 @@ public class TestUtilites {
    */
   public static void checkoutVector(String directory, String vector)
       throws SystemProcessException, InvalidParameterException {
-    System.err.println("checkoutVector:directory=" + directory + ",vector=" + vector);
+    System.err.println("checkoutVector");
+    System.err.println("directory=" + directory);
+    System.err.println("user dir=" + EtomoDirector.getInstance().getCurrentPropertyUserDir());
     if (vector.matches(File.separator)) {
       throw new InvalidParameterException(
         "vector can not contain path separators");
     }
     File fileVector = new File(EtomoDirector.getInstance().getCurrentPropertyUserDir() + directory,
       vector);
-    System.err.println("fileVector=" + fileVector.getAbsolutePath());
     if (fileVector.exists()) {
       if (!fileVector.delete()) {
         throw new SystemProcessException("Cannot delete vector: " + vector);

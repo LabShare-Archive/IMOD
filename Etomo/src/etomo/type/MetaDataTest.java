@@ -26,6 +26,9 @@ import junit.framework.TestCase;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.7  2004/12/06 23:35:47  sueh
+ * <p> bug# 520 Added print statements.
+ * <p>
  * <p> Revision 3.6  2004/11/30 18:03:37  sueh
  * <p> bug# 520  Fixing unit tests:  putting setup code in the SetUp() instead of
  * <p> constructor
@@ -62,14 +65,12 @@ public class MetaDataTest extends TestCase {
   private File testDir;
 
   protected void setUp() throws Exception {
-    System.err.println("MetaDataTest.setUp:UserDir=" + EtomoDirector.getInstance().getCurrentPropertyUserDir());
     testDir = new File(new File(EtomoDirector.getInstance().getCurrentPropertyUserDir(), TypeTests.testRoot), testDirectory);
     if (!testDir.exists()) {
       assertTrue(testDir.mkdirs());
     }
     assertTrue(
       testDir.isDirectory() && testDir.canRead() && testDir.canWrite());
-    System.err.println("MetaDataTest.setUp:testDir=" + testDir.getAbsolutePath());
     //  Check out the test vectors from the CVS repository
     // Set the working directory to the current test directory for this package
     EtomoDirector etomoDirector = EtomoDirector.getInstance();
@@ -77,6 +78,7 @@ public class MetaDataTest extends TestCase {
 
     for (int i = 0; i < edfList.length; i++) {
       try {
+        System.err.println("MetaDataTest.setUp");
         TestUtilites.checkoutVector(testDir.getAbsolutePath(), edfList[i]);
       }
       catch (SystemProcessException except) {
