@@ -29,6 +29,9 @@
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.10  2004/06/24 20:21:12  sueh
+ * <p> $bug# 482 added an isEmpty() function for Strings
+ * <p> $
  * <p> $Revision 1.9  2004/06/14 23:23:34  rickg
  * <p> $Bug #383  Changed interface to make it clearer which direction information
  * <p> $ is moving and what the likely use of each class of calls is.
@@ -64,6 +67,8 @@ package etomo.comscript;
 import java.util.Vector;
 
 public class ParamUtilities {
+  
+  public static final int INT_NOT_SET = Integer.MIN_VALUE;
 
   /**
    * 
@@ -141,6 +146,20 @@ public class ParamUtilities {
     }
     return Integer.parseInt(value);
   }
+  
+  /**
+   * Returns value or defaultValue if value isn't set
+   * @param value
+   * @param defaultValue
+   * @return
+   */
+  public static int get(int value, int defaultValue) {
+    if (value == INT_NOT_SET) {
+      return defaultValue;
+    }
+    return value;
+  }
+
 
   /**
    * Parse a float value from a string returning the default value the string
