@@ -32,6 +32,9 @@ $Date$
 
 $Revision$
 $Log$
+Revision 1.2  2003/02/10 20:51:22  mast
+Merge Qt source
+
 Revision 1.1.2.1  2003/01/26 20:35:36  mast
 adding as library file
 
@@ -68,7 +71,7 @@ adding log line
 
 #include "dia_qtutils.h"
 
-char *Dia_title;
+char *Dia_title = NULL;
 
 // Make a new push button, add it to the vertical box layout, set for no focus
 QPushButton *diaPushButton(char *text, QWidget *parent, 
@@ -143,6 +146,8 @@ void diaSetGroup(QButtonGroup *group, int value)
 // Set a title into Dia_title
 void diaSetTitle(char *title)
 {
+  if (Dia_title)
+    free(Dia_title);
   Dia_title = strdup(title);
 }
 
