@@ -1,30 +1,12 @@
-/*  IMOD VERSION 2.7.9
- *
+/*
  *  zap_classes.cpp -- implementation  ZaP mainwindow and QGLWidget classes.
  *
  *  Author: David Mastronarde   email: mast@colorado.edu
+ *
+ *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
+ *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  */
-
-/*****************************************************************************
- *   Copyright (C) 1995-2002 by Boulder Laboratory for 3-Dimensional Fine    *
- *   Structure ("BL3DFS") and the Regents of the University of Colorado.     *
- *                                                                           *
- *   BL3DFS reserves the exclusive rights of preparing derivative works,     *
- *   distributing copies for sale, lease or lending and displaying this      *
- *   software and documentation.                                             *
- *   Users may reproduce the software and documentation as long as the       *
- *   copyright notice and other notices are preserved.                       *
- *   Neither the software nor the documentation may be distributed for       *
- *   profit, either in original form or in derivative works.                 *
- *                                                                           *
- *   THIS SOFTWARE AND/OR DOCUMENTATION IS PROVIDED WITH NO WARRANTY,        *
- *   EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTY OF          *
- *   MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.       *
- *                                                                           *
- *   This work is supported by NIH biotechnology grant #RR00592,             *
- *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
- *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
- *****************************************************************************/
 /*  $Author$
 
 $Date$
@@ -111,13 +93,12 @@ ZapWindow::ZapWindow(struct zapwin *zap, QString timeLabel, bool rgba,
   mZap = zap;
   mSecPressed = false;
   mCtrlPressed = false;
+  mToolBar2 = NULL;
 
   // Get the toolbar, add zoom arrows
   mToolBar = new QToolBar(this, "zap toolbar");
-  if (!AUTO_RAISE) {
-    QBoxLayout *boxLayout = mToolBar->boxLayout();
-    boxLayout->setSpacing(4);
-  }
+  if (!AUTO_RAISE)
+    mToolBar->boxLayout()->setSpacing(4);
 
   arrow = new ArrowButton(Qt::UpArrow, mToolBar, "zoomup button");
   arrow->setAutoRaise(AUTO_RAISE);
@@ -182,25 +163,27 @@ ZapWindow::ZapWindow(struct zapwin *zap, QString timeLabel, bool rgba,
 
   // Optional section if time enabled
   if (!timeLabel.isEmpty()) {
-    mToolBar->addSeparator();
-    setupToggleButton(mToolBar, toggleMapper, NUM_TOOLBUTTONS - 1);
+    mToolBar2 = new QToolBar(this, "time toolbar");
+    if (!AUTO_RAISE)
+      mToolBar2->boxLayout()->setSpacing(4);
+    setupToggleButton(mToolBar2, toggleMapper, NUM_TOOLBUTTONS - 1);
 
-    label = new QLabel("4th D", mToolBar);
+    label = new QLabel("4th D", mToolBar2);
     label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
 
-    arrow = new ArrowButton(Qt::LeftArrow, mToolBar, "time back button");
+    arrow = new ArrowButton(Qt::LeftArrow, mToolBar2, "time back button");
     connect(arrow, SIGNAL(clicked()), this, SLOT(timeBack()));
     arrow->setAutoRaise(AUTO_RAISE);
     arrow->setAutoRepeat(true);
     QToolTip::add(arrow, "Move back in 4th dimension (time)");
 
-    arrow = new ArrowButton(Qt::RightArrow, mToolBar, "time forward button");
+    arrow = new ArrowButton(Qt::RightArrow, mToolBar2, "time forward button");
     connect(arrow, SIGNAL(clicked()), this, SLOT(timeForward()));
     arrow->setAutoRaise(AUTO_RAISE);
     arrow->setAutoRepeat(true);
     QToolTip::add(arrow, "Move forward in 4th dimension (time)");
 
-    mTimeLabel = new QLabel(timeLabel, mToolBar, "time label");
+    mTimeLabel = new QLabel(timeLabel, mToolBar2, "time label");
   }
   firstTime = 0;
 
@@ -216,6 +199,10 @@ ZapWindow::ZapWindow(struct zapwin *zap, QString timeLabel, bool rgba,
   setFocusPolicy(QWidget::StrongFocus);
   setDockEnabled(mToolBar, Left, FALSE );
   setDockEnabled(mToolBar, Right, FALSE );
+  if (mToolBar2) {
+    setDockEnabled(mToolBar2, Left, FALSE );
+    setDockEnabled(mToolBar2, Right, FALSE );
+  }
 
   // This makes the toolbar give a proper size hint before showing window
   setUpLayout();
@@ -447,6 +434,9 @@ void ZapGL::mouseMoveEvent ( QMouseEvent * e )
 
 /*
 $Log$
+Revision 4.16  2004/11/04 23:30:55  mast
+Changes for rounded button style
+
 Revision 4.15  2004/06/08 16:24:26  mast
 Stopped fooling around and just made it do two draws on starting window
 
