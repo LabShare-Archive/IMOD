@@ -189,7 +189,7 @@ if ($#argv > 0) then
           shift; shift
           breaksw
         case -di*:
-          set distort = $argv[2]
+          set distort = "$argv[2]"
           shift; shift
           breaksw
         case -bi*:
@@ -197,7 +197,7 @@ if ($#argv > 0) then
           shift; shift
           breaksw
         case -gr*:
-          set gradient = $argv[2]
+          set gradient = "$argv[2]"
           shift; shift
           breaksw
         default:
@@ -259,16 +259,21 @@ if ($#argv > 0) then
         set piecename = $rootname"a.pl"
     endif
 
-    # set distortion parameters: escape the slashes to be usable in sed
+    # set distortion parameters
+    #
     if ($?distort) then
 
-        # copy distortion field file to here if it is not local
+        # convert backslashes (use system echo in case of c:\cygwin)
+        # then copy distortion field file to here if it is not local
+        #
+        set distort = `\echo "$distort" | sed '/\\/s//\//g'`
+        set distort = "$distort"
         if ("$distort" != "$distort:t") then
-            \cp $distort .
-            set distort = $distort:t
+            \cp "$distort" .
+            set distort = "$distort:t"
         endif
 
-        set disttext = `echo "-distort $distort -imagebinned $binning -xf" | sed 's/\//\\\//g'`
+        set disttext = "-distort $distort -imagebinned $binning -xf"
     endif
 
 else
@@ -589,7 +594,7 @@ while ($iaxis < $numax)
 	    if (! -e $gradspec) then
                 if (-e $stackname) then
                     echo "Extracting mag gradients from the image file..."
-                    extractmagrad -rot $axisangle -grad $gradient $stackname $gradspec | tail -n 2
+                    extractmagrad -rot $axisangle -grad "$gradient" $stackname $gradspec | tail -n 2
                     if ($status) then
                         echo2 " "
                         echo2 "WARNING: Could not extract mag gradients from $stackname"
@@ -1276,6 +1281,9 @@ exit 0
 
 #
 #  $Log$
+#  Revision 3.33  2005/01/28 16:20:20  mast
+#  Fixed bug in processing exclude list in align.com
+#
 #  Revision 3.32  2005/01/25 19:29:24  mast
 #  Converted blendmont commands to use 0/1 instead of commenting out
 #
