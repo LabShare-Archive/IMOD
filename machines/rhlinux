@@ -45,8 +45,11 @@ else
 	echo '#define G77__HACK' >> $hconfigure
 endif
 
-echo 'CP        = \\cp'              >> $configure
-echo 'FIND      = \\find'            >> $configure
+# Needed under tcsh 6.12 in RH 8.0 to avoid getting two \ out
+cat << EOF >> $configure
+CP        = \\cp
+FIND      = \\find
+EOF
 
 set wrapper = ""
 

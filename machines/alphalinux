@@ -30,8 +30,10 @@ echo 'LDFLAGS = -L$(LIBDIR)' "-L$Xlibdir" >> $configure
 echo "SHELL     = /bin/csh"         >> $configure
 echo "CC        = gcc"              >> $configure
 echo "FC        = f77"              >> $configure
-echo 'CP        = \\cp'              >> $configure
-echo 'FIND      = \\find'            >> $configure
+cat << EOF >> $configure
+CP        = \\cp
+FIND      = \\find
+EOF
 
 if ($shared_libs != false) then
 	echo "AR      = ld"                 >> $configure
