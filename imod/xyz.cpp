@@ -1080,6 +1080,8 @@ void XyzWindow::DrawGhost()
 }
 
 /* DNM 1/20/02: add argument ob to be able to reset color properly */
+/* DNM 5/5/03: replace calls to ivPointVisible with direct Z tests to speed
+   things up, now that floor call is needed */
 void XyzWindow::DrawContour(Iobj *obj, int ob, int co)
 {
   struct xxyzwin *xx = mXyz;
@@ -1089,13 +1091,15 @@ void XyzWindow::DrawContour(Iobj *obj, int ob, int co)
     (ob == vi->imod->cindex.object);
   
   Ipoint *point, *thisPt, *lastPt;
-  int pt, thisVis, lastVis, next, radius;
+  int pt, next, radius;
+  bool thisVis, lastVis;
   float drawsize, delz;
   float z = xx->zoom;
   int bx = XYZ_BSIZE + xx->xwoffset;
   int by = XYZ_BSIZE + xx->ywoffset;
   int bx2 = (int)(bx + XYZ_BSIZE + floor((double)(vi->xsize * z + 0.5)));
   int by2 = (int)(by + XYZ_BSIZE + floor((double)(vi->ysize * z + 0.5)));
+  int currentZ = (int)floor(vi->zmouse + 0.5);
      
   if (!cont->psize)
     return;
@@ -1108,7 +1112,7 @@ void XyzWindow::DrawContour(Iobj *obj, int ob, int co)
     /* Open or closed contours, if they are wild then need to test every
        point and draw lines between points that are visible
        First start by drawing symbol at first point */
-    lastVis = ivwPointVisible(vi, cont->pts);
+    lastVis = (int)floor(cont->pts->z + 0.5) == currentZ;
     if (cont->flags & ICONT_WILD) {
       lastPt = cont->pts;
       if (lastVis)
@@ -1120,7 +1124,7 @@ void XyzWindow::DrawContour(Iobj *obj, int ob, int co)
          if this and last point were visible */
       for (pt = 1; pt < cont->psize; pt++) {
         thisPt = &(cont->pts[pt]);
-        thisVis = ivwPointVisible(vi, thisPt);
+	thisVis = (int)floor(thisPt->z + 0.5) == currentZ;
         if (thisVis) {
           zapDrawSymbol((int)(z * thisPt->x + bx), 
                         (int)(z * thisPt->y + by),
@@ -1138,7 +1142,7 @@ void XyzWindow::DrawContour(Iobj *obj, int ob, int co)
 
       /* Close if all conditions are met */
       if (iobjClose(obj->flags) && !(cont->flags & ICONT_OPEN) && !currentCont
-          && lastVis && ivwPointVisible(vi, cont->pts))
+          && lastVis && ((int)floor(cont->pts->z + 0.5) == currentZ))
         b3dDrawLine((int)(z * cont->pts->x + bx),
                     (int)(z * cont->pts->y + by),
                     (int)(z * lastPt->x + bx),
@@ -1240,7 +1244,7 @@ void XyzWindow::DrawContour(Iobj *obj, int ob, int co)
   if (iobjScat(obj->flags) && obj->symbol != IOBJ_SYM_NONE) {
     for (pt = 0; pt < cont->psize; pt++) {
       point = &(cont->pts[pt]);
-      if (ivwPointVisible(vi, point))
+      if ((int)floor(point->z + 0.5) == currentZ)
         zapDrawSymbol((int)(z * point->x + bx), 
                       (int)(z * point->y + by),
                       obj->symbol, obj->symsize, obj->symflags);
@@ -1263,7 +1267,7 @@ void XyzWindow::DrawContour(Iobj *obj, int ob, int co)
       drawsize = imodPointGetSize(obj, cont, pt);
       if (drawsize > 0) {
         point = &(cont->pts[pt]);
-        if (ivwPointVisible(vi, point)) {
+        if ((int)floor(point->z + 0.5) == currentZ) {
           /* If there's a size, draw a circle and a plus for a
              circle that's big enough */
           b3dDrawCircle((int)(bx + z * point->x),
@@ -1333,7 +1337,7 @@ void XyzWindow::DrawContour(Iobj *obj, int ob, int co)
     point = cont->pts;
 
     for (pt = 0; pt < 2; pt ++) {
-      if (ivwPointVisible(vi, point))
+      if ((int)floor(point->z + 0.5) == currentZ)
         b3dDrawCross((int)(bx + z * point->x),
                      (int)(by + z * point->y), obj->symsize/2);
       if ((int)(point->y + 0.5) == (int)vi->ymouse)
@@ -1732,6 +1736,9 @@ void XyzGL::mouseMoveEvent( QMouseEvent * event )
 
 /*
 $Log$
+Revision 4.12  2003/04/25 03:28:33  mast
+Changes for name change to 3dmod
+
 Revision 4.11  2003/04/18 20:16:39  mast
 Rename meta test function
 
