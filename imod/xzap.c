@@ -27,6 +27,14 @@
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
 
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 #include <stdio.h>
 #include <Xm/Xm.h>
 #include <Xm/Form.h>
@@ -240,6 +248,9 @@ static void help_cb(Widget w, XtPointer client, XtPointer call)
 	   "the section will change automatically after inserting a point if ",
 	   "there was a section change between that point and the previous ",
 	   "point.\n",
+	   "\tb builds a contour when AutoContour window is open.\n",
+	   "\ta advances to and fills next section when auto contouring.\n",
+	   "\tu smooths a filled area when auto contouring.\n",
 	   "\tB toggles the rubber band on and off.  The rubber band can be "
 	   "used to select an area, then snapshot the area, resize the window "
 	   "to that area, or find its coordinates.  The size of the band can "
@@ -1523,12 +1534,15 @@ static void zap_keyinput(XKeyEvent *event, struct zapwin *zap)
 	  zap->lmy = iy;
 	  break;
 
-	/* DNM: just let this be started from the menus */
-/*	case XK_a:
-	  autox_open(vi);
-	  imod_info_setocp();
+	/* DNM 12/13/01: add next and smooth hotkeys to autox */
+	case XK_a:
+	  autox_next(vi->ax);
 	  break;
-*/
+
+	case XK_u:
+	  autox_smooth(vi->ax);
+	  break;
+
 	case XK_b:
 	  if (event->state & ShiftMask) { 
 	       if (zap->rubberband)
