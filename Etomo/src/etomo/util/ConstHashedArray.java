@@ -4,7 +4,9 @@ import java.util.Hashtable;
 import java.util.Vector;
 
 /**
-* <p>Description: </p>
+* <p>Description: data structure that can be accessed through keys or indexes.
+* Can generate unique keys based on a string.  Currently does not allow
+* duplicate keys. </p>
 * 
 * <p>Copyright: Copyright (c) 2002, 2003, 2004</p>
 *
@@ -17,6 +19,9 @@ import java.util.Vector;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.3  2005/01/29 00:20:26  sueh
+* <p> bug# 594 Added tab for each window.
+* <p>
 * <p> Revision 1.2  2004/11/20 00:09:36  sueh
 * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
 * <p>
@@ -47,10 +52,16 @@ public class ConstHashedArray {
   }
   
   public Object get(UniqueKey key) {
+    if (key == null) {
+      return null;
+    }
     return map.get(key);
   }
   
   public Object get(int index) {
+    if (index == -1) {
+      return null;
+    }
     UniqueKey key = (UniqueKey) keyArray.get(index);
     if (key == null) {
       return null;
@@ -59,10 +70,16 @@ public class ConstHashedArray {
   }
   
   public UniqueKey getKey(int index) {
+    if (index < 0) {
+      return null;
+    }
     return (UniqueKey) keyArray.get(index);
   }
   
   public int getIndex(UniqueKey key) {
+    if (key == null) {
+      return -1;
+    }
     for (int i = 0; i < keyArray.size(); i++) {
       if (key.equals(keyArray.get(i))) {
         return i;
