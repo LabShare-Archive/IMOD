@@ -26,6 +26,14 @@
  *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 
 
 /* Library Functions */
@@ -70,10 +78,9 @@ int imodVersion(char *pname)
 
 void imodCopyright(void)
 {
-     char *bl3dfs = "Boulder Laboratory for 3-Dimensional Fine Structure";
      char *uofc =   "the Regents of the University of Colorado";
-     fprintf(stderr, "Copyright (C) %s by %s\n& %s\n", COPYRIGHT_YEARS,
-	     bl3dfs, uofc);
+     fprintf(stderr, "Copyright (C) %s by %s\n%s & %s\n", COPYRIGHT_YEARS,
+	     LAB_NAME1, LAB_NAME2, uofc);
      return;
 }
 
