@@ -1,5 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/29/02: Improved new visual selection logic in imodv so that it would
+work again on an O2.
+
+11/29/02: Fixed bug in Midas that made X/Y translations become incorrect when
+passing through 0 shift.
+
 IMOD_2-7-7
 11/14/02: Made newst exit with an error status when newstack does.
 
