@@ -17,6 +17,9 @@ import java.util.Iterator;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.5  2003/03/20 17:21:30  rickg
+ * <p> Comment update
+ * <p>
  * <p> Revision 2.4  2003/03/07 07:22:49  rickg
  * <p> combine layout in progress
  * <p>
@@ -78,9 +81,8 @@ public class ComScript {
    */
   public void readComFile()
     throws FileNotFoundException, IOException, BadComScriptException {
-    //
+
     // Open the com file for reading using a buffered reader
-    //
     BufferedReader in = new BufferedReader(new FileReader(comFile));
 
     //  Read in the lines of the command file, assigning each one to the correct
@@ -134,6 +136,11 @@ public class ComScript {
           cmdLineArgs[i] = tokens[i + 1];
         }
         currentScriptCommand.setCommandLineArgs(cmdLineArgs);
+        // Force the comment parsing from the standard input lines to off
+        // if a keyword/value pair input format is detected
+        if(currentScriptCommand.isKeywordValuePairs()){
+          parseComments = false;
+        }
       }
 
       //  Otherwise the line is assumed to be an input parmeter to the current
