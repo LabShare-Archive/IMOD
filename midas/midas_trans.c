@@ -33,6 +33,10 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2002/01/16 00:29:14  mast
+    Fixed a problem in montage fixing mode when there was only one section,
+    an error in Fortran to C translation
+
 */
 
 #include <stdlib.h>
@@ -64,7 +68,8 @@ int new_view(struct Midas_view *vw)
      vw->zoom = 1.;     
      vw->truezoom = 1.;
      vw->zoomind = 5;
-
+     vw->mousemoving = 0;
+     
      vw->xtrans = 0;
      vw->ytrans = 0;
      vw->vmode = MIDAS_VIEW_COLOR;
@@ -1174,9 +1179,11 @@ void set_mont_pieces(struct Midas_view *vw)
 	  vw->ypclist[vw->refz];
 }
 
+#define MAX_GAUSSJ_VARS 9
+#define LOCAL_BORDER 2
 void find_best_shifts(struct Midas_view *vw, int leaveout, int ntoperr,
 		      float *meanerr, float *amax, int *indmax,
-		      float *curerrx, float *curerry)
+		      float *curerrx, float *curerry, int localonly)
 {
      float *a = vw->fbs_a;
      float *b = vw->fbs_b;
@@ -1197,7 +1204,7 @@ void find_best_shifts(struct Midas_view *vw, int leaveout, int ntoperr,
      nvar=0;
      for (ipc = 0; ipc < vw->zsize; ipc++) {
 	  if(vw->zpclist[ipc] == vw->montcz) {
-	       indvar[ipc] = 0;
+	       indvar[ipc] = -1;
 	       ind = ipc * 2;
 	       elx = vw->edgelower[ind];
 	       ely = vw->edgelower[ind + 1];
@@ -1213,79 +1220,6 @@ void find_best_shifts(struct Midas_view *vw, int leaveout, int ntoperr,
 	  }
      }
 
-     /*  build matrix of simultaneous equations for minimization solution */
-     for (ivar = 0; ivar < nvar - 1; ivar++) {
-	  ipc = ivarpc[ivar];
-	  for (m = 0; m < nvar -1; m++) {
-	       a[ivar * limvar + m] = 0.;
-	       b[ivar * 2] = 0;
-	       b[ivar * 2 + 1] = 0.;
-	  }
-
-	  for (ixy = 0; ixy < 2; ixy++) {
-
-	       edge = vw->edgelower[ipc * 2 + ixy];
-	       if(edge > -1 && edge * 2 + ixy != leavind) {
-		    a[ivar * limvar + ivar]++;
-		    ind = edge * 2 + ixy;
-		    neighpc = vw->piecelower[ind];
-		    neighvar = indvar[neighpc];
-		    
-		    /* for a regular neighbor, enter a -1 in its term; but for
-		       the last variable being eliminated, enter a +1 for ALL
-		       other variables instead */
-		    if (neighvar != nvar - 1)
-			 a[ivar * limvar + neighvar]--;
-		    else {
-			 for (m = 0 ; m < nvar-1; m++)
-			      a[ivar * limvar + m]++;
-		    }
-
-		    /* when this piece is an upper piece, subtract 
-		       displacements from (add shifts to ) constant term */
-		    b[ivar * 2] += vw->edgedx[ind];
-		    b[ivar * 2 + 1] += vw->edgedy[ind];
-	       }
-
-	       edge = vw->edgeupper[ipc * 2 + ixy];
-	       if(edge > -1 && edge * 2 + ixy != leavind) {
-		    a[ivar * limvar + ivar]++;
-		    ind = edge * 2 + ixy;
-		    neighpc = vw->pieceupper[ind];
-		    neighvar = indvar[neighpc];
-		    
-		    if (neighvar != nvar - 1)
-			 a[ivar * limvar + neighvar]--;
-		    else {
-			 for (m=0 ; m < nvar-1; m++)
-			      a[ivar * limvar + m]++;
-		    }
-		    
-		    /* when a lower piece, add displacements to (subtract
-		       shifts from) constant terms */
-		    b[ivar * 2] -= vw->edgedx[ind];
-		    b[ivar * 2 + 1] -= vw->edgedy[ind];
-	       }
-	  }
-     }
-
-     /* solve the equations, take the b values as dx and dy; compute the
-	sum to get the shift for the final piece */
-
-     /*   for (i = 0; i < nvar; i++)
-	  printf("%5d",ivarpc[i]);
-     printf("\n");
-     for (j = 0; j < (nvar -1); j++) {
-	  for (i = 0; i < (nvar - 1); i++) 
-	       printf("%7.1f", a[j + i * limvar]);
-	  printf("\n");
-     }
-     for (j = 0; j < 2; j++) {
-	  for (i = 0; i < (nvar - 1); i++)
-	       printf("%9.2f", b[i * 2 + j]);
-	  printf("\n");
-     } */
-	  
      /* Set up for zero errors if not enough variables */
      for (i = 0; i < ntoperr; i++) {
 	  amax[i]=0.;
@@ -1295,16 +1229,14 @@ void find_best_shifts(struct Midas_view *vw, int leaveout, int ntoperr,
      if (nvar < 2)
 	  return;
 
-     gaussj(a, nvar - 1, limvar, b, 2, 2);
-
-     xsum=0.;
-     ysum=0.;
-     for (i = 0; i < nvar-1; i++) {
-	  xsum += b[i * 2];
-	  ysum += b[i * 2 + 1];
+     if (nvar > MAX_GAUSSJ_VARS * MAX_GAUSSJ_VARS) {
+	  find_local_errors(vw, leaveout, ntoperr, meanerr, amax, indmax,
+			    curerrx, curerry, localonly);
+	  return;
      }
-     b[(nvar - 1) * 2] = -xsum;
-     b[(nvar - 1) * 2 + 1] = -ysum;
+
+     solve_for_shifts(vw, a, b, ivarpc, indvar, nvar, limvar, leavind);
+
 
      nsum=0;
      asum=0.;
@@ -1347,3 +1279,331 @@ void find_best_shifts(struct Midas_view *vw, int leaveout, int ntoperr,
 	  asum /= nsum;
      *meanerr = asum;
 }
+
+/* #include <sys/types.h>
+   #include <time.h> */
+
+/* When there are too many variables to solve all at once in a reasonable
+   time, this routine computes errors only in smaller patches */
+void find_local_errors(struct Midas_view *vw, int leaveout, int ntoperr,
+		      float *meanerr, float *amax, int *indmax,
+		      float *curerrx, float *curerry, int localonly)
+{
+     float *a = vw->fbs_a;
+     float *b = vw->fbs_b;
+     int *indvar = vw->fbs_indvar;
+     int *ivarpc = vw->fbs_ivarpc;
+     int leavind, i, j, ivar, ipclo, ipc, nvar, ind, elx, ely, eux, euy;
+     int nsum, neighpc, neighvar, edge, m, ixy, localind;
+     float adist, asum, adx, ady, xsum, ysum;
+     int limvar = vw->nxpieces * vw->nypieces;
+     int ix, iy, ixst, ixnd, ixstin, ixndin, iyst, iynd, iystin, iyndin;
+     int nlong, nshort, ndivShort, ndivLong, divSizeShort, divSizeLong;
+     int basesize, ndivX, ndivY, divSizeX, divSizeY, divX, divY, doarea;
+     int shortsize;
+     
+     /* clock_t timeval1, timeval2;
+     float elapsed;
+     timeval1 = clock(); */
+
+     nsum=0;
+     asum=0.;
+
+     /* COmpute only in local area around edge if either the localonly or the
+	leaveout flag is set */
+     localind = -1;
+     if (localonly)
+	  localind = vw->edgeind * 2 + vw->xory;
+
+     leavind = -1;
+     if (leaveout) {
+	  leavind = vw->edgeind * 2 + vw->xory;
+	  localind = leavind;
+     }
+
+     /* determine how to chop the area into domains */
+     if (vw->nxpieces < vw->nypieces) {
+	  nshort = vw->nxpieces;
+	  nlong = vw->nypieces;
+     } else {
+	  nshort = vw->nypieces;
+	  nlong = vw->nxpieces;
+     }
+
+     /* if short size is small enough, don't cut it up; otherwise divide */
+     /* use length minus one to account for overlap of one each time */
+     ndivShort = 1;
+     divSizeShort = nshort - 1;
+     shortsize = nshort;
+     if (nshort > MAX_GAUSSJ_VARS) {
+	  basesize = MAX_GAUSSJ_VARS - 2 * LOCAL_BORDER - 1;
+	  ndivShort = (nshort + basesize - 2) / basesize;
+	  divSizeShort = (nshort - 1) / ndivShort;
+	  shortsize = divSizeShort + 2 * LOCAL_BORDER + 1;
+	  if ((nshort - 1) % ndivShort)
+	       shortsize++;
+     }
+
+/*   printf ("%d %d %d %d\n", basesize, ndivShort, divSizeShort, shortsize); */
+
+     /* Now long size can have bigger divisions if short side is small */
+     basesize = (MAX_GAUSSJ_VARS * MAX_GAUSSJ_VARS) / shortsize -  
+	  2 * LOCAL_BORDER - 1;
+     ndivLong = (nlong + basesize - 2) / basesize;
+     divSizeLong = (nlong - 1) / ndivLong;
+    /*   printf ("%d %d %d\n", basesize, ndivLong, divSizeLong); */
+
+     ndivX = vw->nxpieces < vw->nypieces ? ndivShort : ndivLong;
+     ndivY = vw->nxpieces > vw->nypieces ? ndivShort : ndivLong;
+     divSizeX = vw->nxpieces < vw->nypieces ? divSizeShort : divSizeLong;
+     divSizeY = vw->nxpieces > vw->nypieces ? divSizeShort : divSizeLong;
+
+     /* Loop on the domains; set starting and ending pieces in X and Y
+	Get outer pieces and inner ones that bound the edges whose errors
+	will be computed */
+     iystin = 0;
+     for (divY = 0; divY < ndivY; divY++) {
+	  iyndin  = iystin + divSizeY;
+	  if (divY < (vw->nypieces - 1) % ndivY)
+	       iyndin++;
+	  iyst = iystin - LOCAL_BORDER;
+	  if (iyst < 0) 
+	       iyst = 0;
+	  iynd = iyndin + LOCAL_BORDER;
+	  if (iynd >= vw->nypieces)
+	       iynd = vw->nypieces - 1;
+
+	  ixstin = 0;
+	  for (divX = 0; divX < ndivX; divX++) {
+	       ixndin = ixstin + divSizeX;
+	       if (divX < (vw->nxpieces - 1) % ndivX)
+		    ixndin++;
+	       ixst = ixstin - LOCAL_BORDER;
+	       if (ixst < 0) 
+		    ixst = 0;
+	       ixnd = ixndin + LOCAL_BORDER;
+	       if (ixnd >= vw->nxpieces)
+		    ixnd = vw->nxpieces - 1;
+	       
+
+	       /* loop on the pieces, adding them as variables */
+	       nvar=0;
+	       doarea = 0;
+	       if (localind < 0)
+		    doarea = 1;
+	       for (ipc = 0; ipc < vw->zsize; ipc++)
+		    if(vw->zpclist[ipc] == vw->montcz)
+			 indvar[ipc] = -1;
+	       for (iy = iyst; iy <= iynd; iy++) {
+		    for (ix = ixst; ix <= ixnd; ix++) {
+			 ipc = vw->montmap[ix + iy * vw->nxpieces + 
+					  vw->montcz * limvar];
+
+			 ind = ipc * 2;
+			 elx = vw->edgelower[ind];
+			 ely = vw->edgelower[ind + 1];
+			 eux = vw->edgeupper[ind];
+			 euy = vw->edgeupper[ind + 1];
+			 /* include a piece if one of its edges is included
+			    in the area being analyzed */
+			 if ((ix > ixst && elx > -1 && elx * 2 != leavind) ||
+			     (iy > iyst && ely > -1 && ely*2 + 1 != leavind) ||
+			     (ix < ixnd && eux > -1 && eux * 2 != leavind) ||
+			     (iy < iynd && euy > -1 && euy*2 + 1 != leavind)) {
+			      ivarpc[nvar] = ipc;
+			      indvar[ipc] = nvar++;
+			 }
+
+			 /* determine if one of these edges is the current
+			    edge and is included in area whose errors are
+			    being computed */
+			 if (localind > -1 &&
+			     (ix > ixstin && elx > -1 && elx*2 == localind) ||
+			     (iy > iystin && ely > -1 && 
+			      ely * 2 + 1 == localind) ||
+			     (ix < ixndin && eux > -1 && eux* 2 == localind) ||
+			     (iy < iyndin && euy > -1 && 
+			      euy * 2 + 1 == localind))
+			      doarea = 1;
+		    }
+	       }
+	       /*  printf("X: %d %d %d %d %d   Y: %d %d %d %d %d   leave %d %d\n",
+ 		   divX, ixst, ixnd, ixstin, ixndin, divY, iyst, iynd, iystin, iyndin, leavind, doarea); */
+	       if (nvar >= 2 && doarea) {
+		    solve_for_shifts(vw, a, b, ivarpc, indvar, nvar, limvar, 
+				     leavind);
+
+		    /* evaluate errors for ones in the inner area */
+		    for (iy = iystin; iy <= iyndin; iy++) {
+			 for (ix = ixstin; ix <= ixndin; ix++) {
+			      ipc = vw->montmap[ix + iy * vw->nxpieces + 
+					       vw->montcz * limvar];
+			      ivar = indvar[ipc];
+			      if (ivar < 0)
+				   continue;
+
+			      for (ixy = 0; ixy < 2; ixy++) {
+				   edge = vw->edgelower[ipc * 2 + ixy];
+				   ind = edge * 2 + ixy;
+				   /* evaluate if edge exists and, for an
+				      X edge, the piece is past the first in X
+				      and is either not the last local piece in
+				      Y or the very last piece in Y */
+				   if (edge > -1 && 
+				       ((!ixy && ix > ixstin &&
+					 (iy < iyndin || 
+					  iynd == vw->nypieces - 1))
+					|| (ixy && iy > iystin &&
+					    (ix < ixndin || 
+					     ixnd == vw->nxpieces -1)))){
+					ipclo = vw->piecelower[ind];
+					adx = b[ivar * 2] - b[indvar[ipclo]* 2]
+					     - vw->edgedx[ind];
+					ady = b[ivar * 2 + 1] - 
+					     b[indvar[ipclo] * 2 + 1] -
+					     vw->edgedy[ind];
+					adist = sqrt((double)
+						     (adx * adx + ady * ady));
+					if (ind == vw->edgeind * 2 + vw->xory){
+					     *curerrx = adx;
+					     *curerry = ady;
+					}
+					if (ind != leavind) {
+					     asum += adist;
+					     nsum++;
+					     for (i = 0; i < ntoperr; i++) {
+						  if (adist > amax[i]) {
+						       for (j = ntoperr - 1;
+							    j > i; j--) {
+							    amax[j] = 
+								 amax[j - 1];
+							    indmax[j] = 
+								 indmax[j - 1];
+						       }
+						       amax[i] = adist;
+						       indmax[i] = ind;
+						       break;
+						  }
+					     }
+					}
+				   }
+			      }
+			 }
+		    }
+
+	       }
+	       ixstin = ixndin;
+	  }
+	  iystin = iyndin;
+     }
+     if (nsum)
+	  asum /= nsum;
+     *meanerr = asum;
+
+     /*  printf("nsum = %d\n", nsum); */
+
+     /* timeval2 = clock();
+     elapsed = (float)(timeval2 - timeval1) / CLOCKS_PER_SEC;
+     printf("%.3f\n", elapsed); */
+}
+
+/* Set up equations to determine shifts for the given set of variables */
+void solve_for_shifts(struct Midas_view *vw, float *a, float *b, int *ivarpc,
+		      int *indvar, int nvar, int limvar, int leavind)
+{
+     int ivar, ipc, ind,i;
+     int neighpc, neighvar, edge, m, ixy;
+     float xsum, ysum;
+
+     if (nvar < 2)
+	  return;
+
+     /*  build matrix of simultaneous equations for minimization solution */
+     for (ivar = 0; ivar < nvar - 1; ivar++) {
+	  ipc = ivarpc[ivar];
+	  for (m = 0; m < nvar -1; m++) {
+	       a[ivar * limvar + m] = 0.;
+	       b[ivar * 2] = 0;
+	       b[ivar * 2 + 1] = 0.;
+	  }
+
+	  for (ixy = 0; ixy < 2; ixy++) {
+
+	       edge = vw->edgelower[ipc * 2 + ixy];
+	       if(edge > -1 && edge * 2 + ixy != leavind) {
+		    ind = edge * 2 + ixy;
+		    neighpc = vw->piecelower[ind];
+		    neighvar = indvar[neighpc];
+		    if (neighvar >= 0) {
+			 a[ivar * limvar + ivar]++;
+		    
+			 /* for a regular neighbor, enter a -1 in its term; 
+			    but for the last variable being eliminated, enter
+			    a +1 for ALL other variables instead */
+			 if (neighvar != nvar - 1)
+			      a[ivar * limvar + neighvar]--;
+			 else {
+			      for (m = 0 ; m < nvar-1; m++)
+				   a[ivar * limvar + m]++;
+			 }
+
+			 /* when this piece is an upper piece, subtract 
+			    displacements from (add shifts to) constant term */
+			 b[ivar * 2] += vw->edgedx[ind];
+			 b[ivar * 2 + 1] += vw->edgedy[ind];
+		    }
+	       }
+
+	       edge = vw->edgeupper[ipc * 2 + ixy];
+	       if(edge > -1 && edge * 2 + ixy != leavind) {
+		    ind = edge * 2 + ixy;
+		    neighpc = vw->pieceupper[ind];
+		    neighvar = indvar[neighpc];
+		    if (neighvar >= 0) {
+			 a[ivar * limvar + ivar]++;
+			 if (neighvar != nvar - 1)
+			      a[ivar * limvar + neighvar]--;
+			 else {
+			      for (m=0 ; m < nvar-1; m++)
+				   a[ivar * limvar + m]++;
+			 }
+		    
+			 /* when a lower piece, add displacements to (subtract
+			    shifts from) constant terms */
+			 b[ivar * 2] -= vw->edgedx[ind];
+			 b[ivar * 2 + 1] -= vw->edgedy[ind];
+		    }
+	       }
+	  }
+     }
+
+     /* solve the equations, take the b values as dx and dy; compute the
+	sum to get the shift for the final piece */
+
+     /*   for (i = 0; i < nvar; i++)
+	  printf("%5d",ivarpc[i]);
+     printf("\n");
+     for (j = 0; j < (nvar -1); j++) {
+	  for (i = 0; i < (nvar - 1); i++) 
+	       printf("%7.1f", a[j + i * limvar]);
+	  printf("\n");
+     }
+     for (j = 0; j < 2; j++) {
+	  for (i = 0; i < (nvar - 1); i++)
+	       printf("%9.2f", b[i * 2 + j]);
+	  printf("\n");
+     } */
+	  
+     gaussj(a, nvar - 1, limvar, b, 2, 2);
+
+     xsum=0.;
+     ysum=0.;
+     for (i = 0; i < nvar-1; i++) {
+	  xsum += b[i * 2];
+	  ysum += b[i * 2 + 1];
+     }
+     b[(nvar - 1) * 2] = -xsum;
+     b[(nvar - 1) * 2 + 1] = -ysum;
+
+}
+
