@@ -30,6 +30,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.12  2003/10/20 20:08:37  sueh
+ * <p> Bus322 corrected labels
+ * <p>
  * <p> Revision 2.11  2003/10/13 20:26:52  sueh
  * <p> bug270
  * <p> added and changed tooltips
@@ -390,11 +393,13 @@ public class CCDEraserPanel implements ContextMenu {
    * Right mouse button context menu
    */
   public void popUpContextMenu(MouseEvent mouseEvent) {
-    String[] label = { "ccdEraser" };
+    String[] label = { "CCDEraser" };
     String[] manPage = { "ccderaser.html" };
-    String[] logFileLabel = { "eraser" };
+    
+    String[] logFileLabel = { "Eraser" };
     String[] logFile = new String[1];
     logFile[0] = "eraser" + axisID.getExtension() + ".log";
+    
     ContextPopup contextPopup =
       new ContextPopup(
         pnlCCDEraser,

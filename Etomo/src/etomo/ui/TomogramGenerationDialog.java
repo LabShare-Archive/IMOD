@@ -44,6 +44,9 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 2.16  2003/10/22 21:31:02  rickg
+ * Bug# 287 Default value handling for SLICE OFFSET and SHIFT
+ *
  * Revision 2.15  2003/10/21 23:41:28  rickg
  * Bug# 288 Tooltips
  * Bug# 296 Added button to delete .preal and .ali
@@ -485,10 +488,11 @@ public class TomogramGenerationDialog
         tiltParam.setIdxSliceStart(Integer.parseInt(ltfSliceStart.getText()));
         badParameter = ltfSliceStop.getLabel();
         tiltParam.setIdxSliceStop(Integer.parseInt(ltfSliceStop.getText()));
-				sliceRangeSpecified = true;
+        sliceRangeSpecified = true;
       }
-      else if (ltfSliceStart.getText().matches("^\\s*$") 
-        && ltfSliceStop.getText().matches("^\\s*$")) {
+      else if (
+        ltfSliceStart.getText().matches("^\\s*$")
+          && ltfSliceStop.getText().matches("^\\s*$")) {
         tiltParam.useSlice(false);
       }
       else {
@@ -496,16 +500,17 @@ public class TomogramGenerationDialog
           new InvalidParameterException("You must supply both the first and last slices if you want to specify either."));
       }
       if (ltfSliceIncr.getText().matches("\\S+")) {
-        if(sliceRangeSpecified) {
-        badParameter = ltfSliceIncr.getLabel();
-        tiltParam.setIdxSliceIncr(Integer.parseInt(ltfSliceIncr.getText()));
+        if (sliceRangeSpecified) {
+          badParameter = ltfSliceIncr.getLabel();
+          tiltParam.setIdxSliceIncr(Integer.parseInt(ltfSliceIncr.getText()));
         }
         else {
-        	throw (new InvalidParameterException("You must supply both the first and last slices to specify the slice step."));
+          throw (
+            new InvalidParameterException("You must supply both the first and last slices to specify the slice step."));
         }
       }
       else {
-				tiltParam.useSliceIncr(false);
+        tiltParam.useSliceIncr(false);
       }
 
       if (ltfTomoThickness.getText().matches("\\S+")) {
@@ -684,12 +689,8 @@ public class TomogramGenerationDialog
     String[] manPagelabel = { "Newst", "Tilt", "3dmod" };
     String[] manPage = { "newst.html", "tilt.html", "3dmod.html" };
 
-    String[] logFileLabel;
-    String[] logFile;
-    logFileLabel = new String[2];
-    logFileLabel[0] = "Newst";
-    logFileLabel[1] = "Tilt";
-    logFile = new String[2];
+    String[] logFileLabel = { "Newst", "Tilt" };
+    String[] logFile = new String[2];
     logFile[0] = "newst" + axisID.getExtension() + ".log";
     logFile[1] = "tilt" + axisID.getExtension() + ".log";
 

@@ -24,6 +24,9 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.8  2003/10/20 20:08:37  sueh
+ * <p> Bus322 corrected labels
+ * <p>
  * <p> Revision 2.7  2003/10/15 01:34:20  sueh
  * <p> Bug277 added tooltips
  * <p>
@@ -229,9 +232,10 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu {
    * Right mouse button context menu
    */
   public void popUpContextMenu(MouseEvent mouseEvent) {
-    String[] manPagelabel = { "beadtrack", "3dmod" };
+    String[] manPagelabel = { "Beadtrack", "3dmod" };
     String[] manPage = { "beadtrack.html", "3dmod.html" };
-    String[] logFileLabel = { "track", "transferid" };
+    
+    String[] logFileLabel = { "Track", "Transferid" };
     String[] logFile = new String[2];
     logFile[0] = "track" + axisID.getExtension() + ".log";
     logFile[1] = "transferfid.log";

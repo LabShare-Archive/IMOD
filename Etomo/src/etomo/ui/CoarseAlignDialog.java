@@ -24,6 +24,9 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.5  2003/10/20 20:08:37  sueh
+ * <p> Bus322 corrected labels
+ * <p>
  * <p> Revision 2.4  2003/10/14 21:56:05  sueh
  * <p> Bug273 add tooltips
  * <p>
@@ -169,7 +172,7 @@ public class CoarseAlignDialog extends ProcessDialog implements ContextMenu {
    * Right mouse button context menu
    */
   public void popUpContextMenu(MouseEvent mouseEvent) {
-    String[] manPagelabel = { "xftoxg", "newst", "newstack", "3dmod", "midas" };
+    String[] manPagelabel = { "Xftoxg", "Newst", "Newstack", "3dmod", "Midas" };
     String[] manPage =
       {
         "xftoxg.html",
@@ -178,13 +181,9 @@ public class CoarseAlignDialog extends ProcessDialog implements ContextMenu {
         "3dmod.html",
         "midas.html" };
 
-    String[] logFileLabel = new String[2];
+    String[] logFileLabel = {"Xcorr", "Prenewst"};
     String[] logFile = new String[2];
-
-    logFileLabel[0] = "xcorr";
     logFile[0] = "xcorr" + axisID.getExtension() + ".log";
-
-    logFileLabel[1] = "prenewst";
     logFile[1] = "prenewst" + axisID.getExtension() + ".log";
 
     ContextPopup contextPopup =

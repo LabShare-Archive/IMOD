@@ -20,6 +20,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.4  2003/10/20 20:08:37  sueh
+ * <p> Bus322 corrected labels
+ * <p>
  * <p> Revision 2.3  2003/10/14 21:56:34  sueh
  * <p> Bug273 add tooltips
  * <p>
@@ -162,9 +165,9 @@ public class CrossCorrelationPanel implements ContextMenu {
    * Right mouse button context menu
    */
   public void popUpContextMenu(MouseEvent mouseEvent) {
-    String[] manPagelabel = { "tiltxcorr" };
+    String[] manPagelabel = { "Tiltxcorr" };
     String[] manPage = { "tiltxcorr.html" };
-    String[] logFileLabel = { "xcorr" };
+    String[] logFileLabel = { "Xcorr" };
     String[] logFile = new String[1];
     logFile[0] = "xcorr" + axisID.getExtension() + ".log";
     ContextPopup contextPopup =

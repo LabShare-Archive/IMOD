@@ -35,6 +35,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.10  2003/07/28 22:43:21  rickg
+ * <p> Added isCombinePanelEnable method and state var
+ * <p>
  * <p> Revision 2.9  2003/03/20 17:45:07  rickg
  * <p> Added right button context menu
  * <p>
@@ -297,7 +300,7 @@ public class TomogramCombinationDialog
    */
   public void popUpContextMenu(MouseEvent mouseEvent) {
     String[] manPagelabel =
-      { "solvematch", "matchshifts", "patchcrawl3d", "matchorwarp" };
+      { "Solvematch", "Matchshifts", "Patchcrawl3d", "Matchorwarp" };
     String[] manPage =
       {
         "solvematch.html",
@@ -306,10 +309,10 @@ public class TomogramCombinationDialog
         "matchorwarp.html" };
     String[] logFileLabel =
       {
-        "solvematchshift.log",
-        "solvematchmod.log",
-        "patchcorr.log",
-        "matchorwarp.log" };
+        "Solvematchshift.log",
+        "Solvematchmod.log",
+        "Patchcorr.log",
+        "Matchorwarp.log" };
     ContextPopup contextPopup =
       new ContextPopup(
         rootPanel,

@@ -31,6 +31,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.7  2003/10/28 00:23:47  rickg
+ * <p> Bug# 336 Context menu label capitalization
+ * <p>
  * <p> Revision 2.6  2003/10/27 23:58:18  rickg
  * <p> Bug# 284 tooltips
  * <p>
@@ -217,13 +220,8 @@ public class TomogramPositioningDialog
     String[] manPage =
       { "tomopitch.html", "newst.html", "3dmod.html", "tilt.html" };
 
-    String[] logFileLabel;
-    String[] logFile;
-    logFileLabel = new String[2];
-    logFileLabel[0] = "Tomopitch";
-    logFileLabel[1] = "Sample";
-
-    logFile = new String[2];
+    String[] logFileLabel = { "Tomopitch", "Sample" };
+    String[] logFile = new String[2];
     logFile[0] = "tomopitch" + axisID.getExtension() + ".log";
     logFile[1] = "sample" + axisID.getExtension() + ".log";
 
