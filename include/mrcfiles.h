@@ -33,6 +33,10 @@
     $Revision$
 
     $Log$
+    Revision 3.2  2002/07/31 17:29:29  mast
+    Redefine header entries to comply with MRC image2000 standard
+    Add declaration for mrc_set_cmap_stamp
+
     Revision 3.1  2002/06/26 16:53:13  mast
     Added prototype for mrc_swap_header
 

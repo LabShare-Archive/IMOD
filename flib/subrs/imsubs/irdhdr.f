@@ -42,6 +42,12 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.7  2002/07/31 17:41:28  mast
+c	  Changed internal data definitions to correspond to MRC image2000
+c	  standard, eliminating wavelength entries and associated routines.
+c	  Made it able to read old or new headers, and put out new headers.
+c	  Did implicit none!
+c	
 c	  Revision 3.6  2002/07/21 19:17:43  mast
 c	  Standardized error output to ERROR: ROUTINE
 c	
