@@ -73,6 +73,9 @@ void inputRaiseWindows()
   imodDialogManager.raise(IMOD_DIALOG);
   if (ImodInfoWin->isVisible())
     ImodInfoWin->raise();
+#ifdef _WIN32
+  ImodInfoWin->setActiveWindow();
+#endif
   
   /* The old way
   QWidgetList  *list = QApplication::topLevelWidgets();
@@ -1223,6 +1226,9 @@ bool inputTestMetaKey(QKeyEvent *event)
 
 /*
 $Log$
+Revision 4.14  2003/10/30 06:19:16  mast
+Add A hotkey for autocontrast
+
 Revision 4.13  2003/07/30 00:15:51  mast
 Fixed bug that let Z go outside legal limits
 
