@@ -131,7 +131,7 @@ It displays information about the
 model and the current image point.  There are also some controls that
 govern the overall behavior of the program, and a status pane where
 messages
-are printed.  Let us consider it from the top d
+are printed.  Let us consider it from the top down.
 <p>
 The title bar of the Info Window shows the name of the image file and
 also contains controls for minimizing the window or closing it, which
@@ -221,6 +221,14 @@ vertically to see more of the information at once.
 The main image display and model editing window within 3dmod
 is the "ZaP" window.  The window name is an acronym for
 "Zoom and Pan".
+The zoom can be adjusted by clicking with 
+the left mouse button on the arrows at the
+left side of the toolbar.  
+To pan the image when it is larger than the window, press and hold the left
+mouse
+button in the image area of the window and
+drag the image.
+<P>
 This display illustrates the three kinds of model objects: closed
 contours, open contours, and scattered points.
 <UL>
@@ -346,26 +354,18 @@ clicking or holding down the right button.
 <p>
 The Zap Toolbar
 <P>
-The zoom can be adjusted by either clicking with 
-the left mouse button on the arrows at the
-left side of the toolbar or by selecting the
-text field next to the arrows and entering in a
-number.  The current zoom level in the image above
-is 1.25x.  </I>( Fractional zooms may be slower on some machines. )</i>
-To pan the image press and hold the left mouse
-button in the image area of the window and
-drag the image.
-
-<P>
-Some of the other controls at the top of the Zap window
-are the Checkerboard button,
-the Lock button, the Centering button, the Insert button and the section
-selector.
+The toolbar for the Zap window has a number of useful controls.
 <UL>
-<LI>The Checkerboard button will toggle between fast and slow 
-drawing methods.  
+<LI>In addition to the arrows for changing zoom to fixed zoom values,
+there is a text box which both displays the current zoom value and allows you
+to enter any arbitrary zoom.
+(Fractional zooms may be slower on some machines.)
+<LI>The Checkerboard button will toggle between fast drawing and slower, 
+high-resolution drawing when the zoom is greater than 1.
 <LI>The Lock button is used to keep the image from centering on the current
-point.  When the lock is closed, the image will not move when the current model
+point and to allow different Zap windows to display different
+sections.
+When the lock is closed, the image will not move when the current model
 point changes, but it can be moved with the mouse or the PageUp and PageDown
 keys.  When the lock is open, the image may automatically pan to the current
 point, depending on the setting of the Centering button.  This panning does
@@ -375,23 +375,59 @@ the image will be centered on the current point only if it falls near the
 edge of the window, that is, outside of a central box.  (Thus, the icon shows
 one box inside another.)  In the other mode, the
 image will be recentered on the current point each time you change the 
-current point.  (The icon shows a point inside the outer box.  Sorry, this
-button does not appear in the example shown above.)
+current point.  (The icon shows a point inside the outer box.)
 <LI>The Insert, or Modeling Direction, button toggles between inserting 
 points before and inserting points after the current model point.
-<LI>The section selector shows the value of the current section
-being viewed in the Zap window.
-You can change sections by selecting this field and entering a 
-section number.
+This is useful when modeling a feature that passes between sections,
+in case you need to add points to the start of a contour.
+<LI>The Z slider allows you to riffle through the sections and select
+a particular one.  The text box shows the value of the current section
+being viewed in the Zap window and allows you to go to a particular section
+by entering a number.
+<LI>The I button brings the Info Window to the top and prints
+information there about the image and window size.
 </UL>
-<P>
-<I>Editing the model in the Zap Window</I>
-The left mouse button can be used to select a point for editing.
-The middle mouse button is used to insert model points.
-The right mouse button is used to alter the position of
-the current model point.
 </DD>
 <P>
+
+<DD><H4>Most Frequently Used Hot Keys</H4>
+<P>
+3dmod has many hot keys, which are listed both in the man page for 
+<A HREF = "man/3dmod.html">3dmod</a> and in a help window that can be
+accessed from the Help-Hot Keys menu entry.  These hot keys will work
+from all of the 3dmod image display windows, and even from the Info
+Window or other dialog boxes.  There are also hot keys active only in
+particular windows, which described in the help for those windows.
+The most important hot keys
+to know when starting out are listed here:
+<pre>
+PageUp     Show the next section (increase Z)
+PageDown   Show the previous section (decrease Z)
+Home       Show the last section
+End        Show the first section
+Delete     Delete current model point
+-          Zoom down
+=          Zoom up
+s          Save the model
+n          Start a new contour
+Ctrl-S     Snapshot an image window to a Tiff file
+t          Toggle model drawing off or on
+</pre>
+</DD>
+
+<DD><H4>The Slicer Window</H4>
+<P>
+The Slicer Window can display a slice at an arbitrary orientation
+through the image volume.  The orientation is set by adjusting the X,
+Y, and Z rotation sliders in the second toolbar.  
+The center of the displayed slice is the current
+image point and is marked by a red cross.  This center point may be
+moved either by changing the current image point in some other window,
+or by clicking on the image in this Slicer Window with any mouse button.
+
+
+</DD>
+
 
 <DD><H4>Automated Model Building</H4>
 <P>
