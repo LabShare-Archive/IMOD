@@ -33,6 +33,10 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2002/08/19 04:48:31  mast
+    In montage-fixing mode, made it suppress updates during mouse moves
+    when there are many pieces
+
 */
 
 #include <stdlib.h>
@@ -399,11 +403,11 @@ void filemenu_cb(Widget w, XtPointer client, XtPointer call)
 	  break; 
 
 	case 4: /* About */
-	  dia_vasmsg("Midas version \n",
+	  dia_vasmsg("Midas version",
 		     MIDAS_VERSION_STRING,
 		     "\n",
-		     "Copyright (C) 1994-2001 Boulder Laboratory\n",
-		     "for 3-D Fine Structure, University of\n",
+		     "Copyright (C)",COPYRIGHT_YEARS,"by",LAB_NAME1,"\n",
+		     LAB_NAME2,"and Regents of the University of",
 		     "Colorado\n",
 		     "Written by James Kremer and David Mastronarde.\n",
 		     NULL);

@@ -34,6 +34,11 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.8  2002/09/27 20:24:57  rickg
+Moved IO functionality into imod_io
+Move client message functionality into imod_client_message since it was no
+longer dependent upon any code in this model due to the changes to imod_io.
+
 Revision 3.7  2002/09/19 22:52:54  rickg
 Added MESSAGE_QUIT case for receiving of events.
 
@@ -161,11 +166,11 @@ void imod_file_cb(Widget w, XtPointer client, XtPointer call)
     imod_info_enable();
     dia_vasmsg
       ("Imod Version ",
-       VERSION_NAME, "[ ", __DATE__, __TIME__, " ]",
-       " originally written by James Kremer and revised by",
-       " David Mastronarde\n",
-       "Copyright (C) 1994-2001 by Boulder Laboratory for 3-Dimensional\n",
-       "Fine Structure & Regents of the University of Colorado\n\n",
+       VERSION_NAME, "[", __DATE__, __TIME__, "]",
+       "originally written by James Kremer and revised by",
+       "David Mastronarde\n",
+       "Copyright (C)",COPYRIGHT_YEARS,"by",LAB_NAME1,"\n",LAB_NAME2,
+       "& Regents of the University of Colorado\n\n",
        NULL);
     break;
 
