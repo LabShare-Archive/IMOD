@@ -8,6 +8,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import etomo.comscript.BadComScriptException;
 import etomo.comscript.BeadtrackParam;
+import etomo.comscript.BlendmontParam;
 import etomo.comscript.CCDEraserParam;
 import etomo.comscript.ComScriptManager;
 import etomo.comscript.CombineComscriptState;
@@ -18,6 +19,7 @@ import etomo.comscript.ConstSetParam;
 import etomo.comscript.ConstSqueezevolParam;
 import etomo.comscript.ConstTiltalignParam;
 import etomo.comscript.FortranInputSyntaxException;
+import etomo.comscript.GotoParam;
 import etomo.comscript.MTFFilterParam;
 import etomo.comscript.MatchorwarpParam;
 import etomo.comscript.MatchshiftsParam;
@@ -92,6 +94,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.130  2005/03/02 23:10:57  sueh
+ * <p> bug# 533 imodXrayModel():  set frames to true if processing a montage.
+ * <p>
  * <p> Revision 3.129  2005/03/01 22:07:03  sueh
  * <p> bug# 610 getDialog():  test for dialogType is null and return null.
  * <p>
@@ -1629,6 +1634,9 @@ public class ApplicationManager extends BaseManager {
     String eraseModelName = metaData.getDatasetName() + axisID.getExtension()
       + ".erase";
     try {
+      if (metaData.getViewType() == ViewType.MONTAGE) {
+        imodManager.setFrames(ImodManager.RAW_STACK_KEY, axisID, true);
+      }
       imodManager.open(ImodManager.RAW_STACK_KEY, axisID, eraseModelName, true);
       processTrack.setPreProcessingState(ProcessState.INPROGRESS, axisID);
       mainPanel.setPreProcessingState(ProcessState.INPROGRESS, axisID);
@@ -1747,6 +1755,10 @@ public class ApplicationManager extends BaseManager {
       return;
     }
     try {
+      if (metaData.getViewType() == ViewType.MONTAGE) {
+        imodManager.setPieceListFileName(ImodManager.ERASED_STACK_KEY, axisID,
+            metaData.getDatasetName() + axisID.getExtension() + ".pl");
+      }
       imodManager.open(ImodManager.ERASED_STACK_KEY, axisID);
     }
     catch (AxisTypeException except) {
@@ -2078,6 +2090,20 @@ public class ApplicationManager extends BaseManager {
       TiltxcorrParam tiltXcorrParam = comScriptMgr.getTiltxcorrParam(axisID);
       coarseAlignDialog.getCrossCorrelationParams(tiltXcorrParam);
       comScriptMgr.saveXcorr(tiltXcorrParam, axisID);
+      //handle montaging
+      if (metaData.getViewType() == ViewType.MONTAGE) {
+        BlendmontParam blendmontParam = comScriptMgr
+            .getBlendmontParamFromTiltxcorr(axisID);
+        GotoParam gotoParam = comScriptMgr.getGotoParamFromTiltxcorr(axisID);
+        if (blendmontParam.setBlendmontState()) {
+          gotoParam.setLabel(BlendmontParam.GOTO_LABEL);
+        }
+        else {
+          gotoParam.setLabel(TiltxcorrParam.GOTO_LABEL);
+        }
+        comScriptMgr.saveXcorr(gotoParam, axisID);
+        comScriptMgr.saveXcorr(blendmontParam, axisID);
+      }
     }
     catch (FortranInputSyntaxException except) {
       except.printStackTrace();
