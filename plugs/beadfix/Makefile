@@ -5,7 +5,7 @@ PLUGS = beadfix.so
 all : $(PLUGS)
 
 install : $(PLUGS)
-	$(CP) -f $(PLUGS) $(IMOD_PLUGIN_DIR)
+#	$(CP) -f $(PLUGS) $(IMOD_PLUGIN_DIR)
 
 
 beadfix.so : beadfix.o moc_beadfix.o
