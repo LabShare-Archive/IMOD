@@ -32,6 +32,9 @@
     $Revision$
 
     $Log$
+    Revision 3.3  2004/09/21 20:09:30  mast
+    Added clean surface call
+
     Revision 3.2  2004/04/28 05:30:24  mast
     Added flag for drawing current contour thicker
 
@@ -43,7 +46,7 @@
 #ifndef IOBJ_H
 #define IOBJ_H
 
-#include <imodel.h>
+#include "imodel.h"
 
 /*****************************************************************************/
 /* object bit flags.  Default values are all off.                            */
