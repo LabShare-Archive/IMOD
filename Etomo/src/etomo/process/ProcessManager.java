@@ -37,6 +37,9 @@ import java.util.ArrayList;
  * 
  * <p>
  * $Log$
+ * Revision 3.1  2003/11/10 07:33:06  rickg
+ * Bug# 353 Transferfid log window is now a standard log window
+ *
  * Revision 3.0  2003/11/07 23:19:00  rickg
  * Version 1.0.0
  *
@@ -364,7 +367,7 @@ public class ProcessManager {
 
     CopyTomoComs copyTomoComs = new CopyTomoComs(metaData);
 
-    if (appManager.isDebug()) {
+    if (ApplicationManager.isDebug()) {
       System.err.println(
         "copytomocoms command line: " + copyTomoComs.getCommandLine());
     }
@@ -687,7 +690,7 @@ public class ProcessManager {
     SystemProgram savePatchOut =
       new SystemProgram("mv -f patch.out patch.out~");
     savePatchOut.setWorkingDirectory(new File(System.getProperty("user.dir")));
-    savePatchOut.setDebug(appManager.isDebug());
+    savePatchOut.setDebug(ApplicationManager.isDebug());
 
     savePatchOut.run();
     if (savePatchOut.getExitValue() != 0) {
@@ -709,7 +712,7 @@ public class ProcessManager {
     String commandLine = imodBinPath + "imod2patch patch_vector.mod patch.out";
     SystemProgram patch2imod = new SystemProgram(commandLine);
     patch2imod.setWorkingDirectory(new File(System.getProperty("user.dir")));
-    patch2imod.setDebug(appManager.isDebug());
+    patch2imod.setDebug(ApplicationManager.isDebug());
 
     patch2imod.run();
     if (patch2imod.getExitValue() != 0) {
@@ -852,10 +855,10 @@ public class ProcessManager {
   public String test(String commandLine) {
     BackgroundProcess command = new BackgroundProcess(commandLine, this);
     command.setWorkingDirectory(new File(System.getProperty("user.dir")));
-    command.setDebug(appManager.isDebug());
+    command.setDebug(ApplicationManager.isDebug());
     command.start();
 
-    if (appManager.isDebug()) {
+    if (ApplicationManager.isDebug()) {
       System.err.println("Started " + commandLine);
       System.err.println("  Name: " + command.getName());
     }
@@ -870,12 +873,12 @@ public class ProcessManager {
     // Initialize the SystemProgram object
     SystemProgram sysProgram = new SystemProgram(command);
     sysProgram.setWorkingDirectory(new File(System.getProperty("user.dir")));
-    sysProgram.setDebug(appManager.isDebug());
+    sysProgram.setDebug(ApplicationManager.isDebug());
 
     //  Start the system program thread
     Thread sysProgThread = new Thread(sysProgram);
     sysProgThread.start();
-    if (appManager.isDebug()) {
+    if (ApplicationManager.isDebug()) {
       System.err.println("Started " + command);
       System.err.println(
         "  working directory: " + System.getProperty("user.dir"));
@@ -901,14 +904,14 @@ public class ProcessManager {
     ComScriptProcess comScriptProcess = new ComScriptProcess(command, this);
     comScriptProcess.setWorkingDirectory(
       new File(System.getProperty("user.dir")));
-    comScriptProcess.setDebug(appManager.isDebug());
+    comScriptProcess.setDebug(ApplicationManager.isDebug());
     comScriptProcess.setDemoMode(appManager.isDemo());
     comScriptProcess.start();
 
     // Map the thread to the correct axis
     mapAxisThread(comScriptProcess, axisID);
 
-    if (appManager.isDebug()) {
+    if (ApplicationManager.isDebug()) {
       System.err.println("Started " + command);
       System.err.println("  Name: " + comScriptProcess.getName());
     }
@@ -1062,9 +1065,9 @@ public class ProcessManager {
     backgroundProcess.setWorkingDirectory(
       new File(System.getProperty("user.dir")));
     backgroundProcess.setDemoMode(appManager.isDemo());
-    backgroundProcess.setDebug(appManager.isDebug());
+    backgroundProcess.setDebug(ApplicationManager.isDebug());
     backgroundProcess.start();
-    if (appManager.isDebug()) {
+    if (ApplicationManager.isDebug()) {
       System.err.println("Started " + command);
       System.err.println("  Name: " + backgroundProcess.getName());
     }
