@@ -13,6 +13,14 @@
 *   Ross Dargahi                December 1990
 *
 ******************************************************************************/
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
  
 #define BLOCKIO_C    /*define source name for includes*/
  
@@ -340,7 +348,8 @@ void qseek(iunit, irecord, ielement, ireclength)
 			     *ireclength * u->num_char_per_item, 
 			     SEEK_SET))
 		{
-			abort();
+		        fprintf(stderr, "Error on big_seek\n");
+		        abort();
 		}
 	}
 }
