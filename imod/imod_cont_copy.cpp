@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.1  2003/02/10 20:28:59  mast
+autox.cpp
+
 Revision 1.1.2.4  2003/02/07 01:03:23  mast
 a little cleanup
 
@@ -544,6 +547,8 @@ void ContourCopy::apply()
         if (cont->psize){
           ncont  = imodContourDup(cont);
           errcode = copyContour(ncont);
+          if (errcode)
+            wprint("\a%sFailed to duplicate contour correctly.\n", badCopy);
         }
       }
     }
