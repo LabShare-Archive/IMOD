@@ -65,10 +65,17 @@ public class EtomoAutodoc {
       return null;
     }
   }
-
+  
+  public static String getTooltip(Section section, int enumValueName) {
+    return getTooltip(section, Integer.toString(enumValueName));
+  }
 }
+
 /**
  * <p> $Log$
+ * <p> Revision 1.2  2005/02/15 19:29:24  sueh
+ * <p> bug# 602 Getting unformatted value from attribute for tooltips.
+ * <p>
  * <p> Revision 1.1  2005/02/11 16:44:17  sueh
  * <p> bug# 600 Adding class which knows about key words used in the autodocs
  * <p> and the rules for getting a tooltip.
