@@ -31,6 +31,7 @@ import java.lang.IllegalStateException;
 * OPEN:  [
 * CLOSE:  ]
 * Default DELIMITER:  =
+* BREAK:  ^
 * Keywords:  Version, Pip, KeyValueDelimiter
 * 
 * Tokenizing Rules:
@@ -38,10 +39,11 @@ import java.lang.IllegalStateException;
 * Currently the COMMENT, SEPARATOR, OPEN, and CLOSE symbols must be single
 * character.
 * 
-* The delimiter may contain multiple characters.
+* The delimiter may contain multiple characters.  It may not contain symbols
+* used by other tokens.
 * 
-* COMMENT, SEPARATOR, OPEN, CLOSE, and DELIMITER should not contain alphanumeric
-* or whitespace characters.
+* COMMENT, SEPARATOR, OPEN, CLOSE, DELIMITER, and BREAK should not contain
+* alphanumeric or whitespace characters.
 * 
 * WHITESPACE, EOL, and EOF are defined in PrimativeTokenizer.
 * 
@@ -63,6 +65,9 @@ import java.lang.IllegalStateException;
 * @version $$Revision$$
 *
 * <p> $$Log$
+* <p> $Revision 1.4  2003/12/31 17:48:07  sueh
+* <p> $bug# 372 change doc
+* <p> $
 * <p> $Revision 1.3  2003/12/31 01:28:30  sueh
 * <p> $bug# 372 simplified next() function, fixed delimiter bugs,
 * <p> $added doc
@@ -82,13 +87,14 @@ public class AutodocTokenizer {
   public static final char SEPARATOR_CHAR = '.';
   public static final char OPEN_CHAR = '[';
   public static final char CLOSE_CHAR = ']';
+  public static final char BREAK_CHAR = '^';
   public static final String defaultDelimiter = "=";
   public static final String VERSION_KEYWORD = "Version";
   public static final String PIP_KEYWORD = "Pip";
   public static final String DELIMITER_KEYWORD = "KeyValueDelimiter";
   private String delimiterString = defaultDelimiter;
   private StringBuffer restrictedSymbols =
-    new StringBuffer(COMMENT_CHAR + SEPARATOR_CHAR + OPEN_CHAR + CLOSE_CHAR);
+    new StringBuffer(COMMENT_CHAR + SEPARATOR_CHAR + OPEN_CHAR + CLOSE_CHAR + BREAK_CHAR);
   private PrimativeTokenizer primative = null;
   private File file = null;
   private Token primativeToken = null;
@@ -225,6 +231,10 @@ public class AutodocTokenizer {
     }
     else if (primativeToken.equals(Token.SYMBOL, CLOSE_CHAR)) {
       token.set(Token.CLOSE, CLOSE_CHAR);
+      return true;
+    }
+    else if (primativeToken.equals(Token.SYMBOL, BREAK_CHAR)) {
+      token.set(Token.BREAK, BREAK_CHAR);
       return true;
     }
     else if (primativeToken.equals(Token.SYMBOL, delimiterString)) {
