@@ -316,15 +316,25 @@ void InfoWindow::closeEvent ( QCloseEvent * e )
 // Watch for both event types in each case due to further X11/Mac differences
 bool InfoWindow::event(QEvent *e)
 {
-  // fprintf(stderr, "event type %d\n", e->type());
+  //fprintf(stderr, "event type %d\n", e->type());
+  if (Imod_debug && e->type() == QEvent::ShowMinimized)
+    fprintf(stderr, "ShowMinimized\n");
+  if (Imod_debug && e->type() == QEvent::Hide)
+    fprintf(stderr, "Hide\n");
+  if (Imod_debug && e->type() == QEvent::ShowNormal)
+    fprintf(stderr, "ShowNormal\n");
+  if (Imod_debug && e->type() == QEvent::Show)
+    fprintf(stderr, "Show\n");
   if ((e->type() == QEvent::ShowMinimized || e->type() == QEvent::Hide) &&
       !mMinimized) {
-    //  puts("minimizing");
+    if (Imod_debug)
+      puts("minimizing");
     mMinimized = true;
     imodDialogManager.hide();
   } else if ((e->type() == QEvent::ShowNormal || e->type() == QEvent::Show)
              && mMinimized) {
-    //  puts("maximizing");
+    if (Imod_debug)
+      puts("maximizing");
     mMinimized = false;
     imodDialogManager.show();
   }
@@ -471,6 +481,9 @@ static char *truncate_name(char *name, int limit)
 
 /*
     $Log$
+    Revision 4.20  2003/06/19 05:48:35  mast
+    Added object break by Z
+
     Revision 4.19  2003/05/18 22:59:28  mast
     Remove icon include file
 

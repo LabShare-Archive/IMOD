@@ -238,12 +238,24 @@ void ImodvWindow::closeEvent ( QCloseEvent * e )
 // window is minimized or brought back
 bool ImodvWindow::event(QEvent *e)
 {
+  if (Imod_debug && e->type() == QEvent::ShowMinimized)
+    fprintf(stderr, "ShowMinimized\n");
+  if (Imod_debug && e->type() == QEvent::Hide)
+    fprintf(stderr, "Hide\n");
+  if (Imod_debug && e->type() == QEvent::ShowNormal)
+    fprintf(stderr, "ShowNormal\n");
+  if (Imod_debug && e->type() == QEvent::Show)
+    fprintf(stderr, "Show\n");
   if ((e->type() == QEvent::ShowMinimized || e->type() == QEvent::Hide) &&
       !mMinimized) {
+    if (Imod_debug)
+      puts("minimizing");
     mMinimized = true;
     imodvDialogManager.hide();
   } else if ((e->type() == QEvent::ShowNormal || e->type() == QEvent::Show)
              && mMinimized) {
+    if (Imod_debug)
+      puts("maximizing");
     mMinimized = false;
     imodvDialogManager.show();
   }
@@ -302,6 +314,9 @@ void ImodvGL::mouseMoveEvent ( QMouseEvent * e )
 
 /*
 $Log$
+Revision 4.6  2003/05/05 15:08:50  mast
+Add accelerator keys, some of which don't show up
+
 Revision 4.5  2003/04/23 17:50:44  mast
 no longer need to watch windowActivate event due to fix on Mac
 
