@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.2  2003/02/14 01:14:06  mast
+Add error report if duplication fails
+
 Revision 4.1  2003/02/10 20:28:59  mast
 autox.cpp
 
@@ -59,8 +62,6 @@ Changed include of libgen.h to be on sun only
 
 */
 
-#include <stdio.h>
-#include <unistd.h>
 
 /* 9/10/02: This include is not known to be unneeded on sun but is generally
    unavailable and unneeded on SGI - so leave it just for sun */
