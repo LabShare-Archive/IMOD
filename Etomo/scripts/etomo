@@ -10,6 +10,9 @@
 # $Revision$
 # 
 # $Log$
+# Revision 1.8  2003/09/03 17:40:01  mast
+# Modified to use system-dependent 'setlibpath' to fix library paths
+#
 # Revision 1.7  2003/07/22 22:13:32  rickg
 # Use JVM defined by the PATH
 # Check to see if we have our our QTLIB
@@ -42,16 +45,16 @@ fi
 if ! type -t java 2>&1 > /dev/null ; then
   echo "There is no java runtime in the current search path.  A Java runtime"
   echo "environment needs to be installed and the command search path needs"
-  echo "be defined to locate the java command."
+  echo "to be defined to locate the java command."
 fi
 
-# If the system-dependent script for setting the library serach path exists,
+# If the system-dependent script for setting the library search path exists,
 # source it.  This takes care of putting our Qt libraries on the right path
 # variable, and allows other directories to be placed on the path too, to
 # prevent clashes with libraries supplied by other packages
 
 if [ -e ${IMOD_DIR}/bin/setlibpath ]; then
-  source ${IMOD_DIR}/bin/setlibpath
+  . ${IMOD_DIR}/bin/setlibpath
 fi
 
 # Copy the previous log files to backups
