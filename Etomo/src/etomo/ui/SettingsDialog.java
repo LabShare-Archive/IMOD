@@ -1,5 +1,7 @@
 package etomo.ui;
 
+import java.awt.GraphicsEnvironment;
+import java.awt.Dimension;
 import java.awt.event.*;
 import javax.swing.*;
 
@@ -15,9 +17,23 @@ import etomo.type.UserConfiguration;
  * Window>Preferences>Java>Code Generation.
  */
 public class SettingsDialog extends JDialog {
-  public static final String rcsid = "$Id:";
+  public static final String rcsid = "$Id$";
 
   ApplicationManager applicationManager;
+
+  // Font selection panel
+  JPanel panelFontSelect = new JPanel();
+  String[] fontFamilies =
+    GraphicsEnvironment
+      .getLocalGraphicsEnvironment()
+      .getAvailableFontFamilyNames();
+  JList listFontFamily = new JList(fontFamilies);
+  JScrollPane scrollFontFamily = new JScrollPane(listFontFamily);
+  LabeledTextField ltfFontSize = new LabeledTextField("Size:");
+  String[] fontStyles = {"Plain", "Bold", "Italic"};
+  JList listFontStyle = new JList(fontStyles);
+  JScrollPane scrollFontStyle = new JScrollPane(listFontStyle);
+  
   JPanel panelSettings = new JPanel();
   LabeledTextField ltfTooltipsInitialDelay =
     new LabeledTextField("Tooltips initial delay");
@@ -39,6 +55,20 @@ public class SettingsDialog extends JDialog {
 
     setTitle("eTomo Settings");
 
+    //  Layout the font panel
+//    panelFontSelect.setLayout(new )
+    panelFontSelect.add(new JLabel("Font family:"));
+    listFontFamily.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+    listFontFamily.setVisibleRowCount(3);
+    panelFontSelect.add(scrollFontFamily);
+    ltfFontSize.setPreferredSize(new Dimension(30, 20));
+    panelFontSelect.add(ltfFontSize.getContainer());
+    panelFontSelect.add(new JLabel("Style:"));
+    listFontStyle.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+    listFontStyle.setVisibleRowCount(3);
+    panelFontSelect.add(scrollFontStyle);
+
+    panelSettings.add(panelFontSelect);
     panelSettings.add(ltfTooltipsInitialDelay.getContainer());
     panelSettings.add(ltfTooltipsDismissDelay.getContainer());
     panelSettings.add(chkNativeLAF);
@@ -90,9 +120,11 @@ public class SettingsDialog extends JDialog {
   }
 
   void buttonDoneAction() {
-    applicationManager.getSettingsParameters();    
+    applicationManager.getSettingsParameters();
     applicationManager.closeSettingsDialog();
   }
+  
+
 }
 
 /**
