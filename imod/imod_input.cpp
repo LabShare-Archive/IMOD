@@ -930,7 +930,7 @@ void inputQDefaultKeys(QKeyEvent *event, ImodView *vw)
     break; 
           
   case Qt::Key_A:
-    if (shifted) {
+    if (shifted && !vw->fakeImage && !vw->rawImageStore) {
       ImodPrefs->getAutoContrastTargets(mean, sd);
       imodInfoAutoContrast(mean, sd);
     } else
@@ -1226,6 +1226,9 @@ bool inputTestMetaKey(QKeyEvent *event)
 
 /*
 $Log$
+Revision 4.15  2003/11/02 00:07:21  mast
+Raise doesnt work in windows, add command that makes it flash
+
 Revision 4.14  2003/10/30 06:19:16  mast
 Add A hotkey for autocontrast
 
