@@ -19,6 +19,9 @@ import etomo.type.FiducialMatch;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.1  2003/02/24 23:29:54  rickg
+ * <p> Added use patch region model method
+ * <p>
  * <p> Revision 2.0  2003/01/24 20:30:31  rickg
  * <p> Single window merge to main branch
  * <p>
@@ -44,7 +47,7 @@ public class ConstCombineParams {
   public static final String rcsid =
     "$Id$";
 
-  protected String revisionNumber = "1.0";
+  protected String revisionNumber = "1.1";
 
   protected boolean matchBtoA = true;
   protected FiducialMatch fiducialMatch = FiducialMatch.BOTH_SIDES;
@@ -61,8 +64,10 @@ public class ConstCombineParams {
   protected String patchRegionModel = "";
   protected String tempDirectory = "";
   protected boolean manualCleanup = false;
-
+  protected boolean modelBased = false;
+  
   protected ArrayList invalidReasons = new ArrayList();
+
 
   public ConstCombineParams() {
 
@@ -233,4 +238,11 @@ public class ConstCombineParams {
     return ! patchRegionModel.matches("^\\s*$");
   }
    
+  /**
+   * @return boolean
+   */
+  public boolean isModelBased() {
+    return modelBased;
+  }
+
 }

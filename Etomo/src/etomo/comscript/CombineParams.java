@@ -22,6 +22,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.2  2003/03/06 05:53:28  rickg
+ * <p> Combine interface in progress
+ * <p>
  * <p> Revision 2.1  2003/02/24 23:28:15  rickg
  * <p> Added default patch region model setter
  * <p>
@@ -193,6 +196,14 @@ public class CombineParams extends ConstCombineParams implements Storable {
   }
 
   /**
+   * Sets the modelBased state.
+   * @param modelBased True if a model based combine is being used.
+   */
+  public void setModelBased(boolean modelBased) {
+    this.modelBased = modelBased;
+  }
+
+  /**
    *  Insert the objects attributes into the properties object.
    */
   public void store(Properties props) {
@@ -225,6 +236,7 @@ public class CombineParams extends ConstCombineParams implements Storable {
     props.setProperty(group + "PatchRegionModel", patchRegionModel);
     props.setProperty(group + "TempDirectory", tempDirectory);
     props.setProperty(group + "ManualCleanup", String.valueOf(manualCleanup));
+    props.setProperty(group + "ModelBased", String.valueOf(modelBased));
   }
 
   /**
@@ -319,6 +331,15 @@ public class CombineParams extends ConstCombineParams implements Storable {
             group + "ManualCleanup",
             Boolean.toString(manualCleanup)))
         .booleanValue();
+
+    modelBased =
+      Boolean
+        .valueOf(
+          props.getProperty(
+            group + "ModelBased",
+            Boolean.toString(modelBased)))
+        .booleanValue();
+
   }
 
   /**
@@ -350,5 +371,4 @@ public class CombineParams extends ConstCombineParams implements Storable {
     patchZMin = 1;
     patchZMax = mrcHeader.getNRows();
   }
-
 }
