@@ -228,6 +228,8 @@ extern int (*ivwFastGetValue)(int x, int y, int z);
 #define IMOD_GHOST_PREVSEC (2)
 #define IMOD_GHOST_SECTION (3)
 #define IMOD_GHOST_SURFACE (1<<2)
+#define IMOD_GHOST_ALLOBJ  (1<<3)
+#define IMOD_GHOST_LIGHTER (1<<4)
 
 /* Colors for 12-bit colormap systems */
 #define RAMPBASE 256
@@ -266,6 +268,9 @@ QString imodCaption(char *intro);
 
 /*
 $Log$
+Revision 3.25  2004/05/31 23:09:37  mast
+moved printing functions to imod.h
+
 Revision 3.24  2004/05/28 23:30:23  mast
 *** empty log message ***
 
