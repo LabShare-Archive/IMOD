@@ -80,6 +80,8 @@ static int zDrawSize = -1;
 static int lastYsize = -1;
 static int lastZsize = -1;
 
+#define MAX_SLICES 256
+
 struct{
   ImodvImage *dia;
   ImodvApp  *a;
@@ -131,6 +133,37 @@ void imodvImageUpdate(ImodvApp *a)
   }
 }
 
+// Set the number of slices and the transparency from movie controller - 
+// do not update the image
+void imodvImageSetThickTrans(int slices, int trans)
+{
+ int maxSlices = Imodv->vi->zsize < MAX_SLICES ?
+    Imodv->vi->zsize : MAX_SLICES;
+  if (slices < 1)
+    slices = 1;
+  if (slices > maxSlices)
+    slices = maxSlices;
+  numSlices = slices;
+  if (trans < 0)
+    trans = 0;
+  if (trans > 100)
+    trans = 100;
+  ImageTrans = trans;
+  if (imodvImageData.dia) {
+    imodvImageData.dia->mSliders->setValue(IIS_SLICES, numSlices);
+    imodvImageData.dia->mSliders->setValue(IIS_TRANSPARENCY, ImageTrans);
+  }
+}
+
+// Return the number of slices and transparancy
+int imodvImageGetThickness(void)
+{
+  return numSlices;
+}
+int imodvImageGetTransparency(void)
+{
+  return ImageTrans;
+}
 
 /****************************************************************************/
 /* TEXTURE MAP IMAGE. */
@@ -655,6 +688,8 @@ ImodvImage::ImodvImage(QWidget *parent, const char *name)
 // of the Y and Z size sliders and swap y and Z size if flipped
 void ImodvImage::updateCoords()
 {
+  int maxSlices = Imodv->vi->zsize < MAX_SLICES ? 
+    Imodv->vi->zsize : MAX_SLICES;
   mSliders->setValue(IIS_X_COORD, (int)(Imodv->vi->xmouse + 1.5f));
   mSliders->setRange(IIS_Y_COORD, 1, Imodv->vi->ysize);
   mSliders->setValue(IIS_Y_COORD, (int)(Imodv->vi->ymouse + 1.5f));
@@ -662,13 +697,19 @@ void ImodvImage::updateCoords()
   mSliders->setValue(IIS_Z_COORD, (int)(Imodv->vi->zmouse + 1.5f));
   mSliders->setRange(IIS_Y_SIZE, 1, Imodv->vi->ysize);
   mSliders->setRange(IIS_Z_SIZE, 1, Imodv->vi->zsize);
-  if (lastYsize != Imodv->vi->ysize) {
+  mSliders->setRange(IIS_SLICES, 1, maxSlices);
+  
+ if (lastYsize != Imodv->vi->ysize) {
     int tmpSize = yDrawSize;
     yDrawSize = zDrawSize;
     zDrawSize = tmpSize;
     mSliders->setValue(IIS_Y_SIZE, yDrawSize);
     mSliders->setValue(IIS_Z_SIZE, zDrawSize);
     lastYsize = Imodv->vi->ysize;
+    if (numSlices > maxSlices) {
+      numSlices = maxSlices;
+      mSliders->setValue(IIS_SLICES, numSlices);
+    }
   }
 }
 
@@ -832,6 +873,11 @@ void ImodvImage::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.12  2004/05/16 20:17:04  mast
+Made it draw solid and transparent planes separately to interact better
+with object transparency; added sliders to set display size; rewrote
+drawing code with properly named variables for each dimension
+
 Revision 4.11  2004/05/15 21:52:11  mast
 Computed alpha factors correctly for the multiple slice display
 
