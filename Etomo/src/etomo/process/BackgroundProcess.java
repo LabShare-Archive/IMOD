@@ -16,6 +16,10 @@ import etomo.comscript.Command;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.4  2004/12/16 02:24:32  sueh
+ * <p> bug# 564 In run():  avoid using commandLine.  Use commandArray if it is
+ * <p> available.
+ * <p>
  * <p> Revision 3.3  2004/12/04 00:39:14  sueh
  * <p> bug# 569 Handling directory paths with spaces:  converting from a
  * <p> command line to a command array to prevent the command line from
@@ -284,13 +288,6 @@ public class BackgroundProcess
    */
   public String[] getStdOutput() {
     return stdOutput;
-  }
-  
-  public int getMode() {
-    if (command == null) {
-      return 0;
-    }
-    return command.getMode();
   }
   
   public boolean isStarted() {
