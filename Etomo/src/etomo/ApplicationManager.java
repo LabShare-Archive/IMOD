@@ -74,6 +74,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.45  2003/05/23 14:29:11  rickg
+ * <p> Progress bar determinant delegate methods
+ * <p>
  * <p> Revision 2.44  2003/05/21 22:56:54  rickg
  * <p> Initial kill implementation
  * <p>
@@ -1286,7 +1289,7 @@ public class ApplicationManager {
       fineAlignmentDialog.getTransferFidParams(transferfidParam);
       String threadName = processMgr.transferFiducials(transferfidParam);
       setThreadName(threadName, sourceAxisID);
-      mainFrame.startProgressBar("Transfering fiducuals", sourceAxisID);
+      mainFrame.startProgressBar("Transfering fiducials", sourceAxisID);
     }
   }
 
