@@ -60,6 +60,9 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.33  2005/02/11 16:46:27  sueh
+ * bug# 600 Getting tooltips using EtomoAutodoc instead of TooltipFormatter.
+ *
  * Revision 3.32  2005/01/14 03:11:32  sueh
  * bug# 511 Added DialogType to super constructor.
  *
@@ -554,8 +557,8 @@ public class TomogramGenerationDialog extends ProcessDialog
     if (tiltParam.hasLogOffset()) {
       ltfLogOffset.setText(tiltParam.getLogShift());
     }
-    cbBoxUseLocalAlignment.setSelected(metaData.getUseLocalAlignments());
-    cbUseZFactors.setSelected(metaData.getUseZFactors().is());
+    cbBoxUseLocalAlignment.setSelected(metaData.getUseLocalAlignments(axisID));
+    cbUseZFactors.setSelected(metaData.getUseZFactors(axisID).is());
     ltfExtraExcludeList.setText(tiltParam.getExcludeList2());
   }
 
@@ -716,10 +719,10 @@ public class TomogramGenerationDialog extends ProcessDialog
       else {
         tiltParam.setLocalAlignFile("");
       }
-      metaData.setUseLocalAlignments(cbBoxUseLocalAlignment.isSelected());
+      metaData.setUseLocalAlignments(axisID, cbBoxUseLocalAlignment.isSelected());
       tiltParam.setFiducialess(cbFiducialess.isSelected());
       tiltParam.setUseZFactors(cbUseZFactors.isSelected() && cbUseZFactors.isEnabled());
-      metaData.setUseZFactors(cbUseZFactors.isSelected());
+      metaData.setUseZFactors(axisID, cbUseZFactors.isSelected());
       tiltParam.setExcludeList2(ltfExtraExcludeList.getText());
     }
     catch (NumberFormatException except) {

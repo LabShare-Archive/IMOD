@@ -42,6 +42,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.23  2005/01/14 03:11:45  sueh
+ * <p> bug# 511 Added DialogType to super constructor.
+ * <p>
  * <p> Revision 3.22  2004/12/29 00:16:56  sueh
  * <p> bug# 567 Adapting to new tiltalignParam.
  * <p>
@@ -433,8 +436,8 @@ public class TomogramPositioningDialog extends ProcessDialog
   private void updateMetaData() {
     boolean wholeTomogram = cbWholeTomogram.isSelected();
     MetaData metaData = applicationManager.getTomogramMetaData();
-    if (wholeTomogram != metaData.isWholeTomogramSample()) {
-      metaData.setWholeTomogramSample(wholeTomogram);
+    if (wholeTomogram != metaData.isWholeTomogramSample(axisID)) {
+      metaData.setWholeTomogramSample(axisID, wholeTomogram);
     }
   }
 
