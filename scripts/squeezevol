@@ -7,6 +7,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.4  2004/08/27 05:46:48  mast
+#  Switched to using head -n and tail -n
+#
 #  Revision 3.3  2004/06/29 03:49:52  mast
 #  Added nohup, fixed path-setting
 #
@@ -82,12 +85,12 @@ while ($#argv > 2)
       shift; shift
       breaksw
     default:
-      echo "${pn}: bad argument $argv[1]"
+      echo "ERROR: ${pn} - bad argument $argv[1]"
       exit 1
   endsw
 end
 if (! -e $argv[1])then
-  echo "${pn}: input file $argv[1] does not exist"
+  echo "ERROR: ${pn} - input file $argv[1] does not exist"
   exit 1
 endif
 
@@ -127,7 +130,7 @@ OutputSizeXYZ $ox $oy $oz
 HERESTRING
 
 if ($status) then
-    echo "Error transforming volume"
+    echo "ERROR: $pn - Error transforming volume"
     exit 1
 endif
 
@@ -141,7 +144,7 @@ done
 EOF
 
 if ($status) then
-    echo "Error runing alterheader"
+    echo "ERROR: $pn - running alterheader"
     exit 1
 endif
 
