@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.4  2004/11/05 19:08:12  mast
+    Include local files with quotes, not brackets
+
     Revision 3.3  2004/10/29 22:16:55  mast
     Fixed some scaling problems
 
@@ -51,12 +54,18 @@
 #include "mrcc.h"
 #include "sliceproc.h"
 
+/* DNM 11/7/04: All routines expect the min and max of the input slice to be
+   set to the desired range for scaling the output */
+
 #define RANGE(s, i, j)  (((i)>0)&&((j)>0)&&((i)<(s)->xsize)&&((j)<(s)->ysize))
 #define GETVAL(s, i, j) ((s)->data.b[(i) + ((j) * (s)->xsize)])
+#define GETSVAL(t, i, j) ((t)->data.s[(i) + ((j) * (t)->xsize)])
 #define GETFVAL(s, i, j) ((s)->data.f[(i) + ((j) * (s)->xsize)])
-int sliceByteConvolve(Islice *sin, int mask[3][3]);
 
-static int smask[3][3] = 
+int sliceByteConvolve(Islice *sin, int mask[3][3]);
+static void sliceScaleAndFree(Islice *sout, Islice *sin);
+
+static int SmoothKernel[3][3] = 
   { 
     {1, 2, 1},
     {2, 4, 2},
@@ -98,7 +107,7 @@ int sliceByteAdd(Islice *sin, int inVal)
 int sliceByteEdgeTwo(Islice *sin, int center)
 {
   Islice *sout = sliceCreate(sin->xsize, sin->ysize,  SLICE_MODE_FLOAT);
-  float mval, aval, val;
+  float val;
   int imax = sin->xsize - 1;
   int jmax = sin->ysize - 1;
   int i, j, x, y;
@@ -133,15 +142,7 @@ int sliceByteEdgeTwo(Islice *sin, int center)
     GETFVAL(sout, i, 0) =  GETFVAL(sout, i, 1);
     GETFVAL(sout, i, jmax) =  GETFVAL(sout, i, jmax-1);
   }
-  sliceMMM(sout);
-  imax = sin->xsize * sin->ysize;
-  aval = sout->min;
-  mval = 255.9f/(sout->max - sout->min);
-  for(i = 0; i < imax; i++){
-    sin->data.b[i] = (unsigned char)
-      ((sout->data.f[i] - aval) * mval);
-  }
-  sliceFree(sout);
+  sliceScaleAndFree(sout, sin);
   return(0);
 }
 
@@ -163,62 +164,23 @@ int sliceByteSharpen(Islice *sin)
   return(sliceByteConvolve(sin, SharpenKernel));
 }
 
+/* DNM 11/07/04: Removed smoothing routine that did the same as convolving with
+   this kernel */
+
 int *sliceByteSmooth(Islice *sin)
 {
-  Islice *sout = sliceCreate(sin->xsize, sin->ysize,  SLICE_MODE_BYTE);
-  int imax = sin->xsize - 1;
-  int jmax = sin->ysize - 1;
-  int i, j;
-  int val;
-
-  for(i = 1; i < imax; i++) 
-    for(j = 1; j < jmax; j++){
-      val = (GETVAL(sin, i+1, j+1) +
-             GETVAL(sin,   i, j+1) * 2 +
-             GETVAL(sin, i-1, j+1) +
-             GETVAL(sin, i+1, j) * 2 +
-             GETVAL(sin,   i, j) * 4 +
-             GETVAL(sin, i-1, j) * 2 +
-             GETVAL(sin, i+1, j-1) +
-             GETVAL(sin,   i, j-1) * 2 +
-             GETVAL(sin, i-1, j-1));
-      val /= 16;      
-      GETVAL(sout, i, j) = val;
-    }
-
-  for(j = 1; j < jmax; j++){
-    GETVAL(sout, 0, j) =  GETVAL(sout, 1, j);
-    GETVAL(sout, imax, j) =  GETVAL(sout, imax-1, j);
-  }
-  for(i = 0; i <= imax; i++){
-    GETVAL(sout, i, 0) =  GETVAL(sout, i, 1);
-    GETVAL(sout, i, jmax) =  GETVAL(sout, i, jmax-1);
-  }
-
-  imax = sin->xsize * sin->ysize;
-  for(i = 0; i < imax; i++){
-    sin->data.b[i] = sout->data.b[i];
-  }
-  sliceFree(sout);
-  return(0);
+  sliceByteConvolve(sin, SmoothKernel);
 }
-
 
 int sliceByteConvolve(Islice *sin, int mask[3][3])
 {
-  Islice *sout = sliceCreate(sin->xsize, sin->ysize,  SLICE_MODE_BYTE);
+  Islice *sout = sliceCreate(sin->xsize, sin->ysize,  SLICE_MODE_SHORT);
   int imax = sin->xsize - 1;
   int jmax = sin->ysize - 1;
   int i, j, m, n;
   int val;
-  int dval = 0;
 
-  sliceMMM(sin);
-  for(m = 0; m < 3; m++)
-    for(n = 0; n < 3; n++)
-      dval+=mask[n][m];
-  if (dval < 1)
-    dval = 1;
+  /* 11/7/04: No longer need to determine mean of mask with new scaling */
 
   for(i = 1; i < imax; i++) 
     for(j = 1; j < jmax; j++){
@@ -231,26 +193,19 @@ int sliceByteConvolve(Islice *sin, int mask[3][3])
              GETVAL(sin, i+1, j-1) * mask[2][0] +
              GETVAL(sin,   i, j-1) * mask[2][1] +
              GETVAL(sin, i-1, j-1) * mask[2][2]);
-      val /= dval;
-      if (val < sin->min) val = (int)sin->min;
-      if (val > sin->max) val = (int)sin->max;
-      GETVAL(sout, i, j) = val;
+      GETSVAL(sout, i, j) = val;
     }
 
   for(j = 1; j < jmax; j++){
-    GETVAL(sout, 0, j) =  GETVAL(sout, 1, j);
-    GETVAL(sout, imax, j) =  GETVAL(sout, imax-1, j);
+    GETSVAL(sout, 0, j) =  GETSVAL(sout, 1, j);
+    GETSVAL(sout, imax, j) =  GETSVAL(sout, imax-1, j);
   }
   for(i = 0; i <= imax; i++){
-    GETVAL(sout, i, 0) =  GETVAL(sout, i, 1);
-    GETVAL(sout, i, jmax) =  GETVAL(sout, i, jmax-1);
+    GETSVAL(sout, i, 0) =  GETSVAL(sout, i, 1);
+    GETSVAL(sout, i, jmax) =  GETSVAL(sout, i, jmax-1);
   }
 
-  imax = sin->xsize * sin->ysize;
-  for(i = 0; i < imax; i++){
-    sin->data.b[i] = sout->data.b[i];
-  }
-  sliceFree(sout);
+  sliceScaleAndFree(sout, sin);
   return(0);
 }
 
@@ -364,7 +319,7 @@ int sliceByteShrink(Islice *sin, int val)
 int sliceByteGraham(Islice *sin)
 {
   Islice *sout = sliceCreate(sin->xsize, sin->ysize,  SLICE_MODE_FLOAT);
-  float mval, aval, val;
+  float val;
   int imax = sin->xsize - 1;
   int jmax = sin->ysize - 1;
   int i, j, x, y;
@@ -434,15 +389,85 @@ int sliceByteGraham(Islice *sin)
     GETFVAL(sout, i, 0) =  GETFVAL(sout, i, 1);
     GETFVAL(sout, i, jmax) =  GETFVAL(sout, i, jmax-1);
   }
-  sliceMMM(sout);
-  imax = sin->xsize * sin->ysize;
-  aval = sout->min;
-  mval = 255.9f/(sout->max - sout->min);
-  for(i = 0; i < imax; i++){
-    sin->data.b[i] = (unsigned char)
-      ((sout->data.f[i] - aval) * mval);
-  }
-  sliceFree(sout);
+
+  sliceScaleAndFree(sout, sin);
   return(0);
 
+}
+
+/* A routine for finding min and max as rapidly as possible for the three basic
+   data modes */
+int sliceMinMax(Islice *s)
+{
+  int imin, imax, ival, i;
+  float fmin, fmax, fval;
+  switch (s->mode) {
+  case SLICE_MODE_BYTE:
+    imin = imax = s->data.b[0];
+    for (i = 1; i < s->xsize * s->ysize; i++) {
+      ival = s->data.b[i];
+      if (imin > ival)
+        imin = ival;
+      if (imax < ival)
+        imax = ival;
+    }
+    s->min = imin;
+    s->max = imax;
+    break;
+
+  case SLICE_MODE_SHORT:
+    imin = imax = s->data.s[0];
+    for (i = 1; i < s->xsize * s->ysize; i++) {
+      ival = s->data.s[i];
+      if (imin > ival)
+        imin = ival;
+      if (imax < ival)
+        imax = ival;
+    }
+    s->min = imin;
+    s->max = imax;
+    break;
+
+  case SLICE_MODE_FLOAT:
+    fmin = fmax = s->data.f[0];
+    for (i = 1; i < s->xsize * s->ysize; i++) {
+      fval = s->data.f[i];
+      if (fmin > fval)
+        fmin = fval;
+      if (fmax < fval)
+        fmax = fval;
+    }
+    s->min = fmin;
+    s->max = fmax;
+    break;
+
+  default:
+    return 1;
+  }
+  return 0;
+}
+
+/* Determine min and max of slice sout, determine scaling to match them to the 
+   min and max values provided in slice sin, scale data into sin and free sout
+*/ 
+static void sliceScaleAndFree(Islice *sout, Islice *sin)
+{
+  float aval, mval;
+  int imax, i;
+
+  sliceMinMax(sout);
+  imax = sin->xsize * sin->ysize;
+  mval = (sin->max - sin->min) / (sout->max - sout->min);
+  aval = sin->min - mval * sout->min;
+  if (sout->mode == SLICE_MODE_FLOAT)
+    for(i = 0; i < imax; i++)
+      sin->data.b[i] = (unsigned char)(sout->data.f[i] * mval + aval);
+  else if (sout->mode == SLICE_MODE_SHORT)
+    for(i = 0; i < imax; i++)
+      sin->data.b[i] = (unsigned char)(sout->data.s[i] * mval + aval);
+  else
+    for(i = 0; i < imax; i++)
+      sin->data.b[i] = (unsigned char)(sout->data.b[i] * mval + aval);
+
+  sliceFree(sout);
 }
