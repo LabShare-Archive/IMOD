@@ -1,5 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/4/03: IMOD_3-0-26
+11/4/03: Changed eTomo so that it runs everything by an absolute path
+determined from IMOD_DIR.  This should allow it to work under Windows without
+having the IMOD bin added to the Windows path, and with eTomo started from a
+shortcut.
+
 11/3/03: Changed model view rotation so that models will rotate at a fixed
 speed that is independent of the step size, although , and . hot keys change
 both settings at once.  The default speed is 36 degrees per second.  Fixed
