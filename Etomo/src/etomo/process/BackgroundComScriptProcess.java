@@ -30,6 +30,11 @@ import etomo.util.Utilities;
  * @version $$Revision$$
  * 
  * <p> $Log$
+ * <p> Revision 1.9  2004/12/04 00:34:49  sueh
+ * <p> bug# 569 Handling directory paths with spaces:  converting from a
+ * <p> command line to a command array to prevent the command line from
+ * <p> being split on white space.
+ * <p>
  * <p> Revision 1.8  2004/08/30 18:41:29  sueh
  * <p> bug# 508 ProcessManager.kill() is using notifyKill() to tell this object that
  * <p> a kill has been requested.  KillMonitor() can be private
@@ -112,7 +117,7 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
    * @param watchedFileName
    */
   public BackgroundComScriptProcess(String comScript,
-    ProcessManager processManager, AxisID axisID, String watchedFileName,
+    BaseProcessManager processManager, AxisID axisID, String watchedFileName,
     BackgroundProcessMonitor backgroundProcessMonitor, 
     ComscriptState comscriptState) {
     super(comScript, processManager, axisID, watchedFileName);
