@@ -11,87 +11,15 @@ c	  images.  There are options to use only a subset of the image, to
 c	  pad the image with a border before correlating, and to taper the
 c	  image intensities down to the average level over some boundary
 c	  region.  The latter feature is particularly important for getting
-c	  reliable correlation peaks.  The program also has on option to
-c	  ignore a central peak caused by fixed pattern noise in the images,
-c	  which can be a serious problem unless digital camera images are well
-c	  gain-normalized.  The program will reduce the size of images larger
-c	  than 1024 pixels in one dimension by binning them down, i.e. by
-c	  averaging the values in square sets of adjacent pixels (2x3, or 3x3,
-c	  etc).  Images are binned by the smallest factor needed to make them
-c	  1024 or smaller.
+c	  reliable correlation peaks.  The program also has an option to
+c	  correlate each image with the sum of already-aligned images at lower
+C	  tilts, a method developed by Christian Renkin. The program will
+c	  reduce the size of images larger than 1024 pixels in one dimension
+c	  by binning them down, i.e. by averaging the values in square sets of
+c	  adjacent pixels (2x3, or 3x3, etc).  Images are binned by the
+c	  smallest factor needed to make them 1024 or smaller.
 c
-c	  Some notes about some of the options:
-c	  
-c	  Filtering: Some high pass filtering, using a small value of Sigma1
-c	  such as 0.03, may be helpful to keep the program from being misled
-c	  by very large scale features in the images.  If the images are
-c	  noisy, some low pass filtering with Sigma2 and Radius2 is
-c	  appropriate (e.g. 0.05 for Sigma2, 0.25 for Radius2).  If the images
-c	  are binned, these values specify frequencies in the binned image, so
-c	  a higher cutoff (less filtering) might be appropriate.
-c	  
-c	  The exclusion of a central peak can be essential when there is
-c	  fixed noise in the images.  Because one image is stretched, this
-c	  spurious peak can actually occur anywhere in an elongated region
-c	  perpendicular to the tilt axis.  If the real alignment happens to
-c	  fall in that streak, then it will be ignored as well, and an
-c	  incorrect alignment will be found.  For this reason, this option 
-c	  should be used only when necessary.
-c	  
-c	  Trimming some area off the edges of the images may be helpful if
-c	  those areas are particularly out of focus or contain material with
-c	  no useful features in it.
-c	  
-c	  Padding is customarily done to reduce the contribution to the
-c	  correlation from wrapped around features, which occurs when
-c	  correlation is done with Fourier transforms.  Extensive padding does
-c	  not help with typical biological specimens but may be needed for
-c	  specimens with periodic structures, in which case one should pad each
-c	  edge by half the image size.
-c	  
-c	  In contrast, tapering the images down to a mean intensity at their
-c	  edges is very important.  Tapering over as few as 20 pixels may be
-c	  adequate, but fewer artifacts will appear in the correlation with
-c	  longer tapers (say, 50 to 100 pixels).
-c	  
-c	  Entries to the program in order are:
-c	  
-C	  Image input file
-c
-C	  Piece list file for reordering the Z values in the stack, or Return
-c	  if none
-c
-C	  Output file for F transforms
-C	  
-c	  -1 to enter individual tilt angle for each view, 1 to specify a
-c	  starting and increment tilt, or 0 to read tilt angles from a file
-c	  
-c	  IF you entered 1, next enter the starting and incremental tilt angles
-c	  IF you entered -1, enter the tilt angle of each view.
-c	  IF you entered 0, enter name of file with tilt angles
-c	  
-c	  Angle of rotation of the tilt axis in the images; specifically, the
-c	  angle from the vertical to the tilt axis (counterclockwise
-c	  positive).
-c
-C	  Filter parameters to filter the correlation, or / for no filter
-C	  (Enter values of Sigma1, Sigma2, Radius1, Radius2 just as for
-c	  ENHANCE.)
-c
-c	  1 to exclude a central correlation peak due to fixed pattern noise
-c	  in the images, or 0 not to
-c	  
-c	  Amounts to trim off each side in the X and Y dimensions, or / to use
-c	  the whole image area
-c	  
-C	  Borders with which to pad images in the X and Y dimensions, or / for
-c	  the default, which is 5% of the image dimensions up to 20 pixels
-c	  
-c	  Distances over which to taper image intensities down to the mean at
-c	  the edges, in the X and Y dimensions.  Enter / for the default, which
-c	  is 10% of the image dimensions up to 100 pixels.
-c
-C	  Starting and ending view #'s (first is 1), or / for all views
+c	  For further details, see the man page.
 C	  
 c	  
 c	  David Mastronarde 10/6/98
@@ -103,6 +31,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.14  2003/10/24 03:48:52  mast
+c	  do not call flush for small files due to Windows problems
+c	
 c	  Revision 3.13  2003/10/10 20:42:04  mast
 c	  Used new subroutine for getting input/output files
 c	
@@ -154,14 +85,14 @@ c
 C
 	integer*4 NXYZ(3),MXYZ(3),nxyzs(3),mxyzs(3) ,label(20,20)
 	real*4 title(20)
-	real*4 ctfa(8193),ctfb(8193),ctfp(8193)
-	complex array(idim/2),brray(idim2/2),crray(idim2/2)
+	real*4 ctfa(8193),ctfb(8193),ctfp(8193),sumray(idim2),crray(idim2)
+	complex array(idim/2),brray(idim2/2)
 C
 	EQUIVALENCE (NX,NXYZ),(nxs,nxyzs),(crray(1),array(idim/4))
-	common /bigarr/ array
+	common /bigarr/ array,sumray
 c
-	character*80 filin,plfile,imfilout
-        real*4 f(2,3,limview),fs(2,3),fsinv(2,3)
+	character*120 filin,plfile,imfilout
+        real*4 f(2,3,limview),fs(2,3),fsinv(2,3),funit(2,3)
 	character*9 dat
 	character*8 tim
 c
@@ -169,22 +100,27 @@ c 7/7/00 CER: remove the encode's; titlech is the temp space
 c
         character*80 titlech
 	character*70 titstr
-	character*7 fltrda/' '/,fltrdb/' '/,fltrdp/' '/
+	character*7 fltrdp/' '/
 
 	integer*4 ixpclist(limview),iypclist(limview),izpclist(limview)
-	integer*4 listz(limview)
-	real*4 tilt(limview)
+	integer*4 listz(limview), ixBoxOffset(limview), iyBoxOffset(limview)
+	real*4 tilt(limview), axisOffset(limview)
 	real*4 dmin2,dmax2,dmean2,dmean3,rotangle,deltap,radexcl
 	integer*4 i,npclist,nview,minxpiece,nxpieces,nxoverlap,minypiece
 	integer*4 nypieces,nyoverlap,ifimout,nxpad,nypad,ifexclude,mode
 	integer*4 nxtrim,nytrim,nxuse,nyuse,nxbord,nybord,nxtap,nytap
 	integer*4 izst,iznd,kk,nout,izlast,izcur,idir,iztmp
 	real*4 dmsum,dmax,dmin,stretch,streak,xpeak,ypeak,usdx,usdy
-	real*4 dmean, radius1, radius2, sigma1, sigma2
-	integer*4 jx,iv,iview,kti,isout, ierr
-	integer*4 nbin,maxbinsize,nxusebin,nyusebin
+	real*4 dmean, radius1, radius2, sigma1, sigma2, tiltAtMin
+	integer*4 jx,iv,iview,kti,isout, ierr, ivStart, ivEnd, loopDir
+	integer*4 iloop, nloops, minTilt, ifAbsStretch, ivRef, ifLeaveAxis
+	integer*4 nbin,maxbinsize,nxusebin,nyusebin, ifcumulate, ifNoStretch
+	integer*4 ixst, ixnd, iyst, iynd, ivCur
+	integer*4 ixstCen, ixndCen, iystCen, iyndCen
+	real*4 xBoxOfs, yBoxOfs, cosphi, sinphi, x0, y0, xshift, yshift
+	real*4 usemin, usemax, usemean
 	integer*4 niceframe
-	real*4 cosd
+	real*4 cosd, sind
 
 	logical pipinput
 	integer*4 numOptArg, numNonOptArg
@@ -195,7 +131,7 @@ c
 c	  fallbacks from ../../manpages/autodoc2man -2 2  tiltxcorr
 c
 	integer numOptions
-	parameter (numOptions = 20)
+	parameter (numOptions = 26)
 	character*(40 * numOptions) options(1)
 	options(1) =
      &      'input:InputFile:FN:@piece:PieceListFile:FN:@'//
@@ -205,8 +141,12 @@ c
      &      'radius1:FilterRadius1:F:@radius2:FilterRadius2:F:@'//
      &      'sigma1:FilterSigma1:F:@sigma2:FilterSigma2:F:@'//
      &      'exclude:ExcludeCentralPeak:B:@border:BordersInXandY:IP:@'//
-     &      'pad:PadsInXandY:IP:@taper:TapersInXandY:IP:@'//
-     &      'views:StartingEndingViews:IP:@test:TestOutput:FN:@'//
+     &      'xminmax:XMinAndMax:IP:@yminmax:YMinAndMax:IP:@'//
+     &      'leaveaxis:LeaveTiltAxisShifted:B:@pad:PadsInXandY:IP:@'//
+     &      'taper:TapersInXandY:IP:@views:StartingEndingViews:IP:@'//
+     &      'cumulative:CumulativeCorrelation:B:@'//
+     &      'absstretch:AbsoluteCosineStretch:B:@'//
+     &      'nostretch:NoCosineStretch:B:@test:TestOutput:FN:@'//
      &      'param:ParameterFile:PF:@help:usage:B:'
 c	  
 c	  set defaults here where not dependent on image size
@@ -221,6 +161,10 @@ c
 	radius2 = 0.
 	rotangle = 0.
 	imfilout = ' '
+	ifcumulate = 0
+	ifNoStretch = 0
+	ifAbsStretch = 0
+	ifLeaveAxis = 0
 
 	maxbinsize=1024
 	ifpip = 0
@@ -304,6 +248,7 @@ c
 c	  DNM 4/28/02: figure out binning now, and fix this to send setctf
 c	  approximately correct nx and ny instead of nxpad and nypad which
 c	  don't yet exist
+c	  DNM 7/11/03: better fix is to wait to get ctf until pad size is known
 c	  
 	nbin=(max(nx,ny)+maxbinsize-1)/maxbinsize
 
@@ -318,10 +263,19 @@ c
 	  ierr = PipGetFloat('FilterRadius2', radius2)
 	  ierr = PipGetFloat('FilterSigma1', sigma1)
 	  ierr = PipGetFloat('FilterSigma2', sigma2)
-	  call setctfwsr(sigma1,sigma2,radius1,radius2,ctfp,nx/nbin,
-     &	      ny/nbin,deltap)
 	  ierr = PipGetBoolean('ExcludeCentralPeak', ifexclude)
 	  ierr = PipGetTwoIntegers('BordersInXandY', nxtrim, nytrim)
+	  ixst = nxtrim
+	  ixnd = nx - 1 - nxtrim
+	  iyst = nytrim
+	  iynd = ny - 1 - nytrim
+	  ierr = PipGetTwoIntegers('XMinAndMax', ixst, ixnd)
+	  ierr = PipGetTwoIntegers('YMinAndMax', iyst, iynd)
+
+	  ierr = PipGetBoolean('CumulativeCorrelation', ifcumulate)
+	  ierr = PipGetBoolean('NoCosineStretch', ifNoStretch)
+	  ierr = PipGetBoolean('AbsoluteCosineStretch', ifAbsStretch)
+	  ierr = PipGetBoolean('LeaveTiltAxisShifted', ifLeaveAxis)
 	else
 	  write(*,'(1x,a,$)')
      &	      'Rotation angle FROM vertical TO the tilt axis: '
@@ -329,7 +283,9 @@ c
 
 	  print *,'Enter filter parameters to filter the correlation,'
      &	      //' or / for no filter'
-	  call setctf(ctfp,nx/nbin,ny/nbin,deltap)
+	  WRITE(6,1100)
+1100	  FORMAT(' Sigma1, Sigma2, Radius1, Radius2: ',$)
+	  READ(5,*) SIGMA1,SIGMA2,RADIUS1,RADIUS2
 c
 	  write(*,'(1x,a,$)')'1 to exclude central correlation peak due'
      &	      //' to fixed pattern noise, 0 not to: '
@@ -338,24 +294,31 @@ c
 	  write(*,'(1x,a,$)')
      &	      'Amounts to trim off each side in X and Y (/ for 0,0):'
 	  read(5,*)nxtrim,nytrim
+	  ixst = nxtrim
+	  ixnd = nx - 1 - nxtrim
+	  iyst = nytrim
+	  iynd = ny - 1 - nytrim
 	endif
 
 	radexcl=0.
 	if(ifexclude.eq.1) radexcl=1.1
 
-	if(nxtrim.lt.0.or.nytrim.lt.0.or.nxtrim.gt.nx/2-16.or.
-     &	    nytrim.gt.ny/2-16)call errorexit(
-     &	    'Impossible amount to trim by')
+	if(ixst.lt.0.or.iyst.lt.0.or.ixnd.ge.nx.or.iynd.ge.ny.or.
+     &	    ixnd - ixst .lt. 24 .or. iynd - iyst .lt. 24)
+     &	    call errorexit(
+     &	    'Impossible amount to trim by or incorrect coordinates')
 
-	nxuse=nx-2*nxtrim
-	nyuse=ny-2*nytrim
+	nxuse = ixnd + 1 - ixst
+	nyuse = iynd + 1 - iyst
 	nxusebin=nxuse/nbin
 	nyusebin=nyuse/nbin
-c
+c	  
+c	  determine padding
+c	  
 	nxbord = max(5,min(20,nint(0.05*nxuse)))
 	nybord = max(5,min(20,nint(0.05*nyuse)))
 	if (pipinput) then
-	  ierr = PipGetTwoIntegers('PadsInXandY', nxpad, nypad)
+	  ierr = PipGetTwoIntegers('PadsInXandY', nxbord, nybord)
 	else
 	  write(*,'(1x,a,2i4,a,$)') 'Amounts to pad images on each side '
      &	      //'in X and Y (/ for',nxbord,nybord,'): '
@@ -366,7 +329,14 @@ c
 	if((nxpad+2)*nypad.gt.idim2) call errorexit(
      &	    'Padded image too big, try less padding')
 
-	write(*,'(a,i5,a,i5)')' Padded, binned size is',nxpad,' by',nypad
+	write(*,'(/,a,i5,a,i5)')' Padded, binned size is',nxpad,' by',
+     &	    nypad
+c
+c	  Now that padded size exists, get the filter ctf
+c
+	call setctfwsr(sigma1,sigma2,radius1,radius2,ctfp,nxpad,nypad,deltap)
+c	  
+c	  Set up tapering
 c
 	nxtap = max(5,min(100,nint(0.1*nxuse)))
 	nytap = max(5,min(100,nint(0.1*nyuse)))
@@ -379,7 +349,9 @@ c
 	endif
 	nxtap=nxtap/nbin
 	nytap=nytap/nbin
-
+c	  
+c	  Get view range
+c
 	izst=1
 	iznd=nz
 	if (pipinput) then
@@ -389,7 +361,6 @@ c
      &	      //' to do (first is 1), or / for all: '
 	  read(*,*)izst,iznd
 	endif
-	call PipDone()
 	izst = max(1,min(nz,izst))
 	iznd = max(izst,min(nz,iznd))
 c	  
@@ -405,75 +376,272 @@ c
 	  dmax=-1.e10
 	  dmin=1.e10
 	endif
+c	  
+c	  get centered starting and ending coordinates to which box offsets
+c	  will be added for loading
 c
-        DO iview=izst+1,iznd
+	ixstCen = (nx - nxuse) / 2
+	ixndCen = ixstCen + nxuse - 1
+	iystCen = (ny - nyuse) / 2
+	iyndCen = iystCen + nyuse - 1
+c	  
+c	  precompute the box offsets
+c	  start with the box offset at zero tilt
+c	  rotate it so that the tilt axis is vertical
+c	  compress along the X axis by cosine of the tilt
+c	  rotate back to position in images and round to integers
+c	  adjust each offset to stay in the field
+c	  store the offset across axis also
+c	  
+	xBoxOfs = (ixnd + 1 + ixst - nx) / 2.
+	yBoxOfs = (iynd + 1 + iyst - ny) / 2.
+	cosphi = cosd(rotangle)
+	sinphi = sind(rotangle)
+	do i = izst, iznd
+	  x0 = cosd(tilt(i)) * (xBoxOfs * cosphi + yBoxOfs * sinphi)
+	  y0 = -xBoxOfs * sinphi + yBoxOfs * cosphi
+	  ixBoxOffset(i) = nint(x0 * cosphi - y0 * sinphi)
+	  iyBoxOffset(i) = nint(x0 * sinphi + y0 * cosphi)
+	  ixBoxOffset(i) = max(-ixstCen, min(nx - 1 - ixndCen, ixBoxOffset(i)))
+	  iyBoxOffset(i) = max(-iystCen, min(ny - 1 - iyndCen, iyBoxOffset(i)))
+	  axisOffset(i) = ixBoxOffset(i) * cosphi + iyBoxOffset(i) * sinphi
+c	  print *,i, tilt(i), ixBoxOffset(i), iyBoxOffset(i), axisOffset(i)
+	enddo
 
-	  do i=1,nz
-	    if(izpclist(i)+1.eq.iview-1)izlast=i-1
-	    if(izpclist(i)+1.eq.iview)izcur=i-1
+	if (ifLeaveAxis .ne. 0) write(*,'(/,a,f8.1,a)')
+     &	    ' The tilt axis is being left at a shift of',
+     &	    xBoxOfs * cosphi + yboxOfs * sinphi,' pixels from center'
+
+c	print *,xBoxOfs,yBoxOfs,ixstCen,ixndCen,iystCen,iyndCen
+c	  
+c	  set up for one loop through data
+c
+	nloops = 1
+	ivStart = izst + 1
+	ivEnd = iznd
+	loopDir = 1
+	if (ifcumulate .ne. 0)then
+c	    
+c	    find minimum tilt view
+c
+	  tiltAtMin = 10000.
+	  do i = 1, nview
+	    if (abs(tilt(i)) .lt. abs(tiltAtMin)) then
+	      minTilt = i
+	      tiltAtMin = tilt(i)
+	    endif
 	  enddo
 c	    
-c	    get the stretch - if its less than 1., invert everything
+c	    set up for first or only loop
 c
-	  idir=1
-	  stretch=cosd(tilt(iview-1))/cosd(tilt(iview))
-	  if(stretch.lt.1.)then
-	    idir=-1
-	    iztmp=izcur
-	    izcur=izlast
-	    izlast=iztmp
-	    stretch=1./stretch
+	  if (minTilt .ge. iznd) then
+	    ivStart = iznd - 1
+	    ivEnd = izst
+	    loopDir = -1
+	  else if (minTilt .lt. iznd .and. minTilt .gt. izst) then
+	    ivStart = minTilt + 1
+	    ivEnd = iznd
+	    nloops = 2
 	  endif
-	  call rotmagstr_to_amat(0.,1.,stretch,rotangle,fs)
-	  fs(1,3)=0.
-	  fs(2,3)=0.
-	  call xfinvert(fs,fsinv)
-c	  print *,izlast,izcur,stretch
-c	 
-c	    get "current" into array, stretch into brray, pad it
-C
-	  call imposn(1,izcur,0)
-	  if(nxtrim.eq.0.and.nytrim.eq.0)then
-	    call irdsec(1,array,*99)
-	  else
-	    call irdpas(1,array,nxuse,nyuse,nxtrim,nx-nxtrim-1,nytrim,
-     &		ny-nytrim-1,*99)
-	  endif
-c	    
-c	    bin in place
-c	    
-	  if(nbin.gt.1) call reduce_by_binning(array,nxuse,nyuse,nbin,
-     &	      array,nxusebin, nyusebin)
+	endif
+
+	do iloop = 1, nloops
+	  do i = 1, nxusebin * nyusebin
+	    sumray(i) = 0.
+	  enddo
+	  usdx = 0.
+	  usdy = 0.
+	  xpeak = 0.
+	  ypeak = 0.
+	  call xfunit(funit,1.0)
+
+	  DO iview=ivStart, ivEnd, loopDir
+
+	    ivCur = iview
+	    ivRef = iview - loopDir
+	    do i=1,nz
+	      if(izpclist(i)+1.eq.iview-loopDir)izlast=i-1
+	      if(izpclist(i)+1.eq.iview)izcur=i-1
+	    enddo
+c	      
+c	      get the stretch - if its less than 1., invert everything
+c	      
+	    idir=1
+	    stretch=cosd(tilt(iview-loopDir))/cosd(tilt(iview))
+	    if (ifcumulate .ne. 0 .and. ifAbsStretch .ne. 0)
+     &		stretch=cosd(tilt(minTilt))/cosd(tilt(iview))
+	    if (ifNoStretch .ne. 0) stretch = 1.
+	    if(stretch.lt.1.)then
+	      idir=-1
+	      iztmp=izcur
+	      izcur=izlast
+	      izlast=iztmp
+	      stretch=1./stretch
+	      iztmp = ivCur
+	      ivCur = ivRef
+	      ivRef = iztmp
+	    endif
+	    call rotmagstr_to_amat(0.,1.,stretch,rotangle,fs)
+	    fs(1,3)=0.
+	    fs(2,3)=0.
+	    call xfinvert(fs,fsinv)
+c	      print *,izlast,izcur,stretch
+c	      
+c	      get "current" into array, stretch into brray, pad it
+C	      
+	    call imposn(1,izcur,0)
+	    if(nxuse.eq.nx.and.nyuse.eq.ny)then
+	      call irdsec(1,array,*99)
+	    else
+	      call irdpas(1, array, nxuse, nyuse, ixstCen+ixBoxOffset(ivCur),
+     &		  ixndCen+ixBoxOffset(ivCur), iystCen+iyBoxOffset(ivCur),
+     &		  iyndCen+iyBoxOffset(ivCur),*99)
+	    endif
+c	      
+c	      bin in place
+c	      
+	    if(nbin.gt.1) call reduce_by_binning(array,nxuse,nyuse,nbin,
+     &		array,nxusebin, nyusebin)
+c	      
+c	      7/11/03: We have to feed the interpolation the right mean or
+c	      it will create a bad edge mean for padding
 c
-	  call cubinterp(array,brray,nxusebin,nyusebin,nxusebin,nyusebin,fs,
-     &	      nxusebin/2., nyusebin/2.,0.,0. ,1.,dmean2, 0)
-	  call taperinpad(brray,nxusebin,nyusebin,brray,nxpad+2,nxpad,nypad,
-     &	      nxtap, nytap)
+	    call iclden(array,nxusebin,nyusebin,1,nxusebin,1,nyusebin,
+     &		usemin, usemax, usemean)
+	    call cubinterp(array,brray,nxusebin,nyusebin,nxusebin,nyusebin,fs,
+     &		nxusebin/2., nyusebin/2.,0.,0. ,1.,usemean, 0)
+	    call taperinpad(brray,nxusebin,nyusebin,brray,nxpad+2,nxpad,nypad,
+     &		nxtap, nytap)
+c	      
+	    call meanzero(brray,nxpad+2,nxpad,nypad)
+c	      
+c	      get "last" into array, just bin and pad it there
+c	      
+	    call imposn(1,izlast,0)
+	    if(nxuse.eq.nx.and.nyuse.eq.ny)then
+	      call irdsec(1,array,*99)
+	    else
+	      call irdpas(1, array, nxuse, nyuse, ixstCen+ixBoxOffset(ivRef),
+     &		  ixndCen+ixBoxOffset(ivRef), iystCen+iyBoxOffset(ivRef),
+     &		  iyndCen+iyBoxOffset(ivRef),*99)
+	    endif
+	    if(nbin.gt.1) call reduce_by_binning(array,nxuse,nyuse,nbin,
+     &		array,nxusebin, nyusebin)
+	    if (ifcumulate .ne. 0) then
+c		
+c		if accumulating, transform image by last shift, add it to
+c		sum array, then taper and pad into array
 c
-	  call meanzero(brray,nxpad+2,nxpad,nypad)
-c	    
-c	    get "last" into array, just bin and pad it there
-c
-	  call imposn(1,izlast,0)
-	  if(nxtrim.eq.0.and.nytrim.eq.0)then
-	    call irdsec(1,array,*99)
-	  else
-	    call irdpas(1,array,nxuse,nyuse,nxtrim,nx-nxtrim-1,nytrim,
-     &		ny-nytrim-1,*99)
-	  endif
-	  if(nbin.gt.1) call reduce_by_binning(array,nxuse,nyuse,nbin,
-     &	      array,nxusebin, nyusebin)
-	  call taperinpad(array,nxusebin,nyusebin,array,nxpad+2,nxpad,nypad,
-     &	      nxtap, nytap)
-	  if(ifimout.ne.0)then
-	    do isout=1,2
-	      if(isout.eq.1)then
-		call irepak(crray,array,nxpad+2,nypad,
-     &		    0,nxpad-1,0,nypad-1)
+	      if (ifAbsStretch .eq. 0) then 
+		call xfunit(funit,1.0)
 	      else
-		call irepak(crray,brray,nxpad+2,nypad,
-     &		    0,nxpad-1,0,nypad-1)
+		usdx = xpeak
+		usdy = ypeak
 	      endif
+	      call iclden(array,nxusebin,nyusebin,1,nxusebin,1,nyusebin,
+     &		  usemin, usemax, usemean)
+	      call cubinterp(array,crray,nxusebin,nyusebin,nxusebin,nyusebin,
+     &		  funit, nxusebin/2., nyusebin/2.,usdx,usdy ,1.,usemean, 0)
+	      do i = 1, nxusebin * nyusebin
+		sumray(i) = sumray(i) + crray(i)
+	      enddo	      
+	      call taperinpad(sumray,nxusebin,nyusebin,array,nxpad+2,
+     &		  nxpad,nypad, nxtap, nytap)
+	    else
+	      call taperinpad(array,nxusebin,nyusebin,array,nxpad+2,
+     &		  nxpad,nypad, nxtap, nytap)
+	    endif
+	    if(ifimout.ne.0)then
+	      do isout=1,2
+		if(isout.eq.1)then
+		  call irepak(crray,array,nxpad+2,nypad,
+     &		      0,nxpad-1,0,nypad-1)
+		else
+		  call irepak(crray,brray,nxpad+2,nypad,
+     &		      0,nxpad-1,0,nypad-1)
+		endif
+		if(mode.ne.2)then
+		  CALL IsetDN(crray,NXpad,NYpad,MODE,1,NXpad,1,NYpad,DMIN2,
+     &		      DMAX2,DMEAN3)
+		else
+		  CALL IclDeN(crray,NXpad,NYpad,1,NXpad,1,NYpad,DMIN2,DMAX2,
+     &		      DMEAN3)
+		endif
+		CALL IWRSEC(3,crray)
+C		  
+		DMAX = max(dmax,dmax2)
+		DMIN = min(dmin,dmin2)
+		DMsum = dmsum + dmean3
+	      enddo
+	    endif
+	    call meanzero(array,nxpad+2,nxpad,nypad)
+
+C	      
+c	      print *,'taking fft'
+	    call todfft(array,nxpad,nypad,0)
+	    call todfft(brray,nxpad,nypad,0)
+c	      
+c	      multiply array by complex conjugate of brray, put back in array
+c	      
+c	      print *,'multiplying arrays'
+	    do jx=1,nypad*(nxpad+2)/2
+	      array(jx)=array(jx)*conjg(brray(jx))
+	    enddo
+c	      
+	    if(deltap.ne.0.)call filterpart(array,array,nxpad,nypad,ctfp,
+     &		deltap)
+c	      print *,'taking back fft'
+	    call todfft(array,nxpad,nypad,1)
+c	      
+c	      the factor here determines the balance between accepting a spurious
+c	      peak and rejecting a real peak because it falls in the streak.
+c	      The spurious peak could be as far as 0.5 out but is much more
+c	      likely to be within 0.25 of the maximum displacement
+c	      
+	    streak=0.25*(stretch-1.0)*nxuse
+	    call peakfind(array,nxpad+2,nypad,xpeak,ypeak,radexcl,
+     &		rotangle, streak)
+c	      
+c	      DNM 5/2/02: only destretch the shift if the current view was
+c	      stretched.  Also, put the right sign out in the standard output
+c	      
+	    if (idir.gt.0)then
+	      call xfapply(fsinv,0.,0.,xpeak,ypeak,usdx,usdy)
+	    else
+	      usdx=xpeak
+	      usdy=ypeak
+	    endif
+c	      
+c	      compensate for the box offsets of reference and current view,
+c	      where the reference is the starting view if accumulating
+c
+	    ivRef = iview - loopDir
+	    if (ifcumulate .ne. 0) ivRef = ivStart - loopDir
+	    xshift = idir*nbin*usdx + ixBoxOffset(ivRef) - ixBoxOffset(iview)
+	    yshift = idir*nbin*usdy + iyBoxOffset(ivRef) - iyBoxOffset(iview)
+c	      
+c	      if not leaving axis at center of box, compute amount that
+c	      current view must be shifted across tilt axis to be lined up at
+c	      center, then rotate that to get shifts in X and Y
+c
+	    if (ifLeaveAxis .eq. 0) then
+	      xBoxOfs = axisOffset(ivRef) *
+     &		  (cosd(tilt(iview)) / cosd(tilt(ivRef)) - 1.)
+	      xshift = xshift + xBoxOfs * cosphi
+	      yshift = yshift + xBoxOfs * sinphi
+	    endif
+
+	    write(*,'(a,i4,a,2f8.2)')'View',iview,', shifts', xshift, yshift
+c
+c	      DNM 10/22/03: Only do flush for large stacks because of problem
+c	      inside shell scripts in Windows/Intel
+c
+	    if (iznd - izst .gt. 2) call flush(6)
+	    f(1,3,iview)=xshift
+	    f(2,3,iview)=yshift
+	    call xfcopy(fs, funit)
+	    if(imfilout.ne.' ')then
+	      call packcorr(crray,array,nxpad+2,nypad)
 	      if(mode.ne.2)then
 		CALL IsetDN(crray,NXpad,NYpad,MODE,1,NXpad,1,NYpad,DMIN2,
      &		    DMAX2,DMEAN3)
@@ -482,73 +650,18 @@ c
      &		    DMEAN3)
 	      endif
 	      CALL IWRSEC(3,crray)
-C	      
+C		
 	      DMAX = max(dmax,dmax2)
 	      DMIN = min(dmin,dmin2)
 	      DMsum = dmsum + dmean3
-	    enddo
-	  endif
-	  call meanzero(array,nxpad+2,nxpad,nypad)
-
-C	    
-c	  print *,'taking fft'
-	  call todfft(array,nxpad,nypad,0)
-	  call todfft(brray,nxpad,nypad,0)
-c	    
-c	    multiply array by complex conjugate of brray, put back in array
-c	    
-c	  print *,'multiplying arrays'
-	  do jx=1,nypad*(nxpad+2)/2
-	    array(jx)=array(jx)*conjg(brray(jx))
-	  enddo
-c
-	  if(deltap.ne.0.)call filterpart(array,array,nxpad,nypad,ctfp,
-     &	      deltap)
-c	  print *,'taking back fft'
-	  call todfft(array,nxpad,nypad,1)
-c
-c	    the factor here determines the balance between accepting a spurious
-c	    peak and rejecting a real peak because it falls in the streak.
-c	    The spurious peak could be as far as 0.5 out but is much more
-c	    likely to be within 0.25 of the maximum displacement
-c	    
-	  streak=0.25*(stretch-1.0)*nxuse
-	  call peakfind(array,nxpad+2,nypad,xpeak,ypeak,radexcl,
-     &	      rotangle, streak)
-c
-c	    DNM 5/2/02: only destretch the shift if the current view was
-c	    stretched.  Also, put the right sign out in the standard output
-c
-	  if (idir.gt.0)then
-	    call xfapply(fsinv,0.,0.,xpeak,ypeak,usdx,usdy)
-	  else
-	    usdx=xpeak
-	    usdy=ypeak
-	  endif
-	  write(*,'(a,i4,a,2f8.2)')'View',iview,', shifts',
-     &	      idir*nbin*usdx,idir*nbin*usdy
-c
-c	    DNM 10/22/03: Only do flush for large stacks because of problem
-c	    inside shell scripts in Windows/Intel
-c
-	  if (iznd - izst .gt. 2) call flush(6)
-	  f(1,3,iview)=idir*nbin*usdx
-	  f(2,3,iview)=idir*nbin*usdy
-	  if(imfilout.ne.' ')then
-	    call packcorr(crray,array,nxpad+2,nypad)
-	    if(mode.ne.2)then
-	      CALL IsetDN(crray,NXpad,NYpad,MODE,1,NXpad,1,NYpad,DMIN2,
-     &		  DMAX2,DMEAN3)
-	    else
-	      CALL IclDeN(crray,NXpad,NYpad,1,NXpad,1,NYpad,DMIN2,DMAX2,
-     &		  DMEAN3)
 	    endif
-	    CALL IWRSEC(3,crray)
-C	      
-	    DMAX = max(dmax,dmax2)
-	    DMIN = min(dmin,dmin2)
-	    DMsum = dmsum + dmean3
-	  endif
+	  enddo
+c	    
+c	    set up for second loop if any
+c
+	  ivStart = minTilt - 1
+	  ivEnd = izst
+	  loopDir = -1
 	enddo
 c
 	if(imfilout.ne.' ')then
@@ -571,6 +684,15 @@ C         ENCODE(80,1500,TITLE) titstr,DAT,TIM
 	  call imclose(3)
 	endif
 c
+c	  if accumulated, convert from g to f transforms by taking differences
+c	  
+	if (ifcumulate .ne. 0) then
+	  do iv = nz, 2, -1
+	    f(1,3,iv) = f(1,3,iv) - f(1,3,iv - 1)
+	    f(2,3,iv) = f(2,3,iv) - f(2,3,iv - 1)
+	  enddo
+	  call xfunit(f(1,1,1), 1.)
+	endif
 	do iv=1,nz
 	  call xfwrite(1,f(1,1,iv),96)
 	enddo
