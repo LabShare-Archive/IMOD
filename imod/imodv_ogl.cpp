@@ -1075,7 +1075,7 @@ static void imodvDraw_spheres(Iobj *obj, double zscale, int style)
   float z = zscale;
   int checkTime = (int)iobjTime(obj->flags);
   float drawsize;
-  int pixsize, quality, i, j, k, mink, stepRes;
+  int pixsize, quality, i, j, k, mink, stepRes, xybin;
   float scale, diff, mindiff;
   GLuint listIndex;
 #ifdef GLU_QUADRIC_HACK
@@ -1105,6 +1105,10 @@ static void imodvDraw_spheres(Iobj *obj, double zscale, int style)
       }
     firstSphere = 0;
   }
+
+  xybin = 1;
+  if (!Imodv->standalone)
+    xybin = Imodv->vi->xybin;
 
   /* Take maximum of quality from world flag setting and from object */
   quality = ((Imodv->imod->view->world & WORLD_QUALITY_BITS) >> 
@@ -1147,7 +1151,7 @@ static void imodvDraw_spheres(Iobj *obj, double zscale, int style)
 
   /* DNM: Get a display list to draw the default size.  Helps a lot on PC,
      only a bit on the SGI */
-  drawsize = obj->pdrawsize;
+  drawsize = obj->pdrawsize / xybin;
   pixsize = (int)(drawsize * scale);
   if (pixsize >= MAX_LOOKUP)
     pixsize = MAX_LOOKUP - 1;
@@ -1181,7 +1185,7 @@ static void imodvDraw_spheres(Iobj *obj, double zscale, int style)
 
       /* get the real point size, convert to number of pixels and
          look up step size based on current quality */
-      drawsize = imodPointGetSize(obj, cont, pt);
+      drawsize = imodPointGetSize(obj, cont, pt) / xybin;
 
       // Only draw zero-size points with scattered point objects
       if (!iobjScat(obj->flags) && !drawsize) 
@@ -1739,6 +1743,9 @@ static void imodvDrawScalarMesh(Imesh *mesh, double zscale,
 
 /*
 $Log$
+Revision 4.6  2003/06/27 19:31:00  mast
+Changed to using object and global point quality flags
+
 Revision 4.5  2003/04/17 19:02:59  mast
 adding hack for GL-context dependent gluQuadric
 
