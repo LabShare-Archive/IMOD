@@ -38,14 +38,8 @@ Minimum disk size:          10 GB
 Operating System:  Red Hat 7.3 Workstation class installation; a
 custom installation with Kernel Development modules included is recommended.
 <BR>
-OpenMotif rather than LessTif.  See details for your OS below.
-<BR>
 Nvidia Linux device drivers and OpenGL libraries from
-<A HREF = "http://www.nvidia.com">Nvidia</A>, at least version 1541 or higher.
-<BR>
-For Red Hat 7.1 or 7.2, a version of the OpenGL library libGLU.so based on the
-SGI sample implementation, available through links at 
-<A HREF = "http://www.mesa3d.org">Mesa</A>
+<A HREF = "http://www.nvidia.com">Nvidia</A>, at least version 3123 or higher.
 <BR>
 For Red Hat 7.1 - 7.3, to work with files bigger than 2 GB, version 6.11 or
 higher of <code>tcsh</code>.
@@ -62,18 +56,9 @@ The required or recommended steps for each operating system are:
 <B>Red Hat 7.3</B>
 <UL>
 <LI>Nvidia installation
+<LI>Qt 3.0.5 upgrade
 <LI>Window manager settings
 <LI>tcsh for large files
-</UL>
-<P>
-<B>Red Hat 7.1 - 7.2</B>
-<UL>
-<LI>Nvidia installation
-<LI>Window manager settings
-<LI>tcsh for large files
-<LI>OpenMotif 2.1
-<LI>libGLU
-<LI>Possible kernel upgrades for Red Hat 7.1
 </UL>
 <P>
 <B>Nvidia installation (all systems).</B>
@@ -103,143 +88,37 @@ which is available as an
 <A HREF =
 "http://www.rpmfind.net//linux/RPM/cooker/cooker/i586/Mandrake/RPMS/tcsh-6.11-3mdk.i586.html">rpm</A>.
 The <code>tcsh 6.12</code> included with Red Hat 8.0 will also work.
-<P>
-<B>OpenMotif (Red Hat 7.1 - 7.2).</B>  Versions of IMOD before 2.7.5,
-and the Red Hat 7.1 release of IMOD 2.7.5,
-were built to run with OpenMotif 2.1.  The Red Hat 7.3 release of IMOD
-2.7.5 was built to run with OpenMotif 2.2, and future releases will be
-as well.  If you are running Red Hat 7.3 or later, the default
-installation should be ready to work with the latter releases.  For
-Red Hat 7.1 or 7.2, you need to install version 2.1 of OpenMotif and
-run an IMOD built to run with it.
-This is available as OpenMotif 2.1.30 from the 
-Red Hat 7.1 PowerTools CD, or OpenMotif 2.2.2
-plus the 2.1.30 compatibility library from the Red Hat 7.3 packages.
-See our <A HREF =
-"nvidia_install.txt">Nvidia instructions</A> for details.
-<P>
-<B>libGLU (Red Hat 7.1 - 7.2).</B>  If you are running a system lower than 
-Red Hat 7.3, you are encouraged to get
-a copy of libGLU.so based on SGI's source code
-because the version from Mesa distributed with Red Hat 7.1 is missing some
-functions, which will make imod crash if you attempt to display an object
-in "Contour-Fill" mode in the model view window.  Earlier versions of the
-Mesa libGLU had a bug which sometimes crashed imod in this display mode.  As
-of IMOD 2.50, Imod has been compiled without the workaround that prevented
-these crashes, another reason to get a better libGLU.  See our <A HREF =
-"nvidia_install.txt">Nvidia instructions</A> for details.
-<P>
-<B>Kernel upgrades (Red Hat 7.1).</B>  Red Hat 7.1 shipped with a
-version of the MTRR module that broke the
-accelerated graphics support for AMD processors.  For proper graphics
-performance, you may need to upgrade your kernel.  Here are some simplified
-<A HREF = "kernel_upgrade.txt">
-instructions</A>
-for installing an upgrade kernel with Nvidia drivers.
-In addition, here are some 
-<A HREF = "kernel_build7.1.txt">
-instructions</A> based on our experience in building kernels for Red Hat 7.1.
-<P>
-<B>Note on old versions.</B>  Versions earlier than IMOD 2.6.4 recommended 
-replacing a <code>csh</code>
-startup file, <code>/etc/profile.d/colorls.csh</code>, because of problems
-with the <CODE>subm</CODE> alias, but this is no longer necessary
-if the alias has the -ef flag on 
-<code>csh</code> (see the <A HREF="tomoguide.html">Tomography Guide</A>).
 
 <H4>Installing IMOD.</H4>
 All of the IMOD programs are available via the 
 <A HREF="http://bio3d.colorado.edu/imod/download.html">IMOD Download Page</A>
-The distribution will be compressed using
-the gzip program and bundled together using the Unix tar program.
+The distribution is bundled together using the Unix tar program and compressed
+using the gzip program.
 <P>
-<DD>
-To extract the programs from a file ending in tar.gz; use the
-following Unix commands.  These examples use the name imod.tar.gz
-but the actual file will have a version number in the name, such as
-imod_2.41.tar.gz
-<DD><CODE> gunzip imod.tar.gz</CODE>
-<DD><CODE> tar xvf imod.tar</CODE>
-<P>These steps should create a directory such as <code>imod_2.41/</code> that
-contains all of the IMOD programs, libraries and manuals.
-<P>
-<DD>The next step is to install all of the programs.  This involves
-setting up a few environment variables.  The commands described here
-are also provided in a shell script, <code>sgiinstall</code>, 
-<code>suninstall</code>, 
-or <code>pcinstall</code>,
-which can be "sourced" to set the variables, or modified slightly and
-incorporated in your <code>.cshrc</code> or a system-wide <code>cshrc</code>
-file.  There is also a version for bash users, <code>bashinstall</code>.
-
+The easiest thing to do is to install to our recommended location,
+/usr/local/IMOD.  The following steps are used in this case.
 <OL>
-<LI>Copy or move the IMOD distribution to the place you would
-like to keep it.  A good place to rename IMOD would be the
-directory <code>/usr/local/IMOD</code>; however, any directory will do.
-<BR>
-<CODE>
-mv imod_2.41 /usr/local/IMOD
+<LI> Log in as root or do all of these commands with sudo
+<LI> cd to the directory where you downloaded IMOD, and 
+<BR><CODE> mv imod_3.0.8_rh8.0.tar.gz /usr/local</CODE>
+<LI><CODE> cd /usr/local</CODE>
+<LI><CODE> gunzip imod_3.0.8_rh8.0.tar.gz</CODE>
+<LI><CODE> tar xvf imod_3.0.8_rh8.0.tar</CODE>
+<LI>To see if you already have a /usr/local/IMOD,
+<BR><CODE> ls -l</CODE>
+<LI>If you do have a /usr/local/IMOD and it is a link (e.g., it shows up as
+<CODE> IMOD -> imod_2.7.6</CODE>), then enter
+<BR><CODE> rm IMOD</CODE>
+<BR>Otherwise, rename the existing directory, e.g.:
+<BR><CODE> mv IMOD oldIMOD</CODE>
+<LI><CODE> ln -s IMOD imod_3.0.8</CODE>
+<LI> (A) Under Linux, enter
+<BR><CODE> cp IMOD/IMOD-linux.* /etc/profile.d</CODE>
+<BR> (B) On an SGI, insert the text in <CODE>IMOD/sgi.cshrc</CODE> into 
+<CODE>/etc/cshrc</CODE>, specifically the command
+<BR><CODE>if (-e /usr/local/IMOD/IMOD-sgi.csh) source /usr/local/IMOD/IMOD-sgi.csh
 </CODE>
 
-<LI>This example will use /usr/local/IMOD as the installation
-directory and assume that csh is the users shell.
-The following three commands need to be issued.
-
-<UL>
-<LI>
-Set the environment variable that points to the location of the
-IMOD directory.<br>
-<code>
-setenv IMOD_DIR /usr/local/IMOD
-</code>
-
-<LI>
-Set the environment variable that points to the location of the
-IMOD plugin directory.<br>
-<code>
-setenv IMOD_PLUGIN_DIR $IMOD_DIR/lib/imodplug
-</code>
-
-<LI>
-Set your path so that when you type in IMOD commands the
-system can find the command.<BR>
-<CODE>
-set path = ($path $IMOD_DIR/bin)
-</CODE>
-
-<LI>
-If you already have your LD_LIBRARY_PATH set, append the IMOD library
-directory otherwise create the new LD_LIBRARY_PATH.  If you have an Irix 6.5
-version, you need to set LD_LIBRARYN32_PATH as well.
-An automated way to do this is with the following csh script.
-<BR>
-<pre>
-if ($?LD_LIBRARY_PATH)
-        setenv LD_LIBRARY_PATH $IMOD_DIR/lib:$LD_LIBRARY_PATH
-else
-        setenv LD_LIBRARY_PATH $IMOD_DIR/lib
-endif
-if ($?LD_LIBRARYN32_PATH)
-        setenv LD_LIBRARYN32_PATH $IMOD_DIR/lib32:$LD_LIBRARYN32_PATH
-else
-        setenv LD_LIBRARYN32_PATH $IMOD_DIR/lib32
-endif
-</pre>
-</UL>
-
-<LI> On an SGI, you may also wish to install the manual pages onto
-your system.  (On the PC, Linux magically searches for manual pages based
-on your path setting.)
-All manual pages are in the directories IMOD/man/cat1 and IMOD/man/cat5.
-An automated way to do this is with the following csh script.
-<BR>
-<pre>
-if ($?MANPATH)
-        setenv MANPATH $IMOD_DIR/man:$MANPATH
-else
-        setenv MANPATH $IMOD_DIR/man
-endif
-</pre>
 </OL>
 
 <H4>TIFF Library Support.</H4>
