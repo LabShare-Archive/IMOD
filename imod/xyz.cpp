@@ -1547,9 +1547,12 @@ void XyzWindow::keyPressEvent ( QKeyEvent * event )
     break;
 
   case Qt::Key_R:
-    xx->hq = 1 - xx->hq;
-    wprint("\aHigh-resolution mode %s\n", xx->hq ? "ON" : "OFF");
-    Draw();
+    if (!(event->state() & Qt::ControlButton)) {
+      xx->hq = 1 - xx->hq;
+      wprint("\aHigh-resolution mode %s\n", xx->hq ? "ON" : "OFF");
+      Draw();
+    } else
+      handled = 0;
     break;
 
   case Qt::Key_P:
@@ -1732,6 +1735,9 @@ void XyzGL::mouseMoveEvent( QMouseEvent * event )
 
 /*
 $Log$
+Revision 4.5  2003/03/12 21:35:23  mast
+Test if no CIImage is returned and give error message
+
 Revision 4.4  2003/03/12 06:36:18  mast
 Fixed problem of adding or modifying contours at the wrong times
 
