@@ -74,6 +74,13 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.57  2003/07/28 22:53:09  rickg
+ * <p> Fixed postpone logic for combine panel.  Combine scripts
+ * <p> created flag is now reset only when the CombineParams are
+ * <p> modified.
+ * <p>
+ * <p> Combine postpone will now save combine sub script parameters
+ * <p>
  * <p> Revision 2.56  2003/07/25 22:51:11  rickg
  * <p> Imod model mode management changes
  * <p> Save original stack as _orig.st
@@ -767,7 +774,6 @@ public class ApplicationManager {
     mainFrame.setPreProcessingState(ProcessState.INPROGRESS, axisID);
     String threadName = processMgr.eraser(axisID);
     setThreadName(threadName, axisID);
-    mainFrame.startProgressBar("Erasing pixels", axisID);
   }
 
   /**
@@ -780,7 +786,6 @@ public class ApplicationManager {
     mainFrame.setPreProcessingState(ProcessState.INPROGRESS, axisID);
     String threadName = processMgr.eraser(axisID);
     setThreadName(threadName, axisID);
-    mainFrame.startProgressBar("Finding x-rays", axisID);
   }
 
   /**
@@ -1148,7 +1153,7 @@ public class ApplicationManager {
     String seedModel =
       metaData.getDatasetName() + axisID.getExtension() + ".seed";
     try {
-      imodManager.modelCoarseAligned(seedModel, axisID);
+      imodManager.modelCoarseAligned(seedModel, axisID, true);
       processTrack.setFiducialModelState(ProcessState.INPROGRESS, axisID);
       mainFrame.setFiducialModelState(ProcessState.INPROGRESS, axisID);
     }
@@ -1185,7 +1190,7 @@ public class ApplicationManager {
     String fiducialModel =
       metaData.getDatasetName() + axisID.getExtension() + ".fid";
     try {
-      imodManager.modelCoarseAligned(fiducialModel, axisID);
+      imodManager.modelCoarseAligned(fiducialModel, axisID, true);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
@@ -1388,7 +1393,7 @@ public class ApplicationManager {
     String fiducialModel =
       metaData.getDatasetName() + axisID.getExtension() + ".resmod";
     try {
-      imodManager.modelCoarseAligned(fiducialModel, axisID);
+      imodManager.modelCoarseAligned(fiducialModel, axisID, false);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
