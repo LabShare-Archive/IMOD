@@ -353,6 +353,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.18  2004/09/24 18:24:52  mast
+c	  Incorporated reprojection capability from old code
+c	
 c	  Revision 3.17  2004/07/19 04:10:54  mast
 c	  Needed to declare inum external for Intel/Windows
 c	
@@ -1831,7 +1834,8 @@ c
 	real*4 vd1,vd2,dtheta,theta,thetanv,rmax,sdg,oversamp,scalescl
 	integer*4 nprjp,nwidep,needwrk,needzwrk,neediw,needrw,needout,minsup
 	integer*4 maxsup,nshift,nprj2,nsneed,ninp,nexclist,j,needzw,ind
-	integer*4 npadtmp,nprpad,localPixel
+	integer*4 npadtmp,nprpad
+	real*4 pixelLocal
 	integer*4 inum,licenseusfft,niceframe
 	external inum
 c
@@ -2135,7 +2139,7 @@ c	read(3,*)nxwarp,nywarp,ixswarp,iyswarp,idxwarp,idywarp
 	call frefor(titlech,delbeta,ninp)
 	ifdelalpha=0
 	if(ninp.gt.6)ifdelalpha=nint(delbeta(7))
-	if (ninp .gt. 7) localPixel = delbeta(8)
+	if (ninp .gt. 7) pixelLocal = delbeta(8)
 	nxwarp=nint(delbeta(1))
 	nywarp=nint(delbeta(2))
 	ixswarp=nint(delbeta(3))
@@ -2664,8 +2668,8 @@ c	    See if local scale was entered; if not see if it can be set from
 c	    pixel size and local align pixel size
 	  if (scalelocal .le. 0.) then
 	    scalelocal = 1.
-	    if (localPixel .gt. 0) then
-	      scalelocal = localPixel / delta(1)
+	    if (pixelLocal .gt. 0) then
+	      scalelocal = pixelLocal / delta(1)
 	      if (abs(scalelocal - 1.).gt.0.001) write(6,53)scaleLocal
 	    endif
 	  endif
