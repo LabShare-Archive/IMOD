@@ -37,6 +37,9 @@ import etomo.type.FiducialMatch;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.7  2003/09/08 05:49:07  rickg
+ * <p> Method name change for opening the complete volume
+ * <p>
  * <p> Revision 2.6  2003/06/05 04:43:20  rickg
  * <p> Added create patch region model button
  * <p>
@@ -415,7 +418,12 @@ public class SetupCombinePanel implements ContextMenu {
       applicationManager.createCombineScripts();
     }
     if (command.equals(btnCombine.getActionCommand())) {
-      applicationManager.combine();
+      if (rbUseModel.isSelected()) {
+        applicationManager.modelCombine();
+      }
+      else {
+        applicationManager.combine();
+      }
     }
 
   }
