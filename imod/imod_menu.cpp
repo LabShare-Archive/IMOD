@@ -89,7 +89,7 @@ void InfoWindow::fileSlot(int item)
 {
   int returnValue;
   int limits[4];
-  unsigned char *data;
+  unsigned char **data;
   QString qname;
 
   if (ImodForbidLevel){
@@ -1053,6 +1053,9 @@ static Icont *imodContourBreakByZ(Iobj *obj, int co)
 
 /*
 $Log$
+Revision 4.12  2003/07/31 22:12:27  mast
+Autostore views when writing a model as Imod
+
 Revision 4.11  2003/06/20 19:46:34  mast
 Allowed break by Z to work for any kind of pbject, with better warning
 
