@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 4.4  2003/02/10 20:41:14  mast
+    Resolve merge conflict
+
 
     Revision 4.2.2.2  2003/01/27 00:30:07  mast
     Pure Qt version and general cleanup
@@ -77,7 +80,7 @@
 /* Functions */
 int imodIOGetError(void);
 char *imodIOGetErrorString(void);
-int createNewModel(char *mdoelFilename);
+int createNewModel(char *modelFilename);
 int openModel(char *modelFilename);
 Imod *LoadModel(FILE *mfin);
 int SaveModel(struct Mod_Model *mod);
@@ -88,8 +91,6 @@ void imod_cleanup_autosave(void);
 int imod_autosave(struct Mod_Model *mod);
 int SaveImage(struct ViewInfo *vi);
 int WriteImage(FILE *fout, struct ViewInfo *vi, struct LoadInfo *li);
-unsigned char **imod_io_image_load(ImodImageFile *im,
-                                   struct LoadInfo *li,
-                                   void (*func)(char *));
+unsigned char **imod_io_image_load(struct ViewInfo *vi);
 
 #endif /* IMOD_IO_H */
