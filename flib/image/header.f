@@ -14,6 +14,10 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.1  2003/06/05 00:10:19  mast
+c	  Make it output pixel size and tilt axis rotation angle for Agard style
+c	  extended header
+c	
 *
 	
 	parameter (maxextra = 1000000)
@@ -37,9 +41,12 @@ C
 	  call irtsymtyp(1,nint,nreal)
 	  if (.not. nbytes_and_flags(nint, nreal) .and. nreal .ge. 12) then
 	    tiltaxis = array(nint + 11)
-	    if (tiltaxis .ge. -360. .and. tiltaxis .le. 360.)
-     &		write(*,101)tiltaxis
-101	    format(10x,'Tilt axis rotation angle =', f6.1)
+	    if (tiltaxis .ge. -360. .and. tiltaxis .le. 360.) then
+	      if (tiltaxis .lt. -90.) tiltaxis = tiltaxis + 180.
+	      if (tiltaxis .gt. 90.) tiltaxis = tiltaxis - 180.
+              write(*,101)tiltaxis
+101	      format(10x,'Tilt axis rotation angle =', f6.1)
+	    endif
 	    pixel = array(nint + 12) * 1.e9
 	    if (pixel .gt. 0.01 .and. pixel .lt. 10000.) write(*,102)pixel
 102	    format(10x,'Pixel size in nanometers =', g11.4) 
