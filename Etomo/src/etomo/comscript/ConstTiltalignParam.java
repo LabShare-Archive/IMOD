@@ -23,6 +23,10 @@ import etomo.type.TiltAngleSpec;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.8  2005/01/11 20:15:25  sueh
+ * <p> bug# 567 Added fixXYZCoordinates, localMagReferenceView, and
+ * <p> localOutputOptions.
+ * <p>
  * <p> Revision 3.7  2005/01/11 01:00:07  sueh
  * <p> bug# 567 Adding storage for outputModelAndResidual, in case we want to
  * <p> use it.
@@ -89,6 +93,7 @@ public class ConstTiltalignParam implements Command {
   public static final int TILT_AUTOMAPPED_OPTION = 5;
   
   public static final int GET_USE_OUTPUT_Z_FACTOR_FILE = -1;
+  public static final int GET_LOCAL_ALIGNMENTS = -2;
   
   protected static final String modelFileString = "ModelFile";
   protected static final String imageFileString = "ImageFile";
@@ -264,7 +269,7 @@ public class ConstTiltalignParam implements Command {
     maximumCycles.setDefault(500).setDisplayDefault(true);
     axisZShift = new EtomoNumber(EtomoNumber.DOUBLE_TYPE, "AxisZShift");
     localAlignments = new EtomoBoolean("LocalAlignments");
-    localAlignments.setUpdateAs(EtomoBoolean.UPDATE_AS_INTEGER);
+    localAlignments.setUpdateAs(EtomoBoolean.UPDATE_AS_INTEGER).setResetValue(false);
     fixXYZCoordinates = new EtomoBoolean("FixXYZCoordinates");
     reset();
   }
@@ -407,6 +412,8 @@ public class ConstTiltalignParam implements Command {
     switch (name) {
     case GET_USE_OUTPUT_Z_FACTOR_FILE:
       return useOutputZFactorFile();
+    case GET_LOCAL_ALIGNMENTS:
+      return localAlignments.is();
     }
     return false;
   }
