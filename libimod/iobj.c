@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.4  2004/11/05 18:53:00  mast
+Include local files with quotes, not brackets
+
 Revision 3.3  2004/09/21 20:12:48  mast
 Added function to maintain surface labels and max surface number
 
@@ -84,8 +87,6 @@ void imodObjectDefault(Iobj *obj)
 
   obj->cont      = NULL;
   obj->mesh      = NULL;
-  obj->vcont     = NULL;
-  obj->vmesh     = NULL;
   for(i = 0; i < IOBJ_STRSIZE; i++)
     obj->name[i] = 0x00;
   for(i = 0; i < IOBJ_EXSIZE; i++)
@@ -147,8 +148,9 @@ int imodObjectsDelete(Iobj *obj, int size)
       imodContoursDelete(obj[ob].cont, obj[ob].contsize);
     if (obj[ob].meshsize)
       imodMeshesDelete(obj[ob].mesh, obj[ob].meshsize);
+    imodLabelDelete(obj[ob].label);
+    ilistDelete(obj[ob].store);
   }
-  imodLabelDelete(obj->label);
   free(obj);
   return(0);
 }
@@ -163,82 +165,69 @@ int imodObjectCopy(Iobj *from, Iobj *to)
   return(0);
 }
 
-/* Converts from runtime to file format */
-int imodObjectVirtOut(Iobj *obj)
+/* Duplicate object including all data */
+Iobj *imodObjectDup(Iobj *obj)
 {
-  if (!obj)
-    return(-1);
-  if (!iobjVirtual(obj->flags))
-    return(-1);
-  if ((!obj->vcont) && (!obj->vmesh)){
-    obj->flags &= ~IMOD_OBJFLAG_VIRT;
-    return(-1);
+  Iobj *newObj;
+  Icont *cont;
+  Imesh *mesh;
+  int i;
+
+  newObj = imodObjectNew();
+  if (!newObj)
+    return NULL;
+
+  /* Copy object structure but zero out the count of mesh and contours in case
+     we have to free it */
+  imodObjectCopy(obj, newObj);
+  newObj->contsize = 0;
+  newObj->meshsize = 0;
+
+  /* Duplicate contours one at a time and copy into the array */
+  if (obj->contsize) {
+    newObj->cont = imodContoursNew(obj->contsize);
+    if (!newObj->cont) {
+      imodObjectDelete(newObj);
+      return NULL;
+    }
+    for (i = 0; i < obj->contsize; i++) {
+      cont = imodContourDup(&obj->cont[i]);
+      if (!cont) {
+        imodObjectDelete(newObj);
+        return NULL;
+      }
+      imodContourCopy(cont, &newObj->cont[i]);
+      newObj->contsize++;
+      free(cont);
+    }
   }
 
-  obj->contsize++;
-  obj->cont = (Icont *)realloc(obj->cont, sizeof(Icont) * obj->contsize);
-  obj->cont[obj->contsize-1].pts   = NULL;
-  obj->cont[obj->contsize-1].psize = 0;
-  obj->cont[obj->contsize-1].flags = 0;
-  obj->cont[obj->contsize-1].type  = 0;
-  obj->cont[obj->contsize-1].surf  = 0;
-  if (obj->vcont){
-    imodContourCopy(obj->vcont, &(obj->cont[obj->contsize - 1]));
-    free(obj->vcont);
+  /* Duplicate meshes similarly */
+  if (obj->meshsize) {
+    newObj->mesh = imodMeshesNew(obj->meshsize);
+    if (!newObj->mesh) {
+      imodObjectDelete(newObj);
+      return NULL;
+    }
+    for (i = 0; i < obj->meshsize; i++) {
+      mesh = imodMeshDup(&obj->mesh[i]);
+      if (!mesh) {
+        imodObjectDelete(newObj);
+        return NULL;
+      }
+      imodMeshCopy(mesh, &newObj->mesh[i]);
+      newObj->meshsize++;
+      free(mesh);
+    }
   }
-  if (!obj->vmesh)
-    obj->vmesh = imodMeshNew();
-
-  obj->mesh = imodel_mesh_add(obj->vmesh, obj->mesh, &(obj->meshsize));
-  free(obj->vmesh);
-
-  return(0);
+   
+  /* Duplicate labels and extra list items */
+  newObj->label = imodLabelDup(obj->label);
+  newObj->store = ilistDup(obj->store);
+  return newObj;
 }
 
-/* Converts from file to runtime format */
-int imodObjectVirtIn(Iobj *obj)
-{
-
-  if (!obj)
-    return(-1);
-  if (!iobjVirtual(obj->flags))
-    return(-1);
-     
-  if (!obj->contsize){
-    obj->vcont = NULL;
-    obj->flags &= ~IMOD_OBJFLAG_VIRT;
-    return(-1);
-  }
-  obj->vcont = imodContourNew();
-  if (!obj->vcont)
-    return(-1);
-  imodContourCopy(&(obj->cont[obj->contsize - 1]), obj->vcont);
-  obj->contsize--;
-  if (!obj->contsize)
-    free(obj->cont);
-  else
-    obj->cont = (Icont *)realloc(obj->cont, 
-                                 sizeof(Icont) * obj->contsize);
-
-  if (!obj->meshsize){
-    obj->vmesh = NULL; /* use contour instead in 3-d drawing. */
-    /*    obj->flags &= ~IMOD_OBJFLAG_VIRT; */
-    /*    imodContourDelete(obj->vcont); */
-    /*    obj->vcont = NULL; */
-    return(1);
-  }
-  obj->vmesh = imodMeshNew();
-  if (!obj->vmesh)
-    return(-1);
-  imodMeshCopy(&(obj->mesh[obj->meshsize - 1]), obj->vmesh);
-  obj->meshsize--;
-  if (!obj->meshsize)
-    free(obj->mesh);
-  else
-    obj->mesh = (Imesh *)realloc(obj->mesh,
-                                 sizeof(Imesh) * obj->meshsize);
-  return(0);
-}
+/* DNM 11/15/04: removed virtual in and out */
 
 
 /*****************************************************************************/
@@ -434,30 +423,39 @@ int imodel_object_centroid(struct Mod_Object *obj, struct Mod_Point *rcp)
 /* add contour to object data. */
 int imodObjectAddContour(Iobj *obj, Icont *ncont)
 {
-  Icont *cont;
-
   if (!obj)
     return(-1);
-  if (!ncont)
+  return (imodObjectInsertContour(obj, ncont, obj->contsize));
+}
+
+/* insert contour into object data. */
+int imodObjectInsertContour(Iobj *obj, Icont *ncont, int index)
+{
+  Icont *cont;
+  int co;
+
+  if (!obj || !ncont)
+    return(-1);
+  if (index < 0 || index > obj->contsize)
     return(-1);
 
   if (obj->contsize == 0)
-    cont = (struct Mod_Contour *)
-      malloc(sizeof(struct Mod_Contour));
+    cont = (Icont *) malloc(sizeof(Icont));
   else
-    cont = (struct Mod_Contour *)
-      realloc(obj->cont, 
-              sizeof(Icont) * (obj->contsize + 1));
+    cont = (Icont *) realloc(obj->cont, sizeof(Icont) * (obj->contsize + 1));
 
   if (!cont)
     return(-1);
 
-  ++obj->contsize;
   obj->cont = cont;
-  cont = &(obj->cont[obj->contsize -1]);
+  for (co = obj->contsize - 1; co >= index; co--)
+      imodContourCopy(&(obj->cont[co]), &(obj->cont[co + 1]));
+
+  obj->contsize++;
+  cont = &(obj->cont[index]);
   imodContourCopy(ncont, cont);
      
-  return(obj->contsize - 1);
+  return(index);
 }
 
 /* Removes contour from object list without deleting contour data */
