@@ -175,7 +175,7 @@ EOF
 cat << EOF >! $imod_qconf
 SOURCES += linegui.cpp
 HEADERS += linegui.h
-LIBS += -L$lib_dir -limod -liimod -ldiaqt -ltiff -ltrack
+LIBS += -L$lib_dir -liimod -limod -ldiaqt -ltiff -ltrack
 LIBS += -lm
 INCLUDEPATH += .
 EOF
@@ -187,6 +187,9 @@ set ld_lib_var      = LD_LIBRARYN32_PATH
 
 
 #  $Log$
+#  Revision 3.16  2003/10/25 16:46:45  mast
+#  changes for moving line tracker to special module
+#
 #  Revision 3.15  2003/10/24 19:52:40  mast
 #  changes after windows work, plus donot add plax in o32lib build
 #
