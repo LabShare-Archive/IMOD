@@ -9,6 +9,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.1  2002/05/20 19:48:17  mast
+#  Initial deposit into repository
+#
 
 # Filter for tiltxcorr
 set xcfilter = "0.01,0.05,0,0.25"
@@ -25,7 +28,7 @@ set xcfilter = "0.01,0.05,0,0.25"
 
 if ($?IMOD_DIR) set path = ($IMOD_DIR/bin $path)
 
-onintr clean
+onintr searchdone
 
 #
 # set names of temp files
@@ -279,6 +282,7 @@ endif
 # Set up lists to do sections from center out
 #
 echo "Finding the best matched pair of views in the two series:"
+echo "              (Type Ctrl-C to end search)"
 
 set aseclist = ($zeroa)
 set bseclist = ($zerob)
@@ -459,6 +463,9 @@ EOF
     @ bsecind++
 end
 
+searchdone:
+onintr clean
+
 #
 # Stack the two best sections
 #
@@ -541,7 +548,8 @@ endif
 #
 # run beadtrack.  REALLY BAD, BUT HERE IT IS
 #
-echo "Transferring fiducials to matched view with Beadtrack:"
+echo "Transferring fiducials from view $aview in A to view $bview in B with Beadtrack:"
+echo "              (Type Ctrl-C to interrupt)"
 beadtrack >! $tmpxflog <<EOF
 $tmpstack
 
@@ -570,16 +578,29 @@ $radiusdark
 9,5
 .04,2
 EOF
-tail -1 $tmpxflog
+@ aview = $asecbest + 1
+@ bview = $bsecbest + 1
+set btresult = `tail -1 $tmpxflog`
+echo "Number of fiducials that failed to transfer: $btresult[$#btresult]"
+    
 #
 # Remap seed model to the section in B
-if (-e $outfile) \mv $outfile $outfile~
 remapmodel <<EOF  > /dev/null
 $tmpfid
-$outfile
+$tmpseed
 $bsecbest,-999
 0,0,0
 EOF
+#
+# Repack the model to remove empty points, and pass through mapping report
+#
+repackseed <<EOF > $tmpxflog
+$fidfile
+$tmpseed
+$outfile
+EOF
+echo " "
+tail -4 $tmpxflog
 
 clean:
 \rm -f $tmpdir/$com.*.$$*
