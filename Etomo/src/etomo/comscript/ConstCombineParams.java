@@ -19,6 +19,9 @@ import etomo.type.FiducialMatch;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.3  2003/03/18 23:49:40  rickg
+ * <p> Added scripts created state variable
+ * <p>
  * <p> Revision 2.2  2003/03/18 16:38:18  rickg
  * <p> Added model based boolean
  * <p>
@@ -69,12 +72,64 @@ public class ConstCombineParams {
   protected boolean manualCleanup = false;
   protected boolean modelBased = false;
   protected boolean scriptsCreated = false;
-  
-  protected ArrayList invalidReasons = new ArrayList();
 
+  protected ArrayList invalidReasons = new ArrayList();
 
   public ConstCombineParams() {
 
+  }
+
+  public boolean equals(ConstCombineParams cmp) {
+    if (!(matchBtoA == cmp.getMatchBtoA())) {
+      return false;
+    }
+    if (!fiducialMatch.equals(cmp.getFiducialMatch())) {
+      return false;
+    }
+    if (!fiducialMatchListA
+      .toString()
+      .equals(cmp.getFiducialMatchListA().toString())) {
+      return false;
+    }
+    if (!fiducialMatchListB
+      .toString()
+      .equals(cmp.getFiducialMatchListB().toString())) {
+      return false;
+    }
+    if (!patchSize.equals(cmp.getPatchSize())) {
+      return false;
+    }
+    if (!(patchXMin == cmp.getPatchXMin())) {
+      return false;
+    }
+    if (!(patchXMax == cmp.getPatchXMax())) {
+      return false;
+    }
+    if (!(patchYMin == cmp.getPatchYMin())) {
+      return false;
+    }
+    if (!(patchYMax == cmp.getPatchYMax())) {
+      return false;
+    }
+    if (!(patchZMin == cmp.getPatchZMin())) {
+      return false;
+    }
+    if (!(patchZMax == cmp.getPatchZMax())) {
+      return false;
+    }
+    if (!(patchRegionModel.equals(cmp.getPatchRegionModel()))) {
+      return false;
+    }
+    if (!(tempDirectory.equals(cmp.getTempDirectory()))) {
+      return false;
+    }
+    if (!(manualCleanup == cmp.getManualCleanup())) {
+      return false;
+    }
+    if (!(modelBased == cmp.isModelBased())) {
+      return false;
+    }
+    return true;
   }
 
   /**
@@ -232,16 +287,16 @@ public class ConstCombineParams {
   public int getPatchZMin() {
     return patchZMin;
   }
-  
+
   /**
    * Returns true if a patch region model has been specified.
    * @return boolean
    */
   public boolean usePatchRegionModel() {
-    
-    return ! patchRegionModel.matches("^\\s*$");
+
+    return !patchRegionModel.matches("^\\s*$");
   }
-   
+
   /**
    * @return boolean
    */
