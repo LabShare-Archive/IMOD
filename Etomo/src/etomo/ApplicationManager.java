@@ -89,6 +89,11 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.120  2005/01/14 02:57:30  sueh
+ * <p> bug# 511 Added saveDialog() and getDialog().  In done functions, added a
+ * <p> check for exit state ==  save to avoid changing the process state or asking
+ * <p> to close 3dmods when the user only switched dialogs.
+ * <p>
  * <p> Revision 3.119  2005/01/12 00:40:32  sueh
  * <p> bug# 579 Renaming enableZFactors() to enableTiltParameters().  If
  * <p> newstFiducialessAlignment isn't set, use the checkbox value on the
@@ -1154,7 +1159,7 @@ public class ApplicationManager extends BaseManager {
 
   private PostProcessingDialog postProcessingDialog = null;
   
-  private MetaData metaData;
+  private MetaData metaData = null;
   private MainTomogramPanel mainPanel;
   private ProcessTrack processTrack;
   private ProcessManager processMgr;
@@ -1165,8 +1170,9 @@ public class ApplicationManager extends BaseManager {
   /**
    *  
    */
-  public ApplicationManager(String paramFileName) {
+  public ApplicationManager(String paramFileName, MetaData metaData) {
     super();
+    this.metaData = metaData;
     initializeUIParameters(paramFileName);
     initializeAdvanced();
     // Open the etomo data file if one was found on the command line
@@ -2051,7 +2057,7 @@ public class ApplicationManager extends BaseManager {
     //  and set it to the appropriate state
     comScriptMgr.loadTrack(axisID);
     //  Create a default transferfid object to populate the alignment dialog
-    fiducialModelDialog.setTransferFidParams(getTransferfidParam());
+    fiducialModelDialog.setTransferFidParams();
     fiducialModelDialog.setBeadtrackParams(comScriptMgr.getBeadtrackParam(axisID));
     mainPanel.showProcess(fiducialModelDialog.getContainer(), axisID);
   }
@@ -2080,9 +2086,7 @@ public class ApplicationManager extends BaseManager {
       mainPanel.showBlankProcess(axisID);
     }
     else {
-      TransferfidParam transferfidParam = new TransferfidParam();
-      fiducialModelDialog.getTransferFidParams(transferfidParam);
-      metaData.saveTransferfid(transferfidParam);
+      fiducialModelDialog.getTransferFidParams();
       //  Get the user input data from the dialog box
       if (!updateTrackCom(axisID)) {
         return;
@@ -2683,7 +2687,7 @@ public class ApplicationManager extends BaseManager {
         "Warning");
     }
     if (fiducialModelDialog != null) {
-      TransferfidParam transferfidParam = new TransferfidParam();
+      TransferfidParam transferfidParam = new TransferfidParam(destAxisID);
       // Setup the default parameters depending upon the axis to transfer
       // the fiducials from
       String datasetName = metaData.getDatasetName();
@@ -2712,12 +2716,6 @@ public class ApplicationManager extends BaseManager {
       mainPanel.startProgressBar("Transferring fiducials", destAxisID);
       updateDialog(fiducialModelDialog, destAxisID);
     }
-  }
-
-  private TransferfidParam getTransferfidParam() {
-    TransferfidParam param = new TransferfidParam();
-    metaData.initializeTransferfid(param);
-    return param;
   }
 
   /**
@@ -3433,21 +3431,21 @@ public class ApplicationManager extends BaseManager {
     boolean newstFiducialessAlignment = false;
     boolean usedLocalAlignments = false;
     //madeZFactors
-    if (state.getMadeZFactors().isSet()) {
+    if (!state.getMadeZFactors().isNull()) {
       madeZFactors = state.getMadeZFactors().is();
     }
     else {
       madeZFactors = state.getBackwardCompatibleMadeZFactors(axisID);
     }
     //newstFiducialessAlignment
-    if (state.getNewstFiducialessAlignment().isSet()) {
+    if (!state.getNewstFiducialessAlignment().isNull()) {
       newstFiducialessAlignment = state.getNewstFiducialessAlignment().is();
     }
     else {
       newstFiducialessAlignment = tomogramGenerationDialog.isFiducialessAlignment();
     }
     //usedLocalAlignments
-    if (state.getUsedLocalAlignments().isSet()) {
+    if (!state.getUsedLocalAlignments().isNull()) {
       usedLocalAlignments = state.getUsedLocalAlignments().is();
     }
     else {
@@ -5530,10 +5528,6 @@ public class ApplicationManager extends BaseManager {
   protected void createMainPanel() {
     mainPanel = new MainTomogramPanel(this);
     mainPanel = (MainTomogramPanel) mainPanel;
-  }
-  
-  protected void createMetaData() {
-    metaData = new MetaData();
   }
   
   /**
