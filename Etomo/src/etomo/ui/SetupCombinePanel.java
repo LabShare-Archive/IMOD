@@ -25,6 +25,10 @@ import javax.swing.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.2  2002/10/07 22:31:18  rickg
+ * <p> removed unused imports
+ * <p> reformat after emacs trashed it
+ * <p>
  * <p> Revision 1.1  2002/09/09 22:57:02  rickg
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
@@ -234,48 +238,63 @@ public class SetupCombinePanel implements ContextMenu {
     chkManualCleanup.setState(combineParams.getManualCleanup());
   }
 
-  public void getParameters(CombineParams combineParams) {
+  public void getParameters(CombineParams combineParams)
+    throws NumberFormatException {
+    String badParameter = "uknown";
+    try {
 
-    combineParams.setMatchBtoA(rbBtoA.isSelected());
+      combineParams.setMatchBtoA(rbBtoA.isSelected());
 
-    if (rbBothSides.isSelected()) {
-      combineParams.setFiducialMatch(FiducialMatch.BOTH_SIDES);
+      if (rbBothSides.isSelected()) {
+        combineParams.setFiducialMatch(FiducialMatch.BOTH_SIDES);
+      }
+      if (rbOneSide.isSelected()) {
+        combineParams.setFiducialMatch(FiducialMatch.ONE_SIDE);
+      }
+      if (rbOneSideInverted.isSelected()) {
+        combineParams.setFiducialMatch(FiducialMatch.ONE_SIDE_INVERTED);
+      }
+      if (rbUseModel.isSelected()) {
+        combineParams.setFiducialMatch(FiducialMatch.USE_MODEL);
+      }
+
+      combineParams.setFiducialMatchListA(ltfFiducialMatchListA.getText());
+      combineParams.setFiducialMatchListB(ltfFiducialMatchListB.getText());
+
+      if (rbSmallPatch.isSelected()) {
+        combineParams.setPatchSize(CombinePatchSize.SMALL);
+      }
+      if (rbMediumPatch.isSelected()) {
+        combineParams.setPatchSize(CombinePatchSize.MEDIUM);
+      }
+      if (rbLargePatch.isSelected()) {
+        combineParams.setPatchSize(CombinePatchSize.LARGE);
+      }
+
+      combineParams.setPatchRegionModel(ltfPatchRegionModel.getText());
+      badParameter = ltfXMin.getLabel();
+      combineParams.setPatchXMin(Integer.parseInt(ltfXMin.getText()));
+      badParameter = ltfXMax.getLabel();
+      combineParams.setPatchXMax(Integer.parseInt(ltfXMax.getText()));
+      badParameter = ltfYMin.getLabel();
+      combineParams.setPatchYMin(Integer.parseInt(ltfYMin.getText()));
+      badParameter = ltfYMax.getLabel();
+      combineParams.setPatchYMax(Integer.parseInt(ltfYMax.getText()));
+      badParameter = ltfZMin.getLabel();
+      combineParams.setPatchZMin(Integer.parseInt(ltfZMin.getText()));
+      badParameter = ltfZMax.getLabel();
+      combineParams.setPatchZMax(Integer.parseInt(ltfZMax.getText()));
+      badParameter = "unknown";
+
+      combineParams.setTempDirectory(ltfTempDirectory.getText());
+
+      combineParams.setManualCleanup(chkManualCleanup.getState());
     }
-    if (rbOneSide.isSelected()) {
-      combineParams.setFiducialMatch(FiducialMatch.ONE_SIDE);
-    }
-    if (rbOneSideInverted.isSelected()) {
-      combineParams.setFiducialMatch(FiducialMatch.ONE_SIDE_INVERTED);
-    }
-    if (rbUseModel.isSelected()) {
-      combineParams.setFiducialMatch(FiducialMatch.USE_MODEL);
+    catch (NumberFormatException except) {
+      String message = badParameter + " " + except.getMessage();
+      throw new NumberFormatException(message);
     }
 
-    combineParams.setFiducialMatchListA(ltfFiducialMatchListA.getText());
-    combineParams.setFiducialMatchListB(ltfFiducialMatchListB.getText());
-
-    if (rbSmallPatch.isSelected()) {
-      combineParams.setPatchSize(CombinePatchSize.SMALL);
-    }
-    if (rbMediumPatch.isSelected()) {
-      combineParams.setPatchSize(CombinePatchSize.MEDIUM);
-    }
-    if (rbLargePatch.isSelected()) {
-      combineParams.setPatchSize(CombinePatchSize.LARGE);
-    }
-
-    combineParams.setPatchRegionModel(ltfPatchRegionModel.getText());
-
-    combineParams.setPatchXMin(Integer.parseInt(ltfXMin.getText()));
-    combineParams.setPatchXMax(Integer.parseInt(ltfXMax.getText()));
-    combineParams.setPatchYMin(Integer.parseInt(ltfYMin.getText()));
-    combineParams.setPatchYMax(Integer.parseInt(ltfYMax.getText()));
-    combineParams.setPatchZMin(Integer.parseInt(ltfZMin.getText()));
-    combineParams.setPatchZMax(Integer.parseInt(ltfZMax.getText()));
-
-    combineParams.setTempDirectory(ltfTempDirectory.getText());
-
-    combineParams.setManualCleanup(chkManualCleanup.getState());
   }
 
   /**
