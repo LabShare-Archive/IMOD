@@ -90,7 +90,6 @@ static void zapResizeToFit(ZapStruct *zap);
 
 /* DNM 1/19/01: add this to allow key to substitute for middle mouse button */
 static int insertDown = 0;
-static int insertWarned = 0;
 
 /* DNM 3/9/01: add this to provide gloabl lock on movie snapshot use */
 static int movieSnapLock = 0;
@@ -842,7 +841,6 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
   struct ViewInfo *vi = zap->vi;
   int keysym = event->key();
   static int trans = 5;
-  int size;
   int *limits;
   int limarr[4];
   int rx, ix, iy;
@@ -1005,16 +1003,7 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
         zap->startingBand = 0;
       } else {
         zap->startingBand = 1;
-        /*  size = (int)(zap->zoom * vi->xsize / 4);
-        if (size > zap->winx / 4)
-          size = zap->winx / 4;
-        zap->bandllx = zap->winx / 2 - size;
-        zap->bandurx = zap->winx / 2 + size;
-        size = (int)(zap->zoom * vi->ysize / 4);
-        if (size > zap->winy / 4)
-          size = zap->winy / 4;
-        zap->bandlly = zap->winy / 2 - size;
-        zap->bandury = zap->winy / 2 + size; */
+	/* Eliminated old code for making initial band */
       }
       zapSetCursor(zap, zap->mousemode);
       zapDraw(zap);
@@ -2590,6 +2579,9 @@ static int zapPointVisable(ZapStruct *zap, Ipoint *pnt)
 
 /*
 $Log$
+Revision 4.7  2003/03/04 05:35:48  mast
+Fix current point size bug
+
 Revision 4.6  2003/03/03 22:43:43  mast
 Added ability to display spheres for all points with size and eliminated
 separate routine for drawing current contour.
