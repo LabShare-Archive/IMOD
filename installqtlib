@@ -8,6 +8,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.3  2003/05/08 20:39:20  mast
+#  Need to add extension for dynamic library
+#
 #  Revision 3.2  2003/05/08 20:36:17  mast
 #  Fix name of variable for install directory
 #
@@ -28,7 +31,6 @@ if ($qtlibdir == "") exit 0
 # ever-useful sendevent Makefile
 #
 set instdir = `sed -n '/INSTDIR/s/^.*= *//p' configure`
-set libext = `sed -n '/LIBEXT/s/^.*= *//p' configure`
 
 set qtlib = `sed -n '/^LIBS.*=/s/^.*-lqt\([^ ]*\) .*/libqt\1/p' sendevent/Makefile`
 
@@ -36,20 +38,20 @@ set qtlib = `sed -n '/^LIBS.*=/s/^.*-lqt\([^ ]*\) .*/libqt\1/p' sendevent/Makefi
 # Count up non-links and save name of real file
 #
 @ numreal = 0
-foreach i ($QTDIR/lib/$qtlib.$libext*)
-    if (! -l $i) then
+foreach i ($QTDIR/lib/$qtlib.*)
+    if ((! -l $i) && $i:e != "prl") then
         @ numreal++
         set realname = $i
     endif
 end
 
 if ($numreal == 0) then
-        echo "installqtlib: Qt Library not found at $QTDIR/lib/$qtlib.$libext*"
+        echo "installqtlib: Qt Library not found at $QTDIR/lib/$qtlib.*"
         exit 1
 endif
 
 if ($numreal > 1) then
-    echo "installqtlib: $numreal real Qt libraries match $QTDIR/lib/$qtlib.$libext*"
+    echo "installqtlib: $numreal real Qt libraries match $QTDIR/lib/$qtlib.*"
     echo Cannot make links properly
     exit 1
 endif
@@ -58,12 +60,9 @@ endif
 # Copy the real file, make the links
 #
 \cp $realname $qtlibdir
-set realbase = `echo $realname | sed '/^.*\//s///'`
-
 cd $qtlibdir
-foreach i ($QTDIR/lib/$qtlib.$libext*)
+foreach i ($QTDIR/lib/$qtlib*)
     if (-l $i) then
-        set basename = `echo $i | sed '/^.*\//s///'`
-        echo ln -s $realbase $basename
+        echo ln -s $realname:t $i:t
     endif
 end
