@@ -23,6 +23,9 @@ import etomo.comscript.TrimvolParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.12  2004/12/02 18:29:16  sueh
+ * <p> bug# 557 Added a SqueezevolParam instance to be stored in the .edf file.
+ * <p>
  * <p> Revision 3.11  2004/11/19 23:33:52  sueh
  * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
  * <p>
@@ -172,6 +175,7 @@ public abstract class ConstMetaData extends BaseMetaData {
   protected CombineParams combineParams = new CombineParams();
   protected TrimvolParam trimvolParam = new TrimvolParam();
   protected SqueezevolParam squeezevolParam = new SqueezevolParam();
+  protected TomogramState state = new TomogramState();
 
   protected int transferfidNumberViews = 5;
 
@@ -188,12 +192,12 @@ public abstract class ConstMetaData extends BaseMetaData {
   public void store(Properties props, String prepend) {
     String group;
     if (prepend == "") {
-      group = "Setup.";
+      prepend = "Setup";
     }
     else {
-      group = prepend + ".Setup.";
+      prepend += ".Setup";
     }
-
+    group = prepend  + ".";
     props.setProperty(group + "RevisionNumber", latestRevisionNumber);
     props.setProperty(group + "ComScriptsCreated", String
         .valueOf(comScriptsCreated));
@@ -230,7 +234,8 @@ public abstract class ConstMetaData extends BaseMetaData {
     props.setProperty(group + "WholeTomogramSample", String
         .valueOf(wholeTomogramSample));
     trimvolParam.store(props, group);
-    squeezevolParam.store(props, group);
+    squeezevolParam.store(props, prepend);
+    state.store(props, prepend);
   }
 
   public TrimvolParam getTrimvolParam() {
@@ -627,6 +632,9 @@ public abstract class ConstMetaData extends BaseMetaData {
       return false;
     }
     if (!squeezevolParam.equals(cmd.getSqueezevolParam())) {
+      return false;
+    }
+    if (!state.equals(cmd.state)) {
       return false;
     }
 

@@ -19,6 +19,9 @@ import etomo.comscript.TransferfidParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.9  2004/12/02 18:29:29  sueh
+ * <p> bug# 557 Added a SqueezevolParam instance to be stored in the .edf file.
+ * <p>
  * <p> Revision 3.8  2004/11/19 23:35:45  sueh
  * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
  * <p>
@@ -253,11 +256,12 @@ public class MetaData extends ConstMetaData {
     resetToDefault();
     String group;
     if (prepend == "") {
-      group = "Setup.";
+      prepend = "Setup";
     }
     else {
-      group = prepend + ".Setup.";
+      prepend += ".Setup";
     }
+    group = prepend  + ".";
     revisionNumber = props.getProperty(group + "RevisionNumber", "1.0");
 
     // Make this true for now until the variable is present in all of the
@@ -319,6 +323,7 @@ public class MetaData extends ConstMetaData {
         props.getProperty(group + "WholeTomogramSample", "false"))
         .booleanValue();
     trimvolParam.load(props, group);
-    squeezevolParam.load(props, group);
+    squeezevolParam.load(props, prepend);
+    state.load(props, prepend);
   }
 }
