@@ -20,6 +20,12 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.29  2004/08/06 23:08:55  sueh
+ * bug# 508 modified combine() to use BackgroundComScriptProcess.
+ * Modified startComScript to accept a ComScriptProcess parameter,
+ * so that it can be used with either ComScriptProcess or
+ * BackgroundComScriptProcess.
+ *
  * Revision 3.28  2004/08/02 23:50:18  sueh
  * bug# 519 improving error handling in
  * setupNonFiducialAlign
@@ -429,6 +435,8 @@ import etomo.type.ConstMetaData;
 import etomo.ui.TextPageWindow;
 import etomo.util.InvalidParameterException;
 import etomo.util.Utilities;
+import etomo.comscript.CombineComscriptState;
+import etomo.comscript.ComscriptState;
 import etomo.comscript.CopyTomoComs;
 import etomo.comscript.BadComScriptException;
 import etomo.comscript.SetupCombine;
@@ -942,13 +950,17 @@ public class ProcessManager {
    * @param axisID
    *          the AxisID to run tilt on.
    */
-  public String combine() throws SystemProcessException {
+  public String combine(CombineComscriptState combineComscriptState) throws SystemProcessException {
     //  Create the required combine command
     String command = "combine.com";
-
+    
+    CombineProcessMonitor combineProcessMonitor = new CombineProcessMonitor(
+      appManager, AxisID.ONLY, combineComscriptState);
+      
     //  Start the com script in the background
-    ComScriptProcess comScriptProcess = startBackgroundComScript(command, null,
-      AxisID.ONLY);
+    ComScriptProcess comScriptProcess =
+      startBackgroundComScript(command, combineProcessMonitor, AxisID.ONLY, 
+        combineComscriptState);
     return comScriptProcess.getName();
 
   }
@@ -1094,17 +1106,13 @@ public class ProcessManager {
    * @return
    * @throws SystemProcessException
    */
-  private ComScriptProcess startBackgroundComScript(
-    String command,
-    Runnable processMonitor,
-    AxisID axisID)
+  private ComScriptProcess startBackgroundComScript(String command, 
+    Runnable processMonitor, AxisID axisID, 
+    ComscriptState comscriptState)
     throws SystemProcessException {
-    return startComScript(
-      new BackgroundComScriptProcess(command, this, axisID, null),
-      command,
-      processMonitor,
-      axisID,
-      null);
+    return startComScript(new BackgroundComScriptProcess(command, this, axisID,
+        null, (BackgroundProcessMonitor) processMonitor, comscriptState),
+      command, processMonitor, axisID, null);
   }
   /**
    * Start a managed command script for the specified axis
@@ -1494,15 +1502,18 @@ public class ProcessManager {
    */
   public void kill(AxisID axisID) {
     String processID = "";
+    SystemProcessInterface thread = null;
     if (axisID == AxisID.SECOND) {
-      if (threadAxisB != null) {
-        processID = threadAxisB.getShellProcessID();
-      }
+      thread = threadAxisB;
     }
     else {
-      System.out.print(threadAxisA);
-      if (threadAxisA != null) {
-        processID = threadAxisA.getShellProcessID();
+      thread = threadAxisA;
+
+    }
+    if (thread != null) {
+      processID = thread.getShellProcessID();
+      if (thread instanceof BackgroundComScriptProcess) {
+        ((BackgroundComScriptProcess) thread).setKilled(true);
       }
     }
     killProcessAndDescendants(processID);
