@@ -49,7 +49,7 @@ Log at end of file
 #include "tooledit.h"
 #include "arrowbutton.h"
 #include "dia_qtutils.h"
-#include "hotslider.h"
+#include "preferences.h"
 
 #define AUTO_RAISE true
 #define MIN_SLIDER_WIDTH 20
@@ -420,6 +420,9 @@ void ZapGL::mouseMoveEvent ( QMouseEvent * e )
 
 /*
 $Log$
+Revision 4.5  2003/03/26 06:30:56  mast
+adjusting to font changes
+
 Revision 4.4  2003/03/07 15:49:26  mast
 Put z section slider under hot slider control
 

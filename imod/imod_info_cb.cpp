@@ -48,7 +48,7 @@ Log at end of file
 #include "imod_cont_edit.h"
 #include "imod_io.h"
 #include "imod_info_cb.h"
-#include "hotslider.h"
+#include "preferences.h"
 #include "xcramp.h"
 #include "control.h"
 
@@ -622,6 +622,9 @@ void imod_imgcnt(char *string)
 
 /*
 $Log$
+Revision 4.4  2003/02/27 19:35:39  mast
+Removed unneeded imod_open function
+
 Revision 4.3  2003/02/20 16:01:13  mast
 Set control inactive to sync to model point when changing contour
 

@@ -53,7 +53,7 @@ Log at end of file
 #include "imodv_image.h"
 #include "imodv_objed.h"
 #include "imodv_movie.h"
-#include "hotslider.h"
+#include "preferences.h"
 #include "control.h"
 
 static ImodvBkgColor bkgColor;
@@ -578,6 +578,9 @@ void ImodvBkgColor::keyReleaseSlot ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.3  2003/02/27 17:38:02  mast
+Convert filenames with Qt routines
+
 Revision 4.2  2003/02/21 23:20:55  mast
 Open model save file in binary mode
 

@@ -486,7 +486,7 @@
 <includes>
     <include location="local" impldecl="in implementation">control.h</include>
     <include location="local" impldecl="in implementation">autox.h</include>
-    <include location="local" impldecl="in implementation">hotslider.h</include>
+    <include location="local" impldecl="in implementation">preferences.h</include>
     <include location="local" impldecl="in implementation">multislider.h</include>
     <include location="global" impldecl="in implementation">qslider.h</include>
     <include location="local" impldecl="in implementation">dia_qtutils.h</include>

@@ -38,7 +38,7 @@ Log at end of file
 #include "imod.h"
 #include "imod_display.h"
 #include "imod_object_edit.h"
-#include "hotslider.h"
+#include "preferences.h"
 #include "colorselector.h"
 #include "control.h"
 #include "imod_info_cb.h"
@@ -479,6 +479,9 @@ void ImodObjColor::keyReleaseSlot ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.2  2003/02/27 19:40:06  mast
+Add parentheses to fix call to set symbol properties
+
 Revision 4.1  2003/02/10 20:29:00  mast
 autox.cpp
 

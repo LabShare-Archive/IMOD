@@ -31,43 +31,8 @@
 $Date$
 
 $Revision$
-
-$Log$
-Revision 1.1.2.9  2003/01/27 00:30:07  mast
-Pure Qt version and general cleanup
-
-Revision 1.1.2.8  2003/01/18 00:58:37  mast
-add tooltips to dialogframe call
-
-Revision 1.1.2.7  2003/01/13 07:21:38  mast
-Changes to use new dialog manager class
-
-Revision 1.1.2.6  2003/01/01 05:45:42  mast
-Qt version
-
-Revision 1.1.2.5  2002/12/18 04:49:31  mast
-Don't require sgi-only stereo to be only standalone
-
-Revision 1.1.2.4  2002/12/18 04:15:14  mast
-new includes for imodv modules
-
-Revision 1.1.2.3  2002/12/17 22:28:21  mast
-cleanup of unused variables and SGI errors
-
-Revision 1.1.2.2  2002/12/17 18:31:30  mast
-preliminary changes for Qt
-
-Revision 1.1.2.1  2002/12/15 21:14:02  mast
-conversion to cpp
-
-Revision 3.2  2002/12/01 16:51:34  mast
-Changes to eliminate warnings on SGI
-
-Revision 3.1  2002/12/01 15:34:41  mast
-Changes to get clean compilation with g++
-
+Log at end of file
 */
-
 /* DNM note: fixed here, and in imod_display.c and imodv.c, so that the program
  * reads and sets resources properly, including defaults and fallbacks, for
  * the resources SGIStereoCommand and SGIResourceCommand.  The resources
@@ -94,7 +59,7 @@ Changes to get clean compilation with g++
 #include "imodv_gfx.h"
 #include "imodv_input.h"
 #include "imodv_stereo.h"
-#include "hotslider.h"
+#include "preferences.h"
 #include "control.h"
 
 //#define LIMIT_Stereo
@@ -611,3 +576,42 @@ void ImodvStereo::keyReleaseEvent ( QKeyEvent * e )
 }
 
 
+/*
+$Log$
+Revision 4.1  2003/02/10 20:29:02  mast
+autox.cpp
+
+Revision 1.1.2.9  2003/01/27 00:30:07  mast
+Pure Qt version and general cleanup
+
+Revision 1.1.2.8  2003/01/18 00:58:37  mast
+add tooltips to dialogframe call
+
+Revision 1.1.2.7  2003/01/13 07:21:38  mast
+Changes to use new dialog manager class
+
+Revision 1.1.2.6  2003/01/01 05:45:42  mast
+Qt version
+
+Revision 1.1.2.5  2002/12/18 04:49:31  mast
+Don't require sgi-only stereo to be only standalone
+
+Revision 1.1.2.4  2002/12/18 04:15:14  mast
+new includes for imodv modules
+
+Revision 1.1.2.3  2002/12/17 22:28:21  mast
+cleanup of unused variables and SGI errors
+
+Revision 1.1.2.2  2002/12/17 18:31:30  mast
+preliminary changes for Qt
+
+Revision 1.1.2.1  2002/12/15 21:14:02  mast
+conversion to cpp
+
+Revision 3.2  2002/12/01 16:51:34  mast
+Changes to eliminate warnings on SGI
+
+Revision 3.1  2002/12/01 15:34:41  mast
+Changes to get clean compilation with g++
+
+*/

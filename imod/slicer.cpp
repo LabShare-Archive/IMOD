@@ -49,7 +49,6 @@ Log at end of file
 #include "imod_info_cb.h"
 #include "control.h"
 #include "imodplug.h"
-#include "hotslider.h"
 #include "dia_qtutils.h"
 #include "xcramp.h"
 #include "imod_edit.h"
@@ -1859,6 +1858,9 @@ void slicerCubePaint(SlicerStruct *ss)
 
 /*
 $Log$
+Revision 4.10  2003/03/24 17:56:46  mast
+Register with dialogManager so it can be parked with info window
+
 Revision 4.9  2003/03/13 01:34:07  mast
 Fixed initialization of distance variable in attach function
 

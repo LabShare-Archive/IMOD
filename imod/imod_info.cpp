@@ -53,7 +53,7 @@
 #include "imod.h"
 #include "imod_info_cb.h"
 #include "imodplug.h"
-#include "hotslider.h"
+#include "preferences.h"
 #include "control.h"
 
 #define INFO_MIN_LINES 3.5
@@ -477,6 +477,9 @@ static char *truncate_name(char *name, int limit)
 
 /*
     $Log$
+    Revision 4.10  2003/03/26 17:15:30  mast
+    Adjust sizes for font changes
+
     Revision 4.9  2003/03/24 17:58:09  mast
     Changes for new preferences capability
 

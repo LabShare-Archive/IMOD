@@ -142,7 +142,6 @@ int main( int argc, char *argv[])
   int overx = 0;
   int overy = 0;
   float font_scale = 0.;
-  int styleSet = 0;
   Iobj *obj;
   QString qname;
   int doFork = 1;
@@ -167,7 +166,6 @@ int main( int argc, char *argv[])
     }
     if (argv[i][0] == '-' && argv[i][1] == 's' && argv[i][2] == 't'
         && argv[i][3] == 'y' && argv[i][4] == 'l' && argv[i][5] == 'e') {
-      styleSet = 1;
       if (argv[i][6] == '=')
 	cmdLineStyle = strdup(&(argv[i][7]));
       else if (i < argc - 1)
@@ -186,7 +184,7 @@ int main( int argc, char *argv[])
   /* Run the program as imodv? */
   i = strlen(argv[0]);
   if (argv[0][i-1] == 'v'){
-    imodv_main(argc, argv, styleSet);
+    imodv_main(argc, argv, cmdLineStyle);
     exit(0);
   }
 
@@ -195,7 +193,7 @@ int main( int argc, char *argv[])
     if (i) i = strcmp("-view", argv[1]);
     if (!i){
       argc--; argv++; argv[0]++;
-      imodv_main(argc, argv, styleSet);
+      imodv_main(argc, argv, cmdLineStyle);
       exit(0);
     }
   }
@@ -217,9 +215,6 @@ int main( int argc, char *argv[])
   imod_display_init(App, argv);
   mrc_init_li(&li, NULL);
   vi.li = &li;
-
-  //  if (!styleSet)
-  //  QApplication::setStyle("platinum");
 
   /*******************/
   /* Initialize Data */
@@ -883,6 +878,9 @@ int imodColorValue(int inColor)
 
 /*
 $Log$
+Revision 4.8  2003/03/24 17:58:09  mast
+Changes for new preferences capability
+
 Revision 4.7  2003/03/12 20:50:32  mast
 make starting with no arguments allow file selection in Windows
 

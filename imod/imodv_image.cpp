@@ -38,7 +38,7 @@ Log at end of file
 #include <qlayout.h>
 #include <qgl.h>
 #include <GL/glu.h>
-#include "hotslider.h"
+#include "preferences.h"
 #include "multislider.h"
 #include "dia_qtutils.h"
 #include "imodv.h"
@@ -447,6 +447,9 @@ void ImodvImage::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.2  2003/02/27 17:24:33  mast
+Had to include qgl.h instead of GL/gl.h under windows
+
 Revision 4.1  2003/02/10 20:29:01  mast
 autox.cpp
 

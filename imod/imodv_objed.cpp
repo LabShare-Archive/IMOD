@@ -56,7 +56,7 @@ Log at end of file
 #include "imodv_light.h"
 #include "imodv_objed.h"
 #include "imodv_input.h"
-#include "hotslider.h"
+#include "preferences.h"
 #include "control.h"
 
 /*
@@ -1563,6 +1563,9 @@ static void finalSpacer(QWidget *parent, QVBoxLayout *layout)
 
 /*
 $Log$
+Revision 4.7  2003/03/26 17:15:30  mast
+Adjust sizes for font changes
+
 Revision 4.6  2003/03/24 17:58:09  mast
 Changes for new preferences capability
 

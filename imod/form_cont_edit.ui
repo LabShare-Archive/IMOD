@@ -922,7 +922,7 @@
     <include location="local" impldecl="in implementation">dia_qtutils.h</include>
     <include location="local" impldecl="in implementation">imod_cont_edit.h</include>
     <include location="local" impldecl="in implementation">control.h</include>
-    <include location="local" impldecl="in implementation">hotslider.h</include>
+    <include location="local" impldecl="in implementation">preferences.h</include>
     <include location="local" impldecl="in implementation">form_cont_edit.ui.h</include>
 </includes>
 <variables>

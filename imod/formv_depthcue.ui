@@ -335,7 +335,7 @@
     <include location="local" impldecl="in implementation">dia_qtutils.h</include>
     <include location="local" impldecl="in implementation">imodv_input.h</include>
     <include location="local" impldecl="in implementation">imodv_depthcue.h</include>
-    <include location="local" impldecl="in implementation">hotslider.h</include>
+    <include location="local" impldecl="in implementation">preferences.h</include>
     <include location="local" impldecl="in implementation">formv_depthcue.ui.h</include>
 </includes>
 <variables>

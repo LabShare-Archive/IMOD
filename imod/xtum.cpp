@@ -48,7 +48,7 @@ Log at end of file
 #include <qbitmap.h>
 #include <qtooltip.h>
 #include "multislider.h"
-#include "hotslider.h"
+#include "preferences.h"
 #include "dia_qtutils.h"
 #include "control.h"
 
@@ -1365,6 +1365,9 @@ void TumblerGL::paintGL()
 
 /*
 $Log$
+Revision 4.6  2003/03/26 17:15:30  mast
+Adjust sizes for font changes
+
 Revision 4.5  2003/03/24 17:56:46  mast
 Register with dialogManager so it can be parked with info window
 

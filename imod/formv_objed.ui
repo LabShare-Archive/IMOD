@@ -526,7 +526,7 @@
     <include location="global" impldecl="in implementation">qapplication.h</include>
     <include location="local" impldecl="in implementation">imodv_input.h</include>
     <include location="local" impldecl="in implementation">imodv_objed.h</include>
-    <include location="local" impldecl="in implementation">hotslider.h</include>
+    <include location="local" impldecl="in implementation">preferences.h</include>
     <include location="local" impldecl="in implementation">formv_objed.ui.h</include>
 </includes>
 <variables>
