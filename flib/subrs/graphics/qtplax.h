@@ -3,7 +3,10 @@
 
 /* DNM 8/17/00: add this to get the flags in as needed */
 #include <imodconfig.h>
+
+#define QT_THREAD_SUPPORT
 #include <qwidget.h>
+#include <qthread.h>
 
 /* First color used in color index ramp */
 #define PLAX_LOWRAMP 40
@@ -27,6 +30,9 @@
 #define plax_polyo    p_polyo__
 #define plax_sctext   p_sctext__
 #define plax_putc     putc_
+#define plax_erase    plax_erase__
+#define plax_erase    plax_erase__
+#define plax_initialize  plax_initialize__
 
 #else
 
@@ -43,15 +49,19 @@
 #define plax_poly     p_poly_
 #define plax_polyo    p_polyo_
 #define plax_sctext   p_sctext_
+#define plax_erase    plax_erase_
+#define plax_initialize  plax_initialize_
 
 #endif
 
 #endif /* PLAX_CTEST */
 
 extern "C" {
+void plax_initialize(char *string, int strsize);
 int plax_open(void);
 void plax_close(void);
 void plax_flush(void);
+void plax_erase(void);
 void plax_mapcolor(int *color, int *ired, int *igreen, int *iblue);
 void plax_box(int *cindex, int *ix1, int *iy1, int *ix2, int *iy2);
 void plax_boxo(int *cindex, int *ix1, int *iy1, int *ix2, int *iy2);
@@ -60,8 +70,8 @@ void plax_vectw(int *linewidth, int *cindex,
 		int *ix1, int *iy1, int *ix2, int *iy2);
 void plax_circ(int *cindex, int *radius, int *ix, int *iy);
 void plax_circo(int *cindex, int *radius, int *ix, int *iy);
-void plax_poly(int *cindex, int *size, short *vec);
-void plax_polyo(int *cindex, int *size, short *vec);
+void plax_poly(int *cindex, int *size, b3dInt16 *vec);
+void plax_polyo(int *cindex, int *size, b3dInt16 *vec);
 void plax_sctext(int *thickness,
 		 int *xsize,
 		 int *iysize,
@@ -81,6 +91,17 @@ class PlaxWindow : public QWidget
     void closeEvent ( QCloseEvent * e );
     void paintEvent ( QPaintEvent * );
     void resizeEvent ( QResizeEvent * );
+    void customEvent ( QCustomEvent * );
+};
+
+class PlaxThread : public QThread
+{
+ public:
+  PlaxThread();
+  ~PlaxThread() {};
+
+ protected:
+  void run();
 };
 
 #endif /* plax.h */
