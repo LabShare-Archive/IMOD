@@ -34,6 +34,10 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2001/12/29 00:49:24  mast
+    Made signed long work, made signed and unsigned bytes work on PC,
+    eliminated two lines of diagnostic output
+
 */
 #include <stdlib.h>
 #include <stdio.h>
@@ -340,7 +344,7 @@ main( int argc, char *argv[] )
 	  }else{
 
 	    for(i = y - 1; i >= 0 ; i--){
-	      bdata = ((char *)indata) + i * pixsize * x;
+	      bdata = ((unsigned char *)indata) + i * pixsize * x;
 	      fwrite(bdata, pixsize, x, fout); 
 	    }
 	  }
