@@ -20,6 +20,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.1  2004/03/29 21:01:52  sueh
+ * <p> bug# 409 added commented out mtffilter code
+ * <p>
  * <p> Revision 3.0  2003/11/07 23:19:00  rickg
  * <p> Version 1.0.0
  * <p>
@@ -64,6 +67,7 @@ public class DataFlowTests {
       copyFromDataSource(datasetName + "b.st");
       copyFromDataSource(datasetName + "a.rawtlt");
       copyFromDataSource(datasetName + "b.rawtlt");
+      copyFromDataSource(datasetName + "a.seed");
       copyFromDataSource(datasetName + ".edf");
       copycoms("a");
       copycoms("b");
@@ -179,14 +183,6 @@ public class DataFlowTests {
   }
 
   private static void fiducialModelGen(AxisID axisID) {
-    try {
-      copyFromDataSource(datasetName + axisID.getExtension() + ".seed");
-    }
-    catch (SystemProcessException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-      return;
-    }
     applicationManager.openFiducialModelDialog(axisID);
     mainFrame.pack();
     applicationManager.fiducialModelTrack(axisID);
