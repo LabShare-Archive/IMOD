@@ -187,7 +187,7 @@ installclibs : configure
 	cd libdiaqt  ; $(MAKE) install
 
 installlibs : installclibs
-	cd flib; $(MAKE) install
+	cd flib; $(MAKE) installlibs
 
 #
 # Clean up our mess.
@@ -355,6 +355,9 @@ ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.14  2003/05/08 22:07:30  mast
+#  Add installqtlib to src package
+#
 #  Revision 3.13  2003/05/08 20:24:30  mast
 #  Add copy of qt libraries to distributions
 #
