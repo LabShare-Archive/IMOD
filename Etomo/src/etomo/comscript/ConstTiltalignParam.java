@@ -20,6 +20,11 @@ import etomo.type.TiltAngleSpec;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.1  2004/12/28 23:59:58  sueh
+ * <p> bug# 567 Placed the version of ConstTiltalignParam for the old-style comscript
+ * <p> into OldTiltalignParam.  This version contains only the new parameters,
+ * <p> get functions, reset(), and validate().
+ * <p>
  * <p> Revision 3.0  2003/11/07 23:19:00  rickg
  * <p> Version 1.0.0
  * <p>
@@ -170,6 +175,7 @@ public class ConstTiltalignParam {
     rotOption = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "RotOption");
     rotOption.setValidValues(optionValidValues).setResetValue(AUTOMAPPED_OPTION);
     rotDefaultGrouping = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "RotDefaultGrouping");
+    rotDefaultGrouping.setResetValue(3);
     rotationFixedView = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "RotationFixedView");
     localRotOption = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "LocalRotOption");
     localRotOption.setValidValues(localOptionValidValues).setResetValue(AUTOMAPPED_OPTION);
@@ -581,8 +587,8 @@ public class ConstTiltalignParam {
   /**
    * @return Returns the rotNondefaultGroup.
    */
-  public FortranInputString[] getRotNondefaultGroup() {
-    return rotNondefaultGroup;
+  public String getRotNondefaultGroup() {
+    return ParamUtilities.valueOf(rotNondefaultGroup);
   }
   /**
    * @return Returns the rotOption.
