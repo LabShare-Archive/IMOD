@@ -1,6 +1,12 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-11/12/02/ IMOD_2-7-6 released to replace 2.7.5
+IMOD_2-7-7
+11/14/02: Made newst exit with an error status when newstack does.
+
+11/13/02: Prevented right mouse button drag in zap window from modifying 
+points in scattered point contours or from other sections.
+
+11/12/02: IMOD_2-7-6 released to replace 2.7.5
 11/11/02: Fixed bug in Solvematch caused by the 10/2/02 changes in the 
 routines shared with Refinematch and Findwarp.
 
