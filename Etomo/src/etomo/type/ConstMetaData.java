@@ -20,6 +20,10 @@ import etomo.comscript.TransferfidParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.3  2004/02/07 03:10:10  sueh
+ * <p> bug# 169 Created dataset validation function that returns
+ * <p> the valid directory
+ * <p>
  * <p> Revision 3.2  2003/12/23 21:53:16  sueh
  * <p> bug# 371 Remove validation test for b stack.
  * <p>
@@ -91,6 +95,7 @@ public class ConstMetaData {
   protected String revisionNumber = "1.5";
   protected String datasetName = "";
   protected String backupDirectory = "";
+  protected String distortionFile = "";
 
   protected DataSource dataSource = DataSource.CCD;
   protected AxisType axisType = AxisType.SINGLE_AXIS;
@@ -101,6 +106,7 @@ public class ConstMetaData {
   protected boolean useLocalAlignments = true;
   protected double fiducialDiameter = 0.0;
   protected double imageRotation = 0.0;
+  protected int binning = 1;
 
   //  Axis specific data
   protected TiltAngleSpec tiltAngleSpecA = new TiltAngleSpec();
@@ -135,6 +141,9 @@ public class ConstMetaData {
   public String getBackupDirectory() {
     return backupDirectory;
   }
+  public String getDistortionFile() {
+    return distortionFile;
+  }
 
   public DataSource getDataSource() {
     return dataSource;
@@ -166,6 +175,10 @@ public class ConstMetaData {
 
   public double getImageRotation() {
     return imageRotation;
+  }
+  
+  public int getBinning() {
+    return binning;
   }
 
   public TiltAngleSpec getTiltAngleSpecA() {
