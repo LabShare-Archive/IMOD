@@ -177,16 +177,7 @@ void imodvPaintGL()
   if (!a->doPick)
     imodv_winset(a);
 
-  if (a->dlist && a->update_dlist){
-    if (first)
-      first = 0;
-    else
-      glDeleteLists(1,1);
-    glNewList(1, GL_COMPILE);
-    imodvDraw_model(a, a->imod);
-    glEndList();
-    a->update_dlist = 0;
-  }
+  // 6/6/04: deleted code for drawing whole model as dlist (unused)
 
   imodv_clear(a);
 
@@ -214,23 +205,20 @@ void imodvPaintGL()
     break;
 
   case IMODV_STEREO_HW:
+
+    // 6/6/04: Eliminated clears because the main clear should do both buffers
     a->stereo *= -1;
     stereoDrawBuffer(GL_BACK_RIGHT);
-    stereoClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     imodvDraw_models(a);
 
     a->stereo *= -1;
     stereoDrawBuffer(GL_BACK_LEFT);
-    stereoClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     imodvDraw_models(a);
     break;
 
 
   case IMODV_STEREO_OFF:
-    if (a->dlist)
-      glCallList(1);
-    else
-      imodvDraw_models(a);
+    imodvDraw_models(a);
     break;
   }
 
@@ -376,6 +364,9 @@ static int imodv_snapshot(ImodvApp *a, char *fname)
 
 /*
 $Log$
+Revision 4.9  2004/06/01 01:31:09  mast
+Add include of errno.h
+
 Revision 4.8  2004/05/31 23:35:26  mast
 Switched to new standard error functions for all debug and user output
 
