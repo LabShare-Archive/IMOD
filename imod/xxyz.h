@@ -32,6 +32,9 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2002/01/28 16:54:55  mast
+    Added structure elements for new enhancements
+
 */
 
 #ifndef XXYZ_H
@@ -46,6 +49,7 @@ struct xxyzwin
      Widget dialog;         /* The top widget of the xyz window     */
      Widget glw;            /* The drawing widget of the xyz window */
      XID    context;
+     int ctrl;              /* id of control */
      
      unsigned char *fdataxz; /* tmp data storage for xz image       */
      unsigned char *fdatayz; /* tmp data storage for yz image       */
