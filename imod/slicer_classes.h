@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.4  2004/08/12 17:14:11  mast
+Made mSlicer public so angle reporting routine can access it
+
 Revision 4.3  2003/12/16 23:54:22  mast
 Move floatspinbox to libdiaqt
 
@@ -34,7 +37,9 @@ initila creation
 #ifndef SLICER_CLASSES_H
 #define SLICER_CLASSES_H
 
-#define MAX_SLICER_TOGGLES 2
+#define MAX_SLICER_TOGGLES 3
+
+enum {SLICER_TOGGLE_HIGHRES = 0, SLICER_TOGGLE_LOCK, SLICER_TOGGLE_FFT};
 
 #include <qmainwindow.h>
 #include <qspinbox.h>
