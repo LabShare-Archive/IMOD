@@ -26,7 +26,7 @@ Log at end of file
 #include "linegui.h"
 #endif
 
-enum {IP_INFO, IP_EXECUTE, IP_EXECUTETYPE, IP_KEYS};
+enum {IP_INFO, IP_EXECUTE, IP_EXECUTETYPE, IP_KEYS, IP_EXECUTE_MESSAGE};
 
 typedef struct
 {
@@ -338,6 +338,49 @@ void imodPlugClean(void)
 }
 
 /*
+ * Find a plugin that the message is designated for and pass it on
+ */
+int imodPlugMessage(ImodView *vw, QStringList *strings, int *arg)
+{
+  PlugData *pd;
+  int  i, j, numWords, mi = ilistSize(plugList);
+  SpecialExecuteMessage fptr;
+  QString str;
+  QStringList nameList;
+  QStringList message = *strings;
+
+  if (!mi) 
+    return 1;
+  pd = (PlugData *)ilistFirst(plugList);
+  for(i = 0; i < mi; i++){
+          
+    pd = (PlugData *)ilistItem(plugList, i);
+    if (!pd)
+      continue;
+          
+    if (pd->type & IMOD_PLUG_MESSAGE) {
+
+      // Check name for match
+      str = pd->name;
+      nameList = QStringList::split(" ", str);
+      numWords = nameList.count();
+      for (j = 0; j < numWords; j++)
+        if (nameList[j] != message[*arg + j])
+          break;
+      if (j < numWords)
+        continue;
+
+      fptr = (SpecialExecuteMessage)ipGetFunction(pd, IP_EXECUTE_MESSAGE);
+      if (!fptr)
+        return 1;
+      *arg += numWords;
+      return (*fptr)(vw, strings, arg);
+    }
+  }
+  return 1;
+}
+
+/*
  * Get a function - handle internal versus external and possibly 
  * system-dependent stuff here
  */
@@ -351,6 +394,8 @@ static void *ipGetFunction(PlugData *pd, int which)
       return (void *)pd->module->mExecute;
     case IP_EXECUTETYPE:
       return (void *)pd->module->mExecuteType;
+    case IP_EXECUTE_MESSAGE:
+      return (void *)pd->module->mExecuteMessage;
     case IP_KEYS:
       return (void *)pd->module->mKeys;
     default:
@@ -365,6 +410,8 @@ static void *ipGetFunction(PlugData *pd, int which)
       return pd->library->resolve("imodPlugExecute");
     case IP_EXECUTETYPE:
       return pd->library->resolve("imodPlugExecuteType");
+    case IP_EXECUTE_MESSAGE:
+      return pd->library->resolve("imodPlugExecuteMessage");
     case IP_KEYS:
       return pd->library->resolve("imodPlugKeys");
     default:
@@ -430,6 +477,9 @@ int imodPlugImageHandle(char *filename)
 
 /*
 $Log$
+Revision 4.10  2004/06/01 01:30:52  mast
+Eliminate unused variable
+
 Revision 4.9  2004/05/31 23:26:17  mast
 Switched to QDir and QLibrary and thus was able to use plugins in Windows
 
