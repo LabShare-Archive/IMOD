@@ -37,7 +37,6 @@ Log at end of file
 */
 #include <math.h>
 #include <qcursor.h>
-#include <qbitmap.h>
 #include <qdatetime.h>
 #include <qapplication.h>
 #include <qclipboard.h>
@@ -60,9 +59,6 @@ Log at end of file
 #include "imod_workprocs.h"
 #include "dia_qtutils.h"
 
-#include "qcursor.bits"
-#include "qcursor_mask.bits"
-
 static void zapDraw_cb(ImodView *vi, void *client, int drawflag);
 static void zapClose_cb(ImodView *vi, void *client, int drawflag);
 static void zapKey_cb(ImodView *vi, void *client, int released, QKeyEvent *e);
@@ -77,7 +73,6 @@ static void zapB3Drag(struct zapwin *zap, int x, int y, int controlDown);
 static void zapDrawGraphics(ZapStruct *zap);
 static void zapDrawModel(ZapStruct *zap);
 static void zapDrawContour(ZapStruct *zap, int co, int ob);
-static void zapDrawCurrentContour(ZapStruct *zap, int co, int ob);
 static void zapDrawCurrentPoint(ZapStruct *zap, int undraw);
 static int  zapDrawAuto(ZapStruct *zap);
 static void zapDrawGhost(ZapStruct *zap);
@@ -95,6 +90,7 @@ static void zapResizeToFit(ZapStruct *zap);
 
 /* DNM 1/19/01: add this to allow key to substitute for middle mouse button */
 static int insertDown = 0;
+static int insertWarned = 0;
 
 /* DNM 3/9/01: add this to provide gloabl lock on movie snapshot use */
 static int movieSnapLock = 0;
@@ -148,8 +144,11 @@ void zapHelp()
      "\tu smooths a filled area when auto contouring.\n",
      "\tB toggles the rubber band on and off.  The rubber band can be "
      "used to select an area, then snapshot the area, resize the window "
-     "to that area, or find its coordinates.  The size of the band can "
-     "be adjusted by placing the pointer near an edge or corner and "
+     "to that area, or find its coordinates.  After pressing B to turn on the "
+     "rubber band, position the mouse at the desired upper left corner, click "
+     "the left mouse button and hold it down while you move to the lower "
+     "right corner.  After initially defining the band, you can adjust its "
+     "size by placing the pointer near an edge or corner and "
      "dragging with the left mouse button.  The band can be moved as a "
      "unit by placing the pointer near an edge and dragging with the "
      "middle mouse button.\n",
@@ -525,7 +524,7 @@ void zapPaint(ZapStruct *zap)
     ob = zap->vi->imod->cindex.object;
     imodSetObjectColor(ob); 
     b3dLineWidth(zap->vi->imod->obj[ob].linewidth2); 
-    zapDrawCurrentContour(zap, zap->vi->imod->cindex.contour, ob);
+    zapDrawContour(zap, zap->vi->imod->cindex.contour, ob);
     zap->drawCurrentOnly = -1;
     return;
   }
@@ -695,6 +694,7 @@ int imod_zap_open(struct ViewInfo *vi)
   zap->time = 0;
   zap->mousemode = 0;
   zap->rubberband = 0;
+  zap->startingBand = 0;
   zap->movieSnapCount = 0;
   zap->drawCurrentOnly = 0;
 
@@ -824,6 +824,8 @@ static void zapTranslate(ZapStruct *zap, int x, int y)
 static void zapKey_cb(ImodView *vi, void *client, int released, QKeyEvent *e)
 {
   ZapStruct *zap = (ZapStruct *)client;
+  if ((e->state() & Qt::Keypad) && e->key() == Qt::Key_Insert)
+    return;
   if (released)
     zapKeyRelease(zap, e);
   else
@@ -953,17 +955,22 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
     handled = 1;
     break;
           
-    /* DNM: KP insert key, find mouse position, set flag, pass like 
-       middle mouse button */
+    /* DNM: Keypad Insert key, alternative to middle mouse button */
   case Qt::Key_Insert:
-    /* But skip out if in movie mode */
-    if (!keypad || vi->imod->mousemode == IMOD_MMOVIE)
+
+    /* But skip out if in movie mode or already active */
+    if (!keypad || vi->imod->mousemode == IMOD_MMOVIE || insertDown)
       break;
 
     // It wouldn't work going to a QPoint and accessing it, so do it in shot!
     ix = (zap->gfx->mapFromGlobal(QCursor::pos())).x();
     iy = (zap->gfx->mapFromGlobal(QCursor::pos())).y();
+
+    // Set a flag, set continuous tracking, grab keyboard and mouse
     insertDown = 1;
+    zap->gfx->setMouseTracking(true);
+    zap->qtWindow->grabKeyboard();
+    zap->gfx->grabMouse();
 
     /* Use time since last event to determine whether to treat like
        single click or drag */
@@ -974,6 +981,7 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
       zapButton2(zap, ix, iy);
     else
       zapB2Drag(zap, ix, iy); 
+
     zap->lmx = ix;
     zap->lmy = iy;
     handled = 1;
@@ -992,11 +1000,12 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
 
   case Qt::Key_B:
     if (event->state() & Qt::ShiftButton) { 
-      if (zap->rubberband)
+      if (zap->rubberband || zap->startingBand) {
         zap->rubberband = 0;
-      else {
-        zap->rubberband = 1;
-        size = (int)(zap->zoom * vi->xsize / 4);
+        zap->startingBand = 0;
+      } else {
+        zap->startingBand = 1;
+        /*  size = (int)(zap->zoom * vi->xsize / 4);
         if (size > zap->winx / 4)
           size = zap->winx / 4;
         zap->bandllx = zap->winx / 2 - size;
@@ -1005,8 +1014,9 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
         if (size > zap->winy / 4)
           size = zap->winy / 4;
         zap->bandlly = zap->winy / 2 - size;
-        zap->bandury = zap->winy / 2 + size;
+        zap->bandury = zap->winy / 2 + size; */
       }
+      zapSetCursor(zap, zap->mousemode);
       zapDraw(zap);
     } else
       autox_build(vi->ax);
@@ -1118,11 +1128,22 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
 void zapKeyRelease(ZapStruct *zap, QKeyEvent *event)
 {
   /*  printf ("%d down\n", downtime.elapsed()); */
+  if (!insertDown || event->key() != Qt::Key_Insert)
+    return;
   insertDown = 0;
+  zap->gfx->setMouseTracking(false);
+  zap->qtWindow->releaseKeyboard();
+  zap->gfx->releaseMouse();
+  if (zap->drawCurrentOnly) {
+    zap->drawCurrentOnly = 0;
+    zapDraw(zap);
+  }
 }
 
 static int firstdrag = 0;
 static int moveband = 0;
+static int dragband;
+static int dragging[4];
 static int firstmx, firstmy;
 
 // respond to a mouse press event
@@ -1140,9 +1161,12 @@ void zapMousePress(ZapStruct *zap, QMouseEvent *event)
   switch(event->button()){
     case Qt::LeftButton:
       but1downt.start();
-      firstdrag = 1;
       firstmx = event->x();
       firstmy = event->y();
+      if (zap->startingBand)
+        zapButton1(zap, firstmx, firstmy);
+      else
+        firstdrag = 1;
       break;
     case Qt::MidButton:
       if ((button1) || (button3))
@@ -1168,7 +1192,12 @@ void zapMouseRelease(ZapStruct *zap, QMouseEvent *event)
 {
   ivwControlPriority(zap->vi, zap->ctrl);
   if (event->button() == Qt::LeftButton){
+    if (dragband) {
+      dragband = 0;
+      zapSetCursor(zap, zap->mousemode);
+    }
     firstdrag = 0;
+
     if (but1downt.elapsed() > 250) {
         if (zap->hqgfxsave)
           zapDraw(zap);
@@ -1181,6 +1210,7 @@ void zapMouseRelease(ZapStruct *zap, QMouseEvent *event)
   // Button 2 and band moving, release te band
   if ((event->button() == Qt::MidButton) && zap->rubberband && moveband) {
     moveband = 0;
+    zapSetCursor(zap, zap->mousemode);
     if (zap->hqgfxsave)
       zapDraw(zap);
     zap->hqgfxsave  = 0;
@@ -1193,23 +1223,30 @@ void zapMouseRelease(ZapStruct *zap, QMouseEvent *event)
 }
 
 // Respond to a mouse move event (mouse down)
-void zapMouseMove(ZapStruct *zap, QMouseEvent *event)
+void zapMouseMove(ZapStruct *zap, QMouseEvent *event, bool mousePressed)
 {
   int button1, button2, button3;
+  int cumdx, cumdy;
+  int cumthresh = 6 * 6;
+
+  if (!(mousePressed || insertDown))
+    return;
+
   ivwControlPriority(zap->vi, zap->ctrl);
   
   button1 = event->state() & Qt::LeftButton ? 1 : 0;
-  button2 = event->state() & Qt::MidButton ? 1 : 0;
+  button2 = (event->state() & Qt::MidButton) || insertDown ? 1 : 0;
   button3 = event->state() & Qt::RightButton ? 1 : 0;
+  /*  fprintf(stderr, "mb  %d|%d|%d\n", button1, button2, button3); */
 
-    /* fprintf(stderr, "mb  %d|%d|%d\n", button1, button2, button3); */
   if ( (button1) && (!button2) && (!button3)){
-    /* DNM: wait for a bit, but if we do not replace original 
-       lmx, lmy, there is a disconcerting lurch */
-      if ((but1downt.elapsed()) > 250)
-        zapB1Drag(zap, event->x(), event->y());
-      /*  else
-          break; */
+    /* DNM: wait for a bit of time or until enough distance moved, but if we
+       do not replace original lmx, lmy, there is a disconcerting lurch */
+    cumdx = event->x() - firstmx;
+    cumdy = event->y() - firstmy;
+    if ((but1downt.elapsed()) > 250 || cumdx * cumdx + cumdy * cumdy >
+        cumthresh)
+      zapB1Drag(zap, event->x(), event->y());
     }
 
     if ( (!button1) && (button2) && (!button3))
@@ -1233,6 +1270,7 @@ void zapButton1(ZapStruct *zap, int x, int y)
   Imod     *imod = vi->imod;
   Ipoint pnt, *spnt;
   Iindex index;
+  int bandmin = 4;
   int i, temp_distance;
   int distance = -1;
   float ix, iy;
@@ -1240,6 +1278,29 @@ void zapButton1(ZapStruct *zap, int x, int y)
 
   zapGetixy(zap, x, y, &ix, &iy);
      
+  // If starting rubber band, set upper left corner, set for moving lower left
+  if (zap->startingBand) {
+    zap->bandurx = x + bandmin;
+    if (zap->bandurx > zap->winx - 1)
+      zap->bandurx = zap->winx - 1;
+    zap->bandllx = zap->bandurx - bandmin;
+
+    zap->bandlly = y - bandmin;
+    if (y < bandmin)
+      zap->bandlly = 0;
+    zap->bandury = zap->bandlly + bandmin;
+    zap->startingBand = 0;
+    zap->rubberband = 1;
+    dragband = 1;
+    dragging[0] = 0;
+    dragging[1] = 1;
+    dragging[2] = 0;
+    dragging[3] = 1;
+    zapSetCursor(zap, zap->mousemode);
+    zapDraw(zap);
+    return;  
+  }
+
   if (vi->ax)
     if (vi->ax->altmouse == AUTOX_ALTMOUSE_PAINT){
       autox_fillmouse(vi, (int)ix, (int)iy);
@@ -1322,6 +1383,7 @@ void zapButton2(ZapStruct *zap, int x, int y)
         (dxll > 0 && dxur < 0 && (dyll < rcrit && dyll > -rcrit ||
                                   dyur < rcrit && dyur > -rcrit))) {
       moveband = 1;
+      zapSetCursor(zap, zap->mousemode);
       return;
     }
   }     
@@ -1518,8 +1580,6 @@ void zapButton3(ZapStruct *zap, int x, int y, int controlDown)
 
 void zapB1Drag(ZapStruct *zap, int x, int y)
 {
-  static int dragband;
-  static int dragging[4];
   int rubbercrit = 10;  /* Criterion distance for grabbing the band */
   int bandmin = 4;     /* Minimum size that the band can become */
   int i, dminsq, dist, distsq, dmin, dxll, dyll, dxur, dyur;
@@ -1598,6 +1658,8 @@ void zapB1Drag(ZapStruct *zap, int x, int y)
         dragband = 1;
       }
     }
+    if (dragband)
+      zapSetCursor(zap, zap->mousemode);
   }
   firstdrag = 0;
      
@@ -2014,7 +2076,7 @@ static void zapDrawModel(ZapStruct *zap)
     for(co = 0; co < vi->imod->obj[ob].contsize; co++){
       if (ob == vi->imod->cindex.object){
         if (co == vi->imod->cindex.contour){
-          zapDrawCurrentContour(zap, co, ob);
+          zapDrawContour(zap, co, ob);
           continue;
         }
         if (vi->ghostmode & IMOD_GHOST_SURFACE)
@@ -2071,109 +2133,25 @@ void zapDrawSymbol(int mx, int my,
   return;
 }
 
-static void zapDrawCurrentContour(ZapStruct *zap, int co, int ob)
-{
-  ImodView *vi = zap->vi;
-  Iobj  *obj  = &(vi->imod->obj[ob]);
-  Icont *cont = &(vi->imod->obj[ob].cont[co]);
-  Ipoint *point;
-  int pt;
-  int curTime = zap->timeLock ? zap->timeLock : vi->ct;
-
-  if (!cont->psize)
-    return;
-
-  /* DNM 2/19/03: don't draw contours from other times */
-  if (vi->nt){
-    if (iobjTime(obj->flags)){
-      if (cont->type && (curTime != cont->type))
-        return;
-    }
-  }
-
-  if (iobjClose(obj->flags)){
-    zapDrawContour(zap, co, ob);
-    return;
-  }
-  if (iobjScat(obj->flags)){
-    zapDrawContour(zap, co, ob);
-    return;
-  }
-
-  /* open contour */
-  if (cont->psize > 1){
-    for(pt = 0; pt < cont->psize; pt++){
-      point = &(cont->pts[pt]);
-      if (zapPointVisable(zap, point)){
-        zapDrawSymbol(zapXpos(zap, cont->pts[pt].x),
-                      zapYpos(zap, cont->pts[pt].y),
-                      obj->symbol,
-                      obj->symsize,
-                      obj->symflags);
-        if (pt < (cont->psize - 1))
-          if (zapPointVisable(zap, &(cont->pts[pt+1])))
-            b3dDrawLine(zapXpos(zap, point->x),
-                        zapYpos(zap, point->y),
-                        zapXpos(zap, cont->pts[pt+1].x),
-                        zapYpos(zap, cont->pts[pt+1].y));
-      }
-    }
-          
-    if (vi->drawcursor){
-      if ((zapPointVisable(zap, cont->pts)) && 
-          (zapPointVisable(zap, &(cont->pts[1]))))
-        b3dDrawCircle(zapXpos(zap, cont->pts[0].x),
-                      zapYpos(zap, cont->pts[0].y), 3);
-      if ((zapPointVisable(zap, &(cont->pts[cont->psize - 1]))) &&
-          (!zapPointVisable(zap, &(cont->pts[cont->psize - 2]))))
-        b3dDrawCircle
-          (zapXpos(zap, cont->pts[cont->psize - 1].x),
-           zapYpos(zap, cont->pts[cont->psize - 1].y), 3);
-    }
-  }else{
-    /* DNM: I never stopped being confused by off-section display 
-       of single point, so got rid of it */
-    if (zapPointVisable(zap, cont->pts))
-      zapDrawSymbol(zapXpos(zap, cont->pts[0].x),
-                    zapYpos(zap, cont->pts[0].y),
-                    obj->symbol,
-                    obj->symsize,
-                    obj->symflags);
-  }
-
-  if (obj->symflags & IOBJ_SYMF_ENDS){
-    if (zapPointVisable(zap, &(cont->pts[cont->psize-1]))){
-      b3dColorIndex(App->endpoint);
-      b3dDrawCross(zapXpos(zap, cont->pts[cont->psize-1].x),
-                   zapYpos(zap, cont->pts[cont->psize-1].y), 
-                   obj->symsize/2);
-    }
-    if (zapPointVisable(zap, cont->pts)){
-      b3dColorIndex(App->bgnpoint);
-      b3dDrawCross(zapXpos(zap, cont->pts->x),
-                   zapYpos(zap, cont->pts->y),
-                   obj->symsize/2);
-    }
-    imodSetObjectColor(ob);
-  }
-  return;
-}
 
 static void zapDrawContour(ZapStruct *zap, int co, int ob)
 {
   ImodView *vi = zap->vi;
-  float vert[3];
+  float delz;
   Iobj  *obj  = &(vi->imod->obj[ob]);
   Icont *cont = &(vi->imod->obj[ob].cont[co]);
   Ipoint *point;
-  int pt;
+  int pt, radius;
   int curTime = vi->ct;
   float drawsize;
+  bool currentCont = (co == vi->imod->cindex.contour) &&
+    (ob == vi->imod->cindex.object );
 
   if ((!cont) || (!cont->psize))
     return;
 
-  if (zap->timeLock) curTime = zap->timeLock;
+  if (zap->timeLock)
+    curTime = zap->timeLock;
 
   /* check for contours that contian time data. */
   /* Don't draw them if the time isn't right. */
@@ -2185,13 +2163,12 @@ static void zapDrawContour(ZapStruct *zap, int co, int ob)
     }
   }
 
-  if (iobjClose(obj->flags)){
-          
-    if ((!(cont->flags & ICONT_WILD)) && 
-        (!zapPointVisable(zap, &(cont->pts[0])))){
-      return;
-    }
+  /* Open or closed contour */
+  // Skip if not wild and not on section
+  if (!iobjScat(obj->flags) && (cont->flags & ICONT_WILD) ||
+        zapPointVisable(zap, &(cont->pts[0]))) {
 
+    // Draw interior points
     b3dBeginLine();
     for (pt = 0; pt < cont->psize; pt++){
       if (!zapPointVisable(zap, &(cont->pts[pt])))
@@ -2200,19 +2177,19 @@ static void zapDrawContour(ZapStruct *zap, int co, int ob)
                   zapYpos(zap, cont->pts[pt].y));
     }
           
-    if (!(cont->flags & ICONT_OPEN))
-      if (!( (co == vi->imod->cindex.contour) &&
-             (ob == vi->imod->cindex.object ))){
-        point = &(cont->pts[0]);
-        if (zapPointVisable(zap, point)){
-          b3dVertex2i(zapXpos(zap, point->x),
-                      zapYpos(zap, point->y));
-        }
-      }
+    // IF closed contour in closed object and not current, draw closure
+    if (iobjClose(obj->flags) && !(cont->flags & ICONT_OPEN) && !currentCont) {
+      point = &(cont->pts[0]);
+      if (zapPointVisable(zap, point))
+        b3dVertex2i(zapXpos(zap, point->x),
+                    zapYpos(zap, point->y));
+
+    }
     b3dEndLine();
 
+    // Draw symbols
     if (obj->symbol != IOBJ_SYM_NONE)
-      for (pt = 0; pt < cont->psize; pt++){
+      for (pt = 0; pt < cont->psize; pt++) {
         if (!zapPointVisable(zap, &(cont->pts[pt])))
           continue;
         zapDrawSymbol(zapXpos(zap, cont->pts[pt].x),
@@ -2222,33 +2199,9 @@ static void zapDrawContour(ZapStruct *zap, int co, int ob)
                       obj->symflags);
       }
   }
-
-  if (iobjOpen(obj->flags)){
-    if ((!(cont->flags & ICONT_WILD)) && 
-        (!zapPointVisable(zap, &(cont->pts[0])))){
-      return;
-    }
-          
-    for(pt = 0; pt < cont->psize; pt++){
-      point = &(cont->pts[pt]);
-      if (zapPointVisable(zap, point)){
-        zapDrawSymbol(zapXpos(zap, cont->pts[pt].x),
-                      zapYpos(zap, cont->pts[pt].y),
-                      obj->symbol,
-                      obj->symsize,
-                      obj->symflags);
-        if (pt < (cont->psize - 1))
-          if (zapPointVisable(zap, &(cont->pts[pt+1])))
-            b3dDrawLine(zapXpos(zap, point->x),
-                        zapYpos(zap, point->y),
-                        zapXpos(zap, cont->pts[pt+1].x),
-                        zapYpos(zap, cont->pts[pt+1].y));
-      }
-    }
-  }
      
-  /* scattered contour */
-  if (iobjScat(obj->flags)){
+  /* scattered contour - symbols */
+  if (iobjScat(obj->flags) && obj->symbol != IOBJ_SYM_NONE){
     for (pt = 0; pt < cont->psize; pt++){
       if (zapPointVisable(zap, &(cont->pts[pt]))){
         zapDrawSymbol(zapXpos(zap, cont->pts[pt].x),
@@ -2257,6 +2210,13 @@ static void zapDrawContour(ZapStruct *zap, int co, int ob)
                       obj->symsize,
                       obj->symflags);
       }
+    }
+  }
+
+  /* Any contour with point sizes set */
+  if (iobjScat(obj->flags) || cont->sizes || obj->pdrawsize) {
+    for (pt = 0; pt < cont->psize; pt++){
+
       drawsize = imodPointGetSize(obj, cont, pt);
       if (drawsize > 0)
         if (zapPointVisable(zap, &(cont->pts[pt]))){
@@ -2272,24 +2232,23 @@ static void zapDrawContour(ZapStruct *zap, int co, int ob)
             /* DNM: fixed this at last, but let size round
                down so circles get smaller*/
             /* draw a smaller circ if further away. */
-            vert[0] = (cont->pts[pt].z - zap->section) *
-              App->cvi->imod->zscale;
-            if (vert[0] < 0)
-              vert[0] *= -1.0f;
+            delz = (cont->pts[pt].z - zap->section) * App->cvi->imod->zscale;
+            if (delz < 0)
+              delz = -delz;
                         
-            if (vert[0] < drawsize - 0.01){
-              vert[1] = sqrt((double)(drawsize * 
-                                      drawsize) - vert[0] * vert[0])
-                * zap->zoom;
+            if (delz < drawsize - 0.01) {
+              radius = (int)(sqrt((double)(drawsize * drawsize - delz * delz))
+                             * zap->zoom);
               b3dDrawCircle(zapXpos(zap, cont->pts[pt].x),
                             zapYpos(zap, cont->pts[pt].y),
-                            (int)vert[1]);
+                            radius);
             }
           }
         }
     }
   }
-     
+
+  // Draw end markers
   if (obj->symflags & IOBJ_SYMF_ENDS){
     if (zapPointVisable(zap, &(cont->pts[cont->psize-1]))){
       b3dColorIndex(App->endpoint);
@@ -2305,10 +2264,44 @@ static void zapDrawContour(ZapStruct *zap, int co, int ob)
     }
     imodSetObjectColor(ob);
   }
-     
-  return;
+
+  /* Removed drawing of size 3 circles at ends of current open contour if
+     first two points visible or last point visible and next to last is not */
+
 }
 
+/* Set the size of current and endpoint markers so that they do not conflict
+   with symbol size or, if not symbols, with 3D sphere size */
+void zapCurrentPointSize(Iobj *obj, int *modPtSize, int *backupSize,
+                         int *imPtSize)
+{
+  // These two will be user preferences
+  int minModSize = 4;
+  int minImSize = 4;
+  int symSize = 0;
+
+  // Set sizes to minima
+  *modPtSize = minModSize;
+  *backupSize = minModSize + 2;
+  *imPtSize = minImSize;
+  if (!obj)
+    return;
+
+  // Determine an interfering symbol size
+  if (obj->symbol != IOBJ_SYM_NONE && obj->symsize > 0)
+    symSize = obj->symsize;
+  if (!symSize && obj->pdrawsize > 0)
+    symSize = obj->pdrawsize;
+
+  // Make sure symbol and point sizes differ by at least 2
+  if (symSize - *modPtSize < 2 && *modPtSize - symSize < 2)
+    *modPtSize = symSize + 2;
+  *backupSize = *modPtSize + 2;
+  if (symSize - *backupSize < 2 && *backupSize - symSize < 2)
+    *backupSize = symSize + 2;
+  if (symSize - *imPtSize < 2 && *imPtSize - symSize < 2)
+    *imPtSize = symSize + 2;
+}
 
 static void zapDrawCurrentPoint(ZapStruct *zap, int undraw)
 {
@@ -2316,7 +2309,7 @@ static void zapDrawCurrentPoint(ZapStruct *zap, int undraw)
   Iobj *obj = imodObjectGet(vi->imod);
   Icont *cont = imodContourGet(vi->imod);
   Ipoint *pnt = imodPointGet(vi->imod);
-  int psize = 3;
+  int imPtSize, modPtSize, backupSize, curSize;
   int x,y;
   int curTime = vi->ct;
   int contime;
@@ -2327,15 +2320,22 @@ static void zapDrawCurrentPoint(ZapStruct *zap, int undraw)
     curTime = zap->timeLock;
   contime = curTime;
 
+  zapCurrentPointSize(obj, &modPtSize, &backupSize, &imPtSize);
+
   if ((App->cvi->imod->mousemode == IMOD_MMOVIE)||(!pnt)){
     x = zapXpos(zap, (double)((int)vi->xmouse + 0.5));
     y = zapYpos(zap, (double)((int)vi->ymouse + 0.5));
     b3dColorIndex(App->foreground);
-    b3dDrawPlus(x, y, psize);
+    b3dDrawPlus(x, y, imPtSize);
           
   }else{
     if ((cont) && (cont->psize) && (pnt)){
 
+      curSize = modPtSize;
+      if (cont->psize > 1 && 
+          (pnt == cont->pts || pnt == cont->pts + cont->psize - 1))
+        curSize = backupSize;
+          
       /* DNM 6/17/01: display off-time features as if off-section */
       if (iobjTime(obj->flags) && (cont->flags & ICONT_TYPEISTIME) &&
           cont->type)
@@ -2347,7 +2347,7 @@ static void zapDrawCurrentPoint(ZapStruct *zap, int undraw)
       }else{
         b3dColorIndex(App->shadow);
       }
-      b3dDrawCircle(x, y, psize);
+      b3dDrawCircle(x, y, curSize);
     }
   }
      
@@ -2374,13 +2374,13 @@ static void zapDrawCurrentPoint(ZapStruct *zap, int undraw)
       if (zapPointVisable(zap, cont->pts)){
         b3dColorIndex(App->bgnpoint);
         b3dDrawCircle(zapXpos(zap, cont->pts->x),
-                      zapYpos(zap, cont->pts->y), 2);
+                      zapYpos(zap, cont->pts->y), curSize);
       }
       if (zapPointVisable(zap, &(cont->pts[cont->psize - 1]))){
         b3dColorIndex(App->endpoint);
         b3dDrawCircle(zapXpos(zap, cont->pts[cont->psize - 1].x),
                       zapYpos(zap, cont->pts[cont->psize - 1].y), 
-                      2);
+                      curSize);
       }
     }
   }
@@ -2539,17 +2539,35 @@ static void zapDrawTools(ZapStruct *zap)
 
 static void zapSetCursor(ZapStruct *zap, int mode)
 {
-  if (zap->mousemode != mode){
-    if (mode == IMOD_MMODEL) {
-      QBitmap bmCursor(qcursor_width, qcursor_height, qcursor_bits,
-                       true);
-      QBitmap bmMask(qcursor_width, qcursor_height, qcursor_mask_bits, 
-                     true);
-      QCursor cursor(bmCursor, bmMask, qcursor_x_hot, qcursor_y_hot);
-      zap->gfx->setCursor(cursor);
-    } else
+  static int lastShape = -1;
+  int shape;
+
+  // Set up a special cursor for the rubber band
+  if (zap->startingBand || (zap->rubberband && (moveband || dragband))) {
+    if (zap->startingBand || moveband)
+      shape = Qt::SizeAllCursor;
+    else if (dragging[0] && dragging[2] || dragging[1] && dragging[3])
+      shape = Qt::SizeFDiagCursor;
+    else if (dragging[1] && dragging[2] || dragging[0] && dragging[3])
+      shape = Qt::SizeBDiagCursor;
+    else if (dragging[0] || dragging[1])
+      shape = Qt::SizeHorCursor;
+    else if (dragging[2] || dragging[3])
+      shape = Qt::SizeVerCursor;
+    if (shape != lastShape)
+      zap->gfx->setCursor(QCursor(shape));
+    lastShape = shape;
+    return;
+  }
+
+  // Or restore cursor from rubber band or change cursor dur to mode change
+  if (zap->mousemode != mode || lastShape >= 0){
+    if (mode == IMOD_MMODEL)
+      zap->gfx->setCursor(*App->modelCursor);
+    else
       zap->gfx->unsetCursor();
     zap->mousemode = mode;
+    lastShape = -1;
   }
   return;
 }
@@ -2572,6 +2590,9 @@ static int zapPointVisable(ZapStruct *zap, Ipoint *pnt)
 
 /*
 $Log$
+Revision 4.5  2003/02/28 20:58:55  mast
+adjusting geometry for Windows
+
 Revision 4.4  2003/02/27 19:49:39  mast
 Set geometry to stay on screen for Windows
 
