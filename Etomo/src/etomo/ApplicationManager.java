@@ -83,6 +83,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.75  2004/06/21 17:22:37  rickg
+ * <p> Bug #461 z shift is scaled by the prealigned binning
+ * <p>
  * <p> Revision 3.74  2004/06/21 00:03:53  sueh
  * <p> bug# 436 adding restartAtMatchvol1(), which updates later comscripts
  * <p> and calls matchvol1().  This is necessary because
@@ -4227,16 +4230,13 @@ public class ApplicationManager {
     mainFrame.selectButton(AxisID.ONLY, "Post Processing");
     if (postProcessingDialog == null) {
       postProcessingDialog = new PostProcessingDialog(this);
-      TrimvolParam trimvolParam = new TrimvolParam();
-      String inputFile = "";
-      if (metaData.getAxisType() == AxisType.SINGLE_AXIS) {
-        inputFile = metaData.getDatasetName() + "_full.rec";
-      }
-      else {
-        inputFile = "sum.rec";
-      }
+      //  Set the appropriate input and output files
+      TrimvolParam trimvolParam = metaData.getTrimvolParam();
       try {
-        trimvolParam.setDefaultRange(inputFile);
+        trimvolParam.setDefaultRange(
+          TrimvolParam.getInputFile(
+            metaData.getAxisType(),
+            metaData.getDatasetName()));
       }
       catch (InvalidParameterException except) {
         String[] detailedMessage = new String[4];
@@ -4245,7 +4245,7 @@ public class ApplicationManager {
         detailedMessage[2] = "";
         detailedMessage[3] = except.getMessage();
         mainFrame.openMessageDialog(detailedMessage, "Invalid parameter: "
-          + inputFile);
+          + trimvolParam.getInputFile());
         //    Delete the dialog
         postProcessingDialog = null;
         return;
@@ -4253,7 +4253,7 @@ public class ApplicationManager {
       catch (IOException except) {
         except.printStackTrace();
         mainFrame.openMessageDialog(except.getMessage(), "IO Error: "
-          + inputFile);
+          + trimvolParam.getInputFile());
         //      Delete the dialog
         postProcessingDialog = null;
         return;
@@ -4272,6 +4272,7 @@ public class ApplicationManager {
         "Program logic error");
       return;
     }
+    updateTrimvolParam();
     DialogExitState exitState = postProcessingDialog.getExitState();
     if (exitState == DialogExitState.CANCEL) {
       postProcessingDialog = null;
@@ -4408,19 +4409,7 @@ public class ApplicationManager {
         "Program logic error");
       return;
     }
-    // Get the trimvol parameters from the panel
-    TrimvolParam trimvolParam = new TrimvolParam();
-    postProcessingDialog.getTrimvolParams(trimvolParam);
-    //  Set the appropriate input and output files
-    String inputFile = "";
-    if (metaData.getAxisType() == AxisType.SINGLE_AXIS) {
-      inputFile = metaData.getDatasetName() + "_full.rec";
-    }
-    else {
-      inputFile = "sum.rec";
-    }
-    trimvolParam.setInputFile(inputFile);
-    trimvolParam.setOutputFile(metaData.getDatasetName() + ".rec");
+    TrimvolParam trimvolParam = updateTrimvolParam();
     // Start the trimvol process
     processTrack.setPostProcessingState(ProcessState.INPROGRESS);
     mainFrame.setPostProcessingState(ProcessState.INPROGRESS);
@@ -4438,6 +4427,37 @@ public class ApplicationManager {
     }
     setThreadName(threadName, AxisID.ONLY);
     mainFrame.startProgressBar("Trimming volume", AxisID.ONLY);
+  }
+  
+  /**
+   * updates ConstMetaData.trimvolParam with data from postProcessingDialog.
+   * Sets isDataParamDirty if necessary
+   * @return the updated TrimvolParam
+   *
+   */
+  protected TrimvolParam updateTrimvolParam() {
+    //FIXME dirty bit will always be set because dialog trimvol param will be
+    //different from metadata trimvol after it is first saved with an inputfile
+    //and an outputfile
+    
+    //Get trimvol param data from dialog.
+    TrimvolParam dialogTrimvolParam = new TrimvolParam();
+    postProcessingDialog.getTrimvolParams(dialogTrimvolParam);
+    //Get the metadata trimvol param.
+    TrimvolParam trimvolParam = metaData.getTrimvolParam();
+    postProcessingDialog.getTrimvolParams(trimvolParam);
+    //Set the dirty bit if dialog trim vol data is changed.
+    //No need to call MetaData.setTrimvolParam(trimvolParam) because
+    //trimvolParam is ConstMetaData.trimvolParam.
+    if (!dialogTrimvolParam.equals(trimvolParam)) {
+      isDataParamDirty = true;
+    }
+    //Add input and output files.
+    trimvolParam.setInputFile(
+      metaData.getAxisType(),
+      metaData.getDatasetName());
+    trimvolParam.setOutputFile(metaData.getDatasetName());
+    return trimvolParam;
   }
 
   //
