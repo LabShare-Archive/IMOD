@@ -1,31 +1,22 @@
-/*  IMOD VERSION 2.50
- *
+/*
  *  icont.h -- Image model contour header.
  *
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
+ *
+ *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
+ *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  */
 
-/*****************************************************************************
- *   Copyright (C) 1995-2001 by Boulder Laboratory for 3-Dimensional Fine    *
- *   Structure ("BL3DFS") and the Regents of the University of Colorado.     *
- *                                                                           *
- *   BL3DFS reserves the exclusive rights of preparing derivative works,     *
- *   distributing copies for sale, lease or lending and displaying this      *
- *   software and documentation.                                             *
- *   Users may reproduce the software and documentation as long as the       *
- *   copyright notice and other notices are preserved.                       *
- *   Neither the software nor the documentation may be distributed for       *
- *   profit, either in original form or in derivative works.                 *
- *                                                                           *
- *   THIS SOFTWARE AND/OR DOCUMENTATION IS PROVIDED WITH NO WARRANTY,        *
- *   EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTY OF          *
- *   MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.       *
- *                                                                           *
- *   This work is supported by NIH biotechnology grant #RR00592,             *
- *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
- *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
- *****************************************************************************/
+/*  $Author$
+
+$Date$
+
+$Revision$
+
+$Log$
+*/
 
 #ifndef ICONT_H
 #define ICONT_H
@@ -62,6 +53,17 @@
 
 #define imodContourBad(c,p) ((c)?(((c)->psize<(p))?1:0):1)
 #define imodContourIsOpen(c) (c->flags & ICONT_OPEN)
+
+typedef struct Nest_struct
+{
+  int co;        /* contour number */
+  int level;     /* Level in from outside-most */
+  int ninside;   /* Number inside */
+  int *inside;   /* Numbers of contours inside */
+  int noutside;  /* Number outside */
+  int *outside;  /* Numbers of contours outside */
+  Icont *inscan; /* Scan contour of object interior, for odd levels */
+}Nesting;
 
 /*****************************************************************************/
 /* imodel_contour.c functions                                                */
@@ -133,6 +135,7 @@ double imodContourLongAxis(Icont *cont, float precision, float *aspect,
 			   float *longaxis);
 double imodContourPrincipalAxis(Icont *cont);
 double imodContourCircularity(Icont *cont);
+int imodContourZValue(Icont *cont);
 
 /* calculates the center of mass values for cont and puts them in rpt. */
 int    imodContourCenterOfMass(Icont *cont, Ipoint *rpt);
@@ -196,6 +199,18 @@ int imodel_contour_move(void);
 #define imodel_contour_get    imodContourGet
 
 int imodel_contour_area(struct Mod_Contour *icont);
+
+int imodContourMakeZTables(Iobj *obj, int incz, unsigned int clearFlag, 
+                           int **contzp, int **zlistp, int **numatzp, 
+                           int ***contatzp, int *zminp, int *zmaxp, 
+                           int *zlsizep, int *nummaxp);
+void imodContourFreeZTables(int *numatz, int **contatz, int *contz, int *zlist,
+                            int zmin, int zmax);
+int imodContourCheckNesting(int co, int eco, Icont **scancont, Ipoint *pmin,
+                            Ipoint *pmax, Nesting **nests, int *nestind,
+                            int *numnests, int *numwarn);
+void imodContourFreeNests(Nesting *nests, int numnests);
+void imodContourNestLevels(Nesting *nests, int *nestind, int numnests);
 
 #ifdef __cplusplus
 }
