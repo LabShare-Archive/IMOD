@@ -29,6 +29,11 @@ import java.util.ArrayList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.29  2003/10/09 23:11:12  sueh
+ * <p> bug251 fixed Kill Process and fixed prevention of two processes
+ * <p> on the same axis by shifting transferfid process to the correct
+ * <p> axis (the destination axis where the button was pushed).
+ * <p>
  * <p> Revision 2.28  2003/10/09 05:58:41  rickg
  * <p> Forget to get transferfid command line from BackgroundProcess
  * <p>
@@ -766,7 +771,8 @@ public class ProcessManager {
       String[] stdError = script.getStdError();
       String[] combined;
       //    Is the last string "Killed"
-      if (stdError[stdError.length - 1].trim().equals("Killed")) {
+      if ((stdError.length > 0)
+        && (stdError[stdError.length - 1].trim().equals("Killed"))) {
         combined = new String[1];
         combined[0] = "<html>Terminated: " + script.getScriptName();
       }
@@ -885,7 +891,8 @@ public class ProcessManager {
       String[] message;
 
       // Is the last string "Killed"
-      if (stdError[stdError.length - 1].trim().equals("Killed")) {
+      if ((stdError.length > 0)
+        && (stdError[stdError.length - 1].trim().equals("Killed"))) {
         message = new String[1];
         message[0] = "<html>Terminated: " + process.getCommandLine();
       }
