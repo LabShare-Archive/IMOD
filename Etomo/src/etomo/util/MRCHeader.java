@@ -20,8 +20,12 @@ import etomo.process.SystemProgram;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.0  2003/11/07 23:19:01  rickg
+ * <p> Version 1.0.0
+ * <p>
  * <p> Revision 2.5  2003/11/04 20:56:11  rickg
- * <p> Bug #345 IMOD Directory supplied by a static function from ApplicationManager
+ * <p> Bug #345 IMOD Directory supplied by a static function from 
+ * <p> ApplicationManager
  * <p>
  * <p> Revision 2.4  2003/10/07 23:06:54  rickg
  * <p> Fixed string typo
@@ -56,172 +60,173 @@ import etomo.process.SystemProgram;
  * <p>
  */
 public class MRCHeader {
-	private String filename;
-	private int nColumns = -1;
-	private int nRows = -1;
-	private int nSections = -1;
-	private int mode = -1;
-	private double xPixelSize = Double.NaN;
-	private double yPixelSize = Double.NaN;
-	private double zPixelSize = Double.NaN;
-	private double imageRotation = Double.NaN;
+  private String filename;
+  private int nColumns = -1;
+  private int nRows = -1;
+  private int nSections = -1;
+  private int mode = -1;
+  private double xPixelSize = Double.NaN;
+  private double yPixelSize = Double.NaN;
+  private double zPixelSize = Double.NaN;
+  private double imageRotation = Double.NaN;
 
-	public MRCHeader(String name) {
-		filename = new String(name);
-	}
+  public MRCHeader(String name) {
+    filename = new String(name);
+  }
 
-	public void read() throws IOException, InvalidParameterException {
+  public void read() throws IOException, InvalidParameterException {
+    if (filename == null || filename.length() == 0) {
+      throw new IOException("No filename specified");
+    }
 
-		if (filename == null || filename.length() == 0) {
-			throw new IOException("No filename specified");
-		}
+    // Run the header command on the filename, need to use a String[] here to
+    // prevent the Runtime from breaking up the command and arguments at spaces.
+		String[] commandArray = new String[2];
+    String imodBinPath =
+      ApplicationManager.getIMODDirectory().getAbsolutePath()
+        + File.separator
+        + "bin"
+        + File.separator;
+    commandArray[0] = imodBinPath + "header";
+    commandArray[1] = filename;
+    SystemProgram header = new SystemProgram(commandArray);
+    header.setDebug(true);
+    header.run();
 
-		// Run the header command on the filename
-		String imodBinPath =
-			ApplicationManager.getIMODDirectory().getAbsolutePath()
-				+ File.separator
-				+ "bin"
-				+ File.separator;
-		String command = imodBinPath + "header " + filename;
-		SystemProgram header = new SystemProgram(command);
-		header.setDebug(true);
-		header.run();
+    // Throw an exception if the file can not be read
+    String[] stdError = header.getStdError();
+    if (stdError.length > 0) {
+      String message = "header returned an error:\n";
+      for (int i = 0; i < stdError.length; i++) {
+        message = message + stdError[i] + "\n";
+      }
+      throw new InvalidParameterException(message);
+    }
 
-		// Throw an exception if the file can not be read
-		String[] stdError = header.getStdError();
-		if (stdError.length > 0) {
-			String message = "header returned an error:\n";
-			for (int i = 0; i < stdError.length; i++) {
+    // Parse the output
+    String[] stdOutput = header.getStdOutput();
+    if (stdOutput.length < 1) {
+      throw new IOException("header returned no data");
+    }
 
-				message = message + stdError[i] + "\n";
-			}
-			throw new InvalidParameterException(message);
-		}
+    for (int i = 0; i < stdOutput.length; i++) {
+      //  Parse the size of the data
+      //  Note the initial space in the string below
+      if (stdOutput[i].startsWith(" Number of columns, rows, section")) {
+        String[] tokens = stdOutput[i].split("\\s+");
+        if (tokens.length < 10) {
+          throw new IOException("Header returned less than three parameters for image size");
+        }
+        nColumns = Integer.parseInt(tokens[7]);
+        nRows = Integer.parseInt(tokens[8]);
+        nSections = Integer.parseInt(tokens[9]);
+      }
 
-		// Parse the output
-		String[] stdOutput = header.getStdOutput();
-		if (stdOutput.length < 1) {
-			throw new IOException("header returned no data");
-		}
+      //  Parse the mode
+      if (stdOutput[i].startsWith(" Map mode")) {
+        String[] tokens = stdOutput[i].split("\\s+");
+        if (tokens.length < 5) {
+          throw new IOException("Header returned less than one parameter for the mode");
+        }
+        mode = Integer.parseInt(tokens[4]);
+      }
 
-		for (int i = 0; i < stdOutput.length; i++) {
-			//  Parse the size of the data
-			//  Note the initial space in the string below
-			if (stdOutput[i].startsWith(" Number of columns, rows, section")) {
-				String[] tokens = stdOutput[i].split("\\s+");
-				if (tokens.length < 10) {
-					throw new IOException("Header returned less than three parameters for image size");
-				}
-				nColumns = Integer.parseInt(tokens[7]);
-				nRows = Integer.parseInt(tokens[8]);
-				nSections = Integer.parseInt(tokens[9]);
-			}
+      // Parse the pixels size
+      if (stdOutput[i].startsWith(" Pixel spacing")) {
+        String[] tokens = stdOutput[i].split("\\s+");
+        if (tokens.length < 7) {
+          throw new IOException("Header returned less than three parameters for pixel size");
+        }
+        xPixelSize = Double.parseDouble(tokens[4]);
+        yPixelSize = Double.parseDouble(tokens[5]);
+        zPixelSize = Double.parseDouble(tokens[6]);
+      }
 
-			//  Parse the mode
-			if (stdOutput[i].startsWith(" Map mode")) {
-				String[] tokens = stdOutput[i].split("\\s+");
-				if (tokens.length < 5) {
-					throw new IOException("Header returned less than one parameter for the mode");
-				}
-				mode = Integer.parseInt(tokens[4]);
-			}
+      // Parse the rotation angle
+      if (stdOutput[i].startsWith("          Tilt axis rotation angle")) {
+        String[] tokens = stdOutput[i].split("\\s+");
+        if (tokens.length > 6) {
+          imageRotation = Double.parseDouble(tokens[6]);
+        }
+      }
+    }
+  }
+  /**
+   * Returns the nColumns.
+   * @return int
+   */
+  public int getNColumns() {
+    return nColumns;
+  }
 
-			// Parse the pixels size
-			if (stdOutput[i].startsWith(" Pixel spacing")) {
-				String[] tokens = stdOutput[i].split("\\s+");
-				if (tokens.length < 7) {
-					throw new IOException("Header returned less than three parameters for pixel size");
-				}
-				xPixelSize = Double.parseDouble(tokens[4]);
-				yPixelSize = Double.parseDouble(tokens[5]);
-				zPixelSize = Double.parseDouble(tokens[6]);
-			}
+  /**
+   * Returns the nRows.
+   * @return int
+   */
+  public int getNRows() {
+    return nRows;
+  }
 
-			// Parse the rotation angle
-			if (stdOutput[i].startsWith("          Tilt axis rotation angle")) {
-				String[] tokens = stdOutput[i].split("\\s+");
-				if (tokens.length > 6) {
-					imageRotation = Double.parseDouble(tokens[6]);
-				}
-			}
-		}
-	}
-	/**
-	 * Returns the nColumns.
-	 * @return int
-	 */
-	public int getNColumns() {
-		return nColumns;
-	}
+  /**
+   * Returns the nSections.
+   * @return int
+   */
+  public int getNSections() {
+    return nSections;
+  }
 
-	/**
-	 * Returns the nRows.
-	 * @return int
-	 */
-	public int getNRows() {
-		return nRows;
-	}
+  /**
+   * Return the mode (type) of data in the file.
+   * @return
+   */
+  public int getMode() {
+    return mode;
+  }
 
-	/**
-	 * Returns the nSections.
-	 * @return int
-	 */
-	public int getNSections() {
-		return nSections;
-	}
+  /**
+   * Returns the filename.
+   * @return String
+   */
+  public String getFilename() {
+    return filename;
+  }
 
-	/**
-	 * Return the mode (type) of data in the file.
-	 * @return
-	 */
-	public int getMode() {
-		return mode;
-	}
+  /**
+   * Sets the filename.
+   * @param filename The filename to set
+   */
+  public void setFilename(String filename) {
+    this.filename = filename;
+  }
 
-	/**
-	 * Returns the filename.
-	 * @return String
-	 */
-	public String getFilename() {
-		return filename;
-	}
+  /**
+   * Return the image rotation in degrees if present in the header.  If the
+   * header has not been read or the image rotation is not available return
+   * Double.NaN
+   * @return
+   */
+  public double getImageRotation() {
+    return imageRotation;
+  }
+  /**
+   * @return
+   */
+  public double getXPixelSize() {
+    return xPixelSize;
+  }
 
-	/**
-	 * Sets the filename.
-	 * @param filename The filename to set
-	 */
-	public void setFilename(String filename) {
-		this.filename = filename;
-	}
+  /**
+   * @return
+   */
+  public double getYPixelSize() {
+    return yPixelSize;
+  }
 
-	/**
-	 * Return the image rotation in degrees if present in the header.  If the
-	 * header has not been read or the image rotation is not available return
-	 * Double.NaN
-	 * @return
-	 */
-	public double getImageRotation() {
-		return imageRotation;
-	}
-	/**
-	 * @return
-	 */
-	public double getXPixelSize() {
-		return xPixelSize;
-	}
-
-	/**
-	 * @return
-	 */
-	public double getYPixelSize() {
-		return yPixelSize;
-	}
-
-	/**
-	 * @return
-	 */
-	public double getZPixelSize() {
-		return zPixelSize;
-	}
+  /**
+   * @return
+   */
+  public double getZPixelSize() {
+    return zPixelSize;
+  }
 
 }
