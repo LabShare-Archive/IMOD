@@ -11,7 +11,10 @@
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2004/03/12 21:18:41  rickg
+ * <p> Bug# 390 Initial revision
+ * <p> </p>
  */
 
 package etomo.comscript;
@@ -22,9 +25,9 @@ public class XfproductParam extends ConstXfproductParam implements CommandParam 
   public void parseComScriptCommand(ComScriptCommand scriptCommand)
       throws BadComScriptException, InvalidParameterException, FortranInputSyntaxException{
 
-    //  Check to be sure that it is a ccderaser command
+    //  Check to be sure that it is a xfproduct command
     if (!scriptCommand.getCommand().equals("xfproduct")) {
-      throw (new BadComScriptException("Not a ccderaser command"));
+      throw (new BadComScriptException("Not a xfproduct command"));
     }
 
     ComScriptInputArg[] inputArgs = scriptCommand.getInputArguments();
