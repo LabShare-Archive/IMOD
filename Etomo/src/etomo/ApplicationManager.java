@@ -84,6 +84,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.58  2004/05/25 23:19:34  rickg
+ * <p> Bug #391 Fiducialess implementation
+ * <p>
  * <p> Revision 3.57  2004/05/24 20:16:45  sueh
  * <p> bug# 409 corrected .ali file names for mtffilter for single axis
  * <p>
@@ -4554,6 +4557,10 @@ public class ApplicationManager {
       errorMessage[2] = except.getMessage();
       mainFrame.openMessageDialog(errorMessage,
           "Test parameter file read error");
+      return false;
+    }
+    if (!metaData.isValid(false)) {
+      mainFrame.openMessageDialog(metaData.getInvalidReason(), ".edf file error");
       return false;
     }
     return true;
