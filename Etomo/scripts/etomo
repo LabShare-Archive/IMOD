@@ -33,6 +33,6 @@ fi
 if [ -e etomo_err.log ]; then
   cp etomo_err.log etomo_err.log~
 fi
-echo $ETOMO_JAVAVM/java -cp $IMOD_DIR/bin/etomo -jar $IMOD_DIR/bin/etomo.jar $@
+echo "starting eTomo"
 $ETOMO_JAVAVM/java -cp $IMOD_DIR/bin/etomo -jar $IMOD_DIR/bin/etomo.jar $@ \
   2>etomo_err.log >etomo_out.log &
