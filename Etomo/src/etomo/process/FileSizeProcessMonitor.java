@@ -2,6 +2,7 @@ package etomo.process;
 
 import java.io.File;
 import java.io.IOException;
+import java.sql.Time;
 
 import etomo.ApplicationManager;
 import etomo.type.AxisID;
@@ -21,6 +22,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.1  2004/04/08 17:33:59  rickg
+ * <p> Use Utilities.milliesToMinAndSecs to get time string
+ * <p>
  * <p> Revision 3.0  2003/11/07 23:19:00  rickg
  * <p> Version 1.0.0
  * <p>
@@ -45,6 +49,7 @@ import etomo.util.Utilities;
 public abstract class FileSizeProcessMonitor implements Runnable {
   public static final String rcsid =
     "$Id$";
+  long startTime = Long.MIN_VALUE;
   ApplicationManager applicationManager;
   AxisID axisID;
   long processStartTime;
@@ -69,6 +74,9 @@ public abstract class FileSizeProcessMonitor implements Runnable {
    * @see java.lang.Runnable#run()
    */
   public void run() {
+    if (startTime == Long.MIN_VALUE) {
+      startTime = System.currentTimeMillis();
+    }
     try {
       // Reset the progressBar 
       applicationManager.setProgressBar(" ", 1, axisID);
@@ -83,19 +91,23 @@ public abstract class FileSizeProcessMonitor implements Runnable {
     }
     //  Interrupted ???  kill the thread by exiting
     catch (InterruptedException except) {
+      startTime = Long.MIN_VALUE;
       return;
     }
     catch (InvalidParameterException except) {
       except.printStackTrace();
+      startTime = Long.MIN_VALUE;
       return;
     }
     catch (IOException except) {
       except.printStackTrace();
+      startTime = Long.MIN_VALUE;
       return;
     }
 
     // Periodically update the process bar by checking the size of the file
     updateProgressBar();
+    startTime = Long.MIN_VALUE;
   }
 
   /**
@@ -105,7 +117,6 @@ public abstract class FileSizeProcessMonitor implements Runnable {
    * time since we don't have access to the file creation time.  
    */
   void waitForFile() throws InterruptedException {
-    long startTime = System.currentTimeMillis();
     long modTime;
     boolean newOutputFile = false;
     while (!newOutputFile) {
@@ -148,7 +159,7 @@ public abstract class FileSizeProcessMonitor implements Runnable {
           + "%   ETC: "
           + Utilities.millisToMinAndSecs(remainingTime);
       applicationManager.setProgressBarValue(currentLength, message, axisID);
-
+      
       //  TODO: need to put a fail safe in here to
       try {
         Thread.sleep(updatePeriod);
