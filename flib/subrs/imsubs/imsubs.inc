@@ -5,6 +5,10 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.1  2002/06/26 00:24:42  mast
+c	  Made explicit declarations of all variables, for use with implicit
+c	  none
+c	
 c	DNM 3/1/01: make this an include file to facilitate increasing the
 c       number of units
 

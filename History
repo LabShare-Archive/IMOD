@@ -1,5 +1,15 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/25/02: Fortran programs can now write back into byte-swapped files, except
+for extended header data.  Ccderaser and Densmatch will now run on 
+byte-swapped files.
+
+6/25/02: Changed all STOP statements in Fortran image library to call exit
+with an error status instead.
+
+6/25/02: Fixed bug in Tomopitch and Findsection that gave the wrong vertical
+shift with X-axis tilt correction.
+
 IMOD_2-6-15
 6/20/02: Fixed bug in imodfillin that gave points out of order at start of
 contour.
