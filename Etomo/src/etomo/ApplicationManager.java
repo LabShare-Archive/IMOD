@@ -12,6 +12,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.31  2004/04/19 19:25:04  sueh
+ * <p> bug# 409 removing prints
+ * <p>
  * <p> Revision 3.30  2004/04/16 02:20:39  sueh
  * <p> removing print statements
  * <p>
@@ -645,6 +648,7 @@ import etomo.storage.Storable;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.AxisTypeException;
+import etomo.type.ConstMetaData;
 import etomo.type.DialogExitState;
 import etomo.type.MetaData;
 import etomo.type.ProcessName;
@@ -1203,9 +1207,10 @@ public class ApplicationManager {
     File filteredFullAlignedStack = new File(filteredFullAlignedStackFilename);
 
     if (!filteredFullAlignedStack.exists()) {
-      mainFrame.openMessageDialog(
-        "The filtered full aligned stack doesn't exist.  Create the filtered full aligned stack first",
-        "Filtered full aligned stack missing");
+      mainFrame
+        .openMessageDialog(
+          "The filtered full aligned stack doesn't exist.  Create the filtered full aligned stack first",
+          "Filtered full aligned stack missing");
       return;
     }
 
@@ -1505,10 +1510,25 @@ public class ApplicationManager {
     coarseAlignDialog.getPrenewstParams(prenewstParam);
 
     metaData.setImageRotation(-1 * prenewstParam.getRotateByAngle(), axisID);
+
     // Is a fidcualess alignment requested?
     if (coarseAlignDialog.isFiducialessAlignment()) {
       metaData.setFiducialessAlignment(true);
       updateRotationXF(axisID, prenewstParam.getRotateByAngle());
+
+      try {
+        processMgr.generateNonFidXF(axisID);
+        processMgr.setupNonFidicualAlign(axisID);
+      }
+      catch (IOException except) {
+        mainFrame.openMessageDialog(except.getMessage(), "IOException");
+        return false;
+      }
+      catch (SystemProcessException except) {
+        mainFrame.openMessageDialog(except.getMessage(),
+          "SystemProcessException");
+        return false;
+      }
     }
     else {
       metaData.setFiducialessAlignment(false);
@@ -1615,8 +1635,8 @@ public class ApplicationManager {
     if (dialog == null || axisID == AxisID.ONLY) {
       return;
     }
-    boolean prealisExist =
-      Utilities.fileExists(metaData, ".preali", AxisID.FIRST)
+    boolean prealisExist = Utilities.fileExists(metaData, ".preali",
+      AxisID.FIRST)
         && Utilities.fileExists(metaData, ".preali", AxisID.SECOND);
     boolean fidExists = false;
     if (axisID == AxisID.FIRST) {
@@ -1628,20 +1648,19 @@ public class ApplicationManager {
     dialog.setTransferfidEnabled(prealisExist && fidExists);
     dialog.updateEnabled();
   }
-  
+
   private void updateDialog(TomogramGenerationDialog dialog, AxisID axisID) {
     if (dialog == null) {
       return;
     }
     dialog.updateFilter(Utilities.fileExists(metaData, ".ali", axisID));
   }
-  
+
   protected void updateDialog(ProcessName processName, AxisID axisID) {
     if (axisID != AxisID.ONLY
-      && (processName == ProcessName.PRENEWST
-        || processName == ProcessName.TRACK)) {
-        updateDialog(fiducialModelDialogB, AxisID.SECOND);
-        updateDialog(fiducialModelDialogA, AxisID.FIRST);
+        && (processName == ProcessName.PRENEWST || processName == ProcessName.TRACK)) {
+      updateDialog(fiducialModelDialogB, AxisID.SECOND);
+      updateDialog(fiducialModelDialogA, AxisID.FIRST);
     }
     if (processName == ProcessName.NEWST) {
       if (axisID == AxisID.SECOND) {
@@ -2011,6 +2030,7 @@ public class ApplicationManager {
 
   /**
    * Execute the fine alignment script (align.com) for the appropriate axis
+   * This will now also reset the fiducialess alignment flag 
    * @param the AxisID identifying the axis to align.
    */
   public void fineAlignment(AxisID axisID) {
@@ -2022,6 +2042,7 @@ public class ApplicationManager {
     String threadName;
     try {
       threadName = processMgr.fineAlignment(axisID);
+      metaData.setFiducialessAlignment(false);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
@@ -2297,6 +2318,10 @@ public class ApplicationManager {
     tomogramPositioningDialog.setAlignParams(comScriptMgr
       .getTiltalignParam(axisID));
 
+    //  Set the fidcialess state
+    tomogramPositioningDialog.setFiducialessAlignment(metaData
+      .getFiducialessAlignment());
+
     // Open the dialog panel
     mainFrame.showProcess(tomogramPositioningDialog.getContainer(), axisID);
   }
@@ -2327,10 +2352,18 @@ public class ApplicationManager {
     }
     else {
       boolean tiltFinished = updateSampleTiltCom(axisID);
-      boolean alignFinished = updateAlignCom(tomogramPositioningDialog, axisID);
+      boolean alignFinished = true;
+      if(tomogramPositioningDialog.getFiducialessAlignment()) {
+        metaData.setFiducialessAlignment(true);
+      }
+      else {
+        metaData.setFiducialessAlignment(false);
+        alignFinished = updateAlignCom(tomogramPositioningDialog, axisID);        
+      }
       if (!(tiltFinished & alignFinished)) {
         return;
       }
+      
       if (exitState == DialogExitState.POSTPONE) {
         processTrack.setTomogramPositioningState(ProcessState.INPROGRESS,
           axisID);
@@ -2475,6 +2508,7 @@ public class ApplicationManager {
       String threadName;
       try {
         threadName = processMgr.fineAlignment(axisID);
+        metaData.setFiducialessAlignment(false);
       }
       catch (SystemProcessException e) {
         e.printStackTrace();
@@ -4755,6 +4789,15 @@ public class ApplicationManager {
   }
 
   /**
+   * Return the absolute IMOD bin path
+   * @return
+   */
+  public static String getIMODBinPath() {
+    return ApplicationManager.getIMODDirectory().getAbsolutePath()
+        + File.separator + "bin" + File.separator;
+  }
+
+  /**
    * Return the users home directory environment variable HOME or an empty
    * string if it doesn't exist.
    */
@@ -4868,11 +4911,8 @@ public class ApplicationManager {
    * @param threadName
    *          The name of the thread that has finished
    */
-  public void processDone(
-    String threadName,
-    int exitValue,
-    ProcessName processName,
-    AxisID axisID) {
+  public void processDone(String threadName, int exitValue,
+      ProcessName processName, AxisID axisID) {
     if (threadName.equals(threadNameA)) {
       mainFrame.stopProgressBar(AxisID.FIRST);
       threadNameA = "none";
@@ -4929,6 +4969,12 @@ public class ApplicationManager {
     }
   }
 
+  // FIXME: this is a temporary patch until we can transition the MetaData
+  // object to a static object or singleton
+  public ConstMetaData getMetaData() {
+    return metaData;
+  }
+
   //  Test helper functions
   /**
    * Return the currently executing thread name for the specified axis
@@ -4945,4 +4991,5 @@ public class ApplicationManager {
   MainFrame getMainFrame() {
     return mainFrame;
   }
+
 }
