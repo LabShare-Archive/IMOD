@@ -35,38 +35,7 @@
     $Date$
 
     $Revision$
-
-    $Log$
-    Revision 3.3  2003/02/27 23:06:51  mast
-    Fiddling with includes some more
-
-    Revision 3.2  2003/02/27 20:19:10  mast
-    Changes in includes for Windows
-
-    Revision 3.1  2003/02/10 20:49:57  mast
-    Merge Qt source
-
-    Revision 1.1.2.4  2003/01/30 01:10:25  mast
-    Move fork to before starting application
-
-    Revision 1.1.2.3  2003/01/26 23:20:33  mast
-    using new library
-
-    Revision 1.1.2.2  2002/12/06 19:05:01  mast
-    Changes for binary file reading under windows
-
-    Revision 1.1.2.1  2002/12/05 03:13:02  mast
-    New Qt version
-
-    Revision 3.4  2002/11/05 23:54:24  mast
-    Changed to get a visual then pass it to GLw.
-
-    Revision 3.3  2002/11/05 23:29:13  mast
-    Changed to call imodCopyright
-
-    Revision 3.2  2002/08/19 04:46:10  mast
-    Changed number of columns in edge number text box to 4
-
+    Log at end of file
 */
 
 #include <stdio.h>
@@ -597,6 +566,8 @@ void MidasWindow::createSectionControls(QVBox *parent)
     VW->reftext->setAlignment(Qt::AlignRight);
     VW->reftext->setFixedWidth(60);
     VW->reftext->setFocusPolicy(ClickFocus);
+    QObject::connect(VW->reftext, SIGNAL(focusLost()),
+		     VW->midasSlots, SLOT(slotReftext()));
     QObject::connect(VW->reftext, SIGNAL(returnPressed()),
 		     VW->midasSlots, SLOT(slotReftext()));
   }
@@ -610,6 +581,8 @@ void MidasWindow::createSectionControls(QVBox *parent)
   VW->curtext->setFixedWidth(60);
   VW->curtext->setAlignment(Qt::AlignRight);
   VW->curtext->setFocusPolicy(ClickFocus);
+  QObject::connect(VW->curtext, SIGNAL(focusLost()),
+                   VW->midasSlots, SLOT(slotCurtext()));
   QObject::connect(VW->curtext, SIGNAL(returnPressed()),
 		   VW->midasSlots, SLOT(slotCurtext()));
   
@@ -654,6 +627,8 @@ void MidasWindow::createSectionControls(QVBox *parent)
     VW->edgetext->setFixedWidth(60);
     VW->edgetext->setFocusPolicy(ClickFocus);
     QObject::connect(VW->edgetext, SIGNAL(returnPressed()),
+		     VW->midasSlots, SLOT(slotEdgetext()));
+    QObject::connect(VW->edgetext, SIGNAL(focusLost()),
 		     VW->midasSlots, SLOT(slotEdgetext()));
 
     // The edge number arrows
@@ -767,3 +742,39 @@ void midas_error(char *tmsg, char *bmsg, int retval)
   return;
 }
 
+/*
+    $Log$
+    Revision 3.4  2003/02/28 18:10:58  mast
+    Fix include fiddling
+
+    Revision 3.3  2003/02/27 23:06:51  mast
+    Fiddling with includes some more
+
+    Revision 3.2  2003/02/27 20:19:10  mast
+    Changes in includes for Windows
+
+    Revision 3.1  2003/02/10 20:49:57  mast
+    Merge Qt source
+
+    Revision 1.1.2.4  2003/01/30 01:10:25  mast
+    Move fork to before starting application
+
+    Revision 1.1.2.3  2003/01/26 23:20:33  mast
+    using new library
+
+    Revision 1.1.2.2  2002/12/06 19:05:01  mast
+    Changes for binary file reading under windows
+
+    Revision 1.1.2.1  2002/12/05 03:13:02  mast
+    New Qt version
+
+    Revision 3.4  2002/11/05 23:54:24  mast
+    Changed to get a visual then pass it to GLw.
+
+    Revision 3.3  2002/11/05 23:29:13  mast
+    Changed to call imodCopyright
+
+    Revision 3.2  2002/08/19 04:46:10  mast
+    Changed number of columns in edge number text box to 4
+
+*/
