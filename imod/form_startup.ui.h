@@ -179,7 +179,7 @@ void StartupForm::pieceSelectClicked()
 void StartupForm::addArg( const char *arg )
 {
     if (mArgc)
-	mArgv = (char **)realloc(mArgv, sizeof(char *) *mArgc + 1);
+	mArgv = (char **)realloc(mArgv, sizeof(char *) * (mArgc + 1));
     else 
 	mArgv = (char **)malloc(sizeof(char *));
     if (!mArgv) {
