@@ -91,6 +91,13 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.128  2005/03/01 20:49:42  sueh
+ * <p> bug# 607 Catching Throwable in exitProgram and returning true to make
+ * <p> sure that Etomo can always exit.  Bug# 610 Keeping track of current
+ * <p> dialog type in ApplicationManager by setting it in each open function.
+ * <p> Changing saveDialog to saveCurrentDialog and use currentDialogType to
+ * <p> pick the dialog to save.
+ * <p>
  * <p> Revision 3.127  2005/02/18 23:59:08  sueh
  * <p> bug# 606 Removed MetaData (Setup) zfactors, fiducialess, wholetomogram,
  * <p> and localalignments.  Add them for A and B.
@@ -2543,7 +2550,7 @@ public class ApplicationManager extends BaseManager {
     }
   }
   
-  private void setCurrentDialogType(DialogType dialogType, AxisID axisID) {
+  public void setCurrentDialogType(DialogType dialogType, AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       currentDialogTypeB = dialogType;
     }
@@ -2624,6 +2631,9 @@ public class ApplicationManager extends BaseManager {
   }
   
   private ProcessDialog getDialog(DialogType dialogType, AxisID axisID) {
+    if (dialogType == null) {
+      return null;
+    }
     if (dialogType == DialogType.PRE_PROCESSING) {
       if (axisID == AxisID.SECOND) {
         return preProcDialogB;
