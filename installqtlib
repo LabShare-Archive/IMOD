@@ -8,6 +8,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.8  2003/08/13 20:01:41  mast
+#  Have it use LIBEXT from configure if available, add test for libqt.la
+#
 #  Revision 3.7  2003/05/08 23:29:09  mast
 #  change for windows
 #
@@ -71,12 +74,15 @@ if ($numreal > 1) then
 endif
 
 #
-# Copy the real file, make the links
+# Make directory, copy the real file, make the links
 #
+if (! -e $instdir/$qtlibdir) mkdir -p $instdir/$qtlibdir
+
 cd $instdir/$qtlibdir
 \cp $realname .
-foreach i ($QTDIR/lib/$qtlib*)
+foreach i ($QTDIR/lib/${qtlib}*$libext)
     if (-l $i) then
+        \rm -f $i:t
         ln -s $realname:t $i:t
     endif
 end
