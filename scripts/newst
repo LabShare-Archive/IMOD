@@ -7,6 +7,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.10  2003/12/25 00:33:51  mast
+#  Discontinued!
+#
 #  Revision 3.9  2003/11/18 19:22:16  mast
 #  run newstack directly instead of with csh; Mac change fails on Windows
 #
@@ -51,6 +54,10 @@ Usage: newstack [options] input.file(s) output.file
             -f[loat] option  (0=none, 1=range, 2=mean/SD, 3 = shift to mean
 EOF
 exit 0
+endif
+
+if ($?IMOD_DIR) then
+    set path = ($IMOD_DIR/bin $path)
 endif
 
 newstack $*
