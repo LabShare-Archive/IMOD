@@ -59,6 +59,7 @@ import etomo.ui.TomogramCombinationDialog;
 import etomo.ui.TomogramGenerationDialog;
 import etomo.ui.TomogramPositioningDialog;
 import etomo.util.InvalidParameterException;
+import etomo.util.Utilities;
 
 /**
  * <p>Description: Provides the main entry point, handles high level message 
@@ -74,6 +75,10 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.71  2003/10/05 23:59:35  rickg
+ * <p> Bug# 252
+ * <p> Adde complete message to progresss region for shor processes
+ * <p>
  * <p> Revision 2.70  2003/10/05 21:36:05  rickg
  * <p> Bug# 256
  * <p> Catch SystemProcessException for attempted multiple
@@ -1208,15 +1213,33 @@ public class ApplicationManager {
     else {
       fiducialModelDialogA = fiducialModelDialog;
     }
-
+//  MARK 251 done openFiducialModelDialog
+    updateTransferfidEnabled(fiducialModelDialog, axisID);
+    
     //  Load the required track{|a|b}.com files, fill in the dialog box params
     //  and set it to the appropriate state
     comScriptMgr.loadTrack(axisID);
+    //  Create a default transferfid object to populate the alignment dialog
+//MARK 251 done openFiducialModelDialog
+    fiducialModelDialog.setTransferFidParams(getTransferfidParam());
     fiducialModelDialog.setBeadtrackParams(
       comScriptMgr.getBeadtrackParam(axisID));
     mainFrame.showProcess(fiducialModelDialog.getContainer(), axisID);
   }
 
+//MARK 251 done setTransferfidEnabled
+  private void updateTransferfidEnabled(FiducialModelDialog dialog, AxisID axisID) {
+    if (axisID == AxisID.ONLY) {
+      return;
+    }
+    dialog.setTransferfidEnabled(
+      Utilities.fileExists(metaData, ".preali", AxisID.FIRST) &&
+      Utilities.fileExists(metaData, ".preali", AxisID.SECOND) &&
+      Utilities.fileExists(metaData, ".fid",
+        (axisID == AxisID.FIRST ? AxisID.SECOND : AxisID.FIRST)));
+    dialog.updateEnabled();
+  }
+  
   /**
    * 
    */
@@ -1236,6 +1259,12 @@ public class ApplicationManager {
         "Program logic error");
       return;
     }
+    //MARK 251 done doneFiducialModelDialog(AxisID)
+    TransferfidParam transferfidParam =
+      new TransferfidParam(getIMODDirectory());
+    fiducialModelDialog.getTransferFidParams(transferfidParam);
+    metaData.saveTransferfid(transferfidParam);
+    isDataParamDirty = true;
 
     DialogExitState exitState = fiducialModelDialog.getExitState();
 
@@ -1420,8 +1449,7 @@ public class ApplicationManager {
       comScriptMgr.getTiltalignParam(axisID));
 
     //  Create a default transferfid object to populate the alignment dialog
-
-    fineAlignmentDialog.setTransferFidParams(getTransferfidParam());
+//MARK 251 done openFineAlignmentDialog
     mainFrame.showProcess(fineAlignmentDialog.getContainer(), axisID);
   }
 
@@ -1444,12 +1472,7 @@ public class ApplicationManager {
         "Program logic error");
       return;
     }
-
-    TransferfidParam transferfidParam =
-      new TransferfidParam(getIMODDirectory());
-    fineAlignmentDialog.getTransferFidParams(transferfidParam);
-    metaData.saveTransferfid(transferfidParam);
-    isDataParamDirty = true;
+//MARK 251 done doneAlignmentEstimationDialog
 
     DialogExitState exitState = fineAlignmentDialog.getExitState();
 
@@ -1585,28 +1608,40 @@ public class ApplicationManager {
     }
 
   }
+//MARK 251 done transferfidOld
 
+//MARK 251 done transferfid
   /**
    * Run transferfid
    */
   public void transferfid(AxisID sourceAxisID) {
     //  Set a reference to the correct object
-    AlignmentEstimationDialog fineAlignmentDialog;
+    FiducialModelDialog fiducialModelDialog;
     if (sourceAxisID == AxisID.SECOND) {
-      fineAlignmentDialog = fineAlignmentDialogB;
+      fiducialModelDialog = fiducialModelDialogB;
     }
     else {
-      fineAlignmentDialog = fineAlignmentDialogA;
+      fiducialModelDialog = fiducialModelDialogA;
     }
-
-    if (fineAlignmentDialog != null) {
+    
+    if (sourceAxisID != AxisID.ONLY &&
+        !Utilities.fileExists(metaData, "fid.xyz",
+        (sourceAxisID == AxisID.FIRST ? AxisID.SECOND : AxisID.FIRST))) {
+      mainFrame.openMessageDialog(
+          "It is recommended that you run Fine Alignment on axis " +
+          (sourceAxisID == AxisID.FIRST ? "B" : "A") + " at least once",
+          "Warning");
+    }
+    
+    if (fiducialModelDialog != null) {
       TransferfidParam transferfidParam =
         new TransferfidParam(getIMODDirectory());
       // Setup the default parameters depending upon the axis to transfer the
       // fiducials from
       String datasetName = metaData.getDatasetName();
       transferfidParam.setDatasetName(datasetName);
-      if (sourceAxisID == AxisID.SECOND) {
+      //MARK 251 done transfer from the other axis
+      if (sourceAxisID == AxisID.FIRST) {
         transferfidParam.setBToA(true);
       }
       else {
@@ -1614,7 +1649,7 @@ public class ApplicationManager {
       }
 
       // Get any user specified changes
-      fineAlignmentDialog.getTransferFidParams(transferfidParam);
+      fiducialModelDialog.getTransferFidParams(transferfidParam);
       String threadName;
       try {
         threadName = processMgr.transferFiducials(transferfidParam);
@@ -1626,9 +1661,10 @@ public class ApplicationManager {
         message[1] = e.getMessage();
         mainFrame.openMessageDialog(message, "Unable to execute command");
         return;
-      }
+      } 
       setThreadName(threadName, sourceAxisID);
       mainFrame.startProgressBar("Transfering fiducials", sourceAxisID);
+      updateTransferfidEnabled(fiducialModelDialog, sourceAxisID);
     }
   }
 
@@ -3346,8 +3382,8 @@ public class ApplicationManager {
         openProcessingPanel();
       }
       else {
-        resetState();
-        openSetupDialog();
+      	resetState();
+				openSetupDialog();
       }
     }
   }
@@ -4066,6 +4102,15 @@ public class ApplicationManager {
         "Unknown thread finished!!!",
         "Thread name: " + threadName);
     }
+    
+//  MARK 251 done openFiducialModelDialog
+    if (fiducialModelDialogA != null) {
+      updateTransferfidEnabled(fiducialModelDialogA, AxisID.FIRST);   
+    }
+    if (fiducialModelDialogB != null) {
+      updateTransferfidEnabled(fiducialModelDialogB, AxisID.SECOND);   
+    }
+
   }
 
   /**

@@ -8,6 +8,7 @@ import etomo.ApplicationManager;
 import etomo.type.AxisID;
 import etomo.comscript.BeadtrackParam;
 import etomo.comscript.ConstBeadtrackParam;
+import etomo.comscript.TransferfidParam;
 import etomo.comscript.FortranInputSyntaxException;
 
 /**
@@ -23,6 +24,9 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.3  2003/05/19 04:31:36  rickg
+ * <p> Toggle button for Fix Model
+ * <p>
  * <p> Revision 2.2  2003/05/07 17:50:37  rickg
  * <p> Added beadtrack and track.log to context menu
  * <p>
@@ -70,10 +74,11 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu {
   JPanel panelFiducialModel = new JPanel();
 
   BeveledBorder border = new BeveledBorder("Fiducial Model Generation");
-
+  private JToggleButton buttonTransferFiducials = null;
   JToggleButton buttonSeed =
     new JToggleButton("<html><b>Seed fiducial<br>model using 3dmod</b>");
-
+//MARK 251 done FiducialModelDialog
+  TransferfidPanel panelTransferfid;
   BeadtrackPanel panelBeadtrack;
 
   private JToggleButton buttonTrack =
@@ -82,8 +87,12 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu {
   JToggleButton buttonFixModel =
     new JToggleButton("<html><b>Fix fiducial model<br>using bead fixer</b>");
 
+  private boolean transferfidEnabled = false;
+  
+  
   public FiducialModelDialog(ApplicationManager appMgr, AxisID axisID) {
     super(appMgr, axisID);
+    
     fixRootPanel(rootSize);
 
     panelBeadtrack = new BeadtrackPanel(axisID);
@@ -101,10 +110,18 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu {
     buttonFixModel.setAlignmentX(Component.CENTER_ALIGNMENT);
     buttonFixModel.setPreferredSize(FixedDim.button2Line);
     buttonFixModel.setMaximumSize(FixedDim.button2Line);
-
+      
     panelFiducialModel.setLayout(
       new BoxLayout(panelFiducialModel, BoxLayout.Y_AXIS));
+
     panelFiducialModel.setBorder(border.getBorder());
+
+    //MARK 251 done place button, add transferfid panel, put button inside edge FiducialModelDialog
+    if (applicationManager.isDualAxis()) { 
+      panelTransferfid = new TransferfidPanel(true);
+      panelFiducialModel.add(panelTransferfid.getContainer());
+      panelFiducialModel.add(Box.createRigidArea(FixedDim.x0_y5));
+    }
 
     panelFiducialModel.add(buttonSeed);
     panelFiducialModel.add(Box.createRigidArea(FixedDim.x0_y5));
@@ -116,7 +133,6 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu {
     panelFiducialModel.add(Box.createRigidArea(FixedDim.x0_y5));
 
     panelFiducialModel.add(buttonFixModel);
-
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     rootPanel.add(panelFiducialModel);
     rootPanel.add(Box.createVerticalGlue());
@@ -130,6 +146,13 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu {
     buttonSeed.addActionListener(new FiducialModelActionListener(this));
     buttonTrack.addActionListener(new FiducialModelActionListener(this));
     buttonFixModel.addActionListener(new FiducialModelActionListener(this));
+//MARK 251 done FiducialModelDialog add action listener to transferfid button
+    if (applicationManager.isDualAxis()) { 
+      buttonTransferFiducials = panelTransferfid.getButton();
+      if (buttonTransferFiducials != null) {
+        buttonTransferFiducials.addActionListener(new FiducialModelActionListener(this));
+      }
+    }
 
     //  Mouse adapter for context menu
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
@@ -137,6 +160,7 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu {
 
     //  Set the advanced state to the default
     updateAdvanced(isAdvanced);
+    updateEnabled();
   }
 
   /**
@@ -144,14 +168,25 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu {
    */
   public void updateAdvanced(boolean state) {
     panelBeadtrack.setAdvanced(state);
+    if (applicationManager.isDualAxis()) { 
+      panelTransferfid.setAdvanced(state);
+    }
+
     applicationManager.packMainWindow();
   }
 
+  public void updateEnabled() {
+    panelTransferfid.setEnabled(transferfidEnabled);
+  }
   /**
    * Set the parameters for the specified beadtrack panel
    */
   public void setBeadtrackParams(ConstBeadtrackParam beadtrackParams) {
     panelBeadtrack.setParameters(beadtrackParams);
+  }
+//MARK 251 done setTransferFidParams
+  public void setTransferFidParams(TransferfidParam transferFidParam) {
+    panelTransferfid.setParameters(transferFidParam);
   }
 
   /**
@@ -161,6 +196,17 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu {
     throws FortranInputSyntaxException {
     panelBeadtrack.getParameters(beadtrackParams);
   }
+//MARK 251 done getTransferFidParams
+  public void getTransferFidParams(TransferfidParam transferFidParam) {
+    panelTransferfid.getParameters(transferFidParam);
+  }
+
+  public void setTransferfidEnabled(boolean fileExists)
+  {
+    //MARK 251 print
+    System.out.println("in setTransferfidEnabled: fileExists=" + fileExists);
+    transferfidEnabled = fileExists;
+  }
 
   /**
    * Right mouse button context menu
@@ -168,9 +214,11 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu {
   public void popUpContextMenu(MouseEvent mouseEvent) {
     String[] manPagelabel = { "beadtrack", "3dmod" };
     String[] manPage = { "beadtrack.html", "3dmod.html" };
-    String[] logFileLabel = { "track" };
-    String[] logFile = new String[1];
+    String[] logFileLabel = { "track", "transferid" };
+    String[] logFile = new String[2];
     logFile[0] = "track" + axisID.getExtension() + ".log";
+    logFile[1] = "transferfid.log";
+
     //    ContextPopup contextPopup =
     new ContextPopup(
       panelFiducialModel,
@@ -181,7 +229,6 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu {
       logFileLabel,
       logFile);
   }
-
   //  Action function for buttons
   void buttonAction(ActionEvent event) {
     String command = event.getActionCommand();
@@ -196,6 +243,10 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu {
 
     else if (command.equals(buttonFixModel.getActionCommand())) {
       applicationManager.imodFixFiducials(axisID);
+    }
+//MARK 251 done buttonAction
+    else if (command.equals(buttonTransferFiducials.getActionCommand())) {
+      applicationManager.transferfid(axisID);
     }
   }
 

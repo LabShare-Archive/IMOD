@@ -12,7 +12,6 @@ import etomo.ApplicationManager;
 import etomo.type.AxisID;
 import etomo.comscript.TiltalignParam;
 import etomo.comscript.FortranInputSyntaxException;
-import etomo.comscript.TransferfidParam;
 
 /**
  * <p>Description: </p>
@@ -27,6 +26,9 @@ import etomo.comscript.TransferfidParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.8  2003/06/05 21:08:03  rickg
+ * <p> Label change for transferfid button
+ * <p>
  * <p> Revision 2.7  2003/06/05 04:42:01  rickg
  * <p> Button order swap
  * <p>
@@ -149,9 +151,8 @@ public class AlignmentEstimationDialog
 
   private JButton buttonViewResiduals =
     new JButton("<html><b>View residual vectors</b>");
+//MARK 251 done AlignmentEstimationDialog
 
-  private JToggleButton buttonTransferFiducials =
-    new JToggleButton("<html><b>Transfer fiducials to other axis</b>");
 
   //  There only needs to be one transfer fiducial panel???
   private TransferfidPanel panelTransferFid;
@@ -161,7 +162,7 @@ public class AlignmentEstimationDialog
     fixRootPanel(rootSize);
 
     panelTiltalign = new TiltalignPanel(axisID);
-    panelTransferFid = new TransferfidPanel();
+    //MARK 251 done AlignmentEstimationDialog
 
     buttonExecute.setText("Done");
 
@@ -175,26 +176,19 @@ public class AlignmentEstimationDialog
     buttonImod.setPreferredSize(dimButton);
     buttonViewResiduals.setPreferredSize(dimButton);
     buttonView3DModel.setPreferredSize(dimButton);
-    buttonTransferFiducials.setPreferredSize(dimButton);
+    //MARK 251 done AlignmentEstimationDialog
     panelButton.add(buttonComputeAlignment);
     panelButton.add(buttonImod);
     panelButton.add(buttonView3DModel);
     panelButton.add(buttonViewResiduals);
-    if (applicationManager.isDualAxis()) {
-      buttonLayout.setColumns(5);
-      panelButton.add(buttonTransferFiducials);
-    }
+    //MARK 251 done AlignmentEstimationDialog
 
     panelAlignEst.setLayout(new BoxLayout(panelAlignEst, BoxLayout.Y_AXIS));
     panelAlignEst.setBorder(border.getBorder());
 
     panelAlignEst.add(panelTiltalign.getContainer());
     panelAlignEst.add(Box.createRigidArea(FixedDim.x5_y0));
-    if (applicationManager.isDualAxis()) {
-      panelAlignEst.add(panelTransferFid.getContainer());
-      panelAlignEst.add(Box.createRigidArea(FixedDim.x5_y0));
-    }
-
+    //MARK 251 done
     panelAlignEst.add(panelButton);
 
     //  Construct the main panel from the alignment panel and exist buttons
@@ -215,7 +209,7 @@ public class AlignmentEstimationDialog
     buttonView3DModel.addActionListener(actionListener);
     buttonViewResiduals.addActionListener(actionListener);
     buttonImod.addActionListener(actionListener);
-    buttonTransferFiducials.addActionListener(actionListener);
+    //MARK 251 done AlignmentEstimationDialog
 
     //  Mouse adapter for context menu
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
@@ -242,14 +236,7 @@ public class AlignmentEstimationDialog
     }
 
   }
-
-  public void setTransferFidParams(TransferfidParam transferFidParam) {
-    panelTransferFid.setParameters(transferFidParam);
-  }
-
-  public void getTransferFidParams(TransferfidParam transferFidParam) {
-    panelTransferFid.getParameters(transferFidParam);
-  }
+//MARK 251 done setTransferFidParams
 
   /**
    * Right mouse button context menu
@@ -257,8 +244,9 @@ public class AlignmentEstimationDialog
   public void popUpContextMenu(MouseEvent mouseEvent) {
     String[] manPagelabel = { "tiltalign", "xfproduct", "3dmod" };
     String[] manPage = { "tiltalign.html", "xfproduct.html", "3dmod.html" };
-    Vector logFileLabel = new Vector(2);
-    String[] logWindowLabel = { "align", "transferfid" };
+    Vector logFileLabel = new Vector(1);
+    //MARK 251 done popUpContextMenu
+    String[] logWindowLabel = { "align"};
 
     if (axisID != AxisID.ONLY) {
       logWindowLabel[0] = "align Axis: " + axisID.getExtension();
@@ -278,7 +266,7 @@ public class AlignmentEstimationDialog
     String[] transferfidLabels = { "transferfid" };
     logFileLabel.add(transferfidLabels);
 
-    Vector logFile = new Vector(2);
+    Vector logFile = new Vector(1);
     String[] logFileList = new String[8];
     logFileList[0] = "taError" + axisID.getExtension() + ".log";
     logFileList[1] = "taSolution" + axisID.getExtension() + ".log";
@@ -290,8 +278,9 @@ public class AlignmentEstimationDialog
     logFileList[7] = "taCoordinates" + axisID.getExtension() + ".log";
 
     logFile.add(logFileList);
-    String[] tfLogFile = { "transferfid.log" };
-    logFile.add(tfLogFile);
+    //MARK 251 print
+    String[] s = (String[]) logFile.get(1);
+    System.out.println("logFile[1]=" + s);
 
     ContextPopup contextPopup =
       new ContextPopup(
@@ -324,10 +313,8 @@ public class AlignmentEstimationDialog
     else if (command.equals(buttonViewResiduals.getActionCommand())) {
       applicationManager.imodViewResiduals(axisID);
     }
+//MARK 251 done buttonAction
 
-    else if (command.equals(buttonTransferFiducials.getActionCommand())) {
-      applicationManager.transferfid(axisID);
-    }
   }
 
   //  Action function overides for exit buttons
@@ -355,9 +342,7 @@ public class AlignmentEstimationDialog
   //  as well as from the button action above
   void updateAdvanced(boolean state) {
     panelTiltalign.setAdvanced(isAdvanced);
-    if (applicationManager.isDualAxis()) {
-      panelTransferFid.setAdvanced(isAdvanced);
-    }
+      //MARK 251 done updateAdvanced
     applicationManager.packMainWindow();
   }
 }
