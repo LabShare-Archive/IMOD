@@ -132,7 +132,7 @@
                 </property>
                 <widget class="QPushButton" row="0" column="2">
                     <property name="name">
-                        <cstring>PushButton1</cstring>
+                        <cstring>imageSelectButton</cstring>
                     </property>
                     <property name="focusPolicy">
                         <enum>NoFocus</enum>
@@ -1089,7 +1089,7 @@
                 </spacer>
                 <widget class="QPushButton">
                     <property name="name">
-                        <cstring>PushButton13</cstring>
+                        <cstring>OKButton</cstring>
                     </property>
                     <property name="text">
                         <string>OK</string>
@@ -1117,7 +1117,7 @@
                 </spacer>
                 <widget class="QPushButton">
                     <property name="name">
-                        <cstring>PushButton14</cstring>
+                        <cstring>cancelButton</cstring>
                     </property>
                     <property name="text">
                         <string>Cancel</string>
@@ -1170,7 +1170,7 @@
         <slot>modvSizeClicked(int)</slot>
     </connection>
     <connection>
-        <sender>PushButton1</sender>
+        <sender>imageSelectButton</sender>
         <signal>clicked()</signal>
         <receiver>StartupForm</receiver>
         <slot>imageSelectClicked()</slot>
@@ -1206,13 +1206,13 @@
         <slot>pfileChanged(const QString&amp;)</slot>
     </connection>
     <connection>
-        <sender>PushButton13</sender>
+        <sender>OKButton</sender>
         <signal>clicked()</signal>
         <receiver>StartupForm</receiver>
         <slot>accept()</slot>
     </connection>
     <connection>
-        <sender>PushButton14</sender>
+        <sender>cancelButton</sender>
         <signal>clicked()</signal>
         <receiver>StartupForm</receiver>
         <slot>reject()</slot>
@@ -1254,9 +1254,9 @@
     <tabstop>setSizeButton</tabstop>
     <tabstop>xSizeSpinBox</tabstop>
     <tabstop>ySizeSpinBox</tabstop>
-    <tabstop>PushButton13</tabstop>
-    <tabstop>PushButton14</tabstop>
-    <tabstop>PushButton1</tabstop>
+    <tabstop>OKButton</tabstop>
+    <tabstop>cancelButton</tabstop>
+    <tabstop>imageSelectButton</tabstop>
     <tabstop>modelSelectButton</tabstop>
     <tabstop>pieceSelectButton</tabstop>
 </tabstops>
@@ -1295,6 +1295,7 @@
     <slot>imageSelectClicked()</slot>
     <slot>modelSelectClicked()</slot>
     <slot>pieceSelectClicked()</slot>
+    <slot>enableButtons( bool enable )</slot>
     <slot>addArg( const char * arg )</slot>
     <slot returnType="char **">getArguments( int &amp; argc )</slot>
     <slot>addImageFiles()</slot>

@@ -144,10 +144,12 @@ void StartupForm::pfileChanged( const QString & pfile )
 // Get name(s) from file dialog when Select button pressed
 void StartupForm::imageSelectClicked()
 {
+    enableButtons(false);
     mImageFileList = QFileDialog::getOpenFileNames
 		     (QString::null, QString::null, 0, 0, 
 		      mModvMode ? "Select model file(s) to load" :
 		      "Select image file(s) to load");
+    enableButtons(true);
     
     // Join the list with ; and see if there are any spaces.  If not rejoin with spaces
     mImageFiles = mImageFileList.join(";");
@@ -162,16 +164,31 @@ void StartupForm::imageSelectClicked()
 
 void StartupForm::modelSelectClicked()
 {
+    enableButtons(false);
     mModelFile = QFileDialog::getOpenFileName(QString::null, QString::null, 0, 0,
 					      "Select model file to load");
+    enableButtons(true);
     modelFileEdit->setText(mModelFile);
 }
 
 void StartupForm::pieceSelectClicked()
 {
+    enableButtons(false);
     mPieceFile = QFileDialog::getOpenFileName(QString::null, QString::null, 0, 0,
 					      "Select piece list file to load");
+    enableButtons(true);
     pieceFileEdit->setText(mPieceFile);
+}
+
+// A workaround to problem in Windows of file dialogs not being modal
+void StartupForm::enableButtons( bool enable )
+{
+    bool block = !enable;
+    OKButton->blockSignals(block);
+    cancelButton->blockSignals(block);
+    imageSelectButton->blockSignals(block);
+    modelSelectButton->blockSignals(block);
+    pieceSelectButton->blockSignals(block);
 }
 
 // Add a single argument, getting memory as needed and bailing out silently
