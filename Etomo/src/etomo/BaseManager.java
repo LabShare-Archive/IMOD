@@ -42,6 +42,10 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.9  2005/03/01 20:50:37  sueh
+* <p> bug# 607 Catching Throwable in exitProgram and returning true to make
+* <p> sure that Etomo can always exit.
+* <p>
 * <p> Revision 1.8  2005/02/09 18:39:41  sueh
 * <p> bug# 595 There is no way to stop the user from running combine when
 * <p> another combine is still running from a previous Etomo session in the same
@@ -184,7 +188,8 @@ public abstract class BaseManager {
   protected String homeDirectory;
   // Control variable for process execution
   // FIXME: this going to need to expand to handle both axis
-  protected String nextProcess = "";
+  protected String nextProcessA = "";
+  protected String nextProcessB = "";
 
   protected String threadNameA = "none";
 
@@ -592,14 +597,46 @@ public abstract class BaseManager {
       updateDialog(processName, axisID);
     }
     //  Start the next process if one exists and the exit value was equal zero
-    if (!nextProcess.equals("")) {
+    if (isNextProcessSet(axisID)) {
       if (exitValue == 0) {
         startNextProcess(axisID);
       }
       else {
-        nextProcess = "";
+        resetNextProcess(axisID);
       }
     }
+  }
+  
+  protected void setNextProcess(AxisID axisID, String nextProcess) {
+    if (axisID == AxisID.SECOND) {
+      nextProcessB = nextProcess;
+    }
+    else {
+      nextProcessA = nextProcess;
+    }
+  }
+  
+  protected void resetNextProcess(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      nextProcessB = "";
+    }
+    else {
+      nextProcessA = "";
+    }
+  }
+  
+  protected String getNextProcess(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return nextProcessB;
+    }
+    return nextProcessA;
+  }
+  
+  protected boolean isNextProcessSet(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return !nextProcessB.equals("");
+    }
+    return !nextProcessA.equals("");
   }
   
   public void packMainWindow() {

@@ -94,6 +94,11 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.137  2005/03/11 01:31:31  sueh
+ * <p> bug# 533 Removed newst updates that where happening when Montage
+ * <p> was set.  Sending TomogramGeneration.linearInterpolation to blend.com.
+ * <p> Update blend.com in doneTomogramGeneration.
+ * <p>
  * <p> Revision 3.136  2005/03/09 22:45:34  sueh
  * <p> bug# 533 In newst() running blend instead of newst when doing a montage.
  * <p>
@@ -2077,7 +2082,7 @@ public class ApplicationManager extends BaseManager {
     }
     processTrack.setCoarseAlignmentState(ProcessState.INPROGRESS, axisID);
     mainPanel.setCoarseAlignState(ProcessState.INPROGRESS, axisID);
-    nextProcess = "checkUpdateFiducialModel";
+    setNextProcess(axisID, "checkUpdateFiducialModel");
     String threadName;
     try {
       if (metaData.getViewType() == ViewType.MONTAGE) {
@@ -3383,7 +3388,7 @@ public class ApplicationManager extends BaseManager {
       }
     }
 
-    nextProcess = "tilt";
+    setNextProcess(axisID, "tilt");
     String threadName;
     try {
       threadName = processMgr.newst(newstParam, axisID);
@@ -4285,7 +4290,7 @@ public class ApplicationManager extends BaseManager {
    * @param axisID
    */
   private void tiltProcess(AxisID axisID) {
-    nextProcess = "";
+    resetNextProcess(axisID);
     String threadName;
     try {
       threadName = processMgr.tilt(axisID);
@@ -5718,7 +5723,7 @@ public class ApplicationManager extends BaseManager {
    * Start the next process specified by the nextProcess string
    */
   protected void startNextProcess(AxisID axisID) {
-    if (nextProcess.equals("tilt")) {
+    if (getNextProcess(axisID).equals("tilt")) {
       tiltProcess(axisID);
     }
     /*if (nextProcess.equals("matchvol1")) {
@@ -5739,7 +5744,7 @@ public class ApplicationManager extends BaseManager {
       }
       return;
     }*/
-    if (nextProcess.equals("checkUpdateFiducialModel")) {
+    if (getNextProcess(axisID).equals("checkUpdateFiducialModel")) {
       checkUpdateFiducialModel(axisID);
       return;
     }
@@ -5829,7 +5834,7 @@ public class ApplicationManager extends BaseManager {
   }
   
   protected void checkUpdateFiducialModel(AxisID axisID) {
-    nextProcess = "";
+    resetNextProcess(axisID);
     FidXyz fidXyz = getFidXyz(axisID);
     MRCHeader prealiHeader = getMrcHeader(axisID, ".preali");
     MRCHeader rawstackHeader = getMrcHeader(axisID, ".st");

@@ -47,6 +47,11 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.11  2005/01/25 21:21:03  sueh
+* <p> Changing setShift(ConstEtomoNumber, ConstEtomoNumber) to
+* <p> setShift(int, int).  This allows the removal of
+* <p> ConstEtomoNumber.getNegation(), which is too specialized a function.
+* <p>
 * <p> Revision 1.10  2005/01/21 22:17:10  sueh
 * <p> bug# 509 bug# 591  Moved the management of MetaData to the Controller
 * <p> class.
@@ -440,7 +445,7 @@ public class JoinManager extends BaseManager {
       mainPanel.openMessageDialog(metaData.getInvalidReason(), "Invalid Data");
       return;
     }
-    nextProcess = "startjoin";
+    setNextProcess(AxisID.ONLY, "startjoin");
     String rootName = metaData.getRootName();
     EtomoDirector.getInstance().renameCurrentManager(rootName);
     createEmptyXfFile(rootName);
@@ -452,7 +457,7 @@ public class JoinManager extends BaseManager {
       threadNameA = processMgr.makejoincom(makejoincomParam);
     }
     catch (SystemProcessException except) {
-      nextProcess = "";
+      resetNextProcess(AxisID.ONLY);
       except.printStackTrace();
       mainPanel.openMessageDialog("Can't run makejoincom\n"
         + except.getMessage(), "SystemProcessException");
@@ -667,7 +672,7 @@ public class JoinManager extends BaseManager {
       mainPanel.openMessageDialog(metaData.getInvalidReason(), "Invalid Data");
       return;
     }
-    nextProcess = "";
+    resetNextProcess(AxisID.ONLY);
     try {
       threadNameA = processMgr.startjoin();
     }
@@ -803,7 +808,7 @@ public class JoinManager extends BaseManager {
    * Start the next process specified by the nextProcess string
    */
   protected void startNextProcess(AxisID axisID) {
-    if (nextProcess.equals("startjoin")) {
+    if (getNextProcess(axisID).equals("startjoin")) {
       startjoin();
       return;
     }
