@@ -22,6 +22,9 @@ import java.util.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.0  2003/01/24 20:30:31  rickg
+ * <p> Single window merge to main branch
+ * <p>
  * <p> Revision 1.6.2.1  2003/01/24 18:36:17  rickg
  * <p> Single window GUI layout initial revision
  * <p>
@@ -186,7 +189,7 @@ public class SystemProgram implements Runnable {
       cmdInputStream.close();
 
       if (debug) {
-        if (stdInput != null) {
+        if (stdInput != null && stdInput.length > 0) {
           System.err.println("SystemProgram: Wrote to process stdin:");
           System.err.println(
             "------------------------------------------------------------");
@@ -260,21 +263,25 @@ public class SystemProgram implements Runnable {
     }
 
     if (debug) {
-      System.err.println("SystemProgram: Read from process stdout:");
-      System.err.println(
-        "------------------------------------------------------------");
-      for (int i = 0; i < stdOutput.size(); i++) {
-        System.err.println(stdOutput.get(i));
-      }
-      System.err.println("");
+      if (stdOutput.size() > 0) {
+        System.err.println("SystemProgram: Read from process stdout:");
+        System.err.println(
+          "------------------------------------------------------------");
+        for (int i = 0; i < stdOutput.size(); i++) {
+          System.err.println(stdOutput.get(i));
+        }
 
-      System.err.println("SystemProgram: Read from process stderr:");
-      System.err.println(
-        "------------------------------------------------------------");
-      for (int i = 0; i < stdError.size(); i++) {
-        System.err.println(stdError.get(i));
+        System.err.println("");
       }
-      System.err.println("");
+      if (stdError.size() > 0) {
+        System.err.println("SystemProgram: Read from process stderr:");
+        System.err.println(
+          "------------------------------------------------------------");
+        for (int i = 0; i < stdError.size(); i++) {
+          System.err.println(stdError.get(i));
+        }
+        System.err.println("");
+      }
     }
   }
 
