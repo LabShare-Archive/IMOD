@@ -35,12 +35,12 @@ $Date$
 $Revision$
 Log at end of file
 */
-#include <stdio.h>
 #include <math.h>
 #include <qcursor.h>
 #include <qbitmap.h>
 #include <qdatetime.h>
 #include <qapplication.h>
+#include <qclipboard.h>
 #include <qpoint.h>
 #include <qtimer.h>
 #include "zap_classes.h"
@@ -748,20 +748,21 @@ int imod_zap_open(struct ViewInfo *vi)
   int newHeight = needWiny + (zap->qtWindow->height() - zap->gfx->height());
   // If you can resize before the show, the complete geometry adjustment
   // is not needed
-  /*  QPoint pos = zap->qtWindow->pos();
+  // But is needed in windows anyway
+  QPoint pos = zap->qtWindow->pos();
   int xleft = pos.x();
   int ytop = pos.y();
   if (xleft + newWidth > deskWidth - 16)
     xleft = deskWidth - 16 - newWidth;
   if (ytop + newHeight > deskHeight - 40)
-  ytop = deskHeight - 40 - newHeight; */
+  ytop = deskHeight - 40 - newHeight;
   if (Imod_debug)
     fprintf(stderr, "Sizes: zap %d %d, toolbar %d %d, GL %d %d: "
             "resize %d %d\n", zap->qtWindow->width(), zap->qtWindow->height(), 
             toolSize.width(), toolSize.height(), zap->gfx->width(), 
             zap->gfx->height(), newWidth, newHeight);
-  zap->qtWindow->resize( newWidth, newHeight);
-  //  zap->qtWindow->setGeometry(xleft, ytop, newWidth, newHeight);
+  //  zap->qtWindow->resize( newWidth, newHeight);
+  zap->qtWindow->setGeometry(xleft, ytop, newWidth, newHeight);
 
   zap->qtWindow->show();
   zap->popup = 1;
@@ -1090,6 +1091,11 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
       }
     */
 
+    /*
+      case Qt::Key_X:
+    wprint("Clipboard = %s\n", QApplication::clipboard()->text().latin1());
+    break;
+    */
 
   default:
     break;
@@ -2563,6 +2569,9 @@ static int zapPointVisable(ZapStruct *zap, Ipoint *pnt)
 
 /*
 $Log$
+Revision 4.3  2003/02/20 16:02:15  mast
+Make current contour not display at wrong time
+
 Revision 4.2  2003/02/14 01:12:47  mast
 cleanup unused variables
 
