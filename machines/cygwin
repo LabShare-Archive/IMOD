@@ -278,6 +278,8 @@ while ($i < 5)
     if ($compiler == intel) then
         # Fix the Makefiles.  New Cygwin 6/11/04 doesn't manage times well
         # enough so need to delete the qmake commands
+        # 3/20/05: Removed strip from install - it removes 3KB of symbols that
+        # are needed for plugins to work
         (cd $qdir[$i] ; qmake -o makefile.tmp $qpro[$i])
         set badrules = `sed -n '/{.*}.*{.*}/p' < $qdir[$i]/makefile.tmp`
         sed -e '/^<</d'  -e '/^	$/d' -e '/-del/s//-rm -f/' -e '/@<< */s//\\/' \
@@ -285,7 +287,7 @@ while ($i < 5)
         -e '/^	\$</d' -e '/{.*}.*{.*}/d'  -e '/UIC/s/-f *<< */\\/' \
         -e '/.SUFFIXES.*$/s//.SUFFIXES: .c .cpp .obj/'  \
         -e "/^C.*FLAGS[ 	]*=/s/-Od/$qopt/" \
-        -e '/^install/a\	strip \$(TARGET) ; \\cp \$(TARGET) '"$inst_bin_dir" \
+        -e '/^install/a\	/usr/bin/cp \$(TARGET) '"$inst_bin_dir" \
         -e '/QMAKE.*Makefile/d' \
         < $qdir[$i]/makefile.tmp >! $qdir[$i]/Makefile
         \rm $qdir[$i]/makefile.tmp
