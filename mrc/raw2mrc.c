@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.9  2004/01/17 20:38:45  mast
+Eliminate unneeded rewind call
+
 Revision 3.8  2004/01/06 21:20:07  mast
 Made it make a backup file of an existing output file
 
@@ -76,6 +79,8 @@ eliminated two lines of diagnostic output
 #define DTYPE_ULONG  6
 #define DTYPE_FLOAT  7
 #define DTYPE_SBYTE  10
+#define DTYPE_LONG2SHORT   15
+#define DTYPE_ULONG2SHORT  16
 
 /* input image types */
 #define ITYPE_GREY    1
@@ -106,9 +111,12 @@ void usage(void)
           "long, ulong, float, rgb)\n");
   fprintf(stderr, "\t-s      Swap input bytes.\n");
   fprintf(stderr, "\t-o #    Offset at beginning of file, default 0\n");
-  fprintf(stderr, "\t-oz #   Offset between each pair of sections, default 0\n");
+  fprintf(stderr, "\t-oz #   Offset between each pair of sections, "
+          "default 0\n");
   fprintf(stderr, "\t-f      Flip image around X axis\n");
   fprintf(stderr, "\t-d      Divide unsigned shorts by 2 instead of subtracting 32767\n");
+  fprintf(stderr, "\t-c      Convert long or ulong input to 16-bit"
+          " integers, not floats\n");
   return;
 }
 
@@ -119,7 +127,9 @@ main( int argc, char *argv[] )
   unsigned long xysize;
   FILE   *fin;
   FILE   *fout;
-  int    intype, outtype, datatype;
+  int    intype = -1;
+  int    outtype, datatype;
+  int    outPixsize = -1;
   int    compression = 0;
   int    byteswap = FALSE;
   int    x = 640, y = 480, z = 1;
@@ -127,6 +137,7 @@ main( int argc, char *argv[] )
   int    flip = 0;   /* flag whether to flip about X axis */
   int    divide = 0; /* flag to divide unsigned short by 2 */
   int    hsize = 0;  /* amount of data to skip */
+  int    convert = 0; /* Flag to convert long to short */
   int    csize = 1;
   int    zoffset = 0;
   int    pixsize = 1;
@@ -135,19 +146,19 @@ main( int argc, char *argv[] )
   char   line[128];
   unsigned char buf[4];
   char   c, c1, c2;
-  short  s;
-  unsigned short usval;
+  b3dInt16  s;
+  b3dUInt16 usval;
   int datasize;
   float  f, pixel;
   float  mean = 0.0f, tmean = 0.0f, max = -5e29f, min= 5e29f;
   long start = 0;
-  signed char *sbdata, sbval;
-  unsigned char *bdata, bval;
-  short *sdata, sval;
-  unsigned short *usdata;
-  long *ldata;
-  unsigned long *uldata;
-  float *fdata, fval;
+  b3dByte *sbdata, sbval;
+  b3dUByte *bdata, bval;
+  b3dInt16 *sdata, sval;
+  b3dUInt16 *usdata;
+  b3dInt32 *ldata;
+  b3dUInt32 *uldata;
+  b3dFloat *fdata, fval;
   void *indata;
   int val;
   char *progname = imodProgName(argv[0]);
@@ -193,15 +204,34 @@ main( int argc, char *argv[] )
       case 'd':
         divide = 1;
         break;
+      case 'c':
+        convert = 1;
+        break;
       }
     }else break;
   }
      
   if ( (argc - 1) < (i + 1)){
-    fprintf(stderr, "%s: argument error.\n", progname);
+    fprintf(stderr, "ERROR: %s - insufficient arguments\n", progname);
     usage();
     exit(-1);
   }
+
+  if (convert) {
+    if (intype < 0 || intype == DTYPE_LONG) {
+      intype = setintype("long2short", &pixsize, &outtype);
+      outPixsize = 2;
+    } else if (intype == DTYPE_ULONG) {
+      intype = setintype("ulong2short", &pixsize, &outtype);
+      outPixsize = 2;
+    } else
+      fprintf(stderr, "WARNING: %s - conversion option -c ignored with "
+             "specified input type\n", progname);
+  }
+  if (intype < 0)
+    intype = setintype("byte", &pixsize, &outtype);
+  if (outPixsize < 0)
+    outPixsize = pixsize;
 
   nfiles = argc - (i + 1);
   nsecs = z *nfiles;
@@ -209,12 +239,12 @@ main( int argc, char *argv[] )
   /* printf("nfiles = %d, argc = %d\n",nfiles, argc); */
 
   if (imodBackupFile(argv[argc - 1])) {
-    fprintf(stderr, "%s: Error, couldn't create backup", progname);
+    fprintf(stderr, "ERROR: %s - couldn't create backup", progname);
     exit(-1);
   }
   fout = fopen(argv[argc - 1], "wb");
   if (!fout){
-    fprintf(stderr, "%s: error opening %s for output\n", progname,
+    fprintf(stderr, "ERROR: %s - opening %s for output\n", progname,
             argv[argc -1]);
     exit(-1);
   }
@@ -225,89 +255,120 @@ main( int argc, char *argv[] )
   datasize = x * y * z;
   xysize = x * y * csize;
 
-  indata = (void *)malloc(pixsize * csize * xysize);
+  indata = (void *)malloc(pixsize * xysize);
   if (!indata){
-    fprintf(stderr, "%s: error getting memory.\n", progname);
+    fprintf(stderr, "ERROR: %s - getting memory.\n", progname);
     exit(-1);
   }
 
-  for(j = i ; j < argc-1 ; j++) {
+  for (j = i ; j < argc-1 ; j++) {
     fin = fopen(argv[j], "rb");
     if (!fin){
-      fprintf(stderr, "%s: error opening %s for input\n", progname,
+      fprintf(stderr, "ERROR: %s - opening %s for input\n", progname,
               argv[j]);
       exit(-1);
     }
 
-    b3dFseek(fin, hsize, SEEK_CUR);
+    if (b3dFseek(fin, hsize, SEEK_CUR)) {
+      fprintf(stderr, "ERROR: %s - seeking to data in file  %s\n",
+              progname, argv[j]);
+      exit(-1);
+    }
 
-    for(k = 0; k < z; k++){
+    for (k = 0; k < z; k++) {
       tmean = 0.0f;
-      if (k > 0) b3dFseek(fin, zoffset, SEEK_CUR);
-      b3dFread(indata, pixsize, xysize, fin);
+      if (k > 0) {
+        if (b3dFseek(fin, zoffset, SEEK_CUR)) {
+          fprintf(stderr, "ERROR: %s - seeking to data at section %d in "
+                  "file  %s\n", progname, argv[j]);
+          exit(-1);
+        }
+      }
+      if (b3dFread(indata, pixsize, xysize, fin) != xysize) {
+        fprintf(stderr, "ERROR: %s - reading data from file  %s\n", progname,
+                argv[j]);
+        exit(-1);
+      }
       if (compression){
         rawdecompress(indata, pixsize, xysize, compression);
       }
       if (byteswap)
         rawswap(indata, pixsize, xysize);
 
-      switch(intype){
+
+      /* First do any needed conversions of the input types */
+      switch (intype) {
 
       case DTYPE_USHORT:
-        usdata = (unsigned short *)indata;
-        sdata = (short *)indata;
+        usdata = (b3dUInt16 *)indata;
+        sdata = (b3dInt16 *)indata;
         if (divide) 
-          for(i = 0; i < xysize; i++)
-            sdata[i] = (short)((int)(usdata[i]) / 2);
+          for (i = 0; i < xysize; i++)
+            sdata[i] = (b3dInt16)((int)(usdata[i]) / 2);
         else
-          for(i = 0; i < xysize; i++)
-            sdata[i] = (short)((int)(usdata[i]) - 32767);
-
-        for(i = 0; i < xysize; i++){
-          pixel = sdata[i];
-          tmean += pixel;
-          if (min > pixel)
-            min = pixel;
-          if (max < pixel)
-            max = pixel;
-        }
+          for (i = 0; i < xysize; i++)
+            sdata[i] = (b3dInt16)((int)(usdata[i]) - 32767);
         break;
 
       case DTYPE_LONG:
-        ldata = (long *)indata;
-        fdata = (float *)indata;
-        for(i = 0; i < xysize; i++){
-          fval = ldata[i];
-          fdata[i] = fval;
-          pixel = fval;
-          tmean += pixel;
-          if (min > pixel)
-            min = pixel;
-          if (max < pixel)
-            max = pixel;
-
-        }
+        ldata = (b3dInt32 *)indata;
+        fdata = (b3dFloat *)indata;
+        for (i = 0; i < xysize; i++)
+          fdata[i] = (b3dFloat)ldata[i];
         break;
 
       case DTYPE_ULONG:
-        uldata = (unsigned long *)indata;
-        fdata = (float *)indata;
-        for(i = 0; i < xysize; i++){
-          fval = uldata[i];
-          fdata[i] = fval;
-          pixel = fval;
-          tmean += pixel;
-          if (min > pixel)
-            min = pixel;
-          if (max < pixel)
-            max = pixel;
+        uldata = (b3dUInt32 *)indata;
+        fdata = (b3dFloat *)indata;
+        for (i = 0; i < xysize; i++)
+          fdata[i] = (b3dFloat)uldata[i];
+        break;
 
+      case DTYPE_ULONG2SHORT:
+        uldata = (b3dUInt32 *)indata;
+        sdata = (b3dInt16 *)indata;
+        if (divide) 
+          for (i = 0; i < xysize; i++)
+            sdata[i] = (b3dInt16)(uldata[i] / 2);
+        else
+          for (i = 0; i < xysize; i++)
+            sdata[i] = (b3dInt16)(uldata[i] - 32767);
+        break;
+
+      case DTYPE_LONG2SHORT:
+        ldata = (b3dInt32 *)indata;
+        sdata = (b3dInt16 *)indata;
+        if (divide) 
+          for (i = 0; i < xysize; i++)
+            sdata[i] = (b3dInt16)(ldata[i] / 2);
+        else
+          for (i = 0; i < xysize; i++)
+            sdata[i] = (b3dInt16)ldata[i];
+        break;
+
+        /* DNM 12/27/01: fixed these two types on the PC by making the 
+           signed and unsigned types explicit */
+      case DTYPE_SBYTE:
+        sbdata  = (b3dByte *)indata;
+        bdata = (b3dUByte *)indata;
+        for (i = 0; i < xysize; i++) {
+          val = sbdata[i];
+          val += 127;
+          bdata[i] = val;
         }
         break;
 
-      case DTYPE_SHORT:
-        sdata = (short *)indata;
-        for(i = 0; i < xysize; i++){
+      default:
+        break;
+      }
+
+
+      /* Now compute min, mnax, mean based on output type */
+      switch (outtype) {
+        
+      case MRC_MODE_SHORT:
+        sdata = (b3dInt16 *)indata;
+        for (i = 0; i < xysize; i++) {
           pixel = sdata[i];
           tmean += pixel;
           if (min > pixel)
@@ -317,9 +378,9 @@ main( int argc, char *argv[] )
         }
         break;
 
-      case DTYPE_FLOAT:
-        fdata = (float *)indata;
-        for(i = 0; i < xysize; i++){
+      case MRC_MODE_FLOAT:
+        fdata = (b3dFloat *)indata;
+        for (i = 0; i < xysize; i++) {
           pixel = fdata[i];
           tmean += pixel;
           if (min > pixel)
@@ -329,28 +390,9 @@ main( int argc, char *argv[] )
         }
         break;
 
-        /* DNM 12/27/01: fixed these two types on the PC by making the 
-           signed and unsigned types explicit */
-      case DTYPE_SBYTE:
-        sbdata  = (signed char *)indata;
-        bdata = (unsigned char *)indata;
-        for(i = 0; i < xysize; i++){
-          val = sbdata[i];
-          /*  if (val >= 128) val -= 256; */
-          val += 127;
-          bdata[i] = val;
-          pixel = bdata[i];
-          tmean += pixel;
-          if (min > pixel)
-            min = pixel;
-          if (max < pixel)
-            max = pixel;
-        }
-        break;
-
-      case DTYPE_BYTE:
-        bdata = (unsigned char *)indata;
-        for(i = 0; i < xysize; i++){
+      case MRC_MODE_BYTE:
+        bdata = (b3dUByte *)indata;
+        for (i = 0; i < xysize; i++) {
           pixel = bdata[i];
           tmean += pixel;
           if (min > pixel)
@@ -364,14 +406,19 @@ main( int argc, char *argv[] )
         break;
       }
 
-      if(flip == 0){
-        b3dFwrite(indata, pixsize, xysize, fout);
+      if (flip == 0) {
+        if (b3dFwrite(indata, outPixsize, xysize, fout) != xysize) {
+          fprintf(stderr, "ERROR: %s - writing data to file\n", progname);
+          exit(-1);
+        }
+      } else {
 
-      }else{
-
-        for(i = y - 1; i >= 0 ; i--){
-          bdata = ((unsigned char *)indata) + i * pixsize * x;
-          b3dFwrite(bdata, pixsize, x, fout); 
+        for (i = y - 1; i >= 0 ; i--) {
+          bdata = ((unsigned char *)indata) + i * outPixsize * x;
+          if (b3dFwrite(bdata, outPixsize, x, fout) != x) {
+            fprintf(stderr, "ERROR: %s - writing data to file\n", progname);
+            exit(-1);
+          }
         }
       }
       mean += (tmean / (float)xysize);
@@ -409,13 +456,13 @@ static void rawdecompress
 }
 
 
-static void rawswap(unsigned char *indata, int pixsize, int xysize)
+static void rawswap(b3dUByte *indata, int pixsize, int xysize)
 {
-  unsigned char u1,u2,u3,u4;
+  b3dUByte u1,u2,u3,u4;
   int i;
 
-  if (pixsize == 4){
-    for (i = 0 ; i < xysize; i++){
+  if (pixsize == 4) {
+    for (i = 0 ; i < xysize; i++) {
            
       /* DNM 12/18/01: changed i * 2 to i * 4 */
       u1 = indata[i * 4];
@@ -431,8 +478,8 @@ static void rawswap(unsigned char *indata, int pixsize, int xysize)
   }
 
 
-  if (pixsize == 2){
-    for (i = 0 ; i < xysize; i++){
+  if (pixsize == 2) {
+    for (i = 0 ; i < xysize; i++) {
       u1 = indata[i * 2];
       u2 = indata[(i * 2) + 1];
       indata[i * 2] = u2;
@@ -445,48 +492,59 @@ static void rawswap(unsigned char *indata, int pixsize, int xysize)
 
 int setintype(char *stype, int *size, int *otype)
 {
-  if (!strcmp(stype,"byte")){
+  if (!strcmp(stype,"byte")) {
     *size = 1;
     *otype = MRC_MODE_BYTE;
     return(DTYPE_BYTE);
   }
      
-  if (!strcmp(stype,"sbyte")){
+  if (!strcmp(stype,"sbyte")) {
     *size = 1;
     *otype = MRC_MODE_BYTE;
     return(DTYPE_SBYTE);
   }
 
-  if (!strcmp(stype,"rgb")){
+  if (!strcmp(stype,"rgb")) {
     *size = 3;
     *otype = MRC_MODE_RGB;
     return(DTYPE_BYTE);
   }
 
-  if (!strcmp(stype, "short")){
+  if (!strcmp(stype, "short")) {
     *size = 2;
     *otype = MRC_MODE_SHORT;
     return(DTYPE_SHORT);
   }
-  if (!strcmp(stype,"ushort")){
+  if (!strcmp(stype,"ushort")) {
     *size = 2;
     *otype = MRC_MODE_SHORT;
     return(DTYPE_USHORT);
   }
 
   /* DNM 12/27/01: long was missing from the quotes here */
-  if (!strcmp(stype,"long")){
+  if (!strcmp(stype,"long")) {
     *size = 4;
     *otype = MRC_MODE_FLOAT;
     return(DTYPE_LONG);
   }
-  if (!strcmp(stype,"ulong")){
+  if (!strcmp(stype,"ulong")) {
     *size = 4;
     *otype = MRC_MODE_FLOAT;
     return(DTYPE_ULONG);
   }
+
+  if (!strcmp(stype,"long2short")) {
+    *size = 4;
+    *otype = MRC_MODE_SHORT;
+    return(DTYPE_LONG2SHORT);
+  }
+  if (!strcmp(stype,"ulong2short")) {
+    *size = 4;
+    *otype = MRC_MODE_SHORT;
+    return(DTYPE_ULONG2SHORT);
+  }
      
-  if (!strcmp(stype,"float")){
+  if (!strcmp(stype,"float")) {
     *size = 4;
     *otype = MRC_MODE_FLOAT;
     return(DTYPE_FLOAT);
