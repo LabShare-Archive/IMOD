@@ -50,6 +50,9 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.3  2004/11/23 00:29:55  sueh
+* <p> bug# 520 Prevented Add Section from coming on  during a flip.
+* <p>
 * <p> Revision 1.2  2004/11/20 00:03:36  sueh
 * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
 * <p>
@@ -1088,19 +1091,21 @@ public class SectionTablePanel implements ContextMenu, Expandable {
     }
   }
 
-  public void getMetaData(JoinMetaData metaData) {
+  public boolean getMetaData(JoinMetaData metaData) {
+    boolean success = true;
     metaData.resetSectionTableData();
     if (rows == null) {
-      return;
+      return success;
     }
     for (int i = 0; i < rows.size(); i++) {
-      ConstSectionTableRowData rowData = ((SectionTableRow) rows.get(i)).getData();
-      if (rowData == null) {
-        return;
+      SectionTableRow row = (SectionTableRow) rows.get(i);
+      ConstSectionTableRowData rowData = row.getData();
+      if (!row.isValid()) {
+        success =  false; //getData() failed
       }
       metaData.setSectionTableData(new SectionTableRowData(rowData));
     }
-    return;
+    return success;
   }
   
   public void setMetaData(ConstJoinMetaData metaData) {
