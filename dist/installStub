@@ -105,7 +105,7 @@ endif
 mkdir -p $tempdir    
 
 echo "Extracting $packname ..."
-tail +$skip "$this" >! $tempdir/$packname
+tail -n +$skip "$this" >! $tempdir/$packname
 
 set version = `echo $rootname | sed '/\(imod_[0-9.]*\).*/s//\1/' | sed '/\.$/s///'`
 
@@ -151,6 +151,9 @@ exit 0
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.7  2004/07/04 14:27:11  mast
+#  Fixed a problem on Mac
+#
 #  Revision 3.6  2004/07/04 13:47:31  mast
 #  Added details for user and made it work with spaces in directory path
 #
