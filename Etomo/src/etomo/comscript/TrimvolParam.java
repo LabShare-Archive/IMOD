@@ -13,6 +13,9 @@ package etomo.comscript;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2003/04/10 23:40:40  rickg
+ * <p> In progress
+ * <p>
  * <p> Revision 1.1  2003/04/09 23:36:57  rickg
  * <p> In progress
  * <p> </p>
@@ -32,7 +35,7 @@ public class TrimvolParam {
   private int sectionScaleMax = -1;
   private int fixedScaleMin = -1;
   private int fixedScaleMax = -1;
-  private boolean swapYZ = false;
+  private boolean swapYZ = true;
   private String inputFile = "";
   private String outputFile = "";
 
