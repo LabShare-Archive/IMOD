@@ -9,7 +9,7 @@
             <x>0</x>
             <y>0</y>
             <width>221</width>
-            <height>429</height>
+            <height>439</height>
         </rect>
     </property>
     <property name="caption">
@@ -79,6 +79,152 @@
             <property name="toolTip" stdset="0">
                 <string>Turn display of object on or off</string>
             </property>
+        </widget>
+        <widget class="QLayoutWidget">
+            <property name="name">
+                <cstring>Layout6</cstring>
+            </property>
+            <hbox>
+                <property name="name">
+                    <cstring>unnamed</cstring>
+                </property>
+                <property name="margin">
+                    <number>0</number>
+                </property>
+                <property name="spacing">
+                    <number>6</number>
+                </property>
+                <widget class="QButtonGroup">
+                    <property name="name">
+                        <cstring>typeButtonGroup</cstring>
+                    </property>
+                    <property name="sizePolicy">
+                        <sizepolicy>
+                            <hsizetype>1</hsizetype>
+                            <vsizetype>5</vsizetype>
+                            <horstretch>0</horstretch>
+                            <verstretch>0</verstretch>
+                        </sizepolicy>
+                    </property>
+                    <property name="title">
+                        <string>Object type</string>
+                    </property>
+                    <property name="toolTip" stdset="0">
+                        <string></string>
+                    </property>
+                    <vbox>
+                        <property name="name">
+                            <cstring>unnamed</cstring>
+                        </property>
+                        <property name="margin">
+                            <number>6</number>
+                        </property>
+                        <property name="spacing">
+                            <number>6</number>
+                        </property>
+                        <widget class="QRadioButton">
+                            <property name="name">
+                                <cstring>closedButton</cstring>
+                            </property>
+                            <property name="focusPolicy">
+                                <enum>NoFocus</enum>
+                            </property>
+                            <property name="text">
+                                <string>Closed</string>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Make contours closed loops; connect end back to start</string>
+                            </property>
+                        </widget>
+                        <widget class="QRadioButton">
+                            <property name="name">
+                                <cstring>openButton</cstring>
+                            </property>
+                            <property name="focusPolicy">
+                                <enum>NoFocus</enum>
+                            </property>
+                            <property name="text">
+                                <string>Open</string>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Make contours open (unconnected) at ends</string>
+                            </property>
+                        </widget>
+                        <widget class="QRadioButton">
+                            <property name="name">
+                                <cstring>scatteredButton</cstring>
+                            </property>
+                            <property name="focusPolicy">
+                                <enum>NoFocus</enum>
+                            </property>
+                            <property name="text">
+                                <string>Scattered</string>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Make contours consisting of unconnected points</string>
+                            </property>
+                        </widget>
+                    </vbox>
+                </widget>
+                <widget class="QButtonGroup">
+                    <property name="name">
+                        <cstring>surfaceButtonGroup</cstring>
+                    </property>
+                    <property name="sizePolicy">
+                        <sizepolicy>
+                            <hsizetype>1</hsizetype>
+                            <vsizetype>5</vsizetype>
+                            <horstretch>0</horstretch>
+                            <verstretch>0</verstretch>
+                        </sizepolicy>
+                    </property>
+                    <property name="title">
+                        <string>Front face</string>
+                    </property>
+                    <property name="toolTip" stdset="0">
+                        <string></string>
+                    </property>
+                    <vbox>
+                        <property name="name">
+                            <cstring>unnamed</cstring>
+                        </property>
+                        <property name="margin">
+                            <number>6</number>
+                        </property>
+                        <property name="spacing">
+                            <number>6</number>
+                        </property>
+                        <widget class="QRadioButton">
+                            <property name="name">
+                                <cstring>outsideButton</cstring>
+                            </property>
+                            <property name="focusPolicy">
+                                <enum>NoFocus</enum>
+                            </property>
+                            <property name="text">
+                                <string>Outside</string>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Make the outside of contours be the brightly lit face</string>
+                            </property>
+                        </widget>
+                        <widget class="QRadioButton">
+                            <property name="name">
+                                <cstring>insideButton</cstring>
+                            </property>
+                            <property name="focusPolicy">
+                                <enum>NoFocus</enum>
+                            </property>
+                            <property name="text">
+                                <string>Inside</string>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Make the inside of contours be the brightly lit face</string>
+                            </property>
+                        </widget>
+                    </vbox>
+                </widget>
+            </hbox>
         </widget>
         <widget class="QGroupBox">
             <property name="name">
@@ -370,152 +516,6 @@
                         </size>
                     </property>
                 </spacer>
-            </hbox>
-        </widget>
-        <widget class="QLayoutWidget">
-            <property name="name">
-                <cstring>Layout6</cstring>
-            </property>
-            <hbox>
-                <property name="name">
-                    <cstring>unnamed</cstring>
-                </property>
-                <property name="margin">
-                    <number>0</number>
-                </property>
-                <property name="spacing">
-                    <number>6</number>
-                </property>
-                <widget class="QButtonGroup">
-                    <property name="name">
-                        <cstring>typeButtonGroup</cstring>
-                    </property>
-                    <property name="sizePolicy">
-                        <sizepolicy>
-                            <hsizetype>1</hsizetype>
-                            <vsizetype>5</vsizetype>
-                            <horstretch>0</horstretch>
-                            <verstretch>0</verstretch>
-                        </sizepolicy>
-                    </property>
-                    <property name="title">
-                        <string>Object type</string>
-                    </property>
-                    <property name="toolTip" stdset="0">
-                        <string></string>
-                    </property>
-                    <vbox>
-                        <property name="name">
-                            <cstring>unnamed</cstring>
-                        </property>
-                        <property name="margin">
-                            <number>6</number>
-                        </property>
-                        <property name="spacing">
-                            <number>6</number>
-                        </property>
-                        <widget class="QRadioButton">
-                            <property name="name">
-                                <cstring>closedButton</cstring>
-                            </property>
-                            <property name="focusPolicy">
-                                <enum>NoFocus</enum>
-                            </property>
-                            <property name="text">
-                                <string>Closed</string>
-                            </property>
-                            <property name="toolTip" stdset="0">
-                                <string>Make contours closed loops; connect end back to start</string>
-                            </property>
-                        </widget>
-                        <widget class="QRadioButton">
-                            <property name="name">
-                                <cstring>openButton</cstring>
-                            </property>
-                            <property name="focusPolicy">
-                                <enum>NoFocus</enum>
-                            </property>
-                            <property name="text">
-                                <string>Open</string>
-                            </property>
-                            <property name="toolTip" stdset="0">
-                                <string>Make contours open (unconnected) at ends</string>
-                            </property>
-                        </widget>
-                        <widget class="QRadioButton">
-                            <property name="name">
-                                <cstring>scatteredButton</cstring>
-                            </property>
-                            <property name="focusPolicy">
-                                <enum>NoFocus</enum>
-                            </property>
-                            <property name="text">
-                                <string>Scattered</string>
-                            </property>
-                            <property name="toolTip" stdset="0">
-                                <string>Make contours consisting of unconnected points</string>
-                            </property>
-                        </widget>
-                    </vbox>
-                </widget>
-                <widget class="QButtonGroup">
-                    <property name="name">
-                        <cstring>surfaceButtonGroup</cstring>
-                    </property>
-                    <property name="sizePolicy">
-                        <sizepolicy>
-                            <hsizetype>1</hsizetype>
-                            <vsizetype>5</vsizetype>
-                            <horstretch>0</horstretch>
-                            <verstretch>0</verstretch>
-                        </sizepolicy>
-                    </property>
-                    <property name="title">
-                        <string>Front face</string>
-                    </property>
-                    <property name="toolTip" stdset="0">
-                        <string></string>
-                    </property>
-                    <vbox>
-                        <property name="name">
-                            <cstring>unnamed</cstring>
-                        </property>
-                        <property name="margin">
-                            <number>6</number>
-                        </property>
-                        <property name="spacing">
-                            <number>6</number>
-                        </property>
-                        <widget class="QRadioButton">
-                            <property name="name">
-                                <cstring>outsideButton</cstring>
-                            </property>
-                            <property name="focusPolicy">
-                                <enum>NoFocus</enum>
-                            </property>
-                            <property name="text">
-                                <string>Outside</string>
-                            </property>
-                            <property name="toolTip" stdset="0">
-                                <string>Make the outside of contours be the brightly lit face</string>
-                            </property>
-                        </widget>
-                        <widget class="QRadioButton">
-                            <property name="name">
-                                <cstring>insideButton</cstring>
-                            </property>
-                            <property name="focusPolicy">
-                                <enum>NoFocus</enum>
-                            </property>
-                            <property name="text">
-                                <string>Inside</string>
-                            </property>
-                            <property name="toolTip" stdset="0">
-                                <string>Make the inside of contours be the brightly lit face</string>
-                            </property>
-                        </widget>
-                    </vbox>
-                </widget>
             </hbox>
         </widget>
         <widget class="QCheckBox">
