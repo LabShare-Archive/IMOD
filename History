@@ -1,5 +1,14 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+IMOD_2-7-1
+9/5/02: Fixed some problems with combining: a bug in Corrsearch3d when the
+rotation is close to 45 degrees, the need for an error exit from Findwarp
+when there are too few patches; and Patchcrawl3d exiting with an error when
+Corrsearch3d does so, so that combine.com processing stops.
+
+9/5/02: Explicitly choose a visual for the cube in slicer to prevent GLw
+crashes.
+
 9/4/02: Fixed coordinate scaling and standardized error reporting in Xfmodel
 so that Transferfid would work on files with pixel sizes.
 
