@@ -37,7 +37,8 @@ X will thus shift the image to the left.
 .TP
 .B -trial <interval>
 Build a trial joined tomogram using only slices at the given interval.  The
-first and last slice of each slice range will always be included.
+first and last slice of each slice range will always be included.  The output
+file will be named "root_name"_trial.join.
 .TP
 .B -bin #
 Bin images by the given value when building a trial joined tomogram.  The
@@ -57,6 +58,6 @@ images from all of the sections, given the current transformations.  No
 image file will be created.
 .SH FILES
 The program assumes the existence of several files with the given root name,
-especially root_name.info and root_name.xf.
+especially "root_name".info and "root_name".xf.
 .SH AUTHOR
 David Mastronarde  <mast@colorado.edu>
