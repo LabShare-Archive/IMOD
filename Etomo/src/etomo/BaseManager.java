@@ -43,6 +43,9 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.2  2004/11/19 22:33:55  sueh
+* <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+* <p>
 * <p> Revision 1.1.2.19  2004/11/18 23:57:20  sueh
 * <p> bug# 520 Added saveMetaData to save only meta data.  Added
 * <p> boolean canChangePAramFileName to tell MainFrame whether Save As
@@ -135,8 +138,7 @@ public abstract class BaseManager {
   
   //protected static variables
   protected static boolean test = false;
-  protected static MainFrame mainFrame = EtomoDirector.getInstance()
-      .getMainFrame();
+  protected MainFrame mainFrame = null;
   protected static UserConfiguration userConfig = EtomoDirector.getInstance()
       .getUserConfiguration();
   
@@ -191,10 +193,13 @@ public abstract class BaseManager {
     createProcessTrack();
     createProcessManager();
     createComScriptManager();
-    createMainPanel();
     //  Initialize the program settings
     debug = EtomoDirector.getInstance().isDebug();
     test = EtomoDirector.getInstance().isTest();
+    if (!test) {
+      createMainPanel();
+      mainFrame = EtomoDirector.getInstance().getMainFrame();
+    }
     //imodManager should be created only once.
     createImodManager();
     initProgram();
@@ -207,6 +212,13 @@ public abstract class BaseManager {
   public String getPropertyUserDir() {
     return propertyUserDir;
   }
+  
+  public String setPropertyUserDir(String propertyUserDir) {
+    String oldPropertyUserDir = this.propertyUserDir;
+    this.propertyUserDir = propertyUserDir;
+    return oldPropertyUserDir;
+  }
+  
   protected void initializeUIParameters(String paramFileName) {
     if (!test) {
       //  Initialize the static UIParameter object
