@@ -18,6 +18,10 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.4  2005/01/11 19:23:58  mast
+c	  Added pixel model output, fixed bug in computing sum and average
+c	  above threshold
+c	
 c	  Revision 3.3  2005/01/10 06:35:44  mast
 c	  Fixed fallback option
 c	
@@ -268,9 +272,12 @@ c		  If doing pixel output, allocate new contour first time or if
 c		  last one non-empty
 c
 		newObj = 0
-		if (newImodObj .gt. 0) then
+		if (newImodObj .gt. 0 .and. max_mod_obj .lt. max_obj_num .and.
+     &		    n_point .lt. max_pt - 10) then
 		  if (firstNewCont .or. npt_in_obj(max_mod_obj) .gt. 0)
      &		      max_mod_obj = max_mod_obj + 1
+		  if (max_mod_obj .eq. max_obj_num) print *,
+     &		      'TOO MANY CONTOURS TO CONTINUE ADDING TO PIXEL MODEL'
 		  newObj = max_mod_obj
 		  npt_in_obj(max_mod_obj) = 0
 		  obj_color(2, newObj) = 256 - newImodObj
@@ -474,8 +481,10 @@ c
 		  absSum = absSum + val
 		  sumAbove = sumAbove + polarity * (val - absThresh)
 
-		  if (newObj .ne. 0) then
+		  if (newObj .ne. 0 .and. n_point .lt. max_pt - 10) then
 		    n_point = n_point + 1
+		    if (n_point .eq. max_pt - 10) print *,
+     &			'TOO MANY POINTS TO CONTINUE ADDING TO PIXEL MODEL'
 		    p_coord(1, n_point) = xpix
 		    p_coord(2, n_point) = ypix
 		    p_coord(3, n_point) = iz
