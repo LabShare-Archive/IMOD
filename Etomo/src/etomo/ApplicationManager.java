@@ -8,7 +8,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
-import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.ToolTipManager;
 import javax.swing.UIManager;
@@ -37,7 +36,6 @@ import etomo.process.ProcessManager;
 import etomo.process.ProcessState;
 import etomo.process.SystemProcessException;
 import etomo.process.SystemProgram;
-import etomo.storage.EtomoFileFilter;
 import etomo.storage.ParameterStore;
 import etomo.storage.Storable;
 import etomo.type.AxisID;
@@ -51,7 +49,6 @@ import etomo.ui.AlignmentEstimationDialog;
 import etomo.ui.CoarseAlignDialog;
 import etomo.ui.ContextPopup;
 import etomo.ui.FiducialModelDialog;
-import etomo.ui.FixedDim;
 import etomo.ui.MainFrame;
 import etomo.ui.PostProcessingDialog;
 import etomo.ui.PreProcessingDialog;
@@ -77,6 +74,11 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.66  2003/09/30 02:18:57  rickg
+ * <p> Bug 249
+ * <p> Proper New dialog behavior when not saving the EDF
+ * <p> Also moved message dialogs to the mainFrame
+ * <p>
  * <p> Revision 2.65  2003/09/29 23:34:57  sueh
  * <p> bug236 Added UseLinearInterpolation to
  * <p> TomogramGenerationDialog.
@@ -510,7 +512,7 @@ public class ApplicationManager {
     // Open the etomo data file if one was found on the command line
     if (!testParamFilename.equals("")) {
       File etomoDataFile = new File(testParamFilename);
-      if (openTestParamFile(etomoDataFile)) {
+      if (loadTestParamFile(etomoDataFile)) {
         openProcessingPanel();
       }
       else {
@@ -3269,59 +3271,67 @@ public class ApplicationManager {
    */
   public void openNewDataset() {
     if (saveTestParamIfNecessary()) {
-      // Delete the objects associated with the current dataset
-      metaData = new MetaData();
-      paramFile = null;
-
-      setupDialog = null;
-      preProcDialogA = null;
-      preProcDialogB = null;
-      coarseAlignDialogA = null;
-      coarseAlignDialogB = null;
-      fiducialModelDialogA = null;
-      fiducialModelDialogB = null;
-      fineAlignmentDialogA = null;
-      fineAlignmentDialogB = null;
-      tomogramPositioningDialogA = null;
-      tomogramPositioningDialogB = null;
-      tomogramGenerationDialogA = null;
-      tomogramGenerationDialogB = null;
-      tomogramCombinationDialog = null;
-      postProcessingDialog = null;
-      settingsDialog = null;
-
-      comScriptMgr = new ComScriptManager(this);
-      processMgr = new ProcessManager(this);
-      processTrack = new ProcessTrack();
-      //  This will be created in the doneSetupDialog method
-      imodManager = null;
-
+			resetState();
       // Open the setup dialog
       openSetupDialog();
     }
   }
 
-  public void openExistingDataset() {
+  /**
+   * Open an existing EDF file
+   */
+  public void openExistingDataset(File paramFile) {
     if (saveTestParamIfNecessary()) {
-      //  Open up the file chooser in current working directory
-      JFileChooser chooser =
-        new JFileChooser(new File(System.getProperty("user.dir")));
-      EtomoFileFilter edfFilter = new EtomoFileFilter();
-      chooser.setFileFilter(edfFilter);
-
-      chooser.setDialogTitle("Open etomo data file");
-      chooser.setPreferredSize(FixedDim.fileChooser);
-      chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-      int returnVal = chooser.showOpenDialog(mainFrame);
-      if (returnVal == JFileChooser.APPROVE_OPTION) {
-        File paramFile = chooser.getSelectedFile();
-        if (openTestParamFile(paramFile)) {
-          openProcessingPanel();
-        }
+      //  Ask the user for a EDF file if one is not supplied
+      if (paramFile == null) {
+        paramFile = mainFrame.openEtomoDataFileDialog();
+      }
+      if (paramFile == null) {
+        return;
+      }
+      resetState();
+      if (loadTestParamFile(paramFile)) {
+        openProcessingPanel();
+      }
+      else {
+      	resetState();
+				openSetupDialog();
       }
     }
   }
 
+	/**
+	 * Reset the state of the application to the startup condition
+	 */
+	private void resetState() {
+		// Delete the objects associated with the current dataset
+		metaData = new MetaData();
+		paramFile = null;
+
+		setupDialog = null;
+		preProcDialogA = null;
+		preProcDialogB = null;
+		coarseAlignDialogA = null;
+		coarseAlignDialogB = null;
+		fiducialModelDialogA = null;
+		fiducialModelDialogB = null;
+		fineAlignmentDialogA = null;
+		fineAlignmentDialogB = null;
+		tomogramPositioningDialogA = null;
+		tomogramPositioningDialogB = null;
+		tomogramGenerationDialogA = null;
+		tomogramGenerationDialogB = null;
+		tomogramCombinationDialog = null;
+		postProcessingDialog = null;
+		settingsDialog = null;
+
+		comScriptMgr = new ComScriptManager(this);
+		processMgr = new ProcessManager(this);
+		processTrack = new ProcessTrack();
+		//  This will be created in the doneSetupDialog method
+		imodManager = null;
+	}
+	
   /**
    * If the current state needs to be saved the users is queried with a dialog
    * box.
@@ -3357,7 +3367,7 @@ public class ApplicationManager {
         return false;
       }
     }
-    
+
     return true;
   }
 
@@ -3366,7 +3376,7 @@ public class ApplicationManager {
    * test parameter file.
    * @param paramFile the File object specifiying the data parameter file.
    */
-  public boolean openTestParamFile(File paramFile) {
+  public boolean loadTestParamFile(File paramFile) {
     FileInputStream processDataStream;
 
     try {
@@ -3377,6 +3387,8 @@ public class ApplicationManager {
       storable[1] = processTrack;
       paramStore.load(storable);
 
+			// FIXME  need to detect an invalid EDF file and return a false
+			 
       // Set the current working directory for the application, this is the
       // path to the EDF file.  The working directory is defined by the current
       // user.dir system property.
