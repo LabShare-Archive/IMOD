@@ -51,6 +51,9 @@ import etomo.type.ProcessTrack;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.4  2004/05/19 23:11:47  sueh
+ * <p> bug# 425 if the window is too tall for the screen, resize it
+ * <p>
  * <p> Revision 3.3  2004/05/15 01:42:12  sueh
  * <p> bug# 415 MainFrame is already calling System.exit(), so don't
  * <p> do EXIT_ON_CLOSE when X button is pressed.
@@ -555,8 +558,14 @@ public class MainFrame extends JFrame implements ContextMenu {
       //find out width before calling packAxis because setDividerLocation() with
       //0 or 1 does not cause the width of either panel to be 0 until after this
       //this function is finished
-      int widthA = axisPanelA.getWidth();
-      int widthB = axisPanelB.getWidth();
+      int widthA = 0;
+      int widthB = 0;
+      if (axisPanelA != null) {
+        widthA = axisPanelA.getWidth();
+      }
+      if (axisPanelB != null) {
+        widthB = axisPanelB.getWidth();
+      }
       packAxis(widthA, widthB);
       Toolkit toolkit = Toolkit.getDefaultToolkit();
       Dimension screenSize = toolkit.getScreenSize();
