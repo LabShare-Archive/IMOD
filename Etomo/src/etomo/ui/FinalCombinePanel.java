@@ -43,7 +43,9 @@ import etomo.comscript.Patchcrawl3DParam;
  * @version $Revision$
  * 
  * <p>
- * $Log$
+ * $Log$ Revision 1.16 2003/10/16 21:03:35 rickg
+ * Bug# 303 Label changes and re-layout
+ * 
  * <p>
  * Revision 1.15 2003/10/15 22:45:40 rickg
  * <p>
@@ -171,12 +173,8 @@ public class FinalCombinePanel implements ContextMenu {
 
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
 
-    //  Get the current text height from one of the
-    double height = cbUsePatchRegionModel.getPreferredSize().getHeight();
-
     //  Set the button sizes
-    Dimension dimButton = new Dimension();
-    dimButton.setSize(7 * height, 2 * height);
+    Dimension dimButton = UIParameters.getButtonDimension();
     btnPatchRegionModel.setPreferredSize(dimButton);
     btnPatchRegionModel.setMaximumSize(dimButton);
     btnPatchVectorModel.setPreferredSize(dimButton);
@@ -199,6 +197,17 @@ public class FinalCombinePanel implements ContextMenu {
     btnMatchorwarpRestart.setMaximumSize(dimButton);
     btnMatchorwarpTrial.setPreferredSize(dimButton);
     btnMatchorwarpTrial.setMaximumSize(dimButton);
+
+    // Layout Patch region model panel
+    pnlPatchRegionModel.setLayout(
+      new BoxLayout(pnlPatchRegionModel, BoxLayout.X_AXIS));
+    pnlPatchRegionModel.setBorder(
+      new EtchedBorder("Patch Region Model").getBorder());
+    pnlPatchRegionModel.add(cbUsePatchRegionModel);
+		pnlPatchRegionModel.add(Box.createRigidArea(FixedDim.x10_y0));
+    pnlPatchRegionModel.add(btnPatchRegionModel);
+		pnlPatchRegionModel.add(Box.createHorizontalGlue());
+
 
     // Layout the Patchcorr panel
     pnlPatchcorr.setLayout(new BoxLayout(pnlPatchcorr, BoxLayout.Y_AXIS));
@@ -245,22 +254,17 @@ public class FinalCombinePanel implements ContextMenu {
 
     pnlPatchcorr.add(btnPatchcorrRestart);
     pnlPatchcorr.add(Box.createRigidArea(FixedDim.x0_y5));
-    pnlRoot.add(pnlPatchcorr);
+
 
     //  Layout the Matchorwarp panel
     pnlMatchorwarp.setLayout(new BoxLayout(pnlMatchorwarp, BoxLayout.Y_AXIS));
     pnlMatchorwarp.setBorder(
       new EtchedBorder("Matchorwarp Parameters").getBorder());
 
-    pnlPatchRegionModel.setLayout(
-      new BoxLayout(pnlPatchRegionModel, BoxLayout.X_AXIS));
-    pnlPatchRegionModel.add(cbUsePatchRegionModel);
-    pnlPatchRegionModel.add(btnPatchRegionModel);
-    pnlMatchorwarp.add(pnlPatchRegionModel);
+		pnlMatchorwarp.add(Box.createRigidArea(FixedDim.x0_y10));
+		pnlMatchorwarp.add(ltfRefineLimit.getContainer());
     pnlMatchorwarp.add(Box.createRigidArea(FixedDim.x0_y10));
     pnlMatchorwarp.add(ltfWarpLimit.getContainer());
-    pnlMatchorwarp.add(Box.createRigidArea(FixedDim.x0_y10));
-    pnlMatchorwarp.add(ltfRefineLimit.getContainer());
     pnlMatchorwarp.add(Box.createRigidArea(FixedDim.x0_y10));
 
     pnlMatchorwarp.add(cbtfXLowerExclude.getContainer());
@@ -281,7 +285,6 @@ public class FinalCombinePanel implements ContextMenu {
     pnlMatchorwarpButtons.add(Box.createHorizontalGlue());
     pnlMatchorwarp.add(pnlMatchorwarpButtons);
     pnlMatchorwarp.add(Box.createRigidArea(FixedDim.x0_y5));
-    pnlRoot.add(pnlMatchorwarp);
 
     //  Create the button panel
     pnlButton.setLayout(new BoxLayout(pnlButton, BoxLayout.X_AXIS));
@@ -294,6 +297,11 @@ public class FinalCombinePanel implements ContextMenu {
     pnlButton.add(Box.createHorizontalGlue());
     pnlButton.add(btnImodCombined);
     pnlButton.add(Box.createHorizontalGlue());
+
+    //  Root panel layout
+		pnlRoot.add(pnlPatchRegionModel);
+		pnlRoot.add(pnlPatchcorr);
+		pnlRoot.add(pnlMatchorwarp);		
     pnlRoot.add(Box.createVerticalGlue());
     pnlRoot.add(pnlButton);
 
