@@ -1362,7 +1362,7 @@ void XyzWindow::DrawCurrentPoint()
 
   zapCurrentPointSize(obj, &modPtSize, &backupSize, &imPtSize);
   psize = modPtSize;
-  if (cont->psize > 1 && 
+  if (cont && cont->psize > 1 && 
       (pnt == cont->pts || pnt == cont->pts + cont->psize - 1))
     psize = backupSize;
 
@@ -1695,6 +1695,14 @@ void XyzGL::mouseMoveEvent( QMouseEvent * event )
 
 /*
 $Log$
+Revision 4.2  2003/03/03 22:09:49  mast
+Added grab bars to the sliders and color coded the sliders and boxes.
+Added ability to display spheres for any objects with point sizes.
+Made all points and connecting lines display in XZ and YZ windows, with
+the projection of the current contour toggleable with P.
+Implemented dynamic sizes for current point and end point markers.
+Eliminated separate routine for drawing current contour.
+
 Revision 4.1  2003/02/10 20:29:03  mast
 autox.cpp
 
