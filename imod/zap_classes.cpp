@@ -411,9 +411,12 @@ void ZapGL::paintGL()
   zapPaint(mZap);
 }
 
+// When the timer fires after the first draw, set geometry again and do first
+// real draw
 void ZapGL::timerEvent(QTimerEvent * e )
 {
   killTimer(mTimerID);
+  mZap->qtWindow->setGeometry(mZap->startingGeom);
   updateGL();
 }
 
@@ -441,6 +444,9 @@ void ZapGL::mouseMoveEvent ( QMouseEvent * e )
 
 /*
 $Log$
+Revision 4.8  2003/09/15 21:04:19  mast
+Allow zooms to 4 decimal places
+
 Revision 4.7  2003/04/11 21:47:28  mast
 adding tooltips
 
