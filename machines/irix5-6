@@ -196,11 +196,14 @@ EOF
 # Set up to copy qt lib for a distribution, and set name of LD_LIBRARY variable
 echo 'QTINSTLIBDIR = qtlib' >> $configure
 set ld_lib_var      = LD_LIBRARYN32_PATH
-echo 'INSTALL_FILES = IMOD-sgi.csh sgi.cshrc IMOD-sgi.sh' >> $configure
+echo 'INSTALL_FILES = IMOD-sgi.csh sgi.cshrc IMOD-sgi.sh sgi.bashrc' >> $configure
 if ($distname == "") set distname = _irix6.5
 
 
 #  $Log$
+#  Revision 3.22  2004/04/08 17:01:18  mast
+#  Changes for separate library-building flags
+#
 #  Revision 3.21  2004/01/29 04:22:27  rickg
 #  added IMOD-sgi.sh to INSTALL_FILES
 #
