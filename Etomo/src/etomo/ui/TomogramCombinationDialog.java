@@ -36,6 +36,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.9  2004/06/14 23:39:53  rickg
+ * <p> Bug #383 Transitioned to using solvematch
+ * <p>
  * <p> Revision 3.8  2004/06/13 17:03:23  rickg
  * <p> Solvematch mid change
  * <p>
@@ -289,7 +292,7 @@ public class TomogramCombinationDialog
    * to the other tab(s).  False when copying data into the current tab (when
    * running combine on the setup tab).
    */
-  void synchronize(String tabTitle,
+  public void synchronize(String tabTitle,
     boolean copyFromCurrentTab,
     int fieldSet) {
     if (tabTitle.equals(lblSetup)) {
