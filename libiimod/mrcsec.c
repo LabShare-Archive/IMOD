@@ -96,7 +96,6 @@ static int mrcReadSectionAny(struct MRCheader *hdata, struct LoadInfo *li,
   int  lly = readY ? li->zmin : li->ymin;
   int  ury = readY ? li->zmax : li->ymax;
   int xsize = urx - llx + 1;
-  int ysize = ury - lly + 1;
      
   float slope  = li->slope;
   float offset = li->offset;
@@ -115,15 +114,75 @@ static int mrcReadSectionAny(struct MRCheader *hdata, struct LoadInfo *li,
   /* Buffer to read lines into; may be replaced by temporary buffer for 
      reading */
   unsigned char *bdata = buf;
+
+  /* Buffer to place complex data into; may be temporary for mirroring */
+  unsigned char *fft = buf;
   unsigned char *map = NULL;
   int freeMap = 0;
   unsigned char *inptr;
   b3dInt16 *sdata;
   b3dUInt16 *usdata;
+  int imXsize, imYmin, imYmax, ymin, ymax, llfx, llfy, ulfx, ulfy, urfx, urfy;
+  int lrfx, lrfy, x0, x1, x2, x3, cury, toggleY, imNx;
+  int llx2, llfx2, llfy2, ulfx2, ulfy2, ybase;
 
   int doscale = (offset <= -1.0 || offset >= 1.0 || 
                  slope < 0.995 || slope > 1.005);
   /* printf ("read slope %f  offset %f\n", slope, offset); */
+
+  /* Adjust loading parameters if mirroring an FFT 
+     This is hopelessly complex because it replicates the mirrored FFT produced
+     by clip, with the extra right column placed on the left and the bottom
+     left row a duplicate of the row above (except for first pixel) */
+  if (li->mirrorFFT && byte) {
+    imXsize = xsize;
+    imNx = 2 * (nx - 1);
+
+    /* Get source for four corners, including a point in from the left edge
+       if necessary, and adjust xmin if all to one side of Y axis */
+    imYmin = readY ? cz : li->ymin;
+    imYmax = readY ? cz : li->ymax;
+    llx2 = llx < urx ? llx + 1 : llx;
+    mrcMirrorSource(imNx, ny, llx, imYmin, &llfx, &llfy);
+    mrcMirrorSource(imNx, ny, llx, imYmax, &ulfx, &ulfy);
+    mrcMirrorSource(imNx, ny, llx2, imYmin, &llfx2, &llfy2);
+    mrcMirrorSource(imNx, ny, llx2, imYmax, &ulfx2, &ulfy2);
+    mrcMirrorSource(imNx, ny, urx, imYmin, &lrfx, &lrfy);
+    mrcMirrorSource(imNx, ny, urx, imYmax, &urfx, &urfy);
+    llx = 0;
+    if (urx < imNx / 2)
+      llx = lrfx;
+    if (llx > imNx / 2)
+      llx = llfx;
+
+    /* Get xmax, ymin, ymax from these corners; get y limits and xsize */
+    urx = llfx > urfx ? llfx : urfx;
+    urx = llfx2 > urx ? llfx2 : urx;
+    ymin = llfy < ulfy ? llfy : ulfy;
+    ymin = ymin < lrfy ? ymin : lrfy;
+    ymin = ymin < urfy ? ymin : urfy;
+    ymin = ymin < llfy2 ? ymin : llfy2;
+    ymin = ymin < ulfy2 ? ymin : ulfy2;
+    ymax = llfy > ulfy ? llfy : ulfy;
+    ymax = ymax > lrfy ? ymax : lrfy;
+    ymax = ymax > urfy ? ymax : urfy;
+    ymax = ymax > llfy2 ? ymax : llfy2;
+    ymax = ymax > ulfy2 ? ymax : ulfy2;
+    lly = readY ? li->zmin : ymin;
+    ury = readY ? li->zmax : ymax;
+    xsize = urx - llx + 1;
+
+    /* Set up flip-flip between two lines if needed when reading in Y */
+    toggleY = -1;
+    if (readY && ymin < ymax) {
+      toggleY = 0;
+      cz = ymin;
+    }
+    /* fprintf(stderr, "llx %d urx %d lly %d ury %d xsize %d ymin %d ymax %d "
+            "imYmin %d imYmax "
+            "%d\n", llx, urx, lly, ury, xsize, ymin, ymax, imYmin, imYmax);
+            fflush(stderr); */
+  }
 
   /* get pixel size based on mode, and prepare scaling and set flags if
      need another data array */
@@ -274,6 +333,10 @@ static int mrcReadSectionAny(struct MRCheader *hdata, struct LoadInfo *li,
       case MRC_MODE_COMPLEX_FLOAT:
         if (hdata->swapped)
           mrc_swap_floats(fdata, xsize * 2);
+        if (li->mirrorFFT) {
+          fft = bdata;
+          pindex = 0;
+        }
         for (i = 0; i < xsize; i++, pindex++) {
           fpixel = sqrt((double)((fdata[i*2] * fdata[i*2]) + 
                                  (fdata[(i*2)+1] * fdata[(i*2)+1])));
@@ -282,14 +345,85 @@ static int mrcReadSectionAny(struct MRCheader *hdata, struct LoadInfo *li,
             pixel = outmin;
           if (pixel > outmax)
             pixel = outmax;
-          buf[pindex] = pixel;
+          fft[pindex] = pixel;
         }
+
+        /* MIRRORED FFT DATA */
+
+        if (li->mirrorFFT) {
+
+          /* See if data are needed directly - get intersection with image */
+          cury = readY ? cz : j;
+          ybase = readY ? j- lly : cury - imYmin;
+          x0 = nx - 1 + llx;
+          x1 = nx - 1 + urx;
+          if (cury >= imYmin && cury <= imYmax) {
+            if (x1 >= li->xmin && x0 <= li->xmax) {
+              x2 = x0 > li->xmin ? x0 : li->xmin;
+              x3 = x1 < li->xmax ? x1 : li->xmax;
+              memcpy(&buf[(x2 - li->xmin) + ybase * imXsize],
+                     &fft[x2 - x0], x3 + 1 - x2);
+            }
+            /* fprintf(stderr, "direct cury %d x0 %d x1 %d  ", cury, x0, x1);
+               fprintf(stderr, "x2 %d x3 %d\n", x2, x3); */
+
+            /* Is the rightmost pixel needed? */
+            if (urx == nx - 1 && li->xmin == 0) 
+              buf[ybase * imXsize] = fft[xsize - 1];
+          }
+
+          /* See if data are needed for mirror image */
+          cury = ny - cury;
+          x0 = nx - 1 - urx;
+          x1 = nx - 1 - llx;
+          if (x1 >= li->xmin && x0 <= li->xmax) {
+            x2 = x0 > li->xmin ? x0 : li->xmin;
+            x3 = x1 < li->xmax ? x1 : li->xmax;
+            
+            /* Here the first column and middle column need exclusion 
+               If x2 becomes > x3, the loop will not be executed */
+            if (!x2)
+              x2 = 1;
+            if (x3 >= nx - 1)
+              x3 = nx - 2;
+            ybase = readY ? j- lly : cury - imYmin;
+            if (cury >= imYmin && cury <= imYmax) {
+              /* fprintf(stderr, "mirror cury %d x0 %d x1 %d  ", cury, x0, x1);
+                 fprintf(stderr, "x2 %d x3 %d\n", x2, x3); */
+              for (i = x3 - x2; i >= 0; i--)
+                buf[i + x2 - li->xmin + ybase * imXsize] = fft[x1 - x2 - i];
+            }
+
+            /* Replicate bottom left line if needed */
+            ybase = readY ? j- lly : 0;
+            if (cury == 1 && imYmin == 0)
+              for (i = x3 - x2; i >= 0; i--)
+                buf[i + x2 - li->xmin + ybase * imXsize] = fft[x1 - x2 - i];
+          }
+
+          /* If toggling between lines, set up seek and next cz value */
+          if (toggleY >= 0) {
+            toggleY = 1 - toggleY;
+            if (toggleY) {
+              cz = ymax;
+              seek_endline = pixSize * (nx * (ymax - ymin) - urx - 1);
+              j--;
+            } else {
+              cz = ymin;
+              seek_endline = pixSize * (nx * (ymin + ny - ymax) - urx - 1);
+            }
+            /* fprintf(stderr, "toggleY %d cz %d seek %d\n",toggleY, cz,
+               seek_endline); */
+          }
+          /* fflush(stderr); */
+        }        
         break;
       }
 
     } else {
 
-      /* Raw data - do some swaps, advance buffer pointer */
+      /* RAW DATA - do some swaps, advance buffer pointer */
+
       if (hdata->swapped)
         switch(hdata->mode) {
         case MRC_MODE_SHORT:
@@ -320,6 +454,9 @@ static int mrcReadSectionAny(struct MRCheader *hdata, struct LoadInfo *li,
 
 /*
 $Log$
+Revision 3.5  2004/01/21 00:57:04  mast
+Stopped freeing map from byte_map
+
 Revision 3.4  2004/01/17 20:38:07  mast
 Convert to calling b3d I/O routines explicitly
 

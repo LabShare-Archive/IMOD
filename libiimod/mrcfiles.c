@@ -622,8 +622,8 @@ float mrc_read_point( FILE *fin, struct MRCheader *hdata, int x, int y, int z)
          ( (z * hdata->nx * hdata->ny) + (y * hdata->nx) + (x)))),
          SEEK_CUR); */
   mrc_big_seek(fin, hdata->headerSize + channel * pixsize *  
-               (y * hdata->nx + x), channel * pixsize * z, hdata->nx * hdata->ny,
-               SEEK_CUR);
+               (y * hdata->nx + x), channel * pixsize * z, 
+               hdata->nx * hdata->ny, SEEK_CUR);
   switch(hdata->mode){
   case 0:
     fread(&bdata, pixsize, 1, fin);     
@@ -1158,6 +1158,22 @@ void mrcComplexSminSmax(float inMin, float inMax, float *outMin,
   *outMax = (float)log((double)(1.0 + kscale * inMax));
 }
 
+/* For a mirrored FFT whose full size is nx by ny, compute where the
+   location imageX, imageY in image comes from in file, ie.e., fileX,fileY */
+void mrcMirrorSource(int nx, int ny, int imageX, int imageY, int *fileX,
+                     int *fileY)
+{
+  *fileY = imageY;
+  if (!imageX) {
+    *fileX = nx / 2;
+  } else if (imageX >= nx / 2) {
+    *fileX = imageX - nx / 2;
+  } else {
+    *fileX = nx / 2 - imageX;
+    *fileY = imageY ? ny - imageY : ny - 1;
+  }
+}
+
 /*****************************************************************************/
 /* function read_mrc_byte: reads an mrc file into arrary of unsigned bytes.  */
 /* Input:  FILE      *fin - pointer to mrcfile to be read in.                */
@@ -1657,6 +1673,7 @@ int mrc_init_li(struct LoadInfo *li, struct MRCheader *hd)
     li->black = 0;
     li->white = 255;
     li->axis = 3;
+    li->mirrorFFT = 0;
     li->smin = li->smax = 0.0f;
     li->contig = 0;
     li->outmin = 0;
@@ -2081,6 +2098,9 @@ void mrc_swap_floats(float *data, int amt)
 
 /*
 $Log$
+Revision 3.18  2004/09/10 21:33:52  mast
+Eliminated long variables
+
 Revision 3.17  2004/04/22 19:14:19  mast
 Added error checks when writing header
 

@@ -14,6 +14,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.8  2004/03/18 17:56:43  mast
+Changed to calling central routine with extra header byte counts
+
 Revision 3.7  2004/03/17 05:38:19  mast
 Corrected byte count for 5th extra header entry (now one short)
 
@@ -70,6 +73,7 @@ int iiMRCreadSection(ImodImageFile *inFile, char *buf, int inSection)
   li.black = 0;
   li.white = 255;
   li.axis = inFile->axis;
+  li.mirrorFFT = 0;
   h->fp = inFile->fp;
   return (mrcReadSection(h, &li, (unsigned char *)buf, inSection));
 }
@@ -99,6 +103,7 @@ int iiMRCreadSectionByte(ImodImageFile *inFile, char *buf, int inSection)
   li.outmin   = 0;
   li.outmax   = 255;
   li.axis   = inFile->axis;
+  li.mirrorFFT = inFile->mirrorFFT;
   h->fp = inFile->fp; 
   return (mrcReadSectionByte(h, &li, (unsigned char *)buf, inSection));
 }

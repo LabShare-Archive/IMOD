@@ -14,6 +14,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.4  2004/01/08 06:41:07  mast
+Fixed complex scaling
+
 Revision 3.3  2004/01/05 17:53:54  mast
 Changed imin/imax to smin/smax and initialized axis to 3
 
@@ -47,6 +50,7 @@ ImodImageFile *iiNew()
   ofile->slope  = 1.0f;
   ofile->smax   = 255;
   ofile->axis   = 3;
+  ofile->mirrorFFT = 0;
   ofile->format = IIFILE_UNKNOWN;
   ofile->fp     = NULL;
   ofile->readSection     = NULL;

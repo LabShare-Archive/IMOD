@@ -47,6 +47,7 @@ EXPORTS
 	mrc_get_scale
 	mrc_pow2pad
 	mrcFreeDataMemory
+	mrcMirrorSource
 	mrc_zoom_center
 	mrc_slice_zooms
 	get_byte_map
@@ -107,6 +108,8 @@ EXPORTS
 	iiTIFFCheck
 	mrcReadYByte
 	mrc_slice_wrap
+	sliceReduceMirroredFFT
+	sliceWrapFFTLines
 	mrc_slice_interpolate
 	iiDelete
 	iiMRCLoadPCoord
