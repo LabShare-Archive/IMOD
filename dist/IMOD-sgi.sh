@@ -58,7 +58,7 @@ fi
 #
 # Set a variable to indicate where our copy of Qt library is
 #
-setenv IMOD_QTLIBDIR $IMOD_DIR/qtlib
+export IMOD_QTLIBDIR=$IMOD_DIR/qtlib
 
 #
 # Set up aliases to run all qt programs through runimodqtapp
