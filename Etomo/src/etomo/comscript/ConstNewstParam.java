@@ -16,6 +16,9 @@ import java.util.Vector;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.3  2004/02/18 00:50:32  rickg
+ * <p> Check buffer length when deleting trailing comma in getOffsetsInXandY
+ * <p>
  * <p> Revision 3.2  2004/02/14 00:16:12  rickg
  * <p> Updated for PIP based newstack, fixed return values where
  * <p> internal objects were returned.
@@ -86,6 +89,9 @@ public class ConstNewstParam {
   protected int imagesAreBinned;
   protected FortranInputString testLimits;
   protected String parameterFile;
+  
+  //defaults
+  public static final int BIN_BY_FACTOR_DEFAULT = 1;
 
   public ConstNewstParam() {
     initializeEmpty();
@@ -100,7 +106,7 @@ public class ConstNewstParam {
    * @return Returns the binByFactor.
    */
   public int getBinByFactor() {
-    return binByFactor;
+    return ParamUtilities.get(binByFactor, BIN_BY_FACTOR_DEFAULT);
   }
   /**
    * @return Returns the contrastBlackWhite.
