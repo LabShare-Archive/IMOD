@@ -12,6 +12,10 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.9  2004/12/02 20:41:58  sueh
+ * <p> bug# 566 ContextPopup can specify an anchor in both the tomo guide and
+ * <p> the join guide.  Need to specify the guide to anchor.
+ * <p>
  * <p> Revision 1.8  2004/11/20 00:01:23  sueh
  * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
  * <p>
@@ -56,6 +60,7 @@ import etomo.ApplicationManager;
 import etomo.comscript.ConstNewstParam;
 import etomo.comscript.NewstParam;
 import etomo.type.AxisID;
+import etomo.type.ViewType;
 
 public class PrenewstPanel implements ContextMenu {
   public static final String rcsid = "$Id$";
@@ -77,7 +82,9 @@ public class PrenewstPanel implements ContextMenu {
     spinBinning = new LabeledSpinner("Coarse aligned image stack binning ",
       integerModel);
     spinBinning.setTextMaxmimumSize(UIParameters.getSpinnerDimension());
-
+    if (applicationManager.getMetaData().getViewType() == ViewType.MONTAGE) {
+      spinBinning.setEnabled(false);
+    }
     pnlPrenewst.setBorder(new EtchedBorder("Newstack Parameters").getBorder());
     UIUtilities.addWithYSpace(pnlPrenewst, spinBinning.getContainer());
     //  Align the UI objects along their left sides
