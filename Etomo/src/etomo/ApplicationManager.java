@@ -25,6 +25,10 @@ import etomo.ui.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.16  2002/10/17 16:23:04  rickg
+ * <p> Added private method to update the dependent tilt parameters when the
+ * <p> align.com parameters are changed
+ * <p>
  * <p> Revision 1.15  2002/10/16 17:37:18  rickg
  * <p> Construct a imodManager when a new data set is opened
  * <p>
@@ -89,6 +93,16 @@ public class ApplicationManager {
   private MetaData metaData = new MetaData();
   private File paramFile = null;
 
+  //  Process dialog references
+  private SetupDialog setupDialog = null;
+  private PreProcessingDialog preProcDialog = null;
+  private CoarseAlignDialog coarseAlignDialog = null;
+  private FiducialModelDialog fiducialModelDialog = null;
+  private AlignmentEstimationDialog alignmentEstimationDialog = null;
+  private TomogramPositioningDialog tomogramPositioningDialog = null;
+  private TomogramGenerationDialog tomogramGenerationDialog = null;
+  private TomogramCombinationDialog tomogramCombinationDialog = null;
+
   //  This object controls the reading and writing of David's com scripts
   private ComScriptManager comScriptMgr = new ComScriptManager(this);
 
@@ -123,7 +137,7 @@ public class ApplicationManager {
       (screenSize.width - frameSize.width) / 2,
       (screenSize.height - frameSize.height) / 2);
 
-    mainFrame.setVisible(true);
+    mainFrame.show();
   }
 
   /**Main method*/
@@ -142,32 +156,34 @@ public class ApplicationManager {
 
     //  Open the dialog in the appropriate mode for the current state of
     //  processing
-    SetupDialog setupDialog = new SetupDialog(this);
-    setupDialog.initializeFields(metaData);
+    if (setupDialog == null) {
+      setupDialog = new SetupDialog(this);
 
-    Dimension size = setupDialog.getSize();
-    setupDialog.setLocation(
-      (screenSize.width - size.width) / 2,
-      (screenSize.height - size.height) / 2);
-    setupDialog.setModal(false);
-    setupDialog.setVisible(true);
+      setupDialog.initializeFields(metaData);
+
+      Dimension size = setupDialog.getSize();
+      setupDialog.setLocation(
+        (screenSize.width - size.width) / 2,
+        (screenSize.height - size.height) / 2);
+      setupDialog.setModal(false);
+    }
+    setupDialog.show();
   }
 
   /**
    * Close message from the setup dialog window
    */
-  public void doneSetupDialog(SetupDialog setupDialog) {
-
-    //  Keep dialog box open until we get good info or it is cancelled
-    boolean dialogFinished = false;
+  public void doneSetupDialog() {
+    if (setupDialog == null) {
+      openMessageDialog(
+        "Can not update metadata parameters without an active setup dialog",
+        "Program logic error");
+    }
 
     //  Get the selected exit button
     DialogExitState exitState = setupDialog.getExitState();
 
-    if (exitState == DialogExitState.CANCEL) {
-      setupDialog.dispose();
-    }
-    else {
+    if (exitState != DialogExitState.CANCEL) {
       //  FIXME?  should this totally write over the metaData object?
       metaData = setupDialog.getFields();
 
@@ -180,7 +196,6 @@ public class ApplicationManager {
         if (metaData.getWorkingDirectory().length() > 0) {
           System.setProperty("user.dir", getWorkingDirectory());
         }
-        dialogFinished = true;
         isDataParamDirty = true;
 
         //  Initialize a new IMOD manager
@@ -191,39 +206,35 @@ public class ApplicationManager {
         errorMessage[0] = "Setup Parameter Error";
         errorMessage[1] = metaData.getInvalidReason();
         openMessageDialog(errorMessage, "Setup Parameter Error");
-        setupDialog.setVisible(true);
+        setupDialog.show();
         return;
       }
-    }
 
-    //  This allows the user to use existing com scripts by syncing the setup
-    //  parameters with the existing scripts
-    if (exitState == DialogExitState.POSTPONE) {
-      metaData.setComScriptCreated(true);
-    }
-
-    //  Create the com scripts
-    if (exitState == DialogExitState.EXECUTE) {
-      try {
-        processMgr.setupComScripts(metaData);
-        processTrack.setSetupState(ProcessState.COMPLETE);
-        mainFrame.setSetupState(ProcessState.COMPLETE);
+      if (exitState == DialogExitState.POSTPONE) {
         metaData.setComScriptCreated(true);
-        setupDialog.dispose();
-        dialogFinished = true;
       }
-      catch (BadComScriptException except) {
-        except.printStackTrace();
-        openMessageDialog(except.getMessage(), "Can't run copytomocoms");
-        dialogFinished = false;
-      }
-      catch (IOException except) {
-        openMessageDialog(
-          "Can't run copytomocoms\n" + except.getMessage(),
-          "Copytomocoms IOException");
-        dialogFinished = false;
+      else {
+        try {
+          processMgr.setupComScripts(metaData);
+          processTrack.setSetupState(ProcessState.COMPLETE);
+          mainFrame.setSetupState(ProcessState.COMPLETE);
+          metaData.setComScriptCreated(true);
+        }
+        catch (BadComScriptException except) {
+          except.printStackTrace();
+          openMessageDialog(except.getMessage(), "Can't run copytomocoms");
+        }
+        catch (IOException except) {
+          openMessageDialog(
+            "Can't run copytomocoms\n" + except.getMessage(),
+            "Copytomocoms IOException");
+        }
       }
     }
+
+    //  Free the dialog
+    setupDialog.dispose();
+    setupDialog = null;
   }
 
   /**
@@ -239,55 +250,58 @@ public class ApplicationManager {
 
     //  Open the dialog in the appropriate mode for the current state of
     //  processing
-    PreProcessingDialog preProcDialog = new PreProcessingDialog(this);
+    if (preProcDialog == null) {
+      preProcDialog = new PreProcessingDialog(this);
 
-    Dimension size = preProcDialog.getSize();
-    preProcDialog.setLocation(
-      (screenSize.width - size.width) / 2,
-      (screenSize.height - size.height) / 2);
-    preProcDialog.setModal(false);
+      Dimension size = preProcDialog.getSize();
+      preProcDialog.setLocation(
+        (screenSize.width - size.width) / 2,
+        (screenSize.height - size.height) / 2);
+      preProcDialog.setModal(false);
 
-    // Load the required ccderaser{|a|b}.com files
-    // Fill in the parameters and set it to the appropriate state
-    if (isDualAxis()) {
-      comScriptMgr.loadEraserCom(AxisID.FIRST);
-      preProcDialog.setCCDEraserParams(
-        comScriptMgr.getCCDEraserParam(AxisID.FIRST),
-        AxisID.FIRST);
+      // Load the required ccderaser{|a|b}.com files
+      // Fill in the parameters and set it to the appropriate state
+      if (isDualAxis()) {
+        comScriptMgr.loadEraserCom(AxisID.FIRST);
+        preProcDialog.setCCDEraserParams(
+          comScriptMgr.getCCDEraserParam(AxisID.FIRST),
+          AxisID.FIRST);
 
-      comScriptMgr.loadEraserCom(AxisID.SECOND);
-      preProcDialog.setCCDEraserParams(
-        comScriptMgr.getCCDEraserParam(AxisID.SECOND),
-        AxisID.SECOND);
-      preProcDialog.setEnabledB(true);
+        comScriptMgr.loadEraserCom(AxisID.SECOND);
+        preProcDialog.setCCDEraserParams(
+          comScriptMgr.getCCDEraserParam(AxisID.SECOND),
+          AxisID.SECOND);
+        preProcDialog.setEnabledB(true);
+      }
+      else {
+        comScriptMgr.loadEraserCom(AxisID.ONLY);
+        preProcDialog.setCCDEraserParams(
+          comScriptMgr.getCCDEraserParam(AxisID.ONLY),
+          AxisID.ONLY);
+        preProcDialog.setEnabledB(false);
+      }
     }
-    else {
-      comScriptMgr.loadEraserCom(AxisID.ONLY);
-      preProcDialog.setCCDEraserParams(
-        comScriptMgr.getCCDEraserParam(AxisID.ONLY),
-        AxisID.ONLY);
-      preProcDialog.setEnabledB(false);
-    }
-    preProcDialog.setVisible(true);
+    preProcDialog.show();
   }
 
-  public void donePreProcDialog(PreProcessingDialog preProcDialog) {
-
-    CCDEraserParam ccdEraserParam = new CCDEraserParam();
-
+  public void donePreProcDialog() {
+    if (preProcDialog == null) {
+      openMessageDialog(
+        "Can not update preprocessing parameters without an active "
+          + "preprocessing dialog",
+        "Program logic error");
+      return;
+    }
     //  Keep dialog box open until we get good info or it is cancelled
-    boolean dialogFinished = false;
     DialogExitState exitState = preProcDialog.getExitState();
 
-    if (exitState == DialogExitState.CANCEL) {
-      dialogFinished = true;
-    }
+    if (exitState != DialogExitState.CANCEL) {
 
-    else {
       //  Get the user input data from the dialog box.  The CCDEraserParam
       //  is first initialized from the currently loaded com script to
       //  provide deafault values for those not handled by the dialog box
-      //   get function needs some error checking
+      //  get function needs some error checking
+      CCDEraserParam ccdEraserParam = new CCDEraserParam();
       if (isDualAxis()) {
         ccdEraserParam = comScriptMgr.getCCDEraserParam(AxisID.FIRST);
         preProcDialog.getCCDEraserParams(ccdEraserParam, AxisID.FIRST);
@@ -336,17 +350,19 @@ public class ApplicationManager {
         }
 
       }
-      processTrack.setPreProcessingState(ProcessState.INPROGRESS);
-      mainFrame.setPreProcState(ProcessState.INPROGRESS);
+      if (exitState == DialogExitState.EXECUTE) {
+        processTrack.setPreProcessingState(ProcessState.COMPLETE);
+        mainFrame.setPreProcState(ProcessState.COMPLETE);
+      }
+      else {
+        processTrack.setPreProcessingState(ProcessState.INPROGRESS);
+        mainFrame.setPreProcState(ProcessState.INPROGRESS);
+      }
     }
 
-    if (exitState == DialogExitState.EXECUTE) {
-      processTrack.setPreProcessingState(ProcessState.COMPLETE);
-      mainFrame.setPreProcState(ProcessState.COMPLETE);
-    }
-
-    //  Close the dialog box
+    //  Close and delete the dialog box
     preProcDialog.dispose();
+    preProcDialog = null;
   }
 
   /**
@@ -386,54 +402,57 @@ public class ApplicationManager {
     }
 
     //  Create the dialog box
-    CoarseAlignDialog coarseAlignDialog = new CoarseAlignDialog(this);
-    Dimension size = coarseAlignDialog.getSize();
-    coarseAlignDialog.setLocation(
-      (screenSize.width - size.width) / 2,
-      (screenSize.height - size.height) / 2);
-    coarseAlignDialog.setModal(false);
+    if (coarseAlignDialog == null) {
+      coarseAlignDialog = new CoarseAlignDialog(this);
+      Dimension size = coarseAlignDialog.getSize();
+      coarseAlignDialog.setLocation(
+        (screenSize.width - size.width) / 2,
+        (screenSize.height - size.height) / 2);
+      coarseAlignDialog.setModal(false);
 
-    // Load the required xcorr{|a|b}.com files
-    // Fill in the parameters and set it to the appropriate state
-    if (isDualAxis()) {
-      comScriptMgr.loadXcorrCom(AxisID.FIRST);
-      coarseAlignDialog.setCrossCorrelationParams(
-        comScriptMgr.getTiltxcorrParam(AxisID.FIRST),
-        AxisID.FIRST);
+      // Load the required xcorr{|a|b}.com files
+      // Fill in the parameters and set it to the appropriate state
+      if (isDualAxis()) {
+        comScriptMgr.loadXcorrCom(AxisID.FIRST);
+        coarseAlignDialog.setCrossCorrelationParams(
+          comScriptMgr.getTiltxcorrParam(AxisID.FIRST),
+          AxisID.FIRST);
 
-      comScriptMgr.loadXcorrCom(AxisID.SECOND);
-      coarseAlignDialog.setCrossCorrelationParams(
-        comScriptMgr.getTiltxcorrParam(AxisID.SECOND),
-        AxisID.SECOND);
+        comScriptMgr.loadXcorrCom(AxisID.SECOND);
+        coarseAlignDialog.setCrossCorrelationParams(
+          comScriptMgr.getTiltxcorrParam(AxisID.SECOND),
+          AxisID.SECOND);
 
-      coarseAlignDialog.setEnabledB(true);
+        coarseAlignDialog.setEnabledB(true);
+      }
+      else {
+        comScriptMgr.loadXcorrCom(AxisID.ONLY);
+        coarseAlignDialog.setCrossCorrelationParams(
+          comScriptMgr.getTiltxcorrParam(AxisID.ONLY),
+          AxisID.ONLY);
+
+        coarseAlignDialog.setEnabledB(false);
+      }
     }
-    else {
-      comScriptMgr.loadXcorrCom(AxisID.ONLY);
-      coarseAlignDialog.setCrossCorrelationParams(
-        comScriptMgr.getTiltxcorrParam(AxisID.ONLY),
-        AxisID.ONLY);
-
-      coarseAlignDialog.setEnabledB(false);
-    }
-
-    coarseAlignDialog.setVisible(true);
+    coarseAlignDialog.show();
   }
 
   /**
-   *
+   *  Get the parameters from the coarse align process dialog box
    */
-  public void doneCoarseAlignDialog(CoarseAlignDialog coarseAlignDialog) {
+  public void doneCoarseAlignDialog() {
+    if (coarseAlignDialog == null) {
+      openMessageDialog(
+        "Can not update coarse align without an active coarse align dialog",
+        "Program logic error");
+      return;
+    }
 
     DialogExitState exitState = coarseAlignDialog.getExitState();
 
-    if (exitState == DialogExitState.CANCEL) {
-      coarseAlignDialog.dispose();
-    }
-    else {
+    if (exitState != DialogExitState.CANCEL) {
       //  Get the user input data from the dialog box
-      boolean dialogFinished = updateXcorrCom(coarseAlignDialog);
-      if (dialogFinished) {
+      if (updateXcorrCom()) {
         processTrack.setCoarseAlignmentState(ProcessState.INPROGRESS);
 
         if (exitState == DialogExitState.EXECUTE) {
@@ -441,23 +460,24 @@ public class ApplicationManager {
         }
 
         mainFrame.setCoarseAlignState(processTrack.getCoarseAlignmentState());
-        coarseAlignDialog.dispose();
-
       }
+
       else {
-        coarseAlignDialog.setVisible(true);
+        coarseAlignDialog.show();
+        return;
       }
     }
+    coarseAlignDialog.dispose();
+    coarseAlignDialog = null;
   }
 
   /**
    * Get the parameters from dialog box and run the cross correlation script
    */
-  public void crossCorrelate(
-    AxisID axisID,
-    CoarseAlignDialog coarseAlignDialog) {
+  public void crossCorrelate(AxisID axisID) {
+
     // Get the parameters from the dialog box
-    if (updateXcorrCom(coarseAlignDialog)) {
+    if (updateXcorrCom()) {
       processMgr.crossCorrelate(axisID);
     }
   }
@@ -497,7 +517,14 @@ public class ApplicationManager {
    * @return true if successful in getting the parameters and saving the com
    * script
    */
-  private boolean updateXcorrCom(CoarseAlignDialog coarseAlignDialog) {
+  private boolean updateXcorrCom() {
+    if (coarseAlignDialog == null) {
+      openMessageDialog(
+        "Can not update xcorr?.com without an active coarse align dialog",
+        "Program logic error");
+      return false;
+    }
+
     TiltxcorrParam tiltXcorrParam;
     AxisID currentAxis = AxisID.ONLY;
     try {
@@ -557,50 +584,53 @@ public class ApplicationManager {
 
     //  Open the dialog in the appropriate mode for the current state of
     //  processing
-    FiducialModelDialog fiducialModelDialog = new FiducialModelDialog(this);
-    Dimension size = fiducialModelDialog.getSize();
-    fiducialModelDialog.setLocation(
-      (screenSize.width - size.width) / 2,
-      (screenSize.height - size.height) / 2);
-    fiducialModelDialog.setModal(false);
-    //fiducialModelDialog.setAdvanced(advancedState.fiducialModel);
+    if (fiducialModelDialog == null) {
+      fiducialModelDialog = new FiducialModelDialog(this);
+      Dimension size = fiducialModelDialog.getSize();
+      fiducialModelDialog.setLocation(
+        (screenSize.width - size.width) / 2,
+        (screenSize.height - size.height) / 2);
+      fiducialModelDialog.setModal(false);
 
-    //  Load the required track{|a|b}.com files, fill in the dialog box params
-    //  and set it to the appropriate state
-    if (isDualAxis()) {
-      comScriptMgr.loadTrackCom(AxisID.FIRST);
-      fiducialModelDialog.setBeadtrackParams(
-        comScriptMgr.getBeadtrackParam(AxisID.FIRST),
-        AxisID.FIRST);
+      //  Load the required track{|a|b}.com files, fill in the dialog box params
+      //  and set it to the appropriate state
+      if (isDualAxis()) {
+        comScriptMgr.loadTrackCom(AxisID.FIRST);
+        fiducialModelDialog.setBeadtrackParams(
+          comScriptMgr.getBeadtrackParam(AxisID.FIRST),
+          AxisID.FIRST);
 
-      comScriptMgr.loadTrackCom(AxisID.SECOND);
-      fiducialModelDialog.setBeadtrackParams(
-        comScriptMgr.getBeadtrackParam(AxisID.SECOND),
-        AxisID.SECOND);
+        comScriptMgr.loadTrackCom(AxisID.SECOND);
+        fiducialModelDialog.setBeadtrackParams(
+          comScriptMgr.getBeadtrackParam(AxisID.SECOND),
+          AxisID.SECOND);
 
-      fiducialModelDialog.setEnabledB(true);
+        fiducialModelDialog.setEnabledB(true);
+      }
+      else {
+        comScriptMgr.loadTrackCom(AxisID.ONLY);
+        fiducialModelDialog.setBeadtrackParams(
+          comScriptMgr.getBeadtrackParam(AxisID.ONLY),
+          AxisID.ONLY);
+
+        fiducialModelDialog.setEnabledB(false);
+      }
     }
-    else {
-      comScriptMgr.loadTrackCom(AxisID.ONLY);
-      fiducialModelDialog.setBeadtrackParams(
-        comScriptMgr.getBeadtrackParam(AxisID.ONLY),
-        AxisID.ONLY);
-
-      fiducialModelDialog.setEnabledB(false);
-    }
-    fiducialModelDialog.setVisible(true);
+    fiducialModelDialog.show();
   }
 
-  public void doneFiducialModelDialog(FiducialModelDialog fiducialModelDialog) {
+  public void doneFiducialModelDialog() {
+    if (fiducialModelDialog == null) {
+      openMessageDialog(
+        "Can not update fiducial model without an active fiducial model dialog",
+        "Program logic error");
+      return;
+    }
 
     DialogExitState exitState = fiducialModelDialog.getExitState();
-    if (exitState == DialogExitState.CANCEL) {
-      fiducialModelDialog.dispose();
-    }
-    else {
+    if (exitState != DialogExitState.CANCEL) {
       //  Get the user input data from the dialog box
-      boolean dialogFinished = updateTrackCom(fiducialModelDialog);
-      if (dialogFinished) {
+      if (updateTrackCom()) {
         processTrack.setFiducialModelState(ProcessState.INPROGRESS);
 
         if (exitState == DialogExitState.EXECUTE) {
@@ -608,12 +638,14 @@ public class ApplicationManager {
         }
 
         mainFrame.setFiducialModelState(processTrack.getFiducialModelState());
-        fiducialModelDialog.dispose();
       }
       else {
-        fiducialModelDialog.setVisible(true);
+        fiducialModelDialog.show();
+        return;
       }
     }
+    fiducialModelDialog.dispose();
+    fiducialModelDialog = null;
   }
 
   /**
@@ -637,10 +669,8 @@ public class ApplicationManager {
    * Get the beadtrack parameters from the fiducial model dialog and run the
    * track com script
    */
-  public void fiducialModelTrack(
-    AxisID axisID,
-    FiducialModelDialog fiducialModelDialog) {
-    if (updateTrackCom(fiducialModelDialog)) {
+  public void fiducialModelTrack(AxisID axisID) {
+    if (updateTrackCom()) {
       processMgr.fiducialModelTrack(axisID);
     }
   }
@@ -665,10 +695,17 @@ public class ApplicationManager {
   /**
    * Update the specified track com script
    */
-  private boolean updateTrackCom(FiducialModelDialog fiducialModelDialog) {
-    BeadtrackParam beadtrackParam;
+  private boolean updateTrackCom() {
+    if (fiducialModelDialog == null) {
+      openMessageDialog(
+        "Can not update track?.com without an active fiducial model dialog",
+        "Program logic error");
+      return false;
+    }
+
     AxisID currentAxis = AxisID.ONLY;
     try {
+      BeadtrackParam beadtrackParam;
       if (isDualAxis()) {
         currentAxis = AxisID.FIRST;
         beadtrackParam = comScriptMgr.getBeadtrackParam(currentAxis);
@@ -717,59 +754,63 @@ public class ApplicationManager {
       return;
     }
 
-    //  Open the dialog in the appropriate mode for the current state of
-    //  processing
-    AlignmentEstimationDialog alignmentEstimationDialog =
-      new AlignmentEstimationDialog(this);
+    if (alignmentEstimationDialog == null) {
+      //  Open the dialog in the appropriate mode for the current state of
+      //  processing
+      alignmentEstimationDialog = new AlignmentEstimationDialog(this);
 
-    Dimension size = alignmentEstimationDialog.getSize();
-    alignmentEstimationDialog.setLocation(
-      (screenSize.width - size.width) / 2,
-      (screenSize.height - size.height) / 2);
-    alignmentEstimationDialog.setModal(false);
+      Dimension size = alignmentEstimationDialog.getSize();
+      alignmentEstimationDialog.setLocation(
+        (screenSize.width - size.width) / 2,
+        (screenSize.height - size.height) / 2);
+      alignmentEstimationDialog.setModal(false);
 
-    //  Load the required align{|a|b}.com files, fill in the dialog box params
-    //  and set it to the appropriate state
-    if (isDualAxis()) {
-      comScriptMgr.loadAlignCom(AxisID.FIRST);
-      alignmentEstimationDialog.setTiltalignParams(
-        comScriptMgr.getTiltalignParam(AxisID.FIRST),
-        AxisID.FIRST);
+      //  Load the required align{|a|b}.com files, fill in the dialog box params
+      //  and set it to the appropriate state
+      if (isDualAxis()) {
+        comScriptMgr.loadAlignCom(AxisID.FIRST);
+        alignmentEstimationDialog.setTiltalignParams(
+          comScriptMgr.getTiltalignParam(AxisID.FIRST),
+          AxisID.FIRST);
 
-      comScriptMgr.loadAlignCom(AxisID.SECOND);
-      alignmentEstimationDialog.setTiltalignParams(
-        comScriptMgr.getTiltalignParam(AxisID.SECOND),
-        AxisID.SECOND);
+        comScriptMgr.loadAlignCom(AxisID.SECOND);
+        alignmentEstimationDialog.setTiltalignParams(
+          comScriptMgr.getTiltalignParam(AxisID.SECOND),
+          AxisID.SECOND);
 
-      alignmentEstimationDialog.setEnabledB(true);
+        alignmentEstimationDialog.setEnabledB(true);
+      }
+      else {
+        comScriptMgr.loadAlignCom(AxisID.ONLY);
+        alignmentEstimationDialog.setTiltalignParams(
+          comScriptMgr.getTiltalignParam(AxisID.ONLY),
+          AxisID.ONLY);
+
+        alignmentEstimationDialog.setEnabledB(false);
+      }
     }
-    else {
-      comScriptMgr.loadAlignCom(AxisID.ONLY);
-      alignmentEstimationDialog.setTiltalignParams(
-        comScriptMgr.getTiltalignParam(AxisID.ONLY),
-        AxisID.ONLY);
-
-      alignmentEstimationDialog.setEnabledB(false);
-    }
-
-    alignmentEstimationDialog.setVisible(true);
+    alignmentEstimationDialog.show();
   }
 
   /**
    *
    *
    */
-  public void doneAlignmentEstimationDialog(AlignmentEstimationDialog alignmentEstimationDialog) {
+  public void doneAlignmentEstimationDialog() {
+    if (alignmentEstimationDialog == null) {
+      openMessageDialog(
+        "Can not update align?.com without an active alignment dialog",
+        "Program logic error");
+      return;
+    }
+
     DialogExitState exitState = alignmentEstimationDialog.getExitState();
 
-    if (exitState == DialogExitState.CANCEL) {
-      alignmentEstimationDialog.dispose();
-    }
-    else {
-      //  Get the user input data from the dialog box
-      boolean dialogFinished = updateAlignCom(alignmentEstimationDialog);
+    if (exitState != DialogExitState.CANCEL) {
 
-      if (dialogFinished) {
+      //  Get the user input data from the dialog box
+      if (updateAlignCom()) {
+
         processTrack.setFineAlignmentState(ProcessState.INPROGRESS);
 
         if (exitState == DialogExitState.EXECUTE) {
@@ -777,8 +818,6 @@ public class ApplicationManager {
         }
 
         mainFrame.setAlignmentEstState(processTrack.getFineAlignmentState());
-        alignmentEstimationDialog.dispose();
-
         try {
           if (imodManager.isCoarseAlignedOpen(AxisID.FIRST)
             || imodManager.isCoarseAlignedOpen(AxisID.SECOND)) {
@@ -804,9 +843,12 @@ public class ApplicationManager {
 
       }
       else {
-        alignmentEstimationDialog.setVisible(true);
+        alignmentEstimationDialog.show();
+        return;
       }
     }
+    alignmentEstimationDialog.dispose();
+    alignmentEstimationDialog = null;
   }
 
   /**
@@ -815,10 +857,8 @@ public class ApplicationManager {
    * @param the AlignmentEstimationDialog that contains the parameters for the
    * alignment script.
    */
-  public void fineAlignment(
-    AxisID axisID,
-    AlignmentEstimationDialog alignmentEstimationDialog) {
-    if (updateAlignCom(alignmentEstimationDialog)) {
+  public void fineAlignment(AxisID axisID) {
+    if (updateAlignCom()) {
       processMgr.fineAlignment(axisID);
     }
   }
@@ -844,7 +884,14 @@ public class ApplicationManager {
    * the alignment estimation dialog.  This also updates the local alignment
    * state of the appropriate tilt files.
    */
-  private boolean updateAlignCom(AlignmentEstimationDialog alignmentEstimationDialog) {
+  private boolean updateAlignCom() {
+    if (alignmentEstimationDialog == null) {
+      openMessageDialog(
+        "Can not update align?.com without an active alignment dialog",
+        "Program logic error");
+      return false;
+    }
+
     TiltalignParam tiltalignParam;
 
     AxisID currentAxis = AxisID.ONLY;
@@ -941,69 +988,73 @@ public class ApplicationManager {
       return;
     }
 
-    //  Open the dialog in the appropriate mode for the current state of
-    //  processing
-    TomogramPositioningDialog tomogramPositioningDialog =
-      new TomogramPositioningDialog(this);
+    if (tomogramPositioningDialog == null) {
+      //  Open the dialog in the appropriate mode for the current state of
+      //  processing
+      tomogramPositioningDialog = new TomogramPositioningDialog(this);
 
-    Dimension size = tomogramPositioningDialog.getSize();
-    tomogramPositioningDialog.setLocation(
-      (screenSize.width - size.width) / 2,
-      (screenSize.height - size.height) / 2);
-    tomogramPositioningDialog.setModal(false);
+      Dimension size = tomogramPositioningDialog.getSize();
+      tomogramPositioningDialog.setLocation(
+        (screenSize.width - size.width) / 2,
+        (screenSize.height - size.height) / 2);
+      tomogramPositioningDialog.setModal(false);
 
-    //  Load the required align{|a|b}.com and tilt{|a|b}.com files, fill in the
-    //  dialog box params and set it to the appropriate state
-    if (isDualAxis()) {
-      comScriptMgr.loadTiltCom(AxisID.FIRST);
+      //  Load the required align{|a|b}.com and tilt{|a|b}.com files, fill in the
+      //  dialog box params and set it to the appropriate state
+      if (isDualAxis()) {
+        comScriptMgr.loadTiltCom(AxisID.FIRST);
 
-      tomogramPositioningDialog.setTiltParams(
-        comScriptMgr.getTiltParam(AxisID.FIRST),
-        AxisID.FIRST);
+        tomogramPositioningDialog.setTiltParams(
+          comScriptMgr.getTiltParam(AxisID.FIRST),
+          AxisID.FIRST);
 
-      comScriptMgr.loadAlignCom(AxisID.FIRST);
-      tomogramPositioningDialog.setAlignParams(
-        comScriptMgr.getTiltalignParam(AxisID.FIRST),
-        AxisID.FIRST);
+        comScriptMgr.loadAlignCom(AxisID.FIRST);
+        tomogramPositioningDialog.setAlignParams(
+          comScriptMgr.getTiltalignParam(AxisID.FIRST),
+          AxisID.FIRST);
 
-      comScriptMgr.loadTiltCom(AxisID.SECOND);
-      tomogramPositioningDialog.setTiltParams(
-        comScriptMgr.getTiltParam(AxisID.SECOND),
-        AxisID.SECOND);
+        comScriptMgr.loadTiltCom(AxisID.SECOND);
+        tomogramPositioningDialog.setTiltParams(
+          comScriptMgr.getTiltParam(AxisID.SECOND),
+          AxisID.SECOND);
 
-      comScriptMgr.loadAlignCom(AxisID.SECOND);
-      tomogramPositioningDialog.setAlignParams(
-        comScriptMgr.getTiltalignParam(AxisID.SECOND),
-        AxisID.SECOND);
+        comScriptMgr.loadAlignCom(AxisID.SECOND);
+        tomogramPositioningDialog.setAlignParams(
+          comScriptMgr.getTiltalignParam(AxisID.SECOND),
+          AxisID.SECOND);
 
-      tomogramPositioningDialog.setEnabledB(true);
+        tomogramPositioningDialog.setEnabledB(true);
+      }
+      else {
+        comScriptMgr.loadTiltCom(AxisID.ONLY);
+        tomogramPositioningDialog.setTiltParams(
+          comScriptMgr.getTiltParam(AxisID.ONLY),
+          AxisID.ONLY);
+
+        comScriptMgr.loadAlignCom(AxisID.ONLY);
+        tomogramPositioningDialog.setAlignParams(
+          comScriptMgr.getTiltalignParam(AxisID.ONLY),
+          AxisID.ONLY);
+
+        tomogramPositioningDialog.setEnabledB(false);
+      }
     }
-    else {
-      comScriptMgr.loadTiltCom(AxisID.ONLY);
-      tomogramPositioningDialog.setTiltParams(
-        comScriptMgr.getTiltParam(AxisID.ONLY),
-        AxisID.ONLY);
-
-      comScriptMgr.loadAlignCom(AxisID.ONLY);
-      tomogramPositioningDialog.setAlignParams(
-        comScriptMgr.getTiltalignParam(AxisID.ONLY),
-        AxisID.ONLY);
-
-      tomogramPositioningDialog.setEnabledB(false);
-    }
-
-    tomogramPositioningDialog.setVisible(true);
+    tomogramPositioningDialog.show();
   }
 
-  public void doneTomogramPositioningDialog(TomogramPositioningDialog tomogramPositioningDialog) {
+  public void doneTomogramPositioningDialog() {
+    if (tomogramPositioningDialog == null) {
+      openMessageDialog(
+        "Can not update sample.com without an active positioning dialog",
+        "Program logic error");
+      return;
+    }
+
     DialogExitState exitState = tomogramPositioningDialog.getExitState();
 
-    if (exitState == DialogExitState.CANCEL) {
-      tomogramPositioningDialog.dispose();
-    }
-    else {
+    if (exitState != DialogExitState.CANCEL) {
       //  Get the user input data from the dialog box
-      boolean tiltFinished = updateSampleTiltCom(tomogramPositioningDialog);
+      boolean tiltFinished = updateSampleTiltCom();
       boolean alignFinished = updateAlignCom(tomogramPositioningDialog);
       if (tiltFinished & alignFinished) {
         processTrack.setTomogramPositioningState(ProcessState.INPROGRESS);
@@ -1014,7 +1065,6 @@ public class ApplicationManager {
 
         mainFrame.setTomogramPositioningState(
           processTrack.getTomogramPositioningState());
-        tomogramPositioningDialog.dispose();
 
         try {
           if (imodManager.isSampleOpen(AxisID.FIRST)
@@ -1041,19 +1091,20 @@ public class ApplicationManager {
 
       }
       else {
-        tomogramPositioningDialog.setVisible(true);
+        tomogramPositioningDialog.show();
+        return;
       }
     }
+    tomogramPositioningDialog.dispose();
+    tomogramPositioningDialog = null;
   }
 
   /**
    * Run the sample com script
    */
-  public void createSample(
-    AxisID axisID,
-    TomogramPositioningDialog tomogramPositioningDialog) {
+  public void createSample(AxisID axisID) {
     //  Get the user input data from the dialog box
-    if (updateSampleTiltCom(tomogramPositioningDialog)) {
+    if (updateSampleTiltCom()) {
       processMgr.createSample(axisID);
     }
   }
@@ -1074,18 +1125,24 @@ public class ApplicationManager {
     processMgr.tomopitch(axisID);
   }
 
-  public void finalAlign(
-    TomogramPositioningDialog tomogramPositioningDialog,
-    AxisID axisID) {
+  public void finalAlign(AxisID axisID) {
+
     if (updateAlignCom(tomogramPositioningDialog)) {
       processMgr.fineAlignment(axisID);
     }
   }
 
-  private boolean updateSampleTiltCom(TomogramPositioningDialog tomogramPositioningDialog) {
-    TiltParam tiltParam;
+  private boolean updateSampleTiltCom() {
+    if (tomogramPositioningDialog == null) {
+      openMessageDialog(
+        "Can not update sample.com without an active positioning dialog",
+        "Program logic error");
+      return false;
+    }
+
     AxisID currentAxis = AxisID.ONLY;
     try {
+      TiltParam tiltParam;
       if (isDualAxis()) {
         currentAxis = AxisID.FIRST;
         tiltParam = comScriptMgr.getTiltParam(currentAxis);
@@ -1171,44 +1228,51 @@ public class ApplicationManager {
       return;
     }
 
-    //  Open the dialog in the appropriate mode for the current state of
-    //  processing
-    TomogramGenerationDialog tomogramGenerationDialog =
-      new TomogramGenerationDialog(this);
-    Dimension size = tomogramGenerationDialog.getSize();
-    tomogramGenerationDialog.setLocation(
-      (screenSize.width - size.width) / 2,
-      (screenSize.height - size.height) / 2);
-    tomogramGenerationDialog.setModal(false);
+    if (tomogramGenerationDialog == null) {
+      //  Open the dialog in the appropriate mode for the current state of
+      //  processing
+      tomogramGenerationDialog = new TomogramGenerationDialog(this);
+      Dimension size = tomogramGenerationDialog.getSize();
+      tomogramGenerationDialog.setLocation(
+        (screenSize.width - size.width) / 2,
+        (screenSize.height - size.height) / 2);
+      tomogramGenerationDialog.setModal(false);
 
-    //  Load the required align{|a|b}.com files, fill in the dialog box params
-    //  and set it to the appropriate state
-    if (isDualAxis()) {
-      comScriptMgr.loadTiltCom(AxisID.FIRST);
-      tomogramGenerationDialog.setTiltParams(
-        comScriptMgr.getTiltParam(AxisID.FIRST),
-        AxisID.FIRST);
+      //  Load the required align{|a|b}.com files, fill in the dialog box params
+      //  and set it to the appropriate state
+      if (isDualAxis()) {
+        comScriptMgr.loadTiltCom(AxisID.FIRST);
+        tomogramGenerationDialog.setTiltParams(
+          comScriptMgr.getTiltParam(AxisID.FIRST),
+          AxisID.FIRST);
 
-      comScriptMgr.loadTiltCom(AxisID.SECOND);
-      tomogramGenerationDialog.setTiltParams(
-        comScriptMgr.getTiltParam(AxisID.SECOND),
-        AxisID.SECOND);
+        comScriptMgr.loadTiltCom(AxisID.SECOND);
+        tomogramGenerationDialog.setTiltParams(
+          comScriptMgr.getTiltParam(AxisID.SECOND),
+          AxisID.SECOND);
 
-      tomogramGenerationDialog.setEnabledB(true);
+        tomogramGenerationDialog.setEnabledB(true);
+      }
+      else {
+        comScriptMgr.loadTiltCom(AxisID.ONLY);
+        tomogramGenerationDialog.setTiltParams(
+          comScriptMgr.getTiltParam(AxisID.ONLY),
+          AxisID.ONLY);
+
+        tomogramGenerationDialog.setEnabledB(false);
+      }
     }
-    else {
-      comScriptMgr.loadTiltCom(AxisID.ONLY);
-      tomogramGenerationDialog.setTiltParams(
-        comScriptMgr.getTiltParam(AxisID.ONLY),
-        AxisID.ONLY);
-
-      tomogramGenerationDialog.setEnabledB(false);
-    }
-
-    tomogramGenerationDialog.setVisible(true);
+    tomogramGenerationDialog.show();
   }
 
-  public void doneTomogramGenerationDialog(TomogramGenerationDialog tomogramGenerationDialog) {
+  public void doneTomogramGenerationDialog() {
+    if (tomogramGenerationDialog == null) {
+      openMessageDialog(
+        "Can not update tilt?.com without an active tomogram generation dialog",
+        "Program logic error");
+      return;
+    }
+
     DialogExitState exitState = tomogramGenerationDialog.getExitState();
 
     if (exitState == DialogExitState.CANCEL) {
@@ -1216,8 +1280,7 @@ public class ApplicationManager {
     }
     else {
       //  Get the user input data from the dialog box
-      boolean dialogFinished = updateTiltCom(tomogramGenerationDialog);
-      if (dialogFinished) {
+      if (updateTiltCom()) {
         processTrack.setTomogramGenerationState(ProcessState.INPROGRESS);
 
         if (exitState == DialogExitState.EXECUTE) {
@@ -1229,20 +1292,29 @@ public class ApplicationManager {
         tomogramGenerationDialog.dispose();
       }
       else {
-        tomogramGenerationDialog.setVisible(true);
+        tomogramGenerationDialog.show();
+        return;
       }
     }
+    tomogramGenerationDialog.dispose();
+    tomogramGenerationDialog = null;
   }
 
   /**
    *
    *
    */
-  private boolean updateTiltCom(TomogramGenerationDialog tomogramGenerationDialog) {
+  private boolean updateTiltCom() {
+    if (tomogramGenerationDialog == null) {
+      openMessageDialog(
+        "Can not update tilt?.com without an active tomogram generation dialog",
+        "Program logic error");
+      return false;
+    }
 
-    TiltParam tiltParam;
     AxisID currentAxis = AxisID.ONLY;
     try {
+      TiltParam tiltParam;
       if (isDualAxis()) {
         currentAxis = AxisID.FIRST;
         tiltParam = comScriptMgr.getTiltParam(currentAxis);
@@ -1302,10 +1374,8 @@ public class ApplicationManager {
    * 
    *
    */
-  public void tilt(
-    AxisID axisID,
-    TomogramGenerationDialog tomogramGenerationDialog) {
-    if (updateTiltCom(tomogramGenerationDialog)) {
+  public void tilt(AxisID axisID) {
+    if (updateTiltCom()) {
       processMgr.tilt(axisID);
     }
   }
@@ -1345,55 +1415,58 @@ public class ApplicationManager {
       return;
     }
 
-    //  Open the dialog in the appropriate mode for the current state of
-    //  processing
-    TomogramCombinationDialog tomogramCombinationDialog =
-      new TomogramCombinationDialog(this);
-    Dimension size = tomogramCombinationDialog.getSize();
-    tomogramCombinationDialog.setLocation(
-      (screenSize.width - size.width) / 2,
-      (screenSize.height - size.height) / 2);
-    tomogramCombinationDialog.setModal(false);
-    tomogramCombinationDialog.setVisible(true);
+    if (tomogramCombinationDialog == null) {
+      //  Open the dialog in the appropriate mode for the current state of
+      //  processing
+      tomogramCombinationDialog = new TomogramCombinationDialog(this);
+      Dimension size = tomogramCombinationDialog.getSize();
+      tomogramCombinationDialog.setLocation(
+        (screenSize.width - size.width) / 2,
+        (screenSize.height - size.height) / 2);
+      tomogramCombinationDialog.setModal(false);
 
-    // If the patch boundaries have not been previously set, then set them
-    // to the default
-    CombineParams combineParams =
-      new CombineParams(metaData.getCombineParams());
-    if (!combineParams.isPatchBoundarySet()) {
-      String recFileName;
-      if (combineParams.getMatchBtoA()) {
-        recFileName = metaData.getFilesetName() + "a.rec";
+      // If the patch boundaries have not been previously set, then set them
+      // to the default
+      CombineParams combineParams =
+        new CombineParams(metaData.getCombineParams());
+      if (!combineParams.isPatchBoundarySet()) {
+        String recFileName;
+        if (combineParams.getMatchBtoA()) {
+          recFileName = metaData.getFilesetName() + "a.rec";
+        }
+        else {
+          recFileName = metaData.getFilesetName() + "b.rec";
+        }
+        try {
+          combineParams.setDefaultPatchBoundaries(recFileName);
+        }
+        catch (Exception except) {
+          openMessageDialog(
+            except.getMessage(),
+            "Error getting stack dimensions");
+        }
       }
-      else {
-        recFileName = metaData.getFilesetName() + "b.rec";
-      }
-      try {
-        combineParams.setDefaultPatchBoundaries(recFileName);
-      }
-      catch (Exception except) {
-        openMessageDialog(
-          except.getMessage(),
-          "Error getting stack dimensions");
-      }
+
+      // Fill in the dialog box params and set it to the appropriate state
+      tomogramCombinationDialog.setCombineParams(combineParams);
     }
-    // Fill in the dialog box params and set it to the appropriate state
-    tomogramCombinationDialog.setCombineParams(combineParams);
-
+    tomogramCombinationDialog.show();
   }
 
-  public void doneTomogramCombinationDialog(TomogramCombinationDialog tomogramCombinationDialog) {
+  public void doneTomogramCombinationDialog() {
+    if (tomogramCombinationDialog == null) {
+      openMessageDialog(
+        "Can not update combine.com without an active tomogram combination dialog",
+        "Program logic error");
+      return;
+    }
 
     DialogExitState exitState = tomogramCombinationDialog.getExitState();
 
-    if (exitState == DialogExitState.CANCEL) {
-      tomogramCombinationDialog.dispose();
-    }
-    else {
-      //  Get the user input data from the dialog box
-      boolean dialogFinished = updateCombineCom(tomogramCombinationDialog);
+    if (exitState != DialogExitState.CANCEL) {
 
-      if (dialogFinished) {
+      //  Get the user input data from the dialog box
+      if (updateCombineCom()) {
         processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
 
         if (exitState == DialogExitState.EXECUTE) {
@@ -1406,22 +1479,13 @@ public class ApplicationManager {
         tomogramCombinationDialog.dispose();
       }
       else {
-        tomogramCombinationDialog.setVisible(true);
+        tomogramCombinationDialog.show();
+        return;
       }
     }
 
-    if (exitState == DialogExitState.POSTPONE
-      || exitState == DialogExitState.EXECUTE) {
-      //
-      //  Get the user input data from the dialog box
-      //
-      mainFrame.setTomogramCombinationState(ProcessState.INPROGRESS);
-
-    }
-    if (exitState == DialogExitState.EXECUTE) {
-      mainFrame.setTomogramCombinationState(ProcessState.COMPLETE);
-    }
-
+    tomogramCombinationDialog.dispose();
+    tomogramCombinationDialog = null;
   }
 
   /**
@@ -1431,7 +1495,13 @@ public class ApplicationManager {
    * combine parameters are invalid a message dialog describing the invalid
    * parameters is presented to the user.
    */
-  private boolean updateCombineCom(TomogramCombinationDialog tomogramCombinationDialog) {
+  private boolean updateCombineCom() {
+    if (tomogramCombinationDialog == null) {
+      openMessageDialog(
+        "Can not update combine.com without an active tomogram combination dialog",
+        "Program logic error");
+      return false;
+    }
     CombineParams combineParams = new CombineParams();
     try {
       tomogramCombinationDialog.getCombineParams(combineParams);
@@ -1459,8 +1529,8 @@ public class ApplicationManager {
    * @param tomogramCombinationDialog the calling dialog.
    * 
    */
-  public void createCombineScripts(TomogramCombinationDialog tomogramCombinationDialog) {
-    if (!updateCombineCom(tomogramCombinationDialog)) {
+  public void createCombineScripts() {
+    if (!updateCombineCom()) {
       return;
     }
 
@@ -1493,12 +1563,12 @@ public class ApplicationManager {
 
     //  Open the dialog in the appropriate mode for the current state of
     //  processing
-    PostProcessingDialog postProcessingDialog = new PostProcessingDialog();
+    PostProcessingDialog postProcessingDialog = new PostProcessingDialog(this);
     Dimension frmSize = mainFrame.getSize();
     Point loc = mainFrame.getLocation();
     postProcessingDialog.setLocation(loc.x, loc.y + frmSize.height);
     postProcessingDialog.setModal(false);
-    postProcessingDialog.setVisible(true);
+    postProcessingDialog.show();
 
     DialogExitState exitState = postProcessingDialog.getExitState();
 
