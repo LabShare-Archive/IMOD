@@ -70,6 +70,7 @@ QString Imod_cwdpath;
 int    Imod_debug = FALSE;
 int    ImodTrans  = TRUE;
 int    Rampbase = RAMPBASE;
+ImodAssistant *ImodHelp;
 
 /*****************************************************************************/
 
@@ -1053,6 +1054,9 @@ int imodColorValue(int inColor)
 
 /*
 $Log$
+Revision 4.48  2004/12/02 21:42:23  mast
+Changes for raw image loading
+
 Revision 4.47  2004/11/30 03:39:42  mast
 Added call to allow reading via QImage
 
