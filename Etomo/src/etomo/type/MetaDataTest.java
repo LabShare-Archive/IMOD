@@ -25,6 +25,9 @@ import junit.framework.TestCase;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.4  2004/11/24 01:28:41  sueh
+ * <p> bug# 520 MetaDataTest(): Getting the correct file path for error reporting.
+ * <p>
  * <p> Revision 3.3  2004/11/23 00:27:38  sueh
  * <p> bug# 520 Using get and setPropertyUserDir instead of Property.  Don't
  * <p> use File.separator with propertyUserDir since it may end in "/".  Construct
@@ -46,41 +49,40 @@ public class MetaDataTest extends TestCase {
   private String[] edfList = {"setup_revision_1_2.edf",
       "setup_revision_1_3.edf", "setup_revision_1_4.edf",
       "setup_revision_1_5.edf"};
+  
+  private File testDir;
 
   public MetaDataTest() throws IOException, InvalidParameterException {
+    testDir = new File(new File(EtomoDirector.getInstance().getCurrentPropertyUserDir(), TypeTests.testRoot), testDirectory);
+    if (!testDir.exists()) {
+      assertTrue(testDir.mkdirs());
+    }
+    assertTrue(
+      testDir.isDirectory() && testDir.canRead() && testDir.canWrite());
     //  Check out the test vectors from the CVS repository
-
-    //  Create the test directory
-    TestUtilites.makeDirectories(new File(TypeTests.testRoot, testDirectory).getAbsolutePath());
-
     // Set the working directory to the current test directory for this package
     EtomoDirector etomoDirector = EtomoDirector.getInstance();
-    String originalDirectory = etomoDirector.getCurrentPropertyUserDir();
-    etomoDirector.setCurrentPropertyUserDir(new File(originalDirectory,
-        TypeTests.testRoot).getAbsolutePath());
+    String originalDirectory = etomoDirector.setCurrentPropertyUserDir(testDir.getAbsolutePath());
 
     for (int i = 0; i < edfList.length; i++) {
       try {
-        TestUtilites.checkoutVector(testDirectory, edfList[i]);
+        TestUtilites.checkoutVector(testDir.getAbsolutePath(), edfList[i]);
       }
       catch (SystemProcessException except) {
         etomoDirector.setCurrentPropertyUserDir(originalDirectory);
         System.err.println(except.getMessage());
-        fail("Error checking out test vector: " + new File(testDirectory, edfList[i]).getAbsolutePath());
+        fail("Error checking out test vector: " + edfList[i] + " in " + testDir.getAbsolutePath());
       }
     }
 
     // Switch back to the original working directory
     etomoDirector.setCurrentPropertyUserDir(originalDirectory);
   }
-
+  
   /*
    * Class to test for void store(Properties)
    */
   public void testStoreProperties() throws IOException {
-    String workingDirectory = new File(EtomoDirector.getInstance()
-        .getCurrentPropertyUserDir(), TypeTests.testRoot + File.separator
-        + testDirectory).getAbsolutePath();
     Storable[] storable = new Storable[1];
 
     for (int i = 0; i < edfList.length; i++) {
@@ -88,12 +90,12 @@ public class MetaDataTest extends TestCase {
       storable[0] = origMetaData;
 
       //  Load in the original etomo data file
-      File origFile = new File(workingDirectory, edfList[i]);
+      File origFile = new File(testDir, edfList[i]);
       ParameterStore paramStore = new ParameterStore(origFile);
       paramStore.load(storable);
 
       //  Create a new output file
-      File newFile = new File(workingDirectory, edfList[i] + "new");
+      File newFile = new File(testDir, edfList[i] + "new");
       paramStore = new ParameterStore(newFile);
 
       //  Write out the meta data to the new file
@@ -117,13 +119,10 @@ public class MetaDataTest extends TestCase {
       InvalidParameterException {
 
     Storable[] storable = new Storable[1];
-    File storeDir = new File(EtomoDirector.getInstance()
-        .getCurrentPropertyUserDir(), TypeTests.testRoot + File.separator
-        + testDirectory);
     for (int i = 0; i < edfList.length; i++) {
       MetaData metaData = new MetaData();
       storable[0] = metaData;
-      ParameterStore paramStore = new ParameterStore(new File(storeDir, edfList[i]));
+      ParameterStore paramStore = new ParameterStore(new File(testDir, edfList[i]));
       paramStore.load(storable);
       //  Check some basic parameters to see if we actually loaded something
       if (metaData.getDatasetName().equals("")) {
