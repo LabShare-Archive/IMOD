@@ -8,6 +8,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.8  2005/03/16 17:27:25  mast
+#  Passed on the error status when exiting
+#
 #  Revision 3.7  2004/08/27 05:46:48  mast
 #  Switched to using head -n and tail -n
 #
@@ -97,6 +100,7 @@ while ($#argv > 0)
     set rootname = $argv[1]:r
     if (! -e $rootname.com) then
 	echo ERROR: $rootname.com does not exist $bell
+        set exitstat = 1
 	goto clean
     endif
     echo -n "Running $rootname.com ...  "
