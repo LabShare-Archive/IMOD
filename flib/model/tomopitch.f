@@ -56,6 +56,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.1  2002/05/20 15:42:47  mast
+c	  Added analysis of single file with multiple time indexes
+c	
 c
 	implicit none
 	include 'model.inc'
@@ -77,6 +80,7 @@ c
 	real*4 border,deltay,ysample,xyscal,zscal,xofs,yofs,zofs
 	integer*4 ip1,ip2,ibt
 	real*4 x1,y1,x2,y2,xlo,xhi,yll,ylr,yul,yur
+	integer*4 lnblnk
 c
 	npatch=2
 c	
@@ -119,8 +123,8 @@ c	      If there is one file, see if there are multiple times
 c	      
 	    if (nfiles.eq.1) then
 	      ierr=getimodtimes(itimes)
-	      mintime=100000;
-	      maxtime=0;
+	      mintime=100000
+	      maxtime=0
 	      do iobj=1,max_mod_obj
 		if (npt_in_obj(iobj).gt.0)then
 		  mintime=min(mintime,itimes(iobj))
