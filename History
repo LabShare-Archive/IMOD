@@ -1,6 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-9/9/03: IMOD_3-0-16; beta release with etomo
+9/11/03: IMOD_3-0-17  beta release with Etomo
+
+9/9/03: IMOD_3-0-16
 9/5/03: Added a program, Resamplemod, for rotating a microtubule model to be
 perpendicular to the Z axis and creating points at each section or plane
 along that axis.
