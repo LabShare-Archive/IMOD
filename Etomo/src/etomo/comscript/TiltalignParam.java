@@ -16,6 +16,10 @@ import etomo.type.EtomoNumber;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.4  2004/12/29 23:44:00  sueh
+ * <p> bug# 567 In ParamUtilities, added the FortranInputString to parse(String...) and
+ * <p> parse(StringList...).
+ * <p>
  * <p> Revision 3.3  2004/12/29 01:53:12  sueh
  * <p> bug# 567 Passing ints, doubles, and strings to set functions, instead of
  * <p> EtomoNumber.
@@ -115,13 +119,13 @@ public class TiltalignParam extends ConstTiltalignParam implements CommandParam 
 
       //Use OutputModelAndResidual if OutputModelFile or OutputResidualFile are blank
       //Convert OutputModelAndResidual to OutputModelFile and OutputResidualFile
-      if (outputModelFile.equals("") || outputResidualFile.equals("")) {
+      if (outputModelFile.matches("\\s*") || outputResidualFile.matches("\\s*")) {
         String outputModelAndResidual = scriptCommand
             .getValue(outputModelAndResidualString);
-        if (outputModelFile.equals("")) {
+        if (outputModelFile.matches("\\s*")) {
           outputModelFile = outputModelAndResidual + modelFileExtension;
         }
-        if (outputResidualFile.equals("")) {
+        if (outputResidualFile.matches("\\s*")) {
           outputResidualFile = outputModelAndResidual + residualFileExtension;
         }
       }
@@ -384,6 +388,7 @@ public class TiltalignParam extends ConstTiltalignParam implements CommandParam 
 
     ParamUtilities.updateScriptParameter(scriptCommand, modelFileString,
         modelFile);
+    scriptCommand.deleteKey(outputModelAndResidualString);
     ParamUtilities.updateScriptParameter(scriptCommand, outputModelFileString,
         outputModelFile);
     ParamUtilities.updateScriptParameter(scriptCommand,
