@@ -1,6 +1,7 @@
 package etomo;
 
 import etomo.comscript.CombineComscriptState;
+import etomo.type.MetaData;
 import etomo.ui.TomogramCombinationDialog;
 
 /**
@@ -20,6 +21,9 @@ import etomo.ui.TomogramCombinationDialog;
 * @version $Revision$
 *
 * <p> $Log$
+* <p> Revision 1.2  2004/11/19 22:33:38  sueh
+* <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+* <p>
 * <p> Revision 1.1.2.1  2004/09/03 20:34:48  sueh
 * <p> bug# 520 adapting to changes in AppMgr constructor
 * <p>
@@ -44,7 +48,7 @@ public class ApplicationManagerTestHarness extends ApplicationManager {
    * @param args
    */
   private ApplicationManagerTestHarness(String[] args) {
-    super("");
+    super("", new MetaData());
   }
   
   public CombineComscriptState runUpdateCombineComscriptState(

@@ -42,6 +42,13 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.6  2004/12/14 21:23:39  sueh
+* <p> bug# 565: Fixed bug:  Losing process track when backing up .edf file and
+* <p> only saving metadata.  Removed unnecessary class JoinProcessTrack.
+* <p> bug# 572:  Removing state object from meta data and managing it with a
+* <p> manager class.
+* <p> Saving all objects to the .edf/ejf file each time a save is done.
+* <p>
 * <p> Revision 1.5  2004/12/09 04:49:17  sueh
 * <p> bug# 565 Removed isDataParamDirty.  Synchronized storage of param
 * <p> file with store(Storable[]).  Automatically saving to param file on exit.
@@ -184,7 +191,6 @@ public abstract class BaseManager {
   protected abstract void createComScriptManager();
   protected abstract void createProcessManager();
   protected abstract void createMainPanel();
-  protected abstract void createMetaData();
   protected abstract void createProcessTrack();
   protected abstract void createState();
   protected abstract void updateDialog(ProcessName processName, AxisID axisID);
@@ -204,7 +210,6 @@ public abstract class BaseManager {
   
   public BaseManager() {
     propertyUserDir = System.getProperty("user.dir");
-    createMetaData();
     createProcessTrack();
     createState();
     createProcessManager();
