@@ -42,6 +42,10 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.7  2005/01/21 22:07:29  sueh
+* <p> bug# 509 bug# 591  Moved the management of MetaData to the Controller
+* <p> class.
+* <p>
 * <p> Revision 1.6  2004/12/14 21:23:39  sueh
 * <p> bug# 565: Fixed bug:  Losing process track when backing up .edf file and
 * <p> only saving metadata.  Removed unnecessary class JoinProcessTrack.
@@ -313,6 +317,10 @@ public abstract class BaseManager {
     if (!threadNameA.equals("none") && backgroundProcessA) {
       messageArray.add("The " + backgroundProcessNameA
         + " process will continue to run after Etomo ends.");
+      String osName = System.getProperty("os.name").toLowerCase();
+      if (osName.indexOf("linux") == -1 && osName.indexOf("mac os") == -1) {
+        messageArray.add("Etomo will not be able to warn you if you interfere with this process by running another at the same time.");
+      }
       messageArray.add("Check " + backgroundProcessNameA
         + ".log for status.");
       messageArray.add(" ");
