@@ -12,6 +12,9 @@
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.5  2004/04/29 20:23:12  sueh
+ * <p> $bug# 427 corrected Double.NaN comparison.
+ * <p> $
  * <p> $Revision 1.4  2004/04/27 00:52:29  sueh
  * <p> $bug# 427 adding update required parameter - vector of strings
  * <p> $
@@ -39,8 +42,20 @@ public class ParamUtilities {
     }
     return String.valueOf(value);
   }
+  
+  public static String[] getStrings(double[] values) {
+    String[] strings = new String[values.length <= 0 ? 1 : values.length];
+    if (values.length == 0) {
+      strings[0] = new String();
+    }
+    for (int i = 0; i < values.length; i++) {
+      strings[i] = getString(values[i]);
+    }
+    return strings;
+  }
 
-  public static double setDouble(String value) {
+
+  public static double getDouble(String value) {
     if (value == null || !value.matches("\\S+")) {
       return Double.NaN;
     }
@@ -55,10 +70,26 @@ public class ParamUtilities {
     if (value == null) {
       target.setDefault();
     }
-    target.validateAndSet(value);
+    else {
+      target.validateAndSet(value);
+    }
   }
-
-
+  
+  public static void set(String value, FortranInputString target, int index) {
+    if (target == null) {
+      throw new NullPointerException();
+    }
+    if (value == null) {
+      target.setDefault(index);
+    }
+    else if (!value.matches("\\S+")) {
+      target.setDefault(index);
+    }
+    else {
+      target.set(index, Double.parseDouble(value));
+    }
+  }
+  
   public static void updateParameter(
     ComScriptCommand scriptCommand,
     String key,
@@ -66,7 +97,6 @@ public class ParamUtilities {
     throws BadComScriptException {
     updateParameter(scriptCommand, key, value, false);
   }
-
   public static void updateParameter(
     ComScriptCommand scriptCommand,
     String key,
@@ -91,8 +121,7 @@ public class ParamUtilities {
   public static void updateParameter(
     ComScriptCommand scriptCommand,
     String key,
-    double value)
-    throws BadComScriptException {
+    double value) {
     if (key == null) {
       throw new NullPointerException();
     }
@@ -107,12 +136,11 @@ public class ParamUtilities {
   public static void updateParameter(
     ComScriptCommand scriptCommand,
     String key,
-    FortranInputString value)
-    throws BadComScriptException {
+    FortranInputString value) {
     if (key == null) {
       throw new NullPointerException();
     }
-    if (value.valuesSet() && !value.isDefault()) {
+    if (value != null && value.valuesSet() && !value.isDefault()) {
       scriptCommand.setValue(key, value.toString());
     }
     else {
@@ -136,8 +164,8 @@ public class ParamUtilities {
     if (key == null) {
       throw new NullPointerException();
     }
-    if (strings.size() == 0) {
-      scriptCommand.deleteKeyAll("ModelFile");
+    if (strings == null || strings.size() == 0) {
+      scriptCommand.deleteKeyAll(key);
       if (required) {
         throw new BadComScriptException(
           "MTF Filter:  Missing parameter value, " + key + ".");
@@ -147,6 +175,43 @@ public class ParamUtilities {
     scriptCommand.setValues(
       key,
       (String[]) strings.toArray(new String[strings.size()]));
+  }
+
+  public static void updateParameter(
+    ComScriptCommand scriptCommand,
+    String key,
+    double[] values)
+    throws BadComScriptException {
+    if (key == null) {
+      throw new NullPointerException();
+    }
+    if (values == null || values.length == 0) {
+      scriptCommand.deleteKeyAll(key);
+      return;
+    }
+    StringBuffer buffer = new StringBuffer();
+    for (int i = 0; i < values.length; i++) {
+      buffer.append(String.valueOf(values[i]));
+      if (i < values.length - 1) {
+        buffer.append(",");
+      }
+    }
+    scriptCommand.setValue(key, buffer.toString());
+  }
+  
+  public static void updateParameter(
+    ComScriptCommand scriptCommand,
+    String key,
+    boolean set) {
+    if (key == null) {
+      throw new NullPointerException();
+    }
+    if (set) {
+      scriptCommand.setValue(key, "");
+    }
+    else {
+      scriptCommand.deleteKey(key);
+    }
   }
 
 }
