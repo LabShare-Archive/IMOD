@@ -6,6 +6,7 @@ import etomo.type.ConstMetaData;
 import etomo.comscript.CopyTomoComs;
 import etomo.comscript.BadComScriptException;
 import etomo.comscript.SetupCombine;
+import etomo.comscript.TransferfidParam;
 
 import java.io.File;
 import java.io.IOException;
@@ -24,6 +25,10 @@ import java.io.IOException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.9  2002/12/30 20:38:11  rickg
+ * <p> msgComScriptDone now invokes appropriate error
+ * <p> or warning dialogs
+ * <p>
  * <p> Revision 1.8  2002/10/22 21:38:33  rickg
  * <p> ApplicationManager now controls both demo and debug
  * <p> modes
@@ -192,6 +197,18 @@ public class ProcessManager {
     startComScript(command);
   }
 
+  /**
+   * Run the transferfid script
+   */
+  public void transferFiducials(TransferfidParam transferfidParam) {
+    SystemProgram transferfid =
+      new SystemProgram(transferfidParam.getCommandString());
+
+    transferfid.setWorkingDirectory(new File(appManager.getWorkingDirectory()));
+    transferfid.enableDebug(appManager.isDebug());
+    transferfid.run();
+  }
+  
   /**
    * Run the appropriate sample com file for the given axis ID
    * @param axisID the AxisID to run sample.com on.
