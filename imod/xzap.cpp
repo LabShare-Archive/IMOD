@@ -2220,7 +2220,8 @@ void zapReportRubberband()
       ixr = ixr * bin + bin - 1;
       iyt = iyt * bin + bin - 1;
         
-      fprintf(stderr, "%d %d %d %d\n", ixl + 1, iyb + 1, ixr + 1, iyt + 1);
+      fprintf(stderr, "Rubberband: %d %d %d %d\n", ixl + 1, iyb + 1, ixr + 1,
+              iyt + 1);
       return;
     }
   }
@@ -2863,6 +2864,9 @@ bool zapTimeMismatch(ImodView *vi, int timelock, Iobj *obj, Icont *cont)
 
 /*
 $Log$
+Revision 4.40  2004/05/05 17:34:51  mast
+Added rubberband toolbutton and call to report coordinates from first\zap window with
+
 Revision 4.39  2004/01/05 18:35:46  mast
 Divide point sizes by xy binning for display
 
