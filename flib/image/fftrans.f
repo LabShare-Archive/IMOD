@@ -58,9 +58,12 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.1  2002/07/30 17:44:30  mast
+c	  Fixed titles, increased buffer size, standardized error exit
+c	
 C
 c	  DNM: set this parameter for true buffer size
-	parameter (ibufreal=4100*4100)
+	parameter (ibufreal=3100*3100)
 	COMMON//NX,NY,NZ
 	COMMON/FTBUF/MAXSIZ,ARRAY(ibufreal)
 	DIMENSION TITLE(20),NXYZR(3),MXYZR(3),NXYZF(3),NXYZST(3)
