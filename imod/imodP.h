@@ -150,8 +150,9 @@ typedef struct ViewInfo
   /* Grey Scale Ramp Data. */
   Cramp *cramp;
 
-  /* THE MODEL */
+  /* THE MODEL and an extra object */
   Imod  *imod;
+  Iobj  *extraObj;
 
   /* Extra Window Data. */
   /* 12/7/02: zap not needed; 12/10/02 xyz not needed either */
@@ -277,6 +278,9 @@ void ivwReadZ(ImodView *iv, unsigned char *buf, int cz);
 
 /*
 $Log$
+Revision 3.15  2003/06/04 23:43:20  mast
+Move message defines to imod_client_message.h
+
 Revision 3.14  2003/05/23 02:47:34  mast
 Defined message for raising windows
 
