@@ -38,42 +38,9 @@ set volcombine = volcombine.com
 #  $Date$
 #
 #  $Revision$
+# Log at end of file
 #
-#  $Log$
-#  Revision 3.8  2003/05/12 23:21:11  mast
-#  remove test for piping
-#
-#  Revision 3.7  2003/05/12 18:53:24  mast
-#  Pipe command files through cat for dos line endings in cygwin
-#
-#  Revision 3.6  2002/11/04 20:38:02  mast
-#  Made WARNINGS go to standard error with echo2
-#
-#  Revision 3.5  2002/10/23 15:36:50  mast
-#  Made it set up for one patch in Z if patch thickness is two-thirds of the
-#  spacing between the limits in Z.  Also made warnings start on a new line
-#  and all start with WARNING:
-#
-#  Revision 3.4  2002/08/03 00:36:02  mast
-#  Added a blank line before last STATUS in volcombine.com
-#
-#  Revision 3.3  2002/07/27 23:57:02  mast
-#  Change volcombine STATUS line to say piece n of m
-#
-#  Revision 3.2  2002/07/21 19:33:30  mast
-#  Made default borders for patchcorr be based upon image size, and also
-#  made thickness passed to Matchshifts bigger and based on image size
-#
-#  Revision 3.1  2002/06/19 16:06:29  mast
-#  Conversion to multiple command files
-#
-#  Revision 3.0  2001/11/29 18:11:11  rickg
-#  *** empty log message ***
-#
-#  Revision 1.2  2001/11/28 23:23:55  mast
-#  Minor changes to accomodate changing from $! to # in command files.
-#
-#
+
 if ($?IMOD_DIR) then
     set srcdir = "$IMOD_DIR/com"
     set path = ($IMOD_DIR/bin $path)
@@ -153,14 +120,14 @@ echo "Enter a list of the points in tilt series $tolet for which you"
 echo "are sure of the corresponding point in tilt series $fromlet"
 echo " (ranges may be entered)."
 echo "Or just Return if the points are in one-to-one correspondence."
-set corrlist1 = $<
+set corrlist1 = "$<"
 set corrtext1 = "gibberish"
 set corrtext2 = "gibberish"
 set corrlist2 = " "
-if ($corrlist1 != "") then
+if ("$corrlist1" != "") then
     set corrtext1 = "list of points in 1st"
     echo "Enter a list of the corresponding points in tilt series $fromlet"
-    set corrlist2 = $<
+    set corrlist2 = "$<"
     set corrtext2 = "list of corresponding points"
 endif
 
@@ -614,3 +581,43 @@ EOCAT
 endif
 
 echo '$'"if (-e $backupname) $backupname" | cat >> $volcombine
+
+#
+#  $Log$
+#  Revision 3.9  2003/05/13 22:00:48  mast
+#  Fix getting x axis tilt for Windows/Cygwin
+#
+#  Revision 3.8  2003/05/12 23:21:11  mast
+#  remove test for piping
+#
+#  Revision 3.7  2003/05/12 18:53:24  mast
+#  Pipe command files through cat for dos line endings in cygwin
+#
+#  Revision 3.6  2002/11/04 20:38:02  mast
+#  Made WARNINGS go to standard error with echo2
+#
+#  Revision 3.5  2002/10/23 15:36:50  mast
+#  Made it set up for one patch in Z if patch thickness is two-thirds of the
+#  spacing between the limits in Z.  Also made warnings start on a new line
+#  and all start with WARNING:
+#
+#  Revision 3.4  2002/08/03 00:36:02  mast
+#  Added a blank line before last STATUS in volcombine.com
+#
+#  Revision 3.3  2002/07/27 23:57:02  mast
+#  Change volcombine STATUS line to say piece n of m
+#
+#  Revision 3.2  2002/07/21 19:33:30  mast
+#  Made default borders for patchcorr be based upon image size, and also
+#  made thickness passed to Matchshifts bigger and based on image size
+#
+#  Revision 3.1  2002/06/19 16:06:29  mast
+#  Conversion to multiple command files
+#
+#  Revision 3.0  2001/11/29 18:11:11  rickg
+#  *** empty log message ***
+#
+#  Revision 1.2  2001/11/28 23:23:55  mast
+#  Minor changes to accomodate changing from $! to # in command files.
+#
+
