@@ -58,6 +58,7 @@ Log at the end of file
 #include "imod_info.h"
 #include "imod_info_cb.h"
 #include "imod_io.h"
+#include "imod_input.h"
 #include "imod_cachefill.h"
 #include "sslice.h"
 #include "control.h"
@@ -879,7 +880,10 @@ QString imodCaption(char *intro)
 
 int           imodDepth(void){ return(App->depth); }
 
-     
+void imodDefaultKeys(QKeyEvent *event, ImodView *vw)
+{
+  inputQDefaultKeys(event, vw);
+}
 
 int imodColorValue(int inColor)
 {
@@ -915,6 +919,9 @@ int imodColorValue(int inColor)
 
 /*
 $Log$
+Revision 4.24  2003/09/24 17:33:09  mast
+Remove setting of info window geometry from here - wanted it sooner
+
 Revision 4.23  2003/09/24 15:08:37  mast
 Put window ID to info window in debug mode
 
