@@ -103,6 +103,7 @@ class DialogManager
   QWidget *parent(int dlgClass);
   void raise(int dlgClass);
   QRect biggestGeometry(int dlgType);
+  int windowCount(int dlgType);
 
  private:
   Ilist *mDialogList;
@@ -117,6 +118,9 @@ extern DialogManager imodDialogManager;
 
 /*
 $Log$
+Revision 4.7  2003/10/01 04:59:52  mast
+Split into public and private files
+
 Revision 4.6  2003/09/24 17:32:25  mast
 Add declaration for restorable geometry call
 
