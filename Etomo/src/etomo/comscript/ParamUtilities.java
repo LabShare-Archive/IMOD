@@ -12,6 +12,10 @@
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.3  2004/04/26 21:18:44  sueh
+ * <p> $bug# 427 add updateParameterStrings() for Vectors
+ * <p> $containing strings
+ * <p> $
  * <p> $Revision 1.2  2004/03/29 20:53:36  sueh
  * <p> $bug# 418 avoid updating a null FortranInputString parameter
  * <p> $
@@ -118,11 +122,23 @@ public class ParamUtilities {
     String key,
     Vector strings)
     throws BadComScriptException {
+    updateParameterStrings(scriptCommand, key, strings, false);
+  }
+  public static void updateParameterStrings(
+    ComScriptCommand scriptCommand,
+    String key,
+    Vector strings,
+    boolean required)
+    throws BadComScriptException {
     if (key == null) {
       throw new NullPointerException();
     }
     if (strings.size() == 0) {
       scriptCommand.deleteKeyAll("ModelFile");
+      if (required) {
+        throw new BadComScriptException(
+          "MTF Filter:  Missing parameter value, " + key + ".");
+      }
       return;
     }
     scriptCommand.setValues(
