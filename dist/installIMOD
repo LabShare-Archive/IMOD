@@ -12,6 +12,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.3  2004/04/24 04:32:59  mast
+#  Fixes for SGI; decided not to put source command in /etc/profile
+#
 #  Revision 3.2  2004/04/24 01:21:57  mast
 #  Needed to separate : from varaiable
 #
@@ -133,7 +136,6 @@ endif
 echo "Unpacking IMOD in $installdir ..."
 if ($os == irix) then
     gzcat $packpath$package | tar xf -
-    echo "(Ignore possible gzcat: unexpected end of file error)"
 else
     tar xzf $packpath$package
 endif
