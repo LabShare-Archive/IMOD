@@ -28,6 +28,9 @@ import java.io.IOException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.8  2003/05/08 23:19:03  rickg
+ * <p> Standardized debug setting
+ * <p>
  * <p> Revision 2.7  2003/05/07 22:27:07  rickg
  * <p> System property user.dir now defines the working directory
  * <p>
@@ -113,7 +116,10 @@ public class ProcessManager {
   ApplicationManager appManager;
   Thread threadAxisA = null;
   Thread threadAxisB = null;
-
+	// save the transferfid command line so that we can identify when process is
+	// complete.
+	String transferfidCommandLine;
+	
   public ProcessManager(ApplicationManager appMgr) {
     appManager = appMgr;
   }
@@ -256,6 +262,7 @@ public class ProcessManager {
     transferfid.setDemoMode(appManager.isDemo());
     transferfid.setDebug(appManager.isDebug());
     transferfid.start();
+    transferfidCommandLine = transferfid.getCommandLine();
     return transferfid.getName();
   }
 
@@ -548,7 +555,7 @@ public class ProcessManager {
     // Command succeeded, check to see if we need to show any application
     // specific info
     else {
-      if (process.getCommand().equals("transferfid")) {
+      if (process.getCommandLine().equals(transferfidCommandLine)) {
         handleTransferfidMessage(process);
       }
     }
