@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.2  2003/03/26 22:49:09  mast
+Change style handling to use list of styles
+
 Revision 1.1  2003/03/24 17:56:59  mast
 Initial creation
 
@@ -132,6 +135,7 @@ class ImodPreferences : public QObject
   void userCanceled();
   char **getStyleList();
   bool styleOK(QString key);
+  int *getStyleStatus();
 
   public slots:
     void donePressed();
