@@ -38,9 +38,9 @@ public class XcorrProcessWatcher implements Runnable {
   }
 
   public void run() {
-  
+
     fileBuffer = waitForLogFile("xcorr");
-    
+
     //  Search for the number of sections, we should see a header ouput first
     boolean foundNSections = false;
     String line;
@@ -119,7 +119,7 @@ public class XcorrProcessWatcher implements Runnable {
     }
 
   }
-  
+
   /**
    * Wait for the process to start and the appropriate log file to be created 
    * @param logFileBasename
@@ -135,27 +135,20 @@ public class XcorrProcessWatcher implements Runnable {
 
       processStartTime = System.currentTimeMillis();
 
-      //  Don't do anything until the (possibly new) logfile is created
-      File logFile = null;
+      // Instantiate a new log file object
+      File logFile =
+        new File(
+          System.getProperty("user.dir"),
+          logFileBasename + axisID.getExtension() + ".log");
       boolean newLogFile = false;
       while (!newLogFile) {
-        // Instantiate a new log file object
-        logFile =
-          new File(
-            System.getProperty("user.dir"),
-            logFileBasename + axisID.getExtension() + ".log");
-
-        // Check to see if the log file exists and if it recent enough
-        // Since this thread and the shell thread are asynchronous we want to
-        // make sure that processStartTime estimate is not greater than the log
-        // log file modification time by 5 second
+        // Check to see if the log file exists that signifies that the process
+        // has started
         if (logFile.exists()) {
-          if (processStartTime - logFile.lastModified() > 5000) {
-            Thread.sleep(100);
-          }
-          else {
-            newLogFile = true;
-          }
+          newLogFile = true;
+        }
+        else {
+          Thread.sleep(100);
         }
       }
       //  Open the log file
