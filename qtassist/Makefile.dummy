@@ -1,0 +1,8 @@
+include ../configure
+
+all :
+
+install	:
+	$(CP) $(VCEXEDIR)/imodqtassist.exe $(INSTBINDIR)
+
+clean :
