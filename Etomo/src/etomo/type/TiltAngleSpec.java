@@ -16,6 +16,9 @@ import etomo.storage.Storable;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.0  2003/11/07 23:19:01  rickg
+ * <p> Version 1.0.0
+ * <p>
  * <p> Revision 2.3  2003/10/09 20:27:43  sueh
  * <p> bug264
  * <p> UI Changes
@@ -42,7 +45,6 @@ public class TiltAngleSpec implements Storable {
 
   TiltAngleType type = TiltAngleType.EXTRACT;
   double rangeMin = -60;
-  double rangeMax = 60;
   double rangeStep = 1;
   double tiltAngles[];
   String tiltAngleFilename = "";
@@ -53,7 +55,6 @@ public class TiltAngleSpec implements Storable {
   public TiltAngleSpec(TiltAngleSpec src) {
     type = src.getType();
     rangeMin = src.getRangeMin();
-    rangeMax = src.getRangeMax();
     rangeStep = src.getRangeStep();
     tiltAngleFilename = src.getTiltAngleFilename();
   }
@@ -79,9 +80,6 @@ public class TiltAngleSpec implements Storable {
   }
 
   public void setRangeMin(double rangeMin) {
-    //
-    //  NOTE do we validate the range here, what value
-    //
     this.rangeMin = rangeMin;
   }
 
@@ -89,21 +87,7 @@ public class TiltAngleSpec implements Storable {
     return rangeMin;
   }
 
-  public void setRangeMax(double rangeMax) {
-    //
-    // NOTE do we validate the range here, what value
-    //
-    this.rangeMax = rangeMax;
-  }
-
-  public double getRangeMax() {
-    return rangeMax;
-  }
-
   public void setRangeStep(double rangeStep) {
-    //
-    // NOTE do we validate the range here, what value
-    //
     this.rangeStep = rangeStep;
   }
 
@@ -167,7 +151,6 @@ public class TiltAngleSpec implements Storable {
     }
     props.setProperty(group + "Type", type.toString());
     props.setProperty(group + "RangeMin", String.valueOf(rangeMin));
-    props.setProperty(group + "RangeMax", String.valueOf(rangeMax));
     props.setProperty(group + "RangeStep", String.valueOf(rangeStep));
     props.setProperty(group + "TiltAngleFilename", tiltAngleFilename);
   }
@@ -189,7 +172,6 @@ public class TiltAngleSpec implements Storable {
     type =
       TiltAngleType.fromString(props.getProperty(group + "Type", "Extract"));
     rangeMin = Double.parseDouble(props.getProperty(group + "RangeMin", "-90"));
-    rangeMax = Double.parseDouble(props.getProperty(group + "RangeMax", "90"));
     rangeStep = Double.parseDouble(props.getProperty(group + "RangeStep", "1"));
     tiltAngleFilename = props.getProperty(group + "TiltAngleFilename", "");
   }

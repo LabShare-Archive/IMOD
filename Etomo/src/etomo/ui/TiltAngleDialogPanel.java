@@ -23,6 +23,10 @@ import etomo.ui.TooltipFormatter;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.1  2003/11/10 18:51:43  sueh
+ * <p> bug332 getErrorMessage(): New function validate panel and
+ * <p> returns (rather then displaying) error message.
+ * <p>
  * <p> Revision 3.0  2003/11/07 23:19:01  rickg
  * <p> Version 1.0.0
  * <p>
@@ -59,10 +63,10 @@ public class TiltAngleDialogPanel {
 
   private JPanel panelTiltAngleSpecify = new JPanel();
   private JRadioButton rbTiltAngleSpecify =
-    new JRadioButton("Specify range and step (degrees)");
-  private LabeledTextField ltfAngleMin = new LabeledTextField("Min:");
-  private LabeledTextField ltfAngleMax = new LabeledTextField("Max:");
-  private LabeledTextField ltfAngleStep = new LabeledTextField("Step:");
+    new JRadioButton("Specify the starting angle and step (degrees)");
+  private LabeledTextField ltfAngleMin =
+    new LabeledTextField("Starting angle:");
+  private LabeledTextField ltfAngleStep = new LabeledTextField("Increment:");
 
   private JRadioButton rbTiltAngleFile =
     new JRadioButton("Tilt angles in existing rawtlt file");
@@ -75,8 +79,6 @@ public class TiltAngleDialogPanel {
     panelTiltAngleSpecify.setLayout(
       new BoxLayout(panelTiltAngleSpecify, BoxLayout.X_AXIS));
     panelTiltAngleSpecify.add(ltfAngleMin.getContainer());
-    panelTiltAngleSpecify.add(Box.createRigidArea(FixedDim.x10_y0));
-    panelTiltAngleSpecify.add(ltfAngleMax.getContainer());
     panelTiltAngleSpecify.add(Box.createRigidArea(FixedDim.x10_y0));
     panelTiltAngleSpecify.add(ltfAngleStep.getContainer());
     panelTiltAngleSpecify.add(Box.createHorizontalGlue());
@@ -123,7 +125,6 @@ public class TiltAngleDialogPanel {
     }
 
     ltfAngleMin.setText(String.valueOf(tiltAngleSpec.getRangeMin()));
-    ltfAngleMax.setText(String.valueOf(tiltAngleSpec.getRangeMax()));
     ltfAngleStep.setText(String.valueOf(tiltAngleSpec.getRangeStep()));
   }
 
@@ -138,7 +139,6 @@ public class TiltAngleDialogPanel {
       tiltAngleSpec.setType(TiltAngleType.FILE);
     }
     tiltAngleSpec.setRangeMin(Double.parseDouble(ltfAngleMin.getText()));
-    tiltAngleSpec.setRangeMax(Double.parseDouble(ltfAngleMax.getText()));
     tiltAngleSpec.setRangeStep(Double.parseDouble(ltfAngleStep.getText()));
   }
 
@@ -151,13 +151,10 @@ public class TiltAngleDialogPanel {
   String getErrorMessage() {
     if (rbTiltAngleSpecify.isSelected()) {
       if (ltfAngleMin.getText().equals("")) {
-        return new String("Minimum range cannot be empty");
-      }
-      if (ltfAngleMax.getText().equals("")) {
-        return new String("Maximum range cannot be empty");
+        return new String("Starting angle cannot be empty");
       }
       if (ltfAngleStep.getText().equals("")) {
-        return new String("Step cannot be empty");
+        return new String("Increment cannot be empty");
       }
     }
     return null;
@@ -191,8 +188,6 @@ public class TiltAngleDialogPanel {
     rbTiltAngleSpecify.setToolTipText(tooltipFormatter.setText(text).format());
     text = "Starting tilt angle of the series";
     ltfAngleMin.setToolTipText(tooltipFormatter.setText(text).format());
-    text = "Ending tilt angle of the series";
-    ltfAngleMax.setToolTipText(tooltipFormatter.setText(text).format());
     text = "Tilt increment between views";
     ltfAngleStep.setToolTipText(tooltipFormatter.setText(text).format());
     text =
@@ -208,7 +203,6 @@ public class TiltAngleDialogPanel {
   }
 
   void enableTiltAngleSpecifyFields(boolean enable) {
-    ltfAngleMax.setEnabled(enable);
     ltfAngleMin.setEnabled(enable);
     ltfAngleStep.setEnabled(enable);
   }
