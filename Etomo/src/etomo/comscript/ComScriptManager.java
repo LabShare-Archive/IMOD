@@ -1,11 +1,17 @@
 package etomo.comscript;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 
 import javax.swing.JOptionPane;
 
 import etomo.ApplicationManager;
 import etomo.type.AxisID;
+import etomo.type.AxisType;
 import etomo.util.TestFiles;
 
 /**
@@ -23,6 +29,9 @@ import etomo.util.TestFiles;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.12  2004/06/13 17:03:23  rickg
+ * <p> Solvematch mid change
+ * <p>
  * <p> Revision 3.11  2004/05/05 19:15:05  sueh
  * <p> param test - proof of concept
  * <p>
@@ -877,6 +886,79 @@ public class ComScriptManager {
       AxisID.ONLY);
   }
 
+  /**
+   * Use a template script from the $IMOD_DIR/com directory.  This is useful if
+   * we encounter an old data set that does not have a current complete set of
+   * com scripts
+   * @param scriptName the basename of the template file
+   * @param axisType axisType Specify whether this is a single or dual axis
+   * tomogram. 
+   * @param axisID the AxisID to create.  This is ignored for single axis 
+   * tomogram.  For a dual axis tomogram AxisID.FIRST will create an a.com
+   * script, AxisID.SECOND will create a b.com script.  AxisID.ONLY will
+   * create a .com script replacing the g5a and g5b tags.
+   *  
+   */
+  public void useTemplate(String scriptName, String datasetName,
+    AxisType axisType, AxisID axisID) throws BadComScriptException, IOException {
+    // Read in the template file from the IMOD_DIR/com directory replacing all
+    // instances of the tag g5a and g5b with the appropriate dataset name
+    String comDirectory = ApplicationManager.getIMODDirectory()
+      .getAbsolutePath()
+      + File.separator + "com";
+
+    File template = new File(comDirectory, scriptName + ".com");
+    if (!template.exists()) {
+      String message = "Unknown template: " + scriptName;
+      throw new BadComScriptException(message);
+    }
+    BufferedReader templateReader = new BufferedReader(new FileReader(template));
+
+    // The ouput script
+    File script;
+    BufferedWriter scriptWriter;
+
+    // Open the appropriate output script and change the dataset name if
+    // necessary.
+    if (axisType == AxisType.SINGLE_AXIS) {
+      script = new File(System.getProperty("user.dir"), scriptName + ".com");
+      scriptWriter = new BufferedWriter(new FileWriter(script));
+    }
+    else {
+      script = new File(System.getProperty("user.dir"), scriptName
+        + axisID.getExtension() + ".com");
+      scriptWriter = new BufferedWriter(new FileWriter(script));
+      datasetName = datasetName + axisID.getExtension();
+    }
+
+    if (axisType == AxisType.DUAL_AXIS && axisID == AxisID.ONLY) {
+      String line;
+      while ((line = templateReader.readLine()) != null) {
+        line = line.replaceAll("g5a", datasetName + "a");
+        line = line.replaceAll("g5b", datasetName + "b");
+        scriptWriter.write(line);
+        scriptWriter.newLine();
+      }
+    }
+    else {
+      String line;
+      while ((line = templateReader.readLine()) != null) {
+        line = line.replaceAll("g5a", datasetName);
+        scriptWriter.write(line);
+        scriptWriter.newLine();
+      }
+    }
+    templateReader.close();
+    scriptWriter.close();
+  }
+
+  /**
+   * Load the specified com script into this class.
+   * @param scriptName
+   * @param axisID
+   * @param parseComments
+   * @return
+   */
   private ComScript loadComScript(String scriptName, AxisID axisID,
     boolean parseComments) {
     return loadComScript(scriptName, axisID, parseComments, -1, -1);
@@ -942,7 +1024,7 @@ public class ComScriptManager {
       appManager.openMessageDialog(errorMessage, "ComScriptManager Error");
       return;
     }
-    
+
     //  Update the specified com script command from the CommandParam object
     ComScriptCommand comScriptCommand = null;
     int commandIndex = script.getScriptCommandIndex(command);

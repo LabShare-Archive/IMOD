@@ -20,6 +20,7 @@ import etomo.comscript.CombineParams;
 import etomo.comscript.ConstCombineParams;
 import etomo.type.AxisID;
 import etomo.type.CombinePatchSize;
+import etomo.type.FiducialMatch;
 
 /**
  * <p>
@@ -41,6 +42,9 @@ import etomo.type.CombinePatchSize;
  * 
  * <p>
  * $Log$
+ * Revision 3.9  2004/06/13 17:03:23  rickg
+ * Solvematch mid change
+ *
  * Revision 3.8  2004/05/11 21:48:05  sueh
  * bug# 302 enabling/disabling matching models and patch region
  * in Setup during sync
@@ -543,12 +547,12 @@ public class SetupCombinePanel
   }
 
   // InitialiCombineFields interface pass-thru
-  public boolean isUseMatchingModels() {
-    return pnlSolvematch.isUseMatchingModels();
+  public FiducialMatch getSurfacesOrModels() {
+    return pnlSolvematch.getSurfacesOrModels();
   }
 
-  public void setUseMatchingModels(boolean state) {
-    pnlSolvematch.setUseMatchingModels(state);
+  public void setSurfacesOrModels(FiducialMatch state) {
+    pnlSolvematch.setSurfacesOrModels(state);
   }
 
   public boolean isBinBy2() {
@@ -661,10 +665,10 @@ public class SetupCombinePanel
         "Matchorwarp"};
     String[] manPage = {"solvematch.html", "matchshifts.html",
         "patchcrawl3d.html", "matchorwarp.html"};
-    String[] logFileLabel = {"Transferfid", "Solvematchshift", "Solvematchmod",
+    String[] logFileLabel = {"Transferfid", "Solvematch",
         "Patchcorr", "Matchorwarp", "Volcombine"};
-    String[] logFile = {"transferfid.log", "solvematchshift.log",
-        "solvematchmod.log", "patchcorr.log", "matchorwarp.log",
+    String[] logFile = {"transferfid.log", "solvematch.log",
+        "patchcorr.log", "matchorwarp.log",
         "volcombine.log"};
 
     ContextPopup contextPopup = new ContextPopup(pnlRoot, mouseEvent,

@@ -43,6 +43,9 @@ import etomo.comscript.CombineParams;
  * 
  * <p>
  * $Log$
+ * Revision 3.8  2004/06/13 17:03:23  rickg
+ * Solvematch mid change
+ *
  * Revision 3.7  2004/05/11 20:50:01  sueh
  * bug# 302 adding FinalCombineValues interface
  * standardizing synchronization
@@ -309,10 +312,11 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields {
     pnlMatchorwarpButtons.add(Box.createHorizontalGlue());
     pnlMatchorwarpButtons.add(btnMatchorwarpTrial);
     pnlMatchorwarpButtons.add(Box.createHorizontalGlue());
+    UIUtilities.setButtonSizeAll(pnlMatchorwarpButtons, UIParameters
+      .getButtonDimension());
+
     pnlMatchorwarp.add(pnlMatchorwarpButtons);
     pnlMatchorwarp.add(Box.createRigidArea(FixedDim.x0_y5));
-    UIUtilities.setButtonSizeAll(pnlMatchorwarp, UIParameters
-      .getButtonDimension());
 
     pnlVolcombine.setLayout(new BoxLayout(pnlVolcombine, BoxLayout.X_AXIS));
     pnlVolcombine.add(btnVolcombineRestart);

@@ -73,7 +73,7 @@ import etomo.util.Utilities;
  * <p>Description: Provides the main entry point, handles high level message 
  *  processing, management of other high-level objects and signal routing.</p>
  *
- * <p>Copyright: Copyright (c) 2002</p>
+ * <p>Copyright: Copyright (c) 2002-2004</p>
  *
  * <p>Organization: Boulder Laboratory for 3D Fine Structure,
  * University of Colorado</p>
@@ -83,6 +83,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.69  2004/06/13 17:03:23  rickg
+ * <p> Solvematch mid change
+ * <p>
  * <p> Revision 3.68  2004/06/10 18:27:12  sueh
  * <p> bug# 463 changing ImodManager.create() to newImod, using
  * <p> ImodManager.setOpenBeadFixer() instead of openBeadFixer
@@ -3794,28 +3797,38 @@ public class ApplicationManager {
    */
   public void loadSolvematchShift() {
     comScriptMgr.loadSolvematchshift();
-    //  TODO: do we need to call loadsolvematch to instatiate the object in
-    // comscript manager?
     SolvematchParam solvematchParam = new SolvematchParam();
     solvematchParam.parseSolvematchshift(comScriptMgr.getSolvematchshift(),
       metaData.getDatasetName());
-    
-    comScriptMgr.saveSolvematch(solvematchParam);
-    tomogramCombinationDialog.setSolvematchParams(solvematchParam);
+    createNewSolvematch(solvematchParam);
   }
 
   /**
    * Load the solvematchmod com script into the tomogram combination dialog
+   * converting it first to a solvematch param object
    */
   public void loadSolvematchMod() {
     comScriptMgr.loadSolvematchmod();
-    //  TODO: do we need to call loadsolvematch to instatiate the object in
-    // comscript manager?
     SolvematchParam solvematchParam = new SolvematchParam();
     solvematchParam.parseSolvematchmod(comScriptMgr.getSolvematchmod());
+    createNewSolvematch(solvematchParam);
+  }
+
+  private void createNewSolvematch(SolvematchParam solvematchParam) {
+    try {
+      comScriptMgr.useTemplate("solvematch", metaData.getDatasetName(), AxisType.DUAL_AXIS, AxisID.ONLY);
+    }
+    catch (Exception e) {
+      e.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Unable to create solvematch com script";
+      message[1] = "Check file and directory permissions";
+      openMessageDialog(message, "Can't create solvematch.com");
+      return;
+    }
     //  Write it out the converted object disk
+    comScriptMgr.loadSolvematch();
     comScriptMgr.saveSolvematch(solvematchParam);
-    
     tomogramCombinationDialog.setSolvematchParams(solvematchParam);
   }
 

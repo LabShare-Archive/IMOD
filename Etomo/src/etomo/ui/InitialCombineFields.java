@@ -1,5 +1,7 @@
 package etomo.ui;
 
+import etomo.type.FiducialMatch;
+
 /**
 * <p>Description: </p>
 *
@@ -14,6 +16,10 @@ package etomo.ui;
 * @version $$Revision$$
 *
 * <p> $$Log$
+* <p> $Revision 1.2  2004/05/11 21:46:48  sueh
+* <p> $bug# 302 making InitialCombineFields interface local to the
+* <p> $ui package
+* <p> $
 * <p> $Revision 1.1  2004/05/11 20:50:39  sueh
 * <p> $bug #302 interface to initial combine screen fields.  Used by
 * <p> $setup panel and initial panel.
@@ -22,8 +28,8 @@ package etomo.ui;
 interface InitialCombineFields {
   public static final String rcsid = "$$Id$$";
   
-  public abstract void setUseMatchingModels(boolean useMatchingModels);
-  public boolean isUseMatchingModels();
+  public void setSurfacesOrModels(FiducialMatch useMatchingModels);
+  public FiducialMatch getSurfacesOrModels();
   public void setBinBy2(boolean binBy2);
   public boolean isBinBy2();
   public void setFiducialMatchListA(String fiducialMatchListA);

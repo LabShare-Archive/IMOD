@@ -13,6 +13,9 @@ package etomo.type;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.0  2003/11/07 23:19:01  rickg
+ * <p> Version 1.0.0
+ * <p>
  * <p> Revision 2.0  2003/01/24 20:30:31  rickg
  * <p> Single window merge to main branch
  * <p>
@@ -32,13 +35,14 @@ public class FiducialMatch {
   private FiducialMatch(String name) {
     this.name = name;
   }
-
+  public static final FiducialMatch NOT_SET = new FiducialMatch("Not Set");
   public static final FiducialMatch BOTH_SIDES = new FiducialMatch("BothSides");
   public static final FiducialMatch ONE_SIDE = new FiducialMatch("OneSide");
   public static final FiducialMatch ONE_SIDE_INVERTED =
     new FiducialMatch("OneSideInverted");
   public static final FiducialMatch USE_MODEL = new FiducialMatch("UseModel");
-
+  public static final FiducialMatch USE_MODEL_ONLY = new FiducialMatch("UseModelOnly");
+  
   /**
    * Returns a string representation of the object.
    */
@@ -63,6 +67,9 @@ public class FiducialMatch {
     }
     if (name.compareToIgnoreCase(USE_MODEL.toString()) == 0) {
       return USE_MODEL;
+    }
+    if (name.compareToIgnoreCase(USE_MODEL_ONLY.toString()) == 0) {
+      return USE_MODEL_ONLY;
     }
 
     return null;

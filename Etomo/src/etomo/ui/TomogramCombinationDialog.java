@@ -36,6 +36,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.8  2004/06/13 17:03:23  rickg
+ * <p> Solvematch mid change
+ * <p>
  * <p> Revision 3.7  2004/05/11 21:38:42  sueh
  * <p> bug# 302 simplifying logic in synchronize function
  * <p>
@@ -279,40 +282,6 @@ public class TomogramCombinationDialog
     pnlFinal.setMatchorwarpParams(matchorwarpParams);
   }
   
-  public boolean isUseMatchingModels(int fromTab) {
-    if (fromTab == tabbedPane.indexOfTab(lblSetup)) {
-      return pnlSetup.isUseMatchingModels();
-    }
-    if (fromTab == tabbedPane.indexOfTab(lblInitial)) {
-      return pnlInitial.isUseMatchingModels();
-    }
-    return false;
-  }
-
-  public boolean isBinBy2(int fromTab) {
-    if (fromTab == tabbedPane.indexOfTab(lblSetup)) {
-      return pnlSetup.isBinBy2();
-    }
-    if (fromTab == tabbedPane.indexOfTab(lblInitial)) {
-      return pnlInitial.isBinBy2();
-    }
-    return false;
-  }
-  
-  //  FIXME these are no longer needed
-  /* public void synchronize(int currentTab) {
-    synchronize(currentTab, true, ALL_FIELDS);
-  }
-  public void synchronize(int currentTab, int values) {
-    synchronize(currentTab, true, values);
-  }
-  public void synchronize(
-    int currentTab,
-    boolean copyFromCurrentTab) {
-      synchronize(currentTab, copyFromCurrentTab, ALL_FIELDS);
-    }
-  */
-  
   /**
    * synchronizes setup panel to/from initial and final panels
    * @param currentTab
@@ -351,24 +320,36 @@ public class TomogramCombinationDialog
     }
   }
   
+  /**
+   * Initial combine fields synchronization method
+   * @param fromPanel
+   * @param toPanel
+   * @param fieldSet
+   */
   private void synchronize(
     InitialCombineFields fromPanel,
     InitialCombineFields toPanel,
     int fieldSet) {
     if (fieldSet == ALL_FIELDS) {
-      toPanel.setUseMatchingModels(fromPanel.isUseMatchingModels());
+      toPanel.setSurfacesOrModels(fromPanel.getSurfacesOrModels());
       toPanel.setBinBy2(fromPanel.isBinBy2());
       toPanel.setFiducialMatchListA(fromPanel.getFiducialMatchListA());
       toPanel.setFiducialMatchListB(fromPanel.getFiducialMatchListB());
       return;
     }
     if (fieldSet == MATCHING_MODEL_FIELDS) {
-      toPanel.setUseMatchingModels(fromPanel.isUseMatchingModels());
+      toPanel.setSurfacesOrModels(fromPanel.getSurfacesOrModels());
       toPanel.setBinBy2(fromPanel.isBinBy2());
       return;
     }
   }
 
+  /**
+   * Final combine fields synchronization method
+   * @param fromPanel
+   * @param toPanel
+   * @param fieldSet
+   */
   private void synchronize(
     FinalCombineFields fromPanel,
     FinalCombineFields toPanel,
@@ -464,8 +445,7 @@ public class TomogramCombinationDialog
         "matchorwarp.html" };
     String[] logFileLabel =
       {
-        "Solvematchshift.log",
-        "Solvematchmod.log",
+        "Solvematch.log",
         "Patchcorr.log",
         "Matchorwarp.log" };
     ContextPopup contextPopup =

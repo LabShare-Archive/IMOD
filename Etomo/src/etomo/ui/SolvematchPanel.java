@@ -5,6 +5,7 @@ import java.awt.Container;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.JCheckBox;
@@ -31,10 +32,13 @@ import etomo.type.FiducialMatch;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 3.1  2004/06/13 17:03:23  rickg
+ * <p> Solvematch mid change
+ * <p> </p>
  */
 
-public class SolvematchPanel {
+public class SolvematchPanel implements InitialCombineFields {
 
   private ApplicationManager applicationManager;
 
@@ -48,7 +52,10 @@ public class SolvematchPanel {
   private JRadioButton rbOneSideInverted = new JRadioButton(
     "Fiducials on one side, inverted");
   private JRadioButton rbUseModel = new JRadioButton(
-    "Use models of corresponding points, not cross-correlation");
+    "Use matching models and fiducials");
+  private JRadioButton rbUseModelOnly = new JRadioButton(
+    "Use matching models only");
+
   private JPanel pnlImodMatchModels = new JPanel();
   private JCheckBox cbBinBy2 = new JCheckBox("Binned by 2");
   private MultiLineButton btnImodMatchModels = new MultiLineButton(
@@ -79,10 +86,12 @@ public class SolvematchPanel {
     bgFiducialParams.add(rbOneSide);
     bgFiducialParams.add(rbOneSideInverted);
     bgFiducialParams.add(rbUseModel);
+    bgFiducialParams.add(rbUseModelOnly);
     pnlFiducialRadio.add(rbBothSides);
     pnlFiducialRadio.add(rbOneSide);
     pnlFiducialRadio.add(rbOneSideInverted);
     pnlFiducialRadio.add(rbUseModel);
+    pnlFiducialRadio.add(rbUseModelOnly);
 
     pnlImodMatchModels.setLayout(new BoxLayout(pnlImodMatchModels,
       BoxLayout.Y_AXIS));
@@ -92,7 +101,13 @@ public class SolvematchPanel {
 
     pnlFiducialSelect.setLayout(new BoxLayout(pnlFiducialSelect,
       BoxLayout.X_AXIS));
-    pnlFiducialSelect.add(pnlFiducialRadio);
+    UIUtilities.addWithSpace(pnlFiducialSelect, pnlFiducialRadio,
+      FixedDim.x20_y0);
+    pnlFiducialSelect.add(Box.createRigidArea(FixedDim.x20_y0));
+    pnlFiducialSelect.add(Box.createRigidArea(FixedDim.x20_y0));
+    pnlFiducialSelect.add(Box.createRigidArea(FixedDim.x20_y0));
+    pnlFiducialSelect.add(Box.createRigidArea(FixedDim.x20_y0));
+    pnlFiducialSelect.add(Box.createRigidArea(FixedDim.x20_y0));
     pnlFiducialSelect.add(pnlImodMatchModels);
 
     pnlRoot.setBorder(new EtchedBorder("Solvematch Parameters").getBorder());
@@ -112,6 +127,9 @@ public class SolvematchPanel {
     rbOneSide.addActionListener(rbFiducialListener);
     rbOneSideInverted.addActionListener(rbFiducialListener);
     rbUseModel.addActionListener(rbFiducialListener);
+    rbUseModelOnly.addActionListener(rbFiducialListener);
+
+    setToolTipText();
   }
 
   public Container getContainer() {
@@ -132,6 +150,9 @@ public class SolvematchPanel {
     }
     if (combineParams.getFiducialMatch() == FiducialMatch.USE_MODEL) {
       rbUseModel.setSelected(true);
+    }
+    if (combineParams.getFiducialMatch() == FiducialMatch.USE_MODEL_ONLY) {
+      rbUseModelOnly.setSelected(true);
     }
     ltfFiducialMatchListA.setText(combineParams.getFiducialMatchListA());
     ltfFiducialMatchListB.setText(combineParams.getFiducialMatchListB());
@@ -155,26 +176,17 @@ public class SolvematchPanel {
     if (rbUseModel.isSelected()) {
       combineParams.setFiducialMatch(FiducialMatch.USE_MODEL);
     }
+    if (rbUseModelOnly.isSelected()) {
+      combineParams.setFiducialMatch(FiducialMatch.USE_MODEL_ONLY);
+    }
 
     combineParams.setFiducialMatchListA(ltfFiducialMatchListA.getText());
     combineParams.setFiducialMatchListB(ltfFiducialMatchListB.getText());
   }
 
   void setParameters(ConstSolvematchParam solvematchParam) {
-    switch (solvematchParam.getNSurfaces()) {
-      case -1 :
-        rbOneSideInverted.setSelected(true);
-        break;
-      case 0 :
-        rbUseModel.setSelected(true);
-        break;
-      case 1 :
-        rbOneSide.setSelected(true);
-        break;
-      case 2 :
-        rbBothSides.setSelected(true);
-        break;
-    }
+
+    setSurfacesOrModels(solvematchParam.getSurfacesOrModel());
     if (solvematchParam.isMatchBToA()) {
       ltfFiducialMatchListA.setText(solvematchParam.getToCorrespondenceList()
         .toString());
@@ -200,18 +212,9 @@ public class SolvematchPanel {
    * @param combineParams
    */
   void getParameters(SolvematchParam solvematchParam) {
-    if (rbBothSides.isSelected()) {
-      solvematchParam.setNSurfaces(2);
-    }
-    if (rbOneSide.isSelected()) {
-      solvematchParam.setNSurfaces(1);
-    }
-    if (rbOneSideInverted.isSelected()) {
-      solvematchParam.setNSurfaces(-1);
-    }
-    if (rbUseModel.isSelected()) {
-      solvematchParam.setNSurfaces(0);
-    }
+
+    solvematchParam.setSurfacesOrModel(getSurfacesOrModels());
+
     if (solvematchParam.isMatchBToA()) {
       solvematchParam.setToCorrespondenceList(ltfFiducialMatchListA.getText());
       solvematchParam
@@ -225,18 +228,44 @@ public class SolvematchPanel {
     solvematchParam.setMaximumResidual(ltfResidulThreshold.getText());
   }
 
-  public boolean isUseMatchingModels() {
-    return rbUseModel.isSelected();
+  /**
+   * 
+   * @return
+   */
+  public FiducialMatch getSurfacesOrModels() {
+    if (rbBothSides.isSelected()) {
+      return FiducialMatch.BOTH_SIDES;
+    }
+    if (rbOneSide.isSelected()) {
+      return FiducialMatch.ONE_SIDE;
+    }
+    if (rbOneSideInverted.isSelected()) {
+      return FiducialMatch.ONE_SIDE_INVERTED;
+    }
+    if (rbUseModel.isSelected()) {
+      return FiducialMatch.USE_MODEL;
+    }
+    if (rbUseModelOnly.isSelected()) {
+      return FiducialMatch.USE_MODEL_ONLY;
+    }
+    return FiducialMatch.NOT_SET;
   }
 
-  public void setUseMatchingModels(boolean state) {
-    if (state) {
+  public void setSurfacesOrModels(FiducialMatch value) {
+    if (value == FiducialMatch.USE_MODEL_ONLY) {
+      rbUseModelOnly.setSelected(true);
+    }
+    if (value == FiducialMatch.ONE_SIDE_INVERTED) {
+      rbOneSideInverted.setSelected(true);
+    }
+    if (value == FiducialMatch.USE_MODEL) {
       rbUseModel.setSelected(true);
     }
-    else {
-      if (rbUseModel.isSelected()) {
-        rbBothSides.setSelected(true);
-      }
+    if (value == FiducialMatch.ONE_SIDE) {
+      rbOneSide.setSelected(true);
+    }
+    if (value == FiducialMatch.BOTH_SIDES) {
+      rbBothSides.setSelected(true);
     }
     updateUseFiducialModel();
   }
@@ -290,7 +319,7 @@ public class SolvematchPanel {
    * Enable/disable the matching model button
    */
   void updateUseFiducialModel() {
-    boolean enable = rbUseModel.isSelected();
+    boolean enable = rbUseModel.isSelected() || rbUseModelOnly.isSelected();
     btnImodMatchModels.setEnabled(enable);
     cbBinBy2.setEnabled(enable);
   }
@@ -350,6 +379,10 @@ public class SolvematchPanel {
       + "likely to fail.";
     rbUseModel.setToolTipText(tooltipFormatter.setText(text).format());
 
+    text = "Select this option to use ONLY models of corresponding points to"
+      + "find the shifts between volumes.";
+    rbUseModelOnly.setToolTipText(tooltipFormatter.setText(text).format());
+    
     text = "Using binning by 2 when opening matching models to allow the two 3dmods "
       + "to fit into the computer's memory.";
     cbBinBy2.setToolTipText(tooltipFormatter.setText(text).format());

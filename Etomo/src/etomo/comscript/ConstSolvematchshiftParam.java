@@ -2,7 +2,7 @@ package etomo.comscript;
 /**
  * <p>Description: </p>
  * 
- * <p>Copyright: Copyright (c) 2002</p>
+ * <p>Copyright: Copyright (c) 2002-2004</p>
  * 
  * <p>Organization: Boulder Laboratory for 3D Fine Structure,
  * University of Colorado</p>
@@ -12,6 +12,9 @@ package etomo.comscript;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.3  2004/06/14 23:28:33  rickg
+ * <p> Bug #383  reisdual changed to float.
+ * <p>
  * <p> Revision 3.2  2004/06/13 17:03:23  rickg
  * <p> Solvematch mid change
  * <p>

@@ -13,6 +13,7 @@ import etomo.ApplicationManager;
 import etomo.comscript.ConstSolvematchParam;
 import etomo.comscript.SolvematchParam;
 import etomo.comscript.CombineParams;
+import etomo.type.FiducialMatch;
 
 /**
  * <p>Description: </p>
@@ -27,6 +28,9 @@ import etomo.comscript.CombineParams;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.10  2004/06/13 17:03:23  rickg
+ * <p> Solvematch mid change
+ * <p>
  * <p> Revision 3.9  2004/05/11 21:47:13  sueh
  * <p> bug# 302 removing print statements
  * <p>
@@ -195,12 +199,12 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields {
   }
 
   // InitialiCombineFields interface pass-thru
-  public boolean isUseMatchingModels() {
-    return pnlSolvematch.isUseMatchingModels();
+  public FiducialMatch getSurfacesOrModels() {
+    return pnlSolvematch.getSurfacesOrModels();
   }
 
-  public void setUseMatchingModels(boolean state) {
-    pnlSolvematch.setUseMatchingModels(state);
+  public void setSurfacesOrModels(FiducialMatch state) {
+    pnlSolvematch.setSurfacesOrModels(state);
   }
 
   public boolean isBinBy2() {
@@ -233,9 +237,8 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields {
   public void popUpContextMenu(MouseEvent mouseEvent) {
     String[] manPagelabel = {"Solvematch", "Matchshifts"};
     String[] manPage = {"solvematch.html", "matchshifts.html"};
-    String[] logFileLabel = {"Transferfid", "Solvematchshift", "Solvematchmod"};
-    String[] logFile = {"transferfid.log", "solvematchshift.log",
-        "solvematchmod.log"};
+    String[] logFileLabel = {"Transferfid", "Solvematch"};
+    String[] logFile = {"transferfid.log", "solvematch.log"};
 
     ContextPopup contextPopup = new ContextPopup(pnlRoot, mouseEvent,
       "Initial Problems in Combining", manPagelabel, manPage, logFileLabel,
