@@ -32,6 +32,10 @@ import etomo.type.FiducialMatch;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.7  2004/05/11 20:53:22  sueh
+ * <p> bug# 302 adding InitialCombineValues interface
+ * <p> standardizing synchronization
+ * <p>
  * <p> Revision 3.6  2004/05/05 22:24:09  sueh
  * <p> bug# 416 moving binned by 2 checkbox to above matching models
  * <p> button
@@ -273,7 +277,7 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields {
    * Set the state of the matching model checkbox.
    * @param state
    */
-  void setUseMatchingModels(boolean state) {
+  public void setUseMatchingModels(boolean state) {
     cbUseModel.setSelected(state);
   }
   
