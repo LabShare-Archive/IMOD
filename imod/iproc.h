@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.3  2003/02/10 20:41:56  mast
+    Merge Qt source
+
     Revision 3.2.2.2  2003/01/27 00:30:07  mast
     Pure Qt version and general cleanup
 
@@ -88,7 +91,9 @@ typedef struct
 {
   IProcWindow   *dia;
   ImodView      *vw;        /* image data to model                       */
-  unsigned char *idata;     /* Image data processing buffer.             */
+  unsigned char *iwork;     /* Image data processing buffer.             */
+  unsigned char *isaved;     /* buffer for saving original data.         */
+
   int           idatasec;   /* data section. */
   int           idatatime;  /* time value of section */
   int           procnum;
