@@ -13,6 +13,9 @@ package etomo.comscript;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.5  2003/08/21 22:17:27  rickg
+ * <p> Added density scaling getters
+ * <p>
  * <p> Revision 2.4  2003/06/25 22:15:50  rickg
  * <p> Manage all tilt parameters
  * <p>
@@ -92,8 +95,9 @@ public class ConstTiltParam {
   protected boolean useMode = false;
 
   protected double tiltAngleOffset;
+	protected boolean useTiltAngleOffset = false;
   protected double tiltAxisOffset;
-  protected boolean useAngleOffsets = false;
+	protected boolean useTiltAxisOffset = false;
 
   protected boolean parallel = false;
   protected boolean useParallel = false;
@@ -114,13 +118,16 @@ public class ConstTiltParam {
   protected boolean useScale = false;
  
   protected double xOffset;
+	protected boolean useXOffset = false;
   protected double zOffset;
-  protected boolean useShift = false;
+	protected boolean useZOffset = false;
 
   protected int idxSliceStart;
   protected int idxSliceStop;
+	protected boolean useSlice = false;
+	
   protected int idxSliceIncr;
-  protected boolean useSlice = false;
+	protected boolean useSliceIncr = false;
 
   protected int idxXSubsetStart;
   protected int idxYSubsetStart;
@@ -271,9 +278,16 @@ public class ConstTiltParam {
   /**
    * @return
    */
-  public boolean hasAngleOffsets() {
-    return useAngleOffsets;
+  public boolean hasTiltAngleOffset() {
+    return useTiltAngleOffset;
   }
+
+	/**
+	 * @return
+	 */
+	public boolean hasTiltAxisOffset() {
+		return useTiltAxisOffset;
+	}
 
   /**
    * @return
@@ -411,9 +425,16 @@ public class ConstTiltParam {
   /**
    * @return
    */
-  public boolean hasShift() {
-    return useShift;
+  public boolean hasXOffset() {
+    return useXOffset;
   }
+
+	/**
+	 * @return
+	 */
+	public boolean hasZOffset() {
+		return useZOffset;
+	}
 
   /**
    * @return
@@ -421,6 +442,13 @@ public class ConstTiltParam {
   public boolean hasSlice() {
     return useSlice;
   }
+
+	/**
+	 * @return
+	 */
+	public boolean hasSliceIncr() {
+		return useSliceIncr;
+	}
 
   /**
    * @return

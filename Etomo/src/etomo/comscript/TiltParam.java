@@ -15,6 +15,9 @@ import java.util.ArrayList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.8  2003/08/21 22:17:48  rickg
+ * <p> Added density scaling setters
+ * <p>
  * <p> Revision 2.7  2003/07/25 22:52:37  rickg
  * <p> CommandParam method name changes
  * <p>
@@ -161,8 +164,14 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
       if (tokens[0].equals("OFFSET")) {
         String[] params = tokens[1].split("\\s+", 2);
         tiltAngleOffset = Double.parseDouble(params[0]);
-        tiltAxisOffset = Double.parseDouble(params[1]);
-        useAngleOffsets = true;
+        useTiltAngleOffset = true;
+        if (params.length > 1) {
+          tiltAxisOffset = Double.parseDouble(params[1]);
+          useTiltAxisOffset = true;
+        }
+        else {
+          useTiltAxisOffset = false;
+        }
       }
 
       if (tokens[0].equals("PARALLEL")) {
@@ -203,16 +212,25 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
       if (tokens[0].equals("SHIFT")) {
         String[] params = tokens[1].split("\\s+", 2);
         xOffset = Double.parseDouble(params[0]);
-        zOffset = Double.parseDouble(params[1]);
-        useShift = true;
+        useXOffset = true;
+        if (params.length > 1) {
+          zOffset = Double.parseDouble(params[1]);
+          useZOffset = true;
+        }
       }
 
       if (tokens[0].equals("SLICE")) {
         String[] params = tokens[1].split("\\s+", 3);
         idxSliceStart = Integer.parseInt(params[0]);
         idxSliceStop = Integer.parseInt(params[1]);
-        idxSliceIncr = Integer.parseInt(params[2]);
         useSlice = true;
+        if (params.length > 2) {
+          idxSliceIncr = Integer.parseInt(params[2]);
+          useSliceIncr = true;
+        }
+        else {
+          useSliceIncr = false;
+        }
       }
 
       if (tokens[0].equals("SUBSETSTART")) {
@@ -246,12 +264,12 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
         xAxisTilt = Double.parseDouble(tokens[1]);
         useXAxisTilt = true;
       }
-      
+
       if (tokens[0].equals("XTILTFILE")) {
         xTiltFile = tokens[1];
         useXTiltFile = true;
       }
-      
+
       if (tokens[0].equals("XTILTINTERP")) {
         xTiltInterp = Integer.parseInt(tokens[1]);
         useXTiltInterp = true;
@@ -374,13 +392,13 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
       cmdLineArgs.add(newArg);
     }
 
-    if (useAngleOffsets) {
+    if (useTiltAngleOffset) {
+      String arg = "OFFSET " + String.valueOf(tiltAngleOffset);
+      if (useTiltAxisOffset) {
+        arg += " " + String.valueOf(tiltAxisOffset);
+      }
       newArg = new ComScriptInputArg();
-      newArg.setArgument(
-        "OFFSET "
-          + String.valueOf(tiltAngleOffset)
-          + " "
-          + String.valueOf(tiltAxisOffset));
+      newArg.setArgument(arg);
       cmdLineArgs.add(newArg);
     }
 
@@ -426,22 +444,27 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
       cmdLineArgs.add(newArg);
     }
 
-    if (useShift) {
+    if (useXOffset) {
+      String arg = "SHIFT " + String.valueOf(xOffset);
+      if (useZOffset) {
+        arg = arg + " " + String.valueOf(zOffset);
+      }
       newArg = new ComScriptInputArg();
-      newArg.setArgument(
-        "SHIFT " + String.valueOf(xOffset) + " " + String.valueOf(zOffset));
+      newArg.setArgument(arg);
       cmdLineArgs.add(newArg);
     }
 
     if (useSlice) {
-      newArg = new ComScriptInputArg();
-      newArg.setArgument(
+      String arg =
         "SLICE "
           + String.valueOf(idxSliceStart)
           + " "
-          + String.valueOf(idxSliceStop)
-          + " "
-          + String.valueOf(idxSliceIncr));
+          + String.valueOf(idxSliceStop);
+      if (useSliceIncr) {
+        arg += " " + String.valueOf(idxSliceIncr);
+      }
+      newArg = new ComScriptInputArg();
+      newArg.setArgument(arg);
       cmdLineArgs.add(newArg);
     }
 
@@ -614,7 +637,7 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
    */
   public void setIdxSliceIncr(int i) {
     idxSliceIncr = i;
-    useSlice(true);
+    useSliceIncr(true);
   }
 
   /**
@@ -660,7 +683,7 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
    */
   public void setXOffset(double d) {
     xOffset = d;
-    useShift = true;
+    useXOffset = true;
   }
 
   /**
@@ -668,14 +691,22 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
    */
   public void setZOffset(double d) {
     zOffset = d;
-    useShift = true;
+    useZOffset = true;
   }
+
+  /**
+   * @param b
+   */
+  public void useZOffset(boolean b) {
+    useZOffset = b;
+  }
+
   /**
    * @param d
    */
   public void setTiltAngleOffset(double d) {
     tiltAngleOffset = d;
-    useAngleOffsets = true;
+    useTiltAngleOffset = true;
   }
 
   /**
@@ -683,7 +714,7 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
    */
   public void setTiltAxisOffset(double d) {
     tiltAxisOffset = d;
-    useAngleOffsets = true;
+    useTiltAngleOffset = true;
   }
   /**
    * @param b
@@ -828,17 +859,16 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
   /**
    * @param b
    */
-  public void useShift(boolean b) {
-    useShift = b;
+  public void useSlice(boolean b) {
+    useSlice = b;
   }
 
   /**
    * @param b
    */
-  public void useSlice(boolean b) {
-    useSlice = b;
+  public void useSliceIncr(boolean b) {
+    useSliceIncr = b;
   }
-
   /**
    * @param b
    */
@@ -884,6 +914,13 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
   /**
    * @param b
    */
+  public void useXOffset(boolean b) {
+    useXOffset = b;
+  }
+
+  /**
+   * @param b
+   */
   public void useXTiltFile(boolean b) {
     useXTiltFile = b;
   }
@@ -899,7 +936,7 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
    * @param b
    */
   public void useAngleOffsets(boolean b) {
-    useAngleOffsets = b;
+    useTiltAngleOffset = b;
   }
 
   /**
@@ -915,6 +952,5 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
   public void setScaleFLevel(double scaleFLevel) {
     this.scaleFLevel = scaleFLevel;
   }
-
 
 }

@@ -22,6 +22,7 @@ import etomo.comscript.TiltParam;
 import etomo.comscript.ConstNewstParam;
 import etomo.comscript.NewstParam;
 import etomo.type.AxisID;
+import etomo.util.InvalidParameterException;
 
 /**
  * <p>
@@ -43,6 +44,10 @@ import etomo.type.AxisID;
  * 
  * <p>
  * $Log$
+ * Revision 2.15  2003/10/21 23:41:28  rickg
+ * Bug# 288 Tooltips
+ * Bug# 296 Added button to delete .preal and .ali
+ *
  * <p>
  * Revision 2.14 2003/10/14 23:45:01 rickg
  * <p>
@@ -230,7 +235,7 @@ public class TomogramGenerationDialog
     new LabeledTextField("First slice in Y: ");
   private LabeledTextField ltfSliceStop =
     new LabeledTextField("Last slice in Y: ");
-  private LabeledTextField ltfSliceStep =
+  private LabeledTextField ltfSliceIncr =
     new LabeledTextField("Slice step in Y: ");
 
   private LabeledTextField ltfTomoWidth =
@@ -398,31 +403,33 @@ public class TomogramGenerationDialog
     if (tiltParam.hasThickness()) {
       ltfTomoThickness.setText(tiltParam.getThickness());
     }
-    if (tiltParam.hasShift()) {
+    if (tiltParam.hasXOffset()) {
       ltfXOffset.setText(tiltParam.getXOffset());
+    }
+    if (tiltParam.hasZOffset()) {
       ltfZOffset.setText(tiltParam.getZOffset());
     }
     if (tiltParam.hasSlice()) {
       ltfSliceStart.setText(tiltParam.getIdxSliceStart());
       ltfSliceStop.setText(tiltParam.getIdxSliceStop());
-      ltfSliceStep.setText(tiltParam.getIdxSliceIncr());
+    }
+    if (tiltParam.hasSliceIncr()) {
+      ltfSliceIncr.setText(tiltParam.getIdxSliceIncr());
     }
     if (tiltParam.hasXAxisTilt()) {
       ltfXAxisTilt.setText(tiltParam.getXAxisTilt());
     }
-    if (tiltParam.hasAngleOffsets()) {
+    if (tiltParam.hasTiltAngleOffset()) {
       ltfTiltAngleOffset.setText(tiltParam.getTiltAngleOffset());
     }
     if (tiltParam.hasRadialWeightingFunction()) {
       ltfRadialMax.setText(tiltParam.getRadialBandwidth());
       ltfRadialFallOff.setText(tiltParam.getRadialFalloff());
     }
-
     if (tiltParam.hasScale()) {
       ltfDensityOffset.setText(tiltParam.getScaleFLevel());
       ltfDensityScale.setText(tiltParam.getScaleCoeff());
     }
-
     if (tiltParam.hasLogOffset()) {
       ltfLogOffset.setText(tiltParam.getLogShift());
     }
@@ -437,7 +444,8 @@ public class TomogramGenerationDialog
   /**
    * Get the tilt parameters from the requested axis panel
    */
-  public void getTiltParams(TiltParam tiltParam) throws NumberFormatException {
+  public void getTiltParams(TiltParam tiltParam)
+    throws NumberFormatException, InvalidParameterException {
     String badParameter = "";
     try {
 
@@ -449,31 +457,55 @@ public class TomogramGenerationDialog
         tiltParam.useWidth(false);
       }
 
-      //  TODO: Error checking to be sure that all parameters are supplied
-      if (ltfXOffset.getText().matches("\\S+")
-        || ltfZOffset.getText().matches("\\S+")) {
+      if (ltfXOffset.getText().matches("\\S+")) {
         badParameter = ltfXOffset.getLabel();
         tiltParam.setXOffset(Double.parseDouble(ltfXOffset.getText()));
-        badParameter = ltfZOffset.getLabel();
-        tiltParam.setZOffset(Double.parseDouble(ltfZOffset.getText()));
+        if (ltfZOffset.getText().matches("\\S+")) {
+          badParameter = ltfZOffset.getLabel();
+          tiltParam.setZOffset(Double.parseDouble(ltfZOffset.getText()));
+        }
+        else {
+          tiltParam.useZOffset(false);
+        }
       }
       else {
-        tiltParam.useShift(false);
+        tiltParam.useXOffset(false);
+        if (ltfZOffset.getText().matches("\\S+")) {
+          throw (
+            new InvalidParameterException("You must supply an X offset to supply a Z offset"));
+        }
+        else {
+          tiltParam.useZOffset(false);
+        }
       }
-
-      //  TODO: Error checking to be sure that all parameters are supplied
+      boolean sliceRangeSpecified = false;
       if (ltfSliceStart.getText().matches("\\S+")
-        || ltfSliceStop.getText().matches("\\S+")
-        || ltfSliceStep.getText().matches("\\S+")) {
+        && ltfSliceStop.getText().matches("\\S+")) {
         badParameter = ltfSliceStart.getLabel();
         tiltParam.setIdxSliceStart(Integer.parseInt(ltfSliceStart.getText()));
         badParameter = ltfSliceStop.getLabel();
         tiltParam.setIdxSliceStop(Integer.parseInt(ltfSliceStop.getText()));
-        badParameter = ltfSliceStep.getLabel();
-        tiltParam.setIdxSliceIncr(Integer.parseInt(ltfSliceStep.getText()));
+				sliceRangeSpecified = true;
+      }
+      else if (ltfSliceStart.getText().matches("^\\s*$") 
+        && ltfSliceStop.getText().matches("^\\s*$")) {
+        tiltParam.useSlice(false);
       }
       else {
-        tiltParam.useSlice(false);
+        throw (
+          new InvalidParameterException("You must supply both the first and last slices if you want to specify either."));
+      }
+      if (ltfSliceIncr.getText().matches("\\S+")) {
+        if(sliceRangeSpecified) {
+        badParameter = ltfSliceIncr.getLabel();
+        tiltParam.setIdxSliceIncr(Integer.parseInt(ltfSliceIncr.getText()));
+        }
+        else {
+        	throw (new InvalidParameterException("You must supply both the first and last slices to specify the slice step."));
+        }
+      }
+      else {
+				tiltParam.useSliceIncr(false);
       }
 
       if (ltfTomoThickness.getText().matches("\\S+")) {
@@ -604,7 +636,7 @@ public class TomogramGenerationDialog
       pnlTiltParams.add(ltfSliceStop.getContainer());
       pnlTiltParams.add(Box.createRigidArea(FixedDim.x0_y5));
 
-      pnlTiltParams.add(ltfSliceStep.getContainer());
+      pnlTiltParams.add(ltfSliceIncr.getContainer());
       pnlTiltParams.add(Box.createRigidArea(FixedDim.x0_y5));
 
       pnlTiltParams.add(ltfXOffset.getContainer());
@@ -790,7 +822,7 @@ public class TomogramGenerationDialog
     text =
       "Step between slices in the Y dimension.  A first and last slice must "
         + "also be entered. Default is 1.";
-    ltfSliceStep.setToolTipText(tooltipFormatter.setText(text).format());
+    ltfSliceIncr.setToolTipText(tooltipFormatter.setText(text).format());
 
     text =
       "This entry specifies the width of the output image; the default is the "

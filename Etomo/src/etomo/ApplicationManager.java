@@ -76,6 +76,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.79  2003/10/21 23:45:05  rickg
+ * <p> Added function to delete the aligned stacks
+ * <p>
  * <p> Revision 2.78  2003/10/21 02:34:20  sueh
  * <p> Bug325 Pulled out generic default UI retrieval functionality and placed it in ButtonHelper.
  * <p>
@@ -2218,6 +2221,15 @@ public class ApplicationManager {
       mainFrame.openMessageDialog(errorMessage, "Tilt Parameter Syntax Error");
       return false;
     }
+		catch (InvalidParameterException except) {
+			String[] errorMessage = new String[3];
+			errorMessage[0] = "Tilt Parameter Syntax Error";
+			errorMessage[1] = "Axis: " + axisID.getExtension();
+			errorMessage[2] = except.getMessage();
+			mainFrame.openMessageDialog(errorMessage, "Tilt Parameter Syntax Error");
+			return false;
+		}
+
     return true;
   }
 
