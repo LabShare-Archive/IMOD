@@ -11,7 +11,10 @@
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2003/10/01 17:10:07  rickg
+ * <p> Initial revision
+ * <p> </p>
  */
 package etomo.process;
 
@@ -19,27 +22,31 @@ import etomo.ApplicationManager;
 import etomo.type.AxisID;
 
 public class DemoProcessMonitor implements Runnable {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
   ApplicationManager applicationManager;
   AxisID axisID;
   long processStartTime;
   int updatePeriod = 500;
+  int demoTime;
   String message;
 
   public DemoProcessMonitor(
     ApplicationManager appMgr,
     AxisID id,
-    String message) {
+    String message,
+    int demoTime) {
     applicationManager = appMgr;
     axisID = id;
     this.message = message;
+    this.demoTime = demoTime;
   }
 
   public void run() {
-  	System.err.println(message);
+
     // Reset the progressBar 
     long processStartTime = System.currentTimeMillis();
-		applicationManager.setProgressBar(" ", 1, axisID);
+    applicationManager.setProgressBar(" ", 1, axisID);
     applicationManager.setProgressBarValue(0, "Starting...", axisID);
     try {
       Thread.sleep(500);
@@ -49,10 +56,10 @@ public class DemoProcessMonitor implements Runnable {
     }
     applicationManager.setProgressBar(message, 100, axisID);
     long elapsedTime = System.currentTimeMillis() - processStartTime;
-    while (elapsedTime < 4700) {
-      double fractionDone = (double)elapsedTime / 5000.0;
+    while (elapsedTime < (demoTime - 100)) {
+      double fractionDone = (double) elapsedTime / demoTime;
       double percentage = Math.round(fractionDone * 100);
-      double remainingTime = 5000 - elapsedTime;
+      double remainingTime =  demoTime - elapsedTime;
       int minutes = (int) Math.floor(remainingTime / 60000);
       int seconds =
         (int) Math.floor((remainingTime - minutes * 60000) / 1000.0);
@@ -68,7 +75,10 @@ public class DemoProcessMonitor implements Runnable {
       else {
         message = message + String.valueOf(seconds);
       }
-      applicationManager.setProgressBarValue((int) (elapsedTime/50), message, axisID);
+      applicationManager.setProgressBarValue(
+        (int) (elapsedTime / (demoTime / 100)),
+        message,
+        axisID);
 
       try {
         Thread.sleep(updatePeriod);
@@ -76,7 +86,7 @@ public class DemoProcessMonitor implements Runnable {
       catch (InterruptedException e) {
         return;
       }
-			elapsedTime = System.currentTimeMillis() - processStartTime;
+      elapsedTime = System.currentTimeMillis() - processStartTime;
     }
   }
 }
