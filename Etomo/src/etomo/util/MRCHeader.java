@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 import etomo.ApplicationManager;
+import etomo.EtomoDirector;
 import etomo.process.SystemProgram;
 
 /**
@@ -20,6 +21,9 @@ import etomo.process.SystemProgram;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.7  2004/11/20 00:11:48  sueh
+ * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+ * <p>
  * <p> Revision 3.6.2.2  2004/10/06 02:31:52  sueh
  * <p> bug# 520 Removed System.out.print statements.
  * <p>
@@ -105,9 +109,11 @@ public class MRCHeader {
   private double zPixelSpacing = Double.NaN;
   private double imageRotation = Double.NaN;
   private int binning = Integer.MIN_VALUE;
+  private boolean debug = false;
 
   public MRCHeader(String name) {
     filename = new String(name);
+    debug = EtomoDirector.getInstance().isDebug();
   }
 
   public void read() throws IOException, InvalidParameterException {
@@ -121,7 +127,7 @@ public class MRCHeader {
     commandArray[0] = ApplicationManager.getIMODBinPath() + "header";
     commandArray[1] = filename;
     SystemProgram header = new SystemProgram(commandArray);
-    header.setDebug(true);
+    header.setDebug(debug);
     header.run();
 
     if (header.getExitValue() != 0) {
