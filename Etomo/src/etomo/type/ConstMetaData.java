@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.7  2004/05/25 23:23:40  rickg
+ * <p> Bug #391 method refactor
+ * <p>
  * <p> Revision 3.6  2004/04/06 03:00:40  rickg
  * <p> Updated imageRotation to store axis separately
  * <p>
@@ -108,7 +111,7 @@ public class ConstMetaData {
   protected String distortionFile = "";
 
   protected DataSource dataSource = DataSource.CCD;
-  protected AxisType axisType = AxisType.SINGLE_AXIS;
+  protected AxisType axisType = AxisType.NOT_SET;
   protected ViewType viewType = ViewType.SINGLE_VIEW;
   protected SectionType sectionType = SectionType.SINGLE;
 
@@ -230,28 +233,51 @@ public class ConstMetaData {
   }
 
   public boolean isValid() {
-    boolean datasetNameValid = isDatasetNameValid();
+    return isValid(true);
+  }
+  public boolean isValid(boolean fromSetupScreen) {
+    invalidReason = "";
+    
+    String helpString;
+    if (!fromSetupScreen) {
+      helpString = "  Check the Etomo data file."; 
+    }
+    else {
+      helpString = "";
+    }
+    
+    if (axisType == null  || axisType == AxisType.NOT_SET) {
+      invalidReason =
+        "Axis type should be either Dual Axis or Single Axis." + helpString;
+      return false;
+    }
 
-    if (!datasetNameValid) {
-      return datasetNameValid;
+    if (!isDatasetNameValid()) {
+      invalidReason += helpString;
+      return false;
     }
 
     // Is the pixel size greater than zero
-    if (pixelSize <= 0.0) {
-      invalidReason = "Pixel size is not greater than zero";
+    if (fromSetupScreen && pixelSize <= 0.0) {
+      invalidReason = "Pixel size is not greater than zero.";
       return false;
     }
 
     // Is the fiducial diameter greater than zero
-    if (fiducialDiameter <= 0.0) {
-      invalidReason = "Fiducial diameter is not greater than zero";
+    if (fromSetupScreen && fiducialDiameter <= 0.0) {
+      invalidReason = "Fiducial diameter is not greater than zero.";
       return false;
     }
-
+    
     return true;
   }
 
   public boolean isDatasetNameValid() {
+    invalidReason = "";
+    if (datasetName.equals("")) {
+      invalidReason = "Dataset name has not been set.";
+      return false;
+    }
     if (getValidDatasetDirectory(System.getProperty("user.dir")) != null) {
       return true;
     }
@@ -436,7 +462,7 @@ public class ConstMetaData {
       return false;
     if (!dataSource.equals(cmd.getDataSource()))
       return false;
-    if (!axisType.equals(cmd.getAxisType()))
+    if (axisType != cmd.getAxisType())
       return false;
     if (!viewType.equals(cmd.getViewType()))
       return false;
