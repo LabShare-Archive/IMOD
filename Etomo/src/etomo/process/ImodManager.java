@@ -21,6 +21,9 @@ import etomo.type.ConstMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.16  2003/08/05 21:20:17  rickg
+ * <p> Implemented model and movie modes where appropriate
+ * <p>
  * <p> Revision 2.15  2003/07/25 22:58:23  rickg
  * <p> Model mode management changes
  * <p>
@@ -437,6 +440,9 @@ public class ImodManager {
     throws AxisTypeException, SystemProcessException {
     checkAxisID(axisID);
     ImodProcess tomogram = selectTomogram(axisID);
+    // Remove any model references that may be left over from earlier matching
+    // or patch region model instances
+    tomogram.setModelName("");
     tomogram.open();
   }
 

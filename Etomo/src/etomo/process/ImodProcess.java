@@ -15,6 +15,9 @@ package etomo.process;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.12  2003/08/05 21:20:45  rickg
+ * <p> Added movieMode
+ * <p>
  * <p> Revision 2.11  2003/07/25 23:00:33  rickg
  * <p> openModel does not automatically switch 3dmod to model mode
  * <p> now
@@ -98,6 +101,20 @@ public class ImodProcess {
   private boolean fillCache = false;
 
   private Thread imodThread;
+
+  /**
+   * @param datasetName
+   */
+  public void setDatasetName(String datasetName) {
+    this.datasetName = datasetName;
+  }
+
+  /**
+   * @param modelName
+   */
+  public void setModelName(String modelName) {
+    this.modelName = modelName;
+  }
 
   /**
    * Dataset only constructor
