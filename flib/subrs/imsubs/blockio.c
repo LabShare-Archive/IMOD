@@ -20,6 +20,10 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.7  2004/01/17 20:33:26  mast
+Changes for 2GB problem on Mac OS 10.3 - switch to calling routines in
+b3dutil
+
 Revision 3.6  2003/11/18 19:19:09  mast
 changes for 2GB problem on Windows
 
@@ -231,8 +235,8 @@ void qopen(iunit, name, attribute, name_l, attr_l)
           oldfilename[strlen(oldfilename)] = '~';
           remove(oldfilename);
           if (rename(u->fname, oldfilename)) {
-            fprintf(stdout, "WARNING: qopen - Could not rename '%s' to '%s'\n"
-                    , u->fname, oldfilename);
+            fprintf(stdout, "\nWARNING: qopen - Could not rename '%s' to '%s'"
+                    "\n", u->fname, oldfilename);
             perror("");
           }
         }
@@ -251,7 +255,7 @@ void qopen(iunit, name, attribute, name_l, attr_l)
       u->fp = fopen(u->fname, modes[mode]);
       if (u->fp == NULL)
         {
-          fprintf(stdout, "ERROR: qopen - Could not open '%s'\n"
+          fprintf(stdout, "\nERROR: qopen - Could not open '%s'\n"
                   , u->fname);
           perror(""); /* JRK: have system tell why. */
           exit(-1);
@@ -313,12 +317,12 @@ void qclose(iunit)
        int bc = u->num_char_per_item * *nitems;
        if (u->write_only)
          {
-           fprintf(stdout, "ERROR: qread - file is write only.\n");
+           fprintf(stdout, "\nERROR: qread - file is write only.\n");
            exit(-1);
          }
        if (b3dFread(array, 1, bc, u->fp) != bc)
          {
-           fprintf(stdout, "ERROR: qread - read error\n");
+           fprintf(stdout, "\nERROR: qread - read error\n");
            perror("");
            exit(-1);
          }
@@ -344,12 +348,12 @@ void qwrite(iunit, array, nitems)
        int bc = u->num_char_per_item * *nitems;
        if (u->read_only)
          {
-           fprintf(stdout, "ERROR: qwrite - file is read only.\n");
+           fprintf(stdout, "\nERROR: qwrite - file is read only.\n");
            exit(-1);
          }
        if (b3dFwrite(array, 1, bc, u->fp) != bc)
          {
-           fprintf(stdout, "ERROR: qwrite - error writing file.\n");
+           fprintf(stdout, "\nERROR: qwrite - error writing file.\n");
            perror("");
            exit(-1);
          }
@@ -381,7 +385,7 @@ void qwrite(iunit, array, nitems)
                     *ireclength * u->num_char_per_item, 
                     SEEK_SET))
          {
-           fprintf(stdout, "ERROR: qseek - Error on big_seek\n");
+           fprintf(stdout, "\nERROR: qseek - Error on big_seek\n");
            perror("");
           exit(-1);
          }
@@ -403,7 +407,7 @@ void qwrite(iunit, array, nitems)
        u->pos += amt;
        if (b3dFseek(u->fp, amt, SEEK_CUR))
          {
-           fprintf(stdout, "ERROR: qskip - Error on seek\n");
+           fprintf(stdout, "\nERROR: qback - Error on seek\n");
            exit(-1);
          }
      }
@@ -421,7 +425,7 @@ void qwrite(iunit, array, nitems)
        u->pos += amt;
        if (b3dFseek(u->fp, amt, SEEK_CUR))
          {
-           fprintf(stdout, "ERROR: qskip - Error on seek\n");
+           fprintf(stdout, "\nERROR: qskip - Error on seek\n");
            exit(-1);
          }
      }
