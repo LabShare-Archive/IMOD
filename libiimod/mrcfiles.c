@@ -1216,6 +1216,7 @@ unsigned char **mrc_read_byte(FILE *fin,
   b3dInt16 *sdata;
   b3dFloat *fdata;
   unsigned char *map = NULL;
+  int freeMap = 0;
   b3dUInt16 *usdata;
 
   /* check input */
@@ -1336,6 +1337,7 @@ unsigned char **mrc_read_byte(FILE *fin,
   case MRC_MODE_SHORT:
     dsize = 2;
     map = get_short_map(slope, offset, 0, 255, ramptype, hdata->swapped, 1);
+    freeMap = 1;
     doscale = 1;
     break;
   case MRC_MODE_FLOAT:
@@ -1360,7 +1362,7 @@ unsigned char **mrc_read_byte(FILE *fin,
   /* Get the data memory */
   idata = mrcGetDataMemory(li, xysize, zsize, 1);
   if (!idata) {
-    if (map)
+    if (map && freeMap)
       free(map);
     return NULL;
   }
@@ -1380,7 +1382,7 @@ unsigned char **mrc_read_byte(FILE *fin,
     b3dError(stderr, "ERROR: read_mrc_byte - Could not get memory for reading"
              " a line.");
     mrcFreeDataMemory(idata, contig, zsize);
-    if (map)
+    if (freeMap)
       free(map);
     return NULL;
   }
@@ -1418,7 +1420,7 @@ unsigned char **mrc_read_byte(FILE *fin,
         b3dError(stderr, "ERROR: read_mrc_byte - reading from file.");
         mrcFreeDataMemory(idata, contig, zsize);
         free(bdata);
-        if (map)
+        if (freeMap)
           free(map);
         return NULL;
       }        
@@ -1520,7 +1522,7 @@ unsigned char **mrc_read_byte(FILE *fin,
       fseek(fin, seek_endrow, SEEK_CUR);
   }
   free(bdata);
-  if (map)
+  if (freeMap)
     free(map);
 
   /* modify header as if data were to be written (?) */
@@ -2073,6 +2075,10 @@ void mrc_swap_floats(float *data, int amt)
 
 /*
 $Log$
+Revision 3.15  2004/01/17 20:37:03  mast
+Remove b3d file i/o routines and mrc_big_seek to b3dutil, and add a
+define for rewind
+
 Revision 3.14  2004/01/12 17:27:00  mast
 Change complex min max routine from float to void
 

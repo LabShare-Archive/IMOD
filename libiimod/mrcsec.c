@@ -116,6 +116,7 @@ static int mrcReadSectionAny(struct MRCheader *hdata, struct LoadInfo *li,
      reading */
   unsigned char *bdata = buf;
   unsigned char *map = NULL;
+  int freeMap = 0;
   unsigned char *inptr;
   b3dInt16 *sdata;
   b3dUInt16 *usdata;
@@ -141,6 +142,7 @@ static int mrcReadSectionAny(struct MRCheader *hdata, struct LoadInfo *li,
     if (byte) {
       map= get_short_map(slope, offset, outmin, outmax, MRC_RAMP_LIN,
                          hdata->swapped, 1);
+      freeMap = 1;
       if (!map)
         return 2;
       needData = 1;
@@ -182,7 +184,7 @@ static int mrcReadSectionAny(struct MRCheader *hdata, struct LoadInfo *li,
     usdata = (b3dUInt16 *)bdata;
     fdata = (b3dFloat *)bdata;
     if (!bdata) {
-      if (map)
+      if (freeMap)
         free(map);
       b3dError(stderr, "ERROR: mrcReadSectionAny - getting memory for "
                "temporary array.");
@@ -226,7 +228,7 @@ static int mrcReadSectionAny(struct MRCheader *hdata, struct LoadInfo *li,
       b3dError(stderr, "ERROR: mrcReadSectionAny - reading data from file.");
       if (needData)
         free(sdata);
-      if (map)
+      if (freeMap)
         free(map);
       return 3;
     }
@@ -311,13 +313,16 @@ static int mrcReadSectionAny(struct MRCheader *hdata, struct LoadInfo *li,
 
   if (needData)
     free(sdata);
-  if (map)
+  if (freeMap)
     free(map);
   return 0;
 }
 
 /*
 $Log$
+Revision 3.4  2004/01/17 20:38:07  mast
+Convert to calling b3d I/O routines explicitly
+
 Revision 3.3  2004/01/08 06:42:19  mast
 Fixed reading of complex data and got scale factor from mrcfiles routines
 

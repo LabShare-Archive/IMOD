@@ -41,6 +41,10 @@ Additional documentation is at <ftp://ftp.sgi.com/graphics/tiff/doc>
     $Revision$
 
     $Log$
+    Revision 3.2  2004/01/05 17:51:16  mast
+    renamed imin/imax to smin/smax or outmin/outmax as appropriate, changed
+    unsigned short to b3dUInt16
+
     Revision 3.1  2003/02/27 17:08:23  mast
     Set default upper coordinates to -1 rather than 0.
 
@@ -84,17 +88,21 @@ static int ReadSection(ImodImageFile *inFile, char *buf, int inSection,
   unsigned char *bdata;
   b3dUInt16 *usdata;
   unsigned char *map = NULL;
+  int freeMap = 0;
   uint32 rowsperstrip;
   int nread;
   int tilesize, tilewidth, tilelength, xtiles, ytiles, xti, yti;
      
   TIFF* tif = (TIFF *)inFile->header;
-  if (inFile->axis == 2) return -1;
+  if (inFile->axis == 2)
+    return -1;
   if (byte && (inFile->format != IIFORMAT_LUMINANCE))
     return -1;
-  if (!tif) iiReopen(inFile);
+  if (!tif)
+    iiReopen(inFile);
   tif = (TIFF *)inFile->header;
-  if (!tif) return -1;
+  if (!tif)
+    return -1;
 
 
   /* set the dimensions to read in */
@@ -114,14 +122,15 @@ static int ReadSection(ImodImageFile *inFile, char *buf, int inSection,
              slope < 0.995 || slope > 1.005);
      
   TIFFSetDirectory(tif, inSection);   
-
   if (byte) {
     if (inFile->type == IITYPE_SHORT) {
       pixsize = 2;
       map = get_short_map(slope, offset, outmin, outmax, MRC_RAMP_LIN, 0, 1);
+      freeMap = 1;
     } else if (inFile->type == IITYPE_USHORT) {
       pixsize = 2;
       map = get_short_map(slope, offset, outmin, outmax, MRC_RAMP_LIN, 0, 0);
+      freeMap = 1;
     } else if (doscale)
       map = get_byte_map(slope, offset, outmin, outmax);
   } else {
@@ -133,13 +142,16 @@ static int ReadSection(ImodImageFile *inFile, char *buf, int inSection,
     movesize = pixsize;
   }
 
+  if (freeMap && !map)
+    return -1;
+
   if (TIFFGetField(tif, TIFFTAG_ROWSPERSTRIP, &rowsperstrip)) {
 
     /* if data are in strips, get strip size and memory for it */
     stripsize = TIFFStripSize(tif);
     tmp = (unsigned char *)malloc(stripsize);
     if (!tmp) {
-      if (map)
+      if (freeMap)
         free(map);
       return -1;
     }
@@ -148,7 +160,7 @@ static int ReadSection(ImodImageFile *inFile, char *buf, int inSection,
     /* printf("%d %d %d %d\n", stripsize, rowsperstrip, nstrip, 
        pixsize); */
 
-    for(si = 0 ; si < nstrip; si++){
+    for (si = 0 ; si < nstrip; si++){
                
       /* Compute starting and ending Y values to use in each strip */
       ystart = ysize - 1 - (rowsperstrip * (si + 1) - 1);
@@ -201,7 +213,7 @@ static int ReadSection(ImodImageFile *inFile, char *buf, int inSection,
       tmp = (unsigned char *)malloc(tilesize);
     }
     if (!tmp) {
-      if (map)
+      if (freeMap)
         free(map);
       return -1;
     }
@@ -276,8 +288,9 @@ static int ReadSection(ImodImageFile *inFile, char *buf, int inSection,
     }
   }
   free (tmp);
-  if (map)
+  if (freeMap)
     free(map);
+
   return 0;
 }
 
