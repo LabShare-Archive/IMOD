@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.3  2004/07/20 23:05:29  sueh
+ * <p> bug# 502 adding fiducialess, which is not retrieved from tilt
+ * <p>
  * <p> Revision 3.2  2004/03/24 18:11:55  rickg
  * <p> xAxisTilt default value corrected
  * <p>
@@ -50,10 +53,12 @@
  */
 package etomo.comscript;
 
+import etomo.type.AxisID;
+
 public class ConstTiltParam {
   public static final String rcsid = 
   "$Id$";
-
+  
   protected String inputFile;
 
   protected String outputFile;
@@ -141,8 +146,17 @@ public class ConstTiltParam {
   protected int xTiltInterp;
   
   protected boolean fiducialess;
+  
+  protected boolean useZFactors;
+  
+  protected String zFactorFileName;
+  
+  protected String datasetName;
+  protected AxisID axisID;
 
-  public ConstTiltParam() {
+  public ConstTiltParam(String datasetName, AxisID axisID) {
+    this.datasetName = datasetName;
+    this.axisID = axisID;
     reset();
   }
 
@@ -191,6 +205,7 @@ public class ConstTiltParam {
     xTiltFile = "";
     xTiltInterp = Integer.MIN_VALUE;
     fiducialess = false;
+    useZFactors = false;
   }
 
   public String getInputFile() {
@@ -327,6 +342,10 @@ public class ConstTiltParam {
       return false;
     return true;
   }
+  
+  public boolean isUseZFactors() {
+    return useZFactors;
+  }
 
 
   /**
@@ -422,4 +441,6 @@ public class ConstTiltParam {
   public int getFullImageY() {
     return fullImageY;
   }
+  
+
 }
