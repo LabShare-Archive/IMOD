@@ -151,7 +151,7 @@ short =
 long = ExcludeList
 type = LI
 usage = List of views to exclude from the analysis
-tooltip = 
+tooltip = List of views to exclude from alignment and reconstruction.
 manpage = List of views to exclude from the analysis (ranges allowed)
 
 [Field = RotationAngle]
@@ -169,7 +169,8 @@ short =
 long = SeparateGroup
 type = LIM
 usage = List of views that should be grouped separately in automapping
-tooltip =
+tooltip = Lists of views to group separately from other views.  Multiple lists
+can be entered; separate them by spaces.
 manpage = List of views that should be grouped separately in automapping.
 Multiple entries can be used to specify more than one set of separate views.
 
@@ -213,7 +214,7 @@ short =
 long = AngleOffset
 type = F
 usage = Amount to add to all entered tilt angles
-tooltip = 
+tooltip = Total amount to add to all tilt angles.
 manpage = 
 
 [Field = ProjectionStretch]
@@ -316,6 +317,10 @@ changing values or 6 for values all the same within a group),
 or 7 or 8 to automap and fix two tilt angles (7 for linearly changing values
 or 8 for values all the same within a group)
 
+enum.no.tooltip = Do not solve for tilt angles.
+enum.all.tooltip = Solve for each tilt angle independently.
+enum.group.tooltip = Group views to solve for fewer tilt angle variables.
+
 [Field = TiltFixedView]
 short = 
 long = TiltFixedView
@@ -339,7 +344,8 @@ short =
 long = TiltDefaultGrouping
 type = I
 usage = Average default group size when automapping tilt variables
-tooltip =
+tooltip = Basic grouping size for tilt angles (grouping will be less at high 
+tilt and more at low tilt).
 manpage =
 
 [Field = TiltNondefaultGroup]
@@ -692,7 +698,7 @@ long = ResidualReportCriterion
 type = F
 usage = Criterion number of SDs above mean residual error
 to report (negative for SDs relative to neighbors)
-tooltip = 
+tooltip = Threshold number of SDs above mean for reporting large residuals.
 manpage =  Criterion number of standard deviations above mean residual error
 that should be reported. This can be based on either the overall
 mean and S.d. of the residual errors, or on a mean and S.d.
@@ -700,6 +706,10 @@ computed from points in nearby views.  Enter a positive value
 for a report based on overall mean, or a negative value for a
 report based on the mean residual in the same and nearby views.
 
+enum.all.tooltip = Apply criterion relative to mean/SD of residuals on all
+views.
+enum.neighboring.tooltip = Apply criterion relative to mean/SD of residuals on
+neighboring views.
 
 [Field = SurfacesToAnalyze]
 short = 
@@ -712,12 +722,16 @@ manpage = 0 to omit surface analysis, or 1 or 2 to fit points to one or two
 surfaces and derive a surface angles and recommended tilt angle offset.  This
 entry has no effect on the global alignment solution.
 
+enum.one.tooltip = Fit one plane to all points to find angles of section.
+enum.two.tooltip = Divide points into two groups and fit two planes to find
+angles of section.
+
 [Field = MetroFactor]
 short = 
 long = MetroFactor
 type = F
 usage = Step size for minimization procedure
-tooltip = 
+tooltip = A step size factor; try changing by +/-10% if solutions fail.
 manpage = This entry determines how large a step the variable metric
 minimization procedure (METRO) tries to take.  The default for is 0.5, but
 smaller values of 0.35 or even 0.25 are needed for large data sets.
@@ -729,7 +743,7 @@ short =
 long = MaximumCycles
 type = I
 usage = Limit on number of cycles for minimization procedure (default 500)
-tooltip = 
+tooltip = Limit on number of iterations to find a solution.
 manpage = 
 
 [Field = AxisZShift]
@@ -737,7 +751,7 @@ short =
 long = AxisZShift
 type = F
 usage = Amount to shift tilt axis in Z, or 1000 to put at midpoint of range
-tooltip = 
+tooltip = Distance to shift tilt axis in Z for reconstruction.
 manpage = Amount to shift the tilt axis in Z, relative to the centroid in
 Z of the fiducial points, or 1000 to shift the tilt axis to the
 midpoint of the range of Z values
@@ -757,7 +771,7 @@ short =
 long = LocalAlignments
 type = B
 usage = Do alignments with subsets of points in local areas
-tooltip = 
+tooltip = Compute alignments in local areas after finding global solution.
 manpage = Do alignments with subsets of points in local areas.  When this
 option is selected, the appropriate Local...Option values must be entered to 
 control what variables are solved for;
@@ -776,7 +790,7 @@ manpage =
 long = NumberOfLocalPatchesXandY
 type = IP
 usage = Number of local patches in X and Y for local solutions
-tooltip = 
+tooltip = Number of overlapping local areas to use in the X and Y directions.
 manpage = Number of local patches in X and in Y in which to obtain a solution
 from the fiducials located in that patch
 
@@ -786,7 +800,8 @@ long = MinSizeOrOverlapXandY
 type = FP
 usage = Minimum size of patches in X and Y (if > 1) or minimum fractional
 overlap (if < 1)
-tooltip = 
+tooltip = Minimum size of patches in pixels, or minimum fractional overlap 
+between patches, in the X and Y directions.
 manpage = Either the minimum size of each patch in X and Y (enter values > 1)
 or the minimum fractional overlap between patches (values < 1)
 
@@ -796,7 +811,8 @@ long = MinFidsTotalAndEachSurface
 type = IP
 usage = Minimum total number of fiducials, and minimum number present on each
 surface if two surfaces exist
-tooltip = 
+tooltip = Minimum total number of fiducials required in each local area, and
+minimum on each surface if two surfaces were analyzed for.
 manpage = Minimum total number of fiducials, and minimum number present on each
 surface if two surfaces were assumed in the analysis of
 surfaces.  A patch will be expanded about its center until it
