@@ -1,5 +1,7 @@
 package etomo.comscript;
 
+import java.util.Vector;
+
 /**
  * <p>Description: </p>
  *
@@ -13,7 +15,10 @@ package etomo.comscript;
  *
  * @version $$Revision$$
  *
- * <p> $$Log$$ </p>
+ * <p> $$Log$
+ * <p> $Revision 1.1  2004/04/26 21:19:05  sueh
+ * <p> $bug# 427
+ * <p> $$ </p>
  */
 
 public class TomopitchParam
@@ -44,7 +49,7 @@ public class TomopitchParam
     String[] cmdLineArgs = scriptCommand.getCommandLineArgs();
     if (scriptCommand.isKeywordValuePairs()) {
       if (scriptCommand.hasKeyword("ModelFile")) {
-        String[] modelFiles = scriptCommand.getValues("modelFile");
+        String[] modelFiles = scriptCommand.getValues("ModelFile");
         for (int i = 0; i < modelFiles.length; i++) {
           this.modelFiles.add(modelFiles[i]);
         }
@@ -94,7 +99,8 @@ public class TomopitchParam
     ParamUtilities.updateParameterStrings(
       scriptCommand,
       "ModelFile",
-      modelFiles);
+      modelFiles,
+      true);
     ParamUtilities.updateParameter(
       scriptCommand,
       "ExtraThickness",
@@ -122,6 +128,9 @@ public class TomopitchParam
   public void initializeDefaults() {
   }
 
+  public void resetModelFiles() {
+    modelFiles = new Vector();
+  }
   public void setModelFile(String modelFile) {
     modelFiles.add(modelFile);
   }
@@ -131,8 +140,8 @@ public class TomopitchParam
   public void setSpacingInY(String spacingInY) {
     this.spacingInY = ParamUtilities.setDouble(spacingInY);
   }
-  public void setScaleFactor(String scaleFactor) {
-    this.scaleFactor = ParamUtilities.setDouble(scaleFactor);
+  public void setScaleFactor(double scaleFactor) {
+    this.scaleFactor = scaleFactor;
   }
   public void setParameterFile(String parameterFile) {
     this.parameterFile = parameterFile;
