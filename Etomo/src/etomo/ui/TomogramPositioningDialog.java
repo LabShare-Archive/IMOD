@@ -31,6 +31,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.5  2003/10/14 23:15:24  rickg
+ * <p> Bug# 282 Label fixes
+ * <p>
  * <p> Revision 2.4  2003/06/05 21:07:12  rickg
  * <p> Label change to match log file
  * <p>
@@ -88,20 +91,20 @@ public class TomogramPositioningDialog
 
   private LabeledTextField ltfSampleTomoThickness =
     new LabeledTextField("Sample tomogram thickness: ");
-  private JToggleButton buttonSample =
+  private JToggleButton btnSample =
     new JToggleButton("<html><b>Create Sample Tomograms</b>");
 
-  private JToggleButton buttonCreateBoundary =
+  private JToggleButton btnCreateBoundary =
     new JToggleButton("<html><b>Create Boundary Models</b>");
 
-  private JToggleButton buttonTomopitch =
+  private JToggleButton btnTomopitch =
     new JToggleButton("<html><b>Compute Z Shift & Pitch Angles</b>");
 
   private LabeledTextField ltfTiltAngleOffset =
     new LabeledTextField("Total angle offset: ");
   private LabeledTextField ltfTiltAxisZShift =
     new LabeledTextField("Total Z shift: ");
-  private JToggleButton buttonAlign =
+  private JToggleButton btnAlign =
     new JToggleButton("<html><b>Create Final Alignment</b>");
 
   public TomogramPositioningDialog(ApplicationManager appMgr, AxisID axisID) {
@@ -112,29 +115,29 @@ public class TomogramPositioningDialog
     buttonExecute.setText("Done");
 
     ltfSampleTomoThickness.setTextPreferredSize(new Dimension(50, 20));
-    buttonSample.setAlignmentX(Component.CENTER_ALIGNMENT);
-    buttonSample.setPreferredSize(FixedDim.button2Line);
-    buttonSample.setMaximumSize(FixedDim.button2Line);
+    btnSample.setAlignmentX(Component.CENTER_ALIGNMENT);
+    btnSample.setPreferredSize(FixedDim.button2Line);
+    btnSample.setMaximumSize(FixedDim.button2Line);
 
-    buttonCreateBoundary.setAlignmentX(Component.CENTER_ALIGNMENT);
-    buttonCreateBoundary.setPreferredSize(FixedDim.button2Line);
-    buttonCreateBoundary.setMaximumSize(FixedDim.button2Line);
+    btnCreateBoundary.setAlignmentX(Component.CENTER_ALIGNMENT);
+    btnCreateBoundary.setPreferredSize(FixedDim.button2Line);
+    btnCreateBoundary.setMaximumSize(FixedDim.button2Line);
 
-    buttonTomopitch.setAlignmentX(Component.CENTER_ALIGNMENT);
-    buttonTomopitch.setPreferredSize(FixedDim.button2Line);
-    buttonTomopitch.setMaximumSize(FixedDim.button2Line);
+    btnTomopitch.setAlignmentX(Component.CENTER_ALIGNMENT);
+    btnTomopitch.setPreferredSize(FixedDim.button2Line);
+    btnTomopitch.setMaximumSize(FixedDim.button2Line);
 
-    buttonAlign.setAlignmentX(Component.CENTER_ALIGNMENT);
-    buttonAlign.setPreferredSize(FixedDim.button2Line);
-    buttonAlign.setMaximumSize(FixedDim.button2Line);
+    btnAlign.setAlignmentX(Component.CENTER_ALIGNMENT);
+    btnAlign.setPreferredSize(FixedDim.button2Line);
+    btnAlign.setMaximumSize(FixedDim.button2Line);
 
     // Bind the buttons to the action listener
     TomogramPositioningActionListener tomogramPositioningActionListener =
       new TomogramPositioningActionListener(this);
-    buttonSample.addActionListener(tomogramPositioningActionListener);
-    buttonCreateBoundary.addActionListener(tomogramPositioningActionListener);
-    buttonTomopitch.addActionListener(tomogramPositioningActionListener);
-    buttonAlign.addActionListener(tomogramPositioningActionListener);
+    btnSample.addActionListener(tomogramPositioningActionListener);
+    btnCreateBoundary.addActionListener(tomogramPositioningActionListener);
+    btnTomopitch.addActionListener(tomogramPositioningActionListener);
+    btnAlign.addActionListener(tomogramPositioningActionListener);
 
     //  Create the primary panels
     panelPosition.setBorder(border.getBorder());
@@ -142,17 +145,17 @@ public class TomogramPositioningDialog
 
     panelPosition.add(ltfSampleTomoThickness.getContainer());
     panelPosition.add(Box.createRigidArea(FixedDim.x0_y10));
-    panelPosition.add(buttonSample);
+    panelPosition.add(btnSample);
     panelPosition.add(Box.createRigidArea(FixedDim.x0_y10));
-    panelPosition.add(buttonCreateBoundary);
+    panelPosition.add(btnCreateBoundary);
     panelPosition.add(Box.createRigidArea(FixedDim.x0_y10));
-    panelPosition.add(buttonTomopitch);
+    panelPosition.add(btnTomopitch);
     panelPosition.add(Box.createRigidArea(FixedDim.x0_y10));
     panelPosition.add(ltfTiltAngleOffset.getContainer());
     panelPosition.add(Box.createRigidArea(FixedDim.x0_y10));
     panelPosition.add(ltfTiltAxisZShift.getContainer());
     panelPosition.add(Box.createRigidArea(FixedDim.x0_y10));
-    panelPosition.add(buttonAlign);
+    panelPosition.add(btnAlign);
 
     //  Create dialog content pane
     rootPanel.add(panelPosition);
@@ -167,6 +170,7 @@ public class TomogramPositioningDialog
 
     // Set the default advanced dialog state
     updateAdvanced();
+    setToolTipText();
   }
 
   //  Set the tilt.com parameters that are editable in this dialog
@@ -208,16 +212,16 @@ public class TomogramPositioningDialog
   public void popUpContextMenu(MouseEvent mouseEvent) {
     String[] manPagelabel = { "tomopitch", "newst", "3dmod", "tilt" };
     String[] manPage =
-      { "tomopitch.html", "newst.html", "3dmod.html",  "tilt.html" };
+      { "tomopitch.html", "newst.html", "3dmod.html", "tilt.html" };
 
     String[] logFileLabel;
     String[] logFile;
     logFileLabel = new String[2];
-		logFileLabel[0] = "tomopitch";
+    logFileLabel[0] = "tomopitch";
     logFileLabel[1] = "sample";
 
     logFile = new String[2];
-		logFile[0] = "tomopitch" + axisID.getExtension() + ".log";
+    logFile[0] = "tomopitch" + axisID.getExtension() + ".log";
     logFile[1] = "sample" + axisID.getExtension() + ".log";
 
     ContextPopup contextPopup =
@@ -233,22 +237,22 @@ public class TomogramPositioningDialog
 
   //  Button action handler methods
 
-  void buttonAction(ActionEvent event) {
+  private void buttonAction(ActionEvent event) {
     String command = event.getActionCommand();
 
-    if (command.equals(buttonSample.getActionCommand())) {
+    if (command.equals(btnSample.getActionCommand())) {
       applicationManager.createSample(axisID);
     }
 
-    else if (command.equals(buttonCreateBoundary.getActionCommand())) {
+    else if (command.equals(btnCreateBoundary.getActionCommand())) {
       applicationManager.imodSample(axisID);
     }
 
-    else if (command.equals(buttonTomopitch.getActionCommand())) {
+    else if (command.equals(btnTomopitch.getActionCommand())) {
       applicationManager.tomopitch(axisID);
     }
 
-    else if (command.equals(buttonAlign.getActionCommand())) {
+    else if (command.equals(btnAlign.getActionCommand())) {
       applicationManager.finalAlign(axisID);
     }
 
@@ -275,23 +279,63 @@ public class TomogramPositioningDialog
     updateAdvanced();
   }
 
-  void updateAdvanced() {
+  private void updateAdvanced() {
     applicationManager.packMainWindow();
   }
-}
 
-//
-//  Action listener adapters
-//
-class TomogramPositioningActionListener implements ActionListener {
+  //
+  //	Action listener adapters
+  //
+  class TomogramPositioningActionListener implements ActionListener {
 
-  TomogramPositioningDialog adaptee;
+    TomogramPositioningDialog adaptee;
 
-  TomogramPositioningActionListener(TomogramPositioningDialog adaptee) {
-    this.adaptee = adaptee;
+    TomogramPositioningActionListener(TomogramPositioningDialog adaptee) {
+      this.adaptee = adaptee;
+    }
+
+    public void actionPerformed(ActionEvent event) {
+      adaptee.buttonAction(event);
+    }
   }
 
-  public void actionPerformed(ActionEvent event) {
-    adaptee.buttonAction(event);
+  /**
+   * Initialize the tooltip text for the axis panel objects
+   */
+  private void setToolTipText() {
+    String text;
+    TooltipFormatter tooltipFormatter = new TooltipFormatter();
+    text =
+      "Thickness of sample slices.  Make this much larger than expected section"
+        + " thickness to see borders of section.";
+    ltfSampleTomoThickness.setToolTipText(
+      tooltipFormatter.setText(text).format());
+    text =
+      "Build 3 sample tomograms for finding location and angles of section.";
+    btnSample.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text =
+      "Open samples in 3dmod to make a model with lines along top and bottom "
+        + "edges of the section in each sample.";
+    btnCreateBoundary.setToolTipText(tooltipFormatter.setText(text).format());
+
+    //  FIXME: If log file is opened automatically remove second sentence.
+    text =
+      "Run tomopitch.  You need to examine the log file to determine the"
+        + "Z shift, additional angle offset, and X-axis tilt.";
+    btnTomopitch.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text =
+      "Add the additional offset from tomopitch to the amount already "
+        + "shown here to get the total offset.";
+    ltfTiltAngleOffset.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text =
+      "Add the additional shift from tomopitch to the amount shown here to get "
+        + "the total shift.";
+    ltfTiltAxisZShift.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = "Run tiltalign with these final offset parameters.";
+    btnAlign.setToolTipText(tooltipFormatter.setText(text).format());
   }
 }
