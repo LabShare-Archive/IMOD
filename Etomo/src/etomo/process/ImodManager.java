@@ -28,6 +28,9 @@ import etomo.type.ConstMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.21  2004/05/06 20:20:50  sueh
+ * <p> bug# 33 added getRubberbandCoordinates()
+ * <p>
  * <p> Revision 3.20  2004/05/03 22:21:49  sueh
  * <p> bug# 416 added setBinning()
  * <p> fixing bug in setSwapYZ(), should be ok to call any set function before
@@ -398,6 +401,7 @@ public class ImodManager {
         imodState.open();
       }
       else {
+        imodState.setOpenWithModel(true);
         imodState.open(model);
       }
     }
@@ -458,9 +462,8 @@ public class ImodManager {
       create(key, axisID);
       imodState = get(key, axisID);
     }
-    imodState.open();
     if (imodState != null) {
-      imodState.model(modelName);
+      imodState.open(modelName);
     }
     // erasedStack.model(modelName);
   }
@@ -477,9 +480,8 @@ public class ImodManager {
       create(key, axisID);
       imodState = get(key, axisID);
     }
-    imodState.open();
     if (imodState != null) {
-      imodState.model(modelName, modelMode);
+      imodState.open(modelName, modelMode);
     }
     //    rawStack.model(modelName, modelMode);
   }
@@ -497,10 +499,9 @@ public class ImodManager {
       create(key, axisID);
       imodState = get(key, axisID);
     }
-    imodState.open();
     if (imodState != null) {
       imodState.setPreserveContrast(preserveContrast);
-      imodState.model(modelName, modelMode);
+      imodState.open(modelName, modelMode);
     }
     //coarseAligned.setPreserveContrast(preserveConstrast);
     //coarseAligned.model(modelName, modelMode);
