@@ -1338,6 +1338,8 @@ static char *moveTips[] = {"Move current contour to selected place",
 ContourMove::ContourMove(QWidget *parent, const char *name)
   : ContourFrame(parent, 3, applyDoneHelp, moveTips, name)
 {
+  mLayout->setSpacing(2);
+
   // Set up top line layout
   QHBoxLayout *layout = new QHBoxLayout(mLayout);
   mObjSurfLabel = new QLabel(comv.movetosurf ? "Surface to move contour to:" :
@@ -1415,11 +1417,11 @@ ContourMove::ContourMove(QWidget *parent, const char *name)
   layout->addWidget(mDownButton);
   diaSetGroup(mUpDownGroup, comv.upOrDown);
 
-  QPushButton *button = diaPushButton("Shift contour with first mouse button",
+  QPushButton *button = diaPushButton("Toggle adjusting contour with mouse",
                                      this, mLayout);
   connect(button, SIGNAL(clicked()), this, SLOT(shiftContClicked()));
-  QToolTip::add(button, "Activate shifting of current contour with mouse in "
-                "Zap window (hot key P)");
+  QToolTip::add(button, "Toggle shifting, rotating, or scaling of current"
+                " contour with mouse in Zap window (hot key P)");
 
   connect(this, SIGNAL(actionClicked(int)), this, SLOT(buttonPressed(int)));
   setCaption(imodCaption("3dmod Move Contour"));
@@ -1538,91 +1540,7 @@ void ContourMove::buttonPressed(int which)
     break;
 
   case 2: 
-    dia_vasmsg
-      ("Contour Move Help\n",
-       "---------------------------\n",
-       "This dialog is used to move contours to a different object or to a "
-       "different surface, or to activate shifting a contour with the mouse. ",
-       " Use the spin box to select the object or surface # to move "
-       "the current contour to.  ",
-       "3dmod remembers the object #, so the hot key 'M' in the ",
-       "Zap window can be used to move contours quickly.\n\n",
-       "Ordinarily, a single contour will be moved, the current contour.  "
-       "If you have selected multiple contours using "CTRL_STRING" and the "
-       "first mouse button, all selected contours will be moved to the other "
-       "object or surface, unless you have checked the option to "
-       "move all contours in a surface.\n\n"
-       "When \"Move all contours with same surface #\" is selected, all "
-       "contours with the same surface number as the current contour will "
-       "also be moved to the selected object or surface.  If no surfaces have "
-       "been assigned in the current object, then all contours in the object "
-       "will be moved.\n\n",
-       "When \"Move contour to different surface, not object\" is selected, "
-       "contours are assigned to a different surface in the same object "
-       "rather than moved to a new object.\n\n",
-       "\"Replace contour by single point of same size\" can be "
-       "used when the type of the selected target object is scattered "
-       "points and the current object is not scattered points.  "
-       "Moving a contour will convert the current "
-       "contour into a single point centered on the contour and with "
-       "a size that corresponds to the area of the contour.  The new "
-       "point will be added to the end of the last contour in the "
-       "target object.  The "
-       "current contour will be deleted.\n\n",
-       "\"Replace spherical point with circular contours\" can be "
-       "used when the type of the current object is scattered points and the "
-       "selected target object is not scattered points.  "
-       "Moving will convert just the current point to a set of circular "
-       "contours, one on each of the sections where the sphere of the current "
-       "point appears.  The radius of the contours, and the range in Z over "
-       "which they appear, will thus depend on the model's Z-scale, just as "
-       "the appearance of a spherical point does.  The current point will be "
-       "deleted.  The contours will be given a unique surface number in the "
-       "target object so that they can be manipulated together or deleted "
-       "easily.\n\n"
-       "When the current object consists of scattered points, the "
-       "\"Preserve sizes of points with default size\" button can be used to "
-       "specify whether the sizes of "
-       "the points will be completely preserved when they are "
-       "transferred to the new object.  If the button is selected, "
-       "points that do not have their own individual sizes will be "
-       "assigned the default size of the current object before being "
-       "moved to the new object.  If the button is not depressed, "
-       "such points will not be assigned individual sizes, and they "
-       "will acquire the default size of the object they are moved "
-       "to.  In either case, points that do have individual sizes "
-       "will retain these sizes after the transfer.\n\n",
-       "When moving contours to a different object, the surface "
-       "number that they have in their new home depends on whether "
-       "the first toggle button is selected.  If it is not (i.e., "
-       "you are moving one contour at a time), then each "
-       "contour moved will have the same surface number as before, "
-       "and no surfaces will be created if there are none already.\n"
-       "If the button is selected (i.e., you are moving all contours "
-       "with the same surface number), then the set of contours that "
-       "get moved in one operation will be assigned to a new surface "
-       "with the next free number in the new object.  If you want to "
-       "move all of the contours in an object with no surfaces into "
-       "a different object and have them occupy a separate surface "
-       "in that object, select the option to move all contours with "
-       "the same surface number.\n\n",
-       "\"Move contour one section\" can be selected to shift contours up or "
-       "down in Z, provided that other kinds of movements are not selected.  "
-       "If \"Move all contours with same surface #\" is selected, then all "
-       "contours in the surface will be moved.  Otherwise, all selected "
-       "contours will be moved if there is more than one.  "
-       "The current point and selected contours remain unchanged "
-       "so it is easy to undo this operation by changing the direction.\n\n"
-       "\"Shift contour with first mouse button\" allows you to shift the "
-       "current contour in the active Zap window by dragging with the first "
-       "mouse button held down.  After "
-       "pressing this key, position the mouse anywhere, press the first mouse "
-       "button, and shift the contour to the desired position.  Shifting mode "
-       "is terminated when you release the mouse button.  Shifting "
-       "works for any contours in closed contour objects and for coplanar "
-       "contours in open contour objects.\n",
-
-       NULL);
+    imodShowHelpPage("contourMove.html");
     break;
   }
 }
@@ -2067,6 +1985,9 @@ void ContourFrame::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.17  2004/11/24 05:08:19  mast
+Implemented multiple contour join and control over method of joining
+
 Revision 4.16  2004/11/20 05:05:27  mast
 Changes for undo/redo capability
 
