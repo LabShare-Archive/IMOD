@@ -1,0 +1,24 @@
+ 1/2: Type/Average selected bins of the graph in a specified window
+ 3: Compute integrated number of (excess/missing) items in selected bins
+ 4/5: Display one graph in a window/Enter list of graphs to display
+ 6/7: Rescale X or Y axis of one window/Y axis of all windows
+ 8/9: Plot one window/all windows to PostScript graphics file
+ 10/11: Output PostScript file to screen/printer
+ 12: Output single or average graph to file
+ 13: Loop back to specify new range of Z to analyze (or new model)
+ 14: Change radial weighting of a graph
+ 15: Analyze new region and average with previous region(s)
+ 16: Redo current region(s) with new bin size, # of bins, or types for graphs
+ 17: Set min & max distances at which to compute angles and add lines to model
+ 18: Save bins of a graph to specify rejection probabilities for random points
+ 19/26/20: Do current region(s) with shuffled/converted types or random shifts
+ 21: Save current set of objects and their types as a WIMP model
+ 22/27/23: Do many sets & integrals with shuffled/converted types/random shifts
+ 24: Take command input from file        25: Exit
+ 28/29/30 Save a graph/Average/Combine 2 graphs into an extra graph location
+ 31/32: Save graph in file/Read from file into an extra graph location
+ 33: Replace some sets of bins by their averages
+ 37/38/39 Add list of graphs/Read list of graphs from file/Read&Add from file
+ 40: Unshift an object
+ 41: Toggle between including and excluding items that failed to shift
+ 42: Export graph values or points for drawing to file
