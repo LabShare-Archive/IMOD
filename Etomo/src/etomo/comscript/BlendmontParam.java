@@ -26,6 +26,7 @@ public class BlendmontParam implements CommandParam {
   public static final String COMMAND_NAME = "blendmont";
   public static final int XCORR_MODE = -1;
   public static final int PREBLEND_MODE = -2;
+  public static final int BLEND_MODE = -3;
   
   private AxisID axisID;
   private String datasetName;
@@ -84,17 +85,19 @@ public class BlendmontParam implements CommandParam {
     File blendFile = new File(EtomoDirector.getInstance()
         .getCurrentPropertyUserDir(), datasetName + axisID.getExtension()
         + ".bl");
-    //Read in xcorr output if it exists.
-    readInXcorrs.set(mode == PREBLEND_MODE || ecdFile.exists());
-    //Use existing edge functions, if they are up to date.
-    oldEdgeFunctions.set(xefFile.exists() && yefFile.exists()
-        && ecdFile.lastModified() <= xefFile.lastModified()
-        && ecdFile.lastModified() <= yefFile.lastModified());
+    //Read in xcorr output if it exists.  Turn on for preblend and blend.
+    readInXcorrs.set(mode == PREBLEND_MODE || mode == BLEND_MODE
+        || ecdFile.exists());
+    //Use existing edge functions, if they are up to date.  Turn on for blend.
+    oldEdgeFunctions.set(mode == BLEND_MODE
+        || (xefFile.exists() && yefFile.exists()
+            && ecdFile.lastModified() <= xefFile.lastModified() && ecdFile
+            .lastModified() <= yefFile.lastModified()));
     //If xcorr output exists and the edge functions are up to date, then don't
     //run blendmont, as long as the blendmont output is more recent then the
     //stack.
-    if (readInXcorrs.is() && oldEdgeFunctions.is() && blendFile.exists() &&
-        stackFile.lastModified() < blendFile.lastModified()) {
+    if (readInXcorrs.is() && oldEdgeFunctions.is() && blendFile.exists()
+        && stackFile.lastModified() < blendFile.lastModified()) {
       return false;
     }
     else {
@@ -106,6 +109,8 @@ public class BlendmontParam implements CommandParam {
     switch (mode) {
     case PREBLEND_MODE:
       return "preblend";
+    case BLEND_MODE:
+      return "blend";
     case XCORR_MODE:
     default:
       return "xcorr";
@@ -114,6 +119,11 @@ public class BlendmontParam implements CommandParam {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.2  2005/03/08 00:44:12  sueh
+* <p> bug# 533 Added a mode because the rules for setting readInXcorrs are
+* <p> different in xcorr and preblend.  Changed set...State functions to set
+* <p> readInXcorrs correctly.
+* <p>
 * <p> Revision 1.1  2005/03/04 00:07:03  sueh
 * <p> bug# 533 Param object for the blendmont command.
 * <p> </p>
