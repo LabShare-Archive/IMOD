@@ -1,5 +1,13 @@
+c	  $Author$
+c	  
+c	  $Date$
+c	  
+c	  $Revision$
+c
+c	  $Log$
 	logical function readw_or_imod(filename)
 	include 'model.inc'
+	include 'endian.inc'
 	logical read_mod
 	integer*4 getimod,int4(4)
 	character*(*) filename
@@ -30,16 +38,16 @@ c
 	  call qseek(istrm,1,1,1)
 c
 	  call qread(istrm,int2,52,ier)
-	  call convert_shorts(int2,1)
+	  if(lowbyte.eq.2)call convert_shorts(int2,1)
 	  if(ier.ne.0.or.int2(1).ne.3)go to 10
 c	    
 	  call qread(istrm,int2,2,ier)
-	  call convert_shorts(int2,1)
+	  if(lowbyte.eq.2)call convert_shorts(int2,1)
 	  if(ier.ne.0.or.int2(1).ne.3)go to 10
 c
 	  call qread(istrm,int4,12,ierr)
 	  if(ierr.ne.0)go to 10
-	  call convert_longs(int4,3)
+	  if(lowbyte.eq.2)call convert_longs(int4,3)
 c
 	  n_point=int4(2)
 	  n_object=0				!recount # of objects
@@ -50,12 +58,12 @@ c
 	    npt_in_obj(i)=0
 	  enddo
 100	  call qread(istrm,int2,2,ier)
-	  call convert_shorts(int2,1)
+	  if(lowbyte.eq.2)call convert_shorts(int2,1)
 	  if(ier.ne.0.or.int2(1).ne.3)go to 10
 c
 	  call qread(istrm,int4,16,ier)
 	  if(ier.ne.0)go to 10
-	  call convert_longs(int4,4)
+	  if(lowbyte.eq.2)call convert_longs(int4,4)
 c
 	  if(int4(1).ne.0)then
 	    i=int4(1)
@@ -71,17 +79,18 @@ c
 	    max_mod_obj=max(max_mod_obj,i)
 	    do ii=1,ninobj
 	      call qread(istrm,int2,2,ier)
-	      call convert_shorts(int2,1)
+	      if(lowbyte.eq.2)call convert_shorts(int2,1)
 	      if(ier.ne.0.or.int2(1).ne.3)go to 10
 c
 	      call qread(istrm,int4,4,ier)
 	      if(ier.ne.0)go to 10
-	      call convert_longs(int4,1)
+	      if(lowbyte.eq.2)call convert_longs(int4,1)
 	      ipt=int4(1)
 c		
 	      call qread(istrm,flt,12,ier)
 	      if(ier.ne.0)go to 10
-	      call convert_floats(flt,3)
+	      call fromvmsfloats(flt,3)
+	      if(lowbyte.eq.1.)call convert_longs(flt,3)
 c		
 	      call qread(istrm,ptbyte,1,ier)
 	      if(ier.ne.0)go to 10
