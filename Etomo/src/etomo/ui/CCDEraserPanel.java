@@ -29,6 +29,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.2  2003/07/08 20:49:43  rickg
+ * <p> Restructure panel for new ccderaser
+ * <p>
  * <p> Revision 2.1  2003/05/08 04:26:51  rickg
  * <p> Centered checkbox
  * <p>
@@ -224,6 +227,17 @@ public class CCDEraserPanel implements ContextMenu {
    * @param ccdEraserParams
    */
   public void setParameters(ConstCCDEraserParam ccdEraserParams) {
+    cbXrayReplacement.setSelected(ccdEraserParams.isFindPeaks());
+
+    ltfPeakCriterion.setText(ccdEraserParams.getPeakCriterion());
+    ltfDiffCriterion.setText(ccdEraserParams.getDiffCriterion());
+    ltfGrowCriterion.setText(ccdEraserParams.getGrowCriterion());
+    ltfScanCriterion.setText(ccdEraserParams.getScanCriterion());
+    ltfMaximumRadius.setText(ccdEraserParams.getMaximumRadius());
+    ltfOuterRadius.setText(ccdEraserParams.getOuterRadius());
+    ltfScanRegionSize.setText(ccdEraserParams.getXyScanSize());
+    ltfEdgeExclusion.setText(ccdEraserParams.getEdgeExclusion());
+
     ltfInputImage.setText(ccdEraserParams.getInputFile());
     ltfOutputImage.setText(ccdEraserParams.getOutputFile());
     ltfGlobalReplacementList.setText(
@@ -233,9 +247,20 @@ public class CCDEraserPanel implements ContextMenu {
     ltfPolynomialOrder.setText(ccdEraserParams.getPolynomialOrder());
     chkboxIncludeAdjacentPoints.setSelected(
       ccdEraserParams.getIncludeAdjacentPoints());
+    enableXRayReplacement();
+    enableManualReplacement();
   }
 
   public void getParameters(CCDEraserParam ccdEraserParams) {
+    ccdEraserParams.setFindPeaks(cbXrayReplacement.isSelected());
+    ccdEraserParams.setPeakCriterion(ltfPeakCriterion.getText());
+    ccdEraserParams.setDiffCriterion(ltfDiffCriterion.getText());
+    ccdEraserParams.setGrowCriterion(ltfGrowCriterion.getText());
+    ccdEraserParams.setScanCriterion(ltfScanCriterion.getText());
+    ccdEraserParams.setMaximumRadius(ltfMaximumRadius.getText());
+    ccdEraserParams.setOuterRadius(ltfOuterRadius.getText());
+    ccdEraserParams.setXyScanSize(ltfScanRegionSize.getText());
+    ccdEraserParams.setEdgeExclusion(ltfEdgeExclusion.getText());
     ccdEraserParams.setInputFile(ltfInputImage.getText());
     ccdEraserParams.setOutputFile(ltfOutputImage.getText());
     ccdEraserParams.setGlobalReplacementList(
