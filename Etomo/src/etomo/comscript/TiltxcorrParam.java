@@ -16,6 +16,9 @@ import etomo.type.TiltAngleType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.9  2004/05/03 18:02:21  sueh
+ * <p> bug# 418 standardizing update parameters, and sets
+ * <p>
  * <p> Revision 3.8  2004/04/12 16:51:15  sueh
  * <p> bug# 409 changed interface class CommandParam
  * <p>
@@ -252,29 +255,29 @@ public class TiltxcorrParam
     //  Switch to keyword/value pairs
     scriptCommand.useKeywordValue();
 
-    ParamUtilities.updateParameter(scriptCommand, "InputFile", inputFile, true);
-    ParamUtilities.updateParameter(scriptCommand, "PieceListFile", pieceListFile);
-    ParamUtilities.updateParameter(scriptCommand, "OutputFile", outputFile);
-    ParamUtilities.updateParameter(scriptCommand, "FirstTiltAngle", firstTiltAngle);
-    ParamUtilities.updateParameter(scriptCommand, "TiltIncrement", tiltIncrement);
-    ParamUtilities.updateParameter(scriptCommand, "TiltFile", tiltFile);
-    ParamUtilities.updateParameter(scriptCommand, "TiltAngles", tiltAngles);
-    ParamUtilities.updateParameter(scriptCommand, "RotationAngle", rotationAngle);
-    ParamUtilities.updateParameter(scriptCommand, "FilterRadius1", filterRadius1);
-    ParamUtilities.updateParameter(scriptCommand, "FilterRadius2", filterRadius2);
-    ParamUtilities.updateParameter(scriptCommand, "FilterSigma1", filterSigma1);
-    ParamUtilities.updateParameter(scriptCommand, "FilterSigma2", filterSigma2);
-    ParamUtilities.updateParameter(scriptCommand, "ExcludeCentralPeak", excludeCentralPeak);
-    ParamUtilities.updateParameter(scriptCommand, "BordersInXandY", bordersInXandY);
-    ParamUtilities.updateParameter(scriptCommand, "XMinAndMax", xMinAndMax);
-    ParamUtilities.updateParameter(scriptCommand, "YMinAndMax", yMinAndMax);
-    ParamUtilities.updateParameter(scriptCommand, "PadsInXandY", padsInXandY);
-    ParamUtilities.updateParameter(scriptCommand, "TapersInXandY", tapersInXandY);
-    ParamUtilities.updateParameter(scriptCommand, "CumulativeCorrelation", cumulativeCorrelation);
-    ParamUtilities.updateParameter(scriptCommand, "AbsoluteCosineStretch", absoluteCosineStretch);
-    ParamUtilities.updateParameter(scriptCommand, "NoCosineStretch", noCosineStretch);
-    ParamUtilities.updateParameter(scriptCommand, "TestOutput", testOutput);
-    ParamUtilities.updateParameter(scriptCommand, "StartingEndingViews", startingEndingViews);
+    ParamUtilities.updateScriptParameter(scriptCommand, "InputFile", inputFile, true);
+    ParamUtilities.updateScriptParameter(scriptCommand, "PieceListFile", pieceListFile);
+    ParamUtilities.updateScriptParameter(scriptCommand, "OutputFile", outputFile);
+    ParamUtilities.updateScriptParameter(scriptCommand, "FirstTiltAngle", firstTiltAngle);
+    ParamUtilities.updateScriptParameter(scriptCommand, "TiltIncrement", tiltIncrement);
+    ParamUtilities.updateScriptParameter(scriptCommand, "TiltFile", tiltFile);
+    ParamUtilities.updateScriptParameter(scriptCommand, "TiltAngles", tiltAngles);
+    ParamUtilities.updateScriptParameter(scriptCommand, "RotationAngle", rotationAngle);
+    ParamUtilities.updateScriptParameter(scriptCommand, "FilterRadius1", filterRadius1);
+    ParamUtilities.updateScriptParameter(scriptCommand, "FilterRadius2", filterRadius2);
+    ParamUtilities.updateScriptParameter(scriptCommand, "FilterSigma1", filterSigma1);
+    ParamUtilities.updateScriptParameter(scriptCommand, "FilterSigma2", filterSigma2);
+    ParamUtilities.updateScriptParameter(scriptCommand, "ExcludeCentralPeak", excludeCentralPeak);
+    ParamUtilities.updateScriptParameter(scriptCommand, "BordersInXandY", bordersInXandY);
+    ParamUtilities.updateScriptParameter(scriptCommand, "XMinAndMax", xMinAndMax);
+    ParamUtilities.updateScriptParameter(scriptCommand, "YMinAndMax", yMinAndMax);
+    ParamUtilities.updateScriptParameter(scriptCommand, "PadsInXandY", padsInXandY);
+    ParamUtilities.updateScriptParameter(scriptCommand, "TapersInXandY", tapersInXandY);
+    ParamUtilities.updateScriptParameter(scriptCommand, "CumulativeCorrelation", cumulativeCorrelation);
+    ParamUtilities.updateScriptParameter(scriptCommand, "AbsoluteCosineStretch", absoluteCosineStretch);
+    ParamUtilities.updateScriptParameter(scriptCommand, "NoCosineStretch", noCosineStretch);
+    ParamUtilities.updateScriptParameter(scriptCommand, "TestOutput", testOutput);
+    ParamUtilities.updateScriptParameter(scriptCommand, "StartingEndingViews", startingEndingViews);
   }
   
   public void initializeDefaults() {

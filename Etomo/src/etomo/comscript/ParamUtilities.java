@@ -12,6 +12,9 @@
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.6  2004/05/03 18:01:48  sueh
+ * <p> $bug# 418 adding more functions, fixing bugs.
+ * <p> $
  * <p> $Revision 1.5  2004/04/29 20:23:12  sueh
  * <p> $bug# 427 corrected Double.NaN comparison.
  * <p> $
@@ -34,7 +37,6 @@ package etomo.comscript;
 import java.util.Vector;
 
 public class ParamUtilities {
-  public static final String rcsid = "$$Id$$";
 
   public static String getString(double value) {
     if (Double.isNaN(value)) {
@@ -42,7 +44,7 @@ public class ParamUtilities {
     }
     return String.valueOf(value);
   }
-  
+
   public static String[] getStrings(double[] values) {
     String[] strings = new String[values.length <= 0 ? 1 : values.length];
     if (values.length == 0) {
@@ -53,7 +55,6 @@ public class ParamUtilities {
     }
     return strings;
   }
-
 
   public static double getDouble(String value) {
     if (value == null || !value.matches("\\S+")) {
@@ -74,7 +75,7 @@ public class ParamUtilities {
       target.validateAndSet(value);
     }
   }
-  
+
   public static void set(String value, FortranInputString target, int index) {
     if (target == null) {
       throw new NullPointerException();
@@ -89,20 +90,150 @@ public class ParamUtilities {
       target.set(index, Double.parseDouble(value));
     }
   }
-  
-  public static void updateParameter(
-    ComScriptCommand scriptCommand,
-    String key,
-    String value)
-    throws BadComScriptException {
-    updateParameter(scriptCommand, key, value, false);
+
+  /**
+   * Return the boolean parameter if it is present in the com script command
+   * object, otherwise return the notPresentValue.
+   * @param scriptCommand
+   * @param keyword
+   * @param notPresentValue
+   * @return
+   * @throws InvalidParameterException
+   */
+  public static boolean setParamIfPresent(ComScriptCommand scriptCommand,
+    String keyword, boolean notPresentValue) throws InvalidParameterException {
+
+    return (scriptCommand.hasKeyword(keyword)) ? true : notPresentValue;
   }
-  public static void updateParameter(
-    ComScriptCommand scriptCommand,
-    String key,
-    String value,
-    boolean required)
-    throws BadComScriptException {
+
+  /**
+   * Return the string parameter if it is present in the com script command
+   * object, otherwise return the notPresentValue
+   * @param scriptCommand
+   * @param keyword
+   * @param notPresentValue
+   * @return
+   * @throws InvalidParameterException
+   */
+  public static String setParamIfPresent(ComScriptCommand scriptCommand,
+    String keyword, String notPresentValue) throws InvalidParameterException {
+
+    return (scriptCommand.hasKeyword(keyword))
+      ? scriptCommand.getValue(keyword)
+      : notPresentValue;
+  }
+
+  /**
+   * Return the int parameter if it is present in the com script command
+   * object, otherwise return the notPresentValue
+   * @param scriptCommand
+   * @param keyword
+   * @param notPresentValue
+   * @return
+   * @throws InvalidParameterException NumberFormatException 
+   */
+  public static int setParamIfPresent(ComScriptCommand scriptCommand,
+    String keyword, int notPresentValue) throws InvalidParameterException,
+    NumberFormatException {
+
+    return (scriptCommand.hasKeyword(keyword))
+      ? Integer.parseInt(scriptCommand.getValue(keyword))
+      : notPresentValue;
+  }
+
+  /**
+   * Return the float parameter if it is present in the com script command
+   * object, otherwise return the notPresentValue
+   * @param scriptCommand
+   * @param keyword
+   * @param notPresentValue
+   * @return
+   * @throws InvalidParameterException NumberFormatException 
+   */
+  public static float setParamIfPresent(ComScriptCommand scriptCommand,
+    String keyword, float notPresentValue) throws InvalidParameterException,
+    NumberFormatException {
+    
+    return (scriptCommand.hasKeyword(keyword))
+      ? Float.parseFloat(scriptCommand.getValue(keyword))
+      : notPresentValue;
+  }
+
+  /**
+   * Return the double parameter if it is present in the com script command
+   * object, otherwise return the notPresentValue
+   * @param scriptCommand
+   * @param keyword
+   * @param notPresentValue
+   * @return
+   * @throws InvalidParameterException NumberFormatException 
+   */
+  public static double setParamIfPresent(ComScriptCommand scriptCommand,
+    String keyword, double notPresentValue) throws InvalidParameterException,
+    NumberFormatException {
+
+    return (scriptCommand.hasKeyword(keyword))
+      ? Integer.parseInt(scriptCommand.getValue(keyword))
+      : notPresentValue;
+  }
+
+  /**
+   * Set the FortranInputString parameter if it is present in the com script
+   * command object
+   * @param scriptCommand
+   * @param keyword
+   * @param parameter
+   * @throws FortranInputSyntaxException, InvalidParameterException
+   */
+  public static void setParamIfPresent(ComScriptCommand scriptCommand,
+    String keyword, FortranInputString fisParameter)
+    throws FortranInputSyntaxException, InvalidParameterException {
+    
+    if (scriptCommand.hasKeyword(keyword)) {
+      fisParameter.validateAndSet(scriptCommand.getValue(keyword));
+    }
+  }
+
+  /**
+   * Set the StringList parameter if it is present in the com script
+   * command object
+   * @param scriptCommand
+   * @param keyword
+   * @param parameter
+   * @throws FortranInputSyntaxException, InvalidParameterException
+   */
+  public static void setParamIfPresent(ComScriptCommand scriptCommand,
+    String keyword, StringList stringList) throws InvalidParameterException {
+    
+    if (scriptCommand.hasKeyword(keyword)) {
+      stringList.parseString(scriptCommand.getValue(keyword));
+    }
+  }
+
+  /**
+   * Update the specified com script parameter with the supplied value
+   * @param scriptCommand
+   * @param key
+   * @param value
+   * @throws BadComScriptException
+   */
+  public static void updateScriptParameter(ComScriptCommand scriptCommand,
+    String key, String value) throws BadComScriptException {
+
+    updateScriptParameter(scriptCommand, key, value, false);
+  }
+
+  /**
+   * 
+   * @param scriptCommand
+   * @param key
+   * @param value
+   * @param required
+   * @throws BadComScriptException
+   */
+  public static void updateScriptParameter(ComScriptCommand scriptCommand,
+    String key, String value, boolean required) throws BadComScriptException {
+    
     if (key == null) {
       throw new NullPointerException();
     }
@@ -112,16 +243,21 @@ public class ParamUtilities {
     else {
       scriptCommand.deleteKey(key);
       if (required) {
-        throw new BadComScriptException(
-          "MTF Filter:  Missing parameter value, " + key + ".");
+        throw new BadComScriptException(scriptCommand.getCommand()
+          + " missing required parameter: " + key + ".");
       }
     }
   }
 
-  public static void updateParameter(
-    ComScriptCommand scriptCommand,
-    String key,
-    double value) {
+  /**
+   * 
+   * @param scriptCommand
+   * @param key
+   * @param value
+   */
+  public static void updateScriptParameter(ComScriptCommand scriptCommand,
+    String key, double value) {
+    
     if (key == null) {
       throw new NullPointerException();
     }
@@ -133,10 +269,15 @@ public class ParamUtilities {
     }
   }
 
-  public static void updateParameter(
-    ComScriptCommand scriptCommand,
-    String key,
-    FortranInputString value) {
+  /**
+   * 
+   * @param scriptCommand
+   * @param key
+   * @param value
+   */
+  public static void updateScriptParameter(ComScriptCommand scriptCommand,
+    String key, FortranInputString value) {
+    
     if (key == null) {
       throw new NullPointerException();
     }
@@ -147,41 +288,17 @@ public class ParamUtilities {
       scriptCommand.deleteKey(key);
     }
   }
-  
-  public static void updateParameterStrings(
-    ComScriptCommand scriptCommand,
-    String key,
-    Vector strings)
-    throws BadComScriptException {
-    updateParameterStrings(scriptCommand, key, strings, false);
-  }
-  public static void updateParameterStrings(
-    ComScriptCommand scriptCommand,
-    String key,
-    Vector strings,
-    boolean required)
-    throws BadComScriptException {
-    if (key == null) {
-      throw new NullPointerException();
-    }
-    if (strings == null || strings.size() == 0) {
-      scriptCommand.deleteKeyAll(key);
-      if (required) {
-        throw new BadComScriptException(
-          "MTF Filter:  Missing parameter value, " + key + ".");
-      }
-      return;
-    }
-    scriptCommand.setValues(
-      key,
-      (String[]) strings.toArray(new String[strings.size()]));
-  }
 
-  public static void updateParameter(
-    ComScriptCommand scriptCommand,
-    String key,
-    double[] values)
-    throws BadComScriptException {
+  /**
+   * 
+   * @param scriptCommand
+   * @param key
+   * @param values
+   * @throws BadComScriptException
+   */
+  public static void updateScriptParameter(ComScriptCommand scriptCommand,
+    String key, double[] values) throws BadComScriptException {
+    
     if (key == null) {
       throw new NullPointerException();
     }
@@ -198,11 +315,16 @@ public class ParamUtilities {
     }
     scriptCommand.setValue(key, buffer.toString());
   }
-  
-  public static void updateParameter(
-    ComScriptCommand scriptCommand,
-    String key,
-    boolean set) {
+
+  /**
+   * 
+   * @param scriptCommand
+   * @param key
+   * @param set
+   */
+  public static void updateScriptParameter(ComScriptCommand scriptCommand,
+    String key, boolean set) {
+    
     if (key == null) {
       throw new NullPointerException();
     }
@@ -214,4 +336,44 @@ public class ParamUtilities {
     }
   }
 
+  /**
+   * 
+   * @param scriptCommand
+   * @param key
+   * @param strings
+   * @throws BadComScriptException
+   */
+  public static void updateScriptParameterStrings(
+    ComScriptCommand scriptCommand, String key, Vector strings)
+    throws BadComScriptException {
+    
+    updateScriptParameterStrings(scriptCommand, key, strings, false);
+  }
+
+  /**
+   * 
+   * @param scriptCommand
+   * @param key
+   * @param strings
+   * @param required
+   * @throws BadComScriptException
+   */
+  public static void updateScriptParameterStrings(
+    ComScriptCommand scriptCommand, String key, Vector strings, boolean required)
+    throws BadComScriptException {
+    
+    if (key == null) {
+      throw new NullPointerException();
+    }
+    if (strings == null || strings.size() == 0) {
+      scriptCommand.deleteKeyAll(key);
+      if (required) {
+        throw new BadComScriptException(scriptCommand.getCommand()
+          + " missing required parameter: " + key + ".");
+      }
+      return;
+    }
+    scriptCommand.setValues(key,
+      (String[]) strings.toArray(new String[strings.size()]));
+  }
 }

@@ -16,6 +16,9 @@ import java.util.Vector;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.5  2004/05/03 18:02:55  sueh
+ * <p> $bug# 418 standardizing sets
+ * <p> $
  * <p> $Revision 1.4  2004/04/30 16:20:44  sueh
  * <p> $bug# 427 changing comment
  * <p> $
@@ -107,18 +110,18 @@ public class TomopitchParam
 
     //  Switch to keyword/value pairs
     scriptCommand.useKeywordValue();
-    ParamUtilities.updateParameterStrings(
+    ParamUtilities.updateScriptParameterStrings(
       scriptCommand,
       MODEL_FILE,
       modelFiles,
       true);
-    ParamUtilities.updateParameter(
+    ParamUtilities.updateScriptParameter(
       scriptCommand,
       EXTRA_THICKNESS,
       extraThickness);
-    ParamUtilities.updateParameter(scriptCommand, SPACING_IN_Y, spacingInY);
-    ParamUtilities.updateParameter(scriptCommand, SCALE_FACTOR, scaleFactor);
-    ParamUtilities.updateParameter(
+    ParamUtilities.updateScriptParameter(scriptCommand, SPACING_IN_Y, spacingInY);
+    ParamUtilities.updateScriptParameter(scriptCommand, SCALE_FACTOR, scaleFactor);
+    ParamUtilities.updateScriptParameter(
       scriptCommand,
       PARAMETER_FILE,
       parameterFile);

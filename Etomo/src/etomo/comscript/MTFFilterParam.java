@@ -12,6 +12,9 @@
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.6  2004/05/03 18:01:17  sueh
+ * <p> $bug# 418 standardizing set function
+ * <p> $
  * <p> $Revision 1.5  2004/04/16 01:50:33  sueh
  * <p> $bug# 409 added startingAndEndingZ, formatted
  * <p> $
@@ -72,22 +75,22 @@ public class MTFFilterParam
   public void updateComScriptCommand(ComScriptCommand scriptCommand)
     throws BadComScriptException {
     scriptCommand.useKeywordValue();
-    ParamUtilities.updateParameter(scriptCommand, "InputFile", inputFile, true);
-    ParamUtilities.updateParameter(scriptCommand, "OutputFile", outputFile);
-    ParamUtilities.updateParameter(scriptCommand, "MtfFile", mtfFile);
-    ParamUtilities.updateParameter(
+    ParamUtilities.updateScriptParameter(scriptCommand, "InputFile", inputFile, true);
+    ParamUtilities.updateScriptParameter(scriptCommand, "OutputFile", outputFile);
+    ParamUtilities.updateScriptParameter(scriptCommand, "MtfFile", mtfFile);
+    ParamUtilities.updateScriptParameter(
       scriptCommand,
       "MaximumInverse",
       maximumInverse);
-    ParamUtilities.updateParameter(
+    ParamUtilities.updateScriptParameter(
       scriptCommand,
       "LowPassRadiusSigma",
       lowPassRadiusSigma);
-    ParamUtilities.updateParameter(
+    ParamUtilities.updateScriptParameter(
       scriptCommand,
       "InverseRolloffRadiusSigma",
       inverseRolloffRadiusSigma);
-    ParamUtilities.updateParameter(
+    ParamUtilities.updateScriptParameter(
       scriptCommand,
       "StartingAndEndingZ",
       startingAndEndingZ);
