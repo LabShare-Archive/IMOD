@@ -495,31 +495,7 @@ void zapResize(ZapStruct *zap, int winx, int winy)
  
   if (zap->ginit){
 
-    /* Make sure the rubber band stays legal, but keep it same size
-       if possible */
-    /*    if (zap->rubberband) {
-      if (zap->rbMouseX1 >= winx) {
-        if (zap->rbMouseX1 + 1 - zap->rbMouseX0 > winx) {
-          zap->rbMouseX1 = winx - 1;
-          if (zap->rbMouseX0 > zap->rbMouseX1 - bandmin)
-            zap->rbMouseX0 = zap->rbMouseX1 - bandmin;
-        } else {
-          zap->rbMouseX0 -= zap->rbMouseX1 + 1 - winx;
-          zap->rbMouseX1 = winx - 1;
-        }
-      }
-      if (zap->rbMouseY1 >= winy) {
-        if (zap->rbMouseY1 + 1 - zap->rbMouseY0 > winy) {
-          zap->rbMouseY1 = winy - 1;
-          if (zap->rbMouseY0 > zap->rbMouseY1 - bandmin)
-            zap->rbMouseY0 = zap->rbMouseY1 - bandmin;
-        } else {
-          zap->rbMouseY0 -= zap->rbMouseY1 + 1 - winy;
-          zap->rbMouseY1 = winy - 1;
-        }
-      }
-      } */
-
+    // 11/11/04: rubber band now takes care of itself
     b3dFlushImage(zap->image);
   }
 
@@ -583,6 +559,7 @@ void zapPaint(ZapStruct *zap)
   zapDrawExtraObject(zap);
   zapDrawAuto(zap);
   if (zap->rubberband) {
+    b3dLineWidth(1);
     b3dColorIndex(App->endpoint);
     zapBandImageToMouse(zap, 0);
     b3dDrawRectangle(zap->rbMouseX0, zap->winy - 1 - zap->rbMouseY1, 
@@ -2444,18 +2421,10 @@ static void setControlAndLimits(ZapStruct *zap)
     zapGetixy(zap, 0, 0, &xl, &yt);
     zapGetixy(zap, zap->winx, zap->winy, &xr, &yb);
   }
-  subStartX = (int)(xl + 0.5);
-  subEndX = (int)(xr - 0.5);
-  subStartY = (int)(yb + 0.5);
-  subEndY = (int)(yt - 0.5);
-  if (subStartX < 0)
-    subStartX = 0;
-  if (subEndX >= zap->vi->xsize)
-    subEndX = zap->vi->xsize - 1;
-  if (subStartY < 0)
-    subStartY = 0;
-  if (subEndY >= zap->vi->ysize)
-    subEndY = zap->vi->ysize - 1;
+  subStartX = B3DMAX((int)(xl + 0.5), 0);
+  subEndX = B3DMIN((int)(xr - 0.5), zap->vi->xsize - 1);
+  subStartY = B3DMAX((int)(yb + 0.5), 0);
+  subEndY = B3DMIN((int)(yt - 0.5), zap->vi->ysize - 1);
 }     
 
 // Return the subset limits from the active window
@@ -2900,6 +2869,20 @@ static void zapDrawCurrentPoint(ZapStruct *zap, int undraw)
 
   zapCurrentPointSize(obj, &modPtSize, &backupSize, &imPtSize);
 
+  // 11/11/04: Reset line width for slice lines or current image point,
+  // set it below with object-specific thickness
+  b3dLineWidth(1);
+  if (zap->showslice){
+    b3dColorIndex(App->foreground);
+    b3dDrawLine(x, y,
+                zapXpos(zap, vi->slice.zx1+0.5f),
+                zapYpos(zap, vi->slice.zy1+0.5f));
+    b3dDrawLine(x, y,
+                zapXpos(zap, vi->slice.zx2+0.5f), 
+                zapYpos(zap, vi->slice.zy2+0.5f));
+    zap->showslice = 0;
+  }
+
   if ((vi->imod->mousemode == IMOD_MMOVIE)||(!pnt)){
     x = zapXpos(zap, (float)((int)vi->xmouse + 0.5));
     y = zapYpos(zap, (float)((int)vi->ymouse + 0.5));
@@ -2909,6 +2892,7 @@ static void zapDrawCurrentPoint(ZapStruct *zap, int undraw)
   }else{
     if ((cont) && (cont->psize) && (pnt)){
 
+      b3dLineWidth(obj->linewidth2);
       curSize = modPtSize;
       if (cont->psize > 1 && 
           (pnt == cont->pts || pnt == cont->pts + cont->psize - 1))
@@ -2927,22 +2911,12 @@ static void zapDrawCurrentPoint(ZapStruct *zap, int undraw)
     }
   }
      
-  if (zap->showslice){
-    b3dColorIndex(App->foreground);
-    b3dDrawLine(x, y,
-                zapXpos(zap, vi->slice.zx1+0.5f),
-                zapYpos(zap, vi->slice.zy1+0.5f));
-    b3dDrawLine(x, y,
-                zapXpos(zap, vi->slice.zx2+0.5f), 
-                zapYpos(zap, vi->slice.zy2+0.5f));
-    zap->showslice = 0;
-  }
-
   /* draw begin/end points for current contour */
   if (cont){
     if (zapTimeMismatch(vi, zap->timeLock, obj, cont))
       return;
 
+    b3dLineWidth(obj->linewidth2);
     if (cont->psize > 1){
       if (zapPointVisable(zap, cont->pts)){
         b3dColorIndex(App->bgnpoint);
@@ -3181,6 +3155,9 @@ bool zapTimeMismatch(ImodView *vi, int timelock, Iobj *obj, Icont *cont)
 
 /*
 $Log$
+Revision 4.51  2004/11/04 17:02:41  mast
+Changes for switching to shifting contour as a mode that is turned on
+
 Revision 4.50  2004/11/02 20:22:35  mast
 Added contour shift capability; switched to curpoint color for current point
 
