@@ -11,6 +11,10 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.5  2004/12/16 02:14:31  sueh
+ * <p> bug# 564 Fixed bug: command array was not refreshing.  Refresh
+ * <p> command array when getCommandArray() is called.
+ * <p>
  * <p> Revision 3.4  2004/12/08 21:22:34  sueh
  * <p> bug# 564 Implemented Command.  Provided access to swapYZ.
  * <p>
@@ -85,7 +89,7 @@ import etomo.util.InvalidParameterException;
 public class TrimvolParam implements Command {
   public static final String rcsid = "$Id$";
 
-  public static final int SWAPYZ = -1;
+  public static final int GET_SWAPYZ = -1;
 
   public static final String PARAM_ID = "Trimvol";
   public static final String XMIN = "XMin";
@@ -601,13 +605,9 @@ public class TrimvolParam implements Command {
     outputFile = datasetName + ".rec";
   }
   
-  public int getBinning() {
-    return 1;
-  }
-  
   public boolean getBooleanValue(int name) {
     switch (name) {
-    case SWAPYZ:
+    case GET_SWAPYZ:
       return swapYZ;
     }
     return false;
@@ -637,11 +637,11 @@ public class TrimvolParam implements Command {
     return Integer.MIN_VALUE;
   }
   
-  public int getMode() {
+  public int getCommandMode() {
     return 0;
   }
   
-  public File getOutputFile() {
+  public File getCommandOutputFile() {
     return new File(outputFile);
   }
   
@@ -698,8 +698,8 @@ public class TrimvolParam implements Command {
       && (inputFile.equals("\\S+") || trim.getInputFileName().equals("\\S+"))) {
       return false;
     }
-    if (!outputFile.equals(trim.getOutputFile())
-      && (outputFile.equals("\\S+") || trim.getOutputFile().equals("\\S+"))) {
+    if (!outputFile.equals(trim.getCommandOutputFile())
+      && (outputFile.equals("\\S+") || trim.getCommandOutputFile().equals("\\S+"))) {
       return false;
     }   
     return true;
