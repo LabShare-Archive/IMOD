@@ -15,6 +15,9 @@ import etomo.type.TiltAngleType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.5  2003/08/07 17:59:06  rickg
+ * <p> Merged in tilt angle fix from beta2a branch
+ * <p>
  * <p> Revision 2.4  2003/07/25 22:52:14  rickg
  * <p> *** empty log message ***
  * <p>
@@ -71,27 +74,27 @@ public class TiltxcorrParam
     outputFile = inputArgs[inputLine++].getArgument();
 
     int typeSpec = Integer.parseInt(inputArgs[inputLine++].getArgument());
-		tiltAngleSpec.setType(TiltAngleType.parseInt(typeSpec));
-		if (tiltAngleSpec.getType() == TiltAngleType.FILE) {
-			tiltAngleSpec.setTiltAngleFilename(inputArgs[inputLine++].getArgument());
-		}
-		else if (tiltAngleSpec.getType() == TiltAngleType.RANGE) {
-			String pair = inputArgs[inputLine++].getArgument();
-			String values[] = pair.split(",");
-			if (values.length != 2) {
-				throw new BadComScriptException("Incorrect tilt angle specification type");
-			}
-			tiltAngleSpec.setRangeMin(Double.parseDouble(values[0]));
-			tiltAngleSpec.setRangeStep(Double.parseDouble(values[1]));
-		}
-		else if (tiltAngleSpec.getType() == TiltAngleType.LIST) {
-			throw new BadComScriptException("Unimplemented tilt angle specification type");
-		}
-		else {
-			throw new BadComScriptException("Incorrect tilt angle specification type");
-		}
+    tiltAngleSpec.setType(TiltAngleType.parseInt(typeSpec));
+    if (tiltAngleSpec.getType() == TiltAngleType.FILE) {
+      tiltAngleSpec.setTiltAngleFilename(inputArgs[inputLine++].getArgument());
+    }
+    else if (tiltAngleSpec.getType() == TiltAngleType.RANGE) {
+      String pair = inputArgs[inputLine++].getArgument();
+      String values[] = pair.split(",");
+      if (values.length != 2) {
+        throw new BadComScriptException("Incorrect tilt angle specification type");
+      }
+      tiltAngleSpec.setRangeMin(Double.parseDouble(values[0]));
+      tiltAngleSpec.setRangeStep(Double.parseDouble(values[1]));
+    }
+    else if (tiltAngleSpec.getType() == TiltAngleType.LIST) {
+      throw new BadComScriptException("Unimplemented tilt angle specification type");
+    }
+    else {
+      throw new BadComScriptException("Incorrect tilt angle specification type");
+    }
 
-  	imageRotation = Double.parseDouble(inputArgs[inputLine++].getArgument());
+    imageRotation = Double.parseDouble(inputArgs[inputLine++].getArgument());
     try {
       filterParams.validateAndSet(inputArgs[inputLine++].getArgument());
       excludeCentralPeak =
@@ -99,7 +102,7 @@ public class TiltxcorrParam
       trim.validateAndSet(inputArgs[inputLine++].getArgument());
       padPercent.validateAndSet(inputArgs[inputLine++].getArgument());
       taperPercent.validateAndSet(inputArgs[inputLine++].getArgument());
-      viewList = inputArgs[inputLine++].getArgument();
+      viewRange.validateAndSet(inputArgs[inputLine++].getArgument());
     }
     catch (FortranInputSyntaxException except) {
       String message =
@@ -146,7 +149,7 @@ public class TiltxcorrParam
     inputArgs[8].setArgument(trim.toString());
     inputArgs[9].setArgument(padPercent.toString());
     inputArgs[10].setArgument(taperPercent.toString());
-    inputArgs[11].setArgument(viewList);
+    inputArgs[11].setArgument(viewRange);
     scriptCommand.setInputArguments(inputArgs);
 
   }
@@ -205,10 +208,10 @@ public class TiltxcorrParam
   }
 
   /**
-   * Set the list of view to process.
+   * Set the range of view to process.
    */
-  public void setViewList(String viewList) {
-    this.viewList = viewList;
+  public void setViewRange(String newPair) throws FortranInputSyntaxException {
+    viewRange.validateAndSet(newPair);
   }
 
   /**
@@ -244,7 +247,7 @@ public class TiltxcorrParam
       + taperPercent
       + "\n"
       + "Pad y: "
-      + viewList
+      + viewRange
       + "\n";
   }
 
