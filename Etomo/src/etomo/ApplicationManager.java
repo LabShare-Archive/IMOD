@@ -77,6 +77,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.88  2003/11/05 20:04:05  rickg
+ * <p> Bug# 347 Message written to process monitor area
+ * <p>
  * <p> Revision 2.87  2003/11/05 19:39:17  rickg
  * <p> Bug# 295 Query the combination dialog instead of the metaData
  * <p> object as to the state of the match direction for opening the patch
@@ -1366,7 +1369,7 @@ public class ApplicationManager {
     String seedModel =
       metaData.getDatasetName() + axisID.getExtension() + ".seed";
     try {
-      imodManager.modelCoarseAligned(seedModel, axisID, true);
+      imodManager.modelCoarseAligned(seedModel, axisID, true, true);
       processTrack.setFiducialModelState(ProcessState.INPROGRESS, axisID);
       mainFrame.setFiducialModelState(ProcessState.INPROGRESS, axisID);
     }
@@ -1414,7 +1417,7 @@ public class ApplicationManager {
     String fiducialModel =
       metaData.getDatasetName() + axisID.getExtension() + ".fid";
     try {
-      imodManager.modelCoarseAligned(fiducialModel, axisID, true);
+      imodManager.modelCoarseAligned(fiducialModel, axisID, true, false);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
@@ -1621,7 +1624,7 @@ public class ApplicationManager {
     String fiducialModel =
       metaData.getDatasetName() + axisID.getExtension() + ".resmod";
     try {
-      imodManager.modelCoarseAligned(fiducialModel, axisID, false);
+      imodManager.modelCoarseAligned(fiducialModel, axisID, false, true);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
