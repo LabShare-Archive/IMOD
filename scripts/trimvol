@@ -24,6 +24,7 @@ cat <<EOF
      -i              Treat as index coordinates (numbered from 0) rather than
                            as Imod coordinates (numbered from 1, the default)
      -f              Treat coordinates as coming from a flipped volume
+     -P              Output process ID
 
   Notes:
      You cannot use both -x and -nx; -y and -ny; -z and -nz; or -c and -s.
@@ -85,6 +86,10 @@ while ($#argv > 2)
       breaksw
     case -i:
       set index = "1"
+      shift
+      breaksw
+    case -P:
+      echo $pn PID: $$
       shift
       breaksw
     default:
