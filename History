@@ -1,5 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/8/01: IMOD_2-6-5
+1/8/01: Changed prenewst.com to reset pixel sizes to 1 in the prealigned
+stack, so that align.com would run correctly if pixel sizes are set in the
+raw stack.
+
 1/7/01: Fixed dimensioning error in Beadtrack that was erroneously producing
 a diagnostic image file and could have produced other problems with very
 large bead radius values.
