@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.5  2005/01/12 18:34:07  sueh
+ * <p> bug# 505 Added excludeList2.
+ * <p>
  * <p> Revision 3.4  2005/01/08 01:46:13  sueh
  * <p> bug# 578 Added dataset name and axis id to constructor.  Read and
  * <p> update ZFACTORFILE in comscript.
@@ -70,9 +73,15 @@
  */
 package etomo.comscript;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 
 import etomo.type.AxisID;
+import etomo.util.Goodframe;
+import etomo.util.InvalidParameterException;
+import etomo.util.MRCHeader;
+import etomo.util.Montagesize;
 
 public class TiltParam extends ConstTiltParam implements CommandParam {
   public static final String rcsid = 
@@ -499,6 +508,45 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
   public void resetFullImage() {
     fullImageX = Integer.MIN_VALUE;
     fullImageY = Integer.MIN_VALUE;
+  }
+  
+  public void setMontageFullImage(String userDir, int binning) {
+    //Try to get the montage size from .ali file
+    try {
+      File aliFile = new File(userDir, datasetName + axisID.getExtension()
+          + BlendmontParam.OUTPUT_FILE_EXTENSION);
+      if (aliFile.exists()) {
+        MRCHeader header = new MRCHeader(aliFile.getAbsolutePath());
+        header.read();
+        fullImageX = header.getNColumns() / binning;
+        fullImageY = header.getNRows() / binning;
+        return;
+      }
+    }
+    catch (InvalidParameterException e) {
+      e.printStackTrace();
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+    }
+    //If the .ali file is not available, use the .st file and adjust it with
+    //goodframe
+    try {
+      Montagesize montagesize = Montagesize.getInstance(userDir, datasetName, axisID);
+      if (montagesize.isFileExists()) {
+        Goodframe goodframe = new Goodframe();
+        goodframe.run(montagesize.getX().getInteger(), montagesize.getY().getInteger());
+        fullImageX = goodframe.getFirstOutput().getInteger() / binning;
+        fullImageY = goodframe.getSecondOutput().getInteger() / binning;
+      }
+    }
+    catch (InvalidParameterException e) {
+      e.printStackTrace();
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+    }
+
   }
 
   /**
