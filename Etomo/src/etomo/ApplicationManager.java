@@ -86,6 +86,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.54  2004/05/15 01:43:55  sueh
+ * <p> bug# 415 if saveTestParamIfNecessary() returns false, then the user
+ * <p> pressed cancel our there was a problem saving, so don't exit.
+ * <p>
  * <p> Revision 3.53  2004/05/15 00:41:00  sueh
  * <p> bug# 302 changing function name updateCombineParams()
  * <p>
@@ -4194,7 +4198,6 @@ public class ApplicationManager {
     }
     setThreadName(threadName, AxisID.FIRST);
     tomogramCombinationDialog.showPane("Final Match");
-    mainFrame.startProgressBar("Combine: volcombine", AxisID.FIRST);
   }
 
   /**
