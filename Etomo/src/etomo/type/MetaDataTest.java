@@ -26,6 +26,9 @@ import junit.framework.TestCase;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.8  2004/12/07 23:36:26  sueh
+ * <p> bug# 520 Changing print statements.
+ * <p>
  * <p> Revision 3.7  2004/12/06 23:35:47  sueh
  * <p> bug# 520 Added print statements.
  * <p>
@@ -73,16 +76,16 @@ public class MetaDataTest extends TestCase {
       testDir.isDirectory() && testDir.canRead() && testDir.canWrite());
     //  Check out the test vectors from the CVS repository
     // Set the working directory to the current test directory for this package
-    EtomoDirector etomoDirector = EtomoDirector.getInstance();
-    String originalDirectory = etomoDirector.setCurrentPropertyUserDir(testDir.getAbsolutePath());
+    //EtomoDirector etomoDirector = EtomoDirector.getInstance();
+    //String originalDirectory = etomoDirector.setCurrentPropertyUserDir(testDir.getAbsolutePath());
 
     for (int i = 0; i < edfList.length; i++) {
       try {
         System.err.println("MetaDataTest.setUp");
-        TestUtilites.checkoutVector(testDir.getAbsolutePath(), edfList[i]);
+        TestUtilites.checkoutVector(TypeTests.testRoot, edfList[i]);
       }
       catch (SystemProcessException except) {
-        etomoDirector.setCurrentPropertyUserDir(originalDirectory);
+        //etomoDirector.setCurrentPropertyUserDir(originalDirectory);
         System.err.println(except.getMessage());
         fail("Error checking out test vector: " + edfList[i] + " in "
             + testDir.getAbsolutePath() + "CVSROOT="
@@ -91,7 +94,7 @@ public class MetaDataTest extends TestCase {
     }
 
     // Switch back to the original working directory
-    etomoDirector.setCurrentPropertyUserDir(originalDirectory);
+    //etomoDirector.setCurrentPropertyUserDir(originalDirectory);
   }
   
   /*
