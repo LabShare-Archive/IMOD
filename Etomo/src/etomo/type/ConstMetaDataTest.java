@@ -201,7 +201,7 @@ public class ConstMetaDataTest extends TestCase {
     unwritableDir.delete();
     unreadableFileDir.delete();
     unreadableBFileDir.delete();
-    validFileDir.delete();l
+    validFileDir.delete();
   }
 
   protected File createUnreadableFile(File dir, String name)
