@@ -17,6 +17,9 @@ import etomo.comscript.InvalidParameterException;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.2  2005/01/14 23:03:18  sueh
+* <p> Overriding initialize(), parse(), and update().
+* <p>
 * <p> Revision 1.1  2005/01/13 19:03:01  sueh
 * <p> Inherits EtomoNumber to create a boolean which does not allow nulls and
 * <p> can't read/write itself  to/from .edf and .com files.
@@ -27,7 +30,6 @@ public class EtomoBoolean2 extends EtomoNumber {
   
   public static final int FALSE_VALUE = 0;
   public static final int TRUE_VALUE = 1;
-  public static final int booleanNullValue = FALSE_VALUE;
   
   private static final String falseString = "false";
   private static final String falseStrings[] = {"f", "no"};
@@ -36,48 +38,8 @@ public class EtomoBoolean2 extends EtomoNumber {
   private boolean updateAsInteger = false;
 
   public EtomoBoolean2(String name) {
-    super(EtomoNumber.INTEGER_TYPE, name);
+    super(EtomoNumber.INTEGER_TYPE, name, true, new Integer(FALSE_VALUE));
     setValidValues(new int[] { FALSE_VALUE, TRUE_VALUE });
-    //Don't force it have defaults
-    defaultValue = new Integer(INTEGER_NULL_VALUE);
-  }
-  
-  /**
-   * Have to override newNumber() to prevent it from setting null.  This means
-   * that we also must override initialize() to set defaultValue and 
-   * ceilingValue to null to prevent them from being used unless the user sets
-   * them.
-   */
-  protected void initialize() {
-    value = newNumber();
-    defaultValue = super.newNumber();
-    resetValue = newNumber();
-    ceilingValue = super.newNumber();
-  }
-  
-  /**
-   * Have to override newNumber() to prevent it from setting null.  This means
-   * that we also must override initialize(int) to set defaultValue and 
-   * ceilingValue to null to prevent them from being used unless the user sets
-   * them.
-   */
-  protected void initialize(int initialValue) {
-    value = newNumber(initialValue);
-    defaultValue = super.newNumber();
-    resetValue = newNumber();
-    ceilingValue = super.newNumber();
-  }
-  
-  /**
-   * Allow setting a boolean value
-   * @param value
-   * @return
-   */
-  public ConstEtomoNumber set(boolean value) {
-    if (value) {
-      return set(TRUE_VALUE);
-    }
-    return set(FALSE_VALUE);
   }
   
   /**
@@ -92,27 +54,17 @@ public class EtomoBoolean2 extends EtomoNumber {
     if (invalidReason != null) {
       throw new IllegalArgumentException(invalidReason);
     }
-    if (value.intValue() == INTEGER_NULL_VALUE) {
-      throw new IllegalArgumentException(name + " cannot be null.");
-    }
   }
   
   /**
-   * To use a meaningful string such as "true" instead of using the number in
-   * string form:
-   * Override toString(Number).  Return the meaningful string if the value is
-   * recognized
+   * return false if null or 0
+   * otherwise return true
    */
   protected String toString(Number value) {
-    int intValue = value.intValue();
-    switch (intValue) {
-    case FALSE_VALUE:
-      return falseString;
-    case TRUE_VALUE:
+    if (is()) {
       return trueString;
-    default:
-      return super.toString(value);
     }
+    return falseString;
   }
 
   /**
@@ -156,35 +108,25 @@ public class EtomoBoolean2 extends EtomoNumber {
    * "0".
    */
   protected Number newNumber(String value, StringBuffer invalidBuffer) {
-    if (value != null && !value.matches("\\s*")) {
-      //Convert from character string to integer value
-      String trimmedValue = value.trim().toLowerCase();
-      if (trimmedValue.equals(falseString)) {
+    //Convert from character string to integer value
+    String trimmedValue = value.trim().toLowerCase();
+    if (trimmedValue.equals(falseString)) {
+      return newNumber(FALSE_VALUE);
+    }
+    if (trimmedValue.equals(trueString)) {
+      return newNumber(TRUE_VALUE);
+    }
+    for (int i = 0; i < falseStrings.length; i++) {
+      if (trimmedValue.equals(falseStrings[i])) {
         return newNumber(FALSE_VALUE);
       }
-      if (trimmedValue.equals(trueString)) {
+    }
+    for (int i = 0; i < trueStrings.length; i++) {
+      if (trimmedValue.equals(trueStrings[i])) {
         return newNumber(TRUE_VALUE);
-      }
-      for (int i = 0; i < falseStrings.length; i++) {
-        if (trimmedValue.equals(falseStrings[i])) {
-          return newNumber(FALSE_VALUE);
-        }
-      }
-      for (int i = 0; i < trueStrings.length; i++) {
-        if (trimmedValue.equals(trueStrings[i])) {
-          return newNumber(TRUE_VALUE);
-        }
       }
     }
     return newNumber(value, invalidBuffer);
-  }
-  
-  /**
-   * To prevent null values:
-   * Override newNumber() by calling newNumber(int) with a const.
-   */
-  protected Number newNumber() {
-    return newNumber(booleanNullValue);
   }
 
 }
