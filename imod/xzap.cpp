@@ -1,31 +1,13 @@
-/*  IMOD VERSION 2.50
- *
+/*
  *  xzap.c -- The Zap Window.
  *
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
+ *
+ *  Copyright (C) 1995-2004 by Boulder Laboratory for 3-Dimensional Electron
+ *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  */
-
-/*****************************************************************************
- *   Copyright (C) 1995-2001 by Boulder Laboratory for 3-Dimensional Fine    *
- *   Structure ("BL3DFS") and the Regents of the University of Colorado.     *
- *                                                                           *
- *   BL3DFS reserves the exclusive rights of preparing derivative works,     *
- *   distributing copies for sale, lease or lending and displaying this      *
- *   software and documentation.                                             *
- *   Users may reproduce the software and documentation as long as the       *
- *   copyright notice and other notices are preserved.                       *
- *   Neither the software nor the documentation may be distributed for       *
- *   profit, either in original form or in derivative works.                 *
- *                                                                           *
- *   THIS SOFTWARE AND/OR DOCUMENTATION IS PROVIDED WITH NO WARRANTY,        *
- *   EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTY OF          *
- *   MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.       *
- *                                                                           *
- *   This work is supported by NIH biotechnology grant #RR00592,             *
- *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
- *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
- *****************************************************************************/
 
 /*  $Author$
 
@@ -34,6 +16,7 @@ $Date$
 $Revision$
 Log at end of file
 */
+
 #include <math.h>
 #include <qcursor.h>
 #include <qdatetime.h>
@@ -1407,8 +1390,9 @@ void zapButton1(ZapStruct *zap, int x, int y, int controlDown)
   Iindex index, indSave;
   Iindex *indp;
   int bandmin = zapBandMinimum(zap);
-  int i, temp_distance;
-  int distance = -1;
+  int i;
+  float temp_distance;
+  float distance = -1.;
   float ix, iy, dx, dy;
   float selsize = IMOD_SELSIZE / zap->zoom;
 
@@ -1483,9 +1467,9 @@ void zapButton1(ZapStruct *zap, int x, int y, int controlDown)
       index.object = i;
       temp_distance = imod_obj_nearest
         (vi, &(imod->obj[i]), &index , &pnt, selsize);
-      if (temp_distance == -1)
+      if (temp_distance < 0.)
         continue;
-      if (distance == -1 || distance > temp_distance){
+      if (distance < 0. || distance > temp_distance) {
         distance      = temp_distance;
         imod->cindex.object  = index.object;
         imod->cindex.contour = index.contour;
@@ -1498,7 +1482,7 @@ void zapButton1(ZapStruct *zap, int x, int y, int controlDown)
       }
     }
 
-    if (distance > -1) {
+    if (distance >= 0.) {
 
       // If ctrl-select, then manage selection list
       if (controlDown) {
@@ -3184,6 +3168,9 @@ static int zapPointVisable(ZapStruct *zap, Ipoint *pnt)
 
 /*
 $Log$
+Revision 4.53  2004/11/20 05:05:27  mast
+Changes for undo/redo capability
+
 Revision 4.52  2004/11/12 01:21:55  mast
 Made line thicknesses be 1 for current image point and band, and have
 object's thickness for current contour markers

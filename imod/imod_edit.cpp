@@ -1,63 +1,21 @@
-/*  IMOD VERSION 2.50
- *
- *  imod_edit.c -- Funtions for handeling model structures.
+/*
+ *  imod_edit.c -- Functions for handling model structures.
  *
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
+ *
+ *  Copyright (C) 1995-2004 by Boulder Laboratory for 3-Dimensional Electron
+ *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  */
 
-/*****************************************************************************
- *   Copyright (C) 1995-2001 by Boulder Laboratory for 3-Dimensional Fine    *
- *   Structure ("BL3DFS") and the Regents of the University of Colorado.     *
- *                                                                           *
- *   BL3DFS reserves the exclusive rights of preparing derivative works,     *
- *   distributing copies for sale, lease or lending and displaying this      *
- *   software and documentation.                                             *
- *   Users may reproduce the software and documentation as long as the       *
- *   copyright notice and other notices are preserved.                       *
- *   Neither the software nor the documentation may be distributed for       *
- *   profit, either in original form or in derivative works.                 *
- *                                                                           *
- *   THIS SOFTWARE AND/OR DOCUMENTATION IS PROVIDED WITH NO WARRANTY,        *
- *   EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTY OF          *
- *   MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.       *
- *                                                                           *
- *   This work is supported by NIH biotechnology grant #RR00592,             *
- *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
- *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
- *****************************************************************************/
 /*  $Author$
 
 $Date$
 
 $Revision$
 
-$Log$
-Revision 4.3  2003/10/01 05:05:54  mast
-change to rationalize location of ivw functions
-
-Revision 4.2  2003/02/14 01:14:30  mast
-cleanup unused variables
-
-Revision 4.1  2003/02/10 20:29:00  mast
-autox.cpp
-
-Revision 1.1.2.2  2003/01/27 00:30:07  mast
-Pure Qt version and general cleanup
-
-Revision 1.1.2.1  2003/01/23 23:06:00  mast
-conversion to cpp
-
-Revision 3.2.2.1  2002/12/09 17:42:32  mast
-remove include of zap
-
-Revision 3.2  2002/12/01 15:34:41  mast
-Changes to get clean compilation with g++
-
-Revision 3.1  2002/01/28 16:45:25  mast
-Removed imod_nearest function, which was used only by xyz window and did
-not work
-
+Log at end of file
 */
 
 #include <math.h>
@@ -65,7 +23,7 @@ not work
 #include "imod_display.h"
 #include "imod_edit.h"
 
-static int imod_distance( float *x, float *y, struct Mod_Point *pnt);
+static float imod_distance( float *x, float *y, struct Mod_Point *pnt);
 
 /* DNM 1/23/03: eliminate imod_movepoint */
 /* moved point by adding x,y, and z to current model point. */
@@ -119,16 +77,16 @@ int imod_redraw(ImodView *vw)
 
 /* DNM 6/17/01: pass the selection size as a parameter so that windows can
    make it zoom-dependent */
-int imod_obj_nearest(ImodView *vi, struct Mod_Object *obj, 
-                     struct Mod_Index *index,
-                     struct Mod_Point *pnt,
-                     float selsize)
+float imod_obj_nearest(ImodView *vi, struct Mod_Object *obj, 
+                       struct Mod_Index *index,
+                       struct Mod_Point *pnt,
+                       float selsize)
 {
     
   struct Mod_Contour *cont;
   int i, pindex;
-  int distance = -1;
-  int temp_distance;
+  float distance = -1.;
+  float temp_distance;
   int ctime;
   int cz = (int)floor(pnt->z + 0.5);
   int twod = 0;
@@ -174,7 +132,7 @@ int imod_obj_nearest(ImodView *vi, struct Mod_Object *obj,
             temp_distance = imodPoint3DScaleDistance(&(cont->pts[pindex]),
                                                      pnt, &scale);
                         
-            if (distance == -1 || distance > temp_distance){
+            if (distance < 0. || distance > temp_distance){
               distance = temp_distance;
               index->contour = i;
               index->point   = pindex;
@@ -199,8 +157,7 @@ int imod_obj_nearest(ImodView *vi, struct Mod_Object *obj,
           temp_distance = imod_distance( &(cont->pts[pindex].x),
                                          &(cont->pts[pindex].y),
                                          pnt);
-                        
-          if (distance == -1 || distance > temp_distance){
+          if (distance < 0. || distance > temp_distance){
             distance = temp_distance;
             index->contour = i;
             index->point   = pindex;
@@ -213,18 +170,18 @@ int imod_obj_nearest(ImodView *vi, struct Mod_Object *obj,
 }
 
 
-static int imod_distance( float *x, float *y, struct Mod_Point *pnt)
+static float imod_distance( float *x, float *y, struct Mod_Point *pnt)
 {
 
   double distance;
-  int retval;
+  float retval;
 
   distance = ((*x - pnt->x) * (*x - pnt->x)) + 
     ((*y - pnt->y) * (*y - pnt->y));
      
   distance = sqrt(distance);
 
-  retval = (int)(distance + 0.5);
+  retval = (float)distance ;
      
   return(retval);
 }
@@ -353,3 +310,35 @@ void imodSelectionListRemove(ImodView *vi, int ob, int co)
     }
   }
 }
+
+/*
+$Log$
+Revision 4.4  2004/11/01 23:21:57  mast
+Allowed 3D point selection, added selection list functions
+
+Revision 4.3  2003/10/01 05:05:54  mast
+change to rationalize location of ivw functions
+
+Revision 4.2  2003/02/14 01:14:30  mast
+cleanup unused variables
+
+Revision 4.1  2003/02/10 20:29:00  mast
+autox.cpp
+
+Revision 1.1.2.2  2003/01/27 00:30:07  mast
+Pure Qt version and general cleanup
+
+Revision 1.1.2.1  2003/01/23 23:06:00  mast
+conversion to cpp
+
+Revision 3.2.2.1  2002/12/09 17:42:32  mast
+remove include of zap
+
+Revision 3.2  2002/12/01 15:34:41  mast
+Changes to get clean compilation with g++
+
+Revision 3.1  2002/01/28 16:45:25  mast
+Removed imod_nearest function, which was used only by xyz window and did
+not work
+
+*/

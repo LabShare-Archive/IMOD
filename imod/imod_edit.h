@@ -1,8 +1,8 @@
 /*   imod_edit.h  -  declarations for imod_edit.cpp
  *
- *   Copyright (C) 1995-2002 by Boulder Laboratory for 3-Dimensional Electron
+ *   Copyright (C) 1995-2004 by Boulder Laboratory for 3-Dimensional Electron
  *   Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
- *   Colorado.  See implementation file for full copyright notice.
+ *   Colorado.  See dist/COPYRIGHT file for full copyright notice.
  */                                                                           
 
 /*  $Author$
@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.3  2004/11/01 23:21:15  mast
+Added selection list functions
+
 Revision 4.2  2003/10/01 05:05:54  mast
 change to rationalize location of ivw functions
 
@@ -33,10 +36,10 @@ typedef struct ViewInfo ImodView;
 
 int imod_setxyzmouse(void);
 void imod_contour_move(int ob);
-int imod_obj_nearest(ImodView *vi, struct Mod_Object *obj, 
-		     struct Mod_Index *index,
-		     struct Mod_Point *pnt,
-		     float selsize);
+float imod_obj_nearest(ImodView *vi, struct Mod_Object *obj, 
+                       struct Mod_Index *index,
+                       struct Mod_Point *pnt,
+                       float selsize);
 int imod_redraw(ImodView *vw);
 void imodSelectionListAdd(ImodView *vi, Iindex newIndex);
 int imodSelectionListClear(ImodView *vi);
