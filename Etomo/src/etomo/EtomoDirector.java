@@ -45,6 +45,12 @@ import etomo.util.Utilities;
  * 
  * <p>
  * $Log$
+ * Revision 1.4  2005/01/21 22:12:38  sueh
+ * bug# 509 bug# 591  Managing a list of Controllers instead of a list of
+ * managers.  This give better access to controller classes such as
+ * MetaData.  Changed managerList to ControllerList and currentManagerKey
+ * to currentControllerKey.
+ *
  * Revision 1.3  2004/11/23 00:24:15  sueh
  * bug# 520 Prevent mainFrame from being accessed if test is set.  Create
  * instance of EtomoDirector when create hasn't been run.   GetInstance
@@ -180,26 +186,25 @@ public class EtomoDirector {
     else {
       boolean makeCurrent;
       for (int i = 0; i < paramFileNameListSize; i++) {
-        makeCurrent = false;
         paramFileName = (String) paramFileNameList.get(i);
         UniqueKey managerKey = null;
-        if (i == 0) {
-          makeCurrent = true;
-        }
         if (paramFileName.endsWith(".edf")) {
-          managerKey = openTomogram(paramFileName, makeCurrent);
+          managerKey = openTomogram(paramFileName, false);
         }
         else if (paramFileName.endsWith(".ejf")) {
-          managerKey = openJoin(paramFileName, makeCurrent);
+          managerKey = openJoin(paramFileName, false);
+        }
+        if (i == 0) {
+          currentControllerKey = managerKey;
         }
       }
     }
     initProgram();
     if (!test) {
       mainFrame.createMenus();
-      mainFrame.setWindowMenuLabels(controllerList);
+      //mainFrame.setWindowMenuLabels(controllerList);
       mainFrame.setCurrentManager(((Controller) controllerList
-          .get(currentControllerKey)).getManager());
+          .get(currentControllerKey)).getManager(), currentControllerKey);
       mainFrame.selectWindowMenuItem(currentControllerKey);
       mainFrame.setMRUFileLabels(userConfig.getMRUFileList());
       mainFrame.pack();
@@ -365,9 +370,9 @@ public class EtomoDirector {
     }
     currentControllerKey = managerKey;
     if (!test) {
-      mainFrame.setWindowMenuLabels(controllerList);
-      mainFrame.setCurrentManager(newCurrentManager);
-      mainFrame.selectWindowMenuItem(currentControllerKey);
+      //mainFrame.setWindowMenuLabels(controllerList);
+      mainFrame.setCurrentManager(newCurrentManager, currentControllerKey);
+      //mainFrame.selectWindowMenuItem(currentControllerKey);
     }
   }
   
@@ -413,8 +418,12 @@ public class EtomoDirector {
   private UniqueKey setController(Controller controller, boolean makeCurrent) {
     UniqueKey controllerKey;
     controllerKey = controllerList.add(controller.getMetaData().getName(), controller);
+    if (!test) {
+      mainFrame.addWindow(controller, controllerKey);
+    }
     if (makeCurrent) {
       setCurrentManager(controllerKey);
+      mainFrame.selectWindowMenuItem(controllerKey);
     }
     return controllerKey;
   }
@@ -459,15 +468,21 @@ public class EtomoDirector {
     }
     controllerList.remove(currentControllerKey);
     enableOpenManagerMenuItem();
+    if (!test) {
+      mainFrame.removeWindow(currentControllerKey);
+    }
     currentControllerKey = null;
     if (controllerList.size() == 0) {
       if (!test) {
-        mainFrame.setWindowMenuLabels(controllerList);
-        mainFrame.setCurrentManager(null);
+        mainFrame.removeWindow(currentControllerKey);
+        //mainFrame.setWindowMenuLabels(controllerList);
+        mainFrame.setCurrentManager(null, null);
+        mainFrame.selectWindowMenuItem(null);
       }
       return true;
     }
     setCurrentManager(controllerList.getKey(0));
+    mainFrame.selectWindowMenuItem(controllerList.getKey(0));
     return true;
   }
   
@@ -527,10 +542,11 @@ public class EtomoDirector {
   
   public void renameCurrentManager(String managerName) {
     enableOpenManagerMenuItem();
+    UniqueKey oldKey = currentControllerKey;
     currentControllerKey = controllerList.rekey(currentControllerKey, managerName);
     if (!test) {
-      mainFrame.setWindowMenuLabels(controllerList);
-      mainFrame.selectWindowMenuItem(currentControllerKey);
+      mainFrame.renameWindow(oldKey, currentControllerKey);
+      //mainFrame.selectWindowMenuItem(currentControllerKey);
     }
   }
   
