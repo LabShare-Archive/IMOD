@@ -28,6 +28,9 @@ import etomo.type.ConstMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.28  2004/12/04 01:26:34  sueh
+ * <p> bug# 557 Added SQUEEZED_VOLUME_KEY.
+ * <p>
  * <p> Revision 3.27  2004/11/24 18:10:26  sueh
  * <p> bug# 520 Added binning in XY.
  * <p>
@@ -786,6 +789,19 @@ public class ImodManager {
       imodState.setPreserveContrast(preserveContrast);
     }
   }
+  
+  public void setFrames(String key, AxisID axisID, 
+      boolean frames)
+      throws AxisTypeException, SystemProcessException {
+      key = getPrivateKey(key);
+      ImodState imodState = get(key, axisID);
+      if (imodState == null) {
+        newImod(key, axisID);
+      }
+      if (imodState != null) {
+        imodState.setFrames(frames);
+      }
+    }
 
   public void setWorkingDirectory(
     String key,

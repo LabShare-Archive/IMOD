@@ -23,6 +23,10 @@ import etomo.EtomoDirector;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.21  2004/12/14 01:35:09  sueh
+ * <p> bug# 373 Getting a list of dataset names with datasetNameArray.  Do not
+ * <p> add the model name to the command if the model name is "".
+ * <p>
  * <p> Revision 3.20  2004/12/04 00:57:56  sueh
  * <p> bug# 569 Handling directory paths with spaces:  converting from a
  * <p> command line to a command array to prevent the command line from
@@ -242,6 +246,7 @@ public class ImodProcess {
   InteractiveSystemProgram imod = null;
   private Vector sendArguments = new Vector();
   private String[] datasetNameArray = null;
+  private boolean frames = false;
 
   private Thread imodThread;
 
@@ -291,6 +296,14 @@ public class ImodProcess {
   public void setDatasetName(String datasetName) {
     this.datasetName = datasetName;
   }
+  
+  /**
+   * Sets the -f command line option
+   * @param frames
+   */
+  public void setFrames(boolean frames) {
+    this.frames = frames;
+  }
 
   /**
    * Specify or change the model name
@@ -337,6 +350,9 @@ public class ImodProcess {
     }
     if (swapYZ) {
       commandOptions.add("-Y");
+    }
+    if (frames) {
+      commandOptions.add("-f");
     }
 
     if (modelView) {

@@ -172,6 +172,9 @@ import etomo.type.AxisID;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.22  2004/12/14 01:36:21  sueh
+ * <p> $bug# 373 Putting a list of dataset names in a string array.
+ * <p> $
  * <p> $Revision 1.21  2004/11/24 18:10:45  sueh
  * <p> $bug# 520 Added binning in XY.
  * <p> $
@@ -301,6 +304,7 @@ public class ImodState {
   private static final boolean defaultPreserveContrast = false;
   private static final boolean defaultOpenBeadFixer = false;
   private static final boolean defaultOpenContours = false;
+  private static final boolean defaultFrames = false;
   private static final int defaultBinning = 1;
     
   //internal state information
@@ -443,7 +447,7 @@ public class ImodState {
       if (openBeadFixer) {
         process.setOpenBeadFixerMessage();
       }
-      //model will be opene
+      //model will be opened
       if (modelName != null && modelName.matches("\\S+") && preserveContrast) {
         process.setOpenModelPreserveContrastMessage(modelName);
       }
@@ -558,6 +562,7 @@ public class ImodState {
     openBeadFixer = defaultOpenBeadFixer;
     openContours = defaultOpenContours;
     process.setBinning(defaultBinning);
+    process.setFrames(defaultFrames);
   }
 
   protected String getModeString(int mode) {
@@ -693,6 +698,10 @@ public class ImodState {
   public void setPreserveContrast(boolean preserveContrast) {
     this.preserveContrast = preserveContrast;
     process.setOpenWithModel(!preserveContrast);
+  }
+
+  public void setFrames(boolean frames) {
+    process.setFrames(frames);
   }
   
   /**
