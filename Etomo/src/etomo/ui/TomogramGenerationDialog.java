@@ -18,6 +18,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.8  2004/04/12 17:16:47  sueh
+ * bug# 409  Change HighFrequencyRadiusSigma to LowPassRadiusSigma.
+ *
  * Revision 3.7  2004/03/30 17:43:16  sueh
  * bug# 409 adding tooltips to new fields
  *
@@ -230,13 +233,17 @@ import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Vector;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SpinnerModel;
@@ -249,6 +256,7 @@ import etomo.comscript.TiltParam;
 import etomo.comscript.ConstNewstParam;
 import etomo.comscript.NewstParam;
 import etomo.comscript.FortranInputSyntaxException;
+import etomo.storage.MtfFileFilter;
 import etomo.type.AxisID;
 import etomo.util.InvalidParameterException;
 
@@ -344,7 +352,11 @@ public class TomogramGenerationDialog
   private JPanel pnlInverseFilter = new JPanel();
   private EtchedBorder inverseFilterBorder =
     new EtchedBorder("Inverse Filtering Parameters: ");
+  private ImageIcon iconFolder =
+    new ImageIcon(ClassLoader.getSystemResource("images/openFile.gif"));
+  private JPanel pnlMtfFile = new JPanel();
   private LabeledTextField ltfMtfFile = new LabeledTextField("MTF file: ");
+  private JButton btnMtfFile = new JButton(iconFolder);
   private JPanel pnlInverseFilter1 = new JPanel();
   private LabeledTextField ltfMaximumInverse =
     new LabeledTextField("Maximum Inverse: ");
@@ -427,6 +439,8 @@ public class TomogramGenerationDialog
     btnUseFilter.setPreferredSize(dimButton);
     btnUseFilter.setMaximumSize(dimButton);
     spinBinning.setTextMaxmimumSize(UIParameters.getSpinnerDimension());
+    btnMtfFile.setPreferredSize(FixedDim.folderButton);
+    btnMtfFile.setMaximumSize(FixedDim.folderButton);
 
     // Bind the buttons to the action listener
     ButtonListener tomogramGenerationListener = new ButtonListener(this);
@@ -441,6 +455,7 @@ public class TomogramGenerationDialog
     btnTilt.addActionListener(tomogramGenerationListener);
     btn3dmodTomogram.addActionListener(tomogramGenerationListener);
     btnDeleteStacks.addActionListener(tomogramGenerationListener);
+    btnMtfFile.addActionListener(new MtfFileActionListener(this));
 
     // Layout the newst button panel
     pnlAlignedStack.setLayout(new BoxLayout(pnlAlignedStack, BoxLayout.X_AXIS));
@@ -846,7 +861,11 @@ public class TomogramGenerationDialog
     pnlInverseFilter.setLayout(
       new BoxLayout(pnlInverseFilter, BoxLayout.Y_AXIS));
     pnlInverseFilter.setBorder(inverseFilterBorder.getBorder());
-    pnlInverseFilter.add(ltfMtfFile.getContainer());
+    pnlMtfFile.setLayout(new BoxLayout(pnlMtfFile, BoxLayout.X_AXIS));
+    pnlMtfFile.add(ltfMtfFile.getContainer());
+    pnlMtfFile.add(Box.createRigidArea(FixedDim.x5_y0));
+    pnlMtfFile.add(btnMtfFile);
+    pnlInverseFilter.add(pnlMtfFile);
     pnlInverseFilter.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlInverseFilter1.setLayout(
       new BoxLayout(pnlInverseFilter1, BoxLayout.X_AXIS));
@@ -865,6 +884,39 @@ public class TomogramGenerationDialog
     pnlFilterButtons.add(btnUseFilter);
     pnlFilter.add(pnlFilterButtons);
     pnlFilter.add(Box.createRigidArea(FixedDim.x0_y5));
+  }
+
+  private void btnMtfFileAction(ActionEvent event) {
+    //Open up the file chooser in the $IMOD_CALIB_DIR/Camera, if available,
+    //otherwise open in the working directory
+    String currentMtfDirectory = ltfMtfFile.getText();
+    if (currentMtfDirectory.equals("")) {
+      File calibrationDir = ApplicationManager.getIMODCalibDirectory();
+      File cameraDir = new File(calibrationDir.getAbsolutePath(),
+        "Camera");
+      if (cameraDir.exists()) {
+        currentMtfDirectory = cameraDir.getAbsolutePath();
+      }
+      else {
+        currentMtfDirectory = System.getProperty("user.dir");
+      }
+    }
+    JFileChooser chooser = new JFileChooser(
+      new File(currentMtfDirectory));
+    MtfFileFilter mtfFileFilter = new MtfFileFilter();
+    chooser.setFileFilter(mtfFileFilter);
+    chooser.setPreferredSize(new Dimension(400, 400));
+    chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+    int returnVal = chooser.showOpenDialog(rootPanel);
+    if (returnVal == JFileChooser.APPROVE_OPTION) {
+      File mtfFile = chooser.getSelectedFile();
+      try {
+        ltfMtfFile.setText(mtfFile.getAbsolutePath());
+      }
+      catch (Exception excep) {
+        excep.printStackTrace();
+      }
+    }
   }
 
   /**
@@ -976,6 +1028,19 @@ public class TomogramGenerationDialog
       adaptee.buttonAction(event);
     }
   }
+  
+  class MtfFileActionListener implements ActionListener {
+    TomogramGenerationDialog adaptee;
+
+    MtfFileActionListener(TomogramGenerationDialog adaptee) {
+      this.adaptee = adaptee;
+    }
+
+    public void actionPerformed(ActionEvent event) {
+      adaptee.btnMtfFileAction(event);
+    }
+  }
+
 
   /**
    * Initialize the tooltip text for the axis panel objects
