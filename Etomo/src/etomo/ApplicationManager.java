@@ -55,6 +55,7 @@ import etomo.ui.PreProcessingDialog;
 import etomo.ui.ProcessDialog;
 import etomo.ui.SettingsDialog;
 import etomo.ui.SetupDialog;
+import etomo.ui.TextPageWindow;
 import etomo.ui.TomogramCombinationDialog;
 import etomo.ui.TomogramGenerationDialog;
 import etomo.ui.TomogramPositioningDialog;
@@ -76,6 +77,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.82  2003/10/24 21:45:09  rickg
+ * <p> Spelling fix
+ * <p>
  * <p> Revision 2.81  2003/10/23 23:06:13  sueh
  * <p> bug271 called isValid() in SetupDialog
  * <p>
@@ -1975,6 +1979,18 @@ public class ApplicationManager {
     mainFrame.startProgressBar("Finding sample position", axisID);
   }
 
+	/**
+	 * Open the tomopitch log file
+	 * @param axisID
+	 */
+  public void openTomopitchLog(AxisID axisID) {
+		String logFileName = "tomopitch" + axisID.getExtension() + ".log";
+		TextPageWindow logFileWindow = new TextPageWindow();
+		logFileWindow.setVisible(
+			logFileWindow.setFile(
+				System.getProperty("user.dir") + File.separator + logFileName));
+  }
+
   /**
    * 
    */
@@ -2232,14 +2248,14 @@ public class ApplicationManager {
       mainFrame.openMessageDialog(errorMessage, "Tilt Parameter Syntax Error");
       return false;
     }
-		catch (InvalidParameterException except) {
-			String[] errorMessage = new String[3];
-			errorMessage[0] = "Tilt Parameter Syntax Error";
-			errorMessage[1] = "Axis: " + axisID.getExtension();
-			errorMessage[2] = except.getMessage();
-			mainFrame.openMessageDialog(errorMessage, "Tilt Parameter Syntax Error");
-			return false;
-		}
+    catch (InvalidParameterException except) {
+      String[] errorMessage = new String[3];
+      errorMessage[0] = "Tilt Parameter Syntax Error";
+      errorMessage[1] = "Axis: " + axisID.getExtension();
+      errorMessage[2] = except.getMessage();
+      mainFrame.openMessageDialog(errorMessage, "Tilt Parameter Syntax Error");
+      return false;
+    }
 
     return true;
   }
@@ -2464,10 +2480,10 @@ public class ApplicationManager {
     mainFrame.stopProgressBar(axisID);
   }
 
-	/**
-	 * Delete the pre-aligned and aligned stack for the specified axis
-	 * @param axisID
-	 */
+  /**
+   * Delete the pre-aligned and aligned stack for the specified axis
+   * @param axisID
+   */
   public void deleteAlignedStacks(AxisID axisID) {
     File preali =
       new File(
@@ -2493,7 +2509,7 @@ public class ApplicationManager {
       }
     }
   }
-  
+
   /**
    * Open the tomogram combination dialog
    */
