@@ -69,6 +69,7 @@
 #define getimodsizes GETIMODSIZES
 #define getimodverts GETIMODVERTS
 #define putimodflag  PUTIMODFLAG
+#define fromvmsfloats FROMVMSFLOATS
 #else
 #define newimod      newimod_
 #define deleteimod   deleteimod_
@@ -89,6 +90,7 @@
 #define getimodsizes getimodsizes_
 #define getimodverts getimodverts_
 #define putimodflag  putimodflag_
+#define fromvmsfloats fromvmsfloats_
 #endif
 
 typedef struct
@@ -1057,4 +1059,10 @@ void putimodflag(int *objnum, int *flag)
      flags_put[nflags_put * 2] = *objnum - 1;
      flags_put[nflags_put * 2 + 1] = *flag;
      nflags_put++;
+}
+
+/* DNM 12/3/01: added so that old wimp models can be converted */
+void fromvmsfloats(unsigned char *data, int *amt)
+{
+     imodFromVmsFloats(data, *amt);
 }
