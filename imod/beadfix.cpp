@@ -906,7 +906,7 @@ BeadFixer::BeadFixer(QWidget *parent, const char *name)
   openFileBut->setFixedWidth(width);
   QToolTip::add(openFileBut, "Select an alignment log file to open");
 
-#ifdef QT_THREAD_SUPPORT
+#ifdef FIXER_CAN_RUN_ALIGN
   runAlignBut = diaPushButton("Save && Run Tiltalign", this, mLayout);
   connect(runAlignBut, SIGNAL(clicked()), this, SLOT(runAlign()));
   runAlignBut->setFixedWidth(width);
@@ -1073,7 +1073,7 @@ void BeadFixer::timerEvent(QTimerEvent *e)
 {
   if (mStayOnTop)
     raise();
-#ifdef QT_THREAD_SUPPORT
+#ifdef FIXER_CAN_RUN_ALIGN
 
   // Check if tiltalign is done, clean up and reenable buttons
   if (mRunningAlign) {
@@ -1106,7 +1106,7 @@ void BeadFixer::runAlign()
   PlugData *plug = &thisPlug;
   if (mRunningAlign || !plug->filename)
     return;
-#ifdef QT_THREAD_SUPPORT
+#ifdef FIXER_CAN_RUN_ALIGN
   inputSaveModel(plug->view);
   mTaThread = new AlignThread;
   if (plug->fp != NULL)
@@ -1162,7 +1162,7 @@ void BeadFixer::keyReleaseEvent ( QKeyEvent * e )
   ivwControlKey(1, e);
 }
 
-#ifdef QT_THREAD_SUPPORT
+#ifdef FIXER_CAN_RUN_ALIGN
 // Thread to run tiltalign provided that IMOD_DIR is defined
 void AlignThread::run()
 {
@@ -1191,6 +1191,9 @@ void AlignThread::run()
 
 /*
     $Log$
+    Revision 1.7  2004/05/04 17:52:32  mast
+    Forgot to put AlignThread::run inside ifdef.
+
     Revision 1.6  2004/05/03 19:32:20  mast
     had to decalre exit code as int
 
