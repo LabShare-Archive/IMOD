@@ -1003,7 +1003,7 @@ void *mrc_read_image(FILE *fin, struct MRCheader *hdata, int z)
 /* functions get_byte_map and get_short_map: Return pointer to an array of   */
 /* unsigned char's that can be used to look up scaled intensities            */
 /* Input:  slope, offset  are the scaling factors; out = in * slope + offset */
-/*         imin, imax  are the minimum and maximum values for output         */
+/*         outmin, outmax  are the minimum and maximum values for output     */
 /*         ramptype (for get_short_map) should be MRC_RAMP_LIN for linear    */
 /*         swapbytes (for get_short_map) should indicate whether swapping is */
 /*                    needed, and it will be taken care of by swapping map   */
@@ -1012,7 +1012,7 @@ void *mrc_read_image(FILE *fin, struct MRCheader *hdata, int z)
 /* The caller to get_short_map should free the map before the next call      */
 /*****************************************************************************/
 
-unsigned char *get_byte_map(float slope, float offset, int imin, int imax)
+unsigned char *get_byte_map(float slope, float offset, int outmin, int outmax)
 {
   static unsigned char map[256];
   int i, ival;
@@ -1023,16 +1023,16 @@ unsigned char *get_byte_map(float slope, float offset, int imin, int imax)
     fpixel *= slope;
     fpixel += offset;
     ival = floor((double)fpixel + 0.5);
-    if (ival < imin)
-      ival = imin;
-    if (ival > imax)
-      ival = imax;
+    if (ival < outmin)
+      ival = outmin;
+    if (ival > outmax)
+      ival = outmax;
     map[i] = ival;
   }
   return (map);
 }
 
-unsigned char *get_short_map(float slope, float offset, int imin, int imax,
+unsigned char *get_short_map(float slope, float offset, int outmin, int outmax,
                              int ramptype, int swapbytes, int signedint)
 {
   int i, ival;
@@ -1055,10 +1055,10 @@ unsigned char *get_short_map(float slope, float offset, int imin, int imax,
     fpixel *= slope;
     fpixel += offset;
     ival = floor((double)fpixel + 0.5);
-    if (ival < imin)
-      ival = imin;
-    if (ival > imax)
-      ival = imax;
+    if (ival < outmin)
+      ival = outmin;
+    if (ival > outmax)
+      ival = outmax;
     index = i;
     if (swapbytes)
       mrc_swap_shorts((short int *)&index, 1);
@@ -1066,6 +1066,62 @@ unsigned char *get_short_map(float slope, float offset, int imin, int imax,
   }
   return (map);
 }
+
+
+/*****************************/
+/* Get memory for image data */
+/* DNM 3/25/03: try to load contiguous if directed, then drop back to
+   separate chunks to get the message about where it failed */
+/* DNM 1/1/04: turn this into a routine for use in 3dmod alternate loading */
+unsigned char **mrcGetDataMemory(struct LoadInfo *li, int xysize, int zsize,
+                                 int pixsize)
+{
+  int contig = 0;   /* if true: load date into contiguous memory.         */
+  unsigned char **idata;        /* image data to return. */
+  unsigned char *bdata = NULL;
+  int i;
+
+  if (li)
+    contig = li->contig;
+
+  idata = (unsigned char **)malloc(zsize * sizeof(unsigned char *)); 
+  if (!idata)
+    return(NULL); 
+  for (i = 0; i < zsize; i++)
+    idata[i] = NULL;
+     
+  if (contig) {
+    bdata = (unsigned char *)malloc(xysize * zsize * pixsize * 
+                                    sizeof(unsigned char));
+    if (!bdata) {
+      b3dError(stderr, "WARNING: mrcGetDataMemory - "
+               "Not enough contiguous memory to load image data.\n");
+      if (li)
+        li->contig = 0;
+    } else {
+      for (i = 0; i < zsize; i++)
+        idata[i] = bdata + (xysize * i * pixsize);
+      return (idata);
+    }
+  }
+
+  for (i = 0; i < zsize; i++) {
+    idata[i] = (unsigned char *)malloc(xysize * pixsize * 
+                                       sizeof(unsigned char));
+    if (!idata[i]) {
+      b3dError(stderr, "ERROR: mrcGetDataMemory - Not enough memory"
+               " for image data after %d sections.\n", i);
+
+      for (i = 0; i < zsize; i++)
+        if (idata[i])
+          free(idata[i]);
+      free(idata);
+      return(NULL);
+    }
+  }
+  return(idata);
+}
+
 
 /*****************************************************************************/
 /* function read_mrc_byte: reads an mrc file into arrary of unsigned bytes.  */
@@ -1117,7 +1173,6 @@ unsigned char **mrc_read_byte(FILE *fin,
   float max;
   float smin= 0.0f, smax = 0.0f;
   float rscale;
-  int contig = 0;   /* if true: load date into contiguous memory.         */
   int range;
   int black  = 0;   /* value of black.                                    */
   int white  = 255; /* value of white. */
@@ -1151,7 +1206,6 @@ unsigned char **mrc_read_byte(FILE *fin,
     imag = li->imaginary;
     smin = li->smin;
     smax = li->smax;
-    contig = li->contig;
   }else{
     xsize = hdata->nx;
     ysize = hdata->ny;
@@ -1166,46 +1220,9 @@ unsigned char **mrc_read_byte(FILE *fin,
   }
   xysize = xsize * ysize;
 
-  /*****************************/
-  /* Get memory for image data */
-  /* DNM 3/25/03: try to load contiguous if directed, then drop back to
-     separate chunks to get the message about where it failed */
-
-  idata = (unsigned char **)malloc(zsize * sizeof(unsigned char *)); 
-  if (idata == (unsigned char **)NULL)
-    return((unsigned char **)NULL); 
-  for (i = 0; i < zsize; i++)
-    idata[i] = NULL;
-     
-  if (contig){
-    bdata = malloc(xysize * zsize * sizeof(unsigned char));
-    if (!bdata) {
-      b3dError(stderr, "WARNING: mrc_read_byte - "
-               "Not enough contiguous memory to load image data.\n");
-      contig = 0;
-      if (li)
-        li->contig = 0;
-    } else {
-      for(ui = 0; ui < zsize; ui++)
-        idata[ui] = bdata + (xysize * ui);
-    }
-  }
-
-  if (!contig) {
-    for(i = 0; i < zsize; i++){
-      idata[i] = (unsigned char *)malloc(xysize * sizeof(unsigned char));
-      if (!idata[i]){
-        b3dError(stderr, "ERROR: mrc_read_byte - Not enough memory"
-                 " for image data after %d sections.\n", i);
-
-        for (i = 0; i < zsize; i++)
-          if (idata[i])
-            free(idata[i]);
-        free(idata);
-        return(NULL);
-      }
-    }
-  }
+  idata = mrcGetDataMemory(li, xysize, zsize, 1);
+  if (!idata)
+    return NULL;
 
   /*************************************/
   /* Calculate color map ramp scaling. */
@@ -1575,10 +1592,25 @@ int mrc_fix_li(struct LoadInfo *li, int nx, int ny, int nz)
 {
   int mx, my, mz;
   mx = nx; my = ny; mz = nz;
+
+  /* If piece list, use image size from pxyz and adjust the loading 
+   coordinates by the piece list offsets */
   if (li->plist){
-    mx = li->px;
-    my = li->py;
-    mz = li->pz;
+    mx = (int)li->px;
+    my = (int)li->py;
+    mz = (int)li->pz;
+    if (li->xmin != -1)
+      li->xmin -= (int)li->opx;
+    if (li->xmax != -1)
+      li->xmax -= (int)li->opx;
+    if (li->ymin != -1)
+      li->ymin -= (int)li->opy;
+    if (li->ymax != -1)
+      li->ymax -= (int)li->opy;
+    if (li->zmin != -1)
+      li->zmin -= (int)li->opz;
+    if (li->zmax != -1)
+      li->zmax -= (int)li->opz;
   }
 
   /*        printf("before: x (%d, %d), y (%d, %d), z (%d, %d)\n",
@@ -1659,8 +1691,8 @@ int mrc_init_li(struct LoadInfo *li, struct MRCheader *hd)
     li->axis = 3;
     li->smin = li->smax = 0.0f;
     li->contig = 0;
-    li->imin = 0;
-    li->imax = 255;
+    li->outmin = 0;
+    li->outmax = 255;
     li->scale = 1.0f;
     li->offset = 0.0f;
     li->plist = 0;
@@ -2157,6 +2189,9 @@ size_t b3dFwrite(void *buf, size_t size, size_t count, FILE *fp)
 
 /*
 $Log$
+Revision 3.11  2003/11/18 19:20:18  mast
+changes for 2GB problem on Windows
+
 Revision 3.10  2003/11/01 16:42:16  mast
 changed to use new error processing routine
 
