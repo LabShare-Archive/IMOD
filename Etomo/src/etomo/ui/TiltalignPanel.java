@@ -37,6 +37,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.16  2005/01/11 01:01:05  sueh
+ * <p> bug# 567 Varying the widths of the radio button panels.
+ * <p>
  * <p> Revision 3.15  2005/01/06 18:19:45  sueh
  * <p> bug# 567 In getParameters(), get z factor file.
  * <p>
@@ -853,7 +856,7 @@ public class TiltalignPanel {
       // NOTE this only works if 0 and 5 are valid local tilt angle codes
       type = 0;
       if (cbLocalRotation.isSelected())
-        type = params.getLocalRotOption().getResetInteger();
+        type = params.getLocalRotOption().getDisplayInteger();
       params.setLocalRotOption(type);
       badParameter = ltfLocalRotationGroupSize.getLabel();
       params.setLocalRotDefaultGrouping(ltfLocalRotationGroupSize.getText());
@@ -865,7 +868,7 @@ public class TiltalignPanel {
       // Tilt angle pane
       type = 0;
       if (cbLocalTiltAngle.isSelected())
-        type = params.getLocalTiltOption().getResetInteger();
+        type = params.getLocalTiltOption().getDisplayInteger();
       params.setLocalTiltOption(type);
       badParameter = ltfLocalTiltAngleGroupSize.getLabel();
       params.setLocalTiltDefaultGrouping(ltfLocalTiltAngleGroupSize.getText());
@@ -876,7 +879,7 @@ public class TiltalignPanel {
 
       // Local magnification pane
       if (cbLocalMagnification.isSelected()) {
-        params.setLocalMagOption(params.getLocalMagOption().getResetInteger());
+        params.setLocalMagOption(params.getLocalMagOption().getDisplayInteger());
       }
       else {
         params.setLocalMagOption(0);
