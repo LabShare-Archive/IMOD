@@ -8,6 +8,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.1  2003/10/11 00:20:59  mast
+c	  Creation of file
+c	
 c	  
 c
 c	  setup_cubes_scratch determines the needed size of the scratch files
@@ -340,13 +343,14 @@ c
 	subroutine recompose_cubes(izcube, dmin, dmax, tsum)
 	implicit none
 	include 'rotmatwarp.inc'
-	real*4 dmin, dmax, tsum,tmin,tmax,tmean
+	real*4 dmin, dmax, tsum,tmin,tmax,tmean,tmpsum
 	integer*4 iz, iycube, ixcube, izcube, nLinesOut, longint, iunit
 c	    
 c	    whole layer of cubes in z is done.  now reread and compose one
 c	    row of the output section at a time in array
 c	    
 	do iz=1,nxyzcube(3,izcube)
+	  tmpsum = 0.
 	  do iycube=1,ncubes(2)
 	    nLinesOut = nxyzcube(2,iycube)
 	    do ixcube=1,ncubes(1)
@@ -361,9 +365,10 @@ c
      &		tmean)
 	    dmin=min(dmin,tmin)
 	    dmax=max(dmax,tmax)
-	    tsum=tsum+tmean
+	    tmpsum=tmpsum+tmean*nLinesOut
 	    call iwrsecl(6,array, nLinesOut)
 	  enddo
+	  tsum = tsum + tmpsum / nyout
 	enddo
 	return
 99	call errorexit('READING FILE')
