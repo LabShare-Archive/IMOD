@@ -24,9 +24,9 @@ import etomo.util.Montagesize;
 public class BlendmontProcessMonitor extends LogFileProcessMonitor {
   public static  final String  rcsid =  "$Id$";
   
-  public BlendmontProcessMonitor(ApplicationManager appMgr, AxisID id) {
+  public BlendmontProcessMonitor(ApplicationManager appMgr, AxisID id, int mode) {
     super(appMgr, id);
-    logFileBasename = BlendmontParam.getCommandFileName(BlendmontParam.PREBLEND_MODE);
+    logFileBasename = BlendmontParam.getCommandFileName(mode);
   }
   
   protected void initializeProgressBar() {
@@ -68,5 +68,8 @@ public class BlendmontProcessMonitor extends LogFileProcessMonitor {
   }
 }
 /**
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2005/03/08 01:56:09  sueh
+* <p> bug# 533 Process monitor for blendmont.
+* <p> </p>
 */
