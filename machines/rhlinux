@@ -82,6 +82,11 @@ echo  'MAKEF77PLUGIN  = $(FC) '"$wrapper"' -shared $(LDFLAGS) -ldtrigs -o'  >> $
 echo 'FLCC      = $(FC)'              >> $configure
 echo "F77LIBS   = $wrapper"                  >> $configure
 
+#
+# Needed for Red Hat 9/Qt 3.1
+#
+set fort_cpplibs = -lstdc++
+
 # 
 # tell the C routines to swap the bytes for INTEL
 #
