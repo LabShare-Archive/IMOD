@@ -65,6 +65,10 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.1  2002/08/19 04:23:33  mast
+c	  Changed to use new include file; made declarations for implicit
+c	  none.
+c	
 c
 	implicit none
 	include 'blend.inc'
@@ -89,7 +93,7 @@ c
 	integer*4 minyoverlap,ntrial,nreduce,minxwant,minywant,maxxwant
 	integer*4 maxywant,nxtotwant,nytotwant,newxpieces,newypieces
 	integer*4 newxtotpix,newytotpix,newxframe,newyframe,newminxpiece
-	integer*4 newminypiece,dminout,dmaxout,grandsum,ilistz,ifwant
+	integer*4 newminypiece,ilistz,ifwant
 	real*4 xorig,yorig,zorig,dmin,dmax,dmean,outmin,outmax,definmin
 	real*4 definmax,reduce,curinmin,curinmax,pixscale,pixadd,tsum
 	integer*4 ixfrm,iyfrm,ipc,nshort,nlong,ishort,ilong,indbray
@@ -97,7 +101,7 @@ c
 	integer*4 indylo,indyhi,nlinesout,indxlo,indxhi,inonepiece
 	integer*4 ixinll,iyinll,inpieceno,indx,indy,iyst,iynd,ioutbase
 	integer*4 ixst,ixnd,indbase,ix,iy,nsum,ilineout,ifill
-	real*4 sum,val,tmpsum,tmean
+	real*4 dminout,dmaxout,grandsum,sum,val,tmpsum,tmean
 	integer*4 nzwant,newxoverlap,newyoverlap,kti,izsect,iwant
 	integer*4 ixout,iyout,ixinpc,iyinpc,ifrevise
 c
