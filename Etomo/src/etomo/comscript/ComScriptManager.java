@@ -13,6 +13,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.4  2004/03/29 20:46:57  sueh
+ * <p> bug# 409 add MTF Filter
+ * <p>
  * <p> Revision 3.3  2004/03/13 00:30:49  rickg
  * <p> Bug# 390 Add prenewst and xfproduct management
  * <p>
@@ -79,6 +82,8 @@ public class ComScriptManager {
     "$Id$";
 
   ApplicationManager appManager;
+  
+  public static final String MTFFILTER_COMMAND = "mtffilter";
 
   private ComScript scriptEraserA;
   private ComScript scriptEraserB;
@@ -570,10 +575,10 @@ public class ComScriptManager {
   public void loadMTFFilter(AxisID axisID) {
     //  Assign the new ComScriptObject object to the appropriate reference
     if (axisID == AxisID.SECOND) {
-      scriptMTFFilterB = loadComScript("mtffilter", axisID, false);
+      scriptMTFFilterB = loadComScript(MTFFILTER_COMMAND, axisID, false);
     }
     else {
-      scriptMTFFilterA = loadComScript("mtffilter", axisID, false);
+      scriptMTFFilterA = loadComScript(MTFFILTER_COMMAND, axisID, false);
     }
   }
 
@@ -589,7 +594,7 @@ public class ComScriptManager {
 
     // Initialize a TiltParam object from the com script command object
     MTFFilterParam mtfFilterParam = new MTFFilterParam();
-    initialize(mtfFilterParam, mtfFilter, "mtffilter", axisID);
+    initialize(mtfFilterParam, mtfFilter, MTFFILTER_COMMAND, axisID);
     return mtfFilterParam;
   }
 
@@ -602,7 +607,7 @@ public class ComScriptManager {
     else {
       scriptMTFFilter = scriptMTFFilterA;
     }
-    updateComScript(scriptMTFFilter, mtfFilterParam, "mtffilter", axisID);
+    updateComScript(scriptMTFFilter, mtfFilterParam, MTFFILTER_COMMAND, axisID);
   }
 
   /**
@@ -799,7 +804,7 @@ public class ComScriptManager {
 
     //  Update the specified com script command from the CommandParam object
     ComScriptCommand comScriptCommand = null;
-    int commandIndex = script.getScriptCommandIndex(command);
+    //int commandIndex = script.getScriptCommandIndex(command);
     try {
       comScriptCommand = script.getScriptCommand(command);
       params.updateComScriptCommand(comScriptCommand);
@@ -819,6 +824,7 @@ public class ComScriptManager {
     }
 
     // Replace the specified command by the updated comScriptCommand
+    int commandIndex = script.getScriptCommandIndex(command);
     script.setScriptComand(commandIndex, comScriptCommand);
 
     //  Write the script back out to disk
@@ -856,22 +862,27 @@ public class ComScriptManager {
     String command,
     AxisID axisID) {
 
-    try {
-      param.parseComScriptCommand(comScript.getScriptCommand(command));
+    if (!comScript.isCommandLoaded()) {
+      param.initializeDefaults();
     }
-    catch (Exception except) {
-      except.printStackTrace();
-      String[] errorMessage = new String[4];
-      errorMessage[0] = "Com file: " + comScript.getComFileName();
-      errorMessage[1] = "Command: " + command;
-      errorMessage[2] = except.getClass().getName();
-      errorMessage[3] = except.getMessage();
-      JOptionPane.showMessageDialog(
-        null,
-        errorMessage,
-        "Com Script Command Parse Error",
-        JOptionPane.ERROR_MESSAGE);
-      return false;
+    else {
+      try {
+        param.parseComScriptCommand(comScript.getScriptCommand(command));
+      }
+      catch (Exception except) {
+        except.printStackTrace();
+        String[] errorMessage = new String[4];
+        errorMessage[0] = "Com file: " + comScript.getComFileName();
+        errorMessage[1] = "Command: " + command;
+        errorMessage[2] = except.getClass().getName();
+        errorMessage[3] = except.getMessage();
+        JOptionPane.showMessageDialog(
+          null,
+          errorMessage,
+          "Com Script Command Parse Error",
+          JOptionPane.ERROR_MESSAGE);
+        return false;
+      }
     }
     return true;
   }
