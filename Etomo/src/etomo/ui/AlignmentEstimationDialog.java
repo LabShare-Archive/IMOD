@@ -22,6 +22,9 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.6  2002/12/05 01:20:37  rickg
+ * <p> Added isAdvanced stub
+ * <p>
  * <p> Revision 1.5  2002/11/14 21:18:37  rickg
  * <p> Added anchors into the tomoguide
  * <p>
@@ -366,7 +369,7 @@ public class AlignmentEstimationDialog
   private void setAdvanced(boolean state) {
     panelTiltalignA.setAdvanced(state);
     panelTiltalignB.setAdvanced(state);
-    if(state) {
+    if (state) {
       buttonAdvanced.setText("Basic");
     }
     else {
