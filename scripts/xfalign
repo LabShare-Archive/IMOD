@@ -7,6 +7,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.3  2003/06/20 20:10:33  mast
+#  Let tmpdir be defined and fall back to /tmp if /usr/tmp does not exist
+#
 #  Revision 3.2  2003/05/13 20:15:26  mast
 #  Eliminate using $0 to get temp file name, doesn't work on Windows
 #
@@ -257,16 +260,16 @@ endif
 # successive section numbers (one per line), or a zero (0) on the first
 # line and the successive file names, one per line.
 
-set ftype = `file $argv[1]`
+set nxyz =  `header $argv[1] | sed -n '/rows, sections/p'| awk '{print $7, $8, $9}'`
 
-if ($ftype[2] == "ascii") then
+if ($#nxyz < 3) then
 	set filesectlist = $argv[1]
 	if ($prexcorr == "1") then
 	    echo "You cannot use initial cross-correlation with file lists"
 	    exit 1
 	endif
 else
-    @ numsec =  `header $argv[1] | sed -n '/rows, sections/p'| awk '{print $9}'`
+    @ numsec =  $nxyz[3]
     echo $argv[1] >! $seclist
     @ secnum = 0
     while ($secnum < $numsec)
