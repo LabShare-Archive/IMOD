@@ -4,30 +4,31 @@
 #
 include ../configure
 
+O      = $(OBJEXT)
 LIBI   = libiimod.$(LIBEXT)
 LIBD   = $(DUMMYTIFF).$(LIBEXT)
 LIBS   = $(LIBI) $(LIBD)
 
-OBJS  = iimage.o iitif.o iimrc.o mrcfiles.o mrcsec.o mrcslice.o mrcproc.o \
-mrcspectral.o plist.o
+OBJS  = iimage.$(O) iitif.$(O) iimrc.$(O) mrcfiles.$(O) mrcsec.$(O) \
+ mrcslice.$(O) mrcproc.$(O) mrcspectral.$(O) plist.$(O)
 
 INCS  = $(INCDIR)mrcfiles.h $(INCDIR)mrcslice.h $(INCDIR)mrcproc.h \
-$(INCDIR)mrcspectral.h $(INCDIR)mrcc.h
+ $(INCDIR)mrcspectral.h $(INCDIR)mrcc.h
 
 all : $(LIBS)
 
 $(LIBI) : $(OBJS)
 	$(FIND) . -type f -name $(LIBI) -exec rm "{}" \;
-	$(MAKELIB) $(LIBI) $(OBJS)
+	$(MAKELIB)$(LIBI) $(OBJS)
 	$(RANLIB) $(LIBI)
 	$(CP) $(LIBI) $(LIBDIR)
 
 # Here and in install, need to wipe out any existing libtiff to make sure
 # that the new one is the only one present in the target directory
 
-$(LIBD) : tiffstub.o ALWAYS
+$(LIBD) : tiffstub.$(O) ALWAYS
 	$(FIND) . -type f -name $(LIBD) -exec rm -f "{}" \;
-	$(MAKELIB) $(LIBD) tiffstub.o
+	$(MAKELIB)$(LIBD) tiffstub.$(O)
 	$(RANLIB) $(LIBD)
 	$(FIND) $(LIBDIR) -type f -name "*libtiff.*" -exec rm -f "{}" \;
 	$(CP) $(LIBD) $(LIBDIR)
@@ -37,7 +38,7 @@ install : $(LIBS)
 	$(CP) $(LIBS) $(INSTLIBDIR)
 
 clean : 
-	$(FIND) . -type f -name "*.o" -exec rm "{}" \;
+	$(FIND) . -type f -name "*.obj" -exec rm "{}" \;
 	$(FIND) . -type f -name $(LIBI) -exec rm -f "{}" \;
 	$(FIND) . -type f -name $(LIBD) -exec rm -f "{}" \;
 	$(FIND) . -name "*~" -exec rm "{}" \;
@@ -53,9 +54,9 @@ work : clean
 # Some depends.
 #
 $(OBJS) : $(INCS)
-iimage.o : $(INCDIR)iimage.h
-iimrc.o : $(INCDIR)iimage.h
-iitif.o : $(INCDIR)iimage.h
+iimage.$(O) : $(INCDIR)iimage.h
+iimrc.$(O) : $(INCDIR)iimage.h
+iitif.$(O) : $(INCDIR)iimage.h
 
 ALWAYS :
 

@@ -3,17 +3,19 @@
 # 
 include ../configure
 
+O     = $(OBJEXT)
 LIB      = libdiaqt.$(LIBEXT)
-OBJS     = arrowbutton.o dialog_frame.o multislider.o colorselector.o \
- dia_qtutils.o tooledit.o moc_arrowbutton.o moc_dialog_frame.o \
- moc_multislider.o moc_colorselector.o moc_tooledit.o
+OBJS     = arrowbutton.$(O) dialog_frame.$(O) multislider.$(O) \
+ colorselector.$(O) \
+ dia_qtutils.$(O) tooledit.$(O) moc_arrowbutton.$(O) moc_dialog_frame.$(O) \
+ moc_multislider.$(O) moc_colorselector.$(O) moc_tooledit.$(O)
 
 
 all : $(LIB)
 
 $(LIB) : $(OBJS)
 	$(FIND) . -type f -name $(LIB) -exec rm "{}" \;
-	$(MAKELIBCPP) $(LIB) $(OBJS)
+	$(MAKELIBCPP)$(LIB) $(OBJS)
 	$(RANLIB) $(LIB)
 	$(CP) $(LIB) $(LIBDIR)
 
@@ -37,7 +39,7 @@ install : $(LIB)
 	$(CP) $(LIB) $(INSTLIBDIR)
 
 clean :
-	$(FIND) . -type f -name "*.o"   -exec rm "{}" \;
+	$(FIND) . -type f -name "*.o*"   -exec rm "{}" \;
 	$(FIND) . -type f -name $(LIB)  -exec rm "{}" \;
 	$(FIND) . -type f -name "*~"    -exec rm "{}" \;
 	$(FIND) . -type f -name "#*#"   -exec rm "{}" \;
@@ -47,12 +49,12 @@ work : clean
 	touch $(OBJS)
 	touch $(LIB)
 
-arrowbutton.o : $(INCDIR)/arrowbutton.h
-dialog_frame.o : $(INCDIR)/dialog_frame.h
-multislider.o : $(INCDIR)/multislider.h
-colorselector.o : $(INCDIR)/colorselector.h $(INCDIR)/dialog_frame.h
-dia_qtutils.o : $(INCDIR)/dia_qtutils.h
-tooledit.o : $(INCDIR)/tooledit.h
+arrowbutton.$(O) : $(INCDIR)/arrowbutton.h
+dialog_frame.$(O) : $(INCDIR)/dialog_frame.h
+multislider.$(O) : $(INCDIR)/multislider.h
+colorselector.$(O) : $(INCDIR)/colorselector.h $(INCDIR)/dialog_frame.h
+dia_qtutils.$(O) : $(INCDIR)/dia_qtutils.h
+tooledit.$(O) : $(INCDIR)/tooledit.h
 
 
 
