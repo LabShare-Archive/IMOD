@@ -752,8 +752,6 @@ int main( int argc, char *argv[])
     imodPuts("initial windows opened");
   if (App->rgba)
     imod_info_setbw(App->cvi->black, App->cvi->white);
-  imod_set_mmode(IMOD_MMODEL);
-  imodPlugOpenByName("Line Track");
 
   /* Start main application input loop. */
   if (Imod_debug)
@@ -1008,6 +1006,7 @@ int imodColorValue(int inColor)
 
 /*
 $Log$
+
 Revision 4.40  2004/11/04 17:01:31  mast
 Changes for loading FFTs with internal mirroring
 
