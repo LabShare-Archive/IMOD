@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.8  2004/01/06 21:20:07  mast
+Made it make a backup file of an existing output file
+
 Revision 3.7  2003/11/18 19:29:32  mast
 changes to call b3dF* functions for 2GB problem on Windows
 
@@ -382,8 +385,7 @@ main( int argc, char *argv[] )
 
   /* write out MRC header */
   /* DNM 11/5/02: change from raw writes of each element to calling
-     library routines.  Added label */
-  rewind(fout);
+     library routines.  Added label.  1/17/04: eliminate unneeded rewind */
   mrc_head_new(&hdata, x, y, nsecs, outtype);
   hdata.amin = min;
   hdata.amax = max;
