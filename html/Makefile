@@ -9,6 +9,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.4  2005/01/17 19:33:44  mast
+#  Switched to sh format of if
+#
 #  Revision 3.3  2004/11/22 05:31:37  mast
 #  Add 3dmodHelp
 #
@@ -30,8 +33,10 @@ include ../configure
 NOEXT = 3dmodimages etomoImages 3dmodHelp
 
 install : clean
+	cd libdoc ; $(MAKE)
 	if [ `pwd` != $(INSTDIR)/html ] ; then $(CP) -r *.* $(NOEXT) $(INSTDIR)/html ; fi
 
 clean : 
+	cd libdoc ; $(MAKE) clean
 	$(FIND) . -type f -name "*~"    -exec rm "{}" \;
 	$(FIND) . -type f -name "#*#"   -exec rm "{}" \;
