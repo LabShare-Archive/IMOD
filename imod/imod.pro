@@ -128,7 +128,8 @@ SOURCES	+= autox.cpp \
 	beadfix.cpp \
 	xcorr.cpp \
 	undoredo.cpp \
-	imod_assistant.cpp
+	imod_assistant.cpp \
+        iiqimage.cpp
 FORMS	= form_object_edit.ui \
 	formv_control.ui \
 	formv_movie.ui \
