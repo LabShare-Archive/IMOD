@@ -35,6 +35,9 @@
     $Revision$
 
     $Log$
+    Revision 4.1  2003/02/10 20:29:02  mast
+    autox.cpp
+
     Revision 1.1.2.8  2003/01/18 01:10:17  mast
     add include of dia_qtutils
 
@@ -201,6 +204,7 @@ void imodvViewsDefault(bool draw)
   ved->a->imod->cview = 0;
   imodViewModelDefault(ved->a->imod, ved->a->imod->view);
   imodViewUse(ved->a->imod);
+  imodvDrawImodImages();
   imodvUpdateView(ved->a);
   if (draw)
     imodvDraw(ved->a);
@@ -288,6 +292,7 @@ void imodvViewsGoto(int item, bool draw)
   }
      
   imodViewUse(ved->a->imod);
+  imodvDrawImodImages();
 
   imodvUpdateView(ved->a);
   if (draw)
