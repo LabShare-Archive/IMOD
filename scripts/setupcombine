@@ -1,7 +1,8 @@
 #! /bin/csh -f
 # SCRIPT TO COPY AND MODIFY COMBINE.COM AND ASSOCIATED COM FILES
 
-set XYBORDER = 36
+set XYBORDERS = (24 36 54 68 80)    # border sizes per increment of minimum
+set BORDERINC = 1000                # dimension
 set PATCHXY = (64 80 100)
 set PATCHZ = (32 40 50)
 set DELPATCHXY = 100
@@ -12,6 +13,9 @@ set MAXMEMORY = 8.e7   # Memory size for ffts = 4000 * MAXPIXELS
 set TAPERPADXZ = 8       # Size of taper/pad for 3D ffts in X and Z
 set TAPERPADY = 4       # Size of taper/pad for 3D ffts in Y
 set MINOVERLAP = 10     # Minimum overlap between pieces
+set MATCHSHIFTXZ = 56   # size of 3-D box in X and Z for matchshifts
+set MATCHSHIFTY  = (40 60 76 90)      # Y sizes per increment of Y dimension
+set MATCHSHIFTINC = 100
 
 set to_srcname = "g5a"
 set from_srcname = "g5b"
@@ -36,6 +40,9 @@ set volcombine = volcombine.com
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.1  2002/06/19 16:06:29  mast
+#  Conversion to multiple command files
+#
 #  Revision 3.0  2001/11/29 18:11:11  rickg
 #  *** empty log message ***
 #
@@ -175,14 +182,20 @@ while ($ifok == "0")
     endif
 end
 
+@ minsize = $nx
+if ($ny < $nx) @ minsize = $ny
+@ borderindex = 1 + $minsize / $BORDERINC
+if ($borderindex > $#XYBORDERS) @ borderindex = $#XYBORDERS
+set xyborder = $XYBORDERS[$borderindex]
+
 echo ""
 echo "Now specify the limits of the volume from which patches will be"
 echo "      extracted by patchcrawl3d."
-echo "The default upper limits for X and Y are based on a border of $XYBORDER pixels."
+echo "The default upper limits for X and Y are based on a border of $xyborder pixels."
 set ifok = "0"
 while ($ifok == "0")
-    @ patchxl = $XYBORDER
-    @ patchxu = $nx - $XYBORDER
+    @ patchxl = $xyborder
+    @ patchxu = $nx - $xyborder
     echo -n "Lower X (left) limit of area (Return for $patchxl): "
     set patchin = $<
     if ($patchin != "") @ patchxl = $patchin
@@ -201,8 +214,8 @@ while ($ifok == "0")
 end
 set ifok = "0"
 while ($ifok == "0")
-    @ patchyl = $XYBORDER
-    @ patchyu = $ny - $XYBORDER
+    @ patchyl = $xyborder
+    @ patchyu = $ny - $xyborder
     echo -n "Lower Y (bottom) limit of area in flipped tomogram (Return for $patchyl): "
     set patchin = $<
     if ($patchin != "") @ patchyl = $patchin
@@ -248,6 +261,24 @@ while ($ifok == "0")
 	set ifok = "1"
     endif
 end
+
+# figure out a size in Y for matchshift block
+@ msyindex = $nz / $MATCHSHIFTINC
+if ($msyindex == 0) then
+    @ msy = $MATCHSHIFTY[1]
+    if ($msy > $nz) @ msy = $nz
+else if ($msyindex >= $#MATCHSHIFTY) then
+    @ msy = $MATCHSHIFTY[$#MATCHSHIFTY]
+else
+    @ deltay = $nz - $msyindex * $MATCHSHIFTINC
+    @ msy1 = $MATCHSHIFTY[$msyindex]
+    @ msyindex++
+    @ msy2 = $MATCHSHIFTY[$msyindex]
+    @ deltamsy = $msy2 - $msy1
+    @ msy = $msy1 + ($deltay * $deltamsy ) / $MATCHSHIFTINC
+endif
+
+# Get patch model file
 
 set modeltext = "gibberish"
 echo "Enter name of model file with contours enclosing patches to use for fits,"
@@ -369,6 +400,7 @@ sed -e s/$from_srcname/$fromname/g\
     -e "/$corrtext2/s/.*	/$corrlist2	/g"\
     -e "/X-axis tilt/s/.*	/$xaxisa[2],$xaxisb[2]	/g"\
     -e "/$surftext/s/.*	/$modsurf	/g"\
+    -e "/matchshifts.*64 32 64/s/64 32 64/$MATCHSHIFTXZ $msy $MATCHSHIFTXZ/"\
 	<$srcdir/$matchshift >$matchshift
 
 sed -e s/$from_srcname/$fromname/g\
@@ -397,6 +429,7 @@ sed -e "/patchcrawl3d *[0-9]/s/3d[ 0-9]*/3d  $PATCHXY[$indpatch] $PATCHZ[$indpat
     -e s/$from_srcname/$fromname/g\
     -e s/$to_srcname/$toname/g\
     -e s/$matfile/$sedmatfile/g\
+    -e s/36,36,36,36/$xyborder,$xyborder,$xyborder,$xyborder/g\
     -e "/boundary_model/s//$modelin/"\
 	<$srcdir/$patchcorr >$patchcorr
 
@@ -432,7 +465,10 @@ endif
 cat >> $volcombine <<EOF
 \$touch prevent-error
 \$\\rm prevent-err* ${tmppath}*.mat~ ${tmppath}mat.fft* ${tmppath}rec.fft* ${tmppath}sum.fft* $sumname* ${tmppath}sum[1-9]*.rec*
-\$!
+#
+\$echo STATUS: RUNNING FILLTOMO TO FILL IN GRAY AREAS IN THE .MAT FILE
+\$echo 
+#
 \$filltomo
 $tmpmatfile
 $recfile
@@ -440,7 +476,6 @@ $origfile
 $invfile
 /
 EOF
-
 @ npiecex = $ranlist[1]
 shift ranlist
 @ npiecez = $ranlist[1]
@@ -456,7 +491,8 @@ while ($znum < $npiecez)
 	@ sumnum++
 	cat >> $volcombine <<EOCAT
 #
-# Extracting and combining piece $sumnum
+\$echo STATUS: EXTRACTING AND COMBINING PIECE $sumnum
+\$echo
 #
 \$taperoutvol
 $recfile
@@ -489,7 +525,8 @@ end
 
 cat >> $volcombine <<EOCAT
 #
-# Reassembing pieces
+\$echo STATUS: REASSEMBLING PIECES
+\$echo
 #
 \$assemblevol
 $sumname
@@ -517,7 +554,8 @@ while ($sumnum < $npiecex * $npiecez)
 end
 cat >> $volcombine <<EOCAT
 #
-# Clear out pieces and fill bad pixels again
+\$echo STATUS: RUNNING FILLTOMO ON FINAL VOLUME
+\$echo 
 #
 \$\\rm ${tmppath}sum[1-9]*.rec
 \$filltomo
