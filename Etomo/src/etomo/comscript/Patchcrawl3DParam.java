@@ -13,6 +13,9 @@ package etomo.comscript;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.0  2003/11/07 23:19:00  rickg
+ * <p> Version 1.0.0
+ * <p>
  * <p> Revision 2.6  2003/07/25 22:54:14  rickg
  * <p> CommandParam method name changes
  * <p>
@@ -96,15 +99,26 @@ public class Patchcrawl3DParam
       fileB = cmdLineArgs[i++];
       parameterID = "output_file";
       outputFile = cmdLineArgs[i++];
-      if (cmdLineArgs.length > 16) {
+      int requiredLength = i;
+      if (cmdLineArgs.length == requiredLength + 1) {
+        parameterID = "boundary_model";
+        boundaryModel = cmdLineArgs[i++];
+      }
+      else if (cmdLineArgs.length == requiredLength + 3) {
         parameterID = "transform_file";
         transformFile = cmdLineArgs[i++];
-      }
-      if (cmdLineArgs.length > 17) {
         parameterID = "original_fileb";
         originalFileB = cmdLineArgs[i++];
+        parameterID = "borders";
+        borders.validateAndSet(cmdLineArgs[i++]);
       }
-      if (cmdLineArgs.length > 18) {
+      else if (cmdLineArgs.length == requiredLength + 4) {
+        parameterID = "transform_file";
+        transformFile = cmdLineArgs[i++];
+        parameterID = "original_fileb";
+        originalFileB = cmdLineArgs[i++];
+        parameterID = "borders";
+        borders.validateAndSet(cmdLineArgs[i++]);
         parameterID = "boundary_model";
         boundaryModel = cmdLineArgs[i++];
       }
@@ -126,34 +140,56 @@ public class Patchcrawl3DParam
    * @see etomo.comscript.CommandParam#updateComScript(etomo.comscript.ComScriptCommand)
    */
   public void updateComScriptCommand(ComScriptCommand scriptCommand) {
-    // TODO Complete parameter => command line mapping
     String[] cmdLineArgs = scriptCommand.getCommandLineArgs();
     String badParameter = "";
     badParameter = "xsize";
-    cmdLineArgs[0] = String.valueOf(xPatchSize);
+    int i = 0;
+    cmdLineArgs[i++] = String.valueOf(xPatchSize);
     badParameter = "ysize";
-    cmdLineArgs[1] = String.valueOf(yPatchSize);
+    cmdLineArgs[i++] = String.valueOf(yPatchSize);
     badParameter = "zsize";
-    cmdLineArgs[2] = String.valueOf(zPatchSize);
+    cmdLineArgs[i++] = String.valueOf(zPatchSize);
     badParameter = "nx";
-    cmdLineArgs[3] = String.valueOf(nX);
+    cmdLineArgs[i++] = String.valueOf(nX);
     badParameter = "ny";
-    cmdLineArgs[4] = String.valueOf(nY);
+    cmdLineArgs[i++] = String.valueOf(nY);
     badParameter = "nz";
-    cmdLineArgs[5] = String.valueOf(nZ);
+    cmdLineArgs[i++] = String.valueOf(nZ);
     badParameter = "xlo";
-    cmdLineArgs[6] = String.valueOf(xLow);
+    cmdLineArgs[i++] = String.valueOf(xLow);
     badParameter = "xhi";
-    cmdLineArgs[7] = String.valueOf(xHigh);
+    cmdLineArgs[i++] = String.valueOf(xHigh);
     badParameter = "ylo";
-    cmdLineArgs[8] = String.valueOf(yLow);
+    cmdLineArgs[i++] = String.valueOf(yLow);
     badParameter = "yhi";
-    cmdLineArgs[9] = String.valueOf(yHigh);
+    cmdLineArgs[i++] = String.valueOf(yHigh);
     badParameter = "Zlo";
-    cmdLineArgs[10] = String.valueOf(zLow);
+    cmdLineArgs[i++] = String.valueOf(zLow);
     badParameter = "Zhi";
-    cmdLineArgs[11] = String.valueOf(zHigh);
-
+    cmdLineArgs[i++] = String.valueOf(zHigh);
+    badParameter = "max_shift";
+    cmdLineArgs[i++] = String.valueOf(maxShift);
+    badParameter = "filea";
+    cmdLineArgs[i++] = fileA;
+    badParameter = "fileb";
+    cmdLineArgs[i++] = fileB;
+    badParameter = "output_file";
+    cmdLineArgs[i++] = outputFile;
+    if (!transformFile.equals("")) {
+      badParameter = "transform_file";
+      cmdLineArgs[i++] = transformFile;
+      badParameter = "original_fileb";
+      cmdLineArgs[i++] = originalFileB;
+      badParameter = "borders";
+      cmdLineArgs[i++] = borders.toString();
+    }
+    if (!boundaryModel.equals("")) {
+      badParameter = "boundary_model";
+      cmdLineArgs[i++] = boundaryModel;
+    }
+    for (int index = i; index < cmdLineArgs.length; index++) {
+      cmdLineArgs[index] = "";
+    }
     scriptCommand.setCommandLineArgs(cmdLineArgs);
   }
   /**
@@ -210,6 +246,10 @@ public class Patchcrawl3DParam
    */
   public void setTransformFile(String transformFile) {
     this.transformFile = transformFile;
+  }
+  
+  public void setBorders(String borders) throws FortranInputSyntaxException {
+    this.borders.validateAndSet(borders);
   }
 
   /**
@@ -299,6 +339,15 @@ public class Patchcrawl3DParam
   public void setBoundaryModel(String boundaryModel) {
     this.boundaryModel = boundaryModel;
   }
+  
+  public void setUseBoundaryModel(boolean useBoundaryModel) {
+    if (useBoundaryModel) {
+      boundaryModel = ConstMatchorwarpParam.getDefaultPatchRegionModel();
+    }
+    else {
+      boundaryModel = "";
+    }
+  }
 
   /**
    * Sets the outputFile.
@@ -306,28 +355,6 @@ public class Patchcrawl3DParam
    */
   public void setOutputFile(String outputFile) {
     this.outputFile = outputFile;
-  }
-
-  private void reset() {
-    xPatchSize = 0;
-    yPatchSize = 0;
-    zPatchSize = 0;
-    nX = 0;
-    nY = 0;
-    nZ = 0;
-    xLow = 0;
-    xHigh = 0;
-    yLow = 0;
-    yHigh = 0;
-    zLow = 0;
-    zHigh = 0;
-    maxShift = 0;
-    fileA = "";
-    fileB = "";
-    outputFile = "";
-    transformFile = "";
-    originalFileB = "";
-    boundaryModel = "";
   }
 
 }
