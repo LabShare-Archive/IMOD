@@ -1,12 +1,9 @@
 package etomo.process;
 
-import java.lang.IllegalArgumentException;
 //import java.lang.IllegalStateException;
-import java.lang.NullPointerException;
+import java.util.Vector;
 import java.io.File;
 
-import etomo.process.ImodProcess;
-import etomo.process.SystemProcessException;
 import etomo.type.AxisID;
 
 /**
@@ -57,6 +54,9 @@ import etomo.type.AxisID;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.9  2004/05/03 22:22:53  sueh
+ * <p> $bug# 416 added setBinning()
+ * <p> $
  * <p> $Revision 1.8  2004/04/30 21:12:23  sueh
  * <p> $bug# 428 opening ZaP window on open() when not in model view mode
  * <p> $
@@ -377,6 +377,10 @@ public class ImodState {
    */
   public void openBeadFixer() throws SystemProcessException {
     process.openBeadFixer();
+  }
+  
+  public Vector getRubberbandCoordinates() throws SystemProcessException {
+    return process.getRubberBandCoordinates();
   }
   /**
    * @return true if process is running

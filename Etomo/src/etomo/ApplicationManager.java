@@ -10,6 +10,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Vector;
 
 import javax.swing.JOptionPane;
 import javax.swing.ToolTipManager;
@@ -83,6 +84,12 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.48  2004/05/05 21:24:53  sueh
+ * <p> bug #430  If changes to .seed happened more recently then .fid, do not
+ * <p> mv .fid .seed.  Otherwise backup .seed to .seed~ if not backing up
+ * <p> .seed to _orig.seed.  Ok to use fid as seed when .seed does not exist.
+ * <p> Orginal bug# 276.
+ * <p>
  * <p> Revision 3.47  2004/05/03 22:29:21  sueh
  * <p> bug# 416 Move Bin by 2 settings between tabs in
  * <p> TomogramCombinationDialog.  Set binning in ImodManager.
@@ -4298,6 +4305,24 @@ public class ApplicationManager {
       except.printStackTrace();
       mainFrame.openMessageDialog(except.getMessage(), "AxisType problem");
     }
+  }
+  
+  
+  public Vector imodGetRubberbandCoordinates(String imodKey) {
+    Vector coordinates = null;
+    try {
+      coordinates = imodManager.getRubberbandCoordinates(imodKey);
+    }
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      mainFrame.openMessageDialog(except.getMessage(), "AxisType problem");
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      mainFrame.openMessageDialog(except.getMessage(),
+        "Can't get rubberband coordinates from " + imodKey);
+    }
+    return coordinates;
   }
 
   /**

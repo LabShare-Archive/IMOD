@@ -28,6 +28,12 @@ import etomo.type.ConstMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.20  2004/05/03 22:21:49  sueh
+ * <p> bug# 416 added setBinning()
+ * <p> fixing bug in setSwapYZ(), should be ok to call any set function before
+ * <p> the ImodState is created, unless you are passing vectorIndex (this
+ * <p> specified a particular ImodState instance)
+ * <p>
  * <p> Revision 3.19  2004/04/28 22:16:39  sueh
  * <p> bug# 320 user interaction goes in app manager
  * <p>
@@ -513,10 +519,23 @@ public class ImodManager {
     throws AxisTypeException, SystemProcessException {
     key = getPrivateKey(key);
     ImodState imodState = get(key, axisID);
+    if (imodState == null) {
+      return;
+    }
     if (imodState.isUseModv()) {
       throw new UnsupportedOperationException("The Bead Fixer cannot be opened in 3dmodv");
     }
     imodState.openBeadFixer();
+  }
+  
+  public Vector getRubberbandCoordinates(String key)
+    throws AxisTypeException, SystemProcessException {
+    key = getPrivateKey(key);
+    ImodState imodState = get(key);
+    if (imodState == null) {
+      return null;
+    }
+    return imodState.getRubberbandCoordinates();
   }
 
   public void quit(String key)
