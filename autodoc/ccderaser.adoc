@@ -6,7 +6,7 @@ short = input
 long = InputFile
 type = FN
 usage = Input image file
-tooltip = 
+tooltip = Input image file.
 manpage = Input image file.  This may also be entered after all arguments
 on the command line. 
 
@@ -15,7 +15,9 @@ short = output
 long = OutputFile
 type = FN
 usage = Output image file
-tooltip = 
+tooltip = Output image file.  If no output file is specified and the program is
+not run in trial mode, pixels will be replaced in the input file.  USE
+REPLACEMENT OPTION WITH CAUTION.
 manpage = Output image file.  This may also be entered after an input file
 name on the command line.  If no output file is specified and the program
 is not run in trial mode, pixels will be replaced in the input file.
@@ -27,7 +29,8 @@ short = find
 long = FindPeaks
 type = B
 usage = Find peaks a criterion # of SDs above or below background
-tooltip = 
+tooltip = Find and erase peaks a criterion # of SDs above or below background.
+ This option must be included for automatic removal of X-rays.
 manpage = Find and erase peaks a criterion # of SDs above or below
 background.  This option must be included for automatic removal of X-rays.
 
@@ -36,7 +39,8 @@ short = peak
 long = PeakCriterion
 type = F
 usage = Criterion # of SDs above local mean for erasing peak
-tooltip = 
+tooltip = Criterion # of SDs above local mean for erasing peak based on
+intensity (the default is 10 SDs).
 manpage = Criterion # of SDs above local mean for erasing peak based on
 intensity (the default is 10 SDs).
 
@@ -45,7 +49,8 @@ short = diff
 long = DiffCriterion
 type = F
 usage = Criterion # of SDs above mean pixel-to-pixel difference
-tooltip = 
+tooltip = Criterion # of SDs above mean pixel-to-pixel difference for erasing a
+peak based on differences (the default is 10 SDs).
 manpage = Criterion # of SDs above mean pixel-to-pixel difference for
 erasing a peak based on differences (the default is 10 SDs)
 
@@ -54,7 +59,8 @@ short = grow
 long = GrowCriterion
 type = F
 usage = Criterion # of SDs above mean for adding points to peak
-tooltip = 
+tooltip = Criterion # of SDs above mean for adding points to peak (the default
+is 4 SDs).
 manpage = Criterion # of SDs above mean for adding points to peak (the
 default is 4 SDs).
 
@@ -63,7 +69,8 @@ short = scan
 long = ScanCriterion
 type = F
 usage = Criterion # of SDs for picking peaks in initial scan
-tooltip = 
+tooltip = Criterion # of SDs of mean of scan area for picking peaks in initial
+scan (the default is 3 SDs).
 manpage = Criterion # of SDs of mean of scan area for picking peaks in
 initial scan (the default is 3 SDs).
 
@@ -72,7 +79,7 @@ short = radius
 long = MaximumRadius
 type = F
 usage = Maximum radius of peak area to erase
-tooltip = 
+tooltip = Maximum radius of peak area to erase (the default is 2.1 pixels).
 manpage = Maximum radius of peak area to erase (the default is 2.1 pixels). 
 
 [Field = MaxPixelsInDiffPatch]
@@ -103,7 +110,8 @@ long = AnnulusWidth
 type = F
 usage = Width (outer - inner radius) of annulus to calculate local mean and 
 SD in
-tooltip = 
+tooltip = Width of the annulus around a peak in which to calculate local mean
+and SD (the default is 2.0 pixels).
 manpage = Difference between outer and inner radius of the annulus around a 
 peak in which to calculate local mean and SD (the default is 2.0 pixels).
 This option and -radius are mutually exclusive.
@@ -113,7 +121,8 @@ short = xyscan
 long = XYScanSize
 type = I
 usage = Size of regions to compute mean and SD in for initial scans
-tooltip = 
+tooltip = Size of regions to compute mean and SD in for initial scans (the
+default is 100 pixels).
 manpage = Size of regions to compute mean and SD in for initial scans (the
 default is 100 pixels).
 
@@ -122,7 +131,7 @@ short = edge
 long = EdgeExclusionWidth
 type = I
 usage = Width of area to exclude on all edges of image
-tooltip = 
+tooltip = Width of area to exclude on all edges of image in pixels (default 0).
 manpage = Width of area to exclude on all edges of image in pixels (default
 0). 
 
@@ -150,7 +159,8 @@ short = lines
 long = LineObjects
 type = LI
 usage = Objects that define lines to be replaced
-tooltip = 
+tooltip = List of objects that define lines to be replaced.  Ranges can be 
+entered, and / to specify all objects.
 manpage = List of objects that define lines to be replaced.  Ranges can be
 entered, and / to specify all objects.
 
@@ -159,7 +169,8 @@ short = allsec
 long = AllSectionObjects
 type = LI
 usage = Objects with points to be replaced on all sections
-tooltip = 
+tooltip = List of objects with points to be replaced on all sections. 
+Ranges can be entered, and / to specify all objects.
 manpage = List of objects with points to be replaced on all sections.
 Ranges can be entered, and / to specify all objects.
 
@@ -168,7 +179,8 @@ short = border
 long = BorderSize
 type = I
 usage = Size of border around points in patch
-tooltip = 
+tooltip = Size of border around points in patch, which contains the points which
+will be fit to (the default is 2 pixels).
 manpage = Size of border around points in patch, which contains the points
 which will be fit to (the default is 2 pixels)
 
@@ -177,7 +189,8 @@ short = order
 long = PolynomialOrder
 type = I
 usage = Order of polynomial to fit to border points
-tooltip = 
+tooltip = Order of polynomial to fit to border points (the default is 2, which
+includes terms in x, y, x**2, y**2 and x*y).
 manpage = Order of polynomial to fit to border points (the default is 2,
 which includes terms in x, y, x**2, y**2 and x*y).
 
@@ -196,7 +209,8 @@ short = trial
 long = TrialMode
 type = B
 usage = Analyze without writing output file
-tooltip = 
+tooltip = Run ccderaser in trial mode creating a x-ray model which can be viewed
+in 3dmod.  This will not create an output stack.
 manpage = Analyze for replacement points without writing output image file. 
 
 [Field = verbose]
