@@ -77,6 +77,7 @@ InfoWindow::InfoWindow(QWidget * parent, const char * name, WFlags f)
   : QMainWindow(parent, name, f)
 {
   mMinimized = false;
+  mDeferredItem = -1;
 
   QMenuBar *menuBar = new QMenuBar(this);
   mFileMenu = new QPopupMenu();
@@ -251,6 +252,10 @@ InfoWindow::InfoWindow(QWidget * parent, const char * name, WFlags f)
 
   mHideTimer = new QTimer(this, "imod info hide timer");
   connect(mHideTimer, SIGNAL(timeout()), this, SLOT(hideTimeout()));
+#ifdef __ppc__
+  mDeferTimer = new QTimer(this, "imod info defer timer");
+  connect(mDeferTimer, SIGNAL(timeout()), this, SLOT(deferTimeout()));
+#endif
 }
 
 void InfoWindow::setFontDependentWidths()
@@ -335,6 +340,14 @@ void InfoWindow::hideTimeout()
     mMinimized = true;
     imodDialogManager.hide();
   }
+}
+
+void InfoWindow::deferTimeout()
+{
+  // fprintf(stderr, "Defer timer fired item %d\n", mDeferredItem);
+  if (mDeferredItem >= 0)
+    imageSlot(mDeferredItem);
+  mDeferredItem = -1;
 }
 
 // Enable menu items based on new information
@@ -477,6 +490,9 @@ static char *truncate_name(char *name, int limit)
 
 /*
     $Log$
+    Revision 4.11  2003/03/26 23:23:15  mast
+    switched from hotslider.h to preferences.h
+
     Revision 4.10  2003/03/26 17:15:30  mast
     Adjust sizes for font changes
 

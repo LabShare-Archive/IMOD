@@ -32,6 +32,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.3  2003/03/26 23:06:32  mast
+Only check status of a style once
+
 Revision 1.2  2003/03/26 22:48:40  mast
 Changed handling of style to prevent "already defined" messages
 
@@ -71,7 +74,8 @@ static char *styleList[] = {"highcolor", "b3", "default", ""};
 static char *styleList[] = {"Windows", "compact", 
                             "Platinum", "Motif", "MotifPlus", "SGI", 
                             "CDE", "marble", "System", "Systemalt", "riscos", 
-                            "Light, 2nd revision", "Light, 3rd revision", ""};
+                            "Light, 2nd revision", "Light, 3rd revision", 
+                            ""};
 #endif
 static int styleStatus[MAX_STYLES];
 
@@ -91,7 +95,11 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
   mCurrentTab = 0;
 
   // Set the default values
+#ifdef __ppc__
+  prefs->hotSliderKeyDflt = 1;
+#else
   prefs->hotSliderKeyDflt = 0;
+#endif
   prefs->hotSliderFlagDflt = HOT_SLIDER_KEYUP;
   prefs->mouseMappingDflt = 0;
   prefs->silentBeepDflt = false;
@@ -110,40 +118,40 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
   QSettings settings;
   settings.insertSearchPath( QSettings::Windows, "/BL3DEMC" );
   prefs->hotSliderKey = settings.readNumEntry(IMOD_NAME"hotSliderKey", 
-					      prefs->hotSliderKeyDflt,
-					      &prefs->hotSliderKeyChgd);
+                                              prefs->hotSliderKeyDflt,
+                                              &prefs->hotSliderKeyChgd);
   prefs->hotSliderFlag = settings.readNumEntry(IMOD_NAME"hotSliderFlag",
-					       prefs->hotSliderFlagDflt,
-					       &prefs->hotSliderFlagChgd);
+                                               prefs->hotSliderFlagDflt,
+                                               &prefs->hotSliderFlagChgd);
   prefs->mouseMapping = settings.readNumEntry(IMOD_NAME"mouseMapping",
-					    prefs->mouseMappingDflt,
-					    &prefs->mouseMappingChgd);
+                                            prefs->mouseMappingDflt,
+                                            &prefs->mouseMappingChgd);
   prefs->silentBeep = settings.readBoolEntry(IMOD_NAME"silentBeep",
-					    prefs->silentBeepDflt,
-					    &prefs->silentBeepChgd);
+                                            prefs->silentBeepDflt,
+                                            &prefs->silentBeepChgd);
   prefs->tooltipsOn = settings.readBoolEntry(IMOD_NAME"tooltipsOn",
-					    prefs->tooltipsOnDflt,
-					    &prefs->tooltipsOnChgd);
+                                            prefs->tooltipsOnDflt,
+                                            &prefs->tooltipsOnChgd);
   QToolTip::setGloballyEnabled(prefs->tooltipsOn);
 
   prefs->bwStep = settings.readNumEntry(IMOD_NAME"bwStep",
-					prefs->bwStepDflt,
-					&prefs->bwStepChgd);
+                                        prefs->bwStepDflt,
+                                        &prefs->bwStepChgd);
   prefs->iconifyImodvDlg = settings.readBoolEntry(IMOD_NAME"iconifyImodvDlg",
-						 prefs->iconifyImodvDlgDflt,
-						 &prefs->iconifyImodvDlgChgd);
+                                                 prefs->iconifyImodvDlgDflt,
+                                                 &prefs->iconifyImodvDlgChgd);
   prefs->iconifyImodDlg = settings.readBoolEntry(IMOD_NAME"iconifyImodDlg",
-						prefs->iconifyImodDlgDflt,
-						&prefs->iconifyImodDlgChgd);
+                                                prefs->iconifyImodDlgDflt,
+                                                &prefs->iconifyImodDlgChgd);
   prefs->iconifyImageWin = settings.readBoolEntry(IMOD_NAME"iconifyImageWin",
-						 prefs->iconifyImageWinDflt,
-						 &prefs->iconifyImageWinChgd);
+                                                 prefs->iconifyImageWinDflt,
+                                                 &prefs->iconifyImageWinChgd);
   prefs->minModPtSize = settings.readNumEntry(IMOD_NAME"minModPtSize",
-					prefs->minModPtSizeDflt,
-					&prefs->minModPtSizeChgd);
+                                        prefs->minModPtSizeDflt,
+                                        &prefs->minModPtSizeChgd);
   prefs->minImPtSize = settings.readNumEntry(IMOD_NAME"minImPtSize",
-					prefs->minImPtSizeDflt,
-					&prefs->minImPtSizeChgd);
+                                        prefs->minImPtSizeDflt,
+                                        &prefs->minImPtSizeChgd);
 
   // Read each zoom with a separate key
   prefs->zoomsChgd = false;
@@ -159,11 +167,11 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
     (IMOD_NAME"autosaveInterval", prefs->autosaveIntervalDflt,
      &prefs->autosaveIntervalChgd);
   prefs->autosaveDir = settings.readEntry(IMOD_NAME"autosaveDir",
-					  prefs->autosaveDirDflt,
-					  &prefs->autosaveDirChgd);
+                                          prefs->autosaveDirDflt,
+                                          &prefs->autosaveDirChgd);
   prefs->autosaveOn = settings.readBoolEntry(IMOD_NAME"autosaveOn",
-					    prefs->autosaveOnDflt,
-					    &prefs->autosaveOnChgd);
+                                            prefs->autosaveOnDflt,
+                                            &prefs->autosaveOnChgd);
 
   // If no autosave interval or state read in, look for environment entry
   if (!prefs->autosaveOnChgd && !prefs->autosaveIntervalChgd) {
@@ -172,7 +180,7 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
       prefs->autosaveOn = false;
     else {
       if (i < 60)
-	i = 60;
+        i = 60;
       prefs->autosaveInterval = i / 60;
     }
   }
@@ -285,7 +293,7 @@ void ImodPreferences::saveSettings()
 
   if (prefs->autosaveIntervalChgd)
     settings.writeEntry(IMOD_NAME"autosaveInterval", 
-			    prefs->autosaveInterval);
+                            prefs->autosaveInterval);
   if (prefs->autosaveDirChgd)
     settings.writeEntry(IMOD_NAME"autosaveDir", prefs->autosaveDir);
   if (prefs->autosaveOnChgd)
@@ -313,15 +321,15 @@ void ImodPreferences::editPrefs()
   mAppearForm = new AppearanceForm();
   mTabDlg->addTab(mAppearForm, "Appearance");
   mBehaveForm = new BehaviorForm();
-  mTabDlg->addTab(mBehaveForm, "Behaviour");
+  mTabDlg->addTab(mBehaveForm, "Behavior");
   mMouseForm = new MouseForm();
   mTabDlg->addTab(mMouseForm, "Mouse");
   mTabDlg->setCaption("Imod: Set preferences");
   connect(mTabDlg, SIGNAL(applyButtonPressed()), this, SLOT(donePressed()));
   connect(mTabDlg, SIGNAL(defaultButtonPressed()), this, 
-	  SLOT(defaultPressed()));
+          SLOT(defaultPressed()));
   connect(mTabDlg, SIGNAL(cancelButtonPressed()), this, 
-	  SLOT(cancelPressed()));
+          SLOT(cancelPressed()));
 
   if (mCurrentTab == 1)
     mTabDlg->showPage(mBehaveForm);

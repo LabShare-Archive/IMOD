@@ -41,6 +41,7 @@ Log at end of file
 #include <math.h>
 #include <qfiledialog.h>
 #include <qdir.h>
+#include <qtimer.h>
 #include "xxyz.h"
 #include "imod_object_edit.h"
 #include "pixelview.h"
@@ -844,7 +845,6 @@ void InfoWindow::editPointSlot(int item)
 void InfoWindow::editImageSlot(int item)
 {
   int cmap, cmapold;
-
   if (ImodForbidLevel)
     return;
 
@@ -916,9 +916,18 @@ void InfoWindow::editImageSlot(int item)
  */
 void InfoWindow::imageSlot(int item)
 {
+  // fprintf(stderr,"Edit image item %d\n", item);
 
   if (ImodForbidLevel)
     return;
+#ifdef __ppc__
+  if (mDeferredItem < 0) {
+    //  fprintf(stderr, "Starting defer timer item %d\n", item);
+    mDeferredItem = item;
+    mDeferTimer->start(1, true);
+    return;
+  }
+#endif
 
   /* DNM: only model and zap will work with raw (color) data */
   if (App->cvi->rawImageStore && !(item == 5 || item == 4))
@@ -1005,6 +1014,9 @@ void InfoWindow::helpSlot(int item)
 
 /*
 $Log$
+Revision 4.4  2003/03/24 17:58:09  mast
+Changes for new preferences capability
+
 Revision 4.3  2003/02/27 19:29:31  mast
 Use Qt functions to manage filenames
 

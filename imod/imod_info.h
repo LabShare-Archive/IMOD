@@ -13,6 +13,9 @@
     $Revision$
 
     $Log$
+    Revision 3.7  2003/03/26 17:15:31  mast
+    Adjust sizes for font changes
+
     Revision 3.6  2003/03/24 17:58:09  mast
     Changes for new preferences capability
 
@@ -113,6 +116,7 @@ class InfoWindow : public QMainWindow
   void pluginSlot(int item);
   void helpSlot(int item);
   void hideTimeout();
+  void deferTimeout();
 
  protected:
     void keyPressEvent ( QKeyEvent * e );
@@ -139,8 +143,10 @@ class InfoWindow : public QMainWindow
   QPopupMenu *mPlugMenu;
   QTextEdit *mStatusEdit;
   QTimer *mHideTimer;
+  QTimer *mDeferTimer;
   bool mMinimized;
   int mTopTimerID;
+  int mDeferredItem;
 };
 
 /* GLOBAL FUNCTIONS */
