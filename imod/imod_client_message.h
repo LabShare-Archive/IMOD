@@ -32,6 +32,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.2  2003/02/27 19:22:40  mast
+Qt version that works on windows
+
 Revision 3.1  2003/02/10 20:41:55  mast
 Merge Qt source
 
@@ -46,6 +49,14 @@ Initital version of code moved from imod_menu_cb.c
 
 #ifndef IMOD_CLIENT_MESSAGE_H
 #define IMOD_CLIENT_MESSAGE_H
+
+#define MESSAGE_NO_ACTION   0
+#define MESSAGE_OPEN_MODEL  1
+#define MESSAGE_SAVE_MODEL  2
+#define MESSAGE_VIEW_MODEL  3
+#define MESSAGE_QUIT  4
+#define MESSAGE_RAISE_WINDOWS 5
+#define MESSAGE_MODEL_MODE  6
 
 #include <qobject.h>
 #include <qstring.h>
