@@ -54,6 +54,9 @@ import etomo.type.AxisID;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.10  2004/05/06 20:22:12  sueh
+ * <p> $bug# 33 added getRubberbandCoordinates()
+ * <p> $
  * <p> $Revision 1.9  2004/05/03 22:22:53  sueh
  * <p> $bug# 416 added setBinning()
  * <p> $
@@ -380,7 +383,7 @@ public class ImodState {
   }
   
   public Vector getRubberbandCoordinates() throws SystemProcessException {
-    return process.getRubberBandCoordinates();
+    return process.getRubberbandCoordinates();
   }
   /**
    * @return true if process is running
