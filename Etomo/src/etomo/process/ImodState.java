@@ -56,6 +56,10 @@ import etomo.type.AxisID;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.2  2003/12/04 22:07:35  sueh
+ * <p> $bug242 fixing reset() - 3dmod remembers last modelName.
+ * <p> $Must replace modelName to do a real reset.
+ * <p> $
  * <p> $Revision 1.1  2003/12/02 23:20:29  sueh
  * <p> $bug242 Was ImodAssistant.  Same as ImodAssistant
  * <p> $without configuration functions.  State is changed by all
@@ -242,7 +246,6 @@ public class ImodState {
     }
     if (useModv) {
       process.setUseModv(useModv);
-      process.setOutputWindowID(false);
     }
     process.open();
     if (useMode) {
