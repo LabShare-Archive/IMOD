@@ -35,6 +35,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.0  2003/11/07 23:19:01  rickg
+ * <p> Version 1.0.0
+ * <p>
  * <p> Revision 2.13  2003/11/05 19:56:58  rickg
  * <p> Bug# 300 Selecting matching models on setup patch now
  * <p> selects matching models on initial page
@@ -113,6 +116,8 @@ public class TomogramCombinationDialog
   implements ContextMenu {
   public static final String rcsid =
     "$Id$";
+  public static final int SETUP_TAB = 0;
+  public static final int INITIAL_TAB = 1;
   private SetupCombinePanel pnlSetup;
   private InitialCombinePanel pnlInitial;
   private FinalCombinePanel pnlFinal;
@@ -246,6 +251,29 @@ public class TomogramCombinationDialog
    */
   public void setMatchorwarpParams(ConstMatchorwarpParam matchorwarpParams) {
     pnlFinal.setMatchorwarpParams(matchorwarpParams);
+  }
+  
+  /**
+   * get Use matching model from a tab
+   * @param tab
+   */
+  public boolean getUseMatchingModels(int tab) {
+    if (tab == SETUP_TAB) {
+      return pnlSetup.getUseMatchingModels();
+    }
+    if (tab == INITIAL_TAB) {
+      return pnlInitial.getUseMatchingModels();
+    }
+    return pnlSetup.getUseMatchingModels();
+  }
+  
+  public void setUseMatchingModels(int tab, boolean setting) {
+    if (tab == SETUP_TAB) {
+      pnlSetup.setUseMatchingModels(setting);
+    }
+    else if (tab == INITIAL_TAB) {
+      pnlInitial.setUseMatchingModels(setting);
+    }
   }
 
   /**
