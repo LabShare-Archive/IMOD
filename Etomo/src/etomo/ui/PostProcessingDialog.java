@@ -11,7 +11,6 @@ import etomo.comscript.ConstSqueezevolParam;
 import etomo.comscript.SqueezevolParam;
 import etomo.comscript.TrimvolParam;
 import etomo.type.AxisID;
-import etomo.type.ConstEtomoBoolean;
 import etomo.type.TomogramState;
 
 /**
@@ -27,6 +26,10 @@ import etomo.type.TomogramState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.8  2005/01/08 01:55:32  sueh
+ * <p> bug# 578 Calling all backword compatible functions in TomogramState
+ * <p> "getBackwordCompatible...".
+ * <p>
  * <p> Revision 3.7  2004/12/16 02:33:05  sueh
  * <p> bug# 564 Taking whether trimvol output and squeezevol output are flipped
  * <p> or not when getting and setting Squeezevol parameters.
@@ -195,37 +198,45 @@ public class PostProcessingDialog
    */
   public void getParameters(SqueezevolParam squeezevolParam) {
     squeezevolParam.setReductionFactorX(ltfReductionFactorXY.getText());
+    TomogramState state = applicationManager.getState();
     boolean flipped = squeezevolParam.setFlipped(isTrimvolFlipped());
-    if (isTrimvolFlipped()) {
+    if (flipped) {
       squeezevolParam.setReductionFactorY(ltfReductionFactorXY.getText());
       squeezevolParam.setReductionFactorZ(ltfReductionFactorZ.getText());
     }
     else {
       squeezevolParam.setReductionFactorY(ltfReductionFactorZ.getText());
       squeezevolParam.setReductionFactorZ(ltfReductionFactorXY.getText());
-
     }
     squeezevolParam.setLinearInterpolation(cbLinearInterpolation.isSelected());
   }
   
-  private boolean isTrimvolFlipped() {
-    TomogramState state = applicationManager.getState();
-    ConstEtomoBoolean stateFlipped = state.getTrimvolFlipped();
-    if (stateFlipped.isNull()) {
-      return state.getBackwordCompatibleTrimvolFlipped();
-    }
-    else {
-      return stateFlipped.is();
-    }
-  }
-  
+  /**
+   * return true if the result of squeezevol is flipped.
+   * If squeezevol hasn't been done, return true if the result of trimvol is
+   * flipped.
+   * @return
+   */
   public boolean isSqueezevolFlipped() {
     TomogramState state = applicationManager.getState();
-    ConstEtomoBoolean flipped = state.getSqueezevolFlipped();
-    if (!flipped.isNull()) {
-      return flipped.is();
+    if (state.getSqueezevolFlipped().isSet()) {
+      return state.getSqueezevolFlipped().is();
     }
     return isTrimvolFlipped();
+  }
+  
+  /**
+   * return true if the result of squeezevol is flipped.
+   * If squeezevol hasn't been done, return true if the result of trimvol is
+   * flipped.
+   * @return
+   */
+  public boolean isTrimvolFlipped() {
+    TomogramState state = applicationManager.getState();
+    if (!state.getTrimvolFlipped().isSet()) {
+      return state.getBackwordCompatibleTrimvolFlipped();
+    }
+    return state.getTrimvolFlipped().is();
   }
 
   /**
