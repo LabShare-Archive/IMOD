@@ -43,6 +43,9 @@ import etomo.comscript.CombineParams;
  * 
  * <p>
  * $Log$
+ * Revision 3.9  2004/06/14 23:39:53  rickg
+ * Bug #383 Transitioned to using solvematch
+ *
  * Revision 3.8  2004/06/13 17:03:23  rickg
  * Solvematch mid change
  *
@@ -363,6 +366,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields {
     // Mouse listener for context menu
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
     pnlRoot.addMouseListener(mouseAdapter);
+    setToolTipText();
   }
 
   void setAdvanced(boolean state) {
