@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.3  2004/05/16 20:17:40  mast
+Added method for updating sliders
+
 Revision 4.2  2004/05/03 19:12:22  mast
 Added routines for enhanced image display
 
@@ -45,6 +48,9 @@ typedef struct __imodv_struct ImodvApp;
 void imodvDrawImage(ImodvApp *a, int drawTrans);
 void imodvImageEditDialog(ImodvApp *a, int state);
 void imodvImageUpdate(ImodvApp *a);
+void imodvImageSetThickTrans(int slices, int trans);
+int imodvImageGetThickness(void);
+int imodvImageGetTransparency(void);
 
 #include "dialog_frame.h"
 class MultiSlider;
