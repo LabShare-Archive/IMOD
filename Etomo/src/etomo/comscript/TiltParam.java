@@ -11,6 +11,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.3  2004/07/20 23:06:28  sueh
+ * <p> bug# 502 adding fiducialess, which is not stored in tilt.  It
+ * <p> inactivates the local file parameter
+ * <p>
  * <p> Revision 3.2  2004/04/12 16:51:07  sueh
  * <p> bug# 409 changed interface class CommandParam
  * <p>
@@ -64,10 +68,15 @@ package etomo.comscript;
 
 import java.util.ArrayList;
 
+import etomo.type.AxisID;
+
 public class TiltParam extends ConstTiltParam implements CommandParam {
   public static final String rcsid = 
   "$Id$";
 
+  public TiltParam(String datasetName, AxisID axisID) {
+    super(datasetName, axisID);
+  }
   /**
    * Get the parameters from the ComScriptCommand
    * @param scriptCommand the ComScriptCommand containg the newst command
@@ -212,6 +221,10 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
       }
       if (tokens[0].equals("XTILTINTERP")) {
         xTiltInterp = Integer.parseInt(tokens[1]);
+      }
+      if (tokens[0].equals("ZFACTORFILE")) {
+        useZFactors = true;
+        zFactorFileName = tokens[1];
       }
     }
   }
@@ -416,6 +429,14 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
     if (xTiltInterp > Integer.MIN_VALUE) {
       newArg = new ComScriptInputArg();
       newArg.setArgument("XTILTINTERP " + String.valueOf(xTiltInterp));
+      cmdLineArgs.add(newArg);
+    }
+    if (useZFactors) {
+      if (zFactorFileName == null || zFactorFileName.matches("\\s*")) {
+        zFactorFileName = TiltalignParam.getOutputZFactorFileName(datasetName, axisID);
+      }
+      newArg = new ComScriptInputArg();
+      newArg.setArgument("ZFACTORFILE " + zFactorFileName);
       cmdLineArgs.add(newArg);
     }
     newArg = new ComScriptInputArg();
@@ -669,6 +690,10 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
 
   public void resetZOffset() {
     zOffset = Float.NaN;
+  }
+  
+  public void setUseZFactors(boolean useZFactors) {
+    this.useZFactors = useZFactors;
   }
   
   public void setFiducialess(boolean fiducialess) {
