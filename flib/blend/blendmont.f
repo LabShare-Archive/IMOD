@@ -208,6 +208,11 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.1  2002/08/19 03:19:14  mast
+c	  Implemented include file for commons.  Put large arrays in common
+c	  to prevent stack problems.  Passed array to find_best_shifts to
+c	  reduce memory needs there.
+c	
 c
 	include 'recl_bytes.inc'
 	include 'blend.inc'
@@ -2237,5 +2242,12 @@ c
 	  close(4)
 	endif
 	call exit(0)
-98	stop 'error reading xforms'
+98	call errorexit ('reading transforms')
+	end
+
+	subroutine errorexit(message)
+	character*(*) message
+	print *
+	print *,'ERROR: BLENDMONT - ',message
+	call exit(1)
 	end
