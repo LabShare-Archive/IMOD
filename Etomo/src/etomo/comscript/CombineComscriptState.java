@@ -18,12 +18,23 @@ import etomo.ui.TomogramCombinationDialog;
 *
 * @version $$Revision$$
 *
-* <p> $$Log$
+* <p> $Log$
+* <p> $Revision 1.2  2004/08/19 20:01:55  sueh
+* <p> $bug# 508 Generated a regular expression that will match all 
+* <p> $the comscript names handled by this object.
+* <p> $Added:
+* <p> $String comscriptMatchString
+* <p> $getComscriptMatchString()
+* <p> $initializeComscriptMatchString()
+* <p> $Changed:
+* <p> $CombineComscriptState()
+* <p> $selfTest(int state)
+* <p> $
 * <p> $Revision 1.1  2004/08/19 00:36:18  sueh
 * <p> $bug# 508 adding state object for combine.com to update
 * <p> $combine.com, keep track of which commands will run,
 * <p> $and keep track of information required to run command.com
-* <p> $$ </p>
+* <p> </p>
 */
 public class CombineComscriptState implements ComscriptState {
   public static final String rcsid = "$$Id$$";
@@ -71,14 +82,15 @@ public class CombineComscriptState implements ComscriptState {
   private static final int INITIALIZED_STATE = 2;
   private static final int START_COMMAND_SET_STATE = 3;
   private static final int END_COMMAND_SET_STATE = 4;
-   
+  private static String COMSCRIPT_MATCH_STRING = null;
+  
   private int startCommand = NULL_INDEX;
   private int endCommand = NULL_INDEX;
-  private String comscriptMatchString = null;
   
+  //testing variables
+  private String notEqualsReason = null;
   private boolean selfTest = false;
-  
-  
+    
   public CombineComscriptState() {
     initializeComscriptMatchString();
     selfTest = ApplicationManager.isSelfTest();
@@ -191,8 +203,14 @@ public class CombineComscriptState implements ComscriptState {
     return WATCHED_FILES[commandIndex];
   }
   
-  public String getComscriptMatchString() {
-    return comscriptMatchString;
+  /**
+   * @return
+   */
+  public static String getComscriptMatchString() {
+    if (COMSCRIPT_MATCH_STRING == null) {
+      initializeComscriptMatchString();
+    }
+    return COMSCRIPT_MATCH_STRING;
   }
 
 
@@ -267,14 +285,19 @@ public class CombineComscriptState implements ComscriptState {
    * this object
    *
    */
-  private void initializeComscriptMatchString() {
+  private static void initializeComscriptMatchString() {
+    //match 0 or more characters and a word boundary
     StringBuffer stringBuffer = new StringBuffer(".*\\b[");
+    //match 1 or the strings in COMMANDS
     for (int i = 0; i < NUM_COMMANDS; i++) {
       stringBuffer.append("\\Q" + COMMANDS[i] + "\\E");
     }
+    //match ".com", a word boundary, and 0 or more characters
     stringBuffer.append("]\\.com\\b.*");
-    comscriptMatchString = stringBuffer.toString();
+    COMSCRIPT_MATCH_STRING = stringBuffer.toString();
   }
+  
+  //Testing code
   
   /**
    * test for incorrect member variable settings in CombineComscriptState.
@@ -286,98 +309,116 @@ public class CombineComscriptState implements ComscriptState {
       case CONSTRUCTED_STATE :
       stateString = "After construction:  ";
         if (NULL_INDEX >= 0 && NULL_INDEX < NUM_COMMANDS) {
-          throw new IllegalStateException(stateString + "NULL_INDEX="
-              + NULL_INDEX);
+          throw new IllegalStateException(stateString 
+              + "NULL_INDEX can't be a valid index number.  "              + "NULL_INDEX=" + NULL_INDEX);
         }
         if (startCommand != NULL_INDEX || endCommand != NULL_INDEX) {
-          throw new IllegalStateException(stateString + "startCommand="
-              + startCommand + ",endCommand=" + endCommand);
+          throw new IllegalStateException(stateString 
+              + "startCommand and endCommand should start as NULL_INDEX.  "
+              + "startCommand=" + startCommand + ",endCommand=" + endCommand);
         }
         if (COMMANDS.length != NUM_COMMANDS) {
-          throw new IllegalStateException(stateString + "NUM_COMMANDS="
-              + NUM_COMMANDS + ",COMMANDS.length=" + COMMANDS.length);
+          throw new IllegalStateException(stateString
+              + "NUM_COMMANDS should be equal to the size of COMMMANDS.  "
+              + "NUM_COMMANDS=" + NUM_COMMANDS + ",COMMANDS.length="
+              + COMMANDS.length);
         }
         if (WATCHED_FILES.length != NUM_COMMANDS) {
-          throw new IllegalStateException(stateString + "NUM_COMMANDS="
-              + NUM_COMMANDS + ",WATCHED_FILES.length=" + WATCHED_FILES.length);
+          throw new IllegalStateException(stateString
+              + "NUM_COMMANDS should be equal to the size of WATCHED_FILES.  "              + "NUM_COMMANDS=" + NUM_COMMANDS + ",WATCHED_FILES.length="
+              + WATCHED_FILES.length);
         }  
         if (DIALOG_PANES.length != NUM_COMMANDS) {
-          throw new IllegalStateException(stateString + "NUM_COMMANDS="
-              + NUM_COMMANDS + ",DIALOG_PANES.length=" + DIALOG_PANES.length);
+          throw new IllegalStateException(stateString
+              + "NUM_COMMANDS should be equal to the size of DIALOG_PANES.  "              + "NUM_COMMANDS=" + NUM_COMMANDS + ",DIALOG_PANES.length="
+              + DIALOG_PANES.length);
         }
-        if (comscriptMatchString == null) {
+        if (COMSCRIPT_MATCH_STRING == null) {
           throw new NullPointerException(stateString
-              + "ComscriptMatchString is null");
+              + "ComscriptMatchString cannot be null.");
         }
         String comscriptName = null;
-        System.out.println("comscriptMatchString=" + comscriptMatchString);
         for (int i = 0; i < NUM_COMMANDS; i++) {
           comscriptName = COMMANDS[i] + ".com";
-          if (!comscriptName.matches(comscriptMatchString)) {
+          if (!comscriptName.matches(COMSCRIPT_MATCH_STRING)) {
             throw new IllegalStateException(stateString
-                + "comscriptName (" + comscriptName 
-                + ") does not match comscriptMatchString("
-                + comscriptMatchString + ")");
+                + "The regular expression comscriptMatchString must match each "
+                + "comscript name.  "
+                + "comscriptMatchString'" + COMSCRIPT_MATCH_STRING 
+                + ",comscriptName=" + comscriptName);
           }
         }
         break;
         
       case INITIALIZED_STATE :
-        stateString = "After initialize";
+        stateString = "After initialize:  ";
         if (startCommand != NULL_INDEX || endCommand != NULL_INDEX) {
           if (startCommand > endCommand) {
-            throw new IllegalStateException(stateString + ": startCommand="
-                + startCommand + ",endCommand=" + endCommand);
+            throw new IllegalStateException(stateString
+                + "StartCommand and endCommand must not be NULL_INDEX.  "
+                + "startCommand=" + startCommand + ",endCommand=" + endCommand
+                + "NULL_INDEX=" + NULL_INDEX);
           }
           if (startCommand < 0 || startCommand >= NUM_COMMANDS 
               || endCommand < 0 || endCommand >= NUM_COMMANDS) {
-            throw new IndexOutOfBoundsException(stateString + ": startCommand="
-                + startCommand + ",endCommand=" + endCommand);
+            throw new IndexOutOfBoundsException(stateString
+                + "StartCommand and endCommand must be valid index values.  "
+                + "startCommand=" + startCommand + ",endCommand=" + endCommand
+                + ",NUM_COMMANDS=" + NUM_COMMANDS);
           }
         }
         break;
         
       case START_COMMAND_SET_STATE :
-      stateString = "After set start command";
+      stateString = "After set start command:  ";
         if (startCommand == NULL_INDEX) {
-          throw new IllegalStateException(stateString + ": startCommand="
-              + startCommand);
+          throw new IllegalStateException(stateString
+              + "StartCommand must not be NULL_INDEX.  "
+              + "startCommand=" + startCommand + "NULL_INDEX=" + NULL_INDEX);
         }
         if (startCommand < 0 || startCommand >= NUM_COMMANDS) {
-          throw new IndexOutOfBoundsException(stateString + ": startCommand="
-              + startCommand);
+          throw new IndexOutOfBoundsException(stateString
+              + "StartCommand must be a valid index value.  "
+              + "startCommand=" + startCommand + ",NUM_COMMANDS=" 
+              + NUM_COMMANDS);
         }
         break;
         
       case END_COMMAND_SET_STATE :
-        stateString = "After set end command";
+        stateString = "After set end command:  ";
         if (endCommand == NULL_INDEX) {
-          throw new IllegalStateException(stateString + ": endCommand=" 
-              + endCommand);
+          throw new IllegalStateException(stateString
+          + "EndCommand must not be NULL_INDEX.  "
+          + "endCommand=" + endCommand + "NULL_INDEX=" + NULL_INDEX);
         }
         if (endCommand < 0 || endCommand >= NUM_COMMANDS) {
-          throw new IndexOutOfBoundsException(stateString + ": endCommand="
-              + endCommand);
+          throw new IndexOutOfBoundsException(stateString
+          + "EndCommand must be a valid index value.  "
+          + "endCommand=" + endCommand + ",NUM_COMMANDS=" + NUM_COMMANDS);
         }
         if (endCommand != VOLCOMBINE_INDEX && endCommand != MATCHORWARP_INDEX) {
           throw new IllegalStateException(stateString 
-              + ":  EndCommand can only be volcombine or"
-              + "matchorwarp.  EndCommand=" + endCommand);
+              + "EndCommand can only refer to volcombine or matchorwarp.  "
+              + "endCommand=" + endCommand + ",VOLCOMBINE_INDEX="
+              + VOLCOMBINE_INDEX+ ",MATCHORWARP_INDEX=" + MATCHORWARP_INDEX);
         }
         if (endCommand < VOLCOMBINE_INDEX && isRunVolcombine()) {
           throw new IllegalStateException(stateString
-              + ": IsRunVolcombine incorrectly returned "
-              + "true.  EndCommand=" + endCommand);
+              + "IsRunVolcombine() should not be true when endCommand is less "              + "then" + "VOLCOMBINE_INDEX.  "
+              + "endCommand=" + endCommand + ",VOLCOMBINE_INDEX=" 
+              + VOLCOMBINE_INDEX);
         }
         if (endCommand >= VOLCOMBINE_INDEX && !isRunVolcombine()) {
           throw new IllegalStateException(stateString
-              + ": IsRunVolcombine incorrectly returned "
-              + "false.  EndCommand=" + endCommand);
+              + "IsRunVolcombine() should not be false when endCommand is "
+              + "greater or equal to" + "VOLCOMBINE_INDEX.  "
+              + "endCommand=" + endCommand + ",VOLCOMBINE_INDEX=" 
+              + VOLCOMBINE_INDEX);
         }
         break;
         
       default :
-        throw new IllegalStateException("state=" + state);
+        throw new IllegalStateException("Unknown state.  state=" + state);
     }
   }
 
@@ -392,4 +433,24 @@ public class CombineComscriptState implements ComscriptState {
     }
     selfTest(state);
   }
+  
+  public boolean equals(CombineComscriptState that) {
+    if (startCommand != that.startCommand) {
+      notEqualsReason = "StartCommand is not equal.  this.startCommand="
+          + startCommand + ",that.startCommand=" + that.startCommand;
+      return false;
+    }
+    if (endCommand != that.endCommand) {
+      notEqualsReason = "EndCommand is not equal.  this.endCommand="
+          + endCommand + ",that.endCommand=" + that.endCommand;
+      return false;
+    }
+    notEqualsReason = null;
+    return true;
+  }
+  
+  public String getNotEqualsReason() {
+    return notEqualsReason;
+  }
+
 }
