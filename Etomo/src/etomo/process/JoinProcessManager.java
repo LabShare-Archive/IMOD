@@ -27,6 +27,10 @@ import etomo.type.JoinMetaData;
 * @version $Revision$
 *
 * <p> $Log$
+* <p> Revision 1.4  2004/11/23 22:31:17  sueh
+* <p> bug# 520 changing postProcess(BackgroundProcess) to delete output
+* <p> files when the Flipyx was killed
+* <p>
 * <p> Revision 1.3  2004/11/20 01:58:33  sueh
 * <p> bug# 520 Passing exitValue to postProcess(BackgroundProcess).
 * <p>
@@ -90,6 +94,7 @@ import etomo.type.JoinMetaData;
 public class JoinProcessManager extends BaseProcessManager {
   public static final String rcsid = "$Id$";
 
+  private static final String startjoinComscriptName = "startjoin.com";
   JoinManager joinManager;
   
   public JoinProcessManager(JoinManager joinMgr) {
@@ -140,8 +145,7 @@ public class JoinProcessManager extends BaseProcessManager {
    * Run the startjoin com file
    */
   public String startjoin() throws SystemProcessException {
-    String command = "startjoin.com";
-    ComScriptProcess comScriptProcess = startComScript(command,
+    ComScriptProcess comScriptProcess = startComScript(startjoinComscriptName,
       null, AxisID.ONLY);
     return comScriptProcess.getName();
   }
@@ -159,13 +163,23 @@ public class JoinProcessManager extends BaseProcessManager {
     startSystemProgramThread(commandArray);
   }
 
-  protected void postProcess(ComScriptProcess script) {
+  protected void postProcess(ComScriptProcess process) {
+    System.out.println("postProcess");
+    String commandName = process.getComScriptName();
+    if (commandName == null) {
+      return;
+    }
+    if (commandName.equals(startjoinComscriptName)) {
+      joinManager.getJoinMetaData().setSampleProduced(true);
+      joinManager.saveMetaData();
+      joinManager.setMode();
+    }
   }
   
   /**
    * non-generic post processing for a successful BackgroundProcess.
    */
-  protected void postProcess(BackgroundProcess process, int exitValue) {
+  protected void postProcess(BackgroundProcess process) {
     String commandName = process.getCommandName();
     if (commandName == null) {
       return;
@@ -175,15 +189,7 @@ public class JoinProcessManager extends BaseProcessManager {
       return;
     }
     if (commandName.equals(FlipyzParam.getName())) {
-      File outputFile = command.getOutputFile();
-      if (exitValue == 0) {
-        joinManager.addSection(outputFile);
-      }
-      else {
-        //A partially created flip file can cause an error when it is opened.
-        outputFile.delete();
-        joinManager.abortAddSection();
-      }
+      joinManager.addSection(command.getOutputFile());
     }
     else if (commandName.equals(XfalignParam.getName())) {
       joinManager.copyXfFile(command.getOutputFile());
@@ -221,11 +227,6 @@ public class JoinProcessManager extends BaseProcessManager {
         joinManager.saveMetaData();
       }
     }
-    else if (commandName.equals(MakejoincomParam.getName())) {
-      joinManager.getJoinMetaData().setSampleProduced(true);
-      joinManager.saveMetaData();
-      joinManager.setMode();
-    }
   }
   
   protected void errorProcess(BackgroundProcess process) {
@@ -233,10 +234,34 @@ public class JoinProcessManager extends BaseProcessManager {
     if (commandName == null) {
       return;
     }
+    Command command = process.getCommand();
+    if (command == null) {
+      return;
+    }
     if (commandName.equals(XfalignParam.getName())) {
       joinManager.enableMidas();
     }
     else if (commandName.equals(MakejoincomParam.getName())) {
+      joinManager.getJoinMetaData().setSampleProduced(false);
+      joinManager.saveMetaData();
+      joinManager.setMode();
+    }
+    else if (commandName.equals(FlipyzParam.getName())) {
+      File outputFile = command.getOutputFile();
+      //A partially created flip file can cause an error when it is opened.
+      if (outputFile != null) {
+        outputFile.delete();
+      }
+      joinManager.abortAddSection();
+    }
+  }
+  
+  protected void errorProcess(ComScriptProcess process) {
+    String commandName = process.getComScriptName();
+    if (commandName == null) {
+      return;
+    }
+    if (commandName.equals(startjoinComscriptName)) {
       joinManager.getJoinMetaData().setSampleProduced(false);
       joinManager.saveMetaData();
       joinManager.setMode();
