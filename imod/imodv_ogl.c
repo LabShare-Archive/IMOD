@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2001/12/05 15:42:31  mast
+    Fixed problem with transparency when lighting both sides
+
 */
 
 #include <stdlib.h>
@@ -1529,10 +1532,11 @@ void imodvDrawScalarMesh(Imesh *mesh, double zscale,
      if (obj->flags & IMOD_OBJFLAG_MCOLOR)
 	  falsecolor = True;
 
+     /* DNM 9/3/02: This was an endian problem after all */
      /* DNM: this initialization was needed on the PC.  There are models
       running around with 0 in this spot, which made PC display regular mesh */
-     if (!ub[1])
-	  ub[1] = 255;
+     /* if (!ub[1])
+	ub[1] = 255; */
      blacklevel = ub[0];
      whitelevel = ub[1];
      brightness = ub[0] - 128;
