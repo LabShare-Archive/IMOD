@@ -154,6 +154,10 @@ typedef struct ViewInfo
   Imod  *imod;
   Iobj  *extraObj;
 
+  /* storage for list of line pointers */
+  unsigned char **linePtrs;
+  int linePtrMax;
+
   /* Extra Window Data. */
   /* 12/7/02: zap not needed; 12/10/02 xyz not needed either */
   Autox  *ax;
@@ -199,6 +203,7 @@ extern QString Imod_cwdpath;
 extern QString Imod_IFDpath;
 
 extern int Rampbase;
+extern int (*ivwFastGetValue)(int x, int y, int z);
 
 /*****************************************************************************/
 
@@ -248,7 +253,11 @@ char *imodwEithername(char *intro, char *filein, int modelFirst);
 char *imodwGivenName(char *intro, char *filein);
 QString imodCaption(char *intro);
 
-unsigned char *ivwGetCurrentSection(ImodView *iv);
+unsigned char **ivwGetCurrentSection(ImodView *iv);
+unsigned char **ivwMakeLinePointers(ImodView *iv, unsigned char *data,
+                                    int xsize, int ysize, int mode);
+int ivwSetupFastAccess(ImodView *vi, unsigned char ***outImdata,
+                       int inNullvalue, int *cacheSum);
 int ivwInitCache(ImodView *vi);
 
 void ivwBindMouse(ImodView *vw);
@@ -279,6 +288,9 @@ void ivwReadZ(ImodView *iv, unsigned char *buf, int cz);
 
 /*
 $Log$
+Revision 3.17  2003/09/13 04:31:08  mast
+Add a define for the size of the global array with model filename
+
 Revision 3.16  2003/06/27 19:25:02  mast
 Add extra object
 
