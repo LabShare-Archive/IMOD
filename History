@@ -1,5 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/10/04: Fixed a bug causing local alignments to be scaled erroneously 
+in Tilt (typically by 2-10%).
+
+10/8/04: Fixed Tiltalign's failure to give both model and residual output with 
+a filename containing a period.
+
 10/7/04: IMOD_3-4-10
 10/7/04: Fixed mtk to work with model built on image with pixel size in header.
 
