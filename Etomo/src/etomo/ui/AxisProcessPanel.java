@@ -24,6 +24,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.1  2003/01/27 23:54:07  rickg
+ * <p> Align process panel along top
+ * <p>
  * <p> Revision 2.0  2003/01/24 20:30:31  rickg
  * <p> Single window merge to main branch
  * <p>
@@ -36,7 +39,8 @@ import etomo.type.AxisID;
  */
 
 public class AxisProcessPanel implements ContextMenu {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
 
   private ApplicationManager applicationManager;
   private AxisID axisID;
@@ -48,6 +52,7 @@ public class AxisProcessPanel implements ContextMenu {
 
   //  Progress panel
   ProgressPanel progressPanel = new ProgressPanel("");
+  JButton buttonKillProcess = new JButton("Kill Process");
 
   //  Process select panel
   private JPanel panelProcessSelect = new JPanel();
@@ -73,14 +78,17 @@ public class AxisProcessPanel implements ContextMenu {
     axisID = axis;
 
     //  Create the status panel
+    buttonKillProcess.addActionListener(new KillButtonActionListener(this));
+    buttonKillProcess.setEnabled(false);
     panelStatus.add(progressPanel.getContainer());
+    panelStatus.add(buttonKillProcess);
 
     //  Create the process control panel    
     createProcessControlPanel();
 
     panelProcessSelect.setAlignmentY(Component.TOP_ALIGNMENT);
     panelProcessInfo.setAlignmentY(Component.TOP_ALIGNMENT);
-    
+
     // panel layout structure
     //    panelProcessInfo.setLayout(
     //      new BoxLayout(panelProcessInfo, BoxLayout.Y_AXIS));
@@ -119,6 +127,11 @@ public class AxisProcessPanel implements ContextMenu {
   public void stopProgressBar() {
     progressPanel.stop();
   }
+
+  void buttonKillAction(ActionEvent event) {
+    applicationManager.interrupt(axisID);
+  }
+
   /**
    * Invoke the appropriate ApplicationManager method for the button press
    */
@@ -328,5 +341,19 @@ class ProcessButtonActionListener implements ActionListener {
   }
   public void actionPerformed(ActionEvent event) {
     adaptee.buttonProcessAction(event);
+  }
+}
+
+/**
+ * Action listener to handle process kill
+ */
+class KillButtonActionListener implements ActionListener {
+  AxisProcessPanel adaptee;
+
+  KillButtonActionListener(AxisProcessPanel adaptee) {
+    this.adaptee = adaptee;
+  }
+  public void actionPerformed(ActionEvent event) {
+    adaptee.buttonKillAction(event);
   }
 }
