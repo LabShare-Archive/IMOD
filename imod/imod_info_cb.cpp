@@ -53,8 +53,8 @@ Log at end of file
 #include "control.h"
 
 extern "C" {
-int sampleMeanSD(unsigned char *image, int type, int nx, int ny, float sample, 
-                 float matt, float *mean, float *sd);
+int sampleMeanSD(unsigned char **image, int type, int nx, int ny,
+                 float sample, float matt, float *mean, float *sd);
 }
 
 /* Global variable: the forbid level, hope to eliminate */
@@ -389,7 +389,7 @@ int imod_info_bwfloat(ImodView *vw, int section, int time)
   int save_ref_sec,save_ref_black, save_ref_white, save_ref_time;
   int needsize, iref, isec;
   float sloperatio;
-  unsigned char *image;
+  unsigned char **image;
   int retval = 0;
 
   if (float_on) {
@@ -624,6 +624,9 @@ void imod_imgcnt(char *string)
 
 /*
 $Log$
+Revision 4.6  2003/04/18 20:14:57  mast
+In function that reports loading, add test for exiting
+
 Revision 4.5  2003/03/26 23:23:15  mast
 switched from hotslider.h to preferences.h
 
