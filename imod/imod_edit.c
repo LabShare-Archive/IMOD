@@ -26,6 +26,14 @@
  *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 
 #include <math.h>
 #include "imod.h"
@@ -104,43 +112,8 @@ int ivwRedraw(ImodView *vw)
 }
 
 
-/* used only by xyz window */
-int imod_nearest(Imod *mod)
-{
-     Ipoint pnt;
-     struct Mod_Index index;
-     int i;
-     int distance = -1;
-     int temp_distance;
-     int x,y;
+/* DNM 1/23/02: deleted  imod_nearest, was used only by xyz window */
 
-     b3dGetMouseWindowCoord( &x, & y);
-     pnt.x = x; pnt.y = y; pnt.z = XYZ_vi->zmouse;
-
-     mod->cindex.contour = -1;
-     mod->cindex.point   = -1;
-
-     for (i = 0; i < mod->objsize; i++){
-	  index.object = i;
-	  temp_distance = imod_obj_nearest( &(mod->obj[i]), &index , &pnt, 
-					    1.0);
-	  if (temp_distance == -1)
-	       continue;
-	  if (distance == -1){
-	       distance      = temp_distance;
-	       mod->cindex.object  = index.object;
-	       mod->cindex.contour = index.contour;
-	       mod->cindex.point   = index.point;
-	  }
-	  if (distance > temp_distance){
-	       distance      = temp_distance;
-	       mod->cindex.object  = index.object;
-	       mod->cindex.contour = index.contour;
-	       mod->cindex.point  = index.point;
-	  }
-     }
-     return(distance);
-}
 
 /* DNM 6/17/01: pass the selection size as a parameter so that windows can
    make it zoom-dependent */
