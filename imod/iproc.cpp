@@ -76,14 +76,14 @@ static void anisoDiff_cb();
 
 /* The table of entries and callbacks */
 ImodIProcData proc_data[] = {
-  {"Fourier filter", fourFilt_cb, mkFourFilt_cb, NULL},
   {"FFT", fft_cb, mkFFT_cb, NULL},
-  {"edge", edge_cb, mkedge_cb, NULL},
-  {"threshold", thresh_cb, mkthresh_cb, NULL},
+  {"Fourier filter", fourFilt_cb, mkFourFilt_cb, NULL},
   {"smooth", smooth_cb, NULL, "Smooth Image."},
   {"median", median_cb, mkMedian_cb, NULL},
   {"diffusion", anisoDiff_cb, mkAnisoDiff_cb, NULL},
+  {"edge", edge_cb, mkedge_cb, NULL},
   {"sharpen", sharpen_cb, NULL, "Sharpen Edges."},
+  {"threshold", thresh_cb, mkthresh_cb, NULL},
   {"dilation", grow_cb, NULL, "Grow Threshold Area."},
   {"erosion", shrink_cb, NULL, "Shrink Threshold Area."},
   NULL,
@@ -500,11 +500,6 @@ static void savesec(ImodIProc *ip)
   for (j = 0; j < ip->vi->ysize; j++)
     for (i = 0; i < ip->vi->xsize; i++)
       *to++ = *to2++ = from[j][i];
-
-  // Make sure there is floating info for this data so it can be saved when
-  // it is cleared
-  imod_info_bwfloat(ip->vi, ip->idatasec, ip->idatatime);
-  imodInfoSaveNextClear();
 }
 
 
@@ -954,6 +949,11 @@ void IProcWindow::apply()
     ip->idatatime = ip->vi->ct;
     savesec(ip);
   }
+
+  // Make sure there is floating info for this data so it can be saved when
+  // it is cleared
+  imod_info_bwfloat(ip->vi, ip->idatasec, ip->idatatime);
+  imodInfoSaveNextClear();
     
   /* Operate on the original data */
   startProcess();
@@ -1095,6 +1095,9 @@ void IProcThread::run()
 /*
 
     $Log$
+    Revision 4.16  2005/02/10 00:12:00  mast
+    Fixed allocation of diffusion arrays to be right when not square
+
     Revision 4.15  2005/01/28 05:39:59  mast
     Added anisotropic diffusion
 
