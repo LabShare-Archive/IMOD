@@ -18,6 +18,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.7  2005/03/02 00:11:02  sueh
+ * bug# 611 Added mag gradients correction file.
+ *
  * Revision 3.6  2005/01/14 02:58:44  sueh
  * Prevented non-error messages from showing up in the err.log  file unless
  * debug is on.
@@ -197,12 +200,15 @@ public class CopyTomoComs {
   }
 
   private void genOptions() {
+    boolean montage = false;
+    boolean gradient = false;
     options = new Vector();
     //  Dataset name
     options.add("-name " + metaData.getDatasetName());
     //  View type: single or montaged
     if (metaData.getViewType() == ViewType.MONTAGE) {
       options.add("-montage");
+      montage = true;
     }
     //  Backup directory
     String backupDirectory = metaData.getBackupDirectory();
@@ -252,7 +258,14 @@ public class CopyTomoComs {
     String magGradientFile = metaData.getMagGradientFile();
     if (!magGradientFile.equals("")) {
       options.add("-gradient " + magGradientFile);
+      gradient = true;
+      //It is only necessary to know if the focus was adjusted between montages
+      //if a mag gradients correction file is being used.
+      if (montage && metaData.getAdjustedFocusA().is()) {
+        options.add("-focus");
+      }
     }
+
     //  Axis type: single or dual
     if (metaData.getAxisType() == AxisType.DUAL_AXIS) {
       options.add("-dual");
@@ -277,6 +290,9 @@ public class CopyTomoComs {
       excludeProjections = metaData.getExcludeProjectionsB();
       if (!excludeProjections.equals("")) {
         options.add("-bskip " + excludeProjections);
+      }
+      if (montage && gradient && metaData.getAdjustedFocusB().is()) {
+        options.add("-bfocus");
       }
     }
     // Options removed:
