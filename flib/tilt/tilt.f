@@ -184,7 +184,8 @@ C	  ------
 C	  This line allows an offset of DELANG degrees to be applied to all
 c	  tilt angles and indicates that the tilt axis is offset in the
 c	  projection images, cutting the X-axis at  NX/2. + DELXX instead of
-c	  NX/2.  DELANG positive rotates reconstructed sections anticlockwise
+c	  NX/2.  DELANG positive rotates reconstructed sections anticlockwise.
+c	  The DELXX entry is optional and defaults to 0 when omitted.
 C
 C	  PERPENDICULAR or  PARALLEL
 C	  ------
@@ -223,7 +224,8 @@ C	  This line allows one to shift the reconstructed slice in X or Z
 c	  before it is output.  If XOFFSET is positive, the slice will be
 c	  shifted to the right, and the output will contain the left part of
 c	  the whole potentially reconstructable area.  If ZOFFSET is positive,
-c	  the slice is shifted upward.
+c	  the slice is shifted upward.  The ZOFFSET entry is optional and
+c	  defaults to 0 when omitted.
 C	  
 C	  SLICE   ISLICE JSLICE IDELSLICE
 C	  ------
@@ -231,7 +233,8 @@ C	  This line allows a limited part of the map to be reconstructed and
 c	  is useful for test purposes. A slab from column ISLICE to column
 c	  JSLICE (that is, along the medium axis, perpendicular to the tilt
 c	  axis) of the volume is reconstructed, at intervals of IDELSLICE.
-c	  Slices are numbered from 0.
+c	  Slices are numbered from 0.  The IDELSLICE entry is optional and
+c	  defaults to 1 when omitted.
 C
 C	  SUBSETSTART IX IY
 C	  ------
@@ -341,6 +344,12 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.11  2003/08/02 22:36:49  mast
+c	  Revert from the version that padded thickness for x-axis tilting now
+c	  that fbp takes care of this.
+c	  Limit stack usage so that when loaded data is bigger than a certain
+c	  size, only enough is loaded to reconstruct 10 output slices.
+c	
 c	  Revision 3.8  2003/04/29 23:33:54  mast
 c	  Set default for radial filter and increase thickness limit
 c	
