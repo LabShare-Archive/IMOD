@@ -33,7 +33,7 @@ import etomo.type.AxisID;
  * 
  * <p>Upgrading:
  * 
- * Adding a member variable that is changed only during the construction and
+ * Adding a state variable that is changed only during the construction and
  * initialization phase:
  * 1. For a variable called "foo", create ImodState members and methods:
  *    - A foo variable, set to a default value
@@ -44,9 +44,12 @@ import etomo.type.AxisID;
  *    - The setFoo function should:
  *        Do nothing if fooSet is true.
  *        Set fooSet to true.
- * 2. Pass the variable's value to ImodProcess either when set or in open().
+ * 2. If the state can change ImodProcess.open(), create a variable for it in
+ *    ImodProcess.  Pass the state variable's value to ImodProcess either when
+ *    set or in open().
+ * 3. Decide whether to create a "using" variable.  See Rules for upgrading 5-6.
  * 
- * Adding a member variable that is set during the construction and
+ * Adding a state variable that is set during the construction and
  * initialization phase and also changed later:
  * 1. For a variable called "foo", create ImodState members and methods:
  *    - A foo variable
@@ -59,26 +62,34 @@ import etomo.type.AxisID;
  *        Do nothing if initialFooSet is true.
  *        Set foo = initialFoo.
  *        Set initialFooSet to true.
- * 2. Pass the variable's value to ImodProcess either when set or in open().
+ * 2. If the state can change ImodProcess.open(), create a variable for it in
+ *    ImodProcess.  Pass the state variable's value to ImodProcess either when
+ *    set or in open().
  * 3. Change ImodState.reset():
  *    Set foo = initialFoo.
+ * 4. Decide whether to create a "using" variable.  See Rules for upgrading 5-6.
  * 
- * Adding a member variable that is only changed during opening and modeling:
+ * Adding a state variable that is only changed during opening and modeling:
  * 1. For a variable called "foo", create ImodState members and methods:
  *    - A foo variable
  *    - A get or is function for foo.
  *    - A set function for foo.
  *    - A static final defaultFoo variable, set to a default value
  *    - A get or is function for defaultFoo
- * 2. Pass the variable's value to ImodProcess either when set or in open().
+ * 2. If the state can change ImodProcess.open(), create a variable for it in
+ *    ImodProcess.  Pass the state variable's value to ImodProcess either when
+ *    set or in open().
  * 3. Change ImodState.reset():
  *    Set foo = defaultFoo.
+ * 4. Decide whether to create a "using" variable.  See Rules for upgrading 5-6.
  * 
- * Adding a member variable that holds the last value the user gave:
- * 1. Place the variable in ImodProcess.  ImodState doesn't need to know about
- *    it.
- * 2. Pass the variable's value to ImodProcess when set.
- * 3. If ImodState has to know about in, don't change it in reset().
+ * Adding a state variable that holds the last value the user gave (binning):
+ * 1. If the state can only be passed only on 3dmod command line.  ImodState 
+ *     doesn't need to remember it in this case.
+ * 2. If the state can change ImodProcess.open(), create a variable for it in
+ *    ImodProcess.  Pass the state variable's value to ImodProcess either when
+ *    set or in open().
+ * 3. If ImodState has to remember it, don't change it in reset().
  * </p>
  * 
  * <p>Rules for upgrading:
@@ -90,6 +101,14 @@ import etomo.type.AxisID;
  *    need to be in ImodState.  If they are, reset() shouldn't change them.
  * 4. Variables that are only changed during opening and modelling should be set
  *    to their default value in reset().
+ * 5. Default variables and the default value of Initial variables should match
+ *    3dmod's default state.
+ * 6. If 3dmod can be changed back to the default state with a message, consider
+ *    creating a "using" variable.  When a using variable is on, the message
+ *    based on the corresponding state variable is always sent.  "Using"
+ *    variables should be turned on whenever the corresponding state variable is
+ *    changed.  "Using" variables should never be turned off.  See usingMode and
+ *    usingOpenContours.
  * </p>
  * 
  * <p>Current types of state information as of 6/9/04:
@@ -100,15 +119,30 @@ import etomo.type.AxisID;
  * States information that changes during opening and modeling:
  *   Settings that are set during construction and initialization:
  *   - modelName
- *   - useMode
  *   - mode
  *   - swapYZ
  *   State information that is not set during construction and initialization:
- *   - openWithModel
  *   - preserveContrast
+ *   - openContours
  * State information that is controlled by the user
  * - whether 3dmod running
  * - binning
+ * 
+ * ImodState's relationship with ImodProcess:
+ * State variable will also exist in ImodProcess because they cause the the
+ * 3dmod command line to change:
+ * - If preserveContrast is true, ImodProcess.openWithModel should be false.
+ *     This is because there is no preserve contrast option to pass to 3dmod
+ *     when it is opened.
+ * - modelName corresponds to ImodProcess.modelName.
+ * - swapYZ corresponds to ImodProcess.swapYZ.
+ * - modelView corresponds to ImodProcess.modelView.
+ * - useModv corresponds to ImodProcess.useModv.
+ * ImodState has set functions for these but does not keep a state variable
+ * because the user controls their settings:
+ * - ImodProcess.binning
+ * - ImodProcess.workingDirectory
+ * 
  * </p>
  * <p>Copyright: Copyright(c) 2002, 2003</p>
  * 
@@ -136,6 +170,9 @@ import etomo.type.AxisID;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.16  2004/06/17 01:31:04  sueh
+ * <p> $bug# 471 fixing how model name is set in ImodProcess
+ * <p> $
  * <p> $Revision 1.15  2004/06/10 18:28:59  sueh
  * <p> $bug# 463 openBeadFixer - a current state variable with no initial
  * <p> $value.  Add message to open bead fixer in open().
@@ -217,30 +254,33 @@ public class ImodState {
   //current state information
   //reset to initial state
   private String modelName;
-  private boolean useMode;
   private int mode;
   private boolean swapYZ;
   //reset to default state
-  private boolean openWithModel;
   private boolean preserveContrast;
   private boolean openBeadFixer;
+  private boolean openContours;
+  
+  //signals that a state variable has been changed at least once, so the
+  //corrosponding message must always be sent
+  private boolean usingMode = false;
+  private boolean usingOpenContours = false;
   
   //reset values
   //initial state information
   private String initialModelName = "";
-  private boolean initialUseMode = false;
   private int initialMode = MOVIE_MODE;
   private boolean initialSwapYZ = false;
   //default state information
   private static final boolean defaultOpenWithModel = false;
   private static final boolean defaultPreserveContrast = false;
   private static final boolean defaultOpenBeadFixer = false;
+  private static final boolean defaultOpenContours = false;
     
   //internal state information
   private ImodProcess process = null;
   private boolean warnedStaleFile = false;
   //initial state information
-  boolean initialUseModeSet = false;
   boolean initialModeSet = false;
   boolean initialSwapYZSet = false;
 
@@ -361,13 +401,6 @@ public class ImodState {
   public void open() throws SystemProcessException, NullPointerException{
     //process is not running
     if (!process.isRunning()) {
-      //set configuration
-      if (openWithModel) {
-        if (modelName == null) {
-          throw new NullPointerException("modelName is empty in " + toString()); 
-        }
-        process.setModelName(modelName);
-      }
       //open
       process.open();
       warnedStaleFile = false;
@@ -375,14 +408,13 @@ public class ImodState {
       if (openBeadFixer) {
         process.setOpenBeadFixerMessage();
       }
-      //open model
-      if (!openWithModel && modelName != null && modelName.matches("\\S+")) {
-        if (preserveContrast) {
-          process.setOpenModelPreserveContrastMessage(modelName);
-        }
-        else {
-          process.setOpenModelMessage(modelName);
-        }
+      //model will be opene
+      if (modelName != null && modelName.matches("\\S+") && preserveContrast) {
+        process.setOpenModelPreserveContrastMessage(modelName);
+      }
+      //This message can only be sent after opening the model
+      if (usingOpenContours) {
+        process.setNewContoursMessage(openContours);
       }
     }
     else {
@@ -407,9 +439,13 @@ public class ImodState {
           process.setOpenModelMessage(modelName);
         }
       }
+      //This message can only be sent after opening the model
+      if (usingOpenContours) {
+        process.setNewContoursMessage(openContours);
+      }
     }
     //set mode
-    if (useMode) {
+    if (usingMode) {
       if (mode == MODEL_MODE) {
         process.setModelModeMessage();
       }
@@ -436,7 +472,6 @@ public class ImodState {
   
   public void open(String modelName, boolean modelMode) throws SystemProcessException {
     setModelName(modelName);
-    useMode = true;
     setModelMode(modelMode);
     open();
   } 
@@ -476,13 +511,13 @@ public class ImodState {
   protected void reset() {
     //reset to initial state
     setModelName(initialModelName);
-    useMode = initialUseMode;
     mode = initialMode;
     swapYZ = initialSwapYZ;
     //reset to default state
-    openWithModel = defaultOpenWithModel;
     preserveContrast = defaultPreserveContrast;
+    process.setOpenWithModel(!preserveContrast);
     openBeadFixer = defaultOpenBeadFixer;
+    openContours = defaultOpenContours;
   }
 
   protected String getModeString(int mode) {
@@ -534,18 +569,45 @@ public class ImodState {
   }
   
   /**
-   * @return useMode
+   * @return usingMode
    */
-  public boolean isUseMode() {
-    return useMode;
+  public boolean isUsingMode() {
+    return usingMode;
   }
   /**
-   * @param useMode
+   * @param usingMode
    */
-  public void setUseMode(boolean useMode){
-    this.useMode = useMode;
+  public void setUsingMode(boolean usingMode){
+    this.usingMode = usingMode;
   }
   
+  /**
+   * @return usingOpenContours
+   */
+  public boolean isUsingOpenContours() {
+    return usingOpenContours;
+  }
+  /**
+   * @param usingOpenContour
+   */
+  public void setUsingOpenContours(boolean usingOpenContours){
+    this.usingOpenContours = usingOpenContours;
+  }
+  
+  /**
+   * @return openContours
+   */
+  public boolean isOpenContours() {
+    return openContours;
+  }
+  /**
+   * @param usingOpenContour
+   */
+  public void setOpenContours(boolean openContours){
+    this.openContours = openContours;
+    usingOpenContours = true;
+  }
+
   /**
    * @return
    */
@@ -562,6 +624,7 @@ public class ImodState {
    * set the mode to model or movie.
    */
   public void setMode(int mode) {
+    usingMode = true;
     this.mode = mode;
   }
   /**
@@ -569,6 +632,7 @@ public class ImodState {
    * @param modelMode
    */
   private void setModelMode(boolean modelMode) {
+    usingMode = true;
     if (modelMode) {
       mode = MODEL_MODE;
     }
@@ -592,19 +656,6 @@ public class ImodState {
   }
 
   /**
-   * @return openWithModel
-   */
-  public boolean isOpenWithModel() {
-    return openWithModel;
-  }
-  /**
-   * @param openWithModel
-   */
-  public void setOpenWithModel(boolean openWithModel) {
-    this.openWithModel = openWithModel;
-  }
-  
-  /**
    * @return preserveContrast
    */
   public boolean isPreserveContrast() {
@@ -615,6 +666,7 @@ public class ImodState {
    */
   public void setPreserveContrast(boolean preserveContrast) {
     this.preserveContrast = preserveContrast;
+    process.setOpenWithModel(!preserveContrast);
   }
   
   /**
@@ -637,24 +689,6 @@ public class ImodState {
    */
   public String getInitialModelName() {
     return initialModelName;
-  }
-  
-  /**
-   * @return initialUseMode
-   */
-  public boolean isInitialUseMode() {
-    return initialUseMode;
-  }
-  /**
-   * @param initialUseMode
-   */
-  public void setInitialUseMode(boolean initialUseMode) {
-    if (initialUseModeSet) {
-      return;
-    }
-    this.initialUseMode = initialUseMode;
-    setUseMode(initialUseMode);
-    initialUseModeSet = true;
   }
   
   /**
@@ -758,24 +792,26 @@ public class ImodState {
     params.add("useModv=" + isUseModv());
     
     params.add("modelName=" + getModelName());
-    params.add("useMode=" + isUseMode());
+    params.add("usingMode=" + isUsingMode());
     params.add("mode=" + getModeString());
     
     params.add("swapYZ=" + isSwapYZ());
-    params.add("openWithModel=" + isOpenWithModel());
     params.add("preserveContrast=" + isPreserveContrast());
     
     params.add("openBeadFixer=" + isOpenBeadFixer());
     params.add("initialModelName=" + getInitialModelName());
-    params.add("initialUseMode=" + isInitialUseMode());
-    
     params.add("initialMode=" + getInitialModeString());
+    
     params.add("initialSwapYZ=" + isInitialSwapYZ());
     params.add("defaultOpenWithModel=" + isDefaultOpenWithModel());
-    
     params.add("defaultPreserveContrast=" + isDefaultPreserveContrast());
+    
     params.add("process=" + process.toString());
     params.add("warnedStaleFile=" + isWarnedStaleFile());
+    params.add("usingOpenContours=" + isUsingOpenContours());
+    
+    params.add("openContours=" + isOpenContours());
+    
     return params.toString();
   }
   
@@ -789,7 +825,6 @@ public class ImodState {
         && modelView == imodState.isModelView()
         && useModv == imodState.isUseModv()
         && initialModelName.equals(imodState.getInitialModelName())
-        && initialUseMode == imodState.isInitialUseMode()
         && initialMode == imodState.getInitialMode()
         && initialSwapYZ == imodState.isInitialSwapYZ()) {
       return true;
@@ -807,10 +842,11 @@ public class ImodState {
         && modelView == imodState.isModelView()
         && useModv == imodState.isUseModv()
         && modelName.equals(imodState.getModelName())
-        && useMode == imodState.isUseMode()
+        && usingMode == imodState.isUsingMode()
+        && usingOpenContours == imodState.isUsingOpenContours()
+        && openContours == imodState.isOpenContours()
         && mode == imodState.getMode()
         && swapYZ == imodState.isSwapYZ()
-        && openWithModel == imodState.isOpenWithModel()
         && preserveContrast == imodState.isPreserveContrast()
         && openBeadFixer == imodState.isOpenBeadFixer()) {
       return true;
