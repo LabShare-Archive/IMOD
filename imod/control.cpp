@@ -406,7 +406,19 @@ void DialogManager::hide()
       dia->iconified = 0;
     else {
       dia->iconified = 1;
+
+      // This was showMinimized for everyone originally; worked fine on
+      // Windows and Linux under Qt 3.0.5, didn't work on SGI because the boxes
+      // didn't come back up.  Then the boxes didn't come up under RH 9 
+      // (Qt 3.1), so switched to hide, which works on Linux, SGI, and Windows
+      // and has the advantage of producing a since icon.
+      // But on the Mac it made the main imodv window bounce back out!
+      // showNormal and show are interchangeable for getting back up
+#ifdef Q_OS_MACX
       dia->widget->showMinimized();
+#else
+      dia->widget->hide();
+#endif
     }
     dia = (ImodvDialog *)ilistNext(mDialogList);
   }
@@ -451,6 +463,9 @@ void DialogManager::raise(int dlgClass)
 
 /*
 $Log$
+Revision 4.6  2003/05/23 02:45:46  mast
+Added a function to raise managed windows
+
 Revision 4.5  2003/05/18 22:08:48  mast
 Changes to add an application icon
 
