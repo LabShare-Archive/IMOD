@@ -74,6 +74,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.19  2004/03/06 00:22:39  sueh
+ * <p> bug# 250 changed updateCombineCom() - remove duplicate code - call
+ * <p> updateCombineCom(int) with NO_TAB
+ * <p>
  * <p> Revision 3.18  2004/03/05 18:26:55  sueh
  * <p> bug# 250 changed patchcorrCombine() - updating CombineParams
  * <p> changed updateCombineCom(int) - change the parameter name because
@@ -625,7 +629,7 @@ public class ApplicationManager {
   private boolean isDataParamDirty = false;
   private String homeDirectory;
   private static File IMODDirectory;
-
+  private static File IMODCalibDirectory;
   private UserConfiguration userConfig = new UserConfiguration();
   private MetaData metaData = new MetaData();
   private File paramFile = null;
@@ -4152,7 +4156,7 @@ public class ApplicationManager {
     // Get the HOME directory environment variable to find the program
     // configuration file
     homeDirectory = System.getProperty("user.home");
-    if (homeDirectory == "") {
+    if (homeDirectory.equals("")) {
       String[] message = new String[2];
       message[0] =
         "Can not find home directory! Unable to load user preferences";
@@ -4173,7 +4177,7 @@ public class ApplicationManager {
     String imodDirectoryName = System.getProperty("IMOD_DIR");
     if (imodDirectoryName == null) {
       imodDirectoryName = Utilities.getEnvironmentVariable("IMOD_DIR");
-      if (imodDirectoryName == "") {
+      if (imodDirectoryName.equals("")) {
         String[] message = new String[3];
         message[0] = "Can not find IMOD directory!";
         message[1] =
@@ -4193,6 +4197,25 @@ public class ApplicationManager {
       }
     }
     IMODDirectory = new File(imodDirectoryName);
+
+    // Get the IMOD calibration directory so we know where to find documentation
+    // Check to see if is defined on the command line first with -D
+    // Otherwise check to see if we can get it from the environment
+    String imodCalibDirectoryName = System.getProperty("IMOD_CALIB_DIR");
+    if (imodCalibDirectoryName == null) {
+      imodCalibDirectoryName = Utilities.getEnvironmentVariable("IMOD_CALIB_DIR");
+      if (!imodCalibDirectoryName.equals("")) {
+        if (debug) {
+          System.err.println("IMOD_CALIB_DIR (env): " + imodCalibDirectoryName);
+        }
+      }
+    }
+    else {
+      if (debug) {
+        System.err.println("IMOD_CALIB_DIR (-D): " + imodCalibDirectoryName);
+      }
+    }
+    IMODCalibDirectory = new File(imodCalibDirectoryName);
 
     //  Create a File object specifying the user configuration file
     File userConfigFile = new File(homeDirectory, ".etomo");
