@@ -1,0 +1,14 @@
+include ../../configure
+
+
+O = $(OBJEXT)
+OBJS  = linetrack.$(O) linesubs.$(O) reducepts.$(O) conttrack.$(O)
+
+
+all : $(OBJS)
+
+
+clean :
+	$(FIND) . -type f -name "*.o*"  -exec rm "{}" \;
+	$(FIND) . -type f -name "*~"   -exec rm "{}" \;
+	$(FIND) . -type f -name "#*#" -exec rm "{}" \;
