@@ -88,6 +88,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.81  2004/06/25 21:18:31  sueh
+ * <p> bug# 486 corrected set state to inprogress calls.
+ * <p>
  * <p> Revision 3.80  2004/06/24 21:41:39  sueh
  * <p> bug# 482 making the call to
  * <p> loadSolvematch(boolean modelBased) compatible with
@@ -3580,6 +3583,11 @@ public class ApplicationManager {
         }
         loadPatchcorr();
         loadMatchorwarp();
+        tomogramCombinationDialog.synchronize(
+          TomogramCombinationDialog.lblSetup,
+          false,
+          TomogramCombinationDialog.ALL_FIELDS);
+        updateCombineParams();
       }
     }
     //  Show the process panel
@@ -3763,14 +3771,23 @@ public class ApplicationManager {
    * @return true if the combine scripts exist
    */
   public boolean combineScriptsExist() {
+    File solvematchshift = new File(System.getProperty("user.dir"), "solvematchshift.com");
+    File solvematchmod = new File(System.getProperty("user.dir"), "solvematchmod.com");
+    File solvematch = new File(System.getProperty("user.dir"), "solvematch.com");
     File matchvol1 = new File(System.getProperty("user.dir"), "matchvol1.com");
     File matchorwarp = new File(System.getProperty("user.dir"),
       "matchorwarp.com");
     File patchcorr = new File(System.getProperty("user.dir"), "patchcorr.com");
     File volcombine = new File(System.getProperty("user.dir"), "volcombine.com");
     File warpvol = new File(System.getProperty("user.dir"), "warpvol.com");
-    return  matchvol1.exists() && matchorwarp.exists() && patchcorr.exists()
-      && volcombine.exists() && warpvol.exists();
+    return (
+      solvematch.exists()
+        || (solvematchshift.exists() && solvematchmod.exists()))
+      && matchvol1.exists()
+      && matchorwarp.exists()
+      && patchcorr.exists()
+      && volcombine.exists()
+      && warpvol.exists();
   }
 
   /**
