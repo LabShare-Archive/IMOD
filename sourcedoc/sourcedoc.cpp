@@ -15,6 +15,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.3  2005/03/08 16:09:54  mast
+Replaced & with html code
+
 Revision 1.2  2005/02/25 03:18:27  mast
 Added standard includes, changed fortran to fort77 to make intel happy
 
@@ -36,9 +39,8 @@ Addition to package
 
 void usage(char *progname) 
 {
-  printf("Usage: %s [-f] [-d source_path] input_doc output_doc\n",
+  printf("Usage: %s [options] input_doc output_doc\n",
          progname);
-  printf("  source_path is \n");
   printf("  input_doc is the input html document to be scanned\n");
   printf("  output_doc is the output document\n");
   printf(" Options:\n");
@@ -53,6 +55,7 @@ int main(int argc, char *argv[])
   char *listString = "LIST FUNCTIONS FROM ";
   char *descString = "DESCRIBE FUNCTIONS FROM ";
   char *secString = "DOC_SECTION";
+  char *endSecString = "END_SECTION";
   char *noFunc = "0";
   QString str, str2, fname, href, funcName, secName, path;
   QStringList descList;
@@ -68,7 +71,7 @@ int main(int argc, char *argv[])
   QString docContinue = "\\*";
   QString nonDocComment = "^[ \t]*/[/\\*]";
   int debug = 0;
-  bool inComment;
+  bool inComment, inSection;
 
   if (argc < 3) {
     imodVersion(progname);
@@ -117,10 +120,10 @@ int main(int argc, char *argv[])
     exit(1);
   }
 
-  if (imodBackupFile(argv[ind + 1])) {
+  /*if (imodBackupFile(argv[ind + 1])) {
     fprintf(stderr, "ERROR: %s - could not create backup file", progname);
     exit(3);
-  }
+    }*/
 
   str = argv[ind + 1];
   QFile outFile(str);
@@ -171,28 +174,30 @@ int main(int argc, char *argv[])
         exit(1);
       }
       QTextStream srcStream(&srcFile);
-
-      // If there is a section, scan for section start
-      if (!secName.isEmpty()) {
-        while (!srcStream.atEnd()) {
-          str = srcStream.readLine();
-          if (str.contains(secString) && str.contains(secName))
-            break;
-        }
-        if (srcStream.atEnd()) {
-          fprintf(stderr, "ERROR: %s - end of file %s looking for "
-                  "section %s\n", progname, fname.latin1(), secName.latin1());
-          exit(1);
-        }
-      }
+      inSection = false;
 
       // Scan through file looking for start sequence
       while (!srcStream.atEnd()) {
         str = srcStream.readLine();
 
-        // If this is a section, break on new section
-        if(!secName.isEmpty() && str.contains(secString))
-          break;
+        // Is it a section sequence?
+        // If not looking for sections, set in section flag unconditionally
+        // Set flag if this is section of choice and go to next line
+        if (str.contains(secString)) {
+          inSection = secName.isEmpty() || str.contains(secName);
+          continue;
+        }
+
+        // If it is an end section string, clear flag and continue
+        if (str.contains(endSecString)) {
+          inSection = false;
+          continue;
+        }
+
+        // If not in a chosen section, or in a section when not looking for
+        // one, skip line
+        if(!secName.isEmpty() && !inSection || secName.isEmpty() && inSection) 
+          continue;
 
         if (str.contains(QRegExp(docStart))) {
 
