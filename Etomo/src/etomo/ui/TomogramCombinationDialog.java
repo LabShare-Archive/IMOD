@@ -35,6 +35,13 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.6  2004/05/11 21:01:21  sueh
+ * <p> bug# 302 adding field set ids
+ * <p> standardizing synchronization
+ * <p> removing unnecessary getCombineParams function
+ * <p> removing unnecessary set field functions
+ * <p> adding synchronizatin functions
+ * <p>
  * <p> Revision 3.5  2004/05/03 22:27:28  sueh
  * <p> bug# 416 adding get and set BinBy2 functions.
  * <p>
@@ -322,17 +329,31 @@ public class TomogramCombinationDialog
     if (currentTab == NO_TAB) {
       return;
     }
-    if ((currentTab == SETUP_TAB && copyFromCurrentTab)
-      || (currentTab != SETUP_TAB && !copyFromCurrentTab)) {
-      synchronize(pnlSetup, pnlInitial, fieldSet);
-      synchronize(pnlSetup, pnlFinal, fieldSet);
+    if (currentTab == SETUP_TAB) {
+      if (copyFromCurrentTab) {
+        synchronize(pnlSetup, pnlInitial, fieldSet);
+        synchronize(pnlSetup, pnlFinal, fieldSet);
+        return;
+      }
+      synchronize(pnlInitial, pnlSetup, fieldSet);
+      synchronize(pnlFinal, pnlSetup, fieldSet);
       return;
     }
-    if (currentTab == SETUP_TAB || currentTab == INITIAL_TAB) {
-      synchronize(pnlInitial, pnlSetup, fieldSet);
+    if (currentTab == INITIAL_TAB) {
+      if (copyFromCurrentTab) {
+        synchronize(pnlInitial, pnlSetup, fieldSet);
+        return;
+      }
+      synchronize(pnlSetup, pnlInitial, fieldSet);
+      return;      
     }
-    if (currentTab == SETUP_TAB || currentTab == FINAL_TAB) {
-      synchronize(pnlFinal, pnlSetup, fieldSet);
+    if (currentTab == FINAL_TAB) {
+      if (copyFromCurrentTab) {
+        synchronize(pnlFinal, pnlSetup, fieldSet);
+        return;
+      }
+      synchronize(pnlSetup, pnlFinal, fieldSet);
+      return;      
     }
   }
   
