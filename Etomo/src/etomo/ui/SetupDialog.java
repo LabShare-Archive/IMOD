@@ -22,6 +22,9 @@ import etomo.type.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.5  2002/10/24 19:54:52  rickg
+ * <p> Moved fileset specification to after axis type specification
+ * <p>
  * <p> Revision 1.4  2002/10/22 23:26:22  rickg
  * <p> Merged directory and fileset name to a single UI entity
  * <p>
@@ -48,7 +51,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
   //  Fileset GUI objects
   //
   private JPanel panelFileset = new JPanel();
-  private ImageIcon iconFolder = new ImageIcon("etomo/images/openFile.gif");
+  private ImageIcon iconFolder = new ImageIcon(ClassLoader.getSystemResource("images/openFile.gif"));
 
   private JLabel labelFileset = new JLabel("Fileset Name:");
   private JTextField textFieldFileset = new JTextField();
