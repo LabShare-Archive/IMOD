@@ -232,11 +232,16 @@ EOF
 
 if ($packqt == true) then
     #
-    # Set up to copy qt lib for distribution, and set name of LD_LIBRARY variable
+    # Set up to copy qt lib for distribution, set up for correctly named
+    # startup files depending on whether it is default to use Qt or not
     #
     echo 'QTINSTLIBDIR = qtlib' >> $configure
-    set ld_lib_var      = LD_LIBRARY_PATH
-    echo 'INSTALL_RENAME = IMOD-linuxPackQt.csh IMOD-linux.csh IMOD-linuxPackQt.sh IMOD-linux.sh' >> $configure
+    if ($useqt == true) then
+        echo 'INSTALL_RENAME = IMOD-linuxPackQt.csh IMOD-linux.csh IMOD-linuxPackQt.sh IMOD-linux.sh' >> $configure
+    else
+        echo 'INSTALL_RENAME = IMOD-linuxPackQt.csh IMOD-localQt.csh IMOD-linuxPackQt.sh IMOD-localQt.sh' >> $configure
+        echo 'INSTALL_FILES = IMOD-linux.csh IMOD-linux.sh' >> $configure
+    endif
 else
     echo 'INSTALL_FILES = IMOD-linux.csh IMOD-linux.sh IMOD-qtconflict.csh IMOD-qtconflict.sh' >> $configure
 endif

@@ -40,6 +40,7 @@ set swap_ieee       = true
 set no_xlibs        = false
 set distname        = ""
 set packqt          = false
+set useqt           = false
 set qtthread        = true
 set m64bit          = false
 
@@ -153,6 +154,10 @@ while($#argv > 0)
 
                 case -packqt:
                         set packqt = true
+                        breaksw
+
+                case -useqt:
+                        set useqt = true
                         breaksw
 
 		case -h:
@@ -768,12 +773,16 @@ echo "             -no_tiff     Do not try to link with TIFF libraries"
 echo "             -no_xlibs    Do not try to make X version of plax routines"
 echo "             -compiler    Use specified compilers (intel or gnu for rhlinux)"
 echo "             -packqt      Pack Qt library into distribution (Linux only)"
+echo "             -useqt       Use local Qt in startup script in distribution"
 echo "             -flags       Set flags for compilation"
 exit
 
 
 #
 #  $Log$
+#  Revision 3.43  2004/06/01 01:14:44  mast
+#  Added test plugin build back into default build
+#
 #  Revision 3.42  2004/04/08 19:44:13  mast
 #  Option saving reverted due to cygwin csh bug
 #
