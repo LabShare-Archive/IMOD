@@ -1,5 +1,12 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/13/03: IMOD_3-0-18  (branched to work on flipping problem)
+9/12/03: Prevented buffer overruns in an array that holds the filename in
+3dmod, fixed problems with model checksums that were leading to queries to
+save an unchanged model, arranged the startup page in two columns, fixed a
+problem with zooming up under Windows, and added a workaround to a display
+problem with Qt 3.2.1 on the Mac.
+
 9/11/03: IMOD_3-0-17  beta release with Etomo
 
 9/9/03: IMOD_3-0-16
