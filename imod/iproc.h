@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.7  2004/11/04 23:30:55  mast
+    Changes for rounded button style
+
     Revision 3.6  2004/01/22 19:10:12  mast
     Added slot for real button press
 
@@ -66,8 +69,24 @@
 class QWidgetStack;
 class QListBox;
 class QVBoxLayout;
+class QLabel;
+class QSpinBox;
 
 typedef struct ViewInfo ImodView;
+
+#ifdef QT_THREAD_SUPPORT
+#include <qthread.h>
+
+class IProcThread : public QThread
+{
+ public:
+  IProcThread() {};
+  ~IProcThread() {};
+
+ protected:
+  void run();
+};
+#endif
 
 class IProcWindow : public DialogFrame
 {
@@ -76,6 +95,8 @@ class IProcWindow : public DialogFrame
  public:
   IProcWindow(QWidget *parent, const char *name = NULL);
   ~IProcWindow() {};
+  bool mRunningProc;
+  void limitFFTbinning();
 
   public slots:
   void buttonClicked(int which);
@@ -84,19 +105,27 @@ class IProcWindow : public DialogFrame
   void filterSelected(int which);
   void filterHighlighted(int which);
   void threshChanged(int which, int value, bool dragging);
+  void fourFiltChanged(int which, int value, bool dragging);
+  void binningChanged(int val);
 
  protected:
   void closeEvent ( QCloseEvent * e );
   void keyPressEvent ( QKeyEvent * e );
   void keyReleaseEvent ( QKeyEvent * e );
   void fontChange( const QFont & oldFont );
+  void timerEvent(QTimerEvent *e);
 
  private:
   QWidgetStack *mStack;
   QListBox *mListBox;
   void apply();
+  void startProcess();
+  void finishProcess();
+  int mTimerID;
+#ifdef QT_THREAD_SUPPORT
+  QThread *mProcThread;
+#endif
 };
-
 
 typedef struct
 {
@@ -109,10 +138,20 @@ typedef struct
   int           idatatime;  /* time value of section */
   int           procnum;
   int           modified;   /* flag that section data are modified */
-  
-  int           threshold;
+
+  int           threshold;  /* Parameters for individual filters */
   int           edge;
-  
+  float         radius1;
+  float         radius2;
+  float         sigma1;
+  float         sigma2;
+  int           fftBinning;
+  float         fftScale;
+  float         fftXrange;
+  float         fftYrange;
+  QSpinBox      *fftBinSpin;
+  QLabel        *fftLabel1;
+  QLabel        *fftLabel2;
 } ImodIProc;
 
 
@@ -127,6 +166,6 @@ typedef struct
 
 int inputIProcOpen(ImodView *vw);
 int iprocRethink(ImodView *vw);
-
+bool iprocBusy(void);
 
 #endif /* BD_IPROC_H_ */
