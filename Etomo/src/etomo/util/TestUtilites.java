@@ -13,6 +13,12 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.7  2004/12/08 21:33:31  sueh
+ * <p> bug# 520 Setting the working directory in TestUtilities.checkoutVector().
+ * <p> Also setting the fail message for SystemProcessException in
+ * <p> TestUtilities.checkoutVector().  Corrected deletion of vector when vector
+ * <p> already exists.
+ * <p>
  * <p> Revision 1.6  2004/12/07 23:36:34  sueh
  * <p> bug# 520 Changing print statements.
  * <p>
@@ -88,7 +94,7 @@ public class TestUtilites {
     String originalDirName = director.setCurrentPropertyUserDir(workingDir
         .getAbsolutePath());
     //check vector
-    if (vector.matches(File.separator)) {
+    if (vector.indexOf(File.separator) != -1) {
       throw new InvalidParameterException(
           "vector can not contain path separators");
     }
