@@ -266,6 +266,11 @@ Display all images with a global rotation specified by
 When the program is started with this option, the angle can be adjusted if
 necessary with a spin box control.
 .TP
+.B -o <filename>
+Save transforms to a file with the given 
+.I filname
+instead of to the file that transforms were read from.
+.TP
 .B -D
 Run in debug mode, which means do not run the program in the background.
 .SH FILES
