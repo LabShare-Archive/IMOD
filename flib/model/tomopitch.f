@@ -19,6 +19,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.9  2004/05/21 20:09:48  mast
+c	  Added "added" to X-axis tilt report
+c	
 c	  Revision 3.8  2003/11/14 00:49:51  mast
 c	  convert to PIP input, add whole-tomogram options for modeling
 c	
@@ -134,7 +137,7 @@ c
 	do while(ifile.le.nfiles)
 	  if (.not.usetimes .and. nVertical.eq.0 .and. nHoriz.eq.0)then
 	    if (pipinput) then
-	      ierr = PipGetString("ModelFile", filin)
+	      ierr = PipGetString('ModelFile', filin)
 	    else
 	      write(*,'(1x,a,i2,a,$)')'Name of model file #',ifile,': '
 	      read(5,'(a)')FILIN
@@ -198,6 +201,14 @@ c
 		  maxz = maxy
 		endif
 		do iobj = 1, max_mod_obj
+		  call objtocont(iobj, obj_color, imodobj, imodcont)
+		  if (npt_in_obj(iobj) .gt. 2) then
+		    print *,' '
+		    print *,'ERROR: TOMOPITCH - contour',imodcont,
+     &			' in object', imodobj,
+     &			' has more than 2 points'
+		    call exit(1)
+		  endif
 		  if (npt_in_obj(iobj) .gt. 1) then
 		    ip1=object(ibase_obj(iobj)+1)
 		    ip2=object(ibase_obj(iobj)+npt_in_obj(iobj))
@@ -223,7 +234,6 @@ c
 		      ymean(nHoriz) = yval
 		      indHoriz(nHoriz) = nHoriz
 		    else
-		      call objtocont(iobj, obj_color, imodobj, imodcont)
 		      print *,' '
 		      print *,'ERROR: TOMOPITCH - contour',imodcont,
      &			  ' in object', imodobj,
