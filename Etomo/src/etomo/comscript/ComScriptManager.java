@@ -19,6 +19,9 @@ import etomo.type.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.4  2003/03/07 07:22:49  rickg
+ * <p> combine layout in progress
+ * <p>
  * <p> Revision 2.3  2003/03/06 05:53:28  rickg
  * <p> Combine interface in progress
  * <p>
@@ -73,10 +76,10 @@ public class ComScriptManager {
   public void loadEraser(AxisID axisID) {
     //  Assign the new ComScript object object to the appropriate reference
     if (axisID == AxisID.SECOND) {
-      scriptEraserB = loadComScript("eraser", axisID);
+      scriptEraserB = loadComScript("eraser", axisID, true);
     }
     else {
-      scriptEraserA = loadComScript("eraser", axisID);
+      scriptEraserA = loadComScript("eraser", axisID, true);
     }
   }
 
@@ -133,10 +136,10 @@ public class ComScriptManager {
 
     //  Assign the new ComScriptObject object to the appropriate reference
     if (axisID == AxisID.SECOND) {
-      scriptXcorrB = loadComScript("xcorr", axisID);
+      scriptXcorrB = loadComScript("xcorr", axisID, true);
     }
     else {
-      scriptXcorrA = loadComScript("xcorr", axisID);
+      scriptXcorrA = loadComScript("xcorr", axisID, true);
     }
   }
 
@@ -190,10 +193,10 @@ public class ComScriptManager {
 
     //  Assign the new ComScriptObject object to the appropriate reference
     if (axisID == AxisID.SECOND) {
-      scriptTrackB = loadComScript("track", axisID);
+      scriptTrackB = loadComScript("track", axisID, true);
     }
     else {
-      scriptTrackA = loadComScript("track", axisID);
+      scriptTrackA = loadComScript("track", axisID, true);
     }
   }
 
@@ -248,10 +251,10 @@ public class ComScriptManager {
 
     //  Assign the new ComScriptObject object to the appropriate reference
     if (axisID == AxisID.SECOND) {
-      scriptAlignB = loadComScript("align", axisID);
+      scriptAlignB = loadComScript("align", axisID, true);
     }
     else {
-      scriptAlignA = loadComScript("align", axisID);
+      scriptAlignA = loadComScript("align", axisID, true);
     }
   }
 
@@ -306,10 +309,10 @@ public class ComScriptManager {
   public void loadNewst(AxisID axisID) {
     //  Assign the new ComScriptObject object to the appropriate reference
     if (axisID == AxisID.SECOND) {
-      scriptNewstB = loadComScript("newst", axisID);
+      scriptNewstB = loadComScript("newst", axisID, true);
     }
     else {
-      scriptNewstA = loadComScript("newst", axisID);
+      scriptNewstA = loadComScript("newst", axisID, true);
     }
   }
 
@@ -364,10 +367,10 @@ public class ComScriptManager {
   public void loadTilt(AxisID axisID) {
     //  Assign the new ComScriptObject object to the appropriate reference
     if (axisID == AxisID.SECOND) {
-      scriptTiltB = loadComScript("tilt", axisID);
+      scriptTiltB = loadComScript("tilt", axisID, false);
     }
     else {
-      scriptTiltA = loadComScript("tilt", axisID);
+      scriptTiltA = loadComScript("tilt", axisID, false);
     }
   }
 
@@ -416,7 +419,7 @@ public class ComScriptManager {
    * Load the solvematchshift com script
    */
   public void loadSolvematchshift() {
-    scriptSolvematchshift = loadComScript("solvematchshift", AxisID.ONLY);
+    scriptSolvematchshift = loadComScript("solvematchshift", AxisID.ONLY, true);
   }
 
   /**
@@ -454,7 +457,7 @@ public class ComScriptManager {
    * Load the solvematchshift com script
    */
   public void loadSolvematchmod() {
-    scriptSolvematchmod = loadComScript("solvematchmod", AxisID.ONLY);
+    scriptSolvematchmod = loadComScript("solvematchmod", AxisID.ONLY, true);
   }
 
   /**
@@ -492,7 +495,7 @@ public class ComScriptManager {
    * Load the patchcorr com script
    */
   public void loadPatchcorr() {
-    scriptPatchcorr = loadComScript("patchcorr", AxisID.ONLY);
+    scriptPatchcorr = loadComScript("patchcorr", AxisID.ONLY, true);
   }
 
   /**
@@ -524,7 +527,7 @@ public class ComScriptManager {
    * Load the matchorwarp com script
    */
   public void loadMatchorwarp() {
-    scriptMatchorwarp = loadComScript("matchorwarp", AxisID.ONLY);
+    scriptMatchorwarp = loadComScript("matchorwarp", AxisID.ONLY, true);
   }
 
   /**
@@ -558,12 +561,16 @@ public class ComScriptManager {
    * @param axisID
    * @return ComScript
    */
-  private ComScript loadComScript(String scriptName, AxisID axisID) {
+  private ComScript loadComScript(
+    String scriptName,
+    AxisID axisID,
+    boolean parseComments) {
 
     String command = scriptName + axisID.getExtension() + ".com";
     File comFile = new File(appManager.getWorkingDirectory(), command);
     ComScript comScript = new ComScript(comFile);
     try {
+      comScript.setParseComments(parseComments);
       comScript.readComFile();
     }
     catch (Exception except) {
