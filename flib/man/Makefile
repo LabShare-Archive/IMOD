@@ -8,11 +8,14 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.0  2001/11/29 18:10:17  rickg
+#  *** empty log message ***
+#
 #  Revision 1.2  2001/11/28 15:43:20  mast
 #  Changed to do install in conventional manner
 #
 #
-include ../configure
+include ../../configure
 
 THERE = ../../manpages
 
