@@ -72,6 +72,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.0  2001/11/29 17:25:14  rickg
+#  *** empty log message ***
+#
 #  Revision 1.5  2001/11/28 15:33:57  mast
 #  Changes so that man pages install under "install", various fixes after
 #  checking function on the SGI, updated instructions, and general cleanup of
@@ -267,7 +270,7 @@ cleansrc : ALWAYS
 #
 csrc : ALWAYS
 	if (! (-e $(ARCDIR)_src)) mkdir $(ARCDIR)_src/
-	cp Makefile setup README .version original_dates $(ARCDIR)_src/
+	cp Makefile setup README History .version original_dates $(ARCDIR)_src/
 	tar cBf - \
 	machines \
 	lib*/*.[ch] libdia/*.symbol lib*/Makefile \
