@@ -183,6 +183,7 @@ EXPORTS
 	imodMatFindVector
 	imodGetInt
 	GETIMODSCAT
+	b3dMax
 	imodPutShort
 	imodel_contour_centroid
 	PipNumberOfEntries
@@ -277,6 +278,7 @@ EXPORTS
 	imodNextObject
 	imodPointGetFirst
 	imodMatTransform3D
+	b3dMin
 	imodel_model_clean
 	imodObjectVirtIn
 	imodPointIntersect
