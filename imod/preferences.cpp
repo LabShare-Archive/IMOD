@@ -32,27 +32,7 @@ $Date$
 $Revision$
 
 $Log$
-Revision 1.7  2003/09/15 21:05:18  mast
-Changing zooms 0.35 -> 0.3333 and 0.16 -> 0.1667 for optimal drawing
-
-Revision 1.6  2003/04/25 03:28:32  mast
-Changes for name change to 3dmod
-
-Revision 1.5  2003/04/17 19:06:50  mast
-various changes for Mac
-
-Revision 1.4  2003/03/28 23:51:11  mast
-changes for Mac problems
-
-Revision 1.3  2003/03/26 23:06:32  mast
-Only check status of a style once
-
-Revision 1.2  2003/03/26 22:48:40  mast
-Changed handling of style to prevent "already defined" messages
-
-Revision 1.1  2003/03/24 17:55:19  mast
-Initial implementation
-
+Log at end of file
 */
 
 #include <stdlib.h>
@@ -127,6 +107,8 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
   prefs->autosaveOnDflt = true;
   prefs->autosaveDirDflt = "";
   prefs->rememberGeomDflt = true;
+  prefs->autoTargetMeanDflt = 150;
+  prefs->autoTargetSDDflt = 40;
 
   // Read the settings
   QSettings settings;
@@ -170,6 +152,12 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
                                                  prefs->rememberGeomDflt,
                                                  &prefs->rememberGeomChgd);
   mGeomLastSaved = settings.readNumEntry(IMOD_NAME"lastGeometrySaved", -1);
+  prefs->autoTargetMean = settings.readNumEntry(IMOD_NAME"autoTargetMean",
+                                        prefs->autoTargetMeanDflt,
+                                        &prefs->autoTargetMeanChgd);
+  prefs->autoTargetSD = settings.readNumEntry(IMOD_NAME"autoTargetSD",
+                                        prefs->autoTargetSDDflt,
+                                        &prefs->autoTargetSDChgd);
 
   // Read each zoom with a separate key
   prefs->zoomsChgd = false;
@@ -386,6 +374,10 @@ void ImodPreferences::saveSettings()
     settings.writeEntry(IMOD_NAME"minImPtSize", prefs->minImPtSize);
   if (prefs->rememberGeomChgd)
     settings.writeEntry(IMOD_NAME"rememberGeom", prefs->rememberGeom);
+  if (prefs->autoTargetMeanChgd)
+    settings.writeEntry(IMOD_NAME"autoTargetMean", prefs->autoTargetMean);
+  if (prefs->autoTargetSDChgd)
+    settings.writeEntry(IMOD_NAME"autoTargetSD", prefs->autoTargetSD);
 
   if (prefs->zoomsChgd) {
     for (i = 0; i < MAXZOOMS; i++) {
@@ -525,6 +517,14 @@ void ImodPreferences::donePressed()
     curp->rememberGeom = newp->rememberGeom;
     curp->rememberGeomChgd = true;
   }
+  if (newp->autoTargetMean != curp->autoTargetMean) {
+    curp->autoTargetMean = newp->autoTargetMean;
+    curp->autoTargetMeanChgd = true;
+  }
+  if (newp->autoTargetSD != curp->autoTargetSD) {
+    curp->autoTargetSD = newp->autoTargetSD;
+    curp->autoTargetSDChgd = true;
+  }
 
   for (int i = 0; i < MAXZOOMS; i++) {
     if (newp->zooms[i] != curp->zooms[i]) {
@@ -603,6 +603,8 @@ void ImodPreferences::defaultPressed()
   prefs->minModPtSize = prefs->minModPtSizeDflt;
   prefs->minImPtSize = prefs->minImPtSizeDflt;
   prefs->rememberGeom = prefs->rememberGeomDflt;
+  prefs->autoTargetMean = prefs->autoTargetMeanDflt;
+  prefs->autoTargetSD = prefs->autoTargetSDDflt;
   prefs->autosaveInterval = prefs->autosaveIntervalDflt;
   prefs->autosaveOn = prefs->autosaveOnDflt;
   prefs->autosaveDir = prefs->autosaveDirDflt;
@@ -780,3 +782,35 @@ QRect ImodPreferences::getZapGeometry()
   }
   return QRect(0, 0, 0, 0);
 }
+
+void ImodPreferences::getAutoContrastTargets(int &mean, int &sd)
+{
+  mean = mCurrentPrefs.autoTargetMean;
+  sd = mCurrentPrefs.autoTargetSD;
+}
+
+/*
+Revision 1.8  2003/09/17 04:48:01  mast
+Added ability to remember window geometries for Info and Zap windows
+
+Revision 1.7  2003/09/15 21:05:18  mast
+Changing zooms 0.35 -> 0.3333 and 0.16 -> 0.1667 for optimal drawing
+
+Revision 1.6  2003/04/25 03:28:32  mast
+Changes for name change to 3dmod
+
+Revision 1.5  2003/04/17 19:06:50  mast
+various changes for Mac
+
+Revision 1.4  2003/03/28 23:51:11  mast
+changes for Mac problems
+
+Revision 1.3  2003/03/26 23:06:32  mast
+Only check status of a style once
+
+Revision 1.2  2003/03/26 22:48:40  mast
+Changed handling of style to prevent "already defined" messages
+
+Revision 1.1  2003/03/24 17:55:19  mast
+Initial implementation
+*/
