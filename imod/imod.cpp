@@ -42,6 +42,8 @@ Log at the end of file
 #include <qfiledialog.h>
 #include <qapplication.h>
 #include <qdir.h>
+#include <qimage.h>
+#include <qpixmap.h>
 #include "xxyz.h"
 
 #include "imod.h" 
@@ -65,6 +67,7 @@ Log at the end of file
 #include "imod_client_message.h"
 #include "preferences.h"
 #include "form_startup.h"
+#include "b3dicon.xpm"
 
 /******************************* Globals *************************************/
 ImodApp *App;
@@ -203,9 +206,13 @@ int main( int argc, char *argv[])
   
   ImodPrefs = new ImodPreferences(cmdLineStyle);
 
+  // Set up the application icon for windows to use
+  App->iconPixmap = new QPixmap(QImage(b3dicon));
+
   /* if no input files, open startup window */
   if (argc < 2) {
     StartupForm *startup = new StartupForm(NULL, "startup dialog", true);
+    startup->setIcon(*(App->iconPixmap));
     if (startup->exec() == QDialog::Rejected) {
       imod_usage(argv[0]);
       exit(1);
@@ -900,6 +907,9 @@ int imodColorValue(int inColor)
 
 /*
 $Log$
+Revision 4.17  2003/05/18 22:07:37  mast
+changes for new startup dialog
+
 Revision 4.16  2003/05/12 22:07:39  mast
 had to flush stderr to get window ID to etomo on Windows
 
