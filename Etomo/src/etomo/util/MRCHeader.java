@@ -20,6 +20,9 @@ import etomo.process.SystemProgram;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.2  2004/03/09 23:21:24  rickg
+ * <p> Bug# 386 Added parsing of new rotation and binning parmaters
+ * <p>
  * <p> Revision 3.1  2004/01/13 22:41:08  rickg
  * <p> Bug #376 Allow for spaces in the filename.  Needed to call the
  * <p> string array version of SystemProgram
@@ -244,8 +247,8 @@ public class MRCHeader {
       if (tokens.length > 5) {
         imageRotation = 
           Double.parseDouble(tokens[5].substring(0, tokens[5].length()-1));
+        return;
       }
-      return;
     }
     if (line.startsWith("          Tilt axis rotation angle")) {
       String[] tokens = line.split("\\s+");
