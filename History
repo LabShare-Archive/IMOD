@@ -1,5 +1,23 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/9/04: IMOD_3-4-12
+11/8/04: Fixed problem with insufficient array size in contour copying
+function of Line Track.
+
+11/6/04: Implemented Fourier filtering and taking an FFT in the 3dmod image
+processing dialog.  Fixed problems with intensity scaling and floating in
+when processing, and changed some of the existing functions to avoid
+saturation or loss of dynamic range.
+
+11/5/04: Changed <> to "" in includes of IMOD header files to avoid problems
+on Suns.
+
+11/4/04: Image processing in 3dmod is now done in a separate thread to keep
+the user interface active.
+
+11/4/04: Implemented routines to make 3dmod buttons larger when they are
+rounded, as in Aqua style in the Mac.
+
 11/4/04: Improved filter function in clip to work for non-square images, to
 work properly for high-pass filtering, and to not have abrupt onset of
 filtering.  Made sure it works with either or non-mirrored FFTs.
