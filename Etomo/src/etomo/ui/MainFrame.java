@@ -16,7 +16,6 @@ import java.awt.event.WindowEvent;
 import java.io.File;
 import java.net.MalformedURLException;
 
-import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -47,6 +46,10 @@ import etomo.util.UniqueKey;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.17  2005/02/09 20:51:36  sueh
+ * <p> bug# 594 Moved maximumSize from MainPanel to MainFrame so that it
+ * <p> will work with the tabbedPane.  Changing rootPanel to Border layout.
+ * <p>
  * <p> Revision 3.16  2005/02/07 22:42:52  sueh
  * <p> bug# 594 Removed setWindowMenuLabels(ConstHashedArray).  Adding
  * <p> functions to call WindowSwitch.add, remove, and rename().  In
@@ -393,7 +396,7 @@ public class MainFrame extends JFrame implements ContextMenu {
     setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
   }
 
-  public void setCurrentManager(BaseManager currentManager, UniqueKey managerKey) {
+  public void setCurrentManager(BaseManager currentManager, UniqueKey managerKey, boolean newWindow) {
     this.currentManager = currentManager;
     if (mainPanel != null) {
       rootPanel.removeAll();
@@ -405,8 +408,16 @@ public class MainFrame extends JFrame implements ContextMenu {
       menuFileSaveAs.setEnabled(currentManager.canChangeParamFileName());
       mainPanel.repaint();
     }
-    //pack();
-    mainPanel.fitWindow();
+    if (newWindow) {
+      pack();
+    }
+    else {
+      mainPanel.fitWindow();
+    }
+  }
+  
+  public void setCurrentManager(BaseManager currentManager, UniqueKey managerKey) {
+    setCurrentManager(currentManager, managerKey, false);
   }
 
   //  Right mouse button context menu
