@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.6  2004/04/07 21:03:10  rickg
+ * <p> Fixed layout using UIUtilities
+ * <p>
  * <p> Revision 3.5  2004/04/06 16:58:56  rickg
  * <p> Added fiducialess alignment methods
  * <p>
@@ -249,7 +252,7 @@ public class CoarseAlignDialog extends ProcessDialog implements ContextMenu {
       applicationManager.coarseAlign(axisID);
     }
     else if (command.equals(btnImod.getActionCommand())) {
-      applicationManager.imodAlign(axisID);
+      applicationManager.imodCoarseAlign(axisID);
     }
     else if (command.equals(btnMidas.getActionCommand())) {
       applicationManager.midasRawStack(axisID);
