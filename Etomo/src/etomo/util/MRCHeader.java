@@ -1,3 +1,10 @@
+package etomo.util;
+
+import java.io.IOException;
+
+import etomo.ApplicationManager;
+import etomo.process.SystemProgram;
+
 /**
  * <p>Description: An interface to the header information in a MRC Image 
  * file.</p>
@@ -12,6 +19,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.4  2004/04/22 23:23:37  rickg
+ * <p> Switched getIMODBinPath method
+ * <p>
  * <p> Revision 3.3  2004/03/09 23:26:40  rickg
  * <p> Moved return within parseTiltAxis
  * <p>
@@ -61,12 +71,6 @@
  * <p> Initial revision, in development
  * <p>
  */
-package etomo.util;
-
-import java.io.IOException;
-
-import etomo.ApplicationManager;
-import etomo.process.SystemProgram;
 
 public class MRCHeader {
   private String filename;
@@ -147,6 +151,12 @@ public class MRCHeader {
         zPixelSize = Double.parseDouble(tokens[6]);
       }
 
+      // If the pixel sizes are default value scan for FEI pixel size in the
+      // comment section
+      if(xPixelSize == 1.0 && yPixelSize == 1.0 && yPixelSize == 1.0) {
+        parseFEIPixelSize(stdOutput[i]);
+      }
+      
       // Parse the rotation angle and/or binning from the comment section
       parseTiltAxis(stdOutput[i]);
       parseBinning(stdOutput[i]);
@@ -237,7 +247,12 @@ public class MRCHeader {
   public int getBinning(){
     return binning;
   }
-  
+
+  /**
+   * Parse the tilt axis parameter from the comments, looking for new form
+   * first then old.
+   * @param line
+   */
   private void parseTiltAxis(String line) {
     if(line.matches(".*Tilt axis angle =.*")){
       String[] tokens = line.split("\\s+");
@@ -255,6 +270,10 @@ public class MRCHeader {
     }
   }
   
+  /**
+   * Parse the binning parameter from the comments
+   * @param line
+   */
   private void parseBinning(String line){
     if(line.matches(".*, binning =.*")){
       String[] tokens = line.split("\\s+");
@@ -263,4 +282,20 @@ public class MRCHeader {
       }
     }
   }
+  
+  /**
+   * FEI pixel size parser
+   * @param line
+   */
+  private void parseFEIPixelSize(String line){
+    if(line.matches(".*Pixel size in nanometers.*")){
+      String[] tokens = line.split("\\s+");
+      if (tokens.length > 6) {
+        xPixelSize = Double.parseDouble(tokens[6]) * 10.0;
+        yPixelSize = xPixelSize;
+        zPixelSize = yPixelSize;
+      }
+    }
+  }
+
 }
