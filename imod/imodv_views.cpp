@@ -90,7 +90,7 @@ void imodvUpdateModel(ImodvApp *a)
     return;
   ved->dia->removeAllItems();
   build_list(a);
-  imodvViewsGoto(a->imod->cview, false);
+  imodvViewsGoto(a->imod->cview - 1, false);
   ved->dia->selectItem(a->imod->cview - 1, true);
 }
 
@@ -114,6 +114,9 @@ static void manage_world_flags(ImodvApp *a, Iview *view)
 /* Automatically store the current view if auto_store is set */
 void imodvAutoStoreView(ImodvApp *a)
 {
+  /* This is a common place to complete the set of object views */
+  imodObjviewComplete(a->imod);
+
   if (!auto_store || !a->imod->cview)
     return;
   manage_world_flags(a, a->imod->view);
@@ -126,7 +129,7 @@ void imodvViewsHelp()
     ("View Edit Dialog Help.\n\n",
      "\tEvery model is initialized with one view that is continually updated "
      "as you change the model display, and that is saved with the model.  "
-     "This dialog lets you save the additional, independent views.\n"
+     "This dialog lets you save additional, independent views.\n"
      "\tWhen you store a view, you save the orientation, size, and "
      "lighting conditions of the whole model, and also the color,"
      " display type, material, and other properties of all of the "
@@ -160,7 +163,14 @@ void imodvViewsHelp()
      "numeric keypad) can be used to go up or down by one view, and PageUp and"
      " PageDown can be used to go up or down in the list by many views.  "
      "Escape will close the dialog box, and "
-     "other keys are passed on to the model display window.",
+     "other keys are passed on to the model display window.\n\n",
+     "\tWhen you create a new object, its properties will be added to all of "
+     "the views when you take some action that causes views to be stored "
+     "(i.e., pushing [Store], going to another view, or saving the model when "
+     "[Autostore] is selected).  This means that if you have more than one "
+     "view, you should set the basic object properties such as open versus "
+     "closed or 3-D point size before saving or changing views, otherwise only"
+     " the current view will acquire those new properties.",
      NULL);
   return;
 }
@@ -229,6 +239,7 @@ void imodvViewsSave()
 
 /*
  * The goto view callback.
+ * item is numbered from 0 and incremented internally
  */
 void imodvViewsGoto(int item, bool draw)
 {
@@ -254,7 +265,9 @@ void imodvViewsGoto(int item, bool draw)
 /* 
  * The store view callback.
  * Sets the view in the window to the current view. 
+ * item is numbered from 0 and incremented internally
  */
+
 void imodvViewsStore(int item)
 {
   item++;
@@ -302,7 +315,9 @@ void imodvViewsNew(const char *label)
   ved->dia->selectItem(cview - 1, true);
 }
 
-/* Delete a view */
+/* Delete a view
+ * item is numbered from 0 and incremented internally, newCurrent is also
+ */
 void imodvViewsDelete(int item, int newCurrent)
 {
   item++;
@@ -312,16 +327,26 @@ void imodvViewsDelete(int item, int newCurrent)
   if (!imod || item <= 0 || imod->viewsize < 2)
     return;
 
+  // Need to free object views of the view being deleted
+  if (imod->view[item].objvsize)
+    free (imod->view[item].objview);
+
   // How about deleting the existing view?  No need, if the array grows
   // again the space is reused
-  for(i = item; i < imod->viewsize; i++){
+  // 7/24/03 discovered it was copying from non-existent view at top
+  for (i = item; i < imod->viewsize - 1; i++) {
     imod->view[i] = imod->view[i+1];
   }
 
   imod->viewsize--;
-  imod->cview = newCurrent >= 0 ? newCurrent : 0;
-  imodvViewsGoto(imod->cview, true);
-  ved->dia->selectItem(imod->cview, true);
+  imod->cview = (newCurrent >= 0 ? newCurrent : 0) + 1;
+  imodvViewsGoto(imod->cview - 1, true);
+
+  /* DNM 7/31/03: at least on RH 9, new selection doesn't show after deletion
+     unless select another item first */
+  if (imod->viewsize > 1)
+    ved->dia->selectItem(imod->cview > 1 ? imod->cview - 2 : 1, true);
+  ved->dia->selectItem(imod->cview - 1, true);
 }
 
 // A new label has been entered
@@ -376,6 +401,10 @@ static void build_list(ImodvApp *a)
 /*
 
     $Log$
+    Revision 4.6  2003/06/27 20:00:07  mast
+    Added a function to initialize views and make sure view 1 is always present;
+    changed indices, etc. to eliminate the "default view"
+
     Revision 4.5  2003/04/28 04:01:26  mast
     Fix hotkey text
 
