@@ -1,0 +1,49 @@
+Version=1.0
+Pip=1
+
+[Field = ReferenceFile]
+short = reference
+long = ReferenceFile
+type = FN
+usage = Input file with reference volume (the one being matched to)
+tooltip =
+manpage = Input file with reference volume (the one being matched to).  This
+file can be entered on the command line as the first non-option argument.  
+
+[Field = ScaledFile]
+short = scaled
+long = ScaledFile
+type = FN
+usage = Input file with volume to be scaled to match
+tooltip =
+manpage = Input file with volume to be scaled to match.  This
+file can be entered on the command line as the second non-option argument. 
+
+[Field = OutputFile]
+short = output
+long = OutputFile
+type = FN
+usage = Output file for scaled volume (omit to rewrite input file)
+tooltip =
+manpage = Output file for the scaled volume.  This
+file can be entered on the command line as the third non-option argument. 
+If this file is omitted, the
+program will write the scaled values back to the input file.
+
+[Field = ReportOnly]
+short = report
+long = ReportOnly
+type = B
+usage = Report scaling factors without writing scaled data to file
+tooltip =
+manpage = Report scaling factors without writing scaled data to file.  The
+program will report two numbers, a factor to multiply by then a constant to
+add; these numbers can be supplied to the -multadd option of Newstack.
+
+[Field = usage]
+short=help
+long=usage
+type=B
+usage=Print help output
+tooltip=
+manpage=
