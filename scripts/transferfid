@@ -9,6 +9,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.8  2003/02/07 00:01:35  mast
+#  Added option to go from B to A easily
+#
 #  Revision 3.7  2002/12/03 21:53:32  mast
 #  Made it set limits at z-0.5 and z+0.5 for clipmodel
 #  Added complete error detection and reporting from each program that is run
@@ -57,7 +60,7 @@ onintr searchdone
 # set names of temp files
 #
 set tmpdir = /usr/tmp
-set pn      = $0
+set pn      = transferfid
 set com        = $pn:t
 set tmpstack   = $tmpdir/$com.stack.$$
 set tmpimga    = $tmpdir/$com.imga.$$

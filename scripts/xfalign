@@ -7,6 +7,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.1  2002/04/29 22:03:34  mast
+#  Made first write to $seclist be via >! rather than >>
+#
 
 set tmpdir = /usr/tmp
 
@@ -34,7 +37,7 @@ usage:
 endif
 if ($?IMOD_DIR) set path = ($IMOD_DIR/bin $path)
 
-set pname      = $0
+set pname      = xfalign
 set com        = $pname:t
 set prepfile   = $tmpdir/$com.prep.$$
 set runenhance = $tmpdir/$com.enhance.$$
