@@ -15,6 +15,10 @@
     $Revision$
 
     $Log$
+    Revision 3.8  2005/01/30 17:44:03  mast
+    Changed imodel_contour_overlap to take addresses of contour pointers and
+    convert to scanline contours only when needed
+
     Revision 3.7  2005/01/29 20:27:13  mast
     Added common routines for dealing with nested contours
 
@@ -2808,7 +2812,7 @@ int imodContourMakeZTables(Iobj *obj, int incz, unsigned int clearFlag,
   /* get list of z sections to connect for skip */
   zlist = (int *)malloc((zmax - zmin + 2) * sizeof(int));
   numatz = (int *)malloc((zmax - zmin + 2 + incz) * sizeof(int));
-  contatz = (int **)malloc((zmax - zmin + 2) * sizeof(int *));
+  contatz = (int **)malloc((zmax - zmin + 2 + incz) * sizeof(int *));
   if (!zlist || !numatz || !contatz) {
     imodContourFreeZTables(numatz, contatz, contz, zlist, zmin, zmax);
     return -1;
