@@ -867,7 +867,7 @@ void ImodvObjed::materialSlot(int which, int value, bool dragging)
     if (Imodv->crosset)
       for(m = 0; m < Imodv->nm; m++)
         if (Imodv->mod[m]->objsize > Imodv->ob)
-            setMaterial(&(Imodv->mod[m]->obj[ob]), which, value);
+            setMaterial(&(Imodv->mod[m]->obj[Imodv->ob]), which, value);
 
   }
   /*     printf("set mat %d, offset %d, value%d\n", *item, offset, cbs->value); */
@@ -1563,6 +1563,9 @@ int hotSliderKey()
 
 /*
 $Log$
+Revision 4.2  2003/02/21 22:19:54  mast
+Use new b3d type
+
 Revision 4.1  2003/02/10 20:29:01  mast
 autox.cpp
 
