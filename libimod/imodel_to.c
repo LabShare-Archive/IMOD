@@ -536,6 +536,7 @@ int imod_to_RIB(Imod *imod, FILE *fout)
      Ipoint maxp, minp;
      int ob, co, pt;
      int m;
+     Ipoint imageMax = {0., 0., 0.};
 
      char image_filename[] = "imod2RIB.tif";
      float opac = 1.0f;
@@ -550,7 +551,7 @@ int imod_to_RIB(Imod *imod, FILE *fout)
 
      /* calculate camera scale */
      if (!imod->cview){
-	  imodViewModelDefault(imod, imod->view);
+	  imodViewModelDefault(imod, imod->view, &imageMax);
      }
      vw = &(imod->view[imod->cview]);
 
