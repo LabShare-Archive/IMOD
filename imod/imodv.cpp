@@ -611,6 +611,7 @@ void imodvDrawImodImages()
     return;
   imodDraw(App->cvi, IMOD_DRAW_MOD);
   imod_object_edit_draw();
+  imod_info_setobjcolor();
 }
 
 // Inform other parts of program whether byte images exist in memory
@@ -646,6 +647,9 @@ void imodvQuit()
 
 /*
 $Log$
+Revision 4.20  2004/07/07 19:25:29  mast
+Changed exit(-1) to exit(3) for Cygwin
+
 Revision 4.19  2004/06/06 21:27:21  mast
 Eliminated stereo-command related items
 
