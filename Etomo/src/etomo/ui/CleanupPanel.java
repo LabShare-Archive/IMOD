@@ -30,6 +30,9 @@ import etomo.storage.IntermediateFileFilter;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2003/04/24 17:46:54  rickg
+ * <p> Changed fileset name to dataset name
+ * <p>
  * <p> Revision 1.1  2003/04/17 23:12:00  rickg
  * <p> Initial revision
  * <p> </p>
@@ -41,7 +44,8 @@ import etomo.storage.IntermediateFileFilter;
  * Window>Preferences>Java>Code Generation>Code Template
  */
 public class CleanupPanel {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
   ApplicationManager applicationManager;
 
   private JPanel pnlCleanup = new JPanel();
@@ -74,8 +78,7 @@ public class CleanupPanel {
     fileChooser.setFileFilter(fileFilter);
     fileChooser.setMultiSelectionEnabled(true);
     fileChooser.setControlButtonsAreShown(false);
-    fileChooser.setCurrentDirectory(
-      new File(applicationManager.getWorkingDirectory()));
+    fileChooser.setCurrentDirectory(new File(System.getProperty("user.dir")));
 
     pnlCleanup.setLayout(new BoxLayout(pnlCleanup, BoxLayout.Y_AXIS));
     pnlCleanup.setBorder(

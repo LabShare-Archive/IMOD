@@ -23,6 +23,9 @@ import etomo.ApplicationManager;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.1  2003/03/20 17:43:32  rickg
+ * <p> Only display window if URL is sucessfully opened
+ * <p>
  * <p> Revision 2.0  2003/01/24 20:30:31  rickg
  * <p> Single window merge to main branch
  * <p>
@@ -226,7 +229,7 @@ public class ContextPopup {
             TextPageWindow logFile = new TextPageWindow();
             logFile.setVisible(
               logFile.setFile(
-                appManager.getWorkingDirectory() + "/" + logFileName[i]));
+                System.getProperty("user.dir") + "/" + logFileName[i]));
           }
         }
 
