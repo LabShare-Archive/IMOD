@@ -243,7 +243,7 @@ while ($i < 3)
         sed -e '/^<</d'  -e '/^	$/d' -e '/-del/s//-rm -f/' -e '/@<< */s//\\/' \
         -e '/DEL_FILE.*=.*del/s/del/rm -f/' -e '/makefile.tmp/s//Makefile/g' \
         -e '/^	\$</d' -e '/{.*}.*{.*}/d'  -e '/UIC/s/-f *<< */\\/' \
-        -e '/.SUFFIXES/d'  \
+        -e '/.SUFFIXES.*$/s//.SUFFIXES: .c .cpp .obj/'  \
         -e "/^C.*FLAGS[ 	]*=/s/-Od/$qopt/" \
         -e '/^install/a\	strip \$(TARGET) ; \\cp \$(TARGET) '"$inst_bin_dir" \
         < $qdir[$i]/makefile.tmp >! $qdir[$i]/Makefile
@@ -252,14 +252,13 @@ while ($i < 3)
         # append new build rules if the bad ones were there (Qt 3.1.1)
         if ("$badrules" != "") then
             cat <<EOF >> $qdir[$i]/Makefile
-.SUFFIXES: .c .cpp .obj
 .cpp.obj:
 	\$(CXX) -c \$(CXXFLAGS) \$(INCPATH) \$<
 
 .c.obj:
 	\$(CC) -c \$(CFLAGS) \$(INCPATH) \$<
 EOF
-        endif
+#        endif
     endif
 end
 
