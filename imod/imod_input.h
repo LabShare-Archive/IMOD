@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.8  2003/04/18 20:05:52  mast
+    Add function for rejecting meta key on Mac
+
     Revision 3.7  2003/04/17 19:27:13  mast
     keypad workaround for Mac
 
@@ -112,7 +115,7 @@ void inputKeepContourAtSameTime(ImodView *vw);
 void inputContourDup(ImodView *vw);
 void inputConvertNumLock(int &keysym, int &keypad);
 void inputRaiseWindows();
-bool testMetaKey(QKeyEvent *event);
+bool inputTestMetaKey(QKeyEvent *event);
 
 void inputSetModelTime(ImodView *vw, int time);
 
