@@ -129,7 +129,7 @@ SOURCES	+= autox.cpp \
 	xcorr.cpp \
 	undoredo.cpp \
 	imod_assistant.cpp \
-        iiqimage.cpp
+	iiqimage.cpp
 FORMS	= form_object_edit.ui \
 	formv_control.ui \
 	formv_movie.ui \
@@ -152,6 +152,10 @@ IMAGES	= uparrow.png \
 	raisewindow.png \
 	undo.png \
 	redo.png
+
+
+
+
 
 
 
