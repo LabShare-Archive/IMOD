@@ -4,23 +4,15 @@ c	  output.  The command file may contain: lines to run programs, which
 c	  must be preceded by either a $ or a %; comment lines, preceded by
 c	  either $! or #; and entries to the programs that are run, which
 c	  follow the line starting the program, just as in a VMS command file.
-c	  If a command line to run a program is too long, it may be broken 
-c	  into multiple lines by ending each line except the last one with a \.
-c	  The continuation lines should not start with a $ or %.
-c	  
-c	  If there is a command-line argument, that argument will be set up
-c	  as a log file: the text output of each command will be directed
-c	  into this log file.
-c	  
-c	  The easiest way to use this program is to define the following
-c	  alias in your .cshrc (the ^G should be a control G character there):
+c	  See the manual page for more details.
 c
-c	      alias subm 'vmstosh <\!^.com \!^.log |csh ; echo ^G& '
+c	  $Author$
 c
-c	  With this alias, if your command file is stuff.com, you can give the
-c	  command "subm stuff" and the file will be executed in background, a 
-c	  log file stuff.log will be created, and the bell will ring when the
-c	  job is completed.
+c	  $Date$
+c
+c	  $Revision$
+c
+c	  $Log$
 c
 	logical reading
 	integer*4 iffirst,lenin,lencom,indarrow
@@ -70,10 +62,19 @@ c
 	  endif
 	  if(linein(1:1).ne.'#' .and. linein(1:2).ne.'$!')then
 	    if(iffirst.eq.0.and.linecom(lencom:lencom).eq.'\\')then
+	      if (lencom.gt.1 .and. linecom(lencom-1:lencom-1).eq.'\\') then
+c		  
+c		  if last line needs to be continued in the output
+c		  dump the last line, replace with current line
+c		  
+		write(6,101)linecom(2:lencom-1)
+		linecom = ' '//linein
+	      else
 c		
-c		a continuation line of a command line: add it on
-c
-	      linecom=linecom(1:lencom-1)//' '//linein(1:lenin)
+c		  otherwise, a continuation line of a command line: add it on
+c		  
+		linecom=linecom(1:lencom-1)//' '//linein(1:lenin)
+	      endif
 	      lencom=lnblnk(linecom)
 c
 	    elseif(linein(1:1).eq.'$'.or.linein(1:1).eq.'%') then
