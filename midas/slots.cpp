@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.2  2003/04/17 20:56:55  mast
+Changes for Mac key problems
+
 Revision 3.1  2003/02/10 20:49:57  mast
 Merge Qt source
 
@@ -159,17 +162,19 @@ void MidasSlots::update_parameters()
   }
 }
 
+// Update the section number and current edge number
+// DNM 9/25/03: change to coordinates numbered from 1
 void MidasSlots::update_sections()
 {
   QString str;
-  str.sprintf("%d", VW->xtype == XTYPE_MONT ? VW->montcz : VW->cz);
+  str.sprintf("%d", (VW->xtype == XTYPE_MONT ? VW->montcz : VW->cz) + 1);
   VW->curtext->setText(str);
   if (VW->xtype == XTYPE_MONT) {
     str.sprintf("%d", VW->curedge);
     VW->edgetext->setText(str);
     return;
   }
-  str.sprintf("%d", VW->refz);
+  str.sprintf("%d", VW->refz + 1);
   VW->reftext->setText(str);
   if (!VW->difftoggle)
     return;
@@ -488,7 +493,7 @@ void MidasSlots::control_help()
      "Control panel help.\n",
      "\n\n",
      "Section Controls:\n",
-     "\tThe two text boxes show the section numbers (numbered from 0) "
+     "\tThe two text boxes show the section numbers (numbered from 1) "
      "of the reference and current sections.  The section can be "
      "changed as desired by typing a number in one of these boxes "
      "followed by Enter.  If the \"Keep Cur - Ref diff\" box is "
@@ -994,11 +999,13 @@ void MidasSlots::sectionInc(int ds)
     try_section_change(ds, dsref);
 }
 
+// The user enters a current section
+// DNM 9/25/03: change to coordinates numbered from 1
 void MidasSlots::slotCurtext()
 {
   int sec;
   QString st = VW->curtext->text();
-  sec = atoi(st.latin1());
+  sec = atoi(st.latin1()) - 1;
   if (VW->xtype == XTYPE_MONT)
     try_montage_section(sec, 0);
   else {
@@ -1008,11 +1015,12 @@ void MidasSlots::slotCurtext()
   VW->midasWindow->setFocus();
 }
 
+// The user enters a reference section
 void MidasSlots::slotReftext()
 {
   int sec, ds;
   QString st = VW->reftext->text();
-  sec = atoi(st.latin1());
+  sec = atoi(st.latin1()) - 1;
   if (VW->xtype != XTYPE_XREF) {
     sec -= VW->refz;
     ds = 0;
