@@ -23,6 +23,11 @@ import etomo.EtomoDirector;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.20  2004/12/04 00:57:56  sueh
+ * <p> bug# 569 Handling directory paths with spaces:  converting from a
+ * <p> command line to a command array to prevent the command line from
+ * <p> being split on white space.
+ * <p>
  * <p> Revision 3.19  2004/11/24 18:10:36  sueh
  * <p> bug# 520 Added binning in XY.
  * <p>
@@ -236,6 +241,7 @@ public class ImodProcess {
   private int binningXY = defaultBinning;
   InteractiveSystemProgram imod = null;
   private Vector sendArguments = new Vector();
+  private String[] datasetNameArray = null;
 
   private Thread imodThread;
 
@@ -263,6 +269,17 @@ public class ImodProcess {
    */
   public ImodProcess(String dataset, String model) {
     datasetName = dataset;
+    modelName = model;
+  }
+  
+  /**
+   * Dataset and model file constructor
+   * 
+   * @param datasetArray A string array specifying the path to the projection stack file
+   * @param model A string specifying the path to the IMOD model file
+   */
+  public ImodProcess(String[] datasetArray, String model) {
+    datasetNameArray = datasetArray;
     modelName = model;
   }
 
@@ -318,7 +335,6 @@ public class ImodProcess {
     if (outputWindowID) {
       commandOptions.add("-W");
     }
-
     if (swapYZ) {
       commandOptions.add("-Y");
     }
@@ -341,17 +357,29 @@ public class ImodProcess {
       commandOptions.add(Integer.toString(binningXY));
     }
     
-    commandOptions.add(datasetName);
-
-    if (openWithModel) {
+    if (!datasetName.equals("")) {
+      commandOptions.add(datasetName);
+    }
+    
+    if (datasetNameArray != null) {
+      for (int i = 0; i < datasetNameArray.length; i++) {
+        commandOptions.add(datasetNameArray[i]);
+      }
+    }
+    
+    if (openWithModel && !modelName.equals("")) {
       commandOptions.add(modelName);
     }
+    
     String[] commandArray = new String[commandOptions.size()];
     for (int i = 0; i < commandOptions.size(); i++) {
       commandArray[i] = (String) commandOptions.get(i);
       if (EtomoDirector.getInstance().isDebug()) {
-        System.err.println(commandArray[i]);
+        System.err.print(commandArray[i] + " ");
       }
+    }
+    if (EtomoDirector.getInstance().isDebug()) {
+      System.err.println();
     }
     imod = new InteractiveSystemProgram(commandArray);
     if (workingDirectory != null) {
