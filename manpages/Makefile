@@ -8,10 +8,13 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 1.2  2001/11/28 15:45:42  mast
+#  Changed to do install in conventional manner
+#
 #
 include ../configure
 
-HERE = $(PWD)
+HERE = .
 
 install : mantohtml
 	./convert $(HERE)
