@@ -98,6 +98,11 @@ import etomo.util.Utilities;
  * 
  *
  * <p> $Log$
+ * <p> Revision 3.142  2005/03/29 19:47:44  sueh
+ * <p> bug# 623 When montaging, setting full image size when updating tilt.com
+ * <p> from the .ali file.  When the .ali file is not available set the full image size
+ * <p> from running goodframe on the X and Y sizes in the .st file.
+ * <p>
  * <p> Revision 3.141  2005/03/24 20:18:35  sueh
  * <p> bug# 621 Fixed bug where post processing button didn't get highlighted.
  * <p>
@@ -2896,6 +2901,9 @@ public class ApplicationManager extends BaseManager {
     else if (dialogType == DialogType.POST_PROCESSING) {
       return postProcessingDialog;
     }
+    else if (dialogType == DialogType.CLEAN_UP) {
+      return cleanUpDialog;
+    }
     return null;
   }
 
@@ -5561,7 +5569,6 @@ public class ApplicationManager extends BaseManager {
     setAdvanced(postProcessingDialog.getDialogType(), postProcessingDialog.isAdvanced());
     DialogExitState exitState = postProcessingDialog.getExitState();
     if (exitState == DialogExitState.CANCEL) {
-      postProcessingDialog = null;
       mainPanel.showBlankProcess(AxisID.ONLY);
     }
     else {
@@ -5575,11 +5582,11 @@ public class ApplicationManager extends BaseManager {
       else if (exitState != DialogExitState.SAVE) {
         processTrack.setPostProcessingState(ProcessState.COMPLETE);
         mainPanel.setPostProcessingState(ProcessState.COMPLETE);
-        postProcessingDialog = null;
         openCleanUpDialog();
       }
       saveTestParamFile();
     }
+    postProcessingDialog = null;
   }
   
   /**
@@ -5593,10 +5600,7 @@ public class ApplicationManager extends BaseManager {
     }
     setAdvanced(cleanUpDialog.getDialogType(), cleanUpDialog.isAdvanced());
     DialogExitState exitState = cleanUpDialog.getExitState();
-    if (exitState == DialogExitState.CANCEL) {
-      cleanUpDialog = null;
-    }
-    else {
+    if (exitState != DialogExitState.CANCEL) {
       if (exitState == DialogExitState.POSTPONE) {
         processTrack.setCleanUpState(ProcessState.INPROGRESS);
         mainPanel.setCleanUpState(ProcessState.INPROGRESS);
@@ -5604,10 +5608,10 @@ public class ApplicationManager extends BaseManager {
       else if (exitState != DialogExitState.SAVE) {
         processTrack.setCleanUpState(ProcessState.COMPLETE);
         mainPanel.setCleanUpState(ProcessState.COMPLETE);
-        cleanUpDialog = null;
       }
       saveTestParamFile();
     }
+    cleanUpDialog = null;
     mainPanel.showBlankProcess(AxisID.ONLY);
   }
 
