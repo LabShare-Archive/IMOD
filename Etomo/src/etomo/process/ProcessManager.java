@@ -20,6 +20,11 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.50  2005/01/08 01:52:32  sueh
+ * bug# 578 Passed NewstParam to startComScript().  Added post
+ * processing for tilt.  Only doing post processing on newst when it was
+ * used to create the full aligned stack.
+ *
  * Revision 3.49  2005/01/06 18:12:00  sueh
  * bug# 578 In postProcess(ComScriptProcess), setting
  * TomogramState.skewOption and xStretchOption when align is finished.
@@ -1341,7 +1346,8 @@ public class ProcessManager extends BaseProcessManager {
       if (command != null) {
         state.setMadeZFactors(command
             .getBooleanValue(TiltalignParam.GET_USE_OUTPUT_Z_FACTOR_FILE));
-        appManager.enableZFactors(script.getAxisID());
+        state.setUsedLocalAlignments(command.getBooleanValue(TiltalignParam.GET_LOCAL_ALIGNMENTS));
+        appManager.enableTiltParameters(script.getAxisID());
       }
     }
     else if (processName == ProcessName.TOMOPITCH) {
@@ -1351,7 +1357,7 @@ public class ProcessManager extends BaseProcessManager {
       if (command != null && command.getCommandMode() == NewstParam.FULL_ALIGNED_STACK_MODE) {
         appManager.getState().setNewstFiducialessAlignment(
             command.getBooleanValue(NewstParam.GET_FIDUCIALESS_ALIGNMENT));
-        appManager.enableZFactors(script.getAxisID());
+        appManager.enableTiltParameters(script.getAxisID());
       }
     }
   }
