@@ -210,6 +210,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.5  2003/05/20 23:42:09  mast
+c	  Add space before wrlist output
+c	
 c	  Revision 3.4  2003/04/11 17:28:42  mast
 c	  added cgx, cgy to tltcntrl common to make them available to tiltali
 c	
@@ -389,7 +392,7 @@ c
 	  call rdlist(5,ivsep(1,ig),nsepingrp(ig))
 	enddo
 c	  
-	call get_tilt_angles(nvuall,3,tltall)
+	call get_tilt_angles(nvuall,3,tltall, limpcl, 0)
 c	  
 c	  DNM 5/3/02: accommodate changes to tiltalign by setting up the
 c	  mapping arrays, adding to automap call
