@@ -18,6 +18,7 @@ import javax.swing.JRadioButton;
 import etomo.ApplicationManager;
 import etomo.comscript.TrimvolParam;
 import etomo.process.ImodManager;
+import etomo.process.ImodProcess;
 /**
  * <p>Description: </p>
  * 
@@ -31,6 +32,10 @@ import etomo.process.ImodManager;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.2  2004/05/06 20:25:16  sueh
+ * <p> bug# 33 added getCoordinates button, moved fullvol button to the top
+ * <p> of the dialog, added setXYMinAndMax() to set field values
+ * <p>
  * <p> Revision 3.1  2004/01/30 22:45:34  sueh
  * <p> bug# 356 Changing buttons with html labels to
  * <p> MultiLineButton and MultiLineToggleButton
@@ -182,12 +187,11 @@ public class TrimvolPanel {
     pnlTrimvol.setBorder(new BeveledBorder("Volume Trimming").getBorder());
 
     pnlImodFull.setLayout(new BoxLayout(pnlImodFull, BoxLayout.X_AXIS));
-    btnImodFull.setAlignmentX(Component.CENTER_ALIGNMENT);
-    //pnlImodFull.add(Box.createHorizontalGlue());
+    pnlImodFull.add(Box.createHorizontalGlue());
     pnlImodFull.add(btnImodFull);
-    //pnlImodFull.add(Box.createHorizontalGlue());
-    //pnlImodFull.add(btnGetCoordinates);
-    //pnlImodFull.add(Box.createHorizontalGlue());
+    pnlImodFull.add(Box.createHorizontalGlue());
+    pnlImodFull.add(btnGetCoordinates);
+    pnlImodFull.add(Box.createHorizontalGlue());
     pnlTrimvol.add(pnlImodFull);
     pnlTrimvol.add(pnlRange);
     pnlTrimvol.add(Box.createRigidArea(FixedDim.x0_y10));
@@ -286,18 +290,22 @@ public class TrimvolPanel {
     }
     int size = coordinates.size();
     int index = 0;
-    if (index >= size) {
+    //Assumes that everything other then the results have been removed from the
+    //vector.
+    if (index >= size
+      || !ImodProcess.RUBBERBAND_RESULTS_STRING.equals(
+        (String) coordinates.get(index++))) {
       return;
     }
     ltfXMin.setText((String) coordinates.get(index++));
     if (index >= size) {
       return;
     }
-    ltfXMax.setText((String) coordinates.get(index++));
+    ltfYMin.setText((String) coordinates.get(index++));
     if (index >= size) {
       return;
     }
-    ltfYMin.setText((String) coordinates.get(index++));
+    ltfXMax.setText((String) coordinates.get(index++));
     if (index >= size) {
       return;
     }
@@ -449,7 +457,7 @@ public class TrimvolPanel {
     text =
       "After pressing the 3dmod Full Volume button, press shift-B in the "
         + "ZaP window.  Create a rubberband around the volume range.  Then "
-        + "press this button to retrieve X and Y coordinates";
+        + "press this button to retrieve X and Y coordinates.";
     this.btnGetCoordinates.setToolTipText(tooltipFormatter.setText(text).format());
 
     text = "Trim the original volume with the parameters given above.";
