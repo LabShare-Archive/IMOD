@@ -26,6 +26,7 @@ import etomo.comscript.TomopitchParam;
 import etomo.type.AxisID;
 import etomo.type.DialogType;
 import etomo.type.MetaData;
+import etomo.type.ViewType;
 import etomo.util.InvalidParameterException;
 import etomo.util.MRCHeader;
 
@@ -42,6 +43,10 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.24  2005/02/19 00:31:30  sueh
+ * <p> bug# 606 Removed MetaData (Setup) zfactors, fiducialess, wholetomogram,
+ * <p> and localalignments.  Add them for A and B.
+ * <p>
  * <p> Revision 3.23  2005/01/14 03:11:45  sueh
  * <p> bug# 511 Added DialogType to super constructor.
  * <p>
@@ -256,6 +261,9 @@ public class TomogramPositioningDialog extends ProcessDialog
     //  Create the primary panels
     pnlWholeTomogram
       .setLayout(new BoxLayout(pnlWholeTomogram, BoxLayout.X_AXIS));
+    if (appMgr.getMetaData().getViewType() == ViewType.MONTAGE) {
+      cbWholeTomogram.setEnabled(false);
+    }
     pnlWholeTomogram.add(cbWholeTomogram);
     pnlWholeTomogram.add(spinBinning.getContainer());
 
