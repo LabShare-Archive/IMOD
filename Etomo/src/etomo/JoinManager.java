@@ -48,6 +48,10 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.3  2004/11/20 01:55:44  sueh
+* <p> bug# 520 Added abortAddSection() to turn on Add Section button after
+* <p> killing flipyz process.
+* <p>
 * <p> Revision 1.2  2004/11/19 22:34:55  sueh
 * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
 * <p>
@@ -404,14 +408,14 @@ public class JoinManager extends BaseManager {
   }
 
   public void makejoincom() {
-    mainPanel.startProgressBar("Makejoincom", AxisID.ONLY);
-    nextProcess = "startjoin";
-    joinDialog.getMetaData(metaData);
-    if (!endSetupMode()) {
-      mainPanel.openMessageDialog(metaData.getInvalidReason(), "Invalid Data");
-      mainPanel.stopProgressBar(AxisID.ONLY);
+    if (!joinDialog.getMetaData(metaData)) {
       return;
     }
+    if (!metaData.isValid(joinDialog.getWorkingDirName())) {
+      mainPanel.openMessageDialog(metaData.getInvalidReason(), "Invalid Data");
+      return;
+    }
+    nextProcess = "startjoin";
     String rootName = metaData.getRootName();
     EtomoDirector.getInstance().renameCurrentManager(rootName);
     createEmptyXfFile(rootName);
@@ -423,9 +427,9 @@ public class JoinManager extends BaseManager {
       except.printStackTrace();
       mainPanel.openMessageDialog("Can't run makejoincom\n"
         + except.getMessage(), "SystemProcessException");
-      mainPanel.stopProgressBar(AxisID.ONLY);
       return; 
     }
+    mainPanel.startProgressBar("Makejoincom", AxisID.ONLY);
   }
   
   /**
@@ -503,11 +507,9 @@ public class JoinManager extends BaseManager {
         + except.getMessage(), "SystemProcessException");
       return; 
     }
-    mainPanel.stopProgressBar(AxisID.ONLY);
   }
   
   public void xfalignInitial() {
-    mainPanel.startProgressBar("Initial xfalign", AxisID.ONLY);
     if (!updateMetaDataFromJoinDialog()) {
       return;
     }
@@ -520,14 +522,13 @@ public class JoinManager extends BaseManager {
       except.printStackTrace();
       mainPanel.openMessageDialog("Can't run initial xfalign\n"
         + except.getMessage(), "SystemProcessException");
-      mainPanel.stopProgressBar(AxisID.ONLY);
       joinDialog.enableMidas();
       return; 
     }
+    mainPanel.startProgressBar("Initial xfalign", AxisID.ONLY);
   }
   
   public void xfalignRefine() {
-    mainPanel.startProgressBar("Refine xfalign", AxisID.ONLY);
     if (!updateMetaDataFromJoinDialog()) {
       return;
     }
@@ -542,10 +543,10 @@ public class JoinManager extends BaseManager {
       except.printStackTrace();
       mainPanel.openMessageDialog("Can't run "+ JoinDialog.REFINE_AUTO_ALIGNMENT_TEXT + "\n"
         + except.getMessage(), "SystemProcessException");
-      mainPanel.stopProgressBar(AxisID.ONLY);
       joinDialog.enableMidas();
       return; 
     }
+    mainPanel.startProgressBar("Refine xfalign", AxisID.ONLY);
   }
   
   private boolean copyMostRecentXfFile(String commandDescription) {
@@ -648,10 +649,8 @@ public class JoinManager extends BaseManager {
   }
   
   public void startjoin() {
-    mainPanel.startProgressBar("Startjoin", AxisID.ONLY);
     if (!metaData.isValid(joinDialog.getWorkingDir())) {
       mainPanel.openMessageDialog(metaData.getInvalidReason(), "Invalid Data");
-      mainPanel.stopProgressBar(AxisID.ONLY);
       return;
     }
     nextProcess = "";
@@ -662,9 +661,9 @@ public class JoinManager extends BaseManager {
       except.printStackTrace();
       mainPanel.openMessageDialog("Can't run startjoin.com\n"
         + except.getMessage(), "SystemProcessException");
-      mainPanel.stopProgressBar(AxisID.ONLY);
       return; 
     }
+    mainPanel.startProgressBar("Startjoin", AxisID.ONLY);
   }
   
   public void revertXfFileToMidas() {
@@ -686,7 +685,6 @@ public class JoinManager extends BaseManager {
   }
   
   public void runFinishjoin(int mode, String buttonText) {
-    mainPanel.startProgressBar("Finishjoin: " + buttonText, AxisID.ONLY);
     if (!updateMetaDataFromJoinDialog()) {
       return;
     }
@@ -701,16 +699,17 @@ public class JoinManager extends BaseManager {
       except.printStackTrace();
       mainPanel.openMessageDialog("Can't run " + buttonText
           + "\n" + except.getMessage(), "SystemProcessException");
-      mainPanel.stopProgressBar(AxisID.ONLY);
       return; 
     }
+    mainPanel.startProgressBar("Finishjoin: " + buttonText, AxisID.ONLY);
   }
   
   private boolean updateMetaDataFromJoinDialog() {
-    joinDialog.getMetaData(metaData);
+    if (!joinDialog.getMetaData(metaData)) {
+      return false;
+    }
     if (!metaData.isValid(propertyUserDir)) {
       mainPanel.openMessageDialog(metaData.getInvalidReason(), "Invalid Data");
-      mainPanel.stopProgressBar(AxisID.ONLY);
       return false;
     }
     saveMetaData();
@@ -733,7 +732,6 @@ public class JoinManager extends BaseManager {
 
    
   public void flip(File tomogram, File workingDir) {
-    mainPanel.startProgressBar("Flipping " + tomogram.getName(), AxisID.ONLY);
     FlipyzParam flipyzParam = new FlipyzParam(tomogram, workingDir);
     try {
       threadNameA = processMgr.flipyz(flipyzParam);
@@ -743,9 +741,9 @@ public class JoinManager extends BaseManager {
       except.printStackTrace();
       mainPanel.openMessageDialog("Can't run clip flipyz\n"
         + except.getMessage(), "SystemProcessException");
-      mainPanel.stopProgressBar(AxisID.ONLY);
       return; 
     }
+    mainPanel.startProgressBar("Flipping " + tomogram.getName(), AxisID.ONLY);
   }
   
   public void abortAddSection() {
