@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1  2003/02/27 00:55:39  mast
+qt clipboard version
+
 Revision 3.3  2002/09/17 18:49:14  mast
 Added a signature entry in the action packet because there seem to be
 other events around that imod gets
@@ -52,6 +55,7 @@ Initial addition to package
 #include <imodsendevent.h>
 
 static int winID;
+static int debugOut = 0;
 
 int main(int argc, char **argv)
 {
@@ -77,6 +81,10 @@ int main(int argc, char **argv)
         }
         break;
 
+      case 'D': /* debug */
+        debugOut = 1;
+        break;
+
       default:
         fprintf(stderr, "ERROR: imodsendevent - invalid argument %s\n",
                 argv[argIndex]);
@@ -91,7 +99,7 @@ int main(int argc, char **argv)
 
   if (numArgs < 2 || numArgs > 3 ) {
     fprintf(stderr, "ERROR: imodsendevent - Wrong number of arguments\n"
-            "   Usage: imodsendevent [-t timeout] Window_ID action "
+            "   Usage: imodsendevent [-t timeout] [-D] Window_ID action "
             "[text_string]\n");
     exit(-1);
   }
@@ -126,6 +134,8 @@ int main(int argc, char **argv)
   if (timeout > 0.)
     a.startTimer((int)(1000. * timeout + 0.5));
   cb->blockSignals(false);
+  if (debugOut)
+    fprintf(stderr, "Imodsendevent sending: %s\n", qstr.latin1());
   cb->setText(qstr);
 
   return a.exec();
@@ -150,7 +160,8 @@ void ImodSendEvent::clipboardChanged()
 {
   QClipboard *cb = QApplication::clipboard();
   QString text = cb->text();
-  //  fprintf(stderr, "Imodsendevent - clipboard = %s\n", text.latin1());
+  if (debugOut)
+    fprintf(stderr, "Imodsendevent - clipboard = %s\n", text.latin1());
 
   // Ignore if empty text, no spaces, starting space, or wrong ID
   if (text.isEmpty())
