@@ -14,6 +14,10 @@ package etomo.type;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.2  2005/01/10 23:48:59  sueh
+* <p> bug# 578 Removed defaultValue and displayDefault setting in constructor
+* <p> since these are unnecessary.
+* <p>
 * <p> Revision 1.1  2005/01/10 23:36:03  sueh
 * <p> bug# 578 Class to handle state with four values:  null, no result, false, and
 * <p> true.  It inherits EtomoNumber and uses validValues to maintain a strict
@@ -28,8 +32,8 @@ public class EtomoState extends EtomoNumber {
   public static final String  rcsid =  "$Id$";
   
   public static final int NO_RESULT_VALUE = -1;
-  public static final int FALSE_VALUE = -2;
-  public static final int TRUE_VALUE = -3;
+  public static final int FALSE_VALUE = 0;
+  public static final int TRUE_VALUE = 1;
   
   private static final String nullString = "null";
   private static final String noResultString = "no result";
@@ -39,18 +43,6 @@ public class EtomoState extends EtomoNumber {
   public EtomoState(String name) {
     super(EtomoNumber.INTEGER_TYPE, name);
     setValidValues(new int[] { NO_RESULT_VALUE, FALSE_VALUE, TRUE_VALUE });
-  }
-  
-  /**
-   * allow setting a boolean value
-   * @param value
-   * @return
-   */
-  public ConstEtomoNumber set(boolean value) {
-    if (value) {
-      return set(TRUE_VALUE);
-    }
-    return set(FALSE_VALUE);
   }
   
   /**
@@ -69,10 +61,7 @@ public class EtomoState extends EtomoNumber {
    */
   public boolean is() {
     int intValue = getValue().intValue();
-    if (intValue == TRUE_VALUE) {
-      return true;
-    }
-    if (isNull(intValue) || intValue == NO_RESULT_VALUE || intValue == FALSE_VALUE) {
+    if (intValue == NO_RESULT_VALUE) {
       return false;
     }
     return super.is();
@@ -95,7 +84,8 @@ public class EtomoState extends EtomoNumber {
   }
   
   /**
-   * Overide newNumber() to convert from a character string to the value
+   * Overide newNumber(String, StringBuffer) to convert from a character string
+   * to the value
    */
   protected Number newNumber(String value, StringBuffer invalidBuffer) {
     if (value != null && !value.matches("\\s*")) {
