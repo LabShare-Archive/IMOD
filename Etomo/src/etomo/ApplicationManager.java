@@ -74,6 +74,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.41  2003/05/15 20:13:05  rickg
+ * <p> Fixed PLAF for windows
+ * <p>
  * <p> Revision 2.40  2003/05/15 19:39:44  rickg
  * <p> Look and feel handling
  * <p>
@@ -521,14 +524,20 @@ public class ApplicationManager {
    * Open the main window in processing mode
    */
   public void openProcessingPanel() {
-    //mainFrame.setLocation(0, 0);
+    mainFrame.showProcessingPanel(metaData.getAxisType());
+    mainFrame.updateAllProcessingStates(processTrack);
+    mainFrame.pack();
+    //  Resize to the users preferrred window dimensions
     mainFrame.setSize(
       new Dimension(
         userConfig.getMainWindowWidth(),
         userConfig.getMainWindowHeight()));
-    mainFrame.showProcessingPanel(metaData.getAxisType());
-    mainFrame.updateAllProcessingStates(processTrack);
+
+    mainFrame.doLayout();
     mainFrame.validate();
+    if(isDualAxis()){
+      mainFrame.setDividerLocation(0.51);
+    }
   }
 
   /**
