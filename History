@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/13/04: Fixed problems with copytomocoms and setupcombine under csh on SGI.
+
 1/9/04: IMOD_3-2-4
 1/9/04: Added ability for 3dmod to bin images.  Made the cache fill completely
 upon startup when the user does not limit the size with a -C entry.
@@ -128,6 +130,9 @@ padding, so that large padding can be used for large images.
 11/17/03: Fixed the newst problem in a better way.  Fixed the sed commands
 put out in sample.com by copytomocoms, which worked only on RedHat 9 and 
 Cygwin, and changed vmstocsh to preserve continuation lines ending in \\.
+
+11/14/03: Changed file reading, writing, and seeking routines to work for
+files bigger than 2 GB on Windows.
 
 11/13/03: Fixed a problem with newst that showed up for one user under Mac 
 OS 10.3.
