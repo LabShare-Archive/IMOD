@@ -52,10 +52,10 @@ int rgbslice_paint(struct Mod_Model *mod,
                    struct MRCheader *hdata,
                    int z);
 int contour_paintrgb(struct Mod_Contour *cont,
-		     unsigned char *idata,
-		     unsigned char **pdata,
-		     struct MRCheader *hdata,
-		     struct Mod_Object *obj);
+                     unsigned char *idata,
+                     unsigned char **pdata,
+                     struct MRCheader *hdata,
+                     struct Mod_Object *obj);
 int slice_paint(struct Mod_Model *mod,
                 void *idata,
                 void *pdata,
@@ -143,9 +143,9 @@ int main( int argc, char *argv[])
     imodVersion(progname);
     imodCopyright();
     fprintf(stderr,
-	    "Usage: %s <model file> <tomogram> <movie file>\n", progname);
+            "Usage: %s <model file> <tomogram> <movie file>\n", progname);
     fprintf(stderr, "[-x] [-z] [-n] [-m] [-T <temp>] "
-	    "-t <start, end, increment>]\n");
+            "-t <start, end, increment>]\n");
     exit(1);
   }
      
@@ -153,39 +153,39 @@ int main( int argc, char *argv[])
     if (argv[i][0] == '-'){
       switch (argv[i][1]){
       case 'd':
-	Cmopp_debug = TRUE;
-	break;
+        Cmopp_debug = TRUE;
+        break;
       case 'n':
-	ntsc = TRUE;
-	break;
+        ntsc = TRUE;
+        break;
       case 'x':
-	xaxis = 1;
-	break;
+        xaxis = 1;
+        break;
       case 'z':
-	zaxis = 1;
-	break;
+        zaxis = 1;
+        break;
       case 'Z':
-	sscanf(argv[++i], "%d", &Cmopp_zscale);
-	break;
+        sscanf(argv[++i], "%d", &Cmopp_zscale);
+        break;
       case 'm':
-	mrc = FALSE;
-	break;
+        mrc = FALSE;
+        break;
       case 't':
-	tilt = 1;
-	if (argv[i][2] != 0x00)
-	  sscanf(argv[i], "-t%d%*c%d%*c%d", &start_tilt,
-		 &end_tilt, &inc_tilt);
-	else
-	  sscanf(argv[++i], "%d%*c%d%*c%d", &start_tilt,
-		 &end_tilt, &inc_tilt);
-	break;
+        tilt = 1;
+        if (argv[i][2] != 0x00)
+          sscanf(argv[i], "-t%d%*c%d%*c%d", &start_tilt,
+                 &end_tilt, &inc_tilt);
+        else
+          sscanf(argv[++i], "%d%*c%d%*c%d", &start_tilt,
+                 &end_tilt, &inc_tilt);
+        break;
 
       case 'T':
-	theTempDir = argv[++i];
-	break;
+        theTempDir = argv[++i];
+        break;
 
       default:
-	break;
+        break;
       }
     }
 
@@ -235,10 +235,10 @@ int main( int argc, char *argv[])
   }
 
   /*     mfin = fopen(argv[1], "rb");
-	 if (mfin == NULL){
-	 fprintf(stderr, "rgbmop: Couldn't open %s\n", argv[1]);
-	 exit(-1);
-	 }
+         if (mfin == NULL){
+         fprintf(stderr, "rgbmop: Couldn't open %s\n", argv[1]);
+         exit(-1);
+         }
   */
   gfin = fopen(argv[2], "rb");
   if (gfin == NULL){
@@ -256,7 +256,7 @@ int main( int argc, char *argv[])
 
   if (mrc_head_read(gfin, &hdata)){
     fprintf(stderr, "rgbmop: Can't read tomogram header, %s.\n",
-	    argv[2]);
+            argv[2]);
     exit(-1);
   }
      
@@ -342,7 +342,7 @@ int main( int argc, char *argv[])
   fprintf(fout, "1\n0,1\n0\n");
   fclose(fout);
   fout = NULL;
-  sprintf(command, "xyzproj < %s > /dev/null", xyz);
+  sprintf(command, "xyzproj < %s", xyz);
   system(command);
   remove(rshort); 
 
@@ -366,7 +366,7 @@ int main( int argc, char *argv[])
   fprintf(fout, "1\n0,1\n0\n");
   fclose(fout);
   fout = NULL; 
-  sprintf(command, "xyzproj < %s > /dev/null", xyz);
+  sprintf(command, "xyzproj < %s", xyz);
   system(command);
   remove(gshort); 
 
@@ -390,7 +390,7 @@ int main( int argc, char *argv[])
   fprintf(fout, "%d\n", prosize);
   fprintf(fout, "1\n0,1\n0\n");
   fclose(fout);
-  sprintf(command, "xyzproj < %s > /dev/null", xyz);
+  sprintf(command, "xyzproj < %s", xyz);
   system(command);
   remove(bshort); 
   remove(xyz);
@@ -429,7 +429,7 @@ int cmopp_write_mrc(char *moviename, FILE *rfin, FILE *gfin, FILE *bfin)
   FILE *of;
   struct MRCheader hdata;
   float ramp, rramp = 256.0f, gramp = 256.0f, bramp = 256.0f;
-  short sdata;
+  b3dInt16 sdata;
   unsigned char bdata;
   int i, j, k;
   float min, max, mean;
@@ -456,24 +456,24 @@ int cmopp_write_mrc(char *moviename, FILE *rfin, FILE *gfin, FILE *bfin)
   hdata.mode = MRC_MODE_RGB;
   hdata.swapped = 0;
   mrc_head_write(of, &hdata);
-  fseek(rfin, 1024, 0);
-  fseek(gfin, 1024, 0);
-  fseek(bfin, 1024, 0);
+  b3dFseek(rfin, 1024, 0);
+  b3dFseek(gfin, 1024, 0);
+  b3dFseek(bfin, 1024, 0);
   for (k = 0; k < hdata.nz; k++)
     for(j = 0; j < hdata.ny; j++)
       for(i = 0; i < hdata.nx; i++){
-	fread(&sdata, 2, 1, rfin);
+        b3dFread(&sdata, 2, 1, rfin);
 
-	bdata = (unsigned char)((float)sdata * ramp);
-	fwrite(&bdata, 1, 1, of);
-	fread(&sdata, 2, 1, gfin);
+        bdata = (unsigned char)((float)sdata * ramp);
+        b3dFwrite(&bdata, 1, 1, of);
+        b3dFread(&sdata, 2, 1, gfin);
 
-	bdata = (unsigned char)((float)sdata * ramp);
-	fwrite(&bdata, 1, 1, of);
-	fread(&sdata, 2, 1, bfin);
+        bdata = (unsigned char)((float)sdata * ramp);
+        b3dFwrite(&bdata, 1, 1, of);
+        b3dFread(&sdata, 2, 1, bfin);
 
-	bdata = (unsigned char)((float)sdata * ramp);
-	fwrite(&bdata, 1, 1, of);
+        bdata = (unsigned char)((float)sdata * ramp);
+        b3dFwrite(&bdata, 1, 1, of);
       }
 
   fclose(of);
@@ -542,9 +542,9 @@ int cmopp_write_movie(char *moviename,
     bfill = tfill + ((ysize - hdata.ny) % 2);
   }
 
-  fseek(rfin, 1024, 0);
-  fseek(gfin, 1024, 0);
-  fseek(bfin, 1024, 0);
+  b3dFseek(rfin, 1024, 0);
+  b3dFseek(gfin, 1024, 0);
+  b3dFseek(bfin, 1024, 0);
   for (k = 0; k < hdata.nz; k++){
     printf(".");
     fflush(stdout);
@@ -574,46 +574,46 @@ int cmopp_write_movie(char *moviename,
     bdata = 0;
     for (j = 0; j < tfill; j++)
       for (i = 0; i < xsize; i++)
-	putbyte(of,0);
+        putbyte(of,0);
     for (j = 0; j < hdata.ny; j++){
       for (i = 0; i < lfill; i++)
-	putbyte(of,0);
+        putbyte(of,0);
       for(i = 0; i < hdata.nx; i++){
-	fread(&sdata, 2, 1, rfin);
-	bdata = (float)sdata * ramp;
-	fwrite(&bdata, 1, 1, of);
+        b3dFread(&sdata, 2, 1, rfin);
+        bdata = (float)sdata * ramp;
+        fwrite(&bdata, 1, 1, of);
       }
       bdata = 0;
       for (i = 0; i < rfill; i++)
-	putbyte(of,0);
+        putbyte(of,0);
     }
     bdata = 0;
     for (j = 0; j < bfill; j++)
       for (i = 0; i < xsize; i++)
-	putbyte(of,0);
+        putbyte(of,0);
 
 
     /* Write green data. */
     bdata = 0;
     for (j = 0; j < tfill; j++)
       for (i = 0; i < xsize; i++)
-	fwrite(&bdata, 1, 1, of);
+        fwrite(&bdata, 1, 1, of);
     for (j = 0; j < hdata.ny; j++){
       for (i = 0; i < lfill; i++)
-	fwrite(&bdata, 1, 1, of);
+        fwrite(&bdata, 1, 1, of);
       for(i = 0; i < hdata.nx; i++){
-	fread(&sdata, 2, 1, gfin);
-	bdata = (float)sdata * ramp;
-	fwrite(&bdata, 1, 1, of);
+        b3dFread(&sdata, 2, 1, gfin);
+        bdata = (float)sdata * ramp;
+        fwrite(&bdata, 1, 1, of);
       }
       bdata = 0;
       for (i = 0; i < rfill; i++)
-	fwrite(&bdata, 1, 1, of);
+        fwrite(&bdata, 1, 1, of);
     }
     bdata = 0;
     for (j = 0; j < bfill; j++)
       for (i = 0; i < xsize; i++)
-	fwrite(&bdata, 1, 1, of);
+        fwrite(&bdata, 1, 1, of);
           
 
 
@@ -621,23 +621,23 @@ int cmopp_write_movie(char *moviename,
     bdata = 0;
     for (j = 0; j < tfill; j++)
       for (i = 0; i < xsize; i++)
-	fwrite(&bdata, 1, 1, of);
+        fwrite(&bdata, 1, 1, of);
     for (j = 0; j < hdata.ny; j++){
       for (i = 0; i < lfill; i++)
-	fwrite(&bdata, 1, 1, of);
+        fwrite(&bdata, 1, 1, of);
       for(i = 0; i < hdata.nx; i++){
-	fread(&sdata, 2, 1, bfin);
-	bdata = (float)sdata * ramp;
-	fwrite(&bdata, 1, 1, of);
+        b3dFread(&sdata, 2, 1, bfin);
+        bdata = (float)sdata * ramp;
+        fwrite(&bdata, 1, 1, of);
       }
       bdata = 0;
       for (i = 0; i < rfill; i++)
-	fwrite(&bdata, 1, 1, of);
+        fwrite(&bdata, 1, 1, of);
     }
     bdata = 0;
     for (j = 0; j < bfill; j++)
       for (i = 0; i < xsize; i++)
-	fwrite(&bdata, 1, 1, of);
+        fwrite(&bdata, 1, 1, of);
           
     fclose(of);
           
@@ -689,7 +689,7 @@ int rgbmodpaint(struct Mod_Model *model,
     zmax = maxpt.z;
      
   mrc_head_new(&hdout, xmax - xmin + 1, ymax - ymin + 1, zmax - zmin + 1,
-	       MRC_MODE_SHORT);
+               MRC_MODE_SHORT);
   mrc_head_write(rtom, &hdout);
   mrc_head_write(gtom, &hdout);
   mrc_head_write(btom, &hdout);
@@ -704,19 +704,19 @@ int rgbmodpaint(struct Mod_Model *model,
     printf("Mopping section %d ", k);
     fflush(stdout);
     rgbslice_paint(model, (void *)&(idata[k][0]), 
-		   (void **)pdata, hdata, k); 
+                   (void **)pdata, hdata, k); 
     slice_paint(model, NULL, &(pdata[0][0]), hdata, k); 
     slice_paint(model, NULL, &(pdata[1][0]), hdata, k); 
     slice_paint(model, NULL, &(pdata[2][0]), hdata, k); 
           
     for (j = ymin; j <= ymax; j++){
       for (i = xmin; i <= xmax; i++){
-	sdata = pdata[0][(j * hdata->nx) + i];
-	fwrite(&sdata, 2, 1, rtom);
-	sdata = pdata[1][(j * hdata->nx) + i]; 
-	fwrite(&sdata, 2, 1, gtom);
-	sdata = pdata[2][(j * hdata->nx) + i];
-	fwrite(&sdata, 2, 1, btom);
+        sdata = pdata[0][(j * hdata->nx) + i];
+        b3dFwrite(&sdata, 2, 1, rtom);
+        sdata = pdata[1][(j * hdata->nx) + i]; 
+        b3dFwrite(&sdata, 2, 1, gtom);
+        sdata = pdata[2][(j * hdata->nx) + i];
+        b3dFwrite(&sdata, 2, 1, btom);
       }
     }
     printf("\r");
@@ -753,17 +753,17 @@ int rgbslice_paint(struct Mod_Model *mod,
     for(contnum = 0; contnum < obj->contsize; contnum++){
       cont = &(obj->cont[contnum]);
       if (cont == NULL)
-	continue;
+        continue;
       if (cont->pts == NULL)
-	continue;
+        continue;
       if (cont->pts[0].z == z){
-	fcont = imodel_contour_scan(cont);  
-	contour_paintrgb(fcont, (unsigned char *)idata, 
-			 (unsigned char **)pdata, hdata, obj);    
+        fcont = imodel_contour_scan(cont);  
+        contour_paintrgb(fcont, (unsigned char *)idata, 
+                         (unsigned char **)pdata, hdata, obj);    
       }
       if (fcont) {
-	imodel_contour_delete(fcont);  
-	fcont = NULL;
+        imodel_contour_delete(fcont);  
+        fcont = NULL;
       }
     }
   }
@@ -771,10 +771,10 @@ int rgbslice_paint(struct Mod_Model *mod,
 }
 
 int contour_paintrgb(struct Mod_Contour *cont,
-		     unsigned char *idata,
-		     unsigned char **pdata,
-		     struct MRCheader *hdata,
-		     struct Mod_Object *obj)
+                     unsigned char *idata,
+                     unsigned char **pdata,
+                     struct MRCheader *hdata,
+                     struct Mod_Object *obj)
 {
   int next, lx;
   int i, x, y;
@@ -796,8 +796,8 @@ int contour_paintrgb(struct Mod_Contour *cont,
     while (cont->pts[i].y == cont->pts[i+1].y){
       ++i;
       if (i >= cont->psize){
-	i = cont->psize - 1;
-	break;
+        i = cont->psize - 1;
+        break;
       }
     }
     endpt = i;
@@ -808,37 +808,37 @@ int contour_paintrgb(struct Mod_Contour *cont,
       xmax = cont->pts[bgnpt].x;
       xmin = cont->pts[endpt].x;
       if (xmin >= cont->surf)
-	for(x = xmin; 
-	    ((x <= xmax)&&( x < hdata->nx)&&(y < hdata->ny)); 
-	    x++){
-	  mopbyte = idata[x + (y * hdata->nx)];
-	  r = (float)mopbyte * obj->red;
-	  g = (float)mopbyte * obj->green;
-	  b = (float)mopbyte * obj->blue;
-	  pdata[0][x + (y * hdata->nx)] = r;
-	  pdata[1][x + (y * hdata->nx)] = g;
-	  pdata[2][x + (y * hdata->nx)] = b;
+        for(x = xmin; 
+            ((x <= xmax)&&( x < hdata->nx)&&(y < hdata->ny)); 
+            x++){
+          mopbyte = idata[x + (y * hdata->nx)];
+          r = (float)mopbyte * obj->red;
+          g = (float)mopbyte * obj->green;
+          b = (float)mopbyte * obj->blue;
+          pdata[0][x + (y * hdata->nx)] = r;
+          pdata[1][x + (y * hdata->nx)] = g;
+          pdata[2][x + (y * hdata->nx)] = b;
                          
-	}
+        }
     }
     /* even number of edge points. */
     else{
       for(j = bgnpt; j < endpt; j++){
-	xmin = cont->pts[j].x;
-	xmax = cont->pts[j+1].x;
-	if (xmin >= cont->surf)
-	  for(x = xmin; 
-	      ((x <= xmax)&&( x < hdata->nx)&&(y < hdata->ny));
-	      x++){
-	    mopbyte = idata[x + (y * hdata->nx)];
-	    r = (float)mopbyte * obj->red;
-	    g = (float)mopbyte * obj->green;
-	    b = (float)mopbyte * obj->blue;
-	    pdata[0][x + (y * hdata->nx)] = r;
-	    pdata[1][x + (y * hdata->nx)] = g;
-	    pdata[2][x + (y * hdata->nx)] = b;
-	  }
-	j++;
+        xmin = cont->pts[j].x;
+        xmax = cont->pts[j+1].x;
+        if (xmin >= cont->surf)
+          for(x = xmin; 
+              ((x <= xmax)&&( x < hdata->nx)&&(y < hdata->ny));
+              x++){
+            mopbyte = idata[x + (y * hdata->nx)];
+            r = (float)mopbyte * obj->red;
+            g = (float)mopbyte * obj->green;
+            b = (float)mopbyte * obj->blue;
+            pdata[0][x + (y * hdata->nx)] = r;
+            pdata[1][x + (y * hdata->nx)] = g;
+            pdata[2][x + (y * hdata->nx)] = b;
+          }
+        j++;
       }    
     }
   }
@@ -849,7 +849,7 @@ int cmopp_zscale(int zscale, char *fname)
 {
   FILE *fp;
   int i,z,k,xysize;
-  short sdata;
+  b3dInt16 sdata;
   unsigned char **idata;
   struct MRCheader hdata;
 
@@ -864,9 +864,9 @@ int cmopp_zscale(int zscale, char *fname)
   for( k = 0; k < hdata.nz; k++){
     for(z = 0; z < zscale; z++){
       for(i = 0; i < xysize; i++){
-	/* write short */
-	sdata = idata[k][i];
-	fwrite(&sdata, sizeof(short), 1, fp);
+        /* write short */
+        sdata = idata[k][i];
+        b3dFwrite(&sdata, 2, 1, fp);
       }
     }
     free(idata[k]);
