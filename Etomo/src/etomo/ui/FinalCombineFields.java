@@ -13,9 +13,13 @@ package etomo.ui;
 *
 * @version $$Revision$$
 *
-* <p> $$Log$$ </p>
+* <p> $$Log$
+* <p> $Revision 1.1  2004/05/11 20:48:38  sueh
+* <p> $bug #302 interface to final combine screen fields.  Used by
+* <p> $setup panel and final panel.
+* <p> $$ </p>
 */
-public interface FinalCombineFields {
+interface FinalCombineFields {
   public static final String rcsid = "$$Id$$";
   
   public void setUsePatchRegionModel(boolean usePatchRegionModel);
