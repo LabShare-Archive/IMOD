@@ -77,20 +77,21 @@ short = reduce
 long = ReductionFraction
 type = F
 usage = Reduce amplitudes in missing wedge regions by this fraction of the
-amount that amplitudes are reduced in mixed data regions (default 0 for no 
+amount needed to match mixed data regions (default 0 for no 
 reduction).
 tooltip =
 manpage = This option can be used to reduce the amplitudes in regions 
 where data is taken only from one tomogram (missing wedge regions). 
 Mean amplitudes are measured by dividing the volume into a number of slabs in
 the Y dimension, then dividing each slab into rings based on radius from the
-origin.  Within each ring, for points in the region where data is averaged
-between the two tomograms (joint data region), the mean is
-obtained for values from A, values from B, and the combined values.
-With a fraction of 1, the values in missing wedge regions will be reduced by
-the ratio of the combined mean to the average of the means from A and B.
-If the ratio is greater than 1, no reduction occurs.
-A smaller fraction will reduce values by a proportionally smaller amount.
+origin.  Within each ring, the mean is obtained for points in the region where 
+data is averaged between the two tomograms (joint data region), and the
+regions where data are available only from A or only from B (A-only or B-only
+regions).  With a fraction of 1, the values in the A-only region will be
+reduced by the ratio of the combined mean to the mean in A-only region, and
+similarly for the B-only region.  If the ratio is greater than 1, no reduction
+occurs.  A smaller fraction will reduce values by a proportionally smaller
+amount.
 
 [Field = SeparateReduction]
 short = separate
@@ -103,33 +104,38 @@ from A will be reduced by the ratio of the mean combined value in the
 joint data region to the mean value from A in the joint data region, and
 similarly for B.
 
-[Field = InterzoneReduction]
-short = interzone
-long = InterzoneReduction
+[Field = JointReduction]
+short = joint
+long = JointReduction
 type = B
-usage = Measure means for A and B in missing wedge, not joint regions
+usage = Measure means for A and B in joint, not missing wedge, regions
 tooltip =
-manpage = With this option, values in regions where data are available only
-from A will be reduced by the ratio of the mean combined value in the 
-joint data region to the mean value from A in the A-only data regions, and
-similarly for B.
+manpage = With this option, for points in the region where data is averaged
+between the two tomograms (joint data region), the mean is obtained within
+each ring for values from A, values from B, and the combined values.  The
+values in missing wedge regions will be reduced by the ratio of the combined
+mean to the average of the means from A and B.
 
 [Field = RingWidth]
 short = ring
 long = RingWidth
 type = F
-usage = Width of rings used to reduce amplitudes (default 0.06)
+usage = Width of rings used to reduce amplitudes (default 0.01)
 tooltip=
-manpage=
+manpage= Width of rings or shells used to reduce amplitudes.  The default is
+0.01.
 
 [Field = NumberOfSlabsInY]
 short = nslabs
 long = NumberOfSlabsInY
 type = I
 usage = Number of divisions in Y dimension when reducing amplitudes 
-(default 15)
+(default 1)
 tooltip=
-manpage=
+manpage= Number of divisions in Y dimension when reducing amplitudes.  The
+default is 1, which will use spherical shells not divided into slabs.  If
+this number is increased, the ring width should be increased as well to avoid
+dividing the volume into too many regions with too few pixels.
 
 [Field = MinimumRadiusToReduce]
 short = radius
