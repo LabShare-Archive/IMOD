@@ -74,6 +74,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.36  2003/05/13 19:58:22  rickg
+ * <p> TransferfidParams constructed with IMODDirectory File
+ * <p>
  * <p> Revision 2.35  2003/05/10 19:12:56  rickg
  * <p> OS independent path implementation
  * <p>
@@ -2321,7 +2324,7 @@ public class ApplicationManager {
   /**
    * Exececute the volcombine com script and clear the execution queue
    */
-  private void volcombine() {
+  public void volcombine() {
     //  Set the next process to execute when this is finished   
     nextProcess = "";
 
