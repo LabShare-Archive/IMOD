@@ -21,6 +21,10 @@ import etomo.ApplicationManager;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.12  2004/05/13 20:11:21  sueh
+ * <p> bug# 33 allowing imodSendAndReceive() to receive any type
+ * <p> of result data
+ * <p>
  * <p> Revision 3.11  2004/05/07 19:43:57  sueh
  * <p> bug# 33 adding getRubberbandCoordinates(),
  * <p> imodSendAndReceive(), parseError().
@@ -502,6 +506,9 @@ public class ImodProcess {
     for (int i = 0; i < args.length; i++) {
       command = command + args[i] + " ";
     }
+    if(ApplicationManager.isDebug()) {
+      System.err.print(command);
+    }
     InteractiveSystemProgram imodSendEvent = new InteractiveSystemProgram(
       command);
 
@@ -513,6 +520,9 @@ public class ImodProcess {
     }
     catch (Exception except) {
       except.printStackTrace();
+    }
+    if(ApplicationManager.isDebug()) {
+      System.err.println("...done");
     }
 
     // Check imodSendEvent's exit code, if it is not zero read in the
