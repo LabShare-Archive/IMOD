@@ -32,98 +32,7 @@
 $Date$
 
 $Revision$
-
-$Log$
-Revision 1.1.2.17  2003/02/04 19:10:16  mast
-Set default style to windows everywhere
-
-Revision 1.1.2.16  2003/01/29 17:49:20  mast
-Fork at top of program before doing any Qt stuff, and don't fork with -W
-
-Revision 1.1.2.15  2003/01/29 01:31:24  mast
-change -rgb to -ci, close windows on exit
-
-Revision 1.1.2.14  2003/01/27 00:30:07  mast
-Pure Qt version and general cleanup
-
-Revision 1.1.2.13  2003/01/23 20:14:09  mast
-Add include of imod_io
-
-Revision 1.1.2.12  2003/01/13 01:15:42  mast
-changes for Qt version of info window
-
-Revision 1.1.2.11  2003/01/06 15:41:02  mast
-Add imodCaption function
-
-Revision 1.1.2.10  2002/12/23 04:52:58  mast
-Add option to get different font size
-
-Revision 1.1.2.9  2002/12/19 04:37:13  mast
-Cleanup of unused global variables and defines
-
-Revision 1.1.2.8  2002/12/17 18:40:24  mast
-Changes and new includes with Qt version of imodv
-
-Revision 1.1.2.7  2002/12/14 17:53:04  mast
-*** empty log message ***
-
-Revision 1.1.2.6  2002/12/14 05:40:43  mast
-new visual-assessing code
-
-Revision 1.1.2.5  2002/12/13 06:09:09  mast
-include file changes
-
-Revision 1.1.2.4  2002/12/09 17:49:19  mast
-changes to get Zap as a Qt window
-
-Revision 1.1.2.3  2002/12/07 01:23:23  mast
-Improved window title code
-
-Revision 1.1.2.2  2002/12/06 21:58:35  mast
-*** empty log message ***
-
-Revision 1.1.2.1  2002/12/05 16:24:46  mast
-Open a Qxt application
-
-Revision 3.11  2002/12/03 15:45:08  mast
-Call SaveModel instead of SaveModelQuit when quitting, to give user a chance
-to set the filename to save to
-
-Revision 3.10  2002/12/01 16:51:34  mast
-Changes to eliminate warnings on SGI
-
-Revision 3.9  2002/12/01 15:34:41  mast
-Changes to get clean compilation with g++
-
-Revision 3.8  2002/09/27 19:46:26  rickg
-Reverted LoadModel call due to changes in imod_io
-Added error string to SaveModelQuit call
-Removed redudant function declarations at begging of file.
-
-Revision 3.7  2002/09/18 22:56:48  rickg
-Print out process ID when printing out window ID.
-
-Revision 3.6  2002/09/18 02:51:35  mast
-Started event handler right after the fork, so it can receive events during
-the image load.
-
-Revision 3.5  2002/09/17 18:40:33  mast
-Moved the report to window ID to before fork and data loading
-
-Revision 3.4  2002/09/14 00:13:11  mast
-Set declarations and use of event handler right to make SGI compiler happy
-
-Revision 3.3  2002/09/13 21:05:39  mast
-Set up event handler for client messages, added option to output window ID
-
-Revision 3.2  2002/07/21 20:28:52  mast
-Changed imodwfname to return a string with number of image files when
-multiple files are loaded.
-
-Revision 3.1  2002/05/20 15:32:39  mast
-Added -S option to open slicer first; made it set a new model so that time
-index modeling is the default if multiple files are opened.
-
+Log at the end of file
 */
 
 #include <stdio.h>
@@ -202,12 +111,13 @@ void imod_usage(char *name)
   printf("	   -C #	 Set # of sections or Mbytes to cache (#M or #m for Mbytes).\n");
   printf("	   -xyz	 Open xyz window first.\n");
   printf("	   -S	 Open slicer window first.\n");
+  printf("	   -V	 Open model view window first.\n");
+  printf("	   -Z  Open Zap window (use with -S, -xyz, or -V)\n");
   printf("	   -x min,max  Load in sub image.\n");
   printf("	   -y min,max  Load in sub image.\n");
   printf("	   -z min,max  Load in sub image.\n");
   printf("	   -s min,max  Scale input to range [min,max].\n");
   printf("	   -Y  Model planes normal to y axis.\n");
-  printf("	   -Z  Model planes normal to z axis. (Default)\n");
   printf("	   -p <file name>  Load piece list file.\n");
   printf("	   -P nx,ny  Display images as montage in nx by ny array.\n");
   printf("	   -o nx,ny  Set x and y overlaps for montage display.\n");
@@ -232,6 +142,8 @@ int main( int argc, char *argv[])
   char *plistfname = NULL;
   int xyzwinopen   = FALSE;
   int sliceropen   = FALSE;
+  int zapOpen      = FALSE;
+  int modelViewOpen= FALSE;
   int print_wid	   = FALSE;
   int loadinfo	   = FALSE;
   int new_model_created = FALSE;
@@ -447,10 +359,6 @@ int main( int argc, char *argv[])
 	li.axis = 2;
 	break;
 
-      case 'Z':
-	li.axis = 3;
-	break;
-  
       case 'h':
 	imod_usage(argv[0]);
 	exit(1);
@@ -482,6 +390,14 @@ int main( int argc, char *argv[])
 
       case 'S':
 	sliceropen = TRUE;
+	break;
+
+      case 'V':
+	modelViewOpen = TRUE;
+	break;
+
+      case 'Z':
+	zapOpen = TRUE;
 	break;
 
       case 'W':
@@ -795,15 +711,20 @@ int main( int argc, char *argv[])
   /* Open up default Image Window. */
   if (xyzwinopen && !vi.rawImageStore)
     xxyz_open(&vi);
-  else if (sliceropen && !vi.rawImageStore)
+  if (sliceropen && !vi.rawImageStore)
     sslice_open(&vi);
-  else
+  if (modelViewOpen)
+    imodv_open();
+  if (zapOpen || !(xyzwinopen || sliceropen || modelViewOpen))
     imod_zap_open(&vi); 
-  if (Imod_debug)  puts("zap or xyz opened");
+  if (Imod_debug)  
+    puts("initial windows opened");
   if (App->rgba)
     imod_info_setbw(App->cvi->black, App->cvi->white);
+
   /* Start main application input loop. */
-  if (Imod_debug) puts("mainloop");
+  if (Imod_debug)
+    puts("mainloop");
   imodPlugCall(&vi, 0, IMOD_REASON_STARTUP);
 
   loopStarted = 1;
@@ -985,3 +906,100 @@ int imodColorValue(int inColor)
   b3dColorIndex(pixel);
   return pixel;
 }
+
+/*
+$Log$
+Revision 4.1  2003/02/10 20:28:59  mast
+autox.cpp
+
+Revision 1.1.2.17  2003/02/04 19:10:16  mast
+Set default style to windows everywhere
+
+Revision 1.1.2.16  2003/01/29 17:49:20  mast
+Fork at top of program before doing any Qt stuff, and don't fork with -W
+
+Revision 1.1.2.15  2003/01/29 01:31:24  mast
+change -rgb to -ci, close windows on exit
+
+Revision 1.1.2.14  2003/01/27 00:30:07  mast
+Pure Qt version and general cleanup
+
+Revision 1.1.2.13  2003/01/23 20:14:09  mast
+Add include of imod_io
+
+Revision 1.1.2.12  2003/01/13 01:15:42  mast
+changes for Qt version of info window
+
+Revision 1.1.2.11  2003/01/06 15:41:02  mast
+Add imodCaption function
+
+Revision 1.1.2.10  2002/12/23 04:52:58  mast
+Add option to get different font size
+
+Revision 1.1.2.9  2002/12/19 04:37:13  mast
+Cleanup of unused global variables and defines
+
+Revision 1.1.2.8  2002/12/17 18:40:24  mast
+Changes and new includes with Qt version of imodv
+
+Revision 1.1.2.7  2002/12/14 17:53:04  mast
+*** empty log message ***
+
+Revision 1.1.2.6  2002/12/14 05:40:43  mast
+new visual-assessing code
+
+Revision 1.1.2.5  2002/12/13 06:09:09  mast
+include file changes
+
+Revision 1.1.2.4  2002/12/09 17:49:19  mast
+changes to get Zap as a Qt window
+
+Revision 1.1.2.3  2002/12/07 01:23:23  mast
+Improved window title code
+
+Revision 1.1.2.2  2002/12/06 21:58:35  mast
+*** empty log message ***
+
+Revision 1.1.2.1  2002/12/05 16:24:46  mast
+Open a Qxt application
+
+Revision 3.11  2002/12/03 15:45:08  mast
+Call SaveModel instead of SaveModelQuit when quitting, to give user a chance
+to set the filename to save to
+
+Revision 3.10  2002/12/01 16:51:34  mast
+Changes to eliminate warnings on SGI
+
+Revision 3.9  2002/12/01 15:34:41  mast
+Changes to get clean compilation with g++
+
+Revision 3.8  2002/09/27 19:46:26  rickg
+Reverted LoadModel call due to changes in imod_io
+Added error string to SaveModelQuit call
+Removed redudant function declarations at begging of file.
+
+Revision 3.7  2002/09/18 22:56:48  rickg
+Print out process ID when printing out window ID.
+
+Revision 3.6  2002/09/18 02:51:35  mast
+Started event handler right after the fork, so it can receive events during
+the image load.
+
+Revision 3.5  2002/09/17 18:40:33  mast
+Moved the report to window ID to before fork and data loading
+
+Revision 3.4  2002/09/14 00:13:11  mast
+Set declarations and use of event handler right to make SGI compiler happy
+
+Revision 3.3  2002/09/13 21:05:39  mast
+Set up event handler for client messages, added option to output window ID
+
+Revision 3.2  2002/07/21 20:28:52  mast
+Changed imodwfname to return a string with number of image files when
+multiple files are loaded.
+
+Revision 3.1  2002/05/20 15:32:39  mast
+Added -S option to open slicer first; made it set a new model so that time
+index modeling is the default if multiple files are opened.
+
+*/
