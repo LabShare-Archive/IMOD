@@ -89,6 +89,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.89  2004/07/21 00:22:29  sueh
+ * <p> bug# 507 In startNextProcess(), checking
+ * <p> tomogramCombinationDialog before running volcombine.
+ * <p>
  * <p> Revision 3.88  2004/07/12 17:41:07  sueh
  * <p> bug# 492 in imodPreview: getting metadata from
  * <p> SetupDialog.getDataset().  Also changed the metadata variable
@@ -5581,4 +5585,7 @@ public class ApplicationManager {
       metaData.getDatasetName() + axisID.getExtension() + filename);
   }
   
+  public UserConfiguration getUserConfiguration() {
+    return userConfig;
+  }
 }
