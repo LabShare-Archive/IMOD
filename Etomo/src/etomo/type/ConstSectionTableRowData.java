@@ -19,6 +19,9 @@ import etomo.storage.Storable;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.2  2004/11/19 23:34:14  sueh
+* <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+* <p>
 * <p> Revision 1.1.2.15  2004/11/19 00:17:52  sueh
 * <p> bug# 520 Fixed equals function and made it specific to
 * <p> ConstSectionTableRowData.  Added equalsSample to check whether the
@@ -85,19 +88,7 @@ public abstract class ConstSectionTableRowData implements Storable {
   
   protected static final String groupString = "SectionTableRow";
   protected static final String sectionString = "Section";
-  protected static final String finalStartString = "FinalStart";
-  protected static final String finalEndString = "FinalEnd";
   protected static final String zMaxString = "ZMax";
-  
-  protected static final String sampleBottomStartName = "Starting bottom sample slice";
-  protected static final String sampleBottomEndName = "Ending bottom sample slice";
-  protected static final String sampleTopStartName = "Starting top sample slice";
-  protected static final String sampleTopEndName = "Ending top sample slice";
-  protected static final String finalStartName = "Final starting slice";
-  protected static final String finalEndName = "Final ending slice";
-  protected static final String rotationAngleXName = "X rotation angle";
-  protected static final String rotationAngleYName = "Y rotation angle";
-  protected static final String rotationAngleZName = "Z rotation angle";
   
   //state - these do not have to be saved to a file, but they are necessary
   //for remembering the state of a row that is being retrieved from meta data.
@@ -111,8 +102,8 @@ public abstract class ConstSectionTableRowData implements Storable {
   protected EtomoNumber sampleBottomEnd = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "SampleBottomEnd");
   protected EtomoNumber sampleTopStart = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "SampleTopStart");
   protected EtomoNumber sampleTopEnd = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "SampleTopEnd");
-  protected int finalStart;
-  protected int finalEnd;
+  protected EtomoNumber finalStart = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "FinalStart");
+  protected EtomoNumber finalEnd = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "FinalEnd");
   protected EtomoNumber rotationAngleX = new EtomoNumber(EtomoNumber.DOUBLE_TYPE, "RotationAngleX");
   protected EtomoNumber rotationAngleY = new EtomoNumber(EtomoNumber.DOUBLE_TYPE, "RotationAngleY");
   protected EtomoNumber rotationAngleZ = new EtomoNumber(EtomoNumber.DOUBLE_TYPE, "RotationAngleZ");
@@ -126,8 +117,18 @@ public abstract class ConstSectionTableRowData implements Storable {
   public abstract void load(Properties props, String prepend);
   
   protected ConstSectionTableRowData() {
+    sampleBottomStart.setDescription("Sample Slices, Bottom, Start");
+    sampleBottomEnd.setDescription("Sample Slices, Bottom, End");
+    sampleTopStart.setDescription("Sample Slices, Top, Start");
+    sampleTopEnd.setDescription("Sample Slices, Top, End");
+    finalStart.setDescription("Final, Start");
+    finalStart.setRecommendedValue(1);
+    finalEnd.setDescription("Final, End");
+    rotationAngleX.setDescription("Rotation Angles, X");
     rotationAngleX.setDefault(0);
+    rotationAngleY.setDescription("Rotation Angles, Y");
     rotationAngleY.setDefault(0);
+    rotationAngleZ.setDescription("Rotation Angles, Z");
     rotationAngleZ.setDefault(0);
   }
   
@@ -163,8 +164,8 @@ public abstract class ConstSectionTableRowData implements Storable {
         + sampleBottomEnd.getDescription() + "=" + sampleBottomEnd
         + ",\n" + sampleTopStart.getDescription() + "=" + sampleTopStart
         + ",\n" + sampleTopEnd.getDescription() + "="
-        + sampleTopEnd + ",\n" + finalStartString + "="
-        + finalStart + ",\n" + finalEndString + "=" + finalEnd + ",\n"
+        + sampleTopEnd + ",\n" + finalStart.getDescription() + "="
+        + finalStart + ",\n" + finalEnd.getDescription() + "=" + finalEnd + ",\n"
         + rotationAngleX.getDescription() + "=" + rotationAngleX
         + ",\n" + rotationAngleY.getDescription() + "="
         + rotationAngleY + ",\n" + rotationAngleZ.getDescription()
@@ -189,8 +190,8 @@ public abstract class ConstSectionTableRowData implements Storable {
     sampleBottomEnd.store(props, prepend);
     sampleTopStart.store(props, prepend);
     sampleTopEnd.store(props, prepend);
-    props.setProperty(group + finalStartString, Integer.toString(finalStart));
-    props.setProperty(group + finalEndString, Integer.toString(finalEnd));
+    finalStart.store(props, prepend);
+    finalEnd.store(props, prepend);
     rotationAngleX.store(props, prepend);
     rotationAngleY.store(props, prepend);
     rotationAngleZ.store(props, prepend);
@@ -208,8 +209,8 @@ public abstract class ConstSectionTableRowData implements Storable {
     sampleBottomEnd.remove(props, prepend);
     sampleTopStart.remove(props, prepend);
     sampleTopEnd.remove(props, prepend);
-    props.remove(group + finalStartString);
-    props.remove(group + finalEndString);
+    finalStart.remove(props, prepend);
+    finalEnd.remove(props, prepend);
     rotationAngleX.remove(props, prepend);
     rotationAngleY.remove(props, prepend);
     rotationAngleZ.remove(props, prepend);
@@ -242,10 +243,10 @@ public abstract class ConstSectionTableRowData implements Storable {
     if (!sampleTopEnd.equals(that.sampleTopEnd)) {
       return false;
     }
-    if (finalStart != that.finalStart) {
+    if (!finalStart.equals(that.finalStart)) {
       return false;
     }
-    if (finalEnd != that.finalEnd) {
+    if (!finalEnd.equals(that.finalEnd)) {
       return false;
     }
     if (!rotationAngleX.equals(that.rotationAngleX)) {
@@ -254,7 +255,7 @@ public abstract class ConstSectionTableRowData implements Storable {
     if (!rotationAngleY.equals(that.rotationAngleY)) {
       return false;
     }
-    if (!rotationAngleZ.equals(that.rotationAngleY)) {
+    if (!rotationAngleZ.equals(that.rotationAngleZ)) {
       return false;
     }
     return true;
@@ -384,12 +385,12 @@ public abstract class ConstSectionTableRowData implements Storable {
     return new EtomoNumber(EtomoNumber.INTEGER_TYPE, getSampleBottomNumberSlices() + getSampleTopNumberSlices());
   }
   
-  public String getFinalStartString() {
-    return convertToString(finalStart);
+  public ConstEtomoNumber getFinalStart() {
+    return finalStart;
   }
   
-  public String getFinalEndString() {
-    return convertToString(finalEnd);
+  public ConstEtomoNumber getFinalEnd() {
+    return finalEnd;
   }
   
   public ConstEtomoNumber getRotationAngleX() {
