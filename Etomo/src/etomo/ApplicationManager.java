@@ -54,6 +54,7 @@ import etomo.type.FiducialMatch;
 import etomo.type.MetaData;
 import etomo.type.ProcessName;
 import etomo.type.ProcessTrack;
+import etomo.type.TiltAngleSpec;
 import etomo.type.UserConfiguration;
 import etomo.ui.AlignmentEstimationDialog;
 import etomo.ui.CoarseAlignDialog;
@@ -89,6 +90,13 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.91  2004/07/24 01:56:03  sueh
+ * <p> bug# 513 change packMainWindow() to call
+ * <p> MainFrame.fitWindow() when the Basic/Advanced
+ * <p> button is pressed.  packMainWindow() is also called when
+ * <p> the Setup dialog is opened.  Calling fitWindow() doesn't cause
+ * <p> any proglems for Setup.
+ * <p>
  * <p> Revision 3.90  2004/07/23 00:09:30  sueh
  * <p> bug# 513 add function to get UserConfiguration
  * <p>
@@ -2989,6 +2997,37 @@ public class ApplicationManager {
       message[0] = "Unable to setup fiducialless align files";
       message[1] = except.getMessage();
       mainFrame.openMessageDialog(message, "Unable to setup fiducialless align files");
+    }
+  }
+  
+  public void makeRawtltFile(AxisID axisID) throws IOException {
+    File rawtlt =
+      new File(
+        System.getProperty("user.dir"),
+        metaData.getDatasetName() + axisID.getExtension() + ".rawtlt");
+    BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(rawtlt));
+    TiltAngleSpec tiltAngleSpec = metaData.getTiltAngleSpecA();
+    double startingAngle = tiltAngleSpec.getRangeMin();
+    double step = tiltAngleSpec.getRangeStep();
+    MRCHeader rawStackHeader = getMrcHeader(axisID, ".st");
+    try {
+      rawStackHeader.read();
+    }
+    catch (InvalidParameterException except) {
+      except.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Unable to read raw stack header";
+      message[1] = except.getMessage();
+      mainFrame.openMessageDialog(message, "Unable to read raw stack header");
+    }
+    int sections = rawStackHeader.getNSections();
+    for (int curSection = 0; curSection < sections; curSection++) {
+      bufferedWriter.write(
+        Double.toString(startingAngle + (step * curSection)));
+      bufferedWriter.newLine();
+    }
+    if (bufferedWriter != null) {
+      bufferedWriter.close();
     }
   }
 
