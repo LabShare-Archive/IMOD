@@ -1,3 +1,11 @@
+c	  $Author$
+c
+c	  $Date$
+c
+c	  $Revision$
+c
+c	  $Log$
+c
 	subroutine random_shifts(xmt,ymt,zmt,indstrt,npntobj,icolor,nmt,
      &	    iobjflag,ranmin,ranmax,probnear,limprobs,delnear,nrestrict,
      &	    nshiftyp, itypshift, ishiftflag, nchcktyp,
@@ -423,15 +431,18 @@ c
 		  limref=indref+npntobj(iobjref)-2
 c		    
 c		    on first trial, check if outside boundaries and fail
+c		    DNM 7/3/02: this was a single if test, but SGI was calling
+c		    outside_boudary even when nbound was zero
 c
 		  if(nround.eq.1.and.ifexcludeout.ne.0.and.
-     &		      nbound.gt.0.and.
-     &		      outside_boundary(nbound,listbound,zbound,xmt,ymt,
-     &		      zmt,indref,limref+1,0.,0.,0.))then
+     &		      nbound.gt.0)then
+		    if (outside_boundary(nbound,listbound,zbound,xmt,ymt,
+     &			zmt,indref,limref+1,0.,0.,0.))then
 		      shifted(ishift)=.false.
 		      needshift(locshft)=.false.
 		      needcheck(locshft)=.false.
 		      nexclude=nexclude+1
+		    endif
 		  endif
 c
 		  do while(needshift(locshft))
