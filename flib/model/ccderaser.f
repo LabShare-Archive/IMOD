@@ -62,6 +62,12 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.1  2002/07/07 20:14:16  mast
+c	  Modified to use scale factors from model file instead of from image
+c	  file to get back to index coordinates.  Made it exit with error
+c	  status on all errors, made it insert a proper title, and implemented
+c	  implicit none.
+c	
 c	  
 	implicit none
 	integer imsiz,mxd,limpatch,limobj
@@ -98,7 +104,8 @@ c
 	call imopen(1,infile,'old')
 	call irdhdr(1,nxyz,mxyz,mode,dmin,dmax,dmean)
 	if(nx*ny.gt.imsiz**2)then
-	  print *, 'CCDERASER: IMAGE TOO LARGE FOR ARRAYS'
+	  print *
+	  print *, 'ERROR: CCDERASER - IMAGE TOO LARGE FOR ARRAYS'
 	  call exit(1)
 	endif
 c	call irtdel(1,delt)
@@ -118,14 +125,16 @@ c
 75	write(*,'(1x,a,$)')'Model file: '
 	read(*,'(a)')ptfile
 	if(.not.readw_or_imod(ptfile))then
-	  print *,'CCDERASER: ERROR READING MODEL FILE'
+	  print *
+	  print *,'ERROR: CCDERASER - READING MODEL FILE'
 	  call exit(1)
 	endif
 
 	ierr=getimodhead(xyscal,zscale,xofs,yofs,zofs,ifflip)
 	ierr2 = getimodscales(ximscale, yimscale, zimscale)
 	if (ierr .ne. 0 .or. ierr2 .ne. 0) then
-	  print *,'CCDERASER: Error getting model header'
+	  print *
+	  print *,'ERROR: CCDERASER - getting model header'
 	  call exit(1)
 	endif
 	do i=1,n_point
@@ -174,7 +183,8 @@ c
 	    call objtocont(iobj,obj_color,imodobj,imodcont)
 	    if(typeonlist(itype,iobjline,nobjline)) then
 	      if(npt_in_obj(iobj).ne.2) then
-		print *,'CCDERASER ERROR: object',imodobj,
+		print *
+		print *,'ERROR: CCDERASER - object',imodobj,
      &		    ', contour',imodcont,
      &              ' does not have only two points'
 		call exit(1)
@@ -182,13 +192,15 @@ c
 	      ip1 = object(ibase+1)
 	      ip2 = object(ibase+2)
 	      if (nint(p_coord(3,ip1)).ne.nint(p_coord(3,ip2))) then
-		print *,'CCDERASER ERROR: object',imodobj,', contour',
+		print *
+		print *,'ERROR: CCDERASER - object',imodobj,', contour',
      &		    imodcont, ' is supposed to be a line and ',
      &              ' is not in one Z-plane'
 		call exit(1)
 	      elseif(nint(p_coord(1,ip1)).ne.nint(p_coord(1,ip2)).and.
      &		    nint(p_coord(2,ip1)).ne.nint(p_coord(2,ip2))) then
-		print *,'CCDERASER ERROR: object',imodobj,', contour',
+		print *
+		print *,'ERROR: CCDERASER - object',imodobj,', contour',
      &		    imodcont, ' is supposed to be a line and ',
      &		    'is not horizontal or vertical'
 		call exit(1)
@@ -202,7 +214,8 @@ c
 	      ymax=zmax
 	      ninobj=npt_in_obj(iobj)
 	      if (ninobj.gt.limpatch)then
-		print *,'CCDERASER ERROR: object',imodobj,', contour',
+		print *
+		print *,'ERROR: CCDERASER - object',imodobj,', contour',
      &		    imodcont, ' has too many points for arrays'
 		call exit(1)
 	      endif
@@ -216,14 +229,16 @@ c
 		zmax=max(zmax,p_coord(3,ipt))
 	      enddo
 	      if(xmax-xmin.ge.mxd/2 .or.ymax-ymin.ge.mxd/2)then
-		print *,'CCDERASER ERROR: object',imodobj,', contour',
+		print *
+		print *,'ERROR: CCDERASER - object',imodobj,', contour',
      &		    imodcont, ' has points too far apart, ',
      &		    'so patch is too large'
 		call exit(1)
 	      endif
 	      if(.not.typeonlist(itype,iobjdoall,nobjdoall).and.
      &            zmax.ne.zmin)then
-		print *,'CCDERASER ERROR: object',imodobj,', contour',
+		print *
+		print *,'ERROR: CCDERASER - object',imodobj,', contour',
      &		    imodcont, ' is not in one Z-plane'
 		call exit(1)
 	      endif
@@ -303,7 +318,8 @@ c       encode(80,109,title)
 	call iwrhdr(imfilout,title,1,tmin,tmax,tmean)
 	call imclose(imfilout)
 	call exit(0)
-99	print *,'CCDERASER: ERROR READING FILE'
+99	print *
+	print *,'ERROR: CCDERASER - READING FILE'
 	call exit(1)
 	end
 
