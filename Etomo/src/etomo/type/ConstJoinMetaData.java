@@ -21,6 +21,9 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.5  2004/12/16 02:27:49  sueh
+* <p> bug# 564 Remove recommendedValue.  Use resetValue instead.
+* <p>
 * <p> Revision 1.4  2004/12/14 21:43:50  sueh
 * <p> bug# 572:  Removing state object from meta data and managing it with a
 * <p> manager class.  All state variables saved after a process is run belong in
@@ -137,31 +140,31 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
 
   protected ArrayList sectionTableData;
   protected String rootName;
-  protected EtomoNumber densityRefSection = new EtomoNumber(
+  protected ScriptParameter densityRefSection = new ScriptParameter(
       EtomoNumber.INTEGER_TYPE, "DensityRefSection");
-  protected EtomoNumber sigmaLowFrequency = new EtomoNumber(
+  protected ScriptParameter sigmaLowFrequency = new ScriptParameter(
       EtomoNumber.DOUBLE_TYPE, "SigmaLowFrequency");
-  protected EtomoNumber cutoffHighFrequency = new EtomoNumber(
+  protected ScriptParameter cutoffHighFrequency = new ScriptParameter(
       EtomoNumber.DOUBLE_TYPE, "CutoffHighFrequency");
-  protected EtomoNumber sigmaHighFrequency = new EtomoNumber(
+  protected ScriptParameter sigmaHighFrequency = new ScriptParameter(
       EtomoNumber.DOUBLE_TYPE, "SigmaHighFrequency");
   protected boolean fullLinearTransformation;
   protected boolean rotationTranslationMagnification;
   protected boolean rotationTranslation;
   protected boolean useAlignmentRefSection;
-  protected EtomoNumber alignmentRefSection = new EtomoNumber(
+  protected ScriptParameter alignmentRefSection = new ScriptParameter(
       EtomoNumber.INTEGER_TYPE, "AlignmentRefSection");
-  protected EtomoNumber sizeInX = new EtomoNumber(EtomoNumber.INTEGER_TYPE,
+  protected ScriptParameter sizeInX = new ScriptParameter(EtomoNumber.INTEGER_TYPE,
       "SizeInX");
-  protected EtomoNumber sizeInY = new EtomoNumber(EtomoNumber.INTEGER_TYPE,
+  protected ScriptParameter sizeInY = new ScriptParameter(EtomoNumber.INTEGER_TYPE,
       "SizeInY");
-  protected EtomoNumber shiftInX = new EtomoNumber(EtomoNumber.INTEGER_TYPE,
+  protected ScriptParameter shiftInX = new ScriptParameter(EtomoNumber.INTEGER_TYPE,
       "ShiftInX");
-  protected EtomoNumber shiftInY = new EtomoNumber(EtomoNumber.INTEGER_TYPE,
+  protected ScriptParameter shiftInY = new ScriptParameter(EtomoNumber.INTEGER_TYPE,
       "ShiftInY");
   protected EtomoNumber useEveryNSlices = new EtomoNumber(
       EtomoNumber.INTEGER_TYPE, "UseEveryNSlices");
-  protected EtomoNumber trialBinning = new EtomoNumber(
+  protected ScriptParameter trialBinning = new ScriptParameter(
       EtomoNumber.INTEGER_TYPE, "TrialBinning");  
 
   public abstract void load(Properties props);
@@ -169,22 +172,14 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
 
   public ConstJoinMetaData() {
     fileExtension = ".ejf";
-    densityRefSection.setDefault(1);
-    densityRefSection.setDisplayDefault(true);
-    alignmentRefSection.setDefault(1);
-    alignmentRefSection.setDisplayDefault(true);
-    trialBinning.setDefault(1);
-    trialBinning.setDisplayDefault(true);
-    shiftInX.setDefault(0);
-    shiftInX.setDisplayDefault(true);
-    shiftInY.setDefault(0);
-    shiftInY.setDisplayDefault(true);
-    sigmaLowFrequency.setDefault(0);
-    sigmaLowFrequency.setResetValue(0.0);
-    cutoffHighFrequency.setDefault(0);
-    cutoffHighFrequency.setResetValue(0.25);
-    sigmaHighFrequency.setDefault(0);
-    sigmaHighFrequency.setResetValue(0.05);
+    densityRefSection.setDefault(1).setDisplayValue(1);
+    alignmentRefSection.setDefault(1).setDisplayValue(1);
+    trialBinning.setDefault(1).setDisplayValue(1);
+    shiftInX.setDefault(0).setDisplayValue(0);
+    shiftInY.setDefault(0).setDisplayValue(0);
+    sigmaLowFrequency.setDefault(0).setDisplayValue(0.0);
+    cutoffHighFrequency.setDefault(0).setDisplayValue(0.25);
+    sigmaHighFrequency.setDefault(0).setDisplayValue(0.05);
   }
   
   public String toString() {
@@ -349,12 +344,18 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
   public ConstEtomoNumber getDensityRefSection() {
     return densityRefSection;
   }
+  public ScriptParameter getDensityRefSectionParameter() {
+    return densityRefSection;
+  }
   
   public ConstEtomoNumber getUseEveryNSlices() {
     return useEveryNSlices;
   }
   
   public ConstEtomoNumber getTrialBinning() {
+    return trialBinning;
+  }
+  public ScriptParameter getTrialBinningParameter() {
     return trialBinning;
   }
 
@@ -375,15 +376,24 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
   public ConstEtomoNumber getSigmaLowFrequency() {
     return sigmaLowFrequency;
   }
+  public ScriptParameter getSigmaLowFrequencyParameter() {
+    return sigmaLowFrequency;
+  }
   
   public ConstEtomoNumber getCutoffHighFrequency() {
+    return cutoffHighFrequency;
+  }
+  public ScriptParameter getCutoffHighFrequencyParameter() {
     return cutoffHighFrequency;
   }
   
   public ConstEtomoNumber getSigmaHighFrequency() {
     return sigmaHighFrequency;
   }
-
+  public ScriptParameter getSigmaHighFrequencyParameter() {
+    return sigmaHighFrequency;
+  }
+  
   public static String getNewFileTitle() {
     return newJoinTitle;
   }
@@ -419,8 +429,14 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
   public ConstEtomoNumber getSizeInX() {
     return sizeInX;
   }
+  public ScriptParameter getSizeInXParameter() {
+    return sizeInX;
+  }
   
   public ConstEtomoNumber getSizeInY() {
+    return sizeInY;
+  }
+  public ScriptParameter getSizeInYParameter() {
     return sizeInY;
   }
   
@@ -431,8 +447,14 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
   public ConstEtomoNumber getShiftInX() {
     return shiftInX;
   }
+  public ScriptParameter getShiftInXParameter() {
+    return shiftInX;
+  }
   
   public ConstEtomoNumber getShiftInY() {
+    return shiftInY;
+  }
+  public ScriptParameter getShiftInYParameter() {
     return shiftInY;
   }
   
