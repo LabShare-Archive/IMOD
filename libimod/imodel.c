@@ -1,87 +1,27 @@
-/*  IMOD VERSION 2.50
- *
- *  imodel.c -- Library funcions for handeling model structures.
+/*
+ *  imodel.c -- Library funcions for handling model structures.
  *
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
+ *
+ *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
+ *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  */
 
-/*****************************************************************************
- *   Copyright (C) 1995-2001 by Boulder Laboratory for 3-Dimensional Fine    *
- *   Structure ("BL3DFS") and the Regents of the University of Colorado.     *
- *                                                                           *
- *   BL3DFS reserves the exclusive rights of preparing derivative works,     *
- *   distributing copies for sale, lease or lending and displaying this      *
- *   software and documentation.                                             *
- *   Users may reproduce the software and documentation as long as the       *
- *   copyright notice and other notices are preserved.                       *
- *   Neither the software nor the documentation may be distributed for       *
- *   profit, either in original form or in derivative works.                 *
- *                                                                           *
- *   THIS SOFTWARE AND/OR DOCUMENTATION IS PROVIDED WITH NO WARRANTY,        *
- *   EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTY OF          *
- *   MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.       *
- *                                                                           *
- *   This work is supported by NIH biotechnology grant #RR00592,             *
- *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
- *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
- *****************************************************************************/
 /*  $Author$
 
 $Date$
 
 $Revision$
 
-$Log$
-Revision 3.13  2004/11/20 04:17:43  mast
-Added object move function and other changes for undo/redo structure
-
-Revision 3.12  2004/09/21 20:13:40  mast
-Changes for multiple and global clipping planes (i.e. checksum)
-
-Revision 3.11  2004/09/10 21:33:46  mast
-Eliminated long variables
-
-Revision 3.10  2004/04/27 21:44:47  mast
-Eliminated rotation angle fo first view from checksum
-
-Revision 3.9  2004/01/05 17:27:17  mast
-Added initialization of xybin and zbin
-
-Revision 3.8  2003/11/01 16:41:56  mast
-changed to use new error processing routine
-
-Revision 3.7  2003/10/24 03:02:14  mast
-move routines to new b3dutil file
-
-Revision 3.6  2003/09/16 02:06:08  mast
-*** empty log message ***
-
-Revision 3.5  2003/07/31 21:41:25  mast
-Delete object view and view data when deleting model, also delete
-object view data when deleting a single object
-
-Revision 3.4  2003/06/27 20:19:48  mast
-Made min and max functions return (-1,-1,-1) if there are no model points,
-and improved the checksum computation to include real and integer values
-and include all view data.
-
-Revision 3.3  2003/03/13 01:18:49  mast
-Add new default object color scheme
-
-Revision 3.2  2003/02/27 00:34:40  mast
-add projects' *.dsw *.dsp
-
-Revision 3.1  2002/11/05 23:28:23  mast
-Changed imodCopyright to use defined lab name
-
+Log at end 
 */
 
 
 /* Library Functions */
 /* Function
  * ---------------------------------------------------------------------------
- * int   imodVersion(char *pname)     Print the current version of imod.
  * Imod *imodNew(void)                Create a new model.
  * void  imodDelete(Imod *imod)       Delete a model.
  * 
@@ -91,7 +31,7 @@ Changed imodCopyright to use defined lab name
  * int   imodNewObject(Imod *imod)
  * int   imodNextObject(Imod *imod)
  * int   imodPrevObject(Imod *imod)
- * int   imodFreeObject(Imod *imod, int index)
+ * int   imodDeleteObject(Imod *imod, int index)
  * int   imodMoveObject(Imod *imod, int obOld, int obNew)
  * 
  * int   imodNewContour(Imod *imod)
@@ -112,19 +52,26 @@ Changed imodCopyright to use defined lab name
 #include "imodel.h"
 #include "b3dutil.h"
 
-
+/*!
+ * Allocates a new model structure and returns a pointer to it, or NULL if 
+ * there is an error.  Initializes the model with @imodDefault 
+ */
 Imod *imodNew(void)
 {
   Imod *model;
 
-  model = (struct Mod_Model *)malloc(sizeof(struct Mod_Model));
+  model = (Imod *)malloc(sizeof(Imod));
   if (model == NULL)
-    return((struct Mod_Model *)NULL);
+    return((Imod *)NULL);
   model->file     = NULL;
   imodDefault(model);
   return(model);
 }
 
+/*!
+ * Initializes model structure pointed to by [model] to default values.  
+ * Returns 0 (there are no errors) 
+ */
 int imodDefault(Imod *model)
 {
   int  i;
@@ -179,11 +126,11 @@ int imodDefault(Imod *model)
   return(0);
 }
 
+/*! 
+ * Deletes a model; frees all memory used in objects, views, and object 
+ * views and frees the model itself. 
+ */
 void imodDelete(Imod *imod)
-{
-  imodFree(imod);
-}
-void imodFree(Imod *imod)
 {
   if (!imod)
     return;
@@ -200,6 +147,10 @@ void imodFree(Imod *imod)
   free(imod);
 }
 
+/*!
+ * Returns the current object, contour, and point indexes of the model in
+ * [object], [contour], and [point] 
+ */
 void imodGetIndex(Imod *imod, int *object, int *contour, int *point)
 {
   *object  = imod->cindex.object;
@@ -208,6 +159,12 @@ void imodGetIndex(Imod *imod, int *object, int *contour, int *point)
   return;
 }
 
+/*!
+ * Sets the current object, contour, and point indexes of the model with the
+ * values in [object], [contour], and [point].  Indexes are checked for 
+ * legality and if one is out of bounds it is set to -1.  If an index is -1, 
+ * any index at a lower level is set to -1 also (e.g., point if contour is -1).
+ */
 void imodSetIndex(Imod *imod, int object, int contour, int point)
 {
   Iobj *obj;
@@ -219,15 +176,17 @@ void imodSetIndex(Imod *imod, int object, int contour, int point)
     object = 0;
 
   imod->cindex.object  = object;
-  obj = imodel_object_get(imod);
+  obj = imodObjectGet(imod);
   if (!obj){
     imod->cindex.contour = imod->cindex.point = -1;
     return;
   }
 
   /* check for contour # out of bounds and set contour index. */
-  if (contour < 0) contour = point = -1;
-  if (contour >= obj->contsize) contour = obj->contsize - 1;
+  if (contour < 0) 
+    contour = point = -1;
+  if (contour >= obj->contsize)
+    contour = obj->contsize - 1;
   imod->cindex.contour = contour;
   cont = imodContourGet(imod);
   if (!cont){
@@ -236,21 +195,30 @@ void imodSetIndex(Imod *imod, int object, int contour, int point)
   }
 
   /* check for point # out of bounds */
-  if (point >= cont->psize) point = cont->psize - 1;
-  if (point < 0) point = -1;
-  if (cont->psize < 1) point = -1;
+  if (point >= cont->psize) 
+    point = cont->psize - 1;
+  if (point < 0) 
+    point = -1;
+  if (cont->psize < 1)
+    point = -1;
   imod->cindex.point   = point;
      
   return;
 }
 
 /* DNM 6/26/03: for these 3 functions, return -1, -1, -1 if no points in
-   model; also actually stop on first point. */
-void imodel_maxpt(struct Mod_Model *imod, struct Mod_Point *pnt)
+   model; also actually stop on first point (3/18/05). */
+
+/*!
+ * Returns the maximum coordinates of the model [imod] in [pnt], or -1,-1,-1
+ * if there are no points 
+ */
+void imodel_maxpt(Imod *imod, Ipoint *pnt)
 {
   int ob, co, pt;
-  struct Mod_Object *obj;
-  struct Mod_Contour *cont;
+  int gotOne = 0;
+  Iobj *obj;
+  Icont *cont;
 
   pnt->x = pnt->y = pnt->z = -1.;
 
@@ -265,8 +233,12 @@ void imodel_maxpt(struct Mod_Model *imod, struct Mod_Point *pnt)
         pnt->z = cont->pts->z;
         co = obj->contsize;
         ob = imod->objsize;
+        gotOne = 1;
+        break;
       }
     }
+    if (gotOne)
+      break;
   }
 
   for (ob = 0; ob < imod->objsize; ob++){
@@ -286,11 +258,16 @@ void imodel_maxpt(struct Mod_Model *imod, struct Mod_Point *pnt)
   return;
 }
 
-void imodel_minpt(struct Mod_Model *imod, struct Mod_Point *pnt)
+/*!
+ * Returns the minimum coordinates of the model [imod] in [pnt], or -1,-1,-1
+ * if there are no points
+ */
+void imodel_minpt(Imod *imod, Ipoint *pnt)
 {
   int ob, co, pt;
-  struct Mod_Object *obj;
-  struct Mod_Contour *cont;
+  Iobj *obj;
+  Icont *cont;
+  int gotOne = 0;
      
   pnt->x = pnt->y = pnt->z = -1.;
 
@@ -305,8 +282,12 @@ void imodel_minpt(struct Mod_Model *imod, struct Mod_Point *pnt)
         pnt->z = cont->pts->z;
         co = obj->contsize;
         ob = imod->objsize;
+        gotOne = 1;
+        break;
       }
     }
+    if (gotOne)
+      break;
   }
 
   for (ob = 0; ob < imod->objsize; ob++){
@@ -326,11 +307,16 @@ void imodel_minpt(struct Mod_Model *imod, struct Mod_Point *pnt)
   return;
 }
 
+/*!
+ * Returns the minimum and maximum coordinates of the model [imod] in [min] 
+ * and [max], or -1,-1,-1 if there are no points 
+ */
 void imodGetBoundingBox(Imod *imod, Ipoint *min, Ipoint *max)
 {
   int ob, co, pt;
-  struct Mod_Object *obj;
-  struct Mod_Contour *cont;
+  Iobj *obj;
+  Icont *cont;
+  int gotOne = 0;
 
   min->x = min->y = min->z = -1.;
   max->x = max->y = max->z = -1.;
@@ -346,8 +332,12 @@ void imodGetBoundingBox(Imod *imod, Ipoint *min, Ipoint *max)
         min->z = max->z = cont->pts->z;
         co = obj->contsize;
         ob = imod->objsize;
+        gotOne = 1;
+        break;
       }
     }
+    if (gotOne)
+      break;
   }
 
   for (ob = 0; ob < imod->objsize; ob++){
@@ -373,8 +363,8 @@ void imodGetBoundingBox(Imod *imod, Ipoint *min, Ipoint *max)
   return;
 }
 
-
-double imodel_dist(struct Mod_Model *imod)
+/* Returns distance of current point from origin - unused and unsafe */
+double imodel_dist(Imod *imod)
 {
   double x, y;
 
@@ -396,12 +386,12 @@ double imodel_dist(struct Mod_Model *imod)
 /* static float basered = 0.5, basegreen = 0.5, baseblue = 0.5; */
 #define MAX_STOCK_COLORS  35
 
-/*****************************************************************************/
-/* Function imodNewObject()                                                  */
-/* Adds new object to end of obj array                                       */
-/* Returns 1 if error.                                                       */
-/*****************************************************************************/
-int imodNewObject(struct Mod_Model *mod)
+/*!
+ * Adds new object to end of object array in model [mod].
+ * Color is automatically assigned from the collection of 35 stock colors.
+ * Returns 1 if error.
+ */
+int imodNewObject(Imod *mod)
 {
   Iobj *obj;
   int colorInd;
@@ -446,10 +436,10 @@ int imodNewObject(struct Mod_Model *mod)
   };
 
   if (mod->objsize == 0)
-    obj = (struct Mod_Object *)malloc( sizeof(struct Mod_Object) );
+    obj = (Iobj *)malloc( sizeof(Iobj) );
   else
-    obj = (struct Mod_Object *)realloc
-      (mod->obj, sizeof(struct Mod_Object) * (mod->objsize + 1));
+    obj = (Iobj *)realloc
+      (mod->obj, sizeof(Iobj) * (mod->objsize + 1));
 
   if (obj == NULL){
     mod->cindex.object = -1;
@@ -495,22 +485,22 @@ int imodNewObject(struct Mod_Model *mod)
   return(0);
 }
 
-
-void   imodDeleteObject(Imod *imod, int index)
-{
-  imodFreeObject(imod, index);
-}
-
-int imodFreeObject(struct Mod_Model *mod, int index)
+/*!
+ * Removes the object at the given [index] from the model [mod].
+ * All contour data is deleted and object views are deleted.  The object array 
+ * is packed down and reallocated or freed if there are no more objects.
+ * Returns -1 if there is an error.
+ */
+void   imodDeleteObject(Imod *mod, int index)
 {
 
   int i;
-  struct Mod_Object *obj = NULL;
-  struct Mod_Object *tobj = NULL;
+  Iobj *obj = NULL;
+  Iobj *tobj = NULL;
      
-  obj = &(mod->obj[index]);
-  if (!obj)
+  if (index < 0 || index >= mod->objsize)
     return(-1);
+  obj = &(mod->obj[index]);
 
   mod->cindex.object = index;
 
@@ -561,11 +551,10 @@ int imodFreeObject(struct Mod_Model *mod, int index)
   return(0);
 }
 
-
-/*****************************************************************************/
-/* imodMoveObject - inputs: pointer to model, existing and new object number */
-/*                  returns 1 if memory error                                */
-/*****************************************************************************/
+/*!
+ * Moves an object from index [obOld] to index [obNew] in the model [imod].
+ * Returns 1 if memory error.
+ */
 int imodMoveObject(Imod *imod, int obOld, int obNew)
 {
   int idir, ob, iv;
@@ -599,11 +588,12 @@ int imodMoveObject(Imod *imod, int obOld, int obNew)
   return 0;
 }
 
-
-/*****************************************************************************/
-/* imodNextObject - input, pointer to model.                                 */
-/*              returns new object index.                                    */
-/*****************************************************************************/
+/*!
+ * Advances from the current object to the next object in the model [imod],
+ * adjusting the index of the current contour and point to stay within bounds
+ * or setting them to -1 if appropriate.  Returns new object index or -1
+ * if there is no model or objects.
+ */
 int imodNextObject(Imod *imod)
 {
   Iobj  *obj;
@@ -616,7 +606,7 @@ int imodNextObject(Imod *imod)
 
   ++imod->cindex.object;
   if (imod->cindex.object < 0) imod->cindex.object = 0;
-  obj = imodel_object_get(imod);
+  obj = imodObjectGet(imod);
      
   /* check for contour # out of bounds. */
   if ( imod->cindex.contour >= obj->contsize)
@@ -636,16 +626,18 @@ int imodNextObject(Imod *imod)
 }
 
 
-/*****************************************************************************/
-/* imodPrevObject - input, pointer to model.                                 */
-/*              returns new object index.                                    */
-/*****************************************************************************/
-int imodPrevObject(struct Mod_Model *mod)
+/*!
+ * Moves from the current object to the previous object in the model [mod],
+ * adjusting the index of the current contour and point to stay within bounds
+ * or setting them to -1 if appropriate.  Returns new object index or -1
+ * if there is no model or objects.
+ */
+int imodPrevObject(Imod *mod)
 {
-  struct Mod_Object *obj;
-  struct Mod_Contour *cont;
+  Iobj *obj;
+  Icont *cont;
 
-  if (mod == NULL)
+  if ((imod == NULL) || (imod->objsize == 0))
     return(-1);
   /* If no object selected or if object is # 0, leave index alone*/
   if (mod->cindex.object <= 0)
@@ -655,10 +647,10 @@ int imodPrevObject(struct Mod_Model *mod)
     mod->cindex.object = mod->objsize;
 
   --mod->cindex.object;
-  obj = imodel_object_get(mod);
+  obj = imodObjectGet(mod);
   if ( mod->cindex.contour >= obj->contsize)
     mod->cindex.contour = obj->contsize - 1;
-  cont = (struct Mod_Contour *)imodContourGet(mod);
+  cont = (Icont *)imodContourGet(mod);
 
   /* check for point # out of bounds */
   if ((mod->cindex.contour > -1) && (cont)){
@@ -676,33 +668,31 @@ int imodPrevObject(struct Mod_Model *mod)
 /*****************************************************************************/
 /* Contour Functions                                                         */
 /*****************************************************************************/
-int imodNewContour(Imod *imod)
-{
-  return(NewContour(imod));
-}
 
-int NewContour(struct Mod_Model *mod)
+/*!
+ * Adds a new contour to the current object of the model [mod].  It will 
+ * inherit surface and open/closed properties from the current contour and
+ * become the new current contour.  Returns -1 if error.
+ */
+int imodNewContour(Imod *mod)
 {
-  struct Mod_Object *obj;
-  struct Mod_Contour *cont, *ocont;
+  Iobj *obj;
+  Icont *cont, *ocont;
 
-  obj = imodel_object_get(mod);
+  obj = imodObjectGet(mod);
 
   if (obj == NULL)
     return(-1);
 
   /* Allocate Memory for new contour. */
   if (obj->contsize == 0)
-    cont = (struct Mod_Contour *)
-      malloc(sizeof(struct Mod_Contour));
+    cont = (Icont *)malloc(sizeof(Icont));
   else
-    cont = (struct Mod_Contour *)
-      realloc(obj->cont,
-              sizeof(struct Mod_Contour) * (obj->contsize + 1));
+    cont = (Icont *)realloc(obj->cont, sizeof(Icont) * (obj->contsize + 1));
 
   if (cont == NULL){
     b3dError(stderr,
-            "IMOD: NewContour memory Error, "
+            "IMOD: imodNewContour memory Error, "
             "Suggest you save and restart.");
     return(-1);
   }
@@ -737,23 +727,30 @@ int NewContour(struct Mod_Model *mod)
   return(0);
 }
 
-
-void imodDeleteContour(Imod *imod)
+/*!
+ * Deletes the current contour of the model [imod].
+ */
+void imodDelCurrentContour(Imod *imod)
 {
-  DelContour(imod, imod->cindex.contour);
+  imodDeleteContour(imod, imod->cindex.contour);
   return;
 }
 
-int DelContour(struct Mod_Model *mod, int index)
+/*!
+ * Deletes the contour at [index] in the current object of the model [mod],
+ * freeing all point, size, and label data and reducing the size of the contour
+ * array.  Sets the current contour and point index to -1 and returns the size
+ * of the current object or -1 if error.
+ */
+int imodDeleteContour(Imod *mod, int index)
 {
-  struct Mod_Object *obj;
+  Iobj *obj;
   int i;
      
 
-  obj = imodel_object_get(mod);
-  if (!obj)
-    return(0);
-
+  obj = imodObjectGet(mod);
+  if (!obj || index < 0 || index >= obj->contsize)
+    return(-1);
 
   /* If contour has any points, free them. */
   /* DNM: this was &(obj->cont[index].pts) but that seems wrong! */
@@ -768,27 +765,21 @@ int DelContour(struct Mod_Model *mod, int index)
      
   /* Push extra contours into hole */
   if (index != obj->contsize - 1)
-    for(i = index; i < (obj->contsize - 1); i++){
+    for(i = index; i < (obj->contsize - 1); i++) {
       imodContourCopy(&(obj->cont[i + 1]), &(obj->cont[i]));
     }
 
   /* Change contour array to new size */
-  if (obj->contsize > 1){
+  if (obj->contsize > 1) {
     obj->contsize--;
-    obj->cont = (struct Mod_Contour *)
-      realloc(obj->cont, obj->contsize * sizeof(struct Mod_Contour));
+    obj->cont = (Icont *)realloc(obj->cont, obj->contsize * sizeof(Icont));
      
-    if (obj->contsize >= mod->cindex.contour)
-      mod->cindex.contour = obj->contsize - 1;
-
-    if (obj->cont[mod->cindex.contour].psize >= mod->cindex.point)
-      mod->cindex.point= obj->cont[mod->cindex.contour].psize - 1;
+    /* 3/19/05: Deleted incorrect fixing of contour and point indexes */
       
-  }else{
+  } else {
     free(obj->cont);
     obj->cont = NULL;
     obj->contsize = 0;
-
   }
 
   /* DMN 9/20/04: clean out labels for non-existing surfaces */
@@ -797,27 +788,23 @@ int DelContour(struct Mod_Model *mod, int index)
   mod->cindex.contour = -1;
   mod->cindex.point   = -1;
   return(obj->contsize);
-
 }
 
-int imodPrevContour(Imod *imod)
+/*!
+ * Moves the current contour index back by one in model [mod].  If there
+ * is no current contour it selects the last one in the object.  Returns the
+ * current contour index or -1 for error.
+ */
+int imodPrevContour(Imod *mod)
 {
-  return(PrevContour(imod));
-}
-
-int PrevContour(struct Mod_Model *mod)
-{
-  struct Mod_Object *obj;
+  Iobj *obj;
 
   if (mod == NULL)
     return(-1);
 
+  obj = imodObjectGet(mod);
+
   /* no object selected. */
-  if (mod->cindex.object < 0){
-    mod->cindex.contour = -1;
-    return(-1);
-  }
-  obj = &(mod->obj[mod->cindex.object]);
   if (!obj){
     mod->cindex.contour = -1;
     return(-1);
@@ -827,7 +814,7 @@ int PrevContour(struct Mod_Model *mod)
   if (!obj->contsize)
     return(-1);
 
-  /* if no contour or first contour selected exit. */
+  /* if first contour selected exit. If no contour select last one */
   if (mod->cindex.contour == 0)
     return(mod->cindex.contour);
   if (mod->cindex.contour < 0)
@@ -843,24 +830,23 @@ int PrevContour(struct Mod_Model *mod)
   return(mod->cindex.contour);
 }
 
+/*!
+ * Advances the current contour index forward by one in model [mod].  If there
+ * is no current contour it selects the first one in the object.  Returns the
+ * current contour index or -1 for error.
+ */
 int   imodNextContour(Imod *imod)
-{
-  return(NextContour(imod));
-}
-
-int NextContour(Imod *imod)
 {
   Iobj *obj;
 
   if (imod == NULL)
     return(-1);
 
-  /* if no object selected, forget it. */
-  if (imod->cindex.object < 0)
-    return(-1);
+  obj = imodObjectGet(mod);
 
-  /* Selected Object. */
-  obj = &(imod->obj[imod->cindex.object]);
+  /* if no object selected, forget it. */
+  if (!obj)
+    return(-1);
 
   /* If object has no contours, return. */
   if (!obj->contsize)
@@ -870,59 +856,46 @@ int NextContour(Imod *imod)
   if (imod->cindex.contour == obj->contsize - 1)
     return(imod->cindex.contour);
 
-
   /* if no contour selected, select the first one */
-  if (imod->cindex.contour < 0){
+  if (imod->cindex.contour < 0)
     imod->cindex.contour = 0;
-    if (imod->cindex.point >= obj->cont[0].psize)
-      imod->cindex.point = obj->cont[0].psize - 1;
-    return(imod->cindex.contour);
-  }
-     
-  imod->cindex.contour++;
+  else
+    imod->cindex.contour++;
 
   /* if point index is to high change it. */
   if (imod->cindex.point >= obj->cont[imod->cindex.contour].psize)
     imod->cindex.point = obj->cont[imod->cindex.contour].psize - 1;
 
-  return(obj->contsize);
+  /* DNM 3/19/05: changed return here from contsize to contour index */
+  return(imod->cindex.contour);
 }
      
 
 
 /*****************************************************************************
  * Point Functions
- *       NewPoint
- *       InsertPoint
- *       DelPoint
+ *       imodNewPoint
+ *       imodInsertPoint
+ *       imodDeletePoint
  */
 
-int NewPoint(struct Mod_Model *mod, struct Mod_Point *pt)
+/*!
+ * Adds [point] to the end of the current contour in model [imod].
+ * Returns new number of points in contour, or 0 for an error.
+ */
+int imodNewPoint(Imod *imod, Ipoint *point)
 {
-  return(imodNewPoint(mod,pt));
-}
- 
-int imodNewPoint(Imod *imod, Ipoint *pt)
-{
-  struct Mod_Contour *cont;
-
-  cont = imodContourGet(imod);
-  if (!cont) return(0);
+  Icont *cont = imodContourGet(imod);
+  if (!cont)
+    return(0);
   imod->cindex.point++;
-  return(imodPointAppend(cont, pt));
+  return(imodPointAppend(cont, point));
 }
 
-
-
-/*****************************************************************************/
-/*  InsertPoint - Add point to middle of array at index.                     */
-/*  Returns object size.                                                     */
-/*****************************************************************************/
-int InsertPoint(struct Mod_Model *mod, struct Mod_Point *pt, int index)
-{
-  return(imodInsertPoint(mod, pt, index));
-}
-
+/*!
+ * Inserts [point] at position [index] into the current contour in model
+ * [imod].  Returns new number of points in contour, or 0 for an error.
+ */
 int imodInsertPoint(Imod *imod, Ipoint *point, int index)
 {
   Icont *cont;
@@ -946,16 +919,10 @@ int imodInsertPoint(Imod *imod, Ipoint *point, int index)
   return retval;
 }
      
-
-
-
-/*****************************************************************************/
-/* DeletePoint - Deletes index point from point array in contour.            */
-/* returns size of new array.                                                */
-/*****************************************************************************/
-
-/* Deletes the current point, or the current contour if it the last point in it
-   Returns size of current contour or -1 if nothing was deleted */
+/*!
+ * Deletes the current point in model [imod], or the current contour if it is
+ * empty.  Returns size of current contour or -1 for error.
+ */
 int imodDeletePoint(Imod *imod)
 {
   Icont *cont;
@@ -968,7 +935,7 @@ int imodDeletePoint(Imod *imod)
   /* If there are no points, delete the whole contour (12/3/04 swicthed from
      deleting if one point) */
   if (!cont->psize){
-    DelContour(imod, imod->cindex.contour);
+    imodDeleteContour(imod, imod->cindex.contour);
     return(0);
   }
 
@@ -982,41 +949,42 @@ int imodDeletePoint(Imod *imod)
 
 }
 
-int   imodPrevPoint(Imod *imod){ 
-  return(PrevPoint(imod)); 
-}
-int PrevPoint(struct Mod_Model *mod)
+/*!
+ * Moves the current point index back by one in model [mod].  Returns the
+ * new current point index or -1 if no object or contour is selected.
+ */
+int   imodPrevPoint(Imod *mod)
 {
   if (mod == NULL)
     return(-1);
-     
+  
   if (mod->cindex.object < 0)
     return(-1);
      
   if (mod->cindex.contour < 0)
     return(-1);
-
+  
   if (mod->cindex.point <= 0)
     return(mod->cindex.point);
-
+  
   mod->cindex.point--;
-
+  
   return(mod->cindex.point);
 }
 
-int   imodNextPoint(Imod *imod){ 
-  return(NextPoint(imod));
-}
-
-int NextPoint(struct Mod_Model *mod)
+/*!
+ * Advances the current point index forward by one in model [mod].  Returns the
+ * new current point index or -1 if no object or contour is selected.
+ */
+int   imodNextPoint(Imod *mod)
 {
 
-  struct Mod_Contour *cont = NULL;
+  Icont *cont = NULL;
 
   cont = imodContourGet(mod);
 
   if (cont == NULL)
-    return(0);
+    return(-1);
 
   mod->cindex.point++;
    
@@ -1026,6 +994,10 @@ int NextPoint(struct Mod_Model *mod)
   return(mod->cindex.point);
 }
 
+/*!
+ * Transforms all contour points in model [imod] with the 3D transform in 
+ * [mat].  Returns -1 if error.
+ */
 int imodTransform(Imod *imod, Imat *mat)
 {
   Iobj  *obj;
@@ -1047,7 +1019,7 @@ int imodTransform(Imod *imod, Imat *mat)
   return(0);
 }
 
-
+/* Transforms the x,y,z value in the transform structure - unused 3/18/05 */
 int imodel_transform(struct Mod_Transform *tr)
 {
   double cosx, cosy, cosz;
@@ -1096,11 +1068,16 @@ int imodel_transform(struct Mod_Transform *tr)
   return(0);
 }
 
-int imodel_transform_slice(struct Mod_Model *model, float *mat, int slice)
+/*!
+ * Transforms all contour points in [model] with Z values that round to 
+ * [slice].  The 2D transformation in [mat] is applied to X and Y coordinates.
+ * Returns 0.
+ */
+int imodel_transform_slice(Imod *model, float *mat, int slice)
 {
   int ob, co, pt;
-  struct Mod_Object *obj;
-  struct Mod_Contour *cont;
+  Iobj *obj;
+  Icont *cont;
   int zval;
   float x, y;
      
@@ -1109,7 +1086,7 @@ int imodel_transform_slice(struct Mod_Model *model, float *mat, int slice)
     for(co = 0; co < obj->contsize; co++){
       cont = &(obj->cont[co]);
       for(pt = 0; pt < cont->psize; pt++){
-        zval = (cont->pts[pt].z + 0.5f);
+        zval = (int)floor(cont->pts[pt].z + 0.5);
         if (zval == slice){
           x = cont->pts[pt].x;
           y = cont->pts[pt].y;
@@ -1129,7 +1106,7 @@ int imodel_transform_slice(struct Mod_Model *model, float *mat, int slice)
  * data array is already locked 0 is returned.
  *  Otherwise the object array is locked and 1 is returned.
  */
-int imodel_lock(struct Mod_Model *mod, int flag)
+int imodel_lock(Imod *mod, int flag)
 {
   if (mod->lock){
     if (flag)
@@ -1150,19 +1127,23 @@ int imodel_lock(struct Mod_Model *mod, int flag)
 }
 
 /* Unlock data after locking. */
-int imodel_unlock(struct Mod_Model *mod)
+int imodel_unlock(Imod *mod)
 {
   mod->lock = FALSE;
   return(0);
 }
 
-
-
-int imodel_model_clean(struct Mod_Model *mod, int keepEmptyObjs)
+/*!
+ * Cleans model [mod] by removing empty contours, removing empty objects if
+ * [keepEmptyObjs] is 0, constraining points within the model xmax, ymax, and
+ * zmax values, and making all points have the same Z value as the first point
+ * for non-wild closed contours.  Returns 0.
+ */
+int imodel_model_clean(Imod *mod, int keepEmptyObjs)
 {
   int ob, co, pt;
-  struct Mod_Object *obj;
-  struct Mod_Contour *cont;
+  Iobj *obj;
+  Icont *cont;
 
   /* push all points inside of boundries. */
   for(ob = 0 ; ob < mod->objsize; ob++){
@@ -1170,7 +1151,7 @@ int imodel_model_clean(struct Mod_Model *mod, int keepEmptyObjs)
     /*    printf("ob = %d, size = %d\n", ob, mod->objsize); */
     if (!obj->contsize && !keepEmptyObjs){
       mod->cindex.object = ob;
-      imodFreeObject(mod, ob);
+      imodDeleteObject(mod, ob);
       ob--;
       continue;
     }
@@ -1181,7 +1162,7 @@ int imodel_model_clean(struct Mod_Model *mod, int keepEmptyObjs)
       if(!cont->psize){
         mod->cindex.object = ob;
         mod->cindex.contour = co;
-        DelContour(mod, co);
+        imodDeleteContour(mod, co);
         co--;
         continue;
       }
@@ -1205,7 +1186,9 @@ int imodel_model_clean(struct Mod_Model *mod, int keepEmptyObjs)
   return(0);
 }
 
-
+/*!
+ * Returns a string (e.g., "nm") for the pixel size units of model [mod].
+ */
 char *imodUnits(Imod *mod)
 {
   int units = mod->units;
@@ -1287,6 +1270,9 @@ char *imodUnits(Imod *mod)
 
 */
 
+/*!
+ * Returns the maximum time (type) value of any contour in model [imod].
+ */
 int imodGetMaxTime(Imod *imod)
 {
   int maxtime = 0;
@@ -1304,6 +1290,10 @@ int imodGetMaxTime(Imod *imod)
   return maxtime;
 }
 
+/*!
+ * Computes a checksum from the coordinates and most other features of model 
+ * [mod] and returns the value.
+ */
 int imodChecksum(Imod *imod)
 {
   int ob, co, pt, isum, i;
@@ -1417,7 +1407,10 @@ int imodChecksum(Imod *imod)
   return (isum);
 }
 
-/* clean model file due to dirty surface info */
+/*!
+ * Fixes the surface size information for all objects in model [imod] by
+ * determining the maximum surface number for the contours in each object.
+ */
 void imodCleanSurf(Imod *imod)
 {
   Iobj *obj;
@@ -1439,7 +1432,9 @@ void imodCleanSurf(Imod *imod)
 
 /* DNM 11/15/04: removed virtual in call */
 
-/* Flip a model - exchange Y and Z */
+/*!
+ * Flip the model [imod] by exchanging Y and Z in contours and meshes.
+ */
 void  imodFlipYZ(Imod *imod)
 {
   Iobj  *obj;
@@ -1473,7 +1468,68 @@ void  imodFlipYZ(Imod *imod)
   return;
 }
 
-int   imodGetMaxObject(Imod *imod) { return(imod->objsize); }
-float imodGetZScale(Imod *imod){ return(imod->zscale); }
-float imodGetPixelSize(Imod *imod){ return(imod->pixsize); }
-int   imodGetFlipped(Imod *imod) { return(imod->flags & IMODF_FLIPYZ); }
+/*! Get the number of objects in model [imod] (not the maximum object index).
+ */
+int   imodGetMaxObject(Imod *imod) 
+{ return(imod->objsize); }
+
+/*! Get the Z scale in model [imod] */
+float imodGetZScale(Imod *imod)
+{ return(imod->zscale); }
+
+/*! Get the pixel size in model [imod] */
+float imodGetPixelSize(Imod *imod)
+{ return(imod->pixsize); }
+
+/*! Returns non-zero if model [imod] is flipped */
+int   imodGetFlipped(Imod *imod) 
+{ return(imod->flags & IMODF_FLIPYZ); }
+
+/*
+$Log$
+Revision 3.14  2004/12/03 17:26:00  mast
+Changed behavior of imodDeletePoint, removed DelPoint
+
+Revision 3.13  2004/11/20 04:17:43  mast
+Added object move function and other changes for undo/redo structure
+
+Revision 3.12  2004/09/21 20:13:40  mast
+Changes for multiple and global clipping planes (i.e. checksum)
+
+Revision 3.11  2004/09/10 21:33:46  mast
+Eliminated long variables
+
+Revision 3.10  2004/04/27 21:44:47  mast
+Eliminated rotation angle fo first view from checksum
+
+Revision 3.9  2004/01/05 17:27:17  mast
+Added initialization of xybin and zbin
+
+Revision 3.8  2003/11/01 16:41:56  mast
+changed to use new error processing routine
+
+Revision 3.7  2003/10/24 03:02:14  mast
+move routines to new b3dutil file
+
+Revision 3.6  2003/09/16 02:06:08  mast
+*** empty log message ***
+
+Revision 3.5  2003/07/31 21:41:25  mast
+Delete object view and view data when deleting model, also delete
+object view data when deleting a single object
+
+Revision 3.4  2003/06/27 20:19:48  mast
+Made min and max functions return (-1,-1,-1) if there are no model points,
+and improved the checksum computation to include real and integer values
+and include all view data.
+
+Revision 3.3  2003/03/13 01:18:49  mast
+Add new default object color scheme
+
+Revision 3.2  2003/02/27 00:34:40  mast
+add projects' *.dsw *.dsp
+
+Revision 3.1  2002/11/05 23:28:23  mast
+Changed imodCopyright to use defined lab name
+
+*/

@@ -1,31 +1,13 @@
-/*  IMOD VERSION 2.30
- *
+/*
  *  iobj.c -- Funtions for handeling model object structures.
  *
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
+ *
+ *  Copyright (C) 1995-2004 by Boulder Laboratory for 3-Dimensional Electron
+ *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  */
-
-/*****************************************************************************
- *   Copyright (C) 1995-2000 by Boulder Laboratory for 3-Dimensional Fine    *
- *   Structure ("BL3DFS") and the Regents of the University of Colorado.     *
- *                                                                           *
- *   BL3DFS reserves the exclusive rights of preparing derivative works,     *
- *   distributing copies for sale, lease or lending and displaying this      *
- *   software and documentation.                                             *
- *   Users may reproduce the software and documentation as long as the       *
- *   copyright notice and other notices are preserved.                       *
- *   Neither the software nor the documentation may be distributed for       *
- *   profit, either in original form or in derivative works.                 *
- *                                                                           *
- *   THIS SOFTWARE AND/OR DOCUMENTATION IS PROVIDED WITH NO WARRANTY,        *
- *   EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTY OF          *
- *   MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.       *
- *                                                                           *
- *   This work is supported by NIH biotechnology grant #RR00592,             *
- *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
- *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
- *****************************************************************************/
 /*  $Author$
 
 $Date$
@@ -33,6 +15,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.5  2004/11/20 04:42:10  mast
+Added duplicate and insert contours, functions, removed virtual stuff
+
 Revision 3.4  2004/11/05 18:53:00  mast
 Include local files with quotes, not brackets
 
@@ -55,7 +40,10 @@ Use new b3d types
 
 #include "imodel.h"
 
-
+/*!
+ * Allocates one new object initialized to default values; returns NULL if
+ * error.
+ */
 Iobj *imodObjectNew()
 {
   Iobj *obj;
@@ -65,7 +53,10 @@ Iobj *imodObjectNew()
   return(obj);
 }
 
-/* returns an array of objects initialized to default values */
+/*!
+ * Allocates an array of objects of length [size], initialized to default
+ * values; returns NULL if error.
+ */
 Iobj *imodObjectsNew(int size)
 {
   Iobj *obj;
@@ -81,6 +72,9 @@ Iobj *imodObjectsNew(int size)
   return(obj);
 }
 
+/*!
+ * Initializes the object [obj] to default values.
+ */
 void imodObjectDefault(Iobj *obj)
 {
   int i;
@@ -129,11 +123,20 @@ void imodObjectDefault(Iobj *obj)
   return;
 }
 
+/*!
+ * Deletes the object [obj], freeing all contour, mesh, and label data and the
+ * object structure itself.  Returns -1 if error.
+ */
 int imodObjectDelete(Iobj *obj)
 {
   return(imodObjectsDelete(obj, 1));
 }
 
+/*!
+ * Deletes the array of objects of length [size] in [obj], freeing all contour,
+ * mesh, and label data and the object array itself.  It cannot be used on
+ * part of an array.  Returns -1 if error.
+ */
 int imodObjectsDelete(Iobj *obj, int size)
 {
   int ob;
@@ -155,6 +158,10 @@ int imodObjectsDelete(Iobj *obj, int size)
   return(0);
 }
 
+/*!
+ * Copies object structure from object [from] to object [to].  Returns -1 if 
+ * error.
+ */
 int imodObjectCopy(Iobj *from, Iobj *to)
 {
   if (!from)
@@ -165,7 +172,10 @@ int imodObjectCopy(Iobj *from, Iobj *to)
   return(0);
 }
 
-/* Duplicate object including all data */
+/*!
+ * Duplicates object [obj], including all contour, mesh, and label data, and
+ * returns pointer to copy, or NULL if error.
+ */
 Iobj *imodObjectDup(Iobj *obj)
 {
   Iobj *newObj;
@@ -229,18 +239,23 @@ Iobj *imodObjectDup(Iobj *obj)
 
 /* DNM 11/15/04: removed virtual in and out */
 
-
-/*****************************************************************************/
-/* FUNCTION: imodel_object_get                                               */
-/* Returns a pointer to the selected object index.                           */
-/*****************************************************************************/
-Iobj *imodObjectGet(struct Mod_Model  *imod)
+/*!
+ * Returns a pointer to the current object in model [imod], or NULL if no legal
+ * object is selected.
+ */
+Iobj *imodObjectGet(Imod  *imod)
 {
-  if (imod->cindex.object < 0)
+  if (!imod)
+    return(NULL);
+  if (imod->cindex.object < 0 || imod->cindex.object >= imod->objsize)
     return( (Iobj *)NULL);
   return( &(imod->obj[imod->cindex.object]));
 }
 
+/*!
+ * Sets first object in model [imod] as current object and returns pointer to
+ * it, or NULL if error.
+ */
 Iobj *imodObjectGetFirst(Imod *imod)
 {
   int ob, co, pt;
@@ -251,6 +266,11 @@ Iobj *imodObjectGetFirst(Imod *imod)
   return(imodObjectGet(imod));
 }
 
+/*!
+ * Advances the current object index by one in model [imod] and returns pointer
+ * to new current object, or NULL if error or if the existing current object is
+ * the last one in the model.
+ */
 Iobj *imodObjectGetNext(Imod *imod)
 {
   int ob, co, pt;
@@ -264,6 +284,10 @@ Iobj *imodObjectGetNext(Imod *imod)
   return(imodObjectGet(imod));
 }
 
+/*!
+ * Returns pointer to the contour at [inIndex] in object [inObject], or NULL
+ * if error.
+ */
 Icont *imodObjectGetContour(Iobj *inObject, int inIndex)
 {
   if (inObject == NULL) return(NULL);
@@ -273,6 +297,10 @@ Icont *imodObjectGetContour(Iobj *inObject, int inIndex)
   return(&inObject->cont[inIndex]);
 }
 
+/*!
+ * Returns pointer to the mesh at [inIndex] in the mesh array of object
+ * [inObject], or NULL if error.
+ */
 Imesh *imodObjectGetMesh(Iobj *inObject, int inIndex)
 {
   if (inObject == NULL) return(NULL);
@@ -282,6 +310,11 @@ Imesh *imodObjectGetMesh(Iobj *inObject, int inIndex)
   return(&inObject->mesh[inIndex]);
 }
 
+/*!
+ * Adds the mesh pointed to by [inMesh] to the mesh array of object [inObject].
+ * All pointers are transferred to the new mesh array element and no data are
+ * duplicated.  Returns index of new array element or -1 if error.
+ */
 int imodObjectAddMesh(Iobj *inObject, Imesh *inMesh)
 {
   if (!inObject) return(-1);
@@ -292,14 +325,14 @@ int imodObjectAddMesh(Iobj *inObject, Imesh *inMesh)
   /*    return(-1);*/
 }
 
-/****************************************************************************
- * FUNCTION: imodObjectSort                                                   
- * Sorts the contours in an object by their z value.
- * Returns Non zero for error.                                               
- *   Sept 1996. added time value as key to sort.
+/*!
+ * Sorts the contours in object [obj] by their z values.  If the object
+ * contains time-dependent data, then the contours are sorted first by time
+ * then by z.  Returns non-zero for error.
+ */
+/*   Sept 1996. added time value as key to sort.
  *              Empty contours no longer need to be deleted.
  */
-
 int imodObjectSort(Iobj *obj)
 {
   Icont *cont;
@@ -374,12 +407,11 @@ int imodObjectSort(Iobj *obj)
 }
 
 
-/*****************************************************************************/
-/* OBSOLETE */
-struct Mod_Object *imodel_object_get(struct Mod_Model *mod)
-{return(imodObjectGet(mod));}
-
-/* returns volume of object. */
+/*!
+ * Returns volume of object [obj],computed from contour areas, or zero for a 
+ * non-closed contour object
+ */
+/* Used by 3dmod. */
 float imodObjectVolume(Iobj *obj)
 {
   float ca = 0.0f;
@@ -394,11 +426,11 @@ float imodObjectVolume(Iobj *obj)
 }
 
 
-/* testing, internal only */
-int imodel_object_centroid(struct Mod_Object *obj, struct Mod_Point *rcp)
+/* testing, internal only (unused 3/20/05) */
+int imodel_object_centroid(Iobj *obj, Ipoint *rcp)
 {
-  struct Mod_Contour *cont;
-  struct Mod_Point cpt;
+  Icont *cont;
+  Ipoint cpt;
   double weight, tweight = 0;
   int co;
 
@@ -420,7 +452,11 @@ int imodel_object_centroid(struct Mod_Object *obj, struct Mod_Point *rcp)
   return(0);
 }
 
-/* add contour to object data. */
+/*!
+ * Adds contour [ncont] to the end of the contour array of object [obj].  
+ * Pointers are copied so no data are duplicated.  Returns index of new
+ * contour or -1 if error.
+ */
 int imodObjectAddContour(Iobj *obj, Icont *ncont)
 {
   if (!obj)
@@ -428,7 +464,11 @@ int imodObjectAddContour(Iobj *obj, Icont *ncont)
   return (imodObjectInsertContour(obj, ncont, obj->contsize));
 }
 
-/* insert contour into object data. */
+/*!
+ * Inserts contour [ncont] at position [index] into the contour array of object
+ * [obj].  Pointers are copied so no data are duplicated.  Returns index of new
+ * contour or -1 if error.
+ */
 int imodObjectInsertContour(Iobj *obj, Icont *ncont, int index)
 {
   Icont *cont;
@@ -458,7 +498,10 @@ int imodObjectInsertContour(Iobj *obj, Icont *ncont, int index)
   return(index);
 }
 
-/* Removes contour from object list without deleting contour data */
+/*!
+ * Removes the contour at [index] from object [obj] without deleting the 
+ * contour data.  Returns 1 if error.
+ */
 int imodObjectRemoveContour(Iobj *obj, int index)
 {
   int co;
@@ -479,7 +522,10 @@ int imodObjectRemoveContour(Iobj *obj, int index)
   return(0);
 }
 
-/* Removes labels and adjusts max surface # for surfaces that no longer exist */
+/*!
+ * Updates surface information for object [obj] by removing labels for surfaces
+ * that no longer exist and recomputing the maximum surface number.
+ */
 void imodObjectCleanSurf(Iobj *obj)
 {
   int i, co, found;
@@ -504,6 +550,7 @@ void imodObjectCleanSurf(Iobj *obj)
       obj->surfsize = obj->cont[co].surf;
 }
 
+/* Unused and suspect, 3/20/05 */
 Iobj *imodObjectClip(Iobj *obj, Iplane *plane, int planes)
 {
   Iobj *robj = imodObjectNew();
@@ -564,6 +611,10 @@ Iobj *imodObjectClip(Iobj *obj, Iplane *plane, int planes)
   return(robj);
 }
 
+/*!
+ * Finds the minimum and maximum coordinates of all contours in object [obj]
+ * and returns them in points [ll] and [ur], respectively.
+ */
 int imodObjectGetBBox(Iobj *obj, Ipoint *ll, Ipoint *ur)
 {
   Ipoint min;
@@ -598,7 +649,9 @@ int imodObjectGetBBox(Iobj *obj, Ipoint *ll, Ipoint *ur)
   return(0);
 }
 
-
+/*!
+ * Returns color values of object [inObject].
+ */
 void  imodObjectGetColor(Iobj *inObject,
                          float *outRed, float *outGreen, float *outBlue)
 {
@@ -607,6 +660,9 @@ void  imodObjectGetColor(Iobj *inObject,
   *outBlue  = inObject->blue;
 }
 
+/*!
+ * Sets the color of object [inObject] to the given values.
+ */
 void  imodObjectSetColor(Iobj *inObject,
                          float inRed, float inGreen, float inBlue)
 {
@@ -615,18 +671,28 @@ void  imodObjectSetColor(Iobj *inObject,
   inObject->blue = inBlue;
 }
 
+/*!
+ * Returns number of contours in object [inObject] (not the maximum contour 
+ * index).
+ */
 int   imodObjectGetMaxContour(Iobj *inObject)
 {
   if (!inObject) return(0);
   return(inObject->contsize);
 }
 
+/*!
+ * Returns pointer to object name.
+ */
 char *imodObjectGetName(Iobj *inObject)
 {
   if (!inObject) return(0);
   return(inObject->name);
 }
 
+/*!
+ * Sets name of object [obj] to [inName].
+ */
 int imodObjectSetName(Iobj *obj, char *inName)
 {
   int i, len, retval = 0;
@@ -643,6 +709,12 @@ int imodObjectSetName(Iobj *obj, char *inName)
 }
 
 
+/*!
+ * Returns one value for [inObject]; possible values for [inValueType] are
+ * {IobjMaxContour}, {IobjLineWidth}, {IobjPointSize}, {IobjMaxMesh}, 
+ * {IobjMaxSurface}, {IobjFlagClosed}, {IobjFlagConnected}, {IobjFlagFilled},
+ * {IobjFlagDraw}, {IobjFlagMesh}, {IobjFlagLine}, and {IobjFlagTime}.
+ */
 int   imodObjectGetValue(Iobj *inObject, int inValueType)
 {
   switch(inValueType){
@@ -695,6 +767,12 @@ static void setObjFlag(Iobj *inObject, b3dUInt32 flag, int state)
   }
 }
 
+/*!
+ * Sets one value for [inObject] to [inValue]; possible values for
+ * [inValueType] are {IobjLineWidth}, {IobjPointSize}, {IobjFlagClosed},
+ * {IobjFlagConnected}, {IobjFlagFilled}, {IobjFlagDraw}, {IobjFlagMesh},
+ * and {IobjFlagLine}.
+ */
 void  imodObjectSetValue(Iobj *inObject, int inValueType, int inValue)
 {
   switch(inValueType){
