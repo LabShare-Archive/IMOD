@@ -23,6 +23,10 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.5  2004/06/17 23:55:51  rickg
+ * <p> Bug #460 moved getting of current time into FileSizeProcessMonitor on
+ * <p> instantiation
+ * <p>
  * <p> Revision 3.4  2004/06/17 23:34:32  rickg
  * <p> Bug #460 added script starting time to differentiate old data files
  * <p>
@@ -92,9 +96,14 @@ public class TiltProcessMonitor extends FileSizeProcessMonitor {
       nX = tiltParam.getWidth();
     }
     if (tiltParam.hasSlice()) {
-      nY =
-        (tiltParam.getIdxSliceStop() - tiltParam.getIdxSliceStart())
-          / tiltParam.getIncrSlice();
+      int sliceRange = tiltParam.getIdxSliceStop() - tiltParam.getIdxSliceStart();
+      // Divide by the step size if present
+      if(tiltParam.getIncrSlice() == Integer.MIN_VALUE) {
+        nY = sliceRange;
+      }
+      else {
+        nY = sliceRange / tiltParam.getIncrSlice();
+      }
     }
     if (tiltParam.hasMode()) {
       switch (tiltParam.getMode()) {
