@@ -16,9 +16,11 @@ import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
+import javax.swing.SpinnerNumberModel;
 
 import etomo.ApplicationManager;
 import etomo.storage.StackFileFilter;
+import etomo.storage.DistortionFileFilter;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.ConstMetaData;
@@ -41,6 +43,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.3  2004/02/08 18:34:40  sueh
+ * <p> bug# 169 Calling imodPreview instead of imodRawStack.
+ * <p>
  * <p> Revision 3.2  2003/12/08 22:33:51  sueh
  * <p> bug# 169 adding ViewRawStack button for axis A and B
  * <p>
@@ -184,6 +189,12 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
   private LabeledTextField ltfBackupDirectory =
     new LabeledTextField("Backup directory: ");
   private JButton btnBackupDirectory = new JButton(iconFolder);
+  
+  private JPanel pnlDistortionFile = new JPanel();
+  private LabeledTextField ltfDistortionFile =
+    new LabeledTextField("Image distortion field file: ");
+  private JButton btnDistortionFile = new JButton(iconFolder);
+
 
   //  Data type GUI objects
   private JPanel pnlDataType = new JPanel();
@@ -212,6 +223,12 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     new LabeledTextField("Fiducial diameter (nm): ");
   private LabeledTextField ltfImageRotation =
     new LabeledTextField("Image rotation (degrees): ");
+    
+  private JPanel pnlBinning = new JPanel();
+  private LabeledSpinner spnBinning =
+    new LabeledSpinner("Binning: ", new SpinnerNumberModel(1, 1, 50, 1));
+  private LabeledTextField ltfBinning =
+    new LabeledTextField("Binning: ");
 
   //  Tilt angle GUI objects
   private JPanel pnlPerAxisInfo = new JPanel();
@@ -273,13 +290,20 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     btnDataset.setMaximumSize(FixedDim.folderButton);
     btnBackupDirectory.setPreferredSize(FixedDim.folderButton);
     btnBackupDirectory.setMaximumSize(FixedDim.folderButton);
+    btnDistortionFile.setPreferredSize(FixedDim.folderButton);
+    btnDistortionFile.setMaximumSize(FixedDim.folderButton);
+    ltfDistortionFile.setMaximumSize(UIParameters.getFileFieldDimension());
 
     pnlDataset.setLayout(new BoxLayout(pnlDataset, BoxLayout.X_AXIS));
+    pnlDistortionFile.setLayout(new BoxLayout(pnlDistortionFile, BoxLayout.X_AXIS));
 
     //  Bind the buttons to their adapters
     btnDataset.addActionListener(new DatasetActionListener(this));
     btnBackupDirectory.addActionListener(
       new BackupDirectoryActionListener(this));
+    btnDistortionFile.addActionListener(
+      new DistortionFileActionListener(this));
+      
     rbSingleAxis.addActionListener(new SingleAxisActionListener(this));
     rbDualAxis.addActionListener(new DualAxisActionListener(this));
     btnScanHeader.addActionListener(new ScanHeaderActionListener(this));
@@ -296,6 +320,11 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     pnlDataset.add(ltfBackupDirectory.getContainer());
     pnlDataset.add(btnBackupDirectory);
     pnlDataset.add(Box.createRigidArea(FixedDim.x5_y0));
+    
+    pnlDistortionFile.add(Box.createRigidArea(FixedDim.x5_y0));
+    pnlDistortionFile.add(ltfDistortionFile.getContainer());
+    pnlDistortionFile.add(btnDistortionFile);
+    pnlDistortionFile.add(Box.createRigidArea(FixedDim.x5_y0));
 
     //  Add the tooltip text
     setToolTipText();
@@ -365,16 +394,26 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     pnlPixelAndLocalAlign.add(Box.createRigidArea(FixedDim.x10_y0));
     pnlPixelAndLocalAlign.add(Box.createHorizontalGlue());
     pnlPixelAndLocalAlign.add(Box.createRigidArea(FixedDim.x5_y0));
-
+    
+    spnBinning.setMaximumSize(UIParameters.getSpinnerDimension());
+    pnlBinning.setLayout(new BoxLayout(pnlBinning, BoxLayout.X_AXIS));
+    pnlBinning.add(Box.createRigidArea(FixedDim.x10_y0));
+    pnlBinning.add(spnBinning.getContainer());
+    pnlBinning.add(Box.createRigidArea(FixedDim.x10_y0));
+    
     //  Create Data Parameters panel
     pnlDataParameters.setLayout(
       new BoxLayout(pnlDataParameters, BoxLayout.Y_AXIS));
     pnlDataParameters.add(Box.createRigidArea(FixedDim.x0_y10));
     pnlDataParameters.add(pnlDataset);
     pnlDataParameters.add(Box.createRigidArea(FixedDim.x0_y10));
+    pnlDataParameters.add(pnlDistortionFile);
+    pnlDataParameters.add(Box.createRigidArea(FixedDim.x0_y10));
     pnlDataParameters.add(pnlDataType);
     pnlDataParameters.add(Box.createRigidArea(FixedDim.x0_y10));
     pnlDataParameters.add(pnlPixelAndLocalAlign);
+    pnlDataParameters.add(Box.createRigidArea(FixedDim.x0_y10));
+    pnlDataParameters.add(pnlBinning);
     pnlDataParameters.add(Box.createHorizontalGlue());
   }
 
@@ -417,12 +456,14 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     }
 
     ltfBackupDirectory.setText(metaData.getBackupDirectory());
+    ltfDistortionFile.setText(metaData.getDistortionFile());
     setAxisType(metaData.getAxisType());
     setViewType(metaData.getViewType());
     setSectionType(metaData.getSectionType());
     ltfPixelSize.setText(metaData.getPixelSize());
     ltfFiducialDiameter.setText(metaData.getFiducialDiameter());
     ltfImageRotation.setText(metaData.getImageRotation());
+    spnBinning.setValue(new Integer(metaData.getBinning()));
 
     tiltAnglesA.setFields(metaData.getTiltAngleSpecA());
     ltfExcludeListA.setText(metaData.getExcludeProjectionsA());
@@ -439,6 +480,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     MetaData metaData = new MetaData();
 
     metaData.setBackupDirectory(ltfBackupDirectory.getText());
+    metaData.setDistortionFile(ltfDistortionFile.getText());
     metaData.setAxisType(getAxisType());
 
     //  The dataset name needs to be set after the axis type so the metadata
@@ -456,6 +498,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     metaData.setFiducialDiameter(
       Double.parseDouble(ltfFiducialDiameter.getText()));
     metaData.setImageRotation(Double.parseDouble(ltfImageRotation.getText()));
+    metaData.setBinning(((Integer) spnBinning.getValue()).intValue());
     tiltAnglesA.getFields(metaData.getTiltAngleSpecA());
     metaData.setExcludeProjectionsA(ltfExcludeListA.getText());
     tiltAnglesB.getFields(metaData.getTiltAngleSpecB());
@@ -623,6 +666,31 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
       }
     }
   }
+  
+  private void btnDistortionFileAction(ActionEvent event) {
+
+    //  Open up the file chooser in the working directory
+    String currentDistortionDirectory = ltfDistortionFile.getText();
+    if (currentDistortionDirectory.equals("")) {
+      currentDistortionDirectory = System.getProperty("user.dir");
+    }
+    JFileChooser chooser = new JFileChooser(new File(currentDistortionDirectory));
+    DistortionFileFilter distortionFileFilter = new DistortionFileFilter();
+    chooser.setFileFilter(distortionFileFilter);
+    chooser.setPreferredSize(new Dimension(400, 400));
+    chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+    int returnVal = chooser.showOpenDialog(rootPanel);
+    if (returnVal == JFileChooser.APPROVE_OPTION) {
+      File distortionFile = chooser.getSelectedFile();
+      try {
+        ltfDistortionFile.setText(distortionFile.getCanonicalPath());
+      }
+      catch (Exception excep) {
+        excep.printStackTrace();
+      }
+    }
+  }
+
 
   private void rbSingleAxisAction(ActionEvent event) {
     tiltAnglesB.setEnabled(false);
@@ -843,6 +911,18 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
 
     public void actionPerformed(ActionEvent event) {
       adaptee.btnBackupDirectoryAction(event);
+    }
+  }
+
+  class DistortionFileActionListener implements ActionListener {
+
+    SetupDialog adaptee;
+    DistortionFileActionListener(SetupDialog adaptee) {
+      this.adaptee = adaptee;
+    }
+
+    public void actionPerformed(ActionEvent event) {
+      adaptee.btnDistortionFileAction(event);
     }
   }
 
