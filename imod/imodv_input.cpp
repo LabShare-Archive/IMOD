@@ -34,21 +34,12 @@
     Log at end of file
 */
 
-#include <stdlib.h>
-#include "imodconfig.h"
-#ifndef NO_SYS_TIMES
-#include <sys/times.h>
-#ifdef FIXED_CLK_TCK
-#define USE_CLK_TCK FIXED_CLK_TCK
-#else
-#define USE_CLK_TCK CLK_TCK
-#endif
-#endif
-
 // Movie timer intervals in standalone and model view modes
 #define STANDALONE_INTERVAL 1
 #define MODELVIEW_INTERVAL 10
 
+#include <stdlib.h>
+#include <qdatetime.h>
 #include <qtimer.h>
 #include <qcursor.h>
 #include <qapplication.h>
@@ -376,22 +367,10 @@ void imodvKeyPress(QKeyEvent *event)
              a->imod->view->rot.y,
              a->imod->view->rot.z);
       if (a->movieFrames) {
-#ifdef NO_SYS_TIMES
-        elapsed = (float)(a->movieCurrent - a->movieStart) / 
-          (float)CLOCKS_PER_SEC;
-#else
-        elapsed = (float)(a->movieCurrent - a->movieStart) / 
-          (float)USE_CLK_TCK;
-#endif
-#ifdef NO_SYS_TIMES
-        printf("%d frames / %.3f CPU sec = %.3f FPS\n",
-               a->movieFrames, elapsed, 
-               a->movieFrames / elapsed);
-#else
+        elapsed = (float)(a->movieCurrent - a->movieStart) / 1000.f;
         printf("%d frames / %.3f sec = %.3f FPS\n", 
                a->movieFrames, elapsed, 
                a->movieFrames / elapsed);
-#endif
       }
     }
     break;
@@ -991,16 +970,12 @@ static int imodvStepTime(ImodvApp *a, int tstep)
   }
 }
 
-/* DNM 5/21/01: returns real time, or CPU time time times function not
-   available */
-clock_t imodv_sys_time(void)
+/* DNM 2/27/03: replace unix times/clock with Qt time */
+int imodv_sys_time(void)
 {
-#ifndef NO_SYS_TIMES
-  struct tms buf;
-  return(times(&buf));
-#else
-  return(clock());
-#endif
+  QTime curTime = QTime::currentTime();
+  return ((((curTime.hour() * 60 + curTime.minute()) * 60) 
+           + curTime.second()) * 1000 + curTime.msec());
 }
 
 /**************imodv movie workproc **************************/
@@ -1026,6 +1001,9 @@ void imodvMovieTimeout()
 
 /*
     $Log$
+    Revision 4.3  2003/02/27 17:27:51  mast
+    Use new b3dX,Y,Z
+
     Revision 4.2  2003/02/21 22:19:00  mast
     Use new b3d types
 
