@@ -91,6 +91,15 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.97  2004/08/20 21:49:27  sueh
+ * <p> bug# 508 made some private items protected so they can by
+ * <p> inherited classes.
+ * <p> Added:
+ * <p> getTest
+ * <p> Changed:
+ * <p> tomogram CombinationDialog
+ * <p> updateComdeSc
+ * <p>
  * <p> Revision 3.96  2004/08/19 03:09:24  sueh
  * <p> bug# 508 Added a --selftest option to tell objects to perform extra tests.
  * <p> Used "selftest" because "test" was already taken.  Created load and
@@ -1114,6 +1123,7 @@ public class ApplicationManager {
       mainFrame.openMessageDialog(
         "Can not update metadata parameters without an active setup dialog",
         "Program logic error");
+      return;
     }
     //  Get the selected exit button
     DialogExitState exitState = setupDialog.getExitState();
@@ -1127,6 +1137,9 @@ public class ApplicationManager {
       System.setProperty("user.dir",
         setupDialog.getWorkingDirectory().getAbsolutePath());
       metaData = setupDialog.getFields();
+      if (metaData == null) {
+        return;
+      }
       if (metaData.isValid()) {
         mainFrame.updateDataParameters(null, metaData);
         processTrack.setSetupState(ProcessState.INPROGRESS);
