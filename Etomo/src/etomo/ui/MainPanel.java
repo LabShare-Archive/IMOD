@@ -36,6 +36,11 @@ import etomo.type.AxisType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.10  2005/02/19 00:31:01  sueh
+ * <p> bug# 605 fitWindow():  When tabs are used correct the frameBorder height
+ * <p> to avoid repacking when there is not vertical scroll bar.  This prevents a
+ * <p> B axis only display from going to and A and B display during fit.
+ * <p>
  * <p> Revision 1.9  2005/02/17 20:25:39  sueh
  * <p> bug# 513 fitWindow(boolean):  Repaired scroll bar functionality.
  * <p>
@@ -423,7 +428,14 @@ public abstract class MainPanel extends JPanel {
       //Make room for the scroll bar when calling pack()
       int tabHeight = 0;
       if (EtomoDirector.getInstance().getControllerListSize() > 1) {
-        tabHeight = 30;
+        String osName = System.getProperty("os.name").toLowerCase();
+        if (osName.indexOf("mac os") == -1) {
+          tabHeight = 30;
+        }
+        else {
+          //Tabs in mac are taller
+          tabHeight = 43;
+        }
       }
       if (EtomoDirector.getInstance().getMainFrame().getSize().height
           - getSize().height > frameBorder.height+tabHeight) {
