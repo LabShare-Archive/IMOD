@@ -350,19 +350,19 @@ int imodMatRot(Imat *mat, double angle, int axis)
 	  rmat->data[4] = (float)cosa;
      }else{
 	  switch(axis){
-	     case X:
+	     case b3dX:
 	       rmat->data[5] = (float)cosa;
 	       rmat->data[6] = (float)sina;
 	       rmat->data[9] = (float)-sina;
 	       rmat->data[10] = (float)cosa;
 	       break;
-	     case Y:
+	     case b3dY:
 	       rmat->data[0] = (float)cosa;
 	       rmat->data[2] = (float)-sina;
 	       rmat->data[8] = (float)sina;
 	       rmat->data[10] = (float)cosa;
 	       break;
-	     case Z:
+	     case b3dZ:
 	       rmat->data[0] = (float)cosa;
 	       rmat->data[1] = (float)sina;
 	       rmat->data[4] = (float)-sina;

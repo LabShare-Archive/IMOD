@@ -32,12 +32,15 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2003/02/21 22:20:37  mast
+    Use new b3d types
+
 */
 
 #include <string.h>
 #include <imodel.h>
 
-#include <unistd.h>
+/*#include <unistd.h>*/
 
 /* create a new empty label. */
 Ilabel *imodLabelNew()

@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2002/11/05 23:28:23  mast
+    Changed imodCopyright to use defined lab name
+
 */
 
 
@@ -68,20 +71,22 @@
 #include <math.h>
 #include "imodel.h"
 
+/* DNM 2/26/03: These need to be printf instead of fprintf(stderr) to not crash 
+  imod under Windows */
 int imodVersion(char *pname)
 {
-     if (pname)
-	  fprintf(stderr, "%s Version %s %s %s\n",
+  if (pname)
+    printf("%s Version %s %s %s\n",
 		  pname, VERSION_NAME, __DATE__, __TIME__);
-     return(VERSION);
+  return(VERSION);
 }
 
 void imodCopyright(void)
 {
-     char *uofc =   "the Regents of the University of Colorado";
-     fprintf(stderr, "Copyright (C) %s by %s\n%s & %s\n", COPYRIGHT_YEARS,
-	     LAB_NAME1, LAB_NAME2, uofc);
-     return;
+  char *uofc =   "the Regents of the University of Colorado";
+  printf("Copyright (C) %s by %s\n%s & %s\n", COPYRIGHT_YEARS,
+    LAB_NAME1, LAB_NAME2, uofc);
+  return;
 }
 
 

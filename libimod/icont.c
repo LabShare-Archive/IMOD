@@ -2160,7 +2160,7 @@ void imodContourRotateZ(Icont *cont, double rot)
      Ipoint rpt;
      int pt;
 
-     imodMatRot(mat, rot, Z);
+     imodMatRot(mat, rot, b3dZ);
      for (pt = 0; pt < cont->psize; pt++){
 	  imodMatTransform2D(mat, &cont->pts[pt], &rpt);
 	  cont->pts[pt] = rpt;

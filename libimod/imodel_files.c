@@ -664,7 +664,6 @@ static int imodel_read_object(Iobj *obj, FILE *fin)
      obj->trans      = imodGetByte(fin);
      obj->meshsize   = imodGetInt(fin);
      obj->surfsize   = imodGetInt(fin);
-     fflush(fin);
      if (ferror(fin))
 	  return(IMOD_ERROR_READ);
      else
@@ -1378,7 +1377,8 @@ float imodGetFloat(FILE *fp)
 
 int imodGetFloats(FILE *fp, float *buf, int size)
 {
-     fread(buf, 4, size, fp);
+  fread(buf, 4, size, fp);
+
 #ifdef IMOD_FLOAT_CONVERT
      tovmsfloat((unsigned char *)buf, size);
 #else
@@ -1419,7 +1419,7 @@ int imodGetInt(FILE *fp)
 
 int imodGetInts(FILE *fp, void *buf, int size)
 {
-     fread(buf, 4, size, fp);
+  fread(buf, 4, size, fp);
 #ifdef IMOD_DATA_SWAP
      swap_longs(buf, size);
 #endif
@@ -1474,6 +1474,7 @@ unsigned char imodGetByte(FILE *fp)
 int imodGetBytes(FILE *fp, unsigned char *buf, int size)
 {
      fread(buf, 1, size, fp);
+
      return(ferror(fp));
 }
 int imodPutBytes(FILE *fp, unsigned char *buf, int size)
@@ -1489,6 +1490,9 @@ int imodPutByte(FILE *fp, unsigned char *dat)
 
 /*
     $Log$
+    Revision 3.7  2003/02/21 23:58:29  mast
+    Open files in binary mode
+
     Revision 3.6  2003/02/21 22:21:35  mast
     Use new b3d types
 
