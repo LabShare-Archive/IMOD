@@ -365,7 +365,7 @@ void DialogManager::remove(QWidget * widget)
   while (dia){
     if (dia->widget == widget) {
       if (dia->dlgType == ZAP_WINDOW_TYPE)
-        mLastZapGeom = QRect(widget->pos(), widget->size());
+        mLastZapGeom = ivwRestorableGeometry(widget);
       ilistRemove(mDialogList, index);
       return;
     }
@@ -413,7 +413,7 @@ void DialogManager::hide()
       dia->iconified = 0;
     else {
       dia->iconified = 1;
-      dia->position = dia->widget->pos();
+      dia->position = (ivwRestorableGeometry(dia->widget)).topLeft();
 
       // This was showMinimized for everyone originally; worked fine on
       // Windows and Linux under Qt 3.0.5, didn't work on SGI because the boxes
@@ -481,7 +481,7 @@ QRect DialogManager::biggestGeometry(int dlgType)
   dia = (ImodvDialog *)ilistFirst(mDialogList);
   while (dia){
     if (dia->dlgType == dlgType) {
-      QRect geom = QRect(dia->widget->pos(), dia->widget->size());
+      QRect geom = ivwRestorableGeometry(dia->widget);
       if (geom.width() * geom.height() > biggest.width() * biggest.height())
         biggest = geom;
     }
@@ -492,8 +492,25 @@ QRect DialogManager::biggestGeometry(int dlgType)
   return biggest;
 }
 
+// Return system-dependent rectangle that can be used to restore window size
+// and position
+// This is supposed to be the frame position and the client size, but on
+// the SGI we need the client size since move() sets the client position
+QRect ivwRestorableGeometry(QWidget *widget)
+{
+#ifdef SGI_GEOMETRY_HACK
+  return widget->geometry();
+#else
+  return QRect(widget->pos(), widget->size());
+#endif
+}
+
 /*
 $Log$
+Revision 4.11  2003/09/24 00:48:48  mast
+Switched from keeping track of geometry to keeping track of pos() and
+size() when saving and restoring positions and sizes
+
 Revision 4.10  2003/09/17 05:54:19  mast
 Make it keep track of geometry of last zap window closed
 
