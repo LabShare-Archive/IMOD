@@ -5,6 +5,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.2  2003/04/11 17:29:33  mast
+c	  Added declarations for implicit none, added cgx, cgy to tltcntrl
+c	
 c	  Revision 3.1  2002/07/28 22:56:54  mast
 c	  Stadardize error output
 c	
@@ -17,7 +20,7 @@ c	  IF MAXVAR IS NOT BIGGER THAN MAXMETRO, NEED TO DIMENSION
 c	  var to maxmetro
 c
 	integer maxvar,maxmetro
-	parameter (maxvar=5*maxview,maxmetro=1300)
+	parameter (maxvar=5*maxview,maxmetro=2100)
 
 	integer*4 ifdidalign, iview
 	real*4 resmean(*)

@@ -22,7 +22,7 @@ c
 	include 'alivar.inc'
 	integer maxvar,maxmetro,maxMetroTrials
 	parameter (maxvar=7*maxview)
-	parameter (maxmetro=1300)
+	parameter (maxmetro=2100)
 	parameter (maxMetroTrials = 5)
 c
 	integer*4 ninreal(maxreal),igroup(maxreal)
@@ -1335,6 +1335,9 @@ c
 
 c
 c	  $Log$
+c	  Revision 3.20  2005/02/16 06:43:10  mast
+c	  Added image size to fid.xyz output file for solvematch to use
+c	
 c	  Revision 3.19  2004/10/24 22:38:13  mast
 c	  Fixed a line length - forgot to say changes to compute the image
 c	  transformations more robustly and to put out Z factors
