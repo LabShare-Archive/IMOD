@@ -140,6 +140,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.4  2002/05/07 02:00:29  mast
+c	  Eliminate output of mean and SD from a test print statement
+c	
 c	  Revision 3.3  2002/04/18 20:02:55  mast
 c	  Made it transfer extra header data correctly if it consists of
 c	  integers and reals
@@ -199,7 +202,10 @@ C
 	  read(inunit,*)nfilein
 	endif
 	listot=0
-	if(nfilein.gt.lmfil)stop 'TOO MANY FILES FOR ARRAYS'
+	if(nfilein.gt.lmfil)then
+	  print *, 'TOO MANY FILES FOR ARRAYS'
+	  call exit(1)
+	endif
 	do i=1,nfilein
 	  if(inunit.ne.7)then
 	    if(nfilein.eq.1)then
@@ -214,7 +220,10 @@ C
 	  call rdlist(inunit,inlist(listot+1),nlist(i))
 	  listind(i)=listot+1
 	  listot=listot+nlist(i)
-	  if(listot.gt.lmsec)stop 'TOO MANY SECTIONS FOR ARRAYS'
+	  if(listot.gt.lmsec)then
+	    print *, 'TOO MANY SECTIONS FOR ARRAYS'
+	    call exit(1)
+	  endif
 	enddo
 	close(7)
 101	FORMAT(A)
@@ -249,8 +258,11 @@ C
 	    noutot=noutot+nsecout(i)
 	  enddo
 	endif
-	if(noutot.ne.listot)
-     &	    STOP 'Number of input and output sections does not match'
+	if(noutot.ne.listot)then
+	  print *,
+     &	      'Number of input and output sections does not match'
+	  call exit(1)
+	endif
 c	  
 c	  get new size and mode
 c	  
@@ -308,8 +320,11 @@ C
 	    enddo
 	    nlineuse=listot
 	  endif
-	  if(nlineuse.ne.listot)stop
-     &	      'Number of lines does not match number of sections'
+	  if(nlineuse.ne.listot)then
+	    print *,
+     &		'Number of lines does not match number of sections'
+	    call exit(1)
+	  endif
 	endif
 c
 c	  find out if root beer float or what
@@ -382,8 +397,8 @@ C
 	      do ilis=1,nlist(ifil)
 		nsecred=inlist(ilis+listind(ifil)-1)
 		if(nsecred.lt.0.or.nsecred.ge.nz) then
-		  print *,'Section',nsecred,' does not exist in file'
-		  stop 'SECTION NUMBER OUT OF RANGE'
+		  print *,'SECTION',nsecred,' DOES NOT EXIST IN FILE'
+		  call exit(1)
 		endif
 c		
 		call scansection(array,idim,nx,ny,nsecred,iffloat,dmin2,
@@ -469,8 +484,8 @@ c
 	  do ilis=1,nlist(ifil)
 	    nsecred=inlist(ilis+listind(ifil)-1)
 	    if(nsecred.lt.0.or.nsecred.ge.nz) then
-	      print *,'Section',nsecred,' does not exist in file'
-	      stop 'SECTION NUMBER OUT OF RANGE'
+	      print *,'SECTION',nsecred,' DOES NOT EXIST IN FILE'
+	      call exit(1)
 	    endif
 c
 c	      set output characteristics from first section
@@ -553,10 +568,14 @@ C
 c	      handle complex images here and skip out
 c
 	    if((newmode+1)/2.eq.2.or.(mode+1)/2.eq.2)then
-	      if((mode+1)/2.ne.2.or.(newmode+1)/2.ne.2)STOP
-     &		  'ALL INPUT FILES MUST BE COMPLEX IF ANY ARE'
-	      if(nx*ny*2.gt.idim)
-     &		  STOP 'INPUT IMAGE TOO LARGE FOR ARRAY.'
+	      if((mode+1)/2.ne.2.or.(newmode+1)/2.ne.2)then
+		print *,'ALL INPUT FILES MUST BE COMPLEX IF ANY ARE'
+		call exit(1)
+	      endif
+	      if(nx*ny*2.gt.idim)then
+		print *, 'INPUT IMAGE TOO LARGE FOR ARRAY.'
+		call exit(1)
+	      endif
 	      call imposn(1,nsecred,0)
 	      call irdsec(1,array,*99)
 	      call iclcdn(array,nx,ny,1,nx,1,ny,dmin2,dmax2,dmean2)
@@ -647,8 +666,11 @@ c			pass and get back coordinates numbered from 1, subtract
 c			an extra 1 to get to lines numbered from 0
 c			
 		      lnu=lineuse(isec)+1
-		      if(lnu.le.0.or.lnu.gt.nxforms)
-     &			  STOP 'LINE NUMBER FOR TRANSFORM OUT OF BOUNDS'
+		      if(lnu.le.0.or.lnu.gt.nxforms)then
+			print *,
+     &			    'LINE NUMBER FOR TRANSFORM OUT OF BOUNDS'
+			call exit(1)
+		      endif
 		      xci=nx/2.
 		      yci=ny/2.
 		      dx=f(1,3,lnu)-xcen(isec)
@@ -680,8 +702,10 @@ c
 		enddo
 		iscan=iscan+1
 	      enddo
-	      if(ifoutchunk.lt.0)
-     &		  STOP ' INPUT IMAGE TOO LARGE FOR ARRAY.'
+	      if(ifoutchunk.lt.0)then
+		print *, ' INPUT IMAGE TOO LARGE FOR ARRAY.'
+		call exit(1)
+	      endif
 	    endif
 c	    print *,'number of chunks:',nchunk
 c	    do i=1,nchunk
@@ -776,8 +800,10 @@ c
 c		  do transform if called for
 c		  
 		lnu=lineuse(isec)+1
-		if(lnu.le.0.or.lnu.gt.nxforms)
-     &		    STOP 'LINE NUMBER FOR TRANSFORM OUT OF BOUNDS'
+		if(lnu.le.0.or.lnu.gt.nxforms)then
+		  print *, 'LINE NUMBER FOR TRANSFORMOUT OF BOUNDS'
+		  call exit(1)
+		endif
 		xci=nx/2.
 		yci=ny/2.-loadyst
 		dx=f(1,3,lnu)-xcen(isec)
@@ -1078,8 +1104,10 @@ C
 103	format(' TRUNCATIONS OCCURRED:',i7,' at low end and',i7,
      &	    ' at high end of range')
 	call exit(0)
-99	STOP ' END OF IMAGE WHILE READING'
-96	STOP 'ERROR READING TRANSFORM FILE'
+99	print *, ' END OF IMAGE WHILE READING'
+	call exit(1)
+96	print *, 'ERROR READING TRANSFORM FILE'
+	call exit(1)
 	END
 
 c	  
@@ -1199,7 +1227,8 @@ c
 	loadynd=iline-1
 	loadyst=iline-nlines
 	return
-99	stop 'READ ERROR'
+99	print *, 'READ ERROR'
+	call exit(1)
 	end
 
 
