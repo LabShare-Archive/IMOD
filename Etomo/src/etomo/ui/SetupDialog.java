@@ -42,6 +42,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.7  2003/06/03 23:28:26  rickg
+ * <p> Fixed font size ltf at 5 columns for text boxes
+ * <p>
  * <p> Revision 2.6  2003/05/20 21:32:54  rickg
  * <p> Added scan header button
  * <p>
@@ -173,13 +176,13 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
   private BeveledBorder borderAxisInfoA = new BeveledBorder("Axis A: ");
   private TiltAngleDialogPanel tiltAnglesA = new TiltAngleDialogPanel();
   private LabeledTextField ltfExcludeListA =
-    new LabeledTextField("Exclude projections: ");
+    new LabeledTextField("Exclude views: ");
 
   private JPanel pnlAxisInfoB = new JPanel();
   private BeveledBorder borderAxisInfoB = new BeveledBorder("Axis B: ");
   private TiltAngleDialogPanel tiltAnglesB = new TiltAngleDialogPanel();
   private LabeledTextField ltfExcludeListB =
-    new LabeledTextField("Exclude projections: ");
+    new LabeledTextField("Exclude views: ");
 
   //  Construct the setup dialog
   public SetupDialog(ApplicationManager appMgr) {
@@ -665,13 +668,13 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
 
   private void setToolTipText() {
     String line1, line2, line3, line4, line5, line6, line7, line8;
-    line1 = "<html>Enter the name of projection data file(s). You can<br>";
-    line2 = "also select the projection data file  by pressing the<br>";
+    line1 = "<html>Enter the name of view data file(s). You can<br>";
+    line2 = "also select the view data file  by pressing the<br>";
     line3 = "folder button.";
     ltfDataset.setToolTipText(line1 + line2 + line3);
 
     line1 = "<html>This button will open a file chooser dialog box<br>";
-    line2 = "allowing you to select the projection data file.";
+    line2 = "allowing you to select the view data file.";
     btnDataset.setToolTipText(line1 + line2);
 
     line1 = "<html>Enter the name of the directory where you want the<br>";
@@ -687,7 +690,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     line1 = "<html>This radio button selector will choose whether the data<br>";
     line2 = "has been collected using a CCD or film.  Even if the data are<br>";
     line3 = "from film, select CCD unless they are already well-aligned<br>";
-    line4 = "from one projection to the next.";
+    line4 = "from one view to the next.";
     pnlDataSource.setToolTipText(line1 + line2 + line3 + line4);
     rbCCD.setToolTipText(line1 + line2 + line3 + line4);
     rbFilm.setToolTipText(line1 + line2 + line3 + line4);
@@ -699,8 +702,8 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     rbDualAxis.setToolTipText(line1 + line2);
 
     line1 = "<html>This radio button selector will choose whether the data<br>";
-    line2 = "consists of a single view per projection or multiple views<br>";
-    line3 = "per projection (montaged).";
+    line2 = "consists of a single view per view or multiple views<br>";
+    line3 = "per view (montaged).";
     pnlViewType.setToolTipText(line1 + line2 + line3);
     rbSingleView.setToolTipText(line1 + line2 + line3);
     rbMontage.setToolTipText(line1 + line2 + line3);
@@ -711,20 +714,20 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     rbSingleSection.setToolTipText(line1 + line2);
     rbSerialSection.setToolTipText(line1 + line2);
 
-    line1 = "<html>Enter the projection image pixel size in nanometers here.";
+    line1 = "<html>Enter the view image pixel size in nanometers here.";
     ltfPixelSize.setToolTipText(line1);
 
     line1 = "<html>Enter the fiducial size in nanometers here.";
     ltfFiducialDiameter.setToolTipText(line1);
 
-    line1 = "<html>Enter the projection image rotation in degrees. This is<br>";
+    line1 = "<html>Enter the view image rotation in degrees. This is<br>";
     line2 = "the rotation (CCW positive) from the Y-axis (the tilt axis<br>";
     line3 = "after the views are aligned) to the suspected tilt axis in<br>";
     line4 = "the unaligned views.";
     ltfImageRotation.setToolTipText(line1 + line2 + line3 + line4);
 
-    line1 = "<html>Specify the source of the projection tilt angles";
-    line2 = "<ul><li>Select the Extract option if the raw stack data<br>";
+    line1 = "<html>Specify the source of the view tilt angles";
+    line2 = "<ul><li>Select the Extract option if the raw image stack<br>";
     line3 = "contains the tilt angle data";
     line4 = "<li>Select the Specify option if you wish to manually<br>";
     line5 = "specify the tilt angles in the edit boxes below";
@@ -736,10 +739,10 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
       line1 + line2 + line3 + line4 + line5 + line6 + line7);
 
     line1 =
-      "<html>Enter the projection images to <b>exclude</b> from the processing<br>";
+      "<html>Enter the view images to <b>exclude</b> from the processing<br>";
     line2 = "of this axis.  Ranges are allowed, separate ranges by<br>";
     line3 = "commas.  For example to exclude the first four and last<br>";
-    line4 = "four images of a 60 projection stack enter 1-4,57-60.";
+    line4 = "four images of a 60 view stack enter 1-4,57-60.";
     ltfExcludeListA.setToolTipText(line1 + line2 + line3 + line4);
     ltfExcludeListB.setToolTipText(line1 + line2 + line3 + line4);
 
