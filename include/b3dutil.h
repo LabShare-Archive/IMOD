@@ -13,6 +13,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.4  2004/01/17 20:34:03  mast
+Add b3d file routines
+
 Revision 1.3  2003/11/04 17:14:21  mast
 Add include of stdio so that FILE is defined
 
@@ -49,6 +52,8 @@ extern "C" {
   size_t b3dFwrite(void *buf, size_t size, size_t count, FILE *fp);
   void b3dRewind(FILE *fp);
   int mrc_big_seek(FILE *fp, int base, int size1, int size2, int flag);
+
+  void b3dHeaderItemBytes(int *nflags, int *nbytes);
 
 #ifdef __cplusplus
 }
