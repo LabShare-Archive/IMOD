@@ -1,5 +1,42 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+IMOD_3-0-1
+3/3/03: In the Xyz window, added grab bars to the position sliders and color
+coded the sliders and image boxes to make it clear which slider controls which
+dimension.  Made all symbol points, 3-D spheres, and connecting lines display
+in the XZ and YZ panels if they are visible on the slice being shown there.
+Generally made most model display features similar to those in the Zap window.
+To reduce confusion, made the projection of the current contour into the XZ
+and YZ windows and the projection of a current open contour into the XY panel
+a feature that can be turned on or off with P.
+
+3/3/03: In the Zap window, made the rubber band work the way people expect, by
+clicking an upper left corner and dragging to the lower right, and added
+cursor changes when the rubber band is grabbed.  Added continuous mouse
+tracking while the keypad Insert key is down, so this alternative to the
+middle mouse button works without keyboard repeat being set and works better
+than it did with key repeating alone.  Improved tracking of initial movements
+with left mouse button.
+
+3/3/03: Implemented dynamic sizes for current point and end point markers in
+Xyz and Zap windows.
+
+3/3/03: Made Slicer and Xyz windows display arrow cursor in movie mode and
+modeling cursor in model mode, just like Zap window.
+
+3/3/03: Added ability for Zap, Xyz, Slicer and Model View windows to display
+spheres for all points that have defined sizes, not just for points in 
+scattered contours.
+
+3/3/03: Added hot keys for changing an angle by 15 degrees in Slicer.
+
+3/3/03: Fixed slicer to display only data from the current time.
+
+2/27/03: Ported Imod and Midas to run under Windows, which involved various
+changes in coding and filename handling, and set up a complete hybrid package,
+with the command-line tools runnable under Cygwin.  Replaced Imodsendevent
+with a Qt program to communicate using the system clipboard.
+
 IMOD_3-0-0
 2/10/03: Merged Qt branch.
 
