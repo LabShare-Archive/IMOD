@@ -15,113 +15,6 @@ import etomo.type.EtomoNumber;
  *
  * @version $Revision$
  *
- * <p> $Log$
- * <p> Revision 3.13  2005/01/21 22:46:11  sueh
- * <p> bug# 509 bug# 591  Changed ConstEtomoNumber.
- * <p> update(ComScriptCommand) to updateCommand(ComScriptCommand) to
- * <p> make its function clear.
- * <p>
- * <p> Revision 3.12  2005/01/14 23:01:52  sueh
- * <p> Changing the name of EtomoNumber.set(ComScriptCommand) to parse.
- * <p>
- * <p> Revision 3.11  2005/01/13 00:44:58  sueh
- * <p> bug# 576 Converted includeStartEndInc to FortranInputString.
- * <p>
- * <p> Revision 3.10  2005/01/11 20:18:15  sueh
- * <p> bug# 567 Added fixXYZCoordinates, localMagReferenceView, and
- * <p> localOutputOptions.  In updateComScriptCommand(), changed the order
- * <p> of updates to match the align.com file coming from copytomocoms.
- * <p>
- * <p> Revision 3.9  2005/01/11 01:00:36  sueh
- * <p> bug# 567 Getting outputModelAndResidual, in case we want to
- * <p> use it.
- * <p>
- * <p> Revision 3.8  2005/01/08 01:45:04  sueh
- * <p> bug# 578 Place the logic to create the z factor file into a static function.
- * <p>
- * <p> Revision 3.7  2005/01/06 18:09:28  sueh
- * <p> bug# 567 Changed setOutputZFactorFile() to set it based on member
- * <p> variable values.  Bug# 578 Made the logic of when to use outputZFileFile()
- * <p> public.
- * <p>
- * <p> Revision 3.6  2005/01/05 19:47:35  sueh
- * <p> bug# 567 Changed setProjectionStretch() to accept booleans.  Bug# 578
- * <p> Added AxisID to the constructor.
- * <p>
- * <p> Revision 3.5  2004/12/30 19:49:26  sueh
- * <p> bug# 567 Removed OutputModelAndResidual when writing command file.
- * <p> Already converting it to OutputModelFile and OutputResidualFile.
- * <p>
- * <p> Revision 3.4  2004/12/29 23:44:00  sueh
- * <p> bug# 567 In ParamUtilities, added the FortranInputString to parse(String...) and
- * <p> parse(StringList...).
- * <p>
- * <p> Revision 3.3  2004/12/29 01:53:12  sueh
- * <p> bug# 567 Passing ints, doubles, and strings to set functions, instead of
- * <p> EtomoNumber.
- * <p>
- * <p> Revision 3.2  2004/12/29 00:01:20  sueh
- * <p> bug# 567 Placed the version of TiltalignParam for the old-style comscript
- * <p> into OldTiltalignParam.  This version updates and parses only the new
- * <p> parameters and converts from the old-style comscript to the new
- * <p> parameters.
- * <p>
- * <p> Revision 3.1  2004/04/12 16:50:58  sueh
- * <p> bug# 409 changed interface class CommandParam
- * <p>
- * <p> Revision 3.0  2003/11/07 23:19:00  rickg
- * <p> Version 1.0.0
- * <p>
- * <p> Revision 2.7  2003/10/14 20:30:56  rickg
- * <p> Bug#279  Label layout and name changes
- * <p>
- * <p> Revision 2.6  2003/10/09 23:24:10  rickg
- * <p> Bug#279  Added integer set method for nFiducials
- * <p>
- * <p> Revision 2.5  2003/08/07 17:59:06  rickg
- * <p> Merged in tilt angle fix from beta2a branch
- * <p>
- * <p> Revision 2.4  2003/07/25 22:55:04  rickg
- * <p> CommandParam method name changes
- * <p>
- * <p> Revision 2.3  2003/06/25 22:16:29  rickg
- * <p> changed name of com script parse method to parseComScript
- * <p>
- * <p> Revision 2.2.2.1  2003/08/07 16:15:44  rickg
- * <p> Fixed tiltanglespec handling to include start and step
- * <p>
- * <p> Revision 2.2  2003/03/20 17:24:45  rickg
- * <p> Comment update
- * <p>
- * <p> Revision 2.1  2003/03/02 23:30:41  rickg
- * <p> Combine layout in progress
- * <p>
- * <p> Revision 2.0  2003/01/24 20:30:31  rickg
- * <p> Single window merge to main branch
- * <p>
- * <p> Revision 1.6.2.1  2003/01/24 18:33:42  rickg
- * <p> Single window GUI layout initial revision
- * <p>
- * <p> Revision 1.6  2002/12/18 19:13:57  rickg
- * <p> Added setters for metro factor and cycle limit
- * <p>
- * <p> Revision 1.5  2002/12/10 21:37:01  rickg
- * <p> changed reportStddevThreshold to residualThreshold
- * <p>
- * <p> Revision 1.4  2002/12/10 18:48:21  rickg
- * <p> changed names of comscript put and get methods to
- * <p> be more understandable
- * <p>
- * <p> Revision 1.3  2002/12/06 15:22:30  rickg
- * <p> Comment where to fix
- * <p>
- * <p> Revision 1.2  2002/10/07 22:24:17  rickg
- * <p> removed unused imports
- * <p> reformat after emacs messed it up
- * <p>
- * <p> Revision 1.1  2002/09/09 22:57:02  rickg
- * <p> Initial CVS entry, basic functionality not including combining
- * <p> </p>
  */
 public class TiltalignParam extends ConstTiltalignParam implements CommandParam {
   public static final String rcsid = "$Id$";
@@ -174,9 +67,9 @@ public class TiltalignParam extends ConstTiltalignParam implements CommandParam 
       ParamUtilities.setParamIfPresent(scriptCommand,
           includeStartEndIncString, includeStartEndInc);
       includeList.parseString(scriptCommand.getValue(includeListString));
-      excludeList.parseString(scriptCommand.getValue(excludeListString));
+      excludeList.parseString(scriptCommand.getValue(EXCLUDE_LIST_KEY));
       rotationAngle.parse(scriptCommand);
-      separateGroup.parseString(scriptCommand.getValues(separateGroupString));
+      separateGroup.parseString(scriptCommand.getValues(SEPARATE_GROUP_KEY));
       tiltAngleSpec.set(scriptCommand, firstTiltAngleShortString,
           tiltIncrementShortString, tiltFileShortString);
       angleOffset.parse(scriptCommand);
@@ -184,7 +77,7 @@ public class TiltalignParam extends ConstTiltalignParam implements CommandParam 
       rotOption.parse(scriptCommand);
       rotDefaultGrouping.parse(scriptCommand);
       rotNondefaultGroup = ParamUtilities.setParamIfPresent(scriptCommand,
-          rotNondefaultGroupString, nondefaultGroupSize,
+          ROT_NONDEFAULT_GROUP_KEY, nondefaultGroupSize,
           nondefaultGroupIntegerType);
       rotationFixedView.parse(scriptCommand);
       localRotOption.parse(scriptCommand);
@@ -195,7 +88,7 @@ public class TiltalignParam extends ConstTiltalignParam implements CommandParam 
       tiltOption.parse(scriptCommand);
       tiltDefaultGrouping.parse(scriptCommand);
       tiltNondefaultGroup = ParamUtilities.setParamIfPresent(scriptCommand,
-          tiltNondefaultGroupString, nondefaultGroupSize,
+          TILT_NONDEFAULT_GROUP_KEY, nondefaultGroupSize,
           nondefaultGroupIntegerType);
       localTiltDefaultGrouping.parse(scriptCommand);
       localTiltNondefaultGroup = ParamUtilities.setParamIfPresent(
@@ -205,7 +98,7 @@ public class TiltalignParam extends ConstTiltalignParam implements CommandParam 
       magOption.parse(scriptCommand);
       magDefaultGrouping.parse(scriptCommand);
       magNondefaultGroup = ParamUtilities.setParamIfPresent(scriptCommand,
-          magNondefaultGroupString, nondefaultGroupSize,
+          MAG_NONDEFAULT_GROUP_KEY, nondefaultGroupSize,
           nondefaultGroupIntegerType);
       localMagReferenceView.parse(scriptCommand);
       localMagOption.parse(scriptCommand);
@@ -216,7 +109,7 @@ public class TiltalignParam extends ConstTiltalignParam implements CommandParam 
       xStretchOption.parse(scriptCommand);
       xStretchDefaultGrouping.parse(scriptCommand);
       xStretchNondefaultGroup = ParamUtilities.setParamIfPresent(scriptCommand,
-          xStretchNondefaultGroupString, nondefaultGroupSize,
+          X_STRETCH_NONDEFAULT_GROUP_KEY, nondefaultGroupSize,
           nondefaultGroupIntegerType);
       localXStretchOption.parse(scriptCommand);
       localXStretchDefaultGrouping.parse(scriptCommand);
@@ -226,7 +119,7 @@ public class TiltalignParam extends ConstTiltalignParam implements CommandParam 
       skewOption.parse(scriptCommand);
       skewDefaultGrouping.parse(scriptCommand);
       skewNondefaultGroup = ParamUtilities.setParamIfPresent(scriptCommand,
-          skewNondefaultGroupString, nondefaultGroupSize,
+          SKEW_NONDEFAULT_GROUP_KEY, nondefaultGroupSize,
           nondefaultGroupIntegerType);
       localSkewOption.parse(scriptCommand);
       localSkewDefaultGrouping.parse(scriptCommand);
@@ -241,11 +134,11 @@ public class TiltalignParam extends ConstTiltalignParam implements CommandParam 
       localAlignments.set(scriptCommand);
       outputLocalFile = scriptCommand.getValue(outputLocalFileString);
       ParamUtilities.setParamIfPresent(scriptCommand,
-          numberOfLocalPatchesXandYString, numberOfLocalPatchesXandY);
+          NUMBER_OF_LOCAL_PATCHES_X_AND_Y_KEY, numberOfLocalPatchesXandY);
       ParamUtilities.setParamIfPresent(scriptCommand,
-          minSizeOrOverlapXandYString, minSizeOrOverlapXandY);
+          MIN_SIZE_OR_OVERLAP_X_AND_Y_KEY, minSizeOrOverlapXandY);
       ParamUtilities.setParamIfPresent(scriptCommand,
-          minFidsTotalAndEachSurfaceString, minFidsTotalAndEachSurface);
+          MIN_FIDS_TOTAL_AND_EACH_SURFACE_KEY, minFidsTotalAndEachSurface);
       fixXYZCoordinates.set(scriptCommand);
       ParamUtilities.setParamIfPresent(scriptCommand,
           localOutputOptionsString, localOutputOptions);
@@ -455,10 +348,10 @@ public class TiltalignParam extends ConstTiltalignParam implements CommandParam 
         includeStartEndIncString, includeStartEndInc);
     ParamUtilities.updateScriptParameter(scriptCommand, includeListString,
         includeList);
-    ParamUtilities.updateScriptParameter(scriptCommand, excludeListString,
+    ParamUtilities.updateScriptParameter(scriptCommand, EXCLUDE_LIST_KEY,
         excludeList);
     rotationAngle.setInScript(scriptCommand);
-    ParamUtilities.updateScriptParameter(scriptCommand, separateGroupString,
+    ParamUtilities.updateScriptParameter(scriptCommand, SEPARATE_GROUP_KEY,
         separateGroup);
     tiltAngleSpec.update(scriptCommand);
     angleOffset.setInScript(scriptCommand);
@@ -485,11 +378,11 @@ public class TiltalignParam extends ConstTiltalignParam implements CommandParam 
     ParamUtilities.updateScriptParameter(scriptCommand, outputLocalFileString,
         outputLocalFile);
     ParamUtilities.updateScriptParameter(scriptCommand,
-        numberOfLocalPatchesXandYString, numberOfLocalPatchesXandY);
+        NUMBER_OF_LOCAL_PATCHES_X_AND_Y_KEY, numberOfLocalPatchesXandY);
     ParamUtilities.updateScriptParameter(scriptCommand,
-        minSizeOrOverlapXandYString, minSizeOrOverlapXandY);
+        MIN_SIZE_OR_OVERLAP_X_AND_Y_KEY, minSizeOrOverlapXandY);
     ParamUtilities.updateScriptParameter(scriptCommand,
-        minFidsTotalAndEachSurfaceString, minFidsTotalAndEachSurface);
+        MIN_FIDS_TOTAL_AND_EACH_SURFACE_KEY, minFidsTotalAndEachSurface);
     fixXYZCoordinates.update(scriptCommand);
     ParamUtilities.updateScriptParameter(scriptCommand,
         localOutputOptionsString, localOutputOptions);
@@ -508,15 +401,15 @@ public class TiltalignParam extends ConstTiltalignParam implements CommandParam 
     ParamUtilities.updateScriptParameter(scriptCommand,
         outputZFactorFileString, outputZFactorFile);
     ParamUtilities.updateScriptParameter(scriptCommand,
-        rotNondefaultGroupString, rotNondefaultGroup);
+        ROT_NONDEFAULT_GROUP_KEY, rotNondefaultGroup);
     ParamUtilities.updateScriptParameter(scriptCommand,
-        tiltNondefaultGroupString, tiltNondefaultGroup);
+        TILT_NONDEFAULT_GROUP_KEY, tiltNondefaultGroup);
     ParamUtilities.updateScriptParameter(scriptCommand,
-        magNondefaultGroupString, magNondefaultGroup);
+        MAG_NONDEFAULT_GROUP_KEY, magNondefaultGroup);
     ParamUtilities.updateScriptParameter(scriptCommand,
-        xStretchNondefaultGroupString, xStretchNondefaultGroup);
+        X_STRETCH_NONDEFAULT_GROUP_KEY, xStretchNondefaultGroup);
     ParamUtilities.updateScriptParameter(scriptCommand,
-        skewNondefaultGroupString, skewNondefaultGroup);
+        SKEW_NONDEFAULT_GROUP_KEY, skewNondefaultGroup);
     //local optional parameters
     ParamUtilities.updateScriptParameter(scriptCommand,
         localRotNondefaultGroupString, localRotNondefaultGroup);
@@ -950,5 +843,117 @@ public class TiltalignParam extends ConstTiltalignParam implements CommandParam 
   public void setXStretchOption(int stretchOption) {
     xStretchOption.set(stretchOption);
   }
-
 }
+
+/**
+ * <p> $Log$
+ * <p> Revision 3.14  2005/01/25 21:43:18  sueh
+ * <p> Converting EtomoNumbers parameters to ScriptParameters.
+ * <p>
+ * <p> Revision 3.13  2005/01/21 22:46:11  sueh
+ * <p> bug# 509 bug# 591  Changed ConstEtomoNumber.
+ * <p> update(ComScriptCommand) to updateCommand(ComScriptCommand) to
+ * <p> make its function clear.
+ * <p>
+ * <p> Revision 3.12  2005/01/14 23:01:52  sueh
+ * <p> Changing the name of EtomoNumber.set(ComScriptCommand) to parse.
+ * <p>
+ * <p> Revision 3.11  2005/01/13 00:44:58  sueh
+ * <p> bug# 576 Converted includeStartEndInc to FortranInputString.
+ * <p>
+ * <p> Revision 3.10  2005/01/11 20:18:15  sueh
+ * <p> bug# 567 Added fixXYZCoordinates, localMagReferenceView, and
+ * <p> localOutputOptions.  In updateComScriptCommand(), changed the order
+ * <p> of updates to match the align.com file coming from copytomocoms.
+ * <p>
+ * <p> Revision 3.9  2005/01/11 01:00:36  sueh
+ * <p> bug# 567 Getting outputModelAndResidual, in case we want to
+ * <p> use it.
+ * <p>
+ * <p> Revision 3.8  2005/01/08 01:45:04  sueh
+ * <p> bug# 578 Place the logic to create the z factor file into a static function.
+ * <p>
+ * <p> Revision 3.7  2005/01/06 18:09:28  sueh
+ * <p> bug# 567 Changed setOutputZFactorFile() to set it based on member
+ * <p> variable values.  Bug# 578 Made the logic of when to use outputZFileFile()
+ * <p> public.
+ * <p>
+ * <p> Revision 3.6  2005/01/05 19:47:35  sueh
+ * <p> bug# 567 Changed setProjectionStretch() to accept booleans.  Bug# 578
+ * <p> Added AxisID to the constructor.
+ * <p>
+ * <p> Revision 3.5  2004/12/30 19:49:26  sueh
+ * <p> bug# 567 Removed OutputModelAndResidual when writing command file.
+ * <p> Already converting it to OutputModelFile and OutputResidualFile.
+ * <p>
+ * <p> Revision 3.4  2004/12/29 23:44:00  sueh
+ * <p> bug# 567 In ParamUtilities, added the FortranInputString to parse(String...) and
+ * <p> parse(StringList...).
+ * <p>
+ * <p> Revision 3.3  2004/12/29 01:53:12  sueh
+ * <p> bug# 567 Passing ints, doubles, and strings to set functions, instead of
+ * <p> EtomoNumber.
+ * <p>
+ * <p> Revision 3.2  2004/12/29 00:01:20  sueh
+ * <p> bug# 567 Placed the version of TiltalignParam for the old-style comscript
+ * <p> into OldTiltalignParam.  This version updates and parses only the new
+ * <p> parameters and converts from the old-style comscript to the new
+ * <p> parameters.
+ * <p>
+ * <p> Revision 3.1  2004/04/12 16:50:58  sueh
+ * <p> bug# 409 changed interface class CommandParam
+ * <p>
+ * <p> Revision 3.0  2003/11/07 23:19:00  rickg
+ * <p> Version 1.0.0
+ * <p>
+ * <p> Revision 2.7  2003/10/14 20:30:56  rickg
+ * <p> Bug#279  Label layout and name changes
+ * <p>
+ * <p> Revision 2.6  2003/10/09 23:24:10  rickg
+ * <p> Bug#279  Added integer set method for nFiducials
+ * <p>
+ * <p> Revision 2.5  2003/08/07 17:59:06  rickg
+ * <p> Merged in tilt angle fix from beta2a branch
+ * <p>
+ * <p> Revision 2.4  2003/07/25 22:55:04  rickg
+ * <p> CommandParam method name changes
+ * <p>
+ * <p> Revision 2.3  2003/06/25 22:16:29  rickg
+ * <p> changed name of com script parse method to parseComScript
+ * <p>
+ * <p> Revision 2.2.2.1  2003/08/07 16:15:44  rickg
+ * <p> Fixed tiltanglespec handling to include start and step
+ * <p>
+ * <p> Revision 2.2  2003/03/20 17:24:45  rickg
+ * <p> Comment update
+ * <p>
+ * <p> Revision 2.1  2003/03/02 23:30:41  rickg
+ * <p> Combine layout in progress
+ * <p>
+ * <p> Revision 2.0  2003/01/24 20:30:31  rickg
+ * <p> Single window merge to main branch
+ * <p>
+ * <p> Revision 1.6.2.1  2003/01/24 18:33:42  rickg
+ * <p> Single window GUI layout initial revision
+ * <p>
+ * <p> Revision 1.6  2002/12/18 19:13:57  rickg
+ * <p> Added setters for metro factor and cycle limit
+ * <p>
+ * <p> Revision 1.5  2002/12/10 21:37:01  rickg
+ * <p> changed reportStddevThreshold to residualThreshold
+ * <p>
+ * <p> Revision 1.4  2002/12/10 18:48:21  rickg
+ * <p> changed names of comscript put and get methods to
+ * <p> be more understandable
+ * <p>
+ * <p> Revision 1.3  2002/12/06 15:22:30  rickg
+ * <p> Comment where to fix
+ * <p>
+ * <p> Revision 1.2  2002/10/07 22:24:17  rickg
+ * <p> removed unused imports
+ * <p> reformat after emacs messed it up
+ * <p>
+ * <p> Revision 1.1  2002/09/09 22:57:02  rickg
+ * <p> Initial CVS entry, basic functionality not including combining
+ * <p> </p>
+*/

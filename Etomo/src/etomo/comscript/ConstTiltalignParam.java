@@ -24,76 +24,6 @@ import etomo.type.TiltAngleSpec;
  *
  * @version $Revision$
  *
- * <p> $Log$
- * <p> Revision 3.11  2005/01/13 19:01:28  sueh
- * <p> bug# 567 Changed isExcludeListAvailable():  taking the null value and the
- * <p> default value into account.
- * <p>
- * <p> Revision 3.10  2005/01/13 00:44:45  sueh
- * <p> bug# 576 Converted includeStartEndInc to FortranInputString.
- * <p>
- * <p> Revision 3.9  2005/01/12 00:41:12  sueh
- * <p> bug# 579 Make localAlignments available to the Command interface.
- * <p>
- * <p> Revision 3.8  2005/01/11 20:15:25  sueh
- * <p> bug# 567 Added fixXYZCoordinates, localMagReferenceView, and
- * <p> localOutputOptions.
- * <p>
- * <p> Revision 3.7  2005/01/11 01:00:07  sueh
- * <p> bug# 567 Adding storage for outputModelAndResidual, in case we want to
- * <p> use it.
- * <p>
- * <p> Revision 3.6  2005/01/08 01:36:02  sueh
- * <p> bug# 578 Removed getBinning() since its not needed by Command.
- * <p> Removed Command access to skewOption and xStretchOption.
- * <p> Add Command access to useOutputZFactorFile().
- * <p>
- * <p> Revision 3.5  2005/01/06 17:59:54  sueh
- * <p> bug# 578 Changed getIntegerValue() to give access to skewOption and
- * <p> xStretchOption  to Command interface.
- * <p>
- * <p> Revision 3.4  2005/01/05 18:56:00  sueh
- * <p> bug# 578 Adding AxisID to constructor.  Implementing Command.
- * <p>
- * <p> Revision 3.3  2004/12/29 23:30:51  sueh
- * <p> bug# 567 Corrected a parameter name in the constructor.
- * <p>
- * <p> Revision 3.2  2004/12/29 01:51:57  sueh
- * <p> bug# 567 Adding reset value for rotDefaultGrouping.  Getting
- * <p> rotNondefaultGroup as a string.
- * <p>
- * <p> Revision 3.1  2004/12/28 23:59:58  sueh
- * <p> bug# 567 Placed the version of ConstTiltalignParam for the old-style comscript
- * <p> into OldTiltalignParam.  This version contains only the new parameters,
- * <p> get functions, reset(), and validate().
- * <p>
- * <p> Revision 3.0  2003/11/07 23:19:00  rickg
- * <p> Version 1.0.0
- * <p>
- * <p> Revision 2.1  2003/10/14 20:30:43  rickg
- * <p> Bug#279  Label layout and name changes
- * <p>
- * <p> Revision 2.0  2003/01/24 20:30:31  rickg
- * <p> Single window merge to main branch
- * <p>
- * <p> Revision 1.5.2.1  2003/01/24 18:33:42  rickg
- * <p> Single window GUI layout initial revision
- * <p>
- * <p> Revision 1.5  2002/12/24 01:09:41  rickg
- * <p> Min local patch size changed to double
- * <p>
- * <p> Revision 1.4  2002/12/18 19:07:09  rickg
- * <p> Added getters for metro factor and cycle limit
- * <p>
- * <p> Revision 1.3  2002/12/10 21:37:21  rickg
- * <p> changed reportStddevThreshold to residualThreshold
- * <p>
- * <p> Revision 1.2  2002/12/03 05:22:56  rickg
- * <p> added getLocalRotationSolutionGroupSize
- * <p>
- * <p> Revision 1.1  2002/09/09 22:57:02  rickg
- * <p> Initial CVS entry, basic functionality not including combining
- * <p> </p>
  */
 public class ConstTiltalignParam implements Command {
   public static final String rcsid =
@@ -101,11 +31,42 @@ public class ConstTiltalignParam implements Command {
 
   public static final int FIXED_OPTION = 0;
   public static final int NONE_OPTION = FIXED_OPTION;
+  public static final int ALL_OPTION = 1;
+  public static final int TILT_ALL_OPTION = 2;
   public static final int AUTOMAPPED_OPTION = 3;
   public static final int TILT_AUTOMAPPED_OPTION = 5;
   
   public static final int GET_USE_OUTPUT_Z_FACTOR_FILE = -1;
   public static final int GET_LOCAL_ALIGNMENTS = -2;
+  
+  public static final String EXCLUDE_LIST_KEY = "ExcludeList";
+  public static final String SEPARATE_GROUP_KEY = "SeparateGroup";
+  public static final String RESIDUAL_REPORT_CRITERION_KEY = "ResidualReportCriterion";
+  public static final String SURFACES_TO_ANALYZE_KEY = "SurfacesToAnalyze";
+  public static final String ANGLE_OFFSET_KEY = "AngleOffset";
+  public static final String AXIS_Z_SHIFT_KEY = "AxisZShift";
+  public static final String METRO_FACTOR_KEY = "MetroFactor";
+  public static final String MAXIMUM_CYCLES_KEY = "MaximumCycles";
+  public static final String LOCAL_ALIGNMENTS_KEY = "LocalAlignments";
+  public static final String NUMBER_OF_LOCAL_PATCHES_X_AND_Y_KEY = "NumberOfLocalPatchesXandY";
+  public static final String MIN_SIZE_OR_OVERLAP_X_AND_Y_KEY = "MinSizeOrOverlapXandY";
+  public static final String MIN_FIDS_TOTAL_AND_EACH_SURFACE_KEY = "MinFidsTotalAndEachSurface";
+  public static final String TILT_OPTION_KEY = "TiltOption";
+  public static final String TILT_DEFAULT_GROUPING_KEY = "TiltDefaultGrouping";
+  public static final String TILT_NONDEFAULT_GROUP_KEY = "TiltNondefaultGroup";
+  public static final String MAG_OPTION_KEY = "MagOption";
+  public static final String MAG_REFERENCE_VIEW_KEY = "MagReferenceView";
+  public static final String MAG_DEFAULT_GROUPING_KEY = "MagDefaultGrouping";
+  public static final String MAG_NONDEFAULT_GROUP_KEY = "MagNondefaultGroup";
+  public static final String ROT_OPTION_KEY = "RotOption";
+  public static final String ROT_DEFAULT_GROUPING_KEY = "RotDefaultGrouping";
+  public static final String ROT_NONDEFAULT_GROUP_KEY = "RotNondefaultGroup";
+  public static final String SKEW_OPTION_KEY = "SkewOption";
+  public static final String X_STRETCH_DEFAULT_GROUPING_KEY = "XStretchDefaultGrouping";
+  public static final String X_STRETCH_NONDEFAULT_GROUP_KEY = "XStretchNondefaultGroup";
+  public static final String SKEW_DEFAULT_GROUPING_KEY = "SkewDefaultGrouping";
+  public static final String SKEW_NONDEFAULT_GROUP_KEY = "SkewNondefaultGroup";
+  public static final String LOCAL_ROT_OPTION_KEY = "LocalRotOption";
   
   protected static final String modelFileString = "ModelFile";
   protected static final String imageFileString = "ImageFile";
@@ -118,25 +79,15 @@ public class ConstTiltalignParam implements Command {
   protected static final String outputZFactorFileString = "OutputZFactorFile";
   protected static final String includeStartEndIncString = "IncludeStartEndInc";
   protected static final String includeListString = "IncludeList";
-  protected static final String excludeListString = "ExcludeList";
-  protected static final String separateGroupString = "SeparateGroup";
   protected static final String firstTiltAngleShortString = "first";
   protected static final String tiltIncrementShortString = "increment";
   protected static final String tiltFileShortString = "tiltFile";
-  protected static final String rotNondefaultGroupString = "RotNondefaultGroup";
   protected static final String localRotNondefaultGroupString = "LocalRotNondefaultGroup";
-  protected static final String tiltNondefaultGroupString = "TiltNondefaultGroup";
   protected static final String localTiltNondefaultGroupString = "LocalTiltNondefaultGroup";
-  protected static final String magNondefaultGroupString = "MagNondefaultGroup";
   protected static final String localMagNondefaultGroupString = "LocalMagNondefaultGroup";
-  protected static final String xStretchNondefaultGroupString = "XStretchNondefaultGroup";
   protected static final String localXStretchNondefaultGroupString = "LocalXStretchNondefaultGroup";
-  protected static final String skewNondefaultGroupString = "SkewNondefaultGroup";
   protected static final String localSkewNondefaultGroupString = "LocalSkewNondefaultGroup";
   protected static final String outputLocalFileString = "OutputLocalFile";
-  protected static final String numberOfLocalPatchesXandYString = "NumberOfLocalPatchesXandY";
-  protected static final String minSizeOrOverlapXandYString = "MinSizeOrOverlapXandY";
-  protected static final String minFidsTotalAndEachSurfaceString = "MinFidsTotalAndEachSurface";
   protected static final String localOutputOptionsString = "LocalOutputOptions";
   
   protected static final String modelFileExtension = ".3dmod";
@@ -146,10 +97,8 @@ public class ConstTiltalignParam implements Command {
   protected static final boolean[] nondefaultGroupIntegerType = { true, true, true };
   protected static final int nondefaultGroupSize = 3;
   
-  private static final int tiltAllOption = 2;
-  private static final int allOption = 1;
-  private static final int[] optionValidValues = { FIXED_OPTION, allOption, AUTOMAPPED_OPTION };
-  private static final int[] tiltOptionValidValues = { FIXED_OPTION, tiltAllOption, TILT_AUTOMAPPED_OPTION };
+  private static final int[] optionValidValues = { FIXED_OPTION, ALL_OPTION, AUTOMAPPED_OPTION };
+  private static final int[] tiltOptionValidValues = { FIXED_OPTION, TILT_ALL_OPTION, TILT_AUTOMAPPED_OPTION };
   private static final int[] distortionOptionValidValues = { FIXED_OPTION, AUTOMAPPED_OPTION };
   private static final int[] localOptionValidValues = { FIXED_OPTION, AUTOMAPPED_OPTION };
   private static final int[] localTiltOptionValidValues = { FIXED_OPTION, TILT_AUTOMAPPED_OPTION };
@@ -228,30 +177,30 @@ public class ConstTiltalignParam implements Command {
     this.datasetName = datasetName;
     rotationAngle = new ScriptParameter(EtomoNumber.DOUBLE_TYPE, "RotationAngle");
     tiltAngleSpec = new TiltAngleSpec("FirstTiltAngle", "TiltIncrement", "TiltFile");
-    angleOffset = new ScriptParameter(EtomoNumber.DOUBLE_TYPE, "AngleOffset");
+    angleOffset = new ScriptParameter(EtomoNumber.DOUBLE_TYPE, ANGLE_OFFSET_KEY);
     projectionStretch = new EtomoBoolean2("ProjectionStretch");
     projectionStretch.setDefault(false).setDisplayValue(false);
-    rotOption = new ScriptParameter(EtomoNumber.INTEGER_TYPE, "RotOption");
+    rotOption = new ScriptParameter(EtomoNumber.INTEGER_TYPE, ROT_OPTION_KEY);
     rotOption.setValidValues(optionValidValues).setDisplayValue(AUTOMAPPED_OPTION);
-    rotDefaultGrouping = new ScriptParameter(EtomoNumber.INTEGER_TYPE, "RotDefaultGrouping");
+    rotDefaultGrouping = new ScriptParameter(EtomoNumber.INTEGER_TYPE, ROT_DEFAULT_GROUPING_KEY);
     rotDefaultGrouping.setDisplayValue(3);
     rotationFixedView = new ScriptParameter(EtomoNumber.INTEGER_TYPE, "RotationFixedView");
-    localRotOption = new ScriptParameter(EtomoNumber.INTEGER_TYPE, "LocalRotOption");
+    localRotOption = new ScriptParameter(EtomoNumber.INTEGER_TYPE, LOCAL_ROT_OPTION_KEY);
     localRotOption.setValidValues(localOptionValidValues).setDisplayValue(AUTOMAPPED_OPTION);
     localRotDefaultGrouping = new ScriptParameter(EtomoNumber.INTEGER_TYPE, "LocalRotDefaultGrouping");
     localRotDefaultGrouping.setDisplayValue(6);
-    tiltOption = new ScriptParameter(EtomoNumber.INTEGER_TYPE, "TiltOption");
-    tiltOption.setValidValues(tiltOptionValidValues).setDisplayValue(tiltAllOption);
-    tiltDefaultGrouping = new ScriptParameter(EtomoNumber.INTEGER_TYPE, "TiltDefaultGrouping");
+    tiltOption = new ScriptParameter(EtomoNumber.INTEGER_TYPE, TILT_OPTION_KEY);
+    tiltOption.setValidValues(tiltOptionValidValues).setDisplayValue(TILT_ALL_OPTION);
+    tiltDefaultGrouping = new ScriptParameter(EtomoNumber.INTEGER_TYPE, TILT_DEFAULT_GROUPING_KEY);
     tiltDefaultGrouping.setDisplayValue(5);
     localTiltOption = new ScriptParameter(EtomoNumber.INTEGER_TYPE, "LocalTiltOption");
     localTiltOption.setValidValues(localTiltOptionValidValues).setDisplayValue(TILT_AUTOMAPPED_OPTION);
     localTiltDefaultGrouping = new ScriptParameter(EtomoNumber.INTEGER_TYPE, "LocalTiltDefaultGrouping");
     localTiltDefaultGrouping.setDisplayValue(6);
-    magReferenceView = new ScriptParameter(EtomoNumber.INTEGER_TYPE, "MagReferenceView");
-    magOption = new ScriptParameter(EtomoNumber.INTEGER_TYPE, "MagOption");
-    magOption.setValidValues(optionValidValues).setDisplayValue(allOption);
-    magDefaultGrouping = new ScriptParameter(EtomoNumber.INTEGER_TYPE, "MagDefaultGrouping");
+    magReferenceView = new ScriptParameter(EtomoNumber.INTEGER_TYPE, MAG_REFERENCE_VIEW_KEY);
+    magOption = new ScriptParameter(EtomoNumber.INTEGER_TYPE, MAG_OPTION_KEY);
+    magOption.setValidValues(optionValidValues).setDisplayValue(ALL_OPTION);
+    magDefaultGrouping = new ScriptParameter(EtomoNumber.INTEGER_TYPE, MAG_DEFAULT_GROUPING_KEY);
     magDefaultGrouping.setDisplayValue(4);
     localMagReferenceView = new ScriptParameter(EtomoNumber.INTEGER_TYPE, "LocalMagReferenceView");
     localMagOption = new ScriptParameter(EtomoNumber.INTEGER_TYPE, "LocalMagOption");
@@ -260,28 +209,28 @@ public class ConstTiltalignParam implements Command {
     localMagDefaultGrouping.setDisplayValue(7);
     xStretchOption = new ScriptParameter(EtomoNumber.INTEGER_TYPE, "XStretchOption");
     xStretchOption.setValidValues(distortionOptionValidValues).setDisplayValue(NONE_OPTION);
-    xStretchDefaultGrouping = new ScriptParameter(EtomoNumber.INTEGER_TYPE, "XStretchDefaultGrouping");
+    xStretchDefaultGrouping = new ScriptParameter(EtomoNumber.INTEGER_TYPE, X_STRETCH_DEFAULT_GROUPING_KEY);
     xStretchDefaultGrouping.setDisplayValue(7);
     localXStretchOption = new ScriptParameter(EtomoNumber.INTEGER_TYPE, "LocalXStretchOption");
     localXStretchOption.setValidValues(localOptionValidValues).setDisplayValue(AUTOMAPPED_OPTION);
     localXStretchDefaultGrouping = new ScriptParameter(EtomoNumber.INTEGER_TYPE, "LocalXStretchDefaultGrouping");
     localXStretchDefaultGrouping.setDisplayValue(7);
-    skewOption = new ScriptParameter(EtomoNumber.INTEGER_TYPE, "SkewOption");
+    skewOption = new ScriptParameter(EtomoNumber.INTEGER_TYPE, SKEW_OPTION_KEY);
     skewOption.setValidValues(distortionOptionValidValues).setDisplayValue(NONE_OPTION);
-    skewDefaultGrouping = new ScriptParameter(EtomoNumber.INTEGER_TYPE, "SkewDefaultGrouping");
+    skewDefaultGrouping = new ScriptParameter(EtomoNumber.INTEGER_TYPE, SKEW_DEFAULT_GROUPING_KEY);
     skewDefaultGrouping.setDisplayValue(11);
     localSkewOption = new ScriptParameter(EtomoNumber.INTEGER_TYPE, "LocalSkewOption");
     localSkewOption.setValidValues(optionValidValues).setDisplayValue(AUTOMAPPED_OPTION);
     localSkewDefaultGrouping = new ScriptParameter(EtomoNumber.INTEGER_TYPE, "LocalSkewDefaultGrouping");
     localSkewDefaultGrouping.setDisplayValue(11);
-    residualReportCriterion = new ScriptParameter(EtomoNumber.DOUBLE_TYPE, "ResidualReportCriterion");
-    surfacesToAnalyze = new ScriptParameter(EtomoNumber.INTEGER_TYPE, "SurfacesToAnalyze");
+    residualReportCriterion = new ScriptParameter(EtomoNumber.DOUBLE_TYPE, RESIDUAL_REPORT_CRITERION_KEY);
+    surfacesToAnalyze = new ScriptParameter(EtomoNumber.INTEGER_TYPE, SURFACES_TO_ANALYZE_KEY);
     surfacesToAnalyze.setValidValues(surfacesToAnalyzeValidValues);
-    metroFactor = new ScriptParameter(EtomoNumber.DOUBLE_TYPE, "MetroFactor");
-    maximumCycles = new ScriptParameter(EtomoNumber.INTEGER_TYPE, "MaximumCycles");
+    metroFactor = new ScriptParameter(EtomoNumber.DOUBLE_TYPE, METRO_FACTOR_KEY);
+    maximumCycles = new ScriptParameter(EtomoNumber.INTEGER_TYPE, MAXIMUM_CYCLES_KEY);
     maximumCycles.setDefault(500).setDisplayValue(500);
-    axisZShift = new ScriptParameter(EtomoNumber.DOUBLE_TYPE, "AxisZShift");
-    localAlignments = new EtomoBoolean("LocalAlignments");
+    axisZShift = new ScriptParameter(EtomoNumber.DOUBLE_TYPE, AXIS_Z_SHIFT_KEY);
+    localAlignments = new EtomoBoolean(LOCAL_ALIGNMENTS_KEY);
     localAlignments.setUpdateAs(EtomoBoolean.UPDATE_AS_INTEGER).setResetValue(false);
     fixXYZCoordinates = new EtomoBoolean("FixXYZCoordinates");
     reset();
@@ -804,5 +753,81 @@ public class ConstTiltalignParam implements Command {
   public ConstEtomoNumber getXStretchOption() {
     return xStretchOption;
   }
-  
 }
+
+/**
+ * <p> $Log$
+ * <p> Revision 3.12  2005/01/25 21:36:55  sueh
+ * <p> bug# 567 Adding a way to generate OutputLocalFile.  Converting
+ * <p> EtomoNumbers to ScriptParameter.
+ * <p>
+ * <p> Revision 3.11  2005/01/13 19:01:28  sueh
+ * <p> bug# 567 Changed isExcludeListAvailable():  taking the null value and the
+ * <p> default value into account.
+ * <p>
+ * <p> Revision 3.10  2005/01/13 00:44:45  sueh
+ * <p> bug# 576 Converted includeStartEndInc to FortranInputString.
+ * <p>
+ * <p> Revision 3.9  2005/01/12 00:41:12  sueh
+ * <p> bug# 579 Make localAlignments available to the Command interface.
+ * <p>
+ * <p> Revision 3.8  2005/01/11 20:15:25  sueh
+ * <p> bug# 567 Added fixXYZCoordinates, localMagReferenceView, and
+ * <p> localOutputOptions.
+ * <p>
+ * <p> Revision 3.7  2005/01/11 01:00:07  sueh
+ * <p> bug# 567 Adding storage for outputModelAndResidual, in case we want to
+ * <p> use it.
+ * <p>
+ * <p> Revision 3.6  2005/01/08 01:36:02  sueh
+ * <p> bug# 578 Removed getBinning() since its not needed by Command.
+ * <p> Removed Command access to skewOption and xStretchOption.
+ * <p> Add Command access to useOutputZFactorFile().
+ * <p>
+ * <p> Revision 3.5  2005/01/06 17:59:54  sueh
+ * <p> bug# 578 Changed getIntegerValue() to give access to skewOption and
+ * <p> xStretchOption  to Command interface.
+ * <p>
+ * <p> Revision 3.4  2005/01/05 18:56:00  sueh
+ * <p> bug# 578 Adding AxisID to constructor.  Implementing Command.
+ * <p>
+ * <p> Revision 3.3  2004/12/29 23:30:51  sueh
+ * <p> bug# 567 Corrected a parameter name in the constructor.
+ * <p>
+ * <p> Revision 3.2  2004/12/29 01:51:57  sueh
+ * <p> bug# 567 Adding reset value for rotDefaultGrouping.  Getting
+ * <p> rotNondefaultGroup as a string.
+ * <p>
+ * <p> Revision 3.1  2004/12/28 23:59:58  sueh
+ * <p> bug# 567 Placed the version of ConstTiltalignParam for the old-style comscript
+ * <p> into OldTiltalignParam.  This version contains only the new parameters,
+ * <p> get functions, reset(), and validate().
+ * <p>
+ * <p> Revision 3.0  2003/11/07 23:19:00  rickg
+ * <p> Version 1.0.0
+ * <p>
+ * <p> Revision 2.1  2003/10/14 20:30:43  rickg
+ * <p> Bug#279  Label layout and name changes
+ * <p>
+ * <p> Revision 2.0  2003/01/24 20:30:31  rickg
+ * <p> Single window merge to main branch
+ * <p>
+ * <p> Revision 1.5.2.1  2003/01/24 18:33:42  rickg
+ * <p> Single window GUI layout initial revision
+ * <p>
+ * <p> Revision 1.5  2002/12/24 01:09:41  rickg
+ * <p> Min local patch size changed to double
+ * <p>
+ * <p> Revision 1.4  2002/12/18 19:07:09  rickg
+ * <p> Added getters for metro factor and cycle limit
+ * <p>
+ * <p> Revision 1.3  2002/12/10 21:37:21  rickg
+ * <p> changed reportStddevThreshold to residualThreshold
+ * <p>
+ * <p> Revision 1.2  2002/12/03 05:22:56  rickg
+ * <p> added getLocalRotationSolutionGroupSize
+ * <p>
+ * <p> Revision 1.1  2002/09/09 22:57:02  rickg
+ * <p> Initial CVS entry, basic functionality not including combining
+ * <p> </p>
+*/
