@@ -19,6 +19,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.8  2003/05/23 22:03:37  rickg
+ * <p> Added -P to command string to get shell PID output
+ * <p>
  * <p> Revision 1.7  2003/05/21 21:23:46  rickg
  * <p> Added e flag to tcsh execution
  * <p>
@@ -51,6 +54,7 @@ public class TrimvolParam {
   private int yMax = -1;
   private int zMin = -1;
   private int zMax = -1;
+  private boolean convertToBytes = true;
   private boolean fixedScaling = false;
   private int sectionScaleMin = -1;
   private int sectionScaleMax = -1;
@@ -61,6 +65,20 @@ public class TrimvolParam {
   private String outputFile = "";
 
   File IMODDirectory;
+
+  /**
+   * @return
+   */
+  public boolean isConvertToBytes() {
+    return convertToBytes;
+  }
+
+  /**
+   * @param convertToBytes
+   */
+  public void setConvertToBytes(boolean convertToBytes) {
+    this.convertToBytes = convertToBytes;
+  }
 
   public TrimvolParam(File IMOD_DIR) {
     IMODDirectory = IMOD_DIR;
@@ -95,18 +113,20 @@ public class TrimvolParam {
       commandLine.append(",");
       commandLine.append(String.valueOf(zMax));
     }
-    if (fixedScaling) {
-      commandLine.append(" -c ");
-      commandLine.append(String.valueOf(fixedScaleMin));
-      commandLine.append(",");
-      commandLine.append(String.valueOf(fixedScaleMax));
+    if (convertToBytes) {
+      if (fixedScaling) {
+        commandLine.append(" -c ");
+        commandLine.append(String.valueOf(fixedScaleMin));
+        commandLine.append(",");
+        commandLine.append(String.valueOf(fixedScaleMax));
 
-    }
-    else {
-      commandLine.append(" -s ");
-      commandLine.append(String.valueOf(sectionScaleMin));
-      commandLine.append(",");
-      commandLine.append(String.valueOf(sectionScaleMax));
+      }
+      else {
+        commandLine.append(" -s ");
+        commandLine.append(String.valueOf(sectionScaleMin));
+        commandLine.append(",");
+        commandLine.append(String.valueOf(sectionScaleMax));
+      }
     }
 
     if (swapYZ) {

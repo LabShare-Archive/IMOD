@@ -30,6 +30,9 @@ import etomo.comscript.TrimvolParam;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.10  2003/10/16 17:05:10  rickg
+ * <p> Bug# 305 Label changes, backup file filter
+ * <p>
  * <p> Revision 1.9  2003/09/08 05:48:16  rickg
  * <p> Method name change for opening the complete volume
  * <p>
@@ -77,21 +80,26 @@ public class TrimvolPanel {
 
   private JPanel pnlScale = new JPanel();
   private JPanel pnlScaleFixed = new JPanel();
-  private JRadioButton rbScaleFixed = new JRadioButton("Scale to match contrast  ");
+  private JCheckBox cbConvertToBytes = new JCheckBox("Convert to bytes");
+  private JRadioButton rbScaleFixed =
+    new JRadioButton("Scale to match contrast  ");
   private LabeledTextField ltfFixedScaleMin = new LabeledTextField("black: ");
   private LabeledTextField ltfFixedScaleMax = new LabeledTextField(" white: ");
 
-  private JRadioButton rbScaleSection = new JRadioButton("Find scaling from sections  ");
+  private JRadioButton rbScaleSection =
+    new JRadioButton("Find scaling from sections  ");
   private JPanel pnlScaleSection = new JPanel();
   private LabeledTextField ltfSectionScaleMin = new LabeledTextField("Z min: ");
-  private LabeledTextField ltfSectionScaleMax = new LabeledTextField(" Z max: ");
+  private LabeledTextField ltfSectionScaleMax =
+    new LabeledTextField(" Z max: ");
 
   private JCheckBox cbSwapYZ = new JCheckBox("Swap Y and Z dimensions");
 
   private JPanel pnlButton = new JPanel();
   private JButton btnImodFull = new JButton("<html><b>3dmod Full Volume</b>");
   private JButton btnTrimvol = new JButton("<html><b>Trim Volume</b>");
-  private JButton btnImodTrim = new JButton("<html><b>3dmod Trimmed Volume</b>");
+  private JButton btnImodTrim =
+    new JButton("<html><b>3dmod Trimmed Volume</b>");
 
   /**
    * Default constructor
@@ -99,12 +107,9 @@ public class TrimvolPanel {
   public TrimvolPanel(ApplicationManager appMgr) {
 
     applicationManager = appMgr;
-    //  Get the current text height from one of the 
-    double height = cbSwapYZ.getPreferredSize().getHeight();
 
     //  Set the button sizes
-    Dimension dimButton = new Dimension();
-    dimButton.setSize(8 * height, 2 * height);
+    Dimension dimButton = UIParameters.getButtonDimension();
     btnImodFull.setPreferredSize(dimButton);
     btnImodFull.setMaximumSize(dimButton);
     btnTrimvol.setPreferredSize(dimButton);
@@ -125,6 +130,7 @@ public class TrimvolPanel {
 
     //  Layout the scale panel
     pnlScaleFixed.setLayout(new BoxLayout(pnlScaleFixed, BoxLayout.X_AXIS));
+
     pnlScaleFixed.add(rbScaleFixed);
     pnlScaleFixed.add(ltfFixedScaleMin.getContainer());
     pnlScaleFixed.add(ltfFixedScaleMax.getContainer());
@@ -141,6 +147,8 @@ public class TrimvolPanel {
     pnlScale.setLayout(new BoxLayout(pnlScale, BoxLayout.Y_AXIS));
     pnlScale.setBorder(new EtchedBorder("Scaling").getBorder());
 
+    cbConvertToBytes.setAlignmentX(Component.RIGHT_ALIGNMENT);
+    pnlScale.add(cbConvertToBytes);
     pnlScale.add(pnlScaleFixed);
     pnlScale.add(pnlScaleSection);
 
@@ -165,13 +173,14 @@ public class TrimvolPanel {
     pnlTrimvol.add(Box.createRigidArea(FixedDim.x0_y10));
     pnlTrimvol.add(pnlButton);
     pnlTrimvol.add(Box.createRigidArea(FixedDim.x0_y10));
-    
-    RadioButtonActonListener radioButtonActonListener =
-      new RadioButtonActonListener(this);
-    rbScaleFixed.addActionListener(radioButtonActonListener);
-    rbScaleSection.addActionListener(radioButtonActonListener);
 
-    ButtonActonListener buttonActonListener = new ButtonActonListener(this);
+    ScalingListener ScalingListener =
+      new ScalingListener(this);
+    rbScaleFixed.addActionListener(ScalingListener);
+    rbScaleSection.addActionListener(ScalingListener);
+    cbConvertToBytes.addActionListener(ScalingListener);
+
+    ButtonListener buttonActonListener = new ButtonListener(this);
     btnImodFull.addActionListener(buttonActonListener);
     btnTrimvol.addActionListener(buttonActonListener);
     btnImodTrim.addActionListener(buttonActonListener);
@@ -199,6 +208,7 @@ public class TrimvolPanel {
     ltfZMax.setText(trimvolParam.getYMax());
     cbSwapYZ.setSelected(trimvolParam.isSwapYZ());
 
+    cbConvertToBytes.setSelected(trimvolParam.isConvertToBytes());
     if (trimvolParam.isFixedScaling()) {
       ltfFixedScaleMin.setText(trimvolParam.getFixedScaleMin());
       ltfFixedScaleMax.setText(trimvolParam.getFixedScaleMax());
@@ -225,7 +235,8 @@ public class TrimvolPanel {
     trimvolParam.setZMin(Integer.parseInt(ltfYMin.getText()));
     trimvolParam.setZMax(Integer.parseInt(ltfYMax.getText()));
     trimvolParam.setSwapYZ(cbSwapYZ.isSelected());
-    
+
+    trimvolParam.setConvertToBytes(cbConvertToBytes.isSelected());
     if (rbScaleFixed.isSelected()) {
       trimvolParam.setFixedScaling(true);
       trimvolParam.setFixedScaleMin(
@@ -247,25 +258,24 @@ public class TrimvolPanel {
    *
    */
   private void setScaleState() {
-    if (rbScaleFixed.isSelected()) {
-      ltfFixedScaleMin.setEnabled(true);
-      ltfFixedScaleMax.setEnabled(true);
-      ltfSectionScaleMin.setEnabled(false);
-      ltfSectionScaleMax.setEnabled(false);
-    }
-    else {
-      ltfFixedScaleMin.setEnabled(false);
-      ltfFixedScaleMax.setEnabled(false);
-      ltfSectionScaleMin.setEnabled(true);
-      ltfSectionScaleMax.setEnabled(true);
-    }
+
+		rbScaleFixed.setEnabled(cbConvertToBytes.isSelected());
+		rbScaleSection.setEnabled(cbConvertToBytes.isSelected());
+    boolean fixedState =
+      cbConvertToBytes.isSelected() && rbScaleFixed.isSelected();
+    ltfFixedScaleMin.setEnabled(fixedState);
+    ltfFixedScaleMax.setEnabled(fixedState);
+    boolean scaleState =
+      cbConvertToBytes.isSelected() && rbScaleSection.isSelected();
+    ltfSectionScaleMin.setEnabled(scaleState);
+    ltfSectionScaleMax.setEnabled(scaleState);
   }
 
   /**
    * Call setScaleState when the radio buttons change
    * @param event
    */
-  private void manageRadioButtonState(ActionEvent event) {
+  private void scaleAction(ActionEvent event) {
     setScaleState();
   }
 
@@ -281,33 +291,42 @@ public class TrimvolPanel {
     if (event.getActionCommand() == btnImodTrim.getActionCommand()) {
       applicationManager.imodTrimmedVolume();
     }
+  }
 
+  private void cbConvertToBytesAction(ActionEvent event) {
+    boolean state = cbConvertToBytes.isSelected();
+    rbScaleFixed.setEnabled(state);
+    ltfFixedScaleMax.setEnabled(state);
+    ltfFixedScaleMin.setEnabled(state);
+
+    rbScaleSection.setEnabled(state);
+    ltfSectionScaleMin.setEnabled(state);
+    ltfSectionScaleMax.setEnabled(state);
   }
   /**
-   * An inner class to manage the scale radio buttons 
+   * An inner class to manage the scale controls 
    */
-  class RadioButtonActonListener implements ActionListener {
+  class ScalingListener implements ActionListener {
     TrimvolPanel listenee;
 
-    RadioButtonActonListener(TrimvolPanel TrimvolPanel) {
+    ScalingListener(TrimvolPanel TrimvolPanel) {
       listenee = TrimvolPanel;
     }
 
     public void actionPerformed(ActionEvent event) {
-      listenee.manageRadioButtonState(event);
+      listenee.scaleAction(event);
     }
   }
 
-  class ButtonActonListener implements ActionListener {
+  class ButtonListener implements ActionListener {
     TrimvolPanel listenee;
 
-    ButtonActonListener(TrimvolPanel trimvolPanel) {
+    ButtonListener(TrimvolPanel trimvolPanel) {
       listenee = trimvolPanel;
     }
 
     public void actionPerformed(ActionEvent event) {
       listenee.buttonAction(event);
     }
-
   }
 }
