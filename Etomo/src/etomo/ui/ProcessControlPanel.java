@@ -19,6 +19,9 @@ import etomo.process.ProcessState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.0  2003/01/24 20:30:31  rickg
+ * <p> Single window merge to main branch
+ * <p>
  * <p> Revision 1.2.2.1  2003/01/24 18:43:37  rickg
  * <p> Single window GUI layout initial revision
  * <p>
@@ -44,7 +47,7 @@ public class ProcessControlPanel {
 
   private String name;
   private JPanel panelRoot = new JPanel();
-  private JButton buttonRun = new JButton();
+  private JToggleButton buttonRun = new JToggleButton();
 
   private JPanel panelState;
   private ColoredStateText highlightState =
@@ -84,6 +87,14 @@ public class ProcessControlPanel {
     updateLabel();
   }
 
+  /**
+   * Set the selected state of the buuton
+   * @param state
+   */
+  void setSelected(boolean state){
+    buttonRun.setSelected(state);
+  }
+  
   private void updateLabel() {
     buttonRun.setText(
       "<HTML><CENTER>"
