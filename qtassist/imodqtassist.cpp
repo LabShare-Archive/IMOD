@@ -15,16 +15,7 @@
 
     $Revision$
 
-    $Log$
-    Revision 1.3  2004/12/22 22:53:39  mast
-    Needed to advance index in argument loop
-
-    Revision 1.2  2004/12/22 05:58:49  mast
-    Fixed bugs that showed up on SGI
-
-    Revision 1.1  2004/12/22 05:49:02  mast
-    Addition to package
-
+    Log at end of file
 */
 #include <stdio.h>
 #include <stdlib.h>
@@ -40,6 +31,7 @@
 
 static ImodAssistant *imodHelp;
 
+#define TIMER_INTERVAL  50
 #define MAX_LINE 1024
 static char threadLine[MAX_LINE];
 static bool gotLine = false;
@@ -50,29 +42,24 @@ static QMutex mutex;
 static AssistantThread * assThread;
 #endif
 
-// Common routine to read a line, strip endings, and return length
-static int readLine(char *line)
-{
-  fgets(line, MAX_LINE, stdin);
-  if (line[MAX_LINE - 1])
-    line[MAX_LINE - 1] = 0x00;
-  while (line[strlen(line) - 1] == '\n' || line[strlen(line) - 1] == '\r')
-    line[strlen(line) - 1] = 0x00;
-  return strlen(line);
-}
+static int readLine(char *line);
 
 // MAIN
 int main(int argc, char *argv[])
 {
   int retval, ind = 1;
   char *adp = NULL;
-  bool absolute = false;
+  bool absPath = false;
 
   // Start the application 
   QApplication qapp(argc, argv);
 
   if (argc < 2) {
-    fprintf(stderr, "ERROR: path is required as last argument\n");
+    fprintf(stderr, "Usage: imodqtassist [options] path_to_documents\n");
+    fprintf(stderr, "   Options:\n");
+    fprintf(stderr, "\t-a\tpath_to_documents is absolute, not relative to"
+            " $IMOD_DIR\n");
+    fprintf(stderr, "\t-p file\tName of adp (document profile) file\n");
     exit(1);
   }
 
@@ -80,8 +67,9 @@ int main(int argc, char *argv[])
   while (argc - ind > 1) {
     if (argv[ind][0] == '-') {
       switch (argv[ind][1]) {
+
       case 'a':
-        absolute = true;
+        absPath = true;
         break;
 
       case 'p':
@@ -100,9 +88,9 @@ int main(int argc, char *argv[])
   }
 
   // start the help object
-  imodHelp = new ImodAssistant(argv[ind], adp, NULL, absolute);
+  imodHelp = new ImodAssistant(argv[ind], adp, NULL, absPath);
 
-  // Get a listener for the errors
+  // Get a listener for the errors and timer
   AssistantListener *listener = new AssistantListener();
   QObject::connect(imodHelp, SIGNAL(error(const QString&)), listener,
                    SLOT(assistantError(const QString&)));
@@ -115,7 +103,7 @@ int main(int argc, char *argv[])
 #endif
 
   // Start timer to watch for input
-  listener->startTimer(100);
+  listener->startTimer(TIMER_INTERVAL);
   retval = qapp.exec();
 
   // Upon exit, delete the help object to close help, and kill thread if
@@ -141,6 +129,7 @@ void AssistantListener::timerEvent(QTimerEvent *e)
 {
   char line[MAX_LINE];
   int err;
+
 #ifdef QT_THREAD_SUPPORT
 
   // If there is thread support, see if the thread got a line
@@ -197,8 +186,10 @@ void AssistantListener::timerEvent(QTimerEvent *e)
     fprintf(stderr, "Page %s not found\n", line);
   else
     fprintf(stderr, "Page %s displayed\n", line);
-  if (err < 0)
+  if (err < 0 && !mWarned) {
     fprintf(stderr, "WARNING: adp file not found\n", line);
+    mWarned = true;
+  }
     
   fflush(stderr);
 
@@ -233,3 +224,31 @@ void AssistantThread::run()
   }
 }    
 #endif
+
+// Common routine to read a line, strip endings, and return length
+static int readLine(char *line)
+{
+  fgets(line, MAX_LINE, stdin);
+  if (line[MAX_LINE - 1])
+    line[MAX_LINE - 1] = 0x00;
+  while (line[strlen(line) - 1] == '\n' || line[strlen(line) - 1] == '\r')
+    line[strlen(line) - 1] = 0x00;
+  return strlen(line);
+}
+
+/*
+    $Log$
+
+    Revision 1.4  2004/12/22 23:14:21  mast
+    Handle adp not found error message
+
+    Revision 1.3  2004/12/22 22:53:39  mast
+    Needed to advance index in argument loop
+
+    Revision 1.2  2004/12/22 05:58:49  mast
+    Fixed bugs that showed up on SGI
+
+    Revision 1.1  2004/12/22 05:49:02  mast
+    Addition to package
+
+*/
