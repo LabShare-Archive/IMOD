@@ -25,6 +25,7 @@ class MidasSlots : public QObject
   void mouse_rotate(void);
   void mouse_stretch(unsigned int maskr);
   void midas_keyinput(QKeyEvent *event);
+  void synchronizeChunk(int sec);
 
   public slots:
     void slotFilemenu(int item);
@@ -33,10 +34,10 @@ class MidasSlots : public QObject
   void slotParameter(int item);
   void slotIncrement(int item);
   void slotAngle(int value);
-  void slotSection(int upDown);
-  void slotCurtext();
-  void slotReftext();
-  void slotEdgetext();
+  void slotCurValue(int sec);
+  void slotRefValue(int sec);
+  void slotChunkValue(int sec);
+  void slotEdgeValue(int sec);
   void slotEdge(int upDown);
   void slotXory(int which);
   void slotLeave_out();

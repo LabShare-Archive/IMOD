@@ -48,6 +48,8 @@
 #include <qpopupmenu.h>
 #include <qmenubar.h>
 #include <qgrid.h>
+#include <qstringlist.h>
+#include <qregexp.h>
 #include <qlayout.h>
 #include "arrowbutton.h"
 #include "floatspinbox.h"
@@ -71,11 +73,13 @@ static void usage(void)
      qstr.sprintf("Usage: %s [x opts] [options] <mrc filename> "
 	     "[transform filename]\n", pname);
      qstr += "options:\n";
-     qstr += "\t-gl             output global transforms (default"
-       " is local).\n";
-     qstr += "\t-r <filename>   load reference image file.\n";
-     qstr += "\t-rz <section>   section # for reference (default 0).\n";
-     qstr += "\t-p <filename>   load piece list file for fixing montages.\n";
+     qstr += "\t-g              output global transforms (default"
+       " is local)\n";
+     qstr += "\t-r <filename>   load reference image file\n";
+     qstr += "\t-rz <section>   section # for reference (default 0)\n";
+     qstr += "\t-p <filename>   load piece list file for fixing montages\n";
+     qstr += "\t-c <size list>  align chunks of sections; list # of sections "
+       "in chunks\n",
      qstr += "\t-C <size>       set cache size to given number of "
        "sections\n"; 
      qstr += "\t-s <min,max>    set intensity scaling; min to 0 and"
@@ -96,9 +100,12 @@ int main (int argc, char **argv)
 {
   struct Midas_view MidasView, *vw;
   FILE *file;
-  int i;
+  int i, k;
   bool doubleBuffer = true;
   int styleSet = 0;
+  QStringList chunkList;
+  bool ok;
+  int chunkErr = 0;
 
 #ifdef NO_IMOD_FORK
   int dofork = 0;
@@ -183,6 +190,11 @@ int main (int argc, char **argv)
 	doubleBuffer = false;
 	break;
 
+      case 'c':
+        chunkList = QStringList::split(',', QString(argv[++i]));
+        vw->numChunks = chunkList.count();
+        break;
+
       default:
 	usage();
 	break;
@@ -212,34 +224,61 @@ int main (int argc, char **argv)
 	      "new file by that name.\n", vw->xname);
     }
   }
-	  
+
+  // Check other entries if doing montage mode
   if (vw->plname) {
-    if (vw->refname || vw->rotMode)
+    if (vw->refname || vw->rotMode || vw->numChunks)
       midas_error("You cannot use the -p option with the ", 
-                  (char *)(vw->rotMode ? "-a option." : "-r option."), 1);
+                  (char *)(vw->rotMode ? "-a option." : 
+                           (vw->refname ? "-r option." : "-c option.")), 1);
 
     if (vw->didsave != -1)
       midas_error("The last entry on the line must be the name of"
 	      " an existing edge\n correlation displacement file.", "", 1);
 
     if (vw->xtype == XTYPE_XG)
-      dia_puts("The -gl option has no effect when fixing montage overlaps.");
+      dia_puts("The -g option has no effect when fixing montage overlaps.");
     vw->xtype = XTYPE_MONT;
   }	       
 
-  if (vw->refname) {
+  // Check features if doing reference mode or chunk mode
+  if (vw->refname || vw->numChunks) {
     if (vw->rotMode)
       dia_puts("The -a option has no effect with alignment to a "
-	      "reference section.");
+	      "reference section or in chunk mode.");
     vw->rotMode = 0;
     if (vw->xtype == XTYPE_XG)
-      dia_puts("The -gl option has no effect with alignment to a "
-	      "reference section.");
-    vw->xtype = XTYPE_XREF;
+      dia_puts("The -g option has no effect with alignment to a "
+	      "reference section or in chunk.");
+    if (vw->refname)
+      vw->xtype = XTYPE_XREF;
+  }
+
+  // If doing chunk mode, get sizes, make sure no zeros, defer further checking
+  if (vw->numChunks) {
+    if (vw->refname)
+      midas_error("Chunk alignment cannot be done in reference alignment mode",
+                  "", 1);
+    vw->chunk = (struct Midas_chunk *)malloc((vw->numChunks + 1) * 
+                                                  sizeof(struct Midas_chunk));
+    if (!vw->chunk)
+      midas_error("Error getting memory for chunk data.", "", 3);
+
+    vw->chunk[0].start = 0;
+    for (k = 0; k < vw->numChunks; k++) {
+      vw->chunk[k].size = chunkList[k].toInt(&ok);
+      if (vw->chunk[k].size <= 0 || !ok)
+        chunkErr = 1;
+      vw->chunk[k + 1].start = vw->chunk[k].start + vw->chunk[k].size;
+    }
+
+    if (chunkErr || vw->numChunks < 2) 
+      midas_error("The -c option must be followed by a comma-separated list",
+                  " of the number of sections in each chunk.", 1);
   }
 
   if (load_view(VW, argv[i]))
-    midas_error("Error opening ", argv[i], -1);
+    midas_error("Error opening ", argv[i], 3);
 
   // Increase the default point size if font is specified in points,
   // or if not, increase the pixel size
@@ -479,6 +518,18 @@ QSignalMapper *MidasWindow::makeLabeledArrows(QVBox *parent, QString textlabel,
   return (mapper);
 }
 
+QSpinBox *MidasWindow::makeSpinBoxRow(QHBox *row, char *labText,
+                                 int minz, int maxz)
+{
+  QLabel *label = new QLabel(QString(labText), row);
+  label->setAlignment(AlignRight | AlignVCenter);
+  row->setStretchFactor(label, 1);
+  QSpinBox *spin = new QSpinBox(minz, maxz, 1, row);
+  spin->setFixedWidth(60);
+  spin->setFocusPolicy(ClickFocus);
+  return spin;
+}
+
 void MidasWindow::createParameterDisplay(QVBox *col)
 {
   int i;
@@ -607,43 +658,33 @@ void MidasWindow::createSectionControls(QVBox *parent)
   QVBox *col = parent;
   QLabel *label;
   QSignalMapper *mapper;
+  int maxz;
 
   // Reference section text box
   if (VW->xtype != XTYPE_MONT) {
     row = new QHBox(col);
-    label = new QLabel("Reference Sec. ", row);
-    label->setAlignment(AlignRight | AlignVCenter);
-    row->setStretchFactor(label, 1);
-    VW->reftext = new ToolEdit(row);
-    VW->reftext->setAlignment(Qt::AlignRight);
-    VW->reftext->setFixedWidth(60);
-    VW->reftext->setFocusPolicy(ClickFocus);
-    QObject::connect(VW->reftext, SIGNAL(focusLost()),
-		     VW->midasSlots, SLOT(slotReftext()));
-    QObject::connect(VW->reftext, SIGNAL(returnPressed()),
-		     VW->midasSlots, SLOT(slotReftext()));
+    maxz = (VW->xtype == XTYPE_XREF) ? VW->refzsize : VW->zsize;
+    VW->refSpin = makeSpinBoxRow(row, "Reference Sec. ", 1, maxz);
+    QObject::connect(VW->refSpin, SIGNAL(valueChanged(int)),
+                     VW->midasSlots, SLOT(slotRefValue(int)));
   }
 
   // Current section text box
   row = new QHBox(col);
-  label = new QLabel("Current Sec. ", row);
-  label->setAlignment(AlignRight | AlignVCenter);
-  row->setStretchFactor(label, 1);
-  VW->curtext = new ToolEdit(row);
-  VW->curtext->setFixedWidth(60);
-  VW->curtext->setAlignment(Qt::AlignRight);
-  VW->curtext->setFocusPolicy(ClickFocus);
-  QObject::connect(VW->curtext, SIGNAL(focusLost()),
-                   VW->midasSlots, SLOT(slotCurtext()));
-  QObject::connect(VW->curtext, SIGNAL(returnPressed()),
-		   VW->midasSlots, SLOT(slotCurtext()));
+  maxz = (VW->xtype == XTYPE_MONT) ? VW->maxzpiece + 1 : VW->zsize;
+  VW->curSpin = makeSpinBoxRow(row, "Current Sec. ", 1, maxz);
+  QObject::connect(VW->curSpin, SIGNAL(valueChanged(int)),
+                   VW->midasSlots, SLOT(slotCurValue(int)));
   
-  // The section arrows
-  mapper = makeLabeledArrows(col, "Section", &label, false);
-  QObject::connect(mapper, SIGNAL(mapped(int)), VW->midasSlots, 
-		   SLOT(slotSection(int)));
+  if (VW->numChunks) {
 
-  if (VW->xtype != XTYPE_XREF && VW->xtype != XTYPE_MONT) {
+    // Chunk mode: just add a chunk spin box
+    row = new QHBox(col);
+    VW->chunkSpin = makeSpinBoxRow(row, "Current Chunk ", 2, VW->numChunks);
+    QObject::connect(VW->chunkSpin, SIGNAL(valueChanged(int)),
+                     VW->midasSlots, SLOT(slotChunkValue(int)));
+  
+  } else if (VW->xtype != XTYPE_XREF && VW->xtype != XTYPE_MONT) {
     
     // Non-montage: the difference checkbox and mode label
 
@@ -672,21 +713,10 @@ void MidasWindow::createSectionControls(QVBox *parent)
     QObject::connect(VW->edgeGroup, SIGNAL(clicked(int)),
 		     VW->midasSlots, SLOT(slotXory(int)));
 
-    label = new QLabel("Edge ", row);
-    label->setAlignment(AlignRight | AlignVCenter);
-    row->setStretchFactor(label, 1);
-    VW->edgetext = new ToolEdit(row);
-    VW->edgetext->setFixedWidth(60);
-    VW->edgetext->setFocusPolicy(ClickFocus);
-    QObject::connect(VW->edgetext, SIGNAL(returnPressed()),
-		     VW->midasSlots, SLOT(slotEdgetext()));
-    QObject::connect(VW->edgetext, SIGNAL(focusLost()),
-		     VW->midasSlots, SLOT(slotEdgetext()));
+    VW->edgeSpin = makeSpinBoxRow(row, "Edge ", 1, VW->maxedge[VW->xory]);
+    QObject::connect(VW->edgeSpin, SIGNAL(valueChanged(int)),
+                     VW->midasSlots, SLOT(slotEdgeValue(int)));
 
-    // The edge number arrows
-    mapper = makeLabeledArrows(col, "Edge Number", &label, false);
-    QObject::connect(mapper, SIGNAL(mapped(int)), VW->midasSlots,
-		     SLOT(slotEdge(int)));
     VW->midasSlots->manage_xory(VW);
     
   } else {
@@ -796,6 +826,9 @@ void midas_error(char *tmsg, char *bmsg, int retval)
 
 /*
     $Log$
+    Revision 3.11  2004/07/07 19:25:31  mast
+    Changed exit(-1) to exit(3) for Cygwin
+
     Revision 3.10  2004/05/28 18:56:13  mast
     needed to parse gloabal rotation as float
 

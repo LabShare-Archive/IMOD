@@ -34,36 +34,16 @@ $Date$
 
 $Revision$
 
-$Log$
-Revision 3.4  2003/05/26 01:03:08  mast
-Added label for mouse action
-
-Revision 3.3  2003/02/10 20:49:57  mast
-Merge Qt source
-
-Revision 3.2.2.2  2003/01/26 23:20:33  mast
-using new library
-
-Revision 3.2.2.1  2002/12/05 03:13:47  mast
-New Qt version
-
-Revision 3.2  2002/08/19 04:44:54  mast
-Added a flag that mouse is moving, to prevent repeated error updates in
-montage-fixing mode when there are many pieces.
-
-Revision 3.1  2002/07/18 20:21:12  rickg
-Changed include of GLwMDrawA to rely upon -I compiler option
-
+Log at end of file
 */
+
 class MidasWindow;
 class MidasSlots;
 class MidasGL;
-class ToolEdit;
 class FloatSpinBox;
 
 #include <qlabel.h>
 #include <qstring.h>
-#include "tooledit.h"
 #include <qpushbutton.h>
 #include <qradiobutton.h>
 #include <qslider.h>
@@ -74,13 +54,13 @@ class FloatSpinBox;
 #include <qsignalmapper.h>
 #include <qhbox.h>
 #include <qvbox.h>
+#include <qspinbox.h>
 
-#define NO_X_INCLUDES
+#include <imodconfig.h>
 #include <mrcc.h>
 #include <qgl.h>
 #include "slots.h"
 #include "graphics.h"
-#include <imodconfig.h>
 
 
 /* Midas 0.9a renamed to manali, 2.40 renamed to midas */
@@ -153,6 +133,7 @@ public slots:
  QLabel *makeArrowRow(QVBox *parent, int direction, int signal, 
 		      QSignalMapper *mapper, bool repeat, QString textlabel, 
 		      int decimals, int digits, float value);
+ QSpinBox *makeSpinBoxRow(QHBox *row, char *labText, int minz, int maxz);
  void createParameterDisplay(QVBox *parent);
  void createSectionControls(QVBox *parent);
  void createZoomBlock(QVBox *parent);
@@ -178,6 +159,14 @@ struct Midas_cache
   Islice *sec;  /* pointer to data */
 };
 
+struct Midas_chunk
+{
+  int size;    /* Number in chunk */
+  int start;   /* Starting Z of chunk */
+  int curSec;  /* Section to view when chunk is current */
+  int refSec;  /* Section to view when chunk is previous */
+};
+
 struct Midas_view
 {
   /* Size of input data */
@@ -189,6 +178,7 @@ struct Midas_view
   int refz;  /* reference section */
   float xcenter;  /* center coordinates for rotation, stretch, mag */
   float ycenter;
+  int curChunk;  /* Current chunk */
 
   /* input option values */
   float sminin;  /* minimum scale */
@@ -196,6 +186,8 @@ struct Midas_view
   int cachein;   /* cache size */
   int rotMode;   /* Flag for rotation mode */
   double globalRot; /* Global rotation value */
+  int numChunks;    /* Number of chunks for chunk mode */
+  struct Midas_chunk *chunk;
 
   struct LoadInfo *li;
   struct MRCheader *hin;
@@ -294,15 +286,16 @@ struct Midas_view
   QCheckBox *reversetoggle;
   int      reversemap;   /* flag to reverse contrast */
   int      applytoone;   /* Flag to apply to only one section */
-  ToolEdit *reftext;
-  ToolEdit *curtext;
+  QSpinBox *curSpin;
+  QSpinBox *refSpin;
+  QSpinBox *chunkSpin;
   QCheckBox *difftoggle;
   int      keepsecdiff;  /* flag to keep Curr-Ref constant */
   QButtonGroup *edgeGroup;
   QRadioButton *wXedge;
   QRadioButton *wYedge;
   
-  ToolEdit *edgetext;
+  QSpinBox *edgeSpin;
   QLabel   *zoomlabel;
   QLabel   *blocklabel;
   int      boxsize;      /* block size for transforms */
@@ -389,3 +382,29 @@ void find_local_errors(struct Midas_view *vw, int leaveout, int ntoperr,
 void amat_to_rotmagstr(float *amat, float *theta, float *smag, float *str,
 		       float *phi);
 #endif  // MIDAS_H
+
+/*
+$Log$
+Revision 3.5  2003/12/17 21:43:59  mast
+Changes to implement global rotations
+
+Revision 3.4  2003/05/26 01:03:08  mast
+Added label for mouse action
+
+Revision 3.3  2003/02/10 20:49:57  mast
+Merge Qt source
+
+Revision 3.2.2.2  2003/01/26 23:20:33  mast
+using new library
+
+Revision 3.2.2.1  2002/12/05 03:13:47  mast
+New Qt version
+
+Revision 3.2  2002/08/19 04:44:54  mast
+Added a flag that mouse is moving, to prevent repeated error updates in
+montage-fixing mode when there are many pieces.
+
+Revision 3.1  2002/07/18 20:21:12  rickg
+Changed include of GLwMDrawA to rely upon -I compiler option
+
+*/
