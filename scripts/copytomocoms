@@ -10,6 +10,7 @@ set SAMPALISIZE = 60              # Size of aligned stack for sampling
 @ BORDERFAC = 10                  # controls linear increase of border size
 set CCDBORDERFAC = 2.0            # extra size of border for CCD images
 set RESIDUAL_SCALE = 10           # scaling for tiltalign residuals
+set MONTAGE_XCORR_MAX = 2048      # Max size for blended stack for doing xcorr
 set backupname = "./savework"
 
 set single_srcname = "g5a"
@@ -708,14 +709,14 @@ EOF
 	set preblend = "0"
 	if ($montage == "1") then
 
-	    # IF MONTAGED, START THE FILE WITH PREBLEND - LIMIT SIZE TO 1024
+	    # IF MONTAGED, START THE FILE WITH PREBLEND - LIMIT SIZE
 
 	    set preblend = "1"
 	    set srcfile = $srcdir/"blend"$srcext
 	    @ xcxsize = $xsize
 	    @ xcysize = $ysize
-	    if ($xcxsize > 1024) @ xcxsize = 1024
-	    if ($xcysize > 1024) @ xcysize = 1024
+	    if ($xcxsize > $MONTAGE_XCORR_MAX) @ xcxsize = $MONTAGE_XCORR_MAX
+	    if ($xcysize > $MONTAGE_XCORR_MAX) @ xcysize = $MONTAGE_XCORR_MAX
 	    @ xstart = ($xsize - $xcxsize) / 2
 	    @ xend = ($xsize + $xcxsize) / 2 - 1
 	    @ ystart = ($ysize - $xcysize) / 2
@@ -724,8 +725,8 @@ EOF
 	    sed -e s/$srcname/$dstname/g\
 	        -e s/$setname.ali/$xcsrc/\
 	        -e "/^TransformFile/s/^T/#T/"\
-	        -e "/^[# ]*SloppyMontage/s/^[# ]*//"\
-	        -e "/^[# ]*ShiftPieces/s/^[# ]*//"\
+	        -e "/^SloppyMontage/s/0/1/"\
+	        -e "/^ShiftPieces/s/0/1/"\
 		-e "/^StartingAndEndingX/s/[ 	].*/	$xstart $xend/"\
 		-e "/^StartingAndEndingY/s/[ 	].*/	$ystart $yend/"\
                 -e /mrctaper/d\
@@ -786,11 +787,10 @@ EOF
 	    set backuplist = ($backuplist $dstfile)
 	    if (-e $dstfile) \mv -f $dstfile $dstfile~
 	    sed -e s/$srcname/$dstname/g\
-	        -e "/^[# ]*SloppyMontage/s/^[# ]*//"\
-	        -e "/^[# ]*ShiftPieces/s/^[# ]*//"\
-	        -e "/^[# ]*ReadInXcorrs/s/^[# ]*//"\
-	        -e "/^[# ]*OldEdgeFunctions/s/^[# ]*//"\
-		-e "/^StartingAndEndingY/s/[ 	].*/	$ymin $ymax/"\
+	        -e "/^SloppyMontage/s/0/1/"\
+	        -e "/^ShiftPieces/s/0/1/"\
+	        -e "/^ReadInXcorrs/s/0/1/"\
+	        -e "/^OldEdgeFunctions/s/0/1/"\
 		<$srcfile >$dstfile
 	    echo '$'"if (-e $backupname) $backupname" >> $dstfile
 	    set backuplist = ($backuplist $setname.ecd)
@@ -804,8 +804,8 @@ EOF
 	set tracksrc = $setname.st
 
 	if ($montage == "1") then
-	    set buildnew = "#O"
-	    set shiftopt = "#S"
+	    set buildnew = "0"
+	    set shiftopt = "0"
 
 	    # IF PREBLEND, GET FILE, SET UP THINGS DIFFERENTLY FOR BLEND
 
@@ -815,12 +815,12 @@ EOF
 		set srcfile = $srcdir/"blend"$srcext
 		set dstfile = "preblend"$dstext
 		set backuplist = ($backuplist $dstfile)
-		set buildnew = "O"
-		set shiftopt = "S"
+		set buildnew = "1"
+		set shiftopt = "1"
 		if (-e $dstfile) \mv -f $dstfile $dstfile~
 		sed -e s/$srcname/$dstname/g\
                     -e "/^TransformFile/s/^T/#T/"\
-                    -e "/^[# ]*ShiftPieces/s/^[# ]*//"\
+                    -e "/^ShiftPieces/s/0/1/"\
                     -e /mrctaper/d\
 		    -e s/$setname.ali/$tracksrc/\
 		    <$srcfile >$dstfile
@@ -834,9 +834,8 @@ EOF
 	    set backuplist = ($backuplist $dstfile)
 	    if (-e $dstfile) \mv -f $dstfile $dstfile~
 	    sed -e s/$srcname/$dstname/g\
-                -e "/^[# ]*ShiftPieces/s/^[# ]*S/$shiftopt/"\
-		-e "/^StartingAndEndingY/s/[ 	].*/	$ymin $ymax/"\
-	        -e "/^[# ]*OldEdgeFunctions/s/^[# ]*O/$buildnew/"\
+                -e "/^ShiftPieces/s/0/$shiftopt/"\
+	        -e "/^OldEdgeFunctions/s/0/$buildnew/"\
 		<$srcfile >$dstfile
 	    echo '$'"if (-e $backupname) $backupname" >> $dstfile
 	    set backuplist = ($backuplist $setname.ecd)
@@ -1082,7 +1081,7 @@ EOF
                     <newst$dstext >>$dstfile
             endif
         else
-            sed -e "/^[# ]*OldEdgeFunctions/s/^[# ]*O/O/"\
+            sed -e "/^OldEdgeFunctions/s/0/1/"\
                 -e "/^StartingAndEndingY/s/[ 	].*/	$ymin $ymax/"\
                 -e "/if (-e/d"\
                 -e "/mrctaper/d"\
@@ -1277,6 +1276,9 @@ exit 0
 
 #
 #  $Log$
+#  Revision 3.31  2005/01/03 20:25:15  mast
+#  Changed for new PIP version of align.com
+#
 #  Revision 3.30  2004/08/27 05:46:48  mast
 #  Switched to using head -n and tail -n
 #
