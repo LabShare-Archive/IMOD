@@ -55,8 +55,8 @@ Log at end of file
 
 
 static void imodvDraw_spheres(Iobj *obj, double zscale, int style);
-static void imodvDraw_mesh(Imesh *mesh, int style);
-static void imodvDraw_filled_mesh(Imesh *mesh, double zscale);
+static void imodvDraw_mesh(Imesh *mesh, int style, Iobj *obj);
+static void imodvDraw_filled_mesh(Imesh *mesh, double zscale, Iobj *obj);
 static void imodvDrawScalarMesh(Imesh *mesh, double zscale, Iobj *obj);
 static void imodvDraw_contours(Iobj *obj, int mode);
 static void imodvPick_Contours(Iobj *obj);
@@ -73,6 +73,7 @@ static int load_cmap(unsigned char table[3][256], int *rampData);
 static void mapfalsecolor(int gray, int *red, int *green, int *blue);
 static int clip_obj(Imod *imod, Iobj *obj, int flag, double zscale,
                     double zoom);
+static int skipNonCurrentSurface(Imesh *mesh, int *ip, Iobj *obj);
 
 static int CTime = -1;
 static float depthShift;
@@ -615,7 +616,7 @@ static int check_mesh_draw(Imesh *mesh, int checkTime, int resol)
 {
   if ((checkTime) && (mesh->type) && (mesh->type != CTime))
     return 0;
-  if (Imodv->current_subset / 2 == 1 && cursurf >= 0 && 
+  if (Imodv->current_subset / 2 == 1 && cursurf >= 0 && mesh->pad > 0 && 
       mesh->pad != cursurf)
     return 0;
   if (imeshResol(mesh->flag) == resol)
@@ -736,7 +737,7 @@ static void imodvDraw_object(Iobj *obj, Imod *imod)
           if (obj->flags & IMOD_OBJFLAG_SCALAR)
             imodvDrawScalarMesh (mesh, imod->zscale, obj);
           else
-            imodvDraw_filled_mesh (mesh, imod->zscale);
+            imodvDraw_filled_mesh (mesh, imod->zscale, obj);
         }
       }
       glPopMatrix();
@@ -748,7 +749,7 @@ static void imodvDraw_object(Iobj *obj, Imod *imod)
         for(co = 0; co < obj->meshsize; co++) {
           mesh = &(obj->mesh[co]);
           if (check_mesh_draw(mesh, checkTime, resol))
-            imodvDraw_mesh(mesh, DRAW_LINES);
+            imodvDraw_mesh(mesh, DRAW_LINES, obj);
         }
         /*  imodvSetObject(obj, 0); */
       }
@@ -763,7 +764,7 @@ static void imodvDraw_object(Iobj *obj, Imod *imod)
               imodvDrawScalarMesh 
                 (mesh, imod->zscale, obj);
             }else{
-              imodvDraw_mesh(mesh, DRAW_LINES);
+              imodvDraw_mesh(mesh, DRAW_LINES, obj);
             }
           }
         }
@@ -779,9 +780,9 @@ static void imodvDraw_object(Iobj *obj, Imod *imod)
             }else{
               /*  if (iobjLine(obj->flags))
                   imodvDraw_mesh(&(obj->mesh[co]),
-                  DRAW_LINES);
+                  DRAW_LINES, obj);
                   else */
-              imodvDraw_mesh(mesh, DRAW_POINTS);
+              imodvDraw_mesh(mesh, DRAW_POINTS, obj);
             }
           }
         }
@@ -1305,7 +1306,7 @@ static void imodvDraw_spheres(Iobj *obj, double zscale, int style)
 /*  Draw Mesh Data                                                           */
 /*****************************************************************************/
 
-static void imodvDraw_mesh(Imesh *mesh, int style)
+static void imodvDraw_mesh(Imesh *mesh, int style, Iobj *obj)
 {
   unsigned int i, lsize;
   GLenum polyStyle, normStyle;
@@ -1335,6 +1336,8 @@ static void imodvDraw_mesh(Imesh *mesh, int style)
     switch(mesh->list[i]){
     case IMOD_MESH_BGNPOLY:
     case IMOD_MESH_BGNBIGPOLY:
+      if (skipNonCurrentSurface(mesh, &i, obj))
+        break;
       glBegin(polyStyle);
       while(mesh->list[++i] != IMOD_MESH_ENDPOLY){
         glVertex3fv( (float *)&(mesh->vert[mesh->list[i]]));
@@ -1343,6 +1346,8 @@ static void imodvDraw_mesh(Imesh *mesh, int style)
       break;
 
     case IMOD_MESH_BGNPOLYNORM:
+      if (skipNonCurrentSurface(mesh, &i, obj))
+        break;
       i++;
       while(mesh->list[i] != IMOD_MESH_ENDPOLY){
         glBegin(normStyle);
@@ -1386,7 +1391,7 @@ static void imodvDraw_mesh(Imesh *mesh, int style)
 }
 
 /* draws mesh with lighting model */
-static void imodvDraw_filled_mesh(Imesh *mesh, double zscale)
+static void imodvDraw_filled_mesh(Imesh *mesh, double zscale, Iobj *obj)
 {
   int i;
   float z = zscale;
@@ -1420,6 +1425,8 @@ static void imodvDraw_filled_mesh(Imesh *mesh, double zscale)
       break;
 
     case IMOD_MESH_BGNPOLY:
+      if (skipNonCurrentSurface(mesh, &i, obj))
+        break;
       glBegin(GL_POLYGON);
       break;
 
@@ -1436,6 +1443,8 @@ static void imodvDraw_filled_mesh(Imesh *mesh, double zscale)
 
       /* 6/19/01 note: using glVertex3fv with no z scaling increases
          speed by 5% on PC, 0.2% on SGI */
+      if (skipNonCurrentSurface(mesh, &i, obj))
+        break;
       glBegin(GL_TRIANGLES);
       while(mesh->list[++i] != IMOD_MESH_ENDPOLY){
         unsigned int li;
@@ -1465,6 +1474,8 @@ static void imodvDraw_filled_mesh(Imesh *mesh, double zscale)
       break;
 
     case IMOD_MESH_BGNBIGPOLY:
+      if (skipNonCurrentSurface(mesh, &i, obj))
+        break;
       tobj = gluNewTess();
       gluTessCallback(tobj, GLU_BEGIN, (GLU_CALLBACK)glBegin);
       gluTessCallback(tobj, GLU_VERTEX, (GLU_CALLBACK)glVertex3fv);
@@ -1712,6 +1723,8 @@ static void imodvDrawScalarMesh(Imesh *mesh, double zscale,
       glEnd();
       break;
     case IMOD_MESH_BGNPOLY:
+      if (skipNonCurrentSurface(mesh, &i, obj))
+        break;
       glBegin(GL_POLYGON);
       break;
     case IMOD_MESH_NORMAL:
@@ -1724,6 +1737,8 @@ static void imodvDrawScalarMesh(Imesh *mesh, double zscale,
       break;
 
     case IMOD_MESH_BGNPOLYNORM:
+      if (skipNonCurrentSurface(mesh, &i, obj))
+        break;
       i++;
       while(mesh->list[i] != IMOD_MESH_ENDPOLY){
         glBegin(polyStyle);
@@ -1785,6 +1800,8 @@ static void imodvDrawScalarMesh(Imesh *mesh, double zscale,
       break;
 
     case IMOD_MESH_BGNBIGPOLY:
+      if (skipNonCurrentSurface(mesh, &i, obj))
+        break;
       tobj = gluNewTess();
       gluTessCallback(tobj, GLU_BEGIN, (GLU_CALLBACK)glBegin);
       gluTessCallback(tobj, GLU_VERTEX, (GLU_CALLBACK)glVertex3fv);
@@ -1822,14 +1839,75 @@ static void imodvDrawScalarMesh(Imesh *mesh, double zscale,
   return;
 }
 
+// Check if surface subset and if so, see if mesh matches current surface
+static int skipNonCurrentSurface(Imesh *mesh, int *ip, Iobj *obj)
+{
+  int co, pt, i, ind, listSkip, vertOffset, numTest, endCode, limTest = 9;
+  float xx, yy, zz;
+  Icont *cont;
+
+  // Test if surface subset on, it's also OK if the mesh surface is greater
+  // than zero because a match was already tested for in check_mesh_draw
+  if (!(Imodv->current_subset / 2 == 1 && cursurf >= 0) || mesh->pad > 0)
+    return 0;
+
+  // Set up indexes, offset and interval to check, ending code
+  i = *ip + 1;
+  listSkip = 1;
+  vertOffset = 0;
+  endCode = IMOD_MESH_ENDPOLY;
+  
+  if (mesh->list[i - 1] == IMOD_MESH_BGNPOLYNORM) {
+    listSkip = 2;
+    vertOffset = 1;
+  }
+  if (mesh->list[i - 1] == IMOD_MESH_BGNPOLY)
+    endCode = IMOD_MESH_END;
+
+  // Test up to the given limit of vertices in the mesh
+  numTest = 0;
+  while (mesh->list[i] != endCode && numTest < limTest) {
+    ind = mesh->list[i + vertOffset];
+    xx = mesh->vert[ind].x;
+    yy = mesh->vert[ind].y;
+    zz = mesh->vert[ind].z;
+    for (co = 0; co < obj->contsize; co++) {
+      cont = &obj->cont[co];
+      
+      // If contour is not wild and Z is different, or if surface doesn't match
+      // then skip the contour
+      if (!(cont->flags & ICONT_WILD) && zz != cont->pts->z)
+        continue;
+      if (cont->surf != cursurf)
+        continue;
+
+      // Return upon an exact match
+      for (pt = 0; pt < cont->psize; pt++)
+        if (cont->pts[pt].x == xx && cont->pts[pt].y == yy && 
+            cont->pts[pt].z == zz)
+          return 0;
+    }
+    numTest++;
+    i += listSkip;
+  }
+
+  // Most efficient to loop to the end code here
+  while (mesh->list[*ip] != endCode)
+    (*ip)++;
+    
+  return 1;
+}
 
 /*
 $Log$
+Revision 4.15  2004/09/21 20:14:51  mast
+Implemented multiple clipping planes
+
 Revision 4.14  2004/09/10 02:31:03  mast
 replaced long with int
 
 Revision 4.13  2004/06/10 00:33:28  mast
-Disbaled clipping planes, more or less, at 0 and 1000
+Disabled clipping planes, more or less, at 0 and 1000
 
 Revision 4.12  2004/06/08 15:41:24  mast
 Changes to get top/bottom stereo to work with monitor passthroughs
