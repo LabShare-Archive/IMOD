@@ -74,6 +74,10 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.28  2003/05/07 23:04:29  rickg
+ * <p> System property user.dir now defines the working directory
+ * <p> Home is now read from the System properties
+ * <p>
  * <p> Revision 2.27  2003/04/30 18:48:51  rickg
  * <p> Changed matchcheck* to a single imod instance
  * <p>
@@ -2587,11 +2591,14 @@ public class ApplicationManager {
       // Set the current working directory for the application, this is the
       // path to the EDF file.  The working directory is defined by the current
       // user.dir system property.
-      System.setProperty("user.dir", paramFile.getParent());
-      setTestParamFile(paramFile);
+      // Uggh, stupid JAVA bug, getParent() only returns the parent if the File
+      // was created with the full path
+      File newParamFile = new File(paramFile.getAbsolutePath());
+      System.setProperty("user.dir", newParamFile.getParent());
+      setTestParamFile(newParamFile);
 
       // Update the MRU test data filename list
-      userConfig.putDataFile(paramFile.getAbsolutePath());
+      userConfig.putDataFile(newParamFile.getAbsolutePath());
       mainFrame.setMRUFileLabels(userConfig.getMRUFileList());
 
       //  Initialize a new IMOD manager
