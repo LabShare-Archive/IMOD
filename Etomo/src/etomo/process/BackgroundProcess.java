@@ -14,6 +14,9 @@ import java.io.File;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 2.4  2003/05/23 14:27:36  rickg
+ * <p> Implements SystemProcessInterface
+ * <p>
  * <p> Revision 2.3  2003/05/12 23:24:54  rickg
  * <p> Comment fixes
  * <p>
@@ -53,7 +56,8 @@ public class BackgroundProcess
   private boolean debug = false;
   private String[] stdOutput;
   private String[] stdError;
-
+  private StringBuffer commandProcessID;
+  
   private String stdoutLogFile = "";
   private String stderrLogFile = "";
 
@@ -63,6 +67,7 @@ public class BackgroundProcess
   public BackgroundProcess(String commandLine, ProcessManager processManager) {
     this.commandLine = commandLine.trim();
     this.processManager = processManager;
+    commandProcessID = new StringBuffer("");
   }
 
   /**
@@ -149,6 +154,9 @@ public class BackgroundProcess
     }
     else {
       // Execute the command
+      ParsePID parsePID = new ParsePID(command, commandProcessID);
+      Thread parsePIDThread = new Thread(parsePID);
+      parsePIDThread.start();
       command.run();
     }
 
@@ -185,4 +193,15 @@ public class BackgroundProcess
     return done;
   }
     
+  /**
+   * Get the command process ID if it is available
+   * @return
+   */
+  public String getCommandProcessID() {
+    if (commandProcessID == null) {
+      return "";
+    }
+    return commandProcessID.toString();
+  }
+
 }
