@@ -333,8 +333,10 @@ if ($compiler == intel) then
     # Set variables for library/dll makes that depended on qt_libs
     #
     echo "MAKELIBSO = link -dll /NOLOGO  $qt_libs ../../buildlib/libimod.lib ../../imod/3dmod.lib ../../buildlib/libdiaqt.lib /out:" >> $configure
-    set opengl_lib = `sed -n '/^LIBS[ 	]*=/s/^.*\(opengl[^ ]*.lib\).*$/\1/p' $midas_dir/Makefile`
-    echo "LIBDIAQTDEF = $qt_libs $opengl_lib" >> $configure
+    if ($shared_libs == true) then
+        set opengl_lib = `sed -n '/^LIBS[ 	]*=/s/^.*\(opengl[^ ]*.lib\).*$/\1/p' $midas_dir/Makefile`
+        echo "LIBDIAQTDEF = $qt_libs $opengl_lib" >> $configure
+    endif
 
     cat <<EOF >> $imod_dir/Makefile
 
