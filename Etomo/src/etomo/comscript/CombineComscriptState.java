@@ -18,7 +18,12 @@ import etomo.ui.TomogramCombinationDialog;
 *
 * @version $$Revision$$
 *
-* <p> $$Log$$ </p>
+* <p> $$Log$
+* <p> $Revision 1.1  2004/08/19 00:36:18  sueh
+* <p> $bug# 508 adding state object for combine.com to update
+* <p> $combine.com, keep track of which commands will run,
+* <p> $and keep track of information required to run command.com
+* <p> $$ </p>
 */
 public class CombineComscriptState implements ComscriptState {
   public static final String rcsid = "$$Id$$";
@@ -69,11 +74,13 @@ public class CombineComscriptState implements ComscriptState {
    
   private int startCommand = NULL_INDEX;
   private int endCommand = NULL_INDEX;
+  private String comscriptMatchString = null;
   
   private boolean selfTest = false;
   
   
   public CombineComscriptState() {
+    initializeComscriptMatchString();
     selfTest = ApplicationManager.isSelfTest();
     runSelfTest(CONSTRUCTED_STATE);
   }
@@ -183,6 +190,10 @@ public class CombineComscriptState implements ComscriptState {
     }
     return WATCHED_FILES[commandIndex];
   }
+  
+  public String getComscriptMatchString() {
+    return comscriptMatchString;
+  }
 
 
   public static String getSuccessText() {
@@ -252,6 +263,20 @@ public class CombineComscriptState implements ComscriptState {
   }
   
   /**
+   * create a regular expression which matches the comscripts in managed by
+   * this object
+   *
+   */
+  private void initializeComscriptMatchString() {
+    StringBuffer stringBuffer = new StringBuffer(".*\\b[");
+    for (int i = 0; i < NUM_COMMANDS; i++) {
+      stringBuffer.append("\\Q" + COMMANDS[i] + "\\E");
+    }
+    stringBuffer.append("]\\.com\\b.*");
+    comscriptMatchString = stringBuffer.toString();
+  }
+  
+  /**
    * test for incorrect member variable settings in CombineComscriptState.
    * @param state
    */
@@ -259,27 +284,42 @@ public class CombineComscriptState implements ComscriptState {
     String stateString = null;
     switch (state) {
       case CONSTRUCTED_STATE :
-      stateString = "After construction";
+      stateString = "After construction:  ";
         if (NULL_INDEX >= 0 && NULL_INDEX < NUM_COMMANDS) {
-          throw new IllegalStateException(stateString + ": NULL_INDEX="
+          throw new IllegalStateException(stateString + "NULL_INDEX="
               + NULL_INDEX);
         }
         if (startCommand != NULL_INDEX || endCommand != NULL_INDEX) {
-          throw new IllegalStateException(stateString + ": startCommand="
+          throw new IllegalStateException(stateString + "startCommand="
               + startCommand + ",endCommand=" + endCommand);
         }
         if (COMMANDS.length != NUM_COMMANDS) {
-          throw new IllegalStateException(stateString + ": NUM_COMMANDS="
+          throw new IllegalStateException(stateString + "NUM_COMMANDS="
               + NUM_COMMANDS + ",COMMANDS.length=" + COMMANDS.length);
         }
         if (WATCHED_FILES.length != NUM_COMMANDS) {
-          throw new IllegalStateException(stateString + ": NUM_COMMANDS="
+          throw new IllegalStateException(stateString + "NUM_COMMANDS="
               + NUM_COMMANDS + ",WATCHED_FILES.length=" + WATCHED_FILES.length);
         }  
         if (DIALOG_PANES.length != NUM_COMMANDS) {
-          throw new IllegalStateException(stateString + ": NUM_COMMANDS="
+          throw new IllegalStateException(stateString + "NUM_COMMANDS="
               + NUM_COMMANDS + ",DIALOG_PANES.length=" + DIALOG_PANES.length);
-        }                
+        }
+        if (comscriptMatchString == null) {
+          throw new NullPointerException(stateString
+              + "ComscriptMatchString is null");
+        }
+        String comscriptName = null;
+        System.out.println("comscriptMatchString=" + comscriptMatchString);
+        for (int i = 0; i < NUM_COMMANDS; i++) {
+          comscriptName = COMMANDS[i] + ".com";
+          if (!comscriptName.matches(comscriptMatchString)) {
+            throw new IllegalStateException(stateString
+                + "comscriptName (" + comscriptName 
+                + ") does not match comscriptMatchString("
+                + comscriptMatchString + ")");
+          }
+        }
         break;
         
       case INITIALIZED_STATE :
