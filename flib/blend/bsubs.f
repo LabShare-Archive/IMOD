@@ -26,6 +26,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.7  2005/02/28 22:13:27  mast
+c	  Commented out edge vector summary
+c	
 c	  Revision 3.6  2005/02/28 21:15:07  mast
 c	  Changes for distortion and mag gradient correction and cubic and
 c	  linear interpolation
@@ -58,8 +61,10 @@ c
 	subroutine read_list(ixpclist,iypclist,izpclist,neglist,
      &	    multineg,npclist,minzpc,maxzpc,anyneg,pipinput)
 c
+	implicit none
 	integer*4 ixpclist(*),iypclist(*),izpclist(*),neglist(*)
 	logical multineg(*),anyneg,pipinput
+	integer*4 npclist,minzpc,maxzpc
 	logical gotfirst,anyzero
 	real*4 freinp(10)
 	character*120 filnam,dummy
@@ -68,7 +73,9 @@ c
      &	    'error reading file, line',
      &	    'bad number of values on line',
      &	    'bad multinegative specification'/ 
+	integer*4 ierr,lenact,ninp,ineg,ipc,iz,listfirst
 	integer*4 PipGetString
+	integer*4 lnblnk
 c	  
 c	  get file name and open file
 c	  
@@ -137,7 +144,8 @@ c
 	enddo
 	close(3)
 	return
-20	write(*,'(1x,a,a,i6)')'ERROR: BLENDMONT - ',errmess(ierr),npclist+1
+20	write(*,'(1x,a,a,a,a,i6)')'ERROR: BLENDMONT - ',
+     &	    filnam(1:lnblnk(filnam)),' - ', errmess(ierr),npclist+1
 	close(3)
 	call exit(1)
 	end
