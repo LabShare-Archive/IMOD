@@ -130,8 +130,11 @@ c	  IF a blank line was entered, next enter the image dimensions NX & NY,
 c	  .   the X and Y origin (default is 0,0), and the X and Y delta
 c	  .   values (default is 1,1).
 c
-c	  Name of file to put model of solved X-Y-Z coordinates, or a blank
-c	  .   line for no model output
+c	  Either the name of a file to output a 3-D model of the fiducials
+c	  .     based on their solved positions,
+c	  .   or a filename including ".res" for a list of all residuals,
+c	  .     which can be converted to a model with Patch2imod,
+c	  .   or a blank line for neither output
 c
 c	  Name of file to which to write (in ASCII text) the solved X-Y-Z
 c	  .   coordinates, or a blank line for no text output
@@ -395,12 +398,15 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.2  2002/05/09 03:48:38  mast
+c	  Fixed a line length that did not compile on SGI
+c	
 c	  Revision 3.1  2002/05/07 02:05:19  mast
-c	  Changes to handle subset of views better: output of transforms and tilt
-c	  angles for all views in file, and interpretation of user input and all
-c	  output in terms of view numbers in file rather than in program.  Also
-c	  Changed the surface analysis output to make it more understandable and
-c	  machine readable.
+c	  Changes to handle subset of views better: output of transforms and
+c	  tilt angles for all views in file, and interpretation of user input
+c	  and all output in terms of view numbers in file rather than in
+c	  program.  Also changed the surface analysis output to make it more
+c	  understandable and machine readable.
 c	
 c
 	implicit none
@@ -421,7 +427,7 @@ c
 	real*4 viewerrsum(maxview),viewerrsq(maxview)
 	real*4 viewmeanres(maxview),viewsdres(maxview)
 	
-	logical ordererr,nearbyerr
+	logical ordererr,nearbyerr,residualout
 	character*80 modelfile
 c
 	real*4 fl(2,3,maxview),fa(2,3),fb(2,3),fc(2,3)
@@ -478,8 +484,8 @@ c
      &	    xcen,ycen, mapviewtofile,mapfiletoview,nfileviews,modelfile,
      &	    iupoint,iuangle,iuxtilt)
 c	  
-	if(nview.gt.maxview)stop
-     &	    'TOO MANY VIEWS FOR ARRAYS'
+	if(nview.gt.maxview)call errorexit('TOO MANY VIEWS FOR ARRAYS',
+     &	    0)
 
 	call input_vars(var,varname,inputalf,nvarsrch,nvarang,nvarscl,
      &	    imintilt, ncompsrch,0,maptiltstart,mapalfstart,tiltorig,
@@ -612,8 +618,8 @@ c
 c	  pack the xyz into the var list
 c	  
 180	nvargeom=nvarsrch
-	if(nvargeom+3*nrealpt.gt.min(maxvar,maxmetro))stop
-     &	    'TOO MANY VARIABLES FOR VAR, GRAD, AND METRO H ARRAYS'
+	if(nvargeom+3*nrealpt.gt.min(maxvar,maxmetro))call errorexit(
+     &	    'TOO MANY VARIABLES FOR VAR, GRAD, AND METRO H ARRAYS', 0)
 	do jpt=1,nrealpt-1
 	  do i=1,3
 	    nvarsrch=nvarsrch+1
@@ -643,17 +649,11 @@ C-----------------------------------------------------------------------
 C Error returns:
 	IF(IER.NE.0)THEN
 	  if(ier.eq.1)then
-	    WRITE(6,910)
-910	    FORMAT(/' ERROR: IER=1  DG > 0')
-	    if(iflocal.eq.0)STOP
+	    call errorexit('IER=1  DG > 0', iflocal)
 	  elseif(ier.eq.2)then
-	    WRITE(6,920)
-920	    FORMAT(/' ERROR: IER=2  Linear search lost')
-	    if(iflocal.eq.0)STOP
+	    call errorexit('IER=2  Linear search lost', iflocal)
 	  elseif(ier.eq.4)then
-	    WRITE(6,940)
-940	    FORMAT(/' ERROR: IER=4  Matrix non-positive definite')
-	    if(iflocal.eq.0)STOP
+	    call errorexit('IER=4  Matrix non-positive definite', iflocal)
 	  else
 	    WRITE(6,930)
 930	    FORMAT(/' IER=3  Iteration limit exceeded....')
@@ -863,14 +863,15 @@ c
 	if(ifxyzout.ne.0)then
 	  write(iunit2,111)
 111	  format(/,21x,'3-D point coordinates'
-     &	      ,/,' obj  cont   #',7x,'X',9x,'Y',9x,'Z')
-	  write(iunit2,'(i4,2i5,3f10.2)',err=86)
-     &	      (imodobj(indallreal(j)),imodcont(indallreal(j)),
-     &	      indallreal(j),(xyz(i,j),i=1,3),j=1,nrealpt)
+     &	      ,/,'   #',7x,'X',9x,'Y',9x,'Z',6x,'obj  cont')
+	  write(iunit2,'(i4,3f10.2,i7,i5)',err=86)
+     &	      (indallreal(j),(xyz(i,j),i=1,3),imodobj(indallreal(j)),
+     &	      imodcont(indallreal(j)),j=1,nrealpt)
 	endif
 c	  
 	if(iflocal.eq.0.and.iupoint.ne.0)then
-	  write(iupoint,'(i4,3f10.2)')(j,(xyz(i,j),i=1,3),j=1,nrealpt)
+	  write(iupoint,'(i4,3f10.2,i7,i5)')(j,(xyz(i,j),i=1,3),
+     &	      imodobj(j),imodcont(j),j=1,nrealpt)
 	  close(iupoint)
 	endif
 c	  
@@ -992,6 +993,26 @@ c
 	      i=nearest_view(iv)
 	      call xfwrite(7,fl(1,1,i),*99)
 99	    enddo
+c	      
+c	      7/26/02: if modelfile contains .res, output residuals
+c
+	    residualout = .false.
+	    do i = 1, lnblnk(modelfile)-3
+	      if (modelfile(i:i).eq.'.' .and. modelfile(i+1:i+1).eq.'r'
+     &		  .and. modelfile(i+2:i+2).eq.'e' .and.
+     &		  modelfile(i+3:i+3).eq.'s') residualout = .true.
+	    enddo
+	    if (residualout) then
+	      call dopen(13,modelfile, 'new', 'f')
+	      write(13,'(i6,a)')nprojpt,' residuals'
+	      do i=1,nprojpt
+		write(13, '(2f10.2,i5,3f8.2)')xx(i)+xcen,yy(i)+ycen,
+     &		    mapviewtofile(isecview(i))-1,
+     &		    xresid(i),yresid(i)
+	      enddo
+	      close(13)
+	      modelfile = ' '
+	    endif
 	  else
 c	      
 c	      if local, output an angle for all file views
@@ -1123,8 +1144,9 @@ c
 	read(5,*,err=209,end=209)iflocal
 	if(iflocal.eq.0)go to 209
 c
-	if(iwhichout.lt.0)stop
-     &	    'SOLUTION TRANSFORMS MUST BE OUTPUT TO DO LOCAL ALIGNMENTS'
+	if(iwhichout.lt.0)call errorexit(
+     &	    'SOLUTION TRANSFORMS MUST BE OUTPUT TO DO LOCAL ALIGNMENTS',
+     &	    0)
 	write(*,'(1x,a,$)')
      &	    'Name of output file for local transformations: '
 	read(5,'(a)')modelfile
@@ -1366,4 +1388,18 @@ c
 	if(metroerror.ne.0)print *,'WARNING:',metroerror,
      &	    ' MINIMIZATION ERRORS OCCURRED (IER=x)'
 	call exit(0)
+	end
+
+
+	subroutine errorexit(message, iflocal)
+	implicit none
+	integer*4 iflocal
+	character*(*) message
+	print *
+	if (iflocal.ne.0) then
+	  print *,'WARNING: ', message
+	  return
+	endif
+	print *,'ERROR: TILTALIGN - ', message
+	call exit(1)
 	end
