@@ -26,6 +26,14 @@
  *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 
 #ifndef SSLICE_H
 #define SSLICE_H
@@ -73,6 +81,7 @@ struct Super_slicer{
      int          mapped;
      int          locked;
      int          expose_draw;
+     int          cubeDB;
 
      struct ViewInfo *vi;
      B3dCIImage   *image;
