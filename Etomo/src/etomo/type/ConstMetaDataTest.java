@@ -1,9 +1,3 @@
-/*
- * Created on Oct 23, 2003
- *
- * To change the template for this generated file go to
- * Window - Preferences - Java - Code Generation - Code and Comments
- */
 package etomo.type;
 
 import java.io.File;
@@ -13,12 +7,22 @@ import junit.framework.TestCase;
 import etomo.process.SystemProgram;
 
 /**
- * @author sueh
+ * <p>Description: </p>
  *
- * To change the template for this generated type comment go to
- * Window - Preferences - Java - Code Generation - Code and Comments
- */
+ * <p>Copyright: Copyright (c) 2002, 2003, 2004 </p>
+ *
+ * <p>Organization: Boulder Laboratory for 3D Fine Structure,
+ * University of Colorado</p>
+ *
+ * @author $$Author$$
+ *
+ * @version $$$$
+ *
+ * <p> $$Log$$ </p>
+*/
+
 public class ConstMetaDataTest extends TestCase {
+  public static final String rcsid = "$$Id$$";
   private MetaData testInst;
   private File testDir;
   private File dummyDir;
@@ -398,9 +402,9 @@ public class ConstMetaDataTest extends TestCase {
 
     String workingDir =
       System.setProperty(
-        "user.dir",
-        "/home/sueh/JUnitTests/etomo/type/ConstMetaData_dummy");
+        "user.dir", dummyDir.getAbsolutePath());
     testInst.setBackupDirectory(dummyDir2.getAbsolutePath());
+    testInst.setDatasetName(validDatasetName);
     assertFalse(testInst.isDatasetNameValid());
     invalidReason = testInst.getInvalidReason();
     if (invalidReason.equals("")
@@ -488,13 +492,51 @@ public class ConstMetaDataTest extends TestCase {
    */
   final public void testIsValid() {
     String invalidReason;
+    String workingDir =
+      System.setProperty("user.dir", validFileDir.getAbsolutePath());
     //Test failures
+    
+    //Testing boolean isValid(boolean fromSetupScreen)
+    //order of tests:
+    //Axis type
+    //dataset name
+    //pixel
+    //fiducial
 
-    //incorrect pixel size
+    //Axis type is always required
+    assertFalse(testInst.isValid(true));
+    invalidReason = testInst.getInvalidReason();
+    if (invalidReason.equals("")
+      || invalidReason.toLowerCase().indexOf("axis type") == -1) {
+      fail("invalidReason=" + invalidReason);
+    }
+    assertFalse(testInst.isValid(false));
+    invalidReason = testInst.getInvalidReason();
+    if (invalidReason.equals("")
+      || invalidReason.toLowerCase().indexOf("axis type") == -1) {
+      fail("invalidReason=" + invalidReason);
+    }
+
+    //Dataset name is always required
+    testInst.setAxisType(AxisType.DUAL_AXIS);
+    assertFalse(testInst.isValid(true));
+    invalidReason = testInst.getInvalidReason();
+    if (invalidReason.equals("")
+      || invalidReason.toLowerCase().indexOf("dataset name") == -1) {
+      fail("invalidReason=" + invalidReason);
+    }
+    assertFalse(testInst.isValid(false));
+    invalidReason = testInst.getInvalidReason();
+    if (invalidReason.equals("")
+      || invalidReason.toLowerCase().indexOf("dataset name") == -1) {
+      fail("invalidReason=" + invalidReason);
+    }
+    
+    //pixel size must be > 0
+    //pixel is only checked for the Setup dialog
     testInst.setDatasetName(validDatasetName);
-    String workingDir = System.setProperty("user.dir", validFileDir.getAbsolutePath());
     testInst.setPixelSize(0);
-    assertFalse(testInst.isValid());
+    assertFalse(testInst.isValid(true));
     invalidReason = testInst.getInvalidReason();
     if (invalidReason.equals("")
       || invalidReason.toLowerCase().indexOf("pixel") == -1
@@ -502,26 +544,28 @@ public class ConstMetaDataTest extends TestCase {
       || invalidReason.indexOf("zero") == -1) {
       fail("invalidReason=" + invalidReason);
     }
+    assertTrue(testInst.isValid(false));
 
-    //incorrect fiducial diameter
+    //fiducial diameter must be > 0
+    //fiducial is only checked for the Setup dialog
     testInst.setPixelSize(2.84);
     testInst.setFiducialDiameter(0);
-    assertFalse(testInst.isValid());
+    assertFalse(testInst.isValid(true));
     invalidReason = testInst.getInvalidReason();
     if (invalidReason.equals("")
       || invalidReason.toLowerCase().indexOf("fiducial") == -1
       || invalidReason.indexOf("diameter") == -1) {
       fail("invalidReason=" + invalidReason);
     }
+    assertTrue(testInst.isValid(false));
 
-    //Test successes
+    //Test success
 
     //working dir, single axis
     testInst.setFiducialDiameter(15);
-    assertTrue(testInst.isValid());
+    assertTrue(testInst.isValid(true));
 
     System.setProperty("user.dir", workingDir);
 
   }
-
 }
