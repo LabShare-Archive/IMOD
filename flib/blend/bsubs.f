@@ -26,6 +26,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.2  2003/06/20 20:18:48  mast
+c	  Standardized error exits and increased limits for correlation area
+c	
 c	  Revision 3.1  2002/08/19 04:27:43  mast
 c	  Changed to use blend.inc.  Made declarations for implicit none in
 c	  all routines that used the include file.  Changed DOEDGE to use
@@ -40,13 +43,13 @@ c	  number within each section, NEGLIST, and a logical variable MULTINEG
 c	  that is true if the section 
 c
 	subroutine read_list(ixpclist,iypclist,izpclist,neglist,
-     &	    multineg,npclist,minzpc,maxzpc,anyneg)
+     &	    multineg,npclist,minzpc,maxzpc,anyneg,pipinput)
 c
 	integer*4 ixpclist(*),iypclist(*),izpclist(*),neglist(*)
-	logical multineg(*),anyneg
+	logical multineg(*),anyneg,pipinput
 	logical gotfirst,anyzero
 	real*4 freinp(10)
-	character*80 filnam,dummy
+	character*120 filnam,dummy
 	character*32 errmess(4)/
      &	    'error opening file',
      &	    'error reading file, line',
@@ -55,8 +58,13 @@ c
 c	  
 c	  get file name and open file
 c	  
-10	write(*,'(1x,a,$)')'name of input piece list file: '
-	read(5,'(a)')filnam
+	if (pipinput) then
+	  if (PipGetString('PieceListInput', filnam) .eq. 0) call errorexit
+     &	      ('NO INPUT PIECE LIST FILE SPECIFIED')
+	else
+	  write(*,'(1x,a,$)')'name of input piece list file: '
+	  read(5,'(a)')filnam
+	endif
 	ierr=1
 	npclist=0
 	anyneg=.false.
@@ -115,9 +123,9 @@ c
 	enddo
 	close(3)
 	return
-20	write(*,'(1x,a,i6)')errmess(ierr),npclist+1
+20	write(*,'(1x,a,a,i6)')'ERROR: BLENDMONT - ',errmess(ierr),npclist+1
 	close(3)
-	go to 10
+	call exit(1)
 	end
 
 
