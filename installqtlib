@@ -42,8 +42,9 @@ if ($#qtlibdir == 0) set qtlibdir = ""
 
 # Copy Qt assistant to this location, or to bin if not defined
 #
-    set assistdir = $qtlibdir
-    if ($assistdir == "") set assistdir = bin
+set assistdir = $qtlibdir
+if ($assistdir == "") set assistdir = bin
+if (! -e $instdir/$assistdir) mkdir -p $instdir/$assistdir
 
 # Qt assistant could be an exe or a .app directory
 #
@@ -159,6 +160,9 @@ exit 0
 
 #
 #  $Log$
+#  Revision 3.24  2005/02/23 03:44:12  mast
+#  Needed to put assistant in bin for Linux without Qt included
+#
 #  Revision 3.23  2004/11/22 06:06:39  mast
 #  Move creation of qtlib up
 #
