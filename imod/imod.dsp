@@ -50,7 +50,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 /machine:IX86
-# ADD LINK32 "qt-mt311.lib" "qtmain.lib" "opengl32.lib" "glu32.lib" "delayimp.lib" "..\buildlib\libimod.lib" "..\buildlib\libiimod.lib" "..\buildlib\libdiaqt.lib" "kernel32.lib" "user32.lib" "gdi32.lib" "comdlg32.lib" "advapi32.lib" "shell32.lib" "ole32.lib" "oleaut32.lib" "uuid.lib" "imm32.lib" "winmm.lib" "wsock32.lib" "winspool.lib" delayimp.lib /nologo /subsystem:windows /machine:IX86 /nodefaultlib:"msvcrtd.lib" /nodefaultlib:"libcd.lib" /libpath:"$(QTDIR)\lib" /DELAYLOAD:opengl32.dll /DELAYLOAD:comdlg32.dll /DELAYLOAD:oleaut32.dll /DELAYLOAD:winmm.dll /DELAYLOAD:wsock32.dll /DELAYLOAD:winspool.dll
+# ADD LINK32 "qt-mt311.lib" "qtmain.lib" "opengl32.lib" "glu32.lib" "delayimp.lib" "..\buildlib\libimod.lib" "..\buildlib\libiimod.lib" "..\buildlib\libdiaqt.lib" "kernel32.lib" "user32.lib" "gdi32.lib" "comdlg32.lib" "advapi32.lib" "shell32.lib" "ole32.lib" "oleaut32.lib" "uuid.lib" "imm32.lib" "winmm.lib" "wsock32.lib" "winspool.lib" delayimp.lib /nologo /subsystem:windows /machine:IX86 /nodefaultlib:"msvcrtd.lib" /nodefaultlib:"libcd.lib" /nodefaultlib:"libc.lib" /libpath:"$(QTDIR)\lib" /DELAYLOAD:opengl32.dll /DELAYLOAD:comdlg32.dll /DELAYLOAD:oleaut32.dll /DELAYLOAD:winmm.dll /DELAYLOAD:wsock32.dll /DELAYLOAD:winspool.dll
 
 !ELSEIF  "$(CFG)" == "imod - Win32 Debug"
 
@@ -73,7 +73,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 /machine:IX86
-# ADD LINK32 "qt-mt311.lib" "qtmain.lib" "opengl32.lib" "glu32.lib" "delayimp.lib" "..\buildlib\libimod.lib" "..\buildlib\libiimod.lib" "..\buildlib\libdiaqt.lib" "kernel32.lib" "user32.lib" "gdi32.lib" "comdlg32.lib" "advapi32.lib" "shell32.lib" "ole32.lib" "oleaut32.lib" "uuid.lib" "imm32.lib" "winmm.lib" "wsock32.lib" "winspool.lib" /nologo /subsystem:windows /debug /machine:IX86 /nodefaultlib:"msvcrt.lib" /nodefaultlib:"libcd.lib" /pdbtype:sept /libpath:"$(QTDIR)\lib" /DELAYLOAD:opengl32.dll
+# ADD LINK32 "qt-mt311.lib" "qtmain.lib" "opengl32.lib" "glu32.lib" "delayimp.lib" "libimod.lib" "libiimod.lib" "libdiaqt.lib" "kernel32.lib" "user32.lib" "gdi32.lib" "comdlg32.lib" "advapi32.lib" "shell32.lib" "ole32.lib" "oleaut32.lib" "uuid.lib" "imm32.lib" "winmm.lib" "wsock32.lib" "winspool.lib" /nologo /subsystem:windows /debug /machine:IX86 /nodefaultlib:"msvcrt.lib" /nodefaultlib:"libcd.lib" /pdbtype:sept /libpath:"$(QTDIR)\lib" /libpath:"..\buildlib\Debug" /DELAYLOAD:opengl32.dll
 # SUBTRACT LINK32 /pdb:none
 
 !ENDIF 
@@ -404,11 +404,40 @@ SOURCE=imod_client_message.h
 # End Source File
 # Begin Source File
 
-SOURCE=imod_cont_copy.h
+SOURCE=imod_client_message.h
 
 !IF  "$(CFG)" == "imod - Win32 Release"
 
 USERDEP__IMOD_C="$(QTDIR)\bin\moc.exe"	
+# Begin Custom Build - Moc'ing imod_client_message.h...
+InputPath=imod_client_message.h
+
+"tmp\moc_imod_client_message.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	$(QTDIR)\bin\moc imod_client_message.h -o tmp\moc_imod_client_message.cpp
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "imod - Win32 Debug"
+
+USERDEP__IMOD_C="$(QTDIR)\bin\moc.exe"	
+# Begin Custom Build - Moc'ing imod_client_message.h...
+InputPath=imod_client_message.h
+
+"tmp\moc_imod_client_message.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	$(QTDIR)\bin\moc imod_client_message.h -o tmp\moc_imod_client_message.cpp
+
+# End Custom Build
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
+SOURCE=imod_cont_copy.h
+
+!IF  "$(CFG)" == "imod - Win32 Release"
+
+USERDEP__IMOD_CO="$(QTDIR)\bin\moc.exe"	
 # Begin Custom Build - Moc'ing imod_cont_copy.h...
 InputPath=imod_cont_copy.h
 
@@ -419,7 +448,7 @@ InputPath=imod_cont_copy.h
 
 !ELSEIF  "$(CFG)" == "imod - Win32 Debug"
 
-USERDEP__IMOD_C="$(QTDIR)\bin\moc.exe"	
+USERDEP__IMOD_CO="$(QTDIR)\bin\moc.exe"	
 # Begin Custom Build - Moc'ing imod_cont_copy.h...
 InputPath=imod_cont_copy.h
 
@@ -437,7 +466,7 @@ SOURCE=imod_cont_edit.h
 
 !IF  "$(CFG)" == "imod - Win32 Release"
 
-USERDEP__IMOD_CO="$(QTDIR)\bin\moc.exe"	
+USERDEP__IMOD_CON="$(QTDIR)\bin\moc.exe"	
 # Begin Custom Build - Moc'ing imod_cont_edit.h...
 InputPath=imod_cont_edit.h
 
@@ -448,7 +477,7 @@ InputPath=imod_cont_edit.h
 
 !ELSEIF  "$(CFG)" == "imod - Win32 Debug"
 
-USERDEP__IMOD_CO="$(QTDIR)\bin\moc.exe"	
+USERDEP__IMOD_CON="$(QTDIR)\bin\moc.exe"	
 # Begin Custom Build - Moc'ing imod_cont_edit.h...
 InputPath=imod_cont_edit.h
 
@@ -1818,6 +1847,10 @@ SOURCE=tmp\moc_formv_views.cpp
 # Begin Source File
 
 SOURCE=tmp\moc_imod_cachefill.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=tmp\moc_imod_client_message.cpp
 # End Source File
 # Begin Source File
 
