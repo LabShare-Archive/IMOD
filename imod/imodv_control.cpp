@@ -67,22 +67,29 @@ void imodvControlHelp(void)
              "\tThe Scale text box shows the number of pixels on the "
              "screen per unit of model coordinates; you can enter a "
              "specific scale to control model zoom.\n\n"
-             "\tThe Near and far sliders adjust the Z clipping planes.\n\n",
+             "\tThe Near and Far sliders adjust the Z clipping planes.\n\n",
              "\tThe Z-scale slider adjusts the scale for section "
-             "thickness.\n\n",
+             "thickness relative to the pixel size in X and Y.\n\n",
              "\tThe Rotation box edits model rotation. ",
-             "The x, y or z axis arrow",
-             "buttons are equivalent to the hot keys on the numeric keypad."
-             "  If you press the Start/Stop Rotation button then one of "
+             "The X, Y or Z axis arrow",
+             "buttons are equivalent to the hot keys on the numeric keypad.  "
+             "In addition, you can type specific angles into the text boxes.\n"
+             "\tIf you press the Start/Stop Rotation button then one of "
              "the arrow buttons, the model will start rotating around the "
              "given axis until you press the Start/Stop Rotation button "
              "again.  Otherwise, each arrow will cause a single step "
-             "around the given axis.\n\n",
-             "\tThe Degrees slider sets the number of degrees",
-             "between views during rotation, as well as the step size for "
-             "single steps with the arrows or mumeric pad keys.  The same "
-             "step size is used when rotating an object clipping with "
+             "around the given axis.\n",
+             "\tThe speed controls allow you adjust the rate of rotation in "
+             "degrees per second (\"deg/sec\").  Press the arrow buttons to "
+             "increase or decrease the speed, or enter a specific value in "
+             "the text box.\n",
+             "\tThe Degrees slider sets the the step size for "
+             "single steps with the arrows or numeric pad keys.  The same "
+             "step size is used when rotating an object clipping plane with "
              CTRL_STRING" and the keypad keys.\n",
+             "\tNote that the . and , hot keys will increase both the step "
+             "size and rotation speed in tandem, whereas the controls in this "
+             "dialog box allow you to adjust them independently.",
              NULL);
 }
 
@@ -257,14 +264,30 @@ void imodvControlAxisText(int axis, float rot)
 void imodvControlRate(int value)
 {
   Imodv->md->arot = value;
-  if (Imodv->md->xrotm)
-    Imodv->md->xrotm = Imodv->md->arot;
-  if (Imodv->md->yrotm)
-    Imodv->md->yrotm = Imodv->md->arot;
-  if (Imodv->md->zrotm)
-    Imodv->md->zrotm = Imodv->md->arot;
-  imodvDraw(Imodv);
+  /* DNM 11/3/03: do not change movie rates with new constant-speed scheme */
 }
+
+/* Change in the movie spped */
+void imodvControlSpeed(float value)
+{
+  Imodv->movieSpeed = value;
+}
+
+void imodvControlIncSpeed(int step)
+{
+  if (step > 0) {
+    Imodv->movieSpeed *= IMODV_ROTATION_FACTOR;
+    if (Imodv->movieSpeed > 360.)
+      Imodv->movieSpeed = 360.;
+  } else {
+    Imodv->movieSpeed /= IMODV_ROTATION_FACTOR;
+    if (Imodv->movieSpeed < 3.6)
+      Imodv->movieSpeed = 3.6;
+  }
+  if (dialog)
+    dialog->setSpeedText(Imodv->movieSpeed);
+}
+
 
 /* receive the signal that the dialog is really closing, and set to NULL */
 void imodvControlClosing(void)
@@ -289,12 +312,8 @@ void imodvControlSetArot(ImodvApp *a, int newval)
   if (newval > ROTATION_MAX)
     newval = ROTATION_MAX;
   a->md->arot = newval;
-  if (a->md->xrotm)
-    a->md->xrotm = (a->md->xrotm > 0 ? 1 : -1 ) * a->md->arot;
-  if (a->md->yrotm)
-    a->md->yrotm = (a->md->yrotm > 0 ? 1 : -1 ) * a->md->arot;
-  if (a->md->zrotm)
-    a->md->zrotm = (a->md->zrotm > 0 ? 1 : -1 ) * a->md->arot;
+  /* DNM 11/3/03: do not change movie rates with new constant-speed scheme */
+
   if (dialog)
     dialog->setRotationRate(a->md->arot);
 }
@@ -389,12 +408,16 @@ int imodv_control(ImodvApp *a, int state)
   imodvControlUpdate(a);
   imodvControlSetArot(a, a->md->arot);
   imodvControlSetView(a);
+  dialog->setSpeedText(a->movieSpeed);
     
   return(0);
 }
 
 /*
     $Log$
+    Revision 4.5  2003/10/01 05:04:19  mast
+    change include from imodP to imod after eliminating imod.h from imodP.h
+
     Revision 4.4  2003/04/28 04:00:56  mast
     Fix help text on hotkey and gadget
 
