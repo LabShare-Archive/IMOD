@@ -90,7 +90,7 @@ while ($#argv > 2)
       shift; shift
       breaksw
     default:
-      echo 'newst: bad argument $argv[1]'
+      echo "newst: bad argument $argv[1]"
       exit 1
   endsw
 end
