@@ -8,7 +8,7 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>788</width>
+            <width>802</width>
             <height>462</height>
         </rect>
     </property>
@@ -1359,21 +1359,26 @@
     <include location="global" impldecl="in implementation">stdlib.h</include>
     <include location="global" impldecl="in implementation">qfiledialog.h</include>
     <include location="global" impldecl="in implementation">string.h</include>
+    <include location="local" impldecl="in implementation">imod.h</include>
     <include location="local" impldecl="in implementation">form_startup.ui.h</include>
 </includes>
+<forwards>
+    <forward>typedef struct ViewInfo ImodView;</forward>
+</forwards>
 <variables>
-    <variable>int mArgc</variable>
-    <variable>char **mArgv</variable>
-    <variable>bool mFilesChanged</variable>
-    <variable>bool mJoinedWithSpace</variable>
-    <variable>QString mModelFile</variable>
-    <variable>QStringList mImageFileList</variable>
-    <variable>QString mPieceFile</variable>
-    <variable>QString mImageFiles</variable>
-    <variable>bool mModvMode</variable>
-    <variable>int mModvSizeOption</variable>
-    <variable>int mCacheOption</variable>
-    <variable>bool mShowMontage</variable>
+    <variable>bool mShowMontage;</variable>
+    <variable>int mCacheOption;</variable>
+    <variable>int mModvSizeOption;</variable>
+    <variable>bool mModvMode;</variable>
+    <variable>QString mImageFiles;</variable>
+    <variable>QString mPieceFile;</variable>
+    <variable>QStringList mImageFileList;</variable>
+    <variable>QString mModelFile;</variable>
+    <variable>bool mJoinedWithSpace;</variable>
+    <variable>bool mFilesChanged;</variable>
+    <variable>char **mArgv;</variable>
+    <variable>int mArgc;</variable>
+    <variable>QString mStr;</variable>
 </variables>
 <slots>
     <slot>init()</slot>
@@ -1394,6 +1399,7 @@
     <slot>addArg( const char * arg )</slot>
     <slot returnType="char **">getArguments( int &amp; argc )</slot>
     <slot>addImageFiles()</slot>
+    <slot>setValues( ImodView * vi, char * * argv, int firstfile, int argc, int doImodv, char * plistfname, int xyzwinopen, int sliceropen, int zapOpen, int modelViewOpen, int fillCache, int ImodTrans, int frames, int nframex, int nframey, int overx, int overy, int overEntered )</slot>
 </slots>
 <pixmapinproject/>
 <layoutdefaults spacing="6" margin="11"/>

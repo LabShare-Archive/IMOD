@@ -358,3 +358,91 @@ void StartupForm::addImageFiles()
         ++it;
     }
 }
+
+
+void StartupForm::setValues( ImodView *vi, char * *argv, int firstfile, int argc, 
+                             int doImodv, char *plistfname, int xyzwinopen, int sliceropen, 
+                             int zapOpen, int modelViewOpen, int fillCache, int ImodTrans, 
+                             int frames, int nframex, int nframey, 
+                             int overx, int overy, int overEntered )
+{
+    // Imodv mode
+    startAsGroup->setButton(doImodv);
+    mModvMode = doImodv != 0;
+    
+    // Files
+    if (firstfile && firstfile < argc) {
+        mImageFiles = "";
+        for (int i = firstfile; i < argc; i++)
+            mImageFiles += QString(argv[i]) + " ";
+        imageFilesEdit->setText(mImageFiles);
+    }
+    if (plistfname)
+        pieceFileEdit->setText(QString(plistfname));
+    
+    // X, Y, Z subset
+    if (vi->li->xmin != -1 || vi->li->xmax != -1) {
+        mStr.sprintf("%d", vi->li->xmin);
+        xFromEdit->setText(mStr);
+        mStr.sprintf("%d", vi->li->xmax);
+        xToEdit->setText(mStr);
+    }
+    if (vi->li->ymin != -1 || vi->li->ymax != -1) {
+        mStr.sprintf("%d", vi->li->ymin);
+        yFromEdit->setText(mStr);
+        mStr.sprintf("%d", vi->li->ymax);
+        yToEdit->setText(mStr);
+    }
+    if (vi->li->zmin != -1 || vi->li->zmax != -1) {
+        mStr.sprintf("%d", vi->li->zmin);
+        zFromEdit->setText(mStr);
+        mStr.sprintf("%d", vi->li->zmax);
+        zToEdit->setText(mStr);
+    }
+    
+    // Binning
+    binXYSpinBox->setValue(vi->xybin);
+    binZSpinBox->setValue(vi->zbin);
+    
+    //Intensities
+    if (vi->li->smin != vi->li->smax) {
+        mStr.sprintf("%g", vi->li->smin);
+        scaleFromEdit->setText(mStr);
+        mStr.sprintf("%g", vi->li->smax);
+        scaleToEdit->setText(mStr);
+    }
+
+    //Windows to open
+    openZapBox->setChecked(zapOpen > 0);
+    openXYZBox->setChecked(xyzwinopen > 0);
+    openSlicerBox->setChecked(sliceropen > 0);
+    openModvBox->setChecked(modelViewOpen > 0);
+
+    // Caching
+    cacheGroup->setButton(vi->vmSize < 0 ? 1 : 0);
+    if (vi->vmSize) {
+        mStr.sprintf("%d", vi->vmSize > 0 ? vi->vmSize : -vi->vmSize);
+        cacheSizeEdit->setText(mStr);
+    }
+    
+    // Miscellaneous flags
+    flipCheckBox->setChecked(vi->li->axis == 2);
+    fillCacheBox->setChecked(fillCache > 0);
+    showRGBGrayBox->setChecked(vi->grayRGBs > 0);
+    loadSepTimesBox->setChecked(vi->multiFileZ < 0);
+    loadFramesBox->setChecked(frames > 0);
+    loadUnscaledBox->setChecked(ImodTrans == 0);
+    
+    // Montage stuff
+    mShowMontage = nframex > 0;
+    if (mShowMontage) {
+    showMontageBox->setChecked(true);
+        xMontageSpinBox->setValue(nframex);
+       yMontageSpinBox->setValue(nframey);
+   }
+    if (overEntered) {
+        xOverlapSpinBox->setValue(overx);
+        yOverlapSpinBox->setValue(overy);
+    }
+    manageForModView();    
+}
