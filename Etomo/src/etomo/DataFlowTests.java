@@ -20,6 +20,10 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.6  2005/02/18 23:59:29  sueh
+ * <p> bug# 606 Removed MetaData (Setup) zfactors, fiducialess, wholetomogram,
+ * <p> and localalignments.  Add them for A and B.
+ * <p>
  * <p> Revision 3.5  2004/11/19 22:34:12  sueh
  * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
  * <p>
@@ -68,6 +72,7 @@ import etomo.process.SystemProcessException;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.MetaData;
+import etomo.type.ViewType;
 import etomo.ui.MainFrame;
 import etomo.util.Utilities;
 
@@ -111,19 +116,26 @@ public class DataFlowTests {
     mainFrame = EtomoDirector.getInstance().getMainFrame();
     // A hack around the const object returned we really know is not const
     MetaData metaData = (MetaData) applicationManager.getMetaData();
-
+    boolean montage = metaData.getViewType() == ViewType.MONTAGE;
     try {
       if (metaData.getAxisType() == AxisType.DUAL_AXIS) {
         copyFromDataSource(datasetName + "b.st");
         copyFromDataSource(datasetName + "a.rawtlt");
         copyFromDataSource(datasetName + "b.rawtlt");
-        copycoms("a");
-        copycoms("b");
+        if (montage) {
+          copyFromDataSource(datasetName + "a.pl");
+          copyFromDataSource(datasetName + "b.pl");
+        }
+        copycoms("a", montage);
+        copycoms("b", montage);
       }
       else {
         copyFromDataSource(datasetName + ".st");
         copyFromDataSource(datasetName + ".rawtlt");
-        copycoms("");
+        if (montage) {
+          copyFromDataSource(datasetName + ".pl");
+        }
+        copycoms("", montage);
       }
     }
     catch (SystemProcessException e) {
@@ -173,18 +185,24 @@ public class DataFlowTests {
     }
   }
 
-  private static void copycoms(String axisExtension)
+  private static void copycoms(String axisExtension, boolean montage)
     throws SystemProcessException {
     copyFromDataSource("align" + axisExtension + ".com");
     copyFromDataSource("eraser" + axisExtension + ".com");
     copyFromDataSource("findsec" + axisExtension + ".com");
-    copyFromDataSource("newst" + axisExtension + ".com");
-    copyFromDataSource("prenewst" + axisExtension + ".com");
     copyFromDataSource("sample" + axisExtension + ".com");
     copyFromDataSource("tilt" + axisExtension + ".com");
     copyFromDataSource("tomopitch" + axisExtension + ".com");
     copyFromDataSource("track" + axisExtension + ".com");
     copyFromDataSource("xcorr" + axisExtension + ".com");
+    if (montage) {
+      copyFromDataSource("blend" + axisExtension + ".com");
+      copyFromDataSource("preblend" + axisExtension + ".com");
+    }
+    else {
+      copyFromDataSource("newst" + axisExtension + ".com");
+      copyFromDataSource("prenewst" + axisExtension + ".com");
+    }
   }
 
   private static void waitForThread(AxisID axisID) {
@@ -336,12 +354,11 @@ public class DataFlowTests {
       System.err.println("");
       System.err.println("Options:");
       System.err
-        .println("--fiducial      Force a fiducial alignment (overide .edf");
+        .println("--fiducial      Force a fiducial alignment (overide .edf)");
       System.err.println("");
       System.err
-        .println("--fiducialless  Force a fiducialless alignment (overide .edf");
+        .println("--fiducialless  Force a fiducialless alignment (overide .edf)");
       System.err.println("");
-
       System.exit(1);
     }
 
