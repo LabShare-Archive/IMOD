@@ -46,6 +46,9 @@ import etomo.util.UniqueKey;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.13  2004/11/19 23:58:35  sueh
+ * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+ * <p>
  * <p> Revision 3.12.2.16  2004/11/19 00:23:00  sueh
  * <p> bug# 520 Enabling or disabling Save As according to whether the current
  * <p> manager will allow its param file to be changed.
@@ -332,6 +335,8 @@ public class MainFrame extends JFrame implements ContextMenu {
       KeyEvent.VK_3);
   private JMenuItem menuEtomoGuide = new JMenuItem("Etomo Users Guide",
       KeyEvent.VK_E);
+  private JMenuItem menuJoinGuide = new JMenuItem("Join Users Guide",
+      KeyEvent.VK_J);
   private JMenuItem menuHelpAbout = new JMenuItem("About", KeyEvent.VK_A);
 
   //manager object
@@ -595,6 +600,12 @@ public class MainFrame extends JFrame implements ContextMenu {
       manpage.openURL(imodURL + "UsingEtomo.html");
       manpage.setVisible(true);
     }
+    
+    if (event.getActionCommand().equals(menuJoinGuide.getActionCommand())) {
+      HTMLPageWindow manpage = new HTMLPageWindow();
+      manpage.openURL(imodURL + "tomojoin.html");
+      manpage.setVisible(true);
+    }
 
     if (event.getActionCommand().equals(menuHelpAbout.getActionCommand())) {
       MainFrame_AboutBox dlg = new MainFrame_AboutBox(this);
@@ -748,6 +759,7 @@ public class MainFrame extends JFrame implements ContextMenu {
     menuImodGuide.addActionListener(helpActionListener);
     menu3dmodGuide.addActionListener(helpActionListener);
     menuEtomoGuide.addActionListener(helpActionListener);
+    menuJoinGuide.addActionListener(helpActionListener);
     menuHelpAbout.addActionListener(helpActionListener);
 
     //  File menu
@@ -782,6 +794,7 @@ public class MainFrame extends JFrame implements ContextMenu {
     menuHelp.add(menuImodGuide);
     menuHelp.add(menu3dmodGuide);
     menuHelp.add(menuEtomoGuide);
+    menuHelp.add(menuJoinGuide);
     menuHelp.add(menuHelpAbout);
 
     //  Construct menu bar
