@@ -23,6 +23,9 @@ import etomo.comscript.StringList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.6  2002/11/25 15:59:37  rickg
+ * <p> Removed local skew radio buttons
+ * <p>
  * <p> Revision 1.5  2002/11/22 00:56:52  rickg
  * <p> removal of non-used fields in progress
  * <p>
@@ -44,6 +47,9 @@ public class TiltalignPanel implements ContextMenu {
     "$Id$";
 
   private String logSuffix;
+
+  private final int defaultLocalMagnificationType = 3;
+  private final int defaultLocalDistortionType = 2;
 
   private JTabbedPane tabPane = new JTabbedPane();
 
@@ -120,25 +126,6 @@ public class TiltalignPanel implements ContextMenu {
   private LabeledTextField ltfMagnificationAdditionalGroups =
     new LabeledTextField("Magnification additional group list: ");
 
-  // Local magnfication pane
-  private JRadioButton rbLocalMagnificationFixed =
-    new JRadioButton("Fixed LocalMagnification at 1.0");
-  private JRadioButton rbLocalMagnificationAll =
-    new JRadioButton("Solve for all LocalMagnifications");
-  private JRadioButton rbLocalMagnificationAutomapLinear =
-    new JRadioButton("Group LocalMagnification (first order fit)");
-  private JRadioButton rbLocalMagnificationAutomapFixed =
-    new JRadioButton("Group LocalMagnification (zeroth order fit)");
-  private ButtonGroup bgLocalMagnificationSolution = new ButtonGroup();
-  private JPanel panelLocalMagnificationSolution = new JPanel();
-
-  private LabeledTextField ltfLocalMagnificationReferenceView =
-    new LabeledTextField("LocalMagnification reference view: ");
-  private LabeledTextField ltfLocalMagnificationGroupSize =
-    new LabeledTextField("LocalMagnification group size: ");
-  private LabeledTextField ltfLocalMagnificationAdditionalGroups =
-    new LabeledTextField("LocalMagnification additional group list: ");
-
   //  Compression pane
   private JRadioButton rbCompressionAll =
     new JRadioButton("Solve for all Compressions");
@@ -194,35 +181,34 @@ public class TiltalignPanel implements ContextMenu {
   private LabeledTextField ltfSkewAdditionalGroups =
     new LabeledTextField("Skew additional group list: ");
 
-  //  Local distortion pane
-  private JRadioButton rbLocalDistortionNone =
-    new JRadioButton("No Local Distortion solution");
-  private JRadioButton rbLocalDistortionCombined =
-    new JRadioButton("X-stretch and skew with the same parameters");
-  private JRadioButton rbLocalDistortionIndependent =
-    new JRadioButton("Independent X-stretch and skew parameters");
-  private ButtonGroup bgLocalDistortionSolution = new ButtonGroup();
-  private JPanel panelLocalDistortionSolution = new JPanel();
+  //  Local solution pane
+  private JPanel panelLocalSolution = new JPanel();
 
-  private JRadioButton rbLocalXstretchAll =
-    new JRadioButton("Independently for each tilt");
-  private JRadioButton rbLocalXstretchAutomapLinear =
-    new JRadioButton("Group x-stretch (first order fit)");
-  private JRadioButton rbLocalXstretchAutomapFixed =
-    new JRadioButton("Group x-stretch (zeroth order fit)");
-  private ButtonGroup bgLocalXstretchSolution = new ButtonGroup();
-  private JPanel panelLocalXstretchSolution = new JPanel();
+  // Local magnfication pane
+  private JPanel panelLocalMagnificationSolution = new JPanel();
+  private JCheckBox chkLocalMagnification =
+    new JCheckBox("Local Magnification");
+
+  private LabeledTextField ltfLocalMagnificationReferenceView =
+    new LabeledTextField("LocalMagnification reference view: ");
+  private LabeledTextField ltfLocalMagnificationGroupSize =
+    new LabeledTextField("LocalMagnification group size: ");
+  private LabeledTextField ltfLocalMagnificationAdditionalGroups =
+    new LabeledTextField("LocalMagnification additional group list: ");
+
+  //  Local distortion pane
+  private JPanel panelLocalDistortionSolution = new JPanel();
+  private JCheckBox chkLocalDistortion = new JCheckBox("Local distortion");
 
   private LabeledTextField ltfLocalXstretchGroupSize =
     new LabeledTextField("X-stretch group size: ");
   private LabeledTextField ltfLocalXstretchAdditionalGroups =
     new LabeledTextField("X-stretch additional group list: ");
 
-  private JPanel panelLocalSkewSolution = new JPanel();
   private LabeledTextField ltfLocalSkewGroupSize =
-    new LabeledTextField("LocalSkew group size: ");
+    new LabeledTextField("Skew group size: ");
   private LabeledTextField ltfLocalSkewAdditionalGroups =
-    new LabeledTextField("LocalSkew additional group list: ");
+    new LabeledTextField("Skew additional group list: ");
 
   private Dimension dimLTF = new Dimension(10000, 30);
 
@@ -236,8 +222,7 @@ public class TiltalignPanel implements ContextMenu {
     createCompressionTab();
     createDistortionTab();
     createLocalTiltAngleTab();
-    createLocalMagnificationTab();
-    createLocalDistortionTab();
+    createLocalSolutionTab();
 
     //
     //  Mouse adapter for context menu
@@ -332,23 +317,21 @@ public class TiltalignPanel implements ContextMenu {
     }
 
     //  Local magnification solution parameters
+    //  FIXME this is advanced
     ltfLocalMagnificationReferenceView.setText(
       params.getLocalMagnificationSolutionReferenceView());
+
     solutionType = params.getLocalMagnificationSolutionType();
+    // FIXME: this is brittle since we are mapping a numeric value to a boolean
+    // at David's request
     if (solutionType == 0) {
-      rbLocalMagnificationFixed.setSelected(true);
+      chkLocalMagnification.setSelected(false);
     }
-    if (solutionType == 1) {
-      rbLocalMagnificationAll.setSelected(true);
-    }
-    if (solutionType == 3) {
-      rbLocalMagnificationAutomapLinear.setSelected(true);
-    }
-    if (solutionType == 4) {
-      rbLocalMagnificationAutomapFixed.setSelected(true);
+    else {
+      chkLocalMagnification.setSelected(true);
     }
 
-    if (solutionType > 2) {
+    if (solutionType > 0) {
       ltfLocalMagnificationGroupSize.setText(
         params.getLocalMagnificationSolutionGroupSize());
       ltfLocalMagnificationAdditionalGroups.setText(
@@ -421,34 +404,12 @@ public class TiltalignPanel implements ContextMenu {
     }
 
     //  Local distortion solution type
-    solutionType = params.getLocalDistortionSolutionType();
-    if (solutionType == 0) {
-      rbLocalDistortionNone.setSelected(true);
-    }
-    if (solutionType == 1) {
-      rbLocalDistortionCombined.setSelected(true);
-    }
-    if (solutionType == 2) {
-      rbLocalDistortionIndependent.setSelected(true);
-    }
+    //  FIXME set local distortion state
 
-    //  local x-stretch solution parameters
-    solutionType = params.getLocalXstretchSolutionType();
-    if (solutionType == 1) {
-      rbLocalXstretchAll.setSelected(true);
-    }
-    if (solutionType == 3) {
-      rbLocalXstretchAutomapLinear.setSelected(true);
-    }
-    if (solutionType == 4) {
-      rbLocalXstretchAutomapFixed.setSelected(true);
-    }
-    if (solutionType > 2) {
-      ltfLocalXstretchGroupSize.setText(
-        params.getLocalXstretchSolutionGroupSize());
-      ltfLocalXstretchAdditionalGroups.setText(
-        params.getLocalXstretchSolutionAdditionalGroups());
-    }
+    ltfLocalXstretchGroupSize.setText(
+      params.getLocalXstretchSolutionGroupSize());
+    ltfLocalXstretchAdditionalGroups.setText(
+      params.getLocalXstretchSolutionAdditionalGroups());
 
     //  Local skew solution parameters
     ltfLocalSkewGroupSize.setText(params.getLocalSkewSolutionGroupSize());
@@ -470,8 +431,6 @@ public class TiltalignPanel implements ContextMenu {
     updateLocalAlignmentState(null);
     updateLocalMagnificationSolutionPanel(null);
     updateLocalDistortionSolutionPanel(null);
-    updateLocalXstretchSolutionPanel(null);
-    updateLocalSkewSolutionPanel(null);
   }
 
   /**
@@ -653,22 +612,13 @@ public class TiltalignPanel implements ContextMenu {
           ltfLocalTiltAngleAdditionalGroups.getText());
       }
 
-      // Magnification pane
+      // Local magnification pane
       badParameter = ltfLocalMagnificationReferenceView.getLabel();
       params.setLocalMagnificationReferenceView(
         ltfLocalMagnificationReferenceView.getText());
 
-      if (rbLocalMagnificationFixed.isSelected())
-        type = 0;
-      if (rbLocalMagnificationAll.isSelected())
-        type = 1;
-      if (rbLocalMagnificationAutomapLinear.isSelected())
-        type = 3;
-      if (rbLocalMagnificationAutomapFixed.isSelected())
-        type = 4;
-      params.setLocalMagnificationType(type);
-
-      if (type > 2) {
+      if (chkLocalMagnification.isSelected()) {
+        params.setLocalMagnificationType(defaultLocalMagnificationType);
         badParameter = ltfLocalMagnificationGroupSize.getLabel();
         params.setLocalMagnificationSolutionGroupSize(
           ltfLocalMagnificationGroupSize.getText());
@@ -676,45 +626,29 @@ public class TiltalignPanel implements ContextMenu {
         badParameter = ltfLocalMagnificationAdditionalGroups.getLabel();
         params.setLocalMagnificationSolutionAdditionalGroups(
           ltfLocalMagnificationAdditionalGroups.getText());
+
+      }
+      else {
+        params.setLocalMagnificationType(0);
       }
 
       // Distortion pane
-      if (rbLocalDistortionNone.isSelected())
-        type = 0;
-      if (rbLocalDistortionCombined.isSelected())
-        type = 1;
-      if (rbLocalDistortionIndependent.isSelected())
-        type = 2;
-      params.setLocalDistortionSolutionType(type);
+      // FIXME set local distortion state (if selected it is always independent)
+      badParameter = ltfLocalXstretchGroupSize.getLabel();
+      params.setLocalXstretchSolutionGroupSize(
+        ltfLocalXstretchGroupSize.getText());
 
-      if (type > 0) {
-        if (rbLocalXstretchAll.isSelected())
-          type = 1;
-        if (rbLocalXstretchAutomapLinear.isSelected())
-          type = 3;
-        if (rbLocalXstretchAutomapFixed.isSelected())
-          type = 4;
-        params.setLocalXstretchType(type);
+      badParameter = ltfLocalXstretchAdditionalGroups.getLabel();
+      params.setLocalXstretchSolutionAdditionalGroups(
+        ltfLocalXstretchAdditionalGroups.getText());
 
-        if (type > 2) {
-          badParameter = ltfLocalXstretchGroupSize.getLabel();
-          params.setLocalXstretchSolutionGroupSize(
-            ltfLocalXstretchGroupSize.getText());
+      badParameter = ltfLocalSkewGroupSize.getLabel();
+      params.setLocalSkewSolutionGroupSize(ltfLocalSkewGroupSize.getText());
 
-          badParameter = ltfLocalXstretchAdditionalGroups.getLabel();
-          params.setLocalXstretchSolutionAdditionalGroups(
-            ltfLocalXstretchAdditionalGroups.getText());
-        }
+      badParameter = ltfLocalSkewAdditionalGroups.getLabel();
+      params.setLocalSkewSolutionAdditionalGroups(
+        ltfLocalSkewAdditionalGroups.getText());
 
-        if (type > 2) {
-          badParameter = ltfLocalSkewGroupSize.getLabel();
-          params.setLocalSkewSolutionGroupSize(ltfLocalSkewGroupSize.getText());
-
-          badParameter = ltfLocalSkewAdditionalGroups.getLabel();
-          params.setLocalSkewSolutionAdditionalGroups(
-            ltfLocalSkewAdditionalGroups.getText());
-        }
-      }
     }
     catch (FortranInputSyntaxException except) {
       String message = badParameter + " " + except.getMessage();
@@ -737,7 +671,7 @@ public class TiltalignPanel implements ContextMenu {
   void setTiltAndMagnificationDefaults() {
     rbTiltAngleAll.setSelected(true);
     rbDistortionNone.setSelected(true);
-    rbLocalDistortionNone.setSelected(true);
+    /***    rbLocalDistortionNone.setSelected(true); ***/
     updateEnabled();
   }
 
@@ -751,8 +685,8 @@ public class TiltalignPanel implements ContextMenu {
     rbSkewAutomapLinear.setSelected(true);
     ltfSkewGroupSize.setText(11);
 
-    rbLocalDistortionIndependent.setSelected(true);
-    rbLocalXstretchAutomapLinear.setSelected(true);
+    /***    rbLocalDistortionIndependent.setSelected(true);
+        rbLocalXstretchAutomapLinear.setSelected(true);  ***/
     ltfLocalXstretchGroupSize.setText(7);
     ltfLocalSkewGroupSize.setText(11);
 
@@ -800,14 +734,9 @@ public class TiltalignPanel implements ContextMenu {
     tabPane.setEnabledAt(
       tabPane.indexOfComponent(panelLocalTiltAngleSolution),
       state);
-    tabPane.setEnabledAt(
-      tabPane.indexOfComponent(panelLocalMagnificationSolution),
-      state);
-    tabPane.setEnabledAt(
-      tabPane.indexOfComponent(panelLocalDistortionSolution),
-      state);
-
+    tabPane.setEnabledAt(tabPane.indexOfComponent(panelLocalSolution), state);
   }
+
   //  Soluition panel update methods
   void updateTiltAngleSolutionPanel(ActionEvent event) {
     boolean state = rbTiltAngleAutomap.isSelected();
@@ -830,9 +759,8 @@ public class TiltalignPanel implements ContextMenu {
   }
 
   void updateLocalMagnificationSolutionPanel(ActionEvent event) {
-    boolean state =
-      rbLocalMagnificationAutomapLinear.isSelected()
-        || rbLocalMagnificationAutomapFixed.isSelected();
+    boolean state = chkLocalMagnification.isSelected();
+    ltfLocalMagnificationReferenceView.setEnabled(state);
     ltfLocalMagnificationGroupSize.setEnabled(state);
     ltfLocalMagnificationAdditionalGroups.setEnabled(state);
   }
@@ -867,21 +795,11 @@ public class TiltalignPanel implements ContextMenu {
   }
 
   void updateLocalDistortionSolutionPanel(ActionEvent event) {
-
-    //  Xstretch panel state
-    boolean state =
-      rbLocalDistortionCombined.isSelected()
-        || rbLocalDistortionIndependent.isSelected();
-    panelLocalXstretchSolution.setEnabled(state);
-    rbLocalXstretchAll.setEnabled(state);
-    rbLocalXstretchAutomapLinear.setEnabled(state);
-    rbLocalXstretchAutomapFixed.setEnabled(state);
-
-    // Skew panel state
-    state = rbLocalDistortionIndependent.isSelected();
-
-    updateLocalXstretchSolutionPanel(null);
-    updateLocalSkewSolutionPanel(null);
+    boolean state = chkLocalDistortion.isSelected();
+    ltfLocalXstretchGroupSize.setEnabled(state);
+    ltfLocalXstretchAdditionalGroups.setEnabled(state);
+    ltfLocalSkewGroupSize.setEnabled(state);
+    ltfLocalSkewAdditionalGroups.setEnabled(state);
   }
 
   void updateXstretchSolutionPanel(ActionEvent event) {
@@ -891,24 +809,11 @@ public class TiltalignPanel implements ContextMenu {
     ltfXstretchAdditionalGroups.setEnabled(state);
   }
 
-  void updateLocalXstretchSolutionPanel(ActionEvent event) {
-    boolean state =
-      (!rbLocalXstretchAll.isSelected())
-        && (!rbLocalDistortionNone.isSelected());
-    ltfLocalXstretchGroupSize.setEnabled(state);
-    ltfLocalXstretchAdditionalGroups.setEnabled(state);
-  }
-
   void updateSkewSolutionPanel(ActionEvent event) {
     boolean state =
       (!rbSkewAll.isSelected()) && rbDistortionIndependent.isSelected();
     ltfSkewGroupSize.setEnabled(state);
     ltfSkewAdditionalGroups.setEnabled(state);
-  }
-
-  void updateLocalSkewSolutionPanel(ActionEvent event) {
-    ltfLocalSkewGroupSize.setEnabled(true);
-    ltfLocalSkewAdditionalGroups.setEnabled(true);
   }
 
   private void createRadioBox(
@@ -1088,38 +993,6 @@ public class TiltalignPanel implements ContextMenu {
     tabPane.addTab("Magnification", panelMagnificationSolution);
   }
 
-  private void createLocalMagnificationTab() {
-    //  Local Magnification solution
-    ltfLocalMagnificationReferenceView.setMaximumSize(dimLTF);
-    panelLocalMagnificationSolution.add(
-      ltfLocalMagnificationReferenceView.getContainer());
-    JRadioButton[] items = new JRadioButton[3];
-    items = new JRadioButton[4];
-    items[0] = rbLocalMagnificationFixed;
-    items[1] = rbLocalMagnificationAll;
-    items[2] = rbLocalMagnificationAutomapLinear;
-    items[3] = rbLocalMagnificationAutomapFixed;
-    LocalMagnificationRadioListener LocalMagnificationRadioListener =
-      new LocalMagnificationRadioListener(this);
-    createRadioBox(
-      panelLocalMagnificationSolution,
-      bgLocalMagnificationSolution,
-      items,
-      "Local magnification solution type",
-      LocalMagnificationRadioListener);
-
-    ltfLocalMagnificationGroupSize.setMaximumSize(dimLTF);
-    panelLocalMagnificationSolution.add(
-      ltfLocalMagnificationGroupSize.getContainer());
-    ltfLocalMagnificationAdditionalGroups.setMaximumSize(dimLTF);
-    panelLocalMagnificationSolution.add(
-      ltfLocalMagnificationAdditionalGroups.getContainer());
-    panelLocalMagnificationSolution.add(Box.createRigidArea(FixedDim.x0_y5));
-    panelLocalMagnificationSolution.add(Box.createVerticalGlue());
-
-    tabPane.addTab("LocalMagnification", panelLocalMagnificationSolution);
-  }
-
   private void createCompressionTab() {
     //  Compression solution
     ltfCompressionReferenceView.setMaximumSize(dimLTF);
@@ -1206,68 +1079,74 @@ public class TiltalignPanel implements ContextMenu {
 
   }
 
-  private void createLocalDistortionTab() {
-    JRadioButton[] items = new JRadioButton[3];
-    //  Local distortion solution
-    items[0] = rbLocalDistortionNone;
-    items[1] = rbLocalDistortionCombined;
-    items[2] = rbLocalDistortionIndependent;
-    LocalDistortionRadioListener localDistortionRadioListener =
-      new LocalDistortionRadioListener(this);
-    createRadioBox(
-      panelLocalDistortionSolution,
-      bgLocalDistortionSolution,
-      items,
-      "Local Distortion solution type",
-      localDistortionRadioListener);
+  private void createLocalSolutionTab() {
+    //  Construct the local solution panel
+    panelLocalSolution.setLayout(
+      new BoxLayout(panelLocalSolution, BoxLayout.Y_AXIS));
+    //panelLocalSolution.setPreferredSize(new Dimension(400, 350));
 
-    items[0] = rbLocalXstretchAll;
-    items[1] = rbLocalXstretchAutomapLinear;
-    items[2] = rbLocalXstretchAutomapFixed;
-    LocalXstretchRadioListener localXstretchRadioListener =
-      new LocalXstretchRadioListener(this);
-    createRadioBox(
-      panelLocalXstretchSolution,
-      bgLocalXstretchSolution,
-      items,
-      "Local X-stretch solution type",
-      localXstretchRadioListener);
+    //  Construct the local magnification pane
+    panelLocalMagnificationSolution.setLayout(
+      new BoxLayout(panelLocalMagnificationSolution, BoxLayout.Y_AXIS));
+
+    ltfLocalMagnificationReferenceView.setMaximumSize(dimLTF);
+
+    panelLocalMagnificationSolution.add(chkLocalMagnification);
+
+    panelLocalMagnificationSolution.add(
+      ltfLocalMagnificationReferenceView.getContainer());
+
+    ltfLocalMagnificationGroupSize.setMaximumSize(dimLTF);
+    panelLocalMagnificationSolution.add(
+      ltfLocalMagnificationGroupSize.getContainer());
+    ltfLocalMagnificationAdditionalGroups.setMaximumSize(dimLTF);
+    panelLocalMagnificationSolution.add(
+      ltfLocalMagnificationAdditionalGroups.getContainer());
+    panelLocalMagnificationSolution.add(Box.createRigidArea(FixedDim.x0_y5));
+    panelLocalMagnificationSolution.add(Box.createVerticalGlue());
+
+    ltfLocalMagnificationGroupSize.setMaximumSize(dimLTF);
+    panelLocalMagnificationSolution.add(
+      ltfLocalMagnificationGroupSize.getContainer());
+    ltfLocalMagnificationAdditionalGroups.setMaximumSize(dimLTF);
+    panelLocalMagnificationSolution.add(
+      ltfLocalMagnificationAdditionalGroups.getContainer());
+    panelLocalMagnificationSolution.add(Box.createRigidArea(FixedDim.x0_y5));
+    panelLocalMagnificationSolution.add(Box.createVerticalGlue());
+    LocalMagnificationCheckListener localMagnificationCheckListener =
+      new LocalMagnificationCheckListener(this);
+    chkLocalMagnification.addActionListener(localMagnificationCheckListener);
+
+    //  Construction the local distortion pane
+    panelLocalDistortionSolution.setLayout(
+      new BoxLayout(panelLocalDistortionSolution, BoxLayout.Y_AXIS));
+
+    panelLocalDistortionSolution.add(chkLocalDistortion);
 
     ltfLocalXstretchGroupSize.setMaximumSize(dimLTF);
-    panelLocalXstretchSolution.add(ltfLocalXstretchGroupSize.getContainer());
+    panelLocalDistortionSolution.add(ltfLocalXstretchGroupSize.getContainer());
     ltfLocalXstretchAdditionalGroups.setMaximumSize(dimLTF);
-    panelLocalXstretchSolution.add(
+    panelLocalDistortionSolution.add(
       ltfLocalXstretchAdditionalGroups.getContainer());
-    panelLocalXstretchSolution.add(Box.createRigidArea(FixedDim.x0_y5));
-    panelLocalXstretchSolution.add(Box.createVerticalGlue());
+    panelLocalDistortionSolution.add(Box.createRigidArea(FixedDim.x0_y5));
+    panelLocalDistortionSolution.add(Box.createVerticalGlue());
 
-    /*    items[0] = rbLocalSkewAll;
-        items[1] = rbLocalSkewAutomapLinear;
-        items[2] = rbLocalSkewAutomapFixed;
-        LocalSkewRadioListener localSkewRadioListener =
-          new LocalSkewRadioListener(this);
-        createRadioBox(
-          panelLocalSkewSolution,
-          bgLocalSkewSolution,
-          items,
-          "Local Skew solution type",
-          localSkewRadioListener);
-    */
-    panelLocalSkewSolution.setLayout(
-      new BoxLayout(panelLocalSkewSolution, BoxLayout.Y_AXIS));
-    ltfLocalSkewGroupSize.setMaximumSize(dimLTF);
-    panelLocalSkewSolution.add(ltfLocalSkewGroupSize.getContainer());
+    panelLocalDistortionSolution.setMaximumSize(dimLTF);
+    panelLocalDistortionSolution.add(ltfLocalSkewGroupSize.getContainer());
     ltfLocalSkewAdditionalGroups.setMaximumSize(dimLTF);
-    panelLocalSkewSolution.add(ltfLocalSkewAdditionalGroups.getContainer());
-    panelLocalSkewSolution.add(Box.createRigidArea(FixedDim.x0_y5));
-    panelLocalSkewSolution.add(Box.createVerticalGlue());
+    panelLocalDistortionSolution.add(
+      ltfLocalSkewAdditionalGroups.getContainer());
+    panelLocalDistortionSolution.add(Box.createRigidArea(FixedDim.x0_y5));
+    panelLocalDistortionSolution.add(Box.createVerticalGlue());
 
-    panelLocalDistortionSolution.add(panelLocalXstretchSolution);
-    panelLocalDistortionSolution.add(panelLocalSkewSolution);
-    panelLocalDistortionSolution.setPreferredSize(new Dimension(400, 350));
+    LocalDistortionCheckListener localDistortionCheckListener =
+      new LocalDistortionCheckListener(this);
+    chkLocalDistortion.addActionListener(localDistortionCheckListener);
 
-    tabPane.addTab("Local Distortion", panelLocalDistortionSolution);
+    panelLocalSolution.add(panelLocalMagnificationSolution);
+    panelLocalSolution.add(panelLocalDistortionSolution);
 
+    tabPane.addTab("Local Solution", panelLocalSolution);
   }
 
 }
@@ -1315,10 +1194,10 @@ class MagnificationRadioListener implements ActionListener {
   }
 }
 
-class LocalMagnificationRadioListener implements ActionListener {
+class LocalMagnificationCheckListener implements ActionListener {
   TiltalignPanel panel;
 
-  LocalMagnificationRadioListener(TiltalignPanel adaptee) {
+  LocalMagnificationCheckListener(TiltalignPanel adaptee) {
     panel = adaptee;
   }
   public void actionPerformed(ActionEvent event) {
@@ -1348,10 +1227,10 @@ class DistortionRadioListener implements ActionListener {
   }
 }
 
-class LocalDistortionRadioListener implements ActionListener {
+class LocalDistortionCheckListener implements ActionListener {
   TiltalignPanel panel;
 
-  LocalDistortionRadioListener(TiltalignPanel adaptee) {
+  LocalDistortionCheckListener(TiltalignPanel adaptee) {
     panel = adaptee;
   }
   public void actionPerformed(ActionEvent event) {
@@ -1367,17 +1246,6 @@ class XstretchRadioListener implements ActionListener {
   }
   public void actionPerformed(ActionEvent event) {
     panel.updateXstretchSolutionPanel(event);
-  }
-}
-
-class LocalXstretchRadioListener implements ActionListener {
-  TiltalignPanel panel;
-
-  LocalXstretchRadioListener(TiltalignPanel adaptee) {
-    panel = adaptee;
-  }
-  public void actionPerformed(ActionEvent event) {
-    panel.updateLocalXstretchSolutionPanel(event);
   }
 }
 
