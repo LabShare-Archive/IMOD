@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.3  2003/06/10 23:21:03  mast
+Add File name type
+
 Revision 3.2  2003/06/05 03:01:48  mast
 Adding return values  - error caught on SGI
 
@@ -483,6 +486,7 @@ int PipPrintHelp(char *progName, int useStdErr, int inputFiles,
 		 int outputFiles)
 {
   int i, j;
+  int helplim = 74;
   char *sname, *lname;
   FILE *out = useStdErr ? stderr : stdout;
   fprintf(out, "Usage: %s ", progName);
@@ -522,8 +526,25 @@ int PipPrintHelp(char *progName, int useStdErr, int inputFiles,
     else
       fprintf(out, "   %s", typeDescriptions[j]);
     fprintf(out, "\n");
-    if (optTable[i].helpString && *optTable[i].helpString)
-      fprintf(out, "    %s\n", optTable[i].helpString);
+
+    /* Print help string, breaking up line as needed */
+    if (optTable[i].helpString && *optTable[i].helpString) {
+      lname = strdup(optTable[i].helpString);
+      if (PipMemoryError(lname, "PipPrintHelp"))
+        return -1;
+      sname = lname;
+      while (strlen(sname) > helplim) {
+        for (j = helplim; j >= 1; j--)
+          if (sname[j] == ' ')
+            break;
+        sname[j] = 0x00;
+        fprintf(out, "    %s\n", sname);
+        sname += j + 1;
+      }
+      fprintf(out, "    %s\n", sname);
+      free(lname);
+    }
+
     if (optTable[i].multiple)
       fprintf(out, "    (Successive entries accumulate)\n");
   }
