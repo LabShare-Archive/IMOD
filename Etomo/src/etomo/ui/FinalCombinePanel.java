@@ -44,6 +44,9 @@ import etomo.comscript.CombineParams;
  * 
  * <p>
  * $Log$
+ * Revision 3.4  2004/03/06 03:48:05  sueh
+ * bug# 380 added Use linear interpolation checkbox (advanced)
+ *
  * Revision 3.3  2004/03/05 18:19:29  sueh
  * bug# 250 added getCombineParameters() - retrieve parameters found in
  * Combine from final tab
@@ -179,6 +182,9 @@ public class FinalCombinePanel implements ContextMenu {
     new MultiLineButton("<html><b>Restart at Matchorwarp</b>");
   private MultiLineButton btnMatchorwarpTrial =
     new MultiLineButton("<html><b>Matchorwarp Trial Run</b>");
+  private JPanel pnlVolcombine = new JPanel();
+  private MultiLineButton btnVolcombineRestart =
+    new MultiLineButton("<html><b>Restart at Volcombine</b>");
   private JPanel pnlButton = new JPanel();
   private MultiLineButton btnPatchVectorModel =
     new MultiLineButton("<html><b>Examine Patch Vector Model</b>");
@@ -224,6 +230,9 @@ public class FinalCombinePanel implements ContextMenu {
     btnMatchorwarpRestart.setMaximumSize(dimButton);
     btnMatchorwarpTrial.setPreferredSize(dimButton);
     btnMatchorwarpTrial.setMaximumSize(dimButton);
+    
+    btnVolcombineRestart.setPreferredSize(dimButton);
+    btnVolcombineRestart.setMaximumSize(dimButton);
 
     // Layout Patch region model panel
     pnlPatchRegionModel.setLayout(
@@ -312,6 +321,9 @@ public class FinalCombinePanel implements ContextMenu {
     pnlMatchorwarpButtons.add(Box.createHorizontalGlue());
     pnlMatchorwarp.add(pnlMatchorwarpButtons);
     pnlMatchorwarp.add(Box.createRigidArea(FixedDim.x0_y5));
+    
+    pnlVolcombine.setLayout(new BoxLayout(pnlVolcombine, BoxLayout.X_AXIS));
+    pnlVolcombine.add(btnVolcombineRestart);
 
     //  Create the button panel
     pnlButton.setLayout(new BoxLayout(pnlButton, BoxLayout.X_AXIS));
@@ -329,6 +341,9 @@ public class FinalCombinePanel implements ContextMenu {
     pnlRoot.add(pnlPatchRegionModel);
     pnlRoot.add(pnlPatchcorr);
     pnlRoot.add(pnlMatchorwarp);
+    pnlRoot.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlRoot.add(pnlVolcombine);
+    pnlRoot.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlRoot.add(Box.createVerticalGlue());
     pnlRoot.add(pnlButton);
 
@@ -340,6 +355,7 @@ public class FinalCombinePanel implements ContextMenu {
     btnPatchRegionModel.addActionListener(actionListener);
     btnMatchorwarpRestart.addActionListener(actionListener);
     btnMatchorwarpTrial.addActionListener(actionListener);
+    btnVolcombineRestart.addActionListener(actionListener);
     btnPatchVectorModel.addActionListener(actionListener);
     btnReplacePatchOut.addActionListener(actionListener);
     btnImodMatchedTo.addActionListener(actionListener);
@@ -621,6 +637,12 @@ public class FinalCombinePanel implements ContextMenu {
       .equals(btnMatchorwarpTrial.getActionCommand())) {
       applicationManager.matchorwarpTrial();
     }
+    
+    if (event
+      .getActionCommand()
+      .equals(btnVolcombineRestart.getActionCommand())) {
+      applicationManager.volcombine();
+    }
 
     if (event
       .getActionCommand()
@@ -757,6 +779,11 @@ public class FinalCombinePanel implements ContextMenu {
       "Restart the combine operation at Matchorwarp, which tries to fit "
         + "transformations to the patch displacements.";
     btnMatchorwarpRestart.setToolTipText(
+      tooltipFormatter.setText(text).format());
+
+    text =
+      "Restart the combine operation at Volcombine, which combines volumes.";
+    btnVolcombineRestart.setToolTipText(
       tooltipFormatter.setText(text).format());
 
     text = "Run Matchorwarp in trial mode; find transformations then stop.";
