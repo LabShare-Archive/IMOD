@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2002/01/13 17:37:02  mast
+    Made it work with inside-out donuts (annulus to horseshoe transitions)
+
 */
 #include <string.h>
 #include <stdlib.h>
@@ -3638,7 +3641,7 @@ static void scan_points_to_segments(Icont *c1, Icont *c2, double *legalmin,
 	       ptand = c1->psize;
 	  ind = indorder[i] % ndiv2;
 	  ptst = ind * nperdiv2;
-	  ptnd = ptb + nperdiv2;
+	  ptnd = ptst + nperdiv2;    /* DNM fixed 4/9/02, ptb -> ptst */
 	  if (ptnd > c2->psize)
 	       ptnd = c2->psize;
 	  for (; pta < ptand; pta++) {
