@@ -15,10 +15,14 @@ import etomo.type.TiltAngleSpec;
  *
  * @version $Revision$
  *
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2002/09/09 22:57:02  rickg
+ * <p> Initial CVS entry, basic functionality not including combining
+ * <p> </p>
  */
 public class ConstTiltalignParam {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
 
   protected String modelFile;
   protected String imageFile;
@@ -76,7 +80,7 @@ public class ConstTiltalignParam {
 
   public ConstTiltalignParam() {
     imageParameters = new FortranInputString(6);
-    boolean[] temp = {true, true, true, true, true, true};
+    boolean[] temp = { true, true, true, true, true, true };
     imageParameters.setIntegerType(temp);
 
     includeExcludeList = new StringList(0);
@@ -93,18 +97,18 @@ public class ConstTiltalignParam {
     minimizationParams = new FortranInputString(2);
     minimizationParams.setIntegerType(1, true);
 
-    nLocalPatches = new  FortranInputString(2);
+    nLocalPatches = new FortranInputString(2);
     nLocalPatches.setIntegerType(0, true);
     nLocalPatches.setIntegerType(1, true);
 
-    minLocalPatchSize = new  FortranInputString(2);
+    minLocalPatchSize = new FortranInputString(2);
     minLocalPatchSize.setIntegerType(0, true);
     minLocalPatchSize.setIntegerType(1, true);
-    minLocalFiducials = new  FortranInputString(2);
+    minLocalFiducials = new FortranInputString(2);
     minLocalFiducials.setIntegerType(0, true);
     minLocalFiducials.setIntegerType(1, true);
 
-    localOutputSelection = new  FortranInputString(3);
+    localOutputSelection = new FortranInputString(3);
     localOutputSelection.setIntegerType(0, true);
     localOutputSelection.setIntegerType(1, true);
     localOutputSelection.setIntegerType(2, true);
@@ -272,7 +276,6 @@ public class ConstTiltalignParam {
     return skewSolution.additionalGroups.toString();
   }
 
-
   public double getReportStddevThreshold() {
     return reportStddevThreshold;
   }
@@ -323,6 +326,9 @@ public class ConstTiltalignParam {
 
   public int getLocalRotationSolutionType() {
     return localRotationSolution.type;
+  }
+  public int getLocalRotationSolutionGroupSize() {
+    return localRotationSolution.params.getInt(0);
   }
 
   public String getLocalRotationSolutionParams() {
