@@ -1,5 +1,25 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/26/03: Fixed problem in Nda that showed up in Windows XP.
+
+11/26/03: Switched to GnuWin32 build of Tiff library and to using DLLs for
+this, which fixed a problem with 3dmod crashing when reading Tiff files put out
+by Photoshop.
+
+11/26/03: Fixed some problems with which Image menu entries were allowed to be
+executed with raw (RGB) images loaded into 3dmod, and disabled unavailable
+menu entries with raw or non-existent images.
+
+11/20/03: Fixed bug that made line tracker not work or crash for non-square 
+images.
+
+11/20/03: Changed tiltxcorr to determine binning after adding the requested
+padding, so that large padding can be used for large images.
+
+11/17/03: Fixed the newst problem in a better way.  Fixed the sed commands
+put out in sample.com by copytomocoms, which worked only on RedHat 9 and 
+Cygwin, and changed vmstocsh to preserve continuation lines ending in \\.
+
 11/13/03: Fixed a problem with newst that showed up for one user under Mac 
 OS 10.3.
 

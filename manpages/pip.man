@@ -582,7 +582,7 @@ In the latter case, the functions will return the number of values in
 \fIarraySize\fR.  The return value is 1 if the user did not enter the given
 option.
 
-.nh
+.nf
 .ft B
 integer*4 function PipGetInOutFile(\fIoption\fB, \fInonOptArgNo\fB, \fIprompt\fB,
                                    \fIfilename\fB)
@@ -597,7 +597,7 @@ by \fIoption\fR; if that option was not entered, it gets the non-option
 argument in the \fInonOptArgNo\fR position.  If that argument does not
 exist either, it returns with an error.  Alternatively, if interactive
 input is being used, it prompts for the filename interactively with the
-string in \fIprompt\fB.
+string in \fIprompt\fR.
 
 To prevent the function from looking for a non-option argument, call it
 with \fInonOptArgNo\fR bigger than the value of \fInumNonOptArg\fR.  If
