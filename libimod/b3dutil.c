@@ -13,6 +13,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.6  2004/06/10 22:47:43  mast
+Reserved a bunch of extra header flags to avoid transition problems
+
 Revision 1.5  2004/03/18 17:55:32  mast
 Added routine with extra header byte information
 
@@ -34,6 +37,7 @@ initial creation, consolidating routines from elsewhere
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
+#include <math.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include "imodconfig.h"
@@ -329,3 +333,151 @@ void b3dheaderitembytes_(int *nflags, int *nbytes)
 {
   b3dHeaderItemBytes(nflags, nbytes);
 }
+
+/* Variable argument min and max subroutines
+ *  Call as:  b3dMin("ffif", fval1, fval2, ival, &outVal); 
+ * For only two arguments with acceptable cost of multiple evaluations,
+ * use the macros, B3DMIN(val1, val2);
+ * Why two functions?  A wrapper didn't work.  Also double return values were 
+ * not correct so the return address is the last argument
+ */
+int b3dMin(char *types, ...)
+{
+  va_list args;
+  double val, extreme;
+  int narg = 0;
+  double *doubp;
+  float *floatp;
+  int *intp;
+  b3dInt16 *shortp;
+
+  va_start(args, types);
+  while (*(types + 1)) {
+    switch (*types++) {
+    case 'i':
+      val = (double)va_arg(args, int);
+      break;
+    case 'f':
+      val = (double)va_arg(args, float);
+      break;
+    case 'd':
+      val = (double)va_arg(args, double);
+      break;
+    case 's':
+      val = (double)va_arg(args, b3dInt16);
+      break;
+    default:
+      fprintf(stderr, "ERROR: b3dMin - improper code for input argument"
+              " type\n");
+      return 1;
+    }
+
+    if (!narg)
+      extreme = val;
+    else
+      extreme = val < extreme ? val : extreme;
+    narg++;
+  }
+
+  if (narg < 2) {
+    fprintf(stderr, "ERROR: b3dMin - too few arguments\n");
+    return 1;
+  }
+
+  switch (*types) {
+    case 'i':
+      intp = (int *)va_arg(args, int *);
+      *intp = (int)floor(extreme + 0.5);
+      break;
+    case 'f':
+      floatp = (float *)va_arg(args, float *);
+      *floatp = (float)extreme;
+      break;
+    case 'd':
+      doubp = (double *)va_arg(args, double *);
+      *doubp = extreme;
+      break;
+    case 's':
+      shortp = (b3dInt16 *)va_arg(args, b3dInt16 *);
+      *shortp = (b3dInt16)floor(extreme + 0.5);
+      break;
+    default:
+      fprintf(stderr, "ERROR: b3dMin - improper code for output argument"
+              " type\n");
+      return 1;
+    }
+
+  va_end(args);
+  return 0;
+}
+
+int b3dMax(char *types, ...)
+{
+  va_list args;
+  double val, extreme;
+  int narg = 0;
+  double *doubp;
+  float *floatp;
+  int *intp;
+  b3dInt16 *shortp;
+
+  va_start(args, types);
+  while (*(types + 1)) {
+    switch (*types++) {
+    case 'i':
+      val = (double)va_arg(args, int);
+      break;
+    case 'f':
+      val = (double)va_arg(args, float);
+      break;
+    case 'd':
+      val = (double)va_arg(args, double);
+      break;
+    case 's':
+      val = (double)va_arg(args, b3dInt16);
+      break;
+    default:
+      fprintf(stderr, "ERROR: b3dMax - improper code for input argument"
+              " type\n");
+      return 1;
+    }
+
+    if (!narg)
+      extreme = val;
+    else
+      extreme = val > extreme ? val : extreme;
+    narg++;
+  }
+
+  if (narg < 2) {
+    fprintf(stderr, "ERROR: b3dMax - too few arguments\n");
+    return 1;
+  }
+
+  switch (*types) {
+    case 'i':
+      intp = (int *)va_arg(args, int *);
+      *intp = (int)floor(extreme + 0.5);
+      break;
+    case 'f':
+      floatp = (float *)va_arg(args, float *);
+      *floatp = (float)extreme;
+      break;
+    case 'd':
+      doubp = (double *)va_arg(args, double *);
+      *doubp = extreme;
+      break;
+    case 's':
+      shortp = (b3dInt16 *)va_arg(args, b3dInt16 *);
+      *shortp = (b3dInt16)floor(extreme + 0.5);
+      break;
+    default:
+      fprintf(stderr, "ERROR: b3dMax - improper code for output argument"
+              " type\n");
+      return 1;
+    }
+
+  va_end(args);
+  return 0;
+}
+
