@@ -2,6 +2,24 @@
 # A script to call a postscript previewer.  Try gv first (standard on early
 # Redhat 7?), then xpsview for SGI, then gs, which is not as good as gv
 
+# But first test for windows and call gsview32 there
+#
+set test = `which cygpath`
+if (! $status) then
+    set test = `which gsview32`
+    if ($status) goto failed
+    gsview32 $*
+    exit 0
+endif
+
+# Then test for -p flag and print
+#
+if ($argv[1] == '-p') then
+    shift
+    lp $*
+    exit 0
+endif
+
 set test = `which gv`
 if (! $status) then
     gv -noanti $*
@@ -23,5 +41,6 @@ if (! $status) then
     exit 0
 endif
 
+failed:
 echo "imodpsview cannot find a PostScript previewer on your system"
 echo "If you have one, modify $IMOD_DIR/bin/imodpsview to call it"
