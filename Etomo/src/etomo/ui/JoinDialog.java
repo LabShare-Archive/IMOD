@@ -36,6 +36,11 @@ import etomo.type.JoinState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.9  2005/01/26 00:05:02  sueh
+ * <p> Removing ConstEtomoNumber.displayDefault.  To get the default to
+ * <p> display, set displayValue and default the same when creating the
+ * <p> variable.  Removed script oriented functionality from EtomoNumber.
+ * <p>
  * <p> Revision 1.8  2005/01/21 23:44:04  sueh
  * <p> bug# 509 bug# 591  Added isUpdateCommand() in place of
  * <p> isSetAndNotDefault() and isSet() as a standard why to decide if a
@@ -942,7 +947,6 @@ public class JoinDialog implements ContextMenu {
     if (!metaData.getSizeInY().equals(ltfSizeInY.getText())) {
       return false;
     }
-    System.out.println("metaData.getShiftInX()="+metaData.getShiftInX()+",ltfShiftInX.getText()="+ltfShiftInX.getText());
     if (!metaData.getShiftInX().equals(ltfShiftInX.getText())) {
       return false;
     }

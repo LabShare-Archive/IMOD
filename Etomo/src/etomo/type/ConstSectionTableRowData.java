@@ -19,6 +19,9 @@ import etomo.storage.Storable;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.6  2005/01/25 22:08:03  sueh
+* <p> Converting EtomoNumbers parameters to ScriptParameters.
+* <p>
 * <p> Revision 1.5  2005/01/21 23:21:24  sueh
 * <p> bug# 509 bug# 591  Removed initialValue from EtomoNumber constructor.
 * <p> Using set() instead.
@@ -278,33 +281,24 @@ public abstract class ConstSectionTableRowData implements Storable {
       return false;
     }
     if (!sampleBottomStart.equals(that.sampleBottomStart)) {
-      System.out.println("equalsSample:sampleBottomStart failed");
-      System.out.println("sampleBottomStart="+sampleBottomStart.classInfoString());
-      System.out.println("that.sampleBottomStart="+that.sampleBottomStart.classInfoString());
       return false;
     }
     if (!sampleBottomEnd.equals(that.sampleBottomEnd)) {
-      System.out.println("equalsSample:sampleBottomEnd failed");
       return false;
     }
     if (!sampleTopStart.equals(that.sampleTopStart)) {
-      System.out.println("equalsSample:sampleTopStart failed");
       return false;
     }
     if (!sampleTopEnd.equals(that.sampleTopEnd)) {
-      System.out.println("equalsSample:sampleTopEnd failed");
       return false;
     }
     if (!rotationAngleX.equals(that.rotationAngleX)) {
-      System.out.println("equalsSample:rotationAngleX failed");
       return false;
     }
     if (!rotationAngleY.equals(that.rotationAngleY)) {
-      System.out.println("equalsSample:rotationAngleY failed");
       return false;
     }
     if (!rotationAngleZ.equals(that.rotationAngleZ)) {
-      System.out.println("equalsSample:rotationAngleZ failed");
       return false;
     }
     return true;
