@@ -182,7 +182,8 @@ typedef struct ViewInfo
                            * 0  = unsigned bytes.
                            * 16 = color rgb unsigned byte triplets.
                            */
-
+  int     multiFileZ;     /* Flag that multiple single-image files are sections
+                             in Z (if > 0) or to be treated as times (< 0) */
 
   FILE   *fp;                /* current image file pointer.    */
 
@@ -255,6 +256,9 @@ void imodPrintInfo(const char *message);
 
 /*
 $Log$
+Revision 3.20  2003/11/01 18:12:54  mast
+add error output function
+
 Revision 3.19  2003/10/01 05:04:58  mast
 Changes for creation of imodviewP.h
 
