@@ -236,12 +236,7 @@ set class_sep       = ';'
 #
 echo CONFIG += CONSOLE >! $sendevent_qconf
 echo LIBS += qassistantclient.lib >! $qtassist_qconf
-cat <<EOF >! $sourcedoc_qconf
-CONFIG += CONSOLE
-LIBS += libimod.lib
-QMAKE_LFLAGS_RELEASE += /LIBPATH:"..\buildlib"
-QMAKE_LFLAGS_DEBUG += /LIBPATH:"..\buildlib"
-EOF
+echo CONFIG += CONSOLE >! $sourcedoc_qconf
 
 cat << EOF >! $imod_qconf
 SOURCES += linegui.cpp
