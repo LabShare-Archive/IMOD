@@ -5,28 +5,32 @@ c	  and standard deviation match that of another volume.  To determine
 c	  the mean and S.D. for each volume, it samples up to 100000 pixels in
 c	  the central eighth of each volume (central half in X, Y, and Z).  It
 c	  can write the scaled values either to a new file or back into the
-c	  file of the volume being scaled.  THE LATTER WILL DESTROY THE
-c	  ORIGINAL VALUES IN THAT FILE.
-c	  
-c	  Inputs to the program:
-c	  
-c	  Name of the first volume, the one whose densities are being matched
-c	  
-c	  Name of the second volume, the one being scaled
-c	  
-c	  Name of an output file, or a blank line to have the scaled values
-c	  written back into the second file.
+c	  file of the volume being scaled.  It can also simply report the
+c	  scaling factors without scaling the data.
 c
+c	  See man page for details.
 c
 c	  David Mastronarde, November 1995
+c
+c	  $Author$
+c
+c	  $Date$
+c
+c	  $Revision$
+c
+c	  $Log$
 c	  
-	parameter (idim=10000,maxsamp=100000,idimb=100*maxsamp)
+	implicit none
+	integer idim, maxsamp, idimb
+	parameter (idim=100000,maxsamp=100000,idimb=5000*5000)
+	integer*4 nx,ny,nz
 	COMMON //NX,NY,NZ
 C   
-	DIMENSION NXYZ(3),MXYZ(3),NXYZST(3),
-     &      ARRAY(idim),BRRAY(idimb),TITLE(20)
+	integer*4 NXYZ(3),MXYZ(3)
+	real*4 ARRAY(idim),BRRAY(idimb)
+	common /bigarr/brray
 C   
-	CHARACTER*80 FILIN,FILOUT
+	CHARACTER*120 FILIN,FILOUT
 C   
 	EQUIVALENCE (NX,NXYZ)
 	real*4 avg(2),sd(2)
@@ -36,27 +40,62 @@ c
 c 7/7/00 CER: remove the encode's; titlech is the temp space
 c
         character*80 titlech
+	logical report
+	integer*4 nout,ierr,iun,mode,idsamp,nsx,ixs,nsy,iys,nsz,izs,ndat,jz,iz
+	integer*4 jy,iy,jx,ix,i
+	real*4 dmin,dmax,dmean,sem,scl,fadd,tsum,tmin,tmax,tmean
 c
-	write(*,'(1x,a,$)')'Name of reference volume: '
-	read(5,'(a)')filin
+	logical pipinput
+	integer*4 numOptArg, numNonOptArg
+	integer*4 PipGetString,PipGetInteger,PipGetFloat, PipGetLogical
+	integer*4 PipGetInOutFile
+c	  
+c	  fallbacks from ../../manpages/autodoc2man -2 2  densmatch
+c
+	integer numOptions
+	parameter (numOptions = 5)
+	character*(40 * numOptions) options(1)
+	options(1) =
+     &      'reference:ReferenceFile:FN:@scaled:ScaledFile:FN:@'//
+     &      'output:OutputFile:FN:@report:ReportOnly:B:@help:usage:B:'
+c
+	filout = ' '
+	report = .false.
+c	  
+c	  Pip startup: set error, parse options, check help, set flag if used
+c
+	call PipReadOrParseOptions(options, numOptions, 'densmatch',
+     &	    'ERROR: DENSMATCH - ', .true., 1, 2, 1, numOptArg,
+     &	    numNonOptArg)
+	pipinput = numOptArg + numNonOptArg .gt. 0
+c	  
+c	  Get input and output files
+c
+	if (PipGetInOutFile('ReferenceFile', 1,
+     &	    'Name of reference volume', filin) .ne. 0) call errorexit(
+     &	    'NO REFERENCE FILE WAS SPECIFIED')
 	call imopen(1,filin,'ro')
-	write(*,'(1x,a,$)')'Name of volume to be scaled: '
-	read(5,'(a)')filin
+c
+	if (PipGetInOutFile('ScaledFile', 2, 'Name volume to be scaled',
+     &	    filin) .ne. 0) call errorexit(
+     &	    'NO FILE WAS SPECIFIED TO BE SCALED')
 	call imopen(2,filin,'old')
-	print *,'Enter name of output file, or Return to place',
-     &	    ' output back into second file'
-	read(5,'(a)')filout
+c
+	ierr = PipGetInOutFile('OutputFile', 3, 'Name of output file,'//
+     &	    ' or Return to rewrite file to be scaled', filout)
+c
 	nout=2
 	if(filout.ne.' ')then
 	  call imopen(3,filout,'new')
 	  nout=3
 	endif
+	ierr = PipGetLogical('ReportOnly', report)
 c	  
 c	  sample each volume to find mean and SD
 c
 	do iun=1,2
 	  call irdhdr(iun,nxyz,mxyz,mode,dmin,dmax,dmean)
-	  if(nx*ny.ge.idimb)stop 'IMAGE TOO LARGE FOR DENSMATCH'
+	  if(nx*ny.ge.idimb)call errorexit('IMAGE TOO LARGE FOR ARRAYS')
 	  idsamp=((float(nx*ny)*nz)/(8.*maxsamp))**.3333 + 1.
 	  nsx=(nx/2)/idsamp+1
 	  ixs=nx/2-0.5*nsx*idsamp
@@ -91,9 +130,16 @@ c
 c	  
 c	  scale second volume to match first
 c
-	if(nout.eq.3)call itrhdr(3,2)
 	scl=sd(1)/sd(2)
 	fadd=avg(1)-avg(2)*scl
+c
+	if (report) then
+	  write(*,102)scl, fadd
+102	  format('Scale factors to multiply by then add:', 2g14.6)
+	  call exit(0)
+	endif
+c
+	if(nout.eq.3)call itrhdr(3,2)
 	tsum=0.
 	tmin=1.e30
 	tmax=-1.e30
@@ -124,11 +170,18 @@ c 7/7/00 CER: remove the encodes
 c
 C       encode ( 80, 3000, title ) dat, tim
 	write(titlech,3000) dat,tim
-        read(titlech,'(20a4)')(title(kti),kti=1,20)
-	call iwrhdr(nout,title,1,tmin,tmax,tmean)
+c        read(titlech,'(20a4)')(title(kti),kti=1,20)
+	call iwrhdrc(nout,titlech,1,tmin,tmax,tmean)
 	call imclose(nout)
 	call exit(0)
 3000	format ( 'DENSMATCH: Scaled volume to match another',t57,a9,2x,
      &	    a8)
-99	stop 'DENSMATCH:  read error'
+99	call errorexit('READING FILE')
+	end
+
+	subroutine errorexit(message)
+	character*(*) message
+	print *
+	print *,'ERROR: DENSMATCH - ',message
+	call exit(1)
 	end
