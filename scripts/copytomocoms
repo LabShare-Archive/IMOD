@@ -13,6 +13,14 @@ set backupname = "./savework"
 set single_srcname = "g5a"
 set dual_srcname = "g5"
 
+#  $Author$
+#
+#  $Date$
+#
+#  $Revision$
+#
+#  $Log$
+#
 if ($?IMOD_DIR) then
     set srcdir = "$IMOD_DIR/com"
     set path = ($IMOD_DIR/bin $path)
