@@ -9,6 +9,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 1.2  2001/11/27 15:59:17  mast
+#  Add dependency on .version file
+#
 #
 include ../configure
 

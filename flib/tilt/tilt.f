@@ -325,6 +325,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 1.2  2001/11/22 00:41:57  mast
+c	  Fixed computation of mean for files > 2 GPixels
+c	
 c
 	include 'tilt.inc'
 	real*4 fp(2,3)

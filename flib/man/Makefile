@@ -8,6 +8,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 1.2  2001/11/28 15:43:20  mast
+#  Changed to do install in conventional manner
+#
 #
 include ../configure
 

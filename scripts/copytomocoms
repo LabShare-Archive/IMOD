@@ -20,6 +20,10 @@ set dual_srcname = "g5"
 #  $Revision$
 #
 #  $Log$
+#  Revision 1.3  2001/11/28 23:20:18  mast
+#  Make samplea.com produce, and findseca.com use, topa.rec, mida.rec, and
+#  bota.rec.
+#
 #
 if ($?IMOD_DIR) then
     set srcdir = "$IMOD_DIR/com"

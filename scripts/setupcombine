@@ -26,6 +26,9 @@ set backupsed = ".\/savework"
 #  $Revision$
 #
 #  $Log$
+#  Revision 1.2  2001/11/28 23:23:55  mast
+#  Minor changes to accomodate changing from $! to # in command files.
+#
 #
 if ($?IMOD_DIR) then
     set srcdir = "$IMOD_DIR/com"

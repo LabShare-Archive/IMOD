@@ -31,6 +31,12 @@ c	  $Date$
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 1.2  2001/11/28 18:27:14  mast
+c	  After the fbp code was set to do the angular summation in place,
+c	  problems occurred with odd values of nwidep.  Changed this to
+c	  make the nice number be even by rounding n up to an even
+c	  number and incrementing by 2 between trial values.
+c	
 c
 cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 

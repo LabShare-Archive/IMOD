@@ -9,6 +9,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 1.1  2001/11/28 15:40:53  mast
+#  Added Makefile so the make install will install these files also.
+#
 #
 include ../configure
 

@@ -8,6 +8,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 1.3  2001/11/29 00:43:53  mast
+#  changed $(PWD) to .
+#
 #  Revision 1.2  2001/11/28 15:45:42  mast
 #  Changed to do install in conventional manner
 #

@@ -8,6 +8,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 1.2  2001/11/28 15:41:50  mast
+#  Changed instdir to inst_dir
+#
 #
 goto $machine
 irix6-32:

@@ -33,6 +33,11 @@
     $Revision$
 
     $Log$
+    Revision 1.2  2001/11/23 05:32:30  mast
+    Activated faster HQ display method for zoom > 1 using cubic interpolation
+     - coded 2 years ago and left unused.  Also added workaround to Intel
+    compiler bug.
+
 */
 #include <X11/Intrinsic.h>
 #include <Xm/MainW.h>
