@@ -32,6 +32,9 @@ import etomo.process.ImodProcess;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.4  2004/05/13 20:13:51  sueh
+ * <p> bug# 33 change setXYMinAndMax() so it can ignore non rubberband data
+ * <p>
  * <p> Revision 3.3  2004/05/07 19:53:23  sueh
  * <p> bug# 33 getting coordinates info in the right order, getting only
  * <p> the correct kind of data
@@ -165,6 +168,8 @@ public class TrimvolPanel {
 
     pnlScaleSection.setLayout(new BoxLayout(pnlScaleSection, BoxLayout.X_AXIS));
     pnlScaleSection.add(rbScaleSection);
+    ltfSectionScaleMin.setTextPreferredWidth(FixedDim.fourDigitWidth);
+    ltfSectionScaleMax.setTextPreferredWidth(FixedDim.fourDigitWidth);
     pnlScaleSection.add(ltfSectionScaleMin.getContainer());
     pnlScaleSection.add(ltfSectionScaleMax.getContainer());
 
