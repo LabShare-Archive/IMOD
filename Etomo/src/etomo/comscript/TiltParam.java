@@ -15,6 +15,9 @@ import java.util.ArrayList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.2  2003/03/20 17:24:22  rickg
+ * <p> Comment update
+ * <p>
  * <p> Revision 2.1  2003/03/02 23:30:41  rickg
  * <p> Combine layout in progress
  * <p>
@@ -106,7 +109,9 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
       }
 
       if (tokens[0].equals("RADIAL")) {
-        radialWeightingFunction = tokens[1];
+        String[] numberPair = tokens[1].trim().split("\\s+");
+        radialBandwidth = Double.parseDouble(numberPair[0]);
+        radialFalloff = Double.parseDouble(numberPair[1]);
         useRadialWeightingFunction = true;
       }
 
@@ -202,7 +207,11 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
 
     if (useRadialWeightingFunction) {
       newArg = new ComScriptInputArg();
-      newArg.setArgument("RADIAL " + radialWeightingFunction);
+      newArg.setArgument(
+        "RADIAL "
+          + String.valueOf(radialBandwidth)
+          + " "
+          + String.valueOf(radialFalloff));
       cmdLineArgs.add(newArg);
     }
 
@@ -314,9 +323,16 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
     usePerpendicular = true;
   }
 
-  public void setRadialWeightingFunction(String params) {
-    radialWeightingFunction = params;
+  public void setRadialBandwidth(double value) {
+    radialBandwidth = value;
     useRadialWeightingFunction = true;
+  }
+
+  /**
+   * @param string
+   */
+  public void setRadialFalloff(double value) {
+    radialFalloff = value;
   }
 
   public void setSubsetStart(String params) {

@@ -12,6 +12,9 @@ package etomo.comscript;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.1  2003/03/02 23:30:41  rickg
+ * <p> Combine layout in progress
+ * <p>
  * <p> Revision 2.0  2003/01/24 20:30:31  rickg
  * <p> Single window merge to main branch
  * <p>
@@ -85,7 +88,8 @@ public class ConstTiltParam {
   protected boolean perpendicular = false;
   protected boolean usePerpendicular = false;
 
-  protected String radialWeightingFunction = "";
+  protected double radialBandwidth = 0.0;
+  protected double radialFalloff = 0.0;
   protected boolean useRadialWeightingFunction = false;
 
   protected String scale = "";
@@ -153,8 +157,8 @@ public class ConstTiltParam {
     return perpendicular;
   }
 
-  public String getRadialWeightingFunction() {
-    return radialWeightingFunction;
+  public double getRadialBandwidth() {
+    return radialBandwidth;
   }
 
   public String getSubsetStart() {
@@ -183,6 +187,13 @@ public class ConstTiltParam {
    */
   public String getExcludeList() {
     return excludeList.toString();
+  }
+
+  /**
+   * @return
+   */
+  public double getRadialFalloff() {
+    return radialFalloff;
   }
 
 }
