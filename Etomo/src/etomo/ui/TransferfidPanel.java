@@ -9,7 +9,6 @@ import javax.swing.ButtonGroup;
 import javax.swing.JCheckBox;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
-import javax.swing.JToggleButton;
 
 import etomo.comscript.TransferfidParam;
 
@@ -166,7 +165,7 @@ public class TransferfidPanel {
     rbSearchMinus90.setEnabled(isEnabled);
   }
   
-  public JToggleButton getButton() {
+  public MultiLineToggleButton getButton() {
     if (includeButton) {
       return buttonTransferfid;
     }
