@@ -30,6 +30,9 @@ import etomo.type.SectionTableRowData;
 * <p> </p>
 * 
 * <p> $Log$
+* <p> Revision 1.7  2005/01/25 21:42:02  sueh
+* <p> Converting EtomoNumbers parameters to ScriptParameters.
+* <p>
 * <p> Revision 1.6  2005/01/21 22:42:19  sueh
 * <p> bug# 509 bug# 591  Added isUpdateCommand() in place of
 * <p> isSetAndNotDefault() as a standard why to decide if a parameter should
@@ -154,11 +157,11 @@ public class MakejoincomParam implements Command {
           options.add("-rot");
           //all three numbers must exist
           StringBuffer buffer = new StringBuffer();
-          rotationAngleX.addToScript(buffer);
+          rotationAngleX.addToScript(buffer, true);
           buffer.append(",");
-          rotationAngleY.addToScript(buffer);
+          rotationAngleY.addToScript(buffer, true);
           buffer.append(",");
-          rotationAngleZ.addToScript(buffer);
+          rotationAngleZ.addToScript(buffer, true);
           options.add(buffer.toString());
         }
         options.add(data.getSection().getAbsolutePath());
