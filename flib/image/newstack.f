@@ -30,6 +30,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.14  2003/12/31 00:39:11  mast
+c	  Go back to ald way of treating center offsets, with new way as option
+c	
 c	  Revision 3.13  2003/12/27 20:35:15  mast
 c	  Can't declare cosd and sind external, since they aren't always
 c	
@@ -155,7 +158,8 @@ c
 	character*(40 * numOptions) options(1)
 	options(1) =
      &      'input:InputFile:FN:@output:OutputFile:FN:@'//
-     &      'listin:ListOfInputs:FN:@listout:ListOfOutputs:FN:@'//
+     &      'fileinlist:FileOfInputs:FN:@'//
+     &	    'fileoutlist:FileOfOutputs:FN:@'//
      &      'secs:SectionsToRead:LI:@numout:NumberToOutput:IA:@'//
      &      'size:SizeToOutputInXandY:IP:@mode:ModeToOutput:I:@'//
      &      'offset:OffsetsInXandY:FA:@'//
@@ -200,7 +204,7 @@ c
 c	  get number of input files
 c
 	if (pipinput) then
-	  ierr = PipGetString('ListOfInputs', filistin)
+	  ierr = PipGetString('FileOfInputs', filistin)
 	  ierr = PipNumberOfEntries('InputFile', numInputFiles)
 	  nfilein = numInputFiles + max(0, numNonOptArg - 1)
 	  if (nfilein .gt. 0 .and. filistin .ne. ' ') call errorexit(
@@ -266,7 +270,7 @@ c
 c	    
 c	    get section list
 c
-	  if (.not.pipinput) then
+	  if (.not.pipinput .or. inunit .eq. 7) then
 	    if(inunit.ne.7)print *,'Enter list of sections to read from'
      &		//' file (/ for all, 1st sec is 0; ranges OK)'
 	    call rdlist(inunit,inlist(listot+1),nlist(i))
@@ -302,12 +306,13 @@ c
 c	  get number of output files
 c
 	if (pipinput) then
-	  ierr = PipGetString('ListOfOutputs', filistout)
+	  ierr = PipGetString('FileOfOutputs', filistout)
 	  ierr = PipNumberOfEntries('OutputFile', numOutputFiles)
 	  nfileout = numOutputFiles + min(1, numNonOptArg)
 	  if (nfileout .gt. 0 .and. filistout .ne. ' ') call errorexit(
      &	      'YOU CANNOT ENTER BOTH OUTPUT FILES AND AN OUTPUT'//
      &	      ' LIST FILE')
+	  if (filistout .ne. ' ') nfileout = -1
 	else
 	  write(*,'(1x,a,$)')'# of output files (or -1 to read list'//
      &	      ' of output files from file): '
@@ -339,8 +344,8 @@ c
 c	  
 c	  or get all the output files and the number of sections
 c
-	if(noutot.eq.0)then
-	  if (pipinput) then
+	if (noutot.eq.0)then
+	  if (pipinput .and. inunit .ne. 7) then
 	    if (nfileout .eq. 1) then
 	      nsecout(1)=listot
 	    elseif (nfileout .eq. listot) then
