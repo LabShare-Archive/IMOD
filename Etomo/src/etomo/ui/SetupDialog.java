@@ -43,6 +43,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.5  2004/02/21 00:31:22  sueh
+ * <p> bug# 386 validate distortion file
+ * <p>
  * <p> Revision 3.4  2004/02/20 23:51:01  sueh
  * <p> bug# 386 added distortionFile chooser and binning spinner
  * <p>
@@ -230,8 +233,6 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
   private JPanel pnlBinning = new JPanel();
   private LabeledSpinner spnBinning =
     new LabeledSpinner("Binning: ", new SpinnerNumberModel(1, 1, 50, 1));
-  private LabeledTextField ltfBinning =
-    new LabeledTextField("Binning: ");
 
   //  Tilt angle GUI objects
   private JPanel pnlPerAxisInfo = new JPanel();
@@ -534,13 +535,17 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     //optional
     //file must exist
     String distortionFileText = ltfDistortionFile.getText();
-    File distortionFile = new File(distortionFileText);
-    if (!distortionFile.exists()) {
-      String distortionFileName = distortionFile.getName();
-      applicationManager.openMessageDialog(
-        "The image distortion field file " + distortionFileName + " does not exist.",
-        errorMessageTitle);
-      return false;
+    if (!distortionFileText.equals("")) {
+      File distortionFile = new File(distortionFileText);
+      if (!distortionFile.exists()) {
+        String distortionFileName = distortionFile.getName();
+        applicationManager.openMessageDialog(
+          "The image distortion field file "
+            + distortionFileName
+            + " does not exist.",
+          errorMessageTitle);
+        return false;
+      }
     }
     panelErrorMessage = tiltAnglesA.getErrorMessage();
     if (panelErrorMessage != null) {
