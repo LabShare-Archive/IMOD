@@ -78,10 +78,8 @@ C       Ported to unix	07.December.94  DNM		FOR SGI		*
 C									*
 C************************************************************************
 C
-c	  DNM: set this parameter for true buffer size
-	parameter (ibufreal=(3100*3100))
 	COMMON//NX,NY,NZ
-	COMMON/FTBUF/MAXSIZ,OBS(ibufreal)
+	include 'ftbuf.inc'
 	DIMENSION CTF(8193),NXYZ(3),MXYZ(3),TITLE(20)
 	LOGICAL LARGE
 	EQUIVALENCE (NX,NXYZ)
@@ -107,12 +105,12 @@ c         here is the value of quota reported by HVEM VAX running from command
 c         line or from slow batch queue
 c	iquota = 2048
 c	JQUOTA = MAX(IQUOTA,242+(NX+2)/16,242+NY/16,321)
-c	MAXSIZ = (JQUOTA - 240)*128
+c	NBUFSIZ = (JQUOTA - 240)*128
 c	IF (JQUOTA .GT. IQUOTA) 
 c     .	PRINT *,' Quota too small, must use virtual memory!!'
-c	PRINT *,' Quota= ',IQUOTA,'  Buffersize= ',MAXSIZ
+c	PRINT *,' Quota= ',IQUOTA,'  Buffersize= ',NBUFSIZ
 c	  DNM 12/19/98: just set this to the true buffer size
-	maxsiz=ibufreal
+	nbufsiz=ibufreal
 	NY2 = NY/2
 	SIGMA1 = 0.0
 	SIGMA2 = 0.0
@@ -168,19 +166,19 @@ c   DNM added new parameters to fit revised format of BIGFILT
 	  ELSE
 C
 c            print *,'reading section'
-	    CALL IRDPAS(1,OBS,NX2,NY,0,NX1,0,NY1,*99)
+	    CALL IRDPAS(1,ARRAY,NX2,NY,0,NX1,0,NY1,*99)
 c            print *,'doing filter'
-	    CALL FILTER(OBS,NX,NY,CTF,DELTA)
+	    CALL FILTER(ARRAY,NX,NY,CTF,DELTA)
 c   dnm: every mode but 2 needs rescaling
             if(mode.ne.2)then
-              CALL ISETDN(OBS,NX2,NY,mode,1,NX,1,NY,DMIN,DMAX,DMEAN)
+              CALL ISETDN(ARRAY,NX2,NY,mode,1,NX,1,NY,DMIN,DMAX,DMEAN)
             else
-              CALL ICLDEN(OBS,NX2,NY,1,NX,1,NY,DMIN,DMAX,DMEAN)
+              CALL ICLDEN(ARRAY,NX2,NY,1,NX,1,NY,DMIN,DMAX,DMEAN)
             endif
 c            print *,'writing section'
 c   dnm replaced with call to repack then write whole section
-	    CALL IREPAK(obs,OBS,NX2,NY,0,NX1,0,NY1)
-            call iwrsec(2,obs)
+	    CALL IREPAK(array,ARRAY,NX2,NY,0,NX1,0,NY1)
+            call iwrsec(2,array)
 	  END IF
 C
 	  IF (DMIN .LT. TMIN) TMIN = DMIN
