@@ -192,6 +192,7 @@ typedef struct ViewInfo
                            * 0  = unsigned bytes.
                            * 16 = color rgb unsigned byte triplets.
                            */
+  int     grayRGBs;       /* Flag to load MRC RGBs as gray scale */
   int     multiFileZ;     /* Flag that multiple single-image files are sections
                              in Z (if > 0) or to be treated as times (< 0) */
 
@@ -266,6 +267,9 @@ void imodPrintInfo(const char *message);
 
 /*
 $Log$
+Revision 3.22  2004/01/05 17:55:45  mast
+Changes for binning
+
 Revision 3.21  2003/12/30 06:37:03  mast
 Add multifileZ flag
 
