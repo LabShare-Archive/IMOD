@@ -18,11 +18,14 @@ import etomo.storage.Storable;
  *
  * @version $Revision$
  *
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2002/09/09 22:57:02  rickg
+ * <p> Initial CVS entry, basic functionality not including combining
+ * <p> </p>
  */
-public class MetaData extends ConstMetaData
-  implements Storable {
-  public static final String rcsid = "$Id$";
+public class MetaData extends ConstMetaData implements Storable {
+  public static final String rcsid =
+    "$Id$";
 
   public MetaData() {
     super();
@@ -44,16 +47,16 @@ public class MetaData extends ConstMetaData
    * Remove the ".st", "a.st", or "b.st" as approrpiate to the
    */
   public void fixFilesetName() {
-    if(axisType == AxisType.SINGLE_AXIS) {
-      if(filesetName.endsWith(".st")) {
-	int nChars = filesetName.length();
-	filesetName = filesetName.substring(0, nChars-3);
+    if (axisType == AxisType.SINGLE_AXIS) {
+      if (filesetName.endsWith(".st")) {
+        int nChars = filesetName.length();
+        filesetName = filesetName.substring(0, nChars - 3);
       }
     }
     else {
-      if(filesetName.endsWith("a.st") | filesetName.endsWith("b.st")){
-	int nChars = filesetName.length();
-	filesetName = filesetName.substring(0, nChars-4);
+      if (filesetName.endsWith("a.st") | filesetName.endsWith("b.st")) {
+        int nChars = filesetName.length();
+        filesetName = filesetName.substring(0, nChars - 4);
       }
     }
   }
@@ -108,7 +111,7 @@ public class MetaData extends ConstMetaData
     tiltAngleSpecA = tiltAngleSpec;
   }
 
-  public void setExcludeProjectionsA(String list){
+  public void setExcludeProjectionsA(String list) {
     excludeProjectionsA = list;
   }
 
@@ -116,7 +119,7 @@ public class MetaData extends ConstMetaData
     tiltAngleSpecB = tiltAngleSpec;
   }
 
-  public void setExcludeProjectionsB(String list){
+  public void setExcludeProjectionsB(String list) {
     excludeProjectionsB = list;
   }
 
@@ -135,16 +138,17 @@ public class MetaData extends ConstMetaData
     store(props, "");
   }
 
-  public void store (Properties props, String prepend) {
+  public void store(Properties props, String prepend) {
     String group;
-    if(prepend == "") {
+    if (prepend == "") {
       group = "Setup.";
     }
     else {
       group = prepend + ".Setup.";
     }
     props.setProperty(group + "RevisionNumber", revisionNumber);
-    props.setProperty(group + "ComScriptsCreated",
+    props.setProperty(
+      group + "ComScriptsCreated",
       String.valueOf(comScriptsCreated));
     props.setProperty(group + "FilesetName", filesetName);
     props.setProperty(group + "BackupDirectory", backupDirectory);
@@ -156,20 +160,23 @@ public class MetaData extends ConstMetaData
     props.setProperty(group + "SectionType", sectionType.toString());
 
     props.setProperty(group + "PixelSize", String.valueOf(pixelSize));
-    props.setProperty(group + "UseLocalAlignments",
-		      String.valueOf(useLocalAlignments));
-    props.setProperty(group + "FiducialDiameter",
-		      String.valueOf(fiducialDiameter));
-    props.setProperty(group + "ImageRotation",
-		      String.valueOf(imageRotation));
+    props.setProperty(
+      group + "UseLocalAlignments",
+      String.valueOf(useLocalAlignments));
+    props.setProperty(
+      group + "FiducialDiameter",
+      String.valueOf(fiducialDiameter));
+    props.setProperty(group + "ImageRotation", String.valueOf(imageRotation));
 
     tiltAngleSpecA.store(props, group + "AxisA");
-    props.setProperty(group + "AxisA.ExcludeProjections",
-		      String.valueOf(excludeProjectionsA));
+    props.setProperty(
+      group + "AxisA.ExcludeProjections",
+      String.valueOf(excludeProjectionsA));
 
     tiltAngleSpecB.store(props, group + "AxisB");
-    props.setProperty(group + "AxisB.ExcludeProjections",
-		      String.valueOf(excludeProjectionsB));
+    props.setProperty(
+      group + "AxisB.ExcludeProjections",
+      String.valueOf(excludeProjectionsB));
 
     combineParams.store(props, group);
   }
@@ -182,7 +189,7 @@ public class MetaData extends ConstMetaData
   }
   public void load(Properties props, String prepend) {
     String group;
-    if(prepend == "") {
+    if (prepend == "") {
       group = "Setup.";
     }
     else {
@@ -194,8 +201,9 @@ public class MetaData extends ConstMetaData
     // data files so as to not break existing files
     // May-03-2002
     comScriptsCreated =
-      Boolean.valueOf(props.getProperty(group +
-      "ComScriptsCreated", "true")).booleanValue();
+      Boolean
+        .valueOf(props.getProperty(group + "ComScriptsCreated", "true"))
+        .booleanValue();
     filesetName = props.getProperty(group + "FilesetName", "");
     backupDirectory = props.getProperty(group + "BackupDirectory", "");
     workingDirectory = props.getProperty(group + "WorkingDirectory", "");
@@ -203,32 +211,31 @@ public class MetaData extends ConstMetaData
     dataSource =
       DataSource.fromString(props.getProperty(group + "DataSource", "CCD"));
     axisType =
-      AxisType.fromString(props.getProperty(group + "AxisType",
-					    "Single Axis"));
+      AxisType.fromString(props.getProperty(group + "AxisType", "Single Axis"));
     viewType =
-      ViewType.fromString(props.getProperty(group + "ViewType",
-					    "Single View"));
+      ViewType.fromString(props.getProperty(group + "ViewType", "Single View"));
     sectionType =
-      SectionType.fromString(props.getProperty(group + "SectionType",
-					       "Single"));
+      SectionType.fromString(
+        props.getProperty(group + "SectionType", "Single"));
     pixelSize =
       Double.parseDouble(props.getProperty(group + "PixelSize", "0.0"));
 
     useLocalAlignments =
-      Boolean.valueOf(props.getProperty(group + "UseLocalAlignments",
-					"false")).booleanValue();
+      Boolean
+        .valueOf(props.getProperty(group + "UseLocalAlignments", "false"))
+        .booleanValue();
     fiducialDiameter =
       Double.parseDouble(props.getProperty(group + "FiducialDiameter", "0.0"));
 
     imageRotation =
       Double.parseDouble(props.getProperty(group + "ImageRotation", "0.0"));
 
-    excludeProjectionsA = props.getProperty(group +
-      "AxisA.ExcludeProjections", "");
+    excludeProjectionsA =
+      props.getProperty(group + "AxisA.ExcludeProjections", "");
     tiltAngleSpecA.load(props, group + "AxisA");
 
-    excludeProjectionsB = props.getProperty(group +
-      "AxisB.ExcludeProjections", "");
+    excludeProjectionsB =
+      props.getProperty(group + "AxisB.ExcludeProjections", "");
     tiltAngleSpecB.load(props, group + "AxisB");
 
     combineParams.load(props, group);
