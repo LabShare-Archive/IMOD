@@ -45,6 +45,7 @@ Log at end of file
 #include <string.h>
 #include <qwidget.h>
 #include <qtimer.h>
+#include <qapplication.h>
 #include "imod.h"
 #include "imod_info.h"
 #include "imodv.h"
@@ -59,7 +60,7 @@ typedef struct imodv_dialog
   int iconified;
   int dlgClass;
   int dlgType;
-  QRect geometry;
+  QPoint position;
 } ImodvDialog;
 
 /* Global resident instances of dialog managers for imod and imodv */
@@ -364,7 +365,7 @@ void DialogManager::remove(QWidget * widget)
   while (dia){
     if (dia->widget == widget) {
       if (dia->dlgType == ZAP_WINDOW_TYPE)
-        mLastZapGeom = widget->geometry();
+        mLastZapGeom = QRect(widget->pos(), widget->size());
       ilistRemove(mDialogList, index);
       return;
     }
@@ -408,17 +409,17 @@ void DialogManager::hide()
   while (dia){
     // Do not iconify if it is already minimized or if this class should
     // not be hidden together
-    if (dia->widget->isMinimized() || !hideTogether[dia->dlgClass])
+    if (dia->widget->isHidden() || !hideTogether[dia->dlgClass])
       dia->iconified = 0;
     else {
       dia->iconified = 1;
-      dia->geometry = dia->widget->geometry();
+      dia->position = dia->widget->pos();
 
       // This was showMinimized for everyone originally; worked fine on
       // Windows and Linux under Qt 3.0.5, didn't work on SGI because the boxes
       // didn't come back up.  Then the boxes didn't come up under RH 9 
       // (Qt 3.1), so switched to hide, which works on Linux, SGI, and Windows
-      // and has the advantage of producing a since icon.
+      // and has the advantage of producing a single icon.
       // But on the Mac it made the main imodv window bounce back out!
       // showNormal and show are interchangeable for getting back up
 #ifdef Q_OS_MACX
@@ -438,8 +439,8 @@ void DialogManager::show()
   dia = (ImodvDialog *)ilistFirst(mDialogList);
   while (dia){
     if (dia->iconified) {
+      dia->widget->move(dia->position);
       dia->widget->showNormal();
-      dia->widget->setGeometry(dia->geometry);
     }
     dia = (ImodvDialog *)ilistNext(mDialogList);
   }
@@ -480,7 +481,7 @@ QRect DialogManager::biggestGeometry(int dlgType)
   dia = (ImodvDialog *)ilistFirst(mDialogList);
   while (dia){
     if (dia->dlgType == dlgType) {
-      QRect geom = dia->widget->geometry();
+      QRect geom = QRect(dia->widget->pos(), dia->widget->size());
       if (geom.width() * geom.height() > biggest.width() * biggest.height())
         biggest = geom;
     }
@@ -493,6 +494,9 @@ QRect DialogManager::biggestGeometry(int dlgType)
 
 /*
 $Log$
+Revision 4.10  2003/09/17 05:54:19  mast
+Make it keep track of geometry of last zap window closed
+
 Revision 4.9  2003/09/17 04:46:21  mast
 Added function to return size of biggest zap window
 

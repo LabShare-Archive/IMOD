@@ -681,8 +681,10 @@ int main( int argc, char *argv[])
   }
 
   infoGeom = ImodPrefs->getInfoGeometry();
-  if (infoGeom.width() && infoGeom.height())
-    ImodInfoWin->setGeometry(infoGeom);
+  if (infoGeom.width() && infoGeom.height()) {
+    ImodInfoWin->resize(infoGeom.width(), infoGeom.height());
+    ImodInfoWin->move(infoGeom.x(), infoGeom.y());
+  }
 
   if (fillCache && vi.vmSize)
     imodCacheFill(&vi);
@@ -918,6 +920,10 @@ int imodColorValue(int inColor)
 
 /*
 $Log$
+Revision 4.21  2003/09/17 04:48:43  mast
+Added call to set info window geometry and made settings get saved before
+exit
+
 Revision 4.20  2003/09/13 04:32:33  mast
 Changed to protect the model filename array from overflow
 

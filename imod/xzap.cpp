@@ -831,11 +831,10 @@ int imod_zap_open(struct ViewInfo *vi)
     zap->startingGeom = oldGeom;
   }
 
-  // On Linux setting geometry before the show ended up
-  // with the window having a lower top (bigger Y when geometry is read back),
-  // So the first draw will start a timer to do the first real paint, and
-  // when that happens, set the geometry again.
-  zap->qtWindow->setGeometry(zap->startingGeom);
+  // 9/23/03: changed setGeometry to resize/move and this allowed elimination
+  // of the setting again on the first real draw
+  zap->qtWindow->resize(zap->startingGeom.width(),zap->startingGeom.height());
+  zap->qtWindow->move(zap->startingGeom.x(),zap->startingGeom.y());
   zap->qtWindow->show();
   zap->popup = 1;
 
@@ -2068,12 +2067,12 @@ void zapLimitWindowPos(int neww, int newh, int &newdx, int &newdy)
   // X11: spread margin equally top and bottom
   // Windows: put extra at bottom for task bar
   // Mac: put extra at top for menu
-  int mintop = (TITLE_SPACE + Y_BORDERS) / 2;
+  int mintop = (Y_BORDERS - TITLE_SPACE) / 2;
 #ifdef _WIN32
-  mintop = TITLE_SPACE;
+  mintop = 0;
 #endif
 #ifdef Q_OS_MACX
-  mintop = Y_BORDERS - 10;
+  mintop = Y_BORDERS - TITLE_SPACE - 10;
 #endif
 
   if (newdx < X_BORDERS / 2)
@@ -2095,7 +2094,7 @@ static void zapResizeToFit(ZapStruct *zap)
   float xl, xr, yb, yt;
   width = zap->qtWindow->width();
   height = zap->qtWindow->height();
-  QRect pos = zap->qtWindow->geometry();
+  QPoint pos = zap->qtWindow->pos();
   dx = pos.x();
   dy = pos.y();
   /* printf("dx %d dy %d\n", dx, dy); */
@@ -2124,7 +2123,8 @@ static void zapResizeToFit(ZapStruct *zap)
     fprintf(stderr, "configuring widget...");
 
   /* printf("newdx %d newdy %d\n", newdx, newdy); */
-  zap->qtWindow->setGeometry(newdx, newdy, neww, newh);
+  zap->qtWindow->resize(neww, newh);
+  zap->qtWindow->move(newdx, newdy);
 
   /* DNM 9/12/03: remove the ZAP_EXPOSE_HACK, and a second set geometry that
      was needed temporarily with Qt 3.2.1 on Mac */
@@ -2809,6 +2809,13 @@ bool zapTimeMismatch(ImodView *vi, int timelock, Iobj *obj, Icont *cont)
 
 /*
 $Log$
+Revision 4.30  2003/09/18 00:47:20  mast
+Added some functions for limiting window area to the desktop, with system-
+dependent Y positions; got geometry setting stable by setting it after the
+window is first displayed; changed mouse panning to move image along with
+mouse instead of slower than mouse for fractional zooms; added ability to
+keep track of window or rubberband limits of image for last active window.
+
 Revision 4.28  2003/09/17 04:45:37  mast
 Added ability to use window size from settings, made it zoom images
 up or down as appropriate to fit window, and rationalized the window

@@ -32,6 +32,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.9  2003/09/18 05:57:47  mast
+Add autocontrast targets
+
 Log at end of file
 */
 
@@ -324,7 +327,7 @@ void ImodPreferences::saveSettings()
     }
 
     // Get the current geometries and put in table
-    mGeomInfoWin[geomInd] = ImodInfoWin->geometry();
+    mGeomInfoWin[geomInd] = QRect(ImodInfoWin->pos(), ImodInfoWin->size());
     mGeomZapWin[geomInd] = imodDialogManager.biggestGeometry(ZAP_WINDOW_TYPE);
 
     settings.writeEntry(IMOD_NAME"lastGeometrySaved", geomInd);
