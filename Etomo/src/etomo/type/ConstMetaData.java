@@ -1,6 +1,7 @@
 package etomo.type;
 
 import java.io.File;
+import java.lang.IllegalStateException;
 
 import etomo.comscript.ConstCombineParams;
 import etomo.comscript.CombineParams;
@@ -19,6 +20,10 @@ import etomo.comscript.TransferfidParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.7  2003/10/06 22:35:18  sueh
+ * <p> transferfidNumberViews needs a default because there is
+ * <p> no conscript
+ * <p>
  * <p> Revision 2.6  2003/09/26 19:46:16  sueh
  * <p> bug223 removed task marks
  * <p>
@@ -94,9 +99,9 @@ public class ConstMetaData {
   }
 
   public void initializeTransferfid(TransferfidParam param) {
-		  	param.setNumberViews(transferfidNumberViews);
+    param.setNumberViews(transferfidNumberViews);
   }
-  
+
   public String getRevisionNumber() {
     return revisionNumber;
   }
@@ -172,65 +177,81 @@ public class ConstMetaData {
   public boolean isValid() {
 
     // Does the working directory exist
-    File workingDirectory = new File(System.getProperty("user.dir"));
-    if (!workingDirectory.exists()) {
-      invalidReason =
-        "Working directory: "
-          + workingDirectory.getAbsolutePath()
-          + " does not exist";
-      return false;
-    }
+    // If is doesn't then use the backup directory.    
+    File workingDir = new File(System.getProperty("user.dir"));
+    File backupDir = new File(backupDirectory);
+    File currentDir;
 
-    if (!workingDirectory.canRead()) {
-      invalidReason = "Can't read working directory";
-      return false;
+    //find a valid directory and set directory and type
+    if (isValid(workingDir, true)) {
+      currentDir = workingDir;
     }
+    else if (isValid(backupDir, true)) {
+      currentDir = backupDir;
+    }
+    else {
+      //can't find a valid directory, report error
 
-    if (!workingDirectory.canWrite()) {
-      invalidReason = "Can't write working directory";
-      return false;
+      //if no directory exists then exit
+      if (!workingDir.exists() && !backupDir.exists()) {
+        invalidReason =
+          "The working directory: "
+            + workingDir.getAbsolutePath()
+            + " and the backup directory: "
+            + backupDir.getAbsolutePath()
+            + " do not exist";
+        return false;
+      }
+
+      //decide which directory to complain about:
+      //complain about the working directory, if it exists
+      if (workingDir.exists()) {
+        currentDir = workingDir;
+      }
+      else {
+        currentDir = backupDir;
+      }
+
+      if (!currentDir.canRead()) {
+        invalidReason =
+          "Can't read " + currentDir.getAbsolutePath() + " directory";
+        return false;
+      }
+
+      if (!currentDir.canWrite()) {
+        invalidReason =
+          "Can't write " + currentDir.getAbsolutePath() + " directory";
+        return false;
+      }
+
+      throw new IllegalStateException(
+        "Working directory ="
+          + workingDir.toString()
+          + ",backupDir="
+          + backupDir.toString());
     }
 
     // Does the appropriate image stack exist in the working directory
+    //SUEH 267
+    System.out.println("1: currentDir=" + currentDir);
     if (axisType == AxisType.DUAL_AXIS) {
-      File stack = new File(workingDirectory, datasetName + "a.st");
-      if (!stack.exists()) {
-        invalidReason =
-          datasetName + "a.st does not exist in the working directory";
+      currentDir = findValidFile(datasetName + "a.st", currentDir, backupDir);
+      if (currentDir == null) {
         return false;
       }
-
-      if (!stack.canRead()) {
-        invalidReason = "Can't read " + datasetName + "a.st";
+      if (findValidFile(datasetName + "b.st", currentDir) == null) {
+        System.out.println("3: currentDir=" + currentDir);
         return false;
       }
-
-      stack = new File(workingDirectory, datasetName + "b.st");
-      if (!stack.exists()) {
-        invalidReason =
-          datasetName + "b.st does not exist in the working directory";
-        return false;
-      }
-
-      if (!stack.canRead()) {
-        invalidReason = "Can't read " + datasetName + "b.st";
-        return false;
-      }
-
     }
     else {
-      File stack = new File(workingDirectory, datasetName + ".st");
-      if (!stack.exists()) {
-        invalidReason =
-          datasetName + ".st does not exist in the working directory";
-        return false;
-      }
-
-      if (!stack.canRead()) {
-        invalidReason = "Can't read " + datasetName + ".st";
+      if (findValidFile(datasetName + ".st", currentDir, backupDir) == null) {
+        System.out.println("4: currentDir=" + currentDir);
         return false;
       }
     }
+
+    // Does the appropriate image stack exist in the working directory
     // Is the pixel size greater than zero
     if (pixelSize <= 0.0) {
       invalidReason = "Pixel size is not greater than zero";
@@ -245,7 +266,108 @@ public class ConstMetaData {
 
     return true;
   }
+
+  /**
+   * Checks a file's state.  Checks whether a file exists and
+   * is readable.  Optionally checks whether a file is
+   * writable.
+   * 
+   * @param file
+   * @param writeable - If true, the file must be writeable
+   * @return boolean
+   */
+  protected boolean isValid(File file, boolean writeable) {
+    if (file == null) {
+      return false;
+    }
+    if (!file.exists()) {
+      return false;
+    }
+
+    return file.canRead() && (!writeable || file.canWrite());
+  }
+
+  /**
+   * Finds a file in either the current directory or an
+   * alternate directory.  The file must be readable.
+   * 
+   * The current directory state variable can point to the 
+   * alternative directory state instance.
+   * In this case, only the alternative directory is checked.
+   * 
+   * Side Effect:
+   * If the function returns null, it places an error message
+   * into ConstMetaData.invalidReason.
+   * 
+   * @param fileName - Name of file to look for
+   * @param curDir - The current directory
+   * @param altDir - The alternate directory
+   * @return Success:  directory where file found.  Failure: null.
+   * @throws IllegalArgumentException if any parameter is null
+   */
+  protected File findValidFile(String fileName, File curDir, File altDir) {
+
+    if (fileName == null || curDir == null || altDir == null) {
+      throw new IllegalArgumentException("ConstMetaData.findValidFile(String,File,File)");
+    }
+
+    // Does the appropriate image stack exist in the working or backup directory
+    File file = new File(curDir, fileName);
+
+    while (!file.exists()) {
+      if (curDir == altDir || !isValid(altDir, true)) {
+        invalidReason =
+          fileName + " does not exist in  " + curDir.getAbsolutePath();
+        //SUEH 267
+        System.out.println("a:      curDir=" + curDir);
+        return null;
+      }
+      curDir = altDir;
+      file = new File(curDir, fileName);
+    }
+
+    if (!file.canRead()) {
+      invalidReason = "Can't read " + fileName;
+      return null;
+    }
+
+    return curDir;
+  }
+
+  /**
+   * Finds a file in the current directory.  The file must be readable.
+   * 
+   * Side Effect:
+   * If the function returns null, it places an error message
+   * into ConstMetaData.invalidReason.
+   * 
+   * @param fileName - Name of file to look for
+   * @param curDir - The current directory
+   * @return Success:  directory where file found.  Failure: null.
+   * @throws IllegalArgumentException if any parameter is null
+   */
+  protected File findValidFile(String fileName, File curDir) {
+    if (fileName == null || curDir == null) {
+      throw new IllegalArgumentException("ConstMetaData.findValidFile(String,File)");
+    }
+
+    // Does the appropriate image stack exist in the working or backup directory
+    File file = new File(curDir, fileName);
+
+    if (!file.exists()) {
+      invalidReason =
+        fileName + " does not exist in " + curDir.getAbsolutePath();
+      //SUEH 267
+      System.out.println("a:      curDir=" + curDir);
+      return null;
+    }
+
+    if (!file.canRead()) {
+      invalidReason = "Can't read " + fileName;
+      return null;
+    }
+
+    return curDir;
+  }
+
 }
-  
-  
- 
