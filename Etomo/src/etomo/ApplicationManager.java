@@ -74,6 +74,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.21  2003/04/14 23:57:18  rickg
+ * <p> Trimvol management changes
+ * <p>
  * <p> Revision 2.20  2003/04/10 23:40:03  rickg
  * <p> Initial exit function handling of imod and other processes
  * <p> Initial openPostProcessingDialog
@@ -303,7 +306,7 @@ public class ApplicationManager {
   private TomogramGenerationDialog tomogramGenerationDialogA = null;
   private TomogramGenerationDialog tomogramGenerationDialogB = null;
   private TomogramCombinationDialog tomogramCombinationDialog = null;
-
+  private PostProcessingDialog postProcessingDialog = null;
   private SettingsDialog settingsDialog = null;
 
   //  This object controls the reading and writing of David's com scripts
@@ -2287,7 +2290,7 @@ public class ApplicationManager {
    */
   public void modelToPatch() {
     try {
-      processMgr.modelToPatch();      
+      processMgr.modelToPatch();
     }
     catch (SystemProcessException except) {
       String[] errorMessage = new String[2];
@@ -2312,18 +2315,88 @@ public class ApplicationManager {
 
     //  Open the dialog in the appropriate mode for the current state of
     //  processing
-    PostProcessingDialog postProcessingDialog = new PostProcessingDialog(this);
+    if (postProcessingDialog == null) {
+      postProcessingDialog = new PostProcessingDialog(this);
+    }
 
     TrimvolParam trimvolParam = new TrimvolParam();
+    if(metaData.getAxisType()) {
+    }
+    try {
+      trimvolParam.setDefaultRange("sum.rec");
+    }
+    catch (InvalidParameterException except) {
+      String[] detailedMessage = new String[4];
+      detailedMessage[0] = "Unable to set trimvol range";
+      detailedMessage[1] = "Are both tomograms computed and available?";
+      detailedMessage[2] = "";
+      detailedMessage[3] = except.getMessage();
+
+      openMessageDialog(detailedMessage, "Invalid parameter: " + recFileName);
+      //Close the dialog
+      return;
+    }
+    catch (IOException except) {
+      except.printStackTrace();
+      openMessageDialog(except.getMessage(), "IO Error: " + recFileName);
+      //Close the dialog
+      return;
+    }
+
     postProcessingDialog.setTrimvolParams(trimvolParam);
 
-    mainFrame.showProcess(
-      postProcessingDialog.getContainer(),
-      AxisID.ONLY);
+    mainFrame.showProcess(postProcessingDialog.getContainer(), AxisID.ONLY);
+  }
+
+  /**
+   * Close the post processing dialog panel
+   */
+  public void donePostProcessing() {
+    if (postProcessingDialog == null) {
+      openMessageDialog(
+        "Post processing dialog not open",
+        "Program logic error");
+      return;
+    }
+
+    DialogExitState exitState = postProcessingDialog.getExitState();
+    if (exitState == DialogExitState.POSTPONE) {
+      processTrack.setPostProcessingState(ProcessState.INPROGRESS);
+      mainFrame.setPostProcessingState(ProcessState.INPROGRESS);
+    }
+    else {
+      processTrack.setPostProcessingState(ProcessState.COMPLETE);
+      mainFrame.setPostProcessingState(ProcessState.COMPLETE);
+      postProcessingDialog = null;
+    }
+    mainFrame.showBlankProcess(AxisID.ONLY);
 
   }
 
-  
+  /**
+   *  Execute trimvol
+   */
+  public void trimVolume() {
+    // Make sure that the post processing panel is open
+    if (postProcessingDialog == null) {
+      openMessageDialog(
+        "Post processing dialog not open",
+        "Program logic error");
+      return;
+    }
+    // Get the trimvol parameters from the panel
+    TrimvolParam trimvolParam = new TrimvolParam();
+    postProcessingDialog.getTrimvolParams(trimvolParam);
+    trimvolParam.setInputFile("sum.rec");
+    String fileSetName = metaData.getFilesetName();
+    trimvolParam.setOutputFile(fileSetName + ".rec");
+
+    // Start the trimvol process
+    String threadName = processMgr.trimVolume(trimvolParam);
+    setThreadName(threadName, AxisID.ONLY);
+    mainFrame.startProgressBar("Trimming volume", AxisID.ONLY);
+  }
+
   //
   //  Utility functions
   //
@@ -2693,9 +2766,9 @@ public class ApplicationManager {
 
       if (returnValue == JOptionPane.NO_OPTION) {
         return false;
-      }      
+      }
     }
-    
+
     //  Check to see the meta data / process info is dirty
     if (isDataParamDirty || processTrack.isModified()) {
       int returnValue =
@@ -2719,7 +2792,7 @@ public class ApplicationManager {
     }
 
     //  Should we close the imod windows
-       
+
     //  Save the current window size to the user config
     Dimension size = mainFrame.getSize();
     userConfig.setMainWindowWidth(size.width);

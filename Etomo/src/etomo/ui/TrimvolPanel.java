@@ -30,6 +30,9 @@ import etomo.comscript.TrimvolParam;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2003/04/14 23:57:44  rickg
+ * <p> In progress
+ * <p>
  * <p> Revision 1.3  2003/04/14 04:31:31  rickg
  * <p> In progres
  * <p>
@@ -51,22 +54,22 @@ public class TrimvolPanel {
 
   private JPanel pnlRange = new JPanel();
   private LabeledTextField ltfXMin = new LabeledTextField("X min: ");
-  private LabeledTextField ltfXMax = new LabeledTextField("X max: ");
+  private LabeledTextField ltfXMax = new LabeledTextField(" X max: ");
   private LabeledTextField ltfYMin = new LabeledTextField("Y min: ");
-  private LabeledTextField ltfYMax = new LabeledTextField("Y max: ");
+  private LabeledTextField ltfYMax = new LabeledTextField(" Y max: ");
   private LabeledTextField ltfZMin = new LabeledTextField("Z min: ");
-  private LabeledTextField ltfZMax = new LabeledTextField("Z max: ");
+  private LabeledTextField ltfZMax = new LabeledTextField(" Z max: ");
 
   private JPanel pnlScale = new JPanel();
   private JPanel pnlScaleFixed = new JPanel();
-  private JRadioButton rbScaleFixed = new JRadioButton("Fixed scaling - ");
+  private JRadioButton rbScaleFixed = new JRadioButton("Fixed scaling  ");
   private LabeledTextField ltfFixedScaleMin = new LabeledTextField("min: ");
-  private LabeledTextField ltfFixedScaleMax = new LabeledTextField("max: ");
+  private LabeledTextField ltfFixedScaleMax = new LabeledTextField(" max: ");
 
-  private JRadioButton rbScaleSection = new JRadioButton("Section based - ");
+  private JRadioButton rbScaleSection = new JRadioButton("Section based  ");
   private JPanel pnlScaleSection = new JPanel();
   private LabeledTextField ltfSectionScaleMin = new LabeledTextField("min: ");
-  private LabeledTextField ltfSectionScaleMax = new LabeledTextField("max: ");
+  private LabeledTextField ltfSectionScaleMax = new LabeledTextField(" max: ");
 
   private JCheckBox cbSwapYZ = new JCheckBox("Swap Y and Z dimensions");
 
@@ -122,14 +125,14 @@ public class TrimvolPanel {
 
     pnlScale.add(pnlScaleFixed);
     pnlScale.add(pnlScaleSection);
-    
+
     pnlButton.setLayout(new BoxLayout(pnlButton, BoxLayout.X_AXIS));
     pnlButton.add(Box.createHorizontalGlue());
     pnlButton.add(btnTrimvol);
     pnlButton.add(Box.createHorizontalGlue());
     pnlButton.add(btnImodVolume);
     pnlButton.add(Box.createHorizontalGlue());
-    
+
     pnlTrimvol.setLayout(new BoxLayout(pnlTrimvol, BoxLayout.Y_AXIS));
     pnlTrimvol.setBorder(new BeveledBorder("Volume trimming").getBorder());
 
@@ -141,7 +144,7 @@ public class TrimvolPanel {
     pnlTrimvol.add(cbSwapYZ);
     pnlTrimvol.add(Box.createRigidArea(FixedDim.x0_y10));
     pnlTrimvol.add(pnlButton);
-    
+
     RadioButtonActonListener radioButtonActonListener =
       new RadioButtonActonListener(this);
     rbScaleFixed.addActionListener(radioButtonActonListener);
@@ -198,6 +201,21 @@ public class TrimvolPanel {
     trimvolParam.setZMin(Integer.parseInt(ltfZMin.getText()));
     trimvolParam.setZMax(Integer.parseInt(ltfZMax.getText()));
     trimvolParam.setSwapYZ(cbSwapYZ.isSelected());
+    
+    if (rbScaleFixed.isSelected()) {
+      trimvolParam.setFixedScaling(true);
+      trimvolParam.setFixedScaleMin(
+        Integer.parseInt(ltfFixedScaleMin.getText()));
+      trimvolParam.setFixedScaleMax(
+        Integer.parseInt(ltfFixedScaleMax.getText()));
+    }
+    else {
+      trimvolParam.setFixedScaling(false);
+      trimvolParam.setSectionScaleMin(
+        Integer.parseInt(ltfSectionScaleMin.getText()));
+      trimvolParam.setSectionScaleMax(
+        Integer.parseInt(ltfSectionScaleMax.getText()));
+    }
   }
 
   /**
@@ -229,13 +247,13 @@ public class TrimvolPanel {
 
   private void buttonAction(ActionEvent event) {
     if (event.getActionCommand() == btnTrimvol.getActionCommand()) {
-      //applicationManager.trimVolume();
+      applicationManager.trimVolume();
     }
-    
+
     if (event.getActionCommand() == btnImodVolume.getActionCommand()) {
       //applicationManager.imodVolume();
     }
-    
+
   }
   /**
    * An inner class to manage the scale radio buttons 

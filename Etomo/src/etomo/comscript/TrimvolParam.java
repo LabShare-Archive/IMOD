@@ -1,5 +1,10 @@
 package etomo.comscript;
 
+import java.io.IOException;
+
+import etomo.util.MRCHeader;
+import etomo.util.InvalidParameterException;
+
 /**
  * <p>Description: </p>
  * 
@@ -13,6 +18,9 @@ package etomo.comscript;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2003/04/14 23:56:59  rickg
+ * <p> Default state of YZ swap changed to true
+ * <p>
  * <p> Revision 1.2  2003/04/10 23:40:40  rickg
  * <p> In progress
  * <p>
@@ -82,6 +90,9 @@ public class TrimvolParam {
       commandLine.append(String.valueOf(sectionScaleMax));
     }
 
+    if(swapYZ) {
+      commandLine.append(" -yz ");
+    }
     // TODO check to see that filenames are apropriate
     commandLine.append(" ");
     commandLine.append(inputFile);
@@ -299,6 +310,27 @@ public class TrimvolParam {
    */
   public void setZMin(int zMin) {
     this.zMin = zMin;
+  }
+
+  /**
+   * Sets the range to match the full volume
+   * @param fileName The MRC iamge stack file name used to set the range
+   */
+  public void setDefaultRange(String fileName)
+    throws InvalidParameterException, IOException {
+
+    // Get the data size limits from the image stack
+    MRCHeader mrcHeader = new MRCHeader(fileName);
+    mrcHeader.read();
+
+    xMin = 1;
+    xMax = mrcHeader.getNColumns();
+    yMin = 1;
+    yMax = mrcHeader.getNRows();
+    zMin = 1;
+    zMax = mrcHeader.getNSections();
+
+    
   }
 
 }

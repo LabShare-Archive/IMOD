@@ -20,6 +20,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.2  2003/04/14 23:57:34  rickg
+ * <p> Trimvol management changes
+ * <p>
  * <p> Revision 2.1  2003/04/10 23:43:23  rickg
  * <p> Added trimvol panel
  * <p>
@@ -88,7 +91,7 @@ public class PostProcessingDialog extends ProcessDialog {
    * @param trimvolParam
    */
   public void getTrimvolParams(TrimvolParam trimvolParam) {
-    trimvolPanel.setParameters(trimvolParam);
+    trimvolPanel.getParameters(trimvolParam);
   }
   
   /**

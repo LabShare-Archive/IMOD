@@ -7,6 +7,7 @@ import etomo.comscript.CopyTomoComs;
 import etomo.comscript.BadComScriptException;
 import etomo.comscript.SetupCombine;
 import etomo.comscript.TransferfidParam;
+import etomo.comscript.TrimvolParam;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -28,6 +29,9 @@ import java.util.Calendar;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.4  2003/03/26 00:52:42  rickg
+ * <p> Added button to convert patch_vector.mod to patch.out
+ * <p>
  * <p> Revision 2.3  2003/03/18 00:32:33  rickg
  * <p> combine development in progress
  * <p>
@@ -455,6 +459,20 @@ public class ProcessManager {
 
     //  Start the com script in the background
     return startComScript(command, AxisID.ONLY);
+  }
+
+  /**
+   * Run trimvol
+   */
+  public String trimVolume(TrimvolParam trimvolParam) {
+    BackgroundProcess trimvol =
+      new BackgroundProcess(trimvolParam.getCommandString(), this);
+    System.out.println(trimvolParam.getCommandString());
+    trimvol.setWorkingDirectory(new File(appManager.getWorkingDirectory()));
+    trimvol.setDemoMode(appManager.isDemo());
+    trimvol.setDebug(appManager.isDebug());
+    trimvol.start();
+    return trimvol.getName();
   }
 
   /**
