@@ -22,6 +22,11 @@ import etomo.comscript.TransferfidParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.12  2003/01/04 00:34:45  rickg
+ * <p> bound actions listeners for transferfid buttons
+ * <p> added getTransferFidParams method
+ * <p> implemented button actions for transfer fiducials
+ * <p>
  * <p> Revision 1.11  2002/12/31 23:13:01  rickg
  * <p> Implemented logic for transferfid buttons
  * <p>
@@ -75,7 +80,6 @@ public class AlignmentEstimationDialog
   private BeveledBorder borderA = new BeveledBorder("Axis: A");
 
   private TiltalignPanel panelTiltalignA;
-  private TransferfidPanel panelTransferFidA;
 
   private JPanel panelButtonA = new JPanel();
 
@@ -89,13 +93,12 @@ public class AlignmentEstimationDialog
     new JButton("<html><b>View 3D<br>model</b>");
 
   private JButton buttonTransferFiducialsA =
-    new JButton("<html><b>Transfer fiducials<br>to other axis</b>");
+    new JButton("<html><b>Transfer fiducials<br>to the B axis</b>");
 
   private JPanel panelAlignEstB = new JPanel();
   private BeveledBorder borderB = new BeveledBorder("Axis: B");
 
   private TiltalignPanel panelTiltalignB;
-  private TransferfidPanel panelTransferFidB;
 
   private JPanel panelButtonB = new JPanel();
 
@@ -109,7 +112,10 @@ public class AlignmentEstimationDialog
     new JButton("<html><b>View/Edit model<br>in imod<</b>");
 
   private JButton buttonTransferFiducialsB =
-    new JButton("<html><b>Transfer fiducials<br>to other axis</b>");
+    new JButton("<html><b>Transfer fiducials<br>to the A axis</b>");
+
+  //  There only needs to be one transfer fiducial panel
+  private TransferfidPanel panelTransferFid;
 
   public AlignmentEstimationDialog(ApplicationManager appMgr) {
     super(appMgr);
@@ -121,14 +127,13 @@ public class AlignmentEstimationDialog
 
     if (applicationManager.isDualAxis()) {
       panelTiltalignA = new TiltalignPanel("a");
+      panelTransferFid = new TransferfidPanel();
     }
     else {
       panelAlignEstB.setVisible(false);
-
       panelTiltalignA = new TiltalignPanel("");
     }
     panelTiltalignB = new TiltalignPanel("b");
-    panelTransferFidB = new TransferfidPanel("b");
 
     buttonExecute.setText("Done");
 
@@ -151,8 +156,7 @@ public class AlignmentEstimationDialog
     panelAlignEstA.add(panelTiltalignA.getContainer());
     panelAlignEstA.add(Box.createRigidArea(FixedDim.x5_y0));
     if (applicationManager.isDualAxis()) {
-      panelTransferFidA = new TransferfidPanel("a");
-      panelAlignEstA.add(panelTransferFidA.getContainer());
+      panelAlignEstA.add(panelTransferFid.getContainer());
       panelAlignEstA.add(Box.createRigidArea(FixedDim.x5_y0));
     }
     panelAlignEstA.add(panelButtonA);
@@ -177,11 +181,6 @@ public class AlignmentEstimationDialog
 
     panelAlignEstB.add(panelTiltalignB.getContainer());
     panelAlignEstB.add(Box.createRigidArea(FixedDim.x5_y0));
-
-    if (applicationManager.isDualAxis()) {
-      panelAlignEstB.add(panelTransferFidB.getContainer());
-      panelAlignEstB.add(Box.createRigidArea(FixedDim.x5_y0));
-    }
 
     panelAlignEstB.add(panelButtonB);
 
@@ -260,15 +259,12 @@ public class AlignmentEstimationDialog
 
   }
 
-  public void getTransferFidParams(
-    TransferfidParam transferFidParam,
-    AxisID axisID) {
-    if (axisID == AxisID.SECOND) {
-      panelTransferFidB.getParameters(transferFidParam);
-    }
-    else {
-      panelTransferFidA.getParameters(transferFidParam);
-    }
+  public void setTransferFidParams(TransferfidParam transferFidParam) {
+    panelTransferFid.setParameters(transferFidParam);
+  }
+
+  public void getTransferFidParams(TransferfidParam transferFidParam) {
+    panelTransferFid.getParameters(transferFidParam);
   }
 
   public void setEnabledB(boolean state) {
@@ -351,7 +347,7 @@ public class AlignmentEstimationDialog
   void buttonTransferFiducialsBAction() {
     applicationManager.transferfid(AxisID.SECOND);
   }
-  
+
   //  Action function overides for exit buttons
   public void buttonCancelAction(ActionEvent event) {
     super.buttonCancelAction(event);
