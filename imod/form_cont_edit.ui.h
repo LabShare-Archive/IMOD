@@ -171,7 +171,7 @@ void ContSurfPoint::setPointSize( float size, int defval )
     pointSizeEdit->setEnabled(defval >= 0);
     pointSizeSlider->setEnabled(defval >= 0);
     if (defval < 0) {
-	diaSetSlider(pointSizeSlider, 0.);
+	diaSetSlider(pointSizeSlider, 0);
 	pointSizeEdit->setText("No Point");
     } else {
 	int value = (int)floor(10. * size + 0.5);
