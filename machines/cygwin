@@ -291,6 +291,7 @@ endif
 #
 if ($compiler == intel) then
     set qt_libs = `sed -n '/^LIBS[ 	]*=/s/^[^"]*\("[^"]*"\).*$/\1/p' $sendevent_dir/Makefile | sed '/\\/s//\\\\/g'`
+    set qt_libs = '/LIBPATH:"$(QTDIR)\\lib"'" $qt_libs"
     cat <<EOF >> $imod_dir/Makefile
 
 mkargv : mkargv.c
