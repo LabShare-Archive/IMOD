@@ -1,13 +1,13 @@
 #include "dialog_frame.h"
 class QPushButton;
 class QCheckBox;
-class BeadFixer : public DialogFrame
+class BeadFixer2 : public DialogFrame
 {
   Q_OBJECT
 
  public:
-  BeadFixer(QWidget *parent, const char *name = NULL);
-  ~BeadFixer() {};
+  BeadFixer2(QWidget *parent, const char *name = NULL);
+  ~BeadFixer2() {};
 
   public slots:
   void buttonPressed(int which);

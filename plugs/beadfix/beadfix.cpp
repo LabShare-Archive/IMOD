@@ -31,6 +31,9 @@
     $Revision$
 
     $Log$
+    Revision 3.9  2003/08/01 00:16:51  mast
+    Made "examine once" be default and rearranged buttons
+
     Revision 3.8  2003/07/07 21:32:49  mast
     Fix stupid malloc/realloc problem in pointer list
 
@@ -52,30 +55,19 @@
 */
 
 /* include needed Qt headers and imod headers
+ * This version is to test building as a plugin in with public interfaces only
  */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 #include <qpushbutton.h>
 #include <qcheckbox.h>
 #include <qtooltip.h>
 
-// This is taken from the imodplug.h in the include directory
-/*#define NO_X_INCLUDES
-#include <imodel.h>
-#include <model.h>
-*/
-/* Define structures needed for imod.h */
-/*typedef struct privateStruct ImodView;
-//typedef void (*ImodControlProc)(ImodView *, void *, int);
-
-#define IMODP_H */
-#include "../../imod/imod.h"
-#include "../../imod/imodplug.h"
+#include "imodplugin.h"
 #include "dia_qtutils.h"
-#include "../../imod/control.h"
-//#include "../../imod/.h"
 #include "beadfix.h"
 
 #define MAXLINE 100
@@ -98,7 +90,7 @@ typedef struct {
 typedef struct
 {
   ImodView    *view;
-  BeadFixer *window;
+  BeadFixer2 *window;
 
   char   *filename;
   FILE   *fp;
@@ -136,7 +128,7 @@ char *imodPlugInfo(int *type)
 {
   if (type)
     *type = IMOD_PLUG_MENU + IMOD_PLUG_KEYS;
-  return("Bead Fixer");
+  return("Bead Fixer2");
 }
 
 /*
@@ -236,7 +228,7 @@ void imodPlugExecute(ImodView *inImodView)
   /*
    * This creates the plug window.
    */
-  plug->window  = new BeadFixer(imodDialogManager.parent(IMOD_DIALOG),
+  plug->window  = new BeadFixer2(imodDialogManager.parent(IMOD_DIALOG),
                                 "bead fixer");
 
   imodDialogManager.add((QWidget *)plug->window, IMOD_DIALOG);
@@ -246,7 +238,7 @@ void imodPlugExecute(ImodView *inImodView)
 
 /* Open a tiltalign log file to find points with big residuals */
 
-void BeadFixer::openFile()
+void BeadFixer2::openFile()
 {
   QString qname;
   char *filter[] = {"Align log files (align*.log)", "Log files (*.log)"};
@@ -274,7 +266,7 @@ void BeadFixer::openFile()
 
 /* Read or reread the tiltalign log file whose name was already obtained */
 
-void BeadFixer::reread(int skipopen)
+void BeadFixer2::reread(int skipopen)
 {
   PlugData *plug = &thisPlug;
 
@@ -375,7 +367,7 @@ void BeadFixer::reread(int skipopen)
 
 /* Jump to the next point with a big residual */
 
-void BeadFixer::nextRes()
+void BeadFixer2::nextRes()
 {
   char line[MAXLINE];
   char *getres;
@@ -559,7 +551,7 @@ void BeadFixer::nextRes()
 }
  
 // Go back to last point
-void BeadFixer::backUp()
+void BeadFixer2::backUp()
 {
   PlugData *plug = &thisPlug;
   int i, areaX, areaY;
@@ -593,19 +585,19 @@ void BeadFixer::backUp()
   plug->lookonce = i;
 }
 
-void BeadFixer::onceToggled(bool state)
+void BeadFixer2::onceToggled(bool state)
 {
   PlugData *plug = &thisPlug;
   plug->lookonce = state ? 1 : 0;
 }
 
-void BeadFixer::clearList()
+void BeadFixer2::clearList()
 {
   PlugData *plug = &thisPlug;
   plug->listsize = 0;
 }
 
-void BeadFixer::movePoint()
+void BeadFixer2::movePoint()
 {
   int obj, cont, pt;
   Ipoint *pts;
@@ -643,7 +635,7 @@ void BeadFixer::movePoint()
   ivwRedraw(plug->view);
 }
 
-void BeadFixer::undoMove()
+void BeadFixer2::undoMove()
 {
   int obsav, cosav, ptsav;
   int obj, cont, pt;
@@ -695,7 +687,7 @@ void BeadFixer::undoMove()
   undoMoveBut->setEnabled(false);
 }
 
-int BeadFixer::foundgap(int obj, int cont, int ipt, int before)
+int BeadFixer2::foundgap(int obj, int cont, int ipt, int before)
 {
   PlugData *plug = &thisPlug;
   Imod *theModel = ivwGetModel(plug->view);
@@ -713,7 +705,7 @@ int BeadFixer::foundgap(int obj, int cont, int ipt, int before)
   return 0;
 }
 
-void BeadFixer::clearExtraObj()
+void BeadFixer2::clearExtraObj()
 {
   PlugData *plug = &thisPlug;
   Iobj *obj = ivwGetExtraObject(plug->view);
@@ -735,7 +727,7 @@ void BeadFixer::clearExtraObj()
 /* Jump to next gap in the model, or place where it is not tracked to first
    or last section */
 
-void BeadFixer::nextGap()
+void BeadFixer2::nextGap()
 {
   int  obj, nobj, cont, ncont, ipt, npnt;
   int obsav, cosav, ptsav, curob, curco, curpt, lookback;
@@ -851,7 +843,7 @@ void BeadFixer::nextGap()
 static char *buttonLabels[] = {"Done", "Help"};
 static char *buttonTips[] = {"Close Bead Fixer", "Open help window"};
 
-BeadFixer::BeadFixer(QWidget *parent, const char *name)
+BeadFixer2::BeadFixer2(QWidget *parent, const char *name)
   : DialogFrame(parent, 2, buttonLabels, buttonTips, true, "Bead Fixer", "",
                 name)
 {
@@ -927,7 +919,7 @@ BeadFixer::BeadFixer(QWidget *parent, const char *name)
 
 }
 
-void BeadFixer::buttonPressed(int which)
+void BeadFixer2::buttonPressed(int which)
 {
   if (!which)
     close();
@@ -999,7 +991,7 @@ void BeadFixer::buttonPressed(int which)
 }
 
 // The window is closing, remove from manager
-void BeadFixer::closeEvent ( QCloseEvent * e )
+void BeadFixer2::closeEvent ( QCloseEvent * e )
 {
   PlugData *plug = &thisPlug;
   imodDialogManager.remove((QWidget *)plug->window);
@@ -1020,7 +1012,7 @@ void BeadFixer::closeEvent ( QCloseEvent * e )
 }
 
 // Close on escape, pass on keys
-void BeadFixer::keyPressEvent ( QKeyEvent * e )
+void BeadFixer2::keyPressEvent ( QKeyEvent * e )
 {
   if (e->key() == Qt::Key_Escape)
     close();
@@ -1028,7 +1020,7 @@ void BeadFixer::keyPressEvent ( QKeyEvent * e )
     ivwControlKey(0, e);
 }
 
-void BeadFixer::keyReleaseEvent ( QKeyEvent * e )
+void BeadFixer2::keyReleaseEvent ( QKeyEvent * e )
 {
   ivwControlKey(1, e);
 }
