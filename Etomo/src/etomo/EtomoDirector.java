@@ -45,6 +45,12 @@ import etomo.util.Utilities;
  * 
  * <p>
  * $Log$
+ * Revision 1.5  2005/02/07 22:07:38  sueh
+ * bug# 594 Using WindowSwitch through MainFrame to manage switching
+ * between .edf and .ejf files.  Removed
+ * MainFrame.setWindowMenuLabels(HashedArray).  Insteading adding,
+ * renaming, and removing individually.
+ *
  * Revision 1.4  2005/01/21 22:12:38  sueh
  * bug# 509 bug# 591  Managing a list of Controllers instead of a list of
  * managers.  This give better access to controller classes such as
@@ -140,6 +146,7 @@ public class EtomoDirector {
   private HashedArray controllerList = null;
   private UniqueKey currentControllerKey = null;
   private String homeDirectory;
+  private boolean defaultWindow = false;
   // advanced dialog state for this instance, this gets set upon startup from
   // the user configuration and can be modified for this instance by either
   // the option or advanced menu items
@@ -181,6 +188,7 @@ public class EtomoDirector {
     ReconstructionController reconstructionController = null;
     //if no param file is found bring up AppMgr.SetupDialog
     if (paramFileNameListSize == 0) {
+      defaultWindow = true;
       openTomogram(true);
     }
     else {
@@ -392,6 +400,7 @@ public class EtomoDirector {
   }
   
   public UniqueKey openJoin(boolean makeCurrent) {
+    closeDefaultWindow();
     return openJoin(ConstJoinMetaData.getNewFileTitle(), makeCurrent);
   }
   
@@ -423,19 +432,43 @@ public class EtomoDirector {
     }
     if (makeCurrent) {
       setCurrentManager(controllerKey);
-      mainFrame.selectWindowMenuItem(controllerKey);
+      if (!test) {
+        mainFrame.selectWindowMenuItem(controllerKey);
+      }
     }
     return controllerKey;
   }
   
   public UniqueKey openTomogram(boolean makeCurrent) {
+    closeDefaultWindow();
     return openTomogram(ConstMetaData.getNewFileTitle(), makeCurrent);
+  }
+  
+  /**
+   * When etomo is run with no data file, it automatically opens a Setup
+   * Tomogram window.  This window should be closed if the user opens another
+   * window without adding data to the Setup Tomogram fields.  This is only true
+   * if the Setup Tomogram was opened as the default window.
+   */
+  private void closeDefaultWindow() {
+    if (defaultWindow && controllerList.size() == 1) {
+      BaseManager manager = ((Controller) controllerList.get(currentControllerKey)).getManager();
+      if (manager instanceof ApplicationManager) {
+        ApplicationManager appManager = (ApplicationManager) manager;
+        if (appManager.isNewManager() && !appManager.isSetupChanged()) {
+          defaultWindow = false;
+          closeCurrentManager();
+        }
+      }
+    }
+
   }
   
   public UniqueKey openManager(File dataFile, boolean makeCurrent) {
     if (dataFile == null) {
       throw new IllegalStateException("null dataFile");
     }
+    closeDefaultWindow();
     EtomoFileFilter etomoFileFilter = new EtomoFileFilter();
     if (etomoFileFilter.accept(dataFile)) {
       return openTomogram(dataFile, makeCurrent);
