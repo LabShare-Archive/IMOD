@@ -21,6 +21,9 @@ import etomo.ApplicationManager;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.16  2004/06/17 01:29:52  sueh
+ * <p> added 3dmod command to err log because it is useful to see
+ * <p>
  * <p> Revision 3.15  2004/06/10 18:23:11  sueh
  * <p> bug# 463 add setOpenBeadFixerMessage() to add the open
  * <p> bead fixer message to the message list
@@ -180,11 +183,17 @@ public class ImodProcess {
   public static final String MESSAGE_OPEN_BEADFIXER = "8";
   public static final String MESSAGE_ONE_ZAP_OPEN = "9";
   public static final String MESSAGE_RUBBERBAND = "10";
+  public static final String MESSAGE_OBJ_PROPERTIES = "11";
+  public static final String MESSAGE_NEWOBJ_PROPERTIES = "12";
   
   public static final String ERROR_STRING = "ERROR:";
   public static final String WARNING_STRING = "WARNING:";
   public static final String IMOD_SEND_EVENT_STRING = "imodsendevent returned:";
   public static final String RUBBERBAND_RESULTS_STRING = "Rubberband:";
+  
+  public static final String TRUE = "1";
+  public static final String FALSE = "0";
+  public static final int CIRCLE = 1;
 
   private static final int defaultBinning = 1;
 
@@ -193,9 +202,9 @@ public class ImodProcess {
   private String windowID = "";
   private boolean swapYZ = false;
   private boolean modelView = false;
-  private boolean fillCache = false;
   private boolean useModv = false;
   private boolean outputWindowID = true;
+  private boolean openWithModel = true;
   private File workingDirectory = null;
   private int binning = defaultBinning;
   InteractiveSystemProgram imod = null;
@@ -251,6 +260,18 @@ public class ImodProcess {
   public void setWorkingDirectory(File workingDirectory) {
     this.workingDirectory = workingDirectory;
   }
+  
+  /**
+   * When openWithModel is true 3dmod will open with a model, if a model is set.
+   * The default for openWithModel is true.
+   * Some open model options cannot be sent to 3dmod during open.  Turn off this
+   * option to prevent opening the model during open.
+   * Example: MESSAGE_OPEN_KEEP_BW
+   * @param openWithoutModel
+   */
+  public void setOpenWithModel(boolean openWithModel) {
+    this.openWithModel = openWithModel; 
+  }
 
   /**
    * Open the 3dmod process if is not already open.
@@ -281,17 +302,17 @@ public class ImodProcess {
     if (useModv) {
       options.append("-view ");
     }
-
-    // Fill cache implementation
-    if (fillCache) {
-      options.append("-F ");
-    }
     
     if (binning > defaultBinning) {
       options.append("-B " + binning + " ");
     }
-    String command = ApplicationManager.getIMODBinPath() + "3dmod " + options
-        + datasetName + " " + modelName;
+    StringBuffer commandBuffer =
+      new StringBuffer(
+        ApplicationManager.getIMODBinPath() + "3dmod " + options + datasetName);
+    if (openWithModel) {
+      commandBuffer.append(" " + modelName);
+    }
+    String command = commandBuffer.toString();
     if(ApplicationManager.isDebug()) {
       System.err.println(command);
     }
@@ -428,6 +449,43 @@ public class ImodProcess {
     imodSendEvent(args);
   }
   
+  /**
+   * Adds a message which sets new contours to be open
+   * Message description:
+   * 12 0 1 1 7 0
+   * 12 says to do it to a new (empty) contour only (11 would be unconditional)
+   * 0 is for object 1
+   * 1 sets it to open
+   * 1 sets it to display circles
+   * 7 makes circle size be 7
+   * 0 keeps 3D size at 0
+   */
+  public void setNewContoursMessage(boolean open) {
+    setNewObjectMessage(0, open, CIRCLE, 7, 0);
+  }
+  
+  /**
+   * 
+   * @param object
+   * @param open
+   * @param symbol
+   * @param size
+   * @param size3D
+   */
+  public void setNewObjectMessage(
+    int object,
+    boolean open,
+    int symbol,
+    int size,
+    int size3D) {
+    sendArguments.add(MESSAGE_NEWOBJ_PROPERTIES);
+    sendArguments.add(String.valueOf(object));
+    sendArguments.add(open ? TRUE : FALSE);
+    sendArguments.add(String.valueOf(symbol));
+    sendArguments.add(String.valueOf(size));
+    sendArguments.add(String.valueOf(size3D));
+  } 
+ 
   /**
    * Places arguments to set model mode on the argument list.
    */
@@ -717,20 +775,6 @@ public class ImodProcess {
   /**
    * @return
    */
-  public boolean isFillCache() {
-    return fillCache;
-  }
-
-  /**
-   * @param b
-   */
-  public void setFillCache(boolean b) {
-    fillCache = b;
-  }
-
-  /**
-   * @return
-   */
   public boolean isUseModv() {
     return useModv;
   }
@@ -771,8 +815,8 @@ public class ImodProcess {
 
   protected String paramString() {
     return ",datasetName=" + datasetName + ", modelName=" + modelName
-        + ", windowID=" + windowID + ", swapYZ=" + swapYZ + ", fillCache="
-        + fillCache + ", modelView=" + modelView + ", useModv=" + useModv
+        + ", windowID=" + windowID + ", swapYZ=" + swapYZ + ", modelView=" 
+        + modelView + ", useModv=" + useModv
         + ", outputWindowID=" + outputWindowID + ", binning=" + binning;
   }
 
