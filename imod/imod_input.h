@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.2  2003/02/10 20:41:55  mast
+    Merge Qt source
+
     Revision 3.1.2.4  2003/01/27 00:30:07  mast
     Pure Qt version and general cleanup
 
@@ -76,6 +79,7 @@ void inputNextPoint(ImodView *vw);
 void inputPrevPoint(ImodView *vw);
 void inputMoveObject(ImodView *vw);
 void inputDeleteContour(ImodView *vw);
+void inputTruncateContour(ImodView *vw);
 void inputFindValue(ImodView *vw);
 void inputPointMove(ImodView *vw, int x, int y, int z);
 void inputTranslate(ImodView *vw, int x, int y);

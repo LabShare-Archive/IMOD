@@ -32,67 +32,9 @@
 $Date$
 
 $Revision$
-
-$Log$
-Revision 4.1  2003/02/10 20:29:00  mast
-autox.cpp
-
-Revision 1.1.2.13  2003/02/03 05:38:45  mast
-fixed problem in finding highest pixel (F)
-
-Revision 1.1.2.12  2003/01/27 00:30:07  mast
-Pure Qt version and general cleanup
-
-Revision 1.1.2.11  2003/01/23 20:05:43  mast
-*** empty log message ***
-
-Revision 1.1.2.10  2003/01/18 01:15:25  mast
-remove keypad include
-
-Revision 1.1.2.9  2003/01/14 21:52:38  mast
-include new movie controller include file
-
-Revision 1.1.2.8  2003/01/13 01:15:42  mast
-changes for Qt version of info window
-
-Revision 1.1.2.7  2003/01/10 23:52:54  mast
-add new xgraoh include
-
-Revision 1.1.2.6  2003/01/06 15:52:16  mast
-changes for Qt version of slicer
-
-Revision 1.1.2.5  2003/01/04 03:47:42  mast
-add include of imod_input.h (!) and control.h
-
-Revision 1.1.2.4  2002/12/19 04:37:13  mast
-Cleanup of unused global variables and defines
-
-Revision 1.1.2.3  2002/12/17 18:40:24  mast
-Changes and new includes with Qt version of imodv
-
-Revision 1.1.2.2  2002/12/13 06:09:09  mast
-include file changes
-
-Revision 1.1.2.1  2002/12/09 17:51:07  mast
-Conversion to cpp and inclusion of a Qt version for default input keys
-
-Revision 3.2.2.1  2002/12/05 16:23:52  mast
-No changes - CVS detected as modified in branch
-
-Revision 3.3  2002/12/03 15:50:15  mast
-Before a save, have it test the forbid level, then set forbid level
-during the save, to prevent multiple file dialogs
-
-Revision 3.2  2002/12/01 15:34:41  mast
-Changes to get clean compilation with g++
-
-Revision 3.1  2002/05/20 15:34:47  mast
-Made time index modeling be the default for a new object if multiple files
-are open
-
+Log at end of file
 */
 
-#include <stdio.h>
 #include <math.h>
 #include <qevent.h>
 #include <qnamespace.h>
@@ -116,7 +58,6 @@ are open
 #include "imod_model_edit.h"
 #include "imod_object_edit.h"
 
-extern long Typemenu;
      
 /* old function still in use */
 int mouse_in_box(int llx, int lly, int urx, int  ury, int mousex, int mousey)
@@ -662,6 +603,16 @@ void inputDeleteContour(ImodView *vw)
   return;
 }
 
+/* Truncate contour at the current point */
+void inputTruncateContour(ImodView *vw)
+{
+  Icont *cont = imodContourGet(vw->imod);
+  if (!cont || vw->imod->cindex.point < 0)
+    return;
+  cont->psize = vw->imod->cindex.point + 1;
+  imod_setxyzmouse();
+}
+
 void inputFindValue(ImodView *vw)
 {
   float pixval;
@@ -924,6 +875,8 @@ void inputQDefaultKeys(QKeyEvent *event, ImodView *vw)
   case Qt::Key_D:
     if (shifted)
       inputDeleteContour(vw);
+    else if (event->state() & Qt::ControlButton)
+      inputTruncateContour(vw);
     else
       handled = 0;
     break;
@@ -1100,13 +1053,15 @@ void inputQDefaultKeys(QKeyEvent *event, ImodView *vw)
     xcramp_getlevels(vw->cramp, &(vw->black), &(vw->white));
     imod_info_setbw(vw->black, vw->white);
     break;
+
+    /* DNm 2/27/03: it makes more sense to decrease then increase brightness */
   case Qt::Key_F7:
-    xcramp_level(vw->cramp, -1, -1);
+    xcramp_level(vw->cramp, 1, 1);
     xcramp_getlevels(vw->cramp, &(vw->black), &(vw->white));
     imod_info_setbw(vw->black, vw->white);
     break;
   case Qt::Key_F8:
-    xcramp_level(vw->cramp, 1, 1);
+    xcramp_level(vw->cramp, -1, -1);
     xcramp_getlevels(vw->cramp, &(vw->black), &(vw->white));
     imod_info_setbw(vw->black, vw->white);
     break;
@@ -1150,3 +1105,65 @@ void inputQDefaultKeys(QKeyEvent *event, ImodView *vw)
 
 }
 
+/*
+$Log$
+Revision 4.2  2003/02/14 01:15:20  mast
+Try to prevent bad pageup's
+
+Revision 4.1  2003/02/10 20:29:00  mast
+autox.cpp
+
+Revision 1.1.2.13  2003/02/03 05:38:45  mast
+fixed problem in finding highest pixel (F)
+
+Revision 1.1.2.12  2003/01/27 00:30:07  mast
+Pure Qt version and general cleanup
+
+Revision 1.1.2.11  2003/01/23 20:05:43  mast
+*** empty log message ***
+
+Revision 1.1.2.10  2003/01/18 01:15:25  mast
+remove keypad include
+
+Revision 1.1.2.9  2003/01/14 21:52:38  mast
+include new movie controller include file
+
+Revision 1.1.2.8  2003/01/13 01:15:42  mast
+changes for Qt version of info window
+
+Revision 1.1.2.7  2003/01/10 23:52:54  mast
+add new xgraoh include
+
+Revision 1.1.2.6  2003/01/06 15:52:16  mast
+changes for Qt version of slicer
+
+Revision 1.1.2.5  2003/01/04 03:47:42  mast
+add include of imod_input.h (!) and control.h
+
+Revision 1.1.2.4  2002/12/19 04:37:13  mast
+Cleanup of unused global variables and defines
+
+Revision 1.1.2.3  2002/12/17 18:40:24  mast
+Changes and new includes with Qt version of imodv
+
+Revision 1.1.2.2  2002/12/13 06:09:09  mast
+include file changes
+
+Revision 1.1.2.1  2002/12/09 17:51:07  mast
+Conversion to cpp and inclusion of a Qt version for default input keys
+
+Revision 3.2.2.1  2002/12/05 16:23:52  mast
+No changes - CVS detected as modified in branch
+
+Revision 3.3  2002/12/03 15:50:15  mast
+Before a save, have it test the forbid level, then set forbid level
+during the save, to prevent multiple file dialogs
+
+Revision 3.2  2002/12/01 15:34:41  mast
+Changes to get clean compilation with g++
+
+Revision 3.1  2002/05/20 15:34:47  mast
+Made time index modeling be the default for a new object if multiple files
+are open
+
+*/
