@@ -34,6 +34,9 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2001/12/17 18:51:49  mast
+    Removed call to autox_build
+
 */
 #include <Xm/VirtKeys.h>
 #include <Xm/Protocols.h>
@@ -95,15 +98,10 @@ int xxyz_open(ImodView *vi)
 	  return(-1);
 
      xx->xydata = xx->xzdata = xx->yzdata = NULL;
-     xx->fdata = NULL; 
 
-     msize = vi->xsize * vi->ysize;
-     if ((vi->xsize * vi->zsize) > msize)
-	  msize = vi->xsize * vi->zsize;
-     if ((vi->ysize * vi->zsize) > msize)
-	  msize = vi->ysize * vi->zsize;
-
-     xx->fdata  = (unsigned char *)malloc(sizeof(unsigned char) * msize);
+     /* DNM 1/19/02: need separate fdata for each side panel */
+     xx->fdataxz  = (unsigned char *)malloc(vi->xsize * vi->zsize);
+     xx->fdatayz  = (unsigned char *)malloc(vi->ysize * vi->zsize);
 
      
      window_name = imodwfname("IMOD XYZ: ");
@@ -118,10 +116,12 @@ int xxyz_open(ImodView *vi)
 	  free(window_name);
 
      if ((!xx->dialog)||
-	 (!xx->fdata)){
+	 (!xx->fdataxz) || (!xx->fdatayz)){
 	  wprint("Error:\n\tXYZ window can't open due to low memory\n");
-	  if(xx->fdata)
-	       free(xx->fdata);
+	  if(xx->fdataxz)
+	       free(xx->fdataxz);
+	  if(xx->fdatayz)
+	       free(xx->fdatayz);
 	  free(xx);
 	  return(-1);
      }
@@ -132,7 +132,10 @@ int xxyz_open(ImodView *vi)
      xx->exposed = False;
 
      xx->zoom = 1.0;
-#ifdef DRAW_OpenGL
+     xx->xtrans = 0;
+     xx->ytrans = 0;
+     xx->hq = 0;
+
      screen = XDefaultScreenOfDisplay(App->display);
      while (xx->winx > WidthOfScreen(screen) - 20 ||
 	    xx->winy > HeightOfScreen(screen) - 40){
@@ -143,7 +146,6 @@ int xxyz_open(ImodView *vi)
 	  xx->winx = (vi->xsize + vi->zsize) * xx->zoom + (3 * XYZ_BSIZE);
 	  xx->winy = (vi->ysize + vi->zsize) * xx->zoom + (3 * XYZ_BSIZE);
      }
-#endif
 
      xx->lx = xx->ly = xx->lz = -1;
      vi->xyz  = xx;
@@ -155,14 +157,8 @@ int xxyz_open(ImodView *vi)
 	   XmNnavigationType, XmNONE,
 	   XmNtraversalOn, True,
 	   XmNtranslations, XtParseTranslationTable (B3DGFX_Translations),
-#ifdef DRAW_OpenGL
 	   GLwNvisualInfo, App->visualinfoGL,
 	   XmNcolormap,         App->cmapGL,
-#endif
-#ifdef DRAW_GL
-	   GlxNglxConfig, B3DGFX_GLXconfig_dbo,
-	   GlxNuseOverlay, TRUE,
-#endif
 	   NULL);
      imodOverrideTransTable(xx->glw,B3DGFX_Translations);
      
@@ -171,26 +167,16 @@ int xxyz_open(ImodView *vi)
      XtAddCallback(xx->glw, B3dNinputCallback,  xxyz_input_cb,  (XtPointer)xx);
      
 
-#ifdef DRAW_GL
-
-     XtAddCallback(xx->glw, GlxNoverlayExposeCallback, 
-		   xxyz_overex_cb, (XtPointer)xx);
-#endif
-
      wmclose = XmInternAtom( XtDisplay(xx->dialog),
 			    "WM_DELETE_WINDOW", False);
      XmAddWMProtocolCallback(xx->dialog, wmclose, xxyz_quit_cb,
 			     (caddr_t)&(vi->xyz));
 
-     xyzDrawImage(NULL);
+     /*     xyzDrawImage(NULL); */
 
      imod_info_input();
      XtPopup(xx->dialog, XtGrabNone);
 
-#ifdef DRAW_GL
-     glxInstallColormapWithOverlay(xx->dialog, xx->glw);
-#endif
-     
      return(0);
 }
 
@@ -204,8 +190,10 @@ static void xxyz_quit_cb(Widget w, XtPointer client, XtPointer call)
      /* DNM 11/17/01: stop x and y movies when close window */
      imodMovieXYZT(xx->vi, 0, 0, MOVIE_DEFAULT, MOVIE_DEFAULT);
 
-     if(xx->fdata)
-	  free(xx->fdata);
+     if(xx->fdataxz)
+	  free(xx->fdataxz);
+     if(xx->fdatayz)
+	  free(xx->fdatayz);
 
      b3dFreeCIImage(xx->xydata);
      b3dFreeCIImage(xx->xzdata);
@@ -217,6 +205,25 @@ static void xxyz_quit_cb(Widget w, XtPointer client, XtPointer call)
      XtDestroyWidget(xx->dialog);
      free(*pxx);
      *pxx = NULL;
+}
+
+/* DNM 1/19/02: Add this function to get the CI Images whenever size has
+   changed - now that we can do HQ graphics, they need to be the window size */
+static void xxyz_getCIImages(struct xxyzwin *xx)
+{
+     int xdim, ydim1, ydim2;
+
+     xdim = xx->winx;
+     ydim1 = ydim2 = xx->winy;
+     xx->xydata = (B3dCIImage *)b3dGetNewCIImageSize
+	  (xx->xydata, App->depth, xdim, ydim1);
+
+     xx->xzdata = (B3dCIImage *)b3dGetNewCIImageSize
+	  (xx->xzdata, App->depth, xdim, ydim2);
+
+     xx->yzdata = (B3dCIImage *)b3dGetNewCIImageSize
+	  (xx->yzdata, App->depth, xdim, ydim1);
+     return;
 }
 
 static void xxyz_resize_cb(Widget w, XtPointer client, XtPointer call)
@@ -231,6 +238,7 @@ static void xxyz_resize_cb(Widget w, XtPointer client, XtPointer call)
      if (xx->exposed){
 	  b3dWinset(XtDisplay(w), w, xx->context);
 	  b3dResizeViewport();
+	  xxyz_getCIImages(xx);
 	  xxyz_draw(xx);
      }
      return;
@@ -254,73 +262,16 @@ static void xxyz_ginit(Widget w, XtPointer client, XtPointer call)
 {
      struct xxyzwin *xx = (struct xxyzwin *)client;
 
-#ifdef DRAW_GL
-
-     int i,j,k;
-     long xzoffset;
-     Colorindex *xz;
-     Colorindex *yz;
-
-
-     xx->overclear = TRUE;
-     GLXwinset(XtDisplay(w), glxOverlayWindow(w));
-     mapcolor(1, 255,   255,   255); 
-     mapcolor(2, 255,   255, 0);
-     mapcolor(3,   0, 255,   0);
-     mapcolor(4,   0,   0, 255);
-     mapcolor(5, 128, 128,   0);
-     mapcolor(6,   0,   0,   0);
-     mapcolor(7, 255, 255, 255);
-
-/*
-     for (i = 0; i < xx->vi->xysize; i++){
-	  xx->xydata[i] = xx->vi->idata[0][i] + xx->vi->rampbase;
-     }
-
-     for (i = 0; i < xx->vi->xysize; i++){
-	  xx->xydata[i] = xx->vi->idata[xx->vi->zmouse][i] + xx->vi->rampbase;
-     }
-     
-     xzoffset = xx->vi->ymouse * xx->vi->xsize;
-     xz = xx->xzdata;
-     yz = xx->yzdata;
-     for (k = 0; k < xx->vi->zsize; k++)
-	  for (i = 0; i < xx->vi->xsize; i++, xz++)
-	       *xz = xx->vi->idata[k][i + xzoffset] + xx->vi->rampbase;
-     
-     for (j = 0; j < xx->vi->ysize; j++)
-	  for (k = 0; k < xx->vi->zsize; k++,yz++)
-	       *yz = xx->vi->idata[k][xx->vi->xmouse + (j * xx->vi->xsize)] + 
-		    xx->vi->rampbase;
-*/
-#endif
-
      xx->context =  b3dGetContext(w);
      b3dWinset(XtDisplay(w), w, xx->context);
      b3dResizeViewport();
 
-     xx->xydata = (B3dCIImage *)b3dGetNewCIImageSize
-	  (NULL, App->depth, xx->vi->xsize, xx->vi->ysize);
-     xx->xzdata = (B3dCIImage *)b3dGetNewCIImageSize
-	  (NULL, App->depth, xx->vi->xsize, xx->vi->zsize);
-     xx->yzdata = (B3dCIImage *)b3dGetNewCIImageSize
-	  (NULL, App->depth, xx->vi->zsize, xx->vi->ysize);
+     xxyz_getCIImages(xx);
      return;
 }
 
-#ifdef DRAW_GL
-static void xxyz_overex_cb(Widget w, XtPointer client, XtPointer call)
-{
-     struct xxyzwin *xx = (struct xxyzwin *)client;
-     GLXwinset(App->display, glxOverlayWindow(w));
-     color(0);
-     clear();
-     gflush();     
-     xx->overclear = TRUE;
-}
-#endif
-
-
+/* DNM 1/20/02: added ability to pan with the first mouse button, using 
+   similar code as the zap window */
 static void xxyz_input_cb(Widget w, XtPointer client, XtPointer call)
 {
      struct xxyzwin *xx = (struct xxyzwin *)client;
@@ -328,11 +279,10 @@ static void xxyz_input_cb(Widget w, XtPointer client, XtPointer call)
      B3dDrawingAreaCallbackStruct *cbs = (B3dDrawingAreaCallbackStruct *)call;
 
      int button1 = False, button2 = False, button3 = False;
+     static Time but1downt = 0;
      KeySym keysym;
-
-#ifdef DRAW_GL
-     glxDummyWinset();
-#endif
+     XKeyEvent *event = (XKeyEvent *)cbs->event;
+     int mx, my, mz;
 
      switch(cbs->event->type){
 	case KeyPress:
@@ -348,6 +298,26 @@ static void xxyz_input_cb(Widget w, XtPointer client, XtPointer call)
 	     
 	     case XK_equal:
 	       xx->zoom = b3dStepPixelZoom(xx->zoom, 1);
+	       xxyz_draw(xx);
+	       break;
+
+	     case XK_s:
+	       if ((event->state & ShiftMask) || (event->state & ControlMask)){
+		    b3dWinset(App->display, xx->glw, xx->context);
+		    /* xxyz_draw(xx); Seems not to be needed */
+		    if (event->state & ShiftMask)
+			 b3dAutoSnapshot("xyz", SnapShot_RGB, NULL);
+		    else if (event->state & ControlMask)
+			 b3dAutoSnapshot("xyz", SnapShot_TIF, NULL);
+	       }
+	       break;
+
+	     case XK_r:
+	       xx->hq = 1 - xx->hq;
+	       if (xx->hq)
+		    wprint("\aHigh-resolution mode ON\n");
+	       else
+		    wprint("\aHigh-resolution mode OFF\n");
 	       xxyz_draw(xx);
 	       break;
 
@@ -381,7 +351,10 @@ static void xxyz_input_cb(Widget w, XtPointer client, XtPointer call)
 	     case Button1:
 	       if ((button2) || (button3))
 		    break;
-	       xxyzButton1(xx, cbs->event->xbutton.x, cbs->event->xbutton.y);
+	       but1downt = cbs->event->xbutton.time;
+	       xx->whichbox = xxyz_getxyz(xx,  cbs->event->xbutton.x,
+					  cbs->event->xbutton.y,
+					  &mx, &my, &mz);
 	       break;
 	     case Button2:
 	       if ((button1) || (button3))
@@ -396,9 +369,16 @@ static void xxyz_input_cb(Widget w, XtPointer client, XtPointer call)
 	     default:
 	       break;
 	  }
+	  xx->lmx = cbs->event->xmotion.x;
+	  xx->lmy = cbs->event->xmotion.y;
 	  break;
 
 	case ButtonRelease:
+	  if (cbs->event->xbutton.button == Button1){
+	       if ((cbs->event->xbutton.time - but1downt) > 250)
+		    break;
+	       xxyzButton1(xx, cbs->event->xbutton.x, cbs->event->xbutton.y);
+	  }
 	  break;
 
 	case MotionNotify:
@@ -408,12 +388,16 @@ static void xxyz_input_cb(Widget w, XtPointer client, XtPointer call)
 	       button2 = True;
 	  if (cbs->event->xmotion.state & Button3Mask)
 	       button3 = True;
-	  if ( (button1) && (!button2) && (!button3))
+	  if ( (button1) && (!button2) && (!button3) &&
+	       (cbs->event->xmotion.time - but1downt) > 250)
 	       xxyzB1Drag(xx, cbs->event->xmotion.x, cbs->event->xmotion.y);
 	  if ( (!button1) && (button2) && (!button3))
 	       xxyzB2Drag(xx, cbs->event->xmotion.x, cbs->event->xmotion.y);
 	  if ( (!button1) && (!button2) && (button3))
 	       xxyzB3Drag(xx, cbs->event->xmotion.x, cbs->event->xmotion.y);
+
+	  xx->lmx = cbs->event->xmotion.x;
+	  xx->lmy = cbs->event->xmotion.y;
 	  break;
 
 	default:
@@ -421,31 +405,25 @@ static void xxyz_input_cb(Widget w, XtPointer client, XtPointer call)
      }
 }
 
-
 static int xxyz_getxyz(struct xxyzwin *xx, 
 		       int x, int y, int *mx, int *my, int *mz)
 {
      int nx, ny, nz;
-     float b2 = BSIZE;
+     /* DNM 1/23/02: turn this from float to int to keep calling expressions
+	as ints */
+     int b2 = XYZ_BSIZE;
      float scale;
      struct ViewInfo *vi = xx->vi;
 
      y = xx->winy - y - 1;
-     x -= BSIZE;
-     y -= BSIZE;
+     x -= XYZ_BSIZE + xx->xwoffset;
+     y -= XYZ_BSIZE + xx->ywoffset;
 
-     nx = vi->xsize;
-     ny = vi->ysize;
-     nz = vi->zsize;
-     scale = 1.0f;
+     nx = vi->xsize * xx->zoom;
+     ny = vi->ysize * xx->zoom;
+     nz = vi->zsize * xx->zoom;
 
-#ifdef DRAW_OpenGL
-     nx *= xx->zoom;
-     ny *= xx->zoom;
-     nz *= xx->zoom;
      scale = 1.0/xx->zoom;
-
-#endif
 
      /* Click in main image, Z-Section */
      if (mouse_in_box(0, 0, nx, ny, x, y)){
@@ -482,7 +460,7 @@ static int xxyz_getxyz(struct xxyzwin *xx,
 		      ny + b2 + nz - 1, x, y)){
 	  *mx = vi->xmouse;
 	  *my = vi->ymouse;
-	  *mz = (y - b2 - vi->ysize) * scale;
+	  *mz = 0.5 * ((y - b2 - ny) + (x - b2 - nx)) * scale;
 	  return(6);
      }
      
@@ -509,10 +487,16 @@ static int xxyz_getxyz(struct xxyzwin *xx,
 static void xxyzButton1(struct xxyzwin *xx, int x, int y)
 {
      int mx, my, mz;
-     struct Mod_Contour *cont;
-     int pt;
+     ImodView *vi   = xx->vi;
+     Imod     *imod = vi->imod;
+     Ipoint pnt, *spnt;
+     Iindex index;
+     int i, temp_distance;
+     int distance = -1;
+     float selsize = IMOD_SELSIZE / xx->zoom;
+     int box = xxyz_getxyz(xx, x, y, &mx, &my, &mz);
 
-     if (!xxyz_getxyz(xx, x, y, &mx, &my, &mz))
+     if (!box)
 	  return;
 
      if (xx->vi->ax){
@@ -522,31 +506,49 @@ static void xxyzButton1(struct xxyzwin *xx, int x, int y)
 	  }
      }
 
-     if (xx->vi->imod->mousemode == IMOD_MMOVIE){
-	  xx->vi->xmouse = mx;
-	  xx->vi->ymouse = my;
-	  xx->vi->zmouse = mz;
+     /* DNM 1/23/02: Adopt code from Zap window, get nearest point if in the
+	main display panel */
+     if (xx->vi->imod->mousemode == IMOD_MMODEL && box == 3){
+	  pnt.x = mx;
+	  pnt.y = my;
+	  pnt.z = mz;
+	  vi->xmouse = mx;
+	  vi->ymouse = my;
+	  vi->zmouse = mz;
+	  vi->imod->cindex.contour = -1;
+	  vi->imod->cindex.point = -1;
+
+	  for (i = 0; i < imod->objsize; i++){
+	       index.object = i;
+	       temp_distance = imod_obj_nearest
+		   (&(vi->imod->obj[i]), &index , &pnt, selsize);
+	       if (temp_distance == -1)
+		    continue;
+	       if (distance == -1 || distance > temp_distance){
+		    distance      = temp_distance;
+		    vi->imod->cindex.object  = index.object;
+		    vi->imod->cindex.contour = index.contour;
+		    vi->imod->cindex.point   = index.point;
+		    spnt = imodPointGet(vi->imod);
+		    if (spnt){
+			 vi->xmouse = spnt->x;
+			 vi->ymouse = spnt->y;
+		    }
+	       }
+	  }
 	  ivwBindMouse(xx->vi);
-	  xxyz_draw(xx);
-	  imod_info_setxyz();
+	  imodDraw(vi, IMOD_DRAW_RETHINK | IMOD_DRAW_XYZ);
 	  return;
      }
 
-     imod_nearest(xx->vi->imod);
-     cont = imodContourGet(xx->vi->imod);
-     pt = xx->vi->imod->cindex.point;
-
-     if ((cont) && (pt >= 0)){
-	  xx->vi->xmouse = cont->pts[pt].x + 0.5;
-	  xx->vi->ymouse = cont->pts[pt].y + 0.5;
-	  xx->vi->zmouse = cont->pts[pt].z + 0.5;
-     }else{
-	  xx->vi->xmouse = mx;
-	  xx->vi->ymouse = my;
-	  xx->vi->zmouse = mz;
-     }
+     xx->vi->xmouse = mx;
+     xx->vi->ymouse = my;
+     xx->vi->zmouse = mz;
      ivwBindMouse(xx->vi);
-     imodDraw(xx->vi, IMOD_DRAW_IMAGE | IMOD_DRAW_XYZ | IMOD_DRAW_MOD);
+     
+     /* DNM 1/23/02: make it update all windows */
+     imodDraw(xx->vi, IMOD_DRAW_XYZ);
+     return;
 }
 
 static void xxyzButton2(struct xxyzwin *xx, int x, int y)
@@ -629,8 +631,9 @@ static void xxyzButton2(struct xxyzwin *xx, int x, int y)
 	  imodel_contour_check_wild(cont);
      xx->vi->xmouse  = mx;
      xx->vi->ymouse  = my;
-     xxyz_draw(xx);
-     imod_draw_window();
+
+     /* DNM 1/23/02: make it update all windows */
+     imodDraw(xx->vi, IMOD_DRAW_XYZ | IMOD_DRAW_MOD);
      return;
 }
 
@@ -690,13 +693,65 @@ static void xxyzButton3(struct xxyzwin *xx, int x, int y)
      xx->vi->xmouse  = mx;
      xx->vi->ymouse  = my;
      ivwBindMouse(xx->vi);
-     xxyz_draw(xx);
-     imod_draw_window();
+
+     /* DNM 1/23/02: make it update all windows */
+     imodDraw(xx->vi, IMOD_DRAW_XYZ | IMOD_DRAW_MOD);
      return;
 }
 
+/* DNM 1/20/02: add statements to implement pan */
 static void xxyzB1Drag(struct xxyzwin *xx, int x, int y)
 {
+     int sx, sy;
+     int nx, ny;
+     int b2 = XYZ_BSIZE;
+     float scale;
+     struct ViewInfo *vi = xx->vi;
+     int new;
+
+     sy = xx->winy - y - 1;
+     sx = x - (XYZ_BSIZE + xx->xwoffset);
+     sy -= XYZ_BSIZE + xx->ywoffset;
+
+     nx = vi->xsize * xx->zoom;
+     ny = vi->ysize * xx->zoom;
+
+     scale = 1.0/xx->zoom;
+
+     switch (xx->whichbox) {
+	case 0:
+	case 1:
+	case 2:
+	case 3:
+	  xx->xtrans += (x - xx->lmx);
+	  xx->ytrans -= (y - xx->lmy);
+	  xxyz_draw(xx);
+	  return;
+
+	case 6:
+	  new = 0.5 * ((sy - b2 - ny) + (sx - b2 - nx)) * scale;
+	  if (xx->vi->zmouse == new)
+	       return;
+	  xx->vi->zmouse = new;
+	  break;
+
+	case 5:
+	  new = sx * scale;
+	  if (xx->vi->xmouse == new)
+	       return;
+	  xx->vi->xmouse = new; 
+	  break;
+
+	case 4:
+	  new = sy * scale;
+	  if (xx->vi->ymouse == new)
+	       return;
+	  xx->vi->ymouse = new;
+	  break;
+
+     }
+     ivwBindMouse(xx->vi);
+     imodDraw(xx->vi, IMOD_DRAW_XYZ);
      return;
 }
 
@@ -762,8 +817,9 @@ static void xxyzB2Drag(struct xxyzwin *xx, int x, int y)
      xx->vi->xmouse  = mx;
      xx->vi->ymouse  = my;
      ivwBindMouse(xx->vi);
-     xxyz_draw(xx);
-     imod_draw_window();
+
+     /* DNM 1/23/02: make it update all windows */
+     imodDraw(xx->vi, IMOD_DRAW_XYZ | IMOD_DRAW_MOD);
      return;
 }
 
@@ -822,37 +878,68 @@ static void xxyzB3Drag(struct xxyzwin *xx, int x, int y)
      xx->vi->xmouse  = mx;
      xx->vi->ymouse  = my;
      ivwBindMouse(xx->vi);
-     xxyz_draw(xx);
-     imod_draw_window();
+
+     /* DNM 1/23/02: make it update all windows */
+     imodDraw(xx->vi, IMOD_DRAW_XYZ | IMOD_DRAW_MOD);
      return;
 }
 
 
 static void xyz_overclear(struct xxyzwin *xx)
 {
-#ifdef DRAW_GL
-     if (!xx->overclear){
-	  xx->overclear = TRUE;
-	  GLXwinset(App->display, glxOverlayWindow(xx->glw));
-	  color(0);
-	  clear();
-     }
-#endif
      return;
 }
+
+static void xyzSetSubimage(int absStart, int winSize, int imSize, float zoom,
+			   int *drawsize, int *woffset, int *dataStart)
+{
+     *dataStart = 0;
+     *woffset = absStart;
+
+     /* If the absolute starting point is negative, then adjust the data start
+	for this; throw away one more pixel and set a small window offset
+	if necessary to keep pixels synchronized */
+     if (absStart < 0) {
+	  *dataStart = -absStart / zoom;
+	  *woffset = 0;
+	  if (zoom * *dataStart < -absStart) {
+	       (*dataStart)++;
+	       *woffset = zoom * *dataStart + absStart;
+	  }
+     }
+
+     /* limit # of pixels to draw if it goes past end of window - this also
+      takes care of case where image starts past end of window */
+     *drawsize = imSize - *dataStart;
+     if (*drawsize * zoom + *woffset > winSize)
+	  *drawsize = (winSize - *woffset) / zoom;
+}     
 
 static void xyzDrawImage(struct xxyzwin *win)
 {
 
      unsigned int x, y, z, i;
-     unsigned int nx, ny, nz;
+     int nx = win->vi->xsize;
+     int ny = win->vi->ysize;
+     int nz = win->vi->zsize;
      unsigned char *id;
      unsigned char *fdata;
      unsigned long cyi;
      int cx, cy, cz, iz;
      int imdataxsize;
      unsigned char **imdata;
-
+     int extraImSize;
+     int dataOffset;
+     int drawsize;
+     GLenum type, format;
+     GLint  unpack = b3dGetImageType(&type, &format);
+     int sx = nx * win->zoom;
+     int sy = ny * win->zoom;
+     int sz = nz * win->zoom;
+     int wx1, wx2, wy1, wy2;
+     int xoffset1, xoffset2, yoffset1, yoffset2;
+     int width1, height1, width2, height2;
+	  
 	  
      if (!win) return;
 
@@ -887,160 +974,146 @@ static void xyzDrawImage(struct xxyzwin *win)
 	having different X sizes */
      imdataxsize = win->vi->xsize;
 
-     fdata  = win->fdata;
-     
      if (win->vi->vmSize){
 	  win->lx = win->ly = -1;
      }
 	  
+     glClearIndex(App->background);
+     /* DNM: need to set clear colors for rgb mode */
+     if (App->rgba)
+	  glClearColor(64./255., 64./255 , 96./255, 0.);
+     
+     /* DNM 1/20/02: remove the XYZ_CLEAR_HACK */
+     
+     glClear(GL_COLOR_BUFFER_BIT);
+
      ivwGetLocation(win->vi, &cx, &cy, &cz);
-     nx = win->vi->xsize;
-     ny = win->vi->ysize;
-     nz = win->vi->zsize;
      cyi = cy * nx;
 
-     if (cz != win->lz){
+     /* Pass the image offset routine the effective image size, including
+	de-zoomed borders, and convert a data offset into a negative window
+	offset */
+     extraImSize = floor((double)(3. * XYZ_BSIZE / win->zoom + 0.5));
+     b3dSetImageOffset(win->winx, nx + nz + extraImSize, win->zoom, &drawsize,
+		       &win->xtrans, &win->xwoffset, &dataOffset);
+     if (dataOffset)
+	  win->xwoffset = -floor((double)(dataOffset * win->zoom + 0.5));
+
+     b3dSetImageOffset(win->winy, ny + nz + extraImSize, win->zoom, &drawsize,
+		       &win->ytrans, &win->ywoffset, &dataOffset);
+     if (dataOffset)
+	  win->ywoffset = -floor((double)(dataOffset * win->zoom + 0.5));
+
+
+     /* Now compute drawing parameters for each of the subareas */
+     xyzSetSubimage(win->xwoffset + XYZ_BSIZE, win->winx, nx, win->zoom,
+		    &width1, &wx1, &xoffset1);
+     xyzSetSubimage(win->xwoffset + sx + 2 * XYZ_BSIZE, win->winx, nz, 
+		    win->zoom, &width2, &wx2, &xoffset2);
+     xyzSetSubimage(win->ywoffset + XYZ_BSIZE, win->winy, ny, win->zoom,
+		    &height1, &wy1, &yoffset1);
+     xyzSetSubimage(win->ywoffset + sy + 2 * XYZ_BSIZE, win->winy, nz, 
+		    win->zoom, &height2, &wy2, &yoffset2);
+
+     /* printf ("width1 %d  height1 %d  width2 %d  height2 %d\n", width1,
+	    height1, width2, height2);
+	    printf ("wx1 %d  xoffset1 %d  wy1 %d  yoffset1 %d\n", wx1,
+	    xoffset1, wy1, yoffset1); */
+     if (width1 > 0 && height1 > 0){
 	  win->lz = cz;
 	  id = ivwGetCurrentZSection(win->vi);
-	  if (id)
-	       b3dFillGreyScalePixels (id, nx,ny, win->xydata,
-				       win->vi->rampbase);
+	  b3dDrawGreyScalePixelsHQ(id, nx,ny, xoffset1, yoffset1, wx1, wy1,
+				   width1, height1, win->xydata,
+				   win->vi->rampbase, win->zoom, win->zoom, 
+				   win->hq, cz);
      }
-     if (cx != win->lx){
-	  win->lx = cx;
-	  for(z = 0; z < nz; z++) {
-	       if (!win->vi->fakeImage && imdata[z]) {
-		    for(i = z, y = 0; y < ny; y++, i += nz)
-			 fdata[i] = imdata[z][cx + (y * imdataxsize)];
-	       } else {
-		    for(i= z, y = 0; y < ny; y++, i += nz)
-			 fdata[i] = 0;
+
+     if (width2 > 0 && height1 > 0) {
+	  fdata  = win->fdatayz;
+	  if (cx != win->lx){
+	       win->lx = cx;
+	       for(z = 0; z < nz; z++) {
+		    if (!win->vi->fakeImage && imdata[z]) {
+			 for(i = z, y = 0; y < ny; y++, i += nz)
+			      fdata[i] = imdata[z][cx + (y * imdataxsize)];
+		    } else {
+			 for(i= z, y = 0; y < ny; y++, i += nz)
+			      fdata[i] = 0;
+		    }
 	       }
 	  }
-	  b3dFillGreyScalePixels(win->fdata, nz, ny, win->yzdata,
-				 win->vi->rampbase);
+	  b3dDrawGreyScalePixelsHQ(win->fdatayz, nz, ny, xoffset2, yoffset1,
+				   wx2, wy1, width2, height1, win->yzdata,
+				   win->vi->rampbase, win->zoom, win->zoom, 
+				   win->hq, cx);
      }
-     if (cy != win->ly){
-	  win->ly = cy;
-	  for(i = 0,z = 0; z < nz; z++) {
-	       if (!win->vi->fakeImage && imdata[z]) {
-		    for(x = 0; x < nx; x++, i++)
-			 fdata[i] = imdata[z][x + (cy * imdataxsize)];
-	       } else {
-		    for(x = 0; x < nx; x++, i++)
-			 fdata[i] = 0;
+
+     if (width1 > 0 && height2 > 0) {
+	  fdata  = win->fdataxz;
+	  if (cy != win->ly){
+	       win->ly = cy;
+	       for(i = 0,z = 0; z < nz; z++) {
+		    if (!win->vi->fakeImage && imdata[z]) {
+			 for(x = 0; x < nx; x++, i++)
+			      fdata[i] = imdata[z][x + (cy * imdataxsize)];
+		    } else {
+			 for(x = 0; x < nx; x++, i++)
+			      fdata[i] = 0;
+		    }
 	       }
-	  }
-	  
-	  b3dFillGreyScalePixels(win->fdata, nx, nz, win->xzdata,
-				 win->vi->rampbase);
+	  }	  
+	  b3dDrawGreyScalePixelsHQ(win->fdataxz, nx, nz, xoffset1, yoffset2,
+				   wx1, wy2, width1, height2, win->xzdata,
+				   win->vi->rampbase, win->zoom, win->zoom, 
+				   win->hq, cy);
      }
 
      free(imdata);
      
-#ifdef DRAW_OpenGL
-     {
-	  GLenum type, format;
-	  GLint  unpack = b3dGetImageType(&type, &format);
-	  int sx = nx * win->zoom;
-	  int sy = ny * win->zoom;
-	  int sz = nz * win->zoom;
-	  
-	  glClearIndex(App->background);
-	  /* DNM: need to set clear colors for rgb mode */
-	  if (App->rgba)
-	       glClearColor(64./255., 64./255 , 96./255, 0.);
-
-	  /* Another hack for the PC: need to clear the top of the window
-	     after the draws to clear garbage that shows up at top for an
-	     image of 572x50x94 and windows bigger than a certain size.
-	     So just divide clear into two parts, lower before, upper after */
-#ifdef XYZ_CLEAR_HACK
-	  b3dColorIndex(App->background);
-	  b3dDrawFilledRectangle(0,0, win->winx, BSIZE + BSIZE + sy +sz);
-#else
-	  glClear(GL_COLOR_BUFFER_BIT);
-#endif	  
-
-	  /*	  glPixelStorei( GL_UNPACK_ALIGNMENT, 2); */
-	  glPixelZoom(win->zoom, win->zoom);
-	  
-	  glRasterPos2i(BSIZE, BSIZE);
-	  glDrawPixels(nx, ny, 
-		       format, type,
-		       win->xydata->id1);
-	  glRasterPos2i(BSIZE, BSIZE+BSIZE+sy);
-	  glDrawPixels(nx, nz, 
-		       format, type,
-		       win->xzdata->id1);
-	  glRasterPos2i(BSIZE+BSIZE+sx, BSIZE);
-	  glDrawPixels(nz, ny, 
-		       format, type,
-		       win->yzdata->id1);
-
-#ifdef XYZ_CLEAR_HACK
-	  b3dDrawFilledRectangle(0,BSIZE + BSIZE + sy +sz, win->winx,
-				 win->winy);
-#endif
-     }
-#else
-     b3dPutCIImage(win->xydata,0,0,BSIZE,BSIZE,nx,ny);
-     b3dPutCIImage(win->xzdata,0,0,BSIZE,BSIZE+BSIZE+ny,nx,nz);
-     b3dPutCIImage(win->yzdata,0,0,BSIZE+BSIZE+nx,BSIZE,nz,ny);
-#endif
      return;
 }
 
 static void xyzDrawCurrentLines(struct xxyzwin *xx)
 {
      int cx, cy, cz;
-     int b  = BSIZE;
-     int b2 = BSIZE * 2;
-     int ob = BSIZE;
+     float z = xx->zoom;
+     int bx = XYZ_BSIZE + xx->xwoffset;
+     int by = XYZ_BSIZE + xx->ywoffset;
+     int bx2 = bx + XYZ_BSIZE + floor((double)(xx->vi->xsize * z + 0.5));
+     int by2 = by + XYZ_BSIZE + floor((double)(xx->vi->ysize * z + 0.5));
+
+     /* DNM 1/23/02: Put the line in the middle now that one can drag it */
+     int bpad = XYZ_BSIZE / 2;
+
      int nx = xx->vi->xsize;
      int ny = xx->vi->ysize;
      int nz = xx->vi->zsize;
-     int wx = xx->winx;
-     int wy = xx->winy;
 
      b3dColorIndex(App->background);
      b3dLineWidth(1);
 
-#ifndef DRAW_OpenGL
-     b3dDrawFilledRectangle(0, 0, b, wy);
-     b3dDrawFilledRectangle(0, 0, wx, b);
-     b3dDrawFilledRectangle(b+nx+b+nz, 0, wx-b+nx+b+nz, wy);
-     b3dDrawFilledRectangle(0, b+ny+b+nz, wx, wy-b+ny+b+nz);
-     
-     b3dDrawFilledRectangle(0, b+ny, wx, b);
-     b3dDrawFilledRectangle(b+nx, 0, b, wy);
-     b3dDrawFilledRectangle(b+nx, b+ny, wx-b+nx, wy-b+nx);
-#else
-     ob = (float)ob / xx->zoom;
-     b2 = b + ob;
-#endif
      ivwGetLocation(xx->vi, &cx, &cy, &cz);
      b3dColorIndex(App->foreground);
 
      /* draw xz location line. */
-     b3dDrawLine(b2 + nx, 
-		 b2 + ny + cz,
-		 b2 + nx + nz - 1,
-		 b2 + ny + cz);
+     b3dDrawLine(bx2, 
+		 (int)(by2 + z * cz),
+		 (int)(bx2 + z * (nz - 1)),
+		 (int)(by2 + z * cz));
 
-     b3dDrawLine(b2 + nx + cz,
-		 b2 + ny,
-		 b2 + nx + cz,
-		 b2 + ny + nz - 1);
+     b3dDrawLine((int)(bx2 + z * cz),
+		 by2,
+		 (int)(bx2 + z * cz),
+		 (int)(by2 + z * (nz - 1)));
      
-     b3dDrawLine(b + cx,
-		 b + ny + 1,
-		 b2 + nx + nz,
-		 b + ny + 1);
-     b3dDrawLine(b + nx + 1,
-		 b2 + ny + nz,
-		 b + nx + 1,
-		 b + cy);
+     b3dDrawLine((int)(bx + z * cx),
+		 (int)(by + z * ny + bpad),
+		 (int)(bx2 + z * nz),
+		 (int)(by + z * ny + bpad));
+     b3dDrawLine((int)(bx + z * nx + bpad),
+		 (int)(by2 + z * nz),
+		 (int)(bx + z * nx + bpad),
+		 (int)(by + z * cy));
      return;
 }
 
@@ -1049,20 +1122,19 @@ static void xyzDrawGhost(struct xxyzwin *xx)
      return;
 }
 
-static void xyzDrawContour(struct xxyzwin *xx, Iobj *obj, Icont *cont)
+/* DNM 1/20/02: add argument ob to be able to reset color properly */
+static void xyzDrawContour(struct xxyzwin *xx, Iobj *obj, int ob, Icont *cont)
 {
      ImodView *vi = xx->vi;
      Ipoint *point;
      int pt, npt = 0, ptsonsec;
      float vert[2];
-     int co, ob;
      float drawsize;
-     int b = BSIZE;
-     float gutter = BSIZE;
-
-#ifdef DRAW_OpenGL
-     gutter = gutter / xx->zoom;
-#endif
+     float z = xx->zoom;
+     int bx = XYZ_BSIZE + xx->xwoffset;
+     int by = XYZ_BSIZE + xx->ywoffset;
+     int bx2 = bx + XYZ_BSIZE + floor((double)(vi->xsize * z + 0.5));
+     int by2 = by + XYZ_BSIZE + floor((double)(vi->ysize * z + 0.5));
      
      if (!cont->psize)
 	  return;
@@ -1079,10 +1151,12 @@ static void xyzDrawContour(struct xxyzwin *xx, Iobj *obj, Icont *cont)
 			 continue;
 		    break;
 	       }
-	       b3dVertex2i( cont->pts[pt].x + b,  cont->pts[pt].y + b);
+	       b3dVertex2i((int)(z * cont->pts[pt].x + bx),  
+			   (int)(z * cont->pts[pt].y + by));
 	  }
 	  if (ivwPointVisible(vi, cont->pts)){
-	       b3dVertex2i(b + cont->pts->x, b + cont->pts->y);
+	       b3dVertex2i((int)(bx + z * cont->pts->x), 
+			   (int)(by + z * cont->pts->y));
 	  }
 	  b3dEndLine();
 	  
@@ -1095,7 +1169,8 @@ static void xyzDrawContour(struct xxyzwin *xx, Iobj *obj, Icont *cont)
 			 continue;
 		    break;
 	       }
-	       zapDrawSymbol(cont->pts[pt].x + b, cont->pts[pt].y + b,
+	       zapDrawSymbol((int)(z * cont->pts[pt].x + bx), 
+			     (int)(z * cont->pts[pt].y + by),
 			     obj->symbol, obj->symsize, obj->symflags);
 	  }
      }
@@ -1106,16 +1181,16 @@ static void xyzDrawContour(struct xxyzwin *xx, Iobj *obj, Icont *cont)
 	  for(pt = 0; pt < cont->psize; pt++){
 	       point = &(cont->pts[pt]);
 	       if (ivwPointVisible(vi, point)){
-		    zapDrawSymbol(cont->pts[pt].x + b, 
-				  cont->pts[pt].y + b,
+		    zapDrawSymbol((int)(z * cont->pts[pt].x + bx), 
+				  (int)(z * cont->pts[pt].y + by),
 				  obj->symbol, obj->symsize, obj->symflags);
 		    
-		    if (pt < (cont->psize - 1))
+
 			 if (ivwPointVisible(vi, &(cont->pts[pt+1])))
-			      b3dDrawLine(point->x + b,
-					  point->y + b,
-					  cont->pts[pt+1].x + b,
-					  cont->pts[pt+1].y + b);
+			      b3dDrawLine((int)(z * point->x + bx),
+					  (int)(z * point->y + by),
+					  (int)(z * cont->pts[pt+1].x + bx),
+					  (int)(z * cont->pts[pt+1].y + by));
 		    
 	       }
 	       
@@ -1127,8 +1202,8 @@ static void xyzDrawContour(struct xxyzwin *xx, Iobj *obj, Icont *cont)
 	  for (pt = 0; pt < cont->psize; pt++){
 	       /* draw symbol if point on section */
 	       if (ivwPointVisible(vi, &(cont->pts[pt])))
-		    zapDrawSymbol(cont->pts[pt].x + b, 
-				  cont->pts[pt].y + b,
+		    zapDrawSymbol((int)(z * cont->pts[pt].x + bx), 
+				  (int)(z * cont->pts[pt].y + by),
 				  obj->symbol, obj->symsize, obj->symflags);
 	       
 	       drawsize = imodPointGetSize(obj, cont, pt);
@@ -1136,12 +1211,12 @@ static void xyzDrawContour(struct xxyzwin *xx, Iobj *obj, Icont *cont)
 		    if (ivwPointVisible(vi, &(cont->pts[pt]))){
 			 /* If there's a size, draw a circle and a plus for a
 			    circle that's big enough */
-			 b3dDrawCircle(b + cont->pts[pt].x,
-				       b + cont->pts[pt].y,
-				       (int)drawsize);
+			 b3dDrawCircle((int)(bx + z * cont->pts[pt].x),
+				       (int)(by + z * cont->pts[pt].y),
+				       (int)(z * drawsize));
 			 if (drawsize > 3)
-			      b3dDrawPlus(b + cont->pts[pt].x,
-					  b + cont->pts[pt].y, 3);
+			      b3dDrawPlus((int)(bx + z * cont->pts[pt].x),
+					  (int)(by + z * cont->pts[pt].y), 3);
 		    }else{
 			 /* for off-section, compute size of circle and draw 
 			    that */
@@ -1154,12 +1229,12 @@ static void xyzDrawContour(struct xxyzwin *xx, Iobj *obj, Icont *cont)
 
 			      if (vert[0] < drawsize - 0.01){
 			           vert[1] =
-				     sqrt((double)
+				     z * sqrt((double)
 					  (drawsize * drawsize
 					  - vert[0] * vert[0]));
 				   
-				   b3dDrawCircle((b +  cont->pts[pt].x),
-						 (b + cont->pts[pt].y),
+				   b3dDrawCircle((int)(bx + z*cont->pts[pt].x),
+						 (int)(by + z*cont->pts[pt].y),
 						 (int)vert[1]);
 			      }
 			 }
@@ -1171,33 +1246,37 @@ static void xyzDrawContour(struct xxyzwin *xx, Iobj *obj, Icont *cont)
      if (obj->symflags & IOBJ_SYMF_ENDS){
 	  if (ivwPointVisible(vi, &(cont->pts[cont->psize-1]))){
 	       b3dColorIndex(App->endpoint);
-	       b3dDrawCross(b + cont->pts[cont->psize-1].x,
-			    b + cont->pts[cont->psize-1].y,
+	       b3dDrawCross((int)(bx + z * cont->pts[cont->psize-1].x),
+			    (int)(by + z * cont->pts[cont->psize-1].y),
 			    obj->symsize/2);
 	  }
 	  if (ivwPointVisible(vi, cont->pts)){
 	       b3dColorIndex(App->bgnpoint);
-	       b3dDrawCross(b + cont->pts->x,
-			    b + cont->pts->y,
+	       b3dDrawCross((int)(bx + z * cont->pts->x),
+			    (int)(by + z * cont->pts->y),
 			    obj->symsize/2);
 	  }
-	  b3dColorIndex(obj->fgcolor);
+	  /* DNM 1/21/02: need to reset color this way, not wih b3dColorIndex*/
+	  imodSetObjectColor(ob);
+
      }
      return;
 }
 
-static void xyzDrawCurrentContour(struct xxyzwin *xx, Iobj *obj, Icont *cont)
+static void xyzDrawCurrentContour(struct xxyzwin *xx, Iobj *obj, int ob,
+				  Icont *cont)
 {
      ImodView *vi = xx->vi;
      Ipoint *point;
      int pt;
      int cz = vi->zmouse+0.5f;
-     int b = BSIZE;
-     float gutter = BSIZE;
+     float z = xx->zoom;
+     int bx = XYZ_BSIZE + xx->xwoffset;
+     int by = XYZ_BSIZE + xx->ywoffset;
+     int bx2 = bx + XYZ_BSIZE + floor((double)(vi->xsize * z + 0.5));
+     int by2 = by + XYZ_BSIZE + floor((double)(vi->ysize * z + 0.5));
+     int drawsize;
 
-#ifdef DRAW_OpenGL
-     gutter = gutter / xx->zoom;
-#endif
      if (!cont->psize)
 	  return;
      
@@ -1213,7 +1292,8 @@ static void xyzDrawCurrentContour(struct xxyzwin *xx, Iobj *obj, Icont *cont)
 			 continue;
 		    break;
 	       }
-	       b3dVertex2i( cont->pts[pt].x + b,  cont->pts[pt].y + b);
+	       b3dVertex2i((int)(z * cont->pts[pt].x + bx), 
+			   (int)(z * cont->pts[pt].y + by));
 	  }
 	  b3dEndLine();
 
@@ -1225,16 +1305,16 @@ static void xyzDrawCurrentContour(struct xxyzwin *xx, Iobj *obj, Icont *cont)
 			      continue;
 			 break;
 		    }
-		    zapDrawSymbol(cont->pts[pt].x + b, 
-				  cont->pts[pt].y + b,
+		    zapDrawSymbol((int)(z * cont->pts[pt].x + bx), 
+				  (int)(z * cont->pts[pt].y + by),
 				  obj->symbol, obj->symsize, obj->symflags);
 	       }
 
 	  /* Draw projection of all lines into x/z view */
 	  b3dBeginLine();
 	  for (pt = 0; pt < cont->psize; pt++){
-	       b3dVertex2i( cont->pts[pt].x + b,  
-			   cont->pts[pt].z + b + gutter + vi->ysize);
+	       b3dVertex2i((int)(z * cont->pts[pt].x + bx),  
+			   (int)(z * cont->pts[pt].z + by2));
 	  }
 	  b3dEndLine();
 
@@ -1242,8 +1322,8 @@ static void xyzDrawCurrentContour(struct xxyzwin *xx, Iobj *obj, Icont *cont)
 	  /* Draw projection of all lines into y/z view */
 	  b3dBeginLine();
 	  for (pt = 0; pt < cont->psize; pt++){
-	       b3dVertex2i(cont->pts[pt].z + b + gutter + vi->xsize, 
-			   cont->pts[pt].y + b);
+	       b3dVertex2i((int)(z * cont->pts[pt].z + bx2), 
+			   (int)(z * cont->pts[pt].y + by));
 	  }
 	  b3dEndLine();
      }
@@ -1255,17 +1335,17 @@ static void xyzDrawCurrentContour(struct xxyzwin *xx, Iobj *obj, Icont *cont)
 	       for(pt = 1; pt < cont->psize; pt++){
 		    
 		    if ((cont->pts[pt].z == cz) && (cont->pts[pt-1].z == cz)){
-			 b3dDrawLine((b +cont->pts[pt].x),
-				     (b + cont->pts[pt].y),
-				     (b +cont->pts[pt-1].x),
-				     (b + cont->pts[pt-1].y));
+			 b3dDrawLine((int)(bx + z * cont->pts[pt].x),
+				     (int)(by + z * cont->pts[pt].y),
+				     (int)(bx + z * cont->pts[pt-1].x),
+				     (int)(by + z * cont->pts[pt-1].y));
 			 continue;
 		    }
 		    b3dLineStyle(B3D_LINESTYLE_DASH);
-		    b3dDrawLine((b +cont->pts[pt].x),
-				(b + cont->pts[pt].y),
-				(b +cont->pts[pt-1].x),
-				(b + cont->pts[pt-1].y));
+		    b3dDrawLine((int)(bx + z * cont->pts[pt].x),
+				(int)(by + z * cont->pts[pt].y),
+				(int)(bx + z * cont->pts[pt-1].x),
+				(int)(by + z * cont->pts[pt-1].y));
 		    b3dLineStyle(B3D_LINESTYLE_SOLID);
 		    
 		    /* Draw a circle on an isolated point on-section */
@@ -1273,19 +1353,19 @@ static void xyzDrawCurrentContour(struct xxyzwin *xx, Iobj *obj, Icont *cont)
 			 if ((cont->pts[pt].z == cz) &&
 			     (cont->pts[pt-1].z != cz) &&
 			     (cont->pts[pt+1].z != cz))
-			      b3dDrawCircle((b + cont->pts[pt].x),
-					    (b + cont->pts[pt].y), 3);
+			      b3dDrawCircle((int)(bx + z * cont->pts[pt].x),
+					    (int)(by + z *cont->pts[pt].y), 3);
 	       }
 	       /* Draw circles on first or last points if they are isolated
 		  on-section */
 	       if ((cont->pts[0].z == cz) && (cont->pts[1].z != cz))
-		    b3dDrawCircle((b + cont->pts[0].x),
-				  (b + cont->pts[0].y), 3);
+		    b3dDrawCircle((int)(bx + z * cont->pts[0].x),
+				  (int)(by + z * cont->pts[0].y), 3);
 	       if ((cont->pts[cont->psize - 1].z == cz) &&
 		   (cont->pts[cont->psize - 2].z != cz))
 		    b3dDrawCircle
-			 ((b + cont->pts[cont->psize - 1].x),
-			  (b + cont->pts[cont->psize - 1].y), 3);
+			 ((int)(bx + z * cont->pts[cont->psize - 1].x),
+			  (int)(by + z * cont->pts[cont->psize - 1].y), 3);
 
 	       /* draw symbols for points on section */
 	       if (obj->symbol != IOBJ_SYM_NONE)
@@ -1295,8 +1375,8 @@ static void xyzDrawCurrentContour(struct xxyzwin *xx, Iobj *obj, Icont *cont)
 				   continue;
 			      break;
 			 }
-			 zapDrawSymbol(cont->pts[pt].x + b, 
-				       cont->pts[pt].y + b,
+			 zapDrawSymbol((int)(z * cont->pts[pt].x + bx), 
+				       (int)(z * cont->pts[pt].y + by),
 				       obj->symbol, obj->symsize,
 				       obj->symflags);
 		    }
@@ -1304,15 +1384,15 @@ static void xyzDrawCurrentContour(struct xxyzwin *xx, Iobj *obj, Icont *cont)
 	  }else{
 
 	       /* Draw a circle for a single point, regardless of z */
-	       b3dDrawCircle((b + cont->pts[0].x),
-			     (b + cont->pts[0].y), 3);
+	       b3dDrawCircle((int)(bx + z * cont->pts[0].x),
+			     (int)(by + z * cont->pts[0].y), 3);
 	  }
 
 	  /* Draw projection of all lines into x/z view */
 	  b3dBeginLine();
 	  for (pt = 0; pt < cont->psize; pt++){
-	       b3dVertex2i( cont->pts[pt].x + b,  
-			   cont->pts[pt].z + b + gutter + vi->ysize);
+	       b3dVertex2i((int)(z * cont->pts[pt].x + bx),  
+			   (int)(z * cont->pts[pt].z + by2));
 	  }
 	  b3dEndLine();
 
@@ -1320,8 +1400,8 @@ static void xyzDrawCurrentContour(struct xxyzwin *xx, Iobj *obj, Icont *cont)
 	  /* Draw projection of all lines into y/z view */
 	  b3dBeginLine();
 	  for (pt = 0; pt < cont->psize; pt++){
-	       b3dVertex2i(cont->pts[pt].z + b + gutter + vi->xsize, 
-			   cont->pts[pt].y + b);
+	       b3dVertex2i((int)(z * cont->pts[pt].z + bx2),
+			   (int)(z * cont->pts[pt].y + by));
 	  }
 	  b3dEndLine();
 
@@ -1331,21 +1411,28 @@ static void xyzDrawCurrentContour(struct xxyzwin *xx, Iobj *obj, Icont *cont)
      /* scatterd object */
      if (iobjScat(obj->flags)){
 	  /* Just draw the contour with other routines */
-	  xyzDrawContour(xx, obj, cont);
+	  xyzDrawContour(xx, obj, ob, cont);
 	  
 	  /* Draw points in other windows if that is where they are */
 	  for (pt = 0; pt < cont->psize; pt++){
+	       drawsize = z * imodPointGetSize(obj, cont, pt);
 	       if ((int)cont->pts[pt].x == vi->xmouse){
-		    zapDrawSymbol(cont->pts[pt].z + b + gutter +
-				  vi->xsize, 
-				  cont->pts[pt].y + b,
+		    zapDrawSymbol((int)(z * cont->pts[pt].z + bx2),
+				  (int)(z * cont->pts[pt].y + by),
 				  obj->symbol, obj->symsize, obj->symflags);
+		    if (drawsize > 0)
+			 b3dDrawCircle((int)(bx2 + z * cont->pts[pt].z),
+				       (int)(by + z * cont->pts[pt].y),
+				       drawsize);
 	       }
 	       if ((int)cont->pts[pt].y == vi->ymouse){
-		    zapDrawSymbol(cont->pts[pt].x + b, 
-				  cont->pts[pt].z + b + gutter +
-				  vi->ysize,
+		    zapDrawSymbol((int)(z * cont->pts[pt].x + bx), 
+				  (int)(z * cont->pts[pt].z + by2),
 				  obj->symbol, obj->symsize, obj->symflags);
+		    if (drawsize > 0)
+			 b3dDrawCircle((int)(bx + z * cont->pts[pt].x),
+				       (int)(by2 + z * cont->pts[pt].z),
+				       drawsize);
 	       }
 	  }
      }
@@ -1354,17 +1441,18 @@ static void xyzDrawCurrentContour(struct xxyzwin *xx, Iobj *obj, Icont *cont)
      if (obj->symflags & IOBJ_SYMF_ENDS){
 	  if (ivwPointVisible(vi, &(cont->pts[cont->psize-1]))){
 	       b3dColorIndex(App->endpoint);
-	       b3dDrawCross(b + cont->pts[cont->psize-1].x,
-			    b + cont->pts[cont->psize-1].y,
+	       b3dDrawCross((int)(bx + z * cont->pts[cont->psize-1].x),
+			    (int)(by + z * cont->pts[cont->psize-1].y),
 			    obj->symsize/2);
 	  }
 	  if (ivwPointVisible(vi, cont->pts)){
 	       b3dColorIndex(App->bgnpoint);
-	       b3dDrawCross(b + cont->pts->x,
-			    b + cont->pts->y,
+	       b3dDrawCross((int)(bx + z * cont->pts->x),
+			    (int)(by + z * cont->pts->y),
 			    obj->symsize/2);
 	  }
-	  b3dColorIndex(obj->fgcolor);
+	  /* DNM 1/21/02: need to reset color this way, not wih ColorIndex */
+	  imodSetObjectColor(ob);
      }
      
      return;
@@ -1390,9 +1478,9 @@ static void xyzDrawModel(struct xxyzwin *xx)
 	       cont = &(obj->cont[co]);
 	       if ((co == imod->cindex.contour) &&
 		   (ob == imod->cindex.object))
-		    xyzDrawCurrentContour(xx, obj, cont);
+		    xyzDrawCurrentContour(xx, obj, ob, cont);
 	       else
-		    xyzDrawContour(xx, obj, cont);
+		    xyzDrawContour(xx, obj, ob, cont);
 	  }
      }
 
@@ -1405,12 +1493,11 @@ static void xyzDrawCurrentPoint(struct xxyzwin *xx)
      Ipoint *pnt = imodPointGet(xx->vi->imod);
      int psize = 3;
      int cx, cy, cz;
-     int b = BSIZE;
-     float ob = BSIZE;
-
-#ifdef DRAW_OpenGL
-     ob = (float)ob / xx->zoom;
-#endif
+     float z = xx->zoom;
+     int bx = XYZ_BSIZE + xx->xwoffset;
+     int by = XYZ_BSIZE + xx->ywoffset;
+     int bx2 = bx + XYZ_BSIZE + floor((double)(xx->vi->xsize * z + 0.5));
+     int by2 = by + XYZ_BSIZE + floor((double)(xx->vi->ysize * z + 0.5));
 
      ivwGetLocation(xx->vi, &cx, &cy, &cz);
 
@@ -1422,37 +1509,37 @@ static void xyzDrawCurrentPoint(struct xxyzwin *xx)
 	  if (cont->psize > 1){
 	       if ((int)cont->pts->z == cz){
 		    b3dColorIndex(App->bgnpoint);
-		    b3dDrawCircle(cont->pts->x+b,
-				  cont->pts->y+b, 2);
+		    b3dDrawCircle((int)(z * cont->pts->x+bx),
+				  (int)(z * cont->pts->y+by), 2);
 	       }
 	       if ((int)cont->pts[cont->psize - 1].z == cz){
 		    b3dColorIndex(App->endpoint);
-		    b3dDrawCircle(cont->pts[cont->psize - 1].x+b,
-				  cont->pts[cont->psize - 1].y+b,  2);
+		    b3dDrawCircle((int)(z * cont->pts[cont->psize - 1].x+bx),
+				  (int)(z*cont->pts[cont->psize - 1].y+by), 2);
 	       }
 	  }
      }
      
      /* Draw location of current point. */
-     if (pnt){
+     /* DNM 1/21/02: do it like zap window, draw only if in model mode,
+	otherwise draw crosses at current mouse point */
+     if (xx->vi->imod->mousemode == IMOD_MMODEL &&  pnt){
 	  
 	  if ((int)(pnt->z) == cz){
 	       b3dColorIndex(App->foreground);
 	  }else{
 	       b3dColorIndex(App->shadow);
 	  }
-	  b3dDrawCircle(cx+b, cy+b, psize);
+	  b3dDrawCircle((int)(z * pnt->x+bx), (int)(z * pnt->y+by), psize);
 	  b3dColorIndex(App->foreground);
-	  b3dDrawPlus(cx+b, b+xx->vi->ysize+ob+cz, 1);
-	  b3dDrawPlus(b+xx->vi->xsize+ob+cz, 
-		      b+cy, 1);
+	  b3dDrawPlus((int)(z*pnt->x+bx), (int)(z*cz + by2), 3);
+	  b3dDrawPlus((int)(z * cz + bx2), (int)(by+z*pnt->y), 3);
 	  return;
      }
      b3dColorIndex(App->foreground);
-     b3dDrawPlus(cx+b, cy+b, 1);
-     b3dDrawPlus(cx+b, b+xx->vi->ysize+ob+cz, 1);
-     b3dDrawPlus(b+xx->vi->xsize+ob+cz, 
-		 b+cy, 1);
+     b3dDrawPlus((int)(z*cx+bx), (int)(z*cy+by), 3);
+     b3dDrawPlus((int)(z*cx+bx), (int)(z*cz+by2), 3);
+     b3dDrawPlus((int)(bx2+z*cz), (int)(by+z*cy), 3);
      
      return;
 }
@@ -1482,9 +1569,9 @@ static void xyzDrawAuto(struct xxyzwin *xx)
      cdat = App->endpoint;
 
      for (j = 0; j < vi->ysize; j++){
-	  y = j + BSIZE;
+	  y = j + XYZ_BSIZE;
 	  for(i = 0; i < vi->xsize; i++){
-	       x = i + BSIZE;
+	       x = i + XYZ_BSIZE;
 	       if (vi->ax->data[i + (j * vi->xsize)] & AUTOX_FLOOD){
 		    pixel = App->endpoint;
 		    if (vi->ax->data[i + (j * vi->xsize)] & AUTOX_BLACK){
@@ -1512,9 +1599,16 @@ static void xxyz_overclear(struct xxyzwin *xx)
      return;
 }
 
+
+/* DNM 1/21/02: eliminate OpenGL scaling of native coordinates, make all
+   model drawing routines multiply coordinates by zoom */
 static void xxyz_draw(struct xxyzwin *xx)
 {
-     int b = BSIZE;
+     float z = xx->zoom;
+     int bx = XYZ_BSIZE + xx->xwoffset;
+     int by = XYZ_BSIZE + xx->ywoffset;
+     int bx2 = bx + XYZ_BSIZE + floor((double)(xx->vi->xsize * z + 0.5));
+     int by2 = by + XYZ_BSIZE + floor((double)(xx->vi->ysize * z + 0.5));
      if (!xx)
 	  return;
      if (!xx->exposed) return;     /* DNM: avoid crashes if Zap is movieing*/
@@ -1525,47 +1619,32 @@ static void xxyz_draw(struct xxyzwin *xx)
 
      xyzDrawImage(xx);
 
-#ifdef DRAW_OpenGL
-     glPushMatrix();
-     glTranslatef(BSIZE, BSIZE, 0);
-     glScalef(xx->zoom, xx->zoom, 1.0);
-     glTranslatef(-BSIZE, -BSIZE, 0);
-#endif
-
      xyzDrawModel(xx);
      xyzDrawCurrentLines(xx);
      xyzDrawCurrentPoint(xx);
      xyzDrawAuto(xx);
 
-#ifdef DRAW_OpenGL	     
-     glPopMatrix();
      if (xyzShowSlice){
-	  int xo = (2*b) + (xx->vi->xsize * xx->zoom);
-	  int yo = (2*b) + (xx->vi->ysize * xx->zoom);
 	  b3dColorIndex(App->foreground);
 	  
-	  b3dDrawLine(b + (xx->vi->slice.zx1 * xx->zoom), 
-		      b + (xx->vi->slice.zy1 * xx->zoom),
-		      b + (xx->vi->slice.zx2 * xx->zoom), 
-		      b + (xx->vi->slice.zy2 * xx->zoom));
+	  b3dDrawLine((int)(bx + (xx->vi->slice.zx1 * xx->zoom)), 
+		      (int)(by + (xx->vi->slice.zy1 * xx->zoom)),
+		      (int)(bx + (xx->vi->slice.zx2 * xx->zoom)), 
+		      (int)(by + (xx->vi->slice.zy2 * xx->zoom)));
 
-	  b3dDrawLine(b + (xx->vi->slice.yx1 * xx->zoom),
-		      yo+ (xx->vi->slice.yz1 * xx->zoom),
-		      b + (xx->vi->slice.yx2 * xx->zoom),
-		      yo+ (xx->vi->slice.yz2 * xx->zoom));
+	  b3dDrawLine((int)(bx + (xx->vi->slice.yx1 * xx->zoom)),
+		      (int)(by2+ (xx->vi->slice.yz1 * xx->zoom)),
+		      (int)(bx + (xx->vi->slice.yx2 * xx->zoom)),
+		      (int)(by2+ (xx->vi->slice.yz2 * xx->zoom)));
 
-	  b3dDrawLine(xo+ (xx->vi->slice.xz1 * xx->zoom),
-		      b + (xx->vi->slice.xy1 * xx->zoom),
-		      xo+ (xx->vi->slice.xz2 * xx->zoom),
-		      b + (xx->vi->slice.xy2 * xx->zoom));
+	  b3dDrawLine((int)(bx2+ (xx->vi->slice.xz1 * xx->zoom)),
+		      (int)(by + (xx->vi->slice.xy1 * xx->zoom)),
+		      (int)(bx2+ (xx->vi->slice.xz2 * xx->zoom)),
+		      (int)(by + (xx->vi->slice.xy2 * xx->zoom)));
 
 	  xyzShowSlice = 0;
      }
      b3dFlush();
-
-#else
-     xyzDrawShowSlice(xx);
-#endif
 
      b3dSwapBuffers();
      return;
@@ -1581,16 +1660,18 @@ void xyzDraw_cb(ImodView *vi, void *client, long drawflag)
      
      if (drawflag){
 	  if (drawflag & IMOD_DRAW_IMAGE){
+
+	       /* This happens whens a flip occurs: get new image spaces */
 	       xx->lx = xx->ly = xx->lz = -1;
-	       b3dFreeCIImage(xx->xydata);
-	       b3dFreeCIImage(xx->xzdata);
-	       b3dFreeCIImage(xx->yzdata);
-	       xx->xydata = (B3dCIImage *)b3dGetNewCIImageSize
-		    (NULL, App->depth, xx->vi->xsize, xx->vi->ysize);
-	       xx->xzdata = (B3dCIImage *)b3dGetNewCIImageSize
-		    (NULL, App->depth, xx->vi->xsize, xx->vi->zsize);
-	       xx->yzdata = (B3dCIImage *)b3dGetNewCIImageSize
-		    (NULL, App->depth, xx->vi->zsize, xx->vi->ysize);
+	       b3dFlushImage(xx->xydata);
+	       b3dFlushImage(xx->xzdata);
+	       b3dFlushImage(xx->yzdata);
+	       if(xx->fdataxz)
+		    free(xx->fdataxz);
+	       if(xx->fdatayz)
+		    free(xx->fdatayz);
+	       xx->fdataxz  = (unsigned char *)malloc(vi->xsize * vi->zsize);
+	       xx->fdatayz  = (unsigned char *)malloc(vi->ysize * vi->zsize);
 	  }
 	  if (drawflag & IMOD_DRAW_SLICE)
 	       xyzShowSlice = 1;
@@ -1601,93 +1682,14 @@ void xyzDraw_cb(ImodView *vi, void *client, long drawflag)
 
 static void xyzDrawShowSlice(struct xxyzwin *xx)
 {
-#ifndef DRAW_GL
-     xyzShowSlice = 1;
-     xyz_draw(xx->vi);
-#endif
      return;
 }
 
 int xyz_draw_showslice(struct ViewInfo *vi)
 {
-#ifdef DRAW_GL
-     float vert[2];
-
-/* Just draw xyz only, zap to buggy. */
-/*     imod_zap_showslice(vi); */
-
-     if (!vi->xyz)
-	  return(-1);
-
-     GLXwinset(App->display,
-	       glxOverlayWindow(vi->xyz->glw));
-     color(0);
-     clear();
-     vi->xyz->overclear = FALSE;
-     color(1);
-
-     if ((vi->slice.zx1 != vi->lslice.zx1) ||
-	 (vi->slice.zx2 != vi->lslice.zx2) ||
-	 (vi->slice.zy1 != vi->lslice.zy1) ||
-	 (vi->slice.zy2 != vi->lslice.zy2) ){
-	  
-	  vert[0] = vi->slice.zx1 + BSIZE;
-	  vert[1] = vi->slice.zy1 + BSIZE;
-	  bgnline();
-	  v2f(vert);
-	  vert[0] = vi->slice.zx2 + BSIZE;
-	  vert[1] = vi->slice.zy2 + BSIZE;
-	  v2f(vert);
-	  endline();
-	  vi->slice.zx1 = vi->lslice.zx1;
-	  vi->slice.zx2 = vi->lslice.zx2;
-	  vi->slice.zy1 = vi->lslice.zy1;
-	  vi->slice.zy2 = vi->lslice.zy2;
-     }
-     
-     if ((vi->slice.yx1 != vi->lslice.yx1) ||
-	 (vi->slice.yx2 != vi->lslice.yx2) ||
-	 (vi->slice.yz1 != vi->lslice.yz1) ||
-	 (vi->slice.yz2 != vi->lslice.yz2)){
-	  
-	  vert[0] = BSIZE + vi->slice.yx1;
-	  vert[1] = (BSIZE * 2) + vi->ysize + vi->slice.yz1;
-	  bgnline();
-	  v2f(vert);
-	  vert[0] = BSIZE + vi->slice.yx2;
-	  vert[1] = (BSIZE * 2) + vi->ysize + vi->slice.yz2;
-	  v2f(vert);
-	  endline();
-	  vi->slice.yx1 = vi->lslice.yx1;
-	  vi->slice.yx2 = vi->lslice.yx2;
-	  vi->slice.yz1 = vi->lslice.yz1;
-	  vi->slice.yz2 = vi->lslice.yz2;
-     }
-
-     if ((vi->slice.xy1 != vi->lslice.xy1) ||
-	 (vi->slice.xy2 != vi->lslice.xy2) ||
-	 (vi->slice.xz1 != vi->lslice.xz1) ||
-	 (vi->slice.xz2 != vi->lslice.xz2)){
-	  
-	  vert[0] = (BSIZE * 2) + vi->xsize + vi->slice.xz1;
-	  vert[1] = BSIZE + vi->slice.xy1;
-	  bgnline();
-	  v2f(vert);
-	  vert[0] = (BSIZE * 2) + vi->xsize + vi->slice.xz2;
-	  vert[1] = BSIZE + vi->slice.xy2;
-	  v2f(vert);
-	  endline();
-	  vi->slice.xy1 = vi->lslice.xy1;
-	  vi->slice.xy2 = vi->lslice.xy2;
-	  vi->slice.xz1 = vi->lslice.xz1;
-	  vi->slice.xz2 = vi->lslice.xz2;
-     }
-     gflush();
-#else
      if (!vi->xyz)
 	  return(-1);
      xyzShowSlice = 1;
      xyz_draw(vi);
-#endif
      return(0);
 }
