@@ -20,6 +20,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.8  2004/04/19 18:06:51  mast
+Added newlines in front of all ERROR outputs
+
 Revision 3.7  2004/01/17 20:33:26  mast
 Changes for 2GB problem on Mac OS 10.3 - switch to calling routines in
 b3dutil
@@ -558,31 +561,24 @@ void qinquire(iunit, filename, flen, filename_l)
  } /*fcmp*/
  
    /************************************************************************/
- PRIVATE void get_fstr(fstr, lfstr, str, l)
- 
-   char *fstr;
- char *str;
- 
  /* Creates a c string from a fortran one */
- 
+
+ PRIVATE void get_fstr(char *fstr, int lfstr, char *str, int l)
  {
    int i = 0;
+   int lnblnk = -1;
  
+   /* Keep track of last non blank character and put null after it */
    while (lfstr > 0 && l > 1)
      {
+       if (*fstr != ' ')
+         lnblnk = i;
        str[i++] = *fstr++;
        lfstr--;
        l--;
      }
  
-   while (i > 0 && str[i - 1] == ' ')
-     {
-       i--;
-       l++;
-     }
- 
-   if (l > 0)
-     str[i] = 0;
+   str[lnblnk + 1] = 0;
  
  } /*get_fstr*/
  
