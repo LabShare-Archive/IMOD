@@ -16,6 +16,9 @@ import etomo.type.TiltAngleSpec;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.0  2003/01/24 20:30:31  rickg
+ * <p> Single window merge to main branch
+ * <p>
  * <p> Revision 1.1.2.1  2003/01/24 18:33:42  rickg
  * <p> Single window GUI layout initial revision
  * <p>
@@ -38,14 +41,23 @@ public class ConstTiltxcorrParam {
   protected FortranInputString trim;
   protected FortranInputString padPercent;
   protected FortranInputString taperPercent;
-  protected String viewList;
+  protected FortranInputString viewRange;
 
   public ConstTiltxcorrParam() {
     tiltAngleSpec = new TiltAngleSpec();
     filterParams = new FortranInputString(4);
     trim = new FortranInputString(2);
+    trim.setIntegerType(0, true);
+    trim.setIntegerType(1, true);
     padPercent = new FortranInputString(2);
+    padPercent.setIntegerType(0, true);
+    padPercent.setIntegerType(1, true);
     taperPercent = new FortranInputString(2);
+    taperPercent.setIntegerType(0, true);
+    taperPercent.setIntegerType(1, true);
+    viewRange = new FortranInputString(2);
+    viewRange.setIntegerType(0, true);
+    viewRange.setIntegerType(1, true);
   }
 
   public String getInputFile() {
@@ -78,8 +90,8 @@ public class ConstTiltxcorrParam {
   public String getTaperPercent() {
     return taperPercent.toString();
   }
-  public String getViewList() {
-    return viewList;
+  public String getViewRange() {
+    return viewRange.toString();
   }
   public boolean getExcludeCentralPeak() {
     return excludeCentralPeak;
