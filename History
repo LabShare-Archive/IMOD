@@ -1,5 +1,18 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/18/05: IMOD_3-4-22
+2/18/05: Added ability to set center of contour rotation and stretching and
+display of center as in midas, and allowed contour adjustment when no current
+point is defined (as is the case after Ctrl-A).
+
+2/18/05: Fixed problem with eTomo not keeping track of fiducialless, local
+alignment, whole tomogram positioning and Z factor states separately for two
+axes.
+
+2/15/05: Made Tiltalign put the prealigned stack size in the fid.xyz file, so 
+that Solvematch will now work properly if tomograms are made from centered
+subsets instead of from the whole aligned image.
+
 2/11/05: IMOD_3-4-21
 2/11/05: Fixed problem of no transferfid log when there is an error.
 
