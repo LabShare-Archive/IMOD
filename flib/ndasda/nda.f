@@ -19,6 +19,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.8  2004/04/20 04:26:10  mast
+c	  Fixed some uninitialized variables
+c	
 c	  Revision 3.7  2003/11/26 07:15:06  mast
 c	  initialize ntypbound to 0
 c	
@@ -105,6 +108,7 @@ c
 	ibinnd = 1
 	baseval = 0
 	nbinsave = 0
+	iwin = 1
 
 	call opencomfile
 c
