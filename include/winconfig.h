@@ -11,7 +11,6 @@
 #endif
 #define SWAP_IEEE_FLOATS
 #define NOTIFFLIBS
-#define NO_SYS_TIMES
 #define NO_IMOD_FORK
 #define CLIPBOARD_TIMER_HACK 100
 typedef char b3dByte;
