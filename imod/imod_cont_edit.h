@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.6  2004/11/20 05:05:27  mast
+Changes for undo/redo capability
+
 Revision 4.5  2004/11/04 23:30:55  mast
 Changes for rounded button style
 
@@ -47,6 +50,7 @@ class QLabel;
 class QSpinBox;
 class QCheckBox;
 class QButtonGroup;
+class QVButtonGroup;
 class QRadioButton;
 
 class ContourFrame : public DialogFrame
@@ -115,6 +119,8 @@ class ContourJoin : public ContourFrame
   void buttonPressed(int which);
   void set1Pressed();
   void set2Pressed();
+  void openTypeSelected(int which);
+  void closedTypeSelected(int which);
 
  public:
   QLabel *mSet1Label;
@@ -125,9 +131,11 @@ class ContourJoin : public ContourFrame
   void fontChange( const QFont & oldFont );
 
  private:
+  void setFontDependentWidths();
   QPushButton *mButton1;
   QPushButton *mButton2;
-  void setFontDependentWidths();
+  QVButtonGroup *mOpenGroup;
+  QVButtonGroup *mClosedGroup;
 };
 
 class ContourBreak : public ContourFrame
