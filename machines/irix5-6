@@ -188,7 +188,7 @@ EOF
 cat << EOF >! $imod_qconf
 SOURCES += linegui.cpp
 HEADERS += linegui.h
-LIBS += -L$lib_dir -liimod -limod -ldiaqt -ltiff -ltrack
+LIBS += -L$lib_dir -liimod -limod -ldiaqt -lifft -ltiff -ltrack
 LIBS += -lm
 INCLUDEPATH += .
 EOF
@@ -202,6 +202,9 @@ if ($distname == "") set distname = _irix6.5
 
 
 #  $Log$
+#  Revision 3.24  2004/06/04 17:38:43  mast
+#  Added definition of LIBTRACKDEF to get -lftn into libtrack.so build
+#
 #  Revision 3.23  2004/04/22 02:30:19  mast
 #  Added sgi.bashrc to INSTALL_FILES
 #
