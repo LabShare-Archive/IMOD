@@ -41,6 +41,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.1  2002/07/31 23:55:45  mast
+c	  Made it preserve pixel size
+c	
 c
 	parameter (inpdim=200,limdim=10000,lmcube=limdim/inpdim)
 	parameter (limout=(inpdim*3)/2)
@@ -179,8 +182,12 @@ c	  volume, store the starting index coordinates
 c
 	do i=1,3
 	  ncubes(i)=(nxyzout(i)-1)/idimout+1
-	  if(ncubes(i).gt.lmcube) stop
-     &	      'TOO MANY CUBES IN LONGEST DIRECTION TO FIT IN ARRAYS'
+	  if(ncubes(i).gt.lmcube) then
+	    print *,'ERROR: MATCHVOL - TOO MANY CUBES IN LONGEST',
+     &		' DIRECTION TO FIT IN ARRAYS'
+	    call exit(1)
+	  endif
+
 	  nxyzcubas(i)=nxyzout(i)/ncubes(i)
 	  nbigcube(i)=mod(nxyzout(i),ncubes(i))
 	  ind=0
@@ -417,7 +424,7 @@ c
 	  call imclose(i)
 	enddo
 	call exit(0)
-99	print *, 'read error'
+99	print *, 'ERROR: MATCHVOL - reading file'
 	call exit(1)
 	end
 
