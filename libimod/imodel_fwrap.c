@@ -36,6 +36,10 @@
     $Revision$
 
     $Log$
+    Revision 3.4  2002/07/07 20:10:57  mast
+    Added getimodscales to return scaling factors for getting between model
+    and index coordinates
+
     Revision 3.3  2002/05/20 15:53:39  mast
     Added ability to set scattered point size, and get arrays of contour
     time and surface values
@@ -480,7 +484,7 @@ int getimodmaxes(int *xmax, int *ymax, int *zmax)
      return FWRAP_NOERROR;
 }
 
-/* DNM 6/8/01: change this to savethe values until a model is written */
+/* DNM 6/8/01: change this to save the values until a model is written */
 int putimodmaxes(int *xmax, int *ymax, int *zmax)
 {
      xmax_put = *xmax;
@@ -508,14 +512,20 @@ int getimodhead(float *um, float *zscale,
 
      iref = Fimod->refImage;
 	 
-     if (iref){
-	 *xoffset = -iref->ctrans.x;
-	 *yoffset = -iref->ctrans.y;
-	 *zoffset = -iref->ctrans.z;
-     }else{
+     /* DNM 7/20/02: If image origin has been stored in otrans, return that
+	because that is what is needed to get to full volume index coords */
+     if (!iref){
 	 *xoffset = 0;
 	 *yoffset = 0;
 	 *zoffset = 0;
+     } else if (Fimod->flags & IMODF_OTRANS_ORIGIN) {
+	 *xoffset = -iref->otrans.x;
+	 *yoffset = -iref->otrans.y;
+	 *zoffset = -iref->otrans.z;
+     }else{
+	 *xoffset = -iref->ctrans.x;
+	 *yoffset = -iref->ctrans.y;
+	 *zoffset = -iref->ctrans.z;
      }
 
 
