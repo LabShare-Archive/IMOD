@@ -13,20 +13,26 @@ package etomo.comscript;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.1  2002/12/31 00:57:08  rickg
+ * <p> Initial revision
+ * <p>
  * <p> </p>
  */
 public class TransferfidParam {
-public static final String rcsid =
+  public static final String rcsid =
     "$Id$";
   String inputImageFile = "";
   String outputImageFile = "";
   String inputModelFile = "";
   String outputModelFile = "";
+  String fileSetName = "";
+  boolean bToA = false;
   boolean runMidas = false;
-  
+  int searchDirection = 0; // 0 - both, -1 => -90, 1=> +90  
+  int centerViewA = 0; // 0 => default selected by script
+  int centerViewB = 0;
   public TransferfidParam() {
   }
-
 
   /**
    * Get the command string specified by the current state
@@ -34,27 +40,38 @@ public static final String rcsid =
   public String getCommandString() {
     StringBuffer commandLine = new StringBuffer("transferfid ");
 
-    if( ! inputImageFile.equals("")) {
-      commandLine.append("-ia " + inputImageFile);
+    if (!inputImageFile.equals("")) {
+      commandLine.append("-ia " + inputImageFile + " ");
     }
 
-    if( ! outputImageFile.equals("")) {
-      commandLine.append("-ib " + outputImageFile);
+    if (!outputImageFile.equals("")) {
+      commandLine.append("-ib " + outputImageFile + " ");
     }
 
-    if( ! inputModelFile.equals("")) {
-      commandLine.append("-f " + inputModelFile);
+    if (!inputModelFile.equals("")) {
+      commandLine.append("-f " + inputModelFile + " ");
     }
 
-    if( ! outputModelFile.equals("")) {
-      commandLine.append("-o " + outputModelFile);
+    if (!outputModelFile.equals("")) {
+      commandLine.append("-o " + outputModelFile + " ");
     }
-    
-    if(runMidas) {
+
+    if (centerViewA > 0) {
+      commandLine.append("-za " + String.valueOf(centerViewA) + " ");
+    }
+
+    if (centerViewB > 0) {
+      commandLine.append("-zb " + String.valueOf(centerViewA) + " ");
+    }
+
+    if (runMidas) {
       commandLine.append("-m ");
     }
+
+    commandLine.append(fileSetName);
+
     return commandLine.toString();
-  }  
+  }
 
   /**
    * Returns the inputImageFile.
@@ -134,6 +151,38 @@ public static final String rcsid =
    */
   public void setRunMidas(boolean runMidas) {
     this.runMidas = runMidas;
+  }
+
+  /**
+   * Returns the setName.
+   * @return String
+   */
+  public String getFileSetName() {
+    return fileSetName;
+  }
+
+  /**
+   * Sets the setName.
+   * @param setName The setName to set
+   */
+  public void setFileSetName(String fileSetName) {
+    this.fileSetName = fileSetName;
+  }
+
+  /**
+   * Returns the bToA.
+   * @return boolean
+   */
+  public boolean isBToA() {
+    return bToA;
+  }
+
+  /**
+   * Sets the bToA.
+   * @param bToA The bToA to set
+   */
+  public void setBToA(boolean bToA) {
+    this.bToA = bToA;
   }
 
 }
