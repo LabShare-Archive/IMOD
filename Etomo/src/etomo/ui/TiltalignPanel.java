@@ -23,6 +23,10 @@ import etomo.comscript.StringList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.21  2003/01/04 00:24:29  rickg
+ * <p> Wrap tab pane with a border to ID it as a tiltalign
+ * <p> panel.
+ * <p>
  * <p> Revision 1.20  2002/12/31 23:13:47  rickg
  * <p> Layout simplification
  * <p>
@@ -895,6 +899,7 @@ public class TiltalignPanel implements ContextMenu {
 
     panelResidualThreshold.setLayout(
       new BoxLayout(panelResidualThreshold, BoxLayout.X_AXIS));
+    ltfResidualThreshold.setColumns(10);
     panelResidualThreshold.add(ltfResidualThreshold.getContainer());
     panelResidualThreshold.add(new JLabel(" s.d. relative to "));
     JRadioButton[] items = new JRadioButton[2];
