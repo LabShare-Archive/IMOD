@@ -293,6 +293,19 @@ conversion or use the program
 <A HREF = "man/clip.html">clip</A> to flip the
 image back.
 
+<P>
+As of IMOD 2.6.20, our image file format was changed to conform to the
+MRC image2000 standard.  Programs now read files in either the new or the old
+format and write files in the new format.  Older versions of IMOD will 
+interpret these new files as having strange origin values.  If you are running
+an older version and you have to work with one of these files (or any MRC file
+conforming to the new standard), you can fix the origin values with:
+<pre>
+alterheader filename
+org
+0,0,0
+done
+</pre>
 
 <DD> <H4>The Model Format.</H4>
 <p>

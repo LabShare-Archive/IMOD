@@ -1,5 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/2//02: IMOD_2-7-0 Released
 8/21/02: Fixed memory overrun problem in copy function of line tracker and
 added a copy button.
 
