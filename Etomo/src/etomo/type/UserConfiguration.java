@@ -16,12 +16,17 @@ import java.util.*;
  *
  * @version $Revision$
  *
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2002/09/09 22:57:02  rickg
+ * <p> Initial CVS entry, basic functionality not including combining
+ * <p> </p>
  */
 
-public class UserConfiguration implements Storable{
-  public static final String rcsid = "$Id$";
+public class UserConfiguration implements Storable {
+  public static final String rcsid =
+    "$Id$";
 
+  private String revisionNumber = "1.0";
   private boolean nativeLookAndFeel = false;
   private boolean advancedDialogs = false;
   private int toolTipsInitialDelay = 500;
@@ -31,7 +36,7 @@ public class UserConfiguration implements Storable{
 
   public UserConfiguration() {
     MRUFileList = new CircularBuffer(4);
-    for(int i = 0; i < nMRUFiles; i++){
+    for (int i = 0; i < nMRUFiles; i++) {
       MRUFileList.put("");
     }
   }
@@ -43,27 +48,32 @@ public class UserConfiguration implements Storable{
     store(props, "");
   }
 
-  public void store (Properties props, String prepend) {
+  public void store(Properties props, String prepend) {
     String group;
-    if(prepend == "") {
+    if (prepend == "") {
       group = "";
     }
     else {
       group = prepend + ".Setup.";
     }
-    props.setProperty(group + "NativeLookAndFeel",
+    props.setProperty(group + "RevisionNumber", revisionNumber);
+    props.setProperty(
+      group + "NativeLookAndFeel",
       String.valueOf(nativeLookAndFeel));
-    props.setProperty(group + "AdvancedDialogs",
+    props.setProperty(
+      group + "AdvancedDialogs",
       String.valueOf(advancedDialogs));
-    props.setProperty(group + "ToolTipsInitialDelay",
+    props.setProperty(
+      group + "ToolTipsInitialDelay",
       String.valueOf(toolTipsInitialDelay));
-    props.setProperty(group + "ToolTipsDismissDelay",
+    props.setProperty(
+      group + "ToolTipsDismissDelay",
       String.valueOf(toolTipsDismissDelay));
-    props.setProperty(group + "NMRUFiles",
-      String.valueOf(nMRUFiles));
-    for(int i = 0; i < nMRUFiles; i++) {
-      props.setProperty(group + "EtomoDataFile" + String.valueOf(i),
-	(String) MRUFileList.get());
+    props.setProperty(group + "NMRUFiles", String.valueOf(nMRUFiles));
+    for (int i = 0; i < nMRUFiles; i++) {
+      props.setProperty(
+        group + "EtomoDataFile" + String.valueOf(i),
+        (String) MRUFileList.get());
     }
 
   }
@@ -78,7 +88,7 @@ public class UserConfiguration implements Storable{
     //  if a prepend string is not empty
     //
     String group;
-    if(prepend == "") {
+    if (prepend == "") {
       group = "";
     }
     else {
@@ -88,31 +98,37 @@ public class UserConfiguration implements Storable{
     //
     //  Get the user configuration data from the Properties object
     //
-    nativeLookAndFeel = Boolean.valueOf(
-      props.getProperty(group + "NativeLookAndFeel", "false")).booleanValue();
-    advancedDialogs = Boolean.valueOf(
-      props.getProperty(group + "AdvancedDialogs", "false")).booleanValue();
-    toolTipsInitialDelay = Integer.parseInt(
-      props.getProperty(group + "ToolTipsInitialDelay", "1000"));
-    toolTipsDismissDelay = Integer.parseInt(
-      props.getProperty(group + "ToolTipsDismissDelay", "30000"));
-    nMRUFiles = Integer.parseInt(
-      props.getProperty(group + "NMRUFiles", "4"));
+    revisionNumber = props.getProperty(group + "RevisionNumber", "1.0");
+    nativeLookAndFeel =
+      Boolean
+        .valueOf(props.getProperty(group + "NativeLookAndFeel", "false"))
+        .booleanValue();
+    advancedDialogs =
+      Boolean
+        .valueOf(props.getProperty(group + "AdvancedDialogs", "false"))
+        .booleanValue();
+    toolTipsInitialDelay =
+      Integer.parseInt(
+        props.getProperty(group + "ToolTipsInitialDelay", "1000"));
+    toolTipsDismissDelay =
+      Integer.parseInt(
+        props.getProperty(group + "ToolTipsDismissDelay", "30000"));
+    nMRUFiles = Integer.parseInt(props.getProperty(group + "NMRUFiles", "4"));
     MRUFileList = new CircularBuffer(nMRUFiles);
-    for(int i = nMRUFiles-1; i >= 0; i--) {
-      MRUFileList.put(props.getProperty("EtomoDataFile" + String.valueOf(i),
-	""));
+    for (int i = nMRUFiles - 1; i >= 0; i--) {
+      MRUFileList.put(
+        props.getProperty("EtomoDataFile" + String.valueOf(i), ""));
     }
   }
 
   /**
    * Put a etomo data file onto the MRU list if it is not already there
    */
-   public void putDataFile(String filename) {
-      if(MRUFileList.search(filename) == -1) {
-	MRUFileList.put(filename);
-      }
-   }
+  public void putDataFile(String filename) {
+    if (MRUFileList.search(filename) == -1) {
+      MRUFileList.put(filename);
+    }
+  }
 
   /**
    * Get the next etomo data file from the MRU list
@@ -198,7 +214,7 @@ public class UserConfiguration implements Storable{
   public String[] getMRUFileList() {
     String[] list = new String[MRUFileList.size()];
 
-    for(int i = 0; i < MRUFileList.size(); i++ ) {
+    for (int i = 0; i < MRUFileList.size(); i++) {
       list[i] = (String) MRUFileList.get();
     }
     return list;
