@@ -1,14 +1,3 @@
-package etomo.ui;
-
-import java.awt.*;
-import java.awt.event.*;
-import java.io.File;
-
-import javax.swing.*;
-
-import etomo.ApplicationManager;
-import etomo.process.SystemProgram;
-
 /**
  * <p>Description: </p>
  *
@@ -22,8 +11,12 @@ import etomo.process.SystemProgram;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.0  2003/11/07 23:19:01  rickg
+ * <p> Version 1.0.0
+ * <p>
  * <p> Revision 2.6  2003/11/04 20:56:11  rickg
- * <p> Bug #345 IMOD Directory supplied by a static function from ApplicationManager
+ * <p> Bug #345 IMOD Directory supplied by a static function from
+ * <p> ApplicationManager
  * <p>
  * <p> Revision 2.5  2003/10/31 00:00:39  rickg
  * <p> Bug# 260
@@ -54,11 +47,30 @@ import etomo.process.SystemProgram;
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
  */
+package etomo.ui;
+
+import java.awt.BorderLayout;
+import java.awt.Frame;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowEvent;
+import java.io.File;
+
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+
+import etomo.ApplicationManager;
+import etomo.process.SystemProgram;
+
 public class MainFrame_AboutBox extends JDialog {
 	public static final String rcsid =
 		"$Id$";
 
-	String vers3dmod = "unknown";
+	String versImod = "unknown";
 	String cpyrght3dmodLine1 = "";
 	String cpyrght3dmodLine2 = "";
 	JPanel pnlAbout = new JPanel();
@@ -67,7 +79,7 @@ public class MainFrame_AboutBox extends JDialog {
 
 	public MainFrame_AboutBox(Frame parent) {
 		super(parent);
-		get3dmodVersion();
+		getImodVersion();
 		JPanel pnlRoot = (JPanel) getContentPane();
 		JPanel pnlText = new JPanel();
 		JPanel pnlButton = new JPanel();
@@ -81,7 +93,7 @@ public class MainFrame_AboutBox extends JDialog {
 		JLabel lblEtomo = new JLabel("eTomo: The IMOD Tomography GUI");
 		JLabel lblVersion = new JLabel("Version 1.0.0");
 		JLabel lblAuthors = new JLabel("Written by: Rick Gaudette & Sue Held");
-		JLabel lbl3dmodVersion = new JLabel("IMOD Version: " + vers3dmod);
+		JLabel lbl3dmodVersion = new JLabel("IMOD Version: " + versImod);
 		JLabel lblCopyright1 = new JLabel(cpyrght3dmodLine1);
 		JLabel lblCopyright2 = new JLabel(cpyrght3dmodLine2);
 
@@ -131,13 +143,13 @@ public class MainFrame_AboutBox extends JDialog {
 	/**
 	 * Run 3dmod -h to version and copyright information.
 	 */
-	private void get3dmodVersion() {
+	private void getImodVersion() {
 		String imodBinPath =
 			ApplicationManager.getIMODDirectory().getAbsolutePath()
 				+ File.separator
 				+ "bin"
 				+ File.separator;
-		String command = imodBinPath + "3dmod -h";
+		String command = imodBinPath + "imodinfo";
 		SystemProgram threeDmod_h = new SystemProgram(command);
 
 		threeDmod_h.run();
@@ -149,7 +161,7 @@ public class MainFrame_AboutBox extends JDialog {
 				String noPath = stdout[0].substring(idxVersion);
 				String[] tokens = noPath.split(" ");
 				if (tokens.length > 1) {
-					vers3dmod = tokens[1];
+					versImod = tokens[1];
 				}
 			}
 		}
