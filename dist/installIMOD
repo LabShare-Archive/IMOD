@@ -1,4 +1,4 @@
-#!/bin/csh -f
+#!/bin/tcsh -f
 #
 # Multi-platform install script for IMOD. 
 # Usage : installIMOD [package name]
@@ -12,6 +12,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.2  2004/04/24 01:21:57  mast
+#  Needed to separate : from varaiable
+#
 #  Revision 3.1  2004/04/24 01:10:03  mast
 #  Initial creation
 #
@@ -60,8 +63,10 @@ echo "Checking system and package types"
 switch ($system)
     case *IRIX*:
         set os = irix
-        set scripts = (sgi.cshrc sgi.bashrc)
-        set sysfiles = (/etc/cshrc /etc/profile)
+        # leave out /etc/profile because it is more likely used by sh than
+        # bash users
+        set scripts = (sgi.cshrc)
+        set sysfiles = (/etc/cshrc)
         breaksw
     case *Linux*:
         set os = linux
@@ -127,7 +132,8 @@ endif
 
 echo "Unpacking IMOD in $installdir ..."
 if ($os == irix) then
-    gzcat $packpath$package | tar x
+    gzcat $packpath$package | tar xf -
+    echo "(Ignore possible gzcat: unexpected end of file error)"
 else
     tar xzf $packpath$package
 endif
@@ -198,17 +204,16 @@ else
     #
     @ ind = 1
     while ($ind <= $#scripts)
-        if (-e $scripts[$ind] && -e $sysfiles[$ind]) then
-            set already = `grep 'IMOD.*source' $sysfiles[$ind]`
+        set sysfil = $sysfiles[$ind]
+        if (-e $scripts[$ind] && -e $sysfil) then
+            set already = `grep 'IMOD.*source' $sysfil`
             if ($status) then
-                echo "Adding source of startup script to $sysfiles[$ind]"
-                cat <<EOF >> $sysfiles[$ind]
-
-# Set environment for IMOD
-EOF
-                tail -2 $scripts[$ind] >> $sysfiles[$ind]
+                echo "Adding source of startup script to $sysfil"
+                echo "# Set environment for IMOD" >> $sysfil
+                echo "" >> $sysfil
+                tail -2 $scripts[$ind] >> $sysfil
             else
-                echo "Source command already exists in $sysfiles[$ind]"
+                echo "Source command already exists in $sysfil"
             endif
         endif
         @ ind++
