@@ -28,6 +28,9 @@ import etomo.type.ConstMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.27  2004/11/24 18:10:26  sueh
+ * <p> bug# 520 Added binning in XY.
+ * <p>
  * <p> Revision 3.26  2004/11/19 23:21:15  sueh
  * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
  * <p>
@@ -352,6 +355,7 @@ public class ImodManager {
   public static final String JOIN_KEY = new String("join");
   public static final String ROT_TOMOGRAM_KEY = new String("rotTomogram");
   public static final String TRIAL_JOIN_KEY = new String("TrialJoinKey");
+  public static final String SQUEEZED_VOLUME_KEY = new String("SqueezedVolume");
   
 
   //private keys - used with imodMap
@@ -375,6 +379,7 @@ public class ImodManager {
   private static final String joinKey = JOIN_KEY;
   private static final String rotTomogramKey = ROT_TOMOGRAM_KEY;
   private static final String trialJoinKey = TRIAL_JOIN_KEY;
+  private static final String squeezedVolumeKey = SQUEEZED_VOLUME_KEY;
 
   private boolean useMap = true;
 
@@ -915,6 +920,9 @@ public class ImodManager {
     if (key.equals(TRIAL_JOIN_KEY)) {
       return newTrialJoin();
     }
+    if (key.equals(SQUEEZED_VOLUME_KEY)) {
+      return newSqueezedVolume();
+    }
     throw new IllegalArgumentException(
       key
         + " cannot be created in "
@@ -950,6 +958,7 @@ public class ImodManager {
     imodMap.put(fiducialModelKey, newVector(newFiducialModel()));
     imodMap.put(trimmedVolumeKey, newVector(newTrimmedVolume()));
     imodMap.put(mtfFilterKey, newVector(newMtfFilter(AxisID.ONLY)));
+    imodMap.put(squeezedVolumeKey, newVector(newSqueezedVolume()));
   }
   
   protected void loadJoinMap() {
@@ -1012,6 +1021,7 @@ public class ImodManager {
     imodMap.put(
     mtfFilterKey + AxisID.SECOND.getExtension(),
       newVector(newMtfFilter(AxisID.SECOND)));
+    imodMap.put(squeezedVolumeKey, newVector(newSqueezedVolume()));
   }
 
   protected ImodState newRawStack(AxisID axisID) {
@@ -1105,6 +1115,10 @@ public class ImodManager {
   }
   protected ImodState newTrialJoin() {
     ImodState imodState = new ImodState(datasetName + "_trial.join");
+    return imodState;
+  }
+  private ImodState newSqueezedVolume() {
+    ImodState imodState = new ImodState(datasetName + ".sqz");
     return imodState;
   }
   
