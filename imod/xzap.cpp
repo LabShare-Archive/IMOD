@@ -1985,7 +1985,7 @@ static void zapResizeToFit(ZapStruct *zap)
   float xl, xr, yb, yt;
   width = zap->qtWindow->width();
   height = zap->qtWindow->height();
-  QPoint pos = zap->qtWindow->pos();
+  QRect pos = zap->qtWindow->geometry();
   dx = pos.x();
   dy = pos.y();
   if (zap->rubberband) {
@@ -2024,10 +2024,14 @@ static void zapResizeToFit(ZapStruct *zap)
   if (zapDebug)
     fprintf(stderr, "configuring widget...");
 
-#ifdef ZAP_EXPOSE_HACK
-  imodMovieXYZT(zap->vi, 0, 0, 0, 0);
-#endif
   zap->qtWindow->setGeometry(newdx, newdy, neww, newh);
+
+  /* DNM 9/12/03: remove the ZAP_EXPOSE_HACK, add this one to take care of
+     problems with Qt 3.2.1 on Mac */
+#ifdef ZAP_RESIZETOFIT_HACK 
+  imod_info_input();
+  zap->qtWindow->setGeometry(newdx, newdy, neww, newh);
+#endif
   if (zapDebug)
     fprintf(stderr, "back\n");
 }
@@ -2666,6 +2670,9 @@ bool zapTimeMismatch(ImodView *vi, int timelock, Iobj *obj, Icont *cont)
 
 /*
 $Log$
+Revision 4.25  2003/08/08 16:40:51  mast
+Fixed problem with current point display when model display turned off
+
 Revision 4.24  2003/06/27 19:25:28  mast
 Add ability to draw extra object that is not part of model
 
