@@ -233,7 +233,7 @@ static void stereoSetUp(void)
       configured = 1;
     }
 
-    // Turning stereo off: reset window
+    // Turning stereo off or switching to side-to-side: reset window
   } else if (imodvStereoData.omode == IMODV_STEREO_TB || imodvStereoData.hw) {
     if (imodvStereoData.hw) {
       stereoDisable();
@@ -244,6 +244,9 @@ static void stereoSetUp(void)
     configured = 1;
   }
 
+  // Now set old mode value
+  if (Imodv->stereo != IMODV_STEREO_OFF)
+    imodvStereoData.omode = Imodv->stereo;
   if (!configured) {
     imodvDraw(Imodv);
   }
@@ -376,28 +379,8 @@ ImodvStereo::ImodvStereo(QWidget *parent, const char *name)
 // User selects a new option
 void ImodvStereo::newOption(int item)
 {
-  switch (item) {
-
-  case IMODV_STEREO_OFF:
-    Imodv->stereo = IMODV_STEREO_OFF;
-    break;
-
-  case IMODV_STEREO_RL:
-    Imodv->stereo = IMODV_STEREO_RL;
-    imodvStereoData.omode = IMODV_STEREO_RL;
-    break;
-
-  case IMODV_STEREO_TB:
-    imodvStereoData.omode = IMODV_STEREO_TB;
-    Imodv->stereo = IMODV_STEREO_TB;
-    break;
-
-  case IMODV_STEREO_HW:
-    imodvStereoData.omode = IMODV_STEREO_HW;
-    Imodv->stereo = IMODV_STEREO_HW;
-    break;
-
-  }
+  // DNM 9/23/04: eliminated switch since only action now is to assign value
+  Imodv->stereo = item;
   stereoSetUp();
 }
 
@@ -515,6 +498,10 @@ void ImodvStereo::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.8  2004/06/09 05:38:20  mast
+Got top/bottom mode to work with double-scan setups, and really got SGI
+to work by incorporating old SGI-specific calls.
+
 Revision 4.7  2004/06/06 21:27:47  mast
 Cleanup and changes to get it working on SGI
 
