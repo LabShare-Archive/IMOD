@@ -49,6 +49,8 @@ Log at end of file
 #include "dia_qtutils.h"
 #include "imod_cachefill.h"
 #include "imod.h"
+#include "imodv.h"
+#include "imodv_views.h"
 #include "imod_display.h"
 #include "xcramp.h"
 #include "xzap.h"
@@ -209,6 +211,11 @@ void InfoWindow::fileWriteSlot(int item)
     fout =  fopen((QDir::convertSeparators(qname)).latin1(), "wb");
     if (!fout)
       break;
+
+    /* DNM 7/24/03: Make sure model is fully up to date before storing */
+    if (ImodvClosed)
+      Imodv->imod = App->cvi->imod;
+    imodvAutoStoreView(Imodv);
     imodWrite(App->cvi->imod, fout);
     fclose(fout);
     break;
@@ -1046,6 +1053,9 @@ static Icont *imodContourBreakByZ(Iobj *obj, int co)
 
 /*
 $Log$
+Revision 4.11  2003/06/20 19:46:34  mast
+Allowed break by Z to work for any kind of pbject, with better warning
+
 Revision 4.10  2003/06/19 05:48:17  mast
 Added ability to break all contours in object by Z value
 
