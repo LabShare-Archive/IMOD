@@ -17,6 +17,9 @@ import javax.swing.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.1  2003/04/25 23:42:56  rickg
+ * <p> Updated about box text
+ * <p>
  * <p> Revision 2.0  2003/01/24 20:30:31  rickg
  * <p> Single window merge to main branch
  * <p>
@@ -51,7 +54,7 @@ public class MainFrame_AboutBox extends JDialog implements ActionListener {
   FlowLayout flowLayout1 = new FlowLayout();
   GridLayout gridLayout1 = new GridLayout();
   String product = "eTomo: The IMOD Tomography GUI";
-  String version = "Version: 0.8 BETA";
+  String version = "Version: 0.8 BETA 2";
   String copyright = "Copyright (c) 2002,2003 University of Colorado";
   String comments = "";
   public MainFrame_AboutBox(Frame parent) {
