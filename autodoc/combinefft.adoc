@@ -103,6 +103,17 @@ from A will be reduced by the ratio of the mean combined value in the
 joint data region to the mean value from A in the joint data region, and
 similarly for B.
 
+[Field = InterzoneReduction]
+short = interzone
+long = InterzoneReduction
+type = B
+usage = Measure means for A and B in missing wedge, not joint regions
+tooltip =
+manpage = With this option, values in regions where data are available only
+from A will be reduced by the ratio of the mean combined value in the 
+joint data region to the mean value from A in the A-only data regions, and
+similarly for B.
+
 [Field = RingWidth]
 short = ring
 long = RingWidth
