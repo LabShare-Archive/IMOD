@@ -43,6 +43,11 @@ import etomo.comscript.CombineParams;
  * 
  * <p>
  * $Log$
+ * Revision 3.11  2004/06/17 21:47:17  sueh
+ * bug# 474 UIUtilities.setButtonSizeAll() causes this, called
+ * UIUtilities.setButtonSize(AbstractButton), since there is only
+ * one button on the panel in this case.
+ *
  * Revision 3.10  2004/06/17 00:31:44  sueh
  * adding call to setToolTipText()
  *
@@ -540,6 +545,9 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields {
 
     cbUseLinearInterpolation.setSelected(matchorwarpParam
       .isUseLinearInterpolation());
+      
+    //when loading into the dialog, matchorwarp takes precidence over patchcorr
+    cbUsePatchRegionModel.setSelected(matchorwarpParam.isUseModelFile());
   }
 
   /**
