@@ -13,6 +13,7 @@ import etomo.comscript.ComScriptManager;
 import etomo.comscript.CombineComscriptState;
 import etomo.comscript.CombineParams;
 import etomo.comscript.ConstCombineParams;
+import etomo.comscript.ConstSqueezevolParam;
 import etomo.comscript.ConstTiltalignParam;
 import etomo.comscript.FortranInputSyntaxException;
 import etomo.comscript.MTFFilterParam;
@@ -24,6 +25,7 @@ import etomo.comscript.SetParam;
 import etomo.comscript.SolvematchParam;
 import etomo.comscript.SolvematchmodParam;
 import etomo.comscript.SolvematchshiftParam;
+import etomo.comscript.SqueezevolParam;
 import etomo.comscript.TiltParam;
 import etomo.comscript.TiltalignParam;
 import etomo.comscript.TiltxcorrParam;
@@ -80,6 +82,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.104  2004/11/30 00:32:45  sueh
+ * <p> bug# 556 Adding functions to parse volcombine.
+ * <p>
  * <p> Revision 3.103  2004/11/19 22:31:32  sueh
  * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
  * <p>
@@ -4720,6 +4725,7 @@ public class ApplicationManager extends BaseManager {
         return;
       }
       postProcessingDialog.setTrimvolParams(trimvolParam);
+      postProcessingDialog.setParameters(metaData.getSqueezevolParam());
     }
     mainPanel.showProcess(postProcessingDialog.getContainer(), AxisID.ONLY);
   }
@@ -4843,6 +4849,36 @@ public class ApplicationManager extends BaseManager {
   }
   
   /**
+   * Execute squeezevol
+   */
+  public void squeezevol() {
+    // Make sure that the post processing panel is open
+    if (postProcessingDialog == null) {
+      mainPanel.openMessageDialog("Post processing dialog not open",
+        "Program logic error");
+      return;
+    }
+    ConstSqueezevolParam squeezevolParam = updateSqueezevolParam();
+    // Start the trimvol process
+    processTrack.setPostProcessingState(ProcessState.INPROGRESS);
+    mainPanel.setPostProcessingState(ProcessState.INPROGRESS);
+    String threadName;
+    try {
+      threadName = processMgr.squeezeVolume(squeezevolParam);
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Can not execute squeezevol command";
+      message[1] = e.getMessage();
+      mainPanel.openMessageDialog(message, "Unable to execute command");
+      return;
+    }
+    setThreadName(threadName, AxisID.ONLY);
+    mainPanel.startProgressBar("Squeezing volume", AxisID.ONLY);
+  }
+  
+  /**
    * updates ConstMetaData.trimvolParam with data from postProcessingDialog.
    * Sets isDataParamDirty if necessary
    * @return the updated TrimvolParam
@@ -4872,6 +4908,33 @@ public class ApplicationManager extends BaseManager {
     trimvolParam.setOutputFile(metaData.getDatasetName());
     return trimvolParam;
   }
+  
+  /**
+   * updates ConstMetaData.squeezevolParam with data from postProcessingDialog.
+   * Sets isDataParamDirty if necessary
+   * @return the updated SqueezevolParam
+   *
+   */
+  protected ConstSqueezevolParam updateSqueezevolParam() {
+    //FIXME dirty bit will always be set because dialog trimvol param will be
+    //different from metadata trimvol after it is first saved with an inputfile
+    //and an outputfile
+    
+    //Get trimvol param data from dialog.
+    SqueezevolParam dialogSqueezevolParam = new SqueezevolParam();
+    postProcessingDialog.getParameters(dialogSqueezevolParam);
+    //Get the metadata trimvol param.
+    SqueezevolParam squeezevolParam = metaData.getSqueezevolParam();
+    postProcessingDialog.getParameters(squeezevolParam);
+    //Set the dirty bit if dialog squeeze vol data is changed.
+    //No need to call MetaData.setSqueezevolParam(squeezevolParam) because
+    //squeezevolParam is ConstMetaData.squeezevolParam.
+    if (!dialogSqueezevolParam.equals(squeezevolParam)) {
+      isDataParamDirty = true;
+    }
+    return squeezevolParam;
+  }
+
 
   //
   //  Utility functions
