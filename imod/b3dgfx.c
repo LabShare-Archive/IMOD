@@ -33,6 +33,14 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2002/01/28 16:38:46  mast
+    Modified drawing routines to accept a slice number and pass it on to
+    routine that checks for identity of temporary buffer, instead of assuming
+    current Z.  Modified buffer matching routine so that it would recognize a
+    buffer match even when there is only a single buffer in use.  Fixed logic
+    for recognizing a match with fractional zooms.  Removed factor of two 
+    excess in sizing of temporary buffers.
+
 */
 
 #include <stdlib.h>
