@@ -18,6 +18,7 @@ import etomo.comscript.ConstMatchorwarpParam;
 import etomo.comscript.ConstPatchcrawl3DParam;
 import etomo.comscript.MatchorwarpParam;
 import etomo.comscript.Patchcrawl3DParam;
+import etomo.comscript.CombineParams;
 
 /**
  * <p>
@@ -43,6 +44,9 @@ import etomo.comscript.Patchcrawl3DParam;
  * 
  * <p>
  * $Log$
+ * Revision 3.2  2004/03/02 21:54:24  sueh
+ * bug# 250 setting useBoudaryModel() with Use Patch Region Model
+ *
  * Revision 3.1  2004/01/30 22:45:07  sueh
  * bug# 356 Changing buttons with html labels to
  * MultiLineButton and MultiLineToggleButton
@@ -518,7 +522,22 @@ public class FinalCombinePanel implements ContextMenu {
       String message = badParameter + " " + except.getMessage();
       throw new NumberFormatException(message);
     }
-  } /**
+  }
+  
+  /**
+   * Get the combine parameters from the UI
+   * @param combineParams
+   */
+  public void getCombineParameters(CombineParams combineParams) {
+    if (cbUsePatchRegionModel.isSelected()) {
+      combineParams.setDefaultPatchRegionModel();     
+    }
+    else {
+      combineParams.setPatchRegionModel("");
+    }
+  }
+  
+   /**
              		 * Right mouse button context menu
              		 */
   public void popUpContextMenu(MouseEvent mouseEvent) {
