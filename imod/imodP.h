@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.4  2002/10/22 22:39:24  mast
+    *** empty log message ***
+
     Revision 3.3  2002/09/19 22:53:36  rickg
     Added MESSAGE_QUIT define
 
@@ -430,138 +433,7 @@ int  ivwLoadImage(ImodView *iv);
 void ivwFlushCache(ImodView *vi);
 int  ivwSetScale(ImodView *vi);
 void ivwMultipleFiles(ImodView *iv, char *argv[], int firstfile, 
-		      int lastimage);
-
-void ivwTransModel(ImodView *iv);
-void ivwSetModelTrans(ImodView *iv);
-void ivwFlipModel(ImodView *iv);
-void imodCheckWildFlag(Imod *imod);
-void ivwCheckWildFlag(Imod *imod);
-void ivwScaleDepth8(ImodView *iv, ivwSlice *tempSlicePtr);
-void ivwReadZ(ImodView *iv, unsigned char *buf, int cz);
-
-
-/* workprocs */
-int imodv_add_anim(void);
-int imod_start_autosave(void);
-int imodMovieXYZT(struct ViewInfo *vi, int x, int y, int z, int t);
-
-/* imod_display.c */
-int  imod_display_init(ImodApp *ap, char **argv, int *argc);
-int  imod_color_init(ImodApp *ap);
-void imod_cmap(Imod *m);
-void imodSetObjectColor(int ob);
-int  imodDraw(ImodView *vw, int flag);
-void imod_redraw_all(void);
-void stereoHardware(Widget w, int flag);
-void imodOverrideTranslations(Widget w, XtTranslations translations);
-void imodOverrideTransTable(Widget w, String table);
-int mapcolor(unsigned long color, 
-	     unsigned short red, 
-	     unsigned short green, 
-	     unsigned short blue);
-int alloc_object_colors(Imod *m, int obstart, int obend);
-int free_object_colors(Imod *m, int obstart, int obend);
-
-int handle_input(struct ViewInfo *vi);
-char *imodwfname(char *intro);
-char *imodwEithername(char *intro, char *filename);
-void imod_imgcnt(char *string);
-
-
-/* imod_draw.c */
-/*
-void imod_draw_window(void);
-int  imod_open(FILE *mfin);
-void show_status(char *info);
-void imod_draw_window(void);
-void imod_draw_xyzinfo(void);
-void DrawModel(struct Mod_Model *mod);
-void DrawObject(struct Mod_Object *obj, int index);
-int  DrawClosedContour(struct Mod_Contour *cont, int obcolor, int select);
-int  DrawOpenContour(struct Mod_Contour *cont, int obcolor);
-int  drawghost(struct Mod_Model *mod);
-void imod_cmap(struct Mod_Model *mod);
-int  xyz_draw(struct ViewInfo *vi);
-*/
-
-/* window fuctions */
-int  xyz_draw(struct ViewInfo *vi);
-int  imod_zap_open(struct ViewInfo *vi);
-int  imod_zap_draw(struct ViewInfo *vi);
-int  imod_zap_close(struct ViewInfo *vi);
-void zapDraw_cb(struct ViewInfo *vi, void *client, int drawflag);
-void imodv_draw(void);
-void imodv_new_model(Imod *mod);
-int  imod_object_edit_draw(void);
-int  imod_object_edit(Widget top);
-int  open_pixelview(struct ViewInfo *vi);
-int  xgraphOpen(struct ViewInfo *vi);
-int imod_tumble_open(struct ViewInfo *vi);
-int tltopen(ImodView *vw, struct ViewInfo *ti);
-void imodv_open(struct Mod_Model *imod, int cmapbase);
-int sslice_showslice(struct Super_slicer *ss);
-int xtumOpen(struct ViewInfo *vi);
-int set_pixelview(struct ViewInfo *vi);
-
-/* imod_info public functions */
-void imod_info_setglwin(void);
-int  imod_info_input(void);
-int  imod_info_open(int argc, char **argv);
-void imod_info_quit(Widget w, XtPointer client, XtPointer call);
-void imod_info_setobjcolor(void);
-void imod_info_setocp(void);
-void imod_info_setxyz(void);
-void imod_info_setbw(int black, int white);
-int  imod_info_bwfloat(ImodView *vw, int section, int time);
-void imod_info_float_clear(int section, int time);
-int  imod_open(FILE *mfin);
-void show_status(char *info);
-void imod_show_info(char *info, int line);
-void imod_info_msg(char *top, char *bot);
-void imod_info_forbid(void);
-void imod_info_enable(void);
-void imod_set_mmode(int mode);
-void imod_draw_window(void);
-
-
-/* old imod_igraph.c defines */
-/*
-#define IGRAPH_SIZE 256
-#define IGRAPH_SCALE 1;
-
-extern int Igraphx_Window;
-extern int Igraphy_Window;
-extern int Igraphz_Window;
-
-extern struct ViewInfo Igraphx_vi;
-extern struct ViewInfo Igraphy_vi;
-extern struct ViewInfo Igraphz_vi;
-
-int  imod_igraph_open(char axis);
-void imod_igraph_close(char axis);
-int  imod_igraph_input(unsigned short dev, short val); 
-int  imod_igraph_draw(struct ViewInfo *vi);
-void imod_igraph_gdata(struct ViewInfo *vi);
-*/
-
-
-void imodImageScaleDialog(ImodView *iv);
-void imodImageScaleUpdate(ImodView *iv);
-
-/* imod_model_edit.c */
-int openModelEdit(ImodView *vw);
-int openModelOffset(ImodView *vw);
-
-/* imod_cachefill.c */
-int icfGetAutofill(void);
-unsigned char *icfDoAutofill(ImodView *vw, int cz);
-void imodCacheFillDialog(ImodView *vw);
-void imodCacheFill(ImodView *vw);
-
-/* imod_edit.c */
-int imod_setxyzmouse(void);
-void imod_contour_move(int ob);
+		  
 int imod_movepoint(int x, int y, int z);
 int imod_nearest(Imod *mod);
 int imod_obj_nearest(struct Mod_Object *obj, 
