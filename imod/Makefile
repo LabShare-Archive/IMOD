@@ -7,6 +7,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.2  2002/09/04 00:19:46  mast
+#  Add dependency of imodv on imod.h
+#
 #  Revision 3.1  2001/12/17 18:37:32  mast
 #  Add imod_cachefill.c to make, add many dependencies on headers included by
 #  imod.h
@@ -82,6 +85,10 @@ ximodv.o : $(IMODDEPS) $(IMODVDEPS) ximodv.h
 
 $(IMODVOBJS) : $(IMODVDEPS)
 imodv.o : $(IMODVDEPS) imod.h
+
+DIAPUSERS = pixelview.o imod_model_edit.o imod_object_edit.o imodv_control.o \
+ imodv_objed.o imod_cont_copy.o imod_workprocs.o slicer.o iproc.o xzap.o xyz.o
+$(DIAPUSERS) : $(INCDIR)diaP.h
 
 slicer.o : sslice.h slicer.h
 imod_menu.o : imodhelp.h hotkey.h menus.h imod_info.h iproc.h options.h
