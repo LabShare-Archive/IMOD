@@ -23,6 +23,9 @@ import etomo.storage.EtomoFileFilter;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.7  2002/12/11 00:37:26  rickg
+ * <p> Added handler for options/settings menu
+ * <p>
  * <p> Revision 1.6  2002/12/09 04:42:29  rickg
  * <p> Automatically add .edf extenstion when doing save as or
  * <p> save with not existing filename
@@ -427,6 +430,22 @@ public class MainFrame extends JFrame implements ContextMenu {
     ContextPopup contextPopup = new ContextPopup(mainPanel, mouseEvent, "");
   }
 
+  //  FIXME: Need a way to repaint the existing font
+  public void repaintWindow() {
+    repaintContainer(this);
+    this.repaint();
+  }
+
+  private void repaintContainer(Container container) {
+    Component[] comps = container.getComponents();
+    for (int i = 0; i < comps.length; i++) {
+      if (comps[i] instanceof Container) {
+        Container cont = (Container) comps[i];
+        repaintContainer(cont);
+      }
+      comps[i].repaint();
+    }
+  }
   /**
    *  Build the process control panels
    */
