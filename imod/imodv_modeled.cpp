@@ -32,7 +32,7 @@
 #include "formv_modeled.h"
 #include "dia_qtutils.h"
 #include "imodv.h"
-#include "imodP.h"
+#include "imod.h"
 #include "imodv_gfx.h"
 #include "imodv_input.h"
 #include "imodv_views.h"

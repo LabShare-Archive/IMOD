@@ -44,7 +44,7 @@ Log at end of file
 #include <qlayout.h>
 #include <qslider.h>
 
-#include "imodP.h"
+#include "imod.h"
 #include "zap_classes.h"
 #include "xzap.h"
 #include "tooledit.h"
@@ -442,6 +442,9 @@ void ZapGL::mouseMoveEvent ( QMouseEvent * e )
 
 /*
 $Log$
+Revision 4.10  2003/09/24 00:47:12  mast
+Eliminated second setting geometry now that move is used instead
+
 Revision 4.9  2003/09/18 00:48:14  mast
 Set the geometry when timer event comes in to do the first real draw
 

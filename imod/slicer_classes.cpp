@@ -50,7 +50,7 @@ Log at end of file
 #include <qslider.h>
 #include <qvalidator.h>
 
-#include "imodP.h"
+#include "imod.h"
 #include "slicer_classes.h"
 #include "sslice.h"
 #include "tooledit.h"
@@ -469,6 +469,9 @@ int FloatSpinBox::mapTextToValue( bool *ok )
 
  /*
 $Log$
+Revision 4.5  2003/09/15 21:04:02  mast
+Allow zooms to 4 decimal places
+
 Revision 4.4  2003/04/11 21:47:28  mast
 adding tooltips
 

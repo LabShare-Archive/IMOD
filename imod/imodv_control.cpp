@@ -38,7 +38,7 @@ Log at end of file
 #include "formv_control.h"
 #include "dia_qtutils.h"
 #include "imodv.h"
-#include "imodP.h"
+#include "imod.h"
 #include "imodv_control.h"
 #include "imodv_gfx.h"
 #include "imodv_input.h"
@@ -395,6 +395,9 @@ int imodv_control(ImodvApp *a, int state)
 
 /*
     $Log$
+    Revision 4.4  2003/04/28 04:00:56  mast
+    Fix help text on hotkey and gadget
+
     Revision 4.3  2003/04/25 03:28:32  mast
     Changes for name change to 3dmod
 

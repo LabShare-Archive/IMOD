@@ -54,7 +54,7 @@ Log at end of file
 #include "dia_qtutils.h"
 
 #include "imodv.h"
-#include "imodP.h"
+#include "imod.h"
 #include "imodv_gfx.h"
 #include "imodv_light.h"
 #include "imodv_objed.h"
@@ -1572,6 +1572,9 @@ static void finalSpacer(QWidget *parent, QVBoxLayout *layout)
 
 /*
 $Log$
+Revision 4.14  2003/06/27 19:42:44  mast
+Changes to allow sphere quality tobe controlled
+
 Revision 4.13  2003/06/01 05:43:47  mast
 Fixed problem with ambient slider
 
