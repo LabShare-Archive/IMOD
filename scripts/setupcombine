@@ -40,6 +40,9 @@ set volcombine = volcombine.com
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.3  2002/07/27 23:57:02  mast
+#  Change volcombine STATUS line to say piece n of m
+#
 #  Revision 3.2  2002/07/21 19:33:30  mast
 #  Made default borders for patchcorr be based upon image size, and also
 #  made thickness passed to Matchshifts bigger and based on image size
@@ -559,6 +562,7 @@ while ($sumnum < $npiecex * $npiecez)
 end
 cat >> $volcombine <<EOCAT
 #
+\$echo 
 \$echo STATUS: RUNNING FILLTOMO ON FINAL VOLUME
 \$echo 
 #
