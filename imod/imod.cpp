@@ -54,6 +54,7 @@ Log at the end of file
 #include "preferences.h"
 #include "form_startup.h"
 #include "imod_assistant.h"
+#include "iirawimage.h"
 #include "b3dicon.xpm"
 
 extern "C" int iiQImageCheck(ImodImageFile *inFile);
@@ -103,6 +104,11 @@ void imod_usage(char *name)
   qstr += "         -o nx,ny  Set X and X overlaps for montage display.\n";
   qstr += "         -f    Load as frames even if image file has piece "
     "coordinates.\n";
+  qstr += "         -r nx,ny,nz  Dimensions for raw image files.\n";
+  qstr += "         -t #  Mode for raw files: 0=byte, 1=int; 2=float, "
+    "4=complex, 16=RGB.\n";
+  qstr += "         -H #  Header size in bytes in raw image files.\n";
+  qstr += "         -w    Swap bytes from raw image files.\n";
   qstr += "         -m    Load model with model coords (override scaling).\n";
   qstr += "         -2    Treat model as 2D only.\n";
   qstr += "         -T    Display multiple single-image files as times not "
@@ -134,6 +140,7 @@ int main( int argc, char *argv[])
   int new_model_created = FALSE;
   int i      = 0;
   int cmap;
+  int nx, ny, nz, mode;
   int namelen;
   int frames = 0;
   int firstfile = 0;
@@ -214,6 +221,7 @@ int main( int argc, char *argv[])
 
   /* Add check function for QImage formats */
   iiAddCheckFunction(iiQImageCheck);
+  iiAddCheckFunction(iiRawCheck);
 
   /* Open the Qt application */
   
@@ -351,6 +359,7 @@ int main( int argc, char *argv[])
         
         case 's':
           sscanf(argv[++i], "%f%*c%f", &(li.smin), &(li.smax));
+          iiRawSetScale(li.smin, li.smax);
           break;
         
         case 'b':
@@ -433,6 +442,25 @@ int main( int argc, char *argv[])
         
         case 'W':
           print_wid = TRUE;
+          break;
+        
+        case 'r':
+          sscanf(argv[++i], "%d,%d,%d", &nx, &ny, &nz);
+          iiRawSetSize(nx, ny, nz);
+          break;
+
+        case 't':
+          sscanf(argv[++i], "%d", &mode);
+          iiRawSetMode(mode);
+          break;
+
+        case 'H':
+          sscanf(argv[++i], "%d", &mode);
+          iiRawSetHeaderSize(mode);
+          break;
+
+        case 'w':
+          iiRawSetSwap();
           break;
         
         default:
@@ -1025,6 +1053,9 @@ int imodColorValue(int inColor)
 
 /*
 $Log$
+Revision 4.47  2004/11/30 03:39:42  mast
+Added call to allow reading via QImage
+
 Revision 4.46  2004/11/24 18:29:38  mast
 Start the assistant with an adp file to get customized appearance
 

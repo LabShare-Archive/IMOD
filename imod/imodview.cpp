@@ -574,7 +574,7 @@ static fpos_t startPos;
 void ivwGetFileStartPos(ImodImageFile *image)
 {
 #ifdef __linux
-  if (!image->fp || image->file != IIFILE_MRC)
+  if (!image->fp || (image->file != IIFILE_MRC && image->file != IIFILE_RAW))
     return;
   fgetpos(image->fp, &startPos);
 #endif
@@ -587,7 +587,7 @@ void ivwDumpFileSysCache(ImodImageFile *image)
   int filedes;
   long long start, end;
   off_t diff;
-  if (!image->fp || image->file != IIFILE_MRC)
+  if (!image->fp || (image->file != IIFILE_MRC && image->file != IIFILE_RAW))
     return;
   filedes = fileno(image->fp);
   fgetpos(image->fp, &endPos);
@@ -1265,8 +1265,10 @@ float ivwGetFileValue(ImodView *vi, int cx, int cy, int cz)
   FILE *fp = NULL;
   struct MRCheader *mrcheader = NULL;
 
-  if (!vi->image) return 0.0f;
-  if (vi->image->file != IIFILE_MRC) return 0.0f;
+  if (!vi->image)
+    return 0.0f;
+  if (vi->image->file != IIFILE_MRC && vi->image->file != IIFILE_RAW)
+    return 0.0f;
   fp = vi->image->fp;
   mrcheader = (struct MRCheader *)vi->image->header;
 
@@ -1295,6 +1297,8 @@ float ivwGetFileValue(ImodView *vi, int cx, int cy, int cz)
         ivwReopen(vi->image);
         fp = vi->image->fp;
         mrcheader = (struct MRCheader *)vi->image->header;
+        if (vi->image->file != IIFILE_MRC && vi->image->file != IIFILE_RAW)
+          return 0.0f;
       }
       fz = 0;
     }
@@ -2015,9 +2019,9 @@ static int ivwProcessImageList(ImodView *vi)
     // See if mirroring of an FFT is needed:
     // MRC complex float odd size and not forbidden by option
     // Set flags and increase the nx
-    if (image->file == IIFILE_MRC && image->format == IIFORMAT_COMPLEX &&
-        image->type == IITYPE_FLOAT && image->nx % 2 && 
-        vi->li->mirrorFFT >= 0) {
+    if ((image->file == IIFILE_MRC || image->file == IIFILE_RAW) && 
+        image->format == IIFORMAT_COMPLEX && image->type == IITYPE_FLOAT && 
+        image->nx % 2 && vi->li->mirrorFFT >= 0) {
       image->mirrorFFT = 1;
       vi->li->mirrorFFT = 1;
       image->nx = (image->nx - 1) * 2;
@@ -2032,7 +2036,8 @@ static int ivwProcessImageList(ImodView *vi)
 
     /* Add to count if RGB or not, to see if all the same type */
     if (image->format == IIFORMAT_RGB && 
-        !(image->file == IIFILE_MRC && vi->grayRGBs))
+        !((image->file == IIFILE_MRC  || image->file == IIFILE_RAW) && 
+          vi->grayRGBs))
       rgbs++;
   }     
 
@@ -2083,7 +2088,8 @@ static int ivwProcessImageList(ImodView *vi)
                
       /* If not an MRC file, or if multifile in Z, set to no
          flipping unless cache full */
-      if (image->file != IIFILE_MRC || vi->multiFileZ > 0)
+      if ((image->file != IIFILE_MRC  && image->file != IIFILE_RAW) || 
+          vi->multiFileZ > 0)
         vi->flippable = 0;
 
     }     
@@ -2491,6 +2497,9 @@ void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin,
 
 /*
 $Log$
+Revision 4.32  2004/11/20 05:05:27  mast
+Changes for undo/redo capability
+
 Revision 4.31  2004/11/07 22:59:52  mast
 Make binning routine global
 
