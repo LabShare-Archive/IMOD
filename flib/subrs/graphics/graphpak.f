@@ -1,9 +1,18 @@
-c	  An interface between DNM's old graphics calls (for a Megatek board in
+c	  An interface between DNMs old graphics calls (for a Megatek board in
 c	  a NOVA 1220) and the Parallax graphics device
 c
 c	  12/27/90: added ability to change color
 c	  3/18/91: made it return and not turn on flag if p_start fails,
 c	  made grfopn call erase if parallax is not on yet, to turn it on
+
+c	  $Author$
+c
+c	  $Date$
+c
+c	  $Revision$
+c
+c	  $Log$
+
 c
 	subroutine erase(ix)
 	common /smplgr/ifplxon,ixcur,iycur,icolor
@@ -16,6 +25,7 @@ c
 	endif
 c	call p_zoom(1,1)
 c	call p_pan(0,1023)
+	call plax_erase()
 	call p_clt8(0,0,0,0)
 	call p_clt8(241,255,255,255)
 	call p_clt8(250,255,0,0)
