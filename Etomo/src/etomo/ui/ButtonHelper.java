@@ -11,7 +11,10 @@
 *
 * @version $Revision$
 *
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2003/10/21 02:31:42  sueh
+* <p> Bug325 New class, holds common button functionality
+* <p> </p>
 */
 
 package etomo.ui;
@@ -104,7 +107,7 @@ public class ButtonHelper {
   //private implementation
 
   //All public and protected methods are static, so constructor can be private
-  public ButtonHelper() {
+  private ButtonHelper() {
   }
 
 }
