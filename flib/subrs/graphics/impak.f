@@ -3,9 +3,15 @@ c	  has calls similar to DNM's old graphics package calls.  It provides
 c	  for drawing with multiple line thicknesses
 c	  This is a version to call Postscript graphics library on SGI
 c
+c	  $Author$
+c
+c	  $Date$
+c
+c	  $Revision$
+c
+c	  $Log$
+c
 	subroutine imset(ithset,widset,upiset,safset,ifset)
-	character*80 fname
-	data fname /'gmeta.dat'/
 	logical exist
 	integer rename
 	common /imparm/ nthick,width,upi,safe,xcur,ycur
@@ -13,6 +19,10 @@ c
 	data nthick,width,upi,safe,xcur,ycur,symscl,cscrit,ifgks
      &	    /1,7.5,300.,0.00022,0.,0.,0.15,0.,0/
 	save /imparm/
+	character*80 fname
+	common /gmetaname/fname
+	data fname /'gmeta.ps'/
+
 	if(ifgks.eq.0)then
 	  inquire(file=fname,exist=exist)
 	  namlen=lnblnk(fname)
@@ -151,17 +161,23 @@ c	  Unix version for SGI
 c
 	subroutine pltout(metascreen)
 	character*80 comstr
+	character*80 fname
+	common /gmetaname/fname
+
 	call gksoff
 	if(metascreen.eq.0)then
-	  comstr='lp gmeta.dat'
+	  comstr='lp '
 	else
-	  comstr='xpsview gmeta.dat'
+	  comstr='imodpsview '
 	endif
+	namelen = lnblnk(fname)
+	lencom = lnblnk(comstr) + 1
+	comstr(lencom+1:lencom+namelen) = fname(1:namelen)
 	call system(comstr)
-	if(metascreen.ne.0)write(*,101)
+	if(metascreen.ne.0)write(*,101)fname(1:namelen)
 101	format(/,' WARNING: If you start making more plots, a new plot'
      &	    ,' file will be started,',/, '          the ',
-     &	    'current file will become a backup (gmeta.dat~),'
+     &	    'current file will become a backup (',a,'~),'
      &	    ,/,'          and a previous backup will be deleted.')
 	return
 	end
