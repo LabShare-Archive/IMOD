@@ -163,6 +163,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.2  2002/09/06 00:38:33  mast
+c	  Wrong message!
+c	
 c	  Revision 3.1  2002/07/21 00:05:00  mast
 c	  Rearranged input order so that it was easier to run from Matchorwarp
 c	  with columns or rows excluded.  Standardized error output and made
