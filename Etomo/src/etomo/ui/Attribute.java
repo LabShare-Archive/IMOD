@@ -17,16 +17,19 @@ import java.util.Iterator;
 *
 * @version $$Revision$$
 *
-* <p> $$Log$$ </p>
+* <p> $$Log$
+* <p> $Revision 1.1  2003/12/31 01:22:02  sueh
+* <p> $bug# 372 holds attribute data
+* <p> $$ </p>
 */
 
-public class Attribute implements AttributeInterface {
+public class Attribute implements AttributeCollection {
   public static final String rcsid = "$$Id$$";
   
-  String key = null;
-  Token name = null;
-  Token value = null;
-  HashMap attributeMap = null;
+  String key = null; //required
+  Token name = null; //required
+  Token value = null; //optional
+  HashMap attributeMap = null; //optional
   
   
   public static String getKey(Token name) {
@@ -43,15 +46,12 @@ public class Attribute implements AttributeInterface {
     return Token.getKey(name);
   }
  
-  public Attribute() {
-  }
-  
   public Attribute(Token name) {
     this.name = name;
     key = name.getKey(true);
   }
   
-  public AttributeInterface addAttribute(Token name) {
+  public AttributeCollection addAttribute(Token name) {
     Attribute existingAttribute = null;
     if (attributeMap == null) {
       attributeMap = new HashMap();
@@ -72,13 +72,10 @@ public class Attribute implements AttributeInterface {
 
   public Attribute getAttribute(String name) {
     if (attributeMap == null) {
-      return new Attribute();
+      return null;
     }
     String key = getKey(name);
     Attribute attribute = (Attribute) attributeMap.get(key);
-    if (attribute == null) {
-      return new Attribute();
-    }
     return attribute;
   }
 
@@ -95,10 +92,6 @@ public class Attribute implements AttributeInterface {
       for (int i = 0; i < level; i++) {
         System.out.print("  ");
       }
-    }
-    if (isNull()) {
-      System.out.println();
-      return;
     }
     System.out.print(key + ":(");
     System.out.print(name.getValue(true));
@@ -128,9 +121,6 @@ public class Attribute implements AttributeInterface {
   }
   
   public String getName() {
-    if (name == null) {
-      return null;
-    }
     return name.getValue(true);
   }
  
@@ -141,14 +131,7 @@ public class Attribute implements AttributeInterface {
     return value.getValue(true);
   }
  
-  public final boolean isNull() {
-    return key == null;
-  }
-
   public int hashCode() {
-    if (key == null) {
-      return new String().hashCode();
-    }
     return key.hashCode();
   }
   
@@ -160,9 +143,7 @@ public class Attribute implements AttributeInterface {
 
   protected String paramString() {
     StringBuffer buffer = new StringBuffer(",key=" + key + ",name=");
-    if (name != null) {
-      buffer.append(name.getValue(true) + ",value=");
-    }
+    buffer.append(name.getValue(true) + ",value=");
     if (value != null) {
       buffer.append(value.getValue(true) + ",attributeMap=");
     }
