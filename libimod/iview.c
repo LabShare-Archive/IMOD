@@ -27,6 +27,15 @@
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
 
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
+
 #include <math.h>
 #include "imodel.h"
 
@@ -149,7 +158,9 @@ int imodViewWrite(Iview *vw, FILE *fout)
 	       imodPutBytes(fout, &ov->clip, 4);
 	       imodPutFloats(fout, (float *)&ov->clip_normal, 6);
 	       imodPutBytes(fout, &ov->ambient, 4);
-	       imodPutInts(fout, (int *)&ov->mat1, 3);
+	       imodPutBytes(fout, (unsigned char *)&ov->mat1, 4);
+	       imodPutInts(fout, (int *)&ov->mat2, 1);
+	       imodPutBytes(fout, (unsigned char *)&ov->mat3, 4);
 	  }
      }
 
@@ -236,7 +247,9 @@ int imodViewModelRead(Imod *imod)
 		    imodGetBytes(fin, &ov->clip, 4);
 		    imodGetFloats(fin, (float *)&ov->clip_normal, 6);
 		    imodGetBytes(fin, &ov->ambient, 4);
-		    imodGetInts(fin, (int *)&ov->mat1, 3);
+		    imodGetBytes(fin, (unsigned char *)&ov->mat1, 4);     
+		    imodGetInts(fin, (int *)&ov->mat2, 1);     
+		    imodGetBytes(fin, (unsigned char *)&ov->mat3, 4);     
 		    bytesRead += 67;
 		    
 		    /* If more elements are added in future, will need to test
