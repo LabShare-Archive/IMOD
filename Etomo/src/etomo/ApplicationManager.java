@@ -82,6 +82,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.39  2004/04/27 01:01:34  sueh
+ * <p> bug# 427 using tomopitch param when running tomopitch
+ * <p>
  * <p> Revision 3.38  2004/04/26 21:20:32  sueh
  * <p> bug# 427 added code for tomopitch comscript (not finished)
  * <p>
@@ -3972,6 +3975,24 @@ public class ApplicationManager {
    * queue
    */
   private void patchcorr() {
+    //Ask to close 3dmod patch vector model, if it is open.
+    try {
+      if (imodManager.isOpen(ImodManager.PATCH_VECTOR_MODEL_KEY)) {
+        String[] message = new String[3];
+        message[0] = "3dmod is open to the existing patch vector model.";
+        message[1] = "Patchcorr will create a new patch vector model.";
+        message[2] = "Do you wish to quit 3dmod?";
+        if (mainFrame.openYesNoDialog(message)) {
+          imodManager.quit(ImodManager.PATCH_VECTOR_MODEL_KEY);
+        }
+      }
+    }
+    catch (AxisTypeException e) {
+      e.printStackTrace();
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+    }
     //  Set the next process to execute when this is finished   
     nextProcess = "matchorwarp";
     String threadName;
