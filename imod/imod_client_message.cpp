@@ -107,7 +107,7 @@ void ImodClipboard::clipTimeout()
 
       // If it returns true, set the exiting flag and start another timer
       mExiting = true;
-      mClipTimer->start(10, true);
+      mClipTimer->start(200, true);          // 100 ms is too short on SGI
     } else if (mClipTimer){
 
       // Otherwise, all done with this timer
@@ -133,7 +133,7 @@ void ImodClipboard::clipHackTimeout()
 // Parse the message, see if it is for us, and save in local variables
 bool ImodClipboard::handleMessage()
 {
-  int index, action, newStamp;
+  int index, newStamp;
   if (!ImodInfoWin)
     return false;
 
@@ -289,6 +289,9 @@ void ImodClipboard::sendResponse(int succeeded)
 
 /*
 $Log$
+Revision 4.2  2003/02/27 19:22:16  mast
+Qt version that works on windows
+
 Revision 4.1  2003/02/10 20:28:59  mast
 autox.cpp
 
