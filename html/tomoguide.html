@@ -1508,7 +1508,7 @@ needed to see the pattern of displacement vectors.
 <P>
 Consider the following steps in sequence:
 <OL>
-<LI> <B>Make bigger patches.</B>  If there are many lines that do not fit
+<LI> <I>Make bigger patches.</I>  If there are many lines that do not fit
 the pattern of surrounding lines, scattered around the whole volume, then
 you should rerun the
 patch correlation 
@@ -1520,7 +1520,7 @@ volume of the patches by a factor of 1.73 and substantially improve
 accuracy, although in some cases two increases may be needed.
 Press <B>Restart at Patchcorr</B> to continue.
 
-<LI> <B>Exclude regions of patches with a model.</B>  If displacements generally look fairly regular but there are a large 
+<LI> <I>Exclude regions of patches with a model.</I>  If displacements generally look fairly regular but there are a large 
 number of bad patches in well-defined regions, it may be easiest to make a
 model with contours enclosing the regions with good patches, or to modify
 such a model if you have already made one.  To do this while looking at the
@@ -1536,7 +1536,7 @@ region model, the patch vector model will still show bad patches outside of
 the region contours (and thus not a problem) unless you rerun patchcorr to
 generate new patches that are constrained to be within the region.
 
-<LI> <B>Edit out scattered bad patches.</B>  If bad patches are fairly scattered and not too numerous, it is most
+<LI> <I>Edit out scattered bad patches.</I>  If bad patches are fairly scattered and not too numerous, it is most
 appropriate to edit them out.  To do this, press the <B>Examine Patch Vector
 Model</B> button and open a Zap window from 
 the Info window of the 3dmod that displays the patch vector model.
@@ -1553,7 +1553,7 @@ it will disappear from the model view
 window also.  When finished, save the model and exit.  
 Then press <B>Replace Patch Vectors</B> and <B>Restart at Matchorwarp</B>.
 
-<LI> <B>Eliminate rows or columns.</B>  If the patch vector model indicates that bad patches are numerous near
+<LI> <I>Eliminate rows or columns.</I>  If the patch vector model indicates that bad patches are numerous near
 edges of the volume, next explore whether omitting
 a whole column or row of patches will give an acceptable fit to
 the remaining patches.  To do this, make entries in the 
@@ -1564,7 +1564,7 @@ If you find an exclusion that gives a good fit, and the excluded area is not
 a critical area where you would expect a better fit, then proceed with this
 exclusion.  Just press <B>Restart at Matchorwarp</B> to finish combining.
 
-<LI> <B>Just go on.</B>  Sometimes the lowest mean residual that
+<LI> <I>Just go on.</I>  Sometimes the lowest mean residual that
 Findwarp is able to achieve (the last message in matchorwarp.log saying
  "Findward failed to find
 a warping with a mean residual below") is actually an acceptable value, just a
@@ -1574,7 +1574,7 @@ this is the case, just change the highest value in the <B>Warp limit</B>
 text box to be higher than the value shown in this message.  Press
 <B>Restart at Matchorwarp</B> and the combine should run to completion.
 
-<LI> <B>Run Findwarp interactively.</B>  If all else fails, it may help to run 
+<LI> <I>Run Findwarp interactively.</I>  If all else fails, it may help to run 
 <A HREF = "man/findwarp.html">Findwarp</A>
 interactively.  This will allow you to explore omitting
 columns or rows of patches as well as select the number of patches that will
