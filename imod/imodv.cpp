@@ -461,8 +461,7 @@ int imodv_main(int argc, char **argv)
   if (load_models(argc - i, &(argv[i]), Imodv))
     exit(-1);
 
-  QImage iconImage(b3dicon);
-  a->iconPixmap = new QPixmap (iconImage);
+  a->iconPixmap = new QPixmap(QImage(b3dicon));
 
   openWindow(Imodv);
 
@@ -592,6 +591,9 @@ void imodvDrawImodImages()
 
 /*
 $Log$
+Revision 4.7  2003/05/18 22:06:37  mast
+Changed to start QApplication before calling, and to create icon pixmap
+
 Revision 4.6  2003/04/25 03:28:32  mast
 Changes for name change to 3dmod
 
