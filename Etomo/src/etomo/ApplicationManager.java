@@ -76,6 +76,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.77  2003/10/20 22:02:13  rickg
+ * <p> Bug# 228 Check to see if solve.xf exists before running matchvol1
+ * <p>
  * <p> Revision 2.76  2003/10/20 17:32:09  rickg
  * <p> Use existence of combine com scripts
  * <p> ConstCombineParams.scriptsCreated flag
@@ -3945,29 +3948,6 @@ public class ApplicationManager {
     }
   }
 
-  //SUEH 317
-  /**
-   *  
-   */
-  public static Object getDefaultUIResource(Object target, String name) {
-
-    // sets the default font for all Swing components.
-    // ex.
-    //  setUIFont (new javax.swing.plaf.FontUIResource("Serif",Font.ITALIC,12));
-    // Taken from: http://www.rgagnon.com/javadetails/java-0335.html
-    java.util.Enumeration keys = UIManager.getDefaults().keys();
-    if (target == null || name == null) {
-      return null;
-    }
-    while (keys.hasMoreElements()) {
-      Object key = keys.nextElement();
-      Object value = UIManager.get(key);
-      if (key.toString() == name && value.getClass() == target.getClass()) {
-        return value;
-      }
-    }
-    return null;
-  }
 
   /**
    * Return the IMOD directory
