@@ -13,6 +13,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.8  2004/04/26 21:09:50  sueh
+ * <p> bug# 427 added tomopitch
+ * <p>
  * <p> Revision 3.7  2004/04/19 19:24:46  sueh
  * <p> bug# 409 putting text back to pre-409, handling changes in
  * <p> ComScript
@@ -594,10 +597,10 @@ public class ComScriptManager {
   public void loadTomopitch(AxisID axisID) {
     //  Assign the new ComScriptObject object to the appropriate reference
     if (axisID == AxisID.SECOND) {
-      scriptTomopitchB = loadComScript("tomopitch", axisID, false);
+      scriptTomopitchB = loadComScript("tomopitch", axisID, true);
     }
     else {
-      scriptTomopitchA = loadComScript("tomopitch", axisID, false);
+      scriptTomopitchA = loadComScript("tomopitch", axisID, true);
     }
   }
 
