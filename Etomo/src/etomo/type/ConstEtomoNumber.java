@@ -22,6 +22,22 @@ import etomo.storage.Storable;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.11  2005/01/21 23:04:12  sueh
+ * <p> bug# 509 bug# 591  Added isUpdateCommand() in place of
+ * <p> isSetAndNotDefault() as a standard why to decide if a parameter should
+ * <p> be placed in a comscript.  Changed the name of value to currentValue.
+ * <p> Added an empty value.  The currentValue is set to empty value when
+ * <p> set(String) receives an empty or whitespace filled string.  The distinguishes
+ * <p> it from a currentValue that was never set or set incorrectly.  THe only
+ * <p> function which doesn't treate empty the same as null is getValue().  This
+ * <p> allows EtomoNumber to display a blank field, even when the resetValue is
+ * <p> in use.  However, since store() and updateCommand(), and
+ * <p> isUpdateCommand() treate empty just like a null, the blank field isn't
+ * <p> remembered.  This prevents the comscript, .edf, .ejf files from having lots
+ * <p> of empty fields in them.  This means that the reset value will show when
+ * <p> they are reloaded.  If a blank numeric field must be remembered and reload
+ * <p> blank, write an alternate way to save it, treating empty like a regular value.
+ * <p>
  * <p> Revision 1.10  2005/01/14 23:02:34  sueh
  * <p> Removing originalVersion because it is not being used.
  * <p>
@@ -173,11 +189,22 @@ public abstract class ConstEtomoNumber implements Storable {
   }
 
   /**
-   * Validate value against validValues
+   * Validate currentValue against preventNullValues.  Null and empty are checked.
+   * Validate currentValue against validValues.  Null and empty are ignored.
+   * 
    * Sets invalidReason if invalid
    */
   protected void validate() {
-    if (isNull(currentValue) || invalidReason != null || validValues == null) {
+    if (invalidReason != null) {
+      return;
+    }
+    if ((isNull(currentValue) || isEmpty(currentValue)) && preventNullValue) {
+      StringBuffer invalidBuffer = new StringBuffer();
+      invalidReason = "Invalid value:  null or empty"
+          + "\nNull and empty are not allowed when preventNullValue is true.";
+      return;
+    }
+    if (isNull(currentValue) || isEmpty(currentValue) || validValues == null) {
       return;
     }
     boolean valid = false;
@@ -193,8 +220,16 @@ public abstract class ConstEtomoNumber implements Storable {
     }
   }
   
+  /**
+   * Returns ceilingValue if value > ceilingValue.
+   * Otherwise returns value.
+   * Ignores null and empty
+   * @param value
+   * @return
+   */
   protected Number applyCeilingValue(Number value) {
     if (value != null && !isNull(ceilingValue) && !isNull(value)
+        && !isEmpty(ceilingValue) && !isEmpty(value)
         && gt(currentValue, ceilingValue)) {
       return ceilingValue;
     }
@@ -279,6 +314,9 @@ public abstract class ConstEtomoNumber implements Storable {
    * @return
    */
   public void setResetValue(double resetValue) {
+    if (type != DOUBLE_TYPE) {
+      throw new IllegalStateException("Cannot use a double resetValue with any type but double.");
+    }
     this.resetValue = newNumber(resetValue);
   }
 
@@ -640,7 +678,7 @@ public abstract class ConstEtomoNumber implements Storable {
   }
 
   private Number newNumberMultiplied(Number number, int multiple) {
-    if (isNull(number)) {
+    if (isNull(number) || isEmpty(number)) {
       return number;
     }
     switch (type) {
@@ -703,7 +741,7 @@ public abstract class ConstEtomoNumber implements Storable {
   }
 
   protected boolean gt(Number number, Number compValue) {
-    if (isNull(number) || isNull(compValue)) {
+    if (isNull(number) || isEmpty(number) || isNull(compValue) || isEmpty(compValue)) {
       return false;
     }
     switch (type) {
@@ -721,7 +759,7 @@ public abstract class ConstEtomoNumber implements Storable {
   }
   
   protected boolean lt(Number number, Number compValue) {
-    if (isNull(number) || isNull(compValue)) {
+    if (isNull(number) || isEmpty(number) || isNull(compValue) || isEmpty(compValue)) {
       return false;
     }
     switch (type) {
@@ -742,7 +780,10 @@ public abstract class ConstEtomoNumber implements Storable {
     if (isNull(number) && isNull(compValue)) {
       return true;
     }
-    if (isNull(number) || isNull(compValue)) {
+    if (isEmpty(number) && isEmpty(compValue)) {
+      return true;
+    }
+    if (isNull(number) || isEmpty(number) || isNull(compValue) || isEmpty(compValue)) {
       return false;
     }
     switch (type) {
