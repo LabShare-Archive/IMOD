@@ -1,0 +1,21 @@
+
+* create a constant data structure to store the input parameters in the com
+  script
+
+* create a r/w data structure derived from above
+  - implements the CommandParam interface
+
+* add an initializer to the r/w data structure from a Com Script command
+
+* add an update method to update a Com Script Command
+
+* add a load and save method the the ApplicationManger
+
+* insert appropriate load and save calls into open*Dialog functions
+
+* add get and set parameter functions to the dialog box class
+
+* add get and set parameter functions to the panel if necessary
+
+* add validation
+
