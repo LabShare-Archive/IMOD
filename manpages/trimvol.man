@@ -45,7 +45,7 @@ Copy "size" pixels in the X dimension, centered on the middle in X.
 .B -ny <size>
 Copy "size" pixels in the Y dimension, centered on the middle in Y.
 .TP
-.B -nZ <size>
+.B -nz <size>
 Copy "size" pixels in the Z dimension, centered on the middle in Z.
 .TP
 .B -s <S0,S1>
@@ -59,6 +59,11 @@ the dark and the light end.
 .B -c <black,white>
 Scale to bytes, with relative intensities between "black" and "white" (on a
 scale of 0 to 255) stretched to occupy the full range of byte values.
+.TP
+.B -yz
+Flip Y and Z in the output volume by first creating a temporary trimmed volume
+with newstack then running "clip flipyz" on this volume to create the final
+output file.
 .TP
 .B -i
 Interpret 
