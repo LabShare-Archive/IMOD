@@ -29,6 +29,11 @@ import etomo.util.Utilities;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.4  2004/08/23 23:35:45  sueh
+ * <p> $bug# 508 made this class more like LogFileProcessMonitor.
+ * <p> $Calling interrupt on child monitors and this monitor to make
+ * <p> $run() complete faster
+ * <p> $
  * <p> $Revision 1.3  2004/08/20 21:41:53  sueh
  * <p> $bug# 508 CombineComscriptState match string is now static.
  * <p> $Improved selfTest()
@@ -83,6 +88,7 @@ public class CombineProcessMonitor implements Runnable, BackgroundProcessMonitor
   private static final int WAITED_FOR_LOG_STATE = 2;
   private static final int RAN_STATE = 3;
   private boolean selfTest = false;
+  private Thread runThread = null;
   
   
   /**
@@ -219,8 +225,8 @@ public class CombineProcessMonitor implements Runnable, BackgroundProcessMonitor
    *
    */
   private void endCurrentChildMonitor() {
-    if (childThread != null) {
-      childThread.interrupt();
+    if (childMonitor != null) {
+      childMonitor.haltProcess(childThread);
     }
     childMonitor = null;
     childThread = null;
@@ -232,7 +238,11 @@ public class CombineProcessMonitor implements Runnable, BackgroundProcessMonitor
    */
   private void endMonitor() {
     endCurrentChildMonitor();
-    Thread.currentThread().interrupt();
+    applicationManager.progressBarDone(axisID);
+    if (runThread != null) {
+      runThread.interrupt();
+      runThread = null;
+    }
     processRunning = false;
   }
   
@@ -260,6 +270,7 @@ public class CombineProcessMonitor implements Runnable, BackgroundProcessMonitor
    * After loop, turn off the monitor if that hasn't been done already.
    */
   public void run() {
+    runThread = Thread.currentThread();
     initializeProgressBar();
     //  Instantiate the logFile object
     String logFileName = CombineComscriptState.COMSCRIPT_NAME + ".log";
@@ -301,7 +312,6 @@ public class CombineProcessMonitor implements Runnable, BackgroundProcessMonitor
     catch (IOException e1) {
       e1.printStackTrace();
     }
-    applicationManager.progressBarDone(axisID);
     endMonitor();
     runSelfTest(RAN_STATE);
   }
