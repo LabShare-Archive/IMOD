@@ -31,40 +31,12 @@
 $Date$
 
 $Revision$
-
-$Log$
-Revision 1.1.2.2  2003/01/27 00:30:07  mast
-Pure Qt version and general cleanup
-
-Revision 1.1.2.1  2003/01/23 23:06:07  mast
-conversion to cpp
-
-Revision 3.5.2.1  2003/01/14 21:52:38  mast
-include new movie controller include file
-
-Revision 3.5  2002/12/01 15:34:41  mast
-Changes to get clean compilation with g++
-
-Revision 3.4  2002/10/22 22:44:03  mast
-Fixed bug that was exposed by the EXPOSE_HACK (needed to clear the
-movietimeout value when done).  Eliminated unused code.
-
-Revision 3.3  2002/09/11 04:33:40  mast
-Correct comments on crashes from dual-processor to Ti 4600
-
-Revision 3.2  2002/09/10 19:49:35  mast
-Needed to flush events before movie image draw as well as after, to
-prevent crashes possibly due to expose events after a resize with
-Nvidia Ti 4600
-
-Revision 3.1  2002/01/28 16:47:12  mast
-Fixed problem with movie rate counter when movie was stopped with mouse
-button
-
+Log at end of file
 */
 
 #include <stdlib.h>
 #include <qapplication.h>
+#include <qclipboard.h>
 #include <qtimer.h>
 #include "imod.h"
 #include "imod_io.h"
@@ -73,7 +45,7 @@ button
 #include "imod_moviecon.h"
 #include "control.h"
 
-
+// The constructor for the class: set up the timers and connections
 ImodWorkproc::ImodWorkproc(ImodView *vw)
 {
   mVi = vw;
@@ -84,7 +56,6 @@ ImodWorkproc::ImodWorkproc(ImodView *vw)
   connect(mMovieTimer, SIGNAL(timeout()), this, SLOT(movieTimeout()));
   connect(mControlTimer, SIGNAL(timeout()), this, SLOT(controlTimeout()));
 }
-
 
 /*
  * Autosave timer
@@ -324,3 +295,38 @@ int imodMovieXYZT(struct ViewInfo *vi, int x, int y, int z, int t)
   vi->timers->mMovieTimer->start(interval);
   return 0;
 }
+
+/*
+$Log$
+Revision 4.1  2003/02/10 20:29:02  mast
+autox.cpp
+
+Revision 1.1.2.2  2003/01/27 00:30:07  mast
+Pure Qt version and general cleanup
+
+Revision 1.1.2.1  2003/01/23 23:06:07  mast
+conversion to cpp
+
+Revision 3.5.2.1  2003/01/14 21:52:38  mast
+include new movie controller include file
+
+Revision 3.5  2002/12/01 15:34:41  mast
+Changes to get clean compilation with g++
+
+Revision 3.4  2002/10/22 22:44:03  mast
+Fixed bug that was exposed by the EXPOSE_HACK (needed to clear the
+movietimeout value when done).  Eliminated unused code.
+
+Revision 3.3  2002/09/11 04:33:40  mast
+Correct comments on crashes from dual-processor to Ti 4600
+
+Revision 3.2  2002/09/10 19:49:35  mast
+Needed to flush events before movie image draw as well as after, to
+prevent crashes possibly due to expose events after a resize with
+Nvidia Ti 4600
+
+Revision 3.1  2002/01/28 16:47:12  mast
+Fixed problem with movie rate counter when movie was stopped with mouse
+button
+
+*/
