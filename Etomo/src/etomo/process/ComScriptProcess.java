@@ -31,6 +31,9 @@ import etomo.util.Utilities;
  * 
  * <p>
  * $Log$
+ * Revision 3.2  2004/04/09 17:03:39  sueh
+ * bug# 409 parsing multi-line "PIP WARNING:" message
+ *
  * Revision 3.1  2003/11/26 23:49:28  rickg
  * Bug# 366 Restructured renameLogFile to work on windows
  *  Added necessary (for windows) closes on the fileBuffer
@@ -593,7 +596,7 @@ public class ComScriptProcess
       if (index != -1) {
         nextLineIsWarning = false;
         int trimIndex = line.trim().indexOf("PIP WARNING:");
-        if (line.trim().length() <= trimIndex + 1 + "PIP WARNING:".length()) {
+        if (trimIndex != -1 && line.trim().length() <= trimIndex + 1 + "PIP WARNING:".length()) {
           nextLineIsWarning = true;
         }
         errors.add(line.substring(index));
