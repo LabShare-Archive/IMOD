@@ -31,23 +31,7 @@
 $Date$
 
 $Revision$
-
-$Log$
-Revision 1.1.2.1  2003/01/26 20:35:28  mast
-adding as library file
-
-Revision 1.1.2.4  2003/01/23 19:55:42  mast
-switch from button pressed to clicked
-
-Revision 1.1.2.3  2003/01/18 01:08:09  mast
-add tooltips
-
-Revision 1.1.2.2  2002/12/30 06:37:46  mast
-set the size small so it will show up at minimum size
-
-Revision 1.1.2.1  2002/12/29 04:20:38  mast
-Initial creation
-
+Log at end of file
 */
 
 /* DialogFrame provides a widget whose default style is to be a dialog box that
@@ -76,6 +60,8 @@ DialogFrame::DialogFrame(QWidget *parent, int numButtons, char *labels[],
   int i, twidth;
   QString str;
   QPushButton *button;
+  mEqualSized = equalSized;
+  mNumButtons = numButtons;
 
   // Force it to a small size so it will end up at minumum size
   resize(50, 50);
@@ -90,13 +76,6 @@ DialogFrame::DialogFrame(QWidget *parent, int numButtons, char *labels[],
   line->setFrameShadow( QFrame::Sunken );
   outerLayout->addWidget(line);
 
-  // If equalsized buttons, find maximum width
-  for (i = 0; i < numButtons; i++) {
-    str = labels[i];
-    twidth = (int)(1.25 * fontMetrics().width(str));
-    if (width < twidth)
-      width = twidth;
-  }
 
   // set up signal mapper for the buttons
   QSignalMapper *pressMapper = new QSignalMapper(this);
@@ -112,9 +91,6 @@ DialogFrame::DialogFrame(QWidget *parent, int numButtons, char *labels[],
     button = new QPushButton(str, this, labels[i]);
     if (i < BUTTON_ARRAY_MAX)
       mButtons[i] = button;
-    if (!equalSized)
-      width = (int)(1.25 * fontMetrics().width(str));
-    button->setFixedWidth(width);
     button->setFocusPolicy(NoFocus);
     layout2->addWidget(button);
     pressMapper->setMapping(button, i);
@@ -122,6 +98,7 @@ DialogFrame::DialogFrame(QWidget *parent, int numButtons, char *labels[],
     if (tips != NULL)
       QToolTip::add(button, tips[i]);
   }
+  setFontDependentWidths();
 
   setFocusPolicy(StrongFocus);
 
@@ -131,7 +108,59 @@ DialogFrame::DialogFrame(QWidget *parent, int numButtons, char *labels[],
   setCaption(str);
 }
 
+void DialogFrame::setFontDependentWidths()
+{
+  int numButtons = mNumButtons < BUTTON_ARRAY_MAX 
+    ? mNumButtons : BUTTON_ARRAY_MAX;
+  int width = 0;
+  int twidth, i;
+
+  // If equalsized buttons, find maximum width
+  if (mEqualSized) {
+    for (i = 0; i < numButtons; i++) {
+      twidth = (int)(1.25 * fontMetrics().width(mButtons[i]->text()));
+      if (width < twidth)
+	width = twidth;
+    }
+  }
+
+  // Set width of each button based on its own width or maximum width
+  for (i = 0; i < numButtons; i++) {
+    if (!mEqualSized)
+      width = (int)(1.25 * fontMetrics().width(mButtons[i]->text()));
+    mButtons[i]->setFixedWidth(width);
+  }
+}
+
+void DialogFrame::fontChange(const QFont &oldFont)
+{
+  setFontDependentWidths();
+  QWidget::fontChange(oldFont);
+}
+
 void DialogFrame::actionButtonPressed(int which)
 {
   emit actionPressed(which);
 }
+
+/*
+$Log$
+Revision 1.2  2003/02/10 20:51:22  mast
+Merge Qt source
+
+Revision 1.1.2.1  2003/01/26 20:35:28  mast
+adding as library file
+
+Revision 1.1.2.4  2003/01/23 19:55:42  mast
+switch from button pressed to clicked
+
+Revision 1.1.2.3  2003/01/18 01:08:09  mast
+add tooltips
+
+Revision 1.1.2.2  2002/12/30 06:37:46  mast
+set the size small so it will show up at minimum size
+
+Revision 1.1.2.1  2002/12/29 04:20:38  mast
+Initial creation
+
+*/
