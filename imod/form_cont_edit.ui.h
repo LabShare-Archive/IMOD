@@ -46,6 +46,11 @@ void ContSurfPoint::surfGhostToggled( bool state )
     iceGhostToggled(state ? 1 : 0,  IMOD_GHOST_SURFACE);
 }
 
+void ContSurfPoint::surfLabelChanged( const QString & str )
+{
+    iceLabelChanged((char *)str.latin1(), 2);
+}
+
 // Manage the open-closed radio buttons by calling the set function
 void ContSurfPoint::closedClicked()
 {
@@ -227,11 +232,19 @@ void ContSurfPoint::setTimeIndex( int value, int maxVal )
 }
 
 // Set the labels, or set to no Contour/Point
-void ContSurfPoint::setLabels( QString contLabel, int noCont, QString ptLabel, int noPoint )
+void ContSurfPoint::setLabels(QString surfLabel, int noSurf,  QString contLabel, int noCont, 
+                              QString ptLabel, int noPoint )
 {
     // We have to block signals for continuously updating text fields, apparently
+    surfaceLabelEdit->blockSignals(true);
     contourEdit->blockSignals(true);
     pointLabelEdit->blockSignals(true);
+    surfaceLabelEdit->setEnabled(!noSurf);
+    if (noSurf ) 
+	surfaceLabelEdit->setText("No Surface");
+    else
+	surfaceLabelEdit->setText(surfLabel);
+    
     contourEdit->setEnabled(!noCont);
     if (noCont) 
 	contourEdit->setText("No Contour");
@@ -243,7 +256,8 @@ void ContSurfPoint::setLabels( QString contLabel, int noCont, QString ptLabel, i
 	pointLabelEdit->setText("No Point");
     else
 	pointLabelEdit->setText(ptLabel);
-     contourEdit->blockSignals(false);
+   surfaceLabelEdit->blockSignals(false);
+   contourEdit->blockSignals(false);
    pointLabelEdit->blockSignals(false);
 }
 

@@ -34,6 +34,7 @@ char *Imod_menus_help[] = {
 "\tInfo \t\tPrint total volume and surface area of object.\n",
 "\tClean \t\tDelete empty contours from object.\n",
 "\tBreak by Z \tBreak all contours in object into separate ones by Z.\n",
+"\tRenumber.. \tMove the current object to a new object number.\n",
 "\n",
 "     Surface-->\n",
 "\tNew \t\tCreates a new contour on a new surface. (N)\n",

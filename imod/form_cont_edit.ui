@@ -8,8 +8,8 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>189</width>
-            <height>495</height>
+            <width>194</width>
+            <height>526</height>
         </rect>
     </property>
     <property name="caption">
@@ -270,6 +270,43 @@
                             </property>
                             <property name="toolTip" stdset="0">
                                 <string>Highlight current surface in image display</string>
+                            </property>
+                        </widget>
+                    </hbox>
+                </widget>
+                <widget class="QLayoutWidget">
+                    <property name="name">
+                        <cstring>layout14</cstring>
+                    </property>
+                    <hbox>
+                        <property name="name">
+                            <cstring>unnamed</cstring>
+                        </property>
+                        <widget class="QLabel">
+                            <property name="name">
+                                <cstring>TextLabel4_2</cstring>
+                            </property>
+                            <property name="text">
+                                <string>Label</string>
+                            </property>
+                        </widget>
+                        <widget class="QLineEdit">
+                            <property name="name">
+                                <cstring>surfaceLabelEdit</cstring>
+                            </property>
+                            <property name="sizePolicy">
+                                <sizepolicy>
+                                    <hsizetype>7</hsizetype>
+                                    <vsizetype>0</vsizetype>
+                                    <horstretch>1</horstretch>
+                                    <verstretch>0</verstretch>
+                                </sizepolicy>
+                            </property>
+                            <property name="focusPolicy">
+                                <enum>ClickFocus</enum>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Enter a label for this contour</string>
                             </property>
                         </widget>
                     </hbox>
@@ -976,6 +1013,12 @@
         <receiver>ContSurfPoint</receiver>
         <slot>lighterGhostToggled(bool)</slot>
     </connection>
+    <connection>
+        <sender>surfaceLabelEdit</sender>
+        <signal>textChanged(const QString&amp;)</signal>
+        <receiver>ContSurfPoint</receiver>
+        <slot>surfLabelChanged(const QString&amp;)</slot>
+    </connection>
 </connections>
 <includes>
     <include location="global" impldecl="in implementation">math.h</include>
@@ -999,6 +1042,7 @@
     <slot>downContPressed()</slot>
     <slot>newSurfPressed()</slot>
     <slot>surfGhostToggled( bool state )</slot>
+    <slot>surfLabelChanged( const QString &amp; str )</slot>
     <slot>closedClicked()</slot>
     <slot>openClicked()</slot>
     <slot>timeChanged( int value )</slot>
@@ -1020,7 +1064,7 @@
     <slot>setPointSize( float size, int defval )</slot>
     <slot>setSurface( int value, int maxVal )</slot>
     <slot>setTimeIndex( int value, int maxVal )</slot>
-    <slot>setLabels( QString contLabel, int noCont, QString ptLabel, int noPoint )</slot>
+    <slot>setLabels( QString surfLabel, int noSurf, QString contLabel, int noCont, QString ptLabel, int noPoint )</slot>
     <slot>closeEvent( QCloseEvent * e )</slot>
     <slot>keyPressEvent( QKeyEvent * e )</slot>
     <slot>keyReleaseEvent( QKeyEvent * e )</slot>
