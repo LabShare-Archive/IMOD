@@ -26,12 +26,21 @@
  *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
+/*  $Author$
+
+$Date$
+
+$Revision$
+
+$Log$
+*/
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
 #include "midas.h"
+#include "dia_qtutils.h"
 
 MidasGL::MidasGL(QGLFormat inFormat, QWidget * parent, const char * name)
   : QGLWidget(inFormat, parent, name)
@@ -41,10 +50,10 @@ MidasGL::MidasGL(QGLFormat inFormat, QWidget * parent, const char * name)
     midas_error("Midas error:", "No RGB GL format was available", 1);
 
   if (format().doubleBuffer() && !inFormat.doubleBuffer())
-    fprintf(stderr, "Midas warning: Double buffering is being used even "
+    dia_puts("Midas warning: Double buffering is being used even "
 	    "though\n  single buffering was requested\n");
   if (!format().doubleBuffer() && inFormat.doubleBuffer())
-    fprintf(stderr, "Midas warning: Single buffering is being used even "
+    dia_puts("Midas warning: Single buffering is being used even "
 	    "though\n  double buffering was requested\n");
   mSkipClearOnDraw = false;
   mMousePressed = false;

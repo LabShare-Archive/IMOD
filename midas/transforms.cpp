@@ -32,39 +32,7 @@ $Date$
 
 $Revision$
 
-$Log$
-Revision 3.2  2003/02/21 23:57:51  mast
-Open files in binary mode
-
-Revision 3.1  2003/02/10 20:49:58  mast
-Merge Qt source
-
-Revision 1.1.2.5  2003/01/26 23:20:33  mast
-using new library
-
-Revision 1.1.2.4  2002/12/06 20:45:40  mast
-Forgot to initialize midasWindow to NULL
-
-Revision 1.1.2.3  2002/12/06 19:59:52  mast
-Implement QTextStream for reading piece list
-
-Revision 1.1.2.2  2002/12/06 05:12:15  mast
-Protect quick translate against big shifts
-
-Revision 1.1.2.1  2002/12/05 03:13:02  mast
-New Qt version
-
-Revision 3.3  2002/08/19 04:54:47  mast
-Added declaration for solve_for_shifts
-
-Revision 3.2  2002/08/19 04:50:03  mast
-Made it do a series of local solutions for displacement errors in
-montage fixing mode when there are many pieces.
-
-Revision 3.1  2002/01/16 00:29:14  mast
-Fixed a problem in montage fixing mode when there was only one section,
-an error in Fortran to C translation
-
+Log at end of file
 */
 
 #include <stdlib.h>
@@ -249,10 +217,9 @@ int load_view(struct Midas_view *vw, char *fname)
   if (vw->plname) {
     str = vw->plname;
     QFile file(str);
-    if (!file.open(IO_ReadOnly | IO_Translate)) {
-      fprintf(stderr, "Error opening %s.\n", vw->plname);
-      exit(-1);
-    }
+    if (!file.open(IO_ReadOnly | IO_Translate))
+      midas_error("Error opening ", vw->plname, -1);
+
     QTextStream stream(&file);
     stream.setf(QTextStream::dec);
 
@@ -263,20 +230,18 @@ int load_view(struct Midas_view *vw, char *fname)
     vw->edgelower = (int *)malloc(2 * vw->zsize * sizeof(int));
     vw->fbs_indvar = (int *)malloc(2 * vw->zsize * sizeof(int));
     if (!vw->xpclist || !vw->ypclist || !vw->zpclist || !vw->edgeupper
-        || !vw->edgelower || !vw->fbs_indvar) {
-      fprintf(stderr, "Error getting memory for piece list.\n");
-      exit(-1);
-    }
+        || !vw->edgelower || !vw->fbs_indvar)
+      midas_error("Error getting memory for piece list.", "", -1);
 
     vw->minzpiece = 1000000;
     vw->maxzpiece = -1000000;
     for (k = 0; k < vw->zsize; k++) {
       str = stream.readLine();
       if (str.isEmpty()) {
-        fprintf(stderr, "Error reading piece list after %d lines\n"
-                , k);
-        exit(-1);
+        str.sprintf("Error reading piece list after %d lines\n" , k);
+        midas_error((char *)str.latin1(), "", -1);
       }
+
       sscanf(str.latin1(), "%d %d %d", &(vw->xpclist[k]), 
                        &(vw->ypclist[k]), &(vw->zpclist[k]));
       if (vw->minzpiece > vw->zpclist[k])
@@ -289,11 +254,9 @@ int load_view(struct Midas_view *vw, char *fname)
               &vw->nxpieces, &vw->nxoverlap);
     checklist(vw->ypclist, vw->zsize, vw->ysize, &vw->minypiece, 
               &vw->nypieces, &vw->nyoverlap);
-    if (vw->nxpieces < 0 || vw->nypieces < 0) {
-      fprintf(stderr, "Piece list does not have regular array "
-              "of coordinates.\n");
-      exit(-1);
-    }
+    if (vw->nxpieces < 0 || vw->nypieces < 0)
+      midas_error("Piece list does not have regular array "
+                  "of coordinates.", "", -1);
 
     vw->maxedge[0] = vw->nypieces * (vw->nxpieces - 1);
     vw->maxedge[1] = vw->nxpieces * (vw->nypieces - 1);
@@ -314,10 +277,8 @@ int load_view(struct Midas_view *vw, char *fname)
     vw->fbs_ivarpc = (int *)malloc(nxypc * sizeof(int));
     if (!vw->montmap || !vw->pieceupper || !vw->piecelower ||
         !vw->edgedx || !vw->edgedy || !vw->fbs_a || !vw->fbs_b ||
-        !vw->fbs_ivarpc) {
-      fprintf(stderr, "Error getting memory for piece analysis.\n");
-      exit(-1);
-    }
+        !vw->fbs_ivarpc)
+      midas_error("Error getting memory for piece analysis.", "", -1);
 
     /*get edge indexes for pieces and piece indexes for edges
       first build a vw->montmap of all pieces present */
@@ -370,11 +331,9 @@ int load_view(struct Midas_view *vw, char *fname)
       ncross = vw->nypieces;
     }
           
-    if (!vw->nedge[0] && !vw->nedge[1]) {
-      fprintf(stderr, "There are no edges or no montage "
-              "according to these piece coordinates.\n");
-      exit(-1);
-    }
+    if (!vw->nedge[0] && !vw->nedge[1])
+      midas_error("There are no edges or no montage "
+              "according to these piece coordinates.", "", -1);
           
     vw->xory = 0;
     vw->montcz = nearest_section(vw, vw->minzpiece, 0);
@@ -1667,3 +1626,41 @@ static void solve_for_shifts(struct Midas_view *vw, float *a, float *b,
 
 }
 
+/*
+$Log$
+Revision 3.3  2003/10/24 03:56:19  mast
+fixed array overruns that showed up in Windows/Intel
+
+Revision 3.2  2003/02/21 23:57:51  mast
+Open files in binary mode
+
+Revision 3.1  2003/02/10 20:49:58  mast
+Merge Qt source
+
+Revision 1.1.2.5  2003/01/26 23:20:33  mast
+using new library
+
+Revision 1.1.2.4  2002/12/06 20:45:40  mast
+Forgot to initialize midasWindow to NULL
+
+Revision 1.1.2.3  2002/12/06 19:59:52  mast
+Implement QTextStream for reading piece list
+
+Revision 1.1.2.2  2002/12/06 05:12:15  mast
+Protect quick translate against big shifts
+
+Revision 1.1.2.1  2002/12/05 03:13:02  mast
+New Qt version
+
+Revision 3.3  2002/08/19 04:54:47  mast
+Added declaration for solve_for_shifts
+
+Revision 3.2  2002/08/19 04:50:03  mast
+Made it do a series of local solutions for displacement errors in
+montage fixing mode when there are many pieces.
+
+Revision 3.1  2002/01/16 00:29:14  mast
+Fixed a problem in montage fixing mode when there was only one section,
+an error in Fortran to C translation
+
+*/

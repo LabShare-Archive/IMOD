@@ -26,11 +26,20 @@
  *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
+/*  $Author$
+
+$Date$
+
+$Revision$
+
+$Log$
+*/
 
 #include <stdlib.h>
 #include "midas.h"
 #include <imodel.h>
 #include <qfile.h>
+#include "dia_qtutils.h"
 
 static struct MRCheader ImageHeader;
 static struct LoadInfo loadinfo;
@@ -42,6 +51,7 @@ int load_image(struct Midas_view *vw, char *filename)
 {
   struct MRCheader *hin = &ImageHeader;
   float smin, smax;
+  QString qstr;
 
   hin->fp = fopen(filename, "rb");
   if (!hin->fp){
@@ -50,7 +60,8 @@ int load_image(struct Midas_view *vw, char *filename)
   }
 
   if (mrc_head_read(hin->fp, hin)){
-    midas_error("Couldn't read", filename, 0);
+    qstr.sprintf("Could not read %s", filename);
+    midas_error(b3dGetError(), (char *)qstr.latin1(), 0);
     return(1);
   }
 
@@ -82,24 +93,25 @@ int load_refimage(struct Midas_view *vw, char *filename)
   struct MRCheader hin;
   struct LoadInfo li;
   float smin, smax;
+  QString qstr;
 
   hin.fp = fopen(filename, "rb");
   if (!hin.fp) {
-    fprintf(stderr, "Error opening reference image %s\n",
-	    filename);
+    midas_error("Error opening reference image ", filename, 0);
     return 1;
   }
   if (mrc_head_read(hin.fp, &hin)) {
-    fprintf(stderr, "Error reading reference image %s\n",
-	    filename);
+    qstr.sprintf("Error reading reference image %s\n", filename);
+    midas_error(b3dGetError(), (char *)qstr.latin1(), 0);
     return 1;
   }
 
 
   vw->refzsize = hin.nz;
   if (hin.nx != vw->xsize || hin.ny != vw->ysize){
-    fprintf(stderr, "Error: size of reference image in %s does not \n"
+    qstr.sprintf("Error: size of reference image in %s does not \n"
 	    "match size of images being aligned.\n", filename);
+    midas_error("", (char *)qstr.latin1(), 0);
     return 1;
   }
 
@@ -108,8 +120,9 @@ int load_refimage(struct Midas_view *vw, char *filename)
       vw->xsec = 0;
     if (vw->xsec >= hin.nz)
       vw->xsec = hin.nz - 1;
-    fprintf(stderr, "Warning: specified section for reference image "
-	    "was out of bounds;\n using section %d instead\n", vw->xsec);
+    qstr.sprintf("Warning: specified section for reference image "
+	    "was out of bounds;\n using section %d instead\n", vw->xsec + 1);
+    dia_err((char *)qstr.latin1());
   }
 
   li = *vw->li;
@@ -192,19 +205,19 @@ int load_transforms(struct Midas_view *vw, char *filename)
   if (vw->xtype == XTYPE_MONT) {
     qline = stream.readLine();
     if (qline.isEmpty()) {
-      fprintf(stderr,"Error reading displacement file.\n");
+      midas_error("Error reading displacement file.", "", 0);
       return(-2);
     }
     sscanf(qline.latin1(), "%d%*c%d%*c",&nedgex, &nedgey);
     if (nedgex != vw->nedge[0] && nedgey != vw->nedge[1]) {
-      fprintf(stderr,"Wrong number of edges in displacement file.\n");
+      midas_error("Wrong number of edges in displacement file.", "", 0);
       return(-3);
     }
     for (ixy = 0; ixy < 2; ixy++)
       for (k = 0 ; k < vw->nedge[ixy]; k++){
 	qline = stream.readLine();
 	if (qline.isEmpty()) {
-	  fprintf(stderr,"Error reading displacement file.\n");
+          midas_error("Error reading displacement file.", "", 0);
 	  return(-2);
 	}
 	sscanf(qline.latin1(), "%f%*c%f%*c", &(vw->edgedx[k * 2 + ixy]),

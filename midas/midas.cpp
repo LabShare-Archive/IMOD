@@ -63,24 +63,30 @@ int Midas_debug = 0;
 static void usage(void)
 {
      char *pname = "midas";
+     QString qstr;
 
-     fprintf(stderr, "%s version %s\n", pname, MIDAS_VERSION_STRING);
+     printf("%s version %s\n", pname, MIDAS_VERSION_STRING);
      imodCopyright();
-     fprintf(stderr, "Usage: %s [x opts] [options] <mrc filename> "
+     qstr.sprintf("Usage: %s [x opts] [options] <mrc filename> "
 	     "[transform filename]\n", pname);
-     fprintf(stderr, "options:\n");
-     fprintf(stderr, "\t-gl             output global transforms (default"
-	     " is local).\n");
-     fprintf(stderr, "\t-r <filename>   load reference image file.\n");
-     fprintf(stderr, "\t-rz <section>   section # for reference (default 0).\n");
-     fprintf(stderr, "\t-p <filename>   load piece list file for fixing montages.\n");
-     fprintf(stderr, "\t-C <size>       set cache size to given number of "
-	     "sections\n"); 
-     fprintf(stderr, "\t-s <min,max>    set intensity scaling; min to 0 and"
-	     " max to 255\n");
-     fprintf(stderr, "\t-b <size>       set initial size for block copies\n");
-     fprintf(stderr, "\t-S              use single-buffered visual\n");
-     fprintf(stderr, "\t-D              debug mode - do not run in background\n");
+     qstr += "options:\n";
+     qstr += "\t-gl             output global transforms (default"
+       " is local).\n";
+     qstr += "\t-r <filename>   load reference image file.\n";
+     qstr += "\t-rz <section>   section # for reference (default 0).\n";
+     qstr += "\t-p <filename>   load piece list file for fixing montages.\n";
+     qstr += "\t-C <size>       set cache size to given number of "
+       "sections\n"; 
+     qstr += "\t-s <min,max>    set intensity scaling; min to 0 and"
+       " max to 255\n";
+     qstr += "\t-b <size>       set initial size for block copies\n";
+     qstr += "\t-S              use single-buffered visual\n";
+     qstr += "\t-D              debug mode - do not run in background\n";
+#ifdef _WIN32
+     dia_puts((char *)qstr.latin1());
+#else
+     printf(qstr.latin1());
+#endif
      exit(-1);
 }
 
@@ -118,6 +124,8 @@ int main (int argc, char **argv)
 #endif
 
   QApplication myapp(argc, argv);
+  diaSetTitle("Midas");
+  b3dSetStoreError(1);
 
   if (argc < 2)
     usage();
@@ -199,34 +207,27 @@ int main (int argc, char **argv)
   }
 	  
   if (vw->plname) {
-    if (vw->refname) {	
-      fprintf(stderr, "You cannot use both -p and -r options.\n");
-      exit(1);
-    }
+    if (vw->refname)
+      midas_error("You cannot use both -p and -r options.", "", 1);
 
-    if (vw->didsave != -1) {
-      fprintf(stderr, "The last entry on the line must be the name of"
-	      " an existing edge\n correlation displacement file.\n");
-      exit(1);
-    }
+    if (vw->didsave != -1)
+      midas_error("The last entry on the line must be the name of"
+	      " an existing edge\n correlation displacement file.", "", 1);
 
     if (vw->xtype == XTYPE_XG)
-      fprintf(stderr, "-gl option has no effect when fixing "
-	      "montage overlaps.\n");
+      dia_puts("The -gl option has no effect when fixing montage overlaps.");
     vw->xtype = XTYPE_MONT;
   }	       
 
   if (vw->refname) {
     if (vw->xtype == XTYPE_XG)
-      fprintf(stderr, "-gl option has no effect with alignment to "
-	      "reference section.\n");
+      dia_puts("The -gl option has no effect with alignment to a "
+	      "reference section.");
     vw->xtype = XTYPE_XREF;
   }
 
-  if (load_view(VW, argv[i])){
-    fprintf(stderr, "%s: error opening %s.\n", argv[0], argv[i]);
-    exit(-1);
-  }
+  if (load_view(VW, argv[i]))
+    midas_error("Error opening ", argv[i], -1);
 
   // Increase the default point size if font is specified in points,
   // or if not, increase the pixel size
@@ -251,7 +252,6 @@ int main (int argc, char **argv)
 
   vw->midasWindow->show();
   vw->midasWindow->setFocus();
-  diaSetTitle("Midas");
 
   return myapp.exec();
 }
@@ -736,12 +736,12 @@ void MidasWindow::createContrastControls(QVBox *parent)
 void midas_error(char *tmsg, char *bmsg, int retval)
 {
   QString str;
-  if (VW->midasWindow == NULL)
+  /* if (VW->midasWindow == NULL)
     fprintf(stderr, "%s %s\n", tmsg, bmsg);
-  else {
+    else { */
     str.sprintf("%s %s\n", tmsg, bmsg);
-    dia_puts((char *)str.latin1());
-  }  
+    dia_err((char *)str.latin1());
+    //}  
   if (retval)
     exit(retval);
 
@@ -750,6 +750,9 @@ void midas_error(char *tmsg, char *bmsg, int retval)
 
 /*
     $Log$
+    Revision 3.7  2003/06/20 19:35:41  mast
+    Connected top error buttons to mapper
+
     Revision 3.6  2003/05/26 01:02:33  mast
     Added label to show mouse action
 
