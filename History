@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/1/03: IMOD_3-0-21
+10/1/03: Added message for opening bead fixer window.
+
 10/1/03: Added ability to turn a plugin into an internal module that is added
 to the Special menu, to provide Bead fixer on Windows.
 
