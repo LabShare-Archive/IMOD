@@ -136,9 +136,11 @@ echo '#define ZAP_RESIZE_HACK'  >> $hconfigure
 #
 #echo '#define TESS_HACK'  >> $hconfigure
 #
-# tell midas to time out expose events in montage fixing mode
+# tell midas to time out expose events in montage fixing mode, and imod
+# to do it generally
 #
 echo '#define MIDAS_EXPOSE_HACK'  >> $hconfigure
+echo '#define ZAP_EXPOSE_HACK'  >> $hconfigure
 #
 # Use fixed CLK_TCK so code compiled on 7.1 runs on 7.0
 #
