@@ -17,8 +17,8 @@ import etomo.type.AxisID;
  * It also allows a new state configuration to temporarily override the original
  * state configuration for a single call to open().  Conflicting new
  * configurations can be created when calling open() several times, without any
- * negative effect.  Some state information, such as binning is not reset to an
- * original state and is totally controlled by the user.
+ * negative effect.  To allow state information to be totally controlled by the 
+ * user, don't change it in reset().
  * </p>
  * 
  * <p>Use:
@@ -83,9 +83,9 @@ import etomo.type.AxisID;
  *    Set foo = defaultFoo.
  * 4. Decide whether to create a "using" variable.  See Rules for upgrading 5-6.
  * 
- * Adding a state variable that holds the last value the user gave (binning):
- * 1. If the state can only be passed only on 3dmod command line.  ImodState 
- *     doesn't need to remember it in this case.
+ * Adding a state variable that holds the last value the user gave:
+ * 1. If the state can only be passed only on 3dmod command line then ImodState 
+ *     doesn't need to remember it.
  * 2. If the state can change ImodProcess.open(), create a variable for it in
  *    ImodProcess.  Pass the state variable's value to ImodProcess either when
  *    set or in open().
@@ -124,12 +124,12 @@ import etomo.type.AxisID;
  *   State information that is not set during construction and initialization:
  *   - preserveContrast
  *   - openContours
+ *   - binning
  * State information that is controlled by the user
  * - whether 3dmod running
- * - binning
  * 
  * ImodState's relationship with ImodProcess:
- * State variable will also exist in ImodProcess because they cause the the
+ * State variable will also exist in ImodProcess because they cause the
  * 3dmod command line to change:
  * - If preserveContrast is true, ImodProcess.openWithModel should be false.
  *     This is because there is no preserve contrast option to pass to 3dmod
@@ -138,10 +138,12 @@ import etomo.type.AxisID;
  * - swapYZ corresponds to ImodProcess.swapYZ.
  * - modelView corresponds to ImodProcess.modelView.
  * - useModv corresponds to ImodProcess.useModv.
- * ImodState has set functions for these but does not keep a state variable
- * because the user controls their settings:
- * - ImodProcess.binning
+ * ImodState has set functions for this but does not keep a state variable
+ * because the user controls its setting:
  * - ImodProcess.workingDirectory
+ * ImodState has set function for this but does not keep a state variable
+ * because it can only go on the command line:
+ * - ImodProcess.binning
  * 
  * </p>
  * <p>Copyright: Copyright(c) 2002, 2003</p>
@@ -170,6 +172,10 @@ import etomo.type.AxisID;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.18  2004/06/22 23:39:39  sueh
+ * <p> $bug# 455 Removing usingOpenContours because it automatcally
+ * <p> $gets reset to default when a new model is opened.
+ * <p> $
  * <p> $Revision 1.17  2004/06/22 22:57:45  sueh
  * <p> $bug# 455 Added openContours.  Changed useMode to usingMode.
  * <p> $Clarified "using" functionality.  Updated documentation.
@@ -279,6 +285,7 @@ public class ImodState {
   private static final boolean defaultPreserveContrast = false;
   private static final boolean defaultOpenBeadFixer = false;
   private static final boolean defaultOpenContours = false;
+  private static final int defaultBinning = 1;
     
   //internal state information
   private ImodProcess process = null;
@@ -521,6 +528,7 @@ public class ImodState {
     process.setOpenWithModel(!preserveContrast);
     openBeadFixer = defaultOpenBeadFixer;
     openContours = defaultOpenContours;
+    process.setBinning(defaultBinning);
   }
 
   protected String getModeString(int mode) {
