@@ -15,6 +15,9 @@ import java.awt.Dimension;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.1  2004/11/19 23:54:15  sueh
+ * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+ * <p>
  * <p> Revision 3.0.6.2  2004/09/21 17:58:09  sueh
  * <p> bug# 520 Correcting a typo.
  * <p>
@@ -41,6 +44,7 @@ public class FixedDim {
   public final static Dimension x5_y0 = new Dimension(5, 0);
   public final static Dimension x10_y0 = new Dimension(10, 0);
   public final static Dimension x20_y0 = new Dimension(20, 0);
+  public final static Dimension x25_y0 = new Dimension(25, 0);
   public final static Dimension x0_y5 = new Dimension(0, 5);
   public final static Dimension x0_y10 = new Dimension(0, 10);
   public final static Dimension x0_y20 = new Dimension(0, 20);
