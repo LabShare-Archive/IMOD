@@ -19,6 +19,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.7  2003/11/26 07:15:06  mast
+c	  initialize ntypbound to 0
+c	
 c	  Revision 3.6  2003/10/27 06:36:51  mast
 c	  Fix number of options needing model
 c	
@@ -96,6 +99,12 @@ c
 	ifanyplot=0
 	nextragrf=0
 	ntypbound = 0
+	ibavst = 1
+	ibavnd = 1
+	ibinst = 1
+	ibinnd = 1
+	baseval = 0
+	nbinsave = 0
 
 	call opencomfile
 c
