@@ -98,12 +98,14 @@ c		ISTAT=LIB$GET_FOREIGN(STRNG,,LENGTH,IFLAG)
 	IF (LENGTH.EQ.0) GOTO 1
 	STRING(LENGTH+1)=0
 
-c	  DNM: skip over leading spaces for these tests
+c	  DNM: skip over leading spaces for these tests, skip # comments
+c	  and ! comments here
 	j=1
 	do while(j.lt.length.and.(STRNG(:J).EQ.' '.OR.STRING(J).EQ.9))
 	  j=j+1
 	enddo
 	istart=j
+	if (strng(j:j) .eq. '#' .or. strng(j:j) .eq. '!') goto 1
 
 	DO J=1,NMODES
 	  II=1
@@ -119,7 +121,8 @@ c	  DNM: skip over leading spaces for these tests
 		WRITE (6,148)
 148		FORMAT(' Possible examples are'/'  SAVEIT=LOG(10)*5'/
      &		    '  @calcfile'/
-     &		    '  Degrees'/'  X=2*Sin(45)'/'  LN(pi*X)'/' Etc.')
+     &		    '  Degrees'/'  X=2*Sin(45)'/'  LN(pi*X)'/' Etc.'/,
+     &		    ' # and ! can be used to start a comment')
 	      ELSE
 		LENGTH=1
 		DO WHILE (DEFSTR(LENGTH,J).NE.0)
@@ -159,7 +162,7 @@ c	  DNM: skip over leading spaces for these tests
 	    GOTO 1
 	  ENDIF
 	  IF (STRNG(J:J).EQ.' '.OR.STRING(J).EQ.9) GOTO 20 !Ignore spaces, tabs
-	  IF (STRNG(J:J).EQ.'!') GOTO 21	!Ignore comments
+	  IF (STRNG(J:J).EQ.'!'.or.STRNG(J:J).EQ.'#') GOTO 21  !Ignore comments
 	  IF (STRNG(J:J).EQ.'@') THEN
 	    OPEN (UNIT=94,FILE=STRNG(J+1:),STATUS='OLD',ERR=6)
 	    DFLAG=.FALSE.
