@@ -7,6 +7,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.9  2004/08/27 05:46:48  mast
+#  Switched to using head -n and tail -n
+#
 #  Revision 3.8  2004/07/21 14:19:59  mast
 #  Added option to break alignment instead of skipping section and added
 #  special serial tomogram mode that maintains fewer transforms
@@ -59,6 +62,7 @@ options:
                                cross-correlation (default $xcfilter)
  -i[nitial] prexf_file    -  start with initial F alignments from file
  -t[omo]                  -  align top/bottom averages from serial tomograms
+ -P                       -  Output process ID
 EOF
 	exit 1
 endif
@@ -262,6 +266,10 @@ while($#argv > 2)
 
         case -t*:
             set iftomo = 1
+            breaksw
+
+        case -P:
+            echo2 Shell PID: $$
             breaksw
 
         default:
