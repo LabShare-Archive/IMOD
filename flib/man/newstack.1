@@ -88,8 +88,9 @@ DDEESSCCRRIIPPTTIIOONN
    IF single rescaling is selected with "-1", next specify the density values
 	to which the minimum and maximum in the data file should be mapped, or
 	just enter "/" to have them mapped to the full-scale range for the
-	data mode.  This can be used to invert densities by entering, e.g.,
-	255,0
+	data mode, or enter "1,1" to override any scaling of data that would
+	otherwise occur because of a change of mode.  This scaling method can
+	be used to invert densities by entering, e.g., 255,0.
 
    IF scaling by black and white contrast settings is selected with -2, next
 	enter the black and white settings (see mrcbyte(1)).
@@ -112,6 +113,8 @@ DDEESSCCRRIIPPTTIIOONN
 	values.  These same kinds of automatic scalings upon change of mode
 	will occur with shifting to a common mean (option 3), but here the
 	program is more careful to apply the same scaling to all sections.
+	To disable the scaling upon change of mode, select the "-1" floating
+	option and enter 1,1.
 	  
    At the end, the program will report how many pixels have been truncated
 	at the low or high limits of the output range.  If this happens after
