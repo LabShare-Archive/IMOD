@@ -147,7 +147,9 @@ void ImageScaleWindow::buttonPressed(int which)
 
   switch (which) {
   case 0:  // Apply
-    applyLimits();
+    mTimerID =startTimer(10);
+    if (!mTimerID)
+      applyLimits();
     break;
 
   case 1:  // Calc
@@ -180,6 +182,12 @@ void ImageScaleWindow::buttonPressed(int which)
        NULL);
     break;
   }
+}
+
+void ImageScaleWindow::timerEvent(QTimerEvent *e)
+{
+  killTimer(mTimerID);
+  applyLimits();
 }
 
 // Update the labels in the dialog
@@ -313,6 +321,9 @@ void ImageScaleWindow::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.4  2003/04/25 03:28:32  mast
+Changes for name change to 3dmod
+
 Revision 4.3  2003/04/17 18:43:38  mast
 adding parent to window creation
 
