@@ -34,6 +34,9 @@
     $Revision$
 
     $Log$
+    Revision 3.4  2002/09/14 00:13:11  mast
+    Set declarations and use of event handler right to make SGI compiler happy
+
     Revision 3.3  2002/09/13 21:05:39  mast
     Set up event handler for client messages, added option to output window ID
 
@@ -532,6 +535,9 @@ int main( int argc, char *argv[])
      if (Model->fileName)
 	  memcpy(Model->fileName, Imod_filename, namelen);
 
+     /* report window before forking and loading data */
+     if (print_wid)
+	  fprintf(stderr, "Window id = %u\n", XtWindow(App->toplevel));
 
 #ifndef NO_IMOD_FORK
      /* put imod in background if not debug. */
@@ -652,9 +658,6 @@ int main( int argc, char *argv[])
      XtAddEventHandler(App->toplevel, 0, True, 
 		       (XtEventHandler)imodHandleClientMessage,
 		       (XtPointer)App);
-
-     if (print_wid)
-	  fprintf(stderr, "Window id = %u\n", XtWindow(App->toplevel));
 
      dia_mainloop();
      return 0;
