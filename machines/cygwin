@@ -116,6 +116,7 @@ if ($compiler == intel) then
     set ldnmncar = "libdnmncar.lib"
     echo "IMLIBS     =  libhvem.lib libim.lib libifft.lib libimod.lib" >> $configure
     echo 'LINUXFLIBS = ' >> $configure
+    echo '#define WIN32_BIGFILE' >> $hconfigure
 else
     echo "CLIBS   = -lc -lm" >> $configure
     echo "XLIBS   = -lXm -lXt -lSM -lICE -lXext -lX11" >> $configure
