@@ -21,6 +21,9 @@ import etomo.storage.Storable;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.3  2005/01/10 23:51:40  sueh
+ * <p> bug# 578 Changing calls to ConstEtomoNumber.isNull() to !isSet().
+ * <p>
  * <p> Revision 3.2  2004/12/29 00:12:36  sueh
  * <p> bug# 567 Added set(ComScriptCommand...) and
  * <p> update(ComScriptCommand) to allow TiltAngleSpec to retrieve and update
@@ -225,25 +228,27 @@ public class TiltAngleSpec implements Storable {
   public void set(ComScriptCommand scriptCommand, String rangeMinShortKey,
       String rangeStepShortKey, String tiltAngleFilenameShortKey)
       throws InvalidParameterException {
-    EtomoNumber number = new EtomoNumber(EtomoNumber.DOUBLE_TYPE);
+    //EtomoNumber number = new EtomoNumber(EtomoNumber.DOUBLE_TYPE);
     //Get rangeMin
-    number.set(scriptCommand.getValue(rangeMinKey));
-    if (!number.isSet() && rangeMinShortKey != null
+    EtomoNumber rangeMin = new EtomoNumber(EtomoNumber.DOUBLE_TYPE, rangeMinKey);
+    rangeMin.parse(scriptCommand);
+    if (rangeMin.isNull() && rangeMinShortKey != null
         && !rangeMinShortKey.matches("\\s*")) {
-      number.set(scriptCommand.getValue(rangeMinShortKey));
+      rangeMin.parse(scriptCommand, rangeMinShortKey);
     }
-    if (number.isSet()) {
+    if (!rangeMin.isNull()) {
       type = TiltAngleType.RANGE;
-      rangeMin = number.getDouble();
+      this.rangeMin = rangeMin.getDouble();
     }
     //Get rangeStep
-    number.set(scriptCommand.getValue(rangeStepKey));
-    if (!number.isSet() && rangeStepShortKey != null
+    EtomoNumber rangeStep = new EtomoNumber(EtomoNumber.DOUBLE_TYPE, rangeStepKey);
+    rangeStep.parse(scriptCommand);
+    if (rangeStep.isNull() && rangeStepShortKey != null
         && !rangeStepShortKey.matches("\\s*")) {
-      number.set(scriptCommand.getValue(rangeStepShortKey));
+      rangeStep.parse(scriptCommand, rangeStepShortKey);
     }
-    if (number.isSet()) {
-      rangeStep = number.getDouble();
+    if (!rangeStep.isNull()) {
+      this.rangeStep = rangeStep.getDouble();
     }
     else if ((rangeStepKey == null || rangeStepKey.matches("\\s*"))
         && (rangeMinShortKey == null || rangeMinShortKey.matches("\\s*"))) {
