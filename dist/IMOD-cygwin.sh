@@ -9,9 +9,9 @@
 #
 
 #
-# Set IMOD_DIR if it is not set already
+# Set IMOD_DIR if it is not set already; use Windows path format
 #
-export IMOD_DIR=${IMOD_DIR:=/usr/local/IMOD}
+export IMOD_DIR=${IMOD_DIR:=C:\cygwin\usr\local\IMOD}
 
 #
 # Put the IMOD programs on the path
