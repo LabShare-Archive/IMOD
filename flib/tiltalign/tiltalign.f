@@ -402,6 +402,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.9  2003/10/24 03:31:54  mast
+c	  remove tab from label scanned by alignlog
+c	
 c	  Revision 3.8  2003/10/03 00:59:07  mast
 c	  Changed terminology to refered to tilt angle offset
 c	
@@ -676,14 +679,14 @@ C-----------------------------------------------------------------------
 C Error returns:
 	IF(IER.NE.0)THEN
 	  if(ier.eq.1)then
-	    call errorexit('IER=1  DG > 0; try changing metro factor',
-     &		iflocal)
+	    call errorexit('IER=1  DG > 0; try changing metro factor'//
+     &		' by +/-10%', iflocal)
 	  elseif(ier.eq.2)then
 	    call errorexit('IER=2  Linear search lost; try changing '
-     &		//'metro factor', iflocal)
+     &		//'metro factor by +/-10%', iflocal)
 	  elseif(ier.eq.4)then
 	    call errorexit('IER=4  Matrix non-positive definite; try '
-     &		//'changing metro factor', iflocal)
+     &		//'changing metro factor by +/-10%', iflocal)
 	  else
 	    WRITE(6,930)
 930	    FORMAT(/' IER=3  Iteration limit exceeded....')
@@ -759,9 +762,8 @@ c
 	  nvadd=1
 	  ninvsum=0
 	  do while(ninvsum.lt.nlocalres.and.nvadd.lt.nview)
-	    ivst=iv-nvadd/2
-	    if(ivst.lt.1)ivst=1
-	    ivnd=ivst+nvadd-1
+	    ivst=max(1, iv-nvadd/2)
+	    ivnd=min(nview, ivst+nvadd-1)
 	    ninvsum=0
 	    do ivt=ivst,ivnd
 	      ninvsum=ninvsum+ninview(ivt)
@@ -892,17 +894,11 @@ c
 	enddo
 	if(ifxyzout.ne.0)then
 	  write(iunit2,111)
-111	  format(/,21x,'3-D point coordinates'
+111	  format(/,21x,'3-D point coordinates (with centroid zero)'
      &	      ,/,'   #',7x,'X',9x,'Y',9x,'Z',6x,'obj  cont')
 	  write(iunit2,'(i4,3f10.2,i7,i5)',err=86)
      &	      (indallreal(j),(xyz(i,j),i=1,3),imodobj(indallreal(j)),
      &	      imodcont(indallreal(j)),j=1,nrealpt)
-	endif
-c	  
-	if(iflocal.eq.0.and.iupoint.ne.0)then
-	  write(iupoint,'(i4,3f10.2,i7,i5)')(j,(xyz(i,j),i=1,3),
-     &	      imodobj(j),imodcont(j),j=1,nrealpt)
-	  close(iupoint)
 	endif
 c	  
 c	  output lists of angles that are complete for all file views
@@ -942,6 +938,9 @@ c	  user to shift dx's (and tilt axis) similarly or specify new location
 c	  of tilt axis
 c	    shift axis in z by making proper shifts in x
 c
+	znew = 0.
+	dxmin = 0.
+	dyavg = 0.
 	if(iwhichout.ge.0)then
 	  if(znew.eq.1000.)znew=zmiddle
 	  if(iflocal.ne.0)znew=-zshft
@@ -1172,6 +1171,25 @@ c
 	  endif
 	endif
 	if(iflocal.ne.0)go to 200
+c	    
+c	  shift the fiducials to real positions in X and Y for xyz output file
+c	  and for possible use with local alignments
+c	  Continue to use zero-centroid xyz for find_surfaces but output 
+c	  a 3D model with real positions also
+c
+	nallrealpt=nrealpt
+	do i=1,nrealpt
+	  iallrealstr(i)=irealstr(i)
+	  allxyz(1,i)=xyz(1,i)-dxmin+xcen
+	  allxyz(2,i)=xyz(2,i)-dyavg+ycen
+	  allxyz(3,i)=xyz(3,i)-znew
+	enddo
+c	  
+	if (iupoint.ne.0) then
+	  write(iupoint,'(i4,3f10.2,i7,i5)')(j,(allxyz(i,j),i=1,3),
+     &	      imodobj(j),imodcont(j),j=1,nrealpt)
+	  close(iupoint)
+	endif
 c	  
 c	  analyze for surfaces if desired.  Find the biggest tilt and the
 c	  biggest fixed tilt, get recommended new value for the biggest fixed 
@@ -1187,7 +1205,7 @@ c
 	if(fixedmax.ge.5.)tiltmax=fixedmax
 	if(nsurface.gt.0)call find_surfaces(xyz,nrealpt,nsurface,
      &	    tiltmax,iunit2,tiltnew,igroup,ncompsrch,tiltadd)
-	call write_xyz_model(modelfile,xyz,igroup,nrealpt)
+	call write_xyz_model(modelfile,allxyz,igroup,nrealpt)
 c	  
 c	  Ask about local alignments
 c
@@ -1256,16 +1274,6 @@ c
 	  allxx(i)=xx(i)
 	  allyy(i)=yy(i)
 	  iallsecv(i)=isecview(i)
-	enddo
-	nallrealpt=nrealpt
-	do i=1,nrealpt
-	  iallrealstr(i)=irealstr(i)
-c	    
-c	    shift the fiducials to real positions in X and Y
-c
-	  allxyz(1,i)=xyz(1,i)-dxmin+xcen
-	  allxyz(2,i)=xyz(2,i)-dyavg+ycen
-	  allxyz(3,i)=xyz(3,i)-znew
 	enddo
 c	write(*,121)
 c121	format(/,11x,'Absolute 3-D point coordinates'
