@@ -20,6 +20,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.17  2004/06/18 05:46:27  rickg
+ * Shortened sleep while waited com script to start, this should
+ * help but not totally solve the extremely short run com problem
+ *
  * Revision 3.16  2004/06/17 23:55:51  rickg
  * Bug #460 moved getting of current time into FileSizeProcessMonitor on
  * instantiation
@@ -515,12 +519,27 @@ public class ProcessManager {
   }
 
   /**
-   * Run xproduct to create the _nonfid.xf for specified axis 
+   * Generate the XG transform file for  
+   * @param axisID
+   * @throws SystemProcessException
+   */
+  public void generatePreXG(AxisID axisID) throws SystemProcessException {
+    String[] xftoxg = new String[5];
+    xftoxg[0] = ApplicationManager.getIMODBinPath() + "xftoxg";
+    xftoxg[1] = "-NumberToFit";
+    xftoxg[2] = "0";
+    xftoxg[3] = appManager.getDatasetName() + axisID.getExtension() + ".prexf";
+    xftoxg[4] = appManager.getDatasetName() + axisID.getExtension() + ".prexg";
+    runCommand(xftoxg);
+  }
+  
+  /**
+   * Run both xftoxg and xproduct to create the _nonfid.xf for specified axis.
+   * 
    * @param axisID
    */
   public void generateNonFidXF(AxisID axisID) throws SystemProcessException {
     String[] xfproduct = new String[4];
-
     xfproduct[0] = ApplicationManager.getIMODBinPath() + "xfproduct";
     xfproduct[1] = appManager.getDatasetName() + axisID.getExtension()
       + ".prexg";
@@ -1036,7 +1055,7 @@ public class ProcessManager {
 
     // Make sure there isn't something going on in the current axis
     isAxisBusy(axisID);
-    
+
     // Run the script as a thread in the background
     ComScriptProcess comScriptProcess = new ComScriptProcess(command, this,
       axisID);
