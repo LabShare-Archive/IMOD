@@ -18,6 +18,9 @@ import etomo.type.TiltAngleType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.5  2002/12/10 21:37:01  rickg
+ * <p> changed reportStddevThreshold to residualThreshold
+ * <p>
  * <p> Revision 1.4  2002/12/10 18:48:21  rickg
  * <p> changed names of comscript put and get methods to
  * <p> be more understandable
@@ -562,6 +565,14 @@ public class TiltalignParam extends ConstTiltalignParam {
 
   public void setLocalTransformFile(String filename) {
     localTransformFile = filename;
+  }
+
+  public void setMetroFactor(String factor) {
+    minimizationParams.set(0, Double.parseDouble(factor));
+  }
+  
+  public void setCycleLimit(String limit) {
+    minimizationParams.set(1, Integer.parseInt(limit));
   }
 
   public void setNLocalPatches(String params)
