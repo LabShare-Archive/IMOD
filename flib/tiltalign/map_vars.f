@@ -6,6 +6,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.1  2002/05/07 02:06:54  mast
+c	  Changes to make things work well with a subset of views
+c	
 c
 	subroutine analyze_maps(gmag,mapgmag,lingmag,frcgmag,fixedgmag,
      &	    fixedgmag2,iflin,maplist,nview,ireftilt,iref2,
@@ -204,11 +207,13 @@ c
 	end
 
 
-	subroutine automap(nview,maplist,grpsize,mapfiletoview,nfileviews)
+	subroutine automap(nview,maplist,grpsize,mapfiletoview,nfileviews,
+     &	    ifpip,ifRequired,defaultOption, nonDefaultOption)
 	implicit none
-	integer*4 maplist(*),nview,nfileviews
+	integer*4 maplist(*),nview,nfileviews,ifpip,ifRequired
 	real*4 grpsize(*)
 	integer*4 mapfiletoview(*)
+	character*(*) defaultOption, nonDefaultOption
 	integer maxview,maxgrp
 	parameter (maxview=720,maxgrp=20)
 	integer*4 ivsep(maxview,maxgrp),nsepingrp(maxgrp),inran(maxview)
@@ -216,28 +221,46 @@ c
 	common /mapsep/ ivsep,nsepingrp,ngsep
 c	  
 	integer*4 nrantrue,nranspec,iran,ivstr,ivend,nran,ir,ivar
-	integer*4 ninran,iv,ig,ifsep,ngsep,jj,nmapdef,ii
+	integer*4 ninran,iv,ig,ifsep,ngsep,jj,nmapdef,ii,ierr
+	integer*4 PipGetInteger, PipNumberOfEntries, PipGetThreeIntegers
 c
-	print *,'Enter the negative of a group size to NOT treat ',
-     &	    'any views separately here.'
-	write(*,'(1x,a,$)')
-     &	    'Default group size, # of ranges with special group sizes: '
-	read(5,*)nmapdef,nranspec
+	nranspec = 0
+	if (ifpip .eq. 0) then
+	  print *,'Enter the negative of a group size to NOT treat ',
+     &	      'any views separately here.'
+	  write(*,'(1x,a,$)') 'Default group size, # of ranges'//
+     &	      ' with special group sizes: '
+	  read(5,*)nmapdef,nranspec
+	else
+	  if (PipGetInteger(defaultOption, nmapdef) .gt. 0) then
+	    if (ifRequired .eq. 0) return
+	    print *
+	    print *,'ERROR: AUTOMAP - OPTION ',defaultOption,
+     &		' MUST BE ENTERED'
+	    call exit(1)
+	  endif
+	  ierr = PipNumberOfEntries(nonDefaultOption, nranspec)
+	endif
 	nrantrue=0
 	do iran=1,nranspec
-	  write(*,'(1x,a,i3,a,$)')'Starting and ending views in range',
-     &	      iran, ', group size: '
-	  read(5,*)ivstr,ivend,nmapspec(iran)
+	  if (ifpip .eq. 0) then
+	    write(*,'(1x,a,i3,a,$)')'Starting and ending views in range',
+     &		iran, ', group size: '
+	    read(5,*)ivstr,ivend,nmapspec(iran)
+	  else
+	    ierr = PipGetThreeIntegers(nonDefaultOption,ivstr,ivend,
+     &		nmapspec(iran))
+	  endif
 c	    
 c	    convert and trim nonexistent views from range
 c	    
 	  if (ivstr.gt.ivend)then
-	    print *,'Start past end of range:',ivstr, ivend
+	    print *,'ERROR: AUTOMAP - Start past end of range:',ivstr, ivend
 	    call exit(1)
 	  endif
 	  if(ivstr.lt.0.or.ivstr.gt.nFileViews.or.ivend.lt.0.or.
      &	      ivend.gt.nfileviews)then
-	    print *,'View number not in file: ',ivstr,ivend
+	    print *,'ERROR: AUTOMAP - View number not in file: ',ivstr,ivend
 	    call exit(1)
 	  endif
 	  do while(ivstr.le.ivend.and.mapfiletoview(ivstr).eq.0)
