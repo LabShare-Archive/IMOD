@@ -26,6 +26,14 @@
  *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 
 #include <stdlib.h>
 #include <diaP.h>
@@ -426,7 +434,11 @@ int imodMovieXYZT(struct ViewInfo *vi, int x, int y, int z, int t)
      }
 
      interval = (unsigned int)imcGetInterval() + 0.5;
-     first_frame = True;
+
+     /* DNM 1/25/02: test whether the omvie is ending before setting 
+	first_frame */
+     if (vi->xmovie || vi->ymovie || vi->zmovie || vi->tmovie)
+	  first_frame = True;
      
      vi->movieTimeOut = 
 	  XtAppAddTimeOut(Dia_context, interval, imodMovieProc, (XtPointer)vi);
