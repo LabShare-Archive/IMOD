@@ -48,6 +48,7 @@ Log at end of file
 #include "form_behavior.h"
 #include "form_mouse.h"
 #include "imod.h"
+#include "xzap.h"
 #include "imod_info.h"
 #include "imod_display.h"
 #include "imod_workprocs.h"
@@ -757,7 +758,7 @@ void ImodPreferences::pointSizeChanged()
 void ImodPreferences::setInfoGeometry()
 {
   static int doneOnce = 0;
-  int i;
+  int i, xx, yy;
   int indSave = -1;
 
   if (doneOnce || !mCurrentPrefs.rememberGeom)
@@ -779,7 +780,11 @@ void ImodPreferences::setInfoGeometry()
   // This is not good when going between systems due to font differences
   /* ImodInfoWin->resize(mGeomInfoWin[indSave].width(),
      mGeomInfoWin[indSave].height()); */
-  ImodInfoWin->move(mGeomInfoWin[indSave].x(), mGeomInfoWin[indSave].y());
+  // And we want to keep it on the screen in case last screen was bigger
+  xx = mGeomInfoWin[indSave].x();
+  yy = mGeomInfoWin[indSave].y();
+  zapLimitWindowPos(ImodInfoWin->width(), ImodInfoWin->height(), xx, yy);
+  ImodInfoWin->move(xx, yy);
 }
 
 // Return the geometry for the zap window that matches current image
@@ -803,6 +808,9 @@ void ImodPreferences::getAutoContrastTargets(int &mean, int &sd)
 
 /*
 $Log$
+Revision 1.12  2003/09/24 17:39:52  mast
+Moved log down
+
 Revision 1.11  2003/09/24 17:38:53  mast
 Switch to using restorable geometries, and setting info window position here
 
