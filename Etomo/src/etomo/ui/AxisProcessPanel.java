@@ -25,6 +25,11 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.3  2004/05/19 23:09:46  sueh
+ * <p> bug# 425 separating getting the panel width from deciding to hide
+ * <p> because computeVisibleRect() is inaccurate after
+ * <p> MainFrame.setDividerLocation() until the user has control of the screen
+ * <p>
  * <p> Revision 3.2  2004/04/28 22:37:12  sueh
  * <p> bug# 268 hide() - return true if hid
  * <p>
@@ -152,15 +157,24 @@ public class AxisProcessPanel implements ContextMenu {
     panelRoot.add(panelProcessSelect);
     panelRoot.add(panelProcessInfo);
   }
-
+  
   public boolean hide(int width) {
     boolean hide = false;
     if (width != 0) {
       return hide;
     }
     hide = true;
+    System.out.println("hiding");
     panelRoot.setVisible(false);
     return hide;
+  }
+  
+  public boolean tooSmall() {
+    System.out.println("in tooSmall: getWidth()=" + getWidth());
+    if (getWidth() <= 16) {
+      return true;
+    }
+    return false;
   }
 
   public void show() {
