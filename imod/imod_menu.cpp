@@ -342,6 +342,8 @@ void InfoWindow::editObjectSlot(int item)
   int ob,co,pt, coind;
   float vol;
   int cosave, ptsave;
+  QString qstr;
+  char *objtype;
 
   if (ImodForbidLevel)
     return;
@@ -496,13 +498,17 @@ void InfoWindow::editObjectSlot(int item)
     break;
 
   case EOBJECT_MENU_FIXZ: /* break all contours at z transitions */
-    if (!iobjClose(obj->flags)){
-      wprint("\aError: Only Closed contour objects can be broken by Z\n");
-      break;
-    }
-    if (!dia_ask("Break all contours in object that cross Z values?"))
-      break;
     imodGetIndex(App->cvi->imod, &ob, &co, &pt);
+    if (iobjClose(obj->flags)) 
+      objtype = "closed contour";
+    else if (iobjScat(obj->flags))
+      objtype = "scattered point";
+    else
+      objtype = "open contour";
+    qstr.sprintf("Are you sure you want to break all contours to lie in only"
+                 " one Z plane in object %d, a %s object?", ob + 1, objtype);
+    if (!dia_ask((char *)(qstr.latin1())))
+      break;
     for (coind = obj->contsize - 1; coind >= 0; coind--) {
       cont = &obj->cont[coind];
       if (cont->psize)
@@ -1040,6 +1046,9 @@ static Icont *imodContourBreakByZ(Iobj *obj, int co)
 
 /*
 $Log$
+Revision 4.10  2003/06/19 05:48:17  mast
+Added ability to break all contours in object by Z value
+
 Revision 4.9  2003/06/04 23:32:25  mast
 Output coordinates numbered from one in point value output
 
