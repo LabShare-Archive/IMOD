@@ -215,6 +215,7 @@ extern int Rampbase;
 #define MESSAGE_SAVE_MODEL  2
 #define MESSAGE_VIEW_MODEL  3
 #define MESSAGE_QUIT  4
+#define MESSAGE_RAISE_WINDOWS 5
 
 /* Colors for 12-bit colormap systems */
 #define RAMPBASE 256
@@ -283,6 +284,9 @@ void ivwReadZ(ImodView *iv, unsigned char *buf, int cz);
 
 /*
 $Log$
+Revision 3.13  2003/05/18 22:08:48  mast
+Changes to add an application icon
+
 Revision 3.12  2003/04/18 20:15:17  mast
 Add flag to set if program is exiting
 
