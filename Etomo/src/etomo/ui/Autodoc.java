@@ -56,6 +56,9 @@ import java.util.Iterator;
 * @version $$Revision$$
 *
 * <p> $$Log$
+* <p> $Revision 1.8  2004/03/30 17:42:16  sueh
+* <p> $bug# 409 adding mtffilter.adoc
+* <p> $
 * <p> $Revision 1.7  2004/01/02 18:04:53  sueh
 * <p> $bug# 372 adding doc
 * <p> $
@@ -90,6 +93,7 @@ public class Autodoc implements AttributeCollection {
   public static final String DEFAULT_AUTODOC_DIR = new String("autodoc");
   public static final String TILTXCORR = new String("tiltxcorr");
   public static final String MTF_FILTER = new String("mtffilter");
+  public static final String COMBINE_FFT = new String("combinefft");
   public static final String TEST = new String("test");
 
   private static final String fileExt = new String(".adoc");
@@ -97,6 +101,7 @@ public class Autodoc implements AttributeCollection {
   private static Autodoc tiltxcorr = null;
   private static Autodoc test = null;
   private static Autodoc mtffilter = null;
+  private static Autodoc combinefft = null;
 
   private String fileName = null;
   private File file = null;
@@ -122,8 +127,12 @@ public class Autodoc implements AttributeCollection {
       return test;
     }
     if (name.equals(MTF_FILTER)) {
-      mtffilter = getAutodoc(test, name);
+      mtffilter = getAutodoc(mtffilter, name);
       return mtffilter;
+    }
+    if (name.equals(COMBINE_FFT)) {
+      combinefft = getAutodoc(combinefft, name);
+      return combinefft;
     }
     throw new IllegalArgumentException("Illegal autodoc name: " + name + ".");
   }
