@@ -121,6 +121,7 @@ void ioew_draw(int state)
     obj->flags |= IMOD_OBJFLAG_OFF;
 
   imodDraw(App->cvi, IMOD_DRAW_MOD);
+  imodvObjedNewView();
 }
 
 /* 12/1/02: eliminated unused ioew_trans_cb */
@@ -221,6 +222,7 @@ void ioew_nametext(const char *name)
       obj->name[i] = name[i];
     obj->name[i] = 0x00;
   }
+  imodvObjedNewView();
 }
 
 void ioew_symbol(int value)
@@ -457,6 +459,7 @@ void ImodObjColor::newColorSlot(int red, int green, int blue)
   imod_cmap(Model);
   imodDraw(App->cvi, IMOD_DRAW_MOD);
   imod_info_setobjcolor();
+  imodvObjedNewView();
 }
 
 void ImodObjColor::doneSlot()
@@ -482,6 +485,9 @@ void ImodObjColor::keyReleaseSlot ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.9  2004/05/31 23:35:26  mast
+Switched to new standard error functions for all debug and user output
+
 Revision 4.8  2004/05/31 02:16:49  mast
 Added call to imodv object edit window if point size changes
 
