@@ -10,6 +10,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.3  2003/10/08 17:19:22  mast
+#  Changes to work with autodoc files
+#
 #  Revision 3.1  2003/10/08 17:17:43  mast
 #  Changes to work with autodoc files
 
@@ -27,8 +30,8 @@ if ($status) then
 endif
 
 # test for -c option, needed starting in Red Hat 8
-set copt = "-c"
-echo junk | nroff -c >& /dev/null
+set copt = "-c -Tascii"
+echo junk | nroff -c -Tascii >& /dev/null
 if ($status) set copt = ""
 
 @ ind = 1
