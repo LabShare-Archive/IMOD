@@ -22,7 +22,6 @@ import etomo.type.AxisTypeException;
 import etomo.type.BaseMetaData;
 import etomo.type.BaseProcessTrack;
 import etomo.type.BaseState;
-import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstJoinMetaData;
 import etomo.type.EtomoNumber;
 import etomo.type.JoinMetaData;
@@ -48,6 +47,10 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.10  2005/01/21 22:17:10  sueh
+* <p> bug# 509 bug# 591  Moved the management of MetaData to the Controller
+* <p> class.
+* <p>
 * <p> Revision 1.9  2004/12/14 21:23:54  sueh
 * <p> bug# 565: Fixed bug:  Losing process track when backing up .edf file and
 * <p> only saving metadata.  bug# 572:  Removing state object from meta data
@@ -736,7 +739,7 @@ public class JoinManager extends BaseManager {
     joinDialog.setSizeInY(sizeInY);
   }
   
-  public void setShift(ConstEtomoNumber shiftInX, ConstEtomoNumber shiftInY) {
+  public void setShift(int shiftInX, int shiftInY) {
     joinDialog.setShiftInX(shiftInX);
     joinDialog.setShiftInY(shiftInY);   
   }
