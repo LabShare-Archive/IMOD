@@ -43,6 +43,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.4  2004/02/20 23:51:01  sueh
+ * <p> bug# 386 added distortionFile chooser and binning spinner
+ * <p>
  * <p> Revision 3.3  2004/02/08 18:34:40  sueh
  * <p> bug# 169 Calling imodPreview instead of imodRawStack.
  * <p>
@@ -527,6 +530,18 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
         errorMessageTitle);
       return false;
     }
+    //validate image distortion field file name
+    //optional
+    //file must exist
+    String distortionFileText = ltfDistortionFile.getText();
+    File distortionFile = new File(distortionFileText);
+    if (!distortionFile.exists()) {
+      String distortionFileName = distortionFile.getName();
+      applicationManager.openMessageDialog(
+        "The image distortion field file " + distortionFileName + " does not exist.",
+        errorMessageTitle);
+      return false;
+    }
     panelErrorMessage = tiltAnglesA.getErrorMessage();
     if (panelErrorMessage != null) {
       applicationManager.openMessageDialog(
@@ -683,7 +698,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     if (returnVal == JFileChooser.APPROVE_OPTION) {
       File distortionFile = chooser.getSelectedFile();
       try {
-        ltfDistortionFile.setText(distortionFile.getCanonicalPath());
+        ltfDistortionFile.setText(distortionFile.getAbsolutePath());
       }
       catch (Exception excep) {
         excep.printStackTrace();
