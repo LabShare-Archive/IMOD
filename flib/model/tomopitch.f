@@ -56,6 +56,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.5  2002/07/21 19:31:11  mast
+c	  *** empty log message ***
+c	
 c	  Revision 3.4  2002/07/21 19:30:50  mast
 c	  Standardized error output and made model coordinates get scaled
 c	  correctly
@@ -296,9 +299,9 @@ c
 	do i=1,nspots
 	  yy(i)=xcen(i)*sind(-ang)+ycen(i)*cosd(-ang)
 	enddo
-	write(6,102)slop,-ang,ang
-102	format(' slope =',f8.4,': to rotate by',f6.1,', add',f6.1,
-     &	    ' to all angles')
+	write(6,102)slop,ang
+102	format(' slope =',f8.4,': to make level, add',f6.1,
+     &	    ' to angle offset')
 	call findshift(' rotated ',yy,thkmid,ifuse,nspots)
 	if(doxtilt.eq.0.)return
 	nd=0
@@ -322,10 +325,10 @@ c
 	  zp=ycen(i)*cosal-ysamp(i)*sinal
 	  yy(i)=xcen(i)*sinth+zp*costh
 	enddo
-	write(6,103)alpha,theta,-theta
+	write(6,103)alpha,-theta
 103	format(/' The pitch between samples can be corrected with ',
-     &	    'an X-axis tilt of',f7.2,/,' In this case, rotate by',f6.1,
-     &	    ', i.e., add',f6.1,' to all angles')
+     &	    'an X-axis tilt of',f7.2,/,' In this case, to make level,'
+     &	    ' add',f6.1,' to angle offset')
 	call findshift('x-tilted ',yy,thkmid,ifuse,nspots)
 	return
 	end
@@ -353,7 +356,7 @@ c
 	ithick=2*(int(realthk/2.+0.99))
 	ithick=niceframe(ithick,2,19)
 	write(6,101)rotlab,shift,realthk,ithick
-101	format(1x,a,' lines imply shift up',f7.1,'; thickness of',
+101	format(1x,a,' lines imply added Z shift of',f7.1,'; thickness of',
      &	    f6.1,', set to',i5)
 	return
 	end

@@ -193,7 +193,7 @@ c	  Either the individual tilt angles (ranges NOT allowed), the
 c	  .   starting and increment tilt angles, or the name of a file with
 c	  .   tilt angles, depending on whether you just entered -1, 1, or 0.
 c
-c	  Amount to ADD to all entered tilt angles
+c	  Tilt angle offset, i.e. amount to ADD to all entered tilt angles
 c
 c	  0 to fix all tilt angles at their initial values
 c	  .   or 1 to solve for all tilt angles except for a specified view
@@ -402,6 +402,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.7  2003/01/30 20:54:51  mast
+c	  Made fields for residuals bigger, amplified IER error messages
+c	
 c	  Revision 3.6  2002/12/21 00:00:33  mast
 c	  Add ability to get both residual output and 3D model
 c	
