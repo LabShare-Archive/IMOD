@@ -16,6 +16,12 @@ import etomo.type.TiltAngleType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.4  2004/03/12 20:04:44  sueh
+ * <p> bug# 412 added absoluteCosineStretch, cumulativeCorreslation, noCosineStretch,
+ * <p> testOutput, xMinAndMax, yMinAndMax
+ * <p> corrected parseComScriptCommand() - fixed optional parameters
+ * <p> corrected updateComScriptCommand() - incorrect comparisons
+ * <p>
  * <p> Revision 3.3  2004/01/30 02:12:10  sueh
  * <p> bug# 373 removing prints and formatting
  * <p>
@@ -167,6 +173,7 @@ public class TiltxcorrParam
     tiltAngleSpec.setType(TiltAngleType.parseInt(typeSpec));
     if (tiltAngleSpec.getType() == TiltAngleType.FILE) {
       tiltAngleSpec.setTiltAngleFilename(inputArgs[inputLine++].getArgument());
+      tiltFile = tiltAngleSpec.getTiltAngleFilename();
     }
     else if (tiltAngleSpec.getType() == TiltAngleType.RANGE) {
       String pair = inputArgs[inputLine++].getArgument();
@@ -176,6 +183,8 @@ public class TiltxcorrParam
       }
       tiltAngleSpec.setRangeMin(Double.parseDouble(values[0]));
       tiltAngleSpec.setRangeStep(Double.parseDouble(values[1]));
+      firstTiltAngle = tiltAngleSpec.getRangeMin();
+      tiltIncrement = tiltAngleSpec.getRangeStep();
     }
     else if (tiltAngleSpec.getType() == TiltAngleType.LIST) {
       throw new BadComScriptException("Unimplemented tilt angle specification type");
@@ -187,6 +196,10 @@ public class TiltxcorrParam
     rotationAngle = Double.parseDouble(inputArgs[inputLine++].getArgument());
     try {
       filterParams.validateAndSet(inputArgs[inputLine++].getArgument());
+      filterSigma1 = filterParams.getDouble(0);
+      filterSigma2 = filterParams.getDouble(1);
+      filterRadius1 = filterParams.getDouble(2);
+      filterRadius2 = filterParams.getDouble(3);
       excludeCentralPeak =
         inputArgs[inputLine++].getArgument().matches("\\s*1\\s*");
       bordersInXandY.validateAndSet(inputArgs[inputLine++].getArgument());
