@@ -10,6 +10,7 @@ import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JPanel;
+import javax.swing.JToggleButton;
 
 import etomo.ApplicationManager;
 import etomo.comscript.CCDEraserParam;
@@ -29,6 +30,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.6  2003/07/30 21:53:44  rickg
+ * <p> Use new tooltip formatting class
+ * <p>
  * <p> Revision 2.5  2003/07/25 23:02:47  rickg
  * <p> Moved polynomial order, border pixels and inclide adjacent to
  * <p> the global section
@@ -95,8 +99,8 @@ public class CCDEraserPanel implements ContextMenu {
     new LabeledTextField("XY scan size:");
   private LabeledTextField ltfScanCriterion =
     new LabeledTextField("Scan criterion:");
-  private JButton btnFindXRays =
-    new JButton("<html><b>Find X-rays (trial mode)</b>");
+  private JToggleButton btnFindXRays =
+    new JToggleButton("<html><b>Find X-rays (trial mode)</b>");
   private JButton btnViewXRayModel =
     new JButton("<html><b>View X-ray model</b>");
 
@@ -118,10 +122,10 @@ public class CCDEraserPanel implements ContextMenu {
   private JCheckBox cbIncludeAdjacentPoints =
     new JCheckBox("Include adjacent points");
 
-  private JButton btnErase = new JButton("<html><b>Erase stack</b>");
+  private JToggleButton btnErase = new JToggleButton("<html><b>Erase stack</b>");
   private JButton btnViewErased = new JButton("<html><b>View erased stack</b>");
-  private JButton btnReplaceRawStack =
-    new JButton("<html><b>Replace raw stack</b>");
+  private JToggleButton btnReplaceRawStack =
+    new JToggleButton("<html><b>Replace raw stack</b>");
 
   /**
    * Default constructor
