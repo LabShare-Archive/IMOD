@@ -39,6 +39,9 @@ import etomo.comscript.Patchcrawl3DParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.13  2003/05/15 04:28:48  rickg
+ * <p> Removed test button for volcombine
+ * <p>
  * <p> Revision 1.12  2003/05/14 14:38:08  rickg
  * <p> Temporary button
  * <p>
@@ -106,13 +109,13 @@ public class FinalCombinePanel implements ContextMenu {
     new LabeledTextField("Refine limit: ");
 
   private CheckBoxTextField cbtfXLowerExclude =
-    new CheckBoxTextField("columns to exclude on left (xlower): ");
+    new CheckBoxTextField("columns to exclude on left (in X): ");
   private CheckBoxTextField cbtfXUpperExclude =
-    new CheckBoxTextField("columns to exclude on right (xupper): ");
+    new CheckBoxTextField("columns to exclude on right (in X): ");
   private CheckBoxTextField cbtfZLowerExclude =
-    new CheckBoxTextField("rows to exclude on bottom (zlower): ");
+    new CheckBoxTextField("rows to exclude on bottom (in Y): ");
   private CheckBoxTextField cbtfZUpperExclude =
-    new CheckBoxTextField("rows to exclude on top (zupper): ");
+    new CheckBoxTextField("rows to exclude on top (in Y): ");
   private JPanel pnlMatchorwarpButtons = new JPanel();
   private JButton btnMatchorwarpRestart =
     new JButton("<html><b>Restart at matchorwarp</b>");
