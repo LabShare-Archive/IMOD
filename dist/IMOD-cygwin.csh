@@ -8,9 +8,9 @@
 # Place this file in /etc/profile.d
 
 #
-# Set IMOD_DIR if it is not set already, use Windows path format
+# Set IMOD_DIR if it is not set already, use Windows path format with double \
 #
-if (! $?IMOD_DIR) setenv IMOD_DIR C:\cygwin\usr\local\IMOD
+if (! $?IMOD_DIR) setenv IMOD_DIR C:\\cygwin\\usr\\local\\IMOD
 
 # Put the IMOD programs on the path
 #
@@ -20,9 +20,9 @@ else
     setenv PATH `/usr/bin/cygpath $IMOD_DIR`/bin
 endif
 
-# Set a variable with the location of calibration/data files
+# Set a variable with the location of calibration/data files, in Windows format
 #
-if (! $?IMOD_CALIB_DIR) setenv IMOD_CALIB_DIR /usr/local/ImodCalib
+if (! $?IMOD_CALIB_DIR) setenv IMOD_CALIB_DIR C:\\cygwin\\usr\\local\\ImodCalib
 
 # A subm alias to run command files in the background with submfg
 #

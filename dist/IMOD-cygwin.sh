@@ -9,17 +9,17 @@
 #
 
 #
-# Set IMOD_DIR if it is not set already; use Windows path format
+# Set IMOD_DIR if it is not set already; use Windows path format with double \
 #
-export IMOD_DIR=${IMOD_DIR:=C:\cygwin\usr\local\IMOD}
+export IMOD_DIR=${IMOD_DIR:=C:\\cygwin\\usr\\local\\IMOD}
 
 # Put the IMOD programs on the path
 #
 export PATH=`cygpath $IMOD_DIR`/bin:$PATH
 
-# Set a variable with the location of calibration/data files
+# Set a variable with the location of calibration/data files, in Windows format
 #
-export IMOD_CALIB_DIR=${IMOD_CALIB_DIR:=/usr/local/ImodCalib}
+export IMOD_CALIB_DIR=${IMOD_CALIB_DIR:=C:\\cygwin\\usr\\local\\ImodCalib}
 
 # A subm function to run command files in the background with submfg
 #
