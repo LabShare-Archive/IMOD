@@ -1,3 +1,12 @@
+package etomo.type;
+
+import java.io.File;
+import java.util.Properties;
+
+import etomo.comscript.CombineParams;
+import etomo.comscript.TransferfidParam;
+import etomo.storage.Storable;
+
 /**
  * <p>Description: </p>
  *
@@ -11,6 +20,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.5  2004/05/25 23:59:54  sueh
+ * <p> bug# 355 when axis type is not available it should be set to
+ * <p> "not set"
+ * <p>
  * <p> Revision 3.4  2004/04/06 03:00:40  rickg
  * <p> Updated imageRotation to store axis separately
  * <p>
@@ -77,15 +90,6 @@
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
  */
-
-package etomo.type;
-
-import java.io.File;
-import java.util.Properties;
-
-import etomo.comscript.CombineParams;
-import etomo.comscript.TransferfidParam;
-import etomo.storage.Storable;
 
 public class MetaData extends ConstMetaData implements Storable {
   public static final String rcsid = "$Id$";
@@ -220,6 +224,10 @@ public class MetaData extends ConstMetaData implements Storable {
     fiducialessAlignment = state;
   }
 
+  public void setWholeTomogramSample(boolean state) {
+    wholeTomogramSample = state;
+  }
+
   /**
    *  Insert the objects attributes into the properties object.
    */
@@ -238,7 +246,7 @@ public class MetaData extends ConstMetaData implements Storable {
 
     props.setProperty(group + "RevisionNumber", latestRevisionNumber);
     props.setProperty(group + "ComScriptsCreated", String
-      .valueOf(comScriptsCreated));
+        .valueOf(comScriptsCreated));
     props.setProperty(group + "DatasetName", datasetName);
     props.setProperty(group + "BackupDirectory", backupDirectory);
 
@@ -249,26 +257,28 @@ public class MetaData extends ConstMetaData implements Storable {
 
     props.setProperty(group + "PixelSize", String.valueOf(pixelSize));
     props.setProperty(group + "UseLocalAlignments", String
-      .valueOf(useLocalAlignments));
+        .valueOf(useLocalAlignments));
     props.setProperty(group + "FiducialDiameter", String
-      .valueOf(fiducialDiameter));
+        .valueOf(fiducialDiameter));
     props.setProperty(group + "ImageRotationA", String.valueOf(imageRotationA));
     props.setProperty(group + "ImageRotationB", String.valueOf(imageRotationB));
     tiltAngleSpecA.store(props, group + "AxisA");
     props.setProperty(group + "AxisA.ExcludeProjections", String
-      .valueOf(excludeProjectionsA));
+        .valueOf(excludeProjectionsA));
 
     tiltAngleSpecB.store(props, group + "AxisB");
     props.setProperty(group + "AxisB.ExcludeProjections", String
-      .valueOf(excludeProjectionsB));
+        .valueOf(excludeProjectionsB));
 
     props.setProperty(group + "TransferfidNumberViews", String
-      .valueOf(transferfidNumberViews));
+        .valueOf(transferfidNumberViews));
     combineParams.store(props, group);
     props.setProperty(group + "DistortionFile", distortionFile);
     props.setProperty(group + "Binning", String.valueOf(binning));
     props.setProperty(group + "FiducialessAlignment", String
-      .valueOf(fiducialessAlignment));
+        .valueOf(fiducialessAlignment));
+    props.setProperty(group + "WholeTomogramSample", String
+        .valueOf(wholeTomogramSample));
   }
 
   /**
@@ -293,7 +303,7 @@ public class MetaData extends ConstMetaData implements Storable {
     // data files so as to not break existing files
     // May-03-2002
     comScriptsCreated = Boolean.valueOf(
-      props.getProperty(group + "ComScriptsCreated", "true")).booleanValue();
+        props.getProperty(group + "ComScriptsCreated", "true")).booleanValue();
 
     // Backwards compaitibility with FilesetName string
     datasetName = props.getProperty(group + "FilesetName", "");
@@ -301,18 +311,19 @@ public class MetaData extends ConstMetaData implements Storable {
     backupDirectory = props.getProperty(group + "BackupDirectory", "");
 
     dataSource = DataSource.fromString(props.getProperty(group + "DataSource",
-      "CCD"));
+        "CCD"));
     axisType = AxisType.fromString(props.getProperty(group + "AxisType",
-      "Not Set"));
+        "Not Set"));
     viewType = ViewType.fromString(props.getProperty(group + "ViewType",
-      "Single View"));
+        "Single View"));
     sectionType = SectionType.fromString(props.getProperty(group
         + "SectionType", "Single"));
     pixelSize = Double.parseDouble(props
-      .getProperty(group + "PixelSize", "0.0"));
+        .getProperty(group + "PixelSize", "0.0"));
 
     useLocalAlignments = Boolean.valueOf(
-      props.getProperty(group + "UseLocalAlignments", "false")).booleanValue();
+        props.getProperty(group + "UseLocalAlignments", "false"))
+        .booleanValue();
     fiducialDiameter = Double.parseDouble(props.getProperty(group
         + "FiducialDiameter", "0.0"));
 
@@ -324,11 +335,11 @@ public class MetaData extends ConstMetaData implements Storable {
     imageRotationB = Float.parseFloat(props.getProperty(group
         + "ImageRotationB", strOldRotation));
     excludeProjectionsA = props.getProperty(group + "AxisA.ExcludeProjections",
-      "");
+        "");
     tiltAngleSpecA.load(props, group + "AxisA");
 
     excludeProjectionsB = props.getProperty(group + "AxisB.ExcludeProjections",
-      "");
+        "");
     tiltAngleSpecB.load(props, group + "AxisB");
 
     transferfidNumberViews = Integer.parseInt(props.getProperty(group
@@ -336,12 +347,15 @@ public class MetaData extends ConstMetaData implements Storable {
 
     combineParams.load(props, group);
     distortionFile = props
-      .getProperty(group + "DistortionFile", distortionFile);
+        .getProperty(group + "DistortionFile", distortionFile);
     binning = Integer.parseInt(props.getProperty(group + "Binning", Integer
-      .toString(binning)));
+        .toString(binning)));
 
     fiducialessAlignment = Boolean.valueOf(
-      props.getProperty(group + "FiducialessAlignment", "false"))
-      .booleanValue();
+        props.getProperty(group + "FiducialessAlignment", "false"))
+        .booleanValue();
+    wholeTomogramSample = Boolean.valueOf(
+        props.getProperty(group + "WholeTomogramSample", "false"))
+        .booleanValue();
   }
 }

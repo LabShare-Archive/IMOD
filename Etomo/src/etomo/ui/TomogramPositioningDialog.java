@@ -1,3 +1,29 @@
+package etomo.ui;
+
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JCheckBox;
+import javax.swing.JPanel;
+import javax.swing.SpinnerModel;
+import javax.swing.SpinnerNumberModel;
+
+import etomo.ApplicationManager;
+import etomo.comscript.ConstNewstParam;
+import etomo.comscript.ConstTiltParam;
+import etomo.comscript.ConstTiltalignParam;
+import etomo.comscript.ConstTomopitchParam;
+import etomo.comscript.NewstParam;
+import etomo.comscript.TiltParam;
+import etomo.comscript.TiltalignParam;
+import etomo.comscript.TomopitchParam;
+import etomo.type.AxisID;
+
 /**
  * <p>Description: Tomogram Positioning User Interface</p>
  *
@@ -11,6 +37,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.9  2004/05/25 23:25:52  rickg
+ * <p> Bug #391 added fiducialess parameter interface and UI objects
+ * <p>
  * <p> Revision 3.8  2004/05/03 18:24:57  sueh
  * <p> bug# 427 set TomopitchParam.ScaleFactor from binning
  * <p>
@@ -103,32 +132,6 @@
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
  */
-
-package etomo.ui;
-
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseEvent;
-
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.JCheckBox;
-import javax.swing.JPanel;
-import javax.swing.SpinnerModel;
-import javax.swing.SpinnerNumberModel;
-
-import etomo.ApplicationManager;
-import etomo.comscript.ConstNewstParam;
-import etomo.comscript.ConstTiltParam;
-import etomo.comscript.ConstTiltalignParam;
-import etomo.comscript.ConstTomopitchParam;
-import etomo.comscript.NewstParam;
-import etomo.comscript.TiltParam;
-import etomo.comscript.TiltalignParam;
-import etomo.comscript.TomopitchParam;
-import etomo.type.AxisID;
 
 public class TomogramPositioningDialog extends ProcessDialog
     implements ContextMenu, FiducialessParams {
@@ -292,21 +295,8 @@ public class TomogramPositioningDialog extends ProcessDialog
    * @param TomopitchParam
    */
   public void getTomopitchParams(TomopitchParam tomopitchParam) {
-    //TODO set ScaleFactor
     double binning = Double.parseDouble(spinBinning.getValue().toString());
     tomopitchParam.setScaleFactor(binning);
-    //temp test
-    /*
-    tomopitchParam.setExtraThickness("3");
-    tomopitchParam.resetModelFiles();
-    tomopitchParam.setModelFile("topa.mod");
-    tomopitchParam.setModelFile("mida.mod");
-    tomopitchParam.setModelFile("bota.mod");
-    tomopitchParam.setParameterFile("bob");
-    tomopitchParam.setScaleFactor(binning);
-    tomopitchParam.setSpacingInY("-150");
-    */
-    //System.out.println("In getTomopitchParams:" + tomopitchParam.toString());
   }
 
   /**
@@ -373,6 +363,22 @@ public class TomogramPositioningDialog extends ProcessDialog
     }
   }
 
+  /**
+   * Set the whole tomogram sampling state
+   * @param state
+   */
+  public void setWholeTomogramSampling(boolean state) {
+    cbWholeTomogram.setSelected(state);
+  }
+  
+  /**
+   * Get the whole tomogram sampling state
+   * @return
+   */
+  public boolean isWholeTomogramSampling() {
+    return cbWholeTomogram.isSelected();
+  }
+  
   /**
    * @return Returns the fullImageSize.
    */

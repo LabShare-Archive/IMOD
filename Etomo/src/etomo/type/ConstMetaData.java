@@ -1,3 +1,12 @@
+package etomo.type;
+
+import java.io.File;
+import java.lang.IllegalStateException;
+
+import etomo.comscript.ConstCombineParams;
+import etomo.comscript.CombineParams;
+import etomo.comscript.TransferfidParam;
+
 /**
  * <p>Description: </p>
  *
@@ -11,6 +20,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.8  2004/05/25 23:57:49  sueh
+ * <p> bug# 355 Change isValid() so it can be used with setup dialog
+ * <p> or a .edf file.  Tell the user to check the .edf file, when necessary.
+ * <p>
  * <p> Revision 3.7  2004/05/25 23:23:40  rickg
  * <p> Bug #391 method refactor
  * <p>
@@ -91,20 +104,10 @@
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
  */
-
-package etomo.type;
-
-import java.io.File;
-import java.lang.IllegalStateException;
-
-import etomo.comscript.ConstCombineParams;
-import etomo.comscript.CombineParams;
-import etomo.comscript.TransferfidParam;
-
 public class ConstMetaData {
   public static final String rcsid = "$Id$";
 
-  protected String latestRevisionNumber = "1.6";
+  protected String latestRevisionNumber = "1.7";
   protected String revisionNumber = "";
   protected String datasetName = "";
   protected String backupDirectory = "";
@@ -122,6 +125,7 @@ public class ConstMetaData {
   protected float imageRotationB = Float.NaN;
   protected int binning = Integer.MIN_VALUE;
   protected boolean fiducialessAlignment = false;
+  protected boolean wholeTomogramSample = false;
 
   //  Axis specific data
   protected TiltAngleSpec tiltAngleSpecA = new TiltAngleSpec();
@@ -224,6 +228,10 @@ public class ConstMetaData {
     return fiducialessAlignment;
   }
 
+  public boolean isWholeTomogramSample() {
+    return wholeTomogramSample;
+  }
+  
   public String getInvalidReason() {
     return invalidReason;
   }
