@@ -7,6 +7,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.10  2004/10/11 19:06:31  mast
+#  Added option -P to output PID
+#
 #  Revision 3.9  2004/08/27 05:46:48  mast
 #  Switched to using head -n and tail -n
 #
@@ -419,7 +422,7 @@ if ($prexffile != "") set tmpxfin = $tmpdir/$com.xfin.$$
 if ( ($FILTERPARAM  == "0.,0.,0.,0.")  ||  ($FILTERPARAM == "NONE") ) then
    echo "mv -f $tmppic $tmpprp" >! $runenhance
 else
-   cat !> $runenhance <<EOCAT
+   cat >! $runenhance <<EOCAT
 enhance $tmppic $tmpprp >! $tmplog <<EOF
 $FILTERPARAM
 1
