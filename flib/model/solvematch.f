@@ -150,6 +150,12 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.3  2002/07/28 00:24:47  mast
+c	  Added a second level of indexing so that point numbers in the
+c	  fiducial coordinate file are read and used to refer to points.
+c	  Made the matching model points be referred to be a negative
+c	  number.
+c	
 c	  Revision 3.2  2002/07/21 19:26:30  mast
 c	  *** empty log message ***
 c	
@@ -289,7 +295,7 @@ c
 	  call exit(1)
 	endif
 	if(nlista.gt.nlist)call errorexit(
-     &	    'YOU HAVE ENTERED MORE NUMBERS THAN THE',
+     &	    'YOU HAVE ENTERED MORE NUMBERS THAN THE'//
      &	      ' MINIMUM NUMBER OF POINTS IN A AND B')
 	write (*,114)
 114	format('Enter a list of the corresponding points in the',
@@ -460,7 +466,7 @@ c
 	addcrit=addratio*stoplim
 	distmin=0.
 	do while(ndat-nmodpt.lt.min(npnta,npntb).and.distmin.lt.addcrit)
-	  call do3multr(xr,ndat,4,ndat,a,dxyz,cenloc, devavg,devsd,
+	  call do3multr(xr,ndat,4,ndat,0,a,dxyz,cenloc, devavg,devsd,
      &	      devmax,ipntmax, devxyzmax)
 	  distmin=1.e10
 c	    
@@ -547,9 +553,9 @@ c	write(*,105)((xr(i,j),i=1,4),(xr(i,j),i=6,8),j=1,ndat)
 	crit=0.01
 	elimmin=3.
 	critabs=0.002
-	call solve_wo_outliers(xr,ndat,ncolfit,maxdrop,crit,critabs,elimmin,
-     &	    idrop,ndrop, a,dxyz,cenloc, devavg,devsd,devmax,ipntmax,
-     &	    devxyzmax)
+	call solve_wo_outliers(xr,ndat,ncolfit,0,maxdrop,crit,critabs,
+     &	    elimmin, idrop,ndrop, a,dxyz,cenloc, devavg,devsd,devmax,
+     &	    ipntmax, devxyzmax)
 c
 	if(ndrop.ne.0)then
 	  write(*,104)ndrop,devavg,devsd,(iorig(idrop(i)),i=1,ndrop)
