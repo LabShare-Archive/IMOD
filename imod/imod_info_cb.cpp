@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.1  2003/02/10 20:29:00  mast
+autox.cpp
+
 Revision 1.1.2.5  2003/01/29 17:51:36  mast
 New floating procedure implemented to avoid zap snake eating tail
 
@@ -360,7 +363,7 @@ void imod_info_setxyz(void)
   ivwBindMouse(App->cvi);
   xyz[0] = (int)(App->cvi->xmouse + 1);
   xyz[1] = (int)(App->cvi->ymouse + 1);
-  xyz[2] = (int)(App->cvi->zmouse + 1);
+  xyz[2] = (int)(App->cvi->zmouse + 1.5);
   xyzs[0] = App->cvi->xsize;
   xyzs[1] = App->cvi->ysize;
   xyzs[2] = App->cvi->zsize;
