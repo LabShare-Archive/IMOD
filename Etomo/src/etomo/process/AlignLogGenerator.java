@@ -33,13 +33,13 @@ public class AlignLogGenerator {
   }
 
   public void run() throws IOException {
-    runArgument("-a", "alignAngles");
-    runArgument("-c", "alignCoordinates");
-    runArgument("-e", "alignError");
-    runArgument("-l", "alignLocals");
-    runArgument("-m", "alignMappings");
-    runArgument("-r", "alignResiduals");
-    runArgument("-s", "alignSolution");
+    runArgument("-a", "taAngles");
+    runArgument("-c", "taCoordinates");
+    runArgument("-e", "taError");
+    runArgument("-l", "taLocals");
+    runArgument("-m", "taMappings");
+    runArgument("-r", "taResiduals");
+    runArgument("-s", "taSolution");
   }
 
   private void runArgument(String argument, String logFile)
