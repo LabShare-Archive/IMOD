@@ -83,6 +83,11 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.74  2004/06/21 00:03:53  sueh
+ * <p> bug# 436 adding restartAtMatchvol1(), which updates later comscripts
+ * <p> and calls matchvol1().  This is necessary because
+ * <p> startNextProcess() does not need to update comscripts.
+ * <p>
  * <p> Revision 3.73  2004/06/18 00:52:53  sueh
  * <p> bug# 476 put the logic to check if the fixed stack exists in a
  * <p> separate function and call it in replaceRawStack() and
@@ -1412,6 +1417,9 @@ public class ApplicationManager {
     comScriptMgr.loadXcorr(axisID);
     coarseAlignDialog.setCrossCorrelationParams(comScriptMgr.getTiltxcorrParam(axisID));
     comScriptMgr.loadPrenewst(axisID);
+    // TODO: does the align.com file really need to be loaded here?
+    //  - if so add a comment
+    //  - if not remove
     comScriptMgr.loadAlign(axisID);
 
     NewstParam prenewstParam = comScriptMgr.getPrenewstParam(axisID);
@@ -2043,11 +2051,16 @@ public class ApplicationManager {
     else {
       fineAlignmentDialogA = fineAlignmentDialog;
     }
-    //  Load the required align{|a|b}.com files, fill in the dialog box
-    // params
-    //  and set it to the appropriate state
+    // Load the prenewst{|a|b}.com script to get the binning
+    comScriptMgr.loadPrenewst(axisID);
+    fineAlignmentDialog.setPrealignedBinning(comScriptMgr.getPrenewstParam(
+      axisID).getBinByFactor());
+    
+    // Load the required align{|a|b}.com files, fill in the dialog box
+    // params and set it to the appropriate state
     comScriptMgr.loadAlign(axisID);
     fineAlignmentDialog.setTiltalignParams(comScriptMgr.getTiltalignParam(axisID));
+
     //  Create a default transferfid object to populate the alignment dialog
     mainFrame.showProcess(fineAlignmentDialog.getContainer(), axisID);
   }
