@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/2/03: Added instructions for making samples with more slices to sample.com.
+
 12/1/03: IMOD_3-1-3
 12/1/03: Eliminate unneeded Qt DLL from Windows distribution, make newst have
 Unix line endings.
