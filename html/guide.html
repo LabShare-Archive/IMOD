@@ -357,28 +357,28 @@ installation procedures.<br>
   <br>
   <a name="SettingUpWindows"> </a>
   <h4><a name="SettingUpWindows">Setting Up a Windows PC to Run IMOD</a></h4>
-  <a name="SettingUpWindows"> </a> To use most of the programs in
-IMOD,
-you could simply use <a href="http://www.winzip.com">Winzip</a> to
-unpack it somewhere, (e.g., <code>C:\Program Files</code>), rename the
-top directory to IMOD, and add the IMOD\bin directory (e.g., C:\Program
-Files\IMOD\bin) to your path in Windows, as described below.
-&nbsp;However, for complete functionality, including the ability to run
+  <a name="SettingUpWindows"> </a>For complete IMOD functionality
+under Windows, including the ability to run
 shell scripts and to build tomograms, you need to install a Unix-like
 environment called <a href="http://www.cygwin.com">Cygwin</a> .
 &nbsp;We have provided a <a
  href="http://bio3d.colorado.edu/imod/windows/cygwinForIMOD.exe">Cygwin
 package</a> to make this process simpler and more predictable.
-&nbsp;This installation will occupy 57 MB, all located under a single
+&nbsp;This installation will occupy ~60 MB, all located under a single
 directory that can be removed easily. &nbsp;The installation will also
 create icons on the desktop and in the Start Menu, and make several
 simple entries to the Windows registry.<br>
   <br>
-Cygwin installation will work best if you are logged in as a user with
-Administrative privileges. You can do it as Administrator, but you will
-not get a home directory unless you log in as an another user.<br>
+Our second version of this package (June 2004) includes a superior
+terminal window called <code>rxvt</code> and a lightweight text
+editor, <code>nano</code> (derived from <code>pico</code> and similar
+to the editor in the <code>pine</code> email program).&nbsp; You can
+upgrade a previous Cygwin installation using this package.<br>
   <br>
-To install Cygwin from the package in <code>cygwinForIMOD.exe</code>:<br>
+Cygwin installation may work best if you are logged in as a user with
+Administrative privileges.<br>
+  <br>
+To install or upgrade Cygwin from the package in <code>cygwinForIMOD.exe</code>:<br>
   <br>
   <ol>
     <li>Click on the package to extract it. Press "Browse" and select
@@ -394,19 +394,52 @@ its name. In the rest of this document, C:\ is used in the examples,
 and you need to substitute your location if it is different.<br>
 Take the defaults for the other two selections: install for all users
 and Unix line endings.</li>
-    <li>Select the cygwinMaster folder as the Local Package Directory</li>
+    <li>Select the <code>cygwinMaster</code> folder as the Local
+Package Directory</li>
     <li>On the Select Packages page, click on the circular double arrow
 next to "All" to switch from "Default" to "Install"</li>
     <li>Proceed with the installation, and take the defaults to create
 icons on the desktop and start menu.</li>
   </ol>
   <br>
-The installation will create a Unix-like directory tree under <code>C:\cygwin</code>,
-including a <code>/home</code> with a home directory for you the
-installing user. &nbsp;After installation you will get an icon that
+The installation will create a Unix-like directory tree under <code>C:\cygwin</code>.
+&nbsp;After installation you will get an icon that
 will
-start up a shell under bash. <br>
+start up a shell under bash.&nbsp; The first time that you run this, a
+home directory is created in&nbsp;<code>/home</code> and some bash
+startup files are copied there.<br>
   <br>
+The primary advantage of the <code>rxvt</code> window is that you can
+copy and paste just like under Unix (highlight with left mouse button,
+paste with middle mouse button). This capability uses the Windows
+clipboard, so you can copy text in a Windows program (Ctrl-C) and paste
+with the mouse in the <code>rxvt</code> window, or highlight in the <code>rxvt</code>
+window and paste in a Windows program with Ctrl-V.&nbsp; Another
+advantage is that you can resize the <code>rxvt</code> window
+horizontally as well as vertically.&nbsp; The <code>cygwinMaster</code>
+folder contains two shortcuts and a configuration file that make it
+easy to use <code>rxvt.</code> To use rxvt:<br>
+  <ol>
+    <li>Copy one of <code>Cygwin-bash.lnk</code> or <code>Cygwin-tcsh.lnk</code>
+from <code>cygwinMaster</code> to your desktop, depending on your
+preferred shell.<br>
+    </li>
+    <li>Copy <code>rxvt.Xdefaults</code> from <code>cygwinMaster</code>
+to your Cygwin home directory.</li>
+    <li>In a Cygwin window, rename <code>rxvt.Xdefaults</code> to <code>.Xdefaults</code>
+(you cannot do this in Windows Explorer).&nbsp; <br>
+    </li>
+    <li>Click on the shortcut that you copied to get an rxvt
+window.&nbsp; You can edit <code>.Xdefaults</code> to adjust the font
+size and default window size and location.<br>
+    </li>
+    <li>Delete the existing Cygwin shortcut on your desktop and rename
+the <code>Cygwin-bash</code> or <code>Cygwin-tcsh</code> shortcut to <code>Cygwin.</code></li>
+    <li>If there are other users of Cygwin on your system, copy the
+shortcuts and <code>rxvt.Xdefaults</code> from the cygwinMaster folder
+to some other place where the users can access them (such as <code>/usr/local</code>).<br>
+    </li>
+  </ol>
 If you want to customize your Cygwin installation instead of using our
 package, go to <a href="http://www.cygwin.com">www.cygwin.com</a> ,
 click on "Setup", and follow the installation procedures. &nbsp;<span
@@ -421,29 +454,19 @@ category</span>. <br>
   </a> To install IMOD: <br>
   <br>
   <ol>
-    <li> Start a Cygwin terminal window. You can adjust the font,
-length, and background color of this window and make it the default for
-Cygwin terminals.</li>
-    <li> Move your copy of the IMOD distribution to <code>/usr/local</code>
-either from the command line or from an Explorer window, where the
-location will appear as <code>C:\cygwin\usr\local</code>.</li>
-    <li>&nbsp;Unpack the tar file and rename it to IMOD: <br>
-      <code>cd /usr/local </code><br>
-      <code>tar -xvzf imod_3.1.0.tar.gz </code><br>
-      <code>mv imod_3.1.0 IMOD </code><br>
-      <code>cp IMOD/IMOD-cygwin.* /etc/profile.d</code></li>
-    <li> For IMOD's man pages to work, <code>/etc/man.config</code>
-needs to not have the option "<code>NOCACHE</code>". Just copy the file
-      <code>man.config</code>
-from the <code>cygwinMaster</code> folder to <code>/etc</code> (<code>C:\cygwin\etc</code>).<br>
+    <li> Start a Cygwin terminal window. <br>
+    </li>
+    <li>Run csh on the self-installing IMOD distribution.&nbsp; You can
+do this either by moving it to your home directory, by changing to the
+directory where it is located, or by specifying the full path to the
+file, but essentially you need to enter something like:<br>
+      <code>csh imod_3.3.2_win.csh<br>
+      </code>This will unpack the distribution in /usr/local, rename it
+to IMOD, and copy the IMOD startup files to <code></code><code>/etc/profile.d.</code><br>
     </li>
   </ol>
 You will have to open a new Cygwin window for these changes to take
-effect. &nbsp;You can use Winzip instead to unpack IMOD, but first you
-must turn off "Tar file smart CR/LF conversion" under
-Options-Configuration-Miscellaneous, since most of the complicated
-shell
-scripts will not work if they get converted to DOS line endings.<br>
+effect.<br>
   <br>
 After these steps, everything but eTomo can be run from a Cygwin
 window. &nbsp;In order to run eTomo, you also need to install Java and
@@ -486,19 +509,6 @@ produce
 DOS line<br>
 endings too.<br>
   <br>
-If you want to use <code>tcsh</code> instead of <code>bash</code>,
-make a copy of <code>C:\cygwin\cygwin.bat</code> named <code>cygwin-tcsh.bat</code>,
-edit it to say <br>
-  <code>&nbsp; tcsh -l<br>
-  </code>instead of<br>
-&nbsp;&nbsp; &nbsp;<code>bash --login -i</code><br>
-and change the target of your Cygwin shortcut to be this file instead
-of <code>cygwin.bat</code>. <code>Tcsh</code> has the disadvantage
-that
-it fails to preserve entries on your Windows path that have spaces in
-them, but it does filename completion of Windows filenames (starting
-with C:/) better than <code>bash</code> does.<br>
-  <br>
 If you want to be able to display and print Postscript graphs from the
 Fortran graphics programs (e.g., <code>nda, mtk, mtoverlap</code>),
 you
@@ -506,7 +516,16 @@ can install <a
  href="http://bio3d.colorado.edu/imod/windows/gs811w32.exe">ghostscript</a>
 and <a href="http://bio3d.colorado.edu/imod/windows/gsv45w32.exe">gsview</a>
 for Windows.<br>
-  <code>&nbsp;</code><br>
+  <code><br>
+  </code>Finally, if you do not want to install Cygwin, you can still
+use most of the programs in
+IMOD.&nbsp; In this case, get the <code>.tar.gz</code> distribution
+instead of the self-installing distribution and use <a
+ href="http://www.winzip.com">Winzip</a> to
+unpack it somewhere, (e.g., <code>C:\Program Files</code>), rename the
+top directory to IMOD, and add the IMOD\bin directory (e.g., C:\Program
+Files\IMOD\bin) to your path in Windows, as described above.&nbsp;
+  <code>&nbsp;</code>
 </blockquote>
 <dl>
   <dd> <a name="TIFFLibrary">
