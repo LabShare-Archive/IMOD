@@ -74,6 +74,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.7  2004/01/17 00:14:17  rickg
+ * <p> Added a --test argument that prevents the main window from
+ * <p> opening up.
+ * <p>
  * <p> Revision 3.6  2003/12/08 22:34:32  sueh
  * <p> bug# 169 adding new function imodRawStack
  * <p>
@@ -616,8 +620,6 @@ public class ApplicationManager {
   private ImodManager imodManager;
 
   private MainFrame mainFrame;
-  private Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-
   /**
    * 
    */
@@ -669,6 +671,8 @@ public class ApplicationManager {
       setupDialog.initializeFields(metaData);
     }
     mainFrame.openSetupPanel(setupDialog);
+
+    Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
     Dimension frameSize = mainFrame.getSize();
     mainFrame.setLocation(
       (screenSize.width - frameSize.width) / 2,
