@@ -26,6 +26,14 @@
  *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 
 #include <Xm/Xm.h>
 #include <Xm/RowColumn.h>
@@ -464,10 +472,9 @@ static void file_about_cb(Widget w, XtPointer client, XtPointer call)
 	  ("Imodv OpenGL Version ",
 	   VERSION_NAME,
 	   ", originally written by James Kremer and revised",
-	   " by David Mastronarde\n",
-	   "Copyright (C) 1994-2001 by Boulder Laboratory ",
-	   "for 3-Dimensional Fine Structure ",
-	   " & the Regents of the University of Colorado\n\n",
+	   "by David Mastronarde\n",
+	   "Copyright (C)",COPYRIGHT_YEARS,"by",LAB_NAME1,"\n",LAB_NAME2,
+	   "& Regents of the University of Colorado\n\n",
 	   NULL);
 }
 
