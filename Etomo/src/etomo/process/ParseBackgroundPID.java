@@ -23,61 +23,24 @@ import java.io.IOException;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.2  2004/08/19 02:28:07  sueh
+ * <p> $bug# 508 changed comments, moved things around
+ * <p> $
  * <p> $Revision 1.1  2004/08/06 23:02:52  sueh
  * <p> $bug# 508 get PID from the first line in a file.
  * <p> $Timeout if can't retrieve PID
  * <p> $$ </p>
  */
 
-public class ParseBackgroundPID implements Runnable {
+public class ParseBackgroundPID extends ParsePID {
   public static final String rcsid = "$$Id$$";
-  private static final long sleep = 100;
-  private static final double timeoutMinutes = 1;
-  private static final double timeoutCount = timeoutMinutes * 60 * 1000 / sleep;
-  SystemProgram csh;
-  StringBuffer PID;
-  private File outFile;
-  boolean error = false;
-
-  private long sleepCount = 0;
-  
-  /**
-   * @param cshProcess
-   * @param bufPID
-   */
-  public ParseBackgroundPID(
-    SystemProgram cshProcess,
-    StringBuffer bufPID,
-    File outFile) {
-    csh = cshProcess;
-    PID = bufPID;
+  File outFile = null;
+  public ParseBackgroundPID(SystemProgram cshProcess, StringBuffer bufPID, File outFile) {
+    super(cshProcess, bufPID);
     this.outFile = outFile;
   }
   
-  public void run() {
-    //  Wait for the csh thread to start
-    while (!csh.isStarted() && sleepCount <= timeoutCount) {
-      try {
-        Thread.sleep(sleep);
-        sleepCount++;
-      }
-      catch (InterruptedException except) {
-      }
-    }
-
-    // Once it is started scan the stderr output for the appropriate string
-    while (PID.length() == 0 && !error && sleepCount <= timeoutCount) {
-      try {
-        parsePIDString();
-        Thread.sleep(sleep);
-        sleepCount++;
-      }
-      catch (InterruptedException except) {
-      }
-    }
-  }
-
-  private void parsePIDString() {
+  protected void parsePIDString() {
     BufferedReader bufferedReader = null;
     try {
       bufferedReader = new BufferedReader(new FileReader(outFile));
@@ -97,9 +60,6 @@ public class ParseBackgroundPID implements Runnable {
       }
     }
     catch (IOException e) {
-      e.printStackTrace();
-      error = true;
     }
   }
-
 }
