@@ -451,7 +451,7 @@ Imod *LoadModelFile(char *filename) {
     strcpy(Imod_filename, qname.latin1());
   } else {
     lastError = mapErrno(errno);
-    if (lastError = IMOD_IO_UNIMPLEMENTED_ERROR)
+    if (lastError == IMOD_IO_UNIMPLEMENTED_ERROR)
       lastError = IMOD_IO_READ_ERROR;
   }
   return(imod);
@@ -830,6 +830,9 @@ int WriteImage(FILE *fout, struct ViewInfo *vi, struct LoadInfo *li)
 
 /*
 $Log$
+Revision 4.2  2003/02/27 19:37:26  mast
+Changes for windows version in filename handling
+
 Revision 4.1  2003/02/10 20:29:00  mast
 autox.cpp
 
