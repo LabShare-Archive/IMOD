@@ -19,6 +19,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.2  2002/07/07 04:42:24  mast
+c	  Remove extra argument from one call to getbinspec
+c	
 c	  Revision 3.1  2002/06/05 21:09:56  mast
 c	  Pass size of vertex array to get_boundary_obj
 c	
@@ -26,6 +29,7 @@ c
 	parameter (limgraphs=50,limbins=301,limpnts=50000,
      &	    limvert=5000,limregion=200,itypall=999)
 	parameter (limtyp=50,limrand=1000)
+	parameter (nOptNeedModel=13)
 	real*4 bx(limvert),by(limvert)		!boundary vertices
 	real*4 sx(limpnts),sy(limpnts)			!sample points
 	real*4 graphs(limbins,limgraphs),areas(limbins,limgraphs)
@@ -44,7 +48,7 @@ c
 	real*4 xysclregion(limregion)
 	real*4 padbndregion(limregion),fracomregion(limregion)
 c
-	character*50 modelfile,modelregion(limregion)
+	character*120 modelfile,modelregion(limregion)
 	logical inside,forceload,grapheach,shuffled
 	logical sampled,converted,checkgrf
 c
@@ -62,6 +66,12 @@ c
 	real*4 delrgrf(limgraphs),rmingrf(limgraphs),rmaxgrf(limgraphs)
 	common /grfarr/nrow,ncol,irow,icol,ifbycol,nxtick, nytick,
      &	    xgutter,ygutter,ymaxfix
+c
+	integer*4 ioptNeedModel(nOptNeedModel)
+     &	    /13,14,15,16,17,19,26,20,21,22,27,23,40/
+	logical OptionNeedsModel
+	character*40 objname
+	integer*4 getimodobjname
 c	  
 	ifanyplot=0
 	nextragrf=0
@@ -85,6 +95,7 @@ c
 c	  
 	modelfile=' '
 	call read_model(modelfile,ifscale,xyscal)
+	if (modelfile .eq. ' ') go to 38
 c	  
 	lastangdiff=-9999
 8	write(*,'(1x,a,/,a,$)')'Enter 0 for graphs of density versus'//
@@ -110,6 +121,7 @@ c
 	if(iobjboundin.lt.0)then
 	  modelfile=' '
 	  call read_model(modelfile,ifscale,xyscal)
+	  if (modelfile .eq. ' ') go to 40
 	  go to 12
 	endif
 	if(iobjboundin.eq.0)then
@@ -204,8 +216,10 @@ c
 	do ity=-256,256
 	  i=itypcrosind(ity)
 	  if(i.gt.0)then
+	    objname=' '
+	    ierr = getimodobjname(abs(ity), objname)
 	    dens=ninclass(i,nregion)/area
-	    write(*,'(i5,i8,f13.6)')ity,ninclass(i,nregion),dens
+	    write(*,'(i5,i8,f13.6,4x,a)')ity,ninclass(i,nregion),dens,objname
 	  endif
 	enddo
 	write(*,*)
@@ -282,15 +296,18 @@ c
      &	    ' 33: Replace some sets of bins by their averages',/,
      &	    ' 34/35: Set up special big array for plots/Plot all ',
      &	    'windows in array',/,' 37/38/39 Add list of graphs/Read',
-     &	    ' list of graphs from file/Read&Add from file')
+     &	    ' list of graphs from file/Read&Add from file',/,
+     &	    ' 42: Export graph values or points for drawing to file')
 c
 40	write(*,'(1x,a,$)')'Option, or -1 for list of choices: '
 	read(5,*,err=40)iopt
 	if(iopt.eq.-1)go to 38
+	if (OptionNeedsModel(modelfile, ioptNeedModel,
+     &	    nOptNeedModel, iopt)) go to 40
 	go to(201,202,203,204,205,206,207,208,209,210,
      &	    210,212,213,213,215,216,217,218,219,220,
      &	    221,222,222,224,225,226,222,228,228,228,
-     &	    228,228,228,234,235,40,228,228,228)
+     &	    228,228,228,234,235,40,228,228,228,40,40,228)
      &	    ,iopt
 	go to 40
 c	  
@@ -868,16 +885,20 @@ c
 116	  format(' Graph #',i3,', real integral =',f10.5)
 	enddo
 c	  
+	write(*,'(1x,a,$)')'Enter 1 to accumulate mean and standard '
+     &	    //'deviation graphs or 0 not to: '
+	read(5,*)ifdomeansd
+
 	maxtmp=jgrfadd+3*ngraph
-	if(maxtmp.le.limgraphs)then
-	  write(*,'(1x,a,i3,a,i3,/,a,$)')'Mean and standard deviation'
-     &	      //' graphs would be stored in graphs',
-     &	      jgrfadd+ngraph+1,' to',maxtmp,
-     &	      ' Enter 1 to accumulate these or 0 not to: '
-	  read(5,*)ifdomeansd
-	else
-	  ifdomeansd=0
-	  print *,'Too many graphs to accumulate mean and SD graphs'
+	if (ifdomeansd.ne.0) then
+	  if(maxtmp.le.limgraphs)then
+	    write(*,'(1x,a,i3,a,i3)')'Mean and standard deviation'
+     &		//' graphs will be stored in graphs',
+     &		jgrfadd+ngraph+1,' to',maxtmp
+	  else
+	    ifdomeansd=0
+	    print *,'Too many graphs to accumulate mean and SD graphs'
+	  endif
 	endif
 	if(ifdomeansd.ne.0)maxgraph=maxtmp
 	ntotcontrol=0
