@@ -29,6 +29,9 @@ import java.util.ArrayList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.26  2003/10/05 21:55:08  rickg
+ * <p> Changed method order to clarify structure
+ * <p>
  * <p> Revision 2.25  2003/10/05 21:32:49  rickg
  * <p> Bug# 256
  * <p> Generalized BackgroundProcess starting
@@ -706,6 +709,9 @@ public class ProcessManager {
     comScriptProcess.setDemoMode(appManager.isDemo());
     comScriptProcess.start();
 
+    // Map the thread to the correct axis
+    mapAxisThread(comScriptProcess, axisID);
+
     if (appManager.isDebug()) {
       System.err.println("Started " + command);
       System.err.println("  Name: " + comScriptProcess.getName());
@@ -736,10 +742,9 @@ public class ProcessManager {
       }
       processMonitorThread = new Thread(processMonitor);
       processMonitorThread.start();
+      mapAxisProcessMonitor(processMonitorThread, axisID);
     }
 
-    // Map the thread to the correct axis
-    mapThreadAxis(comScriptProcess, processMonitorThread, axisID);
     return comScriptProcess;
   }
 
@@ -808,8 +813,7 @@ public class ProcessManager {
 
     }
 
-    appManager.processDone(script.getName(), exitValue);
-
+    //  Null out the correct thread
     // Interrupt the process monitor and nulll out the appropriate references
     if (threadAxisA == script) {
       if (processMonitorA != null) {
@@ -825,6 +829,9 @@ public class ProcessManager {
       }
       threadAxisB = null;
     }
+
+    //  Inform the app manager that this process is complete		
+    appManager.processDone(script.getName(), exitValue);
   }
 
   /**
@@ -851,7 +858,7 @@ public class ProcessManager {
       System.err.println("  Name: " + backgroundProcess.getName());
     }
 
-    mapThreadAxis(backgroundProcess, null, AxisID.ONLY);
+    mapAxisThread(backgroundProcess, axisID);
     return backgroundProcess;
   }
 
@@ -919,6 +926,16 @@ public class ProcessManager {
         handleTransferfidMessage(process);
       }
     }
+
+    // Null the reference to the appropriate thread
+    if (process == threadAxisA) {
+      threadAxisA = null;
+    }
+    if (process == threadAxisB) {
+      threadAxisB = null;
+    }
+
+    //	Inform the app manager that this process is complete
     appManager.processDone(process.getName(), exitValue);
   }
 
@@ -958,21 +975,16 @@ public class ProcessManager {
     }
   }
   /**
-   * Save the thread reference for the appropriate axis
+   * Save the process thread reference for the appropriate axis
    * @param thread
    * @param axisID
    */
-  private void mapThreadAxis(
-    SystemProcessInterface thread,
-    Thread processMonitor,
-    AxisID axisID) {
+  private void mapAxisThread(SystemProcessInterface thread, AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       threadAxisB = thread;
-      processMonitorB = processMonitor;
     }
     else {
       threadAxisA = thread;
-      processMonitorA = processMonitor;
     }
   }
 
@@ -994,6 +1006,20 @@ public class ProcessManager {
       if (threadAxisA != null) {
         throw new SystemProcessException("A process is already executing in the current axis");
       }
+    }
+  }
+
+  /**
+   * Save the process monitor thread reference for the appropriate axis
+   * @param processMonitor
+   * @param axisID
+   */
+  private void mapAxisProcessMonitor(Thread processMonitor, AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      processMonitorB = processMonitor;
+    }
+    else {
+      processMonitorA = processMonitor;
     }
   }
 
