@@ -23,6 +23,9 @@ import java.io.IOException;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.3  2004/08/23 23:38:08  sueh
+ * <p> $bug# 508 inheriting ParsePID
+ * <p> $
  * <p> $Revision 1.2  2004/08/19 02:28:07  sueh
  * <p> $bug# 508 changed comments, moved things around
  * <p> $
@@ -46,6 +49,7 @@ public class ParseBackgroundPID extends ParsePID {
       bufferedReader = new BufferedReader(new FileReader(outFile));
     }
     catch (FileNotFoundException e) {
+      closeFile(bufferedReader);
       return;
     }
     String line;
@@ -61,5 +65,18 @@ public class ParseBackgroundPID extends ParsePID {
     }
     catch (IOException e) {
     }
+    closeFile(bufferedReader);
   }
+  
+  private void closeFile(BufferedReader bufferedReader) {
+    try {
+      if (bufferedReader != null) {
+        bufferedReader.close();
+      }
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+
 }
