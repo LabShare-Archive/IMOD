@@ -13,6 +13,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.6  2004/04/16 01:45:25  sueh
+ * <p> bug# 409 changes for mtffilter where not working for newst - fixed
+ * <p>
  * <p> Revision 3.5  2004/04/12 17:11:25  sueh
  * <p> bug# 409  In initialize() allow the param to initialize itself if necessary.  In update
  * <p> ComScript, get the commandIndex after running
@@ -830,9 +833,6 @@ public class ComScriptManager {
     }
 
     // Replace the specified command by the updated comScriptCommand
-    if (commandIndex == -1) {
-      commandIndex = script.getScriptCommandIndex(command);
-    }
     script.setScriptComand(commandIndex, comScriptCommand);
 
     //  Write the script back out to disk
