@@ -1,9 +1,9 @@
-# IMOD 3.4.12
+# IMOD 3.4.17
 #
 # Startup file for users of IMOD on a Macintosh (if they are running tcsh)
 #
-# It assumes that IMOD is located in /Applications - if not, modify IMOD_DIR
-# here or set IMOD_DIR before sourcing this file
+# It assumes that IMOD is located in /Applications/IMOD - if not, modify 
+# IMOD_DIR here or set IMOD_DIR before sourcing this file
 #
 # Source this file from the user's .cshrc or from a system file /etc/csh.login
 # by inserting mac.cshrc (i.e., add to end of /etc/csh.login)

@@ -1,9 +1,9 @@
-# IMOD 3.2.10
+# IMOD 3.4.17
 #
 # Startup file for bash users of IMOD under Linux - place it in /etc/profile.d
 #
-# It assumes that IMOD is located in /usr/local - if not, modify IMOD_DIR here
-# or set IMOD_DIR before sourcing this file
+# It assumes that IMOD is located in /usr/local/IMOD - if not, modify IMOD_DIR
+# here or set IMOD_DIR before sourcing this file
 #
 # It assumes that there is link to the java run-time environment in /usr/local
 # to use a specific jre, modify IMOD_JAVADIR here or set IMOD_JAVADIR before
