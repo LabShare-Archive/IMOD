@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.3  2003/02/27 23:45:24  mast
+    Add function to truncate contour
+
     Revision 3.2  2003/02/10 20:41:55  mast
     Merge Qt source
 
@@ -94,6 +97,7 @@ void inputPrevTime(ImodView *vw);
 void inputRestorePointIndex(ImodView *vw);
 void inputKeepContourAtSameTime(ImodView *vw);
 void inputContourDup(ImodView *vw);
+int inputConvertNumLock(int keysym);
 
 void inputSetModelTime(ImodView *vw, int time);
 
