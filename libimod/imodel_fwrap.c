@@ -36,6 +36,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.12  2004/06/17 17:48:12  mast
+Added calls to set zscale and rotation
+
 Revision 3.11  2003/10/24 03:03:04  mast
 change to use correct f-to-c string converter
 
@@ -619,6 +622,7 @@ int getimodflags(int *flags, int *limflags)
 int getimodclip(int *objnum, float *clip)
 {
   Iobj *obj;
+  int nout, i, iout = 0;
   if (!Fimod)
     return(FWRAP_ERROR_NO_MODEL);
 
@@ -628,21 +632,21 @@ int getimodclip(int *objnum, float *clip)
   Fimod->cindex.object = *objnum - 1;
   obj = &(Fimod->obj[Fimod->cindex.object]);
 
-  if (!obj->clip)
-    return(0);
+  /* DNM 9/19/04: modified for multiple clip planes */
+  nout = obj->clips.count;
+  if (nout > FWRAP_MAX_CLIP_PLANES)
+    nout = FWRAP_MAX_CLIP_PLANES;
 
-  clip[0] = obj->clip_normal.x;
-  clip[1] = obj->clip_normal.y;
-  clip[2] = obj->clip_normal.z / Fimod->zscale;
-  clip[3] = (obj->clip_normal.x * obj->clip_point.x) +
-    (obj->clip_normal.y * obj->clip_point.y) +
-    (obj->clip_normal.z * obj->clip_point.z);
-  clip[3] *= Fimod->pixsize;
-  return(1);
-     
-  /* don't send more then this number of clipping planes. */
-  /*     FWRAP_MAX_CLIP_PLANES; */
-
+  for (i = 0; i < nout; i++) {
+    clip[iout++] = obj->clips.normal[i].x;
+    clip[iout++] = obj->clips.normal[i].y;
+    clip[iout++] = obj->clips.normal[i].z / Fimod->zscale;
+    clip[iout] = (obj->clips.normal[i].x * obj->clips.point[i].x) +
+      (obj->clips.normal[i].y * obj->clips.point[i].y) +
+      (obj->clips.normal[i].z * obj->clips.point[i].z);
+    clip[iout++] *= Fimod->pixsize;
+  }
+  return(nout);
 }
 
 /* fill in mesh data from the given object number. */
