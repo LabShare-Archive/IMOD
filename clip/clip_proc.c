@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.4  2004/01/16 18:09:52  mast
+Added functions to split and join rgb images
+
 */
 
 #include <limits.h>
@@ -674,7 +677,8 @@ int clip2d_color(struct MRCheader *hin, struct MRCheader *hout,
   }
   if (opt->nofsecs)
     hout->amean /= opt->nofsecs;
-  rewind(hout->fp);
+
+  /* DNM 1/17/03: remove unneeded rewind */
   mrc_head_write(hout->fp, hout);
   return(0);
 }
