@@ -74,6 +74,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 1.3  2001/11/26 23:10:20  mast
+#  Added original_dates to source copy
+#
 #  Revision 1.2  2001/11/22 00:36:23  mast
 #  Updated make src to include .version and exclude CVS directories
 #
@@ -132,7 +135,7 @@ all : configure clibs
 ##############################################################################
 # set environment variable SETUP_OPTIONS to change configurateion.
 # type setup -help for list of options.
-configure : setup
+configure : setup .version
 	setup $(SETUP_OPTIONS)
 
 #
@@ -239,10 +242,11 @@ dist : ALWAYS
 	($(MAKE) install)
 	(cd $(ARCDIR)/bin/; touch imodv; \rm -f imodv; ln -s imod imodv)
 	\cp buildlib/*.so $(ARCDIR)/lib/
-	\cp dist/* $(ARCDIR)/
+	\cp -r dist/* $(ARCDIR)/
 	\cp -r html/ $(ARCDIR)/
 	\cp -r man/ $(ARCDIR)/
 	\cp -r com/ $(ARCDIR)/
+	\find $(ARCDIR) -name CVS -depth -exec /bin/rm -rf {} \;
 	echo "Compressing..."
 	$(ARC) $(ARCHIVE) $(ARCNAME); $(COMPRESS) $(ARCHIVE)
 
