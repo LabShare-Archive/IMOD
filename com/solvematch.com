@@ -16,7 +16,7 @@ ACorrespondenceList	/
 #
 BCorrespondenceList	/
 XAxisTilts	0,0
-SurfacesOrUseModel	2
+SurfacesOrUseModels	2
 AMatchingModel	g5a.matmod
 BMatchingModel	g5b.matmod
 ATomogramOrSizeXYZ	g5a.rec
