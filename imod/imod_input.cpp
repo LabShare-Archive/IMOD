@@ -628,53 +628,52 @@ void inputDeleteContour(ImodView *vw)
   /* DNM 3/29/01: have it make the previous contour be the current contour,
      but keep current point undefined to keep image from popping to that
      contour */
-  Iobj *obj = imodObjectGet(vw->imod);
-  int conew = vw->imod->cindex.contour -1;
-  int numDel, i;
+  Imod *imod = vw->imod;
+  Iobj *obj;
+  int conew = imod->cindex.contour -1;
+  int obnew = imod->cindex.object;
+  int numDel, i, ob;
   b3dUInt32 delFlag = 2876351;
   Iindex *index;
   QString qstr;
 
   if (!ilistSize(vw->selectionList)) {
-    if (!imodContourGet(vw->imod))
+    if (!imodContourGet(imod))
       return;
     vw->undo->contourRemoval();
-    DelContour(vw->imod, vw->imod->cindex.contour);
+    DelContour(imod, imod->cindex.contour);
 
   } else {
 
-    // Multiple selection: first count and confirm if > 2 to delete
-    numDel = 0;
-    for (i = 0; i < ilistSize(vw->selectionList); i++) {
-      index = (Iindex *)ilistItem(vw->selectionList, i);
-      if (index->object ==  vw->imod->cindex.object)
-        numDel++;
-    }
+    // Multiple selection: first confirm if > 2 to delete
+    numDel = ilistSize(vw->selectionList);
     qstr.sprintf("Are you sure you want to delete these %d contours?", numDel);
     if (numDel > 2 && !dia_ask((char *)qstr.latin1()))
       return;
 
-    // Go through again and set flags for deletion
-    for (i = 0; i < ilistSize(vw->selectionList); i++) {
-      index = (Iindex *)ilistItem(vw->selectionList, i);
-      if (index->object ==  vw->imod->cindex.object)
-        obj->cont[index->contour].flags = delFlag;
-    }
+    // Loop through objects, set each as current object
+    vw->undo->getOpenUnit();
+    for (ob = 0; ob < imod->objsize; ob++) {
+      obj = &imod->obj[ob];
+      imodSetIndex(imod, ob, -1, -1);
 
-    // Loop backwards through object removing flagged contours
-    for (i = obj->contsize - 1; i >= 0; i--) {
-      if (obj->cont[i].flags == delFlag) {
-        vw->undo->contourRemoval(vw->imod->cindex.object, i);
-        DelContour(vw->imod, i);
-        conew = i - 1;
+      // Loop backwards through object removing selected contours
+      for (i = obj->contsize - 1; i >= 0; i--) {
+        if (imodSelectionListQuery(vw, ob, i) > -2) {
+          vw->undo->contourRemoval(ob, i);
+          DelContour(imod, i);
+          if (ob == obnew)
+            conew = i - 1;
+        }
       }
     }
   }
   vw->undo->finishUnit();
     
+  obj = imodObjectGet(imod);
   if (conew < 0 && obj->contsize > 0)
     conew = 0;
-  vw->imod->cindex.contour = conew;
+  imodSetIndex(imod, obnew, conew, -1);
   imodSelectionListClear(vw);
   imod_setxyzmouse();
 }
@@ -1294,6 +1293,9 @@ bool inputTestMetaKey(QKeyEvent *event)
 
 /*
 $Log$
+Revision 4.22  2004/12/03 17:24:50  mast
+Fixed bug in deleting point with no contour, and changed Delete behavior
+
 Revision 4.21  2004/11/20 05:05:27  mast
 Changes for undo/redo capability
 
