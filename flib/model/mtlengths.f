@@ -12,6 +12,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.3  2003/09/05 18:15:34  mast
+c	  Finish declarations for implicit none
+c	
 c	  Revision 3.2  2003/09/05 00:15:52  mast
 c	  Incorporated changes from "supermtl" version for correcting for
 c	  obliqueness, and implemented PIP input
@@ -46,43 +49,26 @@ c
 	integer*4 lookuptilt
 	real*4 cosd,sind,untiltlen,scalez
 c	  
-
-	integer numOptions
-	parameter (numOptions = 16)
-	character*(80 * numOptions) options(1)
 	logical pipinput
 	integer*4 numOptArg, numNonOptArg
-	integer*4 PipParseInput, PipGetInteger,PipGetBoolean
+	integer*4 PipGetInteger,PipGetBoolean
 	integer*4 PipGetString,PipGetFloat
-	integer*4 PipGetNonOptionArg, PipPrintHelp
+	integer*4 PipGetNonOptionArg
+c	  
+c	  fallbacks from ../../manpages/autodoc2man -2 2  mtlengths
+c
+	integer numOptions
+	parameter (numOptions = 16)
+	character*(40 * numOptions) options(1)
 	options(1) =
-     &	    'model:ModelFile:FN:Input model file@'//
-     &	    'output:OutputFile:FN:Output file for lengths@'//
-     &	    'tilt:TiltFile:FN:File with tilt information@'//
-     &	    'extra:ExtraLength:F:Fraction of a section to add to'//
-     &	    ' length of contour to account for section thickness@'//
-     &	    'magnification:Magnification:F:Magnification of film, or'//
-     &	    ' 1 if CCD images@'//
-     &	    'scale:ScaleDigitized:F:Microns per pixel at which film'//
-     &	    ' was digitized, or pixel size in microns for CCD images@'//
-     &	    'section:SectionThickness:F:Section thickness in'//
-     &	    ' nanometers@'//
-     &	    'exclude:ExcludeObjects:LI:Objects to exclude from length'//
-     &	    ' measurement@'//
-     &	    'marker:MarkerObject:I:Object number of length marker for'//
-     &	    ' measuring overall spindle length@'//
-     &	    'correct:CorrectObliques:B:Correct lengths of oblique'//
-     &	    ' MTs when sections are tilted@'//
-     &	    'axis:AxisAngle:F:Rotation angle from the vertical to the'//
-     &	    ' tilt axis@'//
-     &	    'align:AlignmentTransforms:FN:File with transforms used to'//
-     &	    ' align the images@'//
-     &	    'invert:InvertAngles:B:Change the sign of the tilt angles'//
-     &	    ' when adjusting lengths of oblique MTs@'//
-     &	    'untilt:UntiltTransforms:FN:Output file for transforms'//
-     &	    ' that will correct model for tilted sections@'//
-     &	    'param:ParameterFile:PF:Read parameter entries from file@'//
-     &	    'help:usage:B:Print help output'
+     &      'model:ModelFile:FN:@output:OutputFile:FN:@'//
+     &      'tilt:TiltFile:FN:@extra:ExtraLength:F:@'//
+     &      'magnification:Magnification:F:@scale:ScaleDigitized:F:@'//
+     &      'section:SectionThickness:F:@exclude:ExcludeObjects:LI:@'//
+     &      'marker:MarkerObject:I:@correct:CorrectObliques:B:@'//
+     &      'axis:AxisAngle:F:@align:AlignmentTransforms:FN:@'//
+     &      'invert:InvertAngles:B:@untilt:UntiltTransforms:FN:@'//
+     &      'param:ParameterFile:PF:@help:usage:B:'
 c	  
 c	  set defaults
 c	  
@@ -95,22 +81,14 @@ c
 	lenobj = 0
 	ifaxis = 0
 c	  
-c	  Pip startup: set error, parse options, set flag if used
+c	  Pip startup: set error, parse options, check help, set flag if used
 c
-	call PipExitOnError(0, "ERROR: CCDERASER - ")
-	call PipAllowCommaDefaults(1)
-	ierr = PipParseInput(options(1), numOptions, '@', numOptArg,
+	call PipReadOrParseOptions(options, numOptions, 'mtlengths',
+     &	    'ERROR: MTLENGTHS - ', .true., 0, 1, 1, numOptArg,
      &	    numNonOptArg)
 	pipinput = numOptArg + numNonOptArg .gt. 0
 c
 	if (pipinput) then
-c	    
-c	    First action if pip used: check for help
-c
-	  if (PipGetBoolean('usage', ierr) .eq. 0) then
-	    ierr = PipPrintHelp('mtlengths', 0, 1, 1)
-	    call exit(0)
-	  endif
 c	    
 c	    Get an input file string; or if none, look on command line
 c
@@ -254,7 +232,7 @@ c
 	  iout=7
 	  call dopen(7,newmodel,'new','f')
 	endif
-
+	call PipDone()
 c	  
 c	  invert objects if starting z > ending z.  Scale X and Y, leave Z
 c	  unscaled so it can be used for section lookup

@@ -23,6 +23,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.9  2003/06/20 23:55:37  mast
+c	  Converted to using one lone string for options
+c	
 c	  Revision 3.8  2003/06/20 22:08:46  mast
 c	  Replaced option initialization with assignments to make SGI happy
 c	
@@ -86,54 +89,30 @@ c
 	integer*4 ifPeakSearch, iScanSize,ifVerbose,numPatch,numPixels
 	integer*4 ifTrialMode,nEdgePixels, maxObjectsOut
 c
-	integer numOptions
-	parameter (numOptions = 22)
-	character*(80 * numOptions) options(1)
 	logical pipinput
 	integer*4 numOptArg, numNonOptArg
-	integer*4 PipParseInput, PipGetInteger,PipGetBoolean
+	integer*4 PipGetInteger,PipGetBoolean
 	integer*4 PipGetString,PipGetFloat
-	integer*4 PipGetNonOptionArg, PipPrintHelp
-	options(1) =
-     &	    'input:InputFile:FN:Input image file@'//
-     &	    'output:OutputFile:FN:Output image file@'//
-     &	    'find:FindPeaks:B:Find peaks a criterion # of SDs above'//
-     &	    ' or below background@'//
-     &	    'peak:PeakCriterion:F:Criterion # of SDs above local'//
-     &	    ' mean for erasing peak@'//
-     &	    'diff:DiffCriterion:F:Criterion # of SDs above mean'//
-     &	    ' pixel-to-pixel difference@'//
-     &	    'grow:GrowCriterion:F:Criterion # of SDs above mean for'//
-     &	    ' adding points to peak@'//
-     &	    'scan:ScanCriterion:F:Criterion # of SDs for picking'//
-     &	    ' peaks in initial scan@'//
-     &	    'radius:MaximumRadius:F:Maximum radius of peak area to'//
-     &	    ' erase@'//
-     &	    'outer:OuterRadius:F:Outer radius of annulus to calculate'//
-     &	    ' local mean and SD in@'//
-     &	    'xyscan:XYScanSize:I:Size of regions to compute mean and'//
-     &	    ' SD in for initial scans@'//
-     &	    'edge:EdgeExclusionWidth:I:Width of area to exclude on all'//
-     &	    ' edges of image@'//
-     &	    'points:PointModel:FN:Output model file with points'//
-     &	    ' replaced in peak search@'//
-     &	    'model:ModelFile:FN:Model file with points or lines to'//
-     &	    ' be erased@'//
-     &	    'lines:LineObjects:LI:Objects that define lines to be'//
-     &	    ' replaced@'//
-     &	    'allsec:AllSectionObjects:LI:Objects with points to be'//
-     &	    ' replaced on all sections@'//
-     &	    'border:BorderSize:I:Size of border around points in'//
-     &	    ' patch@'//
-     &	    'order:PolynomialOrder:I:Order of polynomial to fit to'//
-     &	    ' border points@'//
-     &	    'exclude:ExcludeAdjacent:B:Exclude points adjacent to'//
-     &	    ' patch points from the fit@'//
-     &	    'trial:TrialMode:B:Analyze without writing output file@'//
-     &	    'verbose::B:Print details on patches being replaced@'//
-     &	    'param:ParameterFile:PF:Read parameter entries from file@'//
-     &	    'help:usage:B:Print help output'
+	integer*4 PipGetNonOptionArg
 c	  
+c	  fallbacks from ../../manpages/autodoc2man -2 2  ccderaser
+c
+	integer numOptions
+	parameter (numOptions = 22)
+	character*(40 * numOptions) options(1)
+	options(1) =
+     &      'input:InputFile:FN:@output:OutputFile:FN:@'//
+     &      'find:FindPeaks:B:@peak:PeakCriterion:F:@'//
+     &      'diff:DiffCriterion:F:@grow:GrowCriterion:F:@'//
+     &      'scan:ScanCriterion:F:@radius:MaximumRadius:F:@'//
+     &      'outer:OuterRadius:F:@xyscan:XYScanSize:I:@'//
+     &      'edge:EdgeExclusionWidth:I:@points:PointModel:FN:@'//
+     &      'model:ModelFile:FN:@lines:LineObjects:LI:@'//
+     &      'allsec:AllSectionObjects:LI:@border:BorderSize:I:@'//
+     &      'order:PolynomialOrder:I:@exclude:ExcludeAdjacent:B:@'//
+     &      'trial:TrialMode:B:@verbose::B:@param:ParameterFile:PF:@'//
+     &      'help:usage:B:'
+c
 c	  Set all defaults here
 c
 	nobjdoall=1
@@ -159,23 +138,15 @@ c
 	call date(dat)
 	call time(tim)
 c	  
-c	  Pip startup: set error, parse options, set flag if used
+c	  Pip startup: set error, parse options, check help, set flag if used
 c
-	call PipExitOnError(0, "ERROR: CCDERASER - ")
-	call PipAllowCommaDefaults(1)
-	ierr = PipParseInput(options(1), numOptions, '@', numOptArg,
+	call PipReadOrParseOptions(options, numOptions, 'ccderaser',
+     &	    'ERROR: CCDERASER - ', .true., 0, 1, 1, numOptArg,
      &	    numNonOptArg)
 	pipinput = numOptArg + numNonOptArg .gt. 0
 c
 	if (pipinput) then
-c	    
-c	    First action if pip used: check for help
 c
-	  if (PipGetBoolean('usage', ierr) .eq. 0) then
-	    ierr = PipPrintHelp('ccderaser', 0, 1, 1)
-	    call exit(0)
-	  endif
-c	    
 c	    Get an input file string; or if none, look on command line
 c
 	  ierr = PipGetString('InputFile', infile)
@@ -309,6 +280,7 @@ c
      &	      '0 to exclude or 1 to include adjacent points in fit: '
 	  read(5,*)ifincadj
 	endif
+	call PipDone()
 
 	if (max_mod_obj .eq. 0 .and. ifPeakSearch .eq. 0) call errorexit
      &	    ('NO MODEL POINTS AND NO PEAK SEARCH SPECIFIED')
