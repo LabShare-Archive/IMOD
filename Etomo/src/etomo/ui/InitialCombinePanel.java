@@ -28,6 +28,9 @@ import etomo.type.FiducialMatch;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.12  2004/06/15 21:37:16  rickg
+ * <p> Bug #383 Correct synchronization of solvematch sub-panel
+ * <p>
  * <p> Revision 3.11  2004/06/14 23:39:53  rickg
  * <p> Bug #383 Transitioned to using solvematch
  * <p>
@@ -266,7 +269,7 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields {
       applicationManager.combine();
     }
     if (command.equals(btnMatchvolRestart.getActionCommand())) {
-      applicationManager.matchvol1();
+      applicationManager.restartAtMatchvol1();
     }
   }
 
