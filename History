@@ -1,5 +1,26 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+IMOD_2-6-13
+5/20/02: Added -S option to Imod to start with slicer rather than Zap window.
+To make this option more convenient, made slicer set current point to center
+if it has been defined, and made it load the cache for the current point.
+
+5/20/02: Changed Tomopitch so that it can analyze a single model file
+containing contours at different time intervals, so that all samples can be
+modeled in a single invocation of Imod.  To support this option, when multiple
+image files are loaded, Imod will now set up new objects (or a new model) to
+assign time indexes to contours by default.
+
+5/20/02: Fixed Tiltxcorr and Xfsimplex to work with 4Kx4K images; in Xfsimplex
+such large images must still be reduced by at least a factor of 2 internally.
+
+5/20/02: Implemented Transferfid for making a seed model for the bead tracking
+on a second axis from the fiducial model for the first axis.
+
+5/20/02: Fixed 3-D model output in Tiltalign for points assigned to two
+surfaces and made it work properly with points in multiple objects; also
+defined objects as scattered points so the model is ready to view.
+
 5/6/02: IMOD_2-6-12
 5/6/02: Changed Tiltalign to work better with a subset of views; it puts out
 a full set of transforms and tilt angles for downstream programs and refers
