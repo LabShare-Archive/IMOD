@@ -13,6 +13,9 @@
     $Revision$
 
     $Log$
+    Revision 4.3  2003/09/18 05:59:08  mast
+    Added functions for autocontrast
+
     Revision 4.2  2003/02/27 19:35:02  mast
     Remove unneeded imod_open function
 
@@ -58,5 +61,6 @@ int imod_info_input(void);
 void imod_set_mmode(int mode);
 void imod_draw_window(void);
 void imod_imgcnt(char *string);
+void imodStartAutoDumpCache();
  
 #endif
