@@ -156,6 +156,7 @@ int main( int argc, char *argv[])
   char *cmdLineStyle = NULL;
   int doImodv = 0;
   int nChars;
+  QRect infoGeom;
 
   /* Initialize data. */
   App = &app;
@@ -679,6 +680,10 @@ int main( int argc, char *argv[])
     exit(-1);
   }
 
+  infoGeom = ImodPrefs->getInfoGeometry();
+  if (infoGeom.width() && infoGeom.height())
+    ImodInfoWin->setGeometry(infoGeom);
+
   if (fillCache && vi.vmSize)
     imodCacheFill(&vi);
 
@@ -736,12 +741,12 @@ int main( int argc, char *argv[])
 /* Close everything as gracefully as possible */
 void imod_exit(int retcode)
 {
+  if (ImodPrefs)                     // Save settings first to get zap sizes
+    ImodPrefs->saveSettings();
   imodv_close();                     // Imodv and associated dialogs
   ivwControlListDelete(App->cvi);    // Image windows
   imodDialogManager.close();         // Remaining imod dialog windows
   // It did NOT work to use qApp->closeAllWindows after this
-  if (ImodPrefs)
-    ImodPrefs->saveSettings();
   if (!loopStarted)
     exit(retcode);
   QApplication::exit(retcode);
@@ -913,6 +918,9 @@ int imodColorValue(int inColor)
 
 /*
 $Log$
+Revision 4.20  2003/09/13 04:32:33  mast
+Changed to protect the model filename array from overflow
+
 Revision 4.19  2003/06/27 19:24:13  mast
 initialize views when start a new model
 
