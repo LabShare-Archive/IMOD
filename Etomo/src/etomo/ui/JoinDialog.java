@@ -36,6 +36,11 @@ import etomo.type.JoinState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.8  2005/01/21 23:44:04  sueh
+ * <p> bug# 509 bug# 591  Added isUpdateCommand() in place of
+ * <p> isSetAndNotDefault() and isSet() as a standard why to decide if a
+ * <p> parameter should be placed in a comscript.
+ * <p>
  * <p> Revision 1.7  2005/01/10 23:54:56  sueh
  * <p> bug# 578 Changing calls to ConstEtomoNumber.isNull() to !isSet().
  * <p>
@@ -403,13 +408,13 @@ public class JoinDialog implements ContextMenu {
     int max;
     ConstJoinMetaData metaData = joinManager.getMetaData();
     JoinState state = joinManager.getState();
-    if (estXMin.isUpdateCommand() && estXMax.isUpdateCommand()) {
+    if (!estXMin.isNull() && !estXMax.isNull()) {
       min = metaData.getCoordinate(estXMin, state);
       max = metaData.getCoordinate(estXMax, state);
       ltfSizeInX.setText(JoinMetaData.getSize(min, max));
       ltfShiftInX.setText(state.getNewShiftInX(min, max));
     }
-    if (estYMin.isUpdateCommand() && estYMax.isUpdateCommand()) {
+    if (!estYMin.isNull() && !estYMax.isNull()) {
       min = metaData.getCoordinate(estYMin, state);
       max = metaData.getCoordinate(estYMax,state);
       ltfSizeInY.setText(JoinMetaData.getSize(min, max));
@@ -736,14 +741,14 @@ public class JoinDialog implements ContextMenu {
     //setup
     EtomoNumber spinnerValue = new EtomoNumber(EtomoNumber.INTEGER_TYPE);
     spinnerValue.set(spinDensityRefSection.getValue());
-    spinnerValue.setDefault(1);
-    SpinnerModel spinnerModel = new SpinnerNumberModel(spinnerValue.getInteger(true),
+    spinnerValue.setDisplayValue(1);
+    SpinnerModel spinnerModel = new SpinnerNumberModel(spinnerValue.getInteger(),
         1, numSections < 1 ? 1 : numSections, 1);
     spinDensityRefSection.setModel(spinnerModel);
     //align
     spinnerValue.set((Integer) spinAlignmentRefSection.getValue());
     spinnerModel = new SpinnerNumberModel(spinnerValue
-        .getInteger(true), 1,
+        .getInteger(), 1,
         numSections < 1 ? 1 : numSections, 1);
     spinAlignmentRefSection.setModel(spinnerModel);
     //every n sections
@@ -755,18 +760,18 @@ public class JoinDialog implements ContextMenu {
       spinnerValue.setCeiling(zMax);
       spinnerValue.set((Integer) spinUseEveryNSlices.getValue());
     }
-    spinnerValue.setDefault(zMax < 1 ? 1 : zMax < 10 ? zMax : 10);
-    spinnerModel = new SpinnerNumberModel(spinnerValue.getInteger(true), 1,
+    spinnerValue.setDisplayValue(zMax < 1 ? 1 : zMax < 10 ? zMax : 10);
+    spinnerModel = new SpinnerNumberModel(spinnerValue.getInteger(), 1,
         zMax < 1 ? 1 : zMax, 1);
     spinUseEveryNSlices.setModel(spinnerModel);
     //update size in X and Y defaults
     ConstJoinMetaData metaData = joinManager.getMetaData();
     ConstEtomoNumber size = metaData.getSizeInX();
-    size.setDefault(pnlSectionTable.getXMax());
-    ltfSizeInX.setText(size.getInteger(true));
+    size.setDisplayValue(pnlSectionTable.getXMax());
+    ltfSizeInX.setText(size.getInteger());
     size = metaData.getSizeInY();
-    size.setDefault(pnlSectionTable.getYMax());
-    ltfSizeInY.setText(size.getInteger(true));
+    size.setDisplayValue(pnlSectionTable.getYMax());
+    ltfSizeInY.setText(size.getInteger());
   }
   
   public ConstEtomoNumber getSizeInX() {
@@ -794,19 +799,19 @@ public class JoinDialog implements ContextMenu {
   }
 
   public void setSizeInX(ConstEtomoNumber sizeInX) {
-    ltfSizeInX.setText(sizeInX.toString(true));
+    ltfSizeInX.setText(sizeInX.toString());
   }
   
   public void setSizeInY(ConstEtomoNumber sizeInY) {
-    ltfSizeInY.setText(sizeInY.toString(true));
+    ltfSizeInY.setText(sizeInY.toString());
   }
   
-  public void setShiftInX(ConstEtomoNumber shiftInX) {
-    ltfShiftInX.setText(shiftInX.toString(true));
+  public void setShiftInX(int shiftInX) {
+    ltfShiftInX.setText(shiftInX);
   }
   
-  public void setShiftInY(ConstEtomoNumber shiftInY) {
-    ltfShiftInY.setText(shiftInY.toString(true));
+  public void setShiftInY(int shiftInY) {
+    ltfShiftInY.setText(shiftInY);
   }
   
   public String getInvalidReason() {
@@ -937,6 +942,7 @@ public class JoinDialog implements ContextMenu {
     if (!metaData.getSizeInY().equals(ltfSizeInY.getText())) {
       return false;
     }
+    System.out.println("metaData.getShiftInX()="+metaData.getShiftInX()+",ltfShiftInX.getText()="+ltfShiftInX.getText());
     if (!metaData.getShiftInX().equals(ltfShiftInX.getText())) {
       return false;
     }
@@ -973,6 +979,7 @@ public class JoinDialog implements ContextMenu {
       return false;
     }
     if (!pnlSectionTable.equalsSample(metaData)) {
+      System.out.println("equalsSample:pnlSectionTable failed");
       return false;
     }
     return true;
