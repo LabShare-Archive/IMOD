@@ -465,6 +465,9 @@ void TumblerWindow::keyPressEvent ( QKeyEvent * event)
   int newdata = 1;
   float xrot, yrot, zrot;
   
+  if (testMetaKey(event))
+    return;
+
   inputConvertNumLock(key, keypad);
 
   if (key == hotSliderKey()) {
@@ -1366,6 +1369,9 @@ void TumblerGL::paintGL()
 
 /*
 $Log$
+Revision 4.8  2003/04/17 18:43:38  mast
+adding parent to window creation
+
 Revision 4.7  2003/03/26 23:23:15  mast
 switched from hotslider.h to preferences.h
 

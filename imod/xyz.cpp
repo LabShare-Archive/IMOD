@@ -1520,6 +1520,9 @@ void XyzWindow::keyPressEvent ( QKeyEvent * event )
 
   int keysym = event->key();
   int state = event->state();
+
+  if (testMetaKey(event))
+    return;
   
   // Start with this at 1: set to 0 if NOT handled
   int handled = 1;
@@ -1729,6 +1732,9 @@ void XyzGL::mouseMoveEvent( QMouseEvent * event )
 
 /*
 $Log$
+Revision 4.9  2003/04/17 18:43:38  mast
+adding parent to window creation
+
 Revision 4.8  2003/03/25 23:01:43  mast
 Take nearest int in checking for current point Z value when adding points
 

@@ -868,6 +868,8 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
 
   if (Imod_debug)
     fprintf(stderr, "key %x, state %x\n", keysym, event->state());
+  if (testMetaKey(event))
+    return;
 
   inputConvertNumLock(keysym, keypad);
 
@@ -1116,11 +1118,11 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
       }
     */
 
-    
+    /*
       case Qt::Key_X:
     wprint("Clipboard = %s\n", QApplication::clipboard()->text().latin1());
     break;
-    
+    */
 
   default:
     break;
@@ -2606,6 +2608,9 @@ bool zapTimeMismatch(ImodView *vi, int timelock, Iobj *obj, Icont *cont)
 
 /*
 $Log$
+Revision 4.16  2003/04/17 19:06:50  mast
+various changes for Mac
+
 Revision 4.15  2003/04/14 15:38:10  mast
 Fixing help error
 
