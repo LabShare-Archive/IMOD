@@ -32,6 +32,9 @@ import etomo.type.FiducialMatch;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.8  2004/05/11 20:57:07  sueh
+ * <p> bug# 302
+ * <p>
  * <p> Revision 3.7  2004/05/11 20:53:22  sueh
  * <p> bug# 302 adding InitialCombineValues interface
  * <p> standardizing synchronization
@@ -293,12 +296,9 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields {
     return cbBinBy2.isSelected();
   }
   public void setFiducialMatchListA(String fiducialMatchListA) {
-    System.out.println("InitialcombinePanel.setFiducialMatchListA()start:" + ltfFiducialMatchListA.getText());
     ltfFiducialMatchListA.setText(fiducialMatchListA);
-    System.out.println("InitialcombinePanel.setFiducialMatchListA()end:" + ltfFiducialMatchListA.getText());
   }
   public String getFiducialMatchListA() {
-    System.out.println("InitialcombinePanel.getFiducialMatchListA():" + ltfFiducialMatchListA.getText());
     return ltfFiducialMatchListA.getText();
   }
   public void setFiducialMatchListB(String fiducialMatchListB) {
