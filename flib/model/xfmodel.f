@@ -24,6 +24,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.5  2004/01/16 18:08:04  mast
+c	  Fixed problem with how it decided if it needed image binning entry
+c	
 c	  Revision 3.4  2003/12/27 19:42:45  mast
 c	  Work out some problems, finalized documentation and interface
 c	
@@ -73,6 +76,7 @@ c
 	real*4 const,rsq,fra,theta,sinth,costh,gmag,devsum,devmax
 	real*4 xdev,ydev,devpnt,devavg,xx,yy,xlast,ylast,xnew,ynew
 	integer*4 loop,noldg,izsec,il,indobj,maxx,maxy,maxz, ifBack, iter
+	integer*4 lineUse, lineToUse
 	logical done
 	real*4 atan2d
 c
@@ -92,20 +96,21 @@ c
 c	  fallbacks from ../../manpages/autodoc2man -2 2  xfmodel
 c
 	integer numOptions
-	parameter (numOptions = 20)
+	parameter (numOptions = 21)
 	character*(40 * numOptions) options(1)
 	options(1) =
      &      'input:InputFile:FN:@output:OutputFile:FN:@'//
      &      'image:ImageFile:FN:@piece:PieceListFile:FN:@'//
-     &      'center:CenterInXandY:FP:@transonly:TranslationOnly:B:@'//
+     &      'allz:AllZhaveTransforms:B:@center:CenterInXandY:FP:@'//
+     &      'transonly:TranslationOnly:B:@'//
      &      'rottrans:RotationTranslation:B:@magrot:MagRotTrans:B:@'//
-     &      'back:BackTransform:B:@edit:EditTransforms:FN:@'//
      &      'sections:SectionsToAnalyze:LI:@single:SingleSection:I:@'//
      &      'full:FullReportMeanAndMax:FP:@'//
-     &      'prealign:PrealignTransforms:FN:@'//
-     &      'xforms:XformsToApply:FN:@allz:AllZhaveTransforms:B:@'//
-     &      'distort:DistortionField:FN:@binning:BinningOfImages:I:@'//
-     &      'param:ParameterFile:PF:@help:usage:B:'
+     &      'prealign:PrealignTransforms:FN:@edit:EditTransforms:FN:@'//
+     &      'xforms:XformsToApply:FN:@useline:UseTransformLine:I:@'//
+     &      'back:BackTransform:B:@distort:DistortionField:FN:@'//
+     &      'binning:BinningOfImages:I:@param:ParameterFile:PF:@'//
+     &      'help:usage:B:'
 c	  
 c	  set defaults
 c	  
@@ -254,6 +259,7 @@ c
 
 c
 	ifxfmod = 0
+	ifprealign = 0
 	if (PipGetInOutFile('InputFile', 1, 'Input model file', modelfile)
      &	    .ne. 0) call errorexit('NO INPUT FILE SPECIFIED')
 	oldxfgfile = ' '
@@ -262,10 +268,12 @@ c
 	iftrans=0
 	ifrotrans=0
 	ifmagrot = 0
+	lineUse = -1;
 	if (pipinput) then
 	  ierr = PipGetBoolean('TranslationOnly', iftrans)
 	  ierr = PipGetBoolean('RotationTranslation', ifrotrans)
 	  ierr = PipGetBoolean('MagRotTrans', ifmagrot)
+	  ierr = PipGetInteger('UseTransformLine', lineUse)
 
 	  if (PipGetString('XformsToApply', oldxffile) .eq. 0) ifxfmod = 1
 	  if (PipGetString('DistortionField', idfFile) .eq. 0) ifxfmod = 1
@@ -283,6 +291,7 @@ c
 	    if (oldxffile .ne. ' ' .and. oldxfgfile .ne. ' ') call errorexit(
      &		'You cannot enter both -xform and -prealign with -back')
 	    ifxfmod = -1
+	    ifprealign = 1
 	    if (oldxffile .ne. ' ') oldxfgfile = oldxffile
 	  endif
 c
@@ -294,6 +303,11 @@ c
 	  if (iftrans .ne. 0) ifxfmod = 2
 	  if (ifrotrans .ne. 0) ifxfmod = 3
 	  if (ifmagrot .ne. 0) ifxfmod = 4
+
+	  if (lineUse .ge. 0 .and. .not.(ifxfmod .eq. -1 .or.
+     &	      (ifxfmod .eq. 1 .and. oldxffile .ne. ' '))) call errorexit(
+     &	      'You cannot enter -useline unless you are forward or '//
+     &	      'back transforming')
 
 	else
 c
@@ -508,8 +522,20 @@ c	    invert the g's into the g list
 	  enddo
 c	    
 c	    apply inverse g's to all points in model
+c	    Set up to use a single section if back transforming and user 
+c	    specified it or there is only one transform
+c
+	  lineToUse = -1
+	  if (ifxfmod .lt. 0) then
+	    lineToUse = lineUse
+	    if (noldg .eq. 1) then
+	      lineToUse = 0
+	      print *,'There is only one transform and it is being',
+     &		  ' applied at all Z values'
+	    endif
+	  endif
 	  call transformModel(g, noldg, nflimit, xcen, ycen, indfl,
-     &		listz, nundefine)
+     &		listz, lineToUse, nundefine)
 	    
 	  if(ifxfmod.lt.0)then
 c
@@ -522,12 +548,19 @@ c
 c	  read in the old f's or g's for whatever purpose 
 c	  
 	nfgin=0
+	lineToUse = -1
 	if(oldxffile.ne.' ')then
 	  call dopen(1,oldxffile,'ro','f')
 	  call xfrdall(1,f,nfgin,*92)
 	  if (nfgin.gt.nflimit)call errorexit(
      &	      'too many transforms for arrays')	
 	  close(1)
+	  lineToUse = lineUse
+	  if (nfgin .eq. 1) then
+	    lineToUse = 0
+	    print *,'There is only one transform and it is being',
+     &		' applied at all Z values'
+	  endif
 	endif
 	if(ifxfmod.ne.0)then
 	  if (ifDistort .ne. 0) then
@@ -583,7 +616,7 @@ c
 c	      transform the model
 c
 	  if (nfgin .ne. 0) call transformModel(f, nfgin, nflimit,
-     &	      xcen, ycen, indfl, listz, nundefine)
+     &	      xcen, ycen, indfl, listz, lineToUse, nundefine)
 	    
 	  call rescaleWriteModel(newmodel, nundefine)
 	else
@@ -823,11 +856,11 @@ c
 
 
 	subroutine transformModel(f, nfgin, nflimit, xcen, ycen,
-     &	    indfl, listz, nundefine)
+     &	    indfl, listz, lineToUse, nundefine)
 	implicit none
 	include 'model.inc'
 	real*4 f(2,3,*), xcen, ycen
-	integer*4 nfgin, nflimit, nundefine, indfl(*), listz(*)
+	integer*4 nfgin, nflimit, nundefine, indfl(*), listz(*), lineToUse
 	integer*4 iobj, ipt, i, iz, indind, indg
 	real*4 zdex,zz
 c
@@ -840,10 +873,14 @@ c	      zdex=(zz+zorig)/delt(3)
 	    zdex=zz
 	    iz=int(zdex-nint(zdex)+0.5) + nint(zdex)
 	    indind=iz+1 -listz(1)
-	    if(indind.lt.1.or.indind.gt.nflimit)then
+	    if ((indind.lt.1.or.indind.gt.nflimit) .and. lineToUse .lt. 0)then
 	      nundefine=nundefine+1
 	    else
-	      indg=indfl(indind)
+	      if (lineToUse .lt. 0) then
+		indg=indfl(indind)
+	      else
+		indg = lineToUse + 1
+	      endif
 	      if(indg.lt.1.or.indg.gt.nfgin)then
 		nundefine=nundefine+1
 	      else
