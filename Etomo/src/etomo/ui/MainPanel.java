@@ -37,6 +37,9 @@ import etomo.type.AxisType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.4  2005/01/27 20:22:18  sueh
+ * <p> bug# 513 Synchronizing fit window code.
+ * <p>
  * <p> Revision 1.3  2005/01/27 00:13:03  sueh
  * <p> bug# 543 Checking autofit before fitting window.  Added
  * <p> fitWindow(boolean force) to force a fit window for Ctrl-F.
@@ -142,7 +145,7 @@ public abstract class MainPanel extends JPanel {
   public MainPanel(BaseManager manager) {
     this.manager = manager;
     enableEvents(AWTEvent.WINDOW_EVENT_MASK);
-
+/*
     Toolkit toolkit = Toolkit.getDefaultToolkit();
     Dimension screenSize = toolkit.getScreenSize();
     screenSize.height -= estimatedMenuHeight;
@@ -150,10 +153,10 @@ public abstract class MainPanel extends JPanel {
     Dimension mainPanelSize = new Dimension(screenSize);
     mainPanelSize.height -= frameBorder.height;
     mainPanelSize.width -= frameBorder.width;
-
+*/
     setLayout(new BorderLayout());
-    setMaximumSize(mainPanelSize);
-
+/*    setMaximumSize(mainPanelSize);
+*/
     //  Construct the main frame panel layout
     panelCenter.setLayout(new BoxLayout(panelCenter, BoxLayout.X_AXIS));
     add(panelCenter, BorderLayout.CENTER);
@@ -390,7 +393,7 @@ public abstract class MainPanel extends JPanel {
       packAxis();
       //the mainPanel has a limited size, but the frame does not
       //if the frame has a greater height then the mainPanel + the frame's border
-      //height, then a scroll bar will be uses.
+      //height, then a scroll bar will be used.
       //Make room for the scroll bar when calling pack()
       if (getSize().height - getSize().height > frameBorder.height) {
         setVerticalScrollBarPolicy(true);
