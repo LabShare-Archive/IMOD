@@ -74,6 +74,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.59  2003/08/20 21:57:09  rickg
+ * <p> Only close imods in specified directory
+ * <p>
  * <p> Revision 2.58  2003/08/05 21:35:22  rickg
  * <p> Retry commit, eclipse broken?
  * <p>
@@ -1845,11 +1848,11 @@ public class ApplicationManager {
       mainFrame.showBlankProcess(axisID);
     }
     else {
-      //  Get the user input data from the dialog box
-      if (!updateTiltCom(axisID)) {
-        return;
-      }
       if (exitState == DialogExitState.POSTPONE) {
+        //  Get the user input data from the dialog box
+        if (!updateTiltCom(axisID, true)) {
+          return;
+        }
         processTrack.setTomogramGenerationState(
           ProcessState.INPROGRESS,
           axisID);
@@ -1882,9 +1885,14 @@ public class ApplicationManager {
   }
 
   /**
-   *
+   * Update the tilt.com from the TomogramGenerationDialog
+   * @param axisID
+   * @param useDefaultRec If true set the reconstruction output filename to
+   * what is expected of the com scripts.  If false use the trial tomogram
+   * filename specified in the TomogramGenerationDialog
+   * @return true if successful
    */
-  private boolean updateTiltCom(AxisID axisID) {
+  private boolean updateTiltCom(AxisID axisID, boolean useDefaultRec) {
     //  Set a reference to the correct object
     TomogramGenerationDialog tomogramGenerationDialog;
     if (axisID == AxisID.SECOND) {
@@ -1904,6 +1912,24 @@ public class ApplicationManager {
     try {
       TiltParam tiltParam = comScriptMgr.getTiltParam(axisID);
       tomogramGenerationDialog.getTiltParams(tiltParam);
+
+      if (useDefaultRec) {
+        String outputFileName;
+        if (metaData.getAxisType() == AxisType.SINGLE_AXIS) {
+          outputFileName = metaData.getDatasetName() + "_full.rec";
+        }
+        else {
+          outputFileName =
+            metaData.getDatasetName() + axisID.getExtension() + ".rec";
+        }
+        tiltParam.setOutputFile(outputFileName);
+      }
+      else {
+        String trialTomogramName =
+          tomogramGenerationDialog.getTrialTomogramName();
+        tiltParam.setOutputFile(trialTomogramName);
+      }
+
       comScriptMgr.saveTilt(tiltParam, axisID);
     }
     catch (NumberFormatException except) {
@@ -1940,10 +1966,24 @@ public class ApplicationManager {
   }
 
   /**
-   * 
+   * Start a tilt process in trial mode
+   * @param axisID
+   */
+  public void trialTilt(AxisID axisID) {
+    if (updateTiltCom(axisID, false)) {
+      processTrack.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
+      mainFrame.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
+
+      String threadName = processMgr.tilt(axisID);
+      setThreadName(threadName, axisID);
+    }
+  }
+
+  /**
+   * Run the tilt command script for the specified axis
    */
   public void tilt(AxisID axisID) {
-    if (updateTiltCom(axisID)) {
+    if (updateTiltCom(axisID, true)) {
       processTrack.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
       mainFrame.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
 
@@ -1956,9 +1996,9 @@ public class ApplicationManager {
    * Open 3dmod to view the tomogram
    * @param axisID the AxisID of the tomogram to open.
    */
-  public void imodTomogram(AxisID axisID) {
+  public void imodFullVolume(AxisID axisID) {
     try {
-      imodManager.openTomogram(axisID);
+      imodManager.openFullVolume(axisID);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
@@ -1970,7 +2010,6 @@ public class ApplicationManager {
         except.getMessage(),
         "Can't open 3dmod with the tomogram");
     }
-
   }
 
   /**
@@ -2140,10 +2179,10 @@ public class ApplicationManager {
   public void imodMatchedToTomogram() {
     try {
       if (metaData.getCombineParams().getMatchBtoA()) {
-        imodManager.openTomogram(AxisID.FIRST);
+        imodManager.openFullVolume(AxisID.FIRST);
       }
       else {
-        imodManager.openTomogram(AxisID.SECOND);
+        imodManager.openFullVolume(AxisID.SECOND);
       }
     }
     catch (SystemProcessException except) {
@@ -2155,21 +2194,6 @@ public class ApplicationManager {
     catch (AxisTypeException except) {
       except.printStackTrace();
       openMessageDialog(except.getMessage(), "AxisType problem");
-    }
-  }
-
-  /**
-   * Open the combined tomogram
-   */
-  public void imodCombinedTomogram() {
-    try {
-      imodManager.openCombinedTomogram();
-    }
-    catch (SystemProcessException except) {
-      except.printStackTrace();
-      openMessageDialog(
-        except.getMessage(),
-        "Can't open 3dmod on combined tomogram");
     }
   }
 
@@ -2625,24 +2649,10 @@ public class ApplicationManager {
     if (postProcessingDialog == null) {
       postProcessingDialog = new PostProcessingDialog(this);
 
-      // Rename the full reconstruction volume so that it does not get written
-      // over
-      if ((metaData.getAxisType() == AxisType.SINGLE_AXIS)
-        && (!fullReconRename())) {
-        String[] detailedMessage = new String[2];
-        detailedMessage[0] =
-          "Unable to rename the output from tilt to full.rec";
-        detailedMessage[1] = "Does the reconstruction file exist yet?";
-        openMessageDialog(detailedMessage, "File rename error");
-        // Delete the dialog
-        postProcessingDialog = null;
-        return;
-      }
-
       TrimvolParam trimvolParam = new TrimvolParam(IMODDirectory);
       String inputFile = "";
       if (metaData.getAxisType() == AxisType.SINGLE_AXIS) {
-        inputFile = "full.rec";
+        inputFile = metaData.getDatasetName() + "_full.rec";
       }
       else {
         inputFile = "sum.rec";
@@ -2676,29 +2686,6 @@ public class ApplicationManager {
   }
 
   /**
-   * Rename the reconstruction output from tilt for the case of a single axis
-   * tomogram
-   */
-  private boolean fullReconRename() {
-    String workingDirectory = System.getProperty("user.dir");
-    File fullReconstruction = new File(workingDirectory, "full.rec");
-    File finalReconstuction =
-      new File(workingDirectory, metaData.getDatasetName() + ".rec");
-
-    //  If neither of the files exist return false
-    if ((!fullReconstruction.exists()) && (!finalReconstuction.exists())) {
-      return false;
-    }
-
-    // If dataset.rec exists and full.rec doesn't move dataset.rec to full.rec
-    // otherwise just return true
-    if (finalReconstuction.exists() && (!fullReconstruction.exists())) {
-      return finalReconstuction.renameTo(fullReconstruction);
-    }
-    return true;
-  }
-
-  /**
    * Close the post processing dialog panel
    */
   public void donePostProcessing() {
@@ -2726,17 +2713,17 @@ public class ApplicationManager {
   }
 
   /**
-   * open the full volume in 3dmod
+   * Open the combined (or full) volume in 3dmod
    */
-  public void imodFullVolume() {
+  public void imodCombinedTomogram() {
     try {
-      imodManager.openFullVolume();
+      imodManager.openCombinedTomogram();
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
       openMessageDialog(
         except.getMessage(),
-        "Can't open 3dmod on the full tomogram");
+        "Can't open 3dmod on the trimmed tomogram");
     }
   }
 
@@ -2773,7 +2760,7 @@ public class ApplicationManager {
     //  Set the appropriate input and output files
     String inputFile = "";
     if (metaData.getAxisType() == AxisType.SINGLE_AXIS) {
-      inputFile = "full.rec";
+      inputFile = metaData.getDatasetName() + "_full.rec";
     }
     else {
       inputFile = "sum.rec";
