@@ -15,39 +15,46 @@
     $Revision$
 
     $Log$
+    Revision 1.1  2004/11/22 00:21:32  mast
+    Addition to program
+
 */
 
 #include <stdlib.h>
 #include <qassistantclient.h>
 #include <qdir.h>
+#include <qstringlist.h>
 #include "imod_assistant.h"
 #include "dia_qtutils.h";
+#include "imod.h"
 
 ImodAssistant *ImodHelp;
 
 ImodAssistant::ImodAssistant(const char *path, bool absolute)
 {
   QString imodDir = QString(getenv("IMOD_DIR"));
+  char sep = QDir::separator();
 
   // Open the assistant in qtlib if one exists, otherwise take the one on path
-  QString assPath = QDir::cleanDirPath(imodDir + "/qtlib");
-  if (!QFile::exists(assPath + "/assistant"))
+  QString assPath = QDir::cleanDirPath(imodDir + sep + "qtlib");
+  if (!QFile::exists(assPath + sep + "assistant"))
     assPath = "";
   mAssistant = new QAssistantClient(assPath, this);
-
-  // Hide the sidebar if Qt supports it
-#if QT_VERSION >= 0x030300
-  mAssistant->setArguments("hideSidebar");
-#endif
+  connect(mAssistant, SIGNAL(error(const QString&)), this, 
+          SLOT(assistantError(const QString&)));
 
   // Set up path to help files; either absolute or under IMOD_DIR
   if (absolute) {
     mPath = QString(path);
   } else {
-    mPath = imodDir + "/" + QString(path);
+    mPath = imodDir + sep + QString(path);
   }
-  connect(mAssistant, SIGNAL(error(const QString&)), this, 
-          SLOT(assistantError(const QString&)));
+
+  // Hide the side bar but do not define an adp file
+#if QT_VERSION >= 0x030200
+  mAssistant->setArguments(QStringList("-hideSidebar"));
+#endif
+
 }
 
 ImodAssistant::~ImodAssistant()
@@ -60,12 +67,29 @@ ImodAssistant::~ImodAssistant()
 void ImodAssistant::showPage(const char *page, bool absolute)
 {
   QString fullPath;
+  QString fileOnly;
+  int len;
+
+  // Get full path name and clean it
   if (absolute)
     fullPath = page;
   else
-    fullPath = mPath + "/" + page;
-  mAssistant->openAssistant();
-  mAssistant->showPage(QDir::cleanDirPath(fullPath));
+    fullPath = mPath + QDir::separator() + page;
+  fullPath = QDir::cleanDirPath(fullPath);
+  
+  // Get a name with any tags stripped off to check for file existence
+  fileOnly = fullPath;
+  len = fileOnly.find('#');
+  if (len >= 0)
+    fileOnly = fileOnly.left(len);
+  if (!QFile::exists(fileOnly)) {
+    fileOnly = QString("Cannot find help file: ") + fileOnly;
+    dia_err((char *)fileOnly.latin1());
+  } else {
+
+    // Just show the page without opening assistant first
+    mAssistant->showPage(fullPath);
+  }
 }
 
 // Report errors.  Sadly, it will not report a bad page
