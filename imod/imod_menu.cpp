@@ -540,8 +540,7 @@ void InfoWindow::editContourSlot(int item)
      
   switch(item){
   case ECONTOUR_MENU_NEW: /* new */
-    NewContour(App->cvi->imod);
-    imod_info_setocp();
+    inputNewContour(App->cvi);
     break;
 	  
   case ECONTOUR_MENU_DELETE: /* del */
@@ -1006,6 +1005,9 @@ void InfoWindow::helpSlot(int item)
 
 /*
 $Log$
+Revision 4.6  2003/04/16 18:46:51  mast
+hide/show changes
+
 Revision 4.5  2003/03/28 23:51:11  mast
 changes for Mac problems
 
