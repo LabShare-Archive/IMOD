@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.1  2003/02/10 20:41:55  mast
+Merge Qt source
+
 Revision 1.1.2.2  2003/01/27 00:30:07  mast
 Pure Qt version and general cleanup
 
@@ -46,6 +49,7 @@ class ImageScaleWindow : public DialogFrame
   void closeEvent ( QCloseEvent * e );
   void keyPressEvent ( QKeyEvent * e );
   void keyReleaseEvent ( QKeyEvent * e );
+  void timerEvent(QTimerEvent *e);
 
  private:
   QLineEdit *mEditBox[2];
@@ -53,6 +57,7 @@ class ImageScaleWindow : public DialogFrame
   QLabel *mMMMLabel;
   void applyLimits();
   void computeScale();
+  int mTimerID;
 };
 
 void imodImageScaleDialog(ImodView *iv);
