@@ -37,6 +37,7 @@ Log at end of file
 #include <qcheckbox.h>
 #include <qlayout.h>
 #include <qgl.h>
+#include <qtooltip.h>
 #include "preferences.h"
 #include "multislider.h"
 #include "dia_qtutils.h"
@@ -45,16 +46,10 @@ Log at end of file
 #include "imodv_gfx.h"
 #include "imodv_image.h"
 #include "imodv_input.h"
+#include "imod_display.h"
 #include "control.h"
 #include "xcramp.h"
 
-
-#define DRAW_CZ 1
-#define DRAW_CY (2 << 1)
-#define DRAW_CX (3 << 1)
-#define DRAW_LZ (4 << 1)
-#define DRAW_LY (5 << 1)
-#define DRAW_LX (6 << 1)
 
 #define TexImageSize 64
 
@@ -72,6 +67,8 @@ static int WhiteLevel = 255;
 static int Falsecolor = 0;
 static int ImageTrans = 0;
 static int cmapInit = 0;
+static int numSlices = 1;
+
 
 struct{
   ImodvImage *dia;
@@ -110,12 +107,18 @@ void imodvImageEditDialog(ImodvApp *a, int state)
 // Update the dialog box (just the view flag for now)
 void imodvImageUpdate(ImodvApp *a)
 {
-  if (a->texMap && !imodvImageData.flags)
-    imodvImageData.flags |= DRAW_CZ;
-  else if (!a->texMap && imodvImageData.flags)
+  if (a->texMap && !imodvImageData.flags) {
+    imodvImageData.flags |= IMODV_DRAW_CZ;
+    if (imodvImageData.dia)
+      diaSetChecked(imodvImageData.dia->mViewZBox, true);
+  } else if (!a->texMap && imodvImageData.flags) {
     imodvImageData.flags = 0;
-  if (imodvImageData.dia)
-    diaSetChecked(imodvImageData.dia->mViewBox, imodvImageData.flags != 0);
+    if (imodvImageData.dia) {
+      diaSetChecked(imodvImageData.dia->mViewXBox, false);
+      diaSetChecked(imodvImageData.dia->mViewYBox, false);
+      diaSetChecked(imodvImageData.dia->mViewZBox, false);
+    }
+  }
 }
 
 
@@ -212,6 +215,42 @@ static void imodvDrawTImage(Ipoint *p1, Ipoint *p2, Ipoint *p3, Ipoint *p4,
   glDisable(GL_TEXTURE_2D);
 }
 
+// Determine starting and ending slice and direction, and set the alpha
+static void setSliceLimits(int ciz, int miz, bool invertZ, int &zst, int &znd,
+                           int &izdir)
+{
+  unsigned char alpha = 0xff;
+  double dalpha;
+  zst = ciz - numSlices / 2;
+  znd = zst + numSlices - 1;
+  if (zst < 0)
+    zst = 0;
+  if (znd >= miz)
+    znd = miz - 1;
+  izdir = 1;
+
+  // Based on adjusting transparencies with increasing numbers of planes,
+  // with 3 different starting transparencies.
+  dalpha = 2.55 * (100 - ImageTrans);
+  if (znd > zst)
+    dalpha *= 1.1 * pow((double)(znd + 1 - zst), -0.86);
+  if (dalpha > 255.)
+    dalpha = 255.;
+  alpha = (unsigned char)dalpha;
+  
+  if (invertZ) {
+    izdir = zst;
+    zst = znd;
+    znd = izdir;
+    izdir = -1;
+  }
+  
+  glColor4ub(alpha, alpha, alpha,alpha);
+  if (ImageTrans){
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA);
+  }
+}
 
 // The call from within the openGL calling routines to draw the image
 void imodvDrawImage(ImodvApp *a)
@@ -220,89 +259,273 @@ void imodvDrawImage(ImodvApp *a)
   Ipoint ll, lr, ur, ul, clamp;
   int tstep = TexImageSize;
   int cix, ciy, ciz;
-  int mix, miy;
+  int mix, miy, miz;
   int x,y;
   unsigned char **idata;
   unsigned char pix;
-  unsigned char alpha = 0xff;
   int i, mi, j, mj;
   int u, v;
+  int zst, znd, iz, izdir;
+  int imdataxsize, cacheSum;
+  unsigned char **imdata;
+  bool flipped, invertX, invertY, invertZ;
+  Imat *mat;
+  Ipoint inp, outp;
      
-  if (!imodvImageData.flags) return;
+  mix = a->vi->xsize;
+  miy = a->vi->ysize;
+  miz = a->vi->zsize;
+  if (imodvImageData.dia) {
+    imodvImageData.dia->mSliders->setValue(0, (int)(a->vi->xmouse + 1.5f));
+    imodvImageData.dia->mSliders->setRange(1, 1, miy);
+    imodvImageData.dia->mSliders->setValue(1, (int)(a->vi->ymouse + 1.5f));
+    imodvImageData.dia->mSliders->setRange(2, 1, miz);
+    imodvImageData.dia->mSliders->setValue(2, (int)(a->vi->zmouse + 1.5f));
+  }
+
+  if (!imodvImageData.flags) 
+    return;
 
   if (!cmapInit)
     mkcmap();
 
   ivwGetLocation(a->vi, &cix, &ciy, &ciz);
-  mix = a->vi->xsize;
-  miy = a->vi->ysize;
 
-  alpha = (int)(2.55 * (100 - ImageTrans));
-  glColor4ub(alpha, alpha, alpha,alpha);
-  if (ImageTrans){
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA);
+  // Get data pointers if doing X or Y planes
+  if (imodvImageData.flags & (IMODV_DRAW_CX | IMODV_DRAW_CY)) {
+    if (ivwSetupFastAccess(a->vi, &imdata, 0, &cacheSum))
+      return;
+    flipped = (!a->vi->vmSize || a->vi->fullCacheFlipped) && 
+      a->vi->li->axis == 2;
+  }
+
+  // If doing multiple slices, need to find direction in which to do them
+  invertX = invertY = invertZ = false;
+  if (numSlices > 1) {
+    mat = imodMatNew(3);
+    imodMatRot(mat, (double)a->imod->view->rot.z, b3dZ);
+    imodMatRot(mat, (double)a->imod->view->rot.y, b3dY);
+    imodMatRot(mat, (double)a->imod->view->rot.x, b3dX);
+    
+    inp.x = 1.;
+    inp.y = inp.z = 0.0f;
+    imodMatTransform(mat, &inp, &outp);
+    invertX = outp.z < 0.;
+    inp.x = 0.;
+    inp.y = 1.;
+    imodMatTransform(mat, &inp, &outp);
+    invertY = outp.z < 0.;
+    inp.y = 0.;
+    inp.z = 1.;
+    imodMatTransform(mat, &inp, &outp);
+    invertZ = outp.z < 0.;
+    imodMatDelete(mat);
   }
 
   /* Draw Current Z image. */
-  if (imodvImageData.flags & DRAW_CZ){
+  if (imodvImageData.flags & IMODV_DRAW_CZ) {
 
-    ll.z = ciz; lr.z = ciz; ur.z = ciz; ul.z = ciz;
-    idata = ivwGetCurrentZSection(a->vi);
-    if (!idata){
-      glDisable(GL_BLEND);
-      return;
-    }
+    setSliceLimits(ciz, miz, invertZ, zst, znd, izdir);
 
-    for(x = 0; x < mix; x += tstep){
-      clamp.x = (mix-x);
-      clamp.x /= (float)tstep;
-      if (clamp.x > 1.0f) clamp.x = 1.0f;
-      mi = x + tstep;
-      if (mi > mix) mi = mix;
-      ul.x = ll.x = x;
-      lr.x = x + tstep;
-      if (lr.x > mix) lr.x = mix;
-      ur.x = lr.x;
-               
-      for(y = 0; y < miy; y += tstep){
-	lr.y = ll.y = y;
-	ur.y = y + tstep;
-	if (ur.y > miy) ur.y = miy;
-	ul.y = ur.y;
+    for (iz = zst; izdir * (znd - iz) >= 0 ; iz += izdir) {
+      ll.z = iz; lr.z = iz; ur.z = iz; ul.z = iz;
+      idata = ivwGetZSection(a->vi, iz);
+      if (!idata)
+        continue;
 
-	clamp.y = (miy - y); 
-	clamp.y /= (float)tstep;
-	if (clamp.y > 1.0f) clamp.y = 1.0f;
-                    
-	mj = y + tstep;
-	if (mj > miy) mj = miy;
-                    
-                    
-	for(i = x; i < mi; i++){
-	  u = i - x;
-	  for(j = y; j < mj; j++){
-	    v = (j - y);
-	    pix = idata[j][i];
-
-	    tdata[u][v][0] = Cmap[0][pix];
-	    tdata[u][v][1] = Cmap[1][pix];
-	    tdata[u][v][2] = Cmap[2][pix];
-	  }
-	}
-
-	clamp.z = clamp.x;
-	clamp.x = clamp.y;
-	clamp.y = clamp.z;
-	imodvDrawTImage(&ll, &lr, &ur, &ul,
-			&clamp,
-			(unsigned char *)tdata, tstep, tstep);
-
-      }
-
-    }
+      for(x = 0; x < mix; x += tstep){
+        clamp.x = 1.0f;
+        mi = x + tstep;
+        if (mi > mix) {
+          mi = mix;
+          clamp.x = (mix-x) / (float)tstep;
+        }
+        ul.x = ll.x = x;
+        ur.x = lr.x = mi;
+        
+        for(y = 0; y < miy; y += tstep){
+          clamp.y = 1.0f;
+          mj = y + tstep;
+          if (mj > miy) {
+            mj = miy;
+            clamp.y = (miy - y) / (float)tstep;
+          }
+          lr.y = ll.y = y;
+          ul.y = ur.y = mj;
           
+          for(i = x; i < mi; i++){
+            u = i - x;
+            for(j = y; j < mj; j++){
+              v = (j - y);
+              pix = idata[j][i];
+              
+              tdata[u][v][0] = Cmap[0][pix];
+              tdata[u][v][1] = Cmap[1][pix];
+              tdata[u][v][2] = Cmap[2][pix];
+            }
+          }
+          
+          clamp.z = clamp.x;
+          clamp.x = clamp.y;
+          clamp.y = clamp.z;
+          imodvDrawTImage(&ll, &lr, &ur, &ul,
+                          &clamp,
+                          (unsigned char *)tdata, tstep, tstep);
+        }
+      }
+    }       
   }
+
+  /* Draw Current X image. */
+  if (imodvImageData.flags & IMODV_DRAW_CX) {
+
+    setSliceLimits(cix, mix, invertX, zst, znd, izdir);
+
+    for (iz = zst; izdir * (znd - iz) >= 0 ; iz += izdir) {
+      ll.x = iz; lr.x = iz; ur.x = iz; ul.x = iz;
+
+      for(x = 0; x < miy; x += tstep){
+        clamp.x = 1.0f;
+        mi = x + tstep;
+        if (mi > miy) {
+          mi = miy;
+          clamp.x = (miy-x) / (float)tstep;
+        }
+        ul.y = ll.y = x;
+        ur.y = lr.y = mi;
+        
+        for(y = 0; y < miz; y += tstep){
+          clamp.y = 1.0f;
+          mj = y + tstep;
+          if (mj > miz) {
+            mj = miz;
+            clamp.y = (miz - y) / (float)tstep;
+          }
+          lr.z = ll.z = y;
+          ul.z = ur.z = mj;
+          
+          // Handle cases of flipped or not with different loops to put test
+          // on presence of data in the outer loop
+          if (flipped) {
+            for (i = x; i < mi; i++) {
+              u = i - x;
+              if (imdata[i]) {
+                for (j = y; j < mj; j++) {
+                  v = (j - y);
+                  pix = imdata[i][cix + (j * mix)];
+                  tdata[u][v][0] = Cmap[0][pix];
+                  tdata[u][v][1] = Cmap[1][pix];
+                  tdata[u][v][2] = Cmap[2][pix];
+                }
+              } else {
+                for (j = y; j < mj; j++) {
+                  v = (j - y);
+                  tdata[u][v][0] = Cmap[0][0];
+                  tdata[u][v][1] = Cmap[1][0];
+                  tdata[u][v][2] = Cmap[2][0];
+                }
+              }
+            }
+          } else {
+            for (j = y; j < mj; j++) {
+              v = (j - y);
+              if (imdata[j]) {
+                for (i = x; i < mi; i++) {
+                  u = i - x;
+                  pix = imdata[j][cix + (i * mix)];
+                  tdata[u][v][0] = Cmap[0][pix];
+                  tdata[u][v][1] = Cmap[1][pix];
+                  tdata[u][v][2] = Cmap[2][pix];
+                }
+              } else {
+                for (i = x; i < mi; i++) {
+                  u = i - x;
+                  tdata[u][v][0] = Cmap[0][0];
+                  tdata[u][v][1] = Cmap[1][0];
+                  tdata[u][v][2] = Cmap[2][0];
+                }
+              }
+            }
+          }
+          
+          clamp.z = clamp.x;
+          clamp.x = clamp.y;
+          clamp.y = clamp.z;
+          imodvDrawTImage(&ll, &lr, &ur, &ul,
+                          &clamp,
+                          (unsigned char *)tdata, tstep, tstep);
+        }
+      }
+    }       
+  }
+
+  /* Draw Current Y image. */
+  if (imodvImageData.flags & IMODV_DRAW_CY) {
+    setSliceLimits(ciy, miy, invertY, zst, znd, izdir);
+
+    for (iz = zst; izdir * (znd - iz) >= 0 ; iz += izdir) {
+      ll.y = iz; lr.y = iz; ur.y = iz; ul.y = iz;
+
+      for (x = 0; x < mix; x += tstep) {
+        clamp.x = 1.0f;
+        mi = x + tstep;
+        if (mi > mix) {
+          mi = mix;
+          clamp.x = (mix-x) / (float)tstep;
+        }
+        ul.x = ll.x = x;
+        ur.x = lr.x = mi;
+        
+        for (y = 0; y < miz; y += tstep) {
+          clamp.y = 1.0f;
+          mj = y + tstep;
+          if (mj > miz) {
+            mj = miz;
+            clamp.y = (miz - y) / (float)tstep;
+          }
+          lr.z = ll.z = y;
+          ul.z = ur.z = mj;
+
+          // This one is easier, one outer loop and flipped, non-flipped, or
+          // no data cases for inner loop
+          for (j = y; j < mj; j++) {
+            v = (j - y);
+            if (flipped && imdata[ciy]) {
+              for (i = x; i < mi; i++) {
+                u = i - x;
+                pix = imdata[ciy][i + (j * mix)];
+                tdata[u][v][0] = Cmap[0][pix];
+                tdata[u][v][1] = Cmap[1][pix];
+                tdata[u][v][2] = Cmap[2][pix];
+              }
+            } else if (!flipped && imdata[j]) {
+              for (i = x; i < mi; i++) {
+                u = i - x;
+                pix = imdata[j][i + (ciy * mix)];
+                tdata[u][v][0] = Cmap[0][pix];
+                tdata[u][v][1] = Cmap[1][pix];
+                tdata[u][v][2] = Cmap[2][pix];
+              }
+            } else {
+              for (i = x; i < mi; i++) {
+                u = i - x;
+                tdata[u][v][0] = Cmap[0][0];
+                tdata[u][v][1] = Cmap[1][0];
+                tdata[u][v][2] = Cmap[2][0];
+              }
+            }
+
+          }
+          clamp.z = clamp.x;
+          clamp.x = clamp.y;
+          clamp.y = clamp.z;
+          imodvDrawTImage(&ll, &lr, &ur, &ul, &clamp,
+                          (unsigned char *)tdata, tstep, tstep);
+        }
+      }
+    }
+  }
+
   glDisable(GL_BLEND);
 }
 
@@ -311,7 +534,8 @@ void imodvDrawImage(ImodvApp *a)
 
 static char *buttonLabels[] = {"Done", "Help"};
 static char *buttonTips[] = {"Close dialog box", "Open help window"};
-static char *sliderLabels[] = {"Transparency", "Black Level", "White Level"};
+static char *sliderLabels[] = {"X", "Y", "Z", "# of planes", "Transparency", 
+                               "Black Level", "White Level"};
 
 ImodvImage::ImodvImage(QWidget *parent, const char *name)
   : DialogFrame(parent, 2, buttonLabels, buttonTips, true, "3dmodv Image View",
@@ -319,37 +543,71 @@ ImodvImage::ImodvImage(QWidget *parent, const char *name)
 {
   mCtrlPressed = false;
 
-  // Make view checkbox
-  mViewBox = diaCheckBox("View Z image", this, mLayout);
-  mViewBox->setChecked(imodvImageData.flags & DRAW_CZ);
-  connect(mViewBox, SIGNAL(toggled(bool)), this, SLOT(viewToggled(bool)));
+  // Make view checkboxes
+  mViewXBox = diaCheckBox("View X image", this, mLayout);
+  mViewXBox->setChecked(imodvImageData.flags & IMODV_DRAW_CX);
+  connect(mViewXBox, SIGNAL(toggled(bool)), this, SLOT(viewXToggled(bool)));
+  mViewYBox = diaCheckBox("View Y image", this, mLayout);
+  mViewYBox->setChecked(imodvImageData.flags & IMODV_DRAW_CY);
+  connect(mViewYBox, SIGNAL(toggled(bool)), this, SLOT(viewYToggled(bool)));
+  mViewZBox = diaCheckBox("View Z image", this, mLayout);
+  mViewZBox->setChecked(imodvImageData.flags & IMODV_DRAW_CZ);
+  connect(mViewZBox, SIGNAL(toggled(bool)), this, SLOT(viewZToggled(bool)));
+  QToolTip::add(mViewXBox, "Display YZ plane at current X");
+  QToolTip::add(mViewYBox, "Display XZ plane at current Y");
+  QToolTip::add(mViewZBox, "Display XY plane at current Z");
 
   // Make multisliders - set range of first to 0 - 100
-  mSliders = new MultiSlider(this, 3, sliderLabels);
-  mSliders->setRange(0, 0, 100);
-  mSliders->setValue(0, ImageTrans);
-  mSliders->setValue(1, BlackLevel);
-  mSliders->setValue(2, WhiteLevel);
+  mSliders = new MultiSlider(this, 7, sliderLabels);
+
+  mSliders->setRange(0, 1, Imodv->vi->xsize);
+  mSliders->setValue(0, (int)(Imodv->vi->xmouse + 1.5f));
+  mSliders->setRange(1, 1, Imodv->vi->ysize);
+  mSliders->setValue(1, (int)(Imodv->vi->ymouse + 1.5f));
+  mSliders->setRange(2, 1, Imodv->vi->zsize);
+  mSliders->setValue(2, (int)(Imodv->vi->zmouse + 1.5f));
+  mSliders->setRange(3, 1, 64);
+  mSliders->setValue(3, numSlices);
+  mSliders->setRange(4, 0, 100);
+  mSliders->setValue(4, ImageTrans);
+  mSliders->setValue(5, BlackLevel);
+  mSliders->setValue(6, WhiteLevel);
   mLayout->addLayout(mSliders->getLayout());
   connect(mSliders, SIGNAL(sliderChanged(int, int, bool)), this, 
           SLOT(sliderMoved(int, int, bool)));
+  QToolTip::add((QWidget *)mSliders->getSlider(0), "Set current image X"
+                " coordinate");
+  QToolTip::add((QWidget *)mSliders->getSlider(1), "Set current image Y "
+                "coordinate");
+  QToolTip::add((QWidget *)mSliders->getSlider(2), "Set current image Z "
+                "coordinate");
+  QToolTip::add((QWidget *)mSliders->getSlider(3), "Set number of planes to "
+                "display");
+  QToolTip::add((QWidget *)mSliders->getSlider(4), "Set transparency (needed "
+                "to see multiple planes)");
+  QToolTip::add((QWidget *)mSliders->getSlider(5), "Set minimum black level "
+                "of contrast ramp");
+  QToolTip::add((QWidget *)mSliders->getSlider(6), "Set maximum white level "
+                "of contrast ramp");
 
   // Make false color checkbox
   mFalseBox = diaCheckBox("False color", this, mLayout);
   mFalseBox->setChecked(Falsecolor);
   connect(mFalseBox, SIGNAL(toggled(bool)), this, SLOT(falseToggled(bool)));
+  QToolTip::add(mFalseBox, "Display image in false color");
 
   connect(this, SIGNAL(actionClicked(int)), this, SLOT(buttonPressed(int)));
 }
 
 // Viewing image is turned on or off
-void ImodvImage::viewToggled(bool state)
+void ImodvImage::viewToggled(bool state, int flag)
 {
   if (!state) {
-    imodvImageData.flags &= ~DRAW_CZ;
-    Imodv->texMap = 0;
+    imodvImageData.flags &= ~flag;
+    if (!imodvImageData.flags)
+      Imodv->texMap = 0;
   } else {
-    imodvImageData.flags |= DRAW_CZ;
+    imodvImageData.flags |= flag;
     Imodv->texMap = 1;
   }
   imodvDraw(Imodv);
@@ -359,17 +617,36 @@ void ImodvImage::viewToggled(bool state)
 void ImodvImage::sliderMoved(int which, int value, bool dragging)
 {
   switch (which) {
-  case 0: 
+  case 0:
+    Imodv->vi->xmouse = value - 1;
+    ivwBindMouse(Imodv->vi);
+    break;
+
+  case 1:
+    Imodv->vi->ymouse = value - 1;
+    ivwBindMouse(Imodv->vi);
+    break;
+
+  case 2:
+    Imodv->vi->zmouse = value - 1;
+    ivwBindMouse(Imodv->vi);
+    break;
+
+  case 3: 
+    numSlices = value;
+    break;
+
+  case 4: 
     ImageTrans = value;
     Imodv->texTrans = ImageTrans;
     break;
 
-  case 1:
+  case 5:
     BlackLevel = value;
     mkcmap();
     break;
 
-  case 2:
+  case 6:
     WhiteLevel = value;
     mkcmap();
     break;
@@ -377,8 +654,12 @@ void ImodvImage::sliderMoved(int which, int value, bool dragging)
 
   // draw if slider clicked or is in hot state
   if (!dragging || (hotSliderFlag() == HOT_SLIDER_KEYDOWN && mCtrlPressed) ||
-      (hotSliderFlag() == HOT_SLIDER_KEYUP && !mCtrlPressed))
-    imodvDraw(Imodv);
+      (hotSliderFlag() == HOT_SLIDER_KEYUP && !mCtrlPressed)) {
+    if (which > 2)
+      imodvDraw(Imodv);
+    else
+      imodDraw(Imodv->vi, IMOD_DRAW_XYZ);
+  }
 }
 
 // User toggles false color
@@ -398,7 +679,35 @@ void ImodvImage::buttonPressed(int which)
        "Image Control Dialog Help.\n"
        "~~~~~~~~~~~~~~~~~~~~~~~~"
        "\n\n",
-       "Manipulate images in model view.",
+       "This dialog allows you to display image planes on the model data.  "
+       "Any of the three native orthogonal planes can be displayed, alone or "
+       "in combination.  Transparency can be set to allow the model to be seen"
+       " through the image; a projection through multiple planes can also "
+       "displayed.\n\n"
+       "The first three check boxes (\"View X image\", etc.) turn on the "
+       "display of the indicated image planes.  The hot key Z will turn on "
+       "the Z "
+       "image if no images are being displayed, or it will turn off all "
+       "planes if any of them are on.\n\n"
+       "The \"X\", \"Y\", and \"Z\" sliders will track the current point "
+       "coordinate in "
+       "3dmod image display windows and can be used to adjust both the "
+       "current point position and the displayed slice in the model view "
+       "window.\n\n"
+       "The \"# of planes\" slider can be used to display multiple planes.  "
+       "You will need some transparency to see through the top-most plane "
+       "and see a projection of data in the multiple planes.  Transparency "
+       "will probably need to be adjusted when you change the number of "
+       "planes.\n\n"
+       "Use the \"Transparency\" slider to see through the image.  If you are "
+       "showing images in more than one plane, this will not work well "
+       "because images are not drawn in order from back to front everywhere "
+       "that they overlap.\n\n"
+       "The \"Black Level\" and \"White Level\" sliders can be used to "
+       "adjust the contrast of the image.  You can reverse the contrast "
+       "by making Black be higher than White.\n\n"
+       "The \"False color\" checkbox allows images to be displayed in the "
+       "standard false color scheme.",
        NULL);
   else
     close();
@@ -438,6 +747,9 @@ void ImodvImage::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.9  2004/01/22 19:12:43  mast
+changed from pressed() to clicked() or accomodated change to actionClicked
+
 Revision 4.8  2003/10/27 04:57:22  mast
 Fixed problem with reverse contrast
 
