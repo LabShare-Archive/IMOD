@@ -12,6 +12,14 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.29  2004/04/16 02:06:30  sueh
+ * <p> bug# 409 No longer backing up .ali during useMtfFilter.
+ * <p> Changed updateTransferfidEnabled() to updateDialog(FiducialModelDialog) - it
+ * <p> does all updates on the FiducialModelDialog - and clarified the code.
+ * <p> Create updateDialog(ProcessName) to call the specific updateDialog functions.
+ * <p> Calling updateDialog(ProcessName in processDone()
+ * <p> Added updateDialog() calls where needed.
+ * <p>
  * <p> Revision 3.28  2004/04/06 19:04:06  rickg
  * <p> Print out java system info at start of session
  * <p>
@@ -1629,7 +1637,6 @@ public class ApplicationManager {
     if (axisID != AxisID.ONLY
       && (processName == ProcessName.PRENEWST
         || processName == ProcessName.TRACK)) {
-        System.out.println("update fid dialog");
         updateDialog(fiducialModelDialogB, AxisID.SECOND);
         updateDialog(fiducialModelDialogA, AxisID.FIRST);
     }

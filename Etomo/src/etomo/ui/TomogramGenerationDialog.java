@@ -18,6 +18,12 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.10  2004/04/16 02:13:14  sueh
+ * bug# 409 Added startingAndEndingZ
+ * Added code to enable and disable filter buttons, based on a call from
+ * ApplicationManager (enableFilter) and the user placing a value in
+ * startingAndEndingZ
+ *
  * Revision 3.9  2004/04/13 17:23:36  sueh
  * bug# 409 add file choose for mtf filter.  Automatically goes to
  * $IMOD_CALIB_DIR/Camera, if it exists.  File filter:  .mtf
@@ -964,12 +970,10 @@ public class TomogramGenerationDialog
   }
 
   public void startingAndEndingZKeyReleased(KeyEvent event) {
-    System.out.println("KeyReleased:text=" + ltfStartingAndEndingZ.getText());
     enableUseFilter();
   }
   
   protected void enableUseFilter() {
-    System.out.println("enableUseFilter:enableFiltering=" + enableFiltering);
     if (!enableFiltering) {
       btnUseFilter.setEnabled(false);
       return;
