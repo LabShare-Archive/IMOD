@@ -74,6 +74,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.37  2003/05/14 14:36:08  rickg
+ * <p> Temporary change to volcombine
+ * <p>
  * <p> Revision 2.36  2003/05/13 19:58:22  rickg
  * <p> TransferfidParams constructed with IMODDirectory File
  * <p>
@@ -2381,7 +2384,7 @@ public class ApplicationManager {
       return;
     }
 
-    TrimvolParam trimvolParam = new TrimvolParam();
+    TrimvolParam trimvolParam = new TrimvolParam(IMODDirectory);
     String inputFile = "";
     if (metaData.getAxisType() == AxisType.SINGLE_AXIS) {
       inputFile = "full.rec";
@@ -2507,7 +2510,7 @@ public class ApplicationManager {
       return;
     }
     // Get the trimvol parameters from the panel
-    TrimvolParam trimvolParam = new TrimvolParam();
+    TrimvolParam trimvolParam = new TrimvolParam(IMODDirectory);
     postProcessingDialog.getTrimvolParams(trimvolParam);
 
     //  Set the appropriate input and output files
