@@ -9,7 +9,7 @@
             <x>0</x>
             <y>0</y>
             <width>189</width>
-            <height>438</height>
+            <height>495</height>
         </rect>
     </property>
     <property name="caption">
@@ -623,7 +623,7 @@
             <property name="title">
                 <string>Section ghost</string>
             </property>
-            <hbox>
+            <vbox>
                 <property name="name">
                     <cstring>unnamed</cstring>
                 </property>
@@ -633,52 +633,100 @@
                 <property name="spacing">
                     <number>6</number>
                 </property>
-                <widget class="QSpinBox">
+                <widget class="QLayoutWidget">
                     <property name="name">
-                        <cstring>ghostSpinBox</cstring>
+                        <cstring>layout12</cstring>
                     </property>
-                    <property name="focusPolicy">
-                        <enum>ClickFocus</enum>
-                    </property>
-                    <property name="maxValue">
-                        <number>10</number>
-                    </property>
-                    <property name="minValue">
-                        <number>1</number>
-                    </property>
-                    <property name="toolTip" stdset="0">
-                        <string>Set number of sections away that ghosts will display</string>
-                    </property>
+                    <hbox>
+                        <property name="name">
+                            <cstring>unnamed</cstring>
+                        </property>
+                        <widget class="QSpinBox">
+                            <property name="name">
+                                <cstring>ghostSpinBox</cstring>
+                            </property>
+                            <property name="focusPolicy">
+                                <enum>ClickFocus</enum>
+                            </property>
+                            <property name="maxValue">
+                                <number>10</number>
+                            </property>
+                            <property name="minValue">
+                                <number>1</number>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Set number of sections away that ghosts will display</string>
+                            </property>
+                        </widget>
+                        <widget class="QCheckBox">
+                            <property name="name">
+                                <cstring>upGhostBox</cstring>
+                            </property>
+                            <property name="focusPolicy">
+                                <enum>NoFocus</enum>
+                            </property>
+                            <property name="text">
+                                <string>Up</string>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Display ghost contours onto following sections</string>
+                            </property>
+                        </widget>
+                        <widget class="QCheckBox">
+                            <property name="name">
+                                <cstring>downGhostBox</cstring>
+                            </property>
+                            <property name="focusPolicy">
+                                <enum>NoFocus</enum>
+                            </property>
+                            <property name="text">
+                                <string>Down</string>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Display ghost contours onto preceding sections</string>
+                            </property>
+                        </widget>
+                    </hbox>
                 </widget>
-                <widget class="QCheckBox">
+                <widget class="QLayoutWidget">
                     <property name="name">
-                        <cstring>upGhostBox</cstring>
+                        <cstring>layout11</cstring>
                     </property>
-                    <property name="focusPolicy">
-                        <enum>NoFocus</enum>
-                    </property>
-                    <property name="text">
-                        <string>Up</string>
-                    </property>
-                    <property name="toolTip" stdset="0">
-                        <string>Display ghost contours onto following sections</string>
-                    </property>
+                    <hbox>
+                        <property name="name">
+                            <cstring>unnamed</cstring>
+                        </property>
+                        <widget class="QCheckBox">
+                            <property name="name">
+                                <cstring>lighterGhostBox</cstring>
+                            </property>
+                            <property name="focusPolicy">
+                                <enum>NoFocus</enum>
+                            </property>
+                            <property name="text">
+                                <string>Lighter</string>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Display ghost contours as lighter instead of darker color</string>
+                            </property>
+                        </widget>
+                        <widget class="QCheckBox">
+                            <property name="name">
+                                <cstring>allObjGhostBox</cstring>
+                            </property>
+                            <property name="focusPolicy">
+                                <enum>NoFocus</enum>
+                            </property>
+                            <property name="text">
+                                <string>All objects</string>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Show ghosts for all objects, not just current object</string>
+                            </property>
+                        </widget>
+                    </hbox>
                 </widget>
-                <widget class="QCheckBox">
-                    <property name="name">
-                        <cstring>downGhostBox</cstring>
-                    </property>
-                    <property name="focusPolicy">
-                        <enum>NoFocus</enum>
-                    </property>
-                    <property name="text">
-                        <string>Down</string>
-                    </property>
-                    <property name="toolTip" stdset="0">
-                        <string>Display ghost contours onto preceding sections</string>
-                    </property>
-                </widget>
-            </hbox>
+            </vbox>
         </widget>
         <widget class="Line">
             <property name="name">
@@ -916,6 +964,18 @@
         <receiver>ContSurfPoint</receiver>
         <slot>downContPressed()</slot>
     </connection>
+    <connection>
+        <sender>allObjGhostBox</sender>
+        <signal>toggled(bool)</signal>
+        <receiver>ContSurfPoint</receiver>
+        <slot>allObjGhostToggled(bool)</slot>
+    </connection>
+    <connection>
+        <sender>lighterGhostBox</sender>
+        <signal>toggled(bool)</signal>
+        <receiver>ContSurfPoint</receiver>
+        <slot>lighterGhostToggled(bool)</slot>
+    </connection>
 </connections>
 <includes>
     <include location="global" impldecl="in implementation">math.h</include>
@@ -923,15 +983,13 @@
     <include location="local" impldecl="in implementation">imod_cont_edit.h</include>
     <include location="local" impldecl="in implementation">control.h</include>
     <include location="local" impldecl="in implementation">preferences.h</include>
+    <include location="local" impldecl="in implementation">imod.h</include>
     <include location="local" impldecl="in implementation">form_cont_edit.ui.h</include>
 </includes>
 <variables>
     <variable>float mSizeDisplayed</variable>
     <variable>bool mSliderPressed</variable>
     <variable>bool mCtrlPressed</variable>
-    <variable>int mPrevSecGhostFlag</variable>
-    <variable>int mNextSecGhostFlag</variable>
-    <variable>int mSurfGhostFlag</variable>
 </variables>
 <slots>
     <slot>init()</slot>
@@ -954,9 +1012,11 @@
     <slot>ghostChanged( int value )</slot>
     <slot>upGhostToggled( bool state )</slot>
     <slot>downGhostToggled( bool state )</slot>
+    <slot>lighterGhostToggled( bool state )</slot>
+    <slot>allObjGhostToggled( bool state )</slot>
     <slot>helpPressed()</slot>
     <slot>setClosedOpen( int open, int enabled )</slot>
-    <slot>setGhostState( int interval, int ghostmode, int nextFlag, int prevFlag, int surfFlag )</slot>
+    <slot>setGhostState( int interval, int ghostmode )</slot>
     <slot>setPointSize( float size, int defval )</slot>
     <slot>setSurface( int value, int maxVal )</slot>
     <slot>setTimeIndex( int value, int maxVal )</slot>

@@ -6,7 +6,7 @@
 ** a constructor, and a destroy() slot in place of a destructor.
 *****************************************************************************/
 
-// SET ALL LAYOUT MARGINS TO 7
+// SET GROUP BOX LAYOUT MARGINS TO 7?
 
 void ContSurfPoint::init()
 {
@@ -43,7 +43,7 @@ void ContSurfPoint::newSurfPressed()
 
 void ContSurfPoint::surfGhostToggled( bool state )
 {
-    iceGhostToggled(state ? 1 : 0, mSurfGhostFlag);
+    iceGhostToggled(state ? 1 : 0,  IMOD_GHOST_SURFACE);
 }
 
 // Manage the open-closed radio buttons by calling the set function
@@ -125,12 +125,22 @@ void ContSurfPoint::ghostChanged( int value )
 // Pass on ghost button changes with the relevant flag
 void ContSurfPoint::upGhostToggled( bool state )
 {
-    iceGhostToggled(state ? 1 : 0, mNextSecGhostFlag);
+    iceGhostToggled(state ? 1 : 0,  IMOD_GHOST_NEXTSEC);
 }
 
 void ContSurfPoint::downGhostToggled( bool state )
 {
-    iceGhostToggled(state ? 1 : 0, mPrevSecGhostFlag);
+    iceGhostToggled(state ? 1 : 0, IMOD_GHOST_PREVSEC);
+}
+
+void ContSurfPoint::lighterGhostToggled( bool state )
+{
+    iceGhostToggled(state ? 1 : 0,  IMOD_GHOST_LIGHTER);
+}
+
+void ContSurfPoint::allObjGhostToggled( bool state )
+{
+    iceGhostToggled(state ? 1 : 0,  IMOD_GHOST_ALLOBJ);
 }
 
 void ContSurfPoint::helpPressed()
@@ -152,17 +162,14 @@ void ContSurfPoint::setClosedOpen( int open, int enabled )
 }
 
 // Set the state of all ghost-related controls and save flags for passing with actions
-void ContSurfPoint::setGhostState( int interval, int ghostmode, int nextFlag, 
-				   int prevFlag, int surfFlag )
+void ContSurfPoint::setGhostState( int interval, int ghostmode)
 {
-    mSurfGhostFlag = surfFlag;
-    mPrevSecGhostFlag = prevFlag;
-    mNextSecGhostFlag = nextFlag;
-    
     diaSetSpinBox(ghostSpinBox, interval);
-    diaSetChecked(downGhostBox, ghostmode & prevFlag);
-    diaSetChecked(upGhostBox, ghostmode & nextFlag);
-    diaSetChecked(surfGhostBox, ghostmode & surfFlag);
+    diaSetChecked(downGhostBox, ghostmode & IMOD_GHOST_PREVSEC);
+    diaSetChecked(upGhostBox, ghostmode & IMOD_GHOST_NEXTSEC);
+    diaSetChecked(surfGhostBox, ghostmode & IMOD_GHOST_SURFACE);
+    diaSetChecked(lighterGhostBox, ghostmode & IMOD_GHOST_LIGHTER);
+    diaSetChecked(allObjGhostBox, ghostmode & IMOD_GHOST_ALLOBJ);
 }
 
 // Set the point size slider, increasing the range if necessary, and show it in edit box
@@ -189,7 +196,7 @@ void ContSurfPoint::setSurface( int value, int maxVal )
     surfaceSpinBox->setEnabled(value >= 0 && maxVal > 0); 
     if (value < 0) {
 	surfaceSpinBox->setSpecialValueText("--x--");
-	surfaceSpinBox->setValue(0);
+	diaSetSpinBox(surfaceSpinBox, 0);
     } else {
  	surfaceSpinBox->setSpecialValueText("");
 	surfaceSpinBox->blockSignals(true);
@@ -222,6 +229,9 @@ void ContSurfPoint::setTimeIndex( int value, int maxVal )
 // Set the labels, or set to no Contour/Point
 void ContSurfPoint::setLabels( QString contLabel, int noCont, QString ptLabel, int noPoint )
 {
+    // We have to block signals for continuously updating text fields, apparently
+    contourEdit->blockSignals(true);
+    pointLabelEdit->blockSignals(true);
     contourEdit->setEnabled(!noCont);
     if (noCont) 
 	contourEdit->setText("No Contour");
@@ -233,6 +243,8 @@ void ContSurfPoint::setLabels( QString contLabel, int noCont, QString ptLabel, i
 	pointLabelEdit->setText("No Point");
     else
 	pointLabelEdit->setText(ptLabel);
+     contourEdit->blockSignals(false);
+   pointLabelEdit->blockSignals(false);
 }
 
 // Inform of closing
