@@ -330,7 +330,7 @@ cleansrc : ALWAYS
 csrc : ALWAYS
 	if (! (-e $(ARCDIR)_src)) mkdir $(ARCDIR)_src/
 	cp Makefile setup README History .version original_dates vcimod.dsw \
-	installqtlib $(ARCDIR)_src/
+	installqtlib packMacApps $(ARCDIR)_src/
 	tar cBf - \
 	machines \
 	lib*/*.[ch] lib*/*.cpp libi*/Makefile libdiaqt/Makefile.dummy \
@@ -378,6 +378,9 @@ ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.23  2003/10/13 23:07:58  mast
+#  Fix make src to add qtplax.cpp
+#
 #  Revision 3.22  2003/10/08 17:18:35  mast
 #  Changes to work with autodoc files
 #
