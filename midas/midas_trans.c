@@ -33,6 +33,10 @@
     $Revision$
 
     $Log$
+    Revision 3.2  2002/08/19 04:50:03  mast
+    Made it do a series of local solutions for displacement errors in
+    montage fixing mode when there are many pieces.
+
     Revision 3.1  2002/01/16 00:29:14  mast
     Fixed a problem in montage fixing mode when there was only one section,
     an error in Fortran to C translation
@@ -48,6 +52,10 @@
 
 static void checklist(int *xpclist, int npclist, int nxframe, int *minxpiece,
 		      int *nxpieces, int *nxoverlap);
+static void solve_for_shifts(struct Midas_view *vw, float *a, float *b,
+			     int *ivarpc, int *indvar, int nvar, int limvar,
+			     int leavind);
+
 int gaussj(float *a, int n, int np, float *b, int m, int mp);
 
 int new_view(struct Midas_view *vw)
@@ -1508,8 +1516,9 @@ void find_local_errors(struct Midas_view *vw, int leaveout, int ntoperr,
 }
 
 /* Set up equations to determine shifts for the given set of variables */
-void solve_for_shifts(struct Midas_view *vw, float *a, float *b, int *ivarpc,
-		      int *indvar, int nvar, int limvar, int leavind)
+static void solve_for_shifts(struct Midas_view *vw, float *a, float *b, 
+			     int *ivarpc, int *indvar, int nvar, int limvar,
+			     int leavind)
 {
      int ivar, ipc, ind,i;
      int neighpc, neighvar, edge, m, ixy;
