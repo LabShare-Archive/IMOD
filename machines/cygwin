@@ -3,6 +3,11 @@
 # Intel running Cygwin/Windows
 #
 #
+
+# Make intel the default
+#
+if ($compiler == default) set compiler = intel
+
 #  Separate pointers are needed for X and Motif includes
 #
 set Xlibdir = /usr/X11R6/lib
@@ -12,33 +17,60 @@ if ($no_xlibs == false) then
     if (!(-e $Xlibdir) || !(-e $Xincdir)) set no_xlibs = true
 endif
 
-if ($no_xlibs == false) then
-    set c_includes =  "-I$Xincdir -I$Mincdir"' -I$(QTDIR)/include'
+if ($compiler == intel) then
+    set c_includes =  '-I"$(QTDIR)\include"'
+    set cyg_lib = `cygpath -w $lib_dir`
+    set xplax = qtplax.obj
+    set cyg_inc = `cygpath -w $inc_dir`
+    set include_flags = '-I. -I"'$cyg_inc'"'
+    set objext = obj
+    set moc = `cygpath $QTDIR/bin/moc`
+    set inc_dir = `cygpath --mixed $inc_dir`
+    set rgbprogs = 
+    set ldfflags = "/C90 /4Yportlib"
+cat << EOF >> $configure
+LDFLAGS = /nologo /MD -link -LIBPATH"$cyg_lib" /NODEFAULTLIB:libc.lib
+.SUFFIXES: .cpp .obj .f .c
+.cpp.obj:
+	\$(CXX) -c \$(CXXFLAGS) \$<
+
+.c.obj:
+	\$(CC) -c \$(CFLAGS) \$<
+
+.f.obj:
+	\$(FC) -c \$(FFLAGS) \$<
+
+EOF
+
+
+else if ($no_xlibs == false) then
+    set c_includes =  "-I$Xincdir -I$Mincdir"
     echo 'LDFLAGS = -L$(LIBDIR)' "-L$Xlibdir" >> $configure
     set xplax = xplax.o
 else
-    set c_includes =  '-I$(QTDIR)/include'
+    set c_includes =
     echo 'LDFLAGS = -L$(LIBDIR)' >> $configure
     set xplax = noplax.o
 endif
 
-# DNM 8/27/01: Needed for large files to work right.  Use a -D define instead
-# of #define in imodconfig because it must precede all system includes.
-set defines = -D_FILE_OFFSET_BITS=64
-
 echo "SHELL     = /bin/csh"         >> $configure
 
 if ($compiler == intel) then
-	echo "CC        = icc"              >> $configure
-	echo "FC        = ifc"              >> $configure
-	set usfftdir = $source_dir/USFFTlib/pc-intel
+    echo "CC        = icl"              >> $configure
+    echo "CXX       = icl"              >> $configure
+    echo "FC        = ifl"              >> $configure
+   # set usfftdir = $source_dir/USFFTlib/pc-intel
+    echo '#define F77FUNCAP' >> $hconfigure
 else
-	echo "CC        = gcc"              >> $configure
-	echo "FC        = g77"              >> $configure
-	#
-	# tell the C routines being called by Fortran that they need two __
-	#
-	echo '#define G77__HACK' >> $hconfigure
+# DNM 8/27/01: Needed for large files to work right.  Use a -D define instead
+# of #define in imodconfig because it must precede all system includes.
+    set defines = -D_FILE_OFFSET_BITS=64
+    echo "CC        = gcc"              >> $configure
+    echo "FC        = g77"              >> $configure
+    #
+    # tell the C routines being called by Fortran that they need two __
+    #
+    echo '#define G77__HACK' >> $hconfigure
 endif
 
 # Needed under tcsh 6.12 in RH 8.0 to avoid getting two \ out
@@ -50,53 +82,49 @@ EOF
 set shared_libs = false
 
 set wrapper = ""
-
-if ($shared_libs != false) then
-	echo "AR      = ld"                 >> $configure
-	echo "ARCPP   = g++"                >> $configure
-	echo "ARFLAGS = $flags -shared -o"    >> $configure
-	echo "RANLIB    = true"                     >> $configure
-	echo "LIBEXT  = so"                 >> $configure
-	#
-	# With Intel compiler, call an ld wrapper to strip out the -static flag
-	# make blockio into a static libary  to drag in stat64 properly, and 
-	# exclude it from libim.so
-	#
-	if ($compiler == intel) then
-		set wrapper = "-Qlocation,link,$source_dir/scripts"
-		set blockio = libblockio.a
-		set imsubsobj = '[^b]*.o'
-	endif
+# Just the static build settings now
+#
+if ($compiler == intel) then
+	echo "AR      = link"                 >> $configure
+	echo "ARCPP   = link"                 >> $configure
+	echo "ARFLAGS = -lib /out:"                >> $configure
+	echo "RANLIB    = true"            >> $configure
+	echo "LIBEXT  = lib"                  >> $configure
 else
 	echo "AR      = ar"                 >> $configure
 	echo "ARCPP   = ar"                 >> $configure
-	echo "ARFLAGS = ruv"                >> $configure
+	echo "ARFLAGS = ruv "                >> $configure
 	echo "RANLIB    = ranlib"            >> $configure
 	echo "LIBEXT  = a"                  >> $configure
 endif
 
 echo 'MAKELIB   = $(AR) $(ARFLAGS)' >> $configure
 echo 'MAKELIBCPP = $(ARCPP) $(ARFLAGS)' >> $configure
-echo "MAKELIBSO = g++ $flags -shared -o" >> $configure
+echo "MAKELIBSO = g++ $flags -shared -o " >> $configure
 
 
-echo "CLIBS   = -lc -lm" >> $configure
+if ($compiler == intel) then
+    echo "XLIBS   = " >> $configure
+    echo "CLIBS   = " >> $configure
+    set limod = libimod.lib
+    set liimod = libiimod.lib
+    set lifft = libifft.lib
+    set ltiff = libtiff.lib
+    set imsubsobj = '*.obj'
+    set ldnmncar = "libdnmncar.lib"
+    echo "IMLIBS     =  libhvem.lib libim.lib libifft.lib libimod.lib librandm.lib libdtrigs.lib" >> $configure
+    echo 'LINUXFLIBS = ' >> $configure
+else
+    echo "CLIBS   = -lc -lm" >> $configure
+    echo "XLIBS   = -lXm -lXt -lSM -lICE -lXext -lX11" >> $configure
+    echo "IMLIBS     = -lhvem -lim -lifft  -limod -lrandm -ldtrigs" >> $configure
+    echo 'LINUXFLIBS = $(LIBDTRIGS) $(LIBRANDM)' >> $configure
+endif
 echo 'LIBS    = $(CLIBS)'  >> $configure
 echo 'FORTCLIBS = '  >> $configure
 
-if ($compiler == intel) then
-	# For Intel, add -lXp, add -Vaxlib flag for compatibility calls
-	echo "XLIBS   = -lXm -lXp -lXt -lSM -lICE -lXext -lX11" >> $configure
-	echo "IMLIBS     = $wrapper -Vaxlib -lhvem -lim -lblockio -lifft  -limod -lrandm -ldtrigs " >> $configure
-else
-	echo "XLIBS   = -lXm -lXt -lSM -lICE -lXext -lX11" >> $configure
-	echo "IMLIBS     = -lhvem -lim -lifft  -limod -lrandm -ldtrigs" >> $configure
-endif
+# skip MAKF77PLUGIN
 
-# 
-# If using plugins, need to tell linker to export symbols
-echo 'IMODCC    = $(CC)'              >> $configure
-echo  'MAKEF77PLUGIN  = $(FC) '"$wrapper"' -shared $(LDFLAGS) -ldtrigs -o'  >> $configure
 echo 'FLCC      = $(FC)'              >> $configure
 echo "F77LIBS   = $wrapper"                  >> $configure
 
@@ -108,6 +136,10 @@ echo '#define SWAP_IEEE_FLOATS' >> $hconfigure
 
 echo '#define NO_IMOD_FORK' >> $hconfigure
 echo '#define CLIPBOARD_TIMER_HACK 100' >> $hconfigure
+#
+# Do not use multiple threads in plax programs
+#
+echo '#define QTPLAX_NO_THREAD' >> $hconfigure
 
 
 #
@@ -119,13 +151,17 @@ echo "      parameter (nbytes_recl_item=1)" >! $endian_dir/recl_bytes.inc
 
 
 if ($compiler == intel) then
-	## -axK fails on tiltalign-beadtrack
-	set optimization = "-O2 -unroll -w"
-	#set optimization = "-O2 -w"
-	if ($debug == true) set optimization = "-g -O0"
+    set optimization = "/O2 /w /nologo"
+    set noop = /Og
+    set qopt = -O2
+    if ($debug == true) then
+        set optimization = "/Zi /Og /w /nologo"
+        set qopt = -Od
+    endif
 else
-	set optimization = "-O3 -w"
-	if ($debug == true) set optimization = "-ggdb -O0"
+    set noop = -O0
+    set optimization = "-O3 -w"
+    if ($debug == true) set optimization = "-ggdb -O0"
 endif
 
 #
@@ -133,64 +169,155 @@ endif
 #  The fallbacks need to be defined because of problems with n32 code on the
 #  SGI; just define them the same as non-fallback versions.
 #
-echo "CFLAGS  = $flags $optimization $defines $include_flags $c_includes" >> $configure
-echo "CXXFLAGS = $flags $optimization $defines $include_flags $c_includes" >> $configure
-echo "FFLAGS  = $flags $optimization $include_flags" >> $configure
-echo "NOOPFFLAGS = $flags $optimization -O0 $include_flags" >> $configure
+set flags = "$flags /MD"
+cat << EOF >> $configure
+CFLAGS  = $flags $optimization $defines $include_flags $c_includes
+CXXFLAGS = $flags $optimization $defines $include_flags $c_includes
+FFLAGS  = $flags $ldfflags $optimization $include_flags
+NOOPFFLAGS = $flags $ldfflags $optimization $noop $include_flags
 
-echo "CFALLBACK  = $flags $optimization $defines $include_flags $c_includes" >> $configure
-echo "FFALLBACK  = $flags $optimization $include_flags" >> $configure
-echo 'LDFALLBACK = $(LDFLAGS)'       >> $configure
-echo 'NOOPFFALLBACK = $(NOOPFFLAGS)' >> $configure
+CFALLBACK  = $flags $optimization $defines $include_flags $c_includes
+FFALLBACK  = $flags $ldfflags $optimization $include_flags
+LDFALLBACK = \$(LDFLAGS)
+NOOPFFALLBACK = \$(NOOPFFLAGS)
+EOF
 
-# Use fortran code for tilt program, make extra fortran libs, skip SGI progs
-echo 'TILTOBJS = bpsumnox.o bpsumxtilt.o bpsumlocal.o' >> $configure
-echo 'LINUXFLIBS = $(LIBDTRIGS) $(LIBRANDM)' >> $configure
-echo 'RGBPROGS = '  >> $configure
+# Use fortran code for tilt program, make extra fortran libs
+echo 'TILTOBJS = bpsumnox.$(O) bpsumxtilt.$(O) bpsumlocal.$(O)' >> $configure
+
 #
 #   default is to assume tifflib exists
 #
 if ($tifflibs == default) set tifflibs = true
+\cp sysdep/win/tiff*.h include
+\cp sysdep/win/libtiff.lib buildlib
 
 #
 # Set the switch point include file for the FBP algorithm in Tilt
 #
 set fbpswitch       = fbpswitch-pc.inc
 
+set binext = .exe
+
 #
 # Start Qt include files
 #
-echo " " >! $midas_qconf
+echo CONFIG += CONSOLE >! $sendevent_qconf
+
 cat << EOF >! $imod_qconf
-INCLUDEPATH += ..\include .
-LIBS += libdiaqt.lib libimod.lib libiimod.lib
-QMAKE_LFLAGS_RELEASE += /LIBPATH:..\buildlib /NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:msvcrtd.lib
-QMAKE_LFLAGS_DEBUG += /LIBPATH:..\buildlib /NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:msvcrt.lib
+SOURCES += linegui.cpp
+HEADERS += linegui.h
+LIBS += libdiaqt.lib libimod.lib libiimod.lib libtiff.lib libtrack.lib
+QMAKE_LFLAGS_RELEASE += /LIBPATH:"..\buildlib" /NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:msvcrtd.lib
+QMAKE_LFLAGS_DEBUG += /LIBPATH:"..\buildlib" /NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:msvcrt.lib
 RC_FILE = 3dmod.rc
 EOF
 
-if ($debug == true) then
-    echo CONFIG += debug warn_off >> $imod_qconf
-    set vcexedir = Debug
-else
-    echo CONFIG += release warn_off >> $imod_qconf
-    set vcexedir = Release
+cat <<EOF >! $midas_qconf
+LIBS += libdiaqt.lib libimod.lib libiimod.lib libtiff.lib
+QMAKE_LFLAGS_RELEASE += /LIBPATH:"..\buildlib" /NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:msvcrtd.lib
+QMAKE_LFLAGS_DEBUG += /LIBPATH:"..\buildlib" /NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:msvcrt.lib
+EOF
+
+# Manage imodhelp for the qmake without having to delete a good one
+if (! -e $imod_dir/imodhelp.h) touch $imod_dir/imodhelp.h
+
+set qdir = ($midas_dir $imod_dir $sendevent_dir)
+set qpro = (midas.pro imod.pro imodsendevent.pro)
+set warn = (warn_on warn_off warn_on)
+@ i = 0
+while ($i < 3)
+    @ i++
+
+    echo "INCLUDEPATH += ..\include ." >> $qdir[$i]/qconfigure
+    echo "target.path = $inst_bin_dir" >> $qdir[$i]/qconfigure
+    if ($debug == true) then
+        echo CONFIG += debug warn_off >> $qdir[$i]/qconfigure
+        set vcexedir = Debug
+    else
+        echo CONFIG += release $warn[$i] >> $qdir[$i]/qconfigure
+        set vcexedir = Release
+    endif
+
+    if ($compiler == intel) then
+        (cd $qdir[$i] ; qmake -o makefile.tmp $qpro[$i])
+        sed -e '/^<</d'  -e '/^	$/d' -e '/-del/s//-rm -f/' -e '/@<< */s//\\/' \
+        -e '/^	\$</d' -e '/{.*}.*{.*}/d'  -e '/UIC/s/-f *<< */\\/' \
+        -e '/.SUFFIXES/d'  \
+        -e "/^C.*FLAGS[ 	]*=/s/-Od/$qopt/" \
+        -e '/^install/a\	strip \$(TARGET) ; \\cp \$(TARGET) '"$inst_bin_dir" \
+        < $qdir[$i]/makefile.tmp >! $qdir[$i]/Makefile
+        \rm $qdir[$i]/makefile.tmp
+        cat <<EOF >> $qdir[$i]/Makefile
+.SUFFIXES: .c .cpp .obj
+.cpp.obj:
+	\$(CXX) -c \$(CXXFLAGS) \$(INCPATH) \$<
+
+.c.obj:
+	\$(CC) -c \$(CFLAGS) \$(INCPATH) \$<
+EOF
+    endif
+end
+
+\find $imod_dir -name imodhelp.h -size 0 -exec \rm -f '{}' \;
+
+# take care of dependencies on version
+#
+\find $imod_dir -name imod.o ! -newer .version -exec \rm -f '{}' \;
+\find $imod_dir -name 'imod*_menu.o' ! -newer .version -exec \rm -f '{}' \;
+
+# Make new project files for 3dmod and midas if needed
+#
+set newer = `\find $imod_dir -name 3dmod.dsp -newer $imod_dir/imod.pro \
+ -exec echo newer \;`
+if ($newer != newer) then
+    (cd $imod_dir ; qmake -t vcapp -o 3dmod.dsp imod.pro)
+   echo "MADE NEW 3dmod PROJECT FILE - RESET WARNING LEVEL TO 1 IN C++/General"
 endif
+
+set newer = `\find $midas_dir -name midas.dsp -newer $midas_dir/midas.pro \
+ -exec echo newer \;`
+if ($newer != newer) then
+   (cd $midas_dir ; qmake -t vcapp -o midas.dsp midas.pro)
+endif
+
+# set up make files for things built by VisualC, or finish imod makefile
+#
+if ($compiler == intel) then
+    set qt_libs = `sed -n '/^LIBS[ 	]*=/s/^[^"]*\("[^"]*"\).*$/\1/p' $sendevent_dir/Makefile | sed '/\\/s//\\\\/g'`
+    cat <<EOF >> $imod_dir/Makefile
+
+mkargv : mkargv.c
+
+imodhelp.h : imodhelp mkargv
+	./mkargv imodhelp imodhelp.h "Imod_help_text[]"
+EOF
+
+    set makefile_ext = unix
+    set makefile_dirs = ($libdiaqt_dir)
+    # Output variables for libraries to copy to bin
+    #
+    echo 'DLLSOURCEDIR = C:/Program Files/Intel/Compiler70/IA32/Bin' >> $configure
+    echo 'DLLSTOCOPY = libCEPCF90MD.dll libF90MD.dll libIEPCF90MD.dll libPCEPCF90MD.dll libintrinsMD.dll libmmd.dll' >> $configure
+else
+    set makefile_ext = dummy
+    set makefile_dirs = ($midas_dir $imod_dir $sendevent_dir $libdiaqt_dir)
+endif
+
 
 echo VCEXEDIR = $vcexedir >> $configure
 
-# set up make files for things built by VisualC
-set makefile_ext = dummy
-set makefile_dirs = ($imod_dir $midas_dir $sendevent_dir $plugsrc_dir $libdiaqt_dir)
 
-#
 # Set up to copy qt lib to bin dir for a distribution
+#
 echo 'QTINSTLIBDIR = bin' >> $configure
 
-#
 # Add scripts for running from command line
+#
 echo '3dmod $* &' >! $imod_dir/3dmodbg
 echo '3dmod -view $* &' >! $imod_dir/3dmodv
 
 # Make sure critical scripts are in unix mode
+#
 (cd scripts ; dos2unix copytomocoms setupcombine makejoincom transferfid xfalign matchorwarp >& /dev/null)
+
