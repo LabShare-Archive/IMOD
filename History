@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/13/04: Changed default scaling in tilt.com from 1000 to 500 to avoid 
+saturation in extreme cases.
+
 1/13/04: Fixed problems with copytomocoms and setupcombine under csh on SGI.
 
 1/9/04: IMOD_3-2-4
