@@ -35,6 +35,10 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.2  2004/03/02 00:03:11  sueh
+ * <p> bug# 250 getCombineParams(fromTab, combineParams) -
+ * <p> get CombineParams from a tab
+ * <p>
  * <p> Revision 3.1  2004/02/27 20:08:31  sueh
  * <p> bug# 250 added getUseMatchingModels()
  * <p> added setUseMatchingModels()
@@ -123,6 +127,7 @@ public class TomogramCombinationDialog
   public static final int NO_TAB = -1;
   public static final int SETUP_TAB = 0;
   public static final int INITIAL_TAB = 1;
+  public static final int FINAL_TAB = 2;
   private SetupCombinePanel pnlSetup;
   private InitialCombinePanel pnlInitial;
   private FinalCombinePanel pnlFinal;
@@ -203,6 +208,9 @@ public class TomogramCombinationDialog
     }
     if (fromTab == INITIAL_TAB) {
       pnlInitial.getCombineParameters(combineParams);
+    }
+    if (fromTab == FINAL_TAB) {
+      pnlFinal.getCombineParameters(combineParams);
     }
   }
 
