@@ -33,6 +33,10 @@
     $Revision$
 
     $Log$
+    Revision 3.6  2004/01/05 17:26:17  mast
+    Renamed imin/imax to outmin/outmax; changed mrcRead... from void to int
+    for error returns, and eliminated mode-specific calls
+
     Revision 3.5  2003/11/18 19:20:51  mast
     changes for 2GB problem on Windows
 
@@ -327,6 +331,11 @@ int mrc_read_slice(void *buf, FILE *fin, struct MRCheader *hdata,
 
   unsigned char **mrcGetDataMemory(struct LoadInfo *li, int xysize, int zsize,
                                    int pixsize);
+  void mrcFreeDataMemory(unsigned char **idata, int contig, int zsize);
+  float mrcGetComplexScale();
+  float mrcComplexSminSmax(float inMin, float inMax, float *outMin, 
+                           float *outMax);
+
 unsigned char **read_mrc_byte(FILE *fin, struct MRCheader *hdata, 
 			      struct LoadInfo *li);
 unsigned char **mrc_read_byte(FILE *fin, struct MRCheader *hdata, 
