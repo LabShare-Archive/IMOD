@@ -20,6 +20,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.19  2004/06/28 22:10:29  rickg
+ * Bug #470 Moved the fiducial mode file copying to the same sections
+ * where the fiducialless is handled.
+ *
  * Revision 3.18  2004/06/25 23:13:46  rickg
  * Bug #470 Added generatePreXG method.
  *
@@ -960,7 +964,7 @@ public class ProcessManager {
 
     //  Start the com script in the background
     ComScriptProcess comScriptProcess = startComScript(command,
-      patchcorrProcessWatcher, AxisID.ONLY);
+      patchcorrProcessWatcher, AxisID.ONLY, "patch.out");
     return comScriptProcess.getName();
 
   }
@@ -1045,22 +1049,38 @@ public class ProcessManager {
     }
   }
 
+
+  
   /**
    * Start a managed command script for the specified axis
-   * 
    * @param command
+   * @param processMonitor
    * @param axisID
    * @return
+   * @throws SystemProcessException
    */
   private ComScriptProcess startComScript(String command,
     Runnable processMonitor, AxisID axisID) throws SystemProcessException {
+    return startComScript(command, processMonitor, axisID, null);  
+  }
+  /**
+   * Start a managed command script for the specified axis
+   * @param command
+   * @param processMonitor
+   * @param axisID
+   * @param watchedFile
+   * @return
+   * @throws SystemProcessException
+   */
+  private ComScriptProcess startComScript(String command,
+    Runnable processMonitor, AxisID axisID, String watchedFileName) throws SystemProcessException {
 
     // Make sure there isn't something going on in the current axis
     isAxisBusy(axisID);
 
     // Run the script as a thread in the background
     ComScriptProcess comScriptProcess = new ComScriptProcess(command, this,
-      axisID);
+      axisID, watchedFileName);
     comScriptProcess.setWorkingDirectory(new File(System
       .getProperty("user.dir")));
     comScriptProcess.setDebug(ApplicationManager.isDebug());
