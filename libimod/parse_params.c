@@ -11,38 +11,7 @@ $Date$
 
 $Revision$
 
-$Log$
-Revision 3.10  2003/10/24 03:03:47  mast
-unrecalled change for Windows/Intel
-
-Revision 3.9  2003/10/11 04:22:02  mast
-Remove \/, a bad combination
-
-Revision 3.8  2003/10/10 20:38:49  mast
-Made it count real arguments properly and had it eat \r from line ends
-for Windows
-
-Revision 3.7  2003/10/08 17:20:04  mast
-Changes to work with autodoc files
-
-Revision 3.6  2003/08/09 17:01:00  mast
-Fix bug in new functions
-
-Revision 3.5  2003/08/08 16:21:59  mast
-Add functions for getting two numbers
-
-Revision 3.4  2003/06/20 23:56:37  mast
-Add ability to break output of help strings into limited-length lines
-
-Revision 3.3  2003/06/10 23:21:03  mast
-Add File name type
-
-Revision 3.2  2003/06/05 03:01:48  mast
-Adding return values  - error caught on SGI
-
-Revision 3.1  2003/06/05 00:22:49  mast
-Addition to IMOD
-
+Log at end of file
 */
 
 #include "parse_params.h"
@@ -636,7 +605,7 @@ int PipPrintHelp(char *progName, int useStdErr, int inputFiles,
 {
   int i, j, lastOpt, optLen;
   int helplim = 74;
-  char *sname, *lname;
+  char *sname, *lname, *newLinePt;
   FILE *out = useStdErr ? stderr : stdout;
   char indent4[] = "    ";
   char *indentStr = indent4;
@@ -718,13 +687,27 @@ int PipPrintHelp(char *progName, int useStdErr, int inputFiles,
       if (PipMemoryError(lname, "PipPrintHelp"))
         return -1;
       sname = lname;
-      while (strlen(sname) > helplim) {
-        for (j = helplim; j >= 1; j--)
-          if (sname[j] == ' ')
-            break;
+      optLen = strlen(sname);
+      newLinePt = strchr(sname, '\n');
+      while (optLen > helplim || newLinePt) {
+
+        /* Break string at newline */
+        if (newLinePt && newLinePt - sname <= helplim) {
+          j = newLinePt - sname;
+          newLinePt = strchr(sname + j + 1, '\n');
+        } else {
+
+          /* Or break string at last space before limit */
+          for (j = helplim; j >= 1; j--)
+            if (sname[j] == ' ')
+              break;
+        }
+
+        /* Replace break point with null, print and reset pointer and count */
         sname[j] = 0x00;
         fprintf(out, "%s%s\n", indentStr, sname);
         sname += j + 1;
+        optLen -= j + 1;
       }
       fprintf(out, "%s%s\n", indentStr, sname);
       free(lname);
@@ -1021,6 +1004,10 @@ int PipReadOptionFile(char *progName, int helpLevel, int localDir)
         needSize = ind + strlen(textStr) + 3;
         *lastGottenStr = (char *)realloc(*lastGottenStr, needSize);
         strcat(*lastGottenStr, (*lastGottenStr)[ind - 1] == '.' ? "  " : " ");
+
+        /* Replace leading ^ with a newline */
+        if (textStr[0] == '^')
+          textStr[0] = '\n';
         strcat(*lastGottenStr, textStr);
       }
 
@@ -1574,3 +1561,41 @@ static int CheckKeyword(char *line, char *keyword, char **copyto, int *gotit,
   *lastCopied = copyto;
   return 0;
 }
+
+/*
+$Log$
+Revision 3.11  2004/06/09 22:55:32  mast
+Added option to error messages about problems with value entries
+
+Revision 3.10  2003/10/24 03:03:47  mast
+unrecalled change for Windows/Intel
+
+Revision 3.9  2003/10/11 04:22:02  mast
+Remove \/, a bad combination
+
+Revision 3.8  2003/10/10 20:38:49  mast
+Made it count real arguments properly and had it eat \r from line ends
+for Windows
+
+Revision 3.7  2003/10/08 17:20:04  mast
+Changes to work with autodoc files
+
+Revision 3.6  2003/08/09 17:01:00  mast
+Fix bug in new functions
+
+Revision 3.5  2003/08/08 16:21:59  mast
+Add functions for getting two numbers
+
+Revision 3.4  2003/06/20 23:56:37  mast
+Add ability to break output of help strings into limited-length lines
+
+Revision 3.3  2003/06/10 23:21:03  mast
+Add File name type
+
+Revision 3.2  2003/06/05 03:01:48  mast
+Adding return values  - error caught on SGI
+
+Revision 3.1  2003/06/05 00:22:49  mast
+Addition to IMOD
+
+*/
