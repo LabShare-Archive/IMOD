@@ -33,6 +33,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.5  2003/10/09 23:21:21  rickg
+ * <p> Bug#279  Label layout and name changes
+ * <p>
  * <p> Revision 2.4  2003/05/27 08:50:28  rickg
  * <p> Context menu handled by parent window
  * <p>
@@ -165,7 +168,7 @@ public class TiltalignPanel {
   private JPanel pnlGeneral = new JPanel();
 
   private LabeledTextField ltfResidualThreshold =
-    new LabeledTextField("Residual threshold: ");
+    new LabeledTextField("Threshold for residual report: ");
 
   private JRadioButton rbResidAllViews = new JRadioButton("All views");
   private JRadioButton rbResidNeighboring =
@@ -174,16 +177,16 @@ public class TiltalignPanel {
   private JPanel pnlResidualThreshold = new JPanel();
 
   private JRadioButton rbSingleFiducialSurface =
-    new JRadioButton("Assume fiducial on 1 surface for analysis");
+    new JRadioButton("Assume fiducials on 1 surface for analysis");
   private JRadioButton rbDualFiducialSurfaces =
-    new JRadioButton("Assume fiducial on 2 surfaces for analysis");
+    new JRadioButton("Assume fiducials on 2 surfaces for analysis");
   private ButtonGroup bgFiducialSurfaces = new ButtonGroup();
   private JPanel pnlFiducialSurfaces = new JPanel();
 
   private LabeledTextField ltfExcludeList =
     new LabeledTextField("List of views to exclude: ");
-  private LabeledTextField ltfNonDefaultGroups =
-    new LabeledTextField("Non-default groups: ");
+  private LabeledTextField ltfSeparateViewGroups =
+    new LabeledTextField("Separate view groups: ");
 
   private JPanel pnlVolumeParameters = new JPanel();
   private LabeledTextField ltfTiltAngleOffset =
@@ -222,7 +225,7 @@ public class TiltalignPanel {
   private LabeledTextField ltfTiltAngleGroupSize =
     new LabeledTextField("Group size: ");
   private LabeledTextField ltfTiltAngleAdditionalGroups =
-    new LabeledTextField("Additional group list: ");
+    new LabeledTextField("Non-default grouping: ");
 
   //  Magnfication pane
   private JRadioButton rbMagnificationFixed =
@@ -239,7 +242,7 @@ public class TiltalignPanel {
   private LabeledTextField ltfMagnificationGroupSize =
     new LabeledTextField("Group size: ");
   private LabeledTextField ltfMagnificationAdditionalGroups =
-    new LabeledTextField("Additional group list: ");
+    new LabeledTextField("Non-default grouping: ");
 
   //  Compression pane
   /*  private JRadioButton rbCompressionAll =
@@ -265,24 +268,24 @@ public class TiltalignPanel {
   private LabeledTextField ltfXstretchGroupSize =
     new LabeledTextField("X stretch group size: ");
   private LabeledTextField ltfXstretchAdditionalGroups =
-    new LabeledTextField("X stretch additional group list: ");
+    new LabeledTextField("X stretch non-default grouping: ");
 
   private LabeledTextField ltfSkewGroupSize =
     new LabeledTextField("Skew group size: ");
   private LabeledTextField ltfSkewAdditionalGroups =
-    new LabeledTextField("Skew additional group list: ");
+    new LabeledTextField("Skew non-default grouping: ");
 
   //  Local variables pane
   private JPanel pnlLocalSolution = new JPanel();
 
   //  Local tilt angle pane
   private JPanel pnlLocalRotationSolution = new JPanel();
-  private JCheckBox chkLocalRotation = new JCheckBox("Local rotation");
+  private JCheckBox chkLocalRotation = new JCheckBox("Enable");
 
   private LabeledTextField ltfLocalRotationGroupSize =
     new LabeledTextField("Group size: ");
   private LabeledTextField ltfLocalRotationAdditionalGroups =
-    new LabeledTextField("Additional group list: ");
+    new LabeledTextField("Non-default grouping: ");
 
   //  Local tilt angle pane
   private JPanel pnlLocalTiltAngleSolution = new JPanel();
@@ -291,7 +294,7 @@ public class TiltalignPanel {
   private LabeledTextField ltfLocalTiltAngleGroupSize =
     new LabeledTextField("Group size: ");
   private LabeledTextField ltfLocalTiltAngleAdditionalGroups =
-    new LabeledTextField("Additional group list: ");
+    new LabeledTextField("Non-default grouping: ");
 
   // Local magnfication pane
   private JPanel pnlLocalMagnificationSolution = new JPanel();
@@ -300,7 +303,7 @@ public class TiltalignPanel {
   private LabeledTextField ltfLocalMagnificationGroupSize =
     new LabeledTextField("Group size: ");
   private LabeledTextField ltfLocalMagnificationAdditionalGroups =
-    new LabeledTextField("Additional group list: ");
+    new LabeledTextField("Non-default grouping: ");
 
   //  Local distortion pane
   private JPanel pnlLocalDistortionSolution = new JPanel();
@@ -309,12 +312,12 @@ public class TiltalignPanel {
   private LabeledTextField ltfLocalXstretchGroupSize =
     new LabeledTextField("X stretch group size: ");
   private LabeledTextField ltfLocalXstretchAdditionalGroups =
-    new LabeledTextField("X stretch additional group list: ");
+    new LabeledTextField("X stretch non-default grouping: ");
 
   private LabeledTextField ltfLocalSkewGroupSize =
     new LabeledTextField("Skew group size: ");
   private LabeledTextField ltfLocalSkewAdditionalGroups =
-    new LabeledTextField("Skew additional group list: ");
+    new LabeledTextField("Skew non-default grouping: ");
 
   /**
    * Constructor
@@ -363,7 +366,7 @@ public class TiltalignPanel {
       ltfExcludeList.setEnabled(false);
     }
 
-    ltfNonDefaultGroups.setText(params.getAdditionalViewGroups());
+    ltfSeparateViewGroups.setText(params.getSeparateViewGroups());
     ltfTiltAngleOffset.setText(params.getTiltAngleOffset());
     ltfTiltAxisZShift.setText(params.getTiltAxisZShift());
     ltfMetroFactor.setText(params.getMetroFactor());
@@ -554,8 +557,8 @@ public class TiltalignPanel {
         params.setIncludeExcludeList(temp.toString());
 
       }
-      badParameter = ltfNonDefaultGroups.getLabel();
-      params.setAdditionalViewGroups(ltfNonDefaultGroups.getText());
+      badParameter = ltfSeparateViewGroups.getLabel();
+      params.setSeparateViewGroups(ltfSeparateViewGroups.getText());
 
       badParameter = ltfTiltAngleOffset.getLabel();
       params.setTiltAngleOffset(ltfTiltAngleOffset.getText());
@@ -1001,13 +1004,13 @@ public class TiltalignPanel {
     pnlGeneral.add(ltfExcludeList.getContainer());
     pnlGeneral.add(Box.createRigidArea(FixedDim.x0_y5));
 
-    pnlGeneral.add(ltfNonDefaultGroups.getContainer());
+    pnlGeneral.add(ltfSeparateViewGroups.getContainer());
     pnlGeneral.add(Box.createRigidArea(FixedDim.x0_y10));
 
     pnlResidualThreshold.setLayout(
       new BoxLayout(pnlResidualThreshold, BoxLayout.X_AXIS));
     pnlResidualThreshold.setBorder(
-      new EtchedBorder("Residual Threshold").getBorder());
+      new EtchedBorder("Residual Reporting").getBorder());
     ltfResidualThreshold.setColumns(10);
     pnlResidualThreshold.add(ltfResidualThreshold.getContainer());
     pnlResidualThreshold.add(new JLabel(" s.d. relative to   "));
@@ -1032,7 +1035,7 @@ public class TiltalignPanel {
     pnlFiducialSurfaces.setLayout(
       new BoxLayout(pnlFiducialSurfaces, BoxLayout.X_AXIS));
     pnlFiducialSurfaces.setBorder(
-      new EtchedBorder("Fiducial Surfaces For Analysis").getBorder());
+      new EtchedBorder("Analysis of Surface Angles").getBorder());
 
     //  Need an extra panel to make border extend the appropriate width
     JPanel pnlRBFiducual = new JPanel();
@@ -1262,6 +1265,7 @@ public class TiltalignPanel {
       ltfLocalXstretchAdditionalGroups,
       "Local distortion solution type");
 
+		pnlLocalDistortionSolution.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlLocalDistortionSolution.add(ltfLocalSkewGroupSize.getContainer());
     pnlLocalDistortionSolution.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlLocalDistortionSolution.add(ltfLocalSkewAdditionalGroups.getContainer());

@@ -19,6 +19,9 @@ import etomo.type.TiltAngleType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.6  2003/10/09 23:24:10  rickg
+ * <p> Bug#279  Added integer set method for nFiducials
+ * <p>
  * <p> Revision 2.5  2003/08/07 17:59:06  rickg
  * <p> Merged in tilt angle fix from beta2a branch
  * <p>
@@ -119,12 +122,12 @@ public class TiltalignParam
     rotationAngleSolutionType =
       Integer.parseInt(inputArgs[inputLine++].getArgument());
 
-    nAdditionalViewSets =
+    nSeparateViewGroups =
       Integer.parseInt(inputArgs[inputLine++].getArgument());
-    if (nAdditionalViewSets > 0) {
-      additionalViewGroups = new StringList(nAdditionalViewSets);
-      for (int i = 0; i < nAdditionalViewSets; i++) {
-        additionalViewGroups.set(i, inputArgs[inputLine++].getArgument());
+    if (nSeparateViewGroups > 0) {
+      separateViewGroups = new StringList(nSeparateViewGroups);
+      for (int i = 0; i < nSeparateViewGroups; i++) {
+        separateViewGroups.set(i, inputArgs[inputLine++].getArgument());
       }
     }
 		
@@ -461,9 +464,9 @@ public class TiltalignParam
     rotationAngleSolutionType = type;
   }
 
-  public void setAdditionalViewGroups(String newList) {
-    additionalViewGroups.parseString(newList);
-    nAdditionalViewSets = additionalViewGroups.getNElements();
+  public void setSeparateViewGroups(String newList) {
+    separateViewGroups.parseString(newList);
+    nSeparateViewGroups = separateViewGroups.getNElements();
   }
 
   public void setTiltAngleOffset(String newTiltAngleOffset) {
@@ -797,10 +800,10 @@ public class TiltalignParam
     buffer.append(rotationAngleSolutionType);
 
     buffer.append("\nN Additional View Sets: ");
-    buffer.append(nAdditionalViewSets);
+    buffer.append(nSeparateViewGroups);
 
     buffer.append("\nadditionalViewGroups: ");
-    buffer.append(additionalViewGroups);
+    buffer.append(separateViewGroups);
 
     buffer.append("\ntiltAngleSpec: ");
     buffer.append(tiltAngleSpec);
@@ -1071,12 +1074,12 @@ public class TiltalignParam
     // Increment the source list counter to skip the old view groups, the
     // comments for those entries are most likely not applicable
     int nSrcSets = Integer.parseInt(inputArgs[srcListCount].getArgument());
-    inputArgs[srcListCount].setArgument(nAdditionalViewSets);
+    inputArgs[srcListCount].setArgument(nSeparateViewGroups);
     inputArgList.add(inputArgs[srcListCount++]);
     srcListCount = srcListCount + nSrcSets;
-    for (int i = 0; i < nAdditionalViewSets; i++) {
+    for (int i = 0; i < nSeparateViewGroups; i++) {
       ComScriptInputArg viewSet = new ComScriptInputArg();
-      viewSet.setArgument(additionalViewGroups.get(i));
+      viewSet.setArgument(separateViewGroups.get(i));
       inputArgList.add(viewSet);
     }
 

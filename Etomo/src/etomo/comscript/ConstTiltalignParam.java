@@ -16,6 +16,9 @@ import etomo.type.TiltAngleSpec;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.0  2003/01/24 20:30:31  rickg
+ * <p> Single window merge to main branch
+ * <p>
  * <p> Revision 1.5.2.1  2003/01/24 18:33:42  rickg
  * <p> Single window GUI layout initial revision
  * <p>
@@ -55,8 +58,8 @@ public class ConstTiltalignParam {
   protected double initialImageRotation;
   protected int rotationAngleSolutionType;
 
-  protected int nAdditionalViewSets;
-  protected StringList additionalViewGroups;
+  protected int nSeparateViewGroups;
+  protected StringList separateViewGroups;
 
   protected TiltAngleSpec tiltAngleSpec;
   protected double tiltAngleOffset;
@@ -99,7 +102,7 @@ public class ConstTiltalignParam {
     imageParameters.setIntegerType(temp);
 
     includeExcludeList = new StringList(0);
-    additionalViewGroups = new StringList(0);
+    separateViewGroups = new StringList(0);
 
     tiltAngleSpec = new TiltAngleSpec();
 
@@ -182,12 +185,12 @@ public class ConstTiltalignParam {
     return rotationAngleSolutionType;
   }
 
-  public int getNAdditionalViewSets() {
-    return nAdditionalViewSets;
+  public int getNSeparateViewGroups() {
+    return nSeparateViewGroups;
   }
 
-  public String getAdditionalViewGroups() {
-    return additionalViewGroups.toString();
+  public String getSeparateViewGroups() {
+    return separateViewGroups.toString();
   }
 
   public TiltAngleSpec getTiltAngleSpec() {
