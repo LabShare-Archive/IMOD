@@ -1,8 +1,12 @@
 package etomo.ui;
 
+import java.awt.Component;
 import java.awt.Container;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+
+import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
@@ -21,6 +25,9 @@ import javax.swing.Timer;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.2  2003/05/27 08:53:38  rickg
+ * <p> Determinant progress bar now takes a string
+ * <p>
  * <p> Revision 2.1  2003/05/23 14:21:27  rickg
  * <p> Added determinant progress methods
  * <p>
@@ -36,6 +43,7 @@ public class ProgressPanel {
     "$Id$";
 
   private JPanel panel = new JPanel();
+  private JPanel progressPanel = new JPanel();
   private JLabel taskLabel = new JLabel();
   private JProgressBar progressBar = new JProgressBar();
   private int i = 0;
@@ -43,8 +51,11 @@ public class ProgressPanel {
 
   public ProgressPanel(String label) {
     taskLabel.setText(label);
+    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
     panel.add(taskLabel);
+    panel.add(Box.createRigidArea(FixedDim.x0_y5));
     panel.add(progressBar);
+    panel.setAlignmentY(Component.BOTTOM_ALIGNMENT);
   }
 
   public void setLabel(String label) {
