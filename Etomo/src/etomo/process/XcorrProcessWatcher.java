@@ -39,6 +39,7 @@ public class XcorrProcessWatcher implements Runnable {
     if (blendmont) {
       BlendmontProcessMonitor blendmontMonitor = new BlendmontProcessMonitor(
           applicationManager, axisID, BlendmontParam.XCORR_MODE);
+      blendmontMonitor.setLastProcess(false);
       Thread blendmontThread = new Thread(blendmontMonitor);
       blendmontThread.start();
       while (!blendmontMonitor.isDone()) {
@@ -75,6 +76,11 @@ public class XcorrProcessWatcher implements Runnable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.7  2005/03/09 22:31:26  sueh
+ * <p> bug# 533 Catching the interrupt exception sent by ComScriptProcess.
+ * <p> If it is sent while blendmont is running, there is a problem.  Pass the
+ * <p> interrupt to the current monitor so that it can stop the progress bar.
+ * <p>
  * <p> Revision 3.6  2005/03/09 18:11:15  sueh
  * <p> bug# 533 This class used to watch tiltxcorr in the xcorr script (see
  * <p> TiltxcorrProcessWatcher).  Now it watches the xcorr script.  First it uses
