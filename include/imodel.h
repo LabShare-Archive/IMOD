@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.6  2002/09/03 20:06:14  mast
+    Changed mat1 and mat3 in object this time; last time was in object view
+
     Revision 3.5  2002/09/03 19:37:01  mast
     Redefine object materials mat1 and mat3 from UINT to 4 UBYTES each because
     code accesses them as individual bytes in numbered positions
@@ -137,6 +140,7 @@
 #define IMODF_FLIPYZ (1l << 16)  /* data is stored with y,z coords flipped. */
 #define IMODF_TILTOK (1l << 15)  /* current tilt angles properly stored */
 #define IMODF_OTRANS_ORIGIN (1l << 14)  /* otrans has image origin values */
+#define IMODF_MAT1_IS_BYTES (1l << 13)  /* mat1 and mat3 are stored as bytes */
 
 
 /****************************** Structures ***********************************/
