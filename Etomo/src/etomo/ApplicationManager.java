@@ -83,6 +83,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.71  2004/06/15 20:08:49  rickg
+ * <p> Bug #383 Run solvematch instead of solvematch{shift|mod}
+ * <p>
  * <p> Revision 3.70  2004/06/14 23:39:53  rickg
  * <p> Bug #383 Transitioned to using solvematch
  * <p>
@@ -2595,7 +2598,7 @@ public class ApplicationManager {
     String tomopitchModelName = "tomopitch" + axisID.getExtension() + ".mod";
     try {
       imodManager.open(ImodManager.FULL_VOLUME_KEY, axisID);
-      imodManager.model(ImodManager.FULL_VOLUME_KEY, axisID, tomopitchModelName);
+      imodManager.model(ImodManager.FULL_VOLUME_KEY, axisID, tomopitchModelName, true);
       processTrack.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
       mainFrame.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
     }
