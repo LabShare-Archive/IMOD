@@ -27,6 +27,9 @@ import etomo.ui.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.27  2002/12/11 21:26:31  rickg
+ * <p> Added font setting into user prefs setting
+ * <p>
  * <p> Revision 1.26  2002/12/11 05:39:00  rickg
  * <p> Added basic font change method
  * <p>
@@ -1846,9 +1849,9 @@ public class ApplicationManager {
     if (settingsDialog != null) {
       settingsDialog.getParameters(userConfig);
       setUserPreferences();
-      
+
       mainFrame.repaintWindow();
-      
+
     }
   }
 
@@ -2064,8 +2067,6 @@ public class ApplicationManager {
   }
 
   public static void setUIFont(String fontFamily, int fontSize) {
-    FontUIResource fontBase =
-      new FontUIResource(fontFamily, Font.PLAIN, fontSize);
 
     // sets the default font for all Swing components.
     // ex. 
@@ -2075,8 +2076,12 @@ public class ApplicationManager {
     while (keys.hasMoreElements()) {
       Object key = keys.nextElement();
       Object value = UIManager.get(key);
-      if (value instanceof javax.swing.plaf.FontUIResource)
-        UIManager.put(key, fontBase);
+      if (value instanceof FontUIResource) {
+        FontUIResource currentFont = (FontUIResource) value;
+        FontUIResource newFont =
+          new FontUIResource(fontFamily, currentFont.getStyle(), fontSize);
+        UIManager.put(key, newFont);
+      }
     }
   }
 
