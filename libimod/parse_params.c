@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.2  2003/06/05 03:01:48  mast
+Adding return values  - error caught on SGI
+
 Revision 3.1  2003/06/05 00:22:49  mast
 Addition to IMOD
 
@@ -49,16 +52,17 @@ typedef struct pipOptions {
 } PipOptions;
 
 static char *types[] = {BOOLEAN_STRING, PARAM_FILE_STRING,
-			"LI", "I", "F", "IA", "FA", "CH"};
+			"LI", "I", "F", "IA", "FA", "CH", "FN"};
 static char *typeDescriptions[] = {
   "Boolean",
-  "Parameter File",
-  "List",
+  "Parameter file",
+  "List of integer ranges",
   "Integer",
-  "Float",
+  "Floating point",
   "Multiple integers",
   "Multiple floats",
-  "Character string",
+  "Text string",
+  "File name",
   "Unknown argument type"
 };
 static char numTypes = 8;
@@ -553,7 +557,7 @@ int PipSetError(char *errString)
   if (exitPrefix) {
     fprintf(outFile, "%s ", exitPrefix);
     fprintf(outFile, "%s\n", errorString ? errorString : "Unspecified error");
-    exit(0);
+    exit(1);
   }
   return 0;
 }
