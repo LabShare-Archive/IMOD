@@ -20,6 +20,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.51  2005/01/12 00:42:12  sueh
+ * bug# 579 Set usedLocalAlignments in TomogramState after tiltalign.
+ *
  * Revision 3.50  2005/01/08 01:52:32  sueh
  * bug# 578 Passed NewstParam to startComScript().  Added post
  * processing for tilt.  Only doing post processing on newst when it was
@@ -956,7 +959,7 @@ public class ProcessManager extends BaseProcessManager {
     throws SystemProcessException {
     AxisID axisID = AxisID.SECOND;
     //Run transferfid on the destination axis.
-    if (transferfidParam.isBToA()) {
+    if (transferfidParam.getBToA().is()) {
       axisID = AxisID.FIRST;
     }
 
