@@ -29,6 +29,9 @@
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.12  2004/12/28 23:46:02  sueh
+ * <p> $bug# 567 Add functions to handle StringList, and FortranInputString[].
+ * <p> $
  * <p> $Revision 1.11  2004/06/25 18:06:58  sueh
  * <p> $bug# 484 adding function to return integer value or default
  * <p> $
@@ -170,18 +173,18 @@ public class ParamUtilities {
    * @return
    * @throws FortranInputSyntaxException
    */
-  public static FortranInputString[] parse(String value, boolean integerType)
+  public static FortranInputString[] parse(String value, boolean integerType, int inputStringSize)
       throws FortranInputSyntaxException {
     if (value == null || value.matches(zeroOrMoreWhiteSpace)) {
       return null;
     }
     StringList stringList = new StringList();
     stringList.parseString(value);
-    boolean[] integerTypeArray = new boolean[stringList.getNElements()];
+    boolean[] integerTypeArray = new boolean[inputStringSize];
     for (int i = 0; i < integerTypeArray.length; i++) {
       integerTypeArray[i] = integerType;
     }
-    return parse(stringList, integerTypeArray.length, integerTypeArray);
+    return parse(stringList, integerTypeArray, inputStringSize);
   }
 
   /**
@@ -192,13 +195,14 @@ public class ParamUtilities {
    * @return
    * @throws FortranInputSyntaxException
    */
-  public static FortranInputString[] parse(StringList stringList, int size,
-      boolean[] integerType) throws FortranInputSyntaxException {
+  public static FortranInputString[] parse(StringList stringList,
+      boolean[] integerType, int inputStringSize)
+      throws FortranInputSyntaxException {
     if (stringList != null && stringList.getNElements() > 0) {
       int stringListSize = stringList.getNElements();
       FortranInputString[] inputStringArray = new FortranInputString[stringListSize];
       for (int i = 0; i < stringListSize; i++) {
-        inputStringArray[i] = new FortranInputString(size);
+        inputStringArray[i] = new FortranInputString(inputStringSize);
         inputStringArray[i].setIntegerType(integerType);
         inputStringArray[i].validateAndSet(stringList.get(i));
       }
@@ -285,7 +289,7 @@ public class ParamUtilities {
       ComScriptCommand scriptCommand, String keyword, int size, boolean[] integerType)
       throws InvalidParameterException, FortranInputSyntaxException {
     if (scriptCommand.hasKeyword(keyword)) {
-      return parse(new StringList(scriptCommand.getValues(keyword)), size, integerType);
+      return parse(new StringList(scriptCommand.getValues(keyword)), integerType, size);
     }
     return null;
   }
