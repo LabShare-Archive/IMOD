@@ -15,7 +15,7 @@ option.  The second argument is a numeric code for an action.  The third is
 an optional text string, such as the name of a model file when opening a 
 model.
 .P
-Currently, 3dmod will accept 8 commands:
+Currently, 3dmod will accept the following commands:
    1  Open model file (follow with file name)
    2  Save model file
    3  Open model view window
@@ -27,6 +27,19 @@ Currently, 3dmod will accept 8 commands:
          file)
    8  Open Bead Fixer window or raise it if already open
    9  Open a Zap window if none are open, otherwise raise all windows
+  10  Report the image coordinates of the Zap window rubberband (lower left
+         X and Y and upper right X and Y)
+  11  Set object properties unconditionally  OR
+  12  Set object properties only if specified object is new (has no contours)
+         For 11 or 12, follow the action with up to 5 numbers;
+            use -1 to leave a property unchanged:
+           Object number (numbered from 1), or <= 0 for current object
+           0 for closed contours, 1 for open contours, 2 for scattered points
+           0 for no symbols, 1 for circles, 2 for squares, 3 for triangles;
+               add 8 for filled symbols
+           Symbol size (>= 1)
+           3D point radius
+           
 .SH AUTHOR
 David Mastronarde,  mast@colorado.edu
 .SH SEE ALSO
