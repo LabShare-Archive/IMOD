@@ -22,6 +22,9 @@ import etomo.type.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.4  2002/10/22 23:26:22  rickg
+ * <p> Merged directory and fileset name to a single UI entity
+ * <p>
  * <p> Revision 1.3  2002/10/17 22:40:55  rickg
  * <p> this reference removed applicationManager messages
  * <p>
@@ -366,10 +369,14 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
 
   public MetaData getFields() {
     MetaData metaData = new MetaData();
-    metaData.setFilesetName(textFieldFileset.getText());
+
     metaData.setBackupDirectory(textFieldBackupDirectory.getText());
     metaData.setDataSource(getDataSource());
     metaData.setAxisType(getAxisType());
+
+    //  The fileset name needs to be set after the axis type so the metadata
+    // object modifies the ending correctly
+    metaData.setFilesetName(textFieldFileset.getText());
     metaData.setViewType(getViewType());
     metaData.setSectionType(getSectionType());
     metaData.setPixelSize(Double.parseDouble(ltfPixelSize.getText()));
