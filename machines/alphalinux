@@ -71,9 +71,7 @@ echo 'F77LIBS   = '                  >> $configure
 # tell the Fortran and C routines to swap the bytes for ALPHA
 #
 \cp $endian_dir/little_endian.inc $endian_dir/endian.inc
-echo '#ifndef LITTLE_ENDIAN' >> $hconfigure
-echo '#define LITTLE_ENDIAN' >> $hconfigure
-echo '#endif' >> $hconfigure
+echo '#define B3D_LITTLE_ENDIAN' >> $hconfigure
 echo '#define SWAP_IEEE_FLOATS' >> $hconfigure
 
 

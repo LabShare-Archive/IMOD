@@ -1447,7 +1447,7 @@ static void puttiffentry(short tag, short type,
   fwrite(&length, sizeof(long), 1, fout);
 
   /* DNM: change __vms to LITTLE_ENDIAN to work on PC */
-#ifndef LITTLE_ENDIAN
+#ifndef B3D_LITTLE_ENDIAN
   if (length == 1)
     switch(type){
     case 1:
@@ -1645,7 +1645,7 @@ void b3dSnapshot_TIF(char *fname, int rgbmode, int *limits,
   }
 
   /* DNM: change __vms to LITTLE_ENDIAN to work on PC */
-#ifdef LITTLE_ENDIAN
+#ifdef B3D_LITTLE_ENDIAN
   pixel = 0x002A4949;
 #else
   pixel = 0x4D4D002A;
@@ -1800,6 +1800,9 @@ void b3dSnapshot(char *fname)
 
 /*
 $Log$
+Revision 4.7  2003/03/24 17:58:09  mast
+Changes for new preferences capability
+
 Revision 4.6  2003/03/12 21:34:19  mast
 Made b3dGetNewCIImageSize return null if there is failure to get memory for
 image, and made pixel drawing routines test for null image, all to protect
