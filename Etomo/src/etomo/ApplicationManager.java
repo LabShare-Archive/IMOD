@@ -94,6 +94,12 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.131  2005/03/04 00:06:31  sueh
+ * <p> bug# 533 Changes for montaging only.  imodErasedStack(): add piece list
+ * <p> file to 3dmod call.  ImodManualErase():  add frames to 3dmod call.
+ * <p> UpdateXcorrCom():  Update blendmont param.  Update goto param based
+ * <p> on whether blendmont needs to be called.
+ * <p>
  * <p> Revision 3.130  2005/03/02 23:10:57  sueh
  * <p> bug# 533 imodXrayModel():  set frames to true if processing a montage.
  * <p>
@@ -1908,14 +1914,24 @@ public class ApplicationManager extends BaseManager {
     //  Create the dialog box
     comScriptMgr.loadXcorr(axisID);
     coarseAlignDialog.setCrossCorrelationParams(comScriptMgr.getTiltxcorrParam(axisID));
-    comScriptMgr.loadPrenewst(axisID);
+    if (metaData.getViewType() == ViewType.MONTAGE) {
+      comScriptMgr.loadPreblend(axisID);
+    }
+    else {
+      comScriptMgr.loadPrenewst(axisID);
+    }
     // TODO: does the align.com file really need to be loaded here?
     //  - if so add a comment
     //  - if not remove
     comScriptMgr.loadAlign(axisID);
-
-    NewstParam prenewstParam = comScriptMgr.getPrenewstParam(axisID);
-    coarseAlignDialog.setPrenewstParams(prenewstParam);
+    
+    if (metaData.getViewType() == ViewType.MONTAGE) {
+      
+    }
+    else {
+      NewstParam prenewstParam = comScriptMgr.getPrenewstParam(axisID);
+      coarseAlignDialog.setPrenewstParams(prenewstParam);
+    }
 
     coarseAlignDialog.setFiducialessAlignment(metaData.isFiducialessAlignment(axisID));
     coarseAlignDialog.setTiltAxisAngle(metaData.getImageRotation(axisID));
@@ -2027,25 +2043,38 @@ public class ApplicationManager extends BaseManager {
    * Run the coarse alignment script
    */
   public void coarseAlign(AxisID axisID) {
-    if (updatePrenewstCom(axisID)) {
-      processTrack.setCoarseAlignmentState(ProcessState.INPROGRESS, axisID);
-      mainPanel.setCoarseAlignState(ProcessState.INPROGRESS, axisID);
-      nextProcess = "checkUpdateFiducialModel";
-      String threadName;
-      try {
-        threadName = processMgr.coarseAlign(axisID);
-      }
-      catch (SystemProcessException e) {
-        e.printStackTrace();
-        String[] message = new String[2];
-        message[0] = "Can not execute prenewst" + axisID.getExtension()
-          + ".com";
-        message[1] = e.getMessage();
-        mainPanel.openMessageDialog(message, "Unable to execute com script");
+    String commandName;
+    if (metaData.getViewType() == ViewType.MONTAGE) {
+      updatePreblendCom(axisID);
+      commandName = "preblend";
+    }
+    else {
+      if (!updatePrenewstCom(axisID)) {
         return;
       }
-      setThreadName(threadName, axisID);
+      commandName = "prenewst";
     }
+    processTrack.setCoarseAlignmentState(ProcessState.INPROGRESS, axisID);
+    mainPanel.setCoarseAlignState(ProcessState.INPROGRESS, axisID);
+    nextProcess = "checkUpdateFiducialModel";
+    String threadName;
+    try {
+      if (metaData.getViewType() == ViewType.MONTAGE) {
+        threadName = processMgr.preblend(axisID);
+      }
+      else {
+        threadName = processMgr.coarseAlign(axisID);
+      }
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Can not execute " + commandName + axisID.getExtension() + ".com";
+      message[1] = e.getMessage();
+      mainPanel.openMessageDialog(message, "Unable to execute com script");
+      return;
+    }
+    setThreadName(threadName, axisID);
   }
 
   /**
@@ -2074,6 +2103,15 @@ public class ApplicationManager extends BaseManager {
       return;
     }
     processMgr.midasRawStack(axisID, metaData.getImageRotation(axisID));
+    processTrack.setCoarseAlignmentState(ProcessState.INPROGRESS, axisID);
+    mainPanel.setCoarseAlignState(ProcessState.INPROGRESS, axisID);
+  }
+  
+  /**
+   * Run fix  edges in Midas
+   */
+  public void midasEdges(AxisID axisID) {
+    processMgr.midasEdges(axisID);
     processTrack.setCoarseAlignmentState(ProcessState.INPROGRESS, axisID);
     mainPanel.setCoarseAlignState(ProcessState.INPROGRESS, axisID);
   }
@@ -2159,6 +2197,19 @@ public class ApplicationManager extends BaseManager {
     }
     return true;
   }
+  
+  /**
+   * Get the preblend parameters from the dialog box and update the preblend
+   * com script.
+   * @param axisID
+   * @return
+   */
+  private void updatePreblendCom(AxisID axisID) {
+    BlendmontParam preblendParam = comScriptMgr.getPreblendParam(axisID);
+    preblendParam.setBlendmontState();
+    comScriptMgr.savePreblend(preblendParam, axisID);
+  }
+
 
   /**
    * Get the fiducialess parameters from the specified dialog and set the
