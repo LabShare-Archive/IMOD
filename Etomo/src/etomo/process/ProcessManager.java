@@ -37,6 +37,9 @@ import java.util.ArrayList;
  * 
  * <p>
  * $Log$
+ * Revision 3.2  2003/11/26 23:39:14  rickg
+ * Debug flag and getter changed to static in AppManager.
+ *
  * Revision 3.1  2003/11/10 07:33:06  rickg
  * Bug# 353 Transferfid log window is now a standard log window
  *
@@ -1284,6 +1287,7 @@ public class ProcessManager {
    * @return A string array of the child processes or null if they don't exist
    */
   private String[] getChildProcessList(String processID) {
+//    System.out.println("in getChildProcessList: processID=" + processID);
     //  Run the appropriate version of ps
     SystemProgram ps = new SystemProgram("ps -l");
     ps.run();
@@ -1312,8 +1316,10 @@ public class ProcessManager {
     String[] fields;
     for (int i = 1; i < stdout.length; i++) {
       fields = stdout[i].trim().split("\\s+");
+//      System.out.println("fields: PID=" + fields[idxPID] + ",PPID=" + fields[idxPPID] + ",name=" + fields[13]);
       if (fields[idxPPID].equals(processID)) {
         childrenPID.add(fields[idxPID]);
+//        System.out.println("added : PID=" + fields[idxPID] + ",PPID=" + fields[idxPPID] + ",name=" + fields[13]);
       }
     }
 
