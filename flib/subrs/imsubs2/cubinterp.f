@@ -25,6 +25,14 @@ C	Yo = a21(Xi - Xc) + a22(Yi - Yc) + NYB/2. + YT
 C	  
 c	  written by DNM, April 2000.
 c
+c	  $Author$
+c
+c	  $Date$
+c
+c	  $Revision$
+c
+c	  $Log$
+c
 	SUBROUTINE CUBINTERP(ARRAY,BRAY,NXA,NYA,NXB,NYB,AMAT,
      .	XC,YC,XT,YT,SCALE,DMEAN)
 	DIMENSION ARRAY(NXA,NYA),BRAY(NXB,NYB),AMAT(2,2)
@@ -51,8 +59,8 @@ C
 	  xnd=nxb
 	  linefb=0
 	  if(abs(a11).gt.1.e-10)then
-	    xlft=(2.-xbase)/a11
-	    xrt=(nxa-1.001-xbase)/a11
+	    xlft=(2.01-xbase)/a11
+	    xrt=(nxa-1.01-xbase)/a11
 	    xst=max(xst,min(xlft,xrt))
 	    xnd=min(xnd,max(xlft,xrt))
 	  elseif(xbase.lt.2..or.xbase.ge.nxa-1.)then
@@ -61,8 +69,8 @@ C
 	    if(xbase.ge.0.5.or.xbase.le.nxa+0.5)linefb=1
 	  endif
 	  if(abs(a21).gt.1.e-10)then
-	    xlft=(2.-ybase)/a21
-	    xrt=(nya-1.001-ybase)/a21
+	    xlft=(2.01-ybase)/a21
+	    xrt=(nya-1.01-ybase)/a21
 	    xst=max(xst,min(xlft,xrt))
 	    xnd=min(xnd,max(xlft,xrt))
 	  elseif(ybase.lt.2..or.ybase.ge.nya-1.)then
