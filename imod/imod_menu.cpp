@@ -237,7 +237,7 @@ void InfoWindow::fileWriteSlot(int item)
   case FWRITE_MENU_NFF: /* write NFF */
     releaseKeyboard();
     qname = QFileDialog::getSaveFileName(QString::null, QString::null, 0, 0, 
-                                       "File to save as Wimp:");
+                                       "File to save as NFF:");
     if (qname.isEmpty())
       break;
     fout =  fopen((QDir::convertSeparators(qname)).latin1(), "w");
@@ -1112,6 +1112,9 @@ static Icont *imodContourBreakByZ(Iobj *obj, int co)
 
 /*
 $Log$
+Revision 4.17  2004/09/21 20:17:10  mast
+Added menu option to renumber object
+
 Revision 4.16  2004/06/04 03:17:36  mast
 Added argument to call to open model
 
