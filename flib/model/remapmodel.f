@@ -50,6 +50,10 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.1  2002/05/20 15:51:09  mast
+c	  Made sure the elimination of Z values did not confuse it into 
+c	  thinking the new Z values were out of order.
+c	
 c
 	parameter (limsec=1000)
 	integer*4 listz(limsec),newlist(limsec),indxzlst(50*limsec)
