@@ -31,7 +31,6 @@
 #define plax_sctext   p_sctext__
 #define plax_putc     putc_
 #define plax_erase    plax_erase__
-#define plax_erase    plax_erase__
 #define plax_initialize  plax_initialize__
 
 #else

@@ -1,6 +1,13 @@
 #include "xplax.h"
+void plax_initialize(char *string, int strsize)
+{
+  realgraphicsmain_();
+  exit(0);
+}
+
 int plax_open(void) {}
 void plax_close(void) {}
+int plax_erase(void) {}
 void plax_flush(void) {}
 void plax_mapcolor(int *color, int *ired, int *igreen, int *iblue) {}
 void plax_box(int *cindex, int *ix1, int *iy1, int *ix2, int *iy2) {}

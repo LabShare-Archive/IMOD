@@ -42,6 +42,12 @@ int PlaxFontsize[FONT_ARRAY_SIZE][2] = {
 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
+void plax_initialize(char *string, int strsize)
+{
+  realgraphicsmain_();
+  exit(0);
+}
+
 int plax_open(void)
 {
      XVisualInfo *vlist;

@@ -35,6 +35,8 @@ typedef struct
 #define plax_poly     P_POLY
 #define plax_polyo    P_POLYO
 #define plax_sctext   P_SCTEXT
+#define plax_erase    PLAX_ERASE
+#define plax_initialize  PLAX_INITIALIZE
 
 #else
 
@@ -54,6 +56,8 @@ typedef struct
 #define plax_polyo    p_polyo__
 #define plax_sctext   p_sctext__
 #define plax_putc     putc_
+#define plax_erase    plax_erase__
+#define plax_initialize  plax_initialize__
 
 #else
 
@@ -70,6 +74,8 @@ typedef struct
 #define plax_poly     p_poly_
 #define plax_polyo    p_polyo_
 #define plax_sctext   p_sctext_
+#define plax_erase    plax_erase_
+#define plax_initialize  plax_initialize_
 
 #endif
 
@@ -77,9 +83,11 @@ typedef struct
 
 #endif /* PLAX_CTEST */
 
+void plax_initialize(char *string, int strsize);
 int plax_open(void);
 void plax_close(void);
 void plax_flush(void);
+void plax_erase(void);
 void plax_mapcolor(int *color, int *ired, int *igreen, int *iblue);
 void plax_box(int *cindex, int *ix1, int *iy1, int *ix2, int *iy2);
 void plax_boxo(int *cindex, int *ix1, int *iy1, int *ix2, int *iy2);
