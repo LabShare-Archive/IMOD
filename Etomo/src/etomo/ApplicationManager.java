@@ -74,6 +74,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.29  2003/05/08 19:58:53  rickg
+ * <p> Work around for bug in File.getParent
+ * <p>
  * <p> Revision 2.28  2003/05/07 23:04:29  rickg
  * <p> System property user.dir now defines the working directory
  * <p> Home is now read from the System properties
@@ -484,7 +487,7 @@ public class ApplicationManager {
    * Open the main window in processing mode
    */
   public void openProcessingPanel() {
-    mainFrame.setLocation(0, 0);
+    //mainFrame.setLocation(0, 0);
     mainFrame.setSize(
       new Dimension(
         userConfig.getMainWindowWidth(),
