@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.2  2002/12/01 16:51:34  mast
+    Changes to eliminate warnings on SGI
+
     Revision 3.1  2002/12/01 15:34:41  mast
     Changes to get clean compilation with g++
 
@@ -421,10 +424,11 @@ void imodv_input_cb(Widget w, XtPointer client, XtPointer call)
       break;
 
     case XK_r:
-      if (Imodv->lowres)
-        Imodv->lowres = 0;
+      if (a->lowres)
+	a->imod->view->world &= ~VIEW_WORLD_LOWRES;
       else
-        Imodv->lowres = 1;
+	a->imod->view->world |= VIEW_WORLD_LOWRES;
+      a->lowres = 1 - a->lowres;
       imodvMenuLowres(a->lowres);
       imodvDraw(a);
       break;
