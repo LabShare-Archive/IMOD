@@ -111,11 +111,11 @@ public class ImodManagerTest extends TestCase {
     //optional imods
     //trialTomogram
     tester = newTester(trialTomogram);
-    imodManager.create(trialTomogram, AxisID.ONLY, datasetName);
+    imodManager.newImod(trialTomogram, AxisID.ONLY, datasetName);
     tester.equals(imodManager.get(trialTomogram));
     //Test preview
     tester = newTester(preview);
-    imodManager.create(preview, AxisID.ONLY);
+    imodManager.newImod(preview, AxisID.ONLY);
     tester.equals(imodManager.get(preview));
     //Test dual axis
     //original code
@@ -208,17 +208,17 @@ public class ImodManagerTest extends TestCase {
     //optional imods
     //trialTomogram
     tester = newTester(trialTomogram, a);
-    imodManager.create(trialTomogram, a, datasetName);
+    imodManager.newImod(trialTomogram, a, datasetName);
     tester.equals(imodManager.get(trialTomogram, a));
     tester = newTester(trialTomogram, b);
-    imodManager.create(trialTomogram, b, datasetName);
+    imodManager.newImod(trialTomogram, b, datasetName);
     tester.equals(imodManager.get(trialTomogram, b));
     //Test preview
     tester = newTester(preview, a);
-    imodManager.create(preview, a);
+    imodManager.newImod(preview, a);
     tester.equals(imodManager.get(preview, a));
     tester = newTester(preview, b);
-    imodManager.create(preview, b);
+    imodManager.newImod(preview, b);
     tester.equals(imodManager.get(preview, b));
   }
 
