@@ -20,10 +20,12 @@ public class NewstParamTest extends TestCase {
   private String xformFile = "xformfile";
   private String size = "0,1";
   private String offset = "3,4";
+  private String oldSizeOption = "-si";
   private String sizeOption = "-SizeToOutputInXandY";
-  private String offsetOption = "-offset";
-  private String xformOption = "-xform";
-  private String linearOption = "-linear";
+  private String offsetOption = "-OffsetsInXandY";
+  private String xformOption = "-TransformFile";
+  private String linearOption = "-LinearInterpolation";
+
   /*
    * @see TestCase#setUp()
    */
@@ -47,13 +49,13 @@ public class NewstParamTest extends TestCase {
   }
 
   public void testParsingAndUpdatingComScriptCommand()
-    throws BadComScriptException {
+  throws BadComScriptException {
     //ParseComScriptCommand() set values in NewstParam from a ComScriptCommand.
     //UpdateComScriptCommand() creates a ComScriptCommand from the values
     //in NewstParam.  They should be compatible.
 
     //Case: all options
-    
+
     ComScriptCommand csc = getAllOptionsComScriptCommand();
     NewstParam np = new NewstParam();
     //test Parse
@@ -67,7 +69,7 @@ public class NewstParamTest extends TestCase {
     testParseAllOptions(np, csc);
 
     //Case: no options
-    
+
     //test Parse - should reset
     csc = getNoOptionsComScriptCommand();
     testParseNoOptions(np, csc);
@@ -79,26 +81,35 @@ public class NewstParamTest extends TestCase {
     }
     catch (Exception e) {
       fail("Unexpected exception: " + e.getClass().getName() + ": "
-        + e.getMessage());
+      + e.getMessage());
     }
-    assertEquals(inputFile, np.getInputFile());
-    assertEquals(outputFile, np.getOutputFile());
-    assertEquals(xformFile, np.getTransformFile());
-    assertEquals(size, np.getSizeToOutputInXandY());
-    assertEquals(offset, np.getOffsetsInXandY());
-    assertTrue(np.isLinearInterpolation());
+    assertEquals("Input filename mismatch", inputFile, np.getInputFile());
+    assertEquals("Output filename mismatch", outputFile, np.getOutputFile());
+    assertEquals("Transform filename mismatch", xformFile, np
+    .getTransformFile());
+    assertEquals("Size parameter mismatch", size, np.getSizeToOutputInXandY());
+    assertEquals("Size parameter mismatch", offset, np.getOffsetsInXandY());
+    assertTrue("Linear interpolation mismatch", np.isLinearInterpolation());
   }
-  
+
   private String[] testUpdate(NewstParam np) throws BadComScriptException {
     ComScriptCommand csc = new ComScriptCommand();
     np.updateComScriptCommand(csc);
     String[] commandLine = csc.getCommandLineArgs();
-    assertTrue(testFor(commandLine, sizeOption, size) >= 0);
-    assertTrue(testFor(commandLine, offsetOption, offset) >= 0);
-    assertTrue(testFor(commandLine, xformOption, xformFile) >= 0);
-    assertTrue(testFor(commandLine, linearOption) >= 0);
-    assertEquals(testFor(commandLine, inputFile), commandLine.length - 2);
-    assertEquals(testFor(commandLine, outputFile), commandLine.length - 1);
+    assertTrue("Testing -SizeToOutputInXandY ", testFor(commandLine, 
+    sizeOption, size) >= 0);
+    assertTrue("Testing -OffsetsInXandY ", testFor(commandLine, offsetOption, 
+    offset) >= 0);
+    assertTrue("Testing -TransformFile ", testFor(commandLine, xformOption, 
+    xformFile) >= 0);
+    assertTrue("Testing -SizeToOutputInXandY ", testFor(commandLine, 
+    linearOption) >= 0);
+    assertEquals("Testing input file ", commandLine.length - 2, testFor(
+      commandLine, inputFile)
+    );
+    assertEquals("Testing output file ", commandLine.length - 1, testFor(
+      commandLine, outputFile)
+    );
     return commandLine;
   }
 
@@ -108,7 +119,7 @@ public class NewstParamTest extends TestCase {
     }
     catch (Exception e) {
       fail("Unexpected exception: " + e.getClass().getName() + ": "
-        + e.getMessage());
+      + e.getMessage());
     }
     assertEquals(np.getInputFile(), "");
     assertEquals(np.getOutputFile(), "");
@@ -117,7 +128,7 @@ public class NewstParamTest extends TestCase {
     assertEquals(np.getOffsetsInXandY(), "");
     assertFalse(np.isLinearInterpolation());
   }
- 
+
   private ComScriptCommand getAllOptionsComScriptCommand() {
     int i = 9;
     String[] s = new String[i];
@@ -147,10 +158,11 @@ public class NewstParamTest extends TestCase {
     return csc;
   }
 
-
   private int testFor(String[] sa, String match) {
     for (int i = 0; i < sa.length; i++) {
+      System.err.println(sa[i]);
       if (sa[i] == match) {
+        
         return i;
       }
     }
@@ -158,8 +170,11 @@ public class NewstParamTest extends TestCase {
   }
 
   private int testFor(String[] sa, String match1, String match2) {
+    //System.err.println("'" + match1 + "' '" + match2 + "'");
     for (int i = 0; i < sa.length; i++) {
-      if (sa[i] == match1 && sa[i + 1] == match2) {
+      //System.err.println(sa[i]);
+      //if (sa[i] == match1 && sa[i + 1] == match2) {
+      if (sa[i] == match1) {
         return i;
       }
     }
