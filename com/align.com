@@ -16,7 +16,6 @@ OutputResidualFile	g5a.resid
 OutputFidXYZFile	g5afid.xyz
 OutputTiltFile	g5a.tlt
 OutputTransformFile	g5a.xf
-OutputZFactorFile	g5a.zfac
 #ExcludeList
 RotationAngle	0.0
 FirstTiltAngle	-60.
