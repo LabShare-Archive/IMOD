@@ -8,11 +8,25 @@ c	  for singularity, verified basically same program as GAUSSJ from
 c	  Press et al 1986 for Gauss-Jordan elimination, changed arguments,
 c	  removed determinant calculation and augmented treatment of B
 c
+c	  $Author$
+c
+c	  $Date$
+c
+c	  $Revision$
+c
+c	  $Log$
+c
 	subroutine gaussj(a,n,np,b,m,mp)
         parameter (msiz=1000)
 	dimension a(np,np), b(np,mp), pivot(msiz), ipivot(msiz),
      1 index(msiz,2)
 	equivalence (irow,jrow), (icolum,jcolum), (amax, t, swap)
+
+	if (n .gt. msiz) then
+	  print *
+	  print *,'ERROR: GAUSSJ - MATRIX TOO LARGE FOR INTERNAL ARRAYS'
+	  call exit(1)
+	endif
 	do 20 j=1,n
 	  ipivot(j)=0
 20	continue 
@@ -28,7 +42,7 @@ c
 		    amax=abs(a(j,k))
 		  endif
 		elseif(ipivot(k).gt.1)then
-		  write(*,*) 'Singular matrix'
+		  write(*,*) 'GAUSSJ: Singular matrix'
 		  return
 		endif
 100	      continue
