@@ -98,7 +98,8 @@ void imod_usage(char *name)
   qstr += "Options: -xyz  Open xyz window first.\n";
   qstr += "         -S    Open slicer window first.\n";
   qstr += "         -V    Open model view window first.\n";
-  qstr += "         -Z    Open Zap window (use with -S, -xyz, or -V)\n";
+  qstr += "         -Z    Open Zap window (use with -S, -xyz, or -V).\n";
+  qstr += "         -O    Set options with startup dialog box.\n";
   qstr += "         -x min,max  Load in sub image.\n";
   qstr += "         -y min,max  Load in sub image.\n";
   qstr += "         -z min,max  Load in sub image.\n";
@@ -140,36 +141,37 @@ int main( int argc, char *argv[])
   int zapOpen      = FALSE;
   int modelViewOpen= FALSE;
   int print_wid    = FALSE;
-  int loadinfo     = FALSE;
   int fillCache    = FALSE;
   int new_model_created = FALSE;
   int i      = 0;
-  int vers;
   int cmap;
-  int cacheSize = 0;
   int namelen;
   int frames = 0;
   int firstfile = 0;
   int lastimage;
   int  pathlen;
-  int grayrgbs = 0;
   int nframex = 0;
   int nframey = 0;
   int overx = 0;
   int overy = 0;
-  float font_scale = 0.;
+  int doStartup = 0;
   Iobj *obj;
   QString qname;
   int doFork = 1;
   char *cmdLineStyle = NULL;
   int doImodv = 0;
+  int overEntered = 0;
+  int argScan;
   int nChars;
   QRect infoGeom;
+  StartupForm *startup;
 
   /* Initialize data. */
   App = &app;
   App->rgba = 1;    /* Set to 1 to force RGB visual */
   App->exiting = 0;
+  App->cvi = &vi;
+  App->base = Rampbase;
 
   /*DNM: prescan for debug, ci and style flags before the display_init */
   /* Cancel forking on debug or -W output */
@@ -194,6 +196,11 @@ int main( int argc, char *argv[])
     
     if (!strcmp("-modv", argv[i]) || !strcmp("-view", argv[i]))
       doImodv = 1;
+
+    if (!strcmp("-O", argv[i]))
+      doStartup = 1;
+    if (argv[i][0] == '-')
+      firstfile = i + 1;
   }
 
 #ifndef NO_IMOD_FORK
@@ -201,14 +208,6 @@ int main( int argc, char *argv[])
   if (doFork)
     if (fork())
       exit(0);
-#endif
-
-#ifndef _WIN32
-  /* if no input files, print help stuff */
-  /*  if (argc < 2){
-    imod_usage(argv[0]);
-    exit(1);
-    } */
 #endif
 
   /* Open the Qt application */
@@ -225,15 +224,24 @@ int main( int argc, char *argv[])
   App->iconPixmap = new QPixmap(QImage(b3dicon));
 
   /* if no input files, open startup window */
-  if (argc < 2) {
-    StartupForm *startup = new StartupForm(NULL, "startup dialog", true);
+  i = strlen(argv[0]);
+  if (argv[0][i-1] == 'v')
+    doImodv = 1;
+  if (argc < 2 || (doStartup && doImodv)) {
+    startup = new StartupForm(NULL, "startup dialog", true);
     startup->setIcon(*(App->iconPixmap));
+    if (doImodv) 
+      startup->setValues(&vi, argv, firstfile, argc, doImodv, plistfname, 
+                         xyzwinopen, sliceropen, zapOpen, modelViewOpen, 
+                         fillCache, ImodTrans, frames,
+                         nframex, nframey, overx, overy, overEntered);
     if (startup->exec() == QDialog::Rejected) {
       imod_usage(argv[0]);
       exit(1);
     }
     
     argv = startup->getArguments(argc);
+    doImodv = 0;
     /*for (i = 0; i < argc; i++)
       fprintf(stderr, "%s ", argv[i]);
       fprintf(stderr, "\n"); */
@@ -247,207 +255,206 @@ int main( int argc, char *argv[])
     exit(0);
   }
 
-  imod_display_init(App, argv);
-  mrc_init_li(&li, NULL);
-  vi.li = &li;
+  /* DNM: Find out how many imods this user is running.  Used to be used for
+   SGI colormaps.  Could be used to offset Info window.  WEXITSTATUS needed
+  on Linux/SGI, not needed on Mac */
+  /*
+  cmap = system ("exit `\\ps -a | grep '[3 ][di]mod$' | wc -l`");
+  cmap = WEXITSTATUS(cmap);
+  printf("Returned cmap = %d\n", cmap); 
+  */
 
   /*******************/
-  /* Initialize Data */
-  App->cvi = &vi;
-  ivwInit(&vi);
-  vi.fp = fin;
-  vi.vmSize = cacheSize;
-  vi.flippable = 1;
+  /* Loop once or twice on arguments; initialize Data each time */
 
-#ifdef __sgi
-  /* DNM: Find out how many imods this user is running and set the cmap to
-     that number.  Also change the interval from 300 to 330 here and in
-     imod_menu.c */
-  cmap = system ("exit `\\ps -a | grep 3dmod | wc -l`");
-  cmap = WEXITSTATUS(cmap);
-  /*     printf("Returned cmap = %d\n", cmap); */
-  if (cmap <= 0)
-    cmap = 1;
-  if (cmap > MAXIMUM_RAMPS)
-    cmap = MAXIMUM_RAMPS;
-  Rampbase  = RAMPBASE + ((cmap - 1) * RAMP_INTERVAL);
-#endif
+  for (argScan = 0; argScan <= doStartup; argScan++) { 
+    mrc_init_li(&li, NULL);
+    ivwInit(&vi);
+    vi.li = &li;
+    plistfname = NULL;
+    xyzwinopen   = FALSE;
+    sliceropen   = FALSE;
+    zapOpen      = FALSE;
+    modelViewOpen= FALSE;
+    fillCache    = FALSE;
+    ImodTrans  = TRUE;
+    frames     = 0;
+    nframex = 0;
+    nframey = 0;
+    overx = 0;
+    overy = 0;
+    firstfile = 0;
+    overEntered = 0;
 
-  App->base = Rampbase;
-
-  /* handle input options. */
-  for (i = 1; i < argc; i++){
-    if (argv[i][0] == '-'){
-      if (firstfile) {
-        imodError(NULL, "3dmod: invalid to have argument %s after"
-          " first filename\n", argv[i]);
-        exit(1);
-      }
-      switch (argv[i][1]){
-        
-      case 'c':
-        if (argv[i][2] == 'i')
-          break;
-        cmap = atoi(argv[++i]);
-        if ((cmap > 12) || (cmap < 1)){
-          imodError(NULL, "3dmod: valid -c range is 1 - 12\n");
-          exit(-1);
+    /* handle input options. */
+    for (i = 1; i < argc; i++){
+      if (argv[i][0] == '-'){
+        if (firstfile) {
+          imodError(NULL, "3dmod: invalid to have argument %s after"
+                    " first filename\n", argv[i]);
+          exit(1);
         }
-        Rampbase  = 256 + ((cmap - 1) * 330);
-        App->base = Rampbase;
-        break;
+        switch (argv[i][1]){
         
-      case 'C':
-        /* value ending in m or M is megabytes, store as minus */
-        pathlen = strlen(argv[++i]);
-        sscanf(argv[i], "%d%*c", &vi.vmSize);
-        if (argv[i][pathlen - 1] == 'M' || argv[i][pathlen - 1] == 'm')
-          vi.vmSize = -vi.vmSize;
-        else if (!vi.vmSize)
-          vi.vmSize = 2000000000;
-        vi.keepCacheFull = 0;
-        break;
-        
-      case 'F':
-        fillCache = TRUE;
-        break;
-
-      case 'x':
-        if (argv[i][2] == 'y')
-          if(argv[i][3] == 'z'){
-            xyzwinopen = TRUE;
+        case 'c':
+          if (argv[i][2] == 'i')
             break;
-          }
-          loadinfo = TRUE;
+          /* 1/5/04: eliminated colormap selection option */
+          break;
+        
+        case 'C':
+          /* value ending in m or M is megabytes, store as minus */
+          pathlen = strlen(argv[++i]);
+          sscanf(argv[i], "%d%*c", &vi.vmSize);
+          if (argv[i][pathlen - 1] == 'M' || argv[i][pathlen - 1] == 'm')
+            vi.vmSize = -vi.vmSize;
+          else if (!vi.vmSize)
+            vi.vmSize = 2000000000;
+          vi.keepCacheFull = 0;
+          break;
+        
+        case 'F':
+          fillCache = TRUE;
+          break;
+
+        case 'x':
+          if (argv[i][2] == 'y')
+            if(argv[i][3] == 'z'){
+              xyzwinopen = TRUE;
+              break;
+            }
           if (argv[i][2] != 0x00)
             sscanf(argv[i], "-x%d%*c%d", &(li.xmin), &(li.xmax));
           else
             sscanf(argv[++i], "%d%*c%d", &(li.xmin), &(li.xmax));
           break;
           
-      case 'y':
-        loadinfo = TRUE;
-        if (argv[i][2] != 0x00)
-          sscanf(argv[i], "-y%d%*c%d", &(li.ymin), &(li.ymax));
-        else
-          sscanf(argv[++i], "%d%*c%d", &(li.ymin), &(li.ymax));
-        break;
+        case 'y':
+          if (argv[i][2] != 0x00)
+            sscanf(argv[i], "-y%d%*c%d", &(li.ymin), &(li.ymax));
+          else
+            sscanf(argv[++i], "%d%*c%d", &(li.ymin), &(li.ymax));
+          break;
         
-      case 'z':
-        loadinfo = TRUE;
-        if (argv[i][2] != 0x00)
-          sscanf(argv[i], "-z%d%*c%d", &(li.zmin), &(li.zmax));
-        else
-          sscanf(argv[++i], "%d%*c%d", &(li.zmin), &(li.zmax));
-        break;
+        case 'z':
+          if (argv[i][2] != 0x00)
+            sscanf(argv[i], "-z%d%*c%d", &(li.zmin), &(li.zmax));
+          else
+            sscanf(argv[++i], "%d%*c%d", &(li.zmin), &(li.zmax));
+          break;
         
-      case 's':
-        loadinfo = TRUE;
-        sscanf(argv[++i], "%f%*c%f", &(li.smin), &(li.smax));
-        break;
+        case 's':
+          sscanf(argv[++i], "%f%*c%f", &(li.smin), &(li.smax));
+          break;
         
-      case 'b':
-        sscanf(argv[++i], "%d%*c%d", &(vi.xybin), &(vi.zbin));
-        if (!vi.zbin)
-          vi.zbin = 1;
-        break;
+        case 'b':
+          sscanf(argv[++i], "%d%*c%d", &(vi.xybin), &(vi.zbin));
+          if (!vi.zbin)
+            vi.zbin = 1;
+          break;
 
-      case 'B':
-        sscanf(argv[++i], "%d", &(vi.xybin));
-        vi.zbin = vi.xybin;
-        break;
+        case 'B':
+          sscanf(argv[++i], "%d", &(vi.xybin));
+          vi.zbin = vi.xybin;
+          break;
 
-      case 'i':
-      case 'D':
-        Imod_debug = TRUE;
-        break;
+        case 'i':
+        case 'D':
+          Imod_debug = TRUE;
+          break;
         
-      case 'm':
-        ImodTrans = FALSE;
-        break;
+        case 'm':
+          ImodTrans = FALSE;
+          break;
         
-        /* DNM: better disable this
-        case 'X':
-        li.axis = 1;
-        break;
-        */
-      case 'Y':
-        li.axis = 2;
-        break;
+        case 'Y':
+          li.axis = 2;
+          break;
         
-      case 'h':
+        case 'h':
+          imod_usage(argv[0]);
+          exit(1);
+          break;
+        
+        case 'p':
+          plistfname = argv[++i];
+          break;
+        
+        case 'f':
+          frames = 1;
+          break;
+        
+        case 'G':
+          vi.grayRGBs = 1;
+          break;
+        
+        case '2':
+          vi.dim &= ~4;
+          break;
+        
+        case 'P':
+          sscanf(argv[++i], "%d%*c%d", &nframex, &nframey);
+          break;
+        
+        case 'o':
+          overEntered = 1;
+          sscanf(argv[++i], "%d%*c%d", &overx, &overy);
+          break;
+        
+        case 'S':
+          sliceropen = TRUE;
+          break;
+        
+        case 'V':
+          modelViewOpen = TRUE;
+          break;
+        
+        case 'Z':
+          zapOpen = TRUE;
+          break;
+        
+        case 'T':
+          vi.multiFileZ = -1;
+          break;
+        
+        case 'W':
+          print_wid = TRUE;
+          break;
+        
+        default:
+          break;
+        
+        }
+      } else if (!firstfile)
+        firstfile = i;
+    }
+
+    /* First time through when doing startup, open startup and give it 
+       options */
+    if (!argScan && doStartup) {
+      startup = new StartupForm(NULL, "startup dialog", true);
+      startup->setIcon(*(App->iconPixmap));
+      startup->setValues(&vi, argv, firstfile, argc, doImodv, plistfname, 
+                         xyzwinopen, sliceropen, zapOpen, modelViewOpen, 
+                         fillCache, ImodTrans, frames,
+                         nframex, nframey, overx, overy, overEntered);
+      if (startup->exec() == QDialog::Rejected) {
         imod_usage(argv[0]);
         exit(1);
-        break;
-        
-      case 'p':
-        plistfname = argv[++i];
-        break;
-        
-      case 'f':
-        frames = 1;
-        break;
-        
-      case 'G':
-        grayrgbs = 1;
-        break;
-        
-      case '2':
-        vi.dim &= ~4;
-        break;
-        
-      case 'P':
-        sscanf(argv[++i], "%d%*c%d", &nframex, &nframey);
-        break;
-        
-      case 'o':
-        sscanf(argv[++i], "%d%*c%d", &overx, &overy);
-        break;
-        
-      case 'S':
-        sliceropen = TRUE;
-        break;
-        
-      case 'V':
-        modelViewOpen = TRUE;
-        break;
-        
-      case 'Z':
-        zapOpen = TRUE;
-        break;
-        
-      case 'T':
-        vi.multiFileZ = -1;
-        break;
-        
-      case 'W':
-        print_wid = TRUE;
-        break;
-        
-        /*      case 'F':
-        font_scale = atof(argv[++i]);
-        break; */
-        
-      default:
-        break;
-        
       }
-    } else if (!firstfile)
-      firstfile = i;
+    
+      argv = startup->getArguments(argc);
+      if (Imod_debug) {
+        for (i = 0; i < argc; i++)
+          fprintf(stderr, "%s ", argv[i]);
+        fprintf(stderr, "\n"); 
+      }
+      delete startup;
+    }
   }
   
-  /* this is for testing big fonts */ 
-  if (font_scale > 0.) {
-    QFont newFont = QApplication::font();
-    float pointSize = newFont.pointSizeFloat();
-    if (pointSize > 0) {
-      newFont.setPointSizeFloat(pointSize * font_scale);
-    } else {
-      int pixelSize = newFont.pixelSize();
-      newFont.setPixelSize((int)floor(pixelSize * font_scale + 0.5));
-    }
-    QApplication::setFont(newFont);
-  }
+  /* Initialize the display system */
+  imod_display_init(App, argv);
 
   /* Load in all the imod plugins that we can use.*/
   imodPlugInit();
@@ -505,7 +512,7 @@ int main( int argc, char *argv[])
   /* If there are no filenames, or one image file, then treat as image
     file or IFD.  First get filename if none */
     if (!firstfile) {
-      vers = imodVersion(NULL);
+      imodVersion(NULL);
       imodCopyright();    
       qname = QFileDialog::getOpenFileName(QString::null, QString::null, 0, 0, 
                                            "3dmod: Select Image file to load:");
@@ -580,6 +587,13 @@ int main( int argc, char *argv[])
     ivwMultipleFiles(&vi, argv, firstfile, lastimage);
   }
              
+  /* If one file, use its smin, smax to set li's smin,smax - may not be
+     needed but used to happen */
+  if (vi.nt <= 1) {
+    li.smin = vi.image->smin;
+    li.smax = vi.image->smax;
+  }
+
   /* Now look for piece coordinates - moved up from below 1/2/04 */
   if (vi.nt <= 1 && !vi.li->plist) {
     /* Check for piece list file and read it */
@@ -936,6 +950,9 @@ int imodColorValue(int inColor)
 
 /*
 $Log$
+Revision 4.29  2004/01/05 17:21:09  mast
+Added binning option and did major cleanup of image file loading
+
 Revision 4.28  2003/12/30 06:36:44  mast
 Add option for multifile Z display
 
