@@ -23,6 +23,9 @@ import etomo.storage.EtomoFileFilter;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.0  2003/01/24 20:30:31  rickg
+ * <p> Single window merge to main branch
+ * <p>
  * <p> Revision 1.9.2.2  2003/01/24 18:43:37  rickg
  * <p> Single window GUI layout initial revision
  * <p>
@@ -91,6 +94,7 @@ public class MainFrame extends JFrame implements ContextMenu {
   //  These panels get instantiated as needed
   private AxisProcessPanel axisPanelA;
   private AxisProcessPanel axisPanelB;
+  private JSplitPane splitPane;
 
   //  Application manager object
   private ApplicationManager applicationManager;
@@ -161,8 +165,11 @@ public class MainFrame extends JFrame implements ContextMenu {
       scrollB.add(axisPanelB.getContainer());
       JScrollPane scrollPaneB = new JScrollPane(scrollB);
 
-      panelCenter.add(scrollPaneA);
-      panelCenter.add(scrollPaneB);
+      splitPane =
+        new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, scrollPaneA, scrollPaneB);
+      //      panelCenter.add(scrollPaneA);
+      //      panelCenter.add(scrollPaneB);
+      panelCenter.add(splitPane);
     }
   }
 
@@ -347,9 +354,12 @@ public class MainFrame extends JFrame implements ContextMenu {
       setAdvancedLabel();
     }
     else if (command.equals(menuFitWindow.getActionCommand())) {
-      pack();
-    }
 
+      pack();
+      if (applicationManager.isDualAxis()) {
+        splitPane.resetToPreferredSizes();
+      }
+    }
   }
 
   /**Help | About action performed*/
