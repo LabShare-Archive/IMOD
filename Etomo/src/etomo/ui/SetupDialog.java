@@ -22,7 +22,7 @@ import etomo.storage.StackFileFilter;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.ConstMetaData;
-import etomo.type.DataSource;
+//SUEH 263
 import etomo.type.MetaData;
 import etomo.type.SectionType;
 import etomo.type.ViewType;
@@ -42,6 +42,12 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.9  2003/10/08 21:11:41  sueh
+ * <p> bug262
+ * <p> UI Change
+ * <p> Changed View Type radio button choice
+ * <p> from Single View to Single Frame on the Setup dialog.
+ * <p>
  * <p> Revision 2.8  2003/10/08 19:12:50  sueh
  * <p> bug261 change changes on the screen:
  * <p> projection -> view
@@ -145,12 +151,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
 
   //  Data type GUI objects
   private JPanel pnlDataType = new JPanel();
-
-  private JPanel pnlDataSource = new JPanel();
-  private JRadioButton rbCCD = new JRadioButton("Unaligned (CCD)");
-  private JRadioButton rbFilm = new JRadioButton("Well Aligned (Film)");
-  private ButtonGroup bgDataSource = new ButtonGroup();
-
+//SUEH 263
   private JPanel pnlAxisType = new JPanel();
   private JRadioButton rbSingleAxis = new JRadioButton("Single Axis");
   private JRadioButton rbDualAxis = new JRadioButton("Dual Axis");
@@ -264,14 +265,8 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
   private void createDataTypePanel() {
 
     //  Datatype subpnls: DataSource AxisType Viewtype SectionType
+    //SUEH 263
     Dimension dimDataTypePref = new Dimension(150, 80);
-    bgDataSource.add(rbCCD);
-    bgDataSource.add(rbFilm);
-    pnlDataSource.setLayout(new BoxLayout(pnlDataSource, BoxLayout.Y_AXIS));
-    pnlDataSource.setPreferredSize(dimDataTypePref);
-    pnlDataSource.setBorder(new EtchedBorder("Data Source").getBorder());
-    pnlDataSource.add(rbCCD);
-    pnlDataSource.add(rbFilm);
 
     bgAxisType.add(rbSingleAxis);
     bgAxisType.add(rbDualAxis);
@@ -280,12 +275,15 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     pnlAxisType.setBorder(new EtchedBorder("Axis Type").getBorder());
     pnlAxisType.add(rbSingleAxis);
     pnlAxisType.add(rbDualAxis);
-
+//SUEH 263
+    rbSingleView.setEnabled(false);
+    rbMontage.setEnabled(false);
+    
     bgViewType.add(rbSingleView);
     bgViewType.add(rbMontage);
     pnlViewType.setLayout(new BoxLayout(pnlViewType, BoxLayout.Y_AXIS));
     pnlViewType.setPreferredSize(dimDataTypePref);
-    pnlViewType.setBorder(new EtchedBorder("View Type").getBorder());
+    pnlViewType.setBorder(new EtchedBorder("Frame Type").getBorder());
     pnlViewType.add(rbSingleView);
     pnlViewType.add(rbMontage);
 
@@ -303,9 +301,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     //  Datatype panel
     pnlDataType.setLayout(new BoxLayout(pnlDataType, BoxLayout.X_AXIS));
     pnlDataType.setBorder(new EtchedBorder("Data Type").getBorder());
-
-    pnlDataType.add(pnlDataSource);
-    pnlDataType.add(Box.createHorizontalGlue());
+//SUEH 263
     pnlDataType.add(pnlAxisType);
     pnlDataType.add(Box.createHorizontalGlue());
     pnlDataType.add(pnlViewType);
@@ -380,7 +376,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     }
 
     ltfBackupDirectory.setText(metaData.getBackupDirectory());
-    setDataSource(metaData.getDataSource());
+    //SUEH 263
     setAxisType(metaData.getAxisType());
     setViewType(metaData.getViewType());
     setSectionType(metaData.getSectionType());
@@ -402,7 +398,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     MetaData metaData = new MetaData();
 
     metaData.setBackupDirectory(ltfBackupDirectory.getText());
-    metaData.setDataSource(getDataSource());
+    //SUEH 263
     metaData.setAxisType(getAxisType());
 
     //  The dataset name needs to be set after the axis type so the metadata
@@ -438,25 +434,8 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     }
     return dataset.getParentFile();
   }
-
-  // Data source radio button control
-  void setDataSource(DataSource dataSource) {
-    if (dataSource == DataSource.CCD) {
-      rbCCD.setSelected(true);
-    }
-    else {
-      rbFilm.setSelected(true);
-    }
-  }
-
-  DataSource getDataSource() {
-    if (rbCCD.getSelectedObjects() != null) {
-      return DataSource.CCD;
-    }
-    else {
-      return DataSource.FILM;
-    }
-  }
+//SUEH 263
+//SUEH 263
 
   //  Axis type radio button
   void setAxisType(AxisType axisType) {
@@ -691,15 +670,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     line1 = "<html>This button will open a file chooser dialog box<br>";
     line2 = "allowing you to select and/or create the backup directory.";
     btnBackupDirectory.setToolTipText(line1 + line2);
-
-    line1 = "<html>This radio button selector will choose whether the data<br>";
-    line2 = "has been collected using a CCD or film.  Even if the data are<br>";
-    line3 = "from film, select CCD unless they are already well-aligned<br>";
-    line4 = "from one view to the next.";
-    pnlDataSource.setToolTipText(line1 + line2 + line3 + line4);
-    rbCCD.setToolTipText(line1 + line2 + line3 + line4);
-    rbFilm.setToolTipText(line1 + line2 + line3 + line4);
-
+//SUEH 263
     line1 = "<html>This radio button selector will choose whether the data<br>";
     line2 = "consists of one or two tilt axis.";
     pnlAxisType.setToolTipText(line1 + line2);

@@ -20,6 +20,9 @@ import etomo.storage.Storable;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.6  2003/09/26 19:46:16  sueh
+ * <p> bug223 removed task marks
+ * <p>
  * <p> Revision 2.5  2003/09/26 19:43:48  sueh
  * <p> bug223 no field should be persistant.  Changed MetaData.
  * <p> Added TransferfidNumberViews.
@@ -113,10 +116,7 @@ public class MetaData extends ConstMetaData implements Storable {
   public void setBackupDirectory(String backupDir) {
     backupDirectory = backupDir.trim();
   }
-
-  public void setDataSource(DataSource ds) {
-    dataSource = ds;
-  }
+//SUEH 263
   public void setAxisType(AxisType at) {
     axisType = at;
   }
