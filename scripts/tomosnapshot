@@ -8,6 +8,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.2  2004/10/13 20:31:34  mast
+#  Added ls -lrt output and ability to work without edf, fixed a few bugs.
+#
 #  Revision 3.1  2004/10/07 16:18:22  mast
 #  Initial creation
 #
@@ -137,6 +140,9 @@ endif
 #
 if (-w .) then
     uname -a >! uname.out
+    printenv >> uname.out
+    set cygthere = `uname | sed -n '/CYGWIN/p'`
+    if ($cygthere != "") cygcheck -s -v -r >> uname.out
     \ls -lrt >! lslrt.out
 endif
 set list = ($edffile)
