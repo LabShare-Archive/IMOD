@@ -14,8 +14,10 @@ import etomo.storage.EtomoFileFilter;
 import etomo.storage.JoinFileFilter;
 import etomo.storage.ParameterStore;
 import etomo.storage.Storable;
+import etomo.type.BaseMetaData;
 import etomo.type.ConstJoinMetaData;
 import etomo.type.ConstMetaData;
+import etomo.type.MetaData;
 import etomo.type.UserConfiguration;
 import etomo.ui.MainFrame;
 import etomo.ui.SettingsDialog;
@@ -43,6 +45,12 @@ import etomo.util.Utilities;
  * 
  * <p>
  * $Log$
+ * Revision 1.3  2004/11/23 00:24:15  sueh
+ * bug# 520 Prevent mainFrame from being accessed if test is set.  Create
+ * instance of EtomoDirector when create hasn't been run.   GetInstance
+ * calls createInstance with the test flag set so that unit tests don't have to
+ * call createInstance.  Added setCurrentPropertyUserDir.
+ *
  * Revision 1.2  2004/11/19 22:34:24  sueh
  * bug# 520 merging Etomo_3-4-6_JOIN branch to head.
  *
@@ -123,8 +131,8 @@ public class EtomoDirector {
   private boolean demo = false;
   private boolean test = false;
   private boolean selfTest = false;
-  private HashedArray managerList = null;
-  private UniqueKey currentManagerKey = null;
+  private HashedArray controllerList = null;
+  private UniqueKey currentControllerKey = null;
   private String homeDirectory;
   // advanced dialog state for this instance, this gets set upon startup from
   // the user configuration and can be modified for this instance by either
@@ -163,8 +171,8 @@ public class EtomoDirector {
     }
     int paramFileNameListSize = paramFileNameList.size();
     String paramFileName = null;
-    managerList = new HashedArray();
-    ApplicationManager appMgr = null;
+    controllerList = new HashedArray();
+    ReconstructionController reconstructionController = null;
     //if no param file is found bring up AppMgr.SetupDialog
     if (paramFileNameListSize == 0) {
       openTomogram(true);
@@ -189,10 +197,10 @@ public class EtomoDirector {
     initProgram();
     if (!test) {
       mainFrame.createMenus();
-      mainFrame.setWindowMenuLabels(managerList);
-      mainFrame.setCurrentManager((BaseManager) managerList
-          .get(currentManagerKey));
-      mainFrame.selectWindowMenuItem(currentManagerKey);
+      mainFrame.setWindowMenuLabels(controllerList);
+      mainFrame.setCurrentManager(((Controller) controllerList
+          .get(currentControllerKey)).getManager());
+      mainFrame.selectWindowMenuItem(currentControllerKey);
       mainFrame.setMRUFileLabels(userConfig.getMRUFileList());
       mainFrame.pack();
       mainFrame.show();
@@ -308,54 +316,74 @@ public class EtomoDirector {
   }
 
   public BaseManager getCurrentManager() {
-    return (BaseManager) managerList.get(currentManagerKey);
+    if (currentControllerKey == null) {
+      throw new IllegalStateException("No current manager");
+    }
+    return ((Controller) controllerList.get(currentControllerKey)).getManager();
+  }
+  
+  public BaseMetaData getCurrentMetaData() {
+    if (currentControllerKey == null) {
+      throw new IllegalStateException("No current manager");
+    }
+    return ((Controller) controllerList.get(currentControllerKey)).getMetaData();
+  }
+  
+  public MetaData getCurrentReconstructionMetaData() {
+    if (currentControllerKey == null) {
+      throw new IllegalStateException("No current manager");
+    }
+    Controller controller = (Controller) controllerList.get(currentControllerKey);
+    if (controller instanceof ReconstructionController) {
+      return ((ReconstructionController) controller).getReconstructionMetaData();
+    }
+    throw new IllegalStateException("No current manager is not a reconstruction manager");
   }
   
   public String getCurrentPropertyUserDir() {
-    if (currentManagerKey == null) {
+    if (currentControllerKey == null) {
       return System.getProperty("user.dir");
     }
-    return ((BaseManager) managerList.get(currentManagerKey)).getPropertyUserDir();
+    return ((Controller) controllerList.get(currentControllerKey)).getManager().getPropertyUserDir();
   }
   
   public String setCurrentPropertyUserDir(String propertyUserDir) {
-    if (currentManagerKey == null) {
+    if (currentControllerKey == null) {
       return System.setProperty("user.dir", propertyUserDir);
     }
-    return ((BaseManager) managerList.get(currentManagerKey)).setPropertyUserDir(propertyUserDir);
+    return (((Controller) controllerList.get(currentControllerKey))).getManager().setPropertyUserDir(propertyUserDir);
   }
   
-  public UniqueKey getManagerKey(int index) {
-    return managerList.getKey(index);
+  public UniqueKey getControllerKey(int index) {
+    return controllerList.getKey(index);
   }
   
   public synchronized void setCurrentManager(UniqueKey managerKey) {
-    BaseManager newCurrentManager = (BaseManager) managerList.get(managerKey);
+    BaseManager newCurrentManager = ((Controller) controllerList.get(managerKey)).getManager();
     if (newCurrentManager == null) {
       throw new NullPointerException("managerKey=" + managerKey); 
     }
-    currentManagerKey = managerKey;
+    currentControllerKey = managerKey;
     if (!test) {
-      mainFrame.setWindowMenuLabels(managerList);
+      mainFrame.setWindowMenuLabels(controllerList);
       mainFrame.setCurrentManager(newCurrentManager);
-      mainFrame.selectWindowMenuItem(currentManagerKey);
+      mainFrame.selectWindowMenuItem(currentControllerKey);
     }
   }
   
   private UniqueKey openTomogram(String etomoDataFileName, boolean makeCurrent) {
-    ApplicationManager manager;
+    ReconstructionController controller;
     if (etomoDataFileName == null
         || etomoDataFileName.equals(ConstMetaData.getNewFileTitle())) {
-      manager = new ApplicationManager("");
+      controller = new ReconstructionController("");
       if (!test) {
         mainFrame.setEnabledNewTomogramMenuItem(false);
       }
     }
     else {
-      manager = new ApplicationManager(etomoDataFileName);
+      controller = new ReconstructionController(etomoDataFileName);
     }
-    UniqueKey managerKey;
-    return openManager(manager, makeCurrent);
+    return setController(controller, makeCurrent);
   }
   
   public UniqueKey openJoin(boolean makeCurrent) {
@@ -370,25 +398,25 @@ public class EtomoDirector {
   }
   
   private UniqueKey openJoin(String etomoJoinFileName, boolean makeCurrent) {
-    JoinManager manager;
+    JoinController controller;
     if (etomoJoinFileName == null
         || etomoJoinFileName.equals(ConstJoinMetaData.getNewFileTitle())) {
-      manager = new JoinManager("");
+      controller = new JoinController("");
       mainFrame.setEnabledNewJoinMenuItem(false);
     }
     else {
-      manager = new JoinManager(etomoJoinFileName);
+      controller = new JoinController(etomoJoinFileName);
     }
-    return openManager(manager, makeCurrent);
+    return setController(controller, makeCurrent);
   }
   
-  private UniqueKey openManager(BaseManager manager, boolean makeCurrent) {
-    UniqueKey managerKey;
-    managerKey = managerList.add(manager.getBaseMetaData().getName(), manager);
+  private UniqueKey setController(Controller controller, boolean makeCurrent) {
+    UniqueKey controllerKey;
+    controllerKey = controllerList.add(controller.getMetaData().getName(), controller);
     if (makeCurrent) {
-      setCurrentManager(managerKey);
+      setCurrentManager(controllerKey);
     }
-    return managerKey;
+    return controllerKey;
   }
   
   public UniqueKey openTomogram(boolean makeCurrent) {
@@ -429,31 +457,31 @@ public class EtomoDirector {
     if (!currentManager.exitProgram()) {
       return false;
     }
-    managerList.remove(currentManagerKey);
+    controllerList.remove(currentControllerKey);
     enableOpenManagerMenuItem();
-    currentManagerKey = null;
-    if (managerList.size() == 0) {
+    currentControllerKey = null;
+    if (controllerList.size() == 0) {
       if (!test) {
-        mainFrame.setWindowMenuLabels(managerList);
+        mainFrame.setWindowMenuLabels(controllerList);
         mainFrame.setCurrentManager(null);
       }
       return true;
     }
-    setCurrentManager(managerList.getKey(0));
+    setCurrentManager(controllerList.getKey(0));
     return true;
   }
   
   private void enableOpenManagerMenuItem() {
-    if (currentManagerKey.getName().equals(ConstMetaData.getNewFileTitle())) {
+    if (currentControllerKey.getName().equals(ConstMetaData.getNewFileTitle())) {
       mainFrame.setEnabledNewTomogramMenuItem(true);
     }
-    if (currentManagerKey.getName().equals(ConstJoinMetaData.getNewFileTitle())) {
+    if (currentControllerKey.getName().equals(ConstJoinMetaData.getNewFileTitle())) {
       mainFrame.setEnabledNewJoinMenuItem(true);
     }
   }
   
   public boolean exitProgram() {
-    while (managerList.size() != 0) {
+    while (controllerList.size() != 0) {
       if (!closeCurrentManager()) {
         return false;
       }
@@ -499,10 +527,10 @@ public class EtomoDirector {
   
   public void renameCurrentManager(String managerName) {
     enableOpenManagerMenuItem();
-    currentManagerKey = managerList.rekey(currentManagerKey, managerName);
+    currentControllerKey = controllerList.rekey(currentControllerKey, managerName);
     if (!test) {
-      mainFrame.setWindowMenuLabels(managerList);
-      mainFrame.selectWindowMenuItem(currentManagerKey);
+      mainFrame.setWindowMenuLabels(controllerList);
+      mainFrame.selectWindowMenuItem(currentControllerKey);
     }
   }
   
@@ -666,8 +694,8 @@ public class EtomoDirector {
     return test;
   }
   
-  public int getManagerListSize() {
-    return managerList.size();
+  public int getControllerListSize() {
+    return controllerList.size();
   }
   
   /**
