@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.5  2004/11/05 18:53:00  mast
+    Include local files with quotes, not brackets
+
     Revision 3.4  2004/09/10 21:33:46  mast
     Eliminated long variables
 
@@ -111,6 +114,7 @@ void imodContourDefault(Icont *cont)
   cont->surf   = 0;
   cont->label  = NULL;
   cont->sizes  = NULL;
+  cont->store  = NULL;
 }
 
 int imodContourCopy(Icont *from, Icont *to)
@@ -139,12 +143,14 @@ Icont *imodContourDup(Icont *cont)
     return(NULL);
 
   imodContourCopy(cont, ocont);
-  ocont->pts = (Ipoint *)malloc(sizeof(Ipoint) * ocont->psize);
-  if (!cont->pts){
-    free(ocont);
-    return(NULL);
+  if (cont->psize) {
+    ocont->pts = (Ipoint *)malloc(sizeof(Ipoint) * ocont->psize);
+    if (!cont->pts){
+      free(ocont);
+      return(NULL);
+    }
+    memcpy(ocont->pts, cont->pts, sizeof(Ipoint) * cont->psize);
   }
-  memcpy(ocont->pts, cont->pts, sizeof(Ipoint) * cont->psize);
 
   if (cont->sizes) {
     ocont->sizes = (float *)malloc(sizeof(float) * ocont->psize);
@@ -152,30 +158,9 @@ Icont *imodContourDup(Icont *cont)
       memcpy(ocont->sizes, cont->sizes, sizeof(float) * cont->psize);
   }
 
-  if (cont->label){
-    int len = 0;
-    ocont->label = imodLabelNew();
-
-    if (cont->label->name){
-      len = strlen(cont->label->name);
-         
-      if (cont->label->len){
-        ocont->label->name = malloc(len+1);
-        memcpy(ocont->label->name, cont->label->name, 
-               len+1);
-        ocont->label->len = len;
-      }
-    }
-
-    if (cont->label->nl){
-      int i;
-      for(i = 0; i < cont->label->nl; i++){
-        imodLabelItemAdd(ocont->label,
-                         cont->label->label[i].name,
-                         cont->label->label[i].index);
-      }
-    }
-  }
+  /* DNM 11/15/04: make new routine to duplicate label, duplicate store list */
+  ocont->label = imodLabelDup(cont->label);
+  ocont->store = ilistDup(cont->store);
   return(ocont);
 }
 
@@ -410,6 +395,8 @@ int imodel_contour_clear(struct Mod_Contour *cont)
   imodLabelDelete(cont->label);
   /* DNM: set label to NULL */
   cont->label = NULL;
+  ilistDelete(cont->store);
+  cont->store = NULL;
   return(0);
 }
 
