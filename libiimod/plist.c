@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <mrcc.h>
 #include <stdlib.h>
+#include <errno.h>
+#include "b3dutil.h"
+
 static int plist_load(FILE *fin, struct LoadInfo *li, int nx, int ny, int nz);
 
 /* load piece list into LoadInfo structure. */
@@ -12,7 +15,7 @@ int mrc_plist_li(struct LoadInfo *li, struct MRCheader *hdata, char *fname)
      fin = fopen(fname, "r");
      if (!fin){
 	  li->plist = 0;
-	  perror("piece list load: ");
+      b3dError("ERROR in piece list load: %s", strerror(errno));
 	  return(-1);
      }
      retval = (mrc_plist_load(li, hdata, fin));
@@ -44,7 +47,7 @@ static int plist_load(FILE *fin, struct LoadInfo *li, int nx, int ny, int nz)
 	  } else {
 	       li->plist = i;
 	       if (scanret != EOF)
-	            fprintf(stderr, "Error reading piece list after %d lines\n"
+	            b3dError(stderr, "Error reading piece list after %d lines\n"
 			    , i);
 	       break;
 	  }

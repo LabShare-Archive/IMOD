@@ -13,6 +13,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.2  2003/10/24 19:53:25  mast
+Add stdlib.h for SGI
+
 Revision 1.1  2003/10/24 03:01:34  mast
 initial creation, consolidating routines from elsewhere
 
@@ -20,6 +23,7 @@ initial creation, consolidating routines from elsewhere
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -172,4 +176,32 @@ int c2fString(char *cStr, char *fStr, int fSize)
     fSize--;
   }
   return 0;
+}
+
+/* Simple error processing routines to avoid having libraries print error
+   messages themselves */
+static int storeError = 0;
+static char errorMess[MAX_IMOD_ERROR_STRING] = "";
+
+/* Set to not print messages */
+void b3dSetStoreError(int ival)
+{
+  storeError = ival;
+}
+
+/* Store an error, possibly print it */
+void b3dError(FILE *out, char *format, ...)
+{
+  va_list args;
+  va_start(args, format);
+  
+  vsprintf(errorMess, format, args);
+  if (out && !storeError)
+    fprintf(out, errorMess);
+}
+
+/* Return the error string */
+char *b3dGetError()
+{
+  return &errorMess[0];
 }

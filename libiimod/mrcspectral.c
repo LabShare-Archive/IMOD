@@ -31,6 +31,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <mrcc.h>
+#include "b3dutil.h"
 
 #define REAL  0
 #define IMAG  1
@@ -124,7 +125,7 @@ struct MRCslice *mrc_fftx(struct MRCslice *si, int direction, int doy)
 			  MRC_MODE_COMPLEX_FLOAT);
 
      if (!s){
-	  fprintf(stderr, "mrc_fft: error, not enough memory.\n");
+	  b3dError(stderr, "mrc_fft: error, not enough memory.\n");
 	  return(NULL);
      }
 
@@ -204,7 +205,7 @@ struct MRCslice *mrc_corr(struct MRCslice *s1, struct MRCslice *s2)
 	  autocorr = TRUE; /* do autocorrelation. */
 
      if ((s1->xsize != s2->xsize) || (s1->ysize != s2->ysize)){
-	  fprintf(stderr, "cor: slices must be same size.\n");
+	  b3dError(stderr, "cor: slices must be same size.\n");
 	  return(NULL);
      }
      
@@ -217,7 +218,7 @@ struct MRCslice *mrc_corr(struct MRCslice *s1, struct MRCslice *s2)
      sg   = (struct MRCslice *)mrc_slice_create
 	  (xsize, ysize, s1->mode);
      if (!sg){
-	  fprintf(stderr, "cor: error, not enough memory.\n");
+	  b3dError(stderr, "cor: error, not enough memory.\n");
 	  return(NULL);
      }
 
@@ -227,7 +228,7 @@ struct MRCslice *mrc_corr(struct MRCslice *s1, struct MRCslice *s2)
 	  sh = sg;
 
      if (!sh){
-	  fprintf(stderr, "cor: error, not enough memory.\n");
+	  b3dError(stderr, "cor: error, not enough memory.\n");
 	  return(NULL);
      }
 
@@ -325,7 +326,7 @@ int mrc_bandpass_filter(struct MRCslice *sin, double low, double high)
      
 
      if (sin->mode != MRC_MODE_COMPLEX_FLOAT){
-	  fprintf(stderr, " mrc_band_filter: Only complex float mode.\n");
+	  b3dError(stderr, " mrc_band_filter: Only complex float mode.\n");
 	  return(-1);
      }
 

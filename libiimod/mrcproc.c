@@ -31,6 +31,7 @@
 #include <math.h>
 #include "mrcfiles.h"
 #include "mrcproc.h"
+#include "b3dutil.h"
 
 
 int mrc_getdsize(int mode, int *channel)
@@ -366,7 +367,7 @@ int mrc_putval(float *val, void *buf, int index, int mode, int channel)
 	       bdat[(index * 3) + channel] = (unsigned char )*val;
 	       break;
 	     default:
-	       fprintf(stderr, "mrc_putval: unknown mode.\n");
+	       b3dError(stderr, "mrc_putval: unknown mode.\n");
 	       return(-1);
 	  }
      return(0);     
@@ -408,7 +409,7 @@ int mrc_getval(float *val, void *buf, int index, int mode, int channel)
 	       *val = (float)bdat[(index * 3) + channel];
 	       break;
 	     default:
-	       fprintf(stderr, "mrc_getval: unknown mode.\n");
+	       b3dError(stderr, "mrc_getval: unknown mode.\n");
 	       return(-1);
 	  }
      return(0);

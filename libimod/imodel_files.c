@@ -54,6 +54,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "imodel.h"
+#include "b3dutil.h"
 
 #ifdef __vms
 #define IMOD_DATA_SWAP
@@ -158,7 +159,7 @@ int imodReadFile(Imod *imod)
 	  error = imodReadAscii(imod);
 #ifdef IMODEL_FILES_DEBUG
 	  if (error){
-	       fprintf(stderr, "imodReadFile: imodReadAscii error %d.\n",
+	       b3dError(stderr, "imodReadFile: imodReadAscii error %d.\n",
 		       error);
 	  }
 #endif
@@ -191,7 +192,7 @@ Imod *imodRead(char *filename)
      error = imodReadFile(imod);
      if (error){
 #ifdef IMODEL_FILES_DEBUG
-	  fprintf(stderr, "imodel_files.c error %d\n", error);
+	  b3dError(stderr, "imodel_files.c error %d\n", error);
 #endif
 	  imodFree(imod);
 	  fclose(fin);
@@ -401,12 +402,12 @@ static int imodel_read_v01(struct Mod_Model *mod, FILE *fin)
      rewind(fin);
      id = imodGetInt(fin);
      if (id != ID_IMOD){
-	  fprintf(stderr, "Read Imod: Not an imod file.\n");
+	  b3dError(stderr, "Read Imod: Not an imod file.\n");
 	  return(-1);
      }
      id = imodGetInt(fin);
      if (id != MakeID('V', '0', '.', '1')){
-	  fprintf(stderr, "Read Imod: Imod file version unknown.\n");
+	  b3dError(stderr, "Read Imod: Imod file version unknown.\n");
 	  return(-1);
      }
 
@@ -748,7 +749,7 @@ static int imodel_read_contour_v01( struct Mod_Contour *cont, FILE *fin)
      imodGetInts(fin, (int *)&cont->psize, 4);
      id = imodGetInt(fin);
      if (id != ID_PNTS){
-	  fprintf(stderr, "IMOD: Error Reading Points.\n");
+	  b3dError(stderr, "IMOD: Error Reading Points.\n");
 	  return(-1);
      }
      cont->pts = NULL;
@@ -756,7 +757,7 @@ static int imodel_read_contour_v01( struct Mod_Contour *cont, FILE *fin)
 	  malloc( cont->psize * sizeof(struct Mod_Point));
 
      if (cont->pts == NULL){
-	  fprintf(stderr, "IMOD: Error getting memory for points.\n");
+	  b3dError(stderr, "IMOD: Error getting memory for points.\n");
 	  cont->psize = 0;
 	  return(-1);
      }
@@ -1490,6 +1491,9 @@ int imodPutByte(FILE *fp, unsigned char *dat)
 
 /*
     $Log$
+    Revision 3.9  2003/03/28 05:08:13  mast
+    Use new unique little endian flag
+
     Revision 3.8  2003/02/27 00:34:40  mast
     add projects' *.dsw *.dsp
 

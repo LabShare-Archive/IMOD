@@ -29,6 +29,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "imodel.h"
+#include "b3dutil.h"
 
 #define MAXLINE 128
 #define MAXOBJ  256
@@ -120,7 +121,7 @@ struct Mod_Model *imod_from_wmod(FILE *fin)
      
      
      if (!mod){
-	  fprintf(stderr, "Couldn't get new model\n");
+	  b3dError(stderr, "Couldn't get new model\n");
 	  return(NULL);
      }
      
@@ -238,12 +239,12 @@ int imodel_from_fgetline(FILE *fp, char s[],int limit)
      int c, i, length;
 
      if (fp == NULL){
-	  fprintf(stderr, "fgetline: file pointer not valid\n");
+	  b3dError(stderr, "fgetline: file pointer not valid\n");
 	  return(0);
      }
 
      if (limit < 3){
-	  fprintf(stderr, "fgetline: limit (%d) > 2,\n", limit);
+	  b3dError(stderr, "fgetline: limit (%d) > 2,\n", limit);
 	  return(0);
      }
      

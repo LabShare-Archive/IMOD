@@ -31,6 +31,7 @@
 #include <string.h>
 #include <math.h>
 #include <mrcc.h>
+#include "b3dutil.h"
 
 /*****************************************************************************
  * Slice library functions:
@@ -234,7 +235,7 @@ struct MRCslice *mrc_slice_create(int xsize, int ysize, int mode)
      }
 
      if (!s->data.b){
-	  fprintf(stderr, "mrc_slice_create: not enough memory.\n");
+	  b3dError(stderr, "mrc_slice_create: not enough memory.\n");
 	  free(s);
 	  return(NULL);
      }
@@ -313,7 +314,7 @@ int slicePutVal(Islice *s, int x, int y, Ival val)
 	       s->data.f[index]   = val[2];
 	       break;
 	     default:
-	       fprintf(stderr, "slicePutVal: unknown mode.\n");
+	       b3dError(stderr, "slicePutVal: unknown mode.\n");
 	       return(-1);
 	  }
      return(0);
@@ -366,7 +367,7 @@ int sliceGetVal(Islice *s, int x, int y, Ival val)
 	       val[2] = s->data.f[index];
 	       break;
 	     default:
-	       fprintf(stderr, "sliceGetVal: unknown mode.\n");
+	       b3dError(stderr, "sliceGetVal: unknown mode.\n");
 	       return(-1);
 	  }
      return(0);
@@ -502,7 +503,7 @@ int mrc_slice_calcmmm(struct MRCslice *s)
      s->mean = s->max = s->min = val[0];
 
      if ((!s->xsize) || (!s->ysize)){
-	  fprintf(stderr, 
+	  b3dError(stderr, 
 		  "mrc_slice_calcmmm: Warning, empty slice.\n");
 	  return(-1);
      }

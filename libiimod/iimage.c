@@ -14,6 +14,10 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.1  2003/02/27 17:05:37  mast
+define coordinate upper limits as -1 initially to avoid confusion with a true
+upper limit of 0
+
 */
 
 #include <stdio.h>
@@ -21,6 +25,7 @@ $Log$
 #include <string.h>
 
 #include "iimage.h"
+#include "b3dutil.h"
 
 int iiTIFFCheck(ImodImageFile *inFile);
 int iiMRCCheck(ImodImageFile *inFile);
@@ -86,7 +91,7 @@ ImodImageFile *iiOpen(char *filename, char *mode)
   ofile->format = IIFILE_UNKNOWN;
   if (iiTIFFCheck(ofile))
     if (iiMRCCheck(ofile)){
-      fprintf(stderr, "warning (%s) : unknown format.\n", filename);
+      b3dError(stderr, "warning (%s) : unknown format.\n", filename);
       iiDelete(ofile);
       return NULL;
     }

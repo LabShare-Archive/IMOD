@@ -14,6 +14,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.4  2003/02/27 17:06:50  mast
+Changed tests on upper coordinates to respect a value of 0
+
 Revision 3.3  2002/09/14 00:59:38  mast
 Fixed computation of scales to use mx indtead of nx
 
@@ -27,6 +30,7 @@ Added protections against non-Boulder files being recognized as montages
 #include <stdlib.h>
 #include <mrcc.h>
 #include "iimage.h"
+#include "b3dutil.h"
 
 int iiMRCreadSection(ImodImageFile *inFile, char *buf, int inSection)
 {
@@ -211,7 +215,7 @@ int iiMRCLoadPCoord(ImodImageFile *inFile, struct LoadInfo *li, int nx, int ny,
 
   if (nbytes * nz > nextra) {
     nread = nextra / nbytes;
-    fprintf(stderr, "There are piece coordinates for only %d frames in"
+    b3dError(stderr, "There are piece coordinates for only %d frames in"
             " the extra header\n", nread);
   }
 
@@ -227,7 +231,7 @@ int iiMRCLoadPCoord(ImodImageFile *inFile, struct LoadInfo *li, int nx, int ny,
       mrc_swap_shorts(pcoords, 3);
     if (ferror(inFile->fp)) {
       nread = i;
-      fprintf(stderr, "Error reading piece coordinates from extra"
+      b3dError(stderr, "Error reading piece coordinates from extra"
               " header after %d frames\n", i);
       break;
     }

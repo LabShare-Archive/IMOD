@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.7  2003/10/24 03:02:14  mast
+move routines to new b3dutil file
+
 Revision 3.6  2003/09/16 02:06:08  mast
 *** empty log message ***
 
@@ -88,6 +91,7 @@ Changed imodCopyright to use defined lab name
 /*************************** include files ***********************************/
 #include <math.h>
 #include "imodel.h"
+#include "b3dutil.h"
 
 
 Imod *imodNew(void)
@@ -635,7 +639,7 @@ int NewContour(struct Mod_Model *mod)
               sizeof(struct Mod_Contour) * (obj->contsize + 1));
 
   if (cont == NULL){
-    fprintf(stderr,
+    b3dError(stderr,
             "IMOD: NewContour memory Error, "
             "Suggest you save and restart.");
     return(-1);
