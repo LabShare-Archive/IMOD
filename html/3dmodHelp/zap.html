@@ -84,7 +84,10 @@ previously in the rubber band.
 contour selection list.  Selected contours will be shown with a 
 distinguishable line thickness.  Only contours from the current object 
 that are 
-confined to the current section will be added.  With the rubber band 
+confined to the current section will be added.  Selected contours from other
+objects will be retained in the selection if they are on the current
+section; all contours on other sections will be removed from the selection.
+With the rubber band 
 off, all eligible contours on the section will be added; with the 
 rubber band on, only contours completely within the rubber band will be 
 selected.
@@ -97,7 +100,8 @@ mappings,
 these functions are the same as in the
 <A HREF = "../man/midas.html">Midas</A> program.
 If multiple contours are selected, the same operation will be done on all of
-them.  This mode stays active until toggled off again. 
+them, including contours from objects other than the current object.
+This mode stays active until toggled off again. 
 To shift contour(s), position the mouse anywhere, press the first mouse 
 button, and shift the contour(s) to the desired position.  
 To rotate, press the second button and move the mouse in an arc around the 
@@ -151,9 +155,11 @@ displayed with a distinguishable line thickness.  If a contour is
 already selected, Ctrl-clicking on it will deselect it.  The 
 selection list is cleared by doing an ordinary first button selection 
 of any model point, or by a variety of other operations, mostly ones 
-that select a different contour from the current one.
-<LI><B>Ctrl - First Button Drag</B>: Adds any contours that the mouse crosses to
-the list of selected contours.
+that select a different contour from the current one.  Contours from more
+than one object can be selected with this button.
+<LI><B>Ctrl - First Button Drag</B>: Adds any contours that the mouse crosses 
+to the list of selected contours.  Contours from more
+than one object can be selected this way.
 
 <LI><B>Second Button Click</B>: Add one point to the current contour.
 <LI><B>Second Button Drag</B>: Continually add points to the current 

@@ -4,16 +4,17 @@
 <H3>Contour Moving</H3>
 
 This dialog is used to move contours to a different object or to a 
-different surface, or to activate adjusting the size or position of
+different surface, or to toggle adjusting the size or position of
 a contour with the mouse. 
- Use the spin box to select the object or surface # to move 
+Use the spin box to select the object or surface # to move 
 the current contour to.  
 3dmod remembers the object #, so the hot key 'M' in the 
 Zap window can be used to move contours quickly.
 <P>
 Ordinarily, a single contour will be moved, the current contour.  
 If you have selected multiple contours using Ctrl and the 
-first mouse button, all selected contours will be moved to the other 
+first mouse button, all selected contours in the current object 
+will be moved to the other 
 object or surface, unless you have checked the option to 
 move all contours in a surface.
 <P>
@@ -81,9 +82,11 @@ the same surface number.
 down in Z, provided that other kinds of movements are not selected.  
 If <B>Move all contours with same surface #</B> is selected, then all 
 contours in the surface will be moved.  Otherwise, all selected 
-contours will be moved if there is more than one.  
+contours will be moved if there is more than one.  Unlike other move
+operations, if contours are selected from more than one object, they will
+all be moved.
 The current point and selected contours remain unchanged 
-so it is easy to undo this operation by changing the direction.
+so it is easy to repeat this operation.
 <P>
 <B>Toggle adjusting contour with mouse</B> 
 toggles a mode in which you can shift, rotate, stretch, or scale

@@ -23,7 +23,7 @@ char *Imod_hotkey_help[] = {
 "N\tCreate a new contour with a new surface number.\n",
 "0\tCreate a new object.\n",
 "Delete\tDelete current model point.\n",
-"D\tDelete current contour.\n",
+"D\tDelete current contour or all selected contours.\n",
 CTRL_STRING"-D\tTruncate current contour at current point.\n",
 "M\tMove contour to selected object or surface.\n",
 "J\tJoin selected contours.\n",
