@@ -19,14 +19,13 @@ DDEESSCCRRIIPPTTIIOONN
 
   Number of displacements
   One line for each displacement consisting of the X, Y, and Z
-     coordinates in the first volume, then the displacements in X, Y
-     and Z involved in moving from the first to the second volume
+  .  coordinates in the first volume, then the displacements in X, Y
+  .  and Z involved in moving from the first to the second volume
   
-  The program is meant to be run interactively; it loops on the
-  specification of the subsets of displacements to use until the user
-  decides to write out a particular subset.  However, it can also be
-  told to find the best warping automatically, in which case it does so
-  then exits.
+  If the program is run interactively, it loops on the specification
+  of the subsets of displacements to use until the user decides to
+  write out a particular subset.  However, it can also be told to find
+  the best warping automatically, in which case it does so then exits.
 
   The program will automatically eliminate "outliers", patch
   displacements that are likely to be incorrect because they are so
@@ -41,7 +40,7 @@ DDEESSCCRRIIPPTTIIOONN
   The other is to use a model file to  specify which patches to
   include in the fit.  This model can be quite simple, consisting of
   just a single contour enclosing the region  where patches are
-  generally good.  This contour can be drawn in any  Z plane of the
+  generally good.  This contour can be drawn in any Z plane of the
   flipped tomogram.  However, if the good region changes through the
   depth of the tomogram, you can draw contours at several Z levels.
   If you have two layers of patches, draw two contours, one near the
@@ -81,31 +80,34 @@ DDEESSCCRRIIPPTTIIOONN
      The minimum and maximum ratio of measurements to unknowns to be
        allowed in the local fits, or / to use the default values.
 
-     At this point, the program proceeds by fitting to the largest
-     possible area in X and Z that does not exceed the maximum ratio
-     of measurements to unknowns, and it tries progressively smaller
-     areas until the desired mean residual is achieved.  It does this
-     using the parameters (e.g., row or column elimination) that were
-     set on any previous interactive rounds of fitting.  If the target
-     residual is reached, it requests the names of the initial
-     transformation file and the output file, as described below, and
-     exits.  If the residual is not reached, it exits with an error.
-
   0 to use all of the data, or 1 to specify a subset of patches to use
   
-  IF you enter 1, next enter two or three lines:
+  IF you enter 1, next enter three lines:
   
      Number of columns of patches to eliminate from the left and right
        sides of the data, 0,0 to use all patches in X, or / to use
        previous values.
-     IF there are more than two "slabs" of patches in Y (through the
-       depth of the tomogram), enter the number of slabs of patches to
-       eliminate from the bottom and top of the section, 0,0 to use
-       all patches in Y, or / to use previous values.
+
+     Number of slabs of patches to eliminate from the bottom and top
+       of the section, 0,0 to use all patches in Y, or / to use
+       previous values.
 
      Number of rows of patches to eliminate from the bottom and top
        (when viewing the flipped tomogram), 0,0 to use all patches in
        Z, or / to use previous values.
+
+  IF you selected automatic warping, the program now proceeds by
+     fitting to the largest possible area in X and Z that does not
+     exceed the maximum ratio of measurements to unknowns, and it
+     tries progressively smaller areas until the desired mean residual
+     is achieved.  It does this using the parameters (e.g., row or
+     column elimination) that were set on any previous interactive
+     rounds of fitting.  If the target residual is reached, it
+     requests the names of the initial transformation file and the
+     output file, as described below, and exits.  If the residual is
+     not reached, it exits with an error.
+  
+  IF you are proceeding interactively, continue with the following:
 
   IF there are more than 2 patches in Y, the program next asks whether
      you always want to do the local fits to all patches in Y.  Just
@@ -171,3 +173,5 @@ HHIISSTTOORRYY
   6/6/99: added ability to output single refining transformation.
   1/1/00: added model exclusion and automatic finding of best warp
   6/7/01: rewrote data input to handle data with missing patches
+  7/20/02: rearranged input to make it easier to run automatically with
+        rows or columns removed
