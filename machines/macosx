@@ -196,10 +196,11 @@ cat << EOF  >! $midas_qconf
 EOF
 
 # 3/33/04: removed -ldl from the second LIBS line because it is in libqt now
+# 6/4/04: removed -ldtrigs because track is rewritten not to need it
 cat << EOF >! $imod_qconf
 SOURCES += linegui.cpp
 HEADERS += linegui.h
-LIBS += -L$lib_dir -liimod -limod -ldiaqt -ltiff -ltrack -ldtrigs
+LIBS += -L$lib_dir -liimod -limod -ldiaqt -ltiff -ltrack
 LIBS += -lm
 RC_FILE = b3dicon.icns
 EOF
