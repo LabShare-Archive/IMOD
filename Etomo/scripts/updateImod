@@ -1,0 +1,7 @@
+#!/bin/sh
+
+IMOD_DIR=/usr/local/IMOD
+# copy the necessary jar and script to run the program
+cp etomo.jar $IMOD_DIR/bin
+cp etomo $IMOD_DIR/bin
+cp vmstocsh.sh $IMOD_DIR/bin
