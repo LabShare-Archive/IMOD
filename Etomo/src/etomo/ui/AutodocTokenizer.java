@@ -13,16 +13,20 @@ import java.io.IOException;
 *
 * <p>Organization:
 * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
-* Univeristy of Colorado</p>
+* University of Colorado</p>
 *
 * @author $$Author$$
 *
 * @version $$Revision$$
 *
-* <p> $$Log$$ </p>
+* <p> $$Log$
+* <p> $Revision 1.1  2003/12/22 23:49:28  sueh
+* <p> $bug# 372 creates tokens for AutodocParser
+* <p> $$ </p>
 */
 public class AutodocTokenizer {
-  public static final String rcsid = "$$Id$$";
+  public static final String rcsid =
+    "$$Id$$";
 
   public static final String COMMENT_CHAR = "#";
   public static final String SEPARATOR_CHAR = ".";
@@ -39,26 +43,25 @@ public class AutodocTokenizer {
   private Token token = new Token();
   boolean nextTokenFound = false;
   private Token nextToken = new Token();
-  
-  
+
   AutodocTokenizer(File file) {
     this.file = file;
     primative = new PrimativeTokenizer(file);
-  }  
-  
-  public void initialize() throws FileNotFoundException, IOException{
+  }
+
+  public void initialize() throws FileNotFoundException, IOException {
     primative.initialize();
     primativeToken = primative.next();
   }
-  
+
   public Token getToken() {
     return token;
   }
-  
+
   public void setDelimiter(String delimiter) {
     delimiterString = delimiter;
   }
-  
+
   public String getDelimiter() {
     return delimiterString;
   }
@@ -70,7 +73,7 @@ public class AutodocTokenizer {
     StringBuffer valueBuffer = null;
     boolean wordFound = false;
     StringBuffer wordBuffer = null;
-    
+
     if (nextTokenFound) {
       found = true;
       token.set(nextToken);
@@ -79,7 +82,9 @@ public class AutodocTokenizer {
       primativeToken = primative.next();
     }
     while (!found) {
-      if (primativeToken.is(Token.EOF) || primativeToken.is(Token.EOL) || primativeToken.is(Token.WHITESPACE)) {
+      if (primativeToken.is(Token.EOF)
+        || primativeToken.is(Token.EOL)
+        || primativeToken.is(Token.WHITESPACE)) {
         token.set(primativeToken);
         found = true;
       }
@@ -91,7 +96,7 @@ public class AutodocTokenizer {
         token.set(Token.SEPARATOR, SEPARATOR_CHAR);
         found = true;
       }
-      else if (primativeToken.equals(Token.SYMBOL,OPEN_CHAR)) {
+      else if (primativeToken.equals(Token.SYMBOL, OPEN_CHAR)) {
         token.set(Token.OPEN, OPEN_CHAR);
         found = true;
       }
@@ -103,10 +108,14 @@ public class AutodocTokenizer {
         token.set(Token.DELIMITER, delimiterString);
         found = true;
       }
-      else if (primativeToken.is(Token.SYMBOL) && delimiterString.indexOf(primativeToken.getValue()) == 0) {
+      else if (
+        primativeToken.is(Token.SYMBOL)
+          && delimiterString.indexOf(primativeToken.getValue()) == 0) {
         valueBuffer = new StringBuffer().append(primativeToken.getValue());
         int index = 1;
-        while (primative.next().is(Token.SYMBOL) && index <= delimiterString.length() && delimiterString.indexOf(primative.getToken().getValue()) == index) {
+        while (primative.next().is(Token.SYMBOL)
+          && index <= delimiterString.length()
+          && delimiterString.indexOf(primative.getToken().getValue()) == index) {
           valueBuffer.append(primative.getToken().getValue());
           index++;
         }
@@ -122,14 +131,16 @@ public class AutodocTokenizer {
             wordBuffer = new StringBuffer().append(primativeToken.getValue());
           }
           else {
-            wordBuffer = new StringBuffer().append(valueBuffer).append(primative.getToken().getValue());
+            wordBuffer =
+              new StringBuffer().append(valueBuffer).append(
+                primative.getToken().getValue());
           }
         }
         else {
           wordBuffer.append(primativeToken.getValue());
         }
       }
-      
+
       if (found) {
         if (wordFound) {
           nextTokenFound = true;
@@ -142,43 +153,45 @@ public class AutodocTokenizer {
           wordFound = false;
         }
       }
-      if (!nextTokenFound && (token.is(Token.DELIMITER) || delimiterString.length() == 1)) {     
+      if (!nextTokenFound
+        && (token.is(Token.DELIMITER) || delimiterString.length() == 1)) {
         primativeToken = primative.next();
       }
       else {
         primativeToken = primative.getToken();
       }
     }
-    
+
     if (token.is(Token.WORD)) {
-      if (token.equals(VERSION_KEYWORD) || token.equals(PIP_KEYWORD) || token.equals(DELIMITER_KEYWORD)) {
+      if (token.equals(VERSION_KEYWORD)
+        || token.equals(PIP_KEYWORD)
+        || token.equals(DELIMITER_KEYWORD)) {
         token.set(Token.KEYWORD);
       }
     }
     return token;
   }
-  
+
   public void testPrimativeTokenizer(boolean tokens) throws IOException {
     primative.initialize();
-    Token token = primative.next();
-    while (!token.is(Token.EOF)) {
+    Token token;
+    do {
+      token = primative.next();
       if (tokens) {
         System.out.println(token.toString());
       }
-      if (token.is(Token.EOL) && !tokens) {
+      else if (token.is(Token.EOL)) {
         System.out.println();
       }
-      else {
-        if (!tokens) {
-          System.out.print(token.getValue());
-        }
+      else if (!token.is(Token.EOF)) {
+        System.out.print(token.getValue());
       }
-      token = primative.next();
     }
+    while (!token.is(Token.EOF));
   }
 
   public void testStreamTokenizer(boolean tokens) throws IOException {
     primative.testStreamTokenizer(tokens);
   }
-  
+
 }
