@@ -141,6 +141,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.9  2003/12/12 20:25:57  mast
+c	  Initial checkin with PIP conversion and distortion correction
+c	
 c	  Revision 3.8  2003/03/14 01:57:05  mast
 c	  Added a linear interpolation option
 c	
@@ -235,6 +238,7 @@ c
 	integer*4 maxFieldY
 	real*4 fieldMaxY, binRatio, rotateAngle, expandFactor
 	real*4 cosd, sind
+	integer*4 lnblnk
 c
 	logical pipinput
 	integer*4 numOptArg, numNonOptArg
