@@ -351,17 +351,19 @@ void InfoWindow::editObjectSlot(int item)
   int cosave, ptsave;
   QString qstr;
   char *objtype;
+  ImodView *vi = App->cvi;
+  Imod *imod = vi->imod;
 
   if (ImodForbidLevel)
     return;
 
-  obj = imodel_object_get(App->cvi->imod);
+  obj = imodel_object_get(imod);
   if (!obj && item != EOBJECT_MENU_NEW)
     return;
      
   switch(item){
   case EOBJECT_MENU_NEW: /* New */
-    inputNewObject(App->cvi);
+    inputNewObject(vi);
     imod_object_edit();
     imod_info_setobjcolor();
     break;
@@ -369,11 +371,10 @@ void InfoWindow::editObjectSlot(int item)
   case EOBJECT_MENU_DELETE: /* Delete */
     if (obj)
       if (dia_ask("Delete Object?")) {
-        imodFreeObject(App->cvi->imod,
-                       App->cvi->imod->cindex.object);
+        imodFreeObject(imod, imod->cindex.object);
       }
-    imodDraw(App->cvi, IMOD_DRAW_MOD);
-    imod_cmap(App->cvi->imod);
+    imodDraw(vi, IMOD_DRAW_MOD);
+    imod_cmap(imod);
     imod_info_setobjcolor();
     break;
 	  
@@ -382,7 +383,7 @@ void InfoWindow::editObjectSlot(int item)
     imod_info_input();
     imod_info_enable();
 	  
-    imod_object_color(App->cvi->imod->cindex.object);
+    imod_object_color(imod->cindex.object);
     break;
 
   case EOBJECT_MENU_TYPE: /* type*/
@@ -395,37 +396,37 @@ void InfoWindow::editObjectSlot(int item)
     imod_info_forbid();
     imod_info_input();
     imod_info_enable();
-    if (App->cvi->imod->objsize < 2){
+    if (imod->objsize < 2){
       wprint("Must have more than one object to move contours "
              "to a new object\n");
       break;
     }
-    if (obj_moveto > (int)App->cvi->imod->objsize)
-      obj_moveto = App->cvi->imod->objsize;
+    if (obj_moveto > (int)imod->objsize)
+      obj_moveto = imod->objsize;
     if (obj_moveto < 1)
       obj_moveto = 1;
 
-    if (App->cvi->imod->cindex.object > -1){
-      if (!diaQInput(&obj_moveto, 1, App->cvi->imod->objsize, 0,
+    if (imod->cindex.object > -1){
+      if (!diaQInput(&obj_moveto, 1, imod->objsize, 0,
 		   "Move all contours to selected object."))
 	break;
       /* DNM: need to set contour inside loop because each deletion
          sets it to -1; and need to not increment counter! 
          And need to not do it if it's the same object! */
-      if (obj_moveto - 1 != App->cvi->imod->cindex.object) {
+      if (obj_moveto - 1 != imod->cindex.object) {
         for(co = 0; co < (int)obj->contsize; ) {
-          App->cvi->imod->cindex.contour = 0;
+          imod->cindex.contour = 0;
           imod_contour_move(obj_moveto - 1);
         }
-        App->cvi->imod->cindex.contour = -1;
-        App->cvi->imod->cindex.point = -1;
+        imod->cindex.contour = -1;
+        imod->cindex.point = -1;
       } else
         wprint("Must select a different object to move "
 			   "contours to.\n");
     }
     /* DNM: need to maintain separate object numbers for two functions */
-    /*	  App->cvi->obj_moveto = obj_moveto; */
-    imodDraw(App->cvi, IMOD_DRAW_MOD);
+    /*	  vi->obj_moveto = obj_moveto; */
+    imodDraw(vi, IMOD_DRAW_MOD);
     break;
 
   case EOBJECT_MENU_INFO: /* stats */
@@ -433,18 +434,19 @@ void InfoWindow::editObjectSlot(int item)
       float sa = 0.0f;
       int co,pt;
       Icont *cont;
-      Iobj *obj = imodObjectGet(App->cvi->imod);
+      Iobj *obj = imodObjectGet(imod);
       if (!obj) break;
 
       vol = imodObjectVolume(obj);
-      if (App->cvi->imod->pixsize)
-        vol *= App->cvi->imod->pixsize 
-          * App->cvi->imod->pixsize 
-          * App->cvi->imod->pixsize;
-      vol *= App->cvi->imod->zscale;
+      /* DNM 1/3/04: do not multiply by zbin because this is just summing 
+         over all the contours which will be more frequent if Z binning */
+      if (imod->pixsize)
+        vol *= imod->pixsize * vi->xybin * imod->pixsize * vi->xybin
+          * imod->pixsize;
+      vol *= imod->zscale;
       wprint("Object %d: Volume = %g %s^3.\n", 
-             App->cvi->imod->cindex.object + 1, vol, 
-             imodUnits(App->cvi->imod));
+             imod->cindex.object + 1, vol, 
+             imodUnits(imod));
 
       if (!iobjClose(obj->flags)) break;
 
@@ -465,26 +467,25 @@ void InfoWindow::editObjectSlot(int item)
         }
 
       }
-      sa *= App->cvi->imod->pixsize * App->cvi->imod->pixsize *
-        App->cvi->imod->zscale;
+      sa *= imod->pixsize * vi->xybin * imod->pixsize * imod->zscale;
       wprint("Object %d: Surface Area = %g%s^2.\n",
-             App->cvi->imod->cindex.object + 1,sa,
-             imodUnits(App->cvi->imod));
+             imod->cindex.object + 1,sa,
+             imodUnits(imod));
 	       
     }
     break;
 
   case EOBJECT_MENU_CLEAN: /* Clean: delete empty contours */
-    obj = imodObjectGet(App->cvi->imod);
+    obj = imodObjectGet(imod);
     if (!obj)
       break;
-    cosave = App->cvi->imod->cindex.contour;
-    ptsave = App->cvi->imod->cindex.point;
+    cosave = imod->cindex.contour;
+    ptsave = imod->cindex.point;
     for (co = obj->contsize - 1; co >= 0; co--){
       if (!obj->cont[co].psize) {
         /* delete contour if it is empty */
-        App->cvi->imod->cindex.contour = co;
-        DelContour(App->cvi->imod, co);
+        imod->cindex.contour = co;
+        DelContour(imod, co);
         if (co < cosave) 
           /* And if this contour is less than than the current
              one, then decrease current contour */
@@ -497,15 +498,15 @@ void InfoWindow::editObjectSlot(int item)
 
     /* Restore current point if possible */
     if (cosave >= 0) {
-      App->cvi->imod->cindex.contour = cosave;
-      App->cvi->imod->cindex.point = ptsave;
+      imod->cindex.contour = cosave;
+      imod->cindex.point = ptsave;
     }
 
-    imodDraw(App->cvi, IMOD_DRAW_RETHINK);
+    imodDraw(vi, IMOD_DRAW_RETHINK);
     break;
 
   case EOBJECT_MENU_FIXZ: /* break all contours at z transitions */
-    imodGetIndex(App->cvi->imod, &ob, &co, &pt);
+    imodGetIndex(imod, &ob, &co, &pt);
     if (iobjClose(obj->flags)) 
       objtype = "closed contour";
     else if (iobjScat(obj->flags))
@@ -524,9 +525,9 @@ void InfoWindow::editObjectSlot(int item)
     if (co >= 0) {
       if (pt >= obj->cont[co].psize)
 	pt = obj->cont[co].psize - 1;
-      imodSetIndex(App->cvi->imod, ob, co, pt);
+      imodSetIndex(imod, ob, co, pt);
     }
-    imodDraw(App->cvi, IMOD_DRAW_MOD);
+    imodDraw(vi, IMOD_DRAW_MOD);
     break;
 
   default:
@@ -569,35 +570,37 @@ void InfoWindow::editContourSlot(int item)
   struct Mod_Contour *cont;
   int ob,co,pt, ptb;
   double dist;
+  ImodView *vi = App->cvi;
+  Imod *imod = vi->imod;
 
   if (ImodForbidLevel)
     return;
 
-  cont = (struct Mod_Contour *)imodContourGet(App->cvi->imod);
+  cont = (struct Mod_Contour *)imodContourGet(imod);
      
   switch(item){
   case ECONTOUR_MENU_NEW: /* new */
-    inputNewContour(App->cvi);
+    inputNewContour(vi);
     break;
 	  
   case ECONTOUR_MENU_DELETE: /* del */
-    inputDeleteContour(App->cvi);
+    inputDeleteContour(vi);
     break;
 	  
   case ECONTOUR_MENU_MOVE: /* move */
-    if (App->cvi->imod->objsize < 2){
+    if (imod->objsize < 2){
       wprint("Must have more than one object to move contours "
              "to a new object\n");
       break;
     }
-    imodContEditMoveDialog(App->cvi);
+    imodContEditMoveDialog(vi);
     break;
 	  
   case ECONTOUR_MENU_SORT: /* sort */
-    if (App->cvi->imod->mousemode == IMOD_MMODEL){
-      imodObjectSort(imodel_object_get(App->cvi->imod));
-      App->cvi->imod->cindex.contour = -1;
-      App->cvi->imod->cindex.point   = -1;
+    if (imod->mousemode == IMOD_MMODEL){
+      imodObjectSort(imodel_object_get(imod));
+      imod->cindex.contour = -1;
+      imod->cindex.point   = -1;
       imod_info_setocp();
     }else{
       wprint("\aError: Must be in Model mode to Sort.\n");
@@ -605,12 +608,12 @@ void InfoWindow::editContourSlot(int item)
     break;
 
   case ECONTOUR_MENU_AUTO: /* auto */
-    autox_open(App->cvi);
+    autox_open(vi);
     imod_info_setocp();
     break;
 
   case ECONTOUR_MENU_TYPE: /* surface */
-    imodContEditSurf(App->cvi);
+    imodContEditSurf(vi);
     break;
 
 
@@ -619,25 +622,23 @@ void InfoWindow::editContourSlot(int item)
       return;
     if (!cont->psize)
       return;
-    obj = imodel_object_get(App->cvi->imod);
+    obj = imodel_object_get(imod);
     if (!obj) break;	  
     wprint("Obj: %d, Cont %d\n", 
-           App->cvi->imod->cindex.object+1, 
-           App->cvi->imod->cindex.contour+1);
+           imod->cindex.object+1, 
+           imod->cindex.contour+1);
 
     if (iobjClose(obj->flags)){
 	      
       /* 2.00b7 fix added */
       if (!(cont->flags & ICONT_OPEN)){
         dist = imodContourArea(cont);
-        dist *= App->cvi->imod->pixsize * App->cvi->imod->pixsize;
-        wprint("2D area = %g square %s\n", 
-               dist, imodUnits(App->cvi->imod));
+        dist *= imod->pixsize * imod->pixsize * vi->xybin * vi->xybin;
+        wprint("2D area = %g square %s\n", dist, imodUnits(imod));
       }
 
       for(dist = 0.0, pt = 0; pt < (int)cont->psize-1; pt++){
-        dist += imodel_point_dist(&(cont->pts[pt]),
-                                  &(cont->pts[pt+1]));
+        dist += imodel_point_dist(&(cont->pts[pt]), &(cont->pts[pt+1]));
       }
 	       
       /* 2.00b7 fix added */
@@ -645,15 +646,15 @@ void InfoWindow::editContourSlot(int item)
         dist += imodel_point_dist
           (&(cont->pts[cont->psize-1]), cont->pts);
 	       
-      dist *= App->cvi->imod->pixsize;
-      wprint("2D length = %g %s\n", dist, imodUnits(App->cvi->imod));
+      dist *= imod->pixsize * vi->xybin;
+      wprint("2D length = %g %s\n", dist, imodUnits(imod));
 	       
     }
     if (iobjOpen(obj->flags)){
       Ipoint scale;
-      scale.x = App->cvi->imod->xscale;
-      scale.y = App->cvi->imod->yscale;
-      scale.z = App->cvi->imod->zscale;
+      scale.x = imod->xscale * vi->xybin;
+      scale.y = imod->yscale * vi->xybin;
+      scale.z = imod->zscale * vi->zbin;
       for(dist = 0.0, pt = 0; pt < (int)cont->psize-1; pt++){
         dist += imodPoint3DScaleDistance
           (&(cont->pts[pt]), &(cont->pts[pt+1]), &scale);
@@ -664,9 +665,8 @@ void InfoWindow::editContourSlot(int item)
         (&(cont->pts[cont->psize-1]), cont->pts, &scale);
       */
 
-      dist *= App->cvi->imod->pixsize;
-      wprint("3D scale length = %g %s\n", 
-             dist, imodUnits(App->cvi->imod));
+      dist *= imod->pixsize;
+      wprint("3D scale length = %g %s\n", dist, imodUnits(imod));
     }
     if (iobjScat(obj->flags)){
       wprint("No stats available for scattered contours.\n");
@@ -674,11 +674,11 @@ void InfoWindow::editContourSlot(int item)
     break;
 
   case ECONTOUR_MENU_BREAK: /* break a contour into two */
-    imodContEditBreak(App->cvi);
+    imodContEditBreak(vi);
     break;
 
   case ECONTOUR_MENU_FIXZ: /* break a contour at z transitions */
-    obj = imodel_object_get(App->cvi->imod);
+    obj = imodel_object_get(imod);
     if (!obj)
       break;	  
     if (!cont)
@@ -689,29 +689,29 @@ void InfoWindow::editContourSlot(int item)
       wprint("\aError: Only Closed contours can be broken by Z\n");
       break;
     }
-    imodGetIndex(App->cvi->imod, &ob, &co, &pt);
+    imodGetIndex(imod, &ob, &co, &pt);
     cont = imodContourBreakByZ(obj, co);
     if (pt >= (int)cont->psize)
       pt = cont->psize - 1;
-    imodSetIndex(App->cvi->imod, ob, co, pt);
-    imodDraw(App->cvi, IMOD_DRAW_MOD);
+    imodSetIndex(imod, ob, co, pt);
+    imodDraw(vi, IMOD_DRAW_MOD);
     break;
 
   case ECONTOUR_MENU_JOIN: /* join two contour together. */
-    imodContEditJoin(App->cvi, 0, 0);
+    imodContEditJoin(vi, 0, 0);
     break;
 
   case ECONTOUR_MENU_INVERT: /* invert a contour */
     if (!imodel_contour_invert(cont)) {
-      imodGetIndex(App->cvi->imod, &ob, &co, &pt);
+      imodGetIndex(imod, &ob, &co, &pt);
       pt = (cont->psize - 1) - pt;
-      imodSetIndex(App->cvi->imod, ob, co, pt);
-      imodDraw(App->cvi, IMOD_DRAW_MOD);
+      imodSetIndex(imod, ob, co, pt);
+      imodDraw(vi, IMOD_DRAW_MOD);
     }
     break;
 
   case ECONTOUR_MENU_COPY: /* duplicate current contour. */
-    openContourCopyDialog(App->cvi);
+    openContourCopyDialog(vi);
     break;
 
   case ECONTOUR_MENU_LOOPBACK: /* Loop back to start to make complex cap */
@@ -720,7 +720,7 @@ void InfoWindow::editContourSlot(int item)
     break;
 
   case ECONTOUR_MENU_FILLIN: /* fill in a contour at every z level: Open contours only */
-    obj = imodel_object_get(App->cvi->imod);
+    obj = imodel_object_get(imod);
     if (!obj)
       break;	  
     if (!cont)
@@ -731,7 +731,7 @@ void InfoWindow::editContourSlot(int item)
       wprint("\aError: Only Open contours can be filled in by Z\n");
       break;
     }
-    imodGetIndex(App->cvi->imod, &ob, &co, &pt);
+    imodGetIndex(imod, &ob, &co, &pt);
     for (ptb = 0; ptb < (int)cont->psize - 1; ptb++) {
       int zcur, znext, zfill;
       Ipoint newPt;
@@ -762,8 +762,8 @@ void InfoWindow::editContourSlot(int item)
       }
     }
 
-    imodSetIndex(App->cvi->imod, ob, co, pt);
-    imodDraw(App->cvi, IMOD_DRAW_MOD);
+    imodSetIndex(imod, ob, co, pt);
+    imodDraw(vi, IMOD_DRAW_MOD);
     break;
 
   default:
@@ -778,37 +778,39 @@ void InfoWindow::editContourSlot(int item)
  */
 void InfoWindow::editPointSlot(int item)
 {
+  ImodView *vi = App->cvi;
+  Imod *imod = vi->imod;
 
   if (ImodForbidLevel)
     return;
 
   switch(item){
   case EPOINT_MENU_DELETE: /* Delete */
-    inputDeletePoint(App->cvi);
+    inputDeletePoint(vi);
     break;
 	  
   case EPOINT_MENU_SORTDIST: /* Sort by distance */
-    if (App->cvi->imod->mousemode == IMOD_MMODEL){
-      imodel_contour_sort(imodContourGet(App->cvi->imod));
-      imodDraw(App->cvi, IMOD_DRAW_MOD);
+    if (imod->mousemode == IMOD_MMODEL){
+      imodel_contour_sort(imodContourGet(imod));
+      imodDraw(vi, IMOD_DRAW_MOD);
     }
     break;
 
   case EPOINT_MENU_SORTZ: /* Sort by Z */
-    if (App->cvi->imod->mousemode == IMOD_MMODEL){
-      Icont *cont = imodContourGet(App->cvi->imod);
+    if (imod->mousemode == IMOD_MMODEL){
+      Icont *cont = imodContourGet(imod);
       if (cont)
         if (cont->psize) {
           imodel_contour_sortz(cont, 0, cont->psize - 1);
-          imodDraw(App->cvi, IMOD_DRAW_MOD);
+          imodDraw(vi, IMOD_DRAW_MOD);
         }
     }
     break;
 	  
   case EPOINT_MENU_DIST: /* dist */{
 	     
-    Icont *cont = imodContourGet(App->cvi->imod);
-    int    pt   = App->cvi->imod->cindex.point;
+    Icont *cont = imodContourGet(imod);
+    int    pt   = imod->cindex.point;
     Ipoint *cpt, *ppt;
     Ipoint scale;
     float dist2d, dist3d;
@@ -823,30 +825,30 @@ void InfoWindow::editPointSlot(int item)
     pt--;
     ppt = &(cont->pts[pt]);
 
-    scale.x = App->cvi->imod->xscale;
-    scale.y = App->cvi->imod->yscale;
-    scale.z = App->cvi->imod->zscale;
+    scale.x = imod->xscale * vi->xybin;
+    scale.y = imod->yscale * vi->xybin;
+    scale.z = imod->zscale * vi->zbin;
 	     
     dist2d  = imodel_point_dist(cpt, ppt);
     dist3d  = imodPoint3DScaleDistance(cpt, ppt, &scale);
 
     wprint("\nDistance to previous point :\n2D = %g pixels, %g %s\n",
-           dist2d, dist2d * App->cvi->imod->pixsize,
-           imodUnits(App->cvi->imod));
+           dist2d, dist2d * imod->pixsize * vi->xybin,
+           imodUnits(imod));
     wprint("3D = %g pixels, %g %s\n",
-           dist3d, dist3d * App->cvi->imod->pixsize,
-           imodUnits(App->cvi->imod));
+           dist3d, dist3d * imod->pixsize,
+           imodUnits(imod));
     break;
   }
   case EPOINT_MENU_VALUE: /* value */
     wprint("Pixel value from file:\n (%g, %g, %g) = %g",
-           App->cvi->xmouse + 1, App->cvi->ymouse + 1, App->cvi->zmouse + 1,
-           ivwGetFileValue(App->cvi, (int)App->cvi->xmouse,
-                           (int)App->cvi->ymouse, (int)App->cvi->zmouse));
+           vi->xmouse + 1, vi->ymouse + 1, vi->zmouse + 1,
+           ivwGetFileValue(vi, (int)vi->xmouse,
+                           (int)vi->ymouse, (int)vi->zmouse));
     break;
 
   case EPOINT_MENU_SIZE: /* size */
-    imodContEditSurf(App->cvi);
+    imodContEditSurf(vi);
     break;
 
   default:
@@ -1055,6 +1057,9 @@ static Icont *imodContourBreakByZ(Iobj *obj, int co)
 
 /*
 $Log$
+Revision 4.14  2003/11/26 18:17:27  mast
+Disable image menu entries for raw or no images appropriately
+
 Revision 4.13  2003/09/16 02:53:15  mast
 Changed to pass the memory snapshot as an array of line pointers
 
