@@ -1,6 +1,6 @@
 	function trnc(xx)
 	common /imparm/ nthick,width,upi,safe,xcur,ycur
-     1,udlen,exlen,hafthk,symscl,ifgks,cscrit
+     &	    ,udlen,exlen,hafthk,symscl,ifgks
 	save /imparm/
 	real*4 safe2(3)/.35,1.2,2.65/
 	idot=nint(xx*upi)

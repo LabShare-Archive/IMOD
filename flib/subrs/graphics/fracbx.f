@@ -4,7 +4,7 @@ c	  X,Y in inches.
 c
 	subroutine fracbx(x,y,frac)
 	common /imparm/ nthick,width,upi,safe,xcur,ycur
-     1,udlen,exlen,hafthk,symscl,ifgks,cscrit
+     1,udlen,exlen,hafthk,symscl,ifgks
 	common /bxparm/ bxwith,bxhite,bxtick
 	data bxwith,bxhite,bxtick/.1,.4,.05/
 	save /bxparm/
