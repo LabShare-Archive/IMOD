@@ -23,6 +23,10 @@ import etomo.storage.EtomoFileFilter;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.8  2003/05/15 20:21:22  rickg
+ * <p> Added extra validation call hopefully to make sure divider gets rendered
+ * <p> correctly
+ * <p>
  * <p> Revision 2.7  2003/05/08 19:58:25  rickg
  * <p> Addd post processing state update on an updateAll... call
  * <p>
@@ -116,7 +120,12 @@ public class MainFrame extends JFrame implements ContextMenu {
 
   //  These panels get instantiated as needed
   private AxisProcessPanel axisPanelA;
+  private ScrollPanel scrollA;
+  private JScrollPane scrollPaneA;
   private AxisProcessPanel axisPanelB;
+  private ScrollPanel scrollB;
+  private JScrollPane scrollPaneB;
+
   private JSplitPane splitPane;
 
   //  Application manager object
@@ -172,29 +181,37 @@ public class MainFrame extends JFrame implements ContextMenu {
     panelCenter.removeAll();
     if (axisType == AxisType.SINGLE_AXIS) {
       axisPanelA = new AxisProcessPanel(applicationManager, AxisID.ONLY);
-      ScrollPanel scrollA = new ScrollPanel();
+      scrollA = new ScrollPanel();
       scrollA.add(axisPanelA.getContainer());
-      JScrollPane scrollPaneA = new JScrollPane(scrollA);
+      scrollPaneA = new JScrollPane(scrollA);
       panelCenter.add(scrollPaneA);
     }
     else {
       axisPanelA = new AxisProcessPanel(applicationManager, AxisID.FIRST);
-      ScrollPanel scrollA = new ScrollPanel();
+      scrollA = new ScrollPanel();
       scrollA.add(axisPanelA.getContainer());
-      JScrollPane scrollPaneA = new JScrollPane(scrollA);
+      scrollPaneA = new JScrollPane(scrollA);
 
       axisPanelB = new AxisProcessPanel(applicationManager, AxisID.SECOND);
-      ScrollPanel scrollB = new ScrollPanel();
+      scrollB = new ScrollPanel();
       scrollB.add(axisPanelB.getContainer());
-      JScrollPane scrollPaneB = new JScrollPane(scrollB);
-
+      scrollPaneB = new JScrollPane(scrollB);
       splitPane =
         new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, scrollPaneA, scrollPaneB);
-      //      panelCenter.add(scrollPaneA);
-      //      panelCenter.add(scrollPaneB);
       splitPane.setDividerLocation(0.5);
+      splitPane.setOneTouchExpandable(true);
       panelCenter.add(splitPane);
-      panelCenter.validate();
+    }
+  }
+
+  public void setDividerLocation(double value) {
+    if (splitPane != null) {
+      scrollPaneA.doLayout();
+      scrollPaneB.doLayout();
+      splitPane.doLayout();
+      splitPane.revalidate();
+      splitPane.validate();
+      splitPane.setDividerLocation(value);
     }
   }
 
@@ -453,7 +470,7 @@ public class MainFrame extends JFrame implements ContextMenu {
         processTrack.getTomogramGenerationState(AxisID.SECOND));
     }
     axisPanelA.setPostProcessingState(processTrack.getPostProcessingState());
-    
+
   }
 
   public void setPreProcessingState(ProcessState state, AxisID axisID) {
