@@ -1128,7 +1128,10 @@ void MidasSlots::slotEdge(int upDown)
 
 void MidasSlots::slotEdgeValue(int sec)
 {
-  try_montage_edge(sec, 0);
+  int upDown = sec - VW->curedge;
+  if (upDown != 1 && upDown != -1)
+    upDown = 0;
+  try_montage_edge(sec, upDown);
   VW->midasWindow->setFocus();
 }
 
@@ -1925,6 +1928,10 @@ void MidasSlots::convertNumLock(int &keysym, int &keypad)
 
 /*
 $Log$
+Revision 3.8  2004/07/12 18:41:36  mast
+Changes for chunk alignment, for switching to spin boxes, and for making
+the sliders continuously active.
+
 Revision 3.7  2004/02/27 21:37:46  mast
 Fixed treatment of x/ycenter when transforming and rotating, etc.
 
