@@ -30,6 +30,10 @@ import etomo.type.SectionTableRowData;
 * <p> </p>
 * 
 * <p> $Log$
+* <p> Revision 1.3  2004/12/01 03:45:47  sueh
+* <p> bug# 520 Removed unnecessary member variable SystemProgram
+* <p> program.
+* <p>
 * <p> Revision 1.2  2004/11/19 23:04:18  sueh
 * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
 * <p>
@@ -175,6 +179,10 @@ public class MakejoincomParam implements Command {
   
   public int getIntegerValue(int name) {
     return Integer.MIN_VALUE;
+  }
+  
+  public boolean getBooleanValue(int name) {
+    return false;
   }
   
   public int getMode() {

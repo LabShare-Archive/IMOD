@@ -19,6 +19,11 @@ import etomo.BaseManager;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.3  2004/12/04 00:34:30  sueh
+* <p> bug# 569 Handling directory paths with spaces:  converting from a
+* <p> command line to a command array to prevent the command line from
+* <p> being split on white space.
+* <p>
 * <p> Revision 1.2  2004/11/19 22:57:10  sueh
 * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
 * <p>
@@ -108,6 +113,10 @@ public class FlipyzParam implements Command {
   
   public int getIntegerValue(int name) {
     return Integer.MIN_VALUE;
+  }
+  
+  public boolean getBooleanValue(int name) {
+    return false;
   }
   
   public int getMode() {

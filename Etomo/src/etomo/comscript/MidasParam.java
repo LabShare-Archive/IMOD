@@ -24,6 +24,9 @@ import etomo.type.SectionTableRowData;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.2  2004/11/19 23:05:04  sueh
+* <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+* <p>
 * <p> Revision 1.1.2.8  2004/11/16 02:21:23  sueh
 * <p> bug# 520 EtomoNumber uses toString() instead of getString().
 * <p>
@@ -129,6 +132,10 @@ public class MidasParam implements Command {
   
   public int getIntegerValue(int name) {
     return Integer.MIN_VALUE;
+  }
+  
+  public boolean getBooleanValue(int name) {
+    return false;
   }
   
   public int getMode() {

@@ -22,6 +22,9 @@ import etomo.type.ConstJoinMetaData;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.4  2004/12/02 18:28:00  sueh
+* <p> bug 520 Remove unnecessary import.
+* <p>
 * <p> Revision 1.3  2004/12/01 03:46:22  sueh
 * <p> bug# 520 Removed unnecessary member variable SystemProgram
 * <p> program.
@@ -132,6 +135,10 @@ public class XfalignParam implements Command {
   
   public int getIntegerValue(int name) {
     return Integer.MIN_VALUE;
+  }
+  
+  public boolean getBooleanValue(int name) {
+    return false;
   }
   
   public int getMode() {
