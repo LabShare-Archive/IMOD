@@ -5,6 +5,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.3  2003/03/28 05:49:16  mast
+No plugs for Mac either
+
 Revision 4.2  2003/02/27 19:41:15  mast
 No plugs in windows yet
 
@@ -21,9 +24,6 @@ Revision 3.1  2002/12/01 15:34:41  mast
 Changes to get clean compilation with g++
 
 */
-#ifdef __ppc__
-#define NOPLUGS
-#endif
 #ifdef _WIN32
 #define NOPLUGS
 #endif
@@ -32,6 +32,7 @@ Changes to get clean compilation with g++
 #endif
 
 #ifndef NOPLUGS
+#include <sys/types.h>
 #include <dlfcn.h>
 #include <dirent.h>
 #include <string.h>
