@@ -17,6 +17,11 @@ import etomo.type.FiducialMatch;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.4  2004/06/24 18:41:13  sueh
+ * <p> bug# 482 modified parse functions to create functions the merge
+ * <p> solvematchshift and solvematchmod together based on
+ * <p> modelBased
+ * <p>
  * <p> Revision 3.3  2004/06/18 15:50:56  rickg
  * <p> Bug #383 Forced outputFile to be solvezero.xf when converting
  * <p> from a solvematchmod.com script.
@@ -134,25 +139,6 @@ public class SolvematchParam extends ConstSolvematchParam
     outputFile = solvematchshift.getOutputTransformationFile();
     maximumResidual = solvematchshift.getResidualThreshold();
   }
-
-  /*
-   *   protected boolean matchBToA = true;
-
-  protected String outputFile = "";
-  protected String toFiducialFile = "";
-  protected String fromFiducialFile = "";
-  protected StringList toCorrespondenceList = new StringList(0);
-  protected StringList fromCorrespondenceList = new StringList(0);
-  protected FortranInputString xAxistTilt = new FortranInputString(2);
-  protected int surfacesOrModel = Integer.MIN_VALUE;
-  protected float maximumResidual = Float.NaN;
-  protected String toMatchingModel = "";
-  protected String fromMatchingModel = "";
-  protected String toTomogramOrSizeXYZ = "";
-  protected String fromTomogramOrSizeXYZ = "";
-  protected FortranInputString scaleFactors = new FortranInputString(2);
-*/
-   
 
   /**
    * Merge a solvematchmod param object into this object
