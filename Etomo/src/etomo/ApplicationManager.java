@@ -76,6 +76,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.78  2003/10/21 02:34:20  sueh
+ * <p> Bug325 Pulled out generic default UI retrieval functionality and placed it in ButtonHelper.
+ * <p>
  * <p> Revision 2.77  2003/10/20 22:02:13  rickg
  * <p> Bug# 228 Check to see if solve.xf exists before running matchvol1
  * <p>
@@ -2438,6 +2441,36 @@ public class ApplicationManager {
     mainFrame.stopProgressBar(axisID);
   }
 
+	/**
+	 * Delete the pre-aligned and aligned stack for the specified axis
+	 * @param axisID
+	 */
+  public void deleteAlignedStacks(AxisID axisID) {
+    File preali =
+      new File(
+        System.getProperty("user.dir"),
+        metaData.getDatasetName() + axisID.getExtension() + ".preali");
+    if (preali.exists()) {
+      if (!preali.delete()) {
+        mainFrame.openMessageDialog(
+          "Unable to delete pre-aligned stack: " + preali.getAbsolutePath(),
+          "Can not delete file");
+      }
+    }
+
+    File aligned =
+      new File(
+        System.getProperty("user.dir"),
+        metaData.getDatasetName() + axisID.getExtension() + ".ali");
+    if (aligned.exists()) {
+      if (!aligned.delete()) {
+        mainFrame.openMessageDialog(
+          "Unable to delete aligned stack: " + aligned.getAbsolutePath(),
+          "Can not delete file");
+      }
+    }
+  }
+  
   /**
    * Open the tomogram combination dialog
    */
@@ -3022,7 +3055,7 @@ public class ApplicationManager {
       mainFrame.openMessageDialog(message, "Unable to execute com script");
       return;
     }
-    
+
     //  Set the next process to execute when this is finished   
     nextProcess = "patchcorr";
     String threadName;
@@ -3947,7 +3980,6 @@ public class ApplicationManager {
       }
     }
   }
-
 
   /**
    * Return the IMOD directory
