@@ -878,8 +878,10 @@ void XyzWindow::DrawImage()
           
   glClearIndex(App->background);
   /* DNM: need to set clear colors for rgb mode */
-  if (App->rgba)
-    glClearColor(64./255., 64./255 , 96./255, 0.);
+  if (App->rgba) {
+    QColor qcol = ImodPrefs->namedColor(App->background);
+    glClearColor(qcol.red()/255., qcol.green()/255. , qcol.blue()/255., 0.);
+  }
      
   /* DNM 1/20/02: remove the XYZ_CLEAR_HACK */
      
@@ -1441,17 +1443,17 @@ void XyzWindow::DrawCurrentPoint()
           
     if ((int)floor(pnt->z + 0.5) == cz && 
         !zapTimeMismatch(xx->vi, 0, obj, cont)) {
-      b3dColorIndex(App->foreground);
+      b3dColorIndex(App->curpoint);
     }else{
       b3dColorIndex(App->shadow);
     }
     b3dDrawCircle((int)(z * pnt->x+bx), (int)(z * pnt->y+by), psize);
-    b3dColorIndex(App->foreground);
+    b3dColorIndex(App->curpoint);
     b3dDrawPlus((int)(z*pnt->x+bx), (int)(z*cz + by2), psize);
     b3dDrawPlus((int)(z * cz + bx2), (int)(by+z*pnt->y), psize);
     return;
   }
-  b3dColorIndex(App->foreground);
+  b3dColorIndex(App->curpoint);
   b3dDrawPlus((int)(z*cx+bx), (int)(z*cy+by), imPtSize);
   b3dDrawPlus((int)(z*cx+bx), (int)(z*cz+by2), imPtSize);
   b3dDrawPlus((int)(bx2+z*cz), (int)(by+z*cy), imPtSize);
@@ -1738,6 +1740,9 @@ void XyzGL::mouseMoveEvent( QMouseEvent * event )
 
 /*
 $Log$
+Revision 4.21  2004/11/01 22:56:51  mast
+Kept floating point positions, made res zoom-dependent
+
 Revision 4.20  2004/09/10 02:31:04  mast
 replaced long with int
 

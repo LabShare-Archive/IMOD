@@ -7,6 +7,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.8  2004/01/05 18:36:27  mast
+Divide point size by binning
+
 Revision 4.7  2003/10/27 22:25:07  mast
 Fix bug of trying to draw end symbols for empty contours
 
@@ -129,7 +132,7 @@ void imodDrawModel(ImodView *vi, Imod *imod)
 
     /* draw current point in model mode */
     if (pnt && vi->imod->mousemode == IMOD_MMODEL) {
-      b3dColorIndex(App->foreground);
+      b3dColorIndex(App->curpoint);
       curSize = modPtSize;
       if (cont->psize > 1 && 
           (pnt == cont->pts || pnt == cont->pts + cont->psize - 1))
