@@ -220,7 +220,9 @@ larger the block
 .I size,
 the faster the display, but quality will suffer, especially for images that
 are rotated substantially.
-
+.TP
+.B -D
+Run in debug mode, which means do not run the program in the background.
 .SH FILES
 The transformation files that midas uses are in the following format.
 The files are in ascii format with one line for each image in the image stack.
