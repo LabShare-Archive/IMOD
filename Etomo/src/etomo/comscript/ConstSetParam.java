@@ -16,6 +16,10 @@ import etomo.type.EtomoNumber;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.2  2004/12/03 20:21:03  sueh
+* <p> bug# 556 Support older versions of volcombine.com.  Check for an
+* <p> incorrect set name and set "valid = false" instead of throw an exception.
+* <p>
 * <p> Revision 1.1  2004/11/30 00:33:51  sueh
 * <p> bug# 556 Object to parse the first set commmand in volcombine.com.
 * <p> </p>
@@ -29,7 +33,7 @@ public class ConstSetParam {
   protected String expectedName = null;
   protected String name = "";
   protected int etomoNumberType;
-  protected EtomoNumber numericValue = new EtomoNumber(EtomoNumber.FLOAT_TYPE);
+  protected EtomoNumber numericValue;
   protected String value;
   protected boolean numeric = false;
   protected boolean valid = true;
@@ -37,7 +41,7 @@ public class ConstSetParam {
   public ConstSetParam(String expectedName, int etomoNumberType) {
     this.etomoNumberType = etomoNumberType;
     numericValue = new EtomoNumber(etomoNumberType, expectedName);
-    numericValue.setDefault(0);
+    numericValue.setDisplayValue(0);
     reset();
     numeric = true;
     
@@ -55,9 +59,9 @@ public class ConstSetParam {
     return valid;
   }
   
-  public String getValue(boolean displayDefault) {
+  public String getValue() {
     if (numeric) {
-      return numericValue.toString(displayDefault);
+      return numericValue.toString();
     }
     return value;
   }
