@@ -24,6 +24,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.3  2003/05/08 04:19:24  rickg
+ * <p> Updated tooltips
+ * <p>
  * <p> Revision 2.2  2003/02/24 23:24:15  rickg
  * <p> Added process killing button that is not yet implemented
  * <p>
@@ -82,7 +85,6 @@ public class AxisProcessPanel implements ContextMenu {
 
     //  Create the status panel
     buttonKillProcess.addActionListener(new KillButtonActionListener(this));
-    buttonKillProcess.setEnabled(false);
     panelStatus.add(progressPanel.getContainer());
     panelStatus.add(buttonKillProcess);
 
@@ -132,7 +134,7 @@ public class AxisProcessPanel implements ContextMenu {
   }
 
   void buttonKillAction(ActionEvent event) {
-    applicationManager.interrupt(axisID);
+    applicationManager.kill(axisID);
   }
 
   /**
