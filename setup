@@ -12,7 +12,7 @@
 #
 # Global setup
 #
-set imod_copyright    = '1994-2004'
+set imod_copyright    = '1994-2005'
 set lab_name1     = 'Boulder Laboratory for 3-Dimensional'
 set lab_name2     = 'Electron Microscopy of Cells'
 set source_dir    = `pwd`
@@ -805,6 +805,10 @@ exit
 
 #
 #  $Log$
+#  Revision 3.48  2004/12/22 05:50:19  mast
+#  Added qtassist, consolidated management of dependent file before and after
+#  qmake is run to avoid duplication between here and cygwin
+#
 #  Revision 3.47  2004/12/04 19:28:35  mast
 #  Added assisstantcleint lib for midas
 #
