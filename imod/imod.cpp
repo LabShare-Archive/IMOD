@@ -244,8 +244,8 @@ int main( int argc, char *argv[])
     argv = startup->getArguments(argc);
     doImodv = 0;
     /*for (i = 0; i < argc; i++)
-      fprintf(stderr, "%s ", argv[i]);
-      fprintf(stderr, "\n"); */
+      imodPrintStderr("%s ", argv[i]);
+      imodPrintStderr("\n"); */
     delete startup;
   }
 
@@ -447,8 +447,8 @@ int main( int argc, char *argv[])
       argv = startup->getArguments(argc);
       if (Imod_debug) {
         for (i = 0; i < argc; i++)
-          fprintf(stderr, "%s ", argv[i]);
-        fprintf(stderr, "\n"); 
+          imodPrintStderr("%s ", argv[i]);
+        imodPrintStderr("\n"); 
       }
       delete startup;
     }
@@ -476,7 +476,7 @@ int main( int argc, char *argv[])
       }
       
       /* But if there are other files, open new model with that name*/
-      printf("Model file (%s) not found: opening "
+      imodPrintStderr("Model file (%s) not found: opening "
         "new model by that name.\n", argv[argc - 1]);
 
       Model = imodNew();
@@ -490,7 +490,7 @@ int main( int argc, char *argv[])
       Model = (struct Mod_Model *)LoadModel(mfin);
       if (Model){
         if (Imod_debug)
-          fprintf(stderr, "Loaded model %s\n", argv[argc -1]);
+          imodPrintStderr("Loaded model %s\n", argv[argc -1]);
         lastimage = argc - 2;
       } else {
         /* If fail, last file is an image */
@@ -530,7 +530,7 @@ int main( int argc, char *argv[])
     }
     
     if (Imod_debug){
-      fprintf(stderr, "Loading %s\n", Imod_imagefile);
+      imodPrintStderr("Loading %s\n", Imod_imagefile);
     }
    
     vi.fp = fin = fopen
@@ -547,7 +547,7 @@ int main( int argc, char *argv[])
     vi.ifd = imodImageFileDesc(fin);
 
     if (Imod_debug)
-      printf( "Image file type %d\n", vi.ifd);
+      imodPrintStderr( "Image file type %d\n", vi.ifd);
 
     if (vi.ifd) {
 
@@ -569,7 +569,7 @@ int main( int argc, char *argv[])
         Imod_IFDpath.truncate(pathlen + 1);
         QDir::setCurrent(Imod_IFDpath);
         if (Imod_debug)
-          printf("chdir %s\n", Imod_IFDpath.latin1());
+          imodPrintStderr("chdir %s\n", Imod_IFDpath.latin1());
       }
 
       /* Load list of images and reset current directory */
@@ -649,7 +649,7 @@ int main( int argc, char *argv[])
   imod_info_open(); 
 
   if (Imod_debug)
-    puts("info opened");
+    imodPuts("info opened");
   imod_color_init(App);
   imod_set_mmode(IMOD_MMOVIE);
 
@@ -662,8 +662,7 @@ int main( int argc, char *argv[])
   /* report window before loading data */
   if (print_wid) {
     unsigned int winID = (unsigned int)ImodInfoWin->winId();
-    fprintf(stderr, "Window id = %u\n", winID);
-    fflush(stderr);    // Needed on Windows
+    imodPrintStderr("Window id = %u\n", winID);
     if (Imod_debug)
       wprint("Window id = %u\n", winID);
   }
@@ -701,7 +700,8 @@ int main( int argc, char *argv[])
   if (fillCache && vi.vmSize)
     imodCacheFill(&vi);
 
-  if (Imod_debug) puts("Read image data OK.");
+  if (Imod_debug) 
+    imodPuts("Read image data OK.");
 
   /* DNM 1/1/04: eliminate filename output, it is all over the place */
   if (vi.fakeImage)
@@ -734,13 +734,13 @@ int main( int argc, char *argv[])
   if (zapOpen || !(xyzwinopen || sliceropen || modelViewOpen))
     imod_zap_open(&vi); 
   if (Imod_debug)  
-    puts("initial windows opened");
+    imodPuts("initial windows opened");
   if (App->rgba)
     imod_info_setbw(App->cvi->black, App->cvi->white);
 
   /* Start main application input loop. */
   if (Imod_debug)
-    puts("mainloop");
+    imodPuts("mainloop");
   imodPlugCall(&vi, 0, IMOD_REASON_STARTUP);
 
   loopStarted = 1;
@@ -891,6 +891,8 @@ QString imodCaption(char *intro)
   return qstr;
 }
 
+/* Takes fprintf-type arguments and gives an error message box if out is
+   NULL or if under Windows; otherwise prints to file */
 void imodError(FILE *out, const char *format, ...)
 {
   char errorMess[512];
@@ -907,6 +909,8 @@ void imodError(FILE *out, const char *format, ...)
     dia_err(errorMess);
 }
 
+/* Takes an arbitrarily sized string and gives a message box on windows or
+   prints to standard out otherwise */
 void imodPrintInfo(const char *message)
 {
 #ifdef _WIN32
@@ -916,6 +920,28 @@ void imodPrintInfo(const char *message)
 #endif
 }
 
+/* Takes fprintf-type arguments and prints to stderr, and flushes on Windows */
+void imodPrintStderr(const char *format, ...)
+{
+  char errorMess[512];
+  va_list args;
+  va_start(args, format);
+  
+  vsprintf(errorMess, format, args);
+  fprintf(stderr, errorMess);
+#ifdef _WIN32
+  fflush(stderr);
+#endif
+}
+
+/* Takes a message for "puts", adds newline, prints and flushes stderr */
+void imodPuts(const char *message)
+{
+  fprintf(stderr, "%s\n", message);
+#ifdef _WIN32
+  fflush(stderr);
+#endif
+}
 
 /***********************************************************************
  * Core application plugin lookup functions.
@@ -963,6 +989,9 @@ int imodColorValue(int inColor)
 
 /*
 $Log$
+Revision 4.34  2004/05/28 23:30:13  mast
+Add function to report in whether event loop has started
+
 Revision 4.33  2004/03/25 21:06:00  mast
 Prevented accessing vi.hdr when no image was loaded
 
