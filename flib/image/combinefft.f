@@ -17,6 +17,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.2  2004/07/22 23:45:58  mast
+c	  Activated interzone option and allowed reduction > 1
+c	
 c	  Revision 3.1  2004/07/13 18:13:54  mast
 c	  Converted to PIP input, did declarations and error exits, 
 c	  incorporated old weighting stuff and added missing-wedge reduction
@@ -478,6 +481,7 @@ c
 	real*4 tmp,sumint,wsum,avgint
 	integer*4 PipGetSTring, PipGetTwoFloats
 	real*4 tand
+	logical line_is_filename
 c
 	nweight=2
 c
@@ -498,7 +502,8 @@ c
      &	      'starting and ending tilt ',
      &	      ' angles, or the name of a file with tilt angles in it'
 	  read(5,'(a)')line
-	  read(line,*,err=10)tiltlo,tilthi
+	  if (line_is_filename(line)) go to 10
+	  read(line,*,err=10,end=10)tiltlo,tilthi
 	  go to 20
 	endif
 c	  

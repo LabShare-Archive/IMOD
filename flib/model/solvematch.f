@@ -12,6 +12,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.8  2004/06/10 05:29:30  mast
+c	  Added ability to deal with absolute coordinates
+c	
 c	  Revision 3.7  2004/01/29 03:12:11  mast
 c	  Fixed bug in getting output file for Pip input
 c	
@@ -685,11 +688,13 @@ c
 	character*(*) option
 	character*80 line
 	real*4 dmin,dmax,dmean,deltmp(3),delta
+	logical line_is_filename
 c
 	delta = -1.
 	if (PipGetString(option, line) .gt. 0)  return
 	delta = 0.
-	read(line,*,err=10)(nxyz(i),i=1,3)
+	if (line_is_filename(line)) go to 10
+	read(line,*,err=10,end=10)(nxyz(i),i=1,3)
 	return
 c
 10	call ialprt(.false.)
@@ -761,5 +766,3 @@ c
 	print *,'ERROR: SOLVEMATCH - ',message
 	call exit(1)
 	end
-
-
