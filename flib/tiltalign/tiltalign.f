@@ -402,6 +402,10 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.10  2004/05/05 05:50:26  mast
+c	  Output real 3D coordinates, fix bug in getting local residuals,
+c	  and finally added +/-10% to the messages about metro factor
+c	
 c	  Revision 3.9  2003/10/24 03:31:54  mast
 c	  remove tab from label scanned by alignlog
 c	
@@ -503,6 +507,8 @@ c
 	incrrot=0
 	incrtilt=0
 	incralf=0
+	dxmin = 0.
+	dyavg = 0.
 c	  
 c	  set this to 1 to get inputs for X-axis tilting
 c	  
@@ -938,9 +944,6 @@ c	  user to shift dx's (and tilt axis) similarly or specify new location
 c	  of tilt axis
 c	    shift axis in z by making proper shifts in x
 c
-	znew = 0.
-	dxmin = 0.
-	dyavg = 0.
 	if(iwhichout.ge.0)then
 	  if(znew.eq.1000.)znew=zmiddle
 	  if(iflocal.ne.0)znew=-zshft
