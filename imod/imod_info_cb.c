@@ -26,6 +26,14 @@
  *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -299,7 +307,9 @@ void imod_mmode_cb(Widget w, XtPointer client, XtPointer call)
 	return; */
 
      imod_set_mmode(mode);
-     xyz_draw(App->cvi);
+
+     /* DNM 1/28/02: change from drawing xyz to general drawing */
+     imodDraw(App->cvi, IMOD_DRAW_MOD);
      return;
 }
 
