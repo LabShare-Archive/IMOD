@@ -53,13 +53,18 @@ Log at end of file
 
 #define TexImageSize 64
 
+enum {IIS_X_COORD = 0, IIS_Y_COORD, IIS_Z_COORD, IIS_X_SIZE, IIS_Y_SIZE,
+      IIS_Z_SIZE, IIS_SLICES, IIS_TRANSPARENCY, IIS_BLACK, IIS_WHITE};
 
 static void mkcmap(void);
 static void imodvDrawTImage(Ipoint *p1, Ipoint *p2, Ipoint *p3, Ipoint *p4,
-                            Ipoint *clamp,
-                            unsigned char *data,
+                            Ipoint *clamp, unsigned char *data,
                             int width, int height);
 static void setAlpha(int iz, int zst, int znd, int izdir);
+static void setSliceLimits(int ciz, int miz, bool invertZ, int drawTrans, 
+                           int &zst, int &znd, int &izdir);
+static void setCoordLimits(int cur, int maxSize, int drawSize, 
+                           int &str, int &end);
 
 static GLubyte tdata[TexImageSize][TexImageSize][3];
 static GLubyte Cmap[3][256];
@@ -69,7 +74,11 @@ static int Falsecolor = 0;
 static int ImageTrans = 0;
 static int cmapInit = 0;
 static int numSlices = 1;
-
+static int xDrawSize = -1;
+static int yDrawSize = -1;
+static int zDrawSize = -1;
+static int lastYsize = -1;
+static int lastZsize = -1;
 
 struct{
   ImodvImage *dia;
@@ -184,8 +193,10 @@ static void imodvDrawTImage(Ipoint *p1, Ipoint *p2, Ipoint *p3, Ipoint *p4,
                             int width, int height)
 {
   float xclamp, yclamp;
-  xclamp = clamp->x;
-  yclamp = clamp->y;
+
+  // 5/16/04: swap here instead of before calling
+  xclamp = clamp->y;
+  yclamp = clamp->x;
 
   glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
   glTexImage2D(GL_TEXTURE_2D, 0, 3, width, height, 
@@ -217,8 +228,8 @@ static void imodvDrawTImage(Ipoint *p1, Ipoint *p2, Ipoint *p3, Ipoint *p4,
 }
 
 // Determine starting and ending slice and direction, and set the alpha
-static void setSliceLimits(int ciz, int miz, bool invertZ, int &zst, int &znd,
-                           int &izdir)
+static void setSliceLimits(int ciz, int miz, bool invertZ, int drawTrans, 
+                           int &zst, int &znd, int &izdir)
 {
   zst = ciz - numSlices / 2;
   znd = zst + numSlices - 1;
@@ -228,11 +239,33 @@ static void setSliceLimits(int ciz, int miz, bool invertZ, int &zst, int &znd,
     znd = miz - 1;
   izdir = 1;
 
+  // If transparency is needed and it is time to draw solid, or no transparency
+  // is needed and it time to draw transparent, set up for no draw
+  if (((znd > zst || ImageTrans) && !drawTrans) ||
+      (zst == znd && !ImageTrans && drawTrans))
+    znd = zst - 1;
+
+  // Swap direction if needed
   if (invertZ) {
     izdir = zst;
     zst = znd;
     znd = izdir;
     izdir = -1;
+  }
+}
+
+// Compute starting and ending draw coordinates from center coordinate, desired
+// size and maximum size, shifting center if necessary
+static void setCoordLimits(int cur, int maxSize, int drawSize, 
+                           int &str, int &end)
+{
+  str = cur - drawSize / 2;
+  if (str < 0)
+    str = 0;
+  end = str + drawSize;
+  if (end > maxSize) {
+    end = maxSize;
+    str = end - drawSize;
   }
 }
 
@@ -256,19 +289,18 @@ static void setAlpha(int iz, int zst, int znd, int izdir)
 }
 
 // The call from within the openGL calling routines to draw the image
-void imodvDrawImage(ImodvApp *a)
-
+void imodvDrawImage(ImodvApp *a, int drawTrans)
 {
   Ipoint ll, lr, ur, ul, clamp;
   int tstep = TexImageSize;
   int cix, ciy, ciz;
   int mix, miy, miz;
-  int x,y;
+  int xstr, xend, ystr, yend, zstr, zend;
   unsigned char **idata;
   unsigned char pix;
   int i, mi, j, mj;
   int u, v;
-  int zst, znd, iz, izdir;
+  int ix, iy, iz, idir;
   int imdataxsize, cacheSum;
   unsigned char **imdata;
   bool flipped, invertX, invertY, invertZ;
@@ -278,19 +310,20 @@ void imodvDrawImage(ImodvApp *a)
   mix = a->vi->xsize;
   miy = a->vi->ysize;
   miz = a->vi->zsize;
-  if (imodvImageData.dia) {
-    imodvImageData.dia->mSliders->setValue(0, (int)(a->vi->xmouse + 1.5f));
-    imodvImageData.dia->mSliders->setRange(1, 1, miy);
-    imodvImageData.dia->mSliders->setValue(1, (int)(a->vi->ymouse + 1.5f));
-    imodvImageData.dia->mSliders->setRange(2, 1, miz);
-    imodvImageData.dia->mSliders->setValue(2, (int)(a->vi->zmouse + 1.5f));
-  }
+  if (imodvImageData.dia)
+    imodvImageData.dia->updateCoords();
 
   if (!imodvImageData.flags) 
     return;
 
   if (!cmapInit)
     mkcmap();
+
+  if (xDrawSize < 0) {
+    xDrawSize = mix;
+    yDrawSize = miy;
+    zDrawSize = miz;
+  }
 
   ivwGetLocation(a->vi, &cix, &ciy, &ciz);
 
@@ -328,39 +361,43 @@ void imodvDrawImage(ImodvApp *a)
   /* Draw Current Z image. */
   if (imodvImageData.flags & IMODV_DRAW_CZ) {
 
-    setSliceLimits(ciz, miz, invertZ, zst, znd, izdir);
-
-    for (iz = zst; izdir * (znd - iz) >= 0 ; iz += izdir) {
-      setAlpha(iz, zst, znd, izdir);
-      ll.z = iz; lr.z = iz; ur.z = iz; ul.z = iz;
+    setSliceLimits(ciz, miz, invertZ, drawTrans, zstr, zend, idir);
+    setCoordLimits(cix, mix, xDrawSize, xstr, xend);
+    setCoordLimits(ciy, miy, yDrawSize, ystr, yend);
+    for (iz = zstr; idir * (zend - iz) >= 0 ; iz += idir) {
+      setAlpha(iz, zstr, zend, idir);
+      ll.z = lr.z = ur.z = ul.z = iz;
       idata = ivwGetZSection(a->vi, iz);
       if (!idata)
         continue;
 
-      for(x = 0; x < mix; x += tstep){
+      // Loop on patches in X, get limits to fill and set corners
+      for (ix = xstr; ix < xend; ix += tstep){
         clamp.x = 1.0f;
-        mi = x + tstep;
-        if (mi > mix) {
-          mi = mix;
-          clamp.x = (mix-x) / (float)tstep;
+        mi = ix + tstep;
+        if (mi > xend) {
+          mi = xend;
+          clamp.x = (xend-ix) / (float)tstep;
         }
-        ul.x = ll.x = x;
+        ul.x = ll.x = ix;
         ur.x = lr.x = mi;
         
-        for(y = 0; y < miy; y += tstep){
+        // Loop on patches in Y, get limits to fill and set corners
+        for (iy = ystr; iy < yend; iy += tstep){
           clamp.y = 1.0f;
-          mj = y + tstep;
-          if (mj > miy) {
-            mj = miy;
-            clamp.y = (miy - y) / (float)tstep;
+          mj = iy + tstep;
+          if (mj > yend) {
+            mj = yend;
+            clamp.y = (yend - iy) / (float)tstep;
           }
-          lr.y = ll.y = y;
+          lr.y = ll.y = iy;
           ul.y = ur.y = mj;
           
-          for(i = x; i < mi; i++){
-            u = i - x;
-            for(j = y; j < mj; j++){
-              v = (j - y);
+          // Fill the data for one patch then draw the patch
+          for (i = ix; i < mi; i++){
+            u = i - ix;
+            for (j = iy; j < mj; j++){
+              v = (j - iy);
               pix = idata[j][i];
               
               tdata[u][v][0] = Cmap[0][pix];
@@ -369,62 +406,61 @@ void imodvDrawImage(ImodvApp *a)
             }
           }
           
-          clamp.z = clamp.x;
-          clamp.x = clamp.y;
-          clamp.y = clamp.z;
-          imodvDrawTImage(&ll, &lr, &ur, &ul,
-                          &clamp,
+          imodvDrawTImage(&ll, &lr, &ur, &ul, &clamp,
                           (unsigned char *)tdata, tstep, tstep);
         }
       }
-    }       
+    }
   }
+  glDisable(GL_BLEND);
 
   /* Draw Current X image. */
   if (imodvImageData.flags & IMODV_DRAW_CX) {
 
-    setSliceLimits(cix, mix, invertX, zst, znd, izdir);
+    setSliceLimits(cix, mix, invertX, drawTrans, xstr, xend, idir);
+    setCoordLimits(ciy, miy, yDrawSize, ystr, yend);
+    setCoordLimits(ciz, miz, zDrawSize, zstr, zend);
 
-    for (iz = zst; izdir * (znd - iz) >= 0 ; iz += izdir) {
-      setAlpha(iz, zst, znd, izdir);
-      ll.x = iz; lr.x = iz; ur.x = iz; ul.x = iz;
+    for (ix = xstr; idir * (xend - ix) >= 0 ; ix += idir) {
+      setAlpha(ix, xstr, xend, idir);
+      ll.x = lr.x = ur.x = ul.x = ix;
 
-      for(x = 0; x < miy; x += tstep){
+      for (iy = ystr; iy < yend; iy += tstep){
         clamp.x = 1.0f;
-        mi = x + tstep;
-        if (mi > miy) {
-          mi = miy;
-          clamp.x = (miy-x) / (float)tstep;
+        mi = iy + tstep;
+        if (mi > yend) {
+          mi = yend;
+          clamp.x = (yend - iy) / (float)tstep;
         }
-        ul.y = ll.y = x;
+        ul.y = ll.y = iy;
         ur.y = lr.y = mi;
         
-        for(y = 0; y < miz; y += tstep){
+        for (iz = zstr; iz < zend; iz += tstep){
           clamp.y = 1.0f;
-          mj = y + tstep;
-          if (mj > miz) {
-            mj = miz;
-            clamp.y = (miz - y) / (float)tstep;
+          mj = iz + tstep;
+          if (mj > zend) {
+            mj = zend;
+            clamp.y = (zend - iz) / (float)tstep;
           }
-          lr.z = ll.z = y;
+          lr.z = ll.z = iz;
           ul.z = ur.z = mj;
           
           // Handle cases of flipped or not with different loops to put test
           // on presence of data in the outer loop
           if (flipped) {
-            for (i = x; i < mi; i++) {
-              u = i - x;
+            for (i = iy; i < mi; i++) {
+              u = i - iy;
               if (imdata[i]) {
-                for (j = y; j < mj; j++) {
-                  v = (j - y);
+                for (j = iz; j < mj; j++) {
+                  v = (j - iz);
                   pix = imdata[i][cix + (j * mix)];
                   tdata[u][v][0] = Cmap[0][pix];
                   tdata[u][v][1] = Cmap[1][pix];
                   tdata[u][v][2] = Cmap[2][pix];
                 }
               } else {
-                for (j = y; j < mj; j++) {
-                  v = (j - y);
+                for (j = iz; j < mj; j++) {
+                  v = (j - iz);
                   tdata[u][v][0] = Cmap[0][0];
                   tdata[u][v][1] = Cmap[1][0];
                   tdata[u][v][2] = Cmap[2][0];
@@ -432,19 +468,19 @@ void imodvDrawImage(ImodvApp *a)
               }
             }
           } else {
-            for (j = y; j < mj; j++) {
-              v = (j - y);
+            for (j = iz; j < mj; j++) {
+              v = (j - iz);
               if (imdata[j]) {
-                for (i = x; i < mi; i++) {
-                  u = i - x;
+                for (i = iy; i < mi; i++) {
+                  u = i - iy;
                   pix = imdata[j][cix + (i * mix)];
                   tdata[u][v][0] = Cmap[0][pix];
                   tdata[u][v][1] = Cmap[1][pix];
                   tdata[u][v][2] = Cmap[2][pix];
                 }
               } else {
-                for (i = x; i < mi; i++) {
-                  u = i - x;
+                for (i = iy; i < mi; i++) {
+                  u = i - iy;
                   tdata[u][v][0] = Cmap[0][0];
                   tdata[u][v][1] = Cmap[1][0];
                   tdata[u][v][2] = Cmap[2][0];
@@ -453,68 +489,67 @@ void imodvDrawImage(ImodvApp *a)
             }
           }
           
-          clamp.z = clamp.x;
-          clamp.x = clamp.y;
-          clamp.y = clamp.z;
-          imodvDrawTImage(&ll, &lr, &ur, &ul,
-                          &clamp,
+          imodvDrawTImage(&ll, &lr, &ur, &ul, &clamp,
                           (unsigned char *)tdata, tstep, tstep);
         }
       }
     }       
   }
+  glDisable(GL_BLEND);
 
   /* Draw Current Y image. */
   if (imodvImageData.flags & IMODV_DRAW_CY) {
-    setSliceLimits(ciy, miy, invertY, zst, znd, izdir);
+    setSliceLimits(ciy, miy, invertY, drawTrans, ystr, yend, idir);
+    setCoordLimits(cix, mix, xDrawSize, xstr, xend);
+    setCoordLimits(ciz, miz, zDrawSize, zstr, zend);
 
-    for (iz = zst; izdir * (znd - iz) >= 0 ; iz += izdir) {
-      setAlpha(iz, zst, znd, izdir);
-      ll.y = iz; lr.y = iz; ur.y = iz; ul.y = iz;
+    for (iy = ystr; idir * (yend - iy) >= 0 ; iy += idir) {
+      setAlpha(iy, ystr, yend, idir);
+      ll.y = lr.y = ur.y = ul.y = iy;
 
-      for (x = 0; x < mix; x += tstep) {
+      for (ix = xstr; ix < xend; ix += tstep) {
         clamp.x = 1.0f;
-        mi = x + tstep;
-        if (mi > mix) {
-          mi = mix;
-          clamp.x = (mix-x) / (float)tstep;
+        mi = ix + tstep;
+        if (mi > xend) {
+          mi = xend;
+          clamp.x = (xend - ix) / (float)tstep;
         }
-        ul.x = ll.x = x;
+        ul.x = ll.x = ix;
         ur.x = lr.x = mi;
         
-        for (y = 0; y < miz; y += tstep) {
+        for (iz = zstr; iz < zend; iz += tstep) {
           clamp.y = 1.0f;
-          mj = y + tstep;
-          if (mj > miz) {
-            mj = miz;
-            clamp.y = (miz - y) / (float)tstep;
+          mj = iz + tstep;
+          if (mj > zend) {
+            mj = zend;
+            clamp.y = (zend - iz) / (float)tstep;
           }
-          lr.z = ll.z = y;
+          lr.z = ll.z = iz;
           ul.z = ur.z = mj;
 
           // This one is easier, one outer loop and flipped, non-flipped, or
           // no data cases for inner loop
-          for (j = y; j < mj; j++) {
-            v = (j - y);
+          for (j = iz; j < mj; j++) {
+            v = (j - iz);
             if (flipped && imdata[ciy]) {
-              for (i = x; i < mi; i++) {
-                u = i - x;
+              for (i = ix; i < mi; i++) {
+                u = i - ix;
                 pix = imdata[ciy][i + (j * mix)];
                 tdata[u][v][0] = Cmap[0][pix];
                 tdata[u][v][1] = Cmap[1][pix];
                 tdata[u][v][2] = Cmap[2][pix];
               }
             } else if (!flipped && imdata[j]) {
-              for (i = x; i < mi; i++) {
-                u = i - x;
+              for (i = ix; i < mi; i++) {
+                u = i - ix;
                 pix = imdata[j][i + (ciy * mix)];
                 tdata[u][v][0] = Cmap[0][pix];
                 tdata[u][v][1] = Cmap[1][pix];
                 tdata[u][v][2] = Cmap[2][pix];
               }
             } else {
-              for (i = x; i < mi; i++) {
-                u = i - x;
+              for (i = ix; i < mi; i++) {
+                u = i - ix;
                 tdata[u][v][0] = Cmap[0][0];
                 tdata[u][v][1] = Cmap[1][0];
                 tdata[u][v][2] = Cmap[2][0];
@@ -522,9 +557,6 @@ void imodvDrawImage(ImodvApp *a)
             }
 
           }
-          clamp.z = clamp.x;
-          clamp.x = clamp.y;
-          clamp.y = clamp.z;
           imodvDrawTImage(&ll, &lr, &ur, &ul, &clamp,
                           (unsigned char *)tdata, tstep, tstep);
         }
@@ -540,7 +572,8 @@ void imodvDrawImage(ImodvApp *a)
 
 static char *buttonLabels[] = {"Done", "Help"};
 static char *buttonTips[] = {"Close dialog box", "Open help window"};
-static char *sliderLabels[] = {"X", "Y", "Z", "# of planes", "Transparency", 
+static char *sliderLabels[] = {"X", "Y", "Z", "X size", "Y size", "Z size",
+                               "# of slices", "Transparency", 
                                "Black Level", "White Level"};
 
 ImodvImage::ImodvImage(QWidget *parent, const char *name)
@@ -563,38 +596,51 @@ ImodvImage::ImodvImage(QWidget *parent, const char *name)
   QToolTip::add(mViewYBox, "Display XZ plane at current Y");
   QToolTip::add(mViewZBox, "Display XY plane at current Z");
 
-  // Make multisliders - set range of first to 0 - 100
-  mSliders = new MultiSlider(this, 7, sliderLabels);
+  // Make multisliders
+  mSliders = new MultiSlider(this, 10, sliderLabels);
 
-  mSliders->setRange(0, 1, Imodv->vi->xsize);
-  mSliders->setValue(0, (int)(Imodv->vi->xmouse + 1.5f));
-  mSliders->setRange(1, 1, Imodv->vi->ysize);
-  mSliders->setValue(1, (int)(Imodv->vi->ymouse + 1.5f));
-  mSliders->setRange(2, 1, Imodv->vi->zsize);
-  mSliders->setValue(2, (int)(Imodv->vi->zmouse + 1.5f));
-  mSliders->setRange(3, 1, 64);
-  mSliders->setValue(3, numSlices);
-  mSliders->setRange(4, 0, 100);
-  mSliders->setValue(4, ImageTrans);
-  mSliders->setValue(5, BlackLevel);
-  mSliders->setValue(6, WhiteLevel);
+  mSliders->setRange(IIS_X_COORD, 1, Imodv->vi->xsize);
+  mSliders->setRange(IIS_X_SIZE, 1, Imodv->vi->xsize);
+  if (lastYsize < 0) {
+    xDrawSize = Imodv->vi->xsize;
+    yDrawSize = Imodv->vi->ysize;
+    zDrawSize = Imodv->vi->zsize;
+    lastYsize = Imodv->vi->ysize;
+  }
+  updateCoords();
+  mSliders->setValue(IIS_X_SIZE, xDrawSize);
+  mSliders->setValue(IIS_Y_SIZE, yDrawSize);
+  mSliders->setValue(IIS_Z_SIZE, zDrawSize);
+  mSliders->setRange(IIS_SLICES, 1, 64);
+  mSliders->setValue(IIS_SLICES, numSlices);
+  mSliders->setRange(IIS_TRANSPARENCY, 0, 100);
+  mSliders->setValue(IIS_TRANSPARENCY, ImageTrans);
+  mSliders->setValue(IIS_BLACK, BlackLevel);
+  mSliders->setValue(IIS_WHITE, WhiteLevel);
   mLayout->addLayout(mSliders->getLayout());
+  (mSliders->getLayout())->setSpacing(4);
   connect(mSliders, SIGNAL(sliderChanged(int, int, bool)), this, 
           SLOT(sliderMoved(int, int, bool)));
-  QToolTip::add((QWidget *)mSliders->getSlider(0), "Set current image X"
-                " coordinate");
-  QToolTip::add((QWidget *)mSliders->getSlider(1), "Set current image Y "
-                "coordinate");
-  QToolTip::add((QWidget *)mSliders->getSlider(2), "Set current image Z "
-                "coordinate");
-  QToolTip::add((QWidget *)mSliders->getSlider(3), "Set number of planes to "
-                "display");
-  QToolTip::add((QWidget *)mSliders->getSlider(4), "Set transparency (needed "
-                "to see multiple planes)");
-  QToolTip::add((QWidget *)mSliders->getSlider(5), "Set minimum black level "
-                "of contrast ramp");
-  QToolTip::add((QWidget *)mSliders->getSlider(6), "Set maximum white level "
-                "of contrast ramp");
+  QToolTip::add((QWidget *)mSliders->getSlider(IIS_X_COORD),
+                "Set current image X coordinate");
+  QToolTip::add((QWidget *)mSliders->getSlider(IIS_Y_COORD),
+                "Set current image Y coordinate");
+  QToolTip::add((QWidget *)mSliders->getSlider(IIS_Z_COORD),
+                "Set current image Z coordinate");
+  QToolTip::add((QWidget *)mSliders->getSlider(IIS_X_SIZE),
+                "Set image size to display in X");
+  QToolTip::add((QWidget *)mSliders->getSlider(IIS_Y_SIZE),
+                "Set image size to display in Y");
+  QToolTip::add((QWidget *)mSliders->getSlider(IIS_Z_SIZE),
+                "Set image size to display in Z");
+  QToolTip::add((QWidget *)mSliders->getSlider(IIS_SLICES),
+                "Set number of slices to display");
+  QToolTip::add((QWidget *)mSliders->getSlider(IIS_TRANSPARENCY),
+                "Set percent transparency");
+  QToolTip::add((QWidget *)mSliders->getSlider(IIS_BLACK),
+                "Set minimum black level of contrast ramp");
+  QToolTip::add((QWidget *)mSliders->getSlider(IIS_WHITE),
+                "Set maximum white level of contrast ramp");
 
   // Make false color checkbox
   mFalseBox = diaCheckBox("False color", this, mLayout);
@@ -603,6 +649,27 @@ ImodvImage::ImodvImage(QWidget *parent, const char *name)
   QToolTip::add(mFalseBox, "Display image in false color");
 
   connect(this, SIGNAL(actionClicked(int)), this, SLOT(buttonPressed(int)));
+}
+
+// Update the current coordinate sliders and their ranges, update the ranges
+// of the Y and Z size sliders and swap y and Z size if flipped
+void ImodvImage::updateCoords()
+{
+  mSliders->setValue(IIS_X_COORD, (int)(Imodv->vi->xmouse + 1.5f));
+  mSliders->setRange(IIS_Y_COORD, 1, Imodv->vi->ysize);
+  mSliders->setValue(IIS_Y_COORD, (int)(Imodv->vi->ymouse + 1.5f));
+  mSliders->setRange(IIS_Z_COORD, 1, Imodv->vi->zsize);
+  mSliders->setValue(IIS_Z_COORD, (int)(Imodv->vi->zmouse + 1.5f));
+  mSliders->setRange(IIS_Y_SIZE, 1, Imodv->vi->ysize);
+  mSliders->setRange(IIS_Z_SIZE, 1, Imodv->vi->zsize);
+  if (lastYsize != Imodv->vi->ysize) {
+    int tmpSize = yDrawSize;
+    yDrawSize = zDrawSize;
+    zDrawSize = tmpSize;
+    mSliders->setValue(IIS_Y_SIZE, yDrawSize);
+    mSliders->setValue(IIS_Z_SIZE, zDrawSize);
+    lastYsize = Imodv->vi->ysize;
+  }
 }
 
 // Viewing image is turned on or off
@@ -623,36 +690,43 @@ void ImodvImage::viewToggled(bool state, int flag)
 void ImodvImage::sliderMoved(int which, int value, bool dragging)
 {
   switch (which) {
-  case 0:
+  case IIS_X_COORD:
     Imodv->vi->xmouse = value - 1;
     ivwBindMouse(Imodv->vi);
     break;
-
-  case 1:
+  case IIS_Y_COORD:
     Imodv->vi->ymouse = value - 1;
     ivwBindMouse(Imodv->vi);
     break;
-
-  case 2:
+  case IIS_Z_COORD:
     Imodv->vi->zmouse = value - 1;
     ivwBindMouse(Imodv->vi);
     break;
 
-  case 3: 
+  case IIS_X_SIZE:
+    xDrawSize = value;
+    break;
+  case IIS_Y_SIZE:
+    yDrawSize = value;
+    break;
+  case IIS_Z_SIZE:
+    zDrawSize = value;
+    break;
+
+  case IIS_SLICES: 
     numSlices = value;
     break;
 
-  case 4: 
+  case IIS_TRANSPARENCY: 
     ImageTrans = value;
     Imodv->texTrans = ImageTrans;
     break;
 
-  case 5:
+  case IIS_BLACK:
     BlackLevel = value;
     mkcmap();
     break;
-
-  case 6:
+  case IIS_WHITE:
     WhiteLevel = value;
     mkcmap();
     break;
@@ -661,7 +735,7 @@ void ImodvImage::sliderMoved(int which, int value, bool dragging)
   // draw if slider clicked or is in hot state
   if (!dragging || (hotSliderFlag() == HOT_SLIDER_KEYDOWN && mCtrlPressed) ||
       (hotSliderFlag() == HOT_SLIDER_KEYUP && !mCtrlPressed)) {
-    if (which > 2)
+    if (which > IIS_Z_COORD)
       imodvDraw(Imodv);
     else
       imodDraw(Imodv->vi, IMOD_DRAW_XYZ);
@@ -688,7 +762,7 @@ void ImodvImage::buttonPressed(int which)
        "This dialog allows you to display image planes on the model data.  "
        "Any of the three native orthogonal planes can be displayed, alone or "
        "in combination.  Transparency can be set to allow the model to be seen"
-       " through the image; a projection through multiple planes can also "
+       " through the image; a projection through multiple slices can also "
        "displayed.\n\n"
        "The first three check boxes (\"View X image\", etc.) turn on the "
        "display of the indicated image planes.  The hot key Z will turn on "
@@ -700,20 +774,25 @@ void ImodvImage::buttonPressed(int which)
        "3dmod image display windows and can be used to adjust both the "
        "current point position and the displayed slice in the model view "
        "window.\n\n"
-       "The \"# of planes\" slider can be used to display multiple planes.  "
-       "You will need some transparency to see through the top-most plane "
-       "and see a projection of data in the multiple planes.  Transparency "
-       "will probably need to be adjusted when you change the number of "
-       "planes.\n\n"
-       "Use the \"Transparency\" slider to see through the image.  If you are "
-       "showing images in more than one plane, this will not work well "
-       "because images are not drawn in order from back to front everywhere "
-       "that they overlap.\n\n"
+       "The \"X size\", \"Y size\", and \"Z size\" sliders can be used to "
+       "set the size of the image that is displayed in each dimension.  The "
+       "displayed area will be centered on the coordinate unless that would "
+       "result in the displayed size being smaller than the slider value.\n\n"
+       "The \"# of slices\" slider can be used to display multiple slices.  "
+       "You will be able to see through the slices but not past them if you "
+       "do not turn on transparency.\n\n"
+       "Use the \"Transparency\" slider to see through the image.\n\n"
        "The \"Black Level\" and \"White Level\" sliders can be used to "
        "adjust the contrast of the image.  You can reverse the contrast "
        "by making Black be higher than White.\n\n"
        "The \"False color\" checkbox allows images to be displayed in the "
-       "standard false color scheme.",
+       "standard false color scheme.\n\n",
+       "Limitations of transparency: Image transparency, model object "
+       "transparency, and the display of multiple slices all use a similar "
+       "method for generating transparency.  Displays will generally not "
+       "work well when you have more than one item that relies on "
+       "this transparency method, because the items are not being drawn in "
+       "order from back to front everywhere that they overlap.",
        NULL);
   else
     close();
@@ -753,6 +832,9 @@ void ImodvImage::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.11  2004/05/15 21:52:11  mast
+Computed alpha factors correctly for the multiple slice display
+
 Revision 4.10  2004/05/03 19:18:26  mast
 Added ability to display multiple slices and X, Y, or Z planes
 
