@@ -5,6 +5,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JPanel;
 
 import etomo.ApplicationManager;
 import etomo.process.ProcessState;
@@ -25,6 +28,11 @@ import etomo.type.DialogType;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2005/03/01 21:00:56  sueh
+ * <p> Bug# 610 Keeping track of current dialog type in ApplicationManager by
+ * <p> setting it in each open function.  Changing saveDialog to
+ * <p> saveCurrentDialog and use currentDialogType to pick the dialog to save.
+ * <p>
  * <p> Revision 1.3  2005/01/14 03:14:14  sueh
  * <p> bug# 511 Creating ProcessControlPanels with DialogType instead of
  * <p> strings.  Added currentProcess to process the most recent panel before
@@ -69,6 +77,8 @@ public class TomogramProcessPanel extends AxisProcessPanel {
       DialogType.TOMOGRAM_COMBINATION);
   private ProcessControlPanel procCtlPostProcessing = new ProcessControlPanel(
       DialogType.POST_PROCESSING);
+  private JButton btnBothAxis = new JButton("Both");
+  private JButton btnOtherAxis = null;
   
   private ApplicationManager applicationManager;
 
@@ -203,8 +213,23 @@ public class TomogramProcessPanel extends AxisProcessPanel {
     ProcessButtonActionListener buttonListener = new ProcessButtonActionListener(
         this);
     setToolTipText();
-
-    panelProcessSelect.add(Box.createRigidArea(FixedDim.x0_y20));
+    panelProcessSelect.add(Box.createRigidArea(FixedDim.x0_y5));
+    JPanel axisButtonPanel = new JPanel();
+    axisButtonPanel.setLayout(new BoxLayout(axisButtonPanel,
+        BoxLayout.X_AXIS));
+    if (axisID == AxisID.FIRST) {
+      btnOtherAxis = new JButton("Axis B");
+    }
+    else if (axisID == AxisID.SECOND) {
+      btnOtherAxis = new JButton("Axis A");
+    }
+    if (btnOtherAxis != null ) {
+      axisButtonPanel.add(btnBothAxis);
+      axisButtonPanel.add(Box.createRigidArea(FixedDim.x40_y0));
+      axisButtonPanel.add(btnOtherAxis);
+      panelProcessSelect.add(axisButtonPanel);
+    }
+    panelProcessSelect.add(Box.createRigidArea(FixedDim.x0_y5));
     procCtlPreProc.setButtonActionListener(buttonListener);
     procCtlPreProc.addMouseListener(mouseAdapter);
     procCtlPreProc.getContainer().setAlignmentX(Container.CENTER_ALIGNMENT);
