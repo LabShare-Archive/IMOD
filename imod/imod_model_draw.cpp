@@ -7,6 +7,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.6  2003/04/17 19:02:59  mast
+adding hack for GL-context dependent gluQuadric
+
 Revision 4.5  2003/03/28 05:02:30  mast
 Needed to remove include of glu.h for Mac
 
@@ -258,7 +261,7 @@ static void imodDrawObjectSymbols(ImodView *vi, Iobj *obj)
     }
 
     /* draw end markers for all kinds of contours */
-    if (obj->symflags & IOBJ_SYMF_ENDS) {
+    if (obj->symflags & IOBJ_SYMF_ENDS && lpt) {
       point = cont->pts;
       b3dColorIndex(App->bgnpoint);
 
@@ -281,7 +284,7 @@ static void imodDrawObjectSymbols(ImodView *vi, Iobj *obj)
 	glVertex3fv((float *)&vert);
         glEnd();
 
-        point = &(cont->pts[cont->psize - 1]);
+        point = &(cont->pts[lpt - 1]);
         b3dColorIndex(App->endpoint);
       }
       
