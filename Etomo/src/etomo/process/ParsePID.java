@@ -16,6 +16,9 @@ package etomo.process;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.1  2004/08/23 23:39:08  sueh
+ * <p> bug#  508 allow ParseBackgroundPID to override parsePIDString
+ * <p>
  * <p> Revision 3.0  2003/11/07 23:19:00  rickg
  * <p> Version 1.0.0
  * <p>
@@ -61,7 +64,7 @@ public class ParsePID implements Runnable {
         return;
       }
     }
-    System.out.println("PID:" + PID);
+    System.err.println("PID:" + PID);
   }
 
   /**
