@@ -18,6 +18,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.3  2004/04/06 03:00:40  rickg
+ * Updated imageRotation to store axis separately
+ *
  * Revision 3.2  2004/02/24 18:51:36  sueh
  * bug# 385 added binning and distortion file
  *
@@ -149,16 +152,12 @@ public class CopyTomoComs {
 
     this.metaData = metaData;
 
-    String imodBinPath = ApplicationManager.getIMODDirectory()
-      .getAbsolutePath()
-        + File.separator + "bin" + File.separator;
-
     // Create a new SystemProgram object for copytomocom, set the
     // working directory and stdin array.
     // Do not use the -e flag for tcsh since David's scripts handle the failure 
     // of commands and then report appropriately.  The exception to this is the
     // com scripts which require the -e flag.  RJG: 2003-11-06  
-    commandLine = new StringBuffer("tcsh -f " + imodBinPath + "copytomocoms");
+    commandLine = new StringBuffer("tcsh -f " + ApplicationManager.getIMODBinPath() + "copytomocoms");
     genOptions();
     for (int i = 0; i < options.size(); i++) {
       commandLine.append(" " + options.get(i));

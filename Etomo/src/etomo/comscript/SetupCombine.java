@@ -1,15 +1,3 @@
-package etomo.comscript;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.Vector;
-
-import etomo.ApplicationManager;
-import etomo.process.SystemProgram;
-import etomo.type.CombinePatchSize;
-import etomo.type.ConstMetaData;
-import etomo.type.FiducialMatch;
-
 /**
  * <p>
  * Description:
@@ -30,6 +18,10 @@ import etomo.type.FiducialMatch;
  * 
  * <p>
  * $Log$
+ * Revision 3.1  2004/04/21 20:26:55  sueh
+ * bug# 61 added warningMessage and parseWarning(), which is called
+ * from run()
+ *
  * Revision 3.0  2003/11/07 23:19:00  rickg
  * Version 1.0.0
  *
@@ -131,159 +123,167 @@ import etomo.type.FiducialMatch;
  * <p>
  * </p>
  */
+package etomo.comscript;
+
+import java.io.IOException;
+import java.util.Vector;
+
+import etomo.ApplicationManager;
+import etomo.process.SystemProgram;
+import etomo.type.CombinePatchSize;
+import etomo.type.ConstMetaData;
+import etomo.type.FiducialMatch;
+
 public class SetupCombine {
 	public static final String rcsid =
 		"$Id$";
 
-	SystemProgram setupcombine;
-	String commandLine;
-	int exitValue;
-	ConstMetaData metaData;
+  SystemProgram setupcombine;
+  String commandLine;
+  int exitValue;
+  ConstMetaData metaData;
   Vector warningMessage;
 
-	public SetupCombine(ConstMetaData metaData) {
+  public SetupCombine(ConstMetaData metaData) {
 
-		this.metaData = metaData;
+    this.metaData = metaData;
 
-		//  Create a new SystemProgram object for setupcombine, set the
-		//  working directory and stdin array.
-		String imodBinPath =
-			ApplicationManager.getIMODDirectory().getAbsolutePath()
-				+ File.separator
-				+ "bin"
-				+ File.separator;
-		// Do not use the -e flag for tcsh since David's scripts handle the failure 
-		// of commands and then report appropriately.  The exception to this is the
-		// com scripts which require the -e flag.  RJG: 2003-11-06  
-		commandLine = "tcsh -f " + imodBinPath + "setupcombine";
-		setupcombine = new SystemProgram(commandLine);
-		genStdInputSequence();
-	}
+    //  Create a new SystemProgram object for setupcombine, set the
+    //  working directory and stdin array.
+    // Do not use the -e flag for tcsh since David's scripts handle the failure 
+    // of commands and then report appropriately.  The exception to this is the
+    // com scripts which require the -e flag.  RJG: 2003-11-06  
+    commandLine = "tcsh -f " + ApplicationManager.getIMODBinPath()
+        + "setupcombine";
+    setupcombine = new SystemProgram(commandLine);
+    genStdInputSequence();
+  }
 
-	/**
-	 * Generate the standard input sequence
-	 */
-	private void genStdInputSequence() {
+  /**
+   * Generate the standard input sequence
+   */
+  private void genStdInputSequence() {
 
-		ConstCombineParams combineParams = metaData.getConstCombineParams();
+    ConstCombineParams combineParams = metaData.getConstCombineParams();
 
-		String[] tempStdInput = new String[15];
+    String[] tempStdInput = new String[15];
 
-		//  compile the input sequence to setupcombine
-		int lineCount = 0;
+    //  compile the input sequence to setupcombine
+    int lineCount = 0;
 
-		//  Dataset name
-		tempStdInput[lineCount++] = metaData.getDatasetName();
+    //  Dataset name
+    tempStdInput[lineCount++] = metaData.getDatasetName();
 
-		//  Matching relationship
-		if (combineParams.getMatchBtoA()) {
-			tempStdInput[lineCount++] = "a";
-			if (combineParams.getFiducialMatchListA() != "") {
-				tempStdInput[lineCount++] = combineParams.getFiducialMatchListA();
-				tempStdInput[lineCount++] = combineParams.getFiducialMatchListB();
-			}
-			else {
-				tempStdInput[lineCount++] = "";
-			}
-		}
-		else {
-			tempStdInput[lineCount++] = "b";
-			if (combineParams.getFiducialMatchListB() != "") {
-				tempStdInput[lineCount++] = combineParams.getFiducialMatchListB();
-				tempStdInput[lineCount++] = combineParams.getFiducialMatchListA();
-			}
-			else {
-				tempStdInput[lineCount++] = "";
-			}
-		}
+    //  Matching relationship
+    if (combineParams.getMatchBtoA()) {
+      tempStdInput[lineCount++] = "a";
+      if (combineParams.getFiducialMatchListA() != "") {
+        tempStdInput[lineCount++] = combineParams.getFiducialMatchListA();
+        tempStdInput[lineCount++] = combineParams.getFiducialMatchListB();
+      }
+      else {
+        tempStdInput[lineCount++] = "";
+      }
+    }
+    else {
+      tempStdInput[lineCount++] = "b";
+      if (combineParams.getFiducialMatchListB() != "") {
+        tempStdInput[lineCount++] = combineParams.getFiducialMatchListB();
+        tempStdInput[lineCount++] = combineParams.getFiducialMatchListA();
+      }
+      else {
+        tempStdInput[lineCount++] = "";
+      }
+    }
 
-		//  Fiducial surfaces / use model
-		if (combineParams.getFiducialMatch() == FiducialMatch.BOTH_SIDES) {
-			tempStdInput[lineCount++] = "2";
-		}
+    //  Fiducial surfaces / use model
+    if (combineParams.getFiducialMatch() == FiducialMatch.BOTH_SIDES) {
+      tempStdInput[lineCount++] = "2";
+    }
 
-		if (combineParams.getFiducialMatch() == FiducialMatch.ONE_SIDE) {
-			tempStdInput[lineCount++] = "1";
-		}
+    if (combineParams.getFiducialMatch() == FiducialMatch.ONE_SIDE) {
+      tempStdInput[lineCount++] = "1";
+    }
 
-		if (combineParams.getFiducialMatch() == FiducialMatch.ONE_SIDE_INVERTED) {
-			tempStdInput[lineCount++] = "-1";
-		}
+    if (combineParams.getFiducialMatch() == FiducialMatch.ONE_SIDE_INVERTED) {
+      tempStdInput[lineCount++] = "-1";
+    }
 
-		if (combineParams.getFiducialMatch() == FiducialMatch.USE_MODEL) {
-			tempStdInput[lineCount++] = "0";
-		}
+    if (combineParams.getFiducialMatch() == FiducialMatch.USE_MODEL) {
+      tempStdInput[lineCount++] = "0";
+    }
 
-		//  Patch sizes
-		if (combineParams.getPatchSize() == CombinePatchSize.LARGE) {
-			tempStdInput[lineCount++] = "l";
-		}
+    //  Patch sizes
+    if (combineParams.getPatchSize() == CombinePatchSize.LARGE) {
+      tempStdInput[lineCount++] = "l";
+    }
 
-		if (combineParams.getPatchSize() == CombinePatchSize.MEDIUM) {
-			tempStdInput[lineCount++] = "m";
-		}
+    if (combineParams.getPatchSize() == CombinePatchSize.MEDIUM) {
+      tempStdInput[lineCount++] = "m";
+    }
 
-		if (combineParams.getPatchSize() == CombinePatchSize.SMALL) {
-			tempStdInput[lineCount++] = "s";
-		}
+    if (combineParams.getPatchSize() == CombinePatchSize.SMALL) {
+      tempStdInput[lineCount++] = "s";
+    }
 
-		tempStdInput[lineCount++] = String.valueOf(combineParams.getPatchXMin());
-		tempStdInput[lineCount++] = String.valueOf(combineParams.getPatchXMax());
-		tempStdInput[lineCount++] = String.valueOf(combineParams.getPatchYMin());
-		tempStdInput[lineCount++] = String.valueOf(combineParams.getPatchYMax());
-		tempStdInput[lineCount++] = String.valueOf(combineParams.getPatchZMin());
-		tempStdInput[lineCount++] = String.valueOf(combineParams.getPatchZMax());
+    tempStdInput[lineCount++] = String.valueOf(combineParams.getPatchXMin());
+    tempStdInput[lineCount++] = String.valueOf(combineParams.getPatchXMax());
+    tempStdInput[lineCount++] = String.valueOf(combineParams.getPatchYMin());
+    tempStdInput[lineCount++] = String.valueOf(combineParams.getPatchYMax());
+    tempStdInput[lineCount++] = String.valueOf(combineParams.getPatchZMin());
+    tempStdInput[lineCount++] = String.valueOf(combineParams.getPatchZMax());
 
-		tempStdInput[lineCount++] = combineParams.patchRegionModel;
+    tempStdInput[lineCount++] = combineParams.patchRegionModel;
 
-		tempStdInput[lineCount++] = combineParams.tempDirectory;
-		if (!combineParams.tempDirectory.equals("")) {
-			if (combineParams.getManualCleanup()) {
-				tempStdInput[lineCount++] = "y";
-			}
-			else {
-				tempStdInput[lineCount++] = "n";
-			}
-		}
+    tempStdInput[lineCount++] = combineParams.tempDirectory;
+    if (!combineParams.tempDirectory.equals("")) {
+      if (combineParams.getManualCleanup()) {
+        tempStdInput[lineCount++] = "y";
+      }
+      else {
+        tempStdInput[lineCount++] = "n";
+      }
+    }
 
-		//
-		//  Copy the temporary stdInput to the real stdInput to get the number
-		//  of array elements correct
-		String[] stdInput = new String[lineCount];
-		for (int i = 0; i < lineCount; i++) {
-			stdInput[i] = tempStdInput[i];
-		}
-		setupcombine.setStdInput(stdInput);
+    //
+    //  Copy the temporary stdInput to the real stdInput to get the number
+    //  of array elements correct
+    String[] stdInput = new String[lineCount];
+    for (int i = 0; i < lineCount; i++) {
+      stdInput[i] = tempStdInput[i];
+    }
+    setupcombine.setStdInput(stdInput);
 
-	}
-	public int run() throws IOException {
-		int exitValue;
+  }
 
-		//  Execute the script
-		setupcombine.setDebug(true);
-		setupcombine.run();
-		exitValue = setupcombine.getExitValue();
+  public int run() throws IOException {
+    int exitValue;
 
-		//  TODO we really need to find out what the exception/error condition was
-		if (exitValue != 0) {
-			throw (new IOException(setupcombine.getExceptionMessage()));
-		}
+    //  Execute the script
+    setupcombine.setDebug(true);
+    setupcombine.run();
+    exitValue = setupcombine.getExitValue();
+
+    //  TODO we really need to find out what the exception/error condition was
+    if (exitValue != 0) {
+      throw (new IOException(setupcombine.getExceptionMessage()));
+    }
     parseWarning();
-		return exitValue;
-	}
+    return exitValue;
+  }
 
-	public String[] getStdError() {
-		return setupcombine.getStdError();
-	}
+  public String[] getStdError() {
+    return setupcombine.getStdError();
+  }
 
-	public String[] getStdOutput() {
-		return setupcombine.getStdOutput();
-	}
-  
+  public String[] getStdOutput() {
+    return setupcombine.getStdOutput();
+  }
+
   public String[] getWarningMessage() {
     return (String[]) warningMessage.toArray(new String[warningMessage.size()]);
-  }
-  /**
+}  
+/**
    * Parse the log file for warnings. Since the fortran code is no smart enough
    * handle formatted output we need find WARNING: in the middle of the output
    * stream. The error report starts with the WARNING: text instead of the
