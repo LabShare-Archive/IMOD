@@ -1172,7 +1172,7 @@ int mrc_vol_wrap(struct MRCvolume *v)
 int sliceWriteMRCfile(char *filename, Islice *slice)
 {
   struct MRCheader hout;
-  FILE *fp = fopen(filename, "w");
+  FILE *fp = fopen(filename, "wb");
   int error;
 
   if (!fp) return -1;
