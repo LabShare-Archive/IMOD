@@ -5,6 +5,7 @@ import java.awt.event.*;
 import javax.swing.*;
 
 import etomo.process.ProcessState;
+import etomo.type.DialogType;
 import etomo.util.InvalidParameterException;
 
 /**
@@ -20,6 +21,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.1  2003/11/10 07:44:02  rickg
+ * <p> Handles ColoredStateText exceptions
+ * <p>
  * <p> Revision 3.0  2003/11/07 23:19:01  rickg
  * <p> Version 1.0.0
  * <p>
@@ -62,9 +66,11 @@ public class ProcessControlPanel {
 
   private JPanel panelState;
   private ColoredStateText highlightState;
+  private DialogType dialogType;
 
-  ProcessControlPanel(String label) {
-    name = label;
+  ProcessControlPanel(DialogType dialogType) {
+    name = dialogType.toString();
+    this.dialogType = dialogType;
     panelRoot.setLayout(new BoxLayout(panelRoot, BoxLayout.Y_AXIS));
 
     try {
@@ -79,11 +85,15 @@ public class ProcessControlPanel {
 
     updateLabel();
     panelRoot.add(buttonRun);
-    buttonRun.setActionCommand(label);
+    buttonRun.setActionCommand(name);
   }
 
   String getName() {
     return name;
+  }
+  
+  DialogType getDialogType() {
+    return dialogType;
   }
 
   void setButtonActionListener(ActionListener actionListener) {
