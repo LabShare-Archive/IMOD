@@ -1,5 +1,4 @@
-/*  IMOD VERSION 2.50
- *
+/*  
  *  imod_cont_edit.cpp -- Edit contour data in imod.
  *                        Sets up contour join, break and move dialog boxes
  *                        with ContourJoin, ContourBreak, and ContourMove
@@ -10,28 +9,12 @@
  *
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
+ *
+ *  Copyright (C) 1995-2004 by Boulder Laboratory for 3-Dimensional Electron
+ *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  */
 
-/*****************************************************************************
- *   Copyright (C) 1995-2001 by Boulder Laboratory for 3-Dimensional Fine    *
- *   Structure ("BL3DFS") and the Regents of the University of Colorado.     *
- *                                                                           *
- *   BL3DFS reserves the exclusive rights of preparing derivative works,     *
- *   distributing copies for sale, lease or lending and displaying this      *
- *   software and documentation.                                             *
- *   Users may reproduce the software and documentation as long as the       *
- *   copyright notice and other notices are preserved.                       *
- *   Neither the software nor the documentation may be distributed for       *
- *   profit, either in original form or in derivative works.                 *
- *                                                                           *
- *   THIS SOFTWARE AND/OR DOCUMENTATION IS PROVIDED WITH NO WARRANTY,        *
- *   EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTY OF          *
- *   MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.       *
- *                                                                           *
- *   This work is supported by NIH biotechnology grant #RR00592,             *
- *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
- *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
- *****************************************************************************/
 /*  $Author$
 
 $Date$
@@ -50,6 +33,7 @@ Log at end of file
 #include <qpushbutton.h>
 #include <qradiobutton.h>
 #include <qbuttongroup.h>
+#include <qvbuttongroup.h>
 #include "form_cont_edit.h"
 #include "imod.h"
 #include "imod_display.h"
@@ -62,6 +46,11 @@ Log at end of file
 
 static void setlabel(QLabel *label, Iindex ind);
 static bool indexGood(Iindex ind);
+void joinError(Iindex *indArray, char *message);
+
+#ifndef ICONT_ONLIST
+#define ICONT_ONLIST ICONT_CONNECT_TOP
+#endif
 
 struct contour_edit_struct{
   ImodView  *vw;
@@ -86,6 +75,8 @@ struct contour_join_struct{
   ImodView  *vw;
   ContourJoin *dia;
   Iindex    i1, i2;
+  int       openType;
+  int       closedType;
 };
 
 struct contour_break_struct{
@@ -93,6 +84,10 @@ struct contour_break_struct{
   ContourBreak *dia;
   Iindex    i1, i2;
 };
+
+enum {OPEN_TYPE_CONCAT = 0, OPEN_TYPE_SPLICE};
+enum {CLOSED_TYPE_CONCAT = 0, CLOSED_TYPE_NEAREST, CLOSED_TYPE_AUTO,
+      CLOSED_TYPE_SETPOINT};
 
 static char *applyDoneHelp[] = {"Apply", "Done", "Help"};
 
@@ -133,7 +128,7 @@ static void setlabel(QLabel *label, Iindex ind)
     str.sprintf("Object %d, Contour %d, Point %d",
                 ind.object+1, ind.contour+1, ind.point+1);
   else
-    str.sprintf("Object None, Contour None, Point None ");
+    str.sprintf("Obj None, Cont None, Pt None ");
   label->setText(str);
 }
 
@@ -202,7 +197,7 @@ void ContourBreak::setLabels()
     ob = cobrk.i1.object;
     co = cobrk.i1.contour;
   } else
-    str = "Point None ";
+    str = "Pt None ";
 
   mSet1Label->setText(str);
 
@@ -211,11 +206,11 @@ void ContourBreak::setLabels()
     ob = cobrk.i2.object;
     co = cobrk.i2.contour;
   } else
-    str = "Point None ";
+    str = "Pt None ";
   mSet2Label->setText(str);
 
   if (co < 0 || ob < 0)
-    str = "Object None, Contour None";
+    str = "Obj None, Cont None";
   else
     str.sprintf("Object %d, Contour %d", ob + 1, co + 1);
   mObjContLabel->setText(str);
@@ -444,8 +439,8 @@ void ContourBreak::closeEvent ( QCloseEvent * e )
 /*               CONTOUR JOINING                                            */
 /***************************************************************************/
 
-static struct contour_join_struct cojoin = {NULL, NULL, {-1, -1, -1}, 
-                                            {-1, -1, -1}};
+static struct contour_join_struct cojoin = 
+  {NULL, NULL, {-1, -1, -1}, {-1, -1, -1}, OPEN_TYPE_CONCAT, CLOSED_TYPE_AUTO};
 
 void imodContEditJoinOpen(ImodView *vw)
 {
@@ -474,7 +469,7 @@ static char *joinTips[] = {"Join two contours at the selected points",
 ContourJoin::ContourJoin(QWidget *parent, const char *name)
   : ContourFrame(parent, 3, applyDoneHelp, joinTips, name)
 {
-  diaLabel("Select contours to join:", this, mLayout);
+  QRadioButton *radio;
   QGridLayout *grid = new QGridLayout(mLayout, 2, 2);
 
   mButton1 = new QPushButton("Set 1", this);
@@ -494,6 +489,40 @@ ContourJoin::ContourJoin(QWidget *parent, const char *name)
 
   mSet2Label = new QLabel(" ", this);
   grid->addWidget(mSet2Label, 1, 1);
+
+  QHBoxLayout *hbox = new QHBoxLayout(mLayout);
+  mClosedGroup = new QVButtonGroup("Closed Object", this, "closed group");
+  hbox->addWidget(mClosedGroup);
+  connect(mClosedGroup, SIGNAL(clicked(int)), this, 
+          SLOT(closedTypeSelected(int)));
+  mClosedGroup->setInsideSpacing(0);
+  mClosedGroup->setInsideMargin(5);
+
+  radio = diaRadioButton("Concatenate", mClosedGroup);
+  QToolTip::add(radio, "Add points from one contour to end of other");
+  radio = diaRadioButton("Join near pts", mClosedGroup);
+  QToolTip::add(radio, "Add line connecting contours between their "
+                "nearest points");
+  radio = diaRadioButton("Auto-choose", mClosedGroup);
+  QToolTip::add(radio, "Concatenate if contour openings are bigger than"
+                " distance between contours");
+  radio = diaRadioButton("Join set pts", mClosedGroup);
+  QToolTip::add(radio, "Add line connecting contours between the set points");
+
+  diaSetGroup(mClosedGroup, cojoin.closedType);
+
+  mOpenGroup = new QVButtonGroup("Open Object", this, "open group");
+  hbox->addWidget(mOpenGroup);
+  connect(mOpenGroup, SIGNAL(clicked(int)), this, SLOT(openTypeSelected(int)));
+  mOpenGroup->setInsideSpacing(0);
+  mOpenGroup->setInsideMargin(5);
+
+  radio = diaRadioButton("Concatenate", mOpenGroup);
+  QToolTip::add(radio, "Add points from one contour to end of other");
+  radio = diaRadioButton("Splice set pts", mOpenGroup);
+  QToolTip::add(radio, "Retain points up to set point 1 and after set "
+                "point 2");
+  diaSetGroup(mOpenGroup, cojoin.openType);
 
   setCaption(imodCaption("3dmod Join Contours"));
   connect(this, SIGNAL(actionClicked(int)), this, SLOT(buttonPressed(int)));
@@ -539,6 +568,24 @@ void ContourJoin::set2Pressed()
   }
 }
 
+void ContourJoin::openTypeSelected(int which)
+{
+  cojoin.openType = which;
+}
+
+void ContourJoin::closedTypeSelected(int which)
+{
+  cojoin.closedType = which;
+}
+
+void joinError(Iindex *indArray, char *message)
+{
+  if (indArray)
+    free(indArray);
+  wprint("\aContour Join Error:  %s\n", message);
+  return;
+}
+
 /*
  * The main join routine - can be called externally
  */
@@ -547,148 +594,276 @@ void imodContEditJoin(ImodView *vw)
   Iindex *i1p = &cojoin.i1;
   Iindex *i2p = &cojoin.i2;
   Iindex *indp;
-  int ob, co, pt;
+  Iindex *indArray;
+  int co, pt1, pt2, ind1, ind2, tpt1, tpt2, end1, end2, concat, testConcat;
+  int i, j, numJoin, ijoin, ic1, ic2;
+  float dist, distMin, tdist;
   Icont *cont1, *cont2, *jcont;
+  Imod *imod = vw->imod;
   Iobj *obj;
+  Ipoint scale = {1., 1., 100.};
+  bool useSetPoints;
+  int iflabel = 0;
 
+  // Get an array for the indices
+  numJoin = B3DMAX(2, ilistSize(vw->selectionList));
+  indArray = (Iindex *)malloc(numJoin * sizeof(Iindex));
+  if (!indArray) {
+    joinError(indArray, "Could not get memory for indexes");
+    return;
+  }
 
-  /* DNM 2/12/01: put in initial test for a "None" selection */
-  if (!(indexGood(*i1p) && indexGood(*i2p))) {
+  // Copy multiple selection to indices if >= 2
+  if (ilistSize(vw->selectionList) >= 2) {
+    for (co = 0; co < numJoin; co++) {
+      indp = (Iindex *)ilistItem(vw->selectionList, co);
+      indArray[co] = *indp;
+    }
+    
+    // Or, if at least one set point is good, set them into array, using
+    // current point as fallback
+  } else if (indexGood(*i1p) && indexGood(*i2p)) {
+    indArray[0] = *i1p;
+    indArray[1] = *i2p;
+  } else if (indexGood(*i1p) && i1p->contour != imod->cindex.contour) {
+    indArray[0] = *i1p;
+    indArray[1] = imod->cindex;
+  } else if (indexGood(*i2p) && i2p->contour != imod->cindex.contour) {
+    indArray[0] = imod->cindex;
+    indArray[1] = *i2p;
+  } else {
+    joinError(indArray, "Two contours not selected.");
+    return;
+  } 
 
-    // If two set points are not good, first see if two selection points
-    // and take them; then if one point is set take the current point as 
-    // the other point as long as it is a different contour
-    if (ilistSize(vw->selectionList) == 2) {
-      indp = (Iindex *)ilistItem(vw->selectionList, 0);
-      *i1p = *indp;
-      indp = (Iindex *)ilistItem(vw->selectionList, 1);
-      *i2p = *indp;
-    } else if (indexGood(*i1p) & i1p->contour != vw->imod->cindex.contour)
-      *i2p = vw->imod->cindex;
-    else if (indexGood(*i2p) & i2p->contour != vw->imod->cindex.contour)
-      *i1p = vw->imod->cindex;
-      
-    if (!(indexGood(*i1p) && indexGood(*i2p))) {
-      wprint("\a\nContour Join Error: Two contours not selected.\n");
+  if (indArray[0].object >= imod->objsize) {
+    joinError(indArray, "Object number no longer valid.");
+    return;
+  }
+
+  // Determine whether set points are to be used
+  obj = &imod->obj[indArray[0].object];
+  useSetPoints = (iobjOpen(obj->flags) && cojoin.openType == OPEN_TYPE_SPLICE)
+    || (iobjClose(obj->flags) && cojoin.closedType == CLOSED_TYPE_SETPOINT);
+
+  if (useSetPoints && numJoin > 2) {
+    joinError(indArray, "Cannot join more than two contours by set points.");
+    return;
+  }
+
+  
+  // Check validity of all objects, contours, points if using set points
+  for (co = 0; co < numJoin; co++) {
+    indp = &indArray[co];
+    if (indp->object != indArray[0].object) {
+      joinError(indArray, "Join contours must belong to the same object.");
       return;
     }
+    if (co && indp->contour == indArray[0].contour) {
+      joinError(indArray, "Set points must be in different contours.");
+      return;
+    }
+    if (indp->contour < 0 || indp->contour >= obj->contsize) {
+      joinError(indArray, "Contour number is no longer valid.");
+      return;
+    }
+    cont1 = &obj->cont[indp->contour];
+    if (useSetPoints && indp->point < 0 || indp->point >= cont1->psize) {
+      joinError(indArray, "Point number is no longer valid.");
+      return;
+    }
+    if (cont1->label)
+      iflabel = 1;
   }
 
-  /*  DNM: separate objects are not allowed because the way joining is
-      treated depends on object type.  Move this test up to top */
-  if (i2p->object != i1p->object){
-    wprint("\a\nContour Join Error:\n"
-           "\tJoin contours must belong to the same object.\n");
-    return;
-  }
-
-  /* DNM 2/12/01: test for not being the same contour */
-  if (i2p->contour == i1p->contour){
-    wprint("\a\nContour Join Error:\n"
-           "\tSet points must be in different contours.\n");
-    return;
-  }
-
-  /* DNM 2/12/01: test for object still valid */
-  if (i2p->object >= vw->imod->objsize){
-    wprint("\a\nContour Join Error:\n"
-           "\tObject number no longer valid.\n");
-    return;
-  }
-
-  imodGetIndex(vw->imod, &ob, &co, &pt);
-  imodSetIndex(vw->imod, 
-               i1p->object, i1p->contour, i1p->point);
-
-  obj   = imodObjectGet(vw->imod);
-
-  /* DNM 2/12/01: need to test that the contour numbers are still legal */
-  if (i1p->contour >= obj->contsize || i2p->contour >= obj->contsize){
-    wprint("\a\nContour Join Error:\n"
-           "\tContour number is no longer valid.\n");
-    imodSetIndex(vw->imod, ob, co, pt);
-    return;
-  }
-
-  cont1 = imodContourGet(vw->imod);
-  if (cont1) 
-    vw->undo->contourDataChg();
-
-  imodSetIndex(vw->imod, 
-               i2p->object, i2p->contour, i2p->point);
-  cont2 = imodContourGet(vw->imod);
-  vw->undo->contourRemoval();
-
-  /* DNM: consolidate the identical tests on cont1 and cont2 */
-  if (!cont1 || !cont2){
-    wprint("\a\nContour Join Error:\n"
-           "\tInvalid Model data or no contour selected.\n");
-    imodSetIndex(vw->imod, ob, co, pt);
-    vw->undo->flushUnit();
-    return;
-  }
-
-  /* DNM: make sure the set points are still legal */
-  if (i1p->point >= cont1->psize || i2p->point >= cont2->psize){
-    wprint("\a\nContour Join Error:\n"
-           "\tContour has changed since point was set.\n");
-    imodSetIndex(vw->imod, ob, co, pt);
-    vw->undo->flushUnit();
-    return;
-  }
-     
-  if (cont1->label || cont2->label)
-    if (dia_choice("Joining will destroy point labels; do you really "
-                   "want to join?", "Yes", "No", NULL) != 1) {
-      imodSetIndex(vw->imod, ob, co, pt);
-      vw->undo->flushUnit();
+  // Confirm label deletion if there are any
+  if (iflabel)
+    if (dia_choice("Joining will destroy point and contour labels; do you "
+                   "really want to join?", "Yes", "No", NULL) != 1) {
+      free(indArray);
       return;
     }
 
-  pt = i1p->point;
-  if (iobjScat(obj->flags)){
-    jcont = imodContourSplice(cont1, cont2, cont1->psize - 1, 0);
-          
-  } else if (iobjOpen(obj->flags)){
-    if (i2p->point > 0 && i2p->point == cont2->psize - 1 &&
-        i1p->point == 0 && cont1->psize > 1) {
-      jcont = imodContourSplice(cont2, cont1, i2p->point, 
-                                i1p->point);
-      pt = i2p->point;
-    } else
-      jcont = imodContourSplice(cont1, cont2, i1p->point,
-                                i2p->point);
-  }else{
-    jcont = imodContourJoin(cont1, cont2, -1, -1, FALSE, 0);
+  i1p->object = indArray[0].object;
+
+  // Loop on join of pair of contours
+  for (ijoin = 0; ijoin < numJoin - 1; ijoin++) {
+    concat = 0;
+
+    // For scattered contours or one pair, just set up pair with zero
+    if (iobjScat(obj->flags) || useSetPoints) {
+      ind1 = 0;
+      ind2 = ijoin + 1;
+      pt1 = indArray[0].point;
+      pt2 = indArray[ind2].point;
+    } else {
+
+      distMin = 1.e30;
+
+      // Loop on pairs of contours in list
+      for (ic1 = 0; ic1 < numJoin - 1; ic1++) {
+        if (indArray[ic1].object < 0)
+          continue;
+        for (ic2 = ic1 + 1; ic2 < numJoin; ic2++) {
+          if (indArray[ic2].object < 0)
+            continue;
+
+          // Given a valid pair, first test for concatenation distance if open
+          // or closed and not set for nearest
+          cont1 = &obj->cont[indArray[ic1].contour];
+          cont2 = &obj->cont[indArray[ic2].contour];
+          testConcat = 0;
+          if (iobjOpen(obj->flags) || 
+              cojoin.closedType != CLOSED_TYPE_NEAREST) {
+            testConcat = 1;
+            tpt1 = 0;
+            tpt2 = 0;
+            end1 = cont1->psize - 1;
+            end2 = cont2->psize - 1;
+            dist = imodPoint3DScaleDistance(&cont1->pts[0], &cont2->pts[0],
+                                             &scale);
+            tdist = imodPoint3DScaleDistance(&cont1->pts[0], &cont2->pts[end2],
+                                             &scale);
+            if (tdist < dist) {
+              dist = tdist;
+              tpt2 = end2;
+            }
+            tdist = imodPoint3DScaleDistance(&cont1->pts[end1], &cont2->pts[0],
+                                             &scale);
+            if (tdist < dist) {
+              dist = tdist;
+              tpt1 = end1;
+              tpt2 = 0;
+            }
+            tdist = imodPoint3DScaleDistance(&cont1->pts[end1],
+                                             &cont2->pts[end2], &scale);
+            if (tdist < dist) {
+              dist = tdist;
+              tpt1 = end1;
+              tpt2 = end2;
+            }
+
+            // If auto choosing, now compare this to the openings of the two
+            // contours; if either is bigger, set for connect
+            if (iobjClose(obj->flags) && 
+                cojoin.closedType == CLOSED_TYPE_AUTO && 
+                (imodPointDistance(&cont1->pts[0], &cont1->pts[end1]) < dist ||
+                 imodPointDistance(&cont2->pts[0], &cont2->pts[end1]) < dist))
+              testConcat = 0;
+          }
+
+          // If not concantenating, just get nearest distance between contours
+          if (!testConcat) {
+            dist = 1.e30;
+            for (i = 0; i < cont1->psize; i++) {
+              for (j = 0; j < cont1->psize; j++) {
+                tdist = imodPointDistance(&cont1->pts[i], &cont2->pts[j]);
+                if (dist > tdist) {
+                  dist = tdist;
+                  tpt1 = i;
+                  tpt2 = j;
+                }
+              }
+            }
+          }
+
+          // Record character of contour pair with current minimum distance
+          if (distMin > dist) {
+            distMin = dist;
+            pt1 = tpt1;
+            pt2 = tpt2;
+            ind1 = ic1;
+            ind2 = ic2;
+            concat = testConcat;
+          }
+        }
+      }
+    }
+    
+    // If concatenating and both need inversion, swap them
+    if (concat && !pt1 && pt2) {
+      ic1 = ind1;
+      ind1 = ind2;
+      ind2 = ic1;
+      pt1 = obj->cont[indArray[ind1].contour].psize - 1;
+      pt2 = 0;
+    }
+
+    cont1 = &obj->cont[indArray[ind1].contour];
+    cont2 = &obj->cont[indArray[ind2].contour];
+    end1 = cont1->psize - 1;
+
+    // If concatenating, invert each one if needed
+    if (concat) {
+      if (pt1 != end1) {
+        vw->undo->contourDataChg(i1p->object, indArray[ind1].contour);
+        imodel_contour_invert(cont1);
+        pt1 = end1;
+      }
+      if (pt2) {
+        vw->undo->contourDataChg(i1p->object, indArray[ind2].contour);
+        imodel_contour_invert(cont2);
+        pt2 = 0;
+      }
+    }
+
+    // Do the right join operation
+    if (iobjScat(obj->flags)) {
+      pt1 = end1;
+      pt2 = 0;
+    }
+
+    if (iobjClose(obj->flags) && !concat) 
+      jcont = imodContourJoin(cont1, cont2, pt1, pt2, FALSE, 0);
+    else
+      jcont = imodContourSplice(cont1, cont2, pt1, pt2);
+
+    if (!jcont) {
+      joinError(indArray, "Failed to get memory for joined contour");
+      vw->undo->finishUnit();
+      return;
+    }
+
+    // Clear out the data in contour 1 and copy the new pointers
+    vw->undo->contourDataChg(i1p->object, indArray[ind1].contour);
+    if (cont1->psize)
+      free(cont1->pts);
+    if (cont1->sizes)
+      free(cont1->sizes);
+    imodLabelDelete(cont1->label);
+    cont1->label = NULL;
+    cont1->flags |= jcont->flags;
+    cont1->pts = jcont->pts;
+    cont1->sizes = jcont->sizes;
+    cont1->psize = jcont->psize;
+    free(jcont);
+
+    // Mark contour 2 as done and flag it for removal
+    indArray[ind2].object = -1;
+    cont2->flags |= ICONT_ONLIST;
   }
 
-  if (cont1->psize)
-    free(cont1->pts);
-  if (cont1->sizes)
-    free(cont1->sizes);
-          
-  /* copy the structure elements into place in the contour array */
-  imodContourCopy(jcont, cont1);
-
-  /* DNM: set index past point in first contour, adjust contour # if 
-     needed */
-  co = i1p->contour;
-  if (i1p->object == i2p->object && 
-      i1p->contour > i2p->contour)
-    co--;
-  if (pt + 1 < cont1->psize)
-    pt++;
-
-  /* check wild flag of new resulting contour */
+  // check wild flag of new resulting contour, set up new current point
   imodel_contour_check_wild(cont1);
+  co = indArray[ind1].contour;
+  if (pt1 + 2 < cont1->psize)
+    pt1++;
+  
+  // Remove all contours, shift index of remaining one down if needed
+  for (i = obj->contsize - 1; i >= 0; i--) {
+    cont1 = &obj->cont[i];
+    if (cont1->flags & ICONT_ONLIST) {
+      cont1->flags &= ~ICONT_ONLIST;
+      vw->undo->contourRemoval(i1p->object, i);
+      imodObjectRemoveContour(obj, i);
+      if (i < co)
+        co--;
+    }
+  }
 
-  /* delete the second contour, which may shift cont1 down */
-  imodDeleteContour(vw->imod);
-     
-  imodSetIndex(vw->imod, 
-               i1p->object, co, pt);
+  imodSetIndex(imod, i1p->object, co, pt1);
 
-  /* Clear out the labels */
+  // Clear out the labels
   i1p->point = -1;
   i2p->point = -1;
   if (cojoin.dia) {
@@ -715,43 +890,7 @@ void ContourJoin::buttonPressed(int which)
     break;
 
   case 2: 
-    dia_vasmsg
-      ("Contour Join Help:\n\n"
-       "Make a single contour from two separate contours and "
-       "remove the old contours.\n",
-
-       "There are two ways to select contours to join.  One way is to "
-       "select a model point within the first contour and press the "
-       "[Set 1] button, then select a point within the second contour and "
-       "press [Set 2].  The latter step is actually superfluous, because if "
-       "only one join point is set and another point is selected as the "
-       "current point, that point will be used as the second point.  The "
-       "second way is to select a point in the first contour, then select "
-       "a point in the second contour with "CTRL_STRING" and the first mouse "
-       "button.  If two contours are selected in this way, they will be the "
-       "ones joined if one or no join points are set in the dialog box.\n\n",
-        
-       "The hot key J can be used in place of the [Apply] button.  It can "
-       "also be used when the join dialog is not open, when two contours are "
-       "selected.\n\n"
-        
-       "For open type objects, the new contour will contain "
-       "points from the first contour up to [Set 1] and will "
-       "contain points from the second contour starting at "
-       "[Set 2] through the end of the contour.  The exception to "
-       "this is when [Set 1] is at the START of one contour and "
-       "[Set 2] is at the END of the other contour.  In this case "
-       "the new contour will contain all of the points from the "
-       "original two contours, rather "
-       "than just two points.\n\n",
-
-       "For closed type objects, the contours will be joined at "
-       "the closest points.\n\n",
-       "For scattered type objects, ALL of the points from the second"
-       " contour will be appended to the first contour, regardless of"
-       " which points are selected.  No points will be discarded.\n",
-
-       NULL);
+    imodShowHelpPage("contourJoin.html");
     break;
   }
 }
@@ -850,10 +989,6 @@ void imodContEditMoveDialogUpdate(void)
   comv.dia->manageCheckBoxes();
   return;
 }
-
-#ifndef ICON_ONLIST
-#define ICONT_ONLIST ICONT_CONNECT_TOP
-#endif
 
 /* move the current contour in the model to the selected moveto object. */
 void imodContEditMove(void)
@@ -1932,6 +2067,9 @@ void ContourFrame::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.16  2004/11/20 05:05:27  mast
+Changes for undo/redo capability
+
 Revision 4.15  2004/11/09 00:37:27  mast
 Fixed escaping of quote in help
 
