@@ -18,6 +18,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.2  2004/09/21 22:21:13  mast
+c	  Removed a ; for SGI
+c	
 c	  Revision 3.1  2004/09/10 05:56:49  mast
 c	  Initial addition to package
 c	
@@ -56,7 +59,7 @@ c
 	parameter (numOptions = 12)
 	character*(40 * numOptions) options(1)
 	options(1) =
-     &      'image:Image file:FN:@output:OutputFile:FN:@'//
+     &      'image:ImageFile:FN:@output:OutputFile:FN:@'//
      &      'model:ModelFile:FN:@objects:ObjectsToDo:LI:@'//
      &      'border:BorderSize:F:@absolute:AbsoluteThreshold:F:@'//
      &      'contrast:ContrastThreshold:I:@'//
