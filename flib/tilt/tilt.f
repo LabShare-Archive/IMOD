@@ -325,6 +325,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.0  2001/11/29 18:10:42  rickg
+c	  *** empty log message ***
+c	
 c	  Revision 1.2  2001/11/22 00:41:57  mast
 c	  Fixed computation of mean for files > 2 GPixels
 c	
@@ -1688,7 +1691,7 @@ C
      &	    'XTILTINTERP','DONE'/
 	COMMON /CARDS/NTAGS,XNUM(30),NFIELDS
 c	  
-	dimension ivexcl(360),repinc(360)
+	dimension ivexcl(limview),repinc(limview)
 c
 	NTAGS = 31
 	WRITE(6,50)
@@ -1700,7 +1703,7 @@ C Open input projection file
 	CALL IRDHDR(1,NPXYZ,MPXYZ,MODE,PMIN,PMAX,PMEAN)
 	NVIEWS=NPXYZ(3)
 c
-	if (nviews.gt.360) then
+	if (nviews.gt.limview) then
 		print *,'Too many images in tilt series.'
 		stop
 	end if
