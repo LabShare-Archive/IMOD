@@ -1,5 +1,13 @@
 #! /bin/csh -f
 
+#  $Author$
+#
+#  $Date$
+#
+#  $Revision$
+#
+#  $Log$
+
 set tmpdir = /usr/tmp
 
 set xcfilter = "0.01,0.05,0,0.25"
@@ -246,7 +254,7 @@ if ($ftype[2] == "ascii") then
 	endif
 else
     @ numsec =  `header $argv[1] | sed -n '/rows, sections/p'| awk '{print $9}'`
-    echo $argv[1] >> $seclist
+    echo $argv[1] >! $seclist
     @ secnum = 0
     while ($secnum < $numsec)
 	echo $secnum >> $seclist
@@ -479,5 +487,3 @@ clean:
 unset noglob
 /bin/rm -f $tmpdir/$com.*.$$*
 exit 0
-
-
