@@ -289,7 +289,7 @@ while ($i < 3)
 .c.obj:
 	\$(CC) -c \$(CFLAGS) \$(INCPATH) \$<
 EOF
-#        endif
+        endif
     endif
 end
 
@@ -309,6 +309,7 @@ set newer = `\find $imod_dir -name 3dmod.dsp -newer $imod_dir/imod.pro \
 if ($newer != newer) then
     (cd $imod_dir ; qmake -t vcapp -o 3dmod.dsp imod.pro)
    echo "MADE NEW 3dmod PROJECT FILE - RESET WARNING LEVEL TO 1 IN C++/General"
+   echo "and exclude linegui.cpp and moc_linegui.cpp from build, define TRACK_PLUGIN"
 endif
 
 set newer = `\find $midas_dir -name midas.dsp -newer $midas_dir/midas.pro \
