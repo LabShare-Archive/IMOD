@@ -1,7 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-5/15/04: Computed factors correctly for displaying multiple slices in the
-model view window, which improves the display.
+5/16/04: IMOD_3-2-15  (eTomo unstable)
+5/16/04: Computed factors correctly for displaying multiple slices in the
+model view window, which improves the display.  Added ability to limit size of
+image that is displayed; fixed problems with stereo display of images and
+changed drawing order so images will work as well as possible with transparent
+model objects; fixed problem with depth cueing an image display with no model.
 
 5/11/04: IMOD_3-2-14  (eTomo unstable)
 5/11/04: Fixed problem caused by removing the Run Tiltalign button.

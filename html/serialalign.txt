@@ -162,15 +162,18 @@ Generating or Editing an Alignment with Fiducial Points
      The program Xfmodel can solve for the parameters of a transformation
 between sections from the locations of points that are known or assumed to
 correspond between the sections.  Xfmodel works with a model of connected
-fiducial points built in 3dmod.  There are options to solve for the full linear
-transformation, translations only, translations and rotations, or
-translations, rotations, and magnifications.  Although it is most common to
-use this method to align an entire image stack, one can also use Xfmodel to
-"edit" an existing list of f transforms.  That is, if one enters fiducial
-points for a subset of troublesome sections, the program will solve for the
-transforms for those sections only, and replace those transforms in the
-existing list.  Xfmodel can also be used to transform a model to a new
-alignment.
+fiducial points built in 3dmod.  In the simplest case, if you built a model
+of fiducial points named "sections.fid", you would just enter
+     xfmodel sections.fid sections.xf
+  to compute a list of f transforms.  By default, it will solve for the full
+linear transformation, but there are also options to solve for translations
+only, translations and rotations, or translations, rotations, and
+magnifications.  Although it is most common to use this method to align an
+entire image stack, one can also use Xfmodel to "edit" an existing list of f
+transforms.  That is, if one enters fiducial points for a subset of
+troublesome sections, the program will solve for the transforms for those
+sections only, and replace those transforms in the existing list.  Xfmodel can
+also be used to transform a model to a new alignment (see below).
 
 Manually Editing an Alignment 
      The program Midas provides for interactive visualization and manual
@@ -191,8 +194,7 @@ Converting from an F List to a G List
      As discussed above, to get from the list of f transforms to a useful
 stack of aligned images, one must first convert them to g transforms using the
 program Xftoxg.  This will produce transforms that can be used to transform
-each section into a common alignment.  Xf2xg is a simple shell script for
-running Xftoxg with a command line entry.  Xftoxg has several different ways
+each section into a common alignment.  Xftoxg has several different ways
 of doing this, depending on whether you want to preserve or eliminate trends
 in the data.  The following series of examples will illustrate the treatment
 of trends.  Suppose we have sections with a progressive shift of positions:
@@ -203,11 +205,13 @@ of trends.  Suppose we have sections with a progressive shift of positions:
  0  --------+------+--
 
 To get g transforms that will align all of the images to a single average
-position, and eliminate the progressive shift, run Xf2xg with the option 
+position, and eliminate the progressive shift, run Xftoxg with the option 
 "-n 0" as follows:
-   xf2xg -n 0 sections.xf
- This produces a file "sections.xg" of g transforms, which when applied to the
-images, would give:
+   xftoxg -n 0 sections.xf
+ This entry takes advantage of a feature of Xftoxg: you do not have to enter
+an output file name if the input file name ends in "f".  This command produces 
+a file "sections.xg" of g transforms, which when applied to the images, would
+give:
 
  3  ___--+------+-----
  2  __---+------+-----
@@ -224,8 +228,8 @@ problems, it is possible to have each section aligned to a "local" average
 alignment based on a linear fit to trends in the transformations for the
 nearby sections.  This procedure will retain the trends but align adjacent
 sections as well as possible by eliminating deviations from the trends.  This
-is the default mode of operation of Xf2xg, invoked by
-   xf2xg sections.xf
+is the default mode of operation of Xftoxg, invoked by
+   xftoxg sections.xf
  and the resulting transforms in sections.xg would give:
 
  3  --+------+--------
@@ -256,7 +260,7 @@ expands them at the other:
 
 Aligning to a single central position tends to convert features of interest
 into a right cylinder, regardless of their true geometry.  Again, we can avoid
-this problem and retain all trends with the default entry to Xf2xg, with the
+this problem and retain all trends with the default entry to Xftoxg, with the
 following result:
 
  3  --+--x--+-----------
@@ -268,9 +272,10 @@ This may be an acceptable alignment, especially for very large numbers of
 sections.  However, it is frequently desirable to eliminate the trend in
 lateral displacements, particularly for images acquired on a CCD camera on the
 microscope or digitized by a method that does not provide a good preliminary
-alignment.  To handle these situation, there is a hybrid alignment method that
-will eliminate trends in position but retain trends in size.  It is invoked by
-    xf2xg -h 2 sections.xf
+alignment.  To handle these situation, there is a hybrid or mixed alignment 
+method that will eliminate trends in position but retain trends in size.  It
+is invoked by
+    xftoxg -m 2 sections.xf
  The resulting transforms applied to the sections give the desired result
 and avoid distorting the sizes of the objects:
 
@@ -287,18 +292,81 @@ by features that actually rotate within the volume, in which case rotation
 trends should be preserved.  For example, a tightly packed bundle of
 microtubules may have a twist, and if these microtubules dominate the
 alignment, the alignment will contain a progressive rotation that should be
-preserved.  Use the "-h 2" option to retain rotation trends or "-h 3" to
+preserved.  Use the "-m 2" option to retain rotation trends or "-m 3" to
 eliminate them.
 
 Creating Transformed Images
      Given a list of g transforms, the program Newstack will transform the
 images to create an aligned stack.  This program can also "float" the images
 to have a common range or mean of intensity, change the size of the images, or
-extract a portion of the images.  The shell script Newst provides a convenient
-command-line interface to Newstack.  See the man pages for Newstack and Newst
-for more information.  A simple example, which will float the images to the
-same mean intensity and contrast, is
-    newst -xf sections.xg -fl 2 sections.st sections.ali
+extract a portion of the images.  See the man pages for Newstack for more
+information or enter "newstack -h".  Newstack used to be run by a shell
+script, Newst, but now takes command line arguments itself.  You can still
+enter "newst" to see a simple summary of the major Newstack options.  A simple
+example, which will float the images to the same mean intensity and contrast,
+is
+    newstack -xf sections.xg -fl 2 sections.st sections.ali
  Here, "sections.xg" is your file of g transforms produced by Xftoxg, "-fl 2"
 specifies floating to mean, "sections.st" is your input stack of unaligned
 images, and "sections.ali" is your output stack of aligned images.
+
+Realigning Images and Models
+     Sometimes one will find after modeling on a set of images that the
+alignment needs to be improved.  There are several tools that can be used to
+get a better alignment.  The operations to run depend first on whether you
+are going to go back to the original data or operate on the aligned data.
+
+1) You can go back to the original data and modify the f transforms, or
+rerun Xtftoxg with different parameters to get different g transforms.  
+First make a copy of the xf file:
+    cp sections.xf sections.newxf
+ If you want to fix f transforms, you would probably do this by running midas
+on the raw stack:
+    midas sections.st sections.newxf
+ After adjusting the alignment or not, you would rerun Xftoxg (using whatever
+parameters you used before, or new ones if appropriate), for example:
+    xftoxg sections.newxf
+ This will give you a new file of g transforms, "sections.newxg".  Making a
+new aligned stack it easy; just rerun the newstack command with this new file
+instead of the old "xg" file.  To transform a model into alignment with these
+images, run
+    xfmodel -pre sections.xg -xf sections.newxg sections.mod sections.newmod
+ The "-pre" argument tells Xfmodel to back-transform the model by the old g
+transforms, which aligns it to the raw images, before transforming it by the
+new transforms.
+
+2) Suppose you work from the already aligned images or a model on them, and
+derive a set of f transforms that would improve their alignment, in the file
+"sections.xf2". These need to be converted to g transforms, but then
+transforming the model is easy:
+    xftoxg sections.xf2 sections.xg2
+    xfmodel -xf sections.xg2 sections.mod sections.newmod
+ However, to get a new aligned stack, you should go back to the raw stack
+instead of applying a second transformation to the aligned stack.  To do this,
+you need to multiply the first and second set of g transforms and apply the
+product:
+    xfproduct sections.xg sections.xg2 sections.prod
+    newstack -xf sections.prod sections.st sections.newali
+
+There are several ways that you could work from an existing model to get
+a refined alignment.  One way is to take Tiff snapshots of the Zap window in
+3dmod through the entire set of sections, with either the model displayed on
+the images or just the model showing on a black background.  (You can take
+such snapshots automatically with the Edit-Movies dialog box.)  Stack the
+Tiff files into a single color MRC file:
+    tif2mrc zap*.tif zapstack.mrc
+ Midas can read this file and display the colors in gray scale, allowing you
+to adjust the alignment based on model features:
+    midas zapstack.mrc sections.xf2
+
+An existing model can also be used to provide a new fiducial alignment,
+provided that it has features that have been modeled across the sections.
+For example,
+    xfmodel sections.mod sections.xf2
+ There is a script, Selfalign, that will do this operation as well as realign
+the model, producing new f transforms in a ".selfxf" file, new g transforms
+in a ".selfxg" file, and a new model ending in ".selfmod".  Aside from
+convenience, the script has the advantage that it can be given a limited 
+number of sections over which to find the alignment, and it will properly
+handle the transitions between the regions being realigned and those being
+left as they were.
