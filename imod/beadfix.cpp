@@ -42,6 +42,9 @@
 #include <qpushbutton.h>
 #include <qcheckbox.h>
 #include <qtooltip.h>
+#include <qtoolbutton.h>
+#include <qhbox.h>
+#include <qlayout.h>
 
 /*#include "../../imod/imod.h"
 #include "../../imod/imodplug.h"
@@ -55,6 +58,8 @@
 #include "control.h"
 #include "dia_qtutils.h"
 #include "beadfix.h"
+#include "pegged.xpm"
+#include "unpegged.xpm"
 
 
 // 2) Declare the internal functions as static
@@ -862,9 +867,28 @@ BeadFixer::BeadFixer(QWidget *parent, const char *name)
     width = width2;
   width = (int)(1.15 * width);
 
-  button = diaPushButton("Go to Next Gap", this, mLayout);
+  QHBox *topBox = new QHBox(this);
+  mLayout->addWidget(topBox);
+  topBox->setFixedWidth(width);
+  topBox->setSpacing(6);
+
+  QToolButton *toolBut = new QToolButton(topBox);
+  toolBut->setToggleButton(true);
+  QIconSet iconSet;
+  iconSet.setPixmap(QPixmap((const char **)pegged), QIconSet::Automatic, 
+                    QIconSet::Normal, QIconSet::On);
+  iconSet.setPixmap(QPixmap((const char **)unpegged), QIconSet::Automatic,
+                    QIconSet::Normal, QIconSet::Off);
+  toolBut->setIconSet(iconSet);
+  toolBut->setOn(false);
+  QSize hint = toolBut->sizeHint();
+  toolBut->setFixedWidth(hint.width());
+  connect(toolBut, SIGNAL(toggled(bool)), this, SLOT(keepOnTop(bool)));
+  QToolTip::add(toolBut, "Keep bead fixer window on top");
+
+  button = new QPushButton("Go to Next Gap", topBox);
+  button->setFocusPolicy(QWidget::NoFocus);
   connect(button, SIGNAL(clicked()), this, SLOT(nextGap()));
-  button->setFixedWidth(width);
   QToolTip::add(button, "Go to gap in model - Hot key: spacebar");
 
   button = diaPushButton("Open Tiltalign Log File", this, mLayout);
@@ -944,6 +968,8 @@ void BeadFixer::buttonPressed(int which)
        "\" (double quote)\tGo to next local set\n"
        ";\t\tMove point by residual\n"
        "U\t\tUndo last moved point\n\n",
+       "Toggle the pin button on to keep the bead fixer window on top of "
+       "other windows\n\n",
        "Select the Go to Next Gap button or hit the space bar key to "
        "move to the next gap or incomplete place in the model.  If "
        "there is a gap, the point BEFORE the gap will be displayed.  "
@@ -996,6 +1022,34 @@ void BeadFixer::buttonPressed(int which)
        NULL);
 }
 
+// Change to flag to keep on top or run timer as for info window
+void BeadFixer::keepOnTop(bool state)
+{
+#ifdef STAY_ON_TOP_HACK
+  if (mTopTimerID)
+    killTimer(mTopTimerID);
+  if (state)
+    mTopTimerID = startTimer(200);
+#else
+  int flags = getWFlags();
+  if (state)
+    flags |= WStyle_StaysOnTop;
+  else
+    flags ^= WStyle_StaysOnTop;
+  QPoint p(geometry().x(), geometry().y());
+  // Using pos() jumps on Windows
+  // Also, pos() jumps up-left on Unix, geometry() jumps down-right
+  // Unless we access the pos !
+  QPoint p2 = pos();
+  reparent(0, flags, p, true);  
+#endif
+}
+
+void BeadFixer::timerEvent(QTimerEvent *e)
+{
+  raise();
+}
+
 // The window is closing, remove from manager
 void BeadFixer::closeEvent ( QCloseEvent * e )
 {
@@ -1033,6 +1087,9 @@ void BeadFixer::keyReleaseEvent ( QKeyEvent * e )
 
 /*
     $Log$
+    Revision 1.3  2004/03/30 18:56:26  mast
+    Added hot key for next local set
+
     Revision 1.2  2004/01/22 19:12:43  mast
     changed from pressed() to clicked() or accomodated change to actionClicked
 

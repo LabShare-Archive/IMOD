@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1  2003/10/01 05:10:58  mast
+Incorporation as internal module in 3dmod
+
 */
 #ifndef BEADFIX_H
 #define BEADFIX_H
@@ -49,11 +52,13 @@ class BeadFixer : public DialogFrame
   void undoMove();
   void clearList();
   void onceToggled(bool state);
+  void keepOnTop(bool state);
 
  protected:
   void closeEvent ( QCloseEvent * e );
   void keyPressEvent ( QKeyEvent * e );
   void keyReleaseEvent ( QKeyEvent * e );
+  void timerEvent(QTimerEvent *e);
 
  private:
   void reread(int which);
@@ -66,6 +71,7 @@ class BeadFixer : public DialogFrame
   QPushButton *movePointBut;
   QPushButton *undoMoveBut;
   QPushButton *clearListBut;
+  int mTopTimerID;
 };
 
 #endif
