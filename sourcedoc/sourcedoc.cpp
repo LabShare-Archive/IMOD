@@ -15,6 +15,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.2  2005/02/25 03:18:27  mast
+Added standard includes, changed fortran to fort77 to make intel happy
+
 Revision 1.1  2005/02/25 02:46:52  mast
 Addition to package
 
@@ -342,6 +345,7 @@ int main(int argc, char *argv[])
             str.replace(QRegExp(CAPTURE_NONBS"\\}"), "\\1</I>");
             str.replace(QRegExp(CAPTURE_NONBS"\\^"), "\\1<BR>");
             str.replace(QRegExp("^\\^"), "<BR>");
+            str.replace("&", "&amp;");
 
             // Replace multiple spaces with ;nbsp
             if (str.find("  ") >= 0) {
