@@ -325,13 +325,6 @@ c
 c	  $Revision$
 c
 c	  $Log$
-c	  Revision 3.1  2002/01/10 01:43:47  mast
-c	  Fixed check on number of views to use limview rather than 360, and
-c	  redimensioned two arrays from 360 to limview
-c	
-c	  Revision 3.0  2001/11/29 18:10:42  rickg
-c	  *** empty log message ***
-c	
 c	  Revision 1.2  2001/11/22 00:41:57  mast
 c	  Fixed computation of mean for files > 2 GPixels
 c	
@@ -392,10 +385,6 @@ c
 	if(ifalpha.lt.0)write(6,902)nvertneed,nvertneed*ithick*iwide
 	write(6,903)NPLANES,NI
 	if (ipextra.ne.0)write(6,901)ipextra
-c	  
-c	  Flush to make it easier to determine what's going on.
-c
-	call flush(6)
 	call maskprep
 c	print *,'slicen',slicen,', imap',imap,', nbase',nbase
 	if(ifalpha.ge.0)then
@@ -1632,6 +1621,7 @@ C-------------------------------------------------------------------------
 C	--------------------------------------
 C
 	include 'tilt.inc'
+	nparextra=100
 	IEND=IMAP+ITHickout*iwide-1
 C
 C Scale
@@ -1660,12 +1650,21 @@ C ....slices correspond to sections of map
 C ....slices must be properly stored
 C	Take each line of array and place it in the correct section
 C 	of the map.
-		INDEX=IMAP
-		DO J=1,ITHICKout
-		CALL IMPOSN(2,J-1,(LSLICE-ISLICE)/idelslice)
+	  INDEX=IMAP
+	  DO J=1,ITHICKout
+	    CALL IMPOSN(2,J-1,(LSLICE-ISLICE)/idelslice)
+	    CALL IWRLIN(2,ARRAY(INDEX))
+c	      
+c	      DNM 2/29/01: partially demangle the parallel output by writing
+c	      up to 100 lines at a time in this plane
+c	      
+	    if(mod((LSLICE-ISLICE)/idelslice,nparextra).eq.0)then
+	      do i=1,min(nparextra-1,(jslice-lslice)/idelslice)
 		CALL IWRLIN(2,ARRAY(INDEX))
-		INDEX=INDEX+IWIDE
-		END DO
+	      enddo
+	    endif
+	    INDEX=INDEX+IWIDE
+	  END DO
 	END IF
 C
 	RETURN
@@ -1699,7 +1698,7 @@ C
      &	    'XTILTINTERP','DONE'/
 	COMMON /CARDS/NTAGS,XNUM(30),NFIELDS
 c	  
-	dimension ivexcl(limview),repinc(limview)
+	dimension ivexcl(360),repinc(360)
 c
 	NTAGS = 31
 	WRITE(6,50)
@@ -1711,7 +1710,7 @@ C Open input projection file
 	CALL IRDHDR(1,NPXYZ,MPXYZ,MODE,PMIN,PMAX,PMEAN)
 	NVIEWS=NPXYZ(3)
 c
-	if (nviews.gt.limview) then
+	if (nviews.gt.360) then
 		print *,'Too many images in tilt series.'
 		stop
 	end if
