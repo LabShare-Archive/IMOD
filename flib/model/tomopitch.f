@@ -56,6 +56,10 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.4  2002/07/21 19:30:50  mast
+c	  Standardized error output and made model coordinates get scaled
+c	  correctly
+c	
 c	  Revision 3.3  2002/06/25 15:25:18  mast
 c	  Adjusted sample coordinates to be centered around zero to correct
 c	  problem with computation of shift with X-axis tilt.

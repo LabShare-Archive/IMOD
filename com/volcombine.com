@@ -2,6 +2,8 @@
 #
 $if (-e savework-file) savework-file
 #
+$echo "STATUS: RUNNING DENSMATCH TO MATCH DENSITIES"
+$echo
 #
 # Scale the densities in the match file to match the first tomogram.  Inputs:
 #     File being matched (first tomogram)
@@ -13,7 +15,6 @@ g5a.rec
 g5b.mat
 
 #
-$echo "STATUS: DENSMATCH FINISHED, PROCEEDING TO COMBINE TOMOGRAMS"
 #
 # purge some previous versions if necessary: these are the huge files
 #

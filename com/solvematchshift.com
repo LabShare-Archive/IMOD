@@ -11,7 +11,7 @@ g5bfid.xyz
 2	0 to use models, 2 if 2 surfaces, 1/-1 if one surface, -1 if INVERTED
 solvezero.xf
 #
-$echo "STATUS: SOLVEMATCH RAN SUCCESSFULLY, NEXT RUNNING MATCHSHIFTS"
+$echo "SOLVEMATCH RAN SUCCESSFULLY, NEXT RUNNING MATCHSHIFTS"
 #
 # Run matchshifts to get absolute shifts; the three numbers are the nx, ny,
 # and nz of the block used for 3-D cross-correlation

@@ -141,6 +141,11 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.1  2002/07/21 19:24:27  mast
+c	  Resurrected the ability to use matching models, added scaling of
+c	  coordinates based on information from model header, and added
+c	  ability to solve for transformation using model files alone.  Also
+c	  standardized error output. 
 c
 c	  David Mastronarde, 1995; modified for zero shifts, 7/4/97;
 c	  Added outlier elimination and error exit, 6/5/99
