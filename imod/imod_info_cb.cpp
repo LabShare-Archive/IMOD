@@ -34,7 +34,6 @@ $Revision$
 Log at end of file
 */
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 #include <qapplication.h>
@@ -537,24 +536,6 @@ int imod_info_input(void)
   return(0);
 }
 
-int imod_open(FILE *mfin)
-{
-  if (mfin == NULL)
-    /* new model */
-    {
-      Model = imodNew();
-      imodNewObject(Model);
-    }
-  else
-    {
-      Model = (struct Mod_Model *)LoadModel(mfin);
-      if (Model == NULL){
-        return(-1);
-      }
-    }
-  return(0);
-}
-
 void show_status(char *info)
 {
   if (!info)
@@ -641,6 +622,9 @@ void imod_imgcnt(char *string)
 
 /*
 $Log$
+Revision 4.3  2003/02/20 16:01:13  mast
+Set control inactive to sync to model point when changing contour
+
 Revision 4.2  2003/02/13 22:19:20  mast
 round zmouse value for display
 
