@@ -32,8 +32,6 @@
 #define GETSVAL(t, i, j) ((t)->data.s[(i) + ((j) * (t)->xsize)])
 #define GETFVAL(s, i, j) ((s)->data.f[(i) + ((j) * (s)->xsize)])
 
-int  myRank = 0;
-
 int sliceByteConvolve(Islice *sin, int mask[3][3]);
 static void sliceScaleAndFree(Islice *sout, Islice *sin);
 static float selectFloat(int s, float *r, int num);
@@ -478,7 +476,7 @@ int sliceMedianFilter(Islice *sout, struct MRCvolume *v, int size)
 int sliceAnisoDiff(Islice *sl,  int outMode, int CC, double k, double lambda,
                    int iterations, int clearFlag)
 {
-  static double **image, **image2, **imout;
+  static float **image, **image2, **imout;
   static int iterDone = 0;
   int i, j;
   int n = sl->xsize;
@@ -503,10 +501,10 @@ int sliceAnisoDiff(Islice *sl,  int outMode, int CC, double k, double lambda,
 
   /* If no iterations yet, get double arrays */
   if (!iterDone) {
-    image = allocate2D_double(m + 2, n + 2);
+    image = allocate2D_float(m + 2, n + 2);
     if (!image)
       return -1;
-    image2 = allocate2D_double(m + 2, n + 2);
+    image2 = allocate2D_float(m + 2, n + 2);
     if (!image2) {
       free(image[0]);
       free(image);
@@ -524,10 +522,10 @@ int sliceAnisoDiff(Islice *sl,  int outMode, int CC, double k, double lambda,
      m,n,CC,k,lambda, iterations); */
   for (i = 0; i < iterations; i++, iterDone++) {
 	if ( iterDone % 2 == 0 ) {
-      updateMatrix(image2,image,m,n,CC,k,lambda,1);
+      updateMatrix(image2,image,m,n,CC,k,lambda);
       imout = image2;
 	} else {
-      updateMatrix(image,image2,m,n,CC,k,lambda,1);
+      updateMatrix(image,image2,m,n,CC,k,lambda);
       imout = image;
 	}
   }
@@ -535,7 +533,7 @@ int sliceAnisoDiff(Islice *sl,  int outMode, int CC, double k, double lambda,
   /* Copy data back to slice */
   for (j = 0; j < m; j++)
     for (i = 0; i < n; i++)
-      sl->data.f[i + j * sl->xsize] = (float)imout[j + 1][i + 1];
+      sl->data.f[i + j * sl->xsize] = imout[j + 1][i + 1];
 
   /* Free data if doing one-shot operation */
   if (clearFlag == ANISO_CLEAR_AT_END) {
@@ -557,11 +555,11 @@ int sliceAnisoDiff(Islice *sl,  int outMode, int CC, double k, double lambda,
  * Byte version with arrays already allocated and passed in 
  * iterDone is a pointer to variable for keeping track of total iterations 
  */
-void sliceByteAnisoDiff(Islice *sl, double **image, double **image2, 
+void sliceByteAnisoDiff(Islice *sl, float **image, float **image2, 
                         int CC, double k, double lambda, int iterations, 
                         int *iterDone)
 {
-  double **imout;
+  float **imout;
   int val;
   int i, j;
   int n = sl->xsize;
@@ -579,10 +577,10 @@ void sliceByteAnisoDiff(Islice *sl, double **image, double **image2,
      m,n,CC,k,lambda, iterations); */
   for (i = 0; i < iterations; i++, (*iterDone)++) {
 	if ( (*iterDone) % 2 == 0 ) {
-      updateMatrix(image2,image,m,n,CC,k,lambda,1);
+      updateMatrix(image2,image,m,n,CC,k,lambda);
       imout = image2;
 	} else {
-      updateMatrix(image,image2,m,n,CC,k,lambda,1);
+      updateMatrix(image,image2,m,n,CC,k,lambda);
       imout = image;
 	}
   }
@@ -605,16 +603,16 @@ void sliceByteAnisoDiff(Islice *sl, double **image, double **image2,
  *  array is actual a 1D vector of length m x n
  *      with a 2D array mapped onto the 1D vector
  */
-double **allocate2D_double(int m, int n ) 
+float **allocate2D_float(int m, int n ) 
 {
-  double  **a;
-  double  *fake;
+  float  **a;
+  float  *fake;
   int i;
   
-  if ( (a = (double **)malloc(sizeof(double *)*m)) == NULL )
+  if ( (a = (float **)malloc(sizeof(float *)*m)) == NULL )
     return NULL;
   
-  if ( (fake = (double *) malloc(m*n*sizeof(double))) == NULL ) {
+  if ( (fake = (float *) malloc(m*n*sizeof(float))) == NULL ) {
     free(a);
     return NULL;
   }
@@ -773,6 +771,9 @@ static int selectInt(int s, int *r, int num)
 
 /*
     $Log$
+    Revision 3.4  2005/02/10 22:03:30  mast
+    Need to include stdlib.h for mallocs to work in 64-bit land
+
     Revision 3.3  2005/01/28 05:41:11  mast
     Needed separate byte routine for anisotropic diffusion
 

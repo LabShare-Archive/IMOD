@@ -7,6 +7,9 @@
     $Revision$
 
     $Log$
+    Revision 3.3  2005/01/28 05:40:45  mast
+    Needed separate byte routine for anisotropic diffusion
+
     Revision 3.2  2005/01/27 05:57:05  mast
     Added anisotropic diffusion
 
@@ -51,11 +54,11 @@ extern "C" {
   int sliceMinMax(Islice *s);
   int sliceMedianFilter(Islice *sout, struct MRCvolume *v, int size);
   void updateMatrix(double **image, double **imageOld, int m, int n,
-                    int CC, double k, double lambda, int p);
+                    int CC, double k, double lambda);
   int sliceAnisoDiff(Islice *sl,  int outMode, int CC, double k, double lambda,
                      int iterations, int clearFlag);
-  double **allocate2D_double(int m, int n );
-  void sliceByteAnisoDiff(Islice *sl, double **image, double **image2, int CC,
+  float **allocate2D_float(int m, int n );
+  void sliceByteAnisoDiff(Islice *sl, float **image, float **image2, int CC,
                           double k, double lambda, int iterations, 
                           int *iterDone);
 
