@@ -19,6 +19,9 @@ import etomo.comscript.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.7  2005/01/10 23:27:20  sueh
+ * <p> bug# 578 Removed backwardCompatibleValue since it is not being used.
+ * <p>
  * <p> Revision 1.6  2005/01/05 19:58:15  sueh
  * <p> bug# 567 Fixed bug in set(ComScriptCommand).  Function was not
  * <p> handling a comscript where including a boolean parameter without a value
@@ -49,10 +52,6 @@ import etomo.comscript.InvalidParameterException;
  */
 public class EtomoBoolean extends ConstEtomoBoolean {
   public static final String rcsid = "$Id$";
-
-  public EtomoBoolean() {
-    super();
-  }
 
   public EtomoBoolean(String name) {
     super(name);
