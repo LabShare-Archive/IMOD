@@ -155,6 +155,7 @@ int main( int argc, char *argv[])
   int doFork = 1;
   char *cmdLineStyle = NULL;
   int doImodv = 0;
+  int nChars;
 
   /* Initialize data. */
   App = &app;
@@ -559,8 +560,11 @@ int main( int argc, char *argv[])
              
   /* set the model filename, or get a new model with null name */
   if (Model) {
-    sprintf(Imod_filename, "%s", 
-      (curdir->cleanDirPath(QString(argv[argc - 1]))).latin1());
+    nChars = strlen((curdir->cleanDirPath(QString(argv[argc - 1]))).latin1());
+    if (nChars >= IMOD_FILENAME_SIZE)
+      nChars = IMOD_FILENAME_SIZE - 1;
+    strncpy(Imod_filename,
+      (curdir->cleanDirPath(QString(argv[argc - 1]))).latin1(), nChars);
   } else {
     Model = imodNew();
     Imod_filename[0] = 0x00;
@@ -909,6 +913,9 @@ int imodColorValue(int inColor)
 
 /*
 $Log$
+Revision 4.19  2003/06/27 19:24:13  mast
+initialize views when start a new model
+
 Revision 4.18  2003/05/18 22:59:00  mast
 Create icon pixmap here to be able to set it for startup dialog
 
