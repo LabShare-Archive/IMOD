@@ -90,7 +90,7 @@ linecount:
 	wc -l src/etomo/ui/*.java | grep total
 	wc -l src/etomo/util/*.java | grep total
 	echo "Semicolon count:"
-	grep ";" src/etomo/*.java | wc
+	grep ";" src/etomo/ApplicationManager.java | wc -l
 	grep ";" src/etomo/comscript/*.java | wc -l
 	grep ";" src/etomo/process/*.java | wc -l
 	grep ";" src/etomo/storage/*.java | wc -l
