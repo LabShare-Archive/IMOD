@@ -15,6 +15,9 @@ package etomo.process;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.0  2003/01/24 20:30:31  rickg
+ * <p> Single window merge to main branch
+ * <p>
  * <p> Revision 1.6  2002/10/16 17:36:24  rickg
  * <p> reformat
  * <p>
@@ -79,6 +82,10 @@ public class ImodProcess {
       return;
     }
 
+    //  Reset the window and process ID strings
+    windowID = "";
+    processID = "";
+    
     String stringYZ = "";
     if (swapYZ) {
       stringYZ = "-Y ";
@@ -96,16 +103,24 @@ public class ImodProcess {
       except.printStackTrace();
     }
 
+
+    //  Sleep for a little bit to get info from process it doesn't seem that
+    // that the  info is truly avaialble!
+    try {
+      Thread.sleep(500);
+    }
+    catch (InterruptedException e) {
+      System.err.println("Interrupted");
+    }
+    
     // Check imod's exit code, if it is zero parse the windowID from
     // stderr stream, otherwise throw an exception describing why the file 
     // was not loaded
     if (imod.getExitValue() == 0) {
-      boolean missingWindowID = true;
-      boolean missingProcessID = true;
 
       String line;
       while ((line = imod.readStderr()) != null) {
-        System.out.println(line);
+        System.err.println("stderr: " + line);
 
         if (line.indexOf("Window id = ") != -1) {
           String[] words = line.split("\\s+");
@@ -113,8 +128,8 @@ public class ImodProcess {
             throw (
               new SystemProcessException("Could not parse window ID from imod\n"));
           }
+
           windowID = words[3];
-          missingWindowID = false;
         }
 
         if (line.indexOf("Process id ") != -1) {
@@ -124,18 +139,20 @@ public class ImodProcess {
               new SystemProcessException("Could not parse process ID from imod\n"));
           }
           processID = words[3];
-          missingProcessID = false;
+          System.err.println("processID: " + processID);        
         }
       }
-      if (missingWindowID) {
+      if (windowID.equals("")) {
         throw (
           new SystemProcessException("Did not find window ID from imod\n"));
       }
-      if (missingProcessID) {
+      if (processID.equals("")) {
         throw (
           new SystemProcessException("Did not find process ID from imod\n"));
       }
     }
+
+    //  Non-zero return value from imod
     else {
       String message =
         "imod returned: " + String.valueOf(imod.getExitValue()) + "\n";
@@ -154,9 +171,6 @@ public class ImodProcess {
 
       throw (new SystemProcessException(message));
     }
-
-    System.out.println("Window ID: " + windowID);
-    System.out.println("Process ID: " + processID);
   }
 
   /**
@@ -184,7 +198,7 @@ public class ImodProcess {
     String[] stdout = checkImod.getStdOutput();
 
     for (int i = 0; i < stdout.length; i++) {
-      System.out.println(stdout[i]);
+      System.err.println(stdout[i]);
     }
 
     if (stdout.length < 2) {
