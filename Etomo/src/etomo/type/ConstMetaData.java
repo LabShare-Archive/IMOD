@@ -23,6 +23,9 @@ import etomo.comscript.TrimvolParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.13  2004/12/07 22:47:38  sueh
+ * <p> bug# 564 Added TomogramState member variable.
+ * <p>
  * <p> Revision 3.12  2004/12/02 18:29:16  sueh
  * <p> bug# 557 Added a SqueezevolParam instance to be stored in the .edf file.
  * <p>
@@ -238,6 +241,9 @@ public abstract class ConstMetaData extends BaseMetaData {
     state.store(props, prepend);
   }
 
+  public TomogramState getState() {
+    return state;
+  }
   public TrimvolParam getTrimvolParam() {
     return trimvolParam;
   }
