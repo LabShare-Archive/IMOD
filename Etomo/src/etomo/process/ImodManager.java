@@ -26,6 +26,11 @@ import etomo.type.ConstMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.5  2003/11/25 22:53:46  sueh
+ * <p> bug242 removed the last dependency on non-map
+ * <p> ImodAssistants, moved constant 3dmod settings to the
+ * <p> constructor
+ * <p>
  * <p> Revision 3.4  2003/11/22 00:08:13  sueh
  * <p> bug242 quitFinelyAligned ignoring axisID and only quitting B
  * <p> axis - fixed
@@ -192,35 +197,39 @@ public class ImodManager {
   protected ImodAssistant trimmedVolume;
   protected ImodAssistant fiducialModelA;
   protected ImodAssistant fiducialModelB;
-  
+
   private static final int singleAxisImodMapSize = 8;
   private static final int dualAxisImodMapSize = 18;
-  
-  private static final String rawStackKey = new String("rawStack");
-  private static final String erasedStackKey = new String("erasedStack");
-  private static final String coarseAlignedKey = new String("coarseAligned");
-  private static final String fineAlignedKey = new String("fineAligned");
-  private static final String sampleKey = new String("sample");
-  private static final String fullVolumeKey = new String("fullVolume");
-  private static final String combinedTomogramDualAxisKey = new String("combinedTomogram");
+
+  //public keys
+  public static final String RAW_STACK_KEY = new String("rawStack");
+  public static final String ERASED_STACK_KEY = new String("erasedStack");
+  ;
+  public static final String COARSE_ALIGNED_KEY = new String("coarseAligned");
+  public static final String FINE_ALIGNED_KEY = new String("fineAligned");
+  public static final String SAMPLE_KEY = new String("sample");
+  public static final String FULL_VOLUME_KEY = new String("fullVolume");
+  public static final String COMBINED_TOMOGRAM_KEY =
+    new String("combinedTomogram");
+  public static final String FIDUCIAL_MODEL_KEY = new String("fiducialModel");
+  public static final String TRIMMED_VOLUME_KEY = new String("trimmedVolume");
+  public static final String PATCH_VECTOR_MODEL_KEY =
+    new String("patchVectorModel");
+  public static final String MATCH_CHECK_KEY = new String("matchCheck");
+
+  //private keys - used with imodMap
+  private static final String rawStackKey = RAW_STACK_KEY;
+  private static final String erasedStackKey = ERASED_STACK_KEY;
+  private static final String coarseAlignedKey = COARSE_ALIGNED_KEY;
+  private static final String fineAlignedKey = FINE_ALIGNED_KEY;
+  private static final String sampleKey = SAMPLE_KEY;
+  private static final String fullVolumeKey = FULL_VOLUME_KEY;
   private String combinedTomogramKey;
-  private static final String fiducialModelKey = new String("fiducialModel");
-  private static final String trimmedVolumeKey = new String("trimmedVolume");
-  private static final String patchVectorModelKey = new String("patchVectorModel");
-  private static final String matchCheckKey = new String("matchCheck");
-  
-  public static final String RAW_STACK_KEY = rawStackKey;
-  public static final String ERASED_STACK_KEY = erasedStackKey;
-  public static final String COARSE_ALIGNED_KEY = coarseAlignedKey;
-  public static final String FINE_ALIGNED_KEY = fineAlignedKey;
-  public static final String SAMPLE_KEY = sampleKey;
-  public static final String FILL_VOLUME_KEY = fullVolumeKey;
-  public static final String COMBINED_TOMOGRAM_KEY = combinedTomogramDualAxisKey;
-  public static final String FIDUCIAL_MODEL_KEY = fiducialModelKey;
-  public static final String TRIMMED_VOLUME_KEY = trimmedVolumeKey;
-  public static final String PATCH_VECTOR_MODEL_KEY = patchVectorModelKey;
-  public static final String MATCH_CHECK_KEY = matchCheckKey;
-  
+  private static final String fiducialModelKey = FIDUCIAL_MODEL_KEY;
+  private static final String trimmedVolumeKey = TRIMMED_VOLUME_KEY;
+  private static final String patchVectorModelKey = PATCH_VECTOR_MODEL_KEY;
+  private static final String matchCheckKey = MATCH_CHECK_KEY;
+
   private boolean useMap = true;
 
   /**
@@ -228,7 +237,10 @@ public class ImodManager {
    * @param metaData this class is used to initialize the
    * dataset name and axisType of the data to used in imod.
    */
-  public ImodManager(ApplicationManager appMgr, ConstMetaData metaData, boolean useMap) {
+  public ImodManager(
+    ApplicationManager appMgr,
+    ConstMetaData metaData,
+    boolean useMap) {
     applicationManager = appMgr;
 
     axisType = metaData.getAxisType();
@@ -243,7 +255,15 @@ public class ImodManager {
         coarseAlignedA = new ImodAssistant(datasetName + ".preali");
         fineAlignedA = new ImodAssistant(datasetName + ".ali");
         //sampleA = new ImodProcess("top.rec mid.rec bot.rec", "tomopitch.mod");
-        sampleA = new ImodAssistant(AxisID.ONLY, "top", "mid", "bot" ,".rec", "tomopitch" ,".mod");
+        sampleA =
+          new ImodAssistant(
+            AxisID.ONLY,
+            "top",
+            "mid",
+            "bot",
+            ".rec",
+            "tomopitch",
+            ".mod");
         fullVolumeA = new ImodAssistant(datasetName + "_full.rec");
         //fullVolumeA.setSwapYZ(true);
         fullVolumeA.setup(true, false, false);
@@ -260,9 +280,25 @@ public class ImodManager {
         fineAlignedA = new ImodAssistant(datasetName + "a.ali");
         fineAlignedB = new ImodAssistant(datasetName + "b.ali");
         //sampleA = new ImodProcess("topa.rec mida.rec bota.rec", "tomopitcha.mod")
-        sampleA = new ImodAssistant(AxisID.FIRST, "top", "mid", "bot" ,".rec", "tomopitch" ,".mod");
+        sampleA =
+          new ImodAssistant(
+            AxisID.FIRST,
+            "top",
+            "mid",
+            "bot",
+            ".rec",
+            "tomopitch",
+            ".mod");
         // sampleB = new ImodProcess("topb.rec midb.rec botb.rec", "tomopitchb.mod")
-        sampleB = new ImodAssistant(AxisID.SECOND, "top", "mid", "bot" ,".rec", "tomopitch" ,".mod");
+        sampleB =
+          new ImodAssistant(
+            AxisID.SECOND,
+            "top",
+            "mid",
+            "bot",
+            ".rec",
+            "tomopitch",
+            ".mod");
         fullVolumeA = new ImodAssistant(datasetName + "a.rec");
         //fullVolumeA.setSwapYZ(true)
         fullVolumeA.setup(true, false, false);
@@ -283,10 +319,16 @@ public class ImodManager {
         fiducialModelA = new ImodAssistant();
         fiducialModelB = new ImodAssistant();
       }
-    trimmedVolume = new ImodAssistant(datasetName + ".rec");
+      trimmedVolume = new ImodAssistant(datasetName + ".rec");
     }
     else {
-      loadMap();
+      createPrivateKeys();
+      if (axisType == AxisType.SINGLE_AXIS) {
+        loadSingleAxisMap();
+      }
+      else {
+        loadDualAxisMap();
+      }
     }
   }
 
@@ -296,213 +338,37 @@ public class ImodManager {
     axisType = metaData.getAxisType();
     datasetName = metaData.getDatasetName();
     AxisID axisID;
-    loadMap();
-  }
-  
-  protected void loadMap() {    
+    createPrivateKeys();
     if (axisType == AxisType.SINGLE_AXIS) {
       loadSingleAxisMap();
     }
     else {
       loadDualAxisMap();
     }
+
   }
 
-  protected void loadSingleAxisMap() {
-    ImodAssistant imod;
-    imodMap = new HashMap(singleAxisImodMapSize);
-    imodMap.put(rawStackKey, new ImodAssistant(datasetName + ".st"));
-    imodMap.put(erasedStackKey, new ImodAssistant(datasetName + "_fixed.st"));
-    imodMap.put(coarseAlignedKey, new ImodAssistant(datasetName + ".preali"));
-    imodMap.put(fineAlignedKey, new ImodAssistant(datasetName + ".ali"));
-    //sample
-    imod = newSample(AxisID.ONLY);
-    imodMap.put(sampleKey, imod);
-    //fullVolume
-    imod = newFullVolume(AxisID.ONLY);
-    imodMap.put(fullVolumeKey, imod);
-    combinedTomogramKey = fullVolumeKey;
-    //fiducialModel
-    imod = newFiducialModel();
-    imodMap.put(fiducialModelKey, imod);
-    imod = new ImodAssistant(datasetName + ".rec");
-    imodMap.put(trimmedVolumeKey, imod);
-  }
-  
-  protected void loadDualAxisMap() {
-    ImodAssistant imod;
-    imodMap = new HashMap(dualAxisImodMapSize);
-    
-    imodMap.put(rawStackKey + AxisID.FIRST.getExtension(), new ImodAssistant(datasetName + "a.st"));
-    imodMap.put(rawStackKey + AxisID.SECOND.getExtension(), new ImodAssistant(datasetName + "b.st"));
-    imodMap.put(erasedStackKey + AxisID.FIRST.getExtension(), new ImodAssistant(datasetName + "a_fixed.st"));
-    imodMap.put(erasedStackKey + AxisID.SECOND.getExtension(), new ImodAssistant(datasetName + "b_fixed.st"));
-    imodMap.put(coarseAlignedKey + AxisID.FIRST.getExtension(), new ImodAssistant(datasetName + "a.preali"));
-    imodMap.put(coarseAlignedKey + AxisID.SECOND.getExtension(), new ImodAssistant(datasetName + "b.preali"));
-    imodMap.put(fineAlignedKey + AxisID.FIRST.getExtension(), new ImodAssistant(datasetName + "a.ali"));
-    imodMap.put(fineAlignedKey + AxisID.SECOND.getExtension(), new ImodAssistant(datasetName + "b.ali"));
-    //sample
-    imod = newSample(AxisID.FIRST);
-    imodMap.put(sampleKey + AxisID.FIRST.getExtension(), imod);
-    imod = newSample(AxisID.SECOND);
-    imodMap.put(sampleKey + AxisID.SECOND.getExtension(), imod);
-    //fullVolume
-    imod = newFullVolume(AxisID.FIRST);
-    imodMap.put(fullVolumeKey + AxisID.FIRST.getExtension(), imod);
-    imod = newFullVolume(AxisID.SECOND);
-    imodMap.put(fullVolumeKey + AxisID.SECOND.getExtension(), imod);
-    //combinedTomogram
-    imod = new ImodAssistant("sum.rec");
-    imod.setup(true, false, false);
-    combinedTomogramKey = combinedTomogramDualAxisKey;
-    imodMap.put(combinedTomogramKey, imod);
-    //patchVectorModel
-    imod = new ImodAssistant("patch_vector.mod");
-    imod.setup(false, false, true);
-    imod.configureSetToMode(true);
-    imodMap.put(patchVectorModelKey, imod);
-    //matchCheck
-    imod = new ImodAssistant("matchcheck.mat matchcheck.rec");
-    imod.setup(true, true, false);
-    imodMap.put(matchCheckKey, imod);
-    //fiducialModel
-    imod = newFiducialModel();
-    imodMap.put(fiducialModelKey + AxisID.FIRST.getExtension(), imod);
-    imod = newFiducialModel();
-    imodMap.put(fiducialModelKey + AxisID.SECOND.getExtension(), imod);
-    imod = new ImodAssistant(datasetName + ".rec");
-    imodMap.put(trimmedVolumeKey, imod);
-  }
-  
-  protected ImodAssistant newFiducialModel() {
-    ImodAssistant imod = new ImodAssistant();
-    imod.configureUseModv(true);
-    return imod;
-  }
-  
-  protected ImodAssistant newFullVolume(AxisID axisID) {
-    ImodAssistant imod;
-    if (axisType == AxisType.SINGLE_AXIS) {
-      imod = new ImodAssistant(datasetName + "_full.rec");
-    }
-    else {
-      imod = new ImodAssistant(datasetName + axisID.getExtension() + ".rec"); 
-    }
-    imod.setup(true, false, false);
-    return imod;
-  }
-
-  protected ImodAssistant newSample(AxisID axisID) {
-    ImodAssistant imod;
-    imod = new ImodAssistant(axisID, "top", "mid", "bot" ,".rec", "tomopitch" ,".mod");
-    imod.configureSetToMode(true);
-    return imod;
-  }
-  
-  protected String getKey(String key) {
-    if (key.equals(COMBINED_TOMOGRAM_KEY)) {
-      return combinedTomogramKey;
-    }
-    else return key;
-  }
-  
-  protected ImodAssistant get(String key) {
-    if (!useMap) {
-      throw new UnsupportedOperationException("This operation is not supported when useMap is false");
-    }
-    ImodAssistant imod = (ImodAssistant) imodMap.get(getKey(key));
-    if (imod == null) {
-      if (axisType == AxisType.SINGLE_AXIS) {
-        throw new IllegalArgumentException("Unable to find " + key + " in the single axis data set");
-      }
-      else {
-        throw new IllegalArgumentException("Unable to find " + key + " in the dual axis data set");      
-      }
-    }
-    return imod;
-  }
-  
-  protected ImodAssistant get(String key, AxisID axisID) {
-    if (!useMap) {
-      throw new UnsupportedOperationException("This operation is not supported when useMap is false");
-    }
-    if (axisType == AxisType.SINGLE_AXIS && axisID != AxisID.ONLY) {
-      axisID = AxisID.ONLY;
-    }
-    key = new String(getKey(key) + axisID.getExtension());
-    ImodAssistant imod = (ImodAssistant) imodMap.get(key);
-    if (imod == null) {
-      if (axisType == AxisType.SINGLE_AXIS) {
-        throw new IllegalArgumentException("Unable to find " + key + " in the single axis data set");
-      }
-      else {
-        throw new IllegalArgumentException("Unable to find " + key + " in the dual axis data set");      
-      }
-    }
-    return imod;
-  }
-  
-
-  
-  public boolean isOpen(String imodName) {
-    ImodAssistant imod = get(imodName);
-    if (imod == null) {
-      return false;
-    }
-    return imod.isOpen();
-  }
- 
-  
-  public boolean isOpen(String imodName, AxisID axisID) {
-    ImodAssistant imod = get(imodName, axisID);
-    if (imod == null) {
-      return false;
-    }
-    return imod.isOpen();
-  }
-  
-  public void model(String imodName, AxisID axisID, String modelName) throws SystemProcessException {
-    ImodAssistant imod = get(imodName, axisID);
-    if (imod != null) {
-      imod.open();
-      imod.model(modelName);
-    }
-    // erasedStack.model(modelName);
-  }
-  
-  public void model(String key, AxisID axisID, String modelName, boolean modelMode) 
-  throws AxisTypeException, SystemProcessException {
-    ImodAssistant imod = get(key, axisID);
-    if (imod != null) {
-      imod.open();
-      imod.model(modelName, modelMode);
-    }
-    //    rawStack.model(modelName, modelMode);
-  }
-  
-  public void model(String key, AxisID axisID, String modelName, boolean modelMode, boolean preserveContrast) 
-  throws SystemProcessException {
-    ImodAssistant imod = get(key, axisID);
-    if (imod != null) {
-      imod.open();
-      imod.configurePreserveContrast(preserveContrast);
-      imod.model(modelName, modelMode);
-    }
-    //coarseAligned.setPreserveContrast(preserveConstrast);
-    //coarseAligned.model(modelName, modelMode);
-  }
-  
   public void open(String key) throws SystemProcessException {
+    key = getPrivateKey(key);
     ImodAssistant imod = get(key);
+    if (imod == null) {
+      imod = newImod(key);
+      imodMap.put(key, imod);
+    }
     if (imod != null) {
       imod.open();
     }
     //used for:
     //openCombinedTomogram
   }
-  
+
   public void open(String key, AxisID axisID) throws SystemProcessException {
+    key = getPrivateKey(key);
     ImodAssistant imod = get(key, axisID);
+    if (imod == null) {
+      imod = newImod(key, axisID);
+      imodMap.put(key + axisID.getExtension(), imod);
+    }
     if (imod != null) {
       imod.open();
     }
@@ -511,56 +377,126 @@ public class ImodManager {
     //openErasedStack
     //openFineAligned
   }
-  
-  public void open(String key, AxisID axisID, String model) throws SystemProcessException {
+
+  public void open(String key, AxisID axisID, String model)
+    throws SystemProcessException {
+    key = getPrivateKey(key);
     ImodAssistant imod = get(key, axisID);
+    if (imod == null) {
+      imod = newImod(key, axisID);
+      imodMap.put(key + axisID.getExtension(), imod);
+    }
     if (imod != null) {
       imod.open(model);
     }
     //used for:
     //openFiducialModel
   }
- 
-  public void quit(String imodName) throws SystemProcessException {
-    ImodAssistant imod = get(imodName);
-    if (imod != null) {
-      imod.quit();
+
+  public boolean isOpen(String key) {
+    key = getPrivateKey(key);
+    ImodAssistant imod = get(key);
+    if (imod == null) {
+      return false;
     }
-    //combinedTomogram.quit();
+    return imod.isOpen();
   }
 
-  public void quit(String imodName, AxisID axisID)
-    throws SystemProcessException {
-    ImodAssistant imod = get(imodName, axisID);
-    if (imod != null) {
-      imod.quit();
+  public boolean isOpen(String key, AxisID axisID) {
+    key = getPrivateKey(key);
+    ImodAssistant imod = get(key, axisID);
+    if (imod == null) {
+      return false;
     }
-    //coarseAligned.quit();
-  } 
-  
-  
-  public void openBeadFixer(String key, AxisID axisID) throws SystemProcessException {
+    return imod.isOpen();
+  }
+
+  public void model(String key, AxisID axisID, String modelName)
+    throws SystemProcessException {
+    key = getPrivateKey(key);
+    ImodAssistant imod = get(key, axisID);
+    if (imod == null) {
+      open(key, axisID);
+      imod = get(key, axisID);
+    }
+    else {
+      imod.open();
+    }
+    if (imod != null) {
+      imod.model(modelName);
+    }
+    // erasedStack.model(modelName);
+  }
+
+  public void model(
+    String key,
+    AxisID axisID,
+    String modelName,
+    boolean modelMode)
+    throws AxisTypeException, SystemProcessException {
+    key = getPrivateKey(key);
+    ImodAssistant imod = get(key, axisID);
+    if (imod == null) {
+      open(key, axisID);
+      imod = get(key, axisID);
+    }
+    else {
+      imod.open();
+    }
+    if (imod != null) {
+      imod.model(modelName, modelMode);
+    }
+    //    rawStack.model(modelName, modelMode);
+  }
+
+  public void model(
+    String key,
+    AxisID axisID,
+    String modelName,
+    boolean modelMode,
+    boolean preserveContrast)
+    throws SystemProcessException {
+    key = getPrivateKey(key);
+    ImodAssistant imod = get(key, axisID);
+    if (imod == null) {
+      open(key, axisID);
+      imod = get(key, axisID);
+    }
+    else {
+      imod.open();
+    }
+    if (imod != null) {
+      imod.configurePreserveContrast(preserveContrast);
+      imod.model(modelName, modelMode);
+    }
+    //coarseAligned.setPreserveContrast(preserveConstrast);
+    //coarseAligned.model(modelName, modelMode);
+  }
+
+  public void openBeadFixer(String key, AxisID axisID)
+    throws SystemProcessException {
+    key = getPrivateKey(key);
     ImodAssistant imod = get(key, axisID);
     if (imod.isUseModv()) {
       throw new UnsupportedOperationException("The Bead Fixer cannot be opened in 3dmodv");
     }
     imod.openBeadFixer();
   }
-  
+
   /**
    * Open both tomograms and their matching models
    * Ignores ImodAssistant configuration
    * @param datasetName
    */
-  
+
   public void matchingModel(String datasetName)
     throws AxisTypeException, SystemProcessException {
     //fullVolumeA.open();
     //fullVolumeA.openModel(datasetName + "a.matmod");
     //fullVolumeA.modelMode();
     ImodAssistant fullVolume = selectFullVolume(AxisID.FIRST);
-    fullVolume.open(datasetName + "a.matmod" , true);
-    
+    fullVolume.open(datasetName + "a.matmod", true);
+
     //fullVolumeB.open();
     //fullVolumeB.openModel(datasetName + "b.matmod");
     //fullVolumeB.modelMode();
@@ -577,46 +513,286 @@ public class ImodManager {
   public void patchRegionModel(AxisID axisID)
     throws AxisTypeException, SystemProcessException {
     //if (axisID == AxisID.SECOND) {
-      //fullVolumeB.open();
-      //fullVolumeB.openModel("patch_region.mod");
-      //fullVolumeB.modelMode();
+    //fullVolumeB.open();
+    //fullVolumeB.openModel("patch_region.mod");
+    //fullVolumeB.modelMode();
     //}
     //else {
-      //fullVolumeA.open();
-      //fullVolumeA.openModel("patch_region.mod");
-      //fullVolumeA.modelMode(); 
+    //fullVolumeA.open();
+    //fullVolumeA.openModel("patch_region.mod");
+    //fullVolumeA.modelMode(); 
 
     //}
     ImodAssistant fullVolume = selectFullVolume(axisID);
     fullVolume.open("patch_region.mod", true);
   }
- 
+
+  public void quit(String key) throws SystemProcessException {
+    key = getPrivateKey(key);
+    ImodAssistant imod = get(key);
+    if (imod != null) {
+      imod.quit();
+    }
+    //combinedTomogram.quit();
+  }
+
+  public void quit(String key, AxisID axisID) throws SystemProcessException {
+    key = getPrivateKey(key);
+    ImodAssistant imod = get(key, axisID);
+    if (imod != null) {
+      imod.quit();
+    }
+    //coarseAligned.quit();
+  }
+
+  protected void createPrivateKeys() {
+    if (axisType == AxisType.SINGLE_AXIS) {
+      combinedTomogramKey = FULL_VOLUME_KEY;
+    }
+    else {
+      combinedTomogramKey = COMBINED_TOMOGRAM_KEY;
+    }
+  }
+
+  protected String getPrivateKey(String publicKey) {
+    if (publicKey.equals(COMBINED_TOMOGRAM_KEY)) {
+      return combinedTomogramKey;
+    }
+    else
+      return publicKey;
+  }
+
+  protected void loadSingleAxisMap() {
+    ImodAssistant imod;
+    imodMap = new HashMap(singleAxisImodMapSize);
+    imodMap.put(rawStackKey, newRawStack(AxisID.ONLY));
+    imodMap.put(erasedStackKey, newErasedStack(AxisID.ONLY));
+    imodMap.put(coarseAlignedKey, newCoarseAligned(AxisID.ONLY));
+    imodMap.put(fineAlignedKey, newFineAligned(AxisID.ONLY));
+    imodMap.put(sampleKey, newSample(AxisID.ONLY));
+    imodMap.put(fullVolumeKey, newFullVolume(AxisID.ONLY));
+    imodMap.put(fiducialModelKey, newFiducialModel());
+    imodMap.put(trimmedVolumeKey, newTrimmedVolume());
+  }
+
+  protected void loadDualAxisMap() {
+    ImodAssistant imod;
+    imodMap = new HashMap(dualAxisImodMapSize);
+    imodMap.put(rawStackKey + AxisID.FIRST.getExtension(), newRawStack(AxisID.FIRST));
+    imodMap.put(rawStackKey + AxisID.SECOND.getExtension(), newRawStack(AxisID.SECOND));
+    imodMap.put(erasedStackKey + AxisID.FIRST.getExtension(), newErasedStack(AxisID.FIRST));
+    imodMap.put(erasedStackKey + AxisID.SECOND.getExtension(), newErasedStack(AxisID.SECOND));
+    imodMap.put(coarseAlignedKey + AxisID.FIRST.getExtension(), newCoarseAligned(AxisID.FIRST));
+    imodMap.put(coarseAlignedKey + AxisID.SECOND.getExtension(), newCoarseAligned(AxisID.SECOND));
+    imodMap.put(fineAlignedKey + AxisID.FIRST.getExtension(), newFineAligned(AxisID.FIRST));
+    imodMap.put(fineAlignedKey + AxisID.SECOND.getExtension(), newFineAligned(AxisID.SECOND));
+    imodMap.put(sampleKey + AxisID.FIRST.getExtension(), newSample(AxisID.FIRST));
+    imodMap.put(sampleKey + AxisID.SECOND.getExtension(), newSample(AxisID.SECOND));
+    imodMap.put(fullVolumeKey + AxisID.FIRST.getExtension(), newFullVolume(AxisID.FIRST));
+    imodMap.put(fullVolumeKey + AxisID.SECOND.getExtension(), newFullVolume(AxisID.SECOND));
+    imodMap.put(combinedTomogramKey, newCombinedTomogram());
+    imodMap.put(patchVectorModelKey, newPatchVectorModel());
+    imodMap.put(matchCheckKey, newMatchCheck());
+    imodMap.put(fiducialModelKey + AxisID.FIRST.getExtension(), newFiducialModel());
+    imodMap.put(fiducialModelKey + AxisID.SECOND.getExtension(), newFiducialModel());
+    imodMap.put(trimmedVolumeKey, newTrimmedVolume());
+  }
+
+  protected ImodAssistant newRawStack(AxisID axisID) {
+    ImodAssistant imod = new ImodAssistant(axisID, datasetName, ".st");
+    return imod;
+  }
+  protected ImodAssistant newErasedStack(AxisID axisID) {
+    ImodAssistant imod = new ImodAssistant(axisID, datasetName, "_fixed.st");
+    return imod;
+  }
+  protected ImodAssistant newCoarseAligned(AxisID axisID) {
+    ImodAssistant imod = new ImodAssistant(axisID, datasetName, ".preali");
+    return imod;
+  }
+  protected ImodAssistant newFineAligned(AxisID axisID) {
+    ImodAssistant imod = new ImodAssistant(axisID, datasetName, ".ali");
+    return imod;
+  }
+  protected ImodAssistant newSample(AxisID axisID) {
+    ImodAssistant imod =
+      new ImodAssistant(axisID, "top", "mid", "bot", ".rec", "tomopitch", ".mod");
+    imod.configureSetToMode(true);
+    return imod;
+  }
+  protected ImodAssistant newFullVolume(AxisID axisID) {
+    ImodAssistant imod;
+    if (axisType == AxisType.SINGLE_AXIS) {
+      imod = new ImodAssistant(datasetName + "_full.rec");
+    }
+    else {
+      imod = new ImodAssistant(axisID, datasetName, ".rec");
+    }
+    imod.setup(true, false, false);
+    return imod;
+  }
+  protected ImodAssistant newCombinedTomogram() {
+    ImodAssistant imod = new ImodAssistant("sum.rec");
+    imod.setup(true, false, false);
+    return imod;
+  }
+  protected ImodAssistant newPatchVectorModel() {
+    ImodAssistant imod = new ImodAssistant("patch_vector.mod");
+    imod.setup(false, false, true);
+    imod.configureSetToMode(true);
+    return imod;
+  }
+  protected ImodAssistant newMatchCheck() {
+    ImodAssistant imod = new ImodAssistant("matchcheck.mat matchcheck.rec");
+    imod.setup(true, true, false);
+    return imod;
+  }
+  protected ImodAssistant newFiducialModel() {
+    ImodAssistant imod = new ImodAssistant();
+    imod.configureUseModv(true);
+    return imod;
+  }
+  protected ImodAssistant newTrimmedVolume() {
+    ImodAssistant imod = new ImodAssistant(datasetName + ".rec");
+    return imod;
+  }
   
+  protected boolean isPerAxis(String key) {
+    if (key.equals(COMBINED_TOMOGRAM_KEY)
+      || key.equals(PATCH_VECTOR_MODEL_KEY)
+      || key.equals(MATCH_CHECK_KEY)
+      || key.equals(TRIMMED_VOLUME_KEY)) {
+      return false;
+    }
+    return true;
+  }
   
+  protected boolean isDualAxisOnly(String key) {
+    if (key.equals(COMBINED_TOMOGRAM_KEY)
+      || key.equals(PATCH_VECTOR_MODEL_KEY)
+      || key.equals(MATCH_CHECK_KEY)) {
+      return true;
+    }
+    return false;
+  }
+
+  protected ImodAssistant newImod(String key, AxisID axisID) {
+    if (key.equals(RAW_STACK_KEY)) {
+      return newRawStack(axisID);
+    }
+    if (key.equals(ERASED_STACK_KEY)) {
+      return newErasedStack(axisID);
+    }
+    if (key.equals(COARSE_ALIGNED_KEY)) {
+      return newCoarseAligned(axisID);
+    }
+    if (key.equals(FINE_ALIGNED_KEY)) {
+      return newFineAligned(axisID);
+    }
+    if (key.equals(SAMPLE_KEY)) {
+      return newSample(axisID);
+    }
+    if (key.equals(FULL_VOLUME_KEY)) {
+      return newFullVolume(axisID);
+    }
+    if (key.equals(COMBINED_TOMOGRAM_KEY) && axisType == AxisType.DUAL_AXIS) {
+      return newCombinedTomogram();
+    }
+    if (key.equals(PATCH_VECTOR_MODEL_KEY) && axisType == AxisType.DUAL_AXIS) {
+      return newPatchVectorModel();
+    }
+    if (key.equals(MATCH_CHECK_KEY) && axisType == AxisType.DUAL_AXIS) {
+      return newMatchCheck();
+    }
+    if (key.equals(FIDUCIAL_MODEL_KEY)) {
+      return newFiducialModel();
+    }
+    if (key.equals(TRIMMED_VOLUME_KEY)) {
+      return newTrimmedVolume();
+    }
+    throw new IllegalArgumentException(key + " cannot be create in " + axisType.toString() + " with axisID=" + axisID.getExtension());
+  }
+
+
+  protected ImodAssistant newImod(String key) {
+    return newImod(key, AxisID.ONLY);
+  }
+
+
+
+  protected ImodAssistant get(String key) {
+    ImodAssistant imod;
+    if (!useMap) {
+      throw new UnsupportedOperationException("This operation is not supported when useMap is false");
+    }
+    if (axisType == AxisType.SINGLE_AXIS && isDualAxisOnly(key)) {
+      throw new IllegalArgumentException(key + " cannot be found in " + axisType.toString());
+    }
+    if (isDualAxisOnly(key) && isPerAxis(key)) {
+      throw new UnsupportedOperationException(key + " cannot be found without axisID information");
+    }
+    
+    if (isPerAxis(key)) { 
+      imod = (ImodAssistant) imodMap.get(key + AxisID.ONLY.getExtension());
+    }
+    else {
+      imod = (ImodAssistant) imodMap.get(key);
+    }
+    return imod;
+  }
   
+  protected ImodAssistant get(String key, AxisID axisID) {
+    ImodAssistant imod;
+    if (!useMap) {
+      throw new UnsupportedOperationException("This operation is not supported when useMap is false");
+    }
+    if (axisType == AxisType.SINGLE_AXIS) {
+      if (isDualAxisOnly(key)) {
+        throw new IllegalArgumentException(key + " cannot be found in " + axisType.toString());
+      }
+      if (axisID != AxisID.ONLY) {
+        axisID = AxisID.ONLY;
+      }
+    }
+    if (!isPerAxis(key)) { 
+      imod = (ImodAssistant) imodMap.get(key);
+    }
+    else {
+      imod = (ImodAssistant) imodMap.get(key + axisID.getExtension());
+    }
+    return imod;
+  }
   
-  
-  
-  
-  
-//old code
-  
-  
-  
-  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  //old code
+
   /**
    * Open the specified raw data stack in 3dmod if it is not already open
    * @param axisID the AxisID of the desired axis.
    */
   public void openRawStack(AxisID axisID)
     throws AxisTypeException, SystemProcessException {
-      if (useMap) {
-        open(rawStackKey, axisID);
-        return;
-      }
-      checkAxisID(axisID);
-      ImodAssistant rawStack = selectRawStack(axisID);
-      rawStack.open();
+    if (useMap) {
+      open(rawStackKey, axisID);
+      return;
+    }
+    checkAxisID(axisID);
+    ImodAssistant rawStack = selectRawStack(axisID);
+    rawStack.open();
   }
 
   /**
@@ -624,18 +800,18 @@ public class ImodManager {
    */
   public void modelRawStack(String modelName, AxisID axisID, boolean modelMode)
     throws AxisTypeException, SystemProcessException {
-      // Make sure there is an imod with right course aligned data set that
-      // is already open
-      openRawStack(axisID);
-      ImodAssistant rawStack = selectRawStack(axisID);
-      //rawStack.openModel(modelName);
-      //if (modelMode) {
-      //  rawStack.modelMode();
-      //}
-      //else {
-      //  rawStack.movieMode();
-      //}
-      rawStack.model(modelName, modelMode);
+    // Make sure there is an imod with right course aligned data set that
+    // is already open
+    openRawStack(axisID);
+    ImodAssistant rawStack = selectRawStack(axisID);
+    //rawStack.openModel(modelName);
+    //if (modelMode) {
+    //  rawStack.modelMode();
+    //}
+    //else {
+    //  rawStack.movieMode();
+    //}
+    rawStack.model(modelName, modelMode);
   }
 
   /**
@@ -666,13 +842,13 @@ public class ImodManager {
    */
   public void openErasedStack(AxisID axisID)
     throws AxisTypeException, SystemProcessException {
-      if (useMap) {
-        open(erasedStackKey, axisID);
-        return;
-      }
-      checkAxisID(axisID);
-      ImodAssistant erasedStack = selectErasedStack(axisID);
-      erasedStack.open();
+    if (useMap) {
+      open(erasedStackKey, axisID);
+      return;
+    }
+    checkAxisID(axisID);
+    ImodAssistant erasedStack = selectErasedStack(axisID);
+    erasedStack.open();
   }
 
   /**
@@ -761,8 +937,6 @@ public class ImodManager {
     ImodAssistant coarseAligned = selectCoarseAligned(axisID);
     coarseAligned.openBeadFixer();
   }
-  
-
 
   /**
    * Check to see if the specified coarsely aligned stack is open
@@ -896,7 +1070,7 @@ public class ImodManager {
   public void openFullVolume(AxisID axisID)
     throws AxisTypeException, SystemProcessException {
     if (useMap) {
-      //opening matching model and patch region model will not affect the
+      //matching model and patch region model will not affect the
       //default configuration of the fullVolume ImodAssistant.
       open(fullVolumeKey, axisID);
       return;
@@ -909,7 +1083,6 @@ public class ImodManager {
     //fullVolume.open();
     fullVolume.open("");
   }
-
 
   /**
    * Check to see if the specified tomogram is open
