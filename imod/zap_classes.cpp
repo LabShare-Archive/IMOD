@@ -403,8 +403,9 @@ void ZapGL::paintGL()
   if (mFirstDraw) {
     mTimerID = startTimer(10);
     mFirstDraw = false;
+    // DNM 3/25/04: Nvidia driver 5336 does a bad first draw and needs a clear
     if (mTimerID) {
-      //glClear(GL_COLOR_BUFFER_BIT);
+      glClear(GL_COLOR_BUFFER_BIT);
       return;
     }
   }
@@ -442,6 +443,9 @@ void ZapGL::mouseMoveEvent ( QMouseEvent * e )
 
 /*
 $Log$
+Revision 4.11  2003/10/01 05:04:19  mast
+change include from imodP to imod after eliminating imod.h from imodP.h
+
 Revision 4.10  2003/09/24 00:47:12  mast
 Eliminated second setting geometry now that move is used instead
 
