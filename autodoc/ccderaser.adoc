@@ -94,7 +94,19 @@ type = F
 usage = Outer radius of annulus to calculate local mean and SD in
 tooltip = 
 manpage = Outer radius of annulus around a peak in which to calculate local
-mean and SD (the default is 4.0 pixels).
+mean and SD (the default is 4.1 pixels).
+This option and -width are mutually exclusive.
+
+[Field = AnnulusWidth]
+short = width
+long = AnnulusWidth
+type = F
+usage = Width (outer - inner radius) of annulus to calculate local mean and 
+SD in
+tooltip = 
+manpage = Difference between outer and inner radius of the annulus around a 
+peak in which to calculate local mean and SD (the default is 2.0 pixels).
+This option and -radius are mutually exclusive.
 
 [Field = XYScanSize]
 short = xyscan
