@@ -27,6 +27,15 @@
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
 
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
+
 #include <stdio.h>
 #include <math.h>
 #include "keypad.h"
@@ -735,6 +744,10 @@ void inputNewObject(ImodView *vw)
      else
 	  obj->fgcolor = App->objbase + vw->imod->cindex.object;
      
+     /* DNM 5/16/02: if multiple image files, set time flag by default */
+     if (vw->nt)
+	  obj->flags |= IMOD_OBJFLAG_TIME;
+
      imod_info_setocp();
      imod_cmap(vw->imod);
      return;
