@@ -61,7 +61,7 @@ the Display line matches up with one of the screens that is declared.
 
 9. Install the real OpenMotif libraries.  
 A. If you are running Red Hat 7.3 or higher and will be running a version
-of IMOD built to run with OpenMotif 2.2 (IMOD 2.7.4 or higher), you should be
+of IMOD built to run with OpenMotif 2.2 (IMOD 2.7.5 or higher), you should be
 all set.
 
 B. For systems below Red Hat 7.3, you can install OpenMotif 2.1 from

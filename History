@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/5/02 IMOD_2-7-5 released
+11/5/02: Revised and simplified installation guide.
+
 IMOD_2-7-4
 11/5/02: Changed Midas to choose a visual explicitly so it will work on
 machines with only double-buffered visuals.
