@@ -18,6 +18,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.5  2005/01/17 06:38:52  mast
+c	  Added checks for array limits
+c	
 c	  Revision 3.4  2005/01/11 19:23:58  mast
 c	  Added pixel model output, fixed bug in computing sum and average
 c	  above threshold
@@ -44,20 +47,21 @@ c
 	logical readw_or_imod
 	integer*4 iSurface(max_obj_num),iobjflag(limflag),iobjdo(limobj)
 	integer*4 listsurf(limsurf),numInBorder(limsurf)
-	integer*4 numAboveThresh(limsurf),isurf
+	integer*4 numAboveThresh(limsurf),isurf, levels(max_obj_num)
+	integer*4 insideIndex(max_obj_num), insideCont(max_obj_num)
 	real*4 sumAbove(limsurf), sumTemp
         character*120 line
 c	  
 	integer*4 mode,i,j,nobjdo,iunitOut,numTot,numInTemp,numAboveTemp
 	integer*4 iobj,imodobj,imodobj2,imodcont,ifdo,iconThresh,numSurf
 	real*4 dmin,dmax,dmean,sumTot,avgAbove,absSum,absThresh
-	integer*4 ierr,ierr2,irefObject,ifReverse,ifVerbose,nThreshIn
+	integer*4 ierr,ierr2,irefObject,ifReverse,ifVerbose,nThreshIn,numInside
 	integer*4 getimodhead,getimodflags,getimodsurfaces
 	real*4 xyscal,zscale,xofs,yofs,zofs
-	integer*4 newObj, newImodObj, numNewCont, numObjOrig
-	integer*4 ifflip,getimodobjsize
+	integer*4 newObj, newImodObj, numNewCont, numObjOrig, nestErr
+	integer*4 ifflip,getimodobjsize, getImodNesting
 	logical*4 firstNewCont
-	real*4 border, polarity
+	real*4 border, polarity, bufferInside
 c
 	logical pipinput
 	integer*4 numOptArg, numNonOptArg
@@ -68,13 +72,13 @@ c
 c	  fallbacks from ../../manpages/autodoc2man -2 2  sumdensity
 c
 	integer numOptions
-	parameter (numOptions = 13)
+	parameter (numOptions = 14)
 	character*(40 * numOptions) options(1)
 	options(1) =
      &      'image:ImageFile:FN:@model:ModelFile:FN:@'//
      &      'output:OutputFile:FN:@pixel:PixelModel:FN:@'//
      &      'objects:ObjectsToDo:LI:@border:BorderSize:F:@'//
-     &      'absolute:AbsoluteThreshold:F:@'//
+     &      'inside:InsideBorder:F:@absolute:AbsoluteThreshold:F:@'//
      &      'contrast:ContrastThreshold:I:@'//
      &      'reference:ReferenceObject:I:@reverse:ReversePolarity:B:@'//
      &      'verbose:VerboseOutput:B:@param:ParameterFile:PF:@'//
@@ -89,6 +93,7 @@ c
 
 	nobjdo=0
 	border=0.
+	bufferInside = 0.
 	irefObject = -1
 	polarity = 1.
 	ifReverse = 0
@@ -157,6 +162,8 @@ c
      &	    call parselist(line, iobjdo,nobjdo)
 	ierr = PipGetBoolean('VerboseOutput', ifVerbose)
 	ierr = PipGetString('PixelModel', pixelModel)
+	bufferInside = border
+	ierr = PipGetFloat('InsideBorder', bufferInside)
 	call PipDone()
 c	  
 	iunitOut = 6
@@ -173,8 +180,9 @@ c
 	  do iobj = 1,max_mod_obj
 	    if (npt_in_obj(iobj).gt.2 .and. 256-obj_color(2,iobj) .eq.
      &		irefObject) then
-	      call sum_inside_contour(array, imsiz, nx, ny, nz, iobj, border,
-     &		  dmin - dmax, 1., numInTemp, numAboveTemp, absSum,
+	      call sum_inside_contour(array, imsiz, nx, ny, nz, iobj,
+     &		  irefObject, border, dmin - dmax, 1., 0, insideCont,
+     &		  bufferInside, numInTemp, numAboveTemp, absSum,
      &		  avgAbove, 0)
 	      numTot = numTot + numInTemp
 	      sumTot = sumTot + absSum
@@ -223,6 +231,11 @@ c	      If doing pixel output, go to new object if last one had output
 	      numNewCont = 0
 	    endif
 c	      
+	    nestErr = getImodNesting(imodobj, 1, levels, insideIndex,
+     &		insideCont, iobj, isurf, max_obj_num)
+	    if (nestErr .ne. 0)print *,'ERROR ',nesterr,
+     &		' GETTING INSIDE CONTOUR INFORMATION FOR OBJECT',imodobj
+c	      
 c	      look for valid contours and make a list of surface numbers
 c
 	    numSurf = 0
@@ -260,9 +273,10 @@ c
 c	      Do contours and add results for surfaces
 c	      
 	    do iobj = 1, max_mod_obj
-	      if (npt_in_obj(iobj) .gt. 2 .and.
-     &		  256 - obj_color(2,iobj) .eq. imodobj) then
 		call objtocont(iobj,obj_color,imodobj2,imodcont)
+	      if (npt_in_obj(iobj) .gt. 2 .and. imodobj2 .eq. imodobj .and.
+     &		  (nestErr .ne. 0 .or. levels(imodcont) .eq. 0 .or.
+     &		    mod(levels(imodcont), 2) .ne. 0)) then
 		isurf = 0
 		do i = 1, numSurf
 		  if (iSurface(iobj) .eq. listsurf(i)) isurf = i
@@ -285,10 +299,15 @@ c
 		  obj_color(1, newObj) = 1
 		  firstNewCont = .false.
 		endif
-
-		call sum_inside_contour(array, imsiz, nx, ny, nz, iobj, border,
-     &		    absThresh, polarity, numInTemp, numAboveTemp, absSum,
-     &		    avgAbove, newObj)
+c
+		numInside = 0
+		if (nestErr .eq. 0) numInside =
+     &		    insideIndex(imodcont + 1) - insideIndex(imodcont)
+c
+		call sum_inside_contour(array, imsiz, nx, ny, nz, iobj,
+     &		    imodobj,border, absThresh, polarity, numInside,
+     &		    insideCont(insideIndex(imodcont)),bufferInside, numInTemp,
+     &		    numAboveTemp, absSum, avgAbove, newObj)
 		if (newObj .gt. 0 .and. npt_in_obj(newObj) .gt. 0)
      &		    numNewCont = numNewCont + 1
 
@@ -359,9 +378,13 @@ c	  Input parameters:
 c	  ARRAY is the array for reading image, dimensioned to IMSIZ**2
 c	  NX, NY, Nz are dimensionf of the file
 c	  IOBJ is the "object" number
+c	  imodObj is IMOD object number
 c	  BORDER is the size of the exclusion zone
 c	  ABSTHRESH is the threshold for counting pixels
 c	  POLARITY is 1 to count bright pixels, or -1 for dark pixels
+c	  numInside is the number of inside contours
+c	  insideCont is an array with their contour numbers
+c	  bufferInside is the border size outside inner contours
 c	  Returned parameters:
 c	  numInBorder  is the number of pixels inside the borders
 c	  numAboveThresh is the number of pixels above threshold
@@ -370,25 +393,35 @@ c	  avgAbove is the average of the those pixels after subtracting
 c	  the threshold
 c	  newObj is an "object" number in which to place points above threshold
 c
-	subroutine sum_inside_contour(array, imsiz, nx, ny, nz, iobj, border,
-     &	    absThresh, polarity, numInBorder, numAboveThresh, absSum,
-     &	    avgAbove, newObj)
+	subroutine sum_inside_contour(array, imsiz, nx, ny, nz, iobj, imodObj,
+     &	    border, absThresh, polarity, numInside, insideCont,
+     &	    bufferInside, numInBorder, numAboveThresh, absSum, avgAbove,
+     &	    newObj)
 	implicit none
 	integer limpts
 	parameter (limpts=10000)
 	integer*4 imsiz, iobj, numInBorder, numAboveThresh, nx, ny, nz, newObj
 	real*4 array(*), absThresh, absSum, avgAbove, border,polarity
-	real*4 cx(limpts),cy(limpts),sumAbove
+	real*4 bufferInside
+	real*4 cx(limpts),cy(limpts),sumAbove,ex(limpts),ey(limpts)
+	integer*4 imodObj, numInside, insideCont(*)
 	include 'model.inc'
 	integer*4 ibase, ix, iy, iz, ipt, i, ixst, ixnd, iyst, iynd, nxload
-	integer*4 nyload, ninobj, ilas
-	logical inside, interior
-	real*4 xmin, xmax, ymin, ymax, dx, dy, xpix, ypix, t, val, borderSq
-
+	integer*4 nyload, ninobj, ilas, jobj, jobjLast, ninjobj, incont
+	integer*4 iobjfromcont
+	logical inside, interior, outsideBorder, trace
+	real*4 xmin, xmax, ymin, ymax, xpix, ypix, val
+	real*4 xtrace,ytrace
+c	  
+c	  Set these to imod pixel values - .5 to get trace
+c
+	xtrace = -100.5
+	ytrace = -100.5
+c
 	ninobj = npt_in_obj(iobj)
 	if (ninobj .gt. limpts) call errorexit(
      &	    'TOO MANY POINTS IN CONTOURS FOR ARRAYS')
-	borderSq = border**2
+	jobjLast = -1
 	numInBorder = 0
 	numAboveThresh = 0
 	absSum = 0.
@@ -445,29 +478,45 @@ c
 	  do ix = 0, nxload - 1
 	    xpix = ixst + 0.5 + ix
 	    ypix = iyst + 0.5 + iy
+	    trace = xtrace.eq.xpix .and. ytrace.eq.ypix
 c	      
-c	      test if inside the contour
+c	      test if inside the contour and if outside border region
 c
 	    if (inside(cx, cy, ninobj, xpix, ypix)) then
-	      ilas = ninobj
-	      i = 1
-	      interior = .true.
+	      if (trace) print *,'inside',iobj
+	      interior = outsideBorder(cx, cy, ninobj, border, xpix, ypix)
+	      if (trace .and. interior) print *,'passes border test'
 c		
-c		compute distance from each line segment of contour and make
-c		sure pixel is not in the border region
+c		Test for inside or within border regions of inside contours
 c
-	      do while (i .le. ninobj .and. interior)
-		dx = cx(i) - cx(ilas)
-		dy = cy(i) - cy(ilas)
-		t = 0.
-		if (dx .ne. 0. .or. dy .ne. 0.) t = max(0., min(1.,
-     &		    ((xpix - cx(ilas)) * dx + (ypix - cy(ilas)) * dy) /
-     &		    (dx**2 + dy**2)))
-		dx = xpix - (cx(ilas) + t * dx)
-		dy = ypix - (cy(ilas) + t * dy)
-		interior = dx**2 + dy**2 .gt. borderSq
-		ilas = i
-		i = i + 1
+	      incont = 1
+	      do while (incont .le. numInside .and. interior)
+		jobj = iobjfromcont(imodobj, insideCont(incont))
+c		  
+c		  Load contour into arrays unless it is the last loaded
+c
+		if (jobj .ne. jobjLast) then
+		  ibase = ibase_obj(jobj)
+		  ninjobj = min(npt_in_obj(jobj), limpts)
+		  do i = 1, ninjobj
+		    ipt = object(ibase + i)
+		    ex(i) = p_coord(1, ipt)
+		    ey(i) = p_coord(2, ipt)
+		  enddo
+		  jobjLast = jobj
+		endif
+		if (ninjobj .gt. 2) then
+		  interior = .not. inside(ex, ey, ninjobj, xpix, ypix)
+		  if (trace)  print *,'outside inner cont?',
+     &		      insideCont(incont),jobj, interior
+		  if (interior) then
+		    interior = outsideBorder(ex, ey, ninjobj, bufferInside,
+     &			xpix, ypix)
+		    if (trace) print *,'outside border of cont?',
+     &			insideCont(incont),jobj, interior
+		  endif
+		endif
+		incont = incont + 1
 	      enddo
 c		
 c		If pixel is in interior, count it, and see if it is above the
@@ -525,3 +574,33 @@ c
 	call exit(1)
 	end
 
+
+	logical function outsideBorder(cx, cy, ninobj, border, xpix, ypix)
+	implicit none
+	real*4 cx(*), cy(*), xpix, ypix, border
+	integer*4 ninobj, ilas, i
+	real*4 borderSq, dx, dy, t
+c
+	borderSq = border**2
+	ilas = ninobj
+	i = 1
+	outsideBorder = .true.
+c		
+c	  compute distance from each line segment of contour and make
+c	  sure pixel is not in the border region
+c
+	do while (i .le. ninobj .and. outsideBorder)
+	  dx = cx(i) - cx(ilas)
+	  dy = cy(i) - cy(ilas)
+	  t = 0.
+	  if (dx .ne. 0. .or. dy .ne. 0.) t = max(0., min(1.,
+     &	      ((xpix - cx(ilas)) * dx + (ypix - cy(ilas)) * dy) /
+     &	      (dx**2 + dy**2)))
+	  dx = xpix - (cx(ilas) + t * dx)
+	  dy = ypix - (cy(ilas) + t * dy)
+	  outsideBorder = dx**2 + dy**2 .gt. borderSq
+	  ilas = i
+	  i = i + 1
+	enddo
+	return
+	end
