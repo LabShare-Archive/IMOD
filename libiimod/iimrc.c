@@ -5,6 +5,9 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2001/12/17 18:54:45  mast
+    Added protections against non-Boulder files being recognized as montages
+
 */
 #include <stdlib.h>
 #include <mrcc.h>
@@ -176,11 +179,13 @@ int iiMRCLoadPCoord(ImodImageFile *inFile, struct LoadInfo *li, int nx, int ny,
 	for montage information, at least make sure that the total bytes
 	implied by the bits in the flag equals the nint entry.  Also
 	reject deltavision files */
+     /* DNM 2/3/02: make sure nreal also does not have bits beyond the flags */
      for (i = 0; i < FLAG_COUNT; i++)
 	  if (iflag & (1 << i))
 	       extratot += extra_bytes[i];
 
-     if (extratot != nbytes || hdr->creatid == -16224)
+     if (extratot != nbytes || hdr->creatid == -16224 || 
+	 iflag >= (1 << FLAG_COUNT))
 	  return 0;
 
      if (iflag & TILT_FLAG)
