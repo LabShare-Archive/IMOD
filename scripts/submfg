@@ -8,6 +8,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.1  2003/04/18 22:52:21  mast
+#  Initial addition to package
+#
  
 if ($#argv < 1) then
 cat <<EOF
@@ -39,7 +42,7 @@ while ($#argv > 0)
 	echo ERROR: $rootname.com does not exist $bell
 	exit 1
     endif
-    echo Running $rootname.com ...
+    echo -n "Running $rootname.com ...  "
     vmstocsh $rootname.log < $rootname.com | csh -ef
     if ($status) then
 	echo Error executing $rootname.com $bell
