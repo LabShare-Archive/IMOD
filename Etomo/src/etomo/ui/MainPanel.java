@@ -36,6 +36,9 @@ import etomo.type.AxisType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.6  2005/02/09 22:30:51  sueh
+ * <p> Removing unnecessary import.
+ * <p>
  * <p> Revision 1.5  2005/02/09 20:51:56  sueh
  * <p> bug# 594 Moved maximumSize from MainPanel to MainFrame so that it
  * <p> will work with the tabbedPane.
@@ -390,6 +393,7 @@ public abstract class MainPanel extends JPanel {
    */
   public void fitWindow(boolean force) {
     if (!force && !EtomoDirector.getInstance().getUserConfiguration().isAutoFit()) {
+      EtomoDirector.getInstance().getMainFrame().show();
       return;
     }
     synchronized (MainFrame.class) {
