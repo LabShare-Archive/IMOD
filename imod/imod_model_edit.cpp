@@ -122,17 +122,31 @@ void setPixsizeAndUnits(Imod *imod, char *string)
     imod->units = IMOD_UNIT_PM;
 }
 
+// 11/1/04: scale the model resolution when above or below limiting zooms
+float scaleModelRes(int res, float zoom)
+{
+  float zoomMin = 0.75f;
+  float zoomMax = 1.5f;
+  float ret = res;
+  if (zoom < zoomMin)
+    ret *= zoomMin / zoom;
+  if (zoom > zoomMax)
+    ret *= zoomMax / zoom;
+  return ret;
+}
+
 
 /* THE WINDOW CLASS FOR MODEL HEADER */
 
-static char *headerLabels[] = {"Done"};
-static char *headerTips[] = {"Close dialog box using current values"};
+static char *headerLabels[] = {"Done", "Help"};
+static char *headerTips[] = {"Open help window",
+                             "Close dialog box using current values"};
 
 ModelHeaderWindow::ModelHeaderWindow(QWidget *parent, const char *name)
-  : DialogFrame(parent, 1, headerLabels, headerTips, true, 
+  : DialogFrame(parent, 2, headerLabels, headerTips, true, 
                 " ", "", name)
 {
-  char *boxLabels[] = {"Z scale", "Resolution", "Pixel size"};
+  char *boxLabels[] = {"Z-scale", "Resolution", "Pixel size"};
   char *boxTips[] = 
     {"Ratio of section thickness to X/Y pixel size",
      "Interval at which model points are added when drag drawing",
@@ -165,7 +179,33 @@ ModelHeaderWindow::ModelHeaderWindow(QWidget *parent, const char *name)
 
 void ModelHeaderWindow::buttonPressed(int which)
 {
-  close();
+  if (!which)
+    close();
+  else
+    dia_vasmsg
+      ("Model Header Help\n",
+       "---------------------------\n",
+       "This dialog allows you to set the following items in the model header:"
+       "\n\n"
+       "The \"Z-scale\" text box allows you to enter a scaling factor for the "
+       "size of the pixels in Z (section thickness) relative to their size in "
+       "X and Y.  For serial sections, the Z-scale is the ratio of section "
+       "thickness to pixel size.  For tomograms, the Z-scale is the ratio of "
+       "the original section thickness (typically the nominal thickness at "
+       "which the section was cut) to the thickness "
+       "of material in the reconstruction.\n\n"
+       "\tThe \"Resolution\" text box determines the spacing between "
+       "successive "
+       "points when adding points continuously while holding down the second "
+       "mouse button.  Points will be added at the given interval for image "
+       "zooms between 0.75 and 1.5, and at proportionally bigger or smaller "
+       "intervals for zooms lower or higher than these values, respectively."
+       "\n\n"
+       "\tThe \"Pixel size\" text box allows you to set the pixel size of "
+       "the model, which is needed for extracting quantitative information.  "
+       "Enter a number then the units of measurement.  Available units are "
+       "km, m, cm, um, nm, A, and pm.\n",
+       NULL);
 }
 
 // Key press, lost focus, or window closing: unload the tool edits
@@ -442,6 +482,9 @@ void ModelOffsetWindow::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.6  2004/01/22 19:12:43  mast
+changed from pressed() to clicked() or accomodated change to actionClicked
+
 Revision 4.5  2003/04/25 03:28:32  mast
 Changes for name change to 3dmod
 
