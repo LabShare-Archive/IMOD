@@ -7,6 +7,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.8  2004/11/08 18:12:50  mast
+#  Name the trial output file differently
+#
 #  Revision 3.7  2004/10/28 21:13:31  mast
 #  Added maxsize, bin and trial options
 #
@@ -46,7 +49,7 @@ cat <<EOF
                       the point which should end up in the center of the new
                       images.  A positive X offset will shift images to the
                       left.
-        -t[rial] #    Build trial joined file, using sections at the given 
+        -t[rial] #    Build trial joined file, using slices at the given 
                       interval (output will be "root_name"_trial.join)
         -b[in] #      Bin images by the given number in a trial joined file.
                       Size and offset entries should still be in unbinned 
