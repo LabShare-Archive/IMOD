@@ -8,8 +8,10 @@ cat <<EOF
 Xf2xg has been retired - Xftoxg now accepts command-line options
 NOTE THAT THE -h OPTION OF XF2XG IS IMPLEMENTED BY -m IN XFTOXG
 
-xftoxg -h
 EOF
+xftoxg -h
+exit
+endif
 
 xftoxg $*
 exit $status
