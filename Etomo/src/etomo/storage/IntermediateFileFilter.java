@@ -17,6 +17,10 @@ import javax.swing.filechooser.FileFilter;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.1  2005/03/29 23:50:39  sueh
+ * <p> bug# 618 Added acceptPretrimmedTomograms boolean to configure
+ * <p> whether the class will show sum.rec or _full.rec.
+ * <p>
  * <p> Revision 3.0  2003/11/07 23:19:01  rickg
  * <p> Version 1.0.0
  * <p>
@@ -62,7 +66,8 @@ public class IntermediateFileFilter extends FileFilter {
         "top.rec",
         "topa.rec",
         "topb.rec",
-        "volcombine.log" };
+        "volcombine.log",
+        ".bl"};
     String[] pretrimmedTomograms = {"sum.rec","full.rec"};
     if (f.isFile()) {
       for (int i = 0; i < endsWith.length; i++) {
