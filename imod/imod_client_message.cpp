@@ -54,12 +54,12 @@ Log at end of file
 static int message_action = MESSAGE_NO_ACTION;
 static char *message_string = NULL;
 static int message_stamp = -1;
-static int debugMode = 0;
 
 ImodClipboard::ImodClipboard()
   : QObject()
 {
   QClipboard *cb = QApplication::clipboard();
+  cb->setSelectionMode(false);
   mHandling = false;
   mExiting = false;
   mClipTimer = NULL;
@@ -83,6 +83,15 @@ ImodClipboard::ImodClipboard()
  */
 void ImodClipboard::clipboardChanged()
 {
+  if (Imod_debug) {
+    QClipboard *cb = QApplication::clipboard();
+    cb->setSelectionMode(false);
+    QString text = cb->text();
+    fprintf(stderr, "imodHandleClientMessage - clipboard = %s\n", 
+            text.latin1());
+    if (ImodInfoWin)
+      wprint("clipboardChanged = %s\n", text.latin1());
+  }
   // If already handling a change or the message is not for us, return
   if (mHandling || !handleMessage())
     return;
@@ -126,6 +135,7 @@ void ImodClipboard::clipTimeout()
 void ImodClipboard::clipHackTimeout()
 {
   QClipboard *cb = QApplication::clipboard();
+  cb->setSelectionMode(false);
   if (cb->text() == mSavedClipboard)
     return;
   mSavedClipboard = cb->text();
@@ -142,12 +152,8 @@ bool ImodClipboard::handleMessage()
 
   // get the text from the clipboard
   QClipboard *cb = QApplication::clipboard();
+  cb->setSelectionMode(false);
   QString text = cb->text();
-  if (debugMode) {
-    wprint("clipboard = %s\n", text.latin1());
-    fprintf(stderr, "imodHandleClientMessage - clipboard = %s\n", 
-            text.latin1());
-  }
 
   // Return if text is empty, starts with a space or has no spaces
   if (text.isEmpty())
@@ -166,9 +172,12 @@ bool ImodClipboard::handleMessage()
   if (text2.left(index) == "OK" || text2.left(index) == "ERROR")
     return false;
 
+  // If we see the same message again, send the response again
   newStamp = text2.left(index).toInt();
-  if (newStamp == message_stamp)
+  if (newStamp == message_stamp) {
+    sendResponse(1);
     return false;
+  }
   message_stamp = newStamp;
 
   QString text3 = text2.mid(index + 1);
@@ -191,7 +200,7 @@ bool ImodClipboard::executeMessage()
   int oldBlack, oldWhite;
   QString convName;
 
-  if (debugMode)
+  if (Imod_debug)
     wprint("Executing message\n");
 
   // Convert the message string first
@@ -312,11 +321,16 @@ void ImodClipboard::sendResponse(int succeeded)
   str.sprintf("%u %s", (unsigned int)ImodInfoWin->winId(), 
     succeeded ? "OK" : "ERROR");
   QClipboard *cb = QApplication::clipboard();
+  cb->setSelectionMode(false);
   cb->setText(str);
 }
 
 /*
 $Log$
+Revision 4.6  2003/08/01 05:52:38  mast
+Allowed model mode message to set back to movie mode, added message to open
+file and keep black/white levels.
+
 Revision 4.5  2003/06/04 23:42:33  mast
 Add message to go to model mode
 
