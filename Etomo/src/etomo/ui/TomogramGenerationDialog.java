@@ -56,6 +56,10 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.26  2004/12/02 20:42:40  sueh
+ * bug# 566 ContextPopup can specify an anchor in both the tomo guide and
+ * the join guide.  Need to specify the guide to anchor.
+ *
  * Revision 3.25  2004/11/20 00:06:42  sueh
  * bug# 520 merging Etomo_3-4-6_JOIN branch to head.
  *
@@ -375,6 +379,7 @@ public class TomogramGenerationDialog extends ProcessDialog
       "<html><b>View Tomogram In 3dmod</b>");
   private MultiLineToggleButton btnDeleteStacks = new MultiLineToggleButton(
       "<html><b>Delete Aligned Image Stack</b>");
+  private JCheckBox cbUseZFactors = new JCheckBox("Use Z Factors");
       
   private JPanel pnlTiltButtons = new JPanel();
 
@@ -520,6 +525,7 @@ public class TomogramGenerationDialog extends ProcessDialog
       ltfLogOffset.setText(tiltParam.getLogShift());
     }
     cbBoxUseLocalAlignment.setSelected(tiltParam.hasLocalAlignFile());
+    cbUseZFactors.setSelected(tiltParam.isUseZFactors());
   }
 
   //  Copy the newstack parameters from the GUI to the NewstParam object
@@ -680,6 +686,7 @@ public class TomogramGenerationDialog extends ProcessDialog
         tiltParam.setLocalAlignFile("");
       }
       tiltParam.setFiducialess(cbFiducialess.isSelected());
+      tiltParam.setUseZFactors(cbUseZFactors.isSelected() && cbUseZFactors.isEnabled());
     }
     catch (NumberFormatException except) {
       String message = badParameter + " " + except.getMessage();
@@ -858,6 +865,7 @@ public class TomogramGenerationDialog extends ProcessDialog
 
     //UIUtilities.addWithYSpace(pnlUseLocalAlignment, cbBoxUseLocalAlignment);
     UIUtilities.addWithYSpace(pnlTiltParams, cbBoxUseLocalAlignment);
+    UIUtilities.addWithYSpace(pnlTiltParams, cbUseZFactors);
     //pnlTiltParams.add(pnlUseLocalAlignment);
     //pnlTiltParams.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlTiltParams.add(pnlTrial);
@@ -954,6 +962,10 @@ public class TomogramGenerationDialog extends ProcessDialog
     else {
       btnUseFilter.setEnabled(false);
     }
+  }
+  
+  public void enableUseZFactors(boolean enable) {
+    cbUseZFactors.setEnabled(enable);
   }
   
   protected void updateFiducialess() {
