@@ -317,7 +317,7 @@ can be set and saved between sessions of the program, using the
 3dmod Preferences dialog box available through the Edit-Options menu
 entry.  Among other features, the font size and type and the style of
 the interface may be
-changed, the size of marker points can be adjusted, and custom zoom
+changed, the size and color of marker points can be adjusted, and custom zoom
 values can be defined.  On Unix systems, preferences are saved to the
 file $HOME/.qt/3dmodrc.  Only those properties that the user has
 changed are saved to and restored from this file, while properties
@@ -506,6 +506,8 @@ Surface
                 Contour Type window.
    Move...   Move contours in a surface to a different object or 
                 a different surface using the Contour Move window.
+   Delete    Delete the current surface, i.e. all contours with the
+                same surface number as current contour.
 
 Contour
    New        Create a new contour.  (n)
@@ -619,6 +621,10 @@ selected.  In model mode, the nearest modeling point is
 selected and highlighted with a yellow circle.  If no points
 are in proximity to the cursor, then no
 model point is selected and just the current image point is set.
+If the Ctrl key is held down in model mode, this button can be used to select
+multiple contours, which will be highlighted with a distinct line thickness.
+Clicking again on a selected contour deselects it, and clicking without the 
+Ctrl key cancels the multiple selection.
 .TP
 Second mouse button
 In movie mode, this button starts the movie through sections in the
@@ -631,6 +637,8 @@ Holding down the second mouse button will
 create additional points as the mouse moves.
 If the rubber band is on and the button is held down while the pointer is near
 the band, one can drag the whole band to a new position.
+If the Ctrl key is held down, the current contour will be shifted as a whole,
+to move the current point to the mouse position.
 .TP
 Third mouse button
 In movie mode, the this button starts the movie through sections in the
@@ -691,6 +699,8 @@ F  -  Find the maximum pixel within 10 pixels and report its value
         ----------------------------------------
 S  -  Snapshot image in window to RGB file
 Ctrl-S - Snapshot image in window to TIFF file
+Ctrl-A - Select all contours in current object on section or 
+           within the rubberband
 i  -  Toggle the modeling direction
 Z  -  Toggle auto section advance on and off
 B  -  Toggle rubber band on and off
@@ -711,8 +721,7 @@ Left Arrow    -  Decrease X
 End           -  Go to Z = 1
 Home          -  Go to Z = max
 Insert        -  Go to middle Z of stack
-h,l           -  Previous,Next Time Index
-j,k           -  Previous,Next Z Index
+1,2           -  Previous,Next Time Index
 
 Keypad Arrows -  Move current model point in model mode,
               -  Pan in ZaP window in movie mode. 
