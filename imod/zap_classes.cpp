@@ -124,7 +124,7 @@ ZapWindow::ZapWindow(struct zapwin *zap, QString timeLabel, bool rgba,
   mZoomEdit->setFocusPolicy(QWidget::ClickFocus);
   mZoomEdit->setAlignment(Qt::AlignRight);
   connect(mZoomEdit, SIGNAL(returnPressed()), this, SLOT(newZoom()));
-  connect(mZoomEdit, SIGNAL(lostFocus()), this, SLOT(newZoom()));
+  connect(mZoomEdit, SIGNAL(focusLost()), this, SLOT(newZoom()));
 
 // Make the 4 toggle buttons and their signal mapper
   QSignalMapper *toggleMapper = new QSignalMapper(mToolBar);
@@ -153,7 +153,7 @@ ZapWindow::ZapWindow(struct zapwin *zap, QString timeLabel, bool rgba,
   mSectionEdit->setFocusPolicy(QWidget::ClickFocus);
   mSectionEdit->setAlignment(Qt::AlignRight);
   connect(mSectionEdit, SIGNAL(returnPressed()), this, SLOT(newSection()));
-  connect(mSectionEdit, SIGNAL(lostFocus()), this, SLOT(newSection()));
+  connect(mSectionEdit, SIGNAL(focusLost()), this, SLOT(newSection()));
   
   // Info and help buttons
   QPushButton *button = new QPushButton("I", mToolBar, "I button");
@@ -381,12 +381,14 @@ void ZapGL::mouseReleaseEvent ( QMouseEvent * e )
 
 void ZapGL::mouseMoveEvent ( QMouseEvent * e )
 {
-  if (mMousePressed)
-    zapMouseMove(mZap, e);
+  zapMouseMove(mZap, e, mMousePressed);
 }
 
 /*
 $Log$
+Revision 4.2  2003/02/28 21:40:15  mast
+Changing name of tooledit focus signal
+
 Revision 4.1  2003/02/10 20:29:03  mast
 autox.cpp
 
