@@ -30,6 +30,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.25  2005/02/09 23:51:57  mast
+c	  Fixed bug in scaling blank image when changing modes
+c	
 c	  Revision 3.24  2004/11/30 03:26:50  mast
 c	  Fixed bugs in binning large images
 c	
@@ -41,7 +44,7 @@ c	  Revision 3.22  2004/08/12 19:09:59  mast
 c	  Added -multadd option
 c	
 c	  Revision 3.21  2004/07/13 18:56:23  mast
-c	  Exit with error message and reference to man page when reading mode 16
+c	  Exit with error message, reference to man page when reading mode 16
 c	
 c	  Revision 3.20  2004/04/27 18:48:38  mast
 c	  Fixed edge effect when undistorting.
@@ -65,7 +68,7 @@ c	  Fixed problems with input and output lists and renamed options to
 c	  avoid conflicting with -linear
 c	
 c	  Revision 3.14  2003/12/31 00:39:11  mast
-c	  Go back to ald way of treating center offsets, with new way as option
+c	  Go back to old way of treating center offsets, with new way as option
 c	
 c	  Revision 3.13  2003/12/27 20:35:15  mast
 c	  Can't declare cosd and sind external, since they aren't always
@@ -683,10 +686,10 @@ c	      difference between field and image size, binned down
 c	      3/18/04: this was only being done with binning adjustment
 c	      and it needs to be done unconditionally
 c		
-	      ixGridStrt = ixGridStrt - nint((idfNx * idfBinning -
-     &		  nxFirst * inputBinning) / (2. * inputBinning * iBinning))
-	      iyGridStrt = iyGridStrt - nint((idfNy * idfBinning -
-     &		  nyFirst * inputBinning) / (2. * inputBinning * iBinning))
+	    ixGridStrt = ixGridStrt - nint((idfNx * idfBinning -
+     &		nxFirst * inputBinning) / (2. * inputBinning * iBinning))
+	    iyGridStrt = iyGridStrt - nint((idfNy * idfBinning -
+     &		nyFirst * inputBinning) / (2. * inputBinning * iBinning))
 c	      
 c	      scale field and copy it to idfDx,y in case there are mag grads
 c
@@ -700,13 +703,14 @@ c
 	    enddo
 	  endif
 c	    
-c	    get mag gradient information
+c	    get mag gradient information; multiply pixel size by binning
 c
 	  if (magGradFile .ne. ' ') then
 	    ifMagGrad = 1
 	    xftext=', undistorted'
 	    call readMagGradients(magGradFile, lmsec, pixelMagGrad, axisRot,
      &		tiltAngles, dmagPerUm, rotPerUm, numMagGrad)
+	    pixelMagGrad = pixelMagGrad * iBinning
 	  endif
 	endif
 	call PipDone()
@@ -1293,8 +1297,8 @@ c		dy=(ny3-nych)/2.+f(2,3,lnu) - ycen(isec) - lineOutSt(ichunk)
 		  call cubinterp(array,array(ibchunk),nxbin,nyload, nx3, nych,
      &		      fprod,xci ,yci, dx,dy,1.,dmeansec, ifLinear)
 		else
-		  call undistort(array,array(ibchunk),nxbin,nyload, nx3, nych,
-     &		      fprod,xci ,yci, dx,dy,1.,dmeansec, ifLinear,
+		  call undistInterp(array,array(ibchunk),nxbin,nyload,
+     &		      nx3, nych, fprod,xci ,yci, dx,dy,1.,dmeansec, ifLinear,
      &		      fieldDx, fieldDy, lmGrid, nxGrid, ixGridStrt, xGridIntrv,
      &		      nyGrid, iyGridStrt, yGridIntrv)
 		endif
@@ -1741,135 +1745,6 @@ c
 	end
 
 
-	subroutine errorexit(message)
-	character*(*) message
-	print *
-	print *,'ERROR: NEWSTACK - ',message
-	call exit(1)
-	end
-
-
-
-	SUBROUTINE undistort(ARRAY,BRAY,NXA,NYA,NXB,NYB,AMAT,
-     &	    XC,YC,XT,YT,SCALE,DMEAN, linear, dxGrid, dyGrid, ixgDim,
-     &	    nxGrid, ixGridStrt, xGridIntrv, nyGrid, iyGridStrt,
-     &	    yGridIntrv)
-	implicit none
-	integer*4 NXA,NYA,NXB,NYB,linear
-	real*4 ARRAY(NXA,NYA),BRAY(NXB,NYB),AMAT(2,2)
-	real*4 XC,YC,XT,YT,SCALE,dmean
-	real*4 xcen,ycen,xco,yco,denom,a11,a12,a22,a21,dyo,xbase,ybase
-	real*4 xst,xnd,xlft,xrt,xp,yp,dennew,dx,dy,v2,v4,v6,v8,v5,a,b,c,d
-	real*4 dxm1,dxdxm1,fx1,fx2,fx3,fx4,dym1,dydym1,v1,v3,vmin,vmax
-	integer*4 iy,ix,ixp,ixpp1,iyp,iypp1,iypp2,ixpp2,ixpm1,iypm1,linefb
-	integer*4 ixnd,ixst,ixfbst,ixfbnd,iqst,iqnd,ifall
-	integer*4 ixgDim, nxGrid, nyGrid, ixGridStrt, iyGridStrt
-	real*4 dxGrid(ixgDim, *), dyGrid(ixgDim, *)
-	real*4 xGridIntrv, yGridIntrv
-C
-C   Calc inverse transformation
-C
-	XCEN = NXB/2. + XT + 1
-	YCEN = NYB/2. + YT + 1
-	XCO = XC + 1
-	YCO = YC + 1
-	DENOM = AMAT(1,1)*AMAT(2,2) - AMAT(1,2)*AMAT(2,1)
-	A11 =  AMAT(2,2)/DENOM
-	A12 = -AMAT(1,2)/DENOM
-	A21 = -AMAT(2,1)/DENOM
-	A22 =  AMAT(1,1)/DENOM
-C
-C Loop over output image
-C
-	DO IY = 1,NYB
-	  DYO = IY - YCEN
-	  xbase = a12*dyo +xco - a11*xcen
-	  ybase = a22*dyo + yco - a21*xcen
-
-	  if (linear .ne. 0) then
-c	      
-c	      linear interpolation
-c
-	    do ix=1,nxb
-	      xp = a11*ix + xbase
-	      yp = a21*ix + ybase
-	      call interpolateGrid(xp, yp, dxGrid, dyGrid, ixgDim, nxGrid,
-     &		  nyGrid, ixGridstrt, xGridIntrv, iyGridStrt,
-     &		  yGridIntrv, dx, dy)
-	      xp = xp + dx
-	      yp = yp + dy
-	      IXP = XP
-	      IYP = YP
-	      bray(ix,iy)=dmean
-	      IF (IXP .ge. 1 .and. IXP .lt. NXA .and. IYP .ge. 1 .and.
-     &		  IYP .lt. NYA) then
-		DX = XP - IXP
-		DY = YP - IYP
-		IXPP1 = IXP + 1
-		IYPP1 = IYP + 1
-		bray(ix, iy) = (1. - dy) * ((1. - dx) * array(ixp, iyp) +
-     &		    dx * array(ixpp1, iyp)) +
-     &		    dy * ((1. - dx) * array(ixp, iypp1) +
-     &		    dx * array(ixpp1, iypp1))
-	      endif
-	    enddo
-	  else
-c	      
-c	      cubic interpolation
-c
-	    do ix=1,nxb
-	      xp = a11*ix + xbase
-	      yp = a21*ix + ybase
-	      call interpolateGrid(xp, yp, dxGrid, dyGrid, ixgDim, nxGrid,
-     &		  nyGrid, ixGridstrt, xGridIntrv, iyGridStrt,
-     &		  yGridIntrv, dx, dy)
-	      xp = xp + dx
-	      yp = yp + dy
-	      IXP = XP
-	      IYP = YP
-	      bray(ix,iy)=dmean
-	      IF (IXP .ge. 2 .and. IXP .lt. NXA - 1 .and. IYP .ge. 2 .and.
-     &		  IYP .lt. NYA - 1) then
-
-		DX = XP - IXP
-		DY = YP - IYP
-		IXPP1 = IXP + 1
-		IXPM1 = IXP - 1
-		IYPP1 = IYP + 1
-		IYPM1 = IYP - 1
-		ixpp2 = ixp + 2
-		iypp2 = iyp + 2
-		
-		dxm1 = dx-1.
-		dxdxm1=dx*dxm1
-		fx1=-dxm1*dxdxm1
-		fx4=dx*dxdxm1
-		fx2=1+dx**2*(dx-2.)
-		fx3=dx*(1.-dxdxm1)
-		
-		dym1 = dy-1.
-		dydym1=dy*dym1
-		
-		v1=fx1*array(ixpm1,iypm1)+fx2*array(ixp,iypm1)+
-     &		    fx3*array(ixpp1,iypm1)+fx4*array(ixpp2,iypm1)
-		v2=fx1*array(ixpm1,iyp)+fx2*array(ixp,iyp)+
-     &		    fx3*array(ixpp1,iyp)+fx4*array(ixpp2,iyp)
-		v3=fx1*array(ixpm1,iypp1)+fx2*array(ixp,iypp1)+
-     &		    fx3*array(ixpp1,iypp1)+fx4*array(ixpp2,iypp1)
-		v4=fx1*array(ixpm1,iypp2)+fx2*array(ixp,iypp2)+
-     &		    fx3*array(ixpp1,iypp2)+fx4*array(ixpp2,iypp2)
-		bray(ix,iy)=-dym1*dydym1*v1+(1.+dy**2*(dy-2.))*v2+
-     &		    dy*(1.-dydym1)*v3 +dy*dydym1*v4
-c		
-	      endif
-	    enddo
-	  endif
-	  
-	enddo
-	RETURN
-	END
-
-
 	subroutine getBinnedSize(nx, nbin, nxbin, ixOffset)
 	implicit none
 	integer*4 nx, nxbin, nbin, ixOffset
@@ -1901,4 +1776,12 @@ c
 	ixOffset = 0
 	if (irem .gt. 1) ixOffset = -(nbin - irem/2)
 	return
+	end
+
+
+	subroutine errorexit(message)
+	character*(*) message
+	print *
+	print *,'ERROR: NEWSTACK - ',message
+	call exit(1)
 	end
