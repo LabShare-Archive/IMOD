@@ -1,3 +1,11 @@
+c	  $Author$
+c
+c	  $Date$
+c
+c	  $Revision$
+c
+c	  $Log$
+c
 c	  READ_MODEL reads a WIMP model.
 c	  if MODELFILE is blank, it requests a model file name; otherwise it
 c	  attempts to open the file specified by that name.
@@ -22,8 +30,10 @@ c
 c	  
 	newfile=.false.
 	if(modelfile.ne.' ')go to 92
-91	write(*,'(1x,a,$)')'Name of input model file: '
+91	print *,'Enter name of input model file, or Return to skip',
+     &	    ' to entering options'
 	read(5,'(a)')modelfile
+	if (modelfile .eq.' ') return
 	newfile=.true.
 c
 92	exist=readw_or_imod(modelfile)
@@ -77,7 +87,7 @@ c
 	    write(*,'(1x,a,$)')'Magnification of negatives: '
 	    read(*,*)xmag
 	    write(*,'(1x,a,$)')'Scale at which negatives were digitized'
-     &		//' (microns per pixel from VIDS): '
+     &		//' (microns per pixel): '
 	    read(*,*)umperpix
 	    write(*,'(1x,a,$)')'Nominal section thickness (nm): '
 	    read(*,*)secthick
@@ -173,38 +183,42 @@ c
 c
 	do iobj=1,max_mod_obj
 	  imodobj=256-obj_color(2,iobj)
-	  if (imodobj.le.0)stop
-     &	      'TOO MANY MODEL OBJECTS FOR ARRAYS'
+	  if (imodobj.le.0)call errorexit(
+     &	      'TOO MANY MODEL OBJECTS FOR ARRAYS')
 	  iflag=iobjflag(imodobj)
 	  if(npt_in_obj(iobj).gt.0)then
 	    ibase=ibase_obj(iobj)
 c	      
-c	      keep "coplanar" contours now; if z limits are set, test open
-c	      contours for start and end within limits
+c	      keep "coplanar" contours now (huh?); if z limits are set, trim
+c	      open contours until start and end within limits
 c
 	    ipstrt=1
 	    ipend=npt_in_obj(iobj)
 	    if(iflag.eq.1.and.(zstart.ne.0..or.zend.ne.0.))then
 	      do while (ipend.gt.1.and.
-     &		  p_coord(3,abs(object(ipend+ibase))).gt.zend)
+     &		  ((zend.ne.0.and.p_coord(3,abs(object(ipend+ibase))).gt.zend)
+     &		  .or. (zstart.ne.0.and.
+     &		  p_coord(3,abs(object(ipend+ibase))).lt.zstart)))
 		ipend=ipend-1
 	      enddo
 	      do while (ipstrt.lt.ipend.and.
-     &		  p_coord(3,abs(object(ipstrt+ibase))).lt.zstart)
+     &		  ((zend.ne.0.and.p_coord(3,abs(object(ipstrt+ibase))).gt.zend)
+     &		  .or. (zstart.ne.0.and.
+     &		  p_coord(3,abs(object(ipstrt+ibase))).lt.zstart)))
 		ipstrt=ipstrt+1
 	      enddo
 	    endif
 	    if(iflag.eq.2.or.(iflag.eq.1.and.ipend+1-ipstrt.ge.2))then
 	      nmt=nmt+1
-	      if(nmt.gt.limwobj)stop
-     &		  'TOO MANY LINE & SCATTERED POINT CONTOURS FOR ARRAYS'
+	      if(nmt.gt.limwobj)call errorexit(
+     &		  'TOO MANY LINE & SCATTERED POINT CONTOURS FOR ARRAYS')
 	      indstrt(nmt)=indfree
 	      npntobj(nmt)=ipend+1-ipstrt
 	      iobjmod(nmt)=iobj
 	      icolor(nmt)=imodobj
 	      if(obj_color(1,iobj).eq.0)icolor(nmt)=-icolor(nmt)
-	      if(indfree+ipend-ipstrt.ge.limxyz)stop
-     &		  'TOO MANY POINTS FOR LINE/SCATTERED POINT ARRAYS'
+	      if(indfree+ipend-ipstrt.ge.limxyz)call errorexit(
+     &		  'TOO MANY POINTS FOR LINE/SCATTERED POINT ARRAYS')
 	      do ipt=ipstrt,ipend
 		ip=abs(object(ipt+ibase))
 		xmt(indfree)=p_coord(1,ip)
@@ -228,37 +242,34 @@ c
      &	    iobjflag,xmt, ymt, zmt,indstrt,
      &	    npntobj, icolor,nmt,ninwin,iobjwin,nobjwin,iobjmod,endsep)
 	include 'model.inc'
-	real*4 xmt(*),ymt(*),zmt(*),endsep(*),chnglo(50),chnghi(50)
+	parameter (limchg=100)
+	real*4 xmt(*),ymt(*),zmt(*),endsep(*),chnglo(limchg),chnghi(limchg)
 	integer*4 indstrt(*),npntobj(*),icolor(*),iobjwin(*),iobjmod(*)
-	integer*4 icolold(50),icolnew(50),iobjflag(*)
-	character*80 lastmodel
+	integer*4 icolold(limchg),icolnew(limchg),iobjflag(*),icolused(limchg)
+	character*120 lastmodel
+	integer*4 getimodobjsize
 c	  
-95	write(*,'(1x,a,$)')'Name of model file to store points in: '
+95	write(*,'(1x,a,$)')'Name of output model file: '
 	read(5,'(a)')lastmodel
 c	  
+	lastobject = getimodobjsize();
 	ncolchg=0
-	if(ninwin.ne.0)then
-	  write(*,'(1x,a,$)')'Object #s to make connecting lines and '
-     &	      //'scattered points: '
-	  read(5,*)icolcon,icolscat
-c	  write(*,'(1x,a,$)')'Symbol types for beginning, middle,'//
-c    &	      ' end of connecting lines: '
-c	  read(5,*)markstrt,markmid,markend
-	endif
 	if(nobjwin.ne.0)then
-	  print *,'Enter list of types to change object # of for ',
-     &	      'contours in window (Return for none)'
+	  print *,'Enter list of objects for which to put',
+     &	      'contours in window into new objects (Return for none)'
 	  call rdlist(5,icolold,ncolchg)
-	  if(ncolchg.ne.0)then
-	    write(*,'(1x,a,$)')'Enter new object # for each type: '
-	    read(5,*)(icolnew(i),i=1,ncolchg)
-	    if(nobjwin.lt.0)then
-	      print *,'Enter lower and upper limits of end separation',
-     &		  ' for each object change'
-	      read(5,*)(chnglo(i),chnghi(i),i=1,ncolchg)
-	    endif
+	  do i = 1, ncolchg
+	    icolnew(i) = lastobject + i
+	    icolused(i) = 0
+	  enddo
+	  if(ncolchg.ne.0 .and. nobjwin.lt.0)then
+	    print *,'Enter lower and upper limits of end separation',
+     &		' for each object change'
+	    read(5,*)(chnglo(i),chnghi(i),i=1,ncolchg)
 	  endif
 	endif
+	icolcon = lastobject + ncolchg + 1
+	icolscat = lastobject + ncolchg + 2
 c	  
 c	  zero out the model first; all non-mesh objects
 c	  
@@ -269,7 +280,8 @@ c
 	  endif
 	enddo
 c	  
-c	  save each separate object
+c	  save each separate object.  Keep track of which new objects are
+c	  being accessed
 c
 	do iobj=1,nmt
 	  iorig=iobjmod(iobj)
@@ -280,11 +292,17 @@ c	  ibase_obj(iobj)=indstrt(iobj)-1
 	    maybenew=-999
 	    if(nobjwin.ge.0)then
 	      do icol=1,ncolchg
-		if(icoltmp.eq.icolold(icol))maybenew=icolnew(icol)
+		if(icoltmp.eq.icolold(icol))then
+		  maybenew=icolnew(icol)
+		  icolind = icol
+		endif
 	      enddo
 	      if(maybenew.ne.-999)then
 		do iow=1,nobjwin
-		  if(iobj.eq.iobjwin(iow))icoltmp=maybenew
+		  if(iobj.eq.iobjwin(iow))then
+		    icoltmp=maybenew
+		    icolused(icolind) = 1
+		  endif
 		enddo
 	      endif
 	    else
@@ -292,8 +310,10 @@ c	  ibase_obj(iobj)=indstrt(iobj)-1
 		if(iobjmod(iobj).eq.iobjwin(iow))then
 		  do icol=1,ncolchg
 		    if(icoltmp.eq.icolold(icol).and. endsep(iow).ge.
-     &			chnglo(icol).and. endsep(iow).le.chnghi(icol))
-     &			maybenew=icolnew(icol)
+     &			chnglo(icol).and. endsep(iow).le.chnghi(icol)) then
+		      maybenew=icolnew(icol)
+		      icolused(icol) = 1
+		    endif
 		  enddo
 		endif
 	      enddo
@@ -325,6 +345,15 @@ c	  ibase_obj(iobj)=indstrt(iobj)-1
 	  p_coord(3,jj)=zmt(ii)
 	enddo
 c	  
+c	  transfer object flag to new objects if any
+c	  
+	do icol = 1, ncolchg
+	  if (icolused(icol) .ne. 0) then
+	    lastobject = lastobject + 1
+	    call putimodflag(lastobject, iobjflag(icolold(icol)))
+	  endif
+	enddo
+c	  
 c	  save connecting lines if any
 c	  
 	ibasecon=ibase_free
@@ -347,8 +376,13 @@ c
 	  ibase_obj(max_mod_obj)=ibasescat
 	  obj_color(1,max_mod_obj)=1
 	  obj_color(2,max_mod_obj)=256-icolscat
-	  call putimodflag(icolscat, 2)
+	  
+	  call putimodflag(lastobject + 1, 1)
+	  lastobject = lastobject + 2
+	  call putimodflag(lastobject, 2)
+	  call putscatsize(lastobject, 5)
 	endif
+	print *,'There are',lastobject,' objects in the output model'
 c	  
 c	  unscale, unflip
 c	  
@@ -1015,3 +1049,11 @@ c	  limiting size of the CX and CY arrays
 	enddo
 	return
 	end
+
+	subroutine errorexit(message)
+	character*(*) message
+	print *
+	print *,'ERROR: MTK - ',message
+	call exit(1)
+	end
+
