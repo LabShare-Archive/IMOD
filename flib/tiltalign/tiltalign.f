@@ -130,10 +130,12 @@ c	  IF a blank line was entered, next enter the image dimensions NX & NY,
 c	  .   the X and Y origin (default is 0,0), and the X and Y delta
 c	  .   values (default is 1,1).
 c
-c	  Either the name of a file to output a 3-D model of the fiducials
-c	  .     based on their solved positions,
+c	  Either a filename with an extension other than ".res" to output a
+c	  .     3-D model of the fiducials based on their solved positions,
 c	  .   or a filename including ".res" for a list of all residuals,
 c	  .     which can be converted to a model with Patch2imod,
+c	  .   or a filename with NO extension to get both outputs, one with
+c	  .     extension .3dmod and one with extension .resid,
 c	  .   or a blank line for neither output
 c
 c	  Name of file to which to write (in ASCII text) the solved X-Y-Z
@@ -172,6 +174,7 @@ c	  0 to solve for all rotation angles (and thus to solve for tilt axis),
 c	  .   or the number of the view to fix at the initial rotation angle
 c	  .	(and thus fix the tilt axis at that angle for that view)
 c	  .   or -1 to solve for a single global rotation of the tilt axis
+c	  .   or -2 to fix all rotation angles at the initial angle
 c
 c	  Number of sets of views to treat separately from the main set of
 c	  .   views in any automapping of variables.  Enter 0 if you will not
@@ -333,7 +336,8 @@ c
 c	  Number of local patches in X and in Y in which to obtain a solution
 c	  .   from the fiducials located in that patch
 c	  
-c	  Minimum size of each patch in X and Y
+c	  Either the minimum size of each patch in X and Y (enter values > 1)
+c         .   or the minimum fractional overlap between patches (values < 1)
 c	  
 c	  Minimum total number of fiducials, and minimum number present on each
 c	  .   surface if two surfaces were assumed in the analysis of
@@ -398,6 +402,10 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.5  2002/10/17 23:18:31  mast
+c	  Added proper error message and exit for minimum number of beads too
+c	  high in local alignments
+c	
 c	  Revision 3.4  2002/07/28 23:02:54  mast
 c	  Needed to declare lnblnk for SGI
 c	
@@ -434,8 +442,8 @@ c
 	real*4 viewerrsum(maxview),viewerrsq(maxview)
 	real*4 viewmeanres(maxview),viewsdres(maxview)
 	
-	logical ordererr,nearbyerr,residualout
-	character*80 modelfile
+	logical ordererr,nearbyerr,residualout, resbothout
+	character*120 modelfile,residualfile
 c
 	real*4 fl(2,3,maxview),fa(2,3),fb(2,3),fc(2,3)
 c
@@ -468,8 +476,10 @@ c
 	integer*4 nprojpt,imintilt,ncompsrch,maptiltstart,isolve,ier
 	real*4 xcen,ycen,finit,f,ffinal,dxmin,tmp,tiltnew,fixeddum,tiltadd
 	integer*4 ixtry,itmp,iord,ixpatch,iypatch,ivdel
+	real*4 xpmin,ypmin
 	real*4 atand,sind,cosd
 	integer*4 nearest_view,lnblnk
+	character*80 concat
 c
 	nlocalres=50
 	firsttime=.true.
@@ -1003,15 +1013,25 @@ c
 99	    enddo
 c	      
 c	      7/26/02: if modelfile contains .res, output residuals
-c
+c	      12/20/02: if there is no extension, output both residual and
+c	      model
+c	      
 	    residualout = .false.
+	    resbothout = modelfile .ne. ' '
+	    
 	    do i = 1, lnblnk(modelfile)-3
 	      if (modelfile(i:i).eq.'.' .and. modelfile(i+1:i+1).eq.'r'
      &		  .and. modelfile(i+2:i+2).eq.'e' .and.
      &		  modelfile(i+3:i+3).eq.'s') residualout = .true.
+	      if (modelfile(i:i).eq.'.')  resbothout = .false.
 	    enddo
-	    if (residualout) then
-	      call dopen(13,modelfile, 'new', 'f')
+	    if (residualout.or.resbothout) then
+	      if (residualout) then
+		residualfile = modelfile
+	      else
+		residualfile = concat(modelfile, '.resid')
+	      endif
+	      call dopen(13,residualfile, 'new', 'f')
 	      write(13,'(i6,a)')nprojpt,' residuals'
 	      do i=1,nprojpt
 		write(13, '(2f10.2,i5,3f8.2)')xx(i)+xcen,yy(i)+ycen,
@@ -1019,7 +1039,15 @@ c
      &		    xresid(i),yresid(i)
 	      enddo
 	      close(13)
-	      modelfile = ' '
+c		
+c		manage the model file name now; attach extension if model
+c		wanted, or null it out if not
+c		
+	      if (residualout) then
+		modelfile = ' '
+	      else
+		modelfile = concat(modelfile, '.3dmod')
+	      endif
 	    endif
 	  else
 c	      
@@ -1163,8 +1191,11 @@ c
 c
 	write(*,'(1x,a,$)')'Number of patches in X and Y: '
 	read(5,*)npatchx,npatchy
-	write(*,'(1x,a,$)')'Minimum size of patch in X and Y: '
-	read(5,*)nxpmin,nypmin
+	write(*,'(1x,a,/,a,$)')'Enter either the minimum size of '//
+     &	    'patches in X and Y (values > 1) or the',
+     &	    'minimum fractional overlap between patches in'//
+     &	    ' X and Y (values < 1): '
+	read(5,*)xpmin,ypmin
 	write(*,'(1x,a,$)')'Minimum total # of fiducials, minimum '//
      &	    'on one surface if two surfaces: '
 	read(5,*)minfidtot,minfidsurf
@@ -1230,6 +1261,23 @@ c     &	    (j,(allxyz(i,j),i=1,3),j=1,nrealpt)
      &	    imintilt, ncompsrch,iflocal,maptiltstart,mapalfstart,
      &	    tiltorig,tiltadd)
 	mapalfend=nvarsrch
+c
+c	  get the minimum patch size
+c	  
+	npatchx = max(1,npatchx)
+	npatchy = max(1,npatchy)
+	if (xpmin.gt.1.) then
+	  nxpmin = xpmin
+	else
+	  nxpmin = 2*xcen/(npatchx - xpmin * (npatchx - 1))
+	endif
+	if (ypmin.gt.1.) then
+	  nypmin = ypmin
+	else
+	  nypmin = 2*ycen/(npatchy - ypmin * (npatchy - 1))
+	endif
+c	  
+c	  set up starting patch locations and intervals
 c
 	idxpatch=(nint(2*xcen)-nxpmin)/max(1,npatchx-1)
 	idypatch=(nint(2*ycen)-nypmin)/max(1,npatchy-1)
