@@ -1,10 +1,13 @@
 package etomo.comscript;
 
+import java.io.IOException;
 import java.util.Properties;
 
 import etomo.storage.Storable;
 import etomo.type.CombinePatchSize;
 import etomo.type.FiducialMatch;
+import etomo.util.InvalidParameterException;
+import etomo.util.MRCHeader;
 
 /**
  * <p>Description: </p>
@@ -19,6 +22,9 @@ import etomo.type.FiducialMatch;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.4  2002/10/03 04:00:13  rickg
+ * <p> Added path X,Y,Z min and max attributes
+ * <p>
  * <p> Revision 1.3  2002/10/01 21:46:35  rickg
  * <p> Implemented load and save methods
  * <p>
@@ -196,6 +202,31 @@ public class CombineParams extends ConstCombineParams implements Storable {
             group + "ManualCleanup",
             Boolean.toString(manualCleanup)))
         .booleanValue();
+  }
+
+  /**
+   * Sets the patch boundaries to the default value that matches the logic in
+   * the setupcombine script.
+   * @param fileName The MRC iamge stack file name used to set the patch
+   * boundaries.
+   */
+  void setDefaultPatchBoundaries(String fileName)
+  throws InvalidParameterException, IOException{
+
+    // Get the data size limits from the image stack
+    MRCHeader mrcHeader = new MRCHeader(fileName);
+    mrcHeader.read();
+    
+    // Logic from setupcombine to provide the default border size, the variable
+    // names used match those from the setupcombine script
+    int[] xyborders = {24, 36, 54, 68, 80};
+    int borderinc = 1000;
+
+    //  Assume that Y and Z domains are swapped
+    int minsize = Math.min(mrcHeader.getNColumns(), mrcHeader.getNSections());
+    int borderindex = (int) (minsize / borderinc);
+    
+    
   }
 
 
