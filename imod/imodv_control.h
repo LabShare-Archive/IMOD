@@ -32,6 +32,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.1  2003/02/10 20:41:55  mast
+Merge Qt source
+
 Revision 1.1.2.3  2003/01/27 00:30:07  mast
 Pure Qt version and general cleanup
 
@@ -49,6 +52,8 @@ First addition to archive
 
 typedef struct __imodv_struct ImodvApp;
 
+#define IMODV_ROTATION_FACTOR 1.26
+
 #define IMODV_CONTROL_NEAR 1
 #define IMODV_CONTROL_FAR 2
 #define IMODV_CONTROL_FOVY 3
@@ -60,6 +65,8 @@ void imodvControlAxisText(int axis, float rot);
 void imodvControlScale(float value);
 void imodvControlZscale(int value);
 void imodvControlRate(int value);
+void imodvControlSpeed(float value);
+void imodvControlIncSpeed(int step);
 void imodvControlClip(int plane, int value);
 void imodvControlZoom(int zoom);
 void imodvControlHelp(void);
