@@ -1,3 +1,8 @@
+package etomo.process;
+
+import java.io.*;
+import java.util.*;
+
 /**
  * <p>Description: SystemProgram provides a class to execute programs under the
  * host operating system.  The class provides access to stdin, stdout and
@@ -17,9 +22,6 @@
  * @version $Revision$
  *
  * <p> $Log$
- * <p> Revision 3.4  2004/03/11 02:25:00  sueh
- * <p> bug# 61 hiding print statements
- * <p>
  * <p> Revision 3.3  2004/03/11 00:01:53  sueh
  * <p> bug# 61 more to do
  * <p>
@@ -91,20 +93,6 @@
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
  */
-
-package etomo.process;
-
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.util.ArrayList;
-
-
 public class SystemProgram implements Runnable {
   public static final String rcsid =
     "$Id$";
@@ -398,15 +386,6 @@ public class SystemProgram implements Runnable {
 
   public String[] getStdError() {
     return (String[]) stdError.toArray(new String[stdError.size()]);
-  }
-
-  public String getStdErrorString() {
-    String[] stdErrorArray = (String[]) stdError.toArray(new String[stdError.size()]);
-    String stdErrorString = null;
-    for (int i = 0; i < stdErrorArray.length; i++) {
-      stdErrorString = stdErrorArray[i] + "\n";
-    }
-    return stdErrorString;
   }
 
   public int getExitValue() {

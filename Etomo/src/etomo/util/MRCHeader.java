@@ -1,3 +1,11 @@
+package etomo.util;
+
+import java.io.File;
+import java.io.IOException;
+
+import etomo.ApplicationManager;
+import etomo.process.SystemProgram;
+
 /**
  * <p>Description: An interface to the header information in a MRC Image 
  * file.</p>
@@ -12,9 +20,6 @@
  * @version $Revision$
  *
  * <p> $Log$
- * <p> Revision 3.3  2004/03/09 23:26:40  rickg
- * <p> Moved return within parseTiltAxis
- * <p>
  * <p> Revision 3.2  2004/03/09 23:21:24  rickg
  * <p> Bug# 386 Added parsing of new rotation and binning parmaters
  * <p>
@@ -61,13 +66,6 @@
  * <p> Initial revision, in development
  * <p>
  */
-package etomo.util;
-
-import java.io.IOException;
-
-import etomo.ApplicationManager;
-import etomo.process.SystemProgram;
-
 public class MRCHeader {
   private String filename;
   private int nColumns = -1;
@@ -92,7 +90,12 @@ public class MRCHeader {
     // Run the header command on the filename, need to use a String[] here to
     // prevent the Runtime from breaking up the command and arguments at spaces.
 		String[] commandArray = new String[2];
-    commandArray[0] = ApplicationManager.getIMODBinPath() + "header";
+    String imodBinPath =
+      ApplicationManager.getIMODDirectory().getAbsolutePath()
+        + File.separator
+        + "bin"
+        + File.separator;
+    commandArray[0] = imodBinPath + "header";
     commandArray[1] = filename;
     SystemProgram header = new SystemProgram(commandArray);
     header.setDebug(true);

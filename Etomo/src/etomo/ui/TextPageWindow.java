@@ -10,7 +10,6 @@ import javax.swing.JEditorPane;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
-import javax.swing.WindowConstants;
 import javax.swing.text.StyledEditorKit;
 
 /**
@@ -26,9 +25,6 @@ import javax.swing.text.StyledEditorKit;
  * @version $Revision$
  *
  * <p> $Log$
- * <p> Revision 3.2  2003/11/27 00:04:53  rickg
- * <p> Bug# 366 Close file reader when done
- * <p>
  * <p> Revision 3.1  2003/11/10 07:46:32  rickg
  * <p> Task tags moved to bugzilla
  * <p>
@@ -66,7 +62,6 @@ public class TextPageWindow extends JFrame {
     mainPanel = getContentPane();
     mainPanel.add(scrollPane, BorderLayout.CENTER);
     setSize(625, 800);
-    setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
   }
 
   public boolean setFile(String filename) {

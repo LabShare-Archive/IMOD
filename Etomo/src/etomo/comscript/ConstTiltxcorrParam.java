@@ -1,6 +1,5 @@
 package etomo.comscript;
 
-import etomo.type.ProcessName;
 import etomo.type.TiltAngleSpec;
 
 /**
@@ -17,9 +16,6 @@ import etomo.type.TiltAngleSpec;
  * @version $Revision$
  *
  * <p> $Log$
- * <p> Revision 3.6  2004/03/13 02:24:41  sueh
- * <p> bug# 373 getting an empty string for a default FortranInputString
- * <p>
  * <p> Revision 3.5  2004/03/12 20:57:55  sueh
  * <p> bug# 373 Changed reset().
  * <p>
@@ -55,7 +51,7 @@ import etomo.type.TiltAngleSpec;
  * <p> </p>
  */
 
-public class ConstTiltxcorrParam implements ConstCommandParam {
+public class ConstTiltxcorrParam {
   public static final String rcsid =
     "$Id$";
 
@@ -75,8 +71,6 @@ public class ConstTiltxcorrParam implements ConstCommandParam {
   protected boolean noCosineStretch;
   protected String testOutput;
   protected FortranInputString startingEndingViews; //was viewRange
-  private ProcessName processName = ProcessName.XCORR;
-  private String command = "tiltxcorr";
 
   //PIP only
   //was tiltAngleSpec
@@ -146,18 +140,6 @@ public class ConstTiltxcorrParam implements ConstCommandParam {
     TiltAngleSpec tiltAngleSpec = new TiltAngleSpec();
     filterParams.setDefault();
   }
-  
-  public boolean isParseComments() {
-    return true;
-  }
-  
-  public String getProcessNameString() {
-    return processName.toString();
-  }
-  
-  public String getCommand() {
-    return command;
-  }
 
   public String getInputFile() {
     return inputFile;
@@ -168,33 +150,33 @@ public class ConstTiltxcorrParam implements ConstCommandParam {
   public String getOutputFile() {
     return outputFile;
   }
-  public String getFirstTiltAngleString() {
-    return ParamUtilities.getString(firstTiltAngle);
+  public double getFirstTiltAngle() {
+    return firstTiltAngle;
   };
 
-  public String getTiltIncrementString() {
-    return ParamUtilities.getString(tiltIncrement);
+  public double getTiltIncrement() {
+    return tiltIncrement;
   };
   public String getTiltFile() {
     return tiltFile;
   };
-  public String[] getTiltAnglesString() {
-    return ParamUtilities.getStrings(tiltAngles);
+  public double[] getTiltAngles() {
+    return tiltAngles;
   };
-  public String getRotationAngleString() {
-    return ParamUtilities.getString(rotationAngle);
+  public double getRotationAngle() {
+    return rotationAngle;
   }
-  public String getFilterRadius1String() {
-    return ParamUtilities.getString(filterRadius1);
+  public double getFilterRadius1() {
+    return filterRadius1;
   }
-  public String getFilterRadius2String() {
-    return ParamUtilities.getString(filterRadius2);
+  public double getFilterRadius2() {
+    return filterRadius2;
   }
-  public String getFilterSigma1String() {
-    return ParamUtilities.getString(filterSigma1);
+  public double getFilterSigma1() {
+    return filterSigma1;
   }
-  public String getFilterSigma2String() {
-    return ParamUtilities.getString(filterSigma2);
+  public double getFilterSigma2() {
+    return filterSigma2;
   }
   public String getBordersInXandY() {
     return bordersInXandY.toString(true);
@@ -211,10 +193,10 @@ public class ConstTiltxcorrParam implements ConstCommandParam {
   public String getYMaxString() {
     return yMinAndMax.toString(1);
   }
-  public String getPadsInXandYString() {
+  public String getPadsInXandY() {
     return padsInXandY.toString(true);
   }
-  public String getTaperPercentString() {
+  public String getTaperPercent() {
     return tapersInXandY.toString(true);
   }
   public boolean isCumulativeCorrelation() {

@@ -111,9 +111,6 @@ public class SolvematchmodParam
     inputArgs[11].setArgument(outputTransformationFile);
     scriptCommand.setInputArgument(11, inputArgs[11]);
   }
-  
-  public void initializeDefaults() {
-  }
 
   /**
    * Sets the fiducialMatchListA.

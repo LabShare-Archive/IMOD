@@ -1,6 +1,19 @@
+package etomo.ui;
+
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JProgressBar;
+import javax.swing.Timer;
+
 /**
- * <p>Description: A progress bar with label and internal text, can be
- *  determinate or indeterminate.</p>
+ * <p>Description: </p>
  *
  * <p>Copyright: Copyright (c) 2002</p>
  *
@@ -12,21 +25,6 @@
  * @version $Revision$
  *
  * <p> $Log$
- * <p> Revision 3.3  2004/04/09 19:21:53  rickg
- * <p> Removed debugging output
- * <p>
- * <p> Revision 3.2  2004/04/08 19:11:26  rickg
- * <p> Bug #421 Make sure the UI objects are only modified in the event
- * <p> thread.
- * <p> Bug #83 Added elapsed time string to indeterminate progress
- * <p> bars
- * <p>
- * <p> Revision 3.1  2004/04/08 15:52:34  rickg
- * <p> Added invokeLater structure to progress bar
- * <p>
- * <p> Revision 3.0  2003/11/07 23:19:01  rickg
- * <p> Version 1.0.0
- * <p>
  * <p> Revision 2.3  2003/07/01 22:57:12  rickg
  * <p> Cleaned progress panel layout
  * <p>
@@ -43,152 +41,81 @@
  * <p> Single window GUI layout initial revision
  * <p>
  */
-
-package etomo.ui;
-
-import java.awt.Component;
-import java.awt.Container;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JProgressBar;
-import javax.swing.SwingUtilities;
-import javax.swing.Timer;
-
-import etomo.util.Utilities;
-
 public class ProgressPanel {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
 
   private JPanel panel = new JPanel();
   private JPanel progressPanel = new JPanel();
   private JLabel taskLabel = new JLabel();
   private JProgressBar progressBar = new JProgressBar();
+  private int i = 0;
   private Timer timer;
 
-  // Keep these around so that SwingUtilities.invokeLater can update the
-  // the UI status 
-  private int counter = 0;
-  private int value;
-  private int maximum;
-  private int minimum;
-  private long startTime;
-  private String barString;
-  private String label;
-
-  public ProgressPanel(String newLabel) {
-    taskLabel.setText(newLabel);
+  public ProgressPanel(String label) {
+    taskLabel.setText(label);
     panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
     panel.add(taskLabel);
     panel.add(Box.createRigidArea(FixedDim.x0_y5));
     panel.add(progressBar);
     panel.setAlignmentY(Component.BOTTOM_ALIGNMENT);
-    timer = new Timer(1000, new ProgressTimerActionListener(this));
   }
 
-  public void setLabel(String newLabel) {
-    label = newLabel;
-    SwingUtilities.invokeLater(new SetLabelLater());
-  }
-
-  private class SetLabelLater implements Runnable {
-    public void run() {
-      taskLabel.setText(label);
-      panel.revalidate();
-      panel.repaint();
-    }
+  public void setLabel(String label) {
+    taskLabel.setText(label);
+    panel.revalidate();
+    panel.repaint();
   }
 
   public void start() {
     //  Setting the progress bar indeterminate causes it to move on its own
-    counter = 0;
-    startTime = System.currentTimeMillis();
-    SwingUtilities.invokeLater(new StartLater());
-  }
-
-  private class StartLater implements Runnable {
-    public void run() {
-      progressBar.setIndeterminate(true);
-      progressBar.setString("");
-      progressBar.setStringPainted(true);
-      timer.start();
-    }
+    progressBar.setIndeterminate(true);
+    progressBar.setString("");
+    progressBar.setStringPainted(false);
+    i = 0;
   }
 
   public void stop() {
-    counter = 0;
-    SwingUtilities.invokeLater(new StopLater());
-  }
-
-  private class StopLater implements Runnable {
-    public void run() {
-      timer.stop();
-      progressBar.setValue(counter);
-      progressBar.setIndeterminate(false);
-      progressBar.setString("done");
-      progressBar.setStringPainted(true);
-    }
+    i = 0;
+    progressBar.setValue(i);
+    progressBar.setIndeterminate(false);
+    progressBar.setString("done");
+    progressBar.setStringPainted(true);
   }
 
   void increment() {
-    SwingUtilities.invokeLater(new IncrementLater());
+    progressBar.setValue(i);
+    panel.validate();
+    panel.repaint();
+    i++;
+    timer.restart();
   }
 
-  private class IncrementLater implements Runnable {
-    public void run() {
-      progressBar.setValue(counter);
-       //  Put the elapsed time into the progress bar string
-      progressBar.setString("Elapsed time: "
-          + Utilities
-            .millisToMinAndSecs(System.currentTimeMillis() - startTime));
-      panel.validate();
-      panel.repaint();
-      counter++;
-      timer.restart();
-
-    }
+  public Container getContainer() {
+    return panel;
   }
 
   /**
    * @param n
    */
   public void setMaximum(int n) {
-    maximum = n;
-    SwingUtilities.invokeLater(new SetMaximumLater());
+    progressBar.setMaximum(n);
+    progressBar.setIndeterminate(false);
+    progressBar.setStringPainted(true);
   }
 
-  private class SetMaximumLater implements Runnable {
-    public void run() {
-      progressBar.setMaximum(maximum);
-      progressBar.setIndeterminate(false);
-      progressBar.setStringPainted(true);
-    }
-  }
-
+  /**
+   * @param n
+   */
   public void setMinimum(int n) {
-    minimum = n;
-    SwingUtilities.invokeLater(new SetMinimumLater());
+    progressBar.setMinimum(n);
   }
 
-  private class SetMinimumLater implements Runnable {
-    public void run() {
-      progressBar.setMinimum(minimum);
-    }
-  }
-
+  /**
+   * @param n
+   */
   public void setValue(int n) {
-    value = n;
-    SwingUtilities.invokeLater(new SetValueLater());
-  }
-
-  private class SetValueLater implements Runnable {
-    public void run() {
-      progressBar.setValue(value);
-    }
+    progressBar.setValue(n);
   }
 
   /**
@@ -197,22 +124,10 @@ public class ProgressPanel {
    * @param string
    */
   public void setValue(int n, String string) {
-    value = n;
-    barString = string;
-    SwingUtilities.invokeLater(new SetValueAndStringLater());
+    progressBar.setValue(n);
+    progressBar.setString(string);
   }
-
-  private class SetValueAndStringLater implements Runnable {
-    public void run() {
-      progressBar.setValue(value);
-      progressBar.setString(barString);
-    }
-  }
-
-  public Container getContainer() {
-    return panel;
-  }
-
+  
   /**
    * @return
    */
@@ -233,17 +148,14 @@ public class ProgressPanel {
   public int getValue() {
     return progressBar.getValue();
   }
+}
 
-  class ProgressTimerActionListener implements ActionListener {
-    ProgressPanel panel;
-
-    public ProgressTimerActionListener(ProgressPanel panel) {
-      this.panel = panel;
-    }
-
-    public void actionPerformed(ActionEvent event) {
-      panel.increment();
-    }
+class ProgressTimerActionListener implements ActionListener {
+  ProgressPanel panel;
+  public ProgressTimerActionListener(ProgressPanel panel) {
+    this.panel = panel;
   }
-
+  public void actionPerformed(ActionEvent event) {
+    panel.increment();
+  }
 }

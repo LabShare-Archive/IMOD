@@ -1,7 +1,24 @@
+package etomo.ui;
+
+import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JCheckBox;
+import javax.swing.JPanel;
+
+import etomo.ApplicationManager;
+import etomo.comscript.CCDEraserParam;
+import etomo.comscript.ConstCCDEraserParam;
+import etomo.type.AxisID;
+
 /**
- * <p>Description: Panel to modify the CCD eraser parameters</p>
+ * <p>Description: </p>
  *
- * <p>Copyright: Copyright (c) 2002-2004</p>
+ * <p>Copyright: Copyright (c) 2002</p>
  *
  * <p>Organization: Boulder Laboratory for 3D Fine Structure,
  * University of Colorado</p>
@@ -11,10 +28,6 @@
  * @version $Revision$
  *
  * <p> $Log$
- * <p> Revision 3.3  2004/01/30 22:44:47  sueh
- * <p> bug# 356 Changing buttons with html labels to
- * <p> MultiLineButton and MultiLineToggleButton
- * <p>
  * <p> Revision 3.2  2004/01/29 22:33:01  rickg
  * <p> Tooltip text change
  * <p>
@@ -90,26 +103,9 @@
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
  */
-
-package etomo.ui;
-
-import java.awt.Component;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseEvent;
-
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.JCheckBox;
-import javax.swing.JPanel;
-
-import etomo.ApplicationManager;
-import etomo.comscript.CCDEraserParam;
-import etomo.comscript.ConstCCDEraserParam;
-import etomo.type.AxisID;
-
 public class CCDEraserPanel implements ContextMenu {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
 
   private ApplicationManager applicationManager;
   private AxisID axisID;
@@ -118,56 +114,54 @@ public class CCDEraserPanel implements ContextMenu {
   private JPanel pnlXRayReplacement = new JPanel();
   private JPanel pnlXRayButtons = new JPanel();
   private JPanel pnlManualReplacement = new JPanel();
-  private JPanel pnlManualButtons = new JPanel();
   private JPanel pnlEraseButtons = new JPanel();
 
-  private JCheckBox cbXrayReplacement = new JCheckBox(
-    "Automatic x-ray replacement");
-  private LabeledTextField ltfPeakCriterion = new LabeledTextField(
-    "Peak criterion:");
-  private LabeledTextField ltfDiffCriterion = new LabeledTextField(
-    "Difference criterion:");
-  private LabeledTextField ltfGrowCriterion = new LabeledTextField(
-    "Grow criterion:");
-  private LabeledTextField ltfEdgeExclusion = new LabeledTextField(
-    "Edge exclusion:");
-  private LabeledTextField ltfMaximumRadius = new LabeledTextField(
-    "Maximum radius:");
-  private LabeledTextField ltfOuterRadius = new LabeledTextField(
-    "Outer radius:");
-  private LabeledTextField ltfScanRegionSize = new LabeledTextField(
-    "XY scan size:");
-  private LabeledTextField ltfScanCriterion = new LabeledTextField(
-    "Scan criterion:");
-  private MultiLineToggleButton btnFindXRays = new MultiLineToggleButton(
-    "<html><b>Find X-rays (Trial Mode)</b>");
-  private MultiLineButton btnViewXRayModel = new MultiLineButton(
-    "<html><b>View X-ray Model</b>");
+  private JCheckBox cbXrayReplacement =
+    new JCheckBox("Automatic x-ray replacement");
+  private LabeledTextField ltfPeakCriterion =
+    new LabeledTextField("Peak criterion:");
+  private LabeledTextField ltfDiffCriterion =
+    new LabeledTextField("Difference criterion:");
+  private LabeledTextField ltfGrowCriterion =
+    new LabeledTextField("Grow criterion:");
+  private LabeledTextField ltfEdgeExclusion =
+    new LabeledTextField("Edge exclusion:");
+  private LabeledTextField ltfMaximumRadius =
+    new LabeledTextField("Maximum radius:");
+  private LabeledTextField ltfOuterRadius =
+    new LabeledTextField("Outer radius:");
+  private LabeledTextField ltfScanRegionSize =
+    new LabeledTextField("XY scan size:");
+  private LabeledTextField ltfScanCriterion =
+    new LabeledTextField("Scan criterion:");
+  private MultiLineToggleButton btnFindXRays =
+    new MultiLineToggleButton("<html><b>Find X-rays (Trial Mode)</b>");
+  private MultiLineButton btnViewXRayModel =
+    new MultiLineButton("<html><b>View X-ray Model</b>");
 
   private JCheckBox cbManualReplacement = new JCheckBox("Manual replacement");
-  private LabeledTextField ltfGlobalReplacementList = new LabeledTextField(
-    "All section replacement list: ");
-  private LabeledTextField ltfLocalReplacementList = new LabeledTextField(
-    "Line replacement list: ");
-  private MultiLineButton btnCreateModel = new MultiLineButton(
-    "<html><b>Create Manual Replacement Model</b>");
+  private LabeledTextField ltfGlobalReplacementList =
+    new LabeledTextField("All section replacement list: ");
+  private LabeledTextField ltfLocalReplacementList =
+    new LabeledTextField("Line replacement list: ");
+  private MultiLineButton btnCreateModel =
+    new MultiLineButton("<html><b>Create Manual Replacement Model</b>");
 
   private LabeledTextField ltfInputImage = new LabeledTextField("Input file: ");
-  private LabeledTextField ltfOutputImage = new LabeledTextField(
-    "Output file: ");
-  private LabeledTextField ltfBorderPixels = new LabeledTextField(
-    "Border pixels: ");
-  private LabeledTextField ltfPolynomialOrder = new LabeledTextField(
-    "Polynomial order: ");
-  private JCheckBox cbIncludeAdjacentPoints = new JCheckBox(
-    "Include adjacent points");
+  private LabeledTextField ltfOutputImage =
+    new LabeledTextField("Output file: ");
+  private LabeledTextField ltfBorderPixels =
+    new LabeledTextField("Border pixels: ");
+  private LabeledTextField ltfPolynomialOrder =
+    new LabeledTextField("Polynomial order: ");
+  private JCheckBox cbIncludeAdjacentPoints =
+    new JCheckBox("Include adjacent points");
 
-  private MultiLineToggleButton btnErase = new MultiLineToggleButton(
-    "<html><b>Create Fixed Stack</b>");
-  private MultiLineButton btnViewErased = new MultiLineButton(
-    "<html><b>View Fixed Stack</b>");
-  private MultiLineToggleButton btnReplaceRawStack = new MultiLineToggleButton(
-    "<html><b>Use Fixed Stack</b>");
+  private MultiLineToggleButton btnErase =
+    new MultiLineToggleButton("<html><b>Create Fixed Stack</b>");
+  private MultiLineButton btnViewErased = new MultiLineButton("<html><b>View Fixed Stack</b>");
+  private MultiLineToggleButton btnReplaceRawStack =
+    new MultiLineToggleButton("<html><b>Use Fixed Stack</b>");
 
   /**
    * Default constructor
@@ -178,66 +172,62 @@ public class CCDEraserPanel implements ContextMenu {
 
     setToolTipText();
 
-    pnlXRayReplacement.setLayout(new BoxLayout(pnlXRayReplacement,
-      BoxLayout.Y_AXIS));
-    pnlXRayReplacement
-      .setBorder(new EtchedBorder("Automatic X-ray Replacement").getBorder());
+    pnlXRayReplacement.setLayout(
+      new BoxLayout(pnlXRayReplacement, BoxLayout.Y_AXIS));
+    pnlXRayReplacement.setBorder(
+      new EtchedBorder("Automatic X-ray Replacement").getBorder());
 
-    UIUtilities.addWithYSpace(pnlXRayReplacement, cbXrayReplacement);
-    UIUtilities.addWithYSpace(pnlXRayReplacement, ltfPeakCriterion
-      .getContainer());
-    UIUtilities.addWithYSpace(pnlXRayReplacement, ltfDiffCriterion
-      .getContainer());
-    UIUtilities.addWithYSpace(pnlXRayReplacement, ltfGrowCriterion
-      .getContainer());
-    UIUtilities.addWithYSpace(pnlXRayReplacement, ltfEdgeExclusion
-      .getContainer());
-    UIUtilities.addWithYSpace(pnlXRayReplacement, ltfMaximumRadius
-      .getContainer());
-    UIUtilities
-      .addWithYSpace(pnlXRayReplacement, ltfOuterRadius.getContainer());
-    UIUtilities.addWithYSpace(pnlXRayReplacement, ltfScanRegionSize
-      .getContainer());
-    UIUtilities.addWithYSpace(pnlXRayReplacement, ltfScanCriterion
-      .getContainer());
-
+    pnlXRayReplacement.add(cbXrayReplacement);
+    pnlXRayReplacement.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlXRayReplacement.add(ltfPeakCriterion.getContainer());
+    pnlXRayReplacement.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlXRayReplacement.add(ltfDiffCriterion.getContainer());
+    pnlXRayReplacement.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlXRayReplacement.add(ltfGrowCriterion.getContainer());
+    pnlXRayReplacement.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlXRayReplacement.add(ltfEdgeExclusion.getContainer());
+    pnlXRayReplacement.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlXRayReplacement.add(ltfMaximumRadius.getContainer());
+    pnlXRayReplacement.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlXRayReplacement.add(ltfOuterRadius.getContainer());
+    pnlXRayReplacement.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlXRayReplacement.add(ltfScanRegionSize.getContainer());
+    pnlXRayReplacement.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlXRayReplacement.add(ltfScanCriterion.getContainer());
+    pnlXRayReplacement.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlXRayButtons.setLayout(new BoxLayout(pnlXRayButtons, BoxLayout.X_AXIS));
     pnlXRayButtons.add(Box.createHorizontalGlue());
     pnlXRayButtons.add(btnFindXRays);
     pnlXRayButtons.add(Box.createHorizontalGlue());
     pnlXRayButtons.add(btnViewXRayModel);
     pnlXRayButtons.add(Box.createHorizontalGlue());
-    UIUtilities.setButtonSizeAll(pnlXRayButtons, UIParameters.dimButton);
-    
-    UIUtilities.addWithYSpace(pnlXRayReplacement, pnlXRayButtons);
-        
-    pnlManualReplacement.setLayout(new BoxLayout(pnlManualReplacement,
-      BoxLayout.Y_AXIS));
-    pnlManualReplacement.setBorder(new EtchedBorder(
-      "Manual Pixel Region Replacement").getBorder());
-    UIUtilities.addWithYSpace(pnlManualReplacement, cbManualReplacement);
-    UIUtilities.addWithYSpace(pnlManualReplacement, ltfGlobalReplacementList
-      .getContainer());
-    UIUtilities.addWithYSpace(pnlManualReplacement, ltfLocalReplacementList
-      .getContainer());
+    pnlXRayReplacement.add(pnlXRayButtons);
 
-    pnlManualButtons
-      .setLayout(new BoxLayout(pnlManualButtons, BoxLayout.X_AXIS));
-    pnlManualButtons.add(Box.createHorizontalGlue());
-    pnlManualButtons.add(btnCreateModel);
-    pnlManualButtons.add(Box.createHorizontalGlue());
-    UIUtilities.setButtonSizeAll(pnlManualButtons, UIParameters.dimButton);
-    
-    UIUtilities.addWithYSpace(pnlManualReplacement, pnlManualButtons);
+    pnlManualReplacement.setLayout(
+      new BoxLayout(pnlManualReplacement, BoxLayout.Y_AXIS));
+    pnlManualReplacement.setBorder(
+      new EtchedBorder("Manual Pixel Region Replacement").getBorder());
+    pnlManualReplacement.add(cbManualReplacement);
+    pnlManualReplacement.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlManualReplacement.add(ltfGlobalReplacementList.getContainer());
+    pnlManualReplacement.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlManualReplacement.add(ltfLocalReplacementList.getContainer());
+    pnlManualReplacement.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlManualReplacement.add(btnCreateModel);
 
     pnlCCDEraser.setLayout(new BoxLayout(pnlCCDEraser, BoxLayout.Y_AXIS));
-    UIUtilities.addWithYSpace(pnlCCDEraser, pnlXRayReplacement);
-    UIUtilities.addWithYSpace(pnlCCDEraser, pnlManualReplacement);
-    UIUtilities.addWithYSpace(pnlCCDEraser, ltfInputImage.getContainer());
-    UIUtilities.addWithYSpace(pnlCCDEraser, ltfOutputImage.getContainer());
-    UIUtilities.addWithYSpace(pnlCCDEraser, ltfBorderPixels.getContainer());
-    UIUtilities.addWithYSpace(pnlCCDEraser, ltfPolynomialOrder.getContainer());
-    UIUtilities.addWithYSpace(pnlCCDEraser, cbIncludeAdjacentPoints);
+    pnlCCDEraser.add(pnlXRayReplacement);
+    pnlCCDEraser.add(pnlManualReplacement);
+    pnlCCDEraser.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlCCDEraser.add(ltfInputImage.getContainer());
+    pnlCCDEraser.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlCCDEraser.add(ltfOutputImage.getContainer());
+    pnlCCDEraser.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlCCDEraser.add(ltfBorderPixels.getContainer());
+    pnlCCDEraser.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlCCDEraser.add(ltfPolynomialOrder.getContainer());
+    pnlCCDEraser.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlCCDEraser.add(cbIncludeAdjacentPoints);
 
     pnlCCDEraser.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlEraseButtons.setLayout(new BoxLayout(pnlEraseButtons, BoxLayout.X_AXIS));
@@ -248,13 +238,27 @@ public class CCDEraserPanel implements ContextMenu {
     pnlEraseButtons.add(Box.createHorizontalGlue());
     pnlEraseButtons.add(btnReplaceRawStack);
     pnlEraseButtons.add(Box.createHorizontalGlue());
-    UIUtilities.setButtonSizeAll(pnlEraseButtons, UIParameters.dimButton);
-    
-    UIUtilities.addWithYSpace(pnlCCDEraser, pnlEraseButtons);
+    pnlCCDEraser.add(pnlEraseButtons);
+
+    double height = cbXrayReplacement.getPreferredSize().getHeight();
+    Dimension dimButton = new Dimension();
+    dimButton.setSize(6 * height, 2 * height);
+    btnFindXRays.setPreferredSize(dimButton);
+    btnFindXRays.setMaximumSize(dimButton);
+    btnViewXRayModel.setPreferredSize(dimButton);
+    btnViewXRayModel.setMaximumSize(dimButton);
+    btnCreateModel.setPreferredSize(dimButton);
+    btnCreateModel.setMaximumSize(dimButton);
+    btnErase.setPreferredSize(dimButton);
+    btnErase.setMaximumSize(dimButton);
+    btnViewErased.setPreferredSize(dimButton);
+    btnViewErased.setMaximumSize(dimButton);
+    btnReplaceRawStack.setPreferredSize(dimButton);
+    btnReplaceRawStack.setMaximumSize(dimButton);
 
     // Bind the buttons to the action listener
-    CCDEraserActionListener ccdEraserActionListener = new CCDEraserActionListener(
-      this);
+    CCDEraserActionListener ccdEraserActionListener =
+      new CCDEraserActionListener(this);
     btnFindXRays.addActionListener(ccdEraserActionListener);
     btnViewXRayModel.addActionListener(ccdEraserActionListener);
     btnCreateModel.addActionListener(ccdEraserActionListener);
@@ -263,14 +267,6 @@ public class CCDEraserPanel implements ContextMenu {
     btnReplaceRawStack.addActionListener(ccdEraserActionListener);
     cbXrayReplacement.addActionListener(ccdEraserActionListener);
     cbManualReplacement.addActionListener(ccdEraserActionListener);
-
-    // Left align  all of the compenents in each panel and center align the
-    // panel
-    UIUtilities.alignComponentsX(pnlXRayReplacement, Component.LEFT_ALIGNMENT);
-    UIUtilities
-      .alignComponentsX(pnlManualReplacement, Component.LEFT_ALIGNMENT);
-    UIUtilities.alignComponentsX(pnlCCDEraser, Component.LEFT_ALIGNMENT);
-    pnlCCDEraser.setAlignmentX(Component.CENTER_ALIGNMENT);
 
     // Mouse adapter for context menu
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
@@ -299,13 +295,13 @@ public class CCDEraserPanel implements ContextMenu {
     ltfEdgeExclusion.setText(ccdEraserParams.getEdgeExclusion());
 
     cbManualReplacement.setSelected(!ccdEraserParams.getModelFile().equals(""));
-    ltfGlobalReplacementList
-      .setText(ccdEraserParams.getGlobalReplacementList());
+    ltfGlobalReplacementList.setText(
+      ccdEraserParams.getGlobalReplacementList());
     ltfLocalReplacementList.setText(ccdEraserParams.getlocalReplacementList());
     ltfBorderPixels.setText(ccdEraserParams.getBorderPixels());
     ltfPolynomialOrder.setText(ccdEraserParams.getPolynomialOrder());
-    cbIncludeAdjacentPoints.setSelected(ccdEraserParams
-      .getIncludeAdjacentPoints());
+    cbIncludeAdjacentPoints.setSelected(
+      ccdEraserParams.getIncludeAdjacentPoints());
 
     enableXRayReplacement();
     enableManualReplacement();
@@ -323,16 +319,16 @@ public class CCDEraserPanel implements ContextMenu {
     ccdEraserParams.setEdgeExclusion(ltfEdgeExclusion.getText());
     ccdEraserParams.setInputFile(ltfInputImage.getText());
     ccdEraserParams.setOutputFile(ltfOutputImage.getText());
-    ccdEraserParams
-      .setGlobalReplacementList(ltfGlobalReplacementList.getText());
+    ccdEraserParams.setGlobalReplacementList(
+      ltfGlobalReplacementList.getText());
     ccdEraserParams.setLocalReplacementList(ltfLocalReplacementList.getText());
     ccdEraserParams.setBorderPixels(ltfBorderPixels.getText());
     ccdEraserParams.setPolynomialOrder(ltfPolynomialOrder.getText());
-    ccdEraserParams.setIncludeAdjacentPoints(cbIncludeAdjacentPoints
-      .isSelected());
+    ccdEraserParams.setIncludeAdjacentPoints(
+      cbIncludeAdjacentPoints.isSelected());
     if (cbManualReplacement.isSelected()) {
-      ccdEraserParams.setModelFile(applicationManager.getDatasetName()
-          + axisID.getExtension() + ".erase");
+      ccdEraserParams.setModelFile(
+        applicationManager.getDatasetName() + axisID.getExtension() + ".erase");
     }
     else {
       ccdEraserParams.setModelFile("");
@@ -409,15 +405,22 @@ public class CCDEraserPanel implements ContextMenu {
    * Right mouse button context menu
    */
   public void popUpContextMenu(MouseEvent mouseEvent) {
-    String[] label = {"CCDEraser"};
-    String[] manPage = {"ccderaser.html"};
+    String[] label = { "CCDEraser" };
+    String[] manPage = { "ccderaser.html" };
 
-    String[] logFileLabel = {"Eraser"};
+    String[] logFileLabel = { "Eraser" };
     String[] logFile = new String[1];
     logFile[0] = "eraser" + axisID.getExtension() + ".log";
 
-    ContextPopup contextPopup = new ContextPopup(pnlCCDEraser, mouseEvent,
-      "PRE-PROCESSING", label, manPage, logFileLabel, logFile);
+    ContextPopup contextPopup =
+      new ContextPopup(
+        pnlCCDEraser,
+        mouseEvent,
+        "PRE-PROCESSING",
+        label,
+        manPage,
+        logFileLabel,
+        logFile);
   }
 
   private void enableXRayReplacement() {
@@ -440,7 +443,6 @@ public class CCDEraserPanel implements ContextMenu {
     ltfLocalReplacementList.setEnabled(state);
     btnCreateModel.setEnabled(state);
   }
-
   /**
    * Tooltip string initialization
    */
@@ -450,73 +452,89 @@ public class CCDEraserPanel implements ContextMenu {
     text = "Input image file.";
     ltfInputImage.setToolTipText(tooltipFormatter.setText(text).format());
 
-    text = "Output image file.  If no output file is specified and the program "
+    text =
+      "Output image file.  If no output file is specified and the program "
         + "is not run in trial mode, pixels will be replaced in the input file."
         + "  USE REPLACEMENT OPTION WITH CAUTION.";
     ltfOutputImage.setToolTipText(tooltipFormatter.setText(text).format());
 
-    text = "Find and erase peaks a criterion # of SDs above or below background."
+    text =
+      "Find and erase peaks a criterion # of SDs above or below background."
         + "  This option must be included for automatic removal of X-rays.";
     cbXrayReplacement.setToolTipText(tooltipFormatter.setText(text).format());
 
-    text = "Criterion # of SDs above local mean for erasing peak based on "
+    text =
+      "Criterion # of SDs above local mean for erasing peak based on "
         + "intensity (the default is 10 SDs).";
     ltfPeakCriterion.setToolTipText(tooltipFormatter.setText(text).format());
 
-    text = "Criterion # of SDs above mean pixel-to-pixel difference for "
+    text =
+      "Criterion # of SDs above mean pixel-to-pixel difference for "
         + "erasing a peak based on differences (the default is 10 SDs).";
     ltfDiffCriterion.setToolTipText(tooltipFormatter.setText(text).format());
 
-    text = "Criterion # of SDs above mean for adding points to peak (the "
+    text =
+      "Criterion # of SDs above mean for adding points to peak (the "
         + "default is 4 SDs).";
     ltfGrowCriterion.setToolTipText(tooltipFormatter.setText(text).format());
 
-    text = "Criterion # of SDs of mean of scan area for picking peaks in "
+    text =
+      "Criterion # of SDs of mean of scan area for picking peaks in "
         + "initial scan (the default is 3 SDs).";
     ltfScanCriterion.setToolTipText(tooltipFormatter.setText(text).format());
 
     text = "Maximum radius of peak area to erase (the default is 2.1 pixels).";
     ltfMaximumRadius.setToolTipText(tooltipFormatter.setText(text).format());
 
-    text = "Outer radius of annulus around a peak in which to calculate local"
+    text =
+      "Outer radius of annulus around a peak in which to calculate local"
         + " mean and SD (the default is 4.0 pixels).";
     ltfOuterRadius.setToolTipText(tooltipFormatter.setText(text).format());
 
-    text = "Size of regions to compute mean and SD in for initial scans (the "
+    text =
+      "Size of regions to compute mean and SD in for initial scans (the "
         + "default is 100 pixels).";
     ltfScanRegionSize.setToolTipText(tooltipFormatter.setText(text).format());
 
-    text = "Width of area to exclude on all edges of image in pixels "
+    text =
+      "Width of area to exclude on all edges of image in pixels "
         + "(default 0).";
     ltfEdgeExclusion.setToolTipText(tooltipFormatter.setText(text).format());
 
-    text = "List of objects that define lines to be replaced.  Ranges can be "
+    text =
+      "List of objects that define lines to be replaced.  Ranges can be "
         + "entered, and / to specify all objects.";
-    ltfLocalReplacementList.setToolTipText(tooltipFormatter.setText(text)
-      .format());
+    ltfLocalReplacementList.setToolTipText(
+      tooltipFormatter.setText(text).format());
 
-    text = "Use a manually created model to specify regions and lines to replace.";
+    text =
+      "Use a manually created model to specify regions and lines to replace.";
     cbManualReplacement.setToolTipText(tooltipFormatter.setText(text).format());
 
-    text = "List of objects with points to be replaced on all sections.  "
+    text =
+      "List of objects with points to be replaced on all sections.  "
         + "Ranges can be entered, and / to specify all objects.";
-    ltfGlobalReplacementList.setToolTipText(tooltipFormatter.setText(text)
-      .format());
+    ltfGlobalReplacementList.setToolTipText(
+      tooltipFormatter.setText(text).format());
 
-    text = "Size of border around points in patch, which contains the "
+    text =
+      "Size of border around points in patch, which contains the "
         + "points which will be fit to (the default is 2 pixels).";
     ltfBorderPixels.setToolTipText(tooltipFormatter.setText(text).format());
 
-    text = "Order of polynomial to fit to border points (the default is 2, "
+    text =
+      "Order of polynomial to fit to border points (the default is 2, "
         + "which includes terms in x, y, x**2, y**2 and x*y).";
     ltfPolynomialOrder.setToolTipText(tooltipFormatter.setText(text).format());
 
-    text = "Include pixels adjacent to the patch being replaced in the pixels "
+    text =
+      "Include pixels adjacent to the patch being replaced in the pixels "
         + "being fit.";
-    cbIncludeAdjacentPoints.setToolTipText(tooltipFormatter.setText(text)
-      .format());
+    cbIncludeAdjacentPoints.setToolTipText(
+      tooltipFormatter.setText(text).format());
 
-    text = "Run ccderaser in trial mode creating a x-ray model which can be viewed "
+    text =
+      "Run ccderaser in trial mode creating a x-ray model which can be viewed "
         + "in 3dmod.  This will not create an output stack.";
     btnFindXRays.setToolTipText(tooltipFormatter.setText(text).format());
 
@@ -526,7 +544,8 @@ public class CCDEraserPanel implements ContextMenu {
     text = "Create a manual replacement model using 3dmod.";
     btnCreateModel.setToolTipText(tooltipFormatter.setText(text).format());
 
-    text = "Run ccderaser, erasing the raw stack and writing the modified stack "
+    text =
+      "Run ccderaser, erasing the raw stack and writing the modified stack "
         + "to the output file specified (the default is *_fixed.st).  "
         + "NOTE: subsequent processing uses the "
         + "raw stack filename, therefore for ccderaser to have an effect on "
@@ -537,7 +556,8 @@ public class CCDEraserPanel implements ContextMenu {
     text = "View the erased stack in 3dmod.";
     btnViewErased.setToolTipText(tooltipFormatter.setText(text).format());
 
-    text = "Use the raw stack with the output from ccderaser.  "
+    text =
+      "Use the raw stack with the output from ccderaser.  "
         + "NOTE: subsequent processing uses the "
         + "raw stack filename, therefore for ccderaser to have an effect on "
         + "your data you must commit the raw stack when you are satisfied with"

@@ -35,9 +35,6 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
- * <p> Revision 3.4  2004/03/15 20:33:55  rickg
- * <p> button variable name changes to btn...
- * <p>
  * <p> Revision 3.3  2004/03/05 18:23:18  sueh
  * <p> bug# 250 changed getCombineParams(int, CombineParams) - handle
  * <p> Final tab
@@ -310,25 +307,6 @@ public class TomogramCombinationDialog
     }
     else if (tab == INITIAL_TAB) {
       pnlInitial.setUseMatchingModels(setting);
-    }
-  }
-  
-  public boolean getBinBy2(int tab) {
-    if (tab == SETUP_TAB) {
-      return pnlSetup.getBinBy2();
-    }
-    if (tab == INITIAL_TAB) {
-      return pnlInitial.getBinBy2();
-    }
-    return pnlSetup.getBinBy2();
-  }
-  
-  public void setBinBy2(int tab, boolean setting) {
-    if (tab == SETUP_TAB) {
-      pnlSetup.setBinBy2(setting);
-    }
-    else if (tab == INITIAL_TAB) {
-      pnlInitial.setBinBy2(setting);
     }
   }
 

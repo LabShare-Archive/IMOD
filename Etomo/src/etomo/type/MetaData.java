@@ -1,7 +1,16 @@
+package etomo.type;
+
+import java.io.File;
+import java.util.Properties;
+
+import etomo.comscript.CombineParams;
+import etomo.comscript.TransferfidParam;
+import etomo.storage.Storable;
+
 /**
  * <p>Description: </p>
  *
- * <p>Copyright: Copyright (c) 2002-2004</p>
+ * <p>Copyright: Copyright (c) 2002</p>
  *
  * <p>Organization: Boulder Laboratory for 3D Fine Structure,
  * University of Colorado</p>
@@ -11,10 +20,6 @@
  * @version $Revision$
  *
  * <p> $Log$
- * <p> Revision 3.3  2004/02/24 18:53:22  sueh
- * <p> bug# 385 added resetToDefault() - for defaults need before
- * <p> MetaData is loaded
- * <p>
  * <p> Revision 3.2  2004/02/21 00:27:44  sueh
  * <p> bug# 386 save/load distortionFile and binning
  * <p>
@@ -30,8 +35,7 @@
  * <p> Revision 2.7  2003/10/08 22:03:21  sueh
  * <p> Bug263
  * <p> UI Changes
- * <p> Removed data source from Setup dialog.  Removed setDataSource() from 
- * <p> MetaData.
+ * <p> Removed data source from Setup dialog.  Removed setDataSource() from MetaData.
  * <p> DataSource is always the default (CCD) in ConstMetaData
  * <p> Grayed out ViewType.
  * <p>
@@ -74,18 +78,9 @@
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
  */
-
-package etomo.type;
-
-import java.io.File;
-import java.util.Properties;
-
-import etomo.comscript.CombineParams;
-import etomo.comscript.TransferfidParam;
-import etomo.storage.Storable;
-
 public class MetaData extends ConstMetaData implements Storable {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
 
   public MetaData() {
     super();
@@ -95,7 +90,7 @@ public class MetaData extends ConstMetaData implements Storable {
   public void setRevisionNumber(String revNumber) {
     revisionNumber = revNumber;
   }
-
+  
   protected void resetToDefault() {
     distortionFile = "";
     binning = 1;
@@ -135,11 +130,10 @@ public class MetaData extends ConstMetaData implements Storable {
     return combineParams;
   }
 
-  public void saveTransferfid(TransferfidParam param) {
+	public void saveTransferfid(TransferfidParam param) {
 
-    transferfidNumberViews = param.getNumberViews();
-  }
-
+		transferfidNumberViews = param.getNumberViews();
+	}
   /**
    * Set the backup diretory, trimming any white space from the beginning and
    * end of the string
@@ -147,7 +141,6 @@ public class MetaData extends ConstMetaData implements Storable {
   public void setBackupDirectory(String backupDir) {
     backupDirectory = backupDir.trim();
   }
-
   public void setDistortionFile(String distortionFile) {
     this.distortionFile = distortionFile;
   }
@@ -155,7 +148,6 @@ public class MetaData extends ConstMetaData implements Storable {
   public void setAxisType(AxisType at) {
     axisType = at;
   }
-
   public void setViewType(ViewType vt) {
     viewType = vt;
   }
@@ -176,15 +168,10 @@ public class MetaData extends ConstMetaData implements Storable {
     this.fiducialDiameter = fiducialDiameter;
   }
 
-  public void setImageRotation(float rotation, AxisID axisID) {
-    if (axisID == AxisID.SECOND) {
-      imageRotationB = rotation;
-    }
-    else {
-      imageRotationA = rotation;
-    }
+  public void setImageRotation(double rotation) {
+    imageRotation = rotation;
   }
-
+  
   public void setBinning(int binning) {
     this.binning = binning;
   }
@@ -213,10 +200,6 @@ public class MetaData extends ConstMetaData implements Storable {
     combineParams = combine;
   }
 
-  public void setFiducialessAlignment(boolean state) {
-    fiducialessAlignment = state;
-  }
-
   /**
    *  Insert the objects attributes into the properties object.
    */
@@ -233,9 +216,10 @@ public class MetaData extends ConstMetaData implements Storable {
       group = prepend + ".Setup.";
     }
 
-    props.setProperty(group + "RevisionNumber", latestRevisionNumber);
-    props.setProperty(group + "ComScriptsCreated", String
-      .valueOf(comScriptsCreated));
+    props.setProperty(group + "RevisionNumber", revisionNumber);
+    props.setProperty(
+      group + "ComScriptsCreated",
+      String.valueOf(comScriptsCreated));
     props.setProperty(group + "DatasetName", datasetName);
     props.setProperty(group + "BackupDirectory", backupDirectory);
 
@@ -245,27 +229,28 @@ public class MetaData extends ConstMetaData implements Storable {
     props.setProperty(group + "SectionType", sectionType.toString());
 
     props.setProperty(group + "PixelSize", String.valueOf(pixelSize));
-    props.setProperty(group + "UseLocalAlignments", String
-      .valueOf(useLocalAlignments));
-    props.setProperty(group + "FiducialDiameter", String
-      .valueOf(fiducialDiameter));
-    props.setProperty(group + "ImageRotationA", String.valueOf(imageRotationA));
-    props.setProperty(group + "ImageRotationB", String.valueOf(imageRotationB));
+    props.setProperty(
+      group + "UseLocalAlignments",
+      String.valueOf(useLocalAlignments));
+    props.setProperty(
+      group + "FiducialDiameter",
+      String.valueOf(fiducialDiameter));
+    props.setProperty(group + "ImageRotation", String.valueOf(imageRotation));
+
     tiltAngleSpecA.store(props, group + "AxisA");
-    props.setProperty(group + "AxisA.ExcludeProjections", String
-      .valueOf(excludeProjectionsA));
+    props.setProperty(
+      group + "AxisA.ExcludeProjections",
+      String.valueOf(excludeProjectionsA));
 
     tiltAngleSpecB.store(props, group + "AxisB");
-    props.setProperty(group + "AxisB.ExcludeProjections", String
-      .valueOf(excludeProjectionsB));
+    props.setProperty(
+      group + "AxisB.ExcludeProjections",
+      String.valueOf(excludeProjectionsB));
 
-    props.setProperty(group + "TransferfidNumberViews", String
-      .valueOf(transferfidNumberViews));
+		props.setProperty(group + "TransferfidNumberViews", String.valueOf(transferfidNumberViews));
     combineParams.store(props, group);
     props.setProperty(group + "DistortionFile", distortionFile);
     props.setProperty(group + "Binning", String.valueOf(binning));
-    props.setProperty(group + "FiducialessAlignment", String
-      .valueOf(fiducialessAlignment));
   }
 
   /**
@@ -274,7 +259,6 @@ public class MetaData extends ConstMetaData implements Storable {
   public void load(Properties props) {
     load(props, "");
   }
-
   public void load(Properties props, String prepend) {
     resetToDefault();
     String group;
@@ -289,56 +273,51 @@ public class MetaData extends ConstMetaData implements Storable {
     // Make this true for now until the variable is present in all of the
     // data files so as to not break existing files
     // May-03-2002
-    comScriptsCreated = Boolean.valueOf(
-      props.getProperty(group + "ComScriptsCreated", "true")).booleanValue();
+    comScriptsCreated =
+      Boolean
+        .valueOf(props.getProperty(group + "ComScriptsCreated", "true"))
+        .booleanValue();
 
     // Backwards compaitibility with FilesetName string
     datasetName = props.getProperty(group + "FilesetName", "");
     datasetName = props.getProperty(group + "DatasetName", datasetName);
     backupDirectory = props.getProperty(group + "BackupDirectory", "");
 
-    dataSource = DataSource.fromString(props.getProperty(group + "DataSource",
-      "CCD"));
-    axisType = AxisType.fromString(props.getProperty(group + "AxisType",
-      "Single Axis"));
-    viewType = ViewType.fromString(props.getProperty(group + "ViewType",
-      "Single View"));
-    sectionType = SectionType.fromString(props.getProperty(group
-        + "SectionType", "Single"));
-    pixelSize = Double.parseDouble(props
-      .getProperty(group + "PixelSize", "0.0"));
+    dataSource =
+      DataSource.fromString(props.getProperty(group + "DataSource", "CCD"));
+    axisType =
+      AxisType.fromString(props.getProperty(group + "AxisType", "Single Axis"));
+    viewType =
+      ViewType.fromString(props.getProperty(group + "ViewType", "Single View"));
+    sectionType =
+      SectionType.fromString(
+        props.getProperty(group + "SectionType", "Single"));
+    pixelSize =
+      Double.parseDouble(props.getProperty(group + "PixelSize", "0.0"));
 
-    useLocalAlignments = Boolean.valueOf(
-      props.getProperty(group + "UseLocalAlignments", "false")).booleanValue();
-    fiducialDiameter = Double.parseDouble(props.getProperty(group
-        + "FiducialDiameter", "0.0"));
+    useLocalAlignments =
+      Boolean
+        .valueOf(props.getProperty(group + "UseLocalAlignments", "false"))
+        .booleanValue();
+    fiducialDiameter =
+      Double.parseDouble(props.getProperty(group + "FiducialDiameter", "0.0"));
 
-    // Read in the old single image rotation or the newer separate image
-    // rotation for each axis
-    String strOldRotation = props.getProperty(group + "ImageRotation", "0.0");
-    imageRotationA = Float.parseFloat(props.getProperty(group
-        + "ImageRotationA", strOldRotation));
-    imageRotationB = Float.parseFloat(props.getProperty(group
-        + "ImageRotationB", strOldRotation));
-    excludeProjectionsA = props.getProperty(group + "AxisA.ExcludeProjections",
-      "");
+    imageRotation =
+      Double.parseDouble(props.getProperty(group + "ImageRotation", "0.0"));
+
+    excludeProjectionsA =
+      props.getProperty(group + "AxisA.ExcludeProjections", "");
     tiltAngleSpecA.load(props, group + "AxisA");
 
-    excludeProjectionsB = props.getProperty(group + "AxisB.ExcludeProjections",
-      "");
+    excludeProjectionsB =
+      props.getProperty(group + "AxisB.ExcludeProjections", "");
     tiltAngleSpecB.load(props, group + "AxisB");
-
-    transferfidNumberViews = Integer.parseInt(props.getProperty(group
-        + "TransferfidNumberViews", "5"));
+    
+	  transferfidNumberViews =
+			Integer.parseInt(props.getProperty(group + "TransferfidNumberViews", "5"));
 
     combineParams.load(props, group);
-    distortionFile = props
-      .getProperty(group + "DistortionFile", distortionFile);
-    binning = Integer.parseInt(props.getProperty(group + "Binning", Integer
-      .toString(binning)));
-
-    fiducialessAlignment = Boolean.valueOf(
-      props.getProperty(group + "FiducialessAlignment", "false"))
-      .booleanValue();
+    distortionFile = props.getProperty(group + "DistortionFile", distortionFile);
+    binning = Integer.parseInt(props.getProperty(group + "Binning", Integer.toString(binning)));
   }
 }

@@ -27,20 +27,6 @@ public class ImodManagerTest extends TestCase {
   String datasetNameDual = new String("BB");
   String datasetNameSingle = new String("BBa");
   String datasetName;
-  private static final String rawStack = "raw stack";
-  private static final String erasedStack = "erased stack";
-  private static final String coarseAligned = "coarse aligned";
-  private static final String fineAligned = "fine aligned";
-  private static final String sample = "sample";
-  private static final String fullVolume = "full volume";
-  private static final String combinedTomogram = "combined tomogram";
-  private static final String fiducialModel = "fiducial model";
-  private static final String trimmedVolume = "trimmed volume";
-  private static final String patchVectorModel = "patch vector model";
-  private static final String matchCheck = "match check";
-  private static final String mtfFilter = "mtf filter";
-  private static final String trialTomogram = "trial tomogram";
-  private static final String preview = "preview";
 
   /*
    * @see TestCase#setUp()
@@ -70,53 +56,40 @@ public class ImodManagerTest extends TestCase {
 
   //Regression test
 
-  final public void testImodManager()
-    throws AxisTypeException, SystemProcessException {
+  final public void testImodManager() throws AxisTypeException {
     Tester tester;
     //Test single axis
     setUpSingle();
     imodManager = new ImodManager(applicationManager);
     imodManager.setMetaData(metaData);
     //rawStack
-    tester = newTester(rawStack);
-    tester.equals(imodManager.get(rawStack));
+    tester = newTester("rawStack");
+    tester.equals(imodManager.get("rawStack"));
     //erasedStack
-    tester = newTester(erasedStack);
-    tester.equals(imodManager.get(erasedStack));
+    tester = newTester("erasedStack");
+    tester.equals(imodManager.get("erasedStack"));
     //coarseAligned
-    tester = newTester(coarseAligned);
-    tester.equals(imodManager.get(coarseAligned));
+    tester = newTester("coarseAligned");
+    tester.equals(imodManager.get("coarseAligned"));
     //fineAligned
-    tester = newTester(fineAligned);
-    tester.equals(imodManager.get(fineAligned));
+    tester = newTester("fineAligned");
+    tester.equals(imodManager.get("fineAligned"));
     //sample
-    tester = newTester(sample);
-    tester.equals(imodManager.get(sample));
+    tester = newTester("sample");
+    tester.equals(imodManager.get("sample"));
     //fullVolume
-    tester = newTester(fullVolume);
-    tester.equals(imodManager.get(fullVolume));
+    tester = newTester("fullVolume");
+    tester.equals(imodManager.get("fullVolume"));
     //combinedTomogram
     assertEquals(
-      imodManager.get(imodManager.getPrivateKey(combinedTomogram)),
-      imodManager.get(imodManager.getPrivateKey(fullVolume)));
+      imodManager.get(imodManager.getPrivateKey("combinedTomogram")),
+      imodManager.get(imodManager.getPrivateKey("fullVolume")));
     //fiducialModel
-    tester = newTester(fiducialModel);
-    tester.equals(imodManager.get(fiducialModel));
+    tester = newTester("fiducialModel");
+    tester.equals(imodManager.get("fiducialModel"));
     //trimmedVolume    
-    tester = newTester(trimmedVolume);
-    tester.equals(imodManager.get(trimmedVolume));
-    //mtfFilter
-    tester = newTester(mtfFilter);
-    tester.equals(imodManager.get(mtfFilter));
-    //optional imods
-    //trialTomogram
-    tester = newTester(trialTomogram);
-    imodManager.create(trialTomogram, AxisID.ONLY, datasetName);
-    tester.equals(imodManager.get(trialTomogram));
-    //Test preview
-    tester = newTester(preview);
-    imodManager.create(preview, AxisID.ONLY);
-    tester.equals(imodManager.get(preview));
+    tester = newTester("trimmedVolume");
+    tester.equals(imodManager.get("trimmedVolume"));
     //Test dual axis
     //original code
     /*
@@ -154,72 +127,52 @@ public class ImodManagerTest extends TestCase {
     AxisID b = AxisID.SECOND;
     AxisType dual = AxisType.DUAL_AXIS;
     //rawStack
-    tester = newTester(rawStack, a);
-    tester.equals(imodManager.get(rawStack, a));
-    tester = newTester(rawStack, b);
-    tester.equals(imodManager.get(rawStack, b));
+    tester = newTester("rawStack", a);
+    tester.equals(imodManager.get("rawStack", a));
+    tester = newTester("rawStack", b);
+    tester.equals(imodManager.get("rawStack", b));
     //erasedStack
-    tester = newTester(erasedStack, a);
-    tester.equals(imodManager.get(erasedStack, a));
-    tester = newTester(erasedStack, b);
-    tester.equals(imodManager.get(erasedStack, b));
+    tester = newTester("erasedStack", a);
+    tester.equals(imodManager.get("erasedStack", a));
+    tester = newTester("erasedStack", b);
+    tester.equals(imodManager.get("erasedStack", b));
     //coarseAligned
-    tester = newTester(coarseAligned, a);
-    tester.equals(imodManager.get(coarseAligned, a));
-    tester = newTester(coarseAligned, b);
-    tester.equals(imodManager.get(coarseAligned, b));
+    tester = newTester("coarseAligned", a);
+    tester.equals(imodManager.get("coarseAligned", a));
+    tester = newTester("coarseAligned", b);
+    tester.equals(imodManager.get("coarseAligned", b));
     //fineAligned
-    tester = newTester(fineAligned, a);
-    tester.equals(imodManager.get(fineAligned, a));
-    tester = newTester(fineAligned, b);
-    tester.equals(imodManager.get(fineAligned, b));
+    tester = newTester("fineAligned", a);
+    tester.equals(imodManager.get("fineAligned", a));
+    tester = newTester("fineAligned", b);
+    tester.equals(imodManager.get("fineAligned", b));
     //sample
-    tester = newTester(sample, a);
-    tester.equals(imodManager.get(sample, a));
-    tester = newTester(sample, b);
-    tester.equals(imodManager.get(sample, b));
+    tester = newTester("sample", a);
+    tester.equals(imodManager.get("sample", a));
+    tester = newTester("sample", b);
+    tester.equals(imodManager.get("sample", b));
     //fullVolume
-    tester = newTester(fullVolume, a);
-    tester.equals(imodManager.get(fullVolume, a));
-    tester = newTester(fullVolume, b);
-    tester.equals(imodManager.get(fullVolume, b));
+    tester = newTester("fullVolume", a);
+    tester.equals(imodManager.get("fullVolume", a));
+    tester = newTester("fullVolume", b);
+    tester.equals(imodManager.get("fullVolume", b));
     //combinedTomogram
-    tester = newTester(combinedTomogram, dual);
-    tester.equals(imodManager.get(combinedTomogram));
+    tester = newTester("combinedTomogram", dual);
+    tester.equals(imodManager.get("combinedTomogram"));
     //patchVectorModel
-    tester = newTester(patchVectorModel, dual);
-    tester.equals(imodManager.get(patchVectorModel));
+    tester = newTester("patchVectorModel", dual);
+    tester.equals(imodManager.get("patchVectorModel"));
     //matchCheck
-    tester = newTester(matchCheck, dual);
-    tester.equals(imodManager.get(matchCheck));
+    tester = newTester("matchCheck", dual);
+    tester.equals(imodManager.get("matchCheck"));
     //fiducialModel
-    tester = newTester(fiducialModel, a);
-    tester.equals(imodManager.get(fiducialModel, a));
-    tester = newTester(fiducialModel, b);
-    tester.equals(imodManager.get(fiducialModel, b));
+    tester = newTester("fiducialModel", a);
+    tester.equals(imodManager.get("fiducialModel", a));
+    tester = newTester("fiducialModel", b);
+    tester.equals(imodManager.get("fiducialModel", b));
     //trimmedVolume
-    tester = newTester(trimmedVolume, dual);
-    tester.equals(imodManager.get(trimmedVolume));
-    //mtfFilter
-    tester = newTester(mtfFilter, a);
-    tester.equals(imodManager.get(mtfFilter, a));
-    tester = newTester(mtfFilter, b);
-    tester.equals(imodManager.get(mtfFilter, b));
-    //optional imods
-    //trialTomogram
-    tester = newTester(trialTomogram, a);
-    imodManager.create(trialTomogram, a, datasetName);
-    tester.equals(imodManager.get(trialTomogram, a));
-    tester = newTester(trialTomogram, b);
-    imodManager.create(trialTomogram, b, datasetName);
-    tester.equals(imodManager.get(trialTomogram, b));
-    //Test preview
-    tester = newTester(preview, a);
-    imodManager.create(preview, a);
-    tester.equals(imodManager.get(preview, a));
-    tester = newTester(preview, b);
-    imodManager.create(preview, b);
-    tester.equals(imodManager.get(preview, b));
+    tester = newTester("trimmedVolume", dual);
+    tester.equals(imodManager.get("trimmedVolume"));
   }
 
   private void setupNewSample(Tester tester) {
@@ -283,46 +236,38 @@ public class ImodManagerTest extends TestCase {
           }
           trimmedVolume = new ImodProcess(datasetName + ".rec");
       */
-      if (name.equals(rawStack)) {
+      if (name.equals("rawStack")) {
         return new Tester(datasetName + ".st");
       }
-      if (name.equals(erasedStack)) {
+      if (name.equals("erasedStack")) {
         return new Tester(datasetName + "_fixed.st");
       }
-      if (name.equals(coarseAligned)) {
+      if (name.equals("coarseAligned")) {
         return new Tester(datasetName + ".preali");
       }
-      if (name.equals(fineAligned)) {
+      if (name.equals("fineAligned")) {
         return new Tester(datasetName + ".ali");
       }
-      if (name.equals(sample)) {
+      if (name.equals("sample")) {
         tester = new Tester("top.rec mid.rec bot.rec", "tomopitch.mod");
         setupNewSample(tester);
         return tester;
       }
-      if (name.equals(fullVolume)) {
+      if (name.equals("fullVolume")) {
         tester = new Tester(datasetName + "_full.rec");
         tester.setSwapYZ(true);
         return tester;
       }
-      if (name.equals(fiducialModel)) {
+      if (name.equals("fiducialModel")) {
         tester = new Tester();
         setupNewFiducialModel(tester);
         return tester;
       }
-      if (name.equals(trimmedVolume)) {
+      if (name.equals("trimmedVolume")) {
         return new Tester(datasetName + ".rec");
       }
-      if (name.equals(trialTomogram)) {
-        tester = new Tester(datasetName);
-        tester.setSwapYZ(true);
-        return tester;
-      }
-      if (name.equals(mtfFilter)) {
-        return new Tester(datasetName + "_filt.ali");
-      }
-      if (name.equals(preview)) {
-        return new Tester(datasetName + ".st");
+      if (name.equals("trialTomogram")) {
+        return new Tester(datasetName + ".rec");
       }
       return null;
     }
@@ -355,7 +300,7 @@ public class ImodManagerTest extends TestCase {
           }
           trimmedVolume = new ImodProcess(datasetName + ".rec");
       */
-      if (name == rawStack) {
+      if (name == "rawStack") {
         if (axisID == AxisID.FIRST) {
           return new Tester(datasetName + "a.st");
         }
@@ -363,7 +308,7 @@ public class ImodManagerTest extends TestCase {
           return new Tester(datasetName + "b.st");
         }
       }
-      if (name.equals(erasedStack)) {
+      if (name.equals("erasedStack")) {
         if (axisID == AxisID.FIRST) {
           return new Tester(datasetName + "a_fixed.st");
         }
@@ -371,7 +316,7 @@ public class ImodManagerTest extends TestCase {
           return new Tester(datasetName + "b_fixed.st");
         }
       }
-      if (name.equals(coarseAligned)) {
+      if (name.equals("coarseAligned")) {
         if (axisID == AxisID.FIRST) {
           return new Tester(datasetName + "a.preali");
         }
@@ -379,7 +324,7 @@ public class ImodManagerTest extends TestCase {
           return new Tester(datasetName + "b.preali");
         }
       }
-      if (name.equals(fineAligned)) {
+      if (name.equals("fineAligned")) {
         if (axisID == AxisID.FIRST) {
           return new Tester(datasetName + "a.ali");
         }
@@ -387,7 +332,7 @@ public class ImodManagerTest extends TestCase {
           return new Tester(datasetName + "b.ali");
         }
       }
-      if (name.equals(sample)) {
+      if (name.equals("sample")) {
         if (axisID == AxisID.FIRST) {
           tester = new Tester("topa.rec mida.rec bota.rec", "tomopitcha.mod");
           setupNewSample(tester);
@@ -399,7 +344,7 @@ public class ImodManagerTest extends TestCase {
           return tester;
         }
       }
-      if (name.equals(fullVolume)) {
+      if (name.equals("fullVolume")) {
         if (axisID == AxisID.FIRST) {
           tester = new Tester(datasetName + "a.rec");
           tester.setSwapYZ(true);
@@ -411,24 +356,24 @@ public class ImodManagerTest extends TestCase {
           return tester;
         }
       }
-      if (name.equals(combinedTomogram)) {
+      if (name.equals("combinedTomogram")) {
         tester = new Tester("sum.rec");
         tester.setSwapYZ(true);
         return tester;
       }
-      if (name.equals(patchVectorModel)) {
+      if (name.equals("patchVectorModel")) {
         tester = new Tester("patch_vector.mod");
         tester.setModelView(true);
         setupNewPatchVectorModel(tester);
         return tester;
       }
-      if (name.equals(matchCheck)) {
+      if (name.equals("matchCheck")) {
         tester = new Tester("matchcheck.mat matchcheck.rec");
         tester.setSwapYZ(true);
         tester.setFillCache(true);
         return tester;
       }
-      if (name.equals(fiducialModel)) {
+      if (name.equals("fiducialModel")) {
         if (axisID == AxisID.FIRST) {
           tester = new Tester();
           setupNewFiducialModel(tester);
@@ -440,29 +385,11 @@ public class ImodManagerTest extends TestCase {
           return tester;
         }
       }
-      if (name.equals(trimmedVolume)) {
+      if (name.equals("trimmedVolume")) {
         return new Tester(datasetName + ".rec");
       }
-      if (name.equals(trialTomogram)) {
-        tester = new Tester(datasetName);
-        tester.setSwapYZ(true);
-        return tester;
-      }
-      if (name.equals(mtfFilter)) {
-        if (axisID == AxisID.FIRST) {
-          return new Tester(datasetName + "a_filt.ali");
-        }
-        else {
-          return new Tester(datasetName + "b_filt.ali");
-        }
-      }
-      if (name == preview) {
-        if (axisID == AxisID.FIRST) {
-          return new Tester(datasetName + "a.st");
-        }
-        else {
-          return new Tester(datasetName + "b.st");
-        }
+      if (name.equals("trialTomogram")) {
+        return new Tester(datasetName + ".rec");
       }
       return null;
     }
@@ -615,11 +542,6 @@ public class ImodManagerTest extends TestCase {
     }
 
     private void print(String key, ImodState imodState) {
-      if (key == "datasetName") {
-        System.out.println("imodState:");
-        System.out.println(key + "=" + imodState.getDatasetName());
-        System.out.println("this: " + key + "=" + datasetName);
-      }
       if (key == "modelName") {
         System.out.println("imodState:");
         System.out.println(key + "=" + imodState.getModelName());

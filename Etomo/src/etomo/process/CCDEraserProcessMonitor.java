@@ -18,9 +18,6 @@ import etomo.type.AxisID;
  * @version $Revision$
  * 
  * <p> $Log$
- * <p> Revision 3.1  2003/11/26 23:37:38  rickg
- * <p> Changed name of logFileReader
- * <p>
  * <p> Revision 3.0  2003/11/07 23:19:00  rickg
  * <p> Version 1.0.0
  * <p>
@@ -50,11 +47,6 @@ public class CCDEraserProcessMonitor extends LogFileProcessMonitor {
    * @see etomo.process.LogFileProcessMonitor#initializeProgressBar()
    */
   protected void initializeProgressBar() {
-    if (nSections == Integer.MIN_VALUE) {
-      applicationManager.setProgressBar("CCD Eraser", 1, axisID);
-      applicationManager.setProgressBarValue(0, "Starting...", axisID);
-      return;
-    }
     applicationManager.setProgressBar("CCD Eraser", nSections, axisID);
   }
 

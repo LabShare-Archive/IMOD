@@ -1,5 +1,7 @@
 package etomo.process;
 
+import java.lang.IllegalArgumentException;
+import java.lang.UnsupportedOperationException;
 import java.util.HashMap;
 import java.util.Vector;
 import java.util.Set;
@@ -16,7 +18,7 @@ import etomo.type.ConstMetaData;
  * <p>Description: This class manages the opening, closing and sending of 
  * messages to the appropriate imod processes. This class is state based in the
  * sense that is initialized with MetaData information and uses that information
- * to know which data sets to work with.</p>
+ * to know which data sets to work with.  Thus if the </p>
  *
  * <p>Copyright: Copyright (c) 2002</p>
  *
@@ -28,22 +30,6 @@ import etomo.type.ConstMetaData;
  * @version $Revision$
  *
  * <p> $Log$
- * <p> Revision 3.19  2004/04/28 22:16:39  sueh
- * <p> bug# 320 user interaction goes in app manager
- * <p>
- * <p> Revision 3.18  2004/04/28 00:39:43  sueh
- * <p> bug# 320 changed warnStaleFile() message
- * <p>
- * <p> Revision 3.17  2004/04/27 23:17:03  sueh
- * <p> bug# 320 added warnStaleFile() to tell user and a file that has
- * <p> changed on disk and ask to close it
- * <p>
- * <p> Revision 3.16  2004/03/29 20:54:09  sueh
- * <p> bug# 409 add MTF Filter
- * <p>
- * <p> Revision 3.15  2004/03/07 22:35:04  sueh
- * <p> bug# 399 removed deprecated code
- * <p>
  * <p> Revision 3.14  2004/02/25 22:44:42  sueh
  * <p> bug# 403 comments - clarified setMetaData
  * <p>
@@ -256,21 +242,20 @@ public class ImodManager {
 
   //public keys
 
-  public static final String RAW_STACK_KEY = new String("raw stack");
-  public static final String ERASED_STACK_KEY = new String("erased stack");
-  public static final String COARSE_ALIGNED_KEY = new String("coarse aligned");
-  public static final String FINE_ALIGNED_KEY = new String("fine aligned");
+  public static final String RAW_STACK_KEY = new String("rawStack");
+  public static final String ERASED_STACK_KEY = new String("erasedStack");
+  public static final String COARSE_ALIGNED_KEY = new String("coarseAligned");
+  public static final String FINE_ALIGNED_KEY = new String("fineAligned");
   public static final String SAMPLE_KEY = new String("sample");
-  public static final String FULL_VOLUME_KEY = new String("full volume");
+  public static final String FULL_VOLUME_KEY = new String("fullVolume");
   public static final String COMBINED_TOMOGRAM_KEY =
-    new String("combined tomogram");
-  public static final String FIDUCIAL_MODEL_KEY = new String("fiducial model");
-  public static final String TRIMMED_VOLUME_KEY = new String("trimmed volume");
+    new String("combinedTomogram");
+  public static final String FIDUCIAL_MODEL_KEY = new String("fiducialModel");
+  public static final String TRIMMED_VOLUME_KEY = new String("trimmedVolume");
   public static final String PATCH_VECTOR_MODEL_KEY =
-    new String("patch vector model");
-  public static final String MATCH_CHECK_KEY = new String("match check");
-  public static final String TRIAL_TOMOGRAM_KEY = new String("trial tomogram");
-  public static final String MTF_FILTER_KEY = new String("mtf filter");
+    new String("patchVectorModel");
+  public static final String MATCH_CHECK_KEY = new String("matchCheck");
+  public static final String TRIAL_TOMOGRAM_KEY = new String("trialTomogram");
   public static final String PREVIEW_KEY = new String("preview");
 
   //private keys - used with imodMap
@@ -286,7 +271,6 @@ public class ImodManager {
   private static final String patchVectorModelKey = PATCH_VECTOR_MODEL_KEY;
   private static final String matchCheckKey = MATCH_CHECK_KEY;
   private static final String trialTomogramKey = TRIAL_TOMOGRAM_KEY;
-  private static final String mtfFilterKey = MTF_FILTER_KEY;
   private static final String previewKey = PREVIEW_KEY;
 
   private boolean useMap = true;
@@ -561,25 +545,11 @@ public class ImodManager {
     }
   }
 
-  public void setSwapYZ(String key, boolean swapYZ)
-    throws AxisTypeException, SystemProcessException {
+  public void setSwapYZ(String key, boolean swapYZ) throws AxisTypeException {
     key = getPrivateKey(key);
     ImodState imodState = get(key);
-    if (imodState == null) {
-      create(key);
-    }
-    imodState.setSwapYZ(swapYZ);
-  }
-  
-  public void setBinning(String key, AxisID axisID, int binning)
-    throws AxisTypeException, SystemProcessException {
-    key = getPrivateKey(key);
-    ImodState imodState = get(key, axisID);
-    if (imodState == null) {
-      create(key, axisID);
-    }
     if (imodState != null) {
-      imodState.setBinning(binning);
+      imodState.setSwapYZ(swapYZ);
     }
   }
 
@@ -594,19 +564,6 @@ public class ImodManager {
     if (imodState != null) {
       imodState.setWorkingDirectory(workingDirectory);
     }
-  }
-  
-  public boolean warnStaleFile(String key, AxisID axisID)
-    throws AxisTypeException, SystemProcessException {
-    key = getPrivateKey(key);
-    ImodState imodState = get(key, axisID);
-    if (imodState != null
-      && !imodState.isWarnedStaleFile()
-      && imodState.isOpen()) {
-      imodState.setWarnedStaleFile(true);
-      return true;
-    }
-    return false;
   }
 
   //protected methods
@@ -679,9 +636,6 @@ public class ImodManager {
       && datasetName != null) {
       return newTrialTomogram(axisID, datasetName);
     }
-    if (key.equals(MTF_FILTER_KEY) && axisID != null) {
-      return newMtfFilter(axisID);
-    }
     if (key.equals(PREVIEW_KEY) && axisID != null) {
       return newPreview(axisID);
     }
@@ -720,7 +674,6 @@ public class ImodManager {
     imodMap.put(fullVolumeKey, newVector(newFullVolume(AxisID.ONLY)));
     imodMap.put(fiducialModelKey, newVector(newFiducialModel()));
     imodMap.put(trimmedVolumeKey, newVector(newTrimmedVolume()));
-    imodMap.put(mtfFilterKey, newVector(newMtfFilter(AxisID.ONLY)));
   }
 
   protected void loadDualAxisMap() {
@@ -771,12 +724,6 @@ public class ImodManager {
       fiducialModelKey + AxisID.SECOND.getExtension(),
       newVector(newFiducialModel()));
     imodMap.put(trimmedVolumeKey, newVector(newTrimmedVolume()));
-    imodMap.put(
-      mtfFilterKey + AxisID.FIRST.getExtension(),
-      newVector(newMtfFilter(AxisID.FIRST)));
-    imodMap.put(
-    mtfFilterKey + AxisID.SECOND.getExtension(),
-      newVector(newMtfFilter(AxisID.SECOND)));
   }
 
   protected ImodState newRawStack(AxisID axisID) {
@@ -842,10 +789,6 @@ public class ImodManager {
   protected ImodState newTrialTomogram(AxisID axisID, String datasetName) {
     ImodState imodState = new ImodState(datasetName);
     imodState.initialize(true, false, false);
-    return imodState;
-  }
-  protected ImodState newMtfFilter(AxisID axisID) {
-    ImodState imodState = new ImodState(axisID, datasetName, "_filt.ali");
     return imodState;
   }
   protected ImodState newPreview(AxisID axisID) {

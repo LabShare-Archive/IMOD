@@ -15,9 +15,6 @@ import java.util.ArrayList;
  * @version $Revision$
  * 
  * <p> $Log$
- * <p> Revision 3.1  2004/03/06 03:46:55  sueh
- * <p> bug# 380 added useLinearInterpolation
- * <p>
  * <p> Revision 3.0  2003/11/07 23:19:00  rickg
  * <p> Version 1.0.0
  * <p>
@@ -235,9 +232,6 @@ public class MatchorwarpParam
     int nArgs = cmdLineArgs.size();
     scriptCommand.setCommandLineArgs(
       (String[]) cmdLineArgs.toArray(new String[nArgs]));
-  }
-  
-  public void initializeDefaults() {
   }
 
   /**

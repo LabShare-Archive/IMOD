@@ -11,17 +11,6 @@
  * @version $Revision$
  *
  * <p> $Log$
- * <p> Revision 3.12  2004/04/06 04:13:28  rickg
- * <p> Updated imageRotation to store axis separately
- * <p>
- * <p> Revision 3.11  2004/03/24 03:02:45  rickg
- * <p> Changed spinner size to only specify spinner region.  The
- * <p> panel and label should be handled automatically
- * <p>
- * <p> Revision 3.10  2004/03/16 00:55:55  rickg
- * <p> Bug# 411 re-layout setup page
- * <p> Add tooltips for image distortion and binning
- * <p>
  * <p> Revision 3.9  2004/03/15 23:14:10  sueh
  * <p> progress button names changed to "btn"
  * <p>
@@ -170,7 +159,6 @@
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
  */
-
 package etomo.ui;
 
 import java.awt.Component;
@@ -205,7 +193,8 @@ import etomo.util.InvalidParameterException;
 import etomo.util.MRCHeader;
 
 public class SetupDialog extends ProcessDialog implements ContextMenu {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid = 
+    "$Id$";
 
   private JPanel pnlDataParameters = new JPanel();
 
@@ -305,15 +294,11 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
     rootPanel.add(pnlExitButtons);
     rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
-    UIUtilities.alignComponentsX(rootPanel, Component.CENTER_ALIGNMENT);
-    
+
     //  Mouse adapter for context menu
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
     rootPanel.addMouseListener(mouseAdapter);
 
-    // Resize the standard panel buttons
-    UIUtilities.setButtonSizeAll(pnlExitButtons, UIParameters.getButtonDimension());
-    
     // Calcute the necessary window size
     applicationManager.packMainWindow();
   }
@@ -408,7 +393,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     ltfImageRotation.setColumns(5);
     btnScanHeader.setPreferredSize(UIParameters.getButtonDimension());
     btnScanHeader.setMaximumSize(UIParameters.getButtonDimension());
-    spnBinning.setTextMaxmimumSize(UIParameters.getSpinnerDimension());
+    spnBinning.setMaximumSize(UIParameters.getSpinnerDimension());
 
     pnlStackInfo.setLayout(new BoxLayout(pnlStackInfo, BoxLayout.X_AXIS));
     pnlStackInfo.add(Box.createRigidArea(FixedDim.x10_y0));
@@ -512,15 +497,9 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     setAxisType(metaData.getAxisType());
     setViewType(metaData.getViewType());
     setSectionType(metaData.getSectionType());
-    if(!Double.isNaN(metaData.getPixelSize())) {
-      ltfPixelSize.setText(metaData.getPixelSize());
-    }
-    if(!Double.isNaN(metaData.getFiducialDiameter())) {
-      ltfFiducialDiameter.setText(metaData.getFiducialDiameter());
-    }
-    if(!Float.isNaN(metaData.getImageRotation(AxisID.ONLY))) {
-      ltfImageRotation.setText(metaData.getImageRotation(AxisID.ONLY));
-    }
+    ltfPixelSize.setText(metaData.getPixelSize());
+    ltfFiducialDiameter.setText(metaData.getFiducialDiameter());
+    ltfImageRotation.setText(metaData.getImageRotation());
     spnBinning.setValue(new Integer(metaData.getBinning()));
 
     tiltAnglesA.setFields(metaData.getTiltAngleSpecA());
@@ -555,12 +534,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     metaData.setPixelSize(Double.parseDouble(ltfPixelSize.getText()));
     metaData.setFiducialDiameter(Double.parseDouble(ltfFiducialDiameter
       .getText()));
-    metaData.setImageRotation(Float.parseFloat(ltfImageRotation.getText()),
-      AxisID.FIRST);
-    if (getAxisType() == AxisType.DUAL_AXIS) {
-      metaData.setImageRotation(Float.parseFloat(ltfImageRotation.getText()),
-        AxisID.SECOND);
-    }
+    metaData.setImageRotation(Double.parseDouble(ltfImageRotation.getText()));
     metaData.setBinning(((Integer) spnBinning.getValue()).intValue());
     tiltAnglesA.getFields(metaData.getTiltAngleSpecA());
     metaData.setExcludeProjectionsA(ltfExcludeListA.getText());

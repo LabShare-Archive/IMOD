@@ -28,7 +28,7 @@
 
   <target name="jar" depends="compile">
     <mkdir dir="${jar-dir}" />
-    <jar jarfile="${jar-dir}/etomo.jar"
+    <jar jarfile="${jar-dir}/etomo-${DSTAMP}.jar"
      basedir="${build}"
      manifest="MANIFEST.MF" >
     </jar>

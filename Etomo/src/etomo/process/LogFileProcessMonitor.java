@@ -1,4 +1,3 @@
-
 package etomo.process;
 
 import java.io.BufferedReader;
@@ -24,20 +23,6 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
- * <p> Revision 3.6  2004/04/23 19:36:56  sueh
- * <p> bug# 83 adding a "starting" comment when starting the process bar
- * <p>
- * <p> Revision 3.5  2004/04/08 17:33:59  rickg
- * <p> Use Utilities.milliesToMinAndSecs to get time string
- * <p>
- * <p> Revision 3.4  2004/03/22 23:44:09  sueh
- * <p> bug# 83 allowed findNSections() to be overridden, allowed for a 
- * <p> non-standard log file name
- * <p>
- * <p> Revision 3.3  2004/03/16 21:52:26  sueh
- * <p> bug# 413 reset process bar after waiting for exit if exit signal doesn't
- * <p> come
- * <p>
  * <p> Revision 3.2  2004/03/13 01:55:29  sueh
  * <p> bug# 413 possible solution infinite run() loop in comments
  * <p>
@@ -60,12 +45,13 @@ import etomo.util.Utilities;
  */
 
 public abstract class LogFileProcessMonitor implements Runnable {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
   protected ApplicationManager applicationManager;
   protected AxisID axisID;
   protected long processStartTime;
   protected BufferedReader logFileReader;
-  protected int nSections = Integer.MIN_VALUE;
+  protected int nSections;
   protected int currentSection;
   protected int remainingTime;
   protected int waitingForExit = 0;
@@ -73,16 +59,13 @@ public abstract class LogFileProcessMonitor implements Runnable {
   protected int updatePeriod = 500;
   protected int stopWaiting = 20;
 
-  boolean standardLogFileName = true;
-
   //  This needs to be set in the concrete class constructor
   protected String logFileBasename;
   protected File logFile;
 
   protected abstract void initializeProgressBar();
-
-  protected abstract void getCurrentSection() throws NumberFormatException,
-      IOException;
+  protected abstract void getCurrentSection()
+    throws NumberFormatException, IOException;
 
   /**
    * Default constructor
@@ -95,16 +78,11 @@ public abstract class LogFileProcessMonitor implements Runnable {
   }
 
   public void run() {
-    initializeProgressBar();
     //  Instantiate the logFile object
-    String logFileName;
-    if (standardLogFileName) {
-      logFileName = logFileBasename + axisID.getExtension() + ".log";
-    }
-    else {
-      logFileName = logFileBasename;
-    }
-    logFile = new File(System.getProperty("user.dir"), logFileName);
+    logFile =
+      new File(
+        System.getProperty("user.dir"),
+        logFileBasename + axisID.getExtension() + ".log");
 
     boolean processRunning = true;
     try {
@@ -135,9 +113,9 @@ public abstract class LogFileProcessMonitor implements Runnable {
 
     //  Close the log file reader
     try {
-      Utilities
-        .debugPrint("LogFileProcessMonitor: Closing the log file reader for "
-            + logFile.getAbsolutePath());
+      Utilities.debugPrint(
+        "LogFileProcessMonitor: Closing the log file reader for "
+          + logFile.getAbsolutePath());
       logFileReader.close();
     }
     catch (IOException e1) {
@@ -150,8 +128,8 @@ public abstract class LogFileProcessMonitor implements Runnable {
    * Wait for the process to start and the appropriate log file to be created 
    * @return a buffered reader of the log file
    */
-  private void waitForLogFile() throws InterruptedException,
-      FileNotFoundException {
+  private void waitForLogFile()
+    throws InterruptedException, FileNotFoundException {
 
     processStartTime = System.currentTimeMillis();
 
@@ -174,8 +152,8 @@ public abstract class LogFileProcessMonitor implements Runnable {
    * Search the log file for the header section and extract the number of
    * sections
    */
-  protected void findNSections() throws InterruptedException,
-      NumberFormatException, IOException {
+  private void findNSections()
+    throws InterruptedException, NumberFormatException, IOException {
 
     //  Search for the number of sections, we should see a header ouput first
     boolean foundNSections = false;
@@ -223,8 +201,14 @@ public abstract class LogFileProcessMonitor implements Runnable {
     int seconds = (int) Math.floor((remainingTime - minutes * 60000) / 1000.0);
 
     // Format the progress bar string
-    String message = String.valueOf(percentage) + "%   ETC: "
-        + Utilities.millisToMinAndSecs(remainingTime);
+    String message =
+      String.valueOf(percentage) + "%   ETC: " + String.valueOf(minutes) + ":";
+    if (seconds < 10) {
+      message = message + "0" + String.valueOf(seconds);
+    }
+    else {
+      message = message + String.valueOf(seconds);
+    }
 
     applicationManager.setProgressBarValue(currentSection, message, axisID);
   }

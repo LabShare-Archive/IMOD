@@ -1,3 +1,15 @@
+package etomo.process;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+
+import etomo.ApplicationManager;
+import etomo.util.Utilities;
 
 /**
  * <p>
@@ -19,28 +31,6 @@
  * 
  * <p>
  * $Log$
- * Revision 3.7  2004/04/22 23:29:40  rickg
- * Switched getIMODBinPath method
- *
- * Revision 3.6  2004/04/21 20:27:17  sueh
- * reformatting
- *
- * Revision 3.5  2004/04/19 22:01:12  rickg
- * bug# 115 Remove all text before ERROR: string
- *
- * Revision 3.4  2004/04/16 01:51:41  sueh
- * bug# 409 added ProcessName
- *
- * Revision 3.3  2004/04/10 00:52:01  sueh
- * bug# 409 fixed a possible bug in parseWarning()
- *
- * Revision 3.2  2004/04/09 17:03:39  sueh
- * bug# 409 parsing multi-line "PIP WARNING:" message
- *
- * Revision 3.1  2003/11/26 23:49:28  rickg
- * Bug# 366 Restructured renameLogFile to work on windows
- *  Added necessary (for windows) closes on the fileBuffer
- *
  * Revision 3.0  2003/11/07 23:19:00  rickg
  * Version 1.0.0
  *
@@ -202,22 +192,6 @@
  * <p>
  * </p>
  */
-
-package etomo.process;
-
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
-
-import etomo.ApplicationManager;
-import etomo.type.AxisID;
-import etomo.type.ProcessName;
-import etomo.util.Utilities;
-
 public class ComScriptProcess
   extends Thread
   implements SystemProcessInterface {
@@ -237,19 +211,14 @@ public class ComScriptProcess
   private SystemProgram vmstocsh;
   private SystemProgram csh;
   private StringBuffer cshProcessID;
-  private AxisID axisID;
 
   private boolean started = false;
   private boolean done = false;
 
-  public ComScriptProcess(
-    String comScript,
-    ProcessManager processManager,
-      AxisID axisID) {
+  public ComScriptProcess(String comScript, ProcessManager processManager) {
     this.name = comScript;
     this.processManager = processManager;
     cshProcessID = new StringBuffer("");
-    this.axisID = axisID;
   }
 
   /**
@@ -281,16 +250,7 @@ public class ComScriptProcess
 
       // Rename the logfile so that any log file monitor does not get confused
       // by an existing log file
-      String logFileName = parseBaseName(name, ".com") + ".log";
-      File logFile = new File(workingDirectory, logFileName);
-      File oldLog = new File(workingDirectory, logFileName + "~");
-      try {
-        Utilities.renameFile(logFile, oldLog);
-      }
-      catch (IOException except) {
-        except.printStackTrace();
-        System.err.println(except.getMessage());
-      }
+      renameLogFile();
 
       //  Covert the com script to a sequence of csh commands
       String[] commands;
@@ -344,18 +304,66 @@ public class ComScriptProcess
   }
 
   /**
+   * Rename the log to backup file (tilde)
+   * This need serious work arounds because of the random failure bugs on
+   * windows.  See sun java bugs: 4017593, 4017593, 4042592
+   */
+  private void renameLogFile() {
+    try {
+      Utilities.debugPrint("In renameLogFile");
+      String logFileName = parseBaseName(name, ".com") + ".log";
+
+      // Delete the existing backup file if it exists, otherwise the call will
+      // fail on windows 
+      File oldLog = new File(workingDirectory, logFileName + "~");
+      if (oldLog.exists()) {
+        Utilities.debugPrint(oldLog.getAbsolutePath() + " exists, deleting");
+        if (!oldLog.delete()) {
+          System.err.println(
+            "Unable to delete backup log file: " + oldLog.getAbsolutePath());
+          if (oldLog.exists()) {
+            System.err.println(oldLog.getAbsolutePath() + " still exists!");
+          }
+          else {
+            System.err.println(oldLog.getAbsolutePath() + " does not exist!");
+          }
+        }
+      }
+
+      // Rename the existing log file
+      File logFile = new File(workingDirectory, logFileName);
+      if (logFile.exists()) {
+        Utilities.debugPrint(logFile.getAbsolutePath() + " exists");
+
+        if (!logFile.renameTo(oldLog)) {
+          if (logFile.exists()) {
+            System.err.println(logFile.getAbsolutePath() + " still exists");
+          }
+          else {
+            System.err.println(logFile.getAbsolutePath() + " does not exist!");
+          }
+
+          if (oldLog.exists()) {
+            System.err.println(oldLog.getAbsolutePath() + " still exists!");
+          }
+          else {
+            System.err.println(oldLog.getAbsolutePath() + " does not exist");
+          }
+          System.err.println(
+            "Unable to rename log file to: " + oldLog.getAbsolutePath());
+        }
+      }
+    }
+    catch (Exception except) {
+      except.printStackTrace();
+    }
+  }
+
+  /**
    * Get the name of the com script
    */
   public String getScriptName() {
     return name;
-  }
-
-  public ProcessName getProcessName() {
-    return ProcessName.fromFileName(name, axisID, ".com");
-  }
-
-  public AxisID getAxisID() {
-    return axisID;
   }
 
   /**
@@ -437,8 +445,8 @@ public class ComScriptProcess
   /**
    * Execute the csh commands.
    */
-  private void execCsh(String[] commands) throws IOException,
-      SystemProcessException {
+  private void execCsh(String[] commands)
+    throws IOException, SystemProcessException {
 
     // Do not use the -e flag for tcsh since David's scripts handle the failure 
     // of commands and then report appropriately.  The exception to this is the
@@ -469,8 +477,13 @@ public class ComScriptProcess
     // Redirecting stdin for the command does not work even when a shell is
     // called, need to pump the com file directly into the stdin of vmstocsh
     String[] comSequence = loadFile();
-    String commandLine = ApplicationManager.getIMODBinPath() + "vmstocsh "
-        + parseBaseName(name, ".com") + ".log";
+    String imodBinPath =
+      ApplicationManager.getIMODDirectory().getAbsolutePath()
+        + File.separator
+        + "bin"
+        + File.separator;
+    String commandLine =
+      imodBinPath + "vmstocsh " + parseBaseName(name, ".com") + ".log";
     vmstocsh = new SystemProgram(commandLine);
     vmstocsh.setWorkingDirectory(workingDirectory);
     vmstocsh.setStdInput(comSequence);
@@ -495,12 +508,11 @@ public class ComScriptProcess
   private String[] loadFile() throws IOException {
 
     //  Open the file as a stream
-    InputStream fileStream = new FileInputStream(workingDirectory
-      .getAbsolutePath()
-        + "/" + name);
+    InputStream fileStream =
+      new FileInputStream(workingDirectory.getAbsolutePath() + "/" + name);
 
-    BufferedReader fileReader = new BufferedReader(new InputStreamReader(
-      fileStream));
+    BufferedReader fileReader =
+      new BufferedReader(new InputStreamReader(fileStream));
 
     ArrayList lines = new ArrayList();
     String line;
@@ -518,12 +530,15 @@ public class ComScriptProcess
    */
   private String[] parseError() throws IOException {
     //  Open the file as a stream
-    InputStream fileStream = new FileInputStream(workingDirectory
-      .getAbsolutePath()
-        + "/" + parseBaseName(name, ".com") + ".log");
+    InputStream fileStream =
+      new FileInputStream(
+        workingDirectory.getAbsolutePath()
+          + "/"
+          + parseBaseName(name, ".com")
+          + ".log");
 
-    BufferedReader fileReader = new BufferedReader(new InputStreamReader(
-      fileStream));
+    BufferedReader fileReader =
+      new BufferedReader(new InputStreamReader(fileStream));
 
     ArrayList errors = new ArrayList();
     String line;
@@ -533,7 +548,7 @@ public class ComScriptProcess
         int index = line.indexOf("ERROR:");
         if (index != -1) {
           foundError = true;
-          errors.add(line.substring(index));
+          errors.add(line);
         }
       }
       else {
@@ -555,38 +570,23 @@ public class ComScriptProcess
    *         then zero length array will be returned.
    */
   private String[] parseWarning() throws IOException {
-    boolean nextLineIsWarning = false;
     //  Open the file as a stream
-    InputStream fileStream = new FileInputStream(workingDirectory
-      .getAbsolutePath()
-        + "/" + parseBaseName(name, ".com") + ".log");
+    InputStream fileStream =
+      new FileInputStream(
+        workingDirectory.getAbsolutePath()
+          + "/"
+          + parseBaseName(name, ".com")
+          + ".log");
 
-    BufferedReader fileBuffer = new BufferedReader(new InputStreamReader(
-      fileStream));
+    BufferedReader fileBuffer =
+      new BufferedReader(new InputStreamReader(fileStream));
 
     ArrayList errors = new ArrayList();
     String line;
     while ((line = fileBuffer.readLine()) != null) {
       int index = line.indexOf("WARNING:");
       if (index != -1) {
-        nextLineIsWarning = false;
-        int trimIndex = line.trim().indexOf("PIP WARNING:");
-        if (trimIndex != -1
-            && line.trim().length() <= trimIndex + 1 + "PIP WARNING:".length()) {
-          nextLineIsWarning = true;
-        }
         errors.add(line.substring(index));
-      }
-      else if (nextLineIsWarning) {
-        if (!line.matches("\\s+")) {
-          errors.add(line.trim());
-          if (line.indexOf("Using fallback options in Fortran code") != -1) {
-            nextLineIsWarning = false;
-          }
-        }
-        else {
-          nextLineIsWarning = false;
-        }
       }
     }
     fileBuffer.close();

@@ -11,13 +11,6 @@
  * @version $Revision$
  *
  * <p> $Log$
- * <p> Revision 3.3  2004/04/12 16:57:24  sueh
- * <p> bug# 409 allow ComScript to function when the comscript
- * <p> file doesn't exist.
- * <p>
- * <p> Revision 3.2  2004/03/12 00:04:22  rickg
- * <p> Comment fixes
- * <p>
  * <p> Revision 3.1  2004/03/04 00:46:54  rickg
  * <p> Bug# 406 Correctly write out command when it isn't the first in the
  * <p> script
@@ -75,9 +68,6 @@ public class ComScript {
   private ArrayList scriptCommands = new ArrayList();
 
   private boolean parseComments = true;
-  
-  private boolean commandLoaded = false; //true when at least one command has be found or
-                                         //created
 
   public ComScript(File comFile) {
     this.comFile = comFile;
@@ -108,9 +98,6 @@ public class ComScript {
     throws FileNotFoundException, IOException, BadComScriptException {
 
     // Open the com file for reading using a buffered reader
-    if (!comFile.exists()) {
-      return;
-    }
     BufferedReader in = new BufferedReader(new FileReader(comFile));
 
     //  Read in the lines of the command file, assigning each one to the correct
@@ -151,7 +138,6 @@ public class ComScript {
         noDollarSign = noDollarSign.trim();
         String[] tokens = noDollarSign.split("\\s+");
         currentScriptCommand.setCommand(tokens[0]);
-        commandLoaded = true;
 
         //  Check to if see if this line is continued
         int nShrink = 1;
@@ -264,9 +250,6 @@ public class ComScript {
    */
   public ComScriptCommand getScriptCommand(String cmdName)
     throws BadComScriptException {
-    if (!commandLoaded) {
-      createCommand(cmdName);
-    }
     for (int i = 0; i < scriptCommands.size(); i++) {
       ComScriptCommand command = (ComScriptCommand) scriptCommands.get(i);
       if (command.getCommand().equals(cmdName)) {
@@ -276,12 +259,6 @@ public class ComScript {
     throw (new BadComScriptException("Did not find command: " + cmdName));
   }
 
-  protected void createCommand(String cmdName) {
-    ComScriptCommand currentScriptCommand = new ComScriptCommand();
-    scriptCommands.add(currentScriptCommand);
-    currentScriptCommand.setCommand(cmdName);
-    commandLoaded = true;
-  }
   /**
    * Return the index of the specified command or -1 if the command is not
    * present in the script
@@ -289,9 +266,6 @@ public class ComScript {
    * @return index of the command or -1 if not present
    */
   public int getScriptCommandIndex(String cmdName){
-    if (!commandLoaded) {
-      createCommand(cmdName);
-    }
     for (int i = 0; i < scriptCommands.size(); i++) {
       ComScriptCommand command = (ComScriptCommand) scriptCommands.get(i);
       if (command.getCommand().equals(cmdName)) {
@@ -378,10 +352,6 @@ public class ComScript {
    */
   public String getComFileName() {
     return comFile.getAbsolutePath();
-  }
-  
-  public boolean isCommandLoaded() {
-    return commandLoaded;
   }
 
   /**

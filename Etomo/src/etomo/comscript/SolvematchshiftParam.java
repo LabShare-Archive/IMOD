@@ -13,9 +13,6 @@ package etomo.comscript;
  * @version $Revision$
  * 
  * <p> $Log$
- * <p> Revision 3.0  2003/11/07 23:19:00  rickg
- * <p> Version 1.0.0
- * <p>
  * <p> Revision 2.7  2003/07/25 22:54:14  rickg
  * <p> CommandParam method name changes
  * <p>
@@ -122,9 +119,6 @@ public class SolvematchshiftParam
     inputArgs[7].setArgument(outputTransformationFile);
     scriptCommand.setInputArgument(7, inputArgs[7]);
 
-  }
-  
-  public void initializeDefaults() {
   }
 
   /**

@@ -13,10 +13,6 @@ package etomo.process;
  * @version $Revision$
  * 
  * <p> $Log$
- * <p> Revision 3.3  2004/03/16 21:53:40  sueh
- * <p> bug# 413  when last line in the log file found, starting incrementing waitingForExit
- * <p> counter
- * <p>
  * <p> Revision 3.2  2004/03/13 01:57:35  sueh
  * <p> bug# 413 fixed backward monitor by counting lines
  * <p> possible solution for LogFileProcessMonitor.run() infinite loop in comments.
@@ -60,11 +56,6 @@ public class XcorrProcessWatcher extends LogFileProcessMonitor {
    * @see etomo.process.LogFileProcessMonitor#intializeProgressBar()
    */
   protected void initializeProgressBar() {
-    if (nSections == Integer.MIN_VALUE) {
-      applicationManager.setProgressBar("Cross-correlating stack", 1, axisID);
-      applicationManager.setProgressBarValue(0, "Starting...", axisID);
-      return;
-    }
     applicationManager.setProgressBar(
       "Cross-correlating stack",
       nSections,

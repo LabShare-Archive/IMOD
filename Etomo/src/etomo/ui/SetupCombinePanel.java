@@ -43,10 +43,6 @@ import etomo.type.FiducialMatch;
  * 
  * <p>
  * $Log$
- * Revision 3.4  2004/03/06 00:29:32  sueh
- * bug# 318 add maxZMax - getParameters, setParameters, not displayed, used to
- * validate ZMax in CombineParams
- *
  * Revision 3.3  2004/03/05 18:20:59  sueh
  * bug# 250 change setUseMatchingModels() - set to Both Sides when
  * Use Model is turned off, this is the default in the com script creation
@@ -222,8 +218,6 @@ public class SetupCombinePanel implements ContextMenu {
     new JRadioButton("Fiducials on one side, inverted");
   private JRadioButton rbUseModel =
     new JRadioButton("Use models of corresponding points, not cross-correlation");
-  private JPanel pnlBinBy2 = new JPanel();
-  private JCheckBox cbBinBy2 = new JCheckBox("Open 3dmod in binned by 2 mode");
   private MultiLineButton btnImodMatchModels =
     new MultiLineButton("<html><b>Create Matching Models in 3dmod</b>");
 
@@ -295,12 +289,10 @@ public class SetupCombinePanel implements ContextMenu {
     //  Create the fiducial relationship panel
     pnlFiducialRadio.setLayout(
       new BoxLayout(pnlFiducialRadio, BoxLayout.Y_AXIS));
-    pnlBinBy2.setLayout(new BoxLayout(pnlBinBy2, BoxLayout.X_AXIS));
     rbBothSides.setAlignmentX(Component.LEFT_ALIGNMENT);
     rbOneSide.setAlignmentX(Component.LEFT_ALIGNMENT);
     rbOneSideInverted.setAlignmentX(Component.LEFT_ALIGNMENT);
     rbUseModel.setAlignmentX(Component.LEFT_ALIGNMENT);
-    pnlBinBy2.setAlignmentX(Component.LEFT_ALIGNMENT);
     bgFiducialParams.add(rbBothSides);
     bgFiducialParams.add(rbOneSide);
     bgFiducialParams.add(rbOneSideInverted);
@@ -309,11 +301,6 @@ public class SetupCombinePanel implements ContextMenu {
     pnlFiducialRadio.add(rbOneSide);
     pnlFiducialRadio.add(rbOneSideInverted);
     pnlFiducialRadio.add(rbUseModel);
-    pnlBinBy2.add(Box.createRigidArea(FixedDim.x10_y0));
-    pnlBinBy2.add(Box.createRigidArea(FixedDim.x10_y0));
-    pnlBinBy2.add(cbBinBy2);
-    pnlFiducialRadio.add(pnlBinBy2);
-    
 
     pnlFiducialSelect.setLayout(
       new BoxLayout(pnlFiducialSelect, BoxLayout.X_AXIS));
@@ -588,21 +575,13 @@ public class SetupCombinePanel implements ContextMenu {
     }
   }
   
-  protected boolean getBinBy2() {
-    return cbBinBy2.isSelected();
-  }
-  void setBinBy2(boolean state) {
-      cbBinBy2.setSelected(state);
-  }
-
-  
   //  Action functions for setup panel buttons
   private void buttonAction(ActionEvent event) {
     String command = event.getActionCommand();
     if (event
       .getActionCommand()
       .equals(btnImodMatchModels.getActionCommand())) {
-      applicationManager.imodMatchingModel(TomogramCombinationDialog.SETUP_TAB);
+      applicationManager.imodMatchingModel();
     }
     if (event
       .getActionCommand()
@@ -671,9 +650,7 @@ public class SetupCombinePanel implements ContextMenu {
    * Enable/disable the matching model button
    */
   private void updateUseFiducialModel() {
-    boolean enable = rbUseModel.isSelected();
-    btnImodMatchModels.setEnabled(enable);
-    cbBinBy2.setEnabled(enable);
+    btnImodMatchModels.setEnabled(rbUseModel.isSelected());
     //initialCombinePanel.setMatchingModels(rbUseModel.isSelected());
   }
 
@@ -826,11 +803,6 @@ public class SetupCombinePanel implements ContextMenu {
         + "likely to fail.";
     rbUseModel.setToolTipText(tooltipFormatter.setText(text).format());
 
-    text =
-      "Using binning by 2 when opening matching models to allow the two 3dmods "
-        + "to fit into the computer's memory.";
-    cbBinBy2.setToolTipText(tooltipFormatter.setText(text).format());
-    
     text = "Create models of corresponding points.";
     btnImodMatchModels.setToolTipText(tooltipFormatter.setText(text).format());
 

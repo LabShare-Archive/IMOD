@@ -11,7 +11,6 @@ import javax.swing.JEditorPane;
 import javax.swing.JFrame;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
-import javax.swing.WindowConstants;
 import javax.swing.text.StyledEditorKit;
 
 /**
@@ -27,9 +26,6 @@ import javax.swing.text.StyledEditorKit;
  * @version $Revision$
  *
  * <p> $Log$
- * <p> Revision 3.2  2003/11/27 00:04:43  rickg
- * <p> Bug# 366 Close file reader when done
- * <p>
  * <p> Revision 3.1  2003/11/10 07:45:23  rickg
  * <p> Task tags moved to bugzilla
  * <p>
@@ -56,7 +52,6 @@ public class TabbedTextWindow extends JFrame {
     mainPanel.add(tabPane);
     setTitle(label);
     setSize(625, 800);
-    setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
   }
 
   /**
@@ -70,6 +65,7 @@ public class TabbedTextWindow extends JFrame {
     FileReader reader;
     int nFiles = files.length;
     for (int i = 0; i < files.length; i++) {
+
       JEditorPane editorPane = new JEditorPane();
       editorPane.setEditorKit(new StyledEditorKit());
       JScrollPane scrollPane = new JScrollPane(editorPane);

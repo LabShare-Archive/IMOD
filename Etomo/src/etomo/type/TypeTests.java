@@ -1,33 +1,26 @@
-/**
- * <p>Description: </p>
+/*
+ * Created on Oct 28, 2003
  *
- * <p>Copyright: Copyright (c) 2002-2004</p>
- *
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
- * University of Colorado</p>
- *
- * @author $Author$
- *
- * @version $Revision$
- *
- * <p> $Log$
-* <p> </p>
+ * To change the template for this generated file go to
+ * Window - Preferences - Java - Code Generation - Code and Comments
  */
 package etomo.type;
 
 import junit.framework.Test;
 import junit.framework.TestSuite;
 
-
+/**
+ * @author sueh
+ *
+ * To change the template for this generated type comment go to
+ * Window - Preferences - Java - Code Generation - Code and Comments
+ */
 public class TypeTests {
-  static final String testRoot = new String("JUnitTests/etomo/type/");
-  
+
   public static Test suite() {
     TestSuite suite = new TestSuite("Test for etomo.type");
     //$JUnit-BEGIN$
     suite.addTestSuite(ConstMetaDataTest.class);
-    suite.addTestSuite(MetaDataTest.class);
     //$JUnit-END$
     return suite;
   }
