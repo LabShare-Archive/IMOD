@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.2  2003/07/31 21:32:24  mast
+    New functions to operate on objviews
+
     Revision 3.1  2003/06/27 20:11:38  mast
     Add function to set a view to default scaling, redefine imodViewModelDefault
 
@@ -56,6 +59,7 @@ extern "C" {
   int imodViewWrite(Iview *vw, FILE *fout);
   int imodViewModelWrite(Imod *imod);
   int imodViewModelRead(Imod *imod);
+  int imodViewClipRead(Imod *imod);
   int imodViewModelNew(Imod *imod);
   void imodViewUse(Imod *imod);
   int imodViewStore(Imod *imod, int cview);
@@ -64,6 +68,9 @@ extern "C" {
   int imodObjviewComplete(Imod *imod);
   void imodObjviewDelete(Imod *imod, int index);
   void imodObjviewsFree(Imod *imod);
+  void imodClipsInitialize(IclipPlanes *clips);
+  void imodClipsFixCount(IclipPlanes *clips, b3dUInt32 flags);
+  int imodClipsRead(IclipPlanes *clips, FILE *fin);
 
 
 /* Image File view functions. */
