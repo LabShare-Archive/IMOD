@@ -51,19 +51,40 @@ if [ -e ${IMOD_DIR}/bin/setlibpath ]; then
   . ${IMOD_DIR}/bin/setlibpath
 fi
 
+# If ETOMO_LOG_DIR is defined, set up log files there with date/time stamp
+# purge the directory to 60 files (30 sessions)
+
+outlog=etomo_out.log
+errlog=etomo_err.log
+if [ ! -z ${ETOMO_LOG_DIR} ] ; then
+  if [ -w ${ETOMO_LOG_DIR} ] ; then
+    timestamp=`date | sed 's/://g' | awk '{printf "%s-%s-%s",$2,$3,$4}'`
+    outlog=${ETOMO_LOG_DIR}/etomo_out_${timestamp}.log
+    errlog=${ETOMO_LOG_DIR}/etomo_err_${timestamp}.log
+    purgelist=`cd ${ETOMO_LOG_DIR} ; ls -t | tail -n +61`
+    if [ ! -z "${purgelist}" ] ; then 
+      (cd ${ETOMO_LOG_DIR} ; rm -f ${purgelist})
+    fi
+  fi
+fi
+
 # Copy the previous log files to backups
-if [ -e etomo_out.log ]; then
-  cp etomo_out.log etomo_out.log~
+if [ -e ${outlog} ]; then
+  cp -p ${outlog} ${outlog}~
 fi
-if [ -e etomo_err.log ]; then
-  cp etomo_err.log etomo_err.log~
+if [ -e ${errlog} ]; then
+  cp -p ${errlog} ${errlog}~
 fi
+
 echo "starting eTomo"
 java -cp ${IMOD_DIR}/bin/etomo -jar ${IMOD_DIR}/bin/etomo.jar $@ \
-  2>etomo_err.log >etomo_out.log &
+  2>${errlog} >${outlog} &
 
 
 # $Log$
+# Revision 1.10  2003/09/11 05:54:52  rickg
+# updated for IMOD_JAVADIR
+#
 # Revision 1.9  2003/09/03 20:04:50  mast
 # There is no source command in sh - needed  . instead
 #
