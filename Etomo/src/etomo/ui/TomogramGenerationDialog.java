@@ -38,6 +38,7 @@ import etomo.type.ConstMetaData;
 import etomo.type.DialogType;
 import etomo.type.EtomoAutodoc;
 import etomo.type.MetaData;
+import etomo.type.ViewType;
 import etomo.util.InvalidParameterException;
 
 /**
@@ -60,6 +61,9 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.35  2005/03/02 00:13:49  sueh
+ * Corrected label.
+ *
  * Revision 3.34  2005/02/19 00:31:21  sueh
  * bug# 606 Removed MetaData (Setup) zfactors, fiducialess, wholetomogram,
  * and localalignments.  Add them for A and B.
@@ -794,6 +798,10 @@ public class TomogramGenerationDialog extends ProcessDialog
     pnlNewstParams.setLayout(new BoxLayout(pnlNewstParams, BoxLayout.Y_AXIS));
     pnlNewstParams.setBorder(new EtchedBorder("Newstack Parameters")
         .getBorder());
+    if (applicationManager.getMetaData().getViewType() == ViewType.MONTAGE) {
+      cbBoxUseLinearInterpolation.setEnabled(false);
+      spinBinning.setEnabled(false);
+    }
     UIUtilities.addWithYSpace(pnlNewstParams, cbBoxUseLinearInterpolation);
     UIUtilities.addWithYSpace(pnlNewstParams, spinBinning.getContainer());
     UIUtilities.addWithYSpace(pnlNewstParams, cbFiducialess);
