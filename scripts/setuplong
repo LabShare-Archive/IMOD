@@ -1,4 +1,13 @@
 #! /bin/csh -f
+#
+#  $Author$
+#
+#  $Date$
+#
+#  $Revision$
+#
+#  $Log$
+#
 set FILTERPARAMS=".01,.05,0,.1"
 #
 # If no argument, print usage
@@ -33,7 +42,7 @@ set comm = ${BN}_m.com
 #
 #
 cat >! $com1 <<EOCAT
-# csh
+#! /bin/csh -f
 set IFBILINEAR = \$argv[1]
 cat >! filesectlist <<ENDOFDATA
 $BN.avge
@@ -336,7 +345,7 @@ EOF
 #
 # Run first alignment to initial average, without interpolation in search
 #
-csh $com1 0
+csh -f $com1 0
 #
 # Transform pieces, average them, and filter average
 #
@@ -367,7 +376,7 @@ EOF
 #
 # Run second alignment, to improved average, with interpolation in search
 #
-csh $com1 1
+csh -f $com1 1
 #
 # Transform again with new alignment, get final average
 #
@@ -400,5 +409,5 @@ echo2 Longitudinal average $BN finished
 EOCAT
 #
 chmod +x $com1 $comm
-csh $comm >/dev/null &
+csh -f $comm >/dev/null &
 echo "Master command file being executed in background, output to /dev/null"
