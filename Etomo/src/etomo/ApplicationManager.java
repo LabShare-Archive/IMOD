@@ -25,6 +25,9 @@ import etomo.ui.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.12  2002/10/10 23:40:33  rickg
+ * <p> refactored createCombineScripts to setupCombineScripts
+ * <p>
  * <p> Revision 1.11  2002/10/10 19:16:19  rickg
  * <p> Get HOME and IMOD_DIR environement variables during
  * <p> initialization instead of each time they requested.  Also
@@ -1873,7 +1876,7 @@ public class ApplicationManager {
     }
   }
 
-  private void openMessageDialog(Object message, String title) {
+  public void openMessageDialog(Object message, String title) {
     JOptionPane.showMessageDialog(
       mainFrame,
       message,
