@@ -8,7 +8,7 @@
  * </p>
  * 
  * <p>
- * Organization: Boulder Laboratory for 3D Fine Structure, University of
+ * Organization: Boulder Laboratory for 3D Fine Structure, University of 
  * Colorado
  * </p>
  * 
@@ -18,6 +18,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.5  2004/03/24 18:17:12  sueh
+ * bug# 409 added some MTF filter fields without placing anything on the screen,
+ * reformatted
+ *
  * Revision 3.4  2004/03/24 03:03:26  rickg
  * Bug# 395 Implemented ability to create binned tomogram
  *
@@ -272,11 +276,13 @@ public class TomogramGenerationDialog
   private LabeledTextField ltfZOffset = new LabeledTextField("Z offset: ");
 
   private LabeledTextField ltfSliceStart =
-    new LabeledTextField("First slice in Y: ");
+    new LabeledTextField("First slice: ");
 
   private LabeledTextField ltfSliceStop =
-    new LabeledTextField("Last slice in Y: ");
-
+    new LabeledTextField("Last slice: ");
+    
+  private JLabel lblInY = new JLabel(" in Y");
+  
   private LabeledTextField ltfSliceIncr =
     new LabeledTextField("Slice step in Y: ");
 
@@ -295,10 +301,10 @@ public class TomogramGenerationDialog
     new LabeledTextField("Radial filter cutoff: ");
 
   private LabeledTextField ltfRadialFallOff =
-    new LabeledTextField("Radial filter falloff: ");
+    new LabeledTextField("falloff: ");
 
   private LabeledTextField ltfDensityOffset =
-    new LabeledTextField("Output density offset: ");
+    new LabeledTextField("Offset: ");
 
   private LabeledTextField ltfDensityScale =
     new LabeledTextField("Output density scaling factor: ");
@@ -323,16 +329,17 @@ public class TomogramGenerationDialog
   //MTF Filter
   private JPanel pnlFilter = new JPanel();
   private EtchedBorder filterBorder = new EtchedBorder("MTF Filtering");
-  private LabeledTextField ltfFilterOutputFile =
-    new LabeledTextField("Output file");
   private LabeledTextField ltfHighFrequencyRadiusSigma =
-    new LabeledTextField("High frequency rolloff (radius,sigma)");
+    new LabeledTextField("High frequency rolloff (radius,sigma): ");
   private JPanel pnlInverseFilter = new JPanel();
-  private BeveledBorder inverseFilterBorder =
-    new BeveledBorder("Inverse Filtering Parameters");
-  private LabeledTextField ltfMtfFile = new LabeledTextField("MTF file");
+  private EtchedBorder inverseFilterBorder =
+    new EtchedBorder("Inverse Filtering Parameters: ");
+  private LabeledTextField ltfMtfFile = new LabeledTextField("MTF file: ");
+  private JPanel pnlInverseFilter1 = new JPanel();
   private LabeledTextField ltfMaximumInverse =
-    new LabeledTextField("Maximum Inverse");
+    new LabeledTextField("Maximum Inverse: ");
+  private LabeledTextField ltfInverseRolloffRadiusSigma =
+    new LabeledTextField("Rolloff (radius,sigma): ");
   private JPanel pnlFilterButtons = new JPanel();
   private MultiLineToggleButton btnFilter = new MultiLineToggleButton("Filter");
   private MultiLineButton btnViewFilter =
@@ -358,6 +365,16 @@ public class TomogramGenerationDialog
   private MultiLineToggleButton btnDeleteStacks =
     new MultiLineToggleButton("<html><b>Delete Aligned Image Stack</b>");
 
+  private JPanel pnlDensityScaling = new JPanel();
+  private JPanel pnlSlicesInY = new JPanel();
+  private JPanel pnlOffset = new JPanel();
+  private JPanel pnlRadialFilter = new JPanel();
+  private JPanel pnlUseLocalAlignment = new JPanel();
+  private JPanel pnlAdvanced1 = new JPanel();
+  private JPanel pnlAdvanced2 = new JPanel();
+  private JPanel pnlAdvanced3 = new JPanel();
+  private JPanel pnlAdvanced4 = new JPanel();
+
   public TomogramGenerationDialog(ApplicationManager appMgr, AxisID axisID) {
     super(appMgr, axisID);
     fixRootPanel(rootSize);
@@ -371,11 +388,10 @@ public class TomogramGenerationDialog
 
     // Object alignments
     cbBoxUseLinearInterpolation.setAlignmentX(Component.CENTER_ALIGNMENT);
-    cbBoxUseLocalAlignment.setAlignmentX(Component.CENTER_ALIGNMENT);
     btnTilt.setAlignmentX(Component.CENTER_ALIGNMENT);
     btn3dmodTomogram.setAlignmentX(Component.CENTER_ALIGNMENT);
     btnDeleteStacks.setAlignmentX(Component.CENTER_ALIGNMENT);
-
+    
     //  Set the button sizes
     Dimension dimButton = UIParameters.getButtonDimension();
     btnNewst.setPreferredSize(dimButton);
@@ -394,12 +410,21 @@ public class TomogramGenerationDialog
     btn3dmodTomogram.setMaximumSize(dimButton);
     btnDeleteStacks.setPreferredSize(dimButton);
     btnDeleteStacks.setMaximumSize(dimButton);
+    btnFilter.setPreferredSize(dimButton);
+    btnFilter.setMaximumSize(dimButton);
+    btnViewFilter.setPreferredSize(dimButton);
+    btnViewFilter.setMaximumSize(dimButton);
+    btnUseFilter.setPreferredSize(dimButton);
+    btnUseFilter.setMaximumSize(dimButton);
     spinBinning.setTextMaxmimumSize(UIParameters.getSpinnerDimension());
 
     // Bind the buttons to the action listener
     ButtonListener tomogramGenerationListener = new ButtonListener(this);
     btnNewst.addActionListener(tomogramGenerationListener);
     btn3dmodFull.addActionListener(tomogramGenerationListener);
+    btnFilter.addActionListener(tomogramGenerationListener);
+    btnViewFilter.addActionListener(tomogramGenerationListener);
+    btnUseFilter.addActionListener(tomogramGenerationListener);
     btnTrial.addActionListener(tomogramGenerationListener);
     btn3dmodTrial.addActionListener(tomogramGenerationListener);
     btnUseTrial.addActionListener(tomogramGenerationListener);
@@ -412,7 +437,7 @@ public class TomogramGenerationDialog
     pnlAlignedStack.add(btnNewst);
     pnlAlignedStack.add(Box.createRigidArea(FixedDim.x10_y0));
     pnlAlignedStack.add(btn3dmodFull);
-    //layoutFilterPanel();
+    layoutFilterPanel();
 
     // Layout the trial panel
     pnlTrial.setLayout(new BoxLayout(pnlTrial, BoxLayout.Y_AXIS));
@@ -424,7 +449,9 @@ public class TomogramGenerationDialog
     pnlTrialTomogramName.add(cmboTrialTomogramName);
     pnlTrialButtons.setLayout(new BoxLayout(pnlTrialButtons, BoxLayout.X_AXIS));
     pnlTrialButtons.add(btnTrial);
+    pnlTrialButtons.add(Box.createRigidArea(FixedDim.x5_y0));
     pnlTrialButtons.add(btn3dmodTrial);
+    pnlTrialButtons.add(Box.createRigidArea(FixedDim.x5_y0));
     pnlTrialButtons.add(btnUseTrial);
     pnlTrial.add(pnlTrialTomogramName);
     pnlTrial.add(Box.createRigidArea(FixedDim.x0_y5));
@@ -435,12 +462,21 @@ public class TomogramGenerationDialog
     pnlNewstParams.setLayout(new BoxLayout(pnlNewstParams, BoxLayout.Y_AXIS));
     pnlTilt.setLayout(new BoxLayout(pnlTilt, BoxLayout.Y_AXIS));
     pnlTiltParams.setLayout(new BoxLayout(pnlTiltParams, BoxLayout.Y_AXIS));
+    pnlDensityScaling.setLayout(new BoxLayout(pnlDensityScaling, BoxLayout.X_AXIS));
+    pnlSlicesInY.setLayout(new BoxLayout(pnlSlicesInY, BoxLayout.X_AXIS));
+    pnlOffset.setLayout(new BoxLayout(pnlOffset, BoxLayout.X_AXIS));
+    pnlRadialFilter.setLayout(new BoxLayout(pnlRadialFilter, BoxLayout.X_AXIS));
+    pnlAdvanced1.setLayout(new BoxLayout(pnlAdvanced1, BoxLayout.Y_AXIS));
+    pnlAdvanced2.setLayout(new BoxLayout(pnlAdvanced2, BoxLayout.Y_AXIS));
+    pnlAdvanced3.setLayout(new BoxLayout(pnlAdvanced3, BoxLayout.Y_AXIS));
+    pnlAdvanced4.setLayout(new BoxLayout(pnlAdvanced4, BoxLayout.Y_AXIS));
     pnlTiltParams.setBorder(new EtchedBorder("Tilt Parameters").getBorder());
     pnlTilt.add(pnlNewstParams);
     pnlTilt.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlTilt.add(pnlAlignedStack);
     pnlTilt.add(Box.createRigidArea(FixedDim.x0_y10));
-    //pnlTilt.add(pnlFilter);
+    pnlTilt.add(pnlFilter);
+    pnlTilt.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlTilt.add(pnlTiltParams);
     pnlTilt.add(btnTilt);
     pnlTilt.add(Box.createRigidArea(FixedDim.x0_y10));
@@ -689,19 +725,21 @@ public class TomogramGenerationDialog
 
   public void getMTFFilterParam(MTFFilterParam mtfFilterParam)
     throws FortranInputSyntaxException {
-    mtfFilterParam.setOutputFile(ltfFilterOutputFile.getText());
-    mtfFilterParam.setMtfFile(ltfMtfFile.getText());
-    mtfFilterParam.setMaximumInverse(ltfMaximumInverse.getText());
     mtfFilterParam.setHighFrequencyRadiusSigma(
       ltfHighFrequencyRadiusSigma.getText());
+    mtfFilterParam.setMtfFile(ltfMtfFile.getText());
+    mtfFilterParam.setMaximumInverse(ltfMaximumInverse.getText());
+    mtfFilterParam.setInverseRolloffRadiusSigma(
+      ltfInverseRolloffRadiusSigma.getText());
   }
 
   public void setMTFFilterParam(ConstMTFFilterParam mtfFilterParam) {
-    ltfFilterOutputFile.setText(mtfFilterParam.getOutputFile());
     ltfMtfFile.setText(mtfFilterParam.getMtfFile());
     ltfMaximumInverse.setText(mtfFilterParam.getMaximumInverseString());
     ltfHighFrequencyRadiusSigma.setText(
       mtfFilterParam.getHighFrequencyRadiusSigmaString());
+    ltfInverseRolloffRadiusSigma.setText(
+      mtfFilterParam.getInverseRolloffRadiusSigmaString());
   }
 
   /**
@@ -721,102 +759,110 @@ public class TomogramGenerationDialog
    * Update the dialog with the current advanced state
    */
   private void updateAdvanced() {
-    layoutTiltPanel();
-    layoutNewstPanel();
-    //pnlFilter.setVisible(isAdvanced);
+    updateAdvancedTiltPanel();
+    pnlNewstParams.setVisible(isAdvanced);
+    pnlFilter.setVisible(isAdvanced);
     applicationManager.packMainWindow();
 
     // Set the width of the newstack border to the width of the tilt
     // parameters
-    Dimension dimNewstack = pnlNewstParams.getSize();
-    Dimension dimTilt = pnlTiltParams.getSize();
-    dimNewstack.setSize(dimTilt.getWidth(), dimNewstack.getHeight());
-    pnlNewstParams.setSize(dimNewstack);
+    //Dimension dimNewstack = pnlNewstParams.getSize();
+    //Dimension dimTilt = pnlTiltParams.getSize();
+    //dimNewstack.setSize(dimTilt.getWidth(), dimNewstack.getHeight());
+    //pnlNewstParams.setSize(dimNewstack);
   }
 
   /**
    * Layout the newstack panel
    */
   private void layoutNewstPanel() {
-    pnlNewstParams.removeAll();
-    if (isAdvanced) {
-      pnlNewstParams.add(cbBoxUseLinearInterpolation);
-      pnlNewstParams.add(spinBinning.getContainer());
-      pnlNewstParams.setBorder(
-        new EtchedBorder("Newstack Parameters").getBorder());
-    }
-    else {
-      pnlNewstParams.setBorder(null);
-    }
+    pnlNewstParams.add(cbBoxUseLinearInterpolation);
+    pnlNewstParams.add(spinBinning.getContainer());
+    pnlNewstParams.setBorder(new EtchedBorder("Newstack Parameters").getBorder());
+  }
+  
+  private void updateAdvancedTiltPanel() {
+    pnlAdvanced1.setVisible(isAdvanced);
+    //ltfTomoThickness - both
+    pnlAdvanced2.setVisible(isAdvanced);
+    //ltfXAxisTilt - both
+    pnlAdvanced3.setVisible(isAdvanced);
+    //pnlRadialFilter - both
+    //cbBoxUseLocalAlignment - both
+    pnlTrial.setVisible(isAdvanced);
   }
 
   private void layoutTiltPanel() {
-    pnlTiltParams.removeAll();
-    if (isAdvanced) {
-      pnlTiltParams.add(ltfLogOffset.getContainer());
-      pnlTiltParams.add(Box.createRigidArea(FixedDim.x0_y5));
-      pnlTiltParams.add(ltfDensityScale.getContainer());
-      pnlTiltParams.add(Box.createRigidArea(FixedDim.x0_y5));
-      pnlTiltParams.add(ltfDensityOffset.getContainer());
-      pnlTiltParams.add(Box.createRigidArea(FixedDim.x0_y5));
-      pnlTiltParams.add(ltfTomoThickness.getContainer());
-      pnlTiltParams.add(Box.createRigidArea(FixedDim.x0_y5));
-      pnlTiltParams.add(ltfTomoWidth.getContainer());
-      pnlTiltParams.add(Box.createRigidArea(FixedDim.x0_y5));
-      pnlTiltParams.add(ltfSliceStart.getContainer());
-      pnlTiltParams.add(Box.createRigidArea(FixedDim.x0_y5));
-      pnlTiltParams.add(ltfSliceStop.getContainer());
-      pnlTiltParams.add(Box.createRigidArea(FixedDim.x0_y5));
-      pnlTiltParams.add(ltfSliceIncr.getContainer());
-      pnlTiltParams.add(Box.createRigidArea(FixedDim.x0_y5));
-      pnlTiltParams.add(ltfXOffset.getContainer());
-      pnlTiltParams.add(Box.createRigidArea(FixedDim.x0_y5));
-      pnlTiltParams.add(ltfZOffset.getContainer());
-      pnlTiltParams.add(Box.createRigidArea(FixedDim.x0_y5));
-      pnlTiltParams.add(ltfXAxisTilt.getContainer());
-      pnlTiltParams.add(Box.createRigidArea(FixedDim.x0_y5));
-      pnlTiltParams.add(ltfTiltAngleOffset.getContainer());
-      pnlTiltParams.add(Box.createRigidArea(FixedDim.x0_y5));
-      pnlTiltParams.add(ltfRadialMax.getContainer());
-      pnlTiltParams.add(Box.createRigidArea(FixedDim.x0_y5));
-      pnlTiltParams.add(ltfRadialFallOff.getContainer());
-      pnlTiltParams.add(Box.createRigidArea(FixedDim.x0_y5));
-      pnlTiltParams.add(cbBoxUseLocalAlignment);
-      pnlTiltParams.add(Box.createRigidArea(FixedDim.x0_y5));
-      pnlTiltParams.add(pnlTrial);
-      pnlTiltParams.add(Box.createRigidArea(FixedDim.x0_y5));
-    }
-    else {
-      pnlTiltParams.add(ltfTomoThickness.getContainer());
-      pnlTiltParams.add(Box.createRigidArea(FixedDim.x0_y5));
-      pnlTiltParams.add(ltfXAxisTilt.getContainer());
-      pnlTiltParams.add(Box.createRigidArea(FixedDim.x0_y5));
-      pnlTiltParams.add(ltfRadialMax.getContainer());
-      pnlTiltParams.add(Box.createRigidArea(FixedDim.x0_y5));
-      pnlTiltParams.add(ltfRadialFallOff.getContainer());
-      pnlTiltParams.add(Box.createRigidArea(FixedDim.x0_y5));
-      pnlTiltParams.add(cbBoxUseLocalAlignment);
-      pnlTiltParams.add(Box.createRigidArea(FixedDim.x0_y5));
-    }
+    pnlAdvanced1.add(ltfLogOffset.getContainer());
+    pnlAdvanced1.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlDensityScaling.add(ltfDensityScale.getContainer());
+    pnlDensityScaling.add(Box.createRigidArea(FixedDim.x5_y0));
+    pnlDensityScaling.add(ltfDensityOffset.getContainer());
+    pnlAdvanced1.add(pnlDensityScaling);
+    pnlAdvanced1.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlTiltParams.add(pnlAdvanced1);
+    pnlTiltParams.add(ltfTomoThickness.getContainer());
+    pnlTiltParams.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlAdvanced1.add(ltfTomoWidth.getContainer());
+    pnlAdvanced1.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlSlicesInY.add(ltfSliceStart.getContainer());
+    pnlSlicesInY.add(Box.createRigidArea(FixedDim.x5_y0));
+    pnlSlicesInY.add(ltfSliceStop.getContainer());
+    pnlSlicesInY.add(Box.createRigidArea(FixedDim.x5_y0));
+    pnlSlicesInY.add(lblInY);
+    pnlAdvanced2.add(pnlSlicesInY);
+    pnlAdvanced2.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlAdvanced2.add(ltfSliceIncr.getContainer());
+    pnlAdvanced2.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlOffset.add(ltfXOffset.getContainer());
+    pnlOffset.add(Box.createRigidArea(FixedDim.x5_y0));
+    pnlOffset.add(ltfZOffset.getContainer());
+    pnlAdvanced2.add(pnlOffset);
+    pnlAdvanced2.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlTiltParams.add(pnlAdvanced2);
+    pnlTiltParams.add(ltfXAxisTilt.getContainer());
+    pnlTiltParams.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlAdvanced3.add(ltfTiltAngleOffset.getContainer());
+    pnlAdvanced3.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlTiltParams.add(pnlAdvanced3);
+    pnlRadialFilter.add(ltfRadialMax.getContainer());
+    pnlRadialFilter.add(Box.createRigidArea(FixedDim.x5_y0));
+    pnlRadialFilter.add(ltfRadialFallOff.getContainer());
+    pnlTiltParams.add(pnlRadialFilter);
+    pnlTiltParams.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlUseLocalAlignment.add(cbBoxUseLocalAlignment);
+    pnlTiltParams.add(pnlUseLocalAlignment);
+    pnlTiltParams.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlTiltParams.add(pnlTrial);
   }
 
   protected void layoutFilterPanel() {
     pnlFilter.setBorder(filterBorder.getBorder());
     pnlFilter.setLayout(new BoxLayout(pnlFilter, BoxLayout.Y_AXIS));
-    pnlFilter.add(ltfFilterOutputFile.getContainer());
     pnlFilter.add(ltfHighFrequencyRadiusSigma.getContainer());
+    pnlFilter.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlInverseFilter.setLayout(
       new BoxLayout(pnlInverseFilter, BoxLayout.Y_AXIS));
     pnlInverseFilter.setBorder(inverseFilterBorder.getBorder());
     pnlInverseFilter.add(ltfMtfFile.getContainer());
-    pnlInverseFilter.add(ltfMaximumInverse.getContainer());
+    pnlInverseFilter.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlInverseFilter1.setLayout(
+      new BoxLayout(pnlInverseFilter1, BoxLayout.X_AXIS));
+    pnlInverseFilter1.add(ltfMaximumInverse.getContainer());
+    pnlInverseFilter1.add(Box.createRigidArea(FixedDim.x5_y0));
+    pnlInverseFilter1.add(ltfInverseRolloffRadiusSigma.getContainer());
+    pnlInverseFilter.add(pnlInverseFilter1);
     pnlFilter.add(pnlInverseFilter);
+    pnlFilter.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlFilterButtons.setLayout(
       new BoxLayout(pnlFilterButtons, BoxLayout.X_AXIS));
     pnlFilterButtons.add(btnFilter);
+    pnlFilterButtons.add(Box.createRigidArea(FixedDim.x5_y0));
     pnlFilterButtons.add(btnViewFilter);
+    pnlFilterButtons.add(Box.createRigidArea(FixedDim.x5_y0));
     pnlFilterButtons.add(btnUseFilter);
     pnlFilter.add(pnlFilterButtons);
+    pnlFilter.add(Box.createRigidArea(FixedDim.x0_y5));
   }
 
   /**
@@ -869,6 +915,17 @@ public class TomogramGenerationDialog
     }
     else if (command.equals(btn3dmodFull.getActionCommand())) {
       applicationManager.imodFineAlign(axisID);
+    }
+    else if (command.equals(btnFilter.getActionCommand())) {
+      applicationManager.mtffilter(axisID);
+      btnFilter.setSelected(true);
+      btnUseFilter.setSelected(false);
+    }
+    else if (command.equals(btnViewFilter.getActionCommand())) {
+      applicationManager.imodMTFFilter(axisID);
+    }
+    else if (command.equals(btnUseFilter.getActionCommand())) {
+      applicationManager.useMtfFilter(axisID);
     }
     else if (command.equals(btnTrial.getActionCommand())) {
       String trialTomogramName = getTrialTomogramName();
