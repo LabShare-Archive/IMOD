@@ -90,7 +90,8 @@ Go start processing after probing the machines, without waiting for
 confirmation from the user.
 .TP
 .B -n <value>
-Run jobs with "niceness" set to the given value.  The default nice value
+Run jobs with "niceness" set to the given value, which can range from 0 for
+no reduction in priority to 19 for maximum reduction.  The default nice value
 is reported by the program's usage statement.
 .FILES
 Log files will be generated for all command files that are run.  The C-shell
