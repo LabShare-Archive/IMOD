@@ -73,21 +73,14 @@ void ioew_help(void)
              "symbols are drawn at each point, if Mark Ends is selected, "
              "green and red crosses are drawn over the first and last "
              "points of a contour.\n\n",
+             "Sphere radius for points:\n",
+             "\tIf this sphere size is nonzero, then spheres will be drawn "
+             "in 3-D at every point of the object.  These spheres appear in"
+             " the model view window and appear in cross-section on "
+             "one or more slices of the image display.\n\n",
              "Line Width:\n",
              "\tSets the width for lines drawn on images, but not for "
              "lines in 3D.\n\n",
-             "Time data:\n",
-             "\tIf multiple image files are loaded, this toggle button "
-             "appears next to control whether time information is encoded "
-             "in contours as they are drawn.  If the button is on, then "
-             "each new contour that is created will be assigned to the "
-             "currently displayed time, and it will appear only over "
-             "images at that time.  In addition, the Time Index text box "
-             "in the Edit-Contour-Type window can be used to adjust the "
-             "time value of a contour.  If the button is off, then new "
-             "contours will not be assigned to the current time but "
-             "rather will have a time value of 0 and will appear over "
-             "images at all times.\n\n"
              "Open/Closed/Scattered Toggles:\n",
              "\tSet how points in object are connected.  Open and closed "
              "contour objects are drawn with lines between the points; "
@@ -99,11 +92,18 @@ void ioew_help(void)
              "will be brightly lit after the object is meshed.  This "
              "feature can also be used to select an area of interest as "
              "inside or outside the contours, for some programs.\n\n",
-             "Scattered point 3-D radius:\n",
-             "\tIf 3D Sphere size is nonzero, then spheres will be drawn "
-             "in 3-D.  These spheres appear in"
-             " the model view window and appear in cross-section on "
-             "one or more slices of the image display.\n",
+             "Time data:\n",
+             "\tIf multiple image files are loaded, this toggle button "
+             "controls whether time information is encoded "
+             "in contours as they are drawn.  If the button is on, then "
+             "each new contour that is created will be assigned to the "
+             "currently displayed time, and it will appear only over "
+             "images at that time.  In addition, the Time Index text box "
+             "in the Contour/Surface/Point window can be used to adjust the "
+             "time value of a contour.  If the button is off, then new "
+             "contours will not be assigned to the current time but "
+             "rather will have a time value of 0 and will appear over "
+             "images at all times.",
              NULL);
 }
 
@@ -480,6 +480,9 @@ void ImodObjColor::keyReleaseSlot ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.5  2003/04/25 03:28:32  mast
+Changes for name change to 3dmod
+
 Revision 4.4  2003/04/17 18:43:38  mast
 adding parent to window creation
 
