@@ -9,6 +9,10 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.2  2002/07/24 16:30:41  mast
+#  Added ability to detect presence of new border parameter and supply if
+#  necessary, to avoid breaking existing command files.
+#
 #  Revision 3.1  2002/07/21 19:35:13  mast
 #  Removed analysis of border positions based on transformation of second
 #  volume and passed appropriate parameters to Corrsearch3d to do this instead
@@ -126,4 +130,6 @@ $bsource
 $xffile
 $srcborders
 EOF
+set retval = $status
 if (-e patchtmp.$$) \rm patchtmp.$$
+exit $retval
