@@ -20,6 +20,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.13  2004/06/02 23:45:56  rickg
+ * Bug #391 added logic for backward compatibility in manage .xf
+ * and .tlt files
+ *
  * Revision 3.12  2004/06/02 20:41:55  rickg
  * Bug #187 catch ERROR: in stdout and added to error message
  *
@@ -509,7 +513,7 @@ public class ProcessManager {
     xfproduct[0] = ApplicationManager.getIMODBinPath() + "xfproduct";
     xfproduct[1] = appManager.getDatasetName() + axisID.getExtension()
       + ".prexg";
-    xfproduct[2] = "rotation.xf";
+    xfproduct[2] = "rotation" + axisID.getExtension() + ".xf";
     xfproduct[3] = appManager.getDatasetName() + axisID.getExtension()
       + "_nonfid.xf";
 
@@ -550,7 +554,8 @@ public class ProcessManager {
     File tlt = new File(workingDirectory, axisDataset + ".tlt");
     File fidTlt = new File(workingDirectory, axisDataset + "_fid.tlt");
     File tltxf = new File(workingDirectory, axisDataset + ".tltxf");
-    File rotation = new File(workingDirectory, "rotation.xf");
+    File rotation = new File(workingDirectory, "rotation"
+      + axisID.getExtension() + ".xf");
     if (tltxf.exists()) {
       // Align{|a|b}.com shows evidence of being run
       if (Utilities.fileExists(appManager.getMetaData(), "_fid.xf", axisID)) {
@@ -565,8 +570,8 @@ public class ProcessManager {
           // The .xf and .tlt could have been written over by the fiducialess
           // processing sequence compare the modification date on the .xf to
           // the .tltxf and rotation.xf
-          if ((xf.lastModified() - tltxf.lastModified()) < 
-            (xf.lastModified() - rotation.lastModified())) {
+          if ((xf.lastModified() - tltxf.lastModified()) < (xf.lastModified() - rotation
+            .lastModified())) {
             Utilities.copyFile(xf, fidXF);
             Utilities.copyFile(tlt, fidTlt);
           }
@@ -576,7 +581,7 @@ public class ProcessManager {
           }
         }
         else {
-          // No rotation.xf exists so the .xf and .tlt came from align
+          // No rotation{|a|b}.xf exists so the .xf and .tlt came from align
           // create the protected copies
           Utilities.copyFile(xf, fidXF);
           Utilities.copyFile(tlt, fidTlt);
@@ -876,29 +881,13 @@ public class ProcessManager {
   }
 
   /**
-   * Run the solvematchshift com file
+   * Run the solvematch com file
    * 
    * @return String
    */
-  public String solvematchshift() throws SystemProcessException {
-    //  Create the required combine command
-    String command = "solvematchshift.com";
-
-    //  Start the com script in the background
-    ComScriptProcess comScriptProcess = startComScript(command, null,
-      AxisID.ONLY);
-    return comScriptProcess.getName();
-
-  }
-
-  /**
-   * Run the solvematchmod com file
-   * 
-   * @return String
-   */
-  public String solvematchmod() throws SystemProcessException {
-    //  Create the required combine command
-    String command = "solvematchmod.com";
+  public String solvematch() throws SystemProcessException {
+    //  Create the required solvematch command
+    String command = "solvematch.com";
 
     //  Start the com script in the background
     ComScriptProcess comScriptProcess = startComScript(command, null,
@@ -913,7 +902,7 @@ public class ProcessManager {
    * @return String
    */
   public String matchvol1() throws SystemProcessException {
-    //  Create the required combine command
+    //  Create the required matchvol1 command
     String command = "matchvol1.com";
 
     //  Start the com script in the background
@@ -929,7 +918,7 @@ public class ProcessManager {
    * @return String
    */
   public String patchcorr() throws SystemProcessException {
-    //  Create the required combine command
+    //  Create the required patchcorr command
     String command = "patchcorr.com";
     //  Create the process monitor
     PatchcorrProcessWatcher patchcorrProcessWatcher = new PatchcorrProcessWatcher(
@@ -948,7 +937,7 @@ public class ProcessManager {
    * @return String
    */
   public String matchorwarp() throws SystemProcessException {
-    //  Create the required combine command
+    //  Create the required matchorwarp command
     String command = "matchorwarp.com";
 
     //  Start the com script in the background
@@ -966,7 +955,7 @@ public class ProcessManager {
   public String volcombine() throws SystemProcessException {
     VolcombineProcessMonitor volcombineProcessMonitor = new VolcombineProcessMonitor(
       appManager, AxisID.ONLY);
-    //  Create the required combine command
+    //  Create the required volcombine command
     String command = "volcombine.com";
 
     //  Start the com script in the background
