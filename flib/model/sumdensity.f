@@ -18,6 +18,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.3  2005/01/10 06:35:44  mast
+c	  Fixed fallback option
+c	
 c	  Revision 3.2  2004/09/21 22:21:13  mast
 c	  Removed a ; for SGI
 c	
@@ -31,7 +34,7 @@ c
 	real*4 array(imsiz*imsiz)
 	integer*4 nxyz(3),mxyz(3),nx,ny,nz
 	equivalence (nx,nxyz(1)),(ny,nxyz(2)),(nz,nxyz(3))
-	character*120 infile,outfile,modelfile
+	character*120 infile,outfile,modelfile,pixelModel
 	include 'model.inc'
 	common /bigcom/array
 	logical readw_or_imod
@@ -45,9 +48,11 @@ c
 	integer*4 iobj,imodobj,imodobj2,imodcont,ifdo,iconThresh,numSurf
 	real*4 dmin,dmax,dmean,sumTot,avgAbove,absSum,absThresh
 	integer*4 ierr,ierr2,irefObject,ifReverse,ifVerbose,nThreshIn
-	integer*4 getimodhead,getimodscales,getimodflags,getimodsurfaces
-	real*4 xyscal,zscale,xofs,yofs,zofs,ximscale, yimscale, zimscale
+	integer*4 getimodhead,getimodflags,getimodsurfaces
+	real*4 xyscal,zscale,xofs,yofs,zofs
+	integer*4 newObj, newImodObj, numNewCont, numObjOrig
 	integer*4 ifflip,getimodobjsize
+	logical*4 firstNewCont
 	real*4 border, polarity
 c
 	logical pipinput
@@ -55,13 +60,17 @@ c
 	integer*4 PipGetInteger,PipGetBoolean
 	integer*4 PipGetString,PipGetFloat
 	integer*4 PipGetNonOptionArg, PipGetInOutFile, PipPrintHelp
+c	  
+c	  fallbacks from ../../manpages/autodoc2man -2 2  sumdensity
+c
 	integer numOptions
-	parameter (numOptions = 12)
+	parameter (numOptions = 13)
 	character*(40 * numOptions) options(1)
 	options(1) =
-     &      'image:ImageFile:FN:@output:OutputFile:FN:@'//
-     &      'model:ModelFile:FN:@objects:ObjectsToDo:LI:@'//
-     &      'border:BorderSize:F:@absolute:AbsoluteThreshold:F:@'//
+     &      'image:ImageFile:FN:@model:ModelFile:FN:@'//
+     &      'output:OutputFile:FN:@pixel:PixelModel:FN:@'//
+     &      'objects:ObjectsToDo:LI:@border:BorderSize:F:@'//
+     &      'absolute:AbsoluteThreshold:F:@'//
      &      'contrast:ContrastThreshold:I:@'//
      &      'reference:ReferenceObject:I:@reverse:ReversePolarity:B:@'//
      &      'verbose:VerboseOutput:B:@param:ParameterFile:PF:@'//
@@ -72,6 +81,7 @@ c
 	infile = ' '
 	outfile = ' '
 	modelfile = ' '
+	pixelModel = ' '
 
 	nobjdo=0
 	border=0.
@@ -105,8 +115,7 @@ c
      &	    call errorexit ('READING MODEL FILE')
 
 	ierr=getimodhead(xyscal,zscale,xofs,yofs,zofs,ifflip)
-	ierr2 = getimodscales(ximscale, yimscale, zimscale)
-	if (ierr .ne. 0 .or. ierr2 .ne. 0)
+	if (ierr .ne. 0)
      &	    call errorexit('getting model header')
 	if (getimodflags(iobjflag,limflag) .ne. 0)
      &	    call errorexit('getting object types')
@@ -115,18 +124,14 @@ c
 c	  
 c	  Do standard scaling of model to index coords
 c
-	do i=1,n_point
-	  p_coord(1,i)=(p_coord(1,i)-xofs) / ximscale
-	  p_coord(2,i)=(p_coord(2,i)-yofs) / yimscale
-	  p_coord(3,i)=(p_coord(3,i)-zofs) / zimscale
-	enddo
+	call scale_model(0)
 c
 	nThreshIn = 0
 	if (PipGetFloat('AbsoluteThreshold', absThresh) .eq. 0)
      &	    nThreshIn  = nThreshIn + 1
 	if (PipGetInteger('ContrastThreshold', iconThresh) .eq. 0) then
 	  nThreshIn  = nThreshIn + 1
-	  absThresh = iconThresh * (dmax - dmin) / 255. + dmin
+	  absThresh = (iconThresh + 0.5) * (dmax - dmin) / 255. + dmin
 	endif
 	if (PipGetInteger('ReferenceObject', irefObject) .eq. 0) then
      	  nThreshIn  = nThreshIn + 1
@@ -147,6 +152,7 @@ c
 	if (PipGetString('ObjectsToDo', line) .eq. 0)
      &	    call parselist(line, iobjdo,nobjdo)
 	ierr = PipGetBoolean('VerboseOutput', ifVerbose)
+	ierr = PipGetString('PixelModel', pixelModel)
 	call PipDone()
 c	  
 	iunitOut = 6
@@ -164,8 +170,8 @@ c
 	    if (npt_in_obj(iobj).gt.2 .and. 256-obj_color(2,iobj) .eq.
      &		irefObject) then
 	      call sum_inside_contour(array, imsiz, nx, ny, nz, iobj, border,
-     &		  dmin - dmax, 1, numInTemp, numAboveTemp, absSum,
-     &		  avgAbove)
+     &		  dmin - dmax, 1., numInTemp, numAboveTemp, absSum,
+     &		  avgAbove, 0)
 	      numTot = numTot + numInTemp
 	      sumTot = sumTot + absSum
 	    endif
@@ -178,9 +184,19 @@ c
      &	      ' pixels is',absThresh
 	endif
 c	  
+c	  Setup for pixel output
+c
+	newImodObj = 0
+	numNewCont = 0
+	numObjOrig = getimodobjsize()
+	if (pixelModel .ne. ' ') then
+	  newImodObj = numObjOrig + 1
+	  firstNewCont = .true.
+	endif
+c	  
 c	  loop on objects
 c
-	do imodobj = 1, getimodobjsize()
+	do imodobj = 1, numObjOrig
 c	    
 c	    do object if no list, or on list, and if closed contour
 c	    exclude reference object
@@ -196,6 +212,12 @@ c
      &	      ifdo = 0
 c
 	  if (ifdo .ne. 0) then
+c	      
+c	      If doing pixel output, go to new object if last one had output
+	    if (numNewCont .gt. 0) then
+	      newImodObj = newImodObj + 1
+	      numNewCont = 0
+	    endif
 c	      
 c	      look for valid contours and make a list of surface numbers
 c
@@ -241,9 +263,28 @@ c
 		do i = 1, numSurf
 		  if (iSurface(iobj) .eq. listsurf(i)) isurf = i
 		enddo
+c		  
+c		  If doing pixel output, allocate new contour first time or if
+c		  last one non-empty
+c
+		newObj = 0
+		if (newImodObj .gt. 0) then
+		  if (firstNewCont .or. npt_in_obj(max_mod_obj) .gt. 0)
+     &		      max_mod_obj = max_mod_obj + 1
+		  newObj = max_mod_obj
+		  npt_in_obj(max_mod_obj) = 0
+		  obj_color(2, newObj) = 256 - newImodObj
+		  ibase_obj(newObj) = n_point
+		  obj_color(1, newObj) = 1
+		  firstNewCont = .false.
+		endif
+
 		call sum_inside_contour(array, imsiz, nx, ny, nz, iobj, border,
      &		    absThresh, polarity, numInTemp, numAboveTemp, absSum,
-     &		    avgAbove)
+     &		    avgAbove, newObj)
+		if (newObj .gt. 0 .and. npt_in_obj(newObj) .gt. 0)
+     &		    numNewCont = numNewCont + 1
+
 		numInBorder(isurf) = numInBorder(isurf) +numInTemp
 		numAboveThresh(isurf) = numAboveThresh(isurf) + numAboveTemp
 		sumAbove(isurf) = sumAbove(isurf) + avgAbove * numAboveTemp
@@ -266,6 +307,17 @@ c
      &		numInTemp, numAboveTemp, sumTemp)
 	  endif
 	enddo
+
+	if (newImodObj .gt. 0) then
+	  if (numNewCont .eq. 0) newImodObj = newImodObj - 1
+	  do i = numObjOrig + 1, newImodObj
+	    call putimodflag(i, 2)
+	    call putsymtype(i, 0)
+	    call putsymsize(i, 1)
+	  enddo
+	  call scale_model(1)
+	  call write_wmod(pixelModel)
+	endif
 
 	call exit(0)
 99	call errorexit('READING FILE')
@@ -309,14 +361,15 @@ c	  numAboveThresh is the number of pixels above threshold
 c	  absSum is the absolute sum of the pixels above threshold
 c	  avgAbove is the average of the those pixels after subtracting
 c	  the threshold
+c	  newObj is an "object" number in which to place points above threshold
 c
 	subroutine sum_inside_contour(array, imsiz, nx, ny, nz, iobj, border,
      &	    absThresh, polarity, numInBorder, numAboveThresh, absSum,
-     &	    avgAbove)
+     &	    avgAbove, newObj)
 	implicit none
 	integer limpts
 	parameter (limpts=10000)
-	integer*4 imsiz, iobj, numInBorder, numAboveThresh, nx, ny, nz
+	integer*4 imsiz, iobj, numInBorder, numAboveThresh, nx, ny, nz, newObj
 	real*4 array(*), absThresh, absSum, avgAbove, border,polarity
 	real*4 cx(limpts),cy(limpts),sumAbove
 	include 'model.inc'
@@ -333,6 +386,7 @@ c
 	numAboveThresh = 0
 	absSum = 0.
 	avgAbove = 0.
+	sumAbove = 0.
 c	  
 c	  copy contour into arrays and get min/max
 c
@@ -420,6 +474,14 @@ c
 		  absSum = absSum + val
 		  sumAbove = sumAbove + polarity * (val - absThresh)
 
+		  if (newObj .ne. 0) then
+		    n_point = n_point + 1
+		    p_coord(1, n_point) = xpix
+		    p_coord(2, n_point) = ypix
+		    p_coord(3, n_point) = iz
+		    npt_in_obj(newObj) = npt_in_obj(newObj) + 1
+		    object(n_point) = n_point
+		  endif
 		endif
 	      endif
 	    endif

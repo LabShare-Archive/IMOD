@@ -1,5 +1,35 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/11/05: IMOD_3-4-17
+1/11/05: eTomo can now generate tomograms using the Z-dependent factors from a
+Tiltalign stretch solution.  The check boxes to use Z factors and to do local
+alignments are now disabled when the last alignment did not produce the
+appropriate file.
+
+1/11/05: In Sumdensity, added a model output of pixels above threshold and
+fixed a bug in the computation of the sums.
+
+1/10/05: Added -d option to self-install script to allow installation in
+other than the default location (except on Windows).
+
+1/9/05: Fixed fatal problem with Sumdensity's .adoc file.
+
+1/7/05: Added median filtering option to Clip and to 3dmod image processing
+dialog, 2D or 3D, with adjustable size.  Warning: append, overwrite, and
+output size options will not work with this or the operations listed on 1/6/05.
+
+1/6/05: Fixed Nda, Mtlengths, Resamplemod, and Mtpairing to ignore pixel
+size in image file header and work with pixel size in model header.  Also
+fixed Resamplemod to line up all vectors in the same direction along the main
+axis before summing, even when not inverting MTs.
+
+1/6/05: Made date/time in MRC header titles be produced in system-independent
+fashion for C-programs, so they will be added in Windows.
+
+1/6/05: Fixed brighten, contrast, and shadow options in Clip, and added
+options for simple filtering operations available in 3dmod: smooth, sharpen, 
+laplacian, graham, gradient, prewitt, sobel.
+
 1/3/05: Converted Tiltalign command files to PIP input; eTomo has been
 modified to handle new or old files and output new files and it now allows
 grouping of global rotations and easy selection of skew-only distortion
