@@ -22,6 +22,9 @@ import java.util.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.0  2003/11/07 23:19:00  rickg
+ * <p> Version 1.0.0
+ * <p>
  * <p> Revision 2.9  2003/05/21 21:19:21  rickg
  * <p> Added started and done flags
  * <p> Shorted thread sleep times
@@ -204,13 +207,10 @@ public class SystemProgram implements Runnable {
           cmdInputStream.flush();
         }
       }
+			cmdInputStream.close();
+
 			if(debug){
 				System.err.println("Done writting to process stdin");
-			}
-
-      cmdInputStream.close();
-
-      if (debug) {
         if (stdInput != null && stdInput.length > 0) {
           System.err.println("SystemProgram: Wrote to process stdin:");
           System.err.println(
