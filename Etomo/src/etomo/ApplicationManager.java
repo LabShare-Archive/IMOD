@@ -90,6 +90,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.93  2004/08/02 23:51:31  sueh
+ * <p> bug# 519 improving error handling in
+ * <p> makeRawtltFile()
+ * <p>
  * <p> Revision 3.92  2004/08/02 23:03:54  sueh
  * <p> bug# 519 added makeRawtltFile(): create a new .rawtlt file from
  * <p> starting angle, step angle, and # sections
@@ -3024,7 +3028,13 @@ public class ApplicationManager {
     BufferedWriter bufferedWriter = null;
     try {
       bufferedWriter = new BufferedWriter(new FileWriter(rawtlt));
-      TiltAngleSpec tiltAngleSpec = metaData.getTiltAngleSpecA();
+      TiltAngleSpec tiltAngleSpec = null;
+      if (axisID == AxisID.SECOND) {
+        tiltAngleSpec = metaData.getTiltAngleSpecB();
+      }
+      else {
+        tiltAngleSpec = metaData.getTiltAngleSpecA();
+      }
       double startingAngle = tiltAngleSpec.getRangeMin();
       double step = tiltAngleSpec.getRangeStep();
       MRCHeader rawStackHeader = getMrcHeader(axisID, ".st");
