@@ -301,7 +301,7 @@ while ($itomo <= $ntomo)
     if ("$tail" == "$root") then
         set recsource = `echo "$header$root.$defsrcext" | sed '/\\/s//\//g'`
     else
-        set recsource = "$header$tail"
+        set recsource = `echo "$header$tail" | sed '/\\/s//\//g'`
     endif
     if (-e "$recsource") then
         set size = `header "$recsource" | sed -n '/rows, sections/p'| awk '{print $7, $8, $9}'`
@@ -719,6 +719,10 @@ EOF
 
 #
 #  $Log$
+#  Revision 3.6  2004/11/29 05:31:03  mast
+#  Determine an output file mode from the density reference section and pass
+#  it into info file (version 4 now)
+#
 #  Revision 3.5  2004/08/27 05:45:53  mast
 #  Changed to take command line arguments, do densmatch to get scaling,
 #  put out filenames on separate lines
