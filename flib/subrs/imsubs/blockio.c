@@ -20,6 +20,9 @@
     $Revision$
 
     $Log$
+    Revision 3.2  2002/06/26 00:22:53  mast
+    Changed abort calls to exit(-1) so that they would set error status
+
     Revision 3.1  2002/01/07 18:23:34  mast
     Add an error message if big_seek fails
 
@@ -223,7 +226,8 @@ void qopen(iunit, name, attribute, name_l, attr_l)
 	       u->fp = fopen(u->fname, modes[mode]);
 	       if (u->fp == NULL)
 		    {
-			 fprintf(stderr, "Could not open '%s'\n", u->fname);
+			 fprintf(stderr, "ERROR: qopen - Could not open '%s'\n"
+				 , u->fname);
 			 perror(""); /* JRK: have system tell why. */
 			 exit(-1);
 		    }
@@ -284,14 +288,14 @@ void qread(iunit, array, nitems, ier)
 		int bc = u->num_char_per_item * *nitems;
 		if (u->write_only)
 		{
-			fprintf(stderr, "qread: file is write only.\n");
-			exit(-1);
+		     fprintf(stderr, "ERROR: qread - file is write only.\n");
+		     exit(-1);
 		}
 		if (fread(array, 1, bc, u->fp) != bc)
 		{
-			fprintf(stderr, "qread: read error\n");
-			perror("");
-			exit(-1);
+		     fprintf(stderr, "ERROR: qread - read error\n");
+		     perror("");
+		     exit(-1);
 		}
 		u->pos += bc;
 		*ier = 0;
@@ -315,14 +319,14 @@ void qwrite(iunit, array, nitems)
 		int bc = u->num_char_per_item * *nitems;
 		if (u->read_only)
 		{
-			fprintf(stderr, "qwrite: file is read only.\n");
-			exit(-1);
+		     fprintf(stderr, "ERROR: qwrite - file is read only.\n");
+		     exit(-1);
 		}
 		if (fwrite(array, 1, bc, u->fp) != bc)
 		{
-			fprintf(stderr, "qwrite: error writing file.\n");
-			perror("");
-			exit(-1);
+		     fprintf(stderr, "ERROR: qwrite - error writing file.\n");
+		     perror("");
+		     exit(-1);
 		}
 		u->pos += bc;
 	}
@@ -352,7 +356,7 @@ void qseek(iunit, irecord, ielement, ireclength)
 			     *ireclength * u->num_char_per_item, 
 			     SEEK_SET))
 		{
-		        fprintf(stderr, "Error on big_seek\n");
+		        fprintf(stderr, "ERROR: qseek - Error on big_seek\n");
 		        exit(-1);
 		}
 	}
@@ -373,7 +377,8 @@ void qback(iunit, ireclength)
 		u->pos += amt;
 		if (fseek(u->fp, amt, SEEK_CUR))
 		{
-			exit(-1);
+		     fprintf(stderr, "ERROR: qskip - Error on seek\n");
+		     exit(-1);
 		}
 	}
 }
@@ -390,7 +395,8 @@ void qskip(iunit, ireclength)
 		u->pos += amt;
 		if (fseek(u->fp, amt, SEEK_CUR))
 		{
-			exit(-1);
+		     fprintf(stderr, "ERROR: qskip - Error on seek\n");
+		     exit(-1);
 		}
 	}
 }

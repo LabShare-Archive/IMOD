@@ -19,6 +19,10 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.1  2002/06/26 00:27:51  mast
+c	  Added ability to write back to byte swapped files, and changed STOPs
+c	  to call exit(1)
+c	
 C
 	SUBROUTINE IWRLIN(ISTREAM,ARRAY)
 C
@@ -51,7 +55,8 @@ C
 C
 1	J = LSTREAM(ISTREAM)
 	if(spider(j))then
-	  print *,'IWRLIN ERROR: TRYING TO WRITE TO SPIDER FILE'
+	  print *
+	  print *,'ERROR: IWRLIN - TRYING TO WRITE TO SPIDER FILE'
 	  call exit(1)
 	endif
 
@@ -161,7 +166,8 @@ c		DNM: similar changes, also make limit 32767 instead of 32700.
 
         else                           !bit mode
 	  if (mrcflip(j))then
-	    print *,'IWRLIN: TRYING TO WRITE BIT MODE DATA TO',
+	    print *
+	    print *,'ERROR: IWRLIN - TRYING TO WRITE BIT MODE DATA TO',
      &		' BYTE_SWAPPED FILE'
 	    call exit(1)
 	  endif

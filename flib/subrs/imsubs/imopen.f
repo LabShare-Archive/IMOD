@@ -12,6 +12,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.1  2002/06/26 00:23:44  mast
+c	  Changed STOP statements to print and call exit(1)
+c	
 c
 	SUBROUTINE IMOPEN(ISTREAM,NAME,ATBUTE)
 	CHARACTER*(*) NAME,ATBUTE
@@ -38,7 +41,7 @@ C
 	numopen = numopen + 1
 	if (numopen .gt. maxunit) then
 	  write(6,1100)maxunit
-1100	  format(//,' IMOPEN: No More than',i4,
+1100	  format(//,' ERROR: IMOPEN: - No More than',i4,
      &	      ' files can be opened, cannot open file!!',//)
 	  call exit(1)
 	endif
@@ -58,7 +61,8 @@ c
 	  CALL QSEEK(J,1,1,1)
 	  CALL QREAD(J,buf,NBW3,IER)
 	  IF (IER .NE. 0) then
-	    print *, 'IMOPEN: ERROR READING FILE'
+	    print *
+	    print *, 'ERROR: IMOPEN - ERROR READING FILE'
 	    call exit(1)
 	  endif
 	  mrctyp=.true.
@@ -82,8 +86,9 @@ c
      &	      buf(3).gt.0.5.and.buf(3).lt.60000.
 	  spider(j)=spityp.and..not.mrctyp
 	  if(.not.(mrctyp.or.spityp))then
-	    print *,
-     &	      'THIS FILE IS NOT RECOGNIZABLE AS MRC OR SPIDER IMAGE FILE'
+	    print *
+	    print *, 'ERROR: IMOPEN - THIS FILE IS NOT ',
+     &		'RECOGNIZABLE AS MR OR SPIDER IMAGE FILE'
 	    call exit(1)
 	  endif
 	endif

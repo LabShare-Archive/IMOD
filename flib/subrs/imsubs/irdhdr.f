@@ -40,6 +40,10 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.5  2002/06/26 16:54:54  mast
+c	  Fixed bug in transferring extra header bytes from a swapped file
+c	  Need implicit none!
+c	
 c	  Revision 3.4  2002/06/26 00:27:01  mast
 c	  Added ability to write a header back to a byte-swapped file, except
 c	  for extra header stuff.  Changed STOP's to call exit(1)
@@ -295,7 +299,8 @@ c
 	DENMMM(3,J) = DMEAN
 C	  
 	if(spider(j))then
-	  print *,'IWRHDR ERROR: TRYING TO WRITE TO SPIDER FILE'
+	  print *
+	  print *,'ERROR: IWRHDR - TRYING TO WRITE TO SPIDER FILE'
 	  call exit(1)
 	endif
 c	  
@@ -401,7 +406,8 @@ c
 	K = LSTREAM(JSTREAM)
 	if (nbsym(k).eq.0) return
 	if (mrcflip(j)) then
-	  print *,'ITRHDR/ITEXTRA ERROR: Cannot transfer extra ',
+	  print *
+	  print *,'ERROR: ITRHDR/ITEXTRA - Cannot transfer extra ',
      &	      'header to a byte-swapped file'
 	  call exit(1)
 	endif
@@ -423,8 +429,9 @@ c
 	    nblockunits=limtmp/(4*(nints+nreal))
 	    iblocksize = nblockunits * 4 *(nints+nreal)
 	    if(iblocksize.eq.0) then
-	      print *,'ITRHDR/ITREXTRA: array size too small to ',
-     &		  'transfer extra header data'
+	      print *
+	      print *,'ERROR: ITRHDR/ITREXTRA - array size too small ',
+     &		  'to transfer extra header data'
 	      call exit(1)
 	    endif
 	  endif
@@ -631,7 +638,8 @@ C
 C
 	J = LSTREAM(ISTREAM)
 	IF (ISTART .GT. 16 .OR. ISTART .LT. 1)  then
-	  print *, 'IALEXT: ERROR IN START NUMBER'
+	  print *
+	  print *, 'ERROR: IALEXT - IN START NUMBER'
 	  call exit(1)
 	endif
 	JEXTRA = MIN(NEXTRA + ISTART,17) - ISTART
@@ -762,7 +770,8 @@ c
 	entry ialsym(istream,mbsym,jbsym)
 	j = lstream(istream)
 	if (mrcflip(j)) then
-	  print *,'IALSYM ERROR: Cannot alter extra ',
+	  print *
+	  print *,'ERROR: IALSYM - Cannot alter extra ',
      &	      'header in a byte-swapped file'
 	  call exit(1)
 	endif
@@ -922,7 +931,8 @@ C
 C
 	J = LSTREAM(ISTREAM)
 	IF (ISTART .GT. 16 .OR. ISTART .LT. 1) then
-	  print *, 'IRTEXT: ERROR IN START NUMBER'
+	  print *
+	  print *, 'ERROR: IRTEXT - IN START NUMBER'
 	  call exit(1)
 	endif
 	JEXTRA = MIN(NEXTRA + ISTART,17) - ISTART
@@ -1128,7 +1138,7 @@ c
 c
 c
 99	WRITE(6,2000)
-2000	FORMAT(' IRDHDR: End-of-File error !!!')
+2000	FORMAT(/,' ERROR: IRDHDR - End-of-File !!!')
 	call exit(1)
 	END
 
