@@ -43,6 +43,9 @@ import etomo.comscript.CombineParams;
  * 
  * <p>
  * $Log$
+ * Revision 3.13  2004/07/21 00:19:15  sueh
+ * bug# 507 added Don't run volcombine checkbox, non-persistant
+ *
  * Revision 3.12  2004/06/25 23:24:25  sueh
  * bug# 485 also set patch region model checkbox based on
  * matchorwarp
@@ -458,6 +461,10 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields {
   
   boolean isRunVolcombine() {
     return !cbNoVolcombine.isSelected();
+  }
+  
+  void setRunVolcombine(boolean runVolcombine) {
+    cbNoVolcombine.setSelected(!runVolcombine);
   }
 
   /**
