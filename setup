@@ -12,7 +12,7 @@
 #
 # Global setup
 #
-set imod_copyright    = '1994-2003'
+set imod_copyright    = '1994-2004'
 set lab_name1     = 'Boulder Laboratory for 3-Dimensional'
 set lab_name2     = 'Electron Microscopy of Cells'
 set source_dir    = `pwd`
@@ -736,6 +736,9 @@ exit
 
 #
 #  $Log$
+#  Revision 3.35  2003/12/30 17:38:02  mast
+#  changes for windows DLLs
+#
 #  Revision 3.34  2003/11/12 22:05:23  mast
 #  Output separate variables for making static lib for tilt
 #
