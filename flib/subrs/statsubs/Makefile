@@ -1,5 +1,7 @@
 include ../../configure
 
+FFLAGS = $(LIBFFLAGS)
+
 O        = $(OBJEXT)
 OBJS = avgsd.$(O) dirnm.$(O) hdiag.$(O) multr.$(O) stepwz.$(O) correl.$(O) \
  eigenv.$(O) matinv.$(O) polyfit.$(O) betacf.$(O) fvalue.$(O) nestanova.$(O) \

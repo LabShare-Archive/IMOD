@@ -1,5 +1,8 @@
 include ../../configure
 
+CFLAGS = $(LIBCFLAGS)
+FFLAGS = $(LIBFFLAGS)
+
 OBJS = ransub.$(OBJEXT) ourrnd.$(OBJEXT)
 
 all: $(OBJS)

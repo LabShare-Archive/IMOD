@@ -1,5 +1,7 @@
 include ../../configure
 
+FFLAGS = $(LIBFFLAGS)
+
 OBJS = degtrig.$(OBJEXT)
 
 all: $(OBJS)

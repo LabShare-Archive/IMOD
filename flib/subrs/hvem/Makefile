@@ -3,6 +3,8 @@ include ../../configure
 # 7/18/00 CER move strupcase to imsubs2
 #    (strupcase.o was in the OBJS list below)
 #
+FFLAGS = $(LIBFFLAGS)
+
 O        = $(OBJEXT)
 OBJS = concat.$(O) dopen.$(O) getinout.$(O) mypause.$(O)\
  rdlist.$(O) wrlist.$(O) frefor.$(O) copy_to_backup.$(O) niceframe.$(O)\

@@ -1,5 +1,7 @@
 include ../../configure
 
+FFLAGS = $(LIBFFLAGS)
+
 O        = $(OBJEXT)
 OBJS = obj_manager.$(O) read_mod.$(O) readw_or_imod.$(O) repack_mod.$(O) \
  store_mod.$(O) write_wmod.$(O) iobjfromcont.$(O) objtocont.$(O)

@@ -9,12 +9,17 @@ include ../../configure
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.3  2003/12/24 18:08:43  mast
+#  Remove get_nxyz
+#
 #  Revision 3.2  2003/10/24 02:31:04  mast
 #  Changes for windows/Intel compiler
 #
 #  Revision 3.1  2002/08/18 23:01:58  mast
 #  Added iclavgsd
 #
+
+FFLAGS = $(LIBFFLAGS)
 
 O        = $(OBJEXT)
 OBJS =  bigfft.$(O) bigfilt.$(O) cinterp.$(O) filter.$(O) icalc_angles.$(O) \

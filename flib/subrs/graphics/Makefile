@@ -1,5 +1,9 @@
 include ../../configure
 
+CFLAGS = $(LIBCFLAGS)
+CXXFLAGS = $(LIBCFLAGS)
+FFLAGS = $(LIBFFLAGS)
+
 O        = $(OBJEXT)
 OBJS = bshst.$(O) impak.$(O) bsplt.$(O) graphpak.$(O) imsymb.$(O) scale.$(O) \
  chrout.$(O) grupnt.$(O) label_axis.$(O) shiftpt.$(O) dsaxes.$(O) imdash.$(O) \

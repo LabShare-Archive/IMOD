@@ -1,5 +1,6 @@
 include ../../configure
 
+FFLAGS = $(LIBFFLAGS)
 
 O = $(OBJEXT)
 OBJS  = linetrack.$(O) linesubs.$(O) reducepts.$(O) conttrack.$(O)

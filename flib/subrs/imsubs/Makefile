@@ -6,12 +6,18 @@ include ../../configure
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.3  2003/12/17 22:11:56  mast
+#  Added irdbinned
+#
 #  Revision 3.2  2003/10/24 02:31:04  mast
 #  Changes for windows/Intel compiler
 #
 #  Revision 3.1  2002/02/26 23:01:22  mast
 #  Added nbytes_and_flags to test for structure of extended header
 #
+
+CFLAGS = $(LIBCFLAGS)
+FFLAGS = $(LIBFFLAGS)
 
 O        = $(OBJEXT)
 OBJS = blockio.$(O) altskip.$(O) icllim.$(O) imopen.$(O) imposn.$(O) \

@@ -1,5 +1,7 @@
 include ../../configure
 
+FFLAGS = $(LIBFFLAGS)
+
 O        = $(OBJEXT)
 OBJS = amat_to_rotmag.$(O) amat_to_rotmagstr.$(O) rotmag_to_amat.$(O)\
  rotmagstr_to_amat.$(O) xfapply.$(O) xfinvert.$(O) xflincom.$(O) xfcopy.$(O) \
