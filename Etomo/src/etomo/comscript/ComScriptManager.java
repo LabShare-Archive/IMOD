@@ -31,6 +31,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.17  2004/11/30 00:33:11  sueh
+ * <p> bug# 556 Adding functions to parse volcombine.com.
+ * <p>
  * <p> Revision 3.16  2004/11/19 22:42:19  sueh
  * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
  * <p>
@@ -1041,7 +1044,7 @@ public class ComScriptManager {
   
   public SetParam getSetParamFromVolcombine() {
     SetParam setParam = new SetParam("combinefft_reduce", EtomoNumber.FLOAT_TYPE);
-    if (!initialize(setParam, scriptVolcombine, SetParam.COMMAND_NAME, AxisID.ONLY)) {
+    if (!initialize(setParam, scriptVolcombine, SetParam.COMMAND_NAME, AxisID.ONLY, true)) {
       return null;
     }
     return setParam;
