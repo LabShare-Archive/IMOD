@@ -17,6 +17,11 @@ import etomo.comscript.InvalidParameterException;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.3  2005/01/21 23:23:26  sueh
+* <p> bug# 509 bug# 591  Moved the prevention of null values to
+* <p> ConstEtomoNumber.  No longer need to override initialize() functions or
+* <p> newNumber().
+* <p>
 * <p> Revision 1.2  2005/01/14 23:03:18  sueh
 * <p> Overriding initialize(), parse(), and update().
 * <p>
@@ -25,7 +30,7 @@ import etomo.comscript.InvalidParameterException;
 * <p> can't read/write itself  to/from .edf and .com files.
 * <p> </p>
 */
-public class EtomoBoolean2 extends EtomoNumber {
+public class EtomoBoolean2 extends ScriptParameter {
   public static  final String  rcsid =  "$Id$";
   
   public static final int FALSE_VALUE = 0;
@@ -40,6 +45,7 @@ public class EtomoBoolean2 extends EtomoNumber {
   public EtomoBoolean2(String name) {
     super(EtomoNumber.INTEGER_TYPE, name, true, new Integer(FALSE_VALUE));
     setValidValues(new int[] { FALSE_VALUE, TRUE_VALUE });
+    setUseScreenDisplayValue(false);
   }
   
   /**
@@ -61,7 +67,7 @@ public class EtomoBoolean2 extends EtomoNumber {
    * otherwise return true
    */
   protected String toString(Number value) {
-    if (is()) {
+    if (is(value)) {
       return trueString;
     }
     return falseString;
@@ -71,15 +77,16 @@ public class EtomoBoolean2 extends EtomoNumber {
    * Override parse(ComScriptCommand) to handle a boolean being true when
    * it has no value in the script.
    */
-  public ConstEtomoNumber parse(ComScriptCommand scriptCommand)
+  public ConstEtomoNumber parse(ComScriptCommand scriptCommand, String keyword)
       throws InvalidParameterException {
-    if (scriptCommand.hasKeyword(name)) {
-      String scriptValue = scriptCommand.getValue(name);
-      if (scriptValue == null || scriptValue.matches("\\s*")) {
-        return set(TRUE_VALUE);
-      }
+    if (!scriptCommand.hasKeyword(keyword)) {
+      return set(FALSE_VALUE);
     }
-    return super.parse(scriptCommand);
+    String scriptValue = scriptCommand.getValue(keyword);
+    if (scriptValue == null || scriptValue.matches("\\s*")) {
+      return set(TRUE_VALUE);
+    }
+    return set(scriptValue);
   }
   
   /**
@@ -87,7 +94,10 @@ public class EtomoBoolean2 extends EtomoNumber {
    * integer in the script (use super.toString()).  Also handle writing the
    * boolean as a parameter without a value.
    */
-  public ConstEtomoNumber update(ComScriptCommand scriptCommand) {
+  public ConstEtomoNumber setInScript(ComScriptCommand scriptCommand) {
+    if (!isUseInScript()) {
+      return this;
+    }
     if (!updateAsInteger && !is()) {
       scriptCommand.deleteKey(name);
     }
@@ -100,6 +110,27 @@ public class EtomoBoolean2 extends EtomoNumber {
     return this;
   }
   
+  public ConstEtomoNumber addToScript(StringBuffer optionBuffer, boolean force) {
+    if (!force && !isUseInScript()) {
+      return this;
+    }
+    if (updateAsInteger) {
+      optionBuffer.append(super.toString(getValueForScript()));
+    }
+    else {
+      optionBuffer.append(toString(getValueForScript()));
+    }
+    return this;
+  }
+  
+  public boolean isUseInScript() {
+    return true;
+  }
+  
+  protected Number getValueForScript() {
+    return currentValue;
+  }
+    
   /**
    * To convert from strings such as "false"
    * Override newNumber(String, StringBuffer) and convert from a trimmed, case
