@@ -344,6 +344,10 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.14  2003/12/09 00:11:49  mast
+c	  Have card reader accept blank lines in case sed in new sample.com
+c	  creates one
+c	
 c	  Revision 3.13  2003/10/24 03:44:56  mast
 c	  took out flush call for Windows/Intel
 c	
@@ -657,9 +661,11 @@ C		    Position to read from projection NV at record NL
 		  CALL IMPOSN(1,mapuse(NV)-1,iyload)
 		  CALL IRDLIN(1,ARRAY(ISTART),*999)
 c		    Take log if requested
+c		    3/31/04: limit values to .001 time dynamic range
 		  if(iflog.ne.0)then
+		    valmin = 1.e-3 * (pmax - pmin)
 		    do 220 ix=istart,istart+nprj-1
-		      array(ix)=alog10(max(1.e-5,array(ix)+baselog))
+		      array(ix)=alog10(max(valmin,array(ix)+baselog))
 220		    continue
 		  endif
 c		    
