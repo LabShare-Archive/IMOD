@@ -40,14 +40,30 @@ ImodAssistant::ImodAssistant(const char *path, const char *adpFile,
                              char *messageTitle, bool absolute)
 {
   mAssistant = NULL;
+  mAssumedIMOD = false;
   if (messageTitle)
     mTitle = QString(messageTitle) + " Error";
+
+  // Get IMOD_DIR; set up fallback if necessary
+  mImodDir = getenv("IMOD_DIR");
+  if (mImodDir.isEmpty()) {
+    mAssumedIMOD = true;
+#ifdef _WIN32
+    mImodDir = "C:\\cygwin\\usr\\local\\IMOD";
+#else
+#ifdef Q_OS_MACX
+    mImodDir = "/Applications/IMOD";
+#else
+    mImodDir = "/usr/local/IMOD";
+#endif
+#endif
+  }
 
   // Set up path to help files; either absolute or under IMOD_DIR
   if (absolute) {
     mPath = QString(path);
   } else {
-    mPath = QString(getenv("IMOD_DIR")) + QDir::separator() + QString(path);
+    mPath = mImodDir + QDir::separator() + QString(path);
   }
   if (adpFile)
     mAdp = QString(adpFile);
@@ -83,13 +99,12 @@ int ImodAssistant::showPage(const char *page)
 
     // Open the assistant in qtlib if one exists, otherwise take the one on
     // path.  Need to check for .app on Mac, and in /bin on Windows
-    QString imodDir = QString(getenv("IMOD_DIR"));
 #ifdef _WIN32
-    assPath = QDir::cleanDirPath(imodDir + sep + "bin");
+    assPath = QDir::cleanDirPath(mImodDir + sep + "bin");
     if (!QFile::exists(assPath + sep + "assistant.exe")) 
       assPath = "";
 #else
-    assPath = QDir::cleanDirPath(imodDir + sep + "qtlib");
+    assPath = QDir::cleanDirPath(mImodDir + sep + "qtlib");
     if (!QFile::exists(assPath + sep + "assistant") && 
         !QFile::exists(assPath + sep + "assistant.app"))
       assPath = "";
@@ -132,6 +147,9 @@ int ImodAssistant::showPage(const char *page)
     fileOnly = fileOnly.left(len);
   if (!QFile::exists(fileOnly)) {
     fileOnly = QString("Cannot find help file: ") + fileOnly;
+    if (mAssumedIMOD)
+      fileOnly += QString("\nThis is probably because IMOD_DIR is not defined"
+                          "\nand was assumed to be") + mImodDir;
     if (!mTitle.isEmpty())
       QMessageBox::warning(0, mTitle, fileOnly, QMessageBox::Ok,
                            QMessageBox::NoButton, QMessageBox::NoButton);
@@ -157,6 +175,10 @@ void ImodAssistant::assistantError(const QString &msg)
 
 /*
     $Log$
+    Revision 1.9  2004/12/24 02:11:05  mast
+    Have it take determine if page is an absolute path instead of requiring
+    argument
+
     Revision 1.8  2004/12/22 23:15:17  mast
     Have it determine if adp file not found and give a different return code
     instead of generating the error signal
