@@ -30,6 +30,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.2  2004/03/15 20:33:55  rickg
+ * <p> button variable name changes to btn...
+ * <p>
  * <p> Revision 3.1  2004/01/30 22:44:22  sueh
  * <p> bug# 356 Changing buttons with html labels to
  * <p> MultiLineButton and MultiLineToggleButton
@@ -274,6 +277,7 @@ public class AlignmentEstimationDialog
     if (axisID != AxisID.ONLY) {
       logWindowLabel[0] = "Align Axis:" + axisID.getExtension();
     }
+    String alignCommandName = logWindowLabel[0];
 
     String[] alignLabels =
       {
@@ -309,7 +313,10 @@ public class AlignmentEstimationDialog
         manPage,
         logWindowLabel,
         logFileLabel,
-        logFile);
+        logFile,
+        applicationManager,
+        alignCommandName,
+        axisID);
   }
 
   //  Action function overides for exit buttons
