@@ -13,6 +13,9 @@ package etomo.comscript;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.0  2003/11/07 23:19:00  rickg
+ * <p> Version 1.0.0
+ * <p>
  * <p> Revision 2.3  2003/07/25 22:56:12  rickg
  * <p> CommandParam method name changes
  * <p>
@@ -42,4 +45,6 @@ public interface CommandParam {
    */
   public void updateComScriptCommand(ComScriptCommand scriptCommand)
     throws BadComScriptException;
+    
+  public void initializeDefaults();
 }
