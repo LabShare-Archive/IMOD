@@ -1,4 +1,4 @@
-# IMOD 3.0.17
+# IMOD 3.2.10
 #
 # Startup file for bash users of IMOD under Linux
 #
@@ -13,17 +13,18 @@
 #
 export IMOD_DIR=${IMOD_DIR:=C:\cygwin\usr\local\IMOD}
 
-#
 # Put the IMOD programs on the path
 #
 export PATH=`cygpath $IMOD_DIR`/bin:$PATH
 
+# Set a variable with the location of calibration/data files
 #
+export IMOD_CALIB_DIR=${IMOD_CALIB_DIR:=/usr/local/ImodCalib}
+
 # A subm function to run command files in the background with submfg
 #
 function subm () { submfg $* & }
 
-#
 # Aliases to run imod/3dmod and imodv/3dmodv in background
 #
 alias imod=3dmodbg

@@ -1,4 +1,4 @@
-# IMOD 3.2.7
+# IMOD 3.2.10
 #
 # Startup file for tcsh users of IMOD under Linux - place it in /etc/profile.d
 #
@@ -14,12 +14,10 @@
 #
 if (! $?IMOD_DIR) setenv IMOD_DIR /usr/local/IMOD
 
-#
 # Set IMOD_JAVADIR if it is not set already
 #
 if (! $?IMOD_JAVADIR) setenv IMOD_JAVADIR /usr/local/java
 
-#
 # Put the IMOD programs on the path
 #
 if ($?PATH) then
@@ -28,12 +26,10 @@ else
     setenv PATH $IMOD_DIR/bin
 endif
 
-#
 # Set variable with location of the IMOD plugins
 #
 setenv IMOD_PLUGIN_DIR $IMOD_DIR/lib/imodplug
 
-#
 # Tell the system where the IMOD libraries are located.
 #
 if ($?LD_LIBRARY_PATH) then
@@ -42,17 +38,14 @@ else
 	setenv LD_LIBRARY_PATH $IMOD_DIR/lib
 endif
 
-#
 # Set a variable with the location of calibration/data files
 #
 if (! $?IMOD_CALIB_DIR) setenv IMOD_CALIB_DIR /usr/local/ImodCalib
 
-#
 # A subm alias to run command files in the background with submfg
 #
 alias subm 'submfg \!* &'
 
-#
 # This command allows fast backprojection if the USFFT license file exists
 # in either /usr/local/USFFT by hostname, or in IMOD_DIR
 #
