@@ -74,6 +74,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.46  2003/05/23 22:49:41  rickg
+ * <p> Spelling correction
+ * <p>
  * <p> Revision 2.45  2003/05/23 14:29:11  rickg
  * <p> Progress bar determinant delegate methods
  * <p>
@@ -3350,13 +3353,23 @@ public class ApplicationManager {
   }
 
   /**
+   * Set the progress bar to the specified value and update the string
+   * @param value
+   * @param string
+   * @param axisID
+   */
+  public void setProgressBarValue(int value, String string, AxisID axisID) {
+    mainFrame.setProgressBarValue(value, string, axisID);
+  }
+
+  /**
    * 
    * @param axisID
    */
-  public void progressBarDone(AxisID axisID){
+  public void progressBarDone(AxisID axisID) {
     mainFrame.stopProgressBar(axisID);
   }
-  
+
   /**
    * Notification message that a background process is done.
    * @param threadName The name of the thread that has finished
