@@ -10,8 +10,83 @@ import java.io.FileNotFoundException;
 import java.util.Vector;
 
 /**
-* <p>Description:</p>
+* <p>Description:
+* Parses an autodoc file.  Finds and saves autodoc elements in an Autodoc
+* object.
+* 
+* AutodocParser is not case sensitive.  It stores all text in the original case.
+* It retains the original whitespace, except for end of line.  It substitute one
+* space for each end of line character in a multi-line value.  Comments are not
+* stored.  Messages about syntax errors are sent to System.err.
 *
+* To Use:
+* Construct the class with an Autodoc.
+* Run initialize().
+* Run parse().
+* 
+* Testing:
+* Do not call initialize() when testing.
+* Call test() to test this class.
+* Call testPreprocessor() to test only the preprocessor in this class.
+* Call testAutodocTokenizer() to test the AutodocTokenizer.
+* Call testPrimativeTokenizer() to test the PrimativeTokenizer.
+* Call testStreamTokenizer() to test the StreamTokenizer.
+*
+*
+* Language Definition:
+*
+* Syntax of language definition:
+* => equals
+* TOKEN
+* {  0 or more  }
+* [  1 or more  ]
+* {n  0 up to n  n}
+* (  group together  )
+* (boolean value)
+* \any token except these\
+* | => or
+* & => and
+* EOL => EOL & EOF
+* 
+* Definition:
+* Autodoc => { (emptyLine) | comment | attribute | section }
+* 
+* comment => (startOfLine) {1 WHITESPACE 1} COMMENT { \EOL\ } EOL
+* 
+* section => (startOfLine && delimiterInLine) {1 WHITESPACE 1} OPEN 
+*            sectionHeader CLOSE { EmptyLine | attribute }
+* 
+* sectionHeader => (!startOfLine && delimiterInLine) WORD {1 WHITESPACE 1}
+*                  DELIMITER {1 WHITESPACE 1} sectionName
+* 
+* sectionName = (!startOfLine && delimiterInLine) [ \CLOSE & WHITESPACE & EOL\ ]
+* 
+* attribute => (startOfLine && delimiterInLine)
+*              ( ( WORD { SEPARATOR attribute } ) |
+*                ( {1 WHITESPACE 1} DELIMITER {1 WHITESPACE 1} {1 value 1} )
+*              )
+* 
+* value => { \EOL\ } EOL { (!delimiterInLine && !emptyLine && !comment)
+*                          { \DELIMITER & EOL\ } EOL
+*                        }
+* 
+* Required Elements:
+* Top level attributes (meta data):  Version and Pip.
+* 
+* Flags:
+* The KeyValueDelimiter attribute changes the delimiter string for subsequent
+* lines.  It can be used as often as needed and placed anywhere in the autodoc
+* file.
+* 
+* Preprocessor:
+* Sets flags decribing the line and position of the current token: emptyLine,
+* delimiterInLine, and startOfLine.
+* 
+* Postprocessor:
+* Checks for required elements.
+* 
+* </p>
+* 
 * <p>Copyright: Copyright © 2002, 2003</p>
 *
 * <p>Organization:
@@ -23,6 +98,10 @@ import java.util.Vector;
 * @version $$Revision$$
 *
 * <p> $$Log$
+* <p> $Revision 1.3  2003/12/31 01:27:04  sueh
+* <p> $bug# 372 save recognized data, testing, delimiter change on
+* <p> $the fly, checking for meta data
+* <p> $
 * <p> $Revision 1.2  2003/12/23 21:32:25  sueh
 * <p> $bug# 372 Reformating.  Creating parser.  Test function for
 * <p> $preprocessor.  Fixing preprocessor.
@@ -46,6 +125,7 @@ public class AutodocParser {
   private Autodoc autodoc = null;
   private Token token = null;
   private Token prevToken = null;
+  private boolean parsed = false;
 
   //error flags
   private boolean errorsFound = false;
@@ -78,16 +158,13 @@ public class AutodocParser {
   private Token valueStart = null;
   private Token valueEnd = null;
 
-  public AutodocParser(Autodoc autodoc, File file) {
+  public AutodocParser(Autodoc autodoc) {
     if (autodoc == null) {
       throw new IllegalArgumentException("autodoc is null.");
     }
-    if (file == null) {
-      throw new IllegalArgumentException("file is null.");
-    }
     this.autodoc = autodoc;
     name = new String(autodoc.getName());
-    this.file = file;
+    file = autodoc.getFile();
     tokenizer = new AutodocTokenizer(file);
   }
 
@@ -96,11 +173,15 @@ public class AutodocParser {
   }
 
   /**
-   * Autodoc => { (emptyLine) | comment | attribute | section }
-   * 
+   * Parses an autodoc file.
+   * This function can be run only once per instance of the object.
    * @throws IOException
    */
   public void parse() throws IOException {
+    if (parsed) {
+      return;
+    }
+    parsed = true;
     testStartFunction("parse");
     nextToken();
     while (!token.is(Token.EOF)) {
@@ -126,8 +207,7 @@ public class AutodocParser {
   }
 
   /**
-   * comment => (startOfLine) {1 WHITESPACE 1} COMMENT { \EOL\ } EOL
-   * 
+   * Parses a comment.
    * @return true if comment found
    * @throws IOException
    */
@@ -153,8 +233,7 @@ public class AutodocParser {
   }
 
   /**
-   * section => (startOfLine && delimiterInLine) {1 WHITESPACE 1} OPEN sectionHeader CLOSE { EmptyLine | attribute }
-   * 
+   * Parses a section.
    * @return true if section found
    * @throws IOException
    */
@@ -205,8 +284,6 @@ public class AutodocParser {
   }
 
   /**
-   * sectionHeader => (!startOfLine && delimiterInLine) WORD {1 WHITESPACE 1} DELIMITER {1 WHITESPACE 1} sectionName
-   * 
    * @return true if sectionHeader found
    * @throws IOException
    */
@@ -255,8 +332,6 @@ public class AutodocParser {
   }
 
   /**
-   * sectionName = (!startOfLine && delimiterInLine) [ \CLOSE,WHITESPACE,EOL\ ]
-   * 
    * @return true if sectionName found
    */
   private boolean sectionName() throws IOException {
@@ -296,8 +371,6 @@ public class AutodocParser {
   }
 
   /**
-   * attribute => (startOfLine && delimiterInLine) ( ( WORD { SEPARATOR attribute } ) | ( {1 WHITESPACE 1} DELIMITER {1 WHITESPACE 1} {1 value 1} ) )
-   * 
    * @return true if attribute found
    * @throws IOException
    */
@@ -356,8 +429,6 @@ public class AutodocParser {
   }
 
   /**
-   * value => { \EOL\ } EOL { (!delimiterInLine && !emptyLine && !comment) { \DELIMITER,EOL\ } EOL }
-   * 
    * @return true if value found
    * @throws IOException
    */
@@ -401,7 +472,8 @@ public class AutodocParser {
       valueEnd = valueEnd.dropFromList();
       attribute.setValue(valueStart);
       if (oneLine) {
-        if (attributeNameStart.equals(Token.KEYWORD, AutodocTokenizer.DELIMITER_KEYWORD)) {
+        if (attributeNameStart
+          .equals(Token.KEYWORD, AutodocTokenizer.DELIMITER_KEYWORD)) {
           tokenizer.setDelimiterString(valueStart.getValue(true));
         }
         nextToken();
@@ -593,17 +665,29 @@ public class AutodocParser {
     }
     while (!token.is(Token.EOF));
   }
-
-  public void testParser(boolean tokens) throws IOException {
+  
+  /**
+   * 
+   * @param tokens: display tokens rather then text
+   * @throws IOException
+   */
+  public void test(boolean tokens) throws IOException {
     test = true;
     testWithTokens = tokens;
     initialize();
     parse();
   }
 
-  public void testParser(boolean tokens, boolean details) throws IOException {
+  /**
+   * 
+   * @param tokens: display tokens rather then text.
+   * @param details: display more information and throw an exception as the
+   *                 first error.
+   * @throws IOException
+   */
+  public void test(boolean tokens, boolean details) throws IOException {
     detailedTest = true;
-    testParser(tokens);
+    test(tokens);
   }
 
   private void testStartFunction(String functionName) {
