@@ -103,6 +103,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.8  2002/07/27 15:49:27  mast
+c	  Standardized error outputs
+c	
 c	  Revision 3.7  2002/05/21 03:22:39  mast
 c	  Moved big array to common to avoid stack size problem on SGI
 c	
@@ -357,7 +360,7 @@ c
      &	      array,nxusebin, nyusebin)
 c
 	  call cubinterp(array,brray,nxusebin,nyusebin,nxusebin,nyusebin,fs,
-     &	      nxusebin/2., nyusebin/2.,0.,0. ,1.,dmean2)
+     &	      nxusebin/2., nyusebin/2.,0.,0. ,1.,dmean2, 0)
 	  call taperinpad(brray,nxusebin,nyusebin,brray,nxpad+2,nxpad,nypad,
      &	      nxtap, nytap)
 c
