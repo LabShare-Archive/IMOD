@@ -19,6 +19,9 @@ import etomo.type.FiducialMatch;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.4  2003/07/28 22:44:56  rickg
+ * <p> Added an equals method
+ * <p>
  * <p> Revision 2.3  2003/03/18 23:49:40  rickg
  * <p> Added scripts created state variable
  * <p>
@@ -71,7 +74,6 @@ public class ConstCombineParams {
   protected String tempDirectory = "";
   protected boolean manualCleanup = false;
   protected boolean modelBased = false;
-  protected boolean scriptsCreated = false;
 
   protected ArrayList invalidReasons = new ArrayList();
 
@@ -302,12 +304,5 @@ public class ConstCombineParams {
    */
   public boolean isModelBased() {
     return modelBased;
-  }
-
-  /**
-   * @return boolean
-   */
-  public boolean isScriptsCreated() {
-    return scriptsCreated;
   }
 }
