@@ -26,6 +26,9 @@ import etomo.ui.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.0  2003/01/24 20:30:31  rickg
+ * <p> Single window merge to main branch
+ * <p>
  * <p> Revision 1.36.2.1  2003/01/24 18:27:46  rickg
  * <p> Single window GUI layout initial revision
  * <p>
@@ -1161,7 +1164,7 @@ public class ApplicationManager {
     // Get the tilt{|a|b}.com and align{|a|b}.com parameters
     comScriptMgr.loadTiltCom(axisID);
     tomogramPositioningDialog.setTiltParams(
-      comScriptMgr.getTiltParam(AxisID.ONLY));
+      comScriptMgr.getTiltParam(axisID));
 
     comScriptMgr.loadAlignCom(axisID);
     tomogramPositioningDialog.setAlignParams(
