@@ -19,6 +19,9 @@ import etomo.type.FiducialMatch;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.2  2002/09/30 23:45:12  rickg
+ * <p> Reformatted after emacs trashed it
+ * <p>
  * <p> Revision 1.1  2002/09/09 22:57:02  rickg
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
@@ -75,6 +78,17 @@ public class CombineParams extends ConstCombineParams implements Storable {
       group = prepend + "Combine.";
     }
     props.setProperty(group + "MatchBtoA", String.valueOf(matchBtoA));
+    props.setProperty(group + "FiducialMatch", fiducialMatch.toString());
+    props.setProperty(
+      group + "FiducialMatchListA",
+      fiducialMatchListA.toString());
+    props.setProperty(
+      group + "FiducialMatchListB",
+      fiducialMatchListB.toString());
+    props.setProperty(group + "PatchSize", patchSize.toString());
+    props.setProperty(group + "PatchRegionModel", patchRegionModel);
+    props.setProperty(group + "TempDirectory", tempDirectory);
+    props.setProperty(group + "ManualCleanup", String.valueOf(manualCleanup));
   }
 
   /**
@@ -91,11 +105,45 @@ public class CombineParams extends ConstCombineParams implements Storable {
     else {
       group = prepend + "Combine.";
     }
+
+    // Load the combine values if they are present, don't change the
+    // current value if the property is not present
     matchBtoA =
       Boolean
-        .valueOf(props.getProperty(group + "MatchBtoA", "true"))
+        .valueOf(
+          props.getProperty(group + "MatchBtoA", Boolean.toString(matchBtoA)))
         .booleanValue();
 
+    fiducialMatch =
+      FiducialMatch.fromString(
+        props.getProperty(group + "FiducialMatch", fiducialMatch.toString()));
+
+    fiducialMatchListA.parseString(
+      props.getProperty(
+        group + "FiducialMatchListA",
+        fiducialMatchListA.toString()));
+
+    fiducialMatchListB.parseString(
+      props.getProperty(
+        group + "FiducialMatchListB",
+        fiducialMatchListA.toString()));
+
+    patchSize =
+      CombinePatchSize.fromString(
+        props.getProperty(group + "PatchSize", patchSize.toString()));
+
+    patchRegionModel =
+      props.getProperty(group + "PatchRegionModel", patchRegionModel);
+
+    tempDirectory = props.getProperty(group + "TempDirectory", tempDirectory);
+
+    manualCleanup =
+      Boolean
+        .valueOf(
+          props.getProperty(
+            group + "ManualCleanup",
+            Boolean.toString(manualCleanup)))
+        .booleanValue();
   }
 
 }
