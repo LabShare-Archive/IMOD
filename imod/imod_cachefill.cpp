@@ -139,7 +139,7 @@ static int fill_cache(ImodView *vi, int cz, int ovbefore, int ovafter)
   int nleft, nbase, nextra, i, nshare, tstart, tend, nadj, nadd;
   int time, ct, z, found, sl, llysave, urysave,nslice, sect, offset;
   int minused, slmin, maxdtime, dtime, tdirlim, tdir, pixSize; 
-  int maxdz, dz, zdirlim, zdir;
+  int maxdz, dz, zdirlim, zdir, loadAxis;
   int *loadtbl = NULL;
   int *zstart, *zend, *zstall, *zndall;
   unsigned char *buf = NULL;
@@ -158,6 +158,7 @@ static int fill_cache(ImodView *vi, int cz, int ovbefore, int ovafter)
   }
 
   vi->loadingImage = 1;
+  loadAxis = vi->li->axis;
 
   if (!nfill)
     nfill = 1;
@@ -246,13 +247,13 @@ static int fill_cache(ImodView *vi, int cz, int ovbefore, int ovafter)
                
       /* If flipped, stop if not found; need to load continguous
 	 slices only */
-      else if (vi->li->axis == 2)
+      else if (loadAxis == 2)
 	break;
     }
 
     /* If flipped, go down from the top end also, finding contiguous
        slices that are loaded */
-    if (vi->li->axis == 2) {
+    if (loadAxis == 2) {
       zstart[time] = z;
       for (z = zend[time]; z >= zstart[time]; z--) {
         sl = vi->cacheIndex[z * vi->vmTdim + ct - vi->vmTbase];
@@ -290,7 +291,7 @@ static int fill_cache(ImodView *vi, int cz, int ovbefore, int ovafter)
       iiReopen(vi->image);
     }
 
-    if (vi->li->axis != 2) {
+    if (loadAxis != 2) {
 
       /* printf("loading %d %d\n", zstart[time], zend[time]); */
       /* For z slices, look for ones that are needed */
@@ -730,6 +731,10 @@ void ImodCacheFill::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.6  2004/01/05 18:08:45  mast
+Changes to use new cache index, to avoid loading while other loading
+is going on, and to use ivwReadBinned.  Renamed vw to vi.
+
 Revision 4.5  2003/04/25 00:15:26  mast
 Display image after filling cache, change program name
 
