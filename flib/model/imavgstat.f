@@ -229,6 +229,14 @@ c	  criteria (or the default values, if none were entered) by a common
 c	  factor until it finds the scaling that minimizes the sum of SEM's.
 c
 c	  David Mastronarde 1/23/90; modified for IMOD 4/25/97
+c
+c	  $Author$
+c
+c	  $Date$
+c
+c	  $Revision$
+c
+c	  $Log$
 
 	parameter (narealim=2500,npixlim=100000,ixdim=2100,iydim=2100
      &	    ,maxsec=1000,meanlim=100000)
@@ -902,7 +910,7 @@ c
 		if(nfsets.gt.0.or.galigned)then
 		  call cubinterp(array,brray,nx,ny,nx,ny,prod2(1,1,isect)
      &		      ,nx/2.,ny/2.,prod2(1,3,isect),prod2(2,3,isect),1.
-     &		      ,dmean)
+     &		      ,dmean,0)
 		  do i=1,nx*ny
 		    array(i)=brray(i)
 		  enddo
@@ -1112,7 +1120,7 @@ c		    transform section
 c
 		  call cubinterp(array,brray,nx,ny,nx,ny,prod2(1,1,isect),
      &		      nx/2.,ny/2.,prod2(1,3,isect),prod2(2,3,isect),1.,
-     &		      dfill)
+     &		      dfill,0)
 c		  
 c		    add it into crray, add squares in drray
 c		  
