@@ -30,6 +30,10 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.15  2004/01/08 16:26:17  mast
+c	  Fixed problems with input and output lists and renamed options to
+c	  avoid conflicting with -linear
+c	
 c	  Revision 3.14  2003/12/31 00:39:11  mast
 c	  Go back to ald way of treating center offsets, with new way as option
 c	
@@ -135,7 +139,7 @@ c
 	real*4 dmeansec,dsum,dsumsq,tmpmin,tmpmax,tsum,val,tsum2,dminnew
 	real*4 dmaxnew,zminsec,zmaxsec,tmpmean,tmpminshf,tmpmaxshf,sclfac
 	integer*4 needyst,needynd,nmove,noff,nload,nyload,nych,npix,ibchunk
-	integer*4 ixcen,iycen,ix1,ix2,istart,nbcopy,nbclear
+	integer*4 ixcen,iycen,ix1,ix2,istart,nbcopy,nbclear,ifLinear
 	real*4 const,denoutmin,den, tmin2,tmax2,tmean2,tsumsq,avgsec
 	integer*4 numInputFiles, numSecLists, numOutputFiles, numToGet
 	integer*4 numOutValues, numOutEntries, ierr, ierr2, i, kti, iy
@@ -195,6 +199,7 @@ c
 	limdim = maxdim
 	lenTemp = maxtemp
 	applyFirst = 0
+	ifLinear = 0
 C   
 C	  Read in list of input files
 C   
@@ -461,10 +466,8 @@ C	  Get list of transforms
 C	  
 	ifxform = 0
 	if (pipinput) then
-	  if (PipGetString('TransformFile', xffil) .eq. 0) then
-	    ierr = PipGetBoolean('LinearInterpolation', ifxform)
-	    ifxform = ifxform + 1
-	  endif
+	  ierr = PipGetBoolean('LinearInterpolation', ifLinear)
+	  if (PipGetString('TransformFile', xffil) .eq. 0) ifxform = 1
 	else
 	  write(*,'(1x,a,$)')'1 or 2 to transform images with cubic or'
      &	      //' linear interpolation, 0 not to: '
@@ -473,6 +476,7 @@ C
 	    write(*,'(1x,a,$)')'Name of transform file: '
 	    read(5,101)xffil
 	  endif
+	  if (ifxform .gt. 1) ifLinear = 1
 	endif
 	if(ifxform.ne.0)then
 c	    
@@ -1183,10 +1187,10 @@ c		dx=f(1,3,lnu)-xcen(isec)
 c		dy=(ny3-nych)/2.+f(2,3,lnu) - ycen(isec) - lineOutSt(ichunk)
 		if (ifDistort .eq. 0) then
 		  call cubinterp(array,array(ibchunk),nxbin,nyload, nx3, nych,
-     &		      fprod,xci ,yci, dx,dy,1.,dmeansec, ifxform - 1)
+     &		      fprod,xci ,yci, dx,dy,1.,dmeansec, ifLinear)
 		else
 		  call undistort(array,array(ibchunk),nxbin,nyload, nx3, nych,
-     &		      fprod,xci ,yci, dx,dy,1.,dmeansec, ifxform - 1,
+     &		      fprod,xci ,yci, dx,dy,1.,dmeansec, ifLinear,
      &		      fieldDx, fieldDy, lmGrid, nxGrid, ixGridStrt, xGridIntrv,
      &		      nyGrid, iyGridStrt, yGridIntrv)
 		endif
