@@ -15,6 +15,11 @@ package etomo.process;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.5  2002/09/20 17:06:38  rickg
+ * <p> Added typed exceptions
+ * <p> Added a quit method
+ * <p> Check for ProcessID before running PS in isRunning
+ * <p>
  * <p> Revision 1.4  2002/09/19 22:47:45  rickg
  * <p> More robust method to extract process and window ID from imod
  * <p>
@@ -39,7 +44,6 @@ public class ImodProcess {
   public static final String MESSAGE_VIEW_MODEL = "3";
   public static final String MESSAGE_CLOSE = "4";
 
-  
   private String datasetName = "";
   private String modelName = "";
   private String windowID = "";
@@ -54,7 +58,6 @@ public class ImodProcess {
     datasetName = dataset;
   }
 
-
   /**
    * Dataset and model file constructor
    * @param dataset A string specifying the path to the projection stack file
@@ -65,17 +68,16 @@ public class ImodProcess {
     modelName = model;
   }
 
-  
   /**
    * Open the imod process if is not already open.
    */
   public void open() throws SystemProcessException {
-    if(isRunning()) {
+    if (isRunning()) {
       return;
     }
 
     String stringYZ = "";
-    if(swapYZ) {
+    if (swapYZ) {
       stringYZ = "-Y ";
     }
     String command = "imod -W " + stringYZ + datasetName + " " + modelName;
@@ -97,39 +99,43 @@ public class ImodProcess {
     if (imod.getExitValue() == 0) {
       boolean missingWindowID = true;
       boolean missingProcessID = true;
-      
+
       String line;
-      while((line = imod.readStderr()) != null) {
+      while ((line = imod.readStderr()) != null) {
         System.out.println(line);
-        
-        if(line.indexOf("Window id = ") != -1) {
+
+        if (line.indexOf("Window id = ") != -1) {
           String[] words = line.split("\\s+");
-          if(words.length < 4) {
-            throw(new SystemProcessException("Could not parse window ID from imod\n"));
-          } 
+          if (words.length < 4) {
+            throw (
+              new SystemProcessException("Could not parse window ID from imod\n"));
+          }
           windowID = words[3];
           missingWindowID = false;
         }
-        
-        if(line.indexOf("Process id ") != -1) {
+
+        if (line.indexOf("Process id ") != -1) {
           String[] words = line.split("\\s+");
-          if(words.length < 4) {
-            throw(new SystemProcessException("Could not parse process ID from imod\n"));
+          if (words.length < 4) {
+            throw (
+              new SystemProcessException("Could not parse process ID from imod\n"));
           }
           processID = words[3];
           missingProcessID = false;
-        } 
-      }  
-      if(missingWindowID) {
-        throw(new SystemProcessException("Did not find window ID from imod\n"));
+        }
       }
-      if(missingProcessID) {
-        throw(new SystemProcessException("Did not find process ID from imod\n"));
+      if (missingWindowID) {
+        throw (
+          new SystemProcessException("Did not find window ID from imod\n"));
+      }
+      if (missingProcessID) {
+        throw (
+          new SystemProcessException("Did not find process ID from imod\n"));
       }
     }
     else {
-      String message = "imod returned: " + String.valueOf(imod.getExitValue())
-        + "\n";
+      String message =
+        "imod returned: " + String.valueOf(imod.getExitValue()) + "\n";
 
       String line = imod.readStderr();
       while (line != null) {
@@ -142,52 +148,50 @@ public class ImodProcess {
         message = message + "stdout: " + line + "\n";
         line = imod.readStdout();
       }
-      
-      throw(new SystemProcessException(message));
+
+      throw (new SystemProcessException(message));
     }
 
     System.out.println("Window ID: " + windowID);
     System.out.println("Process ID: " + processID);
   }
 
-
   /**
    * Send the quit messsage to imod
    */
   public void quit() throws SystemProcessException {
-    if(isRunning()) {
+    if (isRunning()) {
       String[] messages = new String[1];
       messages[0] = "4";
       imodSendEvent(messages);
     }
   }
-  
+
   /**
    * Check to see if this imod process is running
    */
   public boolean isRunning() {
-    
-    if(processID == "") {
+
+    if (processID == "") {
       return false;
     }
-    
+
     SystemProgram checkImod = new SystemProgram("ps -p " + processID);
     checkImod.run();
     String[] stdout = checkImod.getStdOutput();
 
-    for(int i=0; i < stdout.length; i++) {
+    for (int i = 0; i < stdout.length; i++) {
       System.out.println(stdout[i]);
     }
-    
-    if(stdout.length < 2) {
+
+    if (stdout.length < 2) {
       return false;
     }
-    if(stdout[1].indexOf("imod") == -1) {
+    if (stdout[1].indexOf("imod") == -1) {
       return false;
     }
     return true;
   }
-
 
   /**
    * Open a new model file
@@ -200,7 +204,6 @@ public class ImodProcess {
     imodSendEvent(args);
   }
 
-
   /**
    * Save the current model file
    */
@@ -209,7 +212,6 @@ public class ImodProcess {
     args[0] = MESSAGE_SAVE_MODEL;
     imodSendEvent(args);
   }
-
 
   /**
    * View the current model file
@@ -220,21 +222,20 @@ public class ImodProcess {
     imodSendEvent(args);
   }
 
-
   /**
    * Send an event to imod using the imodsendevent command
    */
   private void imodSendEvent(String[] args) throws SystemProcessException {
-    if(windowID == "") {
-      throw(new SystemProcessException("No window ID available for imod"));
+    if (windowID == "") {
+      throw (new SystemProcessException("No window ID available for imod"));
     }
 
     String command = "imodsendevent " + windowID + " ";
-    for(int i = 0;i < args.length; i++) {
-      command  = command + args[i] + " ";
+    for (int i = 0; i < args.length; i++) {
+      command = command + args[i] + " ";
     }
-    
-    InteractiveSystemProgram imodSendEvent = 
+
+    InteractiveSystemProgram imodSendEvent =
       new InteractiveSystemProgram(command);
 
     //  Start the imodSendEvent program thread and wait for it to finish
@@ -246,15 +247,16 @@ public class ImodProcess {
     catch (Exception except) {
       except.printStackTrace();
     }
-    
+
     // Check imodSendEvent's exit code, if it is zero parse the windowID from
     // stderr stream, otherwise throw an exception describing why the file 
     // was not loaded
     if (imodSendEvent.getExitValue() != 0) {
 
-      String message = "imodsendevent returned: " + 
-      String.valueOf(imodSendEvent.getExitValue())
-        + "\n";
+      String message =
+        "imodsendevent returned: "
+          + String.valueOf(imodSendEvent.getExitValue())
+          + "\n";
 
       String line = imodSendEvent.readStderr();
       while (line != null) {
@@ -267,12 +269,11 @@ public class ImodProcess {
         message = message + "stdout: " + line + "\n";
         line = imodSendEvent.readStdout();
       }
-      
-      throw(new SystemProcessException(message));
+
+      throw (new SystemProcessException(message));
     }
   }
-  
-  
+
   /**
    * Returns the datasetName.
    * @return String
@@ -280,7 +281,6 @@ public class ImodProcess {
   public String getDatasetName() {
     return datasetName;
   }
-
 
   /**
    * Returns the modelName.
@@ -290,7 +290,6 @@ public class ImodProcess {
     return modelName;
   }
 
-
   /**
    * Returns the windowID.
    * @return String
@@ -298,7 +297,6 @@ public class ImodProcess {
   public String getWindowID() {
     return windowID;
   }
-
 
   /**
    * Returns the swapYZ.
