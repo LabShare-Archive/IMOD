@@ -19,6 +19,9 @@ package etomo.comscript;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.10  2004/12/28 23:41:48  sueh
+ * <p> bug# 567 Add size() to return nParams.
+ * <p>
  * <p> Revision 3.9  2004/03/13 02:25:47  sueh
  * <p> bug# 373 Added toString(boolean defaultIsBlank) - turns "/" into ""
  * <p>
@@ -148,7 +151,7 @@ public class FortranInputString {
     // Walk through the newValues string parsing the values
     Double[] tempValue = new Double[value.length];
     for (int i = 0; i < value.length; i++) {
-      tempValue[i] = new Double(Double.NEGATIVE_INFINITY);
+      tempValue[i] = new Double(Double.NaN);
     }
     int idxValue = 0;
     int idxStart = 0;
