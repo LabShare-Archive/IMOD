@@ -24,6 +24,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.8  2004/05/21 02:15:51  sueh
+ * <p> bug# 83 fixing a null pointer bug
+ * <p>
  * <p> Revision 3.7  2004/04/23 20:04:09  sueh
  * <p> bug# 83 using initializeProgressBar() to initialize progress bar
  * <p> before running waitForLogFile()
@@ -64,7 +67,8 @@ import etomo.util.Utilities;
  */
 
 public abstract class LogFileProcessMonitor implements Runnable {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+     "$Id$";
   protected ApplicationManager applicationManager;
   protected AxisID axisID;
   protected long processStartTime;
@@ -76,6 +80,9 @@ public abstract class LogFileProcessMonitor implements Runnable {
 
   protected int updatePeriod = 500;
   protected int stopWaiting = 20;
+  //Run() can only be run once per instance.
+  protected boolean processRunning = true;
+  protected boolean lastProcess = true;
 
   boolean standardLogFileName = true;
 
@@ -110,7 +117,6 @@ public abstract class LogFileProcessMonitor implements Runnable {
     }
     logFile = new File(System.getProperty("user.dir"), logFileName);
 
-    boolean processRunning = true;
     try {
       //  Wait for the log file to exist
       waitForLogFile();
@@ -149,7 +155,17 @@ public abstract class LogFileProcessMonitor implements Runnable {
     catch (IOException e1) {
       e1.printStackTrace();
     }
-    applicationManager.progressBarDone(axisID);
+    if (lastProcess) {
+      applicationManager.progressBarDone(axisID);
+    }
+  }
+  
+  /**
+   * when lastProcess is false
+   * @param lastProcess
+   */
+  public void setLastProcess(boolean lastProcess) {
+    this.lastProcess = lastProcess;
   }
 
   /**
@@ -231,7 +247,10 @@ public abstract class LogFileProcessMonitor implements Runnable {
     // Format the progress bar string
     String message = String.valueOf(percentage) + "%   ETC: "
         + Utilities.millisToMinAndSecs(remainingTime);
-
+    
+    if (!processRunning) {
+      return;
+    }
     applicationManager.setProgressBarValue(currentSection, message, axisID);
   }
 
@@ -244,5 +263,9 @@ public abstract class LogFileProcessMonitor implements Runnable {
     double fractionDone = (double) currentSection / nSections;
     long elapsedTime = System.currentTimeMillis() - processStartTime;
     remainingTime = (int) (elapsedTime / fractionDone - elapsedTime);
+  }
+  
+  protected void setProcessRunning(boolean processRunning) {
+    this.processRunning = processRunning;
   }
 }
