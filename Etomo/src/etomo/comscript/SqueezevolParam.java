@@ -18,6 +18,10 @@ import etomo.type.ConstEtomoNumber;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.2  2004/12/02 18:26:02  sueh
+* <p> bug# 557 Moved everything except public functions that change
+* <p> parameters the ConstSqueezevolParam.  Added load().
+* <p>
 * <p> Revision 1.1  2004/12/01 03:46:14  sueh
 * <p> bug# 557 Parameter for squeezevol.
 * <p> </p>
@@ -37,14 +41,19 @@ public class SqueezevolParam extends ConstSqueezevolParam {
     prepend = createPrepend(prepend);
     String group = prepend + ".";
     
-    reductionFactorXY.load(props, prepend);
+    reductionFactorX.load(props, prepend);
+    reductionFactorY.load(props, prepend);
     reductionFactorZ.load(props, prepend);
     linearInterpolation = Boolean.valueOf(props.getProperty(group
         + linearInterpolationString, Boolean.toString(defaultLinearInterpolation))).booleanValue();
   }
 
-  public ConstEtomoNumber setReductionFactorXY(String reductionFactorXY) {
-    return this.reductionFactorXY.set(reductionFactorXY);
+  public ConstEtomoNumber setReductionFactorX(String reductionFactorX) {
+    return this.reductionFactorX.set(reductionFactorX);
+  }
+  
+  public ConstEtomoNumber setReductionFactorY(String reductionFactorY) {
+    return this.reductionFactorY.set(reductionFactorY);
   }
   
   public ConstEtomoNumber setReductionFactorZ(String reductionFactorZ) {

@@ -26,6 +26,11 @@ import etomo.type.EtomoNumber;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.2  2004/12/08 21:19:54  sueh
+* <p> bug# 564 Changed TrimvolParam set and get, input and output File
+* <p> functions to ...FileName to avoid confusion with the new getOutputFile()
+* <p> function.
+* <p>
 * <p> Revision 1.1  2004/12/02 18:24:23  sueh
 * <p> bug# 557 Manages squeezevol parameters.  Creates command line.
 * <p> Stores parameters.
@@ -39,19 +44,22 @@ public abstract class ConstSqueezevolParam implements Storable {
   protected static final boolean defaultLinearInterpolation = false;
   private static final int commandSize = 3;
   
-  protected EtomoNumber reductionFactorXY = new EtomoNumber(EtomoNumber.DOUBLE_TYPE, "ReductionFactorXY");
+  protected EtomoNumber reductionFactorX = new EtomoNumber(EtomoNumber.DOUBLE_TYPE, "ReductionFactorX");
+  protected EtomoNumber reductionFactorY = new EtomoNumber(EtomoNumber.DOUBLE_TYPE, "ReductionFactorY");
   protected EtomoNumber reductionFactorZ = new EtomoNumber(EtomoNumber.DOUBLE_TYPE, "ReductionFactorZ");
   protected boolean linearInterpolation;
   private String[] commandArray = null;
 
   public ConstSqueezevolParam() {
     reset();
-    reductionFactorXY.setRecommendedValue(1.25);
+    reductionFactorX.setRecommendedValue(1.25);
+    reductionFactorY.setRecommendedValue(1.25);
     reductionFactorZ.setRecommendedValue(1.25);
   }
   
   protected void reset() {
-    reductionFactorXY.reset();
+    reductionFactorX.reset();
+    reductionFactorY.reset();
     reductionFactorZ.reset();
     linearInterpolation = defaultLinearInterpolation;
   }
@@ -59,9 +67,9 @@ public abstract class ConstSqueezevolParam implements Storable {
   private ArrayList genOptions() {
     ArrayList options = new ArrayList();
     options.add("-x");
-    options.add(reductionFactorXY.toString());
+    options.add(reductionFactorX.toString());
     options.add("-y");
-    options.add(reductionFactorXY.toString());
+    options.add(reductionFactorY.toString());
     options.add("-z");
     options.add(reductionFactorZ.toString());
     if (linearInterpolation) {
@@ -95,7 +103,8 @@ public abstract class ConstSqueezevolParam implements Storable {
     prepend = createPrepend(prepend);
     String group = prepend + ".";
     
-    reductionFactorXY.store(props, prepend);
+    reductionFactorX.store(props, prepend);
+    reductionFactorY.store(props, prepend);
     reductionFactorZ.store(props, prepend);
     props.setProperty(group + linearInterpolationString, Boolean.toString(linearInterpolation));
   }
@@ -129,8 +138,12 @@ public abstract class ConstSqueezevolParam implements Storable {
     return buffer.toString();
   }
   
-  public ConstEtomoNumber getReductionFactorXY() {
-    return reductionFactorXY;
+  public ConstEtomoNumber getReductionFactorX() {
+    return reductionFactorX;
+  }
+  
+  public ConstEtomoNumber getReductionFactorY() {
+    return reductionFactorY;
   }
   
   public ConstEtomoNumber getReductionFactorZ() {
@@ -142,7 +155,10 @@ public abstract class ConstSqueezevolParam implements Storable {
   }
   
   public boolean equals(ConstSqueezevolParam that) {
-    if (!reductionFactorXY.equals(that.reductionFactorXY)) {
+    if (!reductionFactorX.equals(that.reductionFactorX)) {
+      return false;
+    }
+    if (!reductionFactorY.equals(that.reductionFactorY)) {
       return false;
     }
     if (!reductionFactorZ.equals(that.reductionFactorZ)) {
