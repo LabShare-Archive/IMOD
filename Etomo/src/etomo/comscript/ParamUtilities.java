@@ -29,6 +29,9 @@
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.11  2004/06/25 18:06:58  sueh
+ * <p> $bug# 484 adding function to return integer value or default
+ * <p> $
  * <p> $Revision 1.10  2004/06/24 20:21:12  sueh
  * <p> $bug# 482 added an isEmpty() function for Strings
  * <p> $
@@ -69,6 +72,7 @@ import java.util.Vector;
 public class ParamUtilities {
   
   public static final int INT_NOT_SET = Integer.MIN_VALUE;
+  private static final String zeroOrMoreWhiteSpace = "\\s*";
 
   /**
    * 
@@ -132,10 +136,21 @@ public class ParamUtilities {
     }
     return strings;
   }
+  
+  public static String valueOf(FortranInputString[] valueArray) {
+    if (valueArray == null || valueArray.length == 0) {
+      return "";
+    }
+    StringBuffer buffer = new StringBuffer(valueArray[0].toString(true));
+    for (int i = 0; i < valueArray.length; i++) {
+      buffer.append(" " + valueArray[0].toString(true));
+    }
+    return buffer.toString();
+  }
 
   
   /**
-   * Parse an integer value from a string, returning the default value the
+   * Parse an integer value from a string, returning the default value if the
    * string is white space
    * @param value
    * @return
@@ -145,6 +160,51 @@ public class ParamUtilities {
       return Integer.MIN_VALUE;
     }
     return Integer.parseInt(value);
+  }
+  
+  /**
+   * Parse a FortranInputString array from a string.  Use StringList to split
+   * the string at whitespace.
+   * @param value
+   * @param integerType
+   * @return
+   * @throws FortranInputSyntaxException
+   */
+  public static FortranInputString[] parse(String value, boolean integerType)
+      throws FortranInputSyntaxException {
+    if (value == null || value.matches(zeroOrMoreWhiteSpace)) {
+      return null;
+    }
+    StringList stringList = new StringList();
+    stringList.parseString(value);
+    boolean[] integerTypeArray = new boolean[stringList.getNElements()];
+    for (int i = 0; i < integerTypeArray.length; i++) {
+      integerTypeArray[i] = integerType;
+    }
+    return parse(stringList, integerTypeArray.length, integerTypeArray);
+  }
+
+  /**
+   * Parse a FortranInputString array from a StringList.
+   * @param stringList
+   * @param size
+   * @param integerType
+   * @return
+   * @throws FortranInputSyntaxException
+   */
+  public static FortranInputString[] parse(StringList stringList, int size,
+      boolean[] integerType) throws FortranInputSyntaxException {
+    if (stringList != null && stringList.getNElements() > 0) {
+      int stringListSize = stringList.getNElements();
+      FortranInputString[] inputStringArray = new FortranInputString[stringListSize];
+      for (int i = 0; i < stringListSize; i++) {
+        inputStringArray[i] = new FortranInputString(size);
+        inputStringArray[i].setIntegerType(integerType);
+        inputStringArray[i].validateAndSet(stringList.get(i));
+      }
+      return inputStringArray;
+    }
+    return null;
   }
   
   /**
@@ -187,6 +247,12 @@ public class ParamUtilities {
     return Double.parseDouble(value);
   }
 
+  /**
+   * Sets a FortranInputString from a string
+   * @param value
+   * @param target
+   * @throws FortranInputSyntaxException
+   */
   public static void set(String value, FortranInputString target)
     throws FortranInputSyntaxException {
     if (target == null) {
@@ -213,6 +279,15 @@ public class ParamUtilities {
     else {
       target.set(index, Double.parseDouble(value));
     }
+  }
+  
+  public static FortranInputString[] setParamIfPresent(
+      ComScriptCommand scriptCommand, String keyword, int size, boolean[] integerType)
+      throws InvalidParameterException, FortranInputSyntaxException {
+    if (scriptCommand.hasKeyword(keyword)) {
+      return parse(new StringList(scriptCommand.getValues(keyword)), size, integerType);
+    }
+    return null;
   }
 
   /**
@@ -357,11 +432,13 @@ public class ParamUtilities {
    */
   public static void updateScriptParameter(ComScriptCommand scriptCommand,
     String key, String value, boolean required) throws BadComScriptException {
-    
     if (key == null) {
       throw new NullPointerException();
     }
-    if (value != null && value.length() > 0) {
+    if (key.matches(zeroOrMoreWhiteSpace)) {
+      throw new IllegalArgumentException();
+    }
+    if (value != null && !value.matches(zeroOrMoreWhiteSpace)) {
       scriptCommand.setValue(key, value);
     }
     else {
@@ -370,6 +447,22 @@ public class ParamUtilities {
         throw new BadComScriptException(scriptCommand.getCommand()
           + " missing required parameter: " + key + ".");
       }
+    }
+  }
+  
+  public static void updateScriptParameter(ComScriptCommand scriptCommand,
+      String key, StringList value) throws BadComScriptException {
+    if (key == null) {
+      throw new NullPointerException();
+    }
+    if (key.matches(zeroOrMoreWhiteSpace)) {
+      throw new IllegalArgumentException();
+    }
+    if (value != null && value.getNElements() > 0) {
+      scriptCommand.setValue(key, value.toString());
+    }
+    else {
+      scriptCommand.deleteKey(key);
     }
   }
 
@@ -449,6 +542,26 @@ public class ParamUtilities {
     }
     else {
       scriptCommand.deleteKey(key);
+    }
+  }
+  
+  public static void updateScriptParameter(ComScriptCommand scriptCommand,
+      String key, FortranInputString[] value) {
+    if (key == null) {
+      throw new NullPointerException();
+    }
+    if (key.matches(zeroOrMoreWhiteSpace)) {
+      throw new IllegalArgumentException();
+    }
+    if (value == null || value.length == 0) {
+      scriptCommand.deleteKey(key);
+    }
+    else {
+      StringBuffer buffer = new StringBuffer(value[0].toString());
+      for (int i = 1; i < value.length; i++) {
+        buffer.append(" " + value[i].toString());
+      }
+      scriptCommand.setValue(key, buffer.toString());
     }
   }
 
