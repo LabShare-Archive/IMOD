@@ -1308,7 +1308,7 @@ static void imodvDraw_spheres(Iobj *obj, double zscale, int style)
 
 static void imodvDraw_mesh(Imesh *mesh, int style, Iobj *obj)
 {
-  unsigned int i, lsize;
+  int i;
   GLenum polyStyle, normStyle;
 
   switch(style){
@@ -1330,9 +1330,8 @@ static void imodvDraw_mesh(Imesh *mesh, int style, Iobj *obj)
     return;
   if (!mesh->lsize)
     return;
-  lsize = mesh->lsize;
 
-  for(i  = 0; i < lsize; i++){
+  for(i  = 0; i < mesh->lsize; i++){
     switch(mesh->list[i]){
     case IMOD_MESH_BGNPOLY:
     case IMOD_MESH_BGNBIGPOLY:
@@ -1900,6 +1899,9 @@ static int skipNonCurrentSurface(Imesh *mesh, int *ip, Iobj *obj)
 
 /*
 $Log$
+Revision 4.16  2004/11/01 23:33:28  mast
+Made current surface subset work with mesh dsplay
+
 Revision 4.15  2004/09/21 20:14:51  mast
 Implemented multiple clipping planes
 
