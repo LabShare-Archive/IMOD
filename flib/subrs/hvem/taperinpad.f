@@ -5,6 +5,14 @@ c	  NXDIM by NY.  The values of the image at its edge will be
 c	  tapered down to the mean value at the edge, over a width of the
 c	  original image area equal to NXTAP or NYTAP.
 c
+c	  $Author$
+c
+c	  $Date$
+c
+c	  $Revision$
+c
+c	  $Log$
+c
 	subroutine taperinpad(array,nxbox,nybox,brray,nxdim,nx,
      &	    ny, nxtap,nytap)
 	real*4 array(nxbox,nybox),brray(nxdim,ny)
@@ -56,6 +64,12 @@ c
 	      ix2=ixhi+1-ix
 	      iy1=iy+iylo
 	      iy2=iyhi+1-iy
+c		
+c		DNM 4/28/02: for odd box sizes, deflect middle pixel to edge
+c		to keep it from being attenuated twice
+c
+	      if(ix1.eq.ix2)ix2=1
+	      if(iy1.eq.iy2)iy2=1
 	      brray(ix1,iy1)=fmin*(brray(ix1,iy1)-dmean)+dmean
 	      brray(ix1,iy2)=fmin*(brray(ix1,iy2)-dmean)+dmean
 	      brray(ix2,iy1)=fmin*(brray(ix2,iy1)-dmean)+dmean
