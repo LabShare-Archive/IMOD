@@ -5,9 +5,10 @@
 # IT IS RUN ONLY IF YOU HAVE TO DO FINDWARP BY HAND AND
 # RESTART THE PROCESS
 #
-$warpvol
-g5b.rec
-g5b.mat
-g5tmpdir
-/	NX,NY,NZ of output: / for NZ,NY,NX of input
-warp.xf
+$warpvol -StandardInput
+InputFile       g5b.rec
+OutputFile      g5b.mat
+#TemporaryDirectory      g5tmpdir
+# The default output size is NZ, NY, NX
+OutputSizeXYZ   /
+TransformFile warp.xf

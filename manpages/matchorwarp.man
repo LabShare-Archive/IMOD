@@ -78,6 +78,10 @@ side of the volume, the bottom when viewed in flipped orientation.
 Specifies the number of rows of patches to exclude on the upper Z
 side of the volume, the top when viewed in flipped orientation.
 .TP
+.B -linear
+Uses linear instead of quadratic interpolation for transforming the volume
+with Matchvol or Warpvol.
+.TP
 .B -trial
 Activates trial mode, in which the program exits after finding a good fit
 rather than going on to matchvol or warpvol.
