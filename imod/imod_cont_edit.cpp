@@ -816,6 +816,7 @@ void imodContEditMove(void)
   double weight;
   Ipoint ccent;
   int conew, ptnew;
+  char *surfLabel = NULL;
 
   /* Check that user has set up the move operation. */
   if (movefirst){
@@ -894,6 +895,7 @@ void imodContEditMove(void)
 
     if (obj->surfsize < comv.surf_moveto)
       obj->surfsize = comv.surf_moveto;
+    imodObjectCleanSurf(obj);
     imodContEditMoveDialogUpdate();
 
   } else {
@@ -912,7 +914,11 @@ void imodContEditMove(void)
       if (tobj->surfsize < nsurf)
         tobj->surfsize = nsurf;
 
-      for(co = 0; co < obj->contsize; co++){
+      /* DNM 9/20/04: move label from one object to the other */
+      if (obj->label)
+        surfLabel = imodLabelItemGet(obj->label, surf);
+
+      for (co = 0; co < obj->contsize; co++) {
         if (obj->cont[co].surf == surf){
           cont = &(obj->cont[co]);
           cont->surf = nsurf;
@@ -932,6 +938,12 @@ void imodContEditMove(void)
           conew = -1;
           ptnew = -1;
         }
+      }
+
+      if (surfLabel) {
+        if (!tobj->label)
+          tobj->label = imodLabelNew();
+        imodLabelItemAdd(tobj->label, surfLabel, nsurf);
       }
           
     }else{
@@ -1209,9 +1221,9 @@ void imodContEditSurfShow(void)
 {
   Icont *cont;
   Iobj  *obj;
-  QString contLabel, ptLabel;
+  QString surfLabel, contLabel, ptLabel;
   char *plabel = NULL;
-  int max, val, defval, noCont, noPoint, closedOpen, enabled;
+  int max, val, defval, noCont, noPoint, noSurf, closedOpen, enabled;
   float size;
   int pt;
 
@@ -1224,10 +1236,17 @@ void imodContEditSurfShow(void)
   /* Set state of surface */
   max = 0;
   val = -1;
+  noSurf = 1;
   if (obj) 
     max = obj->surfsize;  /* surfsize is the maximum surface # in object */
-  if (cont) 
+  if (cont) { 
     val = cont->surf;
+    noSurf = 0;
+    if (obj->label)
+      plabel =  imodLabelItemGet(obj->label, val);
+    if (plabel)
+      surfLabel = plabel;
+  }
   surf.dia->setSurface(val, max);
 
   /* Show state of ghost drawing */
@@ -1259,6 +1278,7 @@ void imodContEditSurfShow(void)
   /* Set the contour and point labels if any */
   noCont = 1;
   noPoint = 1;
+  plabel = NULL;
   if (cont){
     noCont = 0;
     if ((cont->label) && (cont->label->name))
@@ -1273,7 +1293,7 @@ void imodContEditSurfShow(void)
         ptLabel = plabel;
     }
   }
-  surf.dia->setLabels(contLabel, noCont, ptLabel, noPoint);
+  surf.dia->setLabels(surfLabel, noSurf, contLabel, noCont, ptLabel, noPoint);
 
   /* Set the point size */
   /* Send default as -1 if no point, 0 if actual size, or 1 if default size */
@@ -1383,12 +1403,20 @@ void iceTimeChanged(int value)
 // Record change in contour or point label
 void iceLabelChanged(char *st, int contPoint)
 {
+  Iobj  *obj = imodObjectGet(surf.vw->imod);
   Icont *cont = imodContourGet(surf.vw->imod);
 
   // With no signal blocking upon setting, it was sending nulls, so skip just
   // in case that happens
   if (!cont || !st) 
     return;
+
+  if (contPoint == 2) {
+    if (!obj->label)
+      obj->label = imodLabelNew();
+    imodLabelItemAdd(obj->label, st, cont->surf);
+    return;
+  }
      
   if (!cont->label)
     cont->label = imodLabelNew();
@@ -1470,6 +1498,10 @@ void iceShowHelp()
      "The \"Ghost\" toggle button may be used during model "
      "editing to highlight the current contour, along with all "
      "other contours with the same surface number. \n\n",
+
+     "It is possible to have a label for each surface.  The \"Label\" text "
+     "box shows the label of the current surface; simply enter or change "
+     "text in this box.\n\n"
 
      "Contour controls:\n",
      "-----------------\n",
@@ -1571,6 +1603,9 @@ void ContourFrame::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.10  2004/07/11 18:23:45  mast
+Changes for more ghost flags
+
 Revision 4.9  2004/01/22 19:12:43  mast
 changed from pressed() to clicked() or accomodated change to actionClicked
 
