@@ -27,7 +27,10 @@ public class TransferfidPanel {
   private JPanel panelTransferfid = new JPanel();
 
   private JCheckBox chkRunMidas = new JCheckBox("Run midas");
-  private LabeledTextField ltfCenterView = new LabeledTextField("Center view: ");
+  private LabeledTextField ltfCenterViewA =
+    new LabeledTextField("Center view A: ");
+  private LabeledTextField ltfCenterViewB =
+    new LabeledTextField("Center view B: ");
 
   private JPanel panelSearchDirection = new JPanel();
   private ButtonGroup bgSearchDirection = new ButtonGroup();
@@ -35,26 +38,25 @@ public class TransferfidPanel {
   private JRadioButton rbSearchPlus90 = new JRadioButton("+90 (CCW) only");
   private JRadioButton rbSearchMinus90 = new JRadioButton("-90 (CW) only");
 
-  private String logSuffix;
-
-  public TransferfidPanel(String suffix) {
-
-    logSuffix = suffix;
+  public TransferfidPanel() {
 
     panelTransferfid.setLayout(
       new BoxLayout(panelTransferfid, BoxLayout.Y_AXIS));
-    panelTransferfid.setBorder(new TitledBorder(
+    panelTransferfid.setBorder(
+      new TitledBorder(
         BorderFactory.createEtchedBorder(highlight, shadow),
         "Transferfid Parameters"));
     panelTransferfid.add(chkRunMidas);
-    panelTransferfid.add(ltfCenterView.getContainer());
+    panelTransferfid.add(ltfCenterViewA.getContainer());
+    panelTransferfid.add(ltfCenterViewB.getContainer());
 
     bgSearchDirection.add(rbSearchBoth);
     bgSearchDirection.add(rbSearchPlus90);
     bgSearchDirection.add(rbSearchMinus90);
     panelSearchDirection.setLayout(
       new BoxLayout(panelSearchDirection, BoxLayout.Y_AXIS));
-    panelSearchDirection.setBorder(new TitledBorder(
+    panelSearchDirection.setBorder(
+      new TitledBorder(
         BorderFactory.createEtchedBorder(highlight, shadow),
         "Search Direction"));
     panelSearchDirection.add(rbSearchBoth);
@@ -69,6 +71,24 @@ public class TransferfidPanel {
    */
   public void setParameters(TransferfidParam params) {
     chkRunMidas.setSelected(params.isRunMidas());
+    if (params.getCenterViewA() > 0) {
+      ltfCenterViewA.setText(params.getCenterViewA());
+    }
+
+    if (params.getCenterViewB() > 0) {
+      ltfCenterViewB.setText(params.getCenterViewB());
+    }
+    
+    if (params.getSearchDirection() == 0) {
+      rbSearchBoth.setSelected(true);
+    }
+    if (params.getSearchDirection() < 0) {
+      rbSearchMinus90.setSelected(true);
+    }
+    if (params.getSearchDirection() > 0) {
+      rbSearchPlus90.setSelected(true);
+    }
+
   }
 
   /**
@@ -76,7 +96,28 @@ public class TransferfidPanel {
    */
   public void getParameters(TransferfidParam params) {
     params.setRunMidas(chkRunMidas.isSelected());
-
+    if (ltfCenterViewA.getText().matches("^\\s*$")) {
+      params.setCenterViewA(0);
+    }
+    else {
+      params.setCenterViewA(Integer.parseInt(ltfCenterViewA.getText()));
+    }
+   if (ltfCenterViewB.getText().matches("^\\s*$")) {
+      params.setCenterViewB(0);
+    }
+    else {
+      params.setCenterViewB(Integer.parseInt(ltfCenterViewA.getText()));
+    }
+    if(rbSearchBoth.isSelected()) {
+      params.setSearchDirection(0);
+    }
+    if(rbSearchPlus90.isSelected()) {
+      params.setSearchDirection(1);
+    }
+    if(rbSearchMinus90.isSelected()) {
+      params.setSearchDirection(-1);
+    }
+    
   }
 
   public Container getContainer() {
