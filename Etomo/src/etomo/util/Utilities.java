@@ -2,6 +2,7 @@ package etomo.util;
 
 import java.io.File;
 
+import etomo.ApplicationManager;
 import etomo.type.ConstMetaData;
 import etomo.type.AxisID;
 
@@ -19,6 +20,9 @@ import etomo.type.AxisID;
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.0  2003/11/07 23:19:01  rickg
+ * <p> $Version 1.0.0
+ * <p> $
  * <p> $Revision 1.2  2003/10/10 23:17:01  sueh
  * <p> $bug251 removing marks
  * <p> $
@@ -51,6 +55,17 @@ public class Utilities {
       return true;
     }
     return false;
+  }
+  
+  /**
+   * Print out the specified string if the debug flag is set
+   *
+   * @param string
+   */
+  static public void debugPrint(String string) {
+  	if(ApplicationManager.isDebug()) {
+  		System.err.println(string);
+  	}
   }
 
 }
