@@ -17,6 +17,9 @@ import java.util.Vector;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.2  2004/02/14 00:14:30  rickg
+ * <p> Parse all command line opts
+ * <p>
  * <p> Revision 3.1  2004/02/13 01:04:17  rickg
  * <p> *** empty log message ***
  * <p>
@@ -82,7 +85,6 @@ public class NewstParam extends ConstNewstParam implements CommandParam {
    */
   public void parseComScriptCommand(ComScriptCommand scriptCommand)
   throws FortranInputSyntaxException, InvalidParameterException {
-    // TODO error checking - throw exceptions for bad syntax
     String[] cmdLineArgs = scriptCommand.getCommandLineArgs();
     reset();
     for (int i = 0; i < cmdLineArgs.length; i++) {
