@@ -82,6 +82,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.40  2004/04/27 22:02:27  sueh
+ * <p> bug# 320 try to close the 3dmod with patch vector model before
+ * <p> running patchcorr
+ * <p>
  * <p> Revision 3.39  2004/04/27 01:01:34  sueh
  * <p> bug# 427 using tomopitch param when running tomopitch
  * <p>
@@ -3848,7 +3852,8 @@ public class ApplicationManager {
 
       processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
       mainFrame.setTomogramCombinationState(ProcessState.INPROGRESS);
-
+      warnStaleFile(ImodManager.PATCH_VECTOR_MODEL_KEY);
+      
       //  Set the next process to execute when this is finished   
       nextProcess = "matchvol1";
       String threadName;
@@ -3927,7 +3932,8 @@ public class ApplicationManager {
 
     processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
     mainFrame.setTomogramCombinationState(ProcessState.INPROGRESS);
-
+    warnStaleFile(ImodManager.PATCH_VECTOR_MODEL_KEY);
+    
     //  Check to see if solve.xf exists first
     File solveXf = new File(System.getProperty("user.dir"), "solve.xf");
     if (!solveXf.exists()) {
@@ -3966,7 +3972,20 @@ public class ApplicationManager {
       && updateCombineCom(TomogramCombinationDialog.FINAL_TAB)) {
       processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
       mainFrame.setTomogramCombinationState(ProcessState.INPROGRESS);
+      warnStaleFile(ImodManager.PATCH_VECTOR_MODEL_KEY);
       patchcorr();
+    }
+  }
+  
+  protected void warnStaleFile(String key) {
+    try {
+      imodManager.warnStaleFile(key, mainFrame);
+    }
+    catch (AxisTypeException e) {
+      e.printStackTrace();
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
     }
   }
 
@@ -3975,24 +3994,6 @@ public class ApplicationManager {
    * queue
    */
   private void patchcorr() {
-    //Ask to close 3dmod patch vector model, if it is open.
-    try {
-      if (imodManager.isOpen(ImodManager.PATCH_VECTOR_MODEL_KEY)) {
-        String[] message = new String[3];
-        message[0] = "3dmod is open to the existing patch vector model.";
-        message[1] = "Patchcorr will create a new patch vector model.";
-        message[2] = "Do you wish to quit 3dmod?";
-        if (mainFrame.openYesNoDialog(message)) {
-          imodManager.quit(ImodManager.PATCH_VECTOR_MODEL_KEY);
-        }
-      }
-    }
-    catch (AxisTypeException e) {
-      e.printStackTrace();
-    }
-    catch (SystemProcessException e) {
-      e.printStackTrace();
-    }
     //  Set the next process to execute when this is finished   
     nextProcess = "matchorwarp";
     String threadName;
@@ -4010,7 +4011,7 @@ public class ApplicationManager {
     setThreadName(threadName, AxisID.FIRST);
     tomogramCombinationDialog.showPane("Final Match");
   }
-
+  
   /**
    * Initiate the combine process from matchorwarp step
    */
