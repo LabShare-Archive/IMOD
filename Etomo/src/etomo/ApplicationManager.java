@@ -26,6 +26,9 @@ import etomo.ui.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.3  2003/01/28 20:42:53  rickg
+ * <p> Bug fix: save current dialog state when running align.com
+ * <p>
  * <p> Revision 2.2  2003/01/28 00:15:29  rickg
  * <p> Main window now remembers its size
  * <p>
@@ -1614,16 +1617,17 @@ public class ApplicationManager {
     if (tomogramCombinationDialog == null) {
       tomogramCombinationDialog = new TomogramCombinationDialog(this);
     }
-    else {
-      CombineParams combineParams =
-        new CombineParams(metaData.getCombineParams());
-      if (!combineParams.isPatchBoundarySet()) {
-        String recFileName;
-        if (combineParams.getMatchBtoA()) {
-          recFileName = metaData.getFilesetName() + "a.rec";
-        }
-        else {
-          recFileName = metaData.getFilesetName() + "b.rec";
+
+   CombineParams combineParams =
+      new CombineParams(metaData.getCombineParams());
+
+   if (!combineParams.isPatchBoundarySet()) {
+      String recFileName;
+      if (combineParams.getMatchBtoA()) {
+        recFileName = metaData.getFilesetName() + "a.rec";
+      }
+      else {
+        recFileName = metaData.getFilesetName() + "b.rec";
         }
         try {
           combineParams.setDefaultPatchBoundaries(recFileName);
@@ -1651,7 +1655,7 @@ public class ApplicationManager {
 
       // Fill in the dialog box params and set it to the appropriate state
       tomogramCombinationDialog.setCombineParams(combineParams);
-    }
+
     mainFrame.showProcess(
       tomogramCombinationDialog.getContainer(),
       AxisID.FIRST);
@@ -1669,32 +1673,37 @@ public class ApplicationManager {
     }
 
     DialogExitState exitState = tomogramCombinationDialog.getExitState();
-
-    if (exitState != DialogExitState.CANCEL) {
-
+    if (exitState == DialogExitState.CANCEL) {
+      mainFrame.showBlankProcess(AxisID.ONLY);
+    }
+    else {
       //  Get the user input data from the dialog box
       if (updateCombineCom()) {
-        processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
-
-        if (exitState == DialogExitState.EXECUTE) {
-          processMgr.combine();
-          processTrack.setTomogramCombinationState(ProcessState.COMPLETE);
+        if (exitState == DialogExitState.POSTPONE) {
+          processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
+          mainFrame.setTomogramCombinationState(ProcessState.INPROGRESS);
+          mainFrame.showBlankProcess(AxisID.ONLY);
         }
-
-        //FIXME        mainFrame.setTomogramCombinationState(
-        //FIXME          processTrack.getTomogramCombinationState());
-        // Close the dialog
-      }
-      else {
-        //  Leave dialog open
-        return;
+        else {
+          combine();
+          processTrack.setTomogramCombinationState(ProcessState.COMPLETE);
+          mainFrame.setTomogramCombinationState(ProcessState.COMPLETE);
+          //  FIXME open up combine control panel
+          openPostProcessingDialog();
+        }
       }
     }
-
-    // Close the dialog
-
   }
 
+  /**
+   * Combine the two tomograms
+   */
+  public void combine() {
+      String threadName = processMgr.combine();   
+      setThreadName(threadName, AxisID.FIRST);
+      mainFrame.startProgressBar("Combining tomograms", AxisID.FIRST);
+  }
+  
   /**
    * Update the combine parameters from the calling dialog
    * @param tomogramCombinationDialog the calling dialog.
@@ -1734,7 +1743,6 @@ public class ApplicationManager {
    * metaData object.  updateCombineCom is called first to get the currect
    * parameters from the dialog.
    * @param tomogramCombinationDialog the calling dialog.
-   * 
    */
   public void createCombineScripts() {
     if (!updateCombineCom()) {
@@ -2167,7 +2175,7 @@ public class ApplicationManager {
     Dimension size = mainFrame.getSize();
     userConfig.setMainWindowWidth(size.width);
     userConfig.setMainWindowHeight(size.height);
-
+    
     //  Write out the user configuration data
     File userConfigFile = new File(homeDirectory, ".etomo");
 
