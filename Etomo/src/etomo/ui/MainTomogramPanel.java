@@ -24,6 +24,9 @@ import etomo.type.ProcessTrack;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.7  2005/03/24 17:52:43  sueh
+* <p> bug# 621 Added Clean Up dialog.
+* <p>
 * <p> Revision 1.6  2005/03/01 22:06:14  sueh
 * <p> bug# 610 Set ApplicationManager.currentDialogType to null when
 * <p> displaying an empty dialog.
@@ -74,7 +77,7 @@ import etomo.type.ProcessTrack;
 */
 public class MainTomogramPanel extends MainPanel {
   public static  final String  rcsid =  "$Id$";
-
+  
   private TomogramProcessPanel axisPanelA;
   private TomogramProcessPanel axisPanelB;
   
@@ -96,6 +99,22 @@ public class MainTomogramPanel extends MainPanel {
     if (axisPanelB != null) {
      axisPanelB.saveDisplayState();
     }
+  }
+  
+  void showBothAxis() {
+    axisPanelA.showBothAxis();
+    axisPanelB.showBothAxis();
+    super.showBothAxis();
+  }
+  
+  void showAxisA() {
+    axisPanelA.showAxisA();
+    super.showAxisA();
+  }
+  
+  void showAxisB() {
+    axisPanelB.showAxisB();
+    super.showAxisB();
   }
   
   /**
