@@ -9,6 +9,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.3  2002/07/28 22:38:35  mast
+c	  Standardized error exit and output
+c	
 c	  Revision 3.2  2002/05/09 03:53:18  mast
 c	  Fixed some line lengths that would not compile on SGI
 c	
@@ -69,8 +72,9 @@ c
 c
 	  rotstart=dtor*rotstart
 	  rot(1)=rotstart
-6	  write(*,'(1x,a,/,a,$)')'Enter 0 to find all rotations, -1'//
-     &	      ' to find a single global rotation,',
+6	  write(*,'(1x,a,/,a,/,a,$)')'Enter 0 to find all rotations,'//
+     &	      ' -1 to find a single global rotation,',
+     &	      ' -2 to fix all rotations at the initial angle',
      &	      ' or a positive # to fix one view at the initial angle: '
 
 	  read(5,*)ifrotfix
@@ -84,7 +88,6 @@ c
 	      rot(1)=rotstart
 	    else
 	      rot(ifrotfix)=rotstart
-	      varname(1)='fixed'
 	    endif
 c	      
 	    do i=2,nview
@@ -95,7 +98,7 @@ c
 	      var(nvarsrch)=0.
 	      write(varname(nvarsrch),'(a4,i4)')'drot',mapviewtofile(iview)
 	    enddo
-	  else
+	  elseif (ifrotfix.eq.-1) then
 	    ifrotfix=-2
 	    do i=1,nview
 	      maplist(i)=1
@@ -103,6 +106,11 @@ c
 	    call analyze_maps(rot,maprot,linrot,frcrot,fixdum1,fixdum2,
      &		0, maplist,nview, 0,0,rotstart,'rot ',var,varname,
      &		nvarsrch,mapviewtofile)
+	  else
+	    ifrotfix=-1
+	    do i=1,nview
+	      rot(i)=rotstart
+	    enddo
 	  endif
 c	  
 c	    Get list of views to treat separately in automapping
@@ -663,9 +671,9 @@ c
 	  dump(3)='        '
 	  if(ifrotfix.lt.0)then
 	    call setdumpname(maprot(iv),linrot(iv),-1,varname,dump(1))
-	  elseif(ifrotfix.eq.0 .or. i.lt.ifrotfix)then
+	  elseif(ifrotfix.eq.0 .or. iv.lt.ifrotfix)then
 	    dump(1)=varname(iv)
-	  elseif(ifrotfix.gt.0.and. i.gt.ifrotfix)then
+	  elseif(ifrotfix.gt.0.and. iv.gt.ifrotfix)then
 	    dump(1)=varname(iv-1)
 	  endif
 	  if(maptilt(iv).gt.0)then
