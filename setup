@@ -9,6 +9,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.2  2002/07/28 21:51:13  mast
+#  Set year correctly in copyright
+#
 #  Revision 3.1  2002/07/26 19:14:30  mast
 #  Added copy of machine-specific fast backprojection switching file
 #
@@ -50,9 +53,9 @@ set swap_ieee       = true
 
 set inst_bin_dir    = default
 set inst_lib_dir    = default
-set inst_dir         = default
-set glwincdir       = .
-set glwlibdir       = .
+set inst_dir        = default
+set glwinst_inc_dir = unused
+set glwinst_lib_dir = unused
 set tifflibs        = default
 set usfftdir        = default
 set blockio         =
@@ -428,14 +431,17 @@ else
     echo "USFFTLIBS = $usfftdir/libusfft_r3.a $usfftdir/libtest_usfft.a -lnsl" >> $configure
     echo "FBPLIB = libfbp.a" >> $configure
 endif
-\cp $tilt_dir/$fbpswitch $tilt_dir/fbpswitch.inc
+
+if (-e $tilt_dir/fbpswitch.inc) \rm $tilt_dir/fbpswitch.inc
+ln -s $fbpswitch $tilt_dir/fbpswitch.inc
+
 
 echo "BLOCKIO =   $blockio"  >> $configure
 echo "IMSUBSOBJ = $imsubsobj"  >> $configure
 echo "TILTALILIB = $tiltalilib"  >> $configure
 
-echo "GLWINCDIR = $glwincdir" >> $configure
-echo "GLWLIBDIR = $glwlibdir" >> $configure
+echo "GLW_INSTINCDIR = $glwinst_inc_dir" >> $configure
+echo "GLW_INSTLIBDIR = $glwinst_lib_dir" >> $configure
 echo "BINDIR  = $bin_dir" >> $configure
 echo "INSTBINDIR = $inst_bin_dir"  >> $configure
 echo "LIBDIR  = $lib_dir" >> $configure
