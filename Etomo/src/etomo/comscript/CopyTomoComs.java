@@ -3,6 +3,7 @@ package etomo.comscript;
 import java.io.File;
 import java.io.IOException;
 
+import etomo.ApplicationManager;
 import etomo.process.SystemProgram;
 import etomo.type.AxisType;
 import etomo.type.ConstMetaData;
@@ -29,6 +30,9 @@ import etomo.type.ViewType;
  * 
  * <p>
  * $Log$
+ * Revision 2.11  2003/11/04 00:51:59  rickg
+ * Bug #345 Explicitly set path to script using IMOD_DIR
+ *
  * <p>
  * Revision 2.10 2003/05/13 19:59:43 rickg
  * <p>
@@ -121,14 +125,19 @@ public class CopyTomoComs {
 	int exitValue;
 	ConstMetaData metaData;
 
-	public CopyTomoComs(ConstMetaData metaData, String IMODPath) {
+	public CopyTomoComs(ConstMetaData metaData) {
 
 		this.metaData = metaData;
-		String IMODBinPath = IMODPath + File.separator + "bin" + File.separator;
+
+		String imodBinPath =
+			ApplicationManager.getIMODDirectory().getAbsolutePath()
+				+ File.separator
+				+ "bin"
+				+ File.separator;
 
 		//  Create a new SystemProgram object for copytomocom, set the
 		//  working directory and stdin array.
-		commandLine = "tcsh -ef " + IMODBinPath + "copytomocoms";
+		commandLine = "tcsh -ef " + imodBinPath + "copytomocoms";
 		copytomocoms = new SystemProgram(commandLine);
 
 		genStdInputSequence();

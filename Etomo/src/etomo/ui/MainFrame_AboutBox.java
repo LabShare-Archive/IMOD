@@ -2,8 +2,11 @@ package etomo.ui;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.io.File;
+
 import javax.swing.*;
 
+import etomo.ApplicationManager;
 import etomo.process.SystemProgram;
 
 /**
@@ -19,6 +22,9 @@ import etomo.process.SystemProgram;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.5  2003/10/31 00:00:39  rickg
+ * <p> Bug# 260
+ * <p>
  * <p> Revision 2.4  2003/09/09 17:15:45  rickg
  * <p> Upped version number to 0.95
  * <p>
@@ -46,104 +52,110 @@ import etomo.process.SystemProgram;
  * <p> </p>
  */
 public class MainFrame_AboutBox extends JDialog {
-  public static final String rcsid =
-    "$Id$";
+	public static final String rcsid =
+		"$Id$";
 
-  String vers3dmod = "unknown";
-  String cpyrght3dmodLine1 = "";
-  String cpyrght3dmodLine2 = "";
-  JPanel pnlAbout = new JPanel();
+	String vers3dmod = "unknown";
+	String cpyrght3dmodLine1 = "";
+	String cpyrght3dmodLine2 = "";
+	JPanel pnlAbout = new JPanel();
 
-  JButton btnOK = new JButton("OK");
+	JButton btnOK = new JButton("OK");
 
-  public MainFrame_AboutBox(Frame parent) {
-    super(parent);
-    get3dmodVersion();
-    JPanel pnlRoot = (JPanel) getContentPane();
-    JPanel pnlText = new JPanel();
+	public MainFrame_AboutBox(Frame parent) {
+		super(parent);
+		get3dmodVersion();
+		JPanel pnlRoot = (JPanel) getContentPane();
+		JPanel pnlText = new JPanel();
 		JPanel pnlButton = new JPanel();
-    pnlRoot.setLayout(new BorderLayout());
-    setTitle("About");
-    setResizable(false);
+		pnlRoot.setLayout(new BorderLayout());
+		setTitle("About");
+		setResizable(false);
 
 		pnlText.setLayout(new BoxLayout(pnlText, BoxLayout.Y_AXIS));
-    pnlAbout.setLayout(new BoxLayout(pnlAbout, BoxLayout.Y_AXIS));
-		
-    JLabel lblEtomo = new JLabel("eTomo: The IMOD Tomography GUI");
-    JLabel lblVersion = new JLabel("Version 1.0.0");
+		pnlAbout.setLayout(new BoxLayout(pnlAbout, BoxLayout.Y_AXIS));
+
+		JLabel lblEtomo = new JLabel("eTomo: The IMOD Tomography GUI");
+		JLabel lblVersion = new JLabel("Version 1.0.0");
 		JLabel lblAuthors = new JLabel("Written by: Rick Gaudette & Sue Held");
-    JLabel lbl3dmodVersion = new JLabel("IMOD Version: " + vers3dmod);
-    JLabel lblCopyright1 = new JLabel(cpyrght3dmodLine1);
-    JLabel lblCopyright2 = new JLabel(cpyrght3dmodLine2);
-    
-    btnOK.addActionListener(new AboutActionListener(this));
-    
-    pnlAbout.add(Box.createRigidArea(FixedDim.x0_y10));
-    pnlText.add(lblEtomo);
-    pnlText.add(Box.createRigidArea(FixedDim.x0_y5));
-    pnlText.add(lblVersion);
+		JLabel lbl3dmodVersion = new JLabel("IMOD Version: " + vers3dmod);
+		JLabel lblCopyright1 = new JLabel(cpyrght3dmodLine1);
+		JLabel lblCopyright2 = new JLabel(cpyrght3dmodLine2);
+
+		btnOK.addActionListener(new AboutActionListener(this));
+
+		pnlAbout.add(Box.createRigidArea(FixedDim.x0_y10));
+		pnlText.add(lblEtomo);
+		pnlText.add(Box.createRigidArea(FixedDim.x0_y5));
+		pnlText.add(lblVersion);
 		pnlText.add(Box.createRigidArea(FixedDim.x0_y10));
 		pnlText.add(lblCopyright1);
 		pnlText.add(Box.createRigidArea(FixedDim.x0_y5));
 		pnlText.add(lblCopyright2);
 		pnlText.add(Box.createRigidArea(FixedDim.x0_y10));
 		pnlText.add(lblAuthors);
-    pnlText.add(Box.createRigidArea(FixedDim.x0_y20));
-    pnlText.add(lbl3dmodVersion);
-    pnlText.add(Box.createRigidArea(FixedDim.x0_y20));
-    pnlButton.add(btnOK);
+		pnlText.add(Box.createRigidArea(FixedDim.x0_y20));
+		pnlText.add(lbl3dmodVersion);
+		pnlText.add(Box.createRigidArea(FixedDim.x0_y20));
+		pnlButton.add(btnOK);
 
 		pnlAbout.add(pnlText);
 		pnlAbout.add(pnlButton);
-    pnlRoot.add(pnlAbout, BorderLayout.CENTER);
-    pnlRoot.add(Box.createRigidArea(FixedDim.x20_y0), BorderLayout.WEST);
-    pnlRoot.add(Box.createRigidArea(FixedDim.x20_y0), BorderLayout.EAST);
-    pack();
-  }
+		pnlRoot.add(pnlAbout, BorderLayout.CENTER);
+		pnlRoot.add(Box.createRigidArea(FixedDim.x20_y0), BorderLayout.WEST);
+		pnlRoot.add(Box.createRigidArea(FixedDim.x20_y0), BorderLayout.EAST);
+		pack();
+	}
 
-  /**Overridden so we can exit when window is closed*/
-  protected void processWindowEvent(WindowEvent e) {
-    if (e.getID() == WindowEvent.WINDOW_CLOSING) {
-      cancel();
-    }
-    super.processWindowEvent(e);
-  }
-  /**Close the dialog*/
-  void cancel() {
-    dispose();
-  }
-  /**Close the dialog on a button event*/
-  public void buttonAction(ActionEvent e) {
-    if (e.getSource() == btnOK) {
-      cancel();
-    }
-  }
+	/**Overridden so we can exit when window is closed*/
+	protected void processWindowEvent(WindowEvent e) {
+		if (e.getID() == WindowEvent.WINDOW_CLOSING) {
+			cancel();
+		}
+		super.processWindowEvent(e);
+	}
+	/**Close the dialog*/
+	void cancel() {
+		dispose();
+	}
+	/**Close the dialog on a button event*/
+	public void buttonAction(ActionEvent e) {
+		if (e.getSource() == btnOK) {
+			cancel();
+		}
+	}
 
-  /**
-   * Run 3dmod -h to version and copyright information.
-   */
-  private void get3dmodVersion() {
-    SystemProgram threeDmod_h = new SystemProgram("3dmod -h");
+	/**
+	 * Run 3dmod -h to version and copyright information.
+	 */
+	private void get3dmodVersion() {
+		String imodBinPath =
+			ApplicationManager.getIMODDirectory().getAbsolutePath()
+				+ File.separator
+				+ "bin"
+				+ File.separator;
+		String command = imodBinPath + "3dmod -h";
+		SystemProgram threeDmod_h = new SystemProgram(command);
 
-    threeDmod_h.run();
+		threeDmod_h.run();
 
-    String[] stdout = threeDmod_h.getStdOutput();
-    if (stdout.length >= 1) {
-      int idxVersion = stdout[0].indexOf("Version");
-      if (idxVersion > 0) {
-        String noPath = stdout[0].substring(idxVersion);
-        String[] tokens = noPath.split(" ");
-        if (tokens.length > 1) {
-          vers3dmod = tokens[1];
-        }
-      }
-    }
-    if (stdout.length > 3) {
-      cpyrght3dmodLine1 = stdout[1];
-      cpyrght3dmodLine2 = stdout[2];
-    }
-  }
-  
+		String[] stdout = threeDmod_h.getStdOutput();
+		if (stdout.length >= 1) {
+			int idxVersion = stdout[0].indexOf("Version");
+			if (idxVersion > 0) {
+				String noPath = stdout[0].substring(idxVersion);
+				String[] tokens = noPath.split(" ");
+				if (tokens.length > 1) {
+					vers3dmod = tokens[1];
+				}
+			}
+		}
+		if (stdout.length > 3) {
+			cpyrght3dmodLine1 = stdout[1];
+			cpyrght3dmodLine2 = stdout[2];
+		}
+	}
+
 	class AboutActionListener implements ActionListener {
 
 		MainFrame_AboutBox adaptee;

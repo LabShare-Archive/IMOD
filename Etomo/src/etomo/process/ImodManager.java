@@ -1,4 +1,5 @@
 package etomo.process;
+
 import java.io.File;
 
 import etomo.ApplicationManager;
@@ -23,6 +24,9 @@ import etomo.type.ConstMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.22  2003/11/04 17:53:31  rickg
+ * <p> Bug #345 Explicitly set path to 3dmodusing IMOD_DIR
+ * <p>
  * <p> Revision 2.21  2003/10/30 23:36:02  rickg
  * <p> Bug# 343 Open patch vector model in model mode
  * <p>
@@ -165,51 +169,41 @@ public class ImodManager {
 
 		axisType = metaData.getAxisType();
 		datasetName = metaData.getDatasetName();
-		File imodDir = applicationManager.getIMODDirectory();
 
 		//  Initialize the necessary ImodProcesses
 		if (axisType == AxisType.SINGLE_AXIS) {
-			rawStackA = new ImodProcess(datasetName + ".st", imodDir);
-			erasedStackA = new ImodProcess(datasetName + "_fixed.st", imodDir);
-			coarseAlignedA = new ImodProcess(datasetName + ".preali", imodDir);
-			fineAlignedA = new ImodProcess(datasetName + ".ali", imodDir);
-			sampleA =
-				new ImodProcess("top.rec mid.rec bot.rec", "tomopitch.mod", imodDir);
-			fullVolumeA = new ImodProcess(datasetName + "_full.rec", imodDir);
+			rawStackA = new ImodProcess(datasetName + ".st");
+			erasedStackA = new ImodProcess(datasetName + "_fixed.st");
+			coarseAlignedA = new ImodProcess(datasetName + ".preali");
+			fineAlignedA = new ImodProcess(datasetName + ".ali");
+			sampleA = new ImodProcess("top.rec mid.rec bot.rec", "tomopitch.mod");
+			fullVolumeA = new ImodProcess(datasetName + "_full.rec");
 			fullVolumeA.setSwapYZ(true);
 			combinedTomogram = fullVolumeA;
 		}
 		else {
-			rawStackA = new ImodProcess(datasetName + "a.st", imodDir);
-			rawStackB = new ImodProcess(datasetName + "b.st", imodDir);
-			erasedStackA = new ImodProcess(datasetName + "a_fixed.st", imodDir);
-			erasedStackB = new ImodProcess(datasetName + "b_fixed.st", imodDir);
-			coarseAlignedA = new ImodProcess(datasetName + "a.preali", imodDir);
-			coarseAlignedB = new ImodProcess(datasetName + "b.preali", imodDir);
-			fineAlignedA = new ImodProcess(datasetName + "a.ali", imodDir);
-			fineAlignedB = new ImodProcess(datasetName + "b.ali", imodDir);
-			sampleA =
-				new ImodProcess(
-					"topa.rec mida.rec bota.rec",
-					"tomopitcha.mod",
-					imodDir);
-			sampleB =
-				new ImodProcess(
-					"topb.rec midb.rec botb.rec",
-					"tomopitchb.mod",
-					imodDir);
-			fullVolumeA = new ImodProcess(datasetName + "a.rec", imodDir);
+			rawStackA = new ImodProcess(datasetName + "a.st");
+			rawStackB = new ImodProcess(datasetName + "b.st");
+			erasedStackA = new ImodProcess(datasetName + "a_fixed.st");
+			erasedStackB = new ImodProcess(datasetName + "b_fixed.st");
+			coarseAlignedA = new ImodProcess(datasetName + "a.preali");
+			coarseAlignedB = new ImodProcess(datasetName + "b.preali");
+			fineAlignedA = new ImodProcess(datasetName + "a.ali");
+			fineAlignedB = new ImodProcess(datasetName + "b.ali");
+			sampleA = new ImodProcess("topa.rec mida.rec bota.rec", "tomopitcha.mod");
+			sampleB = new ImodProcess("topb.rec midb.rec botb.rec", "tomopitchb.mod");
+			fullVolumeA = new ImodProcess(datasetName + "a.rec");
 			fullVolumeA.setSwapYZ(true);
-			fullVolumeB = new ImodProcess(datasetName + "b.rec", imodDir);
+			fullVolumeB = new ImodProcess(datasetName + "b.rec");
 			fullVolumeB.setSwapYZ(true);
-			combinedTomogram = new ImodProcess("sum.rec", imodDir);
+			combinedTomogram = new ImodProcess("sum.rec");
 			combinedTomogram.setSwapYZ(true);
-			patchVectorModel = new ImodProcess("patch_vector.mod", imodDir);
+			patchVectorModel = new ImodProcess("patch_vector.mod");
 			patchVectorModel.setModelView(true);
-			matchCheck = new ImodProcess("matchcheck.mat matchcheck.rec", imodDir);
+			matchCheck = new ImodProcess("matchcheck.mat matchcheck.rec");
 			matchCheck.setFillCache(true);
 		}
-		trimmedVolume = new ImodProcess(datasetName + ".rec", imodDir);
+		trimmedVolume = new ImodProcess(datasetName + ".rec");
 	}
 
 	/**
@@ -376,8 +370,13 @@ public class ImodManager {
 				return;
 			}
 		}
-
-		SystemProgram imodv = new SystemProgram("3dmod -view " + model);
+		String imodBinPath =
+			ApplicationManager.getIMODDirectory().getAbsolutePath()
+				+ File.separator
+				+ "bin"
+				+ File.separator;
+		String commandLine = imodBinPath + "3dmod -view " + model;
+		SystemProgram imodv = new SystemProgram(commandLine);
 		imodv.setDebug(applicationManager.isDebug());
 		Thread fiducialModel = new Thread(imodv);
 		fiducialModel.start();

@@ -36,6 +36,9 @@ import java.util.ArrayList;
  * 
  * <p>
  * $Log$
+ * Revision 2.32  2003/11/04 01:02:41  rickg
+ * Bug #345 Explicitly set path to script using IMOD_DIR
+ *
  * <p>
  * Revision 2.31 2003/10/27 23:56:33 rickg
  * <p>
@@ -352,10 +355,7 @@ public class ProcessManager {
 	public void setupComScripts(ConstMetaData metaData)
 		throws BadComScriptException, IOException {
 
-		CopyTomoComs copyTomoComs =
-			new CopyTomoComs(
-				metaData,
-				appManager.getIMODDirectory().getAbsolutePath());
+		CopyTomoComs copyTomoComs = new CopyTomoComs(metaData);
 
 		if (appManager.isDebug()) {
 			System.err.println(
@@ -475,10 +475,14 @@ public class ProcessManager {
 			xform = appManager.getDatasetName() + "b.prexf ";
 		}
 
-		String command = "midas " + stack + xform;
-
+		String imodBinPath =
+			ApplicationManager.getIMODDirectory().getAbsolutePath()
+				+ File.separator
+				+ "bin"
+				+ File.separator;
+		String commandLine = imodBinPath + "midas " + stack + xform;
 		//  Start the system program thread
-		startSystemProgramThread(command);
+		startSystemProgramThread(commandLine);
 	}
 
 	/**
@@ -523,10 +527,7 @@ public class ProcessManager {
 	 * @param axisID
 	 */
 	public void generateAlignLogs(AxisID axisID) {
-		AlignLogGenerator alignLogGenerator =
-			new AlignLogGenerator(
-				appManager.getIMODDirectory().getAbsolutePath(),
-				axisID);
+		AlignLogGenerator alignLogGenerator = new AlignLogGenerator(axisID);
 
 		try {
 			alignLogGenerator.run();
@@ -645,10 +646,7 @@ public class ProcessManager {
 	public void setupCombineScripts(ConstMetaData metaData)
 		throws BadComScriptException, IOException {
 
-		SetupCombine setupCombine =
-			new SetupCombine(
-				metaData,
-				appManager.getIMODDirectory().getAbsolutePath());
+		SetupCombine setupCombine = new SetupCombine(metaData);
 
 		int exitValue = setupCombine.run();
 
@@ -696,8 +694,13 @@ public class ProcessManager {
 		}
 
 		// Convert the new patchvector.mod
-		SystemProgram patch2imod =
-			new SystemProgram("imod2patch patch_vector.mod patch.out");
+		String imodBinPath =
+			ApplicationManager.getIMODDirectory().getAbsolutePath()
+				+ File.separator
+				+ "bin"
+				+ File.separator;
+		String commandLine = imodBinPath + "imod2patch patch_vector.mod patch.out";
+		SystemProgram patch2imod = new SystemProgram(commandLine);
 		patch2imod.setWorkingDirectory(new File(System.getProperty("user.dir")));
 		patch2imod.setDebug(appManager.isDebug());
 
@@ -852,13 +855,6 @@ public class ProcessManager {
 			System.err.println("  Name: " + command.getName());
 		}
 		return command.getName();
-	}
-
-	//
-	//  Generalized process management methods
-	//
-	public String getImodDirectory() {
-		return appManager.getIMODDirectory().getAbsolutePath();
 	}
 
 	/**

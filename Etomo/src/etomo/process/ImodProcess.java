@@ -2,6 +2,8 @@ package etomo.process;
 
 import java.io.File;
 
+import etomo.ApplicationManager;
+
 /**
  * <p> Description: ImodProcess opens an instance of imod with the specfied stack
  * projection stack(s) and possibly model files. Model files can also be loaded
@@ -17,6 +19,9 @@ import java.io.File;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 2.16  2003/11/04 17:45:21  rickg
+ * <p> Bug #345 Explicitly set path to 3dmodusing IMOD_DIR
+ * <p>
  * <p> Revision 2.15 2003/11/04 01:03:37 rickg
  * <p> Javadoc comment fix
  * <p>
@@ -107,7 +112,6 @@ public class ImodProcess {
 
 	private String datasetName = "";
 	private String modelName = "";
-	private File imodDirectory;
 	private String windowID = "";
 	private boolean swapYZ = false;
 	private boolean modelView = false;
@@ -125,17 +129,6 @@ public class ImodProcess {
 	}
 
 	/**
-	 * Dataset and IMOD_DIR constructor
-	 * 
-	 * @param dataset
-	 * @param imodDir
-	 */
-	public ImodProcess(String dataset, File imodDir) {
-		datasetName = dataset;
-		imodDirectory = imodDir;
-	}
-
-	/**
 	 * Dataset and model file constructor
 	 * 
 	 * @param dataset A string specifying the path to the projection stack file
@@ -144,12 +137,6 @@ public class ImodProcess {
 	public ImodProcess(String dataset, String model) {
 		datasetName = dataset;
 		modelName = model;
-	}
-
-	public ImodProcess(String dataset, String model, File imodDir) {
-		datasetName = dataset;
-		modelName = model;
-		imodDirectory = imodDir;
 	}
 
 	/**
@@ -196,14 +183,11 @@ public class ImodProcess {
 		if (fillCache) {
 			options = "-F ";
 		}
-		String imodBinPath = "";
-		if (imodDirectory != null) {
-			imodBinPath =
-				imodDirectory.getAbsolutePath()
-					+ File.separator
-					+ "bin"
-					+ File.separator;
-		}
+		String imodBinPath =
+			ApplicationManager.getIMODDirectory().getAbsolutePath()
+				+ File.separator
+				+ "bin"
+				+ File.separator;
 		String command =
 			imodBinPath + "3dmod -W " + options + datasetName + " " + modelName;
 		InteractiveSystemProgram imod = new InteractiveSystemProgram(command);
@@ -345,14 +329,11 @@ public class ImodProcess {
 		if (windowID == "") {
 			throw (new SystemProcessException("No window ID available for imod"));
 		}
-		String imodBinPath = "";
-		if (imodDirectory != null) {
-			imodBinPath =
-				imodDirectory.getAbsolutePath()
-					+ File.separator
-					+ "bin"
-					+ File.separator;
-		}
+		String imodBinPath =
+			ApplicationManager.getIMODDirectory().getAbsolutePath()
+				+ File.separator
+				+ "bin"
+				+ File.separator;
 		String command = imodBinPath + "imodsendevent " + windowID + " ";
 		for (int i = 0; i < args.length; i++) {
 			command = command + args[i] + " ";

@@ -28,6 +28,9 @@ import etomo.ApplicationManager;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.8  2003/10/23 17:05:43  rickg
+ * <p> Bug# 257 Added IMOD and eTomo guides to generic menu
+ * <p>
  * <p> Revision 2.7  2003/06/04 23:39:50  rickg
  * <p> Added independent labels for tabs
  * <p>
@@ -93,15 +96,18 @@ public class ContextPopup {
    * reference exception will be thrown.
    * @param appMgr
    */
+  
+  // FIXME:  The application manager is no longer needed since getIMODDirectory
+  // call is now static
   public ContextPopup(ApplicationManager appMgr) {
     ApplicationManager appManager = appMgr;
     try {
-      imodURL = appManager.getIMODDirectory().toURL().toString() + "/html/";
+      imodURL = ApplicationManager.getIMODDirectory().toURL().toString() + "/html/";
     }
     catch (MalformedURLException except) {
       except.printStackTrace();
       System.err.println("Malformed URL:");
-      System.err.println(appManager.getIMODDirectory().toString());
+      System.err.println(ApplicationManager.getIMODDirectory().toString());
     }
   }
 

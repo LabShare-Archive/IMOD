@@ -2,6 +2,8 @@ package etomo.comscript;
 
 import java.io.File;
 
+import etomo.ApplicationManager;
+
 /**
  * <p>Description: </p>
  *
@@ -15,6 +17,9 @@ import java.io.File;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.8  2003/09/26 19:46:16  sueh
+ * <p> bug223 removed task marks
+ * <p>
  * <p> Revision 2.7  2003/09/26 19:43:48  sueh
  * <p> bug223 no field should be persistant.  Changed MetaData.
  * <p> Added TransferfidNumberViews.
@@ -66,275 +71,274 @@ import java.io.File;
  * <p> </p>
  */
 public class TransferfidParam {
-  public static final String rcsid =
-    "$Id$";
-  String inputImageFile = "";
-  String outputImageFile = "";
-  String inputModelFile = "";
-  String outputModelFile = "";
-  String datasetName = "";
-  boolean bToA = false;
-  boolean runMidas = false;
-  int searchDirection = 0; // 0 - both, -1 => -90, 1=> +90  
-  int centerViewA = 0; // 0 => default selected by script
-  int centerViewB = 0;
+	public static final String rcsid =
+		"$Id$";
+	String inputImageFile = "";
+	String outputImageFile = "";
+	String inputModelFile = "";
+	String outputModelFile = "";
+	String datasetName = "";
+	boolean bToA = false;
+	boolean runMidas = false;
+	int searchDirection = 0; // 0 - both, -1 => -90, 1=> +90  
+	int centerViewA = 0; // 0 => default selected by script
+	int centerViewB = 0;
 
-  int numberViews;
+	int numberViews;
 
-  File IMODDirectory;
+	boolean createLog = false;
 
-  boolean createLog = false;
+	public TransferfidParam() {
+	}
 
+	/**
+	 * Get the command string specified by the current state
+	 */
+	public String getCommandString() {
+		String imodBinPath =
+			ApplicationManager.getIMODDirectory().getAbsolutePath()
+				+ File.separator
+				+ "bin"
+				+ File.separator;
+		StringBuffer commandLine =
+			new StringBuffer("tcsh -ef " + imodBinPath + "transferfid -P ");
 
-  public TransferfidParam(File IMOD_DIR) {
-    IMODDirectory = IMOD_DIR;
-  }
+		if (bToA) {
+			commandLine.append("-b ");
+		}
+		if (!inputImageFile.equals("")) {
+			commandLine.append("-ia " + inputImageFile + " ");
+		}
 
-  /**
-   * Get the command string specified by the current state
-   */
-  public String getCommandString() {
-    String IMODBinPath =
-      IMODDirectory.getAbsolutePath() + File.separator + "bin" + File.separator;
-    StringBuffer commandLine =
-      new StringBuffer("tcsh -ef " + IMODBinPath + "transferfid -P ");
+		if (!outputImageFile.equals("")) {
+			commandLine.append("-ib " + outputImageFile + " ");
+		}
 
-    if (bToA) {
-      commandLine.append("-b ");
-    }
-    if (!inputImageFile.equals("")) {
-      commandLine.append("-ia " + inputImageFile + " ");
-    }
+		if (!inputModelFile.equals("")) {
+			commandLine.append("-f " + inputModelFile + " ");
+		}
 
-    if (!outputImageFile.equals("")) {
-      commandLine.append("-ib " + outputImageFile + " ");
-    }
+		if (!outputModelFile.equals("")) {
+			commandLine.append("-o " + outputModelFile + " ");
+		}
 
-    if (!inputModelFile.equals("")) {
-      commandLine.append("-f " + inputModelFile + " ");
-    }
+		if (centerViewA > 0) {
+			commandLine.append("-za " + String.valueOf(centerViewA) + " ");
+		}
 
-    if (!outputModelFile.equals("")) {
-      commandLine.append("-o " + outputModelFile + " ");
-    }
+		if (centerViewB > 0) {
+			commandLine.append("-zb " + String.valueOf(centerViewA) + " ");
+		}
 
-    if (centerViewA > 0) {
-      commandLine.append("-za " + String.valueOf(centerViewA) + " ");
-    }
+		if (numberViews != 5) {
+			commandLine.append("-n " + String.valueOf(numberViews) + " ");
+		}
 
-    if (centerViewB > 0) {
-      commandLine.append("-zb " + String.valueOf(centerViewA) + " ");
-    }
-    
-    if (numberViews != 5) {
-    	commandLine.append("-n " + String.valueOf(numberViews) + " ");
-    }
+		if (searchDirection > 0) {
+			commandLine.append("-a 90 ");
+		}
 
-    if (searchDirection > 0) {
-      commandLine.append("-a 90 ");
-    }
+		if (searchDirection < 0) {
+			commandLine.append("-a -90 ");
+		}
 
-    if (searchDirection < 0) {
-      commandLine.append("-a -90 ");
-    }
+		if (runMidas) {
+			commandLine.append("-m ");
+		}
 
-    if (runMidas) {
-      commandLine.append("-m ");
-    }
+		commandLine.append(datasetName);
+		return commandLine.toString();
+	}
 
-    commandLine.append(datasetName);
-    return commandLine.toString();
-  }
+	/**
+	 * Returns the inputImageFile.
+	 * @return String
+	 */
+	public String getInputImageFile() {
+		return inputImageFile;
+	}
 
-  /**
-   * Returns the inputImageFile.
-   * @return String
-   */
-  public String getInputImageFile() {
-    return inputImageFile;
-  }
+	/**
+	 * Returns the inputModelFile.
+	 * @return String
+	 */
+	public String getInputModelFile() {
+		return inputModelFile;
+	}
 
-  /**
-   * Returns the inputModelFile.
-   * @return String
-   */
-  public String getInputModelFile() {
-    return inputModelFile;
-  }
+	/**
+	 * Returns the outputImageFile.
+	 * @return String
+	 */
+	public String getOutputImageFile() {
+		return outputImageFile;
+	}
 
-  /**
-   * Returns the outputImageFile.
-   * @return String
-   */
-  public String getOutputImageFile() {
-    return outputImageFile;
-  }
+	/**
+	 * Returns the outputModelFile.
+	 * @return String
+	 */
+	public String getOutputModelFile() {
+		return outputModelFile;
+	}
 
-  /**
-   * Returns the outputModelFile.
-   * @return String
-   */
-  public String getOutputModelFile() {
-    return outputModelFile;
-  }
+	/**
+	 * Returns the runMidas.
+	 * @return boolean
+	 */
+	public boolean isRunMidas() {
+		return runMidas;
+	}
 
-  /**
-   * Returns the runMidas.
-   * @return boolean
-   */
-  public boolean isRunMidas() {
-    return runMidas;
-  }
-  
 	/**
 	  * Returns numberViews 
 		* @return int
 		*/
-	 public int getNumberViews() {
-		 return numberViews;
-	 }
+	public int getNumberViews() {
+		return numberViews;
+	}
 
-	 /**
+	/**
 		* @param numberViews
 		*/
-	 public void setNumberViews(int numberViews) {
-		 this.numberViews = numberViews;
-	 }
-	 
-  /**
-   * Sets the inputImageFile.
-   * @param inputImageFile The inputImageFile to set
-   */
-  public void setInputImageFile(String inputImageFile) {
-    this.inputImageFile = inputImageFile;
-  }
+	public void setNumberViews(int numberViews) {
+		this.numberViews = numberViews;
+	}
 
-  /**
-   * Sets the inputModelFile.
-   * @param inputModelFile The inputModelFile to set
-   */
-  public void setInputModelFile(String inputModelFile) {
-    this.inputModelFile = inputModelFile;
-  }
+	/**
+	 * Sets the inputImageFile.
+	 * @param inputImageFile The inputImageFile to set
+	 */
+	public void setInputImageFile(String inputImageFile) {
+		this.inputImageFile = inputImageFile;
+	}
 
-  /**
-   * Sets the outputImageFile.
-   * @param outputImageFile The outputImageFile to set
-   */
-  public void setOutputImageFile(String outputImageFile) {
-    this.outputImageFile = outputImageFile;
-  }
+	/**
+	 * Sets the inputModelFile.
+	 * @param inputModelFile The inputModelFile to set
+	 */
+	public void setInputModelFile(String inputModelFile) {
+		this.inputModelFile = inputModelFile;
+	}
 
-  /**
-   * Sets the outputModelFile.
-   * @param outputModelFile The outputModelFile to set
-   */
-  public void setOutputModelFile(String outputModelFile) {
-    this.outputModelFile = outputModelFile;
-  }
+	/**
+	 * Sets the outputImageFile.
+	 * @param outputImageFile The outputImageFile to set
+	 */
+	public void setOutputImageFile(String outputImageFile) {
+		this.outputImageFile = outputImageFile;
+	}
 
-  /**
-   * Sets the runMidas.
-   * @param runMidas The runMidas to set
-   */
-  public void setRunMidas(boolean runMidas) {
-    this.runMidas = runMidas;
-  }
+	/**
+	 * Sets the outputModelFile.
+	 * @param outputModelFile The outputModelFile to set
+	 */
+	public void setOutputModelFile(String outputModelFile) {
+		this.outputModelFile = outputModelFile;
+	}
 
-  /**
-   * Returns the setName.
-   * @return String
-   */
-  public String getDatasetName() {
-    return datasetName;
-  }
+	/**
+	 * Sets the runMidas.
+	 * @param runMidas The runMidas to set
+	 */
+	public void setRunMidas(boolean runMidas) {
+		this.runMidas = runMidas;
+	}
 
-  /**
-   * Sets the setName.
-   * @param setName The setName to set
-   */
-  public void setDatasetName(String datasetName) {
-    this.datasetName = datasetName;
-  }
+	/**
+	 * Returns the setName.
+	 * @return String
+	 */
+	public String getDatasetName() {
+		return datasetName;
+	}
 
-  /**
-   * Returns the bToA.
-   * @return boolean
-   */
-  public boolean isBToA() {
-    return bToA;
-  }
+	/**
+	 * Sets the setName.
+	 * @param setName The setName to set
+	 */
+	public void setDatasetName(String datasetName) {
+		this.datasetName = datasetName;
+	}
 
-  /**
-   * Sets the bToA.
-   * @param bToA The bToA to set
-   */
-  public void setBToA(boolean bToA) {
-    this.bToA = bToA;
-  }
+	/**
+	 * Returns the bToA.
+	 * @return boolean
+	 */
+	public boolean isBToA() {
+		return bToA;
+	}
 
-  /**
-   * Returns the centerViewA.
-   * @return int
-   */
-  public int getCenterViewA() {
-    return centerViewA;
-  }
+	/**
+	 * Sets the bToA.
+	 * @param bToA The bToA to set
+	 */
+	public void setBToA(boolean bToA) {
+		this.bToA = bToA;
+	}
 
-  /**
-   * Returns the centerViewB.
-   * @return int
-   */
-  public int getCenterViewB() {
-    return centerViewB;
-  }
+	/**
+	 * Returns the centerViewA.
+	 * @return int
+	 */
+	public int getCenterViewA() {
+		return centerViewA;
+	}
 
-  /**
-   * Returns the searchDirection.
-   * @return int
-   */
-  public int getSearchDirection() {
-    return searchDirection;
-  }
+	/**
+	 * Returns the centerViewB.
+	 * @return int
+	 */
+	public int getCenterViewB() {
+		return centerViewB;
+	}
 
-  /**
-   * Sets the centerViewA.
-   * @param centerViewA The centerViewA to set
-   */
-  public void setCenterViewA(int centerViewA) {
-    this.centerViewA = centerViewA;
-  }
+	/**
+	 * Returns the searchDirection.
+	 * @return int
+	 */
+	public int getSearchDirection() {
+		return searchDirection;
+	}
 
-  /**
-   * Sets the centerViewB.
-   * @param centerViewB The centerViewB to set
-   */
-  public void setCenterViewB(int centerViewB) {
-    this.centerViewB = centerViewB;
-  }
+	/**
+	 * Sets the centerViewA.
+	 * @param centerViewA The centerViewA to set
+	 */
+	public void setCenterViewA(int centerViewA) {
+		this.centerViewA = centerViewA;
+	}
 
-  /**
-   * Sets the searchDirection.
-   * @param searchDirection The searchDirection to set
-   */
-  public void setSearchDirection(int searchDirection) {
-    this.searchDirection = searchDirection;
-  }
+	/**
+	 * Sets the centerViewB.
+	 * @param centerViewB The centerViewB to set
+	 */
+	public void setCenterViewB(int centerViewB) {
+		this.centerViewB = centerViewB;
+	}
 
-  /**
-   * Returns the createLog.
-   * @return boolean
-   */
-  public boolean isCreateLog() {
-    return createLog;
-  }
+	/**
+	 * Sets the searchDirection.
+	 * @param searchDirection The searchDirection to set
+	 */
+	public void setSearchDirection(int searchDirection) {
+		this.searchDirection = searchDirection;
+	}
 
-  /**
-   * Sets the createLog.
-   * @param createLog The createLog to set
-   */
-  public void setCreateLog(boolean createLog) {
-    this.createLog = createLog;
-  }
+	/**
+	 * Returns the createLog.
+	 * @return boolean
+	 */
+	public boolean isCreateLog() {
+		return createLog;
+	}
+
+	/**
+	 * Sets the createLog.
+	 * @param createLog The createLog to set
+	 */
+	public void setCreateLog(boolean createLog) {
+		this.createLog = createLog;
+	}
 
 }

@@ -3,6 +3,8 @@ package etomo.process;
 import java.io.*;
 import java.util.ArrayList;
 
+import etomo.ApplicationManager;
+
 /**
  * <p>
  * Description: Provides a threadable class to execute IMOD com scripts.
@@ -23,6 +25,9 @@ import java.util.ArrayList;
  * 
  * <p>
  * $Log$
+ * Revision 1.11  2003/11/04 00:55:10  rickg
+ * Bug #345 Explicitly set path to script using IMOD_DIR
+ *
  * <p>
  * Revision 1.10 2003/10/06 19:05:31 rickg
  * <p>
@@ -182,7 +187,6 @@ public class ComScriptProcess
 	private String name = null;
 	private File workingDirectory = null;
 	private ProcessManager processManager;
-	private String IMODBinPath;
 
 	private boolean demoMode = false;
 	private int demoTime = 5000;
@@ -206,11 +210,6 @@ public class ComScriptProcess
 	public ComScriptProcess(String comScript, ProcessManager processManager) {
 		this.name = comScript;
 		this.processManager = processManager;
-		IMODBinPath =
-			processManager.getImodDirectory()
-				+ File.separator
-				+ "bin"
-				+ File.separator;
 		cshProcessID = new StringBuffer("");
 	}
 
@@ -422,8 +421,12 @@ public class ComScriptProcess
 		// Redirecting stdin for the command does not work even when a shell is
 		// called, need to pump the com file directly into the stdin of vmstocsh
 		String[] comSequence = loadFile();
+		String imodBinPath = ApplicationManager.getIMODDirectory().getAbsolutePath()
+				+ File.separator
+				+ "bin"
+				+ File.separator;
 		String commandLine =
-			IMODBinPath + "vmstocsh " + parseBaseName(name, ".com") + ".log";
+			imodBinPath + "vmstocsh " + parseBaseName(name, ".com") + ".log";
 		vmstocsh = new SystemProgram(commandLine);
 		vmstocsh.setWorkingDirectory(workingDirectory);
 		vmstocsh.setStdInput(comSequence);

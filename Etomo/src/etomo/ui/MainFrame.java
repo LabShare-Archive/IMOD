@@ -50,6 +50,10 @@ import etomo.type.ProcessTrack;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.19  2003/11/03 19:36:09  sueh
+ * <p> bug266 EtomoFileFilter:  added an implements clause to the class def to allow the use
+ * <p> of this file with File.listFiles(FileFilter)
+ * <p>
  * <p> Revision 2.18  2003/10/30 20:29:55  rickg
  * <p> Bug# 341 3dmod and eTomo users guide
  * <p>
@@ -501,12 +505,12 @@ public class MainFrame extends JFrame implements ContextMenu {
 		String imodURL = "";
 		try {
 			imodURL =
-				applicationManager.getIMODDirectory().toURL().toString() + "/html/";
+				ApplicationManager.getIMODDirectory().toURL().toString() + "/html/";
 		}
 		catch (MalformedURLException except) {
 			except.printStackTrace();
 			System.err.println("Malformed URL:");
-			System.err.println(applicationManager.getIMODDirectory().toString());
+			System.err.println(ApplicationManager.getIMODDirectory().toString());
 			return;
 		}
   	

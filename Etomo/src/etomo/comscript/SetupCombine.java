@@ -3,6 +3,7 @@ package etomo.comscript;
 import java.io.File;
 import java.io.IOException;
 
+import etomo.ApplicationManager;
 import etomo.process.SystemProgram;
 import etomo.type.CombinePatchSize;
 import etomo.type.ConstMetaData;
@@ -28,6 +29,10 @@ import etomo.type.FiducialMatch;
  * 
  * <p>
  * $Log$
+ * Revision 2.9  2003/11/04 00:53:50  rickg
+ * Bug #345 Explicitly set path to script using IMOD_DIR
+ * remove -c from tcsh invokation
+ *
  * <p>
  * Revision 2.8 2003/05/21 21:23:34 rickg
  * <p>
@@ -125,14 +130,18 @@ public class SetupCombine {
 	int exitValue;
 	ConstMetaData metaData;
 
-	public SetupCombine(ConstMetaData metaData, String IMODPath) {
+	public SetupCombine(ConstMetaData metaData) {
 
 		this.metaData = metaData;
 
-		String IMODBinPath = IMODPath + File.separator + "bin" + File.separator;
 		//  Create a new SystemProgram object for setupcombine, set the
 		//  working directory and stdin array.
-		commandLine = "tcsh -ef " + IMODBinPath + "setupcombine";
+		String imodBinPath =
+			ApplicationManager.getIMODDirectory().getAbsolutePath()
+				+ File.separator
+				+ "bin"
+				+ File.separator;
+		commandLine = "tcsh -ef " + imodBinPath + "setupcombine";
 		setupcombine = new SystemProgram(commandLine);
 		genStdInputSequence();
 	}
