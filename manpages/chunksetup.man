@@ -79,7 +79,7 @@ The default is 8.
 .TP
 .B -m <size>
 Limit each subvolume to "size" megavoxels.  The default is whatever the
-default is for Tomopieces (10 megaVoxels).  
+default is for Tomopieces (20 megaVoxels).  
 .TP
 .B -xm <value>
 Set the maximum number of chunks in the X direction to the given value.
