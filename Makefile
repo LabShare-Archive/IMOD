@@ -60,7 +60,7 @@
 #
 # 4. Open the workspace vcimod.dsw and build imod, midas, and imodsendevent.
 # 
-# 5. "make cyginstall"
+# 5. "make install"
 #
 #
 # The install commands will build .1 and .html versions of all man pages and
@@ -156,22 +156,6 @@ install : configure man
 	cd html      ; $(MAKE) $@
 	cd Etomo	 ; $(MAKE) $@
 	./packMacApps
-#
-# Install under cygwin
-#
-cyginstall : configure man
-	cd imod      ; $(MAKE) install
-	cd imodutil  ; $(MAKE) $@
-	cd sendevent ; $(MAKE) install
-	cd mrc       ; $(MAKE) $@
-	cd midas     ; $(MAKE) install
-	cd plugs     ; $(MAKE) install
-	cd clip      ; $(MAKE) $@
-	cd scripts   ; $(MAKE) install
-	cd flib      ; $(MAKE) $@
-	cd com       ; $(MAKE) install
-	cd html      ; $(MAKE) install
-	cd Etomo     ; $(MAKE) install
 #
 # Make the manual pages .1 from .man, and .html from .1, copy to directories
 #
@@ -290,18 +274,6 @@ dist : ALWAYS
 	echo "Compressing..."
 	$(ARC) $(ARCHIVE) $(ARCNAME); $(COMPRESS) $(ARCHIVE)
 
-cygdist : ALWAYS
-	if (-e $(ARCDIR)) /bin/rm -rf $(ARCDIR)/
-	if (! (-e $(ARCDIR)))  mkdir $(ARCDIR)
-	./setup -inst $(ARCDIR) $(SETUP_OPTIONS)
-	(cd dist ; \find . -type f -name "*~" -exec rm "{}" \;)
-	($(MAKE) cyginstall)
-	\cp -r dist/* $(ARCDIR)/
-	\find $(ARCDIR) -name CVS -depth -exec /bin/rm -rf {} \;
-	./installqtlib
-	echo "Compressing..."
-	$(ARC) $(ARCHIVE) $(ARCNAME); $(COMPRESS) $(ARCHIVE)
-
 
 ##################################################################
 # Make the full IMOD source distribution
@@ -378,6 +350,9 @@ ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.24  2003/10/16 20:51:35  mast
+#  Added packMacApps to make src
+#
 #  Revision 3.23  2003/10/13 23:07:58  mast
 #  Fix make src to add qtplax.cpp
 #

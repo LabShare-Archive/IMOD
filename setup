@@ -64,6 +64,16 @@ set ctrl_string     = Ctrl
 set ld_lib_var      = LD_LIBRARY_PATH
 set qtapp_path      =
 set xplax           = qtplax.o
+set objext          = o
+set binext          =
+set limod           = -limod
+set liimod          = -liimod
+set ltiff           = -ltiff
+set ldnmncar        = -ldnmncar
+set lifft           = -lifft
+set ldfflags        =
+set moc             = '$(QTDIR)/bin/moc'
+set rgbprogs        = 
 
 set b3dbyte         = "char"
 set ubyte           = "unsigned char"
@@ -203,6 +213,28 @@ set makefile_ext = unix
 set makefile_dirs = ($plugsrc_dir $libdiaqt_dir)
 
 #
+# Set up directory names
+#
+if ($inst_dir != default) then
+	if ($inst_bin_dir == default) then
+		set inst_bin_dir = $inst_dir/bin
+	endif
+	if ($inst_lib_dir == default) then
+		set inst_lib_dir = $inst_dir/lib
+	endif
+	set inst_plug_dir = $inst_dir/lib/imodplug
+	set inst_plug_parent = $inst_dir/lib
+else
+	set inst_bin_dir = $bin_dir
+	if ($inst_lib_dir == default) then
+		set inst_lib_dir = $source_dir/lib
+	endif
+	set inst_plug_dir = $source_dir/lib/imodplug
+	set inst_plug_parent = $source_dir/lib
+	set inst_dir = $source_dir
+endif
+
+#
 # Go To Machine dependent parts.
 #
 if ($machine != "") then
@@ -302,7 +334,7 @@ echo "FIND    = find"          	  >> $configure
 # define how to make libraries - see specific machines for shared libs
 echo "AR      = ar"               >> $configure
 echo "ARCPP   = ar"               >> $configure
-echo "ARFLAGS = r"                >> $configure
+echo "ARFLAGS = r "               >> $configure
 echo 'LDFLAGS = -L$(LIBDIR)'      >> $configure
 echo "RANLIB  = ranlib"           >> $configure
 echo 'MAKELIB = $(AR) $(ARFLAGS)' >> $configure
@@ -324,13 +356,10 @@ echo "XLIBS       = -lXm -lXt -lX11 -lXext" >> $configure
 
 # Libraries for non-graphical and graphics Fortran programs
 echo "IMLIBS     = -lhvem -lim -lifft -limod" >> $configure
-echo 'GRAPHLIBS    = -ldnmncar $(IMLIBS) $(XLIBS)' >> $configure
+echo 'GRAPHLIBS    = '"$ldnmncar"' $(IMLIBS) $(XLIBS)' >> $configure
 
 # extra library and option entries for making imod run plugins
 echo 'PLUGLIBS = ' >> $configure
-
-# Link command for imod, may need to be FC to use the Fortran plugins
-echo 'IMODCC    = $(CC)'  >> $configure
 
 # Command for building a Fortran plugin
 echo  'MAKEF77PLUGIN  = ld $(LDFLAGS) -shared -all -lftn -o'  >> $configure
@@ -372,9 +401,6 @@ echo 'TILTOBJS = bpsumnox.o bpsumxtilt.o bpsumlocal.o' >> $configure
 # To indicate that librandm and libdtrigs need to be built
 echo 'LINUXFLIBS = ' >> $configure
 
-# To indicate that programs that use SGI rgb format can be built
-echo 'RGBPROGS = '  >> $configure
-
 # A machine-specific directory for the USFFT libraries
 set usfftdir = $source_dir/USFFTlib/default
 
@@ -405,6 +431,7 @@ goto standard_defines
 # Cygwin on Intel 
 #
 cygwin:
+dos2unix machines/cygwin >& /dev/null
 source machines/cygwin
 
 goto standard_defines
@@ -449,31 +476,12 @@ goto standard_defines
 #
 standard_defines:
 
-if ($inst_dir != default) then
-	if ($inst_bin_dir == default) then
-		set inst_bin_dir = $inst_dir/bin
-	endif
-	if ($inst_lib_dir == default) then
-		set inst_lib_dir = $inst_dir/lib
-	endif
-	set inst_plug_dir = $inst_dir/lib/imodplug
-	set inst_plug_parent = $inst_dir/lib
-else
-	set inst_bin_dir = $bin_dir
-	if ($inst_lib_dir == default) then
-		set inst_lib_dir = $source_dir/lib
-	endif
-	set inst_plug_dir = $source_dir/lib/imodplug
-	set inst_plug_parent = $source_dir/lib
-	set inst_dir = $source_dir
-endif
-
 if (($tifflibs == default) || ($tifflibs == false)) then
     echo 'DUMMYTIFF = libtiff' >> $configure
-    echo 'TIFFLIBS = -ltiff' >> $configure
+    echo "TIFFLIBS = $ltiff" >> $configure
     echo '#define NOTIFFLIBS'  >> $hconfigure
 else
-    if ($tifflibs == true) set tifflibs = -ltiff
+    if ($tifflibs == true) set tifflibs = $ltiff
     echo 'DUMMYTIFF = nolibtiff' >> $configure
     echo "TIFFLIBS = $tifflibs" >> $configure
 endif
@@ -487,9 +495,15 @@ else
 endif
 
 if (-e $tilt_dir/fbpswitch.inc) \rm $tilt_dir/fbpswitch.inc
-ln -s $fbpswitch $tilt_dir/fbpswitch.inc
+\cp $tilt_dir/$fbpswitch $tilt_dir/fbpswitch.inc
 
+if ($shared_libs == false) set inst_lib_dir = $lib_dir
 
+echo "OBJEXT =    $objext" >> $configure
+echo "BINEXT =    $binext" >> $configure
+echo "LIMOD  =    $limod" >> $configure
+echo "LIIMOD =    $liimod" >> $configure
+echo "LIFFT =     $lifft" >> $configure
 echo "BLOCKIO =   $blockio"  >> $configure
 echo "IMSUBSOBJ = $imsubsobj"  >> $configure
 echo "TILTALILIB = $tiltalilib"  >> $configure
@@ -501,7 +515,7 @@ echo "INSTLIBDIR = $inst_lib_dir"  >> $configure
 echo "INSTDIR = $inst_dir"  >> $configure
 echo "INCDIR  = $inc_dir"          >> $configure
 echo "IMOD_PLUGIN_DIR = $inst_plug_dir" >> $configure
-echo 'MOC = $(QTDIR)/bin/moc'     >> $configure
+echo "MOC = $moc"     >> $configure
 
 cat << EOF >> $hconfigure
 #define CTRL_STRING "$ctrl_string"
@@ -544,12 +558,18 @@ if ($machine != cygwin) then
     #
     echo INCLUDEPATH += $inc_dir >> $midas_qconf
     echo LIBS += -L$lib_dir -limod -liimod -ldiaqt -ltiff >> $midas_qconf
+    echo MOC_DIR = tmp >> $midas_qconf
+    echo OBJECTS_DIR = tmp >> $midas_qconf
     echo target.path = $inst_bin_dir >> $midas_qconf
     echo target.path = $inst_bin_dir >! $sendevent_qconf
 
     # echo gives two \\ in tcsh 6.12 under RH 8.0 so use cat
     #
     cat <<EOF >> $imod_qconf
+INSTALLS += 3dmodv
+MOC_DIR = tmp
+OBJECTS_DIR = tmp
+UI_DIR = tmp
 INCLUDEPATH += $inc_dir
 target.path = $inst_bin_dir
 3dmodv.path = $inst_bin_dir
@@ -630,14 +650,20 @@ EOF
 
 endif
 
+echo "RGBPROGS = $rgbprogs" >> $configure
+echo "LDFFLAGS = $ldfflags" >> $configure
+
 # Take care of Fortran graphics variations
 #
-if ($xplax == "qtplax.o") then
-    echo 'GRAPHLIBS    = -ldnmncar $(IMLIBS)'" $qt_libs $fort_cpplibs" >> $configure
+if ($xplax:r == "qtplax") then
+#    cat <<EOF >> $configure
+#GRAPHLIBS    = $ldnmncar \$(IMLIBS) $qt_libs $fort_cpplibs
+#EOF
+    echo "GRAPHLIBS    = $ldnmncar"' $(IMLIBS)'" $qt_libs $fort_cpplibs" >> $configure
 else if ($xplax == "xplax.o") then
-    echo 'GRAPHLIBS    = -ldnmncar $(IMLIBS) $(XLIBS)' >> $configure
+    echo "GRAPHLIBS    = $ldnmncar"' $(IMLIBS) $(XLIBS)' >> $configure
 else
-    echo 'GRAPHLIBS    = -ldnmncar $(IMLIBS)' >> $configure
+    echo "GRAPHLIBS    = $ldnmncar"' $(IMLIBS)' >> $configure
 endif
 echo "XPLAX = $xplax" >> $configure
 
@@ -701,6 +727,9 @@ exit
 
 #
 #  $Log$
+#  Revision 3.29  2003/10/08 17:19:35  mast
+#  Create the autodoc directory
+#
 #  Revision 3.28  2003/09/24 20:38:48  mast
 #  Handle GRAPHLIBS and XPLAX output globally with new xplax variable
 #
