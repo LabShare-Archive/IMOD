@@ -19,6 +19,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.19  2004/11/24 00:59:50  sueh
+ * bug# 520 Add getComScriptName to identify which comscript was run.
+ *
  * Revision 3.18  2004/11/19 23:19:18  sueh
  * bug# 520 merging Etomo_3-4-6_JOIN branch to head.
  *
@@ -277,6 +280,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 
 import etomo.ApplicationManager;
+import etomo.comscript.Command;
 import etomo.type.AxisID;
 import etomo.type.ProcessName;
 import etomo.util.Utilities;
@@ -318,6 +322,18 @@ public class ComScriptProcess
     this.axisID = axisID;
     this.watchedFileName = watchedFileName;
   }
+  
+  public ComScriptProcess(
+      Command comScriptCommand,
+      BaseProcessManager processManager,
+        AxisID axisID,
+        String watchedFileName) {
+      this.name = comScriptCommand.getCommandLine();
+      this.processManager = processManager;
+      cshProcessID = new StringBuffer("");
+      this.axisID = axisID;
+      this.watchedFileName = watchedFileName;
+    }
 
   /**
    * Set the working directory in which the com script is to be run.
