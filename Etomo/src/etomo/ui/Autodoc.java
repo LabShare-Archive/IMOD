@@ -55,39 +55,6 @@ import java.util.Iterator;
 *
 * @version $$Revision$$
 *
-* <p> $$Log$
-* <p> $Revision 1.10  2005/02/11 16:44:50  sueh
-* <p> $bug# 600 Adding tiltalign.
-* <p> $
-* <p> $Revision 1.9  2004/11/30 18:28:54  sueh
-* <p> $bug# 556 Added combinefft autodoc.
-* <p> $
-* <p> $Revision 1.8  2004/03/30 17:42:16  sueh
-* <p> $bug# 409 adding mtffilter.adoc
-* <p> $
-* <p> $Revision 1.7  2004/01/02 18:04:53  sueh
-* <p> $bug# 372 adding doc
-* <p> $
-* <p> $Revision 1.6  2004/01/01 00:44:50  sueh
-* <p> $bug# 372 correcting interface name
-* <p> $
-* <p> $Revision 1.5  2003/12/31 17:46:43  sueh
-* <p> $bug# 372 add getFile()
-* <p> $
-* <p> $Revision 1.4  2003/12/31 02:01:36  sueh
-* <p> $bug# 372 fixed environment variable names
-* <p> $
-* <p> $Revision 1.3  2003/12/31 01:24:44  sueh
-* <p> $bug# 372 added autodoc data storage and retrieval
-* <p> $
-* <p> $Revision 1.2  2003/12/23 21:31:04  sueh
-* <p> $bug# 372 reformat.  Pass this pointer to AutodocParser, so
-* <p> $autodoc info can be stored in Autodoc.
-* <p> $
-* <p> $Revision 1.1  2003/12/22 23:47:45  sueh
-* <p> $bug# 372 Autodoc contains informatio from the autodoc file.
-* <p> $It instantiates at most one per type of autodoc file.
-* <p> $$ </p>
 */
 
 public class Autodoc implements AttributeCollection {
@@ -102,6 +69,7 @@ public class Autodoc implements AttributeCollection {
   public static final String COMBINE_FFT = new String("combinefft");
   public static final String TILTALIGN = new String("tiltalign");
   public static final String CCDERASER = new String("ccderaser");
+  public static final String SOLVEMATCH = new String("solvematch");
   public static final String TEST = new String("test");
 
   private static final String fileExt = new String(".adoc");
@@ -112,6 +80,7 @@ public class Autodoc implements AttributeCollection {
   private static Autodoc combinefft = null;
   private static Autodoc tiltalign = null;
   private static Autodoc ccderaser = null;
+  private static Autodoc solvematch = null;
 
   private String fileName = null;
   private File file = null;
@@ -151,6 +120,10 @@ public class Autodoc implements AttributeCollection {
     if (name.equals(CCDERASER)) {
       ccderaser = getAutodoc(ccderaser, name);
       return ccderaser;
+    }
+    if (name.equals(SOLVEMATCH)) {
+      solvematch = getAutodoc(solvematch, name);
+      return solvematch;
     }
     throw new IllegalArgumentException("Illegal autodoc name: " + name + ".");
   }
@@ -324,5 +297,42 @@ public class Autodoc implements AttributeCollection {
       parser.parse();
     }
   }
-
 }
+/**
+*<p> $$Log$
+* <p> $Revision 1.11  2005/02/22 20:57:22  sueh
+* <p> $bug# 600 Adding ccderaser to autodoc.
+* <p> $
+* <p> $Revision 1.10  2005/02/11 16:44:50  sueh
+* <p> $bug# 600 Adding tiltalign.
+* <p> $
+* <p> $Revision 1.9  2004/11/30 18:28:54  sueh
+* <p> $bug# 556 Added combinefft autodoc.
+* <p> $
+* <p> $Revision 1.8  2004/03/30 17:42:16  sueh
+* <p> $bug# 409 adding mtffilter.adoc
+* <p> $
+* <p> $Revision 1.7  2004/01/02 18:04:53  sueh
+* <p> $bug# 372 adding doc
+* <p> $
+* <p> $Revision 1.6  2004/01/01 00:44:50  sueh
+* <p> $bug# 372 correcting interface name
+* <p> $
+* <p> $Revision 1.5  2003/12/31 17:46:43  sueh
+* <p> $bug# 372 add getFile()
+* <p> $
+* <p> $Revision 1.4  2003/12/31 02:01:36  sueh
+* <p> $bug# 372 fixed environment variable names
+* <p> $
+* <p> $Revision 1.3  2003/12/31 01:24:44  sueh
+* <p> $bug# 372 added autodoc data storage and retrieval
+* <p> $
+* <p> $Revision 1.2  2003/12/23 21:31:04  sueh
+* <p> $bug# 372 reformat.  Pass this pointer to AutodocParser, so
+* <p> $autodoc info can be stored in Autodoc.
+* <p> $
+* <p> $Revision 1.1  2003/12/22 23:47:45  sueh
+* <p> $bug# 372 Autodoc contains informatio from the autodoc file.
+* <p> $It instantiates at most one per type of autodoc file.
+* <p> $$ </p>
+*/
