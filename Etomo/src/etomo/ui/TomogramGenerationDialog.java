@@ -55,6 +55,10 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.20  2004/07/02 20:42:07  sueh
+ * bug# 489 added a tilt button panel to put the buttons at the bottom
+ * side by side, changed the updateAdvanced() function
+ *
  * Revision 3.19  2004/06/17 22:30:15  sueh
  * bug# 475 set X offset to 0 if X offset is empty and Z offset is set
  *
@@ -726,7 +730,7 @@ public class TomogramGenerationDialog extends ProcessDialog
    *
    */
   private void layoutFilterPanel() {
-    pnlFilter.setBorder(new EtchedBorder("2D Filtering").getBorder());
+    pnlFilter.setBorder(new EtchedBorder("2D Filtering (optional)").getBorder());
     pnlFilter.setLayout(new BoxLayout(pnlFilter, BoxLayout.Y_AXIS));
 
     //  Inverse filter sub panel
