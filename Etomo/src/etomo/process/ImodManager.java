@@ -21,6 +21,9 @@ import etomo.type.ConstMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.5  2003/04/16 22:18:59  rickg
+ * <p> Added imod of full and trimmed volume
+ * <p>
  * <p> Revision 2.4  2003/03/20 21:18:40  rickg
  * <p> Added matchshift results button/access
  * <p>
@@ -79,7 +82,7 @@ public class ImodManager {
 
   private ApplicationManager appManager;
   private AxisType axisType;
-  private String filesetName;
+  private String datasetName;
 
   private ImodProcess rawStackA;
   private ImodProcess rawStackB;
@@ -103,36 +106,36 @@ public class ImodManager {
   /**
    * Default constructor
    * @param metaData this class is used to initialize the
-   * fileset name and axisType of the data to used in imod.
+   * dataset name and axisType of the data to used in imod.
    */
   public ImodManager(ConstMetaData metaData) {
     axisType = metaData.getAxisType();
-    filesetName = metaData.getFilesetName();
+    datasetName = metaData.getDatasetName();
 
     //  Initialize the necessary ImodProcesses
     if (axisType == AxisType.SINGLE_AXIS) {
-      rawStackA = new ImodProcess(filesetName + ".st");
-      coarseAlignedA = new ImodProcess(filesetName + ".preali");
-      fineAlignedA = new ImodProcess(filesetName + ".ali");
+      rawStackA = new ImodProcess(datasetName + ".st");
+      coarseAlignedA = new ImodProcess(datasetName + ".preali");
+      fineAlignedA = new ImodProcess(datasetName + ".ali");
       sampleA = new ImodProcess("top.rec mid.rec bot.rec", "tomopitch.mod");
-      tomogramA = new ImodProcess(filesetName + ".rec");
+      tomogramA = new ImodProcess(datasetName + ".rec");
       tomogramA.setSwapYZ(true);
       fullVolume = new ImodProcess("full.rec");
       fullVolume.setSwapYZ(true);
       
     }
     else {
-      rawStackA = new ImodProcess(filesetName + "a.st");
-      rawStackB = new ImodProcess(filesetName + "b.st");
-      coarseAlignedA = new ImodProcess(filesetName + "a.preali");
-      coarseAlignedB = new ImodProcess(filesetName + "b.preali");
-      fineAlignedA = new ImodProcess(filesetName + "a.ali");
-      fineAlignedB = new ImodProcess(filesetName + "b.ali");
+      rawStackA = new ImodProcess(datasetName + "a.st");
+      rawStackB = new ImodProcess(datasetName + "b.st");
+      coarseAlignedA = new ImodProcess(datasetName + "a.preali");
+      coarseAlignedB = new ImodProcess(datasetName + "b.preali");
+      fineAlignedA = new ImodProcess(datasetName + "a.ali");
+      fineAlignedB = new ImodProcess(datasetName + "b.ali");
       sampleA = new ImodProcess("topa.rec mida.rec bota.rec", "tomopitcha.mod");
       sampleB = new ImodProcess("topb.rec midb.rec botb.rec", "tomopitchb.mod");
-      tomogramA = new ImodProcess(filesetName + "a.rec");
+      tomogramA = new ImodProcess(datasetName + "a.rec");
       tomogramA.setSwapYZ(true);
-      tomogramB = new ImodProcess(filesetName + "b.rec");
+      tomogramB = new ImodProcess(datasetName + "b.rec");
       tomogramB.setSwapYZ(true);
       combinedTomogram = new ImodProcess("sum.rec");
       combinedTomogram.setSwapYZ(true);
@@ -142,7 +145,7 @@ public class ImodManager {
       matchCheckRec = new ImodProcess("matchcheck.rec");
       fullVolume = combinedTomogram;
     }
-    trimmedVolume = new ImodProcess(filesetName + ".rec");
+    trimmedVolume = new ImodProcess(datasetName + ".rec");
   }
 
   /**
@@ -340,15 +343,15 @@ public class ImodManager {
 
   /**
    * Open both tomograms and their matching models
-   * @param filesetName
+   * @param datasetName
    */
-  public void matchingModel(String filesetName)
+  public void matchingModel(String datasetName)
     throws AxisTypeException, SystemProcessException {
     tomogramA.open();
-    tomogramA.openModel(filesetName + "a.matmod");
+    tomogramA.openModel(datasetName + "a.matmod");
 
     tomogramB.open();
-    tomogramB.openModel(filesetName + "b.matmod");
+    tomogramB.openModel(datasetName + "b.matmod");
   }
 
   /**

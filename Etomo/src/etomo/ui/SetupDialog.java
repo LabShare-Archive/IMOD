@@ -42,6 +42,9 @@ import etomo.type.ViewType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.1  2003/03/02 23:30:41  rickg
+ * <p> Combine layout in progress
+ * <p>
  * <p> Revision 2.0  2003/01/24 20:30:31  rickg
  * <p> Single window merge to main branch
  * <p>
@@ -104,14 +107,14 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
   private JPanel panelDataParameters = new JPanel();
 
   //
-  //  Fileset GUI objects
+  //  Dataset GUI objects
   //
-  private JPanel panelFileset = new JPanel();
+  private JPanel pnlDataset = new JPanel();
   private ImageIcon iconFolder =
     new ImageIcon(ClassLoader.getSystemResource("images/openFile.gif"));
 
-  private LabeledTextField ltfFileset = new LabeledTextField("Fileset Name:");
-  private JButton buttonFileset = new JButton(iconFolder);
+  private LabeledTextField ltfDataset = new LabeledTextField("Dataset Name:");
+  private JButton btnDataset = new JButton(iconFolder);
 
   private LabeledTextField ltfBackupDirectory =
     new LabeledTextField("Backup Directory:");
@@ -179,7 +182,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
 
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
 
-    createFilesetPanel();
+    createDatasetPanel();
 
     createDataTypePanel();
 
@@ -211,22 +214,22 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     applicationManager.packMainWindow();
   }
 
-  private void createFilesetPanel() {
+  private void createDatasetPanel() {
     //
-    //  Set the preferred and max sizes for the fileset GUI objects
+    //  Set the preferred and max sizes for the dataset GUI objects
     //  so that the box layout happens correctly
     //
-    buttonFileset.setPreferredSize(FixedDim.folderButton);
-    buttonFileset.setMaximumSize(FixedDim.folderButton);
+    btnDataset.setPreferredSize(FixedDim.folderButton);
+    btnDataset.setMaximumSize(FixedDim.folderButton);
     buttonBackupDirectory.setPreferredSize(FixedDim.folderButton);
     buttonBackupDirectory.setMaximumSize(FixedDim.folderButton);
 
-    panelFileset.setLayout(new BoxLayout(panelFileset, BoxLayout.X_AXIS));
+    pnlDataset.setLayout(new BoxLayout(pnlDataset, BoxLayout.X_AXIS));
 
     //
     //  Bind the buttons to their adapters
     //
-    buttonFileset.addActionListener(new SetupDialogFilesetActionAdapter(this));
+    btnDataset.addActionListener(new SetupDialogDatasetActionAdapter(this));
     buttonBackupDirectory.addActionListener(
       new SetupDialogBackupDirectoryActionAdapter(this));
     rbSingleAxis.addActionListener(
@@ -236,15 +239,15 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     //
     //  Add the GUI objects to the panel
     //
-    panelFileset.add(Box.createRigidArea(FixedDim.x5_y0));
+    pnlDataset.add(Box.createRigidArea(FixedDim.x5_y0));
 
-    panelFileset.add(ltfFileset.getContainer());
-    panelFileset.add(buttonFileset);
-    panelFileset.add(Box.createRigidArea(FixedDim.x10_y0));
+    pnlDataset.add(ltfDataset.getContainer());
+    pnlDataset.add(btnDataset);
+    pnlDataset.add(Box.createRigidArea(FixedDim.x10_y0));
 
-    panelFileset.add(ltfBackupDirectory.getContainer());
-    panelFileset.add(buttonBackupDirectory);
-    panelFileset.add(Box.createRigidArea(FixedDim.x5_y0));
+    pnlDataset.add(ltfBackupDirectory.getContainer());
+    pnlDataset.add(buttonBackupDirectory);
+    pnlDataset.add(Box.createRigidArea(FixedDim.x5_y0));
 
     //  Add the tooltip text
     setToolTipText();
@@ -359,7 +362,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     panelDataParameters.setLayout(
       new BoxLayout(panelDataParameters, BoxLayout.Y_AXIS));
     panelDataParameters.add(Box.createRigidArea(FixedDim.x0_y10));
-    panelDataParameters.add(panelFileset);
+    panelDataParameters.add(pnlDataset);
     panelDataParameters.add(Box.createRigidArea(FixedDim.x0_y10));
     panelDataParameters.add(panelDataType);
     panelDataParameters.add(Box.createRigidArea(FixedDim.x0_y10));
@@ -396,10 +399,10 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
 
   public void initializeFields(ConstMetaData metaData) {
 
-    if (!metaData.getFilesetName().equals("")) {
+    if (!metaData.getDatasetName().equals("")) {
       String canonicalPath =
-        metaData.getWorkingDirectory() + "/" + metaData.getFilesetName();
-      ltfFileset.setText(canonicalPath);
+        metaData.getWorkingDirectory() + "/" + metaData.getDatasetName();
+      ltfDataset.setText(canonicalPath);
     }
 
     ltfBackupDirectory.setText(metaData.getBackupDirectory());
@@ -428,14 +431,14 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     metaData.setDataSource(getDataSource());
     metaData.setAxisType(getAxisType());
 
-    //  The fileset name needs to be set after the axis type so the metadata
+    //  The dataset name needs to be set after the axis type so the metadata
     // object modifies the ending correctly
-    if (ltfFileset.getText().startsWith("/")) {
-      metaData.setFilesetName(ltfFileset.getText());
+    if (ltfDataset.getText().startsWith("/")) {
+      metaData.setDatasetName(ltfDataset.getText());
     }
     else {
-      metaData.setFilesetName(
-        applicationManager.getWorkingDirectory() + "/" + ltfFileset.getText());
+      metaData.setDatasetName(
+        applicationManager.getWorkingDirectory() + "/" + ltfDataset.getText());
     }
     metaData.setViewType(getViewType());
     metaData.setSectionType(getSectionType());
@@ -533,7 +536,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
   } //
   //  Action functions for buttons
   //
-  void buttonFilesetAction(ActionEvent event) {
+  void buttonDatasetAction(ActionEvent event) {
     //
     //  Open up the file chooser in the working directory
     //
@@ -545,9 +548,9 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
     int returnVal = chooser.showOpenDialog(rootPanel);
     if (returnVal == JFileChooser.APPROVE_OPTION) {
-      File filesetName = chooser.getSelectedFile();
+      File datasetName = chooser.getSelectedFile();
       try {
-        ltfFileset.setText(filesetName.getAbsolutePath());
+        ltfDataset.setText(datasetName.getAbsolutePath());
       }
       catch (Exception excep) {
         excep.printStackTrace();
@@ -615,12 +618,12 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     line2 = "also select the projection data file  by pressing the<br>";
     line3 = "folder button. Remember to omit the .st for single axis<br>";
     line4 = "data sets or the a.st for dual axis data sets.";
-    ltfFileset.setToolTipText(line1 + line2 + line3 + line4);
+    ltfDataset.setToolTipText(line1 + line2 + line3 + line4);
     line1 = "<html>This button will open a file chooser dialog box<br>";
     line2 = "allowing you to select the projection data file.<br>";
     line3 = "Remember to remove the .st for single axis data sets<br>";
     line4 = "or the a.st for dual axis data sets.";
-    buttonFileset.setToolTipText(line1 + line2 + line3);
+    btnDataset.setToolTipText(line1 + line2 + line3);
     line1 = "<html>Enter the name of the directory where you want the<br>";
     line2 = "small data files .com and .log files to be backed up.  You<br>";
     line3 = "can use the folder button on the right to create a new<br>";
@@ -680,18 +683,20 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     buttonExecute.setToolTipText(line1 + line2 + line3 + line4);
   }
 
-} //
+} 
+
+//
 //  Button action listener classes
 //
-class SetupDialogFilesetActionAdapter implements ActionListener {
+class SetupDialogDatasetActionAdapter implements ActionListener {
 
   SetupDialog adaptee;
-  SetupDialogFilesetActionAdapter(SetupDialog adaptee) {
+  SetupDialogDatasetActionAdapter(SetupDialog adaptee) {
     this.adaptee = adaptee;
   }
 
   public void actionPerformed(ActionEvent event) {
-    adaptee.buttonFilesetAction(event);
+    adaptee.buttonDatasetAction(event);
   }
 }
 

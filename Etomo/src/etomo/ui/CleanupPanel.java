@@ -29,7 +29,10 @@ import etomo.storage.IntermediateFileFilter;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2003/04/17 23:12:00  rickg
+ * <p> Initial revision
+ * <p> </p>
  */
 /**
  * @author rickg
@@ -65,7 +68,7 @@ public class CleanupPanel {
 
     //  Create the filechooser
     fileFilter =
-      new IntermediateFileFilter(applicationManager.getFilesetName());
+      new IntermediateFileFilter(applicationManager.getDatasetName());
     fileChooser = new JFileChooser();
     fileChooser.setDialogType(JFileChooser.CUSTOM_DIALOG);
     fileChooser.setFileFilter(fileFilter);

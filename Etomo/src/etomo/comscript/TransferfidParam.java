@@ -13,6 +13,9 @@ package etomo.comscript;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.0  2003/01/24 20:30:31  rickg
+ * <p> Single window merge to main branch
+ * <p>
  * <p> Revision 1.4.2.1  2003/01/24 18:33:42  rickg
  * <p> Single window GUI layout initial revision
  * <p>
@@ -25,7 +28,7 @@ package etomo.comscript;
  * <p> parameters
  * <p>
  * <p> Revision 1.2  2003/01/04 00:37:27  rickg
- * <p> Added fileSetName, bToA, searchDirection, centerView* members
+ * <p> Added datasetName, bToA, searchDirection, centerView* members
  * <p> Added centerView command line args
  * <p> Added necessary spaces after command line args
  * <p>
@@ -41,7 +44,7 @@ public class TransferfidParam {
   String outputImageFile = "";
   String inputModelFile = "";
   String outputModelFile = "";
-  String fileSetName = "";
+  String datasetName = "";
   boolean bToA = false;
   boolean runMidas = false;
   int searchDirection = 0; // 0 - both, -1 => -90, 1=> +90  
@@ -98,7 +101,7 @@ public class TransferfidParam {
       commandLine.append("-m ");
     }
 
-    commandLine.append(fileSetName);
+    commandLine.append(datasetName);
 
     return commandLine.toString();
   }
@@ -187,16 +190,16 @@ public class TransferfidParam {
    * Returns the setName.
    * @return String
    */
-  public String getFileSetName() {
-    return fileSetName;
+  public String getDatasetName() {
+    return datasetName;
   }
 
   /**
    * Sets the setName.
    * @param setName The setName to set
    */
-  public void setFileSetName(String fileSetName) {
-    this.fileSetName = fileSetName;
+  public void setDatasetName(String datasetName) {
+    this.datasetName = datasetName;
   }
 
   /**

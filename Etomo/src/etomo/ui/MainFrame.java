@@ -23,6 +23,9 @@ import etomo.storage.EtomoFileFilter;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.4  2003/03/20 17:42:18  rickg
+ * <p> Comment update
+ * <p>
  * <p> Revision 2.3  2003/01/29 15:18:19  rickg
  * <p> Added combine state setter
  * <p>
@@ -241,7 +244,7 @@ public class MainFrame extends JFrame implements ContextMenu {
       buffer.append("Data file: ");
       buffer.append(metaData.getWorkingDirectory());
       buffer.append("/");
-      buffer.append(metaData.getFilesetName());
+      buffer.append(metaData.getDatasetName());
       buffer.append("   Source: ");
       buffer.append(metaData.getDataSource().toString());
       buffer.append("   Axis type: ");

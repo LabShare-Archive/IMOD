@@ -19,6 +19,9 @@ import etomo.storage.Storable;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.2  2003/03/18 23:46:52  rickg
+ * <p> Added method to get CombineParams reference
+ * <p>
  * <p> Revision 2.1  2003/01/27 15:25:45  rickg
  * <p> Static function fix
  * <p>
@@ -52,31 +55,31 @@ public class MetaData extends ConstMetaData implements Storable {
 	}
 
 	/**
-	 * Set the fileset name, trimming any white space from the beginning and
+	 * Set the dataset name, trimming any white space from the beginning and
 	 * end of the string
 	 */
-	public void setFilesetName(String fileset) {
-		String pathName = fileset.trim();
+	public void setDatasetName(String fileName) {
+		String pathName = fileName.trim();
 		File file = new File(pathName);
 		String path = file.getPath();
 		workingDirectory = path.substring(0, path.lastIndexOf(File.separator));
-		filesetName = file.getName();
-		fixFilesetName();
+		datasetName = file.getName();
+		fixDatasetName();
 	}
 
 	/**
 	 * Remove the ".st", "a.st", or "b.st" as approrpiate to the
 	 */
-	private void fixFilesetName() {
+	private void fixDatasetName() {
 		if (axisType == AxisType.SINGLE_AXIS) {
-			if (filesetName.endsWith(".st")) {
-				int nChars = filesetName.length();
-				filesetName = filesetName.substring(0, nChars - 3);
+			if (datasetName.endsWith(".st")) {
+				int nChars = datasetName.length();
+				datasetName = datasetName.substring(0, nChars - 3);
 			}
 		} else {
-			if (filesetName.endsWith("a.st") | filesetName.endsWith("b.st")) {
-				int nChars = filesetName.length();
-				filesetName = filesetName.substring(0, nChars - 4);
+			if (datasetName.endsWith("a.st") | datasetName.endsWith("b.st")) {
+				int nChars = datasetName.length();
+				datasetName = datasetName.substring(0, nChars - 4);
 			}
 		}
 	}
@@ -173,7 +176,7 @@ public class MetaData extends ConstMetaData implements Storable {
 		props.setProperty(
 			group + "ComScriptsCreated",
 			String.valueOf(comScriptsCreated));
-		props.setProperty(group + "FilesetName", filesetName);
+		props.setProperty(group + "DatasetName", datasetName);
 		props.setProperty(group + "BackupDirectory", backupDirectory);
 		props.setProperty(group + "WorkingDirectory", workingDirectory);
 
@@ -228,7 +231,10 @@ public class MetaData extends ConstMetaData implements Storable {
 			Boolean
 				.valueOf(props.getProperty(group + "ComScriptsCreated", "true"))
 				.booleanValue();
-		filesetName = props.getProperty(group + "FilesetName", "");
+		
+    // Backwards compaitibility with FilesetName string
+    datasetName = props.getProperty(group + "FilesetName", "");
+    datasetName = props.getProperty(group + "DatasetName", datasetName);
 		backupDirectory = props.getProperty(group + "BackupDirectory", "");
 		workingDirectory = props.getProperty(group + "WorkingDirectory", "");
 

@@ -17,6 +17,9 @@ import javax.swing.filechooser.FileFilter;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.2  2003/04/17 17:19:11  rickg
+ * <p> Reformat
+ * <p>
  * <p> Revision 1.1  2003/04/17 05:06:06  rickg
  * <p> Initial revision
  * <p>
@@ -24,9 +27,10 @@ import javax.swing.filechooser.FileFilter;
 public class IntermediateFileFilter extends FileFilter {
   public static final String rcsid =
     "$Id$";
-  private String fileset;
-  public IntermediateFileFilter(String filesetName) {
-    fileset = filesetName;
+  private String datasetName;
+  
+  public IntermediateFileFilter(String datasetName) {
+    this.datasetName = datasetName;
   }
   /* (non-Javadoc)
    * @see javax.swing.filechooser.FileFilter#accept(java.io.File)
@@ -56,10 +60,10 @@ public class IntermediateFileFilter extends FileFilter {
           return true;
         }
       }
-      if (f.getAbsolutePath().endsWith(fileset + "a.rec")) {
+      if (f.getAbsolutePath().endsWith(datasetName + "a.rec")) {
         return true;
       }
-      if (f.getAbsolutePath().endsWith(fileset + "b.rec")) {
+      if (f.getAbsolutePath().endsWith(datasetName + "b.rec")) {
         return true;
       }
     }

@@ -29,6 +29,9 @@ import java.util.Calendar;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.5  2003/04/16 00:14:26  rickg
+ * <p> Trimvol in progress
+ * <p>
  * <p> Revision 2.4  2003/03/26 00:52:42  rickg
  * <p> Added button to convert patch_vector.mod to patch.out
  * <p>
@@ -193,16 +196,16 @@ public class ProcessManager {
 
     //  Create the required midas command
     if (axisID == AxisID.ONLY) {
-      stack = appManager.getFilesetName() + ".st ";
-      xform = appManager.getFilesetName() + ".prexf ";
+      stack = appManager.getDatasetName() + ".st ";
+      xform = appManager.getDatasetName() + ".prexf ";
     }
     if (axisID == AxisID.FIRST) {
-      stack = appManager.getFilesetName() + "a.st ";
-      xform = appManager.getFilesetName() + "a.prexf ";
+      stack = appManager.getDatasetName() + "a.st ";
+      xform = appManager.getDatasetName() + "a.prexf ";
     }
     if (axisID == AxisID.SECOND) {
-      stack = appManager.getFilesetName() + "b.st ";
-      xform = appManager.getFilesetName() + "b.prexf ";
+      stack = appManager.getDatasetName() + "b.st ";
+      xform = appManager.getDatasetName() + "b.prexf ";
     }
 
     String command = "midas " + stack + xform;

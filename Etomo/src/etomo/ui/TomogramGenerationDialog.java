@@ -29,6 +29,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.2  2003/03/02 23:30:41  rickg
+ * <p> Combine layout in progress
+ * <p>
  * <p> Revision 2.1  2003/01/24 21:04:18  rickg
  * <p> AxisID bug fix from single buttonAction function
  * <p>
@@ -158,7 +161,7 @@ public class TomogramGenerationDialog
 
       if (chkBoxUseLocalAlignment.isSelected()) {
         tiltParam.setLocalAlignFile(
-          applicationManager.getFilesetName()
+          applicationManager.getDatasetName()
             + axisID.getExtension()
             + "local.xf");
       }

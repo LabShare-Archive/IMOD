@@ -22,6 +22,9 @@ import etomo.type.ViewType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.3  2003/03/20 17:22:18  rickg
+ * <p> Comment update
+ * <p>
  * <p> Revision 2.2  2003/03/02 23:30:41  rickg
  * <p> Combine layout in progress
  * <p>
@@ -95,7 +98,7 @@ public class CopyTomoComs {
     tempStdInput[lineCount++] = "y";
     tempStdInput[lineCount++] = "y";
 
-    tempStdInput[lineCount++] = metaData.getFilesetName();
+    tempStdInput[lineCount++] = metaData.getDatasetName();
     tempStdInput[lineCount++] = metaData.getBackupDirectory();
 
     tempStdInput[lineCount++] = String.valueOf(metaData.getPixelSize());
@@ -211,7 +214,7 @@ public class CopyTomoComs {
         File rawTiltFile =
           new File(
             metaData.getWorkingDirectory(),
-            metaData.getFilesetName() + ".rawtlt");
+            metaData.getDatasetName() + ".rawtlt");
         if (rawTiltFile.exists()) {
           rawTiltFile.delete();
         }
@@ -222,7 +225,7 @@ public class CopyTomoComs {
         File rawTiltFile =
           new File(
             metaData.getWorkingDirectory(),
-            metaData.getFilesetName() + "a.rawtlt");
+            metaData.getDatasetName() + "a.rawtlt");
         if (rawTiltFile.exists()) {
           rawTiltFile.delete();
         }
@@ -231,7 +234,7 @@ public class CopyTomoComs {
         File rawTiltFile =
           new File(
             metaData.getWorkingDirectory(),
-            metaData.getFilesetName() + "b.rawtlt");
+            metaData.getDatasetName() + "b.rawtlt");
         if (rawTiltFile.exists()) {
           rawTiltFile.delete();
         }

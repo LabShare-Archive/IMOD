@@ -18,6 +18,9 @@ import etomo.process.SystemProgram;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.2  2003/03/20 17:23:58  rickg
+ * <p> Comment update
+ * <p>
  * <p> Revision 2.1  2003/03/18 23:49:02  rickg
  * <p> Changed method name to get CombineParams reference
  * <p>
@@ -72,8 +75,8 @@ public class SetupCombine {
     //  compile the input sequence to setupcombine
     int lineCount = 0;
 
-    //  Fileset name
-    tempStdInput[lineCount++] = metaData.getFilesetName();
+    //  Dataset name
+    tempStdInput[lineCount++] = metaData.getDatasetName();
 
     //  Matching relationship
     if (combineParams.getMatchBtoA()) {

@@ -17,6 +17,9 @@ import etomo.comscript.CombineParams;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.1  2003/03/18 23:47:20  rickg
+ * <p> Changed method name to get CombineParams reference
+ * <p>
  * <p> Revision 2.0  2003/01/24 20:30:31  rickg
  * <p> Single window merge to main branch
  * <p>
@@ -37,8 +40,8 @@ public class ConstMetaData {
   public static final String rcsid =
     "$Id$";
 
-  protected String revisionNumber = "1.2";
-  protected String filesetName = "";
+  protected String revisionNumber = "1.3";
+  protected String datasetName = "";
   protected String backupDirectory = "";
   protected String workingDirectory = "";
 
@@ -72,8 +75,8 @@ public class ConstMetaData {
     return revisionNumber;
   }
 
-  public String getFilesetName() {
-    return filesetName;
+  public String getDatasetName() {
+    return datasetName;
   }
 
   public String getBackupDirectory() {
@@ -165,41 +168,41 @@ public class ConstMetaData {
 
     // Does the appropriate image stack exist in the working directory
     if (axisType == AxisType.DUAL_AXIS) {
-      File stack = new File(workingDirectory, filesetName + "a.st");
+      File stack = new File(workingDirectory, datasetName + "a.st");
       if (!stack.exists()) {
         invalidReason =
-          filesetName + "a.st does not exist in the working directory";
+          datasetName + "a.st does not exist in the working directory";
         return false;
       }
 
       if (!stack.canRead()) {
-        invalidReason = "Can't read " + filesetName + "a.st";
+        invalidReason = "Can't read " + datasetName + "a.st";
         return false;
       }
 
-      stack = new File(workingDirectory, filesetName + "b.st");
+      stack = new File(workingDirectory, datasetName + "b.st");
       if (!stack.exists()) {
         invalidReason =
-          filesetName + "b.st does not exist in the working directory";
+          datasetName + "b.st does not exist in the working directory";
         return false;
       }
 
       if (!stack.canRead()) {
-        invalidReason = "Can't read " + filesetName + "b.st";
+        invalidReason = "Can't read " + datasetName + "b.st";
         return false;
       }
 
     }
     else {
-      File stack = new File(workingDirectory, filesetName + ".st");
+      File stack = new File(workingDirectory, datasetName + ".st");
       if (!stack.exists()) {
         invalidReason =
-          filesetName + ".st does not exist in the working directory";
+          datasetName + ".st does not exist in the working directory";
         return false;
       }
 
       if (!stack.canRead()) {
-        invalidReason = "Can't read " + filesetName + ".st";
+        invalidReason = "Can't read " + datasetName + ".st";
         return false;
       }
     }

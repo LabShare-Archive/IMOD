@@ -74,6 +74,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.24  2003/04/17 23:11:26  rickg
+ * <p> Added cancel handling from post processing dialog
+ * <p>
  * <p> Revision 2.23  2003/04/16 22:49:49  rickg
  * <p> Trimvol implmentation
  * <p>
@@ -596,7 +599,7 @@ public class ApplicationManager {
    */
   public void imodErase(AxisID axisID) {
     String eraseModelName =
-      metaData.getFilesetName() + axisID.getExtension() + ".erase";
+      metaData.getDatasetName() + axisID.getExtension() + ".erase";
     try {
       imodManager.modelRawStack(eraseModelName, axisID);
     }
@@ -899,7 +902,7 @@ public class ApplicationManager {
    */
   public void imodSeedFiducials(AxisID axisID) {
     String seedModel =
-      metaData.getFilesetName() + axisID.getExtension() + ".seed";
+      metaData.getDatasetName() + axisID.getExtension() + ".seed";
     try {
       imodManager.modelCoarseAligned(seedModel, axisID);
     }
@@ -932,7 +935,7 @@ public class ApplicationManager {
    */
   public void imodFixFiducials(AxisID axisID) {
     String fiducialModel =
-      metaData.getFilesetName() + axisID.getExtension() + ".fid";
+      metaData.getDatasetName() + axisID.getExtension() + ".fid";
     try {
       imodManager.modelCoarseAligned(fiducialModel, axisID);
     }
@@ -1129,7 +1132,7 @@ public class ApplicationManager {
    */
   public void imodViewResiduals(AxisID axisID) {
     String fiducialModel =
-      metaData.getFilesetName() + axisID.getExtension() + ".resmod";
+      metaData.getDatasetName() + axisID.getExtension() + ".resmod";
     try {
       imodManager.modelCoarseAligned(fiducialModel, axisID);
     }
@@ -1150,7 +1153,7 @@ public class ApplicationManager {
    */
   public void imodView3DModel(AxisID axisID) {
     String fiducialModel =
-      metaData.getFilesetName() + axisID.getExtension() + ".3dmod";
+      metaData.getDatasetName() + axisID.getExtension() + ".3dmod";
     imodManager.openFiducialModel(fiducialModel, axisID);
   }
 
@@ -1192,8 +1195,8 @@ public class ApplicationManager {
       TransferfidParam transferfidParam = new TransferfidParam();
       // Setup the default parameters depending upon the axis to transfer the
       // fiducials from
-      String fileSetName = metaData.getFilesetName();
-      transferfidParam.setFileSetName(fileSetName);
+      String datasetName = metaData.getDatasetName();
+      transferfidParam.setDatasetName(datasetName);
       if (sourceAxisID == AxisID.SECOND) {
         transferfidParam.setBToA(true);
       }
@@ -1273,7 +1276,7 @@ public class ApplicationManager {
     String alignFileExtension = currentAxis.getExtension() + "local.xf";
 
     if (tiltalignParam.getLocalAlignments()) {
-      tiltParam.setLocalAlignFile(getFilesetName() + alignFileExtension);
+      tiltParam.setLocalAlignFile(getDatasetName() + alignFileExtension);
     }
     else {
       tiltParam.setLocalAlignFile("");
@@ -1744,10 +1747,10 @@ public class ApplicationManager {
     if (!combineParams.isPatchBoundarySet()) {
       String recFileName;
       if (combineParams.getMatchBtoA()) {
-        recFileName = metaData.getFilesetName() + "a.rec";
+        recFileName = metaData.getDatasetName() + "a.rec";
       }
       else {
-        recFileName = metaData.getFilesetName() + "b.rec";
+        recFileName = metaData.getDatasetName() + "b.rec";
       }
       try {
         combineParams.setDefaultPatchBoundaries(recFileName);
@@ -1799,7 +1802,7 @@ public class ApplicationManager {
    */
   public void imodMatchingModel() {
     try {
-      imodManager.matchingModel(metaData.getFilesetName());
+      imodManager.matchingModel(metaData.getDatasetName());
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
@@ -2382,14 +2385,14 @@ public class ApplicationManager {
     File finalReconstuction =
       new File(
         metaData.getWorkingDirectory(),
-        metaData.getFilesetName() + ".rec");
+        metaData.getDatasetName() + ".rec");
 
     //  If neither of the files exist return false
     if ((!fullReconstruction.exists()) && (!finalReconstuction.exists())) {
       return false;
     }
 
-    // If fileset.rec exists and full.rec doesn't move fileset.rec to full.rec
+    // If dataset.rec exists and full.rec doesn't move dataset.rec to full.rec
     // otherwise just return true
     if (finalReconstuction.exists() && (!fullReconstruction.exists())) {
       return finalReconstuction.renameTo(fullReconstruction);
@@ -2478,7 +2481,7 @@ public class ApplicationManager {
       inputFile = "sum.rec";
     }
     trimvolParam.setInputFile(inputFile);
-    trimvolParam.setOutputFile(metaData.getFilesetName() + ".rec");
+    trimvolParam.setOutputFile(metaData.getDatasetName() + ".rec");
 
     // Start the trimvol process
     String threadName = processMgr.trimVolume(trimvolParam);
@@ -2550,12 +2553,12 @@ public class ApplicationManager {
   }
 
   /**
-   * Return the fileset name.  This is the basename of the raw image stack and
+   * Return the dataset name.  This is the basename of the raw image stack and
    * the name used for the base of all intermediate and final data files.
-   * @return a string containing the fileset name.
+   * @return a string containing the dataset name.
    */
-  public String getFilesetName() {
-    return metaData.getFilesetName();
+  public String getDatasetName() {
+    return metaData.getDatasetName();
   }
 
   /**
