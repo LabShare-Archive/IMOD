@@ -26,6 +26,9 @@ import etomo.ui.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.6  2002/09/30 22:01:29  rickg
+ * <p> Added check to verify dual axis for combination
+ * <p>
  * <p> Revision 1.5  2002/09/20 18:56:09  rickg
  * <p> Added private message and yes/no dialog methods
  * <p> Check to see if the raw stack and coarsely aligned stacks should be closed by the user
@@ -1072,8 +1075,7 @@ public class ApplicationManager {
    * updateAlignCom updates the align{|a|b}.com scripts with the parameters from
    * the tomogram positioning dialog.
    */
-  private boolean updateAlignCom(
-    TomogramPositioningDialog tomogramPositioningDialog) {
+  private boolean updateAlignCom(TomogramPositioningDialog tomogramPositioningDialog) {
 
     TiltalignParam tiltalignParam;
     AxisID currentAxis = AxisID.ONLY;
@@ -1288,8 +1290,9 @@ public class ApplicationManager {
     }
 
     // Verify that this process is applicable
-    if(metaData.getAxisType() == AxisType.SINGLE_AXIS) {
-      openMessageDialog("This step is valid only for a dual axis tomogram",
+    if (metaData.getAxisType() == AxisType.SINGLE_AXIS) {
+      openMessageDialog(
+        "This step is valid only for a dual axis tomogram",
         "Invalid tomogram combination selection");
       return;
     }
@@ -1310,8 +1313,7 @@ public class ApplicationManager {
 
   }
 
-  public void doneTomogramCombinationDialog(
-    TomogramCombinationDialog tomogramCombinationDialog) {
+  public void doneTomogramCombinationDialog(TomogramCombinationDialog tomogramCombinationDialog) {
 
     DialogExitState exitState = tomogramCombinationDialog.getExitState();
 
@@ -1353,9 +1355,13 @@ public class ApplicationManager {
 
   }
 
-  //FIXME get the combine parameters from the dialog box
+  //FIXME get the combine parameters from the dialog box and 
   private boolean updateCombineCom(TomogramCombinationDialog tomogramCombinationDialog) {
+    CombineParams combineParams = new CombineParams();
+    tomogramCombinationDialog.getCombineParams(combineParams);
 
+    //  FIXME we need to get the metadat combine parameters object to match the tomogramd Combination
+    //  dialog.  Be consistent with previous methods i.e. setup
     return true;
   }
 
