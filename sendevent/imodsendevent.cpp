@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.2  2003/09/13 16:17:36  mast
+Added option for debug output
+
 Revision 1.1  2003/02/27 00:55:39  mast
 qt clipboard version
 
@@ -56,14 +59,19 @@ Initial addition to package
 
 static int winID;
 static int debugOut = 0;
+static int retryLimit = 0;
+static int retryCount = 0;
+static QString timeStr;
+static QString cmdStr;
 
 int main(int argc, char **argv)
 {
   int action;
   double timeout = 5.;
   int argIndex, numArgs;
+  int interval;
   char *endptr;
-  QString qstr, timeStr;
+  QString qstr;
   QTime curTime = QTime::currentTime();
   int timeStamp = 60000 * curTime.minute() + 1000 * curTime.second() +
     curTime.msec();
@@ -123,17 +131,33 @@ int main(int argc, char **argv)
 
   // Pack the arguments into a QString
   timeStr.sprintf(" %d ", timeStamp);
-  qstr = QString(argv[argIndex]) + timeStr + argv[argIndex + 1] + " ";
+  timeStr = QString(argv[argIndex]) + timeStr; 
+  cmdStr = QString(argv[argIndex + 1]) + " ";
   if (numArgs > 2)
-    qstr += argv[argIndex + 2];
+    cmdStr += argv[argIndex + 2];
+  qstr = timeStr + cmdStr;
 
-  // Connect to the clpbard, start the timeout, and send the text
+  // Connect to the clipboard, start the timeout, and send the text
   QClipboard *cb = QApplication::clipboard();
+  cb->setSelectionMode(false);
   cb->blockSignals(true);
   QObject::connect(cb, SIGNAL(dataChanged()), &a, SLOT(clipboardChanged()));
-  if (timeout > 0.)
-    a.startTimer((int)(1000. * timeout + 0.5));
   cb->blockSignals(false);
+
+  // Start a timeout timer if the interval is not zero.
+  interval = (int)(1000. * timeout + 0.5);
+  if (interval > 0) {
+
+    // If this hack is defined, divide the total timeout into intervals of this
+    // length and retry sending message
+#ifdef SENDEVENT_RETRY_HACK
+    retryLimit = interval / SENDEVENT_RETRY_HACK;
+    if (!retryLimit)
+      retryLimit = 1;
+    interval = SENDEVENT_RETRY_HACK;
+#endif
+    a.startTimer(interval);
+  }
   if (debugOut)
     fprintf(stderr, "Imodsendevent sending: %s\n", qstr.latin1());
   cb->setText(qstr);
@@ -147,18 +171,31 @@ ImodSendEvent::ImodSendEvent(int &argc, char **argv)
 {
 }
 
-// The timeout occurred - write error message and exit with error
+// The timeout occurred - if count has not expired, resend message with an
+// added space, otherwise write error message and exit with error
 void ImodSendEvent::timerEvent(QTimerEvent *e)
 {
+  if (++retryCount < retryLimit) {
+    timeStr += " ";
+    QString qstr = timeStr + cmdStr;
+    QClipboard *cb = QApplication::clipboard();
+    cb->setSelectionMode(false);
+    cb->setText(qstr);
+    return;
+  }
   fprintf(stderr, "ERROR: imodsendevent - timeout before response received "
           "from target Imod\n");
-  QApplication::exit(2);
+  ::exit(2);
 }
 
 // The clipboard changed - check for window ID and OK or ERROR
+// NOTE: on Windows, needed to exit with ::exit instead of QApplication::exit,
+// otherwise it would hang for a long time or until the timeout occurred.
+// So do all exiting with ::exit()
 void ImodSendEvent::clipboardChanged()
 {
   QClipboard *cb = QApplication::clipboard();
+  cb->setSelectionMode(false);
   QString text = cb->text();
   if (debugOut)
     fprintf(stderr, "Imodsendevent - clipboard = %s\n", text.latin1());
@@ -174,12 +211,12 @@ void ImodSendEvent::clipboardChanged()
 
   // If OK, just exit; if ERROR, give message and exit with error status
   if (text.mid(index + 1) == "OK") {
-    QApplication::exit(0);
+    ::exit(0);
     return;
   }
   if (text.mid(index + 1) != "ERROR")
     return;
   fprintf(stderr, "ERROR: imodsendevent - message received but error occurred "
           "executing it\n");
-  QApplication::exit(3);
+  ::exit(3);
 }
