@@ -1,5 +1,14 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/28/04: IMOD_3-4-0 and branch to IMOD_3-3-0
+6/28/04: Added nohup to submfg, vmstocsh output, and all scripts to keep
+submitted jobs alive upon logout.
+
+6/28/04: Added -n option to subm (submfg) to run jobs niced.
+
+6/27/04: Added a script, Processchunks, to run jobs in parallel on multiple
+processors or machines.
+
 6/25/04: IMOD_3-2-21
 6/25/04: Solvematch problems and other combine parameter synchronization 
 problems solved in eTomo.
