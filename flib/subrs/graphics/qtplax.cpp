@@ -5,6 +5,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.3  2003/08/12 23:52:11  mast
+Make window size smaller for Mac only
+
 Revision 1.2  2003/08/12 21:44:36  mast
 Changes to try to help text drawingon the Mac
 
@@ -92,7 +95,6 @@ void PlaxWindow::resizeEvent ( QResizeEvent * )
 #ifdef Q_OS_MACX
 #define TEXT_SIZE_SCALE 3.3
 #define DEFAULT_HEIGHT 512
-#define
 #else
 #define TEXT_SIZE_SCALE 2.5
 #define DEFAULT_HEIGHT 640
