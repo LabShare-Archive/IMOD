@@ -1,6 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 7/31/03: IMOD_3-0-13
+7/31/03: Added ability to send messages to set movie mode and to load a model
+without changing black/white levels.
+
 7/31/03: Changed the call used to iconify dialog boxes along with the info
 or model view window because the old way didn't work under RedHat 9 or on the 
 SGI under Qt 3.1.

@@ -32,6 +32,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.3  2003/06/04 23:42:54  mast
+Move message defines here to avoid recompiling everything
+
 Revision 3.2  2003/02/27 19:22:40  mast
 Qt version that works on windows
 
@@ -57,6 +60,7 @@ Initital version of code moved from imod_menu_cb.c
 #define MESSAGE_QUIT  4
 #define MESSAGE_RAISE_WINDOWS 5
 #define MESSAGE_MODEL_MODE  6
+#define MESSAGE_OPEN_KEEP_BW 7
 
 #include <qobject.h>
 #include <qstring.h>
