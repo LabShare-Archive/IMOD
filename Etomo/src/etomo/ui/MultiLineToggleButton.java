@@ -30,6 +30,9 @@ import etomo.ApplicationManager;
 * @version $Revision$
 *
 * <p> $Log$
+* <p> Revision 1.4  2003/10/20 16:48:35  sueh
+* <p> bug317 removing diagnostic prints
+* <p>
 * <p> Revision 1.3  2003/10/20 16:44:00  sueh
 * <p> bug317 replacing assert with an unchecked exception
 * <p>
@@ -47,18 +50,16 @@ import etomo.ApplicationManager;
  * To change the template for this generated type comment go to
  * Window - Preferences - Java - Code Generation - Code and Comments
  */
-public class MultiLineToggleButton extends JToggleButton {
-  public static final String rcsid = " $Id : $ ";
-  
+final public class MultiLineToggleButton extends JToggleButton {
+  public static final String rcsid = "$$Id$$";
+
   public static final String ENABLED_UNSELECTED_TEXT_COLOR_PROPERTY = "ToggleButton.foreground";
   public static final String ENABLED_SELECTED_TEXT_COLOR_PROPERTY = "ToggleButton.foreground";
   public static final String DISABLED_UNSELECTED_TEXT_COLOR_PROPERTY = "ToggleButton.disabledText";
   public static final String DISABLED_SELECTED_TEXT_COLOR_PROPERTY =  "ToggleButton.disabledSelectedText";
 
-  private static ColorUIResource enabledUnselectedTextColor = null;
-  private static ColorUIResource enabledSelectedTextColor = null;
-  private static ColorUIResource disabledUnselectedTextColor = null;
-  private static ColorUIResource disabledSelectedTextColor = null;
+
+  
   
   public MultiLineToggleButton() {
     this(null, null, false);
@@ -115,6 +116,8 @@ public class MultiLineToggleButton extends JToggleButton {
   }
   
   
+//protected methods
+
   protected String paramString() {
     return ",enabledUnselectedTextColor=" + enabledUnselectedTextColor
       + ", enabledSelectedTextColor =" + enabledSelectedTextColor
@@ -126,6 +129,14 @@ public class MultiLineToggleButton extends JToggleButton {
   protected void init(String text, Icon icon) {
     super.init(format(text), icon);
   }
+
+
+//private implementation
+
+  private static ColorUIResource enabledUnselectedTextColor = null;
+  private static ColorUIResource enabledSelectedTextColor = null;
+  private static ColorUIResource disabledUnselectedTextColor = null;
+  private static ColorUIResource disabledSelectedTextColor = null;
 
 
   private static String format(String text) {
@@ -146,13 +157,15 @@ public class MultiLineToggleButton extends JToggleButton {
     return "<html><b>" + text0 + "<br>" + text1 + "<br>" + text2 + "</b>";
   }
 
+  //if changing this class to inheritable, make this method protected
   private void init() {
     enabledUnselectedTextColor = getDefaultUIToggleButtonTextColor(ENABLED_UNSELECTED_TEXT_COLOR_PROPERTY);
     enabledSelectedTextColor = getDefaultUIToggleButtonTextColor(ENABLED_SELECTED_TEXT_COLOR_PROPERTY);
     disabledUnselectedTextColor = getDefaultUIToggleButtonTextColor(DISABLED_UNSELECTED_TEXT_COLOR_PROPERTY);
     disabledSelectedTextColor = getDefaultUIToggleButtonTextColor(DISABLED_SELECTED_TEXT_COLOR_PROPERTY);
   }
-
+  
+  //if changing this class to inheritable, make this method protected
   private static ColorUIResource getDefaultUIToggleButtonTextColor(String property) {
     ColorUIResource color = new ColorUIResource(0, 0, 0);
     color = (ColorUIResource) ApplicationManager.getDefaultUIResource(color, property);
@@ -161,7 +174,7 @@ public class MultiLineToggleButton extends JToggleButton {
     }
     return color;
   }
-  
+
   private static ColorUIResource createDefaultColor(String property) {
     System.err.println("Warning: Cannot retrieve default UI property: " + property);
     if (property == ENABLED_UNSELECTED_TEXT_COLOR_PROPERTY) {
