@@ -1,6 +1,7 @@
 package etomo.ui;
 
 import java.awt.*;
+import java.awt.event.KeyListener;
 import java.awt.event.MouseListener;
 
 import javax.swing.*;
@@ -18,6 +19,9 @@ import javax.swing.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.2  2004/04/07 21:04:02  rickg
+ * <p> Alignment is now set on the panel
+ * <p>
  * <p> Revision 3.1  2004/03/24 03:04:41  rickg
  * <p> Added setText(float) methof
  * <p> Fixed setMaximumSize bug
@@ -124,6 +128,11 @@ public class LabeledTextField {
   public void setEditable(boolean editable) {
     textField.setEditable(editable);
   }
+  
+  public void addKeyListener(KeyListener listener) {
+    textField.addKeyListener(listener);
+  }
+  
 
   /**
    * Set the absolute preferred size of the text field
