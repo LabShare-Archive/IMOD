@@ -1,5 +1,5 @@
 #! /bin/csh -f
-# SCRIPT TO COPY AND MODIFY COMBINE.COM
+# SCRIPT TO COPY AND MODIFY COMBINE.COM AND ASSOCIATED COM FILES
 
 set XYBORDER = 36
 set PATCHXY = (64 80 100)
@@ -19,6 +19,16 @@ set tmp_srcname = "g5tmpdir"
 set backupname = "./savework"
 set backupsed = ".\/savework"
 
+set matchshift = solvematchshift.com
+set matchmod = solvematchmod.com
+set matchvol1 = matchvol1.com
+set patchcorr = patchcorr.com
+set matchorwarp = matchorwarp.com
+set warpvol = warpvol.com
+set matchvol2 = matchvol2.com
+set volcombine = volcombine.com
+
+
 #  $Author$
 #
 #  $Date$
@@ -26,6 +36,9 @@ set backupsed = ".\/savework"
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.0  2001/11/29 18:11:11  rickg
+#  *** empty log message ***
+#
 #  Revision 1.2  2001/11/28 23:23:55  mast
 #  Minor changes to accomodate changing from $! to # in command files.
 #
@@ -130,8 +143,14 @@ echo -n "   2 if there are fiducials on both surfaces: "
 set modsurf = $<
 end
 
-set gotomodel = '#$goto'
-if ($modsurf == "0") set gotomodel = '$goto'
+set uncomment = $matchshift
+set comment = $matchmod
+set surftext = "0 to use models"
+if ($modsurf == "0") then
+    set comment = $matchshift
+    set uncomment = $matchmod
+    set surftext = "gibberish"
+endif
 
 @ nx = $size[1]
 @ ny = $size[3]
@@ -328,23 +347,80 @@ echo "The number of patches for PATCHCRAWL3D is $npatchx in X, $npatchz in Y, an
 echo "   (Y and Z are not flipped on the PATCHCRAWL3D command line)"
 
 if (-e combine.com) \mv -f combine.com combine.com~
-sed -e "/patchcrawl3d *[0-9]/s/3d[ 0-9]*/3d  $PATCHXY[$indpatch] $PATCHZ[$indpatch] $PATCHXY[$indpatch]   $npatchx $npatchz $npatchy   $patchxl $patchxu   $patchzl $patchzu   $patchyl $patchyu /g"\
-    -e s/$from_srcname/$fromname/g\
+if (-e $matchshift) \mv -f $matchshift $matchshift~
+if (-e $matchmod) \mv -f $matchmod $matchmod~
+if (-e $matchvol1) \mv -f $matchvol1 $matchvol1~
+if (-e $matchvol2) \mv -f $matchvol2 $matchvol2~
+if (-e $warpvol) \mv -f $warpvol $warpvol~
+if (-e $patchcorr) \mv -f $patchcorr $patchcorr~
+if (-e $matchorwarp) \mv -f $matchorwarp $matchorwarp~
+if (-e $volcombine) \mv -f $volcombine $volcombine~
+
+sed -e s/$from_srcname/$fromname/g\
     -e s/$to_srcname/$toname/g\
-    -e "s/$tmp_srcname/$sedtmpdir/g"\
-    -e s/$matfile/$sedmatfile/g\
-    -e "/goto usemodels/s/.*goto /$gotomodel /"\
-    -e "/mkdir/s/.*if/$ifmkdir/"\
     -e "/$corrtext1/s/.*	/$corrlist1	/g"\
     -e "/$corrtext2/s/.*	/$corrlist2	/g"\
     -e "/X-axis tilt/s/.*	/$xaxisa[2],$xaxisb[2]	/g"\
-    -e "/0 to use models/s/.*	/$modsurf	/g"\
+	<$srcdir/$matchmod >$matchmod
+
+sed -e s/$from_srcname/$fromname/g\
+    -e s/$to_srcname/$toname/g\
+    -e "/$corrtext1/s/.*	/$corrlist1	/g"\
+    -e "/$corrtext2/s/.*	/$corrlist2	/g"\
+    -e "/X-axis tilt/s/.*	/$xaxisa[2],$xaxisb[2]	/g"\
+    -e "/$surftext/s/.*	/$modsurf	/g"\
+	<$srcdir/$matchshift >$matchshift
+
+sed -e s/$from_srcname/$fromname/g\
+    -e s/$to_srcname/$toname/g\
+    -e "s/$tmp_srcname/$sedtmpdir/g"\
+    -e s/$matfile/$sedmatfile/g\
     -e "/NX,NY,NZ of output/s/.*	/$size	/g"\
-    -e "/$modeltext/s/$modeltext/matchorwarp -modelfile $modelin -size/"\
-    -e "/boundary_model/s//$modelin/"\
     -e "/savework-file/s//$backupsed/g"\
+	<$srcdir/$matchvol1 >$matchvol1
+
+sed -e s/$from_srcname/$fromname/g\
+    -e s/$to_srcname/$toname/g\
+    -e "s/$tmp_srcname/$sedtmpdir/g"\
+    -e s/$matfile/$sedmatfile/g\
+    -e "/NX,NY,NZ of output/s/.*	/$size	/g"\
+	<$srcdir/$matchvol2 >$matchvol2
+
+sed -e s/$from_srcname/$fromname/g\
+    -e s/$to_srcname/$toname/g\
+    -e "s/$tmp_srcname/$sedtmpdir/g"\
+    -e s/$matfile/$sedmatfile/g\
+    -e "/NX,NY,NZ of output/s/.*	/$size	/g"\
+	<$srcdir/$warpvol >$warpvol
+
+sed -e "/patchcrawl3d *[0-9]/s/3d[ 0-9]*/3d  $PATCHXY[$indpatch] $PATCHZ[$indpatch] $PATCHXY[$indpatch]   $npatchx $npatchz $npatchy   $patchxl $patchxu   $patchzl $patchzu   $patchyl $patchyu /g"\
+    -e s/$from_srcname/$fromname/g\
+    -e s/$to_srcname/$toname/g\
+    -e s/$matfile/$sedmatfile/g\
+    -e "/boundary_model/s//$modelin/"\
+	<$srcdir/$patchcorr >$patchcorr
+
+sed -e s/$from_srcname/$fromname/g\
+    -e s/$to_srcname/$toname/g\
+    -e "s/$tmp_srcname/$sedtmpdir/g"\
+    -e s/$matfile/$sedmatfile/g\
+    -e "/$modeltext/s/$modeltext/matchorwarp -modelfile $modelin -size/"\
     -e "/$tempdirarg/s///"\
+	<$srcdir/$matchorwarp >$matchorwarp
+
+sed -e s/$from_srcname/$fromname/g\
+    -e s/$to_srcname/$toname/g\
+    -e "s/$tmp_srcname/$sedtmpdir/g"\
+    -e s/$matfile/$sedmatfile/g\
+    -e "/savework-file/s//$backupsed/g"\
+    	<$srcdir/$volcombine >$volcombine
+
+sed -e "s/$tmp_srcname/$sedtmpdir/g"\
+    -e "/mkdir/s/.*if/$ifmkdir/"\
+    -e "/$comment/s/"'^[\$#]*\([ve]\)/#\$\1/g'\
+    -e "/$uncomment/s/"'^[\$#]*\([ve]\)/\$\1/g'\
 	<$srcdir/combine.com >combine.com
+
 
 set ranlist = `tomopieces $recfile $MAXMEMORY $TAPERPADXZ $TAPERPADY $MINOVERLAP`
 
@@ -353,7 +429,7 @@ if ($status) then
     exit 1
 endif
 
-cat >> combine.com <<EOF
+cat >> $volcombine <<EOF
 \$touch prevent-error
 \$\\rm prevent-err* ${tmppath}*.mat~ ${tmppath}mat.fft* ${tmppath}rec.fft* ${tmppath}sum.fft* $sumname* ${tmppath}sum[1-9]*.rec*
 \$!
@@ -378,7 +454,7 @@ while ($znum < $npiecez)
     while ($xnum < $npiecex)
 	@ xnum++
 	@ sumnum++
-	cat >> combine.com <<EOCAT
+	cat >> $volcombine <<EOCAT
 #
 # Extracting and combining piece $sumnum
 #
@@ -411,7 +487,7 @@ EOCAT
     end
 end
 
-cat >> combine.com <<EOCAT
+cat >> $volcombine <<EOCAT
 #
 # Reassembing pieces
 #
@@ -421,15 +497,15 @@ $npiecex,1,$npiecez
 EOCAT
 @ xnum = 0
 while ($xnum < $npiecex)
-    echo $ranlist[1] >> combine.com
+    echo $ranlist[1] >> $volcombine
     shift ranlist
     @ xnum++
 end
-echo $ranlist[1] >> combine.com
+echo $ranlist[1] >> $volcombine
 shift ranlist
 @ znum = 0
 while ($znum < $npiecez)
-    echo $ranlist[1] >> combine.com
+    echo $ranlist[1] >> $volcombine
     shift ranlist
     @ znum++
 end
@@ -437,9 +513,9 @@ end
 @ sumnum = 0
 while ($sumnum < $npiecex * $npiecez)
   @ sumnum++
-  echo ${tmppath}sum$sumnum.rec >> combine.com
+  echo ${tmppath}sum$sumnum.rec >> $volcombine
 end
-cat >> combine.com <<EOCAT
+cat >> $volcombine <<EOCAT
 #
 # Clear out pieces and fill bad pixels again
 #
@@ -454,9 +530,9 @@ EOCAT
 
 
 if ($handclean == "0") then
-cat >> combine.com <<EOCAT
+cat >> $volcombine <<EOCAT
 \$\\rm -r $tmpdir
 EOCAT
 endif
 
-echo '$'"if (-e $backupname) $backupname" >> combine.com
+echo '$'"if (-e $backupname) $backupname" >> $volcombine
