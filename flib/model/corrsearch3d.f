@@ -69,6 +69,10 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.5  2002/09/06 00:41:07  mast
+c	  Needed to prevent negative spanning distances when transformed
+c	  corners are very close to each other
+c	
 c	  Revision 3.4  2002/07/26 19:20:05  mast
 c	  Was taking min of an int and a real - Intel compiler caught it.
 c	
@@ -102,8 +106,9 @@ c
 	character*80 filea,fileb,filout,modelfile,tempfile,xffile
 	real*4 dxpat(limpat),dypat(limpat),dzpat(limpat)
 	integer*2 ifdone(limpat)
+	character*160 imodpath, imodshell
 	character*320 patchcom
-	character*12 onepatchname/'onepatchcorr'/
+	character*13 onepatchname/'onepatchcorr '/
 	integer*4 idxadj(nadjlook)/-1,1,0,0,0,0/
 	integer*4 idyadj(nadjlook)/0,0,-1,1,0,0/
 	integer*4 idzadj(nadjlook)/0,0,0,0,-1,1/
@@ -128,7 +133,7 @@ c
 	integer*4 loady0,loady1,loadz0,loadz1,loadx0,loadx1,nmore
 	integer*4 nxload,nyload,nzload
 	real*4 dxsum,dysum,dzsum,err,perpos,dxadj,dyadj,dzadj
-	integer*4 lnblnk
+	integer*4 lnblnk,imodGetenv
 
 	indpat(ix,iy,iz)=ix + (iy-1)*numxpat + (iz-1)*numxpat*numypat
 c
@@ -605,7 +610,15 @@ c			If there are no adjacent patches, or we were too close
 c			to the shift limit, do a full cross corr
 c			
 		      if(ifdone(indp).eq.0.or.ifdebug.ne.0)then
-			write(patchcom,'(a,3i4,3i5,1x,a,1x,a,1x,a)')
+			if (imodGetenv('IMOD_DIR', imodpath) .ne. 0)
+     &			    call errorexit('FAILED TO GET IMOD_DIR '//
+     &			    'ENVIRONMENT VARIABLE')
+			if (imodGetenv('IMOD_CSHELL', imodshell) .ne. 0)
+     &			    imodshell = 'tcsh -ef'
+			write(patchcom,
+     &			    '(a,1x,a,a,a,3i4,3i5,1x,a,1x,a,1x,a)')
+     &			    imodshell(1:lnblnk(imodshell)),
+     &			    imodpath(1:lnblnk(imodpath)),'/bin/',
      &			    onepatchname,nxpatch,nypatch,
      &			    nzpatch,ixcen,iycen,izcen,filea(1:lnblnk(filea)),
      &			    fileb(1:lnblnk(fileb)),tempfile(1:lnblnk(tempfile))
