@@ -74,6 +74,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.55  2003/07/22 22:16:15  rickg
+ * <p> Erased stack methods and trial mode
+ * <p>
  * <p> Revision 2.54  2003/07/01 19:24:30  rickg
  * <p> Fixed progress bars for prenewst, newst and tomogram generation
  * <p>
@@ -709,7 +712,7 @@ public class ApplicationManager {
     String eraseModelName =
       metaData.getDatasetName() + axisID.getExtension() + ".erase";
     try {
-      imodManager.modelRawStack(eraseModelName, axisID);
+      imodManager.modelRawStack(eraseModelName, axisID, true);
       processTrack.setPreProcessingState(ProcessState.INPROGRESS, axisID);
       mainFrame.setPreProcessingState(ProcessState.INPROGRESS, axisID);
     }
@@ -726,7 +729,10 @@ public class ApplicationManager {
   }
 
   /**
-   * Get the eraser{|a|b}.com script
+   * Get the eraser script parameters from the CCD eraser panel and
+   * write them out the eraser{|a|b}.com script
+   * @param axisID    The axisID to process
+   * @param trialMode Set to trial mode if true
    */
   private void updateEraserCom(AxisID axisID, boolean trialMode) {
     PreProcessingDialog preProcDialog;
@@ -741,15 +747,15 @@ public class ApplicationManager {
     //  is first initialized from the currently loaded com script to
     //  provide deafault values for those not handled by the dialog box
     //  get function needs some error checking
-    CCDEraserParam ccdEraserParam = new CCDEraserParam();
-    ccdEraserParam = comScriptMgr.getCCDEraserParam(axisID);
+    CCDEraserParam ccdEraserParam = comScriptMgr.getCCDEraserParam(axisID);
     preProcDialog.getCCDEraserParams(ccdEraserParam);
     ccdEraserParam.setTrialMode(trialMode);
     comScriptMgr.saveEraser(ccdEraserParam, axisID);
   }
 
   /**
-   * Run the eraser script
+   * Run the eraser script for the specified axis
+   * @param axisID
    */
   public void eraser(AxisID axisID) {
     updateEraserCom(axisID, false);
@@ -780,7 +786,7 @@ public class ApplicationManager {
     String xRayModel =
       metaData.getDatasetName() + axisID.getExtension() + "_peak.mod";
     try {
-      imodManager.modelRawStack(xRayModel, axisID);
+      imodManager.modelRawStack(xRayModel, axisID, false);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
@@ -821,7 +827,15 @@ public class ApplicationManager {
         + metaData.getDatasetName()
         + axisID.getExtension()
         + ".st";
+        
     File rawStack = new File(rawStackFilename);
+    String rawStackRename =
+          System.getProperty("user.dir")
+            + File.separator
+            + metaData.getDatasetName()
+            + axisID.getExtension()
+            + "_orig.st";
+    File rawRename = new File(rawStackRename);
     
     String fixedStackFilename =
       System.getProperty("user.dir")
@@ -842,6 +856,7 @@ public class ApplicationManager {
     mainFrame.setPreProcessingState(ProcessState.INPROGRESS, axisID);
 
     //  Rename the fixed stack to the raw stack file name
+    rawStack.renameTo(rawRename);
     fixedStack.renameTo(rawStack);
     
     if(imodManager.isRawStackOpen(axisID)) {
@@ -1205,7 +1220,6 @@ public class ApplicationManager {
       BeadtrackParam beadtrackParam = comScriptMgr.getBeadtrackParam(axisID);
       fiducialModelDialog.getBeadtrackParams(beadtrackParam);
       comScriptMgr.saveTrack(beadtrackParam, axisID);
-
     }
     catch (FortranInputSyntaxException except) {
       String[] errorMessage = new String[3];
@@ -1474,10 +1488,8 @@ public class ApplicationManager {
       return false;
     }
 
-    TiltalignParam tiltalignParam;
-
     try {
-      tiltalignParam = comScriptMgr.getTiltalignParam(axisID);
+      TiltalignParam tiltalignParam = comScriptMgr.getTiltalignParam(axisID);
       fineAlignmentDialog.getTiltalignParams(tiltalignParam);
       comScriptMgr.saveAlign(tiltalignParam, axisID);
       //  Update the tilt.com script with the dependent parameters
@@ -1768,9 +1780,8 @@ public class ApplicationManager {
     TomogramPositioningDialog tomogramPositioningDialog,
     AxisID axisID) {
 
-    TiltalignParam tiltalignParam;
     try {
-      tiltalignParam = comScriptMgr.getTiltalignParam(axisID);
+      TiltalignParam tiltalignParam = comScriptMgr.getTiltalignParam(axisID);
       tomogramPositioningDialog.getAlignParams(tiltalignParam);
       comScriptMgr.saveAlign(tiltalignParam, axisID);
     }
@@ -2280,6 +2291,7 @@ public class ApplicationManager {
     }
 
     metaData.setCombineParams(combineParams);
+    isDataParamDirty = true;
     return true;
   }
 
