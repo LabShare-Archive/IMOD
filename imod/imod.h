@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.2  2003/02/10 20:41:55  mast
+    Merge Qt source
+
     Revision 3.1.2.4  2003/01/29 01:43:00  mast
     add colormap draw flag
 
@@ -158,7 +161,7 @@ Imod *ivwGetModel(ImodView *inImodView);
  *  Draw the model using a 2D line renderer implemented with OpenGL functions.
  *  You will need to set up the view matrix yourself.
  */
-void imodDrawModel(Imod *inModel);
+void imodDrawModel(ImodView *inImodView, Imod *inModel);
 
 
 /**************************** Application Data *******************************/
