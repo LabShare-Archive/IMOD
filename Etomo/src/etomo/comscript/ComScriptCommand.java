@@ -17,6 +17,9 @@ import java.util.LinkedList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.3  2003/07/11 23:18:20  rickg
+ * <p> Adde key/value processing methods
+ * <p>
  * <p> Revision 2.2  2003/07/09 16:00:58  rickg
  * <p> *** empty log message ***
  * <p>
@@ -57,9 +60,11 @@ public class ComScriptCommand {
    * Copy constructor.
    */
   public ComScriptCommand(ComScriptCommand src) {
+    keywordValuePairs = src.isKeywordValuePairs();
     headerComments = src.getHeaderComments();
     command = src.getCommand();
     commandLineArgs = src.getCommandLineArgs();
+
     ComScriptInputArg[] inputArgs = src.getInputArguments();
     for (int i = 0; i < inputArgs.length; i++) {
       stdinArgs.add(inputArgs[i]);
