@@ -1,3 +1,4 @@
+
 /*  IMOD VERSION 2.50
  *
  *  xzap.c -- The Zap Window.
@@ -34,6 +35,9 @@
     $Revision$
 
     $Log$
+    Revision 3.4  2002/07/28 22:58:42  mast
+    Made I pop Info window to front and added a button to toolbar to do this
+
     Revision 3.3  2002/07/21 20:29:50  mast
     changed number of columns for section number to 4
 
@@ -60,6 +64,12 @@
 #include <X11/IntrinsicP.h>
 #include <math.h>
 
+#ifdef REPORT_TIMES
+#include <sys/times.h>
+#include <time.h>
+#endif
+
+#include <diaP.h>
 #include "imod.h"
 #include "xzap.h"
 #include "keypad.h"
@@ -553,7 +563,7 @@ static void zapSyncImage(ZapWindow *win)
 	    }
 
 	    if (tripshift) {
-	         /* printf("tripshift %d\n",tripshift); */
+	         /* fprintf(stderr, "tripshift %d\n",tripshift); */
 	         win->xtrans = (vi->xsize * 0.5f) - vi->xmouse + 0.5f;
 	         win->ytrans = (vi->ysize * 0.5f) - vi->ymouse + 0.5f;
 	    }
@@ -565,7 +575,22 @@ static void zapSyncImage(ZapWindow *win)
    is done, to avoid double snapshots */
 static int zapDraw(ZapWindow *zap)
 {
+
+     /* DNM 9/10/02: skip a draw if expose timeout is active or a resize
+	was started and not finished yet */
+#ifdef ZAP_EXPOSE_HACK
+     if (zap->exposeTimeOut || zap->resizeSkipDraw) {
+#ifdef XZAP_DEBUG
+	  fprintf(stderr, "Skipping a draw because of expose timeout\n");
+#endif
+	  return;
+     }
+#endif
+
      b3dWinset(XtDisplay(zap->gfx), zap->gfx, (XID)zap->context);
+
+     /* But this wait is also needed to prevent the crashes */
+     glXWaitX();
      zapAutoTranslate(zap);
 
      /* DNM: this call returns 1 if further drawing can be skipped */
@@ -628,22 +653,25 @@ void zap_resize_cb(Widget w, XtPointer client, XtPointer call)
      ivwControlPriority(zap->vi, zap->ctrl);
 
 #ifdef XZAP_DEBUG
-     printf("RESIZE: ");
+     fprintf(stderr, "RESIZE: ");
 #endif
 
      /* DNM 8/10/01: Needed on RH 7.1/GeForce3 to prevent garbage */
 #ifdef ZAP_RESIZE_HACK
      zap->resizedraw2x = 1;
 #endif
+#ifdef ZAP_EXPOSE_HACK
+     zap->resizeSkipDraw = 1;
+#endif
 
      XtVaGetValues(zap->gfx, XmNwidth, &winx, XmNheight, &winy, NULL);
 
 #ifdef XZAP_DEBUG
-     printf("Size = %d x %d :", winx, winy);
+     fprintf(stderr, "Size = %d x %d :", winx, winy);
 #endif
 
 #ifdef XZAP_DEBUG
-     printf("Old Size = %d x %d :", zap->winx, zap->winy);
+     fprintf(stderr, "Old Size = %d x %d :", zap->winx, zap->winy);
 #endif
      zap->winx = winx;
      zap->winy = winy;
@@ -651,7 +679,7 @@ void zap_resize_cb(Widget w, XtPointer client, XtPointer call)
 
      if (zap->ginit){
 #ifdef XZAP_DEBUG
-	  printf("Init!");
+	  fprintf(stderr, "Init!");
 #endif
 	  /* Make sure the rubber band stays legal, but keep it same size
 	   if possible */
@@ -682,11 +710,16 @@ void zap_resize_cb(Widget w, XtPointer client, XtPointer call)
 	  b3dFlushImage(zap->image);
 	  zap->image =  b3dGetNewCIImage(zap->image, App->depth);
 	  b3dBufferImage(zap->image);
+
+	  /* DNM 9/10/02: this redraw is unneeded because expose events
+	     are always generated, and it causes trouble on PCs */
+	  /*fprintf(stderr, "drawing inside resize_cb...");
 	  zapDraw(zap);
+	     fprintf(stderr, "back\n"); */
 	  /*  zapDrawTools(zap); */
      }
 #ifdef XZAP_DEBUG
-     printf("\n");
+     fprintf(stderr, "\n");
 #endif
      return;
 }
@@ -701,7 +734,7 @@ void zap_ginit_cb(Widget w, XtPointer client, XtPointer call)
      zap->winy = winy;
 
 #ifdef XZAP_DEBUG
-     printf("Ginit:");
+     fprintf(stderr, "Ginit:");
 #endif
 
      zap->context = b3dGetContext(zap->gfx);
@@ -722,14 +755,45 @@ void zap_overexpose_cb(Widget w, XtPointer client, XtPointer call)
 }
 #endif
 
+/* DNM 9/10/02: when the time out ends after the last expose event, finally 
+   do the draws */
+#ifdef ZAP_EXPOSE_HACK
+void expose_to(XtPointer client_data, XtIntervalId *id)
+{
+     struct zapwin *zap = (struct zapwin *)client_data;
+     zap->exposeTimeOut = (XtIntervalId)0;
+     zap->resizeSkipDraw = 0;
+#ifdef XZAP_DEBUG
+     fprintf(stderr, "Drawing after expose timeout\n");
+#endif
+     zapDraw(zap);
+     if (zap->resizedraw2x)
+	  zapDraw(zap);
+     zap->resizedraw2x = 0;
+}
+#endif     
+
 void zap_expose_cb(Widget w, XtPointer client, XtPointer call)
 {
      struct zapwin *zap = (struct zapwin *)client;
+     B3dDrawingAreaCallbackStruct *cbs = (B3dDrawingAreaCallbackStruct *)call;
      Dimension winx, winy;
      int ox, oy;
+     int inited = 0;
+#ifdef REPORT_TIMES
+     static clock_t lasttime, thistime;
+     struct tms buf;
+     float elapsed;
+#endif
+     unsigned int interval = 120;    /* The value from midas - could be less */
+
+     /* This is a bust - there are multiple expose*/
+     XExposeEvent *event = (XExposeEvent *)(cbs->event);
+     if (event->count)
+	  return;
 
 #ifdef XZAP_DEBUG
-     printf("Expose:");
+     fprintf(stderr, "Expose:");
 #endif
 
      /* Resize window */
@@ -738,7 +802,7 @@ void zap_expose_cb(Widget w, XtPointer client, XtPointer call)
 			XmNwidth, &winx, XmNheight, &winy, NULL);
 
 #ifdef XZAP_DEBUG
-	  printf("Size = %d x %d :", winx, winy);
+	  fprintf(stderr, "Size = %d x %d :", winx, winy);
 #endif
 	  ox = zap->winx; oy = zap->winy;
 	  zap->winx = winx;
@@ -747,12 +811,13 @@ void zap_expose_cb(Widget w, XtPointer client, XtPointer call)
 	  
 	  if ((winx != ox) || (winy != oy)){
 #ifdef XZAP_DEBUG
-	       printf("Old Size = %d x %d :", zap->winx, zap->winy);
+	       fprintf(stderr, "Old Size = %d x %d :", zap->winx, zap->winy);
 #endif
 	       b3dFlushImage(zap->image);
 	       zap->image =  b3dGetNewCIImage(zap->image, App->depth);
 	       b3dBufferImage(zap->image);
-	       zapDraw(zap);
+	       /* 9/10/02:  THIS WAS NOT NEEDED */
+	       /*  zapDraw(zap); */
 	  }
 
 	  b3dResizeViewport();
@@ -760,14 +825,41 @@ void zap_expose_cb(Widget w, XtPointer client, XtPointer call)
      }else{
 	  zap_ginit_cb(w, client, call); 
 	  zap->ginit = TRUE;
+	  inited = 1;
      }
-     zapDraw(zap);
-     if (zap->resizedraw2x)
+
+#ifdef REPORT_TIMES
+     thistime = times(&buf);
+     elapsed = 1000.*(float)(thistime - lasttime) / CLK_TCK;
+     printf ("%6.1f\n", elapsed);
+     lasttime = thistime;
+#endif
+
+     /* DNM 9/10/02: start a timeout after every expose event to avoid crashes
+      with GeForce4 Ti4600 - possibly due to collisions with X's redraw of
+      the window */
+#ifdef ZAP_EXPOSE_HACK
+     if (inited) {
+#endif
 	  zapDraw(zap);
-     zap->resizedraw2x = 0;
+	  if (zap->resizedraw2x)
+	       zapDraw(zap);
+	  zap->resizedraw2x = 0;
+#ifdef ZAP_EXPOSE_HACK
+     } else {
+#ifdef XZAP_DEBUG
+	  fprintf(stderr, "Starting an expose timeout");
+#endif
+	  if (zap->exposeTimeOut)
+	       XtRemoveTimeOut(zap->exposeTimeOut);
+	  zap->exposeTimeOut = XtAppAddTimeOut(Dia_context, interval, 
+					       expose_to, (XtPointer)zap);
+     }
+#endif
+
 
 #ifdef XZAP_DEBUG
-     printf("\n");
+     fprintf(stderr, "\n");
 #endif
 }
 
@@ -1044,6 +1136,8 @@ int imod_zap_open(struct ViewInfo *vi)
      zap->rubberband = 0;
      zap->movieSnapCount = 0;
      zap->resizedraw2x = 0;
+     zap->exposeTimeOut = (XtIntervalId)0;
+     zap->resizeSkipDraw = 0;
 
      window_name = imodwfname("IMOD ZaP Window:");
      imod_info_input();
@@ -1450,7 +1544,7 @@ static void zap_keyinput(XKeyEvent *event, struct zapwin *zap)
      vi->insertmode = zap->insertmode;
      keysym = XLookupKeysym(event, 0);
 
-/*	printf("Zapo got %x keysym\n", keysym); */
+/*	fprintf(stderr, "Zapo got %x keysym\n", keysym); */
 
 
      switch(keysym){
@@ -1559,7 +1653,7 @@ static void zap_keyinput(XKeyEvent *event, struct zapwin *zap)
 	     single click or drag */
 	  rx = event->time - insertTime;
 	  insertTime = event->time;
-	  /* printf(" %d %d %d\n ", rx, ix, iy); */
+	  /* fprintf(stderr, " %d %d %d\n ", rx, ix, iy); */
 	  if(rx > 250)
 	       zapButton2(zap, ix, iy);
 	  else
@@ -1816,7 +1910,7 @@ void zap_input_cb(Widget w, XtPointer client, XtPointer call)
 	       button2 = True;
 	  if (cbs->event->xmotion.state & Button3Mask)
 	       button3 = True;
-	  /* printf("mb  %d|%d|%d\n", button1, button2, button3); */
+	  /* fprintf(stderr, "mb  %d|%d|%d\n", button1, button2, button3); */
 	  if ( (button1) && (!button2) && (!button3)){
 	       /* DNM: wait for a bit, but if we do not replace original 
 		  lmx, lmy, there is a disconcerting lurch */
@@ -2629,7 +2723,17 @@ static void zapResizeToFit(ZapWindow *zap)
 	  newdx = limw - 8 - neww;
      if (newdy + newh > limh - 8)
 	  newdy = limh - 8 - newh;
+
+#ifdef XZAP_DEBUG
+     fprintf(stderr, "configuring widget...");
+#endif
+#ifdef ZAP_EXPOSE_HACK
+     imodMovieXYZT(zap->vi, 0, 0, 0, 0);
+#endif
      XtConfigureWidget(zap->dialog, newdx, newdy, neww, newh, 0);
+#ifdef XZAP_DEBUG
+     fprintf(stderr, "back\n");
+#endif
 }
      
      
