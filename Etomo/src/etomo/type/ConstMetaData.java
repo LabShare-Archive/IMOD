@@ -1,11 +1,11 @@
 package etomo.type;
 
 import java.io.File;
-import java.lang.IllegalStateException;
 
 import etomo.comscript.ConstCombineParams;
 import etomo.comscript.CombineParams;
 import etomo.comscript.TransferfidParam;
+import etomo.comscript.TrimvolParam;
 
 /**
  * <p>Description: </p>
@@ -20,6 +20,9 @@ import etomo.comscript.TransferfidParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.9  2004/06/01 18:54:49  rickg
+ * <p> Bug #391 whole tomogram sampling state implementation
+ * <p>
  * <p> Revision 3.8  2004/05/25 23:57:49  sueh
  * <p> bug# 355 Change isValid() so it can be used with setup dialog
  * <p> or a .edf file.  Tell the user to check the .edf file, when necessary.
@@ -137,6 +140,7 @@ public class ConstMetaData {
   protected boolean comScriptsCreated = false;
 
   protected CombineParams combineParams = new CombineParams();
+  protected TrimvolParam trimvolParam = new TrimvolParam();
 
   protected String invalidReason = "";
 
@@ -145,6 +149,10 @@ public class ConstMetaData {
   public ConstMetaData() {
   }
 
+  public TrimvolParam getTrimvolParam() {
+    return trimvolParam;
+  }
+  
   public void initializeTransferfid(TransferfidParam param) {
     param.setNumberViews(transferfidNumberViews);
   }
@@ -503,6 +511,12 @@ public class ConstMetaData {
       return false;
     if (!(comScriptsCreated == cmd.getComScriptCreated()))
       return false;
+    if (!combineParams.equals(cmd.getConstCombineParams())) {
+      return false;
+    }
+    if (!trimvolParam.equals(cmd.getTrimvolParam())) {
+      return false;
+    }
 
     return true;
   }
