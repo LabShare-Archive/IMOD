@@ -157,7 +157,7 @@ ModelHeaderWindow::ModelHeaderWindow(QWidget *parent, const char *name)
   }
 
   connect(this, SIGNAL(actionPressed(int)), this, SLOT(buttonPressed(int)));
-  setCaption(imodCaption("Imod Model Header"));
+  setCaption(imodCaption("3dmod Model Header"));
 
   update();
   show();
@@ -344,7 +344,7 @@ ModelOffsetWindow::ModelOffsetWindow(QWidget *parent, const char *name)
   updateLabels();
 
   connect(this, SIGNAL(actionPressed(int)), this, SLOT(buttonPressed(int)));
-  setCaption(imodCaption("Imod Model Offset"));
+  setCaption(imodCaption("3dmod Model Offset"));
   show();
 }
 
@@ -442,6 +442,9 @@ void ModelOffsetWindow::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.4  2003/04/17 18:43:38  mast
+adding parent to window creation
+
 Revision 4.3  2003/04/11 21:47:28  mast
 adding tooltips
 

@@ -115,7 +115,7 @@ int xgraphOpen(struct ViewInfo *vi)
   if (!App->rgba)
     xg->dialog->mGLw->setColormap(*(App->qColormap));
 
-  xg->dialog->setCaption(imodCaption("Imod Graph"));
+  xg->dialog->setCaption(imodCaption("3dmod Graph"));
 
   xg->ctrl = ivwNewControl (xg->vi, graphDraw_cb, graphClose_cb, graphKey_cb,
 			    (void *)xg);
@@ -807,6 +807,9 @@ void GraphGL::setxyz(GraphStruct *xg, int mx, int my)
 
 /*
     $Log$
+    Revision 4.3  2003/04/17 18:43:38  mast
+    adding parent to window creation
+
     Revision 4.2  2003/03/24 17:56:46  mast
     Register with dialogManager so it can be parked with info window
 

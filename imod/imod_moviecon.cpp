@@ -218,7 +218,7 @@ void imodMovieConDialog(ImodView *vw)
 
   dia = new MovieController(imodDialogManager.parent(IMOD_DIALOG), NULL, 
 			    Qt::WType_TopLevel | Qt::WDestructiveClose);
-  dia->setCaption(imodCaption("Imod Movies"));
+  dia->setCaption(imodCaption("3dmod Movies"));
 
   imodDialogManager.add((QWidget *)dia, IMOD_DIALOG);
 
@@ -236,7 +236,7 @@ void imcHelp()
 {
   dia_vasmsg
     ("~~~~~~~~~~~~~~~~~~~~~~~~\n"
-     "Imod Movie Controller \n"
+     "3dmod Movie Controller \n"
      "~~~~~~~~~~~~~~~~~~~~~~~~"
      "\n\n",
      "This window allows you to control the starting and ending "
@@ -369,6 +369,9 @@ void imcIncrementRate(int dir)
 
 /*
 $Log$
+Revision 4.3  2003/04/17 18:43:38  mast
+adding parent to window creation
+
 Revision 4.2  2003/02/27 23:08:35  mast
 Change to Qt time function
 

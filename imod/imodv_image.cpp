@@ -323,7 +323,7 @@ static char *buttonTips[] = {"Close dialog box", "Open help window"};
 static char *sliderLabels[] = {"Transparency", "Black Level", "White Level"};
 
 ImodvImage::ImodvImage(QWidget *parent, const char *name)
-  : DialogFrame(parent, 2, buttonLabels, buttonTips, true, "Imodv Image View",
+  : DialogFrame(parent, 2, buttonLabels, buttonTips, true, "3dmodv Image View",
 		"", name)
 {
   mCtrlPressed = false;
@@ -447,6 +447,9 @@ void ImodvImage::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.5  2003/04/17 18:43:38  mast
+adding parent to window creation
+
 Revision 4.4  2003/03/28 05:01:50  mast
 Needed to remove include of glu.h for Mac
 

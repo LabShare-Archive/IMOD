@@ -449,7 +449,7 @@ static char *buttonTips[] = {"Close dialog box", "Open help window"};
 static char *sliderLabels[] = {"Angle"};
 
 ImodvStereo::ImodvStereo(QWidget *parent, const char *name)
-  : DialogFrame(parent, 2, buttonLabels, buttonTips, true, "Imodv Stereo", "",
+  : DialogFrame(parent, 2, buttonLabels, buttonTips, true, "3dmodv Stereo", "",
                 name)
 {
   // Make combo box, with just the 2 software options
@@ -579,6 +579,9 @@ void ImodvStereo::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.3  2003/04/17 18:43:38  mast
+adding parent to window creation
+
 Revision 4.2  2003/03/26 23:23:15  mast
 switched from hotslider.h to preferences.h
 

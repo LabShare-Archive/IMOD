@@ -233,7 +233,7 @@ void imodvViewEditDialog(ImodvApp *a, int state)
                                 Qt::WDestructiveClose | Qt::WType_TopLevel);
 
   // Set title bar
-  window_name = imodwEithername("Imodv Views: ", a->imod->fileName, 1);
+  window_name = imodwEithername("3dmodv Views: ", a->imod->fileName, 1);
   qstr = window_name;
   if (window_name)
     free(window_name);
@@ -319,7 +319,7 @@ void imodvViewsNew(const char *label)
   ved->a->imod->cview = ved->a->imod->viewsize - 1;
     
   if (cview == ved->a->imod->cview) {
-    fprintf(stderr,"imodv: create view error\n");
+    fprintf(stderr,"3dmodv: create view error\n");
     return; /* no view created. */
   }
 
@@ -379,6 +379,9 @@ static void build_list(ImodvApp *a)
 /*
 
     $Log$
+    Revision 4.3  2003/04/17 18:43:38  mast
+    adding parent to window creation
+
     Revision 4.2  2003/03/04 21:41:29  mast
     Refresh the imod windows when the view changes
 

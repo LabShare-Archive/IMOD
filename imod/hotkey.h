@@ -1,5 +1,5 @@
 char *Imod_hotkey_help[] = {
-"Imod Help for Hot Keys\n",
+"3dmod Help for Hot Keys\n",
 "----------------------\n",
 "The following hot keys are available in the Zap and XYZ Windows.\n",
 "\n",
@@ -86,7 +86,7 @@ CTRL_STRING"-S\tMake TIFF snapshot of image in window (Zap, XYZ, Slicer).\n",
 "v\tOpen Model View Window.\n",
 "G\tOpen Graph window.\n",
 "z\tOpen Zap window.\n",
-CTRL_STRING"-R\tRaise all Imod windows above other windows.\n"
+CTRL_STRING"-R\tRaise all 3dmod windows above other windows.\n"
 "\n",
 "\n",
 "",

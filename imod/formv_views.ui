@@ -21,7 +21,7 @@
         </sizepolicy>
     </property>
     <property name="caption">
-        <string>Imodv Views</string>
+        <string>3dmodv Views</string>
     </property>
     <property name="focusPolicy">
         <enum>StrongFocus</enum>

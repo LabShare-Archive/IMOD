@@ -990,7 +990,7 @@ void InfoWindow::helpSlot(int item)
     imod_info_input();
     imod_info_enable();
     dia_vasmsg
-      ("Imod Version ",
+      ("3dmod Version ",
        VERSION_NAME, "[", __DATE__, __TIME__, "]",
        "written by James Kremer and",
        "David Mastronarde\n",
@@ -1005,6 +1005,9 @@ void InfoWindow::helpSlot(int item)
 
 /*
 $Log$
+Revision 4.7  2003/04/18 00:46:53  mast
+Call inputNewContour when making new contour toget times right
+
 Revision 4.6  2003/04/16 18:46:51  mast
 hide/show changes
 

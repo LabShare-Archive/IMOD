@@ -13,7 +13,7 @@
         </rect>
     </property>
     <property name="caption">
-        <string>Imod AutoContour</string>
+        <string>3dmod AutoContour</string>
     </property>
     <property name="focusPolicy">
         <enum>StrongFocus</enum>

@@ -1,6 +1,6 @@
 
 char *Imod_menus_help[] = {
-"Imod: Help for Information Window Menus\n",
+"3dmod: Help for Information Window Menus\n",
 "------------------------------------------------------------------------\n",
 "The File Menu:\n",
 "     New Model  \t\tClears current model and creates a new one.\n",
@@ -80,7 +80,7 @@ char *Imod_menus_help[] = {
 "     XYZ \t\tOpen the XYZ slice viewing window.\n",
 "     Slicer \t\tOpen Window showing a sliced view of the\n",
 "\t\t\t     image data. (\\)\n",
-"     Model View \t\tOpen an imod model view (imodv) window. (v)\n",
+"     Model View \t\tOpen a 3dmod model view (3dmodv) window. (v)\n",
 "     Pixel View \t\tView pixel values in a grid.\n",
 "     Graph \t\tOpen the Image Graph window. (G)\n",
 "     Tumbler \t\tOpen 3-D projection window.\n",

@@ -57,7 +57,7 @@ void imodvModeledHelp()
 {
   dia_vasmsg
     ("Model Edit Dialog Help.\n\n",
-     "\tMultiple models can be loaded with imodv, either on the command "
+     "\tMultiple models can be loaded with 3dmodv, either on the command "
      "line or through the File menu.  ",
      "To page through the different models use the Current ",
      "Model # spin button box or the 9 and 0 hotkeys.\n\n",

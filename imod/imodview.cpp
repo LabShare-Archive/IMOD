@@ -467,7 +467,7 @@ int ivwLoadMrc(ImodView *vi)
   /* DNM: only one mode won't work now; just exit in either case */
   if (vi->vmSize)
     if (vi->hdr->mode == MRC_MODE_COMPLEX_SHORT){
-      fprintf(stderr, "IMOD Error: "
+      fprintf(stderr, "3DMOD Error: "
               "Image cache and piece lists do not work with "
               "complex short data.\n");
       exit(-1);
@@ -514,7 +514,7 @@ int ivwLoadMrc(ImodView *vi)
     vi->idata = (unsigned char **)imod_io_image_load
       (vi->image, vi->li, imod_imgcnt);
     if (!vi->idata){
-      printf("Imod: Error reading image data.\n");
+      printf("3dmod: Error reading image data.\n");
       return(-1);
     }
   }
@@ -1542,7 +1542,7 @@ int ivwLoadImage(ImodView *iv)
    *        return(ifioLoadIMODifd(iv));
    */
   if (iv->ifd > 1) {
-    fprintf(stderr, "Imod: Image list file version too high.\n");
+    fprintf(stderr, "3dmod: Image list file version too high.\n");
     return (-1);
   }
 
@@ -1597,7 +1597,7 @@ int ivwLoadImage(ImodView *iv)
 
   loadingImage = 1;
   if (ivwLoadMrc(iv)){
-    fprintf(stderr, "Imod: Error loading image data.\n");
+    fprintf(stderr, "3dmod: Error loading image data.\n");
     loadingImage = 0;
           
     return(-1);
@@ -1715,7 +1715,7 @@ int ivwLoadIMODifd(ImodView *iv)
       if (ilist->size == 1)
         image = (ImodImageFile *)ilistItem(ilist, ilist->size - 1);
       else {
-        fprintf(stderr, "IMOD Error: " 
+        fprintf(stderr, "3DMOD Error: " 
                 "Image list file must specify one image file"
                 " before the XYZ option.\n");
         exit(-1);
@@ -1776,7 +1776,7 @@ int ivwLoadIMODifd(ImodView *iv)
         (QDir::convertSeparators(QString(filename))).latin1(), "rb");
       if (!image){
         if (!xsize || !ysize) {
-          fprintf(stderr, "IMOD Error: " 
+          fprintf(stderr, "3DMOD Error: " 
                   "couldn't open %s, first file in image list,"
                   "\n and no SIZE specified before this.\n",
                   filename);
@@ -1822,7 +1822,7 @@ int ivwLoadIMODifd(ImodView *iv)
       continue;
     }
 
-    fprintf(stderr, "imod warning: "
+    fprintf(stderr, "3dmod warning: "
             "Unknown image list option (%s)\n", line);
 
   }
@@ -1850,7 +1850,7 @@ void ivwMultipleFiles(ImodView *iv, char *argv[], int firstfile, int lastimage)
     image = iiOpen((char *)
       (QDir::convertSeparators(QString(convarg))).latin1(), "rb");
     if (!image){
-      fprintf(stderr, "IMOD Error: " 
+      fprintf(stderr, "3DMOD Error: " 
               "couldn't open image file %s.\n", argv[i]);
       exit(-1);
     }
@@ -1937,14 +1937,14 @@ static int ivwSetCacheFromList(ImodView *iv, Ilist *ilist)
 
   if (rgbs) {
     if (rgbs < ilist->size) {
-      fprintf(stderr, "IMOD Error: Only %d files out of %d are "
+      fprintf(stderr, "3DMOD Error: Only %d files out of %d are "
               "RGB type and all files must be.\n", rgbs, ilist->size);
       exit(-1);
     }
                
     if (!App->rgba) {
-      fprintf(stderr, "IMOD Error: You must start Imod with "
-              "the -rgb option to display RGB files.\n");
+      fprintf(stderr, "3DMOD Error: You must not start 3dmod with "
+              "the -ci option to display RGB files.\n");
       exit(-1);
     }
         
@@ -1997,7 +1997,7 @@ static int ivwSetCacheFromList(ImodView *iv, Ilist *ilist)
   iv->li->axis = i;
 
   if (eret){
-    fprintf(stderr, "IMOD Fatal Error. init image cache. (%d)\n",
+    fprintf(stderr, "3DMOD Fatal Error. init image cache. (%d)\n",
             eret);
     exit(-1);
   }
@@ -2068,6 +2068,10 @@ int  ivwGetObjectColor(ImodView *inImodView, int inObject)
 
 /*
 $Log$
+Revision 4.6  2003/03/26 01:52:39  mast
+Make decision about whether to request contiguous data or not depending
+on whether data are to be flipped, and catch and report errors when flipping
+
 Revision 4.5  2003/03/13 01:19:23  mast
 Make ivwGetTimeIndexLabel return empty string instead of NULL
 

@@ -32,6 +32,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.5  2003/04/17 19:06:50  mast
+various changes for Mac
+
 Revision 1.4  2003/03/28 23:51:11  mast
 changes for Mac problems
 
@@ -65,7 +68,7 @@ Initial implementation
 
 ImodPreferences *ImodPrefs;
 
-#define IMOD_NAME "/imod/"
+#define IMOD_NAME "/3dmod/"
 #define MAX_STYLES 24
 
 #ifdef EXCLUDE_STYLES
@@ -326,7 +329,7 @@ void ImodPreferences::editPrefs()
   mTabDlg->addTab(mBehaveForm, "Behavior");
   mMouseForm = new MouseForm();
   mTabDlg->addTab(mMouseForm, "Mouse");
-  mTabDlg->setCaption("Imod: Set preferences");
+  mTabDlg->setCaption("3dmod: Set preferences");
   connect(mTabDlg, SIGNAL(applyButtonPressed()), this, SLOT(donePressed()));
   connect(mTabDlg, SIGNAL(defaultButtonPressed()), this, 
           SLOT(defaultPressed()));

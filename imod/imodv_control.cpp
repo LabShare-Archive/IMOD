@@ -59,7 +59,7 @@ static float lastScale = -999.;
 
 void imodvControlHelp(void)
 {
-  dia_vasmsg("Imodv Controls Help\n",
+  dia_vasmsg("3dmodv Controls Help\n",
              "-----------------------------------------------------\n",
              "This dialog controls model viewing and movement.\n\n",
              "\tThe Zoom Arrows ",
@@ -372,10 +372,10 @@ int imodv_control(ImodvApp *a, int state)
   dialog = new imodvControlForm(imodvDialogManager.parent(IMODV_DIALOG), NULL,
                                 Qt::WDestructiveClose | Qt::WType_TopLevel);
   if (!dialog){
-    dia_err("Failed to create imodv controls window!");
+    dia_err("Failed to create 3dmodv controls window!");
     return(-1);
   }
-  window_name = imodwEithername("Imodv Controls: ", a->imod->fileName, 1);
+  window_name = imodwEithername("3dmodv Controls: ", a->imod->fileName, 1);
   qstr = window_name;
   if (window_name)
     free(window_name);
@@ -395,6 +395,9 @@ int imodv_control(ImodvApp *a, int state)
 
 /*
     $Log$
+    Revision 4.2  2003/04/17 18:43:38  mast
+    adding parent to window creation
+
     Revision 4.1  2003/02/10 20:29:00  mast
     autox.cpp
 

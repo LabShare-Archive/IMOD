@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 4.3  2003/04/17 18:43:38  mast
+    adding parent to window creation
+
     Revision 4.2  2003/02/27 17:29:20  mast
     Use new b3dX,Y,Z
 
@@ -86,7 +89,7 @@ void imodvMovieHelp()
      "Select the [Set Start] button to set the starting values to the "
      "values of the current display, or the [Set End] button to set "
      "the ending values.\n\n"
-     "Selecting the [Make] button will cause imodv to "
+     "Selecting the [Make] button will cause 3dmodv to "
      "display the number of frames given.  The rotation between the "
      "starting and ending positions will be resolved into a rotation "
      "around a single axis, and the rotation will occur at even "
@@ -248,12 +251,12 @@ void imodvMovieDialog(ImodvApp *a, int state)
   movie->dia = new imodvMovieForm(imodvDialogManager.parent(IMODV_DIALOG), NULL,
                                   Qt::WDestructiveClose | Qt::WType_TopLevel);
   if (!movie->dia){
-    dia_err("Failed to create imodv movie window!");
+    dia_err("Failed to create 3dmodv movie window!");
     return;
   }
 
   // Set title bar
-  window_name = imodwEithername("Imodv Movie: ", a->imod->fileName, 1);
+  window_name = imodwEithername("3dmodv Movie: ", a->imod->fileName, 1);
   qstr = window_name;
   if (window_name)
     free(window_name);

@@ -113,7 +113,7 @@ void imodvHelpMenu(int item)
   switch(item) {
   case VHELP_MENU_MENUS:
     dia_vasmsg
-      ("Imodv Help for menus\n",
+      ("3dmodv Help for menus\n",
        "---------------------------------\n",
        "File Menu:\n",
        "     Open Model\t\tLoad a new model to view.\n",
@@ -123,7 +123,7 @@ void imodvHelpMenu(int item)
        "     Snap TIFF As...\tSave a snapshot a specified TIFF file.\n",
        "     Zero Snap File #\tReset the counter for snapshot files to 0.\n",
        "     Movie...\t\tProgram a sequence of displays and save them.\n",
-       "     Close\t\tQuit imodv or close model view window in imod.\n",
+       "     Close\t\tQuit 3dmodv or close model view window in imod.\n",
                 
        "\nEdit Menu:\n",
        "     Objects...\t\tOpen the object edit dialog.\n",
@@ -147,7 +147,7 @@ void imodvHelpMenu(int item)
 
   case VHELP_MENU_KEYBOARD:
     dia_vasmsg
-      ("Imodv Help for Keyboard Commands\n",
+      ("3dmodv Help for Keyboard Commands\n",
        "----------------------------------------------------------\n",
        "\nKeys \tCommand \n",
        "----------------------------------------------------------\n",
@@ -157,8 +157,8 @@ void imodvHelpMenu(int item)
        "      \tmovie mode on/off\n"
        " Esc/q\tQuit this program\n",
        "  s   \tToggle stereo mode\n",
-       "  S   \tSnapshot image as an RGB file to imodvnnnn.rgb\n",
-       CTRL_STRING"-S\tSnapshot image as a TIFF file to imodvnnnn.tif\n",
+       "  S   \tSnapshot image as an RGB file to modvnnnn.rgb\n",
+       CTRL_STRING"-S\tSnapshot image as a TIFF file to modvnnnn.tif\n",
        "  o   \tOutput transformation information\n",
        "  c   \tOutput clipping plane information\n",
        " -/=  \tDecrease/Increase zoom\n",
@@ -186,7 +186,7 @@ void imodvHelpMenu(int item)
   
   case VHELP_MENU_MOUSE:
     dia_vasmsg
-      ("Imodv Help for Mouse Controls\n",
+      ("3dmodv Help for Mouse Controls\n",
        "----------------------------------------------------------\n",
        "Left Mouse Button Drag\n",
        "\tThe left mouse button moves the model when held down.\n\n",
@@ -200,16 +200,16 @@ void imodvHelpMenu(int item)
        "\tWhen the "CTRL_STRING" key is held down the middle mouse button "
        "rotates the current object clipping plane instead.\n\n",
        "Right Mouse Button\n",
-       "\tWhen running Model View from Imod, clicking on a point in the "
+       "\tWhen running Model View from 3dmod, clicking on a point in the "
        "model with the right mouse button will select the nearest, "
        "frontmost point in the model as the current model point within "
-       "Imod.\n",
+       "3dmod.\n",
        NULL);
     break;
 
   case VHELP_MENU_ABOUT:
     dia_vasmsg
-      ("Imodv Qt Version ",
+      ("3dmodv Qt Version ",
        VERSION_NAME,
        ", written by James Kremer and",
        "David Mastronarde\n",
@@ -514,7 +514,7 @@ void ImodvBkgColor::openDialog()
   char *window_name;
 
   mSelector = new ColorSelector(imodvDialogManager.parent(IMODV_DIALOG), 
-                                "Imodv background color.",
+                                "3dmodv background color.",
                                 Imodv->rbgcolor->red(),
 				Imodv->rbgcolor->green(),
 				Imodv->rbgcolor->blue(), hotSliderFlag(), 
@@ -528,12 +528,12 @@ void ImodvBkgColor::openDialog()
   connect(mSelector, SIGNAL(keyRelease(QKeyEvent *)), this, 
           SLOT(keyReleaseSlot(QKeyEvent *)));
 
-  window_name = imodwEithername("Imodv: ", Imodv->imod->fileName, 1);
+  window_name = imodwEithername("3dmodv: ", Imodv->imod->fileName, 1);
   qstr = window_name;
   if (window_name)
     free(window_name);
   if (qstr.isEmpty())
-    qstr = "Imodv";
+    qstr = "3dmodv";
   mSelector->setCaption(qstr);
 
   imodvDialogManager.add((QWidget *)mSelector, IMODV_DIALOG);
@@ -577,6 +577,9 @@ void ImodvBkgColor::keyReleaseSlot ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.6  2003/04/17 19:27:48  mast
+adding ctrl string
+
 Revision 4.5  2003/04/14 15:31:02  mast
 fixing documentation
 

@@ -132,7 +132,7 @@ int xxyz_open(ImodView *vi)
   if (!App->rgba)
     xx->glw->setColormap(*(App->qColormap));
 
-  xx->dialog->setCaption(imodCaption("Imod XYZ Window"));
+  xx->dialog->setCaption(imodCaption("3dmod XYZ Window"));
 
   xx->lx = xx->ly = xx->lz = xx->lastCacheSum -1;
   XYZ  = xx;
@@ -1732,6 +1732,9 @@ void XyzGL::mouseMoveEvent( QMouseEvent * event )
 
 /*
 $Log$
+Revision 4.11  2003/04/18 20:16:39  mast
+Rename meta test function
+
 Revision 4.10  2003/04/18 20:06:28  mast
 Reject the Ctrl (meta) key on the Mac
 

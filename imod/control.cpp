@@ -325,7 +325,7 @@ void DialogManager::add(QWidget *widget, int dlgClass)
   if (!mDialogList) {
     mDialogList = ilistNew(sizeof(ImodvDialog), 4);
     if (!mDialogList) {
-      fprintf(stderr, "IMODV WARNING: Failure to get memory for dialog list\n"
+      fprintf(stderr, "3DMOD WARNING: Failure to get memory for dialog list\n"
 	      );
       return;
     }
@@ -354,7 +354,7 @@ void DialogManager::remove(QWidget * widget)
     dia = (ImodvDialog *)ilistNext(mDialogList);
     index++;
   }
-  fprintf(stderr, "IMOD WARNING: Failed to find closing dialog on list\n");
+  fprintf(stderr, "3DMOD WARNING: Failed to find closing dialog on list\n");
 }
 
 // Close all dialogs and delete the list
@@ -429,6 +429,9 @@ QWidget *DialogManager::parent(int dlgClass)
 
 /*
 $Log$
+Revision 4.3  2003/04/17 19:00:59  mast
+new function to provide machine-dependent parent widget
+
 Revision 4.2  2003/03/24 17:58:09  mast
 Changes for new preferences capability
 

@@ -283,7 +283,7 @@ int SaveModel(struct Mod_Model *mod)
     imod_cleanup_autosave();
   }
   else {
-    wprint("Imod: Error Saving Model.");
+    wprint("3dmod: Error Saving Model.");
     lastError = IMOD_IO_SAVE_ERROR;
   }
 
@@ -344,7 +344,7 @@ int SaveasModel(struct Mod_Model *mod)
     imod_cleanup_autosave();
   }
   else {
-    wprint("\aImod: Error Saving Model.");
+    wprint("\a3dmod: Error Saving Model.");
     lastError = IMOD_IO_SAVE_ERROR;
     return lastError;
   }
@@ -370,7 +370,7 @@ Imod *LoadModel(FILE *mfin) {
 
   imod = (Imod *)malloc(sizeof(Imod));
   if (imod == NULL){
-    wprint("IMOD Model Load: Not enough memory for model.");
+    wprint("3dmod Model Load: Not enough memory for model.");
     return(NULL);
   }
      
@@ -754,7 +754,7 @@ int SaveImage(struct ViewInfo *vi)
   /* open file */
   if (fout == NULL){
     show_status("Couldn't open File.");
-    fprintf(stderr, "Imod: couldn't open %s\n",filename);
+    fprintf(stderr, "3dmod: couldn't open %s\n",filename);
     return(-1);
   }
      
@@ -806,7 +806,7 @@ int WriteImage(FILE *fout, struct ViewInfo *vi, struct LoadInfo *li)
     zmax = vi->zsize - 1;
   }
 	  
-  mrc_head_label(&hdata, "Imod: Wrote sub image.   ");
+  mrc_head_label(&hdata, "3dmod: Wrote sub image.   ");
   mrc_head_write(fout, &hdata);
      
   for (k = zmin; k <= zmax; k++){
@@ -823,6 +823,9 @@ int WriteImage(FILE *fout, struct ViewInfo *vi, struct LoadInfo *li)
 
 /*
 $Log$
+Revision 4.5  2003/03/24 17:58:09  mast
+Changes for new preferences capability
+
 Revision 4.4  2003/03/03 22:14:34  mast
 cleanup
 

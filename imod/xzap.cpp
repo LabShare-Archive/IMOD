@@ -100,13 +100,13 @@ static int zapDebug = 0;
 void zapHelp()
 {
   dia_vasmsg
-    ("Imod Zap Help\n",
+    ("3dmod Zap Help\n",
      "---------------------------------------------------------------\n",
      "Mouse Button Assignments\n\n",
      "\tDescriptions below refer to the first, second, and third mouse "
      "buttons.  By default, these correspond to left, middle, and right "
      "buttons of a 3-button mouse, but you can change these assignments in "
-     "the Imod Preferences dialog, accessed via the Edit-Options menu entry."
+     "the 3dmod Preferences dialog, accessed via the Edit-Options menu entry."
      "\n\n"
      "The Tool Bar\n\n",
      "\tThe Up and Down Arrows step the zoom factor up or down.\n",
@@ -132,7 +132,7 @@ void zapHelp()
      "\tThe Info button (I) brings the Information Window to the "
      "front and prints information about window and image size (see the "
      "I Hot Key below).\n"
-     "\tIf multiple image files have been loaded into Imod, three "
+     "\tIf multiple image files have been loaded into 3dmod, three "
      "additional controls appear.  The Time Lock button will prevent "
      "changes in other windows  from changing the time (image file) "
      "displayed in this Zap window.  The left and right arrows will "
@@ -165,7 +165,7 @@ void zapHelp()
      "is on, the sizes and coordinates are relative to the rubber band "
      "rather than the window.  The image "
      "coordinates of the lower left and upper right corners, and of "
-     "the center, are printed in the Imod info window.  There is also "
+     "the center, are printed in the 3dmod info window.  There is also "
      "a fragment of a command line for extracting the image from the "
      "stack with \"newst\".  This key also brings the Information "
      "Window to the front of the display.\n",
@@ -186,7 +186,7 @@ void zapHelp()
      "the second mouse button.  A single keystrike adds one point; "
      "holding the key down allows points to be added continuously.\n"
      "\tESC will close the Zap window.\n\n"
-     "For other keys, see Help - Hot Keys in the Imod Info Window.\n\n",
+     "For other keys, see Help - Hot Keys in the 3dmod Info Window.\n\n",
      "---------------------------------------------------------------\n",
      "\nMouse button function in movie mode\n\n",
      "\tFirst Button Click: Select the current viewing point, marked by "
@@ -748,7 +748,7 @@ int imod_zap_open(struct ViewInfo *vi)
   if (!App->rgba)
     zap->gfx->setColormap(*(App->qColormap));
 
-  zap->qtWindow->setCaption(imodCaption("Imod ZaP Window"));
+  zap->qtWindow->setCaption(imodCaption("3dmod ZaP Window"));
 
   zap->qtWindow->mToolBar->setLabel(imodCaption("ZaP Toolbar"));
   
@@ -2608,6 +2608,9 @@ bool zapTimeMismatch(ImodView *vi, int timelock, Iobj *obj, Icont *cont)
 
 /*
 $Log$
+Revision 4.18  2003/04/18 20:16:39  mast
+Rename meta test function
+
 Revision 4.17  2003/04/18 20:08:55  mast
 Reject the Ctrl (meta) key on the Mac
 

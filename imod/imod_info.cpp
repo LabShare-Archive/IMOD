@@ -387,7 +387,7 @@ int imod_info_open()
   ImodInfoWin = new InfoWindow(NULL, "info window");
 
   // Initialize the caption and image line
-  ImodInfoWin->setCaption(imodCaption("Imod"));
+  ImodInfoWin->setCaption(imodCaption("3dmod"));
 
   filename = imodwfname("Image:");
   filename = truncate_name(filename, 23);
@@ -468,6 +468,9 @@ static char *truncate_name(char *name, int limit)
 
 /*
     $Log$
+    Revision 4.16  2003/04/23 17:50:44  mast
+    no longer need to watch windowActivate event due to fix on Mac
+
     Revision 4.15  2003/04/16 18:46:51  mast
     hide/show changes
 

@@ -13,7 +13,7 @@
         </rect>
     </property>
     <property name="caption">
-        <string>Imod Surf/Cont/Point</string>
+        <string>3dmod Surf/Cont/Point</string>
     </property>
     <property name="focusPolicy">
         <enum>StrongFocus</enum>

@@ -8,7 +8,7 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>341</width>
+            <width>345</width>
             <height>405</height>
         </rect>
     </property>
@@ -235,10 +235,10 @@
                         <cstring>imodDlgIconifyBox</cstring>
                     </property>
                     <property name="text">
-                        <string>Imod dialogs iconify with Info Window</string>
+                        <string>3dmod dialogs iconify with Info Window</string>
                     </property>
                     <property name="toolTip" stdset="0">
-                        <string>Park all Imod dialogs (Edit-Object-Type, etc) when parking Info Window</string>
+                        <string>Park all 3dmod dialogs (Edit-Object-Type, etc) when parking Info Window</string>
                     </property>
                 </widget>
                 <widget class="QCheckBox">
@@ -246,10 +246,10 @@
                         <cstring>imodvDlgIconifyBox</cstring>
                     </property>
                     <property name="text">
-                        <string>Imodv dialogs iconify with Model View Window</string>
+                        <string>3dmodv dialogs iconify with Model View Window</string>
                     </property>
                     <property name="toolTip" stdset="0">
-                        <string>Park all Imodv dialogs (Edit-Objects, etc)  when parking Imodv Window</string>
+                        <string>Park all 3dmodv dialogs (Edit-Objects, etc)  when parking 3dmodv Window</string>
                     </property>
                 </widget>
             </vbox>

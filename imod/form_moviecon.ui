@@ -13,7 +13,7 @@
         </rect>
     </property>
     <property name="caption">
-        <string>Imod Movie Controller</string>
+        <string>3dmod Movie Controller</string>
     </property>
     <vbox>
         <property name="name">

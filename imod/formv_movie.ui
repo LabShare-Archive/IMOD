@@ -13,7 +13,7 @@
         </rect>
     </property>
     <property name="caption">
-        <string>Imodv Movies</string>
+        <string>3dmodv Movies</string>
     </property>
     <property name="focusPolicy">
         <enum>StrongFocus</enum>

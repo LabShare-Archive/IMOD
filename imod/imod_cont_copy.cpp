@@ -286,7 +286,7 @@ ContourCopy::ContourCopy(QWidget *parent, const char *name)
   update();
 
   connect(this, SIGNAL(actionPressed(int)), this, SLOT(buttonPressed(int)));
-  setCaption(imodCaption("Imod Copy Contours"));
+  setCaption(imodCaption("3dmod Copy Contours"));
   show();
 }
 
@@ -546,7 +546,7 @@ void ContourCopy::buttonPressed(int which)
 
   case 2:
     dia_vasmsg
-      ("Imod Contour Copy Help\n"
+      ("3dmod Contour Copy Help\n"
        "---------------------------------------------------------------\n",
        "\n",
        "This dialog allows one to copy the current contour, or "
@@ -606,6 +606,9 @@ void ContourCopy::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.6  2003/04/17 18:43:38  mast
+adding parent to window creation
+
 Revision 4.5  2003/04/11 21:47:28  mast
 adding tooltips
 

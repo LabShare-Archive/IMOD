@@ -135,7 +135,7 @@ ImageScaleWindow::ImageScaleWindow(QWidget *parent, const char *name)
   updateLimits();
 
   connect(this, SIGNAL(actionPressed(int)), this, SLOT(buttonPressed(int)));
-  setCaption(imodCaption("Imod Image Scale"));
+  setCaption(imodCaption("3dmod Image Scale"));
   show();
 }
 
@@ -162,7 +162,7 @@ void ImageScaleWindow::buttonPressed(int which)
   case 3: // Help
     dia_vasmsg
       ("~~~~~~~~~~~~~~~~~~~~~~~~\n"
-       "Imod Image Scale \n"
+       "3dmod Image Scale \n"
        "~~~~~~~~~~~~~~~~~~~~~~~~"
        "\n\n",
        "The lower and upper limits of pixel values are used to scale",
@@ -271,7 +271,7 @@ void ImageScaleWindow::applyLimits()
       (vw->image, vw->li, imod_imgcnt);
 
     if (!vw->idata){
-      fprintf(stderr, "IMOD: Fatal Error. Image LOST!\n");
+      fprintf(stderr, "3DMOD: Fatal Error. Image LOST!\n");
       exit(-1);
     }
           
@@ -313,6 +313,9 @@ void ImageScaleWindow::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.3  2003/04/17 18:43:38  mast
+adding parent to window creation
+
 Revision 4.2  2003/03/03 22:14:34  mast
 cleanup
 

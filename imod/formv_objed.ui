@@ -17,7 +17,7 @@
         </font>
     </property>
     <property name="caption">
-        <string>Imodv Objects</string>
+        <string>3dmodv Objects</string>
     </property>
     <property name="focusPolicy">
         <enum>StrongFocus</enum>

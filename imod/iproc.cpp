@@ -418,7 +418,7 @@ IProcWindow::IProcWindow(QWidget *parent, const char *name)
   mStack->raiseWidget(proc.procnum);
 
   connect(this, SIGNAL(actionPressed(int)), this, SLOT(buttonPressed(int)));
-  setCaption(imodCaption("Imod Image Processing"));
+  setCaption(imodCaption("3dmod Image Processing"));
   show();
 }
 
@@ -489,7 +489,7 @@ void IProcWindow::buttonPressed(int which)
   case 5: // Help
     dia_vasmsg
       ("~~~~~~~~~~~~~~~~~~~~~~~~\n"
-       "Imod Image Processing \n"
+       "3dmod Image Processing \n"
        "~~~~~~~~~~~~~~~~~~~~~~~~"
        "\n\n",
        "Various kinds of simple filters can be applied with these "
@@ -572,6 +572,9 @@ void IProcWindow::keyReleaseEvent ( QKeyEvent * e )
 /*
 
     $Log$
+    Revision 4.2  2003/04/17 18:43:38  mast
+    adding parent to window creation
+
     Revision 4.1  2003/02/10 20:29:02  mast
     autox.cpp
 

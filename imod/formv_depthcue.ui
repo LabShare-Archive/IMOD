@@ -13,7 +13,7 @@
         </rect>
     </property>
     <property name="caption">
-        <string>Imodv Depth Cue</string>
+        <string>3dmodv Depth Cue</string>
     </property>
     <property name="focusPolicy">
         <enum>StrongFocus</enum>

@@ -164,7 +164,7 @@ ContourBreak::ContourBreak(QWidget *parent, const char *name)
   mSet2Label = new QLabel(" ", this);
   grid->addWidget(mSet2Label, 1, 1);
 
-  setCaption(imodCaption("Imod Break Contours"));
+  setCaption(imodCaption("3dmod Break Contours"));
   connect(this, SIGNAL(actionPressed(int)), this, SLOT(buttonPressed(int)));
 
   setFontDependentWidths();
@@ -487,7 +487,7 @@ ContourJoin::ContourJoin(QWidget *parent, const char *name)
   mSet2Label = new QLabel(" ", this);
   grid->addWidget(mSet2Label, 1, 1);
 
-  setCaption(imodCaption("Imod Join Contours"));
+  setCaption(imodCaption("3dmod Join Contours"));
   connect(this, SIGNAL(actionPressed(int)), this, SLOT(buttonPressed(int)));
 
   setFontDependentWidths();
@@ -1029,7 +1029,7 @@ ContourMove::ContourMove(QWidget *parent, const char *name)
   diaSetChecked(mKeepSizeBox, comv.keepsize != 0);
 
   connect(this, SIGNAL(actionPressed(int)), this, SLOT(buttonPressed(int)));
-  setCaption(imodCaption("Imod Move Contour"));
+  setCaption(imodCaption("3dmod Move Contour"));
 }
 
 /* Manage the three check box sensitivities to reflect the mutual exclusivity 
@@ -1120,7 +1120,7 @@ void ContourMove::buttonPressed(int which)
        "or to a different surface.  ",
        "Use the slider to select the object or surface # to move "
        "the current contour to.  ",
-       "IMOD remembers the object #, so the hot key 'M' in the ",
+       "3dmod remembers the object #, so the hot key 'M' in the ",
        "Zap window can be used to move contours quickly.\n\n",
        "When the first toggle button is selected, all contours with ",
        "the same surface number as the current contour will also ",
@@ -1564,6 +1564,9 @@ void ContourFrame::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.4  2003/04/17 18:43:38  mast
+adding parent to window creation
+
 Revision 4.3  2003/03/26 06:30:56  mast
 adjusting to font changes
 

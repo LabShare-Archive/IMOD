@@ -262,16 +262,16 @@ static int getVisuals(ImodvApp *a)
     return 1;
 
   if (!depthDB || !depthSB)
-    fprintf(stderr, "Imodv warning: using a visual with"
+    fprintf(stderr, "3dmodv warning: using a visual with"
             " no depth buffer\n");
 
   if (depthDB < 0)
-    fprintf(stderr, "Imodv warning: no double buffer visual available.\n");
+    fprintf(stderr, "3dmodv warning: no double buffer visual available.\n");
   else if (Imod_debug)
     printf("DB visual: %d color bits, %d depth bits, stereo %d\n",
 	   colorDB, depthDB, a->stereoDB);
   if (depthSB < 0)
-    fprintf(stderr, "Imodv warning: no single buffer visual available.\n");
+    fprintf(stderr, "3dmodv warning: no single buffer visual available.\n");
   else if (Imod_debug)
     printf("SB visual: %d color bits, %d depth bits, stereo %d\n",
 	   colorSB, depthSB, a->stereoSB);
@@ -420,9 +420,10 @@ int imodv_main(int argc, char **argv, char *cmdLineStyle)
 	break;
 
       default:
-        if (strcmp("-imodv", myapp.argv()[i]) && 
+        if (strcmp("-modv", myapp.argv()[i]) && 
             strcmp("-view", myapp.argv()[i])) {
-          fprintf(stderr, "Imodv error: illegal option %s\n", myapp.argv()[i]);
+          fprintf(stderr, "3dmodv error: illegal option %s\n", 
+                  myapp.argv()[i]);
           exit(1);
         }
 
@@ -440,7 +441,7 @@ int imodv_main(int argc, char **argv, char *cmdLineStyle)
     a->rbgcolor->setRgb(0, 0, 0);
 
   if (getVisuals(a) != 0) {
-    fprintf(stderr, "imodv error: Couldn't get rendering visual.\n");
+    fprintf(stderr, "3dmodv error: Couldn't get rendering visual.\n");
     exit(-1);
   }
 
@@ -454,7 +455,7 @@ int imodv_main(int argc, char **argv, char *cmdLineStyle)
 
   openWindow(Imodv);
 
-  diaSetTitle("Imodv");
+  diaSetTitle("3dmodv");
 
   return myapp.exec();
 }
@@ -500,7 +501,7 @@ void imodv_open()
 
   if (getVisuals(a) != 0) {
     wprint("Couldn't get rendering visual for model view."
-           "  Try running imodv separately.\n");
+           "  Try running 3dmodv separately.\n");
     imodMatDelete(a->mat);
     imodMatDelete(a->rmat);
     return;
@@ -556,14 +557,14 @@ void imodvSetCaption()
   if (ImodvClosed)
     return;
 
-  window_name = imodwEithername((char *)(a->standalone ? "Imodv:" : 
-                                 "Imod Model View: "), a->imod->fileName, 1);
+  window_name = imodwEithername((char *)(a->standalone ? "3dmodv:" : 
+                                 "3dmod Model View: "), a->imod->fileName, 1);
   if (window_name) {
     str = window_name;
     free(window_name);
   } 
   if (str.isEmpty())
-    str = "Imod Model View";
+    str = "3dmod Model View";
 
   a->mainWin->setCaption(str);
 }
@@ -579,6 +580,9 @@ void imodvDrawImodImages()
 
 /*
 $Log$
+Revision 4.5  2003/04/17 21:48:44  mast
+simplify -imodv option processing
+
 Revision 4.4  2003/03/26 23:22:00  mast
 Set up to use preferences
 

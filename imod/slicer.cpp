@@ -87,7 +87,7 @@ static int ctrlPressed = false;
 void slicerHelp()
 {
   dia_vasmsg
-    ("Imod Slicer Help\n",
+    ("3dmod Slicer Help\n",
      "-------------------------------------------------------------\n",
      "\nSlicer has two dockable toolbars that may be floated as separate "
      "windows so that the image will fill the entire window area.  When they "
@@ -129,7 +129,7 @@ void slicerHelp()
      "not continuously active, the image "
      "will not be updated until you release the slider.  Typically the "
      "sliders will be continuously active unless you press the "CTRL_STRING
-     " key, although you can change this default behavior in the Imod "
+     " key, although you can change this default behavior in the 3dmod "
      "Preferences dialog, accessed through the Edit-Options menu entry.  \n",
      "\tIn the middle is a representation of the slice that is being cut "
      "from the data volume.\n"
@@ -145,7 +145,7 @@ void slicerHelp()
      "Second button: Insert a point after the current point\n"
      "Third button: Move the current point to the selected location\n",
      "\tBy default, these buttons correspond to the left, middle, and right "
-     "buttons, but you can change these assignments in the Imod Preferences "
+     "buttons, but you can change these assignments in the 3dmod Preferences "
      "dialog.\n\n"
      "Hot Keys\n",
      "-----------\n",
@@ -378,7 +378,7 @@ int sslice_open(struct ViewInfo *vi)
   if (!App->rgba)
     ss->glw->setColormap(*(App->qColormap));
 
-  ss->qtWindow->setCaption(imodCaption("Imod Slicer"));
+  ss->qtWindow->setCaption(imodCaption("3dmod Slicer"));
   ss->qtWindow->mToolBar->setLabel(imodCaption("Slicer Toolbar 1"));
   ss->qtWindow->mToolBar2->setLabel(imodCaption("Slicer Toolbar 2"));
 	
@@ -2035,6 +2035,9 @@ void slicerCubePaint(SlicerStruct *ss)
 
 /*
 $Log$
+Revision 4.15  2003/04/18 20:16:39  mast
+Rename meta test function
+
 Revision 4.14  2003/04/18 20:07:36  mast
 Implement limit checks when filling data array to minimize the time spent
 when the window is much larger than the image and speed up lowres

@@ -103,7 +103,7 @@ int imod_display_init(ImodApp *ap, char **argv)
   ap->modelCursor = new QCursor(bmCursor, bmMask, qcursor_x_hot, 
                                 qcursor_y_hot);
 
-  diaSetTitle("Imod");
+  diaSetTitle("3dmod");
   return(0);
 }
 
@@ -547,6 +547,9 @@ int imodFindQGLFormat(ImodApp *ap, char **argv)
 
 /*
 $Log$
+Revision 4.3  2003/04/11 18:13:46  mast
+Add small cursor for Mac
+
 Revision 4.2  2003/03/03 22:10:55  mast
 Make modeling cursor when open the display
 

@@ -13,7 +13,7 @@
         </rect>
     </property>
     <property name="caption">
-        <string>Imodv Model Edit</string>
+        <string>3dmodv Model Edit</string>
     </property>
     <property name="focusPolicy">
         <enum>StrongFocus</enum>

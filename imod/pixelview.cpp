@@ -73,7 +73,7 @@ int open_pixelview(struct ViewInfo *vi)
   PixelViewDialog = new PixelView(imodDialogManager.parent(IMOD_IMAGE),
                                   "pixel view");
 
-  PixelViewDialog->setCaption(imodCaption("Imod Pixel View"));
+  PixelViewDialog->setCaption(imodCaption("3dmod Pixel View"));
 
   ctrl = ivwNewControl(vi, pviewDraw_cb, pviewClose_cb, NULL, (void *)0);
   imodDialogManager.add((QWidget *)PixelViewDialog, IMOD_IMAGE);
@@ -273,6 +273,9 @@ void PixelView::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.4  2003/04/17 18:43:38  mast
+adding parent to window creation
+
 Revision 4.3  2003/03/26 06:30:56  mast
 adjusting to font changes
 

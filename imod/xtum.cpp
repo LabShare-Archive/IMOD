@@ -180,7 +180,7 @@ int xtumOpen(struct ViewInfo *vi)
   if (!App->rgba)
     xtum->dialog->mGLw->setColormap(*(App->qColormap));
 
-  xtum->dialog->setCaption(imodCaption("Imod Tumbler"));
+  xtum->dialog->setCaption(imodCaption("3dmod Tumbler"));
   xtum->ctrl = ivwNewControl(vi, xtumDraw_cb, xtumClose_cb, xtumKey_cb,
                                (void *)xtum);
   imodDialogManager.add((QWidget *)xtum->dialog, IMOD_IMAGE);
@@ -383,7 +383,7 @@ void TumblerWindow::help()
      "The tumbler window displays a projected view of a rectangular portion "
      "of the image volume.  The subset is initially a small cube but the size "
      "can be changed with the X, Y and Z spin button controls.  The volume "
-     "can be rotated with the keypad arrow keys just as in Imodv.\n\n"
+     "can be rotated with the keypad arrow keys just as in 3dmodv.\n\n"
      
      "\nToolbar Controls:\n",
      "\tThe zoom spin box lets you increase, decrease, or type in a zoom "
@@ -1369,6 +1369,9 @@ void TumblerGL::paintGL()
 
 /*
 $Log$
+Revision 4.10  2003/04/18 20:16:39  mast
+Rename meta test function
+
 Revision 4.9  2003/04/18 20:06:21  mast
 Reject the Ctrl (meta) key on the Mac
 

@@ -279,7 +279,7 @@ int imod_object_edit()
     return(-1);
   }
 
-  Ioew_dialog->setCaption(imodCaption("Imod Object Edit"));
+  Ioew_dialog->setCaption(imodCaption("3dmod Object Edit"));
   imodDialogManager.add((QWidget *)Ioew_dialog, IMOD_DIALOG);
 
   Ioew_dialog->show();
@@ -429,7 +429,7 @@ ImodObjColor::ImodObjColor(int objNum)
   connect(mSelector, SIGNAL(keyRelease(QKeyEvent *)), this, 
           SLOT(keyReleaseSlot(QKeyEvent *)));
 
-  mSelector->setCaption(imodCaption("Imod Color"));
+  mSelector->setCaption(imodCaption("3dmod Color"));
   imodDialogManager.add((QWidget *)mSelector, IMOD_DIALOG);
 
   mSelector->show();
@@ -480,6 +480,9 @@ void ImodObjColor::keyReleaseSlot ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.4  2003/04/17 18:43:38  mast
+adding parent to window creation
+
 Revision 4.3  2003/03/26 23:23:15  mast
 switched from hotslider.h to preferences.h
 

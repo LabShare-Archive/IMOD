@@ -268,14 +268,14 @@ int imodv_auto_snapshot(char *inName, int format_type)
   if (!inName) {
     usename = fname;
     if (snap_fileno < 10000)
-      sprintf(fname, "imodv%04d.%s", snap_fileno, fext);
+      sprintf(fname, "modv%04d.%s", snap_fileno, fext);
     else
-      sprintf(fname, "imodv%d.%s", snap_fileno, fext);
+      sprintf(fname, "modv%d.%s", snap_fileno, fext);
 
     snap_fileno += 1;
   }
 
-  printf("imodv: Saving image to %s", usename);
+  printf("3dmodv: Saving image to %s", usename);
   fflush(stdout);
 
 
@@ -316,7 +316,7 @@ static int imodv_snapshot(ImodvApp *a, char *fname)
 
   fout = fopen((QDir::convertSeparators(QString(fname))).latin1(), "wb");
   if (!fout){
-    perror("imodv: error opening file ");
+    perror("3dmodv: error opening file ");
     return(-1);
   }
 
@@ -354,7 +354,7 @@ static int imodv_snapshot(ImodvApp *a, char *fname)
   iputlong (fout, 0l);        /* PIXMIN is 0          */
   iputlong (fout, 255l);      /* PIXMAX is 255        */
   iputlong (fout, 0);         /* DUMMY 4 bytes        */
-  sprintf(iname, "%s, Created by Imodv.", fname);
+  sprintf(iname, "%s, Created by 3dmodv.", fname);
   fwrite(iname, 80, 1, fout); /* IMAGENAME            */
   iputlong (fout, 0);         /* COLORMAP is 0        */
   for(i=0; i<404; i++)        /* DUMMY 404 bytes      */
@@ -383,6 +383,9 @@ static int imodv_snapshot(ImodvApp *a, char *fname)
 
 /*
 $Log$
+Revision 4.3  2003/02/27 17:39:24  mast
+Convert filenames with Qt routines
+
 Revision 4.2  2003/02/21 23:21:41  mast
 Open snapshot file in binary mode
 
