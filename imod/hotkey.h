@@ -24,7 +24,7 @@ char *Imod_hotkey_help[] = {
 "0\tCreate a new object.\n",
 "Delete\tDelete current model point.\n",
 "D\tDelete current contour.\n",
-"Ctrl-D\tTruncate current contour at current point.\n",
+CTRL_STRING"-D\tTruncate current contour at current point.\n",
 "M\tMove contour to selected object or surface.\n",
 "m \tToggle model edit mode and movie mode.\n",
 "\n",
@@ -34,7 +34,7 @@ char *Imod_hotkey_help[] = {
 "\n",
 "s \tSave model file.\n",
 "S\tMake RGB snapshot of image in window (Zap, XYZ, Slicer).\n",
-"Ctrl-S\tMake TIFF snapshot of image in window (Zap, XYZ, Slicer).\n",
+CTRL_STRING"-S\tMake TIFF snapshot of image in window (Zap, XYZ, Slicer).\n",
 "f \tPrint current pixel value in information window.\n",
 "F \tFind the maximum pixel within 10 pixels and report its value.\n",
 ",\tDecrease movie speed.\n",
@@ -86,7 +86,7 @@ char *Imod_hotkey_help[] = {
 "v\tOpen Model View Window.\n",
 "G\tOpen Graph window.\n",
 "z\tOpen Zap window.\n",
-"Ctrl-R\tRaise all Imod windows above other windows.\n"
+CTRL_STRING"-R\tRaise all Imod windows above other windows.\n"
 "\n",
 "\n",
 "",

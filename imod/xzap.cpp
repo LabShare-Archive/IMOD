@@ -141,7 +141,7 @@ void zapHelp()
      "---------------------------------------------------------------\n",
      "\nHot Keys special to the Zap window\n\n"
      "\ti toggles the modeling direction.\n",
-     "\tS or Ctrl-S saves the Zap window, or the area inside the "
+     "\tS or "CTRL_STRING"-S saves the Zap window, or the area inside the "
      "rubber band, into an RGB or TIFF file.\n"
      "\tZ toggles auto section advance on and off.  When this is on, ",
      "the section will change automatically after inserting a point if ",
@@ -215,10 +215,10 @@ void zapHelp()
      "\tThird Button Drag: Continually modify points as the mouse is "
      "moved.  This only works when the current model point is in the "
      "interior of the contour, not at its end.\n",
-     "\tCtrl - Third Button Click: Delete any points under the cursor "
-     "in the current contour.\n",
-     "\tCtrl - Third Button Drag: Continually delete points under the "
-     "cursor as the mouse is moved.  At the end, the current point is "
+     "\t"CTRL_STRING" - Third Button Click: Delete any points under the "
+     "cursor in the current contour.\n",
+     "\t"CTRL_STRING" - Third Button Drag: Continually delete points under the"
+     " cursor as the mouse is moved.  At the end, the current point is "
      "set before the last deletion (or after, if modeling direction is "
      "inverted.)\n",
      NULL);
@@ -681,7 +681,7 @@ int imod_zap_open(struct ViewInfo *vi)
   /* DNM: setting max size of the topLevelShell didn't work on the PC, so
      let's just explicitly limit the size asked for in the image portion */
   zap->winx = deskWidth - 20;
-  zap->winy = deskHeight - 76;
+  zap->winy = deskHeight - 80;
   if (vi->xsize < zap->winx)
     zap->winx   = vi->xsize;
   if (vi->ysize < zap->winy)
@@ -733,7 +733,9 @@ int imod_zap_open(struct ViewInfo *vi)
   }
 
   zap->qtWindow = new ZapWindow(zap, str, App->rgba, App->doublebuffer,
-				App->qtEnableDepth, NULL, "zap window");
+				App->qtEnableDepth, 
+                                imodDialogManager.parent(IMOD_IMAGE),
+                                "zap window");
   if (!zap->qtWindow){
     free(zap);
     wprint("Error opening zap window.");
@@ -772,7 +774,7 @@ int imod_zap_open(struct ViewInfo *vi)
     xleft = deskWidth - 16 - newWidth;
   if (ytop + newHeight > deskHeight - 40)
   ytop = deskHeight - 10 - newHeight;
-#ifndef WIN32
+#if !defined(_WIN32) && !defined(Q_OS_MACX)
   ytop -= 30;
 #endif
   if (Imod_debug)
@@ -864,8 +866,10 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
   int handled = 0;
   /* downtime.start(); */
 
-  if (keypad)
-    keysym = inputConvertNumLock(keysym);
+  if (Imod_debug)
+    fprintf(stderr, "key %x, state %x\n", keysym, event->state());
+
+  inputConvertNumLock(keysym, keypad);
 
   ivwControlPriority(zap->vi, zap->ctrl);
   ivwControlActive(vi, 0);
@@ -1112,11 +1116,11 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
       }
     */
 
-    /*
+    
       case Qt::Key_X:
     wprint("Clipboard = %s\n", QApplication::clipboard()->text().latin1());
     break;
-    */
+    
 
   default:
     break;
@@ -1991,14 +1995,14 @@ static void zapResizeToFit(ZapStruct *zap)
   limh = QApplication::desktop()->height();
   if (neww > limw - 24)
     neww = limw - 24;
-  if (newh > limh - 44)
-    newh = limh - 44;
+  if (newh > limh - 50)
+    newh = limh - 50;
   newdx = dx + width / 2 - neww / 2;
   newdy = dy + height / 2 - newh / 2;
   if (newdx < 16)
     newdx = 16;
-  if (newdy < 36)
-    newdy = 36;
+  if (newdy < 40)
+    newdy = 40;
   if (newdx + neww > limw - 8)
     newdx = limw - 8 - neww;
   if (newdy + newh > limh - 8)
@@ -2567,6 +2571,7 @@ static void zapSetCursor(ZapStruct *zap, int mode)
       zap->gfx->unsetCursor();
     zap->mousemode = mode;
     lastShape = -1;
+    imod_info_input();
   }
   return;
 }
@@ -2601,6 +2606,9 @@ bool zapTimeMismatch(ImodView *vi, int timelock, Iobj *obj, Icont *cont)
 
 /*
 $Log$
+Revision 4.15  2003/04/14 15:38:10  mast
+Fixing help error
+
 Revision 4.14  2003/04/14 15:31:02  mast
 fixing documentation
 

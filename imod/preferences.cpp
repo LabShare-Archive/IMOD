@@ -32,6 +32,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.4  2003/03/28 23:51:11  mast
+changes for Mac problems
+
 Revision 1.3  2003/03/26 23:06:32  mast
 Only check status of a style once
 
@@ -75,6 +78,9 @@ static char *styleList[] = {"Windows", "compact",
                             "Platinum", "Motif", "MotifPlus", "SGI", 
                             "CDE", "marble", "System", "Systemalt", "riscos", 
                             "Light, 2nd revision", "Light, 3rd revision", 
+#ifdef Q_OS_MACX
+                            "Macintosh (Aqua)",
+#endif
                             ""};
 #endif
 static int styleStatus[MAX_STYLES];
@@ -95,11 +101,7 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
   mCurrentTab = 0;
 
   // Set the default values
-#ifdef __ppc__
-  prefs->hotSliderKeyDflt = 1;
-#else
   prefs->hotSliderKeyDflt = 0;
-#endif
   prefs->hotSliderFlagDflt = HOT_SLIDER_KEYUP;
   prefs->mouseMappingDflt = 0;
   prefs->silentBeepDflt = false;

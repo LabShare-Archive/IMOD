@@ -125,7 +125,7 @@ void slicerHelp()
      "mouse.  If you drag the slider, the representation of the slice "
      "in the data volume will change continuously, but the image will "
      "not be updated until you release the slider, unless you press the "
-     "Ctrl key to make the slider continuously active.\n",
+     CTRL_STRING" key to make the slider continuously active.\n",
      "\tIn the middle is a representation of the slice that is being cut "
      "from the data volume.\n"
      "\tOn the right are controls for adjusting the thickness of "
@@ -146,7 +146,7 @@ void slicerHelp()
      "9/0\tDecrease/Increase displayed model thickness\n",
      "s\tShow slice in ZaP and XYZ windows\n",
      "S\tSnapshot to RGB file\n",
-     "Ctrl-S\tSnapshot to TIFF file\n",
+     CTRL_STRING"-S\tSnapshot to TIFF file\n",
      "x/y/z\tAlign current and previous model points along X, Y or Z "
      "axis\n",
      "X/Y/Z\tAlign first and last points of contour along X, Y or Z "
@@ -357,8 +357,9 @@ int sslice_open(struct ViewInfo *vi)
 
   slice_trans_step(ss);
   ss->qtWindow = new SlicerWindow(ss, maxAngle, App->rgba, 
-				      App->doublebuffer, App->qtEnableDepth,
-				      NULL, "slicer window");
+                                  App->doublebuffer, App->qtEnableDepth,
+                                  imodDialogManager.parent(IMOD_IMAGE),
+                                  "slicer window");
   if (!ss->qtWindow){
     free(ss);
     wprint("Error opening slicer window.");
@@ -434,12 +435,12 @@ void slicerKeyInput(SlicerStruct *ss, QKeyEvent *event)
   int lang = ss->lastangle;
   int dodraw = 1;
   int handled = 1;
+  int keypad = event->state() & Qt::Keypad;
   Ipoint *p1, *p2;
   int ob, co, pt, axis;
   Icont *cont;
 
-  if (event->state() & Qt::Keypad)
-    keysym = inputConvertNumLock(keysym);
+  inputConvertNumLock(keysym, keypad);
 
   ivwControlPriority(ss->vi, ss->ctrl);
 
@@ -539,7 +540,7 @@ void slicerKeyInput(SlicerStruct *ss, QKeyEvent *event)
   case Qt::Key_End:
   case Qt::Key_Next:
     dodraw = 0;
-    if (!(event->state() & Qt::Keypad)) {
+    if (!keypad) {
       handled = 0;
       break;
     }
@@ -1858,6 +1859,9 @@ void slicerCubePaint(SlicerStruct *ss)
 
 /*
 $Log$
+Revision 4.11  2003/03/26 23:23:15  mast
+switched from hotslider.h to preferences.h
+
 Revision 4.10  2003/03/24 17:56:46  mast
 Register with dialogManager so it can be parked with info window
 
