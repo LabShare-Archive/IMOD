@@ -48,6 +48,7 @@ import etomo.type.BaseProcessTrack;
 import etomo.type.BaseState;
 import etomo.type.ConstMetaData;
 import etomo.type.DialogExitState;
+import etomo.type.DialogType;
 import etomo.type.EtomoState;
 import etomo.type.FiducialMatch;
 import etomo.type.MetaData;
@@ -88,6 +89,11 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.119  2005/01/12 00:40:32  sueh
+ * <p> bug# 579 Renaming enableZFactors() to enableTiltParameters().  If
+ * <p> newstFiducialessAlignment isn't set, use the checkbox value on the
+ * <p> screen.
+ * <p>
  * <p> Revision 3.118  2005/01/10 23:18:33  sueh
  * <p> bug# 578 Initializing TomogramState.  Changing enableZFactor() to not
  * <p> need backward compatibility information on newstFiducialessAlignment.
@@ -1153,6 +1159,8 @@ public class ApplicationManager extends BaseManager {
   private ProcessTrack processTrack;
   private ProcessManager processMgr;
   private TomogramState state;
+  private boolean[] advancedA = new boolean[DialogType.TOTAL];
+  private boolean[] advancedB = new boolean[DialogType.TOTAL];
   
   /**
    *  
@@ -1160,6 +1168,7 @@ public class ApplicationManager extends BaseManager {
   public ApplicationManager(String paramFileName) {
     super();
     initializeUIParameters(paramFileName);
+    initializeAdvanced();
     // Open the etomo data file if one was found on the command line
     if (!test) {
       if (!paramFileName.equals("")) {
@@ -1177,6 +1186,55 @@ public class ApplicationManager extends BaseManager {
     }
   }
   
+  /**
+   * 
+   *
+   */
+  private void initializeAdvanced() {
+    boolean isAdvanced = EtomoDirector.getInstance().getAdvanced();
+    for (int i = 0; i < DialogType.TOTAL; i++) {
+      advancedA[i] = isAdvanced;
+      advancedB[i] = isAdvanced;
+    }
+  }
+  
+  /**
+   * 
+   * @param dialogType
+   * @param axisID
+   * @return
+   */
+  public boolean isAdvanced(DialogType dialogType, AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return advancedB[dialogType.toIndex()];
+    }
+    return advancedA[dialogType.toIndex()];    
+  }
+  
+  /**
+   * 
+   * @param dialogType
+   * @param axisID
+   * @param advanced
+   */
+  public void setAdvanced(DialogType dialogType, AxisID axisID, boolean advanced) {
+    if (axisID == AxisID.SECOND) {
+      advancedB[dialogType.toIndex()] = advanced;
+    }
+    advancedA[dialogType.toIndex()] = advanced;   
+  }
+
+  /**
+   * 
+   * @param dialogType
+   * @param advanced
+   */
+  public void setAdvanced(DialogType dialogType, boolean advanced) {
+    advancedA[dialogType.toIndex()] = advanced;   
+  }
+  /**
+   * 
+   */
   public boolean isNewManager() {
     return setupDialog != null;
   }
@@ -1328,6 +1386,8 @@ public class ApplicationManager extends BaseManager {
           + "preprocessing dialog", "Program logic error");
       return;
     }
+    setAdvanced(preProcDialog.getDialogType(), axisID, preProcDialog.isAdvanced());
+    
     //  Keep dialog box open until we get good info or it is cancelled
     DialogExitState exitState = preProcDialog.getExitState();
     if (exitState == DialogExitState.CANCEL) {
@@ -1338,7 +1398,8 @@ public class ApplicationManager extends BaseManager {
       // If there are raw stack imod processes open ask the user if they
       // should be closed.
       try {
-        if (imodManager.isOpen(ImodManager.RAW_STACK_KEY, axisID)) {
+        if (exitState != DialogExitState.SAVE
+            && imodManager.isOpen(ImodManager.RAW_STACK_KEY, axisID)) {
           String[] message = new String[2];
           message[0] = "The raw stack is open in 3dmod";
           message[1] = "Should it be closed?";
@@ -1362,7 +1423,7 @@ public class ApplicationManager extends BaseManager {
         //  Go to the coarse align dialog by default
         openCoarseAlignDialog(axisID);
       }
-      else {
+      else if (exitState != DialogExitState.SAVE){
         processTrack.setPreProcessingState(ProcessState.INPROGRESS, axisID);
         mainPanel.setPreProcessingState(ProcessState.INPROGRESS, axisID);
         //  Go to the coarse align dialog by default
@@ -1676,6 +1737,7 @@ public class ApplicationManager extends BaseManager {
         "Program logic error");
       return;
     }
+    setAdvanced(coarseAlignDialog.getDialogType(), axisID, coarseAlignDialog.isAdvanced());
     DialogExitState exitState = coarseAlignDialog.getExitState();
     if (exitState == DialogExitState.CANCEL) {
       mainPanel.showBlankProcess(axisID);
@@ -1723,7 +1785,7 @@ public class ApplicationManager extends BaseManager {
           openFiducialModelDialog(axisID);
         }
       }
-      else {
+      else if (exitState != DialogExitState.SAVE) {
         processTrack.setCoarseAlignmentState(ProcessState.INPROGRESS, axisID);
         mainPanel.setCoarseAlignState(ProcessState.INPROGRESS, axisID);
         mainPanel.showBlankProcess(axisID);
@@ -2012,14 +2074,15 @@ public class ApplicationManager extends BaseManager {
         "Program logic error");
       return;
     }
-    TransferfidParam transferfidParam = new TransferfidParam();
-    fiducialModelDialog.getTransferFidParams(transferfidParam);
-    metaData.saveTransferfid(transferfidParam);
+    setAdvanced(fiducialModelDialog.getDialogType(), axisID, fiducialModelDialog.isAdvanced());
     DialogExitState exitState = fiducialModelDialog.getExitState();
     if (exitState == DialogExitState.CANCEL) {
       mainPanel.showBlankProcess(axisID);
     }
     else {
+      TransferfidParam transferfidParam = new TransferfidParam();
+      fiducialModelDialog.getTransferFidParams(transferfidParam);
+      metaData.saveTransferfid(transferfidParam);
       //  Get the user input data from the dialog box
       if (!updateTrackCom(axisID)) {
         return;
@@ -2029,7 +2092,7 @@ public class ApplicationManager extends BaseManager {
         mainPanel.setFiducialModelState(ProcessState.COMPLETE, axisID);
         openFineAlignmentDialog(axisID);
       }
-      else {
+      else if (exitState != DialogExitState.SAVE) {
         processTrack.setFiducialModelState(ProcessState.INPROGRESS, axisID);
         mainPanel.setFiducialModelState(ProcessState.INPROGRESS, axisID);
         mainPanel.showBlankProcess(axisID);
@@ -2272,6 +2335,140 @@ public class ApplicationManager extends BaseManager {
   }
 
   /**
+   * Calls done function for the dialog type, if the dialog exit state is SAVE.
+   * This is the default and means that no exit button was pressed.
+   * @param dialogType
+   * @param axisID
+   */
+  public void saveDialog(DialogType dialogType, AxisID axisID) {
+    ProcessDialog dialog = getDialog(dialogType, axisID);
+    if (dialog == null || dialog.getExitState() != DialogExitState.SAVE) {
+      return;
+    }
+    if (dialogType == DialogType.PRE_PROCESSING) {
+      donePreProcDialog(axisID);
+    }
+    else if (dialogType == DialogType.COARSE_ALIGNMENT) {
+      doneCoarseAlignDialog(axisID);
+    }
+    else if (dialogType == DialogType.FIDUCIAL_MODEL) {
+      doneFiducialModelDialog(axisID);
+    }
+    else if (dialogType == DialogType.FINE_ALIGNMENT) {
+      doneAlignmentEstimationDialog(axisID);
+    }
+    else if (dialogType == DialogType.TOMOGRAM_POSITIONING) {
+      doneTomogramPositioningDialog(axisID);
+    }
+    else if (dialogType == DialogType.TOMOGRAM_GENERATION) {
+      doneTomogramGenerationDialog(axisID);
+    }
+    else if (dialogType == DialogType.TOMOGRAM_COMBINATION) {
+      doneTomogramCombinationDialog();
+    }
+    else if (dialogType == DialogType.POST_PROCESSING) {
+      donePostProcessing();
+    }
+  }
+  
+  public boolean exitProgram() {
+    if (super.exitProgram()) {
+      saveDialog();
+      return true;
+    }
+    return false;
+  }
+  
+  public void saveDialog() {
+    if (preProcDialogA != null) {
+      donePreProcDialog(AxisID.FIRST);
+    }
+    if (preProcDialogB != null) {
+      donePreProcDialog(AxisID.SECOND);
+    }
+    if (coarseAlignDialogA != null) {
+      doneCoarseAlignDialog(AxisID.FIRST);
+    }
+    if (coarseAlignDialogB != null) {
+      doneCoarseAlignDialog(AxisID.SECOND);
+    }
+    if (fiducialModelDialogA != null) {
+      doneFiducialModelDialog(AxisID.FIRST);
+    }
+    if (fiducialModelDialogB != null) {
+      doneFiducialModelDialog(AxisID.SECOND);
+    }
+    if (fineAlignmentDialogA != null) {
+      doneAlignmentEstimationDialog(AxisID.FIRST);
+    }
+    if (fineAlignmentDialogB != null) {
+      doneAlignmentEstimationDialog(AxisID.SECOND);
+    }
+    if (tomogramPositioningDialogA != null) {
+      doneTomogramPositioningDialog(AxisID.FIRST);
+    }
+    if (tomogramPositioningDialogB != null) {
+      doneTomogramPositioningDialog(AxisID.SECOND);
+    }
+    if (tomogramGenerationDialogA != null) {
+      doneTomogramGenerationDialog(AxisID.FIRST);
+    }
+    if (tomogramGenerationDialogB != null) {
+      doneTomogramGenerationDialog(AxisID.SECOND);
+    }
+    if (tomogramCombinationDialog != null) {
+      doneTomogramCombinationDialog();
+    }
+    if (postProcessingDialog != null) {
+      donePostProcessing();
+    }
+  }
+  
+  private ProcessDialog getDialog(DialogType dialogType, AxisID axisID) {
+    if (dialogType == DialogType.PRE_PROCESSING) {
+      if (axisID == AxisID.SECOND) {
+        return preProcDialogB;
+      }
+      else {
+        return preProcDialogA;
+      }
+    }
+    else if (dialogType == DialogType.COARSE_ALIGNMENT) {
+      return mapCoarseAlignDialog(axisID);
+    }
+    else if (dialogType == DialogType.FIDUCIAL_MODEL) {
+      if (axisID == AxisID.SECOND) {
+        return fiducialModelDialogB;
+      }
+      else {
+        return fiducialModelDialogA;
+      }
+    }
+    else if (dialogType == DialogType.FINE_ALIGNMENT) {
+      if (axisID == AxisID.SECOND) {
+        return fineAlignmentDialogB;
+      }
+      else {
+        return fineAlignmentDialogA;
+      }
+    }
+    else if (dialogType == DialogType.TOMOGRAM_POSITIONING) {
+      return mapPositioningDialog(axisID);
+    }
+    else if (dialogType == DialogType.TOMOGRAM_GENERATION) {
+      return mapGenerationDialog(axisID);
+    }
+    else if (dialogType == DialogType.TOMOGRAM_COMBINATION) {
+      return tomogramCombinationDialog;
+    }
+    else if (dialogType == DialogType.POST_PROCESSING) {
+      return postProcessingDialog;
+    }
+    return null;
+  }
+
+  
+  /**
    *  
    */
   public void doneAlignmentEstimationDialog(AxisID axisID) {
@@ -2289,6 +2486,7 @@ public class ApplicationManager extends BaseManager {
         "Program logic error");
       return;
     }
+    setAdvanced(fineAlignmentDialog.getDialogType(), axisID, fineAlignmentDialog.isAdvanced());
     DialogExitState exitState = fineAlignmentDialog.getExitState();
     if (exitState == DialogExitState.CANCEL) {
       mainPanel.showBlankProcess(axisID);
@@ -2303,7 +2501,7 @@ public class ApplicationManager extends BaseManager {
         mainPanel.setFineAlignmentState(ProcessState.INPROGRESS, axisID);
         mainPanel.showBlankProcess(axisID);
       }
-      else {
+      else if (exitState != DialogExitState.SAVE) {
         processTrack.setFineAlignmentState(ProcessState.COMPLETE, axisID);
         mainPanel.setFineAlignmentState(ProcessState.COMPLETE, axisID);
         openTomogramPositioningDialog(axisID);
@@ -2549,7 +2747,9 @@ public class ApplicationManager extends BaseManager {
       comScriptMgr.saveAlign(tiltalignParam, axisID);
       //  Update the tilt.com script with the dependent parameters
       updateTiltCom(tiltalignParam, axisID);
-      mainPanel.setFineAlignmentState(ProcessState.INPROGRESS, axisID);
+      if (fineAlignmentDialog.getExitState() != DialogExitState.SAVE) {
+        mainPanel.setFineAlignmentState(ProcessState.INPROGRESS, axisID);
+      }
     }
     catch (FortranInputSyntaxException except) {
       String[] errorMessage = new String[3];
@@ -2684,7 +2884,7 @@ public class ApplicationManager extends BaseManager {
         "Program logic error");
       return;
     }
-
+    setAdvanced(tomogramPositioningDialog.getDialogType(), axisID, tomogramPositioningDialog.isAdvanced());
     DialogExitState exitState = tomogramPositioningDialog.getExitState();
     if (exitState == DialogExitState.CANCEL) {
       mainPanel.showBlankProcess(axisID);
@@ -2713,7 +2913,7 @@ public class ApplicationManager extends BaseManager {
         mainPanel.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
         mainPanel.showBlankProcess(axisID);
       }
-      else {
+      else if (exitState != DialogExitState.SAVE) {
         processTrack.setTomogramPositioningState(ProcessState.COMPLETE, axisID);
         mainPanel.setTomogramPositioningState(ProcessState.COMPLETE, axisID);
         openTomogramGenerationDialog(axisID);
@@ -3344,6 +3544,7 @@ public class ApplicationManager extends BaseManager {
         "Program logic error");
       return;
     }
+    setAdvanced(tomogramGenerationDialog.getDialogType(), axisID, tomogramGenerationDialog.isAdvanced());
     DialogExitState exitState = tomogramGenerationDialog.getExitState();
     if (exitState == DialogExitState.CANCEL) {
       mainPanel.showBlankProcess(axisID);
@@ -3368,7 +3569,7 @@ public class ApplicationManager extends BaseManager {
         mainPanel.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
         mainPanel.showBlankProcess(axisID);
       }
-      else {
+      else if (exitState != DialogExitState.SAVE) {
         processTrack.setTomogramGenerationState(ProcessState.COMPLETE, axisID);
         mainPanel.setTomogramGenerationState(ProcessState.COMPLETE, axisID);
         if (isDualAxis()) {
@@ -4112,6 +4313,7 @@ public class ApplicationManager extends BaseManager {
         "Program logic error");
       return;
     }
+    setAdvanced(tomogramCombinationDialog.getDialogType(), tomogramCombinationDialog.isAdvanced());
     DialogExitState exitState = tomogramCombinationDialog.getExitState();
     if (exitState == DialogExitState.CANCEL) {
       mainPanel.showBlankProcess(AxisID.ONLY);
@@ -4140,7 +4342,7 @@ public class ApplicationManager extends BaseManager {
         mainPanel.setTomogramCombinationState(ProcessState.INPROGRESS);
         mainPanel.showBlankProcess(AxisID.ONLY);
       }
-      else {
+      else if (exitState != DialogExitState.SAVE) {
         processTrack.setTomogramCombinationState(ProcessState.COMPLETE);
         mainPanel.setTomogramCombinationState(ProcessState.COMPLETE);
         openPostProcessingDialog();
@@ -4875,17 +5077,19 @@ public class ApplicationManager extends BaseManager {
           "Program logic error");
       return;
     }
-    updateTrimvolParam();
+    setAdvanced(postProcessingDialog.getDialogType(), postProcessingDialog.isAdvanced());
     DialogExitState exitState = postProcessingDialog.getExitState();
     if (exitState == DialogExitState.CANCEL) {
       postProcessingDialog = null;
     }
     else {
+      updateTrimvolParam();
+      updateSqueezevolParam();
       if (exitState == DialogExitState.POSTPONE) {
         processTrack.setPostProcessingState(ProcessState.INPROGRESS);
         mainPanel.setPostProcessingState(ProcessState.INPROGRESS);
       }
-      else {
+      else if (exitState != DialogExitState.SAVE) {
         processTrack.setPostProcessingState(ProcessState.COMPLETE);
         mainPanel.setPostProcessingState(ProcessState.COMPLETE);
         postProcessingDialog = null;
