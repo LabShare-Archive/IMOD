@@ -45,6 +45,7 @@ Log at end of file
 #include "imod_io.h"
 #include "imod_info_cb.h"
 #include "imod_info.h"
+#include "imod_input.h"
 #include "imod_client_message.h"
 
 //  Module variables
@@ -212,6 +213,7 @@ bool ImodClipboard::executeMessage()
     // the OK signal now
     succeeded = -1;
     sendResponse(1);
+    inputRaiseWindows();
 
     returnValue = openModel((char *)convName.latin1());
     if(returnValue == IMOD_IO_SUCCESS) {
@@ -262,6 +264,10 @@ bool ImodClipboard::executeMessage()
     //    imod_quit();
     break;
 
+  case MESSAGE_RAISE_WINDOWS:
+    inputRaiseWindows();
+    break;
+
   default:
     fprintf(stderr, "imodExecuteMessage: action %d not recognized\n"
             , message_action);
@@ -289,6 +295,9 @@ void ImodClipboard::sendResponse(int succeeded)
 
 /*
 $Log$
+Revision 4.3  2003/02/27 20:57:42  mast
+Adjusting timing on quit for the SGI
+
 Revision 4.2  2003/02/27 19:22:16  mast
 Qt version that works on windows
 
