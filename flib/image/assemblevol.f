@@ -39,6 +39,10 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.1  2002/07/31 20:05:11  mast
+c	  Made it preserve pixel size. Also standardized error output and
+c	  made declarations for implicit none.
+c	
 c	  
 	implicit none
 	integer idimin,idimout,limfiles,limran,limopen
@@ -173,6 +177,10 @@ c
 	  do i=1,nfy*nfx
 	    call imopen(i+1,files(ifile),'ro')
 	    CALL IRDHDR(i+1,NXYZ,MXYZ,MODE,DMIN2,DMAX2,DMEAN2)
+c	      
+c	      DNM 7/31/02: transfer labels from first file
+c
+	    if (ifile.eq.1)call itrlab(1,i+1)
 	    ifile=ifile+1
 	  enddo
 c	    
