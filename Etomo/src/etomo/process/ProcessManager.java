@@ -29,6 +29,9 @@ import java.util.ArrayList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.24  2003/10/01 18:16:54  rickg
+ * <p> Update demo mode to work with process monitor structure
+ * <p>
  * <p> Revision 2.23  2003/10/01 04:22:47  rickg
  * <p> Moved the order of processing in msgComScriptDone to
  * <p> keep monitor around till after the processDone method is called
@@ -363,19 +366,16 @@ public class ProcessManager {
   /**
    * Run the transferfid script
    */
-  public String transferFiducials(TransferfidParam transferfidParam) {
-    BackgroundProcess transferfid =
-      new BackgroundProcess(transferfidParam.getCommandString(), this);
-    transferfid.setDemoMode(appManager.isDemo());
-    transferfid.setDebug(appManager.isDebug());
-    transferfid.start();
-    transferfidCommandLine = transferfid.getCommandLine();
+  public String transferFiducials(TransferfidParam transferfidParam)
+    throws SystemProcessException {
     AxisID axisID = AxisID.SECOND;
     if (!transferfidParam.isBToA()) {
       axisID = AxisID.FIRST;
     }
-    mapThreadAxis(transferfid, null, axisID);
-    return transferfid.getName();
+
+    BackgroundProcess backgroundProcess =
+      startBackgroundProcess(transferfidParam.getCommandString(), axisID);
+    return backgroundProcess.getName();
   }
 
   /**
@@ -631,15 +631,11 @@ public class ProcessManager {
   /**
    * Run trimvol
    */
-  public String trimVolume(TrimvolParam trimvolParam) {
-    BackgroundProcess trimvol =
-      new BackgroundProcess(trimvolParam.getCommandString(), this);
-    trimvol.setWorkingDirectory(new File(System.getProperty("user.dir")));
-    trimvol.setDemoMode(appManager.isDemo());
-    trimvol.setDebug(appManager.isDebug());
-    trimvol.start();
-    mapThreadAxis(trimvol, null, AxisID.ONLY);
-    return trimvol.getName();
+  public String trimVolume(TrimvolParam trimvolParam)
+    throws SystemProcessException {
+    BackgroundProcess backgroundProcess =
+      startBackgroundProcess(trimvolParam.getCommandString(), AxisID.ONLY);
+    return backgroundProcess.getName();
   }
 
   /**
@@ -899,9 +895,11 @@ public class ProcessManager {
   //  Internal utility functions
 
   /**
-   * 
+   * Start an arbtrary command as an unmanaged background thread
    */
   private void startSystemProgramThread(String command) {
+
+    // Initialize the SystemProgram object
     SystemProgram sysProgram = new SystemProgram(command);
     sysProgram.setWorkingDirectory(new File(System.getProperty("user.dir")));
     sysProgram.setDebug(appManager.isDebug());
@@ -909,13 +907,15 @@ public class ProcessManager {
     //  Start the system program thread
     Thread sysProgThread = new Thread(sysProgram);
     sysProgThread.start();
-    System.err.println("Started " + command);
-    System.err.println(
-      "  working directory: " + System.getProperty("user.dir"));
+    if (appManager.isDebug()) {
+      System.err.println("Started " + command);
+      System.err.println(
+        "  working directory: " + System.getProperty("user.dir"));
+    }
   }
 
   /**
-   * 
+   * Start a managed command script for the specified axis
    * @param command
    * @param axisID
    * @return
@@ -926,16 +926,7 @@ public class ProcessManager {
     AxisID axisID)
     throws SystemProcessException {
 
-    if (axisID == AxisID.SECOND) {
-      if (threadAxisB != null) {
-        throw new SystemProcessException("A process is already executing in the current axis");
-      }
-    }
-    else {
-      if (threadAxisA != null) {
-        throw new SystemProcessException("A process is already executing in the current axis");
-      }
-    }
+    isAxisBusy(axisID);
 
     //  Run the script as a thread in the background
     ComScriptProcess comScriptProcess = new ComScriptProcess(command, this);
@@ -950,7 +941,6 @@ public class ProcessManager {
       System.err.println("  Name: " + comScriptProcess.getName());
     }
 
-    //  Start the process monitor thread if a runnable process is provided
     Thread processMonitorThread = null;
     // Replace the process monitor with a DemoProcessMonitor if demo mode is on 
     if (appManager.isDemo()) {
@@ -961,6 +951,8 @@ public class ProcessManager {
           command,
           comScriptProcess.getDemoTime());
     }
+
+    //	Start the process monitor thread if a runnable process is provided
     if (processMonitor != null) {
       // Wait for the started flag within the comScriptProcess, this ensures
       // that log file has already been moved
@@ -976,12 +968,41 @@ public class ProcessManager {
       processMonitorThread.start();
     }
 
+    // Map the thread to the correct axis
     mapThreadAxis(comScriptProcess, processMonitorThread, axisID);
     return comScriptProcess;
   }
 
   /**
-   * 
+   * Start a managed background process
+   * @param command
+   * @param axisID
+   * @throws SystemProcessException
+   */
+  private BackgroundProcess startBackgroundProcess(
+    String command,
+    AxisID axisID)
+    throws SystemProcessException {
+
+    isAxisBusy(axisID);
+
+    BackgroundProcess backgroundProcess = new BackgroundProcess(command, this);
+    backgroundProcess.setWorkingDirectory(
+      new File(System.getProperty("user.dir")));
+    backgroundProcess.setDemoMode(appManager.isDemo());
+    backgroundProcess.setDebug(appManager.isDebug());
+    backgroundProcess.start();
+    if (appManager.isDebug()) {
+      System.err.println("Started " + command);
+      System.err.println("  Name: " + backgroundProcess.getName());
+    }
+
+    mapThreadAxis(backgroundProcess, null, AxisID.ONLY);
+    return backgroundProcess;
+  }
+
+  /**
+   * Unique case to parse the output of transferfid and save it to a file
    * @param process
    */
   private void handleTransferfidMessage(BackgroundProcess process) {
@@ -1032,6 +1053,27 @@ public class ProcessManager {
     else {
       threadAxisA = thread;
       processMonitorA = processMonitor;
+    }
+  }
+
+  /**
+   * Check to see if specified axis is busy, throw a system a 
+   * ProcessProcessException if it is.
+   * @param axisID
+   * @throws SystemProcessException
+   */
+  private void isAxisBusy(AxisID axisID) throws SystemProcessException {
+    // Check to make sure there is not another process already running on this
+    // axis.
+    if (axisID == AxisID.SECOND) {
+      if (threadAxisB != null) {
+        throw new SystemProcessException("A process is already executing in the current axis");
+      }
+    }
+    else {
+      if (threadAxisA != null) {
+        throw new SystemProcessException("A process is already executing in the current axis");
+      }
     }
   }
 }
