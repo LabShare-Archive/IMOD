@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.1  2004/03/24 02:55:44  rickg
+ * <p> Bug# 395 Implemented ability to create binned tomogram
+ * <p>
  * <p> Revision 3.0  2003/11/07 23:19:00  rickg
  * <p> Version 1.0.0
  * <p>
@@ -179,7 +182,7 @@ public class ConstTiltParam {
     tiltFile = "";
     title = "";
     width = Integer.MIN_VALUE;
-    xAxisTilt = Integer.MIN_VALUE;
+    xAxisTilt = Float.NaN;
     xTiltFile = "";
     xTiltInterp = Integer.MIN_VALUE;
   }
