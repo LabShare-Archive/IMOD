@@ -33,6 +33,10 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2002/01/28 16:45:25  mast
+    Removed imod_nearest function, which was used only by xyz window and did
+    not work
+
 */
 
 #include <math.h>
@@ -128,7 +132,7 @@ int imod_obj_nearest(struct Mod_Object *obj,
     int distance = -1;
     int temp_distance;
     int ctime;
-    int cz = pnt->z + 0.5f;
+    int cz = (int)(pnt->z + 0.5f);
     int twod = 0;
     
     /* Don't report points not in our time. DNM - unless time is 0*/
@@ -186,7 +190,7 @@ int imod_distance( float *x, float *y, struct Mod_Point *pnt)
      
      distance = sqrt(distance);
 
-     retval = distance + 0.5;
+     retval = (int)(distance + 0.5);
      
      return(retval);
 }

@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.2  2002/09/04 00:26:25  mast
+    Added declarations for imodv_init and imodvGetVisuals
+
     Revision 3.1  2002/07/18 20:19:38  rickg
     Changed include of GLwMDrawA to rely upon -I compiler option
 
@@ -52,6 +55,17 @@
 #include <dia.h>          /* local dialog library. */
 #include <imodel.h>       /* imod library include. */
 
+/* used for finding bounding box. */
+#ifndef FLT_MAX
+#include <limits.h>
+#ifndef FLT_MAX
+#define FLT_MAX 5e+29f
+#endif
+#endif
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef struct __imodv_struct
 {
@@ -171,14 +185,6 @@ typedef struct __imodv_struct
 }ImodvApp;
 
 
-/* used for finding bounding box. */
-#ifndef FLT_MAX
-#include <limits.h>
-#ifndef FLT_MAX
-#define FLT_MAX 5e+29f
-#endif
-#endif
-
 extern ImodvApp *Imodv;
 extern int ImodvClosed;
 
@@ -211,6 +217,7 @@ void imodvMenuLight(int value);
 void imodvMenuWireframe(int value);
 void imodvMenuLowres(int value);
 void imodv_file_save_cb(Widget w, XtPointer client, XtPointer call);
+void menu_bgcolor_cb(Widget w, XtPointer client, XtPointer call);
 
 /* input.c functions */
 void imodv_input_cb(Widget w, XtPointer client, XtPointer call);
@@ -225,6 +232,7 @@ void objed(ImodvApp *a);
 int object_edit_kill(void);
 void imodvModelEditDialog(ImodvApp *a, int state);
 clock_t imodv_sys_time(void);
+void ximodv_quit_cb(Widget w, XtPointer client, XtPointer call);
 
 /* control.c */
 int imodv_control(ImodvApp *a, int state);
@@ -321,5 +329,8 @@ void imodvRemoveDrawCB(void (*func)(ImodvApp *, XtPointer, int),
 		       XtPointer client);
 void imodvCallDrawCB(int reason);
 
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* imodv.h */

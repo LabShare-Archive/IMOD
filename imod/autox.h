@@ -26,9 +26,21 @@
  *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 
 #ifndef AUTOX_H
 #define AUTOX_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* bits for autox data */
 #define AUTOX_BLANK 0
@@ -101,5 +113,9 @@ int auto_ishole(unsigned char *data,
 int imod_auto_sort(struct Mod_Contour *cont);
 int autox_next(Autox *ax);
 int autox_smooth(Autox *ax);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* AUTOX_H */

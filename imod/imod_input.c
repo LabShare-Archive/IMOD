@@ -34,6 +34,10 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2002/05/20 15:34:47  mast
+    Made time index modeling be the default for a new object if multiple files
+    are open
+
 */
 
 #include <stdio.h>
@@ -627,7 +631,8 @@ void inputFindValue(ImodView *vw)
      }
 
 */
-     pixval = ivwGetFileValue(vw, vw->xmouse, vw->ymouse, vw->zmouse);
+     pixval = ivwGetFileValue(vw, (int)vw->xmouse, (int)vw->ymouse, 
+			      (int)vw->zmouse);
      wprint("Pixel (%g, %g, %g) = %g\n", 
 	    vw->xmouse, vw->ymouse, vw->zmouse, pixval);
 
@@ -707,12 +712,12 @@ void inputFindMaxValue(ImodView *vw)
      int  x,  y;
      float maxpixval, pixval;
 
-     mx = vw->xmouse - 5;
-     my = vw->ymouse - 4;
-     maxpixval = ivwGetFileValue(vw, mx, my, vw->zmouse);
-     for (x = vw->xmouse - 5; x < vw->xmouse + 5; x++)
-	  for (y = vw->ymouse - 5; y < vw->ymouse + 5; y++){
-	       pixval = ivwGetFileValue(vw, x, y, vw->zmouse);
+     mx = (int)(vw->xmouse - 5);
+     my = (int)(vw->ymouse - 4);
+     maxpixval = ivwGetFileValue(vw, mx, my, (int)vw->zmouse);
+     for (x = mx; x < mx + 10; x++)
+	  for (y = my - 1; y < my + 9; y++){
+	       pixval = ivwGetFileValue(vw, x, y, (int)vw->zmouse);
 	       if (pixval > maxpixval){
 		    maxpixval = pixval;
 		    mx = x; my = y;

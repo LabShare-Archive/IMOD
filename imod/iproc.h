@@ -26,12 +26,23 @@
  *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
+
 #ifndef BD_IPROC_H_
 #define BD_IPROC_H_
+
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
 
 #define PROC_BACKGROUND 0
 #define PROC_FOREGROUND 255

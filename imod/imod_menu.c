@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.9  2002/11/05 23:26:39  mast
+Changed copyright notice to use lab name and years
+
 Revision 3.8  2002/09/27 20:24:57  rickg
 Moved IO functionality into imod_io
 Move client message functionality into imod_client_message since it was no
@@ -377,14 +380,13 @@ void imod_edit_object_cb(Widget w, XtPointer client, XtPointer call)
     imod_info_input();
     imod_info_enable();
 	  
-    red = obj->red * 255;
-    blue = obj->blue * 255;
-    green = obj->green * 255;
+    red = (short int)(obj->red * 255);
+    blue = (short int)(obj->blue * 255);
+    green = (short int)(obj->green * 255);
     ob = App->cvi->imod->cindex.object;
     cob = ob;
     sprintf(prompt, "Imod: Object %d color.", App->cvi->imod->cindex.object + 1);
-    dia_setcolor(red, green, blue, prompt,
-                 (void (*)())ioew_sgicolor_cb, (XtPointer)cob);
+    dia_setcolor(red, green, blue, prompt, ioew_sgicolor_cb, (XtPointer)cob);
     break;
 
   case 3: /* type*/
@@ -706,8 +708,8 @@ void imod_edit_contour_cb(Widget w, XtPointer client, XtPointer call)
     imodGetIndex(App->cvi->imod, &ob, &co, &pt);
     for (ptb = cont->psize - 1; ptb > 0; ptb--) {
       int ni, oi, zcur, zprev;
-      zcur = floor(cont->pts[ptb].z + 0.5);
-      zprev = floor(cont->pts[ptb - 1].z + 0.5);
+      zcur = (int)(floor(cont->pts[ptb].z + 0.5));
+      zprev = (int)(floor(cont->pts[ptb - 1].z + 0.5));
       if (zcur != zprev) {
         cont2 = imodContourDup(cont);
         ni = 0;
@@ -767,10 +769,10 @@ void imod_edit_contour_cb(Widget w, XtPointer client, XtPointer call)
     imodGetIndex(App->cvi->imod, &ob, &co, &pt);
     for (ptb = 0; ptb < cont->psize - 1; ptb++) {
       int zcur, znext, zfill;
-      Ipoint new;
+      Ipoint newPt;
       Ipoint *cur, *next;
-      zcur = floor(cont->pts[ptb].z + 0.5);
-      znext = floor(cont->pts[ptb + 1].z + 0.5);
+      zcur = (int)(floor(cont->pts[ptb].z + 0.5));
+      znext = (int)(floor(cont->pts[ptb + 1].z + 0.5));
       zfill = zcur;
 
       /* find points where rounded z differs by more than one */
@@ -784,12 +786,12 @@ void imod_edit_contour_cb(Widget w, XtPointer client, XtPointer call)
 
         /* insert one point at the next Z; the spacing from that
            one to the next will be assessed on next iteration */
-        new.z = zfill;
-        new.x = cur->x + (next->x - cur->x) * (zfill - cur->z) /
+        newPt.z = zfill;
+        newPt.x = cur->x + (next->x - cur->x) * (zfill - cur->z) /
           (next->z - cur->z);
-        new.y = cur->y + (next->y - cur->y) * (zfill - cur->z) /
+        newPt.y = cur->y + (next->y - cur->y) * (zfill - cur->z) /
           (next->z - cur->z);
-        imodPointAdd(cont, &new, ptb + 1);
+        imodPointAdd(cont, &newPt, ptb + 1);
         if (ptb < pt)
           pt++;
       }
@@ -875,8 +877,8 @@ void imod_edit_point_cb(Widget w, XtPointer client, XtPointer call)
   case 4: /* value */
     wprint("Pixel value from file:\n (%g, %g, %g) = %g",
            App->cvi->xmouse, App->cvi->ymouse, App->cvi->zmouse,
-           ivwGetFileValue(App->cvi, App->cvi->xmouse,
-                           App->cvi->ymouse, App->cvi->zmouse));
+           ivwGetFileValue(App->cvi, (int)App->cvi->xmouse,
+                           (int)App->cvi->ymouse, (int)App->cvi->zmouse));
     break;
 
   case 5: /* Go to */

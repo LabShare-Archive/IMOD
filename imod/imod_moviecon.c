@@ -25,6 +25,14 @@
  *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -51,6 +59,7 @@
 #include <Xm/Separator.h>
 #include <dia.h>
 #include "imod.h"
+#include "imodv.h"
 
 static int start[4], end[4], increment[4];
 static int maxend[4];
@@ -406,7 +415,8 @@ static void ratetext_cb(Widget w, XtPointer client, XtPointer call)
      }
 
      realint = 1000./realrate;
-     view->movierate = log((double)realint / BASEINT) / log(RATEFAC) + 0.5;
+     view->movierate = (int)(log((double)realint / BASEINT) / 
+                             log(RATEFAC) + 0.5);
 }
           
 static void rate_arrow_cb(Widget w, XtPointer client, XtPointer call)

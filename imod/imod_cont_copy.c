@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.2  2002/09/26 21:28:55  rickg
+Removed empty string sprintf formats and unused variables.
+
 Revision 3.1  2002/09/13 20:56:01  mast
 Changed include of libgen.h to be on sun only
 
@@ -87,7 +90,7 @@ static struct
 
   /* Copy from information. */
   int   currentTime;
-  float currentSection;
+  int   currentSection;    /* DNM 11/30/02: change from float to int */
 
 
   /* Widgets used in copy dialog. */
@@ -304,7 +307,7 @@ static void apply_cb(Widget w, XtPointer client, XtPointer call)
 
   case COPY_TO_SECTION:
     /* get section number to copy from.*/
-    ThisDialog.currentSection = cont->pts->z;
+    ThisDialog.currentSection = (int)floor(cont->pts->z + 0.5);
 
     /* get section number to copy to. */
     coval = XmTextGetString(ThisDialog.wToNumber);
@@ -341,7 +344,7 @@ static void apply_cb(Widget w, XtPointer client, XtPointer call)
     /* DNM 2/16/01: made these work relative to section of current
        contour */
   case COPY_TO_NEXT_SECTION:
-    ThisDialog.currentSection = cont->pts->z;
+    ThisDialog.currentSection = (int)floor(cont->pts->z + 0.5);
     if (ThisDialog.currentSection == (ThisDialog.vw->zsize - 1)){
       wprint("%sNext section invalid.\n", badCopy);
       return;
@@ -350,7 +353,7 @@ static void apply_cb(Widget w, XtPointer client, XtPointer call)
     break;
 
   case COPY_TO_PREV_SECTION:
-    ThisDialog.currentSection = cont->pts->z;
+    ThisDialog.currentSection = (int)floor(cont->pts->z + 0.5);
     if (!ThisDialog.currentSection){
       wprint("%sPrevious section invalid.\n", badCopy);
       return;
@@ -372,7 +375,7 @@ static void apply_cb(Widget w, XtPointer client, XtPointer call)
           ThisDialog.copyOperation == COPY_TO_NEXT_SECTION ||
           ThisDialog.copyOperation == COPY_TO_PREV_SECTION){
         if (!cont->psize) continue;
-        if (cont->pts->z != ThisDialog.currentSection)
+        if (floor(cont->pts->z + 0.5) != ThisDialog.currentSection)
           continue;
       }
       if ((ThisDialog.copyOperation == COPY_TO_TIME) &&

@@ -34,6 +34,10 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2002/11/25 19:20:45  mast
+    In imodDraw, eliminated conditional on USE_IMOD_CONTROL and stopped drawing
+    xyz window separately (it is now in control list)
+
 */
 
 #include <X11/Xlib.h>
@@ -140,10 +144,10 @@ static XtResource Imod_resources[] =
 /*     {"wholeZoom", XtRBool */
 
     {"renderbackground", "RenderBackground", XmRString, sizeof(XColor),
-     XtOffsetOf(ImodResourceStruct, rbgname), XmRImmediate, "black"},
+     XtOffsetOf(ImodResourceStruct, rbgname), XmRImmediate, (XtPointer)"black"}
 
 #ifdef __sgi
-    { "SGIStereoCommand",
+    , { "SGIStereoCommand",
       XtCString, XtRString, sizeof (_XtString),
       XtOffsetOf(ImodResourceStruct, SGIStereoCommand),
       XtRString, "/usr/gfx/setmon -n STR_TOP" },
@@ -278,112 +282,124 @@ int pseudo_broken(ImodApp *ap, XVisualInfo *visualToTry)
 
 int imod_display_init(ImodApp *ap, char **argv, int *argc)
 {
-     Window   window;
-     Screen  *screen;
-     XColor color;
-     int depth, screen_num = 0;
+  Window   window;
+  Screen  *screen;
+  XColor color;
+  int depth, screen_num = 0;
 
-     XVisualInfo *vlist;
-     XVisualInfo vistemp;
-     int i, vsize, v = 0;
-     unsigned long plane[1];
-     unsigned long *pixels;
-     int maxindex, dindex;
-     char *vendor, *renderer;
+  XVisualInfo *vlist;
+  XVisualInfo vistemp;
+  int i, vsize, v = 0;
+  unsigned long plane[1];
+  unsigned long *pixels;
+  int maxindex, dindex;
+  char *vendor, *renderer;
 
-     ap->toplevel = XtVaAppInitialize
-	  (&(ap->context), "Imod", NULL, 0, argc, argv, 
-	   Fallback_resources, NULL);
+  ap->toplevel = XtVaAppInitialize
+    (&(ap->context), "Imod", NULL, 0, argc, argv, 
+     Fallback_resources, NULL);
      
-     if (!(ap->toplevel)){
-	  fprintf(stderr, "%s: couldn't open display.\n", argv[0]);
-	  exit(-1);
-     }
+  if (!(ap->toplevel)){
+    fprintf(stderr, "%s: couldn't open display.\n", argv[0]);
+    exit(-1);
+  }
 
-     XtVaGetApplicationResources
-	  (ap->toplevel, (XtPointer)(&ImodResource),
-	   Imod_resources, XtNumber(Imod_resources),
-	   NULL);
+  XtVaGetApplicationResources
+    (ap->toplevel, (XtPointer)(&ImodResource),
+     Imod_resources, XtNumber(Imod_resources),
+     NULL);
 
-     XtVaSetValues(ap->toplevel, XmNdeleteResponse, XmDO_NOTHING, NULL);
+  XtVaSetValues(ap->toplevel, XmNdeleteResponse, XmDO_NOTHING, NULL);
 
-     ap->display = XtDisplay(ap->toplevel);
-     screen_num  = DefaultScreen(ap->display);
-     screen      = DefaultScreenOfDisplay(ap->display);
-     window      = RootWindowOfScreen(screen);
-     depth       = DefaultDepthOfScreen(screen);
-     ap->visual  = DefaultVisualOfScreen(screen); 
-     ap->cmap    = DefaultColormapOfScreen(screen); 
+  ap->display = XtDisplay(ap->toplevel);
+  screen_num  = DefaultScreen(ap->display);
+  screen      = DefaultScreenOfDisplay(ap->display);
+  window      = RootWindowOfScreen(screen);
+  depth       = DefaultDepthOfScreen(screen);
+  ap->visual  = DefaultVisualOfScreen(screen); 
+  ap->cmap    = DefaultColormapOfScreen(screen); 
 
-     /* Find visualinfo of default visual */
-     vistemp.screen = screen_num;
-     vlist = XGetVisualInfo(ap->display, VisualScreenMask, &vistemp, &vsize);
-     for (v = 0; v < vsize; v++)
-	  if (vlist[v].visual == ap->visual) {
-	       ap->visualinfo = &vlist[v];
-	       break;
-	  }
+  /* Find visualinfo of default visual */
+  vistemp.screen = screen_num;
+  vlist = XGetVisualInfo(ap->display, VisualScreenMask, &vistemp, &vsize);
+  for (v = 0; v < vsize; v++)
+    if (vlist[v].visual == ap->visual) {
+      ap->visualinfo = &vlist[v];
+      break;
+    }
 
-     ap->wzoom   = 1;
+  ap->wzoom   = 1;
 
-     /* ap->rgba is set by main program, use it to constrain choices */
+  /* ap->rgba is set by main program, use it to constrain choices */
 
-     ap->visualinfoGL = NULL;
-     for (i = 0; OpenGLAttribList[i] != NULL; i++) {
+  ap->visualinfoGL = NULL;
+  for (i = 0; OpenGLAttribList[i] != NULL; i++) {
 
-	  /* If want an rgb visual and this is not one, skip */
-	  if (ap->rgba && !AttribRGB[i])
-	       continue;
-	  ap->visualinfoGL = glXChooseVisual(ap->display, screen_num,
-					     OpenGLAttribList[i]);
+    /* If want an rgb visual and this is not one, skip */
+    if (ap->rgba && !AttribRGB[i])
+      continue;
+    ap->visualinfoGL = glXChooseVisual(ap->display, screen_num,
+				       OpenGLAttribList[i]);
 
-	  /* If it returns one, and it is rgb, make sure depth is at least
-	     16 and it is TrueColor, since program can't handle DirectColor */
-	  if (ap->visualinfoGL && 
-	      ((!AttribRGB[i] && !pseudo_broken(ap, ap->visualinfoGL))
-	       || (ap->visualinfoGL->depth >= 16
-			     && ap->visualinfoGL->class == TrueColor))) {
-	       ap->doublebuffer = AttribDB[i];
-	       ap->rgba = AttribRGB[i];
-	       break;
-	  }
-	  ap->visualinfoGL = NULL;
-     }
-     if (!ap->visualinfoGL) {
-	  fprintf(stderr, "%s: couldn't get rendering visual info.\n",
-		  argv[0]);
-	  exit(-1);
-     }
+    /* If it returns one, and it is rgb, make sure depth is at least
+       16 and it is TrueColor, since program can't handle DirectColor */
+    if (ap->visualinfoGL && 
+	((!AttribRGB[i] && !pseudo_broken(ap, ap->visualinfoGL))
+	 || (ap->visualinfoGL->depth >= 16
+#ifdef __cplusplus
+	     && ap->visualinfoGL->c_class == TrueColor))) {
+#else
+	     && ap->visualinfoGL->class == TrueColor))) {
+#endif
+      ap->doublebuffer = AttribDB[i];
+      ap->rgba = AttribRGB[i];
+      break;
+    }
+    ap->visualinfoGL = NULL;
+  }
+  if (!ap->visualinfoGL) {
+    fprintf(stderr, "%s: couldn't get rendering visual info.\n",
+	    argv[0]);
+    exit(-1);
+  }
 
-     if (Imod_debug) {
-	  printf("default class %d, depth %d, ID 0x%x\n", ap->visualinfo->class, 
-		 ap->visualinfo->depth, ap->visualinfo->visualid);
-	  printf("GL visual class %d, depth %d, ID 0x%x, rgba %d, doublebuffer %d\n",
-		 ap->visualinfoGL->class, ap->visualinfoGL->depth, 
-		 ap->visualinfoGL->visualid, ap->rgba,
-		 ap->doublebuffer);
-     }
+  if (Imod_debug) {
+#ifdef __cplusplus
+    printf("default class %d, depth %d, ID 0x%x\n", ap->visualinfo->c_class, 
+#else
+    printf("default class %d, depth %d, ID 0x%x\n", ap->visualinfo->class, 
+#endif
+	   ap->visualinfo->depth, ap->visualinfo->visualid);
+    printf("GL visual class %d, depth %d, ID 0x%x, rgba %d, doublebuffer %d\n",
+#ifdef __cplusplus
+	   ap->visualinfoGL->c_class, ap->visualinfoGL->depth, 
+#else
+	   ap->visualinfoGL->class, ap->visualinfoGL->depth, 
+#endif
+	   ap->visualinfoGL->visualid, ap->rgba,
+	   ap->doublebuffer);
+  }
 
-     ap->visualGL = ap->visualinfoGL->visual;
-     ap->depth = ap->visualinfoGL->depth;
-     imod_get_colormap(ap);
+  ap->visualGL = ap->visualinfoGL->visual;
+  ap->depth = ap->visualinfoGL->depth;
+  imod_get_colormap(ap);
 
-     /* If not rgba, set the application to have the same visual and cmap as
-	the GL windows need, so color map can be fully shared */
-     if (!ap->rgba) {
-	  ap->cmap = ap->cmapGL;
-	  ap->visualinfo = ap->visualinfoGL;
-	  ap->visual = ap->visualGL;
-	  XtVaSetValues(ap->toplevel, 
-			XmNdepth, ap->depth,
-			XmNvisual, ap->visual,
-			XmNcolormap, ap->cmap, NULL);
-     } 
+  /* If not rgba, set the application to have the same visual and cmap as
+     the GL windows need, so color map can be fully shared */
+  if (!ap->rgba) {
+    ap->cmap = ap->cmapGL;
+    ap->visualinfo = ap->visualinfoGL;
+    ap->visual = ap->visualGL;
+    XtVaSetValues(ap->toplevel, 
+		  XmNdepth, ap->depth,
+		  XmNvisual, ap->visual,
+		  XmNcolormap, ap->cmap, NULL);
+  } 
 
-     dia_xinit(ap->toplevel,ap->context, "Imod");
-     XtAppAddActions(ap->context, ActionTable, XtNumber(ActionTable));
-     atexit(stereoOff);
-     return(0);
+  dia_xinit(ap->toplevel,ap->context, "Imod");
+  XtAppAddActions(ap->context, ActionTable, XtNumber(ActionTable));
+  atexit(stereoOff);
+  return(0);
 }
 
 /* sets the color index of the given object number. */
@@ -463,9 +479,9 @@ int alloc_object_colors(Imod *m, int obstart, int obend)
      int i;
      unsigned short red, green, blue;
      for (i = obstart; i <= obend; i++) {
-	  red   = m->obj[i].red * 255.0;
-	  green = m->obj[i].green * 255.0;
-	  blue  = m->obj[i].blue * 255.0;
+	  red   = (int)(m->obj[i].red * 255.0);
+	  green = (int)(m->obj[i].green * 255.0);
+	  blue  = (int)(m->obj[i].blue * 255.0);
 	  if (alloc_color(&m->obj[i].fgcolor, red, green,
 			  blue))
 	       return 1;
@@ -600,9 +616,9 @@ void imod_cmap(Imod *m)
      unsigned short red,green,blue;
      if (App->rgba) return;
      for (i = 0; i < m->objsize; i++){
-	  red   = m->obj[i].red * 255.0;
-	  green = m->obj[i].green * 255.0;
-	  blue  = m->obj[i].blue * 255.0;
+	  red   = (int)(m->obj[i].red * 255.0);
+	  green = (int)(m->obj[i].green * 255.0);
+	  blue  = (int)(m->obj[i].blue * 255.0);
 	  if (App->depth == 8){
 	       if ((App->objbase - i) > IMOD_MIN_INDEX)
 		    mapcolor(App->objbase - i, red, green, blue);

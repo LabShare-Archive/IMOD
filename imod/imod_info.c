@@ -34,6 +34,9 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2001/12/17 18:45:19  mast
+    Added menu entries for cache filling
+
 */
 #include <stdio.h>
 #include <Xm/Xm.h>
@@ -927,7 +930,7 @@ void MaintainModelName(Imod *mod)
      if (mod->fileName)
           free(mod->fileName);
      namelen = strlen(Imod_filename)+1;
-     mod->fileName = malloc(namelen);
+     mod->fileName = (char *)malloc(namelen);
      if (mod->fileName)
 	  memcpy(mod->fileName, Imod_filename, namelen);
 }
@@ -935,19 +938,19 @@ void MaintainModelName(Imod *mod)
 static char *truncate_name(char *name, int limit)
 {
      int len, i;
-     char *new;
+     char *newName;
      if(!name)
           return(name);
      len = strlen(name);
      if (len <= limit)
           return(name);
-     new = (char *) malloc(limit + 3);
+     newName = (char *) malloc(limit + 3);
      for (i = 0; i < limit - 1; i++)
-          new[i] = name[i];
-     new[limit - 1] = '.';
-     new[limit] = '.';
-     new[limit + 1] = '.';
-     new[limit + 2] = 0x00;
+          newName[i] = name[i];
+     newName[limit - 1] = '.';
+     newName[limit] = '.';
+     newName[limit + 1] = '.';
+     newName[limit + 2] = 0x00;
      free(name);
-     return(new);
+     return(newName);
 }

@@ -33,6 +33,10 @@
     $Revision$
 
     $Log$
+    Revision 3.4  2002/10/22 22:44:03  mast
+    Fixed bug that was exposed by the EXPOSE_HACK (needed to clear the
+    movietimeout value when done).  Eliminated unused code.
+
     Revision 3.3  2002/09/11 04:33:40  mast
     Correct comments on crashes from dual-processor to Ti 4600
 
@@ -196,7 +200,7 @@ void imodMovieProc(XtPointer client_data, XtIntervalId *id)
      /* Set flag that this routine is busy, and start the timer */
      display_busy = True;
      timer_fired = False;
-     interval = (unsigned int)imcGetInterval() - 0.5;
+     interval = (unsigned int)(imcGetInterval() - 0.5);
      vi->movieTimeOut = XtAppAddTimeOut(Dia_context, interval,
 					imodMovieTimer, client_data);
      
@@ -211,7 +215,7 @@ void imodMovieProc(XtPointer client_data, XtIntervalId *id)
 
      timetmp = vi->ct;
      movie_inc(vi, &timetmp, &vi->tmovie, 3, &show);
-     vi->ct = timetmp;
+     vi->ct = (int)timetmp;
 
      if (vi->tmovie != 0){
 	  vi->hdr = vi->image = &vi->imageList[vi->ct-1];
@@ -276,7 +280,7 @@ int imodMovieXYZT(struct ViewInfo *vi, int x, int y, int z, int t)
 	  vi->movieTimeOut = 0;
      }
 
-     interval = (unsigned int)imcGetInterval() + 0.5;
+     interval = (unsigned int)(imcGetInterval() + 0.5);
 
      /* DNM 1/25/02: test whether the omvie is ending before setting 
 	first_frame */

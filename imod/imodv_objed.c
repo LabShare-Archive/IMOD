@@ -26,10 +26,19 @@
  *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 
 #include <sys/types.h>
 #include <math.h>
 
+#include <X11/IntrinsicP.h>
 #include <Xm/Xm.h>
 #include <Xm/Label.h>
 #include <Xm/ToggleB.h>
@@ -47,6 +56,7 @@
 #include <Xm/AtomMgr.h>
 #include <diaP.h>
 #include "imodv.h"
+#include "imodP.h"
 
 
 /******************************************************************
@@ -65,9 +75,6 @@ Iobj *objedObject(void) { return(Imodv->obj); }
 
 /* returns the current model being used for object editing. */
 Imod *objedModel(void) { return(Imodv->imod); }
-
-
-char *imodwEithername(char *intro, char *filename);
 
 /*
  *  internal prototypes 
@@ -2324,9 +2331,9 @@ static void  obj_colorcb(Widget w, XtPointer client_data, XtPointer call_data)
      if (!Imodv->imod)
 	  return;
 
-     red = Imodv->obj->red * 255;
-     green = Imodv->obj->green * 255;
-     blue = Imodv->obj->blue * 255;
+     red = (int)(Imodv->obj->red * 255);
+     green = (int)(Imodv->obj->green * 255);
+     blue = (int)(Imodv->obj->blue * 255);
      dia_color(&red, &green, &blue);
      Imodv->obj->red = red / 255.0;
      Imodv->obj->green = green / 255.0;
@@ -2425,9 +2432,9 @@ static void objset(ImodvApp *a)
 	  objectEditFieldData[CurrentObjectField].setwidget();
 
      /* Set object color box */
-     red   = 255 * obj->red;
-     green = 255 * obj->green;
-     blue  = 255 * obj->blue;
+     red   = (unsigned short int)(255 * obj->red);
+     green = (unsigned short int)(255 * obj->green);
+     blue  = (unsigned short int)(255 * obj->blue);
      Objed_color.flags = DoRed | DoBlue | DoGreen;
 
      Objed_color.red   = (red   << 8);

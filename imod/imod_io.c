@@ -37,6 +37,15 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.0  2002/09/27 20:15:24  rickg
+Significant restructuring of the model io code
+- io funtionality moved imod_menu_cb to this module
+- added error reporting methods imodIOGetError*
+- reverted LoadModel to orignally calling structure and added LoadModelFile
+  to allow for cleaner handling of different cases especially w.r.t. freeing
+  allocated variables and arguments
+- still plenty left todo
+
 Revision 3.1  2002/09/13 21:07:07  mast
 Added argument to LoadModel so it can work from a filename passed in, and
 removed old version of imod_io_image_reload
@@ -363,7 +372,7 @@ int SaveasModel(struct Mod_Model *mod)
 {
   lastError = IMOD_IO_SUCCESS;
 
-  diaEasyFileAct("Model Save File", (void (*)())save_model, 
+  diaEasyFileAct("Model Save File", save_model, 
                  (XtPointer)mod);
   return(0);
 }
@@ -576,7 +585,6 @@ int WriteImage(FILE *fout, struct ViewInfo *vi, struct LoadInfo *li)
 }
 #endif
 
-#ifdef USEIMODI
 unsigned char **imod_io_image_load(ImodImageFile *im,
                                    struct LoadInfo *li,
                                    void (*func)(char *))
@@ -586,53 +594,52 @@ unsigned char **imod_io_image_load(ImodImageFile *im,
   struct MRCheader savehdr;
 
   if (im->file == IIFILE_MRC){
-	if (!im->fp)
+    if (!im->fp)
       iiReopen(im);
-	if (!im->fp) return NULL;
-	mrchead = (struct MRCheader *)im->header;
-
-	/* DNM: save and restore header after call to mrc_read_byte */
-	savehdr = *mrchead;
-	idata = (unsigned char **)mrc_read_byte(im->fp, mrchead, li, func);
-	*mrchead = savehdr;
-
-	return(idata);
+    if (!im->fp) return NULL;
+    mrchead = (struct MRCheader *)im->header;
+    
+    /* DNM: save and restore header after call to mrc_read_byte */
+    savehdr = *mrchead;
+    idata = (unsigned char **)mrc_read_byte(im->fp, mrchead, li, func);
+    *mrchead = savehdr;
+    
+    return(idata);
   }
-
+  
   {
-	int i;
-	int xsize, ysize, zsize, xysize;
-	unsigned char **idata, *bdata;
-	
-	/* ignore load info for now. */
-	xsize = im->nx;
-	ysize = im->ny;
-	zsize = im->nz;
-	xysize = xsize * ysize;
-	
-	im->llx = 0;
-	im->lly = 0;
-	im->urx = xsize;
-	im->ury = ysize;
-
-	im->slope  = li->slope;
-	im->offset = li->offset;
-	im->imin   = li->imin;
-	im->imax   = li->imax;
-	im->axis   = li->axis;
-
-	idata = (unsigned char **)malloc(zsize * sizeof(unsigned char *));
-	if (!idata) return NULL;
-	bdata = malloc(xysize * zsize * sizeof(unsigned char));
-	if (!bdata) return NULL;
-	for(i = 0; i < zsize; i++){
+    int i;
+    int xsize, ysize, zsize, xysize;
+    unsigned char **idata, *bdata;
+    
+    /* ignore load info for now. */
+    xsize = im->nx;
+    ysize = im->ny;
+    zsize = im->nz;
+    xysize = xsize * ysize;
+    
+    im->llx = 0;
+    im->lly = 0;
+    im->urx = xsize;
+    im->ury = ysize;
+    
+    im->slope  = li->slope;
+    im->offset = li->offset;
+    im->imin   = li->imin;
+    im->imax   = li->imax;
+    im->axis   = li->axis;
+    
+    idata = (unsigned char **)malloc(zsize * sizeof(unsigned char *));
+    if (!idata) return NULL;
+    bdata = (unsigned char *)malloc(xysize * zsize * sizeof(unsigned char));
+    if (!bdata) return NULL;
+    for(i = 0; i < zsize; i++){
       idata[i] = bdata + (xysize * i);
       iiReadSectionByte(im, (char *)idata[i], i);
-	}
-	return(idata);
+    }
+    return(idata);
   }
 }
-#endif
 
 /* DNM 9/12/02: deleted old version of imod_io_image_reload */
 // openModel    opens a IMOD model specified by modeFilename

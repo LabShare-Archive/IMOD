@@ -33,10 +33,16 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2002/09/13 21:04:57  mast
+    Added resizeSkipDraw to prevent redraws during resize
+
 */
 
 #ifndef XZAP_H
 #define XZAP_H
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 void zap_ginit_cb(Widget w, XtPointer client, XtPointer call);
 void zap_input_cb(Widget w, XtPointer client, XtPointer call);
@@ -114,5 +120,8 @@ typedef struct zapwin
      int    twod;
 
 }ZapWindow;
+#ifdef __cplusplus
+}
+#endif
 
 #endif

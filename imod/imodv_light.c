@@ -34,6 +34,9 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2002/09/03 19:37:54  mast
+    Changed shininess call from glMateriali to glMaterialf
+
 */
 
 
@@ -182,8 +185,8 @@ void light_init(void)
 
 void light_moveby(int x, int y)
 {
-    int lx = Imodv->imod->view->lightx * 10.0f;
-    int ly = Imodv->imod->view->lighty * 10.0f;
+    int lx = (int)(Imodv->imod->view->lightx * 10.0f);
+    int ly = (int)(Imodv->imod->view->lighty * 10.0f);
 
     lx += x;
     ly += y;

@@ -34,6 +34,9 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2002/11/25 19:18:37  mast
+    Eliminated conditional on USE_IMOD_CONTROL
+
 */
 
 #include <stdio.h>
@@ -99,18 +102,18 @@ int ivwDeleteControl(ImodView *iv, int inCtrlId)
      if (iv->ctrlist->list->size < 1) return(0);
      ivwControlListDrawCancel(iv);
      iv->ctrlist->active = 0;
-     ctrlPtr = ilistFirst(iv->ctrlist->list);
+     ctrlPtr = (ImodControl *)ilistFirst(iv->ctrlist->list);
      while(ctrlPtr){
 	  if (ctrlPtr->id == inCtrlId){
 	       (*ctrlPtr->close_cb)(iv, ctrlPtr->userData, 0);
 	       ilistRemove(iv->ctrlist->list, element);
-	       ctrlPtr = ilistFirst(iv->ctrlist->list);
+	       ctrlPtr = (ImodControl *)ilistFirst(iv->ctrlist->list);
 	       if (ctrlPtr)
 		    iv->ctrlist->top = ctrlPtr->id;
 	       return(0);
 	  }
 	  element++;
-	  ctrlPtr = ilistNext(iv->ctrlist->list);
+	  ctrlPtr = (ImodControl *)ilistNext(iv->ctrlist->list);
      }
      return(1);
 }
@@ -134,7 +137,7 @@ int ivwControlPriority(ImodView *iv, int inCtrlId)
 	  return(inCtrlId);
 
      ivwControlListDrawCancel(iv);
-     ctrlPtr = ilistFirst(iv->ctrlist->list);
+     ctrlPtr = (ImodControl *)ilistFirst(iv->ctrlist->list);
      while(ctrlPtr){
 	  if (ctrlPtr->id == inCtrlId){
 	       ilistFloat(iv->ctrlist->list, element);
@@ -142,7 +145,7 @@ int ivwControlPriority(ImodView *iv, int inCtrlId)
 	       return(0);
 	  }
 	  element++;
-	  ctrlPtr = ilistNext(iv->ctrlist->list);
+	  ctrlPtr = (ImodControl *)ilistNext(iv->ctrlist->list);
      }
      return(iv->ctrlist->top);
 }
@@ -179,7 +182,7 @@ Boolean ivwWorkProc(XtPointer client_data)
 	  return(True);
      }
 
-     ctrlPtr = ilistNext(iv->ctrlist->list);
+     ctrlPtr = (ImodControl *)ilistNext(iv->ctrlist->list);
      if (!ctrlPtr){
 	  iv->ctrlist->workID = 0;
 	  return(True);
@@ -202,7 +205,7 @@ void ivwControlListDraw(ImodView *iv, int reason)
      iv->ctrlist->reason = reason;
      ivwControlListDrawCancel(iv);
      
-     ctrlPtr = ilistFirst(iv->ctrlist->list);
+     ctrlPtr = (ImodControl *)ilistFirst(iv->ctrlist->list);
      if (ctrlPtr) {
 /*	  printf("Drawing %d\n", ctrlPtr->id); */
 	  if (ctrlPtr->id == iv->ctrlist->active){
@@ -231,10 +234,10 @@ void ivwControlListDelete(ImodView *iv)
      ImodControl *ctrlPtr;
      
      if (!iv->ctrlist) return;
-     ctrlPtr = ilistFirst(iv->ctrlist->list);
+     ctrlPtr = (ImodControl *)ilistFirst(iv->ctrlist->list);
      while(ctrlPtr){
 	  (*ctrlPtr->close_cb)(iv, ctrlPtr->userData, 0);
-	  ctrlPtr = ilistNext(iv->ctrlist->list);
+	  ctrlPtr = (ImodControl *)ilistNext(iv->ctrlist->list);
      }
      ilistDelete(iv->ctrlist->list);
      free(iv->ctrlist);

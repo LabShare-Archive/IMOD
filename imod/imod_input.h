@@ -26,9 +26,20 @@
  *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 
 #ifndef IMOD_INPUT_H
 #define IMOD_INPUT_H
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 void inputDefaultKeys(XKeyEvent *event, ImodView *vw);
 void inputDeletePoint(ImodView *vw);
@@ -76,5 +87,8 @@ void inputContourMoveDialogUpdate(void);
 void inputSetModelTime(ImodView *vw, int time);
 
 int mouse_in_box(int llx, int lly, int urx, int  ury, int mousex, int mousey);
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* imod_input.h */

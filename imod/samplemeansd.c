@@ -6,6 +6,14 @@
    matt = fraction of image to ignore on each edge
    mean, sd = returned values of mean and sd
 */
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -41,14 +49,14 @@ int sampleMeanSD(unsigned char *image, int type, int nx, int ny, float sample,
        return (-1);
 
   /* get the area that will be used and offsets into it */  
-  nxMatt = nx * matt;
+  nxMatt = (int)(nx * matt);
   nxUse = nx - nxMatt;
-  nyMatt = ny * matt;
+  nyMatt = (int)(ny * matt);
   nyUse = ny - nyMatt;
   nPixUse = nxUse * nyUse;
 
   /* get the number of points to sample, and sampling interval */
-  nSample = sample * nPixUse;
+  nSample = (int)(sample * nPixUse);
   if (nSample >= nPixUse) nSample = nPixUse;
   if (nxUse < 2 || nyUse < 2 || nSample < 5) return(1);
 

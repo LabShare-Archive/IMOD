@@ -26,6 +26,14 @@
  *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 
 #include <Xm/Xm.h>
 #include <Xm/ScrolledW.h>
@@ -487,7 +495,7 @@ static void apply_cb(Widget w, XtPointer client, XtPointer call)
 {
   ImodIProc *ip = (ImodIProc *)client;
   diaDialog *dia = (diaDialog *)call;
-  int cz =  (ip->vw->zmouse + 0.5f);
+  int cz =  (int)(ip->vw->zmouse + 0.5f);
 
   /* Unconditionally restore data if modified */
   clearsec(ip);
@@ -510,7 +518,7 @@ static void reapply_cb(Widget w, XtPointer client, XtPointer call)
 {
   ImodIProc *ip = (ImodIProc *)client;
   diaDialog *dia = (diaDialog *)call;
-  int cz =  (ip->vw->zmouse + 0.5f);
+  int cz =  (int)(ip->vw->zmouse + 0.5f);
  
   /* If this is not the same section, treat it as an Apply */
   if (cz != ip->idatasec || ip->vw->ct != ip->idatatime)

@@ -26,6 +26,14 @@
  *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 
 #include <Xm/DialogS.h>
 #include <Xm/PanedW.h>
@@ -119,13 +127,13 @@ static void ioew_color_cb(Widget w, XtPointer client, XtPointer call)
 	  return;
      ob = Model->cindex.object + 1;
 
-     red = obj->red * 255;
-     blue = obj->blue * 255;
-     green = obj->green * 255;
+     red = (int)(obj->red * 255);
+     blue = (int)(obj->blue * 255);
+     green = (int)(obj->green * 255);
      sprintf(prompt, "Object %d color.", Model->cindex.object + 1);
 
      dia_cbcolor(red, green, blue, prompt, 
-		 (void (*)())ioew_sgicolor_cb, (XtPointer)ob);
+		 ioew_sgicolor_cb, (XtPointer)ob);
      return;
 }
 

@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.7  2002/11/25 19:19:06  mast
+    Eliminated conditional on USE_IMOD_CONTROL
+
     Revision 3.6  2002/10/23 15:56:23  mast
     Blew away part of file before previous checkin
 
@@ -58,26 +61,12 @@
 
 #include <imodconfig.h>
 
-#ifdef DRAW_GL
-#include <gl/gl.h>
-#include <gl/device.h>
-#else
 #define Colorindex unsigned short
 #define Device     unsigned short
-#endif
-
-/* Working on the imod image library to load
- * other image formats.  define USEIMODI when ready.
- */
-#define USEIMODI
 
 #include <stdio.h>
 #include <imodel.h> 
-#ifdef USEIMODI
 #include <imodi.h>
-#else
-#include <mrcc.h>
-#endif
 #include <dia.h>
 #include "b3dgfx.h"
 #include "autox.h"
@@ -198,17 +187,10 @@ typedef struct ViewInfo
      int   nt, ct; /* number of time frames, current time.       */
      int   nw, cw; /* number of wavelenghs, current wavelength.  */
 
-#ifndef USEIMODI
-     struct MRCheader *hdr;     /* current file header.           */
-     struct LoadInfo *li;       /* current load information.      */
-     FILE   *fp;                /* current image file pointer.    */
-     struct MRCheader *hdrList; /* list of time segments.         */
-#else
      struct LoadInfo *li; 
      ImodImageFile   *image;
      ImodImageFile   *imageList;
      ImodImageFile   *hdr;
-#endif
 
      int      vmSize;            /* virtual memory z-section size. */
      ivwSlice *vmCache;          /* the cache of z-section data.   */
@@ -234,9 +216,7 @@ typedef struct ViewInfo
      struct imod_showslice_struct lslice;
 
      /* Grey Scale Ramp Data. */
-#ifndef DRAW_GL
      Cramp *cramp;
-#endif
 
      /* THE MODEL */
      Imod  *imod;
@@ -270,9 +250,7 @@ typedef struct ViewInfo
 /*     ImodImageFile *imageList;*/
      int            imageSize;
 
-#ifdef USEIMODI
      FILE   *fp;                /* current image file pointer.    */
-#endif
 
 }ImodView;
 
@@ -412,6 +390,9 @@ extern int    Modeltouch;
 
 /****************************************************************************/
 /* Private functions for internal imod use.                                 */
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 void imod_quit(void);
 
@@ -473,7 +454,8 @@ char *imodwfname(char *intro);
 char *imodwEithername(char *intro, char *filename);
 int imodMovie(struct ViewInfo *vi);
 void imod_imgcnt(char *string);
-
+char *ImodRes_SGIStereoCommand(void);
+char *ImodRes_SGIRestoreCommand(void);
 
 /* imod_draw.c */
 /*
@@ -603,6 +585,9 @@ int imodPlugLoaded(int type);
 int imodPlugCall(ImodView *vw, int type, int reason);
 void imodPlugMenu(Widget parent, int pos); /* build plugin menu. */
 int imodPlugHandleKey(ImodView *vw, XKeyEvent *event);
+#ifdef __cplusplus
+}
+#endif
 
 #include "imod_input.h" 
 

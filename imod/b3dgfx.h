@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.2  2002/07/18 20:20:35  rickg
+    Changed include of GLwMDrawA to rely upon -I compiler option
+
 
 */
 
@@ -47,23 +50,11 @@
 #include <X11/Xlib.h>
 #include <Xm/Xm.h>
 
-#ifdef DRAW_OpenGL
 #include <GL/gl.h>
 #include <GL/glu.h>
 /* Change glwM to glw to avoid using motif widgets */
 #include <GLwMDrawA.h>
-#endif
 
-#ifdef DRAW_GL
-#include <gl/gl.h>
-#include <X11/Xirisw/GlxMDraw.h>
-extern GLXconfig B3DGFX_GLXconfig_dbo[];
-extern GLXconfig B3DGFX_GLXconfig_doublebuffer[];
-#endif
-
-#ifdef DRAW_X11
-#include <Xm/DrawingA.h>
-#endif
 
 extern String B3DGFX_Translations;
 
@@ -72,7 +63,6 @@ extern String B3DGFX_Translations;
 #define SnapShot_TIF     2
 
 
-#ifdef DRAW_OpenGL
 #define B3dDrawingAreaCallbackStruct GLwDrawingAreaCallbackStruct
 /* Change glwM to glw to avoid using motif widgets */
 #define B3dDrawingAreaWidgetClass    glwMDrawingAreaWidgetClass
@@ -95,26 +85,7 @@ typedef struct
 
 }B3dCIImage;
 #define FONT_LIST_BASE 10
-#endif
 
-#ifdef DRAW_GL
-#define B3dDrawingAreaCallbackStruct GlxDrawCallbackStruct
-#define B3dDrawingAreaWidgetClass    glxMDrawWidgetClass
-#define B3dNexposeCallback GlxNexposeCallback
-#define B3dNresizeCallback GlxNresizeCallback
-#define B3dNinputCallback  GlxNinputCallback
-#define B3dNginitCallback  GlxNginitCallback
-typedef unsigned short B3dCIImage;
-#endif
-
-#ifdef DRAW_X11
-#define B3dDrawingAreaCallbackStruct XmDrawingAreaCallbackStruct
-#define B3dDrawingAreaWidgetClass    xmDrawingAreaWidgetClass
-#define B3dNexposeCallback XmNexposeCallback
-#define B3dNresizeCallback XmNresizeCallback
-#define B3dNinputCallback  XmNinputCallback
-typedef XImage B3dCIImage;
-#endif
 
 #define B3D_NODRAW    0
 #define B3D_BGNLINE   1
@@ -128,9 +99,11 @@ typedef XImage B3dCIImage;
 #define b3dGetDrawCoord(x,z,o) (((x) * (z)) + (o))
 
 /* functions */
+
 #ifdef __cplusplus
 extern "C" {
 #endif
+
 
 XID  b3dGetContext(Widget w);
 XID  b3dGetXContext(Widget w);
@@ -266,6 +239,7 @@ int bdRGBWrite(FILE *fout, int xsize, int ysize, unsigned char *pixels);
 int bdTIFFWriteImage(FILE *fout, int xsize, int ysize, unsigned char *pixels);
 int bdTIFFWriteMap(FILE *fout, int xsize, int ysize,
 		   unsigned char *pixels, unsigned short *cmap);
+
 
 #ifdef __cplusplus
 }

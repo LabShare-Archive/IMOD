@@ -26,6 +26,14 @@
  *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 
 #include <stdio.h>
 #include <imodconfig.h>
@@ -39,6 +47,8 @@
 #define B3DFILE_BIGENDIAN
 #endif
 #endif
+
+#include "b3dgfx.h"
 
 static void putbyte(FILE *fout, unsigned char val)
 {

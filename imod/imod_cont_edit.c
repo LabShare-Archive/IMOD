@@ -26,6 +26,14 @@
  *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 
 #include <Xm/RowColumn.h>
 #include <Xm/Form.h>
@@ -596,7 +604,7 @@ static void set_size_scale(float size)
 
      if (!surf.w9)
 	  return;
-     val = 10. * size + 0.5;
+     val = (int)(10. * size + 0.5);
      if (val < 0)
 	  val = 0;
      if (val > size_scale_max) {

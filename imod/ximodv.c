@@ -34,6 +34,11 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2002/09/04 00:21:59  mast
+    Changed to call imodvGetVisuals so as to get proper visuals to pass to
+    GLw; also modified initstruct to call imodv_init and just modify items that
+    would be different here.
+
 */
 
 /* DNM 9/2/02: eliminate conditional no non-existent X version */
@@ -55,10 +60,6 @@ ImodvApp  ImodvStruct;
 struct Mod_Draw Imodv_mdraw;
 
 void imodvOpen(ImodView *vw);
-#ifdef __sgi
-char *ImodRes_SGIStereoCommand(void);
-char *ImodRes_SGIRestoreCommand(void);
-#endif
 
 static int open_display(int *argc, char **argv, ImodvApp *a);
 static int open_window(ImodvApp *a);
@@ -160,7 +161,6 @@ static void initstruct(ImodView *vw, ImodvApp *a)
 
 /* DNM: remove the code from here which was quite incomplete, and rely on the
    quit callback in imodv_input */
-void ximodv_quit_cb(Widget w, XtPointer client, XtPointer call);
 
 void imodvOpen(ImodView *vw)
 {

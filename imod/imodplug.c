@@ -1,3 +1,11 @@
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 #include <Xm/RowColumn.h>
 #include <Xm/PushB.h>
 #include <Xm/ToggleB.h>
@@ -48,7 +56,7 @@ static void open_cb(Widget w, XtPointer client, XtPointer call)
      void (*fptr)(ImodView *);
      void (*nfptr)(ImodView *, int, int);
      int item = (int)client;
-     PlugData *pd = ilistItem(plugList, item);
+     PlugData *pd = (PlugData *)ilistItem(plugList, item);
      if (!pd) return;
 
 
@@ -124,7 +132,7 @@ int imodPlugLoad(char *plugpath)
      */
     mi = ilistSize(plugList);
     for(i = 0; i < mi; i++){
-	lplug = ilistItem(plugList, i);
+	lplug = (PlugData *)ilistItem(plugList, i);
 	if (thePlug.type != lplug->type)
 	    continue;
 	if (strcmp(thePlug.name, lplug->name) == 0){
@@ -224,7 +232,7 @@ int imodPlugLoaded(int type)
      int i, mi = ilistSize(plugList);
 
      for(i = 0; i < mi; i++){
-	  pd = ilistItem(plugList, i);
+	  pd = (PlugData *)ilistItem(plugList, i);
 	  if (!pd) continue;
 	  if (pd->type & type)
 	       plugs++;
@@ -240,10 +248,10 @@ int imodPlugCall(ImodView *vw, int type, int reason)
     void (*fptr)(ImodView *, int, int);
     
     if (!mi) return 0;
-    pd = ilistFirst(plugList);
+    pd = (PlugData *)ilistFirst(plugList);
     for(i = 0; i < mi; i++){
 	
-	pd = ilistItem(plugList, i);
+	pd = (PlugData *)ilistItem(plugList, i);
 	if (!pd) continue;
 	
 	fptr = (void (*)(ImodView *, int, int))dlsym
@@ -267,10 +275,10 @@ int imodPlugHandleKey(ImodView *vw, XKeyEvent *event)
      int (*fptr)(ImodView *, XKeyEvent *);
 
      if (!mi) return 0;
-     pd = ilistFirst(plugList);
+     pd = (PlugData *)ilistFirst(plugList);
      for(i = 0; i < mi; i++){
 	  
-	  pd = ilistItem(plugList, i);
+	  pd = (PlugData *)ilistItem(plugList, i);
 	  if (!pd) continue;
 	  
 	  if (pd->type & IMOD_PLUG_KEYS){
@@ -318,10 +326,10 @@ void imodPlugMenu(Widget parent, int pos)
 
      if (mi){
 
-	  pd = ilistFirst(plugList);
+	  pd = (PlugData *)ilistFirst(plugList);
 	  for(i = 0; i < mi; i++){
 	       
-	       pd = ilistItem(plugList, i);
+	       pd = (PlugData *)ilistItem(plugList, i);
 	       if (!pd) continue;
 	       
 	       if (pd->type & IMOD_PLUG_MENU){

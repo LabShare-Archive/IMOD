@@ -34,6 +34,11 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.8  2002/09/27 19:46:26  rickg
+Reverted LoadModel call due to changes in imod_io
+Added error string to SaveModelQuit call
+Removed redudant function declarations at begging of file.
+
 Revision 3.7  2002/09/18 22:56:48  rickg
 Print out process ID when printing out window ID.
 
@@ -90,7 +95,7 @@ char   Tltwind[128];   /* Title of Tilt Window.                          */
 char   *Imod_imagefile;
 FILE   *Imod_Imagefp;
 char   *Imod_IFDpath;
-char   *Imod_cwdpath;
+char   *Imod_cwdpath = NULL;
 
 int    Stereo;          /* Flag to tell if tilt window is in stereo mode. */
 int    Modeltouch = FALSE;
@@ -164,6 +169,7 @@ int main( int argc, char *argv[])
   int overx = 0;
   int overy = 0;
   Iobj *obj;
+  char *tmpCwd;
 
   /* Initialize data. */
   App = &app;
@@ -210,9 +216,6 @@ int main( int argc, char *argv[])
   XYZ_vi  = App->cvi = &vi;
   Tilt_vi = &tiltvi;
   ivwInit(&vi);
-#ifndef USEIMODI
-  vi.hdr = &Imod_hdata;
-#endif
   vi.fp = fin;
   vi.zap = NULL;
   vi.vmSize = cacheSize;
@@ -489,7 +492,7 @@ int main( int argc, char *argv[])
         iiClose(vi.image);
         ivwMultipleFiles(&vi, &Imod_imagefile, 0, 0);
         vi.ifd = -1;
-        vi.hdr = ilistItem((Ilist *)vi.imageList, 0);
+        vi.hdr = (ImodImageFile *)ilistItem((Ilist *)vi.imageList, 0);
       }
     }
   } else {
@@ -536,7 +539,7 @@ int main( int argc, char *argv[])
 
   /* Copy filename into model structure */
   namelen = strlen(Imod_filename)+1;
-  Model->fileName = malloc(namelen);
+  Model->fileName = (char *)malloc(namelen);
   if (Model->fileName)
     memcpy(Model->fileName, Imod_filename, namelen);
 
@@ -565,7 +568,17 @@ int main( int argc, char *argv[])
   Imod_IFDpath = NULL;
 #ifndef __vms
   if (!vi.fakeImage && vi.ifd > 0) {
-    Imod_cwdpath = getcwd(NULL, -1);
+
+    /* switch from calling getcwd in non-standard way to getting buffer */
+    tmpCwd = (char *)malloc(10240);
+    if (tmpCwd && getcwd(tmpCwd, 10240))
+      Imod_cwdpath = strdup(tmpCwd);
+    if (!Imod_cwdpath) {
+      fprintf(stderr, "imod error: failed to get memory or to get current "
+	      "working directory\n");
+      exit(-1);
+    }
+    free (tmpCwd);
 
     pathlen = strlen(Imod_imagefile);
     while (( pathlen > 0) && 
@@ -599,23 +612,23 @@ int main( int argc, char *argv[])
       /* If pieces, change loading coordinates by the offset in piece
 		 coordinates */
       if (li.xmin != -1)
-        li.xmin -= li.opx;
+        li.xmin -= (int)li.opx;
       if (li.xmax != -1)
-        li.xmax -= li.opx;
+        li.xmax -= (int)li.opx;
       if (li.ymin != -1)
-        li.ymin -= li.opy;
+        li.ymin -= (int)li.opy;
       if (li.ymax != -1)
-        li.ymax -= li.opy;
+        li.ymax -= (int)li.opy;
       if (li.zmin != -1)
-        li.zmin -= li.opz;
+        li.zmin -= (int)li.opz;
       if (li.zmax != -1)
-        li.zmax -= li.opz;
+        li.zmax -= (int)li.opz;
       /* nip the -Y flag in the bud to avoid misunderstanding */
       li.axis = 3;
       vi.flippable = 0;
       /* need to fix the coordinates now if not standard MRC */
       if (vi.ifd < 0)
-        mrc_fix_li(&li, li.px, li.py, li.pz);
+        mrc_fix_li(&li, (int)li.px, (int)li.py, (int)li.pz);
     }
 
   }

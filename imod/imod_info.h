@@ -1,5 +1,18 @@
 /* imod info.h */
+/*  $Author$
 
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
+#ifndef IMOD_INFO_H
+#define IMOD_INFO_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 extern XtAppContext Imod_info_context;
 extern int Imod_info_quit;
@@ -50,26 +63,23 @@ void MaintainModelName(Imod *mod);
 
 
 /*  Call back functions. */
-extern void imod_file_cb();
-extern void imod_file_model_cb();
-extern void imod_file_write_cb();
-extern void imod_edit_cb();
-extern void imod_edit_model_cb();
-extern void imod_edit_object_cb();
-extern void imod_edit_surface_cb();
-extern void imod_edit_contour_cb();
-extern void imod_edit_point_cb();
-extern void imod_edit_image_cb();
-extern void imod_win_cb();
-extern void imod_help_cb();
+void imod_file_cb(Widget w, XtPointer client, XtPointer call);
+void imod_file_model_cb(Widget w, XtPointer client, XtPointer call);
+void imod_file_write_cb(Widget w, XtPointer client, XtPointer call);
+void imod_edit_cb(Widget w, XtPointer client, XtPointer call);
+void imod_edit_model_cb(Widget w, XtPointer client, XtPointer call);
+void imod_edit_object_cb(Widget w, XtPointer client, XtPointer call);
+void imod_edit_surface_cb(Widget w, XtPointer client, XtPointer call);
+void imod_edit_contour_cb(Widget w, XtPointer client, XtPointer call);
+void imod_edit_point_cb(Widget w, XtPointer client, XtPointer call);
+void imod_edit_image_cb(Widget w, XtPointer client, XtPointer call);
+void imod_win_cb(Widget w, XtPointer client, XtPointer call);
+void imod_help_cb(Widget w, XtPointer client, XtPointer call);
 
-extern void imod_obj_select_cb();
-extern void imod_blacklevel_cb();
-extern void imod_whitelevel_cb();
-extern void imod_mmode_cb(Widget w, XtPointer client, XtPointer call);
+void imod_mmode_cb(Widget w, XtPointer client, XtPointer call);
 
+#ifdef __cplusplus
+}
+#endif
 
-
-
-
-
+#endif    /* IMOD_INFO_H */

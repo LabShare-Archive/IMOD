@@ -33,6 +33,11 @@
     $Revision$
 
     $Log$
+    Revision 4.0  2002/09/27 20:20:44  rickg
+    Added error reporting functionality and codes
+    Moved the io functionality in imod_menu_cb to this module
+    Added C++ conditional declarations
+
     Revision 3.1  2002/09/13 21:07:39  mast
     Removed redundant declarations, changed LoadModel
 
@@ -61,7 +66,7 @@ extern "C" {
 
   /* Functions */
   int imodIOGetError();
-  char *imdoIOGetErrorString();
+  char *imodIOGetErrorString();
   int createNewModel(char *mdoelFilename);
   int openModel(char *modelFilename);
   Imod *LoadModel(FILE *mfin);

@@ -34,6 +34,9 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2001/12/17 18:41:51  mast
+    Add calls for smooth and next section to be done from hotkeys
+
 */
 #include <Xm/Xm.h>
 #include <Xm/RowColumn.h>
@@ -229,7 +232,7 @@ void autox_fill_cb(Widget w, XtPointer client, XtPointer call)
      autox_flood(vw->ax);
      auto_patch(vw->ax, vw->xsize, vw->ysize);
      vw->ax->filled = TRUE;
-     vw->ax->cz = vw->zmouse;
+     vw->ax->cz = (int)(vw->zmouse + 0.5);
      imodDraw(vw, IMOD_DRAW_IMAGE);
 }
 
@@ -438,7 +441,7 @@ int autox_open(ImodView *vw)
      ax->vw        = vw;
      ax->filled    = FALSE;
      ax->altmouse  = FALSE;
-     ax->cz        = vw->zmouse;
+     ax->cz        = (int)(vw->zmouse + 0.5);
      ax->diagonal  = FALSE;
 
      ax->dialog = XtVaCreatePopupShell
@@ -648,7 +651,7 @@ int autox_flood(Autox *ax)
 {
      int threshold;
      int x, y;
-     int cz = ax->vw->zmouse + 0.5f;
+     int cz = (int)(ax->vw->zmouse + 0.5f);
      unsigned char *data = ax->data;
      int *xlist = ax->xlist;
      int *ylist = ax->ylist;
@@ -664,8 +667,8 @@ int autox_flood(Autox *ax)
      autoImage = ivwGetCurrentSection(ax->vw);
      if (!autoImage) return(0);
 
-     x = ax->vw->xmouse;
-     y = ax->vw->ymouse;
+     x = (int)ax->vw->xmouse;
+     y = (int)ax->vw->ymouse;
 
      /* DNM: incrementing threshold by 1, then testing for less than threshold
 	or >= threshold, makes areas match what shows up as black and white */
@@ -683,7 +686,7 @@ int autox_flood(Autox *ax)
 	  ax->reverse = FALSE;
 
 
-     autox_cz = ax->vw->zmouse + 0.5f;
+     autox_cz = (int)(ax->vw->zmouse + 0.5f);
 
      /* initialize the ring buffer */
      xlist[0] = x;

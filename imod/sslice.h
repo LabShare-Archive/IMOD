@@ -33,10 +33,17 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2002/09/05 16:02:20  mast
+    Add a flag for whether the cube is in a doublebuffered visual
+
 */
 
 #ifndef SSLICE_H
 #define SSLICE_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #ifndef RADIANS_PER_DEGREE
 #define RADIANS_PER_DEGREE 0.017453293
@@ -133,6 +140,9 @@ struct Super_slicer{
 };     
 
 int sslice_open(struct ViewInfo *vi);
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 

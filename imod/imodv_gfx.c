@@ -33,6 +33,10 @@
     $Revision$
 
     $Log$
+    Revision 3.3  2002/09/04 00:25:34  mast
+    Pass GLw the visuals that have been chosen already.  Rationalize single
+    buffer versus double code a bit.
+
     Revision 3.2  2002/06/20 00:39:09  mast
     Making GLw use that visual didn't work under Linux, remove the change
 
@@ -319,8 +323,8 @@ void imodv_clear(ImodvApp *a)
      if (a->cindex){
 	  imodvMapColor(a->gfx, a->bindex,
 			(a->rbgcolor.red   & 0xf000) / 256,
-			(a->rbgcolor.green & 0xf000) / 65535.0,
-			(a->rbgcolor.blue  & 0xf000) / 65535.0);
+			(a->rbgcolor.green & 0xf000) / 256,
+			(a->rbgcolor.blue  & 0xf000) / 256);
 	  glClearIndex(a->bindex);
      }else{
 	  if (a->db){
@@ -846,9 +850,9 @@ void imodvMapModel(ImodvApp *a, Imod *imod)
      for(ob = 0, cindex = a->cstart; ob < imod->objsize;
 	 ob++, cindex += a->cstep){
 	  obj = &(imod->obj[ob]);
-	  red = (obj->red   * 255.0f);
-	  green = (obj->green * 255.0f);
-	  blue = (obj->blue  * 255.0f);
+	  red = (unsigned short)(obj->red   * 255.0f);
+	  green = (unsigned short)(obj->green * 255.0f);
+	  blue = (unsigned short)(obj->blue  * 255.0f);
 	  imodvMapColor(a->gfx, (unsigned long)cindex, red, green, blue);
 	  if (shades > 1)
 	       imodvMapColor(a->gfx, (unsigned long)cindex-1, 

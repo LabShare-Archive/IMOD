@@ -33,9 +33,13 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2001/12/17 18:44:38  mast
+    Initial version of module
+
 */
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #include <Xm/Label.h>
 #include <Xm/Frame.h>
@@ -541,7 +545,7 @@ static int fill_cache(ImodView *vw, int cz, int ovbefore, int ovafter)
 
 static void fill_cb(Widget w, XtPointer client, XtPointer call)
 {
-     fill_cache(imodCacheFillData.vw, imodCacheFillData.vw->zmouse, 1, 1);
+     fill_cache(imodCacheFillData.vw, (int)imodCacheFillData.vw->zmouse, 1, 1);
 }
 
 int icfGetAutofill(void)
@@ -551,7 +555,7 @@ int icfGetAutofill(void)
 
 void imodCacheFill(ImodView *vw)
 {
-     fill_cache(vw, vw->zmouse, 1, 1);
+     fill_cache(vw, (int)vw->zmouse, 1, 1);
 }
 
 unsigned char *icfDoAutofill(ImodView *vw, int cz)

@@ -26,6 +26,14 @@
  *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 
 #include <Xm/DialogS.h>
 #include <Xm/PushB.h>
@@ -43,10 +51,7 @@
 #include "dia.h"
 #include "imodel.h"
 #include "imodv.h"
-
-
-char *imodwEithername(char *intro, char *filename);
-
+#include "imodP.h"
 
 static Widget make_second_column(ImodvApp *a, Widget top);
 static Widget Imodv_nearscale_widget;
@@ -193,9 +198,10 @@ void imodvControlSetView(ImodvApp *a)
 {
      if (!a->imod) return;
 	  
-     a->fovy  = a->imod->view->fovy;
-     a->cnear = a->imod->view->cnear * 1000.0 + 0.5;
-     a->cfar  = a->imod->view->cfar * 1000.0 + 0.5;
+     /*DNM 11/30/02: should this really be an int?   are these radians? */
+     a->fovy  = (int)a->imod->view->fovy;
+     a->cnear = (int)(a->imod->view->cnear * 1000.0 + 0.5);
+     a->cfar  = (int)(a->imod->view->cfar * 1000.0 + 0.5);
      if (dialog){
 	  XtVaSetValues(Imodv_nearscale_widget,
 			XmNvalue, a->cnear, NULL);

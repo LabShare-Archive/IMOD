@@ -33,6 +33,10 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.4  2002/11/25 19:21:40  mast
+In imod_info_setxyz, elimiated call to redraw pixelview; this is now
+in the control list for redrawing
+
 Revision 3.3  2002/09/27 19:54:14  rickg
 Reverted calls to LoadModel to match changes to imod_io
 Removed or commented out unreferenced variables.
@@ -347,9 +351,9 @@ void imod_info_setobjcolor(void)
   if (!obj){
     red = green = blue = 128;
   }else{
-    red   = 255 * obj->red;
-    green = 255 * obj->green;
-    blue  = 255 * obj->blue;
+    red   = (unsigned short)(255 * obj->red);
+    green = (unsigned short)(255 * obj->green);
+    blue  = (unsigned short)(255 * obj->blue);
   }
   clev = ((red * 30) + (green * 59) + (blue * 11)) / 100;
 
@@ -482,9 +486,9 @@ void imod_info_setxyz(void)
   static int lx,ly,lz,lys,lzs;
 
   ivwBindMouse(App->cvi);
-  x = App->cvi->xmouse + 1;
-  y = App->cvi->ymouse + 1;
-  z = App->cvi->zmouse + 1;
+  x = (int)(App->cvi->xmouse + 1);
+  y = (int)(App->cvi->ymouse + 1);
+  z = (int)(App->cvi->zmouse + 1);
   xs = App->cvi->xsize;
   ys = App->cvi->ysize;
   zs = App->cvi->zsize;
@@ -644,10 +648,9 @@ int imod_info_bwfloat(ImodView *vw, int section, int time)
       /* Compute new black and white sliders */
       sloperatio = sec_sd[isec] / sec_sd[iref];
 
-      newblack = sec_mean[isec] - 
-        (sec_mean[iref] - ref_black) * sloperatio + 0.5;
-      newwhite = newblack + sloperatio * (ref_white - ref_black)
-        + 0.5;
+      newblack = (int)(sec_mean[isec] - 
+        (sec_mean[iref] - ref_black) * sloperatio + 0.5);
+      newwhite = (int)(newblack + sloperatio * (ref_white - ref_black) + 0.5);
 		    
       if (newblack < 0)
         newblack = 0;

@@ -26,6 +26,14 @@
  *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 
 /* DNM note: fixed here, and in imod_display.c and imodv.c, so that the program
  * reads and sets resources properly, including defaults and fallbacks, for
@@ -51,8 +59,6 @@
 
 #ifdef __sgi
 #include <X11/extensions/SGIStereo.h>
-char *ImodRes_SGIStereoCommand(void);
-char *ImodRes_SGIRestoreCommand(void);
 #endif
 
 static void stereoInitl(void);
@@ -699,7 +705,7 @@ static Widget mkWorkArea(ImodvApp *a, Widget top)
 	       int angle;
 	       Widget wplax;
 	       
-	       angle = a->plax * 10.0f;
+	       angle = (int)(a->plax * 10.0f);
 	       wplax = XtVaCreateManagedWidget
 		    ("Separation",  xmScaleWidgetClass, col,
 		     XmNorientation, XmHORIZONTAL,

@@ -26,6 +26,14 @@
  *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 #ifndef IMOD_H
 #define IMOD_H
 
@@ -46,6 +54,7 @@
 #define IMOD_REASON_EXECUTE 1  /* Execute plugin command.                */
 #define IMOD_REASON_CLEANUP 2  /* Imod is exiting. Clean up your mess.   */
 #define IMOD_REASON_STARTUP 3  /* Imod has started. Initalize your plug. */
+
 
 #ifdef __cplusplus
      extern "C" {

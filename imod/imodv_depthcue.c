@@ -26,6 +26,14 @@
  *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 
 #include <Xm/Label.h>
 #include <Xm/Frame.h>
@@ -84,7 +92,7 @@ void imodvDepthCueSetWidgets(void)
     ImodvApp *a = Imodv;
 
     a->depthcue = a->imod->view->world & VIEW_WORLD_DEPTH_CUE;
-    imodvDepthCueData.fend =  a->imod->view->dcend;
+    imodvDepthCueData.fend =  (int)a->imod->view->dcend;
     if (imodvDepthCueData.dia){
 	a->depthcue = depthcue = a->imod->view->world & VIEW_WORLD_DEPTH_CUE;
 	imodvDepthCueData.fstart = (int)(a->imod->view->dcstart * 100.0f);

@@ -26,6 +26,14 @@
  *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -153,16 +161,9 @@ static void apply_cb(Widget w, XtPointer client, XtPointer call)
 	      mrc_head_read(vw->image->fp, 
 			    (struct MRCheader *)vw->image->header);
 	    }
-#ifndef USEIMODI	  
-	  /* DNM: have to save and restore header for other uses */
-	  savehdr = *(vw->hdr);
-	  vw->idata = (unsigned char **)mrc_read_byte
-	      (vw->fp, vw->hdr, vw->li, ivwShowStatus);
-	  *(vw->hdr) = savehdr;
-#else
 	  vw->idata = imod_io_image_load
 	      (vw->image, vw->li, imod_imgcnt);
-#endif	  
+
 	  if (!vw->idata){
 	       fprintf(stderr, "IMOD: Fatal Error. Image LOST!\n");
 	       exit(-1);
@@ -177,11 +178,7 @@ static void apply_cb(Widget w, XtPointer client, XtPointer call)
      /* DNM: clear any information for floating windows for this time */
      imod_info_float_clear(-vw->zsize, vw->ct);
      imod_info_setbw(black, white);     
-#ifdef DRAW_GL
-     adjustcmap_pf(&black, &white, Rampbase);
-#else
      xcramp_setlevels(vw->cramp,black,white);
-#endif
 
      imodDraw(vw, IMOD_DRAW_IMAGE);
      return;

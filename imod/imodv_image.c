@@ -26,6 +26,14 @@
  *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 
 #include <Xm/Label.h>
 #include <Xm/Frame.h>
@@ -282,7 +290,7 @@ static void mkcmap(void)
      slope = 256.0 / (float)rampsize;
      for (i = BlackLevel; i < WhiteLevel; i++){
 	  point = (float)(i - BlackLevel) * slope;
-	  Cmap[0][i] = point;
+	  Cmap[0][i] = (unsigned char)point;
      }
      
      if (cmapReverse){

@@ -1,3 +1,11 @@
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 #include "imod.h"
 
 #ifdef DRAW_OpenGL
@@ -104,7 +112,7 @@ void imodDrawObjectSymbols(Iobj *obj)
 	       inner = 0.0;
 	  else
 	       inner = outer - obj->linewidth2;
-	  slices = outer + 4;
+	  slices = (int)(outer + 4);
 	  loops = 1;
 	  for(co = 0; co < obj->contsize; co++)
 	       for(pt = 0,lpt = obj->cont[co].psize,

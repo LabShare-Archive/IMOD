@@ -13,6 +13,14 @@
  * Prints to the imod information window.
  *
  */
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 
 /* error_test.c -- test the error handlers and wprint() routine
  */
@@ -25,11 +33,18 @@
 #include <stdarg.h>
 
 extern int Imod_debug;
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 void wprint(char *fmt, ...);
+#ifdef __cplusplus
+}
+#endif
 
 Widget Wprint_text_output;
 
-static void
+static int
 x_error(Display *dpy, XErrorEvent  *err_event)
 {
     char                buf[256];
@@ -37,6 +52,7 @@ x_error(Display *dpy, XErrorEvent  *err_event)
     XGetErrorText (dpy, err_event->error_code, buf, (sizeof buf));
 
     wprint("X Error: <%s>\n", buf);
+    return 0;
 }
 
 static void
@@ -78,7 +94,7 @@ Widget wprintWidget(XtAppContext app, Widget parent)
 	 XtAppSetWarningHandler (app, xt_error);
 	 
 	 /* and Xlib errors */
-	 XSetErrorHandler ((int (*)())x_error);
+	 XSetErrorHandler (x_error);
      }
      
      Wprint_text_output = text_output;
