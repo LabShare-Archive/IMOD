@@ -55,6 +55,9 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.22  2004/07/15 20:34:13  sueh
+ * bug# 500 moving linear interpolation to Basic mode
+ *
  * Revision 3.21  2004/07/15 20:17:35  sueh
  * bug# 499 added "optional" to 2d filtering title
  *
@@ -406,7 +409,7 @@ public class TomogramGenerationDialog extends ProcessDialog
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
     rootPanel.addMouseListener(mouseAdapter);
 
-    updateRotation();
+    updateFiducialess();
     // Set the default advanced dialog state
     updateAdvanced();
     setToolTipText();
@@ -421,7 +424,7 @@ public class TomogramGenerationDialog extends ProcessDialog
 
   public void setFiducialessAlignment(boolean state) {
     cbFiducialess.setSelected(state);
-    updateRotation();
+    updateFiducialess();
   }
 
   public boolean isFiducialessAlignment() {
@@ -649,6 +652,7 @@ public class TomogramGenerationDialog extends ProcessDialog
       else {
         tiltParam.setLocalAlignFile("");
       }
+      tiltParam.setFiducialess(cbFiducialess.isSelected());
     }
     catch (NumberFormatException except) {
       String message = badParameter + " " + except.getMessage();
@@ -925,8 +929,9 @@ public class TomogramGenerationDialog extends ProcessDialog
     }
   }
   
-  protected void updateRotation() {
+  protected void updateFiducialess() {
     ltfRotation.setEnabled(cbFiducialess.isSelected());
+    cbBoxUseLocalAlignment.setEnabled(!cbFiducialess.isSelected());
   }
 
   //  Action function overides for process state buttons
@@ -1003,7 +1008,7 @@ public class TomogramGenerationDialog extends ProcessDialog
       applicationManager.deleteAlignedStacks(axisID);
     }
     else if (command.equals(cbFiducialess.getActionCommand())) {
-      updateRotation();
+      updateFiducialess();
     }
   }
 
