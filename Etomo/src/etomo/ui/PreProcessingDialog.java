@@ -22,6 +22,9 @@ import etomo.comscript.CCDEraserParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.1  2003/04/28 23:25:25  rickg
+ * <p> Changed visible imod references to 3dmod
+ * <p>
  * <p> Revision 2.0  2003/01/24 20:30:31  rickg
  * <p> Single window merge to main branch
  * <p>
@@ -62,9 +65,8 @@ public class PreProcessingDialog extends ProcessDialog {
   private JPanel panelConvertDM2MRC = new JPanel();
   private JCheckBox chkBoxUniqueHeaders =
     new JCheckBox("Digital Micrograph files have unique headers");
-  private BeveledBorder borderDM2MRC =
-    new BeveledBorder("Digital Micrograph Conversion");
 
+  private JPanel pnlEraser = new JPanel();
   CCDEraserPanel panelCCDEraser = new CCDEraserPanel();
   private JButton buttonCreateModel =
     new JButton("<html><b>Create replacement model</b>");
@@ -79,7 +81,8 @@ public class PreProcessingDialog extends ProcessDialog {
     //  Build the digital micrograph panel
     panelConvertDM2MRC.setLayout(
       new BoxLayout(panelConvertDM2MRC, BoxLayout.Y_AXIS));
-    panelConvertDM2MRC.setBorder(borderDM2MRC.getBorder());
+    panelConvertDM2MRC.setBorder(
+      new BeveledBorder("Digital Micrograph Conversion").getBorder());
     panelConvertDM2MRC.add(textDM2MRC);
     panelConvertDM2MRC.add(Box.createRigidArea(FixedDim.x20_y0));
     panelConvertDM2MRC.add(chkBoxUniqueHeaders);
@@ -91,20 +94,23 @@ public class PreProcessingDialog extends ProcessDialog {
     panelConvertDM2MRC.setAlignmentX(Component.CENTER_ALIGNMENT);
     rootPanel.add(panelConvertDM2MRC);
 
-    rootPanel.add(panelCCDEraser.getContainer());
-    rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
+    pnlEraser.setLayout(new BoxLayout(pnlEraser, BoxLayout.Y_AXIS));
+    pnlEraser.setBorder(new BeveledBorder("CCD Eraser").getBorder());
+    pnlEraser.add(panelCCDEraser.getContainer());
+    pnlEraser.add(Box.createRigidArea(FixedDim.x0_y10));
 
     buttonCreateModel.setAlignmentX(Component.CENTER_ALIGNMENT);
     buttonCreateModel.setPreferredSize(FixedDim.button2Line);
     buttonCreateModel.setMaximumSize(FixedDim.button2Line);
-    rootPanel.add(buttonCreateModel);
-    rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
+    pnlEraser.add(buttonCreateModel);
+    pnlEraser.add(Box.createRigidArea(FixedDim.x0_y10));
 
     buttonErase.setAlignmentX(Component.CENTER_ALIGNMENT);
     buttonErase.setPreferredSize(FixedDim.button2Line);
     buttonErase.setMaximumSize(FixedDim.button2Line);
 
-    rootPanel.add(buttonErase);
+    pnlEraser.add(buttonErase);
+    rootPanel.add(pnlEraser);
 
     rootPanel.add(Box.createVerticalGlue());
     rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
