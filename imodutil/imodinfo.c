@@ -1,73 +1,21 @@
-/*  IMOD VERSION 2.41
- *
+/*
  *  imodinfo.c --  Prints info about imod files to std out.
  *
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
+ *
+ *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
+ *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  */
 
-/*****************************************************************************
- *   Copyright (C) 1995-2000 by Boulder Laboratory for 3-Dimensional Fine    *
- *   Structure ("BL3DFS") and the Regents of the University of Colorado.     *
- *                                                                           *
- *   BL3DFS reserves the exclusive rights of preparing derivative works,     *
- *   distributing copies for sale, lease or lending and displaying this      *
- *   software and documentation.                                             *
- *   Users may reproduce the software and documentation as long as the       *
- *   copyright notice and other notices are preserved.                       *
- *   Neither the software nor the documentation may be distributed for       *
- *   profit, either in original form or in derivative works.                 *
- *                                                                           *
- *   THIS SOFTWARE AND/OR DOCUMENTATION IS PROVIDED WITH NO WARRANTY,        *
- *   EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTY OF          *
- *   MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.       *
- *                                                                           *
- *   This work is supported by NIH biotechnology grant #RR00592,             *
- *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
- *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
- *****************************************************************************/
 /*  $Author$
 
 $Date$
 
 $Revision$
 
-$Log$
-Revision 3.10  2004/11/05 19:05:29  mast
-Include local files with quotes, not brackets
-
-Revision 3.9  2004/09/28 22:20:31  mast
-Overhauled to add mesh volume computation that takes account of spacing
-between connected contours; to handle multiple clipping planes; and
-to give consistent results with inside contours, clipping and subset
-volumes for main output, full object, surface, and centroid outputs.
-
-Revision 3.8  2004/09/21 20:34:25  mast
-First changes to deal with new clipping plane structure
-
-Revision 3.7  2004/09/10 21:34:01  mast
-Eliminated long variables
-
-Revision 3.5.4.1  2004/07/07 19:26:21  mast
-Changed exit(-1) to exit(3) for Cygwin
-
-Revision 3.5  2003/10/26 14:46:41  mast
-fixed problem in eliminating getopt
-
-Revision 3.4  2003/10/24 03:05:23  mast
-open as binary, strip program name and/or use routine for backup file
-
-Revision 3.3  2003/10/02 05:38:25  mast
-Fixed point info output so it does subareas correctly for scattered points or 
-points with sizes; and made hush suppress individual point data
-
-Revision 3.2  2003/02/07 00:18:06  mast
-Divided all mesh triangles that cross boundaries with -x, -y, -z options
-so that no area is lost
-
-Revision 3.1  2002/12/23 21:40:50  mast
-fixed exit status
-
+Log at end of file
 */
 
 #include <stdio.h>
@@ -117,7 +65,6 @@ static void imodinfo_objndist(struct Mod_Model *imod, int bins);
 static void imodinfo_length(Imod *imod);
 float imeshSurfaceSubarea(Imesh *mesh, Ipoint *scale, Ipoint min, Ipoint max,
                           int doclip, Iplane *plane, int nPlanes);
-static int getContZValue(Icont *cont);
 static double scan_contour_area(struct Mod_Contour *cont);
 static void trim_scan_contour(Icont *cont, Ipoint min, Ipoint max, int doclip,
                               Iplane *plane, int nPlanes);
@@ -526,7 +473,7 @@ static void imodinfo_print_model(Imod *model, int verbose, int scaninside,
                     
         /* DNM: skip if doing subarea and contour outside limits */
         if (subarea && !(obj->flags & IMOD_OBJFLAG_OPEN)) {
-          coz = getContZValue(cont);
+          coz = imodContourZValue(cont);
           if (coz < min.z || coz > max.z) {
             if (verbose >= 0)
               fprintf(fout, "\n");
@@ -690,7 +637,7 @@ static void imodinfo_surface(Imod *imod, int scaninside, Ipoint min,
         continue;
       i = cont->surf;
 
-      coz = getContZValue(cont);
+      coz = imodContourZValue(cont);
       skipz = 0;
       if (coz < min.z || coz > max.z)
         skipz = 1;
@@ -1120,7 +1067,7 @@ static void computeObjectAreaVol(Imod *model, Iobj *obj, int scaninside,
       tvol = info_contour_vol(cont, obj->flags, pixsize, zscale);
       *mvol += tvol * contourVolumeFactor(obj, cont, min, max);
       if (subarea && !(obj->flags & IMOD_OBJFLAG_OPEN)) {
-        coz = getContZValue(cont);
+        coz = imodContourZValue(cont);
         if (coz < min.z || coz > max.z)
           continue;
       }
@@ -1902,31 +1849,6 @@ static double clippedTriangleArea(Imesh *mesh, int i, float zs, Ipoint min,
   return 0.;
 }
 
-static int getContZValue(Icont *cont)
-{
-  int p;
-  float z=0.0f;
-  if ((!cont) || (!cont->psize))
-    return(-1);
-  for(p = 0; p < cont->psize; p++)
-    z+=cont->pts[p].z;
-  z/=(float)cont->psize;
-  z+=0.5f;
-  p = z;
-  return(p);
-}
-
-typedef struct Nest_struct
-{
-  int co;        /* contour number */
-  int level;     /* Level in from outside-most */
-  int ninside;   /* Number inside */
-  int *inside;   /* Numbers of contours inside */
-  int noutside;  /* Number outside */
-  int *outside;  /* Numbers of contours outside */
-  Icont *inscan; /* Scan contour of object interior, for odd levels */
-}Nesting;
-
 /* Computes the cylinder and mesh volume with adjustments for inside contours,
    subset areas, or clipping planes.  Arguments as above; mesh volume returned
    in meshVol */
@@ -1938,22 +1860,21 @@ static float scanned_volume(Iobj *obj, int subarea, Ipoint ptmin, Ipoint ptmax,
   Icont *cont;
   Icont **scancont;
   int zmin,zmax;
-  int i, j;
-  int z, indz;
-  int cz;
+  int indz;
   int nummax, inbox;
-  float frac1, frac2;
 
   int *contz;
   Ipoint *pmin, *pmax;
   int *numatz;
   int **contatz;
-  int  kis;
+  int *zlist;
+  int  kis, zlsize;
   int numnests;
   int eco;
-  Nesting *nest, *nests;
+  Nesting *nests;
   int *nestind;
-  int inco, outco, level, more, ready, nind, oind;
+  int numwarn = -1;
+  int level;
   float *areas;
   float *volFacs;
   double tvol = 0.;
@@ -1962,53 +1883,9 @@ static float scanned_volume(Iobj *obj, int subarea, Ipoint ptmin, Ipoint ptmax,
   if (!obj->contsize)
     return(0.);
      
-  /* Find min and max z values.
-   * Clear the type value used to store connection information.
-   */
-  contz = (int *)malloc(obj->contsize * sizeof(int));
-  if (!contz)
-    return -1.;
-  zmin = INT_MAX;
-  zmax = INT_MIN;
-  for(co = 0; co < obj->contsize; co++){
-    cont = &(obj->cont[co]);
-    if (!cont->psize)
-      continue;
-    cz = getContZValue(cont);
-    contz[co] = cz;
-    if (cz < zmin)
-      zmin = cz;
-    if (cz > zmax)
-      zmax = cz;
-  }
-
-  numatz = (int *)malloc((zmax - zmin + 2) * sizeof(int));
-  contatz = (int **)malloc((zmax - zmin + 2) * sizeof(int *));
-  if (!numatz || !contatz)
-    return -1.;
-  for(z = zmin; z <= zmax; z++)
-    numatz[z - zmin] = 0;
-
-  /* Get number of contours at each z and tables of each */
-  for(co = 0; co < obj->contsize; co++)
-    if (obj->cont[co].psize)
-      numatz[contz[co] - zmin]++;
-
-  nummax =0;
-  for (i = 0; i < zmax + 1 - zmin; i++) {
-    contatz[i] = (int *)malloc(numatz[i] * sizeof(int));
-    if (!contatz[i])
-      return -1.;
-    if (numatz[i] > nummax)
-      nummax = numatz[i];
-    numatz[i] = 0;
-  }
-                             
-  for(co = 0; co < obj->contsize; co++)
-    if (obj->cont[co].psize) {
-      i = contz[co] - zmin;
-      contatz[i][numatz[i]++] = co;
-    }
+  if (imodContourMakeZTables(obj, 1, 0, &contz, &zlist, &numatz, &contatz, 
+                             &zmin, &zmax, &zlsize, &nummax))
+    return -1;
 
   /* Allocate space for lists of min's max's, and scan contours */
   pmin = (Ipoint *)malloc(nummax * sizeof(Ipoint));
@@ -2017,10 +1894,9 @@ static float scanned_volume(Iobj *obj, int subarea, Ipoint ptmin, Ipoint ptmax,
   areas = (float *)malloc(nummax * sizeof(float));
   volFacs = (float *)malloc(nummax * sizeof(float));
 
-  /* Get array for pointers to inside/outside information */
+  /* Get array for index to inside/outside information */
   nestind = (int *)malloc(nummax * sizeof(int));
-  nests = (Nesting *)malloc(nummax * sizeof(Nesting));
-  if (!pmin || !pmax || !scancont || !areas || !nestind || !nests || !volFacs)
+  if (!pmin || !pmax || !scancont || !areas || !nestind || !volFacs)
     return -1.;
 
   for (indz = 0; indz < zmax + 1 - zmin; indz++) {
@@ -2047,85 +1923,14 @@ static float scanned_volume(Iobj *obj, int subarea, Ipoint ptmin, Ipoint ptmax,
     /* Look for overlapping contours as in imodmesh */
     for (co = 0; co < inbox - 1; co++) {
       for (eco = co + 1; eco < inbox; eco++) {
-        imodel_overlap_fractions(scancont[co], pmin[co], pmax[co],
-                                 scancont[eco], pmin[eco],
-                                 pmax[eco], &frac1, &frac2);
-        if (frac1 > 0.99 || frac2 > 0.99) {
-          if (frac2 > frac1) {
-            inco = eco;
-            outco = co;
-          } else {
-            inco = co;
-            outco = eco;
-          }
-          /* add outside one to the inside's lists */
-          nind = nestind[inco];
-          if (nind < 0) {
-            nind = numnests++;
-            nestind[inco] = nind;
-            nest = &nests[nind];
-            nest->co = inco;
-            nest->level = 0;
-            nest->ninside = 0;
-            nest->noutside = 0;
-          } else
-            nest = &nests[nind];
-
-          if (nest->noutside)
-            nest->outside = (int *)realloc(nest->outside,
-                                           (nest->noutside + 1) * sizeof(int));
-          else
-            nest->outside = (int *)malloc(sizeof(int));
-          nest->outside[nest->noutside++] = outco;
-                         
-          /* now add inside one to outside's list */
-          nind = nestind[outco];
-          if (nind < 0) {
-            nind = numnests++;
-            nestind[outco] = nind;
-            nest = &nests[nind];
-            nest->co = outco;
-            nest->level = 0;
-            nest->ninside = 0;
-            nest->noutside = 0;
-          } else
-            nest = &nests[nind];
-
-          if (nest->ninside)
-            nest->inside = (int *)realloc(nest->inside,
-                                          (nest->ninside + 1) * sizeof(int));
-          else
-            nest->inside = (int *)malloc(sizeof(int));
-          nest->inside[nest->ninside++] = inco;
-        }
+        if (imodContourCheckNesting(co, eco, scancont, pmin, pmax, &nests,
+                                    nestind, &numnests, &numwarn))
+          return -1;
       }
     }
 
     /* Analyze inside and outside contours to determine level */
-    level = 1;
-    do {
-      more = 0;
-      for (nind = 0; nind < numnests; nind++) {
-        if (nests[nind].level)
-          continue;
-        ready = 1;
-        /* if the only contours outside have level assigned but 
-           lower than the current level, then this contour can be 
-           assigned to the current level */
-        for (i = 0; i < nests[nind].noutside; i++) {
-          oind = nestind[nests[nind].outside[i]];
-          if (nests[oind].level == 0 || 
-              nests[oind].level >= level) {
-            more = 1;
-            ready = 0;
-            break;
-          }
-        }
-        if (ready) 
-          nests[nind].level = level;
-      }
-      level++;
-    } while(more);
+    imodContourNestLevels(nests, nestind, numnests);
           
     /* now add up areas of non-nested and odd levels, minus even levels */
     for (co = 0; co < inbox; co++) {
@@ -2144,29 +1949,17 @@ static float scanned_volume(Iobj *obj, int subarea, Ipoint ptmin, Ipoint ptmax,
     }
 
     /* clean up inside the nests */
-    for (nind = 0; nind < numnests; nind++) {
-      nest = &nests[nind];
-      if (nest->ninside)
-        free(nest->inside);
-      if (nest->noutside)
-        free(nest->outside);
-    }
+    imodContourFreeNests(nests, numnests);
+
     /* clean up scan conversions */
     for (co = 0; co < inbox; co++)
       imodContourDelete(scancont[co]);
   }
 
   /* clean up everything else */
-  free(nests);
   free(nestind);
 
-  for (i = 0; i < zmax + 1 - zmin; i++) {
-    if (numatz[i])
-      free (contatz[i]);
-  }
-  free(numatz);
-  free(contatz);
-  free(contz);
+  imodContourFreeZTables(numatz, contatz, contz, zlist, zmin, zmax);
   free(scancont);
   free(pmin);
   free(pmax);
@@ -2218,7 +2011,7 @@ static int contourSubareaByScan(Icont *cont, Ipoint ptmin, Ipoint ptmax,
     corner.y = tmpmin.y;
     clipsum += imodPlanesClip(plane, nPlanes, &corner);
     if ((clipsum == 0 && doclip > 0) || 
-        (clipsum == 4 & doclip < 0))
+        (clipsum == 4 && doclip < 0))
       return 0;
   }
 
@@ -2402,3 +2195,46 @@ static void trim_scan_contour(Icont *cont, Ipoint min, Ipoint max, int doclip,
     }
   }
 }
+
+/*
+$Log$
+Revision 3.11  2004/12/06 22:39:54  mast
+Fixed use of -f with ascii output of model
+
+Revision 3.10  2004/11/05 19:05:29  mast
+Include local files with quotes, not brackets
+
+Revision 3.9  2004/09/28 22:20:31  mast
+Overhauled to add mesh volume computation that takes account of spacing
+between connected contours; to handle multiple clipping planes; and
+to give consistent results with inside contours, clipping and subset
+volumes for main output, full object, surface, and centroid outputs.
+
+Revision 3.8  2004/09/21 20:34:25  mast
+First changes to deal with new clipping plane structure
+
+Revision 3.7  2004/09/10 21:34:01  mast
+Eliminated long variables
+
+Revision 3.5.4.1  2004/07/07 19:26:21  mast
+Changed exit(-1) to exit(3) for Cygwin
+
+Revision 3.5  2003/10/26 14:46:41  mast
+fixed problem in eliminating getopt
+
+Revision 3.4  2003/10/24 03:05:23  mast
+open as binary, strip program name and/or use routine for backup file
+
+Revision 3.3  2003/10/02 05:38:25  mast
+Fixed point info output so it does subareas correctly for scattered points or 
+points with sizes; and made hush suppress individual point data
+
+Revision 3.2  2003/02/07 00:18:06  mast
+Divided all mesh triangles that cross boundaries with -x, -y, -z options
+so that no area is lost
+
+Revision 3.1  2002/12/23 21:40:50  mast
+fixed exit status
+
+*/
+
