@@ -21,7 +21,13 @@ import etomo.type.TiltAngleType;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2004/12/28 23:43:43  sueh
+* <p> bug# 567 Put the old-style version of TiltalignParam and ConstTiltalignParam
+* <p> in this object.  Change some of the gets to give access the
+* <p> FortranInputStrings and StringLists instead of passing back converted
+* <p> strings.
+* <p> </p>
 */
 public class OldTiltalignParam {
   public static  final String  rcsid =  "$Id$";
@@ -1712,8 +1718,8 @@ public class OldTiltalignParam {
     return fixLocalFiducialCoodinates;
   }
 
-  public String getLocalOutputSelection() {
-    return localOutputSelection.toString();
+  public FortranInputString getLocalOutputSelection() {
+    return localOutputSelection;
   }
 
   public TiltalignSolution getLocalRotationSolution() {
