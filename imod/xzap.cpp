@@ -919,6 +919,7 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
   int limarr[4];
   int rx, ix, iy;
   int keypad = event->state() & Qt::Keypad;
+  int shifted = event->state() & Qt::ShiftButton;
   int handled = 0;
   /* downtime.start(); */
 
@@ -1068,8 +1069,10 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
 
     /* DNM 12/13/01: add next and smooth hotkeys to autox */
   case Qt::Key_A:
-    autox_next(vi->ax);
-    handled = 1;
+    if (!shifted) {
+      autox_next(vi->ax);
+      handled = 1;
+    }
     break;
 
   case Qt::Key_U:
@@ -1078,7 +1081,7 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
     break;
 
   case Qt::Key_B:
-    if (event->state() & Qt::ShiftButton) { 
+    if (shifted) { 
       if (zap->rubberband || zap->startingBand) {
         zap->rubberband = 0;
         zap->startingBand = 0;
@@ -1094,7 +1097,7 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
     break;
           
   case Qt::Key_S:
-    if ((event->state() & Qt::ShiftButton) || 
+    if (shifted || 
         (event->state() & Qt::ControlButton)){
       zapDraw(zap);
       limits = NULL;
@@ -1105,7 +1108,7 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
         limarr[2] = zap->bandurx - 1 - zap->bandllx;
         limarr[3] = zap->bandury - 1 - zap->bandlly;
       }
-      if (event->state() & Qt::ShiftButton)
+      if (shifted)
         b3dAutoSnapshot("zap", SnapShot_RGB, limits);
       else
         b3dAutoSnapshot("zap", SnapShot_TIF, limits);
@@ -1120,14 +1123,14 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
     break;
 
   case Qt::Key_R:
-    if (event->state() & Qt::ShiftButton) {
+    if (shifted) {
       zapResizeToFit(zap);
       handled = 1;
     }
     break;
 
   case Qt::Key_Z:
-    if (event->state() & Qt::ShiftButton) { 
+    if (shifted) { 
       if(zap->sectionStep) {
         zap->sectionStep = 0;
         wprint("Auto-section advance turned OFF\n");
@@ -1141,7 +1144,7 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
     break;
 
   case Qt::Key_I:
-    if (event->state() & Qt::ShiftButton)
+    if (shifted)
       zapPrintInfo(zap);
     else {
       zapStateToggled(zap, ZAP_TOGGLE_INSERT, 1 - zap->insertmode);
@@ -2818,6 +2821,9 @@ bool zapTimeMismatch(ImodView *vi, int timelock, Iobj *obj, Icont *cont)
 
 /*
 $Log$
+Revision 4.33  2003/09/25 21:10:04  mast
+Keep zap window on the screen when it is positioned from settings
+
 Revision 4.32  2003/09/24 17:40:31  mast
 Switch to restorable geometry call for resizing
 
