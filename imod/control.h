@@ -10,33 +10,9 @@
 $Date$
 
 $Revision$
-
-$Log$
-Revision 4.2  2003/04/17 19:00:59  mast
-new function to provide machine-dependent parent widget
-
-Revision 4.1  2003/02/10 20:41:54  mast
-Merge Qt source
-
-Revision 1.1.2.6  2003/01/27 00:30:07  mast
-Pure Qt version and general cleanup
-
-Revision 1.1.2.5  2003/01/14 21:46:38  mast
-renamed dialog manager for imod
-
-Revision 1.1.2.4  2003/01/13 07:20:21  mast
-Added dialog manager class
-
-Revision 1.1.2.3  2003/01/06 15:39:08  mast
-add another orphan declaration
-
-Revision 1.1.2.2  2003/01/04 03:44:16  mast
-Add declaration for removeControl; stick inputQDefaultKeys declaration here
-
-Revision 1.1.2.1  2003/01/02 15:36:19  mast
-Initial creation
-
+Log at end of file
 */
+
 #ifndef CONTROL_H
 #define CONTROL_H
 
@@ -44,6 +20,9 @@ Initial creation
 #define IMODV_DIALOG 0
 #define IMOD_DIALOG  1
 #define IMOD_IMAGE   2
+
+/* Types of windows for finding geometries */
+enum {ZAP_WINDOW_TYPE, UNKNOWN_TYPE};
 
   // Include rather than forward declare - Ilist has no structure name
 #include "ilist.h"
@@ -139,13 +118,15 @@ class DialogManager
  public:
   DialogManager();
   ~DialogManager() {};
-  void add(QWidget *widget, int dlgClass = IMODV_DIALOG);
+  void add(QWidget *widget, int dlgClass = IMODV_DIALOG, 
+           int dlgType = UNKNOWN_TYPE);
   void remove(QWidget *widget);
   void close();
   void hide();
   void show();
   QWidget *parent(int dlgClass);
   void raise(int dlgClass);
+  QRect biggestGeometry(int dlgType);
 
  private:
   Ilist *mDialogList;
@@ -156,3 +137,34 @@ extern DialogManager imodvDialogManager;
 extern DialogManager imodDialogManager;
 
 #endif
+
+/*
+$Log$
+Revision 4.3  2003/05/23 02:46:05  mast
+Added raise function
+
+Revision 4.2  2003/04/17 19:00:59  mast
+new function to provide machine-dependent parent widget
+
+Revision 4.1  2003/02/10 20:41:54  mast
+Merge Qt source
+
+Revision 1.1.2.6  2003/01/27 00:30:07  mast
+Pure Qt version and general cleanup
+
+Revision 1.1.2.5  2003/01/14 21:46:38  mast
+renamed dialog manager for imod
+
+Revision 1.1.2.4  2003/01/13 07:20:21  mast
+Added dialog manager class
+
+Revision 1.1.2.3  2003/01/06 15:39:08  mast
+add another orphan declaration
+
+Revision 1.1.2.2  2003/01/04 03:44:16  mast
+Add declaration for removeControl; stick inputQDefaultKeys declaration here
+
+Revision 1.1.2.1  2003/01/02 15:36:19  mast
+Initial creation
+
+*/
