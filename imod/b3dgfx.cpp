@@ -900,7 +900,7 @@ static void b3dDrawGreyScalePixels15
   if (sw > CurWidth - wx)
     sw = CurWidth - wx;
 
-  if (!data){
+  if (!dataPtrs){
     b3dDrawFilledRectangle(wx, wy, sw, sh);
     return;
   }
@@ -1057,8 +1057,8 @@ static void b3dDrawGreyScalePixels15
 
     }
   }
-  /* printf("1.5 wx %d wy %d sw %d sh %d window %d %d\n",
-     wxdraw, wy, drawwidth, sh, CurWidth, CurHeight);  */
+  printf("1.5 wx %d wy %d sw %d sh %d window %d %d\n",
+     wxdraw, wy, drawwidth, sh, CurWidth, CurHeight);
 
   glPixelZoom((GLfloat)1.0f, (GLfloat)1.0f);
 
@@ -1134,6 +1134,7 @@ void b3dDrawGreyScalePixelsHQ(unsigned char **dataPtrs,  /* input data lines */
     
   /* special optimization. DNM: don't take if want quality*/
   if (!quality && (xzoom == 1.50) && (yzoom == 1.50)){
+    puts ("zoom 1.5");
     b3dDrawGreyScalePixels15(dataPtrs, xsize, ysize, xoffset, yoffset,
                              wx, wy, width, height, image, base, slice);
     return;
@@ -1152,8 +1153,7 @@ void b3dDrawGreyScalePixelsHQ(unsigned char **dataPtrs,  /* input data lines */
                              xzoom, yzoom, slice);
       return;
     }else{
-      int hz = (int)(xzoom * 100.0);
-      if (!(hz%100)){
+      if (xzoom >= 1.0 && (int)xzoom == xzoom){
         /* If it's an integer zoom (1 or more), then use the OpenGL
            zoom through this routine */
         b3dDrawGreyScalePixels(dataPtrs, xsize, ysize, 
@@ -1891,6 +1891,10 @@ void b3dSnapshot(char *fname)
 
 /*
 $Log$
+Revision 4.13  2003/09/16 03:01:26  mast
+Changed pixel drawing routines to take image data as line pointers
+Added faster fractional zoom drawing when fraction is near 1/integer
+
 Revision 4.12  2003/09/12 22:02:20  mast
 Fixed float/double problem with zooming under Windows
 
