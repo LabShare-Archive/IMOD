@@ -98,6 +98,9 @@ import etomo.util.Utilities;
  * 
  *
  * <p> $Log$
+ * <p> Revision 3.140  2005/03/24 17:48:15  sueh
+ * <p> bug# 621 Added Clean Up dialog.
+ * <p>
  * <p> Revision 3.139  2005/03/19 01:09:36  sueh
  * <p> adding comments
  * <p>
@@ -5480,7 +5483,7 @@ public class ApplicationManager extends BaseManager {
     //  Open the dialog in the appropriate mode for the current state of
     //  processing
     setCurrentDialogType(DialogType.POST_PROCESSING, AxisID.ONLY);
-    mainPanel.selectButton(AxisID.ONLY, "Post Processing");
+    mainPanel.selectButton(AxisID.ONLY, DialogType.POST_PROCESSING.toString());
     if (postProcessingDialog == null) {
       postProcessingDialog = new PostProcessingDialog(this);
       //  Set the appropriate input and output files
