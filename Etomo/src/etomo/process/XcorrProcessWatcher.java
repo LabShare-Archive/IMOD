@@ -41,22 +41,47 @@ public class XcorrProcessWatcher implements Runnable {
           applicationManager, axisID, BlendmontParam.XCORR_MODE);
       Thread blendmontThread = new Thread(blendmontMonitor);
       blendmontThread.start();
-      try {
-        while (!blendmontMonitor.isDone()) {
+      while (!blendmontMonitor.isDone()) {
+        try {
           Thread.sleep(100);
         }
-      }
-      catch (InterruptedException e) {
-        e.printStackTrace();
+        catch (Exception e) {
+          //not expecting any exception here
+          e.printStackTrace();
+          //send an interrupt to the monitor so it can clean up
+          blendmontThread.interrupt();
+          return;
+        }
       }
     }
-    TiltxcorrProcessWatcher tiltxcorrMonitor = new TiltxcorrProcessWatcher(applicationManager, axisID, blendmont);
+    TiltxcorrProcessWatcher tiltxcorrMonitor = new TiltxcorrProcessWatcher(
+        applicationManager, axisID, blendmont);
     Thread tiltxcorrThread = new Thread(tiltxcorrMonitor);
     tiltxcorrThread.start();
+    while (!tiltxcorrMonitor.isDone()) {
+      try {
+        Thread.sleep(100);
+      }
+      catch (Exception e) {
+        //only expecting interrupt here
+        if (!(e instanceof InterruptedException)) {
+          e.printStackTrace();
+        }
+        //send an interrupt to the monitor so it can clean up
+        tiltxcorrThread.interrupt();
+      }
+    }
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.6  2005/03/09 18:11:15  sueh
+ * <p> bug# 533 This class used to watch tiltxcorr in the xcorr script (see
+ * <p> TiltxcorrProcessWatcher).  Now it watches the xcorr script.  First it uses
+ * <p> BlendmontProcessMonitor to watch blendmont, then it uses
+ * <p> TiltxcorrProcessWatcher to watch tiltxcorr.  It needs to know whether
+ * <p> blendmont is going to run.
+ * <p>
  * <p> Revision 3.5  2004/11/19 23:26:42  sueh
  * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
  * <p>
