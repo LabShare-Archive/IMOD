@@ -76,8 +76,6 @@ static char saved_filename[IMOD_FILENAME_SIZE] = {0x00};
 static int last_checksum = -1;
 static int lastError = IMOD_IO_SUCCESS;
 
-extern int errno;
-
 static char *autosave_string = "#autosave#";
 
 static char dummystring[] = "         ";
@@ -843,6 +841,9 @@ int WriteImage(FILE *fout, struct ViewInfo *vi, struct LoadInfo *li)
 
 /*
 $Log$
+Revision 4.10  2004/01/06 16:53:35  mast
+Use proper test for when to use mrc_read_byte
+
 Revision 4.9  2004/01/05 18:01:53  mast
 Implemented full loading of non-cache images through ivwReadBinnedSection
 
