@@ -21,6 +21,9 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.2  2004/11/19 23:33:42  sueh
+* <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+* <p>
 * <p> Revision 1.1.2.22  2004/11/19 03:04:15  sueh
 * <p> bug# 520 Setting displayDefault to default to true for the shift variables and
 * <p> most of the spinners.
@@ -297,7 +300,7 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
   }
 
   public boolean isValid(String workingDirName) {
-    if (workingDirName == null || !workingDirName.matches("\\S+")) {
+    if (workingDirName == null || workingDirName.length() == 0 || workingDirName.matches("\\s+")) {
       invalidReason = "Working directory is not set.";
       return false;
     }

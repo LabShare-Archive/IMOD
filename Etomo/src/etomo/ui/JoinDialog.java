@@ -35,6 +35,10 @@ import etomo.type.JoinMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.4  2004/12/02 20:41:01  sueh
+ * <p> bug# 566 Move mouse listener to the tab pane.  Filled in
+ * <p> popUpContextMenu with separate menus for each tab.
+ * <p>
  * <p> Revision 1.3  2004/11/23 22:34:04  sueh
  * <p> bug# 520 getMetaData() returning a success boolean.  On Change Setup:
  * <p> save screen to metaData and save metaData.
@@ -825,7 +829,8 @@ public class JoinDialog implements ContextMenu {
   
   public File getWorkingDir() {
     String workingDirName = ltfWorkingDir.getText();
-    if (workingDirName == null || !workingDirName.matches("\\S+")) {
+    if (workingDirName == null || workingDirName.length() == 0
+        || workingDirName.matches("\\s+")) {
       return null;
     }
     return new File(ltfWorkingDir.getText());
