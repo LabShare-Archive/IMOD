@@ -19,6 +19,9 @@ import etomo.ApplicationManager;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.2  2003/11/12 17:14:36  sueh
+ * <p> removing debug prints
+ * <p>
  * <p> Revision 3.1  2003/11/11 00:23:59  sueh
  * <p> Bug349 add useModv "-view" default false, add
  * <p> outputWindowID  "-W" default true, open(): -W is a default
@@ -134,7 +137,7 @@ public class ImodProcess {
 	private boolean fillCache = false;
   private boolean useModv = false;
   private boolean outputWindowID = true;
-
+  
 	private Thread imodThread;
 
   /**
@@ -535,5 +538,31 @@ public class ImodProcess {
   public void setOutputWindowID(boolean b) {
     outputWindowID = b;
   }
+  
+  
+  public String toString() {
+    return getClass().getName() + "[" + paramString() + "]";
+  }
+
+  protected String paramString() {
+    return ",datasetName="
+      + datasetName
+      + ", modelName="
+      + modelName
+      + ", windowID="
+      + windowID
+      + ", swapYZ="
+      + swapYZ
+      + ", fillCache="
+      + fillCache
+      + ", modelView="
+      + modelView
+      + ", useModv="
+      + useModv
+      + ", outputWindowID="
+      + outputWindowID;
+  }
+  
+
 
 }
