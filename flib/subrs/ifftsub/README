@@ -1,0 +1,3 @@
+This directory contains routines that were originally in the file IFFTSUB.FOR
+under VMS.  The file mtfdkd.f contains multiple subroutines because all of
+these routines are called by MTFTKD.

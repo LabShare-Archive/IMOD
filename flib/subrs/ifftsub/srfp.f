@@ -1,0 +1,100 @@
+      SUBROUTINE S R FP (PTS,PMAX,TWO GRP,FACTOR,SYM,P SYM,UN SYM,ERROR)
+C     SYMMETRIZED REORDERING FACTORING PROGRAMME
+C
+      LOGICAL ERROR
+      INTEGER PTS,PMAX,TWO GRP,P SYM
+      INTEGER FACTOR (10), SYM (10), UN SYM (10)
+C
+      INTEGER PP(14), QQ (7)
+      INTEGER F,J,JJ,N,NEST,P,P TWO,Q,R
+C
+      NEST=14
+C
+      N=PTS
+      P SYM=1
+      F=2
+      P=0
+      Q=0
+  100 CONTINUE
+      IF (N.LE.1) GO TO 500
+      DO 200 J=F,PMAX
+      IF (N.EQ.(N/J)*J) GO TO 300
+  200 CONTINUE
+      GO TO 1400
+  300 CONTINUE
+      IF (2*P+Q.GE.NEST) GO TO 1600
+      F=J
+      N=N/F
+      IF (N.EQ.(N/F)*F) GO TO 400
+      Q=Q+1
+      QQ(Q)=F
+      GO TO 100
+  400 CONTINUE
+      N=N/F
+      P=P+1
+      PP(P)=F
+      P SYM=P SYM*F
+      GO TO 100
+C
+  500 CONTINUE
+      R=1
+      IF (Q.EQ.0) R=0
+      IF (P.LT.1) GO TO 700
+      DO 600 J=1,P
+      JJ=P+1-J
+      SYM(J)=PP(JJ)
+      FACTOR(J)=PP(JJ)
+      JJ=P+Q+J
+      FACTOR(JJ)=PP(J)
+      JJ=P+R+J
+      SYM(JJ)=PP(J)
+  600 CONTINUE
+  700 CONTINUE
+      IF (Q.LT.1) GO TO 900
+      DO 800 J=1,Q
+      JJ=P+J
+      UN SYM(J)=QQ(J)
+      FACTOR(JJ)=QQ(J)
+  800 CONTINUE
+      SYM(P+1)=PTS/P SYM**2
+  900 CONTINUE
+      JJ=2*P+Q
+      FACTOR(JJ+1)=0
+      P TWO=1
+      J=0
+ 1000 CONTINUE
+      J=J+1
+      IF (FACTOR(J).EQ.0) GO TO 1200
+      IF (FACTOR(J).NE.2) GO TO 1000
+      P TWO=P TWO*2
+      FACTOR(J)=1
+      IF (P TWO.GE.TWO GRP) GO TO 1100
+      IF (FACTOR(J+1).EQ.2) GO TO 1000
+ 1100 CONTINUE
+      FACTOR(J)=P TWO
+      P TWO=1
+      GO TO 1000
+ 1200 CONTINUE
+      IF (P.EQ.0) R=0
+      JJ=2*P+R
+      SYM(JJ+1)=0
+      IF (Q.LE.1) Q=0
+      UN SYM(Q+1)=0
+      ERROR=.FALSE.
+C
+ 1300 CONTINUE
+      RETURN
+C
+ 1400 CONTINUE
+      WRITE (6,1500) PMAX,PTS
+      ERROR=.TRUE.
+      GO TO 1300
+ 1500 FORMAT (/,' LARGEST FACTOR EXCEEDS ',I3,'.  N = ',I6,'.')
+C
+ 1600 CONTINUE
+      WRITE (6,1700) NEST,PTS
+      ERROR=.TRUE.
+      GO TO 1300
+ 1700 FORMAT (/,' FACTOR COUNT EXCEEDS ',I3,'.  N = ',I6,'.')
+C
+      END

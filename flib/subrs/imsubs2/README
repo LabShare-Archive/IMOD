@@ -1,0 +1,17 @@
+This directory has individual files for the subroutines that were the file
+IMSUBS2.FOR under VMS.
+
+
+C*IMSUBS2.FOR************************************************************
+C									*
+C		ADDITIONAL IMAGE PROCESSING SUBROUTINES			*
+C									*
+C	Last Update:	02.4.82		DAA	for VAX			*
+c	11/18/88 DNM added qdinterp for better quadratic interpolation  *
+c	   modified im_$tt to call a user supplied function while       *
+c	  waiting for input
+C									*
+C************************************************************************
+C
+
+It also has the file for get_nxyz, which needs to be in libim.a

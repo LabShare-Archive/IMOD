@@ -1,0 +1,15 @@
+#!/bin/csh -f
+
+foreach i (*.man)
+	echo "converting $i to ${i:r}.1"
+	nroff -man $i >! ${i:r}.1
+end
+
+foreach j (*.1)
+	echo "converting $j to ${j:r}.html"
+	$argv[1]/mantohtml < $j >! ${j:r}.html
+end
+
+
+exit
+

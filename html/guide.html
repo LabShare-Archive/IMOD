@@ -1,0 +1,965 @@
+<html><head> <title>IMOD User's Guide</title> </head>
+<body> 
+<H1>IMOD Users's Guide for Version 2.50</H1>
+
+<HR>
+<H3>Table of Contents</H3>
+
+<UL>
+<LI>Chapter 1 <A HREF = "#Installation">Installation</A>
+<LI>Chapter 2 <A HREF = "#Getting Started">Getting Started</A>
+<LI>Chapter 3 <A HREF = "#Aligning Images">Aligning Images</A>
+<LI>Chapter 4 <A HREF = "#Building Models">Building Models</A>
+<LI>Chapter 5 <A HREF = "#Viewing Models">Viewing Models</A>
+<LI>Chapter 6 <A HREF = "#Special">Special Help Topics</A>
+</UL>
+<p>
+There is also a <A HREF = "program_listing.html">reference guide</A> 
+that gives a
+description of each IMOD program and a link to its man page.
+<HR>
+
+<DL>
+<DT><A NAME = "Installation"><H3>Chapter 1: Installation</H3></A>
+
+<DD>
+<H4>Setting Up a PC to Run IMOD.</H4>
+The recommended configuration for running the IMOD software is:
+<P>
+Processor:  Intel Pentium III or 4 or AMD Athlon
+<BR>
+Video Card:  Nvidia Geforce 256, GeForce 2 MX, Geforce2 GTS, Geforce2 GTS Ultra, GeForce3
+(Ultra or GeForce3 preferred)
+<BR>
+Minimum memory size:  256MB
+<BR>
+Minimum disk size:          10 GB
+<BR>
+Operating System:  Red Hat 7.0 or 7.1 Workstation class installation
+<BR>
+OpenMotif from the Red Hat 7.0 or 7.1 PowerTools CD
+<BR>
+Nvidia Linux device drivers and OpenGL libraries from
+<A HREF = "http://www.nvidia.com">Nvidia</A>
+<BR>
+A version of the OpenGL library libGLU.so based on the SGI sample
+implementation, available through links at 
+<A HREF = "http://www.mesa3d.org">Mesa</A>
+<BR>
+<P>
+The steps required to install the Nvidia card and drivers are somewhat tricky.
+These
+<A HREF = "nvidia_install.txt">instructions</A> are based on our
+current procedures and may be helpful.  In addition, here are samples of
+a <A HREF = "XF86Config.txt">/etc/X11/XF86Config</A> file from Red Hat 7.0
+and a <A HREF = "XF86Config7.1.txt">/etc/X11/XF86Config-4</A> file from Red Hat
+7.1.
+<P>
+You should get the latest Nvidia drivers.  
+There were several bugs in the 0.95 drivers that were
+fixed in the 0.96 drivers.
+As of IMOD 2.50, imod has been compiled
+without the workarounds to these bugs.
+<P>
+You are encouraged to get a copy of libGLU.so based on SGI's source code
+because the version from Mesa distributed with Red Hat 7.1 is missing some
+functions, which will make imod crash if you attempt to display an object
+in "Contour-Fill" mode in the model view window.  Earlier versions of the
+Mesa libGLU had a bug which sometimes crashed imod in this display mode.  As
+of IMOD 2.50, imod has been compiled without the workaround that prevented
+these crashes, another reason to get a better libGLU.  See our <A HREF =
+"nvidia_install.txt">Nvidia instructions</A> for details.
+<P>
+In order
+to use over 800 MB of memory, you should be running Red Hat 7.1, but if you
+are stuck with 7.0, you need to recompile the kernel with
+support for "BIGMEMORY".  Here are some <A HREF = "bigmem_kernel.txt">
+instructions</A> based on our experience in building such kernels.
+<P>
+Red Hat 7.1 also shipped with a version of the MTRR module that broke the
+accelerated graphics support for AMD processors.  For proper graphics
+performance, you may need to upgrade your kernel.  We have good success
+with the 2.4.3-12 upgrade kernel from Red Hat; here are some simplified
+<A HREF = "kernel_upgrade.txt">
+instructions</A>
+for installing an upgrade kernel with Nvidia drivers.
+In addition, 
+here are some 
+<A HREF = "kernel_build7.1.txt">
+instructions</A> based on our experience in building kernels for Red Hat 7.1.
+<P>
+In order to use the <CODE>subm</CODE> alias with the -e flag on 
+<code>csh</code> (see the <A HREF="tomoguide.html">Tomography Guide</A>),
+you must eliminate or replace a faulty <code>csh</code>
+startup file, <code>/etc/profile.d/colorls.csh</code>.  Here is a replacement
+for <A HREF="colorls.csh">colorls.csh</A>.
+<P>
+Several window manager settings are also needed to keep imod from bogging down
+when it is displaying large images or complex models.
+This
+<A HREF = "sawfish_setup.txt">guide</A> for novices to the Sawfish window 
+manager describes the important settings and some other helpful ones when 
+using imod. 
+<P>
+As of IMOD 2.6.0, programs have been compiled to work with files bigger than 2
+GB.  However, the <code>tcsh 6.10</code> distributed with Red Hat 7.1 had
+problems with large files,
+and some of the IMOD shell scripts will fail with large files under this tcsh.
+For doing
+tomography with large files, you need to upgrade to <code>tcsh 6.11</code>,
+which is available as an
+<A HREF =
+"http://www.rpmfind.net//linux/RPM/cooker/cooker/i586/Mandrake/RPMS/tcsh-6.11-3mdk.i586.html">rpm</A>.
+If you install this, remove the file <code>/etc/profile.d/alias.csh</code>,
+which has the same problem as <code>colorls.csh</code>.
+
+<H4>Installing IMOD.</H4>
+All of the IMOD programs are available via the 
+<A HREF="http://bio3d.colorado.edu/imod/download.html">IMOD Download Page</A>
+The distribution will be compressed using
+the gzip program and bundled together using the Unix tar program.
+<P>
+<DD>
+To extract the programs from a file ending in tar.gz; use the
+following Unix commands.  These examples use the name imod.tar.gz
+but the actual file will have a version number in the name, such as
+imod_2.41.tar.gz
+<DD><CODE> gunzip imod.tar.gz</CODE>
+<DD><CODE> tar xvf imod.tar</CODE>
+<P>These steps should create a directory such as <code>imod_2.41/</code> that
+contains all of the IMOD programs, libraries and manuals.
+<P>
+<DD>The next step is to install all of the programs.  This involves
+setting up a few environment variables.  The commands described here
+are also provided in a shell script, <code>sgiinstall</code>, 
+<code>suninstall</code>, 
+or <code>pcinstall</code>,
+which can be "sourced" to set the variables, or modified slightly and
+incorporated in your <code>.cshrc</code> or a system-wide <code>cshrc</code>
+file.  There is also a version for bash users, <code>bashinstall</code>.
+
+<OL>
+<LI>Copy or move the IMOD distribution to the place you would
+like to keep it.  A good place to rename IMOD would be the
+directory <code>/usr/local/IMOD</code>; however, any directory will do.
+<BR>
+<CODE>
+mv imod_2.41 /usr/local/IMOD
+</CODE>
+
+<LI>This example will use /usr/local/IMOD as the installation
+directory and assume that csh is the users shell.
+The following three commands need to be issued.
+
+<UL>
+<LI>
+Set the environment variable that points to the location of the
+IMOD directory.<br>
+<code>
+setenv IMOD_DIR /usr/local/IMOD
+</code>
+
+<LI>
+Set the environment variable that points to the location of the
+IMOD plugin directory.<br>
+<code>
+setenv IMOD_PLUGIN_DIR $IMOD_DIR/lib/imodplug
+</code>
+
+<LI>
+Set your path so that when you type in IMOD commands the
+system can find the command.<BR>
+<CODE>
+set path = ($path $IMOD_DIR/bin)
+</CODE>
+
+<LI>
+If you already have your LD_LIBRARY_PATH set, append the IMOD library
+directory otherwise create the new LD_LIBRARY_PATH.  If you have an Irix 6.5
+version, you need to set LD_LIBRARYN32_PATH as well.
+An automated way to do this is with the following csh script.
+<BR>
+<pre>
+if ($?LD_LIBRARY_PATH)
+        setenv LD_LIBRARY_PATH $IMOD_DIR/lib:$LD_LIBRARY_PATH
+else
+        setenv LD_LIBRARY_PATH $IMOD_DIR/lib
+endif
+if ($?LD_LIBRARYN32_PATH)
+        setenv LD_LIBRARYN32_PATH $IMOD_DIR/lib32:$LD_LIBRARYN32_PATH
+else
+        setenv LD_LIBRARYN32_PATH $IMOD_DIR/lib32
+endif
+</pre>
+</UL>
+
+<LI> On an SGI, you may also wish to install the manual pages onto
+your system.  (On the PC, Linux magically searches for manual pages based
+on your path setting.)
+All manual pages are in the directories IMOD/man/cat1 and IMOD/man/cat5.
+An automated way to do this is with the following csh script.
+<BR>
+<pre>
+if ($?MANPATH)
+        setenv MANPATH $IMOD_DIR/man:$MANPATH
+else
+        setenv MANPATH $IMOD_DIR/man
+endif
+</pre>
+</OL>
+
+<H4>TIFF Library Support.</H4>
+The imod program is now able to read TIFF files if the library 
+<code>libtiff.so</code>
+is available.  Versions compiled for IRIX 6.5 and the PC under Linux assume 
+that the library is available; the version for IRIX 6.2 assumes that it is not.
+<P>
+If you are trying to run a version that is compiled for the library but the 
+library is not on your system, <code>imod</code> and several other programs 
+will not run until
+you rename a dummy library, <code>nolibtiff.so</code>, to 
+<code>libtiff.so</code>.  From the top IMOD
+directory, do the following:
+<pre>
+cd lib
+mv nolibtiff.so libtiff.so
+</pre>
+and, on the SGI only, continue with:
+<pre>
+cd ../lib32
+mv nolibtiff.so libtiff.so
+</pre>
+<P>
+Conversely, if you have the 6.2 version and do have the library (which you 
+can obtain from 
+<A HREF = "ftp://ftp.sgi.com/graphics/tiff">SGI</A>), then you need to
+remove or rename the dummy <code>libtiff.so</code> in the 
+<code>IMOD/lib</code> directory.
+</DT>
+</DD>
+
+<H4>Fast Backprojection Support.</H4>
+The Tilt program now contains a fast backprojection algorithm developed by
+Gregory Beylkin and Kristian Sandberg at the University of Colorado.  This
+method produces reconstructions 1.5-2.5 times faster, depending on the size of
+the slice being reconstructed (the larger, the better).  It works when
+there is tilt around the X-axis but not with local alignments.  
+To take advantage
+of the algorithm, you need a license to use the USFFT library, which is
+commercial software for doing unequally spaced FFTs.  A license is free for
+non-profit organizations.  To obtain a license, contact
+<A HREF="mailto:mast@colorado.edu">
+David Mastronarde</A>
+with a request and a description of your institution.  Once you have the
+license, you need to set environment variable USFFT2_LICENSE_FILE to the
+point to the license file.  If the file is "license.clo" and you place it
+in the top IMOD directory, the command would be 
+<pre>
+setenv USFFT2_LICENSE_FILE $IMOD_DIR/license.clo
+</pre>
+
+<P>
+The program will use standard backprojection if there is no license.
+
+<DT><HR><A NAME = "Getting Started"><H3>Chapter 2: Getting Started.</H3></A>
+The initial problem will be getting data into a format usable by
+the IMOD programs.  
+If you are having problems getting your data
+into a format usable by IMOD contact us for help.
+
+
+<DD> <H4>The Image Data Format.</H4>
+All of the IMOD programs use the  
+<A HREF= "mrc_format.txt">MRC image file format</a>.
+We have utility programs available for converting TIFF files,
+SGI rgb files and raw data into the MRC file format.
+<p>
+Use the program 
+<A HREF ="man/tif2mrc.html">tif2mrc</A> to convert a series of TIFF image 
+files into a single MRC image file.  The <code>tif2mrc</code> program can
+also subtract a background TIFF image if the -b option is used.
+The following example will create a MRC file from a list of TIFF files
+(cell01.tif, cell02.tif ...) and will subtract the background image
+background.tiff from each of the image files.
+<p><code>
+tif2mrc -b background.tif cell??.tif  cell.mrc
+</code>
+<p>See the 
+<A HREF ="man/tif2mrc.html">tif2mrc manual page</A>
+for more information on how to use 
+<code>tif2mrc</code>.
+
+<p>
+The program 
+<A HREF = "man/raw2mrc.html">raw2mrc</A> is used to convert raw image data
+into the mrc format.  This program can take a file of 8 or 16 bit integers, or
+IEEE float values and convert them into an MRC image file.
+In MRC files, the data start in the lower left hand
+corner of the image, with the data stored in rows.  If the final MRC
+image is upside down use the -f option in the initial
+conversion or use the program 
+<A HREF = "man/clip.html">clip</A> to flip the
+image back.
+
+
+<DD> <H4>The Model Format.</H4>
+<p>
+If you already have a 3-D model and wish to view it within the IMOD
+model viewing program, <code>imodv</code>, you will need to convert
+the file into the IMOD format.  See the IMOD model file format 
+<A HREF= "asciispec.html">ASCII</a> and
+<A HREF= "binspec.html">binary specifications</a> 
+if you wish to write your own conversion program.
+
+Model files from the HVEM3D program can be converted to the IMOD
+model format using the
+<A HREF = "man/rec2imod.html">rec2imod</A>
+program.
+
+<p>
+The IMOD model format can be either binary or ASCII.  Currently supported
+machines can all read and write binary model files interchangeably, so the
+main use of the ASCII format would be to access the data for analysis or
+conversion by other programs.
+To convert a binary IMOD file (binary.imod) to an ASCII 
+IMOD file (ascii.imod) use the 
+<A HREF = "man/imodinfo.html">imodinfo</A>
+command :
+<P><code>imodinfo -a binary.imod > ascii.imod</code> <br>or
+<br><code>imodinfo -a -f ascii.imod binary.imod</code>
+<br>will both create an ASCII model file from the binary.imod model.
+<p><i>
+There exists an older model format which was used on our
+VaxStation running the WIMP program.  The programs 
+written in Fortran use the WIMP format internally.  They will read 
+models in either WIMP or IMOD format and output models in IMOD format.
+</I>
+
+
+</DT></DD>
+<p>
+
+<DT><HR>
+<A NAME = "Aligning Images"><H3>Chapter 3: Aligning Images.</H3></A>
+<DD>
+Sometimes images in a data set are not in register with one another.
+When this happens, a series of transforms will
+need to be found that will align the whole stack of images.  
+This series of transformations is obtained in
+two stages.  First, each successive pair of images is considered
+separately, and a transform is found that aligns the images when applied
+to the second image in the pair.  This procedure yields a list of
+transforms that align each image to the previous image; the programs
+consistently refer to this as a list of "f" transforms.  If you think
+about it, you will realize that simply applying these f transforms to all
+of the images in the stack will not help, because each section would
+be aligned to the previous one only if that previous one were not itself
+transformed.  A second stage is thus necessary: one must obtain the
+transforms for each image that will produce an aligned stack when actually
+applied to the images.  This list is consistently referred to as a list of
+"g" transforms.  In summary, "f" transforms align each section to the
+preceding one; "g" transforms align each section to the whole stack.
+
+<P>There are three general methods for obtaining alignment transforms:
+manual adjustment of transformation parameters,
+solving for a transform from a set of fiducial points that 
+correspond between two sections, and
+automated search for the best fit between two images.
+
+<DD> <H4>Manual Image Alignment</H4>
+The program <A HREF = "man/midas.html">midas</A>
+is used for manual alignment or manual
+adjustments to automated alignment of images.
+<code>Midas</code> can be used to create a transform list or to edit an 
+existing list;
+it can work with either "f" or "g" transform lists.
+To get a "g" transform list from an "f" transform list use the
+<A HREF = "man/xftoxg.html">xftoxg</A>
+program.  <code>xftoxg</code> has options to 
+leave long term trends in the data, which are invoked by default when
+you call it with the <code>xf2xg</code> shell script.
+
+
+<DD> <H4>Image Alignment using Fiducial Markers.</H4>
+
+The program <A HREF = "man/xfmodel.html">xfmodel</A> 
+will create a list of xf transforms from
+a model containing fiducial points.  
+See the chapter on <A HREF = "#Building Models">Building Models</A>
+to see how to make models.
+
+<P>
+Steps and Programs used in fiducial marker alignment.
+<UL>
+	<LI><code>imod</code> : Creates a model in which points in each contour
+are placed on adjacent sections that mark the same area on 
+both sections.  Note that a single contour corresponds to a single fiducial
+marker, and the contour contains a point on each of the sections where the
+marker appears.  These are contours that pass between sections rather 
+than being confined to a single section.
+	<LI><code>xfmodel</code> : Creates a "f" transform list.
+	<LI><code>xftoxg</code> : Creates a "g" transform list, leaving in long
+term trends in the data.
+	<LI><code>newstack</code> : Creates an aligned image stack.
+</UL>
+
+
+<DD> <H4>Automatic Image Alignment</H4>
+Several programs are used for automated image alignment.  The programs
+used are 
+<A HREF = "man/xfalign.html">xfalign</A>, 
+<A HREF = "man/xftoxg.html">xftoxg</A>, 
+<A HREF = "man/midas.html">midas</A> and
+<A HREF = "man/newstack.html">newstack</A>.  
+
+Xfalign is a csh script that 
+generates a
+"f" transform list using the <A HREF = "man/xfsimplex.html">xfsimplex</A>
+program.  It can prefilter images using the 
+<A HREF = "man/enhance.html">enhance</A> program.  
+It also has an option to get an initial alignment of the images by
+cross-correlation, in case images are not already roughly aligned.
+ 
+<P>Steps and programs used in automatic image alignment:
+<UL>
+
+<LI>Create a "f" transform list by using the xfalign program.<br>
+<code>xfalign cell.mrc cell.xf</code><br>
+Expect the alignment for each section
+to take on the order of a minute to compute.
+The file, cell.xf, will contain information on how to align adjacent 
+images to one another.
+
+<LI>The next step is to analyze the the file cell.xf and 
+the transforms needed to bring all of the images in alignment with 
+on another.  
+Use the <code>xf2xg</code> shell script, an interface to the
+<A HREF = "man/xftoxg.html">xftoxg</A> program, to
+create a global "g" transform list from the "f" transform list:
+<P>
+<code>
+xf2xg cell.xf
+</code>
+<P>
+<LI>The output file from that command, cell.xg, should contain all of the
+information needed to
+make new aligned images from the old unaligned images.
+Use the 
+<A HREF = "man/newstack.html">newstack</A> program to create the
+new aligned images.  The 
+<A HREF = "man/newst.html">newst</A> shell script acts as a front end to
+the newstack program and allows for easier command line options.
+The following example will create
+an aligned file newcell.mrc from the old cell.mrc image file.
+<P><CODE>
+newst -xform test.xg test.mrc newtest.mrc
+</CODE>
+<P>
+If the automatic alignment is not always correct, it can be adjusted with
+the
+<A HREF = "man/midas.html">midas</A> program.  Start the program with:
+<P><CODE>
+midas test.mrc test.xf
+</code>
+<P>A window will open up and you can view the alignment between any given
+pair of adjacent images.  After making adjustments for any sections that are
+out of alignment, save the transforms and exit the program.  Then rerun
+the <code>xf2xg</code> and <code>newst</code> commands shown above.
+</UL>
+<P>
+For more background and explanation of the topics in the Chapter, see the
+<A HREF = "serialalign.txt">guide</A> to serial section alignment.
+<P>
+</DT></DD>
+
+<DT><HR><A NAME = "Building Models"><H3>Chapter 4: Building Models</H3></A>
+<P>
+Models can be built automatically with the program 
+<code><A HREF = "man/imodauto.html">imodauto</a></code>
+or can
+be built interactively using <code><A HREF = "man/imod.html">imod</a></code>.
+Models generated with 
+<code><A HREF = "man/imodauto.html">imodauto</a></code>
+can be edited with the 
+<code><A HREF = "man/imod.html">imod</a></code> 
+program.
+Only images with a high signal due to 
+selective stain are currently candidates for
+<code><A HREF = "man/imodauto.html">imodauto</a></code>
+
+Most models will be generated using 
+<code><A HREF = "man/imod.html">imod</a></code>.
+
+<DD><H4>Model Organization</H4>
+It is helpful to understand the model data structure before trying
+to create a model.  
+A model is basically a collection of points that refer to or mark
+interesting locations in an image.
+These points can be connected and put into groups that are called contours.
+It is common that one would like to be able to mark more than one type
+of object in an image. This is facilitated by allowing contours to be
+grouped together into separate objects.  Each object is given its own
+name and all contours in the object share common attributes such as
+color. 
+
+<p>
+<H5>Model Layout</H5>
+
+<CENTER>
+<TABLE BORDER=2>
+<TR>
+<TD COLSPAN=3 TD ALIGN=LEFT>
+<B>Model header:</B><BR>
+includes image name, pixel size and zscale. </TD>
+</TR>
+
+<TR>
+<TD VALIGN=TOP>
+<TABLE BORDER=1>
+<TR><TH>Object 1 </TH></TR>
+<TR><TD>Name = blobs<BR>
+Color = green<BR>
+Type = scattered points.
+<TR><TD>Contour 1<BR>
+Point 1<BR>
+Point 2
+</TD></TR>
+<TR><TD>Contour 2<BR>
+Point 1<BR>
+Point 2<BR>
+Point 3
+</TD></TR>
+<TR><TD>Contour 3<BR>
+Point 1<BR>
+Point 2
+</TD></TR>
+</TABLE>
+</TD>
+
+<TD VALIGN=TOP>
+<TABLE BORDER=1>
+<TR><TH>Object 2 </TH></TR>
+<TR><TD>Name = round thing.<BR>
+Color = red<BR>
+Type  = closed.
+<TR><TD>Contour 1<BR>
+Point 1<BR>
+Point 2<BR>
+Point 3<BR>
+Point 4<BR>
+Point 5<BR>
+Point 6
+</TD></TR>
+</TABLE>
+</TD>
+
+<TD VALIGN=TOP>
+<TABLE BORDER=1>
+<TR><TH>Object 3 </TH></TR>
+<TR><TD>Name = stick<BR>
+Color = white<BR>
+Type = open.
+<TR><TD>Contour 1<BR>
+Point 1<BR>
+Point 2<BR>
+Point 3<BR>
+Point 4<BR>
+Point 5
+</TD></TR>
+<TR><TD>Contour 2<BR>
+Point 1<BR>
+Point 2<BR>
+Point 3<BR>
+Point 4
+</TD></TR>
+
+</TABLE>
+</TD>
+
+
+</TR>
+</TABLE>
+</CENTER>
+
+<p>
+</DD>
+<DD><H4>Interactive Model Building</H4>
+<P>To create a model for a MRC image file called 
+
+<CODE>example.mrc</CODE> run the following imod command.
+This command will cause a new model to be created, ready to edit.
+<br>
+<CODE>imod example.mrc</CODE>
+<P>
+
+If a model has already been saved but needs further editing run the
+command
+<br><CODE>imod example.mrc example.imod</CODE>
+<p>
+When this command is run a window similar to the one below will open up.
+A secondary window containing the image of the image file and model
+file is opened after the data has been loaded.
+
+<p> <HR> <CENTER> 
+<A NAME = "Information Window"> 
+<H5>The Imod Information Window</H5></A> 
+<IMG SRC="infowin.gif" ALT="Imod Information Window"> 
+</CENTER> 
+
+<P> 
+The Imod Information Window above is where information about the
+model and current image point are displayed.  The name of the image
+file and the name of the current model file are shown near the top of
+the window.  The main control menus
+for imod are also available from within this window.
+
+<P>The model controls are on the left side of the window.
+These controls show the current object, contour and point.
+The arrow buttons can be used to change the current object, contour
+or point.
+The current model being edited above has 7 objects; the 7th object
+is currently selected.  The 7th object has 46 contours and
+the 11th contour is currently selected.  
+This contour has 65 points and the 39th point
+is the current point.
+
+<P>The image position controls are on the right side of the window.
+These controls show the the image dimensions are 572 by 378 and that
+there are 76 sections.  The current model point is at the location
+(286,178) with the origin at the lower left corner of the image.  The
+current section is number 21.  The arrow buttons can be used for
+fine tuning the location of the current point.
+
+<P>There are some additional controls at the bottom of the window.
+The "Movie Mode" and "Model Mode" controls allow a user to select one
+of the two modes.  When "Movie Mode" is selected then all of the model
+edit controls are disabled.  The mouse controls will cause the image
+to movie back and forth.  When "Model Mode" is selected the mouse
+controls will edit the model.  
+The table below gives an overview of the mouse controls with each mode.
+<TABLE  BORDER=2>
+<CAPTION><B> Mouse Controls </B></CAPTION>
+<TR>
+<TH> Mouse Button </TH>
+<TH COLSPAN=3> Movie Mode   </TH>
+<TH COLSPAN=3> Model Mode   </TH>
+</TR>
+
+<TR>
+<TD>Left </TD>
+<TD ALIGN=LEFT COLSPAN=3> Select position or drag mouse to pan image.</TD>
+<TD ALIGN=LEFT COLSPAN=3> Attach to nearby model point or drag mouse to 
+pan image.</TD>
+</TR>
+
+<TR>
+<TD> Middle </TD>
+<TD ALIGN=LEFT COLSPAN=3>Movie image forward, or stop movie.</TD>
+<TD ALIGN=LEFT COLSPAN=3>Add new model point
+or drag mouse to add several points. </TD>
+</TR>
+
+<TR>
+<TD> Right </TD>
+<TD ALIGN=LEFT COLSPAN=3> Movie image backward, or stop movie.</TD>
+<TD ALIGN=LEFT COLSPAN=3> Modify the current model point or 
+drag mouse to modify several points.</TD>
+</TR>
+
+</TABLE>
+
+See the
+<A HREF = "man/imod.html">imod</A> 
+manual page section on mouse controls for more details.  
+<p>
+The two
+sliders reading "107" and "226" are adjustments to the display's black
+and white levels.  Moving these sliders will adjust the contrast and
+brightness of the displayed image, although on a PC the intensities
+won't change while you are dragging the slider, only when you drop it.
+If the "Float" control is checked,
+the program will adjust the black and white sliders automatically when
+you change from one section to another in an attempt to maintain a
+constant contrast and brightness.
+<p>
+The bottom panel will contain
+additional information and status messages.  You can expand the window
+vertically to see more of the information at once.
+
+<HR>
+<CENTER>
+<A NAME = "Zap Window">
+<H5>The Imod Zap Window</H5></A>
+<IMG SRC="zapwin.gif" ALT="Imod Zap Window">
+</CENTER>
+The main image display and model editing window within imod
+is the "ZaP" window.  The window name is an acronym for
+"Zoom and Pan".
+The zoom can be adjusted by either clicking with 
+the left mouse button on the arrows in the
+upper right hand corner or by selecting the
+text field next to the arrows and entering in a
+number.  The current zoom level in the image above
+is 1.25x.  </I>( Fractional zooms may be slower on some machines. )</i>
+To pan the image press and hold the left mouse
+button in the image area of the window and
+drag the image.
+
+<P>
+Some of the other controls at the top of the Zap window
+are the Checkerboard button,
+the Lock button, the Centering button, the Insert button and the section
+selector.
+<UL>
+<LI>The Checkerboard button will toggle between fast and slow 
+drawing methods.  
+<LI>The Lock button is used to keep the image from centering on the current
+point.  When the lock is closed, the image will not move when the current model
+point changes, but it can be moved with the mouse or the PageUp and PageDown
+keys.  When the lock is open, the image may automatically pan to the current
+point, depending on the setting of the Centering button.  This panning does
+not happen when the current point is selected or added by a mouse button.
+<LI>The Centering button toggles between two centering modes.  In one mode,
+the image will be centered on the current point only if it falls near the
+edge of the window, that is, outside of a central box.  (Thus, the icon shows
+one box inside another.)  In the other mode, the
+image will be recentered on the current point each time you change the 
+current point.  (The icon shows a point inside the outer box.  Sorry, this
+button does not appear in the example shown above.)
+<LI>The Insert, or Modeling Direction, button toggles between inserting 
+points before and inserting points after the current model point.
+<LI>The section selector shows the value of the current section
+being viewed in the Zap window.
+You can change sections by selecting this field and entering a 
+section number.
+</UL>
+<P>
+<I>Editing the model in the Zap Window</I>
+The left mouse button can be used to select a point for editing.
+The middle mouse button is used to insert model points.
+The right mouse button is used to alter the position of
+the current model point.
+</DD>
+<P>
+
+<DD><H4>Automated Model Building</H4>
+<P>
+imod has controls for automatically creating 
+contours.  The Auto Contour Window can be opened
+up by selecting the Edit->Contour->Auto menu
+item in the 
+<A HREF ="#Information Window">Information Window</A>
+<P>
+<CENTER>
+<H5>The Auto Contour Window</H5>
+<IMG SRC="autocont.gif" ALT="Imod Auto Contour Window">
+</CENTER>
+To build a contour automatically, first select the
+<B>High Contrast</B> button and then adjust the <B>Threshold</B>
+until you can see a feature that you wish to model
+outlined in the Zap window.  When the <B>Regular Contrast</B>
+button is selected no change of the image in the Zap window
+will be seen.  Next select the <B>Alt mouse</B> button
+to enable the auto contour mouse functions in the Zap window.
+In the Zap window, select the area you would like to 
+create a contour around with the
+<B>Left mouse button</B>.  You should see a red highlight
+around the area that the contour will enclose.
+If the area looks rough you can smooth it with the 
+<B>Smooth</B> button.
+If you don't like the area that is highlighted select the
+<B>Clear</B> button to erase the highlighted area.
+To build a contour around the selected area use the <B>Build</B>
+button.
+To return to manual editing in the Zap window, de-select the
+<B>Alt mouse</B> button.
+Select the <B>Help</B> button for a more detailed explanation of all
+of the controls.
+</DD>
+</DT>
+<p>
+<i>See also</i>: Manual pages for 
+<code><A HREF = "man/imod.html">imod</a></code> and
+<code><A HREF = "man/imodauto.html">imodauto</a></code>.
+
+
+<DT><HR><A NAME = "Viewing Models"><H3>Chapter 5: Viewing Models</H3></A>
+Once a model has been made one can get
+quantitative information about the objects and contours within the model
+using the
+<A HREF = "man/imodinfo.html">imodinfo</A> program.
+
+One can also view the model in an interactive renderer using
+<A HREF = "man/imodv.html">imodv</A>.
+
+It is also possible to use a conversion program to convert
+the IMOD model into other formats for use in other 3rd party programs,
+such as photo-realistic renderers or web browsers.
+
+
+<DD> <H4>Interactive Viewing</H4>
+The main interactive viewing program for IMOD model files is the
+<A HREF = "man/imodv.html">imodv</A> program.  The viewer can also
+be run within the <A HREF = "man/imod.html">imod</A> image visualization
+and modeling program by selecting the "Model View" item from the Image
+menu in the Imod <A HREF ="#Information Window">Information Window</A>.
+
+
+<DD> <H4>Putting a skin on model data.</H4>
+
+Skinning is the name used for calculating a three-dimensional 
+surface from contour data.  This surface, once calculated, is represented by
+a mesh of triangles that can be stored within each object.
+If any contour points within that object are edited then the mesh
+for that object must be recalculated in order for it to match
+the contour data.
+The <A HREF="man/imodmesh.html">imodmesh</A> program must be used
+to calculate the mesh from the contour data within a model
+since the skinning calculation cannot be done in real time with
+current computer processing.
+
+<P>
+Here are some example uses of imodmesh, assuming that the model file is titled
+cell.imod.
+<p>
+All meshes by default have a hole at the top and bottom of the data;
+the program cannot know a priori if the hole should be there or not.
+The -C in the command below tells imodmesh to fill in the holes at
+the ends or "Cap" them off.
+<br><code>imodmesh -C cell.imod</code>
+<p>
+Sometimes the mesh data structure can get so large that interactive
+viewing is very slow.  The -r or -R options can be used to make a mesh
+with a lower resolution.  In the example here, points on the mesh
+will be no less than 20 pixels apart.
+<br><code>imodmesh -C -r 20 cell.imod</code>
+<p>
+The -R option can give a more faithful rendition of a complex object because it
+removes only points that are within a certain distance of the remaining line 
+segments, thus preserving the shape of curves.  In this example, points will
+be removed, but the surface defined by the mesh will always be within 0.75
+pixel of the original data.
+<br><code>imodmesh -C -R 0.75 cell.imod</code>
+<p>If you make a mistake, don't worry, a backup file called
+cell.imod~ was made.  You can also erase all of the mesh data by
+using this last example.
+<br><code>imodmesh -e cell.imod</code>
+
+
+<DD> <H4>Quantitative Information.</H4>
+In order to get accurate information the fields in the model header
+have to be set properly.  To adjust the fields in the model header
+select the Model Header menu item from Edit menu in the
+Imod <A HREF ="#Information Window">Information Window</A>.
+The model edit dialog will pop up.  The "Z-Scale" and the
+"Pixel Size" fields will be used for calculating length, surface area
+or volume from object, contour or mesh data.
+
+The Pixel Size field should contain the value that describes the
+dimensions used in digitizing an image along with the units.
+Units can be one of the following; nm, um, mm, m, km.  For example,
+you could enter "0.015 um" or "15 nm".
+The Z-Scale is the ratio of the thickness between successive images
+to the Pixel Size.
+
+<p>
+Selecting the Edit->Object->Info or Edit->Contour->Info menu item from
+the Imod <A HREF ="#Information Window">Information Window</A> will
+cause the quantitative information to be printed out in the bottom
+panel of the Imod <A HREF ="#Information Window">Information Window</A>.
+
+<p>
+Use the 
+<A HREF="man/imodinfo.html">imodinfo</a> command to get basic information
+from a model and print it out to a terminal or file.
+<br><code>
+imodinfo cell.imod
+</code>
+<pre>
+# MODEL cell.imod
+# NAME  A little cell
+# PIX SCALE:  x = 1
+#             y = 1
+#             z = 9.17
+# PIX SIZE      = 0.00654
+# UNITS: um
+
+OBJECT 1
+NAME:  spindle pole
+       5 contours
+       object uses closed contours.
+       color (red, green, blue) = (0, 1, 1)
+
+       	CONTOUR #1,2,0  16 points, length = 0.464513,  area = 0.0134249
+        CONTOUR #2,2,0  14 points, length = 0.458311,  area = 0.0125642
+        CONTOUR #3,2,0  8 points,  length = 0.200755,  area = 0.00277481
+        CONTOUR #4,2,0  13 points, length = 0.313501,  area = 0.00664029
+        CONTOUR #5,2,0  9 points,  length = 0.232374,  area = 0.00272134
+
+        Total volume = 0.00228646
+        Total contour cylinder surface area = 0.10012.
+        Total mesh surface area = 0.0349499.
+</pre>
+</DD>
+<p>
+
+<DD> <H4>Output to other model formats.</H4>
+IMOD models can be converted to a few other 3rd party formats.
+The formats and the programs used to convert to them are
+listed below.
+<UL>
+
+<LI><A HREF="man/imod2vrml.html">imod2vrml</A> converts to the 
+Virtual Reality Modeling Language 1.0, see the
+<A HREF = "http://www.web3d.org/vrml/vrml.htm">VRML Repository</A> for more information.
+This is the format used in many web browsers for viewing 3D models.
+
+<LI><A HREF="man/imod2rib.html">imod2rib</A> converts to the RIB format used by Renderman. There is a set of public domain
+rendering tools at the 
+<A HREF="http://www.bmrt.org">
+Blue Moon Rendering Tools</A> Home Page.
+<br><I>The Renderman (R) Interface Procedures and RIB Protocol are:
+Copyright 1988,1989, Pixar.
+All rights reserved.
+RenderMan (R) is a registered trademark of Pixar.</I>
+
+<LI><A HREF="man/imod.html">imod</A> can write files in the SYNU 
+format used by the synuview program available from the 
+<A HREF="http://www-ncmir.ucsd.edu/">
+National Center for Microscopy and Imaging Research</A> (NCMIR).
+See the <A HREF="http://www-sdmir.ucsd.edu/SYNU.html">Synuview FAQ</A>
+
+<LI><A HREF="man/imod.html">imod</A> can write files in the NFF format
+used by 
+<A HREF = "http://www.scri.fsu.edu/~lyons/scian/Description.html">scian</A>.
+
+<LI><A HREF="man/imod2meta.html">imod2meta</A> is supposed to be able
+to write files in the Quick Draw 3D Metafile format, but was recently reported
+as not working.  This is the standard
+for Macintosh computers.
+See the <A HREF="http://www.apple.com/quicktime">
+Quick Draw 3D</A> Home Page for more information.
+</ul>
+
+</DD>
+
+</DL>
+</UL>
+<p>
+<i>See also</i>: Manual pages for 
+<code><A HREF = "man/imodv.html">imodv</a></code>,
+<code><A HREF = "man/imodmesh.html">imodmesh</a></code>,
+<code><A HREF = "man/imodcmopp.html">imodcmopp</a></code> and
+<code><A HREF = "man/imodinfo.html">imodinfo</a></code>.
+
+<HR>
+<UL><A NAME = "Special"><H3>Chapter 6: Special Help Topics</H3></A>
+<LI> <A HREF="tomoguide.html"> Tomography guide.</A>
+<LI> <A HREF="tomojoin.html"> Guide for joining tomograms from serial sections.</A>
+<LI> <A HREF = "serialalign.txt">Guide to serial section alignment.</A>
+<HR>
+<I>Last updated: November 19, 2001</I>
+[<A HREF="../index.html">IMOD Home Page</A>] 
+[<A HREF="../../index.html">BL3DFS Home Page</A>]
+</BODY>
+</html>

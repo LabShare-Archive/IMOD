@@ -1,0 +1,81 @@
+The MRC file format used by IMOD.
+
+The MRC header. length 1024 bytes
+
+SIZE DATA    NAME	Description
+
+4    int     nx;	Number of Columns 
+4    int     ny;        Number of Rows
+4    int     nz;        Number of Sections.
+
+4    int     mode;      Types of pixel in image.  Values used by imod:
+			 0 = unsigned char, 
+			 1 = short, 
+			 2 = float,  
+			 3 = short * 2, (used for complex data)
+			 4 = float * 2, (used for complex data)
+			16 = unsigned char * 3 (used for rgb data)
+
+4    int     nxstart;    /*  Starting point of sub image.  */
+4    int     nystart;
+4    int     nzstart;
+
+4    int     mx;         /* Grid size in X, Y, and Z       */
+4    int     my;
+4    int     mz;
+
+4    float   xlen;       /* Cell size; pixel spacing = xlen/mx   */
+4    float   ylen;
+4    float   zlen;
+
+4    float   alpha;      /* cell angles */
+4    float   beta;
+4    float   gamma;
+
+			 Ignored by imod.
+4    int     mapc;       /* map coloumn 1=x,2=y,3=z.       */
+4    int     mapr;       /* map row     1=x,2=y,3=z.       */
+4    int     maps;       /* map section 1=x,2=y,3=z.       */
+
+                         These need to be set for proper scaling of
+	 		 non byte data.
+4    float   amin;       Minimum pixel value.
+4    float   amax;       Maximum pixel value.
+4    float   amean;      Mean pixel value.
+
+2    short   ispg;       /* image type */
+2    short   nsymbt;     /* space group number */
+4    int     next;       /* number of bytes in extended header */
+2    short   creatid;    /* Creator ID */
+30   ---     extra data (not used)
+2    short   nint;       /* Number of bytes per section in extended header */
+2    short   nreal;      /* Flags for which types of data from SerialEM */
+28   ---     extra data (not used)
+                      Explanation of type of data.
+2    short   idtype;  ( 0 = mono, 1 = tilt, 2 = tilts, 3 = lina, 4 = lins)
+2    short   lens;
+2    short   nd1;     /* Divide by 100 to get float value. */
+2    short   nd2;
+2    short   vd1;
+2    short   vd2;
+
+        		Used to rotate model to match new rotated image.
+36   float   tiltangles[9];  /* 0,1,2 = original:  3,4,5 = current */
+
+
+4    float   zorg;      Origin of image.  Used to auto translate model
+4    float   xorg;      to match a new image that has been translated.
+4    float   yorg;
+
+4    int     nlabl;  	Number of labels with useful data.
+800  char[10][80]    	10 labels of 80 charactors.
+------------------------------------------------------------------------
+
+Total size of header is 1024 bytes plus the size of the extended header.
+ 
+Image data follows with the origin in the lower left corner,
+looking down on the volume.
+
+The size of the image is nx * ny * nz * (mode data size).
+
+

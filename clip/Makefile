@@ -1,0 +1,34 @@
+#####################
+# Makefile for clip
+#
+include ../configure
+
+OBJS = clip.o clip_proc.o clip_transform.o clip_io.o\
+	correlation.o fft.o filter.o
+
+all : clip
+
+# DNM 3/12/01: put $(F77LIBS) back on the link list just in case it's needed
+clip : $(OBJS)
+	@echo "Making clip: libifft is in the flib source code."
+	$(FLCC) -o clip $(OBJS) $(LDFLAGS)  \
+	-liimod -lifft $(TIFFLIBS) $(LIBS) $(F77LIBS)
+
+install : clip
+	strip clip
+	$(CP) clip $(INSTBINDIR)
+
+clean : 
+	$(FIND) . -type f -name "*.o" -exec rm "{}" \;
+	$(FIND) . -name "*~" -exec rm "{}" \;
+	$(FIND) . -type f -name "core" -exec rm "{}" \;
+	$(FIND) . -type f -name "clip" -exec rm "{}" \;
+
+
+#
+# If there is no fortran compiler available and hence
+# no fftlib then uncomment the following rule
+# to make a clip with to fft ability.
+#.c.o:
+#	$(CC) -c $(CFLAGS) -DNOFFTLIB $<
+

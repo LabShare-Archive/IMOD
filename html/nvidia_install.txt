@@ -1,0 +1,115 @@
+These instructions may be helpful with the steps required if you are
+installing an Nvidia card to use with IMOD.  They were correct as of
+November 2001.  The list of steps assume that you have already installed
+Red Hat Linux 7.1 with the XFree86 4.0.x drivers.
+
+1. Go to the Nvidia web site (http://www.nvidia.com) and find the page
+offering Linux drivers (e.g. select Support Center, Drivers, Back to
+Driver Library).  Select the latest version for XFree86 4.0.x and by
+either ftp or http download, get two tar.gz files:
+   NVIDIA_kernel-1.0-1541.tar.gz
+   NVIDIA_GLX-1.0-1541.tar.gz
+
+Notice links to the README and Installation Guide on this site; you will need
+to access this if you run into trouble or are deviating from our narrow path
+below.
+ 
+2. In order to build the drivers, you must have the source for your current
+kernel installed; the kernel headers will not do.  To check on this, start
+GnoRPM (Paw-Programs-System-GnoRPM) and look under Development, System.  If
+the source is not installed, insert your Redhat Source CD, press the Install
+button in the Gnome RPM window, find the source for your current kernel under
+Development, System, and install it.
+
+3. Make sure the default boot is into the terminal mode instead of x.
+This is done by setting the run mode as indicated below in /etc/inittab:
+
+id:3:initdefault
+
+(Note:  the values for this will be specified in comments in the file.)
+
+Reboot if necessary for this to take effect.
+
+4. Go to the location where you have placed your Nvidia tar files.
+Untar the files using:
+
+tar xvzf  xxxxxxxx.tar.gz
+
+for both the kernel and glx tar files.
+
+5. Go to the directory which contains the unpacked/untarred Nvidia kernel
+files.  Type make.  This will build the interface files from your version of
+Linux to the 1.0-1541 version of the Nvidia drivers.  Do a /sbin/lsmod to
+double check - you will see a new entry for NVdriver.
+
+6. Go to the directory in which the Nvidia GLX file was unpacked/untarred.
+Type "make".  The message which comes out should indicate success. This will
+install the 1.0-1541 version of OpenGL from Nvidia.
+
+7. Edit your /etc/X11/XF86Config file.
+Make sure the modules section loads "glx".
+Make your driver line says "Driver nvidia".
+A sample XF86Config file is attached for your reference.
+
+8. Type startx and see what happens. Success is indicated by a Gnome
+desktop.  Failure is a message saying the X server cannot come up.  A
+frequent message is a complaint about no/missing screens.  This really
+means that the nvidia driver could not start for one reason or another.
+You can examine the start up process in details by looking in the file
+/var/log/XFree86.0.log.  Make sure that the number of bits specified in
+the Display line matches up with one of the screens that is declared.
+
+9. Install the real OpenMotif libraries.  From the Gnome worksurface
+(as root), insert the RH7 PowerTools Applications CD and start up
+GNORPM.  (It should offer to start up automatically; if not, do
+Paw-Programs-System-GnoRPM.)
+
+Click the "install" icon on GNORPM to get the second window that
+indicates packages available on the CD.
+
+Under system environment, libraries, select "OpenMotif".
+
+If you are building IMOD from source, then under development, libraries,
+select "OpenMotif".
+
+Do a query, make sure one or both are still selected as desired, then
+"install" both.
+
+After the install, go back to the first window and examine the installed
+configuration to verify that they are now in place.
+
+10. If you are building IMOD from source, then you need to install the
+elusive GLw library and headers.  In the directory where you have
+unpacked IMOD source, do
+  make glw
+  make installglw     (this step requires that you be root)
+
+11. You are strongly encouraged to replace the Mesa libGLU.so with a version
+built from SGI's source code.  This is essential if you are building IMOD
+from source.  Mesa 3.5 apparently has such a libGLU, but the version of
+Mesa distributed in Redhat 7.1 has a different libGLU that is broken in
+some respects.  The Mesa site (http://www.mesa3d.org) has a link under
+"SGI's GLU" to an rpm built by Olivier Michel.  Download this and
+install with
+   rpm -i  --replacefiles oss-opengl-glu-20000925-1.i386.rpm
+
+12. Modify /etc/inittab to set the run mode to graphical and boot into X
+by default, if desired.
+
+13. Log in as a normal user.  Set up to run IMOD programs (e.g., source the
+file "pcinstall" or "bashinstall" while sitting in the top IMOD directory).
+Run imodv on the file yeastpore.mod
+   imodv yeastpore.mod
+ Start the model spinning by typing 5 and 8 on the numeric keypad.  After
+5 seconds or more, type o to get an output of frames/second.  You should
+probably get at least 150 FPS (assuming you have at least a GeForce2 with at
+least an 800 MHz processor).  If it is a lot slower than this, the Nvidia
+drivers and GL libraries may not be installed correctly.  Make very sure that
+any conflicting Mesa libraries are eliminated. More information on this
+subject may be found at the Nvidia driver site as well as at
+www.tomshardware.com.  If the rate is somewhat slower (e.g. around 100), you
+may have problems with the AGP support.  Do 
+   cat /proc/nv/card0
+ and see if AGP is Disabled.  If so, you may need to upgrade your kernel,
+because the Redhat 7.1 distribution included a module that broke AGP support
+for some processor/motherboard types.

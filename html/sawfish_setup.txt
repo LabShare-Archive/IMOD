@@ -1,0 +1,105 @@
+These directions are intended for Sawfish novices.  If you are a more
+experienced user but just getting IMOD set up, look through the "WINDOW
+MANAGER PROPERTIES" section, and be sure to make the two changes under
+"Moving and Resizing".
+
+SETTING THE FONT
+
+     When you first log in and open a terminal window, the default font
+is obnoxiously small, and may be displayed in gray on black, so you'll
+want to change this.
+
+     Under the Settings menu entry on the terminal window, select
+Preferences.  The "gnome-terminal" window comes up.
+
+     Press Browse... to set the font.  The "Pick a font" window comes
+up.
+
+     Under "Font:", find and select "fixed (misc)".  Then under "Font
+Style:", find "iso8859-1" (in gray).  Yes, there are a lot of iso8859
+fonts, but only this last one seems to have a decent font that can be 13
+or 14 points.  Pick "medium [C]", then pick a size of 13 or 14 depending
+on your preference.
+
+     Press OK in this window, then Apply in the "gnome-terminal" window.
+
+     Next select the colors tab.  With "Color scheme" set to "Linux
+Console", you may like "White on black" or "Black on light yellow".  For
+a real back on white, or other choices, select "Color Xterm".  You will
+then have to select "Custom colors" and set the Foreground and
+Background colors by hand.
+
+SETTING WINDOW MANAGER PROPERTIES
+
+     Next you should change some features of the Sawfish window manager
+in the Gnome Control Center, selected with the Toolbox icon in your task
+bar.  In the menu on the left is a section under "Sawfish window
+manager" that has the entries for selecting the panels of interest.
+When you change the settings in a panel, press the "OK" button before
+selecting another panel to minimize confusion.
+
+"Focus behavior" panel:
+     "When does the mouse pointer affect the input focus": If you are
+used to the way focus changes when you move the pointer into a window on
+the SGI, you will want this to be "enter-exit".  If you are used to
+clicking a window in order for it to take input, you may want "click",
+but you may or may not find it annoying to use Imod in this mode.
+
+     "Focus windows when they are first displayed": 
+     "Dialog windows inherit the focus from their parent": 
+If your focus is set to "enter-exit", you will probably want these both
+OFF, because otherwise it violates the logic of the window under the
+pointer having the focus.  It's tempting to leave the second one ON,
+because you almost always want to type into a dialog window after
+bringing it up; however, even this can get confusing in Imod.
+
+"Moving and Resizing" panel:
+     "How windows being moved are animated": SET THIS TO BOX. 
+
+     "How windows being resized are animated": SET THIS TO BOX.
+
+These two settings are crucial for keeping Imod from getting bogged down
+by numerous redraw events when you move or resize windows.
+
+"Placement" panel:
+     "Method of placing windows": You might want to play with this;
+"best-fit" and "interactive" are useful.  But first set the "Ignore..."
+button below.
+
+      "Method of placing dialog windows": You will probably want to set
+this to something other than "centered-on-parent", so that control
+windows in Imod do not come up right over your image window.
+
+     "Ignore program-specified window placements": Turn this ON to have
+Imod windows show up somewhere besides the upper left corner.
+
+     "Automatically remember window positions, sizes, or other
+attributes": You should leave all of these OFF, otherwise Imod windows
+will come up with inappropriate sizes.
+
+THE TASKBAR AND WORKSPACES
+
+     Sawfish provides for multiple workspaces, or screens, that can be
+switched between easily by typing Alt-F1, Alt-F2, etc.  The taskbar, or
+control panel, maintains a list of open windows in the current
+workspace.  You can bring a window forward or de-iconify it by clicking
+one of these buttons.  There is also a little cartoon of all of the
+windows in whichever workspaces have been accessed so far in your
+session, and you can click one of these window representation to access
+a window as well.
+
+     Initially, the taskbar is set up to sit at the bottom of the
+screen, rather than autohiding below the bottom.  With this setting, you
+may find that when you log in, the taskbar is in the middle of screen.
+Switching to a different workspace and back, or pushing one of the
+arrows on the end of the taskbar, will get it to the bottom the screen
+where it belongs.
+
+     To set the taskbar to autohide, access the "Paw" in the taskbar,
+and select "Panel", "Properties", "Hiding policy", and "Autohide".  Then
+go back to the Gnome Control Center and select the "Panel" entry under
+"Desktop".  Select the "Miscellaneous" tab and turn OFF "Keep panel
+below windows".  This will give you the best of both worlds, in that
+your windows can occupy the full screen length yet you will be able to
+access the panel without moving windows.  However, this button setting
+is inappropriate if autohiding is left off.

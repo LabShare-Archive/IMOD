@@ -1,0 +1,100 @@
+# Makefile for imod and imodv
+include ../configure
+
+IMOD_OBJS = imod.o imod_io.o imod_input.o imod_display.o \
+ imod_info.o imod_info_cb.o imod_menu.o slicer.o xyz.o \
+ autox.o imod_object_edit.o imod_cont_edit.o \
+ imod_workprocs.o wprint.o pixelview.o control.o \
+ imodview.o imod_edit.o b3dgfx.o b3dfile.o \
+ xtum.o xtilt.o xgraph.o xzap.o iproc.o sliceproc.o \
+ imod_iscale.o imod_model_edit.o imod_cont_copy.o imod_moviecon.o imodplug.o \
+ samplemeansd.o
+
+IMOD_X11_OBJS = ximodv.o imodv.o imod_model_draw.o
+
+IMODVOBJS = imodv_gfx.o imodv_input.o imodv_menu.o imodv_objed.o\
+ imodv_control.o imodv_light.o imodv_modeled.o imodv_movie.o imodv_views.o\
+ imodv_stereo.o imodv_image.o imodv_ogl.o imodv_depthcue.o
+
+GL_LIBS  = -lgutil -limage -lsphere -lfm_s $(GLIBS)
+
+HELP_INCS = imodhelp.h menus.h hotkey.h
+
+PROGS = imod imodv_gl imodv ximod ximodv
+
+#############################################################################
+all : imod imodv
+
+##############################################################################
+# imod
+
+imod : $(IMOD_OBJS) $(IMOD_X11_OBJS) $(IMODVOBJS)
+	$(IMODCC) -o imod $(IMOD_OBJS) $(IMOD_X11_OBJS) $(IMODVOBJS) \
+	$(LDFLAGS) -limod -liimod -ldia $(TIFFLIBS) \
+	$(GLIBS) $(XLIBS) $(PLUGLIBS) $(LIBS) -lm
+
+#############################################################################
+# imodv is the same program as imod.
+
+imodv : imod
+	if ( ! -e imodv) ln -s imod imodv
+
+
+#############################################################################
+# Dependencies
+
+$(IMOD_OBJS) : imod.h imodP.h imodv.h
+imod_model_draw.o : imod.h imodP.h imodv.h
+imodv_gfx.o : imod.h imodP.h imodv.h
+imodv_image.o : imod.h imodP.h imodv.h
+imodv_input.o : imod.h imodP.h imodv.h
+imodv_ogl.o : imod.h imodP.h imodv.h
+ximodv.o : imod.h imodP.h imodv.h ximodv.h
+
+$(IMODVOBJS) : imodv.h
+imodv.o : imodv.h
+
+slicer.o : sslice.h slicer.h
+imod_menu.o : imodhelp.h hotkey.h menus.h imod_info.h iproc.h options.h
+imod_info.o : imod_info.h
+imod_info_cb.o : imod_info.h options.h xzap.h
+imod_io.o : imod_info.h xzap.h
+iproc.o : iproc.h sliceproc.h
+xzap.o : keypad.h xzap.h
+xyz.c : keypad.h
+sliceproc.o : sliceproc.h
+imod_edit.o : xzap.h
+
+
+
+##############################################################################
+# make help files for imod
+# only imodhelp works now.  Take the current man page, imod.1, and run it
+# through emacs to untabify it and create imodhelp.  Then make
+
+mkargv : mkargv.o
+	$(CC) $(CFLAGS) -o mkargv mkargv.o
+
+imodhelp.h : imodhelp mkargv
+	./mkargv imodhelp imodhelp.h "Imod_help_text[]"
+
+#menus.h : menus.help mkargv
+#	./mkargv menus.help menus.h Imod_menus_help[]
+
+#hotkey.h : hotkey.help mkargv
+#	./mkargv hotkey.help hotkey.h Imod_hotkey_help[]
+
+##############################################################################
+
+install: imod
+	strip imod
+	$(CP) imod $(INSTBINDIR)/
+	(cd $(INSTBINDIR) ; if ( ! -e imodv) ln -s imod imodv )
+
+clean : 
+	$(FIND) . -type f -name "*.o" -exec rm "{}" \;
+	$(FIND) . -type f -name "*~" -exec rm "{}" \;
+	$(FIND) . -type f -name "#*#" -exec rm "{}" \;
+	$(FIND) . -type f -name "core" -exec rm "{}" \;
+	$(FIND) . -type f -name "mkargv" -exec rm "{}" \;
+	$(FIND) . -type f -name "imod" -exec rm "{}" \;

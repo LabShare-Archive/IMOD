@@ -1,0 +1,46 @@
+# IMOD 2.50
+#
+# PC VERSION OF ENVIRONMENT-SETTING COMMANDS WHEN RUNNING BASH
+#
+# To use IMOD temporarily, source this file while sitting in the same 
+# directory.  The command to enter is:
+# source bashinstall
+#
+# For more permanent use, include the text below in your .profile or 
+# .bash_profile file or in the system file /etc/profile, or source this file
+# from within one of those  files.
+# To do that, first change the `pwd` below to the name of the directory where
+# IMOD is located.
+#
+
+IMOD_DIR=`pwd`
+
+#
+# This command tells the system where the IMOD programs are located.
+#
+PATH=$PATH:$IMOD_DIR/bin
+
+#
+# This command tells the system where the IMOD plugins are located.
+#
+IMOD_PLUGIN_DIR=$IMOD_DIR/lib/imodplug
+
+#
+# These commands tell the system where the IMOD libraries are located.
+#
+
+LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$IMOD_DIR/lib
+
+export IMOD_DIR PATH IMOD_PLUGIN_DIR LD_LIBRARY_PATH
+
+#
+# The recommended form of the subm function
+#
+function subm () { (vmstocsh < $1.com $1.log | csh -e ; echo )& }
+
+
+#
+# These command allow fast backprojection if the USFFT license file exists
+#
+USFFT2_LICENSE_FILE=$IMOD_DIR/license.clo
+export USFFT2_LICENSE_FILE

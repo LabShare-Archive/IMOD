@@ -1,0 +1,30 @@
+IMOD Version 2.10                        Copyright Notice and Credits
+--------------------------------------------------------------------------
+ALL SOFTWARE LISTED IS Copyright (C) 1994-2000 by Boulder Laboratory
+for 3-Dimensional Fine Structure ("BL3DFS" or "3DFS") and the Regents
+of the University of Colorado.
+
+BL3DFS reserves the exclusive rights of preparing derivative works,
+distributing copies for sale, lease or lending and dispalying this
+software and documentation.
+Users may reproduce the software and documentation as long as the
+copyright notice and other notices are preserved.
+Neither the software nor the documentation may be distributed for
+profit, either in original form or in derivative works.
+
+THIS SOFTWARE AND/OR DOCUMENTATION IS PROVIDED WITH NO WARRANTY,
+EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTY OF
+MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.
+
+All programs written by James Kremer and David Mastronarde from the
+Boulder Laboratory for 3-D Fine Structure.  We thank David Agard and
+Hans Chen for the original MRC source code, Wah Chiu for a Unix
+version of low-level MRC file routines used in the FORTRAN parts, and
+Chuck Robertson for much work on the port to Linux.
+
+This work is supported by NIH biotechnology resources grant #RR00592,
+for the Boulder Laboratory for 3-Dimensional Fine Structure to
+J.R. McIntosh.  University of Colorado, MCDB Box 347, Boulder, CO 80309
+
+Contact email: David.Mastronarde@colorado.edu
+        www:   http://bio3d.colorado.edu/imod/index.html
