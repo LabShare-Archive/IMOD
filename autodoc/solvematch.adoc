@@ -33,7 +33,8 @@ short = alist
 long = ACorrespondenceList
 type = LI
 usage = List of points in series 1 which have corresponding points in series 2
-tooltip =
+tooltip = Enter the list of fiducials in A for which you know the corresponding
+fiducial in B.  Use the point number in *fid.xyz, not the contour number.
 manpage = A list of the points in series 1 for which a corresponding point in
 series 2 is known with confidence.  Ranges may be entered
 (e.g. 1-5,7,6,12).  The default is that all points correspond between the two
@@ -46,7 +47,8 @@ long = BCorrespondenceList
 type = LI
 usage = List of points in series 2 that correspond to list entered for
 series 1
-tooltip =
+tooltip = Enter the list of fiducials in B that correspond to the ones in the
+list entered for A.  Use the point number in *fid.xyz, not the contour number.
 manpage =   A list of the corresponding points in the second series.  The same
 number of values must be entered in this list as in the preceding
 list.  Again, the default is that all points correspond between the
@@ -85,12 +87,23 @@ fiducial points will be used if the fiducials are available.
 only the matching model points and ignore any entries of fiducial point files.
 ^The default is 2.
 
+enum.-2.tooltip = Select this option to use ONLY models of corresponding points
+to find the transformation between tomograms.
+enum.-1.tooltip = Select this option when the fiducials lie on one surface and
+the top of one tomogram in Z corresponds to the bottom of the other.
+enum.0.tooltip = Select this option to use both fiducials and models of
+corresponding points to find the transformation between tomograms.
+enum.1.tooltip = Select this option when the fiducials lie on one surface and
+the tomograms are not inverted in Z with respect to each other.
+enum.2.tooltip = Select this option when there are fiducials distributed in Z.
+
 [Field = MaximumResidual]
 short = maxresid
 long = MaximumResidual
 type = F
 usage = Largest maximum residual that will allow normal completion of program
-tooltip =
+tooltip = "Maximum residual allowed when fitting a 3D transformation to the
+corresponding points.
 manpage = The limiting value for the maximum residual, so that the program will
 exit with an error if this value is exceeded.
 
