@@ -60,6 +60,13 @@ c	  patches, then one line for each patch, containing the X, Y, and Z
 c	  coordinates of the patch and the displacement between the two files
 c	  in X, Y, and Z.
 c
+c	  The program runs onepatchcorr by telling tcsh to run the script in
+c	  $IMOD_DIR/bin; therefore IMOD_DIR must be defined.  If tcsh is not
+c	  available or you wish to run with a different shell, define the
+c	  environment variable IMOD_CSHELL with the name of the alternate C
+c	  shell, including any desired flags (the -f flag is added 
+c	  automatically)
+c
 c	  David Mastronarde, 7/16/01
 c
 c	  $Author$
@@ -69,6 +76,10 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.6  2003/10/24 03:48:13  mast
+c	  Use IMOD_DIR and IMOD_CSHELL to run onepatchcorr explicitly for 
+c	  Windows
+c	
 c	  Revision 3.5  2002/09/06 00:41:07  mast
 c	  Needed to prevent negative spanning distances when transformed
 c	  corners are very close to each other
@@ -614,10 +625,10 @@ c
      &			    call errorexit('FAILED TO GET IMOD_DIR '//
      &			    'ENVIRONMENT VARIABLE')
 			if (imodGetenv('IMOD_CSHELL', imodshell) .ne. 0)
-     &			    imodshell = 'tcsh -ef'
+     &			    imodshell = 'tcsh'
 			write(patchcom,
-     &			    '(a,1x,a,a,a,3i4,3i5,1x,a,1x,a,1x,a)')
-     &			    imodshell(1:lnblnk(imodshell)),
+     &			    '(a,1x,a,1x,a,a,a,3i4,3i5,1x,a,1x,a,1x,a)')
+     &			    imodshell(1:lnblnk(imodshell)),'-f',
      &			    imodpath(1:lnblnk(imodpath)),'/bin/',
      &			    onepatchname,nxpatch,nypatch,
      &			    nzpatch,ixcen,iycen,izcen,filea(1:lnblnk(filea)),
