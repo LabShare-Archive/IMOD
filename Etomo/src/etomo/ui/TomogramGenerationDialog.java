@@ -42,6 +42,10 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.1  2004/01/30 22:45:23  sueh
+ * bug# 356 Changing buttons with html labels to
+ * MultiLineButton and MultiLineToggleButton
+ *
  * Revision 3.0  2003/11/07 23:19:01  rickg
  * Version 1.0.0
  *
@@ -404,7 +408,7 @@ public class TomogramGenerationDialog
 
   public void setNewstParams(ConstNewstParam newstParam) {
     cbBoxUseLinearInterpolation.setSelected(
-      newstParam.isUseLinearInterpolation());
+      newstParam.isLinearInterpolation());
   }
   /**
    * Populate the dialog box with the tilt paramaters
@@ -450,7 +454,7 @@ public class TomogramGenerationDialog
   }
 
   public void getNewstParams(NewstParam newstParam) {
-    newstParam.setUseLinearInterpolation(
+    newstParam.setLinearInterpolation(
       cbBoxUseLinearInterpolation.isSelected());
   }
 
