@@ -173,7 +173,9 @@ cat << EOF  >! $midas_qconf
 EOF
 
 cat << EOF >! $imod_qconf
-LIBS += -L$lib_dir -limod -liimod -ldiaqt -ltiff
+SOURCES += linegui.cpp
+HEADERS += linegui.h
+LIBS += -L$lib_dir -limod -liimod -ldiaqt -ltiff -ltrack
 LIBS += -lm
 INCLUDEPATH += .
 EOF
@@ -185,6 +187,9 @@ set ld_lib_var      = LD_LIBRARYN32_PATH
 
 
 #  $Log$
+#  Revision 3.15  2003/10/24 19:52:40  mast
+#  changes after windows work, plus donot add plax in o32lib build
+#
 #  Revision 3.14  2003/10/24 04:18:43  mast
 #  changes for WIndows/Intel compilation
 #

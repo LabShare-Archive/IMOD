@@ -183,7 +183,9 @@ DEFINES	+= _FILE_OFFSET_BITS=64
 EOF
 
 cat << EOF >! $imod_qconf
-LIBS += -L$lib_dir -limod -liimod -ldiaqt -ltiff -ldl
+SOURCES += linegui.cpp
+HEADERS += linegui.h
+LIBS += -L$lib_dir -limod -liimod -ldiaqt -ltrack -ldtrigs -ltiff -ldl
 LIBS += -lm
 DEFINES	+= _FILE_OFFSET_BITS=64
 QMAKE_LFLAGS_DEBUG += -Wl,-E 
