@@ -20,6 +20,11 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.26  2004/07/20 20:06:20  sueh
+ * bug# 405 changing to ps axl because mac requires ps x when
+ * terminal has been exited and windows doesn't understand
+ * ps -x, but it does understand ps x
+ *
  * Revision 3.25  2004/07/14 18:43:27  sueh
  * bug# 405 go back to ps -l:  its faster and works for all the
  * ways to run etomo that we have tested
@@ -599,6 +604,9 @@ public class ProcessManager {
 
     File rawtlt = new File(workingDirectory, axisDataset + ".rawtlt");
     File tlt = new File(workingDirectory, axisDataset + ".tlt");
+    if (!rawtlt.exists()) {
+      appManager.makeRawtltFile(axisID);
+    }
     Utilities.copyFile(rawtlt, tlt);
   }
 
