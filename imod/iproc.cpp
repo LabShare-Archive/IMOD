@@ -313,8 +313,8 @@ int iprocRethink(struct ViewInfo *vi)
     proc.isaved = (unsigned char *)malloc(vi->xsize * vi->ysize);
     proc.iwork = (unsigned char *)malloc(vi->xsize * vi->ysize);
 
-    proc.andfImage = allocate2D_double(vi->xsize + 2, vi->ysize + 2);
-    proc.andfImage2 = allocate2D_double(vi->xsize + 2, vi->ysize + 2);
+    proc.andfImage = allocate2D_double(vi->ysize + 2, vi->xsize + 2);
+    proc.andfImage2 = allocate2D_double(vi->ysize + 2, vi->xsize + 2);
     proc.andfIterDone = 0;
     proc.andfDoneLabel->setText("0 done");
 
@@ -365,8 +365,8 @@ int inputIProcOpen(struct ViewInfo *vi)
     proc.isaved = (unsigned char *)malloc(vi->xsize * vi->ysize);
     proc.iwork = (unsigned char *)malloc(vi->xsize * vi->ysize);
 
-    proc.andfImage = allocate2D_double(vi->xsize + 2, vi->ysize + 2);
-    proc.andfImage2 = allocate2D_double(vi->xsize + 2, vi->ysize + 2);
+    proc.andfImage = allocate2D_double(vi->ysize + 2, vi->xsize + 2);
+    proc.andfImage2 = allocate2D_double(vi->ysize + 2, vi->xsize + 2);
 
     if (!proc.isaved || !proc.iwork || !proc.andfImage || !proc.andfImage2) {
       freeArrays(&proc);
@@ -1095,6 +1095,9 @@ void IProcThread::run()
 /*
 
     $Log$
+    Revision 4.15  2005/01/28 05:39:59  mast
+    Added anisotropic diffusion
+
     Revision 4.14  2005/01/07 21:59:01  mast
     Added median filter, converted help page
 
