@@ -90,6 +90,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.94  2004/08/03 18:53:45  sueh
+ * <p> bug# 519 get the correct tiltAngleSpec for axis B
+ * <p>
  * <p> Revision 3.93  2004/08/02 23:51:31  sueh
  * <p> bug# 519 improving error handling in
  * <p> makeRawtltFile()
@@ -4228,6 +4231,7 @@ public class ApplicationManager {
     String threadName;
     try {
       threadName = processMgr.solvematch();
+      //threadName = processMgr.combine();
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
