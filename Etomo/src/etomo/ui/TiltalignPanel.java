@@ -23,6 +23,9 @@ import etomo.comscript.StringList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.5  2002/11/22 00:56:52  rickg
+ * <p> removal of non-used fields in progress
+ * <p>
  * <p> Revision 1.4  2002/11/14 21:18:37  rickg
  * <p> Added anchors into the tomoguide
  * <p>
@@ -58,8 +61,8 @@ public class TiltalignPanel implements ContextMenu {
     new LabeledTextField("Tilt angle offset: ");
   private LabeledTextField ltfTiltAxisZShift =
     new LabeledTextField("Tilt axis z shift: ");
-/*  private LabeledTextField ltfTiltAxisXShift =
-    new LabeledTextField("Tilt axis x shift: ");*/
+  /*  private LabeledTextField ltfTiltAxisXShift =
+      new LabeledTextField("Tilt axis x shift: ");*/
   private JCheckBox chkLocalAlignments =
     new JCheckBox("Enable local alignments");
   private LabeledTextField ltfNLocalPatches =
@@ -215,15 +218,7 @@ public class TiltalignPanel implements ContextMenu {
   private LabeledTextField ltfLocalXstretchAdditionalGroups =
     new LabeledTextField("X-stretch additional group list: ");
 
-  private JRadioButton rbLocalSkewAll =
-    new JRadioButton("Independently for each tilt");
-  private JRadioButton rbLocalSkewAutomapLinear =
-    new JRadioButton("Group LocalSkew (first order fit)");
-  private JRadioButton rbLocalSkewAutomapFixed =
-    new JRadioButton("Group LocalSkew (zeroth order fit)");
-  private ButtonGroup bgLocalSkewSolution = new ButtonGroup();
   private JPanel panelLocalSkewSolution = new JPanel();
-
   private LabeledTextField ltfLocalSkewGroupSize =
     new LabeledTextField("LocalSkew group size: ");
   private LabeledTextField ltfLocalSkewAdditionalGroups =
@@ -272,7 +267,6 @@ public class TiltalignPanel implements ContextMenu {
     ltfAdditionalViewGroups.setText(params.getAdditionalViewGroups());
     ltfTiltAngleOffset.setText(params.getTiltAngleOffset());
     ltfTiltAxisZShift.setText(params.getTiltAxisZShift());
-//    ltfTiltAxisXShift.setText(params.getTiltAxisXShift());
     chkLocalAlignments.setSelected(params.getLocalAlignments());
     ltfNLocalPatches.setText(params.getNLocalPatches());
     ltfMinLocalPatchSize.setText(params.getMinLocalPatchSize());
@@ -457,21 +451,9 @@ public class TiltalignPanel implements ContextMenu {
     }
 
     //  Local skew solution parameters
-    solutionType = params.getLocalSkewSolutionType();
-    if (solutionType == 1) {
-      rbLocalSkewAll.setSelected(true);
-    }
-    if (solutionType == 3) {
-      rbLocalSkewAutomapLinear.setSelected(true);
-    }
-    if (solutionType == 4) {
-      rbLocalSkewAutomapFixed.setSelected(true);
-    }
-    if (solutionType > 2) {
-      ltfLocalSkewGroupSize.setText(params.getLocalSkewSolutionGroupSize());
-      ltfLocalSkewAdditionalGroups.setText(
-        params.getLocalSkewSolutionAdditionalGroups());
-    }
+    ltfLocalSkewGroupSize.setText(params.getLocalSkewSolutionGroupSize());
+    ltfLocalSkewAdditionalGroups.setText(
+      params.getLocalSkewSolutionAdditionalGroups());
 
     updateEnabled();
   }
@@ -528,9 +510,9 @@ public class TiltalignPanel implements ContextMenu {
       badParameter = ltfTiltAxisZShift.getLabel();
       params.setTiltAxisZShift(ltfTiltAxisZShift.getText());
 
-/*      badParameter = ltfTiltAxisXShift.getLabel();
-      params.setTiltAxisXShift(ltfTiltAxisXShift.getText());
-*/
+      /*      badParameter = ltfTiltAxisXShift.getLabel();
+            params.setTiltAxisXShift(ltfTiltAxisXShift.getText());
+      */
       badParameter = chkLocalAlignments.getText();
       params.setLocalAlignments(chkLocalAlignments.isSelected());
 
@@ -643,14 +625,12 @@ public class TiltalignPanel implements ContextMenu {
           type = 4;
         params.setSkewType(type);
 
-        if (type > 2) {
-          badParameter = ltfSkewGroupSize.getLabel();
-          params.setSkewSolutionGroupSize(ltfSkewGroupSize.getText());
+        badParameter = ltfSkewGroupSize.getLabel();
+        params.setSkewSolutionGroupSize(ltfSkewGroupSize.getText());
 
-          badParameter = ltfSkewAdditionalGroups.getLabel();
-          params.setSkewSolutionAdditionalGroups(
-            ltfSkewAdditionalGroups.getText());
-        }
+        badParameter = ltfSkewAdditionalGroups.getLabel();
+        params.setSkewSolutionAdditionalGroups(
+          ltfSkewAdditionalGroups.getText());
       }
 
       //  Get the local alignment parameters
@@ -726,14 +706,6 @@ public class TiltalignPanel implements ContextMenu {
             ltfLocalXstretchAdditionalGroups.getText());
         }
 
-        if (rbLocalSkewAll.isSelected())
-          type = 1;
-        if (rbLocalSkewAutomapLinear.isSelected())
-          type = 3;
-        if (rbLocalSkewAutomapFixed.isSelected())
-          type = 4;
-        params.setLocalSkewType(type);
-
         if (type > 2) {
           badParameter = ltfLocalSkewGroupSize.getLabel();
           params.setLocalSkewSolutionGroupSize(ltfLocalSkewGroupSize.getText());
@@ -782,7 +754,6 @@ public class TiltalignPanel implements ContextMenu {
     rbLocalDistortionIndependent.setSelected(true);
     rbLocalXstretchAutomapLinear.setSelected(true);
     ltfLocalXstretchGroupSize.setText(7);
-    rbLocalSkewAutomapLinear.setSelected(true);
     ltfLocalSkewGroupSize.setText(11);
 
     updateEnabled();
@@ -908,10 +879,6 @@ public class TiltalignPanel implements ContextMenu {
 
     // Skew panel state
     state = rbLocalDistortionIndependent.isSelected();
-    panelLocalSkewSolution.setEnabled(state);
-    rbLocalSkewAll.setEnabled(state);
-    rbLocalSkewAutomapFixed.setEnabled(state);
-    rbLocalSkewAutomapLinear.setEnabled(state);
 
     updateLocalXstretchSolutionPanel(null);
     updateLocalSkewSolutionPanel(null);
@@ -940,11 +907,8 @@ public class TiltalignPanel implements ContextMenu {
   }
 
   void updateLocalSkewSolutionPanel(ActionEvent event) {
-    boolean state =
-      (!rbLocalSkewAll.isSelected())
-        && rbLocalDistortionIndependent.isSelected();
-    ltfLocalSkewGroupSize.setEnabled(state);
-    ltfLocalSkewAdditionalGroups.setEnabled(state);
+    ltfLocalSkewGroupSize.setEnabled(true);
+    ltfLocalSkewAdditionalGroups.setEnabled(true);
   }
 
   private void createRadioBox(
@@ -1010,10 +974,10 @@ public class TiltalignPanel implements ContextMenu {
     panelGeneral.add(ltfTiltAxisZShift.getContainer());
     panelGeneral.add(Box.createRigidArea(FixedDim.x0_y5));
 
-/*    ltfTiltAxisXShift.setMaximumSize(dimLTF);
-    panelGeneral.add(ltfTiltAxisXShift.getContainer());
-    panelGeneral.add(Box.createRigidArea(FixedDim.x0_y5));
-*/
+    /*    ltfTiltAxisXShift.setMaximumSize(dimLTF);
+        panelGeneral.add(ltfTiltAxisXShift.getContainer());
+        panelGeneral.add(Box.createRigidArea(FixedDim.x0_y5));
+    */
     panelGeneral.add(chkLocalAlignments);
     chkLocalAlignments.setAlignmentX(1.0F);
     panelGeneral.add(Box.createRigidArea(FixedDim.x0_y5));
@@ -1277,18 +1241,20 @@ public class TiltalignPanel implements ContextMenu {
     panelLocalXstretchSolution.add(Box.createRigidArea(FixedDim.x0_y5));
     panelLocalXstretchSolution.add(Box.createVerticalGlue());
 
-    items[0] = rbLocalSkewAll;
-    items[1] = rbLocalSkewAutomapLinear;
-    items[2] = rbLocalSkewAutomapFixed;
-    LocalSkewRadioListener localSkewRadioListener =
-      new LocalSkewRadioListener(this);
-    createRadioBox(
-      panelLocalSkewSolution,
-      bgLocalSkewSolution,
-      items,
-      "Local Skew solution type",
-      localSkewRadioListener);
-
+    /*    items[0] = rbLocalSkewAll;
+        items[1] = rbLocalSkewAutomapLinear;
+        items[2] = rbLocalSkewAutomapFixed;
+        LocalSkewRadioListener localSkewRadioListener =
+          new LocalSkewRadioListener(this);
+        createRadioBox(
+          panelLocalSkewSolution,
+          bgLocalSkewSolution,
+          items,
+          "Local Skew solution type",
+          localSkewRadioListener);
+    */
+    panelLocalSkewSolution.setLayout(
+      new BoxLayout(panelLocalSkewSolution, BoxLayout.Y_AXIS));
     ltfLocalSkewGroupSize.setMaximumSize(dimLTF);
     panelLocalSkewSolution.add(ltfLocalSkewGroupSize.getContainer());
     ltfLocalSkewAdditionalGroups.setMaximumSize(dimLTF);
@@ -1423,16 +1389,5 @@ class SkewRadioListener implements ActionListener {
   }
   public void actionPerformed(ActionEvent event) {
     panel.updateSkewSolutionPanel(event);
-  }
-}
-
-class LocalSkewRadioListener implements ActionListener {
-  TiltalignPanel panel;
-
-  LocalSkewRadioListener(TiltalignPanel adaptee) {
-    panel = adaptee;
-  }
-  public void actionPerformed(ActionEvent event) {
-    panel.updateLocalSkewSolutionPanel(event);
   }
 }
