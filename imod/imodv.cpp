@@ -42,6 +42,8 @@ Log at end of file
 #include "imodv_window.h"
 #include <qapplication.h>
 #include <qdir.h>
+#include <qimage.h>
+#include <qpixmap.h>
 #include "dia_qtutils.h"
 
 #include "imodv.h"
@@ -52,6 +54,8 @@ Log at end of file
 #include "imodv_stereo.h"
 #include "imodv_modeled.h"
 #include "preferences.h"
+
+#include "b3dicon.xpm"
 
 // static declarations
 static void usage(char *pname);
@@ -100,6 +104,7 @@ static void usage(char *pname)
   fprintf(stderr, "\t-b color_name     Background color for rendering.\n");
   fprintf(stderr, "\t-s width,height   Window size in pixels.\n");
   fprintf(stderr, "\t-D                Debug mode.\n");
+  fprintf(stderr, "\t-h                Print this help message.\n");
   exit(-1);
 }
 
@@ -299,6 +304,7 @@ static int openWindow(ImodvApp *a)
 
   ImodvClosed = 0;
   imodvSetCaption();
+  a->mainWin->setIcon(*(a->iconPixmap));
 
   // If the user did not enter a window size, just resize to that before
   // showing
@@ -386,25 +392,22 @@ static int load_models(int n, char **fname, ImodvApp *a)
 }
 
 // THE ENTRY POINT FOR STANDALONE IMODV
-int imodv_main(int argc, char **argv, char *cmdLineStyle)
+int imodv_main(int argc, char **argv)
 {
   int i;
   ImodvApp *a = Imodv;
   a->standalone = 1;
   imodv_init(a, &Imodv_mdraw);
 
-  //  open_display(&argc, argv, Imodv);
-  QApplication myapp(argc, argv);
-
-  ImodPrefs = new ImodPreferences(cmdLineStyle);
+  // DNM 5/17/03: The Qt application and preferences are already gotten
 
   // Parse options
-  for (i = 1; i < myapp.argc(); i++){
-    if (myapp.argv()[i][0] == '-'){
-      switch (myapp.argv()[i][1]){
+  for (i = 1; i < argc; i++){
+    if (argv[i][0] == '-'){
+      switch (argv[i][1]){
 
       case 'b':
-	a->rbgname = strdup(myapp.argv()[++i]);
+	a->rbgname = strdup(argv[++i]);
 	break;
 
       case 'D':
@@ -416,14 +419,19 @@ int imodv_main(int argc, char **argv, char *cmdLineStyle)
 	break;
 
       case 's':
-	sscanf(myapp.argv()[++i], "%d%*c%d", &a->winx, &a->winy);
+	sscanf(argv[++i], "%d%*c%d", &a->winx, &a->winy);
 	break;
 
+      case 'h':
+        usage(argv[0]);
+        exit(1);
+        break;
+
       default:
-        if (strcmp("-modv", myapp.argv()[i]) && 
-            strcmp("-view", myapp.argv()[i])) {
+        if (strcmp("-modv", argv[i]) && 
+            strcmp("-view", argv[i])) {
           fprintf(stderr, "3dmodv error: illegal option %s\n", 
-                  myapp.argv()[i]);
+                  argv[i]);
           exit(1);
         }
 
@@ -445,19 +453,22 @@ int imodv_main(int argc, char **argv, char *cmdLineStyle)
     exit(-1);
   }
 
-  if (myapp.argc() - i < 1)
-    usage(myapp.argv()[0]);
+  if (argc - i < 1)
+    usage(argv[0]);
 
   /* DNM 1/29/03: already forked in imod, no need to do it here */
   
-  if (load_models(myapp.argc() - i, &(myapp.argv()[i]), Imodv))
+  if (load_models(argc - i, &(argv[i]), Imodv))
     exit(-1);
+
+  QImage iconImage(b3dicon);
+  a->iconPixmap = new QPixmap (iconImage);
 
   openWindow(Imodv);
 
   diaSetTitle("3dmodv");
 
-  return myapp.exec();
+  return qApp->exec();
 }
 
 
@@ -498,6 +509,7 @@ void imodv_open()
   }
 
   initstruct(vw, a);
+  a->iconPixmap = App->iconPixmap;
 
   if (getVisuals(a) != 0) {
     wprint("Couldn't get rendering visual for model view."
@@ -580,6 +592,9 @@ void imodvDrawImodImages()
 
 /*
 $Log$
+Revision 4.6  2003/04/25 03:28:32  mast
+Changes for name change to 3dmod
+
 Revision 4.5  2003/04/17 21:48:44  mast
 simplify -imodv option processing
 
