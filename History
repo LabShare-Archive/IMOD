@@ -1,5 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+IMOD_2-7-10
+12/10/02: Prevented Edit-image-flip during initial image load from crashing
+Imod; also stopped a big memory leak upon closing zap windows.
+
+12/10/02: Made newst able to combine transformation, rotation, and scaling.
+
 IMOD_2-7-9
 12/3/02: Fixed Transferfid to keep from getting no points in clipped out model
 due to roundoff errors.  Also added full error trapping and reporting.
