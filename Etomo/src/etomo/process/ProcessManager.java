@@ -20,6 +20,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.23  2004/07/12 22:35:39  sueh
+ * bug# 405 get the command name correctly for Linux and
+ * Windows
+ *
  * Revision 3.22  2004/07/07 00:22:38  sueh
  * bug# 405 in kill() recursively killing the descendants of a process
  * before killing the process
@@ -1450,9 +1454,9 @@ public class ProcessManager {
    * process.  Function assumes that the process will continue spawning while
    * the descendant processes are being killed.  Function attempts to stop
    * spawning with a Stop signal.  The Stop signal may not work in all cases and
-   * OS's, so the function refreshes the list of child process each time it gets
-   * one.  Functions avoids getting stuck on an unkillable process by recording
-   * each PID it sent a "kill -9" to.
+   * OS's, so the function refreshes the list of child processes until there are
+   * no more child processes.  The function avoids getting stuck on an
+   * unkillable process by recording each PID it sent a "kill -9" to.
    * 
    * The algorithm:
    * 1. Stop the root process.
@@ -1472,25 +1476,27 @@ public class ProcessManager {
     SystemProgram killShell = new SystemProgram("kill -19 " + processID);
     killShell.run();
     //kill all decendents of process before killing process
-    String childProcessID = null;
+    String[] childProcessIDList = null;
     do {
-      //get an unkilled child process
-      childProcessID = getChildProcess(processID);
-      if (childProcessID != null) {
-        killProcessAndDescendants(childProcessID);
+      //get unkilled child processes
+      childProcessIDList = getChildProcessList(processID);
+      if (childProcessIDList != null) {
+        for (int i = 0; i < childProcessIDList.length; i++) {
+          killProcessAndDescendants(childProcessIDList[i]);
+        }
       }
-    } while (childProcessID != null);
+    } while (childProcessIDList != null);
     //there are no more unkilled child processes so kill process with a SIGKILL
     //signal
     killShell = new SystemProgram("kill -9 " + processID);
     killShell.run();
-    System.err.println("killed " + processID);
+    Utilities.debugPrint("killed " + processID);
     //record killed process
     killedList.put(processID, "");
   }
 
   /**
-   * Return a PID of a children process for the specified parent process.  A new
+   * Return a PID of a child process for the specified parent process.  A new
    * ps command is run each time this function is called so that the most
    * up-to-date list of child processes is used.  Only processes the have not
    * already received a "kill -9" signal are returned.
@@ -1499,9 +1505,9 @@ public class ProcessManager {
    * @return A PID of a child process or null
    */
   protected String getChildProcess(String processID) {
-    System.err.println("in getChildProcess: processID=" + processID);
-    //ps -l: get processes from this user and terminal
-    SystemProgram ps = new SystemProgram("ps -l");
+    Utilities.debugPrint("in getChildProcess: processID=" + processID);
+    //ps -el: get all processes in the computer
+    SystemProgram ps = new SystemProgram("ps -el");
     ps.run();
 
     //  Find the index of the Parent ID and ProcessID
@@ -1541,7 +1547,7 @@ public class ProcessManager {
       if (fields[idxPPID].equals(processID)
         && !killedList.containsKey(fields[idxPID])) {
         if (idxCMD != -1) {
-          System.err.println(
+          Utilities.debugPrint(
             "child found:PID="
               + fields[idxPID]
               + ",PPID="
@@ -1557,15 +1563,18 @@ public class ProcessManager {
 
 
   /**
-   * Return a string array of the PIDs of children processes for the specified
-   * process.
+   * Return a the PIDs of child processes for the specified parent process.  A
+   * new ps command is run each time this function is called so that the most
+   * up-to-date list of child processes is used.  Only processes the have not
+   * already received a "kill -9" signal are returned.
    * 
    * @param processID
-   * @return A string array of the child processes or null if they don't exist
+   * @return A PID of a child process or null
    */
   private String[] getChildProcessList(String processID) {
-    //  Run the appropriate version of ps
-    SystemProgram ps = new SystemProgram("ps -l");
+    Utilities.debugPrint("in getChildProcessList: processID=" + processID);
+    //ps -el: get all processes in the computer
+    SystemProgram ps = new SystemProgram("ps -el");
     ps.run();
 
     //  Find the index of the Parent ID and ProcessID
@@ -1574,12 +1583,23 @@ public class ProcessManager {
     String[] labels = header.split("\\s+");
     int idxPID = -1;
     int idxPPID = -1;
+    int idxCMD = -1;
+    int found = 0;
     for (int i = 0; i < labels.length; i++) {
       if (labels[i].equals("PID")) {
         idxPID = i;
+        found++;
       }
       if (labels[i].equals("PPID")) {
         idxPPID = i;
+        found++;
+      }
+      if (labels[i].equals("CMD") || labels[i].equals("COMMAND")) {
+        idxCMD = i;
+        found++;
+      }
+      if (found >= 3) {
+        break;
       }
     }
     //  Return null if the PID or PPID fields are not found
@@ -1592,7 +1612,17 @@ public class ProcessManager {
     String[] fields;
     for (int i = 1; i < stdout.length; i++) {
       fields = stdout[i].trim().split("\\s+");
-      if (fields[idxPPID].equals(processID)) {
+      if (fields[idxPPID].equals(processID)
+        && !killedList.containsKey(fields[idxPID])) {
+        if (idxCMD != -1) {
+        Utilities.debugPrint(
+          "child found:PID="
+            + fields[idxPID]
+            + ",PPID="
+            + fields[idxPPID]
+            + ",name="
+            + fields[idxCMD]);
+        }
         childrenPID.add(fields[idxPID]);
       }
     }
