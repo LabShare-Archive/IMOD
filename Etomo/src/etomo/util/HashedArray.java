@@ -17,6 +17,9 @@ import java.util.Vector;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.3  2005/01/22 04:09:01  sueh
+* <p> bug# 509, bug# 591  Commenting functions.
+* <p>
 * <p> Revision 1.2  2004/11/20 00:11:14  sueh
 * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
 * <p>
@@ -44,13 +47,31 @@ public class HashedArray extends ConstHashedArray {
   }
   
   /**
-   * Add a new value with a new uniqueKey
+   * Add a new value with unique key is creates from keyName
    * @param keyName
    * @param value
    * @return
    */
   public synchronized UniqueKey add(String keyName, Object value) {
     UniqueKey key = new UniqueKey(keyName, this);
+    keyArray.add(key);
+    map.put(key, value);
+    return key;
+  }
+  
+  
+  /**
+   * Adds a new value and key.
+   * @param key
+   * @param value
+   * @throws IllegalStateException if key is not unique in the HashedArray
+   * instance.
+   * @return
+   */
+  public synchronized UniqueKey add(UniqueKey key, Object value) {
+    if (get(key) != null) {
+      throw new IllegalStateException("Key, " + key + ", is not unique.");
+    }
     keyArray.add(key);
     map.put(key, value);
     return key;
@@ -79,7 +100,14 @@ public class HashedArray extends ConstHashedArray {
   }
   
   public synchronized UniqueKey rekey(UniqueKey oldKey, String newKeyName) {
-    Object value = remove(oldKey);
-    return add(newKeyName, value);
+    return rekey(oldKey, new UniqueKey(newKeyName, this));
+  }
+  
+  public synchronized UniqueKey rekey(UniqueKey oldKey, UniqueKey newKey) {
+    int index = getIndex(oldKey);
+    Object value = map.remove(oldKey);
+    map.put(newKey, value);
+    keyArray.set(index, newKey);
+    return newKey;
   }
 }
