@@ -22,6 +22,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.0  2003/01/24 20:30:31  rickg
+ * <p> Single window merge to main branch
+ * <p>
  * <p> Revision 1.6.2.1  2003/01/24 18:43:37  rickg
  * <p> Single window GUI layout initial revision
  * <p>
@@ -113,7 +116,7 @@ public class TomogramCombinationDialog extends ProcessDialog {
     if (command.equals(buttonImodVolumeA.getActionCommand())) {
       applicationManager.imodTomogram(AxisID.FIRST);
     }
-    if (command.equals(buttonImodVolumeA.getActionCommand())) {
+    if (command.equals(buttonImodVolumeB.getActionCommand())) {
       applicationManager.imodTomogram(AxisID.SECOND);
     }
     if (command.equals(buttonCreate.getActionCommand())) {
