@@ -1,5 +1,7 @@
 package etomo.comscript;
 
+import java.util.ArrayList;
+
 /**
  * <p>Description: </p>
  *
@@ -13,6 +15,9 @@ package etomo.comscript;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.0  2003/11/07 23:19:00  rickg
+ * <p> Version 1.0.0
+ * <p>
  * <p> Revision 2.0  2003/01/24 20:30:31  rickg
  * <p> Single window merge to main branch
  * <p>
@@ -30,6 +35,10 @@ public class StringList {
     "$Id$";
   String[] elements;
 
+  public StringList() {
+    elements = new String[0];
+  }
+  
   public StringList(int nElements) {
     elements = new String[nElements];
   }
@@ -42,6 +51,10 @@ public class StringList {
     for (int i = 0; i < elements.length; i++) {
       elements[i] = src.get(i);
     }
+  }
+  
+  public StringList(String[] stringArray) {
+    parseString(stringArray);
   }
 
   public void setNElements(int nElements) {
@@ -83,5 +96,35 @@ public class StringList {
       return;
     }
     elements = newList.split(" +");
+  }
+  
+  /**
+   * Parse a space delimited string into the StringList
+   */
+  public void parseString(String[] newList) {
+    //  If the string is only white space set the StringList to the null set
+    if (newList == null || newList.length == 0) {
+      elements = new String[0];
+      return;
+    }
+    ArrayList elementArray = new ArrayList();
+    for (int i = 0; i < newList.length; i++) {
+      if (!newList[i].matches("\\s*")) {
+        String[] stringArray = newList[i].split(" +");
+        for (int stringIndex = 0; stringIndex < stringArray.length; stringIndex++) {
+          elementArray.add(stringArray[stringIndex]);
+        }
+      }
+    }
+    if (elementArray.size() == 0) {
+      elements = new String[0];
+    }
+    else if (elementArray.size() == 1) {
+      elements = new String[1];
+      elements[0] = (String) elementArray.get(0);
+    }
+    else {
+      elements = (String[]) elementArray.toArray(new String[elementArray.size()]);
+    }
   }
 }
