@@ -1,9 +1,15 @@
 package etomo.process;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 
 import etomo.ApplicationManager;
+import etomo.util.Utilities;
 
 /**
  * <p>
@@ -25,6 +31,9 @@ import etomo.ApplicationManager;
  * 
  * <p>
  * $Log$
+ * Revision 3.0  2003/11/07 23:19:00  rickg
+ * Version 1.0.0
+ *
  * Revision 1.13  2003/11/06 16:50:27  rickg
  * Removed -e flag for tcsh execution for all but the com scripts
  *
@@ -184,388 +193,446 @@ import etomo.ApplicationManager;
  * </p>
  */
 public class ComScriptProcess
-	extends Thread
-	implements SystemProcessInterface {
+  extends Thread
+  implements SystemProcessInterface {
 
-	public static final String rcsid =
-		"$Id$";
+  public static final String rcsid =
+    "$Id$";
 
-	private String name = null;
-	private File workingDirectory = null;
-	private ProcessManager processManager;
+  private String name = null;
+  private File workingDirectory = null;
+  private ProcessManager processManager;
 
-	private boolean demoMode = false;
-	private int demoTime = 5000;
-	private boolean debug = false;
-	private String[] errorMessage;
-	private String[] warningMessage;
-	private SystemProgram vmstocsh;
-	private SystemProgram csh;
-	private StringBuffer cshProcessID;
+  private boolean demoMode = false;
+  private int demoTime = 5000;
+  private boolean debug = false;
+  private String[] errorMessage;
+  private String[] warningMessage;
+  private SystemProgram vmstocsh;
+  private SystemProgram csh;
+  private StringBuffer cshProcessID;
 
-	private boolean started = false;
-	private boolean done = false;
+  private boolean started = false;
+  private boolean done = false;
 
-	/**
-	 * @return
-	 */
-	public int getDemoTime() {
-		return demoTime;
-	}
+  public ComScriptProcess(String comScript, ProcessManager processManager) {
+    this.name = comScript;
+    this.processManager = processManager;
+    cshProcessID = new StringBuffer("");
+  }
 
-	public ComScriptProcess(String comScript, ProcessManager processManager) {
-		this.name = comScript;
-		this.processManager = processManager;
-		cshProcessID = new StringBuffer("");
-	}
+  /**
+   * Set the working directory in which the com script is to be run.
+   */
+  public void setWorkingDirectory(File workingDirectory) {
+    this.workingDirectory = workingDirectory;
+  }
 
-	/**
-	 * Set the working directory in which the com script is to be run.
-	 */
-	public void setWorkingDirectory(File workingDirectory) {
-		this.workingDirectory = workingDirectory;
-	}
+  /**
+   * Execute the specified com script. This can be initiated by the start()
+   * function for the thread.
+   */
+  public void run() {
 
-	/**
-	 * Execute the specified com script. This can be initiated by the start()
-	 * function for the thread.
-	 */
-	public void run() {
+    if (demoMode) {
+      try {
+        started = true;
+        csh = new SystemProgram("nothing");
+        csh.setExitValue(0);
+        sleep(demoTime);
+      }
+      catch (InterruptedException except) {
+        except.printStackTrace();
+        System.err.println("Sleep interrupted");
+      }
+    }
+    else {
 
-		if (demoMode) {
-			try {
-				started = true;
-				csh = new SystemProgram("nothing");
-				csh.setExitValue(0);
-				sleep(demoTime);
-			}
-			catch (InterruptedException except) {
-				except.printStackTrace();
-				System.err.println("Sleep interrupted");
-			}
-		}
-		else {
+      // Rename the logfile so that any log file monitor does not get confused
+      // by an existing log file
+      renameLogFile();
 
-			// Rename the logfile so that any log file monitor does not get confused
-			// by an existing log file
-			renameLogFile();
+      //  Covert the com script to a sequence of csh commands
+      String[] commands;
+      try {
+        commands = vmsToCsh();
+      }
+      catch (SystemProcessException except) {
+        processManager.msgComScriptDone(this, vmstocsh.getExitValue());
+        return;
+      }
+      catch (IOException except) {
+        errorMessage = new String[1];
+        errorMessage[0] = except.getMessage();
+        processManager.msgComScriptDone(this, vmstocsh.getExitValue());
+        return;
+      }
 
-			//  Covert the com script to a sequence of csh commands
-			String[] commands;
-			try {
-				commands = vmsToCsh();
-			}
-			catch (SystemProcessException except) {
-				processManager.msgComScriptDone(this, vmstocsh.getExitValue());
-				return;
-			}
-			catch (IOException except) {
-				errorMessage = new String[1];
-				errorMessage[0] = except.getMessage();
-				processManager.msgComScriptDone(this, vmstocsh.getExitValue());
-				return;
-			}
+      // Execute the csh commands
+      started = true;
+      try {
+        execCsh(commands);
+      }
+      catch (SystemProcessException except) {
+        try {
+          errorMessage = parseError();
+        }
+        catch (IOException except2) {
+          errorMessage = new String[1];
+          errorMessage[0] = except2.getMessage();
+        }
+      }
+      catch (IOException except) {
+        errorMessage = new String[1];
+        errorMessage[0] = except.getMessage();
+      }
 
-			// Execute the csh commands
-			started = true;
-			try {
-				execCsh(commands);
-			}
-			catch (SystemProcessException except) {
-				try {
-					errorMessage = parseError();
-				}
-				catch (IOException except2) {
-					errorMessage = new String[1];
-					errorMessage[0] = except2.getMessage();
-				}
-			}
-			catch (IOException except) {
-				errorMessage = new String[1];
-				errorMessage[0] = except.getMessage();
-			}
+      // Get any warnings from the log file
+      try {
+        warningMessage = parseWarning();
+      }
+      catch (IOException except2) {
+        errorMessage = new String[1];
+        errorMessage[0] = except2.getMessage();
+      }
+    }
 
-			// Get any warnings from the log file
-			try {
-				warningMessage = parseWarning();
-			}
-			catch (IOException except2) {
-				errorMessage = new String[1];
-				errorMessage[0] = except2.getMessage();
-			}
-		}
+    // Send a message back to the ProcessManager that this thread is done.
+    //  FIXME this modifies swing element within this thread!!!
+    processManager.msgComScriptDone(this, csh.getExitValue());
+    done = true;
+  }
 
-		// Send a message back to the ProcessManager that this thread is done.
-		//  FIXME this modifies swing element within this thread!!!
-		processManager.msgComScriptDone(this, csh.getExitValue());
-		done = true;
-	}
+  /**
+   * Rename the log to backup file (tilde)
+   * This need serious work arounds because of the random failure bugs on
+   * windows.  See sun java bugs: 4017593, 4017593, 4042592
+   */
+  private void renameLogFile() {
+    try {
+      Utilities.debugPrint("In renameLogFile");
+      String logFileName = parseBaseName(name, ".com") + ".log";
 
-	private void renameLogFile() {
-		//	Rename the existing log file
-		String logFileName = parseBaseName(name, ".com") + ".log";
-		File logFile = new File(workingDirectory, logFileName);
-		if (logFile.exists()) {
-			File oldLog = new File(workingDirectory, logFileName + "~");
-			if (!logFile.renameTo(oldLog)) {
-				System.err.println(
-					"Unable to rename log file: " + workingDirectory + logFileName + "~");
-			}
-		}
-	}
-	/**
-	 * Get the name of the com script
-	 */
-	public String getScriptName() {
-		return name;
-	}
+      // Delete the existing backup file if it exists, otherwise the call will
+      // fail on windows 
+      File oldLog = new File(workingDirectory, logFileName + "~");
+      if (oldLog.exists()) {
+        Utilities.debugPrint(oldLog.getAbsolutePath() + " exists, deleting");
+        if (!oldLog.delete()) {
+          System.err.println(
+            "Unable to delete backup log file: " + oldLog.getAbsolutePath());
+          if (oldLog.exists()) {
+            System.err.println(oldLog.getAbsolutePath() + " still exists!");
+          }
+          else {
+            System.err.println(oldLog.getAbsolutePath() + " does not exist!");
+          }
+        }
+      }
 
-	/**
-	 * Get the error message, if any from the run method.
-	 */
-	public String[] getErrorMessage() {
-		return errorMessage;
-	}
+      // Rename the existing log file
+      File logFile = new File(workingDirectory, logFileName);
+      if (logFile.exists()) {
+        Utilities.debugPrint(logFile.getAbsolutePath() + " exists");
 
-	/**
-	 * Get the warning message, if any from the run method.
-	 */
-	public String[] getWarningMessage() {
-		return warningMessage;
-	}
+        if (!logFile.renameTo(oldLog)) {
+          if (logFile.exists()) {
+            System.err.println(logFile.getAbsolutePath() + " still exists");
+          }
+          else {
+            System.err.println(logFile.getAbsolutePath() + " does not exist!");
+          }
 
-	/**
-	 * Get the standard output
-	 */
-	public String[] getStdOutput() {
-		if (csh != null) {
-			return csh.getStdOutput();
-		}
-		else {
-			return null;
-		}
-	}
+          if (oldLog.exists()) {
+            System.err.println(oldLog.getAbsolutePath() + " still exists!");
+          }
+          else {
+            System.err.println(oldLog.getAbsolutePath() + " does not exist");
+          }
+          System.err.println(
+            "Unable to rename log file to: " + oldLog.getAbsolutePath());
+        }
+      }
+    }
+    catch (Exception except) {
+      except.printStackTrace();
+    }
+  }
 
-	/**
-	 * Get the standard error output
-	 */
-	public String[] getStdError() {
-		if (csh != null) {
-			return csh.getStdError();
-		}
-		else {
-			return null;
-		}
-	}
+  /**
+   * Get the name of the com script
+   */
+  public String getScriptName() {
+    return name;
+  }
 
-	/**
-	 * Get the csh process ID if it is available
-	 * 
-	 * @return
-	 */
-	public String getShellProcessID() {
-		if (cshProcessID == null) {
-			return "";
-		}
-		return cshProcessID.toString();
-	}
+  /**
+   * Get the error message, if any from the run method.
+   */
+  public String[] getErrorMessage() {
+    return errorMessage;
+  }
 
-	/**
-	 * Get the debug state.
-	 */
-	public boolean isDebug() {
-		return debug;
-	}
+  /**
+   * Get the warning message, if any from the run method.
+   */
+  public String[] getWarningMessage() {
+    return warningMessage;
+  }
 
-	/**
-	 * Set the debug state.
-	 */
-	public void setDebug(boolean state) {
-		debug = state;
-	}
+  /**
+   * Get the standard output
+   */
+  public String[] getStdOutput() {
+    if (csh != null) {
+      return csh.getStdOutput();
+    }
+    else {
+      return null;
+    }
+  }
 
-	/**
-	 * Extract the basename from a filename given the filename and the expected
-	 * extension.
-	 */
-	private String parseBaseName(String filename, String extension) {
-		int idxExtension = filename.indexOf(extension);
-		String base = null;
-		if (idxExtension > 0)
-			base = filename.substring(0, idxExtension);
-		return base;
-	}
+  /**
+   * Get the standard error output
+   */
+  public String[] getStdError() {
+    if (csh != null) {
+      return csh.getStdError();
+    }
+    else {
+      return null;
+    }
+  }
 
-	/**
-	 * Execute the csh commands.
-	 */
-	private void execCsh(String[] commands)
-		throws IOException, SystemProcessException {
+  /**
+   * Get the csh process ID if it is available
+   * 
+   * @return
+   */
+  public String getShellProcessID() {
+    if (cshProcessID == null) {
+      return "";
+    }
+    return cshProcessID.toString();
+  }
 
-  	// Do not use the -e flag for tcsh since David's scripts handle the failure 
-	  // of commands and then report appropriately.  The exception to this is the
-		// com scripts which require the -e flag.  RJG: 2003-11-06  
-		csh = new SystemProgram("tcsh -ef");
-		csh.setWorkingDirectory(workingDirectory);
-		csh.setStdInput(commands);
-		csh.setDebug(debug);
-		ParsePID parsePID = new ParsePID(csh, cshProcessID);
-		Thread parsePIDThread = new Thread(parsePID);
-		parsePIDThread.start();
+  /**
+   * Get the debug state.
+   */
+  public boolean isDebug() {
+    return debug;
+  }
 
-		csh.run();
+  /**
+   * Set the debug state.
+   */
+  public void setDebug(boolean state) {
+    debug = state;
+  }
 
-		// Check the exit value, if it is non zero, parse the warnings and errors
-		// from the log file.
-		if (csh.getExitValue() != 0) {
-			throw new SystemProcessException("");
-		}
-	}
+  /**
+   * Extract the basename from a filename given the filename and the expected
+   * extension.
+   */
+  private String parseBaseName(String filename, String extension) {
+    int idxExtension = filename.indexOf(extension);
+    String base = null;
+    if (idxExtension > 0)
+      base = filename.substring(0, idxExtension);
+    return base;
+  }
 
-	/**
-	 * Convert the com script to a sequence of csh command commands
-	 * 
-	 * @return A string array containing the csh command sequence
-	 */
-	private String[] vmsToCsh() throws IOException, SystemProcessException {
-		// Redirecting stdin for the command does not work even when a shell is
-		// called, need to pump the com file directly into the stdin of vmstocsh
-		String[] comSequence = loadFile();
-		String imodBinPath = ApplicationManager.getIMODDirectory().getAbsolutePath()
-				+ File.separator
-				+ "bin"
-				+ File.separator;
-		String commandLine =
-			imodBinPath + "vmstocsh " + parseBaseName(name, ".com") + ".log";
-		vmstocsh = new SystemProgram(commandLine);
-		vmstocsh.setWorkingDirectory(workingDirectory);
-		vmstocsh.setStdInput(comSequence);
-		vmstocsh.setDebug(debug);
-		vmstocsh.run();
+  /**
+   * Execute the csh commands.
+   */
+  private void execCsh(String[] commands)
+    throws IOException, SystemProcessException {
 
-		if (vmstocsh.getExitValue() != 0) {
-			errorMessage = new String[1];
-			errorMessage[0] = "Running vmstocsh against " + name + " failed";
-			throw new SystemProcessException("");
-		}
+    // Do not use the -e flag for tcsh since David's scripts handle the failure 
+    // of commands and then report appropriately.  The exception to this is the
+    // com scripts which require the -e flag.  RJG: 2003-11-06  
+    csh = new SystemProgram("tcsh -ef");
+    csh.setWorkingDirectory(workingDirectory);
+    csh.setStdInput(commands);
+    csh.setDebug(debug);
+    ParsePID parsePID = new ParsePID(csh, cshProcessID);
+    Thread parsePIDThread = new Thread(parsePID);
+    parsePIDThread.start();
 
-		return vmstocsh.getStdOutput();
-	}
+    csh.run();
 
-	/**
-	 * Load the comscript into a String[]
-	 * 
-	 * @return a String[] with each element containing a line of the com script
-	 */
-	private String[] loadFile() throws IOException {
+    // Check the exit value, if it is non zero, parse the warnings and errors
+    // from the log file.
+    if (csh.getExitValue() != 0) {
+      throw new SystemProcessException("");
+    }
+  }
 
-		//  Open the file as a stream
-		InputStream fileStream =
-			new FileInputStream(workingDirectory.getAbsolutePath() + "/" + name);
+  /**
+   * Convert the com script to a sequence of csh command commands
+   * 
+   * @return A string array containing the csh command sequence
+   */
+  private String[] vmsToCsh() throws IOException, SystemProcessException {
+    // Redirecting stdin for the command does not work even when a shell is
+    // called, need to pump the com file directly into the stdin of vmstocsh
+    String[] comSequence = loadFile();
+    String imodBinPath =
+      ApplicationManager.getIMODDirectory().getAbsolutePath()
+        + File.separator
+        + "bin"
+        + File.separator;
+    String commandLine =
+      imodBinPath + "vmstocsh " + parseBaseName(name, ".com") + ".log";
+    vmstocsh = new SystemProgram(commandLine);
+    vmstocsh.setWorkingDirectory(workingDirectory);
+    vmstocsh.setStdInput(comSequence);
+    vmstocsh.setDebug(debug);
+    vmstocsh.run();
 
-		BufferedReader fileBuffer =
-			new BufferedReader(new InputStreamReader(fileStream));
+    if (vmstocsh.getExitValue() != 0) {
+      errorMessage = new String[1];
+      errorMessage[0] = "Running vmstocsh against " + name + " failed";
+      throw new SystemProcessException("");
+    }
 
-		ArrayList lines = new ArrayList();
-		String line;
-		while ((line = fileBuffer.readLine()) != null) {
-			lines.add(line);
-		}
-		return (String[]) lines.toArray(new String[lines.size()]);
-	}
-	/**
-	 * Returns the demoMode.
-	 * 
-	 * @return boolean
-	 */
-	public boolean isDemoMode() {
-		return demoMode;
-	}
+    return vmstocsh.getStdOutput();
+  }
 
-	/**
-	 * Sets the demoMode.
-	 * 
-	 * @param demoMode
-	 *          The demoMode to set
-	 */
-	public void setDemoMode(boolean demoMode) {
-		this.demoMode = demoMode;
-	}
+  /**
+   * Load the comscript into a String[] for feeding into vmstocsh since we do
+   * not have access to piping or standard input when running commands.
+   * 
+   * @return a String[] with each element containing a line of the com script
+   */
+  private String[] loadFile() throws IOException {
 
-	/**
-	 * Parse the log file for errors. Since the fortran code is not smart enough
-	 * handle formatted output we need find ERROR: in the middle of the output
-	 * stream. The error report starts with the ERROR: text instead of the whole
-	 * line.
-	 */
-	private String[] parseError() throws IOException {
-		//  Open the file as a stream
-		InputStream fileStream =
-			new FileInputStream(
-				workingDirectory.getAbsolutePath()
-					+ "/"
-					+ parseBaseName(name, ".com")
-					+ ".log");
+    //  Open the file as a stream
+    InputStream fileStream =
+      new FileInputStream(workingDirectory.getAbsolutePath() + "/" + name);
 
-		BufferedReader fileBuffer =
-			new BufferedReader(new InputStreamReader(fileStream));
+    BufferedReader fileReader =
+      new BufferedReader(new InputStreamReader(fileStream));
 
-		ArrayList errors = new ArrayList();
-		String line;
-		boolean foundError = false;
-		while ((line = fileBuffer.readLine()) != null) {
-			if (!foundError) {
-				int index = line.indexOf("ERROR:");
-				if (index != -1) {
-					foundError = true;
-					errors.add(line);
-				}
-			}
-			else {
-				errors.add(line);
-			}
-		}
-		return (String[]) errors.toArray(new String[errors.size()]);
-	}
+    ArrayList lines = new ArrayList();
+    String line;
+    while ((line = fileReader.readLine()) != null) {
+      lines.add(line);
+    }
+    return (String[]) lines.toArray(new String[lines.size()]);
+  }
 
-	/**
-	 * Parse the log file for warnings. Since the fortran code is no smart enough
-	 * handle formatted output we need find WARNING: in the middle of the output
-	 * stream. The error report starts with the WARNING: text instead of the
-	 * whole line.
-	 * 
-	 * @return A String[] containing any errors. If the com script has not been
-	 *         run then null is returned. If the com script ran with no warnings
-	 *         then zero length array will be returned.
-	 */
-	private String[] parseWarning() throws IOException {
-		//  Open the file as a stream
-		InputStream fileStream =
-			new FileInputStream(
-				workingDirectory.getAbsolutePath()
-					+ "/"
-					+ parseBaseName(name, ".com")
-					+ ".log");
+  /**
+   * Parse the log file for errors. Since the fortran code is not smart enough
+   * handle formatted output we need find ERROR: in the middle of the output
+   * stream. The error report starts with the ERROR: text instead of the whole
+   * line.
+   */
+  private String[] parseError() throws IOException {
+    //  Open the file as a stream
+    InputStream fileStream =
+      new FileInputStream(
+        workingDirectory.getAbsolutePath()
+          + "/"
+          + parseBaseName(name, ".com")
+          + ".log");
 
-		BufferedReader fileBuffer =
-			new BufferedReader(new InputStreamReader(fileStream));
+    BufferedReader fileReader =
+      new BufferedReader(new InputStreamReader(fileStream));
 
-		ArrayList errors = new ArrayList();
-		String line;
-		while ((line = fileBuffer.readLine()) != null) {
-			int index = line.indexOf("WARNING:");
-			if (index != -1) {
-				errors.add(line.substring(index));
-			}
-		}
-		return (String[]) errors.toArray(new String[errors.size()]);
-	}
+    ArrayList errors = new ArrayList();
+    String line;
+    boolean foundError = false;
+    while ((line = fileReader.readLine()) != null) {
+      if (!foundError) {
+        int index = line.indexOf("ERROR:");
+        if (index != -1) {
+          foundError = true;
+          errors.add(line);
+        }
+      }
+      else {
+        errors.add(line);
+      }
+    }
+    fileReader.close();
+    return (String[]) errors.toArray(new String[errors.size()]);
+  }
 
-	public boolean isStarted() {
-		return started;
-	}
+  /**
+   * Parse the log file for warnings. Since the fortran code is no smart enough
+   * handle formatted output we need find WARNING: in the middle of the output
+   * stream. The error report starts with the WARNING: text instead of the
+   * whole line.
+   * 
+   * @return A String[] containing any errors. If the com script has not been
+   *         run then null is returned. If the com script ran with no warnings
+   *         then zero length array will be returned.
+   */
+  private String[] parseWarning() throws IOException {
+    //  Open the file as a stream
+    InputStream fileStream =
+      new FileInputStream(
+        workingDirectory.getAbsolutePath()
+          + "/"
+          + parseBaseName(name, ".com")
+          + ".log");
 
-	public boolean isDone() {
-		return done;
-	}
+    BufferedReader fileBuffer =
+      new BufferedReader(new InputStreamReader(fileStream));
+
+    ArrayList errors = new ArrayList();
+    String line;
+    while ((line = fileBuffer.readLine()) != null) {
+      int index = line.indexOf("WARNING:");
+      if (index != -1) {
+        errors.add(line.substring(index));
+      }
+    }
+    fileBuffer.close();
+    return (String[]) errors.toArray(new String[errors.size()]);
+  }
+
+  /**
+   * Returns true if the com script process is running, this does not include
+   * vmstocsh process.
+   */
+  public boolean isStarted() {
+    return started;
+  }
+
+  /**
+   * Returns true if the com script process has completed and the process
+   * manager has been notifified.
+   */
+  public boolean isDone() {
+    return done;
+  }
+
+  /**
+   * Returns the demoMode.
+   * 
+   * @return boolean
+   */
+  public boolean isDemoMode() {
+    return demoMode;
+  }
+
+  /**
+   * Sets the demoMode.
+   * 
+   * @param demoMode
+   *          The demoMode to set
+   */
+  public void setDemoMode(boolean demoMode) {
+    this.demoMode = demoMode;
+  }
+
+  /**
+   * Get the number of milliseconds the demo process will run
+   * @return
+   */
+  public int getDemoTime() {
+    return demoTime;
+  }
 }
