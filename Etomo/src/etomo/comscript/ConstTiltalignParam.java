@@ -23,6 +23,11 @@ import etomo.type.TiltAngleSpec;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.6  2005/01/08 01:36:02  sueh
+ * <p> bug# 578 Removed getBinning() since its not needed by Command.
+ * <p> Removed Command access to skewOption and xStretchOption.
+ * <p> Add Command access to useOutputZFactorFile().
+ * <p>
  * <p> Revision 3.5  2005/01/06 17:59:54  sueh
  * <p> bug# 578 Changed getIntegerValue() to give access to skewOption and
  * <p> xStretchOption  to Command interface.
@@ -131,6 +136,7 @@ public class ConstTiltalignParam implements Command {
   
   protected String modelFile;
   protected String imageFile;
+  protected String outputModelAndResidual;
   protected String outputModelFile;
   protected String outputResidualFile;
   protected String outputFidXYZFile;
@@ -255,6 +261,7 @@ public class ConstTiltalignParam implements Command {
   protected void reset() {
     modelFile = "";
     imageFile = "";
+    outputModelAndResidual = "";
     outputModelFile = "";
     outputResidualFile = "";
     outputFidXYZFile = "";
