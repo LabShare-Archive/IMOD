@@ -37,6 +37,12 @@ import etomo.storage.IntermediateFileFilter;
  * 
  * <p>
  * $Log$
+ * Revision 3.4  2005/03/29 23:52:19  sueh
+ * bug# 618 To prevent the user from deleting their tomogram when they
+ * decide not to trim, setting
+ * IntermediateFileFilter.acceptPretrimmedTomograms to true only if a
+ * trimmed tomogram exists.
+ *
  * Revision 3.3  2004/11/19 23:49:43  sueh
  * bug# 520 merging Etomo_3-4-6_JOIN branch to head.
  *
@@ -140,7 +146,7 @@ public class CleanupPanel {
 
     pnlCleanup.setLayout(new BoxLayout(pnlCleanup, BoxLayout.Y_AXIS));
     pnlCleanup.setBorder(
-      new BeveledBorder("Intermediate file cleanup").getBorder());
+      new BeveledBorder("Intermediate File Cleanup").getBorder());
     instructions.setAlignmentX(Component.CENTER_ALIGNMENT);
     pnlCleanup.add(instructions);
     pnlCleanup.add(Box.createRigidArea(FixedDim.x0_y10));
