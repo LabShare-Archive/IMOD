@@ -36,6 +36,9 @@
     $Revision$
 
     $Log$
+    Revision 3.7  2003/06/10 23:20:38  mast
+    Add call to set symbol size and type
+
     Revision 3.6  2003/02/21 23:58:10  mast
     Open files in binary mode
 
@@ -851,6 +854,7 @@ int writeimod(
 #endif
      int i, ob, flag, value;
      int retcode = 0;
+     Iobjview *objview;
      char *filename = fstrtoc(fname, fsize);
      if (!filename) return(FWRAP_ERROR_BAD_FILENAME);
      if (!Fimod) { free(filename); return(FWRAP_ERROR_NO_MODEL);}
@@ -860,37 +864,54 @@ int writeimod(
        flag = flags_put[2 * i + 1];
        value = flag >> FLAG_VALUE_SHIFT;
        /* printf("object %d  flag %d  value %d\n", ob, flag & 0xff, value); */
-       if (ob >= 0 && ob < Fimod->objsize)
+       if (ob >= 0 && ob < Fimod->objsize) {
+
+         /* Save some data in the current view if it has an object view for
+            this object */
+         objview = NULL;
+         if (Fimod->cview > 0 && Fimod->view[Fimod->cview].objvsize > ob)
+           objview = &(Fimod->view[Fimod->cview].objview[ob]);
+
          switch (flag) {
          case 0:
            Fimod->obj[ob].flags &= ~IMOD_OBJFLAG_OPEN;
            Fimod->obj[ob].flags &= ~IMOD_OBJFLAG_SCAT;
+           if (objview)
+             objview->flags = Fimod->obj[ob].flags;
            break;
          case 1:
            Fimod->obj[ob].flags |= IMOD_OBJFLAG_OPEN;
            Fimod->obj[ob].flags &= ~IMOD_OBJFLAG_SCAT;
+           if (objview)
+             objview->flags = Fimod->obj[ob].flags;
            break;
          case 2:
            Fimod->obj[ob].flags &= ~IMOD_OBJFLAG_OPEN;
            Fimod->obj[ob].flags |= IMOD_OBJFLAG_SCAT;
+           if (objview)
+             objview->flags = Fimod->obj[ob].flags;
            break;
          default:
-           if (flag & SCAT_SIZE_FLAG)
+           if (flag & SCAT_SIZE_FLAG) {
              Fimod->obj[ob].pdrawsize = value;
+             if (objview)
+               objview->pdrawsize = Fimod->obj[ob].pdrawsize;
+           }
            if (flag & SYMBOL_SIZE_FLAG)
              Fimod->obj[ob].symsize = value;
            if (flag & SYMBOL_TYPE_FLAG)
              Fimod->obj[ob].symbol = value;
            break;
          }
+       }
+     }
+       
+     if (maxes_put) {
+       Fimod->xmax = xmax_put;
+       Fimod->ymax = ymax_put;
+       Fimod->zmax = zmax_put;
      }
      
-     if (maxes_put) {
-	  Fimod->xmax = xmax_put;
-	  Fimod->ymax = ymax_put;
-	  Fimod->zmax = zmax_put;
-     }
-  
      Fimod->file = fopen(filename, "wb");
      retcode = imodWriteFile(Fimod);
      free(filename);
