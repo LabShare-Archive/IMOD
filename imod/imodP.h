@@ -46,6 +46,7 @@ Log at end of file
 
 class QGLColormap;
 class QCursor;
+class QPixmap;
 
 /* DNM 12/22/02: eliminated multiple view structures */
 typedef struct imod_application
@@ -58,6 +59,7 @@ typedef struct imod_application
   int          rgba;
   int         qtEnableDepth;
   QCursor *modelCursor;
+  QPixmap *iconPixmap;
   
   /* Global color pixel values */
   int base;
@@ -281,6 +283,9 @@ void ivwReadZ(ImodView *iv, unsigned char *buf, int cz);
 
 /*
 $Log$
+Revision 3.12  2003/04/18 20:15:17  mast
+Add flag to set if program is exiting
+
 Revision 3.11  2003/03/03 22:10:27  mast
 Added modeling cursor to App structure
 

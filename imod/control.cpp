@@ -335,6 +335,17 @@ void DialogManager::add(QWidget *widget, int dlgClass)
   dia.iconified = 0;
   dia.dlgClass = dlgClass;
   ilistAppend(mDialogList, &dia);
+
+  // Set the icon from the appropriate place
+  switch (dlgClass) {
+  case IMOD_DIALOG:
+  case IMOD_IMAGE:
+    widget->setIcon(*(App->iconPixmap));
+    break;
+  case IMODV_DIALOG:
+    widget->setIcon(*(Imodv->iconPixmap));
+    break;
+  }
 }
 
 // Remove a dialog from the list
@@ -429,6 +440,9 @@ QWidget *DialogManager::parent(int dlgClass)
 
 /*
 $Log$
+Revision 4.4  2003/04/25 03:28:32  mast
+Changes for name change to 3dmod
+
 Revision 4.3  2003/04/17 19:00:59  mast
 new function to provide machine-dependent parent widget
 

@@ -51,6 +51,7 @@ Log at end of file
 class ImodvWindow;
 #endif
 class QColor;
+class QPixmap;
 
 typedef struct __imodv_struct
 {
@@ -72,6 +73,7 @@ typedef struct __imodv_struct
   /* windowing data */
   int          wpid;
   ImodvWindow  *mainWin;
+  QPixmap *iconPixmap;
 
   char         *rbgname;
   QColor       *rbgcolor; /* background color for rendering.    */
@@ -142,12 +144,15 @@ void imodv_open(void);
 void imodv_draw(void);
 void imodv_close(void);
 void imodv_new_model(Imod *mod);
-int  imodv_main(int argc, char **argv, char *cmdLineStyle);
+int  imodv_main(int argc, char **argv);
 void imodvSetCaption();
 void imodvDrawImodImages();
 
 /*
 $Log$
+Revision 3.7  2003/03/26 23:22:20  mast
+Change argument to main entry function
+
 Revision 3.6  2003/03/04 21:42:37  mast
 Add function to draw imod windows
 

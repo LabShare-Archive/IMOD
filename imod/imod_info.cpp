@@ -55,6 +55,7 @@
 #include "imodplug.h"
 #include "preferences.h"
 #include "control.h"
+#include "3dicon.xpm"
 
 #define INFO_MIN_LINES 3.5
 #define INFO_STARTING_LINES 4.75
@@ -248,6 +249,8 @@ InfoWindow::InfoWindow(QWidget * parent, const char * name, WFlags f)
   setFocusPolicy(StrongFocus);
   mStatusEdit->setFocusPolicy(NoFocus);
   wprintWidget(mStatusEdit);
+
+  setIcon(*(App->iconPixmap));
 }
 
 void InfoWindow::setFontDependentWidths()
@@ -468,6 +471,9 @@ static char *truncate_name(char *name, int limit)
 
 /*
     $Log$
+    Revision 4.17  2003/04/25 03:28:32  mast
+    Changes for name change to 3dmod
+
     Revision 4.16  2003/04/23 17:50:44  mast
     no longer need to watch windowActivate event due to fix on Mac
 
