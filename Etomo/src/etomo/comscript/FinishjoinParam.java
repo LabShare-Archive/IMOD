@@ -25,6 +25,9 @@ import etomo.type.SectionTableRowData;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.6  2004/12/02 18:24:48  sueh
+* <p> bug 520 Remove unnecessary import.
+* <p>
 * <p> Revision 1.5  2004/12/01 03:45:15  sueh
 * <p> bug# 520 Removed unnecessary member variable SystemProgram
 * <p> program.
@@ -89,10 +92,10 @@ public class FinishjoinParam implements Command {
   public static final int SIZE_IN_Y_INDEX = 4;
   public static final int OFFSET_IN_X_INDEX = 4;
   public static final int OFFSET_IN_Y_INDEX = 5;
-  public static final int SIZE_IN_X_VALUE_NAME = -1;
-  public static final int SIZE_IN_Y_VALUE_NAME = -2;
-  public static final int SHIFT_IN_X_VALUE_NAME = -3;
-  public static final int SHIFT_IN_Y_VALUE_NAME = -4;
+  public static final int SIZE_IN_X = -1;
+  public static final int SIZE_IN_Y = -2;
+  public static final int SHIFT_IN_X = -3;
+  public static final int SHIFT_IN_Y = -4;
   
   private static final String commandName = "finishjoin";
   private ConstJoinMetaData metaData;
@@ -123,17 +126,21 @@ public class FinishjoinParam implements Command {
   
   public int getIntegerValue(int name) {
     switch (name) {
-    case SIZE_IN_X_VALUE_NAME:
+    case SIZE_IN_X:
       return sizeInX;
-    case SIZE_IN_Y_VALUE_NAME:
+    case SIZE_IN_Y:
       return sizeInY;
-    case SHIFT_IN_X_VALUE_NAME:
+    case SHIFT_IN_X:
       return shiftInX;
-    case SHIFT_IN_Y_VALUE_NAME:
+    case SHIFT_IN_Y:
       return shiftInY;
     default:
       return Integer.MIN_VALUE;
     }
+  }
+  
+  public boolean getBooleanValue(int name) {
+    return false;
   }
   
   public int getBinning() {
