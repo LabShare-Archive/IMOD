@@ -67,6 +67,14 @@
 # 	To archive the source code run "make src"
 #
 #############################################################################
+#  $Author$
+#
+#  $Date$
+#
+#  $Revision$
+#
+#  $Log$
+#############################################################################
 # For making distribution, all files will be put in a
 # directory called $(ARCNAME) and a final file called
 # $(ARCNAME).tar.gz will be made.
@@ -256,7 +264,8 @@ man : ALWAYS
 #
 src : cleansrc csrc fsrc
 	if (-e $(ARCDIR)_src/$(ARCDIR)_src/) /bin/rm -rf $(ARCDIR)_src/$(ARCDIR)_src/
-	tar cf $(ARCNAME)_src.tar $(ARCNAME)_src/*
+	\find $(ARCDIR)_src -name CVS -depth -exec /bin/rm -rf {} \;
+	tar cf $(ARCNAME)_src.tar $(ARCNAME)_src
 
 cleansrc : ALWAYS
 	if (-e $(ARCDIR)_src) /bin/rm -rf $(ARCDIR)_src/
