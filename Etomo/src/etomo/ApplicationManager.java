@@ -74,6 +74,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.39  2003/05/14 23:22:51  rickg
+ * <p> Exit if no IMOD_DIR is defined.  We can't run any of the non com scripts
+ * <p>
  * <p> Revision 2.38  2003/05/14 21:45:27  rickg
  * <p> New trimvol constructor for windows
  * <p>
@@ -2792,8 +2795,7 @@ public class ApplicationManager {
       imodDirectoryName = getEnvironmentVariable("IMOD_DIR");
       if (imodDirectoryName == "") {
         String[] message = new String[3];
-        message[0] =
-          "Can not find IMOD directory!";
+        message[0] = "Can not find IMOD directory!";
         message[1] =
           "Set IMOD_DIR environment variable and restart program to fix this problem";
         openMessageDialog(message, "Program Initialization Error");
@@ -2985,18 +2987,43 @@ public class ApplicationManager {
    * @param nativeLookAndFeel set to true to use the host os look and feel,
    * false will use the Metal look and feel.
    */
-  private static void setLookAndFeel(boolean nativeLookAndFeel) {
+  private void setLookAndFeel(boolean nativeLookAndFeel) {
     String lookAndFeelClassName;
 
     //UIManager.LookAndFeelInfo plaf[] = UIManager.getInstalledLookAndFeels();
     //for(int i = 0; i < plaf.length; i++) {
     //  System.err.println(plaf[i].getClassName());
     //}
+    String osName = System.getProperty("os.name");
+    if (debug) {
+      System.err.println("os.name: " + osName);
+    }
     if (nativeLookAndFeel) {
-      lookAndFeelClassName = "com.sun.java.swing.plaf.motif.MotifLookAndFeel";
+      if (osName.startsWith("Mac OS X")) {
+        lookAndFeelClassName = "apple.laf.AquaLookAndFeel";
+        if (debug) {
+          System.err.println("Setting AquaLookAndFeel");
+        }
+      }
+      else if (osName.startsWith("Windows")) {
+        lookAndFeelClassName =
+          "name:com.sun.java.swing.plaf.windows.WindowsLookAndFeel";
+        if (debug) {
+          System.err.println("Setting WindowsLookAndFeel");
+        }
+      }
+      else {
+        lookAndFeelClassName = "com.sun.java.swing.plaf.motif.MotifLookAndFeel";
+        if (debug) {
+          System.err.println("Setting MotifLookAndFeel");
+        }
+      }
     }
     else {
       lookAndFeelClassName = UIManager.getCrossPlatformLookAndFeelClassName();
+      if (debug) {
+        System.err.println("Setting MetalLookAndFeel");
+      }
     }
 
     try {
