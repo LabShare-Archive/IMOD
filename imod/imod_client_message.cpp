@@ -337,7 +337,7 @@ bool ImodClipboard::executeMessage()
       break;
 
     case MESSAGE_ONE_ZAP_OPEN:
-      if (imodDialogManager.windowCount(ZAP_WINDOW_TYPE))
+      if (imodDialogManager.windowCount(ZAP_WINDOW_TYPE) || !imodLoopStarted())
         inputRaiseWindows();
       else
         imod_zap_open(App->cvi);
@@ -401,6 +401,9 @@ unsigned int ImodClipboard::ourWindowID()
 
 /*
 $Log$
+Revision 4.13  2004/05/05 17:32:44  mast
+Added message to get rubberband coordinates
+
 Revision 4.12  2004/04/28 23:51:44  mast
 Added ability to open zap if none are open
 
