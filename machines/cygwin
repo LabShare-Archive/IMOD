@@ -75,6 +75,7 @@ endif
 
 # Needed under tcsh 6.12 in RH 8.0 to avoid getting two \ out
 cat << EOF >> $configure
+SHELL     = /bin/sh
 CP        = \\cp
 FIND      = \\find
 EOF
@@ -230,6 +231,8 @@ if ($tifflibs == default) set tifflibs = true
 set fbpswitch       = fbpswitch-pc.inc
 
 set binext = .exe
+set junit_home      = C:/cygwin/usr/local/junit
+set class_sep       = ';'
 
 #
 # Start Qt include files
