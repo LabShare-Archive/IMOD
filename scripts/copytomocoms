@@ -20,6 +20,9 @@ set dual_srcname = "g5"
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.1  2002/05/07 01:59:42  mast
+#  Added a query for global exclusion list
+#
 #  Revision 3.0  2001/11/29 18:11:10  rickg
 #  *** empty log message ***
 #
@@ -724,10 +727,11 @@ EOF
 
     set srcfile = $srcdir/"tomopitch"$srcext
     set dstfile = "tomopitch"$dstext
-    set backuplist = ($backuplist $dstfile top$modext mid$modext bot$modext)
+    set backuplist = ($backuplist $dstfile top$modext mid$modext bot$modext tomopitch$modext)
     if (-e $dstfile) \mv -f $dstfile $dstfile~
     sed -e "/spacing between sample/s/.*	/-$offset	/"\
-	-e "s/\.mod/$modext/"\
+	-e "s/\.mod/$modext/g"\
+	-e "s/\.rec/$recext/g"\
 	<$srcfile >$dstfile
     echo '$'"if (-e $backupname) $backupname" >> $dstfile
     
@@ -806,7 +810,7 @@ cat <<EOF
 tilt$dstext   to create   $setname.rec
 sample$dstext   to create   top$moda.rec, mid$moda.rec, bot$moda.rec
 findsec$dstext   to find section in top$moda.rec, mid$moda.rec, and bot$moda.rec
-tomopitch$dstext   to find angles of section from top$moda.mod, mid$moda.mod, and bot$moda.mod
+tomopitch$dstext   to find angles of section from tomopitch$moda.mod
 EOF
 
 if ($naxis == "2") then
