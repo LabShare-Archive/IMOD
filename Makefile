@@ -321,8 +321,8 @@ csrc : ALWAYS
 	libdiaqt/Makefile.unix lib*/*.dsp libimod/libimod.dsw \
 	USFFTlib/*/*.a \
 	imod/*.[ch] imod/*.cpp imod/*.ui imod/imod.pro imod/imodhelp \
-	imod/*.bits imod/*.png imod/README imod/imod.dsp imod/imod.dsw \
-	imod/Makefile.dummy \
+	imod/*.bits imod/*.png imod/*.xpm imod/README imod/imod.dsp \
+	imod/imod.dsw imod/Makefile.dummy \
 	imodutil/*.[ch] imodutil/Makefile \
 	mrc/*.[ch]    mrc/Makefile \
 	clip/*.[ch]   clip/Makefile \
@@ -353,6 +353,9 @@ ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.9  2003/03/07 22:04:14  mast
+#  Fix making of VERSION for windows
+#
 #  Revision 3.8  2003/03/07 21:49:56  mast
 #  Changes for make src and to make a cygwin distribution
 #
