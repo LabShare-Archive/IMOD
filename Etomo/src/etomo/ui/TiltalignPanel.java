@@ -23,6 +23,11 @@ import etomo.comscript.StringList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.17  2002/12/18 19:15:31  rickg
+ * <p> Added advanced capability for metro factor and
+ * <p> cycle limit.
+ * <p> Ordered handling of panel updates
+ * <p>
  * <p> Revision 1.16  2002/12/18 00:53:00  rickg
  * <p> Update in progress
  * <p>
@@ -123,8 +128,10 @@ public class TiltalignPanel implements ContextMenu {
   private LabeledTextField ltfTiltAxisZShift =
     new LabeledTextField("Tilt axis z shift: ");
 
-  private LabeledTextField ltfMetroFactor = new LabeledTextField("Metro factor: ");
-  private LabeledTextField ltfCycleLimit = new LabeledTextField("Cycle limit: ");
+  private LabeledTextField ltfMetroFactor =
+    new LabeledTextField("Metro factor: ");
+  private LabeledTextField ltfCycleLimit =
+    new LabeledTextField("Cycle limit: ");
 
   private JCheckBox chkLocalAlignments =
     new JCheckBox("Enable local alignments");
@@ -292,7 +299,7 @@ public class TiltalignPanel implements ContextMenu {
     ltfTiltAxisZShift.setText(params.getTiltAxisZShift());
     ltfMetroFactor.setText(params.getMetroFactor());
     ltfCycleLimit.setText(params.getCycleLimit());
-    
+
     chkLocalAlignments.setSelected(params.getLocalAlignments());
     ltfNLocalPatches.setText(params.getNLocalPatches());
     ltfMinLocalPatchSize.setText(params.getMinLocalPatchSize());
@@ -504,7 +511,7 @@ public class TiltalignPanel implements ContextMenu {
 
       badParameter = ltfMetroFactor.getLabel();
       params.setMetroFactor(ltfMetroFactor.getText());
-      
+
       badParameter = ltfCycleLimit.getLabel();
       params.setCycleLimit(ltfCycleLimit.getText());
 
@@ -707,7 +714,6 @@ public class TiltalignPanel implements ContextMenu {
     ltfLocalSkewAdditionalGroups.setVisible(state);
   }
 
-
   void setTiltAndMagnificationDefaults() {
     rbTiltAngleAll.setSelected(true);
     chkDistortion.setSelected(false);
@@ -806,13 +812,13 @@ public class TiltalignPanel implements ContextMenu {
     ltfXstretchAdditionalGroups.setEnabled(state);
     ltfSkewGroupSize.setEnabled(state);
     ltfSkewAdditionalGroups.setEnabled(state);
-    
+
     //  Set the local distortion state as well
     chkLocalDistortion.setSelected(state);
     updateLocalDistortionSolutionPanel();
-    
+
     //  Update the parameters to match the solution type
-    if(state == true) {
+    if (state == true) {
       setDistortionDefaults();
     }
     else {
@@ -883,7 +889,7 @@ public class TiltalignPanel implements ContextMenu {
     ltfResidualThreshold.setPreferredSize(
       new Dimension(300, (int) dimLTF.getHeight()));
     panelResidualThreshold.add(ltfResidualThreshold.getContainer());
-    panelResidualThreshold.add(new JLabel(" s.d. realitive to "));
+    panelResidualThreshold.add(new JLabel(" s.d. relative to "));
     JRadioButton[] items = new JRadioButton[2];
     items[0] = rbResidAllViews;
     items[1] = rbResidNeighboring;
@@ -928,7 +934,7 @@ public class TiltalignPanel implements ContextMenu {
     ltfCycleLimit.setMaximumSize(dimLTF);
     panelGeneral.add(ltfCycleLimit.getContainer());
     panelGeneral.add(Box.createRigidArea(FixedDim.x0_y5));
-    
+
     panelGeneral.add(chkLocalAlignments);
     chkLocalAlignments.setAlignmentX(1.0F);
     panelGeneral.add(Box.createRigidArea(FixedDim.x0_y5));
