@@ -23,6 +23,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.2  2004/03/13 01:55:29  sueh
+ * <p> bug# 413 possible solution infinite run() loop in comments
+ * <p>
  * <p> Revision 3.1  2003/11/27 00:01:27  rickg
  * <p> logFile is now a member object
  * <p> made sure the the logFile is closed when the monitor is done
@@ -51,10 +54,10 @@ public abstract class LogFileProcessMonitor implements Runnable {
   protected int nSections;
   protected int currentSection;
   protected int remainingTime;
-//  protected int waitingForExit = 0;
+  protected int waitingForExit = 0;
 
   protected int updatePeriod = 500;
-//  protected int stopWaiting = 20;
+  protected int stopWaiting = 20;
 
   //  This needs to be set in the concrete class constructor
   protected String logFileBasename;
@@ -88,9 +91,7 @@ public abstract class LogFileProcessMonitor implements Runnable {
       findNSections();
       initializeProgressBar();
 
-//TODO
-//      while (processRunning && waitingForExit < stopWaiting) {
-      while (processRunning) {
+      while (processRunning && waitingForExit < stopWaiting) {
         Thread.sleep(updatePeriod);
         getCurrentSection();
         calcRemainingTime();
