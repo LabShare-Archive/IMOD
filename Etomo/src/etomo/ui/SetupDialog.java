@@ -11,6 +11,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.15  2004/07/12 17:39:08  sueh
+ * <p> bug# 492 add getDataset() to return a MetaData with the
+ * <p> minumum fields needed to run 3dmod
+ * <p>
  * <p> Revision 3.14  2004/06/17 18:49:38  sueh
  * <p> bug# 472
  * <p>
@@ -546,19 +550,30 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     metaData.setDistortionFile(ltfDistortionFile.getText());
     metaData.setViewType(getViewType());
     metaData.setSectionType(getSectionType());
-    metaData.setPixelSize(Double.parseDouble(ltfPixelSize.getText()));
-    metaData.setFiducialDiameter(Double.parseDouble(ltfFiducialDiameter
-      .getText()));
-    metaData.setImageRotation(Float.parseFloat(ltfImageRotation.getText()),
-      AxisID.FIRST);
-    if (getAxisType() == AxisType.DUAL_AXIS) {
+    String currentField = "";
+    try {
+      currentField = "Pixel Size";
+      metaData.setPixelSize(Double.parseDouble(ltfPixelSize.getText()));
+      currentField = "Fiducial Diameter";
+      metaData.setFiducialDiameter(Double.parseDouble(ltfFiducialDiameter
+        .getText()));
+      currentField = "Image Rotation";
       metaData.setImageRotation(Float.parseFloat(ltfImageRotation.getText()),
-        AxisID.SECOND);
+      AxisID.FIRST);
+      if (getAxisType() == AxisType.DUAL_AXIS) {
+        metaData.setImageRotation(Float.parseFloat(ltfImageRotation.getText()),
+          AxisID.SECOND);
+      }
+      tiltAnglesA.getFields(metaData.getTiltAngleSpecA());
+      tiltAnglesB.getFields(metaData.getTiltAngleSpecB());
+    }
+    catch (NumberFormatException e) {
+      applicationManager.openMessageDialog(
+        currentField + " must be numeric.", "Setup Dialog Error");
+      return null;
     }
     metaData.setBinning(((Integer) spnBinning.getValue()).intValue());
-    tiltAnglesA.getFields(metaData.getTiltAngleSpecA());
     metaData.setExcludeProjectionsA(ltfExcludeListA.getText());
-    tiltAnglesB.getFields(metaData.getTiltAngleSpecB());
     metaData.setExcludeProjectionsB(ltfExcludeListB.getText());
     return metaData;
   }
