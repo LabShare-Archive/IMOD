@@ -41,6 +41,7 @@ Log at end of file
 #include <qcombobox.h>
 #include <qlistbox.h>
 #include <qvbox.h>
+#include <qpushbutton.h>
 #include "dia_qtutils.h"
 #include "multislider.h"
 #include "imod.h"
@@ -56,6 +57,7 @@ Log at end of file
 static void clearsec(ImodIProc *ip);
 static void savesec(ImodIProc *ip);
 static void cpdslice(Islice *sl, ImodIProc *ip);
+static void copyAndDisplay();
 
 static void edge_cb();
 static void mkedge_cb(IProcWindow *win, QWidget *parent, QVBoxLayout *layout);
@@ -82,14 +84,15 @@ ImodIProcData proc_data[] = {
 static ImodIProc proc = {0, 0};
 static Islice s;
 
+/* Copy data from a generated slice into the working buffer and free slice */
 static void cpdslice(Islice *sl, ImodIProc *ip)
 {
   register unsigned char *from, *to, *last;
   int rampbase = ip->vw->rampbase;
   from = sl->data.b;
-  to = ivwGetZSectionTime(ip->vw, ip->idatasec, ip->idatatime);
+  to = ip->iwork;
   if (!to) return;
-  /*     to = ip->vw->idata[ip->idatasec]; */
+
   last = to + (ip->vw->xsize * ip->vw->ysize);
   if (App->depth > 8){
     do{
@@ -101,6 +104,21 @@ static void cpdslice(Islice *sl, ImodIProc *ip)
     }while (to !=  last);
   }
   sliceFree(sl);
+}
+
+/* Copy the working buffer back to the display memory and draw */
+static void copyAndDisplay()
+{
+  ImodIProc *ip = &proc;
+  unsigned char **to = ivwGetCurrentZSection(ip->vw);
+  unsigned char *from = ip->iwork;
+  int i, j;
+  
+  for (j = 0; j < ip->vw->ysize; j++)
+    for (i = 0; i < ip->vw->xsize; i++)
+      to[j][i] = *from++;
+
+  imodDraw(ip->vw, IMOD_DRAW_IMAGE);
 }
 
 
@@ -144,8 +162,6 @@ static void edge_cb()
   default:
     break;
   }
-  imodDraw(ip->vw, IMOD_DRAW_IMAGE);
-  return;
 }
 
 // Threshold
@@ -167,16 +183,13 @@ static void thresh_cb()
   }
 
   xysize = ip->vw->xsize * ip->vw->ysize;
-  idat = ivwGetCurrentZSection(ip->vw);
-  if (!idat) return;
+  idat = ip->iwork;
   for(last = idat + xysize; idat != last; idat++){
     if (*idat > thresh)
       *idat = maxv;
     else
       *idat = minv;
   }
-  imodDraw(ip->vw, IMOD_DRAW_IMAGE);
-  return;
 }
 
 // Smoothing
@@ -184,7 +197,6 @@ static void smooth_cb()
 {
   ImodIProc *ip = &proc;
   sliceByteSmooth(&s);
-  imodDraw(ip->vw, IMOD_DRAW_IMAGE);
 }
 
 // Sharpening
@@ -192,7 +204,6 @@ static void sharpen_cb()
 {
   ImodIProc *ip = &proc;
   sliceByteSharpen(&s);
-  imodDraw(ip->vw, IMOD_DRAW_IMAGE);
 }
 
 // Growing a thresholded area
@@ -212,7 +223,6 @@ static void grow_cb()
     thresh_cb();
 
   sliceByteGrow(&s,  (int)s.max);
-  imodDraw(ip->vw, IMOD_DRAW_IMAGE);
 }
 
 // Shrinking a thresholded area
@@ -232,7 +242,6 @@ static void shrink_cb()
     thresh_cb();
 
   sliceByteShrink(&s,  (int)s.max);
-  imodDraw(ip->vw, IMOD_DRAW_IMAGE);
 }
 
 
@@ -240,12 +249,26 @@ static void shrink_cb()
 int iprocRethink(struct ViewInfo *vw)
 {
   if (proc.dia){
-    if (proc.idata) {
+    if (proc.isaved) {
       clearsec(&proc);
       proc.idatasec = -1;
-      free(proc.idata);
+      free(proc.isaved);
+      free(proc.iwork);
     }
-    proc.idata = (unsigned char *)malloc(vw->xsize * vw->ysize);
+    proc.isaved = (unsigned char *)malloc(vw->xsize * vw->ysize);
+    if (!proc.isaved) {
+      proc.iwork = NULL;
+      proc.dia->close();
+      return 1;
+    }
+
+    proc.iwork = (unsigned char *)malloc(vw->xsize * vw->ysize);
+    if (!proc.iwork) {
+      free(proc.isaved);
+      proc.isaved = NULL;
+      proc.dia->close();
+      return 1;
+    }
   }
   return 0;
 }
@@ -263,10 +286,17 @@ int inputIProcOpen(struct ViewInfo *vw)
     proc.idatasec = -1;
     proc.idatatime = 0;
     proc.modified = 0;
-    proc.idata = (unsigned char *)malloc(vw->xsize * vw->ysize);
+    proc.isaved = (unsigned char *)malloc(vw->xsize * vw->ysize);
 
-    if (!proc.idata)
+    if (!proc.isaved)
       return(-1);
+
+    proc.iwork = (unsigned char *)malloc(vw->xsize * vw->ysize);
+    if (!proc.iwork) {
+      free(proc.isaved);
+      return(-1);
+    }
+
     proc.dia = new IProcWindow(imodDialogManager.parent(IMOD_DIALOG), NULL);
     imodDialogManager.add((QWidget *)proc.dia, IMOD_DIALOG);
 
@@ -279,39 +309,44 @@ int inputIProcOpen(struct ViewInfo *vw)
 /* clear the section back to original data. */
 static void clearsec(ImodIProc *ip)
 {
-  register unsigned char *from, *to, *last;
+  register unsigned char *from, *to;
+  unsigned char **to2;
+  int i, j;
      
   if (ip->idatasec < 0 || !ip->modified)
     return;
 
-  from = ip->idata;
-  to = ivwGetZSectionTime(ip->vw, ip->idatasec, ip->idatatime);
-  if (!to) return;
-  last = to + (ip->vw->xsize * ip->vw->ysize);
-  do{
-    *to++ = *from++;
-  }while (to != last);
+  from = ip->isaved;
+  to = ip->iwork;
+  to2 = ivwGetZSectionTime(ip->vw, ip->idatasec, ip->idatatime);
+  if (!to2)
+    return;
+  for (j = 0; j < ip->vw->ysize; j++)
+    for (i = 0; i < ip->vw->xsize; i++)
+      *to++ = to2[j][i] = *from++;
+
   ip->modified = 0;
   imod_info_float_clear(ip->idatasec, ip->idatatime);
-  return;
 }
 
-/* save the processing image to buffer. */
+/* save the displayed image to saved and working buffers. */
 static void savesec(ImodIProc *ip)
 {
-  register unsigned char *from, *to, *last;
+  register unsigned char *to, *to2;
+  unsigned char **from;
+  int i, j;
      
   if (ip->idatasec < 0)
     return;
 
-
-  to   = ip->idata;
+  to   = ip->isaved;
+  to2  = ip->iwork;
   from = ivwGetZSectionTime(ip->vw, ip->idatasec, ip->idatatime);
-  if (!from) return;
-  last = to + (ip->vw->xsize * ip->vw->ysize);
-  do{
-    *to++ = *from++;
-  }while (to != last);
+  if (!from) 
+    return;
+  for (j = 0; j < ip->vw->ysize; j++)
+    for (i = 0; i < ip->vw->xsize; i++)
+      *to++ = *to2++ = from[j][i];
 }
 
 
@@ -345,7 +380,6 @@ static void mkthresh_cb(IProcWindow *win, QWidget *parent, QVBoxLayout *layout)
 
 
 /* THE WINDOW CLASS CONSTRUCTOR */
-
 static char *buttonLabels[] = {"Apply", "More", "Reset", "Save", "Done",
                                "Help"};
 static char *buttonTips[] = {"Operate on current section",
@@ -461,13 +495,14 @@ void IProcWindow::buttonPressed(int which)
     /* If this is not the same section, treat it as an Apply */
     if (cz != ip->idatasec || ip->vw->ct != ip->idatatime) {
       apply();
-      return;
+      break;
     }
 
     /* Otherwise operate on the current data without restoring it */
     if ( proc_data[ip->procnum].cb) {
       imod_info_float_clear(cz, ip->vw->ct);
       proc_data[ip->procnum].cb();
+      copyAndDisplay();
       ip->modified = 1;
     }
     break;
@@ -517,11 +552,7 @@ void IProcWindow::buttonPressed(int which)
 void IProcWindow::apply()
 {
   ImodIProc *ip = &proc;
-  unsigned char *image = ivwGetCurrentZSection(ip->vw);
-
-  if (!image) 
-    return;
-  sliceInit(&s, ip->vw->xsize, ip->vw->ysize, 0, image);
+  sliceInit(&s, ip->vw->xsize, ip->vw->ysize, 0, ip->iwork);
 
   int cz =  (int)(ip->vw->zmouse + 0.5f);
 
@@ -540,6 +571,7 @@ void IProcWindow::apply()
     imod_info_float_clear(cz, ip->vw->ct);
     proc_data[ip->procnum].cb();
     ip->modified = 1;
+    copyAndDisplay();
   }
 }
 
@@ -547,10 +579,15 @@ void IProcWindow::apply()
 void IProcWindow::closeEvent ( QCloseEvent * e )
 {
   ImodIProc *ip = &proc;
+  if (!ip->dia)
+    return;
   clearsec(ip);
   imodDialogManager.remove((QWidget *)ip->dia);
   imodDraw(ip->vw, IMOD_DRAW_IMAGE);
-  free(ip->idata);
+  if (ip->isaved)
+    free(ip->isaved);
+  if (ip->iwork)
+    free(ip->iwork);
   ip->dia = NULL;
   e->accept();
 }
@@ -572,6 +609,9 @@ void IProcWindow::keyReleaseEvent ( QKeyEvent * e )
 /*
 
     $Log$
+    Revision 4.3  2003/04/25 03:28:32  mast
+    Changes for name change to 3dmod
+
     Revision 4.2  2003/04/17 18:43:38  mast
     adding parent to window creation
 
