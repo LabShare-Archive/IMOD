@@ -21,6 +21,9 @@ import etomo.type.ConstMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.4  2003/03/20 21:18:40  rickg
+ * <p> Added matchshift results button/access
+ * <p>
  * <p> Revision 2.3  2003/03/19 00:23:43  rickg
  * <p> Added patch vector model management
  * <p>
@@ -92,7 +95,9 @@ public class ImodManager {
   private ImodProcess patchVectorModel;
   private ImodProcess matchCheckMat;
   private ImodProcess matchCheckRec;
-
+  private ImodProcess fullVolume;
+  private ImodProcess trimmedVolume;
+  
   private Thread fiducialModelA;
   private Thread fiducialModelB;
   /**
@@ -112,6 +117,9 @@ public class ImodManager {
       sampleA = new ImodProcess("top.rec mid.rec bot.rec", "tomopitch.mod");
       tomogramA = new ImodProcess(filesetName + ".rec");
       tomogramA.setSwapYZ(true);
+      fullVolume = new ImodProcess("full.rec");
+      fullVolume.setSwapYZ(true);
+      
     }
     else {
       rawStackA = new ImodProcess(filesetName + "a.st");
@@ -132,7 +140,9 @@ public class ImodManager {
       patchVectorModel.setModelView(true);
       matchCheckMat = new ImodProcess("matchcheck.mat");
       matchCheckRec = new ImodProcess("matchcheck.rec");
+      fullVolume = combinedTomogram;
     }
+    trimmedVolume = new ImodProcess(filesetName + ".rec");
   }
 
   /**
@@ -463,6 +473,49 @@ public class ImodManager {
   public void quitMatchCheckRec() throws SystemProcessException {
     matchCheckRec.quit();
   }
+
+  /**
+   * Open the full volume in imod if it is not already open
+   */
+  public void openFullVolume() throws SystemProcessException {
+    fullVolume.open();
+  }
+
+  /**
+   * Check to see if the full volume is open
+   */
+  public boolean isFullVolume() {
+    return fullVolume.isRunning();
+  }
+
+  /**
+   * Close the full volume tomogram
+   */
+  public void quitFullVolume() throws SystemProcessException {
+    fullVolume.quit();
+  }
+
+  /**
+   * Open the trimmed volume in imod if it is not already open
+   */
+  public void openTrimmedVolume() throws SystemProcessException {
+    trimmedVolume.open();
+  }
+
+  /**
+   * Check to see if the trimmed volume is open
+   */
+  public boolean isTrimmedVolume() {
+    return trimmedVolume.isRunning();
+  }
+
+  /**
+   * Close thetrimmed volume tomogram
+   */
+  public void quitTrimmedVolume() throws SystemProcessException {
+    trimmedVolume.quit();
+  }
+
 
   /**
    * Check the axisID argument to see if it is valid given the axisType of the
