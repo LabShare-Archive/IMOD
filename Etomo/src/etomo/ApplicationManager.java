@@ -83,6 +83,11 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.73  2004/06/18 00:52:53  sueh
+ * <p> bug# 476 put the logic to check if the fixed stack exists in a
+ * <p> separate function and call it in replaceRawStack() and
+ * <p> imodErasedStack
+ * <p>
  * <p> Revision 3.72  2004/06/17 16:23:34  sueh
  * <p> bug# 466 in imodFullSample() turning on model mode.
  * <p>
@@ -3978,6 +3983,20 @@ public class ApplicationManager {
     mainFrame.startProgressBar("Combine: solvematch", AxisID.FIRST);
   }
 
+  public void restartAtMatchvol1() {
+    //  FIXME: what are the necessary updates
+    //  Update the scripts from the dialog panel
+    updateCombineParams();
+    if (!updatePatchcorrCom()) {
+      return;
+    }
+    if (!updateMatchorwarpCom(false)) {
+      return;
+    }
+
+    matchvol1();
+  }
+  
   /**
    * Execute the matchvol1 com script and put patchcorr in the execution queue
    */
