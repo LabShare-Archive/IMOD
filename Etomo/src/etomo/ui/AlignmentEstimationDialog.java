@@ -22,6 +22,9 @@ import etomo.comscript.TransferfidParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.13  2003/01/06 04:55:04  rickg
+ * <p> Changed layout to a single transferfid panel
+ * <p>
  * <p> Revision 1.12  2003/01/04 00:34:45  rickg
  * <p> bound actions listeners for transferfid buttons
  * <p> added getTransferFidParams method
@@ -373,7 +376,10 @@ public class AlignmentEstimationDialog
   //  as well as from the button action above
   void updateAdvanced(boolean state) {
     panelTiltalignA.setAdvanced(isAdvanced);
-    panelTiltalignB.setAdvanced(isAdvanced);
+    if (applicationManager.isDualAxis()) {
+      panelTiltalignB.setAdvanced(isAdvanced);
+      panelTransferFid.setAdvanced(isAdvanced);
+    }
     pack();
   }
 }
