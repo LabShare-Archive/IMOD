@@ -1,0 +1,35 @@
+#!/bin/csh -f
+# Script to package fortran graphics programs in individual .app directories
+#
+#  $Author$
+#
+#  $Date$
+#
+#  $Revision$
+#
+#  $Log$
+
+#
+# Get the list of programs needing packaging
+#
+set fprogs = `sed -n '/MACAPPS/s/^.*= *//p' configure`
+
+if ($fprogs[1] == "") exit 0
+
+#
+# get the install directory and sendevent contents directory
+#
+set instdir = `sed -n '/INSTDIR/s/^.*= *//p' configure`
+
+set imsecont = sendevent/imodsendevent.app/Contents
+
+#
+# Loop on programs, copy PkgInfo, and Info.plist with possible name change
+#
+foreach prog ($fprogs)
+    set contents = $instdir/bin/${prog}.app/Contents
+    if (! -e $contents/MacOS) mkdir -p $contents/MacOS
+    \cp $imsecont/PkgInfo $contents
+    sed "/imodsendevent/s//$prog/" < $imsecont/Info.plist > $contents/Info.plist
+    \mv $instdir/bin/$prog $contents/MacOS
+end
