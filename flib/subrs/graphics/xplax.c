@@ -6,7 +6,7 @@
 #include <Xm/Form.h>
 #include <Xm/DrawingA.h>
 
-#include "plax.h"
+#include "xplax.h"
 
 static XtAppContext PlaxContext;
 static Widget       PlaxTopLevel;
