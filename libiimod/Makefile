@@ -9,12 +9,15 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.6  2003/11/04 17:21:20  mast
+#  Add dependencies on b3dutil.h
+#
 #
 include ../configure
 
 O      = $(OBJEXT)
-LIBI   = libiimod.$(LIBEXT)
-LIBD   = $(DUMMYTIFF).$(LIBEXT)
+LIBI   = libiimod.$(DLLEXT)
+LIBD   = $(DUMMYTIFF)
 LIBS   = $(LIBI) $(LIBD)
 
 OBJS  = iimage.$(O) iitif.$(O) iimrc.$(O) mrcfiles.$(O) mrcsec.$(O) \
@@ -27,9 +30,9 @@ all : $(LIBS)
 
 $(LIBI) : $(OBJS)
 	$(FIND) . -type f -name $(LIBI) -exec rm "{}" \;
-	$(MAKELIB)$(LIBI) $(OBJS)
+	$(MAKELIB)$(LIBI) $(LIBIIMODDEF) $(OBJS)
 	$(RANLIB) $(LIBI)
-	$(CP) $(LIBI) $(LIBDIR)
+	$(CP) libiimod.$(LIBEXT) $(LIBDIR)
 
 # Here and in install, need to wipe out any existing libtiff to make sure
 # that the new one is the only one present in the target directory
@@ -46,9 +49,13 @@ install : $(LIBS)
 	$(CP) $(LIBS) $(INSTLIBDIR)
 
 clean : 
-	$(FIND) . -type f -name "*.o" -exec rm "{}" \;
+	$(FIND) . -type f -name "*.o*" -exec rm "{}" \;
 	$(FIND) . -type f -name $(LIBI) -exec rm -f "{}" \;
-	$(FIND) . -type f -name $(LIBD) -exec rm -f "{}" \;
+	$(FIND) . -type f -name "*.dll" -exec rm -f "{}" \;
+	$(FIND) . -type f -name "*.so" -exec rm -f "{}" \;
+	$(FIND) . -type f -name "*.a" -exec rm -f "{}" \;
+	$(FIND) . -type f -name "*.*lib" -exec rm -f "{}" \;
+	$(FIND) . -type f -name "*.exp" -exec rm "{}" \;
 	$(FIND) . -name "*~" -exec rm "{}" \;
 	$(FIND) . -name "#*#"  -exec rm "{}" \;
 
