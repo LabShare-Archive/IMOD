@@ -125,7 +125,7 @@ displayed properly on binned images and, when saved again, will display
 properly on unbinned images again.  RGB images and multiple single image files
 being displayed as sections may not be binned.
 .TP
-.B -b <nxy,[nz]>
+.B -b <nxy[,nz]>
 Bin images by 
 .B nxy
 in X and Y and by
