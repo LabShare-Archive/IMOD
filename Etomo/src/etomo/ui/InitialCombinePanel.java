@@ -30,6 +30,10 @@ import etomo.comscript.SolvematchshiftParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.1  2004/01/30 22:45:13  sueh
+ * <p> bug# 356 Changing buttons with html labels to
+ * <p> MultiLineButton and MultiLineToggleButton
+ * <p>
  * <p> Revision 3.0  2003/11/07 23:19:01  rickg
  * <p> Version 1.0.0
  * <p>
@@ -229,8 +233,12 @@ public class InitialCombinePanel implements ContextMenu {
    * Set the state of the matching model checkbox.
    * @param state
    */
-  void setMatchingModels(boolean state) {
+  void setUseMatchingModels(boolean state) {
     cbUseModel.setSelected(state);
+  }
+  
+  protected boolean getUseMatchingModels() {
+    return cbUseModel.isSelected();
   }
 
   /**
