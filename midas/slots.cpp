@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.5  2003/12/17 21:44:19  mast
+Changes to implement global rotations
+
 Revision 3.4  2003/10/24 03:55:35  mast
 unknown change (untabified?)
 
@@ -1223,8 +1226,12 @@ void MidasSlots::slotBlock(int upDown)
   str.sprintf("Block size %2d", VW->boxsize);
   VW->blocklabel->setText(str);
 
-  if (VW->fastip)
-    retransform_slice();
+  /* DNM 1/27/04: flush and retransform just as for interpolation change */
+  if (VW->fastip) {
+    flush_xformed(VW);
+    VW->midasGL->fill_viewdata(VW);
+    VW->midasGL->draw();
+  }
 }
 
 void MidasSlots::slotInterpolate(bool state)
