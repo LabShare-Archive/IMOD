@@ -17,6 +17,9 @@ import java.util.LinkedList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.1  2003/03/06 01:19:17  rickg
+ * <p> Combine changes in progress
+ * <p>
  * <p> Revision 2.0  2003/01/24 20:30:31  rickg
  * <p> Single window merge to main branch
  * <p>
@@ -172,7 +175,7 @@ public class ComScriptCommand {
 
   /**
    * Get the command input arguments.  These are the values (and associated
-   * comments) that are meant for the stanndard input to the command.
+   * comments) that are meant for the standard input to the command.
    * @return a array of ComScriptInputArgs, this is a copy of the internal
    * representation.
    */

@@ -1,5 +1,7 @@
 package etomo.comscript;
 
+import java.util.HashMap;
+
 /**
  * <p>Description: </p>
  *
@@ -13,6 +15,9 @@ package etomo.comscript;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.2  2003/06/25 22:16:29  rickg
+ * <p> changed name of com script parse method to parseComScript
+ * <p>
  * <p> Revision 2.1  2003/03/02 23:30:41  rickg
  * <p> Combine layout in progress
  * <p>
@@ -32,6 +37,8 @@ public class CCDEraserParam
   implements CommandParam {
   public static final String rcsid =
     "$Id$";
+
+  HashMap parameterMap = new HashMap();
   /**
    * Get the parameters from the ComScriptCommand
    * @param scriptCommand the ComScriptCommand containg the ccderaser command
@@ -45,23 +52,21 @@ public class CCDEraserParam
       throw (new BadComScriptException("Not a ccderaser command"));
     }
 
-    //  Extract the parameters
     ComScriptInputArg[] inputArgs = scriptCommand.getInputArguments();
-    if (inputArgs.length != 8) {
-      throw (
-        new BadComScriptException(
-          "Incorrect number of input arguments to ccderaser command\nGot "
-            + String.valueOf(inputArgs.length)
-            + " expected 8."));
+    String[] cmdLineArgs = scriptCommand.getCommandLineArgs();
+    if (cmdLineArgs.length > 0 && cmdLineArgs[0].equals("-StandardInput")) {
+      
     }
-    inputFile = inputArgs[0].getArgument();
-    outputFile = inputArgs[1].getArgument();
-    modelFile = inputArgs[2].getArgument();
-    globalReplacementList = inputArgs[3].getArgument();
-    localReplacementList = inputArgs[4].getArgument();
-    borderPixels = inputArgs[5].getArgument();
-    polynomialOrder = inputArgs[6].getArgument();
-    includeAdjacentPoints = inputArgs[7].getArgument().matches("\\s*1\\s*");
+    else {
+      inputFile = inputArgs[0].getArgument();
+      outputFile = inputArgs[1].getArgument();
+      modelFile = inputArgs[2].getArgument();
+      globalReplacementList = inputArgs[3].getArgument();
+      localReplacementList = inputArgs[4].getArgument();
+      borderPixels = inputArgs[5].getArgument();
+      polynomialOrder = inputArgs[6].getArgument();
+      includeAdjacentPoints = inputArgs[7].getArgument().matches("\\s*1\\s*");
+    }
   }
 
   /**
@@ -86,6 +91,7 @@ public class CCDEraserParam
     }
 
     //  Fill in the input argument sequence
+    // FIXME can't rely on a fixed input sequence any more
     inputArgs[0].setArgument(inputFile);
     scriptCommand.setInputArgument(0, inputArgs[0]);
     inputArgs[1].setArgument(outputFile);
