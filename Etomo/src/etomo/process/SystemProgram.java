@@ -22,6 +22,9 @@ import java.util.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.5  2003/05/09 06:07:00  rickg
+ * <p> Work around for Java 1.4.1, yuk
+ * <p>
  * <p> Revision 2.4  2003/05/08 23:17:33  rickg
  * <p> Set working directory for all cases.
  * <p> Standardized debug setting
@@ -167,9 +170,14 @@ public class SystemProgram implements Runnable {
         workingDirectory = new File(System.getProperty("user.dir"));
       }
       process = Runtime.getRuntime().exec(command, null, workingDirectory);
-
+	  try {
+	    Thread.sleep(1000);
+	  }
+	  catch (InterruptedException except){
+	  	
+	  }
       if (debug)
-        System.err.println("done");
+        System.err.println("returned, process started");
 
       //  Create a buffered writer to handle the stdin, stdout and stderr
       //  streams of the process
@@ -189,11 +197,15 @@ public class SystemProgram implements Runnable {
       //  stdInput array if it is not null
       if (stdInput != null) {
         for (int i = 0; i < stdInput.length; i++) {
+          System.err.print(i);
+          System.err.println(":" + stdInput[i]);
           cmdInBuffer.write(stdInput[i]);
           cmdInBuffer.newLine();
           cmdInBuffer.flush();
+          cmdInputStream.flush();
         }
       }
+      System.err.println("Done writting stdout");
       cmdInputStream.close();
 
       if (debug) {
