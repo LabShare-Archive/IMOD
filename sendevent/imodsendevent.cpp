@@ -32,37 +32,9 @@ $Date$
 
 $Revision$
 
-$Log$
-Revision 1.6  2004/05/31 02:17:40  mast
-Allowed multiple arguments after the action
-
-Revision 1.5  2004/04/18 22:33:45  mast
-Allowed SENDEVENT_RETRY_HACK to be defined as zero to set data a second time
-after processing events.
-
-Revision 1.4  2003/09/24 16:20:37  mast
-Add include of imodconfig.h and add resending message for debug output
-
-Revision 1.3  2003/09/24 15:05:58  mast
-Switched to ::exit(), set selection mode false, added retry
-
-Revision 1.2  2003/09/13 16:17:36  mast
-Added option for debug output
-
-Revision 1.1  2003/02/27 00:55:39  mast
-qt clipboard version
-
-Revision 3.3  2002/09/17 18:49:14  mast
-Added a signature entry in the action packet because there seem to be
-other events around that imod gets
-
-Revision 3.2  2002/09/14 00:13:43  mast
-SGI compiler flushed out a bug.
-
-Revision 3.1  2002/09/13 21:56:06  mast
-Initial addition to package
-
+Log at end of file
 */
+
 #include <qclipboard.h>
 #include <qdatetime.h>
 #include <string.h>
@@ -146,9 +118,9 @@ int main(int argc, char **argv)
   // Pack the arguments into a QString
   timeStr.sprintf(" %d ", timeStamp);
   timeStr = QString(argv[argIndex]) + timeStr; 
-  cmdStr = QString(argv[argIndex + 1]) + " ";
+  cmdStr = QString(argv[argIndex + 1]);
   for (; argIndex + 2 < argc; argIndex++)
-    cmdStr += QString(argv[argIndex + 2]) + " ";
+    cmdStr += QString(" ") + QString(argv[argIndex + 2]);
   qstr = timeStr + cmdStr;
 
   // Connect to the clipboard, start the timeout, and send the text
@@ -247,3 +219,39 @@ void ImodSendEvent::clipboardChanged()
           "executing it\n");
   ::exit(3);
 }
+
+/*
+$Log$
+Revision 1.7  2004/05/31 19:54:00  mast
+change name in error message from imod to 3dmod
+
+Revision 1.6  2004/05/31 02:17:40  mast
+Allowed multiple arguments after the action
+
+Revision 1.5  2004/04/18 22:33:45  mast
+Allowed SENDEVENT_RETRY_HACK to be defined as zero to set data a second time
+after processing events.
+
+Revision 1.4  2003/09/24 16:20:37  mast
+Add include of imodconfig.h and add resending message for debug output
+
+Revision 1.3  2003/09/24 15:05:58  mast
+Switched to ::exit(), set selection mode false, added retry
+
+Revision 1.2  2003/09/13 16:17:36  mast
+Added option for debug output
+
+Revision 1.1  2003/02/27 00:55:39  mast
+qt clipboard version
+
+Revision 3.3  2002/09/17 18:49:14  mast
+Added a signature entry in the action packet because there seem to be
+other events around that imod gets
+
+Revision 3.2  2002/09/14 00:13:43  mast
+SGI compiler flushed out a bug.
+
+Revision 3.1  2002/09/13 21:56:06  mast
+Initial addition to package
+
+*/
