@@ -1,6 +1,5 @@
 package etomo.ui;
 
-import java.awt.event.*;
 import javax.swing.*;
 
 import etomo.comscript.ConstBeadtrackParam;
@@ -21,6 +20,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.0  2003/01/24 20:30:31  rickg
+ * <p> Single window merge to main branch
+ * <p>
  * <p> Revision 1.3.2.1  2003/01/24 18:43:37  rickg
  * <p> Single window GUI layout initial revision
  * <p>
@@ -35,7 +37,7 @@ import etomo.type.AxisID;
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
  */
-public class BeadtrackPanel implements ContextMenu {
+public class BeadtrackPanel {
   public static final String rcsid =
     "$Id$";
 
@@ -130,9 +132,6 @@ public class BeadtrackPanel implements ContextMenu {
     panelBeadtrack.add(ltfMeanResidChangeLimits.getContainer());
     panelBeadtrack.add(ltfDeletionParams.getContainer());
 
-    //  Mouse adapter for context menu
-    GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
-    panelBeadtrack.addMouseListener(mouseAdapter);
   }
 
   /**
@@ -301,26 +300,6 @@ public class BeadtrackPanel implements ContextMenu {
     ltfMeanResidChangeLimits.setVisible(state);
     ltfDeletionParams.setVisible(state);
 
-  }
-
-  /**
-   * Right mouse button context menu
-   */
-  public void popUpContextMenu(MouseEvent mouseEvent) {
-    String[] manPagelabel = { "beadtrack" };
-    String[] manPage = { "beadtrack.html" };
-    String[] logFileLabel = { "track" };
-    String[] logFile = new String[1];
-    logFile[0] = "track" + axisID.getExtension() + ".log";
-    //    ContextPopup contextPopup =
-    new ContextPopup(
-      panelBeadtrack,
-      mouseEvent,
-      "TRACKING FIDUCIALS",
-      manPagelabel,
-      manPage,
-      logFileLabel,
-      logFile);
   }
 
   //  ToolTip string setup
