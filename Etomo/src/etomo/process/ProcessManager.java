@@ -24,6 +24,9 @@ import java.io.IOException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.4  2002/10/10 18:47:16  rickg
+ * <p> Enabled debugging output from the SystemProgram object
+ * <p>
  * <p> Revision 1.3  2002/10/07 22:26:31  rickg
  * <p> removed unused imports
  * <p> reformat after emacs messed it up
@@ -232,19 +235,11 @@ public class ProcessManager {
   }
 
   /**
-   * Get the IMOD_DIR from the application manager and pass on to the calling
-   * object
-   */
-  public String getIMODDirectory() {
-    return appManager.getIMODDirectory();
-  }
-
-  /**
    * Execute the setupcombine script
    * @param combineParam A read-only object containing the parameters for
    * setupcombine script
    */
-  public void createCombineScripts(ConstMetaData metaData)
+  public void setupCombineScripts(ConstMetaData metaData)
     throws BadComScriptException, IOException {
 
     SetupCombine setupCombine = new SetupCombine(metaData);
@@ -271,6 +266,27 @@ public class ProcessManager {
 
       throw (new BadComScriptException(buffer.toString()));
     }
+  }
+
+  /**
+   * Run the combine com file
+   * @param axisID the AxisID to run tilt on.
+   */
+  public void combine() {
+    //
+    //  Create the required tilt command
+    //
+    String command = "combine.com";
+
+    //  Start the com script in the background
+    startComScript(command);
+  }
+  /**
+   * Get the IMOD_DIR from the application manager and pass on to the calling
+   * object
+   */
+  public String getIMODDirectory() {
+    return appManager.getIMODDirectory();
   }
 
   /**

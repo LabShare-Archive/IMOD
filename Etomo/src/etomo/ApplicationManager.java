@@ -25,6 +25,11 @@ import etomo.ui.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.11  2002/10/10 19:16:19  rickg
+ * <p> Get HOME and IMOD_DIR environement variables during
+ * <p> initialization instead of each time they requested.  Also
+ * <p> exit if they are not available.
+ * <p>
  * <p> Revision 1.10  2002/10/09 04:29:17  rickg
  * <p> Implemented calls to updateCombineCom
  * <p>
@@ -1431,7 +1436,7 @@ public class ApplicationManager {
     }
 
     try {
-      processMgr.createCombineScripts(metaData);
+      processMgr.setupCombineScripts(metaData);
     }
     catch (BadComScriptException except) {
       except.printStackTrace();
