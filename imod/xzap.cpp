@@ -1768,6 +1768,7 @@ static void dragSelectContsCrossed(struct zapwin *zap, int x, int y)
   int ob, co, pt, ptStart, lastPt, thisZ, lastZ;
   Iindex index;
   Icont *cont;
+  Ipoint pnt1, pnt2;
   Iobj *obj = imodObjectGet(imod);
 
   // Skip for scattered objects or movie mode
@@ -1776,12 +1777,13 @@ static void dragSelectContsCrossed(struct zapwin *zap, int x, int y)
 
   // Get image positions of starting and current mouse positions
   ob = imod->cindex.object;
-  zapGetixy(zap, x, y, &x1e, &y1e);
-  zapGetixy(zap, zap->lmx, zap->lmy, &x1s, &y1s);
+  zapGetixy(zap, x, y, &pnt2.x, &pnt2.y);
+  zapGetixy(zap, zap->lmx, zap->lmy, &pnt1.x, &pnt1.y);
   dx1 = x1e - x1s;
   dy1 = y1e - y1s;
   if (imodDebug('z'))
-    imodPrintStderr("mouse segment %f,%f to %f,%f\n", x1s, y1s, x1e, y1e);
+    imodPrintStderr("mouse segment %f,%f to %f,%f\n", pnt1.x, pnt1.y, pnt2.x,
+                    pnt2.y);
 
   // Loop on contours
   // Skip single point, ones already selected, or non-wild with Z not matching
@@ -1807,31 +1809,21 @@ static void dragSelectContsCrossed(struct zapwin *zap, int x, int y)
       lastPt = pt ? pt - 1 : cont->psize - 1;
       thisZ = (int)floor(cont->pts[pt].z + 0.5);
       if (lastZ == zap->section && thisZ == zap->section) {
-
-        // Straight from cross_cont in mkmesh.c
-        x2s = cont->pts[lastPt].x;
-        x2e = cont->pts[pt].x;
-        y2s = cont->pts[lastPt].y;
-        y2e = cont->pts[pt].y;
-        dx2 = x2s - x2e;
-        dy2 = y2s - y2e;
-        dxs = x2s - x1s;
-        dys = y2s - y1s;
-        den = dx1 * dy2 - dy1 * dx2;
-        tnum = dxs * dy2 - dys * dx2;
-        unum = dx1 * dys - dy1 * dxs;
         if (imodDebug('z'))
-          imodPrintStderr("%f,%f to %f,%f  den %f  unum %f  tnum %f\n",
-                          x2s, y2s, x2e, y2e, den, unum, tnum);
-        if ((den <= 0 && tnum <= 0. && unum <= 0. && tnum >= den && 
-             unum >= den) || (den >= 0. && tnum >= 0. && unum >= 0. && 
-             tnum <= den && unum <= den)) {
+          imodPrintStderr("%f,%f to %f,%f\n", cont->pts[lastPt].x,
+                          cont->pts[lastPt].y, cont->pts[pt].x,
+                          cont->pts[pt].y);
+
+        if (imodPointIntersect(&pnt1, &pnt2, &cont->pts[lastPt], 
+                               &cont->pts[pt])) {
 
           // Crosses.  Select this contour; add current contour if list empty
           index.object = ob;
           index.contour = co;
           index.point = pt;
-          if (!ilistSize(vi->selectionList) && imod->cindex.contour >= 0)
+          if (imod->cindex.contour < 0)
+            imod->cindex.contour = co;
+          else if (!ilistSize(vi->selectionList) && imod->cindex.contour >= 0)
             imodSelectionListAdd(vi, imod->cindex);
           imodSelectionListAdd(vi, index);
           imodDraw(zap->vi, IMOD_DRAW_MOD );
@@ -3114,6 +3106,9 @@ static int zapPointVisable(ZapStruct *zap, Ipoint *pnt)
 
 /*
 $Log$
+Revision 4.56  2004/12/01 18:19:14  mast
+Added Ctrl-drag selection, converted help to html
+
 Revision 4.55  2004/11/29 19:25:21  mast
 Changes to do QImage instead of RGB snapshots
 
