@@ -17,4 +17,5 @@ public interface SystemProcessInterface {
   public String[] getStdError();
   public boolean isStarted();
   public boolean isDone();
+  public String getShellProcessID();
 }
