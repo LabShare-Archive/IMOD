@@ -341,6 +341,10 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.6  2002/07/26 19:19:04  mast
+c	  Added machine-specific switch-points for not doing fast
+c	  backprojection
+c	
 c	  Revision 3.5  2002/07/21 19:37:25  mast
 c	  Replaced STOP with call exit(1) and standardized error outputs
 c	
@@ -348,8 +352,9 @@ c	  Revision 3.4  2002/05/07 02:02:53  mast
 c	  Added EXCLUDELIST option
 c	
 c	  Revision 3.3  2002/02/01 15:27:31  mast
-c	  Made it write extra data periodically with PARALLEL option to partially
-c	  demangle the output file and prevent very slow reading under Linux.
+c	  Made it write extra data periodically with PARALLEL option to 
+c	  partially demangle the output file and prevent very slow reading
+c	  under Linux.
 c	
 c	  Revision 1.2  2001/11/22 00:41:57  mast
 c	  Fixed computation of mean for files > 2 GPixels
@@ -1707,6 +1712,7 @@ C
 	data cell/0.,0.,0.,90.,90.,90./
 	DATA DTOR/0.0174532/
 	CHARACTER DAT*9,TIM*8
+	real*4 delta(3)
 	external inum
 c
 c 7/7/00 CER: remove the encode's; titlech is the temp space
@@ -2186,27 +2192,32 @@ C Open output map file
 	if(iwide.eq.0)iwide=npxyz(1)
 	if(iwide.gt.limwidth.and.nxwarp.ne.0)call errorexit('OUTPUT'//
      &	    ' SLICE TOO WIDE FOR ARRAYS IF DOING LOCAL ALIGNMENTS')
+c	  
+c	  DNM 7/27/02: transfer pixel sizes depending on orientation of output
+c
+	call irtdel(1,delta)
+	NOXYZ(1)=iwide
+	cell(1)=iwide*delta(1)
 	IF(PERP)THEN
-		NOXYZ(1)=iwide
 		NOXYZ(2)=ITHICK
 		NOXYZ(3)=NSLICE
+		cell(2)=ithick*delta(1)
+		cell(3)=abs(nslice*idelslice)*delta(2)
 	ELSE
-		NOXYZ(1)=iwide
 		NOXYZ(2)=NSLICE
 		NOXYZ(3)=ITHICK
+		cell(3)=ithick*delta(1)
+		cell(2)=abs(nslice*idelslice)*delta(2)
 	END IF
 	CALL IMOPEN(2,FILOUT,'NEW')
 	CALL ICRHDR(2,NOXYZ,NOXYZ,newmode,title,0)
 	CALL ITRLAB(2,1)
+	call ialcel(2,cell)
 c	  
 c	  if doing perpendicular slices, set up header info to make coordinates
 c	  congruent with those of tilt series in simplest case
 c
 	if(perp)then
-	  cell(1)=noxyz(1)
-	  cell(2)=noxyz(2)
-	  cell(3)=abs(nslice*idelslice)
-	  call ialcel(2,cell)
 	  outilt(1)=sign(90,idelslice)
 	  call ialorg(2,cell(1)/2.+delxx,cell(2)/2.,
      &	      float(sign(islice-1,-idelslice)))
