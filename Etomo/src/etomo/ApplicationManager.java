@@ -77,6 +77,11 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.92  2003/11/07 00:52:56  rickg
+ * <p> Added test helper methods
+ * <p> Changed transferfid parameter name to indicate that it is called with
+ * <p> the destination axis
+ * <p>
  * <p> Revision 2.91  2003/11/06 22:45:47  sueh
  * <p> cleaning up task tags and prints
  * <p>
@@ -2513,17 +2518,21 @@ public class ApplicationManager {
    */
   public void deleteAlignedStacks(AxisID axisID) {
     mainFrame.setProgressBar("Deleting aligned image stacks", 1, axisID);
-    File preali =
-      new File(
-        System.getProperty("user.dir"),
-        metaData.getDatasetName() + axisID.getExtension() + ".preali");
-    if (preali.exists()) {
-      if (!preali.delete()) {
-        mainFrame.openMessageDialog(
-          "Unable to delete pre-aligned stack: " + preali.getAbsolutePath(),
-          "Can not delete file");
-      }
-    }
+//
+// Don't do preali now because users may do upto generation before transfering
+// the fiducials
+//
+//     File preali =
+//      new File(
+//        System.getProperty("user.dir"),
+//        metaData.getDatasetName() + axisID.getExtension() + ".preali");
+//    if (preali.exists()) {
+//      if (!preali.delete()) {
+//        mainFrame.openMessageDialog(
+//          "Unable to delete pre-aligned stack: " + preali.getAbsolutePath(),
+//          "Can not delete file");
+//      }
+//    }
 
     File aligned =
       new File(

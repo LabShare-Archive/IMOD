@@ -44,6 +44,9 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 2.18  2003/10/30 01:43:44  rickg
+ * Bug# 338 Remapped context menu entries
+ *
  * Revision 2.17  2003/10/28 23:35:48  rickg
  * Bug# 336 Context menu label capitalization
  *
@@ -288,7 +291,7 @@ public class TomogramGenerationDialog
     new JButton("<html><b>View Tomogram In 3dmod</b>");
 
   private MultiLineToggleButton btnDeleteStacks =
-    new MultiLineToggleButton("<html><b>Delete Aligned Image Stacks</b>");
+    new MultiLineToggleButton("<html><b>Delete Aligned Image Stack</b>");
 
   public TomogramGenerationDialog(ApplicationManager appMgr, AxisID axisID) {
     super(appMgr, axisID);
