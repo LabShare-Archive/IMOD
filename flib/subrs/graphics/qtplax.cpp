@@ -5,6 +5,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.2  2003/08/12 21:44:36  mast
+Changes to try to help text drawingon the Mac
+
 */
 #include <stdio.h>
 #include <stdlib.h>
@@ -83,10 +86,22 @@ void PlaxWindow::resizeEvent ( QResizeEvent * )
 }
 
 #define FSTRING_LEN  80
+
+// The characters are too small even for Mac users
+// The window needs to be smaller on Mac to allow half the screen for terminal
+#ifdef Q_OS_MACX
+#define TEXT_SIZE_SCALE 3.3
+#define DEFAULT_HEIGHT 512
+#define
+#else
+#define TEXT_SIZE_SCALE 2.5
+#define DEFAULT_HEIGHT 640
+#endif
+
 int plax_open(void)
 {
-  static int width = 640;
-  static int height = 512;
+  static int width = DEFAULT_HEIGHT * 5 / 4;
+  static int height = DEFAULT_HEIGHT;
   static int top = 30;
   static int left = 10;
   int argc, i, j;
@@ -253,12 +268,6 @@ void plax_polyo(int *cindex, int *size, short *vec)
   PlaxPainter->drawPolygon(points);
 }
 
-// The characters are too small even for Mac users
-#ifdef Q_OS_MACX
-#define TEXT_SIZE_SCALE 3.3
-#else
-#define TEXT_SIZE_SCALE 2.5
-#endif
 
 
 /* DNM: changed this to keep track of last font used, to search for nearest
