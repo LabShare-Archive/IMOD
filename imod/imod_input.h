@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.4  2003/03/13 01:17:46  mast
+    Add function to convert keypad keys
+
     Revision 3.3  2003/02/27 23:45:24  mast
     Add function to truncate contour
 
@@ -98,6 +101,7 @@ void inputRestorePointIndex(ImodView *vw);
 void inputKeepContourAtSameTime(ImodView *vw);
 void inputContourDup(ImodView *vw);
 int inputConvertNumLock(int keysym);
+void inputRaiseWindows();
 
 void inputSetModelTime(ImodView *vw, int time);
 
