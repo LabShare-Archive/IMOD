@@ -402,6 +402,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.8  2003/10/03 00:59:07  mast
+c	  Changed terminology to refered to tilt angle offset
+c	
 c	  Revision 3.7  2003/01/30 20:54:51  mast
 c	  Made fields for residuals bigger, amplified IER error messages
 c	
@@ -821,7 +824,7 @@ c
      &	      2*nprojpt,nunknowtot,unkrat
 113	  format(i4,' views,',i5,' geometric variables,',i5,
      &	      ' 3-D points,',i6,' projection points',/,
-     &	      '	 Ratio of total measured values to total unknowns =',
+     &	      '  Ratio of total measured values to total unknowns =',
      &	      i5,'/',i3,' =',f7.2)
 	  if(ifvarout.ne.0)then
 	    if(iunit.ne.6)write(iunit,'(/,21x,a)')
