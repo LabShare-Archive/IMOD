@@ -34,6 +34,10 @@
     $Revision$
 
     $Log$
+    Revision 3.3  2002/01/29 03:11:47  mast
+    Fixed bug in xxyz_draw from accessing elements of xx before xx existence
+    test
+
     Revision 3.2  2002/01/28 16:58:52  mast
     Major enhancements: Made it use the same image drawing code as
     the Zap window so that it would not be slow with fractional zooms; added
@@ -62,9 +66,11 @@
 
 /*************************** internal functions ***************************/
 static void xxyz_quit_cb(Widget w, XtPointer client, XtPointer call);
+static void xyzClose_cb(ImodView *vi, void *client, int junk);
 static void xxyz_resize_cb(Widget w, XtPointer client, XtPointer call);
 static void xxyz_expose_cb(Widget w, XtPointer client, XtPointer call);
 static void xxyz_ginit(Widget w, XtPointer client, XtPointer call);
+static void xyzDraw_cb(ImodView *vi, void *client, long drawflag);
 
 static void xxyz_overex_cb(Widget w, XtPointer client, XtPointer call);
 static void xxyz_input_cb(Widget w, XtPointer client, XtPointer call);
@@ -182,8 +188,12 @@ int xxyz_open(ImodView *vi)
 
      wmclose = XmInternAtom( XtDisplay(xx->dialog),
 			    "WM_DELETE_WINDOW", False);
+
+     /* DNM 11/24/02: changed to passing just xx, not address of vi->xyz */
      XmAddWMProtocolCallback(xx->dialog, wmclose, xxyz_quit_cb,
-			     (caddr_t)&(vi->xyz));
+			     (caddr_t)xx);
+
+     xx->ctrl = ivwNewControl(vi, xyzDraw_cb, xyzClose_cb, (XtPointer)xx);
 
      /*     xyzDrawImage(NULL); */
 
@@ -193,12 +203,16 @@ int xxyz_open(ImodView *vi)
      return(0);
 }
 
+
 static void xxyz_quit_cb(Widget w, XtPointer client, XtPointer call)
 {
-     struct xxyzwin **pxx = (struct xxyzwin **)client;
-     struct xxyzwin *xx;
-     
-     xx = *pxx;
+     struct xxyzwin *xx = (struct xxyzwin *)client;
+     ivwDeleteControl(xx->vi, xx->ctrl);
+}
+
+static void xyzClose_cb(ImodView *vi, void *client, int junk)
+{
+     struct xxyzwin *xx = (struct xxyzwin *)client;
 
      /* DNM 11/17/01: stop x and y movies when close window */
      imodMovieXYZT(xx->vi, 0, 0, MOVIE_DEFAULT, MOVIE_DEFAULT);
@@ -212,12 +226,12 @@ static void xxyz_quit_cb(Widget w, XtPointer client, XtPointer call)
      b3dFreeCIImage(xx->xzdata);
      b3dFreeCIImage(xx->yzdata);
 
-     b3dWinset(XtDisplay(w), 0, 0);
+     b3dWinset(XtDisplay(xx->dialog), 0, 0);
 
      XtPopdown(xx->dialog);
      XtDestroyWidget(xx->dialog);
-     free(*pxx);
-     *pxx = NULL;
+     free(xx);
+     vi->xyz = NULL;
 }
 
 /* DNM 1/19/02: Add this function to get the CI Images whenever size has
@@ -244,6 +258,8 @@ static void xxyz_resize_cb(Widget w, XtPointer client, XtPointer call)
      struct xxyzwin *xx = (struct xxyzwin *)client;
      long winx, winy;
      Dimension width, height;
+
+     ivwControlPriority(xx->vi, xx->ctrl);
 
      XtVaGetValues(w, XmNwidth, &width, XmNheight, &height, NULL);
      xx->winx = width;
@@ -297,6 +313,8 @@ static void xxyz_input_cb(Widget w, XtPointer client, XtPointer call)
      XKeyEvent *event = (XKeyEvent *)cbs->event;
      int mx, my, mz;
 
+     ivwControlPriority(xx->vi, xx->ctrl);
+
      switch(cbs->event->type){
 	case KeyPress:
 	  keysym = XLookupKeysym((XKeyEvent *)cbs->event, 0);
@@ -344,7 +362,7 @@ static void xxyz_input_cb(Widget w, XtPointer client, XtPointer call)
 	  keysym = XLookupKeysym((XKeyEvent *)cbs->event, 0);
 	  switch(keysym){
 	     case XK_Escape:
-	       xxyz_quit_cb(xx->dialog, (XtPointer) &(xx->vi->xyz), NULL);
+	       xxyz_quit_cb(xx->dialog, (XtPointer) xx, NULL);
 	       break;
 	     default:
 	       break;
@@ -1670,7 +1688,7 @@ static void xxyz_draw(struct xxyzwin *xx)
 
 
 
-void xyzDraw_cb(ImodView *vi, void *client, long drawflag)
+static void xyzDraw_cb(ImodView *vi, void *client, long drawflag)
 {
      struct xxyzwin *xx = (struct xxyzwin *)client;
 
