@@ -29,6 +29,9 @@ import java.util.ArrayList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.15  2003/06/05 16:52:37  rickg
+ * <p> Removed stdout messages
+ * <p>
  * <p> Revision 2.14  2003/06/05 04:40:15  rickg
  * <p> thread references changed to SystemProcessInterface
  * <p> mapped threads for transferfid and trimvol
@@ -689,6 +692,7 @@ public class ProcessManager {
     BackgroundProcess process,
     int exitValue) {
 
+    //  Check to see if the exit value is non-zero
     if (exitValue != 0) {
       String[] stdError = process.getStdError();
       String[] message = new String[stdError.length + 3];
@@ -702,6 +706,29 @@ public class ProcessManager {
       }
 
       appManager.openMessageDialog(message, process.getCommand() + " failed");
+    }
+
+    // Another possible error message source is ERROR: in the stdout stream
+    String[] stdOutput = process.getStdOutput();
+    ArrayList errors = new ArrayList();
+    boolean foundError = false;
+    for (int i = 0; i < stdOutput.length; i++) {
+      if (!foundError) {
+        int index = stdOutput[i].indexOf("ERROR:");
+        if (index != -1) {
+          foundError = true;
+          errors.add(stdOutput[i]);
+        }
+      }
+      else {
+        errors.add(stdOutput[i]);
+      }
+    }
+    String[] errorMessage =
+      (String[]) errors.toArray(new String[errors.size()]);
+
+    if (errorMessage.length > 0) {
+      appManager.openMessageDialog(errorMessage, "Background Process Error");
     }
 
     // Command succeeded, check to see if we need to show any application
@@ -831,9 +858,9 @@ public class ProcessManager {
    */
   private void handleTransferfidMessage(BackgroundProcess process) {
     try {
-      String[] stdOutput = process.getStdOutput();
-      //  Write the standard output to a the log file
 
+      //  Write the standard output to a the log file
+      String[] stdOutput = process.getStdOutput();
       BufferedWriter fileBuffer =
         new BufferedWriter(
           new FileWriter(System.getProperty("user.dir") + "/transferfid.log"));
