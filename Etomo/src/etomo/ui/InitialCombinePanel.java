@@ -31,6 +31,9 @@ import etomo.comscript.SolvematchshiftParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.14  2003/10/21 23:43:42  rickg
+ * <p> Changed imod buttons to non multiline
+ * <p>
  * <p> Revision 1.13  2003/10/20 20:25:59  rickg
  * <p> Bug# 228 added Restart at matchvol1 button
  * <p>
@@ -146,7 +149,7 @@ public class InitialCombinePanel implements ContextMenu {
     ButtonActionListener buttonAction = new ButtonActionListener(this);
     btnImodMatchModels.addActionListener(buttonAction);
     btnRestart.addActionListener(buttonAction);
-		btnMatchvolRestart.addActionListener(buttonAction);
+    btnMatchvolRestart.addActionListener(buttonAction);
     btnMatchcheck.addActionListener(buttonAction);
     CheckBoxActionListener checkboxAction = new CheckBoxActionListener(this);
     cbUseModel.addActionListener(checkboxAction);
@@ -154,6 +157,7 @@ public class InitialCombinePanel implements ContextMenu {
     // Mouse listener for context menu
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
     pnlRoot.addMouseListener(mouseAdapter);
+    setToolTipText();
   }
 
   public Container getContainer() {
@@ -307,5 +311,55 @@ public class InitialCombinePanel implements ContextMenu {
     public void actionPerformed(ActionEvent event) {
       listenee.checkboxAction(event);
     }
+  }
+
+  /**
+   * Initialize the tooltip text for the axis panel objects
+   */
+  private void setToolTipText() {
+    String text;
+    TooltipFormatter tooltipFormatter = new TooltipFormatter();
+
+    text =
+      "Use models of corresponding points instead of cross-correlation to find"
+        + " the shifts between volumes.";
+    cbUseModel.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = "Open both volumes in 3dmod to make models of corresponding points.";
+    btnImodMatchModels.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text =
+      "Enter the list of fiducials in A for which you know the corresponding "
+        + "fiducial in B.  Use the point number in *fid.xyz, not the contour "
+        + "number.";
+    ltfFiducialMatchListA.setToolTipText(
+      tooltipFormatter.setText(text).format());
+
+    text =
+      "Enter the list of fiducials in B that correspond to the ones in the "
+        + "list entered for A.  Use the point number in *fid.xyz, not the "
+        + "contour number.";
+    ltfFiducialMatchListB.setToolTipText(
+      tooltipFormatter.setText(text).format());
+
+    text =
+      "The highest allowed value for the maximum residual when fitting the "
+        + "pairs of corresponding fiducial points to a linear transformation.";
+    ltfResidulThreshold.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text =
+      "View the two volumes that are used for assessing whether Matchshifts "
+        + "found the correct shifts between the volumes.";
+    btnMatchcheck.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text =
+      "Restart the combine operation from the beginning with the parameters "
+        + "specified here.";
+    btnRestart.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text =
+      "Resume and make first matching volume, despite a small displacement "
+        + "between the match check volumes";
+    btnMatchvolRestart.setToolTipText(tooltipFormatter.setText(text).format());
   }
 }
