@@ -34,6 +34,9 @@
     $Revision$
 
     $Log$
+    Revision 3.2  2002/09/04 00:24:48  mast
+    Added CVS header.  Changed to getting visuals then passing them to GLw.
+
 */
 
 #include <stdio.h>
@@ -116,6 +119,19 @@ static int True12[] =
     GLX_DEPTH_SIZE, 8,
     None
 };
+static int True15[] =
+{
+    GLX_DOUBLEBUFFER, 
+#ifdef __sgi
+    GLX_X_VISUAL_TYPE_EXT, GLX_TRUE_COLOR_EXT, 
+#endif
+    GLX_RGBA,
+    GLX_RED_SIZE, 5,
+    GLX_GREEN_SIZE, 5,
+    GLX_BLUE_SIZE, 5,
+    GLX_DEPTH_SIZE, 8,
+    None
+};
 
 /* Some visuals with no depth for the truly desperate */
 static int True24nodep[] =
@@ -128,6 +144,18 @@ static int True24nodep[] =
     GLX_RED_SIZE, 8,
     GLX_GREEN_SIZE, 8,
     GLX_BLUE_SIZE, 8,
+    None
+};
+static int True15nodep[] =
+{
+    GLX_DOUBLEBUFFER, 
+#ifdef __sgi
+    GLX_X_VISUAL_TYPE_EXT, GLX_TRUE_COLOR_EXT, 
+#endif
+    GLX_RGBA,
+    GLX_RED_SIZE, 5,
+    GLX_GREEN_SIZE, 5,
+    GLX_BLUE_SIZE, 5,
     None
 };
 static int True12nodep[] =
@@ -159,9 +187,10 @@ static int Pseudo8nodep[] =
 /* List the attribute lists in order of priority, indicate if they are
    truecolor (rgb) type */
 static int *OpenGLAttribList[] = {
-     True24, True24 + 1, Pseudo12, Pseudo12 + 1,
+     True24, True24 + 1, True15, True15 + 1, Pseudo12, Pseudo12 + 1,
      True12, True12 + 1, Pseudo8, Pseudo8 + 1,
-     True24nodep, True24nodep + 1, Pseudo12nodep, Pseudo12nodep + 1,
+     True24nodep, True24nodep + 1, True15nodep, True15nodep + 1,
+     Pseudo12nodep, Pseudo12nodep + 1,
      True12nodep, True12nodep + 1, Pseudo8nodep, Pseudo8nodep + 1,
      NULL
 };
@@ -502,111 +531,124 @@ static int open_window(ImodvApp *a)
 
 int imodvGetVisuals(ImodvApp *a)
 {
-     XVisualInfo vistemp;
-     XVisualInfo *vlist;
-     Window   window;
-     Screen  *screen;
-     XColor color;
-     int depth, screen_num = 0;
-     int i, vsize, v = 0;
-     unsigned long plane[1];
-     unsigned long pixels[IMODV_MAX_INDEX];
+  XVisualInfo vistemp;
+  XVisualInfo *vlist;
+  Window   window;
+  Screen  *screen;
+  XColor color;
+  int depth, screen_num = 0;
+  int i, vsize, v = 0;
+  unsigned long plane[1];
+  unsigned long pixels[IMODV_MAX_INDEX];
+  int iGot1 = -1;
+  int iGot2 = -1;
 
-     a->display = XtDisplay(a->topLevel);
-     screen  = DefaultScreenOfDisplay(a->display);
-     screen_num  = DefaultScreen(a->display);
-     window  = RootWindowOfScreen(screen);
+  a->display = XtDisplay(a->topLevel);
+  screen  = DefaultScreenOfDisplay(a->display);
+  screen_num  = DefaultScreen(a->display);
+  window  = RootWindowOfScreen(screen);
 
-     a->visualInfoSB = NULL;
-     a->visualInfoDB = NULL;
-     for (i = 0; OpenGLAttribList[i] != NULL; i += 2) {
+  a->visualInfoSB = NULL;
+  a->visualInfoDB = NULL;
+  for (i = 0; OpenGLAttribList[i] != NULL; i += 2) {
 
-	  /* If want a color index visual and this is not one, skip */
-	  if (a->cindex && AttribRGB[i])
-	       continue;
+    /* If want a color index visual and this is not one, skip */
+    if (a->cindex && AttribRGB[i])
+      continue;
 
-	  /* Insist on a RGB visual in model view from imod because of bugs */
-	  if (!a->standalone && !AttribRGB[i])
-	       continue;
+    /* Insist on a RGB visual in model view from imod because of bugs */
+    if (!a->standalone && !AttribRGB[i])
+      continue;
 
-	  a->visualInfoDB = glXChooseVisual(a->display, screen_num,
-					     OpenGLAttribList[i]);
+    /* If got one already, make sure RGB character matches */
+    if (iGot1 >= 0 && AttribRGB[i] != AttribRGB[iGot1])
+      continue;
 
-	  a->visualInfoSB = glXChooseVisual(a->display, screen_num,
-					     OpenGLAttribList[i + 1]);
+    if (!a->visualInfoDB)
+      a->visualInfoDB = glXChooseVisual(a->display, screen_num,
+					OpenGLAttribList[i]);
 
-	  /* If got one or the other, stop the loop */
-	  if (a->visualInfoDB || a->visualInfoSB) {
-	       if (!AttribRGB[i])
-		    a->cindex = 1;
-	       if (!AttribDepth[i])
-		    fprintf(stderr, "Imodv warning: using a visual with"
-			    " no depth buffer\n");
-	       break;
-	  }
-     }
+    if (!a->visualInfoSB)
+      a->visualInfoSB = glXChooseVisual(a->display, screen_num,
+				      OpenGLAttribList[i + 1]);
 
-     /* error if no visuals */
-     if (!a->visualInfoDB && !a->visualInfoSB)
-	  return 1;
+    if (iGot1 < 0 && (a->visualInfoDB || a->visualInfoSB))
+      iGot1 = i;
 
-     if (Imod_debug) {
-	  if (a->visualInfoDB)
-	       printf("DB class %d, depth %d, ID 0x%x\n", a->visualInfoDB->class, 
-		      a->visualInfoDB->depth, a->visualInfoDB->visualid);
-	  if (a->visualInfoSB)
-	       printf("SB class %d, depth %d, ID 0x%x\n", a->visualInfoSB->class, 
-		      a->visualInfoSB->depth, a->visualInfoSB->visualid);
-     }
+    /* If got both, stop the loop */
+    if (a->visualInfoDB && a->visualInfoSB) {
+      iGot2 = i;
+      break;
+    }
+  }
 
-     /* done if RGB */
-     if (!a->cindex)
-	  return 0;
+  /* error if no visuals */
+  if (!a->visualInfoDB && !a->visualInfoSB)
+    return 1;
 
-     fprintf(stderr, "Imodv warning: using color index visual\n");
+  if (!AttribRGB[iGot1])
+    a->cindex = 1;
+  if (!AttribDepth[iGot1] || (iGot2 >= 0 && !AttribDepth[iGot2]))
+      fprintf(stderr, "Imodv warning: using a visual with"
+	      " no depth buffer\n");
 
-     /* If color index and no DB, set SB into DB */
-     if (!a->visualInfoDB) {
-	  a->visualInfoDB = a->visualInfoSB;
-	  a->db = False;
-     }
+  if (Imod_debug) {
+    if (a->visualInfoDB)
+      printf("DB class %d, depth %d, ID 0x%x\n", a->visualInfoDB->class, 
+	     a->visualInfoDB->depth, a->visualInfoDB->visualid);
+    if (a->visualInfoSB)
+      printf("SB class %d, depth %d, ID 0x%x\n", a->visualInfoSB->class, 
+	     a->visualInfoSB->depth, a->visualInfoSB->visualid);
+  }
 
-     /* get properties from this visualInfo */
-     a->visual = a->visualInfoDB->visual;
-     a->depth  = a->visualInfoDB->depth;
+  /* done if RGB */
+  if (!a->cindex)
+    return 0;
 
-     /* If not standalone, and the visual matches the App visual, then
-	we use the same colormap, otherwise need a new colormap */
-     if (a->standalone || a->visual != App->visual) {
-	  a->gcmap = a->cmap = XCreateColormap
-	       (a->display, window,  a->visual, AllocNone);
-	  if (!a->cmap)
-	       return -1;
-     }
+  fprintf(stderr, "Imodv warning: using color index visual\n");
 
-     /* set toplevel properties */
-     XtVaSetValues(a->topLevel,
-		   XmNdepth, a->depth,
-		   XmNvisual, a->visual,
-		   XmNcolormap, a->cmap,
-		   NULL);
+  /* If color index and no DB, set SB into DB */
+  if (!a->visualInfoDB) {
+    a->visualInfoDB = a->visualInfoSB;
+    a->db = False;
+  }
 
-     /* Get the colors */
-     if (a->standalone) { /* || a->visual != App->visual) {*/
-	  if (!XAllocColorCells(a->display, a->cmap, True,
-				plane, 0, pixels, IMODV_MAX_INDEX)){
-	       fprintf(stderr, "Imodv Warning: Couldn't get colors\n");
-	  }
-	  for (i = 0; i < IMODV_MAX_INDEX; i++){
-	       color.pixel = i;
-	       color.flags = DoRed|DoGreen|DoBlue;
-	       XQueryColor (a->display,
-			    DefaultColormap(a->display,screen_num),
-			    &color);
-	       XStoreColors(a->display, a->cmap, &color, 1); 
-	  }
-     }
-     return 0;
+  /* get properties from this visualInfo */
+  a->visual = a->visualInfoDB->visual;
+  a->depth  = a->visualInfoDB->depth;
+
+  /* If not standalone, and the visual matches the App visual, then
+     we use the same colormap, otherwise need a new colormap */
+  if (a->standalone || a->visual != App->visual) {
+    a->gcmap = a->cmap = XCreateColormap
+      (a->display, window,  a->visual, AllocNone);
+    if (!a->cmap)
+      return -1;
+  }
+
+  /* set toplevel properties */
+  XtVaSetValues(a->topLevel,
+		XmNdepth, a->depth,
+		XmNvisual, a->visual,
+		XmNcolormap, a->cmap,
+		NULL);
+
+  /* Get the colors */
+  if (a->standalone) { /* || a->visual != App->visual) {*/
+    if (!XAllocColorCells(a->display, a->cmap, True,
+			  plane, 0, pixels, IMODV_MAX_INDEX)){
+      fprintf(stderr, "Imodv Warning: Couldn't get colors\n");
+    }
+    for (i = 0; i < IMODV_MAX_INDEX; i++){
+      color.pixel = i;
+      color.flags = DoRed|DoGreen|DoBlue;
+      XQueryColor (a->display,
+		   DefaultColormap(a->display,screen_num),
+		   &color);
+      XStoreColors(a->display, a->cmap, &color, 1); 
+    }
+  }
+  return 0;
 }
 
 int imodv_main(int argc, char **argv)
