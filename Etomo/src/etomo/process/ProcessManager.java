@@ -37,12 +37,6 @@ import java.util.ArrayList;
  * 
  * <p>
  * $Log$
- * Revision 3.4  2004/03/22 23:47:31  sueh
- * bug# 83 Use PatchcorrProcessWatcher when running patchcorr.
- *
- * Revision 3.3  2004/03/11 00:00:33  sueh
- * bug# 61
- *
  * Revision 3.2  2003/11/26 23:39:14  rickg
  * Debug flag and getter changed to static in AppManager.
  *
@@ -634,22 +628,6 @@ public class ProcessManager {
   }
 
   /**
-   * Run the appropriate mtffilter com file for the given axis ID
-   * 
-   * @param axisID
-   *          the AxisID to run newst on.
-   */
-  public String mtffilter(AxisID axisID) throws SystemProcessException {
-    //
-    //  Create the required newst command
-    //
-    String command = "mtffilter" + axisID.getExtension() + ".com";
-    //  Start the com script in the background
-    ComScriptProcess comScriptProcess = startComScript(command, null, axisID);
-    return comScriptProcess.getName();
-  }
-
-  /**
    * Run the appropriate tilt com file for the given axis ID
    * 
    * @param axisID
@@ -824,13 +802,10 @@ public class ProcessManager {
   public String patchcorr() throws SystemProcessException {
     //  Create the required combine command
     String command = "patchcorr.com";
-    //  Create the process monitor
-    PatchcorrProcessWatcher patchcorrProcessWatcher =
-      new PatchcorrProcessWatcher(appManager, AxisID.FIRST);
 
     //  Start the com script in the background
     ComScriptProcess comScriptProcess =
-      startComScript(command, patchcorrProcessWatcher, AxisID.ONLY);
+      startComScript(command, null, AxisID.ONLY);
     return comScriptProcess.getName();
 
   }

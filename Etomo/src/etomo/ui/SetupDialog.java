@@ -11,10 +11,6 @@
  * @version $Revision$
  *
  * <p> $Log$
- * <p> Revision 3.10  2004/03/16 00:55:55  rickg
- * <p> Bug# 411 re-layout setup page
- * <p> Add tooltips for image distortion and binning
- * <p>
  * <p> Revision 3.9  2004/03/15 23:14:10  sueh
  * <p> progress button names changed to "btn"
  * <p>
@@ -397,7 +393,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     ltfImageRotation.setColumns(5);
     btnScanHeader.setPreferredSize(UIParameters.getButtonDimension());
     btnScanHeader.setMaximumSize(UIParameters.getButtonDimension());
-    spnBinning.setTextMaxmimumSize(UIParameters.getSpinnerDimension());
+    spnBinning.setMaximumSize(UIParameters.getSpinnerDimension());
 
     pnlStackInfo.setLayout(new BoxLayout(pnlStackInfo, BoxLayout.X_AXIS));
     pnlStackInfo.add(Box.createRigidArea(FixedDim.x10_y0));

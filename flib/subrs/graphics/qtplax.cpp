@@ -5,6 +5,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.11  2003/10/26 05:34:23  mast
+add resize workaround for Windows
+
 Revision 1.10  2003/10/24 03:43:18  mast
 provide capitalized versions of Fortran funcs, add sizes for Windows
 
@@ -39,13 +42,14 @@ Changes to try to help text drawingon the Mac
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-#ifdef __linux
+
+#include "qtplax.h"
+#include "b3dutil.h"
+#ifdef QTPLAX_ATEXIT_HACK
 #include <sys/types.h>
 #include <unistd.h>
 #endif
 
-#include "qtplax.h"
-#include "b3dutil.h"
 #include <qapplication.h>
 #include <qfont.h>
 #include <qdatetime.h>
@@ -382,7 +386,7 @@ void plax_flush(void)
 }
 
 // Under Linux, it hangs on a Ctrl C, so kill the process group
-#ifdef __linux
+#ifdef QTPLAX_ATEXIT_HACK
 static void exitQAppOnExit()
 {
   char buf[64];
@@ -397,7 +401,7 @@ static int startPlaxApp()
 {
   PlaxApp = new QApplication(argc, argv);
 
-#ifdef __linux
+#ifdef QTPLAX_ATEXIT_HACK
   atexit(exitQAppOnExit);
 #endif
 

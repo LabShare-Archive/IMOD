@@ -22,9 +22,6 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
- * <p> Revision 3.1  2004/03/06 00:25:31  sueh
- * <p> bug# 318 add maxPatchZMax - set, setDefault, load, store
- * <p>
  * <p> Revision 3.0  2003/11/07 23:19:00  rickg
  * <p> Version 1.0.0
  * <p>
@@ -121,12 +118,6 @@ public class CombineParams extends ConstCombineParams implements Storable {
 
   public void setFiducialMatch(FiducialMatch match) {
     fiducialMatch = match;
-    if (match == FiducialMatch.USE_MODEL) {
-      modelBased = true;
-    }
-    else {
-      modelBased = false;
-    }
   }
 
   public void setFiducialMatchListA(String list) {
@@ -226,12 +217,6 @@ public class CombineParams extends ConstCombineParams implements Storable {
    */
   public void setModelBased(boolean modelBased) {
     this.modelBased = modelBased;
-    if (modelBased) {
-      fiducialMatch = FiducialMatch.USE_MODEL;
-    }
-    else {
-      fiducialMatch = FiducialMatch.BOTH_SIDES;
-    }
   }
 
   /**
@@ -373,13 +358,6 @@ public class CombineParams extends ConstCombineParams implements Storable {
             group + "ModelBased",
             Boolean.toString(modelBased)))
         .booleanValue();
-        
-    if (fiducialMatch == FiducialMatch.USE_MODEL) {
-      modelBased = true;
-    }
-    else {
-      modelBased = false;
-    }
     
     maxPatchZMax =
       Integer.parseInt(

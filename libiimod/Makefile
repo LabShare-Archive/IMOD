@@ -9,6 +9,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.7  2003/12/30 17:29:15  mast
+#  changes for windows DLLs and to produce nolibtiff only when needed
+#
 #  Revision 3.6  2003/11/04 17:21:20  mast
 #  Add dependencies on b3dutil.h
 #
@@ -19,6 +22,7 @@ O      = $(OBJEXT)
 LIBI   = libiimod.$(DLLEXT)
 LIBD   = $(DUMMYTIFF)
 LIBS   = $(LIBI) $(LIBD)
+CFLAGS = $(LIBCFLAGS)
 
 OBJS  = iimage.$(O) iitif.$(O) iimrc.$(O) mrcfiles.$(O) mrcsec.$(O) \
  mrcslice.$(O) mrcproc.$(O) mrcspectral.$(O) plist.$(O)

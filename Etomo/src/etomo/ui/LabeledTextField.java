@@ -18,9 +18,6 @@ import javax.swing.*;
  * @version $Revision$
  *
  * <p> $Log$
- * <p> Revision 3.0  2003/11/07 23:19:01  rickg
- * <p> Version 1.0.0
- * <p>
  * <p> Revision 2.2  2003/06/03 23:27:05  rickg
  * <p> Comment updates
  * <p> Removed ambiguous methods
@@ -96,10 +93,6 @@ public class LabeledTextField {
     textField.setText(String.valueOf(value));
   }
 
-  public void setText(float value) {
-    textField.setText(String.valueOf(value));
-  }
-  
   public void setText(double value) {
     textField.setText(String.valueOf(value));
   }
@@ -134,7 +127,7 @@ public class LabeledTextField {
    * @param size
    */
   public void setTextMaxmimumSize(Dimension size) {
-    textField.setMaximumSize(size);
+    textField.setMinimumSize(size);
   }
 
   /**

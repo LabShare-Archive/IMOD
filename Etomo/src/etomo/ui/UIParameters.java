@@ -12,9 +12,6 @@
  * @version $Revision$
  * 
  * <p> $Log$
- * <p> Revision 3.1  2004/02/20 23:52:10  sueh
- * <p> bug# 386 added FileField dimension and spinner dimension
- * <p>
  * <p> Revision 3.0  2003/11/07 23:19:01  rickg
  * <p> Version 1.0.0
  * <p>
@@ -69,7 +66,7 @@ public class UIParameters {
 	  JCheckBox temp = new JCheckBox();
 		double height = temp.getPreferredSize().getHeight();
 	  dimButton.setSize(7 * height, 2 * height);
-    dimSpinner.setSize(2 * height, 1.05 * height);
+    dimSpinner.setSize(5 * height, 2 * height);
     dimFileField.setSize(20 * height, 2 * height);
 	}
 }

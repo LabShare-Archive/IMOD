@@ -17,7 +17,6 @@ import etomo.comscript.ConstSolvematchshiftParam;
 import etomo.comscript.SolvematchmodParam;
 import etomo.comscript.SolvematchshiftParam;
 import etomo.comscript.CombineParams;
-import etomo.type.FiducialMatch;
 
 /**
  * <p>Description: </p>
@@ -32,10 +31,6 @@ import etomo.type.FiducialMatch;
  * @version $Revision$
  *
  * <p> $Log$
- * <p> Revision 3.3  2004/03/01 23:59:54  sueh
- * <p> bug# 250 add getCombineParams()
- * <p> Call combine and restart functions with tab information
- * <p>
  * <p> Revision 3.2  2004/02/27 20:01:58  sueh
  * <p> bug# 250 renamed setMatchingModels() to setUseMatchingModels()
  * <p> added getUseMatchingModels()
@@ -246,9 +241,6 @@ public class InitialCombinePanel implements ContextMenu {
   public void getCombineParameters(CombineParams combineParams) {
     combineParams.setFiducialMatchListA(ltfFiducialMatchListA.getText());
     combineParams.setFiducialMatchListB(ltfFiducialMatchListB.getText());
-    if (cbUseModel.isSelected()) {
-      combineParams.setFiducialMatch(FiducialMatch.USE_MODEL);
-    }
   }
 
   /**
@@ -311,7 +303,7 @@ public class InitialCombinePanel implements ContextMenu {
     if (event
       .getActionCommand()
       .equals(btnMatchvolRestart.getActionCommand())) {
-      applicationManager.matchvol1();
+      applicationManager.matchvol1(TomogramCombinationDialog.INITIAL_TAB);
     }
   }
 

@@ -80,18 +80,22 @@ echo '#define MAC103_BIGFILE' >> $hconfigure
 set optimization = "-O3 -w"
 if ($debug == true) set optimization = "-g -O0"
 
-#
+set cflags = "$flags $optimization $defines $include_flags $c_includes"
+set fflags = "$flags $ldfflags $optimization $include_flags"
+
+echo "CFLAGS  = $cflags" >> $configure
+echo "CXXFLAGS = $cflags" >> $configure
+echo "FFLAGS  = $fflags" >> $configure
+echo "NOOPFFLAGS = $fflags -O0" >> $configure
+echo "LIBCFLAGS  = $cflags" >> $configure
+echo "LIBFFLAGS  = $fflags" >> $configure
+
 #
 #  The fallbacks need to be defined because of problems with n32 code on the
 #  SGI; just define them the same as non-fallback versions.
 #
-echo "CFLAGS  = $flags $optimization $defines $include_flags $c_includes" >> $configure
-echo "CXXFLAGS = $flags $optimization $defines $include_flags $c_includes" >> $configure
-echo "FFLAGS  = $flags $optimization $include_flags" >> $configure
-echo "NOOPFFLAGS = $flags $optimization -O0 $include_flags" >> $configure
-
-echo "CFALLBACK  = $flags $optimization $defines $include_flags $c_includes" >> $configure
-echo "FFALLBACK  = $flags $optimization $include_flags" >> $configure
+echo "CFALLBACK  = $cflags" >> $configure
+echo "FFALLBACK  = $fflags" >> $configure
 echo 'LDFALLBACK = $(LDFLAGS)'       >> $configure
 echo 'NOOPFFALLBACK = $(NOOPFFLAGS)' >> $configure
 

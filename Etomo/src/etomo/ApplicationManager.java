@@ -12,15 +12,6 @@
  * @version $Revision$
  *
  * <p> $Log$
- * <p> Revision 3.25  2004/03/24 03:08:17  rickg
- * <p> Bug# 395 Implemented ability to create binned tomogram
- * <p>
- * <p> Revision 3.24  2004/03/22 23:51:23  sueh
- * <p> bug# 83 starting the progress bar as soon as possible
- * <p>
- * <p> Revision 3.23  2004/03/13 00:35:05  rickg
- * <p> Bug# 390 Add prenewst and xfproduct management
- * <p>
  * <p> Revision 3.22  2004/03/11 23:58:14  rickg
  * <p> Bug #410 Newstack PIP transition
  * <p> Formatted code
@@ -598,7 +589,6 @@ import etomo.comscript.ComScriptManager;
 import etomo.comscript.CombineParams;
 import etomo.comscript.ConstTiltalignParam;
 import etomo.comscript.FortranInputSyntaxException;
-import etomo.comscript.MTFFilterParam;
 import etomo.comscript.MatchorwarpParam;
 import etomo.comscript.NewstParam;
 import etomo.comscript.Patchcrawl3DParam;
@@ -638,7 +628,6 @@ import etomo.ui.TomogramGenerationDialog;
 import etomo.ui.TomogramPositioningDialog;
 import etomo.ui.UIParameters;
 import etomo.util.InvalidParameterException;
-import etomo.util.MRCHeader;
 import etomo.util.Utilities;
 
 public class ApplicationManager {
@@ -1157,78 +1146,6 @@ public class ApplicationManager {
     mainFrame.stopProgressBar(axisID);
   }
 
-  /**
-   * Replace the full aligned stack with the filtered full aligned stack 
-   * created from mtffilter
-   * @param axisID
-   */
-  public void useMtfFilter(AxisID axisID) {
-    mainFrame.setProgressBar("Using filtered full aligned stack", 1, axisID);
-    // Instantiate file objects for the original raw stack and the fixed stack
-    String fullAlignedStackFilename =
-      System.getProperty("user.dir")
-        + File.separator
-        + metaData.getDatasetName()
-        + axisID.getExtension()
-        + ".ali";
-
-    File fullAlignedStack = new File(fullAlignedStackFilename);
-    String renamedFullAlignedStackFilename =
-      System.getProperty("user.dir")
-        + File.separator
-        + metaData.getDatasetName()
-        + axisID.getExtension()
-        + "_orig.ali";
-    File renamedFullAlignedStack = new File(renamedFullAlignedStackFilename);
-
-    String filteredFullAlignedStackFilename =
-      System.getProperty("user.dir")
-        + File.separator
-        + metaData.getDatasetName()
-        + axisID.getExtension()
-        + "_filt.ali";
-    File filteredFullAlignedStack = new File(filteredFullAlignedStackFilename);
-
-    if (!filteredFullAlignedStack.exists()) {
-      mainFrame.openMessageDialog(
-        "The filtered full aligned stack doesn't exist.  Create the filtered full aligned stack first",
-        "Filtered full aligned stack missing");
-      return;
-    }
-
-    processTrack.setPreProcessingState(ProcessState.INPROGRESS, axisID);
-    mainFrame.setPreProcessingState(ProcessState.INPROGRESS, axisID);
-
-    // Rename the filter full aligned stack to the full aligned stack file name
-    // and save the orginal
-    // full aligned stack to _orig.ali if that does not already exist 
-    if (!renamedFullAlignedStack.exists()) {
-      fullAlignedStack.renameTo(renamedFullAlignedStack);
-    }
-    filteredFullAlignedStack.renameTo(fullAlignedStack);
-
-    try {
-      if (imodManager.isOpen(ImodManager.FINE_ALIGNED_KEY, axisID)) {
-        String[] message = new String[2];
-        message[0] = "The original full aligned stack is open in 3dmod";
-        message[1] = "Should it be closed?";
-        if (mainFrame.openYesNoDialog(message)) {
-          imodManager.quit(ImodManager.FINE_ALIGNED_KEY, axisID);
-        }
-      }
-    }
-    catch (AxisTypeException e) {
-      e.printStackTrace();
-      System.err.println("Axis type exception in useMtfFilter");
-    }
-    catch (SystemProcessException e) {
-      e.printStackTrace();
-      System.err.println("System process exception in useMtfFilter");
-    }
-
-    mainFrame.stopProgressBar(axisID);
-  }
-
   public void imodPreview(AxisID axisID) {
     if (setupDialog == null) {
       return;
@@ -1474,7 +1391,7 @@ public class ApplicationManager {
    * @param axisID
    * @return
    */
-  private boolean updatePrenewstCom(AxisID axisID) {
+private boolean updatePrenewstCom(AxisID axisID) {
     CoarseAlignDialog coarseAlignDialog;
     if (axisID == AxisID.SECOND) {
       coarseAlignDialog = coarseAlignDialogB;
@@ -1489,10 +1406,10 @@ public class ApplicationManager {
     XfproductParam xfproductParam = comScriptMgr.getXfproductInAlign(axisID);
     int binning = prenewstParam.getBinByFactor();
     try {
-      if (binning > 1) {
+      if(binning > 1) {
         xfproductParam.setScaleShifts("1," + String.valueOf(binning));
       }
-      else {
+      else{
         xfproductParam.setScaleShifts("/");
       }
       comScriptMgr.saveXfproductInAlign(xfproductParam, axisID);
@@ -1507,7 +1424,6 @@ public class ApplicationManager {
     }
     return true;
   }
-
   /**
    * Open the fiducial model generation dialog
    */
@@ -2006,27 +1922,6 @@ public class ApplicationManager {
   }
 
   /**
-   * Open 3dmod to view the MTF filter results
-   * @param axisID the AxisID to coarse align.
-   */
-  public void imodMTFFilter(AxisID axisID) {
-    try {
-      //imodManager.openFineAligned(axisID);
-      imodManager.open(ImodManager.MTF_FILTER_KEY, axisID);
-    }
-    catch (AxisTypeException except) {
-      except.printStackTrace();
-      mainFrame.openMessageDialog(except.getMessage(), "AxisType problem");
-    }
-    catch (SystemProcessException except) {
-      except.printStackTrace();
-      mainFrame.openMessageDialog(except.getMessage(),
-        "Can't open 3dmod on MTF filter results");
-    }
-
-  }
-
-  /**
    * Transfer the fiducial to the specified axis
    * @param destAxisID
    */
@@ -2484,44 +2379,14 @@ public class ApplicationManager {
       tomogramGenerationDialogA = tomogramGenerationDialog;
     }
 
-    // Get the original image size and pass it to the TomogramGenerationDialog.
-    // It is needed to set the full image size correctly
-    // TODO: get the right size for montaging using montagesize
-    MRCHeader stackHeader = new MRCHeader(metaData.getDatasetName()
-        + axisID.getExtension() + ".st");
-    try {
-      stackHeader.read();
-      tomogramGenerationDialog.setFullImageSize(stackHeader.getNColumns(),
-        stackHeader.getNRows());
-    }
-    catch (IOException except) {
-      String[] errorMessage = new String[3];
-      errorMessage[0] = "Unable to read full image size from projection image stack";
-      errorMessage[1] = "Axis: " + axisID.getExtension();
-      errorMessage[2] = except.getMessage();
-      mainFrame.openMessageDialog(errorMessage, "MRCHeader IO Error");
-    }
-    catch (InvalidParameterException except) {
-      String[] errorMessage = new String[3];
-      errorMessage[0] = "Unable to read full image size from projection image stack";
-      errorMessage[1] = "Axis: " + axisID.getExtension();
-      errorMessage[2] = except.getMessage();
-      mainFrame.openMessageDialog(errorMessage,
-        "MRCHeader Invalid Parameter Error");
-    }
+    // Read in the tilt{|a|b}.com parameters and display the dialog panel
+    comScriptMgr.loadTilt(axisID);
+    tomogramGenerationDialog.setTiltParams(comScriptMgr.getTiltParam(axisID));
 
-    // Read in the newst{|a|b}.com parameters.  WARNING this needs to be done
-    // before reading the tilt paramers below so that the GUI knows how to
-    // correctly scale the dimensions
     comScriptMgr.loadNewst(axisID);
     tomogramGenerationDialog.setNewstParams(comScriptMgr
       .getNewstComNewstParam(axisID));
 
-    // Read in the tilt{|a|b}.com parameters and display the dialog panel
-    comScriptMgr.loadTilt(axisID);
-    comScriptMgr.loadMTFFilter(axisID);
-    tomogramGenerationDialog.setTiltParams(comScriptMgr.getTiltParam(axisID));
-    tomogramGenerationDialog.setMTFFilterParam(comScriptMgr.getMTFFilterParam(axisID));
     mainFrame.showProcess(tomogramGenerationDialog.getContainer(), axisID);
   }
 
@@ -2553,7 +2418,7 @@ public class ApplicationManager {
     }
     else {
       //  Get the user input data from the dialog box
-      if (!updateNewstCom(axisID) || !updateTiltCom(axisID, true) || !updateMTFFilterCom(axisID)) {
+      if (!updateTiltCom(axisID, true)) {
         return;
       }
       if (exitState == DialogExitState.POSTPONE) {
@@ -2657,70 +2522,6 @@ public class ApplicationManager {
   }
 
   /**
-   * Update the mtffilter.com from the TomogramGenerationDialog
-   * @param axisID
-   * @return true if successful
-   */
-  private boolean updateMTFFilterCom(AxisID axisID) {
-    //  Set a reference to the correct object
-    TomogramGenerationDialog tomogramGenerationDialog;
-    if (axisID == AxisID.SECOND) {
-      tomogramGenerationDialog = tomogramGenerationDialogB;
-    }
-    else {
-      tomogramGenerationDialog = tomogramGenerationDialogA;
-    }
-
-    if (tomogramGenerationDialog == null) {
-      mainFrame.openMessageDialog(
-        "Can not update mtffilter?.com without an active tomogram generation dialog",
-        "Program logic error");
-      return false;
-    }
-
-    try {
-      MTFFilterParam mtfFilterParam = comScriptMgr.getMTFFilterParam(axisID);
-      tomogramGenerationDialog.getMTFFilterParam(mtfFilterParam);
-
-      String inputFileName;
-      String outputFileName;
-      if (metaData.getAxisType() == AxisType.SINGLE_AXIS) {
-        inputFileName = metaData.getDatasetName() + AxisID.ONLY + ".ali";
-        outputFileName = metaData.getDatasetName() + AxisID.ONLY + "_filt.ali";
-      }
-      else {
-        inputFileName =
-          metaData.getDatasetName() + axisID.getExtension() + ".ali";
-        outputFileName = metaData.getDatasetName() + axisID.getExtension() + "_filt.ali";
-      }
-      mtfFilterParam.setInputFile(inputFileName);
-      mtfFilterParam.setOutputFile(outputFileName);
-      comScriptMgr.saveMTFFilter(mtfFilterParam, axisID);
-    }
-    catch (NumberFormatException except) {
-      String[] errorMessage = new String[3];
-      errorMessage[0] = "MTF Filter Parameter Syntax Error";
-      errorMessage[1] = "Axis: " + axisID.getExtension();
-      errorMessage[2] = except.getMessage();
-      mainFrame.openMessageDialog(
-        errorMessage,
-        "MTF Filter Parameter Syntax Error");
-      return false;
-    }
-    catch (FortranInputSyntaxException except) {
-      String[] errorMessage = new String[3];
-      errorMessage[0] = "MTF Filter Parameter Syntax Error";
-      errorMessage[1] = "Axis: " + axisID.getExtension();
-      errorMessage[2] = except.getMessage();
-      mainFrame.openMessageDialog(
-        errorMessage,
-        "MTF Filter Parameter Syntax Error");
-      return false;
-    }
-    return true;
-  }
-
-  /**
    * Update the newst.com from the TomogramGenerationDialog
    * @param axisID
    * @return true if successful
@@ -2793,36 +2594,6 @@ public class ApplicationManager {
       catch (FortranInputSyntaxException except) {
         except.printStackTrace();
       }
-    }
-  }
-
-  /**
-   */
-  public void mtffilter(AxisID axisID) {
-    if (updateMTFFilterCom(axisID)) {
-      MTFFilterParam mtfFilterParam;
-      comScriptMgr.loadMTFFilter(axisID);
-      mtfFilterParam = comScriptMgr.getMTFFilterParam(axisID);
-      comScriptMgr.saveMTFFilter(mtfFilterParam, axisID);
-
-      processTrack.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
-      mainFrame.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
-
-      String threadName;
-      try {
-        threadName = processMgr.mtffilter(axisID);
-      }
-      catch (SystemProcessException e) {
-        e.printStackTrace();
-        String[] message = new String[2];
-        message[0] =
-          "Can not execute mtffilter" + axisID.getExtension() + ".com";
-        message[1] = e.getMessage();
-        mainFrame.openMessageDialog(message, "Unable to execute com script");
-        return;
-      }
-      setThreadName(threadName, axisID);
-      mainFrame.startProgressBar("MTF Filter", axisID);
     }
   }
 
@@ -3692,7 +3463,6 @@ public class ApplicationManager {
   private void patchcorr() {
     //  Set the next process to execute when this is finished   
     nextProcess = "matchorwarp";
-    mainFrame.startProgressBar("Combine: patchcorr", AxisID.FIRST);
     String threadName;
     try {
       threadName = processMgr.patchcorr();
@@ -3707,6 +3477,7 @@ public class ApplicationManager {
     }
     setThreadName(threadName, AxisID.FIRST);
     tomogramCombinationDialog.showPane("Final Match");
+    mainFrame.startProgressBar("Combine: patchcorr", AxisID.FIRST);
   }
 
   /**

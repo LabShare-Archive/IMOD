@@ -20,9 +20,6 @@
  * @version $Revision$
  * 
  * <p> $Log$
- * <p> Revision 3.0  2003/11/07 23:19:00  rickg
- * <p> Version 1.0.0
- * <p>
  * <p> Revision 1.2  2003/11/07 23:15:03  rickg
  * <p> Comments and command line args added
  * <p>
@@ -238,8 +235,6 @@ public class DataFlowTests {
     mainFrame.pack();
     applicationManager.newst(axisID);
     waitForThread(axisID);
-    //applicationManager.mtffilter(axisID);
-    //waitForThread(axisID);
     applicationManager.tilt(axisID);
     waitForThread(axisID);
     applicationManager.deleteAlignedStacks(axisID);
