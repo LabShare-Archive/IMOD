@@ -24,6 +24,9 @@ import etomo.ApplicationManager;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.3  2003/05/10 19:12:42  rickg
+ * <p> OS independent path implementation
+ * <p>
  * <p> Revision 2.2  2003/05/07 17:51:09  rickg
  * <p> System property user.dir now defines the working directory
  * <p>
@@ -59,10 +62,10 @@ public class ContextPopup {
   private ActionListener actionListener;
   private MouseEvent mouseEvent;
 
-  private static ApplicationManager appManager;
   private String[] manPageName;
   private String[] logFileName;
 
+  private static String imodURL;
   private String anchor;
 
   /**
@@ -71,7 +74,15 @@ public class ContextPopup {
    * reference exception will be thrown.
    */
   public ContextPopup(ApplicationManager appMgr) {
-    appManager = appMgr;
+    ApplicationManager appManager = appMgr;
+    try {
+      imodURL = appManager.getIMODDirectory().toURL().toString() + "/html/";
+    }
+    catch (MalformedURLException except) {
+      except.printStackTrace();
+      System.err.println("Malformed URL:");
+      System.err.println(appManager.getIMODDirectory().toString());
+    }
   }
 
   /**
@@ -90,17 +101,8 @@ public class ContextPopup {
     actionListener = new ActionListener() {
 
       public void actionPerformed(ActionEvent actionEvent) {
-        String imodURL;
-        try {
-          imodURL = appManager.getIMODDirectory().toURL().toString() + "/html/";
-        } catch (MalformedURLException except) {
-          except.printStackTrace();
-          System.err.println("Malformed URL:");
-          System.err.println(appManager.getIMODDirectory().toString());
-          return;
-        }
         String tomoGuideLocation = "tomoguide.html";
-
+        System.err.println(imodURL);
         if (anchor != null && !anchor.equals("")) {
           tomoGuideLocation += "#" + anchor;
         }
@@ -150,8 +152,6 @@ public class ContextPopup {
     //  Instantiate a new ActionListener to handle the menu selection
     actionListener = new ActionListener() {
       public void actionPerformed(ActionEvent actionEvent) {
-        String imodURL = "file://" + appManager.getIMODDirectory() + "/html/";
-
         String tomoGuideLocation = "tomoguide.html";
         if (anchor != null && !anchor.equals("")) {
           tomoGuideLocation += "#" + anchor;
@@ -220,8 +220,6 @@ public class ContextPopup {
     //  Instantiate a new ActionListener to handle the menu selection
     actionListener = new ActionListener() {
       public void actionPerformed(ActionEvent actionEvent) {
-        String imodURL = "file://" + appManager.getIMODDirectory() + "/html/";
-
         String tomoGuideLocation = "tomoguide.html";
         if (anchor != null && !anchor.equals("")) {
           tomoGuideLocation += "#" + anchor;
