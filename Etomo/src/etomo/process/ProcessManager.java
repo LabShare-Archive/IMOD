@@ -20,6 +20,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.22  2004/07/07 00:22:38  sueh
+ * bug# 405 in kill() recursively killing the descendants of a process
+ * before killing the process
+ *
  * Revision 3.21  2004/07/02 22:01:32  rickg
  * Bug #491 Fixed xf detection logic
  *
@@ -1496,7 +1500,7 @@ public class ProcessManager {
    */
   protected String getChildProcess(String processID) {
     System.err.println("in getChildProcess: processID=" + processID);
-    //  Run the appropriate version of ps
+    //ps -l: get processes from this user and terminal
     SystemProgram ps = new SystemProgram("ps -l");
     ps.run();
 
@@ -1506,12 +1510,23 @@ public class ProcessManager {
     String[] labels = header.split("\\s+");
     int idxPID = -1;
     int idxPPID = -1;
+    int idxCMD = -1;
+    int found = 0;
     for (int i = 0; i < labels.length; i++) {
       if (labels[i].equals("PID")) {
         idxPID = i;
+        found++;
       }
       if (labels[i].equals("PPID")) {
         idxPPID = i;
+        found++;
+      }
+      if (labels[i].equals("CMD") || labels[i].equals("COMMAND")) {
+        idxCMD = i;
+        found++;
+      }
+      if (found >= 3) {
+        break;
       }
     }
     //  Return null if the PID or PPID fields are not found
@@ -1523,8 +1538,17 @@ public class ProcessManager {
     String[] fields;
     for (int i = 1; i < stdout.length; i++) {
       fields = stdout[i].trim().split("\\s+");
-      if (fields[idxPPID].equals(processID) && !killedList.containsKey(fields[idxPID])) {
-        System.err.println("child found:PID=" + fields[idxPID] + ",PPID=" + fields[idxPPID] + ",name=" + fields[13]);
+      if (fields[idxPPID].equals(processID)
+        && !killedList.containsKey(fields[idxPID])) {
+        if (idxCMD != -1) {
+          System.err.println(
+            "child found:PID="
+              + fields[idxPID]
+              + ",PPID="
+              + fields[idxPPID]
+              + ",name="
+              + fields[idxCMD]);
+        }
         return fields[idxPID];
       }
     }
