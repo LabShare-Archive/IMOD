@@ -16,6 +16,9 @@ import java.util.ArrayList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.4  2003/06/04 23:48:33  rickg
+ * <p> Rename log file if it exists
+ * <p>
  * <p> Revision 1.3  2003/05/27 08:43:16  rickg
  * <p> Set started flag in com script execution
  * <p>
@@ -245,7 +248,7 @@ public class ComScriptProcess
    * Get the csh process ID if it is available
    * @return
    */
-  public String getCshProcessID() {
+  public String getShellProcessID() {
     if (cshProcessID == null) {
       return "";
     }

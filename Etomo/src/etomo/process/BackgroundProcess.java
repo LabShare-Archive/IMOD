@@ -14,6 +14,10 @@ import java.io.File;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 2.5  2003/05/23 22:48:44  rickg
+ * <p> Implemented getting the PID of tcsh shell scripts that emmit it
+ * <p> to stderr
+ * <p>
  * <p> Revision 2.4  2003/05/23 14:27:36  rickg
  * <p> Implements SystemProcessInterface
  * <p>
@@ -194,10 +198,10 @@ public class BackgroundProcess
   }
     
   /**
-   * Get the command process ID if it is available
+   * Get the shell process ID if it is available
    * @return
    */
-  public String getCommandProcessID() {
+  public String getShellProcessID() {
     if (commandProcessID == null) {
       return "";
     }
