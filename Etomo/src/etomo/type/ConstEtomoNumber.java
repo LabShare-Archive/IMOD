@@ -22,6 +22,10 @@ import etomo.storage.Storable;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.9  2005/01/10 23:48:08  sueh
+ * <p> bug# 578 Changing getValue() to protected, so it can be used by
+ * <p> EtomoState.
+ * <p>
  * <p> Revision 1.8  2005/01/10 23:26:46  sueh
  * <p> bug# 578 Standardized class so that every use of value goes through
  * <p> getValue().  GetValue() tries to find a non-null value by looking first at
@@ -94,7 +98,6 @@ public abstract class ConstEtomoNumber implements Storable {
   protected String name;
   protected String description = null;
   protected String invalidReason = null;
-  protected EtomoVersion originalVersion = null;
   protected boolean displayDefault = false;
   protected Number value;
   protected Number defaultValue;
@@ -275,21 +278,6 @@ public abstract class ConstEtomoNumber implements Storable {
     return this;
   }
   
-  public ConstEtomoNumber setOriginalVersion(String originalVersion) {
-    this.originalVersion.set(originalVersion);
-    return this;
-  }
-  
-  public boolean inVersion(EtomoVersion version) {
-    if (originalVersion.isNull() || originalVersion.isNull()) {
-      return false;
-    }
-    if (originalVersion.earlierOrEqualTo(version)) {
-      return true;
-    }
-    return false;
-  }
-
   public void store(Properties props) {
     props.setProperty(name, toString(value));
   }
@@ -410,20 +398,18 @@ public abstract class ConstEtomoNumber implements Storable {
     return equals(getValue(), newNumber(value, new StringBuffer()));
   }
 
-  private void initialize() {
+  protected void initialize() {
     value = newNumber();
     defaultValue = newNumber();
     resetValue = newNumber();
     ceilingValue = newNumber();
-    originalVersion = new EtomoVersion();
   }
 
-  private void initialize(int initialValue) {
+  protected void initialize(int initialValue) {
     value = newNumber(initialValue);
     defaultValue = newNumber();
     resetValue = newNumber();
     ceilingValue = newNumber();
-    originalVersion = new EtomoVersion();
   }
 
   /**
