@@ -29,6 +29,10 @@ import etomo.util.Utilities;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.5  2004/08/24 20:31:18  sueh
+ * <p> $bug# 508 make kill() interrupt the thread which is executing
+ * <p> $the run function
+ * <p> $
  * <p> $Revision 1.4  2004/08/23 23:35:45  sueh
  * <p> $bug# 508 made this class more like LogFileProcessMonitor.
  * <p> $Calling interrupt on child monitors and this monitor to make
@@ -276,7 +280,6 @@ public class CombineProcessMonitor implements Runnable, BackgroundProcessMonitor
     String logFileName = CombineComscriptState.COMSCRIPT_NAME + ".log";
     logFile = new File(System.getProperty("user.dir"), logFileName);
 
-    boolean processRunning = true;
     try {
       //  Wait for the log file to exist
       waitForLogFile();
