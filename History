@@ -1,5 +1,16 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/24/05: IMOD_3-4-23
+2/24/05: Added sourecdoc program to produce documentation from source files.
+
+2/24/05: Added ability to select multiple contours from more than one object
+with Ctrl and first mouse button; contours from multiple objects can be
+deleted, shifted/transformed, and moved up and down in Z.
+
+2/24/05: Fixed problems with using Qt Assistant for help by providing fallback
+for IMOD_DIR in Windows, and by putting Assistant in IMOD/bin when Qt is not
+being packed in distribution. 
+
 2/18/05: IMOD_3-4-22
 2/18/05: Added ability to set center of contour rotation and stretching and
 display of center as in midas, and allowed contour adjustment when no current
