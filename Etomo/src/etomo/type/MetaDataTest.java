@@ -3,6 +3,7 @@ package etomo.type;
 import java.io.File;
 import java.io.IOException;
 
+import etomo.EtomoDirector;
 import etomo.process.SystemProcessException;
 import etomo.storage.ParameterStore;
 import etomo.storage.Storable;
@@ -24,6 +25,9 @@ import junit.framework.TestCase;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.2  2004/06/01 18:56:00  rickg
+ * <p> Import fix for javadoc
+ * <p>
  * <p> Revision 3.1  2004/04/06 03:24:31  rickg
  * <p> Create MetaDataTest
  * <p> </p>
@@ -45,16 +49,17 @@ public class MetaDataTest extends TestCase {
         + testDirectory);
 
     // Set the working directory to the current test directory for this package
-    String originalDirectory = System.getProperty("user.dir");
-    System.setProperty("user.dir", originalDirectory + File.separator
-        + TypeTests.testRoot);
+    EtomoDirector etomoDirector = EtomoDirector.getInstance();
+    String originalDirectory = etomoDirector.getCurrentPropertyUserDir();
+    etomoDirector.setCurrentPropertyUserDir(new File(originalDirectory,
+        TypeTests.testRoot).getAbsolutePath());
 
     for (int i = 0; i < edfList.length; i++) {
       try {
         TestUtilites.checkoutVector(testDirectory, edfList[i]);
       }
       catch (SystemProcessException except) {
-        System.setProperty("user.dir", originalDirectory);
+        etomoDirector.setCurrentPropertyUserDir(originalDirectory);
         System.err.println(except.getMessage());
         fail("Error checking out test vector: " + TypeTests.testRoot
             + File.separator + testDirectory + edfList[i]);
@@ -62,16 +67,16 @@ public class MetaDataTest extends TestCase {
     }
 
     // Switch back to the original working directory
-    System.setProperty("user.dir", originalDirectory);
+    etomoDirector.setCurrentPropertyUserDir(originalDirectory);
   }
 
   /*
    * Class to test for void store(Properties)
    */
   public void testStoreProperties() throws IOException {
-    String workingDirectory = System.getProperty("user.dir") + File.separator
-        + TypeTests.testRoot + File.separator + testDirectory;
-
+    String workingDirectory = new File(EtomoDirector.getInstance()
+        .getCurrentPropertyUserDir(), TypeTests.testRoot + File.separator
+        + testDirectory).getAbsolutePath();
     Storable[] storable = new Storable[1];
 
     for (int i = 0; i < edfList.length; i++) {
@@ -108,16 +113,13 @@ public class MetaDataTest extends TestCase {
       InvalidParameterException {
 
     Storable[] storable = new Storable[1];
-
+    File storeDir = new File(EtomoDirector.getInstance()
+        .getCurrentPropertyUserDir(), TypeTests.testRoot + File.separator
+        + testDirectory);
     for (int i = 0; i < edfList.length; i++) {
       MetaData metaData = new MetaData();
       storable[0] = metaData;
-      ParameterStore paramStore = new ParameterStore(new File(System
-        .getProperty("user.dir")
-          + File.separator
-          + TypeTests.testRoot
-          + File.separator
-          + testDirectory, edfList[i]));
+      ParameterStore paramStore = new ParameterStore(new File(storeDir, edfList[i]));
       paramStore.load(storable);
       //  Check some basic parameters to see if we actually loaded something
       if (metaData.getDatasetName().equals("")) {
