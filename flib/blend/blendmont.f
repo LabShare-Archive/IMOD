@@ -31,6 +31,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.10  2004/09/14 22:34:44  mast
+c	  Made it preserve pixel sizes
+c	
 c	  Revision 3.9  2004/03/12 20:42:09  mast
 c	  Made size parameters for finding edge functions be option entries,
 c	  made defaults scale up above 1024, and made it read and use the grid
@@ -2254,6 +2257,16 @@ c
      &	      i=1,nedge(ixy)),ixy=1,2)
 	  close(4)
 	endif
+c	  
+c	  rewrite header for new edge functions so that they have later date
+c	  than the edge correlations; close files
+c
+	do ixy = 1,2
+	  if (ifoldedge .eq. 0) write(iunedge(ixy),rec=1)nedge(ixy),
+     &	      nxgrid(ixy),nygrid(ixy) ,intgrid(ixy),intgrid(3-ixy)
+	  close(iunedge(ixy))
+	enddo
+c
 	call exit(0)
 98	call errorexit ('reading transforms')
 	end
