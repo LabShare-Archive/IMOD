@@ -7,6 +7,7 @@ import java.util.HashMap;
 import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.comscript.Command;
+import etomo.comscript.ComscriptState;
 import etomo.type.AxisID;
 import etomo.util.Utilities;
 
@@ -24,6 +25,13 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.8  2004/12/14 21:33:25  sueh
+* <p> bug# 565: Fixed bug:  Losing process track when backing up .edf file and
+* <p> only saving metadata.  Removed unnecessary class JoinProcessTrack.
+* <p> bug# 572:  Removing state object from meta data and managing it with a
+* <p> manager class.
+* <p> Saving all objects to the .edf/ejf file each time a save is done.
+* <p>
 * <p> Revision 1.7  2004/12/13 19:08:56  sueh
 * <p> bug# 565 Saving process track to edf file as well as meta data in the
 * <p> start... functions.
@@ -122,6 +130,59 @@ public abstract class BaseProcessManager {
     throws SystemProcessException {
     return startComScript(
       new ComScriptProcess(command, this, axisID, null),
+      command,
+      processMonitor,
+      axisID);
+  }
+  
+  /**
+   * Start a managed command script for the specified axis
+   * @param command
+   * @param processMonitor
+   * @param axisID
+   * @return
+   * @throws SystemProcessException
+   */
+  protected ComScriptProcess startComScript(Command command,
+      Runnable processMonitor, AxisID axisID) throws SystemProcessException {
+    return startComScript(new ComScriptProcess(command, this, axisID, null),
+        command.getCommandLine(), processMonitor, axisID);
+  }
+  
+  /**
+   * Start a managed background command script for the specified axis
+   * @param command
+   * @param processMonitor
+   * @param axisID
+   * @return
+   * @throws SystemProcessException
+   */
+  protected ComScriptProcess startBackgroundComScript(String command, 
+    Runnable processMonitor, AxisID axisID, 
+    ComscriptState comscriptState, String watchedFileName)
+    throws SystemProcessException {
+    return startComScript(new BackgroundComScriptProcess(command, this, axisID,
+      watchedFileName, (BackgroundProcessMonitor) processMonitor, comscriptState),
+      command, processMonitor, axisID);
+  }
+
+  /**
+   * Start a managed command script for the specified axis
+   * @param command
+   * @param processMonitor
+   * @param axisID
+   * @param watchedFileName watched file to delete
+   * @return
+   * @throws SystemProcessException
+   */
+  protected ComScriptProcess startComScript(
+    String command,
+    Runnable processMonitor,
+    AxisID axisID,
+    String watchedFileName)
+    throws SystemProcessException {
+    return startComScript(
+      new ComScriptProcess(command, this, axisID, watchedFileName),
       command,
       processMonitor,
       axisID);
