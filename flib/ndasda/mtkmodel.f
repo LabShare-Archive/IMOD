@@ -5,6 +5,13 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.2  2003/08/08 17:48:13  mast
+c	  Eliminated STOP statements, provided for model file to be skipped,
+c	  fixed Z limiting code to not assume contours in order by Z.  Fixed
+c	  object-saving and changing logic so that user no longer specifies
+c	  objects and it knows what objects the data are being saved in and
+c	  sets properties correctly.
+c	
 c
 c	  READ_MODEL reads a WIMP model.
 c	  if MODELFILE is blank, it requests a model file name; otherwise it
@@ -252,7 +259,7 @@ c
 95	write(*,'(1x,a,$)')'Name of output model file: '
 	read(5,'(a)')lastmodel
 c	  
-	lastobject = getimodobjsize();
+	lastobject = getimodobjsize()
 	ncolchg=0
 	if(nobjwin.ne.0)then
 	  print *,'Enter list of objects for which to put',

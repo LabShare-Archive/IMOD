@@ -8,6 +8,9 @@
 # $Revision$
 #
 # $Log$
+# Revision 2.7  2003/08/08 19:05:17  rickg
+# Fixed cp and rm invokations
+#
 # Revision 2.6  2003/08/08 05:13:52  rickg
 # Mods to support IMOD make structure
 #
@@ -38,7 +41,7 @@ $(JAR_FILE): cpimages compile
 	jar  -cvmf MANIFEST.MF $(JAR_FILE) -C $(CLASSPATH) etomo -C $(CLASSPATH) images
 
 cpimages:
-	$(CP) -a $(SOURCEPATH)/images $(CLASSPATH)
+	$(CP) -r $(SOURCEPATH)/images $(CLASSPATH)
 	rm -rf  $(CLASSPATH)/images/CVS
 
 compile: 
@@ -48,7 +51,7 @@ install: $(JAR_FILE)
 	$(CP) $(JAR_FILE) $(INSTBINDIR)
 	chmod 755 scripts/etomo
 	$(CP) scripts/etomo $(INSTBINDIR)
-	
+
 
 tests: $(CLASS_FILES) $(TEST_BIN)
 	echo "Make tests completed"
