@@ -219,7 +219,7 @@ long =
 type = B
 usage = Print details on patches being replaced
 tooltip = 
-manpage = Read parameter entries from file. 
+manpage =
 
 [Field = ParameterFile]
 short = param
