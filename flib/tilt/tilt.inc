@@ -32,7 +32,7 @@ c        parameter (limstack=2200000)
 	parameter (limwpos=400,limwarp=40000)
 	COMMON /BUFFER/NSTACK,maxstack,ARRAY(limstack)
 	COMMON /HEADER/npxyz(3),IWIDE,ITHICK,ISLICE,JSLICE
-     &      ,ANGLES(360),TITLE(20),npad,ithickout
+     &      ,ANGLES(limview),TITLE(20),npad,ithickout
 	equivalence (nprj,npxyz(1)),(mprj,npxyz(2)),(nviews,npxyz(3))
 	LOGICAL MASK,PERP,fastbp
 	COMMON /MISCEL/PERP,DELXX,IMAP,nbase,ITHWID,xcenin,slicen,XCEN,YCEN

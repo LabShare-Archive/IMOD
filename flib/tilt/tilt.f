@@ -325,6 +325,10 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.1  2002/01/10 01:43:47  mast
+c	  Fixed check on number of views to use limview rather than 360, and
+c	  redimensioned two arrays from 360 to limview
+c	
 c	  Revision 3.0  2001/11/29 18:10:42  rickg
 c	  *** empty log message ***
 c	
@@ -388,6 +392,10 @@ c
 	if(ifalpha.lt.0)write(6,902)nvertneed,nvertneed*ithick*iwide
 	write(6,903)NPLANES,NI
 	if (ipextra.ne.0)write(6,901)ipextra
+c	  
+c	  Flush to make it easier to determine what's going on.
+c
+	call flush(6)
 	call maskprep
 c	print *,'slicen',slicen,', imap',imap,', nbase',nbase
 	if(ifalpha.ge.0)then
