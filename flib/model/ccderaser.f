@@ -23,6 +23,10 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.12  2003/10/30 06:32:24  mast
+c	  Limited number of pixels in difference patches to avoid erasing gold
+c	  particles in binned-down images.
+c	
 c	  Revision 3.11  2003/10/10 20:42:23  mast
 c	  Used new subroutine for getting input/output files
 c	
@@ -466,7 +470,10 @@ c       encode(80,109,title)
 	call imclose(imfilout)
 	
 	maxObjectsOut = 4
-	if (modelout .ne. ' ' .and. numPatchOut .gt. 0)then
+c	  
+c	  put out a model, even if there are no points
+c
+	if (modelout .ne. ' ')then
 	  max_mod_obj = numPatchOut
 	  n_point = numPtOut
 	  do i = 1, n_point
