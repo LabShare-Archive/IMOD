@@ -26,6 +26,14 @@
  *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 
 #include <stdlib.h>
 #include <math.h>
@@ -474,7 +482,8 @@ void imodvSetObject(Iobj *obj, int style)
      switch(style){
 	case 0:
 	  imodvUnsetObject(obj);
-	  break;
+	  /* DNM 11/30/01: need to return, not break */
+	  return;
 
 	case DRAW_POINTS:
 	  glPointSize(obj->linewidth);
