@@ -54,6 +54,14 @@
 *                                 which direction to do the conversion in.
 *                                 Eliminated bit modes as hopeless.
 ******************************************************************************/
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 
 /******************************************************************************
 *   Include Files
@@ -75,7 +83,7 @@ void convertLongs(FILE  *fp, UCHAR *buffer, int   noLongs, int   direction);
 void convertBody(void (*convertFunc)(), struct MRCheader *header, int size,
 		 int factor, int direction, FILE *infp, FILE *outfp);
 void convertHeader(void (*floatFunc)(), int nextra, struct MRCheader  *header,
-		   FILE *infp, FILE *outfp, int direction);
+		   FILE *infp, FILE *outfp, int direction, UCHAR *cmap);
 
 
 main( int argc, char *argv[])
@@ -289,7 +297,8 @@ main( int argc, char *argv[])
 #endif
 
 
-     convertHeader(floatFunc, hdata.next, &hconv, fin, fout, tonative);
+     convertHeader(floatFunc, hdata.next, &hconv, fin, fout, tonative, 
+		   &hdata.cmap[0]);
 
      fwrite(&hconv, 56, 4, fout);
      
@@ -476,7 +485,8 @@ void convertHeader(void (*floatFunc)(),
 		   struct MRCheader  *header,  /*MRC header structure*/
 		   FILE         *infp,        /*input file pointer*/
 		   FILE         *outfp,       /*input file pointer*/
-		   int direction)
+		   int direction,
+		   UCHAR *cmap)
 
 {
      int lcv;
@@ -524,15 +534,21 @@ void convertHeader(void (*floatFunc)(),
      convertShorts(infp, (UCHAR *)&header->vd2, 1, direction);
 
      floatFunc(infp, (UCHAR *)header->tiltangles, 6, direction);
-     convertShorts(infp, (UCHAR *)&header->nwave, 1, direction);
-     convertShorts(infp, (UCHAR *)&header->wave1, 1, direction);
-     convertShorts(infp, (UCHAR *)&header->wave2, 1, direction);
-     convertShorts(infp, (UCHAR *)&header->wave3, 1, direction);
-     convertShorts(infp, (UCHAR *)&header->wave4, 1, direction);
-     convertShorts(infp, (UCHAR *)&header->wave5, 1, direction);
-     floatFunc(infp, (UCHAR *)&header->zorg, 1, direction);
-     floatFunc(infp, (UCHAR *)&header->xorg, 1, direction);
-     floatFunc(infp, (UCHAR *)&header->yorg, 1, direction);
+
+     if (cmap[0] != 'M' || cmap[1] != 'A' || cmap[2] != 'P') {
+	  /* Old-style header, swap wavelength then origin data */
+	  convertShorts(infp, (UCHAR *)&header->xorg, 6, direction);
+	  floatFunc(infp, (UCHAR *)&header->cmap[0], 3, direction);
+	  printf("Preserving old-style MRC header.\n");
+     } else {
+	  /* new style, swap floats and retain cmap; flip stamp */
+	  floatFunc(infp, (UCHAR *)&header->xorg, 1, direction);
+	  floatFunc(infp, (UCHAR *)&header->yorg, 1, direction);
+	  floatFunc(infp, (UCHAR *)&header->zorg, 1, direction);
+	  convertBytes(infp, (UCHAR *)&header->cmap[0], 8, direction);
+	  floatFunc(infp, (UCHAR *)&header->rms, 1, direction);
+	  header->stamp[0] = (header->stamp[0] == 17) ? 68 : 17;
+     }
      convertLongs(infp, (UCHAR *)&header->nlabl, 1, direction);
 
 
@@ -542,6 +558,7 @@ void convertHeader(void (*floatFunc)(),
 	  header->labels[lcv][MRC_LABEL_SIZE] = '\0';
      }
 
+     /* THIS WILL NOT WORK WITH DATA CONSISTING OF INTEGERS AND REALS */
      if (nextra > 0){
 	  header->symops = (UCHAR *)malloc(nextra);
 	  convertShorts(infp, (UCHAR *)header->symops, 
