@@ -1264,6 +1264,7 @@ void b3dDrawGreyScalePixelsHQ(unsigned char *data,      /* input data      */
       /* For low quality, non-integer zooms, use nearest neighbor
 	 interpolation at each pixel */
       /* DNM 3/4/03: make sure stop values are not too large */
+      /* DNM 4/17/03: copy pixels on right if array is not full */
       if (int(xstop + 0.5) >= xsize)
         xstop = xsize - 1.5;
       if (int(ystop + 0.5) >= ysize)
@@ -1281,7 +1282,10 @@ void b3dDrawGreyScalePixelsHQ(unsigned char *data,      /* input data      */
 	    val = data[xi + (yi * xsize)];
 	    bdata[i + ibase] = val;
 	  }
+	  for (; i && i < drawwidth; i++)
+	    bdata[i + ibase] = 	bdata[i + ibase - 1];
 	  break;
+
 	case 2:
 	  for(i = 0, cx = xoffset + trans; 
 	      cx < xstop; cx += zs, i++){
@@ -1289,11 +1293,15 @@ void b3dDrawGreyScalePixelsHQ(unsigned char *data,      /* input data      */
 	    val = data[xi + (yi * xsize)];
 	    sdata[i + ibase] = val + rbase;
 	  }
+	  for (; i && i < drawwidth; i++)
+	    sdata[i + ibase] = 	sdata[i + ibase - 1];
 	  break;
+
 	case 4:
 	  if (sidefill)
 	    for (i = 0; i < wx; i++)
 	      idata[ibase++] = fillval;
+
 	  switch (App->rgba) {
 	  case 1:   /* lookup from bytes */
 	    for(i = 0, cx = xoffset + trans; 
@@ -1303,6 +1311,7 @@ void b3dDrawGreyScalePixelsHQ(unsigned char *data,      /* input data      */
 	      idata[i + ibase] = cindex[val];
 	    }
 	    break;
+
 	  case 3:   /* copy RGB data to RGBA */
 	    bidata = (unsigned char *)&(idata[ibase]);
 	    bdata = &(data[3 * yi * xsize]);
@@ -1316,6 +1325,7 @@ void b3dDrawGreyScalePixelsHQ(unsigned char *data,      /* input data      */
 	      *bidata++ = 0;
 	    }
 	    break;
+
 	  case 4:   /* untested placekeeper fro RGBA data */
 	    rgbadata = (unsigned int *)data + yi * xsize;
 	    for(i = 0, cx = xoffset + trans; 
@@ -1325,6 +1335,10 @@ void b3dDrawGreyScalePixelsHQ(unsigned char *data,      /* input data      */
 	    }
 	    break;
 	  }
+
+	  for (; i && i < drawwidth; i++)
+	    idata[i + ibase] = 	idata[i + ibase - 1];
+
 	  if (sidefill){
 	    ibase += dwidth;
 	    for (i = wx + dwidth; i < CurWidth; i++)
@@ -1332,6 +1346,12 @@ void b3dDrawGreyScalePixelsHQ(unsigned char *data,      /* input data      */
 	  }
 	  break;
 	}
+      }
+      
+      /* Fill the top if necessary */
+      for (; j && j < dheight; j++) {
+	bdata = (unsigned char *)sdata + unpack * j * drawwidth;
+	memcpy(bdata, bdata - unpack * drawwidth, unpack * drawwidth);
       }
     }
   }
@@ -1814,6 +1834,9 @@ void b3dSnapshot(char *fname)
 
 /*
 $Log$
+Revision 4.9  2003/04/17 19:02:59  mast
+adding hack for GL-context dependent gluQuadric
+
 Revision 4.8  2003/03/28 05:08:23  mast
 *** empty log message ***
 
