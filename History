@@ -32,6 +32,8 @@ scattered contours.
 
 3/3/03: Fixed slicer to display only data from the current time.
 
+3/3/03: Added Ctrl-D hotkey to truncate a model contour at the current point.
+
 2/27/03: Ported Imod and Midas to run under Windows, which involved various
 changes in coding and filename handling, and set up a complete hybrid package,
 with the command-line tools runnable under Cygwin.  Replaced Imodsendevent
