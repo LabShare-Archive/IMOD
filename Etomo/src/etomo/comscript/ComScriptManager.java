@@ -19,6 +19,9 @@ import etomo.type.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.6  2003/05/07 22:32:42  rickg
+ * <p> System property user.dir now defines the working directory
+ * <p>
  * <p> Revision 2.5  2003/03/27 00:27:49  rickg
  * <p> Fixed but in loading tilt with with respect to parsing comments.
  * <p>
@@ -674,10 +677,11 @@ public class ComScriptManager {
     }
     catch (Exception except) {
       except.printStackTrace();
-      String[] errorMessage = new String[3];
+      String[] errorMessage = new String[4];
       errorMessage[0] = "Com file: " + comScript.getComFileName();
       errorMessage[1] = "Command: " + command;
-      errorMessage[2] = except.getMessage();
+      errorMessage[2] = except.getClass().getName();
+      errorMessage[3] = except.getMessage();
       JOptionPane.showMessageDialog(
         null,
         errorMessage,
