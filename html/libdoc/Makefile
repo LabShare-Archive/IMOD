@@ -10,6 +10,5 @@ all :
 
 # Remove output files from help directory
 clean :
-	$(FIND) ../libhelp -type f -name "*"  -exec rm "{}" \;
 	$(FIND) . -type f -name "*~"    -exec rm "{}" \;
 	$(FIND) . -type f -name "#*#"   -exec rm "{}" \;
