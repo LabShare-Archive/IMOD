@@ -1,6 +1,8 @@
 package etomo.ui;
 
+import java.awt.Component;
 import java.awt.Container;
+import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -8,10 +10,12 @@ import java.awt.event.ActionListener;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
+import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 
+import etomo.ApplicationManager;
 import etomo.comscript.TrimvolParam;
 /**
  * <p>Description: </p>
@@ -26,6 +30,9 @@ import etomo.comscript.TrimvolParam;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2003/04/14 04:31:31  rickg
+ * <p> In progres
+ * <p>
  * <p> Revision 1.2  2003/04/10 23:42:51  rickg
  * <p> In progress
  * <p>
@@ -37,6 +44,8 @@ import etomo.comscript.TrimvolParam;
 public class TrimvolPanel {
   public static final String rcsid =
     "$Id$";
+
+  private ApplicationManager applicationManager;
 
   private JPanel pnlTrimvol = new JPanel();
 
@@ -61,7 +70,26 @@ public class TrimvolPanel {
 
   private JCheckBox cbSwapYZ = new JCheckBox("Swap Y and Z dimensions");
 
-  public TrimvolPanel() {
+  private JPanel pnlButton = new JPanel();
+  private JButton btnTrimvol = new JButton("<html><b>Trim Volume</b>");
+  private JButton btnImodVolume = new JButton("<html><b>Imod volume</b>");
+
+  /**
+   * Default constructor
+   */
+  public TrimvolPanel(ApplicationManager appMgr) {
+
+    applicationManager = appMgr;
+    //  Get the current text height from one of the 
+    double height = cbSwapYZ.getPreferredSize().getHeight();
+
+    //  Set the button sizes
+    Dimension dimButton = new Dimension();
+    dimButton.setSize(8 * height, 2 * height);
+    btnTrimvol.setPreferredSize(dimButton);
+    btnTrimvol.setMaximumSize(dimButton);
+    btnImodVolume.setPreferredSize(dimButton);
+    btnImodVolume.setMaximumSize(dimButton);
 
     //  Layout the range panel
     pnlRange.setLayout(new GridLayout(3, 2));
@@ -94,7 +122,14 @@ public class TrimvolPanel {
 
     pnlScale.add(pnlScaleFixed);
     pnlScale.add(pnlScaleSection);
-
+    
+    pnlButton.setLayout(new BoxLayout(pnlButton, BoxLayout.X_AXIS));
+    pnlButton.add(Box.createHorizontalGlue());
+    pnlButton.add(btnTrimvol);
+    pnlButton.add(Box.createHorizontalGlue());
+    pnlButton.add(btnImodVolume);
+    pnlButton.add(Box.createHorizontalGlue());
+    
     pnlTrimvol.setLayout(new BoxLayout(pnlTrimvol, BoxLayout.Y_AXIS));
     pnlTrimvol.setBorder(new BeveledBorder("Volume trimming").getBorder());
 
@@ -102,19 +137,33 @@ public class TrimvolPanel {
     pnlTrimvol.add(Box.createRigidArea(FixedDim.x0_y10));
     pnlTrimvol.add(pnlScale);
     pnlTrimvol.add(Box.createRigidArea(FixedDim.x0_y10));
+    cbSwapYZ.setAlignmentX(Component.RIGHT_ALIGNMENT);
     pnlTrimvol.add(cbSwapYZ);
-
+    pnlTrimvol.add(Box.createRigidArea(FixedDim.x0_y10));
+    pnlTrimvol.add(pnlButton);
+    
     RadioButtonActonListener radioButtonActonListener =
       new RadioButtonActonListener(this);
-
     rbScaleFixed.addActionListener(radioButtonActonListener);
     rbScaleSection.addActionListener(radioButtonActonListener);
+
+    ButtonActonListener buttonActonListener = new ButtonActonListener(this);
+    btnTrimvol.addActionListener(buttonActonListener);
+    btnImodVolume.addActionListener(buttonActonListener);
   }
 
+  /**
+   * Return the container of the panel
+   * @return
+   */
   public Container getContainer() {
     return pnlTrimvol;
   }
 
+  /**
+   * Set the panel values with the specified parameters
+   * @param trimvolParam
+   */
   public void setParameters(TrimvolParam trimvolParam) {
     ltfXMin.setText(trimvolParam.getXMin());
     ltfXMax.setText(trimvolParam.getXMax());
@@ -122,18 +171,40 @@ public class TrimvolPanel {
     ltfYMax.setText(trimvolParam.getYMax());
     ltfZMin.setText(trimvolParam.getZMin());
     ltfZMax.setText(trimvolParam.getZMax());
+    cbSwapYZ.setSelected(trimvolParam.isSwapYZ());
+
     if (trimvolParam.isFixedScaling()) {
       ltfFixedScaleMin.setText(trimvolParam.getFixedScaleMin());
       ltfFixedScaleMax.setText(trimvolParam.getFixedScaleMax());
+      rbScaleFixed.setSelected(true);
     }
     else {
       ltfSectionScaleMin.setText(trimvolParam.getSectionScaleMin());
       ltfSectionScaleMax.setText(trimvolParam.getSectionScaleMax());
+      rbScaleSection.setSelected(true);
     }
-    cbSwapYZ.setSelected(trimvolParam.isSwapYZ());
+    setScaleState();
   }
-  
-  private void manageRadioButtonState(ActionEvent event) {
+
+  /**
+   * Get the parameter values from the panel 
+   * @param trimvolParam
+   */
+  public void getParameters(TrimvolParam trimvolParam) {
+    trimvolParam.setXMin(Integer.parseInt(ltfXMin.getText()));
+    trimvolParam.setXMax(Integer.parseInt(ltfXMax.getText()));
+    trimvolParam.setYMin(Integer.parseInt(ltfYMin.getText()));
+    trimvolParam.setYMax(Integer.parseInt(ltfYMax.getText()));
+    trimvolParam.setZMin(Integer.parseInt(ltfZMin.getText()));
+    trimvolParam.setZMax(Integer.parseInt(ltfZMax.getText()));
+    trimvolParam.setSwapYZ(cbSwapYZ.isSelected());
+  }
+
+  /**
+   * Enable/disable the appropriate text fields for the scale section
+   *
+   */
+  private void setScaleState() {
     if (rbScaleFixed.isSelected()) {
       ltfFixedScaleMin.setEnabled(true);
       ltfFixedScaleMax.setEnabled(true);
@@ -148,6 +219,27 @@ public class TrimvolPanel {
     }
   }
 
+  /**
+   * Call setScaleState when the radio buttons change
+   * @param event
+   */
+  private void manageRadioButtonState(ActionEvent event) {
+    setScaleState();
+  }
+
+  private void buttonAction(ActionEvent event) {
+    if (event.getActionCommand() == btnTrimvol.getActionCommand()) {
+      //applicationManager.trimVolume();
+    }
+    
+    if (event.getActionCommand() == btnImodVolume.getActionCommand()) {
+      //applicationManager.imodVolume();
+    }
+    
+  }
+  /**
+   * An inner class to manage the scale radio buttons 
+   */
   class RadioButtonActonListener implements ActionListener {
     TrimvolPanel listenee;
 
@@ -160,4 +252,16 @@ public class TrimvolPanel {
     }
   }
 
+  class ButtonActonListener implements ActionListener {
+    TrimvolPanel listenee;
+
+    ButtonActonListener(TrimvolPanel TrimvolPanel) {
+      listenee = TrimvolPanel;
+    }
+
+    public void actionPerformed(ActionEvent event) {
+      listenee.buttonAction(event);
+    }
+
+  }
 }
