@@ -27,6 +27,9 @@ import etomo.ui.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.11  2003/03/18 00:32:32  rickg
+ * <p> combine development in progress
+ * <p>
  * <p> Revision 2.10  2003/03/07 07:22:49  rickg
  * <p> combine layout in progress
  * <p>
@@ -1775,7 +1778,18 @@ public class ApplicationManager {
   
 
   public void modelCombine() {
-    // TODO implement
+    if (updateSolvematchmodCom()
+      && updatePatchcorrCom()
+      && updateMatchorwarpCom()) {
+
+        //  Set the next process to execute when this is finished   
+        nextProcess = "matchvol1";
+        String threadName = processMgr.solvematchshift();
+        setThreadName(threadName, AxisID.FIRST);
+        tomogramCombinationDialog.showPane("Initial Match");
+        mainFrame.startProgressBar("Combine: solvematchshift", AxisID.FIRST);
+    }
+
   }
 
   /**
@@ -1823,35 +1837,7 @@ public class ApplicationManager {
     tomogramCombinationDialog.showPane("Final Match");
     mainFrame.startProgressBar("Combine: volcombine", AxisID.FIRST);    
   }
-  
-  /**
-   * Update the patchcorr.com script from the information in the tomogram
-   * combination dialog box
-   * @return boolean
-   */
-  private boolean updatePatchcorrCom() {
-    //  Set a reference to the correct object
-    if (tomogramCombinationDialog == null) {
-      openMessageDialog(
-        "Can not update patchcorr.com without an active tomogram generation dialog",
-        "Program logic error");
-      return false;
-    }
 
-    try {
-      Patchcrawl3DParam patchcrawl3DParam = comScriptMgr.getPatchcrawl3D();
-      tomogramCombinationDialog.getPatchcrawl3DParams(patchcrawl3DParam);
-      comScriptMgr.savePatchcorr(patchcrawl3DParam);
-    }
-    catch (NumberFormatException except) {
-      String[] errorMessage = new String[2];
-      errorMessage[0] = "Patchcorr Parameter Syntax Error";
-      errorMessage[1] = except.getMessage();
-      openMessageDialog(errorMessage, "Patchcorr Parameter Syntax Error");
-      return false;
-    }
-    return true;
-  }
 
   /**
    * Update the solvematchshift.com script from the information in the tomogram
@@ -1878,6 +1864,68 @@ public class ApplicationManager {
       errorMessage[0] = "Solvematchshift Parameter Syntax Error";
       errorMessage[1] = except.getMessage();
       openMessageDialog(errorMessage, "Solvematchshift Parameter Syntax Error");
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Update the solvematchmod.com script from the information in the tomogram
+   * combination dialog box
+   * @return boolean
+   */
+  private boolean updateSolvematchmodCom() {
+    //  Set a reference to the correct object
+    if (tomogramCombinationDialog == null) {
+      openMessageDialog(
+        "Can not update solvematchmod.com without an active tomogram generation dialog",
+        "Program logic error");
+      return false;
+    }
+
+    try {
+      //FIXME!!!
+      SolvematchshiftParam solvematchshiftParam =
+        comScriptMgr.getSolvematchshift();
+      tomogramCombinationDialog.getSolvematchshiftParams(solvematchshiftParam);
+      comScriptMgr.saveSolvematchshift(solvematchshiftParam);
+    }
+    catch (NumberFormatException except) {
+      String[] errorMessage = new String[2];
+      errorMessage[0] = "Solvematchshift Parameter Syntax Error";
+      errorMessage[1] = except.getMessage();
+      openMessageDialog(errorMessage, "Solvematchshift Parameter Syntax Error");
+      return false;
+    }
+    return true;
+  }
+
+
+  
+  /**
+   * Update the patchcorr.com script from the information in the tomogram
+   * combination dialog box
+   * @return boolean
+   */
+  private boolean updatePatchcorrCom() {
+    //  Set a reference to the correct object
+    if (tomogramCombinationDialog == null) {
+      openMessageDialog(
+        "Can not update patchcorr.com without an active tomogram generation dialog",
+        "Program logic error");
+      return false;
+    }
+
+    try {
+      Patchcrawl3DParam patchcrawl3DParam = comScriptMgr.getPatchcrawl3D();
+      tomogramCombinationDialog.getPatchcrawl3DParams(patchcrawl3DParam);
+      comScriptMgr.savePatchcorr(patchcrawl3DParam);
+    }
+    catch (NumberFormatException except) {
+      String[] errorMessage = new String[2];
+      errorMessage[0] = "Patchcorr Parameter Syntax Error";
+      errorMessage[1] = except.getMessage();
+      openMessageDialog(errorMessage, "Patchcorr Parameter Syntax Error");
       return false;
     }
     return true;
