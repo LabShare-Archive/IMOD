@@ -432,7 +432,7 @@ public class TiltalignPanel {
     ltfSkewNonDefaultGroups.setText(params.getSkewNondefaultGroup());
 
     cbProjectionStretch.setSelected(params.getProjectionStretch().is());
-    
+
     // Local rotation solution parameters
     // NOTE this is brittle since we are mapping a numeric value to a boolean
     // at David's request
@@ -672,7 +672,7 @@ public class TiltalignPanel {
 
       badParameter = cbProjectionStretch.getText();
       params.setProjectionStretch(cbProjectionStretch.isSelected());
-      
+
       //  Get the local alignment parameters
       // Rotation pane
       // NOTE this only works if 0 and 5 are valid local tilt angle codes
@@ -701,7 +701,8 @@ public class TiltalignPanel {
 
       // Local magnification pane
       if (cbLocalMagnification.isSelected()) {
-        params.setLocalMagOption(params.getLocalMagOption().getDisplayInteger());
+        params
+            .setLocalMagOption(params.getLocalMagOption().getDisplayInteger());
       }
       else {
         params.setLocalMagOption(0);
@@ -926,7 +927,7 @@ public class TiltalignPanel {
       JRadioButton[] items, ActionListener listener) {
     createRadioBox(panel, group, items, listener, 245);
   }
-  
+
   /**
    * 
    * @param panel
@@ -1447,7 +1448,7 @@ public class TiltalignPanel {
   /**
    * Initialize the tooltip text for the axis panel objects
    */
-  private void setToolTipText() {
+private void setToolTipText() {
     String text;
     Section section;
     TooltipFormatter tooltipFormatter = new TooltipFormatter();
@@ -1519,7 +1520,7 @@ public class TiltalignPanel {
     }
 
     ltfRotationGroupSize.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.ROT_DEFAULT_GROUPING_KEY)).format());
-    ltfMagnificationNonDefaultGroups.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.ROT_NONDEFAULT_GROUP_KEY)).format());
+    ltfRotationNonDefaultGroups.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.ROT_NONDEFAULT_GROUP_KEY)).format());
 
     text = "Do not solve for distortions in the plane of section.";
     rbDistortionDisabled
@@ -1534,17 +1535,18 @@ public class TiltalignPanel {
     ltfXstretchNonDefaultGroups.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.X_STRETCH_NONDEFAULT_GROUP_KEY)).format());
     ltfSkewGroupSize.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.SKEW_DEFAULT_GROUPING_KEY)).format());
     ltfSkewNonDefaultGroups.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.SKEW_NONDEFAULT_GROUP_KEY)).format());
+    cbProjectionStretch.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.PROJECTION_STRETCH_KEY)).format());
 
-    //local
+    //local variables
     cbLocalRotation.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.LOCAL_ROT_OPTION_KEY)).format());
-    ltfLocalRotationGroupSize.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, "LocalRotDefaultGrouping")).format());
-    ltfLocalRotationNonDefaultGroups.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, "LocalRotNondefaultGroup")).format());
-    cbLocalTiltAngle.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, "LocalTiltOption")).format());
-    ltfLocalTiltAngleGroupSize.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, "LocalTiltDefaultGrouping")).format());
-    ltfLocalTiltAngleNonDefaultGroups.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, "LocalTiltNondefaultGroup")).format());
-    cbLocalMagnification.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, "LocalMagOption")).format());
-    ltfLocalMagnificationGroupSize.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, "LocalMagDefaultGrouping")).format());
-    ltfLocalMagnificationNonDefaultGroups.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, "LocalMagNondefaultGroup")).format());
+    ltfLocalRotationGroupSize.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.LOCAL_ROT_DEFAULT_GROUPING_KEY)).format());
+    ltfLocalRotationNonDefaultGroups.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.LOCAL_ROT_NONDEFAULT_GROUP_KEY)).format());
+    cbLocalTiltAngle.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.LOCAL_TILT_OPTION_KEY)).format());
+    ltfLocalTiltAngleGroupSize.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.LOCAL_TILT_DEFAULT_GROUPING_KEY)).format());
+    ltfLocalTiltAngleNonDefaultGroups.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.LOCAL_TILT_NONDEFAULT_GROUP_KEY)).format());
+    cbLocalMagnification.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.LOCAL_MAG_OPTION_KEY)).format());
+    ltfLocalMagnificationGroupSize.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.LOCAL_MAG_DEFAULT_GROUPING_KEY)).format());
+    ltfLocalMagnificationNonDefaultGroups.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.LOCAL_MAG_DEFAULT_GROUPING_KEY)).format());
     
     text = "Do not solve for local distortions in the plane of section.";
     rbLocalDistortionDisabled.setToolTipText(tooltipFormatter.setText(text)
@@ -1554,13 +1556,12 @@ public class TiltalignPanel {
     rbLocalDistortionFullSolution.setToolTipText(tooltipFormatter.setText(text)
         .format());
 
-    rbLocalDistortionSkew.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, "LocalSkewOption")).format());
-    ltfLocalXstretchGroupSize.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, "LocalXStretchDefaultGrouping")).format());
-    ltfLocalXstretchNonDefaultGroups.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, "LocalXStretchNondefaultGroup")).format());
-    ltfLocalSkewGroupSize.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, "LocalSkewDefaultGrouping")).format());
-    ltfLocalSkewNonDefaultGroups.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, "LocalSkewNondefaultGroup")).format());
+    rbLocalDistortionSkew.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.LOCAL_SKEW_OPTION_KEY)).format());
+    ltfLocalXstretchGroupSize.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.LOCAL_X_STRETCH_DEFAULT_GROUPING_KEY)).format());
+    ltfLocalXstretchNonDefaultGroups.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.LOCAL_X_STRETCH_NONDEFAULT_GROUP_KEY)).format());
+    ltfLocalSkewGroupSize.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.LOCAL_SKEW_DEFAULT_GROUPING_KEY)).format());
+    ltfLocalSkewNonDefaultGroups.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.LOCAL_SKEW_NONDEFAULT_GROUP_KEY)).format());
   }
-
   /**
    * @return Returns the currentPrealignedBinning.
    */
@@ -1578,6 +1579,9 @@ public class TiltalignPanel {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.20  2005/02/18 01:29:32  sueh
+ * <p> bug# 600 Using parameter names from TiltalignParam.
+ * <p>
  * <p> Revision 3.19  2005/02/15 22:22:22  sueh
  * <p> bug# 600 Convert tooltips to autodoc.
  * <p>
@@ -1766,4 +1770,4 @@ public class TiltalignPanel {
  * <p> Revision 1.1  2002/09/09 22:57:02  rickg
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
-*/
+ */
