@@ -58,6 +58,7 @@ import etomo.ui.SetupDialog;
 import etomo.ui.TomogramCombinationDialog;
 import etomo.ui.TomogramGenerationDialog;
 import etomo.ui.TomogramPositioningDialog;
+import etomo.ui.UIParameters;
 import etomo.util.InvalidParameterException;
 import etomo.util.Utilities;
 
@@ -75,6 +76,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.73  2003/10/10 23:17:01  sueh
+ * <p> bug251 removing marks
+ * <p>
  * <p> Revision 2.72  2003/10/07 22:40:40  sueh
  * <p> bug251 moved transferfid from fine alignment dialog
  * <p> to fiducial model dialog
@@ -543,6 +547,9 @@ public class ApplicationManager {
     mainFrame = new MainFrame(this);
     mainFrame.setMRUFileLabels(userConfig.getMRUFileList());
 
+    //  Initialize the static UIParameter object
+    UIParameters uiparameters = new UIParameters();
+    
     // Open the etomo data file if one was found on the command line
     if (!testParamFilename.equals("")) {
       File etomoDataFile = new File(testParamFilename);
