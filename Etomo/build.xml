@@ -1,18 +1,33 @@
 
 <project name="Etomo" default="compile" basedir=".">
 
+  <property name="src" location="src" />
+  <property name="build" location="bin" />
+  <property name="dist" location="dist" /> 
+
+
   <property name="appname" value="etomo"/>
   <property name="classpath" value="/usr/local/junit/junit.jar"/>
   <property name="packages" value="etomo,etomo.comscript,etomo.process,etomo.storage,etomo.type,etomo.ui,etomo.util"/>
-  <target name="compile">
+
+  <target name="init" >
+    <tstamp/>
+    <mkdir dir="${build}" />
+  </target>
+
+  <target name="compile" depends="init">
     <mkdir dir="bin" />
-    <javac srcdir="src/etomo/"
-           destdir="bin/" >
-      <classpath path="${classpath}"/>
+    <javac srcdir="${src}" destdir="${build}" >
+      <classpath path="${classpath}" />
     </javac>
   </target>
 
-  <target name="etomo-docs">
+  <target name="dist" depends="compile">
+    <mkdir dir="${dist}" />
+    <jar jarfile="${dist}/etomo-${DSTAMP}.jar" basedir="${build}" />
+  </target>
+
+  <target name="etomo-docs" >
   	<javadoc packagenames="bin.etomo.*"
   	  sourcepath="src/etomo"
   	  destdir="doc/javadoc"
@@ -23,5 +38,10 @@
     </javadoc>
   </target>
            
+  <target name="clean" >
+	<delete dir="${build}/${appname}" />
+	<delete dir="${build}/images" />
+	<delete dir="${dist}" />
+  </target>
 </project>
 
