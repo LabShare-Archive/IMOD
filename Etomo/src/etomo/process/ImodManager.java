@@ -21,6 +21,10 @@ import etomo.type.ConstMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.6  2002/10/07 22:25:03  rickg
+ * <p> removed unused imports
+ * <p> reformat after emacs messed it up
+ * <p>
  * <p> Revision 1.5  2002/09/20 18:33:04  rickg
  * <p> Added rest of quit methods
  * <p>
@@ -102,12 +106,8 @@ public class ImodManager {
   public void openRawStack(AxisID axisID)
     throws AxisTypeException, SystemProcessException {
     checkAxisID(axisID);
-    if (axisID == AxisID.SECOND) {
-      rawStackB.open();
-    }
-    else {
-      rawStackA.open();
-    }
+    ImodProcess rawStack = selectRawStack(axisID);
+    rawStack.open();
   }
 
   /**
@@ -118,39 +118,29 @@ public class ImodManager {
     // Make sure there is an imod with right course aligned data set that
     // is already open
     openRawStack(axisID);
-    if (axisID == AxisID.SECOND) {
-      rawStackB.openModel(modelName);
-    }
-    else {
-      rawStackA.openModel(modelName);
-    }
+    ImodProcess rawStack = selectRawStack(axisID);
+    rawStack.openModel(modelName);
   }
 
   /**
    * Check to see if the specified raw stack is open
    */
-  public boolean isRawStackOpen(AxisID axisID) throws AxisTypeException {
-    checkAxisID(axisID);
-    if (axisID == AxisID.SECOND) {
-      return rawStackB.isRunning();
+  public boolean isRawStackOpen(AxisID axisID) {
+    ImodProcess rawStack = selectRawStack(axisID);
+    if (rawStack == null) {
+      return false;
     }
-    else {
-      return rawStackA.isRunning();
-    }
+    return rawStack.isRunning();
   }
 
   /**
-   * Close the specified raw stack model
+   * Close the specified raw stack
    */
   public void quitRawStack(AxisID axisID)
     throws AxisTypeException, SystemProcessException {
     checkAxisID(axisID);
-    if (axisID == AxisID.SECOND) {
-      rawStackB.quit();
-    }
-    else {
-      rawStackA.quit();
-    }
+    ImodProcess rawStack = selectRawStack(axisID);
+    rawStack.quit();
   }
 
   /**
@@ -160,12 +150,8 @@ public class ImodManager {
   public void openCoarseAligned(AxisID axisID)
     throws AxisTypeException, SystemProcessException {
     checkAxisID(axisID);
-    if (axisID == AxisID.SECOND) {
-      coarseAlignedB.open();
-    }
-    else {
-      coarseAlignedA.open();
-    }
+    ImodProcess coarseAligned = selectCoarseAligned(axisID);
+    coarseAligned.open();
   }
 
   /**
@@ -176,25 +162,19 @@ public class ImodManager {
     // Make sure there is an imod with right coarse aligned data set that
     // is already open
     openCoarseAligned(axisID);
-    if (axisID == AxisID.SECOND) {
-      coarseAlignedB.openModel(modelName);
-    }
-    else {
-      coarseAlignedA.openModel(modelName);
-    }
+    ImodProcess coarseAligned = selectCoarseAligned(axisID);
+    coarseAligned.openModel(modelName);
   }
 
   /**
    * Check to see if the specified coarsely aligned stack is open
    */
-  public boolean isCoarseAlignedOpen(AxisID axisID) throws AxisTypeException {
-    checkAxisID(axisID);
-    if (axisID == AxisID.SECOND) {
-      return coarseAlignedB.isRunning();
+  public boolean isCoarseAlignedOpen(AxisID axisID) {
+    ImodProcess coarseAligned = selectCoarseAligned(axisID);
+    if (coarseAligned == null) {
+      return false;
     }
-    else {
-      return coarseAlignedA.isRunning();
-    }
+    return coarseAligned.isRunning();
   }
 
   /**
@@ -203,12 +183,8 @@ public class ImodManager {
   public void quitCoarseAligned(AxisID axisID)
     throws AxisTypeException, SystemProcessException {
     checkAxisID(axisID);
-    if (axisID == AxisID.SECOND) {
-      coarseAlignedB.quit();
-    }
-    else {
-      coarseAlignedA.quit();
-    }
+    ImodProcess coarseAligned = selectCoarseAligned(axisID);
+    coarseAligned.quit();
   }
 
   /**
@@ -218,25 +194,19 @@ public class ImodManager {
   public void openFineAligned(AxisID axisID)
     throws AxisTypeException, SystemProcessException {
     checkAxisID(axisID);
-    if (axisID == AxisID.SECOND) {
-      fineAlignedB.open();
-    }
-    else {
-      fineAlignedA.open();
-    }
+    ImodProcess fineAligned = selectCoarseAligned(axisID);
+    fineAligned.open();
   }
 
   /**
    * Check to see if the specified finely aligned stack is open
    */
-  public boolean isFineAlignedOpen(AxisID axisID) throws AxisTypeException {
-    checkAxisID(axisID);
-    if (axisID == AxisID.SECOND) {
-      return fineAlignedB.isRunning();
+  public boolean isFineAlignedOpen(AxisID axisID) {
+    ImodProcess fineAligned = selectCoarseAligned(axisID);
+    if (fineAligned == null) {
+      return false;
     }
-    else {
-      return fineAlignedA.isRunning();
-    }
+    return fineAligned.isRunning();
   }
 
   /**
@@ -245,12 +215,8 @@ public class ImodManager {
   public void quitFinelyAligned(AxisID axisID)
     throws AxisTypeException, SystemProcessException {
     checkAxisID(axisID);
-    if (axisID == AxisID.SECOND) {
-      fineAlignedB.quit();
-    }
-    else {
-      fineAlignedA.quit();
-    }
+    ImodProcess fineAligned = selectCoarseAligned(axisID);
+    fineAlignedB.quit();
   }
 
   /**
@@ -260,25 +226,20 @@ public class ImodManager {
   public void openSample(AxisID axisID)
     throws AxisTypeException, SystemProcessException {
     checkAxisID(axisID);
-    if (axisID == AxisID.SECOND) {
-      sampleB.open();
-    }
-    else {
-      sampleA.open();
-    }
+    ImodProcess sample = selectSample(axisID);
+    sample.open();
   }
 
   /**
    * Check to see if the specified sample reconstruction is open
    * @param axisID the AxisID of the desired axis.
    */
-  public boolean isSampleOpen(AxisID axisID) throws AxisTypeException {
-    if (axisID == AxisID.SECOND) {
-      return sampleB.isRunning();
+  public boolean isSampleOpen(AxisID axisID) {
+    ImodProcess sample = selectSample(axisID);
+    if (sample == null) {
+      return false;
     }
-    else {
-      return sampleA.isRunning();
-    }
+    return sample.isRunning();
   }
 
   /**
@@ -287,12 +248,8 @@ public class ImodManager {
   public void quitSample(AxisID axisID)
     throws AxisTypeException, SystemProcessException {
     checkAxisID(axisID);
-    if (axisID == AxisID.SECOND) {
-      sampleB.quit();
-    }
-    else {
-      sampleA.quit();
-    }
+    ImodProcess sample = selectSample(axisID);
+    sample.quit();
   }
 
   /**
@@ -302,25 +259,20 @@ public class ImodManager {
   public void openTomogram(AxisID axisID)
     throws AxisTypeException, SystemProcessException {
     checkAxisID(axisID);
-    if (axisID == AxisID.SECOND) {
-      tomogramB.open();
-    }
-    else {
-      tomogramA.open();
-    }
+    ImodProcess tomogram = selectTomogram(axisID);
+    tomogram.open();
   }
 
   /**
    * Check to see if the specified tomogram is open
    * @param axisID the AxisID of the desired axis.
    */
-  public boolean isTomogramOpen(AxisID axisID) throws AxisTypeException {
-    if (axisID == AxisID.SECOND) {
-      return tomogramB.isRunning();
+  public boolean isTomogramOpen(AxisID axisID){
+    ImodProcess tomogram = selectTomogram(axisID);
+    if (tomogram == null) {
+      return false;
     }
-    else {
-      return tomogramA.isRunning();
-    }
+    return tomogram.isRunning();
   }
 
   /**
@@ -329,12 +281,8 @@ public class ImodManager {
   public void quitTomogram(AxisID axisID)
     throws AxisTypeException, SystemProcessException {
     checkAxisID(axisID);
-    if (axisID == AxisID.SECOND) {
-      tomogramB.quit();
-    }
-    else {
-      tomogramA.quit();
-    }
+    ImodProcess tomogram = selectTomogram(axisID);
+    tomogram.quit();
   }
 
   /**
@@ -359,9 +307,52 @@ public class ImodManager {
     combinedTomogram.quit();
   }
 
+  /**
+   * Check the axisID argument to see if it is valid given the axisType of the
+   * object.
+   */
   private void checkAxisID(AxisID axisID) throws AxisTypeException {
     if (axisType == AxisType.SINGLE_AXIS && axisID == AxisID.SECOND) {
       throw new AxisTypeException("Second axis requested in a single axis data set");
     }
   }
+
+  /**
+   * Select the ImodProcess object indicated by the axisID
+   */
+  private ImodProcess selectRawStack(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return rawStackB;
+    }
+    return rawStackA;
+  }
+
+  private ImodProcess selectCoarseAligned(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return coarseAlignedB;
+    }
+    return coarseAlignedA;
+  }
+
+  private ImodProcess selectFineAligned(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return fineAlignedB;
+    }
+    return fineAlignedA;
+  }
+
+  private ImodProcess selectSample(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return sampleB;
+    }
+    return sampleA;
+  }
+
+  private ImodProcess selectTomogram(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return tomogramB;
+    }
+    return tomogramA;
+  }
+
 }
