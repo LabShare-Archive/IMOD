@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/13/03: Fixed a problem with newst that showed up for one user under Mac 
+OS 10.3.
+
 11/13/03: Modified tomopitch to take lines drawn on a whole tomogram,
 fixed a problem with using separate model files, and fixed the way angles are 
 computed so that large angles will be correct.
