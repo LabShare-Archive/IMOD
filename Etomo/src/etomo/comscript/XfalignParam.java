@@ -22,6 +22,9 @@ import etomo.type.ConstJoinMetaData;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.5  2004/12/08 21:22:43  sueh
+* <p> bug# 564 Added getBooleanValue() to get a misc boolean value.
+* <p>
 * <p> Revision 1.4  2004/12/02 18:28:00  sueh
 * <p> bug 520 Remove unnecessary import.
 * <p>
@@ -129,7 +132,7 @@ public class XfalignParam implements Command {
     return outputFileExtension;
   }
   
-  public File getOutputFile() {
+  public File getCommandOutputFile() {
     return outputFile;
   }
   
@@ -141,12 +144,8 @@ public class XfalignParam implements Command {
     return false;
   }
   
-  public int getMode() {
+  public int getCommandMode() {
     return mode;
-  }
-  
-  public int getBinning() {
-    return 1;
   }
   
   private ArrayList genOptions() {
