@@ -375,6 +375,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.3  2003/10/26 15:31:19  mast
+c	  switch from long prints to formatted writes for Intel compiler
+c	
 c	  Revision 3.2  2003/08/29 17:34:17  mast
 c	  Change to use new multithreaded Plax graphics
 c	
@@ -1845,13 +1848,9 @@ c
 	end
 
 	function trnc(xx)
-	common /imparm/ nthick,width,upi,safe,xcur,ycur
-     1,udlen,exlen,hafthk,symscl,ifgks,cscrit
-	save /imparm/
-	real*4 safe2(3)/.35,1.2,2.65/
+c	real*4 safe2(3)/.35,1.2,2.65/
 	trnc = xx
 c	idot=nint(xx*upi)
 c	trnc=(3*(idot/3) + safe2(mod(idot,3)+1))/upi
-c	trnc=(ifix((xx+0.0001)*upi))/upi+safe
 	return
 	end
