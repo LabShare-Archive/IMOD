@@ -71,6 +71,8 @@ else
     # tell the C routines being called by Fortran that they need two __
     #
     echo '#define G77__HACK' >> $hconfigure
+    echo '#define DLLEXPORT_H' >> $hconfigure
+    echo '#define DLL_IM_EX' >> $hconfigure
 endif
 
 # Needed under tcsh 6.12 in RH 8.0 to avoid getting two \ out
@@ -306,7 +308,7 @@ set newer = `\find $imod_dir -name 3dmod.dsp -newer $imod_dir/imod.pro \
 if ($newer != newer) then
     (cd $imod_dir ; qmake -t vcapp -o 3dmod.dsp imod.pro)
    echo "MADE NEW 3dmod PROJECT FILE - RESET WARNING LEVEL TO 1 IN C++/General"
-   echo "and exclude linegui.cpp and moc_linegui.cpp from build, define TRACK_PLUGIN"
+   echo "exclude linegui.cpp, moc_linegui.cpp, libtrack.lib, define TRACK_PLUGIN"
 endif
 
 set newer = `\find $midas_dir -name midas.dsp -newer $midas_dir/midas.pro \
