@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.10  2004/06/06 00:48:39  mast
+Added an option for converting long to short
+
 Revision 3.9  2004/01/17 20:38:45  mast
 Eliminate unneeded rewind call
 
@@ -280,7 +283,7 @@ main( int argc, char *argv[] )
       if (k > 0) {
         if (b3dFseek(fin, zoffset, SEEK_CUR)) {
           fprintf(stderr, "ERROR: %s - seeking to data at section %d in "
-                  "file  %s\n", progname, argv[j]);
+                  "file  %s\n", progname, k, argv[j]);
           exit(-1);
         }
       }
