@@ -43,6 +43,10 @@ import etomo.type.FiducialMatch;
  * 
  * <p>
  * $Log$
+ * Revision 3.6  2004/05/05 22:26:01  sueh
+ * bug# 416 moving binned by 2 checkbox to above matching models
+ * button
+ *
  * Revision 3.5  2004/05/03 22:26:52  sueh
  * bug# 416 Adding Bin By 2 checkbox.  Passing tab identifier to
  * imodMatchingModel so that checkbox settings can be copied between
@@ -194,7 +198,8 @@ import etomo.type.FiducialMatch;
  * <p>
  * </p>
  */
-public class SetupCombinePanel implements ContextMenu {
+public class SetupCombinePanel
+  implements ContextMenu, InitialCombineFields, FinalCombineFields {
   public static final String rcsid =
     "$Id$";
 
@@ -577,11 +582,11 @@ public class SetupCombinePanel implements ContextMenu {
 
   }
 
-  protected boolean getUseMatchingModels() {
+  public boolean isUseMatchingModels() {
     return rbUseModel.isSelected();
   }
   
-  void setUseMatchingModels(boolean state) {
+  public void setUseMatchingModels(boolean state) {
     if (state) {
       rbUseModel.setSelected(true);
     }
@@ -592,11 +597,72 @@ public class SetupCombinePanel implements ContextMenu {
     }
   }
   
-  protected boolean getBinBy2() {
+  public boolean isBinBy2() {
     return cbBinBy2.isSelected();
   }
-  void setBinBy2(boolean state) {
+  public void setBinBy2(boolean state) {
       cbBinBy2.setSelected(state);
+  }
+  
+  public void setFiducialMatchListA(String fiducialMatchListA) {
+    ltfFiducialMatchListA.setText(fiducialMatchListA);
+  }
+  public String getFiducialMatchListA() {
+    return ltfFiducialMatchListA.getText();
+  }
+  public void setFiducialMatchListB(String fiducialMatchListB) {
+    ltfFiducialMatchListB.setText(fiducialMatchListB);
+  }
+  public String getFiducialMatchListB() {
+    return ltfFiducialMatchListB.getText();
+  }
+  public void setUsePatchRegionModel(boolean usePatchRegionModel) {
+    cbPatchRegionModel.setSelected(usePatchRegionModel);
+  }
+  public boolean isUsePatchRegionModel() {
+    return cbPatchRegionModel.isSelected();
+  }
+  
+  public void setXMin(String xMin) {
+   ltfXMin.setText(xMin);
+  }
+  public String getXMin() {
+    return ltfXMin.getText();
+  }
+  
+  public void setXMax(String xMax) {
+    ltfXMax.setText(xMax);
+  }
+  public String getXMax() {
+    return ltfXMax.getText();
+  }
+  
+  public void setYMin(String yMin) {
+    ltfYMin.setText(yMin);
+  }
+  public String getYMin() {
+    return ltfYMin.getText();
+  }
+  
+  public void setYMax(String yMax) {
+    ltfYMax.setText(yMax);
+  }
+  public String getYMax() {
+    return ltfYMax.getText();
+  }
+  
+  public void setZMin(String zMin) {
+    ltfZMin.setText(zMin);
+  }
+  public String getZMin() {
+    return ltfZMin.getText();
+  }
+  
+  public void setZMax(String zMax) {
+    ltfZMax.setText(zMax);
+  }
+  public String getZMax() {
+    return ltfZMax.getText();
   }
 
   
@@ -611,7 +677,8 @@ public class SetupCombinePanel implements ContextMenu {
     if (event
       .getActionCommand()
       .equals(btnPatchRegionModel.getActionCommand())) {
-      applicationManager.imodPatchRegionModel();
+      applicationManager.imodPatchRegionModel(
+        TomogramCombinationDialog.SETUP_TAB);
     }
     if (command.equals(btnImodVolumeA.getActionCommand())) {
       applicationManager.imodFullVolume(AxisID.FIRST);
@@ -624,10 +691,10 @@ public class SetupCombinePanel implements ContextMenu {
     }
     if (command.equals(btnCombine.getActionCommand())) {
       if (rbUseModel.isSelected()) {
-        applicationManager.modelCombine();
+        applicationManager.modelCombine(TomogramCombinationDialog.SETUP_TAB);
       }
       else {
-        applicationManager.combine();
+        applicationManager.combine(TomogramCombinationDialog.SETUP_TAB);
       }
     }
     updateStartCombine();
