@@ -17,6 +17,9 @@ import java.util.Vector;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.2  2004/11/20 00:09:36  sueh
+* <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+* <p>
 * <p> Revision 1.1.2.2  2004/10/28 22:18:51  sueh
 * <p> bug# 520 Clarified code by improving names for member variables, and
 * <p> parameters.
@@ -57,6 +60,15 @@ public class ConstHashedArray {
   
   public UniqueKey getKey(int index) {
     return (UniqueKey) keyArray.get(index);
+  }
+  
+  public int getIndex(UniqueKey key) {
+    for (int i = 0; i < keyArray.size(); i++) {
+      if (key.equals(keyArray.get(i))) {
+        return i;
+      }
+    }
+    return -1;
   }
   
   public int size() {
