@@ -1,4 +1,4 @@
-#include "plax.h"
+#include "xplax.h"
 int plax_open(void) {}
 void plax_close(void) {}
 void plax_flush(void) {}

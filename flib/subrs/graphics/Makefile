@@ -7,7 +7,9 @@ OBJS = bshst.o impak.o bsplt.o graphpak.o imsymb.o scale.o\
 
 all: $(OBJS)
 
-plax.o: plax.h
+qtplax.o: qtplax.h
+xplax.o: xplax.h
+noplax.o: xplax.h
 
 ps.o: ps.h
 

@@ -15,7 +15,7 @@ endif
 if ($no_xlibs == false) then
     set c_includes =  "-I$Xincdir -I$Mincdir"' -I$(QTDIR)/include'
     echo 'LDFLAGS = -L$(LIBDIR)' "-L$Xlibdir" >> $configure
-    echo 'XPLAX = plax.o' >> $configure
+    echo 'XPLAX = xplax.o' >> $configure
 else
     set c_includes =  '-I$(QTDIR)/include'
     echo 'LDFLAGS = -L$(LIBDIR)' >> $configure

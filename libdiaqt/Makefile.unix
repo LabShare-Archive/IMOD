@@ -5,7 +5,7 @@ include ../configure
 
 LIB      = libdiaqt.$(LIBEXT)
 OBJS     = arrowbutton.o dialog_frame.o multislider.o colorselector.o \
- dia_qtutils.o tooledit.o plax.o moc_arrowbutton.o moc_dialog_frame.o \
+ dia_qtutils.o tooledit.o moc_arrowbutton.o moc_dialog_frame.o \
  moc_multislider.o moc_colorselector.o moc_tooledit.o
 
 
