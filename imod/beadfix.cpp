@@ -126,7 +126,7 @@ typedef struct
   int    curArea;                       /* Current local area index */
   AreaData *areaList;                   /* Data about areas */
   int    areaMax;                       /* Size allocated */
-  QStringList qlines;
+  QStringList qlines;                   /* A resident copy of the align log */
   int currentLine;
   
 }PlugData;
@@ -137,8 +137,6 @@ static PlugData thisPlug = { 0, 0 };
 #define ERROR_NO_IMOD_DIR -64352
 // Place for qalign thread to leave its exit code
 static int alignExitCode;
-
-// A resident copy of the data
 
 
 /*
@@ -343,7 +341,7 @@ void BeadFixer::reread(int skipopen)
     backUpBut->setEnabled(false);    
 
   } else {
-    while (!found && getNextLine(line, MAXLINE) != NULL) {
+    while (!found && getNextLine(line, MAXLINE)) {
       arealine = strstr(line,"Doing local area");
       if (arealine) {
         arealine[22]=0x00;
@@ -379,7 +377,7 @@ void BeadFixer::reread(int skipopen)
     return;
   }
 
-  while(getNextLine(line, MAXLINE) != NULL) {
+  while(getNextLine(line, MAXLINE)) {
     newstyle = strstr(line,"   #     #     #      X         Y        X")
       != NULL;
     if (!newstyle)
@@ -438,7 +436,7 @@ void BeadFixer::nextRes()
 
   do {
     offsetBefore = plug->currentLine;
-    if(getNextLine(line, MAXLINE) || strlen(line) < 3) {
+    if(!getNextLine(line, MAXLINE) || strlen(line) < 3) {
       wprint("No more residuals in this list\n");
       nextResBut->setEnabled(false);    
       plug->residok=0;
@@ -1217,6 +1215,9 @@ void AlignThread::run()
 
 /*
     $Log$
+    Revision 1.11  2004/06/12 15:13:03  mast
+    Needed some new Qt includes
+
     Revision 1.10  2004/06/12 00:58:11  mast
     Switched to reading in whole file at once
 
