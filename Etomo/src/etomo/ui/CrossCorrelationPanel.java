@@ -21,6 +21,10 @@ import java.io.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.3  2004/01/30 01:30:26  sueh
+ * <p> bug# 373 split filter parameters into four fields, changed
+ * <p> tiltxcorrParam function calls
+ * <p>
  * <p> Revision 3.2  2003/12/31 01:34:44  sueh
  * <p> bug# 372 tooltips moved to autodoc where possible, tooltips
  * <p> coming from autodoc
@@ -70,8 +74,8 @@ public class CrossCorrelationPanel implements ContextMenu {
   public static final String rcsid =
     "$Id$";
 
-  private JPanel panelCrossCorrelation = new JPanel();
-  private JPanel panelAdvanced = new JPanel();
+  private JPanel pnlCrossCorrelation = new JPanel();
+  private JPanel pnlAdvanced = new JPanel();
 
   private BeveledBorder borderCoarseAlignment =
     new BeveledBorder("Cross-Correlation");
@@ -90,7 +94,6 @@ public class CrossCorrelationPanel implements ContextMenu {
     new LabeledTextField("Left cutoff radius: ");
   private LabeledTextField ltfFilterRadius2 =
     new LabeledTextField("Right cutoff radius: ");
-  private JPanel pnlFilterParams = new JPanel();
 
   private LabeledTextField ltfTrim = new LabeledTextField("Pixels to trim: ");
   private LabeledTextField ltfPadPercent =
@@ -104,41 +107,50 @@ public class CrossCorrelationPanel implements ContextMenu {
   public CrossCorrelationPanel(AxisID id) {
     setToolTipText();
     axisID = id;
-    panelAdvanced.setLayout(new BoxLayout(panelAdvanced, BoxLayout.Y_AXIS));
+    pnlAdvanced.setLayout(new BoxLayout(pnlAdvanced, BoxLayout.Y_AXIS));
+   
     cbExcludeCentralPeak.setAlignmentX((float) 0.5);
-    panelAdvanced.add(cbExcludeCentralPeak);
-    panelAdvanced.add(ltfInputFile.getContainer());
-    panelAdvanced.add(ltfOutputFile.getContainer());
-    //    panelAdvanced.add(ltfPieceListFile.getContainer());
-
-    pnlFilterParams.setLayout(new BoxLayout(pnlFilterParams, BoxLayout.Y_AXIS));
-    pnlFilterParams.setBorder(
-      new EtchedBorder("Filter Parameters").getBorder());
-    pnlFilterParams.add(ltfFilterSigma1.getContainer());
-    pnlFilterParams.add(ltfFilterSigma2.getContainer());
-    pnlFilterParams.add(ltfFilterRadius1.getContainer());
-    pnlFilterParams.add(ltfFilterRadius2.getContainer());
-    pnlFilterParams.add(Box.createHorizontalGlue());
-    panelAdvanced.add(pnlFilterParams);
-    panelAdvanced.add(Box.createRigidArea(FixedDim.x0_y10));
-
-    panelAdvanced.add(ltfTrim.getContainer());
-    panelAdvanced.add(ltfPadPercent.getContainer());
-    panelAdvanced.add(ltfTaperPercent.getContainer());
-    panelAdvanced.add(ltfViewRange.getContainer());
-
-    panelCrossCorrelation.setLayout(
-      new BoxLayout(panelCrossCorrelation, BoxLayout.Y_AXIS));
-    panelCrossCorrelation.add(panelAdvanced);
-
+    pnlAdvanced.add(cbExcludeCentralPeak);
+    pnlAdvanced.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlAdvanced.add(ltfInputFile.getContainer());
+    pnlAdvanced.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlAdvanced.add(ltfOutputFile.getContainer());
+    pnlAdvanced.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlAdvanced.add(ltfFilterSigma1.getContainer());
+    pnlAdvanced.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlAdvanced.add(ltfFilterSigma2.getContainer());
+    pnlAdvanced.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlAdvanced.add(ltfFilterRadius1.getContainer());
+    pnlAdvanced.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlAdvanced.add(ltfFilterRadius2.getContainer());
+    pnlAdvanced.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlAdvanced.add(Box.createHorizontalGlue());
+    pnlAdvanced.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlAdvanced.add(ltfTrim.getContainer());
+    pnlAdvanced.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlAdvanced.add(ltfPadPercent.getContainer());
+    pnlAdvanced.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlAdvanced.add(ltfTaperPercent.getContainer());
+    pnlAdvanced.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlAdvanced.add(ltfViewRange.getContainer());
+    pnlAdvanced.add(Box.createRigidArea(FixedDim.x0_y5));
+    
+    pnlCrossCorrelation.setLayout(
+      new BoxLayout(pnlCrossCorrelation, BoxLayout.Y_AXIS));
+    pnlCrossCorrelation.add(pnlAdvanced);
+    // Since the whole panel is currently advanced we can put the border on the
+    // advanced panel.  Thus it won't show up when the panel isn't visible.  
+    pnlAdvanced.setBorder(
+      new EtchedBorder("Tiltxcorr Parameters").getBorder());
+    
     //  Mouse adapter for context menu
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
-    panelCrossCorrelation.addMouseListener(mouseAdapter);
+    pnlCrossCorrelation.addMouseListener(mouseAdapter);
 
   }
 
   JPanel getPanel() {
-    return panelCrossCorrelation;
+    return pnlCrossCorrelation;
   }
 
   /**
@@ -196,11 +208,11 @@ public class CrossCorrelationPanel implements ContextMenu {
   }
 
   void setVisible(boolean state) {
-    panelCrossCorrelation.setVisible(state);
+    pnlCrossCorrelation.setVisible(state);
   }
 
   void setAdvanced(boolean state) {
-    panelAdvanced.setVisible(state);
+    pnlAdvanced.setVisible(state);
   }
 
   /**
@@ -214,7 +226,7 @@ public class CrossCorrelationPanel implements ContextMenu {
     logFile[0] = "xcorr" + axisID.getExtension() + ".log";
     ContextPopup contextPopup =
       new ContextPopup(
-        panelCrossCorrelation,
+        pnlCrossCorrelation,
         mouseEvent,
         "COARSE ALIGNMENT",
         manPagelabel,
