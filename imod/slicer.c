@@ -33,6 +33,11 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2002/05/20 15:29:39  mast
+    Made it move the current point to middle of image when slicer is opened if
+    it is still at 0,0.  Made it load cache for current point, which is needed
+    if no Zap window is open.
+
     Revision 3.0  2001/11/29 18:10:49  rickg
     *** empty log message ***
 
@@ -581,6 +586,13 @@ static void sslice_quit_cb(Widget w, XtPointer client, XtPointer call)
      return;
 }
 
+static int CubeAttrib[] =
+{
+    GLX_DOUBLEBUFFER, 
+    GLX_RGBA,
+    None
+};
+
 /*
  * Open new slicer.
  */
@@ -599,6 +611,7 @@ int sslice_open(struct ViewInfo *vi)
      int depth;
      static int first = True;
      int axis;
+     XVisualInfo *cubeVisualInfo;
 
      sslice = (struct Super_slicer *)malloc(sizeof(struct Super_slicer));
      if (!sslice)
@@ -648,6 +661,7 @@ int sslice_open(struct ViewInfo *vi)
      sslice->zslast = 1.0;
      sslice->pending = 0;
      sslice->closing = 0;
+     sslice->cubeDB = False;
 
      slice_trans_step(sslice);
      window_name = imodwfname("IMOD Slicer: ");
@@ -665,6 +679,23 @@ int sslice_open(struct ViewInfo *vi)
 	  return(-1);
      }
      
+     /* DNM 9/5/02: Get visual for cube now, try for single-buffer first
+	then double-buffer */
+     cubeVisualInfo = glXChooseVisual(App->display, 
+				      DefaultScreen(App->display), 
+				      &CubeAttrib[1]);
+     if (!cubeVisualInfo) {
+	 sslice->cubeDB = True;
+	 cubeVisualInfo = glXChooseVisual(App->display, 
+					  DefaultScreen(App->display), 
+					  &CubeAttrib[0]);
+	 if (!cubeVisualInfo) {
+	      wprint("Failed to get visual for slicer cube.\n");
+	      free(sslice);
+	      return(-1);
+	 }
+     }
+
      window = XtVaCreateManagedWidget
 	  ("slicer",  xmMainWindowWidgetClass,  sslice->dialog,
 	   NULL);
@@ -847,9 +878,10 @@ int sslice_open(struct ViewInfo *vi)
 	   NULL);
 
      /* DNM: doublebuffer needed on PC-Linux in rh 6.x but not 7.0 */
+     /* DNM 9/5/02: use the visual selected above */
      sslice->cube = XtVaCreateManagedWidget
 	  ("glcubewidget", B3dDrawingAreaWidgetClass, frame,
-	   GLwNrgba, True,
+	   GLwNvisualInfo, cubeVisualInfo,
 	   NULL);
      XtAddCallback(sslice->cube, B3dNresizeCallback,
 		   sslice_resize_cube_cb, (XtPointer)sslice);
@@ -2514,6 +2546,10 @@ static void sslice_cube_draw(struct Super_slicer *ss)
      glDisable(GL_CLIP_PLANE5);
 
      glFlush();
+
+     /* DNM 9/5/02: swap, but only if actually double-buffered */
+     if (ss->cubeDB)
+	  b3dSwapBuffers();
 
      return;
 }
