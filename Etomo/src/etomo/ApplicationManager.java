@@ -98,6 +98,9 @@ import etomo.util.Utilities;
  * 
  *
  * <p> $Log$
+ * <p> Revision 3.141  2005/03/24 20:18:35  sueh
+ * <p> bug# 621 Fixed bug where post processing button didn't get highlighted.
+ * <p>
  * <p> Revision 3.140  2005/03/24 17:48:15  sueh
  * <p> bug# 621 Added Clean Up dialog.
  * <p>
@@ -3639,6 +3642,9 @@ public class ApplicationManager extends BaseManager {
           + ".rec";
       }
       tiltParam.setOutputFile(outputFileName);
+      if (metaData.getViewType() == ViewType.MONTAGE) {
+        tiltParam.setMontageFullImage(propertyUserDir, tomogramPositioningDialog.getBinning());
+      }
       comScriptMgr.saveTilt(tiltParam, axisID);
     }
     catch (NumberFormatException except) {
@@ -4069,6 +4075,9 @@ public class ApplicationManager extends BaseManager {
       else {
         String trialTomogramName = tomogramGenerationDialog.getTrialTomogramName();
         tiltParam.setOutputFile(trialTomogramName);
+      }
+      if (metaData.getViewType() == ViewType.MONTAGE) {
+        tiltParam.setMontageFullImage(propertyUserDir, tomogramGenerationDialog.getBinning());
       }
       comScriptMgr.saveTilt(tiltParam, axisID);
     }
