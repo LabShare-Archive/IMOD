@@ -21,6 +21,12 @@ import java.io.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.6  2004/03/12 20:09:33  sueh
+ * <p> bug# 412 Added CrossCorrelationActionListener, cbAbsoluteCosineStretch,
+ * <p> cbCumulativeCorrelation, cbNoCosineStretch, XMinAndMax, YMinAndMax,
+ * <p> ltfTestOutput, updateCrossCorrelationPanel() - enables/disables fields.
+ * <p> Removed ltfInputFile, ltfOutputFile.
+ * <p>
  * <p> Revision 3.5  2004/03/11 19:43:45  sueh
  * <p> bug# 372 removing FilterSigma2, change text and order of FilterSigma1,
  * <p> FilterRadius2, FilterRadius1
@@ -99,23 +105,21 @@ public class CrossCorrelationPanel implements ContextMenu {
     new LabeledTextField("High frequency cutoff radius: ");
   private LabeledTextField ltfFilterSigma2 =
     new LabeledTextField("High frequency rolloff sigma: ");
-  private LabeledTextField ltfTrim = new LabeledTextField("Pixels to trim: ");
-  private LabeledTextField ltfXMin = new LabeledTextField("Min ");
-  private LabeledTextField ltfXMax = new LabeledTextField("max ");
-  private JLabel lblXMinAndMax = new JLabel("pixels in X");
-  private LabeledTextField ltfYMin = new LabeledTextField("Min ");
-  private LabeledTextField ltfYMax = new LabeledTextField("max ");
-  private JLabel lblYMinAndMax = new JLabel("pixels in Y");
+  private LabeledTextField ltfTrim = new LabeledTextField("Pixels to trim (x,y): ");
+  private LabeledTextField ltfXMin = new LabeledTextField("X axis min ");
+  private LabeledTextField ltfXMax = new LabeledTextField("Max ");
+  private LabeledTextField ltfYMin = new LabeledTextField("Y axis min ");
+  private LabeledTextField ltfYMax = new LabeledTextField("Max ");
   private LabeledTextField ltfPadPercent =
-    new LabeledTextField("Pixels to pad: ");
+    new LabeledTextField("Pixels to pad (x,y): ");
   private LabeledTextField ltfTaperPercent =
-    new LabeledTextField("Pixels to taper: ");
+    new LabeledTextField("Pixels to taper (x,y): ");
   private JCheckBox cbCumulativeCorrelation =
     new JCheckBox("Cumulative correlation");
   private JCheckBox cbAbsoluteCosineStretch = 
     new JCheckBox("Absolute Cosine Stretch");
   private JCheckBox cbNoCosineStretch = new JCheckBox("No Cosine Stretch");
-  private LabeledTextField ltfViewRange = new LabeledTextField("View range: ");
+  private LabeledTextField ltfViewRange = new LabeledTextField("View range (start,end): ");
 
   AxisID axisID;
 
@@ -127,18 +131,15 @@ public class CrossCorrelationPanel implements ContextMenu {
     pnlXMinAndMax.add(Box.createRigidArea(FixedDim.x5_y0));
     pnlXMinAndMax.add(ltfXMax.getContainer());
     pnlXMinAndMax.add(Box.createRigidArea(FixedDim.x5_y0));
-    pnlXMinAndMax.add(lblXMinAndMax);
     
     pnlYMinAndMax.setLayout(new BoxLayout(pnlYMinAndMax, BoxLayout.X_AXIS));
     pnlYMinAndMax.add(ltfYMin.getContainer());
     pnlYMinAndMax.add(Box.createRigidArea(FixedDim.x5_y0));
     pnlYMinAndMax.add(ltfYMax.getContainer());
     pnlYMinAndMax.add(Box.createRigidArea(FixedDim.x5_y0));
-    pnlYMinAndMax.add(lblYMinAndMax);
     
     pnlAdvanced.setLayout(new BoxLayout(pnlAdvanced, BoxLayout.Y_AXIS));
    
-    cbExcludeCentralPeak.setAlignmentX((float) 0.5);
     pnlAdvanced.add(ltfFilterSigma1.getContainer());
     pnlAdvanced.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlAdvanced.add(ltfFilterRadius2.getContainer());
@@ -157,12 +158,16 @@ public class CrossCorrelationPanel implements ContextMenu {
     pnlAdvanced.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlAdvanced.add(ltfTaperPercent.getContainer());
     pnlAdvanced.add(Box.createRigidArea(FixedDim.x0_y5));
+    cbCumulativeCorrelation.setAlignmentX((float) 0.5);
     pnlAdvanced.add(cbCumulativeCorrelation);
     pnlAdvanced.add(Box.createRigidArea(FixedDim.x0_y5));
+    cbAbsoluteCosineStretch.setAlignmentX((float) 0.5);
     pnlAdvanced.add(cbAbsoluteCosineStretch);
     pnlAdvanced.add(Box.createRigidArea(FixedDim.x0_y5));
+    cbNoCosineStretch.setAlignmentX((float) 0.5);
     pnlAdvanced.add(cbNoCosineStretch);
     pnlAdvanced.add(Box.createRigidArea(FixedDim.x0_y5));
+    cbExcludeCentralPeak.setAlignmentX((float) 0.5);
     pnlAdvanced.add(cbExcludeCentralPeak);
     pnlAdvanced.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlAdvanced.add(ltfTestOutput.getContainer());
