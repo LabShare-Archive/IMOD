@@ -1,5 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/13/03: IMOD_3-0-15
+8/12/03: Made the Qt-based graphics routines used in Fortran programs work on
+the Mac without hanging when the window opened.
+
+8/12/03: Made it possible to start up Nda without a model file, just like Mtk.
+
 8/9/03: IMOD_3-0-14
 8/9/03: Changed Blendmont to take PIP input and modified command files and
 Copytomocoms to use new form of input.
