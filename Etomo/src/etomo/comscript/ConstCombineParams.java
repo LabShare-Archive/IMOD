@@ -19,6 +19,9 @@ import etomo.type.FiducialMatch;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.2  2003/03/18 16:38:18  rickg
+ * <p> Added model based boolean
+ * <p>
  * <p> Revision 2.1  2003/02/24 23:29:54  rickg
  * <p> Added use patch region model method
  * <p>
@@ -65,6 +68,7 @@ public class ConstCombineParams {
   protected String tempDirectory = "";
   protected boolean manualCleanup = false;
   protected boolean modelBased = false;
+  protected boolean scriptsCreated = false;
   
   protected ArrayList invalidReasons = new ArrayList();
 
@@ -245,4 +249,10 @@ public class ConstCombineParams {
     return modelBased;
   }
 
+  /**
+   * @return boolean
+   */
+  public boolean isScriptsCreated() {
+    return scriptsCreated;
+  }
 }

@@ -22,6 +22,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.3  2003/03/18 16:38:04  rickg
+ * <p> Added model based boolean
+ * <p>
  * <p> Revision 2.2  2003/03/06 05:53:28  rickg
  * <p> Combine interface in progress
  * <p>
@@ -204,6 +207,14 @@ public class CombineParams extends ConstCombineParams implements Storable {
   }
 
   /**
+   * Sets the scripts created state.
+   * @param scriptsCreated True if the combine scripts have been created
+   */
+  public void setScriptsCreated(boolean scriptsCreated) {
+    this.scriptsCreated = scriptsCreated;
+  }
+
+  /**
    *  Insert the objects attributes into the properties object.
    */
   public void store(Properties props) {
@@ -237,6 +248,7 @@ public class CombineParams extends ConstCombineParams implements Storable {
     props.setProperty(group + "TempDirectory", tempDirectory);
     props.setProperty(group + "ManualCleanup", String.valueOf(manualCleanup));
     props.setProperty(group + "ModelBased", String.valueOf(modelBased));
+    props.setProperty(group + "ScriptsCreated", String.valueOf(scriptsCreated));
   }
 
   /**
@@ -339,7 +351,14 @@ public class CombineParams extends ConstCombineParams implements Storable {
             group + "ModelBased",
             Boolean.toString(modelBased)))
         .booleanValue();
-
+    
+    scriptsCreated =
+      Boolean
+        .valueOf(
+          props.getProperty(
+            group + "ScriptsCreated",
+            Boolean.toString(modelBased)))
+        .booleanValue();
   }
 
   /**
