@@ -1,51 +1,21 @@
-/*  IMOD VERSION 2.50
- *
+/*
  *  mrcslice.c -- Library of image slice functions.
  *
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
+ *
+ *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
+ *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  */
 
-/*****************************************************************************
- *   Copyright (C) 1995-2001 by Boulder Laboratory for 3-Dimensional Fine    *
- *   Structure ("BL3DFS") and the Regents of the University of Colorado.     *
- *                                                                           *
- *   BL3DFS reserves the exclusive rights of preparing derivative works,     *
- *   distributing copies for sale, lease or lending and displaying this      *
- *   software and documentation.                                             *
- *   Users may reproduce the software and documentation as long as the       *
- *   copyright notice and other notices are preserved.                       *
- *   Neither the software nor the documentation may be distributed for       *
- *   profit, either in original form or in derivative works.                 *
- *                                                                           *
- *   THIS SOFTWARE AND/OR DOCUMENTATION IS PROVIDED WITH NO WARRANTY,        *
- *   EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTY OF          *
- *   MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.       *
- *                                                                           *
- *   This work is supported by NIH biotechnology grant #RR00592,             *
- *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
- *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
- *****************************************************************************/
 /*  $Author$
 
 $Date$
 
 $Revision$
 
-$Log$
-Revision 3.7  2004/11/07 23:06:09  mast
-Fixed sliceGradient to not saturate
-
-Revision 3.6  2004/11/05 18:53:04  mast
-Include local files with quotes, not brackets
-
-Revision 3.5  2004/11/04 17:10:27  mast
-libiimod.def
-
-Revision 3.4  2004/09/10 21:33:53  mast
-Eliminated long variables
-
-*/
+Log at end of file */
 
 #include <stdlib.h>
 #include <string.h>
@@ -925,30 +895,26 @@ void sliceQuadInterpolate(Islice *sl, double x, double y, Ival val)
   return;
 }
 
-
-float *mrc_slice_mat_getimat(struct MRCslice *sin, int x, int y, int dim)
+/* Extract a dim x dim matrix from the input slice centered around x,y; place
+   result into mat */
+void mrc_slice_mat_getimat(struct MRCslice *sin, int x, int y, int dim, 
+                           float *mat)
 {
-  float *mat;
   int xs, ys, xe, ye;
   int i, j;
 
-  mat = (float *)malloc(dim * dim * sizeof(float));
-  if (!mat)
-    return(NULL);
 
   xs = x - (dim / 2);
-  xe = x + dim;
+  xe = xs + dim;
   ys = y - (dim / 2);
-  ye = y + dim;
+  ye = ys + dim;
 
   for(j = ys; j < ye; j++)
     for(i = xs; i < xe; i++)
-      mat[(i-xs )+ (j-ys)] = mrc_slice_getmagnitude(sin, i, j);
-      
-  return(mat);
-
+      mat[(i-xs )+ dim * (j-ys)] = mrc_slice_getmagnitude(sin, i, j);
 }
 
+/* Multiply two dim x dim matrices by simple vector product */
 float mrc_slice_mat_mult(float *m1, float *m2, int dim)
 {
   float rval = 0;
@@ -962,6 +928,7 @@ float mrc_slice_mat_mult(float *m1, float *m2, int dim)
   return(rval);
 }
 
+/* Filter a slice by convolving with a dim x dim matrix; returns float slice */
 struct MRCslice *slice_mat_filter(struct MRCslice *sin, float *mat, int dim)
 {
   struct MRCslice *sout;
@@ -969,18 +936,22 @@ struct MRCslice *slice_mat_filter(struct MRCslice *sin, float *mat, int dim)
   Ival val;
   int i,j;
 
+  imat = (float *)malloc(dim * dim * sizeof(float));
+  if (!imat)
+    return(NULL);
   sout = mrc_slice_create(sin->xsize, sin->ysize, MRC_MODE_FLOAT);
+  if (!sout)
+    return NULL;
 
   for(j = 0; j < sin->ysize; j++){
     for(i = 0; i < sin->xsize; i++){
-      imat = mrc_slice_mat_getimat(sin, i, j, dim);
+      mrc_slice_mat_getimat(sin, i, j, dim, imat);
       val[0] = mrc_slice_mat_mult(mat, imat, dim);
-      free(imat);
       slicePutVal(sout, i, j, val);
     }
   }
+  free(imat);
   return(sout);
-
 }
 
 int mrc_slice_lie_img(struct MRCslice *sin, 
@@ -1024,87 +995,58 @@ int mrc_slice_lie_img(struct MRCslice *sin,
   return(0);
 }
 
+/* Scales data in the slice by the factor alpha around the value in */
 int mrc_slice_lie(struct MRCslice *sin, double in, double alpha)
 {
   int i, j, c;
-  float inval, a;
   Ival val;
   float scale, offset;
 
-  a = (float)alpha;
-  inval = (1.0f - a) * (float)in;
+  scale = (float)alpha;
+  offset = (1.0f - scale) * (float)in;
 
-  if (sin->mode == MRC_MODE_BYTE){
-    val[0] = (inval + (a * 0.0));
-    val[1] = (inval + (a * 255.0));
-    offset = val[0];
-    scale  = (val[1] - val[0])/255.0f;
-  }
-  val[0] = (inval + (a * 0.0));
-  val[1] = (inval + (a * 32767.0));
-  offset = val[0];
-  scale  = (val[1] - val[0])/32767.0f;
-
-  if (sin->csize == 1)
+  if (sin->csize == 1) {
     for(j = 0; j < sin->ysize; j++)
-      for(i = 0; i < sin->xsize; i++){
+      for(i = 0; i < sin->xsize; i++) {
         sliceGetVal(sin, i, j, val);
-        val[0] = (inval + (a * val[0]));
-        switch(sin->mode){
+        val[0] = (offset + (scale * val[0]));
+        switch(sin->mode) {
         case MRC_MODE_BYTE:
-          val[0] += offset;
-          val[0] *= scale;
           if (val[0] > 255)
             val[0] = 255;
           if (val[0] < 0)
             val[0] = 0;
           break;
         case MRC_MODE_SHORT:
-          val[0] += offset;
-          val[0] *= scale;
           if (val[0] > 32767)
             val[0] = 32767;
           if (val[0] < -32768)
             val[0] = -32768;
           break;
-        case MRC_MODE_COMPLEX_FLOAT:
-          val[1] = (inval + (a * val[1]));
-          val[0] += offset;
-          val[0] *= scale;
-          val[1] += offset;
-          val[1] *= scale;
-          break;
-        case MRC_MODE_COMPLEX_SHORT:
-          val[1] = (inval + (a * val[1]));
-          break;
-        case MRC_MODE_RGB:
-          val[1] = (inval + (a * val[1]));
-          val[2] = (inval + (a * val[2]));
-          val[0] += offset;
-          val[1] += offset;
-          val[2] += offset;
-          val[0] *= scale;
-          val[1] *= scale;
-          val[2] *= scale;
-          break;
         }
         slicePutVal(sin, i, j, val);
       }
-  else
-    for(j = 0; j < sin->ysize; j++)
-      for(i = 0; i < sin->xsize; i++){
+  } else {
+    for (j = 0; j < sin->ysize; j++)
+      for (i = 0; i < sin->xsize; i++) {
         sliceGetVal(sin, i, j, val);
-        for(c = 0; c < sin->csize; c++){
-          val[c] = (inval + (a * val[c]));
-          if (sin->mode == MRC_MODE_RGB){
+        for(c = 0; c < sin->csize; c++) {
+          val[c] = (offset + (scale * val[c]));
+          if (sin->mode == MRC_MODE_RGB) {
             if (val[c] > 255)
               val[c] = 255;
             if (val[c] < 0)
               val[c] = 0;
+          } else if (sin->mode == MRC_MODE_COMPLEX_SHORT) {
+            if (val[c] > 32767)
+              val[c] = 32767;
+            if (val[c] < -32768)
+              val[c] = -32768;
           }
         }
         slicePutVal(sin, i, j, val);
       }
+  }
   return(0);
 }
 
@@ -1653,3 +1595,22 @@ int sliceNewMode(Islice *s, int mode)
   free(ns);
   return(mode);
 }
+
+/*
+$Log$
+Revision 3.8  2004/12/02 21:54:53  mast
+Fixed sliceReadMRC to return null upon error
+
+Revision 3.7  2004/11/07 23:06:09  mast
+Fixed sliceGradient to not saturate
+
+Revision 3.6  2004/11/05 18:53:04  mast
+Include local files with quotes, not brackets
+
+Revision 3.5  2004/11/04 17:10:27  mast
+libiimod.def
+
+Revision 3.4  2004/09/10 21:33:53  mast
+Eliminated long variables
+
+*/
