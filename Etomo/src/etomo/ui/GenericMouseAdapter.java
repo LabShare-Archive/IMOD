@@ -17,6 +17,9 @@ import javax.swing.SwingUtilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.0  2003/01/24 20:30:31  rickg
+ * <p> Single window merge to main branch
+ * <p>
  * <p> Revision 1.1.2.1  2003/01/24 18:43:37  rickg
  * <p> Single window GUI layout initial revision
  * <p>
@@ -34,10 +37,10 @@ public class GenericMouseAdapter implements MouseListener {
     this.adaptee = adaptee;
   }
   public void mouseClicked(MouseEvent e) {
-    if (SwingUtilities.isRightMouseButton(e))
-      adaptee.popUpContextMenu(e);
   }
   public void mousePressed(MouseEvent e) {
+		if (SwingUtilities.isRightMouseButton(e))
+			adaptee.popUpContextMenu(e);
   }
 
   public void mouseReleased(MouseEvent e) {
