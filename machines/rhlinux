@@ -103,11 +103,9 @@ echo '#define B3D_LITTLE_ENDIAN' >> $hconfigure
 echo '#define SWAP_IEEE_FLOATS' >> $hconfigure
 
 #
-# Tell fortran routines how to swap bytes too, and set # of bytes per
-# item to 1 for defining record length in fortran direct unformatted I/O
+# Tell fortran routines how to swap bytes too
 #
 \cp $endian_dir/little_endian.inc $endian_dir/endian.inc
-echo "      parameter (nbytes_recl_item=1)" >! $endian_dir/recl_bytes.inc
 
 #
 #

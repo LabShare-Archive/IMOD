@@ -61,8 +61,6 @@ if ($debug == true) then
         set optimization = "-g"
 endif
 
-echo "      parameter (nbytes_recl_item=1)" >! $endian_dir/recl_bytes.inc
-
 # take out -I$opengl_inc and -I$motif_inc because they are /usr/include and
 # this is screwing up variable arguments includes
 # take out -I$openwin_inc, don't know why it was there
