@@ -273,7 +273,9 @@ void BeadFixer::openFile()
   if (plug->fp != NULL) {
     rereadBut->setEnabled(true);    
     nextLocalBut->setEnabled(true);    
+#ifdef FIXER_CAN_RUN_ALIGN
     runAlignBut->setEnabled(true);
+#endif
   }
 
   return;
@@ -1092,9 +1094,9 @@ void BeadFixer::timerEvent(QTimerEvent *e)
     reread(0);
     rereadBut->setEnabled(true);
     openFileBut->setEnabled(true);
-    runAlignBut->setEnabled(true);
     nextResBut->setEnabled(true);
     nextLocalBut->setEnabled(true);
+    runAlignBut->setEnabled(true);
   }
 #endif
 }
@@ -1191,6 +1193,9 @@ void AlignThread::run()
 
 /*
     $Log$
+    Revision 1.8  2004/05/07 22:14:53  mast
+    Switched to a variable other than QT_THREAD_SUPPORT for the run align button
+
     Revision 1.7  2004/05/04 17:52:32  mast
     Forgot to put AlignThread::run inside ifdef.
 
