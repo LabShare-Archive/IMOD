@@ -19,6 +19,9 @@ import etomo.process.SystemProgram;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.5  2004/06/21 18:40:22  rickg
+ * <p> Bug #480 Added FEI pixel size parser.
+ * <p>
  * <p> Revision 3.4  2004/04/22 23:23:37  rickg
  * <p> Switched getIMODBinPath method
  * <p>
@@ -81,6 +84,9 @@ public class MRCHeader {
   private double xPixelSize = Double.NaN;
   private double yPixelSize = Double.NaN;
   private double zPixelSize = Double.NaN;
+  private double xPixelSpacing = Double.NaN;
+  private double yPixelSpacing = Double.NaN;
+  private double zPixelSpacing = Double.NaN;
   private double imageRotation = Double.NaN;
   private int binning = Integer.MIN_VALUE;
 
@@ -149,6 +155,10 @@ public class MRCHeader {
         xPixelSize = Double.parseDouble(tokens[4]);
         yPixelSize = Double.parseDouble(tokens[5]);
         zPixelSize = Double.parseDouble(tokens[6]);
+        
+        xPixelSpacing = xPixelSize;
+        yPixelSpacing = yPixelSize;
+        zPixelSpacing = zPixelSize;
       }
 
       // If the pixel sizes are default value scan for FEI pixel size in the
@@ -238,6 +248,14 @@ public class MRCHeader {
    */
   public double getZPixelSize() {
     return zPixelSize;
+  }
+  
+  /**
+   * 
+   * @return
+   */
+  public double getXPixelSpacing() {
+    return xPixelSpacing;
   }
   
   /**
