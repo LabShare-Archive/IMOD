@@ -76,6 +76,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.76  2003/10/20 17:32:09  rickg
+ * <p> Use existence of combine com scripts
+ * <p> ConstCombineParams.scriptsCreated flag
+ * <p>
  * <p> Revision 2.75  2003/10/17 02:00:07  sueh
  * <p> Bug317 added new function - to retrieve default UI resources
  * <p>
@@ -3001,10 +3005,21 @@ public class ApplicationManager {
   /**
    * Execute the matchvol1 com script and put patchcorr in the execution queue 
    */
-  private void matchvol1() {
+  public void matchvol1() {
     processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
     mainFrame.setTomogramCombinationState(ProcessState.INPROGRESS);
 
+    //  Check to see if solve.xf exists first
+    File solveXf = new File(System.getProperty("user.dir"), "solve.xf");
+    if (!solveXf.exists()) {
+      nextProcess = "";
+      String[] message = new String[2];
+      message[0] = "Can not execute matchvol1.com";
+      message[1] = "solve.xf must exist in the working";
+      mainFrame.openMessageDialog(message, "Unable to execute com script");
+      return;
+    }
+    
     //  Set the next process to execute when this is finished   
     nextProcess = "patchcorr";
     String threadName;
