@@ -51,8 +51,12 @@ DDEESSCCRRIIPPTTIIOONN
   interpolation order of 0: cosine stretching by entering
   "COSINTERP 0", fast backprojection by entering "FBPINTERP 0", or the
   new style of X-axis tilting by entering "XTILTINTERP 0".  There are
-  some cases where the fast back projection might be slower than the
-  conventional approach (e.g., few input views).
+  some cases where the fast backprojection is slower than the
+  conventional approach (e.g., few input views).  The program attempts
+  to detect these cases and use conventional summation instead.  If
+  you use "FBPINTERP 1", you can bypass this checking and force the 
+  program to use fast backprojection as long as other conditions are
+  met.
 
 -----------------------------------------------------------
 
@@ -129,7 +133,11 @@ DDEESSCCRRIIPPTTIIOONN
   Use this line to specify the interpolation ORDER for the fast
   backprojection algorithm: 1 for linear interpolation (the default),
   3 for cubic spline interpolation, which will low-pass filter the
-  input data more, or 0 to disable fast backprojection.
+  input data more, or 0 to disable fast backprojection.  Entering a 
+  value with this option will also force the program to use fast
+  backprojection even if the width, thickness, and number of views
+  are small enough so that fast backprojection will run slower than
+  direct summation.
 
   FULLIMAGE XSIZE YSIZE
   ------

@@ -32,6 +32,7 @@ echo "SHELL     = /bin/csh"         >> $configure
 if ($compiler == intel) then
 	echo "CC        = icc"              >> $configure
 	echo "FC        = ifc"              >> $configure
+	set usfftdir = $source_dir/USFFTlib/pc-intel
 else
 	echo "CC        = gcc"              >> $configure
 	echo "FC        = f77"              >> $configure
@@ -142,7 +143,8 @@ echo '#define MIDAS_EXPOSE_HACK'  >> $hconfigure
 echo '#define FIXED_CLK_TCK 100'  >> $hconfigure
 
 if ($compiler == intel) then
-	set optimization = "-O2 -axK -unroll -w"
+	## -axK fails on tiltalign-beadtrack
+	set optimization = "-O2 -unroll -w"
 	#set optimization = "-O2 -w"
 	if ($debug == true) set optimization = "-g -O0"
 else
@@ -174,3 +176,7 @@ echo 'RGBPROGS = '  >> $configure
 #
 if ($tifflibs == default) set tifflibs = true
 
+#
+# Set the switch point include file for the FBP algorithm in Tilt
+#
+set fbpswitch       = fbpswitch-pc.inc

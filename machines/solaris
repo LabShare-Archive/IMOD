@@ -87,3 +87,7 @@ echo 'LINUXFLIBS = ' >> $configure
 echo 'RGBPROGS = '  >> $configure
 
 set usfftdir = $source_dir/USFFTlib/sun
+#
+# Set the switch point include file for the FBP algorithm in Tilt
+#
+set fbpswitch       = fbpswitch-sun.inc

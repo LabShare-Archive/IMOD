@@ -8,6 +8,11 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.1  2002/07/19 01:23:56  rickg
+#  Changed include directory search path to explicitly use /usr/include/X11/GLw
+#  so that GLw include are picked up without preceeding path arguments in the
+#  source code.
+#
 #  Revision 3.0  2001/11/29 18:10:59  rickg
 #  *** empty log message ***
 #
@@ -139,3 +144,8 @@ endif
 echo 'TILTOBJS = bpsumnox.o bpsumxtilt.o bpsumlocal.o' >> $configure
 echo 'LINUXFLIBS = ' >> $configure
 echo 'RGBPROGS = frommrc tomrc mrcv'  >> $configure
+
+#
+# Set the switch point include file for the FBP algorithm in Tilt
+#
+set fbpswitch       = fbpswitch-sgi.inc
