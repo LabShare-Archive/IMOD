@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1  2003/10/01 05:06:56  mast
+split off from imodplug.h
+
 */
 #ifndef IMODPLUGP_H
 #define IMODPLUGP_H
@@ -23,5 +26,6 @@ int imodPlugCall(ImodView *vw, int type, int reason);
 void imodPlugMenu(QPopupMenu *parent); /* build plugin menu. */
 int imodPlugHandleKey(ImodView *vw, QKeyEvent *event);
 void imodPlugOpen(int item);
+void imodPlugOpenByName(char *name);
 
 #endif
