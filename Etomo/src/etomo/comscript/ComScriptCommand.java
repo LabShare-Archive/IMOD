@@ -20,6 +20,10 @@ import java.util.Vector;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.2  2004/04/26 20:15:42  rickg
+ * <p> Added interface to handle successive accumulation keywords
+ * <p> untested
+ * <p>
  * <p> Revision 3.1  2004/03/05 18:15:55  sueh
  * <p> bug# 250 add getCommandLineLength() - get the number of parameters
  * <p>
@@ -390,7 +394,7 @@ public class ComScriptCommand {
 
       String[] tokens = inputArg.getArgument().trim().split("\\s+", 2);
       if (tokens[0].equals(keyword)) {
-        stdinArgs.remove(inputArg);
+        itStdinArgs.remove();
       }
     }
   }
