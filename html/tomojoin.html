@@ -3,21 +3,21 @@
 
      Joining tomograms from serial sections into one involves a sequence of
 steps:
-     1) flipping or rotating the volume so that slices in Z are parallel to the
-plane of section;
-     2) matching densities between the tomograms;
-     3) extracting sample slices from the section boundaries so that these
+     1) If necessary, flipping or rotating the volume so that slices in Z are
+parallel to the plane of section;
+     2) Extracting sample slices from the section boundaries so that these
 boundaries can be visualized and aligned;
-     4) getting transformations to align the top of each section to the bottom
+     3) Getting transformations to align the top of each section to the bottom
 of the next;
-     5) assembling the joined volume.
+     4) Assembling the joined volume.
 
-Steps 1 to 3 can be accomplished by a command file, startjoin.com, that is
-produced by the program Makejoincom.  The latter is an interactive shell
-script that runs similarly to Copytomocoms.  For step 4, you use Midas.  Step
-5 is done with the program Finishjoin, which is run with a single command-line
-entry.  This makes it easy to rerun the joining with more or fewer 
-slices included from the individual sections.
+Steps 1 and 2 can be accomplished by a command file, startjoin.com, that is
+produced by the program Makejoincom.  The latter is a shell script that can be
+run either interactively (by answering sequential questions) or with
+command-line arguments.  For step 3, you use Midas and can also use Xfalign
+for automated alignment.  Step 4 is done with the program Finishjoin, which is
+run with a single command-line entry.  This makes it easy to rerun the joining
+with more or fewer slices included from the individual sections.
 
 Preliminaries to Ponder
      If you have N tomograms, then there are N-1 boundaries between sections.
@@ -29,42 +29,40 @@ the low Z end.  The programs will take care of any inversions in Z, both in
 extracting sample slices and in assembling the final volume, so you do not
 need to worry about entering slice numbers in a particular order.
 
-     You will probably want to create a new directory for your joining
-operation so that it is easy to clean up afterwards.  You do not need to copy
-the tomograms into this directory, however.  Makejoincom provides a lot of
-flexibility in where the individual tomograms are located and in how some of
-the files are named.  It does this by means of default directories and file
-name extensions which you can override when you enter the name for a
-particular file.  It asks you to enter a default directory for the individual
-tomograms; if you enter nothing, the default will be the current directory.
-You can enter names such as &quot;../tomos&quot; if the files are in a subdirectory
-&quot;tomos&quot; parallel to your current one, or just &quot;..&quot; if the files are in the
-directory above the one where you are joining.  When you enter the name of an
-individual tomogram, you can override this default by putting a directory name
-in front of the file name.  For example, you could enter &quot;../oddball/sec3&quot; if
-the tomogram &quot;sec3.rec&quot; is in the directory &quot;../oddball&quot; while the rest are in
-&quot;../tomos&quot;.
-     Here is what to do in three cases which are probably the most common:
-     1) If all of the tomograms are in the current directory, simply do not
-enter a default directory, and enter each individual file name without
-directory.
-     2) If all of the tomograms are in some other directory, enter a path to
-that directory as the default directory, and enter each individual file name
-without directory.
-     3) If each of the tomograms is in a different directory, do not enter a
-default directory.  Enter the directory path in front of each of the
-individual file names.
+     You should create a new directory for your joining operation so that it is
+easy to clean up afterwards.  You do not need to copy the tomograms into this
+directory, however, as long as you give Makejoincom a directory path to each
+tomogram.  It will be easiest if you create a directory on the same level as
+the directories for the individual tomograms.  After changing to the new
+directory, if you had three tomograms to join, you would then make entries to
+Makejoincom such as:
+../pombe5s1/pombe5s1.rec
+../pombe5s2/pombe5s2.rec
+../pombe5s3/pombe5s3.rec
 
-     The program will assume the extensions &quot;.rec&quot; for unflipped tomograms and
-&quot;.flip&quot; for flipped or rotated ones.  You can enter different default
-extensions for either of these types of files.  For example, enter &quot;byt&quot; if
-your tomograms have the extension &quot;.byt&quot;, or &quot;.rot&quot; if you want that to be the
-default extension for flipped or rotated volumes.  In any case, you can
-override the default for an existing, individual volume by entering the name
-with extension.  For example, suppose you already have a serial-section
-tomogram named &quot;big.rec&quot; (which is already flipped) and you are adding another
-section to it which is not yet flipped.  Then you would enter the name
-&quot;big.rec&quot; instead of &quot;big&quot; to keep the program from looking for &quot;big.flip&quot;.
+     Makejoincom provides a lot of flexibility in how you enter the names and
+locations of the files.  It does this by means of default directories and file
+name extensions which you can override when you enter the name for a
+particular file.  This is potentially more confusing than helpful, so if you
+just want to ignore this capability, just accept all the defaults if you run
+Makejoincom interactively, and enter the full path and name of each file as
+shown above.
+
+     If you are interested in using the default naming capabilities, here are
+some details.  You can enter a default directory for the individual tomograms;
+if you enter nothing, the default will be the current directory.  You can enter
+names such as &quot;../tomos&quot; if the files are in a subdirectory &quot;tomos&quot; parallel
+to your current one, or just &quot;..&quot; if the files are in the directory above the
+one where you are joining.  When you enter the name of an individual tomogram,
+you can override this default by putting a directory name in front of the file
+name.  For example, you could enter &quot;../oddball/sec3&quot; if the tomogram
+&quot;sec3.rec&quot; is in the directory &quot;../oddball&quot; while the rest are in &quot;../tomos&quot;.
+The program will assume the extension &quot;.rec&quot; for the original tomograms and
+change the extension to &quot;.tmp&quot; if it has to make a flipped or rotated one.  You
+can enter different default extensions for either of these types of files.
+For example, enter &quot;.rot&quot; if you want that to be the default extension for
+newly flipped or rotated volumes.  In any case, you can override the default
+for an existing, individual volume by entering the name with extension.
 
      You will be asked to enter a &quot;root name&quot; for the joined tomogram.  The
 final tomogram will be named with this root name plus the extension &quot;.join&quot;.
@@ -72,27 +70,35 @@ An addition, a host of intermediate files will be created with this root name
 and other extensions.
 
 Flipping versus Rotating
-     You need to decide whether flipping the tomograms is sufficient, or
-whether some should be rotated with Rotatevol instead.  There are two reasons
-to use Rotatevol.  1) If a tomogram is rotated by a large angle (e.g. 90
-degree) relative to an adjacent section, then it might be easier to align the
-slices across the boundary if this rotation is already corrected.  2) If the
-surface of one section is pitched and can be made flat by a small rotation,
-then the boundary between sections can be made smaller by correcting this
-pitch.
-     If you do want to use Rotatevol, then load the section into 3dmod
-unflipped (use Edit-Image-Flip to unflip it if you have already loaded it
-flipped).  Open a Slicer window and adjust the angles to achieve the desired
-rotation.  One or more of the angles will need to be set near +90 or -90.  In
-the simple case of correcting a pitch, this will be the first angle, for
-rotation around the X axis.  If you need to rotate by 90 degrees in the plane
-of the section, then the first angle will be near zero and both the second and
-the third angles need to be near +90 or -90 (e.g., -90 around Y, 90 around Z).
-It may take only a few tenths of a degree to correct significant pitch in the
+
+     Typically, you will have already flipped the Y and Z axes of the
+tomograms in the trimming step in eTomo and they are flat enough to join.
+However, Makejoincom provides three other options: a tomogram can be either
+flipped or rotated into the proper orientation if it has not already been
+flipped; and a tomogram that has been flipped can be rotated by small angles.
+There are two reasons to use rotations, which are done with Rotatevol.  1) If
+a tomogram is rotated by a large angle (e.g., 90 degrees) relative to an
+adjacent section, then it might be easier to align the slices across the
+boundary if this rotation is already corrected.  2) If the surface of one
+section is pitched and can be made flat by a small rotation, then the boundary
+between sections can be made smaller by correcting this pitch.
+
+     If you do want to use Rotatevol, then load the section into 3dmod. Open a
+Slicer window and adjust the angles to achieve the desired rotation.  It may
+take only a few tenths of a degree to correct significant pitch in the
 section.  Use the numeric keypad arrow keys to adjust an angle by small
 increments (4 and 6 for 0.1 degree increments, 2 and 8 for 0.5 degree
 increments).  Once you have obtained the desired rotation, record the three
 angles so that they can be entered into Makejoincom.
+
+     If you want to use Rotatevol on a volume that has not been flipped yet, then
+load it into 3dmod unflipped (use Edit-Image-Flip to unflip it if you have
+already loaded it flipped).  In this case, one or more of the angles will need
+to be set near +90 or -90.  In the simple case of correcting a pitch, this
+will be the first angle, for rotation around the X axis.  If you need to
+rotate by 90 degrees in the plane of the section, then the first angle will be
+near zero and both the second and the third angles need to be near +90 or -90
+(e.g., -90 around Y, 90 around Z).
      
 Deciding on Slices to Extract
      Finally, you need to decide which slices to extract from the top and
@@ -105,15 +111,34 @@ be needed, and you could choose to extract just one slice that is adequate for
 alignment.  In general, it is safer to be generous in this initial sample.
 These sample slices will also be averaged to produce images that can be used
 for automatic alignment.
+
      Note that the bottom of the first section and the top of the last section
 will not be extracted because they do not connect to another section.
+
      At the same time that you are making these choices, you may also be able
 to decide what range of slices from each tomogram to include in the final
 volume.  You can do this for a volume that is going to be flipped or for one
-that has already been flipped or rotated, but not for one that is going to be
-rotated.
+that has already been flipped, but not for one that is going to be
+rotated from an unflipped orientation.
+
      When you have made all of these preliminary decisions, run Makejoincom
-and answer all of the questions.  Then run the command file startjoin.com.
+with no arguments and answer all of the questions, or run it with command line
+arguments.  For example, to do the latter, you could enter a line such as
+  makejoincom -top 93,98 ../pombe5s1/pombe5s1.rec -bot 5,11 -top 91,96 \
+  ../pombe5s2/pombe5s2.rec -bot 89,95 -rot 0.6,0.4,0 ../pombe5s3/pombe5s3.rec
+
+(The backslash allows you to enter a continuation line.)  The &quot;-rot&quot; option tells
+Makejoincom to apply Rotatevol on the third volume with the given angles.  Note
+that all of the entries that apply to one section appear before the section
+name.
+
+     There is no problem with having spaces in your directory names.  When
+running interactively, enter the name with the spaces, but with no quotes.  When
+using command line arguments, enclose the file names in double quotes, e.g.:
+  makejoincom -top 93,98 &quot;../pombe5 sec1/p5s1.rec&quot; -bot 5,11 \
+   &quot;../pombe5 sec2/p5s2.rec&quot;
+
+     After running Makejoincom, use &quot;subm&quot; to run the command file startjoin.com.
 
 Aligning the Sample Slices
      The sample slices are aligned in Midas using a special &quot;chunk&quot; alignment

@@ -1,5 +1,27 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/30/05: IMOD_3-4-5
+8/30/04: Fixed eTomo bug in which making matching models with data binned by 2
+would make further invocations of 3dmod load data binned by 2 (in 3.3).
+
+8/30/04: The Zap window Info function now reports unbinned coordinates and a
+correct newstack command when data are loaded binned.
+
+8/30/04: eTomo now runs the combine operation using combine.com so that
+processing will continue if you exit the program and log out.
+
+8/28/04: Changed head and tail commands in all scripts to use -n before count.
+
+8/28/04: Added command-line argument interface to Makejoincom; changed the
+procedures so that scaling is computed in Makejoincom and done by Newstack in
+startjoin.com (for samples) and in Finishjoin (for the joined volume); fixed
+coordinate problems when rotating; made a new version of joining info file so
+that it would work with scaling information and with spaces in the directory
+names; changed Finishjoin to use this new version and do the scaling.
+
+8/28/04: Converted Densmatch to PIP input and provided an option to compute
+scaling without scaling file.
+
 8/22/04: Added workaround to Windows problem reading internal strings that 
 could be numbers or filenames.
 
@@ -10,7 +32,7 @@ factor then adding a constant.
 slicer give a slice that is invariant to the relative binning in X/Y and Z.
 
 8/11/04: Added error checking on image rotation and other fields of eTomo setup
-page so copytomocoms will not hang when rotation is left blank.
+page so copytomocoms will not hang when rotation is left blank (in 3.3).
 
 8/4/04: IMOD_3-4-4
 8/4/04: Fixed display bug in Midas on AMD64 (in 3.3).
