@@ -25,6 +25,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.17  2004/10/08 17:29:57  mast
+c	  Eliminated manual info
+c	
 c	  Revision 3.16  2004/10/08 17:27:14  mast
 c	  Fixed failure to get both model and residual output with a filename
 c	  containing a period.
@@ -103,14 +106,15 @@ c
 	real*4 viewerrsum(maxview),viewerrsq(maxview)
 	real*4 viewmeanres(maxview),viewsdres(maxview)
 	
-	logical ordererr,nearbyerr,residualout, resbothout, gotdot
+	logical ordererr,nearbyerr
 	character*120 modelfile,residualfile,pointFile
 c
-	real*4 fl(2,3,maxview),fa(2,3),fb(2,3),fc(2,3)
+	real*4 fl(2,3,maxview),fa(2,3),fb(2,3),fc(2,3),fpstr(2,3)
 c
+	real*4 xzfac(maxview),yzfac(maxview)
 	real*4 allxyz(3,maxreal)
 	real*4 allxx(maxprojpt),allyy(maxprojpt)
-	real*4 glbfl(2,3,maxview)
+	real*4 glbfl(2,3,maxview),glbxzfac(maxview),glbyzfac(maxview)
 	integer*4 iallsecv(maxprojpt),iallrealstr(maxreal)
 	integer*4 indallreal(maxreal)
 c
@@ -136,11 +140,77 @@ c
 	integer*4 nxp,nyp,minsurf,nbot,ntop,ixmin,ixmax,iymin,iymax,kk
 	integer*4 nprojpt,imintilt,ncompsrch,maptiltstart,isolve,ier
 	real*4 xcen,ycen,finit,f,ffinal,dxmin,tmp,tiltnew,fixeddum,tiltadd
-	integer*4 ixtry,itmp,iord,ixpatch,iypatch,ivdel,metroLoop
-	real*4 xpmin,ypmin,xdelt
+	integer*4 ixtry,itmp,iord,ixpatch,iypatch,ivdel,metroLoop,ierr,ifZfac
+	real*4 xpmin,ypmin,xdelt,projStrFactor, projStrAxis
+	real*4 dmat(9),xtmat(9),ytmat(6),prmat(4),rmat(4),costmp,sintmp
+	real*4 afac, bfac, cfac, dfac, efac, ffac, cosalf, sinalf, cosbet
+	real*4 sinbet, cosdel, sindel,denom
+	real*4 a11, a12, a21, a22, xzOther, yzOther
+	real*8 pmat(9)
 	real*4 atand,sind,cosd
 	integer*4 nearest_view,lnblnk
 	character*80 concat
+c
+	logical pipinput
+	integer*4 numOptArg, numNonOptArg
+	integer*4 PipGetInteger,PipGetBoolean, PipGetThreeIntegers
+	integer*4 PipGetString,PipGetFloat, PipGetTwoIntegers, PipGetTwoFloats
+c	  
+c	  fallbacks from ../../manpages/autodoc2man -2 2  tiltalign
+c
+	integer numOptions
+	parameter (numOptions = 97)
+	character*(40 * numOptions) options(1)
+	options(1) =
+     &      ':ModelFile:FN:@:ImageFile:FN:@:ImageSizeXandY:IP:@'//
+     &      ':ImageOriginXandY:FP:@:ImagePixelSizeXandY:FP:@'//
+     &      ':OutputModelFile:FN:@:OutputResidualFile:FN:@'//
+     &      ':OutputModelAndResidual:FN:@:OutputFidXYZFile:FN:@'//
+     &      ':OutputTiltFile:FN:@:OutputXAxisTiltFile:FN:@'//
+     &      ':OutputTransformFile:FN:@:IncludeStartEndInc:IT:@'//
+     &      ':IncludeList:LI:@:ExcludeList:LI:@:RotationAngle:F:@'//
+     &      ':RotOption:I:@:RotMapping:IA:@:RotDefaultGrouping:I:'//
+     &      '@:RotNondefaultGroup:IT:@:RotationFixedView:I:@'//
+     &      ':SeparateGroup:LI:@first:FirstTiltAngle:F:@'//
+     &      'increment:TiltIncrement:F:@tiltfile:TiltFile:FN:@'//
+     &      'angles:TiltAngles:FA:@:AngleOffset:F:@'//
+     &      ':LocalRotOption:I:@:LocalRotMapping:IA:@'//
+     &      ':LocalRotDefaultGrouping:I:@:LocalRotNondefaultGroup:IT:'//
+     &      '@:TiltOption:I:@:TiltFixedView:I:@'//
+     &      ':TiltSecondFixedView:I:@:TiltMapping:IA:@'//
+     &      ':TiltDefaultGrouping:I:@:TiltNondefaultGroup:IT:@'//
+     &      ':LocalTiltOption:I:@:LocalTiltFixedView:I:@'//
+     &      ':LocalTiltSecondFixedView:I:@:LocalTiltMapping:IA:@'//
+     &      ':LocalTiltDefaultGrouping:I:@'//
+     &      ':LocalTiltNondefaultGroup:IT:@:MagReferenceView:I:@'//
+     &      ':MagOption:I:@:MagMapping:IA:@:MagDefaultGrouping:I:@'//
+     &      ':MagNondefaultGroup:IT:@:LocalMagReferenceView:I:@'//
+     &      ':LocalMagOption:I:@:LocalMagMapping:IA:@'//
+     &      ':LocalMagDefaultGrouping:I:@'//
+     &      ':LocalMagNondefaultGroup:IT:@:CompReferenceView:I:@'//
+     &      ':CompOption:I:@:CompMapping:IA:@:CompDefaultGrouping:I:@'//
+     &      ':CompNondefaultGroup:IT:@:XStretchOption:I:@'//
+     &      ':XStretchMapping:IA:@:XStretchDefaultGrouping:I:@'//
+     &      ':XStretchNondefaultGroup:IT:@:LocalXStretchOption:I:@'//
+     &      ':LocalXStretchMapping:IA:@'//
+     &      ':LocalXStretchDefaultGrouping:I:@'//
+     &      ':LocalXStretchNondefaultGroup:IT:@:SkewOption:I:@'//
+     &      ':SkewMapping:IA:@:SkewDefaultGrouping:I:@'//
+     &      ':SkewNondefaultGroup:IT:@:LocalSkewOption:I:@'//
+     &      ':LocalSkewMapping:IA:@:LocalSkewDefaultGrouping:I:@'//
+     &      ':LocalSkewNondefaultGroup:IT:@:XTiltOption:I:@'//
+     &      ':XTiltMapping:IA:@:XTiltDefaultGrouping:I:@'//
+     &      ':XTiltNondefaultGroup:IT:@:LocalXTiltOption:I:@'//
+     &      ':LocalXTiltMapping:IA:@:LocalXTiltDefaultGrouping:I:@'//
+     &      ':LocalXTiltNondefaultGroup:IT:@'//
+     &      ':ResidualReportCriterion:F:@:SurfacesToAnalyze:I:@'//
+     &      ':MetroFactor:F:@:MaximumCycles:I:@:AxisZShift:F:@'//
+     &      ':AxisXshift:F:@:LocalAlignments:B:@:OutputLocalFile:FN:@'//
+     &      ':NumberOfLocalPatchesXandY:IP:@'//
+     &      ':MinSizeOrOverlapXandY:FP:@'//
+     &      ':MinFidsTotalAndEachSurface:IP:@:FixXYZCoordinates:B:@'//
+     &      ':LocalOutputOptions:IT:@param:ParameterFile:PF:@'//
+     &      'help:usage:B:'
 c
 	nlocalres=50
 	firsttime=.true.
@@ -154,63 +224,87 @@ c
 	incralf=0
 	dxmin = 0.
 	dyavg = 0.
+	ifZfac = 0
 c	  
-c	  set this to 1 to get inputs for X-axis tilting
+c	  set this to 1 to get inputs for X-axis tilting from sequential input
 c	  
 	inputalf=0
+c	  
+c	  Pip startup: set error, parse options, check help, set flag if used
+c
+	call PipReadOrParseOptions(options, numOptions, 'tiltalign',
+     &	    'ERROR: TILTALIGN - ', .true., 3, 1, 1, numOptArg,
+     &	    numNonOptArg)
+	pipinput = numOptArg + numNonOptArg .gt. 0
 c
 	iuxtilt=inputalf
 	call input_model(xx,yy,isecview,maxprojpt,maxreal,irealstr,
      &	    ninreal,imodobj,imodcont,nview,nprojpt, nrealpt,iwhichout,
      &	    xcen,ycen, xdelt, mapviewtofile,mapfiletoview,nfileviews,
-     &	    modelfile, pointFile, iuangle,iuxtilt)
+     &	    modelfile, residualFile, pointFile, iuangle,iuxtilt,pipinput)
 c	  
 	if(nview.gt.maxview)call errorexit('TOO MANY VIEWS FOR ARRAYS',
      &	    0)
 
 	call input_vars(var,varname,inputalf,nvarsrch,nvarang,nvarscl,
      &	    imintilt, ncompsrch,0,maptiltstart,mapalfstart,tiltorig,
-     &	    tiltadd)
+     &	    tiltadd,pipinput)
 	mapalfend=nvarsrch
+	if (mapProjStretch .ne. 0) mapalfend = mapalfend - 2
 c
 	do i=1,nview
 	  viewres(i)=0.
 	  ninview(i)=0
 	enddo
+c	  
+	facm=0.5
+	if (pipinput) then
+	  errcrit = 3.0
+	  nsurface = 0
+	  ncycle = 1000
+	  znew = 0.
+	  xtiltnew = 0.
+	  ierr = PipGetFloat('ResidualReportCriterion', errcrit)
+	  ierr = PipGetInteger('SurfacesToAnalyze', nsurface)
+	  ierr = PipGetFloat('MetroFactor', facm)
+	  ierr = PipGetInteger('MaximumCycles', ncycle)
+	  ierr = PipGetFloat('AxisZShift', znew)
+	  ierr = PipGetFloat('AxisXShift', xtiltnew)
+
+	else
+	  write(*,'(1x,a,/,a,$)') 'Criterion # of sd above mean residual'
+     &	      //' error to report (+ for ',
+     &	      'relative to absolute mean,  - for relative to mean '//
+     &	      'of nearby views): '
+	  read(5,*)errcrit
 c
-	write(*,'(1x,a,/,a,$)') 'Criterion # of sd above mean residual'
-     &	    //' error to report (+ for ',
-     &	    'relative to absolute mean,  - for relative to mean '//
-     &	    'of nearby views): '
-	read(5,*)errcrit
+	  write(*,'(1x,a,$)')'1 or 2 to derive a tilt angle assuming'//
+     &	      ' points are on 1 or 2 surfaces: '
+	  read(5,*)nsurface
+c	    
+	  write(*,'(1x,a,f5.2,i5,a,$)')
+     &	      'Factor for METRO, limit on # of cycles [',facm,ncycle,']: '
+	  read(5,*)facm,ncycle
+c	    
+	  if(iwhichout.ge.0)then
+c	      
+c	      find out what to do with z value of axis
+c	      
+	    print *,'Z shift in tilt axis relative to centroid,'
+	    write(*,'(1x,a,$)')
+     &		'	  or 1000 to shift to middle of z range: '
+	    read(5,*)znew
+c	      
+c	      get new position of tilt axis in x
+c	      
+	    write(*,'(1x,a,$)')
+     &		'New X position of tilt axis relative to center: '
+	    read(5,*)xtiltnew
+	  endif
+	endif
 	ordererr=.true.
 	nearbyerr=errcrit.lt.0.
 	errcrit=abs(errcrit)
-c
-	write(*,'(1x,a,$)')'1 or 2 to derive a tilt angle assuming'//
-     &	    ' points are on 1 or 2 surfaces: '
-	read(5,*)nsurface
-c
-	facm=0.5
-	write(*,'(1x,a,f5.2,i5,a,$)')
-     &	    'Factor for METRO, limit on # of cycles [',facm,ncycle,']: '
-	read(5,*)facm,ncycle
-c
-	if(iwhichout.ge.0)then
-c	  
-c	  find out what to do with z value of axis
-c
-	  print *,'Z shift in tilt axis relative to centroid,'
-	  write(*,'(1x,a,$)')
-     &	      '	  or 1000 to shift to middle of z range: '
-	  read(5,*)znew
-c	    
-c	    get new position of tilt axis in x
-c
-	  write(*,'(1x,a,$)')
-     &	      'New X position of tilt axis relative to center: '
-	  read(5,*)xtiltnew
-	endif
 C	  
 c	  scale the points down to range of 1.0: helps convergence
 c
@@ -455,6 +549,14 @@ c
 	  viewmeanres(iv)=vwerrsum/ninvsum
 	  viewsdres(iv)=sqrt((vwerrsq-vwerrsum**2/ninvsum)/(ninvsum-1))
 	enddo
+c	  
+c	  convert the projection stretch to a matrix
+c	  
+	fpstr(1,1) = (1. - projStretch) * cos(projSkew)
+	fpstr(1,2) = -(1. + projStretch) * sin(projSkew)
+	fpstr(2,1) = -(1. - projStretch) * sin(projSkew)
+	fpstr(2,2) = (1. + projStretch) * cos(projSkew)
+	call amat_to_rotmagstr(fpstr, xo, zo, projStrFactor, projStrAxis)
 c
 c	  if doing local solution, need to find rotation to match
 c	  the original set of points
@@ -510,6 +612,10 @@ c
 	    if(iunit.ne.6)write(iunit,'(3(f10.4,f7.4,a9,1x))',err=85)
      &		(var(i),varerr(i),varname(i),i=1,nvargeom)
 85	    if(ncompsrch.eq.0)then
+	      if (mapProjStretch .gt. 0) write(iunit,'(/,a,f8.4,a,f8.1,a)')
+     &		  'Projection stretch factor is',projStrFactor,
+     &		  ', along a',projStrAxis,' degree axis'
+     &		  
 	      if(mapalfstart.gt.mapalfend)then
 		write(iunit,'(/,a)') ' view   rotation    tilt    '//
      &		    'deltilt     mag      dmag      skew    mean resid'
@@ -620,33 +726,100 @@ c
 	  dysum=0.
 	  do iv=1,nview
 c	      
-c	      set the distortion matrix into fa and the rotation matrix into fb
+c	      To compute transform, first get the coefficients of the full
+c	      projection.
 c
-	    fa(1,1)=(gmag(iv)+dmag(iv))*cosd(skew(iv))
-	    fa(2,1)=(gmag(iv)+dmag(iv))*sind(skew(iv))/cosd(tilt(iv))
-	    fa(2,2)=gmag(iv)
-	    fa(1,2)=0.
-	    fa(1,3)=0.
-	    fa(2,3)=0.
-	    cosphi=cosd(rot(iv))
-	    sinphi=sind(rot(iv))
-	    fb(1,1)=cosphi
-	    fb(1,2)=-sinphi
-	    fb(2,1)=sinphi
-	    fb(2,2)=cosphi
-	    fb(1,3)=0.
-	    fb(2,3)=0.
+	    ifanyalf = 0
+	    if (mapalfend .gt. mapalfstart)ifanyalf = 1
+	    call fill_dist_matrix(gmag(iv), dmag(iv), skew(iv)*dtor, comp(iv),
+     &		1, dmat, cosdel, sindel)
+	    call fill_xtilt_matrix(alf(iv)*dtor, ifanyalf, xtmat, cosalf,
+     &		sinalf)
+	    call fill_ytilt_matrix(tilt(iv)*dtor, ytmat, cosbet, sinbet)
+	    call fill_proj_matrix(projStretch, projSkew, prmat, costmp, sintmp)
+	    call fill_rot_matrix(rot(iv)*dtor, rmat, costmp, sintmp)
+	    call matrix_to_coef(dmat, xtmat, ytmat, prmat, rmat, afac, bfac,
+     &		cfac, dfac, efac, ffac)
 c	      
-c	      get product, then add the dx's and dy's, then invert
+c	      Solve for transformation that maps 1,0,0 to cos beta, 0
+c	      and 0,1,0 to sin alf * sin beta, cos alf
+c
+	    denom = bfac * dfac - afac * efac
+	    fl(1,1,iv) = (dfac * sinalf * sinbet - efac * cosbet) / denom
+	    fl(1,2,iv) = (bfac * cosbet - afac * sinalf * sinbet) / denom
+	    fl(2,1,iv) = dfac * cosalf / denom
+	    fl(2,2,iv) = -afac * cosalf / denom
+	    fl(1,3,iv) = -(fl(1,1,iv) * dxy(1,iv) + fl(1,2,iv) * dxy(2,iv))
+	    fl(2,3,iv) = -(fl(2,1,iv) * dxy(1,iv) + fl(2,2,iv) * dxy(2,iv))
 c	      
-	    call xfmult(fa,fb,fc)
-	    fc(1,3)=dxy(1,iv)
-	    fc(2,3)=dxy(2,iv)
-	    call xfinvert(fc,fl(1,1,iv))
+c	      Compute Z-dependent factors to add to X and Y in backprojection
+c	      This method does not depend on distortion model:
+c	      Compute coefficients of distortion plus tilts, solve for
+c	      transformation that aligns images to that, determine Z component
+c	      of projection equation to aligned images, and subtract component
+c	      expected to be applied in backprojection
+c
+	    do i = 1, 9
+	      pmat(i) = dmat(i)
+	    enddo
+	    call mat_product(pmat, 3, 3, xtmat, 3, 3)
+	    call mat_product(pmat, 3, 3, ytmat, 2, 3)
+	    denom = pmat(2) * pmat(4) - pmat(1) * pmat(5)
+	    a11 = (pmat(4) * sinalf * sinbet - pmat(5) * cosbet) / denom
+	    a12 = (pmat(2) * cosbet - pmat(1) * sinalf * sinbet) / denom
+	    a21 = pmat(4) * cosalf / denom
+	    a22 = -pmat(1) * cosalf / denom
+	    xzfac(iv) = (a11 * pmat(3) + a12 * pmat(6)) / comp(iv) -
+     &		cosalf * sinbet
+	    yzfac(iv) = (a21 * pmat(3) + a22 * pmat(6)) / comp(iv) + sinalf
+c	      
+c	      Alternate based on solving equations from type 1 distortion model
+c
+	    yzOther = -sindel * sinbet / (cosdel * cosbet)
+	    xzOther = (gmag(iv) / ((gmag(iv) + dmag(iv)) * cosdel) - 1. -
+     &		sinalf * yzOther) * sinbet / cosalf
+c	    write(*,'(6f11.6)')xzfac(iv), xzOther, xzfac(iv) - xzOther,
+c     &		yzfac(iv), yzOther, yzfac(iv) - yzOther
+c
+c	      The old way, and validation by inverse multiplication
+c$$$c	      
+c$$$c	      set the distortion matrix into fa and the rotation matrix into fb
+c$$$c
+c$$$	    fa(1,1)=(gmag(iv)+dmag(iv))*cosd(skew(iv))
+c$$$	    fa(2,1)=(gmag(iv)+dmag(iv))*sind(skew(iv))/cosd(tilt(iv))
+c$$$	    fa(2,2)=gmag(iv)
+c$$$	    fa(1,2)=0.
+c$$$	    fa(1,3)=0.
+c$$$	    fa(2,3)=0.
+c$$$	    cosphi=cosd(rot(iv))
+c$$$	    sinphi=sind(rot(iv))
+c$$$	    fb(1,1)=cosphi
+c$$$	    fb(1,2)=-sinphi
+c$$$	    fb(2,1)=sinphi
+c$$$	    fb(2,2)=cosphi
+c$$$	    fb(1,3)=0.
+c$$$	    fb(2,3)=0.
+c$$$	    fpstr(1,3)=0.
+c$$$	    fpstr(2,3)=0.
+c$$$c	      
+c$$$c	      get product, then add the dx's and dy's, then invert
+c$$$c	      
+c$$$	    call xfmult(fa,fpstr,fc)
+c$$$	    call xfcopy(fc,fa)
+c$$$	    call xfmult(fa,fb,fc)
+c$$$	    fc(1,3)=dxy(1,iv)
+c$$$	    fc(2,3)=dxy(2,iv)
+c$$$	    call xfinvert(fc,fb)
+c$$$
+c$$$	    call xfmult(fc,fl(1,1,iv), fa)
+c$$$c	    call xfinvert(fc,fl(1,1,iv))
+c$$$	    call xfwrite(6, fl(1,1,iv), *299)
+c$$$	    call xfwrite(6, fb, *299)
+c$$$	    call xfwrite(6, fa, *299)
 c	      
 c	      adjust dx by the factor needed to shift axis in Z
 c
-	    fl(1,3,iv)=fl(1,3,iv) -znew*sind(tilt(iv))
+299	    fl(1,3,iv)=fl(1,3,iv) -znew*sind(tilt(iv))
 	    h(iv)=1.-cosd(tilt(iv))
 	    dysum=dysum+fl(2,3,iv)
 	  enddo
@@ -695,25 +868,7 @@ c
 	      i=nearest_view(iv)
 	      call xfwrite(7,fl(1,1,i),*99)
 99	    enddo
-c	      
-c	      7/26/02: if modelfile contains .res, output residuals
-c	      12/20/02: if there is no extension, output both residual and
-c	      model
-c	      
-	    residualout = .false.
-	    resbothout = modelfile .ne. ' '
-	    gotdot = .false.
-	    do i = 1, lnblnk(modelfile)-2
-	      if (gotdot .and. modelfile(i:i+2).eq.'res')residualout = .true.
-	      if (gotdot .and. modelfile(i:i+2).eq.'mod')resbothout = .false.
-	      if (modelfile(i:i).eq.'.')  gotdot = .true.
-	    enddo
-	    if (residualout.or.resbothout) then
-	      if (residualout) then
-		residualfile = modelfile
-	      else
-		residualfile = concat(modelfile, '.resid')
-	      endif
+	    if (residualfile .ne. ' ') then
 	      call dopen(13,residualfile, 'new', 'f')
 	      write(13,'(i6,a)')nprojpt,' residuals'
 	      do i=1,nprojpt
@@ -722,15 +877,21 @@ c
      &		    xresid(i),yresid(i)
 	      enddo
 	      close(13)
-c		
-c		manage the model file name now; attach extension if model
-c		wanted, or null it out if not
-c		
-	      if (residualout) then
-		modelfile = ' '
-	      else
-		modelfile = concat(modelfile, '.3dmod')
-	      endif
+	    endif
+c	      
+c	      output the z factors if option requested
+c	      
+	    if (pipinput .and.
+     &		PipGetString('OutputZFactorFile', residualFile) .eq. 0) then
+	      ifZfac = 1
+	      call dopen(13,residualfile, 'new', 'f')
+	      do iv=1,nfileviews
+		i=nearest_view(iv)
+		glbxzfac(iv) = xzfac(i)
+		glbyzfac(iv) = yzfac(i)
+		write(13, '(2f12.6)')xzfac(i),yzfac(i)
+	      enddo
+	      close(13)
 	    endif
 	  else
 c	      
@@ -750,6 +911,21 @@ c	    write(6,'(f8.2)')(tilt(iv),iv=1,nview)
 		if(iv.gt.0)h(i)=alf(iv)-glbalf(iv)/dtor
 	      enddo
 	      write(iunlocal,'(10f7.2)')(h(i),i=1,nfileviews)
+	    endif
+c	      
+c	      Z factors if they were output globally
+c
+	    if (ifZfac .ne. 0) then
+	      do i=1,nfileviews
+		iv=mapfiletoview(i)
+		h(i)=glbxzfac(i)
+		grad(i) = glbyzfac(i)
+		if(iv.gt.0)then
+		  h(i) = xzfac(iv)
+		  grad(i) = yzfac(iv)
+		endif
+	      enddo
+	      write(iunlocal, '(6f12.6)')(h(i), grad(i), i=1,nfileviews)
 	    endif
 c	      
 c	      add the shifts to the dx and dy to get transforms that
@@ -882,45 +1058,103 @@ c
      &	    tiltmax,iunit2,tiltnew,igroup,ncompsrch,tiltadd)
 	call write_xyz_model(modelfile,allxyz,igroup,nrealpt)
 c	  
+c	  Write separate residual outputs now that surfaces are known
+c
+	if (pipinput .and. nsurface .gt. 1 .and. PipGetString(
+     &	    'OutputTopBotResiduals', modelfile) .eq. 0) then
+	  residualfile = concat(modelfile,'.botres')
+	  do j = 1, 2
+	    nbot = 0
+	    do jpt=1,nrealpt
+	      if (igroup(jpt) .eq. j) then
+		nbot = nbot + irealstr(jpt+1) - irealstr(jpt)
+	      endif
+	    enddo
+	    if (nbot .gt. 0) then
+	      call dopen(13,residualfile, 'new', 'f')
+	      write(13,'(i6,a)')nbot,' residuals'
+	      do jpt=1,nrealpt
+		if (igroup(jpt) .eq. j) then
+		  do i=irealstr(jpt),irealstr(jpt+1)-1
+		    write(13, '(2f10.2,i5,3f8.2)')xx(i)+xcen,yy(i)+ycen,
+     &			mapviewtofile(isecview(i))-1,
+     &			xresid(i),yresid(i)
+		  enddo
+		endif
+	      enddo
+	      close(13)
+	      
+	    endif
+	  residualfile = concat(modelfile,'.topres')
+	  enddo
+	endif
+c	  
 c	  Ask about local alignments
 c
-	write(*,'(1x,a,$)')
-     &	    '1 to do series of local alignments, 0 to exit: '
-	read(5,*,err=209,end=209)iflocal
+	if (pipinput) then
+	  iflocal = 0
+	  ierr = PipGetBoolean('LocalAlignments', iflocal)
+	else
+	  write(*,'(1x,a,$)')
+     &	      '1 to do series of local alignments, 0 to exit: '
+	  read(5,*,err=209,end=209)iflocal
+	endif
 	if(iflocal.eq.0)go to 209
 c
 	if(iwhichout.lt.0)call errorexit(
      &	    'SOLUTION TRANSFORMS MUST BE OUTPUT TO DO LOCAL ALIGNMENTS',
      &	    0)
-	write(*,'(1x,a,$)')
-     &	    'Name of output file for local transformations: '
-	read(5,'(a)')modelfile
-	iunlocal=9
-	call dopen(iunlocal,modelfile,'new','f')
-c
-	write(*,'(1x,a,$)')'Number of patches in X and Y: '
-	read(5,*)npatchx,npatchy
-	write(*,'(1x,a,/,a,$)')'Enter either the minimum size of '//
-     &	    'patches in X and Y (values > 1) or the',
-     &	    'minimum fractional overlap between patches in'//
-     &	    ' X and Y (values < 1): '
-	read(5,*)xpmin,ypmin
-	write(*,'(1x,a,$)')'Minimum total # of fiducials, minimum '//
-     &	    'on one surface if two surfaces: '
-	read(5,*)minfidtot,minfidsurf
-	write(*,'(1x,a,$)')'1 to fix XYZ coordinates to global '//
-     &	    'solution, 0 to solve for them also: '
-	read(5,*)ifxyzfix
-	iflocal=1
-	xyzfixed=ifxyzfix.ne.0
-	if(xyzfixed)iflocal=2
 	ifvarout=0
 	ifresout=0
 	ifxyzout=0
-	write(*,'(1x,a,/,a,$)')'Enter 1 for full output of variables,'
-     &	    //' 1 for output of XYZ coordinates,', ' and 1 for output'
-     &	    //' of points with high residuals (0 for no output): '
-	read(5,*)ifvarout,ifxyzout,ifresout
+	npatchx = 5
+	npatchy = 5
+	xpmin = 0.5
+	ypmin = 0.5
+	minfidtot = 8
+	minfidsurf = 3
+	ifxyzfix = 0
+	iunlocal=9
+	if (pipinput) then
+	  if (PipGetString('OutputLocalFile', modelfile) .ne. 0) call errorexit
+     &	      ('NO OUTPUT FILE FOR LOCAL TRANSFORMS SPECIFIED',0)
+	  ierr = PipGetTwoIntegers('NumberOfLocalPatchesXandY',
+     &	      npatchx, npatchy)
+	  ierr = PipGetTwoFloats('MinSizeOrOverlapXandY', xpmin,ypmin)
+	  ierr = PipGetTwoIntegers('MinFidsTotalAndEachSurface',
+     &	      minfidtot,minfidsurf)
+	  ierr = PipGetBoolean('FixXYZCoordinates', ifxyzfix)
+	  ierr = PipGetThreeIntegers('LocalOutputOptions', ifvarout,
+     &	      ifxyzout,ifresout)
+	else
+c
+	  write(*,'(1x,a,$)')
+     &	      'Name of output file for local transformations: '
+	  read(5,'(a)')modelfile
+c	    
+	  write(*,'(1x,a,$)')'Number of patches in X and Y: '
+	  read(5,*)npatchx,npatchy
+	  write(*,'(1x,a,/,a,$)')'Enter either the minimum size of '//
+     &	      'patches in X and Y (values > 1) or the',
+     &	      'minimum fractional overlap between patches in'//
+     &	      ' X and Y (values < 1): '
+	  read(5,*)xpmin,ypmin
+	  write(*,'(1x,a,$)')'Minimum total # of fiducials, minimum '//
+     &	      'on one surface if two surfaces: '
+	  read(5,*)minfidtot,minfidsurf
+	  write(*,'(1x,a,$)')'1 to fix XYZ coordinates to global '//
+     &	      'solution, 0 to solve for them also: '
+	  read(5,*)ifxyzfix
+	  write(*,'(1x,a,/,a,$)')'Enter 1 for full output of variables,'
+     &	      //' 1 for output of XYZ coordinates,', ' and 1 for output'
+     &	      //' of points with high residuals (0 for no output): '
+	  read(5,*)ifvarout,ifxyzout,ifresout
+	endif
+c
+	call dopen(iunlocal,modelfile,'new','f')
+	iflocal=1
+	xyzfixed=ifxyzfix.ne.0
+	if(xyzfixed)iflocal=2
 c	  
 c	  set for incremental solution - could be input as option at this point
 c
@@ -958,7 +1192,7 @@ c     &	    (j,(allxyz(i,j),i=1,3),j=1,nrealpt)
 
 	call input_vars(var,varname,inputalf,nvarsrch,nvarang,nvarscl,
      &	    imintilt, ncompsrch,iflocal,maptiltstart,mapalfstart,
-     &	    tiltorig,tiltadd)
+     &	    tiltorig,tiltadd,pipinput)
 	mapalfend=nvarsrch
 c
 c	  get the minimum patch size
@@ -987,8 +1221,8 @@ c
 c	  
 c	  DNM 7/16/04: Add pixel size to local file
 c
-	write(iunlocal,'(7i6,f12.5)')npatchx,npatchy,ixspatch,iyspatch,
-     &	    idxpatch,idypatch,mapalfend+1-mapalfstart,xdelt
+	write(iunlocal,'(7i6,f12.5,i4)')npatchx,npatchy,ixspatch,iyspatch,
+     &	    idxpatch,idypatch,mapalfend+1-mapalfstart,xdelt,ifZfac
 c	  
 c	  START OR CONTINUE LOOPING ON LOCAL REGIONS
 c
