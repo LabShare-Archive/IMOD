@@ -1,5 +1,9 @@
 SOURCES += imodsendevent.cpp
 HEADERS += imodsendevent.h
 TEMPLATE = app
-CONFIG += qt warn_on release
+CONFIG += qt
 INCLUDEPATH += .
+
+include (qconfigure)
+
+INSTALLS += target
