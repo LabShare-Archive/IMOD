@@ -31,6 +31,9 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2002/06/26 16:50:03  mast
+    Allowed writing back to byte-swapped files
+
 */
 
 #include <stdlib.h>
@@ -69,12 +72,10 @@ main( int argc, char *argv[] )
      int zmin = -1, zmax = -1;
      int secofs;
 
-     if (argc < 1){
+     if (argc < 2){
 	  fprintf(stderr, 
-		  "%s version 1.0 Copyright (C)2001 Boulder Laboratory for\n", 
-		  argv[0]);
-	  fprintf(stderr,
-		  "3-Dimensional Fine Structure, University of Colorado.\n");
+		  "%s version %s\n", argv[0], VERSION_NAME);
+	  imodCopyright();
 	  mrctaper_help(argv[0]);
 	  exit(-1);
      }
