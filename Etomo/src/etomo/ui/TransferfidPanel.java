@@ -21,7 +21,7 @@ public class TransferfidPanel {
   MultiLineToggleButton buttonTransferfid = null;
   private boolean includeButton = false;
 
-  private JCheckBox chkRunMidas = new JCheckBox("Run midas");
+  private JCheckBox cbRunMidas = new JCheckBox("Run midas");
   private LabeledTextField ltfCenterViewA =
     new LabeledTextField("Center view A: ");
   private LabeledTextField ltfCenterViewB =
@@ -50,8 +50,8 @@ public class TransferfidPanel {
       new BoxLayout(panelTransferfid, BoxLayout.Y_AXIS));
     panelTransferfid.setBorder(
       new EtchedBorder("Transferfid Parameters").getBorder());
-    chkRunMidas.setAlignmentX(Component.RIGHT_ALIGNMENT);
-    panelTransferfid.add(chkRunMidas);
+    cbRunMidas.setAlignmentX(Component.RIGHT_ALIGNMENT);
+    panelTransferfid.add(cbRunMidas);
 
     //  Add a horizontal strut to keep the panel a minimum size    
     panelTransferfid.add(Box.createHorizontalStrut(300));
@@ -90,7 +90,7 @@ public class TransferfidPanel {
    * object
    */
   public void setParameters(TransferfidParam params) {
-    chkRunMidas.setSelected(params.isRunMidas());
+    cbRunMidas.setSelected(params.isRunMidas());
     if (params.getCenterViewA() > 0) {
       ltfCenterViewA.setText(params.getCenterViewA());
     }
@@ -119,7 +119,7 @@ public class TransferfidPanel {
    * Get the values from the panel filling in the TransferfidParam object
    */
   public void getParameters(TransferfidParam params) {
-    params.setRunMidas(chkRunMidas.isSelected());
+    params.setRunMidas(cbRunMidas.isSelected());
     if (ltfCenterViewA.getText().matches("^\\s*$")) {
       params.setCenterViewA(0);
     }
@@ -157,7 +157,7 @@ public class TransferfidPanel {
   
   public void setEnabled(boolean isEnabled) {
     buttonTransferfid.setEnabled(isEnabled);
-    chkRunMidas.setEnabled(isEnabled);
+    cbRunMidas.setEnabled(isEnabled);
     ltfCenterViewA.setEnabled(isEnabled);
     ltfCenterViewB.setEnabled(isEnabled);
     ltfNumberViews.setEnabled(isEnabled);
@@ -179,7 +179,7 @@ public class TransferfidPanel {
     TooltipFormatter tooltipFormatter = new TooltipFormatter();
 
     text = "Run Midas to adjust initial alignment manually.";
-    chkRunMidas.setToolTipText(tooltipFormatter.setText(text).format());
+    cbRunMidas.setToolTipText(tooltipFormatter.setText(text).format());
     
     text = "View from A around which to search for the best pair of views.";
     ltfCenterViewA.setToolTipText(tooltipFormatter.setText(text).format());

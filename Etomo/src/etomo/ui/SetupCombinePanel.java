@@ -44,6 +44,9 @@ import etomo.type.FiducialMatch;
  * 
  * <p>
  * $Log$
+ * Revision 2.14  2003/10/29 20:57:38  rickg
+ * Bug# 297 Tooltips
+ *
  * Revision 2.13  2003/10/21 23:42:54  rickg
  * Changed imod buttons to non multiline
  *
@@ -212,7 +215,7 @@ public class SetupCombinePanel implements ContextMenu {
   private JPanel pnlTempDirectory = new JPanel();
   private LabeledTextField ltfTempDirectory =
     new LabeledTextField("Temporary directory: ");
-  private JCheckBox chkManualCleanup = new JCheckBox("Manual cleanup");
+  private JCheckBox cbManualCleanup = new JCheckBox("Manual cleanup");
 
   private JPanel pnlButton = new JPanel();
   private JButton btnImodVolumeA = new JButton("<html><b>3dmod Volume A</b>");
@@ -315,7 +318,7 @@ public class SetupCombinePanel implements ContextMenu {
     pnlTempDirectory.setLayout(
       new BoxLayout(pnlTempDirectory, BoxLayout.Y_AXIS));
     pnlTempDirectory.add(ltfTempDirectory.getContainer());
-    pnlTempDirectory.add(chkManualCleanup);
+    pnlTempDirectory.add(cbManualCleanup);
 
     //  Bind the buttons to the action listener
     SetupCombineActionListener actionListener =
@@ -439,7 +442,7 @@ public class SetupCombinePanel implements ContextMenu {
 
     ltfTempDirectory.setText(combineParams.getTempDirectory());
 
-    chkManualCleanup.setSelected(combineParams.getManualCleanup());
+    cbManualCleanup.setSelected(combineParams.getManualCleanup());
 
     updateUseFiducialModel();
     updatePatchRegionModel();
@@ -499,7 +502,7 @@ public class SetupCombinePanel implements ContextMenu {
 
       combineParams.setTempDirectory(ltfTempDirectory.getText());
 
-      combineParams.setManualCleanup(chkManualCleanup.isSelected());
+      combineParams.setManualCleanup(cbManualCleanup.isSelected());
     }
     catch (NumberFormatException except) {
       String message = badParameter + " " + except.getMessage();
@@ -608,7 +611,7 @@ public class SetupCombinePanel implements ContextMenu {
       new ContextPopup(
         pnlRoot,
         mouseEvent,
-        "COMBINING TWO TOMOGRAMS",
+        "TOMOGRAM COMBINATION",
         manPagelabel,
         manPage,
         logFileLabel,
@@ -758,7 +761,7 @@ public class SetupCombinePanel implements ContextMenu {
     text =
       "If using a temporary directory, select this option if you will want to "
         + "examine the *.mat file that will be left in it.";
-    chkManualCleanup.setToolTipText(tooltipFormatter.setText(text).format());
+    cbManualCleanup.setToolTipText(tooltipFormatter.setText(text).format());
 
     text = "Display tomogram from axis A";
     btnImodVolumeA.setToolTipText(tooltipFormatter.setText(text).format());

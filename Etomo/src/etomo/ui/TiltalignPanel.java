@@ -33,6 +33,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.9  2003/10/28 20:59:33  rickg
+ * <p> Bug# 280 Tooltips
+ * <p>
  * <p> Revision 2.8  2003/10/22 22:53:37  rickg
  * <p> Bug# 279 Removed "linear"
  * <p>
@@ -210,7 +213,7 @@ public class TiltalignPanel {
     new LabeledTextField("Cycle limit: ");
 
   private JPanel pnlLocalParameters = new JPanel();
-  private JCheckBox chkLocalAlignments =
+  private JCheckBox cbLocalAlignments =
     new JCheckBox("Enable local alignments");
   private LabeledTextField ltfNLocalPatches =
     new LabeledTextField("Number of local patches (x,y): ");
@@ -272,7 +275,7 @@ public class TiltalignPanel {
   */
   // GlobalDistortion pane
   private JPanel pnlDistortionSolution = new JPanel();
-  private JCheckBox chkDistortion = new JCheckBox("Enable");
+  private JCheckBox cbDistortion = new JCheckBox("Enable");
 
   private LabeledTextField ltfXstretchGroupSize =
     new LabeledTextField("X stretch group size: ");
@@ -289,7 +292,7 @@ public class TiltalignPanel {
 
   //  Local tilt angle pane
   private JPanel pnlLocalRotationSolution = new JPanel();
-  private JCheckBox chkLocalRotation = new JCheckBox("Enable");
+  private JCheckBox cbLocalRotation = new JCheckBox("Enable");
 
   private LabeledTextField ltfLocalRotationGroupSize =
     new LabeledTextField("Group size: ");
@@ -298,7 +301,7 @@ public class TiltalignPanel {
 
   //  Local tilt angle pane
   private JPanel pnlLocalTiltAngleSolution = new JPanel();
-  private JCheckBox chkLocalTiltAngle = new JCheckBox("Enable");
+  private JCheckBox cbLocalTiltAngle = new JCheckBox("Enable");
 
   private LabeledTextField ltfLocalTiltAngleGroupSize =
     new LabeledTextField("Group size: ");
@@ -307,7 +310,7 @@ public class TiltalignPanel {
 
   // Local magnfication pane
   private JPanel pnlLocalMagnificationSolution = new JPanel();
-  private JCheckBox chkLocalMagnification = new JCheckBox("Enable");
+  private JCheckBox cbLocalMagnification = new JCheckBox("Enable");
 
   private LabeledTextField ltfLocalMagnificationGroupSize =
     new LabeledTextField("Group size: ");
@@ -316,7 +319,7 @@ public class TiltalignPanel {
 
   //  Local distortion pane
   private JPanel pnlLocalDistortionSolution = new JPanel();
-  private JCheckBox chkLocalDistortion = new JCheckBox("Enable");
+  private JCheckBox cbLocalDistortion = new JCheckBox("Enable");
 
   private LabeledTextField ltfLocalXstretchGroupSize =
     new LabeledTextField("X stretch group size: ");
@@ -381,7 +384,7 @@ public class TiltalignPanel {
     ltfMetroFactor.setText(params.getMetroFactor());
     ltfCycleLimit.setText(params.getCycleLimit());
 
-    chkLocalAlignments.setSelected(params.getLocalAlignments());
+    cbLocalAlignments.setSelected(params.getLocalAlignments());
     ltfNLocalPatches.setText(params.getNLocalPatches());
     ltfMinLocalPatchSize.setText(params.getMinLocalPatchSize());
     ltfMinLocalFiducials.setText(params.getMinLocalFiducials());
@@ -450,10 +453,10 @@ public class TiltalignPanel {
     //  Global distortion solution type
     solutionType = params.getDistortionSolutionType();
     if (solutionType == 0) {
-      chkDistortion.setSelected(false);
+      cbDistortion.setSelected(false);
     }
     else {
-      chkDistortion.setSelected(true);
+      cbDistortion.setSelected(true);
 
       ltfXstretchGroupSize.setText(params.getXstretchSolutionGroupSize());
       ltfXstretchNonDefaultGroups.setText(
@@ -469,10 +472,10 @@ public class TiltalignPanel {
     // at David's request
     solutionType = params.getLocalRotationSolutionType();
     if (solutionType == 0) {
-      chkLocalRotation.setSelected(false);
+      cbLocalRotation.setSelected(false);
     }
     else {
-      chkLocalRotation.setSelected(true);
+      cbLocalRotation.setSelected(true);
       ltfLocalRotationGroupSize.setText(
         params.getLocalRotationSolutionGroupSize());
       ltfLocalTiltAngleNonDefaultGroups.setText(
@@ -482,10 +485,10 @@ public class TiltalignPanel {
     // Local tilt angle solution parameters
     solutionType = params.getLocalTiltSolutionType();
     if (solutionType == 0) {
-      chkLocalTiltAngle.setSelected(false);
+      cbLocalTiltAngle.setSelected(false);
     }
     else {
-      chkLocalTiltAngle.setSelected(true);
+      cbLocalTiltAngle.setSelected(true);
       ltfLocalTiltAngleGroupSize.setText(
         params.getLocalTiltSolutionGroupSize());
       ltfLocalTiltAngleNonDefaultGroups.setText(
@@ -495,10 +498,10 @@ public class TiltalignPanel {
     //  Local magnification solution parameters
     solutionType = params.getLocalMagnificationSolutionType();
     if (solutionType == 0) {
-      chkLocalMagnification.setSelected(false);
+      cbLocalMagnification.setSelected(false);
     }
     else {
-      chkLocalMagnification.setSelected(true);
+      cbLocalMagnification.setSelected(true);
       ltfLocalMagnificationGroupSize.setText(
         params.getLocalMagnificationSolutionGroupSize());
       ltfLocalMagnificationNonDefaultGroups.setText(
@@ -508,10 +511,10 @@ public class TiltalignPanel {
     //  Local distortion solution type
     solutionType = params.getLocalDistortionSolutionType();
     if (solutionType == 0) {
-      chkLocalDistortion.setSelected(false);
+      cbLocalDistortion.setSelected(false);
     }
     else {
-      chkLocalDistortion.setSelected(true);
+      cbLocalDistortion.setSelected(true);
 
       ltfLocalXstretchGroupSize.setText(
         params.getLocalXstretchSolutionGroupSize());
@@ -581,8 +584,8 @@ public class TiltalignPanel {
       badParameter = ltfCycleLimit.getLabel();
       params.setCycleLimit(ltfCycleLimit.getText());
 
-      badParameter = chkLocalAlignments.getText();
-      params.setLocalAlignments(chkLocalAlignments.isSelected());
+      badParameter = cbLocalAlignments.getText();
+      params.setLocalAlignments(cbLocalAlignments.isSelected());
 
       badParameter = ltfNLocalPatches.getLabel();
       params.setNLocalPatches(ltfNLocalPatches.getText());
@@ -659,7 +662,7 @@ public class TiltalignPanel {
 
       // Distortion pane
       type = 0;
-      if (chkDistortion.isSelected()) {
+      if (cbDistortion.isSelected()) {
         //  Set the necessary types for distortion xstretch and skew
         params.setDistortionSolutionType(defaultDistortionType);
         params.setXstretchType(defaultXstretchType);
@@ -687,7 +690,7 @@ public class TiltalignPanel {
       // Rotation pane
       // NOTE this only works if 0 and 5 are valid local tilt angle codes
       type = 0;
-      if (chkLocalRotation.isSelected())
+      if (cbLocalRotation.isSelected())
         type = defaultLocalRotationType;
       params.setLocalRotationSolutionType(type);
 
@@ -703,7 +706,7 @@ public class TiltalignPanel {
 
       // Tilt angle pane
       type = 0;
-      if (chkLocalTiltAngle.isSelected())
+      if (cbLocalTiltAngle.isSelected())
         type = defaultLocalTiltAngleType;
       params.setLocalTiltSolutionType(type);
 
@@ -718,7 +721,7 @@ public class TiltalignPanel {
       }
 
       // Local magnification pane
-      if (chkLocalMagnification.isSelected()) {
+      if (cbLocalMagnification.isSelected()) {
         params.setLocalMagnificationType(defaultLocalMagnificationType);
         badParameter = ltfLocalMagnificationGroupSize.getLabel();
         params.setLocalMagnificationSolutionGroupSize(
@@ -735,7 +738,7 @@ public class TiltalignPanel {
 
       // Distortion pane
       type = 0;
-      if (chkLocalDistortion.isSelected()) {
+      if (cbLocalDistortion.isSelected()) {
         params.setLocalDistortionSolutionType(defaultLocalDistortionType);
         params.setLocalXstretchType(defaultLocalXstretchType);
         params.setLocalSkewType(defaultLocalXstretchType);
@@ -808,20 +811,20 @@ public class TiltalignPanel {
   }
 
   void selectGlobalDistortion() {
-    if (chkDistortion.isSelected()) {
-      chkLocalDistortion.setSelected(true);
+    if (cbDistortion.isSelected()) {
+      cbLocalDistortion.setSelected(true);
       setDistortionDefaults();
       setLocalDistortionDefaults();
     }
     else {
-      chkLocalDistortion.setSelected(false);
+      cbLocalDistortion.setSelected(false);
       setTiltAndMagnificationDefaults();
     }
     updateEnabled();
   }
 
   void selectLocalDistortion() {
-    if (chkLocalDistortion.isSelected()) {
+    if (cbLocalDistortion.isSelected()) {
       setLocalDistortionDefaults();
     }
     updateEnabled();
@@ -832,8 +835,8 @@ public class TiltalignPanel {
    */
   void setTiltAndMagnificationDefaults() {
     rbTiltAngleAll.setSelected(true);
-    chkDistortion.setSelected(false);
-    chkLocalDistortion.setSelected(false);
+    cbDistortion.setSelected(false);
+    cbLocalDistortion.setSelected(false);
   }
 
   /**
@@ -847,8 +850,8 @@ public class TiltalignPanel {
       ltfTiltAngleGroupSize.setText(defaultTiltAngleGroupSize);
     }
 
-    chkDistortion.setSelected(true);
-    chkLocalDistortion.setSelected(true);
+    cbDistortion.setSelected(true);
+    cbLocalDistortion.setSelected(true);
 
     // If any of the size fields are empty fill them in with the defaults
     // This will happen if someone starts with a com file with distortion
@@ -887,7 +890,7 @@ public class TiltalignPanel {
 
   //  Local alignment state
   void updateLocalAlignmentState() {
-    boolean state = chkLocalAlignments.isSelected();
+    boolean state = cbLocalAlignments.isSelected();
     ltfNLocalPatches.setEnabled(state);
     ltfMinLocalPatchSize.setEnabled(state);
     ltfMinLocalFiducials.setEnabled(state);
@@ -939,7 +942,7 @@ public class TiltalignPanel {
 
   void updateDistortionSolutionPanel() {
     //  Xstretch and skew panel state
-    boolean state = chkDistortion.isSelected();
+    boolean state = cbDistortion.isSelected();
     ltfXstretchGroupSize.setEnabled(state);
     ltfXstretchNonDefaultGroups.setEnabled(state);
     ltfSkewGroupSize.setEnabled(state);
@@ -947,25 +950,25 @@ public class TiltalignPanel {
   }
 
   void updateLocalRotationSolutionPanel() {
-    boolean state = chkLocalRotation.isSelected();
+    boolean state = cbLocalRotation.isSelected();
     ltfLocalRotationGroupSize.setEnabled(state);
     ltfLocalRotationNonDefaultGroups.setEnabled(state);
   }
 
   void updateLocalTiltAngleSolutionPanel() {
-    boolean state = chkLocalTiltAngle.isSelected();
+    boolean state = cbLocalTiltAngle.isSelected();
     ltfLocalTiltAngleGroupSize.setEnabled(state);
     ltfLocalTiltAngleNonDefaultGroups.setEnabled(state);
   }
 
   void updateLocalMagnificationSolutionPanel() {
-    boolean state = chkLocalMagnification.isSelected();
+    boolean state = cbLocalMagnification.isSelected();
     ltfLocalMagnificationGroupSize.setEnabled(state);
     ltfLocalMagnificationNonDefaultGroups.setEnabled(state);
   }
 
   void updateLocalDistortionSolutionPanel() {
-    boolean state = chkLocalDistortion.isSelected();
+    boolean state = cbLocalDistortion.isSelected();
     ltfLocalXstretchGroupSize.setEnabled(state);
     ltfLocalXstretchNonDefaultGroups.setEnabled(state);
     ltfLocalSkewGroupSize.setEnabled(state);
@@ -1092,12 +1095,12 @@ public class TiltalignPanel {
       new BoxLayout(pnlLocalParameters, BoxLayout.Y_AXIS));
     pnlLocalParameters.setBorder(
       new EtchedBorder("Local Alignment Parameters").getBorder());
-    pnlLocalParameters.add(chkLocalAlignments);
-    chkLocalAlignments.setAlignmentX(Container.RIGHT_ALIGNMENT);
+    pnlLocalParameters.add(cbLocalAlignments);
+    cbLocalAlignments.setAlignmentX(Container.RIGHT_ALIGNMENT);
     pnlLocalParameters.add(Box.createRigidArea(FixedDim.x0_y5));
     LocalAlignmentsListener localAlignmentsListener =
       new LocalAlignmentsListener(this);
-    chkLocalAlignments.addActionListener(localAlignmentsListener);
+    cbLocalAlignments.addActionListener(localAlignmentsListener);
 
     pnlLocalParameters.add(ltfNLocalPatches.getContainer());
     pnlLocalParameters.add(Box.createRigidArea(FixedDim.x0_y5));
@@ -1171,7 +1174,7 @@ public class TiltalignPanel {
     // Layout the global distortion pane
     createVariablePanel(
       pnlDistortionSolution,
-      chkDistortion,
+      cbDistortion,
       ltfXstretchGroupSize,
       ltfXstretchNonDefaultGroups,
       "Distortion Solution Type");
@@ -1184,7 +1187,7 @@ public class TiltalignPanel {
 
     DistortionCheckListener DistortionCheckListener =
       new DistortionCheckListener(this);
-    chkDistortion.addActionListener(DistortionCheckListener);
+    cbDistortion.addActionListener(DistortionCheckListener);
 
     //  Add the individual panes to the tab
     pnlGlobalVariable.add(Box.createRigidArea(FixedDim.x0_y10));
@@ -1234,42 +1237,42 @@ public class TiltalignPanel {
     //  Construct the rotation solution objects
     createVariablePanel(
       pnlLocalRotationSolution,
-      chkLocalRotation,
+      cbLocalRotation,
       ltfLocalRotationGroupSize,
       ltfLocalRotationNonDefaultGroups,
       "Local Rotation Solution Type");
     LocalRotationCheckListener localRotationCheckListener =
       new LocalRotationCheckListener(this);
-    chkLocalRotation.addActionListener(localRotationCheckListener);
+    cbLocalRotation.addActionListener(localRotationCheckListener);
 
     //  Construct the tilt angle solution objects
     createVariablePanel(
       pnlLocalTiltAngleSolution,
-      chkLocalTiltAngle,
+      cbLocalTiltAngle,
       ltfLocalTiltAngleGroupSize,
       ltfLocalTiltAngleNonDefaultGroups,
       "Local Tilt Angle Aolution Type");
 
     LocalTiltAngleCheckListener localTiltAngleCheckListener =
       new LocalTiltAngleCheckListener(this);
-    chkLocalTiltAngle.addActionListener(localTiltAngleCheckListener);
+    cbLocalTiltAngle.addActionListener(localTiltAngleCheckListener);
 
     //  Construct the local magnification pane
     createVariablePanel(
       pnlLocalMagnificationSolution,
-      chkLocalMagnification,
+      cbLocalMagnification,
       ltfLocalMagnificationGroupSize,
       ltfLocalMagnificationNonDefaultGroups,
       "Local Magnification Solution Type");
 
     LocalMagnificationCheckListener localMagnificationCheckListener =
       new LocalMagnificationCheckListener(this);
-    chkLocalMagnification.addActionListener(localMagnificationCheckListener);
+    cbLocalMagnification.addActionListener(localMagnificationCheckListener);
 
     //  Construction the local distortion pane
     createVariablePanel(
       pnlLocalDistortionSolution,
-      chkLocalDistortion,
+      cbLocalDistortion,
       ltfLocalXstretchGroupSize,
       ltfLocalXstretchNonDefaultGroups,
       "Local Distortion Solution Type");
@@ -1281,7 +1284,7 @@ public class TiltalignPanel {
 
     LocalDistortionCheckListener localDistortionCheckListener =
       new LocalDistortionCheckListener(this);
-    chkLocalDistortion.addActionListener(localDistortionCheckListener);
+    cbLocalDistortion.addActionListener(localDistortionCheckListener);
 
     pnlLocalSolution.add(Box.createRigidArea(FixedDim.x0_y10));
     pnlLocalSolution.add(pnlLocalRotationSolution);
@@ -1495,7 +1498,7 @@ public class TiltalignPanel {
     ltfCycleLimit.setToolTipText(tooltipFormatter.setText(text).format());
 
     text = "Compute alignments in local areas after finding global solution.";
-    chkLocalAlignments.setToolTipText(tooltipFormatter.setText(text).format());
+    cbLocalAlignments.setToolTipText(tooltipFormatter.setText(text).format());
 
     text =
       "Number of overlapping local areas to use in the X and Y directions.";
@@ -1563,7 +1566,7 @@ public class TiltalignPanel {
       tooltipFormatter.setText(text).format());
 
     text = "Solve for distortions in the plane of section.";
-    chkDistortion.setToolTipText(tooltipFormatter.setText(text).format());
+    cbDistortion.setToolTipText(tooltipFormatter.setText(text).format());
 
     text =
       "Basic grouping size for X stretch (grouping will be less at high tilt "
@@ -1589,7 +1592,7 @@ public class TiltalignPanel {
       tooltipFormatter.setText(text).format());
 
     text = "Solve for local in-plane rotations.";
-    chkLocalRotation.setToolTipText(tooltipFormatter.setText(text).format());
+    cbLocalRotation.setToolTipText(tooltipFormatter.setText(text).format());
 
     text = "Grouping size for local rotations.";
     ltfLocalRotationGroupSize.setToolTipText(
@@ -1603,7 +1606,7 @@ public class TiltalignPanel {
       tooltipFormatter.setText(text).format());
 
     text = "Solve for local changes in tilt angle.";
-    chkLocalTiltAngle.setToolTipText(tooltipFormatter.setText(text).format());
+    cbLocalTiltAngle.setToolTipText(tooltipFormatter.setText(text).format());
 
     text = "Grouping size for local tilt angle changes.";
     ltfLocalTiltAngleGroupSize.setToolTipText(
@@ -1617,7 +1620,7 @@ public class TiltalignPanel {
       tooltipFormatter.setText(text).format());
 
     text = "Solve for local changes in magnification.";
-    chkLocalMagnification.setToolTipText(
+    cbLocalMagnification.setToolTipText(
       tooltipFormatter.setText(text).format());
 
     text = "Grouping size for local magnification changes.";
@@ -1632,7 +1635,7 @@ public class TiltalignPanel {
       tooltipFormatter.setText(text).format());
 
     text = "Solve for local distortions.";
-    chkLocalDistortion.setToolTipText(tooltipFormatter.setText(text).format());
+    cbLocalDistortion.setToolTipText(tooltipFormatter.setText(text).format());
 
     text = "Grouping size for local X stretch variables.";
     ltfLocalXstretchGroupSize.setToolTipText(

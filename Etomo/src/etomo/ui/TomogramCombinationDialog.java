@@ -35,6 +35,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.11  2003/10/28 23:35:48  rickg
+ * <p> Bug# 336 Context menu label capitalization
+ * <p>
  * <p> Revision 2.10  2003/07/28 22:43:21  rickg
  * <p> Added isCombinePanelEnable method and state var
  * <p>
@@ -317,7 +320,7 @@ public class TomogramCombinationDialog
       new ContextPopup(
         rootPanel,
         mouseEvent,
-        "Final Runs",
+        "TOMOGRAM COMBINATION",
         manPagelabel,
         manPage,
         logFileLabel,

@@ -24,6 +24,9 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.6  2003/10/28 23:35:48  rickg
+ * <p> Bug# 336 Context menu label capitalization
+ * <p>
  * <p> Revision 2.5  2003/10/20 20:08:37  sueh
  * <p> Bus322 corrected labels
  * <p>
@@ -190,7 +193,7 @@ public class CoarseAlignDialog extends ProcessDialog implements ContextMenu {
       new ContextPopup(
         panelCoarseAlign,
         mouseEvent,
-        "Preliminary Steps",
+        "COARSE ALIGNMENT",
         manPagelabel,
         manPage,
         logFileLabel,

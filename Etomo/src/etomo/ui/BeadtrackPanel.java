@@ -20,6 +20,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.3  2003/10/15 01:33:59  sueh
+ * <p> Bug277 added tooltips
+ * <p>
  * <p> Revision 2.2  2003/10/15 00:26:37  sueh
  * <p> Bug274 move fields to Advanced, changed labels,
  * <p> removed Piece List File
@@ -76,7 +79,7 @@ public class BeadtrackPanel {
     new LabeledTextField("Minimum # of views for tilt alignment: ");
   private LabeledTextField ltfFiducialParams =
     new LabeledTextField("Fiducial marker radius & polarity: ");
-  JCheckBox chkboxFillGaps = new JCheckBox("Fill seed model gaps");
+  JCheckBox cbFillGaps = new JCheckBox("Fill seed model gaps");
   private LabeledTextField ltfMaxGap =
     new LabeledTextField("Maximum gap size: ");
   private LabeledTextField ltfTiltAngleMinRange =
@@ -125,8 +128,8 @@ public class BeadtrackPanel {
     panelBeadtrack.add(ltfMagnificationGroups.getContainer());
     panelBeadtrack.add(ltfNMinViews.getContainer());
     panelBeadtrack.add(ltfFiducialParams.getContainer());
-    chkboxFillGaps.setAlignmentX(1.0f);
-    panelBeadtrack.add(chkboxFillGaps);
+    cbFillGaps.setAlignmentX(1.0f);
+    panelBeadtrack.add(cbFillGaps);
     panelBeadtrack.add(ltfMaxGap.getContainer());
     panelBeadtrack.add(ltfTiltAngleMinRange.getContainer());
     panelBeadtrack.add(ltfSearchBoxPixels.getContainer());
@@ -159,7 +162,7 @@ public class BeadtrackPanel {
     ltfMagnificationGroups.setText(beadtrackParams.getMagnificationGroups());
     ltfNMinViews.setText(beadtrackParams.getNMinViews());
     ltfFiducialParams.setText(beadtrackParams.getFiducialParams());
-    chkboxFillGaps.setSelected(beadtrackParams.getFillGaps());
+    cbFillGaps.setSelected(beadtrackParams.getFillGaps());
     ltfMaxGap.setText(beadtrackParams.getMaxGap());
     ltfTiltAngleMinRange.setText(beadtrackParams.getTiltAngleMinRange());
     ltfSearchBoxPixels.setText(beadtrackParams.getSearchBoxPixels());
@@ -216,7 +219,7 @@ public class BeadtrackPanel {
       badParameter = ltfFiducialParams.getLabel();
       beadtrackParams.setFiducialParams(ltfFiducialParams.getText());
 
-      beadtrackParams.setFillGaps(chkboxFillGaps.isSelected());
+      beadtrackParams.setFillGaps(cbFillGaps.isSelected());
 
       badParameter = ltfMaxGap.getLabel();
       beadtrackParams.setMaxGap(Integer.parseInt(ltfMaxGap.getText()));
@@ -361,7 +364,7 @@ public class BeadtrackPanel {
     ltfFiducialParams.setToolTipText(tooltipFormatter.setText(text).format());
 
     text = "Fill in gaps in the seed model or leave them empty.";
-    chkboxFillGaps.setToolTipText(tooltipFormatter.setText(text).format());
+    cbFillGaps.setToolTipText(tooltipFormatter.setText(text).format());
 
     text = "Maximum size of gap to create in the model before giving up on a fiducial.";
     ltfMaxGap.setToolTipText(tooltipFormatter.setText(text).format());

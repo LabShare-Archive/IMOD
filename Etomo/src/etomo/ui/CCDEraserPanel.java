@@ -30,6 +30,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.13  2003/10/28 23:35:48  rickg
+ * <p> Bug# 336 Context menu label capitalization
+ * <p>
  * <p> Revision 2.12  2003/10/20 20:08:37  sueh
  * <p> Bus322 corrected labels
  * <p>
@@ -404,7 +407,7 @@ public class CCDEraserPanel implements ContextMenu {
       new ContextPopup(
         pnlCCDEraser,
         mouseEvent,
-        "Preliminary Steps",
+        "PRE-PROCESSING",
         label,
         manPage,
         logFileLabel,

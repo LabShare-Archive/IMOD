@@ -20,6 +20,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.5  2003/10/28 23:35:48  rickg
+ * <p> Bug# 336 Context menu label capitalization
+ * <p>
  * <p> Revision 2.4  2003/10/20 20:08:37  sueh
  * <p> Bus322 corrected labels
  * <p>
@@ -56,7 +59,7 @@ public class CrossCorrelationPanel implements ContextMenu {
   private BeveledBorder borderCoarseAlignment =
     new BeveledBorder("Cross-Correlation");
 
-  private JCheckBox chkBoxExcludeCentralPeak =
+  private JCheckBox cbExcludeCentralPeak =
     new JCheckBox("Exclude central peak due to fixed pattern noise");
 
   private LabeledTextField ltfInputFile = new LabeledTextField("Input file: ");
@@ -80,8 +83,8 @@ public class CrossCorrelationPanel implements ContextMenu {
     setToolTipText();
     axisID = id;
     panelAdvanced.setLayout(new BoxLayout(panelAdvanced, BoxLayout.Y_AXIS));
-    chkBoxExcludeCentralPeak.setAlignmentX((float) 0.5);
-    panelAdvanced.add(chkBoxExcludeCentralPeak);
+    cbExcludeCentralPeak.setAlignmentX((float) 0.5);
+    panelAdvanced.add(cbExcludeCentralPeak);
     panelAdvanced.add(ltfInputFile.getContainer());
     panelAdvanced.add(ltfOutputFile.getContainer());
 //    panelAdvanced.add(ltfPieceListFile.getContainer());
@@ -109,7 +112,7 @@ public class CrossCorrelationPanel implements ContextMenu {
    * Set the field values for the panel from the ConstTiltxcorrParam object
    */
   public void setParameters(ConstTiltxcorrParam tiltXcorrParams) {
-    chkBoxExcludeCentralPeak.setSelected(
+    cbExcludeCentralPeak.setSelected(
       tiltXcorrParams.getExcludeCentralPeak());
     ltfInputFile.setText(tiltXcorrParams.getInputFile());
     ltfOutputFile.setText(tiltXcorrParams.getOutputFile());
@@ -128,7 +131,7 @@ public class CrossCorrelationPanel implements ContextMenu {
   public void getParameters(TiltxcorrParam tiltXcorrParams)
     throws FortranInputSyntaxException {
     tiltXcorrParams.setExcludeCentralPeak(
-      chkBoxExcludeCentralPeak.isSelected());
+      cbExcludeCentralPeak.isSelected());
     tiltXcorrParams.setInputFile(ltfInputFile.getText());
     tiltXcorrParams.setOutputFile(ltfOutputFile.getText());
     //SUEH 272
@@ -174,7 +177,7 @@ public class CrossCorrelationPanel implements ContextMenu {
       new ContextPopup(
         panelCrossCorrelation,
         mouseEvent,
-        "Preliminary Steps",
+        "COARSE ALIGNMENT",
         manPagelabel,
         manPage,
         logFileLabel,
@@ -221,7 +224,7 @@ public class CrossCorrelationPanel implements ContextMenu {
 
     text = 
       "Ignore correlation peaks near (0, 0); do not use unless necessary because "      + "nearly aligned images can become misaligned.";
-    chkBoxExcludeCentralPeak.setToolTipText(tooltipFormatter.setText(text).format());
+    cbExcludeCentralPeak.setToolTipText(tooltipFormatter.setText(text).format());
   }
 
 }

@@ -24,6 +24,9 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.9  2003/10/28 23:35:48  rickg
+ * <p> Bug# 336 Context menu label capitalization
+ * <p>
  * <p> Revision 2.8  2003/10/20 20:08:37  sueh
  * <p> Bus322 corrected labels
  * <p>
@@ -244,7 +247,7 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu {
     new ContextPopup(
       panelFiducialModel,
       mouseEvent,
-      "TRACKING FIDUCIALS",
+      "GETTING FIDUCIAL",
       manPagelabel,
       manPage,
       logFileLabel,

@@ -44,6 +44,9 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 2.17  2003/10/28 23:35:48  rickg
+ * Bug# 336 Context menu label capitalization
+ *
  * Revision 2.16  2003/10/22 21:31:02  rickg
  * Bug# 287 Default value handling for SLICE OFFSET and SHIFT
  *
@@ -221,7 +224,7 @@ public class TomogramGenerationDialog
   private JPanel pnlNewstParams = new JPanel();
   private BeveledBorder border = new BeveledBorder("Tomogram Generation");
 
-  private JCheckBox chkBoxUseLinearInterpolation =
+  private JCheckBox cbBoxUseLinearInterpolation =
     new JCheckBox("Use linear interpolation");
 
   private JPanel pnlAlignedStack = new JPanel();
@@ -261,7 +264,7 @@ public class TomogramGenerationDialog
     new LabeledTextField("Output density scaling factor: ");
   private LabeledTextField ltfLogOffset = new LabeledTextField("Log offset: ");
 
-  private JCheckBox chkBoxUseLocalAlignment =
+  private JCheckBox cbBoxUseLocalAlignment =
     new JCheckBox("Use local alignments");
 
   private JPanel pnlTrial = new JPanel();
@@ -294,8 +297,8 @@ public class TomogramGenerationDialog
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     buttonExecute.setText("Done");
 
-    chkBoxUseLinearInterpolation.setAlignmentX(Component.CENTER_ALIGNMENT);
-    chkBoxUseLocalAlignment.setAlignmentX(Component.CENTER_ALIGNMENT);
+    cbBoxUseLinearInterpolation.setAlignmentX(Component.CENTER_ALIGNMENT);
+    cbBoxUseLocalAlignment.setAlignmentX(Component.CENTER_ALIGNMENT);
     //btnTrial.setAlignmentX(Component.CENTER_ALIGNMENT);
     //btn3dmodTrial.setAlignmentX(Component.CENTER_ALIGNMENT);
     //btnUseTrial.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -393,7 +396,7 @@ public class TomogramGenerationDialog
   }
 
   public void setNewstParams(ConstNewstParam newstParam) {
-    chkBoxUseLinearInterpolation.setSelected(
+    cbBoxUseLinearInterpolation.setSelected(
       newstParam.isUseLinearInterpolation());
   }
   /**
@@ -436,12 +439,12 @@ public class TomogramGenerationDialog
     if (tiltParam.hasLogOffset()) {
       ltfLogOffset.setText(tiltParam.getLogShift());
     }
-    chkBoxUseLocalAlignment.setSelected(tiltParam.getUseLocalAlignFile());
+    cbBoxUseLocalAlignment.setSelected(tiltParam.getUseLocalAlignFile());
   }
 
   public void getNewstParams(NewstParam newstParam) {
     newstParam.setUseLinearInterpolation(
-      chkBoxUseLinearInterpolation.isSelected());
+      cbBoxUseLinearInterpolation.isSelected());
   }
 
   /**
@@ -573,7 +576,7 @@ public class TomogramGenerationDialog
         tiltParam.useLogOffset(false);
       }
 
-      if (chkBoxUseLocalAlignment.isSelected()) {
+      if (cbBoxUseLocalAlignment.isSelected()) {
         tiltParam.setLocalAlignFile(
           applicationManager.getDatasetName()
             + axisID.getExtension()
@@ -613,7 +616,7 @@ public class TomogramGenerationDialog
   private void layoutNewstPanel() {
     pnlNewstParams.removeAll();
     if (isAdvanced) {
-      pnlNewstParams.add(chkBoxUseLinearInterpolation);
+      pnlNewstParams.add(cbBoxUseLinearInterpolation);
     }
   }
 
@@ -662,7 +665,7 @@ public class TomogramGenerationDialog
       pnlTiltParams.add(ltfRadialFallOff.getContainer());
       pnlTiltParams.add(Box.createRigidArea(FixedDim.x0_y5));
 
-      pnlTiltParams.add(chkBoxUseLocalAlignment);
+      pnlTiltParams.add(cbBoxUseLocalAlignment);
       pnlTiltParams.add(Box.createRigidArea(FixedDim.x0_y5));
 
       pnlTiltParams.add(pnlTrial);
@@ -677,7 +680,7 @@ public class TomogramGenerationDialog
       pnlTiltParams.add(Box.createRigidArea(FixedDim.x0_y5));
       pnlTiltParams.add(ltfRadialFallOff.getContainer());
       pnlTiltParams.add(Box.createRigidArea(FixedDim.x0_y5));
-      pnlTiltParams.add(chkBoxUseLocalAlignment);
+      pnlTiltParams.add(cbBoxUseLocalAlignment);
       pnlTiltParams.add(Box.createRigidArea(FixedDim.x0_y5));
     }
   }
@@ -698,7 +701,7 @@ public class TomogramGenerationDialog
       new ContextPopup(
         rootPanel,
         mouseEvent,
-        "Final Runs",
+        "TOMOGRAM GENERATION",
         manPagelabel,
         manPage,
         logFileLabel,
@@ -793,7 +796,7 @@ public class TomogramGenerationDialog
     text =
       "Make aligned stack with linear instead of cubic interpolation to "
         + "reduce noise.";
-    chkBoxUseLinearInterpolation.setToolTipText(
+    cbBoxUseLinearInterpolation.setToolTipText(
       tooltipFormatter.setText(text).format());
 
     text =
@@ -891,7 +894,7 @@ public class TomogramGenerationDialog
     text =
       "Select this checkbox to use local alignments.  You must have "
         + "created the local alignments in the Fine Alignment step";
-    chkBoxUseLocalAlignment.setToolTipText(
+    cbBoxUseLocalAlignment.setToolTipText(
       tooltipFormatter.setText(text).format());
 
     text =

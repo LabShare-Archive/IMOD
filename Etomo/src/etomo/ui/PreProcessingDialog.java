@@ -22,6 +22,9 @@ import etomo.comscript.CCDEraserParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.4  2003/10/20 20:08:37  sueh
+ * <p> Bus322 corrected labels
+ * <p>
  * <p> Revision 2.3  2003/07/08 20:49:52  rickg
  * <p> *** empty log message ***
  * <p>
@@ -69,7 +72,7 @@ public class PreProcessingDialog extends ProcessDialog {
   private JLabel textDM2MRC =
     new JLabel("No digital micrograph files detected:  ");
   private JPanel pnlDMConvert = new JPanel();
-  private JCheckBox chkBoxUniqueHeaders =
+  private JCheckBox cbUniqueHeaders =
     new JCheckBox("Digital micrograph files have unique headers");
 
   private JPanel pnlEraser = new JPanel();
@@ -89,7 +92,7 @@ public class PreProcessingDialog extends ProcessDialog {
       new BeveledBorder("Digital Micrograph Conversion").getBorder());
     pnlDMConvert.add(textDM2MRC);
     pnlDMConvert.add(Box.createRigidArea(FixedDim.x20_y0));
-    pnlDMConvert.add(chkBoxUniqueHeaders);
+    pnlDMConvert.add(cbUniqueHeaders);
     // applicationManager.isDigitalMicrographData();
     disableDM2MRC();
 
@@ -140,8 +143,8 @@ public class PreProcessingDialog extends ProcessDialog {
   }
 
   private void disableDM2MRC() {
-    chkBoxUniqueHeaders.setEnabled(false);
-    chkBoxUniqueHeaders.setSelected(false);
+    cbUniqueHeaders.setEnabled(false);
+    cbUniqueHeaders.setSelected(false);
     pnlDMConvert.setVisible(false);
   }
 

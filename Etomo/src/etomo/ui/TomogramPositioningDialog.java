@@ -31,6 +31,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.9  2003/10/29 00:28:32  rickg
+ * <p> Bug# 297 Tooltips
+ * <p>
  * <p> Revision 2.8  2003/10/28 23:35:48  rickg
  * <p> Bug# 336 Context menu label capitalization
  * <p>
@@ -232,7 +235,7 @@ public class TomogramPositioningDialog
       new ContextPopup(
         rootPanel,
         mouseEvent,
-        "GENERATING THE TOMOGRAM",
+        "TOMOGRAM POSITIONING",
         manPagelabel,
         manPage,
         logFileLabel,

@@ -39,8 +39,8 @@ public class SettingsDialog extends JDialog {
     new LabeledTextField("Tooltips initial delay");
   LabeledTextField ltfTooltipsDismissDelay =
     new LabeledTextField("Tooltips dismiss delay");
-  JCheckBox chkNativeLAF = new JCheckBox("Native look & feel");
-  JCheckBox chkAdvancedDialogs = new JCheckBox("Always use advanced dialogs");
+  JCheckBox cbNativeLAF = new JCheckBox("Native look & feel");
+  JCheckBox cbAdvancedDialogs = new JCheckBox("Always use advanced dialogs");
 
   JPanel panelButtons = new JPanel();
   JButton buttonCancel = new JButton("Cancel");
@@ -71,8 +71,8 @@ public class SettingsDialog extends JDialog {
     panelSettings.add(panelFontSelect);
     panelSettings.add(ltfTooltipsInitialDelay.getContainer());
     panelSettings.add(ltfTooltipsDismissDelay.getContainer());
-    panelSettings.add(chkNativeLAF);
-    panelSettings.add(chkAdvancedDialogs);
+    panelSettings.add(cbNativeLAF);
+    panelSettings.add(cbAdvancedDialogs);
     panelSettings.add(Box.createRigidArea(FixedDim.x0_y10));
 
     //  Bind the buttons and lay them out
@@ -96,8 +96,8 @@ public class SettingsDialog extends JDialog {
       userConfig.getToolTipsInitialDelay() / 1000);
     ltfTooltipsDismissDelay.setText(
       userConfig.getToolTipsDismissDelay() / 1000);
-    chkNativeLAF.setSelected(userConfig.getNativeLookAndFeel());
-    chkAdvancedDialogs.setSelected(userConfig.getAdvancedDialogs());
+    cbNativeLAF.setSelected(userConfig.getNativeLookAndFeel());
+    cbAdvancedDialogs.setSelected(userConfig.getAdvancedDialogs());
 
     // Get the current font parameters to set the UI
     // Since they may not be all the same make the assumption that the first
@@ -132,8 +132,8 @@ public class SettingsDialog extends JDialog {
 
     delay = Float.parseFloat(ltfTooltipsDismissDelay.getText());
     userConfig.setToolTipsDismissDelay((int) (delay * 1000));
-    userConfig.setNativeLookAndFeel(chkNativeLAF.isSelected());
-    userConfig.setAdvancedDialogs(chkAdvancedDialogs.isSelected());
+    userConfig.setNativeLookAndFeel(cbNativeLAF.isSelected());
+    userConfig.setAdvancedDialogs(cbAdvancedDialogs.isSelected());
     userConfig.setFontSize(Integer.parseInt(ltfFontSize.getText()));
     userConfig.setFontFamily(fontFamilies[listFontFamily.getSelectedIndex()]);
   }
