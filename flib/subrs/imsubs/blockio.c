@@ -20,6 +20,9 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2002/01/07 18:23:34  mast
+    Add an error message if big_seek fails
+
 */
  
 #define BLOCKIO_C    /*define source name for includes*/
@@ -282,13 +285,13 @@ void qread(iunit, array, nitems, ier)
 		if (u->write_only)
 		{
 			fprintf(stderr, "qread: file is write only.\n");
-			abort();
+			exit(-1);
 		}
 		if (fread(array, 1, bc, u->fp) != bc)
 		{
 			fprintf(stderr, "qread: read error\n");
 			perror("");
-			abort();
+			exit(-1);
 		}
 		u->pos += bc;
 		*ier = 0;
@@ -313,12 +316,13 @@ void qwrite(iunit, array, nitems)
 		if (u->read_only)
 		{
 			fprintf(stderr, "qwrite: file is read only.\n");
-			abort();
+			exit(-1);
 		}
 		if (fwrite(array, 1, bc, u->fp) != bc)
 		{
 			fprintf(stderr, "qwrite: error writing file.\n");
-			abort();
+			perror("");
+			exit(-1);
 		}
 		u->pos += bc;
 	}
@@ -349,7 +353,7 @@ void qseek(iunit, irecord, ielement, ireclength)
 			     SEEK_SET))
 		{
 		        fprintf(stderr, "Error on big_seek\n");
-		        abort();
+		        exit(-1);
 		}
 	}
 }
@@ -369,7 +373,7 @@ void qback(iunit, ireclength)
 		u->pos += amt;
 		if (fseek(u->fp, amt, SEEK_CUR))
 		{
-			abort();
+			exit(-1);
 		}
 	}
 }
@@ -386,7 +390,7 @@ void qskip(iunit, ireclength)
 		u->pos += amt;
 		if (fseek(u->fp, amt, SEEK_CUR))
 		{
-			abort();
+			exit(-1);
 		}
 	}
 }
