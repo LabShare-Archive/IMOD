@@ -47,7 +47,7 @@ Log at end of file
 
 /* Local variables */
 /* There will be trouble if multiple views are ever implemented */
-static int start[4], end[4], increment[4];
+static int start[5], end[5], increment[4];
 static int maxend[4];
 static int firsttime = 1;
 static int axiscon;
@@ -55,8 +55,11 @@ static MovieController *dia = NULL;
 static ImodView *view;
 static float realrate, realint;
 static int looponeway;
+static int startHere;
 static int autosnap;
 static int movieCount = 0;
+static int starterCtrlID;    /* Ctrl ID of window that started movie */
+static int specialAxis = -1;      /* Axis on which to use special limits */
 static int movieCurrent, movieStart, movieLast;
 
 #define BASEINT 50.0
@@ -131,6 +134,12 @@ int imcGetLoopMode(ImodView *vw)
   return looponeway;
 }
 
+/* Get the flag for whether to start at current position */
+int imcStartSnapHere(ImodView *vw)
+{
+  return startHere;
+}
+
 /* Get the snaphot flag */
 int imcGetSnapshot(ImodView *vw)
 {
@@ -139,18 +148,41 @@ int imcGetSnapshot(ImodView *vw)
   return autosnap;
 }
 
-/* Get start and end for the axis */
+/* Get or set the ID of the control that started movie, reset special axis */
+int imcGetStarterID()
+{
+  return starterCtrlID;
+}
+void imcSetStarterID(int value)
+{
+  starterCtrlID = value;
+  specialAxis = -1;
+}
+
+/* Get start and end for the axis or limit by special values */
 void imcGetStartEnd(ImodView *vw, int xyzt, int *stout, int *endout)
 {
   if (firsttime)
     imcResetAll(vw);
-  *stout = start[xyzt];
-  *endout = end[xyzt];
+  if (xyzt == specialAxis) {
+    *stout = start[xyzt] > start[4] ? start[xyzt] : start[4];
+    *endout = end[xyzt] < end[4] ? end[xyzt] : end[4];
+  } else {
+    *stout = start[xyzt];
+    *endout = end[xyzt];
+  }
 }
 
 float imcGetInterval()
 {
   return realint;
+}
+
+void imcSetSpecialLimits(int axis, int inStart, int inEnd)
+{
+  specialAxis = axis;
+  start[4] = inStart;
+  end[4] = inEnd;
 }
 
 /* Set the movie rate by changing the interval */
@@ -265,19 +297,20 @@ void imcHelp()
      "if [One Way] is selected, then movies will always go in one "
      "direction and jump back to the start when the end is reached.\n\n",
      "If one of the Snapshot buttons [RGB] or [TIFF] is selected, "
-     "and a movie is started in a Zap window, then that Zap window "
+     "and a movie is started in a Zap or Slicer window, then that window "
      "will automatically take an RGB or Tiff snapshot of each frame for "
-     "one complete cycle of the movie.  The movie will start at the "
+     "one complete cycle of the movie.  If [Start/end] is selected, the "
+     "movie will start at the "
      "starting or the ending section depending on whether it is started "
      "with the middle or the right mouse button.  It will stop when it "
      "reaches the opposite end if [One Way] is selected; otherwise it "
-     "will loop back to the end at which it started.\nIf you stop the "
-     "movie before it is done with a mouse click in the same window, "
-     "then another mouse click in that or a different zap window will "
-     "start a completely new movie.  If you stop the movie by "
-     "clicking in a different window, then clicking again in a "
-     "different window will resume the interrupted movie in the "
-     "original window.\n",
+     "will loop back to the end at which it started.  If [Current pt] is "
+     "selected, the movie will start at the currently displayed section and "
+     "come back to that point in a full round trip; in this case [One way] "
+     "will not give useful results.\n"
+     "If you stop the movie before it is done, "
+     "then another mouse click in that or a different window will "
+     "start a completely new movie.\n",
      NULL);
   return;
 }
@@ -339,6 +372,11 @@ void imcSnapSelected(int which)
   autosnap = which;
 }
 
+void imcStartHereSelected(int which)
+{
+  startHere = which;
+}
+
 /* Rate entered through text box */
 void imcRateEntered(float value)
 {
@@ -369,6 +407,9 @@ void imcIncrementRate(int dir)
 
 /*
 $Log$
+Revision 4.4  2003/04/25 03:28:32  mast
+Changes for name change to 3dmod
+
 Revision 4.3  2003/04/17 18:43:38  mast
 adding parent to window creation
 
