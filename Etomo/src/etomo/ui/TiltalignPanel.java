@@ -37,6 +37,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.3  2004/07/02 17:42:18  sueh
+ * <p> bug#461 removing prints
+ * <p>
  * <p> Revision 3.2  2004/07/02 00:40:07  sueh
  * <p> bug# 461 adding a connection to fid.xyz, preali header, and rawstack
  * <p> header to the constructor.  Info from these files is required
@@ -383,6 +386,7 @@ public class TiltalignPanel {
     try {
       fidXyz.read();
       rawstackHeader.read();
+      prealiHeader.read();
     }
     catch (IOException except) {
       except.printStackTrace();
@@ -421,9 +425,16 @@ public class TiltalignPanel {
     ltfSeparateViewGroups.setText(params.getSeparateViewGroups());
     ltfTiltAngleOffset.setText(params.getTiltAngleOffset());
     
-    //if fidXyz.pixelSize could not be read from fid.xyz, then binning must
-    //have been 1 the last time align.com was run.
-    if (!fidXyz.exists() || !fidXyz.isPixelSizeSet()) {
+    if (fidXyz.exists() && fidXyz.isEmpty()) {
+      //if file exists but is empty, assume that tilt align failed and use
+      //pre align instead
+      //multiply by the binning previously used by pre align
+      ltfTiltAxisZShift.setText(params.getTiltAxisZShift()
+        * Math.round(prealiHeader.getXPixelSpacing() / rawstackHeader.getXPixelSpacing()));
+    }
+    else if (!fidXyz.exists() || !fidXyz.isPixelSizeSet()) {
+      //if fidXyz.pixelSize could not be read from fid.xyz, then binning must
+      //have been 1 the last time align.com was run.
       ltfTiltAxisZShift.setText(params.getTiltAxisZShift());
     }
     else {
