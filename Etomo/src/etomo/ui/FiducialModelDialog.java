@@ -23,6 +23,9 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.1  2003/04/28 23:25:25  rickg
+ * <p> Changed visible imod references to 3dmod
+ * <p>
  * <p> Revision 2.0  2003/01/24 20:30:31  rickg
  * <p> Single window merge to main branch
  * <p>
@@ -160,15 +163,20 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu {
    * Right mouse button context menu
    */
   public void popUpContextMenu(MouseEvent mouseEvent) {
-    String[] label = { "3dmod" };
-    String[] manPage = { "3dmod.html" };
-    ContextPopup contextPopup =
-      new ContextPopup(
-        panelFiducialModel,
-        mouseEvent,
-        "TRACKING FIDUCIALS",
-        label,
-        manPage);
+    String[] manPagelabel = { "beadtrack", "3dmod" };
+    String[] manPage = { "beadtrack.html", "3dmod.html" };
+    String[] logFileLabel = { "track" };
+    String[] logFile = new String[1];
+    logFile[0] = "track" + axisID.getExtension() + ".log";
+    //    ContextPopup contextPopup =
+    new ContextPopup(
+      panelFiducialModel,
+      mouseEvent,
+      "TRACKING FIDUCIALS",
+      manPagelabel,
+      manPage,
+      logFileLabel,
+      logFile);
   }
 
   //  Action function for buttons
