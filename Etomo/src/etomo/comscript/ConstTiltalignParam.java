@@ -23,6 +23,9 @@ import etomo.type.TiltAngleSpec;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.10  2005/01/13 00:44:45  sueh
+ * <p> bug# 576 Converted includeStartEndInc to FortranInputString.
+ * <p>
  * <p> Revision 3.9  2005/01/12 00:41:12  sueh
  * <p> bug# 579 Make localAlignments available to the Command interface.
  * <p>
@@ -384,7 +387,7 @@ public class ConstTiltalignParam implements Command {
   }
 
   public boolean isExcludeListAvailable() {
-    return includeStartEndInc.isDefault() && includeList.getNElements() == 0;
+    return (includeStartEndInc.isDefault() || !includeStartEndInc.valuesSet()) && includeList.getNElements() == 0;
   }
 
   
