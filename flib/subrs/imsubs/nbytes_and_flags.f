@@ -12,13 +12,16 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.1  2002/02/26 23:05:32  mast
+c	  Initial addition of file
+c	
 c
 	logical function nbytes_and_flags(nint,nreal)
 	implicit none
 	integer nflags
 	parameter (nflags=5)
 	integer*4 nint,nreal
-	integer*4 nbytes_per_item(nflags)/2, 6, 4, 2, 4/
+	integer*4 nbytes_per_item(nflags)/2, 6, 4, 2, 2/
 	integer*4 i,nbyte_total,ntmp
 c	  
 	nbyte_total=0
