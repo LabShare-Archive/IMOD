@@ -11,6 +11,12 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.2  2005/01/21 22:53:55  sueh
+ * <p> bug# 509 bug# 591  Implemented Storable.  Changed storable fields to
+ * <p> EtomoNumbers.  Stopped using 0 as null for SearchDirection.  Added
+ * <p> setCenterViewResetValue() to set the center view to use if the user is not
+ * <p> relying on a .rawtlt file.
+ * <p>
  * <p> Revision 3.1  2004/04/22 23:27:47  rickg
  * <p> Switched getIMODBinPath method
  * <p>
@@ -347,7 +353,7 @@ public class TransferfidParam implements Storable {
   /**
    * @param numberViews
    */
-  public void setNumberViews(int numberViews) {
+  public void setNumberViews(String numberViews) {
     this.numberViews.set(numberViews);
   }
 
