@@ -6,11 +6,19 @@
 
 # see the file Makefile.X11 for the original and CER's changes to make
 # this work when first building for RH 7.0
+#
+#  $Author$
+#
+#  $Date$
+#
+#  $Revision$
+#
+#  $Log$
 
 include ../configure
 
 LIB = libGLw.a
-INCDIRS = -I/usr/include -I/usr/X11R6/include   
+INCDIRS = -I. -I/usr/include -I/usr/X11R6/include   
 LDFLAGS= -L/usr/X11R6/lib -L/usr/lib -lGLU -lGL\
          -lXm -lXext -lXmu -lXi -lX11 -lm
 
@@ -27,9 +35,9 @@ $(LIB):
 	ranlib $(LIB)
 
 install : $(LIB)
-	if (! (-e $(GLWINCDIR)))  mkdir $(GLWINCDIR)
-	$(CP) $(LIB) $(GLWLIBDIR)
-	$(CP) *.h $(GLWINCDIR)
+	if (! (-e $(GLW_INSTINCDIR)))  mkdir $(GLW_INSTINCDIR)
+	$(CP) $(LIB) $(GLW_INSTLIBDIR)
+	$(CP) *.h $(GLW_INSTINCDIR)
 
 clean :
 	$(FIND) . -type f -name "*.o"   -exec rm "{}" \;
