@@ -18,6 +18,9 @@ package etomo.type;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.0  2003/11/07 23:19:01  rickg
+ * <p> Version 1.0.0
+ * <p>
  * <p> Revision 2.0  2003/01/24 20:30:31  rickg
  * <p> Single window merge to main branch
  * <p>
@@ -40,6 +43,7 @@ public class AxisType {
 
   public static final AxisType SINGLE_AXIS = new AxisType("Single Axis");
   public static final AxisType DUAL_AXIS = new AxisType("Dual Axis");
+  public static final AxisType NOT_SET = new AxisType("Not Set");
 
   /**
    * Returns a string representation of the object.
@@ -59,6 +63,9 @@ public class AxisType {
     }
     if (name.compareToIgnoreCase(DUAL_AXIS.toString()) == 0) {
       return DUAL_AXIS;
+    }
+    if (name.compareToIgnoreCase(NOT_SET.toString()) == 0) {
+      return NOT_SET;
     }
     return null;
   }
