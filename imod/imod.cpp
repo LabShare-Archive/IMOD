@@ -151,6 +151,7 @@ int main( int argc, char *argv[])
   /* Initialize data. */
   App = &app;
   App->rgba = 1;    /* Set to 1 to force RGB visual */
+  App->exiting = 0;
 
   /*DNM: prescan for debug, ci and style flags before the display_init */
   /* Cancel forking on debug or -W output */
@@ -704,6 +705,7 @@ void imod_exit(int retcode)
   if (!loopStarted)
     exit(retcode);
   QApplication::exit(retcode);
+  App->exiting = 1;
 }
 
 /* DNM 2/7/02: keep it from sending up another window if one is already up */
@@ -871,6 +873,9 @@ int imodColorValue(int inColor)
 
 /*
 $Log$
+Revision 4.12  2003/04/17 21:53:05  mast
+Fix simplification
+
 Revision 4.11  2003/04/17 21:48:44  mast
 simplify -imodv option processing
 
