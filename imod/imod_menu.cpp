@@ -110,7 +110,7 @@ void InfoWindow::fileSlot(int item)
     imod_info_input();
 
     releaseKeyboard();
-    returnValue = openModel(NULL);
+    returnValue = openModel(NULL, false);
     imod_info_enable();
 
     if(returnValue == IMOD_IO_SUCCESS) {
@@ -1057,6 +1057,10 @@ static Icont *imodContourBreakByZ(Iobj *obj, int co)
 
 /*
 $Log$
+Revision 4.15  2004/01/05 18:38:13  mast
+Adjusted info outputs by binning as appropriate, and defined vi and imod
+in some menus for brevity
+
 Revision 4.14  2003/11/26 18:17:27  mast
 Disable image menu entries for raw or no images appropriately
 
