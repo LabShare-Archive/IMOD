@@ -45,6 +45,13 @@ import etomo.util.Utilities;
  * 
  * <p>
  * $Log$
+ * Revision 1.7  2005/02/09 22:17:48  sueh
+ * bug# 594 Calling MainFrame.setCurrentManager with newWindow = true
+ * when the window is first opened.  This prevents Setup Tomogram from
+ * coming up blank.  It also prevents the use of
+ * MainPanel.fitWindow() functionality, which doesn't work when opening
+ * Etomo.
+ *
  * Revision 1.6  2005/02/08 18:17:01  sueh
  * bug# 596 Added closeDefaultWindow() to close the window that comes
  * by default.  Closing default window when it is not in use and another
@@ -537,49 +544,60 @@ public class EtomoDirector {
     }
   }
   
+  /**
+   * To guarantee that etomo can always exit, catch all unrecognized Exceptions
+   * and Errors and return true.
+   * @return
+   */
   public boolean exitProgram() {
-    while (controllerList.size() != 0) {
-      if (!closeCurrentManager()) {
-        return false;
-      }
-    }
-    //  Should we close the 3dmod windows
-    //  Save the current window size to the user config
-    Dimension size = mainFrame.getSize();
-    userConfig.setMainWindowWidth(size.width);
-    userConfig.setMainWindowHeight(size.height);
-    //  Write out the user configuration data
-    File userConfigFile = new File(homeDirectory, ".etomo");
-    //  Make sure the config file exists, create it if it doesn't
     try {
-      userConfigFile.createNewFile();
-    }
-    catch (IOException except) {
-      System.err.println("IOException: Could not create file:"
-          + userConfigFile.getAbsolutePath() + "\n" + except.getMessage());
-      System.err.println(except.getMessage());
+      while (controllerList.size() != 0) {
+        if (!closeCurrentManager()) {
+          return false;
+        }
+      }
+      //  Should we close the 3dmod windows
+      //  Save the current window size to the user config
+      Dimension size = mainFrame.getSize();
+      userConfig.setMainWindowWidth(size.width);
+      userConfig.setMainWindowHeight(size.height);
+      //  Write out the user configuration data
+      File userConfigFile = new File(homeDirectory, ".etomo");
+      //  Make sure the config file exists, create it if it doesn't
+      try {
+        userConfigFile.createNewFile();
+      }
+      catch (IOException except) {
+        System.err.println("IOException: Could not create file:"
+            + userConfigFile.getAbsolutePath() + "\n" + except.getMessage());
+        System.err.println(except.getMessage());
+        return true;
+      }
+      ParameterStore userParams = new ParameterStore(userConfigFile);
+      Storable storable[] = new Storable[1];
+      storable[0] = userConfig;
+      if (!userConfigFile.canWrite()) {
+        mainFrame.openMessageDialog(
+            "Change permissions of $HOME/.etomo to allow writing",
+            "Unable to save user configuration file");
+      }
+      if (userConfigFile.canWrite()) {
+        try {
+          userParams.save(storable);
+        }
+        catch (IOException excep) {
+          excep.printStackTrace();
+          mainFrame.openMessageDialog(
+              "IOException: unable to save user parameters\n"
+                  + excep.getMessage(), "Unable to save user parameters");
+        }
+      }
       return true;
     }
-    ParameterStore userParams = new ParameterStore(userConfigFile);
-    Storable storable[] = new Storable[1];
-    storable[0] = userConfig;
-    if (!userConfigFile.canWrite()) {
-      mainFrame.openMessageDialog(
-          "Change permissions of $HOME/.etomo to allow writing",
-          "Unable to save user configuration file");
+    catch (Throwable e) {
+      e.printStackTrace();
+      return true;
     }
-    if (userConfigFile.canWrite()) {
-      try {
-        userParams.save(storable);
-      }
-      catch (IOException excep) {
-        excep.printStackTrace();
-        mainFrame.openMessageDialog(
-            "IOException: unable to save user parameters\n"
-                + excep.getMessage(), "Unable to save user parameters");
-      }
-    }
-    return true;
   }
   
   public void renameCurrentManager(String managerName) {
