@@ -48,7 +48,7 @@ $(LIBIFFT):	ifftsub/*.f
 	$(RANLIB) $(LIBIFFT)
 	$(CP) $(LIBIFFT) $(LIBDIR)
 
-$(LIBNMCAR):	graphics/*.f graphics/*.c
+$(LIBNMCAR):	graphics/*.f graphics/*.c*
 	(cd graphics ; $(MAKE) all)
 	\rm -f $(LIBNMCAR)
 	$(AR) $(ARFLAGS) $(LIBNMCAR) graphics/*.o

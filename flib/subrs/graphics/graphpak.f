@@ -197,7 +197,7 @@ c	  size was 5 for Parallax - set to 8 for X windows
 	write(dummy,'(i8)')numb
 	dum2(1:nchar)=dummy(9-nchar:8)
 	call p_sctext(1,8,8,icolor,ixcur,iycur,dum2)
-	call updat(1)
+c	call updat(1)
 	return
 	end
 
