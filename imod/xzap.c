@@ -35,6 +35,9 @@
     $Revision$
 
     $Log$
+    Revision 3.6  2002/10/22 22:41:47  mast
+    Changed some debug messages for the expose timeouts
+
     Revision 3.5  2002/09/13 21:03:58  mast
     Changes to minimize crashes with Ti4600 when resizing window with R -
     elimination of interfering draws, and postpone of draw after expose events
@@ -2567,62 +2570,73 @@ static void zapB2Drag(struct zapwin *zap, int x, int y)
 
 static void zapB3Drag(struct zapwin *zap, int x, int y)
 {
-     ImodView *vi = zap->vi;
-     Icont *cont;
-     Ipoint *lpt;
-     Ipoint pt;
-     Window rootr, childr;
-     int rx, ry, wx, wy;
-     unsigned int maskr;
-     float ix, iy;
+  ImodView *vi = zap->vi;
+  Iobj *obj;
+  Icont *cont;
+  Ipoint *lpt;
+  Ipoint pt;
+  Window rootr, childr;
+  int rx, ry, wx, wy;
+  unsigned int maskr;
+  float ix, iy;
 
-     XQueryPointer(App->display, XtWindow(zap->gfx),
-		   &rootr, &childr,
-		   &rx, &ry, &wx, &wy, &maskr);
+  XQueryPointer(App->display, XtWindow(zap->gfx),
+		&rootr, &childr,
+		&rx, &ry, &wx, &wy, &maskr);
      
-     if (vi->ax){
-	  if (vi->ax->altmouse == AUTOX_ALTMOUSE_PAINT){
-	       zapGetixy(zap, x, y, &ix, &iy);
-	       /* DNM 2/1/01: need to call with int */
-	       autox_setlow(vi, (int)ix, (int)iy);
-	       return;
-	  }
-     }
+  if (vi->ax){
+    if (vi->ax->altmouse == AUTOX_ALTMOUSE_PAINT){
+      zapGetixy(zap, x, y, &ix, &iy);
+      /* DNM 2/1/01: need to call with int */
+      autox_setlow(vi, (int)ix, (int)iy);
+      return;
+    }
+  }
 
-     if (!(maskr & Button3Mask))
-	  return;
+  if (!(maskr & Button3Mask))
+    return;
 
-     if (vi->imod->mousemode == IMOD_MMOVIE)
-	  return;
+  if (vi->imod->mousemode == IMOD_MMOVIE)
+    return;
      
-     if (vi->imod->cindex.point < 0)
-	  return;
-     cont = imodContourGet(vi->imod);
-     if (!cont)
-	  return;
+  if (vi->imod->cindex.point < 0)
+    return;
 
-     if (maskr & ControlMask) {
-	  zapDelUnderCursor(zap, x, y, cont);
-	  return;
-     }
+  cont = imodContourGet(vi->imod);
+  if (!cont)
+    return;
 
-     if (vi->imod->cindex.point == (cont->psize - 1))
-	  return;
-     if (!zapPointVisable(zap, &(cont->pts[vi->imod->cindex.point])))
-	  return;
+  /* DNM 11/13/02: do not allow operation on scattered points */
+  obj = imodObjectGet(vi->imod);
+  if (iobjScat(obj->flags))
+    return;
 
-     lpt = &(cont->pts[vi->imod->cindex.point]);
-     zapGetixy(zap, x, y, &(pt.x), &(pt.y));
-     pt.z = lpt->z;
-     if (imodel_point_dist(lpt, &pt) > vi->imod->res){
-	  ++vi->imod->cindex.point;
-	  lpt = &(cont->pts[vi->imod->cindex.point]);
-	  lpt->x = pt.x;
-	  lpt->y = pt.y;
-	  lpt->z = pt.z;
-	  imodDraw(vi, IMOD_DRAW_XYZ | IMOD_DRAW_MOD );
-     }
-     return;
+  if (maskr & ControlMask) {
+    zapDelUnderCursor(zap, x, y, cont);
+    return;
+  }
+
+  if (vi->imod->cindex.point == (cont->psize - 1))
+    return;
+
+  /* DNM 11/13/02: need to test for both next and current points to prevent
+     strange moves between sections */
+  if (!zapPointVisable(zap, &(cont->pts[vi->imod->cindex.point + 1])) ||
+      !zapPointVisable(zap, &(cont->pts[vi->imod->cindex.point])))
+    return;
+
+  lpt = &(cont->pts[vi->imod->cindex.point]);
+  zapGetixy(zap, x, y, &(pt.x), &(pt.y));
+  pt.z = lpt->z;
+  if (imodel_point_dist(lpt, &pt) > vi->imod->res){
+    ++vi->imod->cindex.point;
+    lpt = &(cont->pts[vi->imod->cindex.point]);
+    lpt->x = pt.x;
+    lpt->y = pt.y;
+    lpt->z = pt.z;
+    imodDraw(vi, IMOD_DRAW_XYZ | IMOD_DRAW_MOD );
+  }
+  return;
 }
 
 
