@@ -1,7 +1,6 @@
 package etomo.ui;
 
 import java.awt.GraphicsEnvironment;
-import java.awt.Dimension;
 import java.awt.event.*;
 import javax.swing.*;
 
@@ -61,8 +60,8 @@ public class SettingsDialog extends JDialog {
     panelFontSelect.add(new JLabel("Font family:"));
     listFontFamily.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     listFontFamily.setVisibleRowCount(3);
+    ltfFontSize.setColumns(3);
     panelFontSelect.add(scrollFontFamily);
-    ltfFontSize.setPreferredSize(new Dimension(30, 20));
     panelFontSelect.add(ltfFontSize.getContainer());
     /*    panelFontSelect.add(new JLabel("Style:"));
         listFontStyle.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
