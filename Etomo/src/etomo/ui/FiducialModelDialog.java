@@ -24,6 +24,9 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.6  2003/10/10 23:17:01  sueh
+ * <p> bug251 removing marks
+ * <p>
  * <p> Revision 2.5  2003/10/09 22:49:42  sueh
  * <p> bug251 fixed some null reference problems with transferfid
  * <p> panel in single axis mode
@@ -100,7 +103,7 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu {
   
   public FiducialModelDialog(ApplicationManager appMgr, AxisID axisID) {
     super(appMgr, axisID);
-    
+    setToolTipText();
     fixRootPanel(rootSize);
 
     panelBeadtrack = new BeadtrackPanel(axisID);
@@ -240,6 +243,25 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu {
       logFileLabel,
       logFile);
   }
+  
+  /**
+   * Tooltip string initialization
+   */
+  private void setToolTipText() {
+    String text;
+    TooltipFormatter tooltipFormatter = new TooltipFormatter();
+    
+    text = "Open new or existing seed model in 3dmod.";
+    buttonSeed.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = "Run Beadtrack to produce fiducial model from seed model.";
+    buttonTrack.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = "Load fiducial model into 3dmod.";
+    buttonFixModel.setToolTipText(tooltipFormatter.setText(text).format());
+  }
+  
+  
   //  Action function for buttons
   void buttonAction(ActionEvent event) {
     String command = event.getActionCommand();

@@ -20,6 +20,10 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.2  2003/10/15 00:26:37  sueh
+ * <p> Bug274 move fields to Advanced, changed labels,
+ * <p> removed Piece List File
+ * <p>
  * <p> Revision 2.1  2003/05/07 17:52:39  rickg
  * <p> Removed context menu, parent panel handles it
  * <p>
@@ -310,11 +314,111 @@ public class BeadtrackPanel {
 
   //  ToolTip string setup
   private void setToolTipText() {
-    String line1, line2, line3, line4, line5, line6, line7;
-    line1 = "<html>New text<br>";
-    line2 = "New text<br>";
-    line3 = "New text.";
-    ltfInputImage.setToolTipText(line1 + line2 + line3);
+    String text;
+    TooltipFormatter tooltipFormatter = new TooltipFormatter();
 
+    text = "Input file with images to track.";
+    ltfInputImage.setToolTipText(tooltipFormatter.setText(text).format());
+    
+    text = "Input model file of starting points to track.";
+    ltfSeedModelFile.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = "Output file for tracked model.";
+    ltfOutputModelFile.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = "List of views to skip over (comma-separated ranges without spaces).";
+    ltfViewSkipList.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = 
+      "Lists of views to group separately from other views.  Multiple lists can be "      + "entered; separate them by spaces.";
+    ltfAdditionalViewSets.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = "Default number of views to group together in solving for tilt angles.";
+    ltfTiltAngleGroupSize.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = 
+      "Sets of views with non-default grouping for tilt angle.  For each set, "
+      + "enter starting and ending view number and group size, separated by commas; "
+      + "separate multiple sets with spaces.";
+    ltfTiltAngleGroups.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = "Default number of views to group together in solving for magnifications.";
+    ltfMagnificationGroupSize.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = 
+      "Sets of views with non-default grouping for magnification.  For each set, "
+      + "enter starting and ending view number and group size, separated by commas; "
+      + "separate multiple sets with spaces.";
+    ltfMagnificationGroups.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = 
+      "Minimum number of views with bead positions required to do a tilt "      + "alignment.";
+    ltfNMinViews.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = 
+      "Radius for calculation of centroid, and 0 if beads are darker or 1 if "
+      + "they are lighter than background.";
+    ltfFiducialParams.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = "Fill in gaps in the seed model or leave them empty.";
+    chkboxFillGaps.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = "Maximum size of gap to create in the model before giving up on a fiducial.";
+    ltfMaxGap.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = 
+      "Minimum range of tilt angles for which data must be available before "
+      + "solving for tilt axis angle, and minimum range of angles required before "
+      + "solving for tilt angles.";
+    ltfTiltAngleMinRange.setToolTipText(tooltipFormatter.setText(text).format());
+    
+    text = "X and Y dimensions of the box used to search for a bead.";
+    ltfSearchBoxPixels.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = "Maximum number of views over which to average a bead.";
+    ltfMaxFiducialsAvg.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = 
+      "Number of positions to use for extrapolating a bead position to "
+      + "the next view, and minimum required to use extrapolation rather "
+      + "than just the mean of positions on the last few views.";
+    ltfFiducialExtrapolationParams.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = 
+      "Fraction of mean bead integral, and number of SDs "
+      + "below mean, to use as the criterion for when to attempt a rescue "
+      + "based on bead density.";
+    ltfRescueAttemptParams.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = 
+      "Distance away from expected position at which to attempt "
+      + "a rescue based on excessive distance.";
+    ltfMinRescueDistance.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = 
+      "Factors by which to relax the density criterion when "
+      + "trying to rescue - a factor for density rescue and one for "
+      + "distance rescue.";
+    ltfRescueRelaxtionParams.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = 
+      "Criterion distance for deletion of a point on the first pass "
+      + "after tilt alignment.";
+    ltfResidualDistanceLimit.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = 
+      "Factor by which to relax the density criterion on the second pass, "
+      + "and maximum distance to search from the expected position.";
+    ltfSecondPassParams.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = 
+      "Maximum and minimum number of changes in mean residual to use in "
+      + "finding the mean and SD of changes in the mean residual for a bead.";
+    ltfMeanResidChangeLimits.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = 
+      "Minimum change in residual, and criterion number of SDs from the "
+      + "mean residual change, to require for deletion of a point.";
+    ltfDeletionParams.setToolTipText(tooltipFormatter.setText(text).format());
   }
 }
