@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.9  2003/10/11 04:22:02  mast
+Remove \/, a bad combination
+
 Revision 3.8  2003/10/10 20:38:49  mast
 Made it count real arguments properly and had it eat \r from line ends
 for Windows
@@ -506,11 +509,15 @@ int PipGetBoolean(char *option, int *val)
   int err;
   if ((err = GetNextValueString(option, &strPtr)))
     return err;
-  if (!strcmp(strPtr, "1") || !strcasecmp(strPtr, "T") || 
-      !strcasecmp(strPtr, "TRUE") || !strcasecmp(strPtr, "ON"))
+  if (!strcmp(strPtr, "1") || !strcmp(strPtr, "T") || 
+      !strcmp(strPtr, "TRUE") || !strcmp(strPtr, "ON") || 
+      !strcmp(strPtr, "t") || 
+      !strcmp(strPtr, "true") || !strcmp(strPtr, "on"))
     *val = 1;
-  else if (!strcmp(strPtr, "0") || !strcasecmp(strPtr, "F") || 
-           !strcasecmp(strPtr, "FALSE") || !strcasecmp(strPtr, "OFF"))
+  else if (!strcmp(strPtr, "0") || !strcmp(strPtr, "F") || 
+           !strcmp(strPtr, "FALSE") || !strcmp(strPtr, "OFF")
+           || !strcmp(strPtr, "f") || 
+           !strcmp(strPtr, "false") || !strcmp(strPtr, "off"))
     *val = 0;
   else {
     sprintf(tempStr, "Illegal entry for boolean option %s: %s", option, 
