@@ -14,7 +14,10 @@ import java.util.ArrayList;
  *
  * @version $Revision$
  *
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2002/09/09 22:57:02  rickg
+ * <p> Initial CVS entry, basic functionality not including combining
+ * <p> </p>
  */
 public class TiltParam extends ConstTilt {
   public static final String rcsid = "$Id$";
@@ -336,6 +339,12 @@ public class TiltParam extends ConstTilt {
    */
   public void setExcludeList(String list) {
     excludeList.parseString(list);
+    if(excludeList.getNElements() > 0) {
+      useExcludeList = true;
+    }
+    else {
+      useExcludeList = false;
+    }
   }
 
 }
