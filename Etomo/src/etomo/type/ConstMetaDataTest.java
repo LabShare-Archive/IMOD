@@ -17,9 +17,12 @@ import etomo.process.SystemProgram;
  *
  * @author $$Author$$
  *
- * @version $$$$
+ * @version $Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.7  2004/11/24 22:14:26  sueh
+ * <p> $bug# 520 Getting the root test directory name from TypeTests.
+ * <p> $
  * <p> $Revision 3.6  2004/11/23 00:25:16  sueh
  * <p> $bug# 520 Using get and setPropertyUserDir instead of Property.
  * <p> $
