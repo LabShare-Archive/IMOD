@@ -1,6 +1,15 @@
+# Makefile for building Etomo under the IMOD structure
+#
+# MOTE: that this Makefile only works if run under the IMOD directory
+# structure and the IMOD configure file has been defined.
+#
 # $Author$
 #
 # $Revision$
+#
+# $Log$
+
+include ../configure
 
 JAVAC_EXE = javac
 
@@ -18,12 +27,7 @@ JAVAC = $(JAVAC_EXE) -d $(CLASSPATH) -sourcepath $(SOURCEPATH) $(JAVAC_OPTIONS)
 
 JAVADOC_OPTIONS = -author -version -private -use -breakiterator -doctitle "Etomo API" -windowtitle "Etomo API"
 
-TEST_BIN = \
-$(OUTPUT)/test/test_CircularBuffer.class \
-$(OUTPUT)/test/test_DataSource.class \
-
-
-MainTarget: $(JAR_FILE)
+all: $(JAR_FILE)
 	echo "Make completed."
 
 $(JAR_FILE): cpimages compile
@@ -36,6 +40,12 @@ cpimages:
 
 compile: 
 	$(JAVAC)  $(SOURCEPATH)/etomo/ApplicationManager.java
+
+install: $(JAR_FILE)
+	$(CP) $(JAR_FILE) $(INSTBINDIR)
+	chmod 755 scripts/etomo
+	$(CP) scripts/etomo $(INSTBINDIR)
+	
 
 tests: $(CLASS_FILES) $(TEST_BIN)
 	echo "Make tests completed"
