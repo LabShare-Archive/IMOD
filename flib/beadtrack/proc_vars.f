@@ -1,6 +1,14 @@
 c	  INPUT_VARS gets the specifications for the geometric variables
-c	  rotation, tilt, mag and compression.  It fills the VAR array and
+c	  rotation, tilt, mag, etc.  It fills the VAR array and
 c	  the different variable and mapping arrays.
+c
+c	  $Author$
+c
+c	  $Date$
+c
+c	  $Revision$
+c
+c	  $Log$
 c
 	subroutine proc_vars(rotorig,tiltorig,gmagorig,ivorig,
      &	    mapalltilt ,mapallmag,ifmaptilt,imintilt,var,
@@ -17,6 +25,7 @@ c
 c	  set up the first search variable as a global rotation angle
 c	  and the rest as delta rotation angles of each view after first
 c	  or, if one is fixed, set up all others as delta from that one
+c	  10/10/04: added appropriate mapping entries to work with new funct
 c
 	nvarsrch=0
 	if(ifrotfix.eq.0)then
@@ -24,9 +33,13 @@ c
 	  nvarsrch=1
 	  rot(1)=var(1)
 	  rotstart=rot(1)
+	  maprot(1) = 1
+	  linrot(1) = 0
+	  frcrot(1) = 1.
 	else
 	  rotstart=rotorig(ivorig(ifrotfix))*dtor
 	  rot(ifrotfix)=rotstart
+	  maprot(ifrotfix) = 0
 	endif
 c
 	do i=2,nview
@@ -35,7 +48,11 @@ c
 	  rot(iview)=rotorig(ivorig(iview))*dtor
 	  nvarsrch=nvarsrch+1
 	  var(nvarsrch)=rot(iview)-rotstart
+	  maprot(iview) = nvarsrch
+	  linrot(iview) = 0
+	  frcrot(iview) = 1.
 	enddo
+	fixedrot = 0.
 c
 c	  set up for fixed tilt angles
 c
@@ -133,5 +150,8 @@ c
 c	  This should be done once before calling
 c
 	ncompsrch=0
+	mapProjStretch = 0
+	projStretch = 0.
+	projSkew = 0.
 	return
 	end
