@@ -36,6 +36,10 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.9  2003/07/31 22:07:42  mast
+Complete set of object views before writing so new objects have the same
+properties in all views
+
 Revision 3.8  2003/07/17 14:27:24  mast
 Set point size and object flags in current view as well as object itself
 
@@ -107,6 +111,8 @@ Provide a function so that Wimp model reading routines can read VMS floats
 #define putsymtype   PUTSYMTYPE
 #define getimodtimes  GETIMODTIMES
 #define getimodsurfaces  GETIMODSURFACES
+#define getimodobjname  GETIMODOBJNAME
+#define getimodobjsize  GETIMODOBJSIZE
 #else
 #define newimod      newimod_
 #define deleteimod   deleteimod_
@@ -134,6 +140,8 @@ Provide a function so that Wimp model reading routines can read VMS floats
 #define putsymtype   putsymtype_
 #define getimodtimes  getimodtimes_
 #define getimodsurfaces  getimodsurfaces_
+#define getimodobjname  getimodobjname_
+#define getimodobjsize  getimodobjsize_
 #endif
 
 typedef struct
@@ -1231,3 +1239,42 @@ int getimodsurfaces(int *surfs)
 
   return FWRAP_NOERROR;
 }
+
+int getimodobjname(int *ob,
+#ifdef F77STRING
+             F77String *f77str
+#else
+             char  *fname, 
+             int   fsize
+#endif
+             )
+{
+#ifdef F77STRING
+  int fsize = f77str->length;
+  char *fname = f77str->string;
+#endif
+  Iobj *obj;
+  int i = 0;
+
+  if (!Fimod)
+    return(FWRAP_ERROR_NO_MODEL);
+  if (*ob < 1 && *ob > Fimod->objsize)
+    return(1);
+  obj = &Fimod->obj[*ob - 1];
+  if (!obj) 
+    return(1);
+
+  for (i = 0; i < fsize && i < IOBJ_STRSIZE && obj->name[i] ; i++)
+    fname[i] = obj->name[i];
+  for (; i < fsize; i++)
+    fname[i] = 0x20;
+  return FWRAP_NOERROR;
+}
+
+int getimodobjsize()
+{
+  if (!Fimod)
+    return -1;
+  return Fimod->objsize;
+}
+
