@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.4  2003/12/17 21:44:19  mast
+Changes to implement global rotations
+
 Revision 3.3  2003/11/01 16:43:10  mast
 changed to put out virtually all error messages to a window
 
@@ -194,7 +197,7 @@ int save_view(struct Midas_view *vw, char *filename)
  */
 int load_transforms(struct Midas_view *vw, char *filename)
 {
-  int k, ixy, nedgex, nedgey;
+  int i, k, ixy, nedgex, nedgey, numRead;
   QString str = filename;
   QString qline;
 
@@ -229,8 +232,15 @@ int load_transforms(struct Midas_view *vw, char *filename)
     set_mont_pieces(vw);
 
   } else {		 
+
+    // Regular transforms: set up number to read (less if chunks)
+    numRead = vw->numChunks ? vw->numChunks : vw->zsize;
 		    
-    for (k = 0 ; k < vw->zsize; k++){
+    // Make unit transforms
+    for (k = 0 ; k < numRead; k++)
+      tramat_idmat(vw->tr[k].mat);
+
+    for (k = 0 ; k < numRead; k++) {
 
       // Read a line; skip blank lines but quit loop on end of file
       while (1) {
@@ -257,6 +267,13 @@ int load_transforms(struct Midas_view *vw, char *filename)
       rotate_all_transforms(vw, vw->globalRot);
   }
 	
+  // Copy transforms up for chunk mode
+  for (i = vw->numChunks - 1; i >= 0; i--) {
+    for (k = vw->chunk[i + 1].start - 1; k >= vw->chunk[i].start; k--)
+      if (k != i)
+        tramat_copy(vw->tr[i].mat, vw->tr[k].mat);
+  }
+
   /* flush the cache of any transformed images */
   flush_xformed(vw);
 
@@ -271,7 +288,7 @@ int load_transforms(struct Midas_view *vw, char *filename)
  */
 int write_transforms(struct Midas_view *vw, char *filename)
 {
-  int k, ixy;
+  int k, ixy, numWrite, i;
   float mat[9];
   QString str = filename;
 
@@ -294,7 +311,9 @@ int write_transforms(struct Midas_view *vw, char *filename)
 
   } else {
 
-    for(k = 0; k < vw->zsize; k++){
+    numWrite = vw->numChunks ? vw->numChunks : vw->zsize;
+    for (i = 0; i < numWrite; i++) {
+      k = vw->numChunks ? vw->chunk[i].start : i;
       tramat_copy(vw->tr[k].mat, mat);
       if (vw->rotMode)
         rotate_transform(mat, -vw->globalRot);

@@ -85,7 +85,7 @@ int new_view(struct Midas_view *vw)
   vw->refname = NULL;
   vw->xsec  = 0;
   vw->plname = NULL;
-  vw->reftext = NULL;
+  vw->refSpin = NULL;
   vw->wXedge = NULL;
   vw->wMeanerr = NULL;
 
@@ -95,6 +95,7 @@ int new_view(struct Midas_view *vw)
   vw->boxsize = INITIAL_BOX_SIZE;
   vw->rotMode = 0;
   vw->globalRot = 0.;
+  vw->numChunks = 0;
   vw->cachesize = 0;
   vw->cache = NULL;
   vw->usecount = 0;
@@ -180,7 +181,7 @@ int load_view(struct Midas_view *vw, char *fname)
     vw->cache[k].sec = mrc_slice_create(vw->xsize, vw->ysize, 
                                         MRC_MODE_BYTE);
     if (!vw->cache[k].sec)
-      midas_error("Out of memory! ", "Exiting", -1);
+      midas_error("Out of memory! ", "Exiting", 3);
     vw->cache[k].zval = -1;
     vw->cache[k].xformed = -1;
     vw->cache[k].used = -1;
@@ -193,15 +194,7 @@ int load_view(struct Midas_view *vw, char *fname)
   for (k = 0 ; k <= vw->zsize; k++){
     vw->tr[k].black = 0;
     vw->tr[k].white = 255;
-    vw->tr[k].mat[0] = 1.0;
-    vw->tr[k].mat[1] = 0.0;
-    vw->tr[k].mat[2] = 0.0;
-    vw->tr[k].mat[3] = 0.0;
-    vw->tr[k].mat[4] = 1.0;
-    vw->tr[k].mat[5] = 0.0;
-    vw->tr[k].mat[6] = 0.0;
-    vw->tr[k].mat[7] = 0.0;
-    vw->tr[k].mat[8] = 1.0;
+    tramat_idmat(vw->tr[k].mat);
   }
 
   vw->id = (unsigned long *)malloc(vw->xysize * sizeof(unsigned long));
@@ -210,7 +203,7 @@ int load_view(struct Midas_view *vw, char *fname)
   if (vw->refname) {
     vw->ref = mrc_slice_create(vw->xsize, vw->ysize, MRC_MODE_BYTE);
     if (!vw->ref)
-      midas_error("Out of memory! ", "Exiting", -1);
+      midas_error("Out of memory! ", "Exiting", 3);
     if (load_refimage(vw, vw->refname))
       return(1);
     vw->refz = vw->xsec;
@@ -218,12 +211,43 @@ int load_view(struct Midas_view *vw, char *fname)
     vw->cz = 0;
   }
 
+  /* Analyze chunk list and set up view sections for each pair */
+  if (vw->numChunks) {
+    if (vw->chunk[vw->numChunks].start < vw->zsize) {
+      vw->chunk[vw->numChunks].start = vw->zsize;
+      dia_puts("The total number of sections in the chunk list is less than "
+               "the number of sections in the image.  The extra sections are "
+               "assumed to be in the last chunk");
+    } else if (vw->chunk[vw->numChunks].start > vw->zsize) {
+      if (vw->chunk[vw->numChunks - 1].start >= vw->zsize)
+        midas_error("The total number of sections in the chunk list is too "
+                    "large for the number of sections in the file", "", 1);
+      vw->chunk[vw->numChunks].start = vw->zsize;
+      dia_puts("The total number of sections in the chunk list is more than "
+               "the number of sections in the image.  The extra sections are "
+               "assumed to be in the last chunk");
+    }
+    vw->chunk[vw->numChunks - 1].size = vw->chunk[vw->numChunks].start -
+      vw->chunk[vw->numChunks - 1].start;
+
+    for (k = 0; k < vw->numChunks; k++) {
+      vw->chunk[k].curSec = vw->chunk[k].start;
+      vw->chunk[k].refSec = vw->chunk[k + 1].start - 1;
+      /*printf("%d %d %d %d %d\n", k, vw->chunk[k].size, vw->chunk[k].start,
+        vw->chunk[k].curSec, vw->chunk[k].refSec); */
+    }
+    vw->cz = vw->chunk[1].curSec;
+    vw->refz = vw->chunk[0].refSec;
+    vw->curChunk = 1;
+    vw->keepsecdiff = 0;
+  }
+
   /* Now get pieces and analyze them if montage */
   if (vw->plname) {
     str = vw->plname;
     QFile file(str);
     if (!file.open(IO_ReadOnly | IO_Translate))
-      midas_error("Error opening ", vw->plname, -1);
+      midas_error("Error opening ", vw->plname, 3);
 
     QTextStream stream(&file);
     stream.setf(QTextStream::dec);
@@ -236,7 +260,7 @@ int load_view(struct Midas_view *vw, char *fname)
     vw->fbs_indvar = (int *)malloc(2 * vw->zsize * sizeof(int));
     if (!vw->xpclist || !vw->ypclist || !vw->zpclist || !vw->edgeupper
         || !vw->edgelower || !vw->fbs_indvar)
-      midas_error("Error getting memory for piece list.", "", -1);
+      midas_error("Error getting memory for piece list.", "", 3);
 
     vw->minzpiece = 1000000;
     vw->maxzpiece = -1000000;
@@ -244,7 +268,7 @@ int load_view(struct Midas_view *vw, char *fname)
       str = stream.readLine();
       if (str.isEmpty()) {
         str.sprintf("Error reading piece list after %d lines\n" , k);
-        midas_error((char *)str.latin1(), "", -1);
+        midas_error((char *)str.latin1(), "", 3);
       }
 
       sscanf(str.latin1(), "%d %d %d", &(vw->xpclist[k]), 
@@ -261,7 +285,7 @@ int load_view(struct Midas_view *vw, char *fname)
               &vw->nypieces, &vw->nyoverlap);
     if (vw->nxpieces < 0 || vw->nypieces < 0)
       midas_error("Piece list does not have regular array "
-                  "of coordinates.", "", -1);
+                  "of coordinates.", "", 3);
 
     vw->maxedge[0] = vw->nypieces * (vw->nxpieces - 1);
     vw->maxedge[1] = vw->nxpieces * (vw->nypieces - 1);
@@ -283,7 +307,7 @@ int load_view(struct Midas_view *vw, char *fname)
     if (!vw->montmap || !vw->pieceupper || !vw->piecelower ||
         !vw->edgedx || !vw->edgedy || !vw->fbs_a || !vw->fbs_b ||
         !vw->fbs_ivarpc)
-      midas_error("Error getting memory for piece analysis.", "", -1);
+      midas_error("Error getting memory for piece analysis.", "", 3);
 
     /*get edge indexes for pieces and piece indexes for edges
       first build a vw->montmap of all pieces present */
@@ -338,7 +362,7 @@ int load_view(struct Midas_view *vw, char *fname)
           
     if (!vw->nedge[0] && !vw->nedge[1])
       midas_error("There are no edges or no montage "
-              "according to these piece coordinates.", "", -1);
+              "according to these piece coordinates.", "", 3);
           
     vw->xory = 0;
     vw->montcz = nearest_section(vw, vw->minzpiece, 0);
@@ -1667,6 +1691,9 @@ static void solve_for_shifts(struct Midas_view *vw, float *a, float *b,
 
 /*
 $Log$
+Revision 3.8  2004/07/07 19:25:31  mast
+Changed exit(-1) to exit(3) for Cygwin
+
 Revision 3.7  2004/02/27 21:37:46  mast
 Fixed treatment of x/ycenter when transforming and rotating, etc.
 
