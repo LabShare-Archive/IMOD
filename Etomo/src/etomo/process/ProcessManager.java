@@ -20,6 +20,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.34  2004/08/25 18:35:53  sueh
+ * bug# 508 print diagnostics during kill
+ *
  * Revision 3.33  2004/08/24 20:44:09  sueh
  * bug# 508 change BackgroundProcessMonitor.kill() to
  * killMonitor()
@@ -1549,13 +1552,9 @@ public class ProcessManager {
     if (thread != null) {
       processID = thread.getShellProcessID();
     }
-    killProcessAndDescendants(processID);
     
-    System.out.println("Finished killing processes:");
-    for (int i = 0; i < 5; i++) {
-      System.out.println("ps axl after killing process #" + i + ":");
-      getChildProcessList(processID);
-    }
+    killProcessGroup(processID);
+    killProcessAndDescendants(processID);
     
     if (thread instanceof BackgroundComScriptProcess) {
       ((BackgroundComScriptProcess) thread).killMonitor();
@@ -1628,6 +1627,29 @@ public class ProcessManager {
     //record killed process
     killedList.put(processID, "");
   }
+  
+  protected void killProcessGroup(String processID) {
+    if (processID == null || processID.equals("")) {
+      return;
+    }
+    long pid = Long.parseLong(processID);
+    if (pid == 0 || pid == 1) {
+      return;
+    }
+    long groupPid = pid * -1;
+    String groupProcessID = Long.toString(groupPid);
+    //try to prevent process from spawning with a SIGSTOP signal
+    SystemProgram killShell = new SystemProgram("kill -19 " + groupProcessID);
+    killShell.run();
+    System.out.println("stopped group: " + groupProcessID + " at " + killShell.getRunTimestamp());
+    Utilities.debugPrint("stopped group: " + groupProcessID + " at " + killShell.getRunTimestamp());
+
+    killShell = new SystemProgram("kill -9 " + groupProcessID);
+    killShell.run();
+    System.out.println("killed group: " + groupProcessID + " at " + killShell.getRunTimestamp());
+    Utilities.debugPrint("killed group: " + groupProcessID + " at " + killShell.getRunTimestamp());
+  }
+
 
   /**
    * Return a PID of a child process for the specified parent process.  A new
@@ -1710,7 +1732,7 @@ public class ProcessManager {
     //ps -l: get user processes on this terminal
     SystemProgram ps = new SystemProgram("ps axl");
     ps.run();
-    System.out.println("ps axl date=" +  ps.getRunTimestamp());
+    //System.out.println("ps axl date=" +  ps.getRunTimestamp());
     //  Find the index of the Parent ID and ProcessID
     String[] stdout = ps.getStdOutput();
     String header = stdout[0].trim();
@@ -1748,9 +1770,9 @@ public class ProcessManager {
     // Walk through the process list finding the PID of the children
     ArrayList childrenPID = new ArrayList();
     String[] fields;
-    System.out.println(stdout[0]);
+    //System.out.println(stdout[0]);
     for (int i = 1; i < stdout.length; i++) {
-      System.out.println(stdout[i]);
+      //System.out.println(stdout[i]);
       fields = stdout[i].trim().split("\\s+");
       if (fields[idxPPID].equals(processID)
         && !killedList.containsKey(fields[idxPID])) {
@@ -1776,6 +1798,20 @@ public class ProcessManager {
     String[] children = (String[]) childrenPID.toArray(new String[childrenPID
       .size()]);
     return children;
+  }
+
+
+  private void printPsOutput() {
+    SystemProgram ps = new SystemProgram("ps axl");
+    ps.run();
+    System.out.println("ps axl date=" +  ps.getRunTimestamp());
+    //  Find the index of the Parent ID and ProcessID
+    String[] stdout = ps.getStdOutput();
+
+    System.out.println(stdout[0]);
+    for (int i = 1; i < stdout.length; i++) {
+      System.out.println(stdout[i]);
+    }
   }
 
   /**
