@@ -14,6 +14,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.2  2003/11/01 16:42:15  mast
+changed to use new error processing routine
+
 Revision 3.1  2003/02/27 17:05:37  mast
 define coordinate upper limits as -1 initially to avoid confusion with a true
 upper limit of 0
@@ -39,7 +42,8 @@ ImodImageFile *iiNew()
   memset(ofile, 0, sizeof(ImodImageFile));
   ofile->xscale = ofile->yscale = ofile->zscale = 1.0f;
   ofile->slope  = 1.0f;
-  ofile->imax   = 255;
+  ofile->smax   = 255;
+  ofile->axis   = 3;
   ofile->format = IIFILE_UNKNOWN;
   ofile->fp     = NULL;
   ofile->readSection     = NULL;
@@ -126,35 +130,38 @@ int  iiReopen(ImodImageFile *inFile)
   return 0;
 }
 
-int  iiSetMM(ImodImageFile *inFile, double inMin, double inMax)
+/* Set the scaling min/max for this file and compute scaling slope/offset
+   Use the input inMin and inMax, or file min and max if they are not set 
+   1/3/04: change from double to float for arguments */
+int  iiSetMM(ImodImageFile *inFile, float inMin, float inMax)
 {
   float range;
   int black = 0, white = 255;
 
-  /* DNM: only modify the existing imin, imax if incoming data is useful, and
+  /* DNM: only modify the existing smin, smax if incoming data is useful, and
      set the min and the max to 0, 255 if they are still equal */
 
   if (inMin != inMax) {
-    inFile->imin = inMin;
-    inFile->imax = inMax;
+    inFile->smin = inMin;
+    inFile->smax = inMax;
   }
 
-  if (inFile->imin == inFile->imax){
-    inFile->imin = 0;
-    inFile->imax = 255;
+  if (inFile->smin == inFile->smax){
+    inFile->smin = 0;
+    inFile->smax = 255;
   }
 
   /* DNM 2/16/01: set scaling properly for complex mode, the same as for
      full-file reads with mrc_read_byte */
   if (inFile->format == IIFORMAT_COMPLEX) {
-    inFile->imin = log(1.0 + 5.0 * inFile->imin);
-    inFile->imax = log(1.0 + 5.0 * inFile->imax);
+    inFile->smin = log(1.0 + 5.0 * inFile->smin);
+    inFile->smax = log(1.0 + 5.0 * inFile->smax);
   }
 
-  range = inFile->imax - inFile->imin;
+  range = inFile->smax - inFile->smin;
   inFile->slope = 255.0 / range;
 
-  inFile->offset = -inFile->imin * inFile->slope;
+  inFile->offset = -inFile->smin * inFile->slope;
 
   /* printf("iiSetMM %g %g -> %g %g\n",
      inMin, inMax, inFile->slope, inFile->offset); */
