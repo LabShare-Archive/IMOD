@@ -31,29 +31,7 @@
     $Date$
 
     $Revision$
-
-    $Log$
-    Revision 3.3  2003/02/27 18:13:59  mast
-    Add ImodView argument to imodDrawModel so that times can be detected
-
-    Revision 3.2  2003/02/10 20:41:55  mast
-    Merge Qt source
-
-    Revision 3.1.2.4  2003/01/29 01:43:00  mast
-    add colormap draw flag
-
-    Revision 3.1.2.3  2003/01/27 00:30:07  mast
-    Pure Qt version and general cleanup
-
-    Revision 3.1.2.2  2003/01/13 01:15:42  mast
-    changes for Qt version of info window
-
-    Revision 3.1.2.1  2003/01/02 15:38:16  mast
-    remove declarations for control.c functions
-
-    Revision 3.1  2002/12/01 15:34:41  mast
-    Changes to get clean compilation with g++
-
+    Log at end of file
 */
 #ifndef IMOD_H
 #define IMOD_H
@@ -136,11 +114,11 @@ char *ivwGetTimeLabel(ImodView *inImodView);
 char *ivwGetTimeIndexLabel(ImodView *inImodView, int inIndex);
 
 /* 
- * Returns pointer to raw grey scale image data for given z section. 
+ * Returns line pointers to raw grey scale image data for given z section. 
  */
-unsigned char *ivwGetZSection(ImodView *inImodView, int inSection);
-unsigned char *ivwGetCurrentZSection(ImodView *inImodView);
-unsigned char *ivwGetZSectionTime(ImodView *iv, int section, int time);
+unsigned char **ivwGetZSection(ImodView *inImodView, int inSection);
+unsigned char **ivwGetCurrentZSection(ImodView *inImodView);
+unsigned char **ivwGetZSectionTime(ImodView *iv, int section, int time);
      
 /* Returns grey scale value for given image coordinate. */
 int ivwGetValue(ImodView *inImodView, int inX, int inY, int inZ);
@@ -224,3 +202,31 @@ void wprint(char *fmt, ...);
 /*****************************************************************************/
 
 #endif /* IMOD_H */
+
+/*
+    $Log$
+    Revision 3.4  2003/06/27 19:24:45  mast
+    Add function to get extra object
+
+    Revision 3.3  2003/02/27 18:13:59  mast
+    Add ImodView argument to imodDrawModel so that times can be detected
+
+    Revision 3.2  2003/02/10 20:41:55  mast
+    Merge Qt source
+
+    Revision 3.1.2.4  2003/01/29 01:43:00  mast
+    add colormap draw flag
+
+    Revision 3.1.2.3  2003/01/27 00:30:07  mast
+    Pure Qt version and general cleanup
+
+    Revision 3.1.2.2  2003/01/13 01:15:42  mast
+    changes for Qt version of info window
+
+    Revision 3.1.2.1  2003/01/02 15:38:16  mast
+    remove declarations for control.c functions
+
+    Revision 3.1  2002/12/01 15:34:41  mast
+    Changes to get clean compilation with g++
+
+*/
