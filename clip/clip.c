@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.2  2002/06/26 16:47:22  mast
+    Allowed writing to swapped files
+
 */
 
 #include <stdlib.h>
@@ -51,8 +54,8 @@ void usage(void)
 	     "%s: Command Line Image Processing. %s, %s %s\n",
 	     VERSION_NAME,
 	     name, __DATE__, __TIME__);
-     fprintf(stderr, 
-	     "Copyright (C) 1995-2001 Boulder Laboratory for 3-Dimensional");
+     fprintf(stderr, "Copyright (C) %s Boulder Laboratory for 3-Dimensional",
+	     COPYRIGHT_YEARS);
      fprintf(stderr,"Fine Structure,\n Regents of the Univ. of Colorado\n");
      fprintf(stderr, "----------------------------------------------------\n");
 
