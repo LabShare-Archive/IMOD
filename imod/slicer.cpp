@@ -52,6 +52,7 @@ Log at end of file
 #include "hotslider.h"
 #include "dia_qtutils.h"
 #include "xcramp.h"
+#include "imod_edit.h"
 
 
 /* internal functions. */
@@ -59,6 +60,7 @@ static void sslice_cube_draw(SlicerStruct *ss);
 static void sslice_draw(SlicerStruct *ss);
 static void sslice_setxyz(SlicerStruct *ss, int x, int y);
 static void slice_trans_step(SlicerStruct *ss);
+static void slicer_attach_point(SlicerStruct *ss, int x, int y);
 static void slicer_insert_point(SlicerStruct *ss, int x, int y);
 static void slicer_modify_point(SlicerStruct *ss, int x, int y);
 static void slicerUpdateImage(SlicerStruct *ss);
@@ -591,20 +593,60 @@ void slicerMousePress(SlicerStruct *ss, QMouseEvent *event)
 {
   ivwControlPriority(ss->vi, ss->ctrl);
 
-  if (event->stateAfter() & Qt::LeftButton){
-    sslice_setxyz(ss, event->x(), event->y());
-    /* DNM: for select hits, do keep cz at an integral value */
-    ss->pending = 0;
-    imodDraw(ss->vi, IMOD_DRAW_IMAGE | IMOD_DRAW_XYZ);
-  }
+  if (event->stateAfter() & Qt::LeftButton)
+    slicer_attach_point(ss, event->x(), event->y());
 
   if (event->stateAfter() & Qt::MidButton)
-      slicer_insert_point(ss, event->x(), event->y());
-
+    slicer_insert_point(ss, event->x(), event->y());
+  
   if (event->stateAfter() & Qt::RightButton)
-      slicer_modify_point(ss, event->x(), event->y());
+    slicer_modify_point(ss, event->x(), event->y());
 }
 
+static void slicer_attach_point(SlicerStruct *ss, int x, int y)
+{
+  Ipoint pnt;
+  Ipoint *spnt;
+  int i, temp_distance, distance;
+  ImodView *vi = ss->vi;
+  Imod *imod = vi->imod;
+  Iindex index;
+  float selsize = IMOD_SELSIZE / ss->zoom;
+
+
+  sslice_setxyz(ss, x, y);
+  if (imod->mousemode == IMOD_MMODEL) {
+    pnt.x = vi->xmouse;
+    pnt.y = vi->ymouse;
+    pnt.z = vi->zmouse;
+    imod->cindex.contour = -1;
+    imod->cindex.point = -1;
+
+    for (i = 0; i < imod->objsize; i++){
+      index.object = i;
+      temp_distance = imod_obj_nearest
+        (&(imod->obj[i]), &index , &pnt, selsize);
+      if (temp_distance == -1)
+        continue;
+      if (distance == -1 || distance > temp_distance){
+        distance      = temp_distance;
+        imod->cindex.object  = index.object;
+        imod->cindex.contour = index.contour;
+        imod->cindex.point   = index.point;
+        spnt = imodPointGet(imod);
+        if (spnt){
+          vi->xmouse = spnt->x;
+          vi->ymouse = spnt->y;
+	  vi->zmouse = spnt->z;
+        }
+      }
+    }
+  }
+
+  /* DNM: for select hits, do keep cz at an integral value */
+  ss->pending = 0;
+  imodDraw(ss->vi, IMOD_DRAW_RETHINK | IMOD_DRAW_IMAGE | IMOD_DRAW_XYZ);
+}
 static void slicer_insert_point(SlicerStruct *ss, int x, int y)
 {
   sslice_setxyz(ss, x, y);
@@ -1528,8 +1570,9 @@ static void slicerDraw_cb(ImodView *vi, void *client, int drawflag)
     }
   }
 
-  if (drawflag & (IMOD_DRAW_ACTIVE | IMOD_DRAW_IMAGE)){
-    if (ss->pending) {
+  /* DNM 3/11/03: try moving only if not locked */
+  if ((drawflag & (IMOD_DRAW_ACTIVE | IMOD_DRAW_IMAGE))){
+    if (ss->pending && !ss->locked) {
       ss->cx = ss->lx = ss->pendx;
       ss->cy = ss->ly = ss->pendy;
       ss->cz = ss->lz = ss->pendz;
@@ -1795,6 +1838,10 @@ void slicerCubePaint(SlicerStruct *ss)
 
 /*
 $Log$
+Revision 4.5  2003/03/03 22:44:44  mast
+Added +/- 15 degree hot keys.  Mode it display modeling cursor only
+in model mode
+
 Revision 4.4  2003/02/27 23:46:05  mast
 Add keypad keys to move by +/-15 degrees.
 
