@@ -416,9 +416,9 @@ public class ConstMetaDataTest extends TestCase {
   }
 
   /*
-   * Class to test for boolean isValid()
+   * Class to test for boolean isDatasetNameValid()
    */
-  final public void testIsValid() {
+  final public void testIsDatasetNameValid() {
     String invalidReason;
     //Test failures
 
@@ -430,7 +430,7 @@ public class ConstMetaDataTest extends TestCase {
         "user.dir",
         "/home/sueh/JUnitTests/etomo/type/ConstMetaData_dummy");
     testInst.setBackupDirectory(dummyDir2.getAbsolutePath());
-    assertFalse(testInst.isValid());
+    assertFalse(testInst.isDatasetNameValid());
     invalidReason = testInst.getInvalidReason();
     if (invalidReason.equals("")
       || invalidReason.indexOf("exist") == -1
@@ -443,7 +443,7 @@ public class ConstMetaDataTest extends TestCase {
     //unreadable working directory
     System.setProperty("user.dir", unreadableDir.getAbsolutePath());
     testInst.setBackupDirectory(unwritableDir.getAbsolutePath());
-    assertFalse(testInst.isValid());
+    assertFalse(testInst.isDatasetNameValid());
     invalidReason = testInst.getInvalidReason();
     if (invalidReason.equals("")
       || invalidReason.indexOf("read") == -1
@@ -453,7 +453,7 @@ public class ConstMetaDataTest extends TestCase {
     //unwritable working directory
     System.setProperty("user.dir", unwritableDir.getAbsolutePath());
     testInst.setBackupDirectory(unreadableDir.getAbsolutePath());
-    assertFalse(testInst.isValid());
+    assertFalse(testInst.isDatasetNameValid());
     invalidReason = testInst.getInvalidReason();
     if (invalidReason.equals("")
       || invalidReason.indexOf("writ") == -1
@@ -464,7 +464,7 @@ public class ConstMetaDataTest extends TestCase {
     //unreadable backup directory
     System.setProperty("user.dir", dummyDir.getAbsolutePath());
     testInst.setBackupDirectory(unreadableDir.getAbsolutePath());
-    assertFalse(testInst.isValid());
+    assertFalse(testInst.isDatasetNameValid());
     invalidReason = testInst.getInvalidReason();
     if (invalidReason.equals("")
       || invalidReason.indexOf("read") == -1
@@ -473,7 +473,7 @@ public class ConstMetaDataTest extends TestCase {
     }
     //unwritable backup directory
     testInst.setBackupDirectory(unwritableDir.getAbsolutePath());
-    assertFalse(testInst.isValid());
+    assertFalse(testInst.isDatasetNameValid());
     invalidReason = testInst.getInvalidReason();
     if (invalidReason.equals("")
       || invalidReason.indexOf("writ") == -1
@@ -487,19 +487,44 @@ public class ConstMetaDataTest extends TestCase {
     testInst.setAxisType(AxisType.DUAL_AXIS);
     testInst.setDatasetName(unreadableDatasetName);
     System.setProperty("user.dir", unreadableFileDir.getAbsolutePath());
-    assertFalse(testInst.isValid());
+    assertFalse(testInst.isDatasetNameValid());
     //file B not found
     System.setProperty("user.dir", unreadableBFileDir.getAbsolutePath());
-    assertFalse(testInst.isValid());
+    assertFalse(testInst.isDatasetNameValid());
     //single axis
     testInst.setAxisType(AxisType.SINGLE_AXIS);
     testInst.setDatasetName(unreadableDatasetName);
     System.setProperty("user.dir", unreadableFileDir.getAbsolutePath());
-    assertFalse(testInst.isValid());
+    assertFalse(testInst.isDatasetNameValid());
+    
+    //Test successes
+    testInst.setDatasetName(validDatasetName);
+    System.setProperty("user.dir", validFileDir.getAbsolutePath());
+
+    //working dir, single axis
+    assertTrue(testInst.isDatasetNameValid());
+
+    //backup dir, dual axis
+    System.setProperty("user.dir", emptyDir.getAbsolutePath());
+    testInst.setBackupDirectory(validFileDir.getAbsolutePath());
+    testInst.setAxisType(AxisType.DUAL_AXIS);
+    assertTrue(testInst.isDatasetNameValid());
+
+    System.setProperty("user.dir", workingDir);
+
+  }
+
+
+  /*
+   * Class to test for boolean isValid()
+   */
+  final public void testIsValid() {
+    String invalidReason;
+    //Test failures
 
     //incorrect pixel size
     testInst.setDatasetName(validDatasetName);
-    System.setProperty("user.dir", validFileDir.getAbsolutePath());
+    String workingDir = System.setProperty("user.dir", validFileDir.getAbsolutePath());
     testInst.setPixelSize(0);
     assertFalse(testInst.isValid());
     invalidReason = testInst.getInvalidReason();
@@ -525,12 +550,6 @@ public class ConstMetaDataTest extends TestCase {
 
     //working dir, single axis
     testInst.setFiducialDiameter(15);
-    assertTrue(testInst.isValid());
-
-    //backup dir, dual axis
-    System.setProperty("user.dir", emptyDir.getAbsolutePath());
-    testInst.setBackupDirectory(validFileDir.getAbsolutePath());
-    testInst.setAxisType(AxisType.DUAL_AXIS);
     assertTrue(testInst.isValid());
 
     System.setProperty("user.dir", workingDir);
