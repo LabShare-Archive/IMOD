@@ -2074,6 +2074,9 @@ void zapLimitWindowPos(int neww, int newh, int &newdx, int &newdy)
 #ifdef Q_OS_MACX
   mintop = Y_BORDERS - TITLE_SPACE - 10;
 #endif
+#ifdef SGI_GEOMETRY_HACK
+  mintop = (Y_BORDERS + TITLE_SPACE) / 2;
+#endif
 
   if (newdx < X_BORDERS / 2)
     newdx = X_BORDERS / 2;
@@ -2094,7 +2097,7 @@ static void zapResizeToFit(ZapStruct *zap)
   float xl, xr, yb, yt;
   width = zap->qtWindow->width();
   height = zap->qtWindow->height();
-  QPoint pos = zap->qtWindow->pos();
+  QRect pos = ivwRestorableGeometry(zap->qtWindow);
   dx = pos.x();
   dy = pos.y();
   /* printf("dx %d dy %d\n", dx, dy); */
@@ -2809,6 +2812,10 @@ bool zapTimeMismatch(ImodView *vi, int timelock, Iobj *obj, Icont *cont)
 
 /*
 $Log$
+Revision 4.31  2003/09/24 00:49:04  mast
+Switched from keeping track of geometry to keeping track of pos() and
+size() when saving and restoring positions and sizes
+
 Revision 4.30  2003/09/18 00:47:20  mast
 Added some functions for limiting window area to the desktop, with system-
 dependent Y positions; got geometry setting stable by setting it after the
