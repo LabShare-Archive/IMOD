@@ -23,6 +23,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.13  2003/11/03 23:37:53  mast
+c	  Made it put out an empty model if there are no points to replace
+c	
 c	  Revision 3.12  2003/10/30 06:32:24  mast
 c	  Limited number of pixels in difference patches to avoid erasing gold
 c	  particles in binned-down images.
@@ -95,7 +98,7 @@ c
 	integer*4 getimodhead,getimodscales
 	real*4 xyscal,zscale,xofs,yofs,zofs,ximscale, yimscale, zimscale
 	real*4 critMain, critGrow, critScan, critDiff, radiusMax, outerRadius
-	real*4 scanOverlap
+	real*4 scanOverlap, annulusWidth
 	integer*4 ifPeakSearch, iScanSize,ifVerbose,numPatch,numPixels
 	integer*4 ifTrialMode,nEdgePixels, maxObjectsOut, maxInDiffPatch
 c
@@ -108,7 +111,7 @@ c
 c	  fallbacks from ../../manpages/autodoc2man -2 2  ccderaser
 c
 	integer numOptions
-	parameter (numOptions = 23)
+	parameter (numOptions = 24)
 	character*(40 * numOptions) options(1)
 	options(1) =
      &      'input:InputFile:FN:@output:OutputFile:FN:@'//
@@ -116,12 +119,13 @@ c
      &      'diff:DiffCriterion:F:@grow:GrowCriterion:F:@'//
      &      'scan:ScanCriterion:F:@radius:MaximumRadius:F:@'//
      &      'maxdiff:MaxPixelsInDiffPatch:I:@outer:OuterRadius:F:@'//
-     &      'xyscan:XYScanSize:I:@edge:EdgeExclusionWidth:I:@'//
-     &      'points:PointModel:FN:@model:ModelFile:FN:@'//
-     &      'lines:LineObjects:LI:@allsec:AllSectionObjects:LI:@'//
-     &      'border:BorderSize:I:@order:PolynomialOrder:I:@'//
-     &      'exclude:ExcludeAdjacent:B:@trial:TrialMode:B:@'//
-     &      'verbose::B:@param:ParameterFile:PF:@help:usage:B:'
+     &      'width:AnnulusWidth:F:@xyscan:XYScanSize:I:@'//
+     &      'edge:EdgeExclusionWidth:I:@points:PointModel:FN:@'//
+     &      'model:ModelFile:FN:@lines:LineObjects:LI:@'//
+     &      'allsec:AllSectionObjects:LI:@border:BorderSize:I:@'//
+     &      'order:PolynomialOrder:I:@exclude:ExcludeAdjacent:B:@'//
+     &      'trial:TrialMode:B:@verbose::B:@param:ParameterFile:PF:@'//
+     &      'help:usage:B:'
 c
 c	  Set all defaults here
 c
@@ -137,7 +141,7 @@ c
 	critGrow = 4.0
 	critScan = 3.0
 	radiusMax = 2.1
-	outerRadius = 4.0
+	outerRadius = 4.1
 	scanOverlap = 0.1
 	ifPeakSearch = 0
 	iScanSize = 100
@@ -245,13 +249,17 @@ c
 	  ierr = PipGetInteger('XYScanSize', iScanSize)
 	  ierr = PipGetInteger('EdgeExclusionWidth', nEdgePixels)
 	  ierr = PipGetFloat('MaximumRadius', radiusMax)
-	  ierr = PipGetFloat('OuterRadius', outerRadius)
 	  ierr = PipGetFloat('PeakCriterion', critMain)
 	  ierr = PipGetFloat('GrowCriterion', critGrow)
 	  ierr = PipGetFloat('ScanCriterion', critScan)
 	  ierr = PipGetFloat('DiffCriterion', critDiff)
 	  ierr = PipGetInteger('verbose', ifVerbose)
 	  ierr = PipGetInteger('MaxPixelsInDiffPatch', maxInDiffPatch)
+	  ierr = PipGetFloat('OuterRadius', outerRadius)
+	  ierr2 = PipGetFloat('AnnulusWidth', annulusWidth)
+	  if (ierr .eq. 0 .and. ierr2 .eq. 0) call errorexit(
+     &	      'YOU CANNOT ENTER BOTH -outer AND -width')
+	  if (ierr2 .eq. 0) outerRadius = radiusMax + annulusWidth
 
 	  modelout = ' '
 	  ierr = PipGetString('PointModel', modelout)
