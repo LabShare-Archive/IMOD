@@ -1,6 +1,15 @@
 #
 # Makefile for libimod.a
 #
+#
+#  $Author$
+#
+#  $Date$
+#
+#  $Revision$
+#
+#  $Log$
+#
 include ../configure
 
 LIB   = libimod.$(LIBEXT)
@@ -37,7 +46,7 @@ work : clean
 # Some depends.
 #
 imodel.o : $(INCDIR)/imodel.h $(INCDIR)/iobj.h $(INCDIR)/icont.h \
-$(INCDIR)/ipoint.h $(INCDIR)/imesh.h
+$(INCDIR)/ipoint.h $(INCDIR)/imesh.h ../.version
 iobj.o   : $(INCDIR)/iobj.h $(INCDIR)/icont.h $(INCDIR)/ipoint.h
 imesh.o  : $(INCDIR)/imesh.h $(INCDIR)/icont.h $(INCDIR)/ipoint.h
 icont.o  : $(INCDIR)/icont.h $(INCDIR)/ipoint.h
