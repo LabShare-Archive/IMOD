@@ -335,12 +335,16 @@ void InfoWindow::manageMenus()
 			      App->cvi->vmSize != 0 || App->cvi->nt > 0);
 }
 
+// Change the keep on top flag - have to reparent the widget for it to work
 void InfoWindow::keepOnTop(bool state)
 {
+  int flags = getWFlags();
   if (state)
-    setWFlags(getWFlags() | WStyle_StaysOnTop);
+    flags |= WStyle_StaysOnTop | WStyle_Customize;
   else
-    setWFlags(getWFlags() & ~WStyle_StaysOnTop);
+    flags ^= WStyle_StaysOnTop;
+  QPoint p(geometry().x(), geometry().y());   // Using pos() jumps on Windows
+  reparent(0, flags, p, true);  
 }
 
 
@@ -440,6 +444,9 @@ static char *truncate_name(char *name, int limit)
 
 /*
     $Log$
+    Revision 4.4  2003/03/14 15:54:00  mast
+    Adding new function to keep window on top
+
     Revision 4.3  2003/03/03 22:19:53  mast
     Added function for enabling menu items after menu creation, reorganized
     menus
