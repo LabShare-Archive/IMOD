@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.3  2002/12/01 16:51:34  mast
+Changes to eliminate warnings on SGI
+
 Revision 3.2  2002/10/22 22:38:02  mast
 Added include of imod_client_message.h, removed some obviously redundant
 or unneeded includes carried over from imod_menu.c
@@ -164,12 +167,17 @@ static void executeMessage() {
       break;
     }
 
+    imod_info_forbid();
+    imod_info_input();
     returnValue = openModel(message_string);
     if(returnValue == IMOD_IO_SUCCESS) {
       wprint("%s loaded.\n", Imod_filename);
     }
     else if(returnValue == IMOD_IO_SAVE_ERROR) {
       wprint("Error Saving Model. New model not loaded.\n");
+    }
+    else if(returnValue == IMOD_IO_SAVE_CANCEL) {
+      wprint("Operation cancelled. New model not loaded.\n");
     }
 
     // The model does not exist yet.  Try creating a new model.
@@ -184,18 +192,22 @@ static void executeMessage() {
       }
     }
     else if(returnValue == IMOD_IO_NO_ACCESS_ERROR) {
-      wprint("Error opening mdoel. Check file permissions\n.");
+      wprint("Error opening model. Check file permissions\n.");
     }
     else {
       wprint("Unknown return code, new model not loaded!!\n");
     }
+    imod_info_enable();
     
     break;
 
   case MESSAGE_SAVE_MODEL:
+    imod_info_forbid();
+    imod_info_input();
     App->cvi->imod->blacklevel = App->cvi->black;
     App->cvi->imod->whitelevel = App->cvi->white;
     SaveModel(App->cvi->imod);
+    imod_info_enable();
     break;
 
   case MESSAGE_VIEW_MODEL:
