@@ -819,8 +819,7 @@ void inputQDefaultKeys(QKeyEvent *event, ImodView *vw)
   int shifted = event->state() & Qt::ShiftButton;
   int bwStep = ImodPrefs->getBwStep();
 
-  if (keypad)
-    keysym = inputConvertNumLock(keysym);
+  inputConvertNumLock(keysym, keypad);
 
   // Set this to 0 when a case is NOT handling the key
   int handled = 1;
@@ -829,6 +828,9 @@ void inputQDefaultKeys(QKeyEvent *event, ImodView *vw)
 
     /* DNM: Make this go to midpoint of stack instead of Inserting 
        a point */
+#ifdef Q_OS_MACX
+  case Qt::Key_Help:
+#endif
   case Qt::Key_Insert:
     if (!keypad) {
       vw->zmouse = vw->zsize/2;
@@ -1152,6 +1154,7 @@ void inputQDefaultKeys(QKeyEvent *event, ImodView *vw)
 
 /* Convert numeric keypad keys that come through as numbers because NumLock is
    on to the named keys */
+/* But also turn off keypad on Mac if they are arrow keys */
 static int keypadKeys[10] = {Qt::Key_Delete, Qt::Key_Insert, Qt::Key_End, 
                              Qt::Key_Down, Qt::Key_Next, Qt::Key_Left,
                              Qt::Key_Right, Qt::Key_Home, Qt::Key_Up,
@@ -1159,16 +1162,28 @@ static int keypadKeys[10] = {Qt::Key_Delete, Qt::Key_Insert, Qt::Key_End,
 static int numLockKeys[10] = {Qt::Key_Period, Qt::Key_0, Qt::Key_1, Qt::Key_2,
                               Qt::Key_3, Qt::Key_4,
                               Qt::Key_6, Qt::Key_7, Qt::Key_8, Qt::Key_9};
-int inputConvertNumLock(int keysym)
+void inputConvertNumLock(int &keysym, int &keypad)
 {
+  if (!keypad)
+    return;
   for (int i = 0; i < 10; i++)
-    if (keysym == numLockKeys[i])
-      return keypadKeys[i];
-  return keysym;
+    if (keysym == numLockKeys[i]) {
+      keysym = keypadKeys[i];
+      return;
+    }
+#ifdef Q_OS_MACX
+  if (keysym == Qt::Key_Left || keysym == Qt::Key_Right || 
+      keysym == Qt::Key_Up || keysym == Qt::Key_Down)
+    keypad = 0;
+#endif
+  return;
 }
 
 /*
 $Log$
+Revision 4.7  2003/03/24 17:58:09  mast
+Changes for new preferences capability
+
 Revision 4.6  2003/03/13 07:15:33  mast
 Make raise window function global
 

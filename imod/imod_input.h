@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.6  2003/03/29 00:22:43  mast
+    add forward declaration of ImodView
+
     Revision 3.5  2003/03/13 07:15:16  mast
     Add raise window function
 
@@ -104,7 +107,7 @@ void inputPrevTime(ImodView *vw);
 void inputRestorePointIndex(ImodView *vw);
 void inputKeepContourAtSameTime(ImodView *vw);
 void inputContourDup(ImodView *vw);
-int inputConvertNumLock(int keysym);
+void inputConvertNumLock(int &keysym, int &keypad);
 void inputRaiseWindows();
 
 void inputSetModelTime(ImodView *vw, int time);

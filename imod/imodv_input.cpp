@@ -126,8 +126,7 @@ void imodvKeyPress(QKeyEvent *event)
   int state = event->state();
   int keypad = event->state() & Qt::Keypad;
 
-  if (keypad)
-    keysym = inputConvertNumLock(keysym);
+  inputConvertNumLock(keysym, keypad);
 
   if (state & Qt::ShiftButton)
     tstep = 10;
@@ -1006,6 +1005,9 @@ void imodvMovieTimeout()
 
 /*
     $Log$
+    Revision 4.5  2003/03/13 01:20:08  mast
+    Convert numlock keypad keys so num lock can be on
+
     Revision 4.4  2003/02/27 23:09:21  mast
     Change to use Qt time functions for timing values
 
