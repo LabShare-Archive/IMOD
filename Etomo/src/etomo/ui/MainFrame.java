@@ -37,7 +37,6 @@ import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.MetaData;
 import etomo.type.ProcessTrack;
-import etomo.util.Utilities;
 
 /**
  * <p>Description: </p>
@@ -52,6 +51,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.8  2004/07/21 21:08:33  sueh
+ * <p> bug# 512 added options menu items Axis A, Axis B, and Both
+ * <p> Axes.  Removed options menu item Advanced
+ * <p>
  * <p> Revision 3.7  2004/07/16 23:01:03  sueh
  * <p> bug# 501 sending System.out prints only when debug is set
  * <p>
@@ -198,6 +201,7 @@ public class MainFrame extends JFrame implements ContextMenu {
   public static final String rcsid =
     "$Id$";
 
+  private JPanel rootPanel;
   private JPanel mainPanel;
 
   //  Menu bar
@@ -258,9 +262,22 @@ public class MainFrame extends JFrame implements ContextMenu {
 
     setTitle("eTomo");
 
-    mainPanel = (JPanel) getContentPane();
-    mainPanel.setLayout(new BorderLayout());
 
+    Toolkit toolkit = Toolkit.getDefaultToolkit();
+    Dimension screenSize = toolkit.getScreenSize();
+    screenSize.height -= 60;
+    screenSize.width *= 2;
+    Dimension mainPanelSize = new Dimension(screenSize);
+    mainPanelSize.height -= 48;
+    mainPanelSize.width -= 10;
+    
+    rootPanel = (JPanel) getContentPane();
+    rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.PAGE_AXIS));
+    
+    mainPanel = new JPanel();
+    mainPanel.setLayout(new BorderLayout());
+    mainPanel.setMaximumSize(mainPanelSize);
+    rootPanel.add(mainPanel);
     createMenus();
 
     //  Construct the main frame panel layout
@@ -343,6 +360,9 @@ public class MainFrame extends JFrame implements ContextMenu {
   public void showProcess(Container processPanel, AxisID axisID) {
     AxisProcessPanel axisPanel = mapAxis(axisID);
     axisPanel.replaceDialogPanel(processPanel);
+    if (applicationManager.getUserConfiguration().isAutoFit()) {
+      fitScreen();
+    }
   }
 
   /**
@@ -525,22 +545,15 @@ public class MainFrame extends JFrame implements ContextMenu {
 
 
   protected void packAxis(int widthA, int widthB) {
-    Utilities.debugPrint("in packAxis", true);
     if (applicationManager.isDualAxis()) {
-      Utilities.debugPrint("A:", true);
       boolean hideA = axisPanelA.hide(widthA);
-      Utilities.debugPrint("B:", true);
       boolean hideB = axisPanelB.hide(widthB);
-      Utilities.debugPrint("hideA=" + hideA + ",hideB=" + hideB, true);
       pack();
-      Utilities.debugPrint("after pack(): widthA=" + axisPanelA.getWidth() + ",widthB=" + axisPanelB.getWidth(), true);
       splitPane.resetToPreferredSizes();
       if (!hideA && !hideB && axisPanelA.tooSmall()) {
-        Utilities.debugPrint("fixing divider location", true);
         setDividerLocation(.8);
         splitPane.resetToPreferredSizes();
       }
-      Utilities.debugPrint("after split pane reset: widthA=" + axisPanelA.getWidth() + ",widthB=" + axisPanelB.getWidth(), true);
       axisPanelA.show();
       axisPanelB.show();
       if (hideA) {
@@ -553,7 +566,6 @@ public class MainFrame extends JFrame implements ContextMenu {
     else {
       pack();
     }
-    Utilities.debugPrint("end packAxis", true);
   }
   
   protected void setScrollBarPolicy(boolean always) {
@@ -572,12 +584,13 @@ public class MainFrame extends JFrame implements ContextMenu {
    * @param event
    */
   private void menuOptionsAction(ActionEvent event) {
-    Utilities.debugPrint("In menuOptionsAction", true);
     String command = event.getActionCommand();
     if (command.equals(menuSettings.getActionCommand())) {
       applicationManager.openSettingsDialog();
+      return;
     }
-    else if (command.equals(menuAxisA.getActionCommand())) {
+    //actions that may require a fitScreen() call
+    if (command.equals(menuAxisA.getActionCommand())) {
       setDividerLocation(1);
     }
     else if (command.equals(menuAxisB.getActionCommand())) {
@@ -586,102 +599,29 @@ public class MainFrame extends JFrame implements ContextMenu {
     else if (command.equals(menuAxisBoth.getActionCommand())) {
       setDividerLocation(.5);
     }
-    else if (command.equals(menuFitWindow.getActionCommand())) {
-      //find out width before calling packAxis because setDividerLocation() with
-      //0 or 1 does not cause the width of either panel to be 0 until after this
-      //this function is finished
-      int widthA = 0;
-      int widthB = 0;
-      if (axisPanelA != null) {
-        widthA = axisPanelA.getWidth();
-      }
-      if (axisPanelB != null) {
-        widthB = axisPanelB.getWidth();
-      }
-      Utilities.debugPrint("widthA=" + widthA + ",widthB=" + widthB, true);
+    if (command.equals(menuFitWindow.getActionCommand())
+      || applicationManager.getUserConfiguration().isAutoFit())
+    {
+      fitScreen();
+    }
+  }
+    
+  protected void fitScreen() {
+    System.out.println();
+    int widthA = 0;
+    int widthB = 0;
+    if (axisPanelA != null) {
+      widthA = axisPanelA.getWidth();
+    }
+    if (axisPanelB != null) {
+      widthB = axisPanelB.getWidth();
+    }
+    packAxis(widthA, widthB);
+    
+    if (getSize().height - mainPanel.getSize().height > 48) {
+      setScrollBarPolicy(true);
       packAxis(widthA, widthB);
-      Toolkit toolkit = Toolkit.getDefaultToolkit();
-      Dimension screenSize = toolkit.getScreenSize();
-      Dimension windowSize = getSize();
-      //guess the menu height
-      screenSize.height -= screenSize.height * .1;
-      if (windowSize.height > screenSize.height) {
-        //want to shorten window, so make sure that the window is wide enough
-        //to have vertical scroll bars
-        Utilities.debugPrint("shortening window", true);
-        setScrollBarPolicy(true);
-        Utilities.debugPrint("widthA=" + widthA + ",widthB=" + widthB, true);
-        packAxis(widthA, widthB);
-        packAxis(widthA, widthB);
-        windowSize = getSize();
-        windowSize.height = screenSize.height;
-        //this allows the view port to update correctly most of the time
-        setExtendedState(JFrame.MAXIMIZED_VERT);
-        setSize(windowSize);
-        setScrollBarPolicy(false);
-      }
-      
-/*    things that didn't work:
-
-      int changeInHeight = window.height - screen.height;
-      System.out.println("changeInHeight: " + changeInHeight);
-      System.out.println("window: " + window);
-      Rectangle bounds = getBounds();
-      System.out.println("bounds:" + bounds);
-      bounds.height = screen.height;
-      System.out.println("bounds:" + bounds);
-
-      setBounds(bounds);
-      scrollPaneA.setVerticalScrollBarPolicy(
-        JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-      if (splitPane != null) {
-        System.out.println("scrollpane");
-        float dividerLocation = splitPane.getDividerLocation();
-        setDividerLocation(0);
-        float minDivider = splitPane.getDividerLocation();
-        setDividerLocation(1);
-        float maxDivider = splitPane.getDividerLocation();
-        JScrollBar vertScrollBar = scrollPaneA.getVerticalScrollBar();
-        float width = vertScrollBar.getWidth();
-        setDividerLocation(
-          (dividerLocation + width + 1) / (maxDivider - minDivider + 1));
-        Rectangle viewportBounds = scrollPaneA.getViewportBorderBounds();
-        System.out.println("viewportBounds:" + viewportBounds);
-        viewportBounds.height -= changeInHeight;
-        System.out.println("viewportBounds:" + viewportBounds);
-        JViewport viewPort = scrollPaneA.getViewport();
-        System.out.println("viewPort:" + viewPort);
-        viewPort.setBounds(viewportBounds);
-        viewPort.scrollRectToVisible(viewportBounds);
-        Dimension viewSize =
-          new Dimension(viewportBounds.width, viewportBounds.height);
-        viewPort.setViewSize(viewSize);
-        viewPort.doLayout();
-        viewPort.revalidate();
-        viewPort.validate();
-        scrollPaneA.setViewport(viewPort);
-        viewPort.doLayout();
-        viewPort.revalidate();
-        viewPort.validate();
-        System.out.println("viewPort:" + viewPort);
-        scrollPaneA.setBounds(viewportBounds);
-        setDividerLocation(dividerLocation + width);
-        Rectangle bounds = scrollPaneA.getVisibleRect();
-        System.out.println("old bounds:" + bounds);
-        bounds.height -= changeInHeight;
-        System.out.println("new bounds:" + bounds);
-        scrollPaneA.setBounds(bounds);
-        scrollPaneA.doLayout();
-        scrollPaneA.revalidate();
-        scrollPaneA.validate();
-        scrollPaneA.isValidateRoot();
-        scrollPaneB.doLayout();
-        splitPane.doLayout();
-        splitPane.revalidate();
-        splitPane.validate();
-      }
-*/
-
+      setScrollBarPolicy(false);
     }
   }
   
