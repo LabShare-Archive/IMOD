@@ -31,6 +31,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.19  2005/01/05 18:54:51  sueh
+ * <p> bug# 578 Create tiltalignParam with axisID.
+ * <p>
  * <p> Revision 3.18  2004/12/03 20:19:45  sueh
  * <p> bug# 556 SetupParam may be missing in volcombine.com in older .com
  * <p> scripts.
@@ -492,7 +495,8 @@ public class ComScriptManager {
     }
 
     // Initialize a BeadtrckParam object from the com script command object
-    TiltalignParam tiltalignParam = new TiltalignParam(axisID);
+    TiltalignParam tiltalignParam = new TiltalignParam(appManager.getMetaData()
+        .getDatasetName(), axisID);
     initialize(tiltalignParam, align, "tiltalign", axisID);
     return tiltalignParam;
   }
