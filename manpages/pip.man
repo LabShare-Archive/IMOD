@@ -302,13 +302,13 @@ with malloc() and should be freed with free().
 .nf
 int PipGetInteger(char *\fIoption\fB, int *\fIval\fB);
 
-integer*4 function PipGetInteger(char *\fIoption\fB, int *\fIval\fB)
+integer*4 function PipGetInteger(\fIoption\fB, \fIval\fB)
 character*N \fIoption\fB
 integer*4 \fIval\fB             [Returned argument]
 
 int PipGetFloat(char *\fIoption\fB, float *\fIval\fB);
 
-integer*4 function PipGetFloat(char *\fIoption\fB, float *\fIval\fB)
+integer*4 function PipGetFloat(\fIoption\fB, \fIval\fB)
 character*N \fIoption\fB
 real*4 \fIval\fB                [Returned argument]
 .ft R
@@ -317,6 +317,28 @@ real*4 \fIval\fB                [Returned argument]
 These functions returns a single integer or floating point value for the given
 option in the argument \fIval\fR.  The return value is 1 if the user did not
 enter this option.
+
+
+.ft B
+.nf
+int PipGetTwoIntegers(char *\fIoption\fB, int *\fIval1\fB, int *\fIval2\fB);
+
+integer*4 function PipGetInteger(\fIoption\fB, \fIval1\fB, \fIval2\fB)
+character*N \fIoption\fB
+integer*4 \fIval1, val2\fB             [Returned arguments]
+
+int PipGetTwoFloats(char *\fIoption\fB, float *\fIval1\fB, float *\fIval2\fB);
+
+integer*4 function PipGetInteger(\fIoption\fB, \fIval1\fB, \fIval2\fB)
+character*N \fIoption\fB
+real*4 \fIval1, val2\fB             [Returned arguments]
+
+.ft R
+.fi
+
+These functions returns two integers or two floats for the given
+option in the arguments \fIval1\fR and \fIval2\fR.
+The return value is 1 if the user did not enter this option.
 
 
 .ft B
@@ -332,6 +354,19 @@ integer*4 \fIval\fB             [Returned argument]
 This function returns a value of 0 or 1 for the given boolean option in the
 argument \fIval\fR.  The return value is 1 if the user did not enter this
 option.
+
+
+.ft B
+.nf
+integer*4 function PipGetLogical(\fIoption\fB, \fIval\fB)
+character*N \fIoption\fB
+logical \fIval\fB             [Returned argument]
+.ft R
+.fi
+
+This function returns a value of .true. or .false. for the given boolean
+option in the argument \fIval\fR.  The return value is 1 if the user did not
+enter this option.
 
 
 .ft B
