@@ -30,6 +30,10 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.23  2004/09/09 16:16:09  mast
+c	  When run with PIP input, it was not setting up a transform line list
+c	  properly with only one transform in file
+c	
 c	  Revision 3.22  2004/08/12 19:09:59  mast
 c	  Added -multadd option
 c	
@@ -1191,7 +1195,7 @@ c
 	      iftempopen=1
 	    endif
 c
-	    ibbase=maxin*nx+1
+	    ibbase=maxin*nxbin+1
 c	      
 c	      get the mean of section from previous scan, or a new scan
 c
@@ -1239,8 +1243,8 @@ c		  call irdsecl(1,array(nmove+1),nload,*99)
 c		    
 c		    move data up if it will fill top
 c		    
-		  nmove=(needynd+1-loadyst)*nx
-		  noff=(loadyst-needyst)*nx
+		  nmove=(needynd+1-loadyst)*nxbin
+		  noff=(loadyst-needyst)*nxbin
 		  do i=nmove,1,-1
 		    array(i+noff)=array(i)
 		  enddo
