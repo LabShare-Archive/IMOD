@@ -69,6 +69,7 @@ static void zapButton3(struct zapwin *zap, int x, int y, int controlDown);
 static void zapB1Drag(struct zapwin *zap, int x, int y);
 static void zapB2Drag(struct zapwin *zap, int x, int y);
 static void zapB3Drag(struct zapwin *zap, int x, int y, int controlDown);
+static void startMovieCheckSnap(ZapStruct *zap, int dir);
 
 static void zapDrawGraphics(ZapStruct *zap);
 static void zapDrawModel(ZapStruct *zap);
@@ -92,8 +93,6 @@ static void setControlAndLimits(ZapStruct *zap);
 /* DNM 1/19/01: add this to allow key to substitute for middle mouse button */
 static int insertDown = 0;
 
-/* DNM 3/9/01: add this to provide global lock on movie snapshot use */
-static int movieSnapLock = 0;
 static QTime insertTime;
 static QTime but1downt;
 
@@ -250,8 +249,6 @@ void zapClosing(ZapStruct *zap)
 
   // Do cleanup
   zap->popup = 0;
-  if (movieSnapLock && zap->movieSnapCount)
-    movieSnapLock = 0;
   ivwRemoveControl(zap->vi, zap->ctrl);
   imodDialogManager.remove((QWidget *)zap->qtWindow);
   numZapWindows--;
@@ -264,23 +261,19 @@ void zapClosing(ZapStruct *zap)
 }
 
 
-/* DNM 3/8/01: check for whether to start a movie snapshot sequence, and 
-   manage the lock that keeps more than one window from starting or stopping
-   a snap sequence */
-static void checkMovieSnap(ZapStruct *zap, int dir)
+/* start or stop movie and check for whether to start a movie snapshot 
+   sequence */
+static void startMovieCheckSnap(ZapStruct *zap, int dir)
 {
   int start, end;
 
-  /* If the lock is set and this window is the owner, clear the lock */
-  if (movieSnapLock && zap->movieSnapCount) {
-    zap->movieSnapCount = 0;
-    movieSnapLock = 0;
-  }
+  imodMovieXYZT(zap->vi, MOVIE_DEFAULT, MOVIE_DEFAULT, dir, MOVIE_DEFAULT);
+  imcSetStarterID(zap->ctrl);
 
-  /* done if no movie, or if the lock is still set, or if no snapshots are
-     desired.  I.E., don't let another window start a sequence if one
-     was already going */
-  if (!zap->vi->zmovie || movieSnapLock || !imcGetSnapshot(zap->vi))
+  zap->movieSnapCount = 0;
+
+  /* done if no movie, or if no snapshots are desired.  */
+  if (!zap->vi->zmovie || !imcGetSnapshot(zap->vi))
     return;
      
   /* Get start and end of loop, compute count */
@@ -294,14 +287,11 @@ static void checkMovieSnap(ZapStruct *zap, int dir)
     zap->movieSnapCount *= 2;
 
   /* Set to start or end depending on which button was hit */
-  if (dir > 0)
-    zap->vi->zmouse = start;
-  else
-    zap->vi->zmouse = end;
+  if (!imcStartSnapHere(zap->vi))
+    zap->vi->zmouse = dir > 0 ? start : end;
 
-  /* set the lock and draw */
-  movieSnapLock = 1;
-  zapDraw_cb(zap->vi, zap, IMOD_DRAW_XYZ);
+  /* draw - via imodDraw to get float done correctly */
+  imodDraw(zap->vi, IMOD_DRAW_XYZ);
 }
 
 // This is the external draw command from the controller
@@ -346,7 +336,7 @@ void zapDraw_cb(ImodView *vi, void *client, int drawflag)
 
     /* DNM 3/8/01: add autosnapshot when movieing */
     if (imcGetSnapshot(zap->vi) && zap->vi->zmovie && 
-        zap->movieSnapCount) {
+        zap->movieSnapCount && imcGetStarterID() == zap->ctrl) {
       limits = NULL;
       if (zap->rubberband) {
         limits = limarr;
@@ -360,11 +350,9 @@ void zapDraw_cb(ImodView *vi, void *client, int drawflag)
       else
         b3dAutoSnapshot("zap", SnapShot_RGB, limits);
       zap->movieSnapCount--;
-      /* When count expires, stop movie and clear the lock */
-      if(!zap->movieSnapCount) {
+      /* When count expires, stop movie */
+      if(!zap->movieSnapCount)
         zap->vi->zmovie = 0;
-        movieSnapLock = 0;
-      }
     }
   }
   return;
@@ -1571,9 +1559,7 @@ void zapButton2(ZapStruct *zap, int x, int y)
       
     return;
   }
-  imodMovieXYZT(vi, MOVIE_DEFAULT, MOVIE_DEFAULT, 1,
-                MOVIE_DEFAULT);
-  checkMovieSnap(zap, 1);
+  startMovieCheckSnap(zap, 1);
 }
 
 /* Delete all points of current contour under the cursor */     
@@ -1661,9 +1647,7 @@ void zapButton3(ZapStruct *zap, int x, int y, int controlDown)
     imodDraw(vi, IMOD_DRAW_RETHINK);
     return;
   }
-  imodMovieXYZT(vi, MOVIE_DEFAULT, MOVIE_DEFAULT, -1,
-                MOVIE_DEFAULT);
-  checkMovieSnap(zap, -1);
+  startMovieCheckSnap(zap, -1);
 }
 
 void zapB1Drag(ZapStruct *zap, int x, int y)
@@ -2821,6 +2805,9 @@ bool zapTimeMismatch(ImodView *vi, int timelock, Iobj *obj, Icont *cont)
 
 /*
 $Log$
+Revision 4.37  2003/11/25 01:15:02  mast
+Move the window again after the show for Mac OS 10.3
+
 Revision 4.36  2003/11/13 20:08:16  mast
 made spillover factor in setting zoom to a remembered window size the
 same as factor when no remembered size is available
