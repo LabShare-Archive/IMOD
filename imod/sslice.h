@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.4  2003/03/03 22:18:41  mast
+    Added variable for keeping track of cursor
+
     Revision 3.3  2003/02/10 20:41:56  mast
     Merge Qt source
 
@@ -123,6 +126,7 @@ typedef struct Super_slicer{
   float zslast;           /* Value of zscale on last draw_cb */
   int pending;            /* Flag that there are pending coords from hit */
   float pendx, pendy, pendz;   /* pending coords */
+  int movieSnapCount;     /* Counter for doing movie snapshots */
   
   short nslice;
   Imat  *mat;
