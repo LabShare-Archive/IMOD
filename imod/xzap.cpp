@@ -678,7 +678,7 @@ int imod_zap_open(struct ViewInfo *vi)
   int maxWinx;
   int maxWiny;
   int newWidth, newHeight, xleft, ytop, toolHeight;
-  float newZoom;
+  double newZoom;
 
   zap = (ZapStruct *)malloc(sizeof(ZapStruct));
   if (!zap) return(-1);
@@ -767,9 +767,9 @@ int imod_zap_open(struct ViewInfo *vi)
     while (zap->zoom * vi->xsize > 1.1 * maxWinx || 
            zap->zoom * vi->ysize > 1.1 * maxWiny - toolHeight) {
       newZoom = b3dStepPixelZoom(zap->zoom, -1);
-      if (newZoom == zap->zoom)
+      if (fabs(newZoom - zap->zoom) < 0.0001)
         break;
-      zap->zoom = newZoom;
+      zap->zoom = (float)newZoom;
     }
 
     needWinx = zap->zoom * vi->xsize;
@@ -814,12 +814,14 @@ int imod_zap_open(struct ViewInfo *vi)
     if (vi->xsize < needWinx && vi->ysize < needWiny)
       zap->zoom = (2. * needWinx) / vi->xsize;
 
-    while (zap->zoom * vi->xsize > 1.1 * needWinx || 
-           zap->zoom * vi->ysize > 1.1 * needWiny) {
+    while ((zap->zoom * vi->xsize > 1.1 * needWinx || 
+           zap->zoom * vi->ysize > 1.1 * needWiny)) {
       newZoom = b3dStepPixelZoom(zap->zoom, -1);
-      if (newZoom == zap->zoom)
+      // This test goes into infinite loop in Windows - Intel, 6/22/04
+      // if (newZoom == zap->zoom)
+      if (fabs(newZoom - zap->zoom) < 0.0001)
         break;
-      zap->zoom = newZoom;
+      zap->zoom = (float)newZoom;
     }
 
   }
@@ -2864,6 +2866,9 @@ bool zapTimeMismatch(ImodView *vi, int timelock, Iobj *obj, Icont *cont)
 
 /*
 $Log$
+Revision 4.43  2004/05/31 23:35:26  mast
+Switched to new standard error functions for all debug and user output
+
 Revision 4.42  2004/05/31 02:16:15  mast
 Changed to starting a new contour if time does not match for any kind of
 object, not just closed contour
