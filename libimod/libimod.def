@@ -4,11 +4,6 @@ LIBRARY      "libimod"
 DESCRIPTION  'libimod Windows Dynamic Link Library'
 
 EXPORTS
-	mrc_big_seek
-	b3dFseek
-	b3dFwrite
-	b3dFread
-	b3dRewind
 	imodPointIsEqual
 	imodContourGetName
 	imodTransform
@@ -86,6 +81,7 @@ EXPORTS
 	imodel_contour_swapxy
 	imodContourCenterMoment
 	imeshSurfaceArea
+	b3dHeaderItemBytes
 	imodel_from_fgetline
 	imodContoursNew
 	imodPointLineDistance
@@ -93,6 +89,7 @@ EXPORTS
 	imodBackupFile
 	imodel_contour_sort
 	imodMatDelete
+	imodPutScaledPoints
 	imodObjectGetMesh
 	imodPlaneTranslate
 	imodGetFlipped
@@ -101,6 +98,7 @@ EXPORTS
 	imodPointNormalize
 	imodPlaneDelete
 	imodContourAutoSort
+	B3DHEADERITEMBYTES
 	imodPutInts
 	imodPointGet
 	imodObjectSort
@@ -202,6 +200,7 @@ EXPORTS
 	DELETEIOBJ
 	imodFlipYZ
 	PipGetError
+	b3dFwrite
 	imodNew
 	imodPointDelete
 	imodMeshesDelete
@@ -284,6 +283,7 @@ EXPORTS
 	imodel_contour_clear
 	imodPointPlaneEdge
 	imodDelete
+	b3dFread
 	imodLabelItemDelete
 	imodDeleteContour
 	PIPNUMBEROFENTRIES
@@ -314,6 +314,7 @@ EXPORTS
 	imodMeshInsertIndex
 	imodPoint3DScaleDistance
 	imodObjectsNew
+	mrc_big_seek
 	imodCloseFile
 	imodNextPoint
 	imodMatInverse
@@ -334,6 +335,7 @@ EXPORTS
 	imodPointAppend
 	ilistDelete
 	imodMatRotateVector
+	b3dRewind
 	IMODGETENV
 	imod_mesh_to_synu
 	imodContourDefault
@@ -382,6 +384,7 @@ EXPORTS
 	imodViewDelete
 	imod_to_synu
 	imodContourGetBBox
+	b3dFseek
 	imodVersion
 	imodel_point_delete
 	imodPointDistance
