@@ -31,6 +31,9 @@
     $Revision$
 
     $Log$
+    Revision 3.3  2003/05/12 19:13:39  mast
+    Add hot key summary and fix spelling
+
 */
 
 /* include needed Qt headers and imod headers
@@ -213,10 +216,10 @@ void imodPlugExecute(ImodView *inImodView)
 void BeadFixer::openFile()
 {
   QString qname;
-  char *filter[] = {"Log files (*.log)"};
+  char *filter[] = {"Align log files (align*.log)", "Log files (*.log)"};
   PlugData *plug = &thisPlug;
 
-  qname  = diaOpenFileName(this, "Select Tiltalign log file", 1, filter);
+  qname  = diaOpenFileName(this, "Select Tiltalign log file", 2, filter);
   
   if (qname.isEmpty())
     return;
