@@ -9,6 +9,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.3  2004/06/29 03:53:37  mast
+#  Fixed path-setting
+#
 #  Revision 3.2  2003/11/13 19:48:45  mast
 #  Set starting line of coms correctly
 #
@@ -34,7 +37,7 @@ if ($#argv < 1) then
   exit 0
 endif
 #
-if ($?IMOD_DIR)
+if ($?IMOD_DIR) then
     set path = ($IMOD_DIR/bin $path)
 endif
 set P1 = $argv[1]
