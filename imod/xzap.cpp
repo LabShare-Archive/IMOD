@@ -63,13 +63,15 @@ static void dragSelectContsCrossed(struct zapwin *zap, int x, int y);
 static void endContourShift(ZapStruct *zap);
 static Icont *checkContourShift(ZapStruct *zap, int &pt, int &err);
 static void setupContourShift(ZapStruct *zap);
-static void startShiftingContour(ZapStruct *zap, int x, int y, int button);
+static void startShiftingContour(ZapStruct *zap, int x, int y, int button,
+                                 int ctrlDown);
 static void shiftContour(ZapStruct *zap, int x, int y, int button, 
                          int shiftDown);
 static void startMovieCheckSnap(ZapStruct *zap, int dir);
 static void registerDragAdditions(ZapStruct *zap);
 static int mouseXformMatrix(ZapStruct *zap, int x, int y, int type, 
                             float mat[2][2]);
+static void markXformCenter(ZapStruct *zap, float ix, float iy);
 
 static void zapDrawGraphics(ZapStruct *zap);
 static void zapDrawModel(ZapStruct *zap);
@@ -1134,7 +1136,7 @@ void zapMousePress(ZapStruct *zap, QMouseEvent *event)
     firstmx = event->x();
     firstmy = event->y();
     if (zap->shiftingCont)
-      startShiftingContour(zap, firstmx, firstmy, 1);
+      startShiftingContour(zap, firstmx, firstmy, 1, ctrlDown);
     else if (zap->startingBand)
       zapButton1(zap, firstmx, firstmy, ctrlDown);
     else
@@ -1143,14 +1145,14 @@ void zapMousePress(ZapStruct *zap, QMouseEvent *event)
   } else if (event->button() == ImodPrefs->actualButton(2) &&
 	     !button1 && !button3) {
     if (zap->shiftingCont)
-      startShiftingContour(zap, firstmx, firstmy, 2);
+      startShiftingContour(zap, event->x(), event->y(), 2, ctrlDown);
     else
       zapButton2(zap, event->x(), event->y(), ctrlDown);
 
   } else if (event->button() == ImodPrefs->actualButton(3) &&
 	     !button1 && !button2) {
     if (zap->shiftingCont)
-      startShiftingContour(zap, firstmx, firstmy, 3);
+      startShiftingContour(zap, event->x(), event->y(), 3, ctrlDown);
     else
       zapButton3(zap, event->x(), event->y(), ctrlDown);
   }
@@ -1202,6 +1204,11 @@ void zapMouseRelease(ZapStruct *zap, QMouseEvent *event)
       zap->drawCurrentOnly = 0;
       zapDraw(zap);
     }
+  }
+  if (zap->centerMarked && !zap->centerDefined) {
+    ivwClearExtraObject(zap->vi);
+    imodDraw(zap->vi, IMOD_DRAW_MOD);
+    zap->centerMarked = 0;
   }
 }
 
@@ -2079,6 +2086,10 @@ static void endContourShift(ZapStruct *zap)
   if (!zap->shiftingCont)
     return;
   zap->shiftingCont = 0;
+  if (zap->centerMarked) {
+    ivwClearExtraObject(zap->vi);
+    imodDraw(zap->vi, IMOD_DRAW_MOD);
+  }
   zapSetCursor(zap, zap->mousemode);
 }
 
@@ -2091,11 +2102,15 @@ static Icont *checkContourShift(ZapStruct *zap, int &pt, int &err)
   pt = vi->imod->cindex.point;
   
   err = 0;
-  if (vi->imod->mousemode != IMOD_MMODEL || !obj || !cont || pt < 0)
+  if (vi->imod->mousemode != IMOD_MMODEL || !obj || !cont || !cont->psize)
     err = 1;
   else if (iobjScat(obj->flags) ||
       (!iobjClose(obj->flags) && (cont->flags & ICONT_WILD)))
     err = -1;
+
+  // If no current point, just use first
+  if (pt < 0)
+    pt = 0;
 
   if (err)
     endContourShift(zap);
@@ -2115,6 +2130,8 @@ static void setupContourShift(ZapStruct *zap)
     return;
   zap->shiftingCont = 1;
   zap->startingBand = 0;
+  zap->centerDefined = 0;
+  zap->centerMarked = 0;
   zapSetCursor(zap, zap->mousemode);
 }
 
@@ -2122,7 +2139,8 @@ static void setupContourShift(ZapStruct *zap)
 static Ipoint contShiftBase;
 
 // Start the actual shift once the mouse goes down
-static void startShiftingContour(ZapStruct *zap, int x, int y, int button)
+static void startShiftingContour(ZapStruct *zap, int x, int y, int button,
+                                 int ctrlDown)
 {
   int   pt, err, co, ob, curco;
   float ix, iy, area, areaSum;
@@ -2132,47 +2150,64 @@ static void startShiftingContour(ZapStruct *zap, int x, int y, int button)
   if (err)
     return;
 
+  zapGetixy(zap, x, y, &ix, &iy);
+
+  // If button for marking center, save coordinates, set flag, show mark
+  if (button == 2 && ctrlDown) {
+    zap->xformCenter.x = ix;
+    zap->xformCenter.y = iy;
+    zap->centerDefined = 1;
+    markXformCenter(zap, ix, iy);
+    return;
+  }
+
   if (button == 1) {
     
     // Get base for shift as current point minus mouse position
-    zapGetixy(zap, x, y, &ix, &iy);
     contShiftBase.x = cont->pts[pt].x - ix;
     contShiftBase.y = cont->pts[pt].y - iy;
   } else {
 
-    // Get center for transforms as center of mass
-    // Loop on contours and analyze current or selected ones
-    imodGetIndex(zap->vi->imod, &ob, &curco, &pt);
-    contShiftBase.x = contShiftBase.y = 0;
-    centSum.x = centSum.y = 0;
-    areaSum = 0;
-    for (co = 0; co < obj->contsize; co++) {
-      if (co == curco || imodSelectionListQuery(zap->vi, ob, co) > -2) {
-        cont = &obj->cont[co];
-        
-        // For each contour add centroid to straight sum, 
-        // accumulate area-weighted sum also
-        imodContourCenterOfMass(cont, &cent);
-        area = imodContourArea(cont);
-        areaSum += area;
-        contShiftBase.x += cent.x;
-        contShiftBase.y += cent.y;
-        centSum.x += cent.x * area;
-        centSum.y += cent.y * area;
-        err++;
+    // Use defined center if one was set
+    if (zap->centerDefined) {
+      contShiftBase.x = zap->xformCenter.x;
+      contShiftBase.y = zap->xformCenter.y;
+    } else {
+
+      // Otherwise get center for transforms as center of mass
+      // Loop on contours and analyze current or selected ones
+      imodGetIndex(zap->vi->imod, &ob, &curco, &pt);
+      contShiftBase.x = contShiftBase.y = 0;
+      centSum.x = centSum.y = 0;
+      areaSum = 0;
+      for (co = 0; co < obj->contsize; co++) {
+        if (co == curco || imodSelectionListQuery(zap->vi, ob, co) > -2) {
+          cont = &obj->cont[co];
+          
+          // For each contour add centroid to straight sum, 
+          // accumulate area-weighted sum also
+          imodContourCenterOfMass(cont, &cent);
+          area = imodContourArea(cont);
+          areaSum += area;
+          contShiftBase.x += cent.x;
+          contShiftBase.y += cent.y;
+          centSum.x += cent.x * area;
+          centSum.y += cent.y * area;
+          err++;
+        }
+      }
+      
+      // Use plain sum if area small or if only one contour, otherwise
+      // use an area-weighted sum
+      if (areaSum < 1. || err == 1) {
+        contShiftBase.x /= err;
+        contShiftBase.y /= err;
+      } else if (areaSum >= 1. && err > 1) {
+        contShiftBase.x = centSum.x / areaSum;
+        contShiftBase.y = centSum.y / areaSum;
       }
     }
-
-    // Use plain sum if area small or if only one contour, otherwise
-    // use an area-weighted sum
-    if (areaSum < 1. || err == 1) {
-      contShiftBase.x /= err;
-      contShiftBase.y /= err;
-    } else if (areaSum >= 1. && err > 1) {
-      contShiftBase.x = centSum.x / areaSum;
-      contShiftBase.y = centSum.y / areaSum;
-    }
-
+    markXformCenter(zap, contShiftBase.x, contShiftBase.y);
   }
 }
 
@@ -2319,6 +2354,41 @@ static int mouseXformMatrix(ZapStruct *zap, int x, int y, int type,
   //              mat[0][0], mat[0][1], mat[1][0], mat[1][1]);
   return 0;
 }
+
+// Mark the center of transformation with a star in extra object
+static void markXformCenter(ZapStruct *zap, float ix, float iy)
+{
+  int i;
+  float starEnd[6] = {0., 8., 7., 4., 7., -4.};
+  Iobj *obj = zap->vi->extraObj;
+  Icont *cont;
+  Ipoint tpt;
+
+  // Clear out the object and set to yellow non scattered
+  ivwClearExtraObject(zap->vi);
+  imodObjectSetColor(obj, 1., 1., 0.);
+  obj->flags &= ~IMOD_OBJFLAG_SCAT;
+  obj->pdrawsize = 0;
+  obj->linewidth = 1;
+  tpt.z = zap->section;
+
+  // Add three contours for lines
+  for (i = 0; i < 3; i++) {
+    cont = imodContourNew();
+    if (!cont)
+      break;
+    tpt.x = ix + starEnd[i * 2];
+    tpt.y = iy + starEnd[i * 2 + 1];
+    imodPointAppend(cont, &tpt);
+    tpt.x = ix - starEnd[i * 2];
+    tpt.y = iy - starEnd[i * 2 + 1];
+    imodPointAppend(cont, &tpt);
+    imodObjectAddContour(obj, cont);
+  }
+  zap->centerMarked = 1;
+  imodDraw(zap->vi, IMOD_DRAW_MOD);
+}
+
 
 /********************************************************
  * conversion functions between image and window cords. */
@@ -3294,6 +3364,10 @@ static int zapPointVisable(ZapStruct *zap, Ipoint *pnt)
 
 /*
 $Log$
+Revision 4.59  2005/02/09 01:18:45  mast
+Added ability to rotate/stretch/scale contours, made it work with multiple
+contours
+
 Revision 4.58  2004/12/22 15:21:15  mast
 Fixed problems discovered with Visual C compiler
 
