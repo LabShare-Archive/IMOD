@@ -12,6 +12,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.30  2004/04/16 02:20:39  sueh
+ * <p> removing print statements
+ * <p>
  * <p> Revision 3.29  2004/04/16 02:06:30  sueh
  * <p> bug# 409 No longer backing up .ali during useMtfFilter.
  * <p> Changed updateTransferfidEnabled() to updateDialog(FiducialModelDialog) - it
@@ -4870,7 +4873,6 @@ public class ApplicationManager {
     int exitValue,
     ProcessName processName,
     AxisID axisID) {
-    System.out.println("processDone");
     if (threadName.equals(threadNameA)) {
       mainFrame.stopProgressBar(AxisID.FIRST);
       threadNameA = "none";
