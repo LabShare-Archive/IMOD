@@ -15,6 +15,10 @@ package etomo.process;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.11  2003/07/25 23:00:33  rickg
+ * <p> openModel does not automatically switch 3dmod to model mode
+ * <p> now
+ * <p>
  * <p> Revision 2.10  2003/06/05 21:12:23  rickg
  * <p> Added model mode and raise messages
  * <p> fill cache flag is functional
@@ -249,6 +253,17 @@ public class ImodProcess {
     imodSendEvent(args);
   }
 
+  /**
+   * Switch the 3dmod process to movie mode
+   * @throws SystemProcessException
+   */
+  public void movieMode() throws SystemProcessException {
+    String[] args = new String[2];
+    args[0] = MESSAGE_MODEL_MODE;
+    args[1] = "0";
+    imodSendEvent(args);
+  }
+  
   /**
    * Raise the 3dmod window
    * @throws SystemProcessException
