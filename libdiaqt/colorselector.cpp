@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.3  2003/03/19 19:38:11  mast
+Change the color panel to a GL widget
+
 Revision 1.2  2003/02/10 20:51:22  mast
 Merge Qt source
 
@@ -106,14 +109,12 @@ ColorSelector::ColorSelector(QWidget *parent, QString label, int red,
   QLabel *topLabel = new QLabel(label, this);
   mLayout->addWidget(topLabel);
   
-  // Make the color box, a GL widget because palette background works poorly
+  // Make the color box a GL widget because palette background works poorly
   // on SGI
-  mColorBox = new QFrame(this);
-  mColorBox->setFrameStyle(QFrame::Plain);
-  mColorBox->setFixedHeight(50);
-  mLayout->addWidget(mColorBox);
-  mGLw = new ColorSelectorGL(&mCurrentRGB[0], mColorBox);
-
+  mGLw = new ColorSelectorGL(&mCurrentRGB[0], this);
+  mGLw->setFixedHeight(50);
+  mLayout->addWidget(mGLw);
+ 
   // Get the sliders, connect them and initialize them to current color
   mSliders = new MultiSlider(this, 3, sliderLabels);
   mLayout->addLayout(mSliders->getLayout());
