@@ -47,7 +47,6 @@ import etomo.type.ProcessTrack;
 import etomo.type.UserConfiguration;
 import etomo.ui.AlignmentEstimationDialog;
 import etomo.ui.CoarseAlignDialog;
-import etomo.ui.ContextPopup;
 import etomo.ui.FiducialModelDialog;
 import etomo.ui.MainFrame;
 import etomo.ui.PostProcessingDialog;
@@ -77,6 +76,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.0  2003/11/07 23:19:00  rickg
+ * <p> Version 1.0.0
+ * <p>
  * <p> Revision 2.93  2003/11/07 19:49:38  rickg
  * <p> Don't delete preali in delete aligned stacks code.
  * <p>
@@ -605,10 +607,6 @@ public class ApplicationManager {
     //  Initialize the program settings
     String testParamFilename = initProgram(args);
 
-    //  Initialize the static application manager reference for the
-    //  context popup
-    ContextPopup initContextPopup = new ContextPopup(this);
-
     //  Create a new main window and wait for an event from the user
     mainFrame = new MainFrame(this);
     mainFrame.setMRUFileLabels(userConfig.getMRUFileList());
@@ -1060,12 +1058,12 @@ public class ApplicationManager {
           imodManager.quitRawStack(axisID);
         }
         catch (AxisTypeException e) {
-          // TODO Auto-generated catch block
           e.printStackTrace();
+          System.err.println("Axis type exception in replaceRawStack");
         }
         catch (SystemProcessException e) {
-          // TODO Auto-generated catch block
           e.printStackTrace();
+					System.err.println("System process exception in replaceRawStack");
         }
       }
     }
@@ -3644,8 +3642,6 @@ public class ApplicationManager {
       storable[0] = metaData;
       storable[1] = processTrack;
       paramStore.load(storable);
-
-      // FIXME  need to detect an invalid EDF file and return a false
 
       // Set the current working directory for the application, this is the
       // path to the EDF file.  The working directory is defined by the current
