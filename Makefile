@@ -145,7 +145,7 @@ SHELL    = /bin/csh
 VERSION = `sed '/[^0-9.]/s///g' .version`
 ARCNAME  = imod_$(VERSION)
 DISTNAME = `if (-e .distname) sed '/[[:cntrl:]]/s///g' .distname`
-LAST_OPTIONS = `if (-e .options) sed '/[[:cntrl]]/s///g' .options`
+LAST_OPTIONS = `if (-e .options) sed '/[[:cntrl:]]/s///g' .options`
 
 #############################################################################
 # The Fortran programs, libraries, and man pages are located under
@@ -422,6 +422,9 @@ ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.39  2004/07/22 18:17:39  mast
+#  Change to better sed command for stripping Ctrl M
+#
 #  Revision 3.38  2004/04/24 01:03:56  mast
 #  Added self-installing file output
 #
