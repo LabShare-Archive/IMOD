@@ -12,6 +12,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.24  2004/03/22 23:51:23  sueh
+ * <p> bug# 83 starting the progress bar as soon as possible
+ * <p>
  * <p> Revision 3.23  2004/03/13 00:35:05  rickg
  * <p> Bug# 390 Add prenewst and xfproduct management
  * <p>
@@ -631,6 +634,7 @@ import etomo.ui.TomogramGenerationDialog;
 import etomo.ui.TomogramPositioningDialog;
 import etomo.ui.UIParameters;
 import etomo.util.InvalidParameterException;
+import etomo.util.MRCHeader;
 import etomo.util.Utilities;
 
 public class ApplicationManager {
@@ -1394,7 +1398,7 @@ public class ApplicationManager {
    * @param axisID
    * @return
    */
-private boolean updatePrenewstCom(AxisID axisID) {
+  private boolean updatePrenewstCom(AxisID axisID) {
     CoarseAlignDialog coarseAlignDialog;
     if (axisID == AxisID.SECOND) {
       coarseAlignDialog = coarseAlignDialogB;
@@ -1409,10 +1413,10 @@ private boolean updatePrenewstCom(AxisID axisID) {
     XfproductParam xfproductParam = comScriptMgr.getXfproductInAlign(axisID);
     int binning = prenewstParam.getBinByFactor();
     try {
-      if(binning > 1) {
+      if (binning > 1) {
         xfproductParam.setScaleShifts("1," + String.valueOf(binning));
       }
-      else{
+      else {
         xfproductParam.setScaleShifts("/");
       }
       comScriptMgr.saveXfproductInAlign(xfproductParam, axisID);
@@ -1427,6 +1431,7 @@ private boolean updatePrenewstCom(AxisID axisID) {
     }
     return true;
   }
+
   /**
    * Open the fiducial model generation dialog
    */
@@ -2382,13 +2387,42 @@ private boolean updatePrenewstCom(AxisID axisID) {
       tomogramGenerationDialogA = tomogramGenerationDialog;
     }
 
-    // Read in the tilt{|a|b}.com parameters and display the dialog panel
-    comScriptMgr.loadTilt(axisID);
-    tomogramGenerationDialog.setTiltParams(comScriptMgr.getTiltParam(axisID));
+    // Get the original image size and pass it to the TomogramGenerationDialog.
+    // It is needed to set the full image size correctly
+    // TODO: get the right size for montaging using montagesize
+    MRCHeader stackHeader = new MRCHeader(metaData.getDatasetName()
+        + axisID.getExtension() + ".st");
+    try {
+      stackHeader.read();
+      tomogramGenerationDialog.setFullImageSize(stackHeader.getNColumns(),
+        stackHeader.getNRows());
+    }
+    catch (IOException except) {
+      String[] errorMessage = new String[3];
+      errorMessage[0] = "Unable to read full image size from projection image stack";
+      errorMessage[1] = "Axis: " + axisID.getExtension();
+      errorMessage[2] = except.getMessage();
+      mainFrame.openMessageDialog(errorMessage, "MRCHeader IO Error");
+    }
+    catch (InvalidParameterException except) {
+      String[] errorMessage = new String[3];
+      errorMessage[0] = "Unable to read full image size from projection image stack";
+      errorMessage[1] = "Axis: " + axisID.getExtension();
+      errorMessage[2] = except.getMessage();
+      mainFrame.openMessageDialog(errorMessage,
+        "MRCHeader Invalid Parameter Error");
+    }
 
+    // Read in the newst{|a|b}.com parameters.  WARNING this needs to be done
+    // before reading the tilt paramers below so that the GUI knows how to
+    // correctly scale the dimensions
     comScriptMgr.loadNewst(axisID);
     tomogramGenerationDialog.setNewstParams(comScriptMgr
       .getNewstComNewstParam(axisID));
+
+    // Read in the tilt{|a|b}.com parameters and display the dialog panel
+    comScriptMgr.loadTilt(axisID);
+    tomogramGenerationDialog.setTiltParams(comScriptMgr.getTiltParam(axisID));
 
     mainFrame.showProcess(tomogramGenerationDialog.getContainer(), axisID);
   }
@@ -2421,7 +2455,7 @@ private boolean updatePrenewstCom(AxisID axisID) {
     }
     else {
       //  Get the user input data from the dialog box
-      if (!updateTiltCom(axisID, true)) {
+      if (!updateNewstCom(axisID) || !updateTiltCom(axisID, true)) {
         return;
       }
       if (exitState == DialogExitState.POSTPONE) {
