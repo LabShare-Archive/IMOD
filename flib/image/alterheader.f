@@ -16,6 +16,10 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.1  2002/08/17 05:37:29  mast
+c	  Made mmm compute rms, and added rms option to do same thing.
+c	  Also made declarations for implicit none, standardized error exit
+c	
 C   
 	implicit none
 	integer nfunc,idim,nx,ny,nz
@@ -25,6 +29,7 @@ C
 	real*4 delt(3),tilt(3),
      &      TITLE(20,10),cell(6),array(idim*idim)
 	equivalence (nxyz(1),nx),(nxyz(2),ny),(nxyz(3),nz)
+	common /bigimg/ array
 C   
 	CHARACTER*80 FILIN,funcin,funcup
         character*8 param(nfunc)
