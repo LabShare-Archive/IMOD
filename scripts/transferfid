@@ -9,6 +9,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.3  2002/06/19 16:07:13  mast
+#  Added option to leave temporary files
+#
 #  Revision 3.2  2002/05/23 04:43:12  mast
 #  Changes to call repackseed and provide for Ctrl-C to stop search
 #
@@ -57,12 +60,13 @@ set tmpseed    = $tmpdir/$com.seed.$$
 set tmpmap1    = $tmpdir/$com.map1.$$
 set tmpmap2    = $tmpdir/$com.map2.$$
 set tmpmap3    = $tmpdir/$com.map3.$$
+set tmpmidxf   = $tmpdir/$com.midxf.$$
 
 #
-# set default set name from current directory
-#
-set cwd = `pwd`
-set setname = $cwd:t
+# set default set name from current directory - NOT ANY MORE
+# 
+#set cwd = `pwd`
+#set setname = $cwd:t
 
 #
 # set other defaults or values to indicate no argument was entered
@@ -79,13 +83,16 @@ set outfile = ""
 set pmstart = 0
 set pmend = 1
 set leavetmp = 0
+set midas = 0
 
-while ($#argv)
+if ($#argv < 1) goto usage
+
+while ($#argv > 1)
   switch ($argv[1])
-    case -s:
-      set setname = $argv[2]
-      shift; shift
-      breaksw
+#    case -s:
+#      set setname = $argv[2]
+#      shift; shift
+#      breaksw
     case -ia:
       set imagea = $argv[2]
       shift; shift
@@ -132,6 +139,10 @@ while ($#argv)
       set leavetmp = 1
       shift
       breaksw
+    case -m:
+      set midas = 1
+      shift
+      breaksw
     case -h:
       goto usage
     default:
@@ -139,6 +150,8 @@ while ($#argv)
       goto usage
   endsw
 end
+
+set setname = $argv[1]
 
 if ($nviews < 1) then
     echo "The number of views to sample must be at least 1; you entered $nviews"
@@ -293,9 +306,6 @@ endif
 #
 # Set up lists to do sections from center out
 #
-echo "Finding the best matched pair of views in the two series:"
-echo "              (Type Ctrl-C to end search)"
-
 set aseclist = ($zeroa)
 set bseclist = ($zerob)
 @ ind = 1
@@ -318,6 +328,17 @@ end
 #
 set densities = `header $imageb | sed -n '/mum dens/p'`
 set diffscale = `echo 1000. $densities[4] $densities[8] | awk '{print $1 / ($3 - $2)}'`
+
+#
+# set up for midas
+#
+if ($midas) then
+    if ($pmend != $pmstart) set pmend = 0
+else
+    echo "Finding the best matched pair of views in the two series:"
+    echo "              (Type Ctrl-C to end search)"
+endif
+
 
 #
 # Loop on section from b, section from a, and -/+90 rotations
@@ -376,9 +397,29 @@ $tmpstack
 0
 0
 EOF
-	    #
-	    # Run tiltxcorr
-	    #
+	    if ($midas) then
+		if ($asecind == 1 && $bsecind == 1) then
+		    # 
+		    # first time, run midas
+		    # set box to 1 in case a 180 rotation is needed
+		    #
+		    echo "Starting midas - you should align translation and rotation,"
+		    echo " and save the transform to the already-defined output file"
+		    sleep 3
+		    midas -D -b 1 $tmpstack $tmpmidxf
+		    if (! -e $tmpmidxf) then
+			echo "ERROR: Transform file not found - cannot proceed"
+			goto clean
+		    endif
+		    tail -1 $tmpmidxf >! $tmpxf1
+		    echo "Finding the best matched pair of views in the two series:"
+		    echo "              (Type Ctrl-C to end search)"
+
+		endif
+	    else
+		#
+		# Run tiltxcorr
+		#
 tiltxcorr  > /dev/null <<EOF
 $tmpstack
 
@@ -393,12 +434,12 @@ $xcfilter
 /
 /
 EOF
-
-	    #
-	    # Run xfsimplex looking for rotation only
-	    #
-#	    echo "first simplex"
-	    tail -1 $tmpxcxf >! $tmpxfin
+    
+		#
+		# Run xfsimplex looking for rotation only
+		#
+		#	    echo "first simplex"
+		tail -1 $tmpxcxf >! $tmpxfin
 xfsimplex <<EOF  > /dev/null
 $tmpstack
 $tmpimga
@@ -412,6 +453,7 @@ $reduce
 0
 0
 EOF
+	    endif
 	    #
 	    # Run xfsimplex again from there, looking for full transform
 	    #
@@ -432,7 +474,6 @@ EOF
 
 	    # 
 	    # extract the difference from the log file
-	    # TODO: something about scaling
 	    # 
 	    set simplexout = `tail -1 $tmpxflog`
 	    @ diff = `echo $simplexout[2] $diffscale | awk '{print int($1 * $2)}'`
@@ -605,14 +646,26 @@ $bsecbest,-999
 EOF
 #
 # Repack the model to remove empty points, and pass through mapping report
+# First find out if the fid.xyz is availabel and has contour data
 #
+set xyzname = ${setname}afid.xyz
+if (-e $xyzname) then
+    set xyzwc = `wc $xyzname`
+    @ lines = $xyzwc[1]
+    @ words = $xyzwc[2]
+    if ($lines * 6 > $words) set xyzname = ""
+else
+    set xyzname = ""
+endif
+
 repackseed <<EOF > $tmprplog
 $fidfile
+$xyzname
 $tmpmap3
 $outfile
 EOF
 echo " "
-tail -4 $tmprplog
+tail -10 $tmprplog
 
 clean:
 if ($leavetmp == 0) then
@@ -624,10 +677,10 @@ exit 0
 
 usage:
 cat <<EOF
-Usage: $pn [options]
+Usage: $pn [options] setname
   Will make a fiducial seed model for axis B from the fiducial model for axis A
+  For setname, give the name of the data set, omitting a or b
   Options:
-     -s setname    Name of data set (omitting a or b, default = directory name)
      -ia imagefile Name of axis A image file (default taken from tracka.com)
      -ib imagefile Name of axis B image file (default taken from trackb.com)
      -f fidmodel   Name of axis A fiducial model (default setnamea.fid)
@@ -639,6 +692,7 @@ Usage: $pn [options]
                       view closest to zero tilt in setnameb.rawtlt)
      -a #          Rotation direction or angle to search (+1, -1, +90, -90
                       all work, default is to search both directions)
+     -m            Run Midas to set initial translational/rotational alignment
      -r radius     Bead radius for Beadtrack; default is taken from tracka.com
      -l            Search for light rather than dark beads (only works with -r)
      -t            Leave temporary files in $tmpdir
