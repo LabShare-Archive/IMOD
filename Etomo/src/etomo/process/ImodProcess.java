@@ -20,6 +20,9 @@ import etomo.ApplicationManager;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.8  2004/04/30 21:11:52  sueh
+ * <p> bug# 428 add open ZaP window message
+ * <p>
  * <p> Revision 3.7  2004/04/27 22:02:58  sueh
  * <p> bug# 320 removing test
  * <p>
@@ -145,6 +148,8 @@ public class ImodProcess {
   public static final String MESSAGE_OPEN_KEEP_BW = "7";
   public static final String MESSAGE_OPEN_BEADFIXER = "8";
   public static final String MESSAGE_ONE_ZAP_OPEN = "9";
+  
+  private static final int defaultBinning = 1;
 
   private String datasetName = "";
   private String modelName = "";
@@ -155,6 +160,7 @@ public class ImodProcess {
   private boolean useModv = false;
   private boolean outputWindowID = true;
   private File workingDirectory = null;
+  private int binning = defaultBinning;
 
   private Thread imodThread;
 
@@ -240,6 +246,10 @@ public class ImodProcess {
     // Fill cache implementation
     if (fillCache) {
       options.append("-F ");
+    }
+    
+    if (binning > defaultBinning) {
+      options.append("-B " + binning + " ");
     }
     String command = ApplicationManager.getIMODBinPath() + "3dmod " + options
         + datasetName + " " + modelName;
@@ -559,6 +569,15 @@ public class ImodProcess {
   public void setOutputWindowID(boolean b) {
     outputWindowID = b;
   }
+  
+  public void setBinning(int binning) {
+    if (binning < defaultBinning) {
+      this.binning = defaultBinning;
+    }
+    else {
+      this.binning = binning;
+    }
+  }
 
   public String toString() {
     return getClass().getName() + "[" + paramString() + "]";
@@ -568,7 +587,7 @@ public class ImodProcess {
     return ",datasetName=" + datasetName + ", modelName=" + modelName
         + ", windowID=" + windowID + ", swapYZ=" + swapYZ + ", fillCache="
         + fillCache + ", modelView=" + modelView + ", useModv=" + useModv
-        + ", outputWindowID=" + outputWindowID;
+        + ", outputWindowID=" + outputWindowID + ", binning=" + binning;
   }
 
 }
