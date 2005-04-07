@@ -5,17 +5,41 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.1  2002/07/28 22:56:31  mast
+c	  Standardize error output
+c	
+c
+c	  NEXTPOS computes the projected position of a point from positions on
+c	  nearby views in the absence of a tilt alignment
+c	  IOBJ is the object #
+c	  IPNEAR is the point number of the nearest point in Z
+c	  IDIR is the direction (+1/-1)
+c	  IZNEXT is the Z value of the view to project to
+c	  TILT is array of tilt angles
+c	  NFIT and MINFIT are maximum and minimum number of points to fit
+c	  IAXTILT is 1 if tilt axis is near 0 degrees
+c	  TILTMIN is minimum tilt angle for fitting to sin/cosine
+c	  XNEXT, YNEXT is the projected position
 c
 	subroutine nextpos(iobj,ipnear,idir,iznext,tilt,nfit,minfit,
      &	    iaxtilt, tiltmin, xnext, ynext)
+	implicit none
 	include 'model.inc'
+	integer idim
+	parameter (idim=50)
 	real*4 tilt(*)
-	real*4 xx(99),yy(99),zz(99)
-	parameter (idim=30)
+	real*4 xx(idim),yy(idim),zz(idim)
 	include 'statsize.inc'
 	real*4 xr(msiz,idim), sx(msiz), xm(msiz), sd(msiz)
      &	    , ss(msiz,msiz), ssd(msiz,msiz), d(msiz,msiz), r(msiz,msiz)
      &	    , b(msiz), b1(msiz)
+	integer*4 iobj,ipnear,idir,iznext,nfit,minfit,iaxtilt
+	real*4 tiltmin,xnext,ynext
+	integer*4 ibase,ninobj,mfit,ipend,indx,indy,iptnear,ip,ipt,ipb,ipp
+	integer*4 ipast,ibefo,i
+	real*4 xsum,ysum,slope,bint,ro,const,rsq,fra,thetnext,xtmp,theta
+	real*4 cosd,sind
+
 	ibase=ibase_obj(iobj)
 	ninobj=npt_in_obj(iobj)
 	mfit=0
@@ -45,6 +69,8 @@ c
 	  do while(idir*(ip-ipend).ge.0.and.mfit.lt.nfit)
 	    ipt=object(ibase+ip)
 	    mfit=mfit+1
+	    if (mfit .gt. idim) call errorexit(
+     &		'TOO MANY POINTS IN NON-TILT ALIGNMENT FITS FOR ARRAYS', 0)
 	    xx(mfit)=p_coord(indx,ipt)
 	    yy(mfit)=p_coord(indy,ipt)
 	    zz(mfit)=p_coord(3,ipt)
@@ -57,7 +83,7 @@ c
 	  mfit=1
 	  xx(mfit)=p_coord(indx,iptnear)
 	  yy(mfit)=p_coord(indy,iptnear)
-	  zz(mfit)=iznear
+	  zz(mfit)=iznext
 	else
 c	  
 c	    otherwise, set pointers to points past and before view and get
@@ -95,6 +121,8 @@ c
 	      endif
 	    endif
 	    mfit=mfit+1
+	    if (mfit .gt. idim) call errorexit(
+     &		'TOO MANY POINTS IN NON-TILT ALIGNMENT FITS FOR ARRAYS', 0)
 	    xx(mfit)=p_coord(indx,ipt)
 	    yy(mfit)=p_coord(indy,ipt)
 	    zz(mfit)=p_coord(3,ipt)
@@ -110,12 +138,14 @@ c
 	  enddo
 	  xnext=xsum/mfit
 	  ynext=ysum/mfit
+c	  print *,'average:',iobj,mfit,xnext,ynext
 	else
 	  call lsfit(zz,xx,mfit,slope,bint,ro)
 	  xnext=iznext*slope+bint
 	  if(iaxtilt.eq.0.or.abs(tilt(iznext+1)).lt.tiltmin)then 
 	    call lsfit(zz,yy,mfit,slope,bint,ro)
 	    ynext=iznext*slope+bint
+c	    print *,'linear fit:',iobj,mfit,xnext,ynext
 	  else
 	    do i=1,mfit
 	      theta=tilt(nint(zz(i))+1)
@@ -127,6 +157,7 @@ c
      &		const, rsq ,fra)
 	    thetnext=tilt(iznext+1)
 	    ynext=b1(1)*cosd(thetnext)+b1(2)*sind(thetnext)+const
+c	    print *,'sin/cos fit:',iobj,mfit,xnext,ynext
 	  endif
 	endif
 	if(iaxtilt.gt.1)then
@@ -222,58 +253,6 @@ C
 
 
 
-c	  PADFILL pads an image, dimensions NXBOX by NYBOX in ARRAY,
-c	  into the center of a larger array.  The padded image in BRRAY will
-c	  have size NX by NY while the BRRAY will be dimensioned NXDIM by NY
-c	  The values of the image at its edge will be tapered out to the mean
-c	  value at the edge of the new area.
-c
-	subroutine padfill(array,nxbox,nybox,brray,nxdim,nx,ny)
-	real*4 array(nxbox,nybox),brray(nxdim,ny)
-c
-	sum=0.
-	do ix=1,nxbox
-	  sum=sum+array(ix,1)+array(ix,nybox)
-	enddo
-	do iy=2,nybox-1
-	  sum=sum+array(1,iy)+array(nxbox,iy)
-	enddo
-	dmean=sum/(2*(nxbox+nybox-2))
-c
-	ixlo=nx/2-nxbox/2
-	ixhi=ixlo+nxbox
-	iylo=ny/2-nybox/2
-	iyhi=iylo+nybox
-	do iy=nybox,1,-1
-	  do ix=nxbox,1,-1
-	    brray(ix+ixlo,iy+iylo)=array(ix,iy)
-	  enddo
-	enddo
-	if(nxbox.ne.nx.or.nybox.ne.ny)then
-	  do iy=iylo+1,iyhi
-	    edgel=brray(ixlo+1,iy)
-	    edger=brray(ixhi,iy)
-	    do ix=1,ixlo
-	      wedge=(ix-1.)/ixlo
-	      wmean=1.-wedge
-	      brray(ix,iy)=wmean*dmean+wedge*edgel
-	      brray(nx+1-ix,iy)=wmean*dmean+wedge*edger
-	    enddo
-	  enddo
-	  do iy=1,iylo
-	    wedge=(iy-1.)/iylo
-	    prodmean=(1.-wedge)*dmean
-	    iytoplin=ny+1-iy
-	    do ix=1,nx
-	      brray(ix,iy)=prodmean+wedge*brray(ix,iylo+1)
-	      brray(ix,iytoplin)=prodmean+wedge*brray(ix,iyhi)
-	    enddo
-	  enddo
-	endif
-	return
-	end
-
-
 	subroutine setmeanzero(array,nxdim,nydim,nx,ny)
 	real*4 array(nxdim,nydim)
 	sum=0.
@@ -360,7 +339,7 @@ c
 	ysum=0.
 	wsum=0.
 c	  
-c	  find edge mean
+c	  find edge mean - require half the points to be present
 c
 	do i=1,nedge
 	  ix=ixcen+idxedge(i)
@@ -370,7 +349,7 @@ c
 	    nsum=nsum+1
 	  endif
 	enddo
-	if(nsum.eq.0)return
+	if(nsum.lt.nedge/2)return
 	edge=sum/nsum
 c	  
 c	  subtract edge and get weighted sum of pixel coordinates for POSITIVE
@@ -445,13 +424,21 @@ c
 	pt_label(n_point)=0
 	npt_in_obj(iobj)=npt_in_obj(iobj)+1
 	ipadd=ipnear
-	if(nint(p_coord(3,object(ibase+ipadd))).lt.iznext)ipadd=ipadd+1
+	if (ipadd .eq. 0) then
+	  ipadd = npt_in_obj(iobj)
+	  if (ipadd .eq. 1) then
+	    ibase_obj(iobj) = ibase_free
+	    ibase = ibase_free
+	  endif
+	elseif (nint(p_coord(3,object(ibase+ipadd))).lt.iznext) then
+	  ipadd=ipadd+1
+	endif
 	do j=ibase+npt_in_obj(iobj),ibase+ipadd+1,-1
 	  object(j)=object(j-1)
 	enddo
 	object(ibase+ipadd)=n_point
 	ibase_free=ibase_free+1
-	ipnear=ipadd
+	if (ipnear.ne. 0) ipnear=ipadd
 	return
 	end
 
@@ -490,4 +477,235 @@ c
 	return
 99	print *,'ERROR READING IMAGE FROM FILE'
 	call exit(1)
+	end
+
+c	  SETSIZ_SAM_CEL modifies the header size, sampling and cell size
+c	  for the MRC file open on unit IUNIT, given dimensions NX, NY, NZ.
+c	  It preserves the pixel size in Unit 1
+c
+	subroutine setsiz_sam_cel(iunit,nx,ny,nz)
+	integer*4 nxyz(3),nxyzst(3)
+	real*4 cell(6),delta(3)
+	data cell/0.,0.,0.,90.,90.,90./
+	data nxyzst/0,0,0/
+c	  
+	call irtdel(1,delta)
+	nxyz(1)=nx
+	nxyz(2)=ny
+	nxyz(3)=nz
+	cell(1)=nx*delta(1)
+	cell(2)=ny*delta(2)
+	cell(3)=nz*delta(3)
+	call ialsiz(iunit,nxyz,nxyzst)
+	call ialsam(iunit,nxyz)
+	call ialcel(iunit,cell)
+	return
+	end
+
+c	  SPLITPACK splits ARRAY into the 4 corners of BRRAY
+c	  ARRAY is dimensioned NXDIM by NY, data are NX by NY and pack into BRRAY
+c	
+	subroutine splitpack(array, nxdim, nx, ny, brray)
+	implicit none
+	integer*4 nx, nxdim, ny, ixnew, iynew, ix, iy
+	real*4 array(nxdim,ny),brray(nx,ny)
+	do iy=1,ny
+	  do ix=1,nx
+	    ixnew=mod(ix+nx/2-1,nx)+1
+	    iynew=mod(iy+ny/2-1,ny)+1
+	    brray(ixnew,iynew)=array(ix,iy)
+	  enddo
+	enddo
+	return
+	end
+
+
+c	  countMissing counts the number of points missing from object IOBJ
+c	  NVUALL is the total number of views, NEXCLUDE excluded views are
+c	  in IZEXCLUDE, MISSING is a logical array to use, and the number
+c	  or missing views and the list of views are returned in NLISTZ and
+c	  LISTZ
+c	  
+	subroutine countMissing(iobj, nvuall, izexclude, nexclude, missing,
+     &	    listz, nlistz)
+	implicit none
+	include 'model.inc'
+	logical missing(0:*)
+	integer*4 izexclude(*), listz(*), iobj, nvuall, nexclude, nlistz
+	integer*4 ninobj,i,ibase,ip,iz
+c
+	ninobj=npt_in_obj(iobj)
+	nlistz = 0
+	if(ninobj.eq.0)return
+	ibase=ibase_obj(iobj)
+	do i=1,nvuall
+	  missing(i)=.true.
+	enddo
+	do i=1,nexclude
+	  missing(izexclude(i))=.false.
+	enddo
+	do ip=1,ninobj
+	  iz=nint(p_coord(3,object(ibase+ip)))+1
+	  missing(iz)=.false.
+	enddo
+	nlistz=0
+	do i=1,nvuall
+	  if(missing(i))then
+	    nlistz=nlistz+1
+	    listz(nlistz)=i
+	  endif
+	enddo
+	return
+	end
+
+	logical function itemOnList(item, list, nlist)
+	implicit none
+	integer*4 list(*), item, nlist, i
+	itemOnList = .true.
+	do i = 1, nlist
+	  if (item .eq. list(i)) return
+	enddo
+	itemOnList = .false.
+	return
+	end
+
+c	  FINDXF_WO_OUTLIERS calls FINDXF to get a 2D transformation,
+c	  and eliminates outlying position-pairs from the solution
+c
+c	  XR is the data matrix, NDAT is the full amount of data
+c	  XCEN, YCEN should contain the center coordinates that have been
+c	  subtracted from the X and Y point data.
+c	  IFTRANS and IFROTRANS should be 0 to get a general linear transform
+c	  IFTRANS should be 1 to solve for translation only
+c	  IFROTRANS should be 1 to solve for rotations and translations, or
+c	  2 to solve for magnification also
+c	  MAXDROP is the maximum number of points to drop as outliers
+c	  CRITPROB and CRITABS are the criterion probabilities for considering
+c	  a point an outlier
+c	  If the maximum residual is below ELIMMIN nothing will be eliminated
+c	  NDROP is number of points dropped, point numbers returned in IDROP
+c	  F is the 2 by 3 matrix transformation computed
+c	  DEVAVG, DEVSD, DEVMAX are mean, SD, and maximum deviations
+c	  IPNTMAX give the point number at which the maximum occurred
+c
+	subroutine findxf_wo_outliers(xr,ndat,xcen,ycen,iftrans,
+     &	    ifrotrans,maxdrop, critprob, critabs, elimmin, idrop,ndrop, f,
+     &	    devavg,devsd, devmax, ipntmax)
+	implicit none
+        include 'statsize.inc'
+	integer*4 idrop(*)
+        real*4 xr(msiz,*)
+	integer*4 iftrans,ifrotrans
+	real*4 f(2,3),xcen,ycen
+	integer*4 ndat,maxdrop,ndrop,ipntmax
+	real*4 critprob,critabs,elimmin,devavg,devsd,devmax
+	integer*4 i,j,lastdrop,itmp,nkeep,jdrop,isaveBase,icolDev,indexCol
+	real*4 probperpt,absperpt,sigfromavg,sigfromsd,sigma,z,prob,xx,yy
+	real*4 erfcc,gprob
+	gprob(z)=1.-0.5*erfcc(z/1.414214)
+	isaveBase = 13
+	icolDev = 13
+	indexCol = 19
+c	  
+c	  get probability per single point from the overall criterion prob
+c	  
+	probperpt=(1.-critprob)**(1./ndat)
+	absperpt=(1.-critabs)**(1./ndat)
+c	  
+c	  copy the data into far columns 
+c
+	do i=1,ndat
+	  do j=1,5
+	    xr(j+isaveBase,i)=xr(j,i)
+	  enddo
+	enddo
+
+	call findxf(xr,ndat,xcen,ycen,iftrans,ifrotrans,1,f,devavg,
+     &	    devsd,devmax,ipntmax)
+	ndrop = 0
+	if(maxdrop.eq.0.or.devmax.lt.elimmin) return
+c	  
+c	  Sort the residuals and keep index back to initial values
+c	  
+	lastdrop=0
+	do i=1,ndat
+	  idrop(i)=i
+	enddo
+	do i=1,ndat-1
+	  do j=i+1,ndat
+	    if(xr(icolDev,idrop(i)).gt.xr(icolDev,idrop(j)))then
+	      itmp=idrop(i)
+	      idrop(i)=idrop(j)
+	      idrop(j)=itmp
+	    endif
+	  enddo
+	enddo
+c	  
+c	  load the data in this order, save index in xr
+c
+	do i=1,ndat
+	  do j=1,5
+	    xr(j,i)=xr(j+isaveBase,idrop(i))
+	  enddo
+	  xr(indexCol, i) = idrop(i)
+	enddo
+c	  
+c	  Drop successively more points: get mean and S.D. of the remaining
+c	  points and check how many of the points pass the criterion 
+c	  for outliers.  
+c	  
+	do jdrop = 1, maxdrop+1
+	  call findxf(xr,ndat-jdrop,xcen,ycen,iftrans,ifrotrans,1,f,devavg,
+     &	      devsd,devmax,ipntmax)
+c	    
+c	    get deviations for points out of fit
+c
+	  do i = ndat + 1 - jdrop, ndat
+	    call xfapply(f,0.,0.,xr(1,i),xr(2,i),xx, yy)
+	    xr(icolDev, i) = sqrt((xx - xr(1,i))**2 + (yy - xr(2,i))**2)
+	  enddo
+c	    
+c	    estimate the sigma for the error distribution as the maximum of
+c	    the values implied by the mean and the SD of the deviations
+c	    
+	  sigfromavg=devavg/sqrt(8./3.14159)
+	  sigfromsd=devsd/sqrt(3.-8./3.14159)
+	  sigma=max(sigfromavg,sigfromsd)
+
+	  nkeep=0
+	  do j=ndat-jdrop+1,ndat
+	    z=xr(icolDev,j)/sigma
+	    prob=2*(gprob(z)-0.5)-sqrt(2./3.14159)*z*exp(-z**2/2.)
+	    if(prob.lt.probperpt)nkeep=nkeep+1
+	    if(prob.ge.absperpt) ndrop=min(maxdrop,max(ndrop,ndat+1-j))
+	  enddo
+c	    
+c	    If all points are outliers, this is a candidate for a set to drop
+c	    When only the first point is kept, and all the rest of the points
+c	    were outliers on the previous round, then this is a safe place to
+c	    draw the line between good data and outliers.  In this case, set
+c	    ndrop; and at end take the biggest ndrop that fits these criteria
+c	    
+	  if(nkeep.eq.0)lastdrop=jdrop
+	  if(nkeep.eq.1.and.lastdrop.eq.jdrop-1.and.lastdrop.gt.0)
+     &	      ndrop=lastdrop
+c	  print *,'drop',jdrop,', keep',nkeep,', lastdrop',lastdrop,
+c     &	      ',  ndrop =',ndrop
+	enddo
+c	  
+c	  when finish loop, need to redo with right amount of data and restore
+c	  data
+c	    
+	do i=1,ndrop
+	  idrop(i)=nint(xr(indexCol, ndat+i-ndrop))
+	enddo
+	call findxf(xr,ndat-ndrop,xcen,ycen,iftrans,ifrotrans,1,f,devavg,
+     &	    devsd,devmax,ipntmax)
+	ipntmax=nint(xr(indexCol,ipntmax))
+	do i=1,ndat
+	  do j=1,5
+	    xr(j,i)=xr(j+isaveBase,i)
+	  enddo
+	enddo
+	return
 	end

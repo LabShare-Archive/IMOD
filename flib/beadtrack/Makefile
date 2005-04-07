@@ -4,7 +4,7 @@ include ../configure
 
 O        = $(OBJEXT)
 BDOBJS = beadtrack.$(O) proc_model.$(O) proc_vars.$(O) solve_xyzd.$(O)\
- funct.$(O) metro.$(O) map_vars.$(O) tracksubs.$(O) findxf.$(O) tiltali.$(O)
+ funct.$(O) metro.$(O) map_vars.$(O) tracksubs.$(O) tiltali.$(O)
 
 PROG = beadtrack$(BINEXT)
 
@@ -19,13 +19,13 @@ $(PROG): $(BDOBJS)
 	$(FC) -o beadtrack $(BDOBJS) $(LDFFLAGS) $(LDFALLBACK) $(IMLIBS) \
 	$(FORTCLIBS) $(TILTALILIB)
 
-beadtrack.$(O):   $(INCDIR)/model.inc  $(INCDIR)/statsize.inc $(INCDIR)/alivar.inc
-findxf.$(O):      $(INCDIR)/statsize.inc
+beadtrack.$(O):   $(INCDIR)/model.inc  $(INCDIR)/statsize.inc \
+ $(INCDIR)/alivar.inc tltcntrl.inc
 proc_model.$(O):  $(INCDIR)/model.inc
 tracksubs.$(O):   $(INCDIR)/model.inc  $(INCDIR)/statsize.inc
 funct.$(O):       $(INCDIR)/alivar.inc
-proc_vars.$(O):   $(INCDIR)/alivar.inc
-tiltali.$(O):     $(INCDIR)/alivar.inc
+proc_vars.$(O):   $(INCDIR)/alivar.inc tltcntrl.inc
+tiltali.$(O):     $(INCDIR)/alivar.inc tltcntrl.inc
 
 metro.$(O):       ../tiltalign/metro.f
 	$(FC) $(FFLAGS) -c -o metro.$(O) ../tiltalign/metro.f

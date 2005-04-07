@@ -15,31 +15,20 @@ c
 	subroutine tiltali(ifdidalign,resmean,iview)
 	implicit none
 	include 'alivar.inc'
+	include 'tltcntrl.inc'
+	include 'model.inc'
 c
 c	  IF MAXVAR IS NOT BIGGER THAN MAXMETRO, NEED TO DIMENSION
 c	  var to maxmetro
 c
-	integer maxvar,maxmetro
-	parameter (maxvar=5*maxview,maxmetro=2100)
+	integer maxvar,maxmetro,maxMetroTrials
+	parameter (maxvar=5*maxview,maxmetro=2100,maxMetroTrials=5)
 
 	integer*4 ifdidalign, iview
 	real*4 resmean(*)
-	real*4 tiltorig(maxview),gmagorig(maxview),rotorig(maxview)
-	integer*4 mapalltilt(maxview),mapallmag(maxview),ivorig(maxview)
-	integer*4 ivsolv(maxview),iobjali(maxreal)
-	real*4 dxysav(2,maxview),xyzsav(3,maxreal)
-	integer*4 nvuall,imintilt,mininview,minvtiltali,initxyzdone
-	real*4 randoaxis,randotilt, scalexy,xcen,ycen,xorig,yorig
-	real*4 xdelt,ydelt,facm,eps,cgx,cgy
-	integer*4 nsolve,ncycle
-	common /tltcntrl/nvuall,imintilt,mininview,minvtiltali,
-     &	    randoaxis,randotilt, scalexy,xcen,ycen,cgx,cgy,xorig,
-     &	    yorig,xdelt,ydelt, initxyzdone,nsolve,facm, ncycle,eps,
-     &	    tiltorig,gmagorig,rotorig,mapalltilt,mapallmag,ivorig,
-     &	    ivsolv,iobjali,dxysav,xyzsav
 c	  
 	real*4 var(maxvar),grad(maxmetro),h(maxmetro*(maxmetro+3))
-	real*4 erlist(100)
+	real*4 erlist(100),varsave(maxvar)
 	logical firsttime
 	double precision error
 	common /functfirst/ firsttime
@@ -47,37 +36,54 @@ c
 	data dtor/0.0174532/
 	integer*4 imintiltsolv,itry,isolmininit,i,isolmin,nprojpt,iv
 	real*4 tltslvmin,tltslvmax,ang,tltran,ermin,ermininit,finit
-	integer*4 nvarsrch,ifmaptilt,isolve,jpt,kpt,nvargeom,ier,kount
+	integer*4 nvarsrch,ifmaptilt,isolve,jpt,kpt,nvargeom,ier,kount,nsum
 	real*4 f,ffinal,rsum
-	integer*4 ior,ipt,ivor,j
+	integer*4 ior,ipt,ivor,j,metroLoop
+	real*4 trialScale(maxMetroTrials) /1.0, 0.9, 1.1, 0.75, 0.5/
+	real*4 restmp(10000)
+	logical itemOnList
 
 	ifanyalf=0
-	call proc_model(xcen,ycen,xdelt,ydelt,xorig,yorig,
-     &	    scalexy, nvuall,mininview,ivsolv,ivorig,
-     &	    xx,yy,isecview,maxprojpt,maxreal,irealstr,iobjali,
-     &	    nview, nprojpt,nrealpt)
+	call proc_model(xcen,ycen,xdelt,ydelt,xorig,yorig, scalexy,
+     &	    nvuall,mininview,iview,nvlocal,iobjseq,nobjdo,mapFileToView,
+     &	    mapViewToFile, xx,yy,isecview,maxprojpt,maxreal,irealstr,
+     &	    iobjali, nview, nprojpt,nrealpt)
 	ifdidalign=0
 	if(nview.ge.minvtiltali)then
 c	    
 c	    if enough views, set up for solving tilt axis and tilt
 c	    angles depending on range of tilt angles
-c	    
+c	    reload tilt from nominal angles to get the increments right
+c
 	  tltslvmin=1.e10
 	  tltslvmax=-1.e10
 	  do iv=1,nview
-	    ang=tiltorig(ivorig(iv))
+	    ang=tltall(mapViewToFile(iv))
 	    tltslvmin=min(tltslvmin,ang)
 	    tltslvmax=max(tltslvmax,ang)
+	    tilt(iv) = dtor * ang
 	  enddo
 	  tltran=tltslvmax-tltslvmin
-	  imintiltsolv=ivsolv(imintilt)
+	  imintiltsolv=mapFileToView(imintilt)
 	  ifrotfix=0
 	  if(tltran.lt.randoaxis)ifrotfix=imintiltsolv
 	  ifmaptilt=1
 	  if(tltran.lt.randotilt)ifmaptilt=0
-	  call proc_vars(rotorig,tiltorig,gmagorig,ivorig,
-     &	      mapalltilt ,mapallmag,ifmaptilt,imintiltsolv,
-     &	      var, nvarsrch)
+c	  print *,'ifrotfix',ifrotfix,'  ifmaptilt',ifmaptilt,
+c     &	      '  imintilt&solv',imintilt,imintiltsolv
+	  call proc_vars(ifmaptilt,imintiltsolv, var, nvarsrch)
+c	    
+c	    find out how many points have not been done yet and decide
+c	    whether to reinitialize dxy and xyz
+c	    
+	  nsum = 0
+	  do jpt=1,nrealpt
+	    do i=1,3
+	      if (xyzsav(i,iobjali(jpt)) .eq. 0.) nsum = nsum + 1
+	    enddo
+	  enddo
+	  if (nsum .gt. 0.2 * nrealpt) initxyzdone = 0
+c
 	  if(initxyzdone.eq.0)then
 c	      
 c	      first time, initialize xyz and dxy
@@ -147,8 +153,8 @@ c
 	      enddo
 	    enddo
 	    do iv=1,nview
-	      dxy(1,iv)=dxysav(1,ivorig(iv))/scalexy
-	      dxy(2,iv)=dxysav(2,ivorig(iv))/scalexy
+	      dxy(1,iv)=dxysav(1,mapViewToFile(iv))/scalexy
+	      dxy(2,iv)=dxysav(2,mapViewToFile(iv))/scalexy
 	    enddo
 	  endif
 c	    
@@ -164,47 +170,48 @@ c
 	      var(nvarsrch)=xyz(i,jpt)
 	    enddo
 	  enddo
+c	  
+c	    save the variable list for multiple trials
 c	    
-	  firsttime=.true.
-	  call funct(nvarsrch,var,finit,grad)
-c	    WRITE(6,70)FINIT
+	  do i = 1, nvarsrch
+	    varsave(i) = var(i)
+	  enddo
+c	    
+	  metroLoop = 1
+	  ier = 1
+	  do while (metroLoop.le.maxMetroTrials .and. ier.ne.0 .and. ier.ne.3)
+	    firsttime=.true.
+	    call funct(nvarsrch,var,finit,grad)
+c	      WRITE(6,70)FINIT
 c70	    FORMAT(/' Variable Metric minimization',T50,
 c	    &	    'Initial F:',T67,E14.7)
 C	    
-C	    -----------------------------------------------------
-C	    Call variable metric minimizer
-C	    CALL METRO(N,X,F,G,FACTOR,EST,EPS,LIMIT,IER,H,KOUNT)
-C	    -----------------------------------------------------
 C	    
-	  CALL METRO (nvarsrch,var,F,Grad,facm,.0000001,
-     &	      eps,-NCYCLE,IER, H,KOUNT)
+	    CALL METRO (nvarsrch,var,F,Grad,facm,.0000001,
+     &		eps,-NCYCLE,IER, H,KOUNT)
+	    metroLoop = metroLoop +1
+c	    
+c	      For errors except limit reached,  restart
+c	      
+	    if (ier .ne. 0 .and. ier .ne. 3) then
+	      if (metroLoop .le. maxMetroTrials) then
+		print *,'Metro error #',ier,', Restarting with step ',
+     &		    'factor of ', facm * trialScale(metroLoop)
+		do i = 1, nvarsrch
+		  var(i) = varsave(i)
+		enddo
+	      endif
+	    endif
+	  enddo
+c
 C	    Final call to FUNCT
 	  CALL FUNCT(nvarsrch,var,FFINAL,Grad)
-	  WRITE(6,98)nview,KOUNT,ffinal
-98	  format(i4,' views,',i5,' cycles, F =',e14.7)
-c98	    FORMAT(/T50,'Final   F : ',T67,E14.7/
-c	    &      /' Number of cycles : ',I5)
-C-----------------------------------------------------------------------
-C	    Error returns:
-	  IF(IER.NE.0)THEN
-	    print *,'tiltalign error going to view',iview
-	    GO TO (91,92,93,94),IER
-91	    WRITE(6,910)
-	    go to 95
-92	    WRITE(6,920)
-	    go to 95
-94	    WRITE(6,940)
-	    go to 95
-93	    WRITE(6,930)
-910	    FORMAT(/' ERROR: IER=1  DG > 0')
-920	    FORMAT(/' ERROR: IER=2  Linear search lost')
-930	    FORMAT(/' IER=3  Iteration limit exceeded....')
-940	    FORMAT(/' ERROR: IER=4  Matrix non-positive definite')
-	  END IF
 c	    
 c	    unscale all the points, dx, dy, and restore angles to
 c	    degrees
 c	    
+	  tltran = 0
+	  ifmaptilt = 0
 	  do i=1,nrealpt
 	    ior=iobjali(i)
 	    do j=1,3
@@ -213,19 +220,56 @@ c
 	    rsum=0.
 	    do ipt=irealstr(i),irealstr(i+1)-1
 	      rsum=rsum+sqrt(xresid(ipt)**2+yresid(ipt)**2)
+	      restmp(ipt+1-irealstr(i)) = scalexy*
+     &		  sqrt(xresid(ipt)**2+yresid(ipt)**2)
 	    enddo
 	    resmean(ior)=rsum*scalexy/
      &			(irealstr(i+1)-irealstr(i))
+c	    write(*,'(i4,(10f7.3))')ior,resmean(ior),(restmp(ipt),ipt = 1,
+c     &		min(9,irealstr(i+1)-irealstr(i)))
+	    tltran = tltran + rsum * scalexy
+	    ifmaptilt = ifmaptilt + irealstr(i+1)-irealstr(i)
 	  enddo
+c
+	  WRITE(6,98)nview,KOUNT,ffinal,tltran/ifmaptilt
+98	  format(i4,' views,',i5,' cycles, F =',e14.7,', mean residual =',
+     &	      f8.2)
+c
+C	    Error reports:
+	  IF(IER.NE.0)THEN
+	    if(ier.ne.3)then
+	      print *,'tiltalign error going to view',iview,
+     &		  ' even after varying step factor'
+	    else
+	      print *,'tiltalign error going to view',iview
+	    endif
+	  END IF
 c	    
 	  do iv=1,nview
-	    ivor=ivorig(iv)
+	    ivor=mapViewToFile(iv)
 	    dxysav(1,ivor)=dxy(1,iv)*scalexy
 	    dxysav(2,ivor)=dxy(2,iv)*scalexy
 	    rotorig(ivor)=rot(iv)/dtor
 	    tiltorig(ivor)=tilt(iv)/dtor
 	    gmagorig(ivor)=gmag(iv)
+
+c$$$	    ifmaptilt=0
+c$$$	    rsum=0
+c$$$	    do i=1,nprojpt
+c$$$	      if (iv.eq.isecview(i)) then
+c$$$		rsum=rsum+scalexy*sqrt(xresid(i)**2 + yresid(i)**2)
+c$$$		ifmaptilt = ifmaptilt + 1
+c$$$	      endif
+c$$$	    enddo
+c$$$	    write(*,'(i4,3f8.2,f8.4,2f10.2,f8.2)')ivor,rotorig(ivor),
+c$$$     &		tiltorig(ivor), tiltorig(ivor) - tltall(ivor), gmag(iv),
+c$$$     &		dxysav(1,ivor),dxysav(2,ivor), rsum/ifmaptilt
 	  enddo
+c$$$	  do ior = 1, max_mod_obj
+c$$$	    if (itemOnList(ior, iobjali, nrealpt))
+c$$$     &		write(*,'(i4,3f10.2)')ior,(xyzsav(j,ior),j=1,3)
+c$$$	  enddo
+
 	  ifdidalign=1
 	endif
 95	return

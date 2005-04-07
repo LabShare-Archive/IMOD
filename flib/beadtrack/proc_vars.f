@@ -9,147 +9,179 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.1  2004/10/24 22:33:59  mast
+c	  Chnages for projection stretch variables and new rotation stuff (?)
+c	
 c
-	subroutine proc_vars(rotorig,tiltorig,gmagorig,ivorig,
-     &	    mapalltilt ,mapallmag,ifmaptilt,imintilt,var,
-     &	    nvarsrch)
+	subroutine proc_vars(ifmaptilt,ireftilt,var, nvarsrch)
 c
+	implicit none
 	include 'alivar.inc'
+	include 'tltcntrl.inc'
 
-	real*4 var(*),rotorig(*),tiltorig(*),gmagorig(*)
-	integer*4 mapalltilt(*),mapallmag(*),ivorig(*)
-	integer*4 mapvarno(maxview),maplist(maxview)
+	real*4 var(*)
+	integer*4 ifmaptilt
+	integer*4 maplist(maxview),ireftilt,nvarsrch
+	real*4 rotstart,defrot,power,fixdum,grpsize(maxview)
+	integer*4 i,iview,iv,nvarang,iflin,iref1,maptest
+	real*4 dtor/0.0174532/
+	character*8 varname(maxview)
+c	  
+	integer*4 ivsep(maxview,maxgrp),nsepingrp(maxgrp),ngsep
+	common /mapsep/ ivsep,nsepingrp,ngsep
+c	  
 c
-	data dtor/0.0174532/
+c	  Remap the separate group information for the current views
+c	  
+	do iv = 1, ngsep
+	  nsepingrp(iv) = nsepInGrpIn(iv)
+	  do i = 1, nsepingrp(iv)
+	    ivsep(i,iv) = ivSepIn(i,iv)
+	  enddo
+	  call mapSeparateGroup(ivsep(1,iv), nsepingrp(iv), mapFileToView,
+     &	      nFileViews)
+	enddo
 c
-c	  set up the first search variable as a global rotation angle
-c	  and the rest as delta rotation angles of each view after first
-c	  or, if one is fixed, set up all others as delta from that one
-c	  10/10/04: added appropriate mapping entries to work with new funct
+c	  Use the grouping to get the mapping
+c
+	iflin = 1
+	call setgrpsize(tilt,nview,0.,grpsize)
+	call makeMapList(nview,maplist,grpsize,mapfiletoview,nfileviews,
+     &	    nmapRot, ivSpecStrRot, ivSpecEndRot,nmapSpecRot,nRanSpecRot)
+c
+c	  If one variable is fixed, that is the reference variable, but if
+c	  not, reserve the first variable and set up first rotation as
+c	  reference for the mapping
 c
 	nvarsrch=0
+	iref1 = ifrotfix
+	defrot = 0.
 	if(ifrotfix.eq.0)then
-	  var(1)=rotorig(ivorig(1))*dtor
+	  iref1 = 1
 	  nvarsrch=1
-	  rot(1)=var(1)
-	  rotstart=rot(1)
-	  maprot(1) = 1
-	  linrot(1) = 0
-	  frcrot(1) = 1.
-	else
-	  rotstart=rotorig(ivorig(ifrotfix))*dtor
-	  rot(ifrotfix)=rotstart
-	  maprot(ifrotfix) = 0
 	endif
+c	  
+c	  get the variables allocated
 c
-	do i=2,nview
-	  iview=i
-	  if(i.le.ifrotfix)iview=i-1
-	  rot(iview)=rotorig(ivorig(iview))*dtor
-	  nvarsrch=nvarsrch+1
-	  var(nvarsrch)=rot(iview)-rotstart
-	  maprot(iview) = nvarsrch
-	  linrot(iview) = 0
-	  frcrot(iview) = 1.
+        call analyze_maps(rot,maprot,linrot,frcrot,fixedrot,fixdum,
+     &      iflin, maplist,nview, iref1,0,defrot,'rot ',var,varname,
+     &      nvarsrch,mapviewtofile)
+c	  
+c	  reload the old rotation values
+c
+	do iv = 1, nview
+	  rot(iv) = rotorig(mapViewToFile(iv))*dtor
 	enddo
-	fixedrot = 0.
+c	  
+c	  Fix global variable 1 and anything in its block
+c	  
+	if (ifrotfix .eq. 0) then
+	  maptest = 1
+	  rotstart = rot(1)
+	  var(1) = rot(1)
+	  do i = 1, nview
+	    if (maprot(i) .eq. 0) then
+              rot(i) = rotstart
+              maprot(i) = 1
+            endif
+          enddo
+	else
+c	    
+c	    Otherwise, fix ifrotfix which moves with linear mapping
+c	    
+	  maptest = 0
+	  do i = 1, nview
+            if (maprot(i) .eq. 0) then
+              ifrotfix = i
+              rotstart = rot(i)
+            endif
+          enddo
+        endif
+c	  
+c	  Set up var with increments from current values by looking at all
+c	  mappings but maptest that are not linear combos
+c
+	do i = 1, nview
+	  if (maprot(i) .ne. maptest .and. maprot(i).gt.0 .and. linrot(i).eq.0)
+     &	      var(maprot(i)) = rot(i) - rotstart
+	enddo
 c
 c	  set up for fixed tilt angles
 c
 	do i=1,nview
-	  tilt(i)=tiltorig(ivorig(i))*dtor
-	  tiltinc(i)=0.
-	  maptilt(i)=0
 	  maplist(i)=0
 	enddo
-c	    
-c	    automap: get map, then set variable # 0 for ones mapped to 
-c	    minimum tilt
-c
-	if(ifmaptilt.ne.0)then    
-	  do i=1,nview
-	    maplist(i)=mapalltilt(ivorig(i))
-	  enddo
-	  ivarfix=maplist(imintilt)
-	  do i=1,nview
-	    if(maplist(i).eq.ivarfix)maplist(i)=0
-	  enddo
+	iflin = 0
+	power = 0.
+	if (ifmaptilt .ne. 0) then
+	  if (nmapTilt .gt. 1) then
+	    iflin = 1
+	    power = 1.
+	  endif
+	  call setgrpsize(tilt,nview,power,grpsize)
+	  call makeMapList(nview,maplist,grpsize,mapFileToView,nFileViews,
+     &	      nmapTilt, ivSpecStrTilt, ivSpecEndTilt,nmapSpecTilt,
+     &	      nRanSpecTilt)
 	endif
 c	  
-c	  analyze map list
+        call analyze_maps(tilt,maptilt,lintilt,frctilt,fixedtilt,
+     &      fixedtilt2,iflin, maplist,nview, ireftilt,0,-999.,
+     &      'tilt',var,varname,nvarsrch,mapViewToFile)
+c	  
+c	  set tiltinc so it will give back the right tilt for whatever
+c	  mapping or interpolation scheme is used
 c
-	ntiltsrch=0
 	do iv=1,nview
-	  if(maplist(iv).ne.0)then
-c
-c	      if value is 0, already all set for a fixed value
-c	      otherwise see if this var # is already encountered
-c
-	    imap=0
-	    do it=1,ntiltsrch
-	      if(maplist(iv).eq.mapvarno(it))imap=it
-	    enddo
-	    if(imap.eq.0)then
-c		
-c		if not, need to add another tilt variable
-c		
-	      ntiltsrch=ntiltsrch+1
-	      mapvarno(ntiltsrch)=maplist(iv)
-	      var(nvarsrch+ntiltsrch)=tilt(iv)
-	      imap=ntiltsrch
+	  tiltinc(iv)=0.
+	  if(maptilt(iv).ne.0)then
+	    if(lintilt(iv).gt.0)then
+	      tiltinc(iv)=tilt(iv)-(frctilt(iv)*var(maptilt(iv))+
+     &		  (1.-frctilt(iv))*var(lintilt(iv)))
+	    elseif(lintilt(iv).eq.-1)then
+	      tiltinc(iv)=tilt(iv)-(frctilt(iv)*var(maptilt(iv))+
+     &		  (1.-frctilt(iv))* fixedtilt)
+	    elseif(lintilt(iv).eq.-2)then
+	      tiltinc(iv)=tilt(iv)-(frctilt(iv)*var(maptilt(iv))+
+     &		  (1.-frctilt(iv))* fixedtilt2)
+	    else
+	      tiltinc(iv)=tilt(iv)-var(maptilt(iv))
 	    endif
-c	      
-c	      now incrementally map the tilt angle to the variable
-c
-	    maptilt(iv)=nvarsrch+imap
-	    tiltinc(iv)=tilt(iv)-var(nvarsrch+imap)
 	  endif
 	enddo
-	nvarsrch=nvarsrch+ntiltsrch
+c	  
+c	  Now reload the previous values and put them into vars
+c
+	do i=1,nview
+	  if (maptilt(i).gt.0) tilt(i) = dtor * tiltorig(mapViewToFile(i))
+	  if (maptilt(i) .gt. 0 .and. lintilt(i) .eq. 0)
+     &	      var(maptilt(i)) = tilt(i)
+	enddo
 	nvarang=nvarsrch
 c	  
-c	  set up mags by original map list
+c	  Set up the mag maplist
 c
-	ireftilt=imintilt
-	do i=1,nview
-	  gmag(i)=gmagorig(ivorig(i))
-	  maplist(i)=mapallmag(ivorig(i))
-	enddo
+	iflin = 1
+	call setgrpsize(tilt,nview,0.,grpsize)
+	call makeMapList(nview,maplist,grpsize,mapfiletoview,nfileviews,
+     &	    nmapMag, ivSpecStrMag, ivSpecEndMag,nmapSpecMag,nRanSpecMag)
 c	  
-c	  analyze map list
+c	  Set up mag variables
 c
-	nmagsrch=0
-	do iv=1,nview
-	  mapgmag(iv)=0
-	  if(maplist(iv).ne.maplist(ireftilt))then
+	call analyze_maps(gmag,mapgmag,lingmag,frcgmag,fixedgmag,fixdum,
+     &	    iflin, maplist,nview, ireftilt,0,1.,'mag ',var,varname,
+     &	    nvarsrch,mapviewtofile)
+c	  
+c	  Reload values and stuff them into vars by looking at all mappings
+c	  that are not linear combos
 c
-c	      if value is same as for minimum tilt, all set for fixed mag
-c	      otherwise see if this var # is already encountered
-c
-	    imap=0
-	    do it=1,nmagsrch
-	      if(maplist(iv).eq.mapvarno(it))imap=it
-	    enddo
-	    if(imap.eq.0)then
-c		
-c		if not, need to add another mag variable
-c		
-	      nmagsrch=nmagsrch+1
-	      mapvarno(nmagsrch)=maplist(iv)
-	      var(nvarsrch+nmagsrch)=gmag(iv)
-	      imap=nmagsrch
-	    endif
-c	      
-c	      now map the mag to the variable
-c
-	    mapgmag(iv)=nvarsrch+imap
-	  endif
+	do i=1,nview
+	  gmag(i)=gmagorig(mapViewToFile(i))
+	  if (mapgmag(i) .gt. 0 .and. lingmag(i) .eq. 0)
+     &	      var(mapgmag(i)) = gmag(i)
 	enddo
-	nvarsrch=nvarsrch+nmagsrch
 c
 c	  This should be done once before calling
 c
-	ncompsrch=0
 	mapProjStretch = 0
 	projStretch = 0.
 	projSkew = 0.
