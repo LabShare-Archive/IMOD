@@ -98,6 +98,12 @@ import etomo.util.Utilities;
  * 
  *
  * <p> $Log$
+ * <p> Revision 3.143  2005/03/29 23:48:53  sueh
+ * <p> bug# 618 Fixed problem with switching dialogs.  PostProcessing and
+ * <p> CleanUp where not running open and done functions when the user
+ * <p> changed dialogs using the left-hand buttons.  Nulled out dialog variables.
+ * <p> Also added cleanup dialog to getDialog().
+ * <p>
  * <p> Revision 3.142  2005/03/29 19:47:44  sueh
  * <p> bug# 623 When montaging, setting full image size when updating tilt.com
  * <p> from the .ali file.  When the .ali file is not available set the full image size
@@ -1998,6 +2004,7 @@ public class ApplicationManager extends BaseManager {
     }
     //  Create the dialog box
     comScriptMgr.loadXcorr(axisID);
+    comScriptMgr.loadUndistort(axisID);
     coarseAlignDialog.setCrossCorrelationParams(comScriptMgr.getTiltxcorrParam(axisID));
     if (metaData.getViewType() == ViewType.MONTAGE) {
       comScriptMgr.loadPreblend(axisID);
@@ -2123,6 +2130,30 @@ public class ApplicationManager extends BaseManager {
       setThreadName(threadName, axisID);
     }
   }
+  
+  /**
+   * run undistort.com
+   * @param axisID
+   */
+  public void makeDistortionCorrectedStack(AxisID axisID) {
+    updateUndistortCom(axisID);
+    processTrack.setCoarseAlignmentState(ProcessState.INPROGRESS, axisID);
+    mainPanel.setCoarseAlignState(ProcessState.INPROGRESS, axisID);
+    String threadName;
+    try {
+      threadName = processMgr.makeDistortionCorrectedStack(axisID);
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Can not execute undistort" + axisID.getExtension() + ".com";
+      message[1] = e.getMessage();
+      mainPanel.openMessageDialog(message, "Unable to execute com script");
+      return;
+    }
+    setThreadName(threadName, axisID);
+  }
+
 
   /**
    * Run the coarse alignment script
@@ -2200,8 +2231,8 @@ public class ApplicationManager extends BaseManager {
   /**
    * Run fix  edges in Midas
    */
-  public void midasEdges(AxisID axisID) {
-    processMgr.midasEdges(axisID);
+  public void midasFixEdges(AxisID axisID) {
+    processMgr.midasFixEdges(axisID);
     processTrack.setCoarseAlignmentState(ProcessState.INPROGRESS, axisID);
     mainPanel.setCoarseAlignState(ProcessState.INPROGRESS, axisID);
   }
@@ -2264,6 +2295,18 @@ public class ApplicationManager extends BaseManager {
       comScriptMgr.saveXcorr(blendmontParam, axisID);
     }
     return runningBlendmont;
+  }
+  
+  /**
+   * update undistort.com from xcorr.com
+   * @param axisID
+   */
+  private void updateUndistortCom(AxisID axisID) {
+    BlendmontParam blendmontParam = comScriptMgr
+        .getBlendmontParamFromTiltxcorr(axisID);
+    blendmontParam.setMode(BlendmontParam.UNDISTORT_MODE);
+    blendmontParam.setBlendmontState();
+    comScriptMgr.saveXcorrToUndistort(blendmontParam, axisID);
   }
 
   /**
@@ -3865,7 +3908,15 @@ public class ApplicationManager extends BaseManager {
     }
   }
   
-  public void enableTiltParameters(AxisID axisID) {
+  public void setEnabledFixEdgesWithMidas(AxisID axisID) {
+    CoarseAlignDialog coarseAlignDialog = mapCoarseAlignDialog(axisID);
+    if (coarseAlignDialog == null) {
+      return;
+    }
+    coarseAlignDialog.setEnabledFixEdgesMidasButton();
+  }
+  
+  public void setEnabledTiltParameters(AxisID axisID) {
     TomogramGenerationDialog tomogramGenerationDialog = mapGenerationDialog(axisID);
     if (tomogramGenerationDialog == null) {
       return;
@@ -3975,7 +4026,7 @@ public class ApplicationManager extends BaseManager {
     //  Set the fidcialess state and tilt axis angle
     tomogramGenerationDialog.setFiducialessAlignment(metaData.isFiducialessAlignment(axisID));
     tomogramGenerationDialog.setTiltAxisAngle(metaData.getImageRotation(axisID));
-    enableTiltParameters(axisID);
+    setEnabledTiltParameters(axisID);
 
     mainPanel.showProcess(tomogramGenerationDialog.getContainer(), axisID);
   }
