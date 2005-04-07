@@ -38,6 +38,8 @@ public class BlendmontProcessMonitor extends LogFileProcessMonitor {
       break;
     case BlendmontParam.BLEND_MODE:
       title = "Full alignment";
+    case BlendmontParam.UNDISTORT_MODE:
+      title = "Making distortion corrected stack";
       break;
 
     }
@@ -85,6 +87,9 @@ public class BlendmontProcessMonitor extends LogFileProcessMonitor {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.4  2005/03/11 01:33:25  sueh
+* <p> bug# 533 Setting a title in BlendmontParam.
+* <p>
 * <p> Revision 1.3  2005/03/09 22:28:07  sueh
 * <p> bug# 533 Documenting how timeout starts.  Timeout is necessary when
 * <p> blendmont is run from xcorr since it finishes before tiltxcorr and no
