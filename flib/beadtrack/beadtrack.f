@@ -15,6 +15,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.9  2005/04/07 03:56:31  mast
+c	  New version with local tracking, new mapping, outliers, etc.
+c	
 c	  Revision 3.6  2003/06/21 00:39:26  mast
 c	  Changed to use new version of get_tilt_angles
 c	
@@ -933,9 +936,9 @@ c
 	    do i=1,maxObjOrig*nvuall
 	      resmean(i)=-1.
 	    enddo
-	    write(*,123)iseqPass,areaObjStr,nobjdo,(iobjseq(i),i=1,nobjdo)
-123	    format('Starting round',i3,', ',a,i4,',',i4,' contours:',/,
-     &		(19i4))
+	    write(*,123)areaObjStr,listseq(iseq),iseqPass,nobjdo
+123	    format('Starting ',a,i4,', round',i3,',',i4,' contours');
+	    if (nobjlists .gt. 1) write(*,'(19i4)') (iobjseq(i),i=1,nobjdo)
 	  endif
 	  if (saveAllPoints .and. mod(iseq,2) .eq. 1) then
 	    do j = 1, 10
