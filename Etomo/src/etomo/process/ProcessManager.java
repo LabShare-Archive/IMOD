@@ -20,6 +20,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.60  2005/03/11 01:34:28  sueh
+ * bug# 533 Adding -q (quiet) option to midas call in midasEdges.
+ *
  * Revision 3.59  2005/03/09 22:46:00  sueh
  * bug# 533 Added blend().
  *
@@ -755,6 +758,22 @@ public class ProcessManager extends BaseProcessManager {
     }
     return comScriptProcess.getName();
   }
+  
+  public String makeDistortionCorrectedStack(AxisID axisID) throws SystemProcessException {
+    //  Create the required tiltalign command
+    String command = BlendmontParam
+        .getCommandFileName(BlendmontParam.UNDISTORT_MODE)
+        + axisID.getExtension() + ".com";
+    //  Start the com script in the background
+    BlendmontProcessMonitor blendmontProcessMonitor = new BlendmontProcessMonitor(
+      appManager, axisID, BlendmontParam.UNDISTORT_MODE);
+
+    //  Start the com script in the background
+    ComScriptProcess comScriptProcess = startComScript(command,
+        blendmontProcessMonitor, axisID);
+    return comScriptProcess.getName();
+  }
+
 
   /**
    * Calculate the coarse alignment for the specified axis
@@ -962,13 +981,19 @@ public class ProcessManager extends BaseProcessManager {
   }
 
   
-  public void midasEdges(AxisID axisID) {
+  public void midasFixEdges(AxisID axisID) {
 
     //  Construct the command line strings
     String[] commandArray = new String[3];
-
+    String stackExtension;
+    if (appManager.getMetaData().isDistortionCorrection()) {
+      stackExtension = BlendmontParam.DISTORTION_CORRECTED_STACK_EXTENSION;
+    }
+    else {
+      stackExtension = ".st";
+    }
     String options = "-p " + getDatasetName() + axisID.getExtension() + ".pl " + "-b 0 -q ";
-    String stack = getDatasetName() + axisID.getExtension() + ".st ";
+    String stack = getDatasetName() + axisID.getExtension() + stackExtension + " ";
     String xform = getDatasetName() + axisID.getExtension()
       + ".ecd ";
 
@@ -1462,7 +1487,7 @@ public class ProcessManager extends BaseProcessManager {
         state.setMadeZFactors(axisID, command
             .getBooleanValue(TiltalignParam.GET_USE_OUTPUT_Z_FACTOR_FILE));
         state.setUsedLocalAlignments(axisID, command.getBooleanValue(TiltalignParam.GET_LOCAL_ALIGNMENTS));
-        appManager.enableTiltParameters(script.getAxisID());
+        appManager.setEnabledTiltParameters(script.getAxisID());
       }
     }
     else if (processName == ProcessName.TOMOPITCH) {
@@ -1472,8 +1497,11 @@ public class ProcessManager extends BaseProcessManager {
       if (command != null && command.getCommandMode() == NewstParam.FULL_ALIGNED_STACK_MODE) {
         appManager.getState().setNewstFiducialessAlignment(axisID,
             command.getBooleanValue(NewstParam.GET_FIDUCIALESS_ALIGNMENT));
-        appManager.enableTiltParameters(script.getAxisID());
+        appManager.setEnabledTiltParameters(script.getAxisID());
       }
+    }
+    else if (processName == ProcessName.UNDISTORT) {
+      appManager.setEnabledFixEdgesWithMidas(script.getAxisID());
     }
   }
   
