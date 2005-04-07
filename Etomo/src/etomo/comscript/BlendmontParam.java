@@ -29,14 +29,20 @@ public class BlendmontParam implements CommandParam {
   public static final int XCORR_MODE = -1;
   public static final int PREBLEND_MODE = -2;
   public static final int BLEND_MODE = -3;
+  public static final int UNDISTORT_MODE = -4;
   public static final int LINEAR_INTERPOLATION_ORDER = 1;
   public static final String OUTPUT_FILE_EXTENSION = ".ali";
+  public static final String DISTORTION_CORRECTED_STACK_EXTENSION = ".dcst";
+  
+  public static final String IMAGE_OUTPUT_FILE_KEY = "ImageOutputFile";
   
   private AxisID axisID;
   private String datasetName;
   private EtomoBoolean2 readInXcorrs;
   private EtomoBoolean2 oldEdgeFunctions;
   private ScriptParameter interpolationOrder;
+  private EtomoBoolean2 justUndistort;
+  private String imageOutputFile;
   private int mode = XCORR_MODE;
   
   public BlendmontParam(String datasetName, AxisID axisID) {
@@ -52,6 +58,8 @@ public class BlendmontParam implements CommandParam {
     oldEdgeFunctions = new EtomoBoolean2("OldEdgeFunctions");
     oldEdgeFunctions.setDisplayAsInteger(true);
     interpolationOrder = new ScriptParameter(EtomoNumber.INTEGER_TYPE, "InterpolationOrder");
+    justUndistort = new EtomoBoolean2("JustUndistort");
+    imageOutputFile = null;
   }
   
   public void parseComScriptCommand(ComScriptCommand scriptCommand)
@@ -61,6 +69,8 @@ public class BlendmontParam implements CommandParam {
     readInXcorrs.parse(scriptCommand);
     oldEdgeFunctions.parse(scriptCommand);
     interpolationOrder.parse(scriptCommand);
+    justUndistort.parse(scriptCommand);
+    imageOutputFile = scriptCommand.getValue(IMAGE_OUTPUT_FILE_KEY);
   }
   
   public void updateComScriptCommand(ComScriptCommand scriptCommand)
@@ -68,15 +78,23 @@ public class BlendmontParam implements CommandParam {
     readInXcorrs.setInScript(scriptCommand);
     oldEdgeFunctions.setInScript(scriptCommand);
     interpolationOrder.setInScript(scriptCommand);
+    justUndistort.setInScript(scriptCommand);
+    scriptCommand.setValue(IMAGE_OUTPUT_FILE_KEY, imageOutputFile);
   }
   
   private void reset() {
     readInXcorrs.reset();
     oldEdgeFunctions.reset();
     interpolationOrder.reset();
+    justUndistort.reset();
+    imageOutputFile = null;
   }
   
   public void initializeDefaults() {
+  }
+  
+  public void setMode(int mode) {
+    this.mode = mode;
   }
   
   /**
@@ -85,6 +103,12 @@ public class BlendmontParam implements CommandParam {
    * to be run
    */
   public boolean setBlendmontState() {
+    if (mode == UNDISTORT_MODE) {
+      imageOutputFile = datasetName + axisID.getExtension()
+          + DISTORTION_CORRECTED_STACK_EXTENSION;
+      justUndistort.set(true);
+      return true;
+    }
     File ecdFile = new File(EtomoDirector.getInstance()
         .getCurrentPropertyUserDir(), datasetName + axisID.getExtension()
         + ".ecd");
@@ -126,10 +150,18 @@ public class BlendmontParam implements CommandParam {
       return "preblend";
     case BLEND_MODE:
       return "blend";
+    case UNDISTORT_MODE:
+      return "undistort";
     case XCORR_MODE:
     default:
       return "xcorr";
     }
+  }
+  
+  public static File getDistortionCorrectedFile(String workingDir,
+      String datasetName, AxisID axisID) {
+    return new File(workingDir, datasetName + axisID.getExtension()
+        + DISTORTION_CORRECTED_STACK_EXTENSION);
   }
   
   public boolean isLinearInterpolation() {
@@ -147,6 +179,9 @@ public class BlendmontParam implements CommandParam {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.5  2005/03/29 19:52:20  sueh
+* <p> bug# 623 Adding the extension for the output file created by blendmont.
+* <p>
 * <p> Revision 1.4  2005/03/11 01:32:20  sueh
 * <p> bug# 533 Added interpolationOrder
 * <p>
