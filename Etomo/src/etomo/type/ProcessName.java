@@ -12,7 +12,12 @@ package etomo.type;
  *
  * @version $$Revision$$
  *
- * <p> $$Log$$ </p>
+ * <p> $$Log$
+ * <p> $Revision 1.1  2004/04/16 02:08:32  sueh
+ * <p> $bug# 409 Enum-like class that can contain all known process names.  Can
+ * <p> $derived a process name from a file name.  Contains strings that can be used
+ * <p> $to build process file names.
+ * <p> $$ </p>
  */
 public class ProcessName {
   public static final String rcsid = "$$Id$$";
@@ -34,6 +39,9 @@ public class ProcessName {
   private static final String combine = "combine";
   private static final String matchvol1 = "matchvol1";
   private static final String volcombine = "volcombine";
+  private static final String preblend = "preblend";
+  private static final String blend = "blend";
+  private static final String undistort = "undistort";
   
   private final String name;
   
@@ -58,6 +66,10 @@ public class ProcessName {
   public static final ProcessName COMBINE = new ProcessName(combine);
   public static final ProcessName MATCHVOL1 = new ProcessName(matchvol1);
   public static final ProcessName VOLCOMBINE = new ProcessName(volcombine);
+  public static final ProcessName PREBLEND = new ProcessName(preblend);
+  public static final ProcessName BLEND = new ProcessName(blend);
+  public static final ProcessName UNDISTORT = new ProcessName(undistort);
+  
   /**
    * Returns a string representation of the object.
    */
@@ -122,6 +134,15 @@ public class ProcessName {
     }
     if (name.compareToIgnoreCase(volcombine) == 0) {
       return VOLCOMBINE;
+    }
+    if (name.compareToIgnoreCase(preblend) == 0) {
+      return PREBLEND;
+    }
+    if (name.compareToIgnoreCase(blend) == 0) {
+      return BLEND;
+    }
+    if (name.compareToIgnoreCase(undistort) == 0) {
+      return UNDISTORT;
     }
     return null;
   }
