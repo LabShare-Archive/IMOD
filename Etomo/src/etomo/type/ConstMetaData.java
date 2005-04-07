@@ -262,6 +262,10 @@ public abstract class ConstMetaData extends BaseMetaData {
     return fiducialessAlignmentA;
   }
   
+  public boolean isDistortionCorrection() {
+    return !distortionFile.equals("") || !magGradientFile.equals("");
+  }
+  
   public boolean isWholeTomogramSample(AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       return wholeTomogramSampleB;
@@ -569,6 +573,10 @@ public abstract class ConstMetaData extends BaseMetaData {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.23  2005/03/02 20:25:03  sueh
+ * <p> bug# 533 Added adjustedFocus.  Only used with montaging and mag
+ * <p> gradient correction.
+ * <p>
  * <p> Revision 3.22  2005/03/02 00:12:01  sueh
  * <p> bug# 611 Added mag gradients correction file.
  * <p>
