@@ -31,6 +31,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.14  2005/04/06 19:19:38  mast
+c	  Added option to create undistorted stack only
+c	
 c	  Revision 3.13  2005/02/28 21:19:04  mast
 c	  Added distortion and mag gradient correction, test mode for adjusting
 c	  gradient, cubic and linear interpolation, and declarations (implicit
@@ -557,8 +560,8 @@ c
      &	      newyoverlap,newytotpix)
 c
 	  if (.not.outputpl .and. (newxpieces.gt.1 .or. newypieces.gt.1))
-     &	      call errorexit('you must specify an output piece list file'//
-     &	      ' to have more than one output frame')
+     &	      call errorexit('you must specify an output piece list file'
+     &	      //' to have more than one output frame')
 	  if (pipinput) print *,'Output file:'
 	  write(*,115)newxtotpix,'X',newxpieces,newxframe,newxoverlap
 	  write(*,115)newytotpix,'Y',newypieces,newyframe,newyoverlap
