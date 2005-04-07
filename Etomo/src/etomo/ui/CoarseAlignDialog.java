@@ -11,6 +11,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.15  2005/03/09 22:32:23  sueh
+ * <p> bug# 533 Modify the context sensitive help so that it displays blendmont
+ * <p> man pages and log files instead of newst when the view type is montage.
+ * <p>
  * <p> Revision 3.14  2005/03/08 02:01:26  sueh
  * <p> bug# 533 Add btnEdgesMidas.
  * <p>
@@ -115,17 +119,20 @@ import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
+
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JCheckBox;
 import javax.swing.JPanel;
 import etomo.ApplicationManager;
+import etomo.comscript.BlendmontParam;
 import etomo.comscript.ConstNewstParam;
 import etomo.comscript.ConstTiltxcorrParam;
 import etomo.comscript.FortranInputSyntaxException;
 import etomo.comscript.NewstParam;
 import etomo.comscript.TiltxcorrParam;
 import etomo.type.AxisID;
+import etomo.type.ConstMetaData;
 import etomo.type.DialogType;
 import etomo.type.ViewType;
 
@@ -157,11 +164,15 @@ public class CoarseAlignDialog extends ProcessDialog
     "<html><b>Fix Alignment<br>With Midas</b>");
   
   //Montaging
-  private MultiLineToggleButton btnEdgesMidas = new MultiLineToggleButton(
+  private MultiLineToggleButton btnFixEdgesMidas = new MultiLineToggleButton(
   "Fix Edges With Midas");
+  private MultiLineToggleButton btnDistortionCorrectedStack = new MultiLineToggleButton(
+  "Make Distortion Corrected Stack");
+
 
   public CoarseAlignDialog(ApplicationManager appMgr, AxisID axisID) {
     super(appMgr, axisID, DialogType.COARSE_ALIGNMENT);
+    ConstMetaData metaData = appMgr.getMetaData();
     setToolTipText();
     fixRootPanel(rootSize);
     pnlCrossCorrelation = new CrossCorrelationPanel(applicationManager, axisID);
@@ -179,8 +190,17 @@ public class CoarseAlignDialog extends ProcessDialog
       FixedDim.x0_y10);
     UIUtilities
       .addWithSpace(pnlCoarseAlign, btnCrossCorrelate, FixedDim.x0_y10);
-    if (appMgr.getMetaData().getViewType() == ViewType.MONTAGE) {
-      UIUtilities.addWithSpace(pnlCoarseAlign, btnEdgesMidas, FixedDim.x0_y10);
+    if (metaData.getViewType() == ViewType.MONTAGE) {
+      SpacedPanel pnlFixEdges = new SpacedPanel(FixedDim.x0_y10);
+      pnlFixEdges.setLayout(new BoxLayout(pnlFixEdges.getContainer(), BoxLayout.Y_AXIS));
+      pnlFixEdges.setBorder(new EtchedBorder("Fix Edges").getBorder());
+      pnlFixEdges.addMultiLineButton(btnDistortionCorrectedStack);
+      pnlFixEdges.addMultiLineButton(btnFixEdgesMidas);
+      pnlCoarseAlign.add(pnlFixEdges.getContainer());
+      if (!metaData.isDistortionCorrection()) {
+        btnDistortionCorrectedStack.setEnabled(false);
+      }
+      setEnabledFixEdgesMidasButton();
     }
     UIUtilities.addWithSpace(pnlCoarseAlign, pnlPrenewst.getPanel(),
       FixedDim.x0_y10);
@@ -204,7 +224,8 @@ public class CoarseAlignDialog extends ProcessDialog
     btnCoarseAlign.addActionListener(actionListener);
     btnImod.addActionListener(actionListener);
     btnMidas.addActionListener(actionListener);
-    btnEdgesMidas.addActionListener(actionListener);
+    btnFixEdgesMidas.addActionListener(actionListener);
+    btnDistortionCorrectedStack.addActionListener(actionListener);
 
     //  Mouse adapter for context menu
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
@@ -212,6 +233,23 @@ public class CoarseAlignDialog extends ProcessDialog
 
     // Set the default advanced state for the window
     updateAdvanced();
+  }
+  
+  /**
+   * Enable Fix Edges with Midas button if there are no distortion correction files
+   * in use or if the .dcst file (distortion corrected stack) has been created.
+   *
+   */
+  public void setEnabledFixEdgesMidasButton() {
+    if (btnDistortionCorrectedStack.isEnabled()
+        && !BlendmontParam.getDistortionCorrectedFile(
+            applicationManager.getPropertyUserDir(),
+            applicationManager.getMetaData().getDatasetName(), axisID).exists()) {
+      btnFixEdgesMidas.setEnabled(false);
+    }
+    else {
+      btnFixEdgesMidas.setEnabled(true);
+    }
   }
 
   /**
@@ -341,8 +379,11 @@ public class CoarseAlignDialog extends ProcessDialog
     else if (command.equals(btnMidas.getActionCommand())) {
       applicationManager.midasRawStack(axisID);
     }
-    else if (command.equals(btnEdgesMidas.getActionCommand())) {
-      applicationManager.midasEdges(axisID);
+    else if (command.equals(btnFixEdgesMidas.getActionCommand())) {
+      applicationManager.midasFixEdges(axisID);
+    }
+    else if (command.equals(btnDistortionCorrectedStack.getActionCommand())) {
+      applicationManager.makeDistortionCorrectedStack(axisID);
     }
   }
 
