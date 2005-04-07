@@ -31,6 +31,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.27  2005/03/11 01:33:03  sueh
+ * <p> bug# 533 printing a stack trace for an error in updateComScript.
+ * <p>
  * <p> Revision 3.26  2005/03/09 18:00:35  sueh
  * <p> bug# 533 Added the blend script.
  * <p>
@@ -240,6 +243,8 @@ public class ComScriptManager {
   private ComScript scriptPreblendB;
   private ComScript scriptBlendA;
   private ComScript scriptBlendB;
+  private ComScript scriptUndistortA;
+  private ComScript scriptUndistortB;
   // The solvematch com script replaces the functionality of the
   // solvematchshift and solvematchmod com scripts
   private ComScript scriptSolvematch;
@@ -330,6 +335,21 @@ public class ComScriptManager {
   }
 
   /**
+   * load or create undistort.com
+   * @param axisID
+   */
+  public void loadUndistort(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      scriptUndistortB = loadComScript(BlendmontParam
+          .getCommandFileName(BlendmontParam.UNDISTORT_MODE), axisID, true);
+    }
+    else {
+      scriptUndistortA = loadComScript(BlendmontParam
+          .getCommandFileName(BlendmontParam.UNDISTORT_MODE), axisID, true);
+    }
+  }
+
+  /**
    * Get the tiltxcorr parameters from the specified xcorr script object
    * @param axisID the AxisID to read.
    * @return a TiltxcorrParam object that will be created and initialized
@@ -386,6 +406,23 @@ public class ComScriptManager {
     }
     updateComScript(scriptXcorr, blendmontParam, BlendmontParam.COMMAND_NAME, axisID);
   }
+  
+  public void saveXcorrToUndistort(BlendmontParam blendmontParam, AxisID axisID) {
+    //  Get a reference to the appropriate script object
+    ComScript scriptUndistort;
+    ComScript scriptXcorr;
+    if (axisID == AxisID.SECOND) {
+      scriptUndistort = scriptUndistortB;
+      scriptXcorr = scriptXcorrB;
+    }
+    else {
+      scriptUndistort = scriptUndistortA;
+      scriptXcorr = scriptXcorrA;
+    }
+    updateComScript(scriptXcorr, scriptUndistort, blendmontParam,
+        BlendmontParam.COMMAND_NAME, axisID, true);
+  }
+
   
   /**
    * Save the goto param object to xcorr.com.
@@ -1485,6 +1522,88 @@ public class ComScriptManager {
         + command + axisID.getExtension() + ".com", JOptionPane.ERROR_MESSAGE);
     }
   }
+  
+  /**
+   * Find the command in fromScript, update it, and write it to toScript.
+   * it back to toScript.  AddNew is only used with the toScript.  The
+   * fromScript should not be changed.  If the fromScript is not null, the
+   * command must be in it.
+   * @param fromScript
+   * @param toScript
+   * @param params
+   * @param command
+   * @param axisID
+   * @param addNew
+   */
+  private void updateComScript(ComScript fromScript, ComScript toScript, CommandParam params,
+      String command, AxisID axisID, boolean addNew) {
+      if (toScript == null) {
+        (new IllegalStateException()).printStackTrace();
+        String[] errorMessage = new String[2];
+        errorMessage[0] = "Failed attempt to update the comscript containing the command: "
+          + command;
+        errorMessage[1] = "It needs to be loaded first";
+        appManager.getMainPanel().openMessageDialog(errorMessage,
+            "ComScriptManager Error");
+        return;
+      }
+      //If no fromScript, then default to reading from and writing to the
+      //toScript.
+      if (fromScript == null) {
+        updateComScript(toScript, params, command, axisID, addNew);
+        return;
+      }
+      //  Update the specified com script command from the CommandParam object
+      ComScriptCommand comScriptCommand = null;
+      int toScriptCommandIndex = toScript.getScriptCommandIndex(command, addNew);
+      try {
+        //Get comScriptCommand from fromScript
+        comScriptCommand = fromScript.getScriptCommand(command);
+      }
+      catch (BadComScriptException except) {
+        except.printStackTrace();
+        String[] errorMessage = new String[3];
+        errorMessage[0] = "Com file: " + fromScript.getComFileName();
+        errorMessage[1] = "Command: " + command;
+        errorMessage[2] = except.getMessage();
+        JOptionPane
+          .showMessageDialog(null, errorMessage, "Can't read " + command
+            + " in " + fromScript.getComFileName(), JOptionPane.ERROR_MESSAGE);
+        return;
+      }
+      try {
+        //Update comScriptCommand
+        params.updateComScriptCommand(comScriptCommand);
+      }
+      catch (BadComScriptException except) {
+        except.printStackTrace();
+        String[] errorMessage = new String[3];
+        errorMessage[0] = "Com file: " + toScript.getComFileName();
+        errorMessage[1] = "Command: " + command;
+        errorMessage[2] = except.getMessage();
+        JOptionPane
+          .showMessageDialog(null, errorMessage, "Can't update " + command
+            + " in " + toScript.getComFileName(), JOptionPane.ERROR_MESSAGE);
+        return;
+      }
+
+      //Replace the specified command by the updated comScriptCommand in toScript
+      toScript.setScriptComand(toScriptCommandIndex, comScriptCommand);
+
+      //Write toScript back out to disk
+      try {
+        toScript.writeComFile();
+      }
+      catch (Exception except) {
+        except.printStackTrace();
+        String[] errorMessage = new String[3];
+        errorMessage[0] = "Com file: " + toScript.getComFileName();
+        errorMessage[1] = "Command: " + command;
+        errorMessage[2] = except.getMessage();
+        JOptionPane.showMessageDialog(null, except.getMessage(), "Can't write "
+          + command + axisID.getExtension() + ".com", JOptionPane.ERROR_MESSAGE);
+      }
+    }
   
   /**
    * 
