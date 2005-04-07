@@ -86,13 +86,38 @@ DDEESSCCRRIIPPTTIIOONN
   program will have trouble tracking through (e.g., where another bead
   crosses, or where the bead goes too close to the edge).
   
+  The program performs poorly when the tilt alignment solution gives a poor
+  fit, which happens easily with large areas.  The solution to this, still
+  being tested (as of 3/6/05), is to track on subsets of beads in local areas
+  and/or to restrict the number of views in the tilt alignment.  There are
+  options to enable these features when the program is run with PIP input.  An
+  alternative, available when running with sequential input, is to place seed
+  points into separate objects in different areas; e.g., 4-9 areas for 2K x 2K
+  images, depending on how many fiducials are available.  There should be at
+  least 6-8 points per area.  When there are multiple objects in the seed
+  model, the program will automatically track them separately unless local
+  area tracking or the TrackObjectsTogether option is selected.
+
   For each view and pass, the program outputs the results from the
   linear fit between actual and projected positions, the tilt
   alignment total error, and which beads have been deleted or added
   back. After doing all views, the program outputs a summary of which
   views are missing for each bead.
   
-  INPUTS TO THE PROGRAM:
+INPUTS TO THE PROGRAM
+  
+  Beadtrack uses the PIP package for input (see the manual page for pip(1))
+  and can still take sequential input interactively, to maintain compatibility
+  with old command files.  The following options can be specified either as
+  command line arguments (with the -) or one per line in a command file or
+  parameter file (without the -):
+
+INSERT OPTION TEXT HERE
+
+  -StandardInput
+     Read parameter entries from standard input.
+
+SEQUENTIAL INPUTS
   
   Image file name
 
@@ -103,7 +128,7 @@ DDEESSCCRRIIPPTTIIOONN
   
   Name of output model file
   
-  List of views to skip over.  Model objects will pass through 
+  List of views to skip over.  Model contours will pass through 
      these views; points will need to be added by hand afterwards. 
      Ranges may be entered, e.g. 1,4-6.  Views are numbered from 1.
   
@@ -180,7 +205,6 @@ DDEESSCCRRIIPPTTIIOONN
   Number of positions to use for extrapolating the bead position to
      the next view, and minimum required to do extrapolation rather
      than simply taking the mean of positions on the last few views.
-     Suggested values 7 and 5.
   
   Fraction of mean bead integral, and number of standard deviations
      below mean, to use as the criterion for when to attempt a rescue
@@ -206,7 +230,7 @@ DDEESSCCRRIIPPTTIIOONN
      bead as more points have been added.  Suggested values 9 and 5.
   
   Minimum change in residual, and criterion number of SD's from the
-     mean residual change, to require for deletion of apoint on pass 1
+     mean residual change, to require for deletion of a point on pass 1
      or 2.
 
 
