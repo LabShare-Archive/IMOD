@@ -1,5 +1,45 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/7/05: IMOD_3-6-2
+4/7/05: Etomo modified to produce a distortion-corrected stack for fixing
+montage overlaps.
+
+4/6/05: New version of Beadtrack takes PIP input, can track in local areas
+and/or in a local subset of views, uses improved variable mapping, and has
+several other changes that improve tracking somewhat.  If a model file has more
+than one object, the program will automatically track them separately with
+existing non-PIP command files.
+
+4/6/05: Added option to Blendmont to create distortion-corrected copy of
+input stack without blending edges, to be used when fixing edges in Midas.
+
+4/6/05: Fixed problem with model view montage snapshot that showed up on one 
+of our Linux machines.
+
+4/4/05: Fixed Imodmesh and other problems caused by duplicate function cleanup
+on 3/21/04.
+
+4/4/05: Fixed Imodmesh problem with contours on last section being forced
+down to previous section.
+
+4/1/05: IMOD_3-5-3 released
+3/28/05: In Zap window, made cursor change when mouse is moved over edges of 
+rubberband; moved time buttons to a second toolbar.
+
+3/25/05: Fixed bugs in Tiltalign: multiple nondefault grouping lists could get
+off if there were excluded views; rotation variable mapping was not being
+done right with linear mapping and one fixed angle, or with block mapping;
+separate view groups were not remapped properly when views were excluded.
+(In 3.5)
+
+3/23/05: Fixed problem with float losing contrast setting after going to
+section with slider settings that were truncated to stay in range. (In 3.5)
+
+3/23/05: Added a and b hot keys to image processing window and made the
+grow and shrink functions be options in the threshold panel. (In 3.5)
+
+3/23/05: Fixed moving of multiple contours. (In 3.5)
+
 3/13/05: Increased array limits in Tiltalign and Beadtrack to allow 500
 fiducials.
 
