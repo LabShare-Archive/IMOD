@@ -15,6 +15,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.10  2005/04/07 04:15:41  mast
+c	  Fixing some output
+c	
 c	  Revision 3.9  2005/04/07 03:56:31  mast
 c	  New version with local tracking, new mapping, outliers, etc.
 c	
@@ -1258,7 +1261,7 @@ c
 		      ifrotrans=1
 		    endif
 		    maxDrop = nint(0.26 * ndatFit)
-		    if (ndatFit .lt. 3) maxDrop = 0
+		    if (ndatFit .lt. 3 .or. ifdidalign.eq.0) maxDrop = 0
 		    call findxf_wo_outliers(xr,ndatFit,xcen,ycen,iftrans,
      &			ifrotrans,maxDrop, outlieCrit,outlieCritAbs,
      &			outlieElimMin,idrop,nDrop,xf, devavg,devsd,
@@ -1460,7 +1463,7 @@ c
 		  ifrotrans=1
 		endif
 		maxDrop = nint(0.26 * ndat)
-		if (ndat .lt. 3) maxDrop = 0
+		if (ndat .lt. 3 .or. ifdidalign.eq.0) maxDrop = 0
 		call findxf_wo_outliers(xr,ndat,xcen,ycen,iftrans,
      &		    ifrotrans,maxDrop, outlieCrit,outlieCritAbs,
      &		    outlieElimMin,idrop,nDrop,xf, devavg,devsd,
