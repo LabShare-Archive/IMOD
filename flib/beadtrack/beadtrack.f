@@ -15,6 +15,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.11  2005/04/08 04:21:59  mast
+c	  Only drop outliers if fit is based on tiltalign positions
+c	
 c	  Revision 3.10  2005/04/07 04:15:41  mast
 c	  Fixing some output
 c	
@@ -470,8 +473,8 @@ c
      &	      'Criterion distance for rescue after fitting: '
 	  read(5,*)fitdistcrit
 c	    
-	  write(*,'(1x,a,$)')
-     &	      'Relaxation of density criterion, maximum rescue distance: '
+	  write(*,'(1x,a,$)')'Relaxation of density criterion, maximum '//
+     &	      'rescue distance: '
 	  read(5,*)relaxfit,radmaxfit
 	  write(*,'(1x,a,$)')'Max and min # of residual changes to use '//
      &	      'to get mean and SD: '
