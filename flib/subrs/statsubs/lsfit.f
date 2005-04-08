@@ -5,6 +5,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.1  2005/04/07 20:03:33  mast
+c	  Added prediction version of function
+c	
 c
 c	  !Fits a straight line to the [N] points in arrays [X] and [Y] by the
 c	  method of least squares, returning [SLOPE], intercept [BINT], and
@@ -78,7 +81,7 @@ c
 	if(n.gt.2)se=sqrt(max(0.,(sysq-bint*sy-slope*sxy)/(n-2)))
 	sa=se*sqrt(1./n+(sx**2/n)/d)
 	sb=se/sqrt(d/n)
-	ypred=slope*xpred+bint;
-	prederr=(se*sqrt((1.+1./n+ n*(xpred-xbar)**2/d)));
+	ypred=slope*xpred+bint
+	prederr=(se*sqrt((1.+1./n+ n*(xpred-xbar)**2/d)))
 	return
 	end
