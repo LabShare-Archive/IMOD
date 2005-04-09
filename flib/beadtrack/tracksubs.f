@@ -5,6 +5,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.2  2005/04/07 03:56:31  mast
+c	  New version with local tracking, new mapping, outliers, etc.
+c	
 c	  Revision 3.1  2002/07/28 22:56:31  mast
 c	  Standardize error output
 c	
@@ -589,8 +592,8 @@ c	  DEVAVG, DEVSD, DEVMAX are mean, SD, and maximum deviations
 c	  IPNTMAX give the point number at which the maximum occurred
 c
 	subroutine findxf_wo_outliers(xr,ndat,xcen,ycen,iftrans,
-     &	    ifrotrans,maxdrop, critprob, critabs, elimmin, idrop,ndrop, f,
-     &	    devavg,devsd, devmax, ipntmax)
+     &	    ifrotrans,maxdrop, critprob, critabs, elimmin, idrop,ndrop,
+     &	    f, devavg,devsd, devmax, ipntmax)
 	implicit none
         include 'statsize.inc'
 	integer*4 idrop(*)
