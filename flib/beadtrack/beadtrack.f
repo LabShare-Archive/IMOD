@@ -15,6 +15,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.12  2005/04/08 15:26:06  mast
+c	  Fixed a line toolong
+c	
 c	  Revision 3.11  2005/04/08 04:21:59  mast
 c	  Only drop outliers if fit is based on tiltalign positions
 c	
@@ -380,7 +383,7 @@ c
      &	    'MagNondefaultGroup', nmapMag, ivSpecStrMag,
      &	    ivSpecEndMag, nmapSpecMag, nRanSpecMag, maxgrp)
 
-	nmapRot = 5
+	nmapRot = 1
 	nRanSpecRot = 0
 	if (pipinput) call inputGroupings(nvuall, ifpip, 0,
      &	    'RotDefaultGrouping', 'RotNondefaultGroup', nmapRot,
