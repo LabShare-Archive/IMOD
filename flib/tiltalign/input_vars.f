@@ -9,6 +9,10 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.12  2005/03/28 22:52:13  mast
+c	  Called function for remapping separate groups, fixed this not being
+c	  done for PIP input
+c	
 c	  Revision 3.11  2005/03/25 20:10:47  mast
 c	  Fixed problems with mapping rotation variables in blocks or linearly
 c	  with a fixed angle
@@ -79,7 +83,7 @@ c
 	integer*4 iref2,ioptmag,irefcomp,ioptcomp,iffix,iv,jv,ioptdel
 	integer*4 irefdmag,nvartmp,ivdum,idist,ioptdist,ioptalf
 	integer*4 ireftilt,ndmagvar,ivl,ivh, lenOpt, ioptdmag, ioptskew
-	integer*4 nearest_view,ifpip,mapfix,ierr,lnblnk,ifall
+	integer*4 nearest_view,ifpip,mapfix,ierr,lnblnk
 	character*1024 listString
 c
 	integer*4 PipGetInteger,PipNumberOfEntries
@@ -157,7 +161,10 @@ c
 	    read(5,*)ioptrot
 	  endif
 	endif
-
+c	  
+c	  4/10/04: Eliminated global rotation variable, simplified treatment
+c	  of rotation
+c
 	if (iflocal .eq. 0) then
 	  rotstart=dtor*rotstart
 	else
@@ -174,7 +181,7 @@ c
 	iref1=ifrotfix
 	if(iflocal.gt.1.and.ioptrot.gt.0)iref1=0
 	iflin=0
-	defrot = 0.
+	defrot = rotstart
 c	  
 c	  All one variable - set default to true angle
 c	  
@@ -183,7 +190,6 @@ c
 	    maplist(i)=1
 	  enddo
 	  ifrotfix=-2
-	  defrot = rotstart
 c	    
 c	    All fixed - also set default to angle, set reference to 1
 c	    
@@ -192,7 +198,6 @@ c
 	    maplist(i)=0
 	  enddo
 	  ifrotfix=-1
-	  defrot = rotstart
 	  iref1 = 1
 c	    
 c	    All separate variables
@@ -227,43 +232,16 @@ c
 	endif
 c	  
 c	  Make sure ifrotfix = 0 means what it is supposed to
-c	  reserve a variable and pretend first one is fixed in analyze
 c	  
 	if (iflocal.gt.0 .and. ifrotfix .eq. 0) ifrotfix = -3
-	if (ifrotfix .eq. 0)then
-	  iref1 = 1
-	  nvarsrch = 1
-	endif
 	rotText = 'rot '
-	if (iflocal .eq. 0 .and. ifrotfix .ge. 0) rotText = 'drot'
 c	  
 c	  analyze map list
 c	  
 	call analyze_maps(rot,maprot,linrot,frcrot,fixedrot,fixdum,
      &	    iflin, maplist,nview, iref1,0,defrot,rotText,var,varname,
      &	    nvarsrch,mapviewtofile)
-C	write(6,111)(maprot(i),i=1,nview)
-c	  
-c	  Fix global variable 1 and anything in its block, or the fixed one,
-c	  which with linear mapping is not where it was
-c	  
-	if (ifrotfix .eq. 0)then
-	  var(1)=rotstart
-	  varname(1)='rot all'
-	  do i = 1, nview
-	    if (maprot(i) .eq. 0) then
-	      rot(i)=rotstart
-	      maprot(i) = 1
-	    endif
-	  enddo
-	else if (ifrotfix .gt. 0) then
-	  do i = 1, nview
-	    if (maprot(i) .eq. 0) then
-	      ifrotfix = i
-	      rot(i)=rotstart
-	    endif
-	  enddo
-	endif
+c	write(6,111)(maprot(i),i=1,nview)
 c
 	if (.not. pipinput .and. iflocal .eq. 0) then
 c	  
@@ -831,21 +809,19 @@ c
 	    dump(i)='  fixed '
 	  enddo
 	  dump(3)='        '
-	  ifall = 1
-	  if (ifrotfix .gt. 0) ifall = 0
-	  call setdumpname(maprot(iv),linrot(iv),-1,varname,ifall,dump(1))
+	  call setdumpname(maprot(iv),linrot(iv),-1,varname,dump(1))
 	  if(maptilt(iv).gt.0)then
-	    call setdumpname(maptilt(iv),lintilt(iv),-1,varname,0,dump(2))
+	    call setdumpname(maptilt(iv),lintilt(iv),-1,varname,dump(2))
 	    if(abs(tiltinc(iv)).gt.5.e-3.and.
      &		(iflocal.eq.0.or.incrtilt.eq.0))
      &		write(dump(3),'(a2,f6.2)') '+ ',tiltinc(iv)/dtor
 	  endif
-	  call setdumpname(mapgmag(iv),lingmag(iv),-1,varname,0,dump(4))
-	  call setdumpname(mapcomp(iv),lincomp(iv),-1,varname,0,dump(5))
-	  call setdumpname(mapdmag(iv),lindmag(iv),mapdumdmag,varname,0,
+	  call setdumpname(mapgmag(iv),lingmag(iv),-1,varname,dump(4))
+	  call setdumpname(mapcomp(iv),lincomp(iv),-1,varname,dump(5))
+	  call setdumpname(mapdmag(iv),lindmag(iv),mapdumdmag,varname,
      &	      dump(6))
-	  call setdumpname(mapskew(iv),linskew(iv),-1,varname,0,dump(7))
-	  call setdumpname(mapalf(iv),linalf(iv),-1,varname,0,dump(8))
+	  call setdumpname(mapskew(iv),linskew(iv),-1,varname,dump(7))
+	  call setdumpname(mapalf(iv),linalf(iv),-1,varname,dump(8))
 	  if(inputalf.eq.0 .and. ifanyalf.eq.0)then
 	    write(*,'(i4,3x,a8,3x,a8,1x,a8,3x,a8,3x,a8,3x,a8,3x,a8)')
      &		mapviewtofile(iv),(dump(i),i=1,7)
@@ -858,10 +834,10 @@ c
 	return
 	end
 
-	subroutine setdumpname(map,lin,mapdum,varname,ifall,dump)
+	subroutine setdumpname(map,lin,mapdum,varname,dump)
 	implicit none
 	character*8 varname(*), dump
-	integer*4 map,mapdum,lin,ifall
+	integer*4 map,mapdum,lin
 	if(map.eq.0)return
 	if(map.eq.mapdum)then
 	  if(lin.eq.0)then
@@ -874,8 +850,6 @@ c
 	else
 	  if(lin.eq.0)then
 	    dump=varname(map)
-	  elseif(lin.lt.0.and.ifall.gt.0)then
-	    dump=varname(map)(1:1)//varname(map)(6:8)//'+all'
 	  elseif(lin.lt.0)then
 	    dump=varname(map)(1:1)//varname(map)(6:8)//'+fix'
 	  elseif(lin.eq.mapdum)then
