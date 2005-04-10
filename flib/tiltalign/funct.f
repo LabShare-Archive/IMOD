@@ -35,6 +35,10 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.3  2004/10/24 22:28:52  mast
+c	  Changed handling of rotation variables, added projection stretch,
+c	  made subroutines for filling matrices
+c	
 c	  Revision 3.2  2004/10/09 23:51:12  mast
 c	  Switched to matrix formulation to simplify code, speeded up
 c	  computation 2-fold by saving intermediate residual products for
@@ -129,6 +133,15 @@ c
 	    ybar(iv)=ybar(iv)/nptinview(iv)
 	  enddo
 	  firsttime=.false.
+c$$$	  call remap_params(var)
+c$$$	  do iv=1,nview
+c$$$	    write(*,113)rot(iv),maprot(iv),linrot(iv),frcrot(iv),
+c$$$     &		tilt(iv),maptilt(iv),lintilt(iv),frctilt(iv),
+c$$$     &		gmag(iv),mapgmag(iv),lingmag(iv),frcgmag(iv)
+c$$$113	    format(f11.7,2i4,f6.3,f11.7,2i4,f6.3,f11.7,2i4,f6.3)
+c$$$	  enddo
+c$$$	  print *,nvarsrch
+c$$$	  write(*,'(7f11.7)')(var(i),i=1,nvarsrch)
 	endif
 c	  
 c	  precompute the a-f and items related to them.  Store the component
@@ -260,9 +273,8 @@ c
 	do iv=1,nview
 	  ivbase=(iv-1)*nrealpt
 c	    
-c	    rotation: gradient for each view's angle adds to gradient for that
-c	    variable and to gradient for variable 1, global rotation, if
-c	    ifrotfix is 0
+c	    rotation: add gradient for this view to any variables that it is
+c	    mapped to
 c	    These equations are valid as long as rotation is the last operation
 c	    
 	  gradsum=0.
@@ -276,7 +288,6 @@ c
 	    grad(maprot(iv))=grad(maprot(iv))+frcrot(iv)*gradsum
 	    if(linrot(iv).gt.0) grad(linrot(iv))=grad(linrot(iv))+
      &		(1.-frcrot(iv))*gradsum
-	    if(iv.gt.1.and.ifrotfix.eq.0)grad(1)=grad(1)+gradsum
 	  endif
 c	    
 c	    tilt: add gradient for this tilt angle to the variable it is mapped
@@ -594,26 +605,14 @@ c	  on the current values of the search parameters.
 	include 'alivar.inc'
 c
 	real*4 varlist(*)
-	real*4 globrot,sum,varsave
-	integer*4 i,mapExclude
+	real*4 sum,varsave
+	integer*4 i
 c	  
-c	  If the first variable is a global rotation variable, get global value
-c	  from the variable; if there is a fixed rotation, get global value
-c	  from it; in either case don't add value to variables mapped to it
-c	  
-	if(ifrotfix.eq.0)then
-	  globrot=varlist(1)
-	  mapExclude = 1
-	else if (ifrotfix.gt.0)then
-	  globrot=rot(ifrotfix)
-	  mapExclude = maprot(ifrotfix)
-	else
-	  globrot = 0.
-	  mapExclude = 0
-	endif
+c	  4/10/05: eliminated global rotation, it is just like the others now
+c	  so extra arguments to map_one_var were removed
 c	  
 	call map_one_var(varlist,rot,maprot,frcrot,linrot,fixedrot,
-     &	    nview,glbrot,incrrot,globrot, mapExclude)
+     &	    nview,glbrot,incrrot)
 c
 	do i=1,nview
 	  if(maptilt(i).gt.0)then
@@ -633,13 +632,13 @@ c
 	enddo
 c
 	call map_one_var(varlist,gmag,mapgmag,frcgmag,lingmag,fixedgmag,
-     &	    nview,glbgmag,incrgmag, 0., 0)
+     &	    nview,glbgmag,incrgmag)
 c
 	call map_one_var(varlist,comp,mapcomp,frccomp,lincomp,fixedcomp,
-     &	    nview,glbgmag,0, 0., 0)
+     &	    nview,glbgmag,0)
 c
 	call map_one_var(varlist,skew,mapskew,frcskew,linskew,fixedskew,
-     &	    nview,glbskew,incrskew, 0., 0)
+     &	    nview,glbskew,incrskew)
 c	  
 	if(mapdumdmag.gt.mapdmagstart) then
 c	  
@@ -657,11 +656,11 @@ c
 	endif
 c
 	call map_one_var(varlist,dmag,mapdmag,frcdmag,lindmag,fixeddmag,
-     &	    nview,glbdmag,incrdmag, 0., 0)
+     &	    nview,glbdmag,incrdmag)
 	if(mapdumdmag.gt.mapdmagstart)varlist(mapdumdmag)=varsave
 c	    
 	if(ifanyalf.ne.0)call map_one_var(varlist,alf,mapalf,frcalf,
-     &	    linalf,fixedalf, nview,glbalf,incralf, 0., 0)
+     &	    linalf,fixedalf, nview,glbalf,incralf)
 c
 	if (mapProjStretch .gt. 0) then
 	  projStretch = varlist(mapProjStretch)
@@ -673,10 +672,10 @@ c
 
 	
 	subroutine map_one_var(varlist,val,map,frc,lin,fixed,nview,glb,
-     &	    incr,base,mapExclude)
+     &	    incr)
 	implicit none
-	real*4 varlist(*),val(*),frc(*),glb(*),fixed,base
-	integer*4 map(*),lin(*),nview,incr,mapExclude
+	real*4 varlist(*),val(*),frc(*),glb(*),fixed
+	integer*4 map(*),lin(*),nview,incr
 	integer*4 i
 	do i=1,nview
 	  if(map(i).gt.0)then
@@ -688,7 +687,6 @@ c
 	      val(i)=varlist(map(i))
 	    endif
 	    if (incr.ne.0) val(i) = val(i) + glb(i)
-	    if (map(i) .ne. mapExclude) val(i) = val(i) + base
 	  endif
 	enddo
 	return
