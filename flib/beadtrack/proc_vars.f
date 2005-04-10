@@ -9,6 +9,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.2  2005/04/07 03:56:31  mast
+c	  New version with local tracking, new mapping, outliers, etc.
+c	
 c	  Revision 3.1  2004/10/24 22:33:59  mast
 c	  Chnages for projection stretch variables and new rotation stuff (?)
 c	
@@ -49,17 +52,13 @@ c
 	call makeMapList(nview,maplist,grpsize,mapfiletoview,nfileviews,
      &	    nmapRot, ivSpecStrRot, ivSpecEndRot,nmapSpecRot,nRanSpecRot)
 c
-c	  If one variable is fixed, that is the reference variable, but if
-c	  not, reserve the first variable and set up first rotation as
-c	  reference for the mapping
+c	  Set up default rotation value so fixed rotation will be correct
 c
 	nvarsrch=0
 	iref1 = ifrotfix
-	defrot = 0.
-	if(ifrotfix.eq.0)then
-	  iref1 = 1
-	  nvarsrch=1
-	endif
+	rotstart = 0.
+	if (iref1 .gt. 0) rotstart = rotorig(mapViewToFile(iref1))
+	defrot = rotstart * dtor
 c	  
 c	  get the variables allocated
 c
@@ -67,43 +66,13 @@ c
      &      iflin, maplist,nview, iref1,0,defrot,'rot ',var,varname,
      &      nvarsrch,mapviewtofile)
 c	  
-c	  reload the old rotation values
-c
-	do iv = 1, nview
-	  rot(iv) = rotorig(mapViewToFile(iv))*dtor
-	enddo
-c	  
-c	  Fix global variable 1 and anything in its block
-c	  
-	if (ifrotfix .eq. 0) then
-	  maptest = 1
-	  rotstart = rot(1)
-	  var(1) = rot(1)
-	  do i = 1, nview
-	    if (maprot(i) .eq. 0) then
-              rot(i) = rotstart
-              maprot(i) = 1
-            endif
-          enddo
-	else
-c	    
-c	    Otherwise, fix ifrotfix which moves with linear mapping
-c	    
-	  maptest = 0
-	  do i = 1, nview
-            if (maprot(i) .eq. 0) then
-              ifrotfix = i
-              rotstart = rot(i)
-            endif
-          enddo
-        endif
-c	  
-c	  Set up var with increments from current values by looking at all
-c	  mappings but maptest that are not linear combos
+c	  reload the old rotation values by looking at all mappings that are
+c	  not linear combos
 c
 	do i = 1, nview
-	  if (maprot(i) .ne. maptest .and. maprot(i).gt.0 .and. linrot(i).eq.0)
-     &	      var(maprot(i)) = rot(i) - rotstart
+	  rot(i) = rotorig(mapViewToFile(i))*dtor
+	  if (maprot(i).gt.0 .and. linrot(i).eq.0)
+     &	      var(maprot(i)) = rot(i)
 	enddo
 c
 c	  set up for fixed tilt angles
