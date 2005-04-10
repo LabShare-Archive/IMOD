@@ -5,6 +5,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.4  2005/04/07 03:56:31  mast
+c	  New version with local tracking, new mapping, outliers, etc.
+c	
 c	  Revision 3.2  2003/04/11 17:29:33  mast
 c	  Added declarations for implicit none, added cgx, cgy to tltcntrl
 c	
@@ -187,8 +190,8 @@ c70	    FORMAT(/' Variable Metric minimization',T50,
 c	    &	    'Initial F:',T67,E14.7)
 C	    
 C	    
-	    CALL METRO (nvarsrch,var,F,Grad,facm,.0000001,
-     &		eps,-NCYCLE,IER, H,KOUNT)
+	    CALL METRO (nvarsrch,var,F,Grad,facm * trialScale(metroLoop),
+     &		.0000001, eps,-NCYCLE,IER, H,KOUNT)
 	    metroLoop = metroLoop +1
 c	    
 c	      For errors except limit reached,  restart
