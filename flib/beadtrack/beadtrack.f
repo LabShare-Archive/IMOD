@@ -15,6 +15,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.13  2005/04/09 04:28:34  mast
+c	  Changed default rotation mapping to 1 for full compatibility
+c	
 c	  Revision 3.12  2005/04/08 15:26:06  mast
 c	  Fixed a line toolong
 c	
@@ -232,7 +235,6 @@ c
 	radius2 = 0.
 	radius1 = 0.
 	areaObjStr = 'object'
-	ignoreObjs = .false.
 c
 c	  
 c	  Pip startup: set error, parse options, check help, set flag if used
@@ -368,8 +370,10 @@ c
 c	  DNM 5/3/02: accommodate changes to tiltalign by setting up the
 c	  mapping arrays, adding to automap call
 c	  DNM 3/25/05: mapping arrays are going to be used for real
+c	  4/11/05: default is to ignore objects for transferfid situations
 c	  
 	nfileviews=nvuall
+	ignoreObjs = nvuall.le.2
 c
 	if (.not.pipinput)print *,
      &	    'Specify grouping for mapping of tilt variables'
