@@ -66,6 +66,7 @@ Log at end of file
 #define putscatsize  PUTSCATSIZE
 #define putsymsize   PUTSYMSIZE
 #define putsymtype   PUTSYMTYPE
+#define putobjcolor PUTOBJCOLOR
 #define putimodzscale PUTIMODZSCALE
 #define putimodrotation PUTIMODROTATION
 #define getimodtimes  GETIMODTIMES
@@ -98,6 +99,7 @@ Log at end of file
 #define putscatsize  putscatsize_
 #define putsymsize   putsymsize_
 #define putsymtype   putsymtype_
+#define putobjcolor putobjcolor_
 #define putimodzscale putimodzscale_
 #define putimodrotation putimodrotation_
 #define getimodtimes  getimodtimes_
@@ -127,6 +129,8 @@ static Ipoint rotation_put = {NO_VALUE_PUT, NO_VALUE_PUT, NO_VALUE_PUT};
 #define SCAT_SIZE_FLAG  (1 << 2)
 #define SYMBOL_SIZE_FLAG (1 << 3)
 #define SYMBOL_TYPE_FLAG (1 << 4)
+/* Color won't work unless the value shift is <=8 */
+#define OBJECT_COLOR_FLAG (1 << 5)
 #define FLAG_VALUE_SHIFT 8
 
 /* DNM: a common function to delete model and object flags */
@@ -859,6 +863,16 @@ int writeimod(
           Fimod->obj[ob].symsize = value;
         if (flag & SYMBOL_TYPE_FLAG)
           Fimod->obj[ob].symbol = value;
+        if (flag & OBJECT_COLOR_FLAG) {
+          Fimod->obj[ob].red = (value & 255) / 255.;
+          Fimod->obj[ob].green = ((value >> 8) & 255) / 255.;
+          Fimod->obj[ob].blue = ((value >> 16) & 255) / 255.;
+          if (objview) {
+            objview->red = Fimod->obj[ob].red;
+            objview->green = Fimod->obj[ob].green;
+            objview->blue = Fimod->obj[ob].blue;
+          }
+        }
         break;
       }
     }
@@ -1161,6 +1175,18 @@ void putsymtype(int *objnum, int *size)
   putimodflag(objnum, &flag);
 }
 
+/* DNM 4/1/2/05: Add object color.  THIS WILL BREAK WITH TOO MANY FLAGS.
+   This whole approach should be replaced with creating empty objects */
+void putobjcolor(int *objnum, int *red, int *green, int *blue)
+{
+  int r = B3DMIN(255, B3DMAX(0, *red));
+  int g = B3DMIN(255, B3DMAX(0, *green));
+  int b = B3DMIN(255, B3DMAX(0, *blue));
+  int flag = (r << FLAG_VALUE_SHIFT) | (g << FLAG_VALUE_SHIFT + 8) |
+    (b << FLAG_VALUE_SHIFT + 16) | OBJECT_COLOR_FLAG;
+  putimodflag(objnum, &flag);
+}
+
 void putsymsize(int *objnum, int *size)
 {
   int flag = (*size << FLAG_VALUE_SHIFT) | SYMBOL_SIZE_FLAG;
@@ -1364,6 +1390,9 @@ int getimodnesting(int *ob, int *inOnly, int *level, int *inIndex,
 
 /*
 $Log$
+Revision 3.17  2005/04/04 22:41:54  mast
+Fixed problem with argument order to imdContourGetBBox
+
 Revision 3.16  2005/03/20 19:56:49  mast
 Eliminating duplicate functions
 
