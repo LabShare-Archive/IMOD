@@ -90,6 +90,7 @@ static int  zapPointVisable(ZapStruct *zap, Ipoint *pnt);
 static void zapAutoTranslate(ZapStruct *zap);
 static void zapSyncImage(ZapStruct *win);
 static void zapResizeToFit(ZapStruct *zap);
+static void setAreaLimits(ZapStruct *zap);
 static void setControlAndLimits(ZapStruct *zap);
 static void zapToggleRubberband(ZapStruct *zap);
 static void zapBandImageToMouse(ZapStruct *zap, int ifclip); 
@@ -187,8 +188,10 @@ void zapDraw_cb(ImodView *vi, void *client, int drawflag)
   if (imodDebug('z'))
     imodPrintStderr("Zap Draw\n");
 
-  if (!zap) return;
-  if ((!zap->popup) || (!zap->ginit)) return;
+  if (!zap)
+    return;
+  if ((!zap->popup) || (!zap->ginit)) 
+    return;
      
   zapSetCursor(zap, vi->imod->mousemode);
 
@@ -238,6 +241,10 @@ void zapDraw_cb(ImodView *vi, void *client, int drawflag)
       if(!zap->movieSnapCount)
         zap->vi->zmovie = 0;
     }
+
+    // If there is only one zap window, set flag to record the subarea
+    if (imodDialogManager.windowCount(ZAP_WINDOW_TYPE) == 1)
+      zap->recordSubarea = 1;
   }
   return;
 }
@@ -274,7 +281,7 @@ static void zapSyncImage(ZapStruct *win)
           syncborder = BORDER_MAX;
         if (wposition < syncborder || wposition > wsize - syncborder){
 
-          /* If close to a border, do ani mage offset computation
+          /* If close to a border, do an image offset computation
              to see if the display would actually get moved if
              this axis were centered on point */
           trytrans = (int)((vi->xsize * 0.5f) - vi->xmouse + 0.5f);
@@ -417,11 +424,6 @@ void zapPaint(ZapStruct *zap)
                      zap->rbMouseY1 - zap->rbMouseY0);
   } 
   zapDrawTools(zap);
-
-  // If flag set, record the subarea size; clear flag
-  if (zap->recordSubarea)
-    setControlAndLimits(zap);
-  zap->recordSubarea = 0;
 
   if (imodDebug('z'))
     imodPrintStderr("\n");
@@ -1135,7 +1137,6 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
   // If event not handled, pass up to default processor
   if (handled) {
     event->accept();    // redundant action - supposed to be the default
-    setControlAndLimits(zap);   // Set limits again after action
   } else {
     // What does this mean? It is needed to get images to sync right
     ivwControlActive(vi, 0);
@@ -2718,17 +2719,35 @@ static void zapResizeToFit(ZapStruct *zap)
     imodPrintStderr("back\n");
 }
      
-// Set the control priority and record the limits of the image displayed in
-// the window or in the rubber band
+// Set the control priority and set flag to record subarea and do float
 static void setControlAndLimits(ZapStruct *zap)
 {
-  float xl, xr, yb, yt;
   ivwControlPriority(zap->vi, zap->ctrl);
+  zap->recordSubarea = 1;
+}
+
+// Record the limits of the image displayed in the window or in the rubber band
+static void setAreaLimits(ZapStruct *zap)
+{
+  int minArea = 16;
+  float xl, xr, yb, yt, delta;
   if (zap->rubberband) {
     xl = zap->rbImageX0;
     yb = zap->rbImageY0;
     xr = zap->rbImageX1;
     yt = zap->rbImageY1;
+
+    // Enforce a minimum size so 
+    delta = (minArea - (xr - xl)) / 2.;
+    if (delta > 0.) {
+      xl -= delta;
+      xr += delta;
+    }
+    delta = (minArea - (yt - yb)) / 2;
+    if (delta > 0.) {
+      yb -= delta;
+      yt += delta;
+    }
   } else {
     zapGetixy(zap, 0, 0, &xl, &yt);
     zapGetixy(zap, zap->winx, zap->winy, &xr, &yb);
@@ -2737,6 +2756,9 @@ static void setControlAndLimits(ZapStruct *zap)
   subEndX = B3DMIN((int)(xr - 0.5), zap->vi->xsize - 1);
   subStartY = B3DMAX((int)(yb + 0.5), 0);
   subEndY = B3DMIN((int)(yt - 0.5), zap->vi->ysize - 1);
+  if (imodDebug('z'))
+    imodPrintStderr("Set area %d %d %d %d\n", subStartX, subEndX, subStartY,
+                    subEndY);
 }     
 
 // Return the subset limits from the active window
@@ -2853,6 +2875,18 @@ static void zapDrawGraphics(ZapStruct *zap)
       zap->time = time;
     }
     imageData = ivwGetZSection(vi, zap->section);
+  }
+
+  // If flag set, record the subarea size, clear flag, and do call float to
+  // set the color map if necessary.  If the black/white changes, flush image
+  if (zap->recordSubarea) {
+    setAreaLimits(zap);
+    zap->recordSubarea = 0;
+    x = vi->black;
+    y = vi->white;
+    imod_info_bwfloat(vi, zap->section, time);
+    if (App->rgba && (x != vi->black || y != vi->white))
+      b3dFlushImage(zap->image);
   }
 
   b3dDrawBoxout(zap->xborder, zap->yborder, 
@@ -3463,6 +3497,9 @@ static int zapPointVisable(ZapStruct *zap, Ipoint *pnt)
 
 /*
 $Log$
+Revision 4.66  2005/03/30 02:39:15  mast
+Fixed bugs in yesterdays additions
+
 Revision 4.65  2005/03/29 00:59:11  mast
 Made mouse change when moved over rubber band; moved time to 2nd toolbar
 
