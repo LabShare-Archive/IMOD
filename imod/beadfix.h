@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.11  2005/02/19 01:29:50  mast
+Removed function to clear extra object
+
 Revision 1.10  2004/11/04 23:30:55  mast
 Changes for rounded button style
 
@@ -128,6 +131,7 @@ class BeadFixer : public DialogFrame
   void nextLocal();
   void backUp();
   void movePoint();
+  void moveAll();
   void undoMove();
   void clearList();
   void onceToggled(bool state);
@@ -173,6 +177,7 @@ class BeadFixer : public DialogFrame
   QPushButton *nextResBut;
   QPushButton *backUpBut;
   QPushButton *movePointBut;
+  QPushButton *moveAllBut;
   QPushButton *undoMoveBut;
   QPushButton *clearListBut;
   QPushButton *runAlignBut;
