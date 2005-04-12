@@ -1,29 +1,11 @@
 /*
- *  beadfix.c -- Special plugin for fixing fiducial models
+ *  beadfix.c -- Special module for fixing fiducial models
  *
+ *
+ *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
+ *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  */
-
-/*****************************************************************************
- *   Copyright (C) 1997-2000 by Boulder Laboratory for 3-Dimensional Fine    *
- *   Structure ("BL3DFS") and the Regents of the University of Colorado.     *
- *                                                                           *
- *   BL3DFS reserves the exclusive rights of preparing derivative works,     *
- *   distributing copies for sale, lease or lending and displaying this      *
- *   software and documentation.                                             *
- *   Users may reproduce the software and documentation as long as the       *
- *   copyright notice and other notices are preserved.                       *
- *   Neither the software nor the documentation may be distributed for       *
- *   profit, either in original form or in derivative works.                 *
- *                                                                           *
- *   THIS SOFTWARE AND/OR DOCUMENTATION IS PROVIDED WITH NO WARRANTY,        *
- *   EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTY OF          *
- *   MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.       *
- *                                                                           *
- *   This work is supported by NIH biotechnology grant #RR00592,             *
- *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
- *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
- *****************************************************************************/
-
 /*  $Author$
 
     $Date$
@@ -161,6 +143,9 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
     break;
   case Qt::Key_Semicolon:
     plug->window->movePoint();
+    break;
+  case Qt::Key_Colon:
+    plug->window->moveAll();
     break;
   case Qt::Key_U:
     plug->window->undoMove();
@@ -427,6 +412,7 @@ void BeadFixer::setCurArea(int area)
   nextLocalBut->setEnabled(mCurArea < mNumAreas - 1);
   nextLocalBut->setText(mCurArea ? 
                         "Go to Next Local Set" : "Go to First Local Set");
+  moveAllBut->setEnabled(mCurArea > 0);
 }
 
 /* Jump to the next point with a big residual */
@@ -452,8 +438,12 @@ void BeadFixer::nextRes()
 
   ivwControlActive(plug->view, 0);
 
+  mIndlook = -1;
+  undoMoveBut->setEnabled(false);
+  movePointBut->setEnabled(false);
   if (!mNumResid || mCurrentRes >= mNumResid)
     return;
+
 
   // Coming into here, currentRes points to the last residual if any
   do {
@@ -713,8 +703,7 @@ void BeadFixer::movePoint()
   Imod *theModel = ivwGetModel(plug->view);
   ivwControlActive(plug->view, 0);
      
-  if(!mNumResid || mCurmoved  || mObjlook < 0 || 
-     mIndlook < 0) 
+  if (!mNumResid || mCurmoved  || mObjlook < 0 || mIndlook < 0) 
     return;
 
   imodGetIndex(theModel, &obj, &cont, &pt);
@@ -800,6 +789,22 @@ void BeadFixer::undoMove()
          "to where it was moved to!\n");
   imodSetIndex(theModel, obsav, cosav, ptsav);
   undoMoveBut->setEnabled(false);
+}
+
+/*
+ * Move all points in current area by residual
+ */
+void BeadFixer::moveAll()
+{
+  int startArea = mCurArea;
+  if (mCurArea <= 0 || mCurrentRes >= mNumResid)
+    return;
+  while (mCurArea == startArea && mCurrentRes < mNumResid) {
+    if (mIndlook >= 0 && !mCurmoved)
+      movePoint();
+    mBell = -1;
+    nextRes();
+  }
 }
 
 int BeadFixer::foundgap(int obj, int cont, int ipt, int before)
@@ -1016,7 +1021,9 @@ BeadFixer::BeadFixer(QWidget *parent, const char *name)
   nextResBut = diaPushButton("Go to Next Big Residual", this, mLayout);
   connect(nextResBut, SIGNAL(clicked()), this, SLOT(nextRes()));
   nextResBut->setEnabled(false);
-  QToolTip::add(nextResBut, "Show next highest residual - Hot key: apostrophe");
+  QToolTip::add(nextResBut, "Show next highest residual - Hot key: "
+                "apostrophe");
+
   movePointBut = diaPushButton("Move Point by Residual", this, mLayout);
   connect(movePointBut, SIGNAL(clicked()), this, SLOT(movePoint()));
   movePointBut->setEnabled(false);
@@ -1028,6 +1035,12 @@ BeadFixer::BeadFixer(QWidget *parent, const char *name)
   undoMoveBut->setEnabled(false);
   QToolTip::add(undoMoveBut, 
                 "Move point back to previous position - Hot key: U");
+
+  moveAllBut = diaPushButton("Move All in Local Area", this, mLayout);
+  connect(moveAllBut, SIGNAL(clicked()), this, SLOT(moveAll()));
+  moveAllBut->setEnabled(false);
+  QToolTip::add(moveAllBut, "Move all points in current area by residual"
+                " - Hot key: semicolon");
 
   backUpBut = diaPushButton("Back Up to Last Point", this, mLayout);
   connect(backUpBut, SIGNAL(clicked()), this, SLOT(backUp()));
@@ -1053,81 +1066,7 @@ void BeadFixer::buttonPressed(int which)
   if (!which)
     close();
   else
-    dia_vasmsg
-      ("Bead Fixer Module Help\n",
-       "--------------------------\n\n"
-       "This module makes it easier to fix tilt series fiducial "
-       "models in two ways.  It has a function for finding the next "
-       "gap or untracked place in the model and making that be the "
-       "current point.  It also will read the log file from running "
-       "Tiltalign and move to points with high residuals.\n\n"
-       "Hot Key Summary\n"
-       "---------------------\n"
-       "spacebar\tGo to next gap\n"
-       "' (apostrophe)\tGo to next big residual\n"
-       "\" (double quote)\tBack up to last point\n"
-       ";\t\tMove point by residual\n"
-       "U\t\tUndo last moved point\n\n",
-       "Toggle the pin button on to keep the bead fixer window on top of "
-       "other windows\n\n",
-       "Press the \"Go to Next Gap\" button or hit the space bar key to "
-       "move to the next gap or incomplete place in the model.  If "
-       "there is a gap, the point BEFORE the gap will be displayed.  "
-       "If a contour does not start on the first section, the first "
-       "point in the contour (which is AFTER the gap) will be "
-       "displayed and a message will be printed.  The program "
-       "searches forward from the current point except the first time "
-       "when the function is selected.  To begin the search at the "
-       "beginning of the model again, detach from the current point "
-       "by clicking the left mouse button far from any model point, "
-       "then select the Next Gap function.\n\n"
-       "Press the \"Open Tiltalign Log File\" button to open a log "
-       "file.\n\n"
-       "Press the \"Go to Next Big Residual\" button or hit the "
-       "apostrophe key to move to the next point in the log file "
-       "with a big residual.\n\n"
-       "The X and Y displacements implied by the residual are printed "
-       "in the Info window.  Also, the Zap window will draw an arrow "
-       "corresponding to these displacements.  If the arrow ends at the place "
-       "where the point should be located (i.e., the center of the bead), "
-       "then press the \"Move Point by "
-       "Residual\" button or push the semicolon key to move the point "
-       "by those amounts in X and Y.\n\n"
-       "After moving a point by its residual, press the \"Undo Move\" "
-       "button or push the U key to undo the move.\n\n"
-       "Press the \"Reread Log File\" button to reread the file, or a "
-       "new version of it after rerunning Tiltalign.\n\n",
-       "Press the \"Save & Run Tiltalign\" button to save the model, rerun "
-       "Tiltalign, and read in the new log file.  Most buttons will be disabled "
-       "while Tiltalign is running and reenabled when it is done, so you will "
-       "be able to tell that something is happening.  If you change the "
-       "alignment parameters in eTomo, be sure to compute the next alignment "
-       "using the button in eTomo rather than this button.\n\n"
-       "Press the \"Go to Next Local Set\" button if you have a log file "
-       "with a series of local alignments and want to skip to the "
-       "residuals from the next local alignment.\n\n",
-       "Select the \"Back Up to Last Point\" button if you want to go back to "
-       "the last residual that you examined.  This will not necessarily be the "
-       "previous residual in the file, if you skipped over points by going to "
-       "the next local set, or if the program skipped over points that you saw "
-       "before.  However, you can then work forward through the "
-       "points that you skipped over.\n\n",
-       "The program keeps a list of each point whose residual has "
-       "been examined.  The list is retained when the log file is read again.  "
-       "If the \"Examine Points Once\" checkbox is "
-       "selected, then any point already on the list is skipped over "
-       "when you \"Go to Next Big Residual\".  A point is added to the "
-       "list regardless of whether \"Examine Points Once\" is selected.  "
-       "If you turn this checkbox off, you will see every point when going "
-       "forward or backward.\n\n"
-       "Press the \"Clear Examined List\" button to empty the list of "
-       "points that have been examined.  The list is not cleared when "
-       "\"Examine Points Once\" is switched on or off.  To see some "
-       "points for the second time, turn off \"Examine Points Once\"; to "
-       "see all points again, push \"Clear Examined List\".  When you \"Back Up"
-       " to Last Point\", the current point is removed from the list so that "
-       "you will come back to it when you go forward again.\n",
-       NULL);
+    imodShowHelpPage("beadfix.html");
 }
 
 // Change to flag to keep on top or run timer as for info window
@@ -1339,6 +1278,9 @@ void AlignThread::run()
 
 /*
     $Log$
+    Revision 1.22  2005/02/19 01:29:50  mast
+    Removed function to clear extra object
+
     Revision 1.21  2004/12/22 22:22:05  mast
     Fixed bug in reading "old" log files
 
