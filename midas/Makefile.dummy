@@ -1,8 +1,0 @@
-include ../configure
-
-all :
-
-install	:
-	$(CP) $(VCEXEDIR)/midas.exe $(INSTBINDIR)
-
-clean :
