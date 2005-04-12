@@ -46,6 +46,9 @@ import etomo.util.UniqueKey;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.23  2005/04/01 02:53:07  sueh
+ * <p> bug# 622 newstuff: turning off fit after fit is excuted.  Added setEnabledFit().
+ * <p>
  * <p> Revision 3.22  2005/04/01 00:11:45  sueh
  * <p> bug# 622 Disable A, B, and Both menu items when doing a single axis
  * <p> tomogram.
@@ -593,14 +596,7 @@ public class MainFrame extends JFrame implements ContextMenu {
     }
     else if (command.equals(menuFitWindow.getActionCommand())) {
       mainPanel.fitWindow(true);
-      if (newStuff) {
-        menuFitWindow.setEnabled(false);
-      }
     }
-  }
-  
-  void setEnabledFit(boolean enabled) {
-    menuFitWindow.setEnabled(enabled);
   }
   
   public void showAxisA() {

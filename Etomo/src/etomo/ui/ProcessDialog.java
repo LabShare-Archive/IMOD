@@ -13,6 +13,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.5  2005/04/01 02:55:21  sueh
+ * <p> bug# 622 newstuff:  Turned on fit menu command when dialog is created
+ * <p> and when Advanced is pressed.
+ * <p>
  * <p> Revision 3.4  2005/01/14 03:10:48  sueh
  * <p> bug# 511 Added a DialogType member variable to identify the dialog the
  * <p> ProcessDialog the parent of.  Changed default exitState to SAVE. added
@@ -108,8 +112,6 @@ public class ProcessDialog implements ExitButtons {
     applicationManager = appManager;
     this.axisID = axisID;
     this.dialogType = dialogType;
-
-    EtomoDirector.getInstance().getMainFrame().setEnabledFit(true);
     //  Get the default initial advanced state
     isAdvanced = appManager.isAdvanced(dialogType, axisID);
     setAdvanced(isAdvanced);
@@ -188,9 +190,6 @@ public class ProcessDialog implements ExitButtons {
    * button.  Call this method first before checking the state of isAdvanced.
    */
   public void buttonAdvancedAction(ActionEvent event) {
-    if (btnAdvanced.isVisible()) {
-      EtomoDirector.getInstance().getMainFrame().setEnabledFit(true);
-    }
     setAdvanced(!isAdvanced);
   }
 
