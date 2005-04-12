@@ -54,6 +54,7 @@ static int Imod_obj_cnum = -1;
 static int float_on = 0;
 static int doingFloat = 0;
 static int float_subsets = 0;
+static int last_subsets = 0;
 
 static int dumpCache = 0;
 static int startDump = 0;
@@ -477,13 +478,20 @@ int imod_info_bwfloat(ImodView *vw, int section, int time)
       ref_white = clearedWhite;
 
     } else {
-      if (secData[iref].sd < 0. || ixStart != secData[iref].ixStart || 
-          iyStart != secData[iref].iyStart || 
-          nxUse != secData[iref].nxUse || nyUse != secData[iref].nyUse) {
+
+      // Get new data now if there is no valid data for the reference section
+      // or if the area has changed, but only if something else has changed,
+      // namely section, time, or subset versus non-subset
+      if (secData[iref].sd < 0. || 
+          ((ixStart != secData[iref].ixStart ||
+            iyStart != secData[iref].iyStart || 
+            nxUse != secData[iref].nxUse || nyUse != secData[iref].nyUse) &&
+           (section != last_section || time != last_time || 
+            float_subsets != last_subsets))) {
         image = ivwGetZSectionTime(vw, last_section, last_time);
         err1 = sampleMeanSD(image, 0, vw->xsize, vw->ysize, sample,
                             ixStart, iyStart, nxUse, nyUse, 
-                          &secData[iref].mean, &secData[iref].sd);
+                            &secData[iref].mean, &secData[iref].sd);
         if (!err1 && secData[iref].sd < 0.1)
           secData[iref].sd = 0.1;
         
@@ -492,6 +500,9 @@ int imod_info_bwfloat(ImodView *vw, int section, int time)
           secData[iref].mean = (secData[iref].mean - vw->rampbase) * 256. /
             vw->rampsize;
       }
+
+      // Otherwise, take existing data as the reference - allows change
+      // for new subset within a section to be tracked
       refMean = secData[iref].mean;
       refSD = secData[iref].sd;
     }
@@ -555,6 +566,7 @@ int imod_info_bwfloat(ImodView *vw, int section, int time)
       }
       ref_black = tmp_black;
       ref_white = tmp_white;
+      last_subsets = float_subsets;
     }
   }
 
@@ -784,6 +796,10 @@ void imod_imgcnt(char *string)
 
 /*
 $Log$
+Revision 4.19  2005/03/23 18:49:24  mast
+Saved floating b/w values as reference values before truncating to range to
+retain state after going to a section with truncated range
+
 Revision 4.18  2005/03/20 19:55:36  mast
 Eliminating duplicate functions
 
