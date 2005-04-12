@@ -37,6 +37,10 @@ import etomo.type.AxisType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.15  2005/04/01 02:54:29  sueh
+ * <p> bug# 622 newstuff:  changed showPRocessingPanel to remove split pane
+ * <p> and individual scroll bars.
+ * <p>
  * <p> Revision 1.14  2005/04/01 00:14:07  sueh
  * <p> bug# 622 Trying to get packAxis() to work with divider removed on A only
  * <p> and B only.  Problem with wide window not solved.
@@ -147,9 +151,9 @@ public abstract class MainPanel extends JPanel {
   protected JLabel statusBar = new JLabel("No data set loaded");
 
   protected JPanel panelCenter = new JPanel();
-  protected ScrollPanel scroll;
-  protected JScrollPane scrollPane;
-  protected JPanel axisPanel = new JPanel();
+  //protected ScrollPanel scroll;
+  //protected JScrollPane scrollPane;
+  //protected JPanel axisPanel = new JPanel();
   
   //  These panels get instantiated as needed
   protected ScrollPanel scrollA;
@@ -206,7 +210,7 @@ public abstract class MainPanel extends JPanel {
     panelCenter.setLayout(new BoxLayout(panelCenter, BoxLayout.X_AXIS));
     add(panelCenter, BorderLayout.CENTER);
     add(statusBar, BorderLayout.SOUTH);
-    axisPanel.setLayout(new BoxLayout(axisPanel, BoxLayout.X_AXIS));
+    //axisPanel.setLayout(new BoxLayout(axisPanel, BoxLayout.X_AXIS));
   }
 
   /**
@@ -333,7 +337,7 @@ public abstract class MainPanel extends JPanel {
     resetAxisPanels();
 
     panelCenter.removeAll();
-    if (!EtomoDirector.getInstance().isNewStuff()) {
+    //if (!EtomoDirector.getInstance().isNewStuff()) {
       if (axisType == AxisType.SINGLE_AXIS) {
         createAxisPanelA(AxisID.ONLY);
         scrollA = new ScrollPanel();
@@ -354,11 +358,13 @@ public abstract class MainPanel extends JPanel {
 
         splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, scrollPaneA,
             scrollPaneB);
-        splitPane.setDividerLocation(0.5);
+        if (!EtomoDirector.getInstance().isNewStuff()) {
+          splitPane.setDividerLocation(0.5);
+        }
         splitPane.setOneTouchExpandable(true);
         panelCenter.add(splitPane);
       }
-    }
+    /*}
     else {
       if (axisType == AxisType.SINGLE_AXIS) {
         createAxisPanelA(AxisID.ONLY);
@@ -375,36 +381,39 @@ public abstract class MainPanel extends JPanel {
       scroll.add(axisPanel);
       scrollPane = new JScrollPane(scroll);
       panelCenter.add(scrollPane);
-    }
+    }*/
   }
   
   void showBothAxis() {
     showingBothAxis = true;
-    axisPanel.removeAll();
-    /*splitPane =
+    //axisPanel.removeAll();
+    panelCenter.removeAll();
+    splitPane =
       new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, scrollPaneA, scrollPaneB);
-    splitPane.setDividerLocation(0.5);
+    //splitPane.setDividerLocation(0.5);
     splitPane.setOneTouchExpandable(true);
-    panelCenter.add(splitPane);*/
-    axisPanel.add(getAxisPanelA().getContainer());
+    panelCenter.add(splitPane);
+    /*axisPanel.add(getAxisPanelA().getContainer());
     axisPanel.add(Box.createRigidArea(FixedDim.x10_y0));
-    axisPanel.add(getAxisPanelB().getContainer());
+    axisPanel.add(getAxisPanelB().getContainer());*/
     fitWindow(true);
   }
   
   void showAxisA() {
     showingBothAxis = false;
-    axisPanel.removeAll();
-    //panelCenter.add(scrollPaneA);
-    axisPanel.add(getAxisPanelA().getContainer());
+    panelCenter.removeAll();
+    //axisPanel.removeAll();
+    panelCenter.add(scrollPaneA);
+    //axisPanel.add(getAxisPanelA().getContainer());
     fitWindow(true);
   }
   
   void showAxisB() {
     showingBothAxis = false;
-    axisPanel.removeAll();
-    //panelCenter.add(scrollPaneB);
-    axisPanel.add(getAxisPanelB().getContainer());
+    panelCenter.removeAll();
+    //axisPanel.removeAll();
+    panelCenter.add(scrollPaneB);
+    //axisPanel.add(getAxisPanelB().getContainer());
     fitWindow(true);
   }
   
@@ -419,6 +428,9 @@ public abstract class MainPanel extends JPanel {
       return;
     }
     EtomoDirector.getInstance().getMainFrame().pack();
+    if (splitPane != null) {
+      splitPane.resetToPreferredSizes();
+    }
     /*if (manager.isDualAxis() && showingBothAxis && splitPane != null) {
       splitPane.resetToPreferredSizes();
       
@@ -523,6 +535,9 @@ public abstract class MainPanel extends JPanel {
     }
     synchronized (MainFrame.class) {
       packAxis();
+      if (EtomoDirector.getInstance().isNewStuff()) {
+        return;
+      }
       //the mainPanel has a limited size, but the frame does not
       //if the frame has a greater height then the mainPanel + the frame's border
       //height, then a scroll bar will be used.

@@ -25,6 +25,9 @@ import etomo.type.EtomoNumber;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.10  2005/04/01 02:52:10  sueh
+ * <p> bug# 622 newstuff: try a raised border for each axis.
+ * <p>
  * <p> Revision 3.9  2005/02/17 02:41:05  sueh
  * <p> bug# 605 Added saveDisplayState() to save the current width to lastWidth.
  * <p> In getWidth(), if lastWidth is not null return it instead of calling
@@ -180,9 +183,6 @@ public abstract class AxisProcessPanel implements ContextMenu {
     panelProcessInfo.add(panelDialog, BorderLayout.CENTER);
 
     panelRoot.setLayout(new BoxLayout(panelRoot, BoxLayout.X_AXIS));
-    if (EtomoDirector.getInstance().isNewStuff()) {
-      panelRoot.setBorder(BorderFactory.createRaisedBevelBorder());
-    }
     panelRoot.add(panelProcessSelect);
     panelRoot.add(panelProcessInfo);
   }
