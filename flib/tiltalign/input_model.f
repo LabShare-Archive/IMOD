@@ -10,6 +10,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.13  2004/10/24 22:49:34  mast
+c	  fixed line length and lnblnk declaration problems
+c	
 c	  Revision 3.12  2004/10/24 22:29:25  mast
 c	  Changes for pip input and residual file options
 c	
@@ -503,6 +506,8 @@ c
 	    if(igroup(ireal).ne.0)then
 	      imodobj=2*(imodobj-1)+igroup(ireal)
 	      obj_color(2,iobject)=256-imodobj
+	      if (igroup(ireal).eq.1) call putobjcolor(imodobj, 0, 255, 0)
+	      if (igroup(ireal).eq.2) call putobjcolor(imodobj, 255, 0, 255)
 	    endif
 	    call putimodflag(imodobj,2)
 	    call putscatsize(imodobj,isize)
