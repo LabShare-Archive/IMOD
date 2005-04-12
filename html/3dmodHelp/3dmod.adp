@@ -16,6 +16,7 @@
     <section ref="./contourMove.html" title="Contour Moving"/>
     <section ref="./imageMovie.html" title="Image Movie Control"/>
     <section ref="./imageProc.html" title="Image Processing"/>
+    <section ref="./beadfix.html" title="Bead Fixer"/>
     <section ref="./modelMovie.html" title="Model Movie &amp; Montage Control"/>
     <section ref="./depthcue.html" title="Depth Cueing"/>
 </DCF>
