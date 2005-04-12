@@ -25,9 +25,13 @@ public class BlendmontProcessMonitor extends LogFileProcessMonitor {
   public static  final String  rcsid =  "$Id$";
   
   private String title;
+  private boolean lastLineFound = false;
+  private boolean doingMrctaper = false;
+  private int mode;
   
   public BlendmontProcessMonitor(ApplicationManager appMgr, AxisID id, int mode) {
     super(appMgr, id);
+    this.mode = mode;
     logFileBasename = BlendmontParam.getCommandFileName(mode);
     switch (mode) {
     case BlendmontParam.XCORR_MODE:
@@ -38,10 +42,10 @@ public class BlendmontProcessMonitor extends LogFileProcessMonitor {
       break;
     case BlendmontParam.BLEND_MODE:
       title = "Full alignment";
-    case BlendmontParam.UNDISTORT_MODE:
-      title = "Making distortion corrected stack";
       break;
-
+    case BlendmontParam.UNDISTORT_MODE:
+      title = "Distortion correction";
+      break;
     }
   }
   
@@ -63,9 +67,18 @@ public class BlendmontProcessMonitor extends LogFileProcessMonitor {
         //set currentSection - section in log starts from 0
         currentSection = Integer.parseInt(strings[4]) + 1;
       }
+      else if (mode == BlendmontParam.BLEND_MODE) {
+        if (line.startsWith("Doing section #") && !doingMrctaper) {
+          doingMrctaper = true;
+          applicationManager.getMainPanel().setProgressBar(title + ": mrctaper", 1, axisID);
+        }
+        else if (currentSection >= nSections && line.startsWith("Done!")) {
+          lastLineFound = true;
+        }
+      }
     }
     //Start timeout on last section
-    if (currentSection >= nSections) {
+    if (currentSection >= nSections && (mode != BlendmontParam.BLEND_MODE || lastLineFound)) {
       waitingForExit++;
     }
   }
@@ -87,6 +100,9 @@ public class BlendmontProcessMonitor extends LogFileProcessMonitor {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.5  2005/04/07 21:53:15  sueh
+* <p> bug# 626 Changed the title in undistort mode.
+* <p>
 * <p> Revision 1.4  2005/03/11 01:33:25  sueh
 * <p> bug# 533 Setting a title in BlendmontParam.
 * <p>
