@@ -3,7 +3,7 @@
 BINVOL(1)							 BINVOL(1)
 
 NNAAMMEE
-	binvol - Bin a 3D volume down isotropically
+	binvol - Bin a 3D volume down isotropically or anisotropically
 
 SSYYNNOOPPSSIISS
 	binvol [-b #] input_file output_file

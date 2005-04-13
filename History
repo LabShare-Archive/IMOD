@@ -1,5 +1,19 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/12/05: Modified Binvol to bin by separate amounts in X, Y, and Z.
+
+4/12/05: Made Tiltalign set object colors in 3D model to standard colors when
+there are fiducials on two surfaces.
+
+4/12/05: Restructured the way the Zap window record subarea location for 
+contrast floating and enabled floating for movements within a section, so that
+now the subset float option works when fixing fiducials, when panning the
+Zap window, or when moving the rubberband around in the Zap window.
+
+4/12/05: Added button to Bead fixer move all points in local area by residual.
+
+4/11/05: Made Beadtrack ignore separate objects when run from Transferfid.
+
 4/7/05: IMOD_3-6-2
 4/7/05: Etomo modified to produce a distortion-corrected stack for fixing
 montage overlaps.
@@ -79,7 +93,7 @@ the new default.
 
 2/25/05: IMOD_3-6-0 and branch to IMOD_3-5-0
 2/24/05: IMOD_3-4-23
-2/24/05: Added sourecdoc program to produce documentation from source files.
+2/24/05: Added sourcedoc program to produce documentation from source files.
 
 2/24/05: Added ability to select multiple contours from more than one object
 with Ctrl and first mouse button; contours from multiple objects can be

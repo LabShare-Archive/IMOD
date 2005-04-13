@@ -21,7 +21,31 @@ manpage =
 short = binning
 long = BinningFactor
 type = I
-usage = Reduction factor to bin by (default 2)
+usage = Overall reduction factor to bin by (default 2)
+tooltip = 
+manpage = 
+
+[Field = XBinningFactor]
+short = xbinning
+long = XBinningFactor
+type = I
+usage = Factor to bin by in X (default same as overall factor)
+tooltip = 
+manpage = 
+
+[Field = YBinningFactor]
+short = ybinning
+long = YBinningFactor
+type = I
+usage = Factor to bin by in Y (default same as overall factor)
+tooltip = 
+manpage = 
+
+[Field = ZBinningFactor]
+short = zbinning
+long = ZBinningFactor
+type = I
+usage = Factor to bin by in Z (default same as overall factor)
 tooltip = 
 manpage = 
 
