@@ -31,6 +31,11 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.28  2005/04/07 21:50:48  sueh
+ * <p> bug# 626 Added undistort script.  This script is contains a blendmont
+ * <p> command which is loaded from xcorr, updated, and then written into
+ * <p> undistort.com.
+ * <p>
  * <p> Revision 3.27  2005/03/11 01:33:03  sueh
  * <p> bug# 533 printing a stack trace for an error in updateComScript.
  * <p>
@@ -563,6 +568,11 @@ public class ComScriptManager {
     else {
       scriptPrenewst = scriptPrenewstA;
     }
+
+    // Implementation note: since the name of the command newst was changed to
+    // newstack we need to figure out which one it is before calling initialize.
+    String cmdName = newstOrNewstack(scriptPrenewst);
+    updateComScript(scriptPrenewst, prenewstParam, cmdName, axisID);
   }
 
   public void savePreblend(BlendmontParam blendmontParam, AxisID axisID) {
