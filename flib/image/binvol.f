@@ -7,16 +7,19 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.1  2004/10/28 22:22:49  mast
+c	  Added to package
+c	
 *	  
 	implicit none
 	integer idim
-	parameter (idim=4200*4200)
+	parameter (idim=5000*5000)
 	integer*4 NX,NY,NZ,nxs,nys,nzs
 C
 	integer*4 NXYZ(3),MXYZ(3),nxyzs(3),nxyzst(3),mode
 	real*4 array(idim),brray(idim/4),dmin,dmax,dmean,dmsum,cell(6)
 	real*4 dmin2, dmax2, dmean2
-	integer*4 izout,iredfac,i,inz, ierr
+	integer*4 izout,iredfac(3),iredall,i,inz, ierr
 	data nxyzst/0,0,0/
 C
 	EQUIVALENCE (NX,NXYZ),(nxs,nxyzs)
@@ -36,13 +39,15 @@ c
 c	  fallbacks from ../../manpages/autodoc2man -2 2  binvol
 c	  
 	integer numOptions
-	parameter (numOptions = 4)
+	parameter (numOptions = 7)
 	character*(40 * numOptions) options(1)
 	options(1) =
      &      'input:InputFile:FN:@output:OutputFile:FN:@'//
-     &      'binning:BinningFactor:I:@help:usage:B:'
+     &      'binning:BinningFactor:I:@xbinning:XBinningFactor:I:@'//
+     &      'ybinning:YBinningFactor:I:@zbinning:ZBinningFactor:I:@'//
+     &      'help:usage:B:'
 c
-	iredfac = 2
+	iredall = 2
 c
 	call PipReadOrParseOptions(options, numOptions, 'binvol',
      &	    'ERROR: BINVOL - ', .false., 2, 1, 1, numOptArg,
@@ -64,18 +69,25 @@ C
 c
 	CALL ITRHDR(3,1)
 c	  
-	ierr = PipGetInteger('BinningFactor', iredfac)
-	if (iredfac.lt.2) call errorexit('Binning factor must be at least 2')
+	ierr = PipGetInteger('BinningFactor', iredall)
+	iredfac(1) = iredall
+	iredfac(2) = iredall
+	iredfac(3) = iredall
+	ierr = PipGetInteger('XBinningFactor', iredfac(1))
+	ierr = PipGetInteger('YBinningFactor', iredfac(2))
+	ierr = PipGetInteger('ZBinningFactor', iredfac(3))
+
 c	  
-	nxs = nx/iredfac
-	nys = ny/iredfac
-	nzs = nz/iredfac
 	call irtcel(1, cell)
 	do i = 1,3
-	  cell(i) = iredfac*nxyzs(i)*(cell(i)/mxyz(i))
+	  if (iredfac(i).lt.1) call errorexit(
+     &	      'Binning factor must be at least 1')
+	  nxyzs(i) = nxyz(i) / iredfac(i)
+	  if (nxyzs(i) .lt. 1) call errorexit('Binning factor too large')
+	  cell(i) = iredfac(i)*nxyzs(i)*(cell(i)/mxyz(i))
 	enddo
-	call ialsiz(3,nxs,nxyzst)
-	call ialsam(3,nxs)
+	call ialsiz(3,nxyzs,nxyzst)
+	call ialsam(3,nxyzs)
 	call ialcel(3,cell)
 
 	dmsum=0.
@@ -86,7 +98,7 @@ c
 	  do i=1,nxs*nys
 	    brray(i)=0.
 	  enddo
-	  do inz=1,iredfac
+	  do inz=1,iredfac(3)
 	    call irdsec(1,array,*99)
 	    call add_into_array(array,nx,ny,brray,nxs,nys,iredfac)
 	  enddo
@@ -120,12 +132,14 @@ C
 
 
 	subroutine add_into_array(array,nx,ny,brray,nxs,nys,iredfac)
-	real*4 array(nx,ny), brray(nxs,nys)
-	denom=iredfac**3
+	implicit none
+	integer*4 iredfac(3), ixs, iys, ix, iy, nx, ny, nxs, nys
+	real*4 array(nx,ny), brray(nxs,nys), denom
+	denom=iredfac(1) * iredfac(2) * iredfac(3)
 	do iys=1,nys
 	  do ixs=1,nxs
-	    do ix=(ixs-1)*iredfac+1,ixs*iredfac
-	      do iy=(iys-1)*iredfac+1,iys*iredfac
+	    do ix=(ixs-1)*iredfac(1)+1,ixs*iredfac(1)
+	      do iy=(iys-1)*iredfac(2)+1,iys*iredfac(2)
 		brray(ixs,iys)=brray(ixs,iys)+array(ix,iy)/denom
 	      enddo
 	    enddo
