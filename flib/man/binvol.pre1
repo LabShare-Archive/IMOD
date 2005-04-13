@@ -10,11 +10,12 @@ SSYYNNOOPPSSIISS
 
 DDEESSCCRRIIPPTTIIOONN
 
-  Binvol will bin down a volume isotropically in all three dimensions.
-  Binning means summing (actually averaging) all of the values in a cube of
-  voxels (e.g., 2x2x2 or 3x3x3) in the input volume to create one voxel in
-  the output volume.  The output file will have an appropriately larger
-  pixel spacing in its header.
+  Binvol will bin down a volume in all three dimensions, with the binning
+  done isotropically or by different amounts in X, Y, and Z.  Binning means
+  summing (actually averaging) all of the values in a block of voxels (e.g.,
+  2x2x2 or 1x1x3) in the input volume to create one voxel in the output
+  volume.  The output file will have appropriately larger pixel spacings in
+  its header.
 
   Binvol uses the PIP package for input (see the manual page for pip(1)).
   The following options can be specified either as command line arguments
