@@ -1040,7 +1040,7 @@ BeadFixer::BeadFixer(QWidget *parent, const char *name)
   connect(moveAllBut, SIGNAL(clicked()), this, SLOT(moveAll()));
   moveAllBut->setEnabled(false);
   QToolTip::add(moveAllBut, "Move all points in current area by residual"
-                " - Hot key: semicolon");
+                " - Hot key: colon");
 
   backUpBut = diaPushButton("Back Up to Last Point", this, mLayout);
   connect(backUpBut, SIGNAL(clicked()), this, SLOT(backUp()));
@@ -1278,6 +1278,9 @@ void AlignThread::run()
 
 /*
     $Log$
+    Revision 1.23  2005/04/12 18:57:47  mast
+    Added move all in local area, improved some button enabling
+
     Revision 1.22  2005/02/19 01:29:50  mast
     Removed function to clear extra object
 
