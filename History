@@ -1,16 +1,25 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-4/12/05: Modified Binvol to bin by separate amounts in X, Y, and Z.
+4/13/05: IMOD_3-6-3
+4/13/05: Fixed ability to get binned prealigned stack in eTomo (not broken in 
+3.5)
+
+4/13/05: Modified Avgstack to read data in chunks so it can handle large
+images.
+
+4/12/05: Modified Binvol to bin by separate amounts in X, Y, and Z and made it
+read data in chunks to handle larger volumes.
 
 4/12/05: Made Tiltalign set object colors in 3D model to standard colors when
 there are fiducials on two surfaces.
 
-4/12/05: Restructured the way the Zap window record subarea location for 
+4/12/05: Restructured the way the Zap window records subarea location for 
 contrast floating and enabled floating for movements within a section, so that
 now the subset float option works when fixing fiducials, when panning the
 Zap window, or when moving the rubberband around in the Zap window.
 
-4/12/05: Added button to Bead fixer move all points in local area by residual.
+4/12/05: Added button to Bead fixer to move all points in local area by 
+residual.
 
 4/11/05: Made Beadtrack ignore separate objects when run from Transferfid.
 
