@@ -8,10 +8,13 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.1  2003/10/11 00:22:07  mast
+c	  Creation of file
+c	
 c
 c	  keep limdim less than 2/3 of inpdim**2
         integer inpdim, limdim, lmcube, limout
-	parameter (inpdim=256,limdim=16200,lmcube=limdim/inpdim)
+	parameter (inpdim=256,limdim=32400,lmcube=limdim/inpdim)
 	parameter (limout=(inpdim*3)/2)
 c
 	real*4 array(inpdim,inpdim,inpdim),brray(limout,limout)
