@@ -708,7 +708,7 @@ c
 c	      Alternate based on solving equations from type 1 distortion model
 c
 	    yzOther = -sindel * sinbet / (cosdel * cosbet)
-	    xzOther = (gmag(iv) / ((gmag(iv) + dmag(iv)) * cosdel) - 1. -
+	    xzOther = (gmag(iv) / ((gmag(iv) + dmag(iv)) * cosdel) - 1. +
      &		sinalf * yzOther) * sinbet / cosalf
 c	    write(*,'(6f11.6)')xzfac(iv), xzOther, xzfac(iv) - xzOther,
 c     &		yzfac(iv), yzOther, yzfac(iv) - yzOther
@@ -1335,6 +1335,9 @@ c
 
 c
 c	  $Log$
+c	  Revision 3.21  2005/03/14 06:05:54  mast
+c	  Increased maxmetro limit
+c	
 c	  Revision 3.20  2005/02/16 06:43:10  mast
 c	  Added image size to fid.xyz output file for solvematch to use
 c	
