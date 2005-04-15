@@ -416,6 +416,27 @@ tooltip =
 manpage = Minimum change in residual, and criterion number of SD's from the
 mean residual change, to require for deletion of a point on pass 1 or 2.
 
+[Field = ParameterFile]
+short = param
+long = ParameterFile
+type = PF
+usage = Read parameter entries from file
+tooltip = 
+manpage = Read parameter entries as keyword-value pairs from a parameter file.
+
+[Field = usage]
+short = help
+long = usage
+type = B
+usage = Print help output
+tooltip = 
+manpage = 
+
+[SectionHeader = Test Options]
+usage = OPTIONS FOR TEST OUTPUT
+manpage = OPTIONS FOR TEST OUTPUT
+^  These options are used for program testing and development.
+
 [Field = BoxOutputFile]
 short = 
 long = BoxOutputFile
@@ -441,18 +462,3 @@ usage = Area/object and round at which to save all positions in new objects
 tooltip =
 manpage =
 
-[Field = ParameterFile]
-short = param
-long = ParameterFile
-type = PF
-usage = Read parameter entries from file
-tooltip = 
-manpage = Read parameter entries as keyword-value pairs from a parameter file.
-
-[Field = usage]
-short = help
-long = usage
-type = B
-usage = Print help output
-tooltip = 
-manpage = 

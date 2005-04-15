@@ -162,8 +162,10 @@ such as:
    \fBKeyValueDelimiter = ==\fR
 
 PIP will examine keyword-value pairs only after a \fBField\fR token, which
-signifies the start of an option.  The following
-keywords are understood by PIP in a \fBField\fR sections, while others are
+signifies the start of an option, or after a \fBSectionHeader\fR token,
+which can be used to introduce some header text into the usage or manpage
+outputs.  The following
+keywords are understood by PIP in a \fBField\fR section, while others are
 ignored:
 .nf
 \fBshort\fR    Short option name
@@ -188,6 +190,10 @@ the \fB^\fR will be retained, so that lines can be indented in a man page.
 Lines containing only white space, and lines with \fB#\fR as the first
 non-white space, are ignored.
 
+In a \fBSectionHeader\fR section, keywords besides \fBusage\fR and 
+\fBmanpage\fR are ignored.  Help strings will be output without indentation;
+for a man page that is input to \fBnroff\fR, start the string with .SS or .SH
+to avoid the regular indentation of option text.
 .SS Functions for Initialization
 .nh
 .ft B
