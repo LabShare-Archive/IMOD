@@ -45,6 +45,11 @@ import etomo.util.Utilities;
  * 
  * <p>
  * $Log$
+ * Revision 1.9  2005/03/02 20:24:17  sueh
+ * bug# 533 Added --newstuff command line option.  This option can used to
+ * to expose transitional work.  This way alpha testing can be done without
+ * exposing transitional work.
+ *
  * Revision 1.8  2005/03/01 20:58:56  sueh
  * bug# 607 Catching Throwable in exitProgram and returning true to make
  * sure that Etomo can always exit.
@@ -160,6 +165,7 @@ public class EtomoDirector {
   private boolean test = false;
   private boolean selfTest = false;
   private boolean newstuff = false;
+  private int newstuffNum = 0;
   private HashedArray controllerList = null;
   private UniqueKey currentControllerKey = null;
   private String homeDirectory;
@@ -655,7 +661,8 @@ public class EtomoDirector {
   private ArrayList parseCommandLine(String[] args) {
     ArrayList paramFileNameList = new ArrayList();
     //  Parse the command line arguments
-    for (int i = 0; i < args.length; i++) {
+    int i = 0;
+    while (i < args.length ) {
       // Filename argument should be the only one not beginning with at least
       // one dash
       if (!args[i].startsWith("-")) {
@@ -675,7 +682,18 @@ public class EtomoDirector {
       }
       if (args[i].equals("--newstuff")) {
         newstuff = true;
+        //--newstuff can be used alone, or followed by a 1 or 0 (default).
+        if (!args[i+1].startsWith("--")) {
+          try {
+            newstuffNum = Integer.parseInt(args[++i]);
+          }
+          catch (NumberFormatException e) {
+            newstuffNum = 0;
+            i--;
+          }
+        }
       }
+      i++;
     }
     return paramFileNameList;
   }
@@ -784,7 +802,7 @@ public class EtomoDirector {
     return test;
   }
   
-  public boolean isNewStuff() {
+  public boolean isNewstuff() {
     return newstuff;
   }
   
