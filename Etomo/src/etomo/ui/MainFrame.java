@@ -2,6 +2,7 @@ package etomo.ui;
 
 import java.awt.AWTEvent;
 import java.awt.BorderLayout;
+
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
@@ -46,6 +47,9 @@ import etomo.util.UniqueKey;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.24  2005/04/12 19:38:39  sueh
+ * <p> bug# 615 Do not disable fit window menu option.
+ * <p>
  * <p> Revision 3.23  2005/04/01 02:53:07  sueh
  * <p> bug# 622 newstuff: turning off fit after fit is excuted.  Added setEnabledFit().
  * <p>
@@ -383,6 +387,7 @@ public class MainFrame extends JFrame implements ContextMenu {
   private BaseManager currentManager;
   GenericMouseAdapter mouseAdapter = null;
   WindowSwitch windowSwitch = new WindowSwitch();
+  private SubFrame subFrame = null;
 
   /**
    * Main window constructor.  This sets up the menus and status line.
@@ -432,6 +437,10 @@ public class MainFrame extends JFrame implements ContextMenu {
     else {
       mainPanel.fitWindow();
     }
+  }
+  
+  MainPanel getMainPanel() {
+    return mainPanel;
   }
   
   private void enableMenu(BaseManager currentManager) {
@@ -566,7 +575,7 @@ public class MainFrame extends JFrame implements ContextMenu {
    */
   private void menuOptionsAction(ActionEvent event) {
     String command = event.getActionCommand();
-    boolean newStuff = EtomoDirector.getInstance().isNewStuff();
+    boolean newStuff = EtomoDirector.getInstance().isNewstuff();
     if (command.equals(menuSettings.getActionCommand())) {
       EtomoDirector.getInstance().openSettingsDialog();
     }
@@ -599,16 +608,46 @@ public class MainFrame extends JFrame implements ContextMenu {
     }
   }
   
+  public void pack() {
+    super.pack();
+    if (subFrame != null) {
+      subFrame.pack();
+    }
+  }
+  
+  private void packMainFrame() {
+    super.pack();
+  }
+  
+  private void packSubFrame() {
+    if (subFrame != null) {
+      subFrame.pack();
+    }
+  }
+  
   public void showAxisA() {
+    if (subFrame != null) {
+      subFrame.setVisible(false);
+    }
     mainPanel.showAxisA();
   }
   
   public void showAxisB() {
+    if (subFrame != null) {
+      subFrame.setVisible(false);
+    }
     mainPanel.showAxisB();
   }
   
   public void showBothAxis() {
-    mainPanel.showBothAxis();
+    mainPanel.showAxisA();
+    if (subFrame == null || !subFrame.isDisplayable()) {
+      subFrame = new SubFrame(this);
+    }
+    else {
+      subFrame.updateAxis();
+    }
+    pack();
   }
 
   private void menuHelpAction(ActionEvent event) {
