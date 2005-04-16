@@ -5,6 +5,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.7  2004/10/28 22:22:40  mast
+#  Added binvol
+#
 #  Revision 3.6  2004/10/28 21:14:36  mast
 #  Added maxjoinsize
 #
@@ -40,7 +43,7 @@ PROGS = addtostack$(E) alterheader$(E) assemblevol$(E) avganova$(E) \
  subimstat$(E) taperoutvol$(E) tapervoledge$(E) tiltxcorr$(E) tomopieces$(E) \
  vmstocsh$(E) warpvol$(E) xcorr$(E) xfinverse$(E) xfproduct$(E) xfsimplex$(E) \
  xftoxg$(E) xyzproj$(E) extractmagrad$(E) mtffilter$(E) maxjoinsize$(E) \
- binvol$(E)
+ binvol$(E) numericdiff$(E)
 
 LIBS = $(FORTCLIBS)
 
@@ -153,6 +156,9 @@ mtteach$(E): mtteach.$(O) mtsubs.$(O)
 
 newstack$(E): newstack.$(O)
 	$(FC) -o newstack newstack.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
+
+numericdiff$(E): numericdiff.$(O)
+	$(FC) -o numericdiff numericdiff.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
 rotatevol$(E): rotatevol.$(O) rotmatwarpsubs.$(O)
 	$(FC) -o rotatevol rotatevol.$(O) rotmatwarpsubs.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
