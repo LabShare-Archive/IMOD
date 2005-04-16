@@ -1,5 +1,6 @@
 package etomo.ui;
 
+import java.awt.Color;
 import java.awt.Container;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -29,6 +30,10 @@ import etomo.type.DialogType;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.9  2005/04/01 00:17:06  sueh
+ * <p> bug# 622 Adding showAxisA, B, and Both.  Need to change the axis
+ * <p> button names when switching axis.
+ * <p>
  * <p> Revision 1.8  2005/03/30 23:46:01  sueh
  * <p> bug# 622 Adding actions for the axis buttons.
  * <p>
@@ -258,35 +263,75 @@ public class TomogramProcessPanel extends AxisProcessPanel {
 
   void showBothAxis() {
     if (axisID == AxisID.FIRST) {
-      axisButton1.setText(axisAString);
-      axisButton1.setToolTipText(axisATooltip);
-      axisButton2.setText(axisBString);
-      axisButton2.setToolTipText(axisBTooltip);
+      showAxisA(true);
     }
     else if (axisID == AxisID.SECOND) {
-      axisButtonPanel.setVisible(false);
+      showAxisB(true);
     }
   }
   
-  void showAxisA() {
+  private void showAxisA(boolean showingBothAxis) {
     if (axisID != AxisID.FIRST) {
       throw new IllegalStateException("Function should only be called for A axis panel.");
     }
-    axisButton1.setText(axisBString);
-    axisButton1.setToolTipText(axisBTooltip);
-    axisButton2.setText(bothAxisString);
-    axisButton2.setToolTipText(bothAxisTooltip);
+    setBackground(Colors.backgroundA);
+    if (showingBothAxis) {
+      setAxisA(axisButton1);
+      setAxisB(axisButton2);
+    }
+    else {
+      setAxisB(axisButton1);
+      setBothAxis(axisButton2);
+    }
+    axisButtonPanel.setVisible(true);
   }
   
-  void showAxisB() {
+  void showAxisA() {
+    showAxisA(false);
+  }
+  
+  private void showAxisB(boolean showingBothAxis) {
     if (axisID != AxisID.SECOND) {
       throw new IllegalStateException("Function should only be called for B axis panel.");
     }
-    axisButton1.setText(axisAString);
-    axisButton1.setToolTipText(axisATooltip);
-    axisButton2.setText(bothAxisString);
-    axisButton2.setToolTipText(bothAxisTooltip);
-    axisButtonPanel.setVisible(true);
+    setBackground(Colors.backgroundB);
+    if (showingBothAxis) {
+      axisButtonPanel.setVisible(false);
+    }
+    else {
+      setAxisA(axisButton1);
+      setBothAxis(axisButton2);
+      axisButtonPanel.setVisible(true);
+    }
+
+  }
+  
+  void showAxisB() {
+    showAxisB(false);
+  }
+  
+  private void setBackground(Color color) {
+    panelRoot.setBackground(color);
+    panelStatus.setBackground(color);
+    panelDialog.setBackground(color);
+    panelProcessSelect.setBackground(color);
+    axisButtonPanel.setBackground(color);
+    progressPanel.setBackground(color);
+  }
+  
+  private void setAxisA(JButton button) {
+    button.setText(axisAString);
+    button.setToolTipText(axisATooltip);
+  }
+  
+  private void setAxisB(JButton button) {
+    button.setText(axisBString);
+    button.setToolTipText(axisBTooltip);
+  }
+  
+  private void setBothAxis(JButton button) {
+    button.setText(bothAxisString);
+    button.setToolTipText(bothAxisTooltip);
   }
   
   protected void createProcessControlPanel() {
@@ -301,14 +346,16 @@ public class TomogramProcessPanel extends AxisProcessPanel {
     panelProcessSelect.add(Box.createRigidArea(FixedDim.x0_y5));
     axisButtonPanel.setLayout(new BoxLayout(axisButtonPanel,
         BoxLayout.X_AXIS));
-    if (EtomoDirector.getInstance().isNewStuff() && axisID != AxisID.ONLY) {
+    if (EtomoDirector.getInstance().isNewstuff() && axisID != AxisID.ONLY) {
       axisButton1.addActionListener(axisButtonListener);
       axisButton2.addActionListener(axisButtonListener);
       axisButtonPanel.add(axisButton1);
       axisButtonPanel.add(Box.createRigidArea(FixedDim.x40_y0));
       axisButtonPanel.add(axisButton2);
       panelProcessSelect.add(axisButtonPanel);
-      showBothAxis();
+      if (axisID == AxisID.FIRST) {
+        showAxisA();
+      }
     }
     panelProcessSelect.add(Box.createRigidArea(FixedDim.x0_y5));
     procCtlPreProc.setButtonActionListener(buttonListener);
@@ -372,6 +419,7 @@ public class TomogramProcessPanel extends AxisProcessPanel {
       procCtlCleanUp.getContainer().setAlignmentX(Container.CENTER_ALIGNMENT);
       panelProcessSelect.add(procCtlCleanUp.getContainer());
     }
+    panelProcessSelect.add(Box.createRigidArea(FixedDim.x0_y10));
   }
 
   /**
