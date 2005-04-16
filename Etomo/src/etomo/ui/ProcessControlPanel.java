@@ -21,6 +21,10 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.2  2005/01/14 03:09:07  sueh
+ * <p> bug# 511 Added a DialogType member variable to identify the dialog the
+ * <p> ProcessControlPanel is associated with.
+ * <p>
  * <p> Revision 3.1  2003/11/10 07:44:02  rickg
  * <p> Handles ColoredStateText exceptions
  * <p>
@@ -56,7 +60,8 @@ public class ProcessControlPanel {
   static String[] textStates = { "Not Started", "In Progress", "Complete" };
   static Color colorNotStarted = new Color(0.75f, 0.0f, 0.0f);
   static Color colorInProgress = new Color(0.75f, 0.0f, 0.75f);
-  static Color colorComplete = new Color(0.0f, 0.75f, 0.0f);
+  //static Color colorComplete = new Color(0.0f, 0.75f, 0.0f);
+  static Color colorComplete = new Color(0, 153, 0);
   static Color[] colorState =
     { colorNotStarted, colorInProgress, colorComplete };
 
