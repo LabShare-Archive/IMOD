@@ -18,6 +18,9 @@ import etomo.type.AxisID;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.2  2004/11/19 23:56:48  sueh
+* <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+* <p>
 * <p> Revision 1.1.2.4  2004/10/11 02:14:13  sueh
 * <p> bug# 520 moved responsibility for the manager member variable to child
 * <p> classes.  Used abstract functions to use this variable in the base class.
@@ -49,6 +52,9 @@ public class JoinProcessPanel extends AxisProcessPanel {
     this.joinManager = joinManager;
     createProcessControlPanel();
     initializePanels();
+  }
+  
+  void showBothAxis() {
   }
   
   /**
