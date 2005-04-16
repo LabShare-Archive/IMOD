@@ -8,7 +8,6 @@ import java.awt.event.MouseEvent;
 import javax.swing.*;
 import java.awt.Rectangle;
 
-import etomo.EtomoDirector;
 import etomo.type.AxisID;
 import etomo.type.EtomoNumber;
 
@@ -25,6 +24,10 @@ import etomo.type.EtomoNumber;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.11  2005/04/12 19:36:14  sueh
+ * <p> bug# 615 Made a newstuff version with the split pane and a very simple
+ * <p> fitting algorithm.
+ * <p>
  * <p> Revision 3.10  2005/04/01 02:52:10  sueh
  * <p> bug# 622 newstuff: try a raised border for each axis.
  * <p>
@@ -139,10 +142,10 @@ public abstract class AxisProcessPanel implements ContextMenu {
 
   protected AxisID axisID;
 
-  private JPanel panelRoot = new JPanel();
+  protected JPanel panelRoot = new JPanel();
   private JPanel panelProcessInfo = new JPanel();
-  private JPanel panelStatus = new JPanel();
-  private JPanel panelDialog = new JPanel();
+  protected JPanel panelStatus = new JPanel();
+  protected JPanel panelDialog = new JPanel();
   private EtomoNumber lastWidth = new EtomoNumber(EtomoNumber.INTEGER_TYPE);
 
   //  Progress panel
@@ -153,6 +156,7 @@ public abstract class AxisProcessPanel implements ContextMenu {
   protected JPanel panelProcessSelect = new JPanel();
   
   protected abstract void buttonKillAction(ActionEvent event);
+  abstract void showBothAxis();
 
   /**
    * Constructor
@@ -183,8 +187,10 @@ public abstract class AxisProcessPanel implements ContextMenu {
     panelProcessInfo.add(panelDialog, BorderLayout.CENTER);
 
     panelRoot.setLayout(new BoxLayout(panelRoot, BoxLayout.X_AXIS));
+    panelRoot.add(Box.createRigidArea(FixedDim.x5_y0));
     panelRoot.add(panelProcessSelect);
     panelRoot.add(panelProcessInfo);
+    panelRoot.add(Box.createRigidArea(FixedDim.x5_y0));
   }
   
   /**
