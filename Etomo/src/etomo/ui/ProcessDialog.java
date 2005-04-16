@@ -13,6 +13,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.6  2005/04/12 19:39:15  sueh
+ * <p> bug# 615 Do not disable fit window menu option.
+ * <p>
  * <p> Revision 3.5  2005/04/01 02:55:21  sueh
  * <p> bug# 622 newstuff:  Turned on fit menu command when dialog is created
  * <p> and when Advanced is pressed.
@@ -70,7 +73,6 @@ import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 
 import etomo.ApplicationManager;
-import etomo.EtomoDirector;
 import etomo.type.AxisID;
 import etomo.type.DialogExitState;
 import etomo.type.DialogType;
@@ -142,6 +144,13 @@ public class ProcessDialog implements ExitButtons {
 
   public Container getContainer() {
     return rootPanel;
+  }
+  
+  public void addExitButtons() {
+    rootPanel.add(Box.createVerticalGlue());
+    rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
+    rootPanel.add(pnlExitButtons);
+    //rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
   }
   
   public DialogType getDialogType() {
