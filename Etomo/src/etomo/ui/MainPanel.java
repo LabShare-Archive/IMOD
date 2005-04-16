@@ -1,4 +1,4 @@
-package etomo.ui;
+ package etomo.ui;
 
 import java.awt.AWTEvent;
 import java.awt.BorderLayout;
@@ -9,7 +9,6 @@ import java.awt.HeadlessException;
 import java.io.File;
 import java.util.ArrayList;
 
-import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
@@ -37,6 +36,10 @@ import etomo.type.AxisType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.16  2005/04/12 19:38:54  sueh
+ * <p> bug# 615 Made a newstuff version with the split pane and a very simple
+ * <p> fitting algorithm.
+ * <p>
  * <p> Revision 1.15  2005/04/01 02:54:29  sueh
  * <p> bug# 622 newstuff:  changed showPRocessingPanel to remove split pane
  * <p> and individual scroll bars.
@@ -162,7 +165,9 @@ public abstract class MainPanel extends JPanel {
   protected JScrollPane scrollPaneB;
   protected JSplitPane splitPane;
   protected BaseManager manager = null;
-  private boolean showingBothAxis = true;
+  private boolean showingBothAxis = false;
+  private boolean showingAxisA = true;
+  private AxisType axisType = AxisType.NOT_SET;
   
   private static final int estimatedMenuHeight = 60;
   private static final int extraScreenWidthMultiplier = 2;
@@ -335,86 +340,80 @@ public abstract class MainPanel extends JPanel {
   public void showProcessingPanel(AxisType axisType) {
     //  Delete any existing panels
     resetAxisPanels();
-
+    this.axisType = axisType;
     panelCenter.removeAll();
-    //if (!EtomoDirector.getInstance().isNewStuff()) {
-      if (axisType == AxisType.SINGLE_AXIS) {
-        createAxisPanelA(AxisID.ONLY);
-        scrollA = new ScrollPanel();
-        addAxisPanelA();
-        scrollPaneA = new JScrollPane(scrollA);
-        panelCenter.add(scrollPaneA);
-      }
-      else {
-        createAxisPanelA(AxisID.FIRST);
-        scrollA = new ScrollPanel();
-        addAxisPanelA();
-        scrollPaneA = new JScrollPane(scrollA);
-
-        createAxisPanelB();
-        scrollB = new ScrollPanel();
-        addAxisPanelB();
-        scrollPaneB = new JScrollPane(scrollB);
-
-        splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, scrollPaneA,
-            scrollPaneB);
-        if (!EtomoDirector.getInstance().isNewStuff()) {
-          splitPane.setDividerLocation(0.5);
-        }
-        splitPane.setOneTouchExpandable(true);
-        panelCenter.add(splitPane);
-      }
-    /*}
+    if (axisType == AxisType.SINGLE_AXIS) {
+      createAxisPanelA(AxisID.ONLY);
+      scrollA = new ScrollPanel();
+      addAxisPanelA();
+      scrollPaneA = new JScrollPane(scrollA);
+      panelCenter.add(scrollPaneA);
+    }
     else {
-      if (axisType == AxisType.SINGLE_AXIS) {
-        createAxisPanelA(AxisID.ONLY);
-        axisPanel.add(getAxisPanelA().getContainer());
+      createAxisPanelA(AxisID.FIRST);
+      scrollA = new ScrollPanel();
+      addAxisPanelA();
+      scrollPaneA = new JScrollPane(scrollA);
+
+      createAxisPanelB();
+      scrollB = new ScrollPanel();
+      addAxisPanelB();
+      scrollPaneB = new JScrollPane(scrollB);
+      if (EtomoDirector.getInstance().isNewstuff()) {
+        setAxisA();
       }
       else {
-        createAxisPanelA(AxisID.FIRST);
-        createAxisPanelB();
-        axisPanel.add(getAxisPanelA().getContainer());
-        axisPanel.add(Box.createRigidArea(FixedDim.x10_y0));
-        axisPanel.add(getAxisPanelB().getContainer());
+        setBothAxis();
       }
-      scroll = new ScrollPanel();
-      scroll.add(axisPanel);
-      scrollPane = new JScrollPane(scroll);
-      panelCenter.add(scrollPane);
-    }*/
+    }
   }
   
   void showBothAxis() {
-    showingBothAxis = true;
-    //axisPanel.removeAll();
     panelCenter.removeAll();
-    splitPane =
-      new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, scrollPaneA, scrollPaneB);
-    //splitPane.setDividerLocation(0.5);
-    splitPane.setOneTouchExpandable(true);
-    panelCenter.add(splitPane);
-    /*axisPanel.add(getAxisPanelA().getContainer());
-    axisPanel.add(Box.createRigidArea(FixedDim.x10_y0));
-    axisPanel.add(getAxisPanelB().getContainer());*/
+    setBothAxis();
     fitWindow(true);
   }
   
+  private void setBothAxis() {
+    showingBothAxis = true;
+    showingAxisA = true;
+    splitPane =
+      new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, scrollPaneA, scrollPaneB);
+    splitPane.setDividerLocation(0.5);
+    splitPane.setOneTouchExpandable(true);
+    panelCenter.add(splitPane);
+  }
+  
   void showAxisA() {
-    showingBothAxis = false;
     panelCenter.removeAll();
-    //axisPanel.removeAll();
-    panelCenter.add(scrollPaneA);
-    //axisPanel.add(getAxisPanelA().getContainer());
+    setAxisA();
     fitWindow(true);
+  }
+  
+  private void setAxisA() {
+    showingBothAxis = false;
+    showingAxisA = true;
+    panelCenter.add(scrollPaneA);
   }
   
   void showAxisB() {
     showingBothAxis = false;
+    showingAxisA = false;
     panelCenter.removeAll();
-    //axisPanel.removeAll();
     panelCenter.add(scrollPaneB);
-    //axisPanel.add(getAxisPanelB().getContainer());
     fitWindow(true);
+  }
+  
+  JScrollPane getAxisB() {
+    if (axisType != AxisType.DUAL_AXIS || showingBothAxis) {
+      return null;
+    }
+    AxisProcessPanel axisPanel = getAxisPanelB();
+    if (axisPanel != null) {
+      axisPanel.showBothAxis();
+    }
+    getAxisPanelA().showBothAxis();
+    return scrollPaneB;
   }
   
   /**
@@ -423,7 +422,7 @@ public abstract class MainPanel extends JPanel {
    *
    */
   protected void packAxis() {
-    if (!EtomoDirector.getInstance().isNewStuff()) {
+    if (!EtomoDirector.getInstance().isNewstuff()) {
       packAxisOld();
       return;
     }
@@ -487,7 +486,7 @@ public abstract class MainPanel extends JPanel {
    * @return
    */
   protected boolean isFitScreenError(AxisProcessPanel axisPanel) {
-    if (EtomoDirector.getInstance().isNewStuff()) {
+    if (EtomoDirector.getInstance().isNewstuff()) {
       EtomoDirector.getInstance().getMainFrame().show();
     }
     if (axisPanel.getWidth() <= 16) {
@@ -535,7 +534,7 @@ public abstract class MainPanel extends JPanel {
     }
     synchronized (MainFrame.class) {
       packAxis();
-      if (EtomoDirector.getInstance().isNewStuff()) {
+      if (EtomoDirector.getInstance().isNewstuff()) {
         return;
       }
       //the mainPanel has a limited size, but the frame does not
