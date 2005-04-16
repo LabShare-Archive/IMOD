@@ -6,7 +6,7 @@ NNAAMMEE
   sumdensity - adds densities above a threshold for pixels within contours
 
 SSYYNNOOPPSSIISS
-  sumdensity [options] image_file model_file_B output_file
+  sumdensity [options] image_file model_file output_file
 
 DDEESSCCRRIIPPTTIIOONN
   Sumdensity will sum the density within contours of selected IMOD model
