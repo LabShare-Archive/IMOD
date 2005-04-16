@@ -12,6 +12,14 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.5  2004/08/19 02:55:12  sueh
+ * <p> bug# 508 Fixed a bug where a stop would be overridden by an event
+ * <p> that caused IncrementLater.run() to run.  This happened when the
+ * <p> event happened to appear after the stop executed.  Create a stopped
+ * <p> member variable.  Set stopped to false everywhere, except in
+ * <p> StopLater.run(), where it is set to true.  In IncrementLater.run(), if
+ * <p> stopped is true, then return without executing.
+ * <p>
  * <p> Revision 3.4  2004/04/26 00:20:51  rickg
  * <p> Changed elapsed to elapsed time
  * <p>
@@ -49,6 +57,7 @@
 
 package etomo.ui;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.event.ActionEvent;
@@ -94,6 +103,10 @@ public class ProgressPanel {
     panel.add(progressBar);
     panel.setAlignmentY(Component.BOTTOM_ALIGNMENT);
     timer = new Timer(1000, new ProgressTimerActionListener(this));
+  }
+  
+  public void setBackground(Color bg) {
+    panel.setBackground(bg);
   }
 
   public void setLabel(String newLabel) {
