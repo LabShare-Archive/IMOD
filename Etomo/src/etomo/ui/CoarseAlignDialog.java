@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.16  2005/04/07 22:03:22  sueh
+ * <p> bug# 626 Added Make Distortion Corrected Stack button.
+ * <p>
  * <p> Revision 3.15  2005/03/09 22:32:23  sueh
  * <p> bug# 533 Modify the context sensitive help so that it displays blendmont
  * <p> man pages and log files instead of newst when the view type is montage.
@@ -120,7 +123,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 
-import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JCheckBox;
 import javax.swing.JPanel;
@@ -215,8 +217,7 @@ public class CoarseAlignDialog extends ProcessDialog
 
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     UIUtilities.addWithSpace(rootPanel, pnlCoarseAlign, FixedDim.x0_y10);
-    rootPanel.add(Box.createVerticalGlue());
-    UIUtilities.addWithSpace(rootPanel, pnlExitButtons, FixedDim.x0_y10);
+    addExitButtons();
 
     //  Action listener assignment for the buttons
     ActionListener actionListener = new CoarseAlignActionListener(this);

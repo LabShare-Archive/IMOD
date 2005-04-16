@@ -3,7 +3,6 @@ package etomo.ui;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 
-import javax.swing.Box;
 import javax.swing.BoxLayout;
 
 import etomo.ApplicationManager;
@@ -33,10 +32,7 @@ public class CleanUpDialog extends ProcessDialog implements ContextMenu {
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     cleanupPanel = new CleanupPanel(applicationManager);
     rootPanel.add(cleanupPanel.getContainer());
-    rootPanel.add(Box.createVerticalGlue());
-    rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
-    rootPanel.add(pnlExitButtons);
-    rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
+    addExitButtons();
     
     btnAdvanced.setVisible(false);
     btnExecute.setText("Done");
@@ -84,5 +80,9 @@ public class CleanUpDialog extends ProcessDialog implements ContextMenu {
 
 }
 /**
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2005/03/24 17:49:51  sueh
+ * <p> bug# 621 Moved the clean up panel in post processing to a separate
+ * <p> dialog.
+ * <p> </p>
 */ 

@@ -26,6 +26,10 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.8  2005/01/21 23:43:06  sueh
+ * <p> bug# 509 bug# 591  Passing axisID to TransferfidPanel contructor so it
+ * <p> can set a value for center view when the .rawtlt file is not in use.
+ * <p>
  * <p> Revision 3.7  2005/01/14 03:07:26  sueh
  * <p> bug# 511 Added DialogType to super constructor.
  * <p>
@@ -208,10 +212,7 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu {
     pnlFiducialModel.add(btnFixModel);
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     rootPanel.add(pnlFiducialModel);
-    rootPanel.add(Box.createVerticalGlue());
-    rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
-    rootPanel.add(pnlExitButtons);
-    rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
+    addExitButtons();
 
     //
     //  Action listener assignments for the buttons
