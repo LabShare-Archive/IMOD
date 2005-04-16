@@ -31,6 +31,9 @@ import etomo.type.DialogType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.8  2005/01/14 03:06:57  sueh
+ * <p> bug# 511 Added DialogType to super constructor.
+ * <p>
  * <p> Revision 3.7  2004/12/30 18:37:27  sueh
  * <p> bug# 567 Make space between the two rows of buttons.
  * <p>
@@ -253,10 +256,11 @@ public class AlignmentEstimationDialog extends ProcessDialog
     //    rootPanel.setLayout(new BorderLayout());
     JScrollPane scrollPane = new JScrollPane(pnlAlignEst);
     rootPanel.add(pnlAlignEst, BorderLayout.CENTER);
-    rootPanel.add(Box.createVerticalGlue());
-    rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
-    rootPanel.add(pnlExitButtons, BorderLayout.SOUTH);
-    rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
+    addExitButtons();
+    //rootPanel.add(Box.createVerticalGlue());
+    //rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
+    //rootPanel.add(pnlExitButtons, BorderLayout.SOUTH);
+    //rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
 
     //  Bind the action listeners to the buttons
     AlignmentEstimationActionListner actionListener = new AlignmentEstimationActionListner(
