@@ -598,17 +598,17 @@ int PipGetFloatArray(char *option, float *array, int *numToGet, int arraySize)
 }
 
 /*
- * Print a complete usage statement
+ * Print a complete usage statement, man page entry, or Fortran fallback
  */
 int PipPrintHelp(char *progName, int useStdErr, int inputFiles, 
                  int outputFiles)
 {
-  int i, j, lastOpt, optLen;
+  int i, j, lastOpt, optLen, numOut = 0;
   int helplim = 74;
   char *sname, *lname, *newLinePt;
   FILE *out = useStdErr ? stderr : stdout;
   char indent4[] = "    ";
-  char *indentStr = indent4;
+  char *indentStr;
   int linePos = 13;
 
   if (!outputManpage) {
@@ -630,55 +630,58 @@ int PipPrintHelp(char *progName, int useStdErr, int inputFiles,
     fprintf(out, "Options:\n");
   }
 
-  if (outputManpage > 0)
-    indentStr = nullString;
-
   for (i = 0; i < numOptions; i++) {
     sname = optTable[i].shortName;
     lname = optTable[i].longName;
-    if (!lname && !sname)
-      continue;
+    indentStr = nullString;
+    if ((lname && *lname) || (sname && *sname)) {
+      if (outputManpage <= 0)
+        indentStr = indent4;
 
-    /* Output Fortran fallback code */
-    if (outputManpage == -2) {
-      lastOpt = (i == numOptions - 1);
-      if (!i) fprintf(out, 
-                      "       integer numOptions\n"
-                      "       parameter (numOptions = %d)\n"
-                      "       character*(40 * numOptions) options(1)\n"
-                      "       options(1) =\n     &      '", numOptions);
-      
-      optLen = strlen(sname) + strlen(lname) + strlen(optTable[i].type) + 4;
-      
-      if (linePos + optLen + (lastOpt ? 0 : 3) > 72) {
-        fprintf(out, "'//\n     &      '");
-        linePos = 13;
+      /* Output Fortran fallback code */
+      if (outputManpage == -2) {
+        lastOpt = (i == numOptions - 1);
+        if (!numOut) fprintf(out, 
+                        "       integer numOptions\n"
+                        "       parameter (numOptions = %d)\n"
+                        "       character*(40 * numOptions) options(1)\n"
+                        "       options(1) =\n     &      '", numOptions);
+        
+        optLen = strlen(sname) + strlen(lname) + strlen(optTable[i].type) + 4;
+        
+        if (linePos + optLen + (lastOpt ? 0 : 3) > 72) {
+          fprintf(out, "'//\n     &      '");
+          linePos = 13;
+        }
+        fprintf(out, "%s:%s:%s:%s", sname, lname, optTable[i].type,
+                lastOpt ? "'\n" : "@");
+        linePos += optLen;
+        numOut++;
+        continue;
       }
-      fprintf(out, "%s:%s:%s:%s", sname, lname, optTable[i].type,
-              lastOpt ? "'\n" : "@");
-      linePos += optLen;
-      continue;
-    }
 
-    if (i && outputManpage < 0)
-      fprintf(out, "\n");
-    if (outputManpage > 0)
-      fprintf(out, ".TP\n.B ");
-    fprintf(out, " ");
-    if (sname && *sname)
-      fprintf(out, "-%s", sname);
-    if (sname && *sname && lname && *lname)
-      fprintf(out," OR ");
-    if (lname && *lname)
-      fprintf(out, "-%s", lname);
-    for (j = 0; j < numTypes; j++)
-      if (!strcmp(optTable[i].type, types[j]))
-        break;
-    if (strcmp(optTable[i].type, BOOLEAN_STRING))
-      fprintf(out, "%s%s", outputManpage > 0 ? " \t " : "   ", 
-              typeDescriptions[j]);
+      if (i && outputManpage < 0)
+        fprintf(out, "\n");
+      if (outputManpage > 0)
+        fprintf(out, ".TP\n.B ");
+      fprintf(out, " ");
+      if (sname && *sname)
+        fprintf(out, "-%s", sname);
+      if (sname && *sname && lname && *lname)
+        fprintf(out," OR ");
+      if (lname && *lname)
+        fprintf(out, "-%s", lname);
+      for (j = 0; j < numTypes; j++)
+        if (!strcmp(optTable[i].type, types[j]))
+          break;
+      if (strcmp(optTable[i].type, BOOLEAN_STRING))
+        fprintf(out, "%s%s", outputManpage > 0 ? " \t " : "   ", 
+                typeDescriptions[j]);
     /* else
        fprintf(out, "   (%s entry, no value expected)", typeDescriptions[j]);*/
+    } else if (outputManpage == -2)
+      continue;
+
     fprintf(out, "\n");
 
     /* Print help string, breaking up line as needed */
@@ -793,7 +796,7 @@ int PipParseInput(int argc, char *argv[], char *options[], int numOpts,
  */
 int PipReadOptionFile(char *progName, int helpLevel, int localDir)
 {
-  int i, ind, indst, lineLen, err, needSize;
+  int i, ind, indst, lineLen, err, needSize, isOption, isSection;
   FILE *optFile = NULL;
   char *bigStr;
   char *pipDir;
@@ -925,7 +928,8 @@ int PipReadOptionFile(char *progName, int helpLevel, int localDir)
     }
 
     textStr = bigStr + indst;
-    if (readingOpt && (!lineLen || LineIsOptionToken(textStr))) {
+    isOption = LineIsOptionToken(textStr);
+    if (readingOpt && (!lineLen || isOption)) {
       
       /* If we were reading options, it is time to add them if we are at
          end of file or if we have reached a new token of any kind
@@ -955,6 +959,16 @@ int PipReadOptionFile(char *progName, int helpLevel, int localDir)
           helpStr = tipStr;
         else
           helpStr = usageStr;
+      }
+
+      /* If it is a section header, get rid of the names */
+      if (isSection) {
+        if (gotShort)
+          free(shortName);
+        if (gotLong)
+          free(longName);
+        longName = shortName = nullString;
+        gotLong = gotShort = 0;
       }
 
       needSize = strlen(shortName) + strlen(longName) + strlen(helpStr) + 15;
@@ -1052,9 +1066,10 @@ int PipReadOptionFile(char *progName, int helpLevel, int localDir)
 
     /* But if not reading options, check for a new option token and start 
        reading if one is found */
-    else if (LineIsOptionToken(textStr) > 0) {
+    else if (isOption > 0) {
       lastGottenStr = NULL;
       readingOpt = 1;
+      isSection = isOption - 1;
     }
   }
   free (bigStr);
@@ -1519,6 +1534,10 @@ static int LineIsOptionToken(char *line)
   if (StartsWith(token, "Field") || StartsWith(token, "field") ||
       StartsWith(token, "FIELD"))
     return 1;
+  if (StartsWith(token, "SectionHeader") || StartsWith(token, "sectionheader")
+      || StartsWith(token, "SECTIONHEADER"))
+    return 2;
+
   return -1;
 }
 
@@ -1564,6 +1583,9 @@ static int CheckKeyword(char *line, char *keyword, char **copyto, int *gotit,
 
 /*
 $Log$
+Revision 3.12  2005/02/12 01:38:27  mast
+Added ability to use ^ at start of line as a break
+
 Revision 3.11  2004/06/09 22:55:32  mast
 Added option to error messages about problems with value entries
 
