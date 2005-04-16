@@ -149,9 +149,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
     rootPanel.add(pnlPerAxisInfo);
     rootPanel.add(Box.createVerticalGlue());
-    rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
-    rootPanel.add(pnlExitButtons);
-    rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
+    addExitButtons();
     UIUtilities.alignComponentsX(rootPanel, Component.CENTER_ALIGNMENT);
     
     //  Mouse adapter for context menu
@@ -1029,6 +1027,9 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.25  2005/03/10 18:50:22  sueh
+ * <p> bug# 533 Removed new stuff option from montaging functionality.
+ * <p>
  * <p> Revision 3.24  2005/03/02 23:15:56  sueh
  * <p> bug# 533 In setup dialog, put the Scan Header button with the header fields.
  * <p>

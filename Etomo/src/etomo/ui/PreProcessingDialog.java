@@ -22,6 +22,9 @@ import etomo.comscript.CCDEraserParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.2  2005/01/14 03:08:03  sueh
+ * <p> bug# 511 Added DialogType to super constructor.
+ * <p>
  * <p> Revision 3.1  2004/03/15 20:33:55  rickg
  * <p> button variable name changes to btn...
  * <p>
@@ -115,10 +118,7 @@ public class PreProcessingDialog extends ProcessDialog {
     pnlEraser.add(panelCCDEraser.getContainer());
 
     rootPanel.add(pnlEraser);
-    rootPanel.add(Box.createVerticalGlue());
-    rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
-    rootPanel.add(pnlExitButtons);
-    rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
+    addExitButtons();
 
    //  Set the default advanced state for the window, this also executes
     updateAdvanced();

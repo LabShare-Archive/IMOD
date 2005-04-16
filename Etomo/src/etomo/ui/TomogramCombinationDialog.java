@@ -4,7 +4,6 @@ import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 
-import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.JTabbedPane;
@@ -39,6 +38,9 @@ import etomo.type.DialogType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.18  2005/01/14 03:11:19  sueh
+ * <p> bug# 511 Added DialogType to super constructor.
+ * <p>
  * <p> Revision 3.17  2004/12/03 20:23:31  sueh
  * <p> bug# 556 Support older versions of volcombine.com.  Added enableReductionFactor() to
  * <p> disable ReductionFactor when the set param is missing or invalid.
@@ -227,11 +229,8 @@ public class TomogramCombinationDialog
     zWarning.setAlignmentX(Component.CENTER_ALIGNMENT);
     rootPanel.add(zWarning);
     rootPanel.add(tabbedPane);
-    rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
-    rootPanel.add(Box.createVerticalGlue());
+    addExitButtons();
     btnExecute.setText("Done");
-    rootPanel.add(pnlExitButtons);
-    rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
 
     TabChangeListener tabChangeListener = new TabChangeListener(this);
     tabbedPane.addChangeListener(tabChangeListener);

@@ -62,6 +62,9 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.39  2005/03/29 19:54:50  sueh
+ * bug# 623 Added getBinning().
+ *
  * Revision 3.38  2005/03/11 01:38:28  sueh
  * bug# 533 Added get and setBlendParams to get and set
  * linearInterpolation in BlendmontParam.
@@ -467,10 +470,7 @@ public class TomogramGenerationDialog extends ProcessDialog
     UIUtilities.alignComponentsX(pnlTilt, Component.CENTER_ALIGNMENT);
 
     rootPanel.add(pnlTilt);
-    rootPanel.add(Box.createVerticalGlue());
-    rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
-    rootPanel.add(pnlExitButtons);
-    rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
+    addExitButtons();
 
     // Bind the buttons to the action listener
     ButtonListener tomogramGenerationListener = new ButtonListener(this);

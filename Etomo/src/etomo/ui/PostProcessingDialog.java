@@ -52,10 +52,7 @@ public class PostProcessingDialog
     trimvolPanel = new TrimvolPanel(applicationManager);
     rootPanel.add(trimvolPanel.getContainer());
     rootPanel.add(createSqueezeVolPanel());
-    rootPanel.add(Box.createVerticalGlue());
-    rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
-    rootPanel.add(pnlExitButtons);
-    rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
+    addExitButtons();
 
     btnAdvanced.setVisible(false);
     btnExecute.setText("Done");
@@ -270,6 +267,9 @@ public class PostProcessingDialog
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.15  2005/03/30 21:06:40  sueh
+ * <p> bug# 621 Putting a titled border around the root panel.
+ * <p>
  * <p> Revision 3.14  2005/03/24 17:53:59  sueh
  * <p> bug# 621 Moved the clean up panel in to a separate dialog.
  * <p>

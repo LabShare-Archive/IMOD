@@ -7,7 +7,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
 
-import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JCheckBox;
 import javax.swing.JPanel;
@@ -43,6 +42,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.26  2005/03/29 19:54:59  sueh
+ * <p> bug# 623 Added getBinning().
+ * <p>
  * <p> Revision 3.25  2005/03/02 00:14:11  sueh
  * <p> bug# 533 disabled whole tomogram for montaging.
  * <p>
@@ -299,10 +301,7 @@ public class TomogramPositioningDialog extends ProcessDialog
 
     //  Create dialog content pane
     rootPanel.add(pnlPosition);
-    rootPanel.add(Box.createVerticalGlue());
-    rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
-    rootPanel.add(pnlExitButtons);
-    rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
+    addExitButtons();
 
     // Bind the buttons to the action listener
     LocalActionListener localActionListener = new LocalActionListener(this);
