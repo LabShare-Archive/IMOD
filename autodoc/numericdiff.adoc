@@ -1,0 +1,78 @@
+Version = 1.0
+Pip = 1
+
+[Field = AInputFile]
+short = ainput
+long = AInputFile
+type = FN
+usage = First file to compare
+tooltip = 
+manpage = First file to compare.  If this option
+is not entered, the first non-option argument will be used for this input
+file.
+
+[Field = BInputFile]
+short = binput
+long = BInputFile
+type = FN
+usage = Second file to compare
+tooltip = 
+manpage = Second file to compare.  If this option
+is not entered, the second non-option argument will be used for this input
+file, if it exists.  If this file is
+not specified at all, a backup file to A will be used (the A filename with ~ 
+appended).
+
+[Field = MaxDifferences]
+short = max
+long = MaxDifferences
+type = FAM
+usage = Maximum allowed difference for each column of input
+tooltip = 
+manpage = Maximum allowed difference for each column of input.  A difference
+greater than the specified maximum for the particular column will cause the
+program to exit with a non-zero status.  In addition, if the -big option is
+selected, the two lines that differ will be printed.  The number of maximum
+values entered determines how many columns are tested; columns past that 
+number are ignored.  If the input files have multiple sections of numeric
+data, this option can be entered multiple times to specify the limits for
+each section.  If there are more numeric sections than entries, the last
+entry of limits will be applied to the remaining sections.
+
+[Field = GeneralFormat]
+short = general
+long = GeneralFormat
+type = B
+usage = Print maximum differences in general rather than fixed format
+tooltip = 
+manpage = Print maximum differences in general format (up to 6 numbers per
+line, 5 decimal places, exponential notation for small or loarge numbers).
+The default is to use a fixed format (f10.4) that allows up to 8 numbers per
+line.
+
+[Field = StripLinesWith]
+short = strip 
+long = StripLinesWith
+type = B
+usage = Convert lines containing this text to numeric lines
+tooltip = 
+manpage = Convert lines containing the specified text to numeric lines.  This
+entry allows one type of line with labeled numeric output to be converted into
+pure numeric output and compared between the files.
+
+[Field = BigDifferenceOutput]
+short = big
+long = BigDifferenceOutput
+type = B
+usage = Output the pair of input lines for differences above a maximum
+tooltip = 
+manpage = Output the pair of input lines whenever one of the differences 
+is greater than the maximum difference specified with the -max option.
+
+[Field = usage]
+short = help
+long = usage
+type = B
+usage = Print help output
+tooltip = 
+manpage = 
