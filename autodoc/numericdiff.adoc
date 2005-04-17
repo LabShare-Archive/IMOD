@@ -46,7 +46,7 @@ type = B
 usage = Print maximum differences in general rather than fixed format
 tooltip = 
 manpage = Print maximum differences in general format (up to 6 numbers per
-line, 5 decimal places, exponential notation for small or loarge numbers).
+line, 5 decimal places, exponential notation for small or large numbers).
 The default is to use a fixed format (f10.4) that allows up to 8 numbers per
 line.
 
