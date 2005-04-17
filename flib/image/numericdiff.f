@@ -7,6 +7,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.1  2005/04/16 05:38:25  mast
+c	  Addition to package
+c	
 c
 	implicit none
 	character*120 afile,bfile,stripStr
@@ -15,6 +18,7 @@ c
 	integer*4 ierr, numMaxes,numericSect,numError,i, j,lenStrip
 	integer*4 ival,numLimits,maxComp,numComp,numAvals,numBvals
 	logical*4 inSection,aIsNumeric,bIsNumeric,general,bigOutput,didBig,dump
+	integer*4 lnblnk
 	logical numericLine
 
 	integer*4 numOptArg, numNonOptArg
