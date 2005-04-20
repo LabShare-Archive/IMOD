@@ -363,11 +363,11 @@ c	    For errors except limit reached, give warning message and
 c	    restart
 c
 	  if (ier .ne. 0 .and. ier .ne. 3) then
-	    if(ier.eq.1)call errorexit('IER=1 from metro - DG > 0', 1)
-	    if(ier.eq.2)call errorexit(
-     &		'IER=2 from metro - Linear search lost', 1)
-	    if(ier.eq.4)call errorexit(
-     &		'IER=2 from metro - Matrix non-positive definite', 1)
+	    print *
+	    if(ier.eq.1)print *,'Minimization error #1 - DG > 0'
+	    if(ier.eq.2)print *,'Minimization error #2 - Linear search lost'
+	    if(ier.eq.4)print *,'Minimization error #4 - ',
+     &		'Matrix non-positive definite'
 
 	    if (metroLoop .le. maxMetroTrials) then
 	      print *,'Restarting with metro step factor of ',
@@ -391,7 +391,8 @@ C Error returns:
 	    call errorexit('Search failed even after varying step factor',
      &		iflocal)
 	  else
-	    call errorexit('IER=3  Iteration limit exceeded....', 1)
+	    call errorexit('Minimization error #3 - Iteration limit exceeded',
+     &		1)
 	  endif
 	  metroerror=metroerror+1
 	END IF
@@ -1311,7 +1312,7 @@ c
 	go to 180
 209	close(7)
 	if(metroerror.ne.0)print *,'WARNING:',metroerror,
-     &	    ' MINIMIZATION ERRORS OCCURRED (IER=x)'
+     &	    ' MINIMIZATION ERRORS OCCURRED'
 	if (toofewfid) call errorexit(
      &	    'Minimum numbers of fiducials are too high - check if '//
      &	    'there are enough fiducials on the minority surface', 0)
@@ -1335,6 +1336,9 @@ c
 
 c
 c	  $Log$
+c	  Revision 3.22  2005/04/15 22:39:44  mast
+c	  Fixed sign in computation of xzOther
+c	
 c	  Revision 3.21  2005/03/14 06:05:54  mast
 c	  Increased maxmetro limit
 c	
