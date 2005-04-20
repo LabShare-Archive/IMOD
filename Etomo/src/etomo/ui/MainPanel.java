@@ -6,6 +6,7 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.HeadlessException;
+import java.awt.Point;
 import java.io.File;
 import java.util.ArrayList;
 
@@ -36,6 +37,10 @@ import etomo.type.AxisType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.17  2005/04/16 02:00:01  sueh
+ * <p> bug# 615 Removed split pane function when --newstuff is used.  Bring up
+ * <p> A axis alone for a dual axis tomogram.
+ * <p>
  * <p> Revision 1.16  2005/04/12 19:38:54  sueh
  * <p> bug# 615 Made a newstuff version with the split pane and a very simple
  * <p> fitting algorithm.
@@ -154,6 +159,7 @@ public abstract class MainPanel extends JPanel {
   protected JLabel statusBar = new JLabel("No data set loaded");
 
   protected JPanel panelCenter = new JPanel();
+  //private Point previousSubFrameLocation = null;
   //protected ScrollPanel scroll;
   //protected JScrollPane scrollPane;
   //protected JPanel axisPanel = new JPanel();
@@ -167,7 +173,7 @@ public abstract class MainPanel extends JPanel {
   protected BaseManager manager = null;
   private boolean showingBothAxis = false;
   private boolean showingAxisA = true;
-  private AxisType axisType = AxisType.NOT_SET;
+  protected AxisType axisType = AxisType.NOT_SET;
   
   private static final int estimatedMenuHeight = 60;
   private static final int extraScreenWidthMultiplier = 2;
@@ -374,6 +380,14 @@ public abstract class MainPanel extends JPanel {
     fitWindow(true);
   }
   
+  boolean isShowingBothAxis() {
+    return showingBothAxis;
+  }
+  
+  boolean isShowingAxisA() {
+    return showingAxisA;
+  }
+  
   private void setBothAxis() {
     showingBothAxis = true;
     showingAxisA = true;
@@ -382,6 +396,13 @@ public abstract class MainPanel extends JPanel {
     splitPane.setDividerLocation(0.5);
     splitPane.setOneTouchExpandable(true);
     panelCenter.add(splitPane);
+  }
+  
+  public String toString() {
+    if (manager != null) {
+      return "[" + manager.getPropertyUserDir() + "," + super.toString() + "]";
+    }
+    return "[" + super.toString() + "]";
   }
   
   void showAxisA() {
@@ -396,26 +417,35 @@ public abstract class MainPanel extends JPanel {
     panelCenter.add(scrollPaneA);
   }
   
-  void showAxisB() {
+  JScrollPane showAxisB(boolean subFrame) {
+    if (subFrame) {
+      if (axisType != AxisType.DUAL_AXIS || showingBothAxis) {
+        return null;
+      }
+      showingBothAxis = true;
+      AxisProcessPanel axisPanel = getAxisPanelB();
+      if (axisPanel != null) {
+        axisPanel.showBothAxis();
+      }
+      getAxisPanelA().showBothAxis();
+      return scrollPaneB;
+    }
     showingBothAxis = false;
     showingAxisA = false;
     panelCenter.removeAll();
     panelCenter.add(scrollPaneB);
     fitWindow(true);
+    return null;
+  }
+  /*
+  Point getPreviousSubFrameLocation() {
+    return previousSubFrameLocation;
   }
   
-  JScrollPane getAxisB() {
-    if (axisType != AxisType.DUAL_AXIS || showingBothAxis) {
-      return null;
-    }
-    AxisProcessPanel axisPanel = getAxisPanelB();
-    if (axisPanel != null) {
-      axisPanel.showBothAxis();
-    }
-    getAxisPanelA().showBothAxis();
-    return scrollPaneB;
+  void setPreviousSubFrameLocation(Point previousSubFrameLocation) {
+    this.previousSubFrameLocation = previousSubFrameLocation;
   }
-  
+  */
   /**
    * if A or B is hidden, hide the panel which the user has hidden before
    * calling pack().
@@ -426,7 +456,7 @@ public abstract class MainPanel extends JPanel {
       packAxisOld();
       return;
     }
-    EtomoDirector.getInstance().getMainFrame().pack();
+    EtomoDirector.getInstance().getMainFrame().packFrames();
     if (splitPane != null) {
       splitPane.resetToPreferredSizes();
     }
