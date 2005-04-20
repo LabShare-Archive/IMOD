@@ -177,17 +177,21 @@ public class WindowSwitch {
     return tabbedPane;
   }
 
+  void selectWindow(UniqueKey key) {
+    selectWindow(key, false);
+  }
+  
   /**
    * Allows the program to select a window.
    * @param key
    */
-  void selectWindow(UniqueKey key) {
+  void selectWindow(UniqueKey key, boolean newWindow) {
     if (menuList == null || key == null) {
       return;
     }
     int newIndex = menuList.getIndex(key);
     selectMenuItem(newIndex);
-    EtomoDirector.getInstance().setCurrentManager(menuList.getKey(newIndex));
+    EtomoDirector.getInstance().setCurrentManager(menuList.getKey(newIndex), newWindow);
   }
   
   /**
@@ -307,6 +311,10 @@ public class WindowSwitch {
 
 /**
  * <p>$Log$
+ * <p>Revision 1.5  2005/02/17 16:47:09  sueh
+ * <p>bug# 605 In setTabs():  check for null to handle a MainPanel that has
+ * <p>been removed on close
+ * <p>
  * <p>Revision 1.4  2005/02/17 02:48:31  sueh
  * <p>bug# 605 Tell a mainPanel instance that is currently being displayed to
  * <p>save its display state before displaying another MainPanel instance.
