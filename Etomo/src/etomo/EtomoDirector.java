@@ -45,6 +45,9 @@ import etomo.util.Utilities;
  * 
  * <p>
  * $Log$
+ * Revision 1.10  2005/04/16 01:50:17  sueh
+ * bug# 615 Adding newstuffNum to look at more then one group of new code.
+ *
  * Revision 1.9  2005/03/02 20:24:17  sueh
  * bug# 533 Added --newstuff command line option.  This option can used to
  * to expose transitional work.  This way alpha testing can be done without
@@ -155,7 +158,7 @@ import etomo.util.Utilities;
 public class EtomoDirector {
   public static final String rcsid = "$Id$";
   
-  private static EtomoDirector theEtomoDirector = null;
+  private static final EtomoDirector theEtomoDirector = new EtomoDirector();
   private File IMODDirectory;
   private File IMODCalibDirectory;
   private MainFrame mainFrame = null;
@@ -170,6 +173,7 @@ public class EtomoDirector {
   private UniqueKey currentControllerKey = null;
   private String homeDirectory;
   private boolean defaultWindow = false;
+  private static boolean initialized = false;
   // advanced dialog state for this instance, this gets set upon startup from
   // the user configuration and can be modified for this instance by either
   // the option or advanced menu items
@@ -181,8 +185,8 @@ public class EtomoDirector {
   }
 
   public synchronized static EtomoDirector createInstance(String[] args) {
-    if (theEtomoDirector == null) {
-      theEtomoDirector = new EtomoDirector();
+    if (!initialized) {
+      initialized = true;
       theEtomoDirector.initialize(args);
     }
     return theEtomoDirector;
@@ -195,7 +199,7 @@ public class EtomoDirector {
    * @return
    */
   public static EtomoDirector getInstance() {
-    if (theEtomoDirector == null) {
+    if (!initialized) {
       String[] args = {"--test","--selftest","--debug"};
       return createInstance(args);
     }
@@ -464,9 +468,9 @@ public class EtomoDirector {
       mainFrame.addWindow(controller, controllerKey);
     }
     if (makeCurrent) {
-      setCurrentManager(controllerKey, true);
+      //setCurrentManager(controllerKey, true);
       if (!test) {
-        mainFrame.selectWindowMenuItem(controllerKey);
+        mainFrame.selectWindowMenuItem(controllerKey, true);
       }
     }
     return controllerKey;
