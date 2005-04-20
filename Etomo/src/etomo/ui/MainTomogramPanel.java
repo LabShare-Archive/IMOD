@@ -2,12 +2,15 @@ package etomo.ui;
 
 import java.io.File;
 
+import javax.swing.JScrollPane;
+
 import etomo.ApplicationManager;
 import etomo.EtomoDirector;
 import etomo.process.ProcessState;
 import etomo.storage.DataFileFilter;
 import etomo.storage.EtomoFileFilter;
 import etomo.type.AxisID;
+import etomo.type.AxisType;
 import etomo.type.MetaData;
 import etomo.type.ProcessTrack;
 /**
@@ -24,6 +27,9 @@ import etomo.type.ProcessTrack;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.9  2005/04/01 02:54:43  sueh
+* <p> bug# 622 Added getAxisPAnelA and B.
+* <p>
 * <p> Revision 1.8  2005/04/01 00:16:07  sueh
 * <p> bug# 622 Overriding showAxisA, B, and Both.  Need to change the button
 * <p> names on the TomogramProcessPanel before calling the base class
@@ -85,6 +91,7 @@ public class MainTomogramPanel extends MainPanel {
   
   private TomogramProcessPanel axisPanelA;
   private TomogramProcessPanel axisPanelB;
+  private boolean showingSetup = false;
   
   /**
    * @param appManager
@@ -113,13 +120,18 @@ public class MainTomogramPanel extends MainPanel {
   }
   
   void showAxisA() {
-    axisPanelA.showAxisA();
-    super.showAxisA();
+    if (showingSetup || axisType == AxisType.SINGLE_AXIS) {
+      fitWindow(true);
+    }
+    else {
+      axisPanelA.showAxisA();
+      super.showAxisA();
+    }
   }
   
-  void showAxisB() {
+  JScrollPane showAxisB(boolean subFrame) {
     axisPanelB.showAxisB();
-    super.showAxisB();
+    return super.showAxisB(subFrame);
   }
   
   /**
@@ -162,11 +174,17 @@ public class MainTomogramPanel extends MainPanel {
     axisPanelA.setPostProcessingState(processTrack.getPostProcessingState());
     axisPanelA.setCleanUpState(processTrack.getCleanUpState());
   }
+  
+  public void showProcessingPanel(AxisType axisType) {
+    showingSetup = false;
+    super.showProcessingPanel(axisType);
+  }
 
   /**
    * Open the setup panel
    */
   public void openSetupPanel(SetupDialog setupDialog) {
+    showingSetup = true;
     panelCenter.removeAll();
     panelCenter.add(setupDialog.getContainer());
     revalidate();
