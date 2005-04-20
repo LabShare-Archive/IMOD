@@ -378,6 +378,8 @@ c
 	    endif
 	  endif
 	enddo
+	if (ier.eq.0 .and. metroLoop .gt. 2)
+     &	    print *,'Search succeeded with this step factor'
 
 C Final call to FUNCT
 	CALL FUNCT(nvarsrch,var,FFINAL,Grad)
@@ -1336,6 +1338,9 @@ c
 
 c
 c	  $Log$
+c	  Revision 3.23  2005/04/20 04:46:05  mast
+c	  Converted WARNINGS to messages for metro errors until trials all fail
+c	
 c	  Revision 3.22  2005/04/15 22:39:44  mast
 c	  Fixed sign in computation of xzOther
 c	
