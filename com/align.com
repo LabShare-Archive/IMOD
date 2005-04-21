@@ -1,6 +1,6 @@
 # THIS IS A COMMAND FILE TO RUN TILTALIGN
 #
-####CreatedVersion#### 3.4.17
+####CreatedVersion#### 3.6.4
 #
 # To exclude views, add a line "ExcludeList view_list" with the list of views
 #
@@ -77,7 +77,7 @@ LocalTiltDefaultGrouping	6
 LocalMagReferenceView	1
 LocalMagOption	3
 LocalMagDefaultGrouping	7
-LocalXStretchOption	3
+LocalXStretchOption	0
 LocalXStretchDefaultGrouping	7
-LocalSkewOption	3
+LocalSkewOption	0
 LocalSkewDefaultGrouping	11
