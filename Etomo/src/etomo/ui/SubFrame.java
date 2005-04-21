@@ -1,14 +1,15 @@
 package etomo.ui;
 
 import java.awt.BorderLayout;
-import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 
-import javax.swing.JFrame;
-import javax.swing.JMenuBar;
+import javax.swing.ImageIcon;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+
+import etomo.BaseManager;
 
 /**
 * <p>Description: </p>
@@ -23,108 +24,102 @@ import javax.swing.JScrollPane;
 * 
 * @version $Revision$
 */
-public class SubFrame extends JFrame implements EtomoFrame {
+public class SubFrame extends EtomoFrame {
   public static  final String  rcsid =  "$Id$";
   
   private MainFrame mainFrame;
-  private MainPanel mainPanel;
   private JPanel rootPanel;
-  private EtomoMenu menu;
-  private JMenuBar menuBar;
+  private JLabel statusBar;
   
   SubFrame(MainFrame mainFrame) {
     this.mainFrame = mainFrame;
-
   }
   
-  void initialize() {
+  /**
+   * One-time initialization.  Sets the mainPanel, creates the menus, and
+   * displays the axis panel.
+   * @param title
+   * @param currentManager
+   * @param mRUList
+   */
+  void initialize(String title, BaseManager currentManager, String[] mRUList) {
+    this.currentManager = currentManager;
+    ImageIcon iconEtomo = new ImageIcon(ClassLoader
+        .getSystemResource("images/etomo.png"));
+    setTitle(title);
+    setIconImage(iconEtomo.getImage());
     mainPanel = mainFrame.getMainPanel();
     rootPanel = (JPanel) getContentPane();
     rootPanel.setLayout(new BorderLayout());
+    statusBar = new JLabel(mainPanel.getStatusBarText());
     setAxis();
     menu = EtomoMenu.newEtomoMenu();
     createMenus();
+    menu.setEnabled(currentManager, true);
+    menu.setMRUFileLabels(mRUList, true);
   }
   
   /**
    * Set the main panel when switching managers.
    *
    */
-  void setMainPanel() {
+  void setMainPanel(String title, BaseManager currentManager) {
+    this.currentManager = currentManager;
     mainPanel = mainFrame.getMainPanel();
+    setTitle(title);
+    statusBar.setText(mainPanel.getStatusBarText());
   }
   
   /**
-   * Increase the bounds by one pixel before packing.  This preserves the
-   * scrollbar when the window size doesn't change.
+   * Override superclass to call mainFrame for command which require switching
+   * axis.
    */
-  public void pack() {
-    Rectangle bounds = getBounds();
-    bounds.height++;
-    bounds.width++;
-    setBounds(bounds);
-    super.pack();
-  }
-  
-  public void menuOptionsAction(ActionEvent event) {
+  void menuOptionsAction(ActionEvent event) {
     String command = event.getActionCommand();
-    if (command.equals(menu.getActionCommandFitWindow())) {
-      pack();
-    }
-    else {
+    if (command.equals(menu.getActionCommandAxisA())
+     || command.equals(menu.getActionCommandAxisB())
+     || command.equals(menu.getActionCommandAxisBoth())) {
       mainFrame.menuOptionsAction(event);
     }
+    else {
+      super.menuOptionsAction(event);
+    }
   }
   
-  public void menuFileMRUListAction(ActionEvent event) {
-    mainFrame.menuFileMRUListAction(event);
-  }
-  
-  public void menuFileAction(ActionEvent event) {
-    mainFrame.menuFileAction(event);
-  }
-  
-  public void menuHelpAction(ActionEvent event) {
-    mainFrame.menuHelpAction(event);
-  }
-  
+  /**
+   * Update the axis when switch from single axis display to dual axis display.
+   *
+   */
   void updateAxis() {
     rootPanel.removeAll();
     setAxis();
   }
   
+  /**
+   * Add the axis scroll panel and the status bar, and set the location.
+   *
+   */
   private void setAxis() {
-    JScrollPane axis = mainPanel.showAxisB(true);
+    rootPanel.removeAll();
+    JScrollPane axis = mainPanel.showBothAxis();
     if (axis != null)
     {
       rootPanel.add(axis, BorderLayout.CENTER);
     }
-    /*Point location = mainPanel.getPreviousSubFrameLocation();
-    if (location == null) {
-      Rectangle mainFrameBounds = mainFrame.getBounds();
-      location = new Point(mainFrameBounds.x + mainFrameBounds.width, mainFrameBounds.y);
-    }*/
+    rootPanel.add(statusBar, BorderLayout.SOUTH);
     Rectangle mainFrameBounds = mainFrame.getBounds();
     setLocation(mainFrameBounds.x + mainFrameBounds.width, mainFrameBounds.y);
     validate();
     setVisible(true);
   }
-  /*
-  void saveLocation() {
-    mainPanel.setPreviousSubFrameLocation(getLocation());
-  }*/
-  
-  /**
-   * Create the menus for the subordinate frame
-   */
-  private void createMenus() {
-    menu.createMenus(this);
-    menuBar = menu.getMenuBar();
-    setJMenuBar(menuBar);
-  }
+
 }
 /**
 * <p> $Log$
+* <p> Revision 1.2  2005/04/20 01:53:04  sueh
+* <p> bug# 615 Overrode pack() to prevent the scrollbar from disappearing.
+* <p> Added a menu (EtomoMenu).  Added action functions.
+* <p>
 * <p> Revision 1.1  2005/04/16 02:04:48  sueh
 * <p> bug# 615 Subordinate frame to hold the B axis when both axis are
 * <p> displayed.
