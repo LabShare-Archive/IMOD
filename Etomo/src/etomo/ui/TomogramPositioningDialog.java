@@ -42,6 +42,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.27  2005/04/16 02:05:36  sueh
+ * <p> bug# 615 Moved the adding of exit buttons to the base class.
+ * <p>
  * <p> Revision 3.26  2005/03/29 19:54:59  sueh
  * <p> bug# 623 Added getBinning().
  * <p>
@@ -620,7 +623,7 @@ public class TomogramPositioningDialog extends ProcessDialog
   }
 
   private void updateAdvanced() {
-    applicationManager.packMainWindow();
+    applicationManager.packMainWindow(axisID);
   }
 
   //

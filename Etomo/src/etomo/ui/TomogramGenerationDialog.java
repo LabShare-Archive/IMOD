@@ -62,6 +62,9 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.40  2005/04/16 02:05:14  sueh
+ * bug# 615 Moved the adding of exit buttons to the base class.
+ *
  * Revision 3.39  2005/03/29 19:54:50  sueh
  * bug# 623 Added getBinning().
  *
@@ -809,7 +812,7 @@ public class TomogramGenerationDialog extends ProcessDialog
     ltfStartingAndEndingZ.setVisible(isAdvanced);
     pnlInverseFilter.setVisible(isAdvanced);
     ltfExtraExcludeList.setVisible(isAdvanced);
-    applicationManager.packMainWindow();
+    applicationManager.packMainWindow(axisID);
   }
 
   /**

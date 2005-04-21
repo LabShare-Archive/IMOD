@@ -30,6 +30,11 @@ import etomo.type.DialogType;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.10  2005/04/16 02:08:02  sueh
+ * <p> bug# 615 Setting panel background colors.  Setting axis buttons to be
+ * <p> A and B when both axis are displayed.  Setting axis buttons to be the
+ * <p> other axis and Both when only one axis is displayed.
+ * <p>
  * <p> Revision 1.9  2005/04/01 00:17:06  sueh
  * <p> bug# 622 Adding showAxisA, B, and Both.  Need to change the axis
  * <p> button names when switching axis.
@@ -346,7 +351,7 @@ public class TomogramProcessPanel extends AxisProcessPanel {
     panelProcessSelect.add(Box.createRigidArea(FixedDim.x0_y5));
     axisButtonPanel.setLayout(new BoxLayout(axisButtonPanel,
         BoxLayout.X_AXIS));
-    if (EtomoDirector.getInstance().isNewstuff() && axisID != AxisID.ONLY) {
+    if (axisID != AxisID.ONLY) {
       axisButton1.addActionListener(axisButtonListener);
       axisButton2.addActionListener(axisButtonListener);
       axisButtonPanel.add(axisButton1);

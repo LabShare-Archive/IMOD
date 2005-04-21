@@ -38,6 +38,9 @@ import etomo.type.DialogType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.19  2005/04/16 02:05:04  sueh
+ * <p> bug# 615 Moved the adding of exit buttons to the base class.
+ * <p>
  * <p> Revision 3.18  2005/01/14 03:11:19  sueh
  * <p> bug# 511 Added DialogType to super constructor.
  * <p>
@@ -489,7 +492,7 @@ public class TomogramCombinationDialog
   private void updateAdvanced(boolean isAdvanced) {
     pnlInitial.setAdvanced(isAdvanced);
     pnlFinal.setAdvanced(isAdvanced);
-    applicationManager.packMainWindow();
+    applicationManager.packMainWindow(axisID);
   }
 
   /**
