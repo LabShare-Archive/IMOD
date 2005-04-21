@@ -6,12 +6,9 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.HeadlessException;
-import java.awt.Point;
-import java.io.File;
 import java.util.ArrayList;
 
 import javax.swing.BoxLayout;
-import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -37,6 +34,12 @@ import etomo.type.AxisType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.18  2005/04/20 01:50:19  sueh
+ * <p> bug# 615 Removed getAxisB because its name was misleading.  It
+ * <p> shows axis like a show function.  Place the functionality in showAxisB.
+ * <p> Added boolean subFrame to showAxisB to distinguish it from showing
+ * <p> AxisB in the main frame.
+ * <p>
  * <p> Revision 1.17  2005/04/16 02:00:01  sueh
  * <p> bug# 615 Removed split pane function when --newstuff is used.  Bring up
  * <p> A axis alone for a dual axis tomogram.
@@ -192,7 +195,6 @@ public abstract class MainPanel extends JPanel {
   protected abstract boolean hideAxisPanelB();
   protected abstract void showAxisPanelA();  
   protected abstract void showAxisPanelB();
-  protected abstract boolean isAxisPanelAFitScreenError();
   protected abstract AxisProcessPanel mapBaseAxis(AxisID axisID);
   protected abstract DataFileFilter getDataFileFilter();
   public abstract void saveDisplayState();
@@ -222,6 +224,10 @@ public abstract class MainPanel extends JPanel {
     add(panelCenter, BorderLayout.CENTER);
     add(statusBar, BorderLayout.SOUTH);
     //axisPanel.setLayout(new BoxLayout(axisPanel, BoxLayout.X_AXIS));
+  }
+  
+  String getStatusBarText() {
+    return statusBar.getText();
   }
 
   /**
@@ -255,7 +261,7 @@ public abstract class MainPanel extends JPanel {
   public void showProcess(Container processPanel, AxisID axisID) {
     AxisProcessPanel axisPanel = mapBaseAxis(axisID);
     axisPanel.replaceDialogPanel(processPanel);
-    fitWindow();
+    EtomoDirector.getInstance().getMainFrame().fitWindow(axisID);
   }
 
   /**
@@ -307,39 +313,6 @@ public abstract class MainPanel extends JPanel {
     axisPanel.stopProgressBar();
   }
 
-  public boolean getTestParamFilename() {
-    //  Open up the file chooser in current working directory
-    File workingDir = new File(manager.getPropertyUserDir());
-    JFileChooser chooser =
-      new JFileChooser(workingDir);
-    DataFileFilter fileFilter = getDataFileFilter();
-    chooser.setFileFilter(fileFilter);
-    chooser.setDialogTitle("Save " + fileFilter.getDescription());
-    chooser.setDialogType(JFileChooser.SAVE_DIALOG);
-    chooser.setPreferredSize(FixedDim.fileChooser);
-    chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-    File[] edfFiles = workingDir.listFiles(fileFilter);
-    if (edfFiles.length == 0) {
-      File defaultFile = new File(workingDir, manager.getBaseMetaData().getMetaDataFileName());
-      chooser.setSelectedFile(defaultFile);
-    }
-    int returnVal = chooser.showSaveDialog(this);
-
-    if (returnVal != JFileChooser.APPROVE_OPTION) {
-      return false;
-    }
-    // If the file does not already have an extension appended then add an edf
-    // extension
-    File dataFile = chooser.getSelectedFile();
-    String fileName = chooser.getSelectedFile().getName();
-    if (fileName.indexOf(".") == -1) {
-      dataFile = new File(chooser.getSelectedFile().getAbsolutePath() + manager.getBaseMetaData().getFileExtension());
-
-    }
-    manager.setTestParamFile(dataFile);
-    return true;
-  }
-
   /**
    * Show the processing panel for the requested AxisType
    */
@@ -365,19 +338,22 @@ public abstract class MainPanel extends JPanel {
       scrollB = new ScrollPanel();
       addAxisPanelB();
       scrollPaneB = new JScrollPane(scrollB);
-      if (EtomoDirector.getInstance().isNewstuff()) {
-        setAxisA();
-      }
-      else {
-        setBothAxis();
-      }
+      setAxisA();
     }
   }
   
-  void showBothAxis() {
-    panelCenter.removeAll();
-    setBothAxis();
-    fitWindow(true);
+  JScrollPane showBothAxis() {
+    if (axisType != AxisType.DUAL_AXIS || showingBothAxis) {
+      return null;
+    }
+    showingBothAxis = true;
+    showingAxisA = true;
+    AxisProcessPanel axisPanel = getAxisPanelB();
+    if (axisPanel != null) {
+      axisPanel.showBothAxis();
+    }
+    getAxisPanelA().showBothAxis();
+    return scrollPaneB;
   }
   
   boolean isShowingBothAxis() {
@@ -389,8 +365,6 @@ public abstract class MainPanel extends JPanel {
   }
   
   private void setBothAxis() {
-    showingBothAxis = true;
-    showingAxisA = true;
     splitPane =
       new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, scrollPaneA, scrollPaneB);
     splitPane.setDividerLocation(0.5);
@@ -408,7 +382,6 @@ public abstract class MainPanel extends JPanel {
   void showAxisA() {
     panelCenter.removeAll();
     setAxisA();
-    fitWindow(true);
   }
   
   private void setAxisA() {
@@ -417,25 +390,11 @@ public abstract class MainPanel extends JPanel {
     panelCenter.add(scrollPaneA);
   }
   
-  JScrollPane showAxisB(boolean subFrame) {
-    if (subFrame) {
-      if (axisType != AxisType.DUAL_AXIS || showingBothAxis) {
-        return null;
-      }
-      showingBothAxis = true;
-      AxisProcessPanel axisPanel = getAxisPanelB();
-      if (axisPanel != null) {
-        axisPanel.showBothAxis();
-      }
-      getAxisPanelA().showBothAxis();
-      return scrollPaneB;
-    }
+  void showAxisB() {
     showingBothAxis = false;
     showingAxisA = false;
     panelCenter.removeAll();
     panelCenter.add(scrollPaneB);
-    fitWindow(true);
-    return null;
   }
   /*
   Point getPreviousSubFrameLocation() {
@@ -450,16 +409,16 @@ public abstract class MainPanel extends JPanel {
    * if A or B is hidden, hide the panel which the user has hidden before
    * calling pack().
    *
-   */
+   *//*
   protected void packAxis() {
     if (!EtomoDirector.getInstance().isNewstuff()) {
       packAxisOld();
       return;
     }
-    EtomoDirector.getInstance().getMainFrame().packFrames();
-    if (splitPane != null) {
-      splitPane.resetToPreferredSizes();
-    }
+    EtomoDirector.getInstance().getMainFrame().pack();
+    //if (splitPane != null) {
+    //  splitPane.resetToPreferredSizes();
+    //}*/
     /*if (manager.isDualAxis() && showingBothAxis && splitPane != null) {
       splitPane.resetToPreferredSizes();
       
@@ -470,8 +429,8 @@ public abstract class MainPanel extends JPanel {
         splitPane.resetToPreferredSizes();
       }
     }*/
-  }
-  
+  //}
+  /*
   protected void packAxisOld() {
     if (manager.isDualAxis()
       && !AxisPanelAIsNull()
@@ -508,22 +467,21 @@ public abstract class MainPanel extends JPanel {
       EtomoDirector.getInstance().getMainFrame().pack();
     }
   }
-
+*/
   
   /**
    * checks for a bug in windows that causes MainFrame.fitScreen() to move the
    * divider almost all the way to the left
    * @return
-   */
+   *//*
   protected boolean isFitScreenError(AxisProcessPanel axisPanel) {
-    if (EtomoDirector.getInstance().isNewstuff()) {
-      EtomoDirector.getInstance().getMainFrame().show();
-    }
+    EtomoDirector.getInstance().getMainFrame().setVisible(true);
+      //EtomoDirector.getInstance().getMainFrame().show();
     if (axisPanel.getWidth() <= 16) {
       return true;
     }
     return false;
-  }
+  }*/
 
   /**
    * set vertical scrollbar policy
@@ -541,25 +499,26 @@ public abstract class MainPanel extends JPanel {
       scrollPaneB.setVerticalScrollBarPolicy(policy);
     }
   }
-  
+  /*
   public void fitWindow() {
     fitWindow(false);
   }
-  
+  */
   /**
    * fit window to its components and to the screen
    *
-   */
+   *//*
   public void fitWindow(boolean force) {
     if (!force && !EtomoDirector.getInstance().getUserConfiguration().isAutoFit()) {
-      /* Need a function which does what 1.4.2 show did:
+     */ /* Need a function which does what 1.4.2 show did:
        * Makes the Window visible. If the Window and/or its owner are not yet
        * displayable, both are made displayable. The Window will be validated
        * prior to being made visible. If the Window is already visible, this
        * will bring the Window to the front.
        * Component.SetVisible() is recommended as the replacement  
-       */
-      EtomoDirector.getInstance().getMainFrame().show();
+       *//*
+      EtomoDirector.getInstance().getMainFrame().setVisible(true);
+      //EtomoDirector.getInstance().getMainFrame().show();
       return;
     }
     synchronized (MainFrame.class) {
@@ -581,7 +540,7 @@ public abstract class MainPanel extends JPanel {
           //Tabs in mac are taller
           tabHeight = 43;
         }
-      }
+      }*/
       /*
       System.out.println("difference="
           + Integer.toString(EtomoDirector.getInstance().getMainFrame()
@@ -590,7 +549,7 @@ public abstract class MainPanel extends JPanel {
       System.out.println("tabHeight=" + tabHeight + ",frameBorder.height="
           + frameBorder.height + ",both="
           + Integer.toString(frameBorder.height + tabHeight));
-      */
+      *//*
       if (EtomoDirector.getInstance().getMainFrame().getSize().height
           - getSize().height > frameBorder.height+tabHeight) {
         setVerticalScrollBarPolicy(true);
@@ -598,7 +557,7 @@ public abstract class MainPanel extends JPanel {
         setVerticalScrollBarPolicy(false);
       }
     }
-  }
+  }*/
 
 
   /**
