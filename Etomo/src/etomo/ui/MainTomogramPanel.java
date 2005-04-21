@@ -27,6 +27,10 @@ import etomo.type.ProcessTrack;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.10  2005/04/20 01:51:46  sueh
+* <p> bug# 615 Added showingSetup boolean to prevent from showing axis A
+* <p> when setup tomogram is displayed.
+* <p>
 * <p> Revision 1.9  2005/04/01 02:54:43  sueh
 * <p> bug# 622 Added getAxisPAnelA and B.
 * <p>
@@ -113,15 +117,9 @@ public class MainTomogramPanel extends MainPanel {
     }
   }
   
-  void showBothAxis() {
-    axisPanelA.showBothAxis();
-    axisPanelB.showBothAxis();
-    super.showBothAxis();
-  }
-  
   void showAxisA() {
     if (showingSetup || axisType == AxisType.SINGLE_AXIS) {
-      fitWindow(true);
+      EtomoDirector.getInstance().getMainFrame().fitWindow(true);
     }
     else {
       axisPanelA.showAxisA();
@@ -129,9 +127,14 @@ public class MainTomogramPanel extends MainPanel {
     }
   }
   
-  JScrollPane showAxisB(boolean subFrame) {
+  void showAxisB() {
     axisPanelB.showAxisB();
-    return super.showAxisB(subFrame);
+    super.showAxisB();
+  }
+  
+  JScrollPane showBothAxis() {
+    axisPanelB.showAxisB();
+    return super.showBothAxis();
   }
   
   /**
@@ -386,11 +389,11 @@ public class MainTomogramPanel extends MainPanel {
       axisPanelB.show(true);
       splitPane.setDividerLocation(1);
     }
-  }*/
+  }
   
   protected boolean isAxisPanelAFitScreenError() {
     return isFitScreenError(axisPanelA);
-  }
+  }*/
   
   /**
    * Show a blank processing panel
