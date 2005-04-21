@@ -36,6 +36,9 @@ import etomo.type.JoinState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.10  2005/01/29 00:18:22  sueh
+ * <p> Removed print statements
+ * <p>
  * <p> Revision 1.9  2005/01/26 00:05:02  sueh
  * <p> Removing ConstEtomoNumber.displayDefault.  To get the default to
  * <p> display, set displayValue and default the same when creating the
@@ -325,7 +328,7 @@ public class JoinDialog implements ContextMenu {
     axisID = AxisID.ONLY;
     this.joinManager = joinManager;
     createRootPanel(workingDirName);
-    joinManager.packMainWindow();
+    joinManager.packMainWindow(axisID);
   }
 
   /**
@@ -444,9 +447,7 @@ public class JoinDialog implements ContextMenu {
     removePanelComponents(curTab);
     curTab = tabPane.getSelectedIndex();
     addPanelComponents(curTab);
-    if (EtomoDirector.getInstance().getUserConfiguration().isAutoFit()) {
-      joinManager.getMainPanel().fitWindow();
-    }
+    EtomoDirector.getInstance().getMainFrame().fitWindow();
   }
   
   public void setMode(int mode) {
