@@ -25,6 +25,9 @@ import etomo.type.JoinMetaData;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.4  2005/04/01 02:53:27  sueh
+* <p> bug# 622 Added getAxisPAnelA and B.
+* <p>
 * <p> Revision 1.3  2005/02/17 02:41:41  sueh
 * <p> bug# 605 Added empty saveDisplayState().
 * <p>
@@ -162,10 +165,6 @@ public class MainJoinPanel extends MainPanel {
   
   protected void showAxisPanelB() {
     axisPanelB.show();
-  }
-  
-  protected boolean isAxisPanelAFitScreenError() {
-    return isFitScreenError(axisPanelA);
   }
   
   protected AxisProcessPanel mapBaseAxis(AxisID axisID) {
