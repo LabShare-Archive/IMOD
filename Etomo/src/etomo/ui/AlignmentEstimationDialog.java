@@ -31,6 +31,9 @@ import etomo.type.DialogType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.9  2005/04/16 01:51:25  sueh
+ * <p> bug# 615 Moved the adding of exit buttons to base class to standardize.
+ * <p>
  * <p> Revision 3.8  2005/01/14 03:06:57  sueh
  * <p> bug# 511 Added DialogType to super constructor.
  * <p>
@@ -367,7 +370,7 @@ public class AlignmentEstimationDialog extends ProcessDialog
   //  as well as from the button action above
   private void updateAdvanced(boolean state) {
     pnlTiltalign.setAdvanced(isAdvanced);
-    applicationManager.packMainWindow();
+    applicationManager.packMainWindow(axisID);
   }
 
   //  Event handler for panel buttons

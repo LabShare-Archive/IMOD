@@ -42,6 +42,9 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.11  2005/03/19 01:09:52  sueh
+* <p> adding comments
+* <p>
 * <p> Revision 1.10  2005/03/11 01:57:43  sueh
 * <p> bug# 612 Change nextProcess to support axis A and B.
 * <p>
@@ -642,9 +645,10 @@ public abstract class BaseManager {
     return !nextProcessA.equals("");
   }
   
-  public void packMainWindow() {
-    mainFrame.repaint();
-    getMainPanel().fitWindow();
+  public void packMainWindow(AxisID axisID) {
+    mainFrame.repaint(axisID);
+    mainFrame.fitWindow(axisID);
   }
+
 
 }

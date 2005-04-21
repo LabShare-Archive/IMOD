@@ -57,7 +57,7 @@ public class CleanUpDialog extends ProcessDialog implements ContextMenu {
    * Update the dialog with the current advanced state
    */
   private void updateAdvanced() {
-    applicationManager.packMainWindow();
+    applicationManager.packMainWindow(axisID);
   }
   
   //
@@ -81,6 +81,9 @@ public class CleanUpDialog extends ProcessDialog implements ContextMenu {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.2  2005/04/16 01:53:59  sueh
+ * <p> bug# 615 Moved the adding of exit buttons to the base class.
+ * <p>
  * <p> Revision 1.1  2005/03/24 17:49:51  sueh
  * <p> bug# 621 Moved the clean up panel in post processing to a separate
  * <p> dialog.

@@ -26,6 +26,9 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.9  2005/04/16 01:55:06  sueh
+ * <p> bug# 615 Moved the adding of exit buttons to the base class.
+ * <p>
  * <p> Revision 3.8  2005/01/21 23:43:06  sueh
  * <p> bug# 509 bug# 591  Passing axisID to TransferfidPanel contructor so it
  * <p> can set a value for center view when the .rawtlt file is not in use.
@@ -249,7 +252,7 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu {
       pnlTransferfid.setAdvanced(state);
     }
 
-    applicationManager.packMainWindow();
+    applicationManager.packMainWindow(axisID);
   }
 
   public void updateEnabled() {
