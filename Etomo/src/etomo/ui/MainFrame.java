@@ -7,26 +7,18 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.HeadlessException;
-import java.awt.Point;
-import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
-import java.io.File;
-import java.net.MalformedURLException;
 
 import javax.swing.ImageIcon;
-import javax.swing.JFileChooser;
-import javax.swing.JFrame;
-import javax.swing.JMenuBar;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 import etomo.BaseManager;
 import etomo.Controller;
-import etomo.EtomoDirector;
-import etomo.storage.DataFileFilter;
+import etomo.type.AxisID;
 import etomo.util.UniqueKey;
 
 /**
@@ -42,6 +34,12 @@ import etomo.util.UniqueKey;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.26  2005/04/20 01:47:37  sueh
+ * <p> bug# 615 Moved menu functionality to EtomoMenu.  When setting the
+ * <p> current manager, change the SubFrame to reflect the situation of the
+ * <p> newly displayed manager.  Take into account whether the manager has
+ * <p> two axis and whether they are both being displayed.
+ * <p>
  * <p> Revision 3.25  2005/04/16 01:57:54  sueh
  * <p> bug# 615 Added subFrame.  Changed show functions to display axis B
  * <p> in subFrame.  Changed Axis A command and Axis B command to hide
@@ -337,23 +335,23 @@ import etomo.util.UniqueKey;
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
  */
-public class MainFrame extends JFrame implements ContextMenu, EtomoFrame {
+public class MainFrame extends EtomoFrame implements ContextMenu {
   public static final String rcsid = "$Id$";
   
   private static final int estimatedMenuHeight = 60;
   private static final int extraScreenWidthMultiplier = 2;
   private static final Dimension frameBorder = new Dimension(10, 48);
+  private static final String aAxisTitle = "A Axis - ";
+  private static final String bAxisTitle = "B Axis - ";
 
   //private JPanel contentPane;
   private JPanel rootPanel;
-  private MainPanel mainPanel = null;
 
-  private JMenuBar menuBar;
-  private BaseManager currentManager;
   GenericMouseAdapter mouseAdapter = null;
   WindowSwitch windowSwitch = new WindowSwitch();
   private SubFrame subFrame = null;
-  private EtomoMenu menu;
+  private String title;
+  private String[] mRUList;
 
   /**
    * Main window constructor.  This sets up the menus and status line.
@@ -364,8 +362,6 @@ public class MainFrame extends JFrame implements ContextMenu, EtomoFrame {
     ImageIcon iconEtomo = new ImageIcon(ClassLoader
         .getSystemResource("images/etomo.png"));
     setIconImage(iconEtomo.getImage());
-
-    setTitle("eTomo");
 
     Toolkit toolkit = Toolkit.getDefaultToolkit();
     Dimension screenSize = toolkit.getScreenSize();
@@ -396,13 +392,14 @@ public class MainFrame extends JFrame implements ContextMenu, EtomoFrame {
     }
     if (currentManager != null) {
       mainPanel = currentManager.getMainPanel();
+      title = currentManager.getBaseMetaData().getName() + " - Etomo";
       rootPanel.add(windowSwitch.getPanel(managerKey));
       mainPanel.addMouseListener(mouseAdapter);
       menu.setEnabled(currentManager);
       mainPanel.repaint();
     }
     if (subFrame != null) {
-      subFrame.setMainPanel();
+      subFrame.setMainPanel(bAxisTitle + title + " ", currentManager);
     }
     if (newWindow) {
       showAxisA();
@@ -448,6 +445,7 @@ public class MainFrame extends JFrame implements ContextMenu, EtomoFrame {
    * on the File menu
    */
   public void setMRUFileLabels(String[] mRUList) {
+    this.mRUList = mRUList;
     menu.setMRUFileLabels(mRUList);
   }
   
@@ -470,65 +468,12 @@ public class MainFrame extends JFrame implements ContextMenu, EtomoFrame {
   public void selectWindowMenuItem(UniqueKey currentManagerKey, boolean newWindow) {
     windowSwitch.selectWindow(currentManagerKey, newWindow);
   }
-
-  /**
-   * Handle File menu actions
-   * @param event
-   */
-  public void menuFileAction(ActionEvent event) {
-    if (event.getActionCommand().equals(menu.getActionCommandFileNewTomogram())) {
-      EtomoDirector.getInstance().openTomogram(true);
+    
+  void packFrames() {
+    pack();
+    if (subFrame != null) {
+      subFrame.pack();
     }
-
-    if (event.getActionCommand().equals(menu.getActionCommandFileNewJoin())) {
-      EtomoDirector.getInstance().openJoin(true);
-    }
-
-    if (event.getActionCommand().equals(menu.getActionCommandFileOpen())) {
-      File dataFile = openDataFileDialog();
-      if (dataFile != null) {
-        EtomoDirector.getInstance().openManager(dataFile, true);
-      }
-    }
-
-    if (event.getActionCommand().equals(menu.getActionCommandFileSave())) {
-      //  Check to see if there is a current parameter file chosen
-      //  if not open a dialog box to select the name
-      boolean haveTestParamFilename = true;
-      if (currentManager.getTestParamFile() == null) {
-        haveTestParamFilename = mainPanel.getTestParamFilename();
-      }
-      if (haveTestParamFilename) {
-        currentManager.saveTestParamFile();
-      }
-    }
-
-    if (event.getActionCommand().equals(menu.getActionCommandFileSaveAs())) {
-      boolean haveTestParamFilename = mainPanel.getTestParamFilename();
-      if (haveTestParamFilename) {
-        currentManager.saveTestParamFile();
-      }
-    }
-
-    if (event.getActionCommand().equals(menu.getActionCommandFileClose())) {
-      EtomoDirector.getInstance().closeCurrentManager();
-    }
-
-    if (event.getActionCommand().equals(menu.getActionCommandFileExit())) {
-      //  Check to see if we need to save any data
-      if (EtomoDirector.getInstance().exitProgram()) {
-        System.exit(0);
-      }
-    }
-  }
-
-  /**
-   * Open the specified MRU EDF file
-   * @param event
-   */
-  public void menuFileMRUListAction(ActionEvent event) {
-    EtomoDirector.getInstance().openManager(new File(event.getActionCommand()),
-        true);
   }
 
   /**
@@ -537,145 +482,72 @@ public class MainFrame extends JFrame implements ContextMenu, EtomoFrame {
    */
   public void menuOptionsAction(ActionEvent event) {
     String command = event.getActionCommand();
-    boolean newStuff = EtomoDirector.getInstance().isNewstuff();
-    if (command.equals(menu.getActionCommandSettings())) {
-      EtomoDirector.getInstance().openSettingsDialog();
-    }
-    else if (command.equals(menu.getActionCommandAxisA())) {
-      if (newStuff) {
-        showAxisA();
-      }
-      else {
-        mainPanel.setDividerLocation(1);
-      }
+    if (command.equals(menu.getActionCommandAxisA())) {
+      showAxisA();
     }
     else if (command.equals(menu.getActionCommandAxisB())) {
-      if (newStuff) {
-        showAxisB();
-      }
-      else {
-        mainPanel.setDividerLocation(0);
-      }
+      showAxisB();
     }
     else if (command.equals(menu.getActionCommandAxisBoth())) {
-      if (newStuff) {
-        showBothAxis();
+      showBothAxis();
+    }
+    else {
+      super.menuOptionsAction(event);
+    }
+  }
+  
+  public void repaint(AxisID axisID) {
+    if (axisID != AxisID.SECOND) {
+      repaint();
+    }
+    else {
+      if (mainPanel.isShowingBothAxis() && subFrame != null) {
+        subFrame.repaint();
       }
-      else {
-        mainPanel.setDividerLocation(.5);
+    }
+  }
+  
+  public void fitWindow(AxisID axisID) {
+    if (axisID != AxisID.SECOND) {
+      fitWindow();
+    }
+    else {
+      if (mainPanel.isShowingBothAxis() && subFrame != null) {
+        subFrame.fitWindow();
       }
     }
-    else if (command.equals(menu.getActionCommandFitWindow())) {
-      mainPanel.fitWindow(true);
-    }
   }
-  
-  public void pack() {
-    Rectangle bounds = getBounds();
-    bounds.height++;
-    bounds.width++;
-    setBounds(bounds);
-    super.pack();
-  }
-  
-  void packFrames() {
-    pack();
-    if (subFrame != null) {
-      subFrame.pack();
-    }
-  }
-  
-  private void packMainFrame() {
-    super.pack();
-  }
-  
-  private void packSubFrame() {
-    if (subFrame != null) {
-      subFrame.pack();
-    }
-  }
-  
+
   public void showAxisA() {
+    setTitle(aAxisTitle + title);
     if (subFrame != null) {
       subFrame.setVisible(false);
     }
     mainPanel.showAxisA();
+    pack();
   }
   
   public void showAxisB() {
+    setTitle(bAxisTitle + title);
     if (subFrame != null) {
       subFrame.setVisible(false);
     }
-    mainPanel.showAxisB(false);
+    mainPanel.showAxisB();
+    pack();
   }
   
   public void showBothAxis() {
+    setTitle(aAxisTitle + title);
     mainPanel.showAxisA();
     if (subFrame == null || !subFrame.isDisplayable()) {
       subFrame = new SubFrame(this);
-      subFrame.initialize();
+      subFrame.initialize(bAxisTitle + title + " ", currentManager, mRUList);
     }
     else {
       subFrame.updateAxis();
     }
-    packFrames();
-  }
-
-  public void menuHelpAction(ActionEvent event) {
-
-    // Get the URL to the IMOD html directory
-    String imodURL = "";
-    try {
-      imodURL = EtomoDirector.getInstance().getIMODDirectory().toURL().toString()
-          + "/html/";
-    }
-    catch (MalformedURLException except) {
-      except.printStackTrace();
-      System.err.println("Malformed URL:");
-      System.err.println(EtomoDirector.getInstance().getIMODDirectory().toString());
-      return;
-    }
-
-    if (event.getActionCommand().equals(menu.getActionCommandTomoGuide())) {
-      HTMLPageWindow manpage = new HTMLPageWindow();
-      manpage.openURL(imodURL + "tomoguide.html");
-      manpage.setVisible(true);
-    }
-
-    if (event.getActionCommand().equals(menu.getActionCommandImodGuide())) {
-      HTMLPageWindow manpage = new HTMLPageWindow();
-      manpage.openURL(imodURL + "guide.html");
-      manpage.setVisible(true);
-    }
-
-    if (event.getActionCommand().equals(menu.getActionCommand3dmodGuide())) {
-      HTMLPageWindow manpage = new HTMLPageWindow();
-      manpage.openURL(imodURL + "3dmodguide.html");
-      manpage.setVisible(true);
-    }
-
-    if (event.getActionCommand().equals(menu.getActionCommandEtomoGuide())) {
-      HTMLPageWindow manpage = new HTMLPageWindow();
-      manpage.openURL(imodURL + "UsingEtomo.html");
-      manpage.setVisible(true);
-    }
-    
-    if (event.getActionCommand().equals(menu.getActionCommandJoinGuide())) {
-      HTMLPageWindow manpage = new HTMLPageWindow();
-      manpage.openURL(imodURL + "tomojoin.html");
-      manpage.setVisible(true);
-    }
-
-    if (event.getActionCommand().equals(menu.getActionCommandHelpAbout())) {
-      MainFrame_AboutBox dlg = new MainFrame_AboutBox(this);
-      Dimension dlgSize = dlg.getPreferredSize();
-      Dimension frmSize = getSize();
-      Point loc = getLocation();
-      dlg.setLocation((frmSize.width - dlgSize.width) / 2 + loc.x,
-          (frmSize.height - dlgSize.height) / 2 + loc.y);
-      dlg.setModal(true);
-      dlg.show();
-    }
+    pack();
+    subFrame.pack();
   }
 
   /**Overridden so we can exit when window is closed*/
@@ -729,30 +601,6 @@ public class MainFrame extends JFrame implements ContextMenu, EtomoFrame {
         JOptionPane.ERROR_MESSAGE);
   }
 
-  /**
-   * Open a File Chooser dialog with an data file filter, if the user selects
-   * or names a file return a File object wiht that slected, otherwise
-   * return null.
-   * @return A File object specifiying the selected file or null if none
-   * was selected. 
-   */
-  public File openDataFileDialog() {
-    //  Open up the file chooser in current working directory
-    JFileChooser chooser = new JFileChooser(new File(System
-        .getProperty("user.dir")));
-    DataFileFilter fileFilter = new DataFileFilter();
-    chooser.setFileFilter(fileFilter);
-
-    chooser.setDialogTitle("Open " + fileFilter.getDescription());
-    chooser.setPreferredSize(FixedDim.fileChooser);
-    chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-    int returnVal = chooser.showOpenDialog(this);
-    if (returnVal == JFileChooser.APPROVE_OPTION) {
-      return chooser.getSelectedFile();
-    }
-    return null;
-  }
-
   //  TODO Need a way to repaint the existing font
   public void repaintWindow() {
     repaintContainer(this);
@@ -770,12 +618,4 @@ public class MainFrame extends JFrame implements ContextMenu, EtomoFrame {
     }
   }
 
-  /**
-   * Create the menus for the main window
-   */
-  public void createMenus() {
-    menu.createMenus(this);
-    menuBar = menu.getMenuBar();
-    setJMenuBar(menuBar);
-  }
 }
