@@ -160,7 +160,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     UIUtilities.setButtonSizeAll(pnlExitButtons, UIParameters.getButtonDimension());
     
     // Calcute the necessary window size
-    applicationManager.packMainWindow();
+    applicationManager.packMainWindow(axisID);
   }
 
   private void createDatasetPanel() {
@@ -1027,6 +1027,9 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.26  2005/04/16 02:04:12  sueh
+ * <p> bug# 615 Moved the adding of exit buttons to the base class.
+ * <p>
  * <p> Revision 3.25  2005/03/10 18:50:22  sueh
  * <p> bug# 533 Removed new stuff option from montaging functionality.
  * <p>

@@ -195,7 +195,7 @@ public class PostProcessingDialog
    * Update the dialog with the current advanced state
    */
   private void updateAdvanced() {
-    applicationManager.packMainWindow();
+    applicationManager.packMainWindow(axisID);
   }
   
   private void action(ActionEvent event) {
@@ -267,6 +267,9 @@ public class PostProcessingDialog
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.16  2005/04/16 02:00:52  sueh
+ * <p> bug# 615 Moved the adding of exit buttons to the base class.
+ * <p>
  * <p> Revision 3.15  2005/03/30 21:06:40  sueh
  * <p> bug# 621 Putting a titled border around the root panel.
  * <p>

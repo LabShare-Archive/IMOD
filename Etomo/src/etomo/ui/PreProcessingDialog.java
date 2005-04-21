@@ -22,6 +22,9 @@ import etomo.comscript.CCDEraserParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.3  2005/04/16 02:01:02  sueh
+ * <p> bug# 615 Moved the adding of exit buttons to the base class.
+ * <p>
  * <p> Revision 3.2  2005/01/14 03:08:03  sueh
  * <p> bug# 511 Added DialogType to super constructor.
  * <p>
@@ -148,7 +151,7 @@ public class PreProcessingDialog extends ProcessDialog {
    */
   private void updateAdvanced() {
     panelCCDEraser.setAdvanced(isAdvanced);
-    applicationManager.packMainWindow();
+    applicationManager.packMainWindow(axisID);
   }
 
   private void disableDM2MRC() {

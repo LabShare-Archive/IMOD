@@ -25,6 +25,7 @@ import javax.swing.border.LineBorder;
 import etomo.JoinManager;
 import etomo.process.ImodManager;
 import etomo.storage.TomogramFileFilter;
+import etomo.type.AxisID;
 import etomo.type.ConstJoinMetaData;
 import etomo.type.ConstSectionTableRowData;
 import etomo.type.JoinMetaData;
@@ -50,6 +51,9 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.4  2004/11/23 22:34:32  sueh
+* <p> bug# 520 getMetaData() returning a success boolean.
+* <p>
 * <p> Revision 1.3  2004/11/23 00:29:55  sueh
 * <p> bug# 520 Prevented Add Section from coming on  during a flip.
 * <p>
@@ -855,7 +859,7 @@ public class SectionTablePanel implements ContextMenu, Expandable {
         }
       }
       addSection(tomogram);
-      joinManager.packMainWindow();
+      joinManager.packMainWindow(AxisID.ONLY);
     }
   }
   
