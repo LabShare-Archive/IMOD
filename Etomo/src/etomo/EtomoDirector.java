@@ -45,6 +45,10 @@ import etomo.util.Utilities;
  * 
  * <p>
  * $Log$
+ * Revision 1.11  2005/04/20 01:36:31  sueh
+ * bug# 615 Making the singleton instance pointer final to prevent in from
+ * being changed by another object.
+ *
  * Revision 1.10  2005/04/16 01:50:17  sueh
  * bug# 615 Adding newstuffNum to look at more then one group of new code.
  *
@@ -249,7 +253,8 @@ public class EtomoDirector {
       mainFrame.selectWindowMenuItem(currentControllerKey);
       mainFrame.setMRUFileLabels(userConfig.getMRUFileList());
       mainFrame.pack();
-      mainFrame.show();
+      mainFrame.setVisible(true);
+      //mainFrame.show();
     }
   }
   
@@ -863,7 +868,8 @@ public class EtomoDirector {
       settingsDialog.setLocation(loc.x, loc.y + frmSize.height);
       settingsDialog.setModal(false);
     }
-    settingsDialog.show();
+    settingsDialog.setVisible(true);
+    //settingsDialog.show();
   }
   
   /**
