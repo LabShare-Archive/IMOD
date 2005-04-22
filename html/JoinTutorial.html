@@ -1,0 +1,362 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta content="text/html; charset=ISO-8859-1"
+ http-equiv="content-type">
+  <title>Join Tutorial</title>
+</head>
+<body>
+<div style="text-align: center;"><big><big><span
+ style="font-weight: bold;">Tutorial for Joining Serial Section
+Tomograms with eTomo<br>
+(IMOD Version 3.6.4)<br>
+</span></big></big><br>
+<font size="+1"><span style="font-weight: bold;">Cindi L. Schwartz</span></font><br>
+<br>
+<font size="+1"><span style="font-weight: bold;">Boulder Laboratory for
+3D Electron Microscopy of Cells</span></font><br>
+<br>
+<hr style="width: 100%; height: 2px;">
+<div style="text-align: left;">
+<div style="text-align: justify;"><span style="font-size: 14pt;"><b>I.<span
+ style="">&nbsp;</span>Initial steps</b></span><br>
+<br>
+<div style="text-align: left;">This tutorial provides a
+step-by-step guide to joining together tomograms from serial sections,
+using a small sample data set containing three volumes to be
+joined.&nbsp; Before you try to join your own tomograms, please refer
+to the more
+comprehensive <a href="tomojoin.html">Guide to Joining Tomograms</a>
+for
+additional detail about the decisions and options at each step.&nbsp;</div>
+<p class="MsoNormal">To get started, <a
+ href="http://bio3d.colorado.edu/imod/files/joinTutorialData.tar.gz">download</a>
+the sample data set from our web site. &nbsp;Unpack the data by typing:</p>
+<p class="MsoNormal">&nbsp; &nbsp; &nbsp; &nbsp; <code>tar -xzf
+joinTutorialData.tar.gz<br>
+</code></p>
+<p class="MsoNormal">or, on an SGI, you will probably need two steps:</p>
+<p class="MsoNormal">&nbsp; &nbsp; &nbsp; &nbsp; <code>gunzip
+joinTutorialData.tar.gz</code></p>
+<code>&nbsp;&nbsp;&nbsp; tar -xf joinTutorialData.tar<br>
+</code><br>
+This will create a directory, <code>joinTutorialData</code>,
+containing
+the three serial volumes, named basal-1.rec, basal-2.rec, and
+basal-3.rec.<br>
+<br>
+<font size="+1"><span style="font-weight: bold;">II.</span><span
+ style=""><span style="font-weight: bold;">&nbsp; eTomo Setup</span></span></font><br>
+<font size="+1"><span style=""></span></font><font size="+1"><span
+ style=""></span></font><br>
+<span style="">To start eTomo, at the command line type:</span>&nbsp;&nbsp;&nbsp;&nbsp;
+etomo<br>
+</div>
+<p style="text-align: justify;"><span style=""></span></p>
+<div style="text-align: justify;"><span style="">This
+will load the </span><span style=""><span style="font-weight: bold;">Setup
+panel</span>
+for eTomo. To get to the join setup page go to the <span
+ style="font-weight: bold;">File</span>
+menu and choose <span style="font-weight: bold;">New Join</span>.</span>
+<br>
+</div>
+<font size="+1"><span style=""><span style="font-weight: bold;"></span><br>
+</span></font>
+<div style="text-align: center;"><font size="+1"><span style=""><img
+ alt="" src="joinImages/Etomostartup.png"></span></font><br>
+</div>
+<font size="+1"><span style=""><br>
+</span></font>
+<div style="text-align: justify;">
+<div style="text-align: left;"><span style="">This
+will load the <span style="font-weight: bold;">Join Interface</span>
+shown below. The interface is divided into three panels: <span
+ style="font-weight: bold;">Setup, Align, </span>and <span
+ style="font-weight: bold;">Join</span>. The <span
+ style="font-weight: bold;">Setup</span> panel allows you to identify
+which serial tomograms you would like to join, define the surfaces at
+which they should be joined, flip or rotate the volumes relative
+to each other, and extract sample slices from each serial tomogram so
+that you can visualize the boundaries between the serial tomograms and
+align them. You will notice that you cannot use the <span
+ style="font-weight: bold;">Align </span>or <span
+ style="font-weight: bold;">Join </span>tabs until you have finished
+filling in the <span style="font-weight: bold;">Setup</span>
+information and calculated your sample file.</span><br>
+</div>
+<span style=""></span></div>
+<span style=""></span><font size="+1"><span style=""><br>
+</span></font><font size="+1"><span style=""></span></font>
+<div style="text-align: center;"><font size="+1"><span style=""><img
+ alt="" src="joinImages/setuppanel1.png"></span></font><br>
+<font size="+1"><span style=""></span></font></div>
+<font size="+1"><span style=""><br>
+</span></font>
+<div style="text-align: left;"><span style="">To get started, select
+your <span style="font-weight: bold;">Working directory</span> and <span
+ style="font-weight: bold;">Root name for output file</span>. In this
+example, we used a directory called <code>join</code> and used <code>basal</code>
+for the root
+name.</span> You can enter the <span style="font-weight: bold;">Working
+directory</span> by clicking
+on the yellow file selection button associated with the <b>Working
+directory</b>
+field, or by typing in the directory path and file name directly in the
+field.&nbsp; Since you already have all of the individual
+reconstructions in the <code>joinTutorialData </code>directory, your
+can make that be your working directory.<br>
+</div>
+<font size="+1"><span style=""><br>
+</span></font>
+<div style="text-align: center;"><font size="+1"><span style=""><img
+ alt="" src="joinImages/setuppanel2.png"><br>
+<br>
+</span></font>
+<div style="text-align: left;">Next, you need to
+select the serial
+tomograms you want to join by pressing the <span
+ style="font-weight: bold;">Add Section</span>
+button. It will take you to your <span style="font-weight: bold;">Working
+directory</span> and allow you to select a file for joining. (Note that
+you
+are not required to put your serial tomograms in your working
+directory. eTomo will keep track of where your files are located). You
+must
+add each serial tomogram individually. The initial order is not
+important
+because you can change the order later. <br>
+</div>
+</div>
+<span style=""></span><font size="+1"><span style=""><br>
+</span></font>
+<div style="text-align: center;"><font size="+1"><span style=""><img
+ alt="" src="joinImages/setuppanel3.png"></span></font><br>
+<font size="+1"><span style=""></span></font></div>
+<font size="+1"><span style=""><br>
+</span></font>
+<div style="text-align: justify;">
+<div style="text-align: left;">Once you have input all three
+datasets, click on
+the arrow in the <span style="font-weight: bold;">Order</span>
+subsection to <span
+ style="font-weight: bold; color: rgb(102, 204, 204);">highlight</span><span
+ style="color: rgb(102, 204, 204);"> basal-1.rec</span><span style="">.
+Now click on </span><span style="">the <span
+ style="font-weight: bold;">Open in/Raise 3dmod</span>
+button. This will open </span><span style="">basal-1.rec
+using 3dmod. These tutorial datasets are small in size; however, for
+future data, you may need to use the binning option to view all of your
+serial tomograms at once. Now, open the other two serial tomograms with
+the <span style="font-weight: bold;">Open in/Raise 3dmod</span>
+button. Once all three tomograms are loaded, you will typically movie
+through them to
+figure out the order of the serial tomograms and what slices you would
+like to use to create the samples that are used in the aligning
+process. It is important to note that <span style="font-weight: bold;">Bottom
+</span>and <span style="font-weight: bold;">Top</span> are used in the
+join software to denote that the 'top' of the section is the part of
+the tomogram that matches up with the 'bottom' of the next section.
+'Top' and 'bottom' DO NOT refer to the high Z and low Z portions of the
+tomogram. So, the top of a section can be at either high or low Z. The
+join programs will take care of any inversions in Z, both in
+extracting sample slices and in assembling the final volume. To make
+things easier, this tutorial is set up so that the 'bottom' is low Z
+and
+the 'top' is high Z in all three serial tomograms. To determine the <span
+ style="font-weight: bold;">Sample Slices</span> you need, see the
+entries we have used below. The goal here is to find a small subsection
+of the ends of each serial tomogram that you can use to align. Note
+that the <span style="font-weight: bold;">Bottom</span> of basal-2.rec
+starts at Z=5. This is because the gold on the surface does not give
+you any information to align with, so you need to go deeper into the
+tomogram. You can also select the <span style="font-weight: bold;">Final</span>
+<span style="font-weight: bold;">Start </span>and <span
+ style="font-weight: bold;">Final End</span> of each tomogram now, but
+you will get a chance to change this later on in the <span
+ style="font-weight: bold;">Join</span> tab.&nbsp; These numbers
+determine which slices will be placed into the final joined volume.</span><br>
+</div>
+<font size="+1"><span style=""></span></font></div>
+<font size="+1"><span style=""><br>
+</span></font>
+<div style="text-align: center;"><font size="+1"><span style=""><img
+ alt="" src="joinImages/setuppanel4.png"></span></font><br>
+<font size="+1"><span style=""></span></font></div>
+<font size="+1"><span style=""><br>
+</span></font>
+<div style="text-align: justify;">
+<div style="text-align: left;"><span style="">Once
+you are satisfied with your decisions, press the <span
+ style="font-weight: bold;">Make Samples</span> button. This creates
+basal.sample which will be used in conjunction with <span
+ style="font-weight: bold;">Midas</span> to visually align the serial
+tomograms together. After basal.sample is created, you can now access
+the <span style="font-weight: bold;">Align</span> and <span
+ style="font-weight: bold;">Join</span> tabs. You will notice that you
+can always come back and use <span style="font-weight: bold;">Change
+Setup</span> to pick new <span style="font-weight: bold;">Sample Slices</span>
+and start over.</span><br>
+</div>
+<span style=""></span></div>
+<span style=""></span><font size="+1"><span style=""><br>
+</span></font>
+<div style="text-align: center;"><font size="+1"><span style=""><img
+ alt="" src="joinImages/setuppanel5.png"></span></font><br>
+<font size="+1"><span style=""></span></font></div>
+<font size="+1"><span style=""><br>
+</span></font><font size="+1"><span style="font-weight: bold;">III.</span><span
+ style=""><span style="font-weight: bold;">&nbsp; Aligning the Sample
+Slices</span></span></font><br>
+<font size="+1"><span style=""><br>
+</span></font>
+<div style="text-align: justify;">
+<div style="text-align: left;">The <span style="font-weight: bold;">Align</span>
+tab allows you to align the
+serial tomograms before joining them together. It is a good idea to <span
+ style="font-weight: bold;">Open Sample Averages in 3dmod</span>. By
+toggling through Z, you can see whether you have chosen the correct <span
+ style="font-weight: bold;">Sample Slices</span>. For instance, toggle
+between Z=1 and Z=2. You can see these are a close match by looking at
+the large vacuole in the lower left corner, but they are not aligned to
+each other. Now you can choose to try auto alignment or manual
+alignment of the serial tomograms. These tutorial tomograms lend
+themselves well to auto alignment. Click on <span
+ style="font-weight: bold;">Initial Auto Alignment</span> and wait for <span
+ style="font-weight: bold;">done</span> to appear in the process bar.
+Now, click on <span style="font-weight: bold;">Midas</span>. This will
+load the program midas which allows you to see how well the auto
+alignment worked.<font size="+1"><span style=""></span></font><br>
+</div>
+<font size="+1"><span style=""></span></font></div>
+<font size="+1"><span style=""><br>
+</span></font>
+<div style="text-align: center;"><font size="+1"><span style=""><img
+ alt="" src="joinImages/alignpanel.png"></span></font><br>
+<font size="+1"><span style=""></span></font></div>
+<font size="+1"><span style=""><br>
+</span></font>
+<div style="text-align: justify;">
+<div style="text-align: left;"><span style="">The
+first thing you will see in<span style="font-weight: bold;"> </span>Midas
+is an overlay view showing contrasting magenta and green colors that
+help you align images. What is first displayed is the 'top' of
+basal-1.rec aligned with the 'bottom' of basal-2.rec. Midas considers
+each tomogram as a single 'chunk' of slices, so it is actually showing
+the alignment of the bottom of 'chunk 2' to the top of 'chunk 1'.&nbsp;
+You can use the <span style="font-weight: bold;">Toggle Ref/Cur</span>
+button to see
+the </span><span style=""></span><span style="">alignment </span><span
+ style="">better </span><span style=""></span><span style="">by
+toggling between the images, and the PageUp and PageDown keys can also
+be used to see one image at a time. If the sample slices being
+displayed do not have a clear image of the structures at the surface of
+the volume, then you can step deeper into either section by reducing
+the <span style="font-weight: bold;">Reference Sec.</span> number or
+increasing the <span style="font-weight: bold;">Current Sec.</span>
+number.&nbsp; You can play around with Midas and try to align things
+manually using the program. </span><span style="">Midas lets you
+shift, rotate, or stretch the current image with the left, middle, and
+right mouse buttons, respectively.&nbsp; </span><span style="">Otherwise,
+make the <span style="font-weight: bold;">Current Chunk</span> 3 to
+align the next pair of&nbsp; tomograms. </span><br>
+</div>
+<font size="+1"><span style=""></span></font></div>
+<font size="+1"><span style=""><br>
+</span></font>
+<div style="text-align: center;"><font size="+1"><span style=""><img
+ alt="" src="joinImages/midas1.jpg"><br>
+</span></font><font size="+1"><span style=""></span></font></div>
+<font size="+1"><span style=""><br>
+</span></font>
+<div style="text-align: justify;">
+<div style="text-align: left;"><span style="">Now
+you see the 'top' of basal-2.rec aligned with the 'bottom' of
+basal-3.rec. You can also try and manually improve this alignment. If
+you make changes you want to keep, be sure to save them under <span
+ style="font-weight: bold;">File-Save Transforms</span>. </span><br>
+</div>
+<span style=""></span></div>
+<span style=""></span><font size="+1"><span style=""><br>
+</span></font>
+<div style="text-align: justify;">
+<div style="text-align: center;"><font size="+1"><span style=""><img
+ alt="" src="joinImages/midas2.jpg"></span></font><br>
+</div>
+<font size="+1"><span style=""></span></font></div>
+<font size="+1"><span style=""><br>
+</span></font>
+<div style="text-align: left;"><span style="">If you make changes and
+realize that they aren't as good as the auto
+alignment, you can always use the <span style="font-weight: bold;">Revert
+to No Transforms</span> button and start over. </span><br>
+<font size="+1"><span style=""></span></font></div>
+<font size="+1"><span style=""><br>
+</span></font>
+<div style="text-align: center;"><font size="+1"><span style=""><img
+ alt="" src="joinImages/alignpanel.png"></span></font><font size="+1"><span
+ style=""></span></font><br>
+</div>
+<font size="+1"><span style=""><br>
+</span></font><font size="+1"><span style="font-weight: bold;">IV.</span><span
+ style=""><span style="font-weight: bold;">&nbsp; Joining the Serial
+Tomograms<br>
+<br>
+</span></span></font>
+<div style="text-align: justify;">
+<div style="text-align: left;"><font size="+1"><span style=""><span
+ style="font-weight: bold;"><span style="font-weight: bold;"><span
+ style="font-weight: bold;"><span style="font-weight: bold;"><span
+ style="font-style: italic;"><span style="font-style: italic;"></span></span></span></span></span></span></span></font><span
+ style="">Once
+you are happy with the alignments, you can now move to the <span
+ style="font-weight: bold;">Join</span> tab. First, you can pick the
+starting and ending slices of each
+serial tomogram you would like to keep for the final volume. Again, you
+are given the option to view each tomogram by using the <span
+ style="font-weight: bold;">Open in/Raise 3dmod</span> button. These
+serial tomograms provide an example where using the <span
+ style="font-weight: bold;">Get Max Size and Shift</span> button can be
+useful. The program will calculate the <span style="font-weight: bold;">Size
+</span>and <span style="font-weight: bold;">Shift in X </span>and <span
+ style="font-weight: bold;">Y</span> required to keep all original data
+in the final volume and automatically put the numbers in the
+proper fields. Now you can use the <span style="font-weight: bold;">Trial
+Join</span> button to get a very quick idea of what your final volume
+will look like. This is very useful with larger datasets because the
+join process can take a long time. Once the <span
+ style="font-weight: bold;">Trial Join</span> is finished, <span
+ style="font-weight: bold;">Open Trial in 3dmod</span> to view it. The <span
+ style="font-weight: bold;">Get Subarea Size And Shift</span> button is
+used if you wish to crop the final volume to a particular area with the
+rubberband feature in 3dmod. If you are happy with your </span><span
+ style=""><span style="font-weight: bold;">Trial Join</span>,
+click <span style="font-weight: bold;">Finish Join</span> to create
+your final volume. This could take a long time depending on the size of
+your original datasets. Once the program has finished, use <span
+ style="font-weight: bold;">Open in 3dmod</span> to see your
+final volume called basal.join. Again, there is no need to use the
+binning feature with these data, but it will likely be necessary for
+real
+datasets.</span><br>
+</div>
+<span style=""></span></div>
+<span style=""></span><font size="+1"><span style=""><br>
+</span></font>
+<div style="text-align: center;"><font size="+1"><span style=""></span></font><img
+ alt="" src="joinImages/joinpanel1.png"><br>
+<font size="+1"><span style=""></span></font></div>
+<font size="+1"><span style=""><br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+</span></font></div>
+</div>
+</body>
+</html>
