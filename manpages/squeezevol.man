@@ -4,7 +4,7 @@
 .SH NAME
 squeezevol \- Reduce a volume in all dimensions by interpolation.
 .SH SYNOPSIS
-squuezevol [options] <input file>  <output file>
+squeezevol [options] <input file>  <output file>
 .SH DESCRIPTION
 squeezevol provides a 
 command-line interface to the program matchvol, for reducing (or expanding)
