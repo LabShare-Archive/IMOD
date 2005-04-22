@@ -1,0 +1,131 @@
+#! /bin/csh -f
+# archiveorig - script to get compressed file for archiving original stack
+#
+#  $Author$
+#
+#  $Date$
+#
+#  $Revision$
+#
+#  $Log$
+#
+
+nohup
+set pn = archiveorig
+if ($#argv < 1) then
+cat <<EOCAT 
+Usage: $pn [-r | -d] setname.st
+    Computes and compresses difference between setname.st and
+       setname_orig.st, or restores setname_orig.st
+    Options:
+       -r    Restore setname_orig.st from setname.st and setname_xray.st.gz
+       -d    Delete setname_orig.st after computing difference
+EOCAT
+exit 1
+endif
+set restore = 0
+set delete = 0
+
+while ($#argv > 1)
+    switch ($argv[1])
+    case -d:
+      set delete = 1
+      shift
+      breaksw
+    case -r:
+      set restore = 1
+      shift
+      breaksw
+    default:
+      echo "Illegal option: $argv[1]"
+      exit 1
+    endsw
+end
+
+set tmpdir = /usr/tmp
+if ($?IMOD_DIR) then
+    set path = ($IMOD_DIR/bin $path)
+    if (-e $IMOD_DIR/bin/settmpdir) source $IMOD_DIR/bin/settmpdir
+endif
+
+if (! -e "$argv[1]") then
+    echo "ERROR: $pn - file $argv[1] does not exist"
+    exit 1
+endif
+
+set setname = "$argv[1]:r"
+set origname = "${setname}_orig.st"
+set xrayname = "${setname}_xray.st"
+set compname = "$xrayname.gz"
+set logname = $tmpdir/$pn.$$
+
+if ($restore) then
+    if (! -e "$compname") then
+        echo "ERROR: $pn - file $compname does not exist"
+        exit 1
+    endif
+    onintr clean
+    echo "Uncompressing $compname ..."
+    gunzip -c $compname > $xrayname
+    if ($status) then
+        echo "ERROR: $pn - uncompressing $compname"
+        goto clean
+    endif
+    echo "Restoring $origname ..."
+    subimage "$argv[1]" "$xrayname" "$origname" >! $logname
+    if ($status) then
+        echo "ERROR: $pn - subtracting difference file:"
+        grep ERROR $logname
+        goto clean
+    endif
+    \rm -f "$xrayname"
+    \rm -f $logname
+    echo DONE
+    exit 0
+else
+    if (! -e "$origname") then
+        echo "ERROR: $pn - file $origname does not exist"
+        exit 1
+    endif
+    onintr clean2
+    if (-e  "$xrayname") \rm -f  "$xrayname"
+    if (-e  "$compname") \mv  "$compname" "${compname}~"
+    echo "Getting difference image ..."
+    subimage -mode 2 "$argv[1]" "$origname" "$xrayname" >! $logname
+    if ($status) then
+        echo "ERROR: $pn - getting difference file:"
+        grep ERROR $logname
+        goto clean2
+    endif
+
+    echo "Compressing $xrayname ..."
+    gzip $xrayname
+    if ($status) then
+        echo "ERROR: $pn - compressing $xrayname"
+        goto clean2
+    endif
+    
+    echo "Compressed difference file:"
+    ls -l $compname
+    echo "It is now safe to delete $origname"
+    if ($delete) then
+        echo "Deleting $origname ..."
+        rm "$origname"
+    endif
+    echo "To restore it, enter:   $pn -r $argv[1]"
+    \rm -f $logname
+
+    exit 0
+
+endif
+
+clean:
+if (-e  "$xrayname") \rm -f  "$xrayname"
+if (-e  "$origname") \rm -f  "$origname"
+if (-e  $logname) \rm -f  $logname
+exit 1
+
+clean2:
+if (-e  "$xrayname") \rm -f  "$xrayname"
+if (-e  $logname) \rm -f  $logname
+exit 1
