@@ -12,6 +12,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2004/11/20 00:07:51  sueh
+ * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+ * <p>
  * <p> Revision 1.3.2.2  2004/09/22 22:19:09  sueh
  * <p> bug# 520 Add an option to set button minimum size to setButtonSize().
  * <p>
@@ -143,11 +146,10 @@ public class UIUtilities {
     while (keys.hasMoreElements()) {
       Object key = keys.nextElement();
       Object value = UIManager.get(key);
-      if (key.toString().equals(name) && value.getClass().equals(target.getClass())) {
+      if (key.toString().equals(name) && target.getClass().isInstance(value)) {
         return value;
       }
     }
     return null;
   }
-
 }
