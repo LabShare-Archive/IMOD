@@ -11,6 +11,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.18  2005/04/21 20:32:08  sueh
+ * <p> bug# 615 Pass axisID to packMainWindow so it can pack only the frame
+ * <p> that requires it.
+ * <p>
  * <p> Revision 3.17  2005/04/16 01:54:11  sueh
  * <p> bug# 615 Moved the adding of exit buttons to the base class.
  * <p>
@@ -196,7 +200,6 @@ public class CoarseAlignDialog extends ProcessDialog
     pnlCoarseAlign.setBorder(new BeveledBorder("Coarse Alignment").getBorder());
     UIUtilities.addWithSpace(pnlCoarseAlign, pnlCrossCorrelation.getPanel(),
       FixedDim.x0_y10);
-    btnCrossCorrelate.setBorder(BorderFactory.createBevelBorder(BevelBorder.RAISED));
     UIUtilities
       .addWithSpace(pnlCoarseAlign, btnCrossCorrelate, FixedDim.x0_y10);
     if (metaData.getViewType() == ViewType.MONTAGE) {
