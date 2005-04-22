@@ -1,0 +1,34 @@
+.na
+.nh
+.TH archiveorig 1 2.6.4 BL3DEMC
+.SH NAME
+archiveorig \- Archive/restore original data after X-ray removal
+.SH SYNOPSIS
+archiveorig [options] setname.st
+.SH DESCRIPTION
+archiveorig allows one to create a small file to archive original data after
+removing X-rays with ccderaser(1).  This eliminates the huge redundancy in
+archiving the both original and X-ray removed data.  The script assumes that
+files are named with the conventions that eTomo uses.  Specifically, when the
+input file is given as setname.st, the original stack is assumed to be named
+setname_orig.st.  The program then computes the difference between the
+original and X-ray removed stack and uses gzip to compress the difference
+file, which is name setname_xray.st.gz.  The resulting file should be ~2 MB
+for a 1 GB data stack.
+.SS Options
+.TP
+.B -r
+Restore setname_orig.st from setname_xray.st.gz and setname.st.  The X-ray 
+removed stack (setname.st) must be present to perform this operation.
+.TP
+.B -d
+Delete setname_orig.st after successfully producing setname_xray.st.gz.  By
+default, the file is left for the user to delete.
+.SH FILES
+If the final output file already exists a backup image
+of the original is created
+with the ~ extension.
+.SH AUTHOR
+David Mastronarde  <mast@colorado.edu>
+.SH SEE ALSO
+ccderaser(1), subimage(1), gzip(1)

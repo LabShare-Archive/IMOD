@@ -1,5 +1,14 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/22/05: Added Archiveorig, a script to archive the original stack as a small
+compressed file of differences after removing X-rays.
+
+4/21/05: Changed defaults in align.com so that local distortion solution is
+off; it will get turned on by eTomo when enables user global distortion.
+
+4/19/05: Removed WARNING string from minimization errors in Tiltalign since
+there is nothing to worry about if search succeeds with a metro factor change.
+
 4/13/05: IMOD_3-6-3
 4/13/05: Fixed ability to get binned prealigned stack in eTomo (not broken in 
 3.5)
