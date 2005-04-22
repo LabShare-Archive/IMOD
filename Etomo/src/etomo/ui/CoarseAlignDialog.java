@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.19  2005/04/22 00:14:25  sueh
+ * <p> bug# 615 removed test raised beveled button.
+ * <p>
  * <p> Revision 3.18  2005/04/21 20:32:08  sueh
  * <p> bug# 615 Pass axisID to packMainWindow so it can pack only the frame
  * <p> that requires it.
@@ -130,11 +133,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 
-import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JCheckBox;
 import javax.swing.JPanel;
-import javax.swing.border.BevelBorder;
 
 import etomo.ApplicationManager;
 import etomo.comscript.BlendmontParam;
