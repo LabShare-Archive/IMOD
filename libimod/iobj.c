@@ -15,6 +15,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.6  2005/03/20 19:56:43  mast
+Documenting and eliminating duplicate functions
+
 Revision 3.5  2004/11/20 04:42:10  mast
 Added duplicate and insert contours, functions, removed virtual stuff
 
@@ -238,51 +241,6 @@ Iobj *imodObjectDup(Iobj *obj)
 }
 
 /* DNM 11/15/04: removed virtual in and out */
-
-/*!
- * Returns a pointer to the current object in model [imod], or NULL if no legal
- * object is selected.
- */
-Iobj *imodObjectGet(Imod  *imod)
-{
-  if (!imod)
-    return(NULL);
-  if (imod->cindex.object < 0 || imod->cindex.object >= imod->objsize)
-    return( (Iobj *)NULL);
-  return( &(imod->obj[imod->cindex.object]));
-}
-
-/*!
- * Sets first object in model [imod] as current object and returns pointer to
- * it, or NULL if error.
- */
-Iobj *imodObjectGetFirst(Imod *imod)
-{
-  int ob, co, pt;
-
-  if (!imod) return(NULL);
-  imodGetIndex(imod, &ob, &co, &pt);
-  imodSetIndex(imod, 0, co, pt);
-  return(imodObjectGet(imod));
-}
-
-/*!
- * Advances the current object index by one in model [imod] and returns pointer
- * to new current object, or NULL if error or if the existing current object is
- * the last one in the model.
- */
-Iobj *imodObjectGetNext(Imod *imod)
-{
-  int ob, co, pt;
-
-  if (!imod) return(NULL);
-  imodGetIndex(imod, &ob, &co, &pt);
-  ob++;
-  if (ob >= imod->objsize)
-    return(NULL);
-  imodSetIndex(imod, ob, co, pt);
-  return(imodObjectGet(imod));
-}
 
 /*!
  * Returns pointer to the contour at [inIndex] in object [inObject], or NULL
