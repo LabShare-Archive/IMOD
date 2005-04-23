@@ -18,36 +18,6 @@ $Revision$
 Log at end 
 */
 
-
-/* Library Functions */
-/* Function
- * ---------------------------------------------------------------------------
- * Imod *imodNew(void)                Create a new model.
- * void  imodDelete(Imod *imod)       Delete a model.
- * 
- * void  imodGetIndex(Imod *imod, int *object, int *contour, int *point)
- * void  imodSetIndex(Imod *imod, int object, int contour, int point)
- *
- * int   imodNewObject(Imod *imod)
- * int   imodNextObject(Imod *imod)
- * int   imodPrevObject(Imod *imod)
- * int   imodDeleteObject(Imod *imod, int index)
- * int   imodMoveObject(Imod *imod, int obOld, int obNew)
- * 
- * int   imodNewContour(Imod *imod)
- * void  imodDeleteContour(Imod *imod)
- * int   imodNextContour(Imod *imod)
- * int   imodPrevContour(Imod *imod)
- *
- * int   imodNewPoint(Imod *imod, Ipoint *point)
- * int   imodDeletePoint(Imod *imod)
- * int   imodInsertPoint(Imod *imod, Ipoint *point, int index)
- * int   imodNextPoint(Imod *imod)
- * int   imodPrevPoint(Imod *imod)
- */
-
-
-/*************************** include files ***********************************/
 #include <math.h>
 #include "imodel.h"
 #include "b3dutil.h"
@@ -383,6 +353,11 @@ double imodel_dist(Imod *imod)
 
 }
 
+/*****************************************************************************/
+/* OBJECT-LEVEL FUNCTIONS
+ * DOC_SECTION OBJECT 
+ */
+
 /* static float basered = 0.5, basegreen = 0.5, baseblue = 0.5; */
 #define MAX_STOCK_COLORS  35
 
@@ -664,10 +639,56 @@ int imodPrevObject(Imod *mod)
   return(mod->cindex.object);
 }
 
+/*!
+ * Returns a pointer to the current object in model [imod], or NULL if no legal
+ * object is selected.
+ */
+Iobj *imodObjectGet(Imod  *imod)
+{
+  if (!imod)
+    return(NULL);
+  if (imod->cindex.object < 0 || imod->cindex.object >= imod->objsize)
+    return( (Iobj *)NULL);
+  return( &(imod->obj[imod->cindex.object]));
+}
+
+/*!
+ * Sets first object in model [imod] as current object and returns pointer to
+ * it, or NULL if error.
+ */
+Iobj *imodObjectGetFirst(Imod *imod)
+{
+  int ob, co, pt;
+
+  if (!imod) return(NULL);
+  imodGetIndex(imod, &ob, &co, &pt);
+  imodSetIndex(imod, 0, co, pt);
+  return(imodObjectGet(imod));
+}
+
+/*!
+ * Advances the current object index by one in model [imod] and returns pointer
+ * to new current object, or NULL if error or if the existing current object is
+ * the last one in the model.
+ */
+Iobj *imodObjectGetNext(Imod *imod)
+{
+  int ob, co, pt;
+
+  if (!imod) return(NULL);
+  imodGetIndex(imod, &ob, &co, &pt);
+  ob++;
+  if (ob >= imod->objsize)
+    return(NULL);
+  imodSetIndex(imod, ob, co, pt);
+  return(imodObjectGet(imod));
+}
+
 
 /*****************************************************************************/
-/* Contour Functions                                                         */
-/*****************************************************************************/
+/* Contour-LEVEL FUNCTIONS
+ * DOC_SECTION CONTOUR
+ */
 
 /*!
  * Adds a new contour to the current object of the model [mod].  It will 
@@ -870,13 +891,65 @@ int   imodNextContour(Imod *imod)
   return(imod->cindex.contour);
 }
      
+/*!
+ * Returns a pointer to the current contour in model [imod], or NULL if there
+ * is no current contour or the contour index is not legal.
+ */
+Icont *imodContourGet(Imod *imod)
+{
+  Iobj *obj;
+     
+  obj = imodObjectGet(imod);
+  if (obj == NULL)
+    return((Icont *)NULL);
+
+  /* DNM 3/9/01: need to test for index too high also in case of corrupt
+     model */
+  if (imod->cindex.contour < 0 || imod->cindex.contour >= obj->contsize)
+    return( (Icont *)NULL);
+     
+  return( &(obj->cont[imod->cindex.contour]));
+}
+
+/*!
+ * Sets the current contour index to 0 in the current object in model [imod]
+ * and returns pointer to first contour, or NULL if there is no contour.
+ */
+Icont *imodContourGetFirst(Imod *imod)
+{
+  int ob, co, pt;
+
+  if (!imod) return(NULL);
+  imodGetIndex(imod, &ob, &co, &pt);
+  imodSetIndex(imod, ob, 0, pt);
+  return(imodContourGet(imod));
+}
+
+/*!
+ * Advances to the next contour in the current object of model [imod] and
+ * returns pointer to the contour, or NULL if there is none (error or end
+ * of object).
+ */
+Icont *imodContourGetNext(Imod *imod)
+{
+  int ob, co, pt;
+  Iobj *obj;
+
+  if (!imod) return(NULL);
+  imodGetIndex(imod, &ob, &co, &pt);
+  obj = imodObjectGet(imod);
+  if (!obj) return(NULL);
+  if (!obj->contsize) return(NULL);
+  co++;
+  if (co >= obj->contsize) return(NULL);
+  imodSetIndex(imod, ob, co, pt);
+  return(imodContourGet(imod));
+}
 
 
-/*****************************************************************************
- * Point Functions
- *       imodNewPoint
- *       imodInsertPoint
- *       imodDeletePoint
+/*****************************************************************************/
+/* POINT-LEVEL FUNCTIONS
+ * DOC_SECTION POINT
  */
 
 /*!
@@ -993,6 +1066,75 @@ int   imodNextPoint(Imod *mod)
 
   return(mod->cindex.point);
 }
+
+/*!
+ * Returns a pointer to the current point in model [imod], or NULL if there
+ * is no current contour or current point.
+ */
+Ipoint *imodPointGet(Imod *imod)
+{
+  Icont *cont;
+
+  if (imod->cindex.point < 0)
+    return((Ipoint *)NULL);
+
+  cont = imodContourGet(imod);
+  if (!cont)
+    return((Ipoint *)NULL);
+
+  if (imod->cindex.point >= cont->psize)
+    imod->cindex.point = cont->psize - 1;
+  if (imod->cindex.point < 0)
+    return((Ipoint *)NULL);
+
+  return( &(cont->pts[imod->cindex.point]));
+}
+
+/*!
+ * Sets the current point index to 0 in the current contour in model [imod]
+ * and returns pointer to first point, or NULL if there is no current contour
+ * or point.
+ */
+Ipoint *imodPointGetFirst(Imod *imod)
+{
+  int ob, co, pt;
+
+  if (!imod) 
+    return(NULL);
+  imodGetIndex(imod, &ob, &co, &pt);
+  imodSetIndex(imod, ob, co, 0);
+  return(imodPointGet(imod));
+}
+
+/*!
+ * Advances to the next point in the current contour of model [imod] and
+ * returns pointer to the point , or NULL if there is none (error or end
+ * of contour).
+ */
+Ipoint *imodPointGetNext(Imod *imod)
+{
+  int ob, co, pt;
+  Icont *cont;
+
+  if (!imod) 
+    return(NULL);
+  imodGetIndex(imod, &ob, &co, &pt);
+     
+  cont = imodContourGet(imod);
+  if (!cont || !cont->psize)
+    return(NULL);
+
+  pt++;
+  if (pt >= cont->psize) 
+    return(NULL);
+  imodSetIndex(imod, ob, co, pt);
+  return(imodPointGet(imod));
+}
+
+/*****************************************************************************/
+/* MORE GENERAL FUNCTIONS
+ * END_SECTION
+ */
 
 /*!
  * Transforms all contour points in model [imod] with the 3D transform in 
@@ -1487,6 +1629,9 @@ int   imodGetFlipped(Imod *imod)
 
 /*
 $Log$
+Revision 3.17  2005/03/22 16:46:33  mast
+Fixed return type of imodDeleteObject
+
 Revision 3.16  2005/03/20 20:01:13  mast
 Fixed a mod/imod problem from copying code
 
