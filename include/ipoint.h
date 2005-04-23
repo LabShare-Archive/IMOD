@@ -1,5 +1,4 @@
-/*  IMOD VERSION 2.30
- *
+/*
  *  ipoint.h -- Image model point header.
  *
  *  Original author: James Kremer
@@ -24,10 +23,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-Ipoint *imodPointGet(Imod *imod);
-Ipoint *imodPointGetFirst(Imod *imod);
-Ipoint *imodPointGetNext(Imod *imod);
 
 int     imodPointAppend(Icont *cont, Ipoint *pnt);
 int     imodPointAdd(Icont *cont, Ipoint *pnt, int index);

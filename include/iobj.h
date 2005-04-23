@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 3.6  2005/03/20 19:55:48  mast
+    Eliminating duplicate functions
+
     Revision 3.5  2004/11/20 04:04:16  mast
     cleaned up, removed virtual, added dup and insert contour functions
 
@@ -125,9 +128,6 @@ extern "C" {
   int   imodObjectsDelete(Iobj *obj, int size);
   int   imodObjectCopy(Iobj *from, Iobj *to);
   Iobj *imodObjectDup(Iobj *obj);
-  Iobj *imodObjectGet(Imod *imod);
-  Iobj *imodObjectGetFirst(Imod *imod);
-  Iobj *imodObjectGetNext(Imod *imod);
 
 
   int   imodObjectSort(Iobj *obj);

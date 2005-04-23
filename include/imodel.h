@@ -488,6 +488,9 @@ extern "C" {
   int   imodDeleteObject(Imod *imod, int index);
   int   imodNextObject(Imod *imod);
   int   imodPrevObject(Imod *imod);
+  Iobj *imodObjectGet(Imod *imod);
+  Iobj *imodObjectGetFirst(Imod *imod);
+  Iobj *imodObjectGetNext(Imod *imod);
   int   imodMoveObject(Imod *imod, int obOld, int obNew);
   int   imodDefault(Imod *imod);
   void  imodCleanSurf(Imod *imod);
@@ -496,6 +499,9 @@ extern "C" {
   int   imodNewContour(Imod *imod);
   int   imodPrevContour(Imod *imod);
   int   imodNextContour(Imod *imod);
+  Icont *imodContourGet(Imod *mod);
+  Icont *imodContourGetFirst(Imod *imod);
+  Icont *imodContourGetNext(Imod *imod);
   int imodDeleteContour(Imod *imod, int index);
   void imodDelCurrentContour(Imod *imod);
 
@@ -504,6 +510,10 @@ extern "C" {
   int   imodDeletePoint(Imod *imod);
   int   imodPrevPoint(Imod *imod);
   int   imodNextPoint(Imod *imod);
+  Ipoint *imodPointGet(Imod *imod);
+  Ipoint *imodPointGetFirst(Imod *imod);
+  Ipoint *imodPointGetNext(Imod *imod);
+
 
   void  imodGetIndex(Imod *imod, int *object, int *contour, int *point);
   void  imodSetIndex(Imod *imod, int object, int contour, int point);
@@ -689,6 +699,9 @@ mesh (index) (vert size) (list size)
 
 /*    
     $Log$
+    Revision 3.23  2005/03/22 16:46:26  mast
+    Fixed return type of imodDeleteObject
+
     Revision 3.22  2005/03/20 19:55:48  mast
     Eliminating duplicate functions
 

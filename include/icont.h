@@ -16,6 +16,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.5  2005/03/30 02:23:30  mast
+Eliminates dummy imodel_contour_move
+
 Revision 3.4  2005/03/20 19:55:48  mast
 Eliminating duplicate functions
 
@@ -115,10 +118,6 @@ void    imodContourSetSurface(Icont *inContour, int inSurface);
 /*
  *
  */
-Icont *imodContourGet(struct Mod_Model *mod);
-Icont *imodContourGetFirst(Imod *imod);
-Icont *imodContourGetNext(Imod *imod);
-
 void   imodContourMakeDirection(Icont *cont, int direction);
 Icont *imodContourJoin(Icont *c1, Icont *c2, int st1, int st2, int fill,
 		       int counterdir);
