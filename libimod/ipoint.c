@@ -1,5 +1,5 @@
 /*
- *  ipoint.c -- Point editing functions for imodel models.
+ *  ipoint.c -- Point editing functions for IMOD models.
  *
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
@@ -16,6 +16,9 @@
     $Revision$
 
     $Log$
+    Revision 3.6  2005/03/20 19:56:49  mast
+    Eliminating duplicate functions
+
     Revision 3.5  2004/12/02 21:56:04  mast
     Revamped imodPointIntersect for segment intersections in zap window
 
@@ -33,60 +36,21 @@
 #include <math.h>
 #include "imodel.h"
 
-Ipoint *imodPointGet(Imod *imod)
-{
-  Icont *cont;
-
-  if (imod->cindex.point < 0)
-    return((Ipoint *)NULL);
-
-  cont = imodContourGet(imod);
-  if (!cont)
-    return((Ipoint *)NULL);
-
-  if (imod->cindex.point >= cont->psize)
-    imod->cindex.point = cont->psize - 1;
-  if (imod->cindex.point < 0)
-    return((Ipoint *)NULL);
-
-  return( &(cont->pts[imod->cindex.point]));
-}
-
-Ipoint *imodPointGetFirst(Imod *imod)
-{
-  int ob, co, pt;
-
-  if (!imod) return(NULL);
-  imodGetIndex(imod, &ob, &co, &pt);
-  imodSetIndex(imod, ob, co, 0);
-  return(imodPointGet(imod));
-}
-
-Ipoint *imodPointGetNext(Imod *imod)
-{
-  int ob, co, pt;
-  Icont *cont;
-
-  if (!imod) return(NULL);
-  imodGetIndex(imod, &ob, &co, &pt);
-     
-  cont = imodContourGet(imod);
-  if (!cont) return(NULL);
-  if (!cont->psize) return(NULL);
-
-  pt++;
-  if (pt >= cont->psize) return(NULL);
-  imodSetIndex(imod, ob, co, pt);
-  return(imodPointGet(imod));
-}
-
+/*!
+ * Adds point [pnt] to the end of contour [cont].  Manages point
+ * sizes and labels correctly.  Returns number of points
+ * in contour, or 0 if an error occurs.
+ */
 int imodPointAppend(Icont *cont, Ipoint *pnt)
 {
   return(imodPointAdd(cont, pnt, cont->psize));
 }
 
-/* Add a point to a contour at the given index.  Returns number of points
-   in contour, or 0 if an error occurs */
+/*!
+ * Adds point [pnt] to contour [cont] at the given [index].  Manages point
+ * sizes and labels correctly.  Returns number of 
+ * points in contour, or 0 if an error occurs.
+ */
 int imodPointAdd(Icont *cont, Ipoint *pnt, int index)
 {
   Ipoint ipnt, *tpts;     
@@ -151,7 +115,11 @@ int imodPointAdd(Icont *cont, Ipoint *pnt, int index)
   return(cont->psize);
 }
 
-
+/*!
+ * Deletes the point at [index] from contour [cont].  Frees the point and size
+ * arrays if the only point is deleted, and manages point sizes and labels 
+ * correctly.  Returns the size of the contour or -1 for error.
+ */
 int imodPointDelete(Icont *cont, int index)
 {
   int i;
@@ -197,9 +165,10 @@ int imodPointDelete(Icont *cont, int index)
   return(cont->psize);
 }
 
-/* DNM: new functions to set and get size; Set creates size array if it does 
-   not exist already, and Get returns either the actual or the default size */
-
+/*!
+ * Sets the size of point at [pt] in contour [cont] to [size].  Creates a
+ * size array if necessary.
+ */
 void imodPointSetSize(Icont *cont, int pt, float size)
 {
   int i;
@@ -214,6 +183,10 @@ void imodPointSetSize(Icont *cont, int pt, float size)
   cont->sizes[pt] = size;
 }
            
+/*!
+ * Returns the size of the point at [pt] in contour [cont] and object [obj];
+ * if no size was set for his point it returns the default size for object.
+ */
 float imodPointGetSize(Iobj *obj, Icont *cont, int pt)
 {
   if (!cont->sizes)
@@ -223,8 +196,9 @@ float imodPointGetSize(Iobj *obj, Icont *cont, int pt)
   return (cont->sizes[pt]);
 }
            
-
-
+/*!
+ * Returns distance in the X/Y plane between [pnt1] and [pnt2].
+ */
 double imodel_point_dist(Ipoint *pnt1, Ipoint *pnt2)
 {
 
@@ -236,6 +210,9 @@ double imodel_point_dist(Ipoint *pnt1, Ipoint *pnt2)
   return( sqrt(distance));
 }
 
+/*!
+ * Returns distance in the X/Y plane between [pnt1] and [pnt2].
+ */
 float imodPointDistance(Ipoint *pnt1, Ipoint *pnt2)
 {
   float distance;
@@ -246,6 +223,10 @@ float imodPointDistance(Ipoint *pnt1, Ipoint *pnt2)
   return(distance);
 }
 
+/*!
+ * Returns distance in 3D between points [p1] and [p2], with coordinates
+ * scaled by the values in [scale].
+ */
 float imodPoint3DScaleDistance(Ipoint *p1, Ipoint *p2, Ipoint *scale)
 {
   float xd   = (p1->x - p2->x) * scale->x; 
@@ -255,6 +236,7 @@ float imodPoint3DScaleDistance(Ipoint *p1, Ipoint *p2, Ipoint *scale)
   return((float)sqrt(dist));
 }
 
+/* Huh?  Used by icont_alldist which is used by bad principal axis */
 float imodPointLineDistance(Ipoint *ln, Ipoint *p)
 {
   float l = (ln->x * p->x) + (ln->y * p->y) + ln->z;
@@ -268,6 +250,10 @@ float imodPointLineDistance(Ipoint *ln, Ipoint *p)
   }
 }
 
+/*!
+ * Returns angle of line from origin to X, Y coordinates of [pt], between
+ * -pi/2 and pi/2
+ */
 double imodPoint2DAngle(Ipoint *pt)
 {
   double angle;
@@ -281,6 +267,7 @@ double imodPoint2DAngle(Ipoint *pt)
   return(angle);
 }
 
+/* Unused and too simple to be correct! */
 float imodPointLineSegDistance(Ipoint *lp1, Ipoint *lp2, Ipoint *p)
 {
   float dist = 0.0f;
@@ -296,6 +283,9 @@ float imodPointLineSegDistance(Ipoint *lp1, Ipoint *lp2, Ipoint *p)
   return(dist);
 }
 
+/*!
+ * Returns dot product of [pnt1] and [pnt2].
+ */
 float imodPointDot(Ipoint *pnt1, Ipoint *pnt2)
 {
   return( (pnt1->x * pnt2->x) + (pnt1->y * pnt2->y) + 
@@ -303,6 +293,9 @@ float imodPointDot(Ipoint *pnt1, Ipoint *pnt2)
 
 }
 
+/*!
+ * Returns cross product of [pnt1] and [pnt2].
+ */
 void imodPointCross( Ipoint *v1, Ipoint *v2, Ipoint *rp)
 {
   /*find the normal for the plane with the points p1,p2,p3 */
@@ -312,6 +305,9 @@ void imodPointCross( Ipoint *v1, Ipoint *v2, Ipoint *rp)
   return;
 }
 
+/*!
+ * Normalizes vector in [n] to length 1.
+ */
 void imodPointNormalize(Ipoint *n)
 {
   float dist;
@@ -334,6 +330,9 @@ void imodPointNormalize(Ipoint *n)
 }
 
 
+/*!
+ * Returns 1 if point [a] equals point [b], 0 otherwise.
+ */
 int imodPointIsEqual(Ipoint *a, Ipoint *b)
 {
   if ((a->x == b->x) && (a->y == b->y) && (a->z == b->z))
@@ -341,7 +340,10 @@ int imodPointIsEqual(Ipoint *a, Ipoint *b)
   return(0);
 }
 
-/* Return 1 if line segment a-b intersects line segment c-d */
+/*!
+ * Returns 1 if the line segment between [a] and [b] intersects the line 
+ * segment between [c] and [d], 0 otherwise.
+ */
 int imodPointIntersect(Ipoint *a, Ipoint *b, Ipoint *c, Ipoint *d)
 {
 
@@ -398,7 +400,8 @@ int imodPointIntersect(Ipoint *a, Ipoint *b, Ipoint *c, Ipoint *d)
   return (t >= 0. && t <= 1. && u >= 0. && u <= 1.) ? 1 : 0;
 }
 
-
+/* called from uncompiled part of imodinfo and unused and suspect 
+   imodObjectClip */
 int imodPointPlaneEdge(Ipoint *rpt, Iplane *plane, int planes,
                        Ipoint *pt1, Ipoint *pt2)
 {
@@ -442,7 +445,9 @@ int imodPointPlaneEdge(Ipoint *rpt, Iplane *plane, int planes,
   return(0);
 }
 
-
+/*!
+ * Returns the area of the 3D triangle formed by [p1], [p2], and [p3]
+ */
 float imodPointArea(Ipoint *p1, Ipoint *p2, Ipoint *p3)
 {
   Ipoint n,n1,n2;
@@ -458,6 +463,10 @@ float imodPointArea(Ipoint *p1, Ipoint *p2, Ipoint *p3)
   return((float)(sqrt(n.x*n.x + n.y*n.y + n.z*n.z) * 0.5));
 }
 
+/*!
+ * Returns the area of the 3D triangle formed by [p1], [p2], and [p3], with
+ * point coordinates scaled by [s].
+ */
 float imodPointAreaScale(Ipoint *p1, Ipoint *p2, Ipoint *p3, Ipoint *s)
 {
   Ipoint n,n1,n2;

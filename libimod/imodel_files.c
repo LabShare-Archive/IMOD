@@ -78,18 +78,30 @@ static void byteswap(void *ptr, unsigned size);
 static void tovmsfloat(unsigned char *ptr);
 #endif
 
+/*!
+ * Reads a model from file given by [filename] and returns created model 
+ * structure or NULL for error.  (Unused, calls @imodRead).
+ */
 Imod *imodFileRead(char *filename)
 {
   return(imodRead(filename));
 }
 
+/*!
+ * Writes the model [imod] to the file given by [filename].  Returns -1 for
+ * error, 0 for success.  (Unused 4/23/05).
+ */
 int  imodFileWrite(Imod *imod, char *filename)
 {
   FILE *fout = fopen(filename, "wb");
   return(imodWrite(imod, fout));
 }
 
-
+/*!
+ * Opens the file given by [filename] with the given [mode], sets the file 
+ * pointer into imod->file and the filename into imod->filename.  Returns -1
+ * for error or 0 for success.
+ */
 int imodOpenFile(char *filename, char *mode, Imod *imod)
 {
   FILE *fp;
@@ -108,6 +120,10 @@ int imodOpenFile(char *filename, char *mode, Imod *imod)
   return(0);
 }
 
+/*!
+ * Closes the file for model [imod], using file pointer in imod->file.  Returns
+ * -1 for error.
+ */
 int imodCloseFile(Imod *imod)
 {
   if (!imod)
@@ -118,6 +134,10 @@ int imodCloseFile(Imod *imod)
   return(0);
 }
 
+/*!
+ * Reads model from file pointer in imod->file and places model in [imod].
+ * Returns -1 for error.
+ */
 int imodReadFile(Imod *imod)
 {
   FILE *fp;
@@ -155,6 +175,10 @@ int imodReadFile(Imod *imod)
   return(0);
 }
 
+/*!
+ * Reads a model from file given by [filename] and returns created model 
+ * structure or NULL for error.
+ */
 Imod *imodRead(char *filename)
 {
   FILE *fin;
@@ -191,6 +215,10 @@ Imod *imodRead(char *filename)
   return(imod);
 }
 
+/*!
+ * Writes the model [imod] to the file pointer in imod->file.  Returns -1 for
+ * error, 0 for success.
+ */
 int imodWriteFile(Imod *imod)
 {
   if (!imod)
@@ -200,6 +228,10 @@ int imodWriteFile(Imod *imod)
   return(imodel_write(imod, imod->file));
 }
 
+/*!
+ * Writes the model [imod] to the file pointer in [fout].  Returns -1 for
+ * error, 0 for success.
+ */
 int imodWrite(Imod *imod, FILE *fout)
 {
   int error;
@@ -934,7 +966,11 @@ static int imodel_read_imat(Iobj *obj, FILE *fin, b3dUInt32 flags)
 }
 
 /***************************************************************************/
-
+/*!
+ * Reads an ascii model from file point in imod->file.  This is called
+ * automatically by general model reading routines when the file is not
+ * recognized as IMOD binary format.  Returns -1 for error.
+ */
 int imodReadAscii(Imod *imod)
 {
   Iobj *obj;
@@ -1123,7 +1159,10 @@ int imodReadAscii(Imod *imod)
   return(0);
 }
 
-
+/*!
+ * Writes the model [imod] in ascii format to the file pointer in imod->file.
+ * Returns 0.
+ */
 int imodWriteAscii(Imod *imod)
 {
   int ob, co, pt;
@@ -1514,6 +1553,9 @@ int imodPutByte(FILE *fp, unsigned char *dat)
 
 /*
   $Log$
+  Revision 3.17  2005/03/20 19:56:49  mast
+  Eliminating duplicate functions
+
   Revision 3.16  2005/02/11 01:42:34  mast
   Warning cleanup: implicit declarations, main return type, parentheses, etc.
 
