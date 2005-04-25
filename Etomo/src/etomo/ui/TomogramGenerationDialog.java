@@ -62,6 +62,10 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.41  2005/04/21 20:55:14  sueh
+ * bug# 615 Pass axisID to packMainWindow so it can pack only the frame
+ * that requires it.
+ *
  * Revision 3.40  2005/04/16 02:05:14  sueh
  * bug# 615 Moved the adding of exit buttons to the base class.
  *
@@ -1125,8 +1129,8 @@ public class TomogramGenerationDialog extends ProcessDialog
         errorMessage[0] = "Missing trial tomogram filename:";
         errorMessage[1] = "A filename for the trial tomogram must be entered in the Trial"
             + " tomogram filename edit box.";
-        applicationManager.getMainPanel().openMessageDialog(errorMessage,
-            "Tilt Parameter Syntax Error");
+        UIHarness.INSTANCE.openMessageDialog(errorMessage,
+            "Tilt Parameter Syntax Error", axisID);
         return;
       }
       if (!trialTomogramList.contains(trialTomogramName)) {
@@ -1206,7 +1210,7 @@ public class TomogramGenerationDialog extends ProcessDialog
     Autodoc autodoc = null;
 
     try {
-      autodoc = Autodoc.get(Autodoc.MTF_FILTER);
+      autodoc = Autodoc.get(Autodoc.MTF_FILTER, axisID);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();

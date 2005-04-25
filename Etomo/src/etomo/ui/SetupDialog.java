@@ -50,6 +50,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
   public static final String rcsid = "$Id$";
 
   private JPanel pnlDataParameters = new JPanel();
+  private UIHarness ui = UIHarness.INSTANCE;
 
   //  Dataset GUI objects
   private JPanel pnlDataset = new JPanel();
@@ -426,8 +427,8 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
       tiltAnglesB.getFields(metaData.getTiltAngleSpecB());
     }
     catch (NumberFormatException e) {
-      applicationManager.getMainPanel().openMessageDialog(
-          currentField + " must be numeric.", "Setup Dialog Error");
+      ui.openMessageDialog(
+          currentField + " must be numeric.", "Setup Dialog Error", AxisID.ONLY);
       return null;
     }
     metaData.setBinning(((Integer) spnBinning.getValue()).intValue());
@@ -459,17 +460,17 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     String panelErrorMessage;
 
     if (datasetText.equals("")) {
-      applicationManager.getMainPanel().openMessageDialog(
-          "Dataset name has not been entered.", errorMessageTitle);
+      ui.openMessageDialog(
+          "Dataset name has not been entered.", errorMessageTitle, AxisID.ONLY);
       return false;
     }
     File dataset = new File(datasetText);
     String datasetFileName = dataset.getName();
     if (datasetFileName.equals("a.st") || datasetFileName.equals("b.st")
         || datasetFileName.equals(".")) {
-      applicationManager.getMainPanel().openMessageDialog(
+      ui.openMessageDialog(
           "The name " + datasetFileName + " cannot be used as a dataset name.",
-          errorMessageTitle);
+          errorMessageTitle, AxisID.ONLY);
       return false;
     }
     //validate image distortion field file name
@@ -480,9 +481,9 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
       File distortionFile = new File(distortionFileText);
       if (!distortionFile.exists()) {
         String distortionFileName = distortionFile.getName();
-        applicationManager.getMainPanel().openMessageDialog(
+        ui.openMessageDialog(
             "The image distortion field file " + distortionFileName
-                + " does not exist.", errorMessageTitle);
+                + " does not exist.", errorMessageTitle, AxisID.ONLY);
         return false;
       }
     }
@@ -494,22 +495,22 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
       File magGradientFile = new File(magGradientFileText);
       if (!magGradientFile.exists()) {
         String magGradientFileName = magGradientFile.getName();
-        applicationManager.getMainPanel().openMessageDialog(
+        ui.openMessageDialog(
             "The mag gradients correction file " + magGradientFileName
-                + " does not exist.", errorMessageTitle);
+                + " does not exist.", errorMessageTitle, AxisID.ONLY);
         return false;
       }
     }
     panelErrorMessage = tiltAnglesA.getErrorMessage();
     if (panelErrorMessage != null) {
-      applicationManager.getMainPanel().openMessageDialog(
-          panelErrorMessage + " in Axis A.", errorMessageTitle);
+      ui.openMessageDialog(
+          panelErrorMessage + " in Axis A.", errorMessageTitle, AxisID.ONLY);
       return false;
     }
     panelErrorMessage = tiltAnglesB.getErrorMessage();
     if (panelErrorMessage != null) {
-      applicationManager.getMainPanel().openMessageDialog(
-          panelErrorMessage + " in Axis B.", errorMessageTitle);
+      ui.openMessageDialog(
+          panelErrorMessage + " in Axis B.", errorMessageTitle, AxisID.ONLY);
       return false;
     }
 
@@ -715,8 +716,8 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     // Get the dataset name from the UI object
     String datasetName = ltfDataset.getText();
     if (datasetName == null || datasetName.equals("")) {
-      applicationManager.getMainPanel().openMessageDialog(
-          "Dataset name has not been entered", "Missing dataset name");
+      ui.openMessageDialog(
+          "Dataset name has not been entered", "Missing dataset name", AxisID.ONLY);
       return;
     }
     //  Add the appropriate extension onto the filename if necessary 
@@ -732,17 +733,17 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
 
     // Run header on the dataset to the extract whatever information is
     // available
-    MRCHeader header = new MRCHeader(datasetName);
+    MRCHeader header = new MRCHeader(datasetName, AxisID.ONLY);
     try {
       header.read();
     }
     catch (InvalidParameterException except) {
-      applicationManager.getMainPanel().openMessageDialog(except.getMessage(),
-          "Invalid Parameter Exception");
+      ui.openMessageDialog(except.getMessage(),
+          "Invalid Parameter Exception", AxisID.ONLY);
     }
     catch (IOException except) {
-      applicationManager.getMainPanel().openMessageDialog(except.getMessage(),
-          "IO Exception");
+      ui.openMessageDialog(except.getMessage(),
+          "IO Exception", AxisID.ONLY);
     }
 
     // Set the image rotation if available
@@ -755,23 +756,23 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     double xPixelSize = header.getXPixelSize();
     double yPixelSize = header.getYPixelSize();
     if (Double.isNaN(xPixelSize) || Double.isNaN(yPixelSize)) {
-      applicationManager.getMainPanel().openMessageDialog(
+      ui.openMessageDialog(
         "Pixel size is not defined in the image file header",
-        "Pixel size is missing");
+        "Pixel size is missing", AxisID.ONLY);
       
       return;
     }
 
     if (xPixelSize != yPixelSize) {
-      applicationManager.getMainPanel().openMessageDialog(
+      ui.openMessageDialog(
           "X & Y pixels sizes are different, don't know what to do",
-          "Pixel sizes are different");
+          "Pixel sizes are different", AxisID.ONLY);
       return;
     }
     if (xPixelSize == 1.0) {
-      applicationManager.getMainPanel().openMessageDialog(
+      ui.openMessageDialog(
           "Pixel size is not defined in the image file header",
-          "Pixel size is missing");
+          "Pixel size is missing", AxisID.ONLY);
       return;
     }
     ltfPixelSize.setText(xPixelSize / 10.0);
@@ -1027,6 +1028,10 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.27  2005/04/21 20:47:00  sueh
+ * <p> bug# 615 Pass axisID to packMainWindow so it can pack only the frame
+ * <p> that requires it.
+ * <p>
  * <p> Revision 3.26  2005/04/16 02:04:12  sueh
  * <p> bug# 615 Moved the adding of exit buttons to the base class.
  * <p>
