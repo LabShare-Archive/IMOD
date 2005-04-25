@@ -19,6 +19,9 @@ import etomo.type.AxisID;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.2  2004/05/05 19:15:25  sueh
+ * <p> $param test - proof of concept
+ * <p> $
  * <p> $Revision 1.1  2004/05/03 18:05:13  sueh
  * <p> $param testing proof of concept - object to retrieve testing files
  * <p> $$ </p>
@@ -57,7 +60,8 @@ public class TestFiles {
   }
 
   private TestFiles() {
-    testDir = new File(Utilities.getEnvironmentVariable(SELF_TEST_DIR_ENV_VAR), TEST_DIR);
+    testDir = new File(Utilities.getEnvironmentVariable(SELF_TEST_DIR_ENV_VAR,
+        AxisID.ONLY), TEST_DIR);
     comscriptDir = new File(testDir, COMSCRIPT_DIR);
     oldVersionDir = new File(comscriptDir, OLD_VERSION_DIR);
     newVersionDir = new File(comscriptDir, NEW_VERSION_DIR);

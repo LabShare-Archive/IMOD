@@ -19,6 +19,7 @@ import etomo.comscript.CombineParams;
 import etomo.comscript.ConstCombineParams;
 import etomo.comscript.ConstSolvematchParam;
 import etomo.comscript.SolvematchParam;
+import etomo.type.AxisID;
 import etomo.type.EtomoAutodoc;
 import etomo.type.FiducialMatch;
 
@@ -36,6 +37,9 @@ import etomo.type.FiducialMatch;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.8  2005/03/01 20:59:58  sueh
+ * <p> Removed print statement.
+ * <p>
  * <p> Revision 3.7  2005/02/24 00:52:18  sueh
  * <p> bug# 600 Removed unnecessary import.
  * <p>
@@ -394,7 +398,7 @@ public class SolvematchPanel implements InitialCombineFields {
     TooltipFormatter tooltipFormatter = new TooltipFormatter();
     Autodoc autodoc = null;
     try {
-      autodoc = Autodoc.get(Autodoc.SOLVEMATCH);
+      autodoc = Autodoc.get(Autodoc.SOLVEMATCH, AxisID.ONLY);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();

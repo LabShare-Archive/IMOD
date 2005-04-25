@@ -1454,7 +1454,7 @@ private void setToolTipText() {
     TooltipFormatter tooltipFormatter = new TooltipFormatter();
     Autodoc autodoc = null;
     try {
-      autodoc = Autodoc.get(Autodoc.TILTALIGN);
+      autodoc = Autodoc.get(Autodoc.TILTALIGN, axisID);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();
@@ -1579,6 +1579,9 @@ private void setToolTipText() {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.22  2005/02/24 00:52:35  sueh
+ * <p> bug# 600 Fixed a bug that was saving a value to the wrong parameter.
+ * <p>
  * <p> Revision 3.21  2005/02/21 23:05:04  sueh
  * <p> bug# 600 Making ConstTiltalignParam parameter name statics public.
  * <p>

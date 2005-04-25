@@ -19,6 +19,7 @@ import etomo.ApplicationManager;
 import etomo.comscript.TrimvolParam;
 import etomo.process.ImodManager;
 import etomo.process.ImodProcess;
+import etomo.type.AxisID;
 /**
  * <p>Description: </p>
  * 
@@ -32,6 +33,9 @@ import etomo.process.ImodProcess;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.5  2005/03/24 17:55:44  sueh
+ * <p> bug# 621 Set a preferred text width for fields that where too small.
+ * <p>
  * <p> Revision 3.4  2004/05/13 20:13:51  sueh
  * <p> bug# 33 change setXYMinAndMax() so it can ignore non rubberband data
  * <p>
@@ -365,7 +369,7 @@ public class TrimvolPanel {
     if (event.getActionCommand() == btnGetCoordinates.getActionCommand()) {
       setXYMinAndMax(
         applicationManager.imodGetRubberbandCoordinates(
-          ImodManager.COMBINED_TOMOGRAM_KEY));
+          ImodManager.COMBINED_TOMOGRAM_KEY, AxisID.ONLY));
     }   
   }
 

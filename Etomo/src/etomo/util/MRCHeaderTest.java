@@ -6,6 +6,7 @@ import java.io.IOException;
 
 import etomo.EtomoDirector;
 import etomo.process.SystemProcessException;
+import etomo.type.AxisID;
 
 import junit.framework.TestCase;
 
@@ -22,6 +23,11 @@ import junit.framework.TestCase;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.12  2004/12/08 21:32:34  sueh
+ * <p> bug# 520 Setting the working directory in TestUtilities.checkoutVector().
+ * <p> Also setting the fail message for SystemProcessException in
+ * <p> TestUtilities.checkoutVector().
+ * <p>
  * <p> Revision 3.11  2004/11/24 22:16:19  sueh
  * <p> bug# 520 Getting the root test directory name from UtilTests.
  * <p>
@@ -79,13 +85,13 @@ public class MRCHeaderTest extends TestCase {
   private static final String testDirectory1 = new String("Test");
   private static final String testDirectory2 = new String("With Spaces");
   private static final String headerTestStack = "headerTest.st";
-  MRCHeader emptyFilename = new MRCHeader("");
+  MRCHeader emptyFilename = new MRCHeader("", AxisID.ONLY);
   MRCHeader badFilename = new MRCHeader(UtilTests.testRoot + testDirectory1
-      + "/non_existant_image_file");
+      + "/non_existant_image_file", AxisID.ONLY);
   MRCHeader mrcHeader = new MRCHeader(UtilTests.testRoot + testDirectory1
-      + "/headerTest.st");
+      + "/headerTest.st", AxisID.ONLY);
   MRCHeader mrcWithSpaces = new MRCHeader(UtilTests.testRoot + testDirectory2
-      + "/headerTest.st");
+      + "/headerTest.st", AxisID.ONLY);
 
   /**
    * Constructor for MRCHeaderTest.

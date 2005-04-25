@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import etomo.ApplicationManager;
 import etomo.EtomoDirector;
 import etomo.process.SystemProgram;
+import etomo.type.AxisID;
 
 /**
  * <p>Description: An interface to the header information in a MRC Image 
@@ -21,6 +22,10 @@ import etomo.process.SystemProgram;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.8  2005/01/14 03:14:32  sueh
+ * <p> Prevented non-error messages from showing up in the err.log  file unless
+ * <p> debug is on.
+ * <p>
  * <p> Revision 3.7  2004/11/20 00:11:48  sueh
  * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
  * <p>
@@ -110,8 +115,10 @@ public class MRCHeader {
   private double imageRotation = Double.NaN;
   private int binning = Integer.MIN_VALUE;
   private boolean debug = false;
+  private AxisID axisID;
 
-  public MRCHeader(String name) {
+  public MRCHeader(String name, AxisID axisID) {
+    this.axisID = axisID;
     filename = new String(name);
     debug = EtomoDirector.getInstance().isDebug();
   }
@@ -126,7 +133,7 @@ public class MRCHeader {
 		String[] commandArray = new String[2];
     commandArray[0] = ApplicationManager.getIMODBinPath() + "header";
     commandArray[1] = filename;
-    SystemProgram header = new SystemProgram(commandArray);
+    SystemProgram header = new SystemProgram(commandArray, axisID);
     header.setDebug(debug);
     header.run();
 

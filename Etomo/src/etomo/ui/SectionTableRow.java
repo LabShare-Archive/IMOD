@@ -8,6 +8,7 @@ import java.io.File;
 
 import javax.swing.JPanel;
 
+import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstSectionTableRowData;
 import etomo.type.SectionTableRowData;
@@ -29,6 +30,10 @@ import etomo.util.MRCHeader;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.5  2005/01/26 00:06:02  sueh
+* <p> Removing ConstEtomoNumber.displayDefault.  To get the default to
+* <p> display, set displayValue and default the same.
+* <p>
 * <p> Revision 1.4  2004/11/24 01:05:05  sueh
 * <p> bug# 520 removed invalidReason.  Simplified retrieveData().
 * <p>
@@ -489,31 +494,31 @@ public class SectionTableRow {
   private boolean retrieveData(boolean displayErrorMessage) {
     valid = true;
     String errorTitle = "Invalid number in row " + rowNumber.getText();
-    if (!data.setSampleBottomStart(sampleBottomStart.getText()).isValid(displayErrorMessage && valid, errorTitle)) {
+    if (!data.setSampleBottomStart(sampleBottomStart.getText()).isValid(displayErrorMessage && valid, errorTitle, AxisID.ONLY)) {
       valid = false;
     }
-    if (!data.setSampleBottomEnd(sampleBottomEnd.getText()).isValid(displayErrorMessage && valid, errorTitle)) {
+    if (!data.setSampleBottomEnd(sampleBottomEnd.getText()).isValid(displayErrorMessage && valid, errorTitle, AxisID.ONLY)) {
       valid = false;     
     }
-    if (!data.setSampleTopStart(sampleTopStart.getText()).isValid(displayErrorMessage && valid, errorTitle)) {
+    if (!data.setSampleTopStart(sampleTopStart.getText()).isValid(displayErrorMessage && valid, errorTitle, AxisID.ONLY)) {
       valid = false;    
     }
-    if (!data.setSampleTopEnd(sampleTopEnd.getText()).isValid(displayErrorMessage && valid, errorTitle)) {
+    if (!data.setSampleTopEnd(sampleTopEnd.getText()).isValid(displayErrorMessage && valid, errorTitle, AxisID.ONLY)) {
       valid = false;   
     }
-    if (!data.setFinalStart(finalStart.getText()).isValid(displayErrorMessage && valid, errorTitle)) {
+    if (!data.setFinalStart(finalStart.getText()).isValid(displayErrorMessage && valid, errorTitle, AxisID.ONLY)) {
       valid = false;  
     }
-    if (!data.setFinalEnd(finalEnd.getText()).isValid(displayErrorMessage && valid, errorTitle)) {
+    if (!data.setFinalEnd(finalEnd.getText()).isValid(displayErrorMessage && valid, errorTitle, AxisID.ONLY)) {
       valid = false;
     }
-    if (!data.setRotationAngleX(rotationAngleX.getText()).isValid(displayErrorMessage && valid, errorTitle)) {
+    if (!data.setRotationAngleX(rotationAngleX.getText()).isValid(displayErrorMessage && valid, errorTitle, AxisID.ONLY)) {
       valid = false;
     }
-    if (!data.setRotationAngleY(rotationAngleY.getText()).isValid(displayErrorMessage && valid, errorTitle)) {
+    if (!data.setRotationAngleY(rotationAngleY.getText()).isValid(displayErrorMessage && valid, errorTitle, AxisID.ONLY)) {
       valid = false;
     }
-    if (!data.setRotationAngleZ(rotationAngleZ.getText()).isValid(displayErrorMessage && valid, errorTitle)) {
+    if (!data.setRotationAngleZ(rotationAngleZ.getText()).isValid(displayErrorMessage && valid, errorTitle, AxisID.ONLY)) {
       valid = false;
     }
     return valid;

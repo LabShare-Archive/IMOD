@@ -13,6 +13,10 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.8  2005/02/10 18:57:35  sueh
+ * <p> bug# 599 String.matches() isn't handling the Windows file separator "\",
+ * <p> since its an escape charactor.  Using String.indexOf() instead.
+ * <p>
  * <p> Revision 1.7  2004/12/08 21:33:31  sueh
  * <p> bug# 520 Setting the working directory in TestUtilities.checkoutVector().
  * <p> Also setting the fail message for SystemProcessException in
@@ -49,6 +53,7 @@ import java.io.IOException;
 import etomo.EtomoDirector;
 import etomo.process.SystemProcessException;
 import etomo.process.SystemProgram;
+import etomo.type.AxisID;
 
 public class TestUtilites {
   public static final String rcsid = "$Id$";
@@ -113,7 +118,7 @@ public class TestUtilites {
     cvsCommand[4] = "-d";
     cvsCommand[5] = dirName;
     cvsCommand[6] = "ImodTests/EtomoTests/vectors/" + vector;
-    SystemProgram cvs = new SystemProgram(cvsCommand);
+    SystemProgram cvs = new SystemProgram(cvsCommand, AxisID.ONLY);
     cvs.setDebug(true);
     cvs.run();
     for (int i = 0; i < cvsCommand.length; i++) {
@@ -122,9 +127,9 @@ public class TestUtilites {
     System.err.println();
     if (cvs.getExitValue() > 0) {
       String message = cvs.getStdErrorString() + "\nCVSROOT="
-          + Utilities.getEnvironmentVariable("CVSROOT") + "\nworkingDirName="
-          + director.getCurrentPropertyUserDir() + "\ndirName=" + dirName
-          + "\nvector=" + vector;
+          + Utilities.getEnvironmentVariable("CVSROOT", AxisID.ONLY)
+          + "\nworkingDirName=" + director.getCurrentPropertyUserDir()
+          + "\ndirName=" + dirName + "\nvector=" + vector;
       director.setCurrentPropertyUserDir(originalDirName);
       throw new SystemProcessException(message);
     }
@@ -137,7 +142,7 @@ public class TestUtilites {
       rmCommand[0] = "rm";
       rmCommand[1] = "-rf";
       rmCommand[2] = badDirectory.getAbsolutePath();
-      SystemProgram rm = new SystemProgram(rmCommand);
+      SystemProgram rm = new SystemProgram(rmCommand, AxisID.ONLY);
       rm.run();
     }
     director.setCurrentPropertyUserDir(originalDirName);

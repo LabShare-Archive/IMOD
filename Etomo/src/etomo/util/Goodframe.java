@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import etomo.ApplicationManager;
 import etomo.EtomoDirector;
 import etomo.process.SystemProgram;
+import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoNumber;
 
@@ -27,7 +28,11 @@ public class Goodframe {
 
   private EtomoNumber firstOutput = new EtomoNumber(EtomoNumber.INTEGER_TYPE);
   private EtomoNumber secondOutput = new EtomoNumber(EtomoNumber.INTEGER_TYPE);
+  private AxisID axisID;
 
+  public Goodframe(AxisID axisID) {
+    this.axisID = axisID;
+  }
   /**
    * 
    * @throws IOException
@@ -40,7 +45,7 @@ public class Goodframe {
     commandArray[0] = ApplicationManager.getIMODBinPath() + "goodframe";
     commandArray[1] = Integer.toString(firstInput);
     commandArray[2] = Integer.toString(secondInput);
-    SystemProgram groupframe = new SystemProgram(commandArray);
+    SystemProgram groupframe = new SystemProgram(commandArray, axisID);
     groupframe.setDebug(EtomoDirector.getInstance().isDebug());
     groupframe.run();
 
@@ -108,5 +113,8 @@ public class Goodframe {
   }
 }
 /**
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2005/03/29 19:55:49  sueh
+* <p> bug# 623 Class to run goodframe command.
+* <p> </p>
 */

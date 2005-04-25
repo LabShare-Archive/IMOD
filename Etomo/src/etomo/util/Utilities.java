@@ -12,6 +12,9 @@
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.11  2004/11/20 00:15:34  sueh
+ * <p> $bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+ * <p> $
  * <p> $Revision 3.10.2.6  2004/11/15 22:26:49  sueh
  * <p> $bug# 520 Moved all of file validation to Utilities so that is called be called
  * <p> $from other places.
@@ -312,14 +315,15 @@ public class Utilities {
    * @param varName
    * @return String
    */
-  static public String getEnvironmentVariable(String varName) {
+  static public String getEnvironmentVariable(String varName, AxisID axisID) {
     //  There is not a real good way to access the system environment variables
     //  since the primary method was deprecated
     SystemProgram readEnvVar;
     String osName = System.getProperty("os.name");
 
     if (osName.startsWith("Windows")) {
-      readEnvVar = new SystemProgram("cmd.exe /C echo %" + varName + "%");
+      readEnvVar = new SystemProgram("cmd.exe /C echo %" + varName + "%",
+          axisID);
       try {
         readEnvVar.run();
       }
@@ -349,7 +353,7 @@ public class Utilities {
     //  Non windows environment
     else {
 
-      readEnvVar = new SystemProgram("env");
+      readEnvVar = new SystemProgram("env", axisID);
       try {
         readEnvVar.run();
       }

@@ -133,7 +133,7 @@ public class Montagesize {
     if (pieceListFile.exists()) {
       commandArray[2] = pieceListFile.getAbsolutePath();
     }
-    SystemProgram montagesize = new SystemProgram(commandArray);
+    SystemProgram montagesize = new SystemProgram(commandArray, axisID);
     montagesize.setDebug(EtomoDirector.getInstance().isDebug());
     montagesize.run();
 
@@ -225,6 +225,10 @@ public class Montagesize {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.2  2005/03/29 19:57:25  sueh
+ * <p> bug# 623 Added fileExists state.  Added pieceListFile to the command
+ * <p> string, if it exists.
+ * <p>
  * <p> Revision 1.1  2005/03/08 02:01:47  sueh
  * <p> bug# 533 Object to call montagesize.
  * <p> </p>
