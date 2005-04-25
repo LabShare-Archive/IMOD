@@ -5,12 +5,9 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
-import java.awt.HeadlessException;
-import java.util.ArrayList;
 
 import javax.swing.BoxLayout;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
@@ -34,6 +31,12 @@ import etomo.type.AxisType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.19  2005/04/21 20:43:47  sueh
+ * <p> bug# 615 Moved two frame code out of newstuff.  Removed
+ * <p> packAxis, since it is not necessary.  Moved getTestParamFilename() to
+ * <p> EtomoFrame, since it is only used for menu commands.  Moved
+ * <p> fitWindow() to EtomoFrame.
+ * <p>
  * <p> Revision 1.18  2005/04/20 01:50:19  sueh
  * <p> bug# 615 Removed getAxisB because its name was misleading.  It
  * <p> shows axis like a show function.  Place the functionality in showAxisB.
@@ -176,13 +179,12 @@ public abstract class MainPanel extends JPanel {
   protected BaseManager manager = null;
   private boolean showingBothAxis = false;
   private boolean showingAxisA = true;
+  protected boolean showingSetup = false;
   protected AxisType axisType = AxisType.NOT_SET;
   
   private static final int estimatedMenuHeight = 60;
   private static final int extraScreenWidthMultiplier = 2;
   private static final Dimension frameBorder = new Dimension(10, 48);
-  private static final int messageWidth = 60;
-  private static final int maxMessageLines = 20;
   
   protected abstract void createAxisPanelA(AxisID axisID);
   protected abstract void createAxisPanelB();
@@ -559,141 +561,6 @@ public abstract class MainPanel extends JPanel {
     }
   }*/
 
-
-  /**
-   * Open a Yes or No question dialog
-   * @param message
-   * @return boolean True if the Yes option was selected
-   */
-  public boolean openYesNoDialog(String[] message) {
-    try {
-      int answer =
-        JOptionPane.showConfirmDialog(
-          this,
-          message,
-          "Etomo question",
-          JOptionPane.YES_NO_OPTION);
-
-      if (answer == JOptionPane.YES_OPTION) {
-        return true;
-      }
-      else {
-        return false;
-      }
-    }
-    catch (HeadlessException except) {
-      except.printStackTrace();
-      return false;
-    }
-  }
-  
-  public boolean openYesNoDialog(String message) {
-    try {
-      int answer =
-        JOptionPane.showConfirmDialog(
-          this,
-          message,
-          "Etomo question",
-          JOptionPane.YES_NO_OPTION);
-
-      if (answer == JOptionPane.YES_OPTION) {
-        return true;
-      }
-      else {
-        return false;
-      }
-    }
-    catch (HeadlessException except) {
-      except.printStackTrace();
-      return false;
-    }
-  }
-
-  /**
-   * Open a Yes, No or Cancel question dialog
-   * @param message
-   * @return int state of the users select
-   */
-  public int openYesNoCancelDialog(String[] message) {
-    return JOptionPane.showConfirmDialog(
-      this,
-      message,
-      "Etomo question",
-      JOptionPane.YES_NO_CANCEL_OPTION);
-  }
-
-  /**
-   * Open a message dialog
-   * @param message
-   * @param title
-   */
-  public void openMessageDialog(String[] message, String title) {
-    if (message == null) {
-      EtomoDirector.getInstance().getMainFrame().openMessageDialog(
-          manager.getBaseMetaData().getName() + ":", title);
-      return;
-    }
-    String[] wrappedMessage = wrap(message);
-    EtomoDirector.getInstance().getMainFrame().openMessageDialog(wrappedMessage, title);
-  }
-  
-  /**
-   * Open a message dialog
-   * @param message
-   * @param title
-   */
-  public void openMessageDialog(String message, String title) {
-    if (message == null) {
-      EtomoDirector.getInstance().getMainFrame().openMessageDialog(
-          manager.getBaseMetaData().getName() + ":", title);
-      return;
-    }
-    else {
-      String[] wrappedMessage = wrap(message);
-      EtomoDirector.getInstance().getMainFrame().openMessageDialog(wrappedMessage, title);
-    }
-  }
-  
-  private String[] wrap(String message) {
-    ArrayList messageArray = new ArrayList();
-    messageArray.add(manager.getBaseMetaData().getName() + ":");
-    messageArray = wrap(message, messageArray);
-    if (messageArray.size() == 1) {
-      String[] returnArray = {message};
-      return returnArray;
-    }
-    return (String[]) messageArray.toArray(new String[messageArray.size()]);
-  }
-  
-  private String[] wrap(String[] message) {
-    ArrayList messageArray = new ArrayList();
-    messageArray.add(manager.getBaseMetaData().getName() + ":");
-    for (int i = 0; i < message.length; i++) {
-      messageArray = wrap(message[i], messageArray);
-    }
-    if (messageArray.size() == 1) {
-      String[] returnArray = {(String) messageArray.get(0)};
-      return returnArray;
-    }
-    return (String[]) messageArray.toArray(new String[messageArray.size()]);
-  }
-  
-  private ArrayList wrap(String message, ArrayList messageArray) {
-    int messageLength = message.length();
-    int messageIndex = 0;
-    while (messageIndex < messageLength && messageArray.size() < maxMessageLines) {
-      int endIndex = Math.min(messageLength, messageIndex + messageWidth);
-      StringBuffer line = new StringBuffer(message.substring(messageIndex, endIndex));
-      messageIndex = endIndex;
-      while (messageIndex < messageLength
-          && message.substring(messageIndex, messageIndex + 1).matches("\\S+")) {
-        line.append(message.charAt(messageIndex++));
-      }
-      messageArray.add(line.toString());
-    }
-    return messageArray;
-  }
-
   //  TODO Need a way to repaint the existing font
   public void repaintWindow() {
     repaintContainer(this);
@@ -710,5 +577,12 @@ public abstract class MainPanel extends JPanel {
       comps[i].repaint();
     }
   }
-
+  
+  AxisType getAxisType() {
+    return axisType;
+  }
+  
+  boolean isShowingSetup() {
+    return showingSetup;
+  }
 }
