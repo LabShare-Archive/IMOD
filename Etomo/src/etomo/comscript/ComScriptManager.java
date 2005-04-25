@@ -14,6 +14,7 @@ import etomo.EtomoDirector;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.EtomoNumber;
+import etomo.ui.UIHarness;
 import etomo.util.Utilities;
 
 /**
@@ -31,6 +32,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.29  2005/04/13 20:32:13  sueh
+ * <p> bug# 633 put updateComScript call back into savePrenewst().
+ * <p>
  * <p> Revision 3.28  2005/04/07 21:50:48  sueh
  * <p> bug# 626 Added undistort script.  This script is contains a blendmont
  * <p> command which is loaded from xcorr, updated, and then written into
@@ -225,6 +229,7 @@ public class ComScriptManager {
   public static final String rcsid = "$Id$";
 
   ApplicationManager appManager;
+  UIHarness ui = UIHarness.INSTANCE;
 
   public static final String MTFFILTER_COMMAND = "mtffilter";
 
@@ -1490,8 +1495,8 @@ public class ComScriptManager {
       errorMessage[0] = "Failed attempt to update the comscript containing the command: "
         + command;
       errorMessage[1] = "It needs to be loaded first";
-      appManager.getMainPanel().openMessageDialog(errorMessage,
-          "ComScriptManager Error");
+      ui.openMessageDialog(errorMessage,
+          "ComScriptManager Error", axisID);
       return;
     }
 
@@ -1553,8 +1558,7 @@ public class ComScriptManager {
         errorMessage[0] = "Failed attempt to update the comscript containing the command: "
           + command;
         errorMessage[1] = "It needs to be loaded first";
-        appManager.getMainPanel().openMessageDialog(errorMessage,
-            "ComScriptManager Error");
+        ui.openMessageDialog(errorMessage,"ComScriptManager Error", axisID);
         return;
       }
       //If no fromScript, then default to reading from and writing to the
@@ -1632,8 +1636,7 @@ public class ComScriptManager {
       errorMessage[0] = "Failed attempt to update comscript for command:"
         + command;
       errorMessage[1] = "It needs to be loaded first";
-      appManager.getMainPanel().openMessageDialog(errorMessage,
-          "ComScriptManager Error");
+      ui.openMessageDialog(errorMessage,"ComScriptManager Error", axisID);
       return -1;
     }
 
@@ -1646,8 +1649,7 @@ public class ComScriptManager {
       errorMessage[0] = "Failed attempt to update comscript for command:"
         + command;
       errorMessage[1] = "previous command:" + previousCommand + "is missing.";
-      appManager.getMainPanel().openMessageDialog(errorMessage,
-          "ComScriptManager Error");
+      ui.openMessageDialog(errorMessage,"ComScriptManager Error", axisID);
       return -1;
     }
     
@@ -1672,8 +1674,8 @@ public class ComScriptManager {
       errorMessage[0] = "Failed attempt to update comscript for command:"
         + command;
       errorMessage[1] = "It needs to be loaded first";
-      appManager.getMainPanel().openMessageDialog(errorMessage,
-          "ComScriptManager Error");
+      ui.openMessageDialog(errorMessage,
+          "ComScriptManager Error", axisID);
       return -1;
     }
     
@@ -1683,8 +1685,8 @@ public class ComScriptManager {
         + command;
       errorMessage[1] = "previous index, " + previousCommandIndex
         + ", is invalid.";
-      appManager.getMainPanel().openMessageDialog(errorMessage,
-          "ComScriptManager Error");
+      ui.openMessageDialog(errorMessage,
+          "ComScriptManager Error", axisID);
       return -1;
     }
     
@@ -1734,8 +1736,7 @@ public class ComScriptManager {
       errorMessage[0] = "Failed attempt to delete command:"
         + command;
       errorMessage[1] = "It needs to be loaded first";
-      appManager.getMainPanel().openMessageDialog(errorMessage,
-          "ComScriptManager Error");
+      ui.openMessageDialog(errorMessage, "ComScriptManager Error", axisID);
       return;
     }
 
@@ -1748,8 +1749,7 @@ public class ComScriptManager {
       errorMessage[0] = "Failed attempt to delete command:"
         + command;
       errorMessage[1] = "previous command:" + previousCommand + "is missing.";
-      appManager.getMainPanel().openMessageDialog(errorMessage,
-          "ComScriptManager Error");
+      ui.openMessageDialog(errorMessage, "ComScriptManager Error", axisID);
       return;
     }
     
@@ -1859,8 +1859,8 @@ public class ComScriptManager {
         errorMessage[0] = "Failed attempt to initialize comscript for command:"
           + command;
         errorMessage[1] = "previous command:" + previousCommand + "is missing.";
-        appManager.getMainPanel().openMessageDialog(errorMessage,
-            "ComScriptManager Error");
+        ui.openMessageDialog(errorMessage,
+            "ComScriptManager Error", axisID);
         return false;
       }
       
