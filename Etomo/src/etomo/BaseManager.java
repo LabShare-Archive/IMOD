@@ -25,6 +25,7 @@ import etomo.type.ProcessName;
 import etomo.type.UserConfiguration;
 import etomo.ui.MainFrame;
 import etomo.ui.MainPanel;
+import etomo.ui.UIHarness;
 import etomo.ui.UIParameters;
 import etomo.util.Utilities;
 
@@ -42,6 +43,10 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.12  2005/04/21 20:28:13  sueh
+* <p> bug# 615 Pass axisID to packMainWindow so it can pack only the frame
+* <p> that requires it.
+* <p>
 * <p> Revision 1.11  2005/03/19 01:09:52  sueh
 * <p> adding comments
 * <p>
@@ -178,6 +183,7 @@ public abstract class BaseManager {
   //protected static variables
   protected static boolean test = false;
   protected MainFrame mainFrame = null;
+  protected UIHarness ui = UIHarness.INSTANCE;
   protected static UserConfiguration userConfig = EtomoDirector.getInstance()
       .getUserConfiguration();
   
@@ -261,14 +267,14 @@ public abstract class BaseManager {
     return oldPropertyUserDir;
   }
   
-  protected void initializeUIParameters(String paramFileName) {
+  protected void initializeUIParameters(String paramFileName, AxisID axisID) {
     if (!test) {
       //  Initialize the static UIParameter object
       UIParameters uiparameters = new UIParameters();
       // Open the etomo data file if one was found on the command line
       if (!paramFileName.equals("")) {
         File etomoDataFile = new File(paramFileName);
-        loadedTestParamFile = loadTestParamFile(etomoDataFile);
+        loadedTestParamFile = loadTestParamFile(etomoDataFile, axisID);
       }
     }
   }
@@ -281,15 +287,15 @@ public abstract class BaseManager {
    * A message asking the ApplicationManager to save the test parameter
    * information to a file.
    */
-  public void saveTestParamFile() {
+  public void saveTestParamFile(AxisID axisID) {
     Storable[] storable = new Storable[getNumStorables()];
     storable[0] = getBaseMetaData();
     storable[1] = getBaseState();
     getProcessTrack(storable, 2);
-    save(storable);
+    save(storable, axisID);
     //  Update the MRU test data filename list
     userConfig.putDataFile(paramFile.getAbsolutePath());
-    mainFrame.setMRUFileLabels(userConfig.getMRUFileList());
+    ui.setMRUFileLabels(userConfig.getMRUFileList());
     // Reset the process track flag, if it exists
     BaseProcessTrack processTrack = getProcessTrack();
     if (processTrack != null) {
@@ -305,11 +311,11 @@ public abstract class BaseManager {
    * paramFile must not be null.
    * @param storable
    */
-  private synchronized void save(Storable[] storable) {
+  private synchronized void save(Storable[] storable, AxisID axisID) {
     if (storable == null) {
       return;
     }
-    backupFile(paramFile);
+    backupFile(paramFile, axisID);
     ParameterStore paramStore = new ParameterStore(paramFile);
     try {
       paramStore.save(storable);
@@ -320,7 +326,7 @@ public abstract class BaseManager {
       errorMessage[0] = "Test parameter file save error";
       errorMessage[1] = "Could not save test parameter data to file:";
       errorMessage[2] = except.getMessage();
-      getMainPanel().openMessageDialog(errorMessage, "Test parameter file save error");
+      ui.openMessageDialog(errorMessage, "Test parameter file save error", axisID);
     }
   }
  
@@ -328,7 +334,7 @@ public abstract class BaseManager {
    * Exit the program.  To guarantee that etomo can always exit, catch all
    * unrecognized Exceptions and Errors and return true.
    */
-  public boolean exitProgram() {
+  public boolean exitProgram(AxisID axisID) {
     try {
       //  Check to see if any processes are still running
       ArrayList messageArray = new ArrayList();
@@ -353,32 +359,32 @@ public abstract class BaseManager {
       }
       if (messageArray.size() > 0) {
         messageArray.add("Do you still wish to exit the program?");
-        if (!mainFrame.openYesNoDialog((String[]) messageArray
-            .toArray(new String[messageArray.size()]))) {
+        if (!ui.openYesNoDialog((String[]) messageArray
+            .toArray(new String[messageArray.size()]), axisID)) {
           return false;
         }
       }
-      saveTestParamOnExit();
+      saveTestParamOnExit(axisID);
       //  Should we close the 3dmod windows
       try {
         if (imodManager.isOpen()) {
           String[] message = new String[3];
           message[0] = "There are still 3dmod programs running.";
           message[1] = "Do you wish to end these programs?";
-          if (mainFrame.openYesNoDialog(message)) {
+          if (ui.openYesNoDialog(message, axisID)) {
             imodManager.quit();
           }
         }
       }
       catch (AxisTypeException except) {
         except.printStackTrace();
-        getMainPanel().openMessageDialog(except.getMessage(),
-            "AxisType problem");
+        ui.openMessageDialog(except.getMessage(),
+            "AxisType problem", axisID);
       }
       catch (SystemProcessException except) {
         except.printStackTrace();
-        getMainPanel().openMessageDialog(except.getMessage(),
-            "Problem closing 3dmod");
+        ui.openMessageDialog(except.getMessage(),
+            "Problem closing 3dmod", axisID);
       }
       return true;
     }
@@ -388,9 +394,9 @@ public abstract class BaseManager {
     }
   }
   
-  protected void saveTestParamOnExit() {
+  protected void saveTestParamOnExit(AxisID axisID) {
     if (paramFile != null) {
-      saveTestParamFile();
+      saveTestParamFile(axisID);
     }
   }
   
@@ -407,19 +413,19 @@ public abstract class BaseManager {
     }
   }
   
-  public Vector imodGetRubberbandCoordinates(String imodKey) {
+  public Vector imodGetRubberbandCoordinates(String imodKey, AxisID axisID) {
     Vector results = null;
     try {
       results = imodManager.getRubberbandCoordinates(imodKey);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
-      getMainPanel().openMessageDialog(except.getMessage(), "AxisType problem");
+      ui.openMessageDialog(except.getMessage(), "AxisType problem", axisID);
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      getMainPanel().openMessageDialog(except.getMessage(),
-        "Unable to retrieve rubberband coordinates from " + imodKey + ".");
+      ui.openMessageDialog(except.getMessage(),
+        "Unable to retrieve rubberband coordinates from " + imodKey + ".", axisID);
     }
     Vector messageArray = new Vector();
     if (results == null) {
@@ -450,7 +456,7 @@ public abstract class BaseManager {
     }
     if (messageArray.size() > 0) {
       String[] messages = (String[]) messageArray.toArray(new String[messageArray.size()]);
-      getMainPanel().openMessageDialog(messages, "Rubberband Coordinates");
+      ui.openMessageDialog(messages, "Rubberband Coordinates", axisID);
     }
     return results;
   }
@@ -502,7 +508,7 @@ public abstract class BaseManager {
    * test parameter file.
    * @param paramFile the File object specifiying the data parameter file.
    */
-  protected boolean loadTestParamFile(File paramFile) {
+  protected boolean loadTestParamFile(File paramFile, AxisID axisID) {
     FileInputStream processDataStream;
     try {
       // Read in the test parameter data file
@@ -531,7 +537,7 @@ public abstract class BaseManager {
       errorMessage[0] = "Test parameter file read error";
       errorMessage[1] = "Could not find the test parameter data file:";
       errorMessage[2] = except.getMessage();
-      getMainPanel().openMessageDialog(errorMessage, "File not found error");
+      ui.openMessageDialog(errorMessage, "File not found error", axisID);
       return false;
     }
     catch (IOException except) {
@@ -540,20 +546,20 @@ public abstract class BaseManager {
       errorMessage[0] = "Test parameter file read error";
       errorMessage[1] = "Could not read the test parameter data from file:";
       errorMessage[2] = except.getMessage();
-      getMainPanel().openMessageDialog(errorMessage,
-        "Test parameter file read error");
+      ui.openMessageDialog(errorMessage,
+        "Test parameter file read error", axisID);
       return false;
     }
     StringBuffer invalidReason = new StringBuffer();
     if (!Utilities.isValidFile(paramFile, "Parameter file", invalidReason, true, true, true, false)) {
-      getMainPanel().openMessageDialog(invalidReason.toString(), "File Error");
+      ui.openMessageDialog(invalidReason.toString(), "File Error", axisID);
       return false;
     }
     this.paramFile = paramFile;
     return true;
   }
   
-  protected void backupFile(File file) {
+  protected void backupFile(File file, AxisID axisID) {
     if (file.exists()) {
       File backupFile = new File(file.getAbsolutePath() + "~");
       try {
@@ -562,7 +568,7 @@ public abstract class BaseManager {
       catch (IOException except) {
         System.err.println("Unable to backup file: " + file.getAbsolutePath()
           + " to " + backupFile.getAbsolutePath());
-        getMainPanel().openMessageDialog(except.getMessage(), "File Rename Error");
+        ui.openMessageDialog(except.getMessage(), "File Rename Error", axisID);
       }
     }
   }
@@ -596,8 +602,8 @@ public abstract class BaseManager {
       threadNameB = "none";
     }
     else {
-      getMainPanel().openMessageDialog("Unknown thread finished!!!", "Thread name: "
-        + threadName);
+      ui.openMessageDialog("Unknown thread finished!!!", "Thread name: "
+        + threadName, axisID);
     }
     if (processName != null) {
       updateDialog(processName, axisID);
@@ -646,9 +652,7 @@ public abstract class BaseManager {
   }
   
   public void packMainWindow(AxisID axisID) {
-    mainFrame.repaint(axisID);
-    mainFrame.fitWindow(axisID);
+    ui.repaint(axisID);
+    ui.fitWindow(axisID);
   }
-
-
 }
