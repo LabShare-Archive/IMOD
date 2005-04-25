@@ -62,50 +62,8 @@ public class EtomoMenu {
   private JMenuItem menuJoinGuide = new JMenuItem("Join Users Guide",
       KeyEvent.VK_J);
   private JMenuItem menuHelpAbout = new JMenuItem("About", KeyEvent.VK_A);
-  
-  private static EtomoFrame frame1 = null;
-  private static EtomoFrame frame2 = null;
-  private static EtomoMenu menu1 = null;
-  private static EtomoMenu menu2 = null;
-  
-  private int menuNumber = 0;
 
-  private EtomoMenu(int menuNumber) {
-    this.menuNumber = menuNumber;
-  }
-  
-  static EtomoMenu newEtomoMenu() {
-    //Assign MainFrame's menu to one EtomoMenu member variable and assign
-    //SubFrame to the other
-    synchronized (MainFrame.class) {
-      if (menu1 == null) {
-        menu1 = new EtomoMenu(1);
-        return menu1;
-      }
-      if (menu2 == null) {
-        menu2 = new EtomoMenu(2);
-        return menu2;
-      }
-      throw new IllegalStateException("There can be only two menus.");
-    }
-  }
-
-  void createMenus(EtomoFrame frame) {
-    //Assign MainFrame to one EtomoFrame member variable and assign SubFrame to
-    //the other.
-    synchronized (MainFrame.class) {
-      if (frame1 == null) {
-        frame1 = frame;
-      }
-      else if (frame2 == null) {
-        frame2 = frame;
-      }
-      else {
-        throw new IllegalStateException("There can be only two frames.\nframe=" + frame);
-      }
-    }
-    
-    SharedActionListener sharedActionListener = new SharedActionListener(this);
+  void createMenus(EtomoFrame frame) {   
     //  Mnemonics for the main menu bar
     menuFile.setMnemonic(KeyEvent.VK_F);
     menuOptions.setMnemonic(KeyEvent.VK_O);
@@ -138,7 +96,7 @@ public class EtomoMenu {
     OptionsActionListener optionsActionListener = new OptionsActionListener(
         frame);
     menuSettings.addActionListener(optionsActionListener);
-    menuFitWindow.addActionListener(sharedActionListener);
+    menuFitWindow.addActionListener(optionsActionListener);
     menuAxisA.addActionListener(optionsActionListener);
     menuAxisB.addActionListener(optionsActionListener);
     menuAxisBoth.addActionListener(optionsActionListener);
@@ -192,65 +150,23 @@ public class EtomoMenu {
     menuBar.add(menuHelp);
   }
   
-  private void sharedAction(ActionEvent event) {
-    String command = event.getActionCommand();
-    if (command.equals(menuFitWindow.getActionCommand())) {
-      if (frame1 != null) {
-        frame1.menuOptionsAction(event);
-      }
-      if (frame2 != null) {
-        frame2.menuOptionsAction(event);
-      }
-    }
-    else {
-      throw new IllegalStateException("No such shared action exists:  event=" + event);
-    }
-  }
-  
   JMenuBar getMenuBar() {
     return menuBar;
   }
   
   void setEnabled(BaseManager currentManager) {
-    setEnabled(currentManager, false);
-  }
-  
-  void setEnabled(BaseManager currentManager, boolean otherMenuDone) {
-    if (!otherMenuDone) {
-      //Also run this function in the other EtomoMenu instance
-      if (menuNumber == 1 && menu2 != null) {
-        menu2.setEnabled(currentManager, true);
-      }
-      else if (menuNumber == 2 && menu1 != null) {
-        menu1.setEnabled(currentManager, true);
-      }
-    }
-    
     menuFileSaveAs.setEnabled(currentManager.canChangeParamFileName());
     boolean dualAxis = currentManager.getBaseMetaData().getAxisType() == AxisType.DUAL_AXIS;
     menuAxisA.setEnabled(dualAxis);
     menuAxisB.setEnabled(dualAxis);
     menuAxisBoth.setEnabled(dualAxis);
   }
-  
-  void setMRUFileLabels(String[] mRUList) {
-    setMRUFileLabels(mRUList, false);
-  }
+
   /**
    * Set the MRU etomo data file list.  This fills in the MRU menu items
    * on the File menu
    */
-  void setMRUFileLabels(String[] mRUList, boolean otherMenuDone) {
-    //Also run this function in the other EtomoMenu instance
-    if (!otherMenuDone) {
-      if (menuNumber == 1 && menu2 != null) {
-        menu2.setMRUFileLabels(mRUList, true);
-      }
-      else if (menuNumber == 2 && menu1 != null) {
-        menu1.setMRUFileLabels(mRUList, true);
-      }
-    }
-    
+  void setMRUFileLabels(String[] mRUList) {
     for (int i = 0; i < mRUList.length; i++) {
       if (i == nMRUFileMax) {
         return;
@@ -403,20 +319,18 @@ public class EtomoMenu {
       adaptee.menuHelpAction(event);
     }
   }
-  
-  class SharedActionListener implements ActionListener {
-    EtomoMenu adaptee;
-    
-    SharedActionListener(EtomoMenu adaptee) {
-      this.adaptee = adaptee;
-    }
-
-    public void actionPerformed(ActionEvent event) {
-      adaptee.sharedAction(event);
-    }
-  }
-
 }
 /**
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2005/04/20 01:43:35  sueh
+* <p> bug# 615 Moved the menu functionality from MainFrame to this class.
+* <p> The class is designed to used by MainFrame and SubFrame.  The
+* <p> listeners are defined in this class and the actions functions they call
+* <p> are in the frame classes.
+* <p> Added the ability to call functions in both MainFrame and SubFrame from
+* <p> one menu click.  This is used only for fitting.
+* <p> Turned the class into a double-ton.  Added the ability to call functions in
+* <p> all instances of the class.  This is used to keep the phyical menus
+* <p> up-to-date.
+* <p> </p>
 */
