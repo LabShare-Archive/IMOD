@@ -9,6 +9,7 @@ import etomo.EtomoDirector;
 import etomo.comscript.Command;
 import etomo.comscript.ComscriptState;
 import etomo.type.AxisID;
+import etomo.ui.UIHarness;
 import etomo.util.Utilities;
 
 /**
@@ -25,6 +26,14 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.9  2005/01/05 19:52:39  sueh
+* <p> bug# 578 Moved startBackgroundComScript(String, Runnable, AxisID,
+* <p> ComscriptState, String) and startComScript(String, Runnable, AxisID,
+* <p> String) from ProcessManager to BaseProcessManager since they are
+* <p> generic.  Added startComScript(Command, Runnable, AxisID) to handle
+* <p> situations where postProcess(ComScriptProcess) needs to query the
+* <p> command.
+* <p>
 * <p> Revision 1.8  2004/12/14 21:33:25  sueh
 * <p> bug# 565: Fixed bug:  Losing process track when backing up .edf file and
 * <p> only saving metadata.  Removed unnecessary class JoinProcessTrack.
@@ -104,6 +113,7 @@ public abstract class BaseProcessManager {
   Thread processMonitorB = null;
   private HashMap killedList = new HashMap();
   EtomoDirector etomoDirector = EtomoDirector.getInstance();
+  protected UIHarness ui = UIHarness.INSTANCE;
   
   protected abstract void postProcess(ComScriptProcess script);
   protected abstract void postProcess(BackgroundProcess process);
@@ -209,7 +219,7 @@ public abstract class BaseProcessManager {
     comScriptProcess.setWorkingDirectory(new File(getManager().getPropertyUserDir()));
     comScriptProcess.setDebug(etomoDirector.isDebug());
     comScriptProcess.setDemoMode(etomoDirector.isDemo());
-    getManager().saveTestParamFile();
+    getManager().saveTestParamFile(axisID);
     comScriptProcess.start();
 
     // Map the thread to the correct axis
@@ -317,8 +327,8 @@ public abstract class BaseProcessManager {
       processID = thread.getShellProcessID();
     }
     
-    killProcessGroup(processID);
-    killProcessAndDescendants(processID);
+    killProcessGroup(processID, axisID);
+    killProcessAndDescendants(processID, axisID);
     
     thread.notifyKill();
 
@@ -341,7 +351,7 @@ public abstract class BaseProcessManager {
     }*/
   }
 
-  protected void killProcessGroup(String processID) {
+  protected void killProcessGroup(String processID, AxisID axisID) {
     if (processID == null || processID.equals("")) {
       return;
     }
@@ -351,8 +361,8 @@ public abstract class BaseProcessManager {
     }
     long groupPid = pid * -1;
     String groupProcessID = Long.toString(groupPid);
-    kill("-19", groupProcessID);
-    kill("-9", groupProcessID);
+    kill("-19", groupProcessID, axisID);
+    kill("-9", groupProcessID, axisID);
   }
   
   /**
@@ -374,33 +384,33 @@ public abstract class BaseProcessManager {
    * 
    * @param processID
    */
-  protected void killProcessAndDescendants(String processID) {
+  protected void killProcessAndDescendants(String processID, AxisID axisID) {
     if (processID == null || processID.equals("")) {
       return;
     }
     //try to prevent process from spawning with a SIGSTOP signal
-    kill("-19", processID);
+    kill("-19", processID, axisID);
 
     //kill all decendents of process before killing process
     String[] childProcessIDList = null;
     do {
       //get unkilled child processes
-      childProcessIDList = getChildProcessList(processID);
+      childProcessIDList = getChildProcessList(processID, axisID);
       if (childProcessIDList != null) {
         for (int i = 0; i < childProcessIDList.length; i++) {
-          killProcessAndDescendants(childProcessIDList[i]);
+          killProcessAndDescendants(childProcessIDList[i], axisID);
         }
       }
     } while (childProcessIDList != null);
     //there are no more unkilled child processes so kill process with a SIGKILL
     //signal
-    kill("-9", processID);
+    kill("-9", processID, axisID);
     //record killed process
     killedList.put(processID, "");
   }
 
-  private void kill(String signal, String processID) {
-    SystemProgram killShell = new SystemProgram("kill " + signal + " " + processID);
+  private void kill(String signal, String processID, AxisID axisID) {
+    SystemProgram killShell = new SystemProgram("kill " + signal + " " + processID, axisID);
     killShell.run();
     //System.out.println("kill " + signal + " " + processID + " at " + killShell.getRunTimestamp());
     Utilities.debugPrint("kill " + signal + " " + processID + " at " + killShell.getRunTimestamp());
@@ -415,10 +425,10 @@ public abstract class BaseProcessManager {
    * @param processID
    * @return A PID of a child process or null
    */
-  private String[] getChildProcessList(String processID) {
+  private String[] getChildProcessList(String processID, AxisID axisID) {
     Utilities.debugPrint("in getChildProcessList: processID=" + processID);
     //ps -l: get user processes on this terminal
-    SystemProgram ps = new SystemProgram("ps axl");
+    SystemProgram ps = new SystemProgram("ps axl", axisID);
     ps.run();
     //System.out.println("ps axl date=" +  ps.getRunTimestamp());
     //  Find the index of the Parent ID and ProcessID
@@ -497,10 +507,10 @@ public abstract class BaseProcessManager {
    * @param processID
    * @return A PID of a child process or null
    */
-  protected String getChildProcess(String processID) {
+  protected String getChildProcess(String processID, AxisID axisID) {
     Utilities.debugPrint("in getChildProcess: processID=" + processID);
     //ps -l: get user processes on this terminal
-    SystemProgram ps = new SystemProgram("ps axl");
+    SystemProgram ps = new SystemProgram("ps axl", axisID);
     ps.run();
 
     //  Find the index of the Parent ID and ProcessID
@@ -594,8 +604,8 @@ public abstract class BaseProcessManager {
           combined[j] = stdError[i];
         }
       }
-      getManager().getMainPanel().openMessageDialog(combined,
-          script.getScriptName() + " terminated");
+      ui.openMessageDialog(combined,
+          script.getScriptName() + " terminated", script.getAxisID());
       errorProcess(script);
     }
     else {
@@ -611,13 +621,12 @@ public abstract class BaseProcessManager {
         for (int i = 0; i < warningMessages.length; i++) {
           dialogMessage[j++] = warningMessages[i];
         }
-        getManager().getMainPanel().openMessageDialog(dialogMessage,
-            script.getScriptName()
-          + " warnings");
+        ui.openMessageDialog(dialogMessage, script.getScriptName()
+            + " warnings", script.getAxisID());
       }
 
     }
-    getManager().saveTestParamFile();
+    getManager().saveTestParamFile(script.getAxisID());
     //  Null out the correct thread
     // Interrupt the process monitor and nulll out the appropriate references
     if (threadAxisA == script) {
@@ -653,7 +662,7 @@ public abstract class BaseProcessManager {
     isAxisBusy(axisID);
 
     BackgroundProcess backgroundProcess = new BackgroundProcess(commandLine,
-        this);
+        this, axisID);
     return startBackgroundProcess(backgroundProcess, commandLine, axisID);
   }
   
@@ -663,14 +672,14 @@ public abstract class BaseProcessManager {
     isAxisBusy(axisID);
 
     BackgroundProcess backgroundProcess = new BackgroundProcess(commandArray,
-        this);
+        this, axisID);
     return startBackgroundProcess(backgroundProcess, commandArray.toString(), axisID);
   }
 
   protected BackgroundProcess startBackgroundProcess(Command command,
       AxisID axisID) throws SystemProcessException {
     isAxisBusy(axisID);
-    BackgroundProcess backgroundProcess = new BackgroundProcess(command, this);
+    BackgroundProcess backgroundProcess = new BackgroundProcess(command, this, axisID);
     return startBackgroundProcess(backgroundProcess, command.getCommandLine(),
         axisID);
   }
@@ -681,7 +690,7 @@ public abstract class BaseProcessManager {
     backgroundProcess.setWorkingDirectory(new File(getManager().getPropertyUserDir()));
     backgroundProcess.setDemoMode(etomoDirector.isDemo());
     backgroundProcess.setDebug(etomoDirector.isDebug());
-    getManager().saveTestParamFile();
+    getManager().saveTestParamFile(axisID);
     backgroundProcess.start();
     if (etomoDirector.isDebug()) {
       System.err.println("Started " + commandLine);
@@ -693,10 +702,11 @@ public abstract class BaseProcessManager {
   
   protected InteractiveSystemProgram startInteractiveSystemProgram(Command commandParam)
       throws SystemProcessException {
-    InteractiveSystemProgram program = new InteractiveSystemProgram(commandParam, this);
+    InteractiveSystemProgram program = new InteractiveSystemProgram(
+        commandParam, this, commandParam.getAxisID());
     program.setWorkingDirectory(new File(getManager().getPropertyUserDir()));
     Thread thread = new Thread(program);
-    getManager().saveTestParamFile();
+    getManager().saveTestParamFile(commandParam.getAxisID());
     thread.start();
     program.setName(thread.getName());
     if (etomoDirector.isDebug()) {
@@ -709,15 +719,15 @@ public abstract class BaseProcessManager {
   /**
    * Start an arbitrary command as an unmanaged background thread
    */
-  protected void startSystemProgramThread(String[] command) {
+  protected void startSystemProgramThread(String[] command, AxisID axisID) {
     // Initialize the SystemProgram object
-    SystemProgram sysProgram = new SystemProgram(command);
+    SystemProgram sysProgram = new SystemProgram(command, axisID);
     startSystemProgramThread(sysProgram);
   }
   
-  protected void startSystemProgramThread(String command) {
+  protected void startSystemProgramThread(String command, AxisID axisID) {
     // Initialize the SystemProgram object
-    SystemProgram sysProgram = new SystemProgram(command);
+    SystemProgram sysProgram = new SystemProgram(command, axisID);
     startSystemProgramThread(sysProgram);
   }
   
@@ -727,7 +737,7 @@ public abstract class BaseProcessManager {
 
     //  Start the system program thread
     Thread sysProgThread = new Thread(sysProgram);
-    getManager().saveTestParamFile();
+    getManager().saveTestParamFile(sysProgram.getAxisID());
     sysProgThread.start();
     if (etomoDirector.isDebug()) {
       System.err.println("Started " + sysProgram.getCommandLine());
@@ -766,8 +776,8 @@ public abstract class BaseProcessManager {
           message[j] = stdError[i];
         }
       }
-      getManager().getMainPanel().openMessageDialog(message,
-          process.getCommandName() + " terminated");
+      ui.openMessageDialog(message,
+          process.getCommandName() + " terminated", process.getAxisID());
     }
 
     // Another possible error message source is ERROR: in the stdout stream
@@ -790,8 +800,8 @@ public abstract class BaseProcessManager {
       .toArray(new String[errors.size()]);
 
     if (errorMessage.length > 0) {
-      getManager().getMainPanel().openMessageDialog(errorMessage,
-          "Background Process Error");
+      ui.openMessageDialog(errorMessage,
+          "Background Process Error", process.getAxisID());
       errorProcess(process);
     }
 
@@ -804,7 +814,7 @@ public abstract class BaseProcessManager {
       else {
         postProcess(process);
       }
-      getManager().saveTestParamFile();
+      getManager().saveTestParamFile(process.getAxisID());
     }
 
     // Null the reference to the appropriate thread
@@ -821,7 +831,7 @@ public abstract class BaseProcessManager {
   
   public void msgInteractiveSystemProgramDone(InteractiveSystemProgram program, int exitValue) {
     postProcess(program);
-    getManager().saveTestParamFile();
+    getManager().saveTestParamFile(program.getAxisID());
   }
 
 }

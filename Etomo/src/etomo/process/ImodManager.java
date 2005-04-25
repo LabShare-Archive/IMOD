@@ -28,6 +28,10 @@ import etomo.type.ConstMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.30  2005/03/04 00:13:03  sueh
+ * <p> bug# 533 Added setPieceListFileName() to set the -p command line
+ * <p> option in the 3dmod call.
+ * <p>
  * <p> Revision 3.29  2005/03/02 23:13:59  sueh
  * <p> bug# 533 Adding -fr (frames) to ignore montaging information and
  * <p> display the stack frame by frame.
@@ -917,8 +921,8 @@ public class ImodManager {
     if (key.equals(MATCH_CHECK_KEY) && axisType == AxisType.DUAL_AXIS) {
       return newMatchCheck();
     }
-    if (key.equals(FIDUCIAL_MODEL_KEY)) {
-      return newFiducialModel();
+    if (key.equals(FIDUCIAL_MODEL_KEY) && axisID != null) {
+      return newFiducialModel(axisID);
     }
     if (key.equals(TRIMMED_VOLUME_KEY)) {
       return newTrimmedVolume();
@@ -935,7 +939,7 @@ public class ImodManager {
       return newPreview(axisID);
     }
     if (key.equals(TOMOGRAM_KEY)) {
-      return newTomogram(file);
+      return newTomogram(file, axisID);
     }
     if (key.equals(JOIN_SAMPLES_KEY)) {
       return newJoinSamples();
@@ -987,7 +991,7 @@ public class ImodManager {
     imodMap.put(fineAlignedKey, newVector(newFineAligned(AxisID.ONLY)));
     imodMap.put(sampleKey, newVector(newSample(AxisID.ONLY)));
     imodMap.put(fullVolumeKey, newVector(newFullVolume(AxisID.ONLY)));
-    imodMap.put(fiducialModelKey, newVector(newFiducialModel()));
+    imodMap.put(fiducialModelKey, newVector(newFiducialModel(AxisID.ONLY)));
     imodMap.put(trimmedVolumeKey, newVector(newTrimmedVolume()));
     imodMap.put(mtfFilterKey, newVector(newMtfFilter(AxisID.ONLY)));
     imodMap.put(squeezedVolumeKey, newVector(newSqueezedVolume()));
@@ -1042,10 +1046,10 @@ public class ImodManager {
     imodMap.put(matchCheckKey, newVector(newMatchCheck()));
     imodMap.put(
       fiducialModelKey + AxisID.FIRST.getExtension(),
-      newVector(newFiducialModel()));
+      newVector(newFiducialModel(AxisID.FIRST)));
     imodMap.put(
       fiducialModelKey + AxisID.SECOND.getExtension(),
-      newVector(newFiducialModel()));
+      newVector(newFiducialModel(AxisID.SECOND)));
     imodMap.put(trimmedVolumeKey, newVector(newTrimmedVolume()));
     imodMap.put(
       mtfFilterKey + AxisID.FIRST.getExtension(),
@@ -1074,14 +1078,15 @@ public class ImodManager {
   }
   protected ImodState newSample(AxisID axisID) {
     ImodState imodState =
-      new ImodState(axisID, "top", "mid", "bot", ".rec", "tomopitch", ".mod");
+      new ImodState(axisID, "top", "mid", "bot",
+        ".rec", "tomopitch", ".mod");
     imodState.setInitialMode(ImodState.MODEL_MODE);
     return imodState;
   }
   protected ImodState newFullVolume(AxisID axisID) {
     ImodState imodState;
     if (axisType == AxisType.SINGLE_AXIS) {
-      imodState = new ImodState(datasetName + "_full.rec");
+      imodState = new ImodState(datasetName + "_full.rec", axisID);
     }
     else {
       imodState = new ImodState(axisID, datasetName, ".rec");
@@ -1090,30 +1095,31 @@ public class ImodManager {
     return imodState;
   }
   protected ImodState newCombinedTomogram() {
-    ImodState imodState = new ImodState("sum.rec");
+    ImodState imodState = new ImodState("sum.rec", AxisID.ONLY);
     imodState.setInitialSwapYZ(true);
     return imodState;
   }
   protected ImodState newPatchVectorModel() {
-    ImodState imodState = new ImodState("patch_vector.mod", ImodState.MODEL_VIEW);
+    ImodState imodState = new ImodState("patch_vector.mod",
+        ImodState.MODEL_VIEW, AxisID.ONLY);
     imodState.setInitialMode(ImodState.MODEL_MODE);
     return imodState;
   }
   protected ImodState newMatchCheck() {
-    ImodState imodState = new ImodState("matchcheck.mat matchcheck.rec");
+    ImodState imodState = new ImodState("matchcheck.mat matchcheck.rec", AxisID.ONLY);
     imodState.setInitialSwapYZ(true);
     return imodState;
   }
-  protected ImodState newFiducialModel() {
-    ImodState imodState = new ImodState(ImodState.MODV);
+  protected ImodState newFiducialModel(AxisID axisID) {
+    ImodState imodState = new ImodState(ImodState.MODV, axisID);
     return imodState;
   }
   protected ImodState newTrimmedVolume() {
-    ImodState imodState = new ImodState(datasetName + ".rec");
+    ImodState imodState = new ImodState(datasetName + ".rec", AxisID.ONLY);
     return imodState;
   }
   protected ImodState newTrialTomogram(AxisID axisID, String datasetName) {
-    ImodState imodState = new ImodState(datasetName);
+    ImodState imodState = new ImodState(datasetName, axisID);
     imodState.setInitialSwapYZ(true);
     return imodState;
   }
@@ -1125,32 +1131,32 @@ public class ImodManager {
     ImodState imodState = new ImodState(axisID, datasetName, ".st");
     return imodState;
   }
-  protected ImodState newTomogram(File file) {
-    ImodState imodState = new ImodState(file);
+  protected ImodState newTomogram(File file, AxisID axisID) {
+    ImodState imodState = new ImodState(file, axisID);
     return imodState;
   }
   protected ImodState newJoinSamples() {
-    ImodState imodState = new ImodState(datasetName + ".sample");
+    ImodState imodState = new ImodState(datasetName + ".sample", AxisID.ONLY);
     return imodState;
   }
   protected ImodState newJoinSampleAverages() {
-    ImodState imodState = new ImodState(datasetName + ".sampavg");
+    ImodState imodState = new ImodState(datasetName + ".sampavg", AxisID.ONLY);
     return imodState;
   }
   protected ImodState newJoin() {
-    ImodState imodState = new ImodState(datasetName + ".join");
+    ImodState imodState = new ImodState(datasetName + ".join", AxisID.ONLY);
     return imodState;
   }
   protected ImodState newRotTomogram(File file) {
-    ImodState imodState = new ImodState(file);
+    ImodState imodState = new ImodState(file, AxisID.ONLY);
     return imodState;
   }
   protected ImodState newTrialJoin() {
-    ImodState imodState = new ImodState(datasetName + "_trial.join");
+    ImodState imodState = new ImodState(datasetName + "_trial.join", AxisID.ONLY);
     return imodState;
   }
   private ImodState newSqueezedVolume() {
-    ImodState imodState = new ImodState(datasetName + ".sqz");
+    ImodState imodState = new ImodState(datasetName + ".sqz", AxisID.ONLY);
     return imodState;
   }
   
