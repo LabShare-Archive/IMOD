@@ -7,6 +7,7 @@ import java.util.Vector;
 
 import etomo.ApplicationManager;
 import etomo.EtomoDirector;
+import etomo.type.AxisID;
 
 /**
  * <p> Description: ImodProcess opens an instance of imod with the specfied stack
@@ -23,6 +24,10 @@ import etomo.EtomoDirector;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.23  2005/03/04 00:14:40  sueh
+ * <p> bug# 533 Added setPieceListFileName() to set the -p command line
+ * <p> option in the 3dmod call.
+ * <p>
  * <p> Revision 3.22  2005/03/02 23:14:19  sueh
  * <p> bug# 533 Adding -fr (frames) to ignore montaging information and
  * <p> display the stack frame by frame.
@@ -252,6 +257,7 @@ public class ImodProcess {
   private String[] datasetNameArray = null;
   private boolean frames = false;
   private String pieceListFileName = null;
+  private AxisID axisID;
 
   private Thread imodThread;
 
@@ -259,7 +265,8 @@ public class ImodProcess {
    * Constructor for using imodv
    * 
    */
-  public ImodProcess() {
+  public ImodProcess(AxisID axisID) {
+    this.axisID = axisID;
   }
 
   /**
@@ -267,7 +274,8 @@ public class ImodProcess {
    * 
    * @param A string specifying the path to the projection stack file
    */
-  public ImodProcess(String dataset) {
+  public ImodProcess(String dataset, AxisID axisID) {
+    this.axisID = axisID;
     datasetName = dataset;
   }
 
@@ -411,7 +419,7 @@ public class ImodProcess {
     if (EtomoDirector.getInstance().isDebug()) {
       System.err.println();
     }
-    imod = new InteractiveSystemProgram(commandArray);
+    imod = new InteractiveSystemProgram(commandArray, axisID);
     if (workingDirectory != null) {
       imod.setWorkingDirectory(workingDirectory);
     }
@@ -770,7 +778,7 @@ public class ImodProcess {
       System.err.print(command);
     }
     InteractiveSystemProgram imodSendEvent = new InteractiveSystemProgram(
-      command);
+      command, axisID);
 
     //  Start the imodSendEvent program thread and wait for it to finish
     Thread sendEventThread = new Thread(imodSendEvent);

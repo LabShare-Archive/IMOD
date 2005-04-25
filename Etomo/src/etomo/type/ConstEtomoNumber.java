@@ -3,9 +3,8 @@ package etomo.type;
 import java.util.Properties;
 import java.util.Vector;
 
-import etomo.BaseManager;
-import etomo.EtomoDirector;
 import etomo.storage.Storable;
+import etomo.ui.UIHarness;
 
 /**
  * <p>Description: </p>
@@ -21,6 +20,9 @@ import etomo.storage.Storable;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.15  2005/03/08 01:59:56  sueh
+ * <p> bug# 533 Making the long null value public.
+ * <p>
  * <p> Revision 1.14  2005/01/25 22:48:00  sueh
  * <p> Added is(Number value) to convert value to a boolean.
  * <p>
@@ -249,14 +251,12 @@ public abstract class ConstEtomoNumber implements Storable {
     return invalidReason == null;
   }
 
-  public boolean isValid(boolean displayErrorMessage, String errorTitle) {
+  public boolean isValid(boolean displayErrorMessage, String errorTitle,
+      AxisID axisID) {
     boolean valid = invalidReason == null;
     if (!valid && displayErrorMessage) {
-      BaseManager manager = EtomoDirector.getInstance().getCurrentManager();
-      if (manager != null) {
-        manager.getMainPanel().openMessageDialog(
-            description + ": " + invalidReason, errorTitle);
-      }
+      UIHarness.INSTANCE.openMessageDialog(description + ": " + invalidReason,
+          errorTitle, axisID);
     }
     return valid;
   }

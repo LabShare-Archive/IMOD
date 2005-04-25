@@ -17,6 +17,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.11  2005/01/21 22:56:05  sueh
+ * <p> bug# 509 bug# 591  Fixed a typo in a print statement.
+ * <p>
  * <p> Revision 3.10  2004/11/19 23:25:59  sueh
  * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
  * <p>
@@ -154,6 +157,7 @@ import java.util.ArrayList;
 import java.util.Date;
 
 import etomo.EtomoDirector;
+import etomo.type.AxisID;
 
 
 public class SystemProgram implements Runnable {
@@ -172,6 +176,7 @@ public class SystemProgram implements Runnable {
   private boolean done = false;
   private ArrayList warningList = new ArrayList();
   private Date runTimestamp = null;
+  private AxisID axisID;
 
   /**
    * Creates a SystemProgram object to execute the program specified by the
@@ -183,7 +188,8 @@ public class SystemProgram implements Runnable {
    * that SystemProgram(String[] arg) for be used so that spaces are not
    * accidentally lost in path or arguments. 
    */
-  public SystemProgram(String command) {
+  public SystemProgram(String command, AxisID axisID) {
+    this.axisID = axisID;
     commandArray = command.split("\\s+");
   }
 
@@ -194,7 +200,8 @@ public class SystemProgram implements Runnable {
    *  run.
    * 	
    */
-  public SystemProgram(String[] cmdArray) {
+  public SystemProgram(String[] cmdArray, AxisID axisID) {
+    this.axisID = axisID;
     commandArray = cmdArray;
   }
 
@@ -211,7 +218,8 @@ public class SystemProgram implements Runnable {
    * that SystemProgram(String[] arg) for be used so that spaces are not
    * accidentally lost in path or arguments. 
    */
-  public SystemProgram(String command, String[] programInput) {
+  public SystemProgram(String command, String[] programInput, AxisID axisID) {
+    this.axisID = axisID;
 		commandArray = command.split("\\s+");
     stdInput = programInput;
   }
@@ -496,6 +504,10 @@ public class SystemProgram implements Runnable {
   
   public String getExceptionMessage() {
     return exceptionMessage;
+  }
+  
+  public AxisID getAxisID() {
+    return axisID;
   }
 
   /**

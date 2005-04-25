@@ -23,6 +23,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.7  2004/11/19 23:26:09  sueh
+ * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+ * <p>
  * <p> Revision 3.6.4.2  2004/10/11 02:04:52  sueh
  * <p> bug# 520 Using a variable called propertyUserDir instead of the "user.dir"
  * <p> property.  This property would need a different value for each manager.
@@ -99,7 +102,7 @@ public class TiltProcessMonitor extends FileSizeProcessMonitor {
     String alignedFilename =
       applicationManager.getPropertyUserDir() + "/" + tiltParam.getInputFile();
 
-    MRCHeader alignedStack = new MRCHeader(alignedFilename);
+    MRCHeader alignedStack = new MRCHeader(alignedFilename, axisID);
     alignedStack.read();
 
     nX = alignedStack.getNRows();

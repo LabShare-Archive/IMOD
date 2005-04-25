@@ -5,6 +5,7 @@ import java.util.ArrayList;
 
 import etomo.BaseManager;
 import etomo.process.SystemProgram;
+import etomo.type.AxisID;
 import etomo.type.ConstJoinMetaData;
 import etomo.type.ConstSectionTableRowData;
 import etomo.type.ScriptParameter;
@@ -30,6 +31,10 @@ import etomo.type.SectionTableRowData;
 * <p> </p>
 * 
 * <p> $Log$
+* <p> Revision 1.8  2005/01/25 22:47:02  sueh
+* <p> Adding boolean force parameter to ScriptParameter.addToScript() to tell
+* <p> the function to avoid checking isUseInScript()
+* <p>
 * <p> Revision 1.7  2005/01/25 21:42:02  sueh
 * <p> Converting EtomoNumbers parameters to ScriptParameters.
 * <p>
@@ -123,6 +128,11 @@ public class MakejoincomParam implements Command {
       commandArray[i + commandSize] = (String) options.get(i);
     }
   }
+  
+  public AxisID getAxisID() {
+    return AxisID.ONLY;
+  }
+
   
   public String[] getCommandArray() {
     return commandArray;

@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.process.SystemProgram;
+import etomo.type.AxisID;
 import etomo.type.ConstJoinMetaData;
 import etomo.type.ConstSectionTableRowData;
 import etomo.type.SectionTableRowData;
@@ -24,6 +25,9 @@ import etomo.type.SectionTableRowData;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.4  2005/01/08 01:39:53  sueh
+* <p> bug# 578 Updated Command interface.
+* <p>
 * <p> Revision 1.3  2004/12/08 21:21:40  sueh
 * <p> bug# 564 Added getBooleanValue() to get a misc boolean value.
 * <p>
@@ -72,9 +76,11 @@ public class MidasParam implements Command {
   private File outputFile = null;
   private String rootName = null;
   private String outputFileName = null;
+  private AxisID axisID;
   
-  public MidasParam(ConstJoinMetaData metaData) {
+  public MidasParam(ConstJoinMetaData metaData, AxisID axisID) {
     this.metaData = metaData;
+    this.axisID = axisID;
     workingDir = EtomoDirector.getInstance().getCurrentPropertyUserDir();
     rootName = metaData.getRootName();
     outputFileName = rootName + outputFileExtension;
@@ -85,8 +91,12 @@ public class MidasParam implements Command {
     for (int i = 0; i < options.size(); i++) {
       commandArray[i + commandSize] = (String) options.get(i);
     }
-    program = new SystemProgram(commandArray);
+    program = new SystemProgram(commandArray, axisID);
     program.setWorkingDirectory(new File(workingDir));
+  }
+  
+  public AxisID getAxisID() {
+    return axisID;
   }
   
   public String[] getCommandArray() {

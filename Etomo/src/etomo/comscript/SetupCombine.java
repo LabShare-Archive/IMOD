@@ -18,6 +18,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.4  2005/01/14 02:59:05  sueh
+ * Prevented non-error messages from showing up in the err.log  file unless
+ * debug is on.
+ *
  * Revision 3.3  2004/06/17 19:26:39  rickg
  * Bug #477 added USE_MODEL_ONLY option
  *
@@ -137,6 +141,7 @@ import java.util.Vector;
 import etomo.ApplicationManager;
 import etomo.EtomoDirector;
 import etomo.process.SystemProgram;
+import etomo.type.AxisID;
 import etomo.type.CombinePatchSize;
 import etomo.type.ConstMetaData;
 import etomo.type.FiducialMatch;
@@ -164,7 +169,7 @@ public class SetupCombine {
     // com scripts which require the -e flag.  RJG: 2003-11-06  
     commandLine = "tcsh -f " + ApplicationManager.getIMODBinPath()
         + "setupcombine";
-    setupcombine = new SystemProgram(commandLine);
+    setupcombine = new SystemProgram(commandLine, AxisID.ONLY);
     genStdInputSequence();
   }
 

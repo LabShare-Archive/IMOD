@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.12  2005/02/11 16:45:29  sueh
+ * <p> bug# 600 Getting tooltips using EtomoAutodoc instead of TooltipFormatter.
+ * <p>
  * <p> Revision 3.11  2004/12/02 20:39:19  sueh
  * <p> bug# 566 ContextPopup can specify an anchor in both the tomo guide and
  * <p> the join guide.  Need to specify the guide to anchor.
@@ -341,7 +344,7 @@ public class CrossCorrelationPanel implements ContextMenu {
     Autodoc autodoc = null;
 
     try {
-      autodoc = Autodoc.get(Autodoc.TILTXCORR);
+      autodoc = Autodoc.get(Autodoc.TILTXCORR, axisID);
       //autodoc.print();
     }
     catch (FileNotFoundException except) {

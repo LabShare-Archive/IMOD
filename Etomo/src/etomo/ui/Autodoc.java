@@ -1,5 +1,6 @@
 package etomo.ui;
 
+import etomo.type.AxisID;
 import etomo.util.Utilities;
 
 import java.io.File;
@@ -92,37 +93,37 @@ public class Autodoc implements AttributeCollection {
   private Vector sectionList = null;
   private HashMap sectionMap = null;
 
-  public static Autodoc get(String name)
+  public static Autodoc get(String name, AxisID axisID)
     throws FileNotFoundException, IOException {
     if (name == null) {
       throw new IllegalArgumentException("name is null.");
     }
     if (name.equals(TILTXCORR)) {
-      tiltxcorr = getAutodoc(tiltxcorr, name);
+      tiltxcorr = getAutodoc(tiltxcorr, name, axisID);
       return tiltxcorr;
     }
     if (name.equals(TEST)) {
-      test = getAutodoc(test, name);
+      test = getAutodoc(test, name, axisID);
       return test;
     }
     if (name.equals(MTF_FILTER)) {
-      mtffilter = getAutodoc(mtffilter, name);
+      mtffilter = getAutodoc(mtffilter, name, axisID);
       return mtffilter;
     }
     if (name.equals(COMBINE_FFT)) {
-      combinefft = getAutodoc(combinefft, name);
+      combinefft = getAutodoc(combinefft, name, axisID);
       return combinefft;
     }
     if (name.equals(TILTALIGN)) {
-      tiltalign = getAutodoc(tiltalign, name);
+      tiltalign = getAutodoc(tiltalign, name, axisID);
       return tiltalign;
     }
     if (name.equals(CCDERASER)) {
-      ccderaser = getAutodoc(ccderaser, name);
+      ccderaser = getAutodoc(ccderaser, name, axisID);
       return ccderaser;
     }
     if (name.equals(SOLVEMATCH)) {
-      solvematch = getAutodoc(solvematch, name);
+      solvematch = getAutodoc(solvematch, name, axisID);
       return solvematch;
     }
     throw new IllegalArgumentException("Illegal autodoc name: " + name + ".");
@@ -227,23 +228,24 @@ public class Autodoc implements AttributeCollection {
     }
   }
 
-  private static Autodoc getAutodoc(Autodoc autodoc, String name)
+  private static Autodoc getAutodoc(Autodoc autodoc, String name, AxisID axisID)
     throws FileNotFoundException, IOException {
     if (autodoc == null) {
-      autodoc = new Autodoc(name);
+      autodoc = new Autodoc(name, axisID);
       autodoc.initialize();
     }
     return autodoc;
   }
 
-  private Autodoc(String name) {
+  private Autodoc(String name, AxisID axisID) {
     fileName = new String(name + fileExt);
-    String dirName = new String(Utilities.getEnvironmentVariable(AUTODOC_DIR));
+    String dirName = new String(Utilities.getEnvironmentVariable(AUTODOC_DIR,
+        axisID));
     file = new File(dirName, fileName);
     if (file.exists()) {
       return;
     }
-    dirName = new String(Utilities.getEnvironmentVariable(IMOD_DIR));
+    dirName = new String(Utilities.getEnvironmentVariable(IMOD_DIR, axisID));
     File dir = new File(dirName, DEFAULT_AUTODOC_DIR);
     if (dir.exists()) {
       file = new File(dir, fileName);
@@ -300,6 +302,9 @@ public class Autodoc implements AttributeCollection {
 }
 /**
 *<p> $$Log$
+*<p> $Revision 1.12  2005/02/23 01:42:10  sueh
+*<p> $bug# 600 Adding solvematch to autodoc.
+*<p> $
 * <p> $Revision 1.11  2005/02/22 20:57:22  sueh
 * <p> $bug# 600 Adding ccderaser to autodoc.
 * <p> $

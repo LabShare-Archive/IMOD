@@ -11,6 +11,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.7  2004/11/19 23:22:41  sueh
+ * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+ * <p>
  * <p> Revision 3.6.4.2  2004/10/11 02:03:40  sueh
  * <p> bug# 520 Using a variable called propertyUserDir instead of the "user.dir"
  * <p> property.  This property would need a different value for each manager.
@@ -86,7 +89,7 @@ public class NewstProcessMonitor extends FileSizeProcessMonitor {
     // Get the header from the raw stack to calculate the aligned stack stize
     String rawStackFilename = applicationManager.getPropertyUserDir() + "/"
       + newstParam.getInputFile();
-    MRCHeader rawStack = new MRCHeader(rawStackFilename);
+    MRCHeader rawStack = new MRCHeader(rawStackFilename, axisID);
     rawStack.read();
     nX = rawStack.getNRows();
     nY = rawStack.getNColumns();

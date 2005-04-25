@@ -3,6 +3,7 @@ import java.io.*;
 
 import etomo.EtomoDirector;
 import etomo.comscript.Command;
+import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoNumber;
 
@@ -20,6 +21,9 @@ import etomo.type.EtomoNumber;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.3  2005/01/08 01:48:02  sueh
+ * <p> bug# 578 Command interface has changed - update calls.
+ * <p>
  * <p> Revision 3.2  2004/12/04 00:58:22  sueh
  * <p> bug# 569 Handling directory paths with spaces:  converting from a
  * <p> command line to a command array to prevent the command line from
@@ -86,6 +90,7 @@ public class InteractiveSystemProgram implements Runnable {
    * The exit value of the command
    */
   private int exitValue = Integer.MIN_VALUE;
+  private AxisID axisID;
 
   /**
    * The command to run
@@ -110,7 +115,8 @@ public class InteractiveSystemProgram implements Runnable {
    * argument <i>command</i>
    * @param command The string containng the command to run
    */
-  public InteractiveSystemProgram(String command) {
+  public InteractiveSystemProgram(String command, AxisID axisID) {
+    this.axisID = axisID;
     this.command = command;
   }
   
@@ -119,11 +125,14 @@ public class InteractiveSystemProgram implements Runnable {
    * argument <i>command</i>
    * @param command The string containng the command to run
    */
-  public InteractiveSystemProgram(String[] commandArray) {
+  public InteractiveSystemProgram(String[] commandArray, AxisID axisID) {
+    this.axisID = axisID;
     this.commandArray = commandArray;
   }
   
-  public InteractiveSystemProgram(Command commandParam, BaseProcessManager processManager) {
+  public InteractiveSystemProgram(Command commandParam,
+      BaseProcessManager processManager, AxisID axisID) {
+    this.axisID = axisID;
     this.processManager = processManager;
     this.commandParam = commandParam;
     
@@ -132,6 +141,10 @@ public class InteractiveSystemProgram implements Runnable {
     }
     commandArray = commandParam.getCommandArray();
     command = commandParam.getCommandLine();
+  }
+  
+  public AxisID getAxisID() {
+    return axisID;
   }
   
   public void setName(String threadName) {

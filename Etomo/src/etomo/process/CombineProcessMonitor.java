@@ -30,6 +30,9 @@ import etomo.util.Utilities;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.8  2005/01/26 23:41:20  sueh
+ * <p> $bug# 83 Added matchvol1 and matchorwarp process monitors.
+ * <p> $
  * <p> $Revision 1.7  2004/11/19 23:19:07  sueh
  * <p> $bug# 520 merging Etomo_3-4-6_JOIN branch to head.
  * <p> $
@@ -131,6 +134,10 @@ public class CombineProcessMonitor implements Runnable, BackgroundProcessMonitor
     this.combineComscriptState = combineComscriptState;
     selfTest = EtomoDirector.getInstance().isSelfTest();
     runSelfTest(CONSTRUCTED_STATE);
+  }
+  
+  public AxisID getAxisID() {
+    return axisID;
   }
 
   /**

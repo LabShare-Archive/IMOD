@@ -51,7 +51,7 @@ public class AlignLogGenerator {
 
   private void runArgument(String argument, String logFile) throws IOException {
     SystemProgram alignlog = new SystemProgram(alignLogCommand + argument + " "
-        + axisID.getExtension());
+        + axisID.getExtension(), axisID);
 
     alignlog.run();
 

@@ -5,6 +5,7 @@ import java.util.ArrayList;
 
 import etomo.BaseManager;
 import etomo.EtomoDirector;
+import etomo.type.AxisID;
 import etomo.type.ConstJoinMetaData;
 import etomo.type.ConstSectionTableRowData;
 import etomo.type.EtomoNumber;
@@ -25,6 +26,9 @@ import etomo.type.SectionTableRowData;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.10  2005/01/25 21:40:41  sueh
+* <p> Converting EtomoNumbers to ScriptParameters.
+* <p>
 * <p> Revision 1.9  2005/01/21 22:41:57  sueh
 * <p> bug# 509 bug# 591  Added isUpdateCommand() in place of
 * <p> isSetAndNotDefault() as a standard why to decide if a parameter should
@@ -137,6 +141,10 @@ public class FinishjoinParam implements Command {
     for (int i = 0; i < options.size(); i++) {
       commandArray[i + 3] = (String) options.get(i);
     }
+  }
+  
+  public AxisID getAxisID() {
+    return AxisID.ONLY;
   }
   
   public int getIntegerValue(int name) {

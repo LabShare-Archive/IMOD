@@ -8,6 +8,7 @@ import etomo.ApplicationManager;
 import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.storage.Storable;
+import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstMetaData;
 import etomo.type.EtomoNumber;
@@ -26,6 +27,9 @@ import etomo.type.EtomoNumber;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.6  2005/01/25 21:27:05  sueh
+* <p> Renaming EtomoNumber.resetValue to displayValue.
+* <p>
 * <p> Revision 1.5  2005/01/08 01:33:40  sueh
 * <p> bug# 578 Changed the names of the statics used to make variables
 * <p> available in the Command interface.  Add GET_.
@@ -70,6 +74,10 @@ public abstract class ConstSqueezevolParam implements Command, Storable {
     reductionFactorY.setDisplayValue(1.25);
     reductionFactorZ.setDisplayValue(1.25);
     reset();
+  }
+  
+  public AxisID getAxisID() {
+    return AxisID.ONLY;
   }
   
   protected void reset() {

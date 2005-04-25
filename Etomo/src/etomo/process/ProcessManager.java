@@ -20,6 +20,11 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.61  2005/04/07 21:54:47  sueh
+ * bug# 626 Added makeDistortionCorrectedStack to run undistort.com.
+ * Added post processing to enable fixing edges with midas when undistort
+ * succeeded.
+ *
  * Revision 3.60  2005/03/11 01:34:28  sueh
  * bug# 533 Adding -q (quiet) option to midas call in midasEdges.
  *
@@ -672,7 +677,7 @@ public class ProcessManager extends BaseProcessManager {
    *          a read-only MetaData object containing the information to run the
    *          copytomocoms script
    */
-  public void setupComScripts(ConstMetaData metaData)
+  public void setupComScripts(ConstMetaData metaData, AxisID axisID)
     throws BadComScriptException, IOException {
 
     CopyTomoComs copyTomoComs = new CopyTomoComs(metaData);
@@ -681,7 +686,7 @@ public class ProcessManager extends BaseProcessManager {
       System.err.println("copytomocoms command line: "
         + copyTomoComs.getCommandLine());
     }
-    appManager.saveTestParamFile();
+    appManager.saveTestParamFile(axisID);
     int exitValue = copyTomoComs.run();
 
     if (exitValue != 0) {
@@ -849,7 +854,7 @@ public class ProcessManager extends BaseProcessManager {
     xftoxg[2] = "0";
     xftoxg[3] = getDatasetName() + axisID.getExtension() + ".prexf";
     xftoxg[4] = getDatasetName() + axisID.getExtension() + ".prexg";
-    runCommand(xftoxg);
+    runCommand(xftoxg, axisID);
   }
   
   /**
@@ -866,7 +871,7 @@ public class ProcessManager extends BaseProcessManager {
     xfproduct[3] = getDatasetName() + axisID.getExtension()
       + "_nonfid.xf";
 
-    runCommand(xfproduct);
+    runCommand(xfproduct, axisID);
   }
 
   /**
@@ -960,7 +965,7 @@ public class ProcessManager extends BaseProcessManager {
       + options + stack + xform;
 
     //  Start the system program thread
-    startSystemProgramThread(commandLine);
+    startSystemProgramThread(commandLine, axisID);
   }
   
   public void midasBlendStack(AxisID axisID, float imageRotation) {
@@ -977,7 +982,7 @@ public class ProcessManager extends BaseProcessManager {
       + options + stack + xform;
 
     //  Start the system program thread
-    startSystemProgramThread(commandLine);
+    startSystemProgramThread(commandLine, axisID);
   }
 
   
@@ -1001,7 +1006,7 @@ public class ProcessManager extends BaseProcessManager {
       + options + stack + xform;
 
     //  Start the system program thread
-    startSystemProgramThread(commandLine);
+    startSystemProgramThread(commandLine, axisID);
   }
 
   /**
@@ -1052,8 +1057,7 @@ public class ProcessManager extends BaseProcessManager {
       alignLogGenerator.run();
     }
     catch (IOException except) {
-      appManager.getMainPanel().openMessageDialog(
-          "Unable to create alignlog files", "Alignlog Error");
+      ui.openMessageDialog("Unable to create alignlog files", "Alignlog Error", axisID);
     }
   }
 
@@ -1081,8 +1085,7 @@ public class ProcessManager extends BaseProcessManager {
     }
     catch (IOException e) {
       e.printStackTrace();
-      appManager.getMainPanel().openMessageDialog(
-          "Unable to copy protected align files:", "Align Error");
+      ui.openMessageDialog("Unable to copy protected align files:", "Align Error", axisID);
     }
 
   }
@@ -1209,7 +1212,7 @@ public class ProcessManager extends BaseProcessManager {
     throws BadComScriptException, IOException {
 
     SetupCombine setupCombine = new SetupCombine(metaData);
-    appManager.saveTestParamFile();
+    appManager.saveTestParamFile(AxisID.ONLY);
     int exitValue = setupCombine.run();
 
     if (exitValue != 0) {
@@ -1237,14 +1240,14 @@ public class ProcessManager extends BaseProcessManager {
    * Run the imod2patch command, don't save meta data because it doesn't change
    * for this command
    */
-  public void modelToPatch() throws SystemProcessException {
+  public void modelToPatch(AxisID axisID) throws SystemProcessException {
     //  Copy the old patch.out to patch.out~
     String[] mv = {"mv", "-f", "patch.out", "patch.out~"};
-    runCommand(mv);
+    runCommand(mv, axisID);
 
     // Convert the new patchvector.mod
     String[] imod2patch = {"imod2patch", "patch_vector.mod", "patch.out"};
-    runCommand(imod2patch);
+    runCommand(imod2patch, axisID);
   }
 
   /**
@@ -1376,8 +1379,8 @@ public class ProcessManager extends BaseProcessManager {
   /**
    * Run the comand specified by the argument string
    */
-  public String test(String commandLine) {
-    BackgroundProcess command = new BackgroundProcess(commandLine, this);
+  public String test(String commandLine, AxisID axisID) {
+    BackgroundProcess command = new BackgroundProcess(commandLine, this, axisID);
     command.setWorkingDirectory(new File(appManager.getPropertyUserDir()));
     command.setDebug(EtomoDirector.getInstance().isDebug());
     command.start();
@@ -1394,7 +1397,7 @@ public class ProcessManager extends BaseProcessManager {
    * 
    * @param process
    */
-  private void handleTransferfidMessage(BackgroundProcess process) {
+  private void handleTransferfidMessage(BackgroundProcess process, AxisID axisID) {
     try {
 
       //  Write the standard output to a the log file
@@ -1414,14 +1417,14 @@ public class ProcessManager extends BaseProcessManager {
         + File.separator + "transferfid.log"));
     }
     catch (IOException except) {
-      appManager.getMainPanel().openMessageDialog(except.getMessage(),
-          "Transferfid log error");
+      ui.openMessageDialog(except.getMessage(),
+          "Transferfid log error", axisID);
     }
   }
     
 
-  private void printPsOutput() {
-    SystemProgram ps = new SystemProgram("ps axl");
+  private void printPsOutput(AxisID axisID) {
+    SystemProgram ps = new SystemProgram("ps axl", axisID);
     ps.run();
     System.out.println("ps axl date=" +  ps.getRunTimestamp());
     //  Find the index of the Parent ID and ProcessID
@@ -1439,8 +1442,8 @@ public class ProcessManager extends BaseProcessManager {
    * @param commandArray
    * @throws SystemProcessException
    */
-  private void runCommand(String[] commandArray) throws SystemProcessException {
-    SystemProgram systemProgram = new SystemProgram(commandArray);
+  private void runCommand(String[] commandArray, AxisID axisID) throws SystemProcessException {
+    SystemProgram systemProgram = new SystemProgram(commandArray, axisID);
     systemProgram.setWorkingDirectory(new File(appManager.getPropertyUserDir()));
     systemProgram.setDebug(EtomoDirector.getInstance().isDebug());
 
@@ -1511,7 +1514,7 @@ public class ProcessManager extends BaseProcessManager {
   
   protected void postProcess(BackgroundProcess process) {
     if (process.getCommandLine().equals(transferfidCommandLine)) {
-      handleTransferfidMessage(process);
+      handleTransferfidMessage(process, process.getAxisID());
     }
     else {
       String commandName = process.getCommandName();
@@ -1533,7 +1536,7 @@ public class ProcessManager extends BaseProcessManager {
   
   protected void errorProcess(BackgroundProcess process) {
     if (process.getCommandLine().equals(transferfidCommandLine)) {
-      handleTransferfidMessage(process);
+      handleTransferfidMessage(process, process.getAxisID());
     }
   }
   

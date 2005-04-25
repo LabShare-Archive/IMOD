@@ -11,6 +11,11 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.6  2005/03/29 19:54:19  sueh
+ * <p> bug# 623 When montaging, setting full image size when updating tilt.com
+ * <p> from the .ali file.  When the .ali file is not available set the full image size
+ * <p> from running goodframe on the X and Y sizes in the .st file.
+ * <p>
  * <p> Revision 3.5  2005/01/12 18:34:07  sueh
  * <p> bug# 505 Added excludeList2.
  * <p>
@@ -516,7 +521,7 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
       File aliFile = new File(userDir, datasetName + axisID.getExtension()
           + BlendmontParam.OUTPUT_FILE_EXTENSION);
       if (aliFile.exists()) {
-        MRCHeader header = new MRCHeader(aliFile.getAbsolutePath());
+        MRCHeader header = new MRCHeader(aliFile.getAbsolutePath(), axisID);
         header.read();
         fullImageX = header.getNColumns() / binning;
         fullImageY = header.getNRows() / binning;
@@ -534,7 +539,7 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
     try {
       Montagesize montagesize = Montagesize.getInstance(userDir, datasetName, axisID);
       if (montagesize.isFileExists()) {
-        Goodframe goodframe = new Goodframe();
+        Goodframe goodframe = new Goodframe(axisID);
         goodframe.run(montagesize.getX().getInteger(), montagesize.getY().getInteger());
         fullImageX = goodframe.getFirstOutput().getInteger() / binning;
         fullImageY = goodframe.getSecondOutput().getInteger() / binning;

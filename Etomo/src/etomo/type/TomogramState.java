@@ -23,6 +23,11 @@ import etomo.util.MRCHeader;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.9  2005/02/17 19:27:05  sueh
+* <p> bug# 606 Removed makeZFactors, newstFiducialessAlignment, and
+* <p> usedLocalAlignments.  Add makeZFactors, newstFiducialessAlignment,
+* <p> and usedLocalAlignments for A and B.
+* <p>
 * <p> Revision 1.8  2005/01/12 00:44:36  sueh
 * <p> bug# 579 Adding usedLocalAlignments.
 * <p>
@@ -244,7 +249,7 @@ public class TomogramState implements BaseState {
     if (!trimvolFile.exists()) {
       return false;
     }
-    MRCHeader header = new MRCHeader(trimvolFile.getAbsolutePath());
+    MRCHeader header = new MRCHeader(trimvolFile.getAbsolutePath(), AxisID.ONLY);
     try {
       header.read();
     }

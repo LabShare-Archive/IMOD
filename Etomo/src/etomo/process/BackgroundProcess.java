@@ -3,6 +3,7 @@ package etomo.process;
 import java.io.File;
 
 import etomo.comscript.Command;
+import etomo.type.AxisID;
 /**
  * <p>Description: </p>
  * 
@@ -16,6 +17,9 @@ import etomo.comscript.Command;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.5  2005/01/08 01:47:14  sueh
+ * <p> bug# 578 Removed getMode().  Use getCommand().getCommandMode().
+ * <p>
  * <p> Revision 3.4  2004/12/16 02:24:32  sueh
  * <p> bug# 564 In run():  avoid using commandLine.  Use commandArray if it is
  * <p> available.
@@ -109,6 +113,7 @@ public class BackgroundProcess
   private StringBuffer commandProcessID;
   private File outputFile = null;
   private Command command = null;
+  private AxisID axisID;
   
   private String stdoutLogFile = "";
   private String stderrLogFile = "";
@@ -116,13 +121,15 @@ public class BackgroundProcess
   private boolean started = false;
   private boolean done = false;
 
-  public BackgroundProcess(String commandLine, BaseProcessManager processManager) {
+  public BackgroundProcess(String commandLine, BaseProcessManager processManager, AxisID axisID) {
+    this.axisID = axisID;
     this.commandLine = commandLine.trim();
     this.processManager = processManager;
     commandProcessID = new StringBuffer("");
   }
   
-  public BackgroundProcess(Command command, BaseProcessManager processManager) {
+  public BackgroundProcess(Command command, BaseProcessManager processManager, AxisID axisID) {
+    this.axisID = axisID;
     this.command = command;
     this.commandArray = command.getCommandArray();
     this.commandLine = command.getCommandLine().trim();
@@ -130,10 +137,15 @@ public class BackgroundProcess
     commandProcessID = new StringBuffer("");
   }
   
-  public BackgroundProcess(String[] commandArray, BaseProcessManager processManager) {
+  public BackgroundProcess(String[] commandArray, BaseProcessManager processManager, AxisID axisID) {
+    this.axisID = axisID;
     this.commandArray = commandArray;
     this.processManager = processManager;
     commandProcessID = new StringBuffer("");
+  }
+  
+  public AxisID getAxisID() {
+    return axisID;
   }
 
   /**
@@ -232,13 +244,13 @@ public class BackgroundProcess
     started = true;
     SystemProgram program;
     if (commandArray != null) {
-      program = new SystemProgram(commandArray);
+      program = new SystemProgram(commandArray, axisID);
     }
     else if (command != null) {
-      program = new SystemProgram(command.getCommandArray());
+      program = new SystemProgram(command.getCommandArray(), axisID);
     }
     else if (commandLine != null) {
-      program = new SystemProgram(commandLine);
+      program = new SystemProgram(commandLine, axisID);
     }
     else {
       processManager.msgBackgroundProcessDone(this, 1);

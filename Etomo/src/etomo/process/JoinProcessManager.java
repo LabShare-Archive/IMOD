@@ -27,6 +27,11 @@ import etomo.type.JoinState;
 * @version $Revision$
 *
 * <p> $Log$
+* <p> Revision 1.10  2005/01/08 01:49:22  sueh
+* <p> bug# 578 Command interface has changed - update calls.  Put GET_
+* <p> in from of statics passed to Command.getIntegerValue() and
+* <p> Command.getBooleanValue().
+* <p>
 * <p> Revision 1.9  2004/12/14 21:38:05  sueh
 * <p> bug# 572:  Removing state object from meta data and managing it with a
 * <p> manager class.  All state variables saved after a process is run belong in
@@ -182,7 +187,7 @@ public class JoinProcessManager extends BaseProcessManager {
   
   public void touch(File file) {
     String[] commandArray = { "touch", file.getAbsolutePath() };
-    startSystemProgramThread(commandArray);
+    startSystemProgramThread(commandArray, AxisID.ONLY);
   }
 
   protected void postProcess(ComScriptProcess process) {

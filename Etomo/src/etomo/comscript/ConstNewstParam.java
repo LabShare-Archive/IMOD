@@ -20,6 +20,11 @@ import etomo.type.EtomoNumber;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.5  2005/01/08 01:32:14  sueh
+ * <p> bug# 578 Create 2 modes - whole tomo sample and full aligned stack.
+ * <p> Implement Command.  Add fiducialessAlignment variable and make it
+ * <p> available through the Command interface.
+ * <p>
  * <p> Revision 3.4  2004/06/25 18:04:33  sueh
  * <p> bug# 484 returning default when binByFactor is not set.
  * <p>
@@ -118,6 +123,10 @@ public class ConstNewstParam implements Command {
   public ConstNewstParam(AxisID axisID) {
     this.axisID = axisID;
     initializeEmpty();
+  }
+  
+  public AxisID getAxisID() {
+    return axisID;
   }
   /**
    * @return Returns the applyOffsetsFirst.

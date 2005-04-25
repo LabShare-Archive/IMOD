@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.ArrayList;
 
 import etomo.BaseManager;
+import etomo.type.AxisID;
 
 /**
 * <p>Description: </p>
@@ -19,6 +20,10 @@ import etomo.BaseManager;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.5  2005/01/08 01:39:25  sueh
+* <p> bug# 578 Updated Command
+* <p> interface.
+* <p>
 * <p> Revision 1.4  2004/12/08 21:21:17  sueh
 * <p> bug# 564 Added getBooleanValue() to get a misc boolean value.
 * <p>
@@ -68,6 +73,10 @@ public class FlipyzParam implements Command {
     for (int i = 0; i < options.size(); i++) {
       commandArray[i + commandSize] = (String) options.get(i);
     }
+  }
+  
+  public AxisID getAxisID() {
+    return AxisID.ONLY;
   }
   
   private ArrayList genOptions(File tomogram, File workingDir) {

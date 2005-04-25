@@ -372,7 +372,7 @@ public class CCDEraserPanel implements ContextMenu {
     TooltipFormatter tooltipFormatter = new TooltipFormatter();
     Autodoc autodoc = null;
     try {
-      autodoc = Autodoc.get(Autodoc.CCDERASER);
+      autodoc = Autodoc.get(Autodoc.CCDERASER, axisID);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();
@@ -450,6 +450,9 @@ public class CCDEraserPanel implements ContextMenu {
 
 /**
 * <p> $Log$
+* <p> Revision 3.8  2005/02/22 20:57:49  sueh
+* <p> bug# 600 Converting tooltips to autodoc.
+* <p>
 * <p> Revision 3.7  2004/12/02 20:37:08  sueh
 * <p> bug# 566 ContextPopup can specify an anchor in both the tomo guide and
 * <p> the join guide.  Need to specify the guide to anchor.

@@ -313,6 +313,10 @@ public class ConstTiltalignParam implements Command {
     localOutputOptions.setIntegerType(new boolean[] {true, true, true});
   }
   
+  public AxisID getAxisID() {
+    return axisID;
+  }
+  
   protected String validate() {
     StringBuffer invalidReason = new StringBuffer();
     if (!rotOption.isValid()) {
@@ -766,6 +770,9 @@ public class ConstTiltalignParam implements Command {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.15  2005/02/24 00:50:23  sueh
+ * <p> bug# 600 Fixed a bug that was saving a value to the wrong parameter.
+ * <p>
  * <p> Revision 3.14  2005/02/21 22:53:57  sueh
  * <p> bug# 600 Making parameter string statics public.
  * <p>

@@ -5,6 +5,7 @@ import java.util.ArrayList;
 
 import etomo.BaseManager;
 import etomo.EtomoDirector;
+import etomo.type.AxisID;
 import etomo.type.ConstJoinMetaData;
 import etomo.type.ScriptParameter;
 
@@ -22,6 +23,9 @@ import etomo.type.ScriptParameter;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.8  2005/01/25 21:51:47  sueh
+* <p> Converting EtomoNumbers parameters to ScriptParameters.
+* <p>
 * <p> Revision 1.7  2005/01/21 22:54:15  sueh
 * <p> bug# 509 bug# 591  Added isUpdateCommand() in place of
 * <p> isSetAndNotDefault() as a standard why to decide if a parameter should
@@ -114,6 +118,10 @@ public class XfalignParam implements Command {
     for (int i = 0; i < options.size(); i++) {
       commandArray[i + commandSize] = (String) options.get(i);
     }
+  }
+  
+  public AxisID getAxisID() {
+    return AxisID.ONLY;
   }
   
   public String[] getCommandArray() {

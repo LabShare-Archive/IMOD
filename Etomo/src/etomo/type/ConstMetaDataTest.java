@@ -20,6 +20,10 @@ import etomo.process.SystemProgram;
  * @version $Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.9  2005/02/10 18:55:57  sueh
+ * <p> $bug# 599 Not running tests on windows which have to do with file
+ * <p> $permissions.
+ * <p> $
  * <p> $Revision 3.8  2005/02/09 18:41:58  sueh
  * <p> $Adding revision to comment.
  * <p> $
@@ -134,7 +138,7 @@ public class ConstMetaDataTest extends TestCase {
     assertTrue(unreadableDir.isDirectory() && unreadableDir.canWrite());
     
     if (unreadableDir.canRead()) {
-      SystemProgram program = new SystemProgram("chmod 244 " + unreadableDirName);
+      SystemProgram program = new SystemProgram("chmod 244 " + unreadableDirName, AxisID.ONLY);
       program.setWorkingDirectory(testDir);
       program.run();
     }
@@ -206,7 +210,7 @@ public class ConstMetaDataTest extends TestCase {
     }
     assertTrue(file.isFile());
     if (file.canRead()) {
-      SystemProgram program = new SystemProgram("chmod 244 " + name);
+      SystemProgram program = new SystemProgram("chmod 244 " + name, AxisID.ONLY);
       program.setWorkingDirectory(dir);
       program.run();
     }

@@ -11,6 +11,11 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.6  2005/01/08 01:46:27  sueh
+ * <p> bug# 578 Changed the names of the statics used to make variables
+ * <p> available in the Command interface.  Add GET_.  Updated Command
+ * <p> interface.
+ * <p>
  * <p> Revision 3.5  2004/12/16 02:14:31  sueh
  * <p> bug# 564 Fixed bug: command array was not refreshing.  Refresh
  * <p> command array when getCommandArray() is called.
@@ -81,6 +86,7 @@ import java.util.ArrayList;
 import java.util.Properties;
 
 import etomo.BaseManager;
+import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.util.MRCHeader;
 import etomo.util.InvalidParameterException;
@@ -127,6 +133,16 @@ public class TrimvolParam implements Command {
   private String inputFile = "";
   private String outputFile = "";
   private String[] commandArray;
+  private AxisID axisID;
+  
+  public TrimvolParam(AxisID axisID) {
+    this.axisID = axisID;
+  }
+  
+  public AxisID getAxisID() {
+    return axisID;
+  }
+  
   /**
    *  Insert the objects attributes into the properties object.
    */
@@ -536,7 +552,7 @@ public class TrimvolParam implements Command {
       return;
     }
     // Get the data size limits from the image stack
-    MRCHeader mrcHeader = new MRCHeader(fileName);
+    MRCHeader mrcHeader = new MRCHeader(fileName, AxisID.ONLY);
     mrcHeader.read();
 
     xMin = 1;

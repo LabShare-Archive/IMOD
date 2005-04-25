@@ -172,6 +172,10 @@ import etomo.type.AxisID;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.24  2005/03/04 00:14:51  sueh
+ * <p> $bug# 533 Added setPieceListFileName() to set the -p command line
+ * <p> $option in the 3dmod call.
+ * <p> $
  * <p> $Revision 1.23  2005/03/02 23:14:54  sueh
  * <p> $bug# 533 Adding -fr (frames) to ignore montaging information and
  * <p> $display the stack frame by frame.
@@ -283,6 +287,7 @@ public class ImodState {
   private String datasetName = "";
   private boolean modelView = false;
   private boolean useModv = false;
+  private AxisID axisID;
   
   //current state information
   //reset to initial state
@@ -326,8 +331,9 @@ public class ImodState {
    * Use this constructor to create an instance of ImodProcess using
    * ImodProcess().
    */
-  public ImodState() {
-    process = new ImodProcess();
+  public ImodState(AxisID axisID) {
+    this.axisID = axisID;
+    process = new ImodProcess(axisID);
     reset();
   }
   
@@ -335,8 +341,9 @@ public class ImodState {
    * Use this constructor to create an instance of ImodProcess using
    * ImodProcess() and set either model view or imodv.
    */
-  public ImodState(int modelViewType) {
-    process = new ImodProcess();
+  public ImodState(int modelViewType, AxisID axisID) {
+    this.axisID = axisID;
+    process = new ImodProcess(axisID);
     setModelViewType(modelViewType);
     reset();
   }
@@ -345,9 +352,10 @@ public class ImodState {
    * Use this constructor to create an instance of ImodProcess using
    * ImodProcess(String dataset).
    */
-  public ImodState(String datasetName) {
+  public ImodState(String datasetName, AxisID axisID) {
+    this.axisID = axisID;
     this.datasetName = datasetName;
-    process = new ImodProcess(datasetName);
+    process = new ImodProcess(datasetName, axisID);
     reset();
   }
   
@@ -355,9 +363,10 @@ public class ImodState {
    * Use this constructor to create an instance of ImodProcess using
    * ImodProcess(String dataset) and set either model view or imodv.
    */
-  public ImodState(String datasetName, int modelViewType) {
+  public ImodState(String datasetName, int modelViewType, AxisID axisID) {
+    this.axisID = axisID;
     this.datasetName = datasetName;
-    process = new ImodProcess(datasetName);
+    process = new ImodProcess(datasetName, axisID);
     setModelViewType(modelViewType);
     reset();
   }
@@ -367,15 +376,17 @@ public class ImodState {
    * Use this constructor to create an instance of ImodProcess using
    * ImodProcess(String dataset, String model).
    */
-  public ImodState(String datasetName, String modelName) {
+  public ImodState(String datasetName, String modelName, AxisID axisID) {
+    this.axisID = axisID;
     this.datasetName = datasetName;
     initialModelName = modelName;
     process = new ImodProcess(datasetName, modelName);
     reset();
   }
   
-  public ImodState(File file) {
-    process = new ImodProcess(file.getAbsolutePath());
+  public ImodState(File file, AxisID axisID) {
+    this.axisID = axisID;
+    process = new ImodProcess(file.getAbsolutePath(), axisID);
     reset();
   }
 
@@ -393,12 +404,13 @@ public class ImodState {
    * ImodProcess("datasetb_fixed.st");
    */
   public ImodState(AxisID axisID, String datasetName, String datasetExt) {
+    this.axisID = axisID;
     String axisExtension = axisID.getExtension();
     if (axisExtension == "ERROR") {
       throw new IllegalArgumentException(axisID.toString());
     }
     this.datasetName = datasetName + axisExtension + datasetExt;
-    process = new ImodProcess(this.datasetName);
+    process = new ImodProcess(this.datasetName, axisID);
     reset();
   }
   
@@ -422,6 +434,7 @@ public class ImodState {
     String datasetExt,
     String modelName,
     String modelExt) {
+    axisID = tempAxisID;
     String axisExtension = tempAxisID.getExtension();
     if (axisExtension == "ERROR") {
       throw new IllegalArgumentException(tempAxisID.toString());

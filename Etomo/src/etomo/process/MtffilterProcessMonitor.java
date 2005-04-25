@@ -23,7 +23,10 @@ import etomo.util.MRCHeader;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2005/01/26 04:27:15  sueh
+* <p> bug# 83 File size process monitor for mtffilter.
+* <p> </p>
 */
 public class MtffilterProcessMonitor extends FileSizeProcessMonitor {
   public static  final String  rcsid =  "$Id$";
@@ -50,7 +53,7 @@ public class MtffilterProcessMonitor extends FileSizeProcessMonitor {
     // Get the header from the raw stack to calculate the aligned stack stize
     String newstOutputFilename = applicationManager.getPropertyUserDir() + "/"
       + newstParam.getOutputFile();
-    MRCHeader newstOutputHeader = new MRCHeader(newstOutputFilename);
+    MRCHeader newstOutputHeader = new MRCHeader(newstOutputFilename, axisID);
     newstOutputHeader.read();
     nX = newstOutputHeader.getNRows();
     nY = newstOutputHeader.getNColumns();

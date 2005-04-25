@@ -1,5 +1,7 @@
 package etomo.process;
 
+import etomo.type.AxisID;
+
 /**
  * <p>
  * Description: Provides an interface to a threadable class to execute IMOD com
@@ -17,6 +19,10 @@ package etomo.process;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.2  2004/08/23 23:32:42  sueh
+ * <p> $bug# 508 changed setKilled(boolean) to kill().  changed isDone()
+ * <p> $to isSuccessful
+ * <p> $
  * <p> $Revision 1.1  2004/08/19 01:47:30  sueh
  * <p> $bug# 508 Generic interface for CombineProcessMonitor.
  * <p> $$ </p>
@@ -27,4 +33,5 @@ public interface BackgroundProcessMonitor {
   abstract public boolean isSuccessful();
   abstract public void kill();
   abstract public boolean isProcessRunning();
+  abstract public AxisID getAxisID();
 }

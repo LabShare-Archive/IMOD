@@ -18,6 +18,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.8  2005/03/02 23:12:53  sueh
+ * bug# 533 Adding -focus and -bfocus.
+ *
  * Revision 3.7  2005/03/02 00:11:02  sueh
  * bug# 611 Added mag gradients correction file.
  *
@@ -186,7 +189,7 @@ public class CopyTomoComs {
     for (int i = 0; i < options.size(); i++) {
       commandLine.append(" " + options.get(i));
     }
-    copytomocoms = new SystemProgram(commandLine.toString());
+    copytomocoms = new SystemProgram(commandLine.toString(), AxisID.ONLY);
     //genStdInputSequence();
   }
 

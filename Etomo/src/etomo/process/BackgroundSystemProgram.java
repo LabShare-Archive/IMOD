@@ -17,6 +17,11 @@ package etomo.process;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.4  2004/12/04 00:39:59  sueh
+ * <p> $bug# 569 Handling directory paths with spaces:  converting from a
+ * <p> $command line to a command array to prevent the command line from
+ * <p> $being split on white space.
+ * <p> $
  * <p> $Revision 1.3  2004/08/24 17:31:24  sueh
  * <p> $bug# 508 speed up kill by leaving waitForProcess on interrupt.
  * <p> $
@@ -42,13 +47,13 @@ public class BackgroundSystemProgram extends SystemProgram {
    */
   public BackgroundSystemProgram(String command,
     BackgroundProcessMonitor backgroundProcessMonitor) {
-    super(command);
+    super(command, backgroundProcessMonitor.getAxisID());
     this.backgroundProcessMonitor = backgroundProcessMonitor;
   }
   
   public BackgroundSystemProgram(String[] command,
       BackgroundProcessMonitor backgroundProcessMonitor) {
-      super(command);
+      super(command, backgroundProcessMonitor.getAxisID());
       this.backgroundProcessMonitor = backgroundProcessMonitor;
     }
 

@@ -19,6 +19,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.21  2005/01/06 18:10:09  sueh
+ * bug# 578 Added getCommand().
+ *
  * Revision 3.20  2005/01/05 19:54:00  sueh
  * bug# 578 Added a constructor which accepts
  * Command comScriptCommand instead of String comScript.
@@ -308,7 +311,7 @@ public class ComScriptProcess
   private SystemProgram vmstocsh;
   protected SystemProgram csh;
   protected StringBuffer cshProcessID;
-  private AxisID axisID;
+  protected AxisID axisID;
   protected String watchedFileName;
   private Command command = null;
 
@@ -357,7 +360,7 @@ public class ComScriptProcess
     if (demoMode) {
       try {
         started = true;
-        csh = new SystemProgram("nothing");
+        csh = new SystemProgram("nothing", axisID);
         csh.setExitValue(0);
         sleep(demoTime);
       }
@@ -563,7 +566,7 @@ public class ComScriptProcess
     // Do not use the -e flag for tcsh since David's scripts handle the failure 
     // of commands and then report appropriately.  The exception to this is the
     // com scripts which require the -e flag.  RJG: 2003-11-06  
-    csh = new SystemProgram("tcsh -ef");
+    csh = new SystemProgram("tcsh -ef", axisID);
     csh.setWorkingDirectory(workingDirectory);
     csh.setStdInput(commands);
     csh.setDebug(debug);
@@ -591,7 +594,7 @@ public class ComScriptProcess
     String[] comSequence = loadFile();
     String commandLine = ApplicationManager.getIMODBinPath() + "vmstocsh "
         + parseBaseName(name, ".com") + ".log";
-    vmstocsh = new SystemProgram(commandLine);
+    vmstocsh = new SystemProgram(commandLine, axisID);
     vmstocsh.setWorkingDirectory(workingDirectory);
     vmstocsh.setStdInput(comSequence);
     vmstocsh.setDebug(debug);
