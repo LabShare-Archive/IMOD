@@ -6,19 +6,15 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
-import java.awt.HeadlessException;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
 
-import javax.swing.ImageIcon;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 import etomo.BaseManager;
 import etomo.Controller;
-import etomo.type.AxisID;
 import etomo.util.UniqueKey;
 
 /**
@@ -34,6 +30,11 @@ import etomo.util.UniqueKey;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.27  2005/04/21 20:37:48  sueh
+ * <p> bug# 615 Make EtomoFrame is a class.  It now handles the menu action
+ * <p> functions common to MainFrame and SubFrame.  Added
+ * <p> fitWindow(AxisID) and repaint(AxisID) to handle single frame autofits.
+ * <p>
  * <p> Revision 3.26  2005/04/20 01:47:37  sueh
  * <p> bug# 615 Moved menu functionality to EtomoMenu.  When setting the
  * <p> current manager, change the SubFrame to reflect the situation of the
@@ -335,7 +336,7 @@ import etomo.util.UniqueKey;
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
  */
-public class MainFrame extends EtomoFrame implements ContextMenu {
+public final class MainFrame extends EtomoFrame implements ContextMenu {
   public static final String rcsid = "$Id$";
   
   private static final int estimatedMenuHeight = 60;
@@ -349,7 +350,6 @@ public class MainFrame extends EtomoFrame implements ContextMenu {
 
   GenericMouseAdapter mouseAdapter = null;
   WindowSwitch windowSwitch = new WindowSwitch();
-  private SubFrame subFrame = null;
   private String title;
   private String[] mRUList;
 
@@ -357,12 +357,8 @@ public class MainFrame extends EtomoFrame implements ContextMenu {
    * Main window constructor.  This sets up the menus and status line.
    */
   public MainFrame() {
+    register();
     enableEvents(AWTEvent.WINDOW_EVENT_MASK);
-
-    ImageIcon iconEtomo = new ImageIcon(ClassLoader
-        .getSystemResource("images/etomo.png"));
-    setIconImage(iconEtomo.getImage());
-
     Toolkit toolkit = Toolkit.getDefaultToolkit();
     Dimension screenSize = toolkit.getScreenSize();
     screenSize.height -= estimatedMenuHeight;
@@ -379,10 +375,18 @@ public class MainFrame extends EtomoFrame implements ContextMenu {
 
     //  add the context menu to all of the main window objects
     setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
-    menu = EtomoMenu.newEtomoMenu();
+    super.initialize();
+  }
+  
+  protected final synchronized void register() {
+    if (mainFrame != null) {
+      throw new IllegalStateException("Only one instance of MainFrame is allowed.");
+    }
+    mainFrame = this;
+    main = true;
   }
 
-  public void setCurrentManager(BaseManager currentManager, UniqueKey managerKey, boolean newWindow) {
+  protected void setCurrentManager(BaseManager currentManager, UniqueKey managerKey, boolean newWindow) {
     this.currentManager = currentManager;
     if (mainPanel != null) {
       /*if (subFrame != null) {
@@ -395,11 +399,11 @@ public class MainFrame extends EtomoFrame implements ContextMenu {
       title = currentManager.getBaseMetaData().getName() + " - Etomo";
       rootPanel.add(windowSwitch.getPanel(managerKey));
       mainPanel.addMouseListener(mouseAdapter);
-      menu.setEnabled(currentManager);
+      setEnabled(currentManager);
       mainPanel.repaint();
     }
     if (subFrame != null) {
-      subFrame.setMainPanel(bAxisTitle + title + " ", currentManager);
+      ((SubFrame) subFrame).setMainPanel(bAxisTitle + title + " ", currentManager);
     }
     if (newWindow) {
       showAxisA();
@@ -419,12 +423,17 @@ public class MainFrame extends EtomoFrame implements ContextMenu {
     }
   }
   
-  MainPanel getMainPanel() {
+  protected MainPanel getMainPanel() {
     return mainPanel;
   }
 
-  public void setCurrentManager(BaseManager currentManager, UniqueKey managerKey) {
+  protected void setCurrentManager(BaseManager currentManager, UniqueKey managerKey) {
     setCurrentManager(currentManager, managerKey, false);
+  }
+  
+  protected void setMRUFileLabels(String[] mRUList) {
+    this.mRUList = mRUList;
+    super.setMRUFileLabels(mRUList);
   }
 
   //  Right mouse button context menu
@@ -432,44 +441,27 @@ public class MainFrame extends EtomoFrame implements ContextMenu {
     ContextPopup contextPopup = new ContextPopup(mainPanel, mouseEvent, "");
   }
 
-  public void setEnabledNewTomogramMenuItem(boolean enable) {
-    menu.setEnabledFileNewTomogram(enable);
-  }
-
-  public void setEnabledNewJoinMenuItem(boolean enable) {
-    menu.setEnabledFileNewJoin(enable);
-  }
-
-  /**
-   * Set the MRU etomo data file list.  This fills in the MRU menu items
-   * on the File menu
-   */
-  public void setMRUFileLabels(String[] mRUList) {
-    this.mRUList = mRUList;
-    menu.setMRUFileLabels(mRUList);
-  }
-  
-  public void addWindow(Controller controller, UniqueKey controllerKey) {
+  protected void addWindow(Controller controller, UniqueKey controllerKey) {
     windowSwitch.add(controller, controllerKey);
   }
   
-  public void removeWindow(UniqueKey controllerKey) {
+  protected void removeWindow(UniqueKey controllerKey) {
     windowSwitch.remove(controllerKey);
   }
   
-  public void renameWindow(UniqueKey oldKey, UniqueKey newKey) {
+  protected void renameWindow(UniqueKey oldKey, UniqueKey newKey) {
     windowSwitch.rename(oldKey, newKey);
   }
 
-  public void selectWindowMenuItem(UniqueKey currentManagerKey) {
+  protected void selectWindowMenuItem(UniqueKey currentManagerKey) {
     selectWindowMenuItem(currentManagerKey, false);
   }
   
-  public void selectWindowMenuItem(UniqueKey currentManagerKey, boolean newWindow) {
+  protected void selectWindowMenuItem(UniqueKey currentManagerKey, boolean newWindow) {
     windowSwitch.selectWindow(currentManagerKey, newWindow);
   }
     
-  void packFrames() {
+  protected void packFrames() {
     pack();
     if (subFrame != null) {
       subFrame.pack();
@@ -480,7 +472,7 @@ public class MainFrame extends EtomoFrame implements ContextMenu {
    * Handle the options menu events
    * @param event
    */
-  public void menuOptionsAction(ActionEvent event) {
+  protected void menuOptionsAction(ActionEvent event) {
     String command = event.getActionCommand();
     if (command.equals(menu.getActionCommandAxisA())) {
       showAxisA();
@@ -495,30 +487,8 @@ public class MainFrame extends EtomoFrame implements ContextMenu {
       super.menuOptionsAction(event);
     }
   }
-  
-  public void repaint(AxisID axisID) {
-    if (axisID != AxisID.SECOND) {
-      repaint();
-    }
-    else {
-      if (mainPanel.isShowingBothAxis() && subFrame != null) {
-        subFrame.repaint();
-      }
-    }
-  }
-  
-  public void fitWindow(AxisID axisID) {
-    if (axisID != AxisID.SECOND) {
-      fitWindow();
-    }
-    else {
-      if (mainPanel.isShowingBothAxis() && subFrame != null) {
-        subFrame.fitWindow();
-      }
-    }
-  }
-
-  public void showAxisA() {
+    
+  protected void showAxisA() {
     setTitle(aAxisTitle + title);
     if (subFrame != null) {
       subFrame.setVisible(false);
@@ -527,7 +497,7 @@ public class MainFrame extends EtomoFrame implements ContextMenu {
     pack();
   }
   
-  public void showAxisB() {
+  protected void showAxisB() {
     setTitle(bAxisTitle + title);
     if (subFrame != null) {
       subFrame.setVisible(false);
@@ -536,15 +506,15 @@ public class MainFrame extends EtomoFrame implements ContextMenu {
     pack();
   }
   
-  public void showBothAxis() {
+  protected void showBothAxis() {
     setTitle(aAxisTitle + title);
     mainPanel.showAxisA();
     if (subFrame == null || !subFrame.isDisplayable()) {
       subFrame = new SubFrame(this);
-      subFrame.initialize(bAxisTitle + title + " ", currentManager, mRUList);
+      ((SubFrame) subFrame).initialize(bAxisTitle + title + " ", currentManager, mRUList);
     }
     else {
-      subFrame.updateAxis();
+      ((SubFrame) subFrame).updateAxis();
     }
     pack();
     subFrame.pack();
@@ -558,56 +528,13 @@ public class MainFrame extends EtomoFrame implements ContextMenu {
     }
   }
 
-  /**
-   * Open a Yes or No question dialog
-   * @param message
-   * @return boolean True if the Yes option was selected
-   */
-  public boolean openYesNoDialog(String[] message) {
-    try {
-      int answer = JOptionPane.showConfirmDialog(this, message,
-          "Etomo question", JOptionPane.YES_NO_OPTION);
-
-      if (answer == JOptionPane.YES_OPTION) {
-        return true;
-      }
-      else {
-        return false;
-      }
-    }
-    catch (HeadlessException except) {
-      except.printStackTrace();
-      return false;
-    }
-  }
-
-  /**
-   * Open a Yes, No or Cancel question dialog
-   * @param message
-   * @return int state of the users select
-   */
-  public int openYesNoCancelDialog(String[] message) {
-    return JOptionPane.showConfirmDialog(this, message, "Etomo question",
-        JOptionPane.YES_NO_CANCEL_OPTION);
-  }
-
-  /**
-   * Open a message dialog
-   * @param message
-   * @param title
-   */
-  public void openMessageDialog(Object message, String title) {
-    JOptionPane.showMessageDialog(this, message, title,
-        JOptionPane.ERROR_MESSAGE);
-  }
-
   //  TODO Need a way to repaint the existing font
-  public void repaintWindow() {
+  protected void repaintWindow() {
     repaintContainer(this);
     this.repaint();
   }
 
-  private void repaintContainer(Container container) {
+  protected void repaintContainer(Container container) {
     Component[] comps = container.getComponents();
     for (int i = 0; i < comps.length; i++) {
       if (comps[i] instanceof Container) {
@@ -617,5 +544,4 @@ public class MainFrame extends EtomoFrame implements ContextMenu {
       comps[i].repaint();
     }
   }
-
 }
