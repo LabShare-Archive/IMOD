@@ -6,14 +6,19 @@ import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.net.MalformedURLException;
+import java.util.ArrayList;
 
+import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenuBar;
+import javax.swing.JOptionPane;
 
 import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.storage.DataFileFilter;
+import etomo.type.AxisID;
+import etomo.type.AxisType;
 
 /**
 * <p>Description: </p>
@@ -28,31 +33,49 @@ import etomo.storage.DataFileFilter;
 * 
 * @version $Revision$
 */
-public class EtomoFrame extends JFrame {
+public abstract class EtomoFrame extends JFrame {
   public static  final String  rcsid =  "$Id$";
+  
+  private static final int messageWidth = 60;
+  private static final int maxMessageLines = 20;
 
+  protected boolean main; 
   protected EtomoMenu menu;
   protected JMenuBar menuBar;
   protected MainPanel mainPanel;
   protected BaseManager currentManager;
   
+  protected static EtomoFrame mainFrame = null;
+  protected static EtomoFrame subFrame = null;
+  
+  protected abstract void register();
+  
+  protected void initialize() {
+    menu = new EtomoMenu();
+    ImageIcon iconEtomo = new ImageIcon(ClassLoader
+        .getSystemResource("images/etomo.png"));
+    setIconImage(iconEtomo.getImage());
+    createMenus();
+  }
+  
   /**
    * Handle File menu actions
    * @param event
    */
-  void menuFileAction(ActionEvent event) {
+  protected void menuFileAction(ActionEvent event) {
+    AxisID axisID = getAxisID();
     if (event.getActionCommand().equals(menu.getActionCommandFileNewTomogram())) {
-      EtomoDirector.getInstance().openTomogram(true);
+      EtomoDirector.getInstance().openTomogram(true, axisID);
     }
 
     if (event.getActionCommand().equals(menu.getActionCommandFileNewJoin())) {
-      EtomoDirector.getInstance().openJoin(true);
+      EtomoDirector.getInstance().openJoin(true, axisID);
     }
 
     if (event.getActionCommand().equals(menu.getActionCommandFileOpen())) {
       File dataFile = openDataFileDialog();
       if (dataFile != null) {
-        EtomoDirector.getInstance().openManager(dataFile, true);
+        EtomoDirector.getInstance().openManager(dataFile, true, axisID);
       }
     }
 
@@ -64,24 +87,24 @@ public class EtomoFrame extends JFrame {
         haveTestParamFilename = getTestParamFilename();
       }
       if (haveTestParamFilename) {
-        currentManager.saveTestParamFile();
+        currentManager.saveTestParamFile(axisID);
       }
     }
 
     if (event.getActionCommand().equals(menu.getActionCommandFileSaveAs())) {
       boolean haveTestParamFilename = getTestParamFilename();
       if (haveTestParamFilename) {
-        currentManager.saveTestParamFile();
+        currentManager.saveTestParamFile(axisID);
       }
     }
 
     if (event.getActionCommand().equals(menu.getActionCommandFileClose())) {
-      EtomoDirector.getInstance().closeCurrentManager();
+      EtomoDirector.getInstance().closeCurrentManager(axisID);
     }
 
     if (event.getActionCommand().equals(menu.getActionCommandFileExit())) {
       //  Check to see if we need to save any data
-      if (EtomoDirector.getInstance().exitProgram()) {
+      if (EtomoDirector.getInstance().exitProgram(axisID)) {
         System.exit(0);
       }
     }
@@ -91,16 +114,17 @@ public class EtomoFrame extends JFrame {
    * Open the specified MRU EDF file
    * @param event
    */
-  void menuFileMRUListAction(ActionEvent event) {
+  protected void menuFileMRUListAction(ActionEvent event) {
     EtomoDirector.getInstance().openManager(new File(event.getActionCommand()),
-        true);
+        true, getAxisID());
   }
   
   /**
    * Handle help menu actions
    * @param event
    */
-  void menuHelpAction(ActionEvent event) {
+  protected void menuHelpAction(ActionEvent event) {
+    AxisID axisID = getAxisID();
     // Get the URL to the IMOD html directory
     String imodURL = "";
     try {
@@ -145,7 +169,7 @@ public class EtomoFrame extends JFrame {
     }
 
     if (event.getActionCommand().equals(menu.getActionCommandHelpAbout())) {
-      MainFrame_AboutBox dlg = new MainFrame_AboutBox(this);
+      MainFrame_AboutBox dlg = new MainFrame_AboutBox(this, axisID);
       Dimension dlgSize = dlg.getPreferredSize();
       Dimension frmSize = getSize();
       Point loc = getLocation();
@@ -153,7 +177,6 @@ public class EtomoFrame extends JFrame {
           (frmSize.height - dlgSize.height) / 2 + loc.y);
       dlg.setModal(true);
       dlg.setVisible(true);
-      //dlg.show();
     }
   }
 
@@ -162,20 +185,226 @@ public class EtomoFrame extends JFrame {
    * handled in the child classes.
    * @param event
    */
-  void menuOptionsAction(ActionEvent event) {
+  protected void menuOptionsAction(ActionEvent event) {
     String command = event.getActionCommand();
     if (command.equals(menu.getActionCommandSettings())) {
       EtomoDirector.getInstance().openSettingsDialog();
     }
+    //Run fitWindow on both frames.
     else if (command.equals(menu.getActionCommandFitWindow())) {
       fitWindow(true);
+      EtomoFrame frame = getOtherFrame();
+      if (frame != null) {
+        frame.fitWindow();
+      }
     }
     else {
       throw new IllegalStateException("Cannot handled menu command in this class.  command="+command);
     }
   }
   
-  public void fitWindow() {
+  /**
+   * Enable/disable menu items.  Also run this function on the other frame since
+   * it changes the menu's appearance.
+   * @param currentManager
+   */
+  protected void setEnabled(BaseManager currentManager) {
+    menu.setEnabled(currentManager);
+    EtomoFrame otherFrame = getOtherFrame();
+    if (otherFrame != null) {
+      otherFrame.menu.setEnabled(currentManager);
+    }
+  }
+  
+  /**
+   * Set the MRU etomo data file list.  This fills in the MRU menu items
+   * on the File menu.
+   * Also run this function on the other frame since it changes the menu's
+   * appearance.
+   */
+  protected void setMRUFileLabels(String[] mRUList) {
+    menu.setMRUFileLabels(mRUList);
+    EtomoFrame otherFrame = getOtherFrame();
+    if (otherFrame != null) {
+      getOtherFrame().menu.setMRUFileLabels(mRUList);
+    }
+  }
+
+  protected void setEnabledNewTomogramMenuItem(boolean enable) {
+    menu.setEnabledFileNewTomogram(enable);
+    EtomoFrame otherFrame = getOtherFrame();
+    if (otherFrame != null) {
+      getOtherFrame().menu.setEnabledFileNewTomogram(enable);
+    }
+  }
+
+  protected void setEnabledNewJoinMenuItem(boolean enable) {
+    menu.setEnabledFileNewJoin(enable);
+    EtomoFrame otherFrame = getOtherFrame();
+    if (otherFrame != null) {
+      getOtherFrame().menu.setEnabledFileNewJoin(enable);
+    }
+  }
+  
+  protected void repaint(AxisID axisID) {
+    getFrame(axisID).repaint();
+  }
+  
+  protected void fitWindow(AxisID axisID) {
+    getFrame(axisID).fitWindow();
+  }
+
+  /**
+   * Open a message dialog
+   * @param message
+   * @param title
+   */
+  protected void openMessageDialog(String message, String title, AxisID axisID) {
+    getFrame(axisID).openMessageDialog(message, title);
+  }
+  
+  /**
+   * Open a message dialog
+   * @param message
+   * @param title
+   */
+  protected void openMessageDialog(String[] message, String title, AxisID axisID) {
+    getFrame(axisID).openMessageDialog(message, title);
+  }
+  
+  protected int openYesNoCancelDialog(String[] message, AxisID axisID) {
+    return getFrame(axisID).openYesNoCancelDialog(message);
+  }
+  
+  protected boolean openYesNoDialog(String message, AxisID axisID) {
+    return getFrame(axisID).openYesNoDialog(message);
+  }
+  
+  protected boolean openYesNoDialog(String[] message, AxisID axisID) {
+    return getFrame(axisID).openYesNoDialog(message);
+  }
+
+  
+  /**
+   * Open a message dialog with a wrapped message with the dataset appended.
+   * @param message
+   * @param title
+   */
+  private void openMessageDialog(String message, String title) {
+    JOptionPane.showMessageDialog(this, wrap(message), title,
+        JOptionPane.ERROR_MESSAGE);
+  }
+  
+  /**
+   * Open a message dialog
+   * @param message
+   * @param title
+   */
+  private void openMessageDialog(String[] message, String title) {
+    JOptionPane.showMessageDialog(this, wrap(message), title,
+        JOptionPane.ERROR_MESSAGE);
+  }
+  
+  /**
+   * Open a Yes, No or Cancel question dialog
+   * @param message
+   * @return int state of the users select
+   */
+  private int openYesNoCancelDialog(String[] message) {
+    return JOptionPane.showConfirmDialog(this, wrap(message), "Etomo question",
+        JOptionPane.YES_NO_CANCEL_OPTION);
+  }
+  
+  /**
+   * Open a Yes or No question dialog
+   * @param message
+   * @return
+   */
+  private boolean openYesNoDialog(String message) {
+    int result = JOptionPane.showConfirmDialog(this, wrap(message), "Etomo question",
+        JOptionPane.YES_NO_OPTION);
+    return result == JOptionPane.YES_OPTION;
+  }
+  
+  /**
+   * Open a Yes or No question dialog
+   * @param message
+   * @return
+   */
+  private boolean openYesNoDialog(String[] message) {
+    int result = JOptionPane.showConfirmDialog(this, wrap(message), "Etomo question",
+        JOptionPane.YES_NO_OPTION);
+    return result == JOptionPane.YES_OPTION;
+  }
+
+  /**
+   * Add the current dataset name to the message and wrap
+   * @param message
+   * @return
+   */
+  private String[] wrap(String message) {
+    ArrayList messageArray = new ArrayList();
+    if (currentManager != null) {
+      messageArray.add(currentManager.getBaseMetaData().getName() + ":");
+    }
+    messageArray = wrap(message, messageArray);
+    if (messageArray.size() == 1) {
+      String[] returnArray = {message};
+      return returnArray;
+    }
+    return (String[]) messageArray.toArray(new String[messageArray.size()]);
+  }
+  
+  /**
+   * Add the current dataset name to the message and wrap
+   * @param message
+   * @return
+   */
+  private String[] wrap(String[] message) {
+    ArrayList messageArray = new ArrayList();
+    if (currentManager != null) {
+      messageArray.add(currentManager.getBaseMetaData().getName() + ":");
+    }
+    for (int i = 0; i < message.length; i++) {
+      messageArray = wrap(message[i], messageArray);
+    }
+    if (messageArray.size() == 1) {
+      String[] returnArray = {(String) messageArray.get(0)};
+      return returnArray;
+    }
+    return (String[]) messageArray.toArray(new String[messageArray.size()]);
+  }
+  
+  /**
+   * wrap the message and place it in messageArray
+   * @param message
+   * @param messageArray
+   * @return messageArray
+   */
+  private ArrayList wrap(String message, ArrayList messageArray) {
+    if (message == null) {
+      if (messageArray.size() == 0) {
+        messageArray.add(" ");
+      }
+      return messageArray;
+    }
+    int messageLength = message.length();
+    int messageIndex = 0;
+    while (messageIndex < messageLength && messageArray.size() < maxMessageLines) {
+      int endIndex = Math.min(messageLength, messageIndex + messageWidth);
+      StringBuffer line = new StringBuffer(message.substring(messageIndex, endIndex));
+      messageIndex = endIndex;
+      while (messageIndex < messageLength
+          && message.substring(messageIndex, messageIndex + 1).matches("\\S+")) {
+        line.append(message.charAt(messageIndex++));
+      }
+      messageArray.add(line.toString());
+    }
+    return messageArray;
+  }
+
+    
+  protected void fitWindow() {
     fitWindow(false);
   }
   
@@ -183,10 +412,9 @@ public class EtomoFrame extends JFrame {
    * fit window to its components and to the screen
    *
    */
-  public void fitWindow(boolean force) {
+  protected void fitWindow(boolean force) {
     if (!force && !EtomoDirector.getInstance().getUserConfiguration().isAutoFit()) {
       setVisible(true);
-      //EtomoDirector.getInstance().getMainFrame().show();
     }
     else {
       pack();
@@ -197,7 +425,7 @@ public class EtomoFrame extends JFrame {
    * Open a file chooser to get an .edf or .ejf file.
    * @return
    */
-  public boolean getTestParamFilename() {
+  protected boolean getTestParamFilename() {
     //  Open up the file chooser in current working directory
     File workingDir = new File(currentManager.getPropertyUserDir());
     JFileChooser chooser =
@@ -247,7 +475,7 @@ public class EtomoFrame extends JFrame {
   /**
    * Create the Etomo menus
    */
-  public void createMenus() {
+  protected void createMenus() {
     menu.createMenus(this);
     menuBar = menu.getMenuBar();
     setJMenuBar(menuBar);
@@ -276,9 +504,53 @@ public class EtomoFrame extends JFrame {
     }
     return null;
   }
+  
+  private AxisID getAxisID() {
+    if (!main) {
+      return AxisID.SECOND;
+    }
+    if (mainPanel.getAxisType() == AxisType.SINGLE_AXIS
+        || mainPanel.isShowingSetup()) {
+      return AxisID.ONLY;
+    }
+    if (!mainPanel.isShowingAxisA()) {
+      return AxisID.SECOND;
+    }
+    return AxisID.FIRST;
+  }
+  
+  private EtomoFrame getOtherFrame() {
+    if (main) {
+      return subFrame;
+    }
+    return mainFrame;
+  }
+  
+  /**
+   * Used by single axis functions.  Gets the frame containing the axis.
+   * @param axisID
+   * @return
+   */
+  private EtomoFrame getFrame(AxisID axisID) {
+    if (mainFrame == null) {
+      throw new NullPointerException("MainFrame instance was not registered.");
+    }
+    if (axisID != AxisID.SECOND) {
+      return mainFrame;
+    }
+    if (mainPanel.isShowingBothAxis() && subFrame != null) {
+      return subFrame;
+    }
+    return mainFrame;
+  }
+
 }
 /**
 * <p> $Log$
+* <p> Revision 1.2  2005/04/21 20:33:22  sueh
+* <p> bug# 615 Make EtomoFrame is a class.  It now handles the menu action
+* <p> functions common to MainFrame and SubFrame.
+* <p>
 * <p> Revision 1.1  2005/04/20 01:37:15  sueh
 * <p> bug# 615 Added a interface for MainFrame and SubFrame to they can
 * <p> work with the same menu class.
