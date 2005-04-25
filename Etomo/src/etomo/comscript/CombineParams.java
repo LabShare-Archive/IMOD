@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Properties;
 
 import etomo.storage.Storable;
+import etomo.type.AxisID;
 import etomo.type.CombinePatchSize;
 import etomo.type.FiducialMatch;
 import etomo.util.InvalidParameterException;
@@ -22,6 +23,10 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.3  2004/06/24 18:32:36  sueh
+ * <p> bug# 482 handling USE_MODEL_USE should also cause
+ * <p> modelBased to be set to true
+ * <p>
  * <p> Revision 3.2  2004/03/22 23:19:30  sueh
  * <p> bug# 250 synchronizing fiducialMatch and modelBased
  * <p>
@@ -401,7 +406,7 @@ public class CombineParams extends ConstCombineParams implements Storable {
     throws InvalidParameterException, IOException {
 
     // Get the data size limits from the image stack
-    MRCHeader mrcHeader = new MRCHeader(fileName);
+    MRCHeader mrcHeader = new MRCHeader(fileName, AxisID.ONLY);
     mrcHeader.read();
 
     // Logic from setupcombine to provide the default border size, the variable

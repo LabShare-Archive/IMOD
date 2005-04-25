@@ -1,5 +1,6 @@
 package etomo;
 
+import etomo.type.AxisID;
 import etomo.type.BaseMetaData;
 import etomo.type.JoinMetaData;
 
@@ -16,7 +17,11 @@ import etomo.type.JoinMetaData;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2005/01/21 22:13:39  sueh
+* <p> bug# 509 bug# 591  Implements Controller.  Manages a group of controller
+* <p> classes, including JoinManager and JoinMetaData.
+* <p> </p>
 */
 public class JoinController implements Controller {
   public static  final String  rcsid =  "$Id$";
@@ -24,9 +29,9 @@ public class JoinController implements Controller {
   private JoinManager manager;
   private JoinMetaData metaData;
   
-  JoinController(String paramFileName) {
+  JoinController(String paramFileName, AxisID axisID) {
     metaData = new JoinMetaData();
-    manager = new JoinManager(paramFileName, metaData);
+    manager = new JoinManager(paramFileName, metaData, axisID);
   }
   
   public BaseManager getManager() {

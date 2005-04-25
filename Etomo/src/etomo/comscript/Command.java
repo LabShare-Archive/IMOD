@@ -2,6 +2,8 @@ package etomo.comscript;
 
 import java.io.File;
 
+import etomo.type.AxisID;
+
 /**
 * <p>Description: </p>
 * 
@@ -16,6 +18,10 @@ import java.io.File;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.5  2005/01/08 00:29:34  sueh
+* <p> bug# 578 Rename functions to avoid conflicting with child class function
+* <p> names.  Remove getBinning() because it is not generic enough.
+* <p>
 * <p> Revision 1.4  2004/12/08 21:17:00  sueh
 * <p> bug# 564 Added getBooleanValue() to get a misc boolean value.
 * <p>
@@ -51,4 +57,5 @@ public interface Command {
   public File getCommandOutputFile();
   public int getIntegerValue(int name);
   public boolean getBooleanValue(int name);
+  public AxisID getAxisID();
 }

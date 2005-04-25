@@ -1,6 +1,7 @@
 package etomo;
 
 import etomo.comscript.CombineComscriptState;
+import etomo.type.AxisID;
 import etomo.type.MetaData;
 import etomo.ui.TomogramCombinationDialog;
 
@@ -21,6 +22,10 @@ import etomo.ui.TomogramCombinationDialog;
 * @version $Revision$
 *
 * <p> $Log$
+* <p> Revision 1.3  2005/01/21 22:07:09  sueh
+* <p> bug# 509 bug# 591  Moved the management of MetaData to the Controller
+* <p> class.
+* <p>
 * <p> Revision 1.2  2004/11/19 22:33:38  sueh
 * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
 * <p>
@@ -48,7 +53,7 @@ public class ApplicationManagerTestHarness extends ApplicationManager {
    * @param args
    */
   private ApplicationManagerTestHarness(String[] args) {
-    super("", new MetaData());
+    super("", new MetaData(), AxisID.ONLY);
   }
   
   public CombineComscriptState runUpdateCombineComscriptState(
