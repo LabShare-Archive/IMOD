@@ -36,6 +36,10 @@ import etomo.type.JoinState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.11  2005/04/21 20:34:48  sueh
+ * <p> bug# 615 Pass axisID to packMainWindow so it can pack only the frame
+ * <p> that requires it.  Moved fitWindow from MainPanel to EtomoFrame.
+ * <p>
  * <p> Revision 1.10  2005/01/29 00:18:22  sueh
  * <p> Removed print statements
  * <p>
@@ -1080,12 +1084,12 @@ public class JoinDialog implements ContextMenu {
     }
     else if (command.equals(btnGetSubarea.getActionCommand())) {
       setSizeAndShift(joinManager
-          .imodGetRubberbandCoordinates(ImodManager.TRIAL_JOIN_KEY));
+          .imodGetRubberbandCoordinates(ImodManager.TRIAL_JOIN_KEY, AxisID.ONLY));
     }
     else if (command.equals(btnChangeSetup.getActionCommand())) {
       //Prepare for Revert:  meta data file should match the screen
       getMetaData(joinManager.getJoinMetaData());
-      joinManager.saveTestParamFile();
+      joinManager.saveTestParamFile(AxisID.ONLY);
       setMode(JoinDialog.CHANGING_SAMPLE_MODE);
     }
     else if (command.equals(btnRevertToLastSetup.getActionCommand())) {

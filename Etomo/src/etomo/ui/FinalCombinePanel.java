@@ -22,6 +22,7 @@ import etomo.comscript.MatchorwarpParam;
 import etomo.comscript.Patchcrawl3DParam;
 import etomo.comscript.CombineParams;
 import etomo.comscript.SetParam;
+import etomo.type.AxisID;
 import etomo.type.EtomoAutodoc;
 
 /**
@@ -48,6 +49,9 @@ import etomo.type.EtomoAutodoc;
  * 
  * <p>
  * $Log$
+ * Revision 3.22  2005/02/11 16:45:39  sueh
+ * bug# 600 Getting tooltips using EtomoAutodoc instead of TooltipFormatter.
+ *
  * Revision 3.21  2005/01/26 00:02:33  sueh
  * Removing ConstEtomoNumber.displayDefault.  To get the default to
  * display, set displayValue and default the same.
@@ -818,7 +822,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields {
     Autodoc autodoc = null;
 
     try {
-      autodoc = Autodoc.get(Autodoc.COMBINE_FFT);
+      autodoc = Autodoc.get(Autodoc.COMBINE_FFT, AxisID.ONLY);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();

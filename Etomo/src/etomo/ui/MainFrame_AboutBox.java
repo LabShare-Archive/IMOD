@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.2  2004/04/22 23:23:57  rickg
+ * <p> Switched getIMODBinPath method
+ * <p>
  * <p> Revision 3.1  2004/04/05 16:39:35  rickg
  * <p> Get version from imodinfo instead of 3dmod
  * <p>
@@ -67,6 +70,7 @@ import javax.swing.JPanel;
 
 import etomo.ApplicationManager;
 import etomo.process.SystemProgram;
+import etomo.type.AxisID;
 
 public class MainFrame_AboutBox extends JDialog {
 	public static final String rcsid =
@@ -79,9 +83,9 @@ public class MainFrame_AboutBox extends JDialog {
 
 	JButton btnOK = new JButton("OK");
 
-	public MainFrame_AboutBox(Frame parent) {
+	public MainFrame_AboutBox(Frame parent, AxisID axisID) {
 		super(parent);
-		getImodVersion();
+		getImodVersion(axisID);
 		JPanel pnlRoot = (JPanel) getContentPane();
 		JPanel pnlText = new JPanel();
 		JPanel pnlButton = new JPanel();
@@ -145,9 +149,9 @@ public class MainFrame_AboutBox extends JDialog {
 	/**
 	 * Run 3dmod -h to version and copyright information.
 	 */
-	private void getImodVersion() {
+	private void getImodVersion(AxisID axisID) {
 		String command = ApplicationManager.getIMODBinPath() + "imodinfo";
-		SystemProgram threeDmod_h = new SystemProgram(command);
+		SystemProgram threeDmod_h = new SystemProgram(command, axisID);
 
 		threeDmod_h.run();
 
