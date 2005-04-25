@@ -30,6 +30,9 @@ import etomo.util.Utilities;
  * @version $$Revision$$
  * 
  * <p> $Log$
+ * <p> Revision 1.13  2005/02/09 18:40:00  sueh
+ * <p> Removing print statements.
+ * <p>
  * <p> Revision 1.12  2005/02/09 01:27:55  sueh
  * <p> bug# 598 isComScriptBusy(): Using the index of NAME to find the
  * <p> directory path and file name, rather then splitting.  There could be spaces
@@ -162,11 +165,11 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
       groupPid = parsePIDString(pidFile);
     }
     if (groupPid == null) {
-      lsof = new SystemProgram("/usr/sbin/lsof -w -S -l -M -L");     
+      lsof = new SystemProgram("/usr/sbin/lsof -w -S -l -M -L", axisID);     
     }
     else {
       lsof =
-          new SystemProgram("/usr/sbin/lsof -w -S -l -M -L -g " + groupPid);
+          new SystemProgram("/usr/sbin/lsof -w -S -l -M -L -g " + groupPid, axisID);
     }
     lsof.run();
     String[] stdout = lsof.getStdOutput();
