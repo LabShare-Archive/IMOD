@@ -27,6 +27,11 @@ import etomo.type.ProcessTrack;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.11  2005/04/21 20:45:40  sueh
+* <p> bug# 615 Moved two frame code out of newstuff.  Removed
+* <p> isAxisPanelAFitScreenError(), since it is not necessary.  Using
+* <p> showBothAxis() to display the B axis in SubFrame.
+* <p>
 * <p> Revision 1.10  2005/04/20 01:51:46  sueh
 * <p> bug# 615 Added showingSetup boolean to prevent from showing axis A
 * <p> when setup tomogram is displayed.
@@ -95,7 +100,6 @@ public class MainTomogramPanel extends MainPanel {
   
   private TomogramProcessPanel axisPanelA;
   private TomogramProcessPanel axisPanelB;
-  private boolean showingSetup = false;
   
   /**
    * @param appManager
