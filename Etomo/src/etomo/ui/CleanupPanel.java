@@ -16,6 +16,7 @@ import javax.swing.JPanel;
 import etomo.ApplicationManager;
 import etomo.storage.BackupFileFilter;
 import etomo.storage.IntermediateFileFilter;
+import etomo.type.AxisID;
 
 /**
  * <p>
@@ -37,6 +38,9 @@ import etomo.storage.IntermediateFileFilter;
  * 
  * <p>
  * $Log$
+ * Revision 3.5  2005/03/30 21:05:24  sueh
+ * bug# 621 corrected panel title.
+ *
  * Revision 3.4  2005/03/29 23:52:19  sueh
  * bug# 618 To prevent the user from deleting their tomogram when they
  * decide not to trim, setting
@@ -187,8 +191,8 @@ public class CleanupPanel {
         String message[] = new String[2];
         message[0] = "Unable to delete " + deleteList[i].getName();
         message[1] = "Check file permissions";
-        applicationManager.getMainPanel().openMessageDialog(message,
-            "Unable to delete intermediate file");
+        UIHarness.INSTANCE.openMessageDialog(message,
+            "Unable to delete intermediate file", AxisID.ONLY);
       }
     }
     fileChooser.rescanCurrentDirectory();

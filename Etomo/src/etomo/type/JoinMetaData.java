@@ -3,7 +3,7 @@ package etomo.type;
 import java.util.ArrayList;
 import java.util.Properties;
 
-import etomo.EtomoDirector;
+import etomo.ui.UIHarness;
 
 /**
 * <p>Description: </p>
@@ -19,6 +19,11 @@ import etomo.EtomoDirector;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.3  2004/12/14 21:45:49  sueh
+* <p> bug# 572:  Removing state object from meta data and managing it with a
+* <p> manager class.  All state variables saved after a process is run belong in
+* <p> the state object.
+* <p>
 * <p> Revision 1.2  2004/11/19 23:35:18  sueh
 * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
 * <p>
@@ -138,8 +143,8 @@ public class JoinMetaData extends ConstJoinMetaData {
       row.load(props, prepend);
       int rowIndex = row.getRowIndex();
       if (rowIndex < 0) {
-        EtomoDirector.getInstance().getMainFrame().openMessageDialog(
-            "Invalid row index: " + rowIndex, "Corrupted .ejf file");
+        UIHarness.INSTANCE.openMessageDialog("Invalid row index: " + rowIndex,
+            "Corrupted .ejf file", AxisID.ONLY);
       }
       sectionTableData.add(row.getRowIndex(), row);
     }
