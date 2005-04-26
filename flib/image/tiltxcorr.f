@@ -134,8 +134,6 @@ c
      &	    .ne. 0) call errorexit('NO INPUT FILE SPECIFIED')
         CALL IMOPEN(1,FILIN,'RO')
         CALL IRDHDR(1,NXYZ,MXYZ,MODE,DMIN2,DMAX2,DMEAN2)
-	IF (((NX+2)*NY.GT.idim)) call errorexit(
-     &	    'IMAGE TOO LARGE FOR ARRAYS')
 
 	if (nz.gt.limview) call errorexit('TOO MANY VIEWS FOR ARRAYS')
 C   
@@ -263,6 +261,8 @@ c
 
 	nxuse = ixnd + 1 - ixst
 	nyuse = iynd + 1 - iyst
+	if (nxuse * nyuse .gt. idim) call errorexit( 'IMAGE AREA TOO'//
+     &	    ' LARGE FOR ARRAYS; INCREASE THE BORDER TO TRIM OFF')
 c	  
 c	  determine padding
 c	  
@@ -832,6 +832,9 @@ c	print *,xpeak,ypeak
 
 c
 c	  $Log$
+c	  Revision 3.19  2005/04/26 21:11:57  mast
+c	  Redimensioned to 5000x5000
+c	
 c	  Revision 3.18  2004/07/03 15:47:07  mast
 c	  For non-cumulative correlation case, switched to running correlations
 c	  from minimum tilt outward and adjusted displacement at each view to
