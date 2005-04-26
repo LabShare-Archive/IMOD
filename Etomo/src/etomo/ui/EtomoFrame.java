@@ -33,7 +33,7 @@ import etomo.type.AxisType;
 * 
 * @version $Revision$
 */
-public abstract class EtomoFrame extends JFrame {
+abstract class EtomoFrame extends JFrame {
   public static  final String  rcsid =  "$Id$";
   
   private static final int messageWidth = 60;
@@ -62,7 +62,7 @@ public abstract class EtomoFrame extends JFrame {
    * Handle File menu actions
    * @param event
    */
-  protected void menuFileAction(ActionEvent event) {
+  void menuFileAction(ActionEvent event) {
     AxisID axisID = getAxisID();
     if (event.getActionCommand().equals(menu.getActionCommandFileNewTomogram())) {
       EtomoDirector.getInstance().openTomogram(true, axisID);
@@ -114,7 +114,7 @@ public abstract class EtomoFrame extends JFrame {
    * Open the specified MRU EDF file
    * @param event
    */
-  protected void menuFileMRUListAction(ActionEvent event) {
+  void menuFileMRUListAction(ActionEvent event) {
     EtomoDirector.getInstance().openManager(new File(event.getActionCommand()),
         true, getAxisID());
   }
@@ -123,7 +123,7 @@ public abstract class EtomoFrame extends JFrame {
    * Handle help menu actions
    * @param event
    */
-  protected void menuHelpAction(ActionEvent event) {
+  void menuHelpAction(ActionEvent event) {
     AxisID axisID = getAxisID();
     // Get the URL to the IMOD html directory
     String imodURL = "";
@@ -230,7 +230,7 @@ public abstract class EtomoFrame extends JFrame {
     }
   }
 
-  protected void setEnabledNewTomogramMenuItem(boolean enable) {
+  void setEnabledNewTomogramMenuItem(boolean enable) {
     menu.setEnabledFileNewTomogram(enable);
     EtomoFrame otherFrame = getOtherFrame();
     if (otherFrame != null) {
@@ -238,7 +238,7 @@ public abstract class EtomoFrame extends JFrame {
     }
   }
 
-  protected void setEnabledNewJoinMenuItem(boolean enable) {
+  void setEnabledNewJoinMenuItem(boolean enable) {
     menu.setEnabledFileNewJoin(enable);
     EtomoFrame otherFrame = getOtherFrame();
     if (otherFrame != null) {
@@ -246,11 +246,11 @@ public abstract class EtomoFrame extends JFrame {
     }
   }
   
-  protected void repaint(AxisID axisID) {
+  void repaint(AxisID axisID) {
     getFrame(axisID).repaint();
   }
   
-  protected void fitWindow(AxisID axisID) {
+  void fitWindow(AxisID axisID) {
     getFrame(axisID).fitWindow();
   }
 
@@ -259,7 +259,7 @@ public abstract class EtomoFrame extends JFrame {
    * @param message
    * @param title
    */
-  protected void openMessageDialog(String message, String title, AxisID axisID) {
+  void openMessageDialog(String message, String title, AxisID axisID) {
     getFrame(axisID).openMessageDialog(message, title);
   }
   
@@ -268,19 +268,19 @@ public abstract class EtomoFrame extends JFrame {
    * @param message
    * @param title
    */
-  protected void openMessageDialog(String[] message, String title, AxisID axisID) {
+  void openMessageDialog(String[] message, String title, AxisID axisID) {
     getFrame(axisID).openMessageDialog(message, title);
   }
   
-  protected int openYesNoCancelDialog(String[] message, AxisID axisID) {
+  int openYesNoCancelDialog(String[] message, AxisID axisID) {
     return getFrame(axisID).openYesNoCancelDialog(message);
   }
   
-  protected boolean openYesNoDialog(String message, AxisID axisID) {
+  boolean openYesNoDialog(String message, AxisID axisID) {
     return getFrame(axisID).openYesNoDialog(message);
   }
   
-  protected boolean openYesNoDialog(String[] message, AxisID axisID) {
+  boolean openYesNoDialog(String[] message, AxisID axisID) {
     return getFrame(axisID).openYesNoDialog(message);
   }
 
@@ -404,7 +404,7 @@ public abstract class EtomoFrame extends JFrame {
   }
 
     
-  protected void fitWindow() {
+  void fitWindow() {
     fitWindow(false);
   }
   
@@ -412,7 +412,7 @@ public abstract class EtomoFrame extends JFrame {
    * fit window to its components and to the screen
    *
    */
-  protected void fitWindow(boolean force) {
+  void fitWindow(boolean force) {
     if (!force && !EtomoDirector.getInstance().getUserConfiguration().isAutoFit()) {
       setVisible(true);
     }
@@ -425,7 +425,7 @@ public abstract class EtomoFrame extends JFrame {
    * Open a file chooser to get an .edf or .ejf file.
    * @return
    */
-  protected boolean getTestParamFilename() {
+  private boolean getTestParamFilename() {
     //  Open up the file chooser in current working directory
     File workingDir = new File(currentManager.getPropertyUserDir());
     JFileChooser chooser =
@@ -547,6 +547,15 @@ public abstract class EtomoFrame extends JFrame {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.3  2005/04/25 21:04:10  sueh
+* <p> bug# 615 Moving message dialog functions, menu appearance functions,
+* <p> and fitting and repainting functions from mainPanel to this class.  Moved
+* <p> menu management and the coordination of the two frames from
+* <p> EtomoMenu to this class.  Added EtomoFrame static instance variables
+* <p> for an instance of the MainFrame and an instance of the SubFrame.
+* <p> Added an abstract register() function to initialize the static instance
+* <p> variables.
+* <p>
 * <p> Revision 1.2  2005/04/21 20:33:22  sueh
 * <p> bug# 615 Make EtomoFrame is a class.  It now handles the menu action
 * <p> functions common to MainFrame and SubFrame.
