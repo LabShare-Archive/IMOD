@@ -46,6 +46,11 @@ import etomo.util.Utilities;
  * 
  * <p>
  * $Log$
+ * Revision 1.14  2005/04/26 17:35:48  sueh
+ * bug# 615 Made MainFrame a package-level class.  All MainFrame
+ * functionality is handled through UIHarness to make Etomo more
+ * compatible with JUnit.  Removing the mainFrame member variable.
+ *
  * Revision 1.13  2005/04/25 20:33:20  sueh
  * bug# 615 Passing the axis where the command originated to the message
  * functions so that the message will be popped up in the correct window.
@@ -194,7 +199,7 @@ public class EtomoDirector {
   private String homeDirectory;
   private boolean defaultWindow = false;
   private static boolean initialized = false;
-  private UIHarness ui = UIHarness.INSTANCE;
+  private UIHarness uiHarness = UIHarness.INSTANCE;
   // advanced dialog state for this instance, this gets set upon startup from
   // the user configuration and can be modified for this instance by either
   // the option or advanced menu items
@@ -233,7 +238,7 @@ public class EtomoDirector {
   private void initialize(String[] args) {
     createUserConfiguration();
     ArrayList paramFileNameList = parseCommandLine(args);
-    ui.createMainFrame();
+    uiHarness.createMainFrame();
     int paramFileNameListSize = paramFileNameList.size();
     String paramFileName = null;
     controllerList = new HashedArray();
@@ -260,17 +265,17 @@ public class EtomoDirector {
       }
     }
     initProgram();
-    if (!test) {
-      ui.createMenus();
+    uiHarness.createMenus();
       //mainFrame.setWindowMenuLabels(controllerList);
-      ui.setCurrentManager(((Controller) controllerList
-          .get(currentControllerKey)).getManager(), currentControllerKey, true);
-      ui.selectWindowMenuItem(currentControllerKey);
-      ui.setMRUFileLabels(userConfig.getMRUFileList());
-      ui.pack();
-      ui.setVisible(true);
-      //mainFrame.show();
+    Controller controller = (Controller) controllerList.get(currentControllerKey);
+    if (controller != null) {
+      uiHarness.setCurrentManager(controller.getManager(), currentControllerKey, true);
     }
+    uiHarness.selectWindowMenuItem(currentControllerKey);
+    uiHarness.setMRUFileLabels(userConfig.getMRUFileList());
+    uiHarness.pack();
+    uiHarness.setVisible(true);
+      //mainFrame.show();
   }
   
   /**
@@ -308,7 +313,7 @@ public class EtomoDirector {
       String[] message = new String[2];
       message[0] = "Can not find home directory! Unable to load user preferences";
       message[1] = "Set HOME environment variable and restart program to fix this problem";
-      ui.openMessageDialog(message, "Program Initialization Error", AxisID.ONLY);
+      uiHarness.openMessageDialog(message, "Program Initialization Error", AxisID.ONLY);
       System.exit(1);
     }
     // Get the IMOD directory so we know where to find documentation
@@ -322,7 +327,7 @@ public class EtomoDirector {
         String[] message = new String[3];
         message[0] = "Can not find IMOD directory!";
         message[1] = "Set IMOD_DIR environment variable and restart program to fix this problem";
-        ui.openMessageDialog(message, "Program Initialization Error", AxisID.ONLY);
+        uiHarness.openMessageDialog(message, "Program Initialization Error", AxisID.ONLY);
         System.exit(1);
       }
       else {
@@ -375,7 +380,7 @@ public class EtomoDirector {
       userParams.load(storable);
     }
     catch (IOException except) {
-      ui.openMessageDialog(except.getMessage(),
+      uiHarness.openMessageDialog(except.getMessage(),
         "IO Exception: Can't load user configuration"
           + userConfigFile.getAbsolutePath(), AxisID.ONLY);
     }
@@ -436,11 +441,9 @@ public class EtomoDirector {
       throw new NullPointerException("managerKey=" + managerKey); 
     }
     currentControllerKey = managerKey;
-    if (!test) {
       //mainFrame.setWindowMenuLabels(controllerList);
-      ui.setCurrentManager(newCurrentManager, currentControllerKey, newWindow);
+    uiHarness.setCurrentManager(newCurrentManager, currentControllerKey, newWindow);
       //mainFrame.selectWindowMenuItem(currentControllerKey);
-    }
   }
   
   private UniqueKey openTomogram(String etomoDataFileName, boolean makeCurrent, AxisID axisID) {
@@ -448,9 +451,7 @@ public class EtomoDirector {
     if (etomoDataFileName == null
         || etomoDataFileName.equals(ConstMetaData.getNewFileTitle())) {
       controller = new ReconstructionController("", axisID);
-      if (!test) {
-        ui.setEnabledNewTomogramMenuItem(false);
-      }
+      uiHarness.setEnabledNewTomogramMenuItem(false);
     }
     else {
       controller = new ReconstructionController(etomoDataFileName, axisID);
@@ -475,7 +476,7 @@ public class EtomoDirector {
     if (etomoJoinFileName == null
         || etomoJoinFileName.equals(ConstJoinMetaData.getNewFileTitle())) {
       controller = new JoinController("", axisID);
-      ui.setEnabledNewJoinMenuItem(false);
+      uiHarness.setEnabledNewJoinMenuItem(false);
     }
     else {
       controller = new JoinController(etomoJoinFileName, axisID);
@@ -486,10 +487,10 @@ public class EtomoDirector {
   private UniqueKey setController(Controller controller, boolean makeCurrent) {
     UniqueKey controllerKey;
     controllerKey = controllerList.add(controller.getMetaData().getName(), controller);
-    ui.addWindow(controller, controllerKey);
+    uiHarness.addWindow(controller, controllerKey);
     if (makeCurrent) {
       //setCurrentManager(controllerKey, true);
-      ui.selectWindowMenuItem(controllerKey, true);
+      uiHarness.selectWindowMenuItem(controllerKey, true);
     }
     return controllerKey;
   }
@@ -534,7 +535,7 @@ public class EtomoDirector {
     }
     String[] message = { "Unknown file type " + dataFile.getName() + ".",
         "Open this file as an " + etomoFileFilter.getDescription() + "?" };
-    if (ui.openYesNoDialog(message, axisID)) {
+    if (uiHarness.openYesNoDialog(message, axisID)) {
       return openTomogram(dataFile, makeCurrent, axisID);
     }
     else {
@@ -556,26 +557,26 @@ public class EtomoDirector {
     }
     controllerList.remove(currentControllerKey);
     enableOpenManagerMenuItem();
-    ui.removeWindow(currentControllerKey);
+    uiHarness.removeWindow(currentControllerKey);
     currentControllerKey = null;
     if (controllerList.size() == 0) {
-      ui.removeWindow(currentControllerKey);
+      uiHarness.removeWindow(currentControllerKey);
       //mainFrame.setWindowMenuLabels(controllerList);
-      ui.setCurrentManager(null, null);
-      ui.selectWindowMenuItem(null);
+      uiHarness.setCurrentManager(null, null);
+      uiHarness.selectWindowMenuItem(null);
       return true;
     }
     setCurrentManager(controllerList.getKey(0));
-    ui.selectWindowMenuItem(controllerList.getKey(0));
+    uiHarness.selectWindowMenuItem(controllerList.getKey(0));
     return true;
   }
   
   private void enableOpenManagerMenuItem() {
     if (currentControllerKey.getName().equals(ConstMetaData.getNewFileTitle())) {
-      ui.setEnabledNewTomogramMenuItem(true);
+      uiHarness.setEnabledNewTomogramMenuItem(true);
     }
     if (currentControllerKey.getName().equals(ConstJoinMetaData.getNewFileTitle())) {
-      ui.setEnabledNewJoinMenuItem(true);
+      uiHarness.setEnabledNewJoinMenuItem(true);
     }
   }
   
@@ -593,7 +594,7 @@ public class EtomoDirector {
       }
       //  Should we close the 3dmod windows
       //  Save the current window size to the user config
-      Dimension size = ui.getSize();
+      Dimension size = uiHarness.getSize();
       userConfig.setMainWindowWidth(size.width);
       userConfig.setMainWindowHeight(size.height);
       //  Write out the user configuration data
@@ -612,7 +613,7 @@ public class EtomoDirector {
       Storable storable[] = new Storable[1];
       storable[0] = userConfig;
       if (!userConfigFile.canWrite()) {
-        ui.openMessageDialog(
+        uiHarness.openMessageDialog(
             "Change permissions of $HOME/.etomo to allow writing",
             "Unable to save user configuration file", axisID);
       }
@@ -622,7 +623,7 @@ public class EtomoDirector {
         }
         catch (IOException excep) {
           excep.printStackTrace();
-          ui.openMessageDialog(
+          uiHarness.openMessageDialog(
               "IOException: unable to save user parameters\n"
                   + excep.getMessage(), "Unable to save user parameters", axisID);
         }
@@ -640,7 +641,7 @@ public class EtomoDirector {
     UniqueKey oldKey = currentControllerKey;
     currentControllerKey = controllerList.rekey(currentControllerKey, managerName);
     if (!test) {
-      ui.renameWindow(oldKey, currentControllerKey);
+      uiHarness.renameWindow(oldKey, currentControllerKey);
       //mainFrame.selectWindowMenuItem(currentControllerKey);
     }
   }
@@ -847,7 +848,7 @@ public class EtomoDirector {
     if (settingsDialog != null) {
       settingsDialog.getParameters(userConfig);
       setUserPreferences();
-      ui.repaintWindow();
+      uiHarness.repaintWindow();
     }
   }
   
@@ -861,8 +862,8 @@ public class EtomoDirector {
     if (settingsDialog == null) {
       settingsDialog = new SettingsDialog();
       settingsDialog.setParameters(userConfig);
-      Dimension frmSize = ui.getSize();
-      Point loc = ui.getLocation();
+      Dimension frmSize = uiHarness.getSize();
+      Point loc = uiHarness.getLocation();
       settingsDialog.setLocation(loc.x, loc.y + frmSize.height);
       settingsDialog.setModal(false);
     }
