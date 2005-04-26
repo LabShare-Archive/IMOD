@@ -30,6 +30,14 @@ import etomo.util.UniqueKey;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.28  2005/04/25 21:08:29  sueh
+ * <p> bug# 615 Moving message dialog functions, menu appearance functions,
+ * <p> and fitting and repainting functions from MainFrame to EtomoFrame.
+ * <p> Added EtomoFrame static instance variables to EtomoFrame
+ * <p> for an instance of the MainFrame and an instance of the SubFrame.
+ * <p> Added an abstract register() function to initialize the static instance
+ * <p> variables.
+ * <p>
  * <p> Revision 3.27  2005/04/21 20:37:48  sueh
  * <p> bug# 615 Make EtomoFrame is a class.  It now handles the menu action
  * <p> functions common to MainFrame and SubFrame.  Added
@@ -336,7 +344,7 @@ import etomo.util.UniqueKey;
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
  */
-public final class MainFrame extends EtomoFrame implements ContextMenu {
+final class MainFrame extends EtomoFrame implements ContextMenu {
   public static final String rcsid = "$Id$";
   
   private static final int estimatedMenuHeight = 60;
@@ -356,7 +364,7 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
   /**
    * Main window constructor.  This sets up the menus and status line.
    */
-  public MainFrame() {
+  MainFrame() {
     register();
     enableEvents(AWTEvent.WINDOW_EVENT_MASK);
     Toolkit toolkit = Toolkit.getDefaultToolkit();
@@ -386,7 +394,7 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
     main = true;
   }
 
-  protected void setCurrentManager(BaseManager currentManager, UniqueKey managerKey, boolean newWindow) {
+  void setCurrentManager(BaseManager currentManager, UniqueKey managerKey, boolean newWindow) {
     this.currentManager = currentManager;
     if (mainPanel != null) {
       /*if (subFrame != null) {
@@ -423,11 +431,11 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
     }
   }
   
-  protected MainPanel getMainPanel() {
+  MainPanel getMainPanel() {
     return mainPanel;
   }
 
-  protected void setCurrentManager(BaseManager currentManager, UniqueKey managerKey) {
+  void setCurrentManager(BaseManager currentManager, UniqueKey managerKey) {
     setCurrentManager(currentManager, managerKey, false);
   }
   
@@ -441,33 +449,26 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
     ContextPopup contextPopup = new ContextPopup(mainPanel, mouseEvent, "");
   }
 
-  protected void addWindow(Controller controller, UniqueKey controllerKey) {
+  void addWindow(Controller controller, UniqueKey controllerKey) {
     windowSwitch.add(controller, controllerKey);
   }
   
-  protected void removeWindow(UniqueKey controllerKey) {
+  void removeWindow(UniqueKey controllerKey) {
     windowSwitch.remove(controllerKey);
   }
   
-  protected void renameWindow(UniqueKey oldKey, UniqueKey newKey) {
+  void renameWindow(UniqueKey oldKey, UniqueKey newKey) {
     windowSwitch.rename(oldKey, newKey);
   }
 
-  protected void selectWindowMenuItem(UniqueKey currentManagerKey) {
+  void selectWindowMenuItem(UniqueKey currentManagerKey) {
     selectWindowMenuItem(currentManagerKey, false);
   }
   
-  protected void selectWindowMenuItem(UniqueKey currentManagerKey, boolean newWindow) {
+  void selectWindowMenuItem(UniqueKey currentManagerKey, boolean newWindow) {
     windowSwitch.selectWindow(currentManagerKey, newWindow);
   }
     
-  protected void packFrames() {
-    pack();
-    if (subFrame != null) {
-      subFrame.pack();
-    }
-  }
-
   /**
    * Handle the options menu events
    * @param event
@@ -488,7 +489,7 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
     }
   }
     
-  protected void showAxisA() {
+  void showAxisA() {
     setTitle(aAxisTitle + title);
     if (subFrame != null) {
       subFrame.setVisible(false);
@@ -497,7 +498,7 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
     pack();
   }
   
-  protected void showAxisB() {
+  void showAxisB() {
     setTitle(bAxisTitle + title);
     if (subFrame != null) {
       subFrame.setVisible(false);
@@ -506,7 +507,7 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
     pack();
   }
   
-  protected void showBothAxis() {
+  void showBothAxis() {
     setTitle(aAxisTitle + title);
     mainPanel.showAxisA();
     if (subFrame == null || !subFrame.isDisplayable()) {
@@ -529,12 +530,12 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
   }
 
   //  TODO Need a way to repaint the existing font
-  protected void repaintWindow() {
+  void repaintWindow() {
     repaintContainer(this);
     this.repaint();
   }
 
-  protected void repaintContainer(Container container) {
+  private void repaintContainer(Container container) {
     Component[] comps = container.getComponents();
     for (int i = 0; i < comps.length; i++) {
       if (comps[i] instanceof Container) {

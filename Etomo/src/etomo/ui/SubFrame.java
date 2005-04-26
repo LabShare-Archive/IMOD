@@ -24,14 +24,14 @@ import etomo.BaseManager;
 * 
 * @version $Revision$
 */
-public final class SubFrame extends EtomoFrame {
+final class SubFrame extends EtomoFrame {
   public static  final String  rcsid =  "$Id$";
   
   private MainFrame mainFrame;
   private JPanel rootPanel;
   private JLabel statusBar;
   
-  protected SubFrame(MainFrame mainFrame) {
+  SubFrame(MainFrame mainFrame) {
     register();
     this.mainFrame = mainFrame;
   }
@@ -51,7 +51,7 @@ public final class SubFrame extends EtomoFrame {
    * @param currentManager
    * @param mRUList
    */
-  protected void initialize(String title, BaseManager currentManager, String[] mRUList) {
+  void initialize(String title, BaseManager currentManager, String[] mRUList) {
     super.initialize();
     this.currentManager = currentManager;
     setTitle(title);
@@ -76,7 +76,7 @@ public final class SubFrame extends EtomoFrame {
    * Set the main panel when switching managers.
    *
    */
-  protected void setMainPanel(String title, BaseManager currentManager) {
+  void setMainPanel(String title, BaseManager currentManager) {
     this.currentManager = currentManager;
     mainPanel = mainFrame.getMainPanel();
     setTitle(title);
@@ -103,7 +103,7 @@ public final class SubFrame extends EtomoFrame {
    * Update the axis when switch from single axis display to dual axis display.
    *
    */
-  protected void updateAxis() {
+  void updateAxis() {
     rootPanel.removeAll();
     setAxis();
   }
@@ -112,7 +112,7 @@ public final class SubFrame extends EtomoFrame {
    * Add the axis scroll panel and the status bar, and set the location.
    *
    */
-  protected void setAxis() {
+  private void setAxis() {
     rootPanel.removeAll();
     JScrollPane axis = mainPanel.showBothAxis();
     if (axis != null)
@@ -125,10 +125,15 @@ public final class SubFrame extends EtomoFrame {
     validate();
     setVisible(true);
   }
-
 }
 /**
 * <p> $Log$
+* <p> Revision 1.4  2005/04/25 21:41:09  sueh
+* <p> bug# 615 Moving message dialog functions, menu appearance functions,
+* <p> and fitting and repainting functions from mainPanel and the child frame
+* <p> classes to EtomoFrame.  Added register() to initialize a static instance
+* <p> variable in EtomoFrame.
+* <p>
 * <p> Revision 1.3  2005/04/21 20:54:49  sueh
 * <p> bug# 615 Moved menu handling to EtomoFrame so that SubFrame can
 * <p> respond directly to menu commands.  Added title bar.
