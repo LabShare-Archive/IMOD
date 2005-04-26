@@ -13,7 +13,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 
 import etomo.BaseManager;
-import etomo.EtomoDirector;
 import etomo.storage.DataFileFilter;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
@@ -31,6 +30,10 @@ import etomo.type.AxisType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.20  2005/04/25 21:09:24  sueh
+ * <p> bug# 615 Moving message dialog functions from mainPanel to
+ * <p> EtomoFrame.
+ * <p>
  * <p> Revision 1.19  2005/04/21 20:43:47  sueh
  * <p> bug# 615 Moved two frame code out of newstuff.  Removed
  * <p> packAxis, since it is not necessary.  Moved getTestParamFilename() to
@@ -263,7 +266,7 @@ public abstract class MainPanel extends JPanel {
   public void showProcess(Container processPanel, AxisID axisID) {
     AxisProcessPanel axisPanel = mapBaseAxis(axisID);
     axisPanel.replaceDialogPanel(processPanel);
-    EtomoDirector.getInstance().getMainFrame().fitWindow(axisID);
+    UIHarness.INSTANCE.fitWindow(axisID);
   }
 
   /**

@@ -11,7 +11,6 @@ import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import etomo.EtomoDirector;
 import etomo.JoinManager;
 import etomo.comscript.FinishjoinParam;
 import etomo.process.ImodManager;
@@ -36,6 +35,11 @@ import etomo.type.JoinState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.12  2005/04/25 21:06:22  sueh
+ * <p> bug# 615 Passing the axis where a command originates to the message
+ * <p> functions so that the message will be popped up in the correct window.
+ * <p> This requires adding AxisID to many objects.
+ * <p>
  * <p> Revision 1.11  2005/04/21 20:34:48  sueh
  * <p> bug# 615 Pass axisID to packMainWindow so it can pack only the frame
  * <p> that requires it.  Moved fitWindow from MainPanel to EtomoFrame.
@@ -451,7 +455,7 @@ public class JoinDialog implements ContextMenu {
     removePanelComponents(curTab);
     curTab = tabPane.getSelectedIndex();
     addPanelComponents(curTab);
-    EtomoDirector.getInstance().getMainFrame().fitWindow();
+    UIHarness.INSTANCE.fitWindow();
   }
   
   public void setMode(int mode) {

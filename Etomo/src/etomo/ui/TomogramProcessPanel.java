@@ -11,7 +11,6 @@ import javax.swing.JButton;
 import javax.swing.JPanel;
 
 import etomo.ApplicationManager;
-import etomo.EtomoDirector;
 import etomo.process.ProcessState;
 import etomo.type.AxisID;
 import etomo.type.DialogType;
@@ -30,6 +29,10 @@ import etomo.type.DialogType;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.11  2005/04/21 20:55:35  sueh
+ * <p> bug# 615 Pass axisID to packMainWindow so it can pack only the frame
+ * <p> that requires it.
+ * <p>
  * <p> Revision 1.10  2005/04/16 02:08:02  sueh
  * <p> bug# 615 Setting panel background colors.  Setting axis buttons to be
  * <p> A and B when both axis are displayed.  Setting axis buttons to be the
@@ -113,6 +116,7 @@ public class TomogramProcessPanel extends AxisProcessPanel {
   private String bothAxisTooltip = null;
   private String axisATooltip = null;
   private String axisBTooltip = null;
+  private UIHarness uiHarness = UIHarness.INSTANCE;
   
   private ApplicationManager applicationManager;
 
@@ -138,15 +142,14 @@ public class TomogramProcessPanel extends AxisProcessPanel {
   
   private void buttonAxisAction(ActionEvent event) {
     String command = event.getActionCommand();
-    MainFrame mainFrame = EtomoDirector.getInstance().getMainFrame();
     if (command.equals(bothAxisString)) {
-      mainFrame.showBothAxis();
+      uiHarness.showBothAxis();
     }
     else if (command.equals(axisAString)) {
-      mainFrame.showAxisA();
+      uiHarness.showAxisA();
     }
     else if (command.equals(axisBString)) {
-      mainFrame.showAxisB();
+      uiHarness.showAxisB();
     }
   }
     

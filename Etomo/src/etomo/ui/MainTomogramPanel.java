@@ -5,7 +5,6 @@ import java.io.File;
 import javax.swing.JScrollPane;
 
 import etomo.ApplicationManager;
-import etomo.EtomoDirector;
 import etomo.process.ProcessState;
 import etomo.storage.DataFileFilter;
 import etomo.storage.EtomoFileFilter;
@@ -27,6 +26,10 @@ import etomo.type.ProcessTrack;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.12  2005/04/25 21:10:48  sueh
+* <p> bug# 615 Moved showingSetup to the parent class so it can be queried
+* <p> there.
+* <p>
 * <p> Revision 1.11  2005/04/21 20:45:40  sueh
 * <p> bug# 615 Moved two frame code out of newstuff.  Removed
 * <p> isAxisPanelAFitScreenError(), since it is not necessary.  Using
@@ -123,7 +126,7 @@ public class MainTomogramPanel extends MainPanel {
   
   void showAxisA() {
     if (showingSetup || axisType == AxisType.SINGLE_AXIS) {
-      EtomoDirector.getInstance().getMainFrame().fitWindow(true);
+      UIHarness.INSTANCE.fitWindow(true);
     }
     else {
       axisPanelA.showAxisA();
@@ -195,7 +198,7 @@ public class MainTomogramPanel extends MainPanel {
     panelCenter.removeAll();
     panelCenter.add(setupDialog.getContainer());
     revalidate();
-    EtomoDirector.getInstance().getMainFrame().pack();
+    UIHarness.INSTANCE.pack();
   }
 
   /**

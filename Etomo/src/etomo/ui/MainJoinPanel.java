@@ -4,7 +4,6 @@ import java.io.File;
 
 import javax.swing.JPanel;
 
-import etomo.EtomoDirector;
 import etomo.JoinManager;
 import etomo.storage.DataFileFilter;
 import etomo.storage.JoinFileFilter;
@@ -25,6 +24,10 @@ import etomo.type.JoinMetaData;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.5  2005/04/21 20:39:05  sueh
+* <p> bug# 615 Moved two frame code out of newstuff.  Removed
+* <p> isAxisPanelAFitScreenError(), since it is not necessary.
+* <p>
 * <p> Revision 1.4  2005/04/01 02:53:27  sueh
 * <p> bug# 622 Added getAxisPAnelA and B.
 * <p>
@@ -107,7 +110,7 @@ public class MainJoinPanel extends MainPanel {
   public void openPanel(JPanel panel) {
     scrollA.add(panel);
     revalidate();
-    EtomoDirector.getInstance().getMainFrame().pack();
+    UIHarness.INSTANCE.pack();
   }
 
   /**
