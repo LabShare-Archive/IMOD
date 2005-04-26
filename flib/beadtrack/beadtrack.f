@@ -13,44 +13,7 @@ c
 c	  $Date$
 c
 c	  $Revision$
-c
-c	  $Log$
-c	  Revision 3.13  2005/04/09 04:28:34  mast
-c	  Changed default rotation mapping to 1 for full compatibility
-c	
-c	  Revision 3.12  2005/04/08 15:26:06  mast
-c	  Fixed a line toolong
-c	
-c	  Revision 3.11  2005/04/08 04:21:59  mast
-c	  Only drop outliers if fit is based on tiltalign positions
-c	
-c	  Revision 3.10  2005/04/07 04:15:41  mast
-c	  Fixing some output
-c	
-c	  Revision 3.9  2005/04/07 03:56:31  mast
-c	  New version with local tracking, new mapping, outliers, etc.
-c	
-c	  Revision 3.6  2003/06/21 00:39:26  mast
-c	  Changed to use new version of get_tilt_angles
-c	
-c	  Revision 3.5  2003/05/20 23:42:09  mast
-c	  Add space before wrlist output
-c	
-c	  Revision 3.4  2003/04/11 17:28:42  mast
-c	  added cgx, cgy to tltcntrl common to make them available to tiltali
-c	
-c	  Revision 3.3  2002/07/28 22:55:53  mast
-c	  Scale model coordinates correctly in Z; standardize error output
-c	
-c	  Revision 3.2  2002/05/07 02:01:33  mast
-c	  Changes to accommodate distinction in tiltalign between views in
-c	  solution and views in file
-c	
-c	  Revision 3.1  2002/01/07 22:35:15  mast
-c	  Increased dimension for centroid calculation pixel lists, and added
-c	  checks to catch errors in future
-c	
-c
+c	  Log at end of file
 	implicit none
 	include 'model.inc'
 	include 'statsize.inc'
@@ -760,12 +723,13 @@ c
 		endif
 	      enddo
 c		
-c		make area bigger if there are any new points at all in it, and
+c		make area bigger if there are any new points at all in it and
+c		it does not already have all the points, and
 c		either the total in it is too low or this is an area after the
 c		first and the old ones are too low for overlap
 c
-	      keepGoing = numNew .gt. 0 .and.
-     &		  (indfree - indstart .lt. minInArea .or. (k .gt. 1 .and.
+	      keepGoing = numNew .gt. 0 .and. indfree - indstart .lt. nobjdo
+     &		  .and. (indfree - indstart .lt. minInArea .or. (k .gt. 1 .and.
      &		  indfree - indstart - numNew .lt. minBeadOverlap))
 	      if (keepGoing) then
 		j = max(1, localTarget / 200)
@@ -1679,4 +1643,45 @@ c
 	print *,'ERROR: BEADTRACK - ', message
 	call exit(1)
 	end
-	
+
+c	
+c
+c	  $Log$
+c	  Revision 3.14  2005/04/11 19:11:28  mast
+c	  Make it ignore multiple objects when there are only two views
+c	
+c	  Revision 3.13  2005/04/09 04:28:34  mast
+c	  Changed default rotation mapping to 1 for full compatibility
+c	
+c	  Revision 3.12  2005/04/08 15:26:06  mast
+c	  Fixed a line toolong
+c	
+c	  Revision 3.11  2005/04/08 04:21:59  mast
+c	  Only drop outliers if fit is based on tiltalign positions
+c	
+c	  Revision 3.10  2005/04/07 04:15:41  mast
+c	  Fixing some output
+c	
+c	  Revision 3.9  2005/04/07 03:56:31  mast
+c	  New version with local tracking, new mapping, outliers, etc.
+c	
+c	  Revision 3.6  2003/06/21 00:39:26  mast
+c	  Changed to use new version of get_tilt_angles
+c	
+c	  Revision 3.5  2003/05/20 23:42:09  mast
+c	  Add space before wrlist output
+c	
+c	  Revision 3.4  2003/04/11 17:28:42  mast
+c	  added cgx, cgy to tltcntrl common to make them available to tiltali
+c	
+c	  Revision 3.3  2002/07/28 22:55:53  mast
+c	  Scale model coordinates correctly in Z; standardize error output
+c	
+c	  Revision 3.2  2002/05/07 02:01:33  mast
+c	  Changes to accommodate distinction in tiltalign between views in
+c	  solution and views in file
+c	
+c	  Revision 3.1  2002/01/07 22:35:15  mast
+c	  Increased dimension for centroid calculation pixel lists, and added
+c	  checks to catch errors in future
+c
