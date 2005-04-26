@@ -1,5 +1,7 @@
 package etomo.ui;
 
+import java.awt.Dimension;
+import java.awt.Point;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -92,6 +94,36 @@ public class UIHarness {
     return true;
   }
   
+  public void showAxisA() {
+    if (isHead()) {
+      mainFrame.showAxisA();
+    }
+  }
+  
+  public void showAxisB() {
+    if (isHead()) {
+      mainFrame.showAxisB();
+    }
+  }
+  
+  public void showBothAxis() {
+    if (isHead()) {
+      mainFrame.showBothAxis();
+    }
+  }
+  
+  public void fitWindow() {
+    if (isHead()) {
+      mainFrame.fitWindow();
+    }
+  }
+  
+  public void fitWindow(boolean force) {
+    if (isHead()) {
+      mainFrame.fitWindow(force);
+    }
+  }
+  
   public void fitWindow(AxisID axisID) {
     if (isHead()) {
       mainFrame.fitWindow(axisID);
@@ -120,6 +152,44 @@ public class UIHarness {
     if (isHead()) {
       mainFrame.createMenus();
     }
+  }
+  
+  public void pack() {
+    if (isHead()) {
+      mainFrame.pack();
+    }
+  }
+  
+  public void doLayout() {
+    if (isHead()) {
+      mainFrame.doLayout();
+    }
+  }
+  
+  public void validate() {
+    if (isHead()) {
+      mainFrame.validate();
+    }
+  }
+  
+  public void setVisible(boolean b) {
+    if (isHead()) {
+      mainFrame.setVisible(b);
+    }
+  }
+  
+  public Dimension getSize() {
+    if (isHead()) {
+      return mainFrame.getSize();
+    }
+    return new Dimension(0,0);
+  }
+  
+  public Point getLocation() {
+    if (isHead()) {
+      return mainFrame.getLocation();
+    }
+    return new Point(0,0);
   }
   
   public void setCurrentManager(BaseManager currentManager,
@@ -176,28 +246,35 @@ public class UIHarness {
       mainFrame.repaintWindow();
     }
   }
-
-  private boolean isHead() {
-    if (!initialized && !test && mainFrame == null) {
+  
+  public void createMainFrame() {
+    if (!initialized) {
       initialize();
     }
-    return !test && mainFrame != null;
+    if (!test) {
+      mainFrame = new MainFrame();
+    }
+  }
+
+  private boolean isHead() {
+    if (!initialized) {
+      initialize();
+    }
+    return mainFrame != null;
   }
   
   private void initialize() {
+    initialized = true;
     EtomoDirector etomo = EtomoDirector.getInstance();
     test = etomo.isTest();
-    mainFrame = etomo.getMainFrame();
-    if (testLog == null) {
-      testLog = new File(etomo.getCurrentPropertyUserDir(), "etomo_test.log");
-      if (testLog.exists()) {
-        try {
-          Utilities.renameFile(testLog, new File(testLog.getAbsolutePath() + "~"));
-        }
-        catch (IOException e) {
-          e.printStackTrace();
-          testLog.delete();
-        }
+    testLog = new File(etomo.getCurrentPropertyUserDir(), "etomo_test.log");
+    if (testLog.exists()) {
+      try {
+        Utilities.renameFile(testLog, new File(testLog.getAbsolutePath() + "~"));
+      }
+      catch (IOException e) {
+        e.printStackTrace();
+        testLog.delete();
       }
     }
     try {
@@ -206,7 +283,6 @@ public class UIHarness {
     catch (IOException e) {
       e.printStackTrace();
     }
-    initialized = true;
   }
   
   private void log(String function, String message, AxisID axisID) {
@@ -259,5 +335,16 @@ public class UIHarness {
 
 }
 /**
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2005/04/25 21:42:16  sueh
+* <p> bug# 615 Passing the axis where a command originates to the message
+* <p> functions so that the message will be popped up in the correct window.
+* <p> This requires adding AxisID to many objects.  Move the interface for
+* <p> popping up message dialogs to UIHarness.  It prevents headless
+* <p> exceptions during a test execution.  It also allows logging of dialog
+* <p> messages during a test.  It also centralizes the dialog interface and
+* <p> allows the dialog functions to be synchronized to prevent dialogs popping
+* <p> up in both windows at once.  All Frame functions will use UIHarness as a
+* <p> public interface.
+* <p> </p>
 */
