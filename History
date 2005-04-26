@@ -1,5 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/26/06: Made Tiltxcorr work with 5Kx5K image and work as long as the trimmed
+area is smaller than this.
+
+4/26/05: Fixed problem that killed Beadtrack with less than 8 points.
+
 4/22/05: Added Archiveorig, a script to archive the original stack as a small
 compressed file of differences after removing X-rays.
 
