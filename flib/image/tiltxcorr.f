@@ -29,67 +29,11 @@ c
 c	  $Date$
 c
 c	  $Revision$
+c	  Log at end
 c
-c	  $Log$
-c	  Revision 3.17  2003/12/04 16:31:21  mast
-c	  Added * for an error return from fwrite
-c	
-c	  Revision 3.16  2003/11/27 06:03:26  mast
-c	  Changed to determine binning after padding to allow large padding
-c	
-c	  Revision 3.15  2003/10/30 00:48:24  mast
-c	  Incorporated cumulative reference method of Renkin, and added ability
-c	  to correlate a subset shifted from the center
-c	
-c	  Revision 3.14  2003/10/24 03:48:52  mast
-c	  do not call flush for small files due to Windows problems
-c	
-c	  Revision 3.13  2003/10/10 20:42:04  mast
-c	  Used new subroutine for getting input/output files
-c	
-c	  Revision 3.12  2003/10/09 02:33:08  mast
-c	  Converted to use autodoc
-c	
-c	  Revision 3.11  2003/06/21 00:48:00  mast
-c	  New version that uses PIP input - but documentation not revised yet
-c	
-c	  Revision 3.10  2003/05/12 18:58:21  mast
-c	  Fix problem with padding mean intensity when compiled to get
-c	  correlation output file
-c	
-c	  Revision 3.9  2003/03/14 01:10:06  mast
-c	  Add argument to interpolation acll
-c	
-c	  Revision 3.8  2002/07/27 15:49:27  mast
-c	  Standardized error outputs
-c	
-c	  Revision 3.7  2002/05/21 03:22:39  mast
-c	  Moved big array to common to avoid stack size problem on SGI
-c	
-c	  Revision 3.6  2002/05/21 03:18:27  mast
-c	  Equivalenced the array used for test output to part of the first big
-c	  array, to reduce stack size for SGI
-c	
-c	  Revision 3.5  2002/05/20 15:45:16  mast
-c	  Increased dimension of input array to handle 4Kx4K image, reduced
-c	  dimensions of other arrays to rely on binning down to 1024
-c	
-c	  Revision 3.4  2002/05/02 22:41:51  mast
-c	  Fixed bug in which all shifts were being destrected, not just the
-c	  ones where the current view was stretched
-c	
-c	  Revision 3.3  2002/04/29 21:56:54  mast
-c	  Added automatic binning of images down to 1024 pixels.
-c	
-c	  Revision 3.2  2002/01/28 16:07:46  mast
-c	  Added declarations for implicit none
-c	
-c	  Revision 3.1  2002/01/10 01:44:58  mast
-c	  Increased limview to 720 and added check on number of views
-c	
 	implicit none
 	integer idim,idim2,limview
-	parameter (idim=4100*4100,idim2=1200*1200,limview=720)
+	parameter (idim=5000*5000,idim2=1200*1200,limview=720)
 	integer*4 NX,NY,NZ,nxs,nys,nzs
 	COMMON //NX,NY,NZ,nxs,nys,nzs
 C
@@ -886,3 +830,68 @@ c	print *,xpeak,ypeak
 	return
 	end
 
+c
+c	  $Log$
+c	  Revision 3.18  2004/07/03 15:47:07  mast
+c	  For non-cumulative correlation case, switched to running correlations
+c	  from minimum tilt outward and adjusted displacement at each view to
+c	  keep the keep the tilt axis at the center of the minimum-tilt view.
+c	  In all cases, then adjusted transforms to zero mean and shifted tilt
+c	  axis to keep it at center.
+c	
+c	  Revision 3.17  2003/12/04 16:31:21  mast
+c	  Added * for an error return from fwrite
+c	
+c	  Revision 3.16  2003/11/27 06:03:26  mast
+c	  Changed to determine binning after padding to allow large padding
+c	
+c	  Revision 3.15  2003/10/30 00:48:24  mast
+c	  Incorporated cumulative reference method of Renkin, and added ability
+c	  to correlate a subset shifted from the center
+c	
+c	  Revision 3.14  2003/10/24 03:48:52  mast
+c	  do not call flush for small files due to Windows problems
+c	
+c	  Revision 3.13  2003/10/10 20:42:04  mast
+c	  Used new subroutine for getting input/output files
+c	
+c	  Revision 3.12  2003/10/09 02:33:08  mast
+c	  Converted to use autodoc
+c	
+c	  Revision 3.11  2003/06/21 00:48:00  mast
+c	  New version that uses PIP input - but documentation not revised yet
+c	
+c	  Revision 3.10  2003/05/12 18:58:21  mast
+c	  Fix problem with padding mean intensity when compiled to get
+c	  correlation output file
+c	
+c	  Revision 3.9  2003/03/14 01:10:06  mast
+c	  Add argument to interpolation acll
+c	
+c	  Revision 3.8  2002/07/27 15:49:27  mast
+c	  Standardized error outputs
+c	
+c	  Revision 3.7  2002/05/21 03:22:39  mast
+c	  Moved big array to common to avoid stack size problem on SGI
+c	
+c	  Revision 3.6  2002/05/21 03:18:27  mast
+c	  Equivalenced the array used for test output to part of the first big
+c	  array, to reduce stack size for SGI
+c	
+c	  Revision 3.5  2002/05/20 15:45:16  mast
+c	  Increased dimension of input array to handle 4Kx4K image, reduced
+c	  dimensions of other arrays to rely on binning down to 1024
+c	
+c	  Revision 3.4  2002/05/02 22:41:51  mast
+c	  Fixed bug in which all shifts were being destrected, not just the
+c	  ones where the current view was stretched
+c	
+c	  Revision 3.3  2002/04/29 21:56:54  mast
+c	  Added automatic binning of images down to 1024 pixels.
+c	
+c	  Revision 3.2  2002/01/28 16:07:46  mast
+c	  Added declarations for implicit none
+c	
+c	  Revision 3.1  2002/01/10 01:44:58  mast
+c	  Increased limview to 720 and added check on number of views
+c	
