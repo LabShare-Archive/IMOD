@@ -20,6 +20,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.7  2005/03/15 01:03:16  sueh
+ * <p> bug# 533 Added montaging
+ * <p>
  * <p> Revision 3.6  2005/02/18 23:59:29  sueh
  * <p> bug# 606 Removed MetaData (Setup) zfactors, fiducialess, wholetomogram,
  * <p> and localalignments.  Add them for A and B.
@@ -73,13 +76,14 @@ import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.MetaData;
 import etomo.type.ViewType;
-import etomo.ui.MainFrame;
+import etomo.ui.UIHarness;
 import etomo.util.Utilities;
 
 public class DataFlowTests {
 
   static ApplicationManager applicationManager;
-  static MainFrame mainFrame;
+  //static MainFrame mainFrame;
+  static UIHarness uiHarness = UIHarness.INSTANCE;
   static String datasetName;
   static boolean fiducialSpecified = false;
   static boolean fiducialless = false;
@@ -113,7 +117,7 @@ public class DataFlowTests {
       + ".edf";
     EtomoDirector.createInstance(argsIn);
     applicationManager = (ApplicationManager) EtomoDirector.getInstance().getCurrentManager();
-    mainFrame = EtomoDirector.getInstance().getMainFrame();
+    //mainFrame = EtomoDirector.getInstance().getMainFrame();
     // A hack around the const object returned we really know is not const
     MetaData metaData = (MetaData) applicationManager.getMetaData();
     boolean montage = metaData.getViewType() == ViewType.MONTAGE;
@@ -236,7 +240,7 @@ public class DataFlowTests {
 
   private static void preProcessing(AxisID axisID) {
     applicationManager.openPreProcDialog(axisID);
-    mainFrame.pack();
+    uiHarness.pack();
     applicationManager.findXrays(axisID);
     waitForThread(axisID);
     applicationManager.eraser(axisID);
@@ -247,7 +251,7 @@ public class DataFlowTests {
 
   private static void coarseAlignment(AxisID axisID) {
     applicationManager.openCoarseAlignDialog(axisID);
-    mainFrame.pack();
+    uiHarness.pack();
     applicationManager.crossCorrelate(axisID);
     waitForThread(axisID);
     if(!applicationManager.getMetaData().isFiducialessAlignment(axisID)) {
@@ -259,7 +263,7 @@ public class DataFlowTests {
 
   private static void transferfid(AxisID destAxisID) {
     applicationManager.openFiducialModelDialog(destAxisID);
-    mainFrame.pack();
+    uiHarness.pack();
     applicationManager.transferfid(destAxisID);
     waitForThread(destAxisID);
 
@@ -275,7 +279,7 @@ public class DataFlowTests {
       }
     }
     applicationManager.openFiducialModelDialog(axisID);
-    mainFrame.pack();
+    uiHarness.pack();
     applicationManager.fiducialModelTrack(axisID);
     waitForThread(axisID);
     applicationManager.doneFiducialModelDialog(axisID);
@@ -290,7 +294,7 @@ public class DataFlowTests {
       return;
     }
     applicationManager.openFineAlignmentDialog(axisID);
-    mainFrame.pack();
+    uiHarness.pack();
     applicationManager.fineAlignment(axisID);
     waitForThread(axisID);
     applicationManager.doneAlignmentEstimationDialog(axisID);
@@ -298,7 +302,7 @@ public class DataFlowTests {
 
   private static void tomogramPositioning(AxisID axisID) {
     applicationManager.openTomogramPositioningDialog(axisID);
-    mainFrame.pack();
+    uiHarness.pack();
     applicationManager.createSample(axisID);
     waitForThread(axisID);
     try {
@@ -325,7 +329,7 @@ public class DataFlowTests {
 
   private static void tomogramGeneration(AxisID axisID) {
     applicationManager.openTomogramGenerationDialog(axisID);
-    mainFrame.pack();
+    uiHarness.pack();
     applicationManager.newst(axisID);
     waitForThread(axisID);
     //applicationManager.mtffilter(axisID);
@@ -337,7 +341,7 @@ public class DataFlowTests {
 
   private static void tomogramCombination() {
     applicationManager.openTomogramCombinationDialog();
-    mainFrame.pack();
+    uiHarness.pack();
     applicationManager.createCombineScripts();
     waitForThread(AxisID.ONLY);
     applicationManager.combine();

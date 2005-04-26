@@ -20,7 +20,6 @@ import etomo.type.ConstJoinMetaData;
 import etomo.type.ConstMetaData;
 import etomo.type.MetaData;
 import etomo.type.UserConfiguration;
-import etomo.ui.MainFrame;
 import etomo.ui.SettingsDialog;
 import etomo.ui.UIHarness;
 import etomo.util.HashedArray;
@@ -47,6 +46,17 @@ import etomo.util.Utilities;
  * 
  * <p>
  * $Log$
+ * Revision 1.13  2005/04/25 20:33:20  sueh
+ * bug# 615 Passing the axis where the command originated to the message
+ * functions so that the message will be popped up in the correct window.
+ * This requires adding AxisID to many objects.  Move the interface for
+ * popping up message dialogs to UIHarness.  It prevents headless
+ * exceptions during a test execution.  It also allows logging of dialog
+ * messages during a test.  It also centralizes the dialog interface and
+ * allows the dialog functions to be synchronized to prevent dialogs popping
+ * up in both windows at once.  All Frame functions will use UIHarness as a
+ * public interface.
+ *
  * Revision 1.12  2005/04/21 20:29:22  sueh
  * bug# 615 Removing deprecated function show() and replaced is with
  * setVisible(true).
@@ -171,7 +181,7 @@ public class EtomoDirector {
   private static final EtomoDirector theEtomoDirector = new EtomoDirector();
   private File IMODDirectory;
   private File IMODCalibDirectory;
-  private MainFrame mainFrame = null;
+  //private MainFrame mainFrame = null;
   private UserConfiguration userConfig = null;
   private boolean debug = false;
   private boolean demo = false;
@@ -223,9 +233,7 @@ public class EtomoDirector {
   private void initialize(String[] args) {
     createUserConfiguration();
     ArrayList paramFileNameList = parseCommandLine(args);
-    if (!test) {
-      createMainFrame();
-    }
+    ui.createMainFrame();
     int paramFileNameListSize = paramFileNameList.size();
     String paramFileName = null;
     controllerList = new HashedArray();
@@ -259,8 +267,8 @@ public class EtomoDirector {
           .get(currentControllerKey)).getManager(), currentControllerKey, true);
       ui.selectWindowMenuItem(currentControllerKey);
       ui.setMRUFileLabels(userConfig.getMRUFileList());
-      mainFrame.pack();
-      mainFrame.setVisible(true);
+      ui.pack();
+      ui.setVisible(true);
       //mainFrame.show();
     }
   }
@@ -585,7 +593,7 @@ public class EtomoDirector {
       }
       //  Should we close the 3dmod windows
       //  Save the current window size to the user config
-      Dimension size = mainFrame.getSize();
+      Dimension size = ui.getSize();
       userConfig.setMainWindowWidth(size.width);
       userConfig.setMainWindowHeight(size.height);
       //  Write out the user configuration data
@@ -635,17 +643,6 @@ public class EtomoDirector {
       ui.renameWindow(oldKey, currentControllerKey);
       //mainFrame.selectWindowMenuItem(currentControllerKey);
     }
-  }
-  
-  private void createMainFrame() {
-    mainFrame = new MainFrame();
-  }
-  
-  public MainFrame getMainFrame() {
-    if (mainFrame == null) {
-      throw new NullPointerException();
-    }
-    return mainFrame;
   }
   
   public UserConfiguration getUserConfiguration() {
@@ -864,8 +861,8 @@ public class EtomoDirector {
     if (settingsDialog == null) {
       settingsDialog = new SettingsDialog();
       settingsDialog.setParameters(userConfig);
-      Dimension frmSize = mainFrame.getSize();
-      Point loc = mainFrame.getLocation();
+      Dimension frmSize = ui.getSize();
+      Point loc = ui.getLocation();
       settingsDialog.setLocation(loc.x, loc.y + frmSize.height);
       settingsDialog.setModal(false);
     }

@@ -23,7 +23,6 @@ import etomo.type.BaseProcessTrack;
 import etomo.type.BaseState;
 import etomo.type.ProcessName;
 import etomo.type.UserConfiguration;
-import etomo.ui.MainFrame;
 import etomo.ui.MainPanel;
 import etomo.ui.UIHarness;
 import etomo.ui.UIParameters;
@@ -43,6 +42,16 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.13  2005/04/25 20:32:08  sueh
+* <p> bug# 615 Passing the axis where the command originated to the message
+* <p> functions so that the message will be popped up in the correct window.
+* <p> This requires adding AxisID to many objects.  Move the interface for
+* <p> popping up message dialogs to UIHarness.  It prevents headless
+* <p> exceptions during a test execution.  It also allows logging of dialog
+* <p> messages during a test.  It also centralizes the dialog interface and
+* <p> allows the dialog functions to be synchronized to prevent dialogs popping
+* <p> up in both windows at once.
+* <p>
 * <p> Revision 1.12  2005/04/21 20:28:13  sueh
 * <p> bug# 615 Pass axisID to packMainWindow so it can pack only the frame
 * <p> that requires it.
@@ -182,8 +191,8 @@ public abstract class BaseManager {
   
   //protected static variables
   protected static boolean test = false;
-  protected MainFrame mainFrame = null;
-  protected UIHarness ui = UIHarness.INSTANCE;
+  //protected MainFrame mainFrame = null;
+  protected UIHarness uiHarness = UIHarness.INSTANCE;
   protected static UserConfiguration userConfig = EtomoDirector.getInstance()
       .getUserConfiguration();
   
@@ -246,7 +255,7 @@ public abstract class BaseManager {
     test = EtomoDirector.getInstance().isTest();
     if (!test) {
       createMainPanel();
-      mainFrame = EtomoDirector.getInstance().getMainFrame();
+      //mainFrame = EtomoDirector.getInstance().getMainFrame();
     }
     //imodManager should be created only once.
     createImodManager();
@@ -295,7 +304,7 @@ public abstract class BaseManager {
     save(storable, axisID);
     //  Update the MRU test data filename list
     userConfig.putDataFile(paramFile.getAbsolutePath());
-    ui.setMRUFileLabels(userConfig.getMRUFileList());
+    uiHarness.setMRUFileLabels(userConfig.getMRUFileList());
     // Reset the process track flag, if it exists
     BaseProcessTrack processTrack = getProcessTrack();
     if (processTrack != null) {
@@ -326,7 +335,7 @@ public abstract class BaseManager {
       errorMessage[0] = "Test parameter file save error";
       errorMessage[1] = "Could not save test parameter data to file:";
       errorMessage[2] = except.getMessage();
-      ui.openMessageDialog(errorMessage, "Test parameter file save error", axisID);
+      uiHarness.openMessageDialog(errorMessage, "Test parameter file save error", axisID);
     }
   }
  
@@ -359,7 +368,7 @@ public abstract class BaseManager {
       }
       if (messageArray.size() > 0) {
         messageArray.add("Do you still wish to exit the program?");
-        if (!ui.openYesNoDialog((String[]) messageArray
+        if (!uiHarness.openYesNoDialog((String[]) messageArray
             .toArray(new String[messageArray.size()]), axisID)) {
           return false;
         }
@@ -371,19 +380,19 @@ public abstract class BaseManager {
           String[] message = new String[3];
           message[0] = "There are still 3dmod programs running.";
           message[1] = "Do you wish to end these programs?";
-          if (ui.openYesNoDialog(message, axisID)) {
+          if (uiHarness.openYesNoDialog(message, axisID)) {
             imodManager.quit();
           }
         }
       }
       catch (AxisTypeException except) {
         except.printStackTrace();
-        ui.openMessageDialog(except.getMessage(),
+        uiHarness.openMessageDialog(except.getMessage(),
             "AxisType problem", axisID);
       }
       catch (SystemProcessException except) {
         except.printStackTrace();
-        ui.openMessageDialog(except.getMessage(),
+        uiHarness.openMessageDialog(except.getMessage(),
             "Problem closing 3dmod", axisID);
       }
       return true;
@@ -420,11 +429,11 @@ public abstract class BaseManager {
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
-      ui.openMessageDialog(except.getMessage(), "AxisType problem", axisID);
+      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem", axisID);
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      ui.openMessageDialog(except.getMessage(),
+      uiHarness.openMessageDialog(except.getMessage(),
         "Unable to retrieve rubberband coordinates from " + imodKey + ".", axisID);
     }
     Vector messageArray = new Vector();
@@ -456,19 +465,19 @@ public abstract class BaseManager {
     }
     if (messageArray.size() > 0) {
       String[] messages = (String[]) messageArray.toArray(new String[messageArray.size()]);
-      ui.openMessageDialog(messages, "Rubberband Coordinates", axisID);
+      uiHarness.openMessageDialog(messages, "Rubberband Coordinates", axisID);
     }
     return results;
   }
 
 
   protected void setPanel() {
-    mainFrame.pack();
+    uiHarness.pack();
     //  Resize to the users preferrred window dimensions
     getMainPanel().setSize(new Dimension(userConfig.getMainWindowWidth(),
         userConfig.getMainWindowHeight()));
-    mainFrame.doLayout();
-    mainFrame.validate();
+    uiHarness.doLayout();
+    uiHarness.validate();
     if (isDualAxis()) {
       getMainPanel().setDividerLocation(0.51);
     }
@@ -537,7 +546,7 @@ public abstract class BaseManager {
       errorMessage[0] = "Test parameter file read error";
       errorMessage[1] = "Could not find the test parameter data file:";
       errorMessage[2] = except.getMessage();
-      ui.openMessageDialog(errorMessage, "File not found error", axisID);
+      uiHarness.openMessageDialog(errorMessage, "File not found error", axisID);
       return false;
     }
     catch (IOException except) {
@@ -546,13 +555,13 @@ public abstract class BaseManager {
       errorMessage[0] = "Test parameter file read error";
       errorMessage[1] = "Could not read the test parameter data from file:";
       errorMessage[2] = except.getMessage();
-      ui.openMessageDialog(errorMessage,
+      uiHarness.openMessageDialog(errorMessage,
         "Test parameter file read error", axisID);
       return false;
     }
     StringBuffer invalidReason = new StringBuffer();
     if (!Utilities.isValidFile(paramFile, "Parameter file", invalidReason, true, true, true, false)) {
-      ui.openMessageDialog(invalidReason.toString(), "File Error", axisID);
+      uiHarness.openMessageDialog(invalidReason.toString(), "File Error", axisID);
       return false;
     }
     this.paramFile = paramFile;
@@ -568,7 +577,7 @@ public abstract class BaseManager {
       catch (IOException except) {
         System.err.println("Unable to backup file: " + file.getAbsolutePath()
           + " to " + backupFile.getAbsolutePath());
-        ui.openMessageDialog(except.getMessage(), "File Rename Error", axisID);
+        uiHarness.openMessageDialog(except.getMessage(), "File Rename Error", axisID);
       }
     }
   }
@@ -602,7 +611,7 @@ public abstract class BaseManager {
       threadNameB = "none";
     }
     else {
-      ui.openMessageDialog("Unknown thread finished!!!", "Thread name: "
+      uiHarness.openMessageDialog("Unknown thread finished!!!", "Thread name: "
         + threadName, axisID);
     }
     if (processName != null) {
@@ -652,7 +661,7 @@ public abstract class BaseManager {
   }
   
   public void packMainWindow(AxisID axisID) {
-    ui.repaint(axisID);
-    ui.fitWindow(axisID);
+    uiHarness.repaint(axisID);
+    uiHarness.fitWindow(axisID);
   }
 }
