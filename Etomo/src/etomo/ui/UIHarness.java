@@ -17,7 +17,12 @@ import etomo.util.UniqueKey;
 import etomo.util.Utilities;
 
 /**
-* <p>Description: </p>
+* <p>Description: Class to provide a public interface to the application
+* frames.  Must allow objects in other classes to call any public or package
+* level function in MainFrame.  If necessary, it can be modified to handle
+* functions from SubFrame.  Must not generate any headless exceptions when JUnit
+* is running.  Logs the text of all dialog messages to etomo_test.log when
+* --test is used on the command line.</p>
 * 
 * <p>Copyright: Copyright (c) 2005</p>
 *
@@ -247,6 +252,10 @@ public class UIHarness {
     }
   }
   
+  /**
+   * Initialize if necessary.  Instantiate mainFrame if test is false.
+   *
+   */
   public void createMainFrame() {
     if (!initialized) {
       initialize();
@@ -256,6 +265,10 @@ public class UIHarness {
     }
   }
 
+  /**
+   * Initialize if necessary.
+   * @return True, if mainFrame is not equal to null.
+   */
   private boolean isHead() {
     if (!initialized) {
       initialize();
@@ -263,6 +276,10 @@ public class UIHarness {
     return mainFrame != null;
   }
   
+  /**
+   * Initialize test, testLog, and logWriter.
+   *
+   */
   private void initialize() {
     initialized = true;
     EtomoDirector etomo = EtomoDirector.getInstance();
@@ -285,10 +302,23 @@ public class UIHarness {
     }
   }
   
+  /**
+   * Log the parameters in testLog with logWriter.
+   * @param function
+   * @param message
+   * @param axisID
+   */
   private void log(String function, String message, AxisID axisID) {
     log(function, message, null, axisID);
   }
   
+  /**
+   * Log the parameters in testLog with logWriter.
+   * @param function
+   * @param message
+   * @param title
+   * @param axisID
+   */
   private void log(String function, String message, String title, AxisID axisID) {
     if (logWriter != null) {
       try {
@@ -297,6 +327,7 @@ public class UIHarness {
         logWriter.newLine();
         logWriter.write(message);
         logWriter.newLine();
+        logWriter.flush();
       }
       catch (IOException e) {
         e.printStackTrace();
@@ -304,10 +335,23 @@ public class UIHarness {
     }
   }
   
+  /**
+   * Log the parameters in testLog with logWriter.
+   * @param function
+   * @param message
+   * @param axisID
+   */
   private void log(String function, String[] message, AxisID axisID) {
     log(function, message, null, axisID);
   }
   
+  /**
+   * Log the parameters in testLog with logWriter.
+   * @param function
+   * @param message
+   * @param title
+   * @param axisID
+   */
   private void log(String function, String[] message, String title, AxisID axisID) {
     if (logWriter != null) {
       try {
@@ -325,17 +369,21 @@ public class UIHarness {
             logWriter.newLine();
           }
         }
+        logWriter.flush();
       }
       catch (IOException e) {
         e.printStackTrace();
       }
     }
   }
-
-
 }
 /**
 * <p> $Log$
+* <p> Revision 1.2  2005/04/26 17:44:30  sueh
+* <p> bug# 615 Made MainFrame a package-level class.  Added all functions
+* <p> necessary to handle all MainFrame functionality through UIHarness.  This
+* <p> makes Etomo more compatible with JUnit.
+* <p>
 * <p> Revision 1.1  2005/04/25 21:42:16  sueh
 * <p> bug# 615 Passing the axis where a command originates to the message
 * <p> functions so that the message will be popped up in the correct window.
