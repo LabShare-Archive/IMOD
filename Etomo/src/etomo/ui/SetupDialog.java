@@ -50,7 +50,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
   public static final String rcsid = "$Id$";
 
   private JPanel pnlDataParameters = new JPanel();
-  private UIHarness ui = UIHarness.INSTANCE;
+  private UIHarness uiHarness = UIHarness.INSTANCE;
 
   //  Dataset GUI objects
   private JPanel pnlDataset = new JPanel();
@@ -427,7 +427,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
       tiltAnglesB.getFields(metaData.getTiltAngleSpecB());
     }
     catch (NumberFormatException e) {
-      ui.openMessageDialog(
+      uiHarness.openMessageDialog(
           currentField + " must be numeric.", "Setup Dialog Error", AxisID.ONLY);
       return null;
     }
@@ -460,7 +460,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     String panelErrorMessage;
 
     if (datasetText.equals("")) {
-      ui.openMessageDialog(
+      uiHarness.openMessageDialog(
           "Dataset name has not been entered.", errorMessageTitle, AxisID.ONLY);
       return false;
     }
@@ -468,7 +468,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     String datasetFileName = dataset.getName();
     if (datasetFileName.equals("a.st") || datasetFileName.equals("b.st")
         || datasetFileName.equals(".")) {
-      ui.openMessageDialog(
+      uiHarness.openMessageDialog(
           "The name " + datasetFileName + " cannot be used as a dataset name.",
           errorMessageTitle, AxisID.ONLY);
       return false;
@@ -481,7 +481,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
       File distortionFile = new File(distortionFileText);
       if (!distortionFile.exists()) {
         String distortionFileName = distortionFile.getName();
-        ui.openMessageDialog(
+        uiHarness.openMessageDialog(
             "The image distortion field file " + distortionFileName
                 + " does not exist.", errorMessageTitle, AxisID.ONLY);
         return false;
@@ -495,7 +495,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
       File magGradientFile = new File(magGradientFileText);
       if (!magGradientFile.exists()) {
         String magGradientFileName = magGradientFile.getName();
-        ui.openMessageDialog(
+        uiHarness.openMessageDialog(
             "The mag gradients correction file " + magGradientFileName
                 + " does not exist.", errorMessageTitle, AxisID.ONLY);
         return false;
@@ -503,13 +503,13 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     }
     panelErrorMessage = tiltAnglesA.getErrorMessage();
     if (panelErrorMessage != null) {
-      ui.openMessageDialog(
+      uiHarness.openMessageDialog(
           panelErrorMessage + " in Axis A.", errorMessageTitle, AxisID.ONLY);
       return false;
     }
     panelErrorMessage = tiltAnglesB.getErrorMessage();
     if (panelErrorMessage != null) {
-      ui.openMessageDialog(
+      uiHarness.openMessageDialog(
           panelErrorMessage + " in Axis B.", errorMessageTitle, AxisID.ONLY);
       return false;
     }
@@ -716,7 +716,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     // Get the dataset name from the UI object
     String datasetName = ltfDataset.getText();
     if (datasetName == null || datasetName.equals("")) {
-      ui.openMessageDialog(
+      uiHarness.openMessageDialog(
           "Dataset name has not been entered", "Missing dataset name", AxisID.ONLY);
       return;
     }
@@ -738,11 +738,11 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
       header.read();
     }
     catch (InvalidParameterException except) {
-      ui.openMessageDialog(except.getMessage(),
+      uiHarness.openMessageDialog(except.getMessage(),
           "Invalid Parameter Exception", AxisID.ONLY);
     }
     catch (IOException except) {
-      ui.openMessageDialog(except.getMessage(),
+      uiHarness.openMessageDialog(except.getMessage(),
           "IO Exception", AxisID.ONLY);
     }
 
@@ -756,7 +756,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     double xPixelSize = header.getXPixelSize();
     double yPixelSize = header.getYPixelSize();
     if (Double.isNaN(xPixelSize) || Double.isNaN(yPixelSize)) {
-      ui.openMessageDialog(
+      uiHarness.openMessageDialog(
         "Pixel size is not defined in the image file header",
         "Pixel size is missing", AxisID.ONLY);
       
@@ -764,13 +764,13 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     }
 
     if (xPixelSize != yPixelSize) {
-      ui.openMessageDialog(
+      uiHarness.openMessageDialog(
           "X & Y pixels sizes are different, don't know what to do",
           "Pixel sizes are different", AxisID.ONLY);
       return;
     }
     if (xPixelSize == 1.0) {
-      ui.openMessageDialog(
+      uiHarness.openMessageDialog(
           "Pixel size is not defined in the image file header",
           "Pixel size is missing", AxisID.ONLY);
       return;
@@ -1028,6 +1028,17 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.28  2005/04/25 21:38:48  sueh
+ * <p> bug# 615 Passing the axis where a command originates to the message
+ * <p> functions so that the message will be popped up in the correct window.
+ * <p> This requires adding AxisID to many objects.  Move the interface for
+ * <p> popping up message dialogs to UIHarness.  It prevents headless
+ * <p> exceptions during a test execution.  It also allows logging of dialog
+ * <p> messages during a test.  It also centralizes the dialog interface and
+ * <p> allows the dialog functions to be synchronized to prevent dialogs popping
+ * <p> up in both windows at once.  All Frame functions will use UIHarness as a
+ * <p> public interface.
+ * <p>
  * <p> Revision 3.27  2005/04/21 20:47:00  sueh
  * <p> bug# 615 Pass axisID to packMainWindow so it can pack only the frame
  * <p> that requires it.

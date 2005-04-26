@@ -20,6 +20,11 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.62  2005/04/25 20:49:19  sueh
+ * bug# 615 Passing the axis where a command originates to the message
+ * functions so that the message will be popped up in the correct window.
+ * This requires adding AxisID to many objects.
+ *
  * Revision 3.61  2005/04/07 21:54:47  sueh
  * bug# 626 Added makeDistortionCorrectedStack to run undistort.com.
  * Added post processing to enable fixing edges with midas when undistort
@@ -1057,7 +1062,7 @@ public class ProcessManager extends BaseProcessManager {
       alignLogGenerator.run();
     }
     catch (IOException except) {
-      ui.openMessageDialog("Unable to create alignlog files", "Alignlog Error", axisID);
+      uiHarness.openMessageDialog("Unable to create alignlog files", "Alignlog Error", axisID);
     }
   }
 
@@ -1085,7 +1090,7 @@ public class ProcessManager extends BaseProcessManager {
     }
     catch (IOException e) {
       e.printStackTrace();
-      ui.openMessageDialog("Unable to copy protected align files:", "Align Error", axisID);
+      uiHarness.openMessageDialog("Unable to copy protected align files:", "Align Error", axisID);
     }
 
   }
@@ -1417,7 +1422,7 @@ public class ProcessManager extends BaseProcessManager {
         + File.separator + "transferfid.log"));
     }
     catch (IOException except) {
-      ui.openMessageDialog(except.getMessage(),
+      uiHarness.openMessageDialog(except.getMessage(),
           "Transferfid log error", axisID);
     }
   }

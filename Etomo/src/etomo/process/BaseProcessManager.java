@@ -26,6 +26,17 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.10  2005/04/25 20:44:28  sueh
+* <p> bug# 615 Passing the axis where a command originates to the message
+* <p> functions so that the message will be popped up in the correct window.
+* <p> This requires adding AxisID to many objects.  Move the interface for
+* <p> popping up message dialogs to UIHarness.  It prevents headless
+* <p> exceptions during a test execution.  It also allows logging of dialog
+* <p> messages during a test.  It also centralizes the dialog interface and
+* <p> allows the dialog functions to be synchronized to prevent dialogs popping
+* <p> up in both windows at once.  All Frame functions will use UIHarness as a
+* <p> public interface.
+* <p>
 * <p> Revision 1.9  2005/01/05 19:52:39  sueh
 * <p> bug# 578 Moved startBackgroundComScript(String, Runnable, AxisID,
 * <p> ComscriptState, String) and startComScript(String, Runnable, AxisID,
@@ -113,7 +124,7 @@ public abstract class BaseProcessManager {
   Thread processMonitorB = null;
   private HashMap killedList = new HashMap();
   EtomoDirector etomoDirector = EtomoDirector.getInstance();
-  protected UIHarness ui = UIHarness.INSTANCE;
+  protected UIHarness uiHarness = UIHarness.INSTANCE;
   
   protected abstract void postProcess(ComScriptProcess script);
   protected abstract void postProcess(BackgroundProcess process);
@@ -604,7 +615,7 @@ public abstract class BaseProcessManager {
           combined[j] = stdError[i];
         }
       }
-      ui.openMessageDialog(combined,
+      uiHarness.openMessageDialog(combined,
           script.getScriptName() + " terminated", script.getAxisID());
       errorProcess(script);
     }
@@ -621,7 +632,7 @@ public abstract class BaseProcessManager {
         for (int i = 0; i < warningMessages.length; i++) {
           dialogMessage[j++] = warningMessages[i];
         }
-        ui.openMessageDialog(dialogMessage, script.getScriptName()
+        uiHarness.openMessageDialog(dialogMessage, script.getScriptName()
             + " warnings", script.getAxisID());
       }
 
@@ -776,7 +787,7 @@ public abstract class BaseProcessManager {
           message[j] = stdError[i];
         }
       }
-      ui.openMessageDialog(message,
+      uiHarness.openMessageDialog(message,
           process.getCommandName() + " terminated", process.getAxisID());
     }
 
@@ -800,7 +811,7 @@ public abstract class BaseProcessManager {
       .toArray(new String[errors.size()]);
 
     if (errorMessage.length > 0) {
-      ui.openMessageDialog(errorMessage,
+      uiHarness.openMessageDialog(errorMessage,
           "Background Process Error", process.getAxisID());
       errorProcess(process);
     }

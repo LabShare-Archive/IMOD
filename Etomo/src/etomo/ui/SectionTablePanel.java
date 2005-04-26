@@ -51,6 +51,17 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.6  2005/04/25 21:12:09  sueh
+* <p> bug# 615 Passing the axis where a command originates to the message
+* <p> functions so that the message will be popped up in the correct window.
+* <p> This requires adding AxisID to many objects.  Move the interface for
+* <p> popping up message dialogs to UIHarness.  It prevents headless
+* <p> exceptions during a test execution.  It also allows logging of dialog
+* <p> messages during a test.  It also centralizes the dialog interface and
+* <p> allows the dialog functions to be synchronized to prevent dialogs popping
+* <p> up in both windows at once.  All Frame functions will use UIHarness as a
+* <p> public interface.
+* <p>
 * <p> Revision 1.5  2005/04/21 20:46:39  sueh
 * <p> bug# 615 Pass axisID to packMainWindow so it can pack only the frame
 * <p> that requires it.
@@ -221,7 +232,7 @@ public class SectionTablePanel implements ContextMenu, Expandable {
   private SpacedPanel pnlImod;
   private SpacedPanel pnlButtonsComponent1 = null;
   private SpacedPanel pnlButtonsComponent2 = null;
-  private UIHarness ui = UIHarness.INSTANCE;
+  private UIHarness uiHarness = UIHarness.INSTANCE;
 
   private ExpandButton btnExpandSections;
   private MultiLineButton btnMoveSectionUp;
@@ -782,7 +793,7 @@ public class SectionTablePanel implements ContextMenu, Expandable {
       return;
     }
     if (rowIndex == 0) {
-      ui.openMessageDialog("Can't move the row up.  Its at the top.",
+      uiHarness.openMessageDialog("Can't move the row up.  Its at the top.",
           "Wrong Row", AxisID.ONLY);
       return;
     }
@@ -808,7 +819,7 @@ public class SectionTablePanel implements ContextMenu, Expandable {
       return;
     }
     if (rowIndex == rows.size() - 1) {
-      ui.openMessageDialog(
+      uiHarness.openMessageDialog(
           "Can't move the row down.  Its at the bottom.", "Wrong Row", AxisID.ONLY);
       return;
     }
@@ -828,7 +839,7 @@ public class SectionTablePanel implements ContextMenu, Expandable {
     if (!Utilities.isValidFile(joinDialog.getWorkingDir(),
         JoinDialog.WORKING_DIRECTORY_TEXT, invalidBuffer, true,
         true, true, true)) {
-      ui.openMessageDialog(invalidBuffer.toString(), "Unable to Add Section", AxisID.ONLY);
+      uiHarness.openMessageDialog(invalidBuffer.toString(), "Unable to Add Section", AxisID.ONLY);
       return;
     }
     //  Open up the file chooser in the working directory
@@ -858,7 +869,7 @@ public class SectionTablePanel implements ContextMenu, Expandable {
             "bacause the tomogram is thicker in Z then it is long in Y.",
             flipWarning[0], flipWarning[1],
             "Shall I use the clip flipyz command to flip Y and Z?" };
-        if (ui.openYesNoDialog(msgFlipped, AxisID.ONLY)) {
+        if (uiHarness.openYesNoDialog(msgFlipped, AxisID.ONLY)) {
           joinManager.flip(tomogram, joinDialog.getWorkingDir());
           return;
         }
@@ -878,7 +889,7 @@ public class SectionTablePanel implements ContextMenu, Expandable {
           "The header command returned an error (InvalidParameterException).",
           "This file may not contain a tomogram.",
           "Are you sure you want to open this file?" };
-      if (!ui.openYesNoDialog(
+      if (!uiHarness.openYesNoDialog(
           msgInvalidParameterException, AxisID.ONLY)) {
         return false;
       }
@@ -890,7 +901,7 @@ public class SectionTablePanel implements ContextMenu, Expandable {
             "The header command returned an error (IOException).",
             "Unable to tell if the tomogram is flipped.", flipWarning[0],
             flipWarning[1], "Are you sure you want to open this file?" };
-        if (!ui.openYesNoDialog(msgIOException, AxisID.ONLY)) {
+        if (!uiHarness.openYesNoDialog(msgIOException, AxisID.ONLY)) {
           return false;
         }
       }
@@ -902,7 +913,7 @@ public class SectionTablePanel implements ContextMenu, Expandable {
             "The header command returned an error (NumberFormatException).",
             "Unable to tell if the tomogram is flipped.", flipWarning[0],
             flipWarning[1], "Are you sure you want to open this file?" };
-        if (!ui.openYesNoDialog(
+        if (!uiHarness.openYesNoDialog(
             msgNumberFormatException, AxisID.ONLY)) {
           return false;
         }
@@ -919,7 +930,7 @@ public class SectionTablePanel implements ContextMenu, Expandable {
       if (((SectionTableRow) rows.get(i)).equalsSection(section)) {
         String msgDuplicate = "The file, " + section.getAbsolutePath()
             + ", is already in the table.";
-        ui.openMessageDialog(msgDuplicate,
+        uiHarness.openMessageDialog(msgDuplicate,
             "Add Section Failed", AxisID.ONLY);
         return true;
       }
@@ -931,12 +942,12 @@ public class SectionTablePanel implements ContextMenu, Expandable {
     flipping = false;
     setMode();
     if (!tomogram.exists()) {
-      ui.openMessageDialog(
+      uiHarness.openMessageDialog(
           tomogram.getAbsolutePath() + " does not exist.", "File Error", AxisID.ONLY);
       return;
     }
     if (!tomogram.isFile()) {
-      ui.openMessageDialog(
+      uiHarness.openMessageDialog(
           tomogram.getAbsolutePath() + " is not a file.", "File Error", AxisID.ONLY);
       return;
     }
@@ -976,7 +987,7 @@ public class SectionTablePanel implements ContextMenu, Expandable {
       return;
     }
     SectionTableRow row = (SectionTableRow) rows.get(rowIndex);
-    if (!ui.openYesNoDialog(
+    if (!uiHarness.openYesNoDialog(
         "Really remove " + row.getSectionText() + "?", AxisID.ONLY)) {
       return;
     }
@@ -1053,7 +1064,7 @@ public class SectionTablePanel implements ContextMenu, Expandable {
     SectionTableRow row = (SectionTableRow) rows.get(rowIndex);
     int imodIndex = row.getImodIndex();
     if (imodIndex == -1) {
-      ui.openMessageDialog(
+      uiHarness.openMessageDialog(
           "Open in 3dmod and use the Slicer to change the angles.",
           "Open 3dmod", AxisID.ONLY);
       return;

@@ -32,6 +32,17 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.30  2005/04/25 20:37:49  sueh
+ * <p> bug# 615 Passing the axis where the command originated to the message
+ * <p> functions so that the message will be popped up in the correct window.
+ * <p> This requires adding AxisID to many objects.  Move the interface for
+ * <p> popping up message dialogs to UIHarness.  It prevents headless
+ * <p> exceptions during a test execution.  It also allows logging of dialog
+ * <p> messages during a test.  It also centralizes the dialog interface and
+ * <p> allows the dialog functions to be synchronized to prevent dialogs popping
+ * <p> up in both windows at once.  All Frame functions will use UIHarness as a
+ * <p> public interface.
+ * <p>
  * <p> Revision 3.29  2005/04/13 20:32:13  sueh
  * <p> bug# 633 put updateComScript call back into savePrenewst().
  * <p>
@@ -229,7 +240,7 @@ public class ComScriptManager {
   public static final String rcsid = "$Id$";
 
   ApplicationManager appManager;
-  UIHarness ui = UIHarness.INSTANCE;
+  UIHarness uiHarness = UIHarness.INSTANCE;
 
   public static final String MTFFILTER_COMMAND = "mtffilter";
 
@@ -1495,7 +1506,7 @@ public class ComScriptManager {
       errorMessage[0] = "Failed attempt to update the comscript containing the command: "
         + command;
       errorMessage[1] = "It needs to be loaded first";
-      ui.openMessageDialog(errorMessage,
+      uiHarness.openMessageDialog(errorMessage,
           "ComScriptManager Error", axisID);
       return;
     }
@@ -1558,7 +1569,7 @@ public class ComScriptManager {
         errorMessage[0] = "Failed attempt to update the comscript containing the command: "
           + command;
         errorMessage[1] = "It needs to be loaded first";
-        ui.openMessageDialog(errorMessage,"ComScriptManager Error", axisID);
+        uiHarness.openMessageDialog(errorMessage,"ComScriptManager Error", axisID);
         return;
       }
       //If no fromScript, then default to reading from and writing to the
@@ -1636,7 +1647,7 @@ public class ComScriptManager {
       errorMessage[0] = "Failed attempt to update comscript for command:"
         + command;
       errorMessage[1] = "It needs to be loaded first";
-      ui.openMessageDialog(errorMessage,"ComScriptManager Error", axisID);
+      uiHarness.openMessageDialog(errorMessage,"ComScriptManager Error", axisID);
       return -1;
     }
 
@@ -1649,7 +1660,7 @@ public class ComScriptManager {
       errorMessage[0] = "Failed attempt to update comscript for command:"
         + command;
       errorMessage[1] = "previous command:" + previousCommand + "is missing.";
-      ui.openMessageDialog(errorMessage,"ComScriptManager Error", axisID);
+      uiHarness.openMessageDialog(errorMessage,"ComScriptManager Error", axisID);
       return -1;
     }
     
@@ -1674,7 +1685,7 @@ public class ComScriptManager {
       errorMessage[0] = "Failed attempt to update comscript for command:"
         + command;
       errorMessage[1] = "It needs to be loaded first";
-      ui.openMessageDialog(errorMessage,
+      uiHarness.openMessageDialog(errorMessage,
           "ComScriptManager Error", axisID);
       return -1;
     }
@@ -1685,7 +1696,7 @@ public class ComScriptManager {
         + command;
       errorMessage[1] = "previous index, " + previousCommandIndex
         + ", is invalid.";
-      ui.openMessageDialog(errorMessage,
+      uiHarness.openMessageDialog(errorMessage,
           "ComScriptManager Error", axisID);
       return -1;
     }
@@ -1736,7 +1747,7 @@ public class ComScriptManager {
       errorMessage[0] = "Failed attempt to delete command:"
         + command;
       errorMessage[1] = "It needs to be loaded first";
-      ui.openMessageDialog(errorMessage, "ComScriptManager Error", axisID);
+      uiHarness.openMessageDialog(errorMessage, "ComScriptManager Error", axisID);
       return;
     }
 
@@ -1749,7 +1760,7 @@ public class ComScriptManager {
       errorMessage[0] = "Failed attempt to delete command:"
         + command;
       errorMessage[1] = "previous command:" + previousCommand + "is missing.";
-      ui.openMessageDialog(errorMessage, "ComScriptManager Error", axisID);
+      uiHarness.openMessageDialog(errorMessage, "ComScriptManager Error", axisID);
       return;
     }
     
@@ -1859,7 +1870,7 @@ public class ComScriptManager {
         errorMessage[0] = "Failed attempt to initialize comscript for command:"
           + command;
         errorMessage[1] = "previous command:" + previousCommand + "is missing.";
-        ui.openMessageDialog(errorMessage,
+        uiHarness.openMessageDialog(errorMessage,
             "ComScriptManager Error", axisID);
         return false;
       }

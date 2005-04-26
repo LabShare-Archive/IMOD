@@ -47,6 +47,17 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.13  2005/04/25 20:34:21  sueh
+* <p> bug# 615 Passing the axis where the command originated to the message
+* <p> functions so that the message will be popped up in the correct window.
+* <p> This requires adding AxisID to many objects.  Move the interface for
+* <p> popping up message dialogs to UIHarness.  It prevents headless
+* <p> exceptions during a test execution.  It also allows logging of dialog
+* <p> messages during a test.  It also centralizes the dialog interface and
+* <p> allows the dialog functions to be synchronized to prevent dialogs popping
+* <p> up in both windows at once.  All Frame functions will use UIHarness as a
+* <p> public interface.
+* <p>
 * <p> Revision 1.12  2005/03/11 01:57:59  sueh
 * <p> bug# 612 Change nextProcess to support axis A and B.
 * <p>
@@ -292,11 +303,11 @@ public class JoinManager extends BaseManager {
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
-      ui.openMessageDialog(except.getMessage(), "AxisType problem", AxisID.ONLY);
+      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem", AxisID.ONLY);
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      ui.openMessageDialog(except.getMessage(),
+      uiHarness.openMessageDialog(except.getMessage(),
         "Can't open " + imodKey + " in 3dmod ", AxisID.ONLY);
     }
   }
@@ -310,11 +321,11 @@ public class JoinManager extends BaseManager {
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
-      ui.openMessageDialog(except.getMessage(), "AxisType problem", AxisID.ONLY);
+      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem", AxisID.ONLY);
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      ui.openMessageDialog(except.getMessage(),
+      uiHarness.openMessageDialog(except.getMessage(),
         "Can't open " + imodKey + " in 3dmod ", AxisID.ONLY);
     }
   }
@@ -334,11 +345,11 @@ public class JoinManager extends BaseManager {
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
-      ui.openMessageDialog(except.getMessage(), "AxisType problem", AxisID.ONLY);
+      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem", AxisID.ONLY);
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      ui.openMessageDialog(except.getMessage(),
+      uiHarness.openMessageDialog(except.getMessage(),
         "Can't open " + imodKey + " 3dmod with imodIndex=" + imodIndex, AxisID.ONLY);
     }
     return imodIndex;
@@ -358,11 +369,11 @@ public class JoinManager extends BaseManager {
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
-      ui.openMessageDialog(except.getMessage(), "AxisType problem", AxisID.ONLY);
+      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem", AxisID.ONLY);
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      ui.openMessageDialog(except.getMessage(),
+      uiHarness.openMessageDialog(except.getMessage(),
         "Can't delete " + imodKey + " 3dmod with imodIndex=" + imodIndex, AxisID.ONLY);
     }
   }
@@ -371,18 +382,18 @@ public class JoinManager extends BaseManager {
     Vector results = null;
     try {
       if (imodIndex == -1) {
-        ui.openMessageDialog("The is no open " + imodKey
+        uiHarness.openMessageDialog("The is no open " + imodKey
             + " 3dmod for the highlighted row.", "No 3dmod", AxisID.ONLY);
       }
       results = imodManager.getSlicerAngles(imodKey, imodIndex);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
-      ui.openMessageDialog(except.getMessage(), "AxisType problem", AxisID.ONLY);
+      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem", AxisID.ONLY);
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      ui.openMessageDialog(except.getMessage(),
+      uiHarness.openMessageDialog(except.getMessage(),
           "Can't get rotation angles from " + imodKey
               + " 3dmod.", AxisID.ONLY);
     }
@@ -435,7 +446,7 @@ public class JoinManager extends BaseManager {
     if (messageArray.size() > 0) {
       String[] messages = (String[]) messageArray
           .toArray(new String[messageArray.size()]);
-      ui.openMessageDialog(messages, "Slicer Angles", AxisID.ONLY);
+      uiHarness.openMessageDialog(messages, "Slicer Angles", AxisID.ONLY);
     }
     return slicerAngles;
   }
@@ -445,7 +456,7 @@ public class JoinManager extends BaseManager {
       return;
     }
     if (!metaData.isValid(joinDialog.getWorkingDirName())) {
-      ui.openMessageDialog(metaData.getInvalidReason(), "Invalid Data", AxisID.ONLY);
+      uiHarness.openMessageDialog(metaData.getInvalidReason(), "Invalid Data", AxisID.ONLY);
       return;
     }
     setNextProcess(AxisID.ONLY, "startjoin");
@@ -462,7 +473,7 @@ public class JoinManager extends BaseManager {
     catch (SystemProcessException except) {
       resetNextProcess(AxisID.ONLY);
       except.printStackTrace();
-      ui.openMessageDialog("Can't run makejoincom\n"
+      uiHarness.openMessageDialog("Can't run makejoincom\n"
         + except.getMessage(), "SystemProcessException", AxisID.ONLY);
       return; 
     }
@@ -525,7 +536,7 @@ public class JoinManager extends BaseManager {
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      ui.openMessageDialog("Can't run"+ JoinDialog.MIDAS_TEXT + "\n"
+      uiHarness.openMessageDialog("Can't run"+ JoinDialog.MIDAS_TEXT + "\n"
         + except.getMessage(), "SystemProcessException", AxisID.ONLY);
       return; 
     }
@@ -542,7 +553,7 @@ public class JoinManager extends BaseManager {
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      ui.openMessageDialog("Can't run initial xfalign\n"
+      uiHarness.openMessageDialog("Can't run initial xfalign\n"
         + except.getMessage(), "SystemProcessException", AxisID.ONLY);
       joinDialog.enableMidas();
       return; 
@@ -563,7 +574,7 @@ public class JoinManager extends BaseManager {
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      ui.openMessageDialog("Can't run "+ JoinDialog.REFINE_AUTO_ALIGNMENT_TEXT + "\n"
+      uiHarness.openMessageDialog("Can't run "+ JoinDialog.REFINE_AUTO_ALIGNMENT_TEXT + "\n"
         + except.getMessage(), "SystemProcessException", AxisID.ONLY);
       joinDialog.enableMidas();
       return; 
@@ -590,7 +601,7 @@ public class JoinManager extends BaseManager {
                 + xfFileName + ".",
             "Copy " + newXfFile.getName() + " to " + xfFileName,
             " and then rerun " + commandDescription + "." };
-        ui.openMessageDialog(message, "Cannot run " + commandDescription, AxisID.ONLY);
+        uiHarness.openMessageDialog(message, "Cannot run " + commandDescription, AxisID.ONLY);
         return false;
       }
     }
@@ -609,7 +620,7 @@ public class JoinManager extends BaseManager {
             "Unable to copy " + xfOutputFile.getAbsolutePath() + " to "
                 + xfFile.getName() + ".",
             "Copy " + xfOutputFile.getName() + " to " + xfFile.getName() + "." };
-        ui.openMessageDialog(message, "Cannot Copy File", AxisID.ONLY);
+        uiHarness.openMessageDialog(message, "Cannot Copy File", AxisID.ONLY);
       }
     }
   }
@@ -671,7 +682,7 @@ public class JoinManager extends BaseManager {
   
   public void startjoin() {
     if (!metaData.isValid(joinDialog.getWorkingDir())) {
-      ui.openMessageDialog(metaData.getInvalidReason(), "Invalid Data", AxisID.ONLY);
+      uiHarness.openMessageDialog(metaData.getInvalidReason(), "Invalid Data", AxisID.ONLY);
       return;
     }
     resetNextProcess(AxisID.ONLY);
@@ -680,7 +691,7 @@ public class JoinManager extends BaseManager {
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      ui.openMessageDialog("Can't run startjoin.com\n"
+      uiHarness.openMessageDialog("Can't run startjoin.com\n"
         + except.getMessage(), "SystemProcessException", AxisID.ONLY);
       return; 
     }
@@ -718,7 +729,7 @@ public class JoinManager extends BaseManager {
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      ui.openMessageDialog("Can't run " + buttonText
+      uiHarness.openMessageDialog("Can't run " + buttonText
           + "\n" + except.getMessage(), "SystemProcessException", AxisID.ONLY);
       return; 
     }
@@ -730,7 +741,7 @@ public class JoinManager extends BaseManager {
       return false;
     }
     if (!metaData.isValid(propertyUserDir)) {
-      ui.openMessageDialog(metaData.getInvalidReason(), "Invalid Data", axisID);
+      uiHarness.openMessageDialog(metaData.getInvalidReason(), "Invalid Data", axisID);
       return false;
     }
     saveTestParamFile(axisID);
@@ -760,7 +771,7 @@ public class JoinManager extends BaseManager {
     catch (SystemProcessException except) {
       joinDialog.abortAddSection();
       except.printStackTrace();
-      ui.openMessageDialog("Can't run clip flipyz\n"
+      uiHarness.openMessageDialog("Can't run clip flipyz\n"
         + except.getMessage(), "SystemProcessException", AxisID.ONLY);
       return; 
     }
