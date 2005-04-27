@@ -153,12 +153,6 @@ public class UIHarness {
     }
   }
   
-  public void createMenus() {
-    if (isHead()) {
-      mainFrame.createMenus();
-    }
-  }
-  
   public void pack() {
     if (isHead()) {
       mainFrame.pack();
@@ -260,7 +254,7 @@ public class UIHarness {
     if (!initialized) {
       initialize();
     }
-    if (!test) {
+    if (!test && mainFrame == null) {
       mainFrame = new MainFrame();
     }
   }
@@ -379,6 +373,9 @@ public class UIHarness {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.3  2005/04/26 18:35:33  sueh
+* <p> bug# 615 Fixed a bug in log().  LogWriter was not flushing to the file.
+* <p>
 * <p> Revision 1.2  2005/04/26 17:44:30  sueh
 * <p> bug# 615 Made MainFrame a package-level class.  Added all functions
 * <p> necessary to handle all MainFrame functionality through UIHarness.  This
