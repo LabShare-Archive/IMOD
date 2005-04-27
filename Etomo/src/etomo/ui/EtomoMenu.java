@@ -63,7 +63,7 @@ public class EtomoMenu {
       KeyEvent.VK_J);
   private JMenuItem menuHelpAbout = new JMenuItem("About", KeyEvent.VK_A);
 
-  void createMenus(EtomoFrame frame) {   
+  void createMenus(EtomoFrame frame) {
     //  Mnemonics for the main menu bar
     menuFile.setMnemonic(KeyEvent.VK_F);
     menuOptions.setMnemonic(KeyEvent.VK_O);
@@ -160,6 +160,15 @@ public class EtomoMenu {
     menuAxisA.setEnabled(dualAxis);
     menuAxisB.setEnabled(dualAxis);
     menuAxisBoth.setEnabled(dualAxis);
+  }
+  
+  void setEnabled(EtomoMenu otherMenu) {
+    menuFileNewTomogram.setEnabled(otherMenu.menuFileNewTomogram.isEnabled());
+    menuFileNewJoin.setEnabled(otherMenu.menuFileNewJoin.isEnabled());
+    menuFileSaveAs.setEnabled(otherMenu.menuFileSaveAs.isEnabled());
+    menuAxisA.setEnabled(otherMenu.menuAxisA.isEnabled());
+    menuAxisB.setEnabled(otherMenu.menuAxisB.isEnabled());
+    menuAxisBoth.setEnabled(otherMenu.menuAxisBoth.isEnabled());
   }
 
   /**
@@ -322,6 +331,11 @@ public class EtomoMenu {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.2  2005/04/25 21:05:43  sueh
+* <p> bug# 615 Moved menu management and the coordination of the two EtomoFrames
+* <p> from EtomoMenu to EtomoFrame.  This class only contains the listeners
+* <p> and the code to build the physical menu.
+* <p>
 * <p> Revision 1.1  2005/04/20 01:43:35  sueh
 * <p> bug# 615 Moved the menu functionality from MainFrame to this class.
 * <p> The class is designed to used by MainFrame and SubFrame.  The
