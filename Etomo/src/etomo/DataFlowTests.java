@@ -20,6 +20,11 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.8  2005/04/26 17:35:00  sueh
+ * <p> bug# 615 Made MainFrame a package-level class.  All MainFrame
+ * <p> functionality is handled through UIHarness to make Etomo more
+ * <p> compatible with JUnit.  Removing the mainFrame member variable.
+ * <p>
  * <p> Revision 3.7  2005/03/15 01:03:16  sueh
  * <p> bug# 533 Added montaging
  * <p>
@@ -126,6 +131,7 @@ public class DataFlowTests {
         copyFromDataSource(datasetName + "b.st");
         copyFromDataSource(datasetName + "a.rawtlt");
         copyFromDataSource(datasetName + "b.rawtlt");
+        uiHarness.showBothAxis();
         if (montage) {
           copyFromDataSource(datasetName + "a.pl");
           copyFromDataSource(datasetName + "b.pl");
