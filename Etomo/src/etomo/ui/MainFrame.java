@@ -30,6 +30,11 @@ import etomo.util.UniqueKey;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.29  2005/04/26 17:40:09  sueh
+ * <p> bug# 615 Made MainFrame, SubFrame, and EtomoFrame package-level
+ * <p> classes.  All MainFrame functionality is handled through UIHarness to
+ * <p> make Etomo more compatible with JUnit.  Fixed function access levels.
+ * <p>
  * <p> Revision 3.28  2005/04/25 21:08:29  sueh
  * <p> bug# 615 Moving message dialog functions, menu appearance functions,
  * <p> and fitting and repainting functions from MainFrame to EtomoFrame.
@@ -515,7 +520,7 @@ final class MainFrame extends EtomoFrame implements ContextMenu {
       ((SubFrame) subFrame).initialize(bAxisTitle + title + " ", currentManager, mRUList);
     }
     else {
-      ((SubFrame) subFrame).updateAxis();
+      subFrame.setVisible(true);
     }
     pack();
     subFrame.pack();
