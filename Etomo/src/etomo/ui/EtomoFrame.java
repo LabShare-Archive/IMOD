@@ -475,7 +475,7 @@ abstract class EtomoFrame extends JFrame {
   /**
    * Create the Etomo menus
    */
-  protected void createMenus() {
+  private void createMenus() {
     menu.createMenus(this);
     menuBar = menu.getMenuBar();
     setJMenuBar(menuBar);
@@ -519,7 +519,7 @@ abstract class EtomoFrame extends JFrame {
     return AxisID.FIRST;
   }
   
-  private EtomoFrame getOtherFrame() {
+  protected EtomoFrame getOtherFrame() {
     if (main) {
       return subFrame;
     }
@@ -547,6 +547,11 @@ abstract class EtomoFrame extends JFrame {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.4  2005/04/26 17:38:25  sueh
+* <p> bug# 615 Made MainFrame, SubFrame, and EtomoFrame package-level
+* <p> classes.  All MainFrame functionality is handled through UIHarness to
+* <p> make Etomo more compatible with JUnit.  Fixed functions access levels.
+* <p>
 * <p> Revision 1.3  2005/04/25 21:04:10  sueh
 * <p> bug# 615 Moving message dialog functions, menu appearance functions,
 * <p> and fitting and repainting functions from mainPanel to this class.  Moved
