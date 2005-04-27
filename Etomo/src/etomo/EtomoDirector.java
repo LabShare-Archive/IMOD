@@ -46,6 +46,11 @@ import etomo.util.Utilities;
  * 
  * <p>
  * $Log$
+ * Revision 1.15  2005/04/26 18:34:10  sueh
+ * bug# 615 Change the name of the UIHarness member variable to
+ * uiHarness.  Fixed a null pointer exception the happened when testing with
+ * JUnit in initialize().
+ *
  * Revision 1.14  2005/04/26 17:35:48  sueh
  * bug# 615 Made MainFrame a package-level class.  All MainFrame
  * functionality is handled through UIHarness to make Etomo more
@@ -265,7 +270,6 @@ public class EtomoDirector {
       }
     }
     initProgram();
-    uiHarness.createMenus();
       //mainFrame.setWindowMenuLabels(controllerList);
     Controller controller = (Controller) controllerList.get(currentControllerKey);
     if (controller != null) {
