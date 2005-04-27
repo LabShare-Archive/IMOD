@@ -30,6 +30,7 @@ final class SubFrame extends EtomoFrame {
   private MainFrame mainFrame;
   private JPanel rootPanel;
   private JLabel statusBar;
+  private Rectangle bounds = null;
   
   SubFrame(MainFrame mainFrame) {
     register();
@@ -59,9 +60,10 @@ final class SubFrame extends EtomoFrame {
     rootPanel = (JPanel) getContentPane();
     rootPanel.setLayout(new BorderLayout());
     statusBar = new JLabel(mainPanel.getStatusBarText());
-    setAxis();
-    menu.setEnabled(currentManager);
+    //menu.setEnabled(currentManager);
+    menu.setEnabled(getOtherFrame().menu);
     menu.setMRUFileLabels(mRUList);
+    setVisible(true);
   }
   
   /**Overridden so we can exit when window is closed*/
@@ -99,17 +101,22 @@ final class SubFrame extends EtomoFrame {
     }
   }
   
-  /**
-   * Update the axis when switch from single axis display to dual axis display.
-   *
-   */
-  void updateAxis() {
-    rootPanel.removeAll();
-    setAxis();
+  public void setVisible(boolean visible) {
+    if (!visible) {
+      Rectangle deviceBounds = mainFrame.getGraphicsConfiguration().getBounds();
+      bounds = getBounds();
+      bounds.x += deviceBounds.x;
+      bounds.y += deviceBounds.y;
+    }
+    else {
+      setAxis();
+    }
+    super.setVisible(visible);
   }
   
   /**
-   * Add the axis scroll panel and the status bar, and set the location.
+   * Refresh or add the axis scroll panel and the status bar, and set the
+   * location.
    *
    */
   private void setAxis() {
@@ -120,14 +127,28 @@ final class SubFrame extends EtomoFrame {
       rootPanel.add(axis, BorderLayout.CENTER);
     }
     rootPanel.add(statusBar, BorderLayout.SOUTH);
-    Rectangle mainFrameBounds = mainFrame.getBounds();
-    setLocation(mainFrameBounds.x + mainFrameBounds.width, mainFrameBounds.y);
+    if (bounds == null) {
+      Rectangle mainFrameBounds = mainFrame.getBounds();
+      Rectangle deviceBounds = mainFrame.getGraphicsConfiguration().getBounds();
+      int xLocation = deviceBounds.x + mainFrameBounds.x + mainFrameBounds.width;
+      if (xLocation > deviceBounds.x + deviceBounds.width) {
+        xLocation = (deviceBounds.x + deviceBounds.width) / 2; 
+      }
+      setLocation(xLocation, deviceBounds.y + mainFrameBounds.y);
+    }
+    else {
+      setLocation(bounds.x, bounds.y);
+    }
     validate();
-    setVisible(true);
   }
 }
 /**
 * <p> $Log$
+* <p> Revision 1.5  2005/04/26 17:41:54  sueh
+* <p> bug# 615 Made MainFrame, SubFrame, and EtomoFrame package-level
+* <p> classes.  All MainFrame functionality is handled through UIHarness to
+* <p> make Etomo more compatible with JUnit.  Fixed function access levels.
+* <p>
 * <p> Revision 1.4  2005/04/25 21:41:09  sueh
 * <p> bug# 615 Moving message dialog functions, menu appearance functions,
 * <p> and fitting and repainting functions from mainPanel and the child frame
