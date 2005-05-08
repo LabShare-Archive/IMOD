@@ -9,6 +9,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 1.2  2004/03/01 20:53:38  mast
+#  Add libdtrigs and libtrack to list
+#
 #  Revision 1.1  2003/08/29 20:39:23  mast
 #  Addition to archive
 #
@@ -35,7 +38,7 @@ if ("$argv[1]" != '-i' && "$argv[1]" != '-u') then
 endif
 
 set exist = 0
-set imodlibs = (libdiaqt.dylib libimod.dylib libiimod.dylib libdtrigs.dylib libtrack.dylib)
+set imodlibs = (libdiaqt.dylib libimod.dylib libiimod.dylib libdtrigs.dylib libtrack.dylib libifft.dylib)
 
 # Look for imod libs in /usr/lib
 #
