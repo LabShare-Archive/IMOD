@@ -9,6 +9,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.6  2004/08/27 05:46:12  mast
+#  Switched to head -n
+#
 #  Revision 3.5  2004/06/06 00:48:12  mast
 #  Added options for dealing with long and unsigned data better
 #
@@ -92,6 +95,8 @@ set typedif = 0
 set swap = 0
 set dm2 = 0
 set dm3 = 0
+set test = `which hexdump`
+set useod = $status
 
 # Read first file or all files
 
@@ -103,8 +108,13 @@ while ($num < $#argv)
     # Byte dump is most easily interpreted, short decimal dump is used to
     # detect if swapping is needed
 
-    set header = `od -t u1 $argv[$num] | head -n 2`
-    if ("$swap" == 0) set ddump = `od -d $argv[1] | head -n 1`
+    if ($useod) then
+        set header = `od -t u1 $argv[$num] | head -n 2`
+        if ("$swap" == 0) set ddump = `od -d $argv[1] | head -n 1`
+    else
+        set header = `hexdump -e '"%07.7_ao  " 16/1 "%3u " "\n"' $argv[$num] | head -n 2`
+        if ("$swap" == 0) set ddump = `hexdump -d $argv[1] | head -n 1`
+    endif
     @ byte2 = $header[3]
     @ byte4 = $header[5]
 
