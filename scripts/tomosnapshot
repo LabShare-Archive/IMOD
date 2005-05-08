@@ -8,6 +8,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.5  2005/02/04 17:30:32  mast
+#  Fixed setname problems in Win & xcorr fallback, added headers & version
+#
 #  Revision 3.4  2004/10/22 23:39:57  mast
 #  Added newst.com
 #
@@ -33,11 +36,11 @@ set axistype = ""
 # The file lists
 #
 set oneAxisComLog = (eraser xcorr prenewst track align sample newst tomopitch \
-tilt)
+tilt preblend blend)
 set combineComLog = (solvematch solvematchshift solvematchmod matchvol1 \
 patchcorr matchorwarp volcombine combine)
 set oneAxisSetFiles = (.rawtlt _peak.mod .prexf .prexg .seed .fid .3dmod .tlt \
-fid.xyz .resid .resmod .tltxf _fid.xf local.xf .matmod)
+fid.xyz .resid .resmod .tltxf _fid.xf local.xf .matmod .pl .ecd)
 set oneAxisHeaders = (_orig.st .st .preali .ali .rec .mat _full.rec)
 set singleFiles = (solvezero.xf solve.xf refine.xf warp.xf inverse.xf \
 patch.out patch_vector.mod patch_region.mod etomo_err.log etomo_err.log~ \
