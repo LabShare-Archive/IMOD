@@ -1,10 +1,10 @@
 package etomo.comscript;
 
-import java.util.ArrayList;
-
-import javax.swing.JOptionPane;
-
-import etomo.type.TiltAngleType;
+import etomo.type.ConstEtomoNumber;
+import etomo.type.EtomoBoolean2;
+import etomo.type.EtomoNumber;
+import etomo.type.InvalidEtomoNumberException;
+import etomo.type.ScriptParameter;
 
 /**
  * <p>Description: </p>
@@ -19,6 +19,10 @@ import etomo.type.TiltAngleType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.2  2005/01/13 00:41:42  sueh
+ * <p> bug# 576 Converted tiltAngleGroups and magnificationGroups to
+ * <p> FortranInputString[].
+ * <p>
  * <p> Revision 3.1  2004/04/12 16:48:32  sueh
  * <p> bug# 409 changed interface class CommandParam
  * <p>
@@ -52,124 +56,274 @@ import etomo.type.TiltAngleType;
  * <p> </p>
  */
 
-public class BeadtrackParam
-  extends ConstBeadtrackParam
+public class BeadtrackParam extends OldBeadtrackParam
   implements CommandParam {
   public static final String rcsid =
     "$Id$";
 
+  //Const code
+  
+  protected static final String INPUT_FILE_KEY = "ImageFile";
+  protected static final String PIECE_LIST_FILE_KEY = "PieceListFile";
+  protected static final String SEED_MODEL_FILE_KEY = "InputSeedModel";
+  protected static final String OUTPUT_MODEL_FILE_KEY = "OutputModel";
+  protected static final String TILT_ANGLE_GROUPS_KEY = "TiltNondefaultGroup";
+  protected static final String MAGNIFICATION_GROUPS_KEY = "MagNondefaultGroup";
+  protected static final String N_MIN_VIEWS_KEY = "MinViewsForTiltalign";
+  protected static final String FILL_GAPS_KEY = "FillGaps";
+  protected static final String SEARCH_BOX_PIXELS_KEY = "BoxSizeXandY";
+  protected static final String FIDUCIAL_EXTRAPOLATION_PARAMS_KEY = "PointsToFitMaxAndMin";
+  protected static final String RESCUE_ATTEMPT_PARAMS_KEY = "DensityRescueFractionAndSD";
+  protected static final String RESCUE_RELAXATION_PARAMS_KEY = "RescueRelaxationDensityAndDistance";
+  protected static final String MEAN_RESID_CHANGE_LIMITS_KEY = "ResidualsToAnalyzeMaxAndMin";
+  protected static final String DELETION_PARAMS_KEY ="DeletionCriterionMinAndSD";
+  
+  private boolean initialized = false;
+  
+  protected StringList skipViews;//was viewSkipList
+  protected ScriptParameter rotationAngle;//was imageRotation
+  protected ScriptParameter tiltDefaultGrouping;//was tiltAngleGroupParams
+  protected ScriptParameter magDefaultGrouping;//was magnificationGroupParams
+  protected ScriptParameter minViewsForTiltalign;//was nMinViews
+  protected ScriptParameter centroidRadius;//was fiducialParams(0)
+  protected EtomoBoolean2 lightBeads;//was fiducialParams(1)
+  protected ScriptParameter maxGapSize;//was maxGap
+  protected ScriptParameter minTiltRangeToFindAxis;//was tiltAngleMinRange(0)
+  protected ScriptParameter minTiltRangeToFindAngles;//was tiltAngleMinRange(1)
+  protected ScriptParameter maxBeadsToAverage;//was maxFiducialsAvg
+  protected ScriptParameter distanceRescueCriterion;//was minRescueDistance
+  protected ScriptParameter postFitRescueResidual;//was residualDistanceLimit
+  protected ScriptParameter densityRelaxationPostFit;//was secondPassParams(0)
+  protected ScriptParameter maxRescueDistance;//was secondPassParams(1)
+  
+  protected void initialize() {
+    if (initialized) {
+      reset();
+    }
+    initialized = true;
+    skipViews = new StringList("SkipViews");
+    rotationAngle = new ScriptParameter(EtomoNumber.DOUBLE_TYPE,
+        "RotationAngle");
+    additionalViewGroups.setKey("SeparateGroup");
+    
+    tiltAngleSpec.setRangeMinKey("FirstTiltAngle", "first");
+    tiltAngleSpec.setRangeStepKey("TiltIncrement", "increment");
+    tiltAngleSpec.setTiltAngleFilenameKey("TiltFile", "tiltfile");
+    tiltAngleSpec.setTiltAnglesKey("TiltAngles", "angles");
+    
+    tiltDefaultGrouping = new ScriptParameter(EtomoNumber.INTEGER_TYPE,
+        "TiltDefaultGrouping");
+    tiltDefaultGrouping.setNullIsValid(false).setRecommendValue(7);
+    
+    magDefaultGrouping = new ScriptParameter(EtomoNumber.INTEGER_TYPE,
+        "MagDefaultGrouping");
+    minViewsForTiltalign = new ScriptParameter(EtomoNumber.INTEGER_TYPE,
+        "MinViewsForTiltalign");
+    
+    centroidRadius = new ScriptParameter(EtomoNumber.DOUBLE_TYPE,
+        "CentroidRadius");
+    centroidRadius.setNullIsValid(false).setRecommendValue(3.98);
+    
+    lightBeads = new EtomoBoolean2("LightBeads");
+    
+    maxGapSize = new ScriptParameter(EtomoNumber.INTEGER_TYPE, "MaxGapSize");
+    maxGapSize.setDefault(5).useDefaultAsDisplayValue();
+    
+    minTiltRangeToFindAxis = new ScriptParameter(EtomoNumber.DOUBLE_TYPE,
+        "MinTiltRangeToFindAxis");
+    minTiltRangeToFindAxis.setDefault(10).useDefaultAsDisplayValue();
+    
+    minTiltRangeToFindAngles = new ScriptParameter(EtomoNumber.DOUBLE_TYPE,
+        "MinTiltRangeToFindAngles");
+    minTiltRangeToFindAngles.setDefault(20).useDefaultAsDisplayValue();
+    
+    maxBeadsToAverage = new ScriptParameter(EtomoNumber.INTEGER_TYPE,
+        "MaxBeadsToAverage");
+    maxBeadsToAverage.setDefault(4).useDefaultAsDisplayValue();
+    
+    rescueAttemptParams.setIntegerType(1, false);
+    distanceRescueCriterion = new ScriptParameter(EtomoNumber.DOUBLE_TYPE,
+        "DistanceRescueCriterion");
+    postFitRescueResidual = new ScriptParameter(EtomoNumber.DOUBLE_TYPE,
+        "PostFitRescueResidual");
+    densityRelaxationPostFit = new ScriptParameter(EtomoNumber.DOUBLE_TYPE,
+        "DensityRelaxationPostFit");
+    maxRescueDistance = new ScriptParameter(EtomoNumber.DOUBLE_TYPE,
+        "MaxRescueDistance");
+    System.out.println("deletionParams:"+deletionParams.isIntegerType(1));
+    deletionParams.setIntegerType(1, false);
+    System.out.println("deletionParams:"+deletionParams.isIntegerType(1));
+  }
+  
+  void reset() {
+    if (!initialized) {
+      initialize();
+    }
+    inputFile = null;
+    pieceListFile = null;
+    seedModelFile = null;
+    outputModelFile = null;
+    skipViews.reset();
+    rotationAngle.reset();
+    additionalViewGroups.reset();
+    tiltAngleSpec.reset();
+    
+    tiltDefaultGrouping.reset();
+    tiltAngleGroups = null;
+    magDefaultGrouping.reset();
+    magnificationGroups = null;
+    minViewsForTiltalign.reset();
+    centroidRadius.reset();
+    lightBeads.reset();
+    fillGaps = true;
+    maxGapSize.reset();
+    minTiltRangeToFindAxis.reset();
+    minTiltRangeToFindAngles.reset();
+    searchBoxPixels.reset();
+    maxBeadsToAverage.reset();
+    
+    fiducialExtrapolationParams.set(0, 7);
+    fiducialExtrapolationParams.set(1, 3);
+
+    rescueAttemptParams.reset();
+    distanceRescueCriterion.reset();
+    rescueRelaxationParams.reset();
+    postFitRescueResidual.reset();
+    densityRelaxationPostFit.reset();
+    maxRescueDistance.reset();
+    
+    meanResidChangeLimits.set(0, 9);
+    meanResidChangeLimits.set(1, 5);
+    System.out.println("reset deletionParams:"+deletionParams.isIntegerType(1));
+    deletionParams.reset();
+  }
+  
+  public String getSkipViews() {
+    return skipViews.toString();
+  }
+  
+  public ConstEtomoNumber getRotationAngle() {
+    return rotationAngle;
+  }
+  
+  /**
+   * @return
+   */
+  public ConstEtomoNumber getTiltDefaultGrouping() {
+    return tiltDefaultGrouping;
+  }
+  
+  public int getMagnificationGroupSize() {
+    return magDefaultGrouping.getInteger();
+  }
+  
+  public ConstEtomoNumber getMinViewsForTiltalign() {
+    return minViewsForTiltalign;
+  }
+  
+  public String getFiducialParams() {
+    FortranInputString fortranInputString = new FortranInputString(2);
+    fortranInputString.setIntegerType(new boolean[] { false, true });
+    fortranInputString.set(0, centroidRadius);
+    fortranInputString.set(1, lightBeads);
+    return fortranInputString.toString();
+  }
+  
+  public ConstEtomoNumber getMaxGapSize() {
+    return maxGapSize;
+  }
+  
+  public String getTiltAngleMinRange() {
+    FortranInputString fortranInputString = new FortranInputString(2);
+    fortranInputString.set(0, minTiltRangeToFindAxis);
+    fortranInputString.set(1, minTiltRangeToFindAngles);
+    return fortranInputString.toString();
+  }
+  
+  public ConstEtomoNumber getMaxBeadsToAverage() {
+    return maxBeadsToAverage;
+  }
+  
+  public ConstEtomoNumber getDistanceRescueCriterion() {
+    return distanceRescueCriterion;
+  }
+  
+  public ConstEtomoNumber getPostFitRescueResidual() {
+    return postFitRescueResidual;
+  }
+  
+  public String getSecondPassParams() {
+    FortranInputString fortranInputString = new FortranInputString(2);
+    fortranInputString.set(0, densityRelaxationPostFit);
+    fortranInputString.set(1, maxRescueDistance);
+    return fortranInputString.toString();
+  }
+
+  //Non-const code
+  
   /**
    * Get the parameters from the ComScriptCommand
    * @param scriptCommand the ComScriptCommand containg the beadtrack command
    * and parameters.
    */
   public void parseComScriptCommand(ComScriptCommand scriptCommand)
-    throws BadComScriptException, FortranInputSyntaxException {
-
-    //  get the input arguments from the command
-    ComScriptInputArg[] inputArgs;
-    try {
-      inputArgs = getInputArguments(scriptCommand);
+      throws BadComScriptException, FortranInputSyntaxException,
+      InvalidParameterException {
+    reset();
+    if (!scriptCommand.isKeywordValuePairs()) {
+      convertToPIP(scriptCommand);
     }
-    catch (BadComScriptException except) {
-      throw (except);
+    else {
+      inputFile = scriptCommand.getValue(INPUT_FILE_KEY);
+      pieceListFile = scriptCommand.getValue(PIECE_LIST_FILE_KEY);
+      seedModelFile = scriptCommand.getValue(SEED_MODEL_FILE_KEY);
+      outputModelFile = scriptCommand.getValue(OUTPUT_MODEL_FILE_KEY);
+      skipViews.parse(scriptCommand, false);
+      rotationAngle.parse(scriptCommand);
+      additionalViewGroups.parse(scriptCommand, true);
+      tiltAngleSpec.parse(scriptCommand);
+      tiltDefaultGrouping.parse(scriptCommand);
+      tiltAngleGroups = ParamUtilities.setParamIfPresent(scriptCommand,
+          TILT_ANGLE_GROUPS_KEY, nondefaultGroupSize,
+          nondefaultGroupIntegerType);
+      magDefaultGrouping.parse(scriptCommand);
+      magnificationGroups = ParamUtilities.setParamIfPresent(scriptCommand,
+          MAGNIFICATION_GROUPS_KEY, nondefaultGroupSize,
+          nondefaultGroupIntegerType);
+      minViewsForTiltalign.parse(scriptCommand);
+      centroidRadius.parse(scriptCommand);
+      lightBeads.parse(scriptCommand);
+      fillGaps = scriptCommand.hasKeyword(FILL_GAPS_KEY);
+      maxGapSize.parse(scriptCommand);
+      minTiltRangeToFindAxis.parse(scriptCommand);
+      minTiltRangeToFindAngles.parse(scriptCommand);
+      searchBoxPixels.validateAndSet(scriptCommand
+          .getValue(SEARCH_BOX_PIXELS_KEY));
+      maxBeadsToAverage.parse(scriptCommand);
+      fiducialExtrapolationParams.validateAndSet(scriptCommand
+          .getValue(FIDUCIAL_EXTRAPOLATION_PARAMS_KEY));
+      rescueAttemptParams.validateAndSet(scriptCommand
+          .getValue(RESCUE_ATTEMPT_PARAMS_KEY));
+      distanceRescueCriterion.parse(scriptCommand);
+      rescueRelaxationParams.validateAndSet(scriptCommand
+          .getValue(RESCUE_RELAXATION_PARAMS_KEY));
+      postFitRescueResidual.parse(scriptCommand);
+      densityRelaxationPostFit.parse(scriptCommand);
+      maxRescueDistance.parse(scriptCommand);
+      meanResidChangeLimits.validateAndSet(scriptCommand
+          .getValue(MEAN_RESID_CHANGE_LIMITS_KEY));
+      System.out.println("set deletionParams:"+deletionParams.isIntegerType(1));
+      deletionParams
+          .validateAndSet(scriptCommand.getValue(DELETION_PARAMS_KEY));
     }
-
-    int inputLine = 0;
-    inputFile = inputArgs[inputLine++].getArgument();
-    pieceListFile = inputArgs[inputLine++].getArgument();
-    seedModelFile = inputArgs[inputLine++].getArgument();
-    outputModelFile = inputArgs[inputLine++].getArgument();
-    viewSkipList = inputArgs[inputLine++].getArgument();
-    imageRotation = Double.parseDouble(inputArgs[inputLine++].getArgument());
-
-    nAdditionalViewSets =
-      Integer.parseInt(inputArgs[inputLine++].getArgument());
-    if (nAdditionalViewSets > 0) {
-      additionalViewGroups = new StringList(nAdditionalViewSets);
-      for (int i = 0; i < nAdditionalViewSets; i++) {
-        additionalViewGroups.set(i, inputArgs[inputLine++].getArgument());
-      }
-    }
-
-    int typeSpec = Integer.parseInt(inputArgs[inputLine++].getArgument());
-    tiltAngleSpec.setType(TiltAngleType.parseInt(typeSpec));
-		if (tiltAngleSpec.getType() == TiltAngleType.FILE) {
-			tiltAngleSpec.setTiltAngleFilename(inputArgs[inputLine++].getArgument());
-		}
-		else if (tiltAngleSpec.getType() == TiltAngleType.RANGE) {
-			String pair = inputArgs[inputLine++].getArgument();
-			String values[] = pair.split(",");
-			if (values.length != 2) {
-				throw new BadComScriptException("Incorrect tilt angle specification type");
-			}
-			tiltAngleSpec.setRangeMin(Double.parseDouble(values[0]));
-			tiltAngleSpec.setRangeStep(Double.parseDouble(values[1]));
-		}
-		else if (tiltAngleSpec.getType() == TiltAngleType.LIST) {
-			throw new BadComScriptException("Unimplemented tilt angle specification type");
-		}
-		else {
-			throw new BadComScriptException("Incorrect tilt angle specification type");
-		}
-
-    try {
-      tiltAngleGroupParams.validateAndSet(inputArgs[inputLine++].getArgument());
-      int nGroups = tiltAngleGroupParams.getInt(1);
-      if (nGroups > 0) {
-        StringList tiltAngleGroupsList = new StringList(nGroups);
-        for (int i = 0; i < nGroups; i++) {
-          tiltAngleGroupsList.set(i, inputArgs[inputLine++].getArgument());
-        }
-        tiltAngleGroups = ParamUtilities.parse(tiltAngleGroupsList,
-            nondefaultGroupIntegerType, nondefaultGroupSize);
-      }
-      magnificationGroupParams.validateAndSet(
-        inputArgs[inputLine++].getArgument());
-      nGroups = magnificationGroupParams.getInt(1);
-      if (nGroups > 0) {
-        StringList magnificationGroupsList = new StringList(nGroups);
-        for (int i = 0; i < nGroups; i++) {
-          magnificationGroupsList.set(i, inputArgs[inputLine++].getArgument());
-        }
-        magnificationGroups = ParamUtilities.parse(magnificationGroupsList,
-            nondefaultGroupIntegerType, nondefaultGroupSize);
-      }
-      nMinViews = Integer.parseInt(inputArgs[inputLine++].getArgument());
-      fiducialParams.validateAndSet(inputArgs[inputLine++].getArgument());
-      if (Integer.parseInt(inputArgs[inputLine++].getArgument()) > 0) {
-        fillGaps = true;
-      }
-      else {
-        fillGaps = false;
-      }
-      maxGap = Integer.parseInt(inputArgs[inputLine++].getArgument());
-      tiltAngleMinRange.validateAndSet(inputArgs[inputLine++].getArgument());
-      searchBoxPixels.validateAndSet(inputArgs[inputLine++].getArgument());
-      maxFiducialsAvg = Integer.parseInt(inputArgs[inputLine++].getArgument());
-      fiducialExtrapolationParams.validateAndSet(
-        inputArgs[inputLine++].getArgument());
-      rescueAttemptParams.validateAndSet(inputArgs[inputLine++].getArgument());
-      minRescueDistance =
-        Integer.parseInt(inputArgs[inputLine++].getArgument());
-      rescueRelaxationParams.validateAndSet(
-        inputArgs[inputLine++].getArgument());
-      residualDistanceLimit =
-        Double.parseDouble(inputArgs[inputLine++].getArgument());
-      secondPassParams.validateAndSet(inputArgs[inputLine++].getArgument());
-      meanResidChangeLimits.validateAndSet(
-        inputArgs[inputLine++].getArgument());
-      deletionParams.validateAndSet(inputArgs[inputLine++].getArgument());
-    }
-    catch (FortranInputSyntaxException except) {
-      String message =
-        "Parse error in beadtrack command, standard input argument: "
-          + String.valueOf(inputLine)
-          + "\n"
-          + except.getMessage();
-      throw new FortranInputSyntaxException(message, except.getNewString());
-    }
-
+  }
+  
+  private void convertToPIP(ComScriptCommand scriptCommand)
+      throws BadComScriptException, FortranInputSyntaxException,
+      InvalidParameterException {
+    OldBeadtrackParam oldParam = new OldBeadtrackParam();
+    oldParam.parseComScriptCommand(scriptCommand);
+    set(oldParam);
   }
   
   public void initializeDefaults() {
@@ -184,147 +338,131 @@ public class BeadtrackParam
    * beadtrack command or the number of input arguments is incorrect.
    */
   public void updateComScriptCommand(ComScriptCommand scriptCommand)
-    throws BadComScriptException {
-
-    //  Get the existing input arguments from the command, this is so the
-    //  comments are preserved.
-    ComScriptInputArg[] inputArgs;
-    try {
-      inputArgs = getInputArguments(scriptCommand);
+      throws BadComScriptException {
+    String invalidReason = validate();
+    if (invalidReason != null && !invalidReason.matches("\\s*")) {
+      throw new BadComScriptException(invalidReason);
     }
-    catch (BadComScriptException except) {
-      throw (except);
+    //  Switch to keyword/value pairs
+    scriptCommand.useKeywordValue();
+
+    ParamUtilities.updateScriptParameter(scriptCommand, INPUT_FILE_KEY,
+        inputFile);
+    ParamUtilities.updateScriptParameter(scriptCommand, PIECE_LIST_FILE_KEY,
+        pieceListFile);
+    ParamUtilities.updateScriptParameter(scriptCommand, SEED_MODEL_FILE_KEY,
+        seedModelFile);
+    ParamUtilities.updateScriptParameter(scriptCommand, OUTPUT_MODEL_FILE_KEY,
+        outputModelFile);
+    ParamUtilities.updateScriptParameter(scriptCommand, OUTPUT_MODEL_FILE_KEY,
+        outputModelFile);
+    ParamUtilities.updateScriptParameter(scriptCommand, skipViews.getKey(),
+        skipViews);
+    rotationAngle.updateComScript(scriptCommand);
+    ParamUtilities.updateScriptParameter(scriptCommand, additionalViewGroups
+        .getKey(), additionalViewGroups);
+    tiltAngleSpec.updateComScript(scriptCommand);
+    tiltDefaultGrouping.updateComScript(scriptCommand);
+    ParamUtilities.updateScriptParameter(scriptCommand, TILT_ANGLE_GROUPS_KEY,
+        tiltAngleGroups);
+    magDefaultGrouping.updateComScript(scriptCommand);
+    ParamUtilities.updateScriptParameter(scriptCommand,
+        MAGNIFICATION_GROUPS_KEY, magnificationGroups);
+    minViewsForTiltalign.updateComScript(scriptCommand);
+    centroidRadius.updateComScript(scriptCommand);
+    lightBeads.updateComScript(scriptCommand);
+    ParamUtilities
+        .updateScriptParameter(scriptCommand, FILL_GAPS_KEY, fillGaps);
+    maxGapSize.updateComScript(scriptCommand);
+    minTiltRangeToFindAxis.updateComScript(scriptCommand);
+    minTiltRangeToFindAngles.updateComScript(scriptCommand);
+    ParamUtilities.updateScriptParameter(scriptCommand, SEARCH_BOX_PIXELS_KEY,
+        searchBoxPixels);
+    maxBeadsToAverage.updateComScript(scriptCommand);
+    ParamUtilities.updateScriptParameter(scriptCommand,
+        FIDUCIAL_EXTRAPOLATION_PARAMS_KEY, fiducialExtrapolationParams);
+    ParamUtilities.updateScriptParameter(scriptCommand,
+        RESCUE_ATTEMPT_PARAMS_KEY, rescueAttemptParams);
+    distanceRescueCriterion.updateComScript(scriptCommand);
+    ParamUtilities.updateScriptParameter(scriptCommand,
+        RESCUE_RELAXATION_PARAMS_KEY, rescueRelaxationParams);
+    postFitRescueResidual.updateComScript(scriptCommand);
+    densityRelaxationPostFit.updateComScript(scriptCommand);
+    maxRescueDistance.updateComScript(scriptCommand);
+    ParamUtilities.updateScriptParameter(scriptCommand,
+        MEAN_RESID_CHANGE_LIMITS_KEY, meanResidChangeLimits);
+    System.out.println("update deletionParams:"+deletionParams.isIntegerType(1));
+    ParamUtilities.updateScriptParameter(scriptCommand, DELETION_PARAMS_KEY,
+        deletionParams);
+  }
+  
+  private void set(OldConstBeadtrackParam param) {
+    if (param == null) {
+      throw new IllegalStateException("param is null");
     }
-
-    inputArgs = updateInputArgs(inputArgs);
-    scriptCommand.setInputArguments(inputArgs);
-  }
-
-  public void setInputFile(String inputFile) {
-    this.inputFile = inputFile;
-  }
-
-  public void setPieceListFile(String pieceListFile) {
-    this.pieceListFile = pieceListFile;
-  }
-
-  public void setSeedModelFile(String seedModelFile) {
-    this.seedModelFile = seedModelFile;
-  }
-
-  public void setOutputModelFile(String outputModelFile) {
-    this.outputModelFile = outputModelFile;
-  }
-
-  public void setViewSkipList(String viewSkipList) {
-    this.viewSkipList = viewSkipList;
-  }
-
-  public void setImageRotation(double imageRotation) {
-    this.imageRotation = imageRotation;
-  }
-
-  public void setAdditionalViewGroups(String newAdditionalViewGroups) {
-    additionalViewGroups.parseString(newAdditionalViewGroups);
-    nAdditionalViewSets = additionalViewGroups.getNElements();
-  }
-
-  public void setTiltAngleGroupSize(int groupSize) {
-    tiltAngleGroupParams.set(0, groupSize);
-  }
-
-  public void setTiltAngleGroups(String newTiltAngleGroups) throws FortranInputSyntaxException {
-    tiltAngleGroups = ParamUtilities.parse(newTiltAngleGroups, true, nondefaultGroupSize);
-    if (tiltAngleGroups == null) {
-      tiltAngleGroupParams.setDefault(1);
+    inputFile = param.inputFile;
+    pieceListFile = param.pieceListFile;
+    seedModelFile = param.seedModelFile;
+    outputModelFile = param.outputModelFile;
+    viewSkipList = param.viewSkipList;
+    rotationAngle.set(param.imageRotation);
+    additionalViewGroups.parseString(param.additionalViewGroups);
+    tiltAngleSpec.set(param.tiltAngleSpec);
+    if (param.tiltAngleGroupParams != null) {
+      tiltDefaultGrouping.set(param.tiltAngleGroupParams, 0);
     }
-    else {
-      tiltAngleGroupParams.set(1, tiltAngleGroups.length);
+    if (param.tiltAngleGroups != null) {
+      tiltAngleGroups = new FortranInputString[param.tiltAngleGroups.length];
+      for (int i = 0; i < param.tiltAngleGroups.length; i++) {
+        tiltAngleGroups[i] = new FortranInputString(param.tiltAngleGroups[i]);
+      }
     }
-  }
-
-  public void setMagnificationGroupSize(int groupSize) {
-    magnificationGroupParams.set(0, groupSize);
-  }
-
-  public void setMagnificationGroups(String newMagnificationGroups) throws FortranInputSyntaxException {
-    magnificationGroups = ParamUtilities.parse(newMagnificationGroups, true, nondefaultGroupSize);
-    if (tiltAngleGroups == null) {
-      magnificationGroupParams.setDefault(1);
+    if (param.magnificationGroupParams != null) {
+      magDefaultGrouping.set(param.magnificationGroupParams, 0);
     }
-    else {
-      magnificationGroupParams.set(1, magnificationGroups.length);
+    
+    if (param.magnificationGroups != null) {
+      magnificationGroups = new FortranInputString[param.magnificationGroups.length];
+      for (int i = 0; i < param.magnificationGroups.length; i++) {
+        magnificationGroups[i] = new FortranInputString(param.magnificationGroups[i]);
+      }
     }
-  }
-
-  public void setNMinViews(int nMinViews) {
-    this.nMinViews = nMinViews;
-  }
-
-  public void setFiducialParams(String fiducialParams)
-    throws FortranInputSyntaxException {
-    this.fiducialParams.validateAndSet(fiducialParams);
-  }
-
-  public void setFillGaps(boolean fillGaps) {
-    this.fillGaps = fillGaps;
-  }
-
-  public void setMaxGap(int maxGap) {
-    this.maxGap = maxGap;
-  }
-
-  public void setTiltAngleMinRange(String tiltAngleMinRange)
-    throws FortranInputSyntaxException {
-    this.tiltAngleMinRange.validateAndSet(tiltAngleMinRange);
-  }
-
-  public void setSearchBoxPixels(String searchBoxPixels)
-    throws FortranInputSyntaxException {
-    this.searchBoxPixels.validateAndSet(searchBoxPixels);
-  }
-
-  public void setMaxFiducialsAvg(int maxFiducialsAvg) {
-    this.maxFiducialsAvg = maxFiducialsAvg;
-  }
-
-  public void setFiducialExtrapolationParams(String fiducialExtrapolationParams)
-    throws FortranInputSyntaxException {
-    this.fiducialExtrapolationParams.validateAndSet(
-      fiducialExtrapolationParams);
-  }
-
-  public void setRescueAttemptParams(String rescueAttemptParams)
-    throws FortranInputSyntaxException {
-    this.rescueAttemptParams.validateAndSet(rescueAttemptParams);
-  }
-
-  public void setMinRescueDistance(int minRescueDistance) {
-    this.minRescueDistance = minRescueDistance;
-  }
-
-  public void setRescueRelaxationParams(String rescueRelaxationParams)
-    throws FortranInputSyntaxException {
-    this.rescueRelaxationParams.validateAndSet(rescueRelaxationParams);
-  }
-
-  public void setResidualDistanceLimit(double residualDistanceLimit) {
-    this.residualDistanceLimit = residualDistanceLimit;
-  }
-
-  public void setSecondPassParams(String secondPassParams)
-    throws FortranInputSyntaxException {
-    this.secondPassParams.validateAndSet(secondPassParams);
-  }
-
-  public void setMeanResidChangeLimits(String meanResidChangeLimits)
-    throws FortranInputSyntaxException {
-    this.meanResidChangeLimits.validateAndSet(meanResidChangeLimits);
-  }
-
-  public void setDeletionParams(String deletionParams)
-    throws FortranInputSyntaxException {
-    this.deletionParams.validateAndSet(deletionParams);
+    minViewsForTiltalign.set(param.nMinViews);
+    if (fiducialParams != null) {
+      centroidRadius.set(param.fiducialParams, 0);
+      lightBeads.set(param.fiducialParams, 1);
+    }
+    fillGaps = param.fillGaps;
+    maxGapSize.set(param.maxGap);
+    if (tiltAngleMinRange != null) {
+      minTiltRangeToFindAxis.set(param.tiltAngleMinRange, 0);
+      minTiltRangeToFindAngles.set(param.tiltAngleMinRange, 1);
+    }
+    if (param.searchBoxPixels != null) {
+      searchBoxPixels.set(param.searchBoxPixels);
+    }
+    maxBeadsToAverage.set(param.maxFiducialsAvg);
+    if (param.fiducialExtrapolationParams != null) {
+      fiducialExtrapolationParams.set(param.fiducialExtrapolationParams);
+    }
+    if (param.rescueAttemptParams != null) {
+      rescueAttemptParams.set(param.rescueAttemptParams);
+    }
+    distanceRescueCriterion.set(param.minRescueDistance);
+    if (param.rescueRelaxationParams != null) {
+      rescueRelaxationParams.set(param.rescueRelaxationParams);
+    }
+    postFitRescueResidual.set(param.residualDistanceLimit);
+    if (param.secondPassParams != null) {
+      densityRelaxationPostFit.set(param.secondPassParams, 0);
+      maxRescueDistance.set(param.secondPassParams, 1);
+    }
+    if (param.meanResidChangeLimits != null) {
+      meanResidChangeLimits.set(param.meanResidChangeLimits);
+    }
+    if (param.deletionParams != null) {
+      deletionParams.set(param.deletionParams);
+    }
   }
 
   /**
@@ -352,182 +490,77 @@ public class BeadtrackParam
 
     return inputArgs;
   }
+  
+  public void setSkipViews(String skipViews) {
+    this.skipViews.parseString(skipViews);
+  }
+  
+  public ConstEtomoNumber setRotationAngle(int rotationAngle) {
+    return this.rotationAngle.set(rotationAngle);
+  }
+  
+  public ConstEtomoNumber setTiltDefaultGrouping(String tiltDefaultGrouping) {
+    return this.tiltDefaultGrouping.set(tiltDefaultGrouping);
+  }
+  
+  public void setTiltAngleGroups(String newTiltAngleGroups)
+      throws FortranInputSyntaxException {
+    tiltAngleGroups = ParamUtilities.parse(newTiltAngleGroups, true,
+        nondefaultGroupSize);
+  }
+  
+  public ConstEtomoNumber setMagDefaultGrouping(String magnificationGroupParams) {
+    return this.magDefaultGrouping.set(magnificationGroupParams);
+  }
 
-  /**
-   * Update the inputArguments array with new parameters
-   * @param inputArgs the array of existing input arguments, some of these
-   * will be used for default values that BeadtrackParam currently does not
-   * modify.
-   * @return the new array of ComScriptInputArgs.  Note that this is a newly
-   * allocated array since the number of elements may be different than the
-   * input parameter.
-   */
-  private ComScriptInputArg[] updateInputArgs(ComScriptInputArg[] inputArgs) {
-    ArrayList inputArgList = new ArrayList();
+  public void setMagnificationGroups(String newMagnificationGroups)
+      throws FortranInputSyntaxException {
+    magnificationGroups = ParamUtilities.parse(newMagnificationGroups, true,
+        nondefaultGroupSize);
+  }
+  
+  public ConstEtomoNumber setMinViewsForTiltalign(String minViewsForTiltalign) {
+    return this.minViewsForTiltalign.set(minViewsForTiltalign);
+  }
+  
+  public void setFiducialParams(String fiducialParams)
+      throws FortranInputSyntaxException, InvalidEtomoNumberException {
+    FortranInputString fortranInputString = new FortranInputString(2);
+    fortranInputString.setIntegerType(new boolean[] { false, true });
+    fortranInputString.validateAndSet(fiducialParams);
+    centroidRadius.set(fortranInputString, 0).validate();
+    lightBeads.set(fortranInputString, 1).validate();
+  }
 
-    //  Fill in the input argument sequence
-    int srcListCount = 0;
+  public ConstEtomoNumber setMaxGapSize(String maxGapSize) {
+    return this.maxGapSize.set(maxGapSize);
+  }
 
-    inputArgs[srcListCount].setArgument(inputFile);
-    inputArgList.add(inputArgs[srcListCount++]);
-
-    inputArgs[srcListCount].setArgument(pieceListFile);
-    inputArgList.add(inputArgs[srcListCount++]);
-
-    inputArgs[srcListCount].setArgument(seedModelFile);
-    inputArgList.add(inputArgs[srcListCount++]);
-
-    inputArgs[srcListCount].setArgument(outputModelFile);
-    inputArgList.add(inputArgs[srcListCount++]);
-
-    inputArgs[srcListCount].setArgument(viewSkipList);
-    inputArgList.add(inputArgs[srcListCount++]);
-
-    // tilt axis angle of rotation parameter [5],
-    // this is a system/mag/camera variable
-    inputArgList.add(inputArgs[srcListCount++]);
-
-    // Increment the source list counter to skip the old view groups, the
-    // comments for those entries are most likely not applicable
-    int nSrcSets = Integer.parseInt(inputArgs[srcListCount].getArgument());
-    inputArgs[srcListCount].setArgument(String.valueOf(nAdditionalViewSets));
-    inputArgList.add(inputArgs[srcListCount++]);
-    srcListCount = srcListCount + nSrcSets;
-    for (int i = 0; i < nAdditionalViewSets; i++) {
-      ComScriptInputArg viewSet = new ComScriptInputArg();
-      viewSet.setArgument(additionalViewGroups.get(i));
-      inputArgList.add(viewSet);
-    }
-
-    // Tilt angle source and filenames/ranges are not modified by this class
-    inputArgList.add(inputArgs[srcListCount++]);
-    inputArgList.add(inputArgs[srcListCount++]);
-
-    // Tilt angle groups
-    // The number of non-standard tilt angle sets is the second parameter
-    // in the comma separated list.
-    FortranInputString fis = new FortranInputString(2);
-    fis.setIntegerType(0, true);
-    fis.setIntegerType(1, true);
-    try {
-      nSrcSets = 0;
-      fis.validateAndSet(inputArgs[srcListCount].getArgument());
-      nSrcSets = fis.getInt(1);
-    }
-    catch (FortranInputSyntaxException except) {
-      // TODO throw exception so calling object can catch and display a message 
-      String[] errorMessage = new String[5];
-      errorMessage[0] = "BeadtrackParam Error";
-      errorMessage[1] = "Existing beadtrack tilt angle parameter was incorrect";
-      errorMessage[2] =
-        "Don't know how many non-default tilt angle groups, assuming 0";
-      errorMessage[3] =
-        "Input string: " + inputArgs[srcListCount].getArgument();
-      errorMessage[4] = except.getMessage();
-      JOptionPane.showMessageDialog(
-        null,
-        errorMessage,
-        "BeadtrackParam Error",
-        JOptionPane.ERROR_MESSAGE);
-    }
-
-    inputArgs[srcListCount].setArgument(tiltAngleGroupParams.toString());
-    inputArgList.add(inputArgs[srcListCount++]);
-
-    srcListCount = srcListCount + nSrcSets;
-    for (int i = 0; i < tiltAngleGroupParams.getInt(1); i++) {
-      ComScriptInputArg tiltAngleGroup = new ComScriptInputArg();
-      tiltAngleGroup.setArgument(tiltAngleGroups[i].toString());
-      inputArgList.add(tiltAngleGroup);
-    }
-
-    // Magnification groups
-    // The number of non-standard magnification sets is the second parameter
-    // in the comma separated list.
-    fis.setIntegerType(0, true);
-    fis.setIntegerType(1, true);
-    try {
-      nSrcSets = 0;
-      fis.validateAndSet(inputArgs[srcListCount].getArgument());
-      nSrcSets = fis.getInt(1);
-    }
-    catch (FortranInputSyntaxException except) {
-      // TODO throw exception so calling object can catch and display a message 
-      String[] errorMessage = new String[5];
-      errorMessage[0] = "BeadtrackParam Error";
-      errorMessage[1] =
-        "Existing beadtrack magnification parameter was incorrect";
-      errorMessage[2] =
-        "Don't know how many non-default magnification groups, assuming 0";
-      errorMessage[3] =
-        "Input string: " + inputArgs[srcListCount].getArgument();
-      errorMessage[4] = except.getMessage();
-      JOptionPane.showMessageDialog(
-        null,
-        errorMessage,
-        "BeadtrackParam Error",
-        JOptionPane.ERROR_MESSAGE);
-    }
-    inputArgs[srcListCount].setArgument(magnificationGroupParams.toString());
-    inputArgList.add(inputArgs[srcListCount++]);
-    srcListCount = srcListCount + nSrcSets;
-    for (int i = 0; i < magnificationGroupParams.getInt(1); i++) {
-      ComScriptInputArg magnificationGroup = new ComScriptInputArg();
-      magnificationGroup.setArgument(magnificationGroups[i].toString());
-      inputArgList.add(magnificationGroup);
-    }
-
-    inputArgs[srcListCount].setArgument(String.valueOf(nMinViews));
-    inputArgList.add(inputArgs[srcListCount++]);
-
-    inputArgs[srcListCount].setArgument(fiducialParams.toString());
-    inputArgList.add(inputArgs[srcListCount++]);
-
-    if (fillGaps) {
-      inputArgs[srcListCount].setArgument("1");
-    }
-    else {
-      inputArgs[srcListCount].setArgument("0");
-    }
-    inputArgList.add(inputArgs[srcListCount++]);
-
-    inputArgs[srcListCount].setArgument(String.valueOf(maxGap));
-    inputArgList.add(inputArgs[srcListCount++]);
-
-    inputArgs[srcListCount].setArgument(tiltAngleMinRange.toString());
-    inputArgList.add(inputArgs[srcListCount++]);
-
-    inputArgs[srcListCount].setArgument(searchBoxPixels.toString());
-    inputArgList.add(inputArgs[srcListCount++]);
-
-    inputArgs[srcListCount].setArgument(String.valueOf(maxFiducialsAvg));
-    inputArgList.add(inputArgs[srcListCount++]);
-
-    inputArgs[srcListCount].setArgument(fiducialExtrapolationParams.toString());
-    inputArgList.add(inputArgs[srcListCount++]);
-
-    inputArgs[srcListCount].setArgument(rescueAttemptParams.toString());
-    inputArgList.add(inputArgs[srcListCount++]);
-
-    inputArgs[srcListCount].setArgument(String.valueOf(minRescueDistance));
-    inputArgList.add(inputArgs[srcListCount++]);
-
-    inputArgs[srcListCount].setArgument(rescueRelaxationParams.toString());
-    inputArgList.add(inputArgs[srcListCount++]);
-
-    inputArgs[srcListCount].setArgument(String.valueOf(residualDistanceLimit));
-    inputArgList.add(inputArgs[srcListCount++]);
-
-    inputArgs[srcListCount].setArgument(secondPassParams.toString());
-    inputArgList.add(inputArgs[srcListCount++]);
-
-    inputArgs[srcListCount].setArgument(meanResidChangeLimits.toString());
-    inputArgList.add(inputArgs[srcListCount++]);
-
-    inputArgs[srcListCount].setArgument(deletionParams.toString());
-    inputArgList.add(inputArgs[srcListCount++]);
-
-    return (ComScriptInputArg[]) inputArgList.toArray(
-      new ComScriptInputArg[inputArgList.size()]);
+  public void setTiltAngleMinRange(String tiltAngleMinRange) throws FortranInputSyntaxException,
+      InvalidEtomoNumberException {
+    FortranInputString fortranInputString = new FortranInputString(2);
+    fortranInputString.validateAndSet(tiltAngleMinRange);
+    minTiltRangeToFindAxis.set(fortranInputString, 0).validate();
+    minTiltRangeToFindAngles.set(fortranInputString, 1).validate();
+  }
+  
+  public ConstEtomoNumber setMaxBeadsToAverage(String maxBeadsToAverage) {
+    return this.maxBeadsToAverage.set(maxBeadsToAverage);
+  }
+  
+  public ConstEtomoNumber setDistanceRescueCriterion(String distanceRescueCriterion) {
+    return this.distanceRescueCriterion.set(distanceRescueCriterion);
+  }
+  
+  public ConstEtomoNumber setPostFitRescueResidual(String postFitRescueResidual) {
+    return this.postFitRescueResidual.set(postFitRescueResidual);
+  }
+  
+  public void setSecondPassParams(String secondPassParams)
+      throws FortranInputSyntaxException, InvalidEtomoNumberException {
+    FortranInputString fortranInputString = new FortranInputString(2);
+    fortranInputString.validateAndSet(secondPassParams);
+    densityRelaxationPostFit.set(fortranInputString, 0).validate();
+    maxRescueDistance.set(fortranInputString, 1).validate();
   }
 }
