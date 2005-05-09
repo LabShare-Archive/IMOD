@@ -75,10 +75,10 @@ public class BlendmontParam implements CommandParam {
   
   public void updateComScriptCommand(ComScriptCommand scriptCommand)
   throws BadComScriptException {
-    readInXcorrs.setInScript(scriptCommand);
-    oldEdgeFunctions.setInScript(scriptCommand);
-    interpolationOrder.setInScript(scriptCommand);
-    justUndistort.setInScript(scriptCommand);
+    readInXcorrs.updateComScript(scriptCommand);
+    oldEdgeFunctions.updateComScript(scriptCommand);
+    interpolationOrder.updateComScript(scriptCommand);
+    justUndistort.updateComScript(scriptCommand);
     scriptCommand.setValue(IMAGE_OUTPUT_FILE_KEY, imageOutputFile);
   }
   
@@ -179,6 +179,11 @@ public class BlendmontParam implements CommandParam {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.6  2005/04/07 21:49:05  sueh
+* <p> bug# 626 Added undistort mode to write a blendmont command to
+* <p> undistort.com.  Undistort mode is used to create a new stack with
+* <p> distortion correction.
+* <p>
 * <p> Revision 1.5  2005/03/29 19:52:20  sueh
 * <p> bug# 623 Adding the extension for the output file created by blendmont.
 * <p>
