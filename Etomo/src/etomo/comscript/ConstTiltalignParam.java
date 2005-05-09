@@ -3,9 +3,7 @@ package etomo.comscript;
 import java.io.File;
 
 import etomo.type.AxisID;
-import etomo.type.ConstEtomoBoolean;
 import etomo.type.ConstEtomoNumber;
-import etomo.type.EtomoBoolean;
 import etomo.type.EtomoBoolean2;
 import etomo.type.EtomoNumber;
 import etomo.type.ScriptParameter;
@@ -93,9 +91,6 @@ public class ConstTiltalignParam implements Command {
   protected static final String outputZFactorFileString = "OutputZFactorFile";
   protected static final String includeStartEndIncString = "IncludeStartEndInc";
   protected static final String includeListString = "IncludeList";
-  protected static final String firstTiltAngleShortString = "first";
-  protected static final String tiltIncrementShortString = "increment";
-  protected static final String tiltFileShortString = "tiltFile";
   protected static final String outputLocalFileString = "OutputLocalFile";
   protected static final String localOutputOptionsString = "LocalOutputOptions";
   
@@ -170,12 +165,12 @@ public class ConstTiltalignParam implements Command {
   protected ScriptParameter metroFactor;
   protected ScriptParameter maximumCycles;
   protected ScriptParameter axisZShift;
-  protected EtomoBoolean localAlignments;
+  protected EtomoBoolean2 localAlignments;
   protected String outputLocalFile;
   protected FortranInputString numberOfLocalPatchesXandY;
   protected FortranInputString minSizeOrOverlapXandY;
   protected FortranInputString minFidsTotalAndEachSurface;
-  protected EtomoBoolean fixXYZCoordinates;
+  protected EtomoBoolean2 fixXYZCoordinates;
   protected FortranInputString localOutputOptions;
   
   protected AxisID axisID;
@@ -185,7 +180,10 @@ public class ConstTiltalignParam implements Command {
     this.axisID = axisID;
     this.datasetName = datasetName;
     rotationAngle = new ScriptParameter(EtomoNumber.DOUBLE_TYPE, "RotationAngle");
-    tiltAngleSpec = new TiltAngleSpec("FirstTiltAngle", "TiltIncrement", "TiltFile");
+    tiltAngleSpec = new TiltAngleSpec();
+    tiltAngleSpec.setRangeMinKey("FirstTiltAngle", "first");
+    tiltAngleSpec.setRangeStepKey("TiltIncrement", "increment");
+    tiltAngleSpec.setTiltAngleFilenameKey("TiltFile", "tiltFile");
     angleOffset = new ScriptParameter(EtomoNumber.DOUBLE_TYPE, ANGLE_OFFSET_KEY);
     projectionStretch = new EtomoBoolean2(PROJECTION_STRETCH_KEY);
     projectionStretch.setDefault(false).setDisplayValue(false);
@@ -239,9 +237,9 @@ public class ConstTiltalignParam implements Command {
     maximumCycles = new ScriptParameter(EtomoNumber.INTEGER_TYPE, MAXIMUM_CYCLES_KEY);
     maximumCycles.setDefault(500).setDisplayValue(500);
     axisZShift = new ScriptParameter(EtomoNumber.DOUBLE_TYPE, AXIS_Z_SHIFT_KEY);
-    localAlignments = new EtomoBoolean(LOCAL_ALIGNMENTS_KEY);
-    localAlignments.setUpdateAs(EtomoBoolean.UPDATE_AS_INTEGER).setResetValue(false);
-    fixXYZCoordinates = new EtomoBoolean("FixXYZCoordinates");
+    localAlignments = new EtomoBoolean2(LOCAL_ALIGNMENTS_KEY);
+    localAlignments.setDisplayAsInteger(true);
+    fixXYZCoordinates = new EtomoBoolean2("FixXYZCoordinates");
     reset();
   }
   
@@ -418,7 +416,7 @@ public class ConstTiltalignParam implements Command {
    * 
    * @return
    */
-  public ConstEtomoBoolean getFixXYZCoordinates() {
+  public ConstEtomoNumber getFixXYZCoordinates() {
     return fixXYZCoordinates;
   }
   /**
@@ -430,7 +428,7 @@ public class ConstTiltalignParam implements Command {
   /**
    * @return Returns the localAlignments.
    */
-  public ConstEtomoBoolean getLocalAlignments() {
+  public ConstEtomoNumber getLocalAlignments() {
     return localAlignments;
   }
   /**
@@ -770,6 +768,11 @@ public class ConstTiltalignParam implements Command {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.16  2005/04/25 20:39:08  sueh
+ * <p> bug# 615 Passing the axis where a command originates to the message
+ * <p> functions so that the message will be popped up in the correct window.
+ * <p> This requires adding AxisID to many objects.
+ * <p>
  * <p> Revision 3.15  2005/02/24 00:50:23  sueh
  * <p> bug# 600 Fixed a bug that was saving a value to the wrong parameter.
  * <p>
