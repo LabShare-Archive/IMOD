@@ -29,6 +29,9 @@
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.14  2004/12/30 17:57:27  sueh
+ * <p> $bug# 567 Fixed valueOf(FortranInputString[]) - for loop was wrong.
+ * <p> $
  * <p> $Revision 1.13  2004/12/29 23:32:51  sueh
  * <p> $bug# 567 Adding the FortranInputString to parse(String...) and
  * <p> $parse(StringList...).
@@ -290,10 +293,12 @@ public class ParamUtilities {
   }
   
   public static FortranInputString[] setParamIfPresent(
-      ComScriptCommand scriptCommand, String keyword, int size, boolean[] integerType)
-      throws InvalidParameterException, FortranInputSyntaxException {
+      ComScriptCommand scriptCommand, String keyword, int size,
+      boolean[] integerType) throws InvalidParameterException,
+      FortranInputSyntaxException {
     if (scriptCommand.hasKeyword(keyword)) {
-      return parse(new StringList(scriptCommand.getValues(keyword)), integerType, size);
+      return parse(new StringList(scriptCommand.getValues(keyword)),
+          integerType, size);
     }
     return null;
   }
