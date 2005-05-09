@@ -55,6 +55,7 @@ import etomo.type.DialogExitState;
 import etomo.type.DialogType;
 import etomo.type.EtomoState;
 import etomo.type.FiducialMatch;
+import etomo.type.InvalidEtomoNumberException;
 import etomo.type.MetaData;
 import etomo.type.ProcessName;
 import etomo.type.ProcessTrack;
@@ -98,6 +99,10 @@ import etomo.util.Utilities;
  * 
  *
  * <p> $Log$
+ * <p> Revision 3.146  2005/04/26 17:31:51  sueh
+ * <p> bug# 615 Change the name of the UIHarness member variable to
+ * <p> uiHarness.
+ * <p>
  * <p> Revision 3.145  2005/04/25 20:28:21  sueh
  * <p> bug# 615 Passing the axis where the command originated to the message
  * <p> functions so that the message will be popped up in the correct window.
@@ -2705,6 +2710,7 @@ public class ApplicationManager extends BaseManager {
       comScriptMgr.saveTrack(beadtrackParam, axisID);
     }
     catch (FortranInputSyntaxException except) {
+      except.printStackTrace();
       String[] errorMessage = new String[3];
       errorMessage[0] = "Beadtrack Parameter Syntax Error";
       errorMessage[1] = except.getMessage();
@@ -2714,12 +2720,16 @@ public class ApplicationManager extends BaseManager {
       return false;
     }
     catch (NumberFormatException except) {
+      except.printStackTrace();
       String[] errorMessage = new String[3];
       errorMessage[0] = "Beadtrack Parameter Syntax Error";
       errorMessage[1] = axisID.getExtension();
       errorMessage[2] = except.getMessage();
       uiHarness.openMessageDialog(errorMessage,
         "Beadtrack Parameter Syntax Error", axisID);
+      return false;
+    }
+    catch (InvalidEtomoNumberException e) {
       return false;
     }
     return true;
