@@ -31,6 +31,11 @@ import etomo.type.SectionTableRowData;
 * <p> </p>
 * 
 * <p> $Log$
+* <p> Revision 1.9  2005/04/25 20:40:08  sueh
+* <p> bug# 615 Passing the axis where a command originates to the message
+* <p> functions so that the message will be popped up in the correct window.
+* <p> This requires adding AxisID to many objects.
+* <p>
 * <p> Revision 1.8  2005/01/25 22:47:02  sueh
 * <p> Adding boolean force parameter to ScriptParameter.addToScript() to tell
 * <p> the function to avoid checking isUseInScript()
@@ -167,11 +172,26 @@ public class MakejoincomParam implements Command {
           options.add("-rot");
           //all three numbers must exist
           StringBuffer buffer = new StringBuffer();
-          rotationAngleX.addToScript(buffer, true);
+          if (rotationAngleX.isNull()) {
+            buffer.append("0");
+          }
+          else {
+            buffer.append(rotationAngleX.getDouble());
+          }
           buffer.append(",");
-          rotationAngleY.addToScript(buffer, true);
+          if (rotationAngleY.isNull()) {
+            buffer.append("0");
+          }
+          else {
+            buffer.append(rotationAngleY.getDouble());
+          }
           buffer.append(",");
-          rotationAngleZ.addToScript(buffer, true);
+          if (rotationAngleZ.isNull()) {
+            buffer.append("0");
+          }
+          else {
+            buffer.append(rotationAngleZ.getDouble());
+          }
           options.add(buffer.toString());
         }
         options.add(data.getSection().getAbsolutePath());
