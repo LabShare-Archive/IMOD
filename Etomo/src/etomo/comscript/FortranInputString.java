@@ -1,5 +1,9 @@
 package etomo.comscript;
 
+import java.util.Properties;
+
+import etomo.type.ConstEtomoNumber;
+
 /**
  * <p>Description: The FortranInputString class models the multiple parameter
  * FORTRAN input formatting present in the IMOD utilities.  It also allows for
@@ -19,6 +23,9 @@ package etomo.comscript;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.11  2004/12/30 17:54:14  sueh
+ * <p> bug# 567 Using Double.NaN as the null value everywhere.
+ * <p>
  * <p> Revision 3.10  2004/12/28 23:41:48  sueh
  * <p> bug# 567 Add size() to return nParams.
  * <p>
@@ -85,17 +92,7 @@ public class FortranInputString {
    * @param nParams the number of parameters
    */
   public FortranInputString(int nParams) {
-    this.nParams = nParams;
-    value = new Double[nParams];
-    minimum = new double[nParams];
-    maximum = new double[nParams];
-    isInteger = new boolean[nParams];
-    for (int i = 0; i < nParams; i++) {
-      minimum[i] = -1 * Double.MAX_VALUE;
-      maximum[i] = Double.MAX_VALUE;
-      isInteger[i] = false;
-      value[i] = new Double(Double.NEGATIVE_INFINITY);
-    }
+    initialize(nParams);
   }
 
   /**
@@ -112,6 +109,77 @@ public class FortranInputString {
       minimum[i] = src.minimum[i];
       maximum[i] = src.maximum[i];
       isInteger[i] = src.isInteger[i];
+    }
+  }
+  
+  public FortranInputString(double[] values) {
+    if (values == null) {
+      initialize(0);
+      return;
+    }
+    initialize(value.length);
+    for (int i = 0; i < value.length; i++) {
+      set(i, values[i]);
+    }
+  }
+  
+  /**
+   * 
+   * @param props
+   * @param group
+   * @return an instance of FortranInputString loaded from props.
+   * @throws FortranInputSyntaxException
+   */
+  public static FortranInputString getInstance(Properties props, String group)
+      throws FortranInputSyntaxException {
+    String list = props.getProperty(group);
+    return getInstance(list);
+  }
+  
+  public static FortranInputString getInstance(String list)
+      throws FortranInputSyntaxException {
+    if (list == null || list.length() == 0) {
+      return new FortranInputString(0);
+    }
+    int nParams = list.split(",").length;
+    FortranInputString instance = new FortranInputString(nParams);
+    instance.validateAndSet(list);
+    return instance;
+  }
+  
+  public static FortranInputString getInstance(double[] list) {
+    if (list == null) {
+      return new FortranInputString(0);
+    }
+    FortranInputString instance = new FortranInputString(list.length);
+    for (int i = 0; i < list.length; i++) {
+      instance.set(i, list[i]);
+    }
+    return instance;
+  }
+  
+  public void store(Properties props, String group) {
+    props.setProperty(group, toString());
+  }
+  
+  void reset() {
+    value = new Double[nParams];
+    for (int i = 0; i < nParams; i++) {
+      value[i] = new Double(Double.NEGATIVE_INFINITY);
+    }
+  }
+  
+  private void initialize(int nParams) {
+    this.nParams = nParams;
+    minimum = new double[nParams];
+    maximum = new double[nParams];
+    isInteger = new boolean[nParams];
+    value = new Double[nParams];
+    for (int i = 0; i < nParams; i++) {
+      minimum[i] = -1 * Double.MAX_VALUE;
+      maximum[i] = Double.MAX_VALUE;
+      isInteger[i] = false;
+      value[i] = new Double(Double.NEGATIVE_INFINITY);
     }
   }
 
@@ -199,7 +267,18 @@ public class FortranInputString {
   public double getDouble(int index) {
     return value[index].doubleValue();
   }
-
+  
+  /**
+   * @return get input string as doubles
+   */
+  public double[] getDouble() {
+    double[] array = new double[nParams];
+    for (int i = 0; i < nParams; i++) {
+      array[i] = value[i].doubleValue();
+    }
+    return array;
+  }
+  
   /**
    * Get a specific value as an integer
    */
@@ -212,6 +291,20 @@ public class FortranInputString {
    */
   public void set(int index, double newValue) {
     value[index] = new Double(newValue);
+  }
+  
+  public void set(int index, ConstEtomoNumber newValue) {
+    value[index] = new Double(newValue.getDouble());
+  }
+  
+  public void set(int index, FortranInputString newValue) {
+    value[index] = new Double(newValue.getDouble(index));
+  }
+  
+  public void set(FortranInputString newValue) {
+    for(int i=0; i <nParams; i++) {
+      value[i] = new Double(newValue.getDouble(i));
+    }
   }
   
   public void setDefault() {
@@ -336,12 +429,42 @@ public class FortranInputString {
     return true;
   }
   
+  /**
+   * 
+   * @param index
+   * @return is value defaulted at index
+   */
   public boolean isDefault(int index) {
     if (value[index] == null) {
       throw new NullPointerException("value[" + index + "]");
     }
     return value[index].isNaN();
   }
+  
+  /**
+   * 
+   * @param index
+   * @return is value not initialized at index
+   */
+  public boolean isEmpty(int index) {
+    if (value[index] == null) {
+      throw new NullPointerException("value[" + index + "]");
+    }
+    return value[index].isInfinite();
+  }
+  
+  /**
+   * 
+   * @param index
+   * @return is value treated as an integer at index
+   */
+  public boolean isIntegerType(int index) {
+    if (value[index] == null) {
+      throw new NullPointerException("value[" + index + "]");
+    }
+    return isInteger[index];
+  }
+  
   /**
    * Compare given value range specified for index.
    * @param value
