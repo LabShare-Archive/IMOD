@@ -286,7 +286,6 @@ int mrc_write_slice(void *buf, FILE *fout, MrcHeader *hdata,
 		    int slice, char axis);
 
 /************************ Read image data functions **************************/
-void *mrc_read_image (FILE *fin, MrcHeader *hdata, int z);
 float mrc_read_point (FILE *fin, MrcHeader *hdata, int x, int y, int z);
 void *mrc_mread_slice(FILE *fin, MrcHeader *hdata,
 		      int slice, char axis);
@@ -360,6 +359,9 @@ void mrc_set_cmap_stamp(MrcHeader *hdata);
 
 /*
     $Log$
+    Revision 3.12  2005/01/14 23:19:21  mast
+    Added typedef for MRCheader
+
     Revision 3.11  2004/11/05 18:52:53  mast
     Include local files with quotes, not brackets
 
