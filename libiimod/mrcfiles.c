@@ -43,6 +43,13 @@ Log at end of file */
  * Header functions
  */
 
+/*!
+ * Reads an MRC header into [hdata] from the file with pointer [fin].  
+ * Determines whether byte-swapping is necessary by requiring that {nx}, {ny},
+ * and {nz} be between 1 and 60000, and that {mapc}, {mapr}, and {maps} be
+ * between 0 and 4.  Returns -1 for I/O error, or 1 if these requirements are
+ * not met or if the mode or number of labels are inappropriate.
+ */
 int mrc_head_read(FILE *fin, MrcHeader *hdata)
 {
   int i;
@@ -108,8 +115,7 @@ int mrc_head_read(FILE *fin, MrcHeader *hdata)
 
   for ( i = 0; i < MRC_NLABELS; i ++){
     if (fread(hdata->labels[i], MRC_LABEL_SIZE, 1, fin) == 0){  
-      b3dError(stderr, "ERROR: mrc_head_read - reading label %d.\n",
-               i);
+      b3dError(stderr, "ERROR: mrc_head_read - reading label %d.\n", i);
       hdata->labels[i][MRC_LABEL_SIZE] = 0;
       return(-1);
     }
@@ -167,7 +173,10 @@ int mrc_head_read(FILE *fin, MrcHeader *hdata)
 }
 
 
-/* Write the header to the given file */
+/*!
+ * Write the MRC header in [hdata] to the file with pointer [fout].  Returns
+ * 1 for error.
+ */
 int mrc_head_write(FILE *fout, MrcHeader *hdata)
 {
   int i;
@@ -203,7 +212,12 @@ int mrc_head_write(FILE *fout, MrcHeader *hdata)
 }
 
 
-/* Add a label to the header or replace the last one if it is full */
+/*!
+ * Adds [label] to the header [hdata] or replaces the last one if there are
+ * already 10 labels.  The label will be truncated at 55 characters or padded
+ * with spaces to that length, and a standard date-time stamp will be added.
+ * Returns 0.
+ */
 int mrc_head_label(MrcHeader *hdata, char *label)
 {
   struct tm *tmp;
@@ -232,7 +246,9 @@ int mrc_head_label(MrcHeader *hdata, char *label)
   return(0);
 }
 
-/* Copy all labels from one header to another */
+/*!
+ * Copies all labels from header [hin] to header [hout].  Returns 0.
+ */
 int mrc_head_label_cp(MrcHeader *hin, MrcHeader *hout)
 {
   int i, j;
@@ -246,7 +262,10 @@ int mrc_head_label_cp(MrcHeader *hin, MrcHeader *hout)
   return(0);
 }
 
-/* Fills in the header structure to default settings. */
+/*!
+ * Fills in the header structure [hdata] to default settings for the given
+ * file size [x], [y], [z] and the given [mode].  Returns 0.
+*/
 int mrc_head_new(MrcHeader *hdata,
                  int x, int y, int z, int mode)
 {
@@ -334,7 +353,11 @@ int mrc_head_new(MrcHeader *hdata,
 }
 
 
-/* fills in min, max and mean structures in header */
+/*! 
+ * Determines the min, max and mean values the byte data in [idata] and places
+ * them into header [hdata].  [idata] must be an array of pointers to 
+ * {hdata->nz} planes of data.  Returns -1 for error.
+ */
 int mrc_byte_mmm( MrcHeader *hdata, unsigned char **idata)
 {
 
@@ -374,7 +397,9 @@ int mrc_byte_mmm( MrcHeader *hdata, unsigned char **idata)
   return(0);
 }
 
-/* Swap each section of the header as appropriate for its data type */
+/*!
+ * Swaps each section of the header [hdata] as appropriate for its data type.
+ */
 void mrc_swap_header(MrcHeader *hdata)
 {
   mrc_swap_longs(&hdata->nx, 10);
@@ -422,7 +447,7 @@ void mrc_set_cmap_stamp(MrcHeader *hdata)
  */
 
 /* stupid function: check who is using it. JRK  */
-/* 2 calls from clip_transform.c.  DNM */
+/* 2 calls from clip_transform.c.  DNM - which is now abandoned */
 int mrc_data_new(FILE *fout, MrcHeader *hdata)
 {
   int dsize, i;
@@ -467,7 +492,11 @@ int mrc_data_new(FILE *fout, MrcHeader *hdata)
   return(0);
 }
 
-/* changed 8-95 to increase speed: JRK */
+/*!
+ * Writes byte data in [data] to the file with pointer [fout] according to the 
+ * dimensions in header [hdata].  [data] must be an array of pointers to 
+ * {hdata->nz} planes of data.  Returns 0 (no error checks).  Unused 5/7/05.
+ */
 int mrc_write_byte(FILE *fout, MrcHeader *hdata, unsigned char **data)
 {
   int k;
@@ -476,15 +505,18 @@ int mrc_write_byte(FILE *fout, MrcHeader *hdata, unsigned char **data)
   for (k = 0; k < hdata->nz; k++)
     fwrite(data[k], 1, xysize, fout);
 
-  /*                  for (j = 0 ; j < xysize; j++)
-                      fputc(bdata[k][j], fout);*/
-
   return(0);
 }
 
 
-/* writes image data */
-/* changed 8-95 to increase speed: JRK */
+/*!
+ * Writes byte, short, or float image data to the file with pointer [fout] 
+ * according to the dimensions and mode in header [hdata].  [data] must be an
+ * array of pointers to {hdata->nz} planes of data.  Does not check for write
+ * errors; returns -1 for attempt to write a byte-swapped file, 0 for improper
+ * mode, or the number of bytes written (incorrect for > 2 GB of data).  Used
+ * only by mrcbyte, 5/7/05.
+ */
 int mrc_write_idata(FILE *fout, MrcHeader *hdata, void *data[])
 {
   int i,j=0,k;
@@ -530,7 +562,12 @@ int mrc_write_idata(FILE *fout, MrcHeader *hdata, void *data[])
   return(xysize * hdata->nz);
 }
 
-
+/*!
+ * Returns the value of a single pixel at [x, y, z] from the file with pointer
+ * [fin] given the header properties in [hdata].  Gives the value directly for
+ * byte, short, and float data, and the magnitude for complex data.  Returns
+ * the file minimum {hdata->amin} for coordinates out of bounds.
+ */
 float mrc_read_point( FILE *fin, MrcHeader *hdata, int x, int y, int z)
 {
   int pixsize = 1;
@@ -543,13 +580,8 @@ float mrc_read_point( FILE *fin, MrcHeader *hdata, int x, int y, int z)
   int channel = 1;
 
   if (!fin) return(fdata);
-  if (x < 0)
-    return(fdata);
-  if (y < 0)
-    return(fdata);
-  if (x >= hdata->nx)
-    return(fdata);
-  if (y >= hdata->ny)
+  if (x < 0 || y < 0 || z < 0 || 
+      x >= hdata->nx || y >= hdata->ny || z >= hdata->nz)
     return(fdata);
 
   if ((hdata->mode == MRC_MODE_SHORT) ||
@@ -618,8 +650,12 @@ float mrc_read_point( FILE *fin, MrcHeader *hdata, int x, int y, int z)
   return(fdata);
 }
 
-
-
+/*!
+ * Allocates and returns one plane of data at the coordinate given by [slice]
+ * along the axis given by [axis], which must be one of x, X, y, Y, z, or Z.  
+ * Reads from the file with pointer [fin] according to the header in [hdata] 
+ * and swaps bytes if necessary.  Returns NULL for errors.
+ */
 void *mrc_mread_slice(FILE *fin, MrcHeader *hdata,
                       int slice, char axis)
 {
@@ -666,6 +702,12 @@ void *mrc_mread_slice(FILE *fin, MrcHeader *hdata,
   return(NULL);
 }
 
+/*!
+ * Reads one plane of data into the buffer [buf] at the coordinate given by 
+ * [slice] along the axis given by [axis], which must be one of x, X, y, Y, z,
+ * or Z.  Reads from the file with pointer [fin] according to the header in 
+ * [hdata] and swaps bytes if necessary.  Returns -1 for errors.
+ */
 int mrc_read_slice(void *buf, FILE *fin, MrcHeader *hdata, 
                    int slice, char axis)
 {
@@ -769,6 +811,12 @@ int mrc_read_slice(void *buf, FILE *fin, MrcHeader *hdata,
 }
 
 
+/*!
+ * Writes one plane of data from the buffer [buf] at the coordinate given by 
+ * [slice] along the axis given by [axis], which must be one of x, X, y, Y, z,
+ * or Z.  Writes to the file with pointer [fin] according to the header in 
+ * [hdata] and swaps bytes if necessary.  Returns -1 for errors.
+ */
 int mrc_write_slice(void *buf, FILE *fout, MrcHeader *hdata, 
                     int slice, char axis)
 {
@@ -897,57 +945,11 @@ int mrc_write_slice(void *buf, FILE *fout, MrcHeader *hdata,
   return(0);
 }
 
+/* DNM 5/7/05: eliminated unused 
+   void *mrc_read_image(FILE *fin, MrcHeader *hdata, int z)
+   which duplicated and was inferior to mrc_mread_slice
+*/
 
-void *mrc_read_image(FILE *fin, MrcHeader *hdata, int z)
-{
-
-  unsigned char *cdata;
-  short *sdata;
-  float *fdata;
-  int xysize;
-     
-  rewind(fin);
-  fseek(fin, hdata->headerSize, SEEK_CUR);
-  xysize = hdata->nx * hdata->ny;
-     
-     
-  switch (hdata->mode)
-    {
-    case MRC_MODE_BYTE:
-      /* fseek(fin, z * xysize * sizeof(char), SEEK_CUR); */
-      mrc_big_seek(fin, 0, z, xysize * sizeof(char), SEEK_CUR);
-      cdata = (unsigned char *)malloc(xysize * sizeof(char));
-      if (cdata == NULL)
-        return(cdata);
-      fread(cdata, sizeof(char), xysize, fin);
-      return(cdata);
-               
-    case MRC_MODE_SHORT:
-      /* fseek(fin, z * xysize * sizeof(short), SEEK_CUR); */
-      mrc_big_seek(fin, 0, z , xysize * sizeof(short), SEEK_CUR);
-      sdata = (short *)malloc(xysize * sizeof(short));
-      if (sdata == NULL)
-        return(sdata);
-      fread(sdata, sizeof(short), xysize, fin);
-      if (hdata->swapped)
-        mrc_swap_shorts(sdata, xysize);
-      return(sdata);
-               
-    case MRC_MODE_FLOAT:
-      /* fseek(fin, z * xysize * sizeof(float), SEEK_CUR); */
-      mrc_big_seek(fin, 0, z, xysize * sizeof(float), SEEK_CUR);
-      fdata = (float *)malloc(xysize * sizeof(float));
-      if (fdata == NULL)
-        return(fdata);
-      fread(fdata, sizeof(float), xysize, fin);
-      if (hdata->swapped)
-        mrc_swap_floats(fdata, xysize);
-      return(fdata);
-               
-    default:
-      return(NULL);
-    }
-}
 
 /*****************************************************************************/
 /* functions get_byte_map and get_short_map: Return pointer to an array of   */
@@ -2041,6 +2043,9 @@ void mrc_swap_floats(float *data, int amt)
 
 /*
 $Log$
+Revision 3.23  2005/02/11 01:42:33  mast
+Warning cleanup: implicit declarations, main return type, parentheses, etc.
+
 Revision 3.22  2005/01/17 17:12:21  mast
 Switched to header typedef, fixed initialization of min/max
 
