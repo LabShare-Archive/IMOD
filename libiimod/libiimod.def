@@ -126,7 +126,6 @@ EXPORTS
 	iiMRCLoadPCoord
 	sliceResizeIn
 	tiffClose
-	mrc_read_image
 	sliceByteGrow
 	mrc_slice_getmagnitude
 	updateMatrix
