@@ -15,6 +15,10 @@ import java.util.ArrayList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.1  2004/12/28 23:46:57  sueh
+ * <p> bug# 567 Add default constructor.  Add constructor for String[].  Add
+ * <p> parseString() for String[].
+ * <p>
  * <p> Revision 3.0  2003/11/07 23:19:00  rickg
  * <p> Version 1.0.0
  * <p>
@@ -33,14 +37,29 @@ import java.util.ArrayList;
 public class StringList {
   public static final String rcsid =
     "$Id$";
-  String[] elements;
+  String[] elements = null;
+  String key;
 
   public StringList() {
     elements = new String[0];
   }
   
+  public StringList(String key) {
+    elements = new String[0];
+    this.key = key;
+  }
+  
   public StringList(int nElements) {
     elements = new String[nElements];
+  }
+  
+  void reset() {
+    if (elements == null) {
+      elements = new String[0];
+    }
+    else {
+      elements = new String[elements.length];
+    }
   }
 
   /**
@@ -51,10 +70,19 @@ public class StringList {
     for (int i = 0; i < elements.length; i++) {
       elements[i] = src.get(i);
     }
+    key = src.key;
   }
   
   public StringList(String[] stringArray) {
     parseString(stringArray);
+  }
+  
+  public void setKey(String key) {
+    this.key = key;
+  }
+  
+  public String getKey() {
+    return key;
   }
 
   public void setNElements(int nElements) {
@@ -125,6 +153,31 @@ public class StringList {
     }
     else {
       elements = (String[]) elementArray.toArray(new String[elementArray.size()]);
+    }
+  }
+  
+  public void parseString(StringList stringList) {
+    if (stringList != null) {
+      int nElements = stringList.elements.length;
+      if (nElements < 0) {
+        elements = new String[0];
+      }
+      else {
+        elements = new String[nElements];
+        for (int i = 0; i < nElements; i++) {
+          elements[i] = stringList.elements[i];
+        }
+      }
+    }
+  }
+  
+  public void parse(ComScriptCommand scriptCommand,
+      boolean successiveEntriesAccumulate) throws InvalidParameterException {
+    if (successiveEntriesAccumulate) {
+      parseString(scriptCommand.getValues(key));
+    }
+    else {
+      parseString(scriptCommand.getValue(key));
     }
   }
 }
