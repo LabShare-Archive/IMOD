@@ -20,6 +20,12 @@ import java.util.Vector;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.4  2005/01/25 21:25:18  sueh
+ * <p> bug 567 Return a null from getValue() instead of throwing an
+ * <p> InvalidParameterException, when a parameter has no value.  Since a
+ * <p> boolean may be represented by either 0 or 1, or just the presence or lack
+ * <p> of presence of a keyword, a parameter with no value should be allowed.
+ * <p>
  * <p> Revision 3.3  2004/04/26 23:39:26  rickg
  * <p> remove using the iterator
  * <p>
@@ -279,6 +285,9 @@ public class ComScriptCommand {
       throw new InvalidParameterException("Command " + command
           + " does not use keyword/value pairs");
     }
+    if (keyword == null) {
+      return false;
+    }
     if (findKey(keyword) >= 0) {
       return true;
     }
@@ -410,6 +419,9 @@ public class ComScriptCommand {
    * @return Index into the linked list
    */
   private int findKey(String keyword) {
+    if (keyword == null) {
+      return -1;
+    }
     for (int i = 0; i < stdinArgs.size(); i++) {
       ComScriptInputArg inputArg = (ComScriptInputArg) stdinArgs.get(i);
       String[] tokens = inputArg.getArgument().trim().split("\\s+", 2);
