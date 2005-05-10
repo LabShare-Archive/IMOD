@@ -18,6 +18,11 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.9  2005/04/25 20:39:25  sueh
+ * bug# 615 Passing the axis where a command originates to the message
+ * functions so that the message will be popped up in the correct window.
+ * This requires adding AxisID to many objects.
+ *
  * Revision 3.8  2005/03/02 23:12:53  sueh
  * bug# 533 Adding -focus and -bfocus.
  *
@@ -152,6 +157,7 @@ package etomo.comscript;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Vector;
 
 import etomo.ApplicationManager;
@@ -466,6 +472,18 @@ public class CopyTomoComs {
 
   public String[] getStdError() {
     return copytomocoms.getStdError();
+  }
+  
+  public String[] getWarnings() {
+    ArrayList warnings = SystemProgram.parseWarning(copytomocoms.getStdError(),
+        true);
+    if (warnings == null || warnings.size() == 0) {
+      return null;
+    }
+    if (warnings.size() == 1) {
+      return new String[] { (String) warnings.get(0) };
+    }
+    return (String[]) warnings.toArray(new String[warnings.size()]);
   }
 
   /**
