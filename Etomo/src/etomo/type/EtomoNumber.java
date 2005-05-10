@@ -2,6 +2,8 @@ package etomo.type;
 
 import java.util.Properties;
 
+import etomo.comscript.FortranInputString;
+
 /**
 * <p>Description: </p>
 * 
@@ -16,6 +18,12 @@ import java.util.Properties;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.8  2005/01/25 23:52:46  sueh
+* <p> Pulling the part of EtomoNumber which handles reading and writing to
+* <p> scripts out of this class and placing it in ScriptParameter, which inherits
+* <p> this class.  Moving defaultValue to ScriptParameter.  Changing reset so that
+* <p> is always sets currentValue to null, unless preventNullValues is true.
+* <p>
 * <p> Revision 1.7  2005/01/22 04:12:44  sueh
 * <p> bug# 509, bug# 591  In set(long) and set(double), and setResetValue(double)
 * <p> through an exception if the type of the instance is not compatible.
@@ -89,10 +97,6 @@ public class EtomoNumber extends ConstEtomoNumber {
     super(that);
   }
   
-  public EtomoNumber(int type, String name, boolean preventNullValue, Number resetValue) {
-    super(type, name, preventNullValue, resetValue);
-  }
-  
   public void load(Properties props) {
     String stringValue = props.getProperty(name);
     if (stringValue == null) {
@@ -123,7 +127,7 @@ public class EtomoNumber extends ConstEtomoNumber {
    * @return
    */
   public EtomoNumber set(String value) {
-    invalidReason = null;
+    resetInvalidReason();
     if (value == null || value.matches("\\s*")) {
       currentValue = newNumber();
     }
@@ -131,19 +135,19 @@ public class EtomoNumber extends ConstEtomoNumber {
       StringBuffer invalidBuffer = new StringBuffer();
       currentValue = newNumber(value, invalidBuffer);
       if (invalidBuffer.length() > 0) {
-        invalidReason = invalidBuffer.toString();
+        addInvalidReason(invalidBuffer.toString());
         currentValue = newNumber();
       }
     }
     currentValue = applyCeilingValue(currentValue);
-    validate();
+    setInvalidReason();
     return this;
   }
   
   public EtomoNumber set(Number value) {
-    invalidReason = null;
+    resetInvalidReason();
     currentValue = applyCeilingValue(value);
-    validate();
+    setInvalidReason();
     return this;
   }
   
@@ -175,9 +179,22 @@ public class EtomoNumber extends ConstEtomoNumber {
   
   public EtomoNumber set(double value) {
     if (type != DOUBLE_TYPE) {
-      throw new IllegalStateException("Cannot set a double currentValue with any type but double.");
+      throw new IllegalStateException("Cannot set a currentValue that is not double with double.");
     }
     return set(newNumber(value));
+  }
+  
+  public EtomoNumber set(FortranInputString fortranInputString, int index) {
+    if (type == FLOAT_TYPE) {
+      throw new IllegalStateException("Cannot set a float currentValue with a FortranInputString.");
+    }
+    if (type != DOUBLE_TYPE && !fortranInputString.isIntegerType(index)) {
+      throw new IllegalStateException("Cannot set a currentValue that is not double with a FortranInputString value that is double.");      
+    }
+    if (fortranInputString.isEmpty(index) || fortranInputString.isDefault(index)) {
+      return set(newNumber());
+    }
+    return set(newNumber(fortranInputString.getDouble(index)));
   }
   
   /**
@@ -185,8 +202,9 @@ public class EtomoNumber extends ConstEtomoNumber {
    * @return
    */
   public EtomoNumber reset() {
+    resetInvalidReason();
     currentValue = applyCeilingValue(newNumber());
-    validate();
+    setInvalidReason();
     return this;
   }
   
