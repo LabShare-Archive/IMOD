@@ -377,28 +377,42 @@ abstract class EtomoFrame extends JFrame {
   
   /**
    * wrap the message and place it in messageArray
-   * @param message
+   * @param messagePiece
    * @param messageArray
    * @return messageArray
    */
-  private ArrayList wrap(String message, ArrayList messageArray) {
-    if (message == null) {
+  private ArrayList wrap(String messagePiece, ArrayList messageArray) {
+    if (messagePiece == null) {
       if (messageArray.size() == 0) {
         messageArray.add(" ");
       }
       return messageArray;
     }
-    int messageLength = message.length();
-    int messageIndex = 0;
-    while (messageIndex < messageLength && messageArray.size() < maxMessageLines) {
-      int endIndex = Math.min(messageLength, messageIndex + messageWidth);
-      StringBuffer line = new StringBuffer(message.substring(messageIndex, endIndex));
-      messageIndex = endIndex;
-      while (messageIndex < messageLength
-          && message.substring(messageIndex, messageIndex + 1).matches("\\S+")) {
-        line.append(message.charAt(messageIndex++));
+    //first - break up the message piece by line
+    String[] messagePieceArray = messagePiece.split("\n");
+    //second - break up each line by maximum length
+    for (int i = 0; i < messagePieceArray.length; i++) {
+      //handle empty lines
+      if (messagePieceArray[i] == null || messagePieceArray[i].length() == 0) {
+        messageArray.add(" ");
       }
-      messageArray.add(line.toString());
+      else {
+        int messageLength = messagePieceArray[i].length();
+        int messageIndex = 0;
+        while (messageIndex < messageLength
+            && messageArray.size() < maxMessageLines) {
+          int endIndex = Math.min(messageLength, messageIndex + messageWidth);
+          StringBuffer newLine = new StringBuffer(messagePieceArray[i].substring(
+              messageIndex, endIndex));
+          messageIndex = endIndex;
+          while (messageIndex < messageLength
+              && messagePieceArray[i].substring(messageIndex, messageIndex + 1)
+                  .matches("\\S+")) {
+            newLine.append(messagePieceArray[i].charAt(messageIndex++));
+          }
+          messageArray.add(newLine.toString());
+        }
+      }
     }
     return messageArray;
   }
@@ -547,6 +561,11 @@ abstract class EtomoFrame extends JFrame {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.5  2005/04/27 02:14:42  sueh
+* <p> bug# 615 Drop createMenus() to private, since it is no longer used by
+* <p> EtomoDirector.  Increase the level of getOtherFrame() to protected, since
+* <p> it is being used by SubFrame.
+* <p>
 * <p> Revision 1.4  2005/04/26 17:38:25  sueh
 * <p> bug# 615 Made MainFrame, SubFrame, and EtomoFrame package-level
 * <p> classes.  All MainFrame functionality is handled through UIHarness to
