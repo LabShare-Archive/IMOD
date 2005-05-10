@@ -20,6 +20,23 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.17  2005/05/10 02:18:25  sueh
+ * <p> bug# 658 Setting invalidReason with functions resetInvalidReason and
+ * <p> addInvalidReason.  Change validate() to setInvalidReason().  Make
+ * <p> validate() a public function like isValid(), except that it throws an
+ * <p> exception.  The preventNullValue member variable is unnecessary because
+ * <p> just setting displayValue has the same effect - remove it.  Add
+ * <p> nullIsValid member variable (default true).  NullIsValid set to false
+ * <p> doesn't prevent current value from being null, so a display value isn't
+ * <p> necessary.  But, isValid() or validate() will fail in this situation.
+ * <p> Added recommended value.  This value will only appear in invalidReason
+ * <p> messages as a suggestion.  Removed useDisplayValue, since turning
+ * <p> displayValue on and off is confusing.  Fixed a bug in toString(Vector).
+ * <p> To create a required field:
+ * <p> Call setNullIsValid(false)
+ * <p> If possible call setRecommendedValue()
+ * <p> Call isValid() or validate() to validate the field
+ * <p>
  * <p> Revision 1.16  2005/04/25 20:50:29  sueh
  * <p> bug# 615 Passing the axis where a command originates to the message
  * <p> functions so that the message will be popped up in the correct window.
