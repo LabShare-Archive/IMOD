@@ -17,6 +17,10 @@ import etomo.comscript.InvalidParameterException;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.2  2005/02/11 22:32:34  sueh
+* <p> Fixed problem in ScriptParameter:  it was letting defaulted parameters
+* <p> into scripts.
+* <p>
 * <p> Revision 1.1  2005/01/25 23:59:34  sueh
 * <p> An EtomoNumber which can read from and write to scripts.  Has a
 * <p> defaultValue member variable which is compared to currentValue in
@@ -33,6 +37,7 @@ public class ScriptParameter extends EtomoNumber {
   public static  final String  rcsid =  "$Id$";
 
   protected Number defaultValue;
+  private String shortName = null;
   
    public ScriptParameter(int type) {
      super(type);
@@ -44,6 +49,12 @@ public class ScriptParameter extends EtomoNumber {
      defaultValue = newNumber();
    }
    
+   public ScriptParameter(int type, String name, String shortName) {
+     super(type, name);
+     this.shortName = shortName;
+     defaultValue = newNumber();
+   }
+   
    public ScriptParameter(ScriptParameter that) {
      super(that);
      defaultValue = newNumber(that.defaultValue);
@@ -51,11 +62,6 @@ public class ScriptParameter extends EtomoNumber {
    
    public ScriptParameter(ConstEtomoNumber that) {
      super(that);
-     defaultValue = newNumber();
-   }
-   
-   public ScriptParameter(int type, String name, boolean preventNullValue, Number resetValue) {
-     super(type, name, preventNullValue, resetValue);
      defaultValue = newNumber();
    }
    
@@ -85,16 +91,10 @@ public class ScriptParameter extends EtomoNumber {
      }
      return setDefault(0);
    }
-   
-   public ConstEtomoNumber setDefault(String defaultValueString) {
-     StringBuffer invalidBuffer = new StringBuffer();
-     Number defaultValue = newNumber(defaultValueString, invalidBuffer);
-     if (invalidBuffer.length() == 0 && !isNull(defaultValue)) {
-       this.defaultValue = defaultValue;
-     }
-     return this;
-   }
 
+   public ConstEtomoNumber useDefaultAsDisplayValue() {
+     return setDisplayValue(defaultValue);
+   }
    /**
     * Returns true if defaultValue is not null and getValue() is equal to
     * defaultValue.
@@ -107,36 +107,13 @@ public class ScriptParameter extends EtomoNumber {
      return equals(value, defaultValue);
    }
    
-   public ConstEtomoNumber addToScript(StringBuffer optionBuffer, boolean force) {
-     if (!force && !isUseInScript()) {
-       return this;
-     }
-     optionBuffer.append(toString(getValueForScript()));
-     return this;
-   }
-   
-   public ConstEtomoNumber setInScript(ComScriptCommand scriptCommand) {
+   public ConstEtomoNumber updateComScript(ComScriptCommand scriptCommand) {
      if (isUseInScript()) {
-       scriptCommand.setValue(name, toString(getValueForScript()));
+       scriptCommand.setValue(name, toString(getValue()));
      }
      else {
        scriptCommand.deleteKey(name);
      }
-     return this;
-   }
-   
-   protected Number getValueForScript() {
-     if (!isNull(currentValue)) {
-       return currentValue;
-     }
-     if (!isNull(displayValue)) {
-       return displayValue;
-     }
-     return currentValue;
-   }
-   
-   public ConstEtomoNumber setUseScreenDisplayValue(boolean useDisplayValue) {
-     super.useDisplayValue = useDisplayValue;
      return this;
    }
    
@@ -146,7 +123,7 @@ public class ScriptParameter extends EtomoNumber {
     * @return
     */
    public boolean isUseInScript() {
-     Number value = getValueForScript();
+     Number value = getValue();
      if (!isNull(value) && !isDefault(value)) {
        return true;
      }
@@ -171,7 +148,13 @@ public class ScriptParameter extends EtomoNumber {
    
    public ConstEtomoNumber parse(ComScriptCommand scriptCommand)
       throws InvalidParameterException {
-    return parse(scriptCommand, name);
+     if (!scriptCommand.hasKeyword(name)) {
+       if (shortName == null || !scriptCommand.hasKeyword(shortName)) {
+         return reset();
+       }
+       return set(scriptCommand.getValue(shortName));
+     }
+     return set(scriptCommand.getValue(name));
   }
 
 }
