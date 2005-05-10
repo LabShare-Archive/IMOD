@@ -278,21 +278,23 @@ public class UIHarness {
     initialized = true;
     EtomoDirector etomo = EtomoDirector.getInstance();
     test = etomo.isTest();
-    testLog = new File(etomo.getCurrentPropertyUserDir(), "etomo_test.log");
-    if (testLog.exists()) {
+    if (test) {
+      testLog = new File(etomo.getCurrentPropertyUserDir(), "etomo_test.log");
+      if (testLog.exists()) {
+        try {
+          Utilities.renameFile(testLog, new File(testLog.getAbsolutePath() + "~"));
+        }
+        catch (IOException e) {
+          e.printStackTrace();
+          testLog.delete();
+        }
+      }
       try {
-        Utilities.renameFile(testLog, new File(testLog.getAbsolutePath() + "~"));
+        logWriter = new BufferedWriter(new FileWriter(testLog));
       }
       catch (IOException e) {
         e.printStackTrace();
-        testLog.delete();
       }
-    }
-    try {
-      logWriter = new BufferedWriter(new FileWriter(testLog));
-    }
-    catch (IOException e) {
-      e.printStackTrace();
     }
   }
   
@@ -373,6 +375,11 @@ public class UIHarness {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.4  2005/04/27 02:20:10  sueh
+* <p> bug# 615 Removed createMenus(), since it does not have to be visible.
+* <p> In createMainFrame() make sure that mainFrame cannot be instantiated
+* <p> more then once.
+* <p>
 * <p> Revision 1.3  2005/04/26 18:35:33  sueh
 * <p> bug# 615 Fixed a bug in log().  LogWriter was not flushing to the file.
 * <p>
