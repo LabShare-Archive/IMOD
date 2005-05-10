@@ -20,6 +20,11 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.16  2005/04/25 20:50:29  sueh
+ * <p> bug# 615 Passing the axis where a command originates to the message
+ * <p> functions so that the message will be popped up in the correct window.
+ * <p> This requires adding AxisID to many objects.
+ * <p>
  * <p> Revision 1.15  2005/03/08 01:59:56  sueh
  * <p> bug# 533 Making the long null value public.
  * <p>
@@ -134,13 +139,13 @@ public abstract class ConstEtomoNumber implements Storable {
   protected int type;
   protected String name;
   protected String description = null;
-  protected String invalidReason = null;
-  protected Number currentValue;
-  protected Number displayValue;
-  protected Number ceilingValue;
+  protected StringBuffer invalidReason = null;
+  protected Number currentValue = null;
+  protected Number displayValue = null;
+  protected Number ceilingValue = null;
   protected Vector validValues = null;
-  protected boolean preventNullValue = false;
-  protected boolean useDisplayValue = true;
+  protected boolean nullIsValid = true;
+  protected Number recommendedValue = null;
 
   protected ConstEtomoNumber(int type) {
     this.type = type;
@@ -163,8 +168,7 @@ public abstract class ConstEtomoNumber implements Storable {
     currentValue = newNumber(that.currentValue);
     displayValue = newNumber(that.displayValue);
     ceilingValue = newNumber(that.ceilingValue);
-    preventNullValue = that.preventNullValue;
-    useDisplayValue = that.useDisplayValue;
+    nullIsValid = that.nullIsValid;
     if (that.validValues != null && that.validValues.size() == 0) {
       validValues = new Vector(that.validValues.size());
       for (int i = 0; i < that.validValues.size(); i++) {
@@ -173,21 +177,6 @@ public abstract class ConstEtomoNumber implements Storable {
     }
   }
   
-  /**
-   * Create an EtomoNumber that cannot be null.  Must include a displayValue to
-   * fall back to when a blank string is set.
-   * @param type
-   * @param name
-   * @param preventNullValue
-   * @param resetValue
-   */
-  protected ConstEtomoNumber(int type, String name, boolean preventNullValue, Number displayValue) {
-    this.type = type;
-    this.name = name;
-    description = name;
-    initialize(preventNullValue, displayValue);
-  }
-
   public String getDescription() {
     return description;
   }
@@ -201,34 +190,42 @@ public abstract class ConstEtomoNumber implements Storable {
   }
 
   /**
-   * Validate currentValue against preventNullValues.  Null is checked.
-   * Validate currentValue against validValues.  Null is ignored.
-   * 
-   * Sets invalidReason if invalid
+   * If validValues has been set, look for currentValue in validValues. Set
+   * invalidReasion if  currentValue is not found.  Null is ignored.
+   * Set invalidReason if currentValue is null and nullIsValid is false.
    */
-  protected void validate() {
-    if (invalidReason != null) {
+  protected void setInvalidReason() {
+    //Pass when there are no validation settings
+    if (nullIsValid && validValues == null) {
       return;
     }
-    if (isNull(currentValue) && preventNullValue) {
-      StringBuffer invalidBuffer = new StringBuffer();
-      invalidReason = "Invalid value:  null or empty"
-          + "\nNull and empty are not allowed when preventNullValue is true.";
-      return;
-    }
-    if (isNull(currentValue) || validValues == null) {
-      return;
-    }
-    boolean valid = false;
-    for (int i = 0; i < validValues.size(); i++) {
-      if (equals(currentValue, (Number) validValues.get(i))) {
-        valid = true;
+    //Catch illegal null values
+    if (isNull(currentValue)) {
+      if (nullIsValid) {
+        return;
       }
+      addInvalidReason("This field cannot be empty.");
     }
-    if (!valid) {
+    //Validate against validValues
+    else if (validValues != null) {
+      for (int i = 0; i < validValues.size(); i++) {
+        if (equals(currentValue, (Number) validValues.get(i))) {
+          return;
+        }
+      }
+      addInvalidReason("Invalid value:  " + toString(currentValue));
       StringBuffer invalidBuffer = new StringBuffer();
-      invalidReason = "Invalid value:  " + toString(currentValue)
-          + "\nValid values are " + toString(validValues);
+    }
+    //Pass all other cases
+    else {
+      return;
+    }
+    //Add recommendations to invalidReason
+    if (recommendedValue != null) {
+      addInvalidReason("The recommended value is " + toString(recommendedValue) + ".");
+    }
+    if (validValues != null) {
+      addInvalidReason("Valid values are " + toString(validValues) + ".");
     }
   }
   
@@ -247,18 +244,51 @@ public abstract class ConstEtomoNumber implements Storable {
     return value;
   }
 
+  /**
+   * If invalidReason is set, return true
+   * @return
+   */
   public boolean isValid() {
     return invalidReason == null;
   }
+  
+  /**
+   * If invalidReason is set, throw an exception
+   * @throws InvalidEtomoNumberException
+   */
+  public void validate() throws InvalidEtomoNumberException {
+    if (invalidReason != null) {
+      throw new InvalidEtomoNumberException(invalidReason.toString());
+    }
+  }
+  
+  /**
+   * If invalidReason is set, display an error message and throw an exception
+   * @param errorTitle
+   * @param axisID
+   * @throws InvalidEtomoNumberException
+   */
+  public void validate(String errorTitle, AxisID axisID)
+      throws InvalidEtomoNumberException {
+    if (!isValid(true, errorTitle, axisID)) {
+      throw new InvalidEtomoNumberException(invalidReason.toString());
+    }
+  }
 
-  public boolean isValid(boolean displayErrorMessage, String errorTitle,
-      AxisID axisID) {
-    boolean valid = invalidReason == null;
-    if (!valid && displayErrorMessage) {
+  /**
+   * If invalidReason is set, display an error message and return true
+   * @param displayErrorMessage
+   * @param errorTitle
+   * @param axisID
+   * @return
+   */
+  public boolean isValid(boolean displayErrorMessage, String errorTitle, AxisID axisID) {
+    if (invalidReason != null && displayErrorMessage) {
       UIHarness.INSTANCE.openMessageDialog(description + ": " + invalidReason,
           errorTitle, axisID);
+      return false;
     }
-    return valid;
+    return true;
   }
 
   public String getInvalidReason() {
@@ -274,8 +304,7 @@ public abstract class ConstEtomoNumber implements Storable {
         + description + ",\ninvalidReason=" + invalidReason + ",\ncurrentValue="
         + currentValue + ",\ndisplayValue="
         + displayValue + ",\nceilingValue=" + ceilingValue
-        + ",\nuseDisplayValue=" + useDisplayValue
-        + ",\npreventNullValue=" + preventNullValue;
+        + ",\nnullIsValid=" + nullIsValid;
   }
 
   public ConstEtomoNumber setCeiling(int ceilingValue) {
@@ -296,6 +325,31 @@ public abstract class ConstEtomoNumber implements Storable {
   
   public ConstEtomoNumber setDisplayValue(boolean displayValue) {
     this.displayValue = newNumber(displayValue);
+    return this;
+  }
+  
+  protected ConstEtomoNumber setDisplayValue(Number displayValue) {
+    this.displayValue = newNumber(displayValue);
+    return this;
+  }
+  
+  /**
+   * Recommended value appears in error messages.
+   * @param recommendValue
+   * @return
+   */
+  public ConstEtomoNumber setRecommendValue(int recommendedValue) {
+    this.recommendedValue = newNumber(recommendedValue);
+    return this;
+  }
+  
+  /**
+   * Recommended value appears in error messages.
+   * @param recommendValue
+   * @return
+   */
+  public ConstEtomoNumber setRecommendValue(double recommendedValue) {
+    this.recommendedValue = newNumber(recommendedValue);
     return this;
   }
 
@@ -324,10 +378,15 @@ public abstract class ConstEtomoNumber implements Storable {
       this.description = description;
     }
     else {
-      name = description;
+      this.description = name;
     }
   }
 
+  public ConstEtomoNumber setNullIsValid(boolean nullIsValid) {
+    this.nullIsValid = nullIsValid;
+    return this;
+  }
+  
   public ConstEtomoNumber setValidValues(int[] validValues) {
     if (validValues == null || validValues.length == 0) {
       return this;
@@ -336,7 +395,6 @@ public abstract class ConstEtomoNumber implements Storable {
     for (int i = 0; i < validValues.length; i++) {
       this.validValues.add(this.newNumber(validValues[i]));
     }
-    validate();
     return this;
   }
   
@@ -436,13 +494,12 @@ public abstract class ConstEtomoNumber implements Storable {
   }
 
   protected void initialize() {
-    initialize(false, newNumber());
+    initialize(newNumber());
   }
   
-  protected void initialize(boolean preventNullValue, Number displayValue) {
+  protected void initialize(Number displayValue) {
     ceilingValue = newNumber();
     this.displayValue = newNumber(displayValue);
-    this.preventNullValue = preventNullValue;
     currentValue = newNumber();
   }
 
@@ -456,7 +513,7 @@ public abstract class ConstEtomoNumber implements Storable {
    * @return
    */
   protected Number getValue() {
-    if (!isNull(currentValue) || !useDisplayValue) {
+    if (!isNull(currentValue)) {
       return currentValue;
     }
     if (!isNull(displayValue)) {
@@ -478,13 +535,26 @@ public abstract class ConstEtomoNumber implements Storable {
     }
     StringBuffer buffer = new StringBuffer(toString((Number) numberVector.get(0)));
     for (int i = 1; i < numberVector.size(); i++) {
-      buffer.append("," + toString((Number) numberVector.get(0)));
+      buffer.append("," + toString((Number) numberVector.get(1)));
     }
     return buffer.toString();
   }
   
+  protected void resetInvalidReason() {
+    invalidReason = null;
+  }
+  
+  protected void addInvalidReason(String message) {
+    if (invalidReason == null) {
+      invalidReason = new StringBuffer(message);
+    }
+    else {
+      invalidReason.append("\n" + message);
+    }
+  }
+  
   protected Number newNumber() {
-    if (preventNullValue) {
+    if (displayValue != null) {
       return newNumber(displayValue);
     }
     switch (type) {
@@ -517,7 +587,7 @@ public abstract class ConstEtomoNumber implements Storable {
   }
 
   /**
-   * Override this class to display numbers as a descriptive character string.
+   * Override this class to display numbers as descriptive character strings.
    * @param value
    * @param invalidBuffer
    * @return
