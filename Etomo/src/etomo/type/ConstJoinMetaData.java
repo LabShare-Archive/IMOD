@@ -21,6 +21,9 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.6  2005/01/25 21:58:38  sueh
+* <p> Converting EtomoNumbers parameters to ScriptParameters.
+* <p>
 * <p> Revision 1.5  2004/12/16 02:27:49  sueh
 * <p> bug# 564 Remove recommendedValue.  Use resetValue instead.
 * <p>
@@ -172,11 +175,11 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
 
   public ConstJoinMetaData() {
     fileExtension = ".ejf";
-    densityRefSection.setDefault(1).setDisplayValue(1);
-    alignmentRefSection.setDefault(1).setDisplayValue(1);
-    trialBinning.setDefault(1).setDisplayValue(1);
-    shiftInX.setDefault(0).setDisplayValue(0);
-    shiftInY.setDefault(0).setDisplayValue(0);
+    densityRefSection.setDefault(1).useDefaultAsDisplayValue();
+    alignmentRefSection.setDefault(1).useDefaultAsDisplayValue();
+    trialBinning.setDefault(1).useDefaultAsDisplayValue();
+    shiftInX.setDefault(0).useDefaultAsDisplayValue();
+    shiftInY.setDefault(0).useDefaultAsDisplayValue();
     sigmaLowFrequency.setDefault(0).setDisplayValue(0.0);
     cutoffHighFrequency.setDefault(0).setDisplayValue(0.25);
     sigmaHighFrequency.setDefault(0).setDisplayValue(0.05);
