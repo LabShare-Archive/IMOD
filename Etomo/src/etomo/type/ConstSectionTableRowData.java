@@ -19,6 +19,9 @@ import etomo.storage.Storable;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.7  2005/01/29 00:18:12  sueh
+* <p> Removed print statements
+* <p>
 * <p> Revision 1.6  2005/01/25 22:08:03  sueh
 * <p> Converting EtomoNumbers parameters to ScriptParameters.
 * <p>
@@ -139,9 +142,9 @@ public abstract class ConstSectionTableRowData implements Storable {
     finalStart.setDescription("Final, Start");
     finalStart.setDisplayValue(1);
     finalEnd.setDescription("Final, End");
-    rotationAngleX.setDefault(0).setUseScreenDisplayValue(false).setDisplayValue(0).setDescription("Rotation Angles, X");
-    rotationAngleY.setDefault(0).setUseScreenDisplayValue(false).setDisplayValue(0).setDescription("Rotation Angles, Y");
-    rotationAngleZ.setDefault(0).setUseScreenDisplayValue(false).setDisplayValue(0).setDescription("Rotation Angles, Z");
+    rotationAngleX.setDefault(0).setDescription("Rotation Angles, X");
+    rotationAngleY.setDefault(0).setDescription("Rotation Angles, Y");
+    rotationAngleZ.setDefault(0).setDescription("Rotation Angles, Z");
   }
   
   protected ConstSectionTableRowData(ConstSectionTableRowData that) {
