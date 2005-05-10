@@ -70,8 +70,7 @@ public class TiltalignParam extends ConstTiltalignParam implements CommandParam 
       excludeList.parseString(scriptCommand.getValue(EXCLUDE_LIST_KEY));
       rotationAngle.parse(scriptCommand);
       separateGroup.parseString(scriptCommand.getValues(SEPARATE_GROUP_KEY));
-      tiltAngleSpec.set(scriptCommand, firstTiltAngleShortString,
-          tiltIncrementShortString, tiltFileShortString);
+      tiltAngleSpec.parse(scriptCommand);
       angleOffset.parse(scriptCommand);
       projectionStretch.parse(scriptCommand);
       rotOption.parse(scriptCommand);
@@ -131,7 +130,7 @@ public class TiltalignParam extends ConstTiltalignParam implements CommandParam 
       metroFactor.parse(scriptCommand);
       maximumCycles.parse(scriptCommand);
       axisZShift.parse(scriptCommand);
-      localAlignments.set(scriptCommand);
+      localAlignments.parse(scriptCommand);
       outputLocalFile = scriptCommand.getValue(outputLocalFileString);
       ParamUtilities.setParamIfPresent(scriptCommand,
           NUMBER_OF_LOCAL_PATCHES_X_AND_Y_KEY, numberOfLocalPatchesXandY);
@@ -139,7 +138,7 @@ public class TiltalignParam extends ConstTiltalignParam implements CommandParam 
           MIN_SIZE_OR_OVERLAP_X_AND_Y_KEY, minSizeOrOverlapXandY);
       ParamUtilities.setParamIfPresent(scriptCommand,
           MIN_FIDS_TOTAL_AND_EACH_SURFACE_KEY, minFidsTotalAndEachSurface);
-      fixXYZCoordinates.set(scriptCommand);
+      fixXYZCoordinates.parse(scriptCommand);
       ParamUtilities.setParamIfPresent(scriptCommand,
           localOutputOptionsString, localOutputOptions);
     }
@@ -350,31 +349,31 @@ public class TiltalignParam extends ConstTiltalignParam implements CommandParam 
         includeList);
     ParamUtilities.updateScriptParameter(scriptCommand, EXCLUDE_LIST_KEY,
         excludeList);
-    rotationAngle.setInScript(scriptCommand);
+    rotationAngle.updateComScript(scriptCommand);
     ParamUtilities.updateScriptParameter(scriptCommand, SEPARATE_GROUP_KEY,
         separateGroup);
-    tiltAngleSpec.update(scriptCommand);
-    angleOffset.setInScript(scriptCommand);
-    projectionStretch.setInScript(scriptCommand);
-    rotOption.setInScript(scriptCommand);
-    rotDefaultGrouping.setInScript(scriptCommand);
-    rotationFixedView.setInScript(scriptCommand);
-    tiltOption.setInScript(scriptCommand);
-    tiltDefaultGrouping.setInScript(scriptCommand);
-    magReferenceView.setInScript(scriptCommand);
-    magOption.setInScript(scriptCommand);
-    magDefaultGrouping.setInScript(scriptCommand);
-    xStretchOption.setInScript(scriptCommand);
-    skewOption.setInScript(scriptCommand);
-    xStretchDefaultGrouping.setInScript(scriptCommand);
-    skewDefaultGrouping.setInScript(scriptCommand);
-    residualReportCriterion.setInScript(scriptCommand);
-    surfacesToAnalyze.setInScript(scriptCommand);
-    metroFactor.setInScript(scriptCommand);
-    maximumCycles.setInScript(scriptCommand);
-    axisZShift.setInScript(scriptCommand);
+    tiltAngleSpec.updateComScript(scriptCommand);
+    angleOffset.updateComScript(scriptCommand);
+    projectionStretch.updateComScript(scriptCommand);
+    rotOption.updateComScript(scriptCommand);
+    rotDefaultGrouping.updateComScript(scriptCommand);
+    rotationFixedView.updateComScript(scriptCommand);
+    tiltOption.updateComScript(scriptCommand);
+    tiltDefaultGrouping.updateComScript(scriptCommand);
+    magReferenceView.updateComScript(scriptCommand);
+    magOption.updateComScript(scriptCommand);
+    magDefaultGrouping.updateComScript(scriptCommand);
+    xStretchOption.updateComScript(scriptCommand);
+    skewOption.updateComScript(scriptCommand);
+    xStretchDefaultGrouping.updateComScript(scriptCommand);
+    skewDefaultGrouping.updateComScript(scriptCommand);
+    residualReportCriterion.updateComScript(scriptCommand);
+    surfacesToAnalyze.updateComScript(scriptCommand);
+    metroFactor.updateComScript(scriptCommand);
+    maximumCycles.updateComScript(scriptCommand);
+    axisZShift.updateComScript(scriptCommand);
     //local alignment
-    localAlignments.update(scriptCommand);
+    localAlignments.updateComScript(scriptCommand);
     ParamUtilities.updateScriptParameter(scriptCommand, outputLocalFileString,
         outputLocalFile);
     ParamUtilities.updateScriptParameter(scriptCommand,
@@ -383,20 +382,20 @@ public class TiltalignParam extends ConstTiltalignParam implements CommandParam 
         MIN_SIZE_OR_OVERLAP_X_AND_Y_KEY, minSizeOrOverlapXandY);
     ParamUtilities.updateScriptParameter(scriptCommand,
         MIN_FIDS_TOTAL_AND_EACH_SURFACE_KEY, minFidsTotalAndEachSurface);
-    fixXYZCoordinates.update(scriptCommand);
+    fixXYZCoordinates.updateComScript(scriptCommand);
     ParamUtilities.updateScriptParameter(scriptCommand,
         localOutputOptionsString, localOutputOptions);
-    localRotOption.setInScript(scriptCommand);
-    localRotDefaultGrouping.setInScript(scriptCommand);
-    localTiltOption.setInScript(scriptCommand);
-    localTiltDefaultGrouping.setInScript(scriptCommand);
-    localMagReferenceView.setInScript(scriptCommand);
-    localMagOption.setInScript(scriptCommand);
-    localMagDefaultGrouping.setInScript(scriptCommand);
-    localXStretchOption.setInScript(scriptCommand);
-    localXStretchDefaultGrouping.setInScript(scriptCommand);
-    localSkewOption.setInScript(scriptCommand);
-    localSkewDefaultGrouping.setInScript(scriptCommand);
+    localRotOption.updateComScript(scriptCommand);
+    localRotDefaultGrouping.updateComScript(scriptCommand);
+    localTiltOption.updateComScript(scriptCommand);
+    localTiltDefaultGrouping.updateComScript(scriptCommand);
+    localMagReferenceView.updateComScript(scriptCommand);
+    localMagOption.updateComScript(scriptCommand);
+    localMagDefaultGrouping.updateComScript(scriptCommand);
+    localXStretchOption.updateComScript(scriptCommand);
+    localXStretchDefaultGrouping.updateComScript(scriptCommand);
+    localSkewOption.updateComScript(scriptCommand);
+    localSkewDefaultGrouping.updateComScript(scriptCommand);
     //optional parameters
     ParamUtilities.updateScriptParameter(scriptCommand,
         outputZFactorFileString, outputZFactorFile);
@@ -847,6 +846,9 @@ public class TiltalignParam extends ConstTiltalignParam implements CommandParam 
 
 /**
  * <p> $Log$
+ * <p> Revision 3.17  2005/02/24 00:50:35  sueh
+ * <p> bug# 600 Fixed a bug that was saving a value to the wrong parameter.
+ * <p>
  * <p> Revision 3.16  2005/02/21 22:57:18  sueh
  * <p> bug# 600 Making parameter name statics public.
  * <p>
