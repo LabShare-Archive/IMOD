@@ -18,6 +18,11 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.5  2005/04/25 20:40:46  sueh
+ * bug# 615 Passing the axis where a command originates to the message
+ * functions so that the message will be popped up in the correct window.
+ * This requires adding AxisID to many objects.
+ *
  * Revision 3.4  2005/01/14 02:59:05  sueh
  * Prevented non-error messages from showing up in the err.log  file unless
  * debug is on.
@@ -136,6 +141,7 @@
 package etomo.comscript;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Vector;
 
 import etomo.ApplicationManager;
@@ -342,4 +348,20 @@ public class SetupCombine {
       }
     }
   }
+  
+  /**
+   * returns a String array of warnings - one warning per element
+   * @return
+   */
+  public String[] getWarnings() {
+    ArrayList warnings = SystemProgram.parseWarning(setupcombine.getStdError());
+    if (warnings == null || warnings.size() == 0) {
+      return null;
+    }
+    if (warnings.size() == 1) {
+      return new String[] { (String) warnings.get(0) };
+    }
+    return (String[]) warnings.toArray(new String[warnings.size()]);
+  }
+
 }
