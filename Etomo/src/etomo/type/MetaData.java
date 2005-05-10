@@ -19,6 +19,10 @@ import etomo.comscript.TransferfidParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.18  2005/03/02 20:25:11  sueh
+ * <p> bug# 533 Added adjustedFocus.  Only used with montaging and mag
+ * <p> gradient correction.
+ * <p>
  * <p> Revision 3.17  2005/03/02 00:12:11  sueh
  * <p> bug# 611 Added mag gradients correction file.
  * <p>
@@ -357,10 +361,10 @@ public class MetaData extends ConstMetaData {
         .getProperty(group + "PixelSize", "0.0"));
 
     useLocalAlignmentsA = Boolean.valueOf(
-        props.getProperty(group + "UseLocalAlignmentsA", "false"))
+        props.getProperty(group + "UseLocalAlignmentsA", "true"))
         .booleanValue();
     useLocalAlignmentsB = Boolean.valueOf(
-        props.getProperty(group + "UseLocalAlignmentsB", "false"))
+        props.getProperty(group + "UseLocalAlignmentsB", "true"))
         .booleanValue();
     fiducialDiameter = Double.parseDouble(props.getProperty(group
         + "FiducialDiameter", "0.0"));
