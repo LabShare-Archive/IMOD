@@ -17,6 +17,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.13  2005/05/10 16:59:31  sueh
+ * <p> bug# 660 Added parseWarning() to create an ArrayList of warnings from
+ * <p> a String array.  Allows multi-line warnings, separated by blank lines.
+ * <p>
  * <p> Revision 3.12  2005/04/25 20:49:46  sueh
  * <p> bug# 615 Passing the axis where a command originates to the message
  * <p> functions so that the message will be popped up in the correct window.
@@ -563,6 +567,23 @@ public class SystemProgram implements Runnable {
    return errors;
  }
  
+ /**
+  * Finds warnings in output and returns them in an array list.
+  * @param output
+  * @return
+  */
+ public static ArrayList parseWarning(String[] output) {
+   return SystemProgram.parseWarning(output, false);
+ }
+ 
+ /**
+  * Finds warnings in output and returns them in an array list, one element per
+  * warning.  Handles multi-line warnings when multiLine is true.  Puts "\n"
+  * between the lines.
+  * @param output
+  * @param multiLine
+  * @return
+  */
  public static ArrayList parseWarning(String[] output, boolean multiLine) {
    ArrayList warnings = new ArrayList();
    boolean found = false;
