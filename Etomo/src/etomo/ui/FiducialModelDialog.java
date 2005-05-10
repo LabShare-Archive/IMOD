@@ -8,8 +8,8 @@ import javax.swing.*;
 import etomo.ApplicationManager;
 import etomo.type.AxisID;
 import etomo.type.DialogType;
+import etomo.type.InvalidEtomoNumberException;
 import etomo.comscript.BeadtrackParam;
-import etomo.comscript.ConstBeadtrackParam;
 import etomo.comscript.TransferfidParam;
 import etomo.comscript.FortranInputSyntaxException;
 
@@ -26,6 +26,10 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.10  2005/04/21 20:33:55  sueh
+ * <p> bug# 615 Pass axisID to packMainWindow so it can pack only the frame
+ * <p> that requires it.
+ * <p>
  * <p> Revision 3.9  2005/04/16 01:55:06  sueh
  * <p> bug# 615 Moved the adding of exit buttons to the base class.
  * <p>
@@ -263,7 +267,7 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu {
   /**
    * Set the parameters for the specified beadtrack panel
    */
-  public void setBeadtrackParams(ConstBeadtrackParam beadtrackParams) {
+  public void setBeadtrackParams(/*Const*/BeadtrackParam beadtrackParams) {
     pnlBeadtrack.setParameters(beadtrackParams);
   }
 
@@ -277,7 +281,7 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu {
    * Get the parameters for the specified beadtrack command
    */
   public void getBeadtrackParams(BeadtrackParam beadtrackParams)
-    throws FortranInputSyntaxException {
+    throws FortranInputSyntaxException, InvalidEtomoNumberException {
     pnlBeadtrack.getParameters(beadtrackParams);
   }
 
