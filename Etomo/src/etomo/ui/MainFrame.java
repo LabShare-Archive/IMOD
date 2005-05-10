@@ -15,6 +15,8 @@ import javax.swing.JPanel;
 
 import etomo.BaseManager;
 import etomo.Controller;
+import etomo.type.AxisID;
+import etomo.type.AxisType;
 import etomo.util.UniqueKey;
 
 /**
@@ -30,6 +32,10 @@ import etomo.util.UniqueKey;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.30  2005/04/27 02:16:40  sueh
+ * <p> bug# 615 Calling setVisible(true) instead of updateAxis().  SubFrame
+ * <p> had overridden setVisible(boolean).
+ * <p>
  * <p> Revision 3.29  2005/04/26 17:40:09  sueh
  * <p> bug# 615 Made MainFrame, SubFrame, and EtomoFrame package-level
  * <p> classes.  All MainFrame functionality is handled through UIHarness to
@@ -493,9 +499,26 @@ final class MainFrame extends EtomoFrame implements ContextMenu {
       super.menuOptionsAction(event);
     }
   }
+  
+  private void setTitle(AxisID axisID) {
+    if (mainPanel != null && mainPanel.getAxisType() == AxisType.DUAL_AXIS) {
+      if (axisID == AxisID.FIRST) {
+        setTitle(aAxisTitle + title);
+      }
+      else if (axisID == AxisID.SECOND) {
+        setTitle(bAxisTitle + title);
+      }
+      else {
+        setTitle(title);
+      }
+    }
+    else {
+      setTitle(title);
+    }
+  }
     
   void showAxisA() {
-    setTitle(aAxisTitle + title);
+    setTitle(AxisID.FIRST);
     if (subFrame != null) {
       subFrame.setVisible(false);
     }
@@ -504,7 +527,7 @@ final class MainFrame extends EtomoFrame implements ContextMenu {
   }
   
   void showAxisB() {
-    setTitle(bAxisTitle + title);
+    setTitle(AxisID.SECOND);
     if (subFrame != null) {
       subFrame.setVisible(false);
     }
