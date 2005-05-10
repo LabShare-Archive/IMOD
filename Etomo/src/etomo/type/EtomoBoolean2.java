@@ -17,6 +17,9 @@ import etomo.comscript.InvalidParameterException;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.6  2005/03/08 02:00:30  sueh
+* <p> bug# 533 Changed updateAsInteger to more general displayAsInteger.
+* <p>
 * <p> Revision 1.5  2005/03/04 00:16:10  sueh
 * <p> bug# 533 Added setUpdateAsInteger().  Fixed a bug in newNumber() that
 * <p> caused a stack overflow.
@@ -42,19 +45,41 @@ import etomo.comscript.InvalidParameterException;
 public class EtomoBoolean2 extends ScriptParameter {
   public static  final String  rcsid =  "$Id$";
   
-  public static final int FALSE_VALUE = 0;
-  public static final int TRUE_VALUE = 1;
+  public static final int DEFAULT_FALSE_VALUE = 0;
+  public static final int DEFAULT_TRUE_VALUE = 1;
   
-  private static final String falseString = "false";
-  private static final String falseStrings[] = {"f", "no"};
-  private static final String trueString = "true";
-  private static final String trueStrings[] = {"t","yes"};
+  private static final String defaultFalseString = "false";
+  private static final String defaultFalseStrings[] = {"f", "no"};
+  private static final String defaultTrueString = "true";
+  private static final String defaultTrueStrings[] = {"t","yes"};
+  
+  private int falseValue = DEFAULT_FALSE_VALUE;
+  private int trueValue = DEFAULT_TRUE_VALUE;
+  private String falseString = defaultFalseString;
+  private String trueString = defaultTrueString;
+  private String[] falseStrings = defaultFalseStrings;
+  private String[] trueStrings = defaultTrueStrings;
+  
   private boolean displayAsInteger = false;
 
   public EtomoBoolean2(String name) {
-    super(EtomoNumber.INTEGER_TYPE, name, true, new Integer(FALSE_VALUE));
-    setValidValues(new int[] { FALSE_VALUE, TRUE_VALUE });
-    setUseScreenDisplayValue(false);
+    super(EtomoNumber.INTEGER_TYPE, name);
+    setValidValues(new int[] { falseValue, trueValue });
+    setDisplayValue(falseValue);
+    setNullIsValid(false);
+  }
+  
+  public EtomoBoolean2(String name, int onValue, int offValue) {
+    super(EtomoNumber.INTEGER_TYPE, name);
+    trueValue = onValue;
+    falseValue = offValue;
+    falseString = null;
+    trueString = null;
+    falseStrings = null;
+    trueStrings = null;
+    setValidValues(new int[] { falseValue, trueValue });
+    setDisplayValue(falseValue);
+    setNullIsValid(false);
   }
   
   /**
@@ -64,10 +89,10 @@ public class EtomoBoolean2 extends ScriptParameter {
    * To prevent nulls:
    * Also throw an exception when value is null.
    */
-  protected void validate() {
-    super.validate();
+  protected void setInvalidReason() {
+    super.setInvalidReason();
     if (invalidReason != null) {
-      throw new IllegalArgumentException(invalidReason);
+      throw new IllegalArgumentException(invalidReason.toString());
     }
   }
   
@@ -86,6 +111,9 @@ public class EtomoBoolean2 extends ScriptParameter {
   }
   
   public ConstEtomoNumber setDisplayAsInteger(boolean displayAsInteger) {
+    if (!displayAsInteger && (trueString == null || falseString == null)) {
+      throw new IllegalStateException("Must display " + name + "as an integer, since it has no string equivalent.");
+    }
     this.displayAsInteger = displayAsInteger;
     return this;
   }
@@ -97,11 +125,11 @@ public class EtomoBoolean2 extends ScriptParameter {
   public ConstEtomoNumber parse(ComScriptCommand scriptCommand, String keyword)
       throws InvalidParameterException {
     if (!scriptCommand.hasKeyword(keyword)) {
-      return set(FALSE_VALUE);
+      return set(falseValue);
     }
     String scriptValue = scriptCommand.getValue(keyword);
     if (scriptValue == null || scriptValue.matches("\\s*")) {
-      return set(TRUE_VALUE);
+      return set(trueValue);
     }
     return set(scriptValue);
   }
@@ -111,7 +139,7 @@ public class EtomoBoolean2 extends ScriptParameter {
    * integer in the script (use super.toString()).  Also handle writing the
    * boolean as a parameter without a value.
    */
-  public ConstEtomoNumber setInScript(ComScriptCommand scriptCommand) {
+  public ConstEtomoNumber updateComScript(ComScriptCommand scriptCommand) {
     if (!isUseInScript()) {
       return this;
     }
@@ -127,25 +155,16 @@ public class EtomoBoolean2 extends ScriptParameter {
     return this;
   }
   
-  public ConstEtomoNumber addToScript(StringBuffer optionBuffer, boolean force) {
-    if (!force && !isUseInScript()) {
-      return this;
-    }
-    if (displayAsInteger) {
-      optionBuffer.append(super.toString(getValueForScript()));
-    }
-    else {
-      optionBuffer.append(toString(getValueForScript()));
-    }
-    return this;
+  public ConstEtomoNumber setOn() {
+    return set(trueValue);
+  }
+
+  public ConstEtomoNumber setOff() {
+    return set(falseValue);
   }
   
   public boolean isUseInScript() {
     return true;
-  }
-  
-  protected Number getValueForScript() {
-    return currentValue;
   }
     
   /**
@@ -158,20 +177,24 @@ public class EtomoBoolean2 extends ScriptParameter {
   protected Number newNumber(String value, StringBuffer invalidBuffer) {
     //Convert from character string to integer value
     String trimmedValue = value.trim().toLowerCase();
-    if (trimmedValue.equals(falseString)) {
-      return newNumber(FALSE_VALUE);
+    if (falseString != null && trimmedValue.equals(falseString)) {
+      return newNumber(falseValue);
     }
-    if (trimmedValue.equals(trueString)) {
-      return newNumber(TRUE_VALUE);
+    if (trueString != null && trimmedValue.equals(trueString)) {
+      return newNumber(trueValue);
     }
-    for (int i = 0; i < falseStrings.length; i++) {
-      if (trimmedValue.equals(falseStrings[i])) {
-        return newNumber(FALSE_VALUE);
+    if (falseStrings != null) {
+      for (int i = 0; i < falseStrings.length; i++) {
+        if (trimmedValue.equals(falseStrings[i])) {
+          return newNumber(falseValue);
+        }
       }
     }
-    for (int i = 0; i < trueStrings.length; i++) {
-      if (trimmedValue.equals(trueStrings[i])) {
-        return newNumber(TRUE_VALUE);
+    if (trueStrings != null) {
+      for (int i = 0; i < trueStrings.length; i++) {
+        if (trimmedValue.equals(trueStrings[i])) {
+          return newNumber(trueValue);
+        }
       }
     }
     return super.newNumber(value, invalidBuffer);
