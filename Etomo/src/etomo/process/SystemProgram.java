@@ -17,6 +17,11 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.12  2005/04/25 20:49:46  sueh
+ * <p> bug# 615 Passing the axis where a command originates to the message
+ * <p> functions so that the message will be popped up in the correct window.
+ * <p> This requires adding AxisID to many objects.
+ * <p>
  * <p> Revision 3.11  2005/01/21 22:56:05  sueh
  * <p> bug# 509 bug# 591  Fixed a typo in a print statement.
  * <p>
@@ -556,6 +561,44 @@ public class SystemProgram implements Runnable {
      }
    }
    return errors;
+ }
+ 
+ public static ArrayList parseWarning(String[] output, boolean multiLine) {
+   ArrayList warnings = new ArrayList();
+   boolean found = false;
+   StringBuffer warning = null;
+   boolean done = false;
+   int index = 0;
+   do {
+     int labelIndex = -1;
+     boolean emptyLine = true;
+     if (!(done = index >= output.length)) {
+       labelIndex = output[index].indexOf("WARNING:");
+       emptyLine = output[index].trim().length() == 0;
+     }
+     //If end of current warning, save it in warnings
+     if (found && (!multiLine || (labelIndex != -1 || (labelIndex == -1 && emptyLine)))) {
+       if (warning == null) {
+         throw new IllegalStateException("buffer is null when found is true");
+       }
+       warnings.add(warning.toString());
+       found = false;
+       warning = null;
+     }
+     //build warning string
+     if (labelIndex != -1) {
+       if (found) {
+         throw new IllegalStateException("found is true when a new warning buffer is about to be created");
+       }
+       found = true;
+       warning = new StringBuffer(output[index].substring(labelIndex));
+     }
+     else if (found && multiLine && !emptyLine) {
+       warning.append("\n" + output[index].trim());
+     }
+     index++;
+   } while (!done);
+   return warnings;
  }
 
   /**
