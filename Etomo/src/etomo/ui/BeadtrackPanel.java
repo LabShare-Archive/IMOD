@@ -3,10 +3,11 @@ package etomo.ui;
 import javax.swing.*;
 import java.awt.Component;
 
-import etomo.comscript.ConstBeadtrackParam;
 import etomo.comscript.BeadtrackParam;
 import etomo.comscript.FortranInputSyntaxException;
 import etomo.type.AxisID;
+import etomo.type.ConstEtomoNumber;
+import etomo.type.InvalidEtomoNumberException;
 
 /**
  * <p>Description: </p>
@@ -21,6 +22,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.1  2004/03/15 20:19:04  sueh
+ * <p> bug# 276 placed to checkbox in a panel to get the alignments right
+ * <p>
  * <p> Revision 3.0  2003/11/07 23:19:01  rickg
  * <p> Version 1.0.0
  * <p>
@@ -160,33 +164,34 @@ public class BeadtrackPanel {
   /**
    * Set the field values for the panel from the ConstBeadtrackParam object
    */
-  public void setParameters(ConstBeadtrackParam beadtrackParams) {
+  public void setParameters(/*Const*/BeadtrackParam beadtrackParams) {
+    ConstEtomoNumber field = null;
     ltfInputImage.setText(beadtrackParams.getInputFile());
 //    ltfPiceListFile.setText(beadtrackParams.getPieceListFile());
     ltfSeedModelFile.setText(beadtrackParams.getSeedModelFile());
     ltfOutputModelFile.setText(beadtrackParams.getOutputModelFile());
-    ltfViewSkipList.setText(beadtrackParams.getViewSkipList());
+    ltfViewSkipList.setText(beadtrackParams.getSkipViews());
     ltfAdditionalViewSets.setText(beadtrackParams.getAdditionalViewGroups());
-    ltfTiltAngleGroupSize.setText(beadtrackParams.getTiltAngleGroupSize());
+    ltfTiltAngleGroupSize.setText(beadtrackParams.getTiltDefaultGrouping().toString());
     ltfTiltAngleGroups.setText(beadtrackParams.getTiltAngleGroups());
     ltfMagnificationGroupSize.setText(
       beadtrackParams.getMagnificationGroupSize());
     ltfMagnificationGroups.setText(beadtrackParams.getMagnificationGroups());
-    ltfNMinViews.setText(beadtrackParams.getNMinViews());
+    ltfNMinViews.setText(beadtrackParams.getMinViewsForTiltalign().toString());
     ltfFiducialParams.setText(beadtrackParams.getFiducialParams());
     cbFillGaps.setSelected(beadtrackParams.getFillGaps());
-    ltfMaxGap.setText(beadtrackParams.getMaxGap());
+    ltfMaxGap.setText(beadtrackParams.getMaxGapSize().toString());
     ltfTiltAngleMinRange.setText(beadtrackParams.getTiltAngleMinRange());
     ltfSearchBoxPixels.setText(beadtrackParams.getSearchBoxPixels());
-    ltfMaxFiducialsAvg.setText(beadtrackParams.getMaxFiducialsAvg());
+    ltfMaxFiducialsAvg.setText(beadtrackParams.getMaxBeadsToAverage().toString());
     ltfFiducialExtrapolationParams.setText(
       beadtrackParams.getFiducialExtrapolationParams());
     ltfRescueAttemptParams.setText(beadtrackParams.getRescueAttemptParams());
-    ltfMinRescueDistance.setText(beadtrackParams.getMinRescueDistance());
+    ltfMinRescueDistance.setText(beadtrackParams.getDistanceRescueCriterion().toString());
     ltfRescueRelaxtionParams.setText(
       beadtrackParams.getRescueRelaxationParams());
     ltfResidualDistanceLimit.setText(
-      beadtrackParams.getResidualDistanceLimit());
+      beadtrackParams.getPostFitRescueResidual().toString());
     ltfSecondPassParams.setText(beadtrackParams.getSecondPassParams());
     ltfMeanResidChangeLimits.setText(
       beadtrackParams.getMeanResidChangeLimits());
@@ -197,83 +202,101 @@ public class BeadtrackPanel {
    * Get the field values from the panel filling in the BeadtrackParam object
    */
   public void getParameters(BeadtrackParam beadtrackParams)
-    throws FortranInputSyntaxException {
+      throws FortranInputSyntaxException, InvalidEtomoNumberException {
+    beadtrackParams.setInputFile(ltfInputImage.getText());
+    //      beadtrackParams.setPieceListFile(ltfPiceListFile.getText());
+    beadtrackParams.setSeedModelFile(ltfSeedModelFile.getText());
+    beadtrackParams.setOutputModelFile(ltfOutputModelFile.getText());
+    beadtrackParams.setFillGaps(cbFillGaps.isSelected());
+
     String badParameter = "";
     try {
-      beadtrackParams.setInputFile(ltfInputImage.getText());
-//      beadtrackParams.setPieceListFile(ltfPiceListFile.getText());
-      beadtrackParams.setSeedModelFile(ltfSeedModelFile.getText());
-      beadtrackParams.setOutputModelFile(ltfOutputModelFile.getText());
+      //handle fields that do not display their own messages
+      try {
+        badParameter = ltfViewSkipList.getLabel();
+        beadtrackParams.setSkipViews(ltfViewSkipList.getText());
 
-      badParameter = ltfViewSkipList.getLabel();
-      beadtrackParams.setViewSkipList(ltfViewSkipList.getText());
+        badParameter = ltfAdditionalViewSets.getLabel();
+        beadtrackParams
+            .setAdditionalViewGroups(ltfAdditionalViewSets.getText());
 
-      badParameter = ltfAdditionalViewSets.getLabel();
-      beadtrackParams.setAdditionalViewGroups(ltfAdditionalViewSets.getText());
+        badParameter = ltfTiltAngleGroups.getLabel();
+        beadtrackParams.setTiltAngleGroups(ltfTiltAngleGroups.getText());
 
-      badParameter = ltfTiltAngleGroupSize.getLabel();
-      beadtrackParams.setTiltAngleGroupSize(
-        Integer.parseInt(ltfTiltAngleGroupSize.getText()));
+        badParameter = ltfTiltAngleMinRange.getLabel();
+        beadtrackParams.setTiltAngleMinRange(ltfTiltAngleMinRange.getText());
 
-      badParameter = ltfTiltAngleGroups.getLabel();
-      beadtrackParams.setTiltAngleGroups(ltfTiltAngleGroups.getText());
+        badParameter = ltfMagnificationGroups.getLabel();
+        beadtrackParams
+            .setMagnificationGroups(ltfMagnificationGroups.getText());
 
-      badParameter = ltfMagnificationGroupSize.getLabel();
-      beadtrackParams.setMagnificationGroupSize(
-        Integer.parseInt(ltfMagnificationGroupSize.getText()));
+        badParameter = ltfFiducialParams.getLabel();
+        beadtrackParams.setFiducialParams(ltfFiducialParams.getText());
 
-      badParameter = ltfMagnificationGroups.getLabel();
-      beadtrackParams.setMagnificationGroups(ltfMagnificationGroups.getText());
+        badParameter = ltfSearchBoxPixels.getLabel();
+        beadtrackParams.setSearchBoxPixels(ltfSearchBoxPixels.getText());
 
-      badParameter = ltfNMinViews.getLabel();
-      beadtrackParams.setNMinViews(Integer.parseInt(ltfNMinViews.getText()));
+        badParameter = ltfFiducialExtrapolationParams.getLabel();
+        beadtrackParams
+            .setFiducialExtrapolationParams(ltfFiducialExtrapolationParams
+                .getText());
 
-      badParameter = ltfFiducialParams.getLabel();
-      beadtrackParams.setFiducialParams(ltfFiducialParams.getText());
+        badParameter = ltfRescueAttemptParams.getLabel();
+        beadtrackParams
+            .setRescueAttemptParams(ltfRescueAttemptParams.getText());
 
-      beadtrackParams.setFillGaps(cbFillGaps.isSelected());
+        badParameter = ltfRescueRelaxtionParams.getLabel();
+        beadtrackParams.setRescueRelaxationParams(ltfRescueRelaxtionParams
+            .getText());
 
-      badParameter = ltfMaxGap.getLabel();
-      beadtrackParams.setMaxGap(Integer.parseInt(ltfMaxGap.getText()));
+        badParameter = ltfSecondPassParams.getLabel();
+        beadtrackParams.setSecondPassParams(ltfSecondPassParams.getText());
 
-      badParameter = ltfTiltAngleMinRange.getLabel();
-      beadtrackParams.setTiltAngleMinRange(ltfTiltAngleMinRange.getText());
+        badParameter = ltfMeanResidChangeLimits.getLabel();
+        beadtrackParams.setMeanResidChangeLimits(ltfMeanResidChangeLimits
+            .getText());
 
-      badParameter = ltfSearchBoxPixels.getLabel();
-      beadtrackParams.setSearchBoxPixels(ltfSearchBoxPixels.getText());
+        badParameter = ltfDeletionParams.getLabel();
+        beadtrackParams.setDeletionParams(ltfDeletionParams.getText());
+      }
+      catch (InvalidEtomoNumberException e) {
+        UIHarness.INSTANCE.openMessageDialog(badParameter + " "
+            + e.getMessage(), "Field Error", axisID);
+        throw e;
+      }
+      //handle fields that do display their own messages
+      try {
+        badParameter = ltfTiltAngleGroupSize.getLabel();
+        beadtrackParams.setTiltDefaultGrouping(ltfTiltAngleGroupSize.getText())
+            .validate(badParameter, axisID);
+        
+        badParameter = ltfMagnificationGroupSize.getLabel();
+        beadtrackParams.setMagDefaultGrouping(
+            ltfMagnificationGroupSize.getText()).validate(badParameter, axisID);
 
-      badParameter = ltfMaxFiducialsAvg.getLabel();
-      beadtrackParams.setMaxFiducialsAvg(
-        Integer.parseInt(ltfMaxFiducialsAvg.getText()));
+        badParameter = ltfNMinViews.getLabel();
+        beadtrackParams.setMinViewsForTiltalign(ltfNMinViews.getText())
+            .validate(badParameter, axisID);
 
-      badParameter = ltfFiducialExtrapolationParams.getLabel();
-      beadtrackParams.setFiducialExtrapolationParams(
-        ltfFiducialExtrapolationParams.getText());
+        badParameter = ltfMaxGap.getLabel();
+        beadtrackParams.setMaxGapSize(ltfMaxGap.getText()).validate(
+            badParameter, axisID);
 
-      badParameter = ltfRescueAttemptParams.getLabel();
-      beadtrackParams.setRescueAttemptParams(ltfRescueAttemptParams.getText());
+        badParameter = ltfMaxFiducialsAvg.getLabel();
+        beadtrackParams.setMaxBeadsToAverage(ltfMaxFiducialsAvg.getText())
+            .validate(badParameter, axisID);
 
-      badParameter = ltfMinRescueDistance.getLabel();
-      beadtrackParams.setMinRescueDistance(
-        Integer.parseInt(ltfMinRescueDistance.getText()));
+        badParameter = ltfMinRescueDistance.getLabel();
+        beadtrackParams.setDistanceRescueCriterion(
+            ltfMinRescueDistance.getText()).validate(badParameter, axisID);
 
-      badParameter = ltfRescueRelaxtionParams.getLabel();
-      beadtrackParams.setRescueRelaxationParams(
-        ltfRescueRelaxtionParams.getText());
-
-      badParameter = ltfResidualDistanceLimit.getLabel();
-      beadtrackParams.setResidualDistanceLimit(
-        Double.parseDouble(ltfResidualDistanceLimit.getText()));
-
-      badParameter = ltfSecondPassParams.getLabel();
-      beadtrackParams.setSecondPassParams(ltfSecondPassParams.getText());
-
-      badParameter = ltfMeanResidChangeLimits.getLabel();
-      beadtrackParams.setMeanResidChangeLimits(
-        ltfMeanResidChangeLimits.getText());
-
-      badParameter = ltfDeletionParams.getLabel();
-      beadtrackParams.setDeletionParams(ltfDeletionParams.getText());
+        badParameter = ltfResidualDistanceLimit.getLabel();
+        beadtrackParams.setPostFitRescueResidual(
+            ltfResidualDistanceLimit.getText()).validate(badParameter, axisID);
+      }
+      catch (InvalidEtomoNumberException e) {
+        throw e;
+      }
     }
     catch (FortranInputSyntaxException except) {
       String message = badParameter + " " + except.getMessage();
