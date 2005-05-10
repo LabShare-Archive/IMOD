@@ -14,6 +14,11 @@ package etomo.type;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.3  2005/01/21 23:27:42  sueh
+* <p> bug# 509 bug# 591  Changed the integer values for true and false to 1 and 0
+* <p> so more functionality can be handled by EtomoNumber.  Stopped overriding
+* <p> set(boolean).  Simplified is().
+* <p>
 * <p> Revision 1.2  2005/01/10 23:48:59  sueh
 * <p> bug# 578 Removed defaultValue and displayDefault setting in constructor
 * <p> since these are unnecessary.
@@ -48,10 +53,10 @@ public class EtomoState extends EtomoNumber {
   /**
    * overide validate() to throw an exception
    */
-  protected void validate() {
-    super.validate();
+  protected void setInvalidReason() {
+    super.setInvalidReason();
     if (invalidReason != null) {
-      throw new IllegalArgumentException(invalidReason);
+      throw new IllegalArgumentException(invalidReason.toString());
     }
   }
   
