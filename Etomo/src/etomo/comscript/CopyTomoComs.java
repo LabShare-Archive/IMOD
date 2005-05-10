@@ -18,6 +18,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.10  2005/05/10 16:57:09  sueh
+ * bug# 660 Added getWarnings() to get an array of warnings from standard
+ * error.
+ *
  * Revision 3.9  2005/04/25 20:39:25  sueh
  * bug# 615 Passing the axis where a command originates to the message
  * functions so that the message will be popped up in the correct window.
@@ -474,6 +478,10 @@ public class CopyTomoComs {
     return copytomocoms.getStdError();
   }
   
+  /**
+   * returns a String array of warnings - one warning per element
+   * @return
+   */
   public String[] getWarnings() {
     ArrayList warnings = SystemProgram.parseWarning(copytomocoms.getStdError(),
         true);

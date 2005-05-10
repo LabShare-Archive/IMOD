@@ -17,6 +17,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.14  2005/05/10 17:34:03  sueh
+ * <p> bug# 660 Added a parseWarning() function that does handle multi-line
+ * <p> warnings.
+ * <p>
  * <p> Revision 3.13  2005/05/10 16:59:31  sueh
  * <p> bug# 660 Added parseWarning() to create an ArrayList of warnings from
  * <p> a String array.  Allows multi-line warnings, separated by blank lines.
@@ -579,7 +583,8 @@ public class SystemProgram implements Runnable {
  /**
   * Finds warnings in output and returns them in an array list, one element per
   * warning.  Handles multi-line warnings when multiLine is true.  Puts "\n"
-  * between the lines.
+  * between the lines.  WARNING:  When multiLine is true, this function will not
+  * work with warnings that are not separated at the end by a blank line.
   * @param output
   * @param multiLine
   * @return
