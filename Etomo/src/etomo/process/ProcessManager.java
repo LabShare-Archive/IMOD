@@ -20,6 +20,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.63  2005/04/26 17:36:43  sueh
+ * bug# 615 Change the name of the UIHarness member variable to
+ * uiHarness.
+ *
  * Revision 3.62  2005/04/25 20:49:19  sueh
  * bug# 615 Passing the axis where a command originates to the message
  * functions so that the message will be popped up in the correct window.
@@ -636,6 +640,7 @@ import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.type.ConstMetaData;
 import etomo.ui.TextPageWindow;
+import etomo.ui.UIHarness;
 import etomo.util.InvalidParameterException;
 import etomo.util.Utilities;
 import etomo.comscript.BlendmontParam;
@@ -712,6 +717,14 @@ public class ProcessManager extends BaseProcessManager {
       }
 
       throw (new BadComScriptException(buffer.toString()));
+    }
+    else {
+      String[] warnings = copyTomoComs.getWarnings();
+      if (warnings != null) {
+        for (int i = 0; i < warnings.length; i++) {
+          UIHarness.INSTANCE.openMessageDialog(warnings[i], "Copytomocoms Warning", axisID);
+        }
+      }
     }
   }
 
