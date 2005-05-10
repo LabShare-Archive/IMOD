@@ -7,6 +7,9 @@ include ../configure
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.14  2004/10/08 03:33:55  mast
+#  Added clipflipyz
+#
 #  Revision 3.13  2004/10/07 16:18:30  mast
 #  Added tomosnapshot
 #
@@ -53,7 +56,7 @@ SCRIPTS = copytomocoms finishjoin makejoincom matchorwarp matchshifts\
  setupcombine setupcoms setuplong splitmrc squeezevol trimvol xf2xg xfalign\
  dm2mrc alignlog transferfid submfg imodpsview settmpdir matchrotpairs\
  chunksetup processchunks splittilt splitcombine tomosnapshot clipflipyz\
- $(GENERATED_SCRIPTS)
+ archiveorig $(GENERATED_SCRIPTS)
 
 all:
 
