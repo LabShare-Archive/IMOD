@@ -20,6 +20,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.64  2005/05/10 16:58:12  sueh
+ * bug# 660 Popping up warnings from copytomocoms.
+ *
  * Revision 3.63  2005/04/26 17:36:43  sueh
  * bug# 615 Change the name of the UIHarness member variable to
  * uiHarness.
@@ -1252,6 +1255,15 @@ public class ProcessManager extends BaseProcessManager {
 
       throw (new BadComScriptException(buffer.toString()));
     }
+    else {
+      String[] warnings = setupCombine.getWarnings();
+      if (warnings != null) {
+        for (int i = 0; i < warnings.length; i++) {
+          UIHarness.INSTANCE.openMessageDialog(warnings[i], "Setup Combine Warning", AxisID.ONLY);
+        }
+      }
+    }
+
   }
 
   /**
