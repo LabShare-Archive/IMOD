@@ -19,6 +19,22 @@ import etomo.type.ScriptParameter;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.3  2005/05/09 22:42:20  sueh
+ * <p> bug# 658 Moved the old BeadtrackParam to OldBeadtrackParam.  The
+ * <p> new version of BeadtrackParam inherits OldBeadtrackParam and can
+ * <p> read from the most recent pre-PIP track.com files also well as from
+ * <p> current ones.  Writes the most recent version version of track.com.
+ * <p> Uses the member variables and get and set functions from
+ * <p> OldBeadtrackParam and OldConstBeadtrackParam except where a
+ * <p> replacement member variable is needed.  Uses the OldBeadtrackParam
+ * <p> parse function to read pre-PIP scripts.  Contains static strings to translate
+ * <p> between old member variables and the PIP script.  Replacing the old
+ * <p> member variables which are int and double to better handle null values.
+ * <p> Replacing old member variables that are incorrect.  Added convertToPIP()
+ * <p> and set(OldConstBeadtrackParam) to read in pre-PIP com scripts.  Added
+ * <p> a new updateComScript() function.  Added gets and sets where
+ * <p> necessary.
+ * <p>
  * <p> Revision 3.2  2005/01/13 00:41:42  sueh
  * <p> bug# 576 Converted tiltAngleGroups and magnificationGroups to
  * <p> FortranInputString[].
@@ -150,9 +166,7 @@ public class BeadtrackParam extends OldBeadtrackParam
         "DensityRelaxationPostFit");
     maxRescueDistance = new ScriptParameter(EtomoNumber.DOUBLE_TYPE,
         "MaxRescueDistance");
-    System.out.println("deletionParams:"+deletionParams.isIntegerType(1));
     deletionParams.setIntegerType(1, false);
-    System.out.println("deletionParams:"+deletionParams.isIntegerType(1));
   }
   
   void reset() {
@@ -194,7 +208,6 @@ public class BeadtrackParam extends OldBeadtrackParam
     
     meanResidChangeLimits.set(0, 9);
     meanResidChangeLimits.set(1, 5);
-    System.out.println("reset deletionParams:"+deletionParams.isIntegerType(1));
     deletionParams.reset();
   }
   
@@ -312,7 +325,6 @@ public class BeadtrackParam extends OldBeadtrackParam
       maxRescueDistance.parse(scriptCommand);
       meanResidChangeLimits.validateAndSet(scriptCommand
           .getValue(MEAN_RESID_CHANGE_LIMITS_KEY));
-      System.out.println("set deletionParams:"+deletionParams.isIntegerType(1));
       deletionParams
           .validateAndSet(scriptCommand.getValue(DELETION_PARAMS_KEY));
     }
@@ -391,7 +403,6 @@ public class BeadtrackParam extends OldBeadtrackParam
     maxRescueDistance.updateComScript(scriptCommand);
     ParamUtilities.updateScriptParameter(scriptCommand,
         MEAN_RESID_CHANGE_LIMITS_KEY, meanResidChangeLimits);
-    System.out.println("update deletionParams:"+deletionParams.isIntegerType(1));
     ParamUtilities.updateScriptParameter(scriptCommand, DELETION_PARAMS_KEY,
         deletionParams);
   }
