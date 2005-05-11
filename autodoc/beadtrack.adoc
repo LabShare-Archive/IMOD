@@ -432,7 +432,7 @@ usage = Print help output
 tooltip = 
 manpage = 
 
-[SectionHeader = Test Options]
+[SectionHeader = TestOptions]
 usage = OPTIONS FOR TEST OUTPUT
 manpage = OPTIONS FOR TEST OUTPUT
 ^  These options are used for program testing and development.
