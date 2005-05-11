@@ -674,11 +674,11 @@ if ($radius == "") then
         set radius = $radiusline[1]
 
         set lightline = `sed -n '/^LightBeads/p' tracka.com | sed '/[[:cntrl:]]/s///g'`
-        if ($lightline != "") then
+        if ("$lightline" != "") then
             if ($#lightline == 1) then
                 set lightdark = 1
             else
-                if ($lightline[2] == 0) set lightdark = 1
+                set lightdark = $lightline[2]
             endif
         endif
 
@@ -809,6 +809,9 @@ exit 1
 
 #
 #  $Log$
+#  Revision 3.20  2005/05/11 06:02:33  mast
+#  Changes for PIP version of track.com
+#
 #  Revision 3.19  2004/08/27 05:46:48  mast
 #  Switched to using head -n and tail -n
 #
