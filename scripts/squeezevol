@@ -7,6 +7,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.5  2004/12/02 18:17:53  mast
+#  Standardized error messages
+#
 #  Revision 3.4  2004/08/27 05:46:48  mast
 #  Switched to using head -n and tail -n
 #
@@ -120,7 +123,7 @@ set pixelz = `echo $zs $pixelxyz[3] | awk '{printf "%.3f", $1 * $2}'`
 
 echo "Squeezing the volume with matchvol..."
 
-matchvol -StandardInput <<HERESTRING | tail -n 1
+matchvol -StandardInput <<HERESTRING
 InputFile $argv[1]
 OutputFile $argv[2]
 $tempdir
