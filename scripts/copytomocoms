@@ -696,7 +696,9 @@ while ($iaxis < $numax)
     end
 
     set wipeexclude = "ExcludeList"
+    set wipeskip = "SkipViews"
     if ($excludelist != "") set wipeexclude = "gibberish"
+    if ($excludelist != "") set wipeskip = "gibberish"
 
     set backuplist = ($backuplist $setname.pl $setname.rawtlt track$logext align$logext findsec$logext tomopitch$logext)
 
@@ -940,12 +942,14 @@ EOF
     set backuplist = ($backuplist $dstfile $setname.seed $setname.fid)
     if (-e $dstfile) \mv -f $dstfile $dstfile~
     sed -e s/$srcname/$dstname/g\
-	-e "/-1 to enter all tilts/s/.*	/$tiltopt	/g"\
-	-e "/start and increment if 1/s/^.*/$tiltspec/g"\
-	-e "/initial angle/s/.*	/$axisangle	/g"\
-	 -e "/radius of bead/s/.*	/$beadrad,0	/g"\
-	-e "/	box size/s/.*	/$boxsize,$boxsize	/g"\
-	-e "/views to skip/s/.*	/$excludelist	/"\
+	-e "/^FirstTiltAngle/s/.*/$tiltTypeText	$tiltStart/"\
+	-e "/^$tiltIncText/s/[ 	].*/	$tiltInc/"\
+	-e "/^$incDelText/d"\
+	-e "/^RotationAngle/s/[ 	].*/	$axisangle/"\
+	-e "/^#*SkipViews.*/s//SkipViews	$excludelist/"\
+	-e "/^#*$wipeskip/d"\
+	-e "/^CentroidRadius/s/[ 	].*/	$beadrad/"\
+	-e "/^BoxSizeXandY/s/[ 	].*/	$boxsize,$boxsize/"\
 	-e "s/$stackname/$tracksrc/"\
 	-e s/$wipepl//\
 	<$srcfile >$dstfile
@@ -1327,6 +1331,9 @@ exit 0
 
 #
 #  $Log$
+#  Revision 3.38  2005/03/23 23:18:49  mast
+#  Fixed FULLIMAGE output for tilt.com in montage case
+#
 #  Revision 3.37  2005/03/01 22:08:04  mast
 #  Added distortion and mag gradient correction for montages
 #
