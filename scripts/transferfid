@@ -7,66 +7,7 @@
 #  $Date$
 #
 #  $Revision$
-#
-#  $Log$
-#  Revision 3.18  2004/08/03 02:05:55  mast
-#  Made it insist both prealis have same pixel size
-#
-#  Revision 3.17  2004/07/22 18:16:45  mast
-#  Change to better sed command for stripping Ctrl M
-#
-#  Revision 3.16  2004/07/08 22:54:18  mast
-#  Switched some echos to \echo to dodge Cygwin tcsh bug
-#
-#  Revision 3.15  2004/06/29 03:50:14  mast
-#  Added nohup
-#
-#  Revision 3.14  2004/03/06 21:36:14  mast
-#  Converted newstack commands to command-line format
-#
-#  Revision 3.13  2003/10/24 02:04:25  mast
-#  Add filters for Windows line endings, change tmpdir usage
-#
-#  Revision 3.12  2003/06/20 20:09:51  mast
-#  Let tmpdir be defined and fall back to /tmp if /usr/tmp does not exist
-#
-#  Revision 3.11  2003/06/05 04:28:54  mast
-#  Change PID output to match vmstocsh output to stderr
-#
-#  Revision 3.10  2003/05/22 23:35:04  mast
-#  Added -P to output PID and made all startup errors include ERROR:
-#
-#  Revision 3.9  2003/05/13 20:16:09  mast
-#  Eliminate using $0 to get temp file name, doesn't work on Windows
-#
-#  Revision 3.8  2003/02/07 00:01:35  mast
-#  Added option to go from B to A easily
-#
-#  Revision 3.7  2002/12/03 21:53:32  mast
-#  Made it set limits at z-0.5 and z+0.5 for clipmodel
-#  Added complete error detection and reporting from each program that is run
-#
-#  Revision 3.6  2002/09/05 05:42:14  mast
-#  Fixed output of chosen view numbers
-#
-#  Revision 3.5  2002/07/28 21:59:44  mast
-#  Modified high-pass filter from 0.1 (which was based on default in xfalign)
-#  to match new value of 0.03 for Tiltxcorr, based on alignment failures in
-#  SerialEM
-#
-#  Revision 3.4  2002/07/28 20:23:23  mast
-#  Changed to require setname argument, call repackseed with a fiducial
-#  coordinate file if an appropriate on exists, and have option to call midas
-#  to get the initial alignment.
-#
-#  Revision 3.3  2002/06/19 16:07:13  mast
-#  Added option to leave temporary files
-#
-#  Revision 3.2  2002/05/23 04:43:12  mast
-#  Changes to call repackseed and provide for Ctrl-C to stop search
-#
-#  Revision 3.1  2002/05/20 19:48:17  mast
-#  Initial deposit into repository
+#  Log at end
 #
 
 nohup
@@ -136,7 +77,7 @@ set imageb = ""
 set fidfile = ""
 set zeroa = ""
 set zerob = ""
-set darklight = 0
+set lightdark = 0
 set outfile = ""
 set pmstart = 0
 set pmend = 1
@@ -276,9 +217,14 @@ endif
 # Get the image file names if they don't exist already
 #
 if ($imagea == "") then
-    @ topline  = `vmstocsh < track$src.com | awk '/beadtrack/{print NR}'`
-    @ nextline = $topline + $BEADTRACK_INPUTFILE_LINE
-    set imagea = `vmstocsh < track$src.com | awk '{if (NR==LINE) print}' LINE=$nextline | sed '/[[:cntrl:]]/s///g'`
+    set test = `grep 'beadtrack.*-StandardInput' track$src.com`
+    if ($status) then
+        @ topline  = `vmstocsh < track$src.com | awk '/beadtrack/{print NR}'`
+        @ nextline = $topline + $BEADTRACK_INPUTFILE_LINE
+        set imagea = `vmstocsh < track$src.com | awk '{if (NR==LINE) print}' LINE=$nextline | sed '/[[:cntrl:]]/s///g'`
+    else
+        set imagea = `sed -n '/^ImageFile/s/ImageFile[ 	]*//p' track$src.com | sed '/[[:cntrl:]]/s///g'`
+    endif
 endif
 
 if (! -e $imagea) then
@@ -287,9 +233,14 @@ if (! -e $imagea) then
 endif
 
 if ($imageb == "") then
-    @ topline  = `vmstocsh < track$dst.com | awk '/beadtrack/{print NR}'`
-    @ nextline = $topline + $BEADTRACK_INPUTFILE_LINE
-    set imageb = `vmstocsh < track$dst.com | awk '{if (NR==LINE) print}' LINE=$nextline | sed '/[[:cntrl:]]/s///g'`
+    set test = `grep 'beadtrack.*-StandardInput' track$dst.com`
+    if ($status) then
+        @ topline  = `vmstocsh < track$dst.com | awk '/beadtrack/{print NR}'`
+        @ nextline = $topline + $BEADTRACK_INPUTFILE_LINE
+        set imageb = `vmstocsh < track$dst.com | awk '{if (NR==LINE) print}' LINE=$nextline | sed '/[[:cntrl:]]/s///g'`
+    else
+        set imageb = `sed -n '/^ImageFile/s/ImageFile[ 	]*//p' track$dst.com | sed '/[[:cntrl:]]/s///g'`
+    endif
 endif
 
 if (! -e $imageb) then
@@ -692,55 +643,88 @@ if ($status) then
 endif
 
 #
-# Get the bead radius 
-# TODO: something about box size
+# Get the bead radius and light/dark
 #
+set boxsize = 48
 if ($radius == "") then
-    @ topline  = `vmstocsh < tracka.com | awk '/beadtrack/{print NR}'`
-    @ reshootline = $topline + $BEADTRACK_RESHOOT_LINE
-    set reshoots = `vmstocsh < tracka.com | awk '{if (NR==LINE) print}' LINE=$reshootline | sed '/[[:cntrl:]]/s///g'`
-    @ reshootnum = $reshoots[1]
-    @ radline = $topline + $BEADTRACK_RADIUS_LINE + $reshootnum
-    set radiusdark = `vmstocsh < tracka.com | awk '{if (NR==LINE) print}' LINE=$radline | sed '/[[:cntrl:]]/s///g'`
-else
-    set radiusdark = $radius,$lightdark
+    set test = `grep 'beadtrack.*-StandardInput' tracka.com`
+    if ($status) then
+
+        # Old style command file
+        #
+        @ topline  = `vmstocsh < tracka.com | awk '/beadtrack/{print NR}'`
+        @ reshootline = $topline + $BEADTRACK_RESHOOT_LINE
+        set reshoots = `vmstocsh < tracka.com | awk '{if (NR==LINE) print}' LINE=$reshootline | sed '/[[:cntrl:]]/s///g'`
+        @ reshootnum = $reshoots[1]
+        @ radline = $topline + $BEADTRACK_RADIUS_LINE + $reshootnum
+        set radiusdark = `vmstocsh < tracka.com | awk '{if (NR==LINE) print}' LINE=$radline | sed -e '/[[:cntrl:]]/s///g' -e '/,/s// /g'`
+        set radius = $radiusdark[1]
+        if ($#radiusdark > 1) then
+            set lightdark = $radiusdark[2]
+        endif
+    else
+
+        # PIP command file
+        #
+        set radiusline = `sed -n '/^CentroidRadius/s/CentroidRadius[ 	*]//p' tracka.com | sed '/[[:cntrl:]]/s///g'`
+        if ($#radiusline < 1) then
+            echo "ERROR: Transferfid - Cannot extract radius from tracka.com"
+            goto clean
+        endif
+        set radius = $radiusline[1]
+
+        set lightline = `sed -n '/^LightBeads/p' tracka.com | sed '/[[:cntrl:]]/s///g'`
+        if ($lightline != "") then
+            if ($#lightline == 1) then
+                set lightdark = 1
+            else
+                if ($lightline[2] == 0) set lightdark = 1
+            endif
+        endif
+
+        set boxline = `sed -n '/^BoxSizeXandY/p' tracka.com | sed '/[[:cntrl:]]/s///g'`
+        if ($#boxline > 1) then
+            set boxsize = $boxline[2]
+        endif
+    endif
 endif
 
 #
-# run beadtrack.  REALLY BAD, BUT HERE IT IS
+# run beadtrack.
 #
 @ aview = $asecbest + 1
 @ bview = $bsecbest + 1
 echo "Transferring fiducials from view $aview in $AA to view $bview in $BB with Beadtrack:"
 echo "              (Type Ctrl-C to interrupt)"
-beadtrack >! $tmpbtlog <<EOF
-$tmpstack
-
-$tmpmap2
-$tmpseed
-
-0
-0
--1
-0,0
-7,0
-5,0
-4
-$radiusdark
-1
-5
-10,20
-48,48
-4
-7,3
-.6,1
-10
-.7,.9
-2.5
-.9,2.5
-9,5
-.04,2
+beadtrack -StandardInput >! $tmpbtlog <<EOF
+ImageFile $tmpstack
+InputSeedModel $tmpmap2
+OutputModel $tmpseed
+RotationAngle   0
+FirstTiltAngle	0
+TiltIncrement	0
+TiltDefaultGrouping	7
+MagDefaultGrouping	5
+CentroidRadius	$radius
+LightBeads      $lightdark
+BoxSizeXandY    $boxsize,$boxsize
+TrackObjectsTogether
+RoundsOfTracking	1
+MinViewsForTiltalign    4
+MinTiltRangeToFindAxis 10.0
+MinTiltRangeToFindAngles        20.0
+MaxBeadsToAverage       4
+PointsToFitMaxAndMin    7,3
+DensityRescueFractionAndSD      0.6,1
+DistanceRescueCriterion 10
+RescueRelaxationDensityAndDistance      0.7,0.9
+PostFitRescueResidual   2.5
+DensityRelaxationPostFit        0.9
+MaxRescueDistance       2.5
+ResidualsToAnalyzeMaxAndMin     9,5
+DeletionCriterionMinAndSD       0.04,2
 EOF
+
 if ($status) then
     grep ERROR $tmpbtlog
     echo "ERROR: Transferfid - Running Beadtrack to get fiducials onto $BB view "
@@ -822,3 +806,68 @@ Usage: $pn [options] setname
      -h            Help - print this usage
 EOF
 exit 1
+
+#
+#  $Log$
+#  Revision 3.19  2004/08/27 05:46:48  mast
+#  Switched to using head -n and tail -n
+#
+#  Revision 3.18  2004/08/03 02:05:55  mast
+#  Made it insist both prealis have same pixel size
+#
+#  Revision 3.17  2004/07/22 18:16:45  mast
+#  Change to better sed command for stripping Ctrl M
+#
+#  Revision 3.16  2004/07/08 22:54:18  mast
+#  Switched some echos to \echo to dodge Cygwin tcsh bug
+#
+#  Revision 3.15  2004/06/29 03:50:14  mast
+#  Added nohup
+#
+#  Revision 3.14  2004/03/06 21:36:14  mast
+#  Converted newstack commands to command-line format
+#
+#  Revision 3.13  2003/10/24 02:04:25  mast
+#  Add filters for Windows line endings, change tmpdir usage
+#
+#  Revision 3.12  2003/06/20 20:09:51  mast
+#  Let tmpdir be defined and fall back to /tmp if /usr/tmp does not exist
+#
+#  Revision 3.11  2003/06/05 04:28:54  mast
+#  Change PID output to match vmstocsh output to stderr
+#
+#  Revision 3.10  2003/05/22 23:35:04  mast
+#  Added -P to output PID and made all startup errors include ERROR:
+#
+#  Revision 3.9  2003/05/13 20:16:09  mast
+#  Eliminate using $0 to get temp file name, doesn't work on Windows
+#
+#  Revision 3.8  2003/02/07 00:01:35  mast
+#  Added option to go from B to A easily
+#
+#  Revision 3.7  2002/12/03 21:53:32  mast
+#  Made it set limits at z-0.5 and z+0.5 for clipmodel
+#  Added complete error detection and reporting from each program that is run
+#
+#  Revision 3.6  2002/09/05 05:42:14  mast
+#  Fixed output of chosen view numbers
+#
+#  Revision 3.5  2002/07/28 21:59:44  mast
+#  Modified high-pass filter from 0.1 (which was based on default in xfalign)
+#  to match new value of 0.03 for Tiltxcorr, based on alignment failures in
+#  SerialEM
+#
+#  Revision 3.4  2002/07/28 20:23:23  mast
+#  Changed to require setname argument, call repackseed with a fiducial
+#  coordinate file if an appropriate on exists, and have option to call midas
+#  to get the initial alignment.
+#
+#  Revision 3.3  2002/06/19 16:07:13  mast
+#  Added option to leave temporary files
+#
+#  Revision 3.2  2002/05/23 04:43:12  mast
+#  Changes to call repackseed and provide for Ctrl-C to stop search
+#
+#  Revision 3.1  2002/05/20 19:48:17  mast
+#  Initial deposit into repository
+#
