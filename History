@@ -1,5 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/7/05: Fixed linklibs-mac to include libifft.  (In 3.5)
+
+5/7/05: Fixed dm2mrc to work on Mac (it now uses hexdump instead of od where
+available).  (In 3.5)
+
 4/26/06: Made Tiltxcorr work with 5Kx5K image and work as long as the trimmed
 area is smaller than this.
 
