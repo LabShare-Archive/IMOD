@@ -1,5 +1,15 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/12/05: Etomo changed to put the two axes in separate windows.  Interface
+to new version of Beadtrack was implemented, including tracking over local
+areas.
+
+5/12/05: Modified Processchunks to allow command files that can be used to
+synchronize results after running a group of files in parallel.  Fixed it to
+work on Windows (multiple processors should work; multiple machines still
+untested.)  Made Chunksetup insert a newline if the master command file is
+missing one at the end.
+
 5/11/05: Changed stripping so all Fortran programs built on OSX 10.3 will run
 on 10.4. (In 3.5)
 
