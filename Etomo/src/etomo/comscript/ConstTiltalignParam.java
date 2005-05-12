@@ -186,7 +186,6 @@ public class ConstTiltalignParam implements Command {
     tiltAngleSpec.setTiltAngleFilenameKey("TiltFile", "tiltFile");
     angleOffset = new ScriptParameter(EtomoNumber.DOUBLE_TYPE, ANGLE_OFFSET_KEY);
     projectionStretch = new EtomoBoolean2(PROJECTION_STRETCH_KEY);
-    projectionStretch.setDefault(false).setDisplayValue(false);
     rotOption = new ScriptParameter(EtomoNumber.INTEGER_TYPE, ROT_OPTION_KEY);
     rotOption.setValidValues(optionValidValues).setDisplayValue(AUTOMAPPED_OPTION);
     rotDefaultGrouping = new ScriptParameter(EtomoNumber.INTEGER_TYPE, ROT_DEFAULT_GROUPING_KEY);
@@ -235,7 +234,6 @@ public class ConstTiltalignParam implements Command {
     surfacesToAnalyze.setValidValues(surfacesToAnalyzeValidValues);
     metroFactor = new ScriptParameter(EtomoNumber.DOUBLE_TYPE, METRO_FACTOR_KEY);
     maximumCycles = new ScriptParameter(EtomoNumber.INTEGER_TYPE, MAXIMUM_CYCLES_KEY);
-    maximumCycles.setDefault(500).setDisplayValue(500);
     axisZShift = new ScriptParameter(EtomoNumber.DOUBLE_TYPE, AXIS_Z_SHIFT_KEY);
     localAlignments = new EtomoBoolean2(LOCAL_ALIGNMENTS_KEY);
     localAlignments.setDisplayAsInteger(true);
@@ -768,6 +766,13 @@ public class ConstTiltalignParam implements Command {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.17  2005/05/09 22:50:05  sueh
+ * <p> bug# 658 Adapting to changes in TiltAngleSpec.  Keys are not passed at
+ * <p> instanciation.  Short keys are passed to set functions with the regular
+ * <p> keys.  Substituted EtomoBoolean2 for EtomoBoolean.  EtomoBoolean is
+ * <p> not part of the EtomoNumber family of objects and is not worth keeping
+ * <p> up to date.
+ * <p>
  * <p> Revision 3.16  2005/04/25 20:39:08  sueh
  * <p> bug# 615 Passing the axis where a command originates to the message
  * <p> functions so that the message will be popped up in the correct window.
