@@ -352,7 +352,7 @@ where r is the radius in cycles/pixel.
 The flip command is just the root of several types of
 image image transformations.  The flipx, flipy, and flipz
 commands will each create a new file that is the mirror 
-image of the input file along the x, y, or z axis.
+image of the input file around the x, y, or z axis.
 The flipxy, flipyz, flipzx commands will flip the
 xy, yz or zx indices and change the size of the
 output file to match.  No input size or centering, or output size or mode 

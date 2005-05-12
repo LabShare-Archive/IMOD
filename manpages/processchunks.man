@@ -31,6 +31,17 @@ There may also be a file, rootname-start.com, to perform initial
 tasks.  If such a file exists, Processchunks will run this on the current
 machine before starting to distribute the chunks.
 
+It is also possible to execute groups of command files in parallel, then run
+one command file when all of these are done, then go on to another group of
+files in parallel.  This is done by adding "-sync" after the number for each
+file to be run for synchronization.  The files should all still have unique,
+sequential numbers.  For example, if the 10th and 20th files are named
+rootname-010-sync.com and rootname-020-sync.com, then files 1 to 9 will be run
+to completion in parallel, then rootname-010-sync.com will be run alone on the
+local machine, then 11 to 19 will be run in parallel, then
+rootname-020-sync.com will be run alone, then all remaining files will be run
+in parallel.
+
 The machine list provided on the command line should be a list of machine
 names or IP address, separated by commas and with no embedded spaces.
 Machines with multiple processors should be entered as many times as the
@@ -93,11 +104,17 @@ confirmation from the user.
 Run jobs with "niceness" set to the given value, which can range from 0 for
 no reduction in priority to 19 for maximum reduction.  The default nice value
 is reported by the program's usage statement.
-.FILES
+.SH FILES
 Log files will be generated for all command files that are run.  The C-shell
 script produced by Vmstocsh for rootname-nnn.com is saved to rootname-nnn.csh
 and the process ID is saved to rootname-nnn.pid.  Both of these files are
 removed after the command file exits.
+.SH BUGS
+The command for probing machine status and loads uses w, which is not in
+Cygwin.  If your machine list includes Windows machines, either run with the
+.B -g
+option, or make a link on each Windows machine, such as:
+   ln -s /usr/bin/users /usr/bin/w
 .SH AUTHOR
 David Mastronarde  <mast@colorado.edu>
 .SH SEE ALSO
