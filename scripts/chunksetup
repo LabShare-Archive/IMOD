@@ -8,6 +8,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.7  2004/07/22 18:17:20  mast
+#  Change to better sed command for stripping Ctrl M
+#
 #  Revision 3.6  2004/06/29 02:46:36  mast
 #  Removed all parallel script code and -f option because of new
 #  processchunks script
@@ -63,6 +66,7 @@ endif
 set padstring =
 set overlap =
 set mega =
+set neednl = 0
 
 while ($#argv > 3)
   switch ($argv[1])
@@ -121,6 +125,15 @@ set testout = `grep $masterout $mastercom`
 if ("$testin" == "" || "$testout" == "") then
     echo "The master command file does not contain both $masterin and $masterout"
     exit 1
+endif
+
+# Find out if need to a newline at end of master file
+#
+set lastbytes = `tail -n 1 $mastercom | od -b`
+@ ind = $#lastbytes - 1
+if ($ind > 0) then
+    @ ending = $lastbytes[$ind]
+    if ($ending != 12 && $ending != 15) set neednl = 1
 endif
 
 set ranlist = `tomopieces -tomo $infile $mega -xp $pad -yp $pad -zp $pad $overlap -xmax $maxxp -ymax $maxyp | sed '/[[:cntrl:]]/s///g'`
@@ -183,6 +196,7 @@ EOF
 
             sed -e "/$masterin/s//$imagein/g" -e "/$masterout/s//$imageout/g" \
                 $mastercom >> $comfile
+            if ($neednl) echo "" >> $comfile
             cat <<EOF >> $comfile
 \$if (-e $imagein) \\rm -f $imagein
 \$echo CHUNK DONE
