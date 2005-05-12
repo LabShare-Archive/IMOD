@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/11/05: Changed stripping so all Fortran programs built on OSX 10.3 will run
+on 10.4. (In 3.5)
+
 5/7/05: Fixed linklibs-mac to include libifft.  (In 3.5)
 
 5/7/05: Fixed dm2mrc to work on Mac (it now uses hexdump instead of od where
