@@ -10,6 +10,9 @@ work on Windows (multiple processors should work; multiple machines still
 untested.)  Made Chunksetup insert a newline if the master command file is
 missing one at the end.
 
+5/12/05: Fixed problem with local alignments being off inappropriately in
+tomogram generation panel (In 3.5).
+
 5/11/05: Changed stripping so all Fortran programs built on OSX 10.3 will run
 on 10.4. (In 3.5)
 
