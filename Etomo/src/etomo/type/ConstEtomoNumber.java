@@ -20,6 +20,9 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.18  2005/05/10 02:20:16  sueh
+ * <p> bug# 658 corrected comment
+ * <p>
  * <p> Revision 1.17  2005/05/10 02:18:25  sueh
  * <p> bug# 658 Setting invalidReason with functions resetInvalidReason and
  * <p> addInvalidReason.  Change validate() to setInvalidReason().  Make
@@ -162,7 +165,6 @@ public abstract class ConstEtomoNumber implements Storable {
   protected Number ceilingValue = null;
   protected Vector validValues = null;
   protected boolean nullIsValid = true;
-  protected Number recommendedValue = null;
 
   protected ConstEtomoNumber(int type) {
     this.type = type;
@@ -230,7 +232,7 @@ public abstract class ConstEtomoNumber implements Storable {
           return;
         }
       }
-      addInvalidReason("Invalid value:  " + toString(currentValue));
+      addInvalidReason(toString(currentValue) + " is not a valid value.");
       StringBuffer invalidBuffer = new StringBuffer();
     }
     //Pass all other cases
@@ -238,9 +240,6 @@ public abstract class ConstEtomoNumber implements Storable {
       return;
     }
     //Add recommendations to invalidReason
-    if (recommendedValue != null) {
-      addInvalidReason("The recommended value is " + toString(recommendedValue) + ".");
-    }
     if (validValues != null) {
       addInvalidReason("Valid values are " + toString(validValues) + ".");
     }
@@ -285,13 +284,13 @@ public abstract class ConstEtomoNumber implements Storable {
    * @param axisID
    * @throws InvalidEtomoNumberException
    */
-  public void validate(String errorTitle, AxisID axisID)
+  public void validate(String errorTitle, String description, AxisID axisID)
       throws InvalidEtomoNumberException {
-    if (!isValid(true, errorTitle, axisID)) {
+    if (!isValid(true, errorTitle, description, axisID)) {
       throw new InvalidEtomoNumberException(invalidReason.toString());
     }
   }
-
+  
   /**
    * If invalidReason is set, display an error message and return true
    * @param displayErrorMessage
@@ -300,9 +299,35 @@ public abstract class ConstEtomoNumber implements Storable {
    * @return
    */
   public boolean isValid(boolean displayErrorMessage, String errorTitle, AxisID axisID) {
+    return isValid(displayErrorMessage, errorTitle, null, axisID);
+  }
+
+  /**
+   * If invalidReason is set, display an error message and return true
+   * @param displayErrorMessage
+   * @param errorTitle
+   * @param description
+   * @param axisID
+   * @return
+   */
+  public boolean isValid(boolean displayErrorMessage, String errorTitle,
+      String description, AxisID axisID) {
     if (invalidReason != null && displayErrorMessage) {
-      UIHarness.INSTANCE.openMessageDialog(description + ": " + invalidReason,
-          errorTitle, axisID);
+      if (description == null) {
+        UIHarness.INSTANCE.openMessageDialog(this.description + ": "
+            + invalidReason, errorTitle, axisID);
+      }
+      else {
+        description = description.trim();
+        if (description.endsWith(":")) {
+          UIHarness.INSTANCE.openMessageDialog(description + "  " + invalidReason,
+              errorTitle, axisID);
+        }
+        else {
+          UIHarness.INSTANCE.openMessageDialog(description + ":  "
+              + invalidReason, errorTitle, axisID);
+        }
+      }
       return false;
     }
     return true;
@@ -350,26 +375,6 @@ public abstract class ConstEtomoNumber implements Storable {
     return this;
   }
   
-  /**
-   * Recommended value appears in error messages.
-   * @param recommendValue
-   * @return
-   */
-  public ConstEtomoNumber setRecommendValue(int recommendedValue) {
-    this.recommendedValue = newNumber(recommendedValue);
-    return this;
-  }
-  
-  /**
-   * Recommended value appears in error messages.
-   * @param recommendValue
-   * @return
-   */
-  public ConstEtomoNumber setRecommendValue(double recommendedValue) {
-    this.recommendedValue = newNumber(recommendedValue);
-    return this;
-  }
-
   /**
    * Set the value will be used if the user does not set a value or there is no
    * value to load.  Also used in reset().
@@ -629,7 +634,7 @@ public abstract class ConstEtomoNumber implements Storable {
     }
     catch (NumberFormatException e) {
       e.printStackTrace();
-      invalidBuffer.append("Invalid number:  " + value);
+      invalidBuffer.append(value + " is not a valid number.");
       return newNumber();
     }
   }
