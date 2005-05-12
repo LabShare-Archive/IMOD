@@ -25,7 +25,7 @@ c
 	parameter (maxbox=64,maxstor=10,npad=8)
 	parameter (maxarr=(maxbox+2*npad)*(maxbox+2*npad+2))
 	parameter (limpcl=50000,maxnbox=500,maxarea=400,limgaps=20000)
-	parameter (liminside=3000,limedge=1000)
+	parameter (liminside=10000,limedge=3000)
 c
 c 7/7/00 CER: remove the encode's; titlech is the temp space
 c
@@ -1647,6 +1647,9 @@ c
 c	
 c
 c	  $Log$
+c	  Revision 3.15  2005/04/26 18:45:08  mast
+c	  Fixed to work with fewer than 8 points with default params
+c	
 c	  Revision 3.14  2005/04/11 19:11:28  mast
 c	  Make it ignore multiple objects when there are only two views
 c	
