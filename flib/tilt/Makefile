@@ -15,6 +15,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.4  2003/11/12 22:02:32  mast
+#  Use variables from config for making static library
+#
 #  Revision 3.3  2003/10/24 02:30:57  mast
 #  Changes for windows/Intel compiler
 #
@@ -50,7 +53,7 @@ handlocal.$(O): handlocal.s
 tilt.$(O): tilt.inc fbpswitch.inc
 
 install: $(PROG)
-	strip $(PROG)
+	$(STRIP) $(PROG)
 	$(CP) $(PROG) $(INSTBINDIR)
 
 clean:

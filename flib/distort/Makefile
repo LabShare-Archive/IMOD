@@ -6,6 +6,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 1.1  2003/12/12 20:53:22  mast
+#  Preliminary addition to repository
+#
 #
 
 include ../configure
@@ -37,7 +40,7 @@ sdcalc.$(O):       ../blend/sdcalc.f
 	$(FC) $(FFLAGS) -c -o sdcalc.$(O) ../blend/sdcalc.f
 
 install: $(PROGS)
-	strip $(PROGS)
+	$(STRIP) $(PROGS)
 	$(CP) $(PROGS) $(INSTBINDIR)
 
 clean:

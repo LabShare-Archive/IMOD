@@ -5,6 +5,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.8  2005/04/16 15:35:13  mast
+#  Added numericdiff
+#
 #  Revision 3.7  2004/10/28 22:22:40  mast
 #  Added binvol
 #
@@ -212,7 +215,7 @@ xyzproj$(E): xyzproj.$(O)
 	$(FC) -o xyzproj xyzproj.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
 install: $(PROGS)
-	strip $(PROGS)
+	$(STRIP) $(PROGS)
 	$(CP) $(PROGS) $(INSTBINDIR)
 
 clean:

@@ -22,7 +22,7 @@ mtoverlap$(E): mtoverlap.$(O)
 	$(FC) -o mtoverlap mtoverlap.$(O) $(LDFLG) $(GRAPHLIBS) $(FORTCLIBS)
 
 install: $(PROGS)
-	strip $(PROGS)
+	$(STRIP) $(PROGS)
 	$(CP) $(PROGS) $(INSTBINDIR)
 
 clean:

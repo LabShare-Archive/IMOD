@@ -6,6 +6,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.4  2004/09/10 18:10:59  mast
+#  Added sumdensity
+#
 #  Revision 3.3  2003/10/24 02:30:57  mast
 #  Changes for windows/Intel compiler
 #
@@ -134,7 +137,7 @@ sumdensity$(E): sumdensity.$(O)
 	$(FC) -o sumdensity sumdensity.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
 install: $(PROGS)
-	strip $(PROGS)
+	$(STRIP) $(PROGS)
 	$(CP) $(PROGS) $(INSTBINDIR)
 
 clean:

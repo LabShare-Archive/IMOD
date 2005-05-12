@@ -41,7 +41,7 @@ map_vars.$(O):    ../tiltalign/map_vars.f
 
 
 install: $(PROG)
-	strip $(PROG)
+	$(STRIP) $(PROG)
 	$(CP) $(PROG) $(INSTBINDIR)
 
 clean:

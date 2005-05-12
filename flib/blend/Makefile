@@ -6,6 +6,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.3  2003/12/12 20:47:53  mast
+#  Added edgesubs.f
+#
 #  Revision 3.2  2003/10/24 02:30:57  mast
 #  Changes for windows/Intel compiler
 #
@@ -39,7 +42,7 @@ sloppymont$(E): $(SLOPOBJS)
 	$(FC) -o sloppymont $(SLOPOBJS) $(LDFLG) $(IMLIBS) $(FORTCLIBS)
 
 install: $(PROGS)
-	strip $(PROGS)
+	$(STRIP) $(PROGS)
 	$(CP) $(PROGS) $(INSTBINDIR)
 
 clean:

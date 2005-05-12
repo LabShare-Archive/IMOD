@@ -53,7 +53,7 @@ mtkrandom.$(O): mtk.inc
 
 
 install: $(PROGS)
-	strip $(PROGS)
+	$(STRIP) $(PROGS)
 	$(CP) $(PROGS) $(INSTBINDIR)
 
 clean:

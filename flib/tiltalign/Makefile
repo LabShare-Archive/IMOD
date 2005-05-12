@@ -25,7 +25,7 @@ input_vars.$(O):  $(INCDIR)/alivar.inc
 tiltalign.$(O):   $(INCDIR)/alivar.inc
 
 install: $(PROG)
-	strip $(PROG) 
+	$(STRIP) $(PROG) 
 	$(CP) $(PROG) $(INSTBINDIR)
 
 clean:
