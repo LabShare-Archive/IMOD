@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.4  2005/01/25 21:51:31  sueh
+ * <p> Converting EtomoNumbers parameters to ScriptParameters.
+ * <p>
  * <p> Revision 3.3  2005/01/22 04:04:06  sueh
  * <p> bug# 509 bug# 591  Setting numberViews with a string to avoid
  * <p> NumberFormatException if it is deleted.
@@ -134,7 +137,7 @@ public class TransferfidParam implements Storable {
     }
     groupString = group + axisID.getExtension();
     searchDirection.setValidValues(new int[] {-1,1});
-    numberViews.setDefault(5).setDisplayValue(5);
+    numberViews.setDisplayValue(5);
     reset();
   }
   
