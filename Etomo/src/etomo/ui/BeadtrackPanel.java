@@ -2,6 +2,8 @@ package etomo.ui;
 
 import javax.swing.*;
 import java.awt.Component;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
@@ -25,6 +27,10 @@ import etomo.type.InvalidEtomoNumberException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.3  2005/05/12 01:31:20  sueh
+ * <p> bug# 658 Getting tooltips from the autodoc.  Split secondPassParams,
+ * <p> tiltAngleMinRange, and fiducialParams into two fields on the screen.
+ * <p>
  * <p> Revision 3.2  2005/05/10 03:25:31  sueh
  * <p> bug# 658 GetParameters(): Change to new BeadtrackParam.set functions
  * <p> where necessary.  Validate fields after they are set, throw exception and
@@ -129,10 +135,23 @@ public class BeadtrackPanel {
       "Second pass density relaxation: ");
   private LabeledTextField ltfMaxRescueDistance = new LabeledTextField(
   "Second pass maximum rescue distance: ");
-
+  
+  private JCheckBox cbLocalAreaTracking = new JCheckBox("Local tracking");
+  private LabeledTextField ltfLocalAreaTargetSize = new LabeledTextField(
+      "Local area size: ");
+  private LabeledTextField ltfMinBeadsInArea = new LabeledTextField(
+      "Minimum beads in area: ");
+  private LabeledTextField ltfMinOverlapBeads = new LabeledTextField(
+  "Minimum beads overlapping: ");
+  private LabeledTextField ltfMaxViewsInAlign = new LabeledTextField(
+  "Max. # views to include in align: ");
+  private LabeledTextField ltfRoundsOfTracking = new LabeledTextField(
+  "Rounds of tracking: ");
+  
   private JPanel pnlCheckbox = new JPanel();
   private JPanel pnlLightBeads = new JPanel();
-
+  private JPanel pnlLocalAreaTracking = new JPanel();
+  
   /**
    * Construct a new beadtrack panel.
    * @param label specifies the suffix for the logfile
@@ -141,6 +160,9 @@ public class BeadtrackPanel {
     axisID = id;
     setToolTipText();
 
+    BeadtrackPanelActionListener listener = new BeadtrackPanelActionListener(this);
+    cbLocalAreaTracking.addActionListener(listener);
+    
     panelBeadtrack.setLayout(new BoxLayout(panelBeadtrack, BoxLayout.Y_AXIS));
 
     panelBeadtrack.add(ltfInputImage.getContainer());
@@ -181,7 +203,19 @@ public class BeadtrackPanel {
     panelBeadtrack.add(ltfMaxRescueDistance.getContainer());
     panelBeadtrack.add(ltfMeanResidChangeLimits.getContainer());
     panelBeadtrack.add(ltfDeletionParams.getContainer());
-
+    
+    pnlLocalAreaTracking.setLayout(new BoxLayout(pnlLocalAreaTracking, BoxLayout.Y_AXIS));
+    pnlLocalAreaTracking.setAlignmentX(Component.CENTER_ALIGNMENT);
+    pnlLocalAreaTracking.add(cbLocalAreaTracking);
+    panelBeadtrack.add(pnlLocalAreaTracking);
+    
+    panelBeadtrack.add(ltfLocalAreaTargetSize.getContainer());
+    panelBeadtrack.add(ltfMinBeadsInArea.getContainer());
+    panelBeadtrack.add(ltfMinOverlapBeads.getContainer());
+    panelBeadtrack.add(ltfMaxViewsInAlign.getContainer());
+    panelBeadtrack.add(ltfRoundsOfTracking.getContainer());
+    
+    setEnabled();
   }
 
   /**
@@ -224,6 +258,13 @@ public class BeadtrackPanel {
     ltfMeanResidChangeLimits.setText(
       beadtrackParams.getMeanResidChangeLimits());
     ltfDeletionParams.setText(beadtrackParams.getDeletionParams());
+    
+    cbLocalAreaTracking.setSelected(beadtrackParams.getLocalAreaTracking().is());
+    ltfLocalAreaTargetSize.setText(beadtrackParams.getLocalAreaTargetSize().toString());
+    ltfMinBeadsInArea.setText(beadtrackParams.getMinBeadsInArea().toString());
+    ltfMinOverlapBeads.setText(beadtrackParams.getMinOverlapBeads().toString());
+    ltfMaxViewsInAlign.setText(beadtrackParams.getMaxViewsInAlign().toString());
+    ltfRoundsOfTracking.setText(beadtrackParams.getRoundsOfTracking().toString());
   }
 
   /**
@@ -334,6 +375,31 @@ public class BeadtrackPanel {
         badParameter = cbLightBeads.getText();
         beadtrackParams.setLightBeads(cbLightBeads.isSelected()).validate(
             errorTitle, badParameter, axisID);
+        
+        
+        badParameter = cbLocalAreaTracking.getText();
+        beadtrackParams.setLocalAreaTracking(cbLocalAreaTracking.isSelected())
+            .validate(errorTitle, badParameter, axisID);
+        
+        badParameter = ltfLocalAreaTargetSize.getText();
+        beadtrackParams.setLocalAreaTargetSize(ltfLocalAreaTargetSize.getText())
+            .validate(errorTitle, badParameter, axisID);
+        
+        badParameter = ltfMinBeadsInArea.getText();
+        beadtrackParams.setMinBeadsInArea(ltfMinBeadsInArea.getText())
+            .validate(errorTitle, badParameter, axisID);
+        
+        badParameter = ltfMinOverlapBeads.getText();
+        beadtrackParams.setMinOverlapBeads(ltfMinOverlapBeads.getText())
+            .validate(errorTitle, badParameter, axisID);
+        
+        badParameter = ltfMaxViewsInAlign.getText();
+        beadtrackParams.setMaxViewsInAlign(ltfMaxViewsInAlign.getText())
+            .validate(errorTitle, badParameter, axisID);
+        
+        badParameter = ltfRoundsOfTracking.getText();
+        beadtrackParams.setRoundsOfTracking(ltfRoundsOfTracking.getText())
+            .validate(errorTitle, badParameter, axisID);
       }
       catch (InvalidEtomoNumberException e) {
         throw e;
@@ -347,6 +413,19 @@ public class BeadtrackPanel {
 
   public JPanel getContainer() {
     return panelBeadtrack;
+  }
+  
+  private void buttonAction(ActionEvent event) {
+    String command = event.getActionCommand();
+    if (command.equals(cbLocalAreaTracking.getText())) {
+      setEnabled();
+    }
+  }
+  
+  private void setEnabled() {
+    ltfLocalAreaTargetSize.setEnabled(cbLocalAreaTracking.isSelected());
+    ltfMinBeadsInArea.setEnabled(cbLocalAreaTracking.isSelected());
+    ltfMinOverlapBeads.setEnabled(cbLocalAreaTracking.isSelected());
   }
 
   public void setVisible(boolean state) {
@@ -390,7 +469,10 @@ public class BeadtrackPanel {
     ltfMaxRescueDistance.setVisible(state);
     ltfMeanResidChangeLimits.setVisible(state);
     ltfDeletionParams.setVisible(state);
-
+    
+    ltfMinBeadsInArea.setVisible(state);
+    ltfMinOverlapBeads.setVisible(state);
+    ltfRoundsOfTracking.setVisible(state);
   }
 
   //  ToolTip string setup
@@ -420,26 +502,26 @@ public class BeadtrackPanel {
         EtomoAutodoc.getTooltip(autodoc, BeadtrackParam.SKIP_VIEW_LIST_KEY))
         .format());
     ltfAdditionalViewSets.setToolTipText(tooltipFormatter.setText(
-        EtomoAutodoc.getTooltip(autodoc, BeadtrackParam.ADDITIONAL_VIEW_GROUPS_KEY))
-        .format());
+        EtomoAutodoc.getTooltip(autodoc,
+            BeadtrackParam.ADDITIONAL_VIEW_GROUPS_KEY)).format());
     ltfTiltAngleGroupSize.setToolTipText(tooltipFormatter.setText(
-        EtomoAutodoc.getTooltip(autodoc, BeadtrackParam.TILT_ANGLE_GROUP_PARAMS_KEY))
-        .format());
+        EtomoAutodoc.getTooltip(autodoc,
+            BeadtrackParam.TILT_ANGLE_GROUP_PARAMS_KEY)).format());
     ltfTiltAngleGroups.setToolTipText(tooltipFormatter.setText(
         EtomoAutodoc.getTooltip(autodoc, BeadtrackParam.TILT_ANGLE_GROUPS_KEY))
         .format());
     ltfMagnificationGroupSize.setToolTipText(tooltipFormatter.setText(
-        EtomoAutodoc.getTooltip(autodoc, BeadtrackParam.MAGNIFICATION_GROUP_PARAMS_KEY))
-        .format());
+        EtomoAutodoc.getTooltip(autodoc,
+            BeadtrackParam.MAGNIFICATION_GROUP_PARAMS_KEY)).format());
     ltfMagnificationGroups.setToolTipText(tooltipFormatter.setText(
-        EtomoAutodoc.getTooltip(autodoc, BeadtrackParam.MAGNIFICATION_GROUPS_KEY))
-        .format());
+        EtomoAutodoc.getTooltip(autodoc,
+            BeadtrackParam.MAGNIFICATION_GROUPS_KEY)).format());
     ltfNMinViews.setToolTipText(tooltipFormatter.setText(
         EtomoAutodoc.getTooltip(autodoc, BeadtrackParam.N_MIN_VIEWS_KEY))
         .format());
     ltfCentroidRadius.setToolTipText(tooltipFormatter.setText(
         EtomoAutodoc.getTooltip(autodoc, BeadtrackParam.CENTROID_RADIUS_KEY))
-        .format()); 
+        .format());
     cbLightBeads.setToolTipText(tooltipFormatter.setText(
         EtomoAutodoc.getTooltip(autodoc, BeadtrackParam.LIGHT_BEADS_KEY))
         .format());
@@ -447,14 +529,13 @@ public class BeadtrackPanel {
         EtomoAutodoc.getTooltip(autodoc, BeadtrackParam.FILL_GAPS_KEY))
         .format());
     ltfMaxGap.setToolTipText(tooltipFormatter.setText(
-        EtomoAutodoc.getTooltip(autodoc, BeadtrackParam.MAX_GAP_KEY))
-        .format());    
+        EtomoAutodoc.getTooltip(autodoc, BeadtrackParam.MAX_GAP_KEY)).format());
     ltfMinTiltRangeToFindAxis.setToolTipText(tooltipFormatter.setText(
-        EtomoAutodoc.getTooltip(autodoc, BeadtrackParam.MIN_TILT_RANGE_TO_FIND_AXIS_KEY))
-        .format());
+        EtomoAutodoc.getTooltip(autodoc,
+            BeadtrackParam.MIN_TILT_RANGE_TO_FIND_AXIS_KEY)).format());
     ltfMinTiltRangeToFindAngle.setToolTipText(tooltipFormatter.setText(
-        EtomoAutodoc.getTooltip(autodoc, BeadtrackParam.MIN_TILT_RANGE_TO_FIND_ANGLES_KEY))
-        .format());
+        EtomoAutodoc.getTooltip(autodoc,
+            BeadtrackParam.MIN_TILT_RANGE_TO_FIND_ANGLES_KEY)).format());
     ltfSearchBoxPixels.setToolTipText(tooltipFormatter.setText(
         EtomoAutodoc.getTooltip(autodoc, BeadtrackParam.SEARCH_BOX_PIXELS_KEY))
         .format());
@@ -462,31 +543,69 @@ public class BeadtrackPanel {
         EtomoAutodoc.getTooltip(autodoc, BeadtrackParam.MAX_FIDUCIALS_AVG_KEY))
         .format());
     ltfFiducialExtrapolationParams.setToolTipText(tooltipFormatter.setText(
-        EtomoAutodoc.getTooltip(autodoc, BeadtrackParam.FIDUCIAL_EXTRAPOLATION_PARAMS_KEY))
-        .format());
+        EtomoAutodoc.getTooltip(autodoc,
+            BeadtrackParam.FIDUCIAL_EXTRAPOLATION_PARAMS_KEY)).format());
     ltfRescueAttemptParams.setToolTipText(tooltipFormatter.setText(
-        EtomoAutodoc.getTooltip(autodoc, BeadtrackParam.RESCUE_ATTEMPT_PARAMS_KEY))
-        .format());
+        EtomoAutodoc.getTooltip(autodoc,
+            BeadtrackParam.RESCUE_ATTEMPT_PARAMS_KEY)).format());
     ltfMinRescueDistance.setToolTipText(tooltipFormatter.setText(
-        EtomoAutodoc.getTooltip(autodoc, BeadtrackParam.MIN_RESCUE_DISTANCE_KEY))
+        EtomoAutodoc
+            .getTooltip(autodoc, BeadtrackParam.MIN_RESCUE_DISTANCE_KEY))
         .format());
     ltfRescueRelaxtionParams.setToolTipText(tooltipFormatter.setText(
-        EtomoAutodoc.getTooltip(autodoc, BeadtrackParam.RESCUE_RELAXATION_PARAMS_KEY))
-        .format());
+        EtomoAutodoc.getTooltip(autodoc,
+            BeadtrackParam.RESCUE_RELAXATION_PARAMS_KEY)).format());
     ltfResidualDistanceLimit.setToolTipText(tooltipFormatter.setText(
-        EtomoAutodoc.getTooltip(autodoc, BeadtrackParam.RESIDUAL_DISTANCE_LIMIT_KEY))
-        .format());
+        EtomoAutodoc.getTooltip(autodoc,
+            BeadtrackParam.RESIDUAL_DISTANCE_LIMIT_KEY)).format());
     ltfDensityRelaxationPostFit.setToolTipText(tooltipFormatter.setText(
-        EtomoAutodoc.getTooltip(autodoc, BeadtrackParam.DENSITY_RELAXATION_POST_FIT_KEY))
-        .format());    
+        EtomoAutodoc.getTooltip(autodoc,
+            BeadtrackParam.DENSITY_RELAXATION_POST_FIT_KEY)).format());
     ltfMaxRescueDistance.setToolTipText(tooltipFormatter.setText(
-        EtomoAutodoc.getTooltip(autodoc, BeadtrackParam.MAX_RESCUE_DISTANCE_KEY))
-        .format());    
-    ltfMeanResidChangeLimits.setToolTipText(tooltipFormatter.setText(
-        EtomoAutodoc.getTooltip(autodoc, BeadtrackParam.MEAN_RESID_CHANGE_LIMITS_KEY))
+        EtomoAutodoc
+            .getTooltip(autodoc, BeadtrackParam.MAX_RESCUE_DISTANCE_KEY))
         .format());
+    ltfMeanResidChangeLimits.setToolTipText(tooltipFormatter.setText(
+        EtomoAutodoc.getTooltip(autodoc,
+            BeadtrackParam.MEAN_RESID_CHANGE_LIMITS_KEY)).format());
     ltfDeletionParams.setToolTipText(tooltipFormatter.setText(
         EtomoAutodoc.getTooltip(autodoc, BeadtrackParam.DELETION_PARAMS_KEY))
         .format());
+    
+    cbLocalAreaTracking.setToolTipText(tooltipFormatter.setText(
+        EtomoAutodoc
+            .getTooltip(autodoc, BeadtrackParam.LOCAL_AREA_TRACKING_KEY))
+        .format());
+    ltfLocalAreaTargetSize.setToolTipText(tooltipFormatter.setText(
+        EtomoAutodoc.getTooltip(autodoc,
+            BeadtrackParam.LOCAL_AREA_TARGET_SIZE_KEY)).format());
+    ltfMinBeadsInArea.setToolTipText(tooltipFormatter.setText(
+        EtomoAutodoc.getTooltip(autodoc, BeadtrackParam.MIN_BEADS_IN_AREA_KEY))
+        .format());
+    ltfMinOverlapBeads.setToolTipText(tooltipFormatter.setText(
+        EtomoAutodoc.getTooltip(autodoc, BeadtrackParam.MIN_OVERLAP_BEADS_KEY))
+        .format());
+    ltfMaxViewsInAlign.setToolTipText(tooltipFormatter
+        .setText(
+            EtomoAutodoc.getTooltip(autodoc,
+                BeadtrackParam.MAX_VIEWS_IN_ALIGN_KEY)).format());
+    ltfRoundsOfTracking.setToolTipText(tooltipFormatter
+        .setText(
+            EtomoAutodoc.getTooltip(autodoc,
+                BeadtrackParam.ROUNDS_OF_TRACKING_KEY)).format());
   }
+  
+  private class BeadtrackPanelActionListener implements ActionListener {
+
+    BeadtrackPanel adaptee;
+
+    BeadtrackPanelActionListener(BeadtrackPanel adaptee) {
+      this.adaptee = adaptee;
+    }
+
+    public void actionPerformed(ActionEvent event) {
+      adaptee.buttonAction(event);
+    }
+  }
+
 }
