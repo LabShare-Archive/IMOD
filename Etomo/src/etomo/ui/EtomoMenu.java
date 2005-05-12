@@ -154,14 +154,34 @@ public class EtomoMenu {
     return menuBar;
   }
   
+  /**
+   * Enable/disable menu items based on currentManager.
+   * @param currentManager
+   */
   void setEnabled(BaseManager currentManager) {
-    menuFileSaveAs.setEnabled(currentManager.canChangeParamFileName());
-    boolean dualAxis = currentManager.getBaseMetaData().getAxisType() == AxisType.DUAL_AXIS;
-    menuAxisA.setEnabled(dualAxis);
-    menuAxisB.setEnabled(dualAxis);
-    menuAxisBoth.setEnabled(dualAxis);
+    if (currentManager == null) {
+      menuFileSave.setEnabled(false);
+      menuFileSaveAs.setEnabled(false);
+      menuFileClose.setEnabled(false);
+      menuAxisA.setEnabled(false);
+      menuAxisB.setEnabled(false);
+      menuAxisBoth.setEnabled(false);
+    }
+    else {
+      menuFileSave.setEnabled(true);
+      menuFileSaveAs.setEnabled(currentManager.canChangeParamFileName());
+      menuFileClose.setEnabled(true);
+      boolean dualAxis = currentManager.getBaseMetaData().getAxisType() == AxisType.DUAL_AXIS;
+      menuAxisA.setEnabled(dualAxis);
+      menuAxisB.setEnabled(dualAxis);
+      menuAxisBoth.setEnabled(dualAxis);
+    }
   }
   
+  /**
+   * Enable/disable menu items based on otherMenu.
+   * @param otherMenu
+   */
   void setEnabled(EtomoMenu otherMenu) {
     menuFileNewTomogram.setEnabled(otherMenu.menuFileNewTomogram.isEnabled());
     menuFileNewJoin.setEnabled(otherMenu.menuFileNewJoin.isEnabled());
@@ -331,6 +351,10 @@ public class EtomoMenu {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.3  2005/04/27 02:15:39  sueh
+* <p> bug# 615 Added setEnabled(EtomoMenu) to match the enabled settings
+* <p> of one EtomoMenu against another.
+* <p>
 * <p> Revision 1.2  2005/04/25 21:05:43  sueh
 * <p> bug# 615 Moved menu management and the coordination of the two EtomoFrames
 * <p> from EtomoMenu to EtomoFrame.  This class only contains the listeners
