@@ -31,6 +31,11 @@ import etomo.type.SectionTableRowData;
 * <p> </p>
 * 
 * <p> $Log$
+* <p> Revision 1.10  2005/05/09 22:59:33  sueh
+* <p> bug# 658 Removed ScriptParameter.addToScript because is was only
+* <p> being use in one place.  In genOptions() replaced addToScript with code
+* <p> that does the same thing.
+* <p>
 * <p> Revision 1.9  2005/04/25 20:40:08  sueh
 * <p> bug# 615 Passing the axis where a command originates to the message
 * <p> functions so that the message will be popped up in the correct window.
@@ -163,31 +168,32 @@ public class MakejoincomParam implements Command {
           options.add(data.getSampleBottomStart().toString() + ","
               + data.getSampleBottomEnd().toString());
         }
-        //Add optional rotation angles
+        //Only add optional rotation angles if at least one of them is not
+        //default.
         ScriptParameter rotationAngleX = data.getRotationAngleXParameter();
         ScriptParameter rotationAngleY = data.getRotationAngleYParameter();
         ScriptParameter rotationAngleZ = data.getRotationAngleZParameter();
         if (rotationAngleX.isUseInScript() || rotationAngleY.isUseInScript()
             || rotationAngleZ.isUseInScript()) {
           options.add("-rot");
-          //all three numbers must exist
+          //All three numbers must exist in the script, if they are used.
           StringBuffer buffer = new StringBuffer();
           if (rotationAngleX.isNull()) {
-            buffer.append("0");
+            buffer.append(rotationAngleX.getDefaultDouble());
           }
           else {
             buffer.append(rotationAngleX.getDouble());
           }
           buffer.append(",");
           if (rotationAngleY.isNull()) {
-            buffer.append("0");
+            buffer.append(rotationAngleY.getDefaultDouble());
           }
           else {
             buffer.append(rotationAngleY.getDouble());
           }
           buffer.append(",");
           if (rotationAngleZ.isNull()) {
-            buffer.append("0");
+            buffer.append(rotationAngleY.getDefaultDouble());
           }
           else {
             buffer.append(rotationAngleZ.getDouble());
