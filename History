@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/12/05: Increased limits to allow beads up to 100 pixels in Beadtrack.
+
 5/12/05: Etomo changed to put the two axes in separate windows.  Interface
 to new version of Beadtrack was implemented, including tracking over local
 areas.
