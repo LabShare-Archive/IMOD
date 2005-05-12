@@ -214,8 +214,6 @@ public class BeadtrackPanel {
     panelBeadtrack.add(ltfMinOverlapBeads.getContainer());
     panelBeadtrack.add(ltfMaxViewsInAlign.getContainer());
     panelBeadtrack.add(ltfRoundsOfTracking.getContainer());
-    
-    setEnabled();
   }
 
   /**
@@ -409,6 +407,7 @@ public class BeadtrackPanel {
       String message = badParameter + " " + except.getMessage();
       throw new FortranInputSyntaxException(message);
     }
+    setEnabled();
   }
 
   public JPanel getContainer() {
