@@ -17,6 +17,19 @@ import etomo.comscript.InvalidParameterException;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.3  2005/05/10 03:08:34  sueh
+* <p> bug# 658 Added shortName, which is used as an alternative to the
+* <p> regular name when searching for the value in a comscript.  Added
+* <p> useDefaultAsDisplayValue() because this situation comes up a lot.
+* <p> Changed setInScript() to updateComScript().  Removed addToScript() and
+* <p> setUseScreenDisplayValue() because these functions where confusing
+* <p> and where only used in one situation.  Removed getValueForScript()
+* <p> because it is now identical to ConstEtomoNumber.getValue().
+* <p> To create a field with a default:
+* <p> Call setDefault()
+* <p> Call useDefaultAsDisplayValue(), if you want the default to be displayed
+* <p> when the field is empty.
+* <p>
 * <p> Revision 1.2  2005/02/11 22:32:34  sueh
 * <p> Fixed problem in ScriptParameter:  it was letting defaulted parameters
 * <p> into scripts.
@@ -69,14 +82,12 @@ public class ScriptParameter extends EtomoNumber {
      return super.paramString() + ",\ndefaultValue=" + defaultValue;
    }
    
+
    /**
-    * Set the default value.
-    * isUpdateCommand() returns false when getValueForCommand() is equal to a
-    * non-null default value.
-    * Don't use default value or don't call isUpdateCommand() if the parameter is
-    * should appear in the command when it is defaulted.
-    * Set the default and reset value the same if you want an unset parameter
-    * to appear with its default value in the command.
+    * Sets defaultValue.  When defaultValue is not null and currentValue is
+    * equal to defaultValue, isUseInScript() will return null.  Also
+    * updateComScript will remove the entry.  Most of the time comscripts should
+    * show the value, even if it is defaulted, so this is rarely used.
     * @param defaultValue
     * @return
     */
@@ -84,17 +95,15 @@ public class ScriptParameter extends EtomoNumber {
      this.defaultValue = newNumber(defaultValue);
      return this;
    }
-   
-   public ScriptParameter setDefault(boolean defaultValue) {
-     if (defaultValue) {
-       return setDefault(1);
-     }
-     return setDefault(0);
-   }
 
    public ConstEtomoNumber useDefaultAsDisplayValue() {
      return setDisplayValue(defaultValue);
    }
+   
+   public double getDefaultDouble() {
+     return defaultValue.doubleValue();
+   }
+   
    /**
     * Returns true if defaultValue is not null and getValue() is equal to
     * defaultValue.
@@ -118,8 +127,8 @@ public class ScriptParameter extends EtomoNumber {
    }
    
    /**
-    * Returns true if value could be placed in a script (not null, not blank, and
-    * not default).
+    * Returns true if value would be placed in a script (not null and not
+    * default).
     * @return
     */
    public boolean isUseInScript() {
