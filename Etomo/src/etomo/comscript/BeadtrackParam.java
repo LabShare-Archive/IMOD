@@ -18,6 +18,12 @@ import etomo.type.ScriptParameter;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.6  2005/05/12 18:43:23  sueh
+ * <p> bug# 658 Added localAreaTracking, localAreaTargetSize,
+ * <p> minBeadsInArea, minOverlapBeads, maxViewsInAlign, and
+ * <p> roundsOfTracking.  Made protected member variables and functions
+ * <p> private because there is not ConstBeadtrackParam class.
+ * <p>
  * <p> Revision 3.5  2005/05/12 01:18:01  sueh
  * <p> bug# 658 Made static strings with the autodoc keys public and added
  * <p> more so tooltips could come from autdoc.  Split secondPassParams,
@@ -192,6 +198,8 @@ public class BeadtrackParam extends OldBeadtrackParam
     deletionParams.setIntegerType(1, false);
     
     localAreaTracking = new EtomoBoolean2(LOCAL_AREA_TRACKING_KEY);
+    localAreaTracking.setDisplayAsInteger(true);
+    
     localAreaTargetSize = new ScriptParameter(EtomoNumber.INTEGER_TYPE,
         LOCAL_AREA_TARGET_SIZE_KEY);
     minBeadsInArea = new ScriptParameter(EtomoNumber.INTEGER_TYPE,
@@ -558,6 +566,11 @@ public class BeadtrackParam extends OldBeadtrackParam
     if (param.deletionParams != null) {
       deletionParams.set(param.deletionParams);
     }
+    
+    localAreaTargetSize.set(1000);
+    minBeadsInArea.set(8);
+    minOverlapBeads.set(5);
+    roundsOfTracking.set(1);
   }
   
   public void setSkipViews(String skipViews) {
