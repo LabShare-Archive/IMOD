@@ -52,8 +52,16 @@ public class EtomoAutodoc {
   }
 
   public static String getTooltip(Autodoc autodoc, String fieldName) {
-    Section section = autodoc.getSection(FIELD_SECTION_NAME, fieldName);
-    return getTooltip(section);
+    String tooltip = getTooltip(
+        autodoc.getSection(FIELD_SECTION_NAME, fieldName)).trim();
+    if (tooltip == null) {
+      return null;
+    }
+    tooltip =  tooltip.trim();
+    if (tooltip.endsWith(".")) {
+      return tooltip.substring(0, tooltip.length() -1) + " (" + fieldName + ").";
+    }
+    return tooltip + " (" + fieldName + ").";
   }
   
   public static String getTooltip(Section section, String enumValueName) {
@@ -77,6 +85,9 @@ public class EtomoAutodoc {
 
 /**
  * <p> $Log$
+ * <p> Revision 1.4  2005/02/21 23:02:55  sueh
+ * <p> bug# 600 Return field-level tooltips when enum tooltip is not available.
+ * <p>
  * <p> Revision 1.3  2005/02/18 01:28:47  sueh
  * <p> bug# 600 Adding getTooltip(Section, int) to get an enum with the value of
  * <p> the radio button choice.
