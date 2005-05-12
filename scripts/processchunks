@@ -8,6 +8,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.6  2005/05/12 21:24:09  mast
+#  Added ability to run with sync files
+#
 #  Revision 3.5  2004/08/27 05:46:48  mast
 #  Switched to using head -n and tail -n
 #
@@ -222,7 +225,7 @@ while ($numdone < $#comlist)
             set logname = $comlist[$ind]:r.log
             set cshname = $comlist[$ind]:r.csh
             if (-e $logname) then
-                set lastline = `tail -n 1 $logname`
+                set lastline = `tail -n 1 $logname | sed '/[[:cntrl:]]/s///g'`
                 if ("$lastline" == "CHUNK DONE") then
 
                     # If it is DONE, then set flag to done and deassign
@@ -281,11 +284,12 @@ while ($numdone < $#comlist)
                 if (-e $logname) \mv $logname $logname~
                 if (-e $pidname) \rm -f $pidname
                 echo "Running $comname on $machname ..."
-                echo "nice +$nice" >! $cshname
+                \echo "nice +$nice" >! $cshname
+                vmstocsh $logname < $comname >> $cshname
                 if ("$machname" == $hostroot || "$machname" == localhost) then
-                    vmstocsh $logname < $comname >> $cshname ; csh -ef < $cshname >& $pidname ; \rm -f $cshname $pidname &
+                    csh -ef < $cshname >& $pidname ; \rm -f $cshname $pidname &
                 else
-                    ssh -x $machname "cd $curdir ; vmstocsh $logname < $comname >> $cshname ; nice csh -ef < $cshname >& $pidname ; \rm -f $cshname $pidname" &
+                    ssh -x $machname "cd $curdir ; nice csh -ef < $cshname >& $pidname ; \rm -f $cshname $pidname" &
                 endif
             endif
         end 
