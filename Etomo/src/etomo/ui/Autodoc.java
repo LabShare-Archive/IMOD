@@ -71,6 +71,7 @@ public class Autodoc implements AttributeCollection {
   public static final String TILTALIGN = new String("tiltalign");
   public static final String CCDERASER = new String("ccderaser");
   public static final String SOLVEMATCH = new String("solvematch");
+  public static final String BEADTRACK = new String("beadtrack");
   public static final String TEST = new String("test");
 
   private static final String fileExt = new String(".adoc");
@@ -82,6 +83,7 @@ public class Autodoc implements AttributeCollection {
   private static Autodoc tiltalign = null;
   private static Autodoc ccderaser = null;
   private static Autodoc solvematch = null;
+  private static Autodoc beadtrack = null;
 
   private String fileName = null;
   private File file = null;
@@ -125,6 +127,10 @@ public class Autodoc implements AttributeCollection {
     if (name.equals(SOLVEMATCH)) {
       solvematch = getAutodoc(solvematch, name, axisID);
       return solvematch;
+    }
+    if (name.equals(BEADTRACK)) {
+      beadtrack = getAutodoc(beadtrack, name, axisID);
+      return beadtrack;
     }
     throw new IllegalArgumentException("Illegal autodoc name: " + name + ".");
   }
@@ -302,6 +308,11 @@ public class Autodoc implements AttributeCollection {
 }
 /**
 *<p> $$Log$
+*<p> $Revision 1.13  2005/04/25 20:53:33  sueh
+*<p> $bug# 615 Passing the axis where a command originates to the message
+*<p> $functions so that the message will be popped up in the correct window.
+*<p> $This requires adding AxisID to many objects.
+*<p> $
 *<p> $Revision 1.12  2005/02/23 01:42:10  sueh
 *<p> $bug# 600 Adding solvematch to autodoc.
 *<p> $
