@@ -405,6 +405,7 @@ csrc : ALWAYS
 	sourcedoc/*.cpp sourcedoc/sourcedoc.pro \
 	sourcedoc/Makefile.dummy sourcedoc/sourcedoc.dsp \
 	html/*.* html/Makefile html/3dmodimages html/etomoImages \
+	html/3dmodHelp html/joinImages \
 	html/libdoc/Makefile html/libdoc/*.html \
 	dist scripts com manpages autodoc \
 	plugs/*/*.[chf] plugs/*/*.cpp plugs/*/Makefile \
@@ -447,6 +448,9 @@ ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.50  2005/04/01 22:32:01  mast
+#  Fixed removal of .csh file
+#
 #  Revision 3.49  2005/03/31 22:49:24  mast
 #  Added setup2 to src
 #
