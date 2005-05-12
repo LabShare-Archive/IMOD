@@ -3,7 +3,6 @@ package etomo.comscript;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoBoolean2;
 import etomo.type.EtomoNumber;
-import etomo.type.InvalidEtomoNumberException;
 import etomo.type.ScriptParameter;
 
 /**
@@ -19,6 +18,9 @@ import etomo.type.ScriptParameter;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.4  2005/05/10 19:43:54  sueh
+ * <p> bug# 658 Removing print statements.
+ * <p>
  * <p> Revision 3.3  2005/05/09 22:42:20  sueh
  * <p> bug# 658 Moved the old BeadtrackParam to OldBeadtrackParam.  The
  * <p> new version of BeadtrackParam inherits OldBeadtrackParam and can
@@ -79,20 +81,35 @@ public class BeadtrackParam extends OldBeadtrackParam
 
   //Const code
   
-  protected static final String INPUT_FILE_KEY = "ImageFile";
+  public static final String INPUT_FILE_KEY = "ImageFile";
   protected static final String PIECE_LIST_FILE_KEY = "PieceListFile";
-  protected static final String SEED_MODEL_FILE_KEY = "InputSeedModel";
-  protected static final String OUTPUT_MODEL_FILE_KEY = "OutputModel";
-  protected static final String TILT_ANGLE_GROUPS_KEY = "TiltNondefaultGroup";
-  protected static final String MAGNIFICATION_GROUPS_KEY = "MagNondefaultGroup";
-  protected static final String N_MIN_VIEWS_KEY = "MinViewsForTiltalign";
-  protected static final String FILL_GAPS_KEY = "FillGaps";
-  protected static final String SEARCH_BOX_PIXELS_KEY = "BoxSizeXandY";
-  protected static final String FIDUCIAL_EXTRAPOLATION_PARAMS_KEY = "PointsToFitMaxAndMin";
-  protected static final String RESCUE_ATTEMPT_PARAMS_KEY = "DensityRescueFractionAndSD";
-  protected static final String RESCUE_RELAXATION_PARAMS_KEY = "RescueRelaxationDensityAndDistance";
-  protected static final String MEAN_RESID_CHANGE_LIMITS_KEY = "ResidualsToAnalyzeMaxAndMin";
-  protected static final String DELETION_PARAMS_KEY ="DeletionCriterionMinAndSD";
+  public static final String SEED_MODEL_FILE_KEY = "InputSeedModel";
+  public static final String OUTPUT_MODEL_FILE_KEY = "OutputModel";
+  public static final String SKIP_VIEW_LIST_KEY = "SkipViews";
+  protected static final String IMAGE_ROTATION_KEY = "RotationAngle";
+  public static final String ADDITIONAL_VIEW_GROUPS_KEY = "SeparateGroup";
+  public static final String TILT_ANGLE_GROUP_PARAMS_KEY = "TiltDefaultGrouping"; 
+  public static final String TILT_ANGLE_GROUPS_KEY = "TiltNondefaultGroup";
+  public static final String MAGNIFICATION_GROUP_PARAMS_KEY = "MagDefaultGrouping";
+  public static final String MAGNIFICATION_GROUPS_KEY = "MagNondefaultGroup";
+  public static final String N_MIN_VIEWS_KEY = "MinViewsForTiltalign";
+  public static final String FILL_GAPS_KEY = "FillGaps";
+  public static final String MAX_GAP_KEY = "MaxGapSize";
+  public static final String SEARCH_BOX_PIXELS_KEY = "BoxSizeXandY";
+  public static final String MAX_FIDUCIALS_AVG_KEY = "MaxBeadsToAverage";
+  public static final String FIDUCIAL_EXTRAPOLATION_PARAMS_KEY = "PointsToFitMaxAndMin";
+  public static final String RESCUE_ATTEMPT_PARAMS_KEY = "DensityRescueFractionAndSD";
+  public static final String MIN_RESCUE_DISTANCE_KEY = "DistanceRescueCriterion";
+  public static final String RESCUE_RELAXATION_PARAMS_KEY = "RescueRelaxationDensityAndDistance";
+  public static final String RESIDUAL_DISTANCE_LIMIT_KEY = "PostFitRescueResidual";
+  public static final String MEAN_RESID_CHANGE_LIMITS_KEY = "ResidualsToAnalyzeMaxAndMin";
+  public static final String DELETION_PARAMS_KEY ="DeletionCriterionMinAndSD";
+  public static final String DENSITY_RELAXATION_POST_FIT_KEY = "DensityRelaxationPostFit";
+  public static final String MAX_RESCUE_DISTANCE_KEY = "MaxRescueDistance";
+  public static final String MIN_TILT_RANGE_TO_FIND_AXIS_KEY = "MinTiltRangeToFindAxis";
+  public static final String MIN_TILT_RANGE_TO_FIND_ANGLES_KEY = "MinTiltRangeToFindAngles";
+  public static final String CENTROID_RADIUS_KEY = "CentroidRadius";
+  public static final String LIGHT_BEADS_KEY = "LightBeads";
   
   private boolean initialized = false;
   
@@ -117,10 +134,10 @@ public class BeadtrackParam extends OldBeadtrackParam
       reset();
     }
     initialized = true;
-    skipViews = new StringList("SkipViews");
+    skipViews = new StringList(SKIP_VIEW_LIST_KEY);
     rotationAngle = new ScriptParameter(EtomoNumber.DOUBLE_TYPE,
-        "RotationAngle");
-    additionalViewGroups.setKey("SeparateGroup");
+        IMAGE_ROTATION_KEY);
+    additionalViewGroups.setKey(ADDITIONAL_VIEW_GROUPS_KEY);
     
     tiltAngleSpec.setRangeMinKey("FirstTiltAngle", "first");
     tiltAngleSpec.setRangeStepKey("TiltIncrement", "increment");
@@ -128,44 +145,30 @@ public class BeadtrackParam extends OldBeadtrackParam
     tiltAngleSpec.setTiltAnglesKey("TiltAngles", "angles");
     
     tiltDefaultGrouping = new ScriptParameter(EtomoNumber.INTEGER_TYPE,
-        "TiltDefaultGrouping");
-    tiltDefaultGrouping.setNullIsValid(false).setRecommendValue(7);
-    
+        TILT_ANGLE_GROUP_PARAMS_KEY);    
     magDefaultGrouping = new ScriptParameter(EtomoNumber.INTEGER_TYPE,
-        "MagDefaultGrouping");
+        MAGNIFICATION_GROUP_PARAMS_KEY);
     minViewsForTiltalign = new ScriptParameter(EtomoNumber.INTEGER_TYPE,
-        "MinViewsForTiltalign");
-    
+        N_MIN_VIEWS_KEY);
     centroidRadius = new ScriptParameter(EtomoNumber.DOUBLE_TYPE,
-        "CentroidRadius");
-    centroidRadius.setNullIsValid(false).setRecommendValue(3.98);
-    
-    lightBeads = new EtomoBoolean2("LightBeads");
-    
-    maxGapSize = new ScriptParameter(EtomoNumber.INTEGER_TYPE, "MaxGapSize");
-    maxGapSize.setDefault(5).useDefaultAsDisplayValue();
-    
+        CENTROID_RADIUS_KEY);    
+    lightBeads = new EtomoBoolean2(LIGHT_BEADS_KEY);
+    maxGapSize = new ScriptParameter(EtomoNumber.INTEGER_TYPE, MAX_GAP_KEY);
     minTiltRangeToFindAxis = new ScriptParameter(EtomoNumber.DOUBLE_TYPE,
-        "MinTiltRangeToFindAxis");
-    minTiltRangeToFindAxis.setDefault(10).useDefaultAsDisplayValue();
-    
+        MIN_TILT_RANGE_TO_FIND_AXIS_KEY);
     minTiltRangeToFindAngles = new ScriptParameter(EtomoNumber.DOUBLE_TYPE,
-        "MinTiltRangeToFindAngles");
-    minTiltRangeToFindAngles.setDefault(20).useDefaultAsDisplayValue();
-    
+        MIN_TILT_RANGE_TO_FIND_ANGLES_KEY);
     maxBeadsToAverage = new ScriptParameter(EtomoNumber.INTEGER_TYPE,
-        "MaxBeadsToAverage");
-    maxBeadsToAverage.setDefault(4).useDefaultAsDisplayValue();
-    
+        MAX_FIDUCIALS_AVG_KEY);
     rescueAttemptParams.setIntegerType(1, false);
     distanceRescueCriterion = new ScriptParameter(EtomoNumber.DOUBLE_TYPE,
-        "DistanceRescueCriterion");
+        MIN_RESCUE_DISTANCE_KEY);
     postFitRescueResidual = new ScriptParameter(EtomoNumber.DOUBLE_TYPE,
-        "PostFitRescueResidual");
+        RESIDUAL_DISTANCE_LIMIT_KEY);
     densityRelaxationPostFit = new ScriptParameter(EtomoNumber.DOUBLE_TYPE,
-        "DensityRelaxationPostFit");
+        DENSITY_RELAXATION_POST_FIT_KEY);
     maxRescueDistance = new ScriptParameter(EtomoNumber.DOUBLE_TYPE,
-        "MaxRescueDistance");
+        MAX_RESCUE_DISTANCE_KEY);
     deletionParams.setIntegerType(1, false);
   }
   
@@ -241,17 +244,27 @@ public class BeadtrackParam extends OldBeadtrackParam
     fortranInputString.set(1, lightBeads);
     return fortranInputString.toString();
   }
+
+  public ConstEtomoNumber getCentroidRadius() {
+    return centroidRadius;
+  }
+  
+  public ConstEtomoNumber getLightBeads() {
+    return lightBeads;
+  }
   
   public ConstEtomoNumber getMaxGapSize() {
     return maxGapSize;
   }
   
-  public String getTiltAngleMinRange() {
-    FortranInputString fortranInputString = new FortranInputString(2);
-    fortranInputString.set(0, minTiltRangeToFindAxis);
-    fortranInputString.set(1, minTiltRangeToFindAngles);
-    return fortranInputString.toString();
+  public ConstEtomoNumber getMinTiltRangeToFindAxis() {
+    return minTiltRangeToFindAxis;
   }
+  
+  public ConstEtomoNumber getMinTiltRangeToFindAngles() {
+    return minTiltRangeToFindAngles;
+  }
+  
   
   public ConstEtomoNumber getMaxBeadsToAverage() {
     return maxBeadsToAverage;
@@ -265,12 +278,15 @@ public class BeadtrackParam extends OldBeadtrackParam
     return postFitRescueResidual;
   }
   
-  public String getSecondPassParams() {
-    FortranInputString fortranInputString = new FortranInputString(2);
-    fortranInputString.set(0, densityRelaxationPostFit);
-    fortranInputString.set(1, maxRescueDistance);
-    return fortranInputString.toString();
+  public ConstEtomoNumber getDensityRelaxationPostFit() {
+    return densityRelaxationPostFit;
   }
+  
+  public ConstEtomoNumber getMaxRescueDistance() {
+    return maxRescueDistance;
+  }
+  
+  
 
   //Non-const code
   
@@ -534,25 +550,24 @@ public class BeadtrackParam extends OldBeadtrackParam
     return this.minViewsForTiltalign.set(minViewsForTiltalign);
   }
   
-  public void setFiducialParams(String fiducialParams)
-      throws FortranInputSyntaxException, InvalidEtomoNumberException {
-    FortranInputString fortranInputString = new FortranInputString(2);
-    fortranInputString.setIntegerType(new boolean[] { false, true });
-    fortranInputString.validateAndSet(fiducialParams);
-    centroidRadius.set(fortranInputString, 0).validate();
-    lightBeads.set(fortranInputString, 1).validate();
+  public ConstEtomoNumber setCentroidRadius(String centroidRadius) {
+    return this.centroidRadius.set(centroidRadius);
   }
 
+  public ConstEtomoNumber setLightBeads(boolean lightBeads) {
+    return this.lightBeads.set(lightBeads);
+  }
+  
   public ConstEtomoNumber setMaxGapSize(String maxGapSize) {
     return this.maxGapSize.set(maxGapSize);
   }
-
-  public void setTiltAngleMinRange(String tiltAngleMinRange) throws FortranInputSyntaxException,
-      InvalidEtomoNumberException {
-    FortranInputString fortranInputString = new FortranInputString(2);
-    fortranInputString.validateAndSet(tiltAngleMinRange);
-    minTiltRangeToFindAxis.set(fortranInputString, 0).validate();
-    minTiltRangeToFindAngles.set(fortranInputString, 1).validate();
+  
+  public ConstEtomoNumber setMinTiltRangeToFindAxis(String minTiltRangeToFindAxis) {
+    return this.minTiltRangeToFindAxis.set(minTiltRangeToFindAxis);
+  }
+  
+  public ConstEtomoNumber setMinTiltRangeToFindAngles(String minTiltRangeToFindAngles) {
+    return this.minTiltRangeToFindAngles.set(minTiltRangeToFindAngles);
   }
   
   public ConstEtomoNumber setMaxBeadsToAverage(String maxBeadsToAverage) {
@@ -567,11 +582,13 @@ public class BeadtrackParam extends OldBeadtrackParam
     return this.postFitRescueResidual.set(postFitRescueResidual);
   }
   
-  public void setSecondPassParams(String secondPassParams)
-      throws FortranInputSyntaxException, InvalidEtomoNumberException {
-    FortranInputString fortranInputString = new FortranInputString(2);
-    fortranInputString.validateAndSet(secondPassParams);
-    densityRelaxationPostFit.set(fortranInputString, 0).validate();
-    maxRescueDistance.set(fortranInputString, 1).validate();
+  public ConstEtomoNumber setDensityRelaxationPostFit(
+      String densityRelaxationPostFit) {
+    return this.densityRelaxationPostFit.set(densityRelaxationPostFit);
+  }
+  
+  public ConstEtomoNumber setMaxRescueDistance(
+      String maxRescueDistance) {
+    return this.maxRescueDistance.set(maxRescueDistance);
   }
 }
