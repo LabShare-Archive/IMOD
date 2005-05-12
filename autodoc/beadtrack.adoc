@@ -6,7 +6,7 @@ short =
 long = InputSeedModel
 type = FN
 usage =   Name of model file with starting bead coordinates
-tooltip =
+tooltip = Input model file of starting points to track.
 manpage =
 
 [Field = OutputModel]
@@ -14,7 +14,7 @@ short =
 long = OutputModel
 type = FN
 usage = Name of output model file
-tooltip =
+tooltip = Output file for tracked model.
 manpage =
 
 [Field = ImageFile]
@@ -22,7 +22,7 @@ short =
 long = ImageFile
 type = FN
 usage = Image file name
-tooltip =
+tooltip = Input file with images to track.
 manpage =
 
 [Field = PieceListFile]
@@ -40,7 +40,7 @@ short =
 long = SkipViews
 type = LI
 usage = List of views to skip over (numbered from 1)
-tooltip =
+tooltip = List of views to skip over (comma-separated ranges without spaces).
 manpage = List of views to skip over.  Model contours will pass through 
 these views; points will need to be added by hand afterwards. 
 Ranges may be entered, e.g. 1,4-6.  Views are numbered from 1.
@@ -166,7 +166,8 @@ short =
 long = MinViewsForTiltalign
 type = I
 usage =   Minimum number of views with data required to do a tilt alignment
-tooltip =
+tooltip = Minimum number of views with bead positions required to do a tilt
+alignment.
 manpage =  Minimum number of views with bead positions available before trying
 to do a tilt alignment.  To skip the tilt alignment computations,
 set this to a number higher than the number of views.  (Default 4)
@@ -176,7 +177,7 @@ short =
 long = CentroidRadius
 type = F
 usage = Radius for centroid calculation
-tooltip =
+tooltip = Radius for calculation of centroid.
 manpage =   Radius for centroid calculation.  The radius need not be a whole
 number and should be somewhat larger than the bead radius.
 
@@ -185,7 +186,8 @@ short =
 long = LightBeads
 type = B
 usage = Beads are lighter than background rather than darker
-tooltip =
+tooltip = Not checked if beads are darker or checked if they are lighter than
+background.
 manpage =
 
 [Field = FillGaps]
@@ -193,7 +195,7 @@ short =
 long = FillGaps
 type = B
 usage = Fill in gaps in the seed model
-tooltip =
+tooltip = Fill in gaps in the seed model or leave them empty.
 manpage =
 
 [Field = MaxGapSize]
@@ -201,7 +203,8 @@ short =
 long = MaxGapSize
 type = I
 usage =   Maximum size of gap to create in the model (default 5)
-tooltip =
+tooltip = Maximum size of gap to create in the model before giving up on a
+fiducial.
 manpage = Maximum size of gap to create in the model.  If a bead cannot be 
 tracked through some views, the tracking may be resumed as long as
 the gap thus created is no larger than this amount.  (Default 5)
@@ -212,7 +215,8 @@ short =
 long = MinTiltRangeToFindAxis
 type = F
 usage = Minimum range of angles with data required for finding tilt axis
-tooltip =
+tooltip = Minimum range of tilt angles for which data must be available before
+solving for tilt axis angle.
 manpage = Minimum range of tilt angles for which data must be available before
 trying to find the angle of the tilt axis (default 10).
 
@@ -221,7 +225,8 @@ short =
 long = MinTiltRangeToFindAngles
 type = F
 usage = Minimum range of angles with data required for finding tilt angles
-tooltip =
+tooltip = Minimum range of angles for which data must be available before
+solving for tilt angles.
 manpage = Minimum range of tilt angles for which data must be available before
 trying to solve for tilt angles (default 20).
 
@@ -230,7 +235,7 @@ short =
 long = BoxSizeXandY
 type = IP
 usage =   X and Y dimensions of the box used to search for a bead 
-tooltip =
+tooltip = X and Y dimensions of the box used to search for a bead.
 manpage =
 
 [Field = RoundsOfTracking]
@@ -318,7 +323,7 @@ short =
 long = MaxBeadsToAverage
 type = I
 usage = Maximum number of views over which to average a bead (default 4)
-tooltip =
+tooltip = Maximum number of views over which to average a bead.
 manpage =   Maximum number of views over which to average a bead (default 4).
 A running average is kept of the appearance of the bead over
 the most recent views examined; this parameter specifies the
@@ -329,7 +334,9 @@ short =
 long = PointsToFitMaxAndMin
 type = IP
 usage = Maximum and minimum number of positions to fit for extrapolation
-tooltip =
+tooltip = Number of positions to use for extrapolating a bead position to the
+next view, and minimum required to use extrapolation rather than just the mean
+of positions on the last few views.
 manpage =  Number of positions to use for extrapolating the bead position to
 the next view when no tilt alignment is available, and minimum required to do
 extrapolation rather than simply taking the mean of positions on the last few
@@ -341,7 +348,8 @@ long = DensityRescueFractionAndSD
 type = FP
 usage = Criterion fraction of mean density and SDs below mean for rescue based
 on densiy.
-tooltip =
+tooltip = Fraction of mean bead integral, and number of SDs below mean, to use
+as the criterion for when to attempt a rescue based on bead density.
 manpage =   Fraction of mean bead integral, and number of standard deviations
 below mean, to use as the criterion for when to attempt a rescue
 based on bead density.
@@ -352,7 +360,8 @@ short =
 long = DistanceRescueCriterion
 type = F
 usage = Criterion distance for doing rescue based on excessive distance
-tooltip =
+tooltip = Distance away from expected position at which to attempt a rescue
+based on excessive distance.
 manpage = Criterion distance between found position and expected position for
 attempting a rescue based on excessive distance
 
@@ -361,7 +370,8 @@ short =
 long = RescueRelaxationDensityAndDistance
 type = FP
 usage = Factors to relax density for rescues based on density and distance.
-tooltip =
+tooltip = Factors by which to relax the density criterion when trying to rescue
+- a factor for density rescue and one for distance rescue.
 manpage = Factors by which to adjust (relax) the density criterion when
 trying to rescue.  Enter one factor for density rescue and one for
 distance rescue.  A value of 1 does not relax the criterion.
@@ -373,7 +383,8 @@ long = PostFitRescueResidual
 type = F
 usage = Criterion distance for deletion of point after first-pass tilt
 alignment.
-tooltip =
+tooltip = Criterion distance for deletion of a point on the first pass after
+tilt alignment.
 manpage =  Criterion distance for deletion of a point after tilt alignment.
 Points with residuals greater than this amount will be deleted on
 the first pass, and a rescue search performed on the second pass.
@@ -384,7 +395,7 @@ short =
 long = DensityRelaxationPostFit        
 type = F
 usage = Factor by which to relax the density criterion on the second pass.
-tooltip =
+tooltip = Factor by which to relax the density criterion on the second pass.
 manpage = 
 
 
@@ -393,7 +404,7 @@ short =
 long = MaxRescueDistance
 type = F
 usage = Max distance to search from expected position on second pass
-tooltip =
+tooltip = Maximum distance to search from the expected position.
 manpage = Maximum distance to search from the expected position on the second
 pass
 
@@ -402,7 +413,8 @@ short =
 long = ResidualsToAnalyzeMaxAndMin
 type = IP
 usage = Max and min # of changes to use in analyzing changes in mean residual
-tooltip =
+tooltip = Maximum and minimum number of changes in mean residual to use in
+finding the mean and SD of changes in the mean residual for a bead.
 manpage = Maximum and minimum number of changes in mean residual to use in 
 finding the mean and SD of changes in the mean residual for a
 bead as more points have been added.  Default values 9 and 5.
@@ -412,7 +424,8 @@ short =
 long = DeletionCriterionMinAndSD
 type = FP
 usage = Min absolute and relative change in mean residual for deletion
-tooltip =
+tooltip = Minimum change in residual, and criterion number of SDs from the mean
+residual change, to require for deletion of a point.
 manpage = Minimum change in residual, and criterion number of SD's from the
 mean residual change, to require for deletion of a point on pass 1 or 2.
 
