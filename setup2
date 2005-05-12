@@ -90,6 +90,7 @@ set makenondll      = '$(AR) $(ARFLAGS)'
 set modelallo       = 'model/*.$(OBJEXT)'
 set junit_home      = /usr/local/junit
 set class_sep       = ':'
+set strip           = strip
 
 set b3dbyte         = "char"
 set ubyte           = "unsigned char"
@@ -693,6 +694,7 @@ echo "MODELALLO = $modelallo" >> $configure
 echo "JUNIT_HOME = $junit_home" >> $configure
 echo "CLASS_SEPARATOR = $class_sep" >> $configure
 echo "SOURCEDOC_EXE = $sourcedoc_exe" >> $configure
+echo "STRIP = $strip" >> $configure
 
 # Take care of Fortran graphics variations
 #
@@ -790,6 +792,9 @@ exit
 
 #
 #  $Log$
+#  Revision 1.4  2005/03/21 19:19:47  mast
+#  Removed libraries from sourcedoc qconfigure
+#
 #  Revision 1.3  2005/02/28 22:08:53  mast
 #  Chnaged default record item length in fortran to 1
 #
