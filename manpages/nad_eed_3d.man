@@ -109,6 +109,9 @@ If your file is large (e.g., > 10 megavoxels), and you have determined
 your optimal parameters, say 15 iterations with a K of 1.3, then prepare 
 a command file, e.g., nad.com, with the line:
    $nad_eed_3d -k 1.3 -n 15 INPUTFILE OUTPUTFILE
+.br
+(Do not indent the line; the $ must be the first character on the
+line.)
 
 Then enter:
    chunksetup -m 10 nad.com tomo.rec tomo.nad
