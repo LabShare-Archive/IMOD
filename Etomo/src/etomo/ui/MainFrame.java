@@ -32,6 +32,10 @@ import etomo.util.UniqueKey;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.31  2005/05/10 19:44:54  sueh
+ * <p> bug# 615 Added setTitle(AxisID).  Removing A Axis portion of the title for
+ * <p> Setup, Join, and single axis.
+ * <p>
  * <p> Revision 3.30  2005/04/27 02:16:40  sueh
  * <p> bug# 615 Calling setVisible(true) instead of updateAxis().  SubFrame
  * <p> had overridden setVisible(boolean).
@@ -363,6 +367,7 @@ final class MainFrame extends EtomoFrame implements ContextMenu {
   private static final Dimension frameBorder = new Dimension(10, 48);
   private static final String aAxisTitle = "A Axis - ";
   private static final String bAxisTitle = "B Axis - ";
+  private static final String etomoTitle = "Etomo";
 
   //private JPanel contentPane;
   private JPanel rootPanel;
@@ -405,40 +410,43 @@ final class MainFrame extends EtomoFrame implements ContextMenu {
     main = true;
   }
 
-  void setCurrentManager(BaseManager currentManager, UniqueKey managerKey, boolean newWindow) {
+  void setCurrentManager(BaseManager currentManager, UniqueKey managerKey,
+      boolean newWindow) {
     this.currentManager = currentManager;
     if (mainPanel != null) {
-      /*if (subFrame != null) {
-        subFrame.saveLocation();
-      }*/
       rootPanel.removeAll();
     }
-    if (currentManager != null) {
+    if (currentManager == null) {
+      title = etomoTitle;
+      setEnabled(currentManager);
+      hideAxisB();
+    }
+    else {
       mainPanel = currentManager.getMainPanel();
-      title = currentManager.getBaseMetaData().getName() + " - Etomo";
+      title = currentManager.getBaseMetaData().getName() + " - " + etomoTitle;
       rootPanel.add(windowSwitch.getPanel(managerKey));
       mainPanel.addMouseListener(mouseAdapter);
       setEnabled(currentManager);
       mainPanel.repaint();
-    }
-    if (subFrame != null) {
-      ((SubFrame) subFrame).setMainPanel(bAxisTitle + title + " ", currentManager);
-    }
-    if (newWindow) {
-      showAxisA();
-      //pack();
-    }
-    else {
-      if (mainPanel.isShowingBothAxis()) {
-        showBothAxis();
+
+      if (subFrame != null) {
+        ((SubFrame) subFrame).setMainPanel(bAxisTitle + title + " ",
+            currentManager);
       }
-      else if (mainPanel.isShowingAxisA()) {
+      if (newWindow) {
         showAxisA();
       }
       else {
-        showAxisB();
+        if (mainPanel.isShowingBothAxis()) {
+          showBothAxis();
+        }
+        else if (mainPanel.isShowingAxisA()) {
+          showAxisA();
+        }
+        else {
+          showAxisB();
+        }
       }
-      //mainPanel.fitWindow();
     }
   }
   
@@ -516,7 +524,15 @@ final class MainFrame extends EtomoFrame implements ContextMenu {
       setTitle(title);
     }
   }
-    
+  
+  void hideAxisB() {
+    setTitle(title);
+    if (subFrame != null) {
+      subFrame.setVisible(false);
+    }
+    pack();
+  }
+  
   void showAxisA() {
     setTitle(AxisID.FIRST);
     if (subFrame != null) {
