@@ -38,7 +38,27 @@ type=FN
 usage=Output file for model with scattered points on pixels in sum
 tooltip=
 manpage= Output file for model with added scattered-point objects containing
-points on all of the pixels that were included in the sum
+points on the pixels that were included in the sum.
+
+[Field = Adjacent required]
+short=adjacent
+long=AdjacentRequired
+type=I
+usage=Number of adjacent points above threshold required to include in model
+tooltip=
+manpage= Number of adjacent points above threshold required to include a given
+point in the output model.  All points above threshold will be counted in the
+density sums, but only those that meet this requirement will be marked in the
+model.
+
+[Field = Diagonals count]
+short=diagonals
+long=DiagonalsCount
+type=B
+usage= Diagonal pixels (corners touching) count as adjacent
+tooltip=
+manpage= Count all 8 neighboring pixels,incuding ones on diagonals, when
+determining whether a point is adjacent to the required number above threshold.
 
 [Field = Objects to do]
 short=objects
