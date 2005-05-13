@@ -1,3 +1,4 @@
+# THIS FILE WAS COPIED BY SETUP FROM Makefile.real - DO NOT EDIT
 # Makefile for building Etomo under the IMOD structure
 #
 # NOTE: that this Makefile only works if run under the IMOD directory
@@ -8,6 +9,9 @@
 # $Revision$
 #
 # $Log$
+# Revision 2.9  2005/01/18 22:08:53  mast
+# Use new variables for testing under windows
+#
 # Revision 2.8  2005/01/17 19:34:28  mast
 # Switched from if statement to mkdir -p
 #
@@ -68,11 +72,21 @@ JAVAC = $(JAVAC_EXE) -d $(CLASSPATH) -sourcepath $(SOURCEPATH) $(JAVAC_OPTIONS)
 JAVADOC_OPTIONS = -author -version -private -use -breakiterator -doctitle "Etomo API" -windowtitle "Etomo API"
 
 all: $(JAR_FILE)
-	echo "Make completed."
 
-$(JAR_FILE): cpimages compile
+# DNM 5/13/05: added dependencies, copied cpimages and compile lines into here
+# and moved "Make completed" here so make gives the "nothing to do" message
+#
+#$(JAR_FILE): cpimages compile
+$(JAR_FILE): src/etomo/*.java src/etomo/comscript/*.java src/etomo/ui/*.java \
+ src/etomo/process/*.java src/etomo/storage/*.java src/etomo/type/*.java \
+ src/etomo/util/*.java src/images/*.* 
+	mkdir -p $(CLASSPATH)
+	\cp -rpf $(SOURCEPATH)/images $(CLASSPATH)
+	rm -rf  $(CLASSPATH)/images/CVS
+	$(JAVAC)  $(SOURCEPATH)/etomo/ApplicationManager.java
 	mkdir -p jar_dir
 	jar  -cmf MANIFEST.MF $(JAR_FILE) -C $(CLASSPATH) etomo -C $(CLASSPATH) images
+	echo "Make completed."
 
 testjarfile: cpimages testcompile
 	mkdir -p jar_dir
