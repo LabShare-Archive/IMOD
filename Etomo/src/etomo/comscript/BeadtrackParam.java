@@ -18,6 +18,11 @@ import etomo.type.ScriptParameter;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.7  2005/05/12 19:09:01  sueh
+ * <p> bug# 658 Updating TrackLocalArea as an integer in the comscript.
+ * <p> Setting localAreaTargetSize, minBeadsInArea, minOverlapBeads, and
+ * <p> roundsOfTracking when converting from a non-PIP script.
+ * <p>
  * <p> Revision 3.6  2005/05/12 18:43:23  sueh
  * <p> bug# 658 Added localAreaTracking, localAreaTargetSize,
  * <p> minBeadsInArea, minOverlapBeads, maxViewsInAlign, and
@@ -471,6 +476,14 @@ public class BeadtrackParam extends OldBeadtrackParam
     ParamUtilities
         .updateScriptParameter(scriptCommand, FILL_GAPS_KEY, fillGaps);
     maxGapSize.updateComScript(scriptCommand);
+    
+    localAreaTracking.updateComScript(scriptCommand);
+    localAreaTargetSize.updateComScript(scriptCommand);
+    minBeadsInArea.updateComScript(scriptCommand);
+    minOverlapBeads.updateComScript(scriptCommand);
+    maxViewsInAlign.updateComScript(scriptCommand);
+    roundsOfTracking.updateComScript(scriptCommand);
+    
     minTiltRangeToFindAxis.updateComScript(scriptCommand);
     minTiltRangeToFindAngles.updateComScript(scriptCommand);
     ParamUtilities.updateScriptParameter(scriptCommand, SEARCH_BOX_PIXELS_KEY,
@@ -490,13 +503,6 @@ public class BeadtrackParam extends OldBeadtrackParam
         MEAN_RESID_CHANGE_LIMITS_KEY, meanResidChangeLimits);
     ParamUtilities.updateScriptParameter(scriptCommand, DELETION_PARAMS_KEY,
         deletionParams);
-
-    localAreaTracking.updateComScript(scriptCommand);
-    localAreaTargetSize.updateComScript(scriptCommand);
-    minBeadsInArea.updateComScript(scriptCommand);
-    minOverlapBeads.updateComScript(scriptCommand);
-    maxViewsInAlign.updateComScript(scriptCommand);
-    roundsOfTracking.updateComScript(scriptCommand);
   }
   
   private void set(OldConstBeadtrackParam param) {
