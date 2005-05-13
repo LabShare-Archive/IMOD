@@ -46,7 +46,8 @@ endif
 echo 'MAKELIB   = $(AR) $(ARFLAGS)' >> $configure
 echo 'MAKELIBCPP = $(ARCPP) $(ARFLAGS)' >> $configure
 
-set fort_cpplibs = -lstdc++
+# No longer needed 5/12/05, and needs to be gone for gcc 4
+#set fort_cpplibs = -lstdc++
 
 echo "CLIBS   = -lc -lm" >> $configure
 echo 'LIBS    = $(CLIBS)'  >> $configure

@@ -92,9 +92,9 @@ echo 'FLCC      = $(FC)'              >> $configure
 echo "F77LIBS   = $wrapper"                  >> $configure
 
 #
-# Needed for Red Hat 9/Qt 3.1
-#
-set fort_cpplibs = -lstdc++
+# It said "Needed for Red Hat 9/Qt 3.1" but now it seems not, and gcc 4 needs
+# it gone
+#set fort_cpplibs = -lstdc++
 
 # 
 # tell the C routines to swap the bytes for INTEL
