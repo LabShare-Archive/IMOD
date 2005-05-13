@@ -27,6 +27,10 @@ import etomo.type.InvalidEtomoNumberException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.5  2005/05/12 19:10:15  sueh
+ * <p> bug# 658 Enabling/disabling fields based on cbTrackLocalArea in
+ * <p> getParameters().
+ * <p>
  * <p> Revision 3.3  2005/05/12 01:31:20  sueh
  * <p> bug# 658 Getting tooltips from the autodoc.  Split secondPassParams,
  * <p> tiltAngleMinRange, and fiducialParams into two fields on the screen.
@@ -110,9 +114,9 @@ public class BeadtrackPanel {
   private LabeledTextField ltfMaxGap =
     new LabeledTextField("Maximum gap size: ");
   private LabeledTextField ltfMinTiltRangeToFindAxis =
-    new LabeledTextField("Minimum axis: ");
+    new LabeledTextField("Minimum tilt range for finding axis: ");
   private LabeledTextField ltfMinTiltRangeToFindAngle =
-    new LabeledTextField("Minimum angle: ");
+    new LabeledTextField("Minimum tilt range for finding angles: ");
   private LabeledTextField ltfSearchBoxPixels =
     new LabeledTextField("Search box size (pixels): ");
   private LabeledTextField ltfMaxFiducialsAvg =
@@ -190,6 +194,18 @@ public class BeadtrackPanel {
     
     panelBeadtrack.add(pnlCheckbox);
     panelBeadtrack.add(ltfMaxGap.getContainer());
+    
+    pnlLocalAreaTracking.setLayout(new BoxLayout(pnlLocalAreaTracking, BoxLayout.Y_AXIS));
+    pnlLocalAreaTracking.setAlignmentX(Component.CENTER_ALIGNMENT);
+    pnlLocalAreaTracking.add(cbLocalAreaTracking);
+    panelBeadtrack.add(pnlLocalAreaTracking);
+    
+    panelBeadtrack.add(ltfLocalAreaTargetSize.getContainer());
+    panelBeadtrack.add(ltfMinBeadsInArea.getContainer());
+    panelBeadtrack.add(ltfMinOverlapBeads.getContainer());
+    panelBeadtrack.add(ltfMaxViewsInAlign.getContainer());
+    panelBeadtrack.add(ltfRoundsOfTracking.getContainer());
+    
     panelBeadtrack.add(ltfMinTiltRangeToFindAxis.getContainer());
     panelBeadtrack.add(ltfMinTiltRangeToFindAngle.getContainer());
     panelBeadtrack.add(ltfSearchBoxPixels.getContainer());
@@ -203,17 +219,6 @@ public class BeadtrackPanel {
     panelBeadtrack.add(ltfMaxRescueDistance.getContainer());
     panelBeadtrack.add(ltfMeanResidChangeLimits.getContainer());
     panelBeadtrack.add(ltfDeletionParams.getContainer());
-    
-    pnlLocalAreaTracking.setLayout(new BoxLayout(pnlLocalAreaTracking, BoxLayout.Y_AXIS));
-    pnlLocalAreaTracking.setAlignmentX(Component.CENTER_ALIGNMENT);
-    pnlLocalAreaTracking.add(cbLocalAreaTracking);
-    panelBeadtrack.add(pnlLocalAreaTracking);
-    
-    panelBeadtrack.add(ltfLocalAreaTargetSize.getContainer());
-    panelBeadtrack.add(ltfMinBeadsInArea.getContainer());
-    panelBeadtrack.add(ltfMinOverlapBeads.getContainer());
-    panelBeadtrack.add(ltfMaxViewsInAlign.getContainer());
-    panelBeadtrack.add(ltfRoundsOfTracking.getContainer());
   }
 
   /**
