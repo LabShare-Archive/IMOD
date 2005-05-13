@@ -30,7 +30,7 @@ RotDefaultGrouping	5
 # TiltOption 0 fixes tilts, 2 solves for all tilt angles; change to 5 to solve
 # for fewer tilts by grouping views by the amount in TiltDefaultGrouping
 #
-TiltOption	2
+TiltOption	5
 TiltDefaultGrouping	5
 MagReferenceView	1
 MagOption	1
