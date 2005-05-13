@@ -97,9 +97,6 @@ public class SettingsDialog extends JDialog {
       userConfig.getToolTipsInitialDelay() / 1000);
     ltfTooltipsDismissDelay.setText(
       userConfig.getToolTipsDismissDelay() / 1000);
-    //TEMP bug# 614
-    userConfig.setAutoFit(true);
-    //TEMP
     cbAutoFit.setSelected(userConfig.isAutoFit());
     cbNativeLAF.setSelected(userConfig.getNativeLookAndFeel());
     cbAdvancedDialogs.setSelected(userConfig.getAdvancedDialogs());
