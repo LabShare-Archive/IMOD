@@ -734,18 +734,6 @@ you can solve both for tilt angles and for
 distortion, or for tilt angles and compression, but not for all three kinds of
 variables.
 <P>
-     It is recommended that you first run
-<A HREF = "man/tiltalign.html">Tiltalign</A>
-with all tilt angles independently variable and no
-distortion; this will reveal bad fiducials, and
-reveal some sudden changes in alignment that may need to be taken into account
-when grouping views together.  The parameters that initially appear
-in the <B>Global Variables</B> page of the 
-<B>Fine Alignment</B> panel provide for this kind of alignment.  
-At a later stage, typically after fixing
-fiducials, you would group the tilt angles as appropriate and possibly include 
-distortion.
-<P>
 Before computing an alignment for the first time, check the following
 settings in the <B>General</B> parameter page:
 <OL>
@@ -786,14 +774,11 @@ Examine the tilt angles, looking for places where
 they change by unusual amounts.  The column labeled "deltilt" shows the
 difference between the solved
 tilt angle and the original, nominal tilt angle.  This column should change
-gradually (except at pictures taken out of sequence), varying from one view
-to the next by only 0.1 to 0.2
-degrees.  Low tilt angles cannot be solved for as accurately, so variability
-might be somewhat greater there, sometimes by a lot.  For this reason, you
-should always turn on grouping of tilt angles for your final alignment,
-regardless of whether you solve for distortion as well.  The
+gradually when tilt angles are grouped.  Tilt angles are grouped by default
+because low tilt angles cannot be solved for accurately without grouping (see
+below).  The
 "mag" column shows the effect of overall shrinkage and slight magnification
-changes due to changes in focus.  If either the "mag" or the "deltilt"
+changes due to changes in focus.  If the "mag"
 column shows a sudden
 change that is much larger than surrounding changes, consider making
 all of the views after this change be a separate view group,
@@ -928,7 +913,8 @@ To solve for distortion, open the <B>Global Variables</B> page of the
 <B>Distortion Solution Type</B> section.  This will automatically switch
 to some good default values 
 if you have fiducials on both surfaces, namely a grouping of 5 for tilt
-angles, 7 for the stretch variable, and 11 for the skew variable.
+angles (if they are not already grouped), 7 for the stretch variable, and 11
+for the skew variable.
 Grouping is important when solving for distortion because it dramatically
 reduces the number of variables to be solved for, averages out random errors
 better, and gives a more robust solution.  The typical range for group sizes
