@@ -27,6 +27,11 @@ import etomo.type.InvalidEtomoNumberException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.6  2005/05/13 17:46:05  sueh
+ * <p> bug# 658 Changed the position of the new fields on the screen.  They
+ * <p> follow Max Gap.  Changed the labels of MinTiltRangeToFindAxis and
+ * <p> Angels.
+ * <p>
  * <p> Revision 3.5  2005/05/12 19:10:15  sueh
  * <p> bug# 658 Enabling/disabling fields based on cbTrackLocalArea in
  * <p> getParameters().
@@ -268,6 +273,8 @@ public class BeadtrackPanel {
     ltfMinOverlapBeads.setText(beadtrackParams.getMinOverlapBeads().toString());
     ltfMaxViewsInAlign.setText(beadtrackParams.getMaxViewsInAlign().toString());
     ltfRoundsOfTracking.setText(beadtrackParams.getRoundsOfTracking().toString());
+    
+    setEnabled();
   }
 
   /**
@@ -412,7 +419,6 @@ public class BeadtrackPanel {
       String message = badParameter + " " + except.getMessage();
       throw new FortranInputSyntaxException(message);
     }
-    setEnabled();
   }
 
   public JPanel getContainer() {
