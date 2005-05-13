@@ -2,8 +2,11 @@ package etomo.ui;
 
 import java.awt.Color;
 import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.FontMetrics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.geom.Rectangle2D;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -29,6 +32,11 @@ import etomo.type.DialogType;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.12  2005/04/26 17:42:29  sueh
+ * <p> bug# 615 Made MainFrame a package-level class.  All MainFrame
+ * <p> functionality is handled through UIHarness to make Etomo more
+ * <p> compatible with JUnit.
+ * <p>
  * <p> Revision 1.11  2005/04/21 20:55:35  sueh
  * <p> bug# 615 Pass axisID to packMainWindow so it can pack only the frame
  * <p> that requires it.
@@ -284,12 +292,12 @@ public class TomogramProcessPanel extends AxisProcessPanel {
     }
     setBackground(Colors.backgroundA);
     if (showingBothAxis) {
-      setAxisA(axisButton1);
-      setAxisB(axisButton2);
+      setButton(axisButton1, axisAString, axisATooltip);
+      setButton(axisButton2, axisBString, axisBTooltip);
     }
     else {
-      setAxisB(axisButton1);
-      setBothAxis(axisButton2);
+      setButton(axisButton1, axisBString, axisBTooltip);
+      setButton(axisButton2, bothAxisString, bothAxisTooltip);
     }
     axisButtonPanel.setVisible(true);
   }
@@ -307,8 +315,8 @@ public class TomogramProcessPanel extends AxisProcessPanel {
       axisButtonPanel.setVisible(false);
     }
     else {
-      setAxisA(axisButton1);
-      setBothAxis(axisButton2);
+      setButton(axisButton1, axisAString, axisATooltip);
+      setButton(axisButton2, bothAxisString, bothAxisTooltip);
       axisButtonPanel.setVisible(true);
     }
 
@@ -327,19 +335,13 @@ public class TomogramProcessPanel extends AxisProcessPanel {
     progressPanel.setBackground(color);
   }
   
-  private void setAxisA(JButton button) {
-    button.setText(axisAString);
-    button.setToolTipText(axisATooltip);
-  }
-  
-  private void setAxisB(JButton button) {
-    button.setText(axisBString);
-    button.setToolTipText(axisBTooltip);
-  }
-  
-  private void setBothAxis(JButton button) {
-    button.setText(bothAxisString);
-    button.setToolTipText(bothAxisTooltip);
+  private void setButton(JButton button, String text, String tooltip) {
+    button.setText(text);
+    Rectangle2D buttonSize = button.getFontMetrics(button.getFont())
+        .getStringBounds(axisAString.toCharArray(), 0, text.length(),
+            button.getGraphics());
+    button.setSize((int) buttonSize.getWidth(), (int) buttonSize.getHeight());
+    button.setToolTipText(tooltip);
   }
   
   protected void createProcessControlPanel() {
