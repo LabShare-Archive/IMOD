@@ -18,6 +18,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.6  2005/01/29 20:25:54  mast
+c	  Added ability to handle nested contours
+c	
 c	  Revision 3.5  2005/01/17 06:38:52  mast
 c	  Added checks for array limits
 c	
@@ -56,10 +59,10 @@ c
 	integer*4 iobj,imodobj,imodobj2,imodcont,ifdo,iconThresh,numSurf
 	real*4 dmin,dmax,dmean,sumTot,avgAbove,absSum,absThresh
 	integer*4 ierr,ierr2,irefObject,ifReverse,ifVerbose,nThreshIn,numInside
-	integer*4 getimodhead,getimodflags,getimodsurfaces
+	integer*4 getimodhead,getimodflags,getimodsurfaces, ifDiagonal
 	real*4 xyscal,zscale,xofs,yofs,zofs
 	integer*4 newObj, newImodObj, numNewCont, numObjOrig, nestErr
-	integer*4 ifflip,getimodobjsize, getImodNesting
+	integer*4 ifflip,getimodobjsize, getImodNesting, numAdjacentNeeded
 	logical*4 firstNewCont
 	real*4 border, polarity, bufferInside
 c
@@ -72,13 +75,15 @@ c
 c	  fallbacks from ../../manpages/autodoc2man -2 2  sumdensity
 c
 	integer numOptions
-	parameter (numOptions = 14)
+	parameter (numOptions = 16)
 	character*(40 * numOptions) options(1)
 	options(1) =
      &      'image:ImageFile:FN:@model:ModelFile:FN:@'//
      &      'output:OutputFile:FN:@pixel:PixelModel:FN:@'//
-     &      'objects:ObjectsToDo:LI:@border:BorderSize:F:@'//
-     &      'inside:InsideBorder:F:@absolute:AbsoluteThreshold:F:@'//
+     &      'adjacent:AdjacentRequired:I:@'//
+     &      'diagonals:DiagonalsCount:B:@objects:ObjectsToDo:LI:@'//
+     &      'border:BorderSize:F:@inside:InsideBorder:F:@'//
+     &      'absolute:AbsoluteThreshold:F:@'//
      &      'contrast:ContrastThreshold:I:@'//
      &      'reference:ReferenceObject:I:@reverse:ReversePolarity:B:@'//
      &      'verbose:VerboseOutput:B:@param:ParameterFile:PF:@'//
@@ -98,6 +103,8 @@ c
 	polarity = 1.
 	ifReverse = 0
 	ifVerbose = 0
+	numAdjacentNeeded = 0
+	ifDiagonal = 0
 c	  
 c	  Pip startup: set error, parse options, do help output
 c
@@ -164,6 +171,8 @@ c
 	ierr = PipGetString('PixelModel', pixelModel)
 	bufferInside = border
 	ierr = PipGetFloat('InsideBorder', bufferInside)
+	ierr = PipGetInteger('AdjacentRequired', numAdjacentNeeded)
+	ierr = PipGetBoolean('DiagonalsCount', ifDiagonal)
 	call PipDone()
 c	  
 	iunitOut = 6
@@ -183,7 +192,7 @@ c
 	      call sum_inside_contour(array, imsiz, nx, ny, nz, iobj,
      &		  irefObject, border, dmin - dmax, 1., 0, insideCont,
      &		  bufferInside, numInTemp, numAboveTemp, absSum,
-     &		  avgAbove, 0)
+     &		  avgAbove, 0, 0, 0)
 	      numTot = numTot + numInTemp
 	      sumTot = sumTot + absSum
 	    endif
@@ -307,7 +316,8 @@ c
 		call sum_inside_contour(array, imsiz, nx, ny, nz, iobj,
      &		    imodobj,border, absThresh, polarity, numInside,
      &		    insideCont(insideIndex(imodcont)),bufferInside, numInTemp,
-     &		    numAboveTemp, absSum, avgAbove, newObj)
+     &		    numAboveTemp, absSum, avgAbove, newObj, numAdjacentNeeded,
+     &		    ifDiagonal)
 		if (newObj .gt. 0 .and. npt_in_obj(newObj) .gt. 0)
      &		    numNewCont = numNewCont + 1
 
@@ -392,15 +402,19 @@ c	  absSum is the absolute sum of the pixels above threshold
 c	  avgAbove is the average of the those pixels after subtracting
 c	  the threshold
 c	  newObj is an "object" number in which to place points above threshold
+c	  numAdjacentNeeded is a minimum number of adjacent points required
+c	  to place a point in the output model
+c	  ifDiagonal is 1 if corner (diagonal) points count as adjacent
 c
 	subroutine sum_inside_contour(array, imsiz, nx, ny, nz, iobj, imodObj,
      &	    border, absThresh, polarity, numInside, insideCont,
      &	    bufferInside, numInBorder, numAboveThresh, absSum, avgAbove,
-     &	    newObj)
+     &	    newObj, numAdjacentNeeded, ifDiagonal)
 	implicit none
 	integer limpts
 	parameter (limpts=10000)
 	integer*4 imsiz, iobj, numInBorder, numAboveThresh, nx, ny, nz, newObj
+	integer*4 numAdjacentNeeded, ifDiagonal
 	real*4 array(*), absThresh, absSum, avgAbove, border,polarity
 	real*4 bufferInside
 	real*4 cx(limpts),cy(limpts),sumAbove,ex(limpts),ey(limpts)
@@ -410,7 +424,7 @@ c
 	integer*4 nyload, ninobj, ilas, jobj, jobjLast, ninjobj, incont
 	integer*4 iobjfromcont
 	logical inside, interior, outsideBorder, trace
-	real*4 xmin, xmax, ymin, ymax, xpix, ypix, val
+	real*4 xmin, xmax, ymin, ymax, xpix, ypix, val, radsq
 	real*4 xtrace,ytrace
 c	  
 c	  Set these to imod pixel values - .5 to get trace
@@ -539,6 +553,7 @@ c
 		    p_coord(3, n_point) = iz
 		    npt_in_obj(newObj) = npt_in_obj(newObj) + 1
 		    object(n_point) = n_point
+		    pt_label(n_point) = 0
 		  endif
 		endif
 	      endif
@@ -547,6 +562,40 @@ c
 	enddo
 
 	if (numAboveThresh .gt. 0) avgAbove = sumAbove / numAboveThresh
+
+c	  
+c	  Trim model points down if adjacent points required
+c
+	if (newObj .gt. 0 .and. numAdjacentNeeded .gt. 0) then
+	  radsq = 1.2
+	  if (ifDiagonal .gt. 0) radsq = 2.2
+c	    
+c	    count adjacent points and mark if it meets required number
+c
+	  do ix = n_point + 1 - npt_in_obj(newObj), n_point
+	    incont = 0
+	    do iy = n_point + 1 - npt_in_obj(newObj), n_point
+	      if (ix .ne. iy .and. (p_coord(1, ix) - p_coord(1, iy))**2 +
+     &		  (p_coord(2, ix) - p_coord(2, iy))**2 .le. radsq)
+     &		  incont = incont + 1
+	    enddo
+	    if (incont .ge. numAdjacentNeeded) pt_label(ix) = 1
+	  enddo
+c	    
+c	    pack the points down and adjust the count
+c
+	  iy = n_point - npt_in_obj(newObj)
+	  do ix = n_point + 1 - npt_in_obj(newObj), n_point
+	    if (pt_label(ix) .gt. 0) then
+	      iy = iy + 1
+	      p_coord(1, iy) = p_coord(1,ix)
+	      p_coord(2, iy) = p_coord(2,ix)
+	      pt_label(iy) = 0
+	    endif
+	  enddo	 
+	  npt_in_obj(newObj) = npt_in_obj(newObj) - (n_point - iy)
+	  n_point = iy
+	endif
 
 	return
 99	call errorexit('READING IMAGE FILE')
