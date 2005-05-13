@@ -17,6 +17,9 @@ import java.util.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.2  2004/11/19 23:40:52  sueh
+ * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+ * <p>
  * <p> Revision 3.1.2.2  2004/10/13 22:58:30  sueh
  * <p> bug# 520 fixed paramString()
  * <p>
@@ -187,7 +190,9 @@ public class UserConfiguration implements Storable {
       Boolean
         .valueOf(props.getProperty(group + "AutoFit", "false"))
         .booleanValue();
-
+    //TEMP bug# 614
+    autoFit = true;
+    //TEMP
   }
 
   /**
