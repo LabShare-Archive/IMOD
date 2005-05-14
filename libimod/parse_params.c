@@ -1065,11 +1065,19 @@ int PipReadOptionFile(char *progName, int helpLevel, int localDir)
     }
 
     /* But if not reading options, check for a new option token and start 
-       reading if one is found */
+       reading if one is found.  But first take a Field value as default 
+       long option name */
     else if (isOption > 0) {
       lastGottenStr = NULL;
       readingOpt = 1;
       isSection = isOption - 1;
+      if (!isSection) {
+        if ((err = CheckKeyword(textStr + strlen(OPEN_DELIM), "Field", 
+                                &longName, &gotLong, &lastGottenStr)))
+          return err;
+        if (gotLong)
+          longName[strlen(longName) - 1] = nullChar;
+      }
     }
   }
   free (bigStr);
@@ -1529,13 +1537,11 @@ static int LineIsOptionToken(char *line)
   if (!StartsWith(line, OPEN_DELIM) || !strstr(line, CLOSE_DELIM))
     return 0;
 
-  /* It must then contain "field" right after delim to be an option */
+  /* It must then contain "Field" right after delim to be an option */
   token = line + strlen(OPEN_DELIM);
-  if (StartsWith(token, "Field") || StartsWith(token, "field") ||
-      StartsWith(token, "FIELD"))
+  if (StartsWith(token, "Field"))
     return 1;
-  if (StartsWith(token, "SectionHeader") || StartsWith(token, "sectionheader")
-      || StartsWith(token, "SECTIONHEADER"))
+  if (StartsWith(token, "SectionHeader"))
     return 2;
 
   return -1;
@@ -1554,14 +1560,22 @@ static int CheckKeyword(char *line, char *keyword, char **copyto, int *gotit,
   char *valStart;
   char *copyStr;
 
-  /* First make sure it is not gotten already and line starts with it */
-  if (*gotit || !StartsWith(line, keyword))
+  /* First make sure line starts with it */
+  if (!StartsWith(line, keyword))
     return 0;
 
   /* Now look for delimiter */
   valStart = strstr(line, valueDelim);
   if (!valStart)
     return 0;
+
+  /* Free previous entry if there was one, and mark that it was not gotten,
+     so that an empty entry can supercede a non-empty one */
+  if (*gotit && *copyto != nullString) {
+    free (*copyto);
+    *copyto = nullString;
+    *gotit = 0;
+  }
 
   /*Eat spaces after the delimiter and return if nothing left*/
   /* In other words, a key with no value is the same as having no key at all */
@@ -1575,6 +1589,7 @@ static int CheckKeyword(char *line, char *keyword, char **copyto, int *gotit,
   copyStr = strdup(valStart);
   if (PipMemoryError(copyStr, "CheckKeyword"))
     return -1;
+
   *gotit = 1;
   *copyto = copyStr;
   *lastCopied = copyto;
@@ -1583,6 +1598,9 @@ static int CheckKeyword(char *line, char *keyword, char **copyto, int *gotit,
 
 /*
 $Log$
+Revision 3.13  2005/04/16 00:08:21  mast
+Added ability to have section headers for usage and man page output
+
 Revision 3.12  2005/02/12 01:38:27  mast
 Added ability to use ^ at start of line as a break
 
