@@ -18,6 +18,10 @@ import etomo.type.ScriptParameter;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.8  2005/05/13 17:44:33  sueh
+ * <p> bug# 658 Changed the position of the new fields in the comscript.  They
+ * <p> follow Max Gap.
+ * <p>
  * <p> Revision 3.7  2005/05/12 19:09:01  sueh
  * <p> bug# 658 Updating TrackLocalArea as an integer in the comscript.
  * <p> Setting localAreaTargetSize, minBeadsInArea, minOverlapBeads, and
@@ -576,7 +580,7 @@ public class BeadtrackParam extends OldBeadtrackParam
     localAreaTargetSize.set(1000);
     minBeadsInArea.set(8);
     minOverlapBeads.set(5);
-    roundsOfTracking.set(1);
+    roundsOfTracking.set(2);
   }
   
   public void setSkipViews(String skipViews) {
