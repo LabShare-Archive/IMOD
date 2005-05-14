@@ -1,156 +1,140 @@
 Version=1.0
 Pip=1
 
-[Field = Image file]
-short=image
-long=ImageFile
-type=FN
-usage=Input image file
-tooltip=
-manpage= Input image file with densities to be summed.  If this option
+[Field = ImageFile]  
+short = image
+type = FN
+usage = Input image file
+tooltip = 
+manpage =  Input image file with densities to be summed.  If this option
 is not entered, the first non-option argument will be used for this input
 file.
 
-[Field = Model file]
-short=model
-long=ModelFile
-type=FN
-usage=Input model file with contours defining areas to sum
-tooltip=
-manpage= Input model file with contours delimiting areas to be summed.  
+[Field = ModelFile]
+short = model
+type = FN
+usage = Input model file with contours defining areas to sum
+tooltip = 
+manpage =  Input model file with contours delimiting areas to be summed.
 If this option is not entered, the second non-option argument will be used for
 this input file.
 
-[Field = Output file]
-short=output
-long=OutputFile
-type=FN
-usage=Output file for results
-tooltip=
-manpage= Output file for results. If this option is not entered, the 
+[Field = OutputFile]
+short = output
+type = FN
+usage = Output file for results
+tooltip = 
+manpage = Output file for results. If this option is not entered, the 
 third non-option argument will be used for this output file.  If no output
 file is entered, results will be printed to standard output.
 
-[Field = Pixel model]
-short=pixel
-long=PixelModel
-type=FN
-usage=Output file for model with scattered points on pixels in sum
-tooltip=
-manpage= Output file for model with added scattered-point objects containing
+[Field = PixelModel]
+short = pixel
+type = FN
+usage = Output file for model with scattered points on pixels in sum
+tooltip = 
+manpage = Output file for model with added scattered-point objects containing
 points on the pixels that were included in the sum.
 
-[Field = Adjacent required]
-short=adjacent
-long=AdjacentRequired
-type=I
-usage=Number of adjacent points above threshold required to include in model
-tooltip=
-manpage= Number of adjacent points above threshold required to include a given
+[Field = AdjacentRequired]
+short = adjacent
+type = I
+usage = Number of adjacent points above threshold required to include in model
+tooltip = 
+manpage = Number of adjacent points above threshold required to include a given
 point in the output model.  All points above threshold will be counted in the
 density sums, but only those that meet this requirement will be marked in the
 model.
 
-[Field = Diagonals count]
-short=diagonals
-long=DiagonalsCount
-type=B
-usage= Diagonal pixels (corners touching) count as adjacent
-tooltip=
-manpage= Count all 8 neighboring pixels,incuding ones on diagonals, when
+[Field = DiagonalsCount]
+short = diagonals
+type = B
+usage = Diagonal pixels (corners touching) count as adjacent
+tooltip = 
+manpage = Count all 8 neighboring pixels,incuding ones on diagonals, when
 determining whether a point is adjacent to the required number above threshold.
 
-[Field = Objects to do]
-short=objects
-long=ObjectsToDo
-type=LI
-usage=Objects to compute sums within (Default is all closed contour objects)
-tooltip=
-manpage= A list of objects containing boundary contours within which
+[Field = ObjectsToDo]
+short = objects
+type = LI
+usage = Objects to compute sums within (Default is all closed contour objects)
+tooltip = 
+manpage = A list of objects containing boundary contours within which
 to compute sums.  The default is to do all closed contour objects.
 
-[Field = Border size]
-short=border
-long=BorderSize
-type=F
-usage=Distance from contour within which to exclude pixels from consideration
-tooltip=
-manpage=Distance from contour within which to exclude pixels from
+[Field = BorderSize]
+short = border
+type = F
+usage = Distance from contour within which to exclude pixels from consideration
+tooltip = 
+manpage = Distance from contour within which to exclude pixels from
 consideration.  For example, if the contours are drawn on the centers of
 membranes, this entry can be used to exclude pixels in the membrane as well as
 within a certain distance of the membrane.  The default is to include all
 pixels within the contour. 
 
-[Field = Inside border]
-short=inside
-long=InsideBorder
-type=F
-usage=Distance from interior contour within which to exclude pixels
-tooltip=
-manpage=Distance from interior contours within which to exclude pixels from
+[Field = InsideBorder]
+short = inside
+type = F
+usage = Distance from interior contour within which to exclude pixels
+tooltip = 
+manpage = Distance from interior contours within which to exclude pixels from
 consideration.  All pixels inside of interior contours will be excluded, so
 this entry governs the border outside those contours.  The default is to
 use the BorderSize value.
 
 [StartGroup = Threshold setting]
-[Field = Absolute threshold]
-short=absolute
-long=AbsoluteThreshold
-type=F
-usage=Threshold value in absolute units of the image file density
-tooltip=
-manpage=
+[Field = AbsoluteThreshold]
+short = absolute
+type = F
+usage = Threshold value in absolute units of the image file density
+tooltip = 
+manpage = 
 
-[Field = Contrast threshold]
-short=contrast
-long=ContrastThreshold
-type=I
-usage=Relative threshold in units of black/white contrast settings, range 0-255
-tooltip=
-manpage=Relative threshold in units of black/white contrast settings after
+[Field = ContrastThreshold]
+short = contrast
+type = I
+usage = Relative threshold in units of black/white contrast settings, range 0-255
+tooltip = 
+manpage = Relative threshold in units of black/white contrast settings after
 loading the data into 3dmod with the default scaling.  This value should
 be in the range 0-255.
 [EndGroup]
 
-[Field = Reference object]
-short=reference
-long=ReferenceObject
-type=I
-usage=Object enclosing areas from which to measure threshold
-tooltip=
-manpage=Object enclosing areas from which to measure threshold.  Multiple
+[Field = ReferenceObject]
+short = reference
+type = I
+usage = Object enclosing areas from which to measure threshold
+tooltip = 
+manpage = Object enclosing areas from which to measure threshold.  Multiple
 contours can be used to sample several areas for setting the threshold.
 
-[Field = Reverse polarity]
-short=reverse
-long=ReversePolarity
-type=B
-usage=Count and sum pixels lower than the threshold instead of higher
-tooltip=
-manpage= Count and sum pixels lower than the threshold instead of higher.  The
+[Field = ReversePolarity]
+short = reverse
+type = B
+usage = Count and sum pixels lower than the threshold instead of higher
+tooltip = 
+manpage = Count and sum pixels lower than the threshold instead of higher.  The
 densities to be summed can have either positive or negative contrast; use this
 option in the latter case.
 
-[Field = Verbose output]
-short=verbose
-long=VerboseOutput
-type=B
-usage=Output counts and densities for every contour
-tooltip=
-manpage=
+[Field = VerboseOutput]
+short = verbose
+type = B
+usage = Output counts and densities for every contour
+tooltip = 
+manpage = 
 
-[Field = Parameter File]
-short=param
-long=ParameterFile
-type=PF
-usage=Read parameter entries from file
-tooltip=
-manpage=
+[Field = ParameterFile]
+short = param
+type = PF
+usage = Read parameter entries from file
+tooltip = 
+manpage = 
 
 [Field = usage]
-short=help
-long=usage
-type=B
-usage=Print help output
-tooltip=
-manpage=
+short = help
+type = B
+usage = Print help output
+tooltip = 
+manpage = 

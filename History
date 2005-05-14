@@ -1,10 +1,18 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/13/05: IMOD_3-6-4
+5/13/05: Switched master align.com to have tilt angles grouped by default, to
+avoid bad behavior without grouping near zero tilt.
+
+5/13/05: Added options to Sumdensity to trim points out of the pixel model
+by requiring them to have a minimum number of adjacent points.
+
 5/12/05: Increased limits to allow beads up to 100 pixels in Beadtrack.
 
-5/12/05: Etomo changed to put the two axes in separate windows.  Interface
-to new version of Beadtrack was implemented, including tracking over local
-areas.
+5/12/05: Etomo changed to put the two axes in separate windows, with buttons
+to control single or dual window display.  Autofit is now on permanently to
+avoid problems in the absence of autofit.  Interface to new version of
+Beadtrack was implemented, including tracking over local areas.
 
 5/12/05: Modified Processchunks to allow command files that can be used to
 synchronize results after running a group of files in parallel.  Fixed it to

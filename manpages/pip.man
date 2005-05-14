@@ -146,13 +146,16 @@ interfaces that run the program.  The file consists of global metadata at
 the start, then a series of sections starting with a token inside brackets.
 Each section can then contain keyword-value pairs.  The general form of
 a token entry is:
-   \fB[token delimiter label_string]\fR
+   \fB[token delimiter value]\fR
 .br
 and the general form of a keyword-value pair is:
    \fBkeyword delimiter value\fR
 .br
-Tokens and keywords must not contain embedded spaces, although values and
-label strings may.  There can be spaces or tabs before and after the
+Tokens, keywords, and token values must not contain embedded spaces, although 
+keyword values
+may.  There must be no space between the opening [ and a token or between its 
+value
+and the ending ].  There can be spaces or tabs before and after the
 delimiter; these will not be considered part of the token or value strings.
 PIP will ignore white space before keywords or tokens, but other parsers of
 autodoc files may not accept this.
@@ -164,7 +167,8 @@ such as:
 PIP will examine keyword-value pairs only after a \fBField\fR token, which
 signifies the start of an option, or after a \fBSectionHeader\fR token,
 which can be used to introduce some header text into the usage or manpage
-outputs.  The following
+outputs.  
+The following
 keywords are understood by PIP in a \fBField\fR section, while others are
 ignored:
 .nf
@@ -177,7 +181,14 @@ ignored:
 .fi
 
 If one of these keywords has no value after it, PIP will ignore the entry.
-Short and long option names should not contain spaces.  The help strings are
+Short and long option names should not contain spaces.  
+If a \fBField\fR has a value, it becomes the default long option name, in
+which case \fBlong\fR can be omitted.  Alternatively, a \fBlong\fR entry
+can be used to override the value of the field, and a blank \fBlong\fR entry
+can be used to eliminate the default long option name provided by a
+\fBField\fR value.
+
+The help strings are
 allowed to contain spaces, and to continue on multiple lines.  A
 continuation line should not have \fB#\fR or \fB[\fR as its first non-white
 space character, nor should it contain the key-value delimiter.  Lines are
