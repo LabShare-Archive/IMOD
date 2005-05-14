@@ -53,11 +53,11 @@ public class EtomoAutodoc {
 
   public static String getTooltip(Autodoc autodoc, String fieldName) {
     String tooltip = getTooltip(
-        autodoc.getSection(FIELD_SECTION_NAME, fieldName)).trim();
+        autodoc.getSection(FIELD_SECTION_NAME, fieldName));
     if (tooltip == null) {
       return null;
     }
-    tooltip =  tooltip.trim();
+    tooltip = tooltip.trim();
     if (tooltip.endsWith(".")) {
       return tooltip.substring(0, tooltip.length() -1) + " (" + fieldName + ").";
     }
@@ -85,6 +85,10 @@ public class EtomoAutodoc {
 
 /**
  * <p> $Log$
+ * <p> Revision 1.5  2005/05/12 01:29:18  sueh
+ * <p> bug# 658 In getTooltip(Autodoc, String fieldName), added the fieldName
+ * <p> to the end of tooltip.
+ * <p>
  * <p> Revision 1.4  2005/02/21 23:02:55  sueh
  * <p> bug# 600 Return field-level tooltips when enum tooltip is not available.
  * <p>
