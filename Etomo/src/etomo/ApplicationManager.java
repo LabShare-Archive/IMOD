@@ -99,6 +99,10 @@ import etomo.util.Utilities;
  * 
  *
  * <p> $Log$
+ * <p> Revision 3.147  2005/05/09 21:32:36  sueh
+ * <p> bug# 658 In updateTrackCom() printing stack trace when there is an
+ * <p> exception.
+ * <p>
  * <p> Revision 3.146  2005/04/26 17:31:51  sueh
  * <p> bug# 615 Change the name of the UIHarness member variable to
  * <p> uiHarness.
@@ -1303,7 +1307,7 @@ public class ApplicationManager extends BaseManager {
       if (!paramFileName.equals("")) {
         if (loadedTestParamFile) {
           openProcessingPanel();
-          mainPanel.updateDataParameters(paramFile, metaData);
+          mainPanel.setStatusBarText(paramFile, metaData);
         }
         else {
           openSetupDialog();
@@ -1576,7 +1580,7 @@ public class ApplicationManager extends BaseManager {
         imodManager.setMetaData(metaData);
         //set paramFile so meta data can be saved
         paramFile = new File(propertyUserDir, metaData.getMetaDataFileName());
-        mainPanel.updateDataParameters(paramFile, metaData);
+        mainPanel.setStatusBarText(paramFile, metaData);
         userConfig.putDataFile(paramFile.getAbsolutePath());
         loadedTestParamFile = true;
         state.initialize(EtomoState.NO_RESULT_VALUE);
@@ -6128,7 +6132,7 @@ public class ApplicationManager extends BaseManager {
   public void setTestParamFile(File paramFile) {
     this.paramFile = paramFile;
     //  Update main window information and status bar
-    mainPanel.updateDataParameters(paramFile, metaData);
+    mainPanel.setStatusBarText(paramFile, metaData);
   }
   
   protected void createProcessTrack() {
