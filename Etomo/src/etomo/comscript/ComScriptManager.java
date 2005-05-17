@@ -32,6 +32,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.31  2005/04/26 17:36:13  sueh
+ * <p> bug# 615 Change the name of the UIHarness member variable to
+ * <p> uiHarness.
+ * <p>
  * <p> Revision 3.30  2005/04/25 20:37:49  sueh
  * <p> bug# 615 Passing the axis where the command originated to the message
  * <p> functions so that the message will be popped up in the correct window.
@@ -662,7 +666,7 @@ public class ComScriptManager {
     }
 
     // Initialize a BeadtrckParam object from the com script command object
-    BeadtrackParam beadtrackParam = new BeadtrackParam();
+    BeadtrackParam beadtrackParam = new BeadtrackParam(axisID);
     initialize(beadtrackParam, track, "beadtrack", axisID);
     return beadtrackParam;
   }
