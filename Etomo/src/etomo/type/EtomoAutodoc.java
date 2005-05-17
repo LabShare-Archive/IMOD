@@ -22,15 +22,17 @@ public class EtomoAutodoc {
   public static final String  rcsid =  "$Id$";
   
   public static final String FIELD_SECTION_NAME = "field";
+  public static final String REQUIRED_ATTRIBUTE_NAME = "required";
+  public static final int REQUIRED_TRUE_VALUE = 1;
   
-  private static final String tooltipAttributeName = "tooltip";
-  
+  private static final String TOOLTIP_ATTRIBUTE_NAME = "tooltip";
+
   public static String getTooltip(Section section) {
     if (section == null) {
       return null;
     }
     String text = null;
-    Attribute attribute = section.getAttribute(tooltipAttributeName);
+    Attribute attribute = section.getAttribute(TOOLTIP_ATTRIBUTE_NAME);
     if (attribute != null) {
       text = attribute.getUnformattedValue();
       if (text != null) {
@@ -67,7 +69,7 @@ public class EtomoAutodoc {
   public static String getTooltip(Section section, String enumValueName) {
     try {
       String enumTooltip = section.getAttribute("enum").getAttribute(enumValueName)
-          .getAttribute(tooltipAttributeName).getUnformattedValue();
+          .getAttribute(TOOLTIP_ATTRIBUTE_NAME).getUnformattedValue();
       if (enumTooltip == null) {
         return getTooltip(section);
       }
@@ -85,6 +87,9 @@ public class EtomoAutodoc {
 
 /**
  * <p> $Log$
+ * <p> Revision 1.6  2005/05/14 01:00:23  sueh
+ * <p> bug# 658 Take out unnecessary trim (and prevent a null point exception).
+ * <p>
  * <p> Revision 1.5  2005/05/12 01:29:18  sueh
  * <p> bug# 658 In getTooltip(Autodoc, String fieldName), added the fieldName
  * <p> to the end of tooltip.
