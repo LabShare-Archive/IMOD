@@ -2,8 +2,6 @@ package etomo.ui;
 
 import java.awt.Color;
 import java.awt.Container;
-import java.awt.Dimension;
-import java.awt.FontMetrics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.geom.Rectangle2D;
@@ -32,6 +30,10 @@ import etomo.type.DialogType;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.13  2005/05/13 17:46:51  sueh
+ * <p> bug# 658 Setting the size of axis buttons based on text extent.  Hopefully
+ * <p> this will fix it on mac.
+ * <p>
  * <p> Revision 1.12  2005/04/26 17:42:29  sueh
  * <p> bug# 615 Made MainFrame a package-level class.  All MainFrame
  * <p> functionality is handled through UIHarness to make Etomo more
