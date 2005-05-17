@@ -94,6 +94,12 @@ public class Autodoc implements AttributeCollection {
   private HashMap metaData = null;
   private Vector sectionList = null;
   private HashMap sectionMap = null;
+  
+  //Cache of sets of data.  Hold on to sets of data requested by other
+  //objects.  Autodocs are never refreshed so the set will remain valid.
+  //And, like the autodoc itself, the set will probably be requested more
+  //then once.
+  private HashMap attributeValuesCache = null;
 
   public static Autodoc get(String name, AxisID axisID)
     throws FileNotFoundException, IOException {
@@ -197,6 +203,13 @@ public class Autodoc implements AttributeCollection {
     }
     return null;
   }
+  
+  public final Section getSection(SectionLocation location) {
+    if (location == null || sectionList == null) {
+      return null;
+    }
+    return (Section) sectionList.get(location.getIndex());
+  }
 
   public final Section nextSection(SectionLocation location) {
     if (location == null) {
@@ -212,9 +225,55 @@ public class Autodoc implements AttributeCollection {
     }
     return null;
   }
+  
+  /**
+   * Returns a HashMap containing a list of attribute values, keyed by
+   * sectionName.  The elements in each list is using section type and attribute
+   * name.  Each list is saved in attributeValuesCache.  If a saved list is
+   * requested, then the cached HashMap is returned.
+   * @param sectionType
+   * @param attributeName
+   * @return
+   */
+  public final HashMap getAttributeValues(String sectionType, String attributeName) {
+    if (sectionType == null || attributeName == null || sectionList == null) {
+      return null;
+    }
+    HashMap attributeValues = null;
+    //See if an attributeValues with this sectionType and attributeName has
+    //already been created.
+    String cacheKey = sectionType + attributeName; 
+    if (attributeValuesCache != null) {
+      attributeValues = (HashMap) attributeValuesCache.get(cacheKey);
+      if (attributeValues != null) {
+        return attributeValues;
+      }
+    }
+    //Create attributeValues
+    attributeValues = new HashMap();
+    SectionLocation sectionLocation = getFirstSectionLocation(sectionType);
+    Section section = getSection(sectionLocation);
+    while (section != null) {
+      try {
+        String sectionName = section.getName();
+        String attributeValue = section.getAttribute(attributeName).getUnformattedValue();
+        attributeValues.put(sectionName, attributeValue);
+      }
+      catch (NullPointerException e) {
+        //An attribute with attributeName doesn't exist
+      }
+      //Go to next section
+      section = nextSection(sectionLocation);
+    }
+    //Cache attributeValues.
+    if (attributeValuesCache == null) {
+      attributeValuesCache = new HashMap();
+    }
+    attributeValuesCache.put(cacheKey, attributeValues);
+    return attributeValues;
+  }
 
   public void print() {
-    System.out.println("Autodoc: " + fileName);
     if (metaData != null) {
       Attribute metaDataElement = null;
       Collection collection = metaData.values();
@@ -308,6 +367,9 @@ public class Autodoc implements AttributeCollection {
 }
 /**
 *<p> $$Log$
+*<p> $Revision 1.14  2005/05/12 01:30:37  sueh
+*<p> $bug# 658 Added beadtrack.
+*<p> $
 *<p> $Revision 1.13  2005/04/25 20:53:33  sueh
 *<p> $bug# 615 Passing the axis where a command originates to the message
 *<p> $functions so that the message will be popped up in the correct window.
