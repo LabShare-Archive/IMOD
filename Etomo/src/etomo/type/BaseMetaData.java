@@ -18,6 +18,9 @@ import etomo.storage.Storable;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.2  2004/11/19 23:31:33  sueh
+* <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+* <p>
 * <p> Revision 1.1.2.4  2004/10/29 01:18:18  sueh
 * <p> bug# 520 Removing unecessary abstract isValid functions.
 * <p>
@@ -49,6 +52,7 @@ public abstract class BaseMetaData implements Storable {
   public abstract void load(Properties props, String prepend);
   public abstract String getMetaDataFileName();
   public abstract String getName();
+  public abstract boolean isValid();
   
   public String toString() {
     return getClass().getName() + "[" + paramString() + "]";
