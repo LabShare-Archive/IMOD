@@ -1,9 +1,16 @@
 package etomo.comscript;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.HashMap;
+
+import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
+import etomo.type.EtomoAutodoc;
 import etomo.type.EtomoBoolean2;
 import etomo.type.EtomoNumber;
 import etomo.type.ScriptParameter;
+import etomo.ui.Autodoc;
 
 /**
  * <p>Description: </p>
@@ -18,6 +25,10 @@ import etomo.type.ScriptParameter;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.9  2005/05/14 00:59:34  sueh
+ * <p> bug# 658 When converting to PIP, set roundsOfTracking to 2 (to match
+ * <p> copytomocoms).
+ * <p>
  * <p> Revision 3.8  2005/05/13 17:44:33  sueh
  * <p> bug# 658 Changed the position of the new fields in the comscript.  They
  * <p> follow Max Gap.
@@ -163,62 +174,70 @@ public class BeadtrackParam extends OldBeadtrackParam
   private ScriptParameter maxViewsInAlign;
   private ScriptParameter roundsOfTracking;
   
+  private AxisID axisID;
+  
+  public BeadtrackParam(AxisID axisID) {
+    this.axisID = axisID;
+  }
+  
   private void initialize() {
     if (initialized) {
       reset();
     }
     initialized = true;
-    
+
+    HashMap requiredMap = getRequiredMap();
     skipViews = new StringList(SKIP_VIEW_LIST_KEY);
     rotationAngle = new ScriptParameter(EtomoNumber.DOUBLE_TYPE,
-        IMAGE_ROTATION_KEY);
+        IMAGE_ROTATION_KEY, requiredMap);
     additionalViewGroups.setKey(ADDITIONAL_VIEW_GROUPS_KEY);
-    
+
     tiltAngleSpec.setRangeMinKey("FirstTiltAngle", "first");
     tiltAngleSpec.setRangeStepKey("TiltIncrement", "increment");
     tiltAngleSpec.setTiltAngleFilenameKey("TiltFile", "tiltfile");
     tiltAngleSpec.setTiltAnglesKey("TiltAngles", "angles");
-    
+
     tiltDefaultGrouping = new ScriptParameter(EtomoNumber.INTEGER_TYPE,
-        TILT_ANGLE_GROUP_PARAMS_KEY);    
+        TILT_ANGLE_GROUP_PARAMS_KEY, requiredMap);
     magDefaultGrouping = new ScriptParameter(EtomoNumber.INTEGER_TYPE,
-        MAGNIFICATION_GROUP_PARAMS_KEY);
+        MAGNIFICATION_GROUP_PARAMS_KEY, requiredMap);
     minViewsForTiltalign = new ScriptParameter(EtomoNumber.INTEGER_TYPE,
-        N_MIN_VIEWS_KEY);
+        N_MIN_VIEWS_KEY, requiredMap);
     centroidRadius = new ScriptParameter(EtomoNumber.DOUBLE_TYPE,
-        CENTROID_RADIUS_KEY);    
-    lightBeads = new EtomoBoolean2(LIGHT_BEADS_KEY);
-    maxGapSize = new ScriptParameter(EtomoNumber.INTEGER_TYPE, MAX_GAP_KEY);
+        CENTROID_RADIUS_KEY, requiredMap);
+    lightBeads = new EtomoBoolean2(LIGHT_BEADS_KEY, requiredMap);
+    maxGapSize = new ScriptParameter(EtomoNumber.INTEGER_TYPE, MAX_GAP_KEY,
+        requiredMap);
     minTiltRangeToFindAxis = new ScriptParameter(EtomoNumber.DOUBLE_TYPE,
-        MIN_TILT_RANGE_TO_FIND_AXIS_KEY);
+        MIN_TILT_RANGE_TO_FIND_AXIS_KEY, requiredMap);
     minTiltRangeToFindAngles = new ScriptParameter(EtomoNumber.DOUBLE_TYPE,
-        MIN_TILT_RANGE_TO_FIND_ANGLES_KEY);
+        MIN_TILT_RANGE_TO_FIND_ANGLES_KEY, requiredMap);
     maxBeadsToAverage = new ScriptParameter(EtomoNumber.INTEGER_TYPE,
-        MAX_FIDUCIALS_AVG_KEY);
+        MAX_FIDUCIALS_AVG_KEY, requiredMap);
     rescueAttemptParams.setIntegerType(1, false);
     distanceRescueCriterion = new ScriptParameter(EtomoNumber.DOUBLE_TYPE,
-        MIN_RESCUE_DISTANCE_KEY);
+        MIN_RESCUE_DISTANCE_KEY, requiredMap);
     postFitRescueResidual = new ScriptParameter(EtomoNumber.DOUBLE_TYPE,
-        RESIDUAL_DISTANCE_LIMIT_KEY);
+        RESIDUAL_DISTANCE_LIMIT_KEY, requiredMap);
     densityRelaxationPostFit = new ScriptParameter(EtomoNumber.DOUBLE_TYPE,
-        DENSITY_RELAXATION_POST_FIT_KEY);
+        DENSITY_RELAXATION_POST_FIT_KEY, requiredMap);
     maxRescueDistance = new ScriptParameter(EtomoNumber.DOUBLE_TYPE,
-        MAX_RESCUE_DISTANCE_KEY);
+        MAX_RESCUE_DISTANCE_KEY, requiredMap);
     deletionParams.setIntegerType(1, false);
-    
-    localAreaTracking = new EtomoBoolean2(LOCAL_AREA_TRACKING_KEY);
+
+    localAreaTracking = new EtomoBoolean2(LOCAL_AREA_TRACKING_KEY, requiredMap);
     localAreaTracking.setDisplayAsInteger(true);
-    
+
     localAreaTargetSize = new ScriptParameter(EtomoNumber.INTEGER_TYPE,
-        LOCAL_AREA_TARGET_SIZE_KEY);
+        LOCAL_AREA_TARGET_SIZE_KEY, requiredMap);
     minBeadsInArea = new ScriptParameter(EtomoNumber.INTEGER_TYPE,
-        MIN_BEADS_IN_AREA_KEY);
+        MIN_BEADS_IN_AREA_KEY, requiredMap);
     minOverlapBeads = new ScriptParameter(EtomoNumber.INTEGER_TYPE,
-        MIN_OVERLAP_BEADS_KEY);
+        MIN_OVERLAP_BEADS_KEY, requiredMap);
     maxViewsInAlign = new ScriptParameter(EtomoNumber.INTEGER_TYPE,
-        MAX_VIEWS_IN_ALIGN_KEY);
+        MAX_VIEWS_IN_ALIGN_KEY, requiredMap);
     roundsOfTracking = new ScriptParameter(EtomoNumber.INTEGER_TYPE,
-        ROUNDS_OF_TRACKING_KEY);
+        ROUNDS_OF_TRACKING_KEY, requiredMap);
   }
   
   private void reset() {
@@ -269,6 +288,24 @@ public class BeadtrackParam extends OldBeadtrackParam
     minOverlapBeads.reset();
     maxViewsInAlign.reset();
     roundsOfTracking.reset();
+  }
+  
+  private HashMap getRequiredMap() {
+    Autodoc autodoc = null;
+    try {
+      autodoc = Autodoc.get(Autodoc.BEADTRACK, axisID);
+    }
+    catch (FileNotFoundException except) {
+      except.printStackTrace();
+    }
+    catch (IOException except) {
+      except.printStackTrace();
+    }
+    if (autodoc == null) {
+      return null;
+    }
+    return autodoc.getAttributeValues(EtomoAutodoc.FIELD_SECTION_NAME,
+        EtomoAutodoc.REQUIRED_ATTRIBUTE_NAME);
   }
   
   public String getSkipViews() {
