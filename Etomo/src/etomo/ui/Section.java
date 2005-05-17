@@ -18,6 +18,10 @@ import java.util.Iterator;
 * @version $$Revision$$
 *
 * <p> $$Log$
+* <p> $Revision 1.2  2004/01/01 00:46:28  sueh
+* <p> $bug# 372 returning null instead of empty section when
+* <p> $section is not found
+* <p> $
 * <p> $Revision 1.1  2003/12/31 01:30:21  sueh
 * <p> $bug# storage for autodoc sections
 * <p> $$ </p>
@@ -31,7 +35,7 @@ public class Section implements AttributeCollection {
   private Token name = null; //required
   private HashMap attributeMap = null; //optional
   
-  public final static String getKey(Token type, Token name) {
+  final static String getKey(Token type, Token name) {
     if (type == null && name == null) {
       return null;
     }
@@ -44,7 +48,7 @@ public class Section implements AttributeCollection {
     return type.getKey(true) + name.getKey(true);
   }
   
-  public final static String getKey(String type, String name) {
+  final static String getKey(String type, String name) {
     if (type == null && name == null) {
       return null;
     }
@@ -57,7 +61,7 @@ public class Section implements AttributeCollection {
     return Token.getKey(type) + Token.getKey(name);
   }
   
-  public Section(Token type, Token name) {
+  Section(Token type, Token name) {
     key = Section.getKey(type, name);
     this.type = type;
     this.name = name;
@@ -78,18 +82,18 @@ public class Section implements AttributeCollection {
     return existingAttribute;
   }
   
-  public boolean equalsType(String type) {
+  boolean equalsType(String type) {
     if (type == null) {
       return false;
     }
     return this.type.getKey(true).equals(Token.getKey(type));
   }
 
-  public String getKey() {
+  String getKey() {
     return key;
   }
   
-  public String getName() {
+  String getName() {
     return name.getValue(true);
   }
   
@@ -106,7 +110,7 @@ public class Section implements AttributeCollection {
     return attribute;
   }
 
-  public void print() {
+  void print() {
     Token token = null;
     System.out.print("Section: " + key + ":(");
     System.out.print(type.getValue(true));
@@ -122,6 +126,5 @@ public class Section implements AttributeCollection {
         element.print();
       }
     }
-
   }
 }
