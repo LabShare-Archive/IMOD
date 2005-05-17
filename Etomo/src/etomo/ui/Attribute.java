@@ -18,6 +18,10 @@ import java.util.Iterator;
 * @version $$Revision$$
 *
 * <p> $$Log$
+* <p> $Revision 1.3  2005/02/15 19:30:44  sueh
+* <p> $bug# 602 Added getUnformattedValue() and getFormattedValue() to get the
+* <p> $value either ignoring or using the BREAK and INDENT tokens.
+* <p> $
 * <p> $Revision 1.2  2004/01/01 00:42:45  sueh
 * <p> $bug# 372 correcting interface
 * <p> $
@@ -29,27 +33,27 @@ import java.util.Iterator;
 public class Attribute implements AttributeCollection {
   public static final String rcsid = "$$Id$$";
   
-  String key = null; //required
-  Token name = null; //required
-  Token value = null; //optional
-  HashMap attributeMap = null; //optional
+  private String key = null; //required
+  private Token name = null; //required
+  private Token value = null; //optional
+  private HashMap attributeMap = null; //optional
   
   
-  public static String getKey(Token name) {
+  static String getKey(Token name) {
     if (name == null) {
       return null;
     }
     return name.getKey(true);
   }
  
-  public static String getKey(String name) {
+  static String getKey(String name) {
     if (name == null) {
       return null;
     }
     return Token.getKey(name);
   }
  
-  public Attribute(Token name) {
+  Attribute(Token name) {
     this.name = name;
     key = name.getKey(true);
   }
@@ -69,7 +73,7 @@ public class Attribute implements AttributeCollection {
     return existingAttribute;
   }
   
-  public void setValue(Token value) {
+  void setValue(Token value) {
     this.value = value;
   }
 
@@ -82,11 +86,11 @@ public class Attribute implements AttributeCollection {
     return attribute;
   }
 
-  public final void print() {
+  final void print() {
     print(0);
   }
   
-  private final void print(int level) {
+  final void print(int level) {
     Token token = null;
     if (level == 0) {
       System.out.print("Attribute: ");
@@ -119,21 +123,14 @@ public class Attribute implements AttributeCollection {
     }
   }
 
-  public String getKey() {
+  String getKey() {
     return key;
   }
   
-  public String getName() {
+  String getName() {
     return name.getValue(true);
   }
  
-  public String getValue() {
-    if (value == null) {
-      return null;
-    }
-    return value.getValue(true);
-  }
-  
   public String getUnformattedValue() {
     if (value == null) {
       return null;
@@ -155,7 +152,7 @@ public class Attribute implements AttributeCollection {
     return buffer.toString();
   }
   
-  public String getFormattedValue() {
+  String getFormattedValue() {
     if (value == null) {
       return null;
     }
