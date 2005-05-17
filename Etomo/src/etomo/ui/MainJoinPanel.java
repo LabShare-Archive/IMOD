@@ -8,7 +8,7 @@ import etomo.JoinManager;
 import etomo.storage.DataFileFilter;
 import etomo.storage.JoinFileFilter;
 import etomo.type.AxisID;
-import etomo.type.JoinMetaData;
+import etomo.type.BaseMetaData;
 
 /**
 * <p>Description: </p>
@@ -24,6 +24,11 @@ import etomo.type.JoinMetaData;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.6  2005/04/26 17:40:25  sueh
+* <p> bug# 615 Made MainFrame a package-level class.  All MainFrame
+* <p> functionality is handled through UIHarness to make Etomo more
+* <p> compatible with JUnit.
+* <p>
 * <p> Revision 1.5  2005/04/21 20:39:05  sueh
 * <p> bug# 615 Moved two frame code out of newstuff.  Removed
 * <p> isAxisPanelAFitScreenError(), since it is not necessary.
@@ -116,20 +121,14 @@ public class MainJoinPanel extends MainPanel {
   /**
    * Set the status bar with the file name of the data parameter file
    */
-  public void updateDataParameters(File paramFile, JoinMetaData joinMetaData) {
+  public final void setStatusBarText(File paramFile, BaseMetaData metaData) {
     StringBuffer buffer = new StringBuffer();
-    if (joinMetaData == null || !joinMetaData.isValid()) {
-      buffer.append("No data set loaded");
+    if (metaData == null || !metaData.isValid()) {
+      statusBar.setText(buffer.toString());
     }
     else {
-      if (paramFile == null) {
-        buffer.append("Data file: NOT SAVED");
-      }
-      else {
-        buffer.append("Data file: " + paramFile.getAbsolutePath());
-      }
+      super.setStatusBarText(paramFile, metaData);
     }
-    statusBar.setText(buffer.toString());
   }
   
   

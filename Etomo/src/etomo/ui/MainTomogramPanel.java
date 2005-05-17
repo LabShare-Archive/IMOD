@@ -10,7 +10,7 @@ import etomo.storage.DataFileFilter;
 import etomo.storage.EtomoFileFilter;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
-import etomo.type.MetaData;
+import etomo.type.BaseMetaData;
 import etomo.type.ProcessTrack;
 /**
 * <p>Description: </p>
@@ -26,6 +26,11 @@ import etomo.type.ProcessTrack;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.13  2005/04/26 17:40:53  sueh
+* <p> bug# 615 Made MainFrame a package-level class.  All MainFrame
+* <p> functionality is handled through UIHarness to make Etomo more
+* <p> compatible with JUnit.
+* <p>
 * <p> Revision 1.12  2005/04/25 21:10:48  sueh
 * <p> bug# 615 Moved showingSetup to the parent class so it can be queried
 * <p> there.
@@ -305,22 +310,8 @@ public class MainTomogramPanel extends MainPanel {
   /**
    * Set the status bar with the file name of the data parameter file
    */
-  public void updateDataParameters(File paramFile, MetaData metaData) {
-    StringBuffer buffer = new StringBuffer();
-    if (metaData == null) {
-      buffer.append("No data set loaded");
-    }
-    else {
-      if (paramFile == null) {
-        buffer.append("Data file: NOT SAVED");
-      }
-      else {
-        buffer.append("Data file: " + paramFile.getAbsolutePath());
-      }
-      //buffer.append("   Axis type: ");
-      //buffer.append(metaData.getAxisType().toString());
-    }
-    statusBar.setText(buffer.toString());
+  public final void setStatusBarText(File paramFile, BaseMetaData metaData) {
+    super.setStatusBarText(paramFile, metaData);
   }
   
   protected void resetAxisPanels() {
