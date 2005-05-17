@@ -5,6 +5,7 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
+import java.io.File;
 
 import javax.swing.BoxLayout;
 import javax.swing.JLabel;
@@ -16,6 +17,7 @@ import etomo.BaseManager;
 import etomo.storage.DataFileFilter;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
+import etomo.type.BaseMetaData;
 
 /**
  * <p>Description: </p>
@@ -30,6 +32,11 @@ import etomo.type.AxisType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.21  2005/04/26 17:40:36  sueh
+ * <p> bug# 615 Made MainFrame a package-level class.  All MainFrame
+ * <p> functionality is handled through UIHarness to make Etomo more
+ * <p> compatible with JUnit.
+ * <p>
  * <p> Revision 1.20  2005/04/25 21:09:24  sueh
  * <p> bug# 615 Moving message dialog functions from mainPanel to
  * <p> EtomoFrame.
@@ -165,7 +172,10 @@ public abstract class MainPanel extends JPanel {
   public static final String rcsid =
     "$Id$";
 
-  protected JLabel statusBar = new JLabel("No data set loaded");
+  protected static final String STATUS_BAR_EMPTY_TITLE = "No data set loaded";
+  protected static final String STATUS_BAR_BASE_TITLE = "Data file: ";
+  
+  protected JLabel statusBar = new JLabel(STATUS_BAR_EMPTY_TITLE);
 
   protected JPanel panelCenter = new JPanel();
   //private Point previousSubFrameLocation = null;
@@ -234,6 +244,30 @@ public abstract class MainPanel extends JPanel {
   String getStatusBarText() {
     return statusBar.getText();
   }
+  
+  protected void setStatusBarText(File paramFile, BaseMetaData metaData) {
+    int maxTitleLength = 79;
+    if (metaData == null) {
+      statusBar.setText(STATUS_BAR_EMPTY_TITLE);
+    }
+    else {
+      if (paramFile == null) {
+        statusBar.setText(STATUS_BAR_BASE_TITLE + "NOT SAVED");
+      }
+      else {
+        String datasetName = paramFile.getAbsolutePath();
+        if (STATUS_BAR_BASE_TITLE.length() + datasetName.length() > maxTitleLength) {
+          //Shorten the dataset name
+          datasetName = "..."
+              + datasetName.substring(datasetName.length()
+                  - (maxTitleLength - STATUS_BAR_BASE_TITLE.length() - 3));
+        }
+        String title = STATUS_BAR_BASE_TITLE + datasetName;
+        statusBar.setText(title);
+      }
+    }
+  }
+
 
   /**
    * set divider location
