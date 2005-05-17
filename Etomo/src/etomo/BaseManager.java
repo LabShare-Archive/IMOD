@@ -42,6 +42,11 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.14  2005/04/26 17:34:35  sueh
+* <p> bug# 615 Made MainFrame a package-level class.  All MainFrame
+* <p> functionality is handled through UIHarness to make Etomo more
+* <p> compatible with JUnit.  Removing the mainFrame member variable.
+* <p>
 * <p> Revision 1.13  2005/04/25 20:32:08  sueh
 * <p> bug# 615 Passing the axis where the command originated to the message
 * <p> functions so that the message will be popped up in the correct window.
@@ -297,6 +302,9 @@ public abstract class BaseManager {
    * information to a file.
    */
   public void saveTestParamFile(AxisID axisID) {
+    if (paramFile == null) {
+      return;
+    }
     Storable[] storable = new Storable[getNumStorables()];
     storable[0] = getBaseMetaData();
     storable[1] = getBaseState();
@@ -321,7 +329,7 @@ public abstract class BaseManager {
    * @param storable
    */
   private synchronized void save(Storable[] storable, AxisID axisID) {
-    if (storable == null) {
+    if (storable == null || paramFile == null) {
       return;
     }
     backupFile(paramFile, axisID);
@@ -569,7 +577,7 @@ public abstract class BaseManager {
   }
   
   protected void backupFile(File file, AxisID axisID) {
-    if (file.exists()) {
+    if (file != null && file.exists()) {
       File backupFile = new File(file.getAbsolutePath() + "~");
       try {
         Utilities.renameFile(file, backupFile);
