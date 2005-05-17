@@ -13,11 +13,14 @@ package etomo.ui;
 *
 * @version $$Revision$$
 *
-* <p> $$Log$$ </p>
+* <p> $$Log$
+* <p> $Revision 1.1  2004/01/01 00:43:20  sueh
+* <p> $bug# 372 correct interface name, was AttributeInterface
+* <p> $$ </p>
 */
 
-public interface AttributeCollection {
+interface AttributeCollection {
   public static final String rcsid = "$$Id$$";
   
-  public AttributeCollection addAttribute(Token name);
+  AttributeCollection addAttribute(Token name);
 }
