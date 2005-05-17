@@ -1,5 +1,7 @@
 package etomo.type;
 
+import java.util.HashMap;
+
 import etomo.comscript.ComScriptCommand;
 import etomo.comscript.InvalidParameterException;
 
@@ -17,6 +19,14 @@ import etomo.comscript.InvalidParameterException;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.7  2005/05/10 02:42:01  sueh
+* <p> bug# 658 Made EtomoBoolean2 capable of handle any two values.
+* <p> Prevent setting displayAsInteger to false if the instance doesn't have an
+* <p> integer equivalent, such as "true" and "false".  Added setOn() and
+* <p> setOff().  Removed addToScript() because it is confusing and it is only
+* <p> used in one place.  Changed setInScript() to updateComScript().
+* <p> Changed validate() to setInvalidReason().
+* <p>
 * <p> Revision 1.6  2005/03/08 02:00:30  sueh
 * <p> bug# 533 Changed updateAsInteger to more general displayAsInteger.
 * <p>
@@ -64,6 +74,13 @@ public class EtomoBoolean2 extends ScriptParameter {
 
   public EtomoBoolean2(String name) {
     super(EtomoNumber.INTEGER_TYPE, name);
+    setValidValues(new int[] { falseValue, trueValue });
+    setDisplayValue(falseValue);
+    setNullIsValid(false);
+  }
+  
+  public EtomoBoolean2(String name, HashMap requiredMap) {
+    super(EtomoNumber.INTEGER_TYPE, name, requiredMap);
     setValidValues(new int[] { falseValue, trueValue });
     setDisplayValue(falseValue);
     setNullIsValid(false);
