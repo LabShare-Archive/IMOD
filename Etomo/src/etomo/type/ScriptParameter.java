@@ -1,5 +1,7 @@
 package etomo.type;
 
+import java.util.HashMap;
+
 import etomo.comscript.ComScriptCommand;
 import etomo.comscript.InvalidParameterException;
 
@@ -17,6 +19,10 @@ import etomo.comscript.InvalidParameterException;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.4  2005/05/12 01:30:16  sueh
+* <p> bug# 658 Removed setDefault(boolean) because it is not in use.  Added
+* <p> getDefaultDouble().
+* <p>
 * <p> Revision 1.3  2005/05/10 03:08:34  sueh
 * <p> bug# 658 Added shortName, which is used as an alternative to the
 * <p> regular name when searching for the value in a comscript.  Added
@@ -62,6 +68,12 @@ public class ScriptParameter extends EtomoNumber {
      defaultValue = newNumber();
    }
    
+   public ScriptParameter(int type, String name, HashMap requiredMap) {
+     super(type, name);
+     defaultValue = newNumber();
+     setRequired(requiredMap);
+   }
+   
    public ScriptParameter(int type, String name, String shortName) {
      super(type, name);
      this.shortName = shortName;
@@ -80,6 +92,24 @@ public class ScriptParameter extends EtomoNumber {
    
    protected String paramString() {
      return super.paramString() + ",\ndefaultValue=" + defaultValue;
+   }
+   
+   /**
+    * Sets nullIsValid based on requiredMap.  It would be ok to make this
+    * public or override it.
+    * @param requiredMap
+    * @return
+    */
+   private ConstEtomoNumber setRequired(HashMap requiredMap) {
+     if (requiredMap == null) {
+       return this;
+     }
+     EtomoNumber required = new EtomoNumber(EtomoNumber.INTEGER_TYPE);
+     required.set((String) requiredMap.get(name));
+     if (required.equals(EtomoAutodoc.REQUIRED_TRUE_VALUE)) {
+       nullIsValid = false;
+     }
+     return this;
    }
    
 
