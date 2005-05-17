@@ -47,6 +47,10 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.14  2005/04/26 17:36:01  sueh
+* <p> bug# 615 Change the name of the UIHarness member variable to
+* <p> uiHarness.
+* <p>
 * <p> Revision 1.13  2005/04/25 20:34:21  sueh
 * <p> bug# 615 Passing the axis where the command originated to the message
 * <p> functions so that the message will be popped up in the correct window.
@@ -247,7 +251,9 @@ public class JoinManager extends BaseManager {
     super();
     this.metaData = metaData;
     initializeUIParameters(paramFileName, axisID);
-    // Open the etomo data file if one was found on the command line
+    if (!paramFileName.equals("") && loadedTestParamFile) {
+      mainPanel.setStatusBarText(paramFile, metaData);
+    }
     if (!test) {
       openJoinDialog();
       setMode();
@@ -496,7 +502,7 @@ public class JoinManager extends BaseManager {
     imodManager.setMetaData(metaData);
     paramFile = new File(propertyUserDir, metaData.getRootName() + metaData.getFileExtension());
     loadedTestParamFile = true;
-    mainPanel.updateDataParameters(paramFile, metaData);
+    mainPanel.setStatusBarText(paramFile, metaData);
     return true;
   }
   
@@ -802,7 +808,7 @@ public class JoinManager extends BaseManager {
   public void setTestParamFile(File paramFile) {
     this.paramFile = paramFile;
     //  Update main window information and status bar
-    mainPanel.updateDataParameters(paramFile, metaData);
+    mainPanel.setStatusBarText(paramFile, metaData);
   }
   
   protected void updateDialog(ProcessName processName, AxisID axisID) {
