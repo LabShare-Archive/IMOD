@@ -27,6 +27,9 @@ import etomo.type.InvalidEtomoNumberException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.7  2005/05/13 19:11:05  sueh
+ * <p> bug# 658 Moved setEnabled() call to setParameters().
+ * <p>
  * <p> Revision 3.6  2005/05/13 17:46:05  sueh
  * <p> bug# 658 Changed the position of the new fields on the screen.  They
  * <p> follow Max Gap.  Changed the labels of MinTiltRangeToFindAxis and
@@ -498,6 +501,9 @@ public class BeadtrackPanel {
     }
     catch (IOException except) {
       except.printStackTrace();
+    }
+    if (autodoc == null) {
+      return;
     }
     ltfInputImage.setToolTipText(tooltipFormatter.setText(
         EtomoAutodoc.getTooltip(autodoc, BeadtrackParam.INPUT_FILE_KEY))
