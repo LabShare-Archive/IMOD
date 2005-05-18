@@ -47,6 +47,7 @@ public class UIHarness {
   
   private UIHarness() {
   }
+  
   /**
    * Open a message dialog
    * @param message
@@ -54,10 +55,24 @@ public class UIHarness {
    */
   public synchronized void openMessageDialog(String message, String title, AxisID axisID) {
     if (isHead()) {
-      mainFrame.openMessageDialog(message, title, axisID);
+      mainFrame.displayMessage(message, title, axisID);
     }
     else {
       log("openMessageDialog", message, title, axisID);
+    }
+  }
+  
+  /**
+   * Open a message dialog
+   * @param message
+   * @param title
+   */
+  public synchronized void openMessageDialog(String message, String title) {
+    if (isHead()) {
+      mainFrame.displayMessage(message, title);
+    }
+    else {
+      log("openMessageDialog", message, title);
     }
   }
   
@@ -68,7 +83,7 @@ public class UIHarness {
    */
   public synchronized void openMessageDialog(String[] message, String title, AxisID axisID) {
     if (isHead()) {
-      mainFrame.openMessageDialog(message, title, axisID);
+      mainFrame.displayMessage(message, title, axisID);
     }
     else {
       log("openMessageDialog", message, title, axisID);
@@ -77,7 +92,7 @@ public class UIHarness {
   
   public synchronized int openYesNoCancelDialog(String[] message, AxisID axisID) {
     if (isHead()) {
-      return mainFrame.openYesNoCancelDialog(message, axisID);
+      return mainFrame.displayYesNoCancelMessage(message, axisID);
     }
     log("openYesNoCancelDialog", message, axisID);
     return JOptionPane.YES_OPTION;
@@ -85,15 +100,23 @@ public class UIHarness {
   
   public synchronized boolean openYesNoDialog(String message, AxisID axisID) {
     if (isHead()) {
-      return mainFrame.openYesNoDialog(message, axisID);
+      return mainFrame.displayYesNoMessage(message, axisID);
     }
     log("openYesNoDialog", message, axisID);
     return true;
   }
   
+  public synchronized boolean openDeleteDialog(String[] message, AxisID axisID) {
+    if (isHead()) {
+      return mainFrame.displayDeleteMessage(message, axisID);
+    }
+    log("openDeleteDialog", message, axisID);
+    return true;
+  }
+  
   public synchronized boolean openYesNoDialog(String[] message, AxisID axisID) {
     if (isHead()) {
-      return mainFrame.openYesNoDialog(message, axisID);
+      return mainFrame.displayYesNoMessage(message, axisID);
     }
     log("openYesNoDialog", message, axisID);
     return true;
@@ -315,6 +338,17 @@ public class UIHarness {
    * @param title
    * @param axisID
    */
+  private void log(String function, String message, String title) {
+    log(function, message, title, AxisID.ONLY);
+  }
+  
+  /**
+   * Log the parameters in testLog with logWriter.
+   * @param function
+   * @param message
+   * @param title
+   * @param axisID
+   */
   private void log(String function, String message, String title, AxisID axisID) {
     if (logWriter != null) {
       try {
@@ -375,6 +409,9 @@ public class UIHarness {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.5  2005/05/10 03:28:38  sueh
+* <p> bug# 615 Do not create etomo_test.log unless --test is set.
+* <p>
 * <p> Revision 1.4  2005/04/27 02:20:10  sueh
 * <p> bug# 615 Removed createMenus(), since it does not have to be visible.
 * <p> In createMainFrame() make sure that mainFrame cannot be instantiated
