@@ -38,6 +38,17 @@ import etomo.type.AxisID;
  * 
  * <p>
  * $Log$
+ * Revision 3.6  2005/04/25 20:54:42  sueh
+ * bug# 615 Passing the axis where a command originates to the message
+ * functions so that the message will be popped up in the correct window.
+ * This requires adding AxisID to many objects.  Move the interface for
+ * popping up message dialogs to UIHarness.  It prevents headless
+ * exceptions during a test execution.  It also allows logging of dialog
+ * messages during a test.  It also centralizes the dialog interface and
+ * allows the dialog functions to be synchronized to prevent dialogs popping
+ * up in both windows at once.  All Frame functions will use UIHarness as a
+ * public interface.
+ *
  * Revision 3.5  2005/03/30 21:05:24  sueh
  * bug# 621 corrected panel title.
  *
@@ -136,7 +147,8 @@ public class CleanupPanel {
     String datasetName = applicationManager.getMetaData().getDatasetName();
     intermediateFileFilter =
       new IntermediateFileFilter(datasetName);
-    File trimmedTomogram = new File(applicationManager.getPropertyUserDir(), datasetName + ".rec");
+    File trimmedTomogram = new File(applicationManager.getPropertyUserDir(),
+        datasetName + ".rec");
     intermediateFileFilter.setAcceptPretrimmedTomograms(trimmedTomogram.exists());
     backupFileFilter = new BackupFileFilter();
 
@@ -146,11 +158,12 @@ public class CleanupPanel {
     fileChooser.setFileFilter(intermediateFileFilter);
     fileChooser.setMultiSelectionEnabled(true);
     fileChooser.setControlButtonsAreShown(false);
-    fileChooser.setCurrentDirectory(new File(applicationManager.getPropertyUserDir()));
+    fileChooser.setCurrentDirectory(new File(applicationManager
+        .getPropertyUserDir()));
 
     pnlCleanup.setLayout(new BoxLayout(pnlCleanup, BoxLayout.Y_AXIS));
-    pnlCleanup.setBorder(
-      new BeveledBorder("Intermediate File Cleanup").getBorder());
+    pnlCleanup.setBorder(new EtchedBorder("Intermediate File Cleanup")
+        .getBorder());
     instructions.setAlignmentX(Component.CENTER_ALIGNMENT);
     pnlCleanup.add(instructions);
     pnlCleanup.add(Box.createRigidArea(FixedDim.x0_y10));
