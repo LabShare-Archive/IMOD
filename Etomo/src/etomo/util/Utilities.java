@@ -12,6 +12,11 @@
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.12  2005/04/25 21:44:27  sueh
+ * <p> $bug# 615 Passing the axis where a command originates to the message
+ * <p> $functions so that the message will be popped up in the correct window.
+ * <p> $This requires adding AxisID to many objects.
+ * <p> $
  * <p> $Revision 3.11  2004/11/20 00:15:34  sueh
  * <p> $bug# 520 merging Etomo_3-4-6_JOIN branch to head.
  * <p> $
@@ -100,8 +105,8 @@ import java.io.IOException;
 import java.nio.channels.FileChannel;
 
 import etomo.EtomoDirector;
-import etomo.type.ConstMetaData;
 import etomo.type.AxisID;
+import etomo.ui.UIHarness;
 import etomo.process.SystemProgram;
 
 public class Utilities {
@@ -132,15 +137,40 @@ public class Utilities {
    * @param axisID
    * @return true if the file exist
    */
-  static public boolean fileExists(ConstMetaData metaData, String extension,
-      AxisID axisID) {
-    String workingDirectory = EtomoDirector.getInstance().getCurrentPropertyUserDir();
-    File file = new File(workingDirectory, metaData.getDatasetName()
+  public static boolean fileExists(String extension, AxisID axisID) {
+    EtomoDirector director = EtomoDirector.getInstance();
+    String workingDirectory = director.getCurrentPropertyUserDir();
+    File file = new File(workingDirectory, director.getCurrentMetaData()
+        .getName()
         + axisID.getExtension() + extension);
     if (file.exists()) {
       return true;
     }
     return false;
+  }
+  
+  /**
+   * Creates a file name and a file.  If the file doesn't exist and mustExist is
+   * true, it complains and returns null, otherwise it returns the file.
+   * @param mustExist
+   * @param axisID
+   * @param extension
+   * @param fileType A string used in the error dialog
+   * @return
+   */
+  public static File getFile(boolean mustExist, AxisID axisID, String extension,
+      String fileDescription) {
+    EtomoDirector director = EtomoDirector.getInstance();
+    String filename = director.getCurrentPropertyUserDir() + File.separator
+        + director.getCurrentMetaData().getName() + axisID.getExtension()
+        + extension;
+    File file = new File(filename);
+    if (!file.exists() && mustExist) {
+      UIHarness.INSTANCE.openMessageDialog("The " + fileDescription
+          + " file doesn't exist.", "Missing " + fileDescription, axisID);
+      return null;
+    }
+    return file;
   }
 
 	/**
