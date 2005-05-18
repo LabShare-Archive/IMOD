@@ -12,6 +12,9 @@
 * @version $Revision$
 *
 * <p> $Log$
+* <p> Revision 3.3  2004/11/19 23:48:32  sueh
+* <p> *** empty log message ***
+* <p>
 * <p> Revision 3.2.2.1  2004/09/17 21:34:38  sueh
 * <p> bug# 520 the get ui functions are needed by non-buttons, so move then
 * <p> to UIUtilities.
@@ -48,6 +51,9 @@ public class ButtonHelper {
   public static final String rcsid = "$$Id$$";
 
   public static String format(String text) {
+    if (text == null) {
+      return null;
+    }
     if (text.toLowerCase().startsWith("<html>")) {
       return text;
     }
