@@ -42,6 +42,12 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.15  2005/05/17 19:08:40  sueh
+* <p> bug# 520 Fixed some recently introduced bugs in join.  We are saving to
+* <p> .ejf file more often.  When the first section is needs to be flipped, the
+* <p> join manager isn't ready to flip, because the paramFile isn't set.  So don't
+* <p> both to save in this situation.
+* <p>
 * <p> Revision 1.14  2005/04/26 17:34:35  sueh
 * <p> bug# 615 Made MainFrame a package-level class.  All MainFrame
 * <p> functionality is handled through UIHarness to make Etomo more
@@ -214,8 +220,8 @@ public abstract class BaseManager {
   protected String homeDirectory;
   // Control variable for process execution
   // FIXME: this going to need to expand to handle both axis
-  protected String nextProcessA = "";
-  protected String nextProcessB = "";
+  private String nextProcessA = "";
+  private String nextProcessB = "";
 
   protected String threadNameA = "none";
 
@@ -601,22 +607,36 @@ public abstract class BaseManager {
   }
   
   /**
+   * Stop progress bar and start next process.
+   * @param threadName
+   * @param exitValue
+   * @param processName
+   * @param axisID
+   */
+  public void processDone(String threadName, int exitValue,
+      ProcessName processName, AxisID axisID) {
+    processDone(threadName, exitValue, processName, axisID, false);
+  }
+  
+  /**
    * Notification message that a background process is done.
    * 
    * @param threadName
    *            The name of the thread that has finished
    */
   public void processDone(String threadName, int exitValue,
-    ProcessName processName, AxisID axisID) {
+    ProcessName processName, AxisID axisID, boolean forceNextProcess) {
     if (threadName.equals(threadNameA)) {
       getMainPanel().stopProgressBar(AxisID.FIRST);
       threadNameA = "none";
       backgroundProcessA = false;
       backgroundProcessNameA = null;
+      axisID = AxisID.FIRST;
     }
     else if (threadName.equals(threadNameB)) {
       getMainPanel().stopProgressBar(AxisID.SECOND);
       threadNameB = "none";
+      axisID = AxisID.SECOND;
     }
     else {
       uiHarness.openMessageDialog("Unknown thread finished!!!", "Thread name: "
@@ -627,7 +647,7 @@ public abstract class BaseManager {
     }
     //  Start the next process if one exists and the exit value was equal zero
     if (isNextProcessSet(axisID)) {
-      if (exitValue == 0) {
+      if (exitValue == 0 || forceNextProcess) {
         startNextProcess(axisID);
       }
       else {
