@@ -20,6 +20,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.65  2005/05/10 17:33:03  sueh
+ * bug# 660 Popping up warnings from setup combine.
+ *
  * Revision 3.64  2005/05/10 16:58:12  sueh
  * bug# 660 Popping up warnings from copytomocoms.
  *
@@ -646,6 +649,7 @@ import etomo.ui.TextPageWindow;
 import etomo.ui.UIHarness;
 import etomo.util.InvalidParameterException;
 import etomo.util.Utilities;
+import etomo.comscript.ArchiveorigParam;
 import etomo.comscript.BlendmontParam;
 import etomo.comscript.CombineComscriptState;
 import etomo.comscript.Command;
@@ -936,7 +940,7 @@ public class ProcessManager extends BaseProcessManager {
     File tltxf = new File(workingDirectory, axisDataset + ".tltxf");
     if (tltxf.exists()) {
       // Align{|a|b}.com shows evidence of being run
-      if (Utilities.fileExists(appManager.getMetaData(), "_fid.xf", axisID)) {
+      if (Utilities.fileExists("_fid.xf", axisID)) {
         // A recent align.com (or equivalent) has created the _fid.xf and
         // _fid.tlt (protected) transform and tilt files 
         Utilities.copyFile(fidXF, xf);
@@ -1065,7 +1069,7 @@ public class ProcessManager extends BaseProcessManager {
     return comScriptProcess.getName();
 
   }
-
+  
   /**
    * Generate the split align log file for the given axis ID
    * 
@@ -1093,12 +1097,12 @@ public class ProcessManager extends BaseProcessManager {
     String axisDataset = getDatasetName() + axisID.getExtension();
 
     try {
-      if (Utilities.fileExists(appManager.getMetaData(), ".xf", axisID)) {
+      if (Utilities.fileExists(".xf", axisID)) {
         File xf = new File(workingDirectory, axisDataset + ".xf");
         File fidXF = new File(workingDirectory, axisDataset + "_fid.xf");
         Utilities.copyFile(xf, fidXF);
       }
-      if (Utilities.fileExists(appManager.getMetaData(), ".tlt", axisID)) {
+      if (Utilities.fileExists(".tlt", axisID)) {
         File tlt = new File(workingDirectory, axisDataset + ".tlt");
         File fidTlt = new File(workingDirectory, axisDataset + "_fid.tlt");
         Utilities.copyFile(tlt, fidTlt);
@@ -1397,6 +1401,16 @@ public class ProcessManager extends BaseProcessManager {
   }
   
   /**
+   * Run archiveorig
+   */
+  public String archiveOrig(ArchiveorigParam param)
+      throws SystemProcessException {
+    BackgroundProcess backgroundProcess = startBackgroundProcess(param,
+        AxisID.ONLY, true);
+    return backgroundProcess.getName();
+  }
+  
+  /**
    * Run squeezevol
    */
   public String squeezeVolume(ConstSqueezevolParam squeezevolParam)
@@ -1560,6 +1574,9 @@ public class ProcessManager extends BaseProcessManager {
       }
       else if (commandName.equals(SqueezevolParam.getName())) {
         appManager.getState().setSqueezevolFlipped(command.getBooleanValue(SqueezevolParam.GET_FLIPPED));
+      }
+      else if (commandName.equals(ArchiveorigParam.COMMAND_NAME)) {
+        appManager.deleteOriginalStack(command, process.getStdOutput());
       }
     }
   }
