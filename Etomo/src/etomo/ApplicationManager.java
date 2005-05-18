@@ -6,6 +6,8 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+
+import etomo.comscript.ArchiveorigParam;
 import etomo.comscript.BadComScriptException;
 import etomo.comscript.BeadtrackParam;
 import etomo.comscript.BlendmontParam;
@@ -13,6 +15,7 @@ import etomo.comscript.CCDEraserParam;
 import etomo.comscript.ComScriptManager;
 import etomo.comscript.CombineComscriptState;
 import etomo.comscript.CombineParams;
+import etomo.comscript.Command;
 import etomo.comscript.ConstCombineParams;
 import etomo.comscript.ConstNewstParam;
 import etomo.comscript.ConstSetParam;
@@ -99,6 +102,9 @@ import etomo.util.Utilities;
  * 
  *
  * <p> $Log$
+ * <p> Revision 3.148  2005/05/17 19:02:38  sueh
+ * <p> bug# 663 Changed updateDataParameter() to setStatusBarText().
+ * <p>
  * <p> Revision 3.147  2005/05/09 21:32:36  sueh
  * <p> bug# 658 In updateTrackCom() printing stack trace when there is an
  * <p> exception.
@@ -1862,7 +1868,7 @@ public class ApplicationManager extends BaseManager {
    * Open 3dmod to view the erased stack
    */
   public void imodErasedStack(AxisID axisID) {
-    if (getFile(true, axisID, "_fixed.st", "erased stack") == null) {
+    if (Utilities.getFile(true, axisID, "_fixed.st", "erased stack") == null) {
       return;
     }
     try {
@@ -1882,32 +1888,122 @@ public class ApplicationManager extends BaseManager {
         "Problem opening erased stack", axisID);
     }
   }
-
+  
+  public void archiveOriginalStack() {
+    archiveOriginalStack(null);
+  }
+  
   /**
-   * Creates a file name and a file.  If the file doesn't exist and mustExist is
-   * true, it complains and returns null, otherwise it returns the file.
-   * @param mustExist
+   * Archive the orginal stacks during clean up.
    * @param axisID
-   * @param extension
-   * @param fileType A string used in the error dialog
-   * @return
    */
-  protected File getFile(
-    boolean mustExist,
-    AxisID axisID,
-    String extension,
-    String fileDescription) {
-    String filename = propertyUserDir + File.separator
-      + metaData.getDatasetName() + axisID.getExtension() + extension;
-    File file = new File(filename);
-    if (!file.exists() && mustExist) {
-      uiHarness.openMessageDialog(
-        "The " + fileDescription + " doesn't exist.  Create the "
-         + fileDescription + " first",
-      fileDescription + " missing", axisID);
-      return null;
+  private void archiveOriginalStack(AxisID currentAxisID) {
+    //figure out which original stack to archive
+    AxisID stackAxisID = currentAxisID;
+    if (stackAxisID == null) {
+      if (metaData.getAxisType() == AxisType.DUAL_AXIS) {
+        stackAxisID = AxisID.FIRST;
+      }
+      else {
+        stackAxisID = AxisID.ONLY;
+      }
     }
-    return file;
+    //set next process to archiveorig so that the second axis can be done
+    if (stackAxisID == AxisID.FIRST) {
+      setNextProcess(AxisID.ONLY, ArchiveorigParam.COMMAND_NAME);
+    }
+    else {
+      resetNextProcess(AxisID.ONLY);
+    }
+    //check for original stack
+    File originalStack = Utilities.getFile(false, stackAxisID, "_orig.st",
+        "original stack");
+    if (!originalStack.exists()) {
+      if (stackAxisID == AxisID.FIRST) {
+        //Nothing to do on the first axis, so move on to the second axis
+        startNextProcess(AxisID.ONLY);
+        return;
+      }
+      else {
+        return;
+      }
+    }
+    //set progress bar and process state
+    mainPanel.startProgressBar("Archiving " + stackAxisID + " stack",
+        AxisID.ONLY);
+    processTrack.setPostProcessingState(ProcessState.INPROGRESS);
+    mainPanel.setPostProcessingState(ProcessState.INPROGRESS);
+    //create param
+    ArchiveorigParam param = new ArchiveorigParam(stackAxisID);
+    //run process
+    try {
+      setThreadName(processMgr.archiveOrig(param), AxisID.ONLY);
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Can not execute " + ArchiveorigParam.COMMAND_NAME
+          + " command";
+      message[1] = e.getMessage();
+      uiHarness.openMessageDialog(message, "Unable to execute command",
+          AxisID.ONLY);
+    }
+  }
+  
+  public void deleteOriginalStack(Command archiveorigParam, String[] output) {
+    AxisID axisID;
+    int mode = archiveorigParam.getCommandMode();
+    if (mode == ArchiveorigParam.AXIS_A_MODE) {
+      axisID = AxisID.FIRST;
+    }
+    else if (mode == ArchiveorigParam.AXIS_B_MODE) {
+      axisID = AxisID.SECOND;
+    }
+    else if (mode == ArchiveorigParam.AXIS_ONLY_MODE) {
+      axisID = AxisID.ONLY;
+    }
+    else {
+      return;
+    }
+    File originalStack = Utilities.getFile(false, axisID, "_orig.st", "");
+    //This function is only run is archiveorig succeeds so this "if" statement
+    //should always fail.
+    if (!originalStack.exists()
+        || output == null
+        || output.length != 6
+        || !output[4].equals("It is now safe to delete "
+            + originalStack.getName())) {
+      throw new IllegalStateException(
+          "Unexpected result from running archiveorig" + output.toString());
+    }
+    String[] message = new String[output.length - 2 + 3];
+    message[0] = "Result of " + archiveorigParam.getCommandLine() + ":\n";
+    int messageIndex = 1;
+    for (int i = 2; i < output.length; i++) {
+      message[messageIndex++] = output[i] + "\n";
+    }
+    message[messageIndex++] = "\n";
+    message[messageIndex] = "Delete " + originalStack.getAbsolutePath() + "?";
+    if (uiHarness.openDeleteDialog(message, AxisID.ONLY)) {
+      System.err.println("Deleting " + originalStack.getAbsolutePath());
+      originalStack.delete();
+      if (cleanUpDialog != null) {
+        cleanUpDialog.setArchiveFields();
+      }
+    }
+  }
+  
+  public String getArchiveInfo(AxisID axisID) {
+    File stack = Utilities.getFile(false, axisID, ".st", "");
+    File originalStack = Utilities.getFile(false, axisID, "_orig.st", "");
+    File xrayArchive = Utilities.getFile(false, axisID, "_xray.st.gz", "");
+    if (stack == null && originalStack == null || xrayArchive == null) {
+      throw new IllegalStateException("Unable to get file information");
+    }
+    if (stack.exists() && !originalStack.exists() && xrayArchive.exists()) {
+      return stack.getName();
+    }
+    return null;
   }
   
   /**
@@ -1923,7 +2019,7 @@ public class ApplicationManager extends BaseManager {
     String rawStackRename = propertyUserDir + File.separator
     + metaData.getDatasetName() + axisID.getExtension() + "_orig.st";
     File rawRename = new File(rawStackRename);
-    File fixedStack = getFile(true, axisID, "_fixed.st", "erased stack");
+    File fixedStack = Utilities.getFile(true, axisID, "_fixed.st", "erased stack");
     if (fixedStack == null) {
       return;
     }
@@ -1958,6 +2054,9 @@ public class ApplicationManager extends BaseManager {
     catch (SystemProcessException e) {
       e.printStackTrace();
       System.err.println("System process exception in replaceRawStack");
+    }
+    if (cleanUpDialog != null) {
+      cleanUpDialog.setArchiveFields();
     }
     mainPanel.stopProgressBar(axisID);
   }
@@ -3180,7 +3279,7 @@ public class ApplicationManager extends BaseManager {
       fiducialModelDialog = fiducialModelDialogA;
     }
     if (destAxisID != AxisID.ONLY
-      && !Utilities.fileExists(metaData, "fid.xyz", (destAxisID == AxisID.FIRST
+      && !Utilities.fileExists("fid.xyz", (destAxisID == AxisID.FIRST
         ? AxisID.SECOND
         : AxisID.FIRST))) {
       uiHarness.openMessageDialog(
@@ -5970,9 +6069,12 @@ public class ApplicationManager extends BaseManager {
       }
       return;
     }*/
-    if (getNextProcess(axisID).equals("checkUpdateFiducialModel")) {
+    else if (getNextProcess(axisID).equals("checkUpdateFiducialModel")) {
       checkUpdateFiducialModel(axisID);
       return;
+    }
+    else if (getNextProcess(axisID).equals(ArchiveorigParam.COMMAND_NAME)) {
+      archiveOriginalStack(AxisID.SECOND);
     }
   }
 
@@ -5996,15 +6098,15 @@ public class ApplicationManager extends BaseManager {
     if (dialog == null || axisID == AxisID.ONLY) {
       return;
     }
-    boolean prealisExist = Utilities.fileExists(metaData, ".preali",
+    boolean prealisExist = Utilities.fileExists(".preali",
       AxisID.FIRST)
-      && Utilities.fileExists(metaData, ".preali", AxisID.SECOND);
+      && Utilities.fileExists(".preali", AxisID.SECOND);
     boolean fidExists = false;
     if (axisID == AxisID.FIRST) {
-      fidExists = Utilities.fileExists(metaData, ".fid", AxisID.SECOND);
+      fidExists = Utilities.fileExists(".fid", AxisID.SECOND);
     }
     else {
-      fidExists = Utilities.fileExists(metaData, ".fid", AxisID.FIRST);
+      fidExists = Utilities.fileExists(".fid", AxisID.FIRST);
     }
     dialog.setTransferfidEnabled(prealisExist && fidExists);
     dialog.updateEnabled();
@@ -6014,7 +6116,7 @@ public class ApplicationManager extends BaseManager {
     if (dialog == null) {
       return;
     }
-    dialog.updateFilter(Utilities.fileExists(metaData, ".ali", axisID));
+    dialog.updateFilter(Utilities.fileExists(".ali", axisID));
   }
 
   /**
@@ -6026,6 +6128,9 @@ public class ApplicationManager extends BaseManager {
    *            The axis of the thread to be mapped
    */
   private void setThreadName(String name, AxisID axisID) {
+    if (name == null) {
+      name = "none";
+    }
     if (axisID == AxisID.SECOND) {
       threadNameB = name;
     }
