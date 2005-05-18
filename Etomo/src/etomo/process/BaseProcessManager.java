@@ -26,6 +26,10 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.11  2005/04/26 17:36:26  sueh
+* <p> bug# 615 Change the name of the UIHarness member variable to
+* <p> uiHarness.
+* <p>
 * <p> Revision 1.10  2005/04/25 20:44:28  sueh
 * <p> bug# 615 Passing the axis where a command originates to the message
 * <p> functions so that the message will be popped up in the correct window.
@@ -694,6 +698,15 @@ public abstract class BaseProcessManager {
     return startBackgroundProcess(backgroundProcess, command.getCommandLine(),
         axisID);
   }
+  
+  protected BackgroundProcess startBackgroundProcess(Command command,
+      AxisID axisID, boolean forceNextProcess) throws SystemProcessException {
+    isAxisBusy(axisID);
+    BackgroundProcess backgroundProcess = new BackgroundProcess(command, this,
+        axisID, forceNextProcess);
+    return startBackgroundProcess(backgroundProcess, command.getCommandLine(),
+        axisID);
+  }
 
   private BackgroundProcess startBackgroundProcess(
       BackgroundProcess backgroundProcess, String commandLine, AxisID axisID)
@@ -837,7 +850,8 @@ public abstract class BaseProcessManager {
     }
 
     //  Inform the app manager that this process is complete
-    getManager().processDone(process.getName(), exitValue, null, null);
+    getManager().processDone(process.getName(), exitValue, null, null,
+        process.isForceNextProcess());
   }
   
   public void msgInteractiveSystemProgramDone(InteractiveSystemProgram program, int exitValue) {

@@ -17,6 +17,11 @@ import etomo.type.AxisID;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.6  2005/04/25 20:43:03  sueh
+ * <p> bug# 615 Passing the axis where a command originates to the message
+ * <p> functions so that the message will be popped up in the correct window.
+ * <p> This requires adding AxisID to many objects.
+ * <p>
  * <p> Revision 3.5  2005/01/08 01:47:14  sueh
  * <p> bug# 578 Removed getMode().  Use getCommand().getCommandMode().
  * <p>
@@ -114,6 +119,7 @@ public class BackgroundProcess
   private File outputFile = null;
   private Command command = null;
   private AxisID axisID;
+  private boolean forceNextProcess = false;
   
   private String stdoutLogFile = "";
   private String stderrLogFile = "";
@@ -134,6 +140,17 @@ public class BackgroundProcess
     this.commandArray = command.getCommandArray();
     this.commandLine = command.getCommandLine().trim();
     this.processManager = processManager;
+    commandProcessID = new StringBuffer("");
+  }
+  
+  public BackgroundProcess(Command command, BaseProcessManager processManager,
+      AxisID axisID, boolean forceNextProcess) {
+    this.axisID = axisID;
+    this.command = command;
+    this.commandArray = command.getCommandArray();
+    this.commandLine = command.getCommandLine().trim();
+    this.processManager = processManager;
+    this.forceNextProcess = forceNextProcess;
     commandProcessID = new StringBuffer("");
   }
   
@@ -162,6 +179,10 @@ public class BackgroundProcess
    */
   public boolean isDebug() {
     return debug;
+  }
+  
+  boolean isForceNextProcess() {
+    return forceNextProcess;
   }
 
   /**
@@ -205,12 +226,12 @@ public class BackgroundProcess
     if (command != null) {
       return command.getCommandName();
     }
+    if (commandArray != null) {
+      return commandArray[0];
+    }
     if (commandLine != null) {
       String[] words = commandLine.split("\\s");
       return words[0];
-    }
-    if (commandArray != null) {
-      return commandArray[0];
     }
     return null;
   }
