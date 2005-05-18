@@ -259,7 +259,7 @@ abstract class EtomoFrame extends JFrame {
    * @param message
    * @param title
    */
-  void openMessageDialog(String message, String title, AxisID axisID) {
+  void displayMessage(String message, String title, AxisID axisID) {
     getFrame(axisID).openMessageDialog(message, title);
   }
   
@@ -268,19 +268,32 @@ abstract class EtomoFrame extends JFrame {
    * @param message
    * @param title
    */
-  void openMessageDialog(String[] message, String title, AxisID axisID) {
+  void displayMessage(String message, String title) {
+    getFrame(AxisID.ONLY).openMessageDialog(message, title);
+  }
+  
+  /**
+   * Open a message dialog
+   * @param message
+   * @param title
+   */
+  void displayMessage(String[] message, String title, AxisID axisID) {
     getFrame(axisID).openMessageDialog(message, title);
   }
   
-  int openYesNoCancelDialog(String[] message, AxisID axisID) {
+  int displayYesNoCancelMessage(String[] message, AxisID axisID) {
     return getFrame(axisID).openYesNoCancelDialog(message);
   }
   
-  boolean openYesNoDialog(String message, AxisID axisID) {
+  boolean displayYesNoMessage(String message, AxisID axisID) {
     return getFrame(axisID).openYesNoDialog(message);
   }
   
-  boolean openYesNoDialog(String[] message, AxisID axisID) {
+  boolean displayDeleteMessage(String message[], AxisID axisID) {
+    return getFrame(axisID).openDeleteDialog(message);
+  }
+  
+  boolean displayYesNoMessage(String[] message, AxisID axisID) {
     return getFrame(axisID).openYesNoDialog(message);
   }
 
@@ -324,6 +337,19 @@ abstract class EtomoFrame extends JFrame {
     int result = JOptionPane.showConfirmDialog(this, wrap(message), "Etomo question",
         JOptionPane.YES_NO_OPTION);
     return result == JOptionPane.YES_OPTION;
+  }
+  
+  /**
+   * Open a Yes or No question dialog
+   * @param message
+   * @return
+   */
+  private boolean openDeleteDialog(String[] message) {
+    String[] results = new String[] { "Delete", "No" };
+    int result = JOptionPane.showOptionDialog(this, wrap(message),
+        "Delete File?", JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE,
+        null, results, null);
+    return result == 0;
   }
   
   /**
@@ -386,6 +412,10 @@ abstract class EtomoFrame extends JFrame {
       if (messageArray.size() == 0) {
         messageArray.add(" ");
       }
+      return messageArray;
+    }
+    if (messagePiece.equals("\n")) {
+      messageArray.add(" ");
       return messageArray;
     }
     //first - break up the message piece by line
@@ -561,6 +591,11 @@ abstract class EtomoFrame extends JFrame {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.6  2005/05/10 17:01:41  sueh
+* <p> bug# 660 Fixed wrap(String, ArrayList).  It now breaks up message
+* <p> strings by "\n" before breaking them up because they are too long.  This
+* <p> prevents unnecessary wrapping.
+* <p>
 * <p> Revision 1.5  2005/04/27 02:14:42  sueh
 * <p> bug# 615 Drop createMenus() to private, since it is no longer used by
 * <p> EtomoDirector.  Increase the level of getOtherFrame() to protected, since
