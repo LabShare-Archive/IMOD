@@ -1,12 +1,16 @@
 package etomo.ui;
 
+import java.awt.Component;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 
 import javax.swing.BoxLayout;
+import javax.swing.JLabel;
 
 import etomo.ApplicationManager;
 import etomo.type.AxisID;
+import etomo.type.AxisType;
 import etomo.type.DialogType;
 
 /**
@@ -26,14 +30,41 @@ public class CleanUpDialog extends ProcessDialog implements ContextMenu {
   public static  final String  rcsid =  "$Id$";
   
   private CleanupPanel cleanupPanel;
+  private MultiLineToggleButton btnArchiveStack = new MultiLineToggleButton();
+  private JLabel archiveInfoA = new JLabel();
+  private JLabel archiveInfoB = new JLabel();
+  
+  private AxisType axisType;
   
   public CleanUpDialog(ApplicationManager appMgr) {
     super(appMgr, AxisID.ONLY, DialogType.CLEAN_UP);
+    this.axisType = appMgr.getBaseMetaData().getAxisType();
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
+    rootPanel.setBorder(new BeveledBorder("Clean Up").getBorder());
+    String stackFileName;
+    //Add archive original stack button
+    if (axisType == AxisType.DUAL_AXIS) {
+      btnArchiveStack.setText("Archive Original Stacks");
+    }
+    else {
+      btnArchiveStack.setText("Archive Original Stack");
+      archiveInfoB.setVisible(false);
+    }
+    setArchiveFields();
+    ButtonActionListener listener = new ButtonActionListener(this);
+    btnArchiveStack.addActionListener(listener);
+    btnArchiveStack.setAlignmentX(Component.CENTER_ALIGNMENT);
+    UIUtilities.setButtonSize(btnArchiveStack, UIParameters
+        .getButtonDimension());
+    archiveInfoA.setAlignmentX(Component.CENTER_ALIGNMENT);
+    archiveInfoB.setAlignmentX(Component.CENTER_ALIGNMENT);
+    rootPanel.add(btnArchiveStack);
+    rootPanel.add(archiveInfoA);
+    rootPanel.add(archiveInfoB);
+
     cleanupPanel = new CleanupPanel(applicationManager);
     rootPanel.add(cleanupPanel.getContainer());
     addExitButtons();
-    
     btnAdvanced.setVisible(false);
     btnExecute.setText("Done");
 
@@ -43,7 +74,47 @@ public class CleanUpDialog extends ProcessDialog implements ContextMenu {
     rootPanel.addMouseListener(mouseAdapter);
 
     // Set the default advanced dialog state
+    setToolTipText();
     updateAdvanced();
+  }
+  
+  /**
+   * Set the status of the archive information labels.
+   */
+  public void setArchiveFields() {
+    String archiveInfoText = "To restore original stack, run:  archiveorig -r ";
+    String stackFileName;
+    //if archiveorig has been run, put information about restoring the
+    //originals on the screen.
+    if (axisType == AxisType.DUAL_AXIS) {
+      stackFileName = applicationManager.getArchiveInfo(AxisID.FIRST);
+      if (stackFileName != null) {
+        archiveInfoA.setText(archiveInfoText + stackFileName);
+        archiveInfoA.setVisible(true);
+      }
+      else {
+        archiveInfoA.setVisible(false);
+      }
+      stackFileName = applicationManager.getArchiveInfo(AxisID.SECOND);
+      if (stackFileName != null) {
+        archiveInfoB.setText(archiveInfoText + stackFileName);
+        archiveInfoB.setVisible(true);
+      }
+      else {
+        archiveInfoB.setVisible(false);
+      }
+    }
+    else {
+      stackFileName = applicationManager.getArchiveInfo(AxisID.ONLY);
+      if (stackFileName != null) {
+        archiveInfoA.setText("To restore original stack run:  archiveorig -r "
+            + stackFileName);
+        archiveInfoA.setVisible(true);
+      }
+      else {
+        archiveInfoA.setVisible(false);
+      }
+    }
   }
 
   /**
@@ -77,10 +148,52 @@ public class CleanUpDialog extends ProcessDialog implements ContextMenu {
     super.buttonExecuteAction(event);
     applicationManager.doneCleanUp();
   }
+  
+  private void buttonAction(ActionEvent event) {
+    String command = event.getActionCommand();
+    if (command.equals(btnArchiveStack.getText())) {
+      applicationManager.archiveOriginalStack();
+    }
+  }
+  
+  /**
+   * Initialize the tooltip text
+   */
+   private void setToolTipText() {
+     String text;
+     TooltipFormatter tooltipFormatter = new TooltipFormatter();
+
+     text = "Run archiveorig.  Archiveorig creates a _xray.st.gz file, which" +
+         " contains the difference between the .st file and the _orig.st " +
+         " file.  If archiveorig succeeds, then you can delete the _orig.st " +
+         "file.  To restore _orig.st, go to the directory containing the " +
+         "_xray.st.gz file and run \"archiveorig -r\" on the .st file.";
+     btnArchiveStack.setToolTipText(tooltipFormatter.setText(text).format());
+   }
+  
+  /*
+   *  
+   */
+  private class ButtonActionListener implements ActionListener {
+    CleanUpDialog adaptee;
+
+    ButtonActionListener(CleanUpDialog cleanUpDialog) {
+      adaptee = cleanUpDialog;
+    }
+
+    public void actionPerformed(ActionEvent event) {
+      adaptee.buttonAction(event);
+    }
+  }
+
 
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.3  2005/04/21 20:31:35  sueh
+ * <p> bug# 615 Pass axisID to packMainWindow so it can pack only the frame
+ * <p> that requires it.
+ * <p>
  * <p> Revision 1.2  2005/04/16 01:53:59  sueh
  * <p> bug# 615 Moved the adding of exit buttons to the base class.
  * <p>
