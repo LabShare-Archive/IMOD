@@ -1,9 +1,12 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/17/05: Fixed alignlog output of surface analysis when program is run with
+PIP input.
+
 5/13/05: IMOD_3-6-4
-5/13/05: Transitioned track.com to PIP.  Added new fields to Etomo:  Local
-Tracking, Local area size, Minimum beads in area, Minimum beads overlapping, and
-Max. # views to include in align.
+5/13/05: Transitioned track.com to PIP input.  Added new fields to Etomo: Local
+Tracking, Local area size, Minimum beads in area, Minimum beads overlapping, 
+and Max. # views to include in align.
 
 5/13/05: Switched master align.com to have tilt angles grouped by default, to
 avoid bad behavior without grouping near zero tilt.
