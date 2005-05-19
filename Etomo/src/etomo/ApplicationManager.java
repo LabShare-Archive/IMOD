@@ -47,6 +47,7 @@ import etomo.process.SystemProcessException;
 import etomo.storage.EtomoFileFilter;
 import etomo.storage.ParameterStore;
 import etomo.storage.Storable;
+import etomo.storage.XrayStackArchiveFilter;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.AxisTypeException;
@@ -56,6 +57,7 @@ import etomo.type.BaseState;
 import etomo.type.ConstMetaData;
 import etomo.type.DialogExitState;
 import etomo.type.DialogType;
+import etomo.type.EtomoNumber;
 import etomo.type.EtomoState;
 import etomo.type.FiducialMatch;
 import etomo.type.InvalidEtomoNumberException;
@@ -102,6 +104,13 @@ import etomo.util.Utilities;
  * 
  *
  * <p> $Log$
+ * <p> Revision 3.149  2005/05/18 22:26:26  sueh
+ * <p> bug# 662 Added functions to archive original stack:
+ * <p> archiveOriginalStack, deleteOriginalStack, and getArchiveInfo.  Also
+ * <p> modified replaceRawStack() to refresh the archive display in the Clean Up
+ * <p> dialog.  Added an archiveorig option to startNextProcess() to get the
+ * <p> second axis.
+ * <p>
  * <p> Revision 3.148  2005/05/17 19:02:38  sueh
  * <p> bug# 663 Changed updateDataParameter() to setStatusBarText().
  * <p>
@@ -1931,8 +1940,8 @@ public class ApplicationManager extends BaseManager {
     //set progress bar and process state
     mainPanel.startProgressBar("Archiving " + stackAxisID + " stack",
         AxisID.ONLY);
-    processTrack.setPostProcessingState(ProcessState.INPROGRESS);
-    mainPanel.setPostProcessingState(ProcessState.INPROGRESS);
+    processTrack.setCleanUpState(ProcessState.INPROGRESS);
+    mainPanel.setCleanUpState(ProcessState.INPROGRESS);
     //create param
     ArchiveorigParam param = new ArchiveorigParam(stackAxisID);
     //run process
@@ -1996,11 +2005,11 @@ public class ApplicationManager extends BaseManager {
   public String getArchiveInfo(AxisID axisID) {
     File stack = Utilities.getFile(false, axisID, ".st", "");
     File originalStack = Utilities.getFile(false, axisID, "_orig.st", "");
-    File xrayArchive = Utilities.getFile(false, axisID, "_xray.st.gz", "");
-    if (stack == null && originalStack == null || xrayArchive == null) {
+    File xrayStack = Utilities.getFile(false, axisID, "_xray.st.gz", "");
+    if (stack == null && originalStack == null || xrayStack == null) {
       throw new IllegalStateException("Unable to get file information");
     }
-    if (stack.exists() && !originalStack.exists() && xrayArchive.exists()) {
+    if (stack.exists() && !originalStack.exists() && xrayStack.exists()) {
       return stack.getName();
     }
     return null;
@@ -2032,10 +2041,13 @@ public class ApplicationManager extends BaseManager {
       if (!rawRename.exists()) {
         Utilities.renameFile(rawStack, rawRename);
       }
-      Utilities.renameFile(fixedStack, rawStack);
+      if (renameXrayStack(axisID)) {
+        Utilities.renameFile(fixedStack, rawStack);
+      }
     }
     catch (IOException except) {
-      uiHarness.openMessageDialog(except.getMessage(), "File Rename Error", axisID);
+      uiHarness.openMessageDialog(except.getMessage(), "File Rename Error",
+          axisID);
     }
     try {
       if (imodManager.isOpen(ImodManager.RAW_STACK_KEY, axisID)) {
@@ -2055,10 +2067,58 @@ public class ApplicationManager extends BaseManager {
       e.printStackTrace();
       System.err.println("System process exception in replaceRawStack");
     }
+    //An _orig.st file may have been created, so refresh the Clean Up dialog's
+    //archive fields.
     if (cleanUpDialog != null) {
       cleanUpDialog.setArchiveFields();
     }
     mainPanel.stopProgressBar(axisID);
+  }
+  
+  /**
+   * Renames the _xray.st.gz file to {dataset}{axisID}_xray.st.gz.{number}.
+   * Numbers start at 1 and go up.
+   * @param axisID
+   * @return false if rename fails
+   */
+  private boolean renameXrayStack(AxisID axisID) {
+    File xrayStack = new File(propertyUserDir, metaData.getDatasetName()
+        + axisID.getExtension() + "_xray.st.gz");
+    if (!xrayStack.exists()) {
+      return true;
+    }
+    File userDir = new File(propertyUserDir);
+    String[] xrayStackArchives = userDir.list(new XrayStackArchiveFilter());
+    int fileNumber = 0;
+    if (xrayStackArchives != null) {
+      EtomoNumber newFileNumber = new EtomoNumber(EtomoNumber.INTEGER_TYPE);
+      for (int i = 0; i < xrayStackArchives.length; i++) {
+        newFileNumber.set(xrayStackArchives[i].substring(xrayStackArchives[i]
+            .lastIndexOf('.') + 1));        
+        if (newFileNumber.isValid() && !newFileNumber.isNull()) {
+          fileNumber = Math.max(fileNumber, newFileNumber.getInteger());
+        }
+      }
+    }
+    File xrayStackArchive = new File(propertyUserDir, metaData.getDatasetName()
+        + axisID.getExtension() + "_xray.st.gz" + "."
+        + Integer.toString(fileNumber + 1));
+    if (xrayStackArchive.exists()) {
+      throw new IllegalStateException(xrayStackArchive.getName()
+          + " should not exist.");
+    }
+    try {
+      Utilities.renameFile(xrayStack, xrayStackArchive);
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog(e.getMessage(), "Unable to move "
+          + xrayStack.getName() + " to " + xrayStackArchive.getName()
+          + ".\nCannot continue.\nFirst run \"mv " + xrayStack.getName() + " "
+          + xrayStackArchive.getName() + "\" from the command line.", axisID);
+      return false;
+    }
+    return true;
   }
 
   /**
