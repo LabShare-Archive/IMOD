@@ -8,6 +8,10 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.3  2003/06/01 05:20:53  mast
+#  Fixed problems with local alignment output by ending some selections on a
+#  blank line
+#
 #  Revision 3.2  2003/05/25 16:28:17  mast
 #  Added output of local areas and fiducial number
 #
@@ -56,6 +60,8 @@ set output = 0
 
 grep "SURFACE ANALYSIS" $file > /dev/null
 set newsurface = $status
+grep "to do series" $file > /dev/null
+set pipinput = $status
 
 while ($#argv > $numarg)
     switch ($argv[1])
@@ -135,8 +141,10 @@ while ($#argv > $numarg)
 	    endif
 	    if ($newsurface == 1) then
 		awk '/^ Fit to all/, /^ 1 to do/' $file | sed '/1 to do/d'
-	    else
+	    else if ($pipinput == 0) then
 		awk '/^ SURFACE ANALYSIS/, /^ 1 to do/' $file | sed '/1 to do/d'
+            else
+		awk '/^ SURFACE ANALYSIS/, /file opened/' $file | sed '/file opened/d'
 	    endif
 	    set output = 1
 	    shift
