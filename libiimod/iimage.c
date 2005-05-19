@@ -14,6 +14,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.7  2004/12/02 21:50:33  mast
+Moved declaration for MRC check funxtion to iimage.h
+
 Revision 3.6  2004/11/30 03:46:44  mast
 Added ability to a caller to put an arbitrary file check and open function
 onto a list, after TIFF and MRC are checked
@@ -143,6 +146,11 @@ ImodImageFile *iiOpen(char *filename, char *mode)
   ofile->format = IIFILE_UNKNOWN;
   for (i = 0; i < ilistSize(checkList); i++) {
     checkFunc = (IIFileCheckFunction *)ilistItem(checkList, i);
+
+    /* If file was closed and couldn't reopen, bail out */
+    if (ofile->fp == NULL)
+      break;
+
     if (!(*checkFunc)(ofile)) {
       ofile->state = IISTATE_READY;
       return ofile;
