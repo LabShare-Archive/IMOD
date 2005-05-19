@@ -41,6 +41,9 @@ Additional documentation is at <ftp://ftp.sgi.com/graphics/tiff/doc>
     $Revision$
 
     $Log$
+    Revision 3.5  2005/02/11 01:42:33  mast
+    Warning cleanup: implicit declarations, main return type, parentheses, etc.
+
     Revision 3.4  2004/11/05 18:53:04  mast
     Include local files with quotes, not brackets
 
@@ -349,9 +352,11 @@ int iiTIFFCheck(ImodImageFile *inFile)
   uint16 bits, samples, photometric, sampleformat;
   int defined;
 
-  if (!inFile) return -1;
+  if (!inFile) 
+    return -1;
   fp = inFile->fp;
-  if (!fp) return 1;
+  if (!fp)
+    return 1;
 
   rewind(fp);
   if (fread(&buf, sizeof(b3dUInt16), 1, fp) < 1)
@@ -362,9 +367,12 @@ int iiTIFFCheck(ImodImageFile *inFile)
     return(4);
   if ((buf != 0x002a) && (buf != 0x2a00))
     return(5);
+
+  /* Close file now, but reopen it if there is a TIFF failure */
   fclose(fp);
   tif = TIFFOpen(inFile->filename, inFile->fmode);
   if (!tif){
+    inFile->fp = fopen(inFile->filename, inFile->fmode);
     return(-1);
   }
     
@@ -384,6 +392,7 @@ int iiTIFFCheck(ImodImageFile *inFile)
   if (!((samples == 1 && (bits == 8 || bits ==16)) ||
         (samples == 3 && photometric == 2 && bits == 8))) {
     TIFFClose(tif);
+    inFile->fp = fopen(inFile->filename, inFile->fmode);
     return(6);
   }
 
@@ -428,11 +437,9 @@ int iiTIFFCheck(ImodImageFile *inFile)
 
   inFile->headerSize = 8;
   inFile->header = (char *)tif;
-
+  inFile->fp = (FILE *)tif;    
   inFile->cleanUp = tiffDelete;
   inFile->reopen = tiffReopen;
   inFile->close = tiffClose;
   return(0);
 }
-
-
