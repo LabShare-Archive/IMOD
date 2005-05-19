@@ -1,6 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-5/17/05: Fixed alignlog output of surface analysis when program is run with
+5/19/05: Fixed problem with 3dmod crashing on a tiff file that it can't open.
+
+5/18/05: Fixed alignlog output of surface analysis when program is run with
 PIP input.
 
 5/13/05: IMOD_3-6-4
