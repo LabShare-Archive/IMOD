@@ -10,8 +10,12 @@
 # $Revision$
 # 
 
+# To increase the memory limit for Java, increase the number here
+#
+javaMemLim=128m
+
 # If you wish to use a different java runtime than the default uncomment the
-# following line and define the path to the desired runtime direcotory
+# following line and define the path to the desired runtime directory
 
 #export IMOD_JAVADIR=/usr/local/j2re1.4.0_04
 
@@ -81,11 +85,14 @@ if [ -e ${errlog} ]; then
 fi
 
 echo "starting eTomo"
-java -cp ${IMOD_DIR}/bin/etomo -jar ${IMOD_DIR}/bin/etomo.jar $@ \
-  2>${errlog} >${outlog} &
+java -Xmx${javaMemLim} -cp ${IMOD_DIR}/bin/etomo \
+ -jar ${IMOD_DIR}/bin/etomo.jar $@ 2>${errlog} >${outlog} &
 
 
 # $Log$
+# Revision 1.12  2005/01/19 00:56:05  mast
+# Made the purging of log files safer
+#
 # Revision 1.11  2005/01/19 00:13:44  mast
 # Added ability to direct logs to a specific directory
 #
