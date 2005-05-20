@@ -1,4 +1,7 @@
 c  parameters defining the maximum size of a model
+c  Make sure FWRAP_MAX_OBJECT matches max_obj_num and FWRAP_MAX_POINTS matches
+c  max_pt in imodel_fwrap.c
+c
 	integer max_obj_num,max_pt,len_object,max_obj_order,max_clabel
 	parameter (max_obj_num=200000)	  !absolute max # of objects 
 	parameter (max_pt=10000000)	 !max # of real points with coordinates
