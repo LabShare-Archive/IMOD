@@ -23,9 +23,9 @@ Log at end of file
 #include <stdio.h>
 #include <math.h>
 #include "imodel.h"
-
-#define FWRAP_MAX_OBJECT 100000
-#define FWRAP_MAX_POINTS 5000000
+/* These values should match max_obj_num and max_pt in model.inc */
+#define FWRAP_MAX_OBJECT 200000
+#define FWRAP_MAX_POINTS 10000000
 #define FWRAP_MAX_CLIP_PLANES 100
 
 #define FWRAP_NOERROR              0
@@ -175,6 +175,9 @@ int getimod (int ibase[],     /* index into coord array */
   struct Mod_Model   *model;
   struct Mod_Object  *obj;
   struct Mod_Contour *cont;
+  IrefImage *iref;
+  Imat  *mat;
+  Ipoint pnt;
   FILE *fin;
   char *cfilename;
   int ob, co, pt;
@@ -228,49 +231,41 @@ int getimod (int ibase[],     /* index into coord array */
    *  the identity matrix.
    *  DNM 11/5/98: rearranged to correspond to proper conventions 
    */
-  {
-    IrefImage *iref = Fimod->refImage;
-    Imat  *mat;
-    Ipoint pnt;
+  iref = Fimod->refImage;
 
-    if (Fimod->flags & IMODF_FLIPYZ){
-      imodFlipYZ(Fimod);
-    }
-    if (iref){
+  if (Fimod->flags & IMODF_FLIPYZ) {
+    imodFlipYZ(Fimod);
+  }
+  if (iref) {
 
-      mat = imodMatNew(3);
+    mat = imodMatNew(3);
 
-      imodMatScale(mat, &iref->cscale);
+    imodMatScale(mat, &iref->cscale);
 
-      pnt.x =  -iref->ctrans.x;
-      pnt.y =  -iref->ctrans.y;
-      pnt.z =  -iref->ctrans.z;
-      imodMatTrans(mat, &pnt);
+    pnt.x =  -iref->ctrans.x;
+    pnt.y =  -iref->ctrans.y;
+    pnt.z =  -iref->ctrans.z;
+    imodMatTrans(mat, &pnt);
 
-      /* DNM 11/5/98: no fortran code expects or wants tilt angles to be
-         applied, so leave this out */
-      /*
-        imodMatRot(mat, -iref->crot.x, X);
-        imodMatRot(mat, -iref->crot.y, Y);
-        imodMatRot(mat, -iref->crot.z, Z);
-      */
+    /* DNM 11/5/98: no fortran code expects or wants tilt angles to be
+       applied, so leave this out */
+    /*
+      imodMatRot(mat, -iref->crot.x, X);
+      imodMatRot(mat, -iref->crot.y, Y);
+      imodMatRot(mat, -iref->crot.z, Z);
+    */
          
-      imodTransform(Fimod, mat);
-      imodMatDelete(mat);
-    }
-
-
-     
-
+    imodTransform(Fimod, mat);
+    imodMatDelete(mat);
   }
 
-  for(ob = 0; ob < model->objsize; ob++){
+  for (ob = 0; ob < model->objsize; ob++) {
     obj = &(model->obj[ob]);
     ncontour += obj->contsize;
     for(co = 0; co < obj->contsize; co++)
       npoints += obj->cont[co].psize;
   }
-
+  
   if (ncontour > FWRAP_MAX_OBJECT) {
     fprintf(stderr, "getimod: Too many contours in model for Fortran program\n");
     return(FWRAP_ERROR_FILE_TO_BIG);
@@ -284,9 +279,9 @@ int getimod (int ibase[],     /* index into coord array */
   *npoint  = npoints;
   *nobject = ncontour; 
 
-  for(ob = 0; ob < model->objsize; ob++){
+  for (ob = 0; ob < model->objsize; ob++) {
     obj = &(model->obj[ob]);
-    for(co = 0; co < obj->contsize; co++, coi++){
+    for (co = 0; co < obj->contsize; co++, coi++) {
       cont = &(obj->cont[co]);
       ibase[coi] = ibase_val;
       ibase_val += cont->psize;
@@ -294,7 +289,7 @@ int getimod (int ibase[],     /* index into coord array */
       color[coi][0] = 1;
       color[coi][1] = 255 - ob;
 
-      for(pt = 0; pt < cont->psize; pt++, coord_index++){
+      for (pt = 0; pt < cont->psize; pt++, coord_index++) {
         coord[coord_index][0] = cont->pts[pt].x;
         coord[coord_index][1] = cont->pts[pt].y;
         coord[coord_index][2] = cont->pts[pt].z;
@@ -1390,6 +1385,9 @@ int getimodnesting(int *ob, int *inOnly, int *level, int *inIndex,
 
 /*
 $Log$
+Revision 3.18  2005/04/12 20:12:05  mast
+Added function to set object color
+
 Revision 3.17  2005/04/04 22:41:54  mast
 Fixed problem with argument order to imdContourGetBBox
 
