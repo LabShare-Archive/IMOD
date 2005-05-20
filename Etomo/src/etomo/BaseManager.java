@@ -42,6 +42,15 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.16  2005/05/18 22:30:37  sueh
+* <p> bug# 622 Made nextProcessA and B private because they are set using
+* <p> reset and setProcess functions.  Added a new parameter to
+* <p> processDone():  boolean forceNextProcess (default is false).
+* <p> ForceNextProcess is for when the next process is independent of the
+* <p> outcome of the previous process and makes startNextProcess() run
+* <p> regardless of value of exitValue.  It is used for archiveorig, to get the
+* <p> second axis.
+* <p>
 * <p> Revision 1.15  2005/05/17 19:08:40  sueh
 * <p> bug# 520 Fixed some recently introduced bugs in join.  We are saving to
 * <p> .ejf file more often.  When the first section is needs to be flipped, the
@@ -308,7 +317,7 @@ public abstract class BaseManager {
    * information to a file.
    */
   public void saveTestParamFile(AxisID axisID) {
-    if (paramFile == null) {
+    if (paramFile == null || !EtomoDirector.getInstance().isMemoryAvailable()) {
       return;
     }
     Storable[] storable = new Storable[getNumStorables()];
