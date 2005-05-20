@@ -46,6 +46,13 @@ import etomo.util.Utilities;
  * 
  * <p>
  * $Log$
+ * Revision 1.17  2005/05/20 21:13:38  sueh
+ * bug# 664 exitProgram(): do not attempt to save to a file if the
+ * memory is very low.  If the save fails, the file may be truncated.  Added
+ * isMemoryAvailable() to check available memory: if available memory is
+ * too low, display a message (if a message hasn't been displayed for this
+ * condition before) and return false.
+ *
  * Revision 1.16  2005/04/27 02:11:24  sueh
  * bug# 615 CreateMenus() is being called from EtomoFrame.  Delete
  * createMenus() call to avoid creating an extra menu for MainFrame.
@@ -912,10 +919,12 @@ public class EtomoDirector {
     if (availableMemory < EtomoDirector.MIN_AVAILABLE_MEMORY * 1024.0 * 1024.0) {
       //send message once per memory problem
       if (!outOfMemoryMessage) {
-        UIHarness.INSTANCE.openMessageDialog(
-          "WARNING:  Ran out of memory.  Some files will not be updated."
-              + "\nPlease close open windows or exit Etomo.",
-          "Out of Memory");
+        UIHarness.INSTANCE
+            .openMessageDialog(
+                "WARNING:  Ran out of memory.  Changes to the .edf file and/or"
+                    + "comscript files may not be saved."
+                    + "\nPlease close open windows or exit Etomo.",
+                "Out of Memory");
       }
       outOfMemoryMessage = true;
       return false;
