@@ -14,6 +14,8 @@ import javax.swing.JTabbedPane;
 import javax.swing.WindowConstants;
 import javax.swing.text.StyledEditorKit;
 
+import etomo.type.AxisID;
+
 /**
  * <p>Description: </p>
  *
@@ -27,6 +29,9 @@ import javax.swing.text.StyledEditorKit;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.3  2004/04/08 19:07:53  rickg
+ * <p> Bug #422 added setDefaultCloseOperation call to constructor
+ * <p>
  * <p> Revision 3.2  2003/11/27 00:04:43  rickg
  * <p> Bug# 366 Close file reader when done
  * <p>
@@ -65,8 +70,8 @@ public class TabbedTextWindow extends JFrame {
    * @throws IOException
    * @throws FileNotFoundException
    */
-  public void openFiles(String[] files, String[] labels)
-    throws IOException, FileNotFoundException {
+  public void openFiles(String[] files, String[] labels, AxisID axisID)
+      throws IOException, FileNotFoundException {
     FileReader reader;
     int nFiles = files.length;
     for (int i = 0; i < files.length; i++) {
@@ -74,11 +79,32 @@ public class TabbedTextWindow extends JFrame {
       editorPane.setEditorKit(new StyledEditorKit());
       JScrollPane scrollPane = new JScrollPane(editorPane);
       File file = new File(files[i]);
-      tabPane.add(labels[i], scrollPane);
-      reader = new FileReader(file);
-      editorPane.read(reader, file);
-      editorPane.setEditable(false);
-      reader.close();
+      System.out.println("file=" + file.getName() + ",size=" + file.length());
+      try {
+        tabPane.add(labels[i], scrollPane);
+        if (file.length() > 102400 && file.getName().startsWith("align")) {
+          System.out.println("big file");
+          editorPane
+              .setText(file.getName() + " is too large to display");
+        }
+        else {
+          reader = new FileReader(file);
+          editorPane.read(reader, file);
+          reader.close();
+        }
+        editorPane.setEditable(false);
+      }
+      catch (OutOfMemoryError e) {
+        e.printStackTrace();
+        //Only available in Java 1.5
+        //System.out.println(ManagementFactory.getMemoryMXBean().getHeapMemoryUsage().toString());
+        tabPane.remove(i);
+        UIHarness.INSTANCE.openMessageDialog(
+            "Ran out of memory.  Will not display " + file.getName()
+                + ".  To avoid running out of memory, edit the etomo script"
+                + " and set javaMemLim to a larger number of megabytes.",
+            "Out of Memory", axisID);
+      }
     }
   }
 }
