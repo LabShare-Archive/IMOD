@@ -31,6 +31,10 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.6  2005/03/24 17:51:29  sueh
+ * <p> bug# 621 Added a constructor to make a popup menu with only the
+ * <p> standard items and an anchor into one of the guides.
+ * <p>
  * <p> Revision 3.5  2004/12/03 02:32:25  sueh
  * <p> bug# 566 Corrected JOIN_GUIDE.  Added name of guide to be anchored
  * <p> in globalItemAction() so that it will use the anchor when it matches what
@@ -397,6 +401,7 @@ public class ContextPopup {
     actionListener = new ActionListener() {
 
       public void actionPerformed(ActionEvent actionEvent) {
+        boolean succeeded = true;
         String tomoGuideLocation = "tomoguide.html";
         if (anchor != null && !anchor.equals("")) {
           tomoGuideLocation += "#" + anchor;
@@ -431,7 +436,7 @@ public class ContextPopup {
             try {
               logFileWindow.openFiles(
                 logFileFullPath,
-                (String[]) logFileLabel.get(i));
+                (String[]) logFileLabel.get(i), axisID);
             }
             catch (FileNotFoundException e) {
               e.printStackTrace();
@@ -441,15 +446,30 @@ public class ContextPopup {
               e.printStackTrace();
               System.err.println("IO exception: " + logFileFullPath);
             }
-            logFileWindow.setVisible(true);
+            try {
+              logFileWindow.setVisible(true);
+            }
+            catch (OutOfMemoryError e) {
+              e.printStackTrace();
+              logFileWindow = null;
+              UIHarness.INSTANCE.openMessageDialog(
+                  "Ran out of memory.  Will not display log file"
+                      + ".  To avoid running out of memory, edit the etomo script"
+                      + " and set javaMemLim to a larger number of megabytes.",
+                  "Out of Memory", axisID);
+              succeeded = false;
+              break;
+            }
           }
         }
 
+        if (succeeded) {
         //  Search the standard items
         globalItemAction(actionEvent, tomoGuideLocation);
 
         //  Close the  the menu
         contextMenu.setVisible(false);
+        }
       }
     };
 
