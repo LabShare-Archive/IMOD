@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/19/05: Increased model size that C routines will feed to a Fortran program,
+so now allowed model size really is doubled. (In 3.5)
+
 5/19/05: Fixed problem with 3dmod crashing on a tiff file that it can't open.
 
 5/18/05: Fixed alignlog output of surface analysis when program is run with
