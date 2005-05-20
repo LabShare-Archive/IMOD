@@ -46,6 +46,10 @@ import etomo.util.Utilities;
  * 
  * <p>
  * $Log$
+ * Revision 1.16  2005/04/27 02:11:24  sueh
+ * bug# 615 CreateMenus() is being called from EtomoFrame.  Delete
+ * createMenus() call to avoid creating an extra menu for MainFrame.
+ *
  * Revision 1.15  2005/04/26 18:34:10  sueh
  * bug# 615 Change the name of the UIHarness member variable to
  * uiHarness.  Fixed a null pointer exception the happened when testing with
@@ -188,6 +192,7 @@ import etomo.util.Utilities;
 public class EtomoDirector {
   public static final String rcsid = "$Id$";
   
+  public static final double MIN_AVAILABLE_MEMORY = 0.75;
   private static final EtomoDirector theEtomoDirector = new EtomoDirector();
   private File IMODDirectory;
   private File IMODCalibDirectory;
@@ -210,6 +215,7 @@ public class EtomoDirector {
   // the option or advanced menu items
   private boolean isAdvanced = false;
   private SettingsDialog settingsDialog = null;
+  private boolean outOfMemoryMessage = false;
 
   public static void main(String[] args) {
     createInstance(args);
@@ -596,48 +602,52 @@ public class EtomoDirector {
           return false;
         }
       }
-      //  Should we close the 3dmod windows
-      //  Save the current window size to the user config
-      Dimension size = uiHarness.getSize();
-      userConfig.setMainWindowWidth(size.width);
-      userConfig.setMainWindowHeight(size.height);
-      //  Write out the user configuration data
-      File userConfigFile = new File(homeDirectory, ".etomo");
-      //  Make sure the config file exists, create it if it doesn't
-      try {
-        userConfigFile.createNewFile();
-      }
-      catch (IOException except) {
-        System.err.println("IOException: Could not create file:"
-            + userConfigFile.getAbsolutePath() + "\n" + except.getMessage());
-        System.err.println(except.getMessage());
+      if (isMemoryAvailable()) {
+        //  Should we close the 3dmod windows
+        //  Save the current window size to the user config
+        Dimension size = uiHarness.getSize();
+        userConfig.setMainWindowWidth(size.width);
+        userConfig.setMainWindowHeight(size.height);
+        //  Write out the user configuration data
+        File userConfigFile = new File(homeDirectory, ".etomo");
+        //  Make sure the config file exists, create it if it doesn't
+        try {
+          userConfigFile.createNewFile();
+        }
+        catch (IOException except) {
+          System.err.println("IOException: Could not create file:"
+              + userConfigFile.getAbsolutePath() + "\n" + except.getMessage());
+          System.err.println(except.getMessage());
+          return true;
+        }
+        ParameterStore userParams = new ParameterStore(userConfigFile);
+        Storable storable[] = new Storable[1];
+        storable[0] = userConfig;
+        if (!userConfigFile.canWrite()) {
+          uiHarness.openMessageDialog(
+              "Change permissions of $HOME/.etomo to allow writing",
+              "Unable to save user configuration file", axisID);
+        }
+        if (userConfigFile.canWrite()) {
+          try {
+            userParams.save(storable);
+          }
+          catch (IOException excep) {
+            excep.printStackTrace();
+            uiHarness.openMessageDialog(
+                "IOException: unable to save user parameters\n"
+                    + excep.getMessage(), "Unable to save user parameters",
+                axisID);
+          }
+        }
         return true;
       }
-      ParameterStore userParams = new ParameterStore(userConfigFile);
-      Storable storable[] = new Storable[1];
-      storable[0] = userConfig;
-      if (!userConfigFile.canWrite()) {
-        uiHarness.openMessageDialog(
-            "Change permissions of $HOME/.etomo to allow writing",
-            "Unable to save user configuration file", axisID);
-      }
-      if (userConfigFile.canWrite()) {
-        try {
-          userParams.save(storable);
-        }
-        catch (IOException excep) {
-          excep.printStackTrace();
-          uiHarness.openMessageDialog(
-              "IOException: unable to save user parameters\n"
-                  + excep.getMessage(), "Unable to save user parameters", axisID);
-        }
-      }
-      return true;
     }
     catch (Throwable e) {
       e.printStackTrace();
       return true;
     }
+    return true;
   }
   
   public void renameCurrentManager(String managerName) {
@@ -882,6 +892,37 @@ public class EtomoDirector {
     if (settingsDialog != null) {
       settingsDialog.dispose();
     }
+  }
+  
+  public boolean isMemoryAvailable() {
+    long availableMemory = Runtime.getRuntime().maxMemory()
+        - Runtime.getRuntime().totalMemory()
+        + Runtime.getRuntime().freeMemory();
+    long usedMemory = Runtime.getRuntime().totalMemory()
+        - Runtime.getRuntime().freeMemory();
+    //System.out.println();
+    //System.out.println("Available memory = " + availableMemory);
+    //System.out.println("Memory in use    = " + usedMemory);
+    //System.out.println();
+    if (debug) {
+      System.err.println("Available memory = " + availableMemory);
+      System.err.println("Memory in use    = " + usedMemory);
+    }
+    //Check available memory
+    if (availableMemory < EtomoDirector.MIN_AVAILABLE_MEMORY * 1024.0 * 1024.0) {
+      //send message once per memory problem
+      if (!outOfMemoryMessage) {
+        UIHarness.INSTANCE.openMessageDialog(
+          "WARNING:  Ran out of memory.  Some files will not be updated."
+              + "\nPlease close open windows or exit Etomo.",
+          "Out of Memory");
+      }
+      outOfMemoryMessage = true;
+      return false;
+    }
+    //memory problem is gone - reset message
+    outOfMemoryMessage = false;
+    return true;
   }
   
   /**
