@@ -31,6 +31,10 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.7  2005/05/20 03:22:38  sueh
+ * <p> bug# 664 Attempting to recover from an OutOfMemoryError in the
+ * <p> ContextPopup which displays the fine alignment tabbed text window.
+ * <p>
  * <p> Revision 3.6  2005/03/24 17:51:29  sueh
  * <p> bug# 621 Added a constructor to make a popup menu with only the
  * <p> standard items and an anchor into one of the guides.
@@ -401,7 +405,6 @@ public class ContextPopup {
     actionListener = new ActionListener() {
 
       public void actionPerformed(ActionEvent actionEvent) {
-        boolean succeeded = true;
         String tomoGuideLocation = "tomoguide.html";
         if (anchor != null && !anchor.equals("")) {
           tomoGuideLocation += "#" + anchor;
@@ -451,25 +454,22 @@ public class ContextPopup {
             }
             catch (OutOfMemoryError e) {
               e.printStackTrace();
-              logFileWindow = null;
+              if (logFileWindow != null) {
+                logFileWindow.dispose();
+              }
               UIHarness.INSTANCE.openMessageDialog(
-                  "Ran out of memory.  Will not display log file"
-                      + ".  To avoid running out of memory, edit the etomo script"
-                      + " and set javaMemLim to a larger number of megabytes.",
-                  "Out of Memory", axisID);
-              succeeded = false;
-              break;
+                  "WARNING:  Ran out of memory.  Will not display log file."
+                      + "\nPlease close open windows or exit Etomo.",
+                  "Out of Memory");
+              throw e;
             }
           }
         }
-
-        if (succeeded) {
         //  Search the standard items
         globalItemAction(actionEvent, tomoGuideLocation);
 
         //  Close the  the menu
         contextMenu.setVisible(false);
-        }
       }
     };
 
