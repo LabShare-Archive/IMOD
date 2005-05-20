@@ -29,6 +29,13 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.4  2005/05/20 03:25:03  sueh
+ * <p> bug# 664 In openFiles():  Not displaying align.log if it is over 100k.
+ * <p> Catching and recovering from an OutOfMemoryError by removing the
+ * <p> file which caused the problem.  This functionality will only be used in
+ * <p> Java 1.5 because 1.4 doesn't throw the OutOfMemoryError quickly
+ * <p> enough to catch it here.
+ * <p>
  * <p> Revision 3.3  2004/04/08 19:07:53  rickg
  * <p> Bug #422 added setDefaultCloseOperation call to constructor
  * <p>
@@ -79,13 +86,17 @@ public class TabbedTextWindow extends JFrame {
       editorPane.setEditorKit(new StyledEditorKit());
       JScrollPane scrollPane = new JScrollPane(editorPane);
       File file = new File(files[i]);
-      System.out.println("file=" + file.getName() + ",size=" + file.length());
       try {
         tabPane.add(labels[i], scrollPane);
-        if (file.length() > 102400 && file.getName().startsWith("align")) {
-          System.out.println("big file");
-          editorPane
-              .setText(file.getName() + " is too large to display");
+        //Do not display align.log if it is over 100k.
+        //Do not display taResiduals.log if it is over .5m.
+        //Do not display tsSolution.log if it is over .5m.
+        if ((file.length() > .5 * 1024.0 * 1024.0 && (file.getName()
+            .startsWith("taResiduals") || file.getName().startsWith(
+            "taSolution")))
+            || (file.length() > 100 * 1024 && file.getName()
+                .startsWith("align"))) {
+          editorPane.setText(file.getName() + " is too large to display");
         }
         else {
           reader = new FileReader(file);
@@ -96,14 +107,14 @@ public class TabbedTextWindow extends JFrame {
       }
       catch (OutOfMemoryError e) {
         e.printStackTrace();
-        //Only available in Java 1.5
-        //System.out.println(ManagementFactory.getMemoryMXBean().getHeapMemoryUsage().toString());
-        tabPane.remove(i);
+        if (tabPane != null) {
+          tabPane.removeAll();
+        }
         UIHarness.INSTANCE.openMessageDialog(
-            "Ran out of memory.  Will not display " + file.getName()
-                + ".  To avoid running out of memory, edit the etomo script"
-                + " and set javaMemLim to a larger number of megabytes.",
-            "Out of Memory", axisID);
+            "WARNING:  Ran out of memory.  Will not display log file."
+                + "\nPlease close open windows or exit Etomo.",
+            "Out of Memory");
+        throw e;
       }
     }
   }
