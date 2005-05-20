@@ -11,6 +11,13 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.6  2004/08/19 00:42:45  sueh
+ * <p> bug# 508 Allow deletion of commands, creating commands based on a
+ * <p> command index number, finding a command base on a command
+ * <p> index number.  Added createCommand(String,int),
+ * <p> deleteCommand(int), getScriptCommand(String,int,boolean),
+ * <p> getScriptCommandIndex(String,int)
+ * <p>
  * <p> Revision 3.5  2004/06/24 18:33:48  sueh
  * <p> bug# 482 getScriptCommandIndex will add a command that
  * <p> it doesn't find when addNew is on.
@@ -71,6 +78,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
+
+import etomo.EtomoDirector;
 
 //TODO check for necessary defensive copying
 
@@ -395,7 +404,9 @@ public class ComScript {
    */
   public void writeComFile()
     throws FileNotFoundException, IOException, BadComScriptException {
-
+    if (!EtomoDirector.getInstance().isMemoryAvailable()) {
+      return;
+    }
     // Open the com file for writing using a buffered writer
     BufferedWriter out = new BufferedWriter(new FileWriter(comFile));
 
