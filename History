@@ -1,5 +1,13 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/20/05: Fixed a bug where Etomo deletes the .edf file on exit after it tries to
+bring up tiltalign log(s) which are too large.
+
+5/20/05: Allowed Etomo to bring up tiltalign log files more rapidly by leaving
+out the rarely used sections when a log file gets very large.
+
+5/19/05: Added a button to run Archiveorig to Etomo Clean Up.
+
 5/19/05: Increased model size that C routines will feed to a Fortran program,
 so now allowed model size really is doubled. (In 3.5)
 
