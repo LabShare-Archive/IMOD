@@ -1,9 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-5/20/05: Fixed a bug where Etomo deletes the .edf file on exit after it tries to
-bring up tiltalign log(s) which are too large.
-
-5/20/05: Allowed Etomo to bring up tiltalign log files more rapidly by leaving
+5/20/05: IMOD_3-6-5
+5/20/05: Fixed a bug where Etomo deletes the .edf file on exit after it tries
+to bring up tiltalign log(s) which are too large.  Allowed Etomo to bring up
+tiltalign log files more rapidly and avoiding using as much memory by leaving
 out the rarely used sections when a log file gets very large.
 
 5/19/05: Added a button to run Archiveorig to Etomo Clean Up.
