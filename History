@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/21/05: Implemented multiple passes (-P) in imodmesh for open contour objects.
+
 5/20/05: IMOD_3-6-5
 5/20/05: Fixed a bug where Etomo deletes the .edf file on exit after it tries
 to bring up tiltalign log(s) which are too large.  Allowed Etomo to bring up
