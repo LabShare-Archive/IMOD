@@ -25,6 +25,14 @@ Log at end of file
 #include <time.h>
 #include "mkmesh.h"
 
+#define CONNECT_TOP     ICONT_CONNECT_TOP
+#define CONNECT_BOTTOM  ICONT_CONNECT_BOTTOM
+#define CONNECT_BOTH    (ICONT_CONNECT_TOP & ICONT_CONNECT_BOTTOM)
+
+#define connectTop(f)    ((f) & CONNECT_TOP)
+#define connectBottom(f) ((f) & CONNECT_BOTTOM)
+#define connectBoth(f)   ((connectTop(f)) && (connectBottom(f)))
+
 double meshDiameterSize = 0.0;
 
 static void report_time(char *string);
@@ -42,6 +50,11 @@ static int mesh_open_tube_obj(Iobj *obj, Ipoint *scale, unsigned int flags);
 static Imesh *joinTubeCont(Icont *c1, Icont *c2, Ipoint *norm);
 static int mkTubeCont(Icont *cont, Ipoint *loc, Ipoint *n, Ipoint *scale,
                   float tubeDiameter, int slices);
+static int mesh_open_obj(Iobj *obj, Ipoint *scale, int incz, 
+                         unsigned int flags, int skipPasses,
+                         int zmin, int zmax, int *contz, int *zlist, 
+                         int zlsize, int *numatz, int **contatz, Ipoint *pmin, 
+                         Ipoint *pmax);
 
 static int inside_cont(Icont *cont, Ipoint pt);
 static int eliminate_overlap(Icont *c1, Icont *c2);
@@ -225,14 +238,14 @@ static float segment_separation(float l1, float u1, float l2, float u2)
 
 /* connect open contours like a surface. */
 static int mesh_open_obj(Iobj *obj, Ipoint *scale, int incz, 
-                         unsigned int flags,
+                         unsigned int flags, int skipPasses,
                          int zmin, int zmax, int *contz, int *zlist, 
                          int zlsize, int *numatz, int **contatz, Ipoint *pmin, 
                          Ipoint *pmax)
 {
   Imesh *nmesh = NULL;
   Icont *cont, *econt;
-  int co,eco, nextz, iz, nextiz, i, j, k, indmin, needmat, matsize;
+  int co,eco, nextz, iz, nextiz, i, j, k, indmin, needmat, matsize, zpass;
   float *sepmat;
   float minsep, xlap, ylap;
   int inside = 0;
@@ -245,90 +258,107 @@ static int mesh_open_obj(Iobj *obj, Ipoint *scale, int incz,
   co = (obj->contsize + zmax - zmin) / (zmax + 1 - zmin);
   matsize = co * co;
   sepmat = (float *)malloc(matsize * sizeof(float));
+  if (!sepmat)
+    return 1;
      
-  for (iz = 0; iz < zmax - zmin; iz++) {
-    if (flags & IMESH_MK_SKIP){
-      nextz = getnextz(zlist, zlsize, iz + zmin);
-    }else{
-      nextz = iz + zmin + incz;
-    }
-    nextiz = nextz - zmin;
-    needmat = numatz[iz] * numatz[nextiz];
-    if (needmat > matsize) {
-      sepmat = (float *)realloc(sepmat, needmat * sizeof(float));
-      matsize = needmat;
-    }
+  /* Do multiple passes for connections farther apart in Z */
+  for (zpass = 1; zpass <= skipPasses; zpass++) {
 
-    for (i = 0; i < numatz[iz]; i++) {
-      co = contatz[iz][i];
-      cont = &(obj->cont[co]);
-      for (j = 0; j < numatz[nextiz]; j++) {
+    for (iz = 0; iz < zmax - zmin; iz++) {
+      nextz = iz + zmin;
+      for (i = 0; i < zpass; i++) {
+        if (flags & IMESH_MK_SKIP){
+          nextz = getnextz(zlist, zlsize, nextz);
+        } else {
+          nextz += incz;
+        }
+      }
+      if (nextz > zmax)
+        continue;
+      nextiz = nextz - zmin;
+      needmat = numatz[iz] * numatz[nextiz];
+      if (needmat > matsize) {
+        sepmat = (float *)realloc(sepmat, needmat * sizeof(float));
+        matsize = needmat;
+        if (!sepmat)
+          return 1;
+      }
+
+      for (i = 0; i < numatz[iz]; i++) {
+        co = contatz[iz][i];
+        cont = &(obj->cont[co]);
+        if (connectTop(cont->flags))
+          continue;
+        
+        for (j = 0; j < numatz[nextiz]; j++) {
+          eco = contatz[nextiz][j];
+          econt = &(obj->cont[eco]);
+          if (connectBottom(econt->flags))
+            continue;
+          sepmat[i + j * numatz[iz]] = -1.;
+          if (!cont->psize)
+            continue;
+          if (!econt->psize)
+            continue;
+          if ((flags & IMESH_MK_SURF) && (cont->surf != econt->surf))
+            continue;
+          if ((flags & IMESH_MK_TIME) && (cont->type != econt->type))
+            continue;
+          
+          /* for a valid pair, compute a separation factor */
+          xlap = segment_separation(pmin[co].x, pmax[co].x,
+                                    pmin[eco].x, pmax[eco].x);
+          ylap = segment_separation(pmin[co].y, pmax[co].y,
+                                    pmin[eco].y, pmax[eco].y);
+          if (ylap > xlap)
+            xlap = ylap;
+          sepmat[i + j * numatz[iz]] = xlap;
+        }
+      }
+
+      for (;;) {
+        
+        /* Loop: find pair with minimum separation and mesh them */
+        minsep = 1.e30;
+        for (i = 0; i < needmat; i++)
+          if (sepmat[i] >= 0. && sepmat[i] < minsep) {
+            minsep = sepmat[i];
+            indmin = i;
+          }
+        
+        /* Done if no more pairs available */
+        if (minsep > 1.e20)
+          break;
+        i = indmin % numatz[iz];
+        j = indmin / numatz[iz];
+        co = contatz[iz][i];
+        cont = &(obj->cont[co]);
         eco = contatz[nextiz][j];
         econt = &(obj->cont[eco]);
-        sepmat[i + j * numatz[iz]] = -1.;
-        if (!cont->psize)
-          continue;
-        if (!econt->psize)
-          continue;
-        if ((flags & IMESH_MK_SURF) && (cont->surf != econt->surf))
-          continue;
-        if ((flags & IMESH_MK_TIME) && (cont->type != econt->type))
-          continue;
-
-        /* for a valid pair, compute a separation factor */
-        xlap = segment_separation(pmin[co].x, pmax[co].x,
-                                  pmin[eco].x, pmax[eco].x);
-        ylap = segment_separation(pmin[co].y, pmax[co].y,
-                                  pmin[eco].y, pmax[eco].y);
-        if (ylap > xlap)
-          xlap = ylap;
-        sepmat[i + j * numatz[iz]] = xlap;
-      }
-    }
-
-    for (;;) {
-
-      /* Loop: find pair with minimum separation and mesh them */
-      minsep = 1.e30;
-      for (i = 0; i < needmat; i++)
-        if (sepmat[i] >= 0. && sepmat[i] < minsep) {
-          minsep = sepmat[i];
-          indmin = i;
+        cont->flags |= (ICONT_OPEN | CONNECT_TOP);
+        econt->flags |= (ICONT_OPEN |  CONNECT_BOTTOM);
+        nmesh = imeshContoursCost(cont, econt, scale, inside, 1);
+        if (nmesh){
+          nmesh->pad = cont->surf;
+          if (!(flags & IMESH_MK_SURF))
+            nmesh->pad = 0;
+          nmesh->type = cont->type;
+          if (!(flags & IMESH_MK_TIME))
+            nmesh->type = 0;
+          obj->mesh = imodel_mesh_add(nmesh, obj->mesh, &(obj->meshsize));
+          free(nmesh);
         }
-
-      /* Done if no more pairs available */
-      if (minsep > 1.e20)
-        break;
-      i = indmin % numatz[iz];
-      j = indmin / numatz[iz];
-      co = contatz[iz][i];
-      cont = &(obj->cont[co]);
-      eco = contatz[nextiz][j];
-      econt = &(obj->cont[eco]);
-      cont->flags |= ICONT_OPEN;
-      econt->flags |= ICONT_OPEN;
-      nmesh = imeshContoursCost(cont, econt, scale, inside, 1);
-      if (nmesh){
-        nmesh->pad = cont->surf;
-        if (!(flags & IMESH_MK_SURF))
-          nmesh->pad = 0;
-        nmesh->type = cont->type;
-        if (!(flags & IMESH_MK_TIME))
-          nmesh->type = 0;
-        obj->mesh = imodel_mesh_add
-          (nmesh, obj->mesh, &(obj->meshsize));
-        free(nmesh);
+        
+        /* mark all pairs involving these two conts as unavailable */
+        for (k = 0; k < numatz[nextiz]; k++)
+          sepmat[i + k * numatz[iz]] = -1.;
+        for (k = 0; k < numatz[iz]; k++)
+          sepmat[k + j * numatz[iz]] = -1.;
       }
-
-      /* mark all pairs involving these two conts as unavailable */
-      for (k = 0; k < numatz[nextiz]; k++)
-        sepmat[i + k * numatz[iz]] = -1.;
-      for (k = 0; k < numatz[iz]; k++)
-        sepmat[k + j * numatz[iz]] = -1.;
     }
   }
 
-  if (flags & IMESH_MK_NORM){
+  if (flags & IMESH_MK_NORM) {
     obj->mesh = imeshReMeshNormal(obj->mesh, &(obj->meshsize), scale, 0);
     if (!obj->mesh)
       obj->meshsize = 0;
@@ -983,14 +1013,6 @@ static void dump_lists(char *message, int *blist, int nb, int *tlist, int nt,
 
 
 
-#define CONNECT_TOP     ICONT_CONNECT_TOP
-#define CONNECT_BOTTOM  ICONT_CONNECT_BOTTOM
-#define CONNECT_BOTH    (ICONT_CONNECT_TOP & ICONT_CONNECT_BOTTOM)
-
-#define connectTop(f)    ((f) & CONNECT_TOP)
-#define connectBottom(f) ((f) & CONNECT_BOTTOM)
-#define connectBoth(f)   ((connectTop(f)) && (connectBottom(f)))
-
 static int numwarn = 0;
 
 int SkinObject
@@ -1075,8 +1097,8 @@ int SkinObject
       imodContourGetBBox(&(obj->cont[co]), &(pmin[co]), &(pmax[co]));
 
   if (!iobjClose(obj->flags))
-    return(mesh_open_obj(obj, scale, incz, flags, zmin, zmax, contz, 
-                         zlist, zlsize, numatz, contatz, pmin, pmax));
+    return(mesh_open_obj(obj, scale, incz, flags, skipPasses, zmin, zmax,
+                         contz, zlist, zlsize, numatz, contatz, pmin, pmax));
 
   blist = (int *)malloc(obj->contsize * sizeof(int));
   tlist = (int *)malloc(obj->contsize * sizeof(int));
@@ -3850,6 +3872,9 @@ static int break_contour_inout(Icont *cin, int st1, int st2,  int fill,
 
 /*
 $Log$
+Revision 3.12  2005/04/04 22:41:33  mast
+Fixed problem with argument order to imdContourGetBBox
+
 Revision 3.11  2005/03/20 19:56:05  mast
 Eliminating duplicate functions
 
