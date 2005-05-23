@@ -1258,9 +1258,10 @@ int grap_stat(MrcHeader *hin, ClipOptions *opt)
   int xmax, ymax;
   Istack *v;
   Islice *slice;
-  float min, max, mean = 0, std = 0, m;
+  float min, max, m, ptnum;
+  double mean, std, sumsq, vmean;
   float x,y;
-  float vmin, vmax, vmean;
+  float vmin, vmax;
   FILE *fout;
 
   /*     if (opt->dim == 3){
@@ -1293,9 +1294,11 @@ int grap_stat(MrcHeader *hin, ClipOptions *opt)
     min = m;
     max = m;
     std = 0;
+    sumsq = 0.;
     mean = 0;
     xmax = 0;
     ymax = 0;
+    ptnum = (float)(slice->xsize * slice->ysize);
     for(j = 0; j < slice->ysize; j++)
       for(i = 0; i < slice->xsize; i++){
         m = mrc_slice_getmagnitude(slice, i, j);
@@ -1307,16 +1310,16 @@ int grap_stat(MrcHeader *hin, ClipOptions *opt)
         if (m < min)
           min = m;
         mean += m;
+        sumsq += m * m;
       }
-    mean = mean / (float)(slice->xsize * slice->ysize);
-    for(j = 0; j < slice->ysize; j++)
-      for(i = 0; i < slice->xsize; i++){
-        m = mrc_slice_getmagnitude(slice, i, j);
-        std += (m - mean) * (m - mean);
-      }
-    std = std / (float)(slice->xsize * slice->ysize);
-    std = (float)sqrt(std);
+    mean = mean / ptnum;
 
+    /* DNM 5/23/05: switched to computing from differences to using sum of
+       squares, which gives identical results with doubles  */
+
+    std = (sumsq - ptnum * mean * mean) / B3DMAX(1.,(ptnum - 1.));
+    std = sqrt(B3DMAX(0., std));
+  
     /*	  for (di = 0, j = ymax - 1; j <= ymax + 1; j++)
           for(i = xmax - 1; i <= xmax + 1; i++ , di++)
           data[di] = mrc_slice_getmagnitude(slice, i, j);
@@ -1433,6 +1436,9 @@ int free_vol(Islice **vol, int z)
 */
 /*
 $Log$
+Revision 3.12  2005/02/11 01:42:32  mast
+Warning cleanup: implicit declarations, main return type, parentheses, etc.
+
 Revision 3.11  2005/01/28 05:43:08  mast
 Changed defaults for diffusion to match 3dmod
 
