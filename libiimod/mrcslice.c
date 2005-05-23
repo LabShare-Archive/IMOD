@@ -536,6 +536,7 @@ int mrc_slice_calcmmm(Islice *s)
 {
   int i, j;
   Ival val;
+  double tsum, sum;
   float temp;
 
   /* DNM 3/29/01: need to take magnitude for complex, and set mean to val */
@@ -544,7 +545,10 @@ int mrc_slice_calcmmm(Islice *s)
     temp = (val[0] * val[0]) + (val[1] * val[1]);
     val[0] = (float)sqrt(temp);
   }
-  s->mean = s->max = s->min = val[0];
+  s->max = s->min = val[0];
+
+  /* 5/23/05: Huh?  sum needs to be 0 */
+  sum = 0.;
 
   if ((!s->xsize) || (!s->ysize)){
     b3dError(stderr, 
@@ -552,7 +556,8 @@ int mrc_slice_calcmmm(Islice *s)
     return(-1);
   }
 
-  for (j = 0; j < s->ysize; j++)
+  for (j = 0; j < s->ysize; j++) {
+    tsum = 0.;
     for (i = 0; i < s->xsize; i++){
       sliceGetVal(s, i, j, val);
            
@@ -565,9 +570,11 @@ int mrc_slice_calcmmm(Islice *s)
         s->min = val[0];
       if (s->max < val[0])
         s->max = val[0];
-      s->mean += val[0];
+      tsum += val[0];
     }
-  s->mean /= (float)(s->xsize * s->ysize);
+    sum += tsum;
+  }
+  s->mean = sum / (float)(s->xsize * s->ysize);
   return(0);
 }
 
@@ -1624,6 +1631,10 @@ int sliceNewMode(Islice *s, int mode)
 
 /*
 $Log$
+Revision 3.10  2005/01/17 17:13:34  mast
+Used typedefs for structures, fixed new mode conversion to truncate
+bytes and ints
+
 Revision 3.9  2005/01/06 18:15:28  mast
 Fixed _lie scaling function, fixed matrix filtering function
 
