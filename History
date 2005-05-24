@@ -1,5 +1,14 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/24/05: Converted Reducecont to PIP input, made it skip scattered point 
+objects and load only one object at a time.
+
+5/24/05: Implemented functions for returning only selected objects instead of
+whole model to Fortran programs, to allow some programs to be modified to run 
+with much larger models.
+
+5/23/05: Made clip stat use doubles for computing mean and SD.
+
 5/21/05: Implemented multiple passes (-P) in imodmesh for open contour objects.
 
 5/20/05: IMOD_3-6-5

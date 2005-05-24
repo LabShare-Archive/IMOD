@@ -1,0 +1,47 @@
+Version = 1.0
+Pip = 1
+
+[Field = InputFile]
+short = input
+type = FN
+usage = Input model file
+tooltip = 
+manpage = Input model file. 
+
+[Field = OutputFile]
+short = output
+type = FN
+usage = Output model file
+tooltip = 
+manpage = Output model file. 
+
+[Field = ObjectsToReduce]
+short = objects
+type = LI
+usage = List of objects to reduce (default is to do all objects)
+tooltip = 
+manpage = A list of the objects to reduce (ranges are allowed, e.g. 1,2,5-7).
+The default is to do all closed contour objects, and open contours that lie in
+one plane.
+
+[Field = Tolerance]
+short = tolerance
+type = F
+usage =  Tolerance value, or maximum change in the model (default 0.25 pixels)
+tooltip = 
+manpage = 
+
+[Field = SmoothingPointsAndOrder]
+short = smoothing
+type = IP
+usage = Number of points, and polynomial order, for the smoothing step
+tooltip = 
+manpage = Number of points, and polynomial order, for the smoothing step.
+Enter 0,0 to omit smoothing.  Defaults are 5 points and order 2.
+
+[Field = usage]
+short = help
+type = B
+usage = Print help output
+tooltip = 
+manpage = Print help output. 
