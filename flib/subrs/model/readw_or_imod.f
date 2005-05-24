@@ -5,6 +5,15 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.1  2001/12/05 16:04:24  mast
+c	  Restored ability to read VMS floats even when package is compiled for
+c	  IEEE floats, and made Wimp models readable from either endian machine
+c	
+c	  ! Reads an IMOD model or an old WIMP model from [filename] and
+c	  returns the model contours in the model arrays in common.
+c	  If imodPartialMode(1) is called then it does not fill the arrays.
+c	  Returns .false. for error.
+c
 	logical function readw_or_imod(filename)
 	include 'model.inc'
 	include 'endian.inc'
@@ -19,18 +28,7 @@ c
 	ierr=getimod(ibase_obj,npt_in_obj,p_coord,obj_color,n_point,
      &      n_object,filename)
 	if(ierr.eq.0)then
-	  do i=1,n_point
-	    object(i)=i
-	  enddo
-	  do i=1,n_object
-	    ndx_order(i)=i
-	    obj_order(i)=i
-	  enddo
-	  max_mod_obj=n_object
-	  ntot_in_obj=n_point
-	  n_clabel=0
-	  ibase_free=ibase_obj(n_object)+npt_in_obj(n_object)
-	  nin_order=n_object
+	  call completeModelValues()
 	else
 	  readw_or_imod=.false.
 	  open(20,file=filename,status='old',err=20)
@@ -116,5 +114,58 @@ c
 15	  call qclose(istrm)
 20	  close(20)
 	endif
+	return
+	end
+
+
+
+c	  ! Once a WIMP model has been opened, this routine fills the model
+c	  arrays with contour data just for the objects ranging from
+c	  [iobjStrt] to [iobjEnd].  Returns .false. for error.
+c
+	logical function getModelObjectRange(iobjStrt, iobjEnd)
+	implicit none
+	include 'model.inc'
+	integer*4 iobjStrt, iobjEnd, ierr, getimodobjrange
+	ierr=getimodobjrange(iobjStrt, iobjEnd, ibase_obj,npt_in_obj,
+     &	    p_coord,obj_color,n_point, n_object)
+	getModelObjectRange = ierr .eq. 0
+	if (ierr. eq. 0) call completeModelValues()
+	return
+	end
+
+
+c	  ! Once a WIMP model has been opened, this routine fills the model
+c	  arrays with contour data just for the list of [ninList] objects 
+c	  in the array [iobjList].  Returns .false. for error.
+c
+	logical function getModelObjectList(iobjList, ninList)
+	implicit none
+	include 'model.inc'
+	integer*4 iobjList, ninList, ierr, getimodobjlist
+	ierr=getimodobjlist(iobjList, ninList, ibase_obj,npt_in_obj,
+     &	    p_coord,obj_color,n_point, n_object)
+	getModelObjectList = ierr .eq. 0
+	if (ierr. eq. 0) call completeModelValues()
+	return
+	end
+
+
+	subroutine completeModelValues()
+	implicit none
+	include 'model.inc'
+	integer*4 i
+	do i=1,n_point
+	  object(i)=i
+	enddo
+	do i=1,n_object
+	  ndx_order(i)=i
+	  obj_order(i)=i
+	enddo
+	max_mod_obj=n_object
+	ntot_in_obj=n_point
+	n_clabel=0
+	ibase_free=ibase_obj(n_object)+npt_in_obj(n_object)
+	nin_order=n_object
 	return
 	end
