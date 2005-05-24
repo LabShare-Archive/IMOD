@@ -8,57 +8,93 @@ c	  final, reduced set of points.  Some smoothing is also done, and a
 c	  point will be replaced by a smoothed point if the smoothed point is
 c	  within the tolerance distance from the original point.
 c	  
-c	  Entries to the program:
-c	  
-c	  Name of input model file
-c	  
-c	  Name of output model file
-c	  
-c	  Number of points, and polynomial order, for the smoothing step.
-c	  Values of 5 and 2 are recommended and are the defaults, accepted by
-c	  entering /
-c	  
-c	  Tolerance value, or maximum change in the model, in pixels.
-c	  
+c	  See man page for more details.
+c
+c	  $Author$
+c
+c	  $Date$
+c
+c	  $Revision$
+c
+c	  $Log$
+c
 c	  David Mastronarde, 9/8/97
 c	  
+	implicit none
+	integer limpath,limflags
 	include 'model.inc'
-	parameter (limpath=10000)
-	integer getimodhead
+	parameter (limpath=50000,limflags=5000)
 C   
 	REAL*4 xt(limpath),yt(limpath),xx(limpath),yy(limpath)
-	integer*4 idum(limpath),jdum(limpath)
+	integer*4 idum(limpath),jdum(limpath),iobjdo(limflags),iflags(limflags)
 C   
-	CHARACTER*80 FILin,filout
-C   
-c	  
-	logical readw_or_imod,failed,coplanar
-
-c	call getinout(2,filin,filout)
-81	write(*,'(1x,a,$)')'Name of original model file: '
-	read(5,'(a)')filin
-	if(.not.readw_or_imod(filin))then
-	  go to 81
-c	  print *,'Error reading input file'
-c	  call exit(0)
-	endif
-	ierr=getimodhead(xyscal,zscal,xofs,yofs,zofs,ifflip)
-	print *,n_point,' points,',max_mod_obj,' contours in input file'
+	CHARACTER*120 FILin,filout
+	integer*4 nfit, iorder,ierr,nobjdo,nobjTot,iflag,indy,indz,ifflip
+	real*4 tol, xyscal,zscal,xofs,yofs,zofs
+	integer*4 newtot,npold,ncontTot,imodObj,ifonlist,ichek,i,iobj,ninobj
+	integer*4 ipnt,ibase,izcont,nContInObj,nBefore,nAfter
+	logical readw_or_imod,coplanar,getModelObjectRange
+	integer getimodhead,getimodflags,getImodObjSize
 c
-	write(*,'(1x,a,$)')'Name of output model file: '
-	read(5,'(a)')filout
+	integer*4 numOptArg, numNonOptArg
+	integer*4 PipGetTwoIntegers
+	integer*4 PipGetFloat,PipGetString
+	integer*4 PipGetInOutFile
+c	  
+c	  fallbacks from ../../manpages/autodoc2man -2 2  reducecont
+c
+	integer numOptions
+	parameter (numOptions = 6)
+	character*(40 * numOptions) options(1)
+	options(1) =
+     &      'input:InputFile:FN:@output:OutputFile:FN:@'//
+     &      'objects:ObjectsToReduce:LI:@tolerance:Tolerance:F:@'//
+     &      'smoothing:SmoothingPointsAndOrder:IP:@help:usage:B:'
 c	  
 	nfit=5
 	iorder=2
 	tol=0.25
-	write(*,'(1x,a,2i2,a,$)')
-     &	    '# of points to fit & polynomial order for smoothing (/ for'
-     &	    ,nfit,iorder,'): '
-	read(5,*)nfit,iorder
-	write(*,'(1x,a,f5.2,a,$)')
-     &	    'Maximum change in model (tolerance), in pixels (/ for',tol,
-     &	    '): '
-	read(5,*)tol
+	nobjdo = 0
+c	  
+c	  Pip startup: set error, parse options, check help
+c
+	call PipReadOrParseOptions(options, numOptions, 'reducecont',
+     &	    'ERROR: REDUCECONT - ', .false., 2, 1, 1, numOptArg,
+     &	    numNonOptArg)
+c
+	if (PipGetInOutFile('InputFile', 1, ' ', filin) .ne. 0)
+     &	    call errorexit('NO INPUT FILE SPECIFIED')
+c
+	if (PipGetInOutFile('OutputFile', 2, ' ', filout) .ne. 0)
+     &	    call errorexit('NO OUTPUT FILE SPECIFIED')
+c
+	ierr = PipGetFloat('Tolerance', tol)
+	ierr = PipGetTwoIntegers('SmoothingPointsAndOrder', nfit, iorder)
+	if (tol .le. 0) call errorexit('ZERO TOLERANCE WILL HAVE NO EFFECT')
+	if (nfit .gt. 100 .or. iorder .gt. 5) call errorexit(
+     &	    'NUMBERS OF POINTS OR ORDER FOR SMOOTHING TOO HIGH')
+c
+	call imodPartialMode(1)
+	if (.not.readw_or_imod(filin))call errorexit('READING MODEL')
+c
+	if (PipGetString('ObjectsToReduce', filin) .eq. 0)
+     &	    call parselist(filin, iobjdo, nobjdo)
+	if (nobjdo .gt. limflags) call errorexit(
+     &	    'TOO MANY OBJECTS IN LIST FOR ARRAYS')
+
+	ierr=getimodhead(xyscal,zscal,xofs,yofs,zofs,ifflip)
+c	  
+c	  Get object flags
+c
+	do i=1,limflags
+	  iflags(i)=0
+	enddo
+	ierr=getimodflags(iflags,limflags)
+	if(ierr.ne.0)print *,'Error getting object types, assuming',
+     &	    ' all are closed contours'
+	nobjTot = getImodObjSize()
+
+c	print *,n_point,' points,',max_mod_obj,' contours in input file'
 c
 	indy=2
 	indz=3
@@ -68,37 +104,89 @@ c
 	endif
 	newtot=0
 	npold=0
-	do iobj=1,max_mod_obj
-	  ninobj=npt_in_obj(iobj)
-	  npold=npold+ninobj
-	  ibase=ibase_obj(iobj)
-	  coplanar=.true.
-	  i=2
-	  zcont=p_coord(indz,ibase+1)
-	  do while(i.le.ninobj.and.coplanar)
-	    coplanar=p_coord(indz,object(i+ibase)).eq.zcont
-	    i=i+1
-	  enddo
-	    
-	  if(ninobj.gt.2.and.ninobj.le.limpath.and.coplanar)then
-	    do i=1,ninobj
-	      ipnt=object(i+ibase)
-	      xx(i)=p_coord(1,ipnt)
-	      yy(i)=p_coord(indy,ipnt)
+c	  
+c	  loop on model objects and decide whether to load
+c
+	do imodObj = 1, nobjTot
+c	    
+c	    is IMOD object on list
+c
+	  ifonlist=0
+	  if(nobjdo.eq.0)then
+	    ifonlist=1
+	  else
+	    do ichek=1,nobjdo
+	      if(imodobj.eq.iobjdo(ichek))ifonlist=1
 	    enddo
-	    call reducepts(xx,yy,ninobj,iorder,nfit,tol,xt,yt,idum,jdum)
-	    do i=1,ninobj
-	      ipnt=object(i+ibase)
-	      p_coord(1,ipnt)=xx(i)
-	      p_coord(indy,ipnt)=yy(i)
-	    enddo
-c	    print *,iobj,' reduced from',npt_in_obj(iobj),' to',ninobj
-	    npt_in_obj(iobj)=ninobj
 	  endif
-	  newtot=newtot+ninobj
+c	    
+c	    require not scattered points
+c
+	  iflag = 0
+	  if (imodobj .le. limflags) iflag = mod(iflags(imodobj), 4)
+	  if (ifonlist .eq. 1 .and. iflag .lt. 2) then
+	    nContInObj = 0
+	    nBefore = 0
+	    nAfter = 0
+c
+	    if (.not.getModelObjectRange(imodObj, imodObj)) then
+	      print *
+	      print *, 'ERROR: REDUCECONT - LOADING DATA FOR OBJECT #',imodobj
+	      call exit(1)
+	    endif
+	    call scale_model(1)
+c	      
+c	      Loop on contours, which are in this object
+c
+	    do iobj=1,max_mod_obj
+	      ninobj=npt_in_obj(iobj)
+	      ibase=ibase_obj(iobj)
+	      coplanar=.true.
+	      i=2
+	      izcont=nint(p_coord(indz,ibase+1))
+	      do while(i.le.ninobj.and.coplanar)
+		coplanar=nint(p_coord(indz,object(i+ibase))).eq.izcont
+		i=i+1
+	      enddo
+	    
+	      if (ninobj.gt.2 .and. ninobj.le.limpath .and. coplanar) then
+		nBefore = nBefore + ninobj
+		nContInObj = nContInObj + 1
+		do i=1,ninobj
+		  ipnt=object(i+ibase)
+		  xx(i)=p_coord(1,ipnt)
+		  yy(i)=p_coord(indy,ipnt)
+		enddo
+		call reducepts(xx,yy,ninobj,iorder,nfit,tol,xt,yt,idum,jdum)
+		do i=1,ninobj
+		  ipnt=object(i+ibase)
+		  p_coord(1,ipnt)=xx(i)
+		  p_coord(indy,ipnt)=yy(i)
+		enddo
+c		print *,imodobj,iobj,' reduced from',npt_in_obj(iobj),' to',
+c     &		    ninobj
+		npt_in_obj(iobj)=ninobj
+		nAfter = nAfter + ninobj
+	      endif
+	    enddo
+	    npold=npold+nBefore
+	    newtot=newtot+nAfter
+	    ncontTot = ncontTot + nContInObj
+c
+	    call scale_model(0)
+	    call putModelObjects()
+	    if (nContInobj .gt. 0)
+     &		write(*,101)imodObj, nContInObj,nBefore,nAfter
+101	    format('Object',i4,':',i7,' contours reduced from',i8,' to',i8,
+     &		' points')
+	  endif
 	enddo
+c
+	n_point = -1
 	call write_wmod(filout)
-	print *,'Number of points reduced from', npold,' to',newtot
+	write(*,102)nContTot,npold,newtot
+102	format('     Total:',i7,' contours reduced from',i8,' to',i8,
+     &	    ' points')
 	call exit(0)
 	end
 
@@ -267,3 +355,10 @@ c	print *,npts,npo
 	return
 	end
 
+
+	subroutine errorexit(message)
+	character*(*) message
+	print *
+	print *,'ERROR: REDUCECONT - ',message
+	call exit(1)
+	end
