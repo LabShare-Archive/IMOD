@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/25/05: Fixed linetrack's test for whether copy contour is on adjacent slice.
+
 5/24/05: Converted Reducecont to PIP input, made it skip scattered point 
 objects and load only one object at a time.
 
