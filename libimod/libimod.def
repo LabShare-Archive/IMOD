@@ -186,6 +186,7 @@ EXPORTS
 	imodPutShort
 	imodel_contour_centroid
 	PipNumberOfEntries
+	IMODPARTIALMODE
 	imodLabelItemGet
 	PipGetThreeIntegers
 	PIPGETINTEGER
@@ -200,8 +201,8 @@ EXPORTS
 	imodel_minpt
 	imodel_lock
 	imodObjectGetFirst
-	GETIMODSURFACES
 	DELETEIOBJ
+	GETIMODSURFACES
 	imodFlipYZ
 	PipGetError
 	b3dFwrite
@@ -245,6 +246,7 @@ EXPORTS
 	imodObjectGetBBox
 	imodInsertPoint
 	imodel_dist
+	GETIMODOBJLIST
 	PIPADDOPTION
 	ilistFirst
 	imodMeshDup
@@ -352,6 +354,7 @@ EXPORTS
 	GETIMODVERTS
 	imodel_contour_double
 	imodContourGetLabel
+	GETIMODOBJRANGE
 	imodContourSetTimeIndex
 	PUTSYMSIZE
 	PipGetFloatArray
