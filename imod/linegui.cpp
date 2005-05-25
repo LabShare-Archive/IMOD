@@ -432,8 +432,7 @@ void LineTrack::track(int client)
   unsigned char *datap;
   int npoint, maxpoint, curpt, iffail, closecont;
   Ipoint *pts;
-  int copytol, curx, cury, curz, i, j, flipped;
-  float zdiff;
+  int copytol, curx, cury, curz, i, j, flipped, zdiff;
   Icont *tmpcont;
   float *p_copy;
     
@@ -497,9 +496,8 @@ void LineTrack::track(int client)
   plug->idataFlipped = flipped;
 
   if (copytol != 0){
-    zdiff = plug->cont->pts->z - curz;
-    if (zdiff < 0) zdiff = -zdiff;
-    if (zdiff > 1.01 || zdiff < 0.99) {
+    zdiff = (int)floor(plug->cont->pts->z + 0.5) - curz;
+    if (zdiff != 1 && zdiff != -1) {
       wprint("\aContour Copy Error:\n"
              "  Copy must be to adjacent section\n");
       return;
@@ -789,6 +787,9 @@ void LineTrack::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 1.10  2005/03/20 19:55:37  mast
+Eliminating duplicate functions
+
 Revision 1.9  2004/11/20 05:05:27  mast
 Changes for undo/redo capability
 
