@@ -287,7 +287,7 @@ int getimodobjlist(int objList[], int *ninList, int ibase[], int npt[],
 
   if (!Fimod)
     return FWRAP_ERROR_NO_MODEL;
-  if (ninList <= 0)
+  if (*ninList <= 0)
     return FWRAP_ERROR_NO_OBJECTS;
 
   /* Check object numbers and count contours and points */
@@ -1530,6 +1530,9 @@ int getimodnesting(int *ob, int *inOnly, int *level, int *inIndex,
 
 /*
 $Log$
+Revision 3.20  2005/05/24 18:00:34  mast
+Implemented partial reading/writing mode
+
 Revision 3.19  2005/05/20 06:06:13  mast
 Fixed limits on number of points to match model.inc
 
