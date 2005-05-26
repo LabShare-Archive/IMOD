@@ -36,3 +36,19 @@ c
 	if(n.gt.1)sd=sqrt(max(0.,(sxsq-n*avg**2)/(n-1.)))
 	return
 	end
+
+c	  SUMS_TO_AVGSD8 computes a mean AVG and standard deviation SD from the
+c	  sum of values SX8, sum of squares SXSQ8, and number of value N, where
+c	  SX8 and SXSQ8 are real*8.
+c	  It will not generate any division by 0 errors.
+c
+	subroutine sums_to_avgsd8(sx8,sxsq8,n,avg,sd)
+	real*8 sx8,sxsq8,avg8
+	avg=0.
+	sd=0.
+	if(n.le.0)return
+	avg8=sx8/n
+	avg = avg8
+	if(n.gt.1)sd=sqrt(max(0.,(sxsq8-n*avg8**2)/(n-1.)))
+	return
+	end
