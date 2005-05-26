@@ -21,55 +21,8 @@ c
 c	  $Date$
 c
 c	  $Revision$
+c	  Log at end of file
 c
-c	  $Log$
-c	  Revision 3.14  2004/06/15 04:58:00  mast
-c	  Added option to specify annulus width instead of outer radius
-c	
-c	  Revision 3.13  2003/11/03 23:37:53  mast
-c	  Made it put out an empty model if there are no points to replace
-c	
-c	  Revision 3.12  2003/10/30 06:32:24  mast
-c	  Limited number of pixels in difference patches to avoid erasing gold
-c	  particles in binned-down images.
-c	
-c	  Revision 3.11  2003/10/10 20:42:23  mast
-c	  Used new subroutine for getting input/output files
-c	
-c	  Revision 3.10  2003/10/09 02:33:42  mast
-c	  converted to use autodoc
-c	
-c	  Revision 3.9  2003/06/20 23:55:37  mast
-c	  Converted to using one lone string for options
-c	
-c	  Revision 3.8  2003/06/20 22:08:46  mast
-c	  Replaced option initialization with assignments to make SGI happy
-c	
-c	  Revision 3.7  2003/06/20 20:20:29  mast
-c	  Renamed two options
-c	
-c	  Revision 3.6  2003/06/11 20:36:57  mast
-c	  Reorganize and rename a few options
-c	
-c	  Revision 3.5  2003/06/10 20:42:07  mast
-c	  New version with automatic peak detection and PIP input
-c	
-c	  Revision 3.4  2002/09/09 21:36:00  mast
-c	  Eliminate stat_source: and nimp_source: from all includes
-c	
-c	  Revision 3.3  2002/07/21 19:43:39  mast
-c	  Moved big array into a common block to avoid stack size limit on SGI
-c	
-c	  Revision 3.2  2002/07/21 19:31:59  mast
-c	  Standardized error outputs
-c	
-c	  Revision 3.1  2002/07/07 20:14:16  mast
-c	  Modified to use scale factors from model file instead of from image
-c	  file to get back to index coordinates.  Made it exit with error
-c	  status on all errors, made it insert a proper title, and implemented
-c	  implicit none.
-c	
-c	  
 	implicit none
 	integer imsiz,mxd,limpatch,limobj,limptout,limdiff,limpatchout
 	parameter (imsiz=4100, limdiff = 512, limpatchout=50000)
@@ -550,7 +503,7 @@ c
 	integer*4 ninList, ixlist(limlist), iylist(limlist), lookingAt, i, j
 	integer*4 minDistSq, maxDistSq, iDistSq, ixofs, iyofs
 	integer*4 ixmin, ixmax, iymin, iymax, nxuse, nyuse
-
+	real*8 sum8, sumsq8
 
 	numPatch = 0
 	numPixels = 0
@@ -593,7 +546,7 @@ c	      get statistics and scan for points outside the reduced criterion
 c
 
 	    call iclavgsd(array, nx, ny, ixStart, ixEnd, iyStart, iyEnd,
-     &		dmin, dmax, sum, sumsq, scanAvg, scanSd)
+     &		dmin, dmax, sum8, sumsq8, scanAvg, scanSd)
 	    scanCrit = critScan * scanSd
 
 	    do iy = iyStart, iyEnd
@@ -1129,3 +1082,54 @@ c
 	call exit(1)
 	end
 
+c
+c	  $Log$
+c	  Revision 3.15  2005/03/24 20:26:25  mast
+c	  Fixed problem with erasing points right on edge
+c	
+c	  Revision 3.14  2004/06/15 04:58:00  mast
+c	  Added option to specify annulus width instead of outer radius
+c	
+c	  Revision 3.13  2003/11/03 23:37:53  mast
+c	  Made it put out an empty model if there are no points to replace
+c	
+c	  Revision 3.12  2003/10/30 06:32:24  mast
+c	  Limited number of pixels in difference patches to avoid erasing gold
+c	  particles in binned-down images.
+c	
+c	  Revision 3.11  2003/10/10 20:42:23  mast
+c	  Used new subroutine for getting input/output files
+c	
+c	  Revision 3.10  2003/10/09 02:33:42  mast
+c	  converted to use autodoc
+c	
+c	  Revision 3.9  2003/06/20 23:55:37  mast
+c	  Converted to using one lone string for options
+c	
+c	  Revision 3.8  2003/06/20 22:08:46  mast
+c	  Replaced option initialization with assignments to make SGI happy
+c	
+c	  Revision 3.7  2003/06/20 20:20:29  mast
+c	  Renamed two options
+c	
+c	  Revision 3.6  2003/06/11 20:36:57  mast
+c	  Reorganize and rename a few options
+c	
+c	  Revision 3.5  2003/06/10 20:42:07  mast
+c	  New version with automatic peak detection and PIP input
+c	
+c	  Revision 3.4  2002/09/09 21:36:00  mast
+c	  Eliminate stat_source: and nimp_source: from all includes
+c	
+c	  Revision 3.3  2002/07/21 19:43:39  mast
+c	  Moved big array into a common block to avoid stack size limit on SGI
+c	
+c	  Revision 3.2  2002/07/21 19:31:59  mast
+c	  Standardized error outputs
+c	
+c	  Revision 3.1  2002/07/07 20:14:16  mast
+c	  Modified to use scale factors from model file instead of from image
+c	  file to get back to index coordinates.  Made it exit with error
+c	  status on all errors, made it insert a proper title, and implemented
+c	  implicit none.
+c	

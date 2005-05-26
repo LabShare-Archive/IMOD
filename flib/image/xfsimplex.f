@@ -130,6 +130,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.5  2003/12/24 19:07:27  mast
+c	  Moved amoeba subroutine to a library
+c	
 c	  Revision 3.4  2002/08/20 19:23:48  mast
 c	  Didn't change both calls to iclavgsd
 c	
@@ -170,6 +173,7 @@ c	  starting values of a, and da, for formal search
 c	  starting values of a and da for natural search
 	data anat/0.,0.,0.,1.,0.,0./
 	data danat/1.,1.,2.,.02,.02,2./
+	real*8 tsum, tsumsq
 c
 	integer*4 ihist(0:1000),idxspir(limspir),idyspir(limspir)
 	integer*2 ixcomp(isub),iycomp(isub)
