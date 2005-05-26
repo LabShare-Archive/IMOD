@@ -53,7 +53,7 @@ line.
 [Field = StripLinesWith]
 short = strip 
 long = StripLinesWith
-type = B
+type = CH
 usage = Convert lines containing this text to numeric lines
 tooltip = 
 manpage = Convert lines containing the specified text to numeric lines.  This
