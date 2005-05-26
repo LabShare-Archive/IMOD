@@ -9,107 +9,14 @@
 *   
 *   For all details see the man page.
 *   
-*   DNM (mast) for VAX	8/88
-*	  5/4/89 changed to float to same mean and sd rather than mean and min.
-*	  12/19/89 added full control of density scaling; fixed bug in
-*	  interpolation that was generating half-pixel error half the time.
-*	  4/19/90 added line-by-line prompts for file and section entry and
-*	  added time/date stamp
-*	  1/23/91: fixed so that it can correctly pad images and extract
-*	  subsets of images with either center-shifting or transforms
-*	  6/11/91: fixed bug if trying to output scaled real values les than 0
-*	  11/16/94: added shifting to mean, rationalized scaling somewhat
-*	  9/24/01: changed to read and write in chunks if images are big
-*   
-************************************************************************
-*	  
 c	  $Author$
 c
 c	  $Date$
 c
 c	  $Revision$
 c
-c	  $Log$
-c	  Revision 3.25  2005/02/09 23:51:57  mast
-c	  Fixed bug in scaling blank image when changing modes
-c	
-c	  Revision 3.24  2004/11/30 03:26:50  mast
-c	  Fixed bugs in binning large images
-c	
-c	  Revision 3.23  2004/09/09 16:16:09  mast
-c	  When run with PIP input, it was not setting up a transform line list
-c	  properly with only one transform in file
-c	
-c	  Revision 3.22  2004/08/12 19:09:59  mast
-c	  Added -multadd option
-c	
-c	  Revision 3.21  2004/07/13 18:56:23  mast
-c	  Exit with error message, reference to man page when reading mode 16
-c	
-c	  Revision 3.20  2004/04/27 18:48:38  mast
-c	  Fixed edge effect when undistorting.
-c	
-c	  Revision 3.19  2004/03/22 15:32:58  mast
-c	  Changed option from MagGradientFile to GradientFile
-c	
-c	  Revision 3.18  2004/03/22 05:39:44  mast
-c	  Added mag gradient correction, applied on per-section basis prior
-c	  to distortion correction and transforms.  Fixed problem with
-c	  undistorting a subset of the full camera area.
-c	
-c	  Revision 3.17  2004/01/16 18:07:54  mast
-c	  Fixed problem with how it decided if it needed image binning entry
-c	
-c	  Revision 3.16  2004/01/08 23:02:52  mast
-c	  Fixed problem with linear option
-c	
-c	  Revision 3.15  2004/01/08 16:26:17  mast
-c	  Fixed problems with input and output lists and renamed options to
-c	  avoid conflicting with -linear
-c	
-c	  Revision 3.14  2003/12/31 00:39:11  mast
-c	  Go back to old way of treating center offsets, with new way as option
-c	
-c	  Revision 3.13  2003/12/27 20:35:15  mast
-c	  Can't declare cosd and sind external, since they aren't always
-c	
-c	  Revision 3.12  2003/12/27 19:43:35  mast
-c	  Moved distortion routines into library
-c	
-c	  Revision 3.11  2003/12/25 00:39:39  mast
-c	  Completed documentation and other changes
-c	
-c	  Revision 3.10  2003/12/12 21:10:14  mast
-c	  windows bug fix
-c	
-c	  Revision 3.9  2003/12/12 20:25:57  mast
-c	  Initial checkin with PIP conversion and distortion correction
-c	
-c	  Revision 3.8  2003/03/14 01:57:05  mast
-c	  Added a linear interpolation option
-c	
-c	  Revision 3.7  2002/08/18 23:12:47  mast
-c	  Changed to call iclavgsd in library
-c	
-c	  Revision 3.6  2002/08/17 05:38:04  mast
-c	  Standardized error outputs
-c	
-c	  Revision 3.5  2002/05/20 15:59:38  mast
-c	  Changed all STOP statements to print the message then call exit(1)
-c	
-c	  Revision 3.4  2002/05/07 02:00:29  mast
-c	  Eliminate output of mean and SD from a test print statement
-c	
-c	  Revision 3.3  2002/04/18 20:02:55  mast
-c	  Made it transfer extra header data correctly if it consists of
-c	  integers and reals
-c	
-c	  Revision 3.2  2002/04/18 20:00:34  mast
-c	  wrong comment was here
-c	
-c	  Revision 3.1  2001/12/29 00:57:49  mast
-c	  Added an entry to -1 floating option to disable all rescaling
-c	
+c	  Log at end of file
+c
 	implicit none
 	integer maxdim,maxtemp,lmfil,lmsec,maxchunks,maxextra,lmGrid
 	parameter (maxdim=20000000,lmfil=1000,lmsec=50000,maxchunks=20)
@@ -175,16 +82,17 @@ c
 	real*4 bottomout,xci,yci,dx,dy,xp1,yp1,xp2,yp2,xp3,yp3,xp4,yp4
 	integer*4 linesleft,nchunk,nextline,ichunk,ifOutChunk,iscan,iytest
 	integer*4 iybase,iy1,iy2,lnu,maxin,ibbase,numScaleFacs
-	real*4 dmeansec,dsum,dsumsq,tmpmin,tmpmax,tsum,val,tsum2,dminnew
+	real*4 dmeansec,tmpmin,tmpmax,val,tsum2,dminnew
 	real*4 dmaxnew,zminsec,zmaxsec,tmpmean,tmpminshf,tmpmaxshf,sclfac
 	integer*4 needyst,needynd,nmove,noff,nload,nyload,nych,npix,ibchunk
 	integer*4 ixcen,iycen,ix1,ix2,istart,nbcopy,nbclear,ifLinear
-	real*4 const,denoutmin,den, tmin2,tmax2,tmean2,tsumsq,avgsec
+	real*4 const,denoutmin,den, tmin2,tmax2,tmean2,avgsec
 	integer*4 numInputFiles, numSecLists, numOutputFiles, numToGet
 	integer*4 numOutValues, numOutEntries, ierr, ierr2, i, kti, iy
 	integer*4 maxFieldY, inputBinning, nxFirst, nyFirst, nxBin, nyBin
 	integer*4 ixOffset, iyOffset, lenTemp, limdim, ierr3, applyFirst
 	real*4 fieldMaxY, binRatio, rotateAngle, expandFactor
+	real*8 dsum,dsumsq,tsum,tsumsq
 	real*4 cosd, sind
 	integer*4 lnblnk
 c
@@ -820,8 +728,10 @@ c
 c
 c		    find the min and max Z values ((density-mean)/sd) 
 c
-		  zmin=min(zmin,(dmin2-dmean2)/sdsec)
-		  zmax=max(zmax,(dmax2-dmean2)/sdsec)
+		  if (dmax2 .gt. dmin2 .and. sdsec .gt. 0.) then
+		    zmin=min(zmin,(dmin2-dmean2)/sdsec)
+		    zmax=max(zmax,(dmax2-dmean2)/sdsec)
+		  endif
 		else
 c		    
 c		    or, if shifting, get maximum range from mean
@@ -1427,7 +1337,7 @@ c
 		dmax2=optout
 	      elseif(iffloat.eq.2)then
 c		  :float to mean, it's very hairy
-		call sums_to_avgsd(dsum,dsumsq,nx3*ny3,avgsec,sdsec)
+		call sums_to_avgsd8(dsum,dsumsq,nx3*ny3,avgsec,sdsec)
 c		print *,'overall mean & sd',avgsec,sdsec
 		zminsec=(tmpmin-avgsec)/sdsec
 		zmaxsec=(tmpmax-avgsec)/sdsec
@@ -1659,7 +1569,8 @@ c
 	integer*4 idim,nx,ny,nsecred,iffloat,loadyst,loadynd, nbin, lenTemp
 	real*4 array(idim),temp(lenTemp),dmin2,dmax2,dmean2,sdsec
 	integer*4 maxlines,nloads,iline,iload,nlines, ixOffset, iyOffset,ierr
-	real*4 dsum,dsumsq,tsum,tmin2,tmax2,tmean2,tsumsq,avgsec
+	real*4 tmin2,tmax2,tmean2,avgsec
+	real*8 dsum,dsumsq,tsum,tsumsq
 c	  
 c	  load in chunks if necessary, based on the maximum number
 c	  of lines that will fit in the array
@@ -1699,7 +1610,7 @@ c
 	enddo
 c
 	if(iffloat.eq.2)then
-	  call sums_to_avgsd(dsum,dsumsq,nx*ny,dmean2,sdsec)
+	  call sums_to_avgsd8(dsum,dsumsq,nx*ny,dmean2,sdsec)
 	else
 	  dmean2=dsum/(nx*ny)
 	endif
@@ -1785,3 +1696,103 @@ c
 	print *,'ERROR: NEWSTACK - ',message
 	call exit(1)
 	end
+
+************************************************************************
+*	  
+c	  $Log$
+c	  Revision 3.26  2005/02/27 15:57:05  mast
+c	  moved undistort to library; fixed pixel size for mag gradient with
+c	  binned output
+c	
+c	  Revision 3.25  2005/02/09 23:51:57  mast
+c	  Fixed bug in scaling blank image when changing modes
+c	
+c	  Revision 3.24  2004/11/30 03:26:50  mast
+c	  Fixed bugs in binning large images
+c	
+c	  Revision 3.23  2004/09/09 16:16:09  mast
+c	  When run with PIP input, it was not setting up a transform line list
+c	  properly with only one transform in file
+c	
+c	  Revision 3.22  2004/08/12 19:09:59  mast
+c	  Added -multadd option
+c	
+c	  Revision 3.21  2004/07/13 18:56:23  mast
+c	  Exit with error message, reference to man page when reading mode 16
+c	
+c	  Revision 3.20  2004/04/27 18:48:38  mast
+c	  Fixed edge effect when undistorting.
+c	
+c	  Revision 3.19  2004/03/22 15:32:58  mast
+c	  Changed option from MagGradientFile to GradientFile
+c	
+c	  Revision 3.18  2004/03/22 05:39:44  mast
+c	  Added mag gradient correction, applied on per-section basis prior
+c	  to distortion correction and transforms.  Fixed problem with
+c	  undistorting a subset of the full camera area.
+c	
+c	  Revision 3.17  2004/01/16 18:07:54  mast
+c	  Fixed problem with how it decided if it needed image binning entry
+c	
+c	  Revision 3.16  2004/01/08 23:02:52  mast
+c	  Fixed problem with linear option
+c	
+c	  Revision 3.15  2004/01/08 16:26:17  mast
+c	  Fixed problems with input and output lists and renamed options to
+c	  avoid conflicting with -linear
+c	
+c	  Revision 3.14  2003/12/31 00:39:11  mast
+c	  Go back to old way of treating center offsets, with new way as option
+c	
+c	  Revision 3.13  2003/12/27 20:35:15  mast
+c	  Can't declare cosd and sind external, since they aren't always
+c	
+c	  Revision 3.12  2003/12/27 19:43:35  mast
+c	  Moved distortion routines into library
+c	
+c	  Revision 3.11  2003/12/25 00:39:39  mast
+c	  Completed documentation and other changes
+c	
+c	  Revision 3.10  2003/12/12 21:10:14  mast
+c	  windows bug fix
+c	
+c	  Revision 3.9  2003/12/12 20:25:57  mast
+c	  Initial checkin with PIP conversion and distortion correction
+c	
+c	  Revision 3.8  2003/03/14 01:57:05  mast
+c	  Added a linear interpolation option
+c	
+c	  Revision 3.7  2002/08/18 23:12:47  mast
+c	  Changed to call iclavgsd in library
+c	
+c	  Revision 3.6  2002/08/17 05:38:04  mast
+c	  Standardized error outputs
+c	
+c	  Revision 3.5  2002/05/20 15:59:38  mast
+c	  Changed all STOP statements to print the message then call exit(1)
+c	
+c	  Revision 3.4  2002/05/07 02:00:29  mast
+c	  Eliminate output of mean and SD from a test print statement
+c	
+c	  Revision 3.3  2002/04/18 20:02:55  mast
+c	  Made it transfer extra header data correctly if it consists of
+c	  integers and reals
+c	
+c	  Revision 3.2  2002/04/18 20:00:34  mast
+c	  wrong comment was here
+c	
+c	  Revision 3.1  2001/12/29 00:57:49  mast
+c	  Added an entry to -1 floating option to disable all rescaling
+c	
+*   DNM (mast) for VAX	8/88
+*	  5/4/89 changed to float to same mean and sd rather than mean and min.
+*	  12/19/89 added full control of density scaling; fixed bug in
+*	  interpolation that was generating half-pixel error half the time.
+*	  4/19/90 added line-by-line prompts for file and section entry and
+*	  added time/date stamp
+*	  1/23/91: fixed so that it can correctly pad images and extract
+*	  subsets of images with either center-shifting or transforms
+*	  6/11/91: fixed bug if trying to output scaled real values les than 0
+*	  11/16/94: added shifting to mean, rationalized scaling somewhat
+*	  9/24/01: changed to read and write in chunks if images are big
+*   
