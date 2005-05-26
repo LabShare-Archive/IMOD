@@ -15,6 +15,10 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.2  2003/12/24 20:02:15  mast
+c	  Changed to read and write in chunks, converted to PIP input, and
+c	  made it have default behavior to subtract two whole volumes
+c	
 c	  Revision 3.1  2002/08/18 23:12:21  mast
 c	  Changed to call iclavgsd in library, dimensioned bigger and put big
 c	  arrays in common
@@ -41,8 +45,9 @@ c
         character*80 titlech
         data nxyzst / 0,0,0 /
 	integer*4 limarr,mode,i,nasec,maxLines,numChunks, iChunk,numLines,ierr
-	real*4 dmin,dmax,dmean,dsum,sdsum,sdsumsq,sum,sumsq,tmin,tmax
-	real*4 cmin,cmax,tsum,tsumsq,tmean,totpix,sd
+	real*4 dmin,dmax,dmean,dsum,tmin,tmax
+	real*4 cmin,cmax,tmean,sd
+	real*8 totpix,tsum,tsumsq,sdsum,sdsumsq,sum,sumsq
 	integer*4 modeOut
 
 	logical pipinput
@@ -189,7 +194,7 @@ c	    call iclden(array,nx,ny,1,nx,1,ny,tmin,tmax,tmean)
 	    tmin = min(tmin,cmin)
 	    tmax = max(tmax,cmax)
 	  enddo
-	  call sums_to_avgsd(sum, sumsq, nx * ny, tmean, sd)
+	  call sums_to_avgsd8(sum, sumsq, nx * ny, tmean, sd)
 	  write(6,4000)asec,tmin,tmax,tmean,sd
 	  sdsum=sdsum+sum
 	  sdsumsq=sdsumsq+sumsq
@@ -206,8 +211,10 @@ c	    call iclden(array,nx,ny,1,nx,1,ny,tmin,tmax,tmean)
 	call imclose(1)
 	call imclose(2)
 	dmean=dsum/nasec
-	totpix=nx*ny*float(nasec)
-	sd=sqrt(max(0.,(sdsumsq-totpix*dmean**2)/(totpix-1.)))
+c
+	totpix=float(nasec)
+	totpix=nx*ny*totpix
+	sd=sqrt(max(0.,(sdsumsq-sdsum**2/totpix)/(totpix-1.)))
 	if(nasec.gt.1)write(6,5000)dmin,dmax,dmean,sd
 
 	if(cfile.eq.' ')call exit(0)
