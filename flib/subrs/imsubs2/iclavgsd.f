@@ -1,7 +1,8 @@
 c	  ICLAVGSD computes the min DMIN, max DMAX, mean AVG, and standard
 c	  deviation SD from data in ARRAY, dimensioned NX by NY, for X indices
 c	  from IX0 to IX1 and Y indices from IY0 to IY1 (numbered from 1).  It
-c	  also returns the sum in SUM and sum of squares in SUMSQ
+c	  also returns the sum in SUM8 and sum of squares in SUMSQ8 which are
+c	  real*8.
 c
 c	  $Author$
 c
@@ -10,15 +11,19 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.1  2002/08/18 23:01:39  mast
+c	  Added to library after discovering 2 versions in four programs
+c	
 c
-	subroutine iclavgsd(array,nx,ny,ix0,ix1,iy0,iy1,dmin,dmax,sum
-     &	    ,sumsq,avg,sd)
+	subroutine iclavgsd(array,nx,ny,ix0,ix1,iy0,iy1,dmin,dmax,sum8
+     &	    ,sumsq8,avg,sd)
 	implicit none
 	real*4 array(*)
 	integer*4 nx,ny,iy,ibas,i,nsum,ix0,ix1,iy0,iy1
-	real*4 dmin,dmax,sum,sumsq,avg,sd,smtm,smtmsq,den
-	sum=0.
-	sumsq=0.
+	real*4 dmin,dmax,avg,sd,den
+	real*8 sum8,sumsq8,smtm,smtmsq
+	sum8=0.
+	sumsq8=0.
 	dmin=1.e10
 	dmax=-1.e10
 	do iy=iy0,iy1
@@ -32,11 +37,11 @@ c
 	    dmin=min(dmin,den)
  	    dmax=max(dmax,den)
 	  enddo
-	  sum=sum+smtm
-	  sumsq=sumsq+smtmsq
+	  sum8=sum8+smtm
+	  sumsq8=sumsq8+smtmsq
 	enddo
 	nsum=(ix1+1-ix0)*(iy1+1-iy0)
-	avg=sum/nsum
-	sd=sqrt((sumsq-sum**2/nsum)/(nsum-1))
+	avg=sum8/nsum
+	sd=sqrt((sumsq8-sum8**2/nsum)/(nsum-1))
 	return
 	end
