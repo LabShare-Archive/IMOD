@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/25/05: Changed computations of mean/SD to use double precision in Newstack
+(where it was screwing up the floating of data around -32000), and in 
+Alterheader and Subimage.
+
 5/25/05: Fixed linetrack's test for whether copy contour is on adjacent slice.
 
 5/24/05: Converted Reducecont to PIP input, made it skip scattered point 
