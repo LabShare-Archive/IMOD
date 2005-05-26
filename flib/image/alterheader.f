@@ -16,6 +16,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.3  2002/08/18 23:13:28  mast
+c	  Changed to cal iclavgsd in library
+c	
 c	  Revision 3.2  2002/08/17 05:45:50  mast
 c	  Moved big array to common to avoid stack size problem on SGI
 c	
@@ -44,8 +47,9 @@ C
 	DATA NXYZST/0,0,0/
 	integer*4 mode,iwhich,i,itype,lens,n1,n2,n3,ntitle,ndel
 	integer*4 newtitle,iold,ifdel,id,j,nbytex,iflag,ifok,iz
-	real*4 dmin,dmax,dmean,origx,origy,origz,v1,v2,tsum,sumsq
-	real*4 dmins,dmaxs,dmeans,sd,sums,sumsqs,totn,rms
+	real*4 dmin,dmax,dmean,origx,origy,origz,v1,v2
+	real*4 dmins,dmaxs,sd,rms
+	real*8 dmeans,sums,sumsqs,totn,tsum,sumsq
 C   
 C   Read in input file
 C	  
@@ -289,15 +293,16 @@ c
 	  call irdsec(2,array,*99)
 c	  call iclden(array,nx,ny,1,nx,1,ny,dmins,dmaxs,dmeans)
 	  call iclavgsd(array,nx,ny,1,nx,1,ny,dmins,dmaxs,sums,sumsqs,
-     &	      dmeans,sd)
+     &	      dmean,sd)
 	  dmin=min(dmin,dmins)
 	  dmax=max(dmax,dmaxs)
-	  tsum=tsum+dmeans
+	  tsum=tsum+sums
 	  sumsq=sumsq+sumsqs
 	enddo
-	dmean=tsum/nz
-	totn = float(nx*ny)*nz
-	rms=sqrt((sumsq - totn * dmean**2) / totn)
+	totn = nz
+	totn = totn * nx * ny
+	dmeans=tsum/totn
+	rms=sqrt((sumsq - totn * dmeans**2) / totn)
 	call ialrms(2,rms)
 	if(iwhich.eq.12)write(*,162)rms
 162	format(' New RMS value = ', g13.5)
