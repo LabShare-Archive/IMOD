@@ -272,6 +272,8 @@ static int mesh_open_obj(Iobj *obj, Ipoint *scale, int incz,
         } else {
           nextz += incz;
         }
+        if (nextz > zmax)
+          break;
       }
       if (nextz > zmax)
         continue;
@@ -3872,6 +3874,9 @@ static int break_contour_inout(Icont *cin, int st1, int st2,  int fill,
 
 /*
 $Log$
+Revision 3.13  2005/05/22 05:26:50  mast
+Implemented multiple passes for open contour objects
+
 Revision 3.12  2005/04/04 22:41:33  mast
 Fixed problem with argument order to imdContourGetBBox
 
