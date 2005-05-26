@@ -12,6 +12,11 @@
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.13  2005/05/18 22:49:50  sueh
+ * <p> $bug# 662 Changed Utilities.fileExists() to get metaData from
+ * <p> $EtomoDirector, instead of receiving it as a parameter.  Moved getFile()
+ * <p> $from ApplicationManager to this class.
+ * <p> $
  * <p> $Revision 3.12  2005/04/25 21:44:27  sueh
  * <p> $bug# 615 Passing the axis where a command originates to the message
  * <p> $functions so that the message will be popped up in the correct window.
@@ -167,7 +172,7 @@ public class Utilities {
     File file = new File(filename);
     if (!file.exists() && mustExist) {
       UIHarness.INSTANCE.openMessageDialog("The " + fileDescription
-          + " file doesn't exist.", "Missing " + fileDescription, axisID);
+          + " file: " + filename + " doesn't exist.", "Missing " + fileDescription, axisID);
       return null;
     }
     return file;
