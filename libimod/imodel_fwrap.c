@@ -115,6 +115,18 @@ Log at end of file
 #define getimodobjrange getimodobjrange_
 #endif
 
+/* Declare anything that is going to be called internally! */
+int getimodobjrange(int *objStart, int *objEnd, int ibase[], int npt[],       
+                    float coord[][3], int color[][2], int *npoint, 
+                    int *nobject);
+int openimoddata(char *fname, int fsize);
+int getimodobjlist(int objList[], int *ninList, int ibase[], int npt[],
+                   float coord[][3], int color[][2], int *npoint, 
+                   int *nobject);
+static void deleteFimod();
+void putimodflag(int *objnum, int *flag);
+
+
 static Imod *Fimod = NULL;
 
 static int partialMode = 0;
@@ -170,6 +182,7 @@ void imodpartialmode(int *mode)
 int getimod(int ibase[], int npt[], float coord[][3], int color[][2],
              int *npoint, int *nobject, char *fname, int fsize)
 {
+  int one = 1;
   int err = openimoddata(fname, fsize);
 
   if (err)
@@ -178,8 +191,8 @@ int getimod(int ibase[], int npt[], float coord[][3], int color[][2],
   *npoint = *nobject = 0;
   if (partialMode)
     return FWRAP_NOERROR;
-  return (getimodobjrange(1, Fimod->objsize, ibase, npt, coord, color, npoint, 
-                         nobject));
+  return (getimodobjrange(&one, &Fimod->objsize, ibase, npt, coord, color,
+                          npoint, nobject));
 }
 
 /*!
@@ -1530,6 +1543,9 @@ int getimodnesting(int *ob, int *inOnly, int *level, int *inIndex,
 
 /*
 $Log$
+Revision 3.21  2005/05/25 15:28:13  mast
+Fixed use of *ninList
+
 Revision 3.20  2005/05/24 18:00:34  mast
 Implemented partial reading/writing mode
 
