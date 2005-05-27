@@ -81,7 +81,7 @@ c
 	real*4 dmin,dmax,dmean,dmin2,dmax2,dmean2,optin,optout,bottomin
 	real*4 bottomout,xci,yci,dx,dy,xp1,yp1,xp2,yp2,xp3,yp3,xp4,yp4
 	integer*4 linesleft,nchunk,nextline,ichunk,ifOutChunk,iscan,iytest
-	integer*4 iybase,iy1,iy2,lnu,maxin,ibbase,numScaleFacs
+	integer*4 iybase,iy1,iy2,lnu,maxin,ibbase,numScaleFacs,numXfLines
 	real*4 dmeansec,tmpmin,tmpmax,val,tsum2,dminnew
 	real*4 dmaxnew,zminsec,zmaxsec,tmpmean,tmpminshf,tmpmaxshf,sclfac
 	integer*4 needyst,needynd,nmove,noff,nload,nyload,nych,npix,ibchunk
@@ -91,6 +91,7 @@ c
 	integer*4 numOutValues, numOutEntries, ierr, ierr2, i, kti, iy
 	integer*4 maxFieldY, inputBinning, nxFirst, nyFirst, nxBin, nyBin
 	integer*4 ixOffset, iyOffset, lenTemp, limdim, ierr3, applyFirst
+	integer*4 nLineTemp
 	real*4 fieldMaxY, binRatio, rotateAngle, expandFactor
 	real*8 dsum,dsumsq,tsum,tsumsq
 	real*4 cosd, sind
@@ -451,14 +452,24 @@ c
 	  endif
 c
 	  if (pipinput) then
-	    if (PipGetString('UseTransformLines', listString) .eq. 0)
-     &		call parselist(listString, lineuse, nlineuse)
+	    call PipNumberOfEntries('UseTransformLines', numXfLines)
+	    nlineTemp = nlineuse
+	    nLineUse = 0
+	    do iy = 1, numXfLines
+	      ierr = PipGetString('UseTransformLines', listString)
+	      call parselist(listString, lineuse(nLineUse + 1), nlineTemp)
+	      nLineUse = nLineUse + nLineTemp
+	      if (nLineUse .gt. lmsec) call errorexit(
+     &		  'TOO MANY TRANSFORM LINE NUMBERS FOR ARRAYS')
+	    enddo
 	  else
 	    print *,'Enter list of lines to use in file, or a single ',
      &		'line number to apply that'
 	    print *,' transform to all sections',
      &		' (1st line is 0; ranges OK; / for section list)'
 	    call rdlist(5,lineuse,nlineuse)
+	    if (nLineUse .gt. lmsec) call errorexit(
+     &		'TOO MANY TRANSFORM LINE NUMBERS FOR ARRAYS')
 	  endif
 C	    
 C	    use single number for all sections
@@ -1700,6 +1711,10 @@ c
 ************************************************************************
 *	  
 c	  $Log$
+c	  Revision 3.27  2005/05/26 04:38:46  mast
+c	  Fixed computation of SD's for scaling and protected float to mean
+c	  from being screwed up by zero SD or blank image on Mac
+c	
 c	  Revision 3.26  2005/02/27 15:57:05  mast
 c	  moved undistort to library; fixed pixel size for mag gradient with
 c	  binned output
