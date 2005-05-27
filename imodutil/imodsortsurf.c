@@ -15,6 +15,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.6  2005/02/11 01:42:33  mast
+Warning cleanup: implicit declarations, main return type, parentheses, etc.
+
 Revision 3.5  2005/01/28 19:32:41  mast
 Make it zero out existing surface information to avoid empty surfaces
 
@@ -35,46 +38,94 @@ Open output file in binary mode
 #include <string.h>
 #include "imodel.h"
 
+int imodObjSortSurf(Iobj *obj);
+int imodSplitSurfsToObjs(Imod *mod, int ob, int keepColor, int keepSurf);
+
 static void usage(char *prog)
 {
-  fprintf(stderr, "Usage: %s [-o list_of_objects] input_model"
-          " output_model\n", prog);
-  fprintf(stderr, "       The optional list of object numbers can include ranges, e.g. 1-3,6-9,13\n");
+  imodVersion(prog);
+  imodCopyright();
+  fprintf(stderr, "Usage: %s [options] input_model output_model\n", prog);
+  fprintf(stderr, "Options:\n");
+  fprintf(stderr, "\t-o list\tList of objects to sort (ranges allowed)\n");
+  fprintf(stderr, "\t-s\tSplit surfaces into new objects\n");
+  fprintf(stderr, "\t-e\tUse existing surface numbers instead of sorting "
+          "from the mesh\n");
+  fprintf(stderr, "\t-c\tMake new objects the same color as source object\n");
+  fprintf(stderr, "\t-k\tKeep surface numbers after moving to new objects\n");
   exit(3);
 }
-
-int *parselist (char *line, int *nlist);
-int imodObjSortSurf(Iobj *obj);
 
 int main(int argc, char **argv)
 {
   Imod *inModel;
+  Iobj *obj;
   int ob, objdo;
   int *list;
-  int i, nlist, origsize;
+  int i, nlist, numObj, numBefore;
+  char *progname = imodProgName(argv[0]);
+  int splitToObj = 0;
+  int keepColor = 0;
+  int keepSurf = 0;
+  int existingSurf = 0;
     
-  if (argc == 1) usage(argv[0]);
-
-  if (strcmp(argv[1], "-o") == 0) {
-    if (argc != 5) usage(argv[0]);
-    list = parselist(argv[2], &nlist);
-    if (!list) {
-      fprintf(stderr, "%s: Error parsing object list\n", argv[0]);
-      exit(1);
-    } 
-  } else {
-    if (argc != 3) usage(argv[0]);
-    nlist = 0;
+  if (argc < 3){
+    usage(progname);
   }
-    
+  nlist = 0;
+  for (i = 1; i < argc; i++){
+    if (argv[i][0] == '-'){
+      switch (argv[i][1]){
+      case 'o':
+        list = parselist(argv[++i], &nlist);
+        if (!list) {
+          fprintf(stderr, "ERROR: %s - parsing object list\n", progname);
+          exit(1);
+        } 
+        break;
+
+      case 's':
+        splitToObj = 1;
+        break;
+      case 'e':
+        existingSurf = 1;
+        break;
+      case 'c':
+        keepColor = 1;
+        break;
+      case 'k':
+        keepSurf = 1;
+        break;
+
+      default:
+        fprintf(stderr, "ERROR: %s - Invalid option %s\n", progname, argv[i]);
+        exit(3);
+        break;
+      }
+
+    }else{
+      break;
+    }
+  }
+
+  if (i != argc - 2) {
+    fprintf(stderr, "ERROR: %s - Command line should end with two non-option "
+            "arguments\n", progname);
+    usage(progname);
+  }
+
+  if (!splitToObj && (existingSurf || keepColor || keepSurf))
+    fprintf(stderr, "WARNING: -e, -c, and -k have no effect when not "
+            "splitting into objects\n", progname);
 
   inModel = imodRead(argv[argc-2]);
   if (!inModel) {
-    fprintf(stderr, "%s: Fatal error reading model\n", argv[0]);
+    fprintf(stderr, "ERROR: %s - Reading model\n", progname);
     exit(1);
   }
 
-  for (ob = 0; ob < inModel->objsize; ob++) {
+  numObj = inModel->objsize;
+  for (ob = 0; ob < numObj; ob++) {
     objdo = 1;
     if (nlist) {
       objdo = 0;
@@ -83,26 +134,51 @@ int main(int argc, char **argv)
           objdo = 1;
     }
     if (objdo) {
-      if (inModel->obj[ob].meshsize) {
-        if (inModel->obj[ob].surfsize)
-          printf("Object %d already has surface information which will"
-                 " be replaced\n", ob + 1);
-        if (imodObjSortSurf(&(inModel->obj[ob])) ) 
-          printf("Error sorting object %d\n", ob + 1);
-        else
-          printf("Object %d sorted into %d surfaces\n",ob + 1,
-                 inModel->obj[ob].surfsize);
-      } else
-        printf("Object %d has no mesh data and cannot be sorted\n", ob + 1);
+      obj = &inModel->obj[ob];
+      if (existingSurf && splitToObj) {
+        if (imodSplitSurfsToObjs(inModel, ob, keepColor, keepSurf)) {
+          fprintf(stderr, "ERROR: %s - Moving contours in object %d "
+                  "to new objects\n", ob + 1, progname);
+          exit(1);
+        }
+      } else {
+
+        if (obj->meshsize) {
+          if (obj->surfsize)
+            printf("Object %d already has surface information which will"
+                   " be replaced\n", ob + 1);
+          if (imodObjSortSurf(obj) ) 
+            printf("Error sorting object %d\n", ob + 1);
+          else {
+            if (splitToObj) {
+              numBefore = inModel->objsize;
+              if (imodSplitSurfsToObjs(inModel, ob, keepColor, keepSurf)) {
+                fprintf(stderr, "ERROR: %s - Moving contours in object %d "
+                        "to new objects\n", ob + 1, progname);
+                exit(1);
+              }
+              printf("Object %d sorted into %d objects\n",ob + 1,
+                     inModel->objsize + 1 - numBefore);
+            } else {
+              printf("Object %d sorted into %d surfaces\n",ob + 1,
+                     obj->surfsize);
+            }
+          }
+        } else
+          printf("Object %d has no mesh data and cannot be sorted\n", ob + 1);
+      }
     }
   } 
 
   imodBackupFile(argv[argc - 1]);
   if (imodOpenFile(argv[argc - 1], "wb", inModel)) {
-    fprintf(stderr, "%s: Fatal error opening new model\n", argv[0]);
+    fprintf(stderr, "ERROR: %s - Cannot open new model file\n", progname);
     exit (1);
   }
-  imodWriteFile(inModel);
+  if (imodWriteFile(inModel)) {
+    fprintf(stderr, "ERROR: %s - Writing to new model file\n", progname);
+    exit (1);
+  }
   exit(0);
 }
 
@@ -284,4 +360,69 @@ int imodObjSortSurf(Iobj *obj)
   free(nverts);
   free(towork);
   return (0);
+}
+
+/* 
+ * Splits the different surfaces in an object into new objects, giving them 
+ * the same color as the original object if keepColor is nonzero, and
+ * retaining the surface numbers if keepSurf is nonzero.  Returns 1 for error.
+ */
+int imodSplitSurfsToObjs(Imod *mod, int ob, int keepColor, int keepSurf)
+{
+  int surf, co, found, first = 0;
+  Icont *cont;
+  Iobj *newObj;
+  Iobj *obj = &mod->obj[ob];
+
+  /* Loop on surface numbers and see if there are any contours at it */
+  for (surf = 0; surf <= obj->surfsize; surf++) {
+    found = 0;
+    for (co = 0; co < obj->contsize; co++) {
+      if (obj->cont[co].surf == surf) {
+        found = 1;
+        break;
+      }
+    }
+
+    if (found) {
+      if (first) {
+
+        /* After the first surface found, get a new object */
+        if (imodNewObject(mod))
+          return 1;
+        newObj = &mod->obj[mod->objsize - 1];
+        obj = &mod->obj[ob];
+        if (keepColor) {
+          newObj->red = obj->red;
+          newObj->green = obj->green;
+          newObj->blue = obj->blue;
+        }
+
+        /* Loop backwards on contours so they can be removed */
+        for (co = obj->contsize - 1; co >= 0; co--) {
+          cont = &obj->cont[co];
+          if (cont->surf == surf) {
+            /* Just add contour to new object then remove from old; this will
+               transfer all the pointers to data */
+            if (!keepSurf)
+              cont->surf = 0;
+            if (imodObjectAddContour(newObj, cont) < 0)
+              return 1;
+            if (imodObjectRemoveContour(obj, co))
+              return 1;
+          }
+        }
+        imodObjectCleanSurf(newObj);
+
+      } else if (!keepSurf) {
+
+        /* For the first surface, eliminate surface # there too */
+        for (co = 0; co < obj->contsize; co++)
+          obj->cont[co].surf == 0;
+      }
+      first = 1;
+    }
+  }
+  imodObjectCleanSurf(obj);
+  return 0;
 }
