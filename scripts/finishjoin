@@ -272,13 +272,14 @@ while ($itomo <= $ntomo)
 	@ zmax = $zst
     endif
     @ xfline = $itomo - 1
-    @ iz = $zmin
+    @ iz = $zmin + $interval
+    set xftomo = $xfline
     while ($iz <= $zmax)
-	set xflist = ($xflist $xfline)
+	set xftomo = $xftomo,$xfline
 	@ iz += $interval
     end
-    if ($iz - $interval != $zmax) set xflist = ($xflist $xfline)
-
+    if ($iz - $interval != $zmax) set xftomo = $xftomo,$xfline
+    set xflist = ($xflist $xftomo)
     @ itomo++
 end
 
@@ -371,6 +372,7 @@ echo -n >! $newstin
 while ($itomo <= $ntomo)
     echo "InputFile $matlist[$itomo]" >> $newstin
     echo "SectionsToRead $rangelist[$itomo]" >> $newstin
+    echo "UseTransformLines $xflist[$itomo]" >> $newstin
     if ("$scalelist" != "") then
         echo "MultiplyAndAdd $scalelist[$itomo]" >> $newstin
     endif
@@ -383,7 +385,6 @@ BinByFactor $binning
 OutputFile $joinroot$trial.join
 OffsetsInXandY $offset
 TransformFile $joinroot.tomoxg
-UseTransformLines $xflist
 EOF
 
 newstack -StandardInput < $newstin
@@ -408,6 +409,9 @@ exit 1
 
 #
 #  $Log$
+#  Revision 3.11  2004/11/29 05:29:59  mast
+#  Set the output mode if one is provided in the info file
+#
 #  Revision 3.10  2004/11/24 02:45:03  mast
 #  *** empty log message ***
 #
