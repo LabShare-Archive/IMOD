@@ -291,7 +291,6 @@ void ContourCopy::placeSelected(int which)
 
 void ContourCopy::toValueChanged(int value)
 {
-  imodPuts("Value changed");
   setFocus();
   switch (ThisDialog.copyOperation) {
   case COPY_TO_OBJECT:
@@ -605,6 +604,9 @@ void ContourCopy::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.11  2005/05/27 22:59:10  mast
+Set focus on button press so typed-in value without return is used
+
 Revision 4.10  2004/11/30 18:59:09  mast
 Switch to different combo box style to get better size behavior on Mac
 
