@@ -1,5 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/27/05: Enabled moving a contour to a new surface that does not exist yet.
+
+5/27/05: Changed Newstack so that transform line numbers can be entered on
+multiple lines and Finishjoin to use multiple lines, to avoid line length
+limitations with very big data sets.
+
 5/26/05: IMOD_3-6-6
 5/26/05: Added ability to sort surfaces into different objects in Imodsortsurf.
 
