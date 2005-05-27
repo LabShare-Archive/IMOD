@@ -15,6 +15,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.5  2005/03/21 19:21:39  mast
+Removed calls to libimod functions - it needs to run from build environment
+
 Revision 1.4  2005/03/20 19:57:33  mast
 Added ability to have multiple sections of one name; added END_SECTION
 
@@ -302,7 +305,7 @@ int main(int argc, char *argv[])
           ind2 = str.find(QRegExp(" *\\("));
           if (debug)
             printf("ind2 %d\n", ind2);
-          ind1 = str.findRev(QRegExp("[* :]"), ind2) + 1;
+          ind1 = str.findRev(QRegExp("[* :]"), ind2 - 1) + 1;
           funcName = str.mid(ind1, ind2 - ind1);
 
           if (debug)
@@ -314,7 +317,7 @@ int main(int argc, char *argv[])
             if (ind1)
               str2 += str.left(ind1);
             str2 += "<A HREF=\"#" + funcName + "\">" + funcName + "</A>" + 
-            str.right(str.length() - ind2);
+              (str.right(str.length() - ind2)).stripWhiteSpace();
             outStream << str2 << "\n";
             for (ui = 1; ui < funcList.count(); ui++)
               outStream << funcList[ui] << "\n";
