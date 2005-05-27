@@ -962,7 +962,7 @@ void imodContEditMoveDialogUpdate(void)
   if (comv.movetosurf) {
     min = 0; 
     if (obj)  
-      max = obj->surfsize; 
+      max = obj->surfsize + 1; 
     else
       max = 0;
     if (comv.surf_moveto > max)
@@ -1990,6 +1990,9 @@ void ContourFrame::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.20  2005/03/23 16:52:30  mast
+Fix multiple contour deletion
+
 Revision 4.19  2005/02/24 22:33:15  mast
 Allowed contours from multiple objects to be moved in Z
 
