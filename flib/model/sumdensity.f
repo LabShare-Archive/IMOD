@@ -18,6 +18,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.7  2005/05/13 16:05:07  mast
+c	  Added ability to trim output model down by requiring adjacent points
+c	
 c	  Revision 3.6  2005/01/29 20:25:54  mast
 c	  Added ability to handle nested contours
 c	
@@ -40,7 +43,7 @@ c
 c	  
 	implicit none
 	integer imsiz,limflag,limsurf,limobj
-	parameter (imsiz=4100, limflag = 1024, limobj = 1000, limsurf = 10000)
+	parameter (imsiz=4100, limflag = 9999, limobj = 9999, limsurf = 10000)
 	real*4 array(imsiz*imsiz)
 	integer*4 nxyz(3),mxyz(3),nx,ny,nz
 	equivalence (nx,nxyz(1)),(ny,nxyz(2)),(nz,nxyz(3))
@@ -49,7 +52,7 @@ c
 	common /bigcom/array
 	logical readw_or_imod
 	integer*4 iSurface(max_obj_num),iobjflag(limflag),iobjdo(limobj)
-	integer*4 listsurf(limsurf),numInBorder(limsurf)
+	integer*4 listsurf(limsurf),numInBorder(limsurf), numFiltered(limsurf)
 	integer*4 numAboveThresh(limsurf),isurf, levels(max_obj_num)
 	integer*4 insideIndex(max_obj_num), insideCont(max_obj_num)
 	real*4 sumAbove(limsurf), sumTemp
@@ -63,6 +66,7 @@ c
 	real*4 xyscal,zscale,xofs,yofs,zofs
 	integer*4 newObj, newImodObj, numNewCont, numObjOrig, nestErr
 	integer*4 ifflip,getimodobjsize, getImodNesting, numAdjacentNeeded
+	integer*4 numFiltTemp
 	logical*4 firstNewCont
 	real*4 border, polarity, bufferInside
 c
@@ -127,6 +131,7 @@ c
 c
 c	  open model file and get header info
 c
+	call imodPartialMode(1)
 	if(.not.readw_or_imod(modelfile))
      &	    call errorexit ('READING MODEL FILE')
 
@@ -137,10 +142,6 @@ c
      &	    call errorexit('getting object types')
 	if (getimodsurfaces(iSurface) .ne. 0)
      &	    call errorexit('getting surface numbers')
-c	  
-c	  Do standard scaling of model to index coords
-c
-	call scale_model(0)
 c
 	nThreshIn = 0
 	if (PipGetFloat('AbsoluteThreshold', absThresh) .eq. 0)
@@ -184,11 +185,12 @@ c
 c	  compute the reference areas if object defined
 c
 	if (irefObject .gt. 0) then
+	  call getOneObject(irefObject)
+c
 	  numTot = 0
 	  sumTot = 0.
 	  do iobj = 1,max_mod_obj
-	    if (npt_in_obj(iobj).gt.2 .and. 256-obj_color(2,iobj) .eq.
-     &		irefObject) then
+	    if (npt_in_obj(iobj).gt.2) then
 	      call sum_inside_contour(array, imsiz, nx, ny, nz, iobj,
      &		  irefObject, border, dmin - dmax, 1., 0, insideCont,
      &		  bufferInside, numInTemp, numAboveTemp, absSum,
@@ -239,6 +241,7 @@ c	      If doing pixel output, go to new object if last one had output
 	      newImodObj = newImodObj + 1
 	      numNewCont = 0
 	    endif
+	    call getOneObject(imodobj)
 c	      
 	    nestErr = getImodNesting(imodobj, 1, levels, insideIndex,
      &		insideCont, iobj, isurf, max_obj_num)
@@ -263,6 +266,7 @@ c
 		  numInBorder(numSurf) = 0
 		  numAboveThresh(numSurf) = 0
 		  sumAbove(numSurf) = 0
+		  numFiltered(numSurf) = 0
 		endif
 	      endif
 	    enddo
@@ -310,6 +314,7 @@ c
 		endif
 c
 		numInside = 0
+		numFiltTemp = -1
 		if (nestErr .eq. 0) numInside =
      &		    insideIndex(imodcont + 1) - insideIndex(imodcont)
 c
@@ -320,27 +325,39 @@ c
      &		    ifDiagonal)
 		if (newObj .gt. 0 .and. npt_in_obj(newObj) .gt. 0)
      &		    numNewCont = numNewCont + 1
+		if (newObj .gt. 0) numFiltTemp = npt_in_obj(newObj)
 
 		numInBorder(isurf) = numInBorder(isurf) +numInTemp
 		numAboveThresh(isurf) = numAboveThresh(isurf) + numAboveTemp
 		sumAbove(isurf) = sumAbove(isurf) + avgAbove * numAboveTemp
+		numFiltered(isurf) = numFiltered(isurf) + numFiltTemp
 		if (ifVerbose .ne. 0) call print_result(iunitOut, mode,
      &		    imodobj, 'cont', imodcont, numInTemp,numAboveTemp,
-     &		    avgAbove * numAboveTemp)
+     &		    avgAbove * numAboveTemp, numFiltTemp)
  	      endif
 	    enddo	    
 	    numInTemp = 0
 	    numAboveTemp = 0
 	    sumTemp = 0.
+	    numFiltTemp = 0
 	    do isurf = 1, numSurf
 	      numInTemp = numInTemp + numInBorder(isurf)
 	      numAboveTemp = numAboveTemp + numAboveThresh(isurf)
 	      sumTemp = sumTemp + sumAbove(isurf)
+	      numFiltTemp = numFiltTemp + numFiltered(isurf)
 	      call print_result(iunitOut,mode, imodobj,'surf',listsurf(isurf),
-     &		  numInBorder(isurf), numAboveThresh(isurf), sumAbove(isurf))
+     &		  numInBorder(isurf), numAboveThresh(isurf), sumAbove(isurf),
+     &		  numFiltered(isurf))
 	    enddo
 	    call print_result(iunitOut, mode, imodobj,'ALL ',numSurf,
-     &		numInTemp, numAboveTemp, sumTemp)
+     &		numInTemp, numAboveTemp, sumTemp, numFiltTemp)
+c	      
+c	      Put object back to model
+c	      
+	    if (newImodObj .gt. 0) then
+	      call scale_model(1)
+	      call putModelObjects()
+	    endif
 	  endif
 	enddo
 
@@ -351,7 +368,7 @@ c
 	    call putsymtype(i, 0)
 	    call putsymsize(i, 1)
 	  enddo
-	  call scale_model(1)
+	  n_point = -1
 	  call write_wmod(pixelModel)
 	endif
 
@@ -361,22 +378,34 @@ c
 
 
 	subroutine print_result(iunitOut, mode, imodobj, typeText, icont,
-     &	    numIn, numAbove, sumAbove)
+     &	    numIn, numAbove, sumAbove, numFilt)
 	implicit none
-	integer*4 iunitOut, mode, imodobj, icont, numIn, numAbove
+	integer*4 iunitOut, mode, imodobj, icont, numIn, numAbove, numFilt
 	real*4 sumAbove, avgAbove
 	character*(*) typeText
 	if (numIn .eq. 0) return
 	avgAbove = 0.
 	if (numAbove .gt. 0) avgAbove = sumAbove / numAbove
-	if (mode .eq. 2) then
-	  write(iunitOut, 102)imodobj,typeText, icont, numIn,
-     &	      numAbove, (100. * numAbove) / numIn, sumAbove, avgAbove
-102	  format(' obj',i5,2x,a,i6,2i10,f7.2,2e15.6)
+	if (numFilt .lt. 0) then
+	  if (mode .eq. 2) then
+	    write(iunitOut, 102)imodobj,typeText, icont, numIn,
+     &		numAbove, (100. * numAbove) / numIn, sumAbove, avgAbove
+102	    format(' obj',i5,2x,a,i6,2i10,f7.2,2e15.6)
+	  else
+	    write(iunitOut, 103)imodobj,typeText, icont, numIn,
+     &		numAbove, (100. * numAbove) / numIn, sumAbove, avgAbove
+103	    format(' obj',i5,2x,a,i6,2i10,f7.2,f12.0,f10.2)
+	  endif
 	else
-	  write(iunitOut, 103)imodobj,typeText, icont, numIn,
-     &	      numAbove, (100. * numAbove) / numIn, sumAbove, avgAbove
-103	  format(' obj',i5,2x,a,i6,2i10,f7.2,f12.0,f10.2)
+	  if (mode .eq. 2) then
+	    write(iunitOut, 104)imodobj,typeText, icont, numIn, numAbove,
+     &		(100. * numAbove) / numIn, sumAbove, avgAbove, numFilt
+104	    format(i5,1x,a,i6,2i9,f7.2,2e15.6,i9)
+	  else
+	    write(iunitOut, 105)imodobj,typeText, icont, numIn, numAbove,
+     &		(100. * numAbove) / numIn, sumAbove, avgAbove, numFilt
+105	    format(i5,1x,a,i6,2i10,f7.2,f12.0,f10.2,i10)
+	  endif
 	endif
 	return
 	end
@@ -621,6 +650,20 @@ c
 	print *
 	print *,'ERROR: SUMDENSITY - ',message
 	call exit(1)
+	end
+
+	subroutine  getOneObject(iobj)
+	implicit none
+	include 'model.inc'
+	integer*4 iobj
+	logical getModelObjectRange
+	if (.not.getModelObjectRange(iobj, iobj)) then
+	  print *
+	  print *, 'ERROR: SUMDENSITY - LOADING DATA FOR OBJECT #', iobj
+	  call exit(1)
+	endif
+	call scale_model(0)
+	return
 	end
 
 
