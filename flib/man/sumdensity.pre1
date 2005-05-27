@@ -29,12 +29,16 @@ DDEESSCCRRIIPPTTIIOONN
   contours will be taken as the threshold density.  All of these contours
   should be in a single object specified with "-reference".
 
-  The output of the program consists of a summary of the number of pixels
-  within the contour (after excluding the border region), the number of pixels
-  above the threshold, the percent of pixels above threshold, and the sum and
-  average of the densities above threshold.  These values are reported for
-  each surface in an object, then for the sum of all surfaces.  With the
-  "-verbose" option, values are reported for each contour.
+  The output of the program consists of a summary table with the following
+  columns: object number, surface number or ALL for the entire object, the
+  number of pixels within the contour (after excluding the border region), the
+  number of pixels above the threshold, the percent of pixels above threshold,
+  and the sum and average of the densities above threshold.  If a pixel model
+  is being produced then the number points selected for the model appears in a
+  final column; this value can be less than the points above threshold if
+  adjacent points are required.  These values are reported for each surface in
+  an object, then for the sum of all surfaces.  With the "-verbose" option,
+  values are reported for each contour.
 
   The program will detect contours that are nested inside other contours and
   exclude pixels that are inside or with a border distance of inner contours.

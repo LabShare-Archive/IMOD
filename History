@@ -1,5 +1,13 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/26/05: IMOD_3-6-6
+5/26/05: Added ability to sort surfaces into different objects in Imodsortsurf.
+
+5/26/05: Switched Sumdensity to loading one object at a time and added output
+of count of pixels output to model.
+
+5/26/05: Fixed bug that kept eTomo from recognizing that _fixed.st existed.
+
 5/25/05: Changed computations of mean/SD to use double precision in Newstack
 (where it was screwing up the floating of data around -32000), and in 
 Alterheader and Subimage.
