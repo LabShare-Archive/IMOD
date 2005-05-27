@@ -15,6 +15,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.7  2005/05/27 04:50:37  mast
+Added ability to sort into different objects.
+
 Revision 3.6  2005/02/11 01:42:33  mast
 Warning cleanup: implicit declarations, main return type, parentheses, etc.
 
@@ -359,6 +362,7 @@ int imodObjSortSurf(Iobj *obj)
   free(starts);
   free(nverts);
   free(towork);
+  imodObjectCleanSurf(obj);
   return (0);
 }
 
