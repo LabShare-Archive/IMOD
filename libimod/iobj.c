@@ -15,6 +15,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.7  2005/04/23 23:36:54  mast
+Moved some functions to imodel.c
+
 Revision 3.6  2005/03/20 19:56:43  mast
 Documenting and eliminating duplicate functions
 
@@ -487,8 +490,18 @@ int imodObjectRemoveContour(Iobj *obj, int index)
 void imodObjectCleanSurf(Iobj *obj)
 {
   int i, co, found;
-  if (!obj || !obj->label)
+  if (!obj)
     return;
+
+  /* Update the maximum surface number while we are at it */
+  obj->surfsize = 0;
+  for (co = 0; co < obj->contsize; co++)
+    if (obj->surfsize < obj->cont[co].surf)
+      obj->surfsize = obj->cont[co].surf;
+
+  if (!obj->label)
+    return;
+
   for (i = obj->label->nl - 1; i >= 0; i--) {
     found = 0;
     for (co = 0; co < obj->contsize; co++) {
@@ -500,12 +513,6 @@ void imodObjectCleanSurf(Iobj *obj)
     if (!found)
       imodLabelItemDelete(obj->label, obj->label->label[i].index);
   }
-
-  /* Update the maximum surface number while we are at it */
-  obj->surfsize = 0;
-  for (co = 0; co < obj->contsize; co++)
-    if (obj->surfsize < obj->cont[co].surf)
-      obj->surfsize = obj->cont[co].surf;
 }
 
 /* Unused and suspect, 3/20/05 */
