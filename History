@@ -1,5 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/28/05: IMOD_3-6-7
 5/27/05: Enabled moving a contour to a new surface that does not exist yet.
 
 5/27/05: Changed Newstack so that transform line numbers can be entered on
