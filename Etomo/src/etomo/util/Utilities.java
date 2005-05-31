@@ -12,6 +12,9 @@
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.14  2005/05/26 21:09:44  rickg
+ * <p> $Print out file name with error dialog
+ * <p> $
  * <p> $Revision 3.13  2005/05/18 22:49:50  sueh
  * <p> $bug# 662 Changed Utilities.fileExists() to get metaData from
  * <p> $EtomoDirector, instead of receiving it as a parameter.  Moved getFile()
@@ -145,8 +148,7 @@ public class Utilities {
   public static boolean fileExists(String extension, AxisID axisID) {
     EtomoDirector director = EtomoDirector.getInstance();
     String workingDirectory = director.getCurrentPropertyUserDir();
-    File file = new File(workingDirectory, director.getCurrentMetaData()
-        .getName()
+    File file = new File(workingDirectory, director.getCurrentName()
         + axisID.getExtension() + extension);
     if (file.exists()) {
       return true;
@@ -167,8 +169,7 @@ public class Utilities {
       String fileDescription) {
     EtomoDirector director = EtomoDirector.getInstance();
     String filename = director.getCurrentPropertyUserDir() + File.separator
-        + director.getCurrentMetaData().getName() + axisID.getExtension()
-        + extension;
+        + director.getCurrentName() + axisID.getExtension() + extension;
     File file = new File(filename);
     if (!file.exists() && mustExist) {
       UIHarness.INSTANCE.openMessageDialog("The " + fileDescription
