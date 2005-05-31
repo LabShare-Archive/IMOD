@@ -453,15 +453,17 @@ c
 c
 	  if (pipinput) then
 	    call PipNumberOfEntries('UseTransformLines', numXfLines)
-	    nlineTemp = nlineuse
-	    nLineUse = 0
-	    do iy = 1, numXfLines
-	      ierr = PipGetString('UseTransformLines', listString)
-	      call parselist(listString, lineuse(nLineUse + 1), nlineTemp)
-	      nLineUse = nLineUse + nLineTemp
-	      if (nLineUse .gt. lmsec) call errorexit(
-     &		  'TOO MANY TRANSFORM LINE NUMBERS FOR ARRAYS')
-	    enddo
+	    if (numXfLines .gt. 0) then
+	      nlineTemp = nlineuse
+	      nLineUse = 0
+	      do iy = 1, numXfLines
+		ierr = PipGetString('UseTransformLines', listString)
+		call parselist(listString, lineuse(nLineUse + 1), nlineTemp)
+		nLineUse = nLineUse + nLineTemp
+		if (nLineUse .gt. lmsec) call errorexit(
+     &		    'TOO MANY TRANSFORM LINE NUMBERS FOR ARRAYS')
+	      enddo
+	    endif
 	  else
 	    print *,'Enter list of lines to use in file, or a single ',
      &		'line number to apply that'
@@ -482,7 +484,7 @@ C
 	    nlineuse=listot
 	  endif
 	  if(nlineuse.ne.listot)call errorexit(
-     &		'Number of lines does not match number of sections')
+     &		'Specified # of transform lines does not match # of sections')
 	endif
 c
 c	  find out if root beer float or what
@@ -1711,6 +1713,9 @@ c
 ************************************************************************
 *	  
 c	  $Log$
+c	  Revision 3.28  2005/05/27 15:46:33  mast
+c	  Made UseTransformLines a multiple-entry parameter
+c	
 c	  Revision 3.27  2005/05/26 04:38:46  mast
 c	  Fixed computation of SD's for scaling and protected float to mean
 c	  from being screwed up by zero SD or blank image on Mac
