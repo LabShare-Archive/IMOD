@@ -1,5 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/31/05: Fixed bad bug in Newstack created 5/27/05.
+
+5/30/05: Fixed scaling in Reducecont for images with pixel size.
+
+5/30/05: Made Smoothsurf load only one object at a time.
+
 5/28/05: IMOD_3-6-7
 5/27/05: Enabled moving a contour to a new surface that does not exist yet.
 
