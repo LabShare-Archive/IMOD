@@ -17,6 +17,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.1  2005/05/24 18:01:07  mast
+c	  Modified to use partial loading mode and converted to PIP
+c	
 c
 c	  David Mastronarde, 9/8/97
 c	  
@@ -82,6 +85,7 @@ c
 	if (nobjdo .gt. limflags) call errorexit(
      &	    'TOO MANY OBJECTS IN LIST FOR ARRAYS')
 
+	call PipDone()
 	ierr=getimodhead(xyscal,zscal,xofs,yofs,zofs,ifflip)
 c	  
 c	  Get object flags
@@ -134,7 +138,7 @@ c
 	      print *, 'ERROR: REDUCECONT - LOADING DATA FOR OBJECT #',imodobj
 	      call exit(1)
 	    endif
-	    call scale_model(1)
+	    call scale_model(0)
 c	      
 c	      Loop on contours, which are in this object
 c
@@ -173,7 +177,7 @@ c     &		    ninobj
 	    newtot=newtot+nAfter
 	    ncontTot = ncontTot + nContInObj
 c
-	    call scale_model(0)
+	    call scale_model(1)
 	    call putModelObjects()
 	    if (nContInobj .gt. 0)
      &		write(*,101)imodObj, nContInObj,nBefore,nAfter
