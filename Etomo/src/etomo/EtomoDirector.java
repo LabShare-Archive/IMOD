@@ -15,7 +15,6 @@ import etomo.storage.JoinFileFilter;
 import etomo.storage.ParameterStore;
 import etomo.storage.Storable;
 import etomo.type.AxisID;
-import etomo.type.BaseMetaData;
 import etomo.type.ConstJoinMetaData;
 import etomo.type.ConstMetaData;
 import etomo.type.MetaData;
@@ -46,6 +45,9 @@ import etomo.util.Utilities;
  * 
  * <p>
  * $Log$
+ * Revision 1.18  2005/05/20 21:51:31  sueh
+ * bug# 644 isMemoryAvailable():  improved out of memory message.
+ *
  * Revision 1.17  2005/05/20 21:13:38  sueh
  * bug# 664 exitProgram(): do not attempt to save to a file if the
  * memory is very low.  If the save fails, the file may be truncated.  Added
@@ -412,11 +414,12 @@ public class EtomoDirector {
     return ((Controller) controllerList.get(currentControllerKey)).getManager();
   }
   
-  public BaseMetaData getCurrentMetaData() {
+  public String getCurrentName() {
     if (currentControllerKey == null) {
       throw new IllegalStateException("No current manager");
     }
-    return ((Controller) controllerList.get(currentControllerKey)).getMetaData();
+    return ((Controller) controllerList.get(currentControllerKey))
+        .getMetaData().getName();
   }
   
   public MetaData getCurrentReconstructionMetaData() {
