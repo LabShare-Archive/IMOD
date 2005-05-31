@@ -16,6 +16,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.10  2005/04/04 22:37:06  mast
+Fixed clipping of model in Z due to float to integer truncation
+
 Revision 3.9  2005/03/20 19:56:05  mast
 Eliminating duplicate functions
 
@@ -440,6 +443,7 @@ int main(int argc, char **argv)
               obj->mesh = NULL;
             }
             printf("Meshing object  %d\n",ob+1);
+            fflush(stdout);
             resecobj(obj, minz, maxz, incz);
             ReduceObj(obj, tol);
             reresobj(obj, res);
