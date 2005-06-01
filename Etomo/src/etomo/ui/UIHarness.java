@@ -10,7 +10,6 @@ import java.io.IOException;
 import javax.swing.JOptionPane;
 
 import etomo.BaseManager;
-import etomo.Controller;
 import etomo.EtomoDirector;
 import etomo.type.AxisID;
 import etomo.util.UniqueKey;
@@ -245,15 +244,15 @@ public class UIHarness {
     }
   }
   
-  public void addWindow(Controller controller, UniqueKey controllerKey) {
+  public void addWindow(BaseManager manager, UniqueKey managerKey) {
     if (isHead()) {
-      mainFrame.addWindow(controller, controllerKey);
+      mainFrame.addWindow(manager, managerKey);
     }
   }
   
-  public void removeWindow(UniqueKey controllerKey) {
+  public void removeWindow(UniqueKey managerKey) {
     if (isHead()) {
-      mainFrame.removeWindow(controllerKey);
+      mainFrame.removeWindow(managerKey);
     }
   }
   
@@ -409,6 +408,11 @@ public class UIHarness {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.6  2005/05/18 22:48:53  sueh
+* <p> bug# 662 Added an openMessageDialog function which doesn't require
+* <p> specifying the axisID (defaults to AxisID.ONLY).  Added
+* <p> openDeleteDialog().
+* <p>
 * <p> Revision 1.5  2005/05/10 03:28:38  sueh
 * <p> bug# 615 Do not create etomo_test.log unless --test is set.
 * <p>

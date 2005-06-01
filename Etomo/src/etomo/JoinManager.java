@@ -47,6 +47,9 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.15  2005/05/17 19:09:22  sueh
+* <p> bug# 520 Setting the status bar when join is opened with an .ejf file.
+* <p>
 * <p> Revision 1.14  2005/04/26 17:36:01  sueh
 * <p> bug# 615 Change the name of the UIHarness member variable to
 * <p> uiHarness.
@@ -247,9 +250,9 @@ public class JoinManager extends BaseManager {
   private JoinProcessManager processMgr;
   private JoinState state;
   
-  public JoinManager(String paramFileName, JoinMetaData metaData, AxisID axisID) {
+  public JoinManager(String paramFileName, AxisID axisID) {
     super();
-    this.metaData = metaData;
+    this.metaData = new JoinMetaData();
     initializeUIParameters(paramFileName, axisID);
     if (!paramFileName.equals("") && loadedTestParamFile) {
       mainPanel.setStatusBarText(paramFile, metaData);

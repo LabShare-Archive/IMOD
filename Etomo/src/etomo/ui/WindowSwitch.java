@@ -12,7 +12,7 @@ import javax.swing.JTabbedPane;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import etomo.Controller;
+import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.util.HashedArray;
 import etomo.util.UniqueKey;
@@ -79,8 +79,8 @@ public class WindowSwitch {
    * @param controller
    * @param key
    */
-  void add(Controller controller, UniqueKey key) {
-    if (controller == null || key == null) {
+  void add(BaseManager manager, UniqueKey key) {
+    if (manager == null || key == null) {
       return;
     }
     if (menuList == null) {
@@ -95,7 +95,7 @@ public class WindowSwitch {
     menuItem.setVisible(true);
     menu.add(menuItem);
     menuList.add(key, menuItem);
-    mainPanelList.add(key, controller.getManager().getMainPanel());
+    mainPanelList.add(key, manager.getMainPanel());
   }
 
   /**
@@ -311,6 +311,13 @@ public class WindowSwitch {
 
 /**
  * <p>$Log$
+ * <p>Revision 1.6  2005/04/20 01:56:13  sueh
+ * <p>bug# 615 SetController was causing MainFrame.setCurrentManager() to
+ * <p>be called twice.  Passing newWindow to selectWindow makes it possible
+ * <p>to remove one of the SetController calls to
+ * <p>MainFrame.setCurrentManager().  MainFrame.setCurrentManager() must
+ * <p>be called with newWindow = true when the .edf file is first opened.
+ * <p>
  * <p>Revision 1.5  2005/02/17 16:47:09  sueh
  * <p>bug# 605 In setTabs():  check for null to handle a MainPanel that has
  * <p>been removed on close

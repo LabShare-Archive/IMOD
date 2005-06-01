@@ -14,7 +14,6 @@ import java.awt.event.WindowEvent;
 import javax.swing.JPanel;
 
 import etomo.BaseManager;
-import etomo.Controller;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.util.UniqueKey;
@@ -32,6 +31,11 @@ import etomo.util.UniqueKey;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.32  2005/05/12 22:14:55  sueh
+ * <p> bug# 615 Change setCurrentManager() to handle a null currentManager.
+ * <p> Hide the second window.  Remove the axis and the dataset from the title.
+ * <p> Disable menu items with work with an open dataset.
+ * <p>
  * <p> Revision 3.31  2005/05/10 19:44:54  sueh
  * <p> bug# 615 Added setTitle(AxisID).  Removing A Axis portion of the title for
  * <p> Setup, Join, and single axis.
@@ -468,12 +472,12 @@ final class MainFrame extends EtomoFrame implements ContextMenu {
     ContextPopup contextPopup = new ContextPopup(mainPanel, mouseEvent, "");
   }
 
-  void addWindow(Controller controller, UniqueKey controllerKey) {
-    windowSwitch.add(controller, controllerKey);
+  void addWindow(BaseManager manager, UniqueKey managerKey) {
+    windowSwitch.add(manager, managerKey);
   }
   
-  void removeWindow(UniqueKey controllerKey) {
-    windowSwitch.remove(controllerKey);
+  void removeWindow(UniqueKey managerKey) {
+    windowSwitch.remove(managerKey);
   }
   
   void renameWindow(UniqueKey oldKey, UniqueKey newKey) {
