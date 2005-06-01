@@ -104,6 +104,10 @@ import etomo.util.Utilities;
  * 
  *
  * <p> $Log$
+ * <p> Revision 3.150  2005/05/19 20:46:10  sueh
+ * <p> bug# 662 Added renameXrayStack() to rename the _xray.st.gz file to
+ * <p> _xray.st.gz.#.
+ * <p>
  * <p> Revision 3.149  2005/05/18 22:26:26  sueh
  * <p> bug# 662 Added functions to archive original stack:
  * <p> archiveOriginalStack, deleteOriginalStack, and getArchiveInfo.  Also
@@ -1312,9 +1316,9 @@ public class ApplicationManager extends BaseManager {
    * Does initialization and loads the .edf file.  Opens the setup dialog
    * if there is no .edf file.
    */
-  public ApplicationManager(String paramFileName, MetaData metaData, AxisID axisID) {
+  public ApplicationManager(String paramFileName, AxisID axisID) {
     super();
-    this.metaData = metaData;
+    this.metaData = new MetaData();
     initializeUIParameters(paramFileName, axisID);
     initializeAdvanced();
     // Open the etomo data file if one was found on the command line
@@ -3811,10 +3815,6 @@ public class ApplicationManager extends BaseManager {
     TextPageWindow logFileWindow = new TextPageWindow();
     logFileWindow.setVisible(logFileWindow.setFile(propertyUserDir
       + File.separator + logFileName));
-  }
-
-  public MetaData getTomogramMetaData() {
-    return metaData;
   }
   
   /**
@@ -6320,7 +6320,11 @@ public class ApplicationManager extends BaseManager {
     return state;
   }
   
-  public ConstMetaData getMetaData() {
+  public MetaData getMetaData() {
+    return metaData;
+  }
+  
+  public ConstMetaData getConstMetaData() {
     return (ConstMetaData) metaData;
   }
   
