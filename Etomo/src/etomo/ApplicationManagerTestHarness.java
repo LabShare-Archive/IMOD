@@ -2,7 +2,6 @@ package etomo;
 
 import etomo.comscript.CombineComscriptState;
 import etomo.type.AxisID;
-import etomo.type.MetaData;
 import etomo.ui.TomogramCombinationDialog;
 
 /**
@@ -22,6 +21,11 @@ import etomo.ui.TomogramCombinationDialog;
 * @version $Revision$
 *
 * <p> $Log$
+* <p> Revision 1.4  2005/04/25 20:29:24  sueh
+* <p> bug# 615 Passing the axis where the command originated to the message
+* <p> functions so that the message will be popped up in the correct window.
+* <p> This requires adding AxisID to many objects.
+* <p>
 * <p> Revision 1.3  2005/01/21 22:07:09  sueh
 * <p> bug# 509 bug# 591  Moved the management of MetaData to the Controller
 * <p> class.
@@ -53,7 +57,7 @@ public class ApplicationManagerTestHarness extends ApplicationManager {
    * @param args
    */
   private ApplicationManagerTestHarness(String[] args) {
-    super("", new MetaData(), AxisID.ONLY);
+    super("", AxisID.ONLY);
   }
   
   public CombineComscriptState runUpdateCombineComscriptState(
