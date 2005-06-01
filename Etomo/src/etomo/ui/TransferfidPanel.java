@@ -53,7 +53,7 @@ public class TransferfidPanel {
 
   public TransferfidPanel(AxisID axisID, boolean inclButton) {
     this.axisID = axisID;
-    metaData = EtomoDirector.getInstance().getCurrentReconstructionMetaData();
+    metaData = EtomoDirector.getInstance().getCurrentReconManager().getMetaData();
     includeButton = inclButton;
     setup();
   }
@@ -223,6 +223,9 @@ public class TransferfidPanel {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.2  2005/01/26 00:07:10  sueh
+ * <p> Removed script oriented functionality from EtomoNumber.
+ * <p>
  * <p> Revision 3.1  2005/01/22 04:08:36  sueh
  * <p> bug# 509, bug# 591  In getParameters(), set transferfid fields in MetaData
  * <p> after updating the TransferfidParam parameter.  In setParameters(),
