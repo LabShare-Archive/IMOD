@@ -4,7 +4,7 @@
 .SH NAME
 imodsendevent \- Sends a clipboard message with a command to 3dmod
 .SH SYNOPSIS
-imodsendevent Window_ID action [argument] [action...]
+imodsendevent [options] Window_ID action [argument] [action...]
 .SH DESCRIPTION
 This program will send a command to 3dmod(1) to perform one or more actions.
 The first command-line
@@ -15,7 +15,16 @@ option.  After this ID, each action is entered in sequence, where an action is
 specified by a numeric code followed by whatever arguments are associated
 with that action, such as the name of a model file when opening a 
 model.
-.P
+.SH OPTIONS
+.TP
+.B -t <time>
+Timeout, or length of time that the program will wait for a reply from 3dmod,
+in seconds.  The default is 5.
+.TP
+.B -D
+Debug mode.  The program will log what it sends by placing on the clipboard
+and all changes that it detects on the clipboard.
+.SH COMMANDS TO 3DMOD
 Currently, 3dmod will accept the following commands:
    1  Open model file (follow with file name); this raises all windows
    2  Save model file
@@ -45,9 +54,10 @@ Currently, 3dmod will accept the following commands:
           3D point radius
   13  Report the three angles of a slicer window (the active one if a 
         slicer is the active window, otherwise the first one)
-  14  Send a message to a plugin or compiled-in special module.  Follow with
-        the name of the plugin as it appears in the Special menu, including 
-        spaces if any, then with the message for the plugin.
+  14  Send a message to a plugin or compiled-in special module.  
+        Follow with the name of the plugin as it appears in the 
+        Special menu, including spaces if any, then with the message 
+        for the plugin.
 
 Bead Fixer accepts the following commands:
    1  Open a Tiltalign log file.  Follow with log file name
