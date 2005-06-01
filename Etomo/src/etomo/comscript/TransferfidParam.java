@@ -11,6 +11,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.5  2005/05/12 01:25:20  sueh
+ * <p> bug# 591 Removed defaults so that fields would always appear in
+ * <p> etomo_err.log.
+ * <p>
  * <p> Revision 3.4  2005/01/25 21:51:31  sueh
  * <p> Converting EtomoNumbers parameters to ScriptParameters.
  * <p>
@@ -100,9 +104,9 @@ import etomo.EtomoDirector;
 import etomo.storage.Storable;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
+import etomo.type.ConstMetaData;
 import etomo.type.EtomoBoolean2;
 import etomo.type.EtomoNumber;
-import etomo.type.MetaData;
 import etomo.type.ScriptParameter;
 import etomo.type.TiltAngleSpec;
 import etomo.type.TiltAngleType;
@@ -125,7 +129,7 @@ public class TransferfidParam implements Storable {
   EtomoNumber centerViewB = new EtomoNumber(EtomoNumber.LONG_TYPE, "CenterViewB");
   ScriptParameter numberViews = new ScriptParameter(EtomoNumber.INTEGER_TYPE, "NumberViews");
 
-  private MetaData metaData = null;
+  private ConstMetaData metaData = null;
   boolean createLog = false;
   private String groupString;
 
@@ -172,14 +176,16 @@ public class TransferfidParam implements Storable {
   
   private void setCenterViewAResetValue() {
     if (metaData == null) {
-      metaData = EtomoDirector.getInstance().getCurrentReconstructionMetaData();
+      metaData = EtomoDirector.getInstance().getCurrentReconManager()
+          .getConstMetaData();
     }
     setCenterViewResetValue(centerViewA, metaData.getTiltAngleSpecA());
   }
-  
+
   private void setCenterViewBResetValue() {
     if (metaData == null) {
-      metaData = EtomoDirector.getInstance().getCurrentReconstructionMetaData();
+      metaData = EtomoDirector.getInstance().getCurrentReconManager()
+          .getConstMetaData();
     }
     setCenterViewResetValue(centerViewB, metaData.getTiltAngleSpecB());
   }
