@@ -62,6 +62,17 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.42  2005/04/25 21:41:37  sueh
+ * bug# 615 Passing the axis where a command originates to the message
+ * functions so that the message will be popped up in the correct window.
+ * This requires adding AxisID to many objects.  Move the interface for
+ * popping up message dialogs to UIHarness.  It prevents headless
+ * exceptions during a test execution.  It also allows logging of dialog
+ * messages during a test.  It also centralizes the dialog interface and
+ * allows the dialog functions to be synchronized to prevent dialogs popping
+ * up in both windows at once.  All Frame functions will use UIHarness as a
+ * public interface.
+ *
  * Revision 3.41  2005/04/21 20:55:14  sueh
  * bug# 615 Pass axisID to packMainWindow so it can pack only the frame
  * that requires it.
@@ -625,7 +636,7 @@ public class TomogramGenerationDialog extends ProcessDialog
       InvalidParameterException {
     int binning = ((Integer) spinBinning.getValue()).intValue();
     String badParameter = "";
-    MetaData metaData = applicationManager.getTomogramMetaData();
+    MetaData metaData = applicationManager.getMetaData();
     try {
       // Set the appropriate FULLIMAGE line
       badParameter = "FULLIMAGE";

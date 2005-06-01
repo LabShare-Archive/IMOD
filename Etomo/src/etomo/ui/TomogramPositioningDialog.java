@@ -42,6 +42,10 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.28  2005/04/21 20:55:25  sueh
+ * <p> bug# 615 Pass axisID to packMainWindow so it can pack only the frame
+ * <p> that requires it.
+ * <p>
  * <p> Revision 3.27  2005/04/16 02:05:36  sueh
  * <p> bug# 615 Moved the adding of exit buttons to the base class.
  * <p>
@@ -452,7 +456,7 @@ public class TomogramPositioningDialog extends ProcessDialog
   
   private void updateMetaData() {
     boolean wholeTomogram = cbWholeTomogram.isSelected();
-    MetaData metaData = applicationManager.getTomogramMetaData();
+    MetaData metaData = applicationManager.getMetaData();
     if (wholeTomogram != metaData.isWholeTomogramSample(axisID)) {
       metaData.setWholeTomogramSample(axisID, wholeTomogram);
     }
