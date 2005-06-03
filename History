@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/3/05: Made imodsortsurf copy many object properties when making new objects.
+
 6/3/05: Added binning to blendmont.
 
 5/31/05: IMOD_3-6-8

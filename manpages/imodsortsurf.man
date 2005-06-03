@@ -29,6 +29,8 @@ required.
 .TP
 .B -c
 Make new objects the same color as the object from which they are derived.
+Most other display properties are transferred from the existing object to the 
+new object.
 .TP
 .B -k
 Keep the surface numbers when moving contours into new objects.  The default
