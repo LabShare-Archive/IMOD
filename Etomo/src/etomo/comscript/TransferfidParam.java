@@ -11,6 +11,12 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.6  2005/06/01 21:26:51  sueh
+ * <p> bug# 667 Removing the Controller classes.  Trying make meta data and
+ * <p> app manager equals didn't work very well.  Meta data is created by and
+ * <p> managed by app mgr and the class structure should reflect that.   Getting
+ * <p> meta data from the manager instead of EtomoDirector.
+ * <p>
  * <p> Revision 3.5  2005/05/12 01:25:20  sueh
  * <p> bug# 591 Removed defaults so that fields would always appear in
  * <p> etomo_err.log.
@@ -139,7 +145,7 @@ public class TransferfidParam implements Storable {
     if (axisID == AxisID.ONLY) {
       axisID = AxisID.FIRST;
     }
-    groupString = group + axisID.getExtension();
+    groupString = group + axisID.getStorageExtension();
     searchDirection.setValidValues(new int[] {-1,1});
     numberViews.setDisplayValue(5);
     reset();
