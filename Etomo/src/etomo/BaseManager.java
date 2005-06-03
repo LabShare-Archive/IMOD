@@ -42,6 +42,10 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.17  2005/05/20 21:11:01  sueh
+* <p> bug# 664 saveTestParamFile(): do not attempt to save to a file if the
+* <p> memory is very low.  If the save fails, the file may be truncated.
+* <p>
 * <p> Revision 1.16  2005/05/18 22:30:37  sueh
 * <p> bug# 622 Made nextProcessA and B private because they are set using
 * <p> reset and setProcess functions.  Added a new parameter to
@@ -640,12 +644,12 @@ public abstract class BaseManager {
       threadNameA = "none";
       backgroundProcessA = false;
       backgroundProcessNameA = null;
-      axisID = AxisID.FIRST;
+      //axisID = AxisID.FIRST;
     }
     else if (threadName.equals(threadNameB)) {
       getMainPanel().stopProgressBar(AxisID.SECOND);
       threadNameB = "none";
-      axisID = AxisID.SECOND;
+      //axisID = AxisID.SECOND;
     }
     else {
       uiHarness.openMessageDialog("Unknown thread finished!!!", "Thread name: "
