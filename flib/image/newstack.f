@@ -1669,40 +1669,6 @@ c
 	end
 
 
-	subroutine getBinnedSize(nx, nbin, nxbin, ixOffset)
-	implicit none
-	integer*4 nx, nxbin, nbin, ixOffset
-	integer*4 irem
-c	
-c	  get rounded down binned size and remainder
-c	  
-	nxbin = nx / nbin
-	irem = nx - nbin * nxbin
-c	  
-c	  if binned size is same even/odd state as original size, increase
-c	  by 2 pixels if there is more than 1 remainder pixel
-c
-	if (mod(nx, 2) .eq. mod(nxbin, 2)) then
-	  if (irem .gt. 1) nxbin = nxbin + 2
-	else
-c	    
-c	    if there is change in even/odd state, must increase by 1 pixel
-c	    and add 1 binned pixel's worth of pixels to remainder to divide
-c	    between left and right
-c	    
-	  nxbin = nxbin + 1
-	  irem = irem + nbin
-	endif
-c
-c	  The offset is the negative of the number of non-existent pixels in
-c	  the first binned pixel
-c
-	ixOffset = 0
-	if (irem .gt. 1) ixOffset = -(nbin - irem/2)
-	return
-	end
-
-
 	subroutine errorexit(message)
 	character*(*) message
 	print *
@@ -1713,6 +1679,9 @@ c
 ************************************************************************
 *	  
 c	  $Log$
+c	  Revision 3.29  2005/05/31 16:34:34  mast
+c	  Fixed problem with zeroing out line numbers when no entry was made
+c	
 c	  Revision 3.28  2005/05/27 15:46:33  mast
 c	  Made UseTransformLines a multiple-entry parameter
 c	
