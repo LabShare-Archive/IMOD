@@ -29,58 +29,7 @@ c
 c	  $Date$
 c
 c	  $Revision$
-c
-c	  $Log$
-c	  Revision 3.14  2005/04/06 19:19:38  mast
-c	  Added option to create undistorted stack only
-c	
-c	  Revision 3.13  2005/02/28 21:19:04  mast
-c	  Added distortion and mag gradient correction, test mode for adjusting
-c	  gradient, cubic and linear interpolation, and declarations (implicit
-c	  none is now used in all routines that include blend.inc)
-c	
-c	  Revision 3.12  2005/02/17 18:18:02  mast
-c	  Fixed a warning message
-c	
-c	  Revision 3.11  2005/02/17 17:58:04  mast
-c	  Rewrote edge function files at end and closed them so they would be
-c	  newer than the .ecd file
-c	
-c	  Revision 3.10  2004/09/14 22:34:44  mast
-c	  Made it preserve pixel sizes
-c	
-c	  Revision 3.9  2004/03/12 20:42:09  mast
-c	  Made size parameters for finding edge functions be option entries,
-c	  made defaults scale up above 1024, and made it read and use the grid
-c	  spacing from the edge function file.
-c	
-c	  Revision 3.8  2003/10/30 20:00:32  mast
-c	  Needed to declare PipGetInOutFile as integer
-c	
-c	  Revision 3.7  2003/10/24 03:46:15  mast
-c	  switch to calling routine to make backup edf file
-c	
-c	  Revision 3.6  2003/10/10 20:43:18  mast
-c	  Used new subroutine for getting input/output files
-c	
-c	  Revision 3.5  2003/10/09 02:32:44  mast
-c	  Add pipdone call
-c	
-c	  Revision 3.4  2003/10/08 17:15:24  mast
-c	  Convert to using autodoc
-c	
-c	  Revision 3.3  2003/08/09 23:21:44  mast
-c	  Converted to PIP input and fixed some error reporting.  Also made it
-c	  fall back to building new edge functions if it can't open old ones.
-c	
-c	  Revision 3.2  2003/06/20 20:18:13  mast
-c	  Standardized error reporting
-c	
-c	  Revision 3.1  2002/08/19 03:19:14  mast
-c	  Implemented include file for commons.  Put large arrays in common
-c	  to prevent stack problems.  Passed array to find_best_shifts to
-c	  reduce memory needs there.
-c	
+c	  Log at end
 c	  
 	implicit none
 	integer nbytes_recl_item,limneg
@@ -94,7 +43,8 @@ c
 	character*18 actionStr
 	integer*4 mxyzin(3),nxyzst(3)/0,0,0/
 	real*4 cell(6)/1.,1.,1.,0.,0.,0./
-	real*4 delta(3)
+	real*4 delta(3),xorig, yorig, zorig
+	real*4 binline(maxlinelength)
 c
 c 7/7/00 CER: remove the encode's; titlech is the temp space
 c
@@ -154,19 +104,20 @@ c
 	integer*4 newxtotpix,newytotpix,newxframe,newyframe,newminxpiece
 	integer*4 newminypiece,ifwant,nglist,ierr,nxfrmpneg,nyfrmpneg
 	real*4 dmin,dmax,outmin,outmax,definmin
-	real*4 definmax,curinmin,curinmax,pixscale,pixadd,tsum
+	real*4 definmax,curinmin,curinmax,pixscale,pixadd
+	real*8 tsum,cursum,grandsum
 	integer*4 ixfrm,iyfrm,ipc,nshort,nlong,ishort,ilong,indbray
 	integer*4 newuse,newpcxll,newpcyll,nxfast,nyfast,iyfast,ixfast
 	integer*4 indylo,indyhi,nlinesout,indxlo,indxhi,inonepiece,ioptneg
 	integer*4 indx,indy,ixneg,iyneg,nxneg,nyneg,iz,ineg,listfirst,ipchi
 	integer*4 ix,iy,nsum,ilineout,ifill,nalong,ncross,ned,ixy,lenrec,j
-	real*4 dminout,dmaxout,grandsum,tmpsum,tmean,sdcrit,devcrit,gridScale
+	real*4 dminout,dmaxout,tmean,sdcrit,devcrit,gridScale
 	integer*4 nzwant,newxoverlap,newyoverlap,kti,izsect,iwant,ifdiddle
 	integer*4 ixout,iyout,ifrevise,norder,iedgedir,iyx,imem,jedge,numneg
 	integer*4 iwhich,neglo,negup,indlo,indup,joint,ied,iedge,ipclo,ipcup
 	integer*4 maxswing,ishift,nshiftneg,idum1,idum2,inde,nbestedge,indbest
 	real*4 erradj,errlim,dxsum,dysum,sumx,sumy,xdisp,ydisp
-	real*4 beforemean,beforemax,cursum,f12,f13,f23,f24,er1,et1,el2,et2
+	real*4 beforemean,beforemax,f12,f13,f23,f24,er1,et1,el2,et2
 	integer*4 indgl,ilis,niter,linebase,nedgesum,indedg,indlower
 	integer*4 indp1,indp2,indp3,indp4,inde12,inde13,inde34,inde24,nactivep
 	real*4 er3,eb3,el4,eb4,fx,fy,dr1,dt1,dl2,dt2,dr3,db3,dl4,db4,dla,dra
@@ -179,6 +130,8 @@ c
 	real*4 dy3,dx3,bx,by,emin,w4,f4b11,f4b12,f4b21,f4b22,dden14,dden43
 	integer*4 ipiece3,ipiece4,nxgr,nygr,indbray1,indbray2,jndp4
 	real*4 x4,y4,dx4,dy4,f34,xg,yg, delDmagPerUm, delRotPerUm
+	integer*4 iBinning, nyWrite, nlineTot
+	integer*4 lineOffset, ixOffset, iyOffset, linesBuffered, iBufferBase
 	integer*4 imodBackupFile
 	real*4 sind,cosd,oneintrp
 c	  
@@ -248,6 +201,7 @@ c
 	interpOrder = 2
 	testMode = .false.
 	undistortOnly = .false.
+	iBinning = 1
 c
 c	  
 c	  Pip startup: set error, parse options, check help, set flag if used
@@ -534,6 +488,9 @@ c
      &		newyframe)
 	    ierr = PipGetTwoIntegers('MinimumOverlapXandY', minxoverlap,
      &		minyoverlap)
+	    ierr = PipGetInteger('BinByFactor', iBinning)
+	    if (iBinning .lt. 1) call errorexit('BINNING MUST BE POSITIVE')
+	    if (iBinning .gt. maxbin) call errorexit('BINNING IS TOO LARGE')
 	  else
 	    write(*,'(1x,a,/,a,4i6,a,$)')'Enter Min X, Max X, Min Y, and'//
      &		' Max Y coordinates of desired output section,'
@@ -562,6 +519,9 @@ c
 	  if (.not.outputpl .and. (newxpieces.gt.1 .or. newypieces.gt.1))
      &	      call errorexit('you must specify an output piece list file'
      &	      //' to have more than one output frame')
+	  if (iBinning .gt. 1 .and. (newxpieces.gt.1 .or. newypieces.gt.1))
+     &	      call errorexit('With binning, output must be into a '//
+     &	      'single frame')
 	  if (pipinput) print *,'Output file:'
 	  write(*,115)newxtotpix,'X',newxpieces,newxframe,newxoverlap
 	  write(*,115)newytotpix,'Y',newypieces,newyframe,newyoverlap
@@ -579,11 +539,13 @@ c
 c
 	nxout=newxframe
 	nyout=newyframe
-	nzout=0
 	dminout=1.e10
 	dmaxout=-1.e10
 	grandsum=0.
-	call ialsiz(2,nxyzout,nxyzst)
+	call getBinnedSize(nxout, iBinning, nxbin, ixOffset)
+	call getBinnedSize(nyout, iBinning, nybin, iyOffset)
+	nzbin = 0
+	call ialsiz(2,nxyzbin,nxyzst)
 	call date(dat)
 	call time(tim)
 c
@@ -1396,7 +1358,7 @@ c
 		  do i=indbray+(iy-1)*nxin,indbray+iy*nxin-1
 		    curinmin=min(curinmin,array(i))
 		    curinmax=max(curinmax,array(i))
-		    cursum=cursum+array(i)
+		    tsum=tsum+array(i)
 		  enddo
 		  cursum=cursum+tsum
 		  nsum=nsum+nxin
@@ -1451,7 +1413,8 @@ c
 		  tsum=tsum+val
 		enddo
 		grandsum=grandsum+tsum
-		nzout=nzout+1
+		nzbin=nzbin+1
+		print *,'writing ',nzbin
 		call iwrsec(2, array(indbray))
 c		  
 		if (outputpl) write(3,'(2i6,i4)')newpcxll,newpcyll,izsect
@@ -1471,9 +1434,12 @@ c
 c		write(*,'(a,2i4)')' composing frame at',ixout,iyout
 	      newpcyll=newminypiece+(iyout-1)*(newyframe-newyoverlap)
 	      newpcxll=newminxpiece+(ixout-1)*(newxframe-newxoverlap)
-	      anypixels=.false.
+	      anypixels = iBinning .gt. 1
 	      anylinesout=.false.
 	      tsum=0.
+	      lineOffset = iyOffset
+	      linesBuffered = 0
+	      iBufferBase = 0
 c		
 c		do fast little boxes
 c		
@@ -1490,7 +1456,7 @@ c
 c		  fill array with dmean
 c		  
 		do i=1,nxout*nlinesout
-		  brray(i)=dmean
+		  brray(i + iBufferBase)=dmean
 		enddo
 c		  
 		do ixfast=1,nxfast
@@ -1548,7 +1514,7 @@ c
 		    fastf(2,3)=fastf(2,3)+1.
 c		      
 		    call shuffler(inonepiece,indbray)
-		    call fastinterp(brray,nxout,nlinesout,
+		    call fastinterp(brray(iBufferBase + 1),nxout,nlinesout,
      &			array(indbray),nxin,nyin,indxlo,indxhi,indylo,
      &			indyhi,newpcxll,fastf,fastf(1,3),
      &			fastf(2,3),inonepiece)
@@ -1559,7 +1525,7 @@ c
 c		      in or near an edge: loop on each pixel
 c		      
 		    niter=10
-		    linebase=1-newpcxll
+		    linebase=iBufferBase + 1 - newpcxll
 		    do indy=indylo,indyhi
 		      do indx=indxlo,indxhi
 			call countedges(indx,indy,xg,yg)
@@ -2365,18 +2331,38 @@ c
 c		  if any pixels have been present in this frame, write line out
 c		  
 		if(anypixels)then
-		  tmpsum=0.
 		  do i=1,nxout*nlinesout
-		    val=pixscale*brray(i)+pixadd
-		    brray(i)=val
-		    dminout=min(dminout,val)
-		    dmaxout=max(dmaxout,val)
-		    tmpsum=tmpsum+val
+		    brray(i)=pixscale*brray(i)+pixadd
 		  enddo
-		  tsum=tsum+tmpsum
-		  ilineout=(iyfast-1)*ifastsiz
-		  call imposn(2,nzout,ilineout)
-		  call iwrsecl(2,brray,nlinesout)
+c		    
+c		    Set line position based on binned pixels output
+c		    Set lines to write based on what is in buffer already
+c		    Get new number of lines left in buffer; if at top of
+c		    frame, increment lines to write if there are any lines left
+c		    
+		  ilineout=((iyfast-1)*ifastsiz - iyOffset) / iBinning
+		  call imposn(2,nzbin,ilineout)
+		  ilineout = linesBuffered + nLinesOut
+		  nyWrite = (ilineOut - lineOffset) / iBinning
+		  linesBuffered = mod(ilineout - lineOffset, iBinning)
+		  if (indyhi .eq. newpcyll + newyframe - 1 .and.
+     &		      linesBuffered .gt. 0) nyWrite = nyWrite + 1
+c		    
+c		    write data
+c
+		  call iwrBinned(2, brray, binline, nxout, nxbin, ixOffset,
+     &		      ilineout, nyWrite, lineOffset, iBinning, dminout,
+     &		      dmaxout,tsum)
+c		    
+c		    Set Y offset to zero after first time, set base and
+c		    move remaining lines to bottom
+c
+		  lineOffset = 0
+		  ifill = (ilineout - linesBuffered) * nxout
+		  iBufferBase = nxout * linesBuffered
+		  do i = 1, iBufferBase
+		    brray(i) = brray(i + ifill)
+		  enddo
 c		    
 c		    if this is the first time anything is written, and it
 c		    wasn't the first set of lines, then need to go back and
@@ -2387,7 +2373,7 @@ c
 		    do i=1,nxout*ifastsiz
 		      brray(i)=val
 		    enddo
-		    call imposn(2,nzout,0)
+		    call imposn(2,nzbin,0)
 		    do ifill=1,iyfast-1
 		      call iwrsecl(2,brray,ifastsiz)
 		    enddo
@@ -2401,8 +2387,8 @@ c		if any pixels present, write piece coordinates
 c		
 	      if(anypixels)then
 		grandsum=grandsum+tsum
-c		  write(*,'(a,i5)')' wrote new frame #',nzout
-		nzout=nzout+1
+c		  write(*,'(a,i5)')' wrote new frame #',nzbin
+		nzbin=nzbin+1
 c		  
 		if (outputpl) write(3,'(2i6,i4)')newpcxll,newpcyll,izsect
 	      endif
@@ -2413,16 +2399,20 @@ c
 c
 	close(3)
 c	  
-c	  finalize the header
-c
-	call ialsiz(2,nxyzout,nxyzst)
-	call ialsam(2,nxyzout)
+c	  finalize the header, shift original same as in newstack
+c	  
+	call ialsiz(2,nxyzbin,nxyzst)
+	call ialsam(2,nxyzbin)
 	call irtdel(1,delta)
-	cell(1)=nxout*delta(1)
-	cell(2)=nyout*delta(2)
-	cell(3)=nzout*delta(3)
+	cell(1)=nxbin*delta(1)*iBinning
+	cell(2)=nybin*delta(2)*iBinning
+	cell(3)=nzbin*delta(3)
 	call ialcel(2,cell)
-	tmean=grandsum/(nzout*nxout*nyout)
+	call irtorg(1, xorig, yorig, zorig)
+	call ialorg(2, xorig - delta(1) * ixOffset,
+     &	    yorig - delta(1) * iyOffset, zorig)
+
+	tmean=(grandsum/nzbin)/(nxbin*nybin)
 	call iwrhdr(2,title,-1,dminout,dmaxout, tmean)
 	call imclose(2)
 	if (undistortOnly) call exit(0)
@@ -2459,3 +2449,58 @@ c
 	print *,'ERROR: BLENDMONT - ',message
 	call exit(1)
 	end
+
+c
+c	  $Log$
+c	  Revision 3.15  2005/04/07 14:18:46  mast
+c	  Fixed line length on error message
+c	
+c	  Revision 3.14  2005/04/06 19:19:38  mast
+c	  Added option to create undistorted stack only
+c	
+c	  Revision 3.13  2005/02/28 21:19:04  mast
+c	  Added distortion and mag gradient correction, test mode for adjusting
+c	  gradient, cubic and linear interpolation, and declarations (implicit
+c	  none is now used in all routines that include blend.inc)
+c	
+c	  Revision 3.12  2005/02/17 18:18:02  mast
+c	  Fixed a warning message
+c	
+c	  Revision 3.11  2005/02/17 17:58:04  mast
+c	  Rewrote edge function files at end and closed them so they would be
+c	  newer than the .ecd file
+c	
+c	  Revision 3.10  2004/09/14 22:34:44  mast
+c	  Made it preserve pixel sizes
+c	
+c	  Revision 3.9  2004/03/12 20:42:09  mast
+c	  Made size parameters for finding edge functions be option entries,
+c	  made defaults scale up above 1024, and made it read and use the grid
+c	  spacing from the edge function file.
+c	
+c	  Revision 3.8  2003/10/30 20:00:32  mast
+c	  Needed to declare PipGetInOutFile as integer
+c	
+c	  Revision 3.7  2003/10/24 03:46:15  mast
+c	  switch to calling routine to make backup edf file
+c	
+c	  Revision 3.6  2003/10/10 20:43:18  mast
+c	  Used new subroutine for getting input/output files
+c	
+c	  Revision 3.5  2003/10/09 02:32:44  mast
+c	  Add pipdone call
+c	
+c	  Revision 3.4  2003/10/08 17:15:24  mast
+c	  Convert to using autodoc
+c	
+c	  Revision 3.3  2003/08/09 23:21:44  mast
+c	  Converted to PIP input and fixed some error reporting.  Also made it
+c	  fall back to building new edge functions if it can't open old ones.
+c	
+c	  Revision 3.2  2003/06/20 20:18:13  mast
+c	  Standardized error reporting
+c	
+c	  Revision 3.1  2002/08/19 03:19:14  mast
+c	  Implemented include file for commons.  Put large arrays in common
+c	  to prevent stack problems.  Passed array to find_best_shifts to
+c	  reduce memory needs there.
