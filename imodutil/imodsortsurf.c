@@ -15,6 +15,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.8  2005/05/27 04:54:17  mast
+Added clean surf call to end of sorting routine
+
 Revision 3.7  2005/05/27 04:50:37  mast
 Added ability to sort into different objects.
 
@@ -401,6 +404,17 @@ int imodSplitSurfsToObjs(Imod *mod, int ob, int keepColor, int keepSurf)
           newObj->green = obj->green;
           newObj->blue = obj->blue;
         }
+
+        /* Copy as many things as make sense */
+        newObj->flags = obj->flags;
+        newObj->pdrawsize = obj->pdrawsize;
+        newObj->symbol = obj->symbol;
+        newObj->symsize = obj->symsize;
+        newObj->linewidth2 = obj->linewidth2;
+        newObj->linewidth = obj->linewidth;
+        newObj->symflags = obj->symflags;
+        newObj->trans = obj->trans;
+        memcpy(&newObj->ambient, &obj->ambient, 16);
 
         /* Loop backwards on contours so they can be removed */
         for (co = obj->contsize - 1; co >= 0; co--) {
