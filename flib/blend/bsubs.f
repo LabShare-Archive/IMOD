@@ -17,6 +17,7 @@ c	  CROSSVALUE
 c	  XCORREDGE
 c	  PEAKFIND
 c	  FIND_BEST_SHIFTS
+c	  IWRBINNED
 c
 c
 c	  $Author$
@@ -26,6 +27,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.8  2005/03/18 23:38:30  mast
+c	  Improved error message from read_list
+c	
 c	  Revision 3.7  2005/02/28 22:13:27  mast
 c	  Commented out edge vector summary
 c	
@@ -1771,5 +1775,66 @@ c
 	  lastused(i) = 0
 	enddo
 c
+	return
+	end
+
+
+c	  iwrBinned writes the data in ARRAY to unit IUNIT, with binning
+c	  given by IBINNING, using BRRAY as a scratch line.  The data in ARRAY
+c	  are NY lines of length NX.  The output will consist of NYOUT lines
+c	  of length NXOUT.  IXST and IYST are possible starting pixels, where
+c	  negative numbers are used to indicate non-existent pixels.
+c	  The routine also maintains the min and max density in DMIN and DMAX
+c	  and adds to the sum of densities in DSUM8.
+c
+	subroutine iwrBinned(iunit, array, brray, nx, nxout, ixst, ny, nyout,
+     &	    iyst, iBinning, dmin, dmax, dsum8)
+	implicit none
+	integer*4 nx, nxout, ixst, ny, nyout, iyst, iBinning, iunit
+	real*4 array(nx,ny),brray(*),sum,dmin,dmax
+	integer*4 ix, iy, jx, jy, jxbase, jybase,nsum
+	real*8 dsum8
+c	  
+	if (iBinning .eq. 1) then
+	  do iy = 1, nyout
+	    do ix = 1, nxout
+	      dmin = min(dmin, array(ix,iy))
+	      dmax = max(dmax, array(ix,iy))
+	      dsum8 = dsum8 + array(ix,iy)
+	    enddo
+	  enddo
+	  call iwrsecl(iunit, array, nyout)
+	  return
+	endif
+
+	do iy = 1, nyout
+	  jybase = (iy - 1) * iBinning + iyst
+	  do ix = 1, nxout
+	    jxbase = (ix - 1) * iBinning + ixst
+	    sum = 0.
+	    if (ix .eq. 1 .or. ix .eq. nxout .or. iy .eq. 1 .or. iy .eq. nyout)
+     &		then
+	      nsum = 0
+	      do jy = max(1, jybase + 1), min(ny ,jybase + iBinning)
+		do jx = max(1, jxbase + 1), min(nx, jxbase + iBinning)
+		  sum = sum + array(jx, jy)
+		  nsum = nsum + 1
+		enddo
+	      enddo
+	      brray(ix) = sum / nsum
+	    else
+	      do jy = jybase + 1, jybase + iBinning
+		do jx = jxbase + 1, jxbase + iBinning
+		  sum = sum + array(jx, jy)
+		enddo
+	      enddo
+	      brray(ix) = sum / iBinning**2
+	    endif
+	    dmin = min(dmin, brray(ix))
+	    dmax = max(dmax, brray(ix))
+	    dsum8 = dsum8 + brray(ix)
+	  enddo
+	  call iwrlin(iunit, brray)
+	enddo
 	return
 	end
