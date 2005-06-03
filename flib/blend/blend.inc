@@ -1,4 +1,4 @@
-	integer maxsiz,limvar,ifastsiz,maxlinelength,limxypc,limnpc
+	integer maxsiz,limvar,ifastsiz,maxlinelength,limxypc,limnpc,maxbin
 	integer limedge,limsect,memlim,limedgbf,ixgdim,iygdim,lmField,maxFields
 	parameter (maxsiz=1024*1024*48)		!# of pixels
 c	  
@@ -7,12 +7,13 @@ c
 	parameter (limvar=3000)
 c
 	real*4 array(maxsiz)
-	parameter (ifastsiz=32,maxlinelength=40960)
-	real brray(ifastsiz*maxlinelength)
+	parameter (ifastsiz=32,maxlinelength=40960,maxbin=8)
+	real brray((ifastsiz+maxbin)*maxlinelength)
 	common /bigarr/ array,brray
 c
 	parameter (limxypc=80,limnpc=50000,limedge=50000,limsect=1000)
 	integer*4 nxyzin(3),nxyzout(3),nxin,nyin,nzin,nxout,nyout,nzout
+	integer*4 nxyzbin(3),nxbin,nybin,nzbin
 	integer*4 noverlap(2),nedge(2),nxoverlap,nyoverlap
 	integer*4 ixpclist(limnpc),iypclist(limnpc) !piece coords in x,y
 	integer*4 izpclist(limnpc),neglist(limnpc) !section #, negative #
@@ -23,15 +24,16 @@ c
 	integer*4 iboxsiz(2)			!box size short & long
 	real*4 edgelonear(2),edgehinear(2)	!limits for values near edges
 	equivalence (nxin,nxyzin(1))
+	equivalence (nxbin,nxyzbin(1))
 	equivalence (nxout,nxyzout(1))
 	equivalence (noverlap(1),nxoverlap)
 	integer*4 npclist,minxpiece,minypiece,nxpieces,nypieces,interpOrder
 	real*4 dmean
-	common /pclist/nxin,nyin,nzin,nxout,nyout,nzout,nxpieces,nypieces,
-     &	    nxoverlap,nyoverlap,npclist,minxpiece,minypiece,interpOrder,
-     &	    dmean,nedge ,ixpclist,iypclist,izpclist,neglist,iedgelower,
-     &	    iedgeupper ,ipiecelower,ipieceupper,indent,intgrid,iboxsiz,
-     &	    edgelonear,edgehinear
+	common /pclist/nxin,nyin,nzin,nxout,nyout,nzout,nxbin,nybin,nzbin,
+     &	    nxpieces,nypieces, nxoverlap,nyoverlap,npclist,minxpiece,
+     &	    minypiece,interpOrder, dmean,nedge ,ixpclist,iypclist,
+     &	    izpclist,neglist,iedgelower, iedgeupper ,ipiecelower,
+     &	    ipieceupper,indent,intgrid,iboxsiz, edgelonear,edgehinear
 c
 	integer*4 inpiece(5)			!piece # of pieces point in
 	integer*4 inedge(5,2)			!edge # of edges point is in

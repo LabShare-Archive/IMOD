@@ -12,7 +12,8 @@ OBJS = concat.$(O) dopen.$(O) getinout.$(O) mypause.$(O) convexbound.$(O) \
  xfcopy3d.$(O) xfinv3d.$(O) taperoutpad.$(O) taperinpad.$(O) padfill.$(O) \
  meanzero.$(O) setctf.$(O) indmap.$(O) ialsiz_sam_cel.$(O) get_nxyz.$(O) \
  get_extra_header_pieces.$(O) get_extra_header_tilts.$(O) temp_filename.$(O) \
- taperinvol.$(O) reduce_by_binning.$(O) parse_input_params.$(O)
+ taperinvol.$(O) reduce_by_binning.$(O) parse_input_params.$(O) \
+ getbinnedsize.$(O)
 
 
 all: $(OBJS)

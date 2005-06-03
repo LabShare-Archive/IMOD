@@ -2,7 +2,6 @@ Version = 1.0
 Pip = 1
 [Field = ImageInputFile]
 short = imin
-long = ImageInputFile
 type = FN
 usage = Montaged image input file to be blended
 tooltip = 
@@ -10,7 +9,6 @@ manpage = Montaged image input file to be blended.
 
 [Field = PieceListInput]
 short = plin
-long = PieceListInput
 type = FN
 usage = File with list of piece coordinates for image input file
 tooltip = 
@@ -18,7 +16,6 @@ manpage = File with list of piece coordinates for image input file.
 
 [Field = ImageOutputFile]
 short = imout
-long = ImageOutputFile
 type = FN
 usage = Output file for blended images
 tooltip = 
@@ -26,7 +23,6 @@ manpage = Output file for blended images.
 
 [Field = PieceListOutput]
 short = plout
-long = PieceListOutput
 type = FN
 usage = File for list of coordinates of pieces in output image file
 tooltip = 
@@ -35,7 +31,6 @@ entry may be omitted if the output images are not being cut into pieces.
 
 [Field = RootNameForEdges]
 short = rootname
-long = RootNameForEdges
 type = CH
 usage = Root name for edge function and .ecd files
 tooltip = 
@@ -45,7 +40,6 @@ name.
 
 [Field = ModeToOutput]
 short = mode
-long = ModeToOutput
 type = I
 usage = Mode for output file - 0 for bytes, 1 for integers, 2 for reals
 tooltip = 
@@ -54,7 +48,6 @@ default is the same mode as the input file.
 
 [Field = FloatToRange]
 short = float
-long = FloatToRange
 type = B
 usage = Stretch intensities of each output section to fill range of data mode
 tooltip = 
@@ -63,7 +56,6 @@ mode.
 
 [Field = TransformFile]
 short = xform
-long = TransformFile
 type = FN
 usage = File with transformations to apply
 tooltip = 
@@ -71,7 +63,6 @@ manpage = File with g transformations to apply to align the images.
 
 [Field = TransformCenterXandY]
 short = center
-long = TransformCenterXandY
 type = FP
 usage = X and Y coordinates of center of transformations
 tooltip = 
@@ -80,7 +71,6 @@ center of the input image.
 
 [Field = InterpolationOrder]
 short = order
-long = InterpolationOrder
 type = I
 usage = Order of interpolation to use (1: linear, 2: quadratic, 3: cubic;
 default is 3)
@@ -92,7 +82,6 @@ input.
 
 [Field = DistortionField]
 short = distort
-long = DistortionField
 type = FN
 usage = Image distortion field file to use for undistorting images
 tooltip = 
@@ -101,7 +90,6 @@ undistortion is applied when computing edge functions.
 
 [Field = ImagesAreBinned]
 short = imagebinned
-long = ImagesAreBinned
 type = I
 usage = The current binning of the images
 tooltip = 
@@ -112,7 +100,6 @@ the program can determine the binning unambiguously from the image size.
 
 [Field = GradientFile]
 short  = gradient
-long = GradientFile
 type = FN
 usage = File with magnification gradients to be applied for each image
 tooltip = 
@@ -125,7 +112,6 @@ computing edge functions.
 
 [Field = AdjustedFocus]
 short = adjusted
-long = AdjustedFocus
 type = B
 usage = Focus was adjusted for changing Z height when montage was acquired
 tooltip = 
@@ -133,7 +119,6 @@ manpage =
 
 [Field = AddToGradient]
 short = addgrad
-long = AddToGradient
 type = FP
 usage = Add to or set the mag and rotation gradients with the given values
 tooltip =
@@ -147,7 +132,6 @@ this case the -tilt option must be entered to provide additional information.
 
 [Field = TiltGeometry]
 short = tilt
-long = TiltGeometry
 type = FT
 usage = Specify pixel size, tilt axis rotation angle, and tilt angle
 tooltip =
@@ -159,7 +143,6 @@ provided.
 
 [Field = JustUndistort]
 short = justUndistort
-long = JustUndistort
 type = B
 usage = Just correct distortions in each frame without blending
 tooltip =
@@ -173,7 +156,6 @@ sizes in X and Y and edge functions will be ignored.
 
 [Field = TestMode]
 short = test
-long = TestMode
 type = B
 usage = Compute overlap errors only
 tooltip =
@@ -184,7 +166,6 @@ although an empty output file will be produced.
 
 [Field = SloppyMontage]
 short = sloppy
-long = SloppyMontage
 type = B
 usage = Do initial cross-correlations for finding edge functions
 tooltip = 
@@ -193,7 +174,6 @@ pieces to minimize displacements in the overlap zones
 
 [Field = ShiftPieces]
 short = shift
-long = ShiftPieces
 type = B
 usage = Shift pieces to minimize displacements in the overlap zones
 tooltip = 
@@ -203,7 +183,6 @@ for each section and pick the one that gives lowest error.
 
 [Field = ShiftFromEdges]
 short = edge
-long = ShiftFromEdges
 type = B
 usage = Use only edge functions for shifting pieces
 tooltip = 
@@ -211,7 +190,6 @@ manpage = Use only edge functions for shifting pieces.
 
 [Field = ShiftFromXcorrs]
 short = xcorr
-long = ShiftFromXcorrs
 type = B
 usage = Use only cross-correlations of overlap zones for shifting pieces 
 (legacy behavior)
@@ -221,7 +199,6 @@ manpage = Use only cross-correlations of overlap zones for shifting pieces
 
 [Field = ReadInXcorrs]
 short = readxcorr
-long = ReadInXcorrs
 type = B
 usage = Read displacements from .ecd file instead of computing correlations
 tooltip = 
@@ -230,7 +207,6 @@ instead of computing correlations.
 
 [Field = SectionsToDo]
 short = sections
-long = SectionsToDo
 type = LI
 usage = Sections to blend into output file
 tooltip = 
@@ -239,7 +215,6 @@ are allowed.
 
 [Field = StartingAndEndingX]
 short = xminmax
-long = StartingAndEndingX
 type = IP
 usage = Minimum and maximum X index coordinates to output
 tooltip = 
@@ -248,15 +223,24 @@ The default is to output the entire image.
 
 [Field = StartingAndEndingY]
 short = yminmax
-long = StartingAndEndingY
 type = IP
 usage = Minimum and maximum Y index coordinates to output
 tooltip = 
 manpage = Minimum and maximum Y index coordinates to output.
 
+[Field = BinByFactor]
+short = bin
+long = BinByFactor
+type = I
+usage = Use binning to reduce images in size by the given factor
+tooltip = 
+manpage = Use binning to reduce images in size by the given factor.  Binning
+is applied to the data just before output, so the starting and ending X and Y
+coordinates to output should be specified in unbinned pixels.  With binning,
+the output must be a single piece.
+
 [Field = MaximumNewSizeXandY]
 short = maxsize
-long = MaximumNewSizeXandY
 type = IP
 usage = Maximum size in X and Y of pieces in output file
 tooltip = 
@@ -265,7 +249,6 @@ make output be a single piece, unless it exceeds the limits of the program.
 
 [Field = MinimumOverlapXandY]
 short = minoverlap
-long = MinimumOverlapXandY
 type = IP
 usage = Minimum overlap between pieces in X and Y in output file
 tooltip = 
@@ -274,7 +257,6 @@ default is an overlap of 2.
 
 [Field = OldEdgeFunctions]
 short = oldedge
-long = OldEdgeFunctions
 type = B
 usage = Use existing edge functions
 tooltip = 
@@ -283,7 +265,6 @@ ones.
 
 [Field = FramesPerNegativeXandY]
 short = perneg
-long = FramesPerNegativeXandY
 type = IP
 usage = Number of frames per negative for multi-negative montage
 tooltip = 
@@ -293,7 +274,6 @@ piece list file.
 
 [Field = MissingFromFirstNegativeXandY]
 short = missing
-long = MissingFromFirstNegativeXandY
 type = IP
 usage = Number of pieces missing from first negative in X and Y
 tooltip = 
@@ -303,7 +283,6 @@ from each, then the number missing is 2.
 
 [Field = BlendingWidthXandY]
 short = width
-long = BlendingWidthXandY
 type = IP
 usage = Width in X and Y across which to blend overlaps
 tooltip = 
@@ -314,7 +293,6 @@ manpage = Width in X and Y across which to blend overlaps.  The default is:
 
 [Field = BoxSizeShortAndLong]
 short = boxsize
-long = BoxSizeShortAndLong
 type = IP
 usage = Size of box for finding edge functions in short and long directions
 tooltip = 
@@ -327,7 +305,6 @@ short direction.
 
 [Field = GridSpacingShortAndLong]
 short = grid
-long = GridSpacingShortAndLong
 type = IP
 usage = Spacing of edge function grid in short and long directions
 tooltip = 
@@ -337,7 +314,6 @@ increasing proportional to the maximum dimension of the frame above 1024.
 
 [Field = IndentShortAndLong]
 short = indents
-long = IndentShortAndLong
 type = IP
 usage = Indentation of edge function from edge of overlap in short and long 
 directions
@@ -349,7 +325,6 @@ increasing proportional to the maximum dimension of the frame above 1024.
 
 [Field = ParameterFile]
 short = param
-long = ParameterFile
 type = PF
 usage = Read parameter entries from file
 tooltip = 
@@ -357,7 +332,6 @@ manpage = Read parameter entries as keyword-value pairs from a parameter file.
 
 [Field = usage]
 short = help
-long = usage
 type = B
 usage = Print help output
 tooltip = 
