@@ -34,7 +34,7 @@ c	  David Mastronarde  5/28/90
 c
 ************************************************************************
 *   
-	parameter (idim=3100,lmfil=1000)
+	parameter (idim=5100,lmfil=1000)
 	COMMON //NX,NY,NZ
 C   
 	DIMENSION NXYZ(3),MXYZ(3),NXYZST(3),ARRAY(idim*idim),TITLE(20),
@@ -50,6 +50,7 @@ c
 c 7/7/00 CER: remove the encode's; titlech is the temp space
 c
         character*80 titlech
+	common /bigarr/array
 C
 	write(*,'(1x,a,$)')'Name of file to add sections to: '
         read(*,101)filout
