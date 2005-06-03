@@ -104,6 +104,11 @@ import etomo.util.Utilities;
  * 
  *
  * <p> $Log$
+ * <p> Revision 3.151  2005/06/01 21:18:41  sueh
+ * <p> bug# 667 Remove the Controller classes.  Trying make meta data and
+ * <p> app manager equals didn't work very well.  Meta data is created by and
+ * <p> managed by app mgr.
+ * <p>
  * <p> Revision 3.150  2005/05/19 20:46:10  sueh
  * <p> bug# 662 Added renameXrayStack() to rename the _xray.st.gz file to
  * <p> _xray.st.gz.#.
@@ -3035,38 +3040,40 @@ public class ApplicationManager extends BaseManager {
    *
    */
   public void saveDialog() {
+    AxisID firstAxisID = metaData.getAxisType() == AxisType.DUAL_AXIS ? AxisID.FIRST
+        : AxisID.ONLY;
     if (preProcDialogA != null) {
-      donePreProcDialog(AxisID.FIRST);
+      donePreProcDialog(firstAxisID);
     }
     if (preProcDialogB != null) {
       donePreProcDialog(AxisID.SECOND);
     }
     if (coarseAlignDialogA != null) {
-      doneCoarseAlignDialog(AxisID.FIRST);
+      doneCoarseAlignDialog(firstAxisID);
     }
     if (coarseAlignDialogB != null) {
       doneCoarseAlignDialog(AxisID.SECOND);
     }
     if (fiducialModelDialogA != null) {
-      doneFiducialModelDialog(AxisID.FIRST);
+      doneFiducialModelDialog(firstAxisID);
     }
     if (fiducialModelDialogB != null) {
       doneFiducialModelDialog(AxisID.SECOND);
     }
     if (fineAlignmentDialogA != null) {
-      doneAlignmentEstimationDialog(AxisID.FIRST);
+      doneAlignmentEstimationDialog(firstAxisID);
     }
     if (fineAlignmentDialogB != null) {
       doneAlignmentEstimationDialog(AxisID.SECOND);
     }
     if (tomogramPositioningDialogA != null) {
-      doneTomogramPositioningDialog(AxisID.FIRST);
+      doneTomogramPositioningDialog(firstAxisID);
     }
     if (tomogramPositioningDialogB != null) {
       doneTomogramPositioningDialog(AxisID.SECOND);
     }
     if (tomogramGenerationDialogA != null) {
-      doneTomogramGenerationDialog(AxisID.FIRST);
+      doneTomogramGenerationDialog(firstAxisID);
     }
     if (tomogramGenerationDialogB != null) {
       doneTomogramGenerationDialog(AxisID.SECOND);
@@ -6272,8 +6279,9 @@ public class ApplicationManager extends BaseManager {
   }
   
   public MRCHeader getMrcHeader(AxisID axisID, String filename) {
-    return new MRCHeader(
-      metaData.getDatasetName() + axisID.getExtension() + filename, axisID);
+    File file = new File(propertyUserDir, metaData.getDatasetName()
+        + axisID.getExtension() + filename);
+    return new MRCHeader(file.getAbsolutePath(), axisID);
   }
   
   protected void createComScriptManager() {
