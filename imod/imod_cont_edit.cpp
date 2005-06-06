@@ -1014,7 +1014,7 @@ void imodContEditMove(void)
     return;
   }
 
-  if (!comv.enabled) {
+  if (!comv.enabled && !comv.moveUpDown) {
     wprint("\aError: Must have move than one object or surface to "
            "be able to move contours.\n");
     return;
@@ -1990,6 +1990,9 @@ void ContourFrame::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.21  2005/05/27 23:00:19  mast
+Allowed contour to be moved to a new surface
+
 Revision 4.20  2005/03/23 16:52:30  mast
 Fix multiple contour deletion
 
