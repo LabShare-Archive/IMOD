@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/6/05: Added ability to edit 2D line width for many objects in model view
+object edit window, and ability to display just spheres with the fill color.
+
 6/3/05: Made imodsortsurf copy many object properties when making new objects.
 
 6/3/05: Added binning to blendmont.
