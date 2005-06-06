@@ -354,143 +354,7 @@ void imodvObjedCtrlKey(bool pressed)
 // HELP!
 void imodvObjedHelp()
 {
-  dia_vasmsg
-    ("-----------------\n",
-     "Object Edit Help.\n",
-     "-----------------\n",
-     "\tSelect the current object with the Object # arrows or the "
-     "slider.  "
-     "The Each/All/On's option menu allows one to edit just the current "
-     "object, all objects at once, or just the objects that are "
-     "currently turned On.  Features that can be edited in tandem for "
-     "many objects include: point size, line width, material "
-     "properties, and drawing data type and style.  Line color can also be "
-     "changed in tandem if a separate check box is selected."
-     "\n\n"
-     "The name of each object can be edited using the text edit box."
-     "\n\n",
-     "The numbered check boxes allow one to conveniently turn selected "
-     "objects on and off.  When an object is turned on, it becomes the "
-     "current object.\n\n",
-     "The Draw option selects which type of data to draw. "
-     "You can select to draw contour data, mesh data or no data at all."
-     "\n",
-     "The Style option selects the drawing style. "
-     "You can select between drawing points, lines, filled or "
-     "filled outline."
-     "\n\n",
-
-     "~~~~~~~~~~~~~~~~~~~~~\n"
-     "The Edit control box:\n"
-     "~~~~~~~~~~~~~~~~~~~~~\n\n",
-     "Several different parameters can be edited using the edit "
-     "control box.  "
-     "The parameter group can be selected by using the left "
-     "mouse button on top of the text list in the bottom left corner.  "
-     "The larger box in the lower right corner will contain the "
-     "controls needed for editing each parameter group.  "
-     "The controls in each group are listed below:\n\n\n",
-
-     "\tLine color: Use Red, Green, and Blue sliders to adjust the "
-     "foreground line color of the current object.  This also sets the "
-     "fill color unless a separate color is selected in the \"Fill "
-     "Color\" panel.  The Transparency slider selects object "
-     "transparency.  Transparency is only an approximation and can "
-     "easily generate artifacts.  To minimize these artifacts, the back "
-     "face of the object will not be displayed unless the "
-     "\"Light Both Sides\" button is selected in the \"Fill "
-     "Color\" panel.  Try it both ways to see which looks best.  "
-     "By default, color changes will be applied to only one object in one "
-     "model.  Check \"Change multiple objects\" to modify more than one object"
-     " at a time.   The setting of the \"Edit\" combo box and the \"Edit\" "
-     "radio buttons in the Model Edit window will then control which objects "
-     "are changed together with the current object.\n\n",
-
-     "\tFill color: Adjust the fill color of the current object.  "
-     "If \"Use Fill Color\" is not selected the line color settings "
-     "are used instead.  Select \"Light Both Sides\" to have the object "
-     "lit on both its outside and inside surfaces.\n\n",
-
-     "\tPoints: Adjust rendering of spheres that are displayed at individual "
-     "points.  The sphere radius can be incremented, decremented, or typed "
-     "in to the spin box.  Note that setting the radius non-zero will cause "
-     "points to be displayed at each point, even for open and closed contour "
-     "objects.  The quality of the spheres is controlled by the "
-     "two quality spin boxes, one to set the quality for the particular "
-     "object, and one to set the overall minimum quality for all objects.  "
-     "The display quality for an object is the maximum of its own "
-     "quality setting and the global setting (range 1 - 4).  The global "
-     "setting can also be controlled by the g and G hot keys.\n\n",
-           
-     "\tLines: The Width slider changes the line width used to "
-     "draw the objects.  The \"Anti-Alias Rendering\" check box "
-     "selects anti-alias rendering for lines.  "
-     "Lines will look smoother with this option on; however, "
-     "some artifacts may be noticed.  The \"Thicken current contour\" check "
-     "box can be used to highlight the current contour by drawing it thicker "
-     "than other contours.  This will "
-     "have an effect only for objects whose drawing style is \"Lines\".  "
-     "This feature is most useful when using the third mouse button to select "
-     "contours."
-     "\n\n",
-
-     "\tMesh View: This is a special control group used for "
-     "viewing meshes that have scalar data, such as to represent "
-     "surface density.  The feature is enabled by selecting \"Turn "
-     "Normal Magnitide On\".  The sliders adjust the contrast range "
-     "of the displayed values, and \"False Color\" will display the "
-     "values with a false color rather than gray scale intensity "
-     "ramp.\n\n",
-
-     "\tClip: These controls allow you to set up clipping planes for an "
-     "individual "
-     "object as well as global clipping planes that will be applied to all "
-     "objects.  Use the \"Object\" and \"Global\" radio buttons to select "
-     "whether to adjust global planes or planes for the current object.  "
-     "If you want the current object to be clipped only by its own planes "
-     "and not by any global planes, turn on \"Skip global planes\".  "
-     "The spin box allows you select the current plane, the one that is "
-     "adjusted by the remaining controls.  Use \"Clipping plane ON\" to "
-     "toggle the current clipping plane on or off.  The "
-     "\"Reset\" button moves the plane back to its default location and "
-     "orientation through the middle of the object or model.  The \"Invert\""
-     " button inverts the direction of the clipping plane.\n"
-     "\tOnce the current plane is turned on, hold down the "CTRL_STRING" key "
-     "to move and rotate the plane instead of the model.  Use the left mouse "
-     "button or the arrow keys to move the plane, and the middle mouse button "
-     "or the keypad keys to rotate the plane.\n"
-     "\tUp to 6 clipping planes may be defined for each object, as well as 6 "
-     "global planes.  However, the OpenGL implementation on your machine "
-     "limits the total number of planes that can be applied to an object.  "
-     "There are guaranteed to be at least 6 but probably are only 6.  If this "
-     "limit comes into play, object planes count first toward the limit.\n\n"
-
-     "\tMaterial: "
-     "The Ambient slider adjusts ambient, or non-directional, light "
-     "hitting the object.  "
-     "The Diffuse slider adjusts light hitting the object from the "
-     "light source, which then diffuses in a direction-dependent way.  "
-     "The Shininess and Specularity sliders together adjust the "
-     "shininess or highlights of the object."
-     "\n\n",
-
-     "\tMove: Allows one easily to view orthogonal faces of the model.  "
-     "Each column of buttons will move by 90 degree rotations about "
-     "one of the three axes.  "
-     "Right now only center on current object is supported."
-     "\n\n",
-
-     "\tSubsets: Allows one to view the current object, surface or "
-     "contour of the model, if one is selected.  \"Current Surface "
-     "Only\" or \"Current Contour Only\" will show only the current "
-     "surface or contour in the current object.  \"Surface & Other "
-     "Objects\" or \"Contour & Other Objects\" will show the current "
-     "surface or contour in the current object, plus all other objects "
-     "that are turned on."
-     "\n\n",
-
-     NULL);
-  return;
+  imodShowHelpPage("modvObjectEdit.html");
 }
 
 
@@ -827,10 +691,19 @@ static void mkLineColor_cb(int index)
 
 static MultiSlider *fillSliders;
 static QCheckBox *wFillToggle = 0;
+static QCheckBox *wFillPntToggle = 0;
 
 void ImodvObjed::fillToggleSlot(bool state)
 {
   setObjFlag(IMOD_OBJFLAG_FCOLOR, state ? 1 : 0);
+  objset(Imodv);
+  imodvFinishChgUnit();
+  imodvDraw(Imodv);
+}
+
+void ImodvObjed::fillPntToggleSlot(bool state)
+{
+  setObjFlag(IMOD_OBJFLAG_FCOLOR_PNT, state ? 1 : 0);
   objset(Imodv);
   imodvFinishChgUnit();
   imodvDraw(Imodv);
@@ -867,6 +740,8 @@ static void setFillColor_cb(void)
   unsigned char *colors = (unsigned char *)&(obj->mat1);
 
   diaSetChecked(wFillToggle, obj->flags & IMOD_OBJFLAG_FCOLOR);
+  diaSetChecked(wFillPntToggle, obj->flags & IMOD_OBJFLAG_FCOLOR_PNT);
+  wFillPntToggle->setEnabled(!(obj->flags & IMOD_OBJFLAG_FCOLOR));
   for (int i = 0; i < 3; i++)
     fillSliders->setValue(i, colors[i]);
 }
@@ -882,11 +757,17 @@ static void mkFillColor_cb(int index)
   QObject::connect(fillSliders, SIGNAL(sliderChanged(int, int, bool)), 
                    &imodvObjed, SLOT(fillColorSlot(int, int, bool)));
 
-  wFillToggle = diaCheckBox("Use Fill Color", oef->control, layout1);
+  wFillToggle = diaCheckBox("Use fill color", oef->control, layout1);
   QObject::connect(wFillToggle, SIGNAL(toggled(bool)), &imodvObjed, 
           SLOT(fillToggleSlot(bool)));
   QToolTip::add(wFillToggle, 
-                "Use fill color instead of object color for filled data");
+                "Use fill color instead of object color for all filled data");
+
+  wFillPntToggle = diaCheckBox("Use for spheres", oef->control, layout1);
+  QObject::connect(wFillPntToggle, SIGNAL(toggled(bool)), &imodvObjed, 
+          SLOT(fillPntToggleSlot(bool)));
+  QToolTip::add(wFillPntToggle, 
+                "Use fill color instead of object color for spheres");
 
   finalSpacer(oef->control, layout1);
 
@@ -994,7 +875,7 @@ static void mkMaterial_cb (int index)
   QObject::connect(matSliders, SIGNAL(sliderChanged(int, int, bool)), 
                    &imodvObjed, SLOT(materialSlot(int, int, bool)));
 
-  wBothSides = diaCheckBox("Light Both Sides", oef->control, layout1);
+  wBothSides = diaCheckBox("Light both sides", oef->control, layout1);
   QObject::connect(wBothSides, SIGNAL(toggled(bool)), &imodvObjed, 
           SLOT(bothSidesSlot(bool)));
   QToolTip::add(wBothSides, 
@@ -1132,7 +1013,7 @@ static void mkPoints_cb(int index)
 static MultiSlider *widthSlider;
 static QCheckBox *wLineAlias;
 static QCheckBox *wThickenCont;
-static char *widthLabel[] = {"Line Width"};
+static char *widthLabel[] = {"2D Line Width", "3D Line Width"};
 
 void ImodvObjed::lineWidthSlot(int which, int value, bool dragging)
 {
@@ -1149,15 +1030,21 @@ void ImodvObjed::lineWidthSlot(int which, int value, bool dragging)
       if (changeModelObject(m, ob)) {
         if (!sliding)
           imodvRegisterObjectChg(ob);
-        Imodv->mod[m]->obj[ob].linewidth = value;
+        if (which)
+          Imodv->mod[m]->obj[ob].linewidth = value;
+        else
+          Imodv->mod[m]->obj[ob].linewidth2 = value;
       }
   }
 
   sliding = dragging;
   imodvFinishChgUnit();
   if (!dragging || (hotSliderFlag() == HOT_SLIDER_KEYDOWN && ctrlPressed) ||
-      (hotSliderFlag() == HOT_SLIDER_KEYUP && !ctrlPressed))
+      (hotSliderFlag() == HOT_SLIDER_KEYUP && !ctrlPressed)) {
     imodvDraw(Imodv);
+    if (!which)
+      imodvDrawImodImages();
+  }
 }
 
 void ImodvObjed::lineAliasSlot(bool state)
@@ -1181,7 +1068,8 @@ static void setLines_cb(void)
   Iobj *obj = objedObject();
   if (!obj) 
     return;
-  widthSlider->setValue(0, obj->linewidth);
+  widthSlider->setValue(0, obj->linewidth2);
+  widthSlider->setValue(1, obj->linewidth);
   diaSetChecked(wLineAlias, obj->flags & IMOD_OBJFLAG_ANTI_ALIAS );
   diaSetChecked(wThickenCont, obj->flags & IMOD_OBJFLAG_THICK_CONT);
 }
@@ -1192,12 +1080,14 @@ static void mkLines_cb(int index)
 
   QVBoxLayout *layout1 = new QVBoxLayout(oef->control, FIELD_MARGIN, 
                                          FIELD_SPACING, "lines layout");
-  widthSlider = new MultiSlider(oef->control, 1, widthLabel, 1, 10);
+  widthSlider = new MultiSlider(oef->control, 2, widthLabel, 1, 10);
   layout1->addLayout(widthSlider->getLayout());
   QObject::connect(widthSlider, SIGNAL(sliderChanged(int, int, bool)), 
                    &imodvObjed, SLOT(lineWidthSlot(int, int, bool)));
   QToolTip::add((QWidget *)widthSlider->getSlider(0),
-                "Set line width in pixels for 3-D display");
+                "Set line width in pixels for 2-D display on images");
+  QToolTip::add((QWidget *)widthSlider->getSlider(1),
+                "Set line width in pixels for 3-D model view display");
 
   wLineAlias = diaCheckBox("Anti-alias rendering", oef->control, layout1);
   QObject::connect(wLineAlias, SIGNAL(toggled(bool)), &imodvObjed, 
@@ -1875,6 +1765,9 @@ static void finalSpacer(QWidget *parent, QVBoxLayout *layout)
 
 /*
 $Log$
+Revision 4.21  2004/11/21 06:07:49  mast
+Changes for undo/redo
+
 Revision 4.20  2004/11/11 15:54:35  mast
 Fixed call for setting width of Done in Object list window
 
