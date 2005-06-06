@@ -1,31 +1,13 @@
-/*  IMOD VERSION 2.7.9
- *
+/*
  *  imodv_ogl.c -- OpenGL Drawing functions to draw models, etc in imodv.
  *
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
+ *
+ *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
+ *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  */
-
-/*****************************************************************************
- *   Copyright (C) 1995-2001 by Boulder Laboratory for 3-Dimensional Fine    *
- *   Structure ("BL3DFS") and the Regents of the University of Colorado.     *
- *                                                                           *
- *   BL3DFS reserves the exclusive rights of preparing derivative works,     *
- *   distributing copies for sale, lease or lending and displaying this      *
- *   software and documentation.                                             *
- *   Users may reproduce the software and documentation as long as the       *
- *   copyright notice and other notices are preserved.                       *
- *   Neither the software nor the documentation may be distributed for       *
- *   profit, either in original form or in derivative works.                 *
- *                                                                           *
- *   THIS SOFTWARE AND/OR DOCUMENTATION IS PROVIDED WITH NO WARRANTY,        *
- *   EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTY OF          *
- *   MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.       *
- *                                                                           *
- *   This work is supported by NIH biotechnology grant #RR00592,             *
- *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
- *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
- *****************************************************************************/
 /*  $Author$
 
 $Date$
@@ -626,7 +608,7 @@ static int check_mesh_draw(Imesh *mesh, int checkTime, int resol)
 
 static void imodvDraw_object(Iobj *obj, Imod *imod)
 {
-  int co, resol;
+  int co, resol, flagSave;
   double zscale;
   Imesh *mesh;
   int checkTime = (int)iobjTime(obj->flags);
@@ -667,8 +649,14 @@ static void imodvDraw_object(Iobj *obj, Imod *imod)
        lines on top if "Fill outline" is selected
        Also draw points non-scattered point objects as filled */
     if (iobjFill(obj->flags) || !iobjScat(obj->flags)){
+
+      // If fill color for point flag is set, temporarily set fill color flag
+      flagSave = obj->flags;
+      if (obj->flags & IMOD_OBJFLAG_FCOLOR_PNT)
+        obj->flags |= IMOD_OBJFLAG_FCOLOR;
       imodvSetObject(obj, DRAW_FILL);
       imodvDraw_spheres(obj, zscale, DRAW_FILL );
+      obj->flags = flagSave;
       if (iobjLine(obj->flags) && iobjFill(obj->flags)){
         imodvSetObject(obj, 0);
         imodvSetObject(obj, DRAW_LINES);
@@ -1899,6 +1887,9 @@ static int skipNonCurrentSurface(Imesh *mesh, int *ip, Iobj *obj)
 
 /*
 $Log$
+Revision 4.17  2004/11/02 16:22:26  mast
+Fixed unsigned int mismatch to calling new skip function
+
 Revision 4.16  2004/11/01 23:33:28  mast
 Made current surface subset work with mesh dsplay
 
