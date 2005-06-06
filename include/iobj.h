@@ -13,26 +13,7 @@
     $Date$
 
     $Revision$
-
-    $Log$
-    Revision 3.6  2005/03/20 19:55:48  mast
-    Eliminating duplicate functions
-
-    Revision 3.5  2004/11/20 04:04:16  mast
-    cleaned up, removed virtual, added dup and insert contour functions
-
-    Revision 3.4  2004/11/05 19:15:51  mast
-    Include local files with quotes, not brackets
-
-    Revision 3.3  2004/09/21 20:09:30  mast
-    Added clean surface call
-
-    Revision 3.2  2004/04/28 05:30:24  mast
-    Added flag for drawing current contour thicker
-
-    Revision 3.1  2003/06/27 20:10:28  mast
-    Add functions to set object color and get specific contour from object
-
+    Log at end
 */
 
 #ifndef IOBJ_H
@@ -49,8 +30,6 @@
 #define IMOD_OBJFLAG_SCAT (1l << 9)  /* Scatterd points, don't connect.      */
 
 /* What/how to draw                                                          */
-#define IMOD_OBJFLAG_2DPOINT (1l << 6)  /* Turns points off in 2d.           */
-#define IMOD_OBJFLAG_3DPOINT (1l << 7)  /* Turns points on in 3d.            */
 #define IMOD_OBJFLAG_FILL    (1l << 8)  /* Turns on drawing filled polygons. */
 #define IMOD_OBJFLAG_OFF     (1l << 1)  /* Turns object line drawing off     */
 #define IMOD_OBJFLAG_MESH    (1l << 10) /* Draw mesh in 3D, imod view        */
@@ -58,6 +37,7 @@
 #define IMOD_OBJFLAG_DCUE    (1l << 2)  /* Draw using depth cue.             */
 #define IMOD_OBJFLAG_LIGHT   (1l << 13) /* Use lighting for rendering in 3D  */
 #define IMOD_OBJFLAG_FCOLOR  (1l << 14) /* Use Fill color                    */
+#define IMOD_OBJFLAG_FCOLOR_PNT (1l << 6)  /* Use fill color for spheres     */
 #define IMOD_OBJFLAG_ANTI_ALIAS (1l << 15) /* Render using anti alias. */
 #define IMOD_OBJFLAG_SCALAR  (1l << 16) /* Normals have magnitude. */
 #define IMOD_OBJFLAG_MCOLOR  (1l << 17) /* Use color map for scalar values.  */
@@ -164,3 +144,28 @@ extern "C" {
 }
 #endif
 #endif /* iobj.h */
+
+/*
+    $Log$
+    Revision 3.7  2005/04/23 23:36:23  mast
+    Moved some functions into imodel.c
+
+    Revision 3.6  2005/03/20 19:55:48  mast
+    Eliminating duplicate functions
+
+    Revision 3.5  2004/11/20 04:04:16  mast
+    cleaned up, removed virtual, added dup and insert contour functions
+
+    Revision 3.4  2004/11/05 19:15:51  mast
+    Include local files with quotes, not brackets
+
+    Revision 3.3  2004/09/21 20:09:30  mast
+    Added clean surface call
+
+    Revision 3.2  2004/04/28 05:30:24  mast
+    Added flag for drawing current contour thicker
+
+    Revision 3.1  2003/06/27 20:10:28  mast
+    Add functions to set object color and get specific contour from object
+
+*/
