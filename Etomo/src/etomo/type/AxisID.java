@@ -15,6 +15,14 @@ import etomo.EtomoDirector;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.1  2005/06/03 20:56:29  sueh
+ * <p> bug# 671 Added selfTest() to make sure that AxisID is always set to
+ * <p> ONLY when the AxisType is single.  This is an issue for file names, so
+ * <p> this test should only be performed when getExtension() is called.  Added
+ * <p> getStorageExtension() which does the same thing but doesn't call
+ * <p> selfTest().  This function is used to to get the extension for storage, when
+ * <p> the "a" is used for the first axis regardless of the axis type.
+ * <p>
  * <p> Revision 3.0  2003/11/07 23:19:01  rickg
  * <p> Version 1.0.0
  * <p>
@@ -34,8 +42,9 @@ public class AxisID {
 
   private static final String ONLY_AXIS_NAME = "Only";
   
+  private static EtomoBoolean2 selfTest = null;
+  
   private final String name;
-  private final boolean selfTest = EtomoDirector.getInstance().isSelfTest();
 
   private AxisID(String name) {
     this.name = name;
@@ -97,10 +106,19 @@ public class AxisID {
   }
   
   private void runSelfTest() {
-    if (!selfTest) {
+    if (!isSelfTest()) {
       return;
     }
     selfTest();
+  }
+  
+  private boolean isSelfTest() {
+    if (selfTest != null) {
+      return selfTest.is();
+    }
+    selfTest = new EtomoBoolean2();
+    selfTest.set(EtomoDirector.getInstance().isSelfTest());
+    return selfTest.is();
   }
   
   public void selfTest() {
