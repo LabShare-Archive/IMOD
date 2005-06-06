@@ -1,0 +1,158 @@
+<head>
+<title>Model View Object Edit</title>
+</head>
+<H3>Model View Object Edit</H3>
+
+This dialog box contains many controls for changing how individual objects are
+displayed, as well as some features governing the overall model display.
+The top sections contains some general controls and the bottom section shows
+one out of several available panels with more specialized controls.
+
+<H4>General Controls</H4>
+Select the current object with the <B>Object</B> spin box or the slider.
+<P>
+The <B>Edit</B> Each/All/On's option menu allows one to edit just the current
+object, all objects at once, or just the objects that are
+currently turned On.  Features that can be edited in tandem for
+many objects include: point size, line width, material
+properties, and drawing data type and style.  Line color can also be
+changed in tandem if a separate check box is selected.
+<P>
+The name of each object can be edited using the text edit box.
+<P>
+The numbered check boxes allow one to conveniently turn selected
+objects on and off.  When an object is turned on, it becomes the
+current object.  Only 48 checkboxes will be displayed here; if you have more
+objects, use the Edit - Object List menu entry to bring up a complete Object 
+List window.
+<P>
+The <B>Draw Data Type</B> option selects which type of data to draw.
+You can select to draw contour data, mesh data or no data at all.
+<P>
+The <B>Drawing Style</B> option selects the drawing style.
+You can select between drawing points, lines, filled or
+filled outline.
+<P>
+To select which parameter group is displayed in the panel in the lower right
+part of the window,
+use the mouse to select one of the entries in the list box in the lower left.
+The controls in each group are listed below.
+
+<H4>Line color</H4>
+Use the <B>Red</B>, <B>Green</B>, and <B>Blue</B> sliders to adjust the
+line color of the current object.  This also sets the
+fill color unless a separate color is selected in the <B>Fill Color</B> panel.
+The <B>Transparency</B> slider selects object
+transparency.  Transparency is only an approximation and can
+easily generate artifacts.  To minimize these artifacts, the back
+face of the object will not be displayed unless the
+<B>Light Both Sides</B> button is selected in the 
+<B>Material</B> panel.  Try it both ways to see which looks best. 
+<P>
+By default, color changes will be applied to only one object in one
+model.  Check <B>Change multiple objects</B> to modify more than one object
+at a time.   The setting of the <B>Edit</B> combo box and the <B>Edit</B>
+radio buttons in the Model Edit window will then control which objects
+are changed together with the current object.
+
+<H4>Fill color</H4>
+Use the sliders to adjust the fill color of the current object. 
+Select <B>Use fill color</B> to have this color used instead of the line
+color whenever the object is being displayed as filled.  Select
+<B>Use for spheres</B> to have the fill color used just for display of
+spheres.  This would allow you to have a surface of one color studded with
+spheres of another color at selected points.
+
+<H4>Material</H4>
+The <B>Ambient</B> slider adjusts ambient, or non-directional, light
+hitting the object.
+The <B>Diffuse</B> slider adjusts light hitting the object from the
+light source, which then diffuses in a direction-dependent way. 
+The <B>Shininess</B> and <B>Specularity</B> sliders together adjust the
+shininess or highlights of the object.
+<P>
+Select <B>Light Both Sides</B> to have the object
+lit on both its outside and inside surfaces.  If you just want to have the
+inside surface show up less dark than it does by default, try increasing the 
+<B>Ambient</B> value and decreasing the <B>Diffuse</B> value to compensate.
+
+<H4>Points</H4>
+This panel controls the rendering of spheres that are displayed at individual
+points.  The sphere radius can be incremented, decremented, or typed
+into the spin box.  Note that setting the radius non-zero will cause
+points to be displayed at each point, even for open and closed contour
+objects.  The quality of the spheres is controlled by the
+two quality spin boxes, one to set the quality for the particular
+object, and one to set the overall minimum quality for all objects. 
+The display quality for an object is the maximum of its own
+quality setting and the global setting (range 1 - 4).  The global
+setting can also be controlled by the g and G hot keys.
+
+<H4>Lines</H4>
+The <B>2D Line Width</B> slider changes the line width used when drawing the 
+model in image display windows in 3dmod.  The <B>3D Line Width</B> slider
+changes the line width used to draw 
+draw the objects in the model view window.  
+The <B>Anti-alias rendering</B> check box
+selects anti-alias rendering for lines. 
+Lines will look smoother with this option on; however,
+some artifacts may be noticed.  The <B>Thicken current contour</B> check
+box can be used to highlight the current contour by drawing it thicker
+than other contours.  This will
+have an effect only for objects whose drawing style is <B>Lines</B>. 
+This feature is most useful when using the third mouse button to select
+contours.
+
+<H4>Mesh View</H4>
+This is a special control group used for
+viewing meshes that have scalar data, such as to represent
+surface density.  The feature is enabled by selecting <B>Show
+normal magnitudes</B>.  The sliders adjust the contrast range
+of the displayed values, and <B>False color</B> will display the
+values with a false color rather than gray scale intensity
+ramp.
+
+<H4>Clip</H4>
+These controls allow you to set up clipping planes for an
+individual
+object as well as global clipping planes that will be applied to all
+objects.  Use the <B>Object</B> and <B>Global</B> radio buttons to select
+whether to adjust global planes or planes for the current object. 
+If you want the current object to be clipped only by its own planes
+and not by any global planes, turn on <B>Skip global planes</B>. 
+The spin box allows you to select the current plane, the one that is
+adjusted by the remaining controls.  Use <B>Clipping plane ON</B> to
+toggle the current clipping plane on or off.  The
+<B>Reset</B> button moves the plane back to its default location and
+orientation through the middle of the object or model.  The <B>Invert</B>
+ button inverts the direction of the clipping plane.
+<P>
+Once the current plane is turned on, hold down the Ctrl key
+to move and rotate the plane instead of the model.  Use the left mouse
+button or the arrow keys to move the plane, and the middle mouse button
+or the keypad keys to rotate the plane.
+<P>
+Up to 6 clipping planes may be defined for each object, as well as 6
+global planes.  However, the OpenGL implementation on your machine
+limits the total number of planes that can be applied to an object. 
+There are guaranteed to be at least 6 but probably are only 6.  If this
+limit comes into play, object planes count first toward the limit.
+
+<H4>Move</H4>
+This panel allows one to view orthogonal faces of the model. 
+Each column of buttons will move by 90 degree rotations about
+one of the three axes. 
+The <B>Center on Object</B> button will center the display on the 
+current object.
+
+<H4>Subsets</H4>
+This panel allows one to view the current object, surface or
+contour of the model, if one is selected.  <B>Current Surface
+Only</B> or <B>Current Contour Only</B> will show only the current
+surface or contour in the current object.  <B>Surface & Other
+Objects</B> or <B>Contour & Other Objects</B> will show the current
+surface or contour in the current object, plus all other objects
+that are turned on.
+
+<P>
+<A HREF="index.html">Help Index<A>
