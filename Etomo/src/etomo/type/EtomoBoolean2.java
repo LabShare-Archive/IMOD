@@ -19,6 +19,10 @@ import etomo.comscript.InvalidParameterException;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.8  2005/05/17 19:18:25  sueh
+* <p> bug# 658 Passing a HashMap of required values from the autodoc to the
+* <p> super constructor.
+* <p>
 * <p> Revision 1.7  2005/05/10 02:42:01  sueh
 * <p> bug# 658 Made EtomoBoolean2 capable of handle any two values.
 * <p> Prevent setting displayAsInteger to false if the instance doesn't have an
@@ -72,6 +76,13 @@ public class EtomoBoolean2 extends ScriptParameter {
   
   private boolean displayAsInteger = false;
 
+  public EtomoBoolean2() {
+    super(EtomoNumber.INTEGER_TYPE);
+    setValidValues(new int[] { falseValue, trueValue });
+    setDisplayValue(falseValue);
+    setNullIsValid(false);
+  }
+  
   public EtomoBoolean2(String name) {
     super(EtomoNumber.INTEGER_TYPE, name);
     setValidValues(new int[] { falseValue, trueValue });
