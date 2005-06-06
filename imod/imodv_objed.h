@@ -12,6 +12,10 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.5  2004/09/21 20:20:14  mast
+Declarations for multiple clipping plane slots, new object list in
+scroll view, and editing multiple colore
+
 Revision 4.4  2004/04/28 05:28:52  mast
 Changes for drawing current contour thicker
 
@@ -99,6 +103,7 @@ class ImodvObjed : public QObject
     void lineColorSlot(int color, int value, bool dragging);
   void multipleColorSlot(bool state);
   void fillToggleSlot(bool state);
+  void fillPntToggleSlot(bool state);
   void bothSidesSlot(bool state);
   void fillColorSlot(int color, int value, bool dragging);
   void materialSlot(int which, int value, bool dragging);
