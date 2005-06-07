@@ -1,6 +1,6 @@
 # Command file to run Tilt
 #
-####CreatedVersion#### 3.4.4
+####CreatedVersion#### 3.6.9
 # 
 # RADIAL specifies the frequency at which the Gaussian low pass filter begins
 #   followed by the standard deviation of the Gaussian roll-off
@@ -10,6 +10,7 @@
 $tilt
 g5a.ali
 g5a.rec
+IMAGEBINNED 1
 TILTFILE g5a.tlt
 THICKNESS 100
 RADIAL .35 .05
