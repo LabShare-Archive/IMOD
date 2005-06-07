@@ -1459,7 +1459,7 @@ C	----------------
 	implicit none
 	include 'tilt.inc'
 	integer numtags
-	parameter (numtags = 35)
+	parameter (numtags = 36)
 	integer*4 nweight
 	real*4 wincr(20)
 	COMMON /DENSWT/nweight,wincr
@@ -1485,7 +1485,8 @@ C
      &	    'COMPFRACTION','DENSWEIGHT','*TILTFILE','WIDTH','SHIFT',
      &	    '*XTILTFILE','XAXISTILT','*LOCALFILE','LOCALSCALE',
      &	    'FULLIMAGE','SUBSETSTART','COSINTERP','FBPINTERP',
-     &	    'XTILTINTERP','REPROJECT','*ZFACTORFILE','DONE'/
+     &	    'XTILTINTERP','REPROJECT','*ZFACTORFILE','IMAGEBINNED',
+     &	    'DONE'/
 	integer*4 ntags, nfields
 	real*4 XNUM(50)
 	COMMON /CARDS/NTAGS,XNUM,NFIELDS
@@ -1502,6 +1503,7 @@ c
 	integer*4 nprjp,nwidep,needwrk,needzwrk,neediw,needrw,needout,minsup
 	integer*4 maxsup,nshift,nprj2,nsneed,ninp,nexclist,j,needzw,ind
 	integer*4 npadtmp,nprpad,ithicknew,nocosPlanes,ifZfac,localZfacs
+	integer*4 ifThickIn,ifSliceIn,ifWidthIn,imageBinned,ifSubsetIn
 	real*4 pixelLocal
 	integer*4 inum,licenseusfft,niceframe
 	external inum
@@ -1570,7 +1572,6 @@ c......Default weighting by density of adjacent views
 	  wincr(i)=1./(i-0.5)
 	enddo
 c	  
-	iwide=0
 	xoffset=0
 	yoffset=0
 	delxx=0.
@@ -1581,6 +1582,12 @@ c
 	nyfull=0
 	ixsubset=0
 	iysubset=0
+	ithick = 10
+	imageBinned = 1
+	ifThickIn = 0
+	ifWidthIn = 0
+	ifSliceIn = 0
+	ifSubsetIn = 0
 c	  
 c......Default double-width linear interpolation in cosine stretching
 	interpfac=2
@@ -1607,7 +1614,7 @@ C
 1	CALL CREAD(CARD,TAGS,LABEL,*999)
 	GO TO (100,200,300,400,500,600,700,800,900,1000,1100,1200,1250,
      &	    1250,1300,1400,1500,1600,1700,1800,1900,2000,2100,2200,2300,
-     &	    2400,2500, 2600,2700,2800,2900,3000,3100,3200,999),LABEL
+     &	    2400,2500, 2600,2700,2800,2900,3000,3100,3200,3300,999),LABEL
 C
 C TITLE card
 C100     ENCODE(80,49,TITLE)CARD(1:50),DAT,TIM
@@ -1621,15 +1628,14 @@ C SLICE card
 	ISLICE=INUM(1)+1
 	JSLICE=INUM(2)+1
 	if(nfields.gt.2)idelslice=inum(3)
-	WRITE(6,201)ISLICE,JSLICE,idelslice
+	ifSliceIn = 1
 	GO TO 1
 C
 C THICKNESS card
 300	IF(NFIELDS.NE.1)GO TO 9999
 	ITHICK=INUM(1)
-	WRITE(6,301)ITHICK
-	if(ithick.gt.limmask)call errorexit(
-     &	    'Thickness too high for arrays')
+	if(ithick.gt.limmask)call errorexit('Thickness too high for arrays')
+	ifThickIn = 1
 	GO TO 1
 C
 C MASK card
@@ -1653,7 +1659,6 @@ C OFFSET card
 600	IF(NFIELDS.EQ.0 .OR. NFIELDS.GE.3)GO TO 9999
 	IF(NFIELDS.EQ.2)DELXX=XNUM(2)
 	DELANG=XNUM(1)
-	WRITE(6,601)DELANG,DELXX
 	GO TO 1
 C
 C SCALE card
@@ -1776,14 +1781,13 @@ c
 c WIDTH card
 2000	IF(NFIELDS.NE.1)GO TO 9999
 	IWIDE=INUM(1)
-	WRITE(6,2001)IWIDE
+	ifWidthIn = 1
 	GO TO 1
 c	  
 c SHIFT card
 2100	if((nfields+1)/2.ne.1)go to 9999
 	xoffset=xnum(1)
 	if(nfields.eq.2)yoffset=xnum(2)
-	WRITE(6,2101)xoffset,yoffset
 	go to 1
 c	  
 c XTILTFILE card
@@ -1865,14 +1869,13 @@ c FULLIMAGE card
 2600	if(nfields.ne.2) go to 9999
 	nxfull=inum(1)
 	nyfull=inum(2)
-	write(6,2601)nxfull,nyfull
 	go to 1
 c	  
 c SUBSETSTART card
 2700	if(nfields.ne.2) go to 9999
 	ixsubset=inum(1)
 	iysubset=inum(2)
-	write(6,2701)ixsubset,iysubset
+	ifSubsetIn = 1
 	go to 1
 c	  
 c	  COSINTERP card
@@ -1920,6 +1923,11 @@ c ZFACTORFILE card
 	write(6,3201)
 	go to 1
 c	  
+c IMAGEBINNED card
+3300	imageBinned = max(1.,xnum(1))
+	if (imageBinned .gt. 1) write(6,3301)imageBinned
+	go to 1
+c	  
 c
 C End of data deck
 C-------------------------------------------------------------
@@ -1932,6 +1940,33 @@ C
 	if(nxfull.eq.0.and.nyfull.eq.0.and.
      &	    (ixsubset.ne.0.or.iysubset.ne.0))call errorexit(
      &	    'YOU MUST ENTER THE FULL IMAGE SIZE IF YOU HAVE A SUBSET')
+c	  
+c	  scale dimensions down by binning then report them
+c
+	if (imageBinned .gt. 1) then
+	  if (ifSliceIn .ne. 0) then
+	    islice = max(1, min(npxyz(2),
+     &		(islice + imageBinned - 1) / imageBinned))
+	    jslice = max(1, min(npxyz(2), jslice / imageBinned))
+	  endif
+	  if (ifThickIn .ne. 0) ithick = ithick / imageBinned
+	  delxx = delxx / imageBinned
+	  nxfull = (nxfull + imageBinned - 1) / imageBinned
+	  nyfull = (nyfull + imageBinned - 1) / imageBinned
+	  ixsubset = ixsubset / imageBinned
+	  iysubset = iysubset / imageBinned
+	  xoffset = xoffset / imageBinned
+	  yoffset = yoffset / imageBinned
+	  if (ifWidthIn .ne. 0) iwide = iwide / imageBinned
+	endif
+	if (ifSliceIn .ne. 0) WRITE(6,201)ISLICE,JSLICE,idelslice
+	if (ifThickIn .ne. 0) WRITE(6,301)ITHICK
+	if (delang .ne. 0. .or. delxx .ne. 0.) WRITE(6,601)DELANG,DELXX
+	if (nxfull .ne. 0 .or. nyfull .ne. 0) write(6,2601)nxfull,nyfull
+	if (ifSubsetIn .ne. 0) write(6,2701)ixsubset,iysubset
+	if (ifWidthIn .ne. 0) WRITE(6,2001)IWIDE
+	if (xoffset .ne. 0 .or. yoffset .ne. 0) WRITE(6,2101)yoffset,xoffset
+
 c	  
 c If NEWANGLES is 0, get angles from file header.  Otherwise check if angles OK
 c
@@ -1997,7 +2032,6 @@ C Open output map file
      &	    'SLICE NUMBERS OUT OF RANGE')
 	NSLICE=(JSLICE-ISLICE)/idelslice+1
 	if(nslice.le.0)call errorexit( 'SLICE NUMBERS REVERSED')
-	if(iwide.eq.0)iwide=npxyz(1)
 	if(iwide.gt.limwidth.and.nxwarp.ne.0)call errorexit('OUTPUT'//
      &	    ' SLICE TOO WIDE FOR ARRAYS IF DOING LOCAL ALIGNMENTS')
 c	  
@@ -2468,6 +2502,8 @@ C
 3101	format(/,' Output will be a reprojection at zero degrees')
 3201	format(/,' Z-dependent shifts to be applied with factors from file'
      &	    )
+3301	format(/,' Dimensions and coordinates will be scaled down by a ',
+     &	    'factor of ',i2)
 
 	END
 C
@@ -2691,6 +2727,9 @@ c	    print *,iv,xpmin,xpmax,ofstretch(iv),nstretch(iv),indstretch(iv)
 
 c
 c	  $Log$
+c	  Revision 3.22  2004/10/22 13:39:14  mast
+c	  Declared lnblnk for SGI
+c	
 c	  Revision 3.21  2004/10/22 03:29:31  mast
 c	  Added z factor corrections and declarations for all routines
 c	
