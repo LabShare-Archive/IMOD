@@ -958,10 +958,10 @@ EOF
     # COPY EMPTY SEED MODELS
     if (! -e $setname.seed) \cp $srcdir/$seedname $setname.seed
 
-    # GET ALIGN; WIPE OUT XYZ.FID IF SINGLE AXIS; SET OUTPUT TO .TLTXF FOR CCD
+    # GET ALIGN; zero FixXYZCoords IF SINGLE AXIS; SET OUTPUT TO .TLTXF FOR CCD
 
-    set wipexyz = "gibberish87654"
-    if ($numax == 1) set wipexyz = $setname"fid.xyz"
+    set fixxyz = "1"
+    if ($numax == 1) set fixxyz = "0"
 
     # set the frame size bigger if needed for a montage set
 
@@ -987,8 +987,8 @@ EOF
 	-e "/^#*ExcludeList.*/s//ExcludeList	$excludelist/"\
 	-e "s/$stackname/$tracksrc/"\
 	-e "s/$setname.xf/$tiltxf/"\
+        -e "/^FixXYZCoordinates/s/.*/FixXYZCoordinates	$fixxyz/"\
 	-e "/^#*$wipeexclude/d"\
-	-e "/$wipexyz/d"\
 	<$srcfile >$dstfile
 
 
@@ -1331,6 +1331,9 @@ exit 0
 
 #
 #  $Log$
+#  Revision 3.39  2005/05/11 05:35:42  mast
+#  Changes for PIP style track.com
+#
 #  Revision 3.38  2005/03/23 23:18:49  mast
 #  Fixed FULLIMAGE output for tilt.com in montage case
 #
