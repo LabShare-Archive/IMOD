@@ -1,6 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-6/7/05 Added an option to Tilt to specify binning factor to use in scaling
+6/9/05: Added an option to Tiltalign to specify binning factor to use in 
+scaling entered axis shifts.
+
+6/7/05: Added an option to Tilt to specify binning factor to use in scaling
 thickness, offsets, etc.
 
 6/6/05: Added ability to edit 2D line width for many objects in model view
