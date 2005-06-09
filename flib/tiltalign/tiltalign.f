@@ -79,6 +79,7 @@ c
 	real*4 sinbet, cosdel, sindel,denom
 	real*4 a11, a12, a21, a22, xzOther, yzOther
 	real*8 pmat(9)
+	integer*4 imageBinned
 	real*4 atand,sind,cosd
 	integer*4 nearest_view,lnblnk
 	character*80 concat
@@ -91,58 +92,61 @@ c
 c	  fallbacks from ../../manpages/autodoc2man -2 2  tiltalign
 c
 	integer numOptions
-	parameter (numOptions = 97)
+	parameter (numOptions = 100)
 	character*(40 * numOptions) options(1)
 	options(1) =
      &      ':ModelFile:FN:@:ImageFile:FN:@:ImageSizeXandY:IP:@'//
      &      ':ImageOriginXandY:FP:@:ImagePixelSizeXandY:FP:@'//
      &      ':OutputModelFile:FN:@:OutputResidualFile:FN:@'//
-     &      ':OutputModelAndResidual:FN:@:OutputFidXYZFile:FN:@'//
-     &      ':OutputTiltFile:FN:@:OutputXAxisTiltFile:FN:@'//
-     &      ':OutputTransformFile:FN:@:IncludeStartEndInc:IT:@'//
+     &      ':OutputModelAndResidual:FN:@:OutputTopBotResiduals:FN:@'//
+     &      ':OutputFidXYZFile:FN:@:OutputTiltFile:FN:@'//
+     &      ':OutputXAxisTiltFile:FN:@:OutputTransformFile:FN:@'//
+     &      ':OutputZFactorFile:FN:@:IncludeStartEndInc:IT:@'//
      &      ':IncludeList:LI:@:ExcludeList:LI:@:RotationAngle:F:@'//
-     &      ':RotOption:I:@:RotMapping:IA:@:RotDefaultGrouping:I:'//
-     &      '@:RotNondefaultGroup:IT:@:RotationFixedView:I:@'//
      &      ':SeparateGroup:LI:@first:FirstTiltAngle:F:@'//
      &      'increment:TiltIncrement:F:@tiltfile:TiltFile:FN:@'//
      &      'angles:TiltAngles:FA:@:AngleOffset:F:@'//
-     &      ':LocalRotOption:I:@:LocalRotMapping:IA:@'//
-     &      ':LocalRotDefaultGrouping:I:@:LocalRotNondefaultGroup:IT:'//
-     &      '@:TiltOption:I:@:TiltFixedView:I:@'//
-     &      ':TiltSecondFixedView:I:@:TiltMapping:IA:@'//
+     &      ':ProjectionStretch:B:@:RotOption:I:@'//
+     &      ':RotDefaultGrouping:I:@:RotNondefaultGroup:IT:@'//
+     &      ':RotationFixedView:I:@:LocalRotOption:I:@'//
+     &      ':LocalRotDefaultGrouping:I:@'//
+     &      ':LocalRotNondefaultGroup:IT:@:TiltOption:I:@'//
+     &      ':TiltFixedView:I:@:TiltSecondFixedView:I:@'//
      &      ':TiltDefaultGrouping:I:@:TiltNondefaultGroup:IT:@'//
      &      ':LocalTiltOption:I:@:LocalTiltFixedView:I:@'//
-     &      ':LocalTiltSecondFixedView:I:@:LocalTiltMapping:IA:@'//
+     &      ':LocalTiltSecondFixedView:I:@'//
      &      ':LocalTiltDefaultGrouping:I:@'//
      &      ':LocalTiltNondefaultGroup:IT:@:MagReferenceView:I:@'//
-     &      ':MagOption:I:@:MagMapping:IA:@:MagDefaultGrouping:I:@'//
+     &      ':MagOption:I:@:MagDefaultGrouping:I:@'//
      &      ':MagNondefaultGroup:IT:@:LocalMagReferenceView:I:@'//
-     &      ':LocalMagOption:I:@:LocalMagMapping:IA:@'//
-     &      ':LocalMagDefaultGrouping:I:@'//
+     &      ':LocalMagOption:I:@:LocalMagDefaultGrouping:I:@'//
      &      ':LocalMagNondefaultGroup:IT:@:CompReferenceView:I:@'//
-     &      ':CompOption:I:@:CompMapping:IA:@:CompDefaultGrouping:I:@'//
+     &      ':CompOption:I:@:CompDefaultGrouping:I:@'//
      &      ':CompNondefaultGroup:IT:@:XStretchOption:I:@'//
-     &      ':XStretchMapping:IA:@:XStretchDefaultGrouping:I:@'//
+     &      ':XStretchDefaultGrouping:I:@'//
      &      ':XStretchNondefaultGroup:IT:@:LocalXStretchOption:I:@'//
-     &      ':LocalXStretchMapping:IA:@'//
      &      ':LocalXStretchDefaultGrouping:I:@'//
      &      ':LocalXStretchNondefaultGroup:IT:@:SkewOption:I:@'//
-     &      ':SkewMapping:IA:@:SkewDefaultGrouping:I:@'//
-     &      ':SkewNondefaultGroup:IT:@:LocalSkewOption:I:@'//
-     &      ':LocalSkewMapping:IA:@:LocalSkewDefaultGrouping:I:@'//
+     &      ':SkewDefaultGrouping:I:@:SkewNondefaultGroup:IT:@'//
+     &      ':LocalSkewOption:I:@:LocalSkewDefaultGrouping:I:@'//
      &      ':LocalSkewNondefaultGroup:IT:@:XTiltOption:I:@'//
-     &      ':XTiltMapping:IA:@:XTiltDefaultGrouping:I:@'//
-     &      ':XTiltNondefaultGroup:IT:@:LocalXTiltOption:I:@'//
-     &      ':LocalXTiltMapping:IA:@:LocalXTiltDefaultGrouping:I:@'//
+     &      ':XTiltDefaultGrouping:I:@:XTiltNondefaultGroup:IT:@'//
+     &      ':LocalXTiltOption:I:@:LocalXTiltDefaultGrouping:I:@'//
      &      ':LocalXTiltNondefaultGroup:IT:@'//
      &      ':ResidualReportCriterion:F:@:SurfacesToAnalyze:I:@'//
      &      ':MetroFactor:F:@:MaximumCycles:I:@:AxisZShift:F:@'//
-     &      ':AxisXshift:F:@:LocalAlignments:B:@:OutputLocalFile:FN:@'//
+     &      ':AxisXShift:F:@:LocalAlignments:B:@:OutputLocalFile:FN:@'//
      &      ':NumberOfLocalPatchesXandY:IP:@'//
      &      ':MinSizeOrOverlapXandY:FP:@'//
      &      ':MinFidsTotalAndEachSurface:IP:@:FixXYZCoordinates:B:@'//
-     &      ':LocalOutputOptions:IT:@param:ParameterFile:PF:@'//
-     &      'help:usage:B:'
+     &      ':LocalOutputOptions:IT:@:RotMapping:IA:@'//
+     &      ':LocalRotMapping:IA:@:TiltMapping:IA:@'//
+     &      ':LocalTiltMapping:IA:@:MagMapping:IA:@'//
+     &      ':LocalMagMapping:IA:@:CompMapping:IA:@'//
+     &      ':XStretchMapping:IA:@:LocalXStretchMapping:IA:@'//
+     &      ':SkewMapping:IA:@:LocalSkewMapping:IA:@'//
+     &      ':XTiltMapping:IA:@:LocalXTiltMapping:IA:@'//
+     &      'param:ParameterFile:PF:@help:usage:B:'
 c
 	nlocalres=50
 	firsttime=.true.
@@ -157,6 +161,7 @@ c
 	dxmin = 0.
 	dyavg = 0.
 	ifZfac = 0
+	imageBinned = 1
 c	  
 c	  set this to 1 to get inputs for X-axis tilting from sequential input
 c	  
@@ -202,6 +207,8 @@ c
 	  ierr = PipGetInteger('MaximumCycles', ncycle)
 	  ierr = PipGetFloat('AxisZShift', znew)
 	  ierr = PipGetFloat('AxisXShift', xtiltnew)
+	  ierr = PipGetInteger('ImagesAreBinned', imageBinned)
+	  imageBinned = max(1, imageBinned)
 
 	else
 	  write(*,'(1x,a,/,a,$)') 'Criterion # of sd above mean residual'
@@ -234,6 +241,9 @@ c
 	    read(5,*)xtiltnew
 	  endif
 	endif
+c
+	if (nint(znew) .ne. 1000) znew = znew / imageBinned
+	xtiltnew = xtiltnew / imageBinned
 	ordererr=.true.
 	nearbyerr=errcrit.lt.0.
 	errcrit=abs(errcrit)
@@ -1338,6 +1348,9 @@ c
 
 c
 c	  $Log$
+c	  Revision 3.24  2005/04/20 16:26:51  mast
+c	  Added a success message after the restart messages
+c	
 c	  Revision 3.23  2005/04/20 04:46:05  mast
 c	  Converted WARNINGS to messages for metro errors until trials all fail
 c	
