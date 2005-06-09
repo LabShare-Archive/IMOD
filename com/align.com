@@ -11,6 +11,7 @@ $tiltalign -StandardInput
 ModelFile	g5a.fid
 ImageFile	g5a.st
 #ImageSizeXandY	1024,1024
+ImagesAreBinned	1
 OutputModelFile	g5a.3dmod
 OutputResidualFile	g5a.resid
 OutputFidXYZFile	g5afid.xyz
@@ -68,7 +69,7 @@ MinSizeOrOverlapXandY	0.5,0.5
 # Minimum fiducials total and on one surface if two surfaces
 #
 MinFidsTotalAndEachSurface	8,3
-FixXYZCoordinates
+FixXYZCoordinates	1
 LocalOutputOptions	1,0,1
 LocalRotOption	3
 LocalRotDefaultGrouping	6
