@@ -20,6 +20,7 @@ import etomo.comscript.ConstCombineParams;
 import etomo.comscript.ConstNewstParam;
 import etomo.comscript.ConstSetParam;
 import etomo.comscript.ConstSqueezevolParam;
+import etomo.comscript.ConstTiltParam;
 import etomo.comscript.ConstTiltalignParam;
 import etomo.comscript.FortranInputSyntaxException;
 import etomo.comscript.GotoParam;
@@ -58,7 +59,6 @@ import etomo.type.ConstMetaData;
 import etomo.type.DialogExitState;
 import etomo.type.DialogType;
 import etomo.type.EtomoNumber;
-import etomo.type.EtomoState;
 import etomo.type.FiducialMatch;
 import etomo.type.InvalidEtomoNumberException;
 import etomo.type.MetaData;
@@ -104,6 +104,10 @@ import etomo.util.Utilities;
  * 
  *
  * <p> $Log$
+ * <p> Revision 3.152  2005/06/03 19:50:32  sueh
+ * <p> bug# 671 getMrcHeader(): use the full path in the stack file name.
+ * <p> SaveDialog(): check axisType and pass the correct axisID.
+ * <p>
  * <p> Revision 3.151  2005/06/01 21:18:41  sueh
  * <p> bug# 667 Remove the Controller classes.  Trying make meta data and
  * <p> app manager equals didn't work very well.  Meta data is created by and
@@ -1588,6 +1592,7 @@ public class ApplicationManager extends BaseManager {
       String oldUserDir = propertyUserDir;
       propertyUserDir = setupDialog.getWorkingDirectory().getAbsolutePath();
       metaData = setupDialog.getFields();
+      metaData.initialize();
       if (metaData == null) {
         return;
       }
@@ -1607,7 +1612,7 @@ public class ApplicationManager extends BaseManager {
         mainPanel.setStatusBarText(paramFile, metaData);
         userConfig.putDataFile(paramFile.getAbsolutePath());
         loadedTestParamFile = true;
-        state.initialize(EtomoState.NO_RESULT_VALUE);
+        state.initialize();
       }
       else {
         String[] errorMessage = new String[2];
@@ -2198,10 +2203,6 @@ public class ApplicationManager extends BaseManager {
     else {
       comScriptMgr.loadPrenewst(axisID);
     }
-    // TODO: does the align.com file really need to be loaded here?
-    //  - if so add a comment
-    //  - if not remove
-    comScriptMgr.loadAlign(axisID);
     
     if (metaData.getViewType() == ViewType.MONTAGE) {
       
@@ -2507,25 +2508,6 @@ public class ApplicationManager extends BaseManager {
     NewstParam prenewstParam = comScriptMgr.getPrenewstParam(axisID);
     coarseAlignDialog.getPrenewstParams(prenewstParam);
     comScriptMgr.savePrenewst(prenewstParam, axisID);
-    XfproductParam xfproductParam = comScriptMgr.getXfproductInAlign(axisID);
-    int binning = prenewstParam.getBinByFactor();
-    try {
-      if (binning > 1) {
-        xfproductParam.setScaleShifts("1," + String.valueOf(binning));
-      }
-      else {
-        xfproductParam.setScaleShifts("/");
-      }
-      comScriptMgr.saveXfproductInAlign(xfproductParam, axisID);
-    }
-    catch (FortranInputSyntaxException except) {
-      String[] errorMessage = new String[3];
-      errorMessage[0] = "Align Parameter Syntax Error (xfproduct)";
-      errorMessage[1] = except.getMessage();
-      errorMessage[2] = "New value: " + except.getNewString();
-      uiHarness.openMessageDialog(errorMessage, "Align Parameter Syntax Error", axisID);
-      return false;
-    }
     return true;
   }
   
@@ -2931,15 +2913,17 @@ public class ApplicationManager extends BaseManager {
     else {
       fineAlignmentDialogA = fineAlignmentDialog;
     }
-    // Load the prenewst{|a|b}.com script to get the binning
-    comScriptMgr.loadPrenewst(axisID);
-    fineAlignmentDialog.setPrealignedBinning(comScriptMgr.getPrenewstParam(
-      axisID).getBinByFactor());
     
     // Load the required align{|a|b}.com files, fill in the dialog box
     // params and set it to the appropriate state
     comScriptMgr.loadAlign(axisID);
-    fineAlignmentDialog.setTiltalignParams(comScriptMgr.getTiltalignParam(axisID));
+    TiltalignParam tiltalignParam = comScriptMgr.getTiltalignParam(axisID);
+    //If this is a montage, then binning can only be 1, so no need to upgrade
+    if (metaData.getViewType() != ViewType.MONTAGE) {
+      //upgrade and save param to comscript
+      upgradeOldAlignCom(axisID, tiltalignParam);
+    }
+    fineAlignmentDialog.setTiltalignParams(tiltalignParam);
 
     //  Create a default transferfid object to populate the alignment dialog
     mainPanel.showProcess(fineAlignmentDialog.getContainer(), axisID);
@@ -3417,6 +3401,10 @@ public class ApplicationManager extends BaseManager {
       comScriptMgr.saveAlign(tiltalignParam, axisID);
       //  Update the tilt.com script with the dependent parameters
       updateTiltCom(tiltalignParam, axisID);
+      //update xfproduct in align.com
+      XfproductParam xfproductParam = comScriptMgr.getXfproductInAlign(axisID);
+      xfproductParam.setScaleShifts(getStackBinning(axisID, ".preali"));
+      comScriptMgr.saveXfproductInAlign(xfproductParam, axisID);
       if (fineAlignmentDialog.getExitState() != DialogExitState.SAVE) {
         mainPanel.setFineAlignmentState(ProcessState.INPROGRESS, axisID);
       }
@@ -3486,49 +3474,30 @@ public class ApplicationManager extends BaseManager {
     else {
       tomogramPositioningDialogA = tomogramPositioningDialog;
     }
-    // Get the original image size and pass it to the
-    // TomogramGenerationDialog.
-    // It is needed to set the full image size correctly
-    // TODO: get the right size for montaging using montagesize
-    // TODO: this functionality is the same as the openTomo...Gen.. method
-    MRCHeader stackHeader = new MRCHeader(metaData.getDatasetName()
-      + axisID.getExtension() + ".st", axisID);
-    try {
-      stackHeader.read();
-      tomogramPositioningDialog.setFullImageSize(stackHeader.getNColumns(),
-        stackHeader.getNRows());
-    }
-    catch (IOException except) {
-      String[] errorMessage = new String[3];
-      errorMessage[0] = "Unable to read full image size from projection image stack";
-      errorMessage[1] = "Axis: " + axisID.getExtension();
-      errorMessage[2] = except.getMessage();
-      uiHarness.openMessageDialog(errorMessage, "MRCHeader IO Error", axisID);
-    }
-    catch (InvalidParameterException except) {
-      String[] errorMessage = new String[3];
-      errorMessage[0] = "Unable to read full image size from projection image stack";
-      errorMessage[1] = "Axis: " + axisID.getExtension();
-      errorMessage[2] = except.getMessage();
-      uiHarness.openMessageDialog(errorMessage,
-        "MRCHeader Invalid Parameter Error", axisID);
-    }
-
-    // Read in the newst{|a|b}.com parameters. WARNING this needs to be done
+    // Read in the meta data parameters. WARNING this needs to be done
     // before reading the tilt paramers below so that the GUI knows how to
     // correctly scale the dimensions
-    if (metaData.getViewType() != ViewType.MONTAGE) {
-      comScriptMgr.loadNewst(axisID);
-      tomogramPositioningDialog.setNewstParams(comScriptMgr.getNewstComNewstParam(axisID));
-    }
-
+    tomogramPositioningDialog.setParameters(metaData);
+    comScriptMgr.loadNewst(axisID);
+    tomogramPositioningDialog.setParameters(comScriptMgr.getNewstComNewstParam(axisID));
     // Get the align{|a|b}.com parameters
     comScriptMgr.loadAlign(axisID);
-    tomogramPositioningDialog.setAlignParams(comScriptMgr.getTiltalignParam(axisID));
+    TiltalignParam tiltalignParam = comScriptMgr.getTiltalignParam(axisID);
+    if (metaData.getViewType() != ViewType.MONTAGE) {
+      //upgrade and save param to comscript
+      upgradeOldAlignCom(axisID, tiltalignParam);
+    }
+    tomogramPositioningDialog.setAlignParams(tiltalignParam);
 
     // Get the tilt{|a|b}.com parameters
     comScriptMgr.loadTilt(axisID);
-    tomogramPositioningDialog.setTiltParams(comScriptMgr.getTiltParam(axisID));
+    TiltParam tiltParam = comScriptMgr.getTiltParam(axisID);
+    //If this is a montage, then binning can only be 1, so no need to upgrade
+    if (metaData.getViewType() != ViewType.MONTAGE) {
+      //upgrade and save param to comscript
+      upgradeOldTiltCom(axisID, tiltParam);
+    }
+    tomogramPositioningDialog.setTiltParams(tiltParam);
 
     // Get the tomopitch{|a|b}.com parameters
     comScriptMgr.loadTomopitch(axisID);
@@ -3884,7 +3853,9 @@ public class ApplicationManager extends BaseManager {
       }
       tiltParam.setOutputFile(outputFileName);
       if (metaData.getViewType() == ViewType.MONTAGE) {
-        tiltParam.setMontageFullImage(propertyUserDir, tomogramPositioningDialog.getBinning());
+        //binning is currently always 1 and correct size should be coming from
+        //copytomocoms
+        //tiltParam.setMontageFullImage(propertyUserDir, tomogramPositioningDialog.getBinning());
       }
       comScriptMgr.saveTilt(tiltParam, axisID);
     }
@@ -3957,6 +3928,10 @@ public class ApplicationManager extends BaseManager {
       tiltalignParam = comScriptMgr.getTiltalignParam(axisID);
       tomogramPositioningDialog.getAlignParams(tiltalignParam);
       comScriptMgr.saveAlign(tiltalignParam, axisID);
+      //update xfproduct in align.com
+      XfproductParam xfproductParam = comScriptMgr.getXfproductInAlign(axisID);
+      xfproductParam.setScaleShifts(getStackBinning(axisID, ".preali"));
+      comScriptMgr.saveXfproductInAlign(xfproductParam, axisID);
     }
     catch (NumberFormatException except) {
       String[] errorMessage = new String[3];
@@ -3965,6 +3940,16 @@ public class ApplicationManager extends BaseManager {
       errorMessage[2] = except.getMessage();
       uiHarness.openMessageDialog(errorMessage,
         "Tiltalign Parameter Syntax Error", axisID);
+      return null;
+    }
+    catch (FortranInputSyntaxException except) {
+      except.printStackTrace();
+      String[] errorMessage = new String[3];
+      errorMessage[0] = "Xfproduct Parameter Syntax Error";
+      errorMessage[1] = "Axis: " + axisID.getExtension();
+      errorMessage[2] = except.getMessage();
+      uiHarness.openMessageDialog(errorMessage,
+        "Xfproduct Parameter Syntax Error", axisID);
       return null;
     }
     return tiltalignParam;
@@ -3980,10 +3965,11 @@ public class ApplicationManager extends BaseManager {
    * @return
    */
   private ConstNewstParam updateNewstCom(
-    TomogramPositioningDialog tomogramPositioningDialog, AxisID axisID) {
+      TomogramPositioningDialog tomogramPositioningDialog, AxisID axisID) {
 
     //  Get the whole tomogram positions state
-    metaData.setWholeTomogramSample(axisID, tomogramPositioningDialog.isWholeTomogramSampling());
+    metaData.setWholeTomogramSample(axisID, tomogramPositioningDialog
+        .isWholeTomogramSampling());
 
     NewstParam newstParam = comScriptMgr.getNewstComNewstParam(axisID);
     tomogramPositioningDialog.getNewstParamst(newstParam);
@@ -4169,32 +4155,8 @@ public class ApplicationManager extends BaseManager {
     else {
       tomogramGenerationDialogA = tomogramGenerationDialog;
     }
-    // Get the original image size and pass it to the
-    // TomogramGenerationDialog.
-    // It is needed to set the full image size correctly
-    // TODO: get the right size for montaging using montagesize
-    MRCHeader stackHeader = new MRCHeader(metaData.getDatasetName()
-      + axisID.getExtension() + ".st", axisID);
-    try {
-      stackHeader.read();
-      tomogramGenerationDialog.setFullImageSize(stackHeader.getNColumns(),
-        stackHeader.getNRows());
-    }
-    catch (IOException except) {
-      String[] errorMessage = new String[3];
-      errorMessage[0] = "Unable to read full image size from projection image stack";
-      errorMessage[1] = "Axis: " + axisID.getExtension();
-      errorMessage[2] = except.getMessage();
-      uiHarness.openMessageDialog(errorMessage, "MRCHeader IO Error", axisID);
-    }
-    catch (InvalidParameterException except) {
-      String[] errorMessage = new String[3];
-      errorMessage[0] = "Unable to read full image size from projection image stack";
-      errorMessage[1] = "Axis: " + axisID.getExtension();
-      errorMessage[2] = except.getMessage();
-      uiHarness.openMessageDialog(errorMessage,
-        "MRCHeader Invalid Parameter Error", axisID);
-    }
+    //no longer managing image size
+
     // Read in the newst{|a|b}.com parameters. WARNING this needs to be done
     // before reading the tilt paramers below so that the GUI knows how to
     // correctly scale the dimensions
@@ -4206,10 +4168,17 @@ public class ApplicationManager extends BaseManager {
       comScriptMgr.loadNewst(axisID);
       tomogramGenerationDialog.setNewstParams(comScriptMgr.getNewstComNewstParam(axisID));
     }
+    tomogramGenerationDialog.setParameters(metaData);
     // Read in the tilt{|a|b}.com parameters and display the dialog panel
     comScriptMgr.loadTilt(axisID);
     comScriptMgr.loadMTFFilter(axisID);
-    tomogramGenerationDialog.setTiltParams(comScriptMgr.getTiltParam(axisID));
+    TiltParam tiltParam = comScriptMgr.getTiltParam(axisID);
+    //If this is a montage, then binning can only be 1, so no need to upgrade
+    if (metaData.getViewType() != ViewType.MONTAGE) {
+      //upgrade and save param to comscript
+      upgradeOldTiltCom(axisID, tiltParam);
+    }
+    tomogramGenerationDialog.setTiltParams(tiltParam);
     tomogramGenerationDialog.setMTFFilterParam(comScriptMgr.getMTFFilterParam(axisID));
     updateDialog(tomogramGenerationDialog, axisID);
 
@@ -4240,6 +4209,7 @@ public class ApplicationManager extends BaseManager {
     }
     else {
       //  Get the user input data from the dialog box
+      tomogramGenerationDialog.getParameters(metaData);
       if (!updateFiducialessParams(tomogramGenerationDialog, axisID)) {
         return;
       }
@@ -4326,7 +4296,9 @@ public class ApplicationManager extends BaseManager {
         tiltParam.setOutputFile(trialTomogramName);
       }
       if (metaData.getViewType() == ViewType.MONTAGE) {
-        tiltParam.setMontageFullImage(propertyUserDir, tomogramGenerationDialog.getBinning());
+        //binning is currently always 1 and correct size should be coming from
+        //copytomocoms
+        //tiltParam.setMontageFullImage(propertyUserDir, tomogramGenerationDialog.getBinning());
       }
       comScriptMgr.saveTilt(tiltParam, axisID);
     }
@@ -6368,4 +6340,197 @@ public class ApplicationManager extends BaseManager {
     processMgr.kill(axisID);
   }
   
+  /**
+   * Gets the binning that can be used to repair a older tilt.com file.  Older
+   * tilt.com file contain parameters, including full image size, which have
+   * been binned.  And they do not contain the binning.  Function calculates the
+   * binning from the raw stack full image size and the full image size in 
+   * tilt.com.
+   * @param axisID
+   * @param tiltParam
+   * @return
+   */
+  private int getBackwardCompatibleTiltBinning(AxisID axisID, ConstTiltParam tiltParam) {
+    MRCHeader rawstackHeader = getMrcHeader(axisID, ".st");
+    try {
+      rawstackHeader.read();
+    }
+    catch (InvalidParameterException e) {
+      e.printStackTrace();
+      return 1;
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+      return 1;
+    }
+    int binning = 1;
+    int tiltFullImageX = tiltParam.getFullImageX();
+    //defaults to Integer.MIN_VALUE in ConstTiltParam
+    if (tiltFullImageX > 0) {
+      binning = Math.round(rawstackHeader.getNColumns() / tiltFullImageX);
+    }
+    if (binning < 1) {
+      return 1;
+    }
+    return binning;
+  }
+  
+  /**
+   * Gets the binning that can be used to run tilt against a stack (.preali or
+   * .ali).  Function calculates the binning from the stack's pixel spacing and
+   * the raw stack's pixel spacing.
+   * @param axisID
+   * @param stackExtension
+   * @return
+   */
+  public long getStackBinning(AxisID axisID, String stackExtension) {
+    MRCHeader rawstackHeader = getMrcHeader(axisID, ".st");
+    MRCHeader stackHeader = getMrcHeader(axisID, stackExtension);
+    try {
+      rawstackHeader.read();
+      stackHeader.read();
+    }
+    catch (InvalidParameterException e) {
+      e.printStackTrace();
+      return 1;
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+      return 1;
+    }
+    long binning = 1;
+    double rawstackXPixelSpacing = rawstackHeader.getXPixelSpacing();
+    if (rawstackXPixelSpacing > 0) {
+      binning = Math.round(stackHeader.getXPixelSpacing() / rawstackXPixelSpacing);
+    }
+    if (binning < 1) {
+      return 1;
+    }
+    return binning;
+  }
+  
+  /**
+   * Gets the binning that can be used to repair a older align.com file.  Older
+   * align.com file contain a binned zshift parameter.  And they do not contain
+   * the binning.  Function calculates the binning from the raw stack pixel
+   * spacing and the fid.xyz pixel spacing (if it exists) or the .preali pixel
+   * spacing.  The fid.xyz pixel spacing is more accurate because the file is
+   * created by align when align succeeds.  If align fails, then the .preali
+   * pixel spacing will be inaccurate if the binning has changed since an
+   * the last time the .preali was built.
+   * @param axisID
+   * @param tiltParam
+   * @return
+   */
+  private long getBackwardCompatibleAlignBinning(AxisID axisID) {
+    MRCHeader rawstackHeader = getMrcHeader(axisID, ".st");
+    try {
+      rawstackHeader.read();
+    }
+    catch (InvalidParameterException e) {
+      e.printStackTrace();
+      return 1;
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+      return 1;
+    }
+    FidXyz fidXyz = getFidXyz(axisID);
+    boolean fidXyzFailed = false;
+    try {
+      fidXyz.read();
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+      fidXyzFailed = true;
+    }
+    if (!fidXyzFailed) {
+      //Another layer of backward compatibility.  Handle the time before fid.xyz
+      //files where created.  This also handles the situation where align.com has
+      //not been run and has the original values from copytomocoms.
+      if (!fidXyz.exists()) {
+        return 1;
+      }
+      //Align.com must have failed.  The fallback is to use pixel spacing from
+      //.preali.
+      if (fidXyz.isEmpty()) {
+        fidXyzFailed = true;
+      }
+      //Another layer of backward compatibility.  There was a small period of
+      //time when binning existed but the pixel spacing was not added to fid.xyz
+      //(3.2.7 (3/16/04) - 3.2.20 (6/19/04).  If this fid.xyz was created before
+      //binning we could return 1, but we don't know that and we can't trust
+      //change times on old files that could have been copied, so we need to use
+      //the fallback in this case.
+      else if (!fidXyz.isPixelSizeSet()) {
+        fidXyzFailed = true;
+      }
+    }
+    double rawstackXPixelSpacing = rawstackHeader.getXPixelSpacing();
+    //Unable to calculate binning
+    if (rawstackXPixelSpacing <= 0) {
+      return 1;
+    }
+    //calculate binning from fid.xyz
+    if (!fidXyzFailed) {
+      long binning = Math.round(fidXyz.getPixelSize() / rawstackXPixelSpacing);
+      if (binning < 1) {
+        return 1;
+      }
+      return binning;
+    }
+    //fallback to .preali
+    MRCHeader stackHeader = getMrcHeader(axisID, ".preali");
+    try {
+      stackHeader.read();
+    }
+    catch (InvalidParameterException e) {
+      e.printStackTrace();
+      return 1;
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+      return 1;
+    }
+    long binning = Math.round(stackHeader.getXPixelSpacing()
+        / rawstackXPixelSpacing);
+    if (binning < 1) {
+      return 1;
+    }
+    return binning;
+  }
+  
+  /**
+   * If tiltParam is an old version, upgrade it to the new version and save it
+   * to tilt.com.
+   * @param axisID
+   * @param tiltParam
+   */
+  private void upgradeOldTiltCom(AxisID axisID, TiltParam tiltParam) {
+    if (!tiltParam.isOldVersion()) {
+      return;
+    }
+    int correctionBinning = getBackwardCompatibleTiltBinning(axisID, tiltParam);
+    long currentBinning = getStackBinning(axisID, ".ali");
+    if (tiltParam.upgradeOldVersion(correctionBinning, currentBinning)) {
+      comScriptMgr.saveTilt(tiltParam, axisID);
+    }
+  }
+  
+  /**
+   * If tiltalignParam is an old version, upgrade it to the new version and save
+   * it to align.com.
+   * @param axisID
+   * @param tiltalignParam
+   */
+  private void upgradeOldAlignCom(AxisID axisID, TiltalignParam tiltalignParam) {
+    if (!tiltalignParam.isOldVersion()) {
+      return;
+    }
+    long correctionBinning = getBackwardCompatibleAlignBinning(axisID);
+    long currentBinning = getStackBinning(axisID, ".preali");
+    if (tiltalignParam.upgradeOldVersion(correctionBinning, currentBinning)) {
+      comScriptMgr.saveAlign(tiltalignParam, axisID);
+    }
+  }
 }
