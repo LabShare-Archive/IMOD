@@ -88,6 +88,8 @@ set makestaticlib   = "ar ruv "
 set staticranlib    = ranlib
 set makenondll      = '$(AR) $(ARFLAGS)'
 set modelallo       = 'model/*.$(OBJEXT)'
+set nmcarext        = '$(LIBEXT)'
+set far             = '$(AR)'
 set junit_home      = /usr/local/junit
 set class_sep       = ':'
 set strip           = strip
@@ -691,6 +693,8 @@ echo "STATICRANLIB = $staticranlib" >> $configure
 echo "DLLEXT = $dllext" >> $configure
 echo "MAKENONDLL = $makenondll" >> $configure
 echo "MODELALLO = $modelallo" >> $configure
+echo "NMCAREXT = $nmcarext" >> $configure
+echo "FAR = $far" >> $configure
 echo "JUNIT_HOME = $junit_home" >> $configure
 echo "CLASS_SEPARATOR = $class_sep" >> $configure
 echo "SOURCEDOC_EXE = $sourcedoc_exe" >> $configure
@@ -792,6 +796,9 @@ exit
 
 #
 #  $Log$
+#  Revision 1.5  2005/05/12 05:13:28  mast
+#  Added strip variable
+#
 #  Revision 1.4  2005/03/21 19:19:47  mast
 #  Removed libraries from sourcedoc qconfigure
 #
