@@ -41,6 +41,7 @@ public class TiltalignParam extends ConstTiltalignParam implements CommandParam 
       convertToPIP(oldParam);
     }
     else {
+      imagesAreBinned.parse(scriptCommand);
       modelFile = scriptCommand.getValue(modelFileString);
       imageFile = scriptCommand.getValue(imageFileString);
       outputModelAndResidual = scriptCommand.getValue(outputModelAndResidualString);
@@ -148,6 +149,7 @@ public class TiltalignParam extends ConstTiltalignParam implements CommandParam 
     }
     //set fields dependent on other fields
     setOutputLocalFile();
+    loadedFromFile = true;
   }
 
   /**
@@ -293,6 +295,7 @@ public class TiltalignParam extends ConstTiltalignParam implements CommandParam 
     localOutputOptions = oldParam.getLocalOutputSelection();
     //set state
     setOutputZFactorFile();
+    loadedFromFile = true;
   }
 
   private FortranInputString[] setSolution(EtomoNumber option,
@@ -327,7 +330,8 @@ public class TiltalignParam extends ConstTiltalignParam implements CommandParam 
     }
     //  Switch to keyword/value pairs
     scriptCommand.useKeywordValue();
-
+    
+    imagesAreBinned.updateComScript(scriptCommand);
     ParamUtilities.updateScriptParameter(scriptCommand, modelFileString,
         modelFile);
     ParamUtilities.updateScriptParameter(scriptCommand, imageFileString,
@@ -436,7 +440,7 @@ public class TiltalignParam extends ConstTiltalignParam implements CommandParam 
   /**
    * @param axisZShift The axisZShift to set.
    */
-  public void setAxisZShift(double axisZShift) {
+  public void setAxisZShift(String axisZShift) {
     this.axisZShift.set(axisZShift);
   }
 
@@ -452,6 +456,10 @@ public class TiltalignParam extends ConstTiltalignParam implements CommandParam 
    */
   public void setImageFile(String imageFile) {
     this.imageFile = imageFile;
+  }
+  
+  public void setImagesAreBinned(long imagesAreBinned) {
+    this.imagesAreBinned.set(imagesAreBinned);
   }
 
   /**
@@ -842,10 +850,49 @@ public class TiltalignParam extends ConstTiltalignParam implements CommandParam 
   public void setXStretchOption(int stretchOption) {
     xStretchOption.set(stretchOption);
   }
+  
+  /**
+   * Backward compatibility fix.  Unbinned all the parameters which where binned
+   * in the old version.  Ignore parameters with reset values.  Will throw an
+   * IllegalStateException if it doesn't think that it is an old version.  The
+   * param should be loaded from a com file before running this function.
+   * @param binning
+   * @return true if changes where made
+   */
+  public boolean upgradeOldVersion(long correctionBinning, long currentBinning) {
+    if (!isOldVersion()) {
+      return false;
+    }
+    //Set the binning to prevent this function from being called again
+    imagesAreBinned.set(currentBinning);
+    //Currently this function only multiplies by binning, so there is nothing to
+    //do if binning is 1.
+    if (correctionBinning != 1) {
+      if (!axisZShift.isNull() && !axisZShift.equals(0)) {
+        axisZShift.set(axisZShift.getDouble() * correctionBinning);
+      }
+    }
+    StringBuffer buffer = new StringBuffer("\nUpgraded align"
+        + axisID.getExtension() + ".com:\n");
+    if (correctionBinning > 1) {
+      buffer.append("Multiplied binned " + axisZShift.getName() + " by "
+          + correctionBinning + ".\n");
+    }
+    buffer.append("Added " + imagesAreBinned.getName() + " "
+        + currentBinning + ".\n");
+    System.err.println(buffer.toString());
+    return true;
+  }
 }
 
 /**
  * <p> $Log$
+ * <p> Revision 3.18  2005/05/10 02:04:00  sueh
+ * <p> bug# 658 Added parse(ComScriptCommand) to TiltAngleSpec.  Changed
+ * <p> ScriptParameter.set(ComScriptCommand) to parse(ComScriptCommand).
+ * <p> Changed ScriptParameter.update(ComScriptCommand) to
+ * <p> updateComScript(ComScriptCommand).
+ * <p>
  * <p> Revision 3.17  2005/02/24 00:50:35  sueh
  * <p> bug# 600 Fixed a bug that was saving a value to the wrong parameter.
  * <p>
