@@ -12,6 +12,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2004/04/12 16:51:26  sueh
+ * <p> bug# 409 changed interface class CommandParam
+ * <p>
  * <p> Revision 1.2  2004/03/15 17:41:49  rickg
  * <p> Error message correction
  * <p>
@@ -117,8 +120,12 @@ public class XfproductParam extends ConstXfproductParam implements CommandParam 
   /**
    * @param scaleShifts The scaleShifts to set.
    */
-  public void setScaleShifts(String values) throws FortranInputSyntaxException{
-    scaleShifts.validateAndSet(values);
+  public void setScaleShifts(long binning) throws FortranInputSyntaxException{
+    if (binning > 1) {
+      scaleShifts.validateAndSet("1," + String.valueOf(binning));
+    }
+    else {
+      scaleShifts.validateAndSet("/");
+    }
   }
-
 }
