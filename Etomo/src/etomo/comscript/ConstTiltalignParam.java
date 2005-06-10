@@ -172,9 +172,11 @@ public class ConstTiltalignParam implements Command {
   protected FortranInputString minFidsTotalAndEachSurface;
   protected EtomoBoolean2 fixXYZCoordinates;
   protected FortranInputString localOutputOptions;
+  protected ScriptParameter imagesAreBinned;
   
   protected AxisID axisID;
   protected String datasetName;
+  protected boolean loadedFromFile = false;
 
   public ConstTiltalignParam(String datasetName, AxisID axisID) {
     this.axisID = axisID;
@@ -238,10 +240,14 @@ public class ConstTiltalignParam implements Command {
     localAlignments = new EtomoBoolean2(LOCAL_ALIGNMENTS_KEY);
     localAlignments.setDisplayAsInteger(true);
     fixXYZCoordinates = new EtomoBoolean2("FixXYZCoordinates");
+    //do not default imagesAreBinnned
+    imagesAreBinned = new ScriptParameter(EtomoNumber.LONG_TYPE, "ImagesAreBinned");
+    imagesAreBinned.setFloor(1);
     reset();
   }
   
   protected void reset() {
+    loadedFromFile = false;
     modelFile = "";
     imageFile = "";
     outputModelAndResidual = "";
@@ -307,6 +313,11 @@ public class ConstTiltalignParam implements Command {
     fixXYZCoordinates.reset();
     localOutputOptions = new FortranInputString(3);
     localOutputOptions.setIntegerType(new boolean[] {true, true, true});
+    imagesAreBinned.reset();
+  }
+  
+  public ConstEtomoNumber getImagesAreBinned() {
+    return imagesAreBinned;
   }
   
   public AxisID getAxisID() {
@@ -762,10 +773,22 @@ public class ConstTiltalignParam implements Command {
   public ConstEtomoNumber getXStretchOption() {
     return xStretchOption;
   }
+  
+  /**
+   * identifies an old version
+   * @return
+   */
+  public boolean isOldVersion() {
+    return loadedFromFile && imagesAreBinned.isNull();
+  }
 }
 
 /**
  * <p> $Log$
+ * <p> Revision 3.18  2005/05/12 01:20:51  sueh
+ * <p> bug# 567 Removed defaults so that fields would always be preserved in
+ * <p> the comscript.
+ * <p>
  * <p> Revision 3.17  2005/05/09 22:50:05  sueh
  * <p> bug# 658 Adapting to changes in TiltAngleSpec.  Keys are not passed at
  * <p> instanciation.  Short keys are passed to set functions with the regular
