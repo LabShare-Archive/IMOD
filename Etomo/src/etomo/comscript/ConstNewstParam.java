@@ -20,6 +20,11 @@ import etomo.type.EtomoNumber;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.6  2005/04/25 20:38:26  sueh
+ * <p> bug# 615 Passing the axis where a command originates to the message
+ * <p> functions so that the message will be popped up in the correct window.
+ * <p> This requires adding AxisID to many objects.
+ * <p>
  * <p> Revision 3.5  2005/01/08 01:32:14  sueh
  * <p> bug# 578 Create 2 modes - whole tomo sample and full aligned stack.
  * <p> Implement Command.  Add fiducialessAlignment variable and make it
@@ -81,6 +86,7 @@ public class ConstNewstParam implements Command {
   
   //generic gets
   public static final int GET_FIDUCIALESS_ALIGNMENT = -1;
+  public static final int GET_BINNING = -2;
   
   //command modes
   public static final int WHOLE_TOMOGRAM_SAMPLE_MODE = -1;
@@ -364,8 +370,13 @@ public class ConstNewstParam implements Command {
   }
 
   public int getIntegerValue(int name) {
+    switch (name) {
+    case GET_BINNING:
+      return getBinByFactor();
+    }
     return EtomoNumber.INTEGER_NULL_VALUE;
   }
+  
   public boolean getBooleanValue(int name) {
     switch (name) {
     case GET_FIDUCIALESS_ALIGNMENT:
