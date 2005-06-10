@@ -3,6 +3,7 @@ package etomo.type;
 import java.util.Properties;
 import java.util.Vector;
 
+import etomo.EtomoDirector;
 import etomo.storage.Storable;
 import etomo.ui.UIHarness;
 
@@ -20,6 +21,11 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.19  2005/05/12 01:27:39  sueh
+ * <p> bug# 658 Removed recommendedValue, since it isn't practical to get to
+ * <p> information required to set it.  Improved invalidReason messages.  Allow
+ * <p> isValid() and validate() to get the field description from the caller.
+ * <p>
  * <p> Revision 1.18  2005/05/10 02:20:16  sueh
  * <p> bug# 658 corrected comment
  * <p>
@@ -155,6 +161,8 @@ public abstract class ConstEtomoNumber implements Storable {
   private static final float floatNullValue = Float.NaN;
   public static final int INTEGER_NULL_VALUE = Integer.MIN_VALUE;
   public static final long LONG_NULL_VALUE = Long.MIN_VALUE;
+  
+  private static EtomoBoolean2 selfTest = null;
 
   protected int type;
   protected String name;
@@ -163,6 +171,7 @@ public abstract class ConstEtomoNumber implements Storable {
   protected Number currentValue = null;
   protected Number displayValue = null;
   protected Number ceilingValue = null;
+  protected Number floorValue = null;
   protected Vector validValues = null;
   protected boolean nullIsValid = true;
 
@@ -187,6 +196,7 @@ public abstract class ConstEtomoNumber implements Storable {
     currentValue = newNumber(that.currentValue);
     displayValue = newNumber(that.displayValue);
     ceilingValue = newNumber(that.ceilingValue);
+    floorValue = newNumber(that.floorValue);
     nullIsValid = that.nullIsValid;
     if (that.validValues != null && that.validValues.size() == 0) {
       validValues = new Vector(that.validValues.size());
@@ -248,7 +258,7 @@ public abstract class ConstEtomoNumber implements Storable {
   /**
    * Returns ceilingValue if value > ceilingValue.
    * Otherwise returns value.
-   * Ignores null and empty
+   * Ignores null
    * @param value
    * @return
    */
@@ -256,6 +266,20 @@ public abstract class ConstEtomoNumber implements Storable {
     if (value != null && !isNull(ceilingValue) && !isNull(value)
         && gt(currentValue, ceilingValue)) {
       return ceilingValue;
+    }
+    return value;
+  }
+  
+  /**
+   * Returns floorValue if value < floorValue.  Otherwise returns values.
+   * Ignores null.
+   * @param value
+   * @return
+   */
+  protected Number applyFloorValue(Number value) {
+    if (value != null && !isNull(floorValue) && !isNull(value)
+        && lt(currentValue, floorValue)) {
+      return floorValue;
     }
     return value;
   }
@@ -346,13 +370,45 @@ public abstract class ConstEtomoNumber implements Storable {
         + description + ",\ninvalidReason=" + invalidReason + ",\ncurrentValue="
         + currentValue + ",\ndisplayValue="
         + displayValue + ",\nceilingValue=" + ceilingValue
+        + ",\nfloorValue=" + floorValue
         + ",\nnullIsValid=" + nullIsValid;
   }
 
   public ConstEtomoNumber setCeiling(int ceilingValue) {
     this.ceilingValue = newNumber(ceilingValue);
+    runSelfTest();
     return this;
   }
+  
+  public ConstEtomoNumber setFloor(int floorValue) {
+    this.floorValue = newNumber(floorValue);
+    runSelfTest();
+    return this;
+  }
+  
+  private void runSelfTest() {
+    if (selfTest != null && selfTest.is()) {
+      selfTest();
+    }
+    else {
+      selfTest = new EtomoBoolean2();
+      selfTest.set(EtomoDirector.getInstance().isSelfTest());
+      if (selfTest.is()) {
+        selfTest();
+      }
+    }
+  }
+  
+  private void selfTest() {
+    //Currently, the state is always setFloor or setCeiling.
+    if (!isNull(ceilingValue) && !isNull(floorValue)
+        && gt(floorValue, ceilingValue)) {
+      throw new IllegalStateException(
+          "FloorValue must not be greater then ceilingValue.\nfloorValue="
+              + floorValue + ", ceilingValue=" + ceilingValue);
+    }
+  }
+
 
   /**
    * Set the value will be used if the user does not set a value or there is no
@@ -459,13 +515,6 @@ public abstract class ConstEtomoNumber implements Storable {
     return true;
   }
   
-  protected boolean is(Number value) {
-    if (isNull(value) || equals(value, 0)) {
-      return false;
-    }
-    return true;
-  }
-  
   public boolean isPositive() {
     return gt(getValue(), newNumber(0));
   }
@@ -514,6 +563,10 @@ public abstract class ConstEtomoNumber implements Storable {
   public boolean equals(String value) {
     return equals(getValue(), newNumber(value, new StringBuffer()));
   }
+  
+  public boolean isNamed(String name) {
+    return this.name.equals(name);
+  }
 
   protected void initialize() {
     initialize(newNumber());
@@ -521,6 +574,7 @@ public abstract class ConstEtomoNumber implements Storable {
   
   protected void initialize(Number displayValue) {
     ceilingValue = newNumber();
+    floorValue = newNumber();
     this.displayValue = newNumber(displayValue);
     currentValue = newNumber();
   }
