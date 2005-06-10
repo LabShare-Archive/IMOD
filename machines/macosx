@@ -35,6 +35,9 @@ if ($shared_libs != false) then
 	echo "ARFLAGS = $flags -dynamiclib -Wl,-single_module -Wl,-flat_namespace -Wl,-undefined,suppress -Wl,-read_only_relocs,warning -o "    >> $configure
 	echo "RANLIB    = true"                     >> $configure
 	echo "LIBEXT  = dylib"                 >> $configure
+        set far = "g77"
+        set makenondll = "ar -sruv "
+        set nmcarext = "a"
 else
 	echo "AR      = ar"                 >> $configure
 	echo "ARCPP   = ar"                 >> $configure
