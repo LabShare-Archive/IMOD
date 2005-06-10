@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.5  2005/01/12 18:33:43  sueh
+ * <p> bug# 505 Added excludeList2.
+ * <p>
  * <p> Revision 3.4  2005/01/08 01:37:28  sueh
  * <p> bug# 578  Added useZFactors, which is set by the user, and
  * <p> zFactorFileName, which is generated or comes from the comscript.
@@ -58,6 +61,9 @@
 package etomo.comscript;
 
 import etomo.type.AxisID;
+import etomo.type.ConstEtomoNumber;
+import etomo.type.EtomoNumber;
+import etomo.type.ScriptParameter;
 
 public class ConstTiltParam {
   public static final String rcsid = 
@@ -154,17 +160,23 @@ public class ConstTiltParam {
   protected boolean useZFactors;
   protected String zFactorFileName;
   protected StringList excludeList2;
+  protected ScriptParameter imageBinned;
   
+  protected boolean loadedFromFile = false;
   protected String datasetName;
   protected AxisID axisID;
 
   public ConstTiltParam(String datasetName, AxisID axisID) {
     this.datasetName = datasetName;
     this.axisID = axisID;
+    //do not default imageBinned
+    imageBinned = new ScriptParameter(EtomoNumber.LONG_TYPE, "IMAGEBINNED");
+    imageBinned.setFloor(1);
     reset();
   }
 
   protected void reset() {
+    loadedFromFile = false;
     inputFile = "";
     outputFile = "";
     angles = "";
@@ -211,6 +223,11 @@ public class ConstTiltParam {
     fiducialess = false;
     useZFactors = false;
     excludeList2 = new StringList(0);
+    imageBinned.reset();
+  }
+  
+  public ConstEtomoNumber getImageBinned() {
+    return imageBinned;
   }
 
   public String getInputFile() {
@@ -455,5 +472,11 @@ public class ConstTiltParam {
     return fullImageY;
   }
   
-
+  /**
+   * identifies an old version
+   * @return
+   */
+  public boolean isOldVersion() {
+    return loadedFromFile && imageBinned.isNull();
+  }
 }
