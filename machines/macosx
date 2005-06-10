@@ -29,15 +29,20 @@ EOF
 
 #set shared_libs = false
 
+set release = `echo $URELEASE | sed 's/\./ /g'`
+@ majorrel = $release[1]
+
 if ($shared_libs != false) then
 	echo "AR      = c++"                 >> $configure
 	echo "ARCPP   = c++"                >> $configure
 	echo "ARFLAGS = $flags -dynamiclib -Wl,-single_module -Wl,-flat_namespace -Wl,-undefined,suppress -Wl,-read_only_relocs,warning -o "    >> $configure
 	echo "RANLIB    = true"                     >> $configure
 	echo "LIBEXT  = dylib"                 >> $configure
-        set far = "g77"
-        set makenondll = "ar -sruv "
-        set nmcarext = "a"
+        if ($majorrel > 7) then
+            set far = "g77"
+            set makenondll = "ar -sruv "
+            set nmcarext = "a"
+        endif
 else
 	echo "AR      = ar"                 >> $configure
 	echo "ARCPP   = ar"                 >> $configure
