@@ -11,6 +11,11 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.7  2005/04/25 20:41:18  sueh
+ * <p> bug# 615 Passing the axis where a command originates to the message
+ * <p> functions so that the message will be popped up in the correct window.
+ * <p> This requires adding AxisID to many objects.
+ * <p>
  * <p> Revision 3.6  2005/03/29 19:54:19  sueh
  * <p> bug# 623 When montaging, setting full image size when updating tilt.com
  * <p> from the .ali file.  When the .ali file is not available set the full image size
@@ -83,6 +88,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 import etomo.type.AxisID;
+import etomo.type.ConstEtomoNumber;
 import etomo.util.Goodframe;
 import etomo.util.InvalidParameterException;
 import etomo.util.MRCHeader;
@@ -120,6 +126,9 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
     for (int i = argIndex; i < nInputArgs; i++) {
       // split the line into the parameter name and the rest of the line
       String[] tokens = inputArgs[i].getArgument().split("\\s+", 2);
+      if (imageBinned.isNamed(tokens[0])) {
+        imageBinned.set(tokens[1]);
+      }
       if (tokens[0].equals("ANGLES")) {
         angles = tokens[1];
       }
@@ -248,6 +257,7 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
         zFactorFileName = tokens[1];
       }
     }
+    loadedFromFile = true;
   }
 
   /**
@@ -266,6 +276,11 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
     newArg = new ComScriptInputArg();
     newArg.setArgument(outputFile);
     cmdLineArgs.add(newArg);
+    if (imageBinned.isUseInScript()) {
+      newArg = new ComScriptInputArg();
+      newArg.setArgument(imageBinned.getName() + " " + imageBinned.getInteger());
+      cmdLineArgs.add(newArg);
+    }
     if (!angles.equals("")) {
       newArg = new ComScriptInputArg();
       newArg.setArgument("ANGLES " + angles);
@@ -475,6 +490,10 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
   
   public void initializeDefaults() {
   }
+  
+  public ConstEtomoNumber setImageBinned(long imageBinned) {
+    return this.imageBinned.set(imageBinned);
+  }
 
   /**
    * Sets the excludeList.
@@ -495,25 +514,6 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
   public void resetExcludeList() {
     excludeList.setNElements(0);
   }
-
-  /**
-   * @param fullImageX The fullImageX to set.
-   */
-  public void setFullImageX(int fullImageX) {
-    this.fullImageX = fullImageX;
-  }
-
-  /**
-   * @param fullImageY The fullImageY to set.
-   */
-  public void setFullImageY(int fullImageY) {
-    this.fullImageY = fullImageY;
-  }
-
-  public void resetFullImage() {
-    fullImageX = Integer.MIN_VALUE;
-    fullImageY = Integer.MIN_VALUE;
-  }
   
   public void setMontageFullImage(String userDir, int binning) {
     //Try to get the montage size from .ali file
@@ -523,8 +523,8 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
       if (aliFile.exists()) {
         MRCHeader header = new MRCHeader(aliFile.getAbsolutePath(), axisID);
         header.read();
-        fullImageX = header.getNColumns() / binning;
-        fullImageY = header.getNRows() / binning;
+        fullImageX = header.getNColumns();
+        fullImageY = header.getNRows();
         return;
       }
     }
@@ -796,5 +796,58 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
       + " expected at least 3."));
     }
     return inputArgs;
+  }
+  
+  /**
+   * Backward compatibility fix.  Unbinned all the parameters which where binned
+   * in the old version.  Ignore parameters with reset values.  Will throw an
+   * IllegalStateException if it doesn't think that it is an old version.  The
+   * param should be loaded from a com file before running this function.
+   * @param binning
+   * @return true if changes where made
+   */
+  public boolean upgradeOldVersion(int correctionBinning, long currentBinning) {
+    if (!isOldVersion()) {
+      return false;
+    }
+    imageBinned.set(currentBinning);
+    //Currently this function only multiplies by binning, so there is nothing to
+    //do if binning is 1.
+    if (correctionBinning != 1) {
+      if (fullImageX != Integer.MIN_VALUE && fullImageX != 0) {
+        fullImageX *= correctionBinning;
+      }
+      if (fullImageY != Integer.MIN_VALUE && fullImageY != 0) {
+        fullImageY *= correctionBinning;
+      }
+      if (width != Integer.MIN_VALUE && width != 0) {
+        width *= correctionBinning;
+      }
+      if (!Float.isNaN(zOffset) && zOffset != 0) {
+        zOffset *= correctionBinning;
+      }
+      if (!Float.isNaN(xOffset) && xOffset != 0) {
+        xOffset *= correctionBinning;
+      }
+      if (idxSliceStart != Integer.MIN_VALUE && idxSliceStart != 0) {
+        idxSliceStart *= correctionBinning;
+      }
+      if (idxSliceStop != Integer.MIN_VALUE && idxSliceStop != 0) {
+        idxSliceStop *= correctionBinning;
+      }
+      if (thickness != Integer.MIN_VALUE && thickness != 0) {
+        thickness *= correctionBinning;
+      }
+    }
+    StringBuffer buffer = new StringBuffer("\nUpgraded tilt"
+        + axisID.getExtension() + ".com:\n");
+    if (correctionBinning > 1) {
+      buffer.append("Multiplied binned FullImage, Width, Offset,"
+          + " IdxSliceStart, and/or Thickness by " + correctionBinning + ".\n");
+    }
+    buffer.append("Added " + imageBinned.getName() + " " + currentBinning
+        + ".\n");
+    System.err.println(buffer.toString());
+    return true;
   }
 }
