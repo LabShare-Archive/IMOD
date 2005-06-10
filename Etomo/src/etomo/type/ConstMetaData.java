@@ -48,7 +48,16 @@ public abstract class ConstMetaData extends BaseMetaData {
   protected boolean fiducialessAlignmentB = false;
   protected boolean wholeTomogramSampleA = false;
   protected boolean wholeTomogramSampleB = false;
-
+  //binning values - null if missing
+  protected EtomoNumber tomoPosBinningA = new EtomoNumber(
+      EtomoNumber.INTEGER_TYPE, "TomoPosBinningA");
+  protected EtomoNumber tomoPosBinningB = new EtomoNumber(
+      EtomoNumber.INTEGER_TYPE, "TomoPosBinningB");
+  protected EtomoNumber tomoGenBinningA = new EtomoNumber(
+      EtomoNumber.INTEGER_TYPE, "TomoGenBinningA");
+  protected EtomoNumber tomoGenBinningB = new EtomoNumber(
+      EtomoNumber.INTEGER_TYPE, "TomoGenBinningB");
+  
   //  Axis specific data
   protected TiltAngleSpec tiltAngleSpecA = new TiltAngleSpec();
   protected String excludeProjectionsA = "";
@@ -134,6 +143,10 @@ public abstract class ConstMetaData extends BaseMetaData {
     useZFactorsB.store(props, prepend);
     transferfidParamA.store(props, prepend);
     transferfidParamB.store(props, prepend);
+    tomoPosBinningA.store(props, prepend);
+    tomoPosBinningB.store(props, prepend);
+    tomoGenBinningA.store(props, prepend);
+    tomoGenBinningB.store(props, prepend);
   }
 
   public TrimvolParam getTrimvolParam() {
@@ -211,6 +224,20 @@ public abstract class ConstMetaData extends BaseMetaData {
       return useLocalAlignmentsB;
     }
     return useLocalAlignmentsA;
+  }
+  
+  public ConstEtomoNumber getTomoPosBinning(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return tomoPosBinningB;
+    }
+    return tomoPosBinningA;
+  }
+  
+  public ConstEtomoNumber getTomoGenBinning(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return tomoGenBinningB;
+    }
+    return tomoGenBinningA;
   }
   
   public ConstEtomoNumber getUseZFactors(AxisID axisID) {
@@ -566,13 +593,28 @@ public abstract class ConstMetaData extends BaseMetaData {
     if (!squeezevolParam.equals(cmd.getSqueezevolParam())) {
       return false;
     }
-
+    if (!tomoPosBinningA.equals(cmd.tomoPosBinningA)) {
+      return false;
+    }
+    if (!tomoPosBinningB.equals(cmd.tomoPosBinningB)) {
+      return false;
+    }
+    if (!tomoGenBinningA.equals(cmd.tomoGenBinningA)) {
+      return false;
+    }
+    if (!tomoGenBinningB.equals(cmd.tomoGenBinningB)) {
+      return false;
+    }
     return true;
   }
 }
 
 /**
  * <p> $Log$
+ * <p> Revision 3.24  2005/04/07 21:58:02  sueh
+ * <p> bug# 626 Added isDistortionCorrection(), which returns true if magGradient
+ * <p> or image distortion files are set.
+ * <p>
  * <p> Revision 3.23  2005/03/02 20:25:03  sueh
  * <p> bug# 533 Added adjustedFocus.  Only used with montaging and mag
  * <p> gradient correction.
