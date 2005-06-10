@@ -15,6 +15,11 @@ import etomo.EtomoDirector;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.2  2005/06/06 16:49:39  sueh
+ * <p> bug# 671 Calling EtomoDirector.getInstance() in AxisID prior to running
+ * <p> AxisID() is causing a NoClassDefFoundError when running JUnit.  Change
+ * <p> code to call EtomoDirector.getInstance the first time getExtension is run.
+ * <p>
  * <p> Revision 3.1  2005/06/03 20:56:29  sueh
  * <p> bug# 671 Added selfTest() to make sure that AxisID is always set to
  * <p> ONLY when the AxisType is single.  This is an issue for file names, so
@@ -106,19 +111,16 @@ public class AxisID {
   }
   
   private void runSelfTest() {
-    if (!isSelfTest()) {
-      return;
+    if (selfTest != null && selfTest.is()) {
+      selfTest();
     }
-    selfTest();
-  }
-  
-  private boolean isSelfTest() {
-    if (selfTest != null) {
-      return selfTest.is();
+    else {
+      selfTest = new EtomoBoolean2();
+      selfTest.set(EtomoDirector.getInstance().isSelfTest());
+      if (selfTest.is()) {
+        selfTest();
+      }
     }
-    selfTest = new EtomoBoolean2();
-    selfTest.set(EtomoDirector.getInstance().isSelfTest());
-    return selfTest.is();
   }
   
   public void selfTest() {
