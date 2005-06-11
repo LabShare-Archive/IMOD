@@ -19,6 +19,10 @@ import etomo.comscript.InvalidParameterException;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.9  2005/06/06 16:50:57  sueh
+* <p> bug# 671 Added EtomoBoolean2() because an instance of this class
+* <p> doesn't need to be named if it is not saved to a file.
+* <p>
 * <p> Revision 1.8  2005/05/17 19:18:25  sueh
 * <p> bug# 658 Passing a HashMap of required values from the autodoc to the
 * <p> super constructor.
@@ -132,7 +136,7 @@ public class EtomoBoolean2 extends ScriptParameter {
     if (displayAsInteger) {
       return super.toString(value);
     }
-    if (is(value)) {
+    if (equals(value)) {
       return trueString;
     }
     return falseString;
