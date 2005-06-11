@@ -23,6 +23,11 @@ import etomo.util.MRCHeader;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.10  2005/04/25 20:51:43  sueh
+* <p> bug# 615 Passing the axis where a command originates to the message
+* <p> functions so that the message will be popped up in the correct window.
+* <p> This requires adding AxisID to many objects.
+* <p>
 * <p> Revision 1.9  2005/02/17 19:27:05  sueh
 * <p> bug# 606 Removed makeZFactors, newstFiducialessAlignment, and
 * <p> usedLocalAlignments.  Add makeZFactors, newstFiducialessAlignment,
@@ -93,15 +98,15 @@ public class TomogramState implements BaseState {
     usedLocalAlignmentsB.reset();
   }
   
-  public void initialize(int value) {
-    trimvolFlipped.set(value);
-    squeezevolFlipped.set(value);
-    madeZFactorsA.set(value);
-    madeZFactorsB.set(value);
-    newstFiducialessAlignmentA.set(value);
-    newstFiducialessAlignmentB.set(value);
-    usedLocalAlignmentsA.set(value);
-    usedLocalAlignmentsB.set(value);
+  public void initialize() {
+    trimvolFlipped.set(EtomoState.NO_RESULT_VALUE);
+    squeezevolFlipped.set(EtomoState.NO_RESULT_VALUE);
+    madeZFactorsA.set(EtomoState.NO_RESULT_VALUE);
+    madeZFactorsB.set(EtomoState.NO_RESULT_VALUE);
+    newstFiducialessAlignmentA.set(EtomoState.NO_RESULT_VALUE);
+    newstFiducialessAlignmentB.set(EtomoState.NO_RESULT_VALUE);
+    usedLocalAlignmentsA.set(EtomoState.NO_RESULT_VALUE);
+    usedLocalAlignmentsB.set(EtomoState.NO_RESULT_VALUE);
   }
   
   public void store(Properties props) {
