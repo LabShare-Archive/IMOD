@@ -104,7 +104,9 @@ if ($extract == 0) then
         echo "It will copy $scripts[1] and $scripts[2] to /etc/profile.d"
     else
         echo -n "It will edit $sysfiles[1]"
-        if ($#sysfiles == 2) echo -n " and $sysfiles[2]"
+        if ($#sysfiles == 2) then
+            echo -n " and $sysfiles[2]"
+        endif
         echo " to source a startup script"
         echo " in $installdir/IMOD unless they already appear to do so"
     endif
@@ -171,6 +173,9 @@ exit 0
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.9  2005/01/10 16:30:47  mast
+#  Added option to install elsewhere
+#
 #  Revision 3.8  2004/08/24 18:46:42  mast
 #  Switched from 'tail +#' to 'tail -n +#' due to problem on some Linux
 #
