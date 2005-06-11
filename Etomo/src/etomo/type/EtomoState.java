@@ -1,5 +1,7 @@
 package etomo.type;
 
+import java.util.Properties;
+
 /**
 * <p>Description: </p>
 * 
@@ -14,6 +16,10 @@ package etomo.type;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.4  2005/05/10 02:58:30  sueh
+* <p> bug# 658 Changed ConstEtomoNumber.validate() to
+* <p> ConstEtomoNumber.setInvalidReason.
+* <p>
 * <p> Revision 1.3  2005/01/21 23:27:42  sueh
 * <p> bug# 509 bug# 591  Changed the integer values for true and false to 1 and 0
 * <p> so more functionality can be handled by EtomoNumber.  Stopped overriding
@@ -39,9 +45,9 @@ public class EtomoState extends EtomoNumber {
   public static final int NO_RESULT_VALUE = -1;
   public static final int FALSE_VALUE = 0;
   public static final int TRUE_VALUE = 1;
+  public static final String NO_RESULT_STRING = "no result";
   
   private static final String nullString = "null";
-  private static final String noResultString = "no result";
   private static final String falseString = "false";
   private static final String trueString = "true";
 
@@ -72,13 +78,17 @@ public class EtomoState extends EtomoNumber {
     return super.is();
   }
   
+  public boolean isResultSet() {
+    return currentValue.intValue() != NO_RESULT_VALUE;
+  }
+  
   protected String toString(Number value) {
     int intValue = value.intValue();
     switch (intValue) {
     case INTEGER_NULL_VALUE:
       return nullString;
     case NO_RESULT_VALUE:
-      return noResultString;
+      return NO_RESULT_STRING;
     case FALSE_VALUE:
       return falseString;
     case TRUE_VALUE:
@@ -99,7 +109,7 @@ public class EtomoState extends EtomoNumber {
       if (trimmedValue.equals(nullString)) {
         return newNumber(INTEGER_NULL_VALUE);
       }
-      if (trimmedValue.equals(noResultString)) {
+      if (trimmedValue.equals(NO_RESULT_STRING)) {
         return newNumber(NO_RESULT_VALUE);
       }
       if (trimmedValue.equals(falseString)) {
@@ -110,6 +120,14 @@ public class EtomoState extends EtomoNumber {
       }
     }
     return newNumber(value, invalidBuffer);
+  }
+  
+  public void store(Properties props) {
+    props.setProperty(name, toString(currentValue));
+  }
+
+  public void store(Properties props, String prepend) {
+    props.setProperty(prepend + "." + name, toString(currentValue));
   }
 
 }
