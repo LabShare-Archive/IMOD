@@ -17,14 +17,12 @@ import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JTabbedPane;
 
+import etomo.ApplicationManager;
 import etomo.comscript.ConstTiltalignParam;
 import etomo.comscript.FortranInputSyntaxException;
 import etomo.comscript.TiltalignParam;
 import etomo.type.AxisID;
 import etomo.type.EtomoAutodoc;
-import etomo.util.FidXyz;
-import etomo.util.InvalidParameterException;
-import etomo.util.MRCHeader;
 
 /**
  * <p>Description: </p>
@@ -45,7 +43,6 @@ public class TiltalignPanel {
 
   private AxisID axisID;
 
-  private int prealignedBinning = 1;
   /*
    //  TODO need recomended default for all sub groups see (align.com)
    private final int defaultTiltAngleType = 5;
@@ -245,22 +242,15 @@ public class TiltalignPanel {
       "Non-default grouping: ");
   private JCheckBox cbProjectionStretch = new JCheckBox(
       "Solve for single stretch during projection");
-
-  private FidXyz fidXyz = null;
-  private MRCHeader rawstackHeader = null;
-  private MRCHeader prealiHeader = null;
+  private ApplicationManager appMgr;
 
   /**
    * Constructor
    * @param axis
    */
-  public TiltalignPanel(AxisID axis, FidXyz fidXyz, MRCHeader prealiHeader,
-      MRCHeader rawstackHeader) {
+  public TiltalignPanel(AxisID axis, ApplicationManager appMgr) {
+    this.appMgr = appMgr;
     axisID = axis;
-    this.fidXyz = fidXyz;
-    this.prealiHeader = prealiHeader;
-    this.rawstackHeader = rawstackHeader;
-
     tabPane.setBorder(new EtchedBorder("Tiltalign Parameters").getBorder());
     //  Create the tabs
     createGeneralTab();
@@ -274,21 +264,7 @@ public class TiltalignPanel {
    * object
    */
   public void setParameters(ConstTiltalignParam params) {
-    try {
-      fidXyz.read();
-      rawstackHeader.read();
-      prealiHeader.read();
-    }
-    catch (IOException except) {
-      except.printStackTrace();
-      return;
-    }
-    catch (InvalidParameterException except) {
-      except.printStackTrace();
-      return;
-    }
     //  General panel parameters
-
     if (params.getSurfacesToAnalyze().getInteger() == 2) {
       rbDualFiducialSurfaces.setSelected(true);
     }
@@ -315,27 +291,8 @@ public class TiltalignPanel {
 
     ltfSeparateViewGroups.setText(params.getSeparateGroup());
     ltfTiltAngleOffset.setText(params.getAngleOffset().toString());
-
-    if (fidXyz.exists() && fidXyz.isEmpty()) {
-      //if file exists but is empty, assume that tilt align failed and use
-      //pre align instead
-      //multiply by the binning previously used by pre align
-      ltfTiltAxisZShift.setText(params.getAxisZShift().getDouble()
-          * Math.round(prealiHeader.getXPixelSpacing()
-              / rawstackHeader.getXPixelSpacing()));
-    }
-    else if (!fidXyz.exists() || !fidXyz.isPixelSizeSet()) {
-      //if fidXyz.pixelSize could not be read from fid.xyz, then binning must
-      //have been 1 the last time align.com was run.
-      ltfTiltAxisZShift.setText(params.getAxisZShift().toString());
-    }
-    else {
-      //multiply by the binning previously used by align.com
-      ltfTiltAxisZShift.setText(params.getAxisZShift().getDouble()
-          * Math.round(fidXyz.getPixelSize()
-              / rawstackHeader.getXPixelSpacing()));
-    }
-
+    ltfTiltAxisZShift.setText(params.getAxisZShift().toString());
+    
     ltfMetroFactor.setText(params.getMetroFactor().toString());
     ltfCycleLimit.setText(params.getMaximumCycles().toString());
 
@@ -507,20 +464,8 @@ public class TiltalignPanel {
    */
   public void getParameters(TiltalignParam params)
       throws FortranInputSyntaxException {
-    try {
-      prealiHeader.read();
-      //raw stack won't change and doesn't really have to be read again
-      rawstackHeader.read();
-    }
-    catch (IOException except) {
-      except.printStackTrace();
-      return;
-    }
-    catch (InvalidParameterException except) {
-      except.printStackTrace();
-      return;
-    }
     String badParameter = "";
+    params.setImagesAreBinned(appMgr.getStackBinning(axisID, ".preali"));
     try {
       if (rbDualFiducialSurfaces.isSelected()) {
         params.setSurfacesToAnalyze(2);
@@ -548,11 +493,7 @@ public class TiltalignPanel {
       params.setAngleOffset(ltfTiltAngleOffset.getText());
 
       badParameter = ltfTiltAxisZShift.getLabel();
-
-      //divide by the binning used to create the .preali file
-      params.setAxisZShift(Double.parseDouble(ltfTiltAxisZShift.getText())
-          / Math.round(prealiHeader.getXPixelSpacing()
-              / rawstackHeader.getXPixelSpacing()));
+      params.setAxisZShift(ltfTiltAxisZShift.getText());
 
       badParameter = ltfMetroFactor.getLabel();
       params.setMetroFactor(ltfMetroFactor.getText());
@@ -1562,23 +1503,15 @@ private void setToolTipText() {
     ltfLocalSkewGroupSize.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.LOCAL_SKEW_DEFAULT_GROUPING_KEY)).format());
     ltfLocalSkewNonDefaultGroups.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.LOCAL_SKEW_NONDEFAULT_GROUP_KEY)).format());
   }
-  /**
-   * @return Returns the currentPrealignedBinning.
-   */
-  public int getPrealignedBinning() {
-    return prealignedBinning;
-  }
-
-  /**
-   * @param currentPrealignedBinning The currentPrealignedBinning to set.
-   */
-  public void setPrealignedBinning(int binning) {
-    prealignedBinning = binning;
-  }
 }
 
 /**
  * <p> $Log$
+ * <p> Revision 3.23  2005/04/25 21:41:22  sueh
+ * <p> bug# 615 Passing the axis where a command originates to the message
+ * <p> functions so that the message will be popped up in the correct window.
+ * <p> This requires adding AxisID to many objects.
+ * <p>
  * <p> Revision 3.22  2005/02/24 00:52:35  sueh
  * <p> bug# 600 Fixed a bug that was saving a value to the wrong parameter.
  * <p>
