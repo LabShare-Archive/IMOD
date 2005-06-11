@@ -1,11 +1,9 @@
 package etomo.ui;
 
 import java.awt.Component;
-import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
-import java.io.IOException;
 
 import javax.swing.BoxLayout;
 import javax.swing.JCheckBox;
@@ -23,11 +21,11 @@ import etomo.comscript.TiltParam;
 import etomo.comscript.TiltalignParam;
 import etomo.comscript.TomopitchParam;
 import etomo.type.AxisID;
+import etomo.type.ConstEtomoNumber;
+import etomo.type.ConstMetaData;
 import etomo.type.DialogType;
 import etomo.type.MetaData;
 import etomo.type.ViewType;
-import etomo.util.InvalidParameterException;
-import etomo.util.MRCHeader;
 
 /**
  * <p>Description: Tomogram Positioning User Interface</p>
@@ -42,6 +40,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.29  2005/06/01 21:28:01  sueh
+ * <p> bug# 667 Standardizing getMetaData function names.
+ * <p>
  * <p> Revision 3.28  2005/04/21 20:55:25  sueh
  * <p> bug# 615 Pass axisID to packMainWindow so it can pack only the frame
  * <p> that requires it.
@@ -247,22 +248,17 @@ public class TomogramPositioningDialog extends ProcessDialog
 
   private MultiLineToggleButton btnAlign = new MultiLineToggleButton(
     "<html><b>Create Final Alignment</b>");
-
-  private Dimension fullImageSize = new Dimension();
-  
-  private MRCHeader prealiHeader = null;
-  private MRCHeader rawstackHeader = null;
   
   private static final String SAMPLE_TOMOGRAMS_TOOLTIP =
     "Build 3 sample tomograms for finding location and angles of section.";
+  
+  //backward compatibility functionality - if the metadata binning is missing
+  //get binning from newst
+  private boolean getBinningFromNewst = true;
 
   public TomogramPositioningDialog(ApplicationManager appMgr, AxisID axisID) {
     super(appMgr, axisID, DialogType.TOMOGRAM_POSITIONING);
     fixRootPanel(rootSize);
-    
-    prealiHeader = appMgr.getMrcHeader(axisID, ".preali");
-    rawstackHeader = appMgr.getMrcHeader(axisID, ".st");
-
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     btnExecute.setText("Done");
     //  Construct the binning spinner
@@ -351,25 +347,8 @@ public class TomogramPositioningDialog extends ProcessDialog
    * @param tiltalignParam
    */
   public void setAlignParams(ConstTiltalignParam tiltalignParam) {
-    try {
-      prealiHeader.read();
-      rawstackHeader.read();
-    }
-    catch (IOException except) {
-      except.printStackTrace();
-      return;
-    }
-    catch (InvalidParameterException except) {
-      except.printStackTrace();
-      return;
-    }
     ltfTiltAngleOffset.setText(tiltalignParam.getAngleOffset().toString());
-    
-    //multiply by the binning previously used to create the .preali file
-    //assume that align.com is up-to-date and has the same pixel size as .preali
-    ltfTiltAxisZShift.setText(tiltalignParam.getAxisZShift().getDouble()
-    * Math.round(
-      prealiHeader.getXPixelSpacing() / rawstackHeader.getXPixelSpacing()));
+    ltfTiltAxisZShift.setText(tiltalignParam.getAxisZShift().toString());
   }
 
   /**
@@ -377,35 +356,17 @@ public class TomogramPositioningDialog extends ProcessDialog
    * @param tiltalignParam
    * @throws NumberFormatException
    */
-  public void getAlignParams(TiltalignParam tiltalignParam)
-      throws NumberFormatException {
-    try {
-      prealiHeader.read();
-      //raw stack won't change and doesn't really have to be read again
-      rawstackHeader.read();
-    }
-    catch (IOException except) {
-      except.printStackTrace();
-      return;
-    }
-    catch (InvalidParameterException except) {
-      except.printStackTrace();
-      return;
-    }
-    try {
-      tiltalignParam.setAngleOffset(ltfTiltAngleOffset.getText());
-      
-      //divide by the binning used to create the .preali file
-      tiltalignParam.setAxisZShift(
-        Double.parseDouble(ltfTiltAxisZShift.getText())
-          / Math.round(
-            prealiHeader.getXPixelSpacing()
-              / rawstackHeader.getXPixelSpacing()));
-    }
-    catch (NumberFormatException except) {
-      throw new NumberFormatException(except.getMessage());
-    }
+  public void getAlignParams(TiltalignParam tiltalignParam) {
+    tiltalignParam.setAngleOffset(ltfTiltAngleOffset.getText());
+    tiltalignParam.setAxisZShift(ltfTiltAxisZShift.getText());
     updateMetaData();
+  }
+  
+  private int getBinning() {
+    if (!cbWholeTomogram.isSelected()) {
+      return 1;
+    }
+    return ((Integer) spinBinning.getValue()).intValue();
   }
 
   /**
@@ -413,23 +374,16 @@ public class TomogramPositioningDialog extends ProcessDialog
    * @param TomopitchParam
    */
   public void getTomopitchParams(TomopitchParam tomopitchParam) {
-    double binning = Double.parseDouble(spinBinning.getValue().toString());
-    tomopitchParam.setScaleFactor(binning);
+    tomopitchParam.setScaleFactor(getBinning());
     updateMetaData();
-  }
-  
-  public int getBinning() {
-    return ((Integer) spinBinning.getValue()).intValue();
   }
 
   /**
    * Set the tilt.com parameters in the dialog
    * @param tiltParam
    */
-  public void setTiltParams(ConstTiltParam tiltParam) {
-    int binning = ((Integer) spinBinning.getValue()).intValue();
-
-    ltfSampleTomoThickness.setText(tiltParam.getThickness() * binning);
+  public void setTiltParams(ConstTiltParam tiltParam) {;
+    ltfSampleTomoThickness.setText(tiltParam.getThickness());
   }
 
   /**
@@ -437,20 +391,9 @@ public class TomogramPositioningDialog extends ProcessDialog
    * @param tiltParam
    * @throws NumberFormatException
    */
-  public void getTiltParams(TiltParam tiltParam) throws NumberFormatException {
-    int binning = ((Integer) spinBinning.getValue()).intValue();
-    try {
-      // Set the appropriate FULLIMAGE line
-      tiltParam.setFullImageX(fullImageSize.width / binning);
-      tiltParam.setFullImageY(fullImageSize.height / binning);
-
-      tiltParam.setThickness(Integer.parseInt(ltfSampleTomoThickness.getText())
-          / binning);
-    }
-    catch (NumberFormatException except) {
-      String message = "Axis " + axisID.getExtension() + except.getMessage();
-      throw new NumberFormatException(message);
-    }
+  public void getTiltParams(TiltParam tiltParam) {
+    tiltParam.setImageBinned(getBinning());
+    tiltParam.setThickness(Integer.parseInt(ltfSampleTomoThickness.getText()));
     updateMetaData();
   }
   
@@ -460,16 +403,28 @@ public class TomogramPositioningDialog extends ProcessDialog
     if (wholeTomogram != metaData.isWholeTomogramSample(axisID)) {
       metaData.setWholeTomogramSample(axisID, wholeTomogram);
     }
+    metaData.setTomoPosBinning(axisID, getBinning());
   }
 
   /**
-   * Set the newst.com parameters in the dialog
+   * Set the metadata parameters in the dialog
    * @param newstParam
    */
-  public void setNewstParams(ConstNewstParam newstParam) {
-    int binning = newstParam.getBinByFactor();
-    if (binning > 1) {
+  public void setParameters(ConstMetaData metaData) {
+    ConstEtomoNumber binning = metaData.getTomoPosBinning(axisID);
+    if (!binning.isNull()) {
+      getBinningFromNewst = false;
       spinBinning.setValue(binning);
+    }
+  }
+  
+  /**
+   * Set the newst.com parameters in the dialog
+   * @param param
+   */
+  public void setParameters(ConstNewstParam param) {
+    if (getBinningFromNewst) {
+      spinBinning.setValue(param.getBinByFactor());
     }
   }
   
@@ -483,19 +438,19 @@ public class TomogramPositioningDialog extends ProcessDialog
    * @param newstParam
    */
   public void getNewstParamst(NewstParam newstParam) {
-    int binning = ((Integer) spinBinning.getValue()).intValue();
-
+    int binning = getBinning();
+    //Only whole tomogram can change binning
     // Only explcitly write out the binning if its value is something other than
     // the default of 1 to keep from cluttering up the com script  
-    if (binning > 1) {
-      newstParam.setBinByFactor(binning);
+    if (binning == 1) {
+      newstParam.setBinByFactor(Integer.MIN_VALUE);
     }
     else {
-      newstParam.setBinByFactor(Integer.MIN_VALUE);
+      newstParam.setBinByFactor(binning);
     }
     updateMetaData();
   }
-
+  
   /**
    * Set the whole tomogram sampling state
    * @param state
@@ -510,22 +465,6 @@ public class TomogramPositioningDialog extends ProcessDialog
    */
   public boolean isWholeTomogramSampling() {
     return cbWholeTomogram.isSelected();
-  }
-  
-  /**
-   * @return Returns the fullImageSize.
-   */
-  public Dimension getFullImageSize() {
-    return new Dimension(fullImageSize);
-  }
-
-  /**
-   * Set the full image size
-   * @param width
-   * @param height
-   */
-  public void setFullImageSize(int width, int height) {
-    fullImageSize.setSize(width, height);
   }
 
   /**
