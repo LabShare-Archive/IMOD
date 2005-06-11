@@ -19,6 +19,9 @@ import etomo.comscript.TransferfidParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.19  2005/05/10 03:16:51  sueh
+ * <p> bug# 659 Default useLocalAlignmentsA and B to true.
+ * <p>
  * <p> Revision 3.18  2005/03/02 20:25:11  sueh
  * <p> bug# 533 Added adjustedFocus.  Only used with montaging and mag
  * <p> gradient correction.
@@ -164,6 +167,17 @@ public class MetaData extends ConstMetaData {
     useLocalAlignmentsB = true;
     useZFactorsA.reset();
     useZFactorsB.reset();
+    tomoPosBinningA.reset();
+    tomoPosBinningB.reset();
+    tomoGenBinningA.reset();
+    tomoGenBinningB.reset();
+  }
+  
+  public void initialize() {
+    tomoPosBinningA.set(3);
+    tomoPosBinningB.set(3);
+    tomoGenBinningA.set(1);
+    tomoGenBinningB.set(1);
   }
 
   /**
@@ -250,6 +264,24 @@ public class MetaData extends ConstMetaData {
     }
     else {
       useLocalAlignmentsA = state;
+    }
+  }
+  
+  public void setTomoPosBinning(AxisID axisID, int tomoPosBinning) {
+    if (axisID == AxisID.SECOND) {
+      tomoPosBinningB.set(tomoPosBinning);
+    }
+    else {
+      tomoPosBinningA.set(tomoPosBinning);
+    }
+  }
+  
+  public void setTomoGenBinning(AxisID axisID, int tomoGenBinning) {
+    if (axisID == AxisID.SECOND) {
+      tomoGenBinningB.set(tomoGenBinning);
+    }
+    else {
+      tomoGenBinningA.set(tomoGenBinning);
     }
   }
   
@@ -409,5 +441,9 @@ public class MetaData extends ConstMetaData {
     useZFactorsB.load(props, prepend);
     transferfidParamA.load(props, prepend);
     transferfidParamB.load(props, prepend);
+    tomoPosBinningA.load(props, prepend);
+    tomoPosBinningB.load(props, prepend);
+    tomoGenBinningA.load(props, prepend);
+    tomoGenBinningB.load(props, prepend);
   }
 }
