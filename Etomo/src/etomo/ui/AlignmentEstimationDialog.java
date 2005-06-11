@@ -31,6 +31,10 @@ import etomo.type.DialogType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.10  2005/04/21 20:31:25  sueh
+ * <p> bug# 615 Pass axisID to packMainWindow so it can pack only the frame
+ * <p> that requires it.
+ * <p>
  * <p> Revision 3.9  2005/04/16 01:51:25  sueh
  * <p> bug# 615 Moved the adding of exit buttons to base class to standardize.
  * <p>
@@ -212,12 +216,7 @@ public class AlignmentEstimationDialog extends ProcessDialog
     super(appMgr, axisID, DialogType.FINE_ALIGNMENT);
     fixRootPanel(rootSize);
 
-    pnlTiltalign =
-      new TiltalignPanel(
-        axisID,
-        appMgr.getFidXyz(axisID),
-        appMgr.getMrcHeader(axisID, ".preali"),
-        appMgr.getMrcHeader(axisID, ".st"));
+    pnlTiltalign = new TiltalignPanel(axisID, appMgr);
     btnExecute.setText("Done");
 
     //  Create the first tiltalign panel
@@ -234,14 +233,16 @@ public class AlignmentEstimationDialog extends ProcessDialog
     btnView3DModel.setMaximumSize(dimButton);
     
     SpacedPanel topButtonPanel = new SpacedPanel(FixedDim.x10_y0);
-    topButtonPanel.setLayout(new BoxLayout(topButtonPanel.getContainer(), BoxLayout.X_AXIS));
+    topButtonPanel.setLayout(new BoxLayout(topButtonPanel.getContainer(),
+        BoxLayout.X_AXIS));
     topButtonPanel.add(btnComputeAlignment);
     //panelButton.add(Box.createRigidArea(FixedDim.x10_y0));
     topButtonPanel.add(btnImod);
     panelButton.add(topButtonPanel.getContainer());
     panelButton.add(Box.createRigidArea(FixedDim.x0_y10));
     SpacedPanel bottomButtonPanel = new SpacedPanel(FixedDim.x10_y0);
-    bottomButtonPanel.setLayout(new BoxLayout(bottomButtonPanel.getContainer(), BoxLayout.X_AXIS));
+    bottomButtonPanel.setLayout(new BoxLayout(bottomButtonPanel.getContainer(),
+        BoxLayout.X_AXIS));
     bottomButtonPanel.add(btnView3DModel);
     //panelButton.add(Box.createRigidArea(FixedDim.x10_y0));
     bottomButtonPanel.add(btnViewResiduals);
@@ -299,14 +300,6 @@ public class AlignmentEstimationDialog extends ProcessDialog
       throw new FortranInputSyntaxException(message);
     }
 
-  }
-
-  /**
-   * Set the prealigned binning for handling the z shift parameter
-   * @param binning
-   */
-  public void setPrealignedBinning(int binning) {
-    pnlTiltalign.setPrealignedBinning(binning);
   }
 
   /**
