@@ -18,6 +18,12 @@ import etomo.comscript.FortranInputString;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.9  2005/05/10 02:56:21  sueh
+* <p> bug# 658 Removed preventNullValue because just setting displayValue
+* <p> does the same thing.  Use resetInvalidReason() and addInvalidReason()
+* <p> instead of setting invalidReason directly.  Add set(FortranInputString, int)
+* <p> to set currentValue to the value of an element of FortranInputString.
+* <p>
 * <p> Revision 1.8  2005/01/25 23:52:46  sueh
 * <p> Pulling the part of EtomoNumber which handles reading and writing to
 * <p> scripts out of this class and placing it in ScriptParameter, which inherits
@@ -98,23 +104,11 @@ public class EtomoNumber extends ConstEtomoNumber {
   }
   
   public void load(Properties props) {
-    String stringValue = props.getProperty(name);
-    if (stringValue == null) {
-      reset();
-    }
-    else {
-      set(stringValue);
-    }
+    set(props.getProperty(name));
   }
   
   public void load(Properties props, String prepend) {
-    String stringValue = props.getProperty(prepend + "." + name);
-    if (stringValue == null) {
-      reset();
-    }
-    else {
-      set(stringValue);
-    }
+    set(props.getProperty(prepend + "." + name));
   }
   
   /**
@@ -139,14 +133,14 @@ public class EtomoNumber extends ConstEtomoNumber {
         currentValue = newNumber();
       }
     }
-    currentValue = applyCeilingValue(currentValue);
+    currentValue = applyCeilingValue(applyFloorValue(currentValue));
     setInvalidReason();
     return this;
   }
   
   public EtomoNumber set(Number value) {
     resetInvalidReason();
-    currentValue = applyCeilingValue(value);
+    currentValue = applyCeilingValue(applyFloorValue(value));
     setInvalidReason();
     return this;
   }
@@ -203,7 +197,7 @@ public class EtomoNumber extends ConstEtomoNumber {
    */
   public EtomoNumber reset() {
     resetInvalidReason();
-    currentValue = applyCeilingValue(newNumber());
+    currentValue = applyCeilingValue(applyFloorValue(newNumber()));
     setInvalidReason();
     return this;
   }
