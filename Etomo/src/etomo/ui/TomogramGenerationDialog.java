@@ -35,6 +35,7 @@ import etomo.comscript.NewstParam;
 import etomo.comscript.FortranInputSyntaxException;
 import etomo.storage.MtfFileFilter;
 import etomo.type.AxisID;
+import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstMetaData;
 import etomo.type.DialogType;
 import etomo.type.EtomoAutodoc;
@@ -62,6 +63,9 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.43  2005/06/01 21:27:51  sueh
+ * bug# 667 Standardizing getMetaData function names.
+ *
  * Revision 3.42  2005/04/25 21:41:37  sueh
  * bug# 615 Passing the axis where a command originates to the message
  * functions so that the message will be popped up in the correct window.
@@ -363,7 +367,6 @@ public class TomogramGenerationDialog extends ProcessDialog
   private JCheckBox cbBoxUseLinearInterpolation = new JCheckBox(
       "Use linear interpolation");
   private LabeledSpinner spinBinning;
-  private Dimension fullImageSize = new Dimension();
 
   //  Aligned stack buttons
   private JPanel pnlAlignedStack = new JPanel();
@@ -457,6 +460,10 @@ public class TomogramGenerationDialog extends ProcessDialog
   private JPanel pnlTiltButtons = new JPanel();
   private LabeledTextField ltfExtraExcludeList = new LabeledTextField(
   "Extra views to exclude: ");
+  
+  //backward compatibility functionality - if the metadata binning is missing
+  //get binning from newst
+  private boolean getBinningFromNewst = true;
 
   public TomogramGenerationDialog(ApplicationManager appMgr, AxisID axisID) {
     super(appMgr, axisID, DialogType.TOMOGRAM_GENERATION);
@@ -544,10 +551,21 @@ public class TomogramGenerationDialog extends ProcessDialog
 
   public void setNewstParams(ConstNewstParam newstParam) {
     cbBoxUseLinearInterpolation.setSelected(newstParam.isLinearInterpolation());
-    int binning = newstParam.getBinByFactor();
-    if (binning > 1) {
+    if (getBinningFromNewst) {
+      spinBinning.setValue(newstParam.getBinByFactor());
+    }
+  }
+  
+  public void setParameters(ConstMetaData metaData) {
+    ConstEtomoNumber binning = metaData.getTomoGenBinning(axisID);
+    if (!binning.isNull()) {
+      getBinningFromNewst = false;
       spinBinning.setValue(binning);
     }
+  }
+  
+  public void getParameters(MetaData metaData) {
+    metaData.setTomoGenBinning(axisID, ((Integer) spinBinning.getValue()).intValue());
   }
   
   public void setBlendParams(BlendmontParam blendmontParam) {
@@ -566,20 +584,20 @@ public class TomogramGenerationDialog extends ProcessDialog
     ConstMetaData metaData = applicationManager.getMetaData();
     int binning = ((Integer) spinBinning.getValue()).intValue();
     if (tiltParam.hasWidth()) {
-      ltfTomoWidth.setText(tiltParam.getWidth() * binning);
+      ltfTomoWidth.setText(tiltParam.getWidth());
     }
     if (tiltParam.hasThickness()) {
-      ltfTomoThickness.setText(tiltParam.getThickness() * binning);
+      ltfTomoThickness.setText(tiltParam.getThickness());
     }
     if (tiltParam.hasXOffset()) {
-      ltfXOffset.setText(tiltParam.getXOffset() * binning);
+      ltfXOffset.setText(tiltParam.getXOffset());
     }
     if (tiltParam.hasZOffset()) {
-      ltfZOffset.setText(tiltParam.getZOffset() * binning);
+      ltfZOffset.setText(tiltParam.getZOffset());
     }
     if (tiltParam.hasSlice()) {
-      ltfSliceStart.setText(tiltParam.getIdxSliceStart() * binning);
-      ltfSliceStop.setText(tiltParam.getIdxSliceStop() * binning);
+      ltfSliceStart.setText(tiltParam.getIdxSliceStart());
+      ltfSliceStop.setText(tiltParam.getIdxSliceStop());
     }
     if (tiltParam.hasSliceIncr()) {
       ltfSliceIncr.setText(tiltParam.getIncrSlice());
@@ -634,18 +652,20 @@ public class TomogramGenerationDialog extends ProcessDialog
    */
   public void getTiltParams(TiltParam tiltParam) throws NumberFormatException,
       InvalidParameterException {
-    int binning = ((Integer) spinBinning.getValue()).intValue();
     String badParameter = "";
     MetaData metaData = applicationManager.getMetaData();
     try {
+      badParameter = "IMAGEBINNED";
+      tiltParam.setImageBinned(applicationManager.getStackBinning(axisID, ".ali"));
+      //Do not manage full image size.  It is coming from copytomocoms.
       // Set the appropriate FULLIMAGE line
-      badParameter = "FULLIMAGE";
-      tiltParam.setFullImageX(fullImageSize.width / binning);
-      tiltParam.setFullImageY(fullImageSize.height / binning);
+      //badParameter = "FULLIMAGE";
+      //tiltParam.setFullImageX(fullImageSize.width);
+      //tiltParam.setFullImageY(fullImageSize.height);
 
       if (ltfTomoWidth.getText().matches("\\S+")) {
         badParameter = ltfTomoWidth.getLabel();
-        tiltParam.setWidth(Integer.parseInt(ltfTomoWidth.getText()) / binning);
+        tiltParam.setWidth(Integer.parseInt(ltfTomoWidth.getText()));
       }
       else {
         tiltParam.resetWidth();
@@ -654,7 +674,7 @@ public class TomogramGenerationDialog extends ProcessDialog
       //set Z offset
       if (ltfZOffset.getText().matches("\\S+")) {
         badParameter = ltfZOffset.getLabel();
-        tiltParam.setZOffset(Float.parseFloat(ltfZOffset.getText()) / binning);
+        tiltParam.setZOffset(Float.parseFloat(ltfZOffset.getText()));
       }
       else {
         tiltParam.resetZOffset();
@@ -663,7 +683,7 @@ public class TomogramGenerationDialog extends ProcessDialog
       //set X offset
       if (ltfXOffset.getText().matches("\\S+")) {
         badParameter = ltfXOffset.getLabel();
-        tiltParam.setXOffset(Float.parseFloat(ltfXOffset.getText()) / binning);
+        tiltParam.setXOffset(Float.parseFloat(ltfXOffset.getText()));
       } 
       else if (ltfZOffset.getText().matches("\\S+")) {
         tiltParam.setXOffset(0);
@@ -677,11 +697,9 @@ public class TomogramGenerationDialog extends ProcessDialog
       if (ltfSliceStart.getText().matches("\\S+")
           && ltfSliceStop.getText().matches("\\S+")) {
         badParameter = ltfSliceStart.getLabel();
-        tiltParam.setIdxSliceStart(Integer.parseInt(ltfSliceStart.getText())
-            / binning);
+        tiltParam.setIdxSliceStart(Integer.parseInt(ltfSliceStart.getText()));
         badParameter = ltfSliceStop.getLabel();
-        tiltParam.setIdxSliceStop(Integer.parseInt(ltfSliceStop.getText())
-            / binning);
+        tiltParam.setIdxSliceStop(Integer.parseInt(ltfSliceStop.getText()));
         sliceRangeSpecified = true;
       }
       else if (ltfSliceStart.getText().matches("^\\s*$")
@@ -708,8 +726,7 @@ public class TomogramGenerationDialog extends ProcessDialog
 
       if (ltfTomoThickness.getText().matches("\\S+")) {
         badParameter = ltfTomoThickness.getLabel();
-        tiltParam.setThickness(Integer.parseInt(ltfTomoThickness.getText())
-            / binning);
+        tiltParam.setThickness(Integer.parseInt(ltfTomoThickness.getText()));
       }
       else {
         tiltParam.resetThickness();
@@ -1368,21 +1385,5 @@ public class TomogramGenerationDialog extends ProcessDialog
         + "binned tomogram, all of the thickness, position, and size parameters"
         + " below are still entered in unbinned pixels.";
     spinBinning.setToolTipText(tooltipFormatter.setText(text).format()); 
-  }
-
-  /**
-   * @return Returns the fullImageSize.
-   */
-  public Dimension getFullImageSize() {
-    return new Dimension(fullImageSize);
-  }
-
-  /**
-   * Set the full image size
-   * @param width
-   * @param height
-   */
-  public void setFullImageSize(int width, int height) {
-    fullImageSize.setSize(width, height);
   }
 }
