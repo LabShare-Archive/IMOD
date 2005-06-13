@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/13/05: The option to fix 3D fiducial coordinates with local alignments has
+been getting lost since IMOD 3.4.17.  The command file now specifies it with
+a number, and Copytomocoms now fixes the coordinates only for dual axis sets.
+
 6/10/05: Etomo switched from scaling Tilt and Tiltalign parameters for
 binning to specifying binning and using unbinned parameters, which eliminates
 several bugs and vulnerabilities.  Also made a separate binning for whole
