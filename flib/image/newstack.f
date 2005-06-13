@@ -441,6 +441,8 @@ c
 	  call dopen(3,xffil,'ro','f')
 	  call xfrdall(3,f,nxforms,*96)
 	  close(3)
+	  if (nxforms .eq. 0) call errorexit
+     &	      ('THE TRANSFORM FILE CONTAINS NO TRANSFORMS')
 	  if (nxforms .eq. 1) then
 	    nlineuse = 1
 	    lineuse(1) = 0
@@ -1679,6 +1681,9 @@ c
 ************************************************************************
 *	  
 c	  $Log$
+c	  Revision 3.30  2005/06/03 16:32:04  mast
+c	  Moved getbinnedsize to library
+c	
 c	  Revision 3.29  2005/05/31 16:34:34  mast
 c	  Fixed problem with zeroing out line numbers when no entry was made
 c	
