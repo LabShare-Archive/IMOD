@@ -1,5 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/10/05: Etomo switched from scaling Tilt and Tiltalign parameters for
+binning to specifying binning and using unbinned parameters, which eliminates
+several bugs and vulnerabilities.  Also made a separate binning for whole
+tomogram positioning and tomogram generation.
+
 6/9/05: Added an option to Tiltalign to specify binning factor to use in 
 scaling entered axis shifts.
 
