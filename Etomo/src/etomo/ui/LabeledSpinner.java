@@ -12,6 +12,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.6  2005/01/14 23:05:20  sueh
+ * <p> Passing back Number instead of Object from getValue().
+ * <p>
  * <p> Revision 1.5  2004/11/19 23:57:05  sueh
  * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
  * <p>
@@ -69,6 +72,7 @@ public class LabeledSpinner {
    * @param spinner
    */
   public LabeledSpinner(String spinLabel, SpinnerModel model) {
+    spinner.setName(spinLabel);
     label.setText(spinLabel);
     panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
     panel.add(label);

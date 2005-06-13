@@ -19,6 +19,9 @@ import javax.swing.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.6  2005/03/24 17:52:24  sueh
+ * <p> Removed unused functions.
+ * <p>
  * <p> Revision 3.5  2005/01/05 00:08:00  sueh
  * <p> bug# 567 Added setTextPreferredWidth().
  * <p>
@@ -78,6 +81,7 @@ public class LabeledTextField {
   private JTextField textField = new JTextField();
 
   public LabeledTextField(String tfLabel) {
+    textField.setName(tfLabel);
     label.setText(tfLabel);
 
     panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
