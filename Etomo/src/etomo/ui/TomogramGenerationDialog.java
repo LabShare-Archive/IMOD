@@ -63,6 +63,12 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.44  2005/06/11 02:53:48  sueh
+ * bug# 583, bug# 682, bug# 584  Storing screen binning for Tomo Pos and
+ * Tomo Gen in MetaData separately (Tomo Pos default is 3).  Upgraded
+ * tilt.com to have all unbinned parameters and a binning value.  No longer
+ * managing full image size in tilt.com, except to upgrade the file.
+ *
  * Revision 3.43  2005/06/01 21:27:51  sueh
  * bug# 667 Standardizing getMetaData function names.
  *
@@ -656,7 +662,7 @@ public class TomogramGenerationDialog extends ProcessDialog
     MetaData metaData = applicationManager.getMetaData();
     try {
       badParameter = "IMAGEBINNED";
-      tiltParam.setImageBinned(applicationManager.getStackBinning(axisID, ".ali"));
+      tiltParam.setImageBinned();
       //Do not manage full image size.  It is coming from copytomocoms.
       // Set the appropriate FULLIMAGE line
       //badParameter = "FULLIMAGE";

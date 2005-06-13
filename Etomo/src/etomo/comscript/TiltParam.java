@@ -11,6 +11,12 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.8  2005/06/10 22:55:19  sueh
+ * <p> bug# 583, bug# 682  Upgraded tilt.com to have all unbinned parameters
+ * <p> and a binning value.  No longer managing full image size in tilt.com,
+ * <p> except to upgrade the file.  Added function:  updateOldVersion.
+ * <p> Removed functions:  setFullImageX, setFullImageY.
+ * <p>
  * <p> Revision 3.7  2005/04/25 20:41:18  sueh
  * <p> bug# 615 Passing the axis where a command originates to the message
  * <p> functions so that the message will be popped up in the correct window.
@@ -87,8 +93,10 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import etomo.EtomoDirector;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
+import etomo.type.EtomoNumber;
 import etomo.util.Goodframe;
 import etomo.util.InvalidParameterException;
 import etomo.util.MRCHeader;
@@ -491,8 +499,26 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
   public void initializeDefaults() {
   }
   
-  public ConstEtomoNumber setImageBinned(long imageBinned) {
+  public ConstEtomoNumber setImageBinned(int imageBinned) {
     return this.imageBinned.set(imageBinned);
+  }
+  
+  /**
+   * If the current binning can be retrieved, set imageBinned to current
+   * binning.  If not, and imageBinned is null then set imageBinned to 1.
+   * @return
+   */
+  public ConstEtomoNumber setImageBinned() {
+    EtomoNumber currentBinning = new EtomoNumber(EtomoNumber.LONG_TYPE);
+    currentBinning.set(EtomoDirector.getInstance()
+        .getCurrentReconManager().getStackBinning(axisID, ".ali", true));
+    if (!currentBinning.isNull()) {
+      imageBinned.set(currentBinning);
+    }
+    else if (imageBinned.isNull()) {
+       imageBinned.set(1);
+    }
+    return imageBinned;
   }
 
   /**

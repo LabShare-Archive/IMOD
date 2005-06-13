@@ -104,6 +104,17 @@ import etomo.util.Utilities;
  * 
  *
  * <p> $Log$
+ * <p> Revision 3.153  2005/06/10 22:43:43  sueh
+ * <p> bug# 583, bug# 682, bug# 584, bug# 679  Moved binning calculation to
+ * <p> ApplicationManager.  Storing screen binning for Tomo Pos and Tomo
+ * <p> Gen in MetaData separately (Tomo Pos default is 3).  Upgraded
+ * <p> align.com and tilt.com to have all unbinned parameters and a binning
+ * <p> value.  No longer managing full image size in tilt.com, except to upgrade
+ * <p> the file.  Setting xfproduct scale shifts in align.com the same way binning
+ * <p> is set.  Added functions:  getBackwardCompatibleAlignBinning,
+ * <p> getBackwardCompatibleTiltBinning, getStackBinning,
+ * <p> upgradeOldAlignCom, updateOldTiltCom.
+ * <p>
  * <p> Revision 3.152  2005/06/03 19:50:32  sueh
  * <p> bug# 671 getMrcHeader(): use the full path in the stack file name.
  * <p> SaveDialog(): check axisType and pass the correct axisID.
@@ -6384,21 +6395,38 @@ public class ApplicationManager extends BaseManager {
    * @return
    */
   public long getStackBinning(AxisID axisID, String stackExtension) {
+    return getStackBinning(axisID, stackExtension, false);
+  }
+  
+  /**
+   * Gets the binning that can be used to run tilt against a stack (.preali or
+   * .ali).  Function calculates the binning from the stack's pixel spacing and
+   * the raw stack's pixel spacing.
+   * @param axisID
+   * @param stackExtension .ali or .preali
+   * @param nullIfFailed when true returns null on failure, otherwise returns 1
+   * on failure.
+   * @return
+   */
+  public long getStackBinning(AxisID axisID, String stackExtension,
+      boolean nullIfFailed) {
     MRCHeader rawstackHeader = getMrcHeader(axisID, ".st");
     MRCHeader stackHeader = getMrcHeader(axisID, stackExtension);
+    long defaultValue = nullIfFailed ? EtomoNumber.LONG_NULL_VALUE : 1;
     try {
       rawstackHeader.read();
       stackHeader.read();
     }
     catch (InvalidParameterException e) {
+      //missing file
       e.printStackTrace();
-      return 1;
+      return defaultValue;
     }
     catch (IOException e) {
       e.printStackTrace();
-      return 1;
+      return defaultValue;
     }
-    long binning = 1;
+    long binning = defaultValue;
     double rawstackXPixelSpacing = rawstackHeader.getXPixelSpacing();
     if (rawstackXPixelSpacing > 0) {
       binning = Math.round(stackHeader.getXPixelSpacing() / rawstackXPixelSpacing);
