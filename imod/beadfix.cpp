@@ -946,8 +946,8 @@ static char *buttonLabels[] = {"Done", "Help"};
 static char *buttonTips[] = {"Close Bead Fixer", "Open help window"};
 
 BeadFixer::BeadFixer(QWidget *parent, const char *name)
-  : DialogFrame(parent, 2, buttonLabels, buttonTips, true, "Bead Fixer", "",
-                name)
+  : DialogFrame(parent, 2, 1, buttonLabels, buttonTips, true, 
+                ImodPrefs->getRoundedStyle(), "Bead Fixer", "", name)
 {
   QPushButton *button;
   QCheckBox *box;
@@ -1278,6 +1278,9 @@ void AlignThread::run()
 
 /*
     $Log$
+    Revision 1.24  2005/04/13 19:12:26  mast
+    fixed tooltip
+
     Revision 1.23  2005/04/12 18:57:47  mast
     Added move all in local area, improved some button enabling
 
