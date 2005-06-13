@@ -6,7 +6,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 
 import javax.swing.BoxLayout;
-import javax.swing.JCheckBox;
 import javax.swing.JPanel;
 import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
@@ -40,6 +39,22 @@ import etomo.type.ViewType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.30  2005/06/11 03:01:20  sueh
+ * <p> bug# 583, bug# 682, bug# 677, bug# 584  Moved binning calculation to
+ * <p> ApplicationManager.  Storing screen binning for Tomo Pos and Tomo
+ * <p> Gen in MetaData separately (Tomo Pos default is 3).  Upgraded tilt.com
+ * <p> to have all unbinned parameters and a binning value.  No longer
+ * <p> managing full image size in tilt.com, except to upgrade the file.  Fixed
+ * <p> potential divide by 0 errors and incorrect binning calculation errors in
+ * <p> Tomo Pos.  Added member variable:  getBinningFromNewst.  Removed
+ * <p> member variables:  fullImageSize, prealiHeader, rawstackheader.  Add
+ * <p> functions:  setParameters(ConstMetaData),
+ * <p> setParameters(ConstNewstParam).  Modified functions:
+ * <p> TomogramPostioningDialog(), getAlignParams, getBinning,
+ * <p> getNewstParamst, getTiltParams, getTomopitchParams,
+ * <p> setAlignParams, setTiltParams, updateMetaData.  Deleted functions:
+ * <p> getFullImageSize, setFullImageSize, setNewstParams.
+ * <p>
  * <p> Revision 3.29  2005/06/01 21:28:01  sueh
  * <p> bug# 667 Standardizing getMetaData function names.
  * <p>
@@ -217,7 +232,7 @@ public class TomogramPositioningDialog extends ProcessDialog
   private LabeledTextField ltfSampleTomoThickness = new LabeledTextField(
     "Sample tomogram thickness: ");
 
-  private JCheckBox cbFiducialess = new JCheckBox("Fiducialless alignment");
+  private NamedCheckBox cbFiducialess = new NamedCheckBox("Fiducialless alignment");
   private LabeledTextField ltfRotation = new LabeledTextField(
   "Tilt axis rotation:");
   
@@ -225,7 +240,7 @@ public class TomogramPositioningDialog extends ProcessDialog
 
   private LabeledSpinner spinBinning;
 
-  private JCheckBox cbWholeTomogram = new JCheckBox("Use whole tomogram");
+  private NamedCheckBox cbWholeTomogram = new NamedCheckBox("Use whole tomogram");
 
   private JPanel pnlPositionButtons = new JPanel();
 
@@ -272,13 +287,13 @@ public class TomogramPositioningDialog extends ProcessDialog
     if (appMgr.getMetaData().getViewType() == ViewType.MONTAGE) {
       cbWholeTomogram.setEnabled(false);
     }
-    pnlWholeTomogram.add(cbWholeTomogram);
+    pnlWholeTomogram.add(cbWholeTomogram.getContainer());
     pnlWholeTomogram.add(spinBinning.getContainer());
 
     pnlTomoParams.setLayout(new BoxLayout(pnlTomoParams, BoxLayout.Y_AXIS));
     UIUtilities.addWithYSpace(pnlTomoParams, ltfSampleTomoThickness
       .getContainer());
-    UIUtilities.addWithYSpace(pnlTomoParams, cbFiducialess);
+    UIUtilities.addWithYSpace(pnlTomoParams, cbFiducialess.getContainer());
     UIUtilities.addWithYSpace(pnlTomoParams, ltfRotation.getContainer());
     UIUtilities.addWithYSpace(pnlTomoParams, pnlWholeTomogram);
     UIUtilities.alignComponentsX(pnlTomoParams, Component.LEFT_ALIGNMENT);
@@ -403,7 +418,7 @@ public class TomogramPositioningDialog extends ProcessDialog
     if (wholeTomogram != metaData.isWholeTomogramSample(axisID)) {
       metaData.setWholeTomogramSample(axisID, wholeTomogram);
     }
-    metaData.setTomoPosBinning(axisID, getBinning());
+    metaData.setTomoPosBinning(axisID, ((Integer) spinBinning.getValue()).intValue());
   }
 
   /**
