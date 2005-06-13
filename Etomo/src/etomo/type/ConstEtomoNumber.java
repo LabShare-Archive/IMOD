@@ -21,6 +21,10 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.20  2005/06/10 23:18:06  sueh
+ * <p> bug# 583 Added member variables:  floorValue, selfTest.  Add functions:
+ * <p> isNamed, runSelfTest, selfTest, setFloor.
+ * <p>
  * <p> Revision 1.19  2005/05/12 01:27:39  sueh
  * <p> bug# 658 Removed recommendedValue, since it isn't practical to get to
  * <p> information required to set it.  Improved invalidReason messages.  Allow
@@ -724,7 +728,7 @@ public abstract class ConstEtomoNumber implements Storable {
     case INTEGER_TYPE:
       return new Integer(new Double(value).intValue());
     case LONG_TYPE:
-      return new Long(new Double(value).intValue());
+      return new Long(new Double(value).longValue());
     default:
       throw new IllegalStateException("type=" + type);
     }
