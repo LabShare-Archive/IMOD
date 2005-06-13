@@ -838,6 +838,7 @@ void BeadFixer::nextGap()
   Icont *con;
   Ipoint *pts;
   int xsize, ysize, zsize;
+  static int beforeVerbose = 1;
 
   PlugData *plug = &thisPlug;
   Imod *theModel = ivwGetModel(plug->view);
@@ -900,7 +901,14 @@ void BeadFixer::nextGap()
         /* If looking back, check zmin, set it as gap before if not 0 */
         if(lookback == 1 && zmin > 0.5) {
           if(foundgap(obj,cont,iptmin, 1) == 0) {
-            wprint("\aContour %d is incomplete at start of stack\n", cont+1);
+            if (beforeVerbose)
+              wprint("\aContour %d is missing points before current point.  "
+                     "Use PageDown to get to view with missing point.\n",
+                     cont+1);
+            else
+              wprint("\aContour %d is missing points before current point.\n",
+                     cont+1);
+            beforeVerbose = 0;
             return;
           }
         }
@@ -1278,6 +1286,9 @@ void AlignThread::run()
 
 /*
     $Log$
+    Revision 1.25  2005/06/13 16:24:50  mast
+    Added rounded style argument when constructing window
+
     Revision 1.24  2005/04/13 19:12:26  mast
     fixed tooltip
 
