@@ -79,6 +79,7 @@ public class ConstTiltalignParam implements Command {
   public static final String LOCAL_SKEW_DEFAULT_GROUPING_KEY = "LocalSkewDefaultGrouping";
   public static final String LOCAL_SKEW_NONDEFAULT_GROUP_KEY = "LocalSkewNondefaultGroup";
   public static final String PROJECTION_STRETCH_KEY = "ProjectionStretch";
+  public static final String FIX_XYZ_COORDINATES_KEY = "FixXYZCoordinates";
   
   protected static final String modelFileString = "ModelFile";
   protected static final String imageFileString = "ImageFile";
@@ -239,7 +240,8 @@ public class ConstTiltalignParam implements Command {
     axisZShift = new ScriptParameter(EtomoNumber.DOUBLE_TYPE, AXIS_Z_SHIFT_KEY);
     localAlignments = new EtomoBoolean2(LOCAL_ALIGNMENTS_KEY);
     localAlignments.setDisplayAsInteger(true);
-    fixXYZCoordinates = new EtomoBoolean2("FixXYZCoordinates");
+    fixXYZCoordinates = new EtomoBoolean2(FIX_XYZ_COORDINATES_KEY);
+    fixXYZCoordinates.setDisplayAsInteger(true);
     //do not default imagesAreBinnned
     imagesAreBinned = new ScriptParameter(EtomoNumber.LONG_TYPE, "ImagesAreBinned");
     imagesAreBinned.setFloor(1);
@@ -785,6 +787,12 @@ public class ConstTiltalignParam implements Command {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.19  2005/06/10 22:48:44  sueh
+ * <p> bug# 583, bug# 682 Moved binning calculation to ApplicationManager.
+ * <p> Upgraded align.com to have all unbinned parameters and a binning value.
+ * <p> Added member variables:  imagesAreBinned, loadedFromFile.  Added
+ * <p> function:  isOldVersion.
+ * <p>
  * <p> Revision 3.18  2005/05/12 01:20:51  sueh
  * <p> bug# 567 Removed defaults so that fields would always be preserved in
  * <p> the comscript.
