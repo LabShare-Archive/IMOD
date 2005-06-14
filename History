@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/14/05: Added checkbox for the FixXYZCoordinates in tiltalign to
+Fine Alignment.  Fixed a bug which caused this option to be set to false.
+
 6/13/05: IMOD_3-6-9
 6/13/05: The option to fix 3D fiducial coordinates with local alignments has
 been getting lost since IMOD 3.4.17.  The command file now specifies it with
