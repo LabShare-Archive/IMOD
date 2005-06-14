@@ -1,6 +1,7 @@
 package etomo.comscript;
 
 import etomo.type.AxisID;
+import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoNumber;
 
 /**
@@ -635,6 +636,10 @@ public class TiltalignParam extends ConstTiltalignParam implements CommandParam 
       throws FortranInputSyntaxException {
     this.minFidsTotalAndEachSurface.validateAndSet(minFidsTotalAndEachSurface);
   }
+  
+  public ConstEtomoNumber setFixXYZCoordinates(boolean fixXYZCoordinates) {
+    return this.fixXYZCoordinates.set(fixXYZCoordinates);
+  }
 
   /**
    * @param minSizeOrOverlapXandY The minSizeOrOverlapXandY to set.
@@ -887,6 +892,10 @@ public class TiltalignParam extends ConstTiltalignParam implements CommandParam 
 
 /**
  * <p> $Log$
+ * <p> Revision 3.19  2005/06/10 22:52:40  sueh
+ * <p> bug# 583, bug# 682  Upgraded align.com to have all unbinned parameters
+ * <p> and a binning value.  Added function:  updateOldVersion.
+ * <p>
  * <p> Revision 3.18  2005/05/10 02:04:00  sueh
  * <p> bug# 658 Added parse(ComScriptCommand) to TiltAngleSpec.  Changed
  * <p> ScriptParameter.set(ComScriptCommand) to parse(ComScriptCommand).
