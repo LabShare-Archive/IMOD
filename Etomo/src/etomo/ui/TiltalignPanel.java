@@ -337,7 +337,7 @@ public class TiltalignPanel {
     ltfMagnificationNonDefaultGroups.setText(params.getMagNondefaultGroup());
 
     //  Rotation solution parameters
-    solutionType = params.getMagOption().getInteger();
+    solutionType = params.getRotOption().getInteger();
     if (solutionType == 0) {
       rbRotationNone.setSelected(true);
     }
@@ -1528,6 +1528,10 @@ private void setToolTipText() {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.25  2005/06/14 22:06:44  sueh
+ * <p> bug# 681 Added advanced checkbox fixXYZCoordinates to General tab
+ * <p> below Min # fiducials.
+ * <p>
  * <p> Revision 3.24  2005/06/11 02:50:46  sueh
  * <p> bug# 583, bug# 682, bug# 679  Moved binning calculation to
  * <p> ApplicationManager.  Upgraded align.com and tilt.com to have all
