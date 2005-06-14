@@ -87,7 +87,8 @@ of data stored in a binary model are printed in an ascii
 model file, but all contour and mesh data are printed.
 .TP
 .B -c
-Print area of object in column output.
+Print volume, surface area, and center of gravity for each object in
+column output.
 .TP
 .B -l
 Print lengths of open contours in column output.

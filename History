@@ -1,5 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/13/05: IMOD_3-6-9
 6/13/05: The option to fix 3D fiducial coordinates with local alignments has
 been getting lost since IMOD 3.4.17.  The command file now specifies it with
 a number, and Copytomocoms now fixes the coordinates only for dual axis sets.
