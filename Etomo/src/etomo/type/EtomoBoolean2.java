@@ -19,6 +19,10 @@ import etomo.comscript.InvalidParameterException;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.10  2005/06/11 02:32:12  sueh
+* <p> Removed an unnecessary function, is(Number) in ConstEtomoNumber.  It
+* <p> did the same thing as equals(Number).
+* <p>
 * <p> Revision 1.9  2005/06/06 16:50:57  sueh
 * <p> bug# 671 Added EtomoBoolean2() because an instance of this class
 * <p> doesn't need to be named if it is not saved to a file.
@@ -136,7 +140,7 @@ public class EtomoBoolean2 extends ScriptParameter {
     if (displayAsInteger) {
       return super.toString(value);
     }
-    if (equals(value)) {
+    if (equals(value, trueValue)) {
       return trueString;
     }
     return falseString;
@@ -154,12 +158,19 @@ public class EtomoBoolean2 extends ScriptParameter {
    * Override parse(ComScriptCommand) to handle a boolean being true when
    * it has no value in the script.
    */
-  public ConstEtomoNumber parse(ComScriptCommand scriptCommand, String keyword)
+  public ConstEtomoNumber parse(ComScriptCommand scriptCommand)
       throws InvalidParameterException {
-    if (!scriptCommand.hasKeyword(keyword)) {
+    boolean nameInScript = scriptCommand.hasKeyword(name);
+    if (!nameInScript && (shortName == null || !scriptCommand.hasKeyword(shortName))) {
       return set(falseValue);
     }
-    String scriptValue = scriptCommand.getValue(keyword);
+    String scriptValue;
+    if (nameInScript) {
+      scriptValue = scriptCommand.getValue(name);
+    }
+    else {
+      scriptValue = scriptCommand.getValue(shortName);
+    }
     if (scriptValue == null || scriptValue.matches("\\s*")) {
       return set(trueValue);
     }
