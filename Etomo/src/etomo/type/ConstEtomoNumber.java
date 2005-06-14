@@ -21,6 +21,10 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.21  2005/06/13 23:36:16  sueh
+ * <p> bug# 583 Fixed a bug in newNumber(double) where it was setting a long
+ * <p> null value to the int null value.
+ * <p>
  * <p> Revision 1.20  2005/06/10 23:18:06  sueh
  * <p> bug# 583 Added member variables:  floorValue, selfTest.  Add functions:
  * <p> isNamed, runSelfTest, selfTest, setFloor.
@@ -615,7 +619,7 @@ public abstract class ConstEtomoNumber implements Storable {
     }
     StringBuffer buffer = new StringBuffer(toString((Number) numberVector.get(0)));
     for (int i = 1; i < numberVector.size(); i++) {
-      buffer.append("," + toString((Number) numberVector.get(1)));
+      buffer.append("," + toString((Number) numberVector.get(i)));
     }
     return buffer.toString();
   }
