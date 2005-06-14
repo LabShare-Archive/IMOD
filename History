@@ -1,7 +1,12 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/14/05: Fixed a bug in Fine Alignment where the global Rotation Solution Type
+was set from MagOption in align.com, instead of RotOption.  The bug was also
+fixed in 3.5.
+
 6/14/05: Added checkbox for the FixXYZCoordinates in tiltalign to
-Fine Alignment.  Fixed a bug which caused this option to be set to false.
+Fine Alignment.  Fixed a bug which caused this option to be set to false.  The
+bug was also fixed in 3.5.
 
 6/13/05: IMOD_3-6-9
 6/13/05: The option to fix 3D fiducial coordinates with local alignments has
