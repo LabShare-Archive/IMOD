@@ -19,6 +19,12 @@ import etomo.comscript.InvalidParameterException;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.5  2005/05/17 19:21:01  sueh
+* <p> bug# 658 Passing a HashMap of required values from the autodoc to
+* <p> ScriptParameter constructors.  In setRequired(HashMap) requiredMap set
+* <p> nullIsValid according to a requiredMap element, if there is one with a key
+* <p> that matches ScriptParameter.name.
+* <p>
 * <p> Revision 1.4  2005/05/12 01:30:16  sueh
 * <p> bug# 658 Removed setDefault(boolean) because it is not in use.  Added
 * <p> getDefaultDouble().
@@ -56,7 +62,7 @@ public class ScriptParameter extends EtomoNumber {
   public static  final String  rcsid =  "$Id$";
 
   protected Number defaultValue;
-  private String shortName = null;
+  protected String shortName = null;
   
    public ScriptParameter(int type) {
      super(type);
@@ -170,21 +176,12 @@ public class ScriptParameter extends EtomoNumber {
    }
    
    /**
-    * Parse scriptCommand for keyword.  If keyword is not found, call reset().
-    * If keyword is found, call set with the string value found in scriptCommand.
+    * Parse scriptCommand for name and shortName.  If keyword is not found, call reset().
+    * If name or shortName is found, call set with the string value found in scriptCommand.
     * @param scriptCommand
-    * @param keyword
     * @return
     * @throws InvalidParameterException
-    */
-   public ConstEtomoNumber parse(ComScriptCommand scriptCommand, String keyword)
-       throws InvalidParameterException {
-     if (!scriptCommand.hasKeyword(keyword)) {
-       return reset();
-     }
-     return set(scriptCommand.getValue(keyword));
-   }
-   
+    */   
    public ConstEtomoNumber parse(ComScriptCommand scriptCommand)
       throws InvalidParameterException {
      if (!scriptCommand.hasKeyword(name)) {
