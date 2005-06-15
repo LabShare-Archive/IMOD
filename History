@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/15/05: In Zap window, made hot keys change locked time, fixed buffer 
+flushing problem with locked time, and allowed Ctrl A to select contours that
+are outside the range of the image.
+
 6/15/05: Fixed bug in behavior of F1-F8 keys when contrast floating is on. 
 (In 3.5)
 
