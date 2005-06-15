@@ -377,6 +377,11 @@ void imod_info_setbw(int black, int white)
     changed = TRUE;
   }
 
+  /* DNM: set this information as values for a new reference section for
+     floated intensities - 6/15/05, needed to do this before the draw call */
+  ref_black = black;
+  ref_white = white;
+
   /* if we are using a colormap that isn't
    * mutable then we need to redraw all image data, unless float is being done
    * use the IMOD_DRAW_IMAGE flag to redraw all image
@@ -390,10 +395,6 @@ void imod_info_setbw(int black, int white)
   else if (changed && !App->rgba)
     imodDraw(App->cvi, IMOD_DRAW_COLORMAP);
 
-  /* DNM: set this information as values for a new reference section for
-     floated intensities */
-  ref_black = black;
-  ref_white = white;
   return;
 }
 
@@ -796,6 +797,9 @@ void imod_imgcnt(char *string)
 
 /*
 $Log$
+Revision 4.20  2005/04/12 14:37:17  mast
+Changes to allow float for changing subarea within a section
+
 Revision 4.19  2005/03/23 18:49:24  mast
 Saved floating b/w values as reference values before truncating to range to
 retain state after going to a section with truncated range
