@@ -901,6 +901,14 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
     }
     break;
           
+  case Qt::Key_1:
+  case Qt::Key_2:
+    if (zap->timeLock) {
+      zapStepTime(zap, (keysym == Qt::Key_1) ? -1 : 1);
+      handled = 1;
+    }
+    break;
+
   case Qt::Key_Home:
     if (keypad && vi->imod->mousemode == IMOD_MMOVIE) {
       zapTranslate(zap, -trans, trans);
@@ -970,10 +978,10 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
         selmin.y = zap->rbImageY0;
         selmax.y = zap->rbImageY1;
       } else {
-        selmin.x = 0.;
-        selmax.x = vi->xsize;
-        selmin.y = 0.;
-        selmax.y = vi->ysize;
+        selmin.x = -vi->xsize;;
+        selmax.x = 2 * vi->xsize;
+        selmin.y = vi->ysize;;
+        selmax.y = 2 * vi->ysize;
       }
 
       // Look through selection list, remove any that do not fit constraints
@@ -2864,18 +2872,16 @@ static void zapDrawGraphics(ZapStruct *zap)
                     &zap->ydrawsize, &zap->ytrans, 
                     &zap->yborder, &zap->ystart);
 
-  if (zap->timeLock) {
-    imageData = ivwGetZSectionTime(vi, zap->section, zap->timeLock);
+  /* Get the time to display and flush if time is different. */
+  if (zap->timeLock)
     time = zap->timeLock;
-  } else{
-    /* flush if time is different. */
+  else
     ivwGetTime(vi, &time);
-    if (time != zap->time){
-      b3dFlushImage(zap->image);
-      zap->time = time;
-    }
-    imageData = ivwGetZSection(vi, zap->section);
+  if (time != zap->time){
+    b3dFlushImage(zap->image);
+    zap->time = time;
   }
+  imageData = ivwGetZSectionTime(vi, zap->section, time);
 
   // If flag set, record the subarea size, clear flag, and do call float to
   // set the color map if necessary.  If the black/white changes, flush image
@@ -3497,6 +3503,12 @@ static int zapPointVisable(ZapStruct *zap, Ipoint *pnt)
 
 /*
 $Log$
+Revision 4.67  2005/04/12 14:47:39  mast
+Changed handling of subset area recording so that it occurs right
+within the draw, after area is determined, then bwfloat is called to
+adjust contrast before the pixel draw is done.  This happens for
+active window and also on external draw of single zap.
+
 Revision 4.66  2005/03/30 02:39:15  mast
 Fixed bugs in yesterdays additions
 
