@@ -60,6 +60,8 @@ static void zapB2Drag(struct zapwin *zap, int x, int y, int controlDown);
 static void zapB3Drag(struct zapwin *zap, int x, int y, int controlDown, 
                       int shiftDown);
 static void zapDelUnderCursor(ZapStruct *zap, int x, int y, Icont *cont);
+static int contInSelectArea(Iobj *obj, Icont *cont, Ipoint selmin,
+                            Ipoint selmax);
 static void dragSelectContsCrossed(struct zapwin *zap, int x, int y);
 static void endContourShift(ZapStruct *zap);
 static Icont *checkContourShift(ZapStruct *zap, int &pt, int &err);
@@ -983,6 +985,8 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
         selmin.y = vi->ysize;;
         selmax.y = 2 * vi->ysize;
       }
+      selmin.z = zap->section - 0.5;
+      selmax.z = zap->section + 0.5;
 
       // Look through selection list, remove any that do not fit constraints
       for (i = ilistSize(vi->selectionList) - 1; i >= 0; i--) {
@@ -990,10 +994,8 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
         if (indp->object < vi->imod->objsize) {
           obj = &vi->imod->obj[indp->object];
           if (indp->contour < obj->contsize) {
-            imodContourGetBBox(&(obj->cont[indp->contour]), &pmin, &pmax);
-            if (pmin.x >= selmin.x && pmax.x <= selmax.x &&
-                pmin.y >= selmin.y && pmax.y <= selmax.y &&
-                pmin.z >= zap->section - 0.5 && pmax.z <= zap->section + 0.5)
+            if (contInSelectArea(obj, &(obj->cont[indp->contour]), selmin,
+                                 selmax))
               continue;
           }
         }
@@ -1009,11 +1011,8 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
       indadd.object = vi->imod->cindex.object;
       indadd.point = -1;
       for (i = 0; i < obj->contsize; i++) {
-        imodContourGetBBox(&(obj->cont[i]), &pmin, &pmax);
         indadd.contour = i;
-        if (pmin.x >= selmin.x && pmax.x <= selmax.x &&
-            pmin.y >= selmin.y && pmax.y <= selmax.y &&
-            pmin.z >= zap->section - 0.5 && pmax.z <= zap->section + 0.5) {
+        if (contInSelectArea(obj, &(obj->cont[i]), selmin, selmax)) {
           imodSelectionListAdd(vi, indadd);
           vi->imod->cindex = indadd;
         }
@@ -1847,6 +1846,39 @@ void zapB1Drag(ZapStruct *zap, int x, int y)
   zapDraw(zap);
   zap->hqgfx = zap->hqgfxsave;
 }
+
+/* Tests whether the contour is in the selection area.  Either it must be 
+   entirely within the area, or it must be an open wild contour and have points
+   on the current section that are all within the area */
+static int contInSelectArea(Iobj *obj, Icont *cont, Ipoint selmin, 
+                            Ipoint selmax)
+{
+  Ipoint pmin, pmax;
+  int pt, inRange = 0;
+  Ipoint *pnt;
+
+  imodContourGetBBox(cont, &pmin, &pmax);
+  if (pmin.x >= selmin.x && pmax.x <= selmax.x &&
+      pmin.y >= selmin.y && pmax.y <= selmax.y &&
+      pmin.z >= selmin.z && pmax.z <= selmax.z)
+    return 1;
+  if (!(iobjOpen(obj->flags) && (cont->flags & ICONT_WILD)))
+    return 0;
+
+  // Wild open contour is no good if a point in the Z range is outside the
+  // X/Y range
+  for (pt = 0; pt < cont->psize; pt++) {
+    pnt = &cont->pts[pt];
+    if (pnt->z >= selmin.z && pnt->z <= selmax.z) {
+      inRange = 1;
+      if (pnt->x < selmin.x || pnt->x > selmax.x ||
+          pnt->y < selmin.y || pnt->y > selmax.y)
+        return 0;
+    }
+  }
+  return inRange;
+}
+
 
 /* Select contours in the current object crossed by a mouse move */
 static void dragSelectContsCrossed(struct zapwin *zap, int x, int y)
@@ -3503,6 +3535,10 @@ static int zapPointVisable(ZapStruct *zap, Ipoint *pnt)
 
 /*
 $Log$
+Revision 4.68  2005/06/15 23:08:36  mast
+Made 1 and 2 change locked time, fixed buffer flushing problem with locked
+time, and allowed Ctrl A to select contours outside the image range
+
 Revision 4.67  2005/04/12 14:47:39  mast
 Changed handling of subset area recording so that it occurs right
 within the draw, after area is determined, then bwfloat is called to
