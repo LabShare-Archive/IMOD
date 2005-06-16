@@ -38,6 +38,10 @@ import etomo.type.AxisID;
  * 
  * <p>
  * $Log$
+ * Revision 3.8  2005/06/16 22:05:39  sueh
+ * bug# 625 Changed deleteSelected() to remove the file names from the
+ * File Name field after the files have been deleted.
+ *
  * Revision 3.7  2005/05/18 22:39:13  sueh
  * bug# 662 Moved the beveled border to the outer panel.
  *
@@ -201,6 +205,7 @@ public class CleanupPanel {
    *  
    */
   private void deleteSelected() {
+    boolean deletedAll = true;
     File[] deleteList = fileChooser.getSelectedFiles();
     for (int i = 0; i < deleteList.length; i++) {
       if (!deleteList[i].delete()) {
@@ -209,10 +214,13 @@ public class CleanupPanel {
         message[1] = "Check file permissions";
         UIHarness.INSTANCE.openMessageDialog(message,
             "Unable to delete intermediate file", AxisID.ONLY);
+        deletedAll = false;
       }
     }
     fileChooser.rescanCurrentDirectory();
-    fileChooser.setSelectedFile(new File(""));
+    if (deletedAll) {
+      fileChooser.setSelectedFile(new File(""));
+    }
   }
 
   /**
