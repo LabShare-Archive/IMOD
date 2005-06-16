@@ -19,6 +19,11 @@ import etomo.storage.Storable;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.8  2005/05/10 02:34:51  sueh
+* <p> bug#658 Removed ScriptParameter.setUseScreenDisplayValue()
+* <p> because it is confusing to turn ConstEtomoNumber.displayValue off and
+* <p> on and because this functionality is only used with the rotationAngles.
+* <p>
 * <p> Revision 1.7  2005/01/29 00:18:12  sueh
 * <p> Removed print statements
 * <p>
@@ -114,19 +119,19 @@ public abstract class ConstSectionTableRowData implements Storable {
   private int imodRotIndex = -1;
   private boolean sectionExpanded = false;
   
-  protected EtomoNumber rowNumber = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "RowNumber");
+  protected EtomoNumber rowNumber = new EtomoNumber("RowNumber");
   protected File section;
-  protected EtomoNumber sampleBottomStart = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "SampleBottomStart");
-  protected EtomoNumber sampleBottomEnd = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "SampleBottomEnd");
-  protected EtomoNumber sampleTopStart = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "SampleTopStart");
-  protected EtomoNumber sampleTopEnd = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "SampleTopEnd");
-  protected EtomoNumber finalStart = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "FinalStart");
-  protected EtomoNumber finalEnd = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "FinalEnd");
+  protected EtomoNumber sampleBottomStart = new EtomoNumber("SampleBottomStart");
+  protected EtomoNumber sampleBottomEnd = new EtomoNumber("SampleBottomEnd");
+  protected EtomoNumber sampleTopStart = new EtomoNumber("SampleTopStart");
+  protected EtomoNumber sampleTopEnd = new EtomoNumber("SampleTopEnd");
+  protected EtomoNumber finalStart = new EtomoNumber("FinalStart");
+  protected EtomoNumber finalEnd = new EtomoNumber("FinalEnd");
   protected ScriptParameter rotationAngleX = new ScriptParameter(EtomoNumber.DOUBLE_TYPE, "RotationAngleX");
   protected ScriptParameter rotationAngleY = new ScriptParameter(EtomoNumber.DOUBLE_TYPE, "RotationAngleY");
   protected ScriptParameter rotationAngleZ = new ScriptParameter(EtomoNumber.DOUBLE_TYPE, "RotationAngleZ");
-  protected EtomoNumber xMax = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "XMax");
-  protected EtomoNumber yMax = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "YMax");
+  protected EtomoNumber xMax = new EtomoNumber("XMax");
+  protected EtomoNumber yMax = new EtomoNumber("YMax");
   protected int zMax = Integer.MIN_VALUE;
   
   protected StringBuffer invalidReason;
@@ -389,15 +394,15 @@ public abstract class ConstSectionTableRowData implements Storable {
   
   public ConstEtomoNumber getChunkSize(int tableSize) {
     if (tableSize <= 1) {
-      return new EtomoNumber(0);
+      return (new EtomoNumber()).set(0);
     }
     if (rowNumber.equals(1)) {
-      return (new EtomoNumber(EtomoNumber.INTEGER_TYPE)).set(getSampleTopNumberSlices());
+      return (new EtomoNumber()).set(getSampleTopNumberSlices());
     }
     if (rowNumber.equals(tableSize)) {
-      return (new EtomoNumber(EtomoNumber.INTEGER_TYPE)).set(getSampleBottomNumberSlices());
+      return (new EtomoNumber()).set(getSampleBottomNumberSlices());
     }
-    return (new EtomoNumber(EtomoNumber.INTEGER_TYPE)).set(getSampleBottomNumberSlices() + getSampleTopNumberSlices());
+    return (new EtomoNumber()).set(getSampleBottomNumberSlices() + getSampleTopNumberSlices());
   }
   
   public ConstEtomoNumber getFinalStart() {
