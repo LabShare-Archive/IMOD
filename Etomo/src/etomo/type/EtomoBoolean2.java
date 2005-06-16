@@ -19,6 +19,12 @@ import etomo.comscript.InvalidParameterException;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.11  2005/06/14 22:03:10  sueh
+* <p> bug# 681 Fixed toString(Number).  It was always returning true.  Fixed
+* <p> parse().  It was not overriding
+* <p> ScriptParameter.parse(ComScriptCommand) because it another
+* <p> parameter.  Also fixed it so that it handled shortName.
+* <p>
 * <p> Revision 1.10  2005/06/11 02:32:12  sueh
 * <p> Removed an unnecessary function, is(Number) in ConstEtomoNumber.  It
 * <p> did the same thing as equals(Number).
@@ -88,21 +94,18 @@ public class EtomoBoolean2 extends ScriptParameter {
     super(EtomoNumber.INTEGER_TYPE);
     setValidValues(new int[] { falseValue, trueValue });
     setDisplayValue(falseValue);
-    setNullIsValid(false);
   }
   
   public EtomoBoolean2(String name) {
     super(EtomoNumber.INTEGER_TYPE, name);
     setValidValues(new int[] { falseValue, trueValue });
     setDisplayValue(falseValue);
-    setNullIsValid(false);
   }
   
   public EtomoBoolean2(String name, HashMap requiredMap) {
     super(EtomoNumber.INTEGER_TYPE, name, requiredMap);
     setValidValues(new int[] { falseValue, trueValue });
     setDisplayValue(falseValue);
-    setNullIsValid(false);
   }
   
   public EtomoBoolean2(String name, int onValue, int offValue) {
@@ -115,15 +118,12 @@ public class EtomoBoolean2 extends ScriptParameter {
     trueStrings = null;
     setValidValues(new int[] { falseValue, trueValue });
     setDisplayValue(falseValue);
-    setNullIsValid(false);
   }
   
   /**
    * To prevent values not in validValues from being used:
    * Override validate().  Call super.validate(). Throw an exception when
    * invalidReason is set.
-   * To prevent nulls:
-   * Also throw an exception when value is null.
    */
   protected void setInvalidReason() {
     super.setInvalidReason();
