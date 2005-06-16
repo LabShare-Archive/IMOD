@@ -11,6 +11,11 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.3  2005/04/25 21:06:51  sueh
+ * <p> bug# 615 Passing the axis where a command originates to the message
+ * <p> functions so that the message will be popped up in the correct window.
+ * <p> This requires adding AxisID to many objects.
+ * <p>
  * <p> Revision 3.2  2004/04/22 23:23:57  rickg
  * <p> Switched getIMODBinPath method
  * <p>
@@ -71,6 +76,7 @@ import javax.swing.JPanel;
 import etomo.ApplicationManager;
 import etomo.process.SystemProgram;
 import etomo.type.AxisID;
+import etomo.type.ImodVersion;
 
 public class MainFrame_AboutBox extends JDialog {
 	public static final String rcsid =
@@ -97,7 +103,7 @@ public class MainFrame_AboutBox extends JDialog {
 		pnlAbout.setLayout(new BoxLayout(pnlAbout, BoxLayout.Y_AXIS));
 
 		JLabel lblEtomo = new JLabel("eTomo: The IMOD Tomography GUI");
-		JLabel lblVersion = new JLabel("Version 1.0.0");
+		JLabel lblVersion = new JLabel("Version " + ImodVersion.CURRENT_VERSION);
 		JLabel lblAuthors = new JLabel("Written by: Rick Gaudette & Sue Held");
 		JLabel lbl3dmodVersion = new JLabel("IMOD Version: " + versImod);
 		JLabel lblCopyright1 = new JLabel(cpyrght3dmodLine1);
