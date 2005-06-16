@@ -15,6 +15,10 @@ import etomo.EtomoDirector;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.3  2005/06/10 23:05:12  sueh
+ * <p> bug# 671 Modified self test so it wouldn't check the EtomoDirector
+ * <p> selftest setting over and over.
+ * <p>
  * <p> Revision 3.2  2005/06/06 16:49:39  sueh
  * <p> bug# 671 Calling EtomoDirector.getInstance() in AxisID prior to running
  * <p> AxisID() is causing a NoClassDefFoundError when running JUnit.  Change
@@ -47,7 +51,8 @@ public class AxisID {
 
   private static final String ONLY_AXIS_NAME = "Only";
   
-  private static EtomoBoolean2 selfTest = null;
+  private static boolean retrievedSelfTest = false;
+  private static boolean selfTest = false;
   
   private final String name;
 
@@ -111,15 +116,15 @@ public class AxisID {
   }
   
   private void runSelfTest() {
-    if (selfTest != null && selfTest.is()) {
+    if (selfTest) {
       selfTest();
     }
     else {
-      selfTest = new EtomoBoolean2();
-      selfTest.set(EtomoDirector.getInstance().isSelfTest());
-      if (selfTest.is()) {
-        selfTest();
+      if (retrievedSelfTest) {
+        return;
       }
+      selfTest = EtomoDirector.getInstance().isSelfTest();
+      retrievedSelfTest = true;
     }
   }
   
