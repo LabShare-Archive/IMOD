@@ -11,6 +11,16 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.9  2005/06/13 23:35:25  sueh
+ * <p> bug# 583 Preventing tilt.com from being overwritten with a default
+ * <p> imageBinned after the .ali file is deleted.  DoneTomogramGeneration()
+ * <p> needs update and save tilt.com, but the result from getStackBinning will
+ * <p> be wrong if the .ali file has been deleted.  Move the responsibility for
+ * <p> getting the right imageBinned to TiltParam.  Modify getStackBinning() to
+ * <p> have an option to return a null value when it fails to calculate the stack
+ * <p> binning.  If TiltParam.setImageBinned() gets a null value and
+ * <p> imageBinned is not null, it won't override the current imageBinned value.
+ * <p>
  * <p> Revision 3.8  2005/06/10 22:55:19  sueh
  * <p> bug# 583, bug# 682  Upgraded tilt.com to have all unbinned parameters
  * <p> and a binning value.  No longer managing full image size in tilt.com,
@@ -286,7 +296,7 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
     cmdLineArgs.add(newArg);
     if (imageBinned.isUseInScript()) {
       newArg = new ComScriptInputArg();
-      newArg.setArgument(imageBinned.getName() + " " + imageBinned.getInteger());
+      newArg.setArgument(imageBinned.getName() + " " + imageBinned.getLong());
       cmdLineArgs.add(newArg);
     }
     if (!angles.equals("")) {
