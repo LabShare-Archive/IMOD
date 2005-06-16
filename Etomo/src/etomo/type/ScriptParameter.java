@@ -19,6 +19,10 @@ import etomo.comscript.InvalidParameterException;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.6  2005/06/14 22:04:41  sueh
+* <p> bug# 681 Removed parse(ComScriptCommand, String).  It was not being
+* <p> used.  Made shortName protected to EtomoBoolean2 could handle it.
+* <p>
 * <p> Revision 1.5  2005/05/17 19:21:01  sueh
 * <p> bug# 658 Passing a HashMap of required values from the autodoc to
 * <p> ScriptParameter constructors.  In setRequired(HashMap) requiredMap set
@@ -64,21 +68,30 @@ public class ScriptParameter extends EtomoNumber {
   protected Number defaultValue;
   protected String shortName = null;
   
-   public ScriptParameter(int type) {
-     super(type);
-     defaultValue = newNumber();
-   }
+  /**
+   * Construct a ScriptParameter with type = INTEGER_TYPE
+   * @param name the name of the instance
+   */
+  public ScriptParameter(String name) {
+    super(name);
+    defaultValue = newNumber();
+  }
+  
+  public ScriptParameter(int type) {
+    super(type);
+    defaultValue = newNumber();
+  }
    
-   public ScriptParameter(int type, String name) {
-     super(type, name);
-     defaultValue = newNumber();
-   }
+  public ScriptParameter(int type, String name) {
+    super(type, name);
+    defaultValue = newNumber();
+  }
    
-   public ScriptParameter(int type, String name, HashMap requiredMap) {
-     super(type, name);
-     defaultValue = newNumber();
-     setRequired(requiredMap);
-   }
+  public ScriptParameter(int type, String name, HashMap requiredMap) {
+    super(type, name);
+    defaultValue = newNumber();
+    setRequired(requiredMap);
+  }
    
    public ScriptParameter(int type, String name, String shortName) {
      super(type, name);
@@ -110,7 +123,7 @@ public class ScriptParameter extends EtomoNumber {
      if (requiredMap == null) {
        return this;
      }
-     EtomoNumber required = new EtomoNumber(EtomoNumber.INTEGER_TYPE);
+     EtomoNumber required = new EtomoNumber();
      required.set((String) requiredMap.get(name));
      if (required.equals(EtomoAutodoc.REQUIRED_TRUE_VALUE)) {
        nullIsValid = false;
