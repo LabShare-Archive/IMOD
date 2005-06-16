@@ -20,6 +20,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.9  2005/04/27 02:10:10  sueh
+ * <p> bug# 615 Showing both axes for dual axis.
+ * <p>
  * <p> Revision 3.8  2005/04/26 17:35:00  sueh
  * <p> bug# 615 Made MainFrame a package-level class.  All MainFrame
  * <p> functionality is handled through UIHarness to make Etomo more
@@ -116,9 +119,10 @@ public class DataFlowTests {
     }
 
     //  Simple test: create a new ApplicationManager and cause it to quit
-    String[] argsIn = new String[2];
+    String[] argsIn = new String[3];
     argsIn[0] = "--debug";
-    argsIn[1] = System.getProperty("user.dir") + File.separator + datasetName
+    argsIn[1] = "--selftest";
+    argsIn[2] = System.getProperty("user.dir") + File.separator + datasetName
       + ".edf";
     EtomoDirector.createInstance(argsIn);
     applicationManager = (ApplicationManager) EtomoDirector.getInstance().getCurrentManager();
