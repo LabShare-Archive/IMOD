@@ -21,6 +21,10 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.23  2005/06/16 20:00:00  sueh
+ * <p> bug# 692 Making self test variables boolean instead of EtomoBoolean2 to
+ * <p> avoid test problems.  Added validation functions.
+ * <p>
  * <p> Revision 1.22  2005/06/14 23:06:34  sueh
  * <p> bug# 687 Fixed toString(Vector), which was only returning the first two
  * <p> elements and repeating the second element.
@@ -1160,10 +1164,10 @@ public abstract class ConstEtomoNumber implements Storable {
     if (type != original.type
         || !name.equals(original.name)
         || !description.equals(original.description)
-        || currentValue.doubleValue() != original.currentValue.doubleValue()
-        || displayValue.doubleValue() != original.displayValue.doubleValue()
-        || ceilingValue.doubleValue() != original.ceilingValue.doubleValue()
-        || floorValue.doubleValue() != original.floorValue.doubleValue()
+        || !equals(currentValue, original.currentValue)
+        || !equals(displayValue, original.displayValue)
+        || !equals(ceilingValue, original.ceilingValue)
+        || !equals(floorValue, original.floorValue)
         || (validValues != null && original.validValues == null)
         || (validValues == null && original.validValues != null)
         || (validValues != null && original.validValues != null && !validValues
