@@ -82,15 +82,17 @@ of the rubber band and the image is shifted to display the area
 previously in the rubber band.
 <LI><B>Ctrl-A</B> adds multiple contours on the current section to the 
 contour selection list.  Selected contours will be shown with a 
-distinguishable line thickness.  Only contours from the current object 
-that are 
-confined to the current section will be added.  Selected contours from other
-objects will be retained in the selection if they are on the current
-section; all contours on other sections will be removed from the selection.
-With the rubber band 
-off, all eligible contours on the section will be added; with the 
-rubber band on, only contours completely within the rubber band will be 
-selected.
+distinguishable line thickness.  
+With the rubber band off, all eligible contours on the current section will be
+added; with the rubber band on, only contours wih points appearing completely
+within the rubber band will be selected.
+Contours from the current object that are 
+confined to the current section will be added; in addition, if the object is
+open contour type and the contours pass between sections, then contours with
+points on the current section that are all within the selection area will be
+added.  Selected contours from other objects will be retained in the selection
+if they meet the same criteria; all contours on other sections will be removed
+from the selection.
 <LI><B>P</B> Toggles a mode in which you can shift, rotate, stretch, or scale
 the whole current contour by dragging with a mouse button held down.  
 The first mouse button is used to shift; the second button is used to rotate;
