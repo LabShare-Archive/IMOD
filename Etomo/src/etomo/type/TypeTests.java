@@ -12,6 +12,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.4  2004/12/07 23:45:30  sueh
+ * <p> bug# 520 Reinstating metadata tests.
+ * <p>
  * <p> Revision 3.3  2004/12/07 22:54:51  sueh
  * <p> bug# 520 Temporarily hidding MetaDataTest.
  * <p>
@@ -32,6 +35,7 @@ public class TypeTests {
   public static Test suite() {
     TestSuite suite = new TestSuite("Test for etomo.type");
     //$JUnit-BEGIN$
+    suite.addTestSuite(ConstEtomoNumberTest.class);
     suite.addTestSuite(ConstMetaDataTest.class);
     suite.addTestSuite(MetaDataTest.class);
     //$JUnit-END$
