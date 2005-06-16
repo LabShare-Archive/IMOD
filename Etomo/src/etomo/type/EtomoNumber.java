@@ -18,6 +18,9 @@ import etomo.comscript.FortranInputString;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.10  2005/06/11 02:33:55  sueh
+* <p> bug# 583 Added member variable:  floor.  Simplified load functions.
+* <p>
 * <p> Revision 1.9  2005/05/10 02:56:21  sueh
 * <p> bug# 658 Removed preventNullValue because just setting displayValue
 * <p> does the same thing.  Use resetInvalidReason() and addInvalidReason()
@@ -90,6 +93,22 @@ import etomo.comscript.FortranInputString;
 */
 public class EtomoNumber extends ConstEtomoNumber {
   public static  final String  rcsid =  "$Id$";
+  
+  /**
+   * Construct an EtomoNumber with type = INTEGER_TYPE
+   *
+   */
+  public EtomoNumber() {
+    super();
+  }
+  
+  /**
+   * Construct a ConstEtomoNumber with type = INTEGER_TYPE
+   * @param name the name of the instance
+   */
+  public EtomoNumber(String name) {
+    super(name);
+  }
   
   public EtomoNumber(int type) {
     super(type);
@@ -165,28 +184,19 @@ public class EtomoNumber extends ConstEtomoNumber {
   }
   
   public EtomoNumber set(long value) {
-    if (type != LONG_TYPE && type != DOUBLE_TYPE) {
-      throw new IllegalStateException("Cannot set a long currentValue with any type but long and double.");
-    }
     return set(newNumber(value));
   }
   
   public EtomoNumber set(double value) {
-    if (type != DOUBLE_TYPE) {
-      throw new IllegalStateException("Cannot set a currentValue that is not double with double.");
-    }
     return set(newNumber(value));
   }
   
   public EtomoNumber set(FortranInputString fortranInputString, int index) {
-    if (type == FLOAT_TYPE) {
-      throw new IllegalStateException("Cannot set a float currentValue with a FortranInputString.");
-    }
-    if (type != DOUBLE_TYPE && !fortranInputString.isIntegerType(index)) {
-      throw new IllegalStateException("Cannot set a currentValue that is not double with a FortranInputString value that is double.");      
-    }
     if (fortranInputString.isEmpty(index) || fortranInputString.isDefault(index)) {
       return set(newNumber());
+    }
+    if (fortranInputString.isIntegerType(index)) {
+      return set(newNumber(fortranInputString.getInt(index)));
     }
     return set(newNumber(fortranInputString.getDouble(index)));
   }
