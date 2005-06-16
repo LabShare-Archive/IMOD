@@ -38,6 +38,9 @@ import etomo.type.AxisID;
  * 
  * <p>
  * $Log$
+ * Revision 3.7  2005/05/18 22:39:13  sueh
+ * bug# 662 Moved the beveled border to the outer panel.
+ *
  * Revision 3.6  2005/04/25 20:54:42  sueh
  * bug# 615 Passing the axis where a command originates to the message
  * functions so that the message will be popped up in the correct window.
@@ -209,6 +212,7 @@ public class CleanupPanel {
       }
     }
     fileChooser.rescanCurrentDirectory();
+    fileChooser.setSelectedFile(new File(""));
   }
 
   /**
