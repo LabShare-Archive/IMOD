@@ -51,6 +51,10 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.7  2005/04/26 17:41:15  sueh
+* <p> bug# 615 Change the name of the UIHarness member variable to
+* <p> uiHarness.
+* <p>
 * <p> Revision 1.6  2005/04/25 21:12:09  sueh
 * <p> bug# 615 Passing the axis where a command originates to the message
 * <p> functions so that the message will be popped up in the correct window.
@@ -530,7 +534,7 @@ public class SectionTablePanel implements ContextMenu, Expandable {
     btnDeleteSection.addActionListener(sectionTableActionListener);
     pnlButtonsComponent2.add(btnDeleteSection);
     //third component
-    btnOpen3dmod = new MultiLineButton("Open in/Raise 3dmod");
+    btnOpen3dmod = new MultiLineButton("Open in 3dmod");
     btnOpen3dmod.addActionListener(sectionTableActionListener);
     SpinnerModel spinnerModel = new SpinnerNumberModel(1, 1, 50, 1);
     spinBinning = new LabeledSpinner(JoinDialog.OPEN_BINNED_BY, spinnerModel);
