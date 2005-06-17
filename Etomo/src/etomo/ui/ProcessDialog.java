@@ -13,6 +13,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.8  2005/06/17 00:34:21  sueh
+ * <p> bug# 685 Timestamped cancel, execute, and postpone button presses.
+ * <p>
  * <p> Revision 3.7  2005/04/16 02:03:18  sueh
  * <p> bug# 615 Moved the adding of exit buttons from the child classes to this
  * <p> class.  Remove the rigid area at the bottom so the color would wrap the
@@ -178,7 +181,7 @@ public class ProcessDialog implements ExitButtons {
    * to set the exitState attribute to CANCEL.
    */
   public void buttonCancelAction(ActionEvent event) {
-    Utilities.timestamp("PRESSED", "cancel", dialogType.toString());
+    Utilities.buttonTimestamp("cancel", dialogType.toString());
     exitState = DialogExitState.CANCEL;
   }
 
@@ -187,7 +190,7 @@ public class ProcessDialog implements ExitButtons {
    * to set the exitState attribute to POSTPONE.
    */
   public void buttonPostponeAction(ActionEvent event) {
-    Utilities.timestamp("PRESSED", "postpone", dialogType.toString());
+    Utilities.buttonTimestamp("postpone", dialogType.toString());
     exitState = DialogExitState.POSTPONE;
   }
 
@@ -196,7 +199,7 @@ public class ProcessDialog implements ExitButtons {
    * to set the exitState attribute to EXECUTE.
    */
   public void buttonExecuteAction(ActionEvent event) {
-    Utilities.timestamp("PRESSED", "done", dialogType.toString());
+    Utilities.buttonTimestamp("done", dialogType.toString());
     exitState = DialogExitState.EXECUTE;
   }
 

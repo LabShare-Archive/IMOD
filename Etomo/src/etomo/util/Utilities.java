@@ -12,6 +12,10 @@
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.18  2005/06/17 17:49:18  sueh
+ * <p> $bug# 685 Added getTimestamp() and setStartTime() to get a relative
+ * <p> $timestamp.
+ * <p> $
  * <p> $Revision 3.17  2005/06/17 16:48:07  sueh
  * <p> $bug# 685 Changed timestamp to milliseconds number.
  * <p> $
@@ -519,28 +523,51 @@ public class Utilities {
     return isValid;
   }
   
+  public static void buttonTimestamp(String process, String command,
+      String container) {
+    timestamp(process, command, container, -100);
+  }
+
+  /**
+   * Print timestamp in error log
+   * @param process
+   * @param status
+   */
+  public static void buttonTimestamp(String command) {
+    timestamp("PRESSED", command, null, -100);
+  }
+
+  /**
+   * Print timestamp in error log
+   * @param process
+   * @param status
+   */
+  public static void buttonTimestamp(String command, String container) {
+    timestamp("PRESSED", command, container, -100);
+  }
+
   /**
    * Print timestamp in error log
    * @param process
    * @param filename
    * @param status
    */
-  public static void timestamp(String process, String filename, int status) {
-    timestamp(process, null, filename, status);
+  public static void timestamp(String process, String container, int status) {
+    timestamp(process, null, container, status);
   }
 
   /**
    * Print timestamp in error log.
    * @param command
    * @param filename
-   * @param status 0 = started, 1 = finished, -1 = failed
+   * @param status 0 = started, 1 = finished, -1 = failed, -100 = null
    */
-  public static void timestamp(String process, String command, String filename,
-      int status) {
+  public static void timestamp(String process, String command,
+      String container, int status) {
     if (!isDebug()) {
       return;
     }
-    String statusString = "";
+    String statusString = null;
     switch (status) {
     case 0:
       statusString = " started";
@@ -550,31 +577,27 @@ public class Utilities {
       break;
     case -1:
       statusString = "  failed";
+      break;
+    default:
     }
-    if (command == null) {
-      System.err.println("TIMESTAMP: " + process + " " + filename + " "
-          + statusString + " at " + getTimestamp());
+    StringBuffer buffer = new StringBuffer("TIMESTAMP: ");
+    if (process != null) {
+      buffer.append(process + " ");
     }
-    else {
-      System.err.println("TIMESTAMP: " + process + " " + command + " in "
-          + filename + " " + statusString + " at " + getTimestamp());
+    if (command != null) {
+      buffer.append(command + " ");
+      if (container != null) {
+        buffer.append("in ");
+      }
     }
-  }
-
-  public static void timestamp(String process, String command) {
-    if (!isDebug()) {
-      return;
+    if (container != null) {
+      buffer.append(container + " ");
     }
-    System.err.println("TIMESTAMP: " + process + " " + command + " at "
-        + getTimestamp());
-  }
-
-  public static void timestamp(String process, String command, String window) {
-    if (!isDebug()) {
-      return;
+    if (statusString != null) {
+      buffer.append(statusString + " ");
     }
-    System.err.println("TIMESTAMP: " + process + " " + command + " in "
-        + window + " at " + getTimestamp());
+    buffer.append("at " + getTimestamp());
+    System.err.println(buffer);
   }
 
   public static boolean isDebug() {
@@ -584,11 +607,11 @@ public class Utilities {
     }
     return debug;
   }
-  
+
   public static void setStartTime() {
     startTime = new Date().getTime();
   }
-  
+
   public static String getTimestamp() {
     return timestampFormat.format((new Date().getTime() - startTime) / 1000.0);
   }

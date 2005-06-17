@@ -31,6 +31,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.15  2005/06/17 00:34:58  sueh
+ * <p> bug# 685 Timestamped process panel button presses.
+ * <p>
  * <p> Revision 1.14  2005/05/17 19:41:07  sueh
  * <p> bug# 615 Removed unnecessary imports.
  * <p>
@@ -172,7 +175,7 @@ public class TomogramProcessPanel extends AxisProcessPanel {
    */
   private void buttonProcessAction(ActionEvent event) {
     String command = event.getActionCommand();
-    Utilities.timestamp("PRESSED", command);
+    Utilities.buttonTimestamp(command);
     applicationManager.saveCurrentDialog(axisID);
     ProcessControlPanel currentProcess = null;
     
