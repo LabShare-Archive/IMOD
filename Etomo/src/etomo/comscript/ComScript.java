@@ -11,6 +11,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.7  2005/05/20 21:15:19  sueh
+ * <p> bug# 664 writeComFile(): do not attempt to save to a file if the
+ * <p> memory is very low.  If the save fails, the file could be truncated.
+ * <p>
  * <p> Revision 3.6  2004/08/19 00:42:45  sueh
  * <p> bug# 508 Allow deletion of commands, creating commands based on a
  * <p> command index number, finding a command base on a command
@@ -477,6 +481,14 @@ public class ComScript {
    */
   public String getComFileName() {
     return comFile.getAbsolutePath();
+  }
+  
+  /**
+   * Get the com file name.
+   * @return a String containing the name of the com file.
+   */
+  public String getName() {
+    return comFile.getName();
   }
   
   public boolean isCommandLoaded() {
