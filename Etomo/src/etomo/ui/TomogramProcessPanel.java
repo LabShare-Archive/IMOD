@@ -15,6 +15,7 @@ import etomo.ApplicationManager;
 import etomo.process.ProcessState;
 import etomo.type.AxisID;
 import etomo.type.DialogType;
+import etomo.util.Utilities;
 
 /**
  * <p>Description: </p>
@@ -30,6 +31,9 @@ import etomo.type.DialogType;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.14  2005/05/17 19:41:07  sueh
+ * <p> bug# 615 Removed unnecessary imports.
+ * <p>
  * <p> Revision 1.13  2005/05/13 17:46:51  sueh
  * <p> bug# 658 Setting the size of axis buttons based on text extent.  Hopefully
  * <p> this will fix it on mac.
@@ -168,6 +172,7 @@ public class TomogramProcessPanel extends AxisProcessPanel {
    */
   private void buttonProcessAction(ActionEvent event) {
     String command = event.getActionCommand();
+    Utilities.timestamp("PRESSED", command);
     applicationManager.saveCurrentDialog(axisID);
     ProcessControlPanel currentProcess = null;
     
