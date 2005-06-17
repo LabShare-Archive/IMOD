@@ -44,6 +44,13 @@ import etomo.util.Utilities;
  * 
  * <p>
  * $Log$
+ * Revision 1.20  2005/06/01 21:24:28  sueh
+ * bug# 667 Removing the Controller classes.  Trying make meta data and
+ * app manager equals didn't work very well.  Meta data is created by and
+ * managed by app mgr and the class structure should reflect that.
+ * Changing controllerList to managerList.  Changing currentControllerKey to
+ * current ManagerKey.
+ *
  * Revision 1.19  2005/05/31 23:11:28  sueh
  * bug# 667 First step to removing the Controller classes.  Change
  * getCurrentMetaData() to getCurrentName().  getCurrentMetaData() was
@@ -237,6 +244,7 @@ public class EtomoDirector {
 
   public synchronized static EtomoDirector createInstance(String[] args) {
     if (!initialized) {
+      Utilities.setStartTime();
       initialized = true;
       theEtomoDirector.initialize(args);
     }
