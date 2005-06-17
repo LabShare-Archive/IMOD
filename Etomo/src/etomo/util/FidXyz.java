@@ -21,6 +21,9 @@ import etomo.EtomoDirector;
 * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.4  2004/11/20 00:11:05  sueh
+ * <p> $bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+ * <p> $
  * <p> $Revision 1.3.2.1  2004/10/11 02:28:40  sueh
  * <p> $bug# 520 Using a variable called propertyUserDir instead of the "user.dir"
  * <p> $property.  This property would need a different value for each manager.
@@ -58,14 +61,17 @@ public class FidXyz {
     if (filename == null || filename.length() == 0) {
       throw new IOException("No filename specified");
     }
+    Utilities.timestamp("read", filename, 0);
     
     File fidXyzFile = new File(EtomoDirector.getInstance().getCurrentPropertyUserDir(), filename);
     if (!fidXyzFile.exists() || fidXyzFile.isDirectory()) {
+      Utilities.timestamp("read", filename, -1);
       return;
     }
     exists = true;
     if (fidXyzFile.length() == 0) {
       empty = true;
+      Utilities.timestamp("read", filename, -1);
       return;
     }
 
@@ -77,10 +83,12 @@ public class FidXyz {
     if (line != null && line.toLowerCase().indexOf("pixel size:") != -1) {
       String[] tokens = line.split("\\s+");
       if (tokens.length < 10) {
+        Utilities.timestamp("read", filename, -1);
         return;
       }
       pixelSize = Double.parseDouble(tokens[9]);
     }
+    Utilities.timestamp("read", filename, 1);
   }
   
   /**

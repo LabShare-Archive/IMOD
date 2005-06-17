@@ -22,6 +22,9 @@ import etomo.EtomoDirector;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.2  2004/11/20 00:11:39  sueh
+* <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+* <p>
 * <p> Revision 1.1.2.1  2004/10/30 02:40:54  sueh
 * <p> bug# 520 Reads the .info file created while making samples in the join
 * <p> dialog.
@@ -38,9 +41,12 @@ public class JoinInfoFile {
   }
   
   public boolean read(int numberFileNames) {
+    String joinInfoFileName = rootName + ".info";
+    Utilities.timestamp("read", joinInfoFileName, 0);
     fileNameArray = new ArrayList(numberFileNames);
-    File joinInfoFile = new File(EtomoDirector.getInstance().getCurrentPropertyUserDir(), rootName + ".info");
+    File joinInfoFile = new File(EtomoDirector.getInstance().getCurrentPropertyUserDir(), joinInfoFileName);
     if (!joinInfoFile.exists()) {
+      Utilities.timestamp("read", joinInfoFileName, -1);
       return false;
     }
     BufferedReader reader;
@@ -49,6 +55,7 @@ public class JoinInfoFile {
     }
     catch (IOException e) {
       e.printStackTrace();
+      Utilities.timestamp("read", joinInfoFileName, -1);
       return false;
     }
     String line;
@@ -61,6 +68,7 @@ public class JoinInfoFile {
     }
     catch (IOException e) {
       e.printStackTrace();
+      Utilities.timestamp("read", joinInfoFileName, -1);
       return false;
     }
     int lineArraySize = lineArray.size();
@@ -71,6 +79,7 @@ public class JoinInfoFile {
         fileNameArray.add(object);
       }
     }
+    Utilities.timestamp("read", joinInfoFileName, 1);
     return true;
   }
   

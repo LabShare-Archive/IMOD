@@ -118,6 +118,8 @@ public class Montagesize {
         && curLastModified == lastModified) {
       return;
     }
+    //put first timestamp after decide to read
+    Utilities.timestamp("read", "montagesize", stack, 0);
     lastModified = curLastModified;
     //Run the montagesize command on the stack.
     File pieceListFile = new File(directory, datasetName + axisID.getExtension() + ".pl");
@@ -146,6 +148,7 @@ public class Montagesize {
           for (int i = 0; i < errorList.size(); i++) {
             message = message + errorList.get(i) + "\n";
           }
+          Utilities.timestamp("read", "montagesize", stack, -1);
           throw new InvalidParameterException(message);
         }
       }
@@ -157,12 +160,14 @@ public class Montagesize {
       for (int i = 0; i < stdError.length; i++) {
         message = message + stdError[i] + "\n";
       }
+      Utilities.timestamp("read", "montagesize", stack, -1);
       throw new InvalidParameterException(message);
     }
 
     // Parse the output
     String[] stdOutput = montagesize.getStdOutput();
     if (stdOutput.length < 1) {
+      Utilities.timestamp("read", "montagesize", stack, -1);
       throw new IOException("montagesize returned no data");
     }
 
@@ -173,6 +178,7 @@ public class Montagesize {
       if (outputLine.startsWith("Total NX, NY, NZ:")) {
         String[] tokens = outputLine.split("\\s+");
         if (tokens.length < 7) {
+          Utilities.timestamp("read", "montagesize", stack, -1);
           throw new IOException(
               "Montagesize returned less than three parameters for image size");
         }
@@ -180,19 +186,23 @@ public class Montagesize {
         y.set(tokens[5]);
         z.set(tokens[6]);
         if (!x.isValid() || x.isNull()) {
+          Utilities.timestamp("read", "montagesize", stack, -1);
           throw new NumberFormatException("NX is not set, token is "
               + tokens[4] + "\n" + x.getInvalidReason());
         }
         if (!y.isValid() || y.isNull()) {
+          Utilities.timestamp("read", "montagesize", stack, -1);
           throw new NumberFormatException("NY is not set, token is "
               + tokens[5] + "\n" + y.getInvalidReason());
         }
         if (!z.isValid() || z.isNull()) {
+          Utilities.timestamp("read", "montagesize", stack, -1);
           throw new NumberFormatException("NZ is not set, token is "
               + tokens[6] + "\n" + z.getInvalidReason());
         }
       }
     }
+    Utilities.timestamp("read", "montagesize", stack, 1);
   }
 
   /**
@@ -225,6 +235,11 @@ public class Montagesize {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.3  2005/04/25 21:42:49  sueh
+ * <p> bug# 615 Passing the axis where a command originates to the message
+ * <p> functions so that the message will be popped up in the correct window.
+ * <p> This requires adding AxisID to many objects.
+ * <p>
  * <p> Revision 1.2  2005/03/29 19:57:25  sueh
  * <p> bug# 623 Added fileExists state.  Added pieceListFile to the command
  * <p> string, if it exists.
