@@ -32,6 +32,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.32  2005/05/17 19:14:57  sueh
+ * <p> bug# 658 Passing axisID to BeadtrackParam constructor.
+ * <p>
  * <p> Revision 3.31  2005/04/26 17:36:13  sueh
  * <p> bug# 615 Change the name of the UIHarness member variable to
  * <p> uiHarness.
@@ -1281,7 +1284,7 @@ public class ComScriptManager {
    */
   public void saveCombine(ExitParam exitParam, int previousCommandIndex) {
     updateComScript(scriptCombine, exitParam, ExitParam.COMMAND_NAME,
-      AxisID.ONLY, true, previousCommandIndex);
+      AxisID.ONLY, true, previousCommandIndex, false);
   }
 
   /**
@@ -1291,7 +1294,7 @@ public class ComScriptManager {
    */
   public void saveCombine(GotoParam gotoParam, int previousCommandIndex) {
     updateComScript(scriptCombine, gotoParam, GotoParam.COMMAND_NAME,
-      AxisID.ONLY, true, previousCommandIndex);
+      AxisID.ONLY, true, previousCommandIndex, false);
   }
   
   public void saveVolcombine(SetParam setParam) {
@@ -1363,6 +1366,7 @@ public class ComScriptManager {
    */
   public void useTemplate(String scriptName, String datasetName,
     AxisType axisType, AxisID axisID) throws BadComScriptException, IOException {
+    Utilities.timestamp("copy from template", scriptName, 0);
     // Read in the template file from the IMOD_DIR/com directory replacing all
     // instances of the tag g5a and g5b with the appropriate dataset name
     String comDirectory = EtomoDirector.getInstance().getIMODDirectory()
@@ -1372,6 +1376,7 @@ public class ComScriptManager {
     File template = new File(comDirectory, scriptName + ".com");
     if (!template.exists()) {
       String message = "Unknown template: " + scriptName;
+      Utilities.timestamp("copy from template", scriptName, -1);
       throw new BadComScriptException(message);
     }
     BufferedReader templateReader = new BufferedReader(new FileReader(template));
@@ -1412,9 +1417,9 @@ public class ComScriptManager {
     }
     templateReader.close();
     scriptWriter.close();
+    Utilities.timestamp("copy from template", scriptName, 1);
   }
   
-  /**
   /**
    * Use a template script from the $IMOD_DIR/com directory.  This is useful if
    * we encounter an old data set that does not have a current complete set of
@@ -1432,6 +1437,7 @@ public class ComScriptManager {
    */
   public void useTemplate(String scriptName, AxisType axisType, AxisID axisID, 
     boolean rename) throws BadComScriptException, IOException {
+    Utilities.timestamp("copy from template", scriptName, 0);
     // Copy the template file from the IMOD_DIR/com directory to the script
     String comDirectory = EtomoDirector.getInstance().getIMODDirectory()
       .getAbsolutePath()
@@ -1440,6 +1446,7 @@ public class ComScriptManager {
     File template = new File(comDirectory, scriptName + ".com");
     if (!template.exists()) {
       String message = "Unknown template: " + scriptName;
+      Utilities.timestamp("copy from template", scriptName, -1);
       throw new BadComScriptException(message);
     }
 
@@ -1457,6 +1464,7 @@ public class ComScriptManager {
       Utilities.renameFile(script, new File(script.getAbsolutePath() + "~"));
     }
     Utilities.copyFile(template, script);
+    Utilities.timestamp("copy from template", scriptName, 1);
   }
  
 
@@ -1468,6 +1476,7 @@ public class ComScriptManager {
    */
   private ComScript loadComScript(String scriptName, AxisID axisID,
     boolean parseComments) {
+    Utilities.timestamp("load", scriptName, 0);
     String command = scriptName + axisID.getExtension() + ".com";
     File comFile = new File(appManager.getPropertyUserDir(), command);
 
@@ -1485,8 +1494,10 @@ public class ComScriptManager {
       JOptionPane.showMessageDialog(null, errorMessage, "Can't parse "
         + scriptName + axisID.getExtension() + ".com file: "
         + comScript.getComFileName(), JOptionPane.ERROR_MESSAGE);
+      Utilities.timestamp("load", scriptName, -1);
       return null;
     }
+    Utilities.timestamp("load", scriptName, 1);
     return comScript;
   }
 
@@ -1499,21 +1510,22 @@ public class ComScriptManager {
    */
   private void updateComScript(ComScript script, CommandParam params,
       String command, AxisID axisID) {
-    updateComScript(script, params, command, axisID, false); 
+    updateComScript(script, params, command, axisID, false);
   }
-  private void updateComScript(ComScript script, CommandParam params,
-    String command, AxisID axisID, boolean addNew) {
 
+  private void updateComScript(ComScript script, CommandParam params,
+      String command, AxisID axisID, boolean addNew) {
     if (script == null) {
       (new IllegalStateException()).printStackTrace();
       String[] errorMessage = new String[2];
       errorMessage[0] = "Failed attempt to update the comscript containing the command: "
-        + command;
+          + command;
       errorMessage[1] = "It needs to be loaded first";
-      uiHarness.openMessageDialog(errorMessage,
-          "ComScriptManager Error", axisID);
+      uiHarness.openMessageDialog(errorMessage, "ComScriptManager Error",
+          axisID);
       return;
     }
+    Utilities.timestamp("update", command,script.getName(), 0);
 
     //  Update the specified com script command from the CommandParam object
     ComScriptCommand comScriptCommand = null;
@@ -1529,9 +1541,10 @@ public class ComScriptManager {
       errorMessage[0] = "Com file: " + script.getComFileName();
       errorMessage[1] = "Command: " + command;
       errorMessage[2] = except.getMessage();
-      JOptionPane
-        .showMessageDialog(null, errorMessage, "Can't update " + command
-          + " in " + script.getComFileName(), JOptionPane.ERROR_MESSAGE);
+      JOptionPane.showMessageDialog(null, errorMessage, "Can't update "
+          + command + " in " + script.getComFileName(),
+          JOptionPane.ERROR_MESSAGE);
+      Utilities.timestamp("update", command,script.getName(), -1);
       return;
     }
 
@@ -1548,11 +1561,16 @@ public class ComScriptManager {
       errorMessage[0] = "Com file: " + script.getComFileName();
       errorMessage[1] = "Command: " + command;
       errorMessage[2] = except.getMessage();
-      JOptionPane.showMessageDialog(null, except.getMessage(), "Can't write "
-        + command + axisID.getExtension() + ".com", JOptionPane.ERROR_MESSAGE);
+      JOptionPane
+          .showMessageDialog(null, except.getMessage(), "Can't write "
+              + command + axisID.getExtension() + ".com",
+              JOptionPane.ERROR_MESSAGE);
+      Utilities.timestamp("update", command,script.getName(), -1);
+      return;
     }
+    Utilities.timestamp("update", command,script.getName(), 1);
   }
-  
+
   /**
    * Find the command in fromScript, update it, and write it to toScript.
    * it back to toScript.  AddNew is only used with the toScript.  The
@@ -1565,74 +1583,83 @@ public class ComScriptManager {
    * @param axisID
    * @param addNew
    */
-  private void updateComScript(ComScript fromScript, ComScript toScript, CommandParam params,
-      String command, AxisID axisID, boolean addNew) {
-      if (toScript == null) {
-        (new IllegalStateException()).printStackTrace();
-        String[] errorMessage = new String[2];
-        errorMessage[0] = "Failed attempt to update the comscript containing the command: "
+  private void updateComScript(ComScript fromScript, ComScript toScript,
+      CommandParam params, String command, AxisID axisID, boolean addNew) {
+    if (toScript == null) {
+      (new IllegalStateException()).printStackTrace();
+      String[] errorMessage = new String[2];
+      errorMessage[0] = "Failed attempt to update the comscript containing the command: "
           + command;
-        errorMessage[1] = "It needs to be loaded first";
-        uiHarness.openMessageDialog(errorMessage,"ComScriptManager Error", axisID);
-        return;
-      }
-      //If no fromScript, then default to reading from and writing to the
-      //toScript.
-      if (fromScript == null) {
-        updateComScript(toScript, params, command, axisID, addNew);
-        return;
-      }
-      //  Update the specified com script command from the CommandParam object
-      ComScriptCommand comScriptCommand = null;
-      int toScriptCommandIndex = toScript.getScriptCommandIndex(command, addNew);
-      try {
-        //Get comScriptCommand from fromScript
-        comScriptCommand = fromScript.getScriptCommand(command);
-      }
-      catch (BadComScriptException except) {
-        except.printStackTrace();
-        String[] errorMessage = new String[3];
-        errorMessage[0] = "Com file: " + fromScript.getComFileName();
-        errorMessage[1] = "Command: " + command;
-        errorMessage[2] = except.getMessage();
-        JOptionPane
-          .showMessageDialog(null, errorMessage, "Can't read " + command
-            + " in " + fromScript.getComFileName(), JOptionPane.ERROR_MESSAGE);
-        return;
-      }
-      try {
-        //Update comScriptCommand
-        params.updateComScriptCommand(comScriptCommand);
-      }
-      catch (BadComScriptException except) {
-        except.printStackTrace();
-        String[] errorMessage = new String[3];
-        errorMessage[0] = "Com file: " + toScript.getComFileName();
-        errorMessage[1] = "Command: " + command;
-        errorMessage[2] = except.getMessage();
-        JOptionPane
-          .showMessageDialog(null, errorMessage, "Can't update " + command
-            + " in " + toScript.getComFileName(), JOptionPane.ERROR_MESSAGE);
-        return;
-      }
-
-      //Replace the specified command by the updated comScriptCommand in toScript
-      toScript.setScriptComand(toScriptCommandIndex, comScriptCommand);
-
-      //Write toScript back out to disk
-      try {
-        toScript.writeComFile();
-      }
-      catch (Exception except) {
-        except.printStackTrace();
-        String[] errorMessage = new String[3];
-        errorMessage[0] = "Com file: " + toScript.getComFileName();
-        errorMessage[1] = "Command: " + command;
-        errorMessage[2] = except.getMessage();
-        JOptionPane.showMessageDialog(null, except.getMessage(), "Can't write "
-          + command + axisID.getExtension() + ".com", JOptionPane.ERROR_MESSAGE);
-      }
+      errorMessage[1] = "It needs to be loaded first";
+      uiHarness.openMessageDialog(errorMessage, "ComScriptManager Error",
+          axisID);
+      return;
     }
+      Utilities.timestamp("update", command, toScript.getName(), 0);
+    //If no fromScript, then default to reading from and writing to the
+    //toScript.
+    if (fromScript == null) {
+      updateComScript(toScript, params, command, axisID, addNew);
+      Utilities.timestamp("update", command, toScript.getName(), 1);
+      return;
+    }
+    //  Update the specified com script command from the CommandParam object
+    ComScriptCommand comScriptCommand = null;
+    int toScriptCommandIndex = toScript.getScriptCommandIndex(command, addNew);
+    try {
+      //Get comScriptCommand from fromScript
+      comScriptCommand = fromScript.getScriptCommand(command);
+    }
+    catch (BadComScriptException except) {
+      except.printStackTrace();
+      String[] errorMessage = new String[3];
+      errorMessage[0] = "Com file: " + fromScript.getComFileName();
+      errorMessage[1] = "Command: " + command;
+      errorMessage[2] = except.getMessage();
+      JOptionPane.showMessageDialog(null, errorMessage, "Can't read " + command
+          + " in " + fromScript.getComFileName(), JOptionPane.ERROR_MESSAGE);
+      Utilities.timestamp("update", command, toScript.getName(), -1);
+      return;
+    }
+    try {
+      //Update comScriptCommand
+      params.updateComScriptCommand(comScriptCommand);
+    }
+    catch (BadComScriptException except) {
+      except.printStackTrace();
+      String[] errorMessage = new String[3];
+      errorMessage[0] = "Com file: " + toScript.getComFileName();
+      errorMessage[1] = "Command: " + command;
+      errorMessage[2] = except.getMessage();
+      JOptionPane.showMessageDialog(null, errorMessage, "Can't update "
+          + command + " in " + toScript.getComFileName(),
+          JOptionPane.ERROR_MESSAGE);
+      Utilities.timestamp("update", command, toScript.getName(), -1);
+      return;
+    }
+
+    //Replace the specified command by the updated comScriptCommand in toScript
+    toScript.setScriptComand(toScriptCommandIndex, comScriptCommand);
+
+    //Write toScript back out to disk
+    try {
+      toScript.writeComFile();
+    }
+    catch (Exception except) {
+      except.printStackTrace();
+      String[] errorMessage = new String[3];
+      errorMessage[0] = "Com file: " + toScript.getComFileName();
+      errorMessage[1] = "Command: " + command;
+      errorMessage[2] = except.getMessage();
+      JOptionPane
+          .showMessageDialog(null, except.getMessage(), "Can't write "
+              + command + axisID.getExtension() + ".com",
+              JOptionPane.ERROR_MESSAGE);
+      Utilities.timestamp("update", command, toScript.getName(), -1);
+      return;
+    }
+    Utilities.timestamp("update", command, toScript.getName(), 1);
+  }
   
   /**
    * 
@@ -1654,7 +1681,7 @@ public class ComScriptManager {
       uiHarness.openMessageDialog(errorMessage,"ComScriptManager Error", axisID);
       return -1;
     }
-
+    Utilities.timestamp("update", command,script.getName(), 0);
     //locate previous command
     ComScriptCommand previousComScriptCommand = null;
     int previousCommandIndex = script.getScriptCommandIndex(previousCommand);
@@ -1665,11 +1692,12 @@ public class ComScriptManager {
         + command;
       errorMessage[1] = "previous command:" + previousCommand + "is missing.";
       uiHarness.openMessageDialog(errorMessage,"ComScriptManager Error", axisID);
+      Utilities.timestamp("update", command,script.getName(), -1);
       return -1;
     }
     
     return updateComScript(script, params, command, axisID, addNew, 
-      previousCommandIndex);
+      previousCommandIndex, true);
   }
   
   /**
@@ -1683,7 +1711,8 @@ public class ComScriptManager {
    * @return
    */
   private int updateComScript(ComScript script, CommandParam params,
-    String command, AxisID axisID, boolean addNew, int previousCommandIndex) {
+    String command, AxisID axisID, boolean addNew, int previousCommandIndex,
+    boolean timestamped) {
     if (script == null) {
       String[] errorMessage = new String[2];
       errorMessage[0] = "Failed attempt to update comscript for command:"
@@ -1693,7 +1722,9 @@ public class ComScriptManager {
           "ComScriptManager Error", axisID);
       return -1;
     }
-    
+    if (!timestamped) {
+      Utilities.timestamp("update", command,script.getName(), 0);
+    }
     if (previousCommandIndex < -1) {
       String[] errorMessage = new String[2];
       errorMessage[0] = "Failed attempt to update comscript for command:"
@@ -1702,6 +1733,7 @@ public class ComScriptManager {
         + ", is invalid.";
       uiHarness.openMessageDialog(errorMessage,
           "ComScriptManager Error", axisID);
+      Utilities.timestamp("update", command,script.getName(), -1);
       return -1;
     }
     
@@ -1722,6 +1754,7 @@ public class ComScriptManager {
       JOptionPane
         .showMessageDialog(null, errorMessage, "Can't update " + command
           + " in " + script.getComFileName(), JOptionPane.ERROR_MESSAGE);
+      Utilities.timestamp("update", command,script.getName(), -1);
       return commandIndex;
     }
 
@@ -1739,7 +1772,10 @@ public class ComScriptManager {
       errorMessage[2] = except.getMessage();
       JOptionPane.showMessageDialog(null, except.getMessage(), "Can't write "
         + command + axisID.getExtension() + ".com", JOptionPane.ERROR_MESSAGE);
+      Utilities.timestamp("update", command,script.getName(), -1);
+      return commandIndex;
     }
+    Utilities.timestamp("update", command,script.getName(), 1);
     return commandIndex;
   }
 
@@ -1754,6 +1790,7 @@ public class ComScriptManager {
       uiHarness.openMessageDialog(errorMessage, "ComScriptManager Error", axisID);
       return;
     }
+    Utilities.timestamp("delete", command,script.getName(), 0);
 
     //locate previous command
     ComScriptCommand previousComScriptCommand = null;
@@ -1765,6 +1802,7 @@ public class ComScriptManager {
         + command;
       errorMessage[1] = "previous command:" + previousCommand + "is missing.";
       uiHarness.openMessageDialog(errorMessage, "ComScriptManager Error", axisID);
+      Utilities.timestamp("delete", command,script.getName(), -1);
       return;
     }
     
@@ -1774,6 +1812,7 @@ public class ComScriptManager {
       script.getScriptCommandIndex(command, previousCommandIndex + 1);
     
     if (commandIndex == -1) {
+      Utilities.timestamp("delete", command,script.getName(), -1);
       return;
     }
     script.deleteCommand(commandIndex);
@@ -1790,8 +1829,9 @@ public class ComScriptManager {
        errorMessage[2] = except.getMessage();
        JOptionPane.showMessageDialog(null, except.getMessage(), "Can't write "
          + command + axisID.getExtension() + ".com", JOptionPane.ERROR_MESSAGE);
+       Utilities.timestamp("delete", command,script.getName(), -1);
      }
-
+     Utilities.timestamp("delete", command,script.getName(), 1);
   }
 
 
@@ -1815,12 +1855,14 @@ public class ComScriptManager {
     if (comScript == null) {
       return false;
     }
+    Utilities.timestamp("initialize", command, comScript.getName(), 0);
     if (!comScript.isCommandLoaded()) {
       param.initializeDefaults();
     }
     else {
       if (optionalCommand) {
         if (comScript.getScriptCommandIndex(command) == -1) {
+          Utilities.timestamp("initialize", command, comScript.getName(), -1);
           return false;
         }
       }
@@ -1839,9 +1881,11 @@ public class ComScriptManager {
           errorMessage,
           "Com Script Command Parse Error",
           JOptionPane.ERROR_MESSAGE);
+        Utilities.timestamp("initialize", command, comScript.getName(), -1);
         return false;
       }
     }
+    Utilities.timestamp("initialize", command, comScript.getName(), 1);
     return true;
   }
   
@@ -1861,6 +1905,7 @@ public class ComScriptManager {
     if (previousCommand == null) {
       return initialize(param, comScript, command, axisID);
     }
+    Utilities.timestamp("initialize", command, comScript.getName(), 0);
     if (!comScript.isCommandLoaded()) {
       param.initializeDefaults();
     }
@@ -1876,6 +1921,7 @@ public class ComScriptManager {
         errorMessage[1] = "previous command:" + previousCommand + "is missing.";
         uiHarness.openMessageDialog(errorMessage,
             "ComScriptManager Error", axisID);
+        Utilities.timestamp("initialize", command, comScript.getName(), -1);
         return false;
       }
       
@@ -1884,6 +1930,7 @@ public class ComScriptManager {
         comScript.getScriptCommandIndex(command, previousCommandIndex + 1);
           
       if (commandIndex == -1) {
+        Utilities.timestamp("initialize", command, comScript.getName(), -1);
         return false;
       }
       
@@ -1903,9 +1950,11 @@ public class ComScriptManager {
           errorMessage,
           "Com Script Command Parse Error",
           JOptionPane.ERROR_MESSAGE);
+        Utilities.timestamp("initialize", command, comScript.getName(), -1);
         return false;
       }
     }
+    Utilities.timestamp("initialize", command, comScript.getName(), 1);
     return true;
   }
 
