@@ -582,6 +582,41 @@ public class ConstEtomoNumberTest extends TestCase {
     test.selfTest();
   }
   
+  public final void testIsNull_Number() {
+    EtomoNumber test = new EtomoNumber(EtomoNumber.LONG_TYPE);
+    //test: null
+    ///test: NaN is always null
+    assertTrue(test.isNull(new Double(Double.NaN)));
+    assertTrue(test.isNull(new Double(Float.NaN)));
+    assertTrue(test.isNull(new Float(Double.NaN)));
+    assertTrue(test.isNull(new Float(Float.NaN)));
+    ///test other null values
+    assertTrue(test.isNull(new Long(EtomoNumber.LONG_NULL_VALUE)));
+    assertTrue(test.isNull(new Integer(EtomoNumber.INTEGER_NULL_VALUE)));
+    assertTrue(test.isNull(new Short(Short.MIN_VALUE)));
+    assertTrue(test.isNull(new Byte(Byte.MIN_VALUE)));
+    //test: other null values are specific to their type
+    ///double
+    assertFalse(test.isNull(new Double(EtomoNumber.LONG_NULL_VALUE)));
+    assertFalse(test.isNull(new Double(EtomoNumber.INTEGER_NULL_VALUE)));
+    assertFalse(test.isNull(new Double(Short.MIN_VALUE)));
+    assertFalse(test.isNull(new Double(Byte.MIN_VALUE)));
+    ///float
+    assertFalse(test.isNull(new Float(EtomoNumber.LONG_NULL_VALUE)));
+    assertFalse(test.isNull(new Float(EtomoNumber.INTEGER_NULL_VALUE)));
+    assertFalse(test.isNull(new Float(Short.MIN_VALUE)));
+    assertFalse(test.isNull(new Float(Byte.MIN_VALUE)));
+    ///long
+    assertFalse(test.isNull(new Long(EtomoNumber.INTEGER_NULL_VALUE)));
+    assertFalse(test.isNull(new Long(Short.MIN_VALUE)));
+    assertFalse(test.isNull(new Long(Byte.MIN_VALUE)));
+    ///integer
+    assertFalse(test.isNull(new Integer(Short.MIN_VALUE)));
+    assertFalse(test.isNull(new Integer(Byte.MIN_VALUE)));
+    ///short
+    assertFalse(test.isNull(new Short(Byte.MIN_VALUE)));
+  }
+  
   
   
   
@@ -637,5 +672,8 @@ public class ConstEtomoNumberTest extends TestCase {
 
 }
 /**
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2005/06/16 20:00:36  sueh
+* <p> bug# 692 Added unit tests for ConstEtomoNumber.
+* <p> </p>
 */
