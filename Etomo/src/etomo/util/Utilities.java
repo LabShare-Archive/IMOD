@@ -12,6 +12,9 @@
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.16  2005/06/17 00:36:01  sueh
+ * <p> $bug# 685 Added timestamp functions and isDebug().
+ * <p> $
  * <p> $Revision 3.15  2005/05/31 23:12:11  sueh
  * <p> $bug# 667 Changed EtomoDirector.getCurrentMetaData() to
  * <p> $getCurrentName().
@@ -115,6 +118,7 @@ import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
+import java.sql.Timestamp;
 import java.util.Date;
 
 import etomo.EtomoDirector;
@@ -544,11 +548,11 @@ public class Utilities {
     }
     if (command == null) {
       System.err.println("TIMESTAMP: " + process + " " + filename + " "
-          + statusString + " at " + new Date());
+          + statusString + " at " + new Date().getTime());
     }
     else {
       System.err.println("TIMESTAMP: " + process + " " + command + " in "
-          + filename + " " + statusString + " at " + new Date());
+          + filename + " " + statusString + " at " + new Date().getTime());
     }
   }
   
@@ -557,7 +561,7 @@ public class Utilities {
       return;
     }
     System.err.println("TIMESTAMP: " + process + " " + command + " at "
-        + new Date());
+        + new Date().getTime());
   }
 
   
@@ -566,7 +570,7 @@ public class Utilities {
       return;
     }
     System.err.println("TIMESTAMP: " + process + " " + command + " in "
-        + window + " at " + new Date());
+        + window + " at " + new Date().getTime());
   }
 
 
