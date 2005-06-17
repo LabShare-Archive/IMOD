@@ -2,10 +2,6 @@ package etomo.ui;
 
 import java.awt.Dimension;
 import java.awt.Point;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 
 import javax.swing.JOptionPane;
 
@@ -13,7 +9,6 @@ import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.type.AxisID;
 import etomo.util.UniqueKey;
-import etomo.util.Utilities;
 
 /**
 * <p>Description: Class to provide a public interface to the application
@@ -372,6 +367,9 @@ public class UIHarness {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.8  2005/06/16 20:10:13  sueh
+* <p> bug# 692 Log messages to the err log instead of a separate file.
+* <p>
 * <p> Revision 1.7  2005/06/01 21:29:17  sueh
 * <p> bug# 667 Removing the Controller classes.  Trying make meta data and
 * <p> app manager equals didn't work very well.  Meta data is created by and
