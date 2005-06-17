@@ -13,6 +13,11 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.7  2005/04/16 02:03:18  sueh
+ * <p> bug# 615 Moved the adding of exit buttons from the child classes to this
+ * <p> class.  Remove the rigid area at the bottom so the color would wrap the
+ * <p> dialog correctly.
+ * <p>
  * <p> Revision 3.6  2005/04/12 19:39:15  sueh
  * <p> bug# 615 Do not disable fit window menu option.
  * <p>
@@ -76,6 +81,7 @@ import etomo.ApplicationManager;
 import etomo.type.AxisID;
 import etomo.type.DialogExitState;
 import etomo.type.DialogType;
+import etomo.util.Utilities;
 
 public class ProcessDialog implements ExitButtons {
   public static final String rcsid = "$Id$";
@@ -172,6 +178,7 @@ public class ProcessDialog implements ExitButtons {
    * to set the exitState attribute to CANCEL.
    */
   public void buttonCancelAction(ActionEvent event) {
+    Utilities.timestamp("PRESSED", "cancel", dialogType.toString());
     exitState = DialogExitState.CANCEL;
   }
 
@@ -180,6 +187,7 @@ public class ProcessDialog implements ExitButtons {
    * to set the exitState attribute to POSTPONE.
    */
   public void buttonPostponeAction(ActionEvent event) {
+    Utilities.timestamp("PRESSED", "postpone", dialogType.toString());
     exitState = DialogExitState.POSTPONE;
   }
 
@@ -188,9 +196,8 @@ public class ProcessDialog implements ExitButtons {
    * to set the exitState attribute to EXECUTE.
    */
   public void buttonExecuteAction(ActionEvent event) {
-    if (validateInput()) {
-      exitState = DialogExitState.EXECUTE;
-    }
+    Utilities.timestamp("PRESSED", "done", dialogType.toString());
+    exitState = DialogExitState.EXECUTE;
   }
 
   /**
@@ -213,10 +220,6 @@ public class ProcessDialog implements ExitButtons {
     else {
       btnAdvanced.setText("Advanced");
     }
-  }
-
-  public boolean validateInput() {
-    return true;
   }
 
   public DialogExitState getExitState() {
