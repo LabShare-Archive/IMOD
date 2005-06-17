@@ -12,6 +12,10 @@
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.15  2005/05/31 23:12:11  sueh
+ * <p> $bug# 667 Changed EtomoDirector.getCurrentMetaData() to
+ * <p> $getCurrentName().
+ * <p> $
  * <p> $Revision 3.14  2005/05/26 21:09:44  rickg
  * <p> $Print out file name with error dialog
  * <p> $
@@ -111,6 +115,7 @@ import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
+import java.util.Date;
 
 import etomo.EtomoDirector;
 import etomo.type.AxisID;
@@ -118,6 +123,10 @@ import etomo.ui.UIHarness;
 import etomo.process.SystemProgram;
 
 public class Utilities {
+  
+  private static boolean retrievedDebug = false;
+  private static boolean debug = false;
+  
   private Utilities() {
   }
 
@@ -501,4 +510,72 @@ public class Utilities {
     return isValid;
   }
   
+  /**
+   * Print timestamp in error log
+   * @param process
+   * @param filename
+   * @param status
+   */
+  public static void timestamp(String process, String filename, int status) {
+    timestamp(process, null, filename, status);
+  }
+
+  /**
+   * Print timestamp in error log.
+   * @param command
+   * @param filename
+   * @param status 0 = started, 1 = finished, -1 = failed
+   */
+  public static void timestamp(String process, String command, String filename,
+      int status) {
+    if (!isDebug()) {
+      return;
+    }
+    String statusString = "";
+    switch (status) {
+    case 0:
+      statusString = " started";
+      break;
+    case 1:
+      statusString = "finished";
+      break;
+    case -1:
+      statusString = "  failed";
+    }
+    if (command == null) {
+      System.err.println("TIMESTAMP: " + process + " " + filename + " "
+          + statusString + " at " + new Date());
+    }
+    else {
+      System.err.println("TIMESTAMP: " + process + " " + command + " in "
+          + filename + " " + statusString + " at " + new Date());
+    }
+  }
+  
+  public static void timestamp(String process, String command) {
+    if (!isDebug()) {
+      return;
+    }
+    System.err.println("TIMESTAMP: " + process + " " + command + " at "
+        + new Date());
+  }
+
+  
+  public static void timestamp(String process, String command, String window) {
+    if (!isDebug()) {
+      return;
+    }
+    System.err.println("TIMESTAMP: " + process + " " + command + " in "
+        + window + " at " + new Date());
+  }
+
+
+  public static boolean isDebug() {
+    if (!retrievedDebug) {
+      debug = EtomoDirector.getInstance().isDebug();
+      retrievedDebug = true;
+    }
+    return debug;
+  }
+
 }
