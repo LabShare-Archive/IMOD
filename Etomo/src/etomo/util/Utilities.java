@@ -12,6 +12,10 @@
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.19  2005/06/17 19:18:04  sueh
+ * <p> $bug# 685 Put all timestamp functionality into one function.  Added
+ * <p> $buttonTimestamp to provide an interface to the main timestamp function.
+ * <p> $
  * <p> $Revision 3.18  2005/06/17 17:49:18  sueh
  * <p> $bug# 685 Added getTimestamp() and setStartTime() to get a relative
  * <p> $timestamp.
@@ -131,6 +135,7 @@ import java.util.Date;
 import etomo.EtomoDirector;
 import etomo.type.AxisID;
 import etomo.ui.UIHarness;
+import etomo.comscript.ComScript;
 import etomo.process.SystemProgram;
 
 public class Utilities {
@@ -523,24 +528,18 @@ public class Utilities {
     return isValid;
   }
   
-  public static void buttonTimestamp(String process, String command,
-      String container) {
-    timestamp(process, command, container, -100);
-  }
-
   /**
    * Print timestamp in error log
-   * @param process
-   * @param status
+   * @param command
    */
   public static void buttonTimestamp(String command) {
-    timestamp("PRESSED", command, null, -100);
+    timestamp("PRESSED", command, (String) null, -100);
   }
 
   /**
    * Print timestamp in error log
-   * @param process
-   * @param status
+   * @param command
+   * @param container
    */
   public static void buttonTimestamp(String command, String container) {
     timestamp("PRESSED", command, container, -100);
@@ -549,18 +548,49 @@ public class Utilities {
   /**
    * Print timestamp in error log
    * @param process
-   * @param filename
+   * @param container
    * @param status
    */
   public static void timestamp(String process, String container, int status) {
     timestamp(process, null, container, status);
   }
+  
+  /**
+   * Print timestamp in error log
+   * @param process
+   * @param command
+   * @param container
+   * @param status
+   */
+  public static void timestamp(String process, String command, File container,
+      int status) {
+    if (!isDebug()) {
+      return;
+    }
+    timestamp(process, command, container.getName(), status);
+  }
+  
+  /**
+   * Print timestamp in error log
+   * @param process
+   * @param command
+   * @param container
+   * @param status
+   */
+  public static void timestamp(String process, String command, ComScript container,
+      int status) {
+    if (!isDebug()) {
+      return;
+    }
+    timestamp(process, command, container.getName(), status);
+  }
 
   /**
-   * Print timestamp in error log.
+   * Print timestamp in error log
+   * @param process
    * @param command
-   * @param filename
-   * @param status 0 = started, 1 = finished, -1 = failed, -100 = null
+   * @param container
+   * @param status
    */
   public static void timestamp(String process, String command,
       String container, int status) {
@@ -591,6 +621,10 @@ public class Utilities {
       }
     }
     if (container != null) {
+      int separatorIndex = container.lastIndexOf(File.separatorChar);
+      if (separatorIndex != -1 && separatorIndex < container.length() - 1) {
+        container = container.substring(separatorIndex + 1);
+      }
       buffer.append(container + " ");
     }
     if (statusString != null) {
