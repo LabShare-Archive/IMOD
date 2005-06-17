@@ -12,6 +12,9 @@
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.17  2005/06/17 16:48:07  sueh
+ * <p> $bug# 685 Changed timestamp to milliseconds number.
+ * <p> $
  * <p> $Revision 3.16  2005/06/17 00:36:01  sueh
  * <p> $bug# 685 Added timestamp functions and isDebug().
  * <p> $
@@ -118,7 +121,7 @@ import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
-import java.sql.Timestamp;
+import java.text.DecimalFormat;
 import java.util.Date;
 
 import etomo.EtomoDirector;
@@ -130,6 +133,8 @@ public class Utilities {
   
   private static boolean retrievedDebug = false;
   private static boolean debug = false;
+  private static long startTime = 0;
+  private static DecimalFormat timestampFormat = new DecimalFormat(".000");
   
   private Utilities() {
   }
@@ -548,31 +553,29 @@ public class Utilities {
     }
     if (command == null) {
       System.err.println("TIMESTAMP: " + process + " " + filename + " "
-          + statusString + " at " + new Date().getTime());
+          + statusString + " at " + getTimestamp());
     }
     else {
       System.err.println("TIMESTAMP: " + process + " " + command + " in "
-          + filename + " " + statusString + " at " + new Date().getTime());
+          + filename + " " + statusString + " at " + getTimestamp());
     }
   }
-  
+
   public static void timestamp(String process, String command) {
     if (!isDebug()) {
       return;
     }
     System.err.println("TIMESTAMP: " + process + " " + command + " at "
-        + new Date().getTime());
+        + getTimestamp());
   }
 
-  
   public static void timestamp(String process, String command, String window) {
     if (!isDebug()) {
       return;
     }
     System.err.println("TIMESTAMP: " + process + " " + command + " in "
-        + window + " at " + new Date().getTime());
+        + window + " at " + getTimestamp());
   }
-
 
   public static boolean isDebug() {
     if (!retrievedDebug) {
@@ -580,6 +583,14 @@ public class Utilities {
       retrievedDebug = true;
     }
     return debug;
+  }
+  
+  public static void setStartTime() {
+    startTime = new Date().getTime();
+  }
+  
+  public static String getTimestamp() {
+    return timestampFormat.format((new Date().getTime() - startTime) / 1000.0);
   }
 
 }
