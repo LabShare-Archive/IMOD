@@ -86,10 +86,11 @@ public class BlendmontProcessMonitor extends LogFileProcessMonitor {
   protected void findNSections() throws InterruptedException,
       NumberFormatException, IOException {
     Montagesize montagesize = null;
-    try {
     montagesize = Montagesize.getInstance(applicationManager
         .getPropertyUserDir(), applicationManager.getMetaData()
         .getDatasetName(), axisID);
+    try {
+      montagesize.read();
     }
     catch (InvalidParameterException e) {
       e.printStackTrace();
@@ -100,6 +101,10 @@ public class BlendmontProcessMonitor extends LogFileProcessMonitor {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.6  2005/04/12 19:30:59  sueh
+* <p> bug# 630 Handling mrctaper in full alignment.  End when mrctaper ends
+* <p> and put "mrctaper" into the title when it begins.
+* <p>
 * <p> Revision 1.5  2005/04/07 21:53:15  sueh
 * <p> bug# 626 Changed the title in undistort mode.
 * <p>
