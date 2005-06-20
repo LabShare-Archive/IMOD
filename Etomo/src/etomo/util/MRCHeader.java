@@ -1,7 +1,9 @@
 package etomo.util;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Hashtable;
 
 import etomo.ApplicationManager;
 import etomo.EtomoDirector;
@@ -22,6 +24,12 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.11  2005/06/17 20:04:58  sueh
+ * <p> bug# 685 Added timestamp functions for ComScript and File types.
+ * <p> Added code to the main timestamp function to strip the path from a file
+ * <p> name.  These changes reduces the amount of timestamp related code
+ * <p> being executed when debug is off.
+ * <p>
  * <p> Revision 3.10  2005/06/17 19:18:53  sueh
  * <p> bug# 685 Added timestamps to the read function.
  * <p>
@@ -109,7 +117,18 @@ import etomo.type.AxisID;
  */
 
 public class MRCHeader {
-  private String filename;
+  //
+  //n'ton member variables
+  //
+  private static Hashtable instances = new Hashtable();
+  //
+  //member variables to prevent unnecessary reads
+  //
+  private FileModifiedFlag modifiedFlag;
+  //
+  //other member variables
+  //
+  private File file;
   private int nColumns = -1;
   private int nRows = -1;
   private int nSections = -1;
@@ -122,20 +141,90 @@ public class MRCHeader {
   private double zPixelSpacing = Double.NaN;
   private double imageRotation = Double.NaN;
   private int binning = Integer.MIN_VALUE;
-  private boolean debug = false;
   private AxisID axisID;
 
-  public MRCHeader(String name, AxisID axisID) {
+  private MRCHeader(File file, AxisID axisID) {
+    this.file = file;
     this.axisID = axisID;
-    filename = new String(name);
-    debug = EtomoDirector.getInstance().isDebug();
+    modifiedFlag = new FileModifiedFlag(file);
   }
-
-  public void read() throws IOException, InvalidParameterException {
-    if (filename == null || filename.length() == 0) {
+  
+  /**
+   * Function to get an instance of the class
+   * @param directory
+   * @param datasetName
+   * @param axisID
+   * @return
+   */
+  public static MRCHeader getInstance(String filename, AxisID axisID) {
+    File keyFile = makeFile(filename);
+    String key = makeKey(keyFile);
+    MRCHeader mrcHeader = (MRCHeader) instances.get(key);
+    if (mrcHeader == null) {
+      return createInstance(key, keyFile, axisID);
+    }
+    return mrcHeader;
+  }
+  /**
+   * Function to create and save an instance of the class.  Just returns the
+   * instance if it already exists.
+   * @param key
+   * @param file
+   * @param axisID
+   * @return
+   */
+  private static synchronized MRCHeader createInstance(String key,
+      File file, AxisID axisID) {
+    MRCHeader mrcHeader = (MRCHeader) instances.get(key);
+    if (mrcHeader != null) {
+      return mrcHeader;
+    }
+    mrcHeader = new MRCHeader(file, axisID);
+    instances.put(key, mrcHeader);
+    mrcHeader.selfTestInvariants();
+    return mrcHeader;
+  }
+  /**
+   * Function to construct the file used by the header command
+   * @param directory
+   * @param datasetName
+   * @param axisID
+   * @param fileExtension
+   * @return
+   */
+  private static File makeFile(String filename) {
+    if (filename.trim().charAt(0) == File.separatorChar) {
+      return new File(filename);
+    }
+    return new File(EtomoDirector.getInstance().getCurrentPropertyUserDir(),
+        filename);
+  }
+  /**
+   * Make a unique key from a file
+   * @param file
+   * @return
+   */
+  private static String makeKey(File file) {
+    return file.getAbsolutePath();
+  }
+  //
+  //other functions
+  //
+  public synchronized void read() throws IOException, InvalidParameterException {
+    if (file == null) {
+      throw new IOException("No file specified");
+    }
+    String filename = file.getAbsolutePath();
+    if (filename == null || file.isDirectory()) {
       throw new IOException("No filename specified");
     }
-
+    if (!file.exists()) {
+      throw new IOException("file does not exist");
+    }
+    //If the file hasn't changed, don't reread
+    if (!modifiedFlag.isModifiedSinceLastRead()) {
+      return;
+    }
     Utilities.timestamp("read", "header", filename, 0);
 
     // Run the header command on the filename, need to use a String[] here to
@@ -144,7 +233,8 @@ public class MRCHeader {
     commandArray[0] = ApplicationManager.getIMODBinPath() + "header";
     commandArray[1] = filename;
     SystemProgram header = new SystemProgram(commandArray, axisID);
-    header.setDebug(debug);
+    header.setDebug(Utilities.isDebug());
+    modifiedFlag.setReadingNow();
     header.run();
 
     if (header.getExitValue() != 0) {
@@ -278,23 +368,6 @@ public class MRCHeader {
   public int getMode() {
     return mode;
   }
-
-  /**
-   * Returns the filename.
-   * @return String
-   */
-  public String getFilename() {
-    return filename;
-  }
-
-  /**
-   * Sets the filename.
-   * @param filename The filename to set
-   */
-  public void setFilename(String filename) {
-    this.filename = filename;
-  }
-
   /**
    * Return the image rotation in degrees if present in the header.  If the
    * header has not been read or the image rotation is not available return
@@ -391,4 +464,26 @@ public class MRCHeader {
     }
   }
 
+  //
+  //self test functions
+  //
+  void selfTestInvariants() {
+    if(!Utilities.isSelfTest()) {
+      return;
+    }
+    if (instances == null) {
+      throw new IllegalStateException("instances is null");
+    }
+    if (file == null) {
+      throw new IllegalStateException("file is null");
+    }
+    String key = makeKey(file);
+    if (key == null || key.matches("\\s*")) {
+      throw new IllegalStateException("unable to make key: file=" + file);
+    }
+    MRCHeader mrcHeader = (MRCHeader) instances.get(key);
+    if (mrcHeader == null) {
+      throw new IllegalStateException("this instance is not in instances: key="+key);
+    }
+  }
 }
