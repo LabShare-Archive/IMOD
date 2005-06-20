@@ -3,9 +3,9 @@ package etomo.type;
 import java.util.Properties;
 import java.util.Vector;
 
-import etomo.EtomoDirector;
 import etomo.storage.Storable;
 import etomo.ui.UIHarness;
+import etomo.util.Utilities;
 
 /**
  * <p>Description: </p>
@@ -21,6 +21,9 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.24  2005/06/16 21:20:31  sueh
+ * <p> bug# 692 Fixed validateCopy().
+ * <p>
  * <p> Revision 1.23  2005/06/16 20:00:00  sueh
  * <p> bug# 692 Making self test variables boolean instead of EtomoBoolean2 to
  * <p> avoid test problems.  Added validation functions.
@@ -181,9 +184,6 @@ public abstract class ConstEtomoNumber implements Storable {
   private static final short shortNullValue = Short.MIN_VALUE;
   private static final byte byteNullValue = Byte.MIN_VALUE;
   
-  private static boolean retrievedSelfTest = false;
-  private static boolean selfTest = false;
-
   //data
   //not changeable
   protected int type = INTEGER_TYPE;
@@ -251,7 +251,7 @@ public abstract class ConstEtomoNumber implements Storable {
         validValues.add(newNumber((Number) that.validValues.get(i)));
       }
     }
-    validateCopy(that);
+    selfTestCopy(that);
   }
   
   public String getDescription() {
@@ -431,26 +431,10 @@ public abstract class ConstEtomoNumber implements Storable {
     return this;
   }
   
-  private boolean isSelfTest() {
-    if (selfTest) {
-      return true;
-    }
-    else {
-      if (retrievedSelfTest) {
-        return false;
-      }
-      selfTest = EtomoDirector.getInstance().isSelfTest();
-      retrievedSelfTest = true;
-    }
-    return selfTest;
-  }
-  
-  void selfTest() {
-    if (!isSelfTest()) {
+  void selfTestInvariants() {
+    if (!Utilities.isSelfTest()) {
       return;
     }
-    //invariants
-    
     //Name should never be null.
     if (name == null) {
       throw new IllegalStateException("name cannot be null.");
@@ -561,11 +545,6 @@ public abstract class ConstEtomoNumber implements Storable {
     }
     //floorValue <= ceilingValue
     validateFloorAndCeiling();
-    //self test variable should only be set once
-    if (selfTest && !retrievedSelfTest) {
-      throw new IllegalStateException(
-          "Self test variables are not being set correctly.");
-    }
     //valid validValues
     if (validValues != null) {
       for (int i = 0; i < validValues.size(); i++) {
@@ -949,7 +928,7 @@ public abstract class ConstEtomoNumber implements Storable {
       return Float.isNaN(value.floatValue());
     }
     if (value instanceof Integer) {
-      return value.intValue() == INTEGER_NULL_VALUE;
+      return isNull(value.intValue());
     }
     if (value instanceof Long) {
       return value.longValue() == LONG_NULL_VALUE;
@@ -1144,8 +1123,8 @@ public abstract class ConstEtomoNumber implements Storable {
    * Use self test on this because, if one copy works, they all should work.
    * @param original
    */
-  private void validateCopy(ConstEtomoNumber original) {
-    if (!isSelfTest()) {
+  private void selfTestCopy(ConstEtomoNumber original) {
+    if (!Utilities.isSelfTest()) {
       return;
     }
     if (original == null) {
