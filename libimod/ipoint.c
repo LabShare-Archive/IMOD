@@ -16,6 +16,9 @@
     $Revision$
 
     $Log$
+    Revision 3.7  2005/04/23 23:37:31  mast
+    Documented functions
+
     Revision 3.6  2005/03/20 19:56:49  mast
     Eliminating duplicate functions
 
@@ -35,6 +38,7 @@
 
 #include <math.h>
 #include "imodel.h"
+#include "istore.h"
 
 /*!
  * Adds point [pnt] to the end of contour [cont].  Manages point
@@ -106,6 +110,9 @@ int imodPointAdd(Icont *cont, Ipoint *pnt, int index)
     cont->sizes[index] = -1;
   }
 
+  /* 6/12/05: Shift general storage indices >= index */
+  istoreShiftIndex(cont->store, index, -1, 1);
+
   /* DNM:  check whether z matches start of contour
      and set wild flag if it doesn't */
   /* DNM 7/22/04: test for equality of nearest int instead of exact equality */
@@ -143,8 +150,11 @@ int imodPointDelete(Icont *cont, int index)
     for ( i = index; i < cont->psize - 1; i ++)
       cont->sizes[i] = cont->sizes[i+1];
 
+  /* Manage the storage list.  Should catch error, but not clear what to
+     do if one occurs */
+  istoreDeletePoint(cont->store, index, cont->psize);
   cont->psize--;
-  
+
   /* 3/26/01: per Lambert Zijp, move this cleanup from top of function
      (where it never happened) to down here, to prevent memory leak.
      Also, set pts to NULL just to be safe */

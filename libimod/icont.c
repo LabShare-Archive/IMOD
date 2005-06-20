@@ -20,6 +20,7 @@
 #include <math.h>
 #include <string.h>
 #include "imodel.h"
+#include "istore.h"
 #include "b3dutil.h"
 
 /*!
@@ -1038,6 +1039,7 @@ Icont *imodContourJoin(Icont *c1, Icont *c2, int st1, int st2, int fill,
   double dist, mdist;
   int pt, pt2;
   int dir1, dir2;
+  int lst2, lst3, lst4;
 
   if (!c1)
     if (c2)
@@ -1103,6 +1105,25 @@ Icont *imodContourJoin(Icont *c1, Icont *c2, int st1, int st2, int fill,
   if (fill == -1)
     point.z -= 0.75f;
 
+  /* Take care of joining storage lists first */
+  if (ilistSize(c1->store) || ilistSize(c2->store)) {
+    lst2 = st1 + 1 + (fill ? 1 : 0);
+    lst3 = lst2 + c2->psize - st2;
+    lst4 = st1 + c2->psize + 2 + (fill ? 2 : 0);
+    if (istoreExtractChanges(c1->store, &cont->store, 0, st1, 0, c1->psize) ||
+        istoreExtractChanges(c2->store, &cont->store, st2, c2->psize - 1, 
+                             lst2, c2->psize) ||
+        istoreExtractChanges(c2->store, &cont->store, 0, st2, 
+                             lst3, c2->psize) ||
+        istoreExtractChanges(c1->store, &cont->store, st1, c1->psize - 1, 
+                             lst4, c1->psize) ||
+        istoreCopyNonIndex(c1->store, &cont->store) ||
+        istoreCopyNonIndex(c2->store, &cont->store)) {
+      imodContourDelete(cont);
+      return(NULL);
+    }
+  }
+
   /* add points to new contour */
   for(pt = 0; pt <= st1; pt++)
     imodPointAppend(cont, &(c1->pts[pt]));
@@ -1153,8 +1174,7 @@ Icont *imodContourJoin(Icont *c1, Icont *c2, int st1, int st2, int fill,
  * Returns a contour with points 0 to [p1] from contour [c1] and
  * points from [p2] to the end from contour [c2].
  */
-Icont *imodContourSplice(Icont *c1, Icont *c2,
-                         int p1, int p2)
+Icont *imodContourSplice(Icont *c1, Icont *c2, int p1, int p2)
 {
   Icont *nc;
   int i;
@@ -1166,7 +1186,22 @@ Icont *imodContourSplice(Icont *c1, Icont *c2,
     return(NULL);
 
   nc = imodContourNew();
-  if (!nc) return(NULL);
+  if (!nc) 
+    return(NULL);
+
+  /* Take care of any store items first */
+  /* Extract changes from each and copy any non-index items */
+  if (ilistSize(c1->store) || ilistSize(c2->store)) {
+    if (istoreExtractChanges(c1->store, &nc->store, 0, p1, 0, c1->psize) ||
+        istoreExtractChanges(c2->store, &nc->store, p2, c2->psize - 1, p1 + 1, 
+                             c2->psize) ||
+        istoreCopyNonIndex(c1->store, &nc->store) ||
+        istoreCopyNonIndex(c2->store, &nc->store)) {
+      imodContourDelete(nc);
+      return(NULL);
+    }
+  }
+
   for(i = 0; i <= p1; i++)
     imodPointAppend(nc, &(c1->pts[i]));
   for(i = p2; i < c2->psize; i++)
@@ -1186,15 +1221,17 @@ Icont *imodContourSplice(Icont *c1, Icont *c2,
  */
 Icont *imodContourBreak(Icont *cont, int p)
 {
-  Icont *nc = imodContourNew();
+  Icont *nc;
   Ipoint *tpt;
   int i;
 
   /* check for bogus input data. */
-  if (!nc) return(NULL);
-  if (!cont) return(NULL);
-  if (!cont->psize) return(NULL);
-  if (p < 0) return(NULL);
+  if (!cont || !cont->psize || p < 0 || p > cont->psize)
+    return(NULL);
+
+  nc = imodContourNew();
+  if (!nc) 
+    return(NULL);
 
   for(i = p; i < cont->psize; i++)
     imodPointAppend(nc, &(cont->pts[i]));
@@ -1203,23 +1240,29 @@ Icont *imodContourBreak(Icont *cont, int p)
     for(i = p; i < cont->psize; i++)
       imodPointSetSize(nc, i - p, cont->sizes[i]);
 
-  if (!p){
+  if (istoreBreakContour(cont, nc, p)) {
+    imodContourDelete(nc);
+    return(NULL);
+  }
+
+  if (!p) {
     cont->psize = 0;
     free(cont->pts);
     if (cont->sizes) {
       free(cont->sizes);
       cont->sizes = NULL;
     }
-  }else{
+
+  } else {
     tpt = (Ipoint *)realloc(cont->pts, p * sizeof(Ipoint));
     cont->psize = p;
     if (!tpt)
       cont->psize = 0;
     cont->pts = tpt;
     if (cont->sizes)
-      cont->sizes = (float *)realloc(cont->sizes, 
-                                     p * sizeof(float));
+      cont->sizes = (float *)realloc(cont->sizes, p * sizeof(float));
   }
+
   return(nc);
 }
 
@@ -1437,6 +1480,8 @@ int imodel_contour_invert(Icont *cont)
     for (i = 0; i < cont->label->nl; i++)
       cont->label->label[i].index = pmo - cont->label->label[i].index;
 
+  /* Invert the storage items */
+  istoreInvert(cont->store, cont->psize);
   return(0);
 }
 
@@ -1759,24 +1804,8 @@ void imodContourMakeDirection(Icont *cont, int direction)
     return;
   if (cont->psize < 3)
     return;
-  if (direction == imodContZDirection(cont))
-    return;
-  hpt = cont->psize / 2;
-
-  for(pt = 0; pt < hpt; pt++){
-    point = cont->pts[pt];
-    cont->pts[pt] = cont->pts[cont->psize - pt - 1];
-    cont->pts[cont->psize - pt - 1] = point;
-  }
-
-  if (cont->sizes)
-    for(pt = 0; pt < hpt; pt++){
-      size = cont->sizes[pt];
-      cont->sizes[pt] = cont->sizes[cont->psize - pt - 1];
-      cont->sizes[cont->psize - pt - 1] = size;
-    }
-
-  return;
+  if (direction != imodContZDirection(cont))
+    imodel_contour_invert(cont);
 }
 
 /* Add points so that all points are about 1 to sqrt(2) pixels apart.
@@ -3095,6 +3124,9 @@ char *imodContourGetName(Icont *inContour)
 /* END_SECTION */
 /*
   $Log$
+  Revision 3.13  2005/04/23 23:37:31  mast
+  Documented functions
+
   Revision 3.12  2005/04/04 22:41:54  mast
   Fixed problem with argument order to imdContourGetBBox
 
