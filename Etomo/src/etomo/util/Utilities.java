@@ -12,6 +12,12 @@
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.20  2005/06/17 20:02:21  sueh
+ * <p> $bug# 685 Added timestamp functions for ComScript and File types.
+ * <p> $Added code to the main timestamp function to strip the path from a file
+ * <p> $name.  These changes reduces the amount of timestamp related code
+ * <p> $being executed when debug is off.
+ * <p> $
  * <p> $Revision 3.19  2005/06/17 19:18:04  sueh
  * <p> $bug# 685 Put all timestamp functionality into one function.  Added
  * <p> $buttonTimestamp to provide an interface to the main timestamp function.
@@ -142,6 +148,8 @@ public class Utilities {
   
   private static boolean retrievedDebug = false;
   private static boolean debug = false;
+  private static boolean retrievedSelfTest = false;
+  private static boolean selfTest = false;
   private static long startTime = 0;
   private static DecimalFormat timestampFormat = new DecimalFormat(".000");
   
@@ -590,7 +598,7 @@ public class Utilities {
    * @param process
    * @param command
    * @param container
-   * @param status
+   * @param status 0 = started, 1 = finished, -1 = failed, or -100 = null
    */
   public static void timestamp(String process, String command,
       String container, int status) {
@@ -608,7 +616,10 @@ public class Utilities {
     case -1:
       statusString = "  failed";
       break;
+    case -100:
+      break;
     default:
+      throw new IllegalStateException("bad status: status=" + status);
     }
     StringBuffer buffer = new StringBuffer("TIMESTAMP: ");
     if (process != null) {
@@ -641,7 +652,15 @@ public class Utilities {
     }
     return debug;
   }
-
+  
+  public static boolean isSelfTest() {
+    if (!retrievedSelfTest) {
+      selfTest = EtomoDirector.getInstance().isSelfTest();
+      retrievedSelfTest = true;
+    }
+    return selfTest;
+  }
+  
   public static void setStartTime() {
     startTime = new Date().getTime();
   }
