@@ -23,6 +23,11 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.4  2005/04/25 20:35:19  sueh
+ * <p> bug# 615 Passing the axis where the command originated to the message
+ * <p> functions so that the message will be popped up in the correct window.
+ * <p> This requires adding AxisID to many objects.
+ * <p>
  * <p> Revision 3.3  2004/06/24 18:32:36  sueh
  * <p> bug# 482 handling USE_MODEL_USE should also cause
  * <p> modelBased to be set to true
@@ -406,7 +411,7 @@ public class CombineParams extends ConstCombineParams implements Storable {
     throws InvalidParameterException, IOException {
 
     // Get the data size limits from the image stack
-    MRCHeader mrcHeader = new MRCHeader(fileName, AxisID.ONLY);
+    MRCHeader mrcHeader = MRCHeader.getInstance(fileName, AxisID.ONLY);
     mrcHeader.read();
 
     // Logic from setupcombine to provide the default border size, the variable
