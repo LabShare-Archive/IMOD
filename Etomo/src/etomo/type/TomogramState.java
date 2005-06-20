@@ -23,6 +23,9 @@ import etomo.util.MRCHeader;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.11  2005/06/11 02:43:22  sueh
+* <p> Changed initialize() to not require a parameter.
+* <p>
 * <p> Revision 1.10  2005/04/25 20:51:43  sueh
 * <p> bug# 615 Passing the axis where a command originates to the message
 * <p> functions so that the message will be popped up in the correct window.
@@ -254,7 +257,7 @@ public class TomogramState implements BaseState {
     if (!trimvolFile.exists()) {
       return false;
     }
-    MRCHeader header = new MRCHeader(trimvolFile.getAbsolutePath(), AxisID.ONLY);
+    MRCHeader header = MRCHeader.getInstance(trimvolFile.getAbsolutePath(), AxisID.ONLY);
     try {
       header.read();
     }
