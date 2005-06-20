@@ -1,6 +1,7 @@
 package etomo.type;
 
 import etomo.EtomoDirector;
+import etomo.util.Utilities;
 
 /**
  * <p>Description: </p>
@@ -15,6 +16,10 @@ import etomo.EtomoDirector;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.4  2005/06/16 19:59:09  sueh
+ * <p> bug# 692 Making self test variables boolean instead of EtomoBoolean2 to
+ * <p> avoid test problems.
+ * <p>
  * <p> Revision 3.3  2005/06/10 23:05:12  sueh
  * <p> bug# 671 Modified self test so it wouldn't check the EtomoDirector
  * <p> selftest setting over and over.
@@ -51,9 +56,6 @@ public class AxisID {
 
   private static final String ONLY_AXIS_NAME = "Only";
   
-  private static boolean retrievedSelfTest = false;
-  private static boolean selfTest = false;
-  
   private final String name;
 
   private AxisID(String name) {
@@ -76,7 +78,7 @@ public class AxisID {
    * creating file names.
    */
   public String getExtension() {
-    runSelfTest();
+    selfTestGetExtension();
     return getStorageExtension();
   }
   
@@ -115,21 +117,10 @@ public class AxisID {
     return null;
   }
   
-  private void runSelfTest() {
-    if (selfTest) {
-      selfTest();
+  public void selfTestGetExtension() {
+    if (!Utilities.isSelfTest()) {
+      return;
     }
-    else {
-      if (retrievedSelfTest) {
-        return;
-      }
-      selfTest = EtomoDirector.getInstance().isSelfTest();
-      retrievedSelfTest = true;
-    }
-  }
-  
-  public void selfTest() {
-    //state is always getExtension
     //make sure that the extension is correct, or the file name will be wrong
     AxisType axisType = null;
     try {
