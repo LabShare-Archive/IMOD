@@ -23,6 +23,11 @@ import junit.framework.TestCase;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.13  2005/04/25 21:43:32  sueh
+ * <p> bug# 615 Passing the axis where a command originates to the message
+ * <p> functions so that the message will be popped up in the correct window.
+ * <p> This requires adding AxisID to many objects.
+ * <p>
  * <p> Revision 3.12  2004/12/08 21:32:34  sueh
  * <p> bug# 520 Setting the working directory in TestUtilities.checkoutVector().
  * <p> Also setting the fail message for SystemProcessException in
@@ -85,12 +90,12 @@ public class MRCHeaderTest extends TestCase {
   private static final String testDirectory1 = new String("Test");
   private static final String testDirectory2 = new String("With Spaces");
   private static final String headerTestStack = "headerTest.st";
-  MRCHeader emptyFilename = new MRCHeader("", AxisID.ONLY);
-  MRCHeader badFilename = new MRCHeader(UtilTests.testRoot + testDirectory1
+  MRCHeader emptyFilename = MRCHeader.getInstance("", AxisID.ONLY);
+  MRCHeader badFilename = MRCHeader.getInstance(UtilTests.testRoot + testDirectory1
       + "/non_existant_image_file", AxisID.ONLY);
-  MRCHeader mrcHeader = new MRCHeader(UtilTests.testRoot + testDirectory1
+  MRCHeader mrcHeader = MRCHeader.getInstance(UtilTests.testRoot + testDirectory1
       + "/headerTest.st", AxisID.ONLY);
-  MRCHeader mrcWithSpaces = new MRCHeader(UtilTests.testRoot + testDirectory2
+  MRCHeader mrcWithSpaces = MRCHeader.getInstance(UtilTests.testRoot + testDirectory2
       + "/headerTest.st", AxisID.ONLY);
 
   /**
@@ -128,22 +133,16 @@ public class MRCHeaderTest extends TestCase {
     }
   }
 
-  public void testReadBadFilename() {
+  public void testReadBadFilename() throws InvalidParameterException {
     // First test, should throw an exception because the image stack is not
     // present
     boolean exceptionThrown = false;
     try {
+      System.out.println("reading badFilename");
       badFilename.read();
-          }
-    catch (Exception except) {
-      exceptionThrown = true;
-      assertEquals("Incorrect exception thrown",
-        "etomo.util.InvalidParameterException", except.getClass().getName());
+      fail("IOException not thrown");
     }
-    finally {
-      if (!exceptionThrown) {
-        fail("Exception not thrown");
-      }
+    catch (IOException except) {
     }
   }
 
