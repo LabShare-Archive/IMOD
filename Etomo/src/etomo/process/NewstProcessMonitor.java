@@ -11,6 +11,11 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.8  2005/04/25 20:48:32  sueh
+ * <p> bug# 615 Passing the axis where a command originates to the message
+ * <p> functions so that the message will be popped up in the correct window.
+ * <p> This requires adding AxisID to many objects.
+ * <p>
  * <p> Revision 3.7  2004/11/19 23:22:41  sueh
  * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
  * <p>
@@ -89,7 +94,7 @@ public class NewstProcessMonitor extends FileSizeProcessMonitor {
     // Get the header from the raw stack to calculate the aligned stack stize
     String rawStackFilename = applicationManager.getPropertyUserDir() + "/"
       + newstParam.getInputFile();
-    MRCHeader rawStack = new MRCHeader(rawStackFilename, axisID);
+    MRCHeader rawStack = MRCHeader.getInstance(rawStackFilename, axisID);
     rawStack.read();
     nX = rawStack.getNRows();
     nY = rawStack.getNColumns();

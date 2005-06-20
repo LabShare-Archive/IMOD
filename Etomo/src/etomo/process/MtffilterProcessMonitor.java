@@ -24,6 +24,11 @@ import etomo.util.MRCHeader;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.2  2005/04/25 20:48:19  sueh
+* <p> bug# 615 Passing the axis where a command originates to the message
+* <p> functions so that the message will be popped up in the correct window.
+* <p> This requires adding AxisID to many objects.
+* <p>
 * <p> Revision 1.1  2005/01/26 04:27:15  sueh
 * <p> bug# 83 File size process monitor for mtffilter.
 * <p> </p>
@@ -53,7 +58,7 @@ public class MtffilterProcessMonitor extends FileSizeProcessMonitor {
     // Get the header from the raw stack to calculate the aligned stack stize
     String newstOutputFilename = applicationManager.getPropertyUserDir() + "/"
       + newstParam.getOutputFile();
-    MRCHeader newstOutputHeader = new MRCHeader(newstOutputFilename, axisID);
+    MRCHeader newstOutputHeader = MRCHeader.getInstance(newstOutputFilename, axisID);
     newstOutputHeader.read();
     nX = newstOutputHeader.getNRows();
     nY = newstOutputHeader.getNColumns();
