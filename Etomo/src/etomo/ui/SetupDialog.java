@@ -733,7 +733,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
 
     // Run header on the dataset to the extract whatever information is
     // available
-    MRCHeader header = new MRCHeader(datasetName, AxisID.ONLY);
+    MRCHeader header = MRCHeader.getInstance(datasetName, AxisID.ONLY);
     try {
       header.read();
     }
@@ -1028,6 +1028,10 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.29  2005/04/26 17:41:39  sueh
+ * <p> bug# 615 Change the name of the UIHarness member variable to
+ * <p> uiHarness.
+ * <p>
  * <p> Revision 3.28  2005/04/25 21:38:48  sueh
  * <p> bug# 615 Passing the axis where a command originates to the message
  * <p> functions so that the message will be popped up in the correct window.
