@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/16/05: Expanded Ctrl-A selection in Zap window to include open contours
+that travel in Z and pass through the selection area.
+
 6/15/05: In Zap window, made hot keys change locked time, fixed buffer 
 flushing problem with locked time, and allowed Ctrl A to select contours that
 are outside the range of the image.
