@@ -1738,7 +1738,7 @@ static void imodvDrawScalarMesh(Imesh *mesh, double zscale,
         if (useLight)
           light_adjust(obj, cmap[0][luv]/255.0f, 
                        cmap[1][luv]/255.0f,
-                       cmap[2][luv]/255.0f);
+                       cmap[2][luv]/255.0f, obj->trans);
 
         glColor4ub(cmap[0][luv], 
                    cmap[1][luv], 
@@ -1756,7 +1756,7 @@ static void imodvDrawScalarMesh(Imesh *mesh, double zscale,
         if (useLight)
           light_adjust(obj, cmap[0][luv]/255.0f, 
                        cmap[1][luv]/255.0f,
-                       cmap[2][luv]/255.0f);
+                       cmap[2][luv]/255.0f, obj->trans);
         glColor4ub(cmap[0][luv], 
                    cmap[1][luv], 
                    cmap[2][luv],
@@ -1772,7 +1772,7 @@ static void imodvDrawScalarMesh(Imesh *mesh, double zscale,
         if (useLight)
           light_adjust(obj, cmap[0][luv]/255.0f,
                        cmap[1][luv]/255.0f,
-                       cmap[2][luv]/255.0f);
+                       cmap[2][luv]/255.0f, obj->trans);
         glColor4ub(cmap[0][luv],
                    cmap[1][luv],
                    cmap[2][luv],
@@ -1887,6 +1887,9 @@ static int skipNonCurrentSurface(Imesh *mesh, int *ip, Iobj *obj)
 
 /*
 $Log$
+Revision 4.18  2005/06/06 17:26:23  mast
+Draw spheres with fillcolor if separate new flag is set
+
 Revision 4.17  2004/11/02 16:22:26  mast
 Fixed unsigned int mismatch to calling new skip function
 

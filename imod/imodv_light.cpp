@@ -1,65 +1,20 @@
-/*  IMOD VERSION 2.41
- *
- *  imodv_light.c -- OpenGL lighting functions for imodv.
+/*  imodv_light.c -- OpenGL lighting functions for imodv.
  *
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
+ *
+ *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
+ *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  */
-
-/*****************************************************************************
- *   Copyright (C) 1995-2000 by Boulder Laboratory for 3-Dimensional Fine    *
- *   Structure ("BL3DFS") and the Regents of the University of Colorado.     *
- *                                                                           *
- *   BL3DFS reserves the exclusive rights of preparing derivative works,     *
- *   distributing copies for sale, lease or lending and displaying this      *
- *   software and documentation.                                             *
- *   Users may reproduce the software and documentation as long as the       *
- *   copyright notice and other notices are preserved.                       *
- *   Neither the software nor the documentation may be distributed for       *
- *   profit, either in original form or in derivative works.                 *
- *                                                                           *
- *   THIS SOFTWARE AND/OR DOCUMENTATION IS PROVIDED WITH NO WARRANTY,        *
- *   EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTY OF          *
- *   MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.       *
- *                                                                           *
- *   This work is supported by NIH biotechnology grant #RR00592,             *
- *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
- *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
- *****************************************************************************/
 
 /*  $Author$
 
 $Date$
 
 $Revision$
-
-$Log$
-Revision 4.3  2004/05/31 23:35:26  mast
-Switched to new standard error functions for all debug and user output
-
-Revision 4.2  2003/02/27 17:28:22  mast
-Had to include qgl.h instead of GL/gl.h under windows
-
-Revision 4.1  2003/02/10 20:29:01  mast
-autox.cpp
-
-Revision 1.1.2.3  2002/12/18 04:15:14  mast
-new includes for imodv modules
-
-Revision 1.1.2.2  2002/12/17 18:33:19  mast
-using new includes for imodv compoennts
-
-Revision 1.1.2.1  2002/12/15 21:14:02  mast
-conversion to cpp
-
-Revision 3.2  2002/12/01 15:34:41  mast
-Changes to get clean compilation with g++
-
-Revision 3.1  2002/09/03 19:37:54  mast
-Changed shininess call from glMateriali to glMaterialf
-
+Log at end
 */
-
 
 #include <math.h>
 #include <qgl.h>
@@ -259,12 +214,12 @@ void light_move(int *x, int *y)
 
 
 /* Adjust light color. */
-void light_adjust(Iobj *obj, float r, float g, float b)
+void light_adjust(Iobj *obj, float r, float g, float b, int trans)
 {
   GLfloat red   = r;
   GLfloat green = g;
   GLfloat blue  = b;
-  GLfloat alpha = (1.0 - (float)obj->trans / 100.0f);
+  GLfloat alpha = (1.0 - (float)trans / 100.0f);
   GLfloat params[4];
   GLfloat spec, amb, diffuse, shine;
   GLenum face = GL_FRONT_AND_BACK;
@@ -444,3 +399,33 @@ int imod_light_normal( struct Mod_Point *n,
 }
 
 #endif /* IMODV_LIGHT_TEST_NORMAL */
+/*
+$Log$
+Revision 4.4  2004/09/21 20:18:51  mast
+Moved clipping function to imodv_ogl
+
+Revision 4.3  2004/05/31 23:35:26  mast
+Switched to new standard error functions for all debug and user output
+
+Revision 4.2  2003/02/27 17:28:22  mast
+Had to include qgl.h instead of GL/gl.h under windows
+
+Revision 4.1  2003/02/10 20:29:01  mast
+autox.cpp
+
+Revision 1.1.2.3  2002/12/18 04:15:14  mast
+new includes for imodv modules
+
+Revision 1.1.2.2  2002/12/17 18:33:19  mast
+using new includes for imodv compoennts
+
+Revision 1.1.2.1  2002/12/15 21:14:02  mast
+conversion to cpp
+
+Revision 3.2  2002/12/01 15:34:41  mast
+Changes to get clean compilation with g++
+
+Revision 3.1  2002/09/03 19:37:54  mast
+Changed shininess call from glMateriali to glMaterialf
+
+*/
