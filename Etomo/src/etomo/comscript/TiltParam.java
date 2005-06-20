@@ -11,6 +11,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.10  2005/06/16 19:57:29  sueh
+ * <p> bug# 692 Fixed bug found in updateComScriptCommand during unit tests.
+ * <p> Trying to get a long with getInteger().
+ * <p>
  * <p> Revision 3.9  2005/06/13 23:35:25  sueh
  * <p> bug# 583 Preventing tilt.com from being overwritten with a default
  * <p> imageBinned after the .ali file is deleted.  DoneTomogramGeneration()
@@ -557,7 +561,7 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
       File aliFile = new File(userDir, datasetName + axisID.getExtension()
           + BlendmontParam.OUTPUT_FILE_EXTENSION);
       if (aliFile.exists()) {
-        MRCHeader header = new MRCHeader(aliFile.getAbsolutePath(), axisID);
+        MRCHeader header = MRCHeader.getInstance(aliFile.getAbsolutePath(), axisID);
         header.read();
         fullImageX = header.getNColumns();
         fullImageY = header.getNRows();
@@ -572,8 +576,9 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
     }
     //If the .ali file is not available, use the .st file and adjust it with
     //goodframe
+    Montagesize montagesize = Montagesize.getInstance(userDir, datasetName, axisID);
     try {
-      Montagesize montagesize = Montagesize.getInstance(userDir, datasetName, axisID);
+      montagesize.read();
       if (montagesize.isFileExists()) {
         Goodframe goodframe = new Goodframe(axisID);
         goodframe.run(montagesize.getX().getInteger(), montagesize.getY().getInteger());
