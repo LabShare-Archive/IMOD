@@ -51,6 +51,9 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.8  2005/06/16 21:20:56  sueh
+* <p> bug# 614 Fixed 3dmod button name.
+* <p>
 * <p> Revision 1.7  2005/04/26 17:41:15  sueh
 * <p> bug# 615 Change the name of the UIHarness member variable to
 * <p> uiHarness.
@@ -859,7 +862,7 @@ public class SectionTablePanel implements ContextMenu, Expandable {
       if (isDuplicate(tomogram)) {
         return;
       }
-      MRCHeader header = new MRCHeader(tomogram.getAbsolutePath(), AxisID.ONLY);
+      MRCHeader header = MRCHeader.getInstance(tomogram.getAbsolutePath(), AxisID.ONLY);
       if (!readHeader(header)) {
         return;
       }
@@ -955,7 +958,7 @@ public class SectionTablePanel implements ContextMenu, Expandable {
           tomogram.getAbsolutePath() + " is not a file.", "File Error", AxisID.ONLY);
       return;
     }
-    MRCHeader header = new MRCHeader(tomogram.getAbsolutePath(), AxisID.ONLY);
+    MRCHeader header = MRCHeader.getInstance(tomogram.getAbsolutePath(), AxisID.ONLY);
     try {
       header.read();
     }
