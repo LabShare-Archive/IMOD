@@ -11,6 +11,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.11  2005/06/20 16:40:53  sueh
+ * <p> bug# 522 Made MRCHeader an n'ton.  Getting instance instead of
+ * <p> constructing in setMontageFullImage().
+ * <p>
  * <p> Revision 3.10  2005/06/16 19:57:29  sueh
  * <p> bug# 692 Fixed bug found in updateComScriptCommand during unit tests.
  * <p> Trying to get a long with getInteger().
@@ -576,7 +580,7 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
     }
     //If the .ali file is not available, use the .st file and adjust it with
     //goodframe
-    Montagesize montagesize = Montagesize.getInstance(userDir, datasetName, axisID);
+    Montagesize montagesize = Montagesize.getInstance(axisID);
     try {
       montagesize.read();
       if (montagesize.isFileExists()) {
