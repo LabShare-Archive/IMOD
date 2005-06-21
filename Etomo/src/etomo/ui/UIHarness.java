@@ -225,6 +225,12 @@ public class UIHarness {
     }
   }
   
+  /**
+   * If there is a head, tells mainFrame to select a window menu item base on
+   * currentManagerKey.
+   * @param currentManagerKey
+   * @param newWindow
+   */
   public void selectWindowMenuItem(UniqueKey currentManagerKey, boolean newWindow) {
     if (isHead()) {
       mainFrame.selectWindowMenuItem(currentManagerKey, newWindow);
@@ -367,6 +373,9 @@ public class UIHarness {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.9  2005/06/17 00:35:32  sueh
+* <p> Removed unnecessary imports.
+* <p>
 * <p> Revision 1.8  2005/06/16 20:10:13  sueh
 * <p> bug# 692 Log messages to the err log instead of a separate file.
 * <p>
