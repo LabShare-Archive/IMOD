@@ -21,6 +21,11 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.25  2005/06/20 16:53:11  sueh
+ * <p> bug# 692 Moved selftest convenience variable to util.Utilities.  Change
+ * <p> validateCopy() to selfTestCopy() because it is just testing the correctness
+ * <p> of ConstEtomoNumber code.
+ * <p>
  * <p> Revision 1.24  2005/06/16 21:20:31  sueh
  * <p> bug# 692 Fixed validateCopy().
  * <p>
@@ -1101,6 +1106,10 @@ public abstract class ConstEtomoNumber implements Storable {
     if (type != DOUBLE_TYPE && type != LONG_TYPE) {
       throw new IllegalStateException("Cannot place a long into anything but a Double or Long.  Type=" + type);
     }
+  }
+  
+  int getType() {
+    return type;
   }
   
   /**
