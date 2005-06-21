@@ -40,7 +40,7 @@ public class Montagesize {
   //
   //other member variables
   //
-  private File file = null;
+  private String filename = null;
   private boolean fileExists = false;
   private EtomoNumber x = new EtomoNumber(EtomoNumber.INTEGER_TYPE);
   private EtomoNumber y = new EtomoNumber(EtomoNumber.INTEGER_TYPE);
@@ -54,7 +54,7 @@ public class Montagesize {
    * private constructor
    */
   private Montagesize(File file, AxisID axisID) {
-    this.file = file;
+    filename = file.getAbsolutePath();
     this.axisID = axisID;
     modifiedFlag = new FileModifiedFlag(file);
   }
@@ -65,9 +65,8 @@ public class Montagesize {
    * @param axisID
    * @return
    */
-  public static Montagesize getInstance(String directory, String datasetName,
-      AxisID axisID) {
-    File keyFile = makeFile(directory, datasetName, axisID);
+  public static Montagesize getInstance(AxisID axisID) {
+    File keyFile = Utilities.getFile(axisID, fileExtension);
     String key = makeKey(keyFile);
     Montagesize montagesize = (Montagesize) instances.get(key);
     if (montagesize == null) {
@@ -106,22 +105,11 @@ public class Montagesize {
   //other functions
   //
   /**
-   * Function to construct the file used by the montagesize command
-   * @param directory
-   * @param datasetName
-   * @param axisID
-   * @return
-   */
-  private static File makeFile(String directory, String datasetName,
-      AxisID axisID) {
-    return new File(directory, datasetName + axisID.getExtension()
-        + fileExtension);
-  }
-  /**
    * construct a piece list file
    * @return
    */
   private File makePieceListFile() {
+    File file = Utilities.getFile(filename);
     String filePath = file.getAbsolutePath();
     int extensionIndex = filePath.lastIndexOf(fileExtension);
     if (extensionIndex == -1) {
@@ -145,19 +133,21 @@ public class Montagesize {
    * run montagesize on the file
    * @throws IOException
    * @throws InvalidParameterException
+   * @returns true if attempted to read
    */
-  public synchronized void read() throws IOException, InvalidParameterException {
-    if (file == null) {
+  public synchronized boolean read() throws IOException, InvalidParameterException {
+    File file = Utilities.getFile(filename);
+    if (filename == null || filename.matches("\\s*") || file.isDirectory()) {
       throw new IOException("No stack specified.");
     }
     if (!file.exists()) {
       reset();
-      return;
+      return false;
     }
     fileExists = true;
     //If the file hasn't been modified, don't reread
     if (!modifiedFlag.isModifiedSinceLastRead()) {
-      return;
+      return false;
     }
     //put first timestamp after decide to read
     Utilities.timestamp("read", "montagesize", file, 0);
@@ -244,6 +234,7 @@ public class Montagesize {
       }
     }
     Utilities.timestamp("read", "montagesize", file, 1);
+    return true;
   }
   /**
    * 
@@ -283,21 +274,34 @@ public class Montagesize {
     if (instances == null) {
       throw new IllegalStateException("instances is null");
     }
-    if (file == null) {
+    if (filename == null || filename.matches("\\s*")) {
       throw new IllegalStateException("file is null");
     }
-    String key = makeKey(file);
+    String key = makeKey(Utilities.getFile(filename));
     if (key == null || key.matches("\\s*")) {
-      throw new IllegalStateException("unable to make key: file=" + file);
+      throw new IllegalStateException("unable to make key: filename=" + filename);
     }
     Montagesize montagesize = (Montagesize) instances.get(key);
     if (montagesize == null) {
       throw new IllegalStateException("this instance is not in instances: key="+key);
     }
   }
+  
+  public String toString() {
+    return getClass().getName() + "[" + super.toString() + paramString() + "]";
+  }
+
+  protected String paramString() {
+    return ",filename=" + filename + ",fileExists=" + fileExists + ",x=" + x
+        + ",y=" + y + ",z=" + z + ",axisID=" + axisID;
+  }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.5  2005/06/20 17:05:36  sueh
+ * <p> bug# 522 Changed  Montagesize so that read() is not called
+ * <p> automatically.
+ * <p>
  * <p> Revision 1.4  2005/06/17 20:04:38  sueh
  * <p> bug# 685 Added timestamps to read().
  * <p>

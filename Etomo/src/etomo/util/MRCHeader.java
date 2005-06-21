@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 
 import etomo.ApplicationManager;
-import etomo.EtomoDirector;
 import etomo.process.SystemProgram;
 import etomo.type.AxisID;
 
@@ -24,6 +23,10 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.12  2005/06/20 17:06:43  sueh
+ * <p> bug# 522 Made MRCHeader an n'ton.  Added a flag to prevent rereading
+ * <p> when the file has not been changed.
+ * <p>
  * <p> Revision 3.11  2005/06/17 20:04:58  sueh
  * <p> bug# 685 Added timestamp functions for ComScript and File types.
  * <p> Added code to the main timestamp function to strip the path from a file
@@ -128,7 +131,7 @@ public class MRCHeader {
   //
   //other member variables
   //
-  private File file;
+  private String filename;
   private int nColumns = -1;
   private int nRows = -1;
   private int nSections = -1;
@@ -144,7 +147,7 @@ public class MRCHeader {
   private AxisID axisID;
 
   private MRCHeader(File file, AxisID axisID) {
-    this.file = file;
+    filename = file.getAbsolutePath();
     this.axisID = axisID;
     modifiedFlag = new FileModifiedFlag(file);
   }
@@ -157,7 +160,7 @@ public class MRCHeader {
    * @return
    */
   public static MRCHeader getInstance(String filename, AxisID axisID) {
-    File keyFile = makeFile(filename);
+    File keyFile = Utilities.getFile(filename);
     String key = makeKey(keyFile);
     MRCHeader mrcHeader = (MRCHeader) instances.get(key);
     if (mrcHeader == null) {
@@ -185,21 +188,6 @@ public class MRCHeader {
     return mrcHeader;
   }
   /**
-   * Function to construct the file used by the header command
-   * @param directory
-   * @param datasetName
-   * @param axisID
-   * @param fileExtension
-   * @return
-   */
-  private static File makeFile(String filename) {
-    if (filename.trim().charAt(0) == File.separatorChar) {
-      return new File(filename);
-    }
-    return new File(EtomoDirector.getInstance().getCurrentPropertyUserDir(),
-        filename);
-  }
-  /**
    * Make a unique key from a file
    * @param file
    * @return
@@ -210,20 +198,20 @@ public class MRCHeader {
   //
   //other functions
   //
-  public synchronized void read() throws IOException, InvalidParameterException {
-    if (file == null) {
-      throw new IOException("No file specified");
-    }
-    String filename = file.getAbsolutePath();
-    if (filename == null || file.isDirectory()) {
+  /**
+   * @returns true if a read was attempted
+   */
+  public synchronized boolean read() throws IOException, InvalidParameterException {
+    File file = Utilities.getFile(filename);
+    if (filename == null || filename.matches("\\s*") || file.isDirectory()) {
       throw new IOException("No filename specified");
     }
     if (!file.exists()) {
-      throw new IOException("file does not exist");
+      throw new IOException("file, " + file.getAbsolutePath() + ", does not exist");
     }
     //If the file hasn't changed, don't reread
     if (!modifiedFlag.isModifiedSinceLastRead()) {
-      return;
+      return false;
     }
     Utilities.timestamp("read", "header", filename, 0);
 
@@ -336,6 +324,7 @@ public class MRCHeader {
       parseBinning(stdOutput[i]);
     }
     Utilities.timestamp("read", "header", filename, 1);
+    return true;
   }
   /**
    * Returns the nColumns.
@@ -474,16 +463,31 @@ public class MRCHeader {
     if (instances == null) {
       throw new IllegalStateException("instances is null");
     }
-    if (file == null) {
+    if (filename == null || filename.matches("\\s*")) {
       throw new IllegalStateException("file is null");
     }
-    String key = makeKey(file);
+    String key = makeKey(Utilities.getFile(filename));
     if (key == null || key.matches("\\s*")) {
-      throw new IllegalStateException("unable to make key: file=" + file);
+      throw new IllegalStateException("unable to make key: filename=" + filename);
     }
     MRCHeader mrcHeader = (MRCHeader) instances.get(key);
-    if (mrcHeader == null) {
-      throw new IllegalStateException("this instance is not in instances: key="+key);
+    if (mrcHeader == null || mrcHeader != this) {
+      throw new IllegalStateException("this instance is not in instances: key="
+          + key + ",filename=" + filename);
     }
+  }
+  
+  public String toString() {
+    return getClass().getName() + "[" + super.toString() + paramString() + "]";
+  }
+
+  protected String paramString() {
+    return ",\nfilename=" + filename + ",nColumns=" + nColumns + ",nRows="
+        + nRows + ",\nnSections=" + nSections + ",mode=" + mode
+        + ",\nxPixelSize=" + xPixelSize + ",yPixelSize=" + yPixelSize
+        + ",\nzPixelSize=" + zPixelSize + ",xPixelSpacing=" + xPixelSpacing
+        + ",\nyPixelSpacing=" + yPixelSpacing + ",zPixelSpacing=" + zPixelSpacing
+        + ",\nimageRotation=" + imageRotation + ",binning=" + binning
+        + ",\naxisID=" + axisID;
   }
 }
