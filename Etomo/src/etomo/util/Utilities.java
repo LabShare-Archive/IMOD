@@ -12,6 +12,10 @@
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.22  2005/06/21 00:56:52  sueh
+ * <p> $bug# 522 Added isWindowsOS().  Added getFile(AxisID, String extension),
+ * <p> $Added getFile(String filename).
+ * <p> $
  * <p> $Revision 3.21  2005/06/20 17:09:31  sueh
  * <p> $bug# 522 Added isSelfTest().
  * <p> $
@@ -229,11 +233,19 @@ public class Utilities {
   }
   
   public static File getFile(String filename) {
+    filename = filename.trim();
     if (filename == null || filename.matches("\\s*")) {
       return new File(EtomoDirector.getInstance().getCurrentPropertyUserDir());
     }
-    if (filename.trim().charAt(0) == File.separatorChar) {
+    if (filename.charAt(0) == File.separatorChar) {
       return new File(filename);
+    }
+    if (isWindowsOS()) {
+      int driveIndex = filename.indexOf(':');
+      if (driveIndex != -1 && driveIndex < filename.length() - 1
+          && filename.charAt(driveIndex + 1) == File.separatorChar) {
+        return new File(filename);
+      }
     }
     return new File(EtomoDirector.getInstance().getCurrentPropertyUserDir(),
         filename);
