@@ -47,6 +47,11 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.16  2005/06/01 21:25:16  sueh
+* <p> bug# 667 Removing the Controller classes.  Trying make meta data and
+* <p> app manager equals didn't work very well.  Meta data is created by and
+* <p> managed by app mgr and the class structure should reflect that.
+* <p>
 * <p> Revision 1.15  2005/05/17 19:09:22  sueh
 * <p> bug# 520 Setting the status bar when join is opened with an .ejf file.
 * <p>
@@ -710,14 +715,18 @@ public class JoinManager extends BaseManager {
   public void revertXfFileToMidas() {
     File midasOutputFile = new File(propertyUserDir, metaData.getRootName()
         + MidasParam.getOutputFileExtension());
-    processMgr.touch(midasOutputFile);
+    touch(midasOutputFile);
     copyXfFile(midasOutputFile);
+  }
+  
+  public void touch(File file) {
+    processMgr.touch(file);
   }
   
   public void revertXfFileToEmpty() {
     File emptyFile = new File(propertyUserDir, metaData.getRootName()
         + "_empty.xf");
-    processMgr.touch(emptyFile);
+    touch(emptyFile);
     copyXfFile(emptyFile);
   }
   
