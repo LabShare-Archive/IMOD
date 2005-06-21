@@ -1481,7 +1481,7 @@ int imodel_contour_invert(Icont *cont)
       cont->label->label[i].index = pmo - cont->label->label[i].index;
 
   /* Invert the storage items */
-  istoreInvert(cont->store, cont->psize);
+  istoreInvert(&cont->store, cont->psize);
   return(0);
 }
 
@@ -3124,6 +3124,9 @@ char *imodContourGetName(Icont *inContour)
 /* END_SECTION */
 /*
   $Log$
+  Revision 3.14  2005/06/20 22:25:39  mast
+  Chnages for managing general storage
+
   Revision 3.13  2005/04/23 23:37:31  mast
   Documented functions
 
