@@ -104,6 +104,10 @@ import etomo.util.Utilities;
  * 
  *
  * <p> $Log$
+ * <p> Revision 3.155  2005/06/20 16:39:35  sueh
+ * <p> bug# 522 Made MRCHeader an n'ton.  Getting instance instead of
+ * <p> constructing in getMrcHeader().
+ * <p>
  * <p> Revision 3.154  2005/06/13 23:34:47  sueh
  * <p> bug# 583 Preventing tilt.com from being overwritten with a default
  * <p> imageBinned after the .ali file is deleted.  DoneTomogramGeneration()
@@ -6536,6 +6540,10 @@ public class ApplicationManager extends BaseManager {
       return 1;
     }
     return binning;
+  }
+  
+  public void touch(File file) {
+    processMgr.touch(file);
   }
   
   /**
