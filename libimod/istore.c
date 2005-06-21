@@ -14,6 +14,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.1  2005/06/20 22:25:50  mast
+Preliminary checkin
+
 */
 
 #include "imodel.h"
@@ -39,8 +42,8 @@ int imodWriteStore(Ilist *list, int id, FILE *fout)
 
   for (i = 0; i < ilistSize(list); i++) {
     store = istoreItem(list, i);
-    imodPutShort(fout, store->type);
-    imodPutShort(fout, store->flags);
+    imodPutShort(fout, &store->type);
+    imodPutShort(fout, &store->flags);
 
     /* Set up to write index */
     dtype = store->flags & 3;
@@ -282,17 +285,17 @@ void istoreDump(Ilist *list)
     for (j = 0; j < 2; j++) {
       switch (dtype ) {
       case GEN_STORE_INT:
-        printf(" %11d", &item->i);
+        printf(" %11d", item->i);
         break;
       case GEN_STORE_FLOAT:
-        printf(" %12.6g", &item->f);
+        printf(" %12.6g", item->f);
         break;
       case GEN_STORE_SHORT:
-        printf(" %6d %6d", &item->s[0], &item->s[1]);
+        printf(" %6d %6d", item->s[0], item->s[1]);
         break;
       case GEN_STORE_BYTE:
-        printf(" %3d %3d %3d %3d", &item->b[0], &item->b[1], &item->b[2],
-               &item->b[3]);
+        printf(" %3d %3d %3d %3d", item->b[0], item->b[1], item->b[2],
+               item->b[3]);
         break;
       }
 
@@ -423,7 +426,7 @@ void istoreShiftIndex(Ilist *list, int ptIndex, int startScan, int amount)
 
   /* Getting starting position if it is not provided */
   if (startScan < 0) {
-    startScan = istoreLookup(list, ptIndex, after);
+    startScan = istoreLookup(list, ptIndex, &after);
     if (startScan < 0)
       startScan = after;
   }
