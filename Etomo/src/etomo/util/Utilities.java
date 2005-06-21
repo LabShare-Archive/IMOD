@@ -12,6 +12,9 @@
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.21  2005/06/20 17:09:31  sueh
+ * <p> $bug# 522 Added isSelfTest().
+ * <p> $
  * <p> $Revision 3.20  2005/06/17 20:02:21  sueh
  * <p> $bug# 685 Added timestamp functions for ComScript and File types.
  * <p> $Added code to the main timestamp function to strip the path from a file
@@ -150,6 +153,8 @@ public class Utilities {
   private static boolean debug = false;
   private static boolean retrievedSelfTest = false;
   private static boolean selfTest = false;
+  private static boolean retrievedOS = false;
+  private static boolean windowsOS = false;
   private static long startTime = 0;
   private static DecimalFormat timestampFormat = new DecimalFormat(".000");
   
@@ -200,18 +205,38 @@ public class Utilities {
    * @param fileType A string used in the error dialog
    * @return
    */
-  public static File getFile(boolean mustExist, AxisID axisID, String extension,
-      String fileDescription) {
+  public static File getFile(boolean mustExist, AxisID axisID,
+      String extension, String fileDescription) {
     EtomoDirector director = EtomoDirector.getInstance();
-    String filename = director.getCurrentPropertyUserDir() + File.separator
-        + director.getCurrentName() + axisID.getExtension() + extension;
-    File file = new File(filename);
+    File file = new File(director.getCurrentPropertyUserDir(), director
+        .getCurrentName()
+        + axisID.getExtension() + extension);
     if (!file.exists() && mustExist) {
-      UIHarness.INSTANCE.openMessageDialog("The " + fileDescription
-          + " file: " + filename + " doesn't exist.", "Missing " + fileDescription, axisID);
+      UIHarness.INSTANCE.openMessageDialog("The " + fileDescription + " file: "
+          + file.getAbsolutePath() + " doesn't exist.", "Missing "
+          + fileDescription, axisID);
       return null;
     }
     return file;
+  }
+  
+  public static File getFile(AxisID axisID, String extension) {
+    EtomoDirector director = EtomoDirector.getInstance();
+    File file = new File(director.getCurrentPropertyUserDir(), director
+        .getCurrentName()
+        + axisID.getExtension() + extension);
+    return file;
+  }
+  
+  public static File getFile(String filename) {
+    if (filename == null || filename.matches("\\s*")) {
+      return new File(EtomoDirector.getInstance().getCurrentPropertyUserDir());
+    }
+    if (filename.trim().charAt(0) == File.separatorChar) {
+      return new File(filename);
+    }
+    return new File(EtomoDirector.getInstance().getCurrentPropertyUserDir(),
+        filename);
   }
 
 	/**
@@ -669,4 +694,11 @@ public class Utilities {
     return timestampFormat.format((new Date().getTime() - startTime) / 1000.0);
   }
 
+  public static boolean isWindowsOS() {
+    if (!retrievedOS) {
+      String osName = System.getProperty("os.name").toLowerCase();
+      windowsOS = osName.indexOf("windows") != -1;
+    }
+    return windowsOS;
+  }
 }
