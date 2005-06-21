@@ -3,6 +3,8 @@ package etomo.util;
 import java.io.File;
 import java.io.IOException;
 
+import etomo.EtomoDirector;
+
 import junit.framework.TestCase;
 /**
 * <p>Description: </p>
@@ -62,13 +64,17 @@ public class FileModifiedFlagTest extends TestCase {
     fileModifiedFlag.setReadingNow();
     assertFalse(fileModifiedFlag.isModifiedSinceLastRead());
     //test: return true when file has changed after setReadingNow() call
-    testFile.delete();
     try {
       Thread.sleep(10);
     }
     catch (InterruptedException e) {
     }
-    testFile.createNewFile();
+    EtomoDirector.getInstance().getCurrentManager().touch(testFile);
+    try {
+      Thread.sleep(1000);
+    }
+    catch (InterruptedException e) {
+    }
     assertTrue(fileModifiedFlag.isModifiedSinceLastRead());
   }
   
@@ -81,5 +87,8 @@ public class FileModifiedFlagTest extends TestCase {
   }
 }
 /**
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2005/06/20 17:04:51  sueh
+* <p> bug# 522
+* <p> </p>
 */
