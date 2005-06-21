@@ -17,6 +17,14 @@ import junit.framework.TestCase;
 public class ConstEtomoNumberTest extends TestCase {
   public static  final String  rcsid =  "$Id$";
 
+  private static final double bigDouble = 999999999999999999999999999999999999999.3421D;
+  private static final double smallDouble = -999999999999999999999999999999999999999.8793D;
+  private static final float bigFloat = 99999999999999999999999999999999999999.903F;
+  private static final float smallFloat = -99999999999999999999999999999999999999.0893F;
+  private static final long bigLong = 999999999999999999L;
+  private static final long smallLong = -999999999999999999L;
+  private static int bigInteger = 999999999;
+  private static int smallInteger = -999999999;
   /*
    * @see TestCase#setUp()
    */
@@ -361,102 +369,62 @@ public class ConstEtomoNumberTest extends TestCase {
   }
   
   public final void testNewNumber_Number() {
-    double doubleValue = 999999999999999999999999999999999999999.99D;
-    float floatValue = 99999999999999999999999999999999999999.99F;
-    int integerValue = 999999999;
-    long longValue = 999999999999999999L;
     //double
     EtomoNumber test = new EtomoNumber(EtomoNumber.DOUBLE_TYPE);
     ///test: null returns null value
     assertTrue(new Double(test.newNumber(null).doubleValue()).isNaN());
     ///test: convert Double to Double
-    assertTrue(test.newNumber(new Double(doubleValue)).doubleValue() == doubleValue);
+    assertTrue(test.newNumber(new Double(bigDouble)).doubleValue() == bigDouble);
     ///test: convert Float to Double
-    assertTrue(test.newNumber(new Float(floatValue)).doubleValue() == floatValue);
+    assertTrue(test.newNumber(new Float(bigFloat)).doubleValue() == bigFloat);
     ///test: convert Integer to Double
-    assertTrue(test.newNumber(new Integer(integerValue)).doubleValue() == integerValue);
+    assertTrue(test.newNumber(new Integer(bigInteger)).doubleValue() == bigInteger);
     ///test: convert Long to Double
-    assertTrue(test.newNumber(new Long(longValue)).doubleValue() == longValue);
+    assertTrue(test.newNumber(new Long(bigLong)).doubleValue() == bigLong);
     test.selfTestInvariants();
     //float
     test = new EtomoNumber(EtomoNumber.FLOAT_TYPE);
     ///test: null returns null value
     assertTrue(new Float(test.newNumber(null).floatValue()).isNaN());
-    ///test: convert Double to Float should cause exception
+    ///test: validateInputType(Number) is being called
     try {
-      test.newNumber(new Double(doubleValue));
-      fail("convert Double to Float should cause exception");
+      test.newNumber(new Double(bigDouble));
+      fail("validateInputType(Number) was not called");
     }
     catch (IllegalStateException e) {
     }
     ///test: convert Float to Float
-    assertTrue(test.newNumber(new Float(floatValue)).floatValue() == floatValue);
+    assertTrue(test.newNumber(new Float(bigFloat)).floatValue() == bigFloat);
     ///test: convert Integer to Float
-    assertTrue(test.newNumber(new Integer(integerValue)).floatValue() == integerValue);
-    ///test: convert Long to Float should cause exception
-    try {
-      test.newNumber(new Long(longValue));
-      fail("convert Long to Float should cause exception");
-    }
-    catch (IllegalStateException e) {
-    }
+    assertTrue(test.newNumber(new Integer(bigInteger)).floatValue() == bigInteger);
+    ///test: convert Long to Float - see testValidateInputType_Number
     test.selfTestInvariants();
     //integer
     test = new EtomoNumber(EtomoNumber.INTEGER_TYPE);
     ///test: null returns null value
     assertTrue(test.newNumber(null).intValue() == EtomoNumber.INTEGER_NULL_VALUE);
-    ///test: convert Double to Integer should cause exception
-    try {
-      test.newNumber(new Double(doubleValue));
-      fail("convert Double to Integer should cause exception");
-    }
-    catch (IllegalStateException e) {
-    }
-    ///test: convert Float to Integer should cause exception
-    try {
-      test.newNumber(new Float(floatValue));
-      fail("convert Float to Integer should cause exception");
-    }
-    catch (IllegalStateException e) {
-    }
+    ///test: convert Double to Integer - see testValidateInputType_Number
+    ///test: convert Float to Integer - see testValidateInputType_Number
     ///test: convert Integer to Integer
-    assertTrue(test.newNumber(new Integer(integerValue)).intValue() == integerValue);
-    ///test: convert Long to Integer should cause exception
-    try {
-      test.newNumber(new Long(longValue));
-      fail("convert Long to Integer should cause exception");
-    }
-    catch (IllegalStateException e) {
-    }
+    assertTrue(test.newNumber(new Integer(bigInteger)).intValue() == bigInteger);
+    ///test: convert Long to Integer - see testValidateInputType_Number
     test.selfTestInvariants();
     //long
     test = new EtomoNumber(EtomoNumber.LONG_TYPE);
     ///test: null returns null value
     assertTrue(test.newNumber(null).longValue() == EtomoNumber.LONG_NULL_VALUE);
-    ///test: convert Double to Long should cause exception
-    try {
-      test.newNumber(new Double(doubleValue));
-      fail("convert Double to Long should cause exception");
-    }
-    catch (IllegalStateException e) {
-    }
-    ///test: convert Float to Long should cause exception
-    try {
-      test.newNumber(new Float(floatValue));
-      fail("convert Float to Long should cause exception");
-    }
-    catch (IllegalStateException e) {
-    }
+    ///test: convert Double to Long - see testValidateInputType_Number
+    ///test: convert Float to Long - see testValidateInputType_Number
     ///test: convert Integer to Long
-    assertTrue(test.newNumber(new Integer(integerValue)).longValue() == integerValue);
+    assertTrue(test.newNumber(new Integer(bigInteger)).longValue() == bigInteger);
     ///test: convert Long to Long
-    assertTrue(test.newNumber(new Long(longValue)).longValue() == longValue);
+    assertTrue(test.newNumber(new Long(bigLong)).longValue() == bigLong);
     test.selfTestInvariants();
   }
   
   public final void testNewNumber_String_StringBuffer() {
     StringBuffer invalidBuffer = new StringBuffer();
-    String goodInteger = "-999999999";
+    String goodInteger = new Integer(smallInteger).toString();
     String badInteger = "asfdj23";
     EtomoNumber test = new EtomoNumber();
     //test: null returns null value
@@ -502,83 +470,57 @@ public class ConstEtomoNumberTest extends TestCase {
     test.selfTestInvariants();
   }
   
-  public final void newNumber_boolean() {
+  public final void testNewNumber_boolean() {
     EtomoNumber test = new EtomoNumber(EtomoNumber.DOUBLE_TYPE);
     assertTrue(test.newNumber(true).doubleValue() == 1);
     assertTrue(test.newNumber(false).doubleValue() == 0);
     test.selfTestInvariants();
   }
   
-  public final void newNumber_double() {
-    double doubleValue = -999999999999999999999999999999999999999.99D;
+  public final void testNewNumber_double() {
     //double
     ///test: convert double to Double
     EtomoNumber test = new EtomoNumber(EtomoNumber.DOUBLE_TYPE);
-    assertTrue(test.newNumber(doubleValue).doubleValue() == doubleValue);
+    assertTrue(test.newNumber(smallDouble).doubleValue() == smallDouble);
     test.selfTestInvariants();
     //float
     test = new EtomoNumber(EtomoNumber.FLOAT_TYPE);
-    ///test: convert double to Float should cause exception
+    ///test:  - validateInputType(double) is being called
     try {
-      test.newNumber(doubleValue);
-      fail("convert double to Float should cause exception");
+      test.newNumber(smallDouble);
+      fail("validateInputType(double) was not called");
     }
     catch (IllegalStateException e) {
     }
     test.selfTestInvariants();
     //integer
-    test = new EtomoNumber(EtomoNumber.INTEGER_TYPE);
-    ///test: convert double to Integer should cause exception
-    try {
-      test.newNumber(doubleValue);
-      fail("convert double to Integer should cause exception");
-    }
-    catch (IllegalStateException e) {
-    }
-    test.selfTestInvariants();
+    ///test: convert double to Integer - see testValidateInputType_double
     //long
-    test = new EtomoNumber(EtomoNumber.LONG_TYPE);
-    ///test: convert double to Long should cause exception
-    try {
-      test.newNumber(doubleValue);
-      fail("convert double to Long should cause exception");
-    }
-    catch (IllegalStateException e) {
-    }
-    test.selfTestInvariants();
+    ///test: convert double to Long - see testValidateInputType_double
   }
 
-  public final void newNumber_long() {
-    long longValue = -999999999999999999L;
+  public final void testNewNumber_long() {
     //double
     ///test: convert long to Double
     EtomoNumber test = new EtomoNumber(EtomoNumber.DOUBLE_TYPE);
-    assertTrue(test.newNumber(longValue).doubleValue() == longValue);
+    assertTrue(test.newNumber(smallLong).doubleValue() == smallLong);
     test.selfTestInvariants();
     //float
     test = new EtomoNumber(EtomoNumber.FLOAT_TYPE);
-    ///test: convert long to Float should cause exception
+    ///test:  - validateInputType(long) is being called
     try {
-      test.newNumber(longValue);
-      fail("convert long to Float should cause exception");
+      test.newNumber(smallLong);
+      fail("validateInputType(long) was not called");
     }
     catch (IllegalStateException e) {
     }
     test.selfTestInvariants();
     //integer
-    test = new EtomoNumber(EtomoNumber.INTEGER_TYPE);
-    ///test: convert long to Integer should cause exception
-    try {
-      test.newNumber(longValue);
-      fail("convert long to Integer should cause exception");
-    }
-    catch (IllegalStateException e) {
-    }
-    test.selfTestInvariants();
+    ///test: convert long to Integer - see testValidateInputType_long
     //long
     test = new EtomoNumber(EtomoNumber.LONG_TYPE);
     ///test: convert long to Long
-    assertTrue(test.newNumber(longValue).longValue() == longValue);
+    assertTrue(test.newNumber(smallLong).longValue() == smallLong);
     test.selfTestInvariants();
   }
   
@@ -595,7 +537,7 @@ public class ConstEtomoNumberTest extends TestCase {
     assertTrue(test.isNull(new Integer(EtomoNumber.INTEGER_NULL_VALUE)));
     assertTrue(test.isNull(new Short(Short.MIN_VALUE)));
     assertTrue(test.isNull(new Byte(Byte.MIN_VALUE)));
-    //test: other null values are specific to their type
+    //test: other null values are relative to their type
     ///double
     assertFalse(test.isNull(new Double(EtomoNumber.LONG_NULL_VALUE)));
     assertFalse(test.isNull(new Double(EtomoNumber.INTEGER_NULL_VALUE)));
@@ -615,6 +557,94 @@ public class ConstEtomoNumberTest extends TestCase {
     assertFalse(test.isNull(new Integer(Byte.MIN_VALUE)));
     ///short
     assertFalse(test.isNull(new Short(Byte.MIN_VALUE)));
+    test.selfTestInvariants();
+  }
+  
+  public final void testIsNull_int() {
+    //test: the int null value is always null when its type is int
+    ///double
+    EtomoNumber test = new EtomoNumber(EtomoNumber.DOUBLE_TYPE);
+    assertTrue(test.isNull(EtomoNumber.INTEGER_NULL_VALUE));
+    test.selfTestInvariants();
+    ///float
+    test = new EtomoNumber(EtomoNumber.FLOAT_TYPE);
+    assertTrue(test.isNull(EtomoNumber.INTEGER_NULL_VALUE));
+    test.selfTestInvariants();
+    ///long
+    test = new EtomoNumber(EtomoNumber.LONG_TYPE);
+    assertTrue(test.isNull(EtomoNumber.INTEGER_NULL_VALUE));
+    test.selfTestInvariants();
+    ///integer
+    test = new EtomoNumber(EtomoNumber.INTEGER_TYPE);
+    assertTrue(test.isNull(EtomoNumber.INTEGER_NULL_VALUE));
+    test.selfTestInvariants();
+  }
+  
+  public final void testGt_Number_Number() {
+    //double
+    EtomoNumber test = new EtomoNumber(EtomoNumber.DOUBLE_TYPE);
+    ///test: gt() is equivalent to ">"
+    assertTrue(test.gt(new Double(bigDouble), new Double(smallDouble)));
+    assertFalse(test.gt(new Double(bigDouble), new Double(bigDouble)));
+    assertFalse(test.gt(new Double(smallDouble), new Double(bigDouble)));
+    ///test: double type handles float
+    assertTrue(test.gt(new Float(bigFloat), new Float(smallFloat)));
+    assertFalse(test.gt(new Float(smallFloat), new Float(smallFloat)));
+    assertFalse(test.gt(new Float(smallFloat), new Float(bigFloat)));
+    ///test: double type handles long
+    assertTrue(test.gt(new Long(bigLong), new Long(smallLong)));
+    assertFalse(test.gt(new Long(bigLong), new Long(bigLong)));
+    assertFalse(test.gt(new Long(smallLong), new Long(bigLong)));
+    ///test: double type handle integer
+    assertTrue(test.gt(new Integer(bigInteger), new Integer(smallInteger)));
+    assertFalse(test.gt(new Integer(smallInteger), new Integer(smallInteger)));
+    assertFalse(test.gt(new Integer(smallInteger), new Integer(bigInteger)));
+    test.selfTestInvariants();
+    //float
+    test = new EtomoNumber(EtomoNumber.FLOAT_TYPE);
+    ///test: validateInputType(Number) is being called against the first
+    ////parameter
+    try {
+      test.gt(new Double(bigDouble), new Float(smallFloat));
+      fail("validateInputType(Number) is not being called against the first parameter");
+    }
+    catch (Exception e) {
+    }
+    ///test: validateInputType(Number) is being called against the second
+    ////parameter
+    try {
+      test.gt(new Float(bigFloat), new Double(smallDouble));
+      fail("validateInputType(Number) is not being called against the second parameter");
+    }
+    catch (Exception e) {
+    }
+    ///test: gt() is equivalent to ">"
+    assertTrue(test.gt(new Float(bigFloat), new Float(smallFloat)));
+    assertFalse(test.gt(new Float(smallFloat), new Float(smallFloat)));
+    assertFalse(test.gt(new Float(smallFloat), new Float(bigFloat)));
+    ///test: float type handle integer
+    assertTrue(test.gt(new Integer(bigInteger), new Integer(smallInteger)));
+    assertFalse(test.gt(new Integer(smallInteger), new Integer(smallInteger)));
+    assertFalse(test.gt(new Integer(smallInteger), new Integer(bigInteger)));
+    test.selfTestInvariants();
+    //long
+    test = new EtomoNumber(EtomoNumber.LONG_TYPE);
+    ///test: gt() is equivalent to ">"
+    assertTrue(test.gt(new Long(bigLong), new Long(smallLong)));
+    assertFalse(test.gt(new Long(bigLong), new Long(bigLong)));
+    assertFalse(test.gt(new Long(smallLong), new Long(bigLong)));
+    ///test: long type handle integer
+    assertTrue(test.gt(new Integer(bigInteger), new Integer(smallInteger)));
+    assertFalse(test.gt(new Integer(smallInteger), new Integer(smallInteger)));
+    assertFalse(test.gt(new Integer(smallInteger), new Integer(bigInteger)));
+    test.selfTestInvariants();
+    //integer
+    test = new EtomoNumber(EtomoNumber.LONG_TYPE);
+    ///test: gt() is equivalent to ">"
+    assertTrue(test.gt(new Integer(bigInteger), new Integer(smallInteger)));
+    assertFalse(test.gt(new Integer(smallInteger), new Integer(smallInteger)));
+    assertFalse(test.gt(new Integer(smallInteger), new Integer(bigInteger)));
+    test.selfTestInvariants();
   }
   
   
@@ -669,10 +699,12 @@ public class ConstEtomoNumberTest extends TestCase {
     }
     test.selfTestInvariants();
   }
-
 }
 /**
 * <p> $Log$
+* <p> Revision 1.3  2005/06/20 16:53:59  sueh
+* <p> bug# 692 Changed ConstEtomoNumber.selfTest() to selfTestInvariants().
+* <p>
 * <p> Revision 1.2  2005/06/17 17:48:47  sueh
 * <p> bug# 692 Added test for isNull(Number).
 * <p>
