@@ -16,6 +16,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.5  2005/06/20 16:51:04  sueh
+ * <p> bug# 692 Moved selftest convenience variable to util.Utilities.  Make
+ * <p> selfTest function level.
+ * <p>
  * <p> Revision 3.4  2005/06/16 19:59:09  sueh
  * <p> bug# 692 Making self test variables boolean instead of EtomoBoolean2 to
  * <p> avoid test problems.
@@ -117,7 +121,7 @@ public class AxisID {
     return null;
   }
   
-  public void selfTestGetExtension() {
+  private void selfTestGetExtension() {
     if (!Utilities.isSelfTest()) {
       return;
     }
