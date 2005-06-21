@@ -114,6 +114,7 @@ void FineGrainForm::setFontDependentWidths()
 void FineGrainForm::update( int surfContPt, bool enabled, DrawProps *props, int stateFlags)
 {
     int i;
+    diaSetGroup(surfContPtGroup, surfContPt);
     for (i = 0; i < 7; i++) {
         bool changed = stateFlags & mChangeFlags[i];
         mEndButs[i]->setEnabled((surfContPt == 2) &&changed && enabled);
