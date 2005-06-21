@@ -44,6 +44,11 @@ import etomo.util.Utilities;
  * 
  * <p>
  * $Log$
+ * Revision 1.22  2005/06/21 00:40:44  sueh
+ * bug# 522 In order to get a current manager when --test is set, moved call
+ * to EtomoDirector.setCurrentManager() out of WindowSwitch.setWindow().
+ * Now the call follows all the calls to UIHarness.selectWindowMenuItem().
+ *
  * Revision 1.21  2005/06/17 17:48:22  sueh
  * bug# 685 Setting relative timestamp start.
  *
@@ -284,7 +289,7 @@ public class EtomoDirector {
       openTomogram(true, AxisID.ONLY);
     }
     else {
-      boolean makeCurrent;
+      UniqueKey saveKey = null;
       for (int i = 0; i < paramFileNameListSize; i++) {
         paramFileName = (String) paramFileNameList.get(i);
         UniqueKey managerKey = null;
@@ -295,9 +300,10 @@ public class EtomoDirector {
           managerKey = openJoin(paramFileName, false, AxisID.ONLY);
         }
         if (i == 0) {
-          currentManagerKey = managerKey;
+          saveKey = managerKey;
         }
       }
+      currentManagerKey = saveKey;
     }
     initProgram();
     BaseManager manager = (BaseManager) managerList.get(currentManagerKey);
