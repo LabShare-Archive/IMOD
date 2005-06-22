@@ -69,18 +69,18 @@ public class FileModifiedFlagTest extends TestCase {
     }
     catch (InterruptedException e) {
     }
-    System.err.println("before touch");
-    System.err.println("testFile="+testFile.getAbsolutePath());
-    System.err.println("testFile last modified="+testFile.lastModified());
+    //System.err.println("before touch");
+    //System.err.println("testFile="+testFile.getAbsolutePath());
+    //System.err.println("testFile last modified="+testFile.lastModified());
     EtomoDirector.getInstance().getCurrentManager().touch(testFile);
     try {
       Thread.sleep(1000);
     }
     catch (InterruptedException e) {
     }
-    System.err.println("after touch");
-    System.err.println("testFile="+testFile.getAbsolutePath());
-    System.err.println("testFile last modified="+testFile.lastModified());
+    //System.err.println("after touch");
+    //System.err.println("testFile="+testFile.getAbsolutePath());
+    //System.err.println("testFile last modified="+testFile.lastModified());
     EtomoDirector.getInstance().getCurrentManager().touch(testFile);
     assertTrue(fileModifiedFlag.isModifiedSinceLastRead());
   }
@@ -95,6 +95,9 @@ public class FileModifiedFlagTest extends TestCase {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.4  2005/06/22 22:05:42  sueh
+* <p> bug# 522 fixing build problems
+* <p>
 * <p> Revision 1.3  2005/06/22 21:47:39  sueh
 * <p> *** empty log message ***
 * <p>
