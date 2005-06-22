@@ -65,7 +65,7 @@ public class FileModifiedFlagTest extends TestCase {
     assertFalse(fileModifiedFlag.isModifiedSinceLastRead());
     //test: return true when file has changed after setReadingNow() call
     try {
-      Thread.sleep(10);
+      Thread.sleep(10000);
     }
     catch (InterruptedException e) {
     }
@@ -81,7 +81,6 @@ public class FileModifiedFlagTest extends TestCase {
     System.err.println("after touch");
     System.err.println("testFile="+testFile.getAbsolutePath());
     System.err.println("testFile last modified="+testFile.lastModified());
-    EtomoDirector.getInstance().getCurrentManager().touch(testFile);
     assertTrue(fileModifiedFlag.isModifiedSinceLastRead());
   }
   
@@ -95,6 +94,9 @@ public class FileModifiedFlagTest extends TestCase {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.7  2005/06/22 22:47:46  sueh
+* <p> bug# 522 fixing build problems
+* <p>
 * <p> Revision 1.6  2005/06/22 22:34:12  sueh
 * <p> bug# 522 fixing build problems
 * <p>
