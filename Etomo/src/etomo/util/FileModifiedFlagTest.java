@@ -69,6 +69,8 @@ public class FileModifiedFlagTest extends TestCase {
     }
     catch (InterruptedException e) {
     }
+    System.err.println("testFile="+testFile.getAbsolutePath());
+    System.err.println("testFile last modified="+testFile.lastModified());
     EtomoDirector.getInstance().getCurrentManager().touch(testFile);
     try {
       Thread.sleep(1000);
@@ -88,6 +90,10 @@ public class FileModifiedFlagTest extends TestCase {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.2  2005/06/21 00:51:40  sueh
+* <p> bug# 522 Changed testIsModifiedSinceLastRead() to use touch to change
+* <p> the last modified date on the file instead of deleting and adding file.
+* <p>
 * <p> Revision 1.1  2005/06/20 17:04:51  sueh
 * <p> bug# 522
 * <p> </p>
