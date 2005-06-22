@@ -21,6 +21,9 @@ import etomo.EtomoDirector;
 * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.5  2005/06/17 20:03:27  sueh
+ * <p> $bug# 685 Added timestamps to read().
+ * <p> $
  * <p> $Revision 1.4  2004/11/20 00:11:05  sueh
  * <p> $bug# 520 merging Etomo_3-4-6_JOIN branch to head.
  * <p> $
@@ -48,6 +51,11 @@ import etomo.EtomoDirector;
 public class FidXyz {
   public static final String rcsid = "$$Id$$";
 
+  private static final String OLD_PIXEL_SIZE_LABEL = "pixel size:";
+  private static final String NEW_PIXEL_SIZE_LABEL = "pix:";
+  private static final int OLD_PIXEL_SIZE_INDEX = 9;
+  private static final int NEW_PIXEL_SIZE_INDEX = 7;
+  
   private String filename;
   private boolean exists = false;
   private boolean empty = false;
@@ -80,17 +88,45 @@ public class FidXyz {
     fileReader.close();
 
     // The first line contains the pixel size
-    if (line != null && line.toLowerCase().indexOf("pixel size:") != -1) {
-      String[] tokens = line.split("\\s+");
-      if (tokens.length < 10) {
+    if (!setPixelSize(line, NEW_PIXEL_SIZE_LABEL, NEW_PIXEL_SIZE_INDEX)) {
+      if (!setPixelSize(line, OLD_PIXEL_SIZE_LABEL, OLD_PIXEL_SIZE_INDEX)) {
         Utilities.timestamp("read", filename, -1);
-        return;
       }
-      pixelSize = Double.parseDouble(tokens[9]);
     }
     Utilities.timestamp("read", filename, 1);
   }
   
+  /**
+   * Handle format change in fid.xyz
+   * @param line
+   * @param pixelSizeLabel
+   * @param pixelSizeIndex
+   * @return
+   */
+  private boolean setPixelSize(String line, String pixelSizeLabel,
+      int pixelSizeIndex) {
+    if (line == null) {
+      return false;
+    }
+    line = line.toLowerCase();
+    if (pixelSizeLabel.equals(NEW_PIXEL_SIZE_LABEL)) {
+      line = line.trim();
+    }
+    if (line.indexOf(pixelSizeLabel) != -1) {
+      String[] tokens = line.split("\\s+");
+      if (tokens.length < pixelSizeIndex + 1
+          || !tokens[pixelSizeIndex - 1].equals(pixelSizeLabel)) {
+        Utilities.timestamp("read", filename, -1);
+        throw new IllegalStateException("bad fid.xyz format: " + ",\ntokens["
+            + pixelSizeIndex + "]=" + tokens[pixelSizeIndex]
+            + ",pixelSizeLabel=" + pixelSizeLabel + ",line=" + line);
+      }
+      pixelSize = Double.parseDouble(tokens[pixelSizeIndex]);
+      return true;
+    }
+    return false;
+  }
+
   /**
    * 
    * @return
