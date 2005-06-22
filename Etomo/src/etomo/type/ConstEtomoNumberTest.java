@@ -121,7 +121,59 @@ public class ConstEtomoNumberTest extends TestCase {
     test.selfTestInvariants();
     copy.selfTestInvariants();
   }
-    
+  
+  public final void testValidateReturnTypeInteger() {
+    int displayValue = 2;
+    //double
+    EtomoNumber test = new EtomoNumber(EtomoNumber.DOUBLE_TYPE);
+    ///test corruption prevention
+    try {
+      test.getDisplayInteger();
+      fail("A double can't be returned in an integer");
+    }
+    catch (IllegalStateException e) {
+    }
+    test.selfTestInvariants();
+    //float
+    test = new EtomoNumber(EtomoNumber.FLOAT_TYPE);
+    ///test corruption prevention
+    try {
+      test.getDisplayInteger();
+      fail("A float can't be returned in an integer");
+    }
+    catch (IllegalStateException e) {
+    }
+    test.selfTestInvariants();
+    //integer
+    test = new EtomoNumber(EtomoNumber.INTEGER_TYPE);
+    ///test no exception thrown
+    test.getDisplayInteger();
+    test.selfTestInvariants();
+    //long
+    test = new EtomoNumber(EtomoNumber.LONG_TYPE);
+    ///test corruption prevention
+    try {
+      test.getDisplayInteger();
+      fail("A long can't be returned in an integer");
+    }
+    catch (IllegalStateException e) {
+    }
+    test.selfTestInvariants();
+  }
+  
+  public final void testGetDisplayInteger() {
+    //test: validateReturnTypeInteger() is being called
+    EtomoNumber test = new EtomoNumber(EtomoNumber.DOUBLE_TYPE);
+    ///test corruption prevention
+    try {
+      test.getDisplayInteger();
+      fail("validateReturnTypeInteger() is not being called");
+    }
+    catch (IllegalStateException e) {
+    }
+    test.selfTestInvariants();
+  }
+ 
   public final void testSetInvalidReason() {
     EtomoNumber test = new EtomoNumber(EtomoNumber.FLOAT_TYPE);
     //test nullIsValid == true
@@ -214,7 +266,7 @@ public class ConstEtomoNumberTest extends TestCase {
     assertFalse(test.isValid(false, errorTitle, "test valid succeeded", AxisID.FIRST));
     test.selfTestInvariants();
   }
-
+  
   public final void testGetInvalidReason() {
     EtomoNumber test = new EtomoNumber();
     test.setNullIsValid(false);
@@ -226,6 +278,47 @@ public class ConstEtomoNumberTest extends TestCase {
         + test.getDescription(), test.getInvalidReason().indexOf(
         test.getDescription()) != -1);
     test.selfTestInvariants();
+  }
+  
+  public final void testValidateFloorAndCeiling() {
+    EtomoNumber test = new EtomoNumber(EtomoNumber.FLOAT_TYPE);
+    //test: floor > ceiling throws IllegalStateException
+    test.setFloor(bigInteger);
+    try {
+      test.setCeiling(smallInteger);
+      fail("floor > ceiling did not throw IllegalStateException");
+    }
+    catch (IllegalStateException e) {
+    }
+    //test: floor == ceiling is valid
+    test.setFloor(smallInteger);
+    //test: floor < ceiling is valid
+    test.setCeiling(bigInteger);
+    test.selfTestInvariants();
+  }
+  
+  public final void testSetCeiling() {
+    EtomoNumber test = new EtomoNumber(EtomoNumber.LONG_TYPE);
+    //test: validateFloorAndCeiling() was called
+    test.setFloor(bigInteger);
+    try {
+      test.setCeiling(smallInteger);
+      fail("validateFloorAndCeiling() was not called");
+    }
+    catch (IllegalStateException e) {
+    }
+  }
+  
+  public final void testSetFloor() {
+    EtomoNumber test = new EtomoNumber(EtomoNumber.DOUBLE_TYPE);
+    //test: validateFloorAndCeiling() was called
+    test.setCeiling(smallInteger);
+    try {
+      test.setFloor(bigInteger);
+      fail("validateFloorAndCeiling() was not called");
+    }
+    catch (IllegalStateException e) {
+    }
   }
   
   public final void testSetDescription() {
@@ -259,6 +352,24 @@ public class ConstEtomoNumberTest extends TestCase {
     test.selfTestInvariants();
   }
   
+  public final void testStore_Properties() {
+  }
+  
+  public final void testStore_Properties_String() {
+  }
+  
+  public final void testRemove_Properties() {
+  }
+  
+  public final void testRemove_Properties_prepend() {
+  }
+  
+  public final void testToString() {
+  }
+
+  public final void testGetInteger() {
+  }
+
   public final void testIs() {
     EtomoNumber test = new EtomoNumber();
     //test null false
@@ -307,6 +418,30 @@ public class ConstEtomoNumberTest extends TestCase {
     test.selfTestInvariants();
   }
   
+  public final void testValidateReturnTypeLong() {
+  }
+  
+  public final void testGetLong() {
+  }
+  
+  public final void validateReturnTypeDouble() {
+  }
+  
+  public final void testGetDouble() {
+  }
+  
+  public final void testGetNumber() {
+  }
+  
+  public final void testEquals_Number() {
+  }
+
+  public final void testEquals_String() {
+  }
+  
+  public final void testIsNamed_String() {
+  }
+  
   public final void testGetValue() {
     int displayValue = 2;
     int currentValue = 3;
@@ -331,6 +466,9 @@ public class ConstEtomoNumberTest extends TestCase {
     //test returns string version of value
     assertTrue(test.toString(value).equals(value.toString()));
     test.selfTestInvariants();
+  }
+  
+  public final void testToString_Vector() {
   }
   
   public final void testAddInvalidReason() {
@@ -366,6 +504,9 @@ public class ConstEtomoNumberTest extends TestCase {
     test = new EtomoNumber(EtomoNumber.LONG_TYPE);
     assertTrue(test.newNumber().longValue() == EtomoNumber.LONG_NULL_VALUE);
     test.selfTestInvariants();
+  }
+  
+  public final void testValidateInputType_Number() {
   }
   
   public final void testNewNumber_Number() {
@@ -449,24 +590,28 @@ public class ConstEtomoNumberTest extends TestCase {
     test.selfTestInvariants();
   }
   
+  public final void testValidateInputType_int() {
+    //nothing to do
+  }
+  
   public final void testNewNumber_int() {
-    int integerValue = -999999999;
+    //test: validateInputType(int) is called - nothing to do
     //test: convert int to Number
     ///double
     EtomoNumber test = new EtomoNumber(EtomoNumber.DOUBLE_TYPE);
-    assertTrue(test.newNumber(integerValue).doubleValue() == integerValue);
+    assertTrue(test.newNumber(smallInteger).doubleValue() == smallInteger);
     test.selfTestInvariants();
     //float
     test = new EtomoNumber(EtomoNumber.FLOAT_TYPE);
-    assertTrue(test.newNumber(integerValue).floatValue() == integerValue);
+    assertTrue(test.newNumber(smallInteger).floatValue() == smallInteger);
     test.selfTestInvariants();
     //integer
     test = new EtomoNumber(EtomoNumber.INTEGER_TYPE);
-    assertTrue(test.newNumber(integerValue).intValue() == integerValue);
+    assertTrue(test.newNumber(smallInteger).intValue() == smallInteger);
     test.selfTestInvariants();
     //long
     test = new EtomoNumber(EtomoNumber.LONG_TYPE);
-    assertTrue(test.newNumber(integerValue).longValue() == integerValue);
+    assertTrue(test.newNumber(smallInteger).longValue() == smallInteger);
     test.selfTestInvariants();
   }
   
@@ -475,6 +620,9 @@ public class ConstEtomoNumberTest extends TestCase {
     assertTrue(test.newNumber(true).doubleValue() == 1);
     assertTrue(test.newNumber(false).doubleValue() == 0);
     test.selfTestInvariants();
+  }
+  
+  public final void testValidateInputType_double() {
   }
   
   public final void testNewNumber_double() {
@@ -497,6 +645,9 @@ public class ConstEtomoNumberTest extends TestCase {
     ///test: convert double to Integer - see testValidateInputType_double
     //long
     ///test: convert double to Long - see testValidateInputType_double
+  }
+  
+  public final void testValidateInputType_long() {
   }
 
   public final void testNewNumber_long() {
@@ -646,62 +797,88 @@ public class ConstEtomoNumberTest extends TestCase {
     assertFalse(test.gt(new Integer(smallInteger), new Integer(bigInteger)));
     test.selfTestInvariants();
   }
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
 
-  public final void testValidateReturnTypeInteger() {
-    int displayValue = 2;
+  public final void testLt_Number_Number() {
     //double
     EtomoNumber test = new EtomoNumber(EtomoNumber.DOUBLE_TYPE);
-    ///test corruption prevention
-    try {
-      test.getDisplayInteger();
-      fail("A double can't be returned in an integer");
-    }
-    catch (IllegalStateException e) {
-    }
+    ///test: lt() is equivalent to "<"
+    assertFalse(test.lt(new Double(bigDouble), new Double(smallDouble)));
+    assertFalse(test.lt(new Double(bigDouble), new Double(bigDouble)));
+    assertTrue(test.lt(new Double(smallDouble), new Double(bigDouble)));
+    ///test: double type handles float
+    assertFalse(test.lt(new Float(bigFloat), new Float(smallFloat)));
+    assertFalse(test.lt(new Float(smallFloat), new Float(smallFloat)));
+    assertTrue(test.lt(new Float(smallFloat), new Float(bigFloat)));
+    ///test: double type handles long
+    assertFalse(test.lt(new Long(bigLong), new Long(smallLong)));
+    assertFalse(test.lt(new Long(bigLong), new Long(bigLong)));
+    assertTrue(test.lt(new Long(smallLong), new Long(bigLong)));
+    ///test: double type handle integer
+    assertFalse(test.lt(new Integer(bigInteger), new Integer(smallInteger)));
+    assertFalse(test.lt(new Integer(smallInteger), new Integer(smallInteger)));
+    assertTrue(test.lt(new Integer(smallInteger), new Integer(bigInteger)));
     test.selfTestInvariants();
     //float
     test = new EtomoNumber(EtomoNumber.FLOAT_TYPE);
-    ///test corruption prevention
+    ///test: validateInputType(Number) is being called against the first
+    ////parameter
     try {
-      test.getDisplayInteger();
-      fail("A float can't be returned in an integer");
+      test.lt(new Double(bigDouble), new Float(smallFloat));
+      fail("validateInputType(Number) is not being called against the first parameter");
     }
-    catch (IllegalStateException e) {
+    catch (Exception e) {
     }
-    test.selfTestInvariants();
-    //integer
-    test = new EtomoNumber(EtomoNumber.INTEGER_TYPE);
-    ///test no exception thrown
-    test.getDisplayInteger();
+    ///test: validateInputType(Number) is being called against the second
+    ////parameter
+    try {
+      test.lt(new Float(bigFloat), new Double(smallDouble));
+      fail("validateInputType(Number) is not being called against the second parameter");
+    }
+    catch (Exception e) {
+    }
+    ///test: lt() is equivalent to "<"
+    assertFalse(test.lt(new Float(bigFloat), new Float(smallFloat)));
+    assertFalse(test.lt(new Float(smallFloat), new Float(smallFloat)));
+    assertTrue(test.lt(new Float(smallFloat), new Float(bigFloat)));
+    ///test: float type handle integer
+    assertFalse(test.lt(new Integer(bigInteger), new Integer(smallInteger)));
+    assertFalse(test.lt(new Integer(smallInteger), new Integer(smallInteger)));
+    assertTrue(test.lt(new Integer(smallInteger), new Integer(bigInteger)));
     test.selfTestInvariants();
     //long
     test = new EtomoNumber(EtomoNumber.LONG_TYPE);
-    ///test corruption prevention
-    try {
-      test.getDisplayInteger();
-      fail("A long can't be returned in an integer");
-    }
-    catch (IllegalStateException e) {
-    }
+    ///test: lt() is equivalent to "<"
+    assertFalse(test.lt(new Long(bigLong), new Long(smallLong)));
+    assertFalse(test.lt(new Long(bigLong), new Long(bigLong)));
+    assertTrue(test.lt(new Long(smallLong), new Long(bigLong)));
+    ///test: long type handle integer
+    assertFalse(test.lt(new Integer(bigInteger), new Integer(smallInteger)));
+    assertFalse(test.lt(new Integer(smallInteger), new Integer(smallInteger)));
+    assertTrue(test.lt(new Integer(smallInteger), new Integer(bigInteger)));
     test.selfTestInvariants();
+    //integer
+    test = new EtomoNumber(EtomoNumber.LONG_TYPE);
+    ///test: lt() is equivalent to "<"
+    assertFalse(test.lt(new Integer(bigInteger), new Integer(smallInteger)));
+    assertFalse(test.lt(new Integer(smallInteger), new Integer(smallInteger)));
+    assertTrue(test.lt(new Integer(smallInteger), new Integer(bigInteger)));
+    test.selfTestInvariants();
+  }
+  
+  public final void testEquals_Number_Number() {
+  }
+  
+  public final void testEquals_Number_int() {
   }
 }
 /**
 * <p> $Log$
+* <p> Revision 1.4  2005/06/21 16:34:09  sueh
+* <p> bug# 692 Make constants member variables.  Don't test validate
+* <p> functions twice.  Test to make sure that the validate function is called
+* <p> and then test the fuctionality of the validate function in testValidate...
+* <p> function.
+* <p>
 * <p> Revision 1.3  2005/06/20 16:53:59  sueh
 * <p> bug# 692 Changed ConstEtomoNumber.selfTest() to selfTestInvariants().
 * <p>
