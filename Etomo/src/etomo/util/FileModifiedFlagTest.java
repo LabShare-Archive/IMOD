@@ -65,22 +65,22 @@ public class FileModifiedFlagTest extends TestCase {
     assertFalse(fileModifiedFlag.isModifiedSinceLastRead());
     //test: return true when file has changed after setReadingNow() call
     try {
-      Thread.sleep(10000);
+      Thread.sleep(10);
     }
     catch (InterruptedException e) {
     }
-    System.err.println("before touch");
-    System.err.println("testFile="+testFile.getAbsolutePath());
-    System.err.println("testFile last modified="+testFile.lastModified());
+    //System.err.println("before touch");
+    //System.err.println("testFile="+testFile.getAbsolutePath());
+    //System.err.println("testFile last modified="+testFile.lastModified());
     EtomoDirector.getInstance().getCurrentManager().touch(testFile);
     try {
-      Thread.sleep(10000);
+      Thread.sleep(1000);
     }
     catch (InterruptedException e) {
     }
-    System.err.println("after touch");
-    System.err.println("testFile="+testFile.getAbsolutePath());
-    System.err.println("testFile last modified="+testFile.lastModified());
+    //System.err.println("after touch");
+    //System.err.println("testFile="+testFile.getAbsolutePath());
+    //System.err.println("testFile last modified="+testFile.lastModified());
     assertTrue(fileModifiedFlag.isModifiedSinceLastRead());
   }
   
@@ -94,6 +94,9 @@ public class FileModifiedFlagTest extends TestCase {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.8  2005/06/22 23:14:36  sueh
+* <p> bug# 522 fixing build problems
+* <p>
 * <p> Revision 1.7  2005/06/22 22:47:46  sueh
 * <p> bug# 522 fixing build problems
 * <p>
