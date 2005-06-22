@@ -55,8 +55,7 @@ public class FileModifiedFlagTest extends TestCase {
     fileModifiedFlag.selfTestInvariants();
   }
   
-  //TEMP test failing - fix later
-  private final void testIsModifiedSinceLastRead() throws IOException {
+  public final void testIsModifiedSinceLastRead() throws IOException {
     FileModifiedFlag fileModifiedFlag = new FileModifiedFlag(testFile);
     testFile.createNewFile();
     //test: returns true when never read
@@ -64,6 +63,8 @@ public class FileModifiedFlagTest extends TestCase {
     //test: returns false when file hasn't changed after setReadingNow() call
     fileModifiedFlag.setReadingNow();
     assertFalse(fileModifiedFlag.isModifiedSinceLastRead());
+    //TEMP test failing - fix later
+    /*
     //test: return true when file has changed after setReadingNow() call
     try {
       Thread.sleep(10);
@@ -83,6 +84,7 @@ public class FileModifiedFlagTest extends TestCase {
     //System.err.println("testFile="+testFile.getAbsolutePath());
     //System.err.println("testFile last modified="+testFile.lastModified());
     assertTrue(fileModifiedFlag.isModifiedSinceLastRead());
+    */
   }
   
   public final void testSetReadingNow() throws IOException {
@@ -95,6 +97,10 @@ public class FileModifiedFlagTest extends TestCase {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.10  2005/06/22 23:39:27  sueh
+* <p> bug# 522 New tests are failing - will fix later.  changed
+* <p> testIsModifiedSinceLastRead().
+* <p>
 * <p> Revision 1.9  2005/06/22 23:30:58  sueh
 * <p> bug# 522 fixing build problems
 * <p>
