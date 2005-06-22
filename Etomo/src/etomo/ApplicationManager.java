@@ -104,6 +104,10 @@ import etomo.util.Utilities;
  * 
  *
  * <p> $Log$
+ * <p> Revision 3.156  2005/06/21 00:02:58  sueh
+ * <p> bug# 522 Added pass-through function call to
+ * <p> BaseProcessManager.touch() for MRCHeaderTest.
+ * <p>
  * <p> Revision 3.155  2005/06/20 16:39:35  sueh
  * <p> bug# 522 Made MRCHeader an n'ton.  Getting instance instead of
  * <p> constructing in getMrcHeader().
@@ -6259,6 +6263,7 @@ public class ApplicationManager extends BaseManager {
       }
     }
     if (!fidXyzPixelSizeSet || fidXyz.getPixelSize() != prealiHeader.getXPixelSpacing()) {
+    //if (getStackBinning(axisID, ".preali") != getBackwardCompatibleAlignBinning(axisID)) {
       uiHarness.openMessageDialog(
         "The prealigned image stack binning has changed.  You must:\n    1. Go "
         + "to Fiducial Model Gen. and Press Fix Fiducial Model to open the "
@@ -6445,7 +6450,7 @@ public class ApplicationManager extends BaseManager {
     if (rawstackXPixelSpacing > 0) {
       binning = Math.round(stackHeader.getXPixelSpacing() / rawstackXPixelSpacing);
     }
-    if (binning < 1) {
+    if (binning != defaultValue && binning < 1) {
       return 1;
     }
     return binning;
