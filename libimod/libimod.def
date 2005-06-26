@@ -156,6 +156,7 @@ EXPORTS
 	imodMatCopy
 	imodContourFreeZTables
 	imodObjectGetNext
+	istoreCountItems
 	GETIMODFLAGS
 	imodel_mesh_addvert
 	GETIMODSIZES
@@ -182,6 +183,7 @@ EXPORTS
 	imodNewObject
 	imodProgName
 	imodFileWrite
+	istoreFindBreak
 	PipReadOptionFile
 	imodMatFindVector
 	imodGetInt
@@ -217,6 +219,7 @@ EXPORTS
 	imodMeshGetVerts
 	imodMeshAddNormal
 	istoreBreakContour
+	istoreCleanEnds
 	istoreInvert
 	PIPSETERROR
 	imodObjectGet
@@ -230,6 +233,7 @@ EXPORTS
 	PipNumberOfArgs
 	PUTSYMTYPE
 	imodLabelItemAdd
+	istoreCountObjectItems
 	imodPlaneSetFromClips
 	PipMemoryError
 	imodel_contour_invert
@@ -302,6 +306,7 @@ EXPORTS
 	imodDelete
 	b3dFread
 	imodLabelItemDelete
+	istoreAddOneIndexItem
 	imodContourCheckNesting
 	imodDeleteContour
 	PIPNUMBEROFENTRIES
@@ -318,6 +323,7 @@ EXPORTS
 	imodContourGetMaxPoint
 	istoreNextObjItem
 	GETIMODOBJNAME
+	istoreDeleteContour
 	PUTIMODSCAT
 	imodObjectAddContour
 	imodFileRead
@@ -333,6 +339,7 @@ EXPORTS
 	istoreBreakChanges
 	imodMeshInsertIndex
 	b3dIMin
+	istoreClearOneIndexItem
 	istoreInsertChange
 	istoreDeletePoint
 	imodPoint3DScaleDistance
