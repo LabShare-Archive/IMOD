@@ -1,4 +1,4 @@
-<!DOCTYPE UI><UI version="3.3" stdsetdef="1">
+<!DOCTYPE UI><UI version="3.1" stdsetdef="1">
 <class>FineGrainForm</class>
 <widget class="QWidget">
     <property name="name">
@@ -8,7 +8,7 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>246</width>
+            <width>220</width>
             <height>580</height>
         </rect>
     </property>
@@ -41,10 +41,10 @@
                 </property>
                 <widget class="QRadioButton">
                     <property name="name">
-                        <cstring>surfRadio</cstring>
+                        <cstring>pointRadio</cstring>
                     </property>
                     <property name="text">
-                        <string>Surface</string>
+                        <string>Point</string>
                     </property>
                 </widget>
                 <widget class="QRadioButton">
@@ -57,10 +57,10 @@
                 </widget>
                 <widget class="QRadioButton">
                     <property name="name">
-                        <cstring>pointRadio</cstring>
+                        <cstring>surfRadio</cstring>
                     </property>
                     <property name="text">
-                        <string>Point</string>
+                        <string>Surface</string>
                     </property>
                 </widget>
             </hbox>
@@ -198,7 +198,7 @@
                             </property>
                             <property name="maximumSize">
                                 <size>
-                                    <width>40</width>
+                                    <width>30</width>
                                     <height>32767</height>
                                 </size>
                             </property>
@@ -226,7 +226,7 @@
                             </property>
                             <property name="maximumSize">
                                 <size>
-                                    <width>40</width>
+                                    <width>25</width>
                                     <height>32767</height>
                                 </size>
                             </property>
@@ -254,7 +254,7 @@
                             </property>
                             <property name="maximumSize">
                                 <size>
-                                    <width>40</width>
+                                    <width>32</width>
                                     <height>32767</height>
                                 </size>
                             </property>
@@ -405,7 +405,7 @@
                             </property>
                             <property name="maximumSize">
                                 <size>
-                                    <width>40</width>
+                                    <width>30</width>
                                     <height>32767</height>
                                 </size>
                             </property>
@@ -433,7 +433,7 @@
                             </property>
                             <property name="maximumSize">
                                 <size>
-                                    <width>40</width>
+                                    <width>25</width>
                                     <height>32767</height>
                                 </size>
                             </property>
@@ -461,7 +461,7 @@
                             </property>
                             <property name="maximumSize">
                                 <size>
-                                    <width>40</width>
+                                    <width>32</width>
                                     <height>32767</height>
                                 </size>
                             </property>
@@ -515,12 +515,29 @@
                 </widget>
                 <widget class="QLayoutWidget">
                     <property name="name">
-                        <cstring>layout5</cstring>
+                        <cstring>layout21</cstring>
                     </property>
                     <hbox>
                         <property name="name">
                             <cstring>unnamed</cstring>
                         </property>
+                        <spacer>
+                            <property name="name">
+                                <cstring>spacer5</cstring>
+                            </property>
+                            <property name="orientation">
+                                <enum>Horizontal</enum>
+                            </property>
+                            <property name="sizeType">
+                                <enum>Preferred</enum>
+                            </property>
+                            <property name="sizeHint">
+                                <size>
+                                    <width>16</width>
+                                    <height>20</height>
+                                </size>
+                            </property>
+                        </spacer>
                         <widget class="QLabel">
                             <property name="name">
                                 <cstring>transDSLabel</cstring>
@@ -560,7 +577,7 @@
                             </property>
                             <property name="maximumSize">
                                 <size>
-                                    <width>40</width>
+                                    <width>30</width>
                                     <height>32767</height>
                                 </size>
                             </property>
@@ -588,7 +605,7 @@
                             </property>
                             <property name="maximumSize">
                                 <size>
-                                    <width>40</width>
+                                    <width>25</width>
                                     <height>32767</height>
                                 </size>
                             </property>
@@ -616,7 +633,7 @@
                             </property>
                             <property name="maximumSize">
                                 <size>
-                                    <width>40</width>
+                                    <width>32</width>
                                     <height>32767</height>
                                 </size>
                             </property>
@@ -718,7 +735,7 @@
                             </property>
                             <property name="maximumSize">
                                 <size>
-                                    <width>40</width>
+                                    <width>30</width>
                                     <height>32767</height>
                                 </size>
                             </property>
@@ -746,7 +763,7 @@
                             </property>
                             <property name="maximumSize">
                                 <size>
-                                    <width>40</width>
+                                    <width>25</width>
                                     <height>32767</height>
                                 </size>
                             </property>
@@ -774,7 +791,7 @@
                             </property>
                             <property name="maximumSize">
                                 <size>
-                                    <width>40</width>
+                                    <width>32</width>
                                     <height>32767</height>
                                 </size>
                             </property>
@@ -876,7 +893,7 @@
                             </property>
                             <property name="maximumSize">
                                 <size>
-                                    <width>40</width>
+                                    <width>35</width>
                                     <height>32767</height>
                                 </size>
                             </property>
@@ -904,7 +921,7 @@
                             </property>
                             <property name="maximumSize">
                                 <size>
-                                    <width>40</width>
+                                    <width>25</width>
                                     <height>32767</height>
                                 </size>
                             </property>
@@ -932,7 +949,7 @@
                             </property>
                             <property name="maximumSize">
                                 <size>
-                                    <width>40</width>
+                                    <width>32</width>
                                     <height>32767</height>
                                 </size>
                             </property>
@@ -1031,11 +1048,11 @@
                                 <enum>Horizontal</enum>
                             </property>
                             <property name="sizeType">
-                                <enum>Expanding</enum>
+                                <enum>Preferred</enum>
                             </property>
                             <property name="sizeHint">
                                 <size>
-                                    <width>40</width>
+                                    <width>10</width>
                                     <height>20</height>
                                 </size>
                             </property>
@@ -1044,12 +1061,29 @@
                 </widget>
                 <widget class="QLayoutWidget">
                     <property name="name">
-                        <cstring>layout33</cstring>
+                        <cstring>layout22</cstring>
                     </property>
                     <hbox>
                         <property name="name">
                             <cstring>unnamed</cstring>
                         </property>
+                        <spacer>
+                            <property name="name">
+                                <cstring>spacer6_2</cstring>
+                            </property>
+                            <property name="orientation">
+                                <enum>Horizontal</enum>
+                            </property>
+                            <property name="sizeType">
+                                <enum>Preferred</enum>
+                            </property>
+                            <property name="sizeHint">
+                                <size>
+                                    <width>16</width>
+                                    <height>20</height>
+                                </size>
+                            </property>
+                        </spacer>
                         <widget class="QLabel">
                             <property name="name">
                                 <cstring>symtypeDSLabel</cstring>
@@ -1089,7 +1123,7 @@
                             </property>
                             <property name="maximumSize">
                                 <size>
-                                    <width>40</width>
+                                    <width>30</width>
                                     <height>32767</height>
                                 </size>
                             </property>
@@ -1117,7 +1151,7 @@
                             </property>
                             <property name="maximumSize">
                                 <size>
-                                    <width>40</width>
+                                    <width>25</width>
                                     <height>32767</height>
                                 </size>
                             </property>
@@ -1145,7 +1179,7 @@
                             </property>
                             <property name="maximumSize">
                                 <size>
-                                    <width>40</width>
+                                    <width>32</width>
                                     <height>32767</height>
                                 </size>
                             </property>
@@ -1247,7 +1281,7 @@
                             </property>
                             <property name="maximumSize">
                                 <size>
-                                    <width>40</width>
+                                    <width>30</width>
                                     <height>32767</height>
                                 </size>
                             </property>
@@ -1275,7 +1309,7 @@
                             </property>
                             <property name="maximumSize">
                                 <size>
-                                    <width>40</width>
+                                    <width>25</width>
                                     <height>32767</height>
                                 </size>
                             </property>
@@ -1303,7 +1337,7 @@
                             </property>
                             <property name="maximumSize">
                                 <size>
-                                    <width>40</width>
+                                    <width>32</width>
                                     <height>32767</height>
                                 </size>
                             </property>
@@ -1489,12 +1523,6 @@
 </widget>
 <connections>
     <connection>
-        <sender>surfContPtGroup</sender>
-        <signal>clicked(int)</signal>
-        <receiver>FineGrainForm</receiver>
-        <slot>surfContPtSelected(int)</slot>
-    </connection>
-    <connection>
         <sender>setColorBut</sender>
         <signal>clicked()</signal>
         <receiver>FineGrainForm</receiver>
@@ -1590,6 +1618,12 @@
         <receiver>FineGrainForm</receiver>
         <slot>symtypeSelected(int)</slot>
     </connection>
+    <connection>
+        <sender>surfContPtGroup</sender>
+        <signal>clicked(int)</signal>
+        <receiver>FineGrainForm</receiver>
+        <slot>ptContSurfSelected(int)</slot>
+    </connection>
 </connections>
 <includes>
     <include location="local" impldecl="in declaration">istore.h</include>
@@ -1600,41 +1634,58 @@
     <include location="local" impldecl="in implementation">control.h</include>
     <include location="global" impldecl="in implementation">qsignalmapper.h</include>
     <include location="local" impldecl="in implementation">iobj.h</include>
+    <include location="local" impldecl="in implementation">finegrain.h</include>
+    <include location="local" impldecl="in implementation">colorselector.h</include>
     <include location="local" impldecl="in implementation">form_finegrain.ui.h</include>
 </includes>
 <forwards>
     <forward>class MultiSlider</forward>
+    <forward>class ColorSelector</forward>
 </forwards>
 <variables>
-    <variable>int mSymTable[4];</variable>
-    <variable>bool mCtrlPressed;</variable>
-    <variable>MultiSlider *mTransSlider;</variable>
-    <variable>QLabel *mDSlabels[7];</variable>
-    <variable>int mSurfContPt;</variable>
-    <variable>int mChangeFlags[7];</variable>
-    <variable>int mTypeValues[7];</variable>
-    <variable>QPushButton *mClearButs[7];</variable>
-    <variable>QPushButton *mEndButs[7];</variable>
-    <variable>QPushButton *mLastButs[7];</variable>
-    <variable>int mLast2Dwidth;</variable>
-    <variable>int mLast3Dwidth;</variable>
-    <variable>int mLastSymsize;</variable>
-    <variable>int mLastSymType;</variable>
-    <variable>int mLastTrans;</variable>
-    <variable>int mLastRed;</variable>
-    <variable>int mLastGreen;</variable>
-    <variable>int mLastBlue;</variable>
-    <variable>int mLastFillRed;</variable>
-    <variable>int mLastFillGreen;</variable>
-    <variable>int mLastFillBlue;</variable>
+    <variable>int mCurFillBlue;</variable>
+    <variable>int mCurBlue;</variable>
+    <variable>int mCurFillGreen;</variable>
+    <variable>int mCurGreen;</variable>
+    <variable>int mCurFillRed;</variable>
+    <variable>int mCurRed;</variable>
     <variable>bool mLastSymFill;</variable>
+    <variable>int mLastFillBlue;</variable>
+    <variable>int mLastFillGreen;</variable>
+    <variable>int mLastFillRed;</variable>
+    <variable>int mLastBlue;</variable>
+    <variable>int mLastGreen;</variable>
+    <variable>int mLastRed;</variable>
+    <variable>int mLastTrans;</variable>
+    <variable>int mLastSymType;</variable>
+    <variable>int mLastSymsize;</variable>
+    <variable>int mLast3Dwidth;</variable>
+    <variable>int mLast2Dwidth;</variable>
+    <variable>QPushButton *mLastButs[7];</variable>
+    <variable>QPushButton *mEndButs[7];</variable>
+    <variable>QPushButton *mClearButs[7];</variable>
+    <variable>int mTypeValues[7];</variable>
+    <variable>int mChangeFlags[7];</variable>
+    <variable>int mPtContSurf;</variable>
+    <variable>QLabel *mDSlabels[7];</variable>
+    <variable>MultiSlider *mTransSlider;</variable>
+    <variable>bool mCtrlPressed;</variable>
+    <variable>int mSymTable[4];</variable>
+    <variable>ColorSelector *mLineSelector;</variable>
+    <variable>ColorSelector *mFillSelector;</variable>
 </variables>
 <slots>
     <slot>setFontDependentWidths()</slot>
-    <slot>update( int surfContPt, bool enabled, DrawProps * props, int stateFlags )</slot>
-    <slot>surfContPtSelected( int which )</slot>
+    <slot>update( int ptContSurf, bool enabled, DrawProps * props, int stateFlags )</slot>
+    <slot>ptContSurfSelected( int which )</slot>
     <slot>setLineColor()</slot>
     <slot>setFillColor()</slot>
+    <slot>newLineColor( int red, int green, int blue )</slot>
+    <slot>newFillColor( int red, int green, int blue )</slot>
+    <slot>lineColorDone()</slot>
+    <slot>fillColorDone()</slot>
+    <slot>lineColorClosing()</slot>
+    <slot>fillColorClosing()</slot>
     <slot>lastLineColor()</slot>
     <slot>lastFillColor()</slot>
     <slot>lastTrans()</slot>

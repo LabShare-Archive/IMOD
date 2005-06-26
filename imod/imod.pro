@@ -67,6 +67,7 @@ HEADERS	+= autox.h \
 	xcorr.h \
 	undoredo.h \
 	imod_assistant.h \
+	finegrain.h \
 	pegged.xpm \
 	unpegged.xpm \
 	b3dicon.xpm \
@@ -129,7 +130,8 @@ SOURCES	+= autox.cpp \
 	undoredo.cpp \
 	imod_assistant.cpp \
 	iiqimage.cpp \
-	iirawimage.cpp
+	iirawimage.cpp \
+	finegrain.cpp
 
 FORMS	= form_object_edit.ui \
 	formv_control.ui \
