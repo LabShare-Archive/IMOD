@@ -14,6 +14,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.2  2005/06/21 13:12:49  mast
+Fix some pointers
+
 Revision 3.1  2005/06/20 22:25:50  mast
 Preliminary checkin
 
@@ -184,7 +187,9 @@ static int storeCompare(const void *s1, const void *s2)
 
 /*!
  * Inserts the element [store] into the list of sorted {Istore} elements 
- * pointed to by [list], after any existing elements with the same {index}.
+ * pointed to by [list].  The element is inserted after any existing elements 
+ * with the same {index}, unless GEN_STORE_REVERT is set in {flags}, in which
+ * case it is inserted before existing elements.
  * Works if [list] points to a NULL.  Returns 1 for error.
  */
 int istoreInsert(Ilist **list, Istore *store)
@@ -195,6 +200,8 @@ int istoreInsert(Ilist **list, Istore *store)
     *list = ilistNew(sizeof(Istore), 4);
   if (!*list)
     return 1;
+  if ((store->flags & GEN_STORE_REVERT) && lookup >= 0)
+    return (ilistInsert(*list, store, lookup));
   return (ilistInsert(*list, store, after));
 }
 
@@ -229,8 +236,9 @@ int istoreLookup(Ilist *list, int index, int *after)
     if (store->index.i < index) {
       *after = ilistSize(list);
       return -1;
+
     } else if (store->index.i == index)
-      match = 0;
+      match = above;
   }
 
   /* Look at element midway between below and above and replace either the
@@ -245,6 +253,8 @@ int istoreLookup(Ilist *list, int index, int *after)
       match = mid;
     else
       below = mid;
+    /* printf("mid %d below %d above %d match %d\n", mid, below, above, 
+       match);*/
   }
 
   /* If there is still no match, then set after to the one above */
@@ -270,11 +280,17 @@ int istoreLookup(Ilist *list, int index, int *after)
   return (mid + 1);
 }
 
+/*!
+ * Prints the values of general storage elements in [list].  {index} and
+ * {value} items will be printed as int, byte, short, or float based upon
+ * the flags in {flags}.
+ */
 void istoreDump(Ilist *list)
 {
   int i, j, dtype;
   Istore *store;
   StoreUnion *item;
+  printf(" %d items in list:\n", ilistSize(list));
   for (i = 0; i < ilistSize(list); i++) {
     store = istoreItem(list, i);
     printf("%6d %6o", store->type, store->flags);
@@ -305,8 +321,6 @@ void istoreDump(Ilist *list)
     printf("\n");
   }    
 }
-
-
 
 /*!
  * Breaks all changes in [list] at the point index given by [index]; namely 
@@ -346,7 +360,7 @@ int istoreBreakChanges(Ilist *list, int index, int psize)
 
     /* Loop forward from this point looking for an end */
     for (i = curStart + 1; i < list->size; i++) {
-      stp = istoreItem(list, curStart);
+      stp = istoreItem(list, i);
 
       /* This search is done when get past the given index */
       if ((stp->flags & (GEN_STORE_NOINDEX | 3)) || stp->index.i > index)
@@ -370,37 +384,19 @@ int istoreBreakChanges(Ilist *list, int index, int psize)
         }
       }
     }
+    /* printf("%d %d %d %d %d %d %d\n", index, curStart, curSet, curRevert, 
+           ptFirstSet, ptLastSet, ptRevert); */
 
-    /* Easy case: it ends before the break */
-    if (ptRevert < index)
+    /* Nothing to do if it ends before or at the break */
+    if (ptRevert <= index)
       continue;
 
-    /* End on the break gets deleted and will not need a restart */
-    if (ptRevert == index) {
-      ilistRemove(list, curRevert);
-      needRestart = 0;
-    }
-
-    if (ptLastSet < index - 1) {
-
-      /* If latest change is before break, insert an end */
-      storeEnd = store;
-      storeEnd.flags |= GEN_STORE_REVERT;
-      storeEnd.index.i = index - 1;
-      if (istoreInsert(&list, &storeEnd))
-        return 1;
-      
-    } else if (ptFirstSet < index - 1) {
-      
-      /* If a successor change starts at break, convert it to an end */
-      stp = istoreItem(list, curSet);
-      stp->flags |= GEN_STORE_REVERT;
-    } else {
-      
-      /* If original change starts at break, delete it */
-      ilistRemove(list, curStart);
-      curStart--;
-    }
+    /* Otherwise insert an end */
+    storeEnd = store;
+    storeEnd.flags |= GEN_STORE_REVERT;
+    storeEnd.index.i = index;
+    if (istoreInsert(&list, &storeEnd))
+      return 1;
     
     /* Now restart if needed */
     if (needRestart) {
@@ -413,9 +409,32 @@ int istoreBreakChanges(Ilist *list, int index, int psize)
 }
 
 /*!
+ * Returns the index in [list] of the first new change starting at a point 
+ * index greater than or equal to [index].  Ends at that index are assumed
+ * to occur before changes.
+ */
+int istoreFindBreak(Ilist *list, int index)
+{
+  int lookup, after, i;
+  Istore *stp;
+  after = 0;
+  lookup = istoreLookup(list, index, &after);
+  if (lookup < 0)
+    return after;
+  for (i = lookup; i < after; i++) {
+    stp = istoreItem(list, i);
+    if (!(stp->flags & GEN_STORE_REVERT))
+      return i;
+  }
+  return after;
+}
+
+/*!
  * Shifts indexes in [list] by [amount], for all storage items with indexes
  * >= [ptIndex].  Set [startScan] to a list index at which to start scanning
  * the list, or to -1 to have the routine search for the starting index.
+ * Items with the GEN_STORE_SURFACE flag set will not be shifted, so this 
+ * routine will work for contour or point indexes.
  */
 void istoreShiftIndex(Ilist *list, int ptIndex, int startScan, int amount)
 {
@@ -436,6 +455,8 @@ void istoreShiftIndex(Ilist *list, int ptIndex, int startScan, int amount)
     stp = istoreItem(list, i);
     if (stp->flags & (GEN_STORE_NOINDEX | 3))
       break;
+    if (stp->flags & GEN_STORE_SURFACE)
+      continue;
     if (stp->index.i >= ptIndex)
       stp->index.i += amount;
   }
@@ -445,17 +466,22 @@ void istoreShiftIndex(Ilist *list, int ptIndex, int startScan, int amount)
  * Manages any elements in [list] associated with the point given by [index]
  * when that point is deleted.  They will be moved to the next point or
  * removed, and all following indexes will be reduced by 1.  [psize] must 
- * indicate the size of the contour * before the point is deleted.  Returns 1
+ * indicate the size of the contour before the point is deleted.  Returns 1
  * for error.
  */
 int istoreDeletePoint(Ilist *list, int index, int psize)
 {
-  int after, lind, i, j, needMove, delEnd;
+  int after, lind, i, j, needMove, delEnd, lookup;
   Istore store;
   Istore *stp;
-  int lookup = istoreLookup(list, index, &after);
-  if (lookup < 0)
+  if (!ilistSize(list))
+    return;
+    
+  lookup = istoreLookup(list, index, &after);
+  if (lookup < 0) {
+    istoreShiftIndex(list, index + 1, after, -1);
     return 0;
+  }
 
   /* If there are following points, loop on the items, see if each
      item needs to be moved to a following point */
@@ -516,49 +542,71 @@ int istoreDeletePoint(Ilist *list, int index, int psize)
   /* Delete the current point items and then shift indexes */
   ilistShift(list, after, lookup - after);
   list->size -= after - lookup;
-  istoreShiftIndex(list, index + 1, -1, lookup);
+  istoreShiftIndex(list, index + 1, lookup, -1);
   return 0;
 }
 
 /*!
- * Breaks general storage list in contour [cont] into two pieces and assigns
- * changes starting at [index] or after to the new contour [ncont].  Returns
- * 1 for error.
+ * Removes any elements in [list] associated with the contour whose index is
+ * [index], and reduces all following contour indexes by 1.
  */
-int istoreBreakContour(Icont *cont, Icont *ncont, int index) 
+void istoreDeleteContour(Ilist *list, int index)
+{
+  int after, i, lookup;
+  Istore *stp;
+  if (!ilistSize(list))
+    return;
+    
+  lookup = istoreLookup(list, index, &after);
+  if (lookup >= 0) {
+    for (i = lookup; i < after; i++) {
+      stp = istoreItem(list, i);
+      if (!(stp->flags & GEN_STORE_SURFACE)) {
+        ilistRemove(list, i);
+        i--;
+        after--;
+      }
+    }
+  }
+  istoreShiftIndex(list, index + 1, after, -1);
+}
+
+/*!
+ * Breaks general storage list in contour [cont] into two pieces and assigns
+ * changes occurring from point index [p1] through [p2] to the new contour 
+ * [ncont].  Returns 1 for error.
+ */
+int istoreBreakContour(Icont *cont, Icont *ncont, int p1, int p2) 
 {
   Ilist *ostore = cont->store;
   Ilist *nstore = NULL;
+  Ilist *tmpList1 = NULL;
   int after, i, lookup, size;
   Istore *stp;
 
   if (!ilistSize(ostore))
     return 0;
 
-  /* If old contour is reduced to zero length, transfer the list to the new */
-  if (!index) {
-    cont->store = NULL;
-    ncont->store = ostore;
-    return 0;
-  }
-
-  /* Otherwise, break the changes, then get the first index of the break */
-  if (istoreBreakChanges(ostore, index, cont->psize))
+  if (p2 < 0)
+    p2 = cont->psize - 1;
+  if (!cont || !ncont || !cont->psize || p1 < 0 || p1 >= cont->psize ||
+      p2 >= cont->psize || p2 < p1)
     return 1;
-  lookup = istoreLookup(ostore, index - 1, &after);
-  size = ostore->size + 1 - after;
-  if (size) {
-    nstore = ilistNew(sizeof(Istore), size);
-    if (!nstore)
-      return 1;
-    for (i = after; i < ostore->size; i++) {
-      stp = istoreItem(ostore, i);
-      ilistAppend(nstore, stp);
-    }
-    istoreShiftIndex(nstore, index, 0, -index);
-  }
-  ostore->size -= size;
+
+  if (istoreExtractChanges(ostore, &tmpList1, 0, p1 - 1, 0, cont->psize))
+    return 1;
+
+  if (istoreExtractChanges(ostore, &nstore, p1, p2, 0, cont->psize))
+    return 1;
+
+  ilistDelete(ncont->store);
   ncont->store = nstore;
+
+  if (istoreExtractChanges(ostore, &tmpList1, p2 + 1, cont->psize - 1, p1,
+                           cont->psize))
+    return 1;
+  ilistDelete(cont->store);
+  cont->store = tmpList1;
   return 0;
 }
 
@@ -571,7 +619,7 @@ int istoreInvert(Ilist **listp, int psize)
 {
   Ilist *nlist = NULL;
   Ilist *list = *listp;
-  int pmo, curStart, i;
+  int curStart, i;
   Istore *stp;
   Istore store;
 
@@ -580,7 +628,6 @@ int istoreInvert(Ilist **listp, int psize)
   if (istoreBreakChanges(list, psize, psize))
     return 1;
 
-  pmo = psize - 1;
   for (curStart = 0; curStart < list->size; curStart++) {
     stp = istoreItem(list, curStart);
 
@@ -593,9 +640,14 @@ int istoreInvert(Ilist **listp, int psize)
       continue;
     }
 
-    /* Copy one-point type */
+    /* Copy one-point type but move gap back by one */
     if (stp->flags & GEN_STORE_ONEPOINT) {
-      stp->index.i = pmo - stp->index.i;
+      stp->index.i = psize - 1 - stp->index.i;
+      if (stp->type == GEN_STORE_GAP) {
+        stp->index.i--;
+        if (stp->index.i < 0)
+          stp->index.i = psize - 1;
+      }
       if (istoreInsert(&nlist, stp)) {
         ilistDelete(nlist);
         return 1;
@@ -604,9 +656,9 @@ int istoreInvert(Ilist **listp, int psize)
     }
 
     /* Convert the start to an end and add it with inverted index, then
-       save the starting change */
+       save the starting change.  Advance index by one for the new end */
     store = *stp;
-    store.index.i = pmo - store.index.i;
+    store.index.i = psize - store.index.i;
     store.flags |= GEN_STORE_REVERT;
     if (istoreInsert(&nlist, &store)) {
       ilistDelete(nlist);
@@ -616,11 +668,12 @@ int istoreInvert(Ilist **listp, int psize)
 
     /* Loop forward from this point looking for the end */
     for (i = curStart + 1; i < list->size; i++) {
-      stp = istoreItem(list, curStart);
+      stp = istoreItem(list, i);
 
-      /* If the type matches, output saved item with current index inverted */
+      /* If the type matches, output saved item with current index inverted
+         advanced by one for the new start */
       if (store.type == stp->type) {
-        store.index.i = pmo - stp->index.i;
+        store.index.i = psize - stp->index.i;
         if (istoreInsert(&nlist, &store)) {
           ilistDelete(nlist);
           return 1;
@@ -629,6 +682,7 @@ int istoreInvert(Ilist **listp, int psize)
         /* Remove the successor or end, break on an end */
         store = *stp;
         ilistRemove(list, i);
+        i--;
         if (store.flags & GEN_STORE_REVERT)
           break;
       }
@@ -639,6 +693,30 @@ int istoreInvert(Ilist **listp, int psize)
   ilistDelete(list);
   *listp = nlist;
   return 0;
+}
+
+/*!
+ * Removes extraneous ends from [list] at indexes that have a matching start.
+ */
+void istoreCleanEnds(Ilist *list)
+{
+  Istore *stp, *stp2;
+  int i, j;
+  for (i = 0; i < ilistSize(list); i++) {
+    stp = istoreItem(list, i);
+    if (stp->flags & (GEN_STORE_NOINDEX | 3))
+      return;
+    if (stp->flags & GEN_STORE_REVERT) {
+      for (j = i + 1; j < ilistSize(list); j++) {
+        stp2 = istoreItem(list, j);
+        if (stp2->type == stp->type) {
+          ilistRemove(list, i);
+          i--;
+          break;
+        }
+      } 
+    }
+  }
 }
 
 /*!
@@ -655,7 +733,7 @@ int istoreExtractChanges(Ilist *olist, Ilist **nlistp, int indStart,
   int i, lookup, after1, after2;
   Istore *stp;
 
-  if (!ilistSize(olist) || indStart == indEnd)
+  if (!ilistSize(olist) || indStart > indEnd)
     return 0;
 
   /* Copy the list */
@@ -684,8 +762,8 @@ int istoreExtractChanges(Ilist *olist, Ilist **nlistp, int indStart,
   }
 
 /* Copy data to new list, shifting indexes */
-  lookup = istoreLookup(tmpList, indStart - 1, &after1);
-  lookup = istoreLookup(tmpList, indEnd, &after2);
+  after1 = istoreFindBreak(tmpList, indStart);
+  after2 = istoreFindBreak(tmpList, indEnd + 1);
   for (i = after1; i < after2; i++) {
     stp = istoreItem(tmpList, i);
     stp->index.i += newStart - indStart;
@@ -762,7 +840,7 @@ Istore *istoreNextObjItem(Ilist *list, int co, int surf, int first)
 
 /*!
  * Inserts a change described in [store] into the list pointed to by [listp].
- * An matching change or end at the same index is removed.  Redundant entries
+ * A matching change or end at the same index is removed.  Redundant entries
  * of the change are avoided or eliminated.  Returns 1 for error.
  */
 int istoreInsertChange(Ilist **listp, Istore *store)
@@ -813,7 +891,7 @@ int istoreInsertChange(Ilist **listp, Istore *store)
     if (stp->flags & (GEN_STORE_NOINDEX | 3))
       break;
     if (stp->type == store->type) {
-      if (!(stp->flags & GEN_STORE_REVERT))
+      if (stp->flags & GEN_STORE_REVERT)
         break;
       if (stp->value.i == store->value.i) {
         ilistRemove(list, i);
@@ -828,7 +906,7 @@ int istoreInsertChange(Ilist **listp, Istore *store)
  * Inserts an end for a change into [list], where [type] specifies the type and
  * [index] indicates the point index.  A later end will be deleted if there
  * is not an intervening start of the same type, and a start at the given index
- * will also be deleted.
+ * will also be deleted.  Returns 1 for error.
  */
 int istoreEndChange(Ilist *list, int type, int index)
 {
@@ -935,6 +1013,62 @@ int istoreClearChange(Ilist *list, int type, int index)
 }
 
 /*!
+ * Inserts the item in [store] into the list pointed to by [listp], where the
+ * item specifies a property that applies to only one point or contour.
+ * A matching item at the same index is replaced.  Returns 1 for error.
+ */
+int istoreAddOneIndexItem(Ilist **listp, Istore *store)
+{
+  int i, lookup, after;
+  Istore *stp;
+
+  if (*listp) {
+    lookup = istoreLookup(*listp, store->index.i, &after);
+
+    /* Look for a matching item and replace it */
+    if (lookup >= 0) {
+      for (i = lookup; i < after; i++) {
+        stp = istoreItem(*listp, i);
+        if (stp->type == store->type && (stp->flags & GEN_STORE_SURFACE) == 
+            (store->flags & GEN_STORE_SURFACE)) {
+          *stp = *store;
+          return 0;
+        }
+      }
+    }
+  }
+
+  /* If no match, insert the item */
+  return (istoreInsert(listp, store));
+}
+
+/*!
+ * Removes the item in [list] with the type given by [type] and containing the
+ * point at [index], where the item specifies a property that applies to only
+ * one point or contour.  [surfFlag] should be 0 for a point or contour, or 
+ * GEN_STORE_SURFACE for a surface.  Returns 1 for an empty list, -1 if no
+ * matching item is found.
+ */
+int istoreClearOneIndexItem(Ilist *list, int type, int index, int surfFlag)
+{
+  int i, lookup, after;
+  Istore *stp;
+  if (!ilistSize(list))
+    return 1;
+  lookup = istoreLookup(list, index, &after);
+  if (lookup < 0)
+    return -1;
+  for (i = lookup; i < after; i++) {
+    stp = istoreItem(list, i);
+    if (stp->type == type && (stp->flags & GEN_STORE_SURFACE) == surfFlag) {
+      ilistRemove(list, i);
+      return 0;
+    }
+  }
+  return -1;
+}
+
+/*!
 * Fills a draw property structure [props] with default values for the object
 * [obj].
 */
@@ -943,9 +1077,9 @@ void istoreDefaultDrawProps(Iobj *obj, DrawProps *props)
   props->red = obj->red;
   props->green = obj->green;
   props->blue = obj->blue;
-  props->fillRed = obj->mat1;
-  props->fillGreen = obj->mat1b1;
-  props->fillBlue = obj->mat1b2;
+  props->fillRed = obj->mat1 / 255.f;
+  props->fillGreen = obj->mat1b1 / 255.f;
+  props->fillBlue = obj->mat1b2 / 255.f;
   props->trans = obj->trans;
   props->connect = 0;
   props->gap = 0;
@@ -970,7 +1104,7 @@ int istoreContSurfDrawProps(Ilist *list, DrawProps *defProps,
   Istore *stp;
   *contProps = *defProps;
   retval = 0;
-  if (ilistSize(list))
+  if (!ilistSize(list))
     return 0;
 
   /* Set up to loop on surface entries first */
@@ -984,26 +1118,31 @@ int istoreContSurfDrawProps(Ilist *list, DrawProps *defProps,
     if (lookup >= 0) {
       for (i = lookup; i < after; i++) {
         stp = istoreItem(list, i);
-        if ((stp->flags | GEN_STORE_SURFACE) != surfFlag)
+        if ((stp->flags & GEN_STORE_SURFACE) != surfFlag)
           continue;
         switch (stp->type) {
         case GEN_STORE_COLOR:
           retval |= CHANGED_COLOR;
-          contProps->red = stp->value.b[0];
-          contProps->green = stp->value.b[1];
-          contProps->blue = stp->value.b[2];
+          contProps->red = stp->value.b[0] / 255.f;
+          contProps->green = stp->value.b[1] / 255.f;
+          contProps->blue = stp->value.b[2] / 255.f;
           break;
 
         case GEN_STORE_FCOLOR:
           retval |= CHANGED_FCOLOR;
-          contProps->fillRed = stp->value.b[0];
-          contProps->fillGreen = stp->value.b[1];
-          contProps->fillBlue = stp->value.b[2];
+          contProps->fillRed = stp->value.b[0] / 255.f;
+          contProps->fillGreen = stp->value.b[1] / 255.f;
+          contProps->fillBlue = stp->value.b[2] / 255.f;
           break;
 
         case GEN_STORE_TRANS:
           retval |= CHANGED_TRANS;
           contProps->trans = stp->value.i;
+          break;
+
+        case GEN_STORE_GAP:
+          retval |= CHANGED_GAP;
+          contProps->gap = 1;
           break;
 
         case GEN_STORE_3DWIDTH:
@@ -1099,7 +1238,7 @@ int istoreNextChange(Ilist *list, DrawProps *defProps,
 
     /* Increment list index for next round */
     list->current++;
-
+    ending = stp->flags & GEN_STORE_REVERT;
     switch (stp->type) {
     case GEN_STORE_COLOR:
       *changeFlags |= CHANGED_COLOR;
@@ -1109,9 +1248,9 @@ int istoreNextChange(Ilist *list, DrawProps *defProps,
         ptProps->blue = defProps->blue;
         *stateFlags &= ~CHANGED_COLOR;
       } else {
-        ptProps->red = stp->value.b[0];
-        ptProps->green = stp->value.b[1];
-        ptProps->blue = stp->value.b[2];
+        ptProps->red = stp->value.b[0] / 255.f;
+        ptProps->green = stp->value.b[1] / 255.f;
+        ptProps->blue = stp->value.b[2] / 255.f;
         *stateFlags |= CHANGED_COLOR;
       }
       break;
@@ -1124,9 +1263,9 @@ int istoreNextChange(Ilist *list, DrawProps *defProps,
         ptProps->fillBlue = defProps->fillBlue;
         *stateFlags &= ~CHANGED_FCOLOR;
       } else {
-        ptProps->fillRed = stp->value.b[0];
-        ptProps->fillGreen = stp->value.b[1];
-        ptProps->fillBlue = stp->value.b[2];
+        ptProps->fillRed = stp->value.b[0] / 255.f;
+        ptProps->fillGreen = stp->value.b[1] / 255.f;
+        ptProps->fillBlue = stp->value.b[2] / 255.f;
         *stateFlags |= CHANGED_FCOLOR;
       }
       break;
@@ -1169,7 +1308,7 @@ int istoreNextChange(Ilist *list, DrawProps *defProps,
       *changeFlags |= CHANGED_2DWIDTH;
       if (ending) {
         *stateFlags &= ~CHANGED_2DWIDTH;
-        ptProps->linewidth = defProps->linewidth2;
+        ptProps->linewidth2 = defProps->linewidth2;
       } else {
         *stateFlags |= CHANGED_2DWIDTH;
         ptProps->linewidth2 = stp->value.i;
@@ -1218,7 +1357,7 @@ int istorePointDrawProps(Iobj *obj, DrawProps *contProps, DrawProps *ptProps,
                          int co, int pt)
 {
   int stateFlags = 0;
-  int changeFlags, nextChange;
+  int changeFlags, nextChange, lastChange;
   Ilist *list = obj->cont[co].store;
   DrawProps defProps;
 
@@ -1230,45 +1369,71 @@ int istorePointDrawProps(Iobj *obj, DrawProps *contProps, DrawProps *ptProps,
 
   /* Go through the changes until the point index is passed */
   nextChange = istoreFirstChangeIndex(list);
-  while (nextChange >= 0 && nextChange <= pt)
+  while (nextChange >= 0 && nextChange <= pt) {
+    lastChange = nextChange;
     nextChange = istoreNextChange(list, contProps, ptProps, &stateFlags,
                                   &changeFlags);
+  }
+
+  /* If not ending exactly on the point, cancel gap and connect */
+  if (lastChange != pt) {
+    ptProps->gap = ptProps->connect = 0;
+    stateFlags &= ~(CHANGED_GAP | CHANGED_CONNECT);
+  }
+  /* printf("State flags at end of PointProps = %o\n", stateFlags); */
   return stateFlags;
 }
 
-#ifdef TO_3DMOD
-// TEMPORARY
-int handleNextChange(Iobj *obj, Ilist *list, DrawProps *defProps, 
-                     DrawProps *ptProps, 
-                     int *stateFlags, int *changeFlags, int *handleFlags)
+/*!
+ * Returns the number of items whose type is [type] in the [list], or just 
+ * stops and returns 1 upon finding the first such change if [stop] in nonzero.
+ */
+int istoreCountItems(Ilist *list, int type, int stop)
 {
-  int nextChange = istoreNextChange(list, defProps, ptProps, stateFlags,
-                                    changeFlags);
-  if ((handleFlags & HANDLE_LINE_COLOR) && (changeFlags & CHANGED_COLOR)) {
-    glColor
-  }
+  int i, count = 0;
+  Istore *stp;
 
-  if ((handleFlags & HANDLE_MESH_COLOR) && (changeFlags & CHANGED_COLOR)) {
-    
+  if (!ilistSize(list))
+    return 0;
+  for (i = 0; i < list->size; i++) {
+    stp = istoreItem(list, i);
+    if (stp->type == type) {
+      count++;
+      if (stop)
+        return 1;
+    }
   }
-
-  if ((handleFlags & HANDLE_MESH_FCOLOR) && (changeFlags & CHANGED_FCOLOR)) {
-    
-  }
-
-  if ((handleFlags & HANDLE_TRANS) && (changeFlags & CHANGED_TRANS)) {
-    
-  }
-
-  if ((handleFlags & HANDLE_3DWIDTH) && (changeFlags & CHANGED_3DWIDTH)) {
-    //glLineWidth(ptProps->linewidth);
-    //glPointSize(ptProps->linewidth);
-  }
-
-  if ((handleFlags & HANDLE_2DWIDTH) && (changeFlags & CHANGED_2DWIDTH)) {
-    //b3dLineWidth(ptProps->linewidth2)
-  }
-      
-  return  nextChange;
+  return count;
 }
-#endif
+ 
+/*!
+ * Returns the number of items whose type is [type] in the storage lists of
+ * object [obj].  It always searches {obj->store}, then searches the {store}
+ * lists of all contours if [doCont] is nonzero, then the {store} lists of all
+ * meshes if [doMesh] is nonzero.  If [stop] in nonzero, it just
+ * stops and returns 1 upon finding the first such change.
+ */
+int istoreCountObjectItems(Iobj *obj, int type, int doCont, int doMesh,
+                             int stop)
+{
+  int co, me, count;
+  count = istoreCountItems(obj->store, type, stop);
+  if (count && stop)
+    return count;
+  if (doCont) {
+    for (co = 0; co < obj->contsize; co++) {
+      count += istoreCountItems(obj->cont[co].store, type, stop);
+      if (count && stop)
+        return count;
+    }
+  }
+  if (doMesh) {
+    for (me = 0; me < obj->meshsize; me++) {
+      count += istoreCountItems(obj->mesh[me].store, type, stop);
+      if (count && stop)
+        return count;
+    }
+  }
+}
+
+
