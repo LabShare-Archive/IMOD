@@ -16,6 +16,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.6  2005/04/23 23:36:23  mast
+Moved some functions into imodel.c
+
 Revision 3.5  2005/03/30 02:23:30  mast
 Eliminates dummy imodel_contour_move
 
@@ -122,7 +125,7 @@ void   imodContourMakeDirection(Icont *cont, int direction);
 Icont *imodContourJoin(Icont *c1, Icont *c2, int st1, int st2, int fill,
 		       int counterdir);
 Icont *imodContourSplice(Icont *c1, Icont *c2, int p1, int p2);
-Icont *imodContourBreak(Icont *cont, int p);
+Icont *imodContourBreak(Icont *cont, int p1, int p2);
 Icont *imodContourFill(Icont *cont);
 void   imodContourScale(Icont *cont, Ipoint *spoint);
 void   imodContourRotateZ(Icont *cont, double rot);
