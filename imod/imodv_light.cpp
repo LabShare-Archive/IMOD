@@ -223,7 +223,6 @@ void light_adjust(Iobj *obj, float r, float g, float b, int trans)
   GLfloat params[4];
   GLfloat spec, amb, diffuse, shine;
   GLenum face = GL_FRONT_AND_BACK;
-    
   /*    if (!(obj->flags & IMOD_OBJFLAG_LIGHT)) return;*/
 
   spec    = obj->specular / 255.0f;
@@ -401,6 +400,9 @@ int imod_light_normal( struct Mod_Point *n,
 #endif /* IMODV_LIGHT_TEST_NORMAL */
 /*
 $Log$
+Revision 4.5  2005/06/20 22:20:28  mast
+Pass transparency to light_adjust
+
 Revision 4.4  2004/09/21 20:18:51  mast
 Moved clipping function to imodv_ogl
 
