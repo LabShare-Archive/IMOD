@@ -1178,6 +1178,7 @@ c
 	  ipatchy=ipatchy+1
 	  if(ipatchy.gt.npatchy)then
 	    close(iunlocal)
+	    if (ifresout .gt. 0) print *
 	    go to 209
 	  endif
 	endif
@@ -1348,6 +1349,9 @@ c
 
 c
 c	  $Log$
+c	  Revision 3.25  2005/06/09 19:20:18  mast
+c	  Added image binned option so that Z shift can be entered unbinned
+c	
 c	  Revision 3.24  2005/04/20 16:26:51  mast
 c	  Added a success message after the restart messages
 c	
