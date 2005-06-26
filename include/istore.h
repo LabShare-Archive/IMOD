@@ -14,6 +14,9 @@ $Date$
 $Revision$
     
 $Log$
+Revision 3.2  2005/06/20 22:23:30  mast
+Preliminary checkin
+
 */
 #ifndef ISTORE_H
 #define ISTORE_H
@@ -79,7 +82,7 @@ typedef struct Mod_Store
 /* The drawing property structure */
 typedef struct draw_properties
 {
-  float red, green, blue;
+  float red, green, blue;            /* Keep as floats so they are GL-ready */
   float fillRed, fillGreen, fillBlue;
   int trans;
   int connect;
@@ -103,9 +106,11 @@ extern "C" {
   int istoreLookup(Ilist *list, int index, int *after);
   void istoreDump(Ilist *list);
   int istoreBreakChanges(Ilist *list, int index, int psize);
+  int istoreFindBreak(Ilist *list, int index);
   void istoreShiftIndex(Ilist *list, int ptIndex, int startScan, int amount);
   int istoreDeletePoint(Ilist *list, int index, int psize);
-  int istoreBreakContour(Icont *cont, Icont *ncont, int index) ;
+  void istoreDeleteContour(Ilist *list, int index);
+  int istoreBreakContour(Icont *cont, Icont *ncont, int p1, int p2);
   int istoreInvert(Ilist **listp, int psize);
   int istoreExtractChanges(Ilist *olist, Ilist **nlistp, int indStart, 
                            int indEnd, int newStart, int psize);
@@ -115,6 +120,8 @@ extern "C" {
   int istoreInsertChange(Ilist **listp, Istore *store);
   int istoreEndChange(Ilist *list, int type, int index);
   int istoreClearChange(Ilist *list, int type, int index);
+  int istoreAddOneIndexItem(Ilist **listp, Istore *store);
+  int istoreClearOneIndexItem(Ilist *list, int type, int index, int surfFlag);
 
   void istoreDefaultDrawProps(Iobj *obj, DrawProps *props);
   int istoreContSurfDrawProps(Ilist *list, DrawProps *defProps, 
@@ -124,6 +131,9 @@ extern "C" {
                        DrawProps *ptProps, int *stateFlags, int *changeFlags);
   int istorePointDrawProps(Iobj *obj, DrawProps *contProps, DrawProps *ptProps,
                            int co, int pt);
+  int istoreCountItems(Ilist *list, int type, int stop);
+  int istoreCountObjectItems(Iobj *obj, int type, int doCont, int doMesh,
+                               int stop);
 
 #ifdef __cplusplus
 }
