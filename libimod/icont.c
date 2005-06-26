@@ -1036,6 +1036,7 @@ Icont *imodContourJoin(Icont *c1, Icont *c2, int st1, int st2, int fill,
 {
   Icont *cont;
   Ipoint point;
+  Ilist *nstore = NULL;
   double dist, mdist;
   int pt, pt2;
   int dir1, dir2;
@@ -1105,25 +1106,27 @@ Icont *imodContourJoin(Icont *c1, Icont *c2, int st1, int st2, int fill,
   if (fill == -1)
     point.z -= 0.75f;
 
-  /* Take care of joining storage lists first */
+  /* Take care of joining storage lists first, but keep new list separate
+     to avoid having it get renumbered */
   if (ilistSize(c1->store) || ilistSize(c2->store)) {
     lst2 = st1 + 1 + (fill ? 1 : 0);
     lst3 = lst2 + c2->psize - st2;
     lst4 = st1 + c2->psize + 2 + (fill ? 2 : 0);
-    if (istoreExtractChanges(c1->store, &cont->store, 0, st1, 0, c1->psize) ||
-        istoreExtractChanges(c2->store, &cont->store, st2, c2->psize - 1, 
+    if (istoreExtractChanges(c1->store, &nstore, 0, st1, 0, c1->psize) ||
+        istoreExtractChanges(c2->store, &nstore, st2, c2->psize - 1, 
                              lst2, c2->psize) ||
-        istoreExtractChanges(c2->store, &cont->store, 0, st2, 
+        istoreExtractChanges(c2->store, &nstore, 0, st2, 
                              lst3, c2->psize) ||
-        istoreExtractChanges(c1->store, &cont->store, st1, c1->psize - 1, 
+        istoreExtractChanges(c1->store, &nstore, st1, c1->psize - 1, 
                              lst4, c1->psize) ||
-        istoreCopyNonIndex(c1->store, &cont->store) ||
-        istoreCopyNonIndex(c2->store, &cont->store)) {
+        istoreCopyNonIndex(c1->store, &nstore) ||
+        istoreCopyNonIndex(c2->store, &nstore)) {
+      ilistDelete(nstore);
       imodContourDelete(cont);
       return(NULL);
     }
   }
-
+  
   /* add points to new contour */
   for(pt = 0; pt <= st1; pt++)
     imodPointAppend(cont, &(c1->pts[pt]));
@@ -1167,6 +1170,8 @@ Icont *imodContourJoin(Icont *c1, Icont *c2, int st1, int st2, int fill,
   if (c1->flags & ICONT_OPEN)
     cont->flags |= ICONT_OPEN;
 
+  istoreCleanEnds(nstore);
+  cont->store = nstore;
   return(cont);
 }
 
@@ -1177,6 +1182,7 @@ Icont *imodContourJoin(Icont *c1, Icont *c2, int st1, int st2, int fill,
 Icont *imodContourSplice(Icont *c1, Icont *c2, int p1, int p2)
 {
   Icont *nc;
+  Ilist *nstore = NULL;
   int i;
 
   if ((!c1) || (!c2))
@@ -1192,76 +1198,104 @@ Icont *imodContourSplice(Icont *c1, Icont *c2, int p1, int p2)
   /* Take care of any store items first */
   /* Extract changes from each and copy any non-index items */
   if (ilistSize(c1->store) || ilistSize(c2->store)) {
-    if (istoreExtractChanges(c1->store, &nc->store, 0, p1, 0, c1->psize) ||
-        istoreExtractChanges(c2->store, &nc->store, p2, c2->psize - 1, p1 + 1, 
+    if (istoreExtractChanges(c1->store, &nstore, 0, p1, 0, c1->psize) ||
+        istoreExtractChanges(c2->store, &nstore, p2, c2->psize - 1, p1 + 1, 
                              c2->psize) ||
-        istoreCopyNonIndex(c1->store, &nc->store) ||
-        istoreCopyNonIndex(c2->store, &nc->store)) {
+        istoreCopyNonIndex(c1->store, &nstore) ||
+        istoreCopyNonIndex(c2->store, &nstore)) {
+      ilistDelete(nstore);
       imodContourDelete(nc);
       return(NULL);
     }
   }
 
-  for(i = 0; i <= p1; i++)
+  for (i = 0; i <= p1; i++)
     imodPointAppend(nc, &(c1->pts[i]));
-  for(i = p2; i < c2->psize; i++)
+  for (i = p2; i < c2->psize; i++)
     imodPointAppend(nc, &(c2->pts[i]));
   if (c1->sizes)
     for(i = 0; i <= p1; i++)
       imodPointSetSize(nc, i, c1->sizes[i]);
   if (c2->sizes)
-    for(i = p2; i < c2->psize; i++)
+    for (i = p2; i < c2->psize; i++)
       imodPointSetSize(nc, p1 + 1 + i - p2, c2->sizes[i]);
+
+  istoreCleanEnds(nstore);
+  nc->store = nstore;
   return(nc);
 }
 
 /*!
- * Returns a contour containing points from [p] to the end from contour [cont],
- * and removes those points from [cont].  Returns NULL if error.
+ * Returns a contour containing points from [p1] to [p2], inclusive, from 
+ * contour [cont], and removes those points from [cont].  If [p2] is < 0 all 
+ * points from [p1] to the end are transferred to the new contour.  Returns 
+ * NULL if error.
  */
-Icont *imodContourBreak(Icont *cont, int p)
+Icont *imodContourBreak(Icont *cont, int p1, int p2)
 {
   Icont *nc;
   Ipoint *tpt;
-  int i;
+  int i, ni;
 
   /* check for bogus input data. */
-  if (!cont || !cont->psize || p < 0 || p > cont->psize)
+  if (p2 < 0)
+    p2 = cont->psize - 1;
+
+  if (!cont || !cont->psize || p1 < 0 || p1 >= cont->psize ||
+      p2 >= cont->psize || p2 < p1)
     return(NULL);
 
+  /* Get contour and points, copy properties */
   nc = imodContourNew();
   if (!nc) 
     return(NULL);
+  nc->flags = cont->flags;
+  nc->type = cont->type;
+  nc->surf = cont->surf;
+  nc->pts = (Ipoint *)malloc((p2 + 1 - p1) * sizeof(Ipoint));
+  if (!nc->pts) {
+    imodContourDelete(nc);
+    return(NULL);
+  }
+  nc->psize = p2 + 1 - p1;
 
-  for(i = p; i < cont->psize; i++)
-    imodPointAppend(nc, &(cont->pts[i]));
+  /* Copy points then sizes */
+  for (i = p1; i <= p2; i++)
+    nc->pts[i - p1] = cont->pts[i];
 
-  if (cont->sizes)
-    for(i = p; i < cont->psize; i++)
-      imodPointSetSize(nc, i - p, cont->sizes[i]);
+  if (cont->sizes) {
+    nc->sizes = (float *)malloc(nc->psize * sizeof(float));
+    if (!nc->sizes) {
+      imodContourDelete(nc);
+      return(NULL);
+    }
+    for (i = p1; i <= p2; i++)
+      nc->sizes[i - p1] = cont->sizes[i];
+  }
 
-  if (istoreBreakContour(cont, nc, p)) {
+  if (istoreBreakContour(cont, nc, p1, p2)) {
     imodContourDelete(nc);
     return(NULL);
   }
 
-  if (!p) {
-    cont->psize = 0;
+  /* Copy down remaining points and reset size of old contour */
+  ni = p1;
+  for (i = p2 + 1; i < cont->psize; i++, ni++) {
+    cont->pts[ni] = cont->pts[i];
+    if (cont->sizes)
+      cont->sizes[ni] = cont->sizes[i];
+  }
+  cont->psize = ni;
+
+  if (!ni) {
     free(cont->pts);
     if (cont->sizes) {
       free(cont->sizes);
       cont->sizes = NULL;
     }
-
-  } else {
-    tpt = (Ipoint *)realloc(cont->pts, p * sizeof(Ipoint));
-    cont->psize = p;
-    if (!tpt)
-      cont->psize = 0;
-    cont->pts = tpt;
-    if (cont->sizes)
-      cont->sizes = (float *)realloc(cont->sizes, p * sizeof(float));
   }
+
+  /* Do not resize arrays since we are now committed to error-free return */
 
   return(nc);
 }
@@ -3124,6 +3158,9 @@ char *imodContourGetName(Icont *inContour)
 /* END_SECTION */
 /*
   $Log$
+  Revision 3.15  2005/06/21 13:11:31  mast
+  Needed to call istoreInvert with address of list
+
   Revision 3.14  2005/06/20 22:25:39  mast
   Chnages for managing general storage
 
