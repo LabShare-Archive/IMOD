@@ -766,23 +766,26 @@ void imodDelCurrentContour(Imod *imod)
 int imodDeleteContour(Imod *mod, int index)
 {
   Iobj *obj;
+  Icont *cont;
   int i;
      
-
   obj = imodObjectGet(mod);
   if (!obj || index < 0 || index >= obj->contsize)
     return(-1);
 
   /* If contour has any points, free them. */
   /* DNM: this was &(obj->cont[index].pts) but that seems wrong! */
-  if ((  obj->cont[index].pts != NULL) && (obj->cont[index].psize))
-    free( obj->cont[index].pts );
+  cont = &obj->cont[index];
+  if ((cont->pts != NULL) && (cont->psize))
+    free( cont->pts );
 
-  if (obj->cont[index].sizes)
-    free (obj->cont[index].sizes);
+  if (cont->sizes)
+    free (cont->sizes);
 
   /* DNM: need to delete labels if any */
-  imodLabelDelete(obj->cont[index].label);
+  imodLabelDelete(cont->label);
+  ilistDelete(cont->store);
+  istoreDeleteContour(obj->store, index);
      
   /* Push extra contours into hole */
   if (index != obj->contsize - 1)
@@ -1629,6 +1632,9 @@ int   imodGetFlipped(Imod *imod)
 
 /*
 $Log$
+Revision 3.18  2005/04/23 23:37:02  mast
+Moved some functions here
+
 Revision 3.17  2005/03/22 16:46:33  mast
 Fixed return type of imodDeleteObject
 
