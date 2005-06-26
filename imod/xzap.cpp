@@ -44,6 +44,8 @@ Log at end of file
 #include "dia_qtutils.h"
 #include "preferences.h"
 #include "undoredo.h"
+#include "istore.h"
+#include "finegrain.h"
 
 #define RADIANS_PER_DEGREE 0.0174532925
 
@@ -1783,10 +1785,6 @@ void zapButton3(ZapStruct *zap, int x, int y, int controlDown)
 
 void zapB1Drag(ZapStruct *zap, int x, int y)
 {
-  int bandmin = zapBandMinimum(zap);
-  int rubbercrit = 10;  /* Criterion distance for grabbing the band */
-  int i, dminsq, dist, distsq, dmin, dxll, dyll, dxur, dyur;
-  int minedgex, minedgey;
 
   // For zooms less than one, move image along with mouse; for higher zooms,
   // Translate 1 image pixel per mouse pixel (accelerated)
@@ -3051,8 +3049,12 @@ static void zapDrawContour(ZapStruct *zap, int co, int ob)
   float delz;
   Iobj  *obj;
   Icont *cont;
+  DrawProps contProps, ptProps;
   int pt, radius, lastX, lastY, thisX, thisY;
   float drawsize, zscale;
+  int nextChange, stateFlags, changeFlags;
+  int checkSymbol = 0;
+  int handleFlags = HANDLE_LINE_COLOR | HANDLE_2DWIDTH;
   bool lastVisible, thisVisible, selected;
   bool currentCont = (co == vi->imod->cindex.contour) &&
     (ob == vi->imod->cindex.object );
@@ -3066,24 +3068,31 @@ static void zapDrawContour(ZapStruct *zap, int co, int ob)
   if ((!cont) || (!cont->psize))
     return;
 
+
   zscale = ((vi->imod->zscale ? vi->imod->zscale : 1.) * vi->zbin) / vi->xybin;
 
-  /* check for contours that contian time data. */
+  /* check for contours that contain time data. */
   /* Don't draw them if the time isn't right. */
   /* DNM 6/7/01: but draw contours with time 0 regardless of time */
   if (ivwTimeMismatch(vi, zap->timeLock, obj, cont))
     return;
 
+  // get draw properties
   selected = imodSelectionListQuery(vi, ob, co) > -2;
-  if (selected)
-    b3dLineWidth(obj->linewidth2 < 3 ? 
-                 obj->linewidth2 + 2 : obj->linewidth2 / 2);
+  nextChange = ifgHandleContChange(obj, co, &contProps, &ptProps, &stateFlags,
+                                   handleFlags, selected);
+  if (contProps.gap)
+    return;
 
   /* Open or closed contour */
   // Skip if not wild and not on section
   lastVisible = zapPointVisable(zap, &(cont->pts[0]));
   if (!iobjScat(obj->flags) && ((cont->flags & ICONT_WILD) || lastVisible)) {
-    if (cont->flags & ICONT_WILD) {
+    if ((cont->flags & ICONT_WILD) || nextChange >= 0) {
+      if (!nextChange)
+        nextChange = ifgHandleNextChange(obj, cont->store, &contProps, 
+                                         &ptProps, &stateFlags, &changeFlags, 
+                                         handleFlags, selected);
 
       // For wild contour, test every point and connect only pairs on section
       lastX = zapXpos(zap, cont->pts[0].x);
@@ -3093,24 +3102,32 @@ static void zapDrawContour(ZapStruct *zap, int co, int ob)
         if (thisVisible) {
           thisX = zapXpos(zap, cont->pts[pt].x);
           thisY = zapYpos(zap, cont->pts[pt].y);
-          if (lastVisible)
+          if (lastVisible && !ptProps.gap)
             b3dDrawLine(lastX, lastY, thisX, thisY);
           lastX = thisX;
           lastY = thisY;
         }
         lastVisible = thisVisible;
+        ptProps.gap = 0;
+        if (pt == nextChange)
+          nextChange = ifgHandleNextChange(obj, cont->store, &contProps, 
+                                           &ptProps, &stateFlags,
+                                           &changeFlags, handleFlags, 
+                                           selected);
+
       }
 
       // IF closed contour in closed object and not current, draw closure as
       // long as both points are visible
       if (iobjClose(obj->flags) && !(cont->flags & ICONT_OPEN) && 
+          !ptProps.gap && 
           !currentCont && lastVisible && zapPointVisable(zap, cont->pts))
         b3dDrawLine(lastX, lastY, zapXpos(zap, cont->pts->x),
                     zapYpos(zap, cont->pts->y));
 
     } else {
 
-      // For non-wild contour, draw all points without testing
+      // For non-wild contour with no changes, draw all points without testing
       b3dBeginLine();
       for (pt = 0; pt < cont->psize; pt++)
         b3dVertex2i(zapXpos(zap, cont->pts[pt].x),
@@ -3123,36 +3140,42 @@ static void zapDrawContour(ZapStruct *zap, int co, int ob)
       b3dEndLine();
     }
           
-
-    // Draw symbols
-    if (obj->symbol != IOBJ_SYM_NONE)
-      for (pt = 0; pt < cont->psize; pt++) {
-        if (!zapPointVisable(zap, &(cont->pts[pt])))
-          continue;
-        zapDrawSymbol(zapXpos(zap, cont->pts[pt].x),
-                      zapYpos(zap, cont->pts[pt].y),
-                      obj->symbol,
-                      obj->symsize,
-                      obj->symflags);
-      }
+    checkSymbol = 1;
   }
      
-  /* scattered contour - symbols */
-  if (iobjScat(obj->flags) && obj->symbol != IOBJ_SYM_NONE){
-    for (pt = 0; pt < cont->psize; pt++){
-      if (zapPointVisable(zap, &(cont->pts[pt]))){
+  /* symbols */
+  if (ilistSize(cont->store))
+    nextChange = ifgHandleContChange(obj, co, &contProps, &ptProps, 
+                                     &stateFlags, handleFlags, selected);
+  if ((iobjScat(obj->flags) || checkSymbol) && 
+      (contProps.symtype != IOBJ_SYM_NONE || nextChange >= 0)) {
+    for (pt = 0; pt < cont->psize; pt++) {
+      if (pt == nextChange)
+        nextChange = ifgHandleNextChange(obj, cont->store, &contProps, 
+                                         &ptProps, &stateFlags, &changeFlags, 
+                                         handleFlags, selected);
+
+      if (ptProps.symtype != IOBJ_SYM_NONE && 
+          zapPointVisable(zap, &(cont->pts[pt]))){
         zapDrawSymbol(zapXpos(zap, cont->pts[pt].x),
                       zapYpos(zap, cont->pts[pt].y),
-                      obj->symbol,
-                      obj->symsize,
-                      obj->symflags);
+                      ptProps.symtype,
+                      ptProps.symsize,
+                      ptProps.symflags);
       }
     }
   }
 
   /* Any contour with point sizes set */
   if (iobjScat(obj->flags) || cont->sizes || obj->pdrawsize) {
+    if (ilistSize(cont->store))
+      nextChange = ifgHandleContChange(obj, co, &contProps, &ptProps, 
+                                       &stateFlags, handleFlags, selected);
     for (pt = 0; pt < cont->psize; pt++){
+      if (pt == nextChange)
+        nextChange = ifgHandleNextChange(obj, cont->store, &contProps, 
+                                         &ptProps, &stateFlags, &changeFlags, 
+                                         handleFlags, selected);
 
       drawsize = imodPointGetSize(obj, cont, pt) / vi->xybin;
       if (drawsize > 0)
@@ -3186,7 +3209,7 @@ static void zapDrawContour(ZapStruct *zap, int co, int ob)
   }
 
   // Draw end markers
-  if (obj->symflags & IOBJ_SYMF_ENDS){
+  if ((obj->symflags & IOBJ_SYMF_ENDS) && ob >= 0){
     if (zapPointVisable(zap, &(cont->pts[cont->psize-1]))){
       b3dColorIndex(App->endpoint);
       b3dDrawCross(zapXpos(zap, cont->pts[cont->psize-1].x),
@@ -3535,6 +3558,9 @@ static int zapPointVisable(ZapStruct *zap, Ipoint *pnt)
 
 /*
 $Log$
+Revision 4.69  2005/06/16 21:46:59  mast
+Allowed Ctrl-A selection of open contours passing through selection area
+
 Revision 4.68  2005/06/15 23:08:36  mast
 Made 1 and 2 change locked time, fixed buffer flushing problem with locked
 time, and allowed Ctrl A to select contours outside the image range
