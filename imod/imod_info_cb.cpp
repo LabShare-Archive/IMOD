@@ -36,6 +36,7 @@ Log at end of file
 #include "xcramp.h"
 #include "xzap.h"
 #include "control.h"
+#include "finegrain.h"
 
 extern "C" {
 int sampleMeanSD(unsigned char **image, int type, int nx, int ny,
@@ -312,6 +313,7 @@ void imod_info_setocp(void)
   imod_object_edit_draw();
   imodContEditSurfShow();
   imodContEditMoveDialogUpdate();
+  fineGrainUpdate();
 }
 
 /*
@@ -797,6 +799,10 @@ void imod_imgcnt(char *string)
 
 /*
 $Log$
+Revision 4.21  2005/06/15 23:00:46  mast
+Set reference black/white before instead of after draws so changes in
+black/white do not get undone by bwfloat
+
 Revision 4.20  2005/04/12 14:37:17  mast
 Changes to allow float for changing subarea within a section
 
