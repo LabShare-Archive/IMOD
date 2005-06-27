@@ -117,6 +117,10 @@ echo 'LIBTRACKDEF   = -lftn'                  >> $configure
 #
 echo "      parameter (nbytes_recl_item=4)" >! $endian_dir/recl_bytes.inc
 
+# For Qt 3.3 (3.2?), need to post message twice
+#
+echo '#define SENDEVENT_RETRY_HACK 0' >> $hconfigure
+
 set foptimization = $optimization
 if ($debug == true) then
 	set optimization = "-g -fullwarn -woff 1174,1552,3201"
@@ -203,6 +207,9 @@ if ($distname == "") set distname = _irix6.5
 
 
 #  $Log$
+#  Revision 3.29  2005/02/28 22:07:51  mast
+#  Added record item length since this is now the oddball
+#
 #  Revision 3.28  2005/01/17 19:33:04  mast
 #  Remove shell variable from configure
 #
