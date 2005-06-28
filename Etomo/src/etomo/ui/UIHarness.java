@@ -2,10 +2,6 @@ package etomo.ui;
 
 import java.awt.Dimension;
 import java.awt.Point;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 
 import javax.swing.JOptionPane;
 
@@ -13,7 +9,6 @@ import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.type.AxisID;
 import etomo.util.UniqueKey;
-import etomo.util.Utilities;
 
 /**
 * <p>Description: Class to provide a public interface to the application
@@ -41,8 +36,6 @@ public class UIHarness {
   private boolean initialized = false;
   private boolean test = false;
   private MainFrame mainFrame = null;
-  private File testLog = null;
-  private BufferedWriter logWriter = null;
   
   private UIHarness() {
   }
@@ -232,6 +225,12 @@ public class UIHarness {
     }
   }
   
+  /**
+   * If there is a head, tells mainFrame to select a window menu item base on
+   * currentManagerKey.
+   * @param currentManagerKey
+   * @param newWindow
+   */
   public void selectWindowMenuItem(UniqueKey currentManagerKey, boolean newWindow) {
     if (isHead()) {
       mainFrame.selectWindowMenuItem(currentManagerKey, newWindow);
@@ -300,24 +299,6 @@ public class UIHarness {
     initialized = true;
     EtomoDirector etomo = EtomoDirector.getInstance();
     test = etomo.isTest();
-    if (test) {
-      testLog = new File(etomo.getCurrentPropertyUserDir(), "etomo_test.log");
-      if (testLog.exists()) {
-        try {
-          Utilities.renameFile(testLog, new File(testLog.getAbsolutePath() + "~"));
-        }
-        catch (IOException e) {
-          e.printStackTrace();
-          testLog.delete();
-        }
-      }
-      try {
-        logWriter = new BufferedWriter(new FileWriter(testLog));
-      }
-      catch (IOException e) {
-        e.printStackTrace();
-      }
-    }
   }
   
   /**
@@ -349,19 +330,10 @@ public class UIHarness {
    * @param axisID
    */
   private void log(String function, String message, String title, AxisID axisID) {
-    if (logWriter != null) {
-      try {
-        logWriter.newLine();
-        logWriter.write(function + ", " + axisID + ", " + title + ":");
-        logWriter.newLine();
-        logWriter.write(message);
-        logWriter.newLine();
-        logWriter.flush();
-      }
-      catch (IOException e) {
-        e.printStackTrace();
-      }
-    }
+    System.err.println();
+    System.err.println(function + ", " + axisID + ", " + title + ":");
+    System.err.println(message);
+    System.err.flush();
   }
   
   /**
@@ -381,33 +353,37 @@ public class UIHarness {
    * @param title
    * @param axisID
    */
-  private void log(String function, String[] message, String title, AxisID axisID) {
-    if (logWriter != null) {
-      try {
-        logWriter.newLine();
-        if (title == null) {
-          logWriter.write(function + ", " + axisID + ":");
-        }
-        else {
-          logWriter.write(function + ", " + axisID + ", " + title + ":");
-        }
-        logWriter.newLine();
-        if (message != null) {
-          for (int i = 0; i < message.length; i++) {
-            logWriter.write(message[i]);
-            logWriter.newLine();
-          }
-        }
-        logWriter.flush();
-      }
-      catch (IOException e) {
-        e.printStackTrace();
+  private void log(String function, String[] message, String title,
+      AxisID axisID) {
+    System.err.println();
+    if (title == null) {
+      System.err.print(function + ", " + axisID + ":");
+    }
+    else {
+      System.err.print(function + ", " + axisID + ", " + title + ":");
+    }
+    System.err.println();
+    if (message != null) {
+      for (int i = 0; i < message.length; i++) {
+        System.err.println(message[i]);
       }
     }
+    System.err.flush();
   }
 }
 /**
 * <p> $Log$
+* <p> Revision 1.9  2005/06/17 00:35:32  sueh
+* <p> Removed unnecessary imports.
+* <p>
+* <p> Revision 1.8  2005/06/16 20:10:13  sueh
+* <p> bug# 692 Log messages to the err log instead of a separate file.
+* <p>
+* <p> Revision 1.7  2005/06/01 21:29:17  sueh
+* <p> bug# 667 Removing the Controller classes.  Trying make meta data and
+* <p> app manager equals didn't work very well.  Meta data is created by and
+* <p> managed by app mgr and the class structure should reflect that.
+* <p>
 * <p> Revision 1.6  2005/05/18 22:48:53  sueh
 * <p> bug# 662 Added an openMessageDialog function which doesn't require
 * <p> specifying the axisID (defaults to AxisID.ONLY).  Added

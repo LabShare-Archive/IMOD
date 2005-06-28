@@ -29,6 +29,7 @@ EXPORTS
 	imodContoursDeleteToEnd
 	imodPointSetSize
 	imodPointAreaScale
+	istoreShiftIndex
 	imodContourJoin
 	PipGetInteger
 	imodel_object_centroid
@@ -70,6 +71,7 @@ EXPORTS
 	imodel_transform_slice
 	imodObjectClip
 	imodViewDefault
+	imodWriteStore
 	imodGetByte
 	b3dError
 	imodCopyright
@@ -133,6 +135,7 @@ EXPORTS
 	PIPGETTWOFLOATS
 	PIPALLOWCOMMADEFAULTS
 	imodMeshGetMaxIndex
+	istoreFirstChangeIndex
 	imodContourGetTimeIndex
 	imodPrevPoint
 	ilistSwap
@@ -153,6 +156,7 @@ EXPORTS
 	imodMatCopy
 	imodContourFreeZTables
 	imodObjectGetNext
+	istoreCountItems
 	GETIMODFLAGS
 	imodel_mesh_addvert
 	GETIMODSIZES
@@ -179,6 +183,7 @@ EXPORTS
 	imodNewObject
 	imodProgName
 	imodFileWrite
+	istoreFindBreak
 	PipReadOptionFile
 	imodMatFindVector
 	imodGetInt
@@ -203,6 +208,7 @@ EXPORTS
 	imodObjectGetFirst
 	DELETEIOBJ
 	GETIMODSURFACES
+	istoreNextChange
 	imodFlipYZ
 	PipGetError
 	b3dFwrite
@@ -212,6 +218,9 @@ EXPORTS
 	imodMeshesDelete
 	imodMeshGetVerts
 	imodMeshAddNormal
+	istoreBreakContour
+	istoreCleanEnds
+	istoreInvert
 	PIPSETERROR
 	imodObjectGet
 	c2fString
@@ -224,6 +233,7 @@ EXPORTS
 	PipNumberOfArgs
 	PUTSYMTYPE
 	imodLabelItemAdd
+	istoreCountObjectItems
 	imodPlaneSetFromClips
 	PipMemoryError
 	imodel_contour_invert
@@ -239,6 +249,7 @@ EXPORTS
 	imodel_point_dist
 	imodObjectGetMaxContour
 	PIPGETTHREEINTEGERS
+	istorePointDrawProps
 	imodIMNXRead
 	imodPointGetNext
 	PipGetTwoIntegers
@@ -256,6 +267,7 @@ EXPORTS
 	GETIMODOBJSIZE
 	imodViewDefaultScale
 	imodGetFloats
+	istoreDefaultDrawProps
 	imodContourNestLevels
 	ilistLast
 	GETIMODTIMES
@@ -266,6 +278,7 @@ EXPORTS
 	imodel_unused_surface
 	PipParseEntries
 	imodMeshGetMaxVert
+	istoreDump
 	imodViewWrite
 	imodMeshGetVert
 	imodContourDup
@@ -277,6 +290,7 @@ EXPORTS
 	imodel_contour_check_wild
 	imodContourRotateZ
 	imodNextObject
+	ilistShift
 	imodPointGetFirst
 	imodMatTransform3D
 	imodel_model_clean
@@ -287,10 +301,12 @@ EXPORTS
 	ilistSize
 	imodPrevObject
 	imodel_contour_clear
+	imodReadStore
 	imodPointPlaneEdge
 	imodDelete
 	b3dFread
 	imodLabelItemDelete
+	istoreAddOneIndexItem
 	imodContourCheckNesting
 	imodDeleteContour
 	PIPNUMBEROFENTRIES
@@ -305,7 +321,9 @@ EXPORTS
 	imodPointDot
 	PIPGETINTEGERARRAY
 	imodContourGetMaxPoint
+	istoreNextObjItem
 	GETIMODOBJNAME
+	istoreDeleteContour
 	PUTIMODSCAT
 	imodObjectAddContour
 	imodFileRead
@@ -313,14 +331,20 @@ EXPORTS
 	PipGetString
 	imodPutByte
 	imodObjviewToObject
+	istoreEndChange
 	PipGetThreeFloats
 	imodMeshesNew
 	imodContourSetPointData
 	imodPutInt
+	istoreBreakChanges
 	imodMeshInsertIndex
 	b3dIMin
+	istoreClearOneIndexItem
+	istoreInsertChange
+	istoreDeletePoint
 	imodPoint3DScaleDistance
 	imodObjectsNew
+	istoreInsert
 	mrc_big_seek
 	imodCloseFile
 	imodNextPoint
@@ -331,12 +355,15 @@ EXPORTS
 	GETIMOD
 	imodMeshAddIndex
 	PUTSCATSIZE
+	istoreClearChange
 	imodPlaneAxisRotate
 	imodLabelPrint
 	imodObjectGetName
 	imodContourReduce
 	imodel_scans_overlap
+	istoreCountObjItems
 	imodPutBytes
+	istoreLookup
 	imodPointArea
 	imodContourFreeNests
 	imodPointAppend
@@ -350,6 +377,7 @@ EXPORTS
 	getimodheado
 	imodLabelMatch
 	imodPutFloat
+	istoreExtractChanges
 	ilistNew
 	GETIMODVERTS
 	imodel_contour_double
@@ -379,6 +407,7 @@ EXPORTS
 	GETIMODMAXES
 	imeshVolume
 	imodPlanesClip
+	istoreCopyNonIndex
 	imodGetMaxTime
 	imodGetBoundingBox
 	imodNextContour
@@ -389,10 +418,12 @@ EXPORTS
 	imodContourBreak
 	imodel_contour_sorty
 	imodObjviewDelete
+	istoreSort
 	imodMeshNew
 	imodViewClipRead
 	GETIMODHEAD
 	imodViewDelete
+	istoreContSurfDrawProps
 	imod_to_synu
 	imodContourGetBBox
 	b3dFseek

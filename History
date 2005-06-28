@@ -1,5 +1,24 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/24/05: Increased limit on number of buttons for object list window to 5000.
+
+6/16/05: Expanded Ctrl-A selection in Zap window to include open contours
+that travel in Z and pass through the selection area.
+
+6/15/05: In Zap window, made hot keys change locked time, fixed buffer 
+flushing problem with locked time, and allowed Ctrl A to select contours that
+are outside the range of the image.
+
+6/15/05: Fixed bug in behavior of F1-F8 keys when contrast floating is on. 
+(In 3.5)
+
+6/14/05: Fixed a bug in Fine Alignment where the global Rotation Solution Type
+was set from MagOption in align.com, instead of RotOption.  (In 3.5)
+
+6/14/05: Added checkbox to control the FixXYZCoordinates option in
+Fine Alignment.  Fixed a bug which caused this option to be set to false with 
+older command files.  (In 3.5)
+
 6/13/05: IMOD_3-6-9
 6/13/05: The option to fix 3D fiducial coordinates with local alignments has
 been getting lost since IMOD 3.4.17.  The command file now specifies it with

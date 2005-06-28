@@ -11,6 +11,11 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.7  2005/04/25 20:41:32  sueh
+ * <p> bug# 615 Passing the axis where a command originates to the message
+ * <p> functions so that the message will be popped up in the correct window.
+ * <p> This requires adding AxisID to many objects.
+ * <p>
  * <p> Revision 3.6  2005/01/08 01:46:27  sueh
  * <p> bug# 578 Changed the names of the statics used to make variables
  * <p> available in the Command interface.  Add GET_.  Updated Command
@@ -552,7 +557,7 @@ public class TrimvolParam implements Command {
       return;
     }
     // Get the data size limits from the image stack
-    MRCHeader mrcHeader = new MRCHeader(fileName, AxisID.ONLY);
+    MRCHeader mrcHeader = MRCHeader.getInstance(fileName, AxisID.ONLY);
     mrcHeader.read();
 
     xMin = 1;

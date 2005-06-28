@@ -91,6 +91,12 @@ Log at end of file
 
 #define ID_SIZE MakeID('S', 'I', 'Z', 'E')  /* size for scattered points */
 
+#define ID_MOST MakeID('M', 'O', 'S', 'T')  /* Model storage items */
+#define ID_OBST MakeID('O', 'B', 'S', 'T')  /* Object storage items */
+#define ID_COST MakeID('C', 'O', 'S', 'T')  /* Contour storage items */
+#define ID_MEST MakeID('M', 'E', 'S', 'T')  /* Mesh storage items */
+#define SIZE_STOR 12
+
 /* future data defines. */
 #define ID_BRCH MakeID('B', 'R', 'C', 'H')  /* Branch data */
 
@@ -118,7 +124,6 @@ typedef struct Mod_Point
 }Ipoint;
 
 typedef struct {b3dFloat a, b, c, d;} Iplane;
-typedef Ilist *Istore;
 
 typedef struct Mod_Mesh
 {
@@ -129,7 +134,7 @@ typedef struct Mod_Mesh
   b3dUInt32       flag;     /* Tells how to draw mesh */
   b3dInt32        type;     /* Set to 0. time data.   */
   b3dInt32        pad;      /* Set to 0. surf data.   */
-  Istore          store;
+  Ilist          *store;
 }Imesh;
 
 
@@ -273,14 +278,14 @@ typedef struct Mod_Contour
   Ipoint       *pts;    /* Points data.                      */
   b3dFloat     *sizes;  /* sizes for scattered points        */
 
-  /* data below is written to file, except store is run-time */
+  /* data below is written to file */
   b3dInt32     psize;  /* Number of points.                 */
   b3dUInt32    flags;  /* Default 0 means use object flags. */
   b3dInt32     type;   /* Time index.                       */
   b3dInt32     surf;   /* Surface number.                   */
   Ilabel      *label;
 
-  Istore       store;
+  Ilist       *store;
 }Icont;
 
 
@@ -294,7 +299,7 @@ typedef struct Mod_Object
   b3dUInt32 fgcolor;  /* colors used for colorindex rendering. */
   b3dUInt32 bgcolor;
 
-  /* data below is written to file except store is runtime */
+  /* data below is written to file */
   b3dByte      name[IOBJ_STRSIZE];  /* Name of Object.              */
   b3dUInt32    extra[IOBJ_EXSIZE];  /* extra unused data = 0        */
 
@@ -346,7 +351,7 @@ typedef struct Mod_Object
   b3dUByte mat3b3;    /* Unused */
 
   Ilabel *label;      /* Labels for surfaces */
-  Istore  store;
+  Ilist  *store;
 }Iobj;
 
 
@@ -361,7 +366,7 @@ typedef struct Mod_Model
   int   redraw;        /* Used for shared procs.             */
   int   ctime;         /* current time index.                */
 
-  /* data written to file except store is runtime    */
+  /* data written to file  */
   b3dByte   name[IMOD_STRSIZE];        /* file name of model.                */
                                        /* Use labels for model name.         */
   b3dInt32    xmax, ymax, zmax;  
@@ -397,7 +402,7 @@ typedef struct Mod_Model
   int        xybin;       /* Binning in X and Y */
   int        zbin;        /* Binning in Z */
 
-  Istore store;      /* Add support for easy addon of user configurable data */
+  Ilist  *store;      /* Add support for easy addon of user configurable data */
 
 }Imod;
 
@@ -699,6 +704,9 @@ mesh (index) (vert size) (list size)
 
 /*    
     $Log$
+    Revision 3.24  2005/04/23 23:36:23  mast
+    Moved some functions into imodel.c
+
     Revision 3.23  2005/03/22 16:46:26  mast
     Fixed return type of imodDeleteObject
 

@@ -42,6 +42,11 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.18  2005/06/03 20:09:18  sueh
+* <p> bug# 671 processDone():  Removed code changing the axisID because it
+* <p> doesn't seem be necessary and it causes single axis file names to have
+* <p> an incorrect "a" added to them.
+* <p>
 * <p> Revision 1.17  2005/05/20 21:11:01  sueh
 * <p> bug# 664 saveTestParamFile(): do not attempt to save to a file if the
 * <p> memory is very low.  If the save fails, the file may be truncated.
@@ -263,6 +268,7 @@ public abstract class BaseManager {
   protected abstract BaseState getBaseState();
   public abstract void kill(AxisID axisID);
   protected abstract int getNumStorables();
+  public abstract void touch(File file);
 
   //FIXME needs to be public?
   public abstract boolean isNewManager();
@@ -704,5 +710,21 @@ public abstract class BaseManager {
   public void packMainWindow(AxisID axisID) {
     uiHarness.repaint(axisID);
     uiHarness.fitWindow(axisID);
+  }
+  
+  public String toString() {
+    return getClass().getName() + "[" + super.toString() + paramString() + "]";
+  }
+
+  protected String paramString() {
+    return ",\ntest=" + test + ",uiHarness=" + uiHarness + ",userConfig="
+        + userConfig + ",\nloadedTestParamFile=" + loadedTestParamFile
+        + ",\nimodManager=" + imodManager + ",comScriptMgr=" + comScriptMgr
+        + ",\nparamFile=" + paramFile + ",homeDirectory=" + homeDirectory
+        + ",\nnextProcessA=" + nextProcessA + ",nextProcessB=" + nextProcessB
+        + ",\nthreadNameA=" + threadNameA + ",threadNameB=" + threadNameB
+        + ",\nbackgroundProcessA=" + backgroundProcessA
+        + ",\nbackgroundProcessNameA=" + backgroundProcessNameA
+        + ",\npropertyUserDir=" + propertyUserDir + ",debug=" + debug;
   }
 }

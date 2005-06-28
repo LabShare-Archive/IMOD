@@ -12,12 +12,12 @@ all install : configure
 	cd subrs;     $(MAKE) $@
 	cd image;     $(MAKE) $@
 	cd model;     $(MAKE) $@
-	cd graphics;  $(MAKE) $@
-	cd ndasda;    $(MAKE) $@
 	cd blend;     $(MAKE) $@
 	cd tiltalign; $(MAKE) $@
 	cd beadtrack; $(MAKE) $@
 	cd tilt;      $(MAKE) $@
+	cd graphics;  $(MAKE) $@
+	cd ndasda;    $(MAKE) $@
 
 cyginstall : configure
 	$(FIND) . -name "*.exe" -exec strip "{}" \; -exec $(CP) "{}" $(INSTBINDIR) \;
@@ -36,12 +36,12 @@ clean : ALWAYS
 	cd subrs; $(MAKE) $@
 	cd image; $(MAKE) $@
 	cd model; $(MAKE) $@
-	cd graphics; $(MAKE) $@
-	cd ndasda; $(MAKE) $@
 	cd blend; $(MAKE) $@
 	cd tiltalign; $(MAKE) $@
 	cd beadtrack; $(MAKE) $@
 	cd tilt;      $(MAKE) $@
+	cd graphics; $(MAKE) $@
+	cd ndasda; $(MAKE) $@
 
 ALWAYS:
 

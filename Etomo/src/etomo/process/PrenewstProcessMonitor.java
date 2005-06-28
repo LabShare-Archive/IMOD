@@ -11,6 +11,11 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.5  2005/04/25 20:48:47  sueh
+ * <p> bug# 615 Passing the axis where a command originates to the message
+ * <p> functions so that the message will be popped up in the correct window.
+ * <p> This requires adding AxisID to many objects.
+ * <p>
  * <p> Revision 3.4  2004/11/19 23:24:10  sueh
  * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
  * <p>
@@ -80,7 +85,7 @@ public class PrenewstProcessMonitor extends FileSizeProcessMonitor {
     String dataSetPath = applicationManager.getPropertyUserDir() + "/"
       + applicationManager.getMetaData().getDatasetName() + axisID.getExtension();
 
-    MRCHeader rawStack = new MRCHeader(dataSetPath + ".st", axisID);
+    MRCHeader rawStack = MRCHeader.getInstance(dataSetPath + ".st", axisID);
     rawStack.read();
 
     nX = rawStack.getNRows();

@@ -17,6 +17,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.15  2005/05/10 17:36:04  sueh
+ * <p> bug# 660 Added comment.
+ * <p>
  * <p> Revision 3.14  2005/05/10 17:34:03  sueh
  * <p> bug# 660 Added a parseWarning() function that does handle multi-line
  * <p> warnings.
@@ -510,7 +513,7 @@ public class SystemProgram implements Runnable {
   String getCommandLine() {
     StringBuffer buffer = new StringBuffer();
     for (int i = 0; i < commandArray.length; i++) {
-      buffer.append(commandArray[i]);
+      buffer.append(commandArray[i] + " ");
     }
     return buffer.toString();
   }

@@ -38,6 +38,7 @@ Log at end of file
 #include <string.h>
 #include "imodel.h"
 #include "b3dutil.h"
+#include "istore.h"
 
 #ifdef __vms
 #define IMOD_DATA_SWAP
@@ -54,15 +55,15 @@ Log at end of file
 
 /* #define IMODEL_FILES_DEBUG */
 
-static int imodel_read_v01(struct Mod_Model *mod, FILE *fin);
+static int imodel_read_v01(Imod *mod, FILE *fin);
 static int imodel_read(Imod *imod, int version);
-static int imodel_write(struct Mod_Model *mod, FILE *fout);
+static int imodel_write(Imod *mod, FILE *fout);
 static int imodel_write_object(Iobj *obj, FILE *fout, Ipoint *scale);
 static int imodel_write_contour(Icont *cont, FILE *fout, Ipoint *scale);
 static int imodel_write_mesh(Imesh *mesh, FILE *fout, Ipoint *scale);
 static int imodel_read_header(Imod *imod, FILE *fin);
-static int imodel_read_object(struct Mod_Object *obj, FILE *fin);
-static int imodel_read_object_v01(struct Mod_Object *obj, FILE *fin);
+static int imodel_read_object(Iobj *obj, FILE *fin);
+static int imodel_read_object_v01(Iobj *obj, FILE *fin);
 static int imodel_read_contour(Icont *cont, FILE *fin);
 static int imodel_read_contour_v01(Icont *cont, FILE *fin);
 static int imodel_read_mesh(Imesh *mesh, FILE *fin);
@@ -251,7 +252,7 @@ int imodWrite(Imod *imod, FILE *fout)
 /* internal functions                                                        */
 /*****************************************************************************/
 
-static int imodel_write(struct Mod_Model *mod, FILE *fout)
+static int imodel_write(Imod *mod, FILE *fout)
 {
   int i, error;
   unsigned int id;
@@ -289,20 +290,20 @@ static int imodel_write(struct Mod_Model *mod, FILE *fout)
     if ((error = imodel_write_object( &(mod->obj[i]), fout, &scale)))
       return(error);
      
-#ifndef IMODEL_FILES_VERSION_01
   mod->file = fout;
   imodViewModelWrite(mod);
   imodIMNXWrite(mod);
+  if ((id = imodWriteStore(mod->store, ID_MOST, fout)))
+    return(id);
 
   id = ID_IEOF;
   imodPutInt(fout,  &id);
-#endif
      
   fflush(fout);
   return(ferror(fout));
 }
 
-static int imodel_write_object(struct Mod_Object *obj, FILE *fout,
+static int imodel_write_object(Iobj *obj, FILE *fout,
                                Ipoint *scale)
 {
   int i, error;
@@ -319,9 +320,7 @@ static int imodel_write_object(struct Mod_Object *obj, FILE *fout,
   imodPutBytes(fout, &obj->symbol, 8);
   imodPutInt(fout, &obj->meshsize);
 
-#ifndef IMODEL_FILES_VERSION_01
   imodPutInt(fout, &obj->surfsize);
-#endif        
 
   if (obj->label)
     imodLabelWrite(obj->label, ID_OLBL, fout);
@@ -371,6 +370,8 @@ static int imodel_write_object(struct Mod_Object *obj, FILE *fout,
     imodPutInts(fout, (int *)&obj->mat2, 1);
     imodPutBytes(fout, (unsigned char *)&obj->mat3, 4);
   }
+  if ((id = imodWriteStore(obj->store, ID_OBST, fout)))
+    return(id);
   if ((error = ferror(fout)))
     return(IMOD_ERROR_WRITE);
   return(0);
@@ -383,10 +384,6 @@ static int imodel_write_contour(Icont *cont, FILE *fout, Ipoint *scale)
   id = ID_CONT;
   imodPutInt(fout, &id);
   imodPutInts(fout, &cont->psize, 4);
-#ifdef IMODEL_FILES_VERSION_01
-  id = ID_PNTS; 
-  imodPutInt(fout, &id);
-#endif
   if (scale->x == 1.0 && scale->y == 1.0 && scale->z == 1.0)
     imodPutFloats(fout, (float *)cont->pts, cont->psize * 3);
   else {
@@ -404,6 +401,9 @@ static int imodel_write_contour(Icont *cont, FILE *fout, Ipoint *scale)
     imodPutInt(fout, &id);
     imodPutFloats(fout, cont->sizes, cont->psize);
   }
+
+  if ((id = imodWriteStore(cont->store, ID_COST, fout)))
+    return(id);
 
   return(ferror(fout));
 }
@@ -429,14 +429,16 @@ static int imodel_write_mesh(Imesh *mesh, FILE *fout, Ipoint *scale)
       imodPutScaledPoints(fout, &mesh->vert[i], 1, scale);
   }
   imodPutInts(fout, mesh->list, mesh->lsize);
+  if ((id = imodWriteStore(mesh->store, ID_MEST, fout)))
+    return(id);
+
   return(ferror(fout));;
 }
-
 
 /*****************************************************************************/
 /* Load Functions                                                            */
 /*****************************************************************************/
-static int imodel_read_v01(struct Mod_Model *mod, FILE *fin)
+static int imodel_read_v01(Imod *mod, FILE *fin)
 {
 
   int i;
@@ -648,6 +650,30 @@ static int imodel_read(Imod *imod, int version)
       imodIMNXRead(imod);
       break;
 
+    case ID_MOST: /* Model general storage */
+      imod->store = imodReadStore(fin, &error);
+      if (error)
+        return(error);
+      break;
+
+    case ID_OBST: /* Object general storage */
+      obj->store = imodReadStore(fin, &error);
+      if (error)
+        return(error);
+      break;
+
+    case ID_COST: /* Contour general storage */
+      cont->store = imodReadStore(fin, &error);
+      if (error)
+        return(error);
+      break;
+
+    case ID_MEST: /* Mesh general storage */
+      mesh->store = imodReadStore(fin, &error);
+      if (error)
+        return(error);
+      break;
+
     default:
 #ifdef IMODEL_FILES_DEBUG
       fprintf(stderr, "imodel_read: unknown data. %x, %s\n", 
@@ -731,7 +757,7 @@ static int imodel_read_object(Iobj *obj, FILE *fin)
 
 
 
-static int imodel_read_object_v01(struct Mod_Object *obj, FILE *fin)
+static int imodel_read_object_v01(Iobj *obj, FILE *fin)
 {
   int i, error,tmp;
   int id;
@@ -791,7 +817,7 @@ static int imodel_read_object_v01(struct Mod_Object *obj, FILE *fin)
 }
 
 
-static int imodel_read_contour_v01( struct Mod_Contour *cont, FILE *fin)
+static int imodel_read_contour_v01(Icont *cont, FILE *fin)
 {
   int i;
   int id;
@@ -883,7 +909,7 @@ static int imodel_read_ptsizes(Icont *cont, FILE *fin)
   return(0);
 }
 
-static int imodel_read_mesh( struct Mod_Mesh *mesh, FILE *fin)
+static int imodel_read_mesh(Imesh *mesh, FILE *fin)
 {
   int error = 0;
 
@@ -1553,6 +1579,9 @@ int imodPutByte(FILE *fp, unsigned char *dat)
 
 /*
   $Log$
+  Revision 3.18  2005/04/23 23:37:31  mast
+  Documented functions
+
   Revision 3.17  2005/03/20 19:56:49  mast
   Eliminating duplicate functions
 

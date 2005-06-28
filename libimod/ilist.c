@@ -15,6 +15,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.3  2005/02/11 01:42:33  mast
+Warning cleanup: implicit declarations, main return type, parentheses, etc.
+
 Revision 3.2  2004/11/21 06:15:27  mast
 Fixed a declaration for Windows
 
@@ -24,9 +27,10 @@ Fixed a declaration for Windows
 #include <string.h>
 #include "ilist.h"
 
-static void ilistShift(Ilist *list, int from, int to);
-
-/* Get a new list with data size given by dsize, initial allocation by asize */
+/*!
+ * Gets a new list with data size given by [dsize], initial allocation by 
+ * [asize].  Returns NULL for error. 
+ */
 Ilist *ilistNew(int dsize, int asize)
 {
   Ilist *l = (Ilist *)malloc(sizeof(Ilist));
@@ -49,21 +53,21 @@ Ilist *ilistNew(int dsize, int asize)
   return(l);
 }
 
-/* Limit the size of the list */
-void   ilistTruncate(Ilist *list, int size)
+/*! Limits the size of [list] to [size] */
+void ilistTruncate(Ilist *list, int size)
 {
   if (size >= 0 && size < list->size)
     list->size = size;
 }
 
-/* Set the quantum size for increasing the list when needed */
-void   ilistQuantum(Ilist *list, int size)
+/*! Sets the quantum for increasing the size of [list] when needed to [size] */
+void ilistQuantum(Ilist *list, int size)
 {
   if (size > 0)
     list->quantum = size;
 }
 
-/* Duplicate a list */
+/*! Returns a duplicate of [list], or NULL for an error */
 Ilist *ilistDup(Ilist *list)
 {
   void *dsave;
@@ -84,8 +88,8 @@ Ilist *ilistDup(Ilist *list)
 }
 
 
-/* Delete the list, free all memory */
-void   ilistDelete (Ilist *list)
+/*! Deletes [list] and frees all memory */
+void ilistDelete (Ilist *list)
 {
   if (!list) 
     return;
@@ -94,7 +98,10 @@ void   ilistDelete (Ilist *list)
   free(list);
 }
 
-/* Get the first list item */
+/*! 
+ * Returns a pointer to the first item from [list], or NULL for an error or
+ * empty list.
+ */
 void *ilistFirst(Ilist *list)
 {
   if (!list || !list->size)
@@ -103,7 +110,8 @@ void *ilistFirst(Ilist *list)
   return(list->data);
 }
 
-/* Get the next list item */
+/*! Returns a pointer to the next item from [list], or NULL at the end of the 
+  list */
 void *ilistNext(Ilist *list)
 {
   char *rptr;
@@ -114,8 +122,11 @@ void *ilistNext(Ilist *list)
   return((void *)rptr);
 }
 
-/* Get the last item from the list */
-void  *ilistLast(Ilist *list)
+/*! 
+ * Returns a pointer to the last item from [list], or NULL for an error or
+ * empty list.
+ */
+void *ilistLast(Ilist *list)
 {
   char *rptr;
   if (!list || !list->size)
@@ -125,8 +136,10 @@ void  *ilistLast(Ilist *list)
   return((void *)rptr);
 }
 
-/* Get the list item at the index given by element */
-void  *ilistItem(Ilist *list, int element)
+/*!
+ * Returns a pointer to the item in [list] at the index given by [element],
+ * or NULL for error. */
+void *ilistItem(Ilist *list, int element)
 {
   char *rptr;
 
@@ -137,15 +150,15 @@ void  *ilistItem(Ilist *list, int element)
   return((void *)rptr);
 }
 
-/* Return size of list */
-int    ilistSize(Ilist *list)
+/*! Returns size of [list] */
+int ilistSize(Ilist *list)
 {
   if (!list) return(0);
   return(list->size);
 }
 
-/* Append data to the end of the list; return 1 if memory error */
-int   ilistAppend(Ilist *list, void *data)
+/*! Appends [data] to the end of [list]; returns 1 if memory error */
+int ilistAppend(Ilist *list, void *data)
 {
   char *to;
   if (list->store <= list->size){
@@ -165,8 +178,8 @@ int   ilistAppend(Ilist *list, void *data)
   return 0;
 }
 
-/* Remove the given element from the list */
-void   ilistRemove(Ilist *list, int element)
+/*! Removes the item at [element] from [list] */
+void ilistRemove(Ilist *list, int element)
 {
   int i;
   char *to, *from;
@@ -178,8 +191,8 @@ void   ilistRemove(Ilist *list, int element)
   list->size--;
 }
 
-/* Swap the two elements on the list; return 1 if error */
-int   ilistSwap  (Ilist *list, int e1, int e2)
+/*! Swaps the two elements [e1] and [e2] on [list]; returns 1 if error */
+int ilistSwap(Ilist *list, int e1, int e2)
 {
   char *p1, *p2;
   void *tptr;
@@ -201,14 +214,15 @@ int   ilistSwap  (Ilist *list, int e1, int e2)
   return 0;
 }
 
-/* Insert an item on the front of the list; return 1 if error */
+/*! Inserts the item in [data] on the front of [list]; returns 1 if error */
 int ilistPush(Ilist *list, void *data)
 {
   return ilistInsert(list, data, 0);
 }
 
-/* Pop an item off the front of the list; return NULL if error
- * the item has been malloc'ed and must be freed */
+/*!
+ * Pops an item off the front of [list] and returns it; returns NULL if error.
+ * The item has been malloc'ed and must be freed */
 void *ilistPop(Ilist *list)
 {
   void *data;
@@ -223,7 +237,7 @@ void *ilistPop(Ilist *list)
   return(data);
 }
 
-/* Move the given element to the front of the list; return 1 if error */
+/*! Moves the item at [element] to the front of [list]; returns 1 if error */
 int ilistFloat(Ilist *list, int element)
 {
   void *data;
@@ -245,8 +259,11 @@ int ilistFloat(Ilist *list, int element)
   return err;
 }
 
-/* Insert an item at the position given by element; return 1 if error */
-int   ilistInsert(Ilist *list, void *data, int element)
+/*!
+ * Inserts an item in [data] into [list] at the position given by [element];
+ * returns 1 if error 
+ */
+int ilistInsert(Ilist *list, void *data, int element)
 {
   char *to;
   if (element < 0 || element > list->size)
@@ -263,8 +280,11 @@ int   ilistInsert(Ilist *list, void *data, int element)
   return 0;
 }
 
-/* Shift all items from the given start point to the end by the given amount */
-static void ilistShift(Ilist *list, int start, int amount)
+/*!
+ * Shift all items in [list] from the point given by [start] to the end by 
+ * [amount].
+ */
+void ilistShift(Ilist *list, int start, int amount)
 {
   int l, lst, lnd, ldir;
   char *to, *from;

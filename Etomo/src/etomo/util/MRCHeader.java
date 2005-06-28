@@ -1,10 +1,11 @@
 package etomo.util;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Hashtable;
 
 import etomo.ApplicationManager;
-import etomo.EtomoDirector;
 import etomo.process.SystemProgram;
 import etomo.type.AxisID;
 
@@ -22,6 +23,24 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.12  2005/06/20 17:06:43  sueh
+ * <p> bug# 522 Made MRCHeader an n'ton.  Added a flag to prevent rereading
+ * <p> when the file has not been changed.
+ * <p>
+ * <p> Revision 3.11  2005/06/17 20:04:58  sueh
+ * <p> bug# 685 Added timestamp functions for ComScript and File types.
+ * <p> Added code to the main timestamp function to strip the path from a file
+ * <p> name.  These changes reduces the amount of timestamp related code
+ * <p> being executed when debug is off.
+ * <p>
+ * <p> Revision 3.10  2005/06/17 19:18:53  sueh
+ * <p> bug# 685 Added timestamps to the read function.
+ * <p>
+ * <p> Revision 3.9  2005/04/25 21:43:12  sueh
+ * <p> bug# 615 Passing the axis where a command originates to the message
+ * <p> functions so that the message will be popped up in the correct window.
+ * <p> This requires adding AxisID to many objects.
+ * <p>
  * <p> Revision 3.8  2005/01/14 03:14:32  sueh
  * <p> Prevented non-error messages from showing up in the err.log  file unless
  * <p> debug is on.
@@ -101,6 +120,17 @@ import etomo.type.AxisID;
  */
 
 public class MRCHeader {
+  //
+  //n'ton member variables
+  //
+  private static Hashtable instances = new Hashtable();
+  //
+  //member variables to prevent unnecessary reads
+  //
+  private FileModifiedFlag modifiedFlag;
+  //
+  //other member variables
+  //
   private String filename;
   private int nColumns = -1;
   private int nRows = -1;
@@ -114,19 +144,76 @@ public class MRCHeader {
   private double zPixelSpacing = Double.NaN;
   private double imageRotation = Double.NaN;
   private int binning = Integer.MIN_VALUE;
-  private boolean debug = false;
   private AxisID axisID;
 
-  public MRCHeader(String name, AxisID axisID) {
+  private MRCHeader(File file, AxisID axisID) {
+    filename = file.getAbsolutePath();
     this.axisID = axisID;
-    filename = new String(name);
-    debug = EtomoDirector.getInstance().isDebug();
+    modifiedFlag = new FileModifiedFlag(file);
   }
-
-  public void read() throws IOException, InvalidParameterException {
-    if (filename == null || filename.length() == 0) {
+  
+  /**
+   * Function to get an instance of the class
+   * @param directory
+   * @param datasetName
+   * @param axisID
+   * @return
+   */
+  public static MRCHeader getInstance(String filename, AxisID axisID) {
+    File keyFile = Utilities.getFile(filename);
+    String key = makeKey(keyFile);
+    MRCHeader mrcHeader = (MRCHeader) instances.get(key);
+    if (mrcHeader == null) {
+      return createInstance(key, keyFile, axisID);
+    }
+    return mrcHeader;
+  }
+  /**
+   * Function to create and save an instance of the class.  Just returns the
+   * instance if it already exists.
+   * @param key
+   * @param file
+   * @param axisID
+   * @return
+   */
+  private static synchronized MRCHeader createInstance(String key,
+      File file, AxisID axisID) {
+    MRCHeader mrcHeader = (MRCHeader) instances.get(key);
+    if (mrcHeader != null) {
+      return mrcHeader;
+    }
+    mrcHeader = new MRCHeader(file, axisID);
+    instances.put(key, mrcHeader);
+    mrcHeader.selfTestInvariants();
+    return mrcHeader;
+  }
+  /**
+   * Make a unique key from a file
+   * @param file
+   * @return
+   */
+  private static String makeKey(File file) {
+    return file.getAbsolutePath();
+  }
+  //
+  //other functions
+  //
+  /**
+   * @returns true if a read was attempted
+   */
+  public synchronized boolean read() throws IOException, InvalidParameterException {
+    File file = Utilities.getFile(filename);
+    if (filename == null || filename.matches("\\s*") || file.isDirectory()) {
       throw new IOException("No filename specified");
     }
+    if (!file.exists()) {
+      throw new IOException("file, " + file.getAbsolutePath() + ", does not exist");
+    }
+    //If the file hasn't changed, don't reread
+    if (!modifiedFlag.isModifiedSinceLastRead()) {
+      return false;
+    }
+    Utilities.timestamp("read", "header", filename, 0);
 
     // Run the header command on the filename, need to use a String[] here to
     // prevent the Runtime from breaking up the command and arguments at spaces.
@@ -134,7 +221,8 @@ public class MRCHeader {
     commandArray[0] = ApplicationManager.getIMODBinPath() + "header";
     commandArray[1] = filename;
     SystemProgram header = new SystemProgram(commandArray, axisID);
-    header.setDebug(debug);
+    header.setDebug(Utilities.isDebug());
+    modifiedFlag.setReadingNow();
     header.run();
 
     if (header.getExitValue() != 0) {
@@ -146,6 +234,7 @@ public class MRCHeader {
           for (int i = 0; i < errorList.size(); i++) {
             message = message + errorList.get(i) + "\n";
           }
+          Utilities.timestamp("read", "header", filename, -1);
           throw new InvalidParameterException(message);
         }
       }
@@ -157,12 +246,14 @@ public class MRCHeader {
       for (int i = 0; i < stdError.length; i++) {
         message = message + stdError[i] + "\n";
       }
+      Utilities.timestamp("read", "header", filename, -1);
       throw new InvalidParameterException(message);
     }
 
     // Parse the output
     String[] stdOutput = header.getStdOutput();
     if (stdOutput.length < 1) {
+      Utilities.timestamp("read", "header", filename, -1);
       throw new IOException("header returned no data");
     }
 
@@ -172,6 +263,7 @@ public class MRCHeader {
       if (stdOutput[i].startsWith(" Number of columns, rows, section")) {
         String[] tokens = stdOutput[i].split("\\s+");
         if (tokens.length < 10) {
+          Utilities.timestamp("read", "header", filename, -1);
           throw new IOException("Header returned less than three parameters for image size");
         }
         nColumns = Integer.parseInt(tokens[7]);
@@ -181,6 +273,7 @@ public class MRCHeader {
         catch (NumberFormatException e) {
           e.printStackTrace();
           nRows = -1;
+          Utilities.timestamp("read", "header", filename, -1);
           throw new NumberFormatException("nRows not set, token is " + tokens[8]);
         }
         try {
@@ -189,6 +282,7 @@ public class MRCHeader {
         catch (NumberFormatException e) {
           e.printStackTrace();
           nSections = -1;
+          Utilities.timestamp("read", "header", filename, -1);
           throw new NumberFormatException("nSections not set, token is " + tokens[9]);
         }
       }
@@ -197,6 +291,7 @@ public class MRCHeader {
       if (stdOutput[i].startsWith(" Map mode")) {
         String[] tokens = stdOutput[i].split("\\s+");
         if (tokens.length < 5) {
+          Utilities.timestamp("read", "header", filename, -1);
           throw new IOException("Header returned less than one parameter for the mode");
         }
         mode = Integer.parseInt(tokens[4]);
@@ -206,6 +301,7 @@ public class MRCHeader {
       if (stdOutput[i].startsWith(" Pixel spacing")) {
         String[] tokens = stdOutput[i].split("\\s+");
         if (tokens.length < 7) {
+          Utilities.timestamp("read", "header", filename, -1);
           throw new IOException("Header returned less than three parameters for pixel size");
         }
         xPixelSize = Double.parseDouble(tokens[4]);
@@ -227,6 +323,8 @@ public class MRCHeader {
       parseTiltAxis(stdOutput[i]);
       parseBinning(stdOutput[i]);
     }
+    Utilities.timestamp("read", "header", filename, 1);
+    return true;
   }
   /**
    * Returns the nColumns.
@@ -259,23 +357,6 @@ public class MRCHeader {
   public int getMode() {
     return mode;
   }
-
-  /**
-   * Returns the filename.
-   * @return String
-   */
-  public String getFilename() {
-    return filename;
-  }
-
-  /**
-   * Sets the filename.
-   * @param filename The filename to set
-   */
-  public void setFilename(String filename) {
-    this.filename = filename;
-  }
-
   /**
    * Return the image rotation in degrees if present in the header.  If the
    * header has not been read or the image rotation is not available return
@@ -372,4 +453,41 @@ public class MRCHeader {
     }
   }
 
+  //
+  //self test functions
+  //
+  void selfTestInvariants() {
+    if(!Utilities.isSelfTest()) {
+      return;
+    }
+    if (instances == null) {
+      throw new IllegalStateException("instances is null");
+    }
+    if (filename == null || filename.matches("\\s*")) {
+      throw new IllegalStateException("file is null");
+    }
+    String key = makeKey(Utilities.getFile(filename));
+    if (key == null || key.matches("\\s*")) {
+      throw new IllegalStateException("unable to make key: filename=" + filename);
+    }
+    MRCHeader mrcHeader = (MRCHeader) instances.get(key);
+    if (mrcHeader == null || mrcHeader != this) {
+      throw new IllegalStateException("this instance is not in instances: key="
+          + key + ",filename=" + filename);
+    }
+  }
+  
+  public String toString() {
+    return getClass().getName() + "[" + super.toString() + paramString() + "]";
+  }
+
+  protected String paramString() {
+    return ",\nfilename=" + filename + ",nColumns=" + nColumns + ",nRows="
+        + nRows + ",\nnSections=" + nSections + ",mode=" + mode
+        + ",\nxPixelSize=" + xPixelSize + ",yPixelSize=" + yPixelSize
+        + ",\nzPixelSize=" + zPixelSize + ",xPixelSpacing=" + xPixelSpacing
+        + ",\nyPixelSpacing=" + yPixelSpacing + ",zPixelSpacing=" + zPixelSpacing
+        + ",\nimageRotation=" + imageRotation + ",binning=" + binning
+        + ",\naxisID=" + axisID;
+  }
 }

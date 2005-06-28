@@ -44,6 +44,21 @@ import etomo.util.Utilities;
  * 
  * <p>
  * $Log$
+ * Revision 1.22  2005/06/21 00:40:44  sueh
+ * bug# 522 In order to get a current manager when --test is set, moved call
+ * to EtomoDirector.setCurrentManager() out of WindowSwitch.setWindow().
+ * Now the call follows all the calls to UIHarness.selectWindowMenuItem().
+ *
+ * Revision 1.21  2005/06/17 17:48:22  sueh
+ * bug# 685 Setting relative timestamp start.
+ *
+ * Revision 1.20  2005/06/01 21:24:28  sueh
+ * bug# 667 Removing the Controller classes.  Trying make meta data and
+ * app manager equals didn't work very well.  Meta data is created by and
+ * managed by app mgr and the class structure should reflect that.
+ * Changing controllerList to managerList.  Changing currentControllerKey to
+ * current ManagerKey.
+ *
  * Revision 1.19  2005/05/31 23:11:28  sueh
  * bug# 667 First step to removing the Controller classes.  Change
  * getCurrentMetaData() to getCurrentName().  getCurrentMetaData() was
@@ -237,6 +252,7 @@ public class EtomoDirector {
 
   public synchronized static EtomoDirector createInstance(String[] args) {
     if (!initialized) {
+      Utilities.setStartTime();
       initialized = true;
       theEtomoDirector.initialize(args);
     }
@@ -273,7 +289,7 @@ public class EtomoDirector {
       openTomogram(true, AxisID.ONLY);
     }
     else {
-      boolean makeCurrent;
+      UniqueKey saveKey = null;
       for (int i = 0; i < paramFileNameListSize; i++) {
         paramFileName = (String) paramFileNameList.get(i);
         UniqueKey managerKey = null;
@@ -284,21 +300,21 @@ public class EtomoDirector {
           managerKey = openJoin(paramFileName, false, AxisID.ONLY);
         }
         if (i == 0) {
-          currentManagerKey = managerKey;
+          saveKey = managerKey;
         }
       }
+      currentManagerKey = saveKey;
     }
     initProgram();
-      //mainFrame.setWindowMenuLabels(controllerList);
     BaseManager manager = (BaseManager) managerList.get(currentManagerKey);
     if (manager != null) {
       uiHarness.setCurrentManager(manager, currentManagerKey, true);
     }
     uiHarness.selectWindowMenuItem(currentManagerKey);
+    setCurrentManager(currentManagerKey, false);
     uiHarness.setMRUFileLabels(userConfig.getMRUFileList());
     uiHarness.pack();
     uiHarness.setVisible(true);
-      //mainFrame.show();
   }
   
   /**
@@ -460,14 +476,15 @@ public class EtomoDirector {
   }
   
   public synchronized void setCurrentManager(UniqueKey managerKey, boolean newWindow) {
+    if (managerKey == null) {
+      return;
+    }
     BaseManager newCurrentManager = (BaseManager) managerList.get(managerKey);
     if (newCurrentManager == null) {
       throw new NullPointerException("managerKey=" + managerKey); 
     }
     currentManagerKey = managerKey;
-      //mainFrame.setWindowMenuLabels(controllerList);
     uiHarness.setCurrentManager(newCurrentManager, currentManagerKey, newWindow);
-      //mainFrame.selectWindowMenuItem(currentControllerKey);
   }
   
   private UniqueKey openTomogram(String etomoDataFileName, boolean makeCurrent, AxisID axisID) {
@@ -513,8 +530,8 @@ public class EtomoDirector {
     managerKey = managerList.add(manager.getBaseMetaData().getName(), manager);
     uiHarness.addWindow(manager, managerKey);
     if (makeCurrent) {
-      //setCurrentManager(controllerKey, true);
       uiHarness.selectWindowMenuItem(managerKey, true);
+      setCurrentManager(managerKey, true);
     }
     return managerKey;
   }
@@ -588,6 +605,7 @@ public class EtomoDirector {
       //mainFrame.setWindowMenuLabels(controllerList);
       uiHarness.setCurrentManager(null, null);
       uiHarness.selectWindowMenuItem(null);
+      setCurrentManager(null, false);
       return true;
     }
     setCurrentManager(managerList.getKey(0));
@@ -668,10 +686,7 @@ public class EtomoDirector {
     enableOpenManagerMenuItem();
     UniqueKey oldKey = currentManagerKey;
     currentManagerKey = managerList.rekey(currentManagerKey, managerName);
-    if (!test) {
-      uiHarness.renameWindow(oldKey, currentManagerKey);
-      //mainFrame.selectWindowMenuItem(currentControllerKey);
-    }
+    uiHarness.renameWindow(oldKey, currentManagerKey);
   }
   
   public UserConfiguration getUserConfiguration() {

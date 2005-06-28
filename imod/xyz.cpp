@@ -37,6 +37,8 @@ Log at end of file
 #include "imod_moviecon.h"
 #include "preferences.h"
 #include "undoredo.h"
+#include "istore.h"
+#include "finegrain.h"
 
 #define XYZ_BSIZE 11
 #define GRAB_LENGTH 7
@@ -1066,9 +1068,12 @@ void XyzWindow::DrawContour(Iobj *obj, int ob, int co)
     (ob == vi->imod->cindex.object);
   
   Ipoint *point, *thisPt, *lastPt;
+  DrawProps contProps, ptProps;
   int pt, next, radius;
   bool thisVis, lastVis;
   float drawsize, delz, zscale;
+  int nextChange, stateFlags, changeFlags;
+  int handleFlags = HANDLE_LINE_COLOR | HANDLE_2DWIDTH;
   float z = xx->zoom;
   int bx = XYZ_BSIZE + xx->xwoffset;
   int by = XYZ_BSIZE + xx->ywoffset;
@@ -1083,61 +1088,58 @@ void XyzWindow::DrawContour(Iobj *obj, int ob, int co)
     return;
 
   zscale = ((vi->imod->zscale ? vi->imod->zscale : 1.) * vi->zbin) / vi->xybin;
+  nextChange = ifgHandleContChange(obj, co, &contProps, &ptProps, &stateFlags,
+                                   handleFlags, 0);
+  if (contProps.gap)
+    return;
 
   if (!iobjScat(obj->flags)) {
 
-    /* Open or closed contours, if they are wild then need to test every
-       point and draw lines between points that are visible
-       First start by drawing symbol at first point */
+    /* Open or closed contours, if they are wild or there are any changes
+       coming, then need to test every
+       point and draw lines between points that are visible */
     lastVis = (int)floor(cont->pts->z + 0.5) == currentZ;
-    if (cont->flags & ICONT_WILD) {
-      lastPt = cont->pts;
-      if (lastVis)
-        zapDrawSymbol((int)(z * lastPt->x + bx), 
-                      (int)(z * lastPt->y + by),
-                      obj->symbol, obj->symsize, obj->symflags);
+    if ((cont->flags & ICONT_WILD) || nextChange >= 0) {
 
-      /* Loop starting from second point, draw symbol if visible, draw line
-         if this and last point were visible */
-      for (pt = 1; pt < cont->psize; pt++) {
+      /* draw line if this and last point were visible or if this is current
+         contour and project is set; draw symbol if visible and one is set */
+      for (pt = 0; pt < cont->psize; pt++) {
         thisPt = &(cont->pts[pt]);
 	thisVis = (int)floor(thisPt->z + 0.5) == currentZ;
-        if (thisVis) {
+        if (pt && ((lastVis && thisVis) || (currentCont && xx->project)) &&
+            !ptProps.gap)
+          b3dDrawLine((int)(z * thisPt->x + bx),
+                      (int)(z * thisPt->y + by),
+                      (int)(z * lastPt->x + bx),
+                      (int)(z * lastPt->y + by));
+        ptProps.gap = 0;
+        if (nextChange == pt)
+          nextChange = ifgHandleNextChange(obj, cont->store, &contProps, 
+                                           &ptProps, &stateFlags, 
+                                           &changeFlags, handleFlags, 0);
+        if (thisVis && ptProps.symtype != IOBJ_SYM_NONE)
           zapDrawSymbol((int)(z * thisPt->x + bx), 
                         (int)(z * thisPt->y + by),
-                        obj->symbol, obj->symsize, obj->symflags);
-
-          if (lastVis)
-            b3dDrawLine((int)(z * thisPt->x + bx),
-                        (int)(z * thisPt->y + by),
-                        (int)(z * lastPt->x + bx),
-                        (int)(z * lastPt->y + by));
-        }
+                        ptProps.symtype, ptProps.symsize, ptProps.symflags);
+        
         lastVis = thisVis;
         lastPt = thisPt;
       }
 
       /* Close if all conditions are met */
       if (iobjClose(obj->flags) && !(cont->flags & ICONT_OPEN) && !currentCont
-          && lastVis && ((int)floor(cont->pts->z + 0.5) == currentZ))
+          && lastVis && ((int)floor(cont->pts->z + 0.5) == currentZ) && 
+          !ptProps.gap)
         b3dDrawLine((int)(z * cont->pts->x + bx),
                     (int)(z * cont->pts->y + by),
                     (int)(z * lastPt->x + bx),
                     (int)(z * lastPt->y + by));
 
-      /* If current contour, draw projection into plane if flag selected */
-      if (currentCont && xx->project) {
-        b3dBeginLine();
-        for (pt = 0; pt < cont->psize; pt++)
-          b3dVertex2i((int)(z * cont->pts[pt].x + bx),  
-                      (int)(z * cont->pts[pt].y + by));
-        b3dEndLine();
-      }
-
     } else if (lastVis) {
 
-      /* If the contour is not wild and it is on this section, draw it 
-         completely, close if appropriate, and draw symbols in separate loop */
+      /* If the contour is not wild or fine grained and it is on this section,
+         draw it completely, close if appropriate, and draw symbols in
+         separate loop */
       b3dBeginLine();
       for (pt = 0; pt < cont->psize; pt++)
         b3dVertex2i((int)(z * cont->pts[pt].x + bx),  
@@ -1147,100 +1149,103 @@ void XyzWindow::DrawContour(Iobj *obj, int ob, int co)
                     (int)(by + z * cont->pts->y));
       b3dEndLine();
             
-      if (obj->symbol != IOBJ_SYM_NONE)
+      if (ptProps.symtype != IOBJ_SYM_NONE)
         for (pt = 0; pt < cont->psize; pt++)
           zapDrawSymbol((int)(z * cont->pts[pt].x + bx), 
                         (int)(z * cont->pts[pt].y + by),
-                        obj->symbol, obj->symsize, obj->symflags);
+                        ptProps.symtype, ptProps.symsize, ptProps.symflags);
     }
 
-    /* Now draw symbols and points in X/Z view */
+    /* Now draw symbols and points in X/Z and Y/Z views */
+    if (ilistSize(cont->store))
+      nextChange = ifgHandleContChange(obj, co, &contProps, &ptProps, 
+                                       &stateFlags, handleFlags, 0);
     for (pt = 0; pt < cont->psize; pt++) {
       point = &(cont->pts[pt]);
-      if ((int)(point->y + 0.5) == (int)vi->ymouse) {
-
-        /* Symbol if in plane */
+      if (pt == nextChange)
+        nextChange = ifgHandleNextChange(obj, cont->store, &contProps, 
+                                         &ptProps, &stateFlags,
+                                         &changeFlags, handleFlags, 0);
+      next = (pt + 1) % cont->psize;
+      thisVis = (int)(point->y + 0.5) == (int)vi->ymouse;
+        
+      /* Symbol if in plane */
+      if (thisVis && ptProps.symtype != IOBJ_SYM_NONE)
         zapDrawSymbol((int)(z * point->x + bx), 
                       (int)(z * point->z + by2),
-                      obj->symbol, obj->symsize, obj->symflags);
-        next = (pt + 1) % cont->psize;
+                      ptProps.symtype, ptProps.symsize, ptProps.symflags);
 
-        /* connecting line if in plane and not last point, or if closure
-           is appropriate */
-        if ((int)(cont->pts[next].y + 0.5) == (int)vi->ymouse && 
-            (next || currentCont || 
-             (iobjClose(obj->flags) && !(cont->flags & ICONT_OPEN))))
-          b3dDrawLine((int)(z * point->x + bx),
-                      (int)(z * point->z + by2),
-                      (int)(z * cont->pts[next].x + bx),
-                      (int)(z * cont->pts[next].z + by2));
-      }
-    }
+      /* connecting line if in plane or if projecting current cont, and not 
+         last point unless closure is appropriate */
+      if (((thisVis && (int)(cont->pts[next].y + 0.5) == (int)vi->ymouse) || 
+           (currentCont && xx->project)) && !ptProps.gap && 
+          (next || (!currentCont &&
+                    (iobjClose(obj->flags) && !(cont->flags & ICONT_OPEN)))))
+        b3dDrawLine((int)(z * point->x + bx),
+                    (int)(z * point->z + by2),
+                    (int)(z * cont->pts[next].x + bx),
+                    (int)(z * cont->pts[next].z + by2));
 
-    /* Now draw symbols and points in Y/Z view */
-    for (pt = 0; pt < cont->psize; pt++) {
-      point = &(cont->pts[pt]);
-      if ((int)(point->x + 0.5) == (int)vi->xmouse) {
+      thisVis = (int)(point->x + 0.5) == (int)vi->xmouse;
+      if (thisVis && ptProps.symtype != IOBJ_SYM_NONE)
         zapDrawSymbol((int)(z * point->z + bx2), 
                       (int)(z * point->y + by),
-                      obj->symbol, obj->symsize, obj->symflags);
-        next = (pt + 1) % cont->psize;
-        if ((int)(cont->pts[next].x + 0.5) == (int)vi->xmouse && 
-            (next || currentCont || 
-             (iobjClose(obj->flags) && !(cont->flags & ICONT_OPEN))))
-          b3dDrawLine((int)(z * point->z + bx2),
-                      (int)(z * point->y + by),
-                      (int)(z * cont->pts[next].z + bx2),
-                      (int)(z * cont->pts[next].y + by));
-      }
-    }
-
-    /* If current contour, draw projections into other planes if flag
-       selected */
-    if (currentCont && xx->project) {
-
-      /* Draw projection of all lines into x/z view */
-      b3dBeginLine();
-      for (pt = 0; pt < cont->psize; pt++) {
-        b3dVertex2i((int)(z * cont->pts[pt].x + bx),  
-                    (int)(z * cont->pts[pt].z + by2));
-      }
-      b3dEndLine();
-
-      /* Draw projection of all lines into y/z view */
-      b3dBeginLine();
-      for (pt = 0; pt < cont->psize; pt++) {
-        b3dVertex2i((int)(z * cont->pts[pt].z + bx2), 
-                  (int)(z * cont->pts[pt].y + by));
-      }
-      b3dEndLine();
+                      ptProps.symtype, ptProps.symsize, ptProps.symflags);
+      
+      if (((thisVis && (int)(cont->pts[next].x + 0.5) == (int)vi->ymouse) || 
+           (currentCont && xx->project)) && !ptProps.gap &&
+          (next || (!currentCont &&
+                    (iobjClose(obj->flags) && !(cont->flags & ICONT_OPEN)))))
+        b3dDrawLine((int)(z * point->z + bx2),
+                    (int)(z * point->y + by),
+                    (int)(z * cont->pts[next].z + bx2),
+                    (int)(z * cont->pts[next].y + by));
+    
+      ptProps.gap = 0;
     }
   }
      
   /* scattered contour - symbols in all three planes */
-  if (iobjScat(obj->flags) && obj->symbol != IOBJ_SYM_NONE) {
+  if (ilistSize(cont->store))
+    nextChange = ifgHandleContChange(obj, co, &contProps, &ptProps, 
+                                       &stateFlags, handleFlags, 0);
+  if (iobjScat(obj->flags) && 
+      (contProps.symtype != IOBJ_SYM_NONE || nextChange >= 0)) {
     for (pt = 0; pt < cont->psize; pt++) {
       point = &(cont->pts[pt]);
-      if ((int)floor(point->z + 0.5) == currentZ)
-        zapDrawSymbol((int)(z * point->x + bx), 
-                      (int)(z * point->y + by),
-                      obj->symbol, obj->symsize, obj->symflags);
+      if (pt == nextChange)
+        nextChange = ifgHandleNextChange(obj, cont->store, &contProps, 
+                                         &ptProps, &stateFlags,
+                                         &changeFlags, handleFlags, 0);
+      if (ptProps.symtype != IOBJ_SYM_NONE) {
+        if ((int)floor(point->z + 0.5) == currentZ)
+          zapDrawSymbol((int)(z * point->x + bx), 
+                        (int)(z * point->y + by),
+                        ptProps.symtype, ptProps.symsize, ptProps.symflags);
 
-      if ((int)(point->y + 0.5) == (int)vi->ymouse)
-        zapDrawSymbol((int)(z * point->x + bx), 
-                      (int)(z * point->z + by2),
-                      obj->symbol, obj->symsize, obj->symflags);
-
-      if ((int)(point->x + 0.5) == (int)vi->xmouse)
-        zapDrawSymbol((int)(z * point->z + bx2), 
-                      (int)(z * point->y + by),
-                      obj->symbol, obj->symsize, obj->symflags);
+        if ((int)(point->y + 0.5) == (int)vi->ymouse)
+          zapDrawSymbol((int)(z * point->x + bx), 
+                        (int)(z * point->z + by2),
+                        ptProps.symtype, ptProps.symsize, ptProps.symflags);
+        
+        if ((int)(point->x + 0.5) == (int)vi->xmouse)
+          zapDrawSymbol((int)(z * point->z + bx2), 
+                        (int)(z * point->y + by),
+                        ptProps.symtype, ptProps.symsize, ptProps.symflags);
+      }
     }
   }
 
   /* scattered contour or contour with points to be draw */
   if (iobjScat(obj->flags) || obj->pdrawsize || cont->sizes ) {
+    if (ilistSize(cont->store))
+      nextChange = ifgHandleContChange(obj, co, &contProps, &ptProps, 
+                                       &stateFlags, handleFlags, 0);
     for (pt = 0; pt < cont->psize; pt++) {
+      if (pt == nextChange)
+        nextChange = ifgHandleNextChange(obj, cont->store, &contProps, 
+                                         &ptProps, &stateFlags,
+                                         &changeFlags, handleFlags, 0);
       drawsize = imodPointGetSize(obj, cont, pt) / vi->xybin;
       if (drawsize > 0) {
         point = &(cont->pts[pt]);
@@ -1309,6 +1314,7 @@ void XyzWindow::DrawContour(Iobj *obj, int ob, int co)
   }
 
   /* draw end markers if requested */
+  b3dLineWidth(contProps.linewidth2);
   if (obj->symflags & IOBJ_SYMF_ENDS) {
     b3dColorIndex(App->bgnpoint);
     point = cont->pts;
@@ -1380,6 +1386,7 @@ void XyzWindow::DrawCurrentPoint()
   if (!xx->vi->drawcursor)
     return;
 
+  b3dLineWidth(obj->linewidth2);
   zapCurrentPointSize(obj, &modPtSize, &backupSize, &imPtSize);
   psize = modPtSize;
   if (cont && cont->psize > 1 && 
@@ -1713,6 +1720,9 @@ void XyzGL::mouseMoveEvent( QMouseEvent * event )
 
 /*
 $Log$
+Revision 4.25  2005/03/20 19:55:37  mast
+Eliminating duplicate functions
+
 Revision 4.24  2004/11/21 05:50:34  mast
 Switch from int to float for nearest point distance measurement
 

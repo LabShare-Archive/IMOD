@@ -43,6 +43,7 @@ Log at end of file
 #include "control.h"
 #include "preferences.h"
 #include "undoredo.h"
+#include "istore.h"
 
 static void setlabel(QLabel *label, Iindex ind);
 static bool indexGood(Iindex ind);
@@ -249,15 +250,17 @@ void ContourBreak::breakCont()
 
   Icont *cont1, *cont2, *cont;
   Iobj *obj;
+  Istore *stp;
+  Istore store;
   int ob, co, pt;
-  int i, ni, pt1, pt2;
-  int breakPoints = 1;
+  int i, ni, pt1, pt2, lookup, after;
+  int objProp = 0;
 
   /*
    * Check that at least the first break point is set.
    */
   if (i1p->point < 0){
-    wprint("\a\nContour Break Error:\n"
+    wprint("\aContour Break Error:\n"
            "\tFirst break point not set.\n");
     return;
   }
@@ -268,32 +271,26 @@ void ContourBreak::breakCont()
           
     if ( ( i2p->object != i1p->object) ||
          (i2p->contour != i1p->contour)){
-      wprint("\a\nContour Break Error:\n"
+      wprint("\aContour Break Error:\n"
              "\tBoth break points must be on the same contour.\n");
       return;
     }
-    pt1 = i1p->point;
-    pt2 = i2p->point;
-    breakPoints = 2;
+    pt1 = B3DMIN(i1p->point, i2p->point);
+    pt2 = B3DMAX(i1p->point, i2p->point);
   }else{
-    pt1 = 0;
-    pt2 = i1p->point;
+    pt1 = i1p->point;
+    pt2 = -1;
   }
      
-  if ((pt1<0) || (pt2 < 0)){
-    wprint("\a\nContour Break Error:\n"
-           "\tInvalid break points set.\n");
-    return;
-  }
-  if (pt1 == pt2){
-    wprint("\a\nContour Break Error:\n"
+  /*if (pt1 == pt2){
+    wprint("\aContour Break Error:\n"
            "\tBreak points can't be the same.\n");
     return;
-  }
+    } */
 
   /* DNM: make sure object number is valid before accessing it */
   if (i1p->object >= (int)vw->imod->objsize) {
-    wprint("\a\nContour Break Error:\n"
+    wprint("\aContour Break Error:\n"
            "\tObject number no longer valid.\n");
     return;
   }
@@ -306,7 +303,7 @@ void ContourBreak::breakCont()
 
   /* DNM 2/12/01: need to test that the contour number is still legal */
   if (i1p->contour >= obj->contsize){
-    wprint("\a\nContour Break Error:\n"
+    wprint("\aContour Break Error:\n"
            "\tContour number is no longer valid.\n");
     imodSetIndex(vw->imod, ob, co, pt);
     return;
@@ -315,78 +312,62 @@ void ContourBreak::breakCont()
   cont1 = imodContourGet(vw->imod);
 
   if ((!obj) || (!cont1)){
-    wprint("\a\nContour Break Error:\n"
+    wprint("\aContour Break Error:\n"
            "\tInvalid Model data or no break point selected.\n");
     imodSetIndex(vw->imod, ob, co, pt);
     return;
   }
 
   if (!cont1->psize){
-    wprint("\a\nContour Break Error:\n"
-           "\tCurrent contour has no points.\n");
+    wprint("\aContour Break Error:\n"
+           "\tSelected contour has no points.\n");
     imodSetIndex(vw->imod, ob, co, pt);
     return;
   }
 
   if ((pt1 >= cont1->psize) || (pt2 >= cont1->psize)){
-    wprint("\a\nContour Break Error:\n"
+    wprint("\aContour Break Error:\n"
            "\tInvalid break points set.\n");
     imodSetIndex(vw->imod, ob, co, pt);
     return;
   }
 
+  // Set up undos and actually break contour
   vw->undo->contourDataChg();
   vw->undo->contourAddition(obj->contsize);
-  cont = imodContourDup(cont1);     
-  cont2 = cont;
 
-  if (pt1 > pt2){
-    int tpt;
-    tpt = pt1;
-    pt1 = pt2;
-    pt2 = tpt;
-  }
-     
-  /* DNM: handle sizes properly below */
-  /* Build up our new contour. */
-  ni = 0;
-  if (breakPoints == 1){
-    for(i = pt2; i < cont1->psize; i++, ni++) {
-      cont2->pts[ni] = cont1->pts[i];
-      if (cont1->sizes)
-        cont2->sizes[ni] = cont1->sizes[i];
-    }
-    cont2->psize = ni;
-  }else{
-    for(i = pt1; i <= pt2; i++, ni++) {
-      cont2->pts[ni] = cont1->pts[i];
-      if (cont1->sizes)
-        cont2->sizes[ni] = cont1->sizes[i];
-    }
-    cont2->psize = ni;
+  cont = imodContourBreak(cont1, pt1, pt2);
+  if (!cont) {
+    wprint("\aMemory or other error breaking contour.\n");
+    vw->undo->flushUnit();
+    imodSetIndex(vw->imod, ob, co, pt);
+    return;
   }
 
-
-  /* Resize our old contour. */
-  if (breakPoints == 1){
-    cont1->psize = pt2;
-  }else{
-    ni = pt1;
-    for(i = pt2+1; i < cont1->psize; i++, ni++) {
-      cont1->pts[ni] = cont1->pts[i];
-      if (cont1->sizes)
-        cont1->sizes[ni] = cont1->sizes[i];
+  // Copy any contour-specific properties to new contour
+  lookup = istoreLookup(obj->store, i1p->contour, &after);
+  if (lookup >= 0) {
+    for (i = lookup; i < after; i++) {
+      stp = istoreItem(obj->store, i);
+      if (!(stp->flags & GEN_STORE_SURFACE)) {
+        store = *stp;
+        store.index.i = obj->contsize;
+        if (!objProp)
+          vw->undo->objectPropChg();
+        istoreInsert(&obj->store, &store);
+        objProp = 1;
+      }
     }
-    cont1->psize -= pt2-pt1+1;
   }
 
-  i1p->point = i2p->point = -1;
+  if (i1p->point >= cont1->psize)
+    imodSetIndex(vw->imod, i1p->object, i1p->contour, i1p->point - 1);
 
   setLabels();
 
   /* Set wild flag for each resulting contour */
+  imodel_contour_check_wild(cont);
   imodel_contour_check_wild(cont1);
-  imodel_contour_check_wild(cont2);
 
   imodObjectAddContour(obj, cont);
   vw->undo->finishUnit();
@@ -831,11 +812,13 @@ void imodContEditJoin(ImodView *vw)
     if (cont1->sizes)
       free(cont1->sizes);
     imodLabelDelete(cont1->label);
+    ilistDelete(cont1->store);
     cont1->label = NULL;
     cont1->flags |= jcont->flags;
     cont1->pts = jcont->pts;
     cont1->sizes = jcont->sizes;
     cont1->psize = jcont->psize;
+    cont1->store = jcont->store;
     free(jcont);
 
     // Mark contour 2 as done and flag it for removal
@@ -1990,6 +1973,9 @@ void ContourFrame::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.22  2005/06/06 14:39:09  mast
+Allowed move up/down in Z even when only one object
+
 Revision 4.21  2005/05/27 23:00:19  mast
 Allowed contour to be moved to a new surface
 

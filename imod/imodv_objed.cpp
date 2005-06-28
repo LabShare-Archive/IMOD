@@ -112,12 +112,12 @@ static int ctrlPressed = false;
 static QCheckBox *OnoffButtons[MAX_ONOFF_BUTTONS];
 static int numOnoffButtons = 0;
 
-#define MAX_OOLIST_BUTTONS  512
+#define MAX_OOLIST_BUTTONS  5000
 #define MAX_OOLIST_WIDTH 384
 #define MAX_LIST_IN_COL 36
 #define MAX_LIST_NAME 40
 static int oolist_name_limits[10] = {40, 25, 17, 13, 10, 8, 7, 6, 6, 6};
-static QCheckBox *OolistButtons[MAX_OOLIST_BUTTONS];
+static QCheckBox **OolistButtons;
 static int numOolistButtons = 0;
 static int olistNcol = 1;
 
@@ -1591,8 +1591,6 @@ void imodvObjectListDialog(ImodvApp *a, int state)
     return;
   }
 
-  Oolist_dialog = new ImodvOlist(imodvDialogManager.parent(IMODV_DIALOG));
-
   // Get number of buttons, number of columns and number per column
   // Make maximum number of buttons needed for all loaded models
   for (m = 0; m < a->nm; m++)
@@ -1600,7 +1598,16 @@ void imodvObjectListDialog(ImodvApp *a, int state)
       numOolistButtons = a->mod[m]->objsize; 
   if (numOolistButtons > MAX_OOLIST_BUTTONS)
     numOolistButtons = MAX_OOLIST_BUTTONS;
+
+  OolistButtons = (QCheckBox **)malloc(numOolistButtons * sizeof(QCheckBox *));
+  if (!OolistButtons) {
+    numOolistButtons = 0;
+    wprint("\aMemory error getting array for checkboxes\n");
+    return;
+  }
        
+  Oolist_dialog = new ImodvOlist(imodvDialogManager.parent(IMODV_DIALOG));
+
   olistNcol = (numOolistButtons + MAX_LIST_IN_COL - 1) / MAX_LIST_IN_COL;
   nPerCol = (numOolistButtons + olistNcol - 1) / olistNcol;
 
@@ -1690,6 +1697,7 @@ void ImodvOlist::closeEvent ( QCloseEvent * e )
   imodvDialogManager.remove((QWidget *)Oolist_dialog);
   Oolist_dialog  = NULL;
   numOolistButtons = 0;
+  free(OolistButtons);
   e->accept();
 }
 
@@ -1765,6 +1773,9 @@ static void finalSpacer(QWidget *parent, QVBoxLayout *layout)
 
 /*
 $Log$
+Revision 4.22  2005/06/06 17:24:36  mast
+Added fill color for spheres, and 2D line width
+
 Revision 4.21  2004/11/21 06:07:49  mast
 Changes for undo/redo
 

@@ -19,6 +19,16 @@ import etomo.comscript.InvalidParameterException;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.11  2005/06/14 22:03:10  sueh
+* <p> bug# 681 Fixed toString(Number).  It was always returning true.  Fixed
+* <p> parse().  It was not overriding
+* <p> ScriptParameter.parse(ComScriptCommand) because it another
+* <p> parameter.  Also fixed it so that it handled shortName.
+* <p>
+* <p> Revision 1.10  2005/06/11 02:32:12  sueh
+* <p> Removed an unnecessary function, is(Number) in ConstEtomoNumber.  It
+* <p> did the same thing as equals(Number).
+* <p>
 * <p> Revision 1.9  2005/06/06 16:50:57  sueh
 * <p> bug# 671 Added EtomoBoolean2() because an instance of this class
 * <p> doesn't need to be named if it is not saved to a file.
@@ -84,21 +94,18 @@ public class EtomoBoolean2 extends ScriptParameter {
     super(EtomoNumber.INTEGER_TYPE);
     setValidValues(new int[] { falseValue, trueValue });
     setDisplayValue(falseValue);
-    setNullIsValid(false);
   }
   
   public EtomoBoolean2(String name) {
     super(EtomoNumber.INTEGER_TYPE, name);
     setValidValues(new int[] { falseValue, trueValue });
     setDisplayValue(falseValue);
-    setNullIsValid(false);
   }
   
   public EtomoBoolean2(String name, HashMap requiredMap) {
     super(EtomoNumber.INTEGER_TYPE, name, requiredMap);
     setValidValues(new int[] { falseValue, trueValue });
     setDisplayValue(falseValue);
-    setNullIsValid(false);
   }
   
   public EtomoBoolean2(String name, int onValue, int offValue) {
@@ -111,15 +118,12 @@ public class EtomoBoolean2 extends ScriptParameter {
     trueStrings = null;
     setValidValues(new int[] { falseValue, trueValue });
     setDisplayValue(falseValue);
-    setNullIsValid(false);
   }
   
   /**
    * To prevent values not in validValues from being used:
    * Override validate().  Call super.validate(). Throw an exception when
    * invalidReason is set.
-   * To prevent nulls:
-   * Also throw an exception when value is null.
    */
   protected void setInvalidReason() {
     super.setInvalidReason();
@@ -136,7 +140,7 @@ public class EtomoBoolean2 extends ScriptParameter {
     if (displayAsInteger) {
       return super.toString(value);
     }
-    if (equals(value)) {
+    if (equals(value, trueValue)) {
       return trueString;
     }
     return falseString;
@@ -154,12 +158,19 @@ public class EtomoBoolean2 extends ScriptParameter {
    * Override parse(ComScriptCommand) to handle a boolean being true when
    * it has no value in the script.
    */
-  public ConstEtomoNumber parse(ComScriptCommand scriptCommand, String keyword)
+  public ConstEtomoNumber parse(ComScriptCommand scriptCommand)
       throws InvalidParameterException {
-    if (!scriptCommand.hasKeyword(keyword)) {
+    boolean nameInScript = scriptCommand.hasKeyword(name);
+    if (!nameInScript && (shortName == null || !scriptCommand.hasKeyword(shortName))) {
       return set(falseValue);
     }
-    String scriptValue = scriptCommand.getValue(keyword);
+    String scriptValue;
+    if (nameInScript) {
+      scriptValue = scriptCommand.getValue(name);
+    }
+    else {
+      scriptValue = scriptCommand.getValue(shortName);
+    }
     if (scriptValue == null || scriptValue.matches("\\s*")) {
       return set(trueValue);
     }

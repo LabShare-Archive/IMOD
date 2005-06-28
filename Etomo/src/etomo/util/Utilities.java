@@ -12,6 +12,37 @@
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.22  2005/06/21 00:56:52  sueh
+ * <p> $bug# 522 Added isWindowsOS().  Added getFile(AxisID, String extension),
+ * <p> $Added getFile(String filename).
+ * <p> $
+ * <p> $Revision 3.21  2005/06/20 17:09:31  sueh
+ * <p> $bug# 522 Added isSelfTest().
+ * <p> $
+ * <p> $Revision 3.20  2005/06/17 20:02:21  sueh
+ * <p> $bug# 685 Added timestamp functions for ComScript and File types.
+ * <p> $Added code to the main timestamp function to strip the path from a file
+ * <p> $name.  These changes reduces the amount of timestamp related code
+ * <p> $being executed when debug is off.
+ * <p> $
+ * <p> $Revision 3.19  2005/06/17 19:18:04  sueh
+ * <p> $bug# 685 Put all timestamp functionality into one function.  Added
+ * <p> $buttonTimestamp to provide an interface to the main timestamp function.
+ * <p> $
+ * <p> $Revision 3.18  2005/06/17 17:49:18  sueh
+ * <p> $bug# 685 Added getTimestamp() and setStartTime() to get a relative
+ * <p> $timestamp.
+ * <p> $
+ * <p> $Revision 3.17  2005/06/17 16:48:07  sueh
+ * <p> $bug# 685 Changed timestamp to milliseconds number.
+ * <p> $
+ * <p> $Revision 3.16  2005/06/17 00:36:01  sueh
+ * <p> $bug# 685 Added timestamp functions and isDebug().
+ * <p> $
+ * <p> $Revision 3.15  2005/05/31 23:12:11  sueh
+ * <p> $bug# 667 Changed EtomoDirector.getCurrentMetaData() to
+ * <p> $getCurrentName().
+ * <p> $
  * <p> $Revision 3.14  2005/05/26 21:09:44  rickg
  * <p> $Print out file name with error dialog
  * <p> $
@@ -111,13 +142,26 @@ import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
+import java.text.DecimalFormat;
+import java.util.Date;
 
 import etomo.EtomoDirector;
 import etomo.type.AxisID;
 import etomo.ui.UIHarness;
+import etomo.comscript.ComScript;
 import etomo.process.SystemProgram;
 
 public class Utilities {
+  
+  private static boolean retrievedDebug = false;
+  private static boolean debug = false;
+  private static boolean retrievedSelfTest = false;
+  private static boolean selfTest = false;
+  private static boolean retrievedOS = false;
+  private static boolean windowsOS = false;
+  private static long startTime = 0;
+  private static DecimalFormat timestampFormat = new DecimalFormat(".000");
+  
   private Utilities() {
   }
 
@@ -165,18 +209,46 @@ public class Utilities {
    * @param fileType A string used in the error dialog
    * @return
    */
-  public static File getFile(boolean mustExist, AxisID axisID, String extension,
-      String fileDescription) {
+  public static File getFile(boolean mustExist, AxisID axisID,
+      String extension, String fileDescription) {
     EtomoDirector director = EtomoDirector.getInstance();
-    String filename = director.getCurrentPropertyUserDir() + File.separator
-        + director.getCurrentName() + axisID.getExtension() + extension;
-    File file = new File(filename);
+    File file = new File(director.getCurrentPropertyUserDir(), director
+        .getCurrentName()
+        + axisID.getExtension() + extension);
     if (!file.exists() && mustExist) {
-      UIHarness.INSTANCE.openMessageDialog("The " + fileDescription
-          + " file: " + filename + " doesn't exist.", "Missing " + fileDescription, axisID);
+      UIHarness.INSTANCE.openMessageDialog("The " + fileDescription + " file: "
+          + file.getAbsolutePath() + " doesn't exist.", "Missing "
+          + fileDescription, axisID);
       return null;
     }
     return file;
+  }
+  
+  public static File getFile(AxisID axisID, String extension) {
+    EtomoDirector director = EtomoDirector.getInstance();
+    File file = new File(director.getCurrentPropertyUserDir(), director
+        .getCurrentName()
+        + axisID.getExtension() + extension);
+    return file;
+  }
+  
+  public static File getFile(String filename) {
+    filename = filename.trim();
+    if (filename == null || filename.matches("\\s*")) {
+      return new File(EtomoDirector.getInstance().getCurrentPropertyUserDir());
+    }
+    if (filename.charAt(0) == File.separatorChar) {
+      return new File(filename);
+    }
+    if (isWindowsOS()) {
+      int driveIndex = filename.indexOf(':');
+      if (driveIndex != -1 && driveIndex < filename.length() - 1
+          && filename.charAt(driveIndex + 1) == File.separatorChar) {
+        return new File(filename);
+      }
+    }
+    return new File(EtomoDirector.getInstance().getCurrentPropertyUserDir(),
+        filename);
   }
 
 	/**
@@ -501,4 +573,144 @@ public class Utilities {
     return isValid;
   }
   
+  /**
+   * Print timestamp in error log
+   * @param command
+   */
+  public static void buttonTimestamp(String command) {
+    timestamp("PRESSED", command, (String) null, -100);
+  }
+
+  /**
+   * Print timestamp in error log
+   * @param command
+   * @param container
+   */
+  public static void buttonTimestamp(String command, String container) {
+    timestamp("PRESSED", command, container, -100);
+  }
+
+  /**
+   * Print timestamp in error log
+   * @param process
+   * @param container
+   * @param status
+   */
+  public static void timestamp(String process, String container, int status) {
+    timestamp(process, null, container, status);
+  }
+  
+  /**
+   * Print timestamp in error log
+   * @param process
+   * @param command
+   * @param container
+   * @param status
+   */
+  public static void timestamp(String process, String command, File container,
+      int status) {
+    if (!isDebug()) {
+      return;
+    }
+    timestamp(process, command, container.getName(), status);
+  }
+  
+  /**
+   * Print timestamp in error log
+   * @param process
+   * @param command
+   * @param container
+   * @param status
+   */
+  public static void timestamp(String process, String command, ComScript container,
+      int status) {
+    if (!isDebug()) {
+      return;
+    }
+    timestamp(process, command, container.getName(), status);
+  }
+
+  /**
+   * Print timestamp in error log
+   * @param process
+   * @param command
+   * @param container
+   * @param status 0 = started, 1 = finished, -1 = failed, or -100 = null
+   */
+  public static void timestamp(String process, String command,
+      String container, int status) {
+    if (!isDebug()) {
+      return;
+    }
+    String statusString = null;
+    switch (status) {
+    case 0:
+      statusString = " started";
+      break;
+    case 1:
+      statusString = "finished";
+      break;
+    case -1:
+      statusString = "  failed";
+      break;
+    case -100:
+      break;
+    default:
+      throw new IllegalStateException("bad status: status=" + status);
+    }
+    StringBuffer buffer = new StringBuffer("TIMESTAMP: ");
+    if (process != null) {
+      buffer.append(process + " ");
+    }
+    if (command != null) {
+      buffer.append(command + " ");
+      if (container != null) {
+        buffer.append("in ");
+      }
+    }
+    if (container != null) {
+      int separatorIndex = container.lastIndexOf(File.separatorChar);
+      if (separatorIndex != -1 && separatorIndex < container.length() - 1) {
+        container = container.substring(separatorIndex + 1);
+      }
+      buffer.append(container + " ");
+    }
+    if (statusString != null) {
+      buffer.append(statusString + " ");
+    }
+    buffer.append("at " + getTimestamp());
+    System.err.println(buffer);
+  }
+
+  public static boolean isDebug() {
+    if (!retrievedDebug) {
+      debug = EtomoDirector.getInstance().isDebug();
+      retrievedDebug = true;
+    }
+    return debug;
+  }
+  
+  public static boolean isSelfTest() {
+    if (!retrievedSelfTest) {
+      selfTest = EtomoDirector.getInstance().isSelfTest();
+      retrievedSelfTest = true;
+    }
+    return selfTest;
+  }
+  
+  public static void setStartTime() {
+    startTime = new Date().getTime();
+  }
+
+  public static String getTimestamp() {
+    return timestampFormat.format((new Date().getTime() - startTime) / 1000.0);
+  }
+
+  public static boolean isWindowsOS() {
+    if (!retrievedOS) {
+      String osName = System.getProperty("os.name").toLowerCase();
+      windowsOS = osName.indexOf("windows") != -1;
+    }
+    return windowsOS;
+  }
 }

@@ -3,7 +3,6 @@ LANGUAGE	= C++
 
 CONFIG	+= qt opengl
 
-
 HEADERS	+= autox.h \
 	b3dgfx.h \
 	b3dfile.h \
@@ -68,10 +67,12 @@ HEADERS	+= autox.h \
 	xcorr.h \
 	undoredo.h \
 	imod_assistant.h \
+	finegrain.h \
 	pegged.xpm \
 	unpegged.xpm \
 	b3dicon.xpm \
 	iirawimage.h
+
 SOURCES	+= autox.cpp \
 	b3dfile.c \
 	b3dgfx.cpp \
@@ -129,7 +130,9 @@ SOURCES	+= autox.cpp \
 	undoredo.cpp \
 	imod_assistant.cpp \
 	iiqimage.cpp \
-	iirawimage.cpp
+	iirawimage.cpp \
+	finegrain.cpp
+
 FORMS	= form_object_edit.ui \
 	formv_control.ui \
 	formv_movie.ui \
@@ -145,7 +148,9 @@ FORMS	= form_object_edit.ui \
 	form_behavior.ui \
 	form_mouse.ui \
 	form_startup.ui \
-	form_rawimage.ui
+	form_rawimage.ui \
+	form_finegrain.ui
+
 IMAGES	= uparrow.png \
 	downarrow.png \
 	rightarrow.png \
@@ -153,10 +158,6 @@ IMAGES	= uparrow.png \
 	raisewindow.png \
 	undo.png \
 	redo.png
-
-
-
-
 
 TARGET = 3dmod
 INSTALLS += target

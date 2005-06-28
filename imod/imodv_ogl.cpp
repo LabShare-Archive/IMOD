@@ -28,6 +28,8 @@ Log at end of file
 #include "imodv_ogl.h"
 #include "imodv_light.h"
 #include "imodv_stereo.h"
+#include "istore.h"
+#include "finegrain.h"
 
 #define DRAW_POINTS 1
 #define DRAW_LINES  2
@@ -511,8 +513,10 @@ static void imodvSetObject(Iobj *obj, int style)
 {
   float red, green, blue, trans;
   unsigned char *ub;
+  int transChanges;
      
   trans = 1.0f - (obj->trans * 0.01f);
+  transChanges = istoreCountObjectItems(obj, GEN_STORE_TRANS, 1, 1, 1);
 
   switch(style){
   case 0:
@@ -582,10 +586,10 @@ static void imodvSetObject(Iobj *obj, int style)
      back faces of the transparent object unless two-sided lighting is
      used.  This works regardless of alpha planes, so there is no need
      to request alpha */
-  if (trans < 1.0f){
+  if (trans < 1.0f || transChanges){
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    if (!(obj->flags & IMOD_OBJFLAG_TWO_SIDE))
+    if (trans < 1.0f && !(obj->flags & IMOD_OBJFLAG_TWO_SIDE))
       glEnable(GL_CULL_FACE);
   }
 
@@ -825,16 +829,22 @@ static void imodvPick_Contours(Iobj *obj)
   Icont *cont;
   int pmode = GL_POINTS;
   int doLines = 0;
+  DrawProps contProps, ptProps;
+  int nextChange, stateFlags, changeFlags;
+  int handleFlags = HANDLE_MESH_COLOR | HANDLE_3DWIDTH;
   int checkTime = (int)iobjTime(obj->flags);
   if (!CTime)
     checkTime = 0;
 
 #ifdef PICKPOINTS
   /* pick points first */
+  // DNM 6/25/05: What is the point?  Can't detect a difference in performance,
+  // but leave it for now.
   glPushName(NO_NAME);
-  for(co = 0; co < obj->contsize; co++){
+  for (co = 0; co < obj->contsize; co++) {
     cont = &(obj->cont[co]);
-    if (!cont->psize) continue;
+    if (!cont->psize) 
+      continue;
     if ((checkTime) && (cont->type) && (cont->type != CTime))
       continue;
     if (Imodv->current_subset / 2 == 1 && cursurf >= 0 && 
@@ -843,10 +853,18 @@ static void imodvPick_Contours(Iobj *obj)
 
     if (Imodv->current_subset / 2 == 2 && curcont >= 0 && co != curcont)
       continue;
+    nextChange = ifgHandleContChange(obj, co, &contProps, &ptProps, 
+                                     &stateFlags, handleFlags, 0);
+    if (contProps.gap)
+      continue;
 
     glLoadName(co);
     glPushName(NO_NAME);
-    for(pt = 0; pt < cont->psize; pt++){
+    for (pt = 0; pt < cont->psize; pt++) {
+      if (nextChange == pt)
+        nextChange = ifgHandleNextChange(obj, cont->store, &contProps, 
+                                         &ptProps, &stateFlags, 
+                                         &changeFlags, handleFlags, 0);
       glLoadName(pt);
       glBegin(GL_POINTS);
       glVertex3fv((GLfloat *)&(cont->pts[pt]));
@@ -863,9 +881,10 @@ static void imodvPick_Contours(Iobj *obj)
   }
 
   glPushName(NO_NAME);
-  for(co = 0; co < obj->contsize; co++){
+  for (co = 0; co < obj->contsize; co++) {
     cont = &(obj->cont[co]);
-    if (!cont->psize) continue;
+    if (!cont->psize) 
+      continue;
     if ((checkTime) && (cont->type) && (cont->type != CTime))
       continue;
           
@@ -876,11 +895,23 @@ static void imodvPick_Contours(Iobj *obj)
     if (Imodv->current_subset / 2 == 2 && curcont >= 0 && co != curcont)
       continue;
 
+    nextChange = ifgHandleContChange(obj, co, &contProps, &ptProps, 
+                                     &stateFlags, handleFlags, 0);
+    if (contProps.gap)
+      continue;
+
     glLoadName(co);
           
     glPushName(NO_NAME);
-    for(pt = 0; pt < cont->psize; pt++){
+    for (pt = 0; pt < cont->psize; pt++) {
+      ptProps.gap = 0;
+      if (nextChange == pt)
+        nextChange = ifgHandleNextChange(obj, cont->store, &contProps, 
+                                         &ptProps, &stateFlags, 
+                                         &changeFlags, handleFlags, 0);
       if (doLines){
+        if (ptProps.gap)
+          continue;
         npt = pt + 1;
         if (npt == cont->psize){
           if ((!(iobjClose(obj->flags))) || 
@@ -892,7 +923,7 @@ static void imodvPick_Contours(Iobj *obj)
       glLoadName(pt);
       glBegin(pmode);
       glVertex3fv((GLfloat *)&(cont->pts[pt]));
-      if (doLines){
+      if (doLines) {
         glVertex3fv((GLfloat *)&(cont->pts[npt]));
       }
       glEnd();
@@ -904,15 +935,19 @@ static void imodvPick_Contours(Iobj *obj)
 
 static void imodvDraw_contours(Iobj *obj, int mode)
 {
-  int co, pt;
+  int co, pt, thickAdd = 0;
   Icont *cont;
   int checkTime = (int)iobjTime(obj->flags);
+  DrawProps contProps, ptProps;
+  int nextChange, stateFlags, changeFlags;
+  int handleFlags = HANDLE_MESH_COLOR;
   if (!CTime)
     checkTime = 0;
 
-  for(co = 0; co < obj->contsize; co++){
+  for (co = 0; co < obj->contsize; co++) {
     cont = &(obj->cont[co]);
-    if (!cont->psize) continue;
+    if (!cont->psize) 
+      continue;
     if ((checkTime) && (cont->type) && (cont->type != CTime))
       continue;
 
@@ -923,31 +958,67 @@ static void imodvDraw_contours(Iobj *obj, int mode)
     if (Imodv->current_subset / 2 == 2 && curcont >= 0 && co != curcont)
       continue;
 
-    // Set thicker line if this is the current contour, restore at end
-    if (co == thickCont)
-      glLineWidth(obj->linewidth + 2);
+    nextChange = ifgHandleContChange(obj, co, &contProps, &ptProps, 
+                                     &stateFlags, handleFlags, 0);
+    if (contProps.gap)
+      continue;
 
-#ifdef LINE_LOOP_HACK
-    if (mode == GL_LINE_LOOP)
-      glBegin(GL_LINE_STRIP);
-#else
-    if ((mode == GL_LINE_LOOP) && (cont->flags & ICONT_OPEN))
-      glBegin(GL_LINE_STRIP);
-#endif
-    else
-      glBegin(mode);
+    // Set thicker line if this is the current contour
+    thickAdd = (co == thickCont) ? 2 : 0;
 
-    for(pt = 0; pt < cont->psize; pt++){
-      glVertex3fv((GLfloat *)&(cont->pts[pt]));
+    if (mode == GL_POINTS) {
+
+      // Set up to do points
+      glPointSize(contProps.linewidth + thickAdd);
+      glBegin(GL_POINTS);
+      for (pt = 0; pt < cont->psize; pt++) {
+
+        // For points, implement change before point is drawn
+        if (nextChange == pt)
+          nextChange = ifgHandleNextChange(obj, cont->store, &contProps, 
+                                           &ptProps, &stateFlags, 
+                                           &changeFlags, handleFlags, 0);
+        if (changeFlags & CHANGED_3DWIDTH) {
+          glEnd();
+          glPointSize((GLfloat)ptProps.linewidth + thickAdd);
+          glBegin(GL_POINTS);
+        }
+        glVertex3fv((GLfloat *)&(cont->pts[pt]));
+      }
+    } else {
+
+      // Set up to do lines
+      glLineWidth(contProps.linewidth + thickAdd);
+      glBegin(GL_LINE_STRIP);
+
+      for (pt = 0; pt < cont->psize; pt++) {
+
+        // Get change at point then add point so color changes during line
+        ptProps.gap = 0;
+        if (nextChange == pt)
+          nextChange = ifgHandleNextChange(obj, cont->store, &contProps, 
+                                           &ptProps, &stateFlags, 
+                                           &changeFlags, handleFlags, 0);
+        glVertex3fv((GLfloat *)&(cont->pts[pt]));
+
+        // Width change requires ending the strip and restarting it
+        if (changeFlags & CHANGED_3DWIDTH) {
+          glEnd();
+          glLineWidth((GLfloat)ptProps.linewidth + thickAdd);
+          glBegin(GL_LINE_STRIP);
+          glVertex3fv((GLfloat *)&(cont->pts[pt]));
+        }
+        if (ptProps.gap) {
+          glEnd();
+          glBegin(GL_LINE_STRIP);
+        }
+      }
+      if ((mode == GL_LINE_LOOP) && !(cont->flags & ICONT_OPEN) && 
+          !ptProps.gap)
+        glVertex3fv((GLfloat *)cont->pts);
     }
-#ifdef LINE_LOOP_HACK
-    if ((mode == GL_LINE_LOOP) && !(cont->flags & ICONT_OPEN))
-      glVertex3fv((GLfloat *)cont->pts);
-#endif
     glEnd();
 
-    if (co == thickCont)
-      glLineWidth(obj->linewidth);
   }
   return;
 }  
@@ -1142,6 +1213,11 @@ static void imodvDraw_spheres(Iobj *obj, double zscale, int style)
   float drawsize;
   int pixsize, quality, i, j, k, mink, stepRes, xybin;
   float scale, diff, mindiff;
+  DrawProps contProps, ptProps;
+  int nextChange, stateFlags, changeFlags;
+  int handleFlags = HANDLE_3DWIDTH | 
+    (style == DRAW_FILL && (obj->flags & IMOD_OBJFLAG_FCOLOR)
+     ? HANDLE_MESH_FCOLOR : HANDLE_MESH_COLOR);
   GLuint listIndex;
 #ifdef GLU_QUADRIC_HACK
   GLUquadricObj *qobj = gluNewQuadric();
@@ -1245,12 +1321,21 @@ static void imodvDraw_spheres(Iobj *obj, double zscale, int style)
     if (!iobjScat(obj->flags) && !obj->pdrawsize && !cont->sizes)
       continue;
 
+    nextChange = ifgHandleContChange(obj, co, &contProps, &ptProps, 
+                                     &stateFlags, handleFlags, 0);
+    if (contProps.gap)
+      continue;
+
     // Set thicker line if this is the current contour, restore at end
     if (co == thickCont)
       glLineWidth(obj->linewidth + 2);
 
     glPushName(NO_NAME);
-    for(pt = 0; pt < cont->psize; pt++){
+    for (pt = 0; pt < cont->psize; pt++) {
+      if (nextChange == pt)
+        nextChange = ifgHandleNextChange(obj, cont->store, &contProps, 
+                                         &ptProps, &stateFlags, 
+                                         &changeFlags, handleFlags, 0);
 
       /* get the real point size, convert to number of pixels and
          look up step size based on current quality */
@@ -1738,7 +1823,7 @@ static void imodvDrawScalarMesh(Imesh *mesh, double zscale,
         if (useLight)
           light_adjust(obj, cmap[0][luv]/255.0f, 
                        cmap[1][luv]/255.0f,
-                       cmap[2][luv]/255.0f);
+                       cmap[2][luv]/255.0f, obj->trans);
 
         glColor4ub(cmap[0][luv], 
                    cmap[1][luv], 
@@ -1756,7 +1841,7 @@ static void imodvDrawScalarMesh(Imesh *mesh, double zscale,
         if (useLight)
           light_adjust(obj, cmap[0][luv]/255.0f, 
                        cmap[1][luv]/255.0f,
-                       cmap[2][luv]/255.0f);
+                       cmap[2][luv]/255.0f, obj->trans);
         glColor4ub(cmap[0][luv], 
                    cmap[1][luv], 
                    cmap[2][luv],
@@ -1772,7 +1857,7 @@ static void imodvDrawScalarMesh(Imesh *mesh, double zscale,
         if (useLight)
           light_adjust(obj, cmap[0][luv]/255.0f,
                        cmap[1][luv]/255.0f,
-                       cmap[2][luv]/255.0f);
+                       cmap[2][luv]/255.0f, obj->trans);
         glColor4ub(cmap[0][luv],
                    cmap[1][luv],
                    cmap[2][luv],
@@ -1887,6 +1972,12 @@ static int skipNonCurrentSurface(Imesh *mesh, int *ip, Iobj *obj)
 
 /*
 $Log$
+Revision 4.19  2005/06/20 22:20:29  mast
+Pass transparency to light_adjust
+
+Revision 4.18  2005/06/06 17:26:23  mast
+Draw spheres with fillcolor if separate new flag is set
+
 Revision 4.17  2004/11/02 16:22:26  mast
 Fixed unsigned int mismatch to calling new skip function
 

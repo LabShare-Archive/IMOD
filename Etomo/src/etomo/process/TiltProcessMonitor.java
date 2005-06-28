@@ -23,6 +23,11 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.8  2005/04/25 20:49:57  sueh
+ * <p> bug# 615 Passing the axis where a command originates to the message
+ * <p> functions so that the message will be popped up in the correct window.
+ * <p> This requires adding AxisID to many objects.
+ * <p>
  * <p> Revision 3.7  2004/11/19 23:26:09  sueh
  * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
  * <p>
@@ -102,7 +107,7 @@ public class TiltProcessMonitor extends FileSizeProcessMonitor {
     String alignedFilename =
       applicationManager.getPropertyUserDir() + "/" + tiltParam.getInputFile();
 
-    MRCHeader alignedStack = new MRCHeader(alignedFilename, axisID);
+    MRCHeader alignedStack = MRCHeader.getInstance(alignedFilename, axisID);
     alignedStack.read();
 
     nX = alignedStack.getNRows();

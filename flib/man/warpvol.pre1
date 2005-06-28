@@ -13,14 +13,13 @@ DDEESSCCRRIIPPTTIIOONN
   transformations. Its main use is to "warp" one tomogram from
   a two-axis tilt series so that it matches the other tomogram.
   For each position in the volume, it interpolates between adjacent
-  adjacent transformations to find the transformation appropriate for
-  that position.  Any initial alignment transformation (from
-  Solvematch) must be already contained in the transformations entered
-  into this program; this combining of transformations is accomplished
-  by Findwarp.  It can work with either a 2-D matrix of
-  transformations (varying in X and Z) or with a general 3-D matrix,
-  as output by Findwarp.  The program uses the same algorithm as
-  Rotatevol for rotating large volumes.
+  transformations to find the transformation appropriate for that
+  position.  Any initial alignment transformation (from Solvematch) must
+  be already contained in the transformations entered into this program;
+  this combining of transformations is accomplished by Findwarp.  It can
+  work with either a 2-D matrix of transformations (varying in X and Z) or
+  with a general 3-D matrix, as output by Findwarp.  The program uses the
+  same algorithm as Rotatevol for rotating large volumes.
 
   Warpvol uses the PIP package for input (see the manual page for pip(1))
   and can take input interactively for options that existed when it was

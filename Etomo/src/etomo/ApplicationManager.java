@@ -104,6 +104,24 @@ import etomo.util.Utilities;
  * 
  *
  * <p> $Log$
+ * <p> Revision 3.156  2005/06/21 00:02:58  sueh
+ * <p> bug# 522 Added pass-through function call to
+ * <p> BaseProcessManager.touch() for MRCHeaderTest.
+ * <p>
+ * <p> Revision 3.155  2005/06/20 16:39:35  sueh
+ * <p> bug# 522 Made MRCHeader an n'ton.  Getting instance instead of
+ * <p> constructing in getMrcHeader().
+ * <p>
+ * <p> Revision 3.154  2005/06/13 23:34:47  sueh
+ * <p> bug# 583 Preventing tilt.com from being overwritten with a default
+ * <p> imageBinned after the .ali file is deleted.  DoneTomogramGeneration()
+ * <p> needs update and save tilt.com, but the result from getStackBinning will
+ * <p> be wrong if the .ali file has been deleted.  Move the responsibility for
+ * <p> getting the right imageBinned to TiltParam.  Modify getStackBinning() to
+ * <p> have an option to return a null value when it fails to calculate the stack
+ * <p> binning.  If TiltParam.setImageBinned() gets a null value and
+ * <p> imageBinned is not null, it won't override the current imageBinned value.
+ * <p>
  * <p> Revision 3.153  2005/06/10 22:43:43  sueh
  * <p> bug# 583, bug# 682, bug# 584, bug# 679  Moved binning calculation to
  * <p> ApplicationManager.  Storing screen binning for Tomo Pos and Tomo
@@ -6245,6 +6263,7 @@ public class ApplicationManager extends BaseManager {
       }
     }
     if (!fidXyzPixelSizeSet || fidXyz.getPixelSize() != prealiHeader.getXPixelSpacing()) {
+    //if (getStackBinning(axisID, ".preali") != getBackwardCompatibleAlignBinning(axisID)) {
       uiHarness.openMessageDialog(
         "The prealigned image stack binning has changed.  You must:\n    1. Go "
         + "to Fiducial Model Gen. and Press Fix Fiducial Model to open the "
@@ -6264,7 +6283,7 @@ public class ApplicationManager extends BaseManager {
   public MRCHeader getMrcHeader(AxisID axisID, String filename) {
     File file = new File(propertyUserDir, metaData.getDatasetName()
         + axisID.getExtension() + filename);
-    return new MRCHeader(file.getAbsolutePath(), axisID);
+    return MRCHeader.getInstance(file.getAbsolutePath(), axisID);
   }
   
   protected void createComScriptManager() {
@@ -6431,7 +6450,7 @@ public class ApplicationManager extends BaseManager {
     if (rawstackXPixelSpacing > 0) {
       binning = Math.round(stackHeader.getXPixelSpacing() / rawstackXPixelSpacing);
     }
-    if (binning < 1) {
+    if (binning != defaultValue && binning < 1) {
       return 1;
     }
     return binning;
@@ -6526,6 +6545,10 @@ public class ApplicationManager extends BaseManager {
       return 1;
     }
     return binning;
+  }
+  
+  public void touch(File file) {
+    processMgr.touch(file);
   }
   
   /**

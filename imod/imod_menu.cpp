@@ -52,6 +52,7 @@ Log at end of file
 #include "imod_iscale.h"
 #include "b3dgfx.h"
 #include "autox.h"
+#include "finegrain.h"
 #include "preferences.h"
 #include "undoredo.h"
 
@@ -240,14 +241,21 @@ void InfoWindow::fileWriteSlot(int item)
 }
 
 /*
- * THE EDIT MENU: Just movies
+ * THE EDIT MENU
  */
 void InfoWindow::editSlot(int item)
 {
-  if (item == EDIT_MENU_MOVIES)
+  switch(item){
+  case EDIT_MENU_MOVIES:
     imodMovieConDialog(App->cvi);
-  else if (item == EDIT_MENU_PREFS)
+    break;
+  case EDIT_MENU_GRAIN:
+    fineGrainOpen(App->cvi);
+    break;
+  case EDIT_MENU_PREFS:
     ImodPrefs->editPrefs();
+    break;
+  }
 }
 
 
@@ -1161,6 +1169,9 @@ static Icont *imodContourBreakByZ(ImodView *vi, Iobj *obj, int ob, int co)
 
 /*
   $Log$
+  Revision 4.23  2005/03/20 19:55:36  mast
+  Eliminating duplicate functions
+
   Revision 4.22  2004/12/24 02:18:31  mast
   Use man page insetad of out-of-date imodhelp
 

@@ -22,6 +22,10 @@ import etomo.comscript.CCDEraserParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.4  2005/04/21 20:46:07  sueh
+ * <p> bug# 615 Pass axisID to packMainWindow so it can pack only the frame
+ * <p> that requires it.
+ * <p>
  * <p> Revision 3.3  2005/04/16 02:01:02  sueh
  * <p> bug# 615 Moved the adding of exit buttons to the base class.
  * <p>
@@ -174,7 +178,7 @@ public class PreProcessingDialog extends ProcessDialog {
   }
 
   public void buttonExecuteAction(ActionEvent event) {
-    exitState = DialogExitState.EXECUTE;
+    super.buttonExecuteAction(event);
     applicationManager.donePreProcDialog(axisID);
   }
 

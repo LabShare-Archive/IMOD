@@ -176,10 +176,6 @@ public class WindowSwitch {
     setTabs(menuList.getIndex(key));
     return tabbedPane;
   }
-
-  void selectWindow(UniqueKey key) {
-    selectWindow(key, false);
-  }
   
   /**
    * Allows the program to select a window.
@@ -191,7 +187,6 @@ public class WindowSwitch {
     }
     int newIndex = menuList.getIndex(key);
     selectMenuItem(newIndex);
-    EtomoDirector.getInstance().setCurrentManager(menuList.getKey(newIndex), newWindow);
   }
   
   /**
@@ -311,6 +306,11 @@ public class WindowSwitch {
 
 /**
  * <p>$Log$
+ * <p>Revision 1.7  2005/06/01 21:29:30  sueh
+ * <p>bug# 667 Removing the Controller classes.  Trying make meta data and
+ * <p>app manager equals didn't work very well.  Meta data is created by and
+ * <p>managed by app mgr and the class structure should reflect that.
+ * <p>
  * <p>Revision 1.6  2005/04/20 01:56:13  sueh
  * <p>bug# 615 SetController was causing MainFrame.setCurrentManager() to
  * <p>be called twice.  Passing newWindow to selectWindow makes it possible

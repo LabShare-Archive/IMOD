@@ -27,6 +27,11 @@ import etomo.type.JoinState;
 * @version $Revision$
 *
 * <p> $Log$
+* <p> Revision 1.11  2005/04/25 20:48:05  sueh
+* <p> bug# 615 Passing the axis where a command originates to the message
+* <p> functions so that the message will be popped up in the correct window.
+* <p> This requires adding AxisID to many objects.
+* <p>
 * <p> Revision 1.10  2005/01/08 01:49:22  sueh
 * <p> bug# 578 Command interface has changed - update calls.  Put GET_
 * <p> in from of statics passed to Command.getIntegerValue() and
@@ -183,11 +188,6 @@ public class JoinProcessManager extends BaseProcessManager {
   public String midasSample(MidasParam midasParam) throws SystemProcessException {
     InteractiveSystemProgram program = startInteractiveSystemProgram(midasParam);
     return program.getName();
-  }
-  
-  public void touch(File file) {
-    String[] commandArray = { "touch", file.getAbsolutePath() };
-    startSystemProgramThread(commandArray, AxisID.ONLY);
   }
 
   protected void postProcess(ComScriptProcess process) {

@@ -26,6 +26,11 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.12  2005/05/18 22:34:19  sueh
+* <p> bug# 662 Added member variable boolean forceNextProcess to force
+* <p> BaseManager.startNextProcess() to be run regardless of the value of
+* <p> exitValue.
+* <p>
 * <p> Revision 1.11  2005/04/26 17:36:26  sueh
 * <p> bug# 615 Change the name of the UIHarness member variable to
 * <p> uiHarness.
@@ -138,6 +143,15 @@ public abstract class BaseProcessManager {
   protected abstract void errorProcess(ComScriptProcess process);
   
   public BaseProcessManager() {
+  }
+  
+  /**
+   * run touch command on file
+   * @param file
+   */
+  public void touch(File file) {
+    String[] commandArray = { "touch", file.getAbsolutePath() };
+    startSystemProgramThread(commandArray, AxisID.ONLY);
   }
   
   /**

@@ -8,6 +8,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.7  2005/05/12 23:11:08  mast
+#  Fixed for windows, made .csh file before starting process
+#
 #  Revision 3.6  2005/05/12 21:24:09  mast
 #  Added ability to run with sync files
 #
@@ -106,7 +109,7 @@ endif
 
 set thishost = `hostname`
 set hostroot = $thishost:r:r:r
-set curdir = `pwd | sed "/localscratch/s//scratch\/$hostroot/"`
+set curdir = `pwd | sed -e "/localscratch/s//scratch\/$hostroot/" -e "/ /s//\\ /g"`
 
 # probe machines and get all the verifications
 #

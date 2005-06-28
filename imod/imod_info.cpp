@@ -97,6 +97,7 @@ InfoWindow::InfoWindow(QWidget * parent, const char * name, WFlags f)
   mEditMenu->insertItem("&Point", mEPointMenu);
   mEditMenu->insertItem("&Image", mEImageMenu); 
   mEditMenu->insertItem("M&ovies...", EDIT_MENU_MOVIES);
+  mEditMenu->insertItem("&Fine Grain...", EDIT_MENU_GRAIN);
   mEditMenu->insertItem("Op&tions...", EDIT_MENU_PREFS);
 
   // Edit model submenu
@@ -385,6 +386,8 @@ void InfoWindow::openSelectedWindows(char *keys)
   bool imageOK = !(App->cvi->fakeImage || App->cvi->rawImageStore);
   if (!keys)
     return;
+  if (strchr(keys, 'G'))
+    editSlot(EDIT_MENU_GRAIN);
   if (strchr(keys, 't'))
     editObjectSlot(EOBJECT_MENU_TYPE);
   if (strchr(keys, 'l'))
@@ -520,6 +523,11 @@ static char *truncate_name(char *name, int limit)
 
 /*
     $Log$
+    Revision 4.30  2005/02/12 01:29:33  mast
+    Prevented image processing and reload from being opened from menus when
+    there is no image data; prevented these and other windows from being
+    opened with -E when inappropriate
+
     Revision 4.29  2004/11/21 05:59:42  mast
     Rationalized key letters for opening windows
 

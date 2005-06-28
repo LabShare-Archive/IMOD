@@ -287,7 +287,7 @@ cleanqt : configure
 	cd midas     ; $(MAKE) clean
 	cd sendevent ; $(MAKE) clean
 	cd qtassist  ; $(MAKE) clean
-	cd sourcedoc ; $(MAKE) $@
+	cd sourcedoc ; $(MAKE) clean
 	cd flib/subrs ; \find . -type f -name '*dnmncar*' -exec /bin/rm -f '{}' \;
 	cd flib/subrs/graphics ; $(MAKE) clean
 	cd flib/ndasda ; $(MAKE) clean
@@ -448,6 +448,9 @@ ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.51  2005/05/12 00:31:50  mast
+#  Added 3dmodHelp and joinImages to src
+#
 #  Revision 3.50  2005/04/01 22:32:01  mast
 #  Fixed removal of .csh file
 #
