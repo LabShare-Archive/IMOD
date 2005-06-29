@@ -14,6 +14,9 @@ $Date$
 $Revision$
     
 $Log$
+Revision 3.3  2005/06/26 19:34:16  mast
+Added some functions
+
 Revision 3.2  2005/06/20 22:23:30  mast
 Preliminary checkin
 
@@ -109,13 +112,15 @@ extern "C" {
   int istoreFindBreak(Ilist *list, int index);
   void istoreShiftIndex(Ilist *list, int ptIndex, int startScan, int amount);
   int istoreDeletePoint(Ilist *list, int index, int psize);
-  void istoreDeleteContour(Ilist *list, int index);
+  void istoreDeleteContSurf(Ilist *list, int index, int surfFlag);
   int istoreBreakContour(Icont *cont, Icont *ncont, int p1, int p2);
   int istoreInvert(Ilist **listp, int psize);
   int istoreExtractChanges(Ilist *olist, Ilist **nlistp, int indStart, 
                            int indEnd, int newStart, int psize);
   int istoreCopyNonIndex(Ilist *olist, Ilist **nlistp);
-  int istoreCountObjItems(Ilist *list, int co, int surf);
+  int istoreCopyContSurfItems(Ilist *olist, Ilist **nlistp, int indFrom,
+                            int indTo, int surfFlag);
+  int istoreCountContSurfItems(Ilist *list, int index, int surfFlag);
   Istore *istoreNextObjItem(Ilist *list, int co, int surf, int first);
   int istoreInsertChange(Ilist **listp, Istore *store);
   int istoreEndChange(Ilist *list, int type, int index);
@@ -125,7 +130,8 @@ extern "C" {
 
   void istoreDefaultDrawProps(Iobj *obj, DrawProps *props);
   int istoreContSurfDrawProps(Ilist *list, DrawProps *defProps, 
-                              DrawProps *contProps, int co, int surf);
+                              DrawProps *contProps, int co, int surf, 
+                              int *contState, int *surfState);
   int istoreFirstChangeIndex(Ilist *list);
   int istoreNextChange(Ilist *list, DrawProps *defProps,
                        DrawProps *ptProps, int *stateFlags, int *changeFlags);
