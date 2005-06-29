@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.1  2005/06/26 19:36:13  mast
+    Addition to program
+
 */
 
 #include <qgl.h>
@@ -75,7 +78,7 @@ void fineGrainOpen(ImodView *vw)
  */
 void fineGrainUpdate()
 {
-  int ob, co, pt, surf;
+  int ob, co, pt, surf, contState, surfState;
   Imod *imod;
   Iobj *obj;
   Icont *cont;
@@ -107,8 +110,10 @@ void fineGrainUpdate()
 
     istoreDefaultDrawProps(obj, &defProps);
     if (cont) {
-      fgd.stateFlags = istoreContSurfDrawProps(obj->store, &defProps, &props, 
-                            fgd.ptContSurf > 1 ? -1 : co, surf);
+      istoreContSurfDrawProps(obj->store, &defProps, &props, 
+                              fgd.ptContSurf > 1 ? -1 : co, surf, &contState,
+                              &surfState);
+      fgd.stateFlags = fgd.ptContSurf == 2 ? surfState : contState;
     }
     else
       props = defProps;
@@ -255,7 +260,7 @@ void ifgEndChange(int type)
     return;
   fgd.vw->undo->contourDataChg();
   if (istoreEndChange(fgd.cont->store, type, fgd.ptLoaded))
-    wprint("/aError modifying storage list to end change\n");
+    wprint("\aError modifying storage list to end change\n");
   fgd.vw->undo->finishUnit();
   if (imodDebug('g'))
     istoreDump(fgd.cont->store);
@@ -277,7 +282,7 @@ void ifgClearChange(int type)
     err = istoreClearOneIndexItem
       (fgd.obj->store, type, 
        (fgd.ptContSurf == 2) ? fgd.surfLoaded : fgd.contLoaded,
-       (fgd.ptContSurf == 2) ? GEN_STORE_SURFACE : 0);
+       (fgd.ptContSurf == 2) ? 1 : 0);
     if (imodDebug('g'))
       istoreDump(fgd.obj->store);
   } else {
@@ -356,11 +361,12 @@ void ifgDump()
     istoreDump(fgd.obj->store);
   else
     istoreDump(fgd.cont->store);
+  fflush(stdout);
 }
 
 void ifgHelp()
 {
-
+  imodShowHelpPage("finegrain.html");
 }
 
 void ifgClosing()
@@ -414,7 +420,7 @@ static void insertAndUpdate(int type)
   fgd.store.flags |= fgd.ptContSurf == 2 ? GEN_STORE_SURFACE : 0;
   if (fgd.ptContSurf) {
     fgd.vw->undo->objectPropChg();
-    fgd.store.index.i = fgd.contLoaded;
+    fgd.store.index.i =  fgd.ptContSurf == 2 ? fgd.surfLoaded : fgd.contLoaded;
     err = istoreAddOneIndexItem(&fgd.obj->store, &fgd.store);
     if (imodDebug('g'))
       istoreDump(fgd.obj->store);
@@ -443,12 +449,13 @@ int ifgHandleContChange(Iobj *obj, int co, DrawProps *contProps,
                         DrawProps *ptProps, int *stateFlags, int handleFlags,
                         int selected)
 {
+  int contState, surfState;
   DrawProps defProps;
 
   /* Get the properties for the contour */
   istoreDefaultDrawProps(obj, &defProps);
   *stateFlags = istoreContSurfDrawProps(obj->store, &defProps, contProps, co, 
-                         obj->cont[co].surf);
+                         obj->cont[co].surf, &contState, &surfState);
   *ptProps = *contProps;
   ptProps->gap = 0;
 
