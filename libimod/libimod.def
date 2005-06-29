@@ -323,7 +323,7 @@ EXPORTS
 	imodContourGetMaxPoint
 	istoreNextObjItem
 	GETIMODOBJNAME
-	istoreDeleteContour
+	istoreDeleteContSurf
 	PUTIMODSCAT
 	imodObjectAddContour
 	imodFileRead
@@ -361,7 +361,8 @@ EXPORTS
 	imodObjectGetName
 	imodContourReduce
 	imodel_scans_overlap
-	istoreCountObjItems
+	istoreCountContSurfItems
+	istoreCopyContSurfItems
 	imodPutBytes
 	istoreLookup
 	imodPointArea

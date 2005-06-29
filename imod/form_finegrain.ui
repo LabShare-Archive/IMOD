@@ -1,4 +1,4 @@
-<!DOCTYPE UI><UI version="3.1" stdsetdef="1">
+<!DOCTYPE UI><UI version="3.3" stdsetdef="1">
 <class>FineGrainForm</class>
 <widget class="QWidget">
     <property name="name">
@@ -8,7 +8,7 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>220</width>
+            <width>225</width>
             <height>580</height>
         </rect>
     </property>
@@ -73,7 +73,7 @@
                 <number>0</number>
             </property>
             <property name="title">
-                <string>Line Color</string>
+                <string>Line color</string>
             </property>
             <vbox>
                 <property name="name">
@@ -280,7 +280,7 @@
                 <number>0</number>
             </property>
             <property name="title">
-                <string>Fill Color</string>
+                <string>Fill color</string>
             </property>
             <vbox>
                 <property name="name">
@@ -659,7 +659,7 @@
                 <number>0</number>
             </property>
             <property name="title">
-                <string>2D Line Width</string>
+                <string>2D line width</string>
             </property>
             <vbox>
                 <property name="name">
@@ -817,7 +817,7 @@
                 <number>0</number>
             </property>
             <property name="title">
-                <string>3D Line Width</string>
+                <string>3D line width</string>
             </property>
             <vbox>
                 <property name="name">
@@ -1382,7 +1382,7 @@
                         <cstring>connectLabel</cstring>
                     </property>
                     <property name="text">
-                        <string>Mesh Connection #</string>
+                        <string>Mesh connection #</string>
                     </property>
                 </widget>
                 <widget class="QSpinBox">
@@ -1624,6 +1624,18 @@
         <receiver>FineGrainForm</receiver>
         <slot>ptContSurfSelected(int)</slot>
     </connection>
+    <connection>
+        <sender>OKButton</sender>
+        <signal>clicked()</signal>
+        <receiver>FineGrainForm</receiver>
+        <slot>close()</slot>
+    </connection>
+    <connection>
+        <sender>helpButton</sender>
+        <signal>clicked()</signal>
+        <receiver>FineGrainForm</receiver>
+        <slot>helpClicked()</slot>
+    </connection>
 </connections>
 <includes>
     <include location="local" impldecl="in declaration">istore.h</include>
@@ -1633,7 +1645,7 @@
     <include location="local" impldecl="in implementation">dia_qtutils.h</include>
     <include location="local" impldecl="in implementation">control.h</include>
     <include location="global" impldecl="in implementation">qsignalmapper.h</include>
-    <include location="local" impldecl="in implementation">iobj.h</include>
+    <include location="local" impldecl="in implementation">imod.h</include>
     <include location="local" impldecl="in implementation">finegrain.h</include>
     <include location="local" impldecl="in implementation">colorselector.h</include>
     <include location="local" impldecl="in implementation">form_finegrain.ui.h</include>

@@ -1,0 +1,89 @@
+<head>
+<title>Setting Fine Grain Properties</title>
+</head>
+<H3>Setting Fine Grain Properties</H3>
+
+This window is used to set display properties at a finer level than is
+ordinarily allowed.  Properties such as color and line width can be
+set for individual points within a contour, for individual contours,
+or for specific surfaces.  
+<P>
+The radio buttons at the top are used to select whether properties are
+being shown
+and controlled for the current <B>Point</B>, <B>Contour</B>, or
+<B>Surface</B>.  For the current item, the various controls show the
+existing display properties of that item.  For each property, there
+appears the letter <B>D</B> if the property has a default value, or
+<B>S</B> if the property has been set.
+<P>
+The fine grain changes operate somewhat differently for points than
+for contours and surfaces.  For points, when a property is set for one
+point, its value applies to all following points in the contour until
+the change in property is ended, or until a different value is set for
+a later point.  Thus, when a property has a non-default value for the
+current point, an <B>End</B> button is enabled to allow you to end the
+sequence of changes at that point.  In addition, a <B>Clear</B> button
+is enabled, which will allow you to reset that property to the default
+for the whole contiguous sequence of points that have the property set.
+There are two exceptions to this pattern: <B>Gap to next point</B>
+applies only to the single point at which it is set, so that one can
+create an opening in a contour.  The <B>Mesh Connection #</B> also
+applies only to a single point.
+<P>
+For contours and surfaces, all changes apply only to a single contour
+or surface.  Thus, once a property has been set, the <B>Clear</B>
+button is enabled to allow you to restore the default value, while the
+<B>End</B> button has no function.
+<P>
+Once you have set a property, the <B>Last</B> button is enabled so
+that you can conveniently apply the same change to other items, for
+example points in a corresponding position on another contour.
+<P>
+Most property changes will show up immediately in the image or model
+view windows.  However, some of the properties are designed to be
+incorporated into the mesh, and you will not see any change in the
+display of the mesh until the model is saved, remeshed with imodmesh,
+and reloaded.  Indeed, even that won't do any good until imodmesh is
+modified to incorporate these changes into the mesh!
+<P>
+A final general note before descriptions of individual properties: the
+ability to make these fine grained changes in the model represents a
+big change in the potential content of IMOD models.  Many programs
+outside of 3dmod will ignore, discard, or garble this information
+until they are modified to handle it properly.  Even some operations
+within 3dmod will not deal with the fine grained data correctly,
+notably sorting of contours and points, and use of the line tracker.
+<UL>
+<LI><B>Line color</B> is the color of lines in image and model views,
+and the default color for mesh displays in model view.  Pressing the
+<B>Set</B> button opens a standard color selector window.  When the
+color is changed in this window, the changes are applied to the
+current point or contour, not necessarily to the same item that was
+selected when the window was opened.
+<LI><B>Fill color</B> is the color used for displaying filled meshes
+when the <B>Use fill color</B> option is selected in the fill color
+panel of the model view Object Edit window.  For spheres, changes here
+will show up immediately when either this option or <B>Use for
+spheres</B> is selected; but for other meshed items, the changes will
+not show up until incorporated into a mesh.  The <B>Set</B> button
+opens a separate color selector window which works like the <B>Line
+color</B> window.
+<LI><B>Transparency</B> is a property that appears in the model view.
+Changes will appear immediately for line or sphere displays but will
+have to be incorporated into a new mesh for filled mesh displays.
+<LI><B>2D line width</B>, <B>Symbol type</B>, and <B>Symbol size</b>
+are properties that appear only in 2d (image) displays and their
+default values are set in the 3dmod Object Edit window.
+<LI><B>3D line width</B> governs the width of lines displayed in the
+model view.
+<LI><B>Gap to next point</B> introduces an opening in the contour after
+the current point, so that contours can have multiple openings.  When
+contour or surface properties are being shown, this button mutates to
+<B>Turn off drawing</B>, which lets you turn off an individual contour or
+surface.
+<LI><B>Mesh connection #</B> will be used to force particular points
+in adjacent contours to be connected in a mesh, such as the points at
+the start of a gap.  The points to be connected would be assigned the
+same unique connection number.
+<P>
+<A HREF="index.html">Help Index<A>

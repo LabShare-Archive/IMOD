@@ -97,7 +97,7 @@ void FineGrainForm::setFontDependentWidths()
 {
     int i, cwid, swid, lwid, ewid, dswid;
     bool rounded = ImodPrefs->getRoundedStyle();
-    dswid = diaSetButtonWidth(setColorBut, rounded, 1.25, "Set");
+    dswid = diaSetButtonWidth(setColorBut, rounded, 1.3, "Set");
     setFillColorBut->setFixedWidth(dswid);
     cwid = diaSetButtonWidth(clearColorBut, rounded, 1.25, "Clear");
     lwid = diaSetButtonWidth(lastColorBut, rounded, 1.25, "Last");
@@ -176,8 +176,8 @@ void FineGrainForm::setLineColor()
         mLineSelector->raise();
         return;
     }
-  mLineSelector = new ColorSelector(this,
-                                    "3dmod: Fine grain line color", mCurRed, mCurGreen,
+  mLineSelector = new ColorSelector(this, "Fine grain line color", 
+                                    mCurRed, mCurGreen,
                                 mCurBlue, hotSliderFlag(),
                                 hotSliderKey(), ImodPrefs->getRoundedStyle(),
                                 "selector");
@@ -190,6 +190,7 @@ void FineGrainForm::setLineColor()
   connect(mLineSelector, SIGNAL(keyRelease(QKeyEvent *)), this,
           SLOT(keyReleaseEvent(QKeyEvent *)));
   imodDialogManager.add((QWidget *)mLineSelector, IMOD_DIALOG);
+  mLineSelector->setCaption(imodCaption("3dmod Line Color"));
   mLineSelector->show();
 }
 
@@ -199,8 +200,8 @@ void FineGrainForm::setFillColor()
         mFillSelector->raise();
         return;
     }
-  mFillSelector = new ColorSelector(this,
-                                    "3dmod: Fine grain fill color", mCurFillRed, mCurFillGreen,
+  mFillSelector = new ColorSelector(this, "Fine grain fill color",
+                                    mCurFillRed, mCurFillGreen,
                                 mCurFillBlue, hotSliderFlag(),
                                 hotSliderKey(), ImodPrefs->getRoundedStyle(),
                                 "selector");
@@ -213,9 +214,11 @@ void FineGrainForm::setFillColor()
   connect(mFillSelector, SIGNAL(keyRelease(QKeyEvent *)), this,
           SLOT(keyReleaseEvent(QKeyEvent *)));
   imodDialogManager.add((QWidget *)mFillSelector, IMOD_DIALOG);
+  mFillSelector->setCaption(imodCaption("3dmod Fill Color"));
   mFillSelector->show();
 }
 
+// Slots for the color changes
 void FineGrainForm::newLineColor( int red, int green, int blue )
 {
     mLastRed = red;
@@ -256,6 +259,7 @@ void FineGrainForm::fillColorClosing()
     mFillSelector = NULL;
 }
 
+// Slots for the last buttons, to set the last values
 void FineGrainForm::lastLineColor()
 {
     ifgLineColorChanged(mLastRed, mLastGreen, mLastBlue);
@@ -291,6 +295,7 @@ void FineGrainForm::lastSymsize()
     ifgSymsizeChanged(mLastSymsize);
 }
 
+// Slots for the mapped called from end and clear buttons
 void FineGrainForm::endClicked( int which )
 {
     ifgEndChange(mTypeValues[which]);
@@ -301,10 +306,11 @@ void FineGrainForm::clearClicked( int which )
     ifgClearChange(mTypeValues[which]);
 }
 
+// Slots for the individual changes
 void FineGrainForm::transSliderChanged( int which, int value, bool dragging )
 {
     if (!dragging || 
-	(hotSliderFlag() == HOT_SLIDER_KEYDOWN && mCtrlPressed) ||
+ (hotSliderFlag() == HOT_SLIDER_KEYDOWN && mCtrlPressed) ||
         (hotSliderFlag() == HOT_SLIDER_KEYUP && !mCtrlPressed)) {
         ifgTransChanged(value);
         mLastTrans = value;
@@ -363,7 +369,6 @@ void FineGrainForm::helpClicked()
     ifgHelp();
 }
 
-
 void FineGrainForm::closeEvent( QCloseEvent *e )
 {
     ifgClosing();
@@ -371,7 +376,6 @@ void FineGrainForm::closeEvent( QCloseEvent *e )
     fillColorDone();
     e->accept();
 }
-
 
 void FineGrainForm::keyPressEvent( QKeyEvent *e )
 {
@@ -397,7 +401,6 @@ void FineGrainForm::keyReleaseEvent( QKeyEvent *e )
   }
   ivwControlKey(1, e);
 }
-
 
 void FineGrainForm::fontChange( const QFont & oldFont )
 {
