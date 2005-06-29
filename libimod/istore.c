@@ -14,6 +14,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.3  2005/06/26 19:33:18  mast
+Lots of changes upon use in 3dmod and testing
+
 Revision 3.2  2005/06/21 13:12:49  mast
 Fix some pointers
 
@@ -547,28 +550,31 @@ int istoreDeletePoint(Ilist *list, int index, int psize)
 }
 
 /*!
- * Removes any elements in [list] associated with the contour whose index is
- * [index], and reduces all following contour indexes by 1.
+ * Removes any elements in [list] associated with the contour or surface whose 
+ * index is [index], depending on whether [surfFlag] is 0 or not.  For 
+ * contours, it reduces all following contour indexes by 1.
  */
-void istoreDeleteContour(Ilist *list, int index)
+void istoreDeleteContSurf(Ilist *list, int index, int surfFlag)
 {
   int after, i, lookup;
   Istore *stp;
   if (!ilistSize(list))
     return;
     
+  surfFlag = surfFlag ? GEN_STORE_SURFACE : 0;
   lookup = istoreLookup(list, index, &after);
   if (lookup >= 0) {
     for (i = lookup; i < after; i++) {
       stp = istoreItem(list, i);
-      if (!(stp->flags & GEN_STORE_SURFACE)) {
+      if ((stp->flags & GEN_STORE_SURFACE) == surfFlag) {
         ilistRemove(list, i);
         i--;
         after--;
       }
     }
   }
-  istoreShiftIndex(list, index + 1, after, -1);
+  if (!surfFlag)
+    istoreShiftIndex(list, index + 1, after, -1);
 }
 
 /*!
@@ -709,6 +715,9 @@ void istoreCleanEnds(Ilist *list)
     if (stp->flags & GEN_STORE_REVERT) {
       for (j = i + 1; j < ilistSize(list); j++) {
         stp2 = istoreItem(list, j);
+        if ((stp->flags & (GEN_STORE_NOINDEX | 3)) || 
+            stp2->index.i != stp->index.i)
+          break;
         if (stp2->type == stp->type) {
           ilistRemove(list, i);
           i--;
@@ -793,24 +802,53 @@ int istoreCopyNonIndex(Ilist *olist, Ilist **nlistp)
 }
 
 /*!
- *  Let's see if this gets used!
+ * Counts the number of items in [list] with index value of [index], for
+ * either contours, if [surfFlag] is 0, or surfaces, if [surfFlag] is nonzero.
  */    
-int istoreCountObjItems(Ilist *list, int co, int surf)
+int istoreCountContSurfItems(Ilist *list, int index, int surfFlag)
 {
   Istore *stp;
-  int i, index, count = 0;
+  int i, count = 0;
   if (!ilistSize(list))
     return 0;
+  surfFlag = surfFlag ? GEN_STORE_SURFACE : 0;
   for (i = 0; i < list->size; i++) {
     stp = istoreItem(list, i);
     if (stp->flags & (GEN_STORE_NOINDEX | 3))
       break;
     index = stp->index.i;
-    if ((!(stp->flags & GEN_STORE_SURFACE) && index == co) ||
-        ((stp->flags & GEN_STORE_SURFACE) && index == surf))
+    if ((stp->flags & GEN_STORE_SURFACE) == surfFlag && index == stp->index.i)
       count++;
   }
   return count;
+}
+
+/*!
+ * Copies items having index [indFrom] from general store list [olist] to the
+ * new list pointed to by [nlist], changing the index to [indTo] in the new
+ * list.  Contour items are copied if [surfFlag] is 0, and surface items are
+ * copied if [surfFlag is nonzero.  Returns 1 for error.
+ */
+int istoreCopyContSurfItems(Ilist *olist, Ilist **nlistp, int indFrom,
+                            int indTo, int surfFlag)
+{
+  int i, lookup, after;
+  Istore *stp;
+  Istore store;
+  surfFlag = surfFlag ? GEN_STORE_SURFACE : 0;
+  lookup = istoreLookup(olist, indFrom, &after);
+  if (lookup >= 0) {
+    for (i = lookup; i < after; i++) {
+      stp = istoreItem(olist, i);
+      if ((stp->flags & GEN_STORE_SURFACE) == surfFlag) {
+        store = *stp;
+        store.index.i = indTo;
+        if (istoreInsert(nlistp, &store))
+          return 1;
+      }
+    }
+  }
+  return 0;
 }
 
 /*!
@@ -1046,7 +1084,7 @@ int istoreAddOneIndexItem(Ilist **listp, Istore *store)
  * Removes the item in [list] with the type given by [type] and containing the
  * point at [index], where the item specifies a property that applies to only
  * one point or contour.  [surfFlag] should be 0 for a point or contour, or 
- * GEN_STORE_SURFACE for a surface.  Returns 1 for an empty list, -1 if no
+ * non-zero for a surface.  Returns 1 for an empty list, -1 if no
  * matching item is found.
  */
 int istoreClearOneIndexItem(Ilist *list, int type, int index, int surfFlag)
@@ -1055,6 +1093,7 @@ int istoreClearOneIndexItem(Ilist *list, int type, int index, int surfFlag)
   Istore *stp;
   if (!ilistSize(list))
     return 1;
+  surfFlag = surfFlag ? GEN_STORE_SURFACE : 0;
   lookup = istoreLookup(list, index, &after);
   if (lookup < 0)
     return -1;
@@ -1095,15 +1134,19 @@ void istoreDefaultDrawProps(Iobj *obj, DrawProps *props)
 * the default object properties in [defProps] and entries in [list].  For a
 * contour, [co] specifies the contour number and [surf] specifies its surface
 * number; for a surface, [co] should be negative.  Returns a set of flags for 
-* which items are changed from the default.
+* which items are changed from the default; separate flags for nondefault items
+* are returned in [contState] and [surfState] for contour and surface,
+* respectively.
 */
 int istoreContSurfDrawProps(Ilist *list, DrawProps *defProps, 
-                            DrawProps *contProps, int co, int surf)
+                            DrawProps *contProps, int co, int surf, 
+                            int *contState, int *surfState)
 {
-  int i, j, lookup, after, retval, which, surfFlag;
+  int i, j, lookup, after, state, which, surfFlag;
   Istore *stp;
   *contProps = *defProps;
-  retval = 0;
+  *contState = 0;
+  *surfState = 0;
   if (!ilistSize(list))
     return 0;
 
@@ -1112,6 +1155,7 @@ int istoreContSurfDrawProps(Ilist *list, DrawProps *defProps,
   surfFlag = GEN_STORE_SURFACE;
 
   for (j = 0; j < 2; j++) {
+    state = 0;
     if (which < 0)
       continue;
     lookup = istoreLookup(list, which, &after);
@@ -1122,46 +1166,46 @@ int istoreContSurfDrawProps(Ilist *list, DrawProps *defProps,
           continue;
         switch (stp->type) {
         case GEN_STORE_COLOR:
-          retval |= CHANGED_COLOR;
+          state |= CHANGED_COLOR;
           contProps->red = stp->value.b[0] / 255.f;
           contProps->green = stp->value.b[1] / 255.f;
           contProps->blue = stp->value.b[2] / 255.f;
           break;
 
         case GEN_STORE_FCOLOR:
-          retval |= CHANGED_FCOLOR;
+          state |= CHANGED_FCOLOR;
           contProps->fillRed = stp->value.b[0] / 255.f;
           contProps->fillGreen = stp->value.b[1] / 255.f;
           contProps->fillBlue = stp->value.b[2] / 255.f;
           break;
 
         case GEN_STORE_TRANS:
-          retval |= CHANGED_TRANS;
+          state |= CHANGED_TRANS;
           contProps->trans = stp->value.i;
           break;
 
         case GEN_STORE_GAP:
-          retval |= CHANGED_GAP;
+          state |= CHANGED_GAP;
           contProps->gap = 1;
           break;
 
         case GEN_STORE_3DWIDTH:
-          retval |= CHANGED_3DWIDTH;
+          state |= CHANGED_3DWIDTH;
           contProps->linewidth = stp->value.i;
           break;
 
         case GEN_STORE_2DWIDTH:
-          retval |= CHANGED_2DWIDTH;
+          state |= CHANGED_2DWIDTH;
           contProps->linewidth2 = stp->value.i;
           break;
 
         case GEN_STORE_SYMSIZE:
-          retval |= CHANGED_SYMSIZE;
+          state |= CHANGED_SYMSIZE;
           contProps->symsize = stp->value.i;
           break;
 
         case GEN_STORE_SYMTYPE:
-          retval |= CHANGED_SYMTYPE;
+          state |= CHANGED_SYMTYPE;
           contProps->symflags &= ~IOBJ_SYMF_FILL;
           contProps->symtype = stp->value.i;
           if (contProps->symtype < 0) {
@@ -1172,12 +1216,16 @@ int istoreContSurfDrawProps(Ilist *list, DrawProps *defProps,
         }
       }
     }
+    if (j)
+      *contState = state;
+    else
+      *surfState = state;
 
     /* Next pass through, loop on contour entries */
     which = co;
     surfFlag = 0;
   }
-  return retval;
+  return (*contState | *surfState);
 }
 
 /*!
@@ -1357,14 +1405,14 @@ int istorePointDrawProps(Iobj *obj, DrawProps *contProps, DrawProps *ptProps,
                          int co, int pt)
 {
   int stateFlags = 0;
-  int changeFlags, nextChange, lastChange;
+  int changeFlags, nextChange, lastChange, contState, surfState;
   Ilist *list = obj->cont[co].store;
   DrawProps defProps;
 
   /* Get the properties for the contour */
   istoreDefaultDrawProps(obj, &defProps);
   istoreContSurfDrawProps(obj->store, &defProps, contProps, co, 
-                         obj->cont[co].surf);
+                         obj->cont[co].surf, &contState, &surfState);
   *ptProps = *contProps;
 
   /* Go through the changes until the point index is passed */
