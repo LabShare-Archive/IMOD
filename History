@@ -1,5 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/29/05: Implemented ability to set fine-grained display properties for points
+within contours and contours or surfaces within objects.  3dmod manages the
+information consistently but imodmesh still needs to be reworked to
+incorporate property changes into the mesh.  Other programs will ignore or
+mangle the information (e.g., reducecont, clipmodel).
+
 6/24/05: Increased limit on number of buttons for object list window to 5000.
 
 6/16/05: Expanded Ctrl-A selection in Zap window to include open contours
