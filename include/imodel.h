@@ -477,6 +477,7 @@ typedef struct Mod_Transform
 #include "imat.h"
 #include "iplane.h"
 #include "iview.h"
+#include "istore.h"
 #include "b3dutil.h"
 
 /*****************************************************************************/
@@ -704,6 +705,9 @@ mesh (index) (vert size) (list size)
 
 /*    
     $Log$
+    Revision 3.25  2005/06/20 22:23:15  mast
+    Changes for new istore
+
     Revision 3.24  2005/04/23 23:36:23  mast
     Moved some functions into imodel.c
 
