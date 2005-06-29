@@ -785,7 +785,7 @@ int imodDeleteContour(Imod *mod, int index)
   /* DNM: need to delete labels if any */
   imodLabelDelete(cont->label);
   ilistDelete(cont->store);
-  istoreDeleteContour(obj->store, index);
+  istoreDeleteContSurf(obj->store, index, 0);
      
   /* Push extra contours into hole */
   if (index != obj->contsize - 1)
@@ -1632,6 +1632,9 @@ int   imodGetFlipped(Imod *imod)
 
 /*
 $Log$
+Revision 3.19  2005/06/26 19:21:09  mast
+Added storage handling to contour deletion routine
+
 Revision 3.18  2005/04/23 23:37:02  mast
 Moved some functions here
 

@@ -15,6 +15,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.9  2005/06/26 19:32:22  mast
+Manage storage lists when inserting or removing contours
+
 Revision 3.8  2005/05/27 04:53:33  mast
 Make surface cleaning always compute surfsize.
 
@@ -458,7 +461,8 @@ int imodObjectInsertContour(Iobj *obj, Icont *ncont, int index)
   obj->contsize++;
   cont = &(obj->cont[index]);
   imodContourCopy(ncont, cont);
-  istoreShiftIndex(obj->store, index, -1, 1);
+  if (index < obj->contsize - 1)
+    istoreShiftIndex(obj->store, index, -1, 1);
      
   return(index);
 }
@@ -476,7 +480,7 @@ int imodObjectRemoveContour(Iobj *obj, int index)
   if (index >= obj->contsize)
     return(1);
 
-  istoreDeleteContour(obj->store, index);
+  istoreDeleteContSurf(obj->store, index, 0);
   obj->contsize--;
   if (obj->contsize > 0)
     for(co = index; co < obj->contsize; co++){
