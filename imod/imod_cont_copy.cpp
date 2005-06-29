@@ -51,7 +51,7 @@ Log at end of file
 
 #define COPY_TO_NEXT_TIME    6
 
-static int copyContour(Icont *cont);
+static int copyContour(Icont *cont, int coNum);
 static int contCompare(Icont *c1, Icont *c2);
 static int contRmDup(Icont *c1, Icont *c2);
 
@@ -130,7 +130,7 @@ static int contRmDup(Icont *c1, Icont *c2)
  * Copy a single contour, cont, to the place it needs to go.
  *
  */
-static int copyContour(Icont *cont)
+static int copyContour(Icont *cont, int coNum)
 {
   Iobj *toObj;
   int co,pt;
@@ -188,6 +188,15 @@ static int copyContour(Icont *cont)
     imodObjectAddContour(toObj, cont);
     break;
   }
+
+  // Copy any contour properties from source to destination object
+  if (istoreCountContSurfItems(vw->imod->obj[ThisDialog.currentObject].store, 
+                               coNum, 0)) {
+    vw->undo->objectPropChg(obnum);
+    istoreCopyContSurfItems(vw->imod->obj[ThisDialog.currentObject].store, 
+                             &toObj->store, coNum, toObj->contsize - 1, 0);
+  }
+
   return(0);
 }
 
@@ -470,8 +479,9 @@ void ContourCopy::apply()
 
 
   if (!(ThisDialog.doAll || ThisDialog.doAllObj || ThisDialog.doSurface)){
+    ThisDialog.currentObject = imod->cindex.object;
     ncont = imodContourDup(cont);
-    copyContour(ncont);
+    copyContour(ncont, imod->cindex.contour);
   }else{
 
     /* Loop on all objects, skip if not doing all or it is not current one */
@@ -484,7 +494,7 @@ void ContourCopy::apply()
       maxcont = obj->contsize;
 
       /* look at all contours in current object */
-      for(co = 0; co < maxcont; co++){
+      for (co = 0; co < maxcont; co++) {
         cont = &obj->cont[co];
 
         /* If copying to section, check for being at source section */
@@ -509,7 +519,7 @@ void ContourCopy::apply()
         /* copy the entire contour */
         if (cont->psize){
           ncont  = imodContourDup(cont);
-          errcode = copyContour(ncont);
+          errcode = copyContour(ncont, co);
           if (errcode)
             wprint("\a%sFailed to duplicate contour correctly.\n", badCopy);
         }
@@ -604,6 +614,9 @@ void ContourCopy::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.12  2005/05/27 23:00:45  mast
+Remove debugging statement
+
 Revision 4.11  2005/05/27 22:59:10  mast
 Set focus on button press so typed-in value without return is used
 

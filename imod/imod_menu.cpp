@@ -409,15 +409,24 @@ void InfoWindow::editObjectSlot(int item)
       if (!diaQInput(&obj_moveto, 1, imod->objsize, 0,
                      "Move all contours to selected object."))
         break;
+      obNew = obj_moveto - 1; 
+
       /* DNM: need to set contour inside loop because each deletion
          sets it to -1; and need to not increment counter! 
          And need to not do it if it's the same object! */
-      if (obj_moveto - 1 != imod->cindex.object) {
+      if (obNew != imod->cindex.object) {
+        if (ilistSize(obj->store)) {
+          vi->undo->objectPropChg();
+          vi->undo->objectPropChg(obNew);
+          for (co = 0; co <= obj->surfsize; co++) {
+            istoreCopyContSurfItems(obj->store, &imod->obj[obNew].store, co, 
+                                    co, 1);
+            istoreDeleteContSurf(obj->store, co, 1);
+          }
+        }
         for (co = 0; co < (int)obj->contsize; ) {
           imod->cindex.contour = 0;
-          vi->undo->contourMove(imod->cindex.object, 0, obj_moveto - 1,
-                                imod->obj[obj_moveto - 1].contsize);
-          imod_contour_move(obj_moveto - 1);
+          imod_contour_move(obNew);
         }
         imod->cindex.contour = -1;
         imod->cindex.point = -1;
@@ -1126,7 +1135,7 @@ void InfoWindow::helpSlot(int item)
 }
 
 /* imodContourBreakByZ will break contour number co of object obj into 
-   contours that are all coplanar in Z if assess is 0.  It returns a 
+   contours that are all coplanar in Z.  It returns a 
    pointer to the remnant of the original contour */
 static Icont *imodContourBreakByZ(ImodView *vi, Iobj *obj, int ob, int co)
 {
@@ -1149,26 +1158,36 @@ static Icont *imodContourBreakByZ(ImodView *vi, Iobj *obj, int ob, int co)
       vi->undo->contourAddition(ob, obj->contsize);
 
       // duplicate contour and shift down back end
-      cont2 = imodContourDup(cont);
-      ni = 0;
-      for (oi = ptb; oi < (int)cont->psize; oi++, ni++) {
-        cont2->pts[ni] = cont->pts[oi];
-        if (cont->sizes)
-          cont2->sizes[ni] = cont->sizes[oi];
+      cont2 = imodContourBreak(cont, ptb, -1);
+      if (!cont2) {
+        wprint("\aMemory or other error breaking contour.\n");
+        vi->undo->flushUnit();
+        return cont;
       }
-      cont2->psize = ni;
-      cont->psize = ptb;
       imodel_contour_check_wild(cont2);
       imodObjectAddContour(obj, cont2);
       cont = &obj->cont[co];
+
+      // Copy any contour-specific properties to new contour
+      if (istoreCountContSurfItems(obj->store, co, 0)) {
+        vi->undo->objectPropChg();
+        if (istoreCopyContSurfItems(obj->store, &obj->store, co,
+                                    obj->contsize - 1, 0))
+          wprint("\aError copying contour properties\n");
+      }
     }
   }
   imodel_contour_check_wild(cont);
+  if (!first)
+    vi->undo->finishUnit();
   return cont;
 }
 
 /*
   $Log$
+  Revision 4.24  2005/06/26 19:37:24  mast
+  Added fine-grain entries
+
   Revision 4.23  2005/03/20 19:55:36  mast
   Eliminating duplicate functions
 

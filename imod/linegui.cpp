@@ -522,6 +522,14 @@ void LineTrack::track(int client)
       pts++->z = curz;
     imodGetIndex(theModel, &plug->ob, &plug->co, &curpt);
     curpt = plug->pt;
+
+    // Copy any contour properties to new contour
+    if (istoreCountContSurfItems(plug->obj->store, plug->copiedco, 0)) {
+      plug->view->undo->objectPropChg(plug->ob);
+      istoreCopyContSurfItems(plug->obj->store, &plug->obj->store,
+                              plug->copiedco,
+                              imodObjectGetMaxContour(plug->obj) - 1, 0);
+    }
   }
 
   /* Save contour for undo. */
@@ -787,6 +795,9 @@ void LineTrack::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 1.11  2005/05/25 15:45:03  mast
+Fixed test for whether contour is on adjacent section for copy
+
 Revision 1.10  2005/03/20 19:55:37  mast
 Eliminating duplicate functions
 

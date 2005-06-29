@@ -43,7 +43,6 @@ Log at end of file
 #include "control.h"
 #include "preferences.h"
 #include "undoredo.h"
-#include "istore.h"
 
 static void setlabel(QLabel *label, Iindex ind);
 static bool indexGood(Iindex ind);
@@ -344,22 +343,6 @@ void ContourBreak::breakCont()
     return;
   }
 
-  // Copy any contour-specific properties to new contour
-  lookup = istoreLookup(obj->store, i1p->contour, &after);
-  if (lookup >= 0) {
-    for (i = lookup; i < after; i++) {
-      stp = istoreItem(obj->store, i);
-      if (!(stp->flags & GEN_STORE_SURFACE)) {
-        store = *stp;
-        store.index.i = obj->contsize;
-        if (!objProp)
-          vw->undo->objectPropChg();
-        istoreInsert(&obj->store, &store);
-        objProp = 1;
-      }
-    }
-  }
-
   if (i1p->point >= cont1->psize)
     imodSetIndex(vw->imod, i1p->object, i1p->contour, i1p->point - 1);
 
@@ -370,6 +353,17 @@ void ContourBreak::breakCont()
   imodel_contour_check_wild(cont1);
 
   imodObjectAddContour(obj, cont);
+
+  // Copy any contour-specific properties to new contour - ignoring error here
+  // This has to be after the contourAddition call so it might as well be after
+  // the actual addition
+  if (istoreCountContSurfItems(obj->store, i1p->contour, 0)) {
+    vw->undo->objectPropChg();
+    if (istoreCopyContSurfItems(obj->store, &obj->store, i1p->contour, 
+                              obj->contsize - 1, 0))
+      wprint("\aError copying contour properties!\n");
+  }
+
   vw->undo->finishUnit();
   imodDraw(vw, IMOD_DRAW_MOD);
   return;
@@ -737,7 +731,7 @@ void imodContEditJoin(ImodView *vw)
           if (!testConcat) {
             dist = 1.e30;
             for (i = 0; i < cont1->psize; i++) {
-              for (j = 0; j < cont1->psize; j++) {
+              for (j = 0; j < cont2->psize; j++) {
                 tdist = imodPointDistance(&cont1->pts[i], &cont2->pts[j]);
                 if (dist > tdist) {
                   dist = tdist;
@@ -981,7 +975,7 @@ void imodContEditMove(void)
   ImodView *vi = App->cvi;
   Imod *imod = vi->imod;
   int surf, ob, co, pt;
-  int nsurf;
+  int nsurf, fromReg, toReg;
   float firstz, size, delz;
   double weight;
   Ipoint ccent;
@@ -1140,12 +1134,20 @@ void imodContEditMove(void)
     if (comv.wholeSurf){
       /* Move all contours with the same surface number. */
       surf = cont->surf;
-      for(co = 0; co < obj->contsize; co++){
+      for (co = 0; co < obj->contsize; co++) {
         if (obj->cont[co].surf == surf) {
           vi->undo->contourPropChg(ob, co);
           obj->cont[co].surf = comv.surf_moveto;
         }
       }
+      
+      if (istoreCountContSurfItems(obj->store, surf, 1)) {
+        vi->undo->objectPropChg();
+        istoreCopyContSurfItems(obj->store, &obj->store, surf, 
+                                 comv.surf_moveto, 1);
+        istoreDeleteContSurf(obj->store, surf, 1);
+      }
+
     } else {
 
       // Move single (or multiple selected) contours
@@ -1160,9 +1162,9 @@ void imodContEditMove(void)
         cont->surf = comv.surf_moveto;
       }
     }
+    vi->undo->objectPropChg();
     if (obj->surfsize < comv.surf_moveto)
       obj->surfsize = comv.surf_moveto;
-    vi->undo->objectPropChg();
     imodObjectCleanSurf(obj);
     imodContEditMoveDialogUpdate();
 
@@ -1207,12 +1209,12 @@ void imodContEditMove(void)
     if (comv.wholeSurf){
       /* MOVE ALL CONTOURS WITH THE SAME SURFACE NUMBER. */
 
-      vi->undo->objectPropChg();
-      vi->undo->objectPropChg(vi->obj_moveto - 1);
 
       /* Assign them the first free surface # in destination object */
       surf = cont->surf;
       nsurf = imodel_unused_surface(tobj);
+      //vi->undo->objectPropChg();
+      //vi->undo->objectPropChg(vi->obj_moveto - 1);
       if (tobj->surfsize < nsurf)
         tobj->surfsize = nsurf;
 
@@ -1223,6 +1225,7 @@ void imodContEditMove(void)
       for (co = 0; co < obj->contsize; co++) {
         if (obj->cont[co].surf == surf){
           cont = &(obj->cont[co]);
+          vi->undo->contourPropChg(ob, co);
           cont->surf = nsurf;
 
           /* Set all the sizes before moving, if it is a
@@ -1233,8 +1236,17 @@ void imodContEditMove(void)
               imodPointSetSize(cont, pt, imodPointGetSize (obj, cont, pt));
           }
 
+          //if (ilistSize(obj->store) || ilistSize(tobj->store)) {
+            //vi->undo->objectPropChg();
+          if (istoreCountContSurfItems(obj->store, co, 0)) {
+            vi->undo->objectPropChg(vi->obj_moveto - 1);
+            istoreCopyContSurfItems(obj->store, &tobj->store, co, 
+                                    tobj->contsize, 0);
+          }
+
           vi->undo->contourMove(ob, co, vi->obj_moveto - 1, tobj->contsize);
           imodObjectAddContour(tobj, cont);
+
           if (!imodObjectRemoveContour(obj, co))
             co--;
 
@@ -1245,10 +1257,20 @@ void imodContEditMove(void)
         }
       }
 
+      if (istoreCountContSurfItems(obj->store, surf, 1)) {
+        vi->undo->objectPropChg();
+        vi->undo->objectPropChg(vi->obj_moveto - 1);
+        istoreCopyContSurfItems(obj->store, &tobj->store, surf, nsurf, 1);
+        istoreDeleteContSurf(obj->store, surf, 1);
+      }
+
       if (surfLabel) {
+        vi->undo->objectPropChg();
+        vi->undo->objectPropChg(vi->obj_moveto - 1);
         if (!tobj->label)
           tobj->label = imodLabelNew();
         imodLabelItemAdd(tobj->label, surfLabel, nsurf);
+        imodObjectCleanSurf(obj);
       }
           
     }else{
@@ -1272,8 +1294,8 @@ void imodContEditMove(void)
         if (cont->flags & ICONT_ONLIST) {
           cont->flags &= ~ICONT_ONLIST;
           if (cont->surf > tobj->surfsize) {
-            tobj->surfsize = cont->surf;
             vi->undo->objectPropChg(vi->obj_moveto - 1);
+            tobj->surfsize = cont->surf;
           }
 
           if (iobjScat(obj->flags) && comv.keepsize) {
@@ -1281,6 +1303,14 @@ void imodContEditMove(void)
             for (pt = 0; pt < cont->psize; pt++)
               imodPointSetSize(cont, pt, imodPointGetSize(obj, cont, pt));
           }
+
+          // Copy contour properties; the contour number will not get shifted
+          // up because it is past the existing end.
+          if (istoreCountContSurfItems(obj->store, co, 0)) {
+            vi->undo->objectPropChg(vi->obj_moveto - 1);
+            istoreCopyContSurfItems(obj->store, &tobj->store, co, 
+                                    tobj->contsize, 0);
+          }            
 
           vi->undo->contourMove(ob, co, vi->obj_moveto - 1, tobj->contsize);
           imodObjectAddContour(tobj, cont);
@@ -1973,6 +2003,9 @@ void ContourFrame::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.23  2005/06/26 19:40:38  mast
+Changed break routine to call library routine and handle storage lists
+
 Revision 4.22  2005/06/06 14:39:09  mast
 Allowed move up/down in Z even when only one object
 

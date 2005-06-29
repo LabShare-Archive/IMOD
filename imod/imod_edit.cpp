@@ -22,6 +22,7 @@ Log at end of file
 #include "imod.h"
 #include "imod_display.h"
 #include "imod_edit.h"
+#include "undoredo.h"
 
 static float imod_distance( float *x, float *y, struct Mod_Point *pnt);
 
@@ -193,7 +194,9 @@ void imod_contour_move(int ob)
   int oldob;
   int oldco;
   Iobj *obj;  
+  Iobj *olObj;  
   Icont *ocont;
+  ImodView *vi = App->cvi;
   Imod *imod = App->cvi->imod;
      
   oldob =  imod->cindex.object;
@@ -213,13 +216,20 @@ void imod_contour_move(int ob)
     return;
      
   obj = &(imod->obj[ob]);
+  olObj = &(imod->obj[oldob]);
+  if (istoreCountContSurfItems(olObj->store, oldco, 0)) {
+    vi->undo->objectPropChg(ob);
+    istoreCopyContSurfItems(olObj->store, &obj->store, oldco,
+                            obj->contsize, 0);
+  }
+
+  vi->undo->contourMove(imod->cindex.object, 0, ob, obj->contsize);
 
   /* DNM: switch to this Add and Remove method to avoid problems with
      labels */
   imodObjectAddContour(obj, ocont);
-
-  obj = &(imod->obj[oldob]);
-  imodObjectRemoveContour(obj, oldco);
+  
+  imodObjectRemoveContour(olObj, oldco);
   /* DNM 3/29/01: delete old code. */
   return;
 }
@@ -313,6 +323,9 @@ void imodSelectionListRemove(ImodView *vi, int ob, int co)
 
 /*
 $Log$
+Revision 4.6  2005/02/24 22:34:39  mast
+Switched to allowing multiple-object selections
+
 Revision 4.5  2004/11/21 05:50:34  mast
 Switch from int to float for nearest point distance measurement
 
