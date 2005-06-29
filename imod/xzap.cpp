@@ -44,7 +44,6 @@ Log at end of file
 #include "dia_qtutils.h"
 #include "preferences.h"
 #include "undoredo.h"
-#include "istore.h"
 #include "finegrain.h"
 
 #define RADIANS_PER_DEGREE 0.0174532925
@@ -2063,25 +2062,25 @@ void zapB2Drag(ZapStruct *zap, int x, int y, int controlDown)
         zap->dragAddIndex.contour != vi->imod->cindex.contour)
       registerDragAdditions(zap);
 
-    
     // Start keeping track of delayed registrations by opening a unit and
-    // saving the indices
-    // Otherwise, if going backwards, need to increment registered first point
+    // saving the indices.  If general store exists, start with whole data
+    // change to save the store.
+    // Otherwise if going backwards, need to increment registered first point
     if (!zap->dragAddCount) {
-      vi->undo->getOpenUnit();
+      if (ilistSize(cont->store))
+        vi->undo->contourDataChg();
+      else
+        vi->undo->getOpenUnit();
       zap->dragAddIndex = vi->imod->cindex;
       zap->dragAddIndex.point = pt;
     } else if (zap->insertmode)
       zap->dragAddIndex.point++;
-
     
     // Always save last point not registered and increment count
     zap->dragAddEnd = pt;
     zap->dragAddCount++;
 
-
     imodInsertPoint(vi->imod, &cpt, pt);
-
     imodDraw(vi, IMOD_DRAW_MOD | IMOD_DRAW_XYZ | IMOD_DRAW_NOSYNC);
   }
 }
@@ -3558,6 +3557,9 @@ static int zapPointVisable(ZapStruct *zap, Ipoint *pnt)
 
 /*
 $Log$
+Revision 4.70  2005/06/26 19:38:10  mast
+Added logic for fine-grained changes
+
 Revision 4.69  2005/06/16 21:46:59  mast
 Allowed Ctrl-A selection of open contours passing through selection area
 
