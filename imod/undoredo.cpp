@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 4.4  2005/03/20 19:55:37  mast
+    Eliminating duplicate functions
+
     Revision 4.3  2005/02/24 22:31:06  mast
     Added some debugging output
 
@@ -63,14 +66,21 @@
    The variety of changes allow for relatively efficient recording of most 
    changes.  Points may be added or deleted singly or in groups, or the current
    point may be moved, without registering a contour change.  Contour changes
-   may be of properties only (including labels), in which case points will not
-   be stored, or of data, in which case the whole contour is duplicated.
+   may be of properties only, in which case points, labels, and general storage
+   are not stored, or of data, in which case the whole contour is duplicated.
    Object changes will duplicate labels but not contours and meshes, unless an
    object is being deleted.  Model changes are excessive in copying all of the 
    views every time.  Object rearrangements invoke a model change.  A change
    of model view invokes an object change for each view, since that is the only
    way to preserve the current state of the objects and of the object views 
    separately. 
+
+   The presence of data in a contour or object general storage structure will
+   sometimes modify the behavior.  A call to register addition or removal of 
+   points will be converted to a contour data change call when the contour 
+   store has data.  A call to register a contour removal, addition, or move
+   will cause an object property change to be registered first if the affected
+   object store has data.
  */
 
 #include "undoredo.h"
@@ -136,6 +146,13 @@ void UndoRedo::pointChange(int type, int object, int contour,
     memoryError();
     return;
   }
+
+  // Check contour for general storage, process as data change
+  if ((type == PointsAdded || type == PointsRemoved) && 
+      ilistSize(mVi->imod->obj[object].cont[contour].store)) {
+    contourChange(ContourData, object, contour);
+    return;
+  }
     
   // Get a new or existing open unit
   unit = getOpenUnit();
@@ -171,6 +188,15 @@ void UndoRedo::contourChange(int type, int object, int contour,
 
   if (contour >= 0 && contour < mVi->imod->obj[object].contsize)
     cont = &mVi->imod->obj[object].cont[contour];
+
+  // For contour removal/addition, register a property change if there is
+  // general storage
+  if (type == ContourRemoved || type == ContourAdded || type == ContourMoved) {
+    if (ilistSize(mVi->imod->obj[object].store))
+      objectPropChg(object);
+    if (type == ContourMoved && ilistSize(mVi->imod->obj[object2].store))
+      objectPropChg(object2);
+  }
 
   // Get a new or existing open unit
   unit = getOpenUnit();
@@ -887,6 +913,11 @@ int UndoRedo::exchangeObjects(UndoChange *change, BackupItem *item)
   Iobj *obj = &mVi->imod->obj[change->object];
   if (!item)
     return NoBackupItem;
+
+  if (imodDebug('u'))
+    imodPrintStderr("Exchanging to object %d, size %d, store size object %d, "
+                    "item %d\n", change->object, obj->contsize, 
+                    ilistSize(obj->store), ilistSize(item->p.obj->store));
 
   // Exchange the structures
   temp = *(item->p.obj);
