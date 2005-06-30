@@ -8,6 +8,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.6  2005/05/08 14:47:57  mast
+#  Added files for montage
+#
 #  Revision 3.5  2005/02/04 17:30:32  mast
 #  Fixed setname problems in Win & xcorr fallback, added headers & version
 #
@@ -78,7 +81,7 @@ end
 # Get current directory before going to specified one
 #
 set rundir = `pwd`
-cd $curdir
+cd "$curdir"
 
 # Get edf file
 #
@@ -140,11 +143,11 @@ endif
 # Set up the output file
 #
 if ("$outfile" == "") then
-    set outfile = $rundir/$setname-snapshot.tar.gz
+    set outfile = "$rundir/$setname-snapshot.tar"
 else
-    if (-d "$outfile") set outfile = $outfile/$setname-snapshot.tar.gz
+    if (-d "$outfile") set outfile = "$outfile/$setname-snapshot.tar"
     set leadslash = `echo $outfile | sed -n '/^\//p'`
-    if ("$leadslash" == "") set outfile = $rundir/$outfile
+    if ("$leadslash" == "") set outfile = "$rundir/$outfile"
 endif
 
 # Get uname output if it can be written to current dir
@@ -192,14 +195,15 @@ end
 
 # Tar the file
 #
-tar -cvzf $outfile $list
+tar -cvf "$outfile" $list
+gzip -f "$outfile"
 if (-e uname.out) \rm -f uname.out
 if (-e lslrt.out) \rm -f lslrt.out
 if ($status) then
     echo "ERROR: $pn - making snapshot tar file"
     exit 1
 endif
-echo "Snapshot done, placed in $outfile"
+echo "Snapshot done, placed in $outfile.gz"
 exit 0
 
 usage:
