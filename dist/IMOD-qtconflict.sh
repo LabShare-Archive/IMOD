@@ -13,22 +13,28 @@
 #
 if [ -z "$qtdir" ] ; then
     if [ ! -z "$QTDIR" ] ; then
-        qtdir=$QTDIR
+        qtdir=$QTDIR/lib
     else
         #
         # otherwise look for qt3 or just qt entries in /etc/ld.so.conf
         # 
         qt3=`grep '/qt-3' /etc/ld.so.conf | awk '{print $1}'`
         qtlink=`grep '/qt/' /etc/ld.so.conf | awk '{print $1}'`
+        qtfile=""
+        if [ -e /etc/ld.so.conf.d ] ; then 
+            qtfile=`\find /etc/ld.so.conf.d -name 'qt*' -exec cat '{}' \;`
+        fi
         if [ ! -z "$qtlink" ] ; then
             qtdir=$qtlink
         elif [ ! -z "$qt3" ] ; then
             qtdir=$qt3
+        elif [ ! -z "$qtfile" ] ; then
+            qtdir=$qtfile
         else
             echo 'WARNING: IMOD-qtconflict.sh cannot find the system Qt libraries'
             echo 'IMOD-qtconflict.sh should be edited to set qtdir to the path'
             echo 'to the system Qt libraries'
-            exit 0
+            return
         fi
     fi
 fi
@@ -38,7 +44,7 @@ fi
 # Put other libs on this list to avoid conflicts with GL libraries placed
 # on LD_LIBRARY_PATH by other installed packages
 #
-export IMOD_QTLIBDIR=$qtdir/lib:/usr/lib:/usr/X11R6/lib
+export IMOD_QTLIBDIR=${qtdir}:/usr/lib:/usr/X11R6/lib
 
 #
 # Set up aliases to run all qt programs through runimodqtapp
