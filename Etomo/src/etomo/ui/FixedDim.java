@@ -15,6 +15,9 @@ import java.awt.Dimension;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.4  2005/03/24 17:51:55  sueh
+ * <p> bug# 621 Added a standard width for 4 digits.
+ * <p>
  * <p> Revision 3.3  2005/01/05 00:02:20  sueh
  * <p> bug# 567 added widths for integer pairs and triplets
  * <p>
@@ -51,6 +54,7 @@ public class FixedDim {
   public final static Dimension x10_y0 = new Dimension(10, 0);
   public final static Dimension x20_y0 = new Dimension(20, 0);
   public final static Dimension x40_y0 = new Dimension(40, 0);
+  public final static Dimension x70_y0 = new Dimension(70, 0);
   public final static Dimension x0_y5 = new Dimension(0, 5);
   public final static Dimension x0_y10 = new Dimension(0, 10);
   public final static Dimension x0_y20 = new Dimension(0, 20);
