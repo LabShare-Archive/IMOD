@@ -28,10 +28,13 @@ final class ProcessorTable {
   
   private GridBagLayout layout = new GridBagLayout();
   private GridBagConstraints constraints = new GridBagConstraints();
+  private boolean tableCreated = false;
   
   private Vector rows = new Vector();
+  private ParallelPanel parent = null;
   
-  ProcessorTable() {
+  ProcessorTable(ParallelPanel parent) {
+    this.parent = parent;
     createTable(rootPanel);
   }
   
@@ -109,6 +112,7 @@ final class ProcessorTable {
     row = new ProcessorTableRow(this, "thot", 0.00, 0.00, 0.00);
     row.addRow();
     rows.add(row);
+    tableCreated = true;
   }
   
   JPanel getRootPanel() {
@@ -135,7 +139,28 @@ final class ProcessorTable {
     }
   }
 
+  long getTotalSuccesses() {
+    long successes = 0;
+    for (int i = 0; i < rows.size(); i++) {
+      successes += ((ProcessorTableRow) rows.get(i)).getSuccesses();
+    }
+    return successes;
+  }
+  
+  void signalCpusSelectedChanged() {
+    if (!tableCreated) {
+      return;
+    }
+    int cpusSelected = 0;
+    for (int i = 0; i < rows.size(); i++) {
+      cpusSelected += ((ProcessorTableRow) rows.get(i)).getCpusSelected();
+    }
+    parent.signalCpusSelectedChanged(cpusSelected);
+  }
 }
 /**
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2005/07/01 21:21:47  sueh
+* <p> bug# 619 Table containing a list of computers and CPUs
+* <p> </p>
 */
