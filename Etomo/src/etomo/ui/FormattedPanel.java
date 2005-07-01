@@ -25,6 +25,9 @@ import javax.swing.border.Border;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.4  2004/12/30 19:32:27  sueh
+* <p> bug# 567 Added setAlignmentX() to set alignment for the panel.
+* <p>
 * <p> Revision 1.3  2004/12/01 03:47:00  sueh
 * <p> bug# 557 Added add(FormattedPanel) and addHorizontalGlue().
 * <p>
@@ -114,6 +117,10 @@ public class FormattedPanel {
   }
   
   Container getContainer() {
+    return panel;
+  }
+  
+  JPanel getRootPanel() {
     return panel;
   }
   
