@@ -33,7 +33,8 @@ import etomo.type.AxisType;
 * 
 * @version $Revision$
 */
-abstract class EtomoFrame extends JFrame {
+//TEMP should be package level
+public abstract class EtomoFrame extends JFrame {
   public static  final String  rcsid =  "$Id$";
   
   private static final int messageWidth = 60;
@@ -575,7 +576,8 @@ abstract class EtomoFrame extends JFrame {
    * @param axisID
    * @return
    */
-  private EtomoFrame getFrame(AxisID axisID) {
+  //TEMP should be private
+  EtomoFrame getFrame(AxisID axisID) {
     if (mainFrame == null) {
       throw new NullPointerException("MainFrame instance was not registered.");
     }
@@ -591,6 +593,17 @@ abstract class EtomoFrame extends JFrame {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.7  2005/05/18 22:46:55  sueh
+* <p> bug# 662 Changed high-level open message dialog function names from
+* <p> open...Dialog (the same as the low level functions()) to
+* <p> display...Message.  This made it easier to distiguish between them and
+* <p> create more options.  Added a displayMessage() function which defaulted
+* <p> to AxisID.ONLY.  Added a delete dialog with two options, Delete and No.
+* <p> The delete dialog is safer then the Yes/No dialog because it doesn't return
+* <p> yes as its default option.  To do this, I added displayDeleteMessage() and
+* <p> optionDeleteDialog().  Changed wrap(String, ArrayList) to handle lines
+* <p> that are empty except for a "\n" character.
+* <p>
 * <p> Revision 1.6  2005/05/10 17:01:41  sueh
 * <p> bug# 660 Fixed wrap(String, ArrayList).  It now breaks up message
 * <p> strings by "\n" before breaking them up because they are too long.  This
