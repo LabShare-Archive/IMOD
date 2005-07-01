@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/1/05: Tiltalign's report of the ratio of measurements to unknowns was 
+actually the ratio to the number of variables in the search, which omits the
+lateral shifts.  Both the true ratio and the old one are now reported.
+
 6/30/05: Fixed tomosnapshot for SGI and for spaces in the path.
 
 6/30/05: Fixed processchunks for spaces in the directory path, enhanced the
