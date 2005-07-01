@@ -8,6 +8,7 @@ import java.awt.LayoutManager;
 import javax.swing.AbstractButton;
 import javax.swing.Box;
 import javax.swing.JComponent;
+import javax.swing.JPanel;
 import javax.swing.border.Border;
 /**
 * <p>Description: A JPanel-like object that places rigid areas between 
@@ -27,6 +28,9 @@ import javax.swing.border.Border;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.4  2004/12/30 19:32:42  sueh
+* <p> bug# 567 Added setAlignmentX() to set alignment for the panel.
+* <p>
 * <p> Revision 1.3  2004/12/01 03:48:46  sueh
 * <p> bug# 557 Added add option to space with glue instead of rigid areas.
 * <p> Added an option to automatically use 5 pixels when spacing with rigid
@@ -65,7 +69,7 @@ public class SpacedPanel {
   public static final int HORIZONTAL_GLUE = -4;
   
 
-  Dimension spacing = null;;
+  Dimension spacing = null;
   boolean outerSpacing = false;
   boolean spaceBefore = true;
   FormattedPanel panel;
@@ -225,5 +229,9 @@ public class SpacedPanel {
   
   public Container getContainer() {
     return panel.getContainer();
+  }
+  
+  public JPanel getRootPanel() {
+    return panel.getRootPanel();
   }
 }
