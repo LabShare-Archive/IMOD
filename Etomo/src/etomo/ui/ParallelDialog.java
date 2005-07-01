@@ -27,7 +27,7 @@ final public class ParallelDialog extends JDialog {
   public ParallelDialog(JFrame frame, AxisID axisID) {
     super(frame);
     this.axisID = axisID;
-    parallelPanel = new ParallelPanel(this, axisID);
+    parallelPanel = new ParallelPanel(axisID);
     getRootPane().getContentPane().add(parallelPanel.getRootPanel());
     setLocation(400, 400);
   }
@@ -43,5 +43,8 @@ final public class ParallelDialog extends JDialog {
   }
 }
 /**
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2005/07/01 21:20:53  sueh
+* <p> bug# 619 JDialog to demo parallel processing
+* <p> </p>
 */
