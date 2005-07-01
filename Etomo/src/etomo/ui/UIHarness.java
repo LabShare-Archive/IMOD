@@ -205,6 +205,13 @@ public class UIHarness {
     }
     return new Point(0,0);
   }
+  //TEMP
+  public EtomoFrame getFrame(AxisID axisID) {
+    if (isHead()) {
+      return mainFrame.getFrame(axisID);
+    }
+    return null;
+  }
   
   public void setCurrentManager(BaseManager currentManager,
       UniqueKey managerKey, boolean newWindow) {
@@ -373,6 +380,9 @@ public class UIHarness {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.10  2005/06/21 00:49:13  sueh
+* <p> bug# 522 Added comment
+* <p>
 * <p> Revision 1.9  2005/06/17 00:35:32  sueh
 * <p> Removed unnecessary imports.
 * <p>
