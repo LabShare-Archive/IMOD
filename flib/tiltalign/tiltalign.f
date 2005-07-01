@@ -552,8 +552,8 @@ c
 113	  format(i4,' views,',i5,' geometric variables,',i5,
      &	      ' 3-D points,',i6,' projection points',/,
      &	      '  Ratio of total measured values to all unknowns =',
-     &	      i5,'/',i4,' =',f7.2,/,'  Ratio to variables in search ',
-     &	      '(formerly ''total unknowns'') =',i5,'/',i3,' =',f7.2)
+     &	      i6,'/',i4,' =',f7.2,/,'  Ratio to variables in search ',
+     &	      '(formerly ''total unknowns'') =',i6,'/',i4,' =',f7.2)
 	  if(ifvarout.ne.0)then
 	    if(iunit.ne.6)write(iunit,'(/,21x,a)')
      &		'Geometric variable values and errors'
@@ -1352,6 +1352,9 @@ c
 
 c
 c	  $Log$
+c	  Revision 3.27  2005/07/01 19:34:35  mast
+c	  Added correct ratio of measurements to unknowns
+c	
 c	  Revision 3.26  2005/06/26 19:51:54  mast
 c	  Added a blank line after residual output before exiting (?)
 c	
