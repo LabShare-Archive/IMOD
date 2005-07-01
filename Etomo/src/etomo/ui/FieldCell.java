@@ -19,6 +19,12 @@ import javax.swing.JTextField;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2005/07/01 21:16:07  sueh
+ * <p> bug# 619 Pulled an ancestor class (InputCell) out of FieldCell because we
+ * <p>  need several typs of input cells.  Added setHideValue().  Changed
+ * <p> setText() and getText() to setValue() and getValue() to standardize all
+ * <p> input cell, one of which has a label (CheckBoxCell).
+ * <p>
  * <p> Revision 1.2  2004/11/19 23:53:44  sueh
  * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
  * <p>
@@ -98,6 +104,15 @@ class FieldCell extends InputCell {
 
   final String getValue() {
     return textField.getText();
+  }
+  
+  final int getIntValue() {
+    try {
+      return Integer.parseInt(textField.getText());
+    }
+    catch (NumberFormatException e) {
+      return 0;
+    }
   }
   
   final long getLongValue() {
