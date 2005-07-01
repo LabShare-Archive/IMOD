@@ -76,10 +76,10 @@ c
 	real*4 xpmin,ypmin,xdelt,projStrFactor, projStrAxis
 	real*4 dmat(9),xtmat(9),ytmat(6),prmat(4),rmat(4),costmp,sintmp
 	real*4 afac, bfac, cfac, dfac, efac, ffac, cosalf, sinalf, cosbet
-	real*4 sinbet, cosdel, sindel,denom
+	real*4 sinbet, cosdel, sindel,denom, unkrat2
 	real*4 a11, a12, a21, a22, xzOther, yzOther
 	real*8 pmat(9)
-	integer*4 imageBinned
+	integer*4 imageBinned, nunknowtot2
 	real*4 atand,sind,cosd
 	integer*4 nearest_view,lnblnk
 	character*80 concat
@@ -543,14 +543,17 @@ c
 	compabs=1.
 	nunknowtot=nvargeom+3*(nrealpt-1)
 	if(xyzfixed)nunknowtot=nvargeom
-	unkrat=(2.*nprojpt)/nunknowtot
+	nunknowtot2 = nunknowtot + 2 * (nview - 1)
+	unkrat=(2.*nprojpt)/max(nunknowtot, 1)
+	unkrat2=(2.*nprojpt)/max(nunknowtot2, 1)
 	do iunit=6,iunit2
 	  write (iunit,113)nview,nvargeom,nrealpt,nprojpt,
-     &	      2*nprojpt,nunknowtot,unkrat
+     &	      2*nprojpt,nunknowtot2,unkrat2,2*nprojpt,nunknowtot,unkrat
 113	  format(i4,' views,',i5,' geometric variables,',i5,
      &	      ' 3-D points,',i6,' projection points',/,
-     &	      '  Ratio of total measured values to total unknowns =',
-     &	      i5,'/',i3,' =',f7.2)
+     &	      '  Ratio of total measured values to all unknowns =',
+     &	      i5,'/',i4,' =',f7.2,/,'  Ratio to variables in search ',
+     &	      '(formerly ''total unknowns'') =',i5,'/',i3,' =',f7.2)
 	  if(ifvarout.ne.0)then
 	    if(iunit.ne.6)write(iunit,'(/,21x,a)')
      &		'Geometric variable values and errors'
@@ -1349,6 +1352,9 @@ c
 
 c
 c	  $Log$
+c	  Revision 3.26  2005/06/26 19:51:54  mast
+c	  Added a blank line after residual output before exiting (?)
+c	
 c	  Revision 3.25  2005/06/09 19:20:18  mast
 c	  Added image binned option so that Z shift can be entered unbinned
 c	
