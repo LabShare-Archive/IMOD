@@ -30,6 +30,11 @@ import etomo.util.MRCHeader;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.6  2005/04/25 21:38:33  sueh
+* <p> bug# 615 Passing the axis where a command originates to the message
+* <p> functions so that the message will be popped up in the correct window.
+* <p> This requires adding AxisID to many objects.
+* <p>
 * <p> Revision 1.5  2005/01/26 00:06:02  sueh
 * <p> Removing ConstEtomoNumber.displayDefault.  To get the default to
 * <p> display, set displayValue and default the same.
@@ -198,21 +203,21 @@ public class SectionTableRow {
 
   protected String paramString() {
     return ",\ntable=" + table + ",\rowNumber=" + rowNumber.getText()
-        + ",\nsection=" + section.getText() + ",\nsampleBottomStart="
-        + sampleBottomStart.getText() + ",\nsampleBottomEnd="
-        + sampleBottomEnd.getText() + ",\nsampleTopStart="
-        + sampleTopStart.getText() + ",\nsampleTopEnd="
-        + sampleTopEnd.getText() + ",\nfinalStart=" + finalStart.getText()
-        + ",\nfinalEnd=" + finalEnd.getText() + ",\nrotationAngleX="
-        + rotationAngleX.getText() + ",\nrotationAngleY="
-        + rotationAngleY.getText() + ",\nrotationAngleZ="
-        + rotationAngleZ.getText() + ",\nimodIndex=" + imodIndex
+        + ",\nsection=" + section.getValue() + ",\nsampleBottomStart="
+        + sampleBottomStart.getValue() + ",\nsampleBottomEnd="
+        + sampleBottomEnd.getValue() + ",\nsampleTopStart="
+        + sampleTopStart.getValue() + ",\nsampleTopEnd="
+        + sampleTopEnd.getValue() + ",\nfinalStart=" + finalStart.getValue()
+        + ",\nfinalEnd=" + finalEnd.getValue() + ",\nrotationAngleX="
+        + rotationAngleX.getValue() + ",\nrotationAngleY="
+        + rotationAngleY.getValue() + ",\nrotationAngleZ="
+        + rotationAngleZ.getValue() + ",\nimodIndex=" + imodIndex
         + ",\nsectionExpanded=" + sectionExpanded + ",\ncurTab=" + curTab
         + ",\ncurrentChunk=" + currentChunk.getText() + ",\nslicesInSample="
-        + slicesInSample.getText() + ",\nreferenceSection="
-        + referenceSection.getText() + ",\ncurrentSection="
-        + currentSection.getText() + ",\ncurrentSection="
-        + currentSection.getText() + ",\ndata=" + data;
+        + slicesInSample.getValue() + ",\nreferenceSection="
+        + referenceSection.getValue() + ",\ncurrentSection="
+        + currentSection.getValue() + ",\ncurrentSection="
+        + currentSection.getValue() + ",\ndata=" + data;
   } 
 
   void create(int mode) {
@@ -347,10 +352,10 @@ public class SectionTableRow {
       if (chunkSize > 0) {
         start = prevSlice + 1;
         prevSlice += chunkSize;
-        slicesInSample.setText(Integer.toString(start) + " - " + Integer.toString(prevSlice));
+        slicesInSample.setValue(Integer.toString(start) + " - " + Integer.toString(prevSlice));
       }
       else {
-        referenceSection.setText("");
+        referenceSection.setValue("");
       }
     }
     return prevSlice;
@@ -361,8 +366,8 @@ public class SectionTableRow {
     if (curTab == JoinDialog.ALIGN_TAB) {
       if (nextSampleBottomNumberSlices == -1) {
         currentChunk.setText("");
-        referenceSection.setText("");
-        currentSection.setText("");
+        referenceSection.setValue("");
+        currentSection.setValue("");
       }
       else {
         ConstEtomoNumber rowNumber = data.getRowNumber();
@@ -372,21 +377,21 @@ public class SectionTableRow {
         if (sampleTopNumberSlices > 0) {
           start = prevSlice + 1;
           prevSlice += sampleTopNumberSlices;
-          referenceSection.setText(Integer.toString(start) + " - "
+          referenceSection.setValue(Integer.toString(start) + " - "
               + Integer.toString(prevSlice));
         }
         else {
-          referenceSection.setText("");
+          referenceSection.setValue("");
         }
 
         if (nextSampleBottomNumberSlices > 0) {
           start = prevSlice + 1;
           prevSlice += nextSampleBottomNumberSlices;
-          currentSection.setText(Integer.toString(start) + " - "
+          currentSection.setValue(Integer.toString(start) + " - "
               + Integer.toString(prevSlice));
         }
         else {
-          currentSection.setText("");
+          currentSection.setValue("");
         }
       }
     }
@@ -472,15 +477,15 @@ public class SectionTableRow {
   private void displayData() {
     rowNumber.setText(data.getRowNumber().toString());
     setSectionText();
-    sampleBottomStart.setText(data.getSampleBottomStart().toString());
-    sampleBottomEnd.setText(data.getSampleBottomEnd().toString());
-    sampleTopStart.setText(data.getSampleTopStart().toString());
-    sampleTopEnd.setText(data.getSampleTopEnd().toString());
-    finalStart.setText(data.getFinalStart().toString());
-    finalEnd.setText(data.getFinalEnd().toString());
-    rotationAngleX.setText(data.getRotationAngleX().toString());
-    rotationAngleY.setText(data.getRotationAngleY().toString());
-    rotationAngleZ.setText(data.getRotationAngleZ().toString());
+    sampleBottomStart.setValue(data.getSampleBottomStart().toString());
+    sampleBottomEnd.setValue(data.getSampleBottomEnd().toString());
+    sampleTopStart.setValue(data.getSampleTopStart().toString());
+    sampleTopEnd.setValue(data.getSampleTopEnd().toString());
+    finalStart.setValue(data.getFinalStart().toString());
+    finalEnd.setValue(data.getFinalEnd().toString());
+    rotationAngleX.setValue(data.getRotationAngleX().toString());
+    rotationAngleY.setValue(data.getRotationAngleY().toString());
+    rotationAngleZ.setValue(data.getRotationAngleZ().toString());
   }
   
   /**
@@ -494,31 +499,31 @@ public class SectionTableRow {
   private boolean retrieveData(boolean displayErrorMessage) {
     valid = true;
     String errorTitle = "Invalid number in row " + rowNumber.getText();
-    if (!data.setSampleBottomStart(sampleBottomStart.getText()).isValid(displayErrorMessage && valid, errorTitle, AxisID.ONLY)) {
+    if (!data.setSampleBottomStart(sampleBottomStart.getValue()).isValid(displayErrorMessage && valid, errorTitle, AxisID.ONLY)) {
       valid = false;
     }
-    if (!data.setSampleBottomEnd(sampleBottomEnd.getText()).isValid(displayErrorMessage && valid, errorTitle, AxisID.ONLY)) {
+    if (!data.setSampleBottomEnd(sampleBottomEnd.getValue()).isValid(displayErrorMessage && valid, errorTitle, AxisID.ONLY)) {
       valid = false;     
     }
-    if (!data.setSampleTopStart(sampleTopStart.getText()).isValid(displayErrorMessage && valid, errorTitle, AxisID.ONLY)) {
+    if (!data.setSampleTopStart(sampleTopStart.getValue()).isValid(displayErrorMessage && valid, errorTitle, AxisID.ONLY)) {
       valid = false;    
     }
-    if (!data.setSampleTopEnd(sampleTopEnd.getText()).isValid(displayErrorMessage && valid, errorTitle, AxisID.ONLY)) {
+    if (!data.setSampleTopEnd(sampleTopEnd.getValue()).isValid(displayErrorMessage && valid, errorTitle, AxisID.ONLY)) {
       valid = false;   
     }
-    if (!data.setFinalStart(finalStart.getText()).isValid(displayErrorMessage && valid, errorTitle, AxisID.ONLY)) {
+    if (!data.setFinalStart(finalStart.getValue()).isValid(displayErrorMessage && valid, errorTitle, AxisID.ONLY)) {
       valid = false;  
     }
-    if (!data.setFinalEnd(finalEnd.getText()).isValid(displayErrorMessage && valid, errorTitle, AxisID.ONLY)) {
+    if (!data.setFinalEnd(finalEnd.getValue()).isValid(displayErrorMessage && valid, errorTitle, AxisID.ONLY)) {
       valid = false;
     }
-    if (!data.setRotationAngleX(rotationAngleX.getText()).isValid(displayErrorMessage && valid, errorTitle, AxisID.ONLY)) {
+    if (!data.setRotationAngleX(rotationAngleX.getValue()).isValid(displayErrorMessage && valid, errorTitle, AxisID.ONLY)) {
       valid = false;
     }
-    if (!data.setRotationAngleY(rotationAngleY.getText()).isValid(displayErrorMessage && valid, errorTitle, AxisID.ONLY)) {
+    if (!data.setRotationAngleY(rotationAngleY.getValue()).isValid(displayErrorMessage && valid, errorTitle, AxisID.ONLY)) {
       valid = false;
     }
-    if (!data.setRotationAngleZ(rotationAngleZ.getText()).isValid(displayErrorMessage && valid, errorTitle, AxisID.ONLY)) {
+    if (!data.setRotationAngleZ(rotationAngleZ.getValue()).isValid(displayErrorMessage && valid, errorTitle, AxisID.ONLY)) {
       valid = false;
     }
     return valid;
@@ -543,10 +548,10 @@ public class SectionTableRow {
   
   private void setSectionText() {
     if (sectionExpanded) {
-      section.setText(data.getSection().getAbsolutePath());
+      section.setValue(data.getSection().getAbsolutePath());
     }
     else {
-      section.setText(data.getSection().getName());
+      section.setValue(data.getSection().getName());
     }
   }
   
@@ -565,9 +570,9 @@ public class SectionTableRow {
   }
   
   void setRotationAngles(SlicerAngles slicerAngles) {
-    rotationAngleX.setText(slicerAngles.getXText());
-    rotationAngleY.setText(slicerAngles.getYText());
-    rotationAngleZ.setText(slicerAngles.getZText());
+    rotationAngleX.setValue(slicerAngles.getXText());
+    rotationAngleY.setValue(slicerAngles.getYText());
+    rotationAngleZ.setValue(slicerAngles.getZText());
   }
 
   /**
@@ -618,7 +623,7 @@ public class SectionTableRow {
   }
   
   String getSectionText() {
-    return section.getText();
+    return section.getValue();
   }
   
   int getXMax() {
