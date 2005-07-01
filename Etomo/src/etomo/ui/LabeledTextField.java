@@ -19,6 +19,9 @@ import javax.swing.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.7  2005/06/13 23:37:28  sueh
+ * <p> bug# 675 Added a setName() call to the constructor to try out jfcUnit.
+ * <p>
  * <p> Revision 3.6  2005/03/24 17:52:24  sueh
  * <p> Removed unused functions.
  * <p>
@@ -139,6 +142,10 @@ public class LabeledTextField {
   }
 
   public void setText(float value) {
+    textField.setText(String.valueOf(value));
+  }
+  
+  public void setText(long value) {
     textField.setText(String.valueOf(value));
   }
   
