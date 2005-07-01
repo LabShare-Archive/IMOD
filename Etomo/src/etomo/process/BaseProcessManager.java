@@ -26,6 +26,10 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.13  2005/06/21 00:42:24  sueh
+* <p> bug# 522 Added moved touch() from JoinProcessManager to
+* <p> BaseProcessManager for MRCHeaderTest.
+* <p>
 * <p> Revision 1.12  2005/05/18 22:34:19  sueh
 * <p> bug# 662 Added member variable boolean forceNextProcess to force
 * <p> BaseManager.startNextProcess() to be run regardless of the value of
@@ -293,7 +297,8 @@ public abstract class BaseProcessManager {
    * @param axisID
    * @throws SystemProcessException
    */
-  protected void isAxisBusy(AxisID axisID) throws SystemProcessException {
+//TEMP should be protected
+  public void isAxisBusy(AxisID axisID) throws SystemProcessException {
     // Check to make sure there is not another process already running on this
     // axis.
     if (axisID == AxisID.SECOND) {
