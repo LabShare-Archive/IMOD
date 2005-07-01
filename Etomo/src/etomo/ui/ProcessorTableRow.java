@@ -6,6 +6,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import javax.swing.JPanel;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 /**
  * <p>Description: </p>
@@ -27,7 +29,7 @@ final class ProcessorTableRow {
   private CheckBoxCell cellComputer = new CheckBoxCell();
   private FieldCell cellOs = new FieldCell();
   private FieldCell cellCpuType = new FieldCell();
-  private InputCell cellNumberCpusUsed = null;
+  private InputCell cellCpusSelected = null;
   private FieldCell cellNumberCpus = new FieldCell();
   private FieldCell cellLoad1 = new FieldCell();
   private FieldCell cellLoad5 = new FieldCell();
@@ -93,14 +95,16 @@ final class ProcessorTableRow {
     cellCpuType.setValue(cpuType);
     cellCpuType.setEnabled(false);
     if (numCpus > 1) {
-      cellNumberCpusUsed = new SpinnerCell(0, numCpus);
-      ((SpinnerCell) cellNumberCpusUsed).setValue(1);
-      ((SpinnerCell) cellNumberCpusUsed).setDisabledValue(0);
+      cellCpusSelected = new SpinnerCell(0, numCpus);
+      SpinnerCell spinnerCell = (SpinnerCell) cellCpusSelected;
+      spinnerCell.addChangeListener(new ProcessorTableRowChangeListener(this));
+      spinnerCell.setValue(1);
+      spinnerCell.setDisabledValue(0);
     }
     else {
-      cellNumberCpusUsed = new FieldCell();
-      ((FieldCell) cellNumberCpusUsed).setValue(1);
-      cellNumberCpusUsed.setEnabled(false);
+      cellCpusSelected = new FieldCell();
+      ((FieldCell) cellCpusSelected).setValue(1);
+      cellCpusSelected.setEnabled(false);
     }
     cellNumberCpus.setValue(numCpus);
     cellNumberCpus.setEnabled(false);
@@ -130,7 +134,7 @@ final class ProcessorTableRow {
     constraints.gridwidth = 1;
     cellComputer.add(panel, layout, constraints);
     constraints.weightx = 0.0;
-    cellNumberCpusUsed.add(panel, layout, constraints);
+    cellCpusSelected.add(panel, layout, constraints);
     cellNumberCpus.add(panel, layout, constraints);
     cellLoad1.add(panel, layout, constraints);
     cellLoad5.add(panel, layout, constraints);
@@ -143,20 +147,23 @@ final class ProcessorTableRow {
   }
 
   private void performAction(ActionEvent event) {
-    if (event.getActionCommand().equals(cellComputer.getLabel())) {
-      setSelected(cellComputer.isSelected());
-    }
+    setSelected(cellComputer.isSelected());
+  }
+  
+  private void stateChanged(ChangeEvent event) {
+    table.signalCpusSelectedChanged();
   }
 
   private void setSelected(boolean selected) {
-    if (cellNumberCpusUsed instanceof SpinnerCell) {
-      SpinnerCell cell = (SpinnerCell) cellNumberCpusUsed;
+    if (cellCpusSelected instanceof SpinnerCell) {
+      SpinnerCell cell = (SpinnerCell) cellCpusSelected;
       cell.setEnabled(selected);
     }
     else {
-      FieldCell cell = (FieldCell) cellNumberCpusUsed;
+      FieldCell cell = (FieldCell) cellCpusSelected;
       cell.setHideValue(!selected);
     }
+    table.signalCpusSelectedChanged();
   }
 
   void resetResults() {
@@ -172,15 +179,26 @@ final class ProcessorTableRow {
       //set cellSuccesses
       currentValue = cellSuccesses.getLongValue();
       long newValue;
-      if (cellNumberCpusUsed instanceof SpinnerCell) {
+      if (cellCpusSelected instanceof SpinnerCell) {
         newValue = successes
-            * ((SpinnerCell) cellNumberCpusUsed).getValue();
+            * ((SpinnerCell) cellCpusSelected).getValue();
       }
       else {
         newValue = successes;
       }
       cellSuccesses.setValue(Math.max(currentValue, newValue));
     }
+  }
+  
+  long getSuccesses() {
+    return cellSuccesses.getLongValue();
+  }
+  
+  int getCpusSelected() {
+    if (cellCpusSelected instanceof SpinnerCell) {
+      return ((SpinnerCell) cellCpusSelected).getValue();
+    }
+    return ((FieldCell) cellCpusSelected).getIntValue();
   }
 
   private class ProcessorTableRowActionListener implements ActionListener {
@@ -194,7 +212,22 @@ final class ProcessorTableRow {
       adaptee.performAction(event);
     }
   }
+  
+  private class ProcessorTableRowChangeListener implements ChangeListener {
+    ProcessorTableRow adaptee;
+
+    ProcessorTableRowChangeListener(ProcessorTableRow adaptee) {
+      this.adaptee = adaptee;
+    }
+
+    public void stateChanged(ChangeEvent event) {
+      adaptee.stateChanged(event);
+    }
+  }
 }
 /**
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2005/07/01 21:22:02  sueh
+ * <p> bug# 619 A row in a table containing a list of computers and CPUs
+ * <p> </p>
  */
