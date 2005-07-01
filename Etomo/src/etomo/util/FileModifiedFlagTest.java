@@ -3,8 +3,6 @@ package etomo.util;
 import java.io.File;
 import java.io.IOException;
 
-import etomo.EtomoDirector;
-
 import junit.framework.TestCase;
 /**
 * <p>Description: </p>
@@ -97,6 +95,10 @@ public class FileModifiedFlagTest extends TestCase {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.11  2005/06/22 23:41:27  sueh
+* <p> bug# 522 New tests are failing - will fix later.  changed
+* <p> testIsModifiedSinceLastRead().
+* <p>
 * <p> Revision 1.10  2005/06/22 23:39:27  sueh
 * <p> bug# 522 New tests are failing - will fix later.  changed
 * <p> testIsModifiedSinceLastRead().
