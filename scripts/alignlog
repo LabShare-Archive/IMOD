@@ -8,6 +8,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.4  2005/05/19 05:48:30  mast
+#  Fixed (sort of) for angle output with PIP input
+#
 #  Revision 3.3  2003/06/01 05:20:53  mast
 #  Fixed problems with local alignment output by ending some selections on a
 #  blank line
@@ -62,6 +65,8 @@ grep "SURFACE ANALYSIS" $file > /dev/null
 set newsurface = $status
 grep "to do series" $file > /dev/null
 set pipinput = $status
+grep "Ratio to variables" $file > /dev/null
+set oldratios = $status
 
 while ($#argv > $numarg)
     switch ($argv[1])
@@ -82,7 +87,11 @@ while ($#argv > $numarg)
 		echo "* * * * * * * * * * * * * * * * * * * * * * * * * * * *"
 		echo " "
 	    endif
-	    awk '/^ *Final   F/, /^  Ratio/' $file
+            if ($oldratios) then
+                awk '/^ *Final   F/, /^  Ratio/' $file
+            else
+                awk '/^ *Final   F/, /^  Ratio to/' $file
+            endif
 	    grep 'Residual error' $file
 	    set output = 1
 	    shift
