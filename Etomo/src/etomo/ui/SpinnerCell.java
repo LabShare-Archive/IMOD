@@ -7,6 +7,7 @@ import javax.swing.JFormattedTextField;
 import javax.swing.JSpinner;
 import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.event.ChangeListener;
 import javax.swing.plaf.ColorUIResource;
 
 import etomo.type.EtomoNumber;
@@ -99,7 +100,15 @@ class SpinnerCell extends InputCell {
       textField.setDisabledTextColor(foreground);
     }
   }
+  
+  final void addChangeListener(ChangeListener changeListener) {
+    spinner.addChangeListener(changeListener);
+  }
 }
 /**
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2005/07/01 21:24:32  sueh
+ * <p> bug# 619 A writable table cell that extends InputCell and contains a
+ * <p> JSpinner.  Only contains integers.
+ * <p> </p>
  */
