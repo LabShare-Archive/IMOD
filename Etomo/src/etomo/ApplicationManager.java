@@ -70,10 +70,12 @@ import etomo.type.ViewType;
 import etomo.ui.AlignmentEstimationDialog;
 import etomo.ui.CleanUpDialog;
 import etomo.ui.CoarseAlignDialog;
+import etomo.ui.EtomoFrame;
 import etomo.ui.FiducialModelDialog;
 import etomo.ui.FiducialessParams;
 import etomo.ui.MainPanel;
 import etomo.ui.MainTomogramPanel;
+import etomo.ui.ParallelDialog;
 import etomo.ui.PostProcessingDialog;
 import etomo.ui.PreProcessingDialog;
 import etomo.ui.ProcessDialog;
@@ -82,6 +84,7 @@ import etomo.ui.TextPageWindow;
 import etomo.ui.TomogramCombinationDialog;
 import etomo.ui.TomogramGenerationDialog;
 import etomo.ui.TomogramPositioningDialog;
+import etomo.ui.UIHarness;
 import etomo.util.FidXyz;
 import etomo.util.InvalidParameterException;
 import etomo.util.MRCHeader;
@@ -104,6 +107,10 @@ import etomo.util.Utilities;
  * 
  *
  * <p> $Log$
+ * <p> Revision 3.157  2005/06/22 23:34:58  sueh
+ * <p> bug# 583 getStackBinning() was not returning default binning if the result
+ * <p> of the binning calculation was < 1.
+ * <p>
  * <p> Revision 3.156  2005/06/21 00:02:58  sueh
  * <p> bug# 522 Added pass-through function call to
  * <p> BaseProcessManager.touch() for MRCHeaderTest.
@@ -1349,6 +1356,8 @@ public class ApplicationManager extends BaseManager {
   private boolean[] advancedB = new boolean[DialogType.TOTAL];
   private DialogType currentDialogTypeA = null;
   private DialogType currentDialogTypeB = null;
+  private ParallelDialog parallelDialogA = null;
+  private ParallelDialog parallelDialogB = null;
   
   /**
    * Does initialization and loads the .edf file.  Opens the setup dialog
@@ -6583,5 +6592,60 @@ public class ApplicationManager extends BaseManager {
     if (tiltalignParam.upgradeOldVersion(correctionBinning, currentBinning)) {
       comScriptMgr.saveAlign(tiltalignParam, axisID);
     }
+  }
+  
+  private ParallelDialog getParallelDialog(AxisID axisID) {
+    EtomoFrame frame = UIHarness.INSTANCE.getFrame(axisID);
+    if (axisID == AxisID.SECOND) {
+      if (parallelDialogB == null || !parallelDialogB.isDisplayable()) {
+        parallelDialogB = new ParallelDialog(frame, axisID);
+      }
+      return parallelDialogB;
+    }
+    if (parallelDialogA == null || !parallelDialogA.isDisplayable()) {
+      parallelDialogA = new ParallelDialog(frame, axisID);
+    }
+    return parallelDialogA;
+  }
+  
+  public void parallelProcess(DialogType dialogType, AxisID axisID) {
+    ParallelDialog dialog = getParallelDialog(axisID);
+    dialog.setDialogType(dialogType);
+    dialog.validate();
+    dialog.pack();
+    dialog.show();
+  }
+  
+  public boolean dummySplitParallelProcess(AxisID axisID) {
+    if (!updateTiltCom(axisID, true)) {
+      return false;
+    }
+    try {
+      processMgr.isAxisBusy(axisID);
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Can not execute dummySplitParallelProcess on " + axisID.getExtension();
+      message[1] = e.getMessage();
+      uiHarness.openMessageDialog(message, "Unable to execute dummy process", axisID);
+      return false;
+    }
+    return true;
+  }
+  
+  public boolean dummyParallelProcess(AxisID axisID) {
+    try {
+      processMgr.isAxisBusy(axisID);
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Can not execute dummyParallelProcess on " + axisID.getExtension();
+      message[1] = e.getMessage();
+      uiHarness.openMessageDialog(message, "Unable to execute dummy process", axisID);
+      return false;
+    }
+    return true;
   }
 }
