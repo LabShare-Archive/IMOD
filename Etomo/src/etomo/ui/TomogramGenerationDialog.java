@@ -63,6 +63,16 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.45  2005/06/13 23:38:35  sueh
+ * bug# 583 Preventing tilt.com from being overwritten with a default
+ * imageBinned after the .ali file is deleted.  DoneTomogramGeneration()
+ * needs update and save tilt.com, but the result from getStackBinning will
+ * be wrong if the .ali file has been deleted.  Move the responsibility for
+ * getting the right imageBinned to TiltParam.  Modify getStackBinning() to
+ * have an option to return a null value when it fails to calculate the stack
+ * binning.  If TiltParam.setImageBinned() gets a null value and
+ * imageBinned is not null, it won't override the current imageBinned value.
+ *
  * Revision 3.44  2005/06/11 02:53:48  sueh
  * bug# 583, bug# 682, bug# 584  Storing screen binning for Tomo Pos and
  * Tomo Gen in MetaData separately (Tomo Pos default is 3).  Upgraded
@@ -466,6 +476,7 @@ public class TomogramGenerationDialog extends ProcessDialog
   private JPanel pnlTiltButtons = new JPanel();
   private LabeledTextField ltfExtraExcludeList = new LabeledTextField(
   "Extra views to exclude: ");
+  private JCheckBox cbParallelProcess = new JCheckBox("Parallel Processing");
   
   //backward compatibility functionality - if the metadata binning is missing
   //get binning from newst
@@ -520,6 +531,7 @@ public class TomogramGenerationDialog extends ProcessDialog
     ltfStartingAndEndingZ
         .addKeyListener(new StartingAndEndingZKeyListener(this));
     cbFiducialess.addActionListener(tomogramGenerationListener);
+    cbParallelProcess.addActionListener(tomogramGenerationListener);
 
     //  Mouse adapter for context menu
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
@@ -986,15 +998,23 @@ public class TomogramGenerationDialog extends ProcessDialog
     UIUtilities.addWithYSpace(pnlTiltParams, pnlRadialFilter);
     UIUtilities.addWithYSpace(pnlTiltParams, ltfExtraExcludeList.getContainer());
 
-    //UIUtilities.addWithYSpace(pnlUseLocalAlignment, cbBoxUseLocalAlignment);
-    UIUtilities.addWithYSpace(pnlTiltParams, cbBoxUseLocalAlignment);
-    UIUtilities.addWithYSpace(pnlTiltParams, cbUseZFactors);
-    //pnlTiltParams.add(pnlUseLocalAlignment);
-    //pnlTiltParams.add(Box.createRigidArea(FixedDim.x0_y5));
+    SpacedPanel pnlOuter = new SpacedPanel(FixedDim.x70_y0);
+    pnlOuter.setLayout(new BoxLayout(pnlOuter.getContainer(),
+        BoxLayout.X_AXIS));
+    SpacedPanel pnlCheckBoxes = new SpacedPanel(FixedDim.x0_y10);
+    pnlCheckBoxes.setLayout(new BoxLayout(pnlCheckBoxes.getContainer(),
+        BoxLayout.Y_AXIS));
+    pnlCheckBoxes.add(cbBoxUseLocalAlignment);
+    pnlCheckBoxes.add(cbUseZFactors);
+    pnlOuter.add(pnlCheckBoxes);
+    cbParallelProcess.setAlignmentX(Component.RIGHT_ALIGNMENT);
+    if (EtomoDirector.getInstance().isNewstuff()) {
+      pnlOuter.add(cbParallelProcess);
+    }
+    pnlTiltParams.add(pnlOuter.getContainer());
+    
     pnlTiltParams.add(pnlTrial);
-
     UIUtilities.alignComponentsX(pnlTiltParams, Component.LEFT_ALIGNMENT);
-
   }
 
   /**
@@ -1180,7 +1200,12 @@ public class TomogramGenerationDialog extends ProcessDialog
       applicationManager.commitTestVolume(axisID);
     }
     else if (command.equals(btnTilt.getActionCommand())) {
-      applicationManager.tilt(axisID);
+      if (cbParallelProcess.isSelected()) {
+        applicationManager.parallelProcess(this.dialogType, axisID);
+      }
+      else {
+        applicationManager.tilt(axisID);
+      }
     }
     else if (command.equals(btn3dmodTomogram.getActionCommand())) {
       applicationManager.imodFullVolume(axisID);
