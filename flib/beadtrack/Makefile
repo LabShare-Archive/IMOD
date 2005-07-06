@@ -10,13 +10,11 @@ PROG = beadtrack$(BINEXT)
 
 all: $(PROG)
 
-FFLAGS = $(FFALLBACK)
-
 tiltali.$(O): tiltali.f
-	$(FC) -c $(NOOPFFALLBACK) tiltali.f
+	$(FC) -c $(NOOPFFLAGS) tiltali.f
 
 $(PROG): $(BDOBJS)
-	$(FC) -o beadtrack $(BDOBJS) $(LDFFLAGS) $(LDFALLBACK) $(IMLIBS) \
+	$(FC) -o beadtrack $(BDOBJS) $(LDFFLAGS) $(LDFLAGS) $(IMLIBS) \
 	$(FORTCLIBS) $(TILTALILIB)
 
 beadtrack.$(O):   $(INCDIR)/model.inc  $(INCDIR)/statsize.inc \
