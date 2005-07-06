@@ -259,10 +259,6 @@ c
 c
 	exist=readw_or_imod(modelfile)
 	if(.not.exist)call errorexit('READING SEED MODEL FILE', 0)
-c	    
-c	  repack this model before working with it
-c	    
-	call repack_mod
 c       
 c       convert to image index coordinates and change the origin and delta
 c       for X to reflect this
@@ -914,7 +910,7 @@ c
 	      resmean(i)=-1.
 	    enddo
 	    write(*,123)areaObjStr,listseq(iseq),iseqPass,nobjdo
-123	    format('Starting ',a,i4,', round',i3,',',i4,' contours');
+123	    format('Starting ',a,i4,', round',i3,',',i4,' contours')
 	    if (nobjlists .gt. 1) write(*,'(19i4)') (iobjseq(i),i=1,nobjdo)
 	  endif
 	  if (saveAllPoints .and. mod(iseq,2) .eq. 1) then
@@ -1605,8 +1601,6 @@ c
 	  misstot=misstot+nlistz
 	enddo
 	print *,'Total points missing =',misstot
-c
-	call repack_mod
 c       
 c       convert index coordinates back to model coordinates
 c       
@@ -1647,6 +1641,10 @@ c
 c	
 c
 c	  $Log$
+c	  Revision 3.16  2005/05/12 23:53:52  mast
+c	  Increased limit for pixels inside centroid radius to allow ~100 pixel
+c	  beads
+c	
 c	  Revision 3.15  2005/04/26 18:45:08  mast
 c	  Fixed to work with fewer than 8 points with default params
 c	
