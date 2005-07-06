@@ -20,7 +20,6 @@ set flags = "-32 -mips2 $flags"
 set fallback = "$flags"
 echo "MAKELIB = ld -32 -mips2 -shared -all -o " >> $configure
 echo 'LDFLAGS = -32 -mips2 -L$(LIBDIR)  -woff 84'       >> $configure
-echo 'LDFALLBACK = $(LDFLAGS)  -woff 84'       >> $configure
 set usfftdir = $source_dir/USFFTlib/sgi
 set xplax = noplax.o
 goto irix5
@@ -32,7 +31,6 @@ set fallback = "-32 -mips2 $flags"
 set flags = "-n32 -mips3 $flags"
 echo "MAKELIB = ld -n32 -mips3 -shared -all -o " >> $configure
 echo 'LDFLAGS = -n32 -mips3 -L$(LIBDIR) -woff 84'       >> $configure
-echo "LDFALLBACK = -32 -mips2 -L$lib_dir  -woff 84"       >> $configure
 if ($inst_dir != default) then
 	set  inst_lib_dir = $inst_dir/lib32/ 
 else
@@ -144,10 +142,6 @@ echo "NOOPFFLAGS = $flags $fflags -O0" >> $configure
 echo "LIBCFLAGS  = $flags $cflags" >> $configure
 echo "LIBFFLAGS  = $flags $fflags" >> $configure
 
-echo "CFALLBACK   = $fallback $cflags" >> $configure
-echo "FFALLBACK   = $fallback $fflags" >> $configure
-echo "NOOPFFALLBACK = $fallback $fflags -O0" >> $configure
-
 # Pick whose floats the fortran code can swap
 if ($swap_ieee == true) then
     echo "#define SWAP_IEEE_FLOATS"                 >> $hconfigure
@@ -207,6 +201,9 @@ if ($distname == "") set distname = _irix6.5
 
 
 #  $Log$
+#  Revision 3.30  2005/06/27 19:39:41  mast
+#  Needed to set sendevent retry hack 0
+#
 #  Revision 3.29  2005/02/28 22:07:51  mast
 #  Added record item length since this is now the oddball
 #
