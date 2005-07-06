@@ -189,11 +189,9 @@ else
     if ($debug == true) set optimization = "-ggdb -O0"
 endif
 
+# 7/6/05: took out the fallbacks; no longer needed on SGI
 #
-#
-#  The fallbacks need to be defined because of problems with n32 code on the
-#  SGI; just define them the same as non-fallback versions.
-#
+
 set flags = "$flags /MD"
 set cflags = "$flags $optimization $defines $include_flags $c_includes"
 set fflags = "$flags $ldfflags $optimization $include_flags"
@@ -206,10 +204,6 @@ NOOPFFLAGS = $fflags $noop
 LIBCFLAGS = $cflags
 LIBFFLAGS = $fflags
 
-CFALLBACK  = $cflags
-FFALLBACK  = $fflags
-LDFALLBACK = \$(LDFLAGS)
-NOOPFFALLBACK = \$(NOOPFFLAGS)
 EOF
 
 # Use fortran code for tilt program, make extra fortran libs

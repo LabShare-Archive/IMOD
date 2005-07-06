@@ -97,14 +97,8 @@ echo "NOOPFFLAGS = $fflags -O0" >> $configure
 echo "LIBCFLAGS  = $cflags" >> $configure
 echo "LIBFFLAGS  = $fflags" >> $configure
 
+# 7/6/05: took out the fallbacks; no longer needed on SGI
 #
-#  The fallbacks need to be defined because of problems with n32 code on the
-#  SGI; just define them the same as non-fallback versions.
-#
-echo "CFALLBACK  = $cflags" >> $configure
-echo "FFALLBACK  = $fflags" >> $configure
-echo 'LDFALLBACK = $(LDFLAGS)'       >> $configure
-echo 'NOOPFFALLBACK = $(NOOPFFLAGS)' >> $configure
 
 # Use fortran code for tilt program, make extra fortran libs
 echo 'TILTOBJS = bpsumnox.o bpsumxtilt.o bpsumlocal.o' >> $configure
