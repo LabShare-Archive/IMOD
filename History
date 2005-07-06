@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/6/05: Eliminated unneeded repack_mod routine which was breaking Beadtrack
+and a few other programs on the SGI.  (In 3.5)
+
 7/1/05: Tiltalign's report of the ratio of measurements to unknowns was 
 actually the ratio to the number of variables in the search, which omits the
 lateral shifts.  Both the true ratio and the old one are now reported.
