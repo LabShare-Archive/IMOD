@@ -8,6 +8,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.8  2004/09/28 22:18:46  mast
+#  Removed parselist entries since it is libimod now
+#
 #  Revision 3.7  2004/09/28 15:15:37  mast
 #  Add parselist for imodinfo
 #
@@ -51,10 +54,8 @@ imodmesh$(E) : imodmesh.$(O) mkmesh.$(O)
 	$(CC) -o imodmesh mkmesh.$(O) imodmesh.$(O) \
 	$(LDFLAGS) $(LIMOD) $(CLIBS)
 
-imodtrans.$(O) : imodtrans.c
-	$(CC) $(CFALLBACK) -c imodtrans.c
 imodtrans$(E) : imodtrans.$(O)
-	$(CC) -o imodtrans imodtrans.$(O) $(LDFALLBACK) $(LIMOD) $(CLIBS)
+	$(CC) -o imodtrans imodtrans.$(O) $(LDFLAGS) $(LIMOD) $(CLIBS)
 
 imodmop$(E) : imodmop.$(O) moplib.$(O)
 	$(CC) -o imodmop imodmop.$(O) moplib.$(O) $(LDFLAGS) $(IILIBS) $(CLIBS)
