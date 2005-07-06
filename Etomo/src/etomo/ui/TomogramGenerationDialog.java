@@ -2,6 +2,7 @@
 package etomo.ui;
 
 import java.awt.Component;
+import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -12,6 +13,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Vector;
+
+import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
@@ -63,6 +66,10 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.46  2005/07/01 21:26:01  sueh
+ * bug# 619 Added check box cbParallelProcess to override normal
+ * tomogram generation functionality.  Only displays when --newstuff is set.
+ *
  * Revision 3.45  2005/06/13 23:38:35  sueh
  * bug# 583 Preventing tilt.com from being overwritten with a default
  * imageBinned after the .ali file is deleted.  DoneTomogramGeneration()
@@ -368,7 +375,7 @@ import etomo.util.InvalidParameterException;
 public class TomogramGenerationDialog extends ProcessDialog
     implements
       ContextMenu,
-      FiducialessParams {
+      FiducialessParams, Expandable {
   public static final String rcsid = "$Id$";
 
   private JPanel pnlTilt = new JPanel();
@@ -376,62 +383,49 @@ public class TomogramGenerationDialog extends ProcessDialog
   // Fiducialess parameters
   private JCheckBox cbFiducialess = new JCheckBox("Fiducialless alignment");
   private LabeledTextField ltfRotation = new LabeledTextField(
-      "Tilt axis rotation:");
+      "Tilt axis rotation: ");
 
   // Newst/Newstack objects
-  private JPanel pnlNewstParams = new JPanel();
   private JCheckBox cbBoxUseLinearInterpolation = new JCheckBox(
       "Use linear interpolation");
   private LabeledSpinner spinBinning;
 
   //  Aligned stack buttons
-  private JPanel pnlAlignedStack = new JPanel();
   private MultiLineToggleButton btnNewst = new MultiLineToggleButton(
       "<html><b>Create Full<br>Aligned Stack</b>");
   private MultiLineButton btn3dmodFull = new MultiLineButton(
       "<html><b>View Full<br>Aligned Stack</b>");
 
   //  Tilt objects
-  private JPanel pnlTiltParams = new JPanel();
-  private LabeledTextField ltfXOffset = new LabeledTextField("X offset: ");
-  private LabeledTextField ltfZOffset = new LabeledTextField("Z offset: ");
-  private LabeledTextField ltfSliceStart = new LabeledTextField("First slice: ");
-  private LabeledTextField ltfSliceStop = new LabeledTextField("Last slice: ");
-  private JLabel lblInY = new JLabel(" in Y");
-  private LabeledTextField ltfSliceIncr = new LabeledTextField(
+  private SpacedTextField ltfXOffset = new SpacedTextField("X offset:");
+  private SpacedTextField ltfZOffset = new SpacedTextField("Z offset: ");
+  private SpacedTextField ltfSliceStart = new SpacedTextField("First slice: ");
+  private SpacedTextField ltfSliceStop = new SpacedTextField("Last slice: ");
+  private SpacedLabel lblInY = new SpacedLabel(" in Y");
+  private SpacedTextField ltfSliceIncr = new SpacedTextField(
       "Slice step in Y: ");
-  private LabeledTextField ltfTomoWidth = new LabeledTextField(
+  private SpacedTextField ltfTomoWidth = new SpacedTextField(
       "Tomogram width in X: ");
-  private LabeledTextField ltfTomoThickness = new LabeledTextField(
+  private SpacedTextField ltfTomoThickness = new SpacedTextField(
       "Tomogram thickness in Z: ");
-  private LabeledTextField ltfXAxisTilt = new LabeledTextField("X axis tilt: ");
-  private LabeledTextField ltfTiltAngleOffset = new LabeledTextField(
+  private SpacedTextField ltfXAxisTilt = new SpacedTextField("X axis tilt: ");
+  private SpacedTextField ltfTiltAngleOffset = new SpacedTextField(
       "Tilt angle offset: ");
-  private LabeledTextField ltfRadialMax = new LabeledTextField(
+  private SpacedTextField ltfRadialMax = new SpacedTextField(
       "Radial filter cutoff: ");
-  private LabeledTextField ltfRadialFallOff = new LabeledTextField("Falloff: ");
-  private LabeledTextField ltfDensityOffset = new LabeledTextField("Offset: ");
-  private LabeledTextField ltfDensityScale = new LabeledTextField(
+  private SpacedTextField ltfRadialFallOff = new SpacedTextField("Falloff: ");
+  private SpacedTextField ltfDensityOffset = new SpacedTextField("Offset: ");
+  private SpacedTextField ltfDensityScale = new SpacedTextField(
       "Output density scaling factor: ");
-  private LabeledTextField ltfLogOffset = new LabeledTextField("Log offset: ");
+  private SpacedTextField ltfLogOffset = new SpacedTextField("Log offset: ");
   private JCheckBox cbBoxUseLocalAlignment = new JCheckBox(
       "Use local alignments");
-  private JPanel pnlDensityScaling = new JPanel();
-  private JPanel pnlSlicesInY = new JPanel();
-  private JPanel pnlOffset = new JPanel();
-  private JPanel pnlRadialFilter = new JPanel();
-  private JPanel pnlUseLocalAlignment = new JPanel();
-  private JPanel pnlAdvanced1 = new JPanel();
-  private JPanel pnlAdvanced2 = new JPanel();
-  private JPanel pnlAdvanced3 = new JPanel();
 
   //  Trial tomogram objects
-  private JPanel pnlTrial = new JPanel();
-  private JPanel pnlTrialTomogramName = new JPanel();
+
   private JLabel lblTrialTomogramName = new JLabel("Trial tomogram filename: ");
   private JComboBox cmboTrialTomogramName = new JComboBox();
   private Vector trialTomogramList = new Vector();
-  private JPanel pnlTrialButtons = new JPanel();
   private MultiLineButton btnTrial = new MultiLineButton(
       "<html><b>Generate Trial Tomogram</b>");
   private MultiLineButton btn3dmodTrial = new MultiLineButton(
@@ -440,27 +434,22 @@ public class TomogramGenerationDialog extends ProcessDialog
       "<html><b>Use Current Trial Tomogram</b>");
 
   // MTF Filter objects
-  private JPanel pnlFilter = new JPanel();
   private LabeledTextField ltfLowPassRadiusSigma = new LabeledTextField(
       "Low pass (cutoff,sigma): ");
-  private JPanel pnlInverseFilter = new JPanel();
   private ImageIcon iconFolder = new ImageIcon(ClassLoader
       .getSystemResource("images/openFile.gif"));
-  private JPanel pnlMtfFile = new JPanel();
   private LabeledTextField ltfMtfFile = new LabeledTextField("MTF file: ");
   private JButton btnMtfFile = new JButton(iconFolder);
-  private JPanel pnlInverseFilterParam = new JPanel();
   private LabeledTextField ltfMaximumInverse = new LabeledTextField(
       "Maximum Inverse: ");
   private LabeledTextField ltfInverseRolloffRadiusSigma = new LabeledTextField(
       "Rolloff (radius,sigma): ");
-  private JPanel pnlFilterButtons = new JPanel();
   private MultiLineToggleButton btnFilter = new MultiLineToggleButton("Filter");
   private MultiLineButton btnViewFilter = new MultiLineButton(
       "View Filtered Stack");
   private MultiLineToggleButton btnUseFilter = new MultiLineToggleButton(
       "Use Filtered Stack");
-  private LabeledTextField ltfStartingAndEndingZ = new LabeledTextField(
+  private SpacedTextField ltfStartingAndEndingZ = new SpacedTextField(
       "Starting and ending views: ");
   boolean enableFiltering = false;
 
@@ -472,11 +461,18 @@ public class TomogramGenerationDialog extends ProcessDialog
   private MultiLineToggleButton btnDeleteStacks = new MultiLineToggleButton(
       "<html><b>Delete Aligned Image Stack</b>");
   private JCheckBox cbUseZFactors = new JCheckBox("Use Z factors");
-      
-  private JPanel pnlTiltButtons = new JPanel();
-  private LabeledTextField ltfExtraExcludeList = new LabeledTextField(
+  private SpacedTextField ltfExtraExcludeList = new SpacedTextField(
   "Extra views to exclude: ");
   private JCheckBox cbParallelProcess = new JCheckBox("Parallel Processing");
+  //headers should not go into garbage collection
+  private PanelHeader newstHeader;
+  private PanelHeader tiltHeader;
+  private PanelHeader trialHeader;
+  private PanelHeader filterHeader;
+  //panels that are changed in setAdvanced()
+  private SpacedPanel inverseParamsPanel;
+  private JPanel trialPanel;
+
   
   //backward compatibility functionality - if the metadata binning is missing
   //get binning from newst
@@ -487,28 +483,13 @@ public class TomogramGenerationDialog extends ProcessDialog
     fixRootPanel(rootSize);
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     btnExecute.setText("Done");
-
-    // Layout each of the subpanels
-    layoutNewstPanel();
-    layoutFilterPanel();
-    layoutTiltPanel();
-    layoutTrialPanel();
-
-    //tilt buttons panel
-    pnlTiltButtons.setLayout(new BoxLayout(pnlTiltButtons, BoxLayout.X_AXIS));
-    UIUtilities.addWithXSpace(pnlTiltButtons, btnTilt);
-    UIUtilities.addWithXSpace(pnlTiltButtons, btn3dmodTomogram);
-    UIUtilities.addWithXSpace(pnlTiltButtons, btnDeleteStacks);
-    UIUtilities.setButtonSizeAll(pnlTiltButtons, UIParameters.dimButton);
     
-    // Layout the main panel and add it to the root panel
+    // Layout the main panel (and sub panels) and add it to the root panel
     pnlTilt.setBorder(new BeveledBorder("Tomogram Generation").getBorder());
     pnlTilt.setLayout(new BoxLayout(pnlTilt, BoxLayout.Y_AXIS));
-    UIUtilities.addWithYSpace(pnlTilt, pnlNewstParams);
-    UIUtilities.addWithYSpace(pnlTilt, pnlAlignedStack);
-    UIUtilities.addWithYSpace(pnlTilt, pnlFilter);
-    UIUtilities.addWithYSpace(pnlTilt, pnlTiltParams);
-    UIUtilities.addWithYSpace(pnlTilt, pnlTiltButtons);
+    UIUtilities.addWithYSpace(pnlTilt, layoutNewstPanel());
+    UIUtilities.addWithYSpace(pnlTilt, layoutFilterPanel());
+    UIUtilities.addWithYSpace(pnlTilt, layoutTiltPanel());
     UIUtilities.alignComponentsX(pnlTilt, Component.CENTER_ALIGNMENT);
 
     rootPanel.add(pnlTilt);
@@ -543,7 +524,7 @@ public class TomogramGenerationDialog extends ProcessDialog
     setToolTipText();
   }
 
-  public void updateFilter(boolean enable) {
+ public void updateFilter(boolean enable) {
     enableFiltering = enable;
     btnFilter.setEnabled(enableFiltering);
     btnViewFilter.setEnabled(enableFiltering);
@@ -850,197 +831,285 @@ public class TomogramGenerationDialog extends ProcessDialog
     }
     return trialTomogramName;
   }
+  
+  
+  public void expand(ExpandButton button) {
+    if (tiltHeader.equalsAdvancedBasic(button)) {
+      updateAdvancedTilt(button.isExpanded());
+    }
+    else if (filterHeader.equalsAdvancedBasic(button)) {
+      updateAdvancedFilter(button.isExpanded());
+    }
+    else {
+      return;
+    }
+    applicationManager.packMainWindow(axisID);
+  }
+  
+  private void updateAdvancedFilter(boolean advanced) {
+    ltfStartingAndEndingZ.setVisible(advanced);
+    //ltfLowPassRadiusSigma
+    inverseParamsPanel.setVisible(advanced);
+    //btnFilter
+    //btnViewFilter
+    //btnUseFilter
+  }
 
+  private void updateAdvancedTilt(boolean advanced) {
+    ltfLogOffset.setVisible(advanced);
+    ltfDensityOffset.setVisible(advanced);
+    ltfDensityScale.setVisible(advanced);
+    ltfTomoWidth.setVisible(advanced);
+    //ltfTomoThickness
+    ltfSliceStart.setVisible(advanced);
+    ltfSliceStop.setVisible(advanced);
+    lblInY.setVisible(advanced);
+    ltfSliceIncr.setVisible(advanced);
+    ltfXOffset.setVisible(advanced);
+    ltfZOffset.setVisible(advanced);
+    //ltfXAxisTilt
+    ltfTiltAngleOffset.setVisible(advanced);
+    //ltfRadialMax
+    //ltfRadialFallOff
+    ltfExtraExcludeList.setVisible(advanced);
+    //cbBoxUseLocalAlignment
+    //cbUseZFactors
+    //cbParallelProcess
+    trialPanel.setVisible(advanced);
+    //btnTilt
+    //btn3dmodTomogram
+    //btnDeleteStacks
+  }
   /**
    * Update the dialog with the current advanced state
    */
   private void updateAdvanced() {
-    pnlAdvanced1.setVisible(isAdvanced);
-    pnlAdvanced2.setVisible(isAdvanced);
-    pnlAdvanced3.setVisible(isAdvanced);
-    pnlTrial.setVisible(isAdvanced);
-    ltfStartingAndEndingZ.setVisible(isAdvanced);
-    pnlInverseFilter.setVisible(isAdvanced);
-    ltfExtraExcludeList.setVisible(isAdvanced);
+    filterHeader.setAdvanced(isAdvanced);
+    tiltHeader.setAdvanced(isAdvanced);
+
     applicationManager.packMainWindow(axisID);
   }
 
   /**
    * Layout the newstack panel
    */
-  private void layoutNewstPanel() {
-    //  Setup the binning spinner for newstack
-    SpinnerModel integerModel = new SpinnerNumberModel(1, 1, 50, 1);
-    spinBinning = new LabeledSpinner("Aligned image stack binning ",
-        integerModel);
-
-    pnlNewstParams.setLayout(new BoxLayout(pnlNewstParams, BoxLayout.Y_AXIS));
+  private JPanel layoutNewstPanel() {//TODO
+    //panels
+    JPanel newstPanel = new JPanel();
+    newstPanel.setLayout(new BoxLayout(newstPanel, BoxLayout.Y_AXIS));
+    newstPanel.setBorder(BorderFactory.createEtchedBorder());
+    SpacedPanel newstBodyPanel = new SpacedPanel();
+    newstBodyPanel.setBoxLayout(BoxLayout.Y_AXIS);
+    SpacedPanel buttonPanel = new SpacedPanel();
+    buttonPanel.setBoxLayout(BoxLayout.X_AXIS);
+    //header
     if (applicationManager.getMetaData().getViewType() == ViewType.MONTAGE) {
-      pnlNewstParams.setBorder(new EtchedBorder("Blendmont Parameters")
-          .getBorder());
+      newstHeader = new PanelHeader(axisID, this, "Blendmont", newstBodyPanel, false);
     }
     else {
-      pnlNewstParams.setBorder(new EtchedBorder("Newstack Parameters")
-          .getBorder());
+      newstHeader = new PanelHeader(axisID, this, "Newstack", newstBodyPanel, false);
     }
-    if (applicationManager.getMetaData().getViewType() == ViewType.MONTAGE) {
-      spinBinning.setEnabled(false);
-    }
-    UIUtilities.addWithYSpace(pnlNewstParams, cbBoxUseLinearInterpolation);
-    UIUtilities.addWithYSpace(pnlNewstParams, spinBinning.getContainer());
-    UIUtilities.addWithYSpace(pnlNewstParams, cbFiducialess);
-    UIUtilities.addWithYSpace(pnlNewstParams, ltfRotation.getContainer());
-    UIUtilities.alignComponentsX(pnlNewstParams, Component.LEFT_ALIGNMENT);
+    //initialization
+    SpinnerModel integerModel = new SpinnerNumberModel(1, 1, 50, 1);
+    spinBinning = new LabeledSpinner("Aligned image stack binning ", integerModel);
+    //buttonPanel
+    buttonPanel.add(btnNewst);
+    buttonPanel.add(btn3dmodFull);
+    buttonPanel.alignComponentsX(Component.LEFT_ALIGNMENT);
+    //newstBodyPanel
+    newstBodyPanel.add(cbBoxUseLinearInterpolation);
+    newstBodyPanel.add(spinBinning);
+    newstBodyPanel.add(cbFiducialess);
+    newstBodyPanel.add(ltfRotation);
+    newstBodyPanel.add(buttonPanel);
+    newstBodyPanel.alignComponentsX(Component.LEFT_ALIGNMENT);
+    //newstPanel
+    newstPanel.add(newstHeader.getContainer());
+    newstPanel.add(newstBodyPanel.getContainer());
+    UIUtilities.alignComponentsX(newstPanel, Component.LEFT_ALIGNMENT);
+    //configure
+    newstHeader.setOpen(true);
 
-    // Layout the newst button panel
-    pnlAlignedStack.setLayout(new BoxLayout(pnlAlignedStack, BoxLayout.X_AXIS));
-    UIUtilities.addWithSpace(pnlAlignedStack, btnNewst, FixedDim.x10_y0);
-    pnlAlignedStack.add(btn3dmodFull);
-    UIUtilities.setButtonSizeAll(pnlAlignedStack, UIParameters.dimButton);
+    return newstPanel;
   }
 
   /**
    * Layout the MTF filter panel
    *
    */
-  private void layoutFilterPanel() {
-    pnlFilter.setBorder(new EtchedBorder("2D Filtering (optional)").getBorder());
-    pnlFilter.setLayout(new BoxLayout(pnlFilter, BoxLayout.Y_AXIS));
-
-    //  Inverse filter sub panel
-    pnlMtfFile.setLayout(new BoxLayout(pnlMtfFile, BoxLayout.X_AXIS));
-    pnlMtfFile.add(ltfMtfFile.getContainer());
-    pnlMtfFile.add(Box.createRigidArea(FixedDim.x5_y0));
-    pnlMtfFile.add(btnMtfFile);
-
-    pnlInverseFilterParam.setLayout(new BoxLayout(pnlInverseFilterParam,
-        BoxLayout.X_AXIS));
-    UIUtilities.addWithSpace(pnlInverseFilterParam, ltfMaximumInverse
-        .getContainer(), FixedDim.x5_y0);
-    pnlInverseFilterParam.add(ltfInverseRolloffRadiusSigma.getContainer());
-
-    pnlInverseFilter
-        .setLayout(new BoxLayout(pnlInverseFilter, BoxLayout.Y_AXIS));
-    pnlInverseFilter.setBorder(new EtchedBorder(
-        "Inverse Filtering Parameters: ").getBorder());
-    UIUtilities.addWithYSpace(pnlInverseFilter, pnlMtfFile);
-    pnlInverseFilter.add(pnlInverseFilterParam);
-    UIUtilities.alignComponentsX(pnlInverseFilter, Component.CENTER_ALIGNMENT);
-
-    //  Filter buttons sub panel
-    pnlFilterButtons
-        .setLayout(new BoxLayout(pnlFilterButtons, BoxLayout.X_AXIS));
-    UIUtilities.addWithXSpace(pnlFilterButtons, btnFilter);
-    UIUtilities.addWithXSpace(pnlFilterButtons, btnViewFilter);
-    UIUtilities.addWithXSpace(pnlFilterButtons, btnUseFilter);
-    UIUtilities.setButtonSizeAll(pnlFilterButtons, UIParameters.dimButton);
-
-    // Construct the panel
-    UIUtilities.addWithYSpace(pnlFilter, ltfStartingAndEndingZ.getContainer());
-    UIUtilities.addWithYSpace(pnlFilter, ltfLowPassRadiusSigma.getContainer());
-    UIUtilities.addWithYSpace(pnlFilter, pnlInverseFilter);
-    UIUtilities.addWithYSpace(pnlFilter, pnlFilterButtons);
-    UIUtilities.alignComponentsX(pnlFilter, Component.CENTER_ALIGNMENT);
+  private JPanel layoutFilterPanel() {
+    //panels
+    JPanel filterPanel = new JPanel();
+    filterPanel.setLayout(new BoxLayout(filterPanel, BoxLayout.Y_AXIS));
+    filterPanel.setBorder(BorderFactory.createEtchedBorder());
+    JPanel filterBodyPanel = new JPanel();
+    filterBodyPanel.setLayout(new BoxLayout(filterBodyPanel, BoxLayout.Y_AXIS));
+    inverseParamsPanel = new SpacedPanel(true);
+    inverseParamsPanel.setBoxLayout(BoxLayout.Y_AXIS);
+    inverseParamsPanel.setBorder(new EtchedBorder("Inverse Filtering Parameters: ").getBorder());
+    SpacedPanel mtfFilePanel = new SpacedPanel();
+    mtfFilePanel.setBoxLayout(BoxLayout.X_AXIS);
+    SpacedPanel inversePanel = new SpacedPanel();
+    inversePanel.setBoxLayout(BoxLayout.X_AXIS);
+    SpacedPanel buttonPanel = new SpacedPanel(true);
+    buttonPanel.setBoxLayout(BoxLayout.X_AXIS);
+    //header
+    filterHeader = new PanelHeader(axisID, this, "2D Filtering (optional)", filterBodyPanel, true);
+    //buttonPanel
+    buttonPanel.add(btnFilter);
+    buttonPanel.add(btnViewFilter);
+    buttonPanel.add(btnUseFilter);
+    //inversePanel
+    inversePanel.add(ltfMaximumInverse);
+    inversePanel.add(ltfInverseRolloffRadiusSigma);
+    //mtfFilePanel
+    mtfFilePanel.add(ltfMtfFile);
+    mtfFilePanel.add(btnMtfFile);
+    //inverseParamsPanel
+    inverseParamsPanel.add(mtfFilePanel);
+    inverseParamsPanel.add(inversePanel);
+    //filterBodyPanel
+    filterBodyPanel.add(Box.createRigidArea(FixedDim.x0_y5));
+    filterBodyPanel.add(ltfStartingAndEndingZ.getContainer());
+    filterBodyPanel.add(ltfLowPassRadiusSigma.getContainer());
+    filterBodyPanel.add(inverseParamsPanel.getContainer());
+    filterBodyPanel.add(buttonPanel.getContainer());
+    //filterPanel
+    filterPanel.add(filterHeader.getContainer());
+    filterPanel.add(filterBodyPanel);
+    //configure
+    filterHeader.setOpen(true);
+    ButtonHelper.setStandardSize(btnFilter);
+    ButtonHelper.setStandardSize(btnViewFilter);
+    ButtonHelper.setStandardSize(btnUseFilter);
+    return filterPanel;
   }
 
   /**
    * Layout the tilt panel
    */
-  private void layoutTiltPanel() {
-    //  output density subpanel
-    pnlDensityScaling.setLayout(new BoxLayout(pnlDensityScaling,
-        BoxLayout.X_AXIS));
-    pnlDensityScaling.add(ltfDensityScale.getContainer());
-    pnlDensityScaling.add(Box.createRigidArea(FixedDim.x5_y0));
-    pnlDensityScaling.add(ltfDensityOffset.getContainer());
-
-    //  slice first/last subpanel
-    pnlSlicesInY.setLayout(new BoxLayout(pnlSlicesInY, BoxLayout.X_AXIS));
-    UIUtilities.addWithXSpace(pnlSlicesInY, ltfSliceStart.getContainer());
-    UIUtilities.addWithXSpace(pnlSlicesInY, ltfSliceStop.getContainer());
-    pnlSlicesInY.add(lblInY);
-
-    //  offset subpanel
-    pnlOffset.setLayout(new BoxLayout(pnlOffset, BoxLayout.X_AXIS));
-    UIUtilities.addWithXSpace(pnlOffset, ltfXOffset.getContainer());
-    pnlOffset.add(ltfZOffset.getContainer());
-
-    // radial filter panel
-    pnlRadialFilter.setLayout(new BoxLayout(pnlRadialFilter, BoxLayout.X_AXIS));
-    UIUtilities.addWithXSpace(pnlRadialFilter, ltfRadialMax.getContainer());
-    pnlRadialFilter.add(ltfRadialFallOff.getContainer());
-
-    // Advanced sub panels there multiple panels because we need to intersperse
-    // the advanced parameters with the basic
-    pnlAdvanced1.setLayout(new BoxLayout(pnlAdvanced1, BoxLayout.Y_AXIS));
-    UIUtilities.addWithYSpace(pnlAdvanced1, ltfLogOffset.getContainer());
-    UIUtilities.addWithYSpace(pnlAdvanced1, pnlDensityScaling);
-    UIUtilities.addWithYSpace(pnlAdvanced1, ltfTomoWidth.getContainer());
-    UIUtilities.alignComponentsX(pnlAdvanced1, Component.LEFT_ALIGNMENT);
-
-    pnlAdvanced2.setLayout(new BoxLayout(pnlAdvanced2, BoxLayout.Y_AXIS));
-    UIUtilities.addWithYSpace(pnlAdvanced2, pnlSlicesInY);
-    UIUtilities.addWithYSpace(pnlAdvanced2, ltfSliceIncr.getContainer());
-    UIUtilities.addWithYSpace(pnlAdvanced2, pnlOffset);
-    UIUtilities.alignComponentsX(pnlAdvanced2, Component.LEFT_ALIGNMENT);
-
-    pnlAdvanced3.setLayout(new BoxLayout(pnlAdvanced3, BoxLayout.Y_AXIS));
-    UIUtilities.addWithYSpace(pnlAdvanced3, ltfTiltAngleOffset.getContainer());
-    UIUtilities.alignComponentsX(pnlAdvanced3, Component.LEFT_ALIGNMENT);
-
-    pnlTiltParams.setBorder(new EtchedBorder("Tilt Parameters").getBorder());
-    pnlTiltParams.setLayout(new BoxLayout(pnlTiltParams, BoxLayout.Y_AXIS));
-    pnlTiltParams.add(pnlAdvanced1);
-    UIUtilities.addWithYSpace(pnlTiltParams, ltfTomoThickness.getContainer());
-    pnlTiltParams.add(pnlAdvanced2);
-    UIUtilities.addWithYSpace(pnlTiltParams, ltfXAxisTilt.getContainer());
-    pnlTiltParams.add(pnlAdvanced3);
-    UIUtilities.addWithYSpace(pnlTiltParams, pnlRadialFilter);
-    UIUtilities.addWithYSpace(pnlTiltParams, ltfExtraExcludeList.getContainer());
-
-    SpacedPanel pnlOuter = new SpacedPanel(FixedDim.x70_y0);
-    pnlOuter.setLayout(new BoxLayout(pnlOuter.getContainer(),
-        BoxLayout.X_AXIS));
-    SpacedPanel pnlCheckBoxes = new SpacedPanel(FixedDim.x0_y10);
-    pnlCheckBoxes.setLayout(new BoxLayout(pnlCheckBoxes.getContainer(),
-        BoxLayout.Y_AXIS));
-    pnlCheckBoxes.add(cbBoxUseLocalAlignment);
-    pnlCheckBoxes.add(cbUseZFactors);
-    pnlOuter.add(pnlCheckBoxes);
-    cbParallelProcess.setAlignmentX(Component.RIGHT_ALIGNMENT);
-    if (EtomoDirector.getInstance().isNewstuff()) {
-      pnlOuter.add(cbParallelProcess);
-    }
-    pnlTiltParams.add(pnlOuter.getContainer());
-    
-    pnlTiltParams.add(pnlTrial);
-    UIUtilities.alignComponentsX(pnlTiltParams, Component.LEFT_ALIGNMENT);
+  private Container layoutTiltPanel() {
+    //panels
+    JPanel tiltPanel = new JPanel();
+    tiltPanel.setLayout(new BoxLayout(tiltPanel, BoxLayout.Y_AXIS));
+    tiltPanel.setBorder(BorderFactory.createEtchedBorder());
+    JPanel tiltBodyPanel = new JPanel();
+    tiltBodyPanel.setLayout(new BoxLayout(tiltBodyPanel, BoxLayout.Y_AXIS));
+    JPanel densityPanel = new JPanel();
+    densityPanel.setLayout(new BoxLayout(densityPanel, BoxLayout.X_AXIS));
+    JPanel slicesInYPanel = new JPanel();
+    slicesInYPanel.setLayout(new BoxLayout(slicesInYPanel, BoxLayout.X_AXIS));
+    JPanel offsetPanel = new JPanel();
+    offsetPanel.setLayout(new BoxLayout(offsetPanel, BoxLayout.X_AXIS));
+    JPanel radialPanel = new JPanel();
+    radialPanel.setLayout(new BoxLayout(radialPanel, BoxLayout.X_AXIS));
+    JPanel checkBoxPanel = new JPanel();
+    checkBoxPanel.setLayout(new BoxLayout(checkBoxPanel, BoxLayout.X_AXIS));
+    JPanel westCheckBoxPanel = new JPanel();
+    westCheckBoxPanel.setLayout(new BoxLayout(westCheckBoxPanel, BoxLayout.Y_AXIS));
+    SpacedPanel trialPanel = new SpacedPanel();
+    trialPanel.setBoxLayout(BoxLayout.X_AXIS);
+    SpacedPanel buttonPanel = new SpacedPanel(true);
+    buttonPanel.setBoxLayout(BoxLayout.X_AXIS);
+    //header
+    tiltHeader = new PanelHeader(axisID, this, "Tilt", tiltBodyPanel, true);
+    //buttonPanel
+    buttonPanel.add(btnTilt);
+    buttonPanel.add(btn3dmodTomogram);
+    buttonPanel.add(btnDeleteStacks);
+    buttonPanel.alignComponentsX(Component.LEFT_ALIGNMENT);
+    //trialPanel
+    trialPanel.add(layoutTrialPanel());
+    trialPanel.alignComponentsX(Component.LEFT_ALIGNMENT);
+    //westCheckBoxPanel
+    westCheckBoxPanel.add(cbBoxUseLocalAlignment);
+    westCheckBoxPanel.add(cbUseZFactors);
+    UIUtilities.alignComponentsX(westCheckBoxPanel, Component.LEFT_ALIGNMENT);
+    //checkBoxPanel
+    checkBoxPanel.add(westCheckBoxPanel);
+    checkBoxPanel.add(Box.createHorizontalStrut(125));
+    checkBoxPanel.add(cbParallelProcess);
+    UIUtilities.alignComponentsX(checkBoxPanel, Component.LEFT_ALIGNMENT);
+    //radialPanel
+    radialPanel.add(ltfRadialMax.getContainer());
+    radialPanel.add(ltfRadialFallOff.getContainer());
+    UIUtilities.alignComponentsX(radialPanel, Component.LEFT_ALIGNMENT);
+    //offsetPanel
+    offsetPanel.add(ltfXOffset.getContainer());
+    offsetPanel.add(ltfZOffset.getContainer());
+    UIUtilities.alignComponentsX(offsetPanel, Component.LEFT_ALIGNMENT);
+    //slicesInYPanel
+    slicesInYPanel.add(ltfSliceStart.getContainer());
+    slicesInYPanel.add(ltfSliceStop.getContainer());
+    slicesInYPanel.add(lblInY.getContainer());
+    UIUtilities.alignComponentsX(slicesInYPanel, Component.LEFT_ALIGNMENT);
+    //densityPanel
+    densityPanel.add(ltfDensityScale.getContainer());
+    densityPanel.add(ltfDensityOffset.getContainer());
+    UIUtilities.alignComponentsX(densityPanel, Component.LEFT_ALIGNMENT);
+    //tiltBodyPanel
+    tiltBodyPanel.add(Box.createRigidArea(FixedDim.x0_y5));
+    tiltBodyPanel.add(ltfLogOffset.getContainer());
+    tiltBodyPanel.add(densityPanel);
+    tiltBodyPanel.add(ltfTomoWidth.getContainer());
+    tiltBodyPanel.add(ltfTomoThickness.getContainer());
+    tiltBodyPanel.add(slicesInYPanel);
+    tiltBodyPanel.add(ltfSliceIncr.getContainer());
+    tiltBodyPanel.add(offsetPanel);
+    tiltBodyPanel.add(ltfXAxisTilt.getContainer());
+    tiltBodyPanel.add(ltfTiltAngleOffset.getContainer());
+    tiltBodyPanel.add(radialPanel);
+    tiltBodyPanel.add(ltfExtraExcludeList.getContainer());
+    tiltBodyPanel.add(checkBoxPanel);
+    tiltBodyPanel.add(trialPanel.getContainer());
+    tiltBodyPanel.add(buttonPanel.getContainer());
+    UIUtilities.alignComponentsX(tiltBodyPanel, Component.LEFT_ALIGNMENT);
+    //tiltPanel
+    tiltPanel.add(tiltHeader.getContainer());
+    tiltPanel.add(tiltBodyPanel);
+    UIUtilities.alignComponentsX(tiltPanel, Component.LEFT_ALIGNMENT);
+    //configure
+    tiltHeader.setOpen(true);
+    ButtonHelper.setStandardSize(btnTilt);
+    ButtonHelper.setStandardSize(btn3dmodTomogram);
+    ButtonHelper.setStandardSize(btnDeleteStacks);
+    return tiltPanel;
   }
 
   /**
    * Layout the trial tomogram panel
    */
-  private void layoutTrialPanel() {
-    // Filename subpanel
+  private JPanel layoutTrialPanel() {
+    //panels
+    trialPanel = new JPanel();
+    trialPanel.setLayout(new BoxLayout(trialPanel, BoxLayout.Y_AXIS));
+    trialPanel.setBorder(BorderFactory.createEtchedBorder());
+    SpacedPanel trialBodyPanel = new SpacedPanel();
+    trialBodyPanel.setBoxLayout(BoxLayout.Y_AXIS);
+    SpacedPanel northPanel = new SpacedPanel();
+    northPanel.setBoxLayout(BoxLayout.X_AXIS);
+    SpacedPanel buttonPanel = new SpacedPanel();
+    buttonPanel.setBoxLayout(BoxLayout.X_AXIS);
+    //header
+    trialHeader = new PanelHeader(axisID, this, "Trial Tilt", trialBodyPanel, false);
+    //buttonPanel
+    buttonPanel.add(btnTrial);
+    buttonPanel.add(btn3dmodTrial);
+    buttonPanel.add(btnUseTrial);
+    //northPanel
+    northPanel.add(lblTrialTomogramName);
+    northPanel.add(cmboTrialTomogramName);
+    //trialBodyPanel
+    trialBodyPanel.addRigidArea();
+    trialBodyPanel.add(northPanel);
+    trialBodyPanel.add(buttonPanel);
+    //trialPanel
+    trialPanel.add(trialHeader.getContainer());
+    trialPanel.add(trialBodyPanel.getContainer());
+    //configure
+    trialHeader.setOpen(true);
     cmboTrialTomogramName.setEditable(true);
-    pnlTrialTomogramName.setLayout(new BoxLayout(pnlTrialTomogramName,
-        BoxLayout.X_AXIS));
-    pnlTrialTomogramName.add(lblTrialTomogramName);
-    pnlTrialTomogramName.add(cmboTrialTomogramName);
-
-    //  Trial button subpanel
-    pnlTrialButtons.setLayout(new BoxLayout(pnlTrialButtons, BoxLayout.X_AXIS));
-    UIUtilities.addWithSpace(pnlTrialButtons, btnTrial, FixedDim.x5_y0);
-    UIUtilities.addWithSpace(pnlTrialButtons, btn3dmodTrial, FixedDim.x5_y0);
-    pnlTrialButtons.add(btnUseTrial);
-    UIUtilities.setButtonSizeAll(pnlTrialButtons, UIParameters.dimButton);
-
-    //  Construct the panel
-    pnlTrial.setLayout(new BoxLayout(pnlTrial, BoxLayout.Y_AXIS));
-    pnlTrial.setBorder(new EtchedBorder("Trial Mode").getBorder());
-    UIUtilities.addWithYSpace(pnlTrial, pnlTrialTomogramName);
-    UIUtilities.addWithYSpace(pnlTrial, pnlTrialButtons);
-    UIUtilities.alignComponentsX(pnlTrial, Component.CENTER_ALIGNMENT);
+    return trialPanel;
   }
 
   private void btnMtfFileAction(ActionEvent event) {
