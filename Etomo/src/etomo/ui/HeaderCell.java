@@ -22,6 +22,9 @@ import javax.swing.JPanel;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.2  2004/11/19 23:55:38  sueh
+* <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+* <p>
 * <p> Revision 1.1.2.4  2004/10/29 22:14:28  sueh
 * <p> bug# 520 Removed color settings.  They are unecessary, since the color
 * <p> is never changed.
@@ -73,6 +76,10 @@ class HeaderCell {
       size.width = width;
       cell.setPreferredSize(size);
     }
+  }
+  
+  void setBorderPainted(boolean borderPainted) {
+    cell.setBorderPainted(borderPainted);
   }
   
   void add(JPanel panel, GridBagLayout layout, GridBagConstraints constraints) {
