@@ -918,17 +918,15 @@ public class TiltalignPanel {
     pnlResidualThreshold.setBorder(new EtchedBorder("Residual Reporting")
         .getBorder());
     //top panel
-    SpacedPanel topResidualPanel = new SpacedPanel(FixedDim.x5_y0);
-    topResidualPanel.setLayout(new BoxLayout(topResidualPanel.getContainer(),
-        BoxLayout.X_AXIS));
+    SpacedPanel topResidualPanel = new SpacedPanel();
+    topResidualPanel.setBoxLayout(BoxLayout.X_AXIS);
     ltfResidualThreshold.setColumns(10);
     topResidualPanel.add(ltfResidualThreshold);
     topResidualPanel.add(new JLabel("s.d."));
     pnlResidualThreshold.add(topResidualPanel.getContainer());
     //bottom panel
-    SpacedPanel bottomResidualPanel = new SpacedPanel(FixedDim.x10_y0);
-    bottomResidualPanel.setLayout(new BoxLayout(bottomResidualPanel
-        .getContainer(), BoxLayout.X_AXIS));
+    SpacedPanel bottomResidualPanel = new SpacedPanel();
+    bottomResidualPanel.setBoxLayout(BoxLayout.X_AXIS);
     bottomResidualPanel.setComponentAlignmentX(Container.RIGHT_ALIGNMENT);
     bottomResidualPanel.add(new JLabel("Relative to"));
     //create radio button group
@@ -1242,9 +1240,8 @@ public class TiltalignPanel {
     panel.add(Box.createRigidArea(FixedDim.x5_y0));
     panel.add(buttonPanel);
     panel.add(Box.createRigidArea(FixedDim.x40_y0));
-    SpacedPanel fieldPanel = new SpacedPanel(FixedDim.x0_y5);
-    fieldPanel.setLayout(new BoxLayout(fieldPanel.getContainer(),
-        BoxLayout.Y_AXIS));
+    SpacedPanel fieldPanel = new SpacedPanel();
+    fieldPanel.setBoxLayout(BoxLayout.Y_AXIS);
     fieldPanel.add(field1);
     if (field2 != null) {
       fieldPanel.add(field2);
@@ -1528,6 +1525,10 @@ private void setToolTipText() {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.26  2005/06/14 23:07:19  sueh
+ * <p> bug# 687 Fixed setParameters(ConstTiltalignParam), which was setting
+ * <p> RotOptions with MagOptions.
+ * <p>
  * <p> Revision 3.25  2005/06/14 22:06:44  sueh
  * <p> bug# 681 Added advanced checkbox fixXYZCoordinates to General tab
  * <p> below Min # fiducials.

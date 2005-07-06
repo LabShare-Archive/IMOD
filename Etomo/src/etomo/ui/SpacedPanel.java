@@ -3,12 +3,17 @@ package etomo.ui;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
-import java.awt.LayoutManager;
 
-import javax.swing.AbstractButton;
 import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
+import javax.swing.JScrollPane;
 import javax.swing.border.Border;
 /**
 * <p>Description: A JPanel-like object that places rigid areas between 
@@ -28,6 +33,9 @@ import javax.swing.border.Border;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.5  2005/07/01 21:23:27  sueh
+* <p> bug# 619 Added getRootPanel() to return the JPanel in panel.
+* <p>
 * <p> Revision 1.4  2004/12/30 19:32:42  sueh
 * <p> bug# 567 Added setAlignmentX() to set alignment for the panel.
 * <p>
@@ -60,178 +68,286 @@ import javax.swing.border.Border;
 * <p> placing all components.
 * <p> </p>
 */
-public class SpacedPanel {
+final class SpacedPanel {
   public static  final String  rcsid =  "$Id$";
   
-  private static final int RIGID_AREA = -1;
-  public static final int HORIZONTAL_RIGID_AREA = -2;
-  public static final int VERTICAL_RIGID_AREA = -3;
-  public static final int HORIZONTAL_GLUE = -4;
+  private static final Dimension MULTI_LINE_BUTTON_DIM = UIParameters.getButtonDimension();
   
-
-  Dimension spacing = null;
-  boolean outerSpacing = false;
-  boolean spaceBefore = true;
-  FormattedPanel panel;
-  int numComponents = 0;
-  int spacingType;
+  private JPanel panel;
+  private JPanel innerPanel = null;
+  private JPanel outerPanel = null;
+  private boolean componentAdded = false;
+  private boolean layoutSet = false;
+  private boolean previousComponentWasSpaced = false;
+  private int axis;
+  private Float componentAlignmentX = null;
+  private StringBuffer xDescription = new StringBuffer();
+  private StringBuffer yDescription = new StringBuffer();
+  
+  SpacedPanel() {
+    this(false);
+  }
+  
+  SpacedPanel(boolean yAxisPadding) {
+    //panels
+    outerPanel = new JPanel();
+    outerPanel.setLayout(new BoxLayout(outerPanel, BoxLayout.Y_AXIS));
+    innerPanel = new JPanel();
+    innerPanel.setLayout(new BoxLayout(innerPanel, BoxLayout.X_AXIS));
+    panel = new JPanel();
+    //innerPanel
+    innerPanel.add(Box.createRigidArea(FixedDim.x5_y0));
+    xDescription.append("first FixedDim.x5_y0,");
+    innerPanel.add(panel);
+    innerPanel.add(Box.createRigidArea(FixedDim.x5_y0));
+    xDescription.append("last FixedDim.x5_y0,");
+    //outerPanel
+    if (yAxisPadding) {
+      outerPanel.add(Box.createRigidArea(FixedDim.x0_y5));
+    }
+    outerPanel.add(innerPanel);
+    outerPanel.add(Box.createRigidArea(FixedDim.x0_y5));
+    yDescription.append("last FixedDim.x0_y5,");
+  }
   
   public String toString() {
-    return getClass().getName() + "[" + paramString() + "]";
+    return ",axis="+axis+"\n,xDescription="+xDescription+"\n,yDescription="+yDescription;
+  }
+  
+  final void setBoxLayout(int axis) {
+    this.axis = axis;
+    panel.setLayout(new BoxLayout(panel, axis));
+    layoutSet = true;
+  }
+  
+  private final void addSpacing() {
+    if (!componentAdded) {
+      componentAdded = true;
+      return;
+    }
+    if (!layoutSet) {
+      return;
+    }
+    if (axis == BoxLayout.X_AXIS) {
+      panel.add(Box.createRigidArea(FixedDim.x5_y0));
+      xDescription.append("FixedDim.x5_y0,");
+    }
+    else if (axis == BoxLayout.Y_AXIS && !previousComponentWasSpaced) {
+      panel.add(Box.createRigidArea(FixedDim.x0_y5));
+      yDescription.append("FixedDim.x0_y5,");
+    }
+    if (previousComponentWasSpaced) {
+      previousComponentWasSpaced = false;
+    }
+  }
+  
+  final void add(SpacedPanel spacedPanel) {
+    addSpacing();
+    if (componentAlignmentX != null) {
+      spacedPanel.setComponentAlignmentX(componentAlignmentX.floatValue());
+    }
+    panel.add(spacedPanel.getContainer());
+    xDescription.append("SpacedPanel,");
+    yDescription.append("SpacedPanel,");
+    previousComponentWasSpaced = true;
+  }
+  
+  final void add(JScrollPane jScrollPane) {
+    addSpacing();
+    panel.add(jScrollPane);
+    xDescription.append("JScrollPane,");
+    yDescription.append("JScrollPane,");
+  }
+  
+  final void add(JPanel jPanel) {
+    addSpacing();
+    panel.add(jPanel);
+    xDescription.append("JPanel,");
+    yDescription.append("JPanel,");
+  }
+  
+  final void add(JComboBox jComboBox) {
+    addSpacing();
+    panel.add(jComboBox);
+    xDescription.append("JComboBox,");
+    yDescription.append("JComboBox,");
   }
 
-  protected String paramString() {
-    return "\n,spacing=" + spacing + ",\nouterSpacing="
-        + outerSpacing + ",\npanel=" + panel
-        + ",\nnumComponents=" + numComponents;
-  } 
-  
-  SpacedPanel(Dimension spacing) {
-    this(spacing, false);
+  final void add(LabeledTextField labeledTextField) {
+    addSpacing();
+    if (componentAlignmentX != null) {
+      labeledTextField.setAlignmentX(componentAlignmentX.floatValue());
+    }
+    panel.add(labeledTextField.getContainer());
+    xDescription.append("LabeledTextField,");
+    yDescription.append("LabeledTextField,");
   }
   
-  SpacedPanel(int spacingType, boolean outerSpacing) {
-    this.spacingType = spacingType;
-    this.outerSpacing = outerSpacing;
-    panel = new FormattedPanel();
-    switch (spacingType) {
-    case HORIZONTAL_RIGID_AREA:
-      spacing = FixedDim.x5_y0;
-      break;
-    case VERTICAL_RIGID_AREA:
-      spacing = FixedDim.x0_y5;
-      break;
+  final void add(JLabel jLabel) {
+    addSpacing();
+    if (componentAlignmentX != null) {
+      jLabel.setAlignmentX(componentAlignmentX.floatValue());
+    }
+    panel.add(jLabel);
+    xDescription.append("JLabel,");
+    yDescription.append("JLabel,");
+  }
+  
+  final void add(JRadioButton jRadioButton) {
+    addSpacing();
+    if (componentAlignmentX != null) {
+      jRadioButton.setAlignmentX(componentAlignmentX.floatValue());
+    }
+    panel.add(jRadioButton);
+    xDescription.append("JRadioButton,");
+    yDescription.append("JRadioButton,");
+  }
+  
+  final void add(JCheckBox jCheckBox) {
+    addSpacing();
+    if (componentAlignmentX != null) {
+      jCheckBox.setAlignmentX(componentAlignmentX.floatValue());
+    }
+    panel.add(jCheckBox);
+    xDescription.append("JCheckBox,");
+    yDescription.append("JCheckBox,");
+  }
+  
+  final void add(SpacedTextField spacedTextField) {
+    addSpacing();
+    if (componentAlignmentX != null) {
+      spacedTextField.setAlignmentX(componentAlignmentX.floatValue());
+    }
+    panel.add(spacedTextField.getContainer());
+    xDescription.append("SpacedTextField,");
+    yDescription.append("SpacedTextField,");
+    previousComponentWasSpaced = true;
+  }
+  
+  final void add(PanelHeader panelHeader) {
+    addSpacing();
+    panel.add(panelHeader.getContainer());
+    xDescription.append("PanelHeader,");
+    yDescription.append("PanelHeader,");
+  }
+  
+  final void add(LabeledSpinner labeledSpinner) {
+    addSpacing();
+    if (componentAlignmentX != null) {
+      labeledSpinner.setAlignmentX(componentAlignmentX.floatValue());
+    }
+    panel.add(labeledSpinner.getContainer());
+    xDescription.append("LabeledSpinner,");
+    yDescription.append("LabeledSpinner,");
+  }
+  
+  final void add(MultiLineButton multiLineButton) {
+    addSpacing();
+    ButtonHelper.setStandardSize(multiLineButton);
+    if (componentAlignmentX != null) {
+      multiLineButton.setAlignmentX(componentAlignmentX.floatValue());
+    }
+    panel.add(multiLineButton);
+    xDescription.append("MultiLineButton,");
+    yDescription.append("MultiLineButton,");
+  }
+  
+  final void add(MultiLineToggleButton multiLineToggleButton) {
+    addSpacing();
+    ButtonHelper.setStandardSize(multiLineToggleButton);
+    if (componentAlignmentX != null) {
+      multiLineToggleButton.setAlignmentX(componentAlignmentX.floatValue());
+    }
+    panel.add(multiLineToggleButton);
+    xDescription.append("MultiLineToggleButton,");
+    yDescription.append("MultiLineToggleButton,");
+  }
+  
+  final void add(JButton button) {
+    addSpacing();
+    if (componentAlignmentX != null) {
+      button.setAlignmentX(componentAlignmentX.floatValue());
+    }
+    panel.add(button);
+    xDescription.append("JButton,");
+    yDescription.append("JButton,");
+  }
+  
+  final void addHorizontalGlue() {
+    panel.add(Box.createHorizontalGlue());
+    xDescription.append("HorizontalGlue,");
+  }
+  
+  final void addRigidArea() {
+    if (axis == BoxLayout.X_AXIS) {
+      panel.add(Box.createRigidArea(FixedDim.x5_y0));
+      xDescription.append("FixedDim.x5_y0,");
+    }
+    else if (axis == BoxLayout.Y_AXIS) {
+      panel.add(Box.createRigidArea(FixedDim.x0_y5));
+      yDescription.append("FixedDim.x0_y5,");
     }
   }
   
-  SpacedPanel(Dimension spacing, boolean outerSpacing) {
-    this(spacing, outerSpacing, true);
-  }
-  
-  SpacedPanel(Dimension spacing, boolean outerSpacing, boolean spaceBefore) {
-    this.spacing = spacing;
-    this.outerSpacing = outerSpacing;
-    this.spaceBefore = spaceBefore;
-    this.spacingType = RIGID_AREA;
-    panel = new FormattedPanel();
-  }
-  
-  Component add(JComponent comp) {
-    return add(comp, true);
-  }
-  
-  Component add(JComponent comp, boolean spaceAfter) {
-    numComponents++;
-    addSpacingBefore();
-    Component component = panel.add(comp);
-    addSpacingAfter(spaceAfter);
-    return component;
-  }
-  
-  Component add(FormattedPanel formattedPanel) {
-    numComponents++;
-    addSpacingBefore();
-    Component component = panel.add(formattedPanel);
-    addSpacingAfter(true);
-    return component;
-  }
-  
-  Component add(SpacedPanel spacedPanel) {
-    numComponents++;
-    addSpacingBefore();
-    Component component = panel.add(spacedPanel);
-    addSpacingAfter(true);
-    return component;
-  }
-  
-  Component add(DoubleSpacedPanel doubleSpacedPanel) {
-    numComponents++;
-    addSpacingBefore();
-    Component component = panel.add(doubleSpacedPanel);
-    addSpacingAfter(true);
-    return component;
-  }
-  
-  Component add(LabeledTextField field) {
-    numComponents++;
-    addSpacingBefore();
-    Component component = panel.add(field);
-    addSpacingAfter(true);
-    return component;
-  }
-  
-  Component add(LabeledSpinner spinner) {
-    numComponents++;
-    addSpacingBefore();
-    Component component = panel.add(spinner);
-    addSpacingAfter(true);
-    return component;
-  }
-  
-  Component addMultiLineButton(AbstractButton button) {
-    numComponents++;
-    addSpacingBefore();
-    Component component = panel.addMultiLineButton(button);
-    addSpacingAfter(true);
-    return component;
-  }
-  
-  private void addSpacingBefore() {
-    if ((outerSpacing && numComponents == 1 && spaceBefore)
-        || (!outerSpacing && numComponents > 1)) {
-      addSpacing();
-    }
-  }
-  
-  private void addSpacingAfter(boolean spaceAfter) {
-    if (spaceAfter && outerSpacing) {
-      addSpacing();
-    }
-  }
-  
-  private void addSpacing() {
-    switch (spacingType) {
-    case RIGID_AREA:
-    case HORIZONTAL_RIGID_AREA:
-    case VERTICAL_RIGID_AREA:
-      panel.add(Box.createRigidArea(spacing));
-      break;
-    case HORIZONTAL_GLUE:
-      panel.addHorizontalGlue();
-      break;
-    }
-  }
-  
-  void removeAll() {
-    numComponents = 0;
+  final void removeAll() {
+    componentAdded = false;
     panel.removeAll();
   }
   
-  void setLayout(LayoutManager mgr) {
-    panel.setLayout(mgr);
+  final void setComponentAlignmentX(float componentAlignmentX) {
+    this.componentAlignmentX = new Float(componentAlignmentX);
   }
   
-  void setBorder(Border border) {
-    panel.setBorder(border);
+  final void alignComponentsX(float alignment) {
+    alignComponentsX(outerPanel, alignment);
+    alignComponentsX(innerPanel, alignment);
+    alignComponentsX(panel, alignment);
   }
   
-  void setAlignmentX(float alignmentX) {
+  private final void alignComponentsX(JPanel panel, float alignment) {
+    if (panel == null) {
+      return;
+    }
+    Component[] children = panel.getComponents();
+    for (int i = 0; i < children.length; i++) {
+      if (children[i] instanceof JComponent) {
+        JComponent jcomp = (JComponent) children[i];
+        jcomp.setAlignmentX(alignment);
+      }
+    }
+  }
+
+
+  
+  final Container getContainer() {
+    if (outerPanel != null) {
+      return outerPanel;
+    }
+    if (innerPanel != null) {
+      return innerPanel;
+    }
+    return panel;
+  }
+  
+  final JPanel getJPanel() {
+    return (JPanel) getContainer();
+  }
+  
+  final void setAlignmentX(float alignmentX) {
+    if (outerPanel != null) {
+      outerPanel.setAlignmentX(alignmentX);
+    }
+    if (innerPanel != null) {
+      innerPanel.setAlignmentX(alignmentX);
+    }
     panel.setAlignmentX(alignmentX);
   }
   
-  void setComponentAlignmentX(float alignmentX) {
-    panel.setComponentAlignmentX(alignmentX);
+  final void setBorder(Border border) {
+    panel.setBorder(border);
   }
   
-  public void resetComponentAlignmentX() {
-    panel.resetComponentAlignmentX();
-  }
-  
-  public Container getContainer() {
-    return panel.getContainer();
-  }
-  
-  public JPanel getRootPanel() {
-    return panel.getRootPanel();
+  final void setVisible(boolean visible) {
+    getContainer().setVisible(visible);
   }
 }

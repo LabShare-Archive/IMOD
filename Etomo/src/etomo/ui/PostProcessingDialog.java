@@ -68,12 +68,12 @@ public class PostProcessingDialog
   }
   
   private Container createSqueezeVolPanel() {
-    SpacedPanel squeezeVolPanel = new SpacedPanel(FixedDim.x0_y5, true, false);
-    squeezeVolPanel.setLayout(new BoxLayout(squeezeVolPanel.getContainer(), BoxLayout.Y_AXIS));
+    SpacedPanel squeezeVolPanel = new SpacedPanel();
+    squeezeVolPanel.setBoxLayout(BoxLayout.Y_AXIS);
     squeezeVolPanel.setBorder(new BeveledBorder("Squeeze Volume").getBorder());
     //first component
-    SpacedPanel squeezeVolPanel1 = new SpacedPanel(FixedDim.x5_y0);
-    squeezeVolPanel1.setLayout(new BoxLayout(squeezeVolPanel1.getContainer(), BoxLayout.X_AXIS));
+    SpacedPanel squeezeVolPanel1 = new SpacedPanel();
+    squeezeVolPanel1.setBoxLayout(BoxLayout.X_AXIS);
     ltfReductionFactorXY = new LabeledTextField("Reduction factor in X and Y ");
     squeezeVolPanel1.add(ltfReductionFactorXY);
     ltfReductionFactorZ = new LabeledTextField("in Z ");
@@ -84,16 +84,16 @@ public class PostProcessingDialog
     cbLinearInterpolation.setAlignmentX(Component.RIGHT_ALIGNMENT);
     squeezeVolPanel.add(cbLinearInterpolation);
     //third component
-    SpacedPanel squeezeVolPanel2 = new SpacedPanel(SpacedPanel.HORIZONTAL_GLUE, true);
-    squeezeVolPanel2.setLayout(new BoxLayout(squeezeVolPanel2.getContainer(), BoxLayout.X_AXIS));
+    SpacedPanel squeezeVolPanel2 = new SpacedPanel();
+    squeezeVolPanel2.setBoxLayout(BoxLayout.X_AXIS);
     btnSqueezeVolume = new MultiLineToggleButton("Squeeze Volume");
     btnSqueezeVolume.addActionListener(actionListener);
-    squeezeVolPanel2.addMultiLineButton(btnSqueezeVolume);
+    squeezeVolPanel2.add(btnSqueezeVolume);
+    squeezeVolPanel2.addHorizontalGlue();
     btnImodSqueezedVolume = new MultiLineButton("Open Squeezed Volume in 3dmod");
     btnImodSqueezedVolume.addActionListener(actionListener);
-    squeezeVolPanel2.addMultiLineButton(btnImodSqueezedVolume);
+    squeezeVolPanel2.add(btnImodSqueezedVolume);
     squeezeVolPanel.add(squeezeVolPanel2);
-    
     return squeezeVolPanel.getContainer();
   }
   
@@ -267,6 +267,10 @@ public class PostProcessingDialog
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.17  2005/04/21 20:45:54  sueh
+ * <p> bug# 615 Pass axisID to packMainWindow so it can pack only the frame
+ * <p> that requires it.
+ * <p>
  * <p> Revision 3.16  2005/04/16 02:00:52  sueh
  * <p> bug# 615 Moved the adding of exit buttons to the base class.
  * <p>

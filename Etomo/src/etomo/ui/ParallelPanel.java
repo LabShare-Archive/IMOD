@@ -30,7 +30,7 @@ import etomo.type.DialogType;
 final class ParallelPanel {
   public static final String rcsid = "$Id$";
 
-  private SpacedPanel rootPanel = new SpacedPanel(FixedDim.x10_y0, true);
+  private SpacedPanel rootPanel = new SpacedPanel();
   private ProcessorTable processorTable = new ProcessorTable(this);
   private MultiLineButton btnSplit = new MultiLineButton(
       "Save & Split Command Files");
@@ -54,37 +54,36 @@ final class ParallelPanel {
     btnKill.addActionListener(actionListener);
     btnResume.addActionListener(actionListener);
     //panels and panes
-    rootPanel.setLayout(new BoxLayout(rootPanel.getContainer(), BoxLayout.X_AXIS));
-    SpacedPanel eastPanel = new SpacedPanel(FixedDim.x0_y10, true);
-    eastPanel.setLayout(new BoxLayout(eastPanel.getContainer(), BoxLayout.Y_AXIS));
-    SpacedPanel westPanel = new SpacedPanel(FixedDim.x0_y10);
-    westPanel.setLayout(new BoxLayout(westPanel.getContainer(), BoxLayout.Y_AXIS));
-    SpacedPanel centerEastPanel = new SpacedPanel(FixedDim.x0_y10);
-    centerEastPanel.setLayout(new BoxLayout(centerEastPanel.getContainer(),
-        BoxLayout.Y_AXIS));
-    JScrollPane scrollPane = new JScrollPane(centerEastPanel.getContainer());
-    SpacedPanel southEastPanel = new SpacedPanel(FixedDim.x10_y0);
-    southEastPanel.setLayout(new BoxLayout(southEastPanel.getContainer(), BoxLayout.X_AXIS));
-    //southEastPanel
-    southEastPanel.addMultiLineButton(btnSplit);
-    southEastPanel.addMultiLineButton(btnStart);
-    southEastPanel.addMultiLineButton(btnResume);
-    southEastPanel.addMultiLineButton(btnSaveDefaults);
-    //centerEastPanel
-    centerEastPanel.add(processorTable.getRootPanel());
-    //westPanel
-    westPanel.add(ltfChunksFinished);
-    westPanel.add(ltfCpusSelected);
-    westPanel.addMultiLineButton(btnKill);
+    rootPanel.setBoxLayout(BoxLayout.X_AXIS);
+    SpacedPanel westPanel = new SpacedPanel();
+    westPanel.setBoxLayout(BoxLayout.Y_AXIS);
+    SpacedPanel eastPanel = new SpacedPanel();
+    eastPanel.setBoxLayout(BoxLayout.Y_AXIS);
+    SpacedPanel centerWestPanel = new SpacedPanel();
+    centerWestPanel.setBoxLayout(BoxLayout.Y_AXIS);
+    JScrollPane scrollPane = new JScrollPane(centerWestPanel.getContainer());
+    SpacedPanel southWestPanel = new SpacedPanel();
+    southWestPanel.setBoxLayout(BoxLayout.X_AXIS);
+    //southWestPanel
+    southWestPanel.add(btnSplit);
+    southWestPanel.add(btnStart);
+    southWestPanel.add(btnResume);
+    southWestPanel.add(btnSaveDefaults);
+    //centerWestPanel
+    centerWestPanel.add(processorTable.getRootPanel());
     //eastPanel
+    eastPanel.add(ltfChunksFinished);
+    eastPanel.add(ltfCpusSelected);
+    eastPanel.add(btnKill);
+    //westPanel
     JLabel label = new JLabel("Processor Table");
     label.setAlignmentX(Component.CENTER_ALIGNMENT);
-    eastPanel.add(label);
-    eastPanel.add(scrollPane);
-    eastPanel.add(southEastPanel);
+    westPanel.add(label);
+    westPanel.add(scrollPane);
+    westPanel.add(southWestPanel);
     //rootPanel
-    rootPanel.add(eastPanel);
     rootPanel.add(westPanel);
+    rootPanel.add(eastPanel);
     //configure fields
     btnStart.setEnabled(false);
     btnResume.setEnabled(false);
@@ -109,7 +108,7 @@ final class ParallelPanel {
   }
 
   Container getRootPanel() {
-    return rootPanel.getRootPanel();
+    return rootPanel.getContainer();
   }
 
   private void performAction(ActionEvent event) {
@@ -164,6 +163,9 @@ final class ParallelPanel {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.2  2005/07/01 23:04:26  sueh
+ * <p> bug# 619 removed parent dialog from constructor
+ * <p>
  * <p> Revision 1.1  2005/07/01 21:21:23  sueh
  * <p> bug# 619 Panel containing parallel processing
  * <p> </p>

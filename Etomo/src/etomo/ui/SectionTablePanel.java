@@ -51,6 +51,10 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.9  2005/06/20 16:55:55  sueh
+* <p> bug# 522 Made MRCHeader an n'ton.  Getting instance instead of
+* <p> constructing in addSection().
+* <p>
 * <p> Revision 1.8  2005/06/16 21:20:56  sueh
 * <p> bug# 614 Fixed 3dmod button name.
 * <p>
@@ -233,7 +237,7 @@ public class SectionTablePanel implements ContextMenu, Expandable {
   "in order to be in the right orientation for joining serial sections." };
 
   private JPanel rootPanel;
-  private DoubleSpacedPanel pnlBorder;
+  private SpacedPanel pnlBorder;
   private JPanel pnlTable;
   private SpacedPanel pnlButtons;
   private SpacedPanel pnlImod;
@@ -305,8 +309,9 @@ public class SectionTablePanel implements ContextMenu, Expandable {
     this.curTab = curTab;
     //create root panel
     rootPanel = new JPanel();
-    pnlBorder = new DoubleSpacedPanel(false, FixedDim.x5_y0, FixedDim.x0_y5,
-        BorderFactory.createEtchedBorder());
+    pnlBorder = new SpacedPanel();
+    pnlBorder.setBoxLayout(BoxLayout.Y_AXIS);
+    pnlBorder.setBorder(BorderFactory.createEtchedBorder());
     createTablePanel();
     addTablePanelComponents();
     createButtonsPanel();
@@ -508,13 +513,11 @@ public class SectionTablePanel implements ContextMenu, Expandable {
 
 
   private void createButtonsPanel() {
-    pnlButtons = new SpacedPanel(FixedDim.x5_y0);
-    pnlButtons.setLayout(new BoxLayout(pnlButtons.getContainer(),
-        BoxLayout.X_AXIS));
+    pnlButtons = new SpacedPanel();
+    pnlButtons.setBoxLayout(BoxLayout.X_AXIS);
     //first component
-    pnlButtonsComponent1 = new SpacedPanel(FixedDim.x0_y5);
-    pnlButtonsComponent1
-        .setLayout(new BoxLayout(pnlButtonsComponent1.getContainer(), BoxLayout.Y_AXIS));
+    pnlButtonsComponent1 = new SpacedPanel();
+    pnlButtonsComponent1.setBoxLayout(BoxLayout.Y_AXIS);
     btnMoveSectionUp = new MultiLineButton("Move Section Up");
     UIUtilities.setButtonSize(btnMoveSectionUp, buttonDimension, true);
     btnMoveSectionUp.addActionListener(sectionTableActionListener);
@@ -525,9 +528,8 @@ public class SectionTablePanel implements ContextMenu, Expandable {
     pnlButtonsComponent1.add(btnAddSection);
     UIUtilities.setButtonSizeAll(pnlButtonsComponent1.getContainer(), buttonDimension);
     //second component
-    pnlButtonsComponent2 = new SpacedPanel(FixedDim.x0_y5);
-    pnlButtonsComponent2.setLayout(new BoxLayout(pnlButtonsComponent2.getContainer(),
-        BoxLayout.Y_AXIS));
+    pnlButtonsComponent2 = new SpacedPanel();
+    pnlButtonsComponent2.setBoxLayout(BoxLayout.Y_AXIS);
     btnMoveSectionDown = new MultiLineButton("Move Section Down");
     UIUtilities.setButtonSize(btnMoveSectionDown, buttonDimension, true);
     btnMoveSectionDown.addActionListener(sectionTableActionListener);
