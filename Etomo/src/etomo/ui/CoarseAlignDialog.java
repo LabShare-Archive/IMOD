@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.20  2005/04/22 00:16:59  sueh
+ * <p> bug# 615 Removed unnecessary imports.
+ * <p>
  * <p> Revision 3.19  2005/04/22 00:14:25  sueh
  * <p> bug# 615 removed test raised beveled button.
  * <p>
@@ -204,11 +207,11 @@ public class CoarseAlignDialog extends ProcessDialog
     UIUtilities
       .addWithSpace(pnlCoarseAlign, btnCrossCorrelate, FixedDim.x0_y10);
     if (metaData.getViewType() == ViewType.MONTAGE) {
-      SpacedPanel pnlFixEdges = new SpacedPanel(FixedDim.x0_y10);
-      pnlFixEdges.setLayout(new BoxLayout(pnlFixEdges.getContainer(), BoxLayout.Y_AXIS));
+      SpacedPanel pnlFixEdges = new SpacedPanel();
+      pnlFixEdges.setBoxLayout(BoxLayout.Y_AXIS);
       pnlFixEdges.setBorder(new EtchedBorder("Fix Edges").getBorder());
-      pnlFixEdges.addMultiLineButton(btnDistortionCorrectedStack);
-      pnlFixEdges.addMultiLineButton(btnFixEdgesMidas);
+      pnlFixEdges.add(btnDistortionCorrectedStack);
+      pnlFixEdges.add(btnFixEdgesMidas);
       pnlCoarseAlign.add(pnlFixEdges.getContainer());
       if (!metaData.isDistortionCorrection()) {
         btnDistortionCorrectedStack.setEnabled(false);

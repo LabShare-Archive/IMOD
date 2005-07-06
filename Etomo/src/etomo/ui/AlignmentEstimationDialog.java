@@ -31,6 +31,13 @@ import etomo.type.DialogType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.11  2005/06/11 02:47:25  sueh
+ * <p> bug# 583, bug# 682, bug# 679  Moved binning calculation to
+ * <p> ApplicationManager.  Upgraded align.com and tilt.com to have all
+ * <p> unbinned parameters and a binning value.  Fixed potential divide by 0
+ * <p> errors and incorrect binning calculation errors in Fine Align.  Removed
+ * <p> function: setPrealignedBinning.
+ * <p>
  * <p> Revision 3.10  2005/04/21 20:31:25  sueh
  * <p> bug# 615 Pass axisID to packMainWindow so it can pack only the frame
  * <p> that requires it.
@@ -232,17 +239,14 @@ public class AlignmentEstimationDialog extends ProcessDialog
     btnView3DModel.setPreferredSize(dimButton);
     btnView3DModel.setMaximumSize(dimButton);
     
-    SpacedPanel topButtonPanel = new SpacedPanel(FixedDim.x10_y0);
-    topButtonPanel.setLayout(new BoxLayout(topButtonPanel.getContainer(),
-        BoxLayout.X_AXIS));
+    SpacedPanel topButtonPanel = new SpacedPanel();
+    topButtonPanel.setBoxLayout(BoxLayout.X_AXIS);
     topButtonPanel.add(btnComputeAlignment);
-    //panelButton.add(Box.createRigidArea(FixedDim.x10_y0));
     topButtonPanel.add(btnImod);
     panelButton.add(topButtonPanel.getContainer());
     panelButton.add(Box.createRigidArea(FixedDim.x0_y10));
-    SpacedPanel bottomButtonPanel = new SpacedPanel(FixedDim.x10_y0);
-    bottomButtonPanel.setLayout(new BoxLayout(bottomButtonPanel.getContainer(),
-        BoxLayout.X_AXIS));
+    SpacedPanel bottomButtonPanel = new SpacedPanel();
+    bottomButtonPanel.setBoxLayout(BoxLayout.X_AXIS);
     bottomButtonPanel.add(btnView3DModel);
     //panelButton.add(Box.createRigidArea(FixedDim.x10_y0));
     bottomButtonPanel.add(btnViewResiduals);
