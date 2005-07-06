@@ -1,7 +1,6 @@
 package etomo.ui;
 
 import javax.swing.JButton;
-import javax.swing.Action;
 import javax.swing.Icon;
 import javax.swing.plaf.ColorUIResource;
 
@@ -22,6 +21,9 @@ import java.lang.String;
 * @version $Revision$
 *
 * <p> $Log$
+* <p> Revision 3.2  2004/11/19 23:59:12  sueh
+* <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+* <p>
 * <p> Revision 3.1.4.1  2004/09/17 21:37:56  sueh
 * <p> bug# 520 getDefaultUIColor() was moved to UIUtilities
 * <p>
@@ -55,17 +57,8 @@ public class MultiLineButton extends JButton {
     this(null, null);
   }
 
-  public MultiLineButton(Icon icon) {
-    this(null, icon);
-  }
-
   public MultiLineButton(String text) {
     this(text, null);
-  }
-
-  public MultiLineButton(Action a) {
-    super(a);
-    init();
   }
 
   public MultiLineButton(String text, Icon icon) {
@@ -100,7 +93,7 @@ public class MultiLineButton extends JButton {
   protected void init(String text, Icon icon) {
     super.init(ButtonHelper.format(text), icon);
   }
-
+  
   //private implementation
 
   private static ColorUIResource enabledTextColor = null;
