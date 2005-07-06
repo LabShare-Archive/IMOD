@@ -12,6 +12,9 @@
 * @version $Revision$
 *
 * <p> $Log$
+* <p> Revision 3.4  2005/05/18 22:36:28  sueh
+* <p> bug# 662 In format(), handling a null text parameter.
+* <p>
 * <p> Revision 3.3  2004/11/19 23:48:32  sueh
 * <p> *** empty log message ***
 * <p>
@@ -38,7 +41,10 @@
 
 package etomo.ui;
 
+import java.awt.Dimension;
 import java.lang.String;
+
+import javax.swing.AbstractButton;
 import javax.swing.UIManager;
 
 /**
@@ -49,6 +55,8 @@ import javax.swing.UIManager;
  */
 public class ButtonHelper {
   public static final String rcsid = "$$Id$$";
+  
+  static final Dimension MULTI_LINE_BUTTON_DIM = UIParameters.getButtonDimension();
 
   public static String format(String text) {
     if (text == null) {
@@ -59,6 +67,12 @@ public class ButtonHelper {
     }
     text = "<html><b>".concat(text).concat("</b>");
     return text;
+  }
+  
+  final static void setStandardSize(AbstractButton button) {
+    button.setPreferredSize(ButtonHelper.MULTI_LINE_BUTTON_DIM);
+    button.setMaximumSize(ButtonHelper.MULTI_LINE_BUTTON_DIM);
+    button.setMinimumSize(ButtonHelper.MULTI_LINE_BUTTON_DIM);
   }
 
   /**
