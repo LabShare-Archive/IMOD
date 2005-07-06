@@ -173,15 +173,8 @@ echo "NOOPFFLAGS = $fflags -O0" >> $configure
 echo "LIBCFLAGS  = $libflags $cflags" >> $configure
 echo "LIBFFLAGS  = $libflags $fflags" >> $configure
 
+# 7/6/05: took out the fallbacks; no longer needed on SGI
 #
-#
-#  The fallbacks need to be defined because of problems with n32 code on the
-#  SGI; just define them the same as non-fallback versions.
-#
-echo "CFALLBACK  = $cflags" >> $configure
-echo "FFALLBACK  = $fflags" >> $configure
-echo 'LDFALLBACK = $(LDFLAGS)'       >> $configure
-echo 'NOOPFFALLBACK = $(NOOPFFLAGS)' >> $configure
 
 if ($m64bit == true) then
     # If 64-bit, use fortran routines for tilt
