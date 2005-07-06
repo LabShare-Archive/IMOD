@@ -6,17 +6,7 @@
 # ("BL3DEMC", formerly "BL3DFS")
 # and the Regents of the University of Colorado.
 #
-# BL3DEMC reserves the exclusive rights of preparing derivative works,
-# distributing copies for sale, lease or lending and dispalying this
-# software and documentation.
-# Users may reproduce the software and documentation as long as the
-# copyright notice and other notices are preserved.
-# Neither the software nor the documentation may be distributed for
-# profit, either in original form or in derivative works.
-#
-# THIS SOFTWARE AND/OR DOCUMENTATION IS PROVIDED WITH NO WARRANTY,
-# EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTY OF
-# MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.
+# See dist/COPYRIGHT for full copyright notice.
 #
 #############################################################################
 # BUILD AND INSTALLATION INSTRUCTIONS:
@@ -53,23 +43,35 @@
 # 4. "installqtlibs" to copy Qt library and install files to install directory
 #
 #
-# IRIX 6.5, MIXED OLD AND NEW 32-BIT CODE:
+# IRIX 6.5:
 #
-# 1. "setup -m irix6-32 -tiff -i [install directory]" 
+# A developer's version of Qt must be installed and on the path, QTDIR must be
+# set in the environment, and QTDIR/lib must be on LD_LIBRARYN32_PATH.
 #
-# 2. "make o32libs"     to make the old 32-bit libraries
+# 1. "setup -i [install directory]"
 #
-# 3. "make installo32libs"    to install the libraries
+# 2. "make"  to make all new 32-bit libraries and programs
 #
-# 4. "make cleanlibs"     to clean directories for new make
+# 3. "make install"
 #
-# 5. "setup -i [install directory]"
+# 4. "installqtlibs" to copy Qt library and install files to install directory
 #
-# 6. "make"  to make all new 32-bit libraries and programs
 #
-# 7. "make install"
+# BUILDING UNDER CYGWIN/WINDOWS WITH INTEL COMPILERS
 #
-# 8. "installqtlibs" to copy Qt library and install files to install directory
+# In addition to requirements listed above, this build requires Intel Fortran
+# and C++ compilers.  Instead of Cygwin libtiff-devel, it needs Tiff Binaries
+# from GnuWin32.
+#
+# 1. "setup -i [install directory]" to set the install directory.
+#
+# 2. "make" to make everything
+#
+# 3. "make install"
+#
+# In either case, if there are other users who do not have the build tools
+# on their path, run ./installqtlib to copy the Qt, Tiff, and Intel DLLs to
+# the install bin.
 #
 #
 # BUILDING UNDER CYGWIN/WINDOWS WITH Visual C++ ONLY
@@ -88,26 +90,10 @@
 # 3. In Visual C++, open the workspace libimod/libimod.dsw and build release
 #    versions of all three libraries
 #
-# 4. Open the workspace vcimod.dsw and build 3dmod, midas, and imodsendevent.
+# 4. Open the workspace vcimod.dsw and build 3dmod, midas, imodsendevent,
+#    imodqtassist and sourcedoc
 # 
 # 5. "make install"
-#
-#
-# BUILDING UNDER CYGWIN/WINDOWS WITH INTEL COMPILERS
-#
-# In addition to requirements listed above, this build requires Intel Fortran
-# and C++ compilers.  Instead of Cygwin libtiff-devel, it needs Tiff Binaries
-# from GnuWin32.
-#
-# 1. "setup -i [install directory]" to set the install directory.
-#
-# 2. "make" to make everything
-#
-# 3. "make install"
-#
-# In either case, if there are other users who do not have the build tools
-# on their path, run ./installqtlib to copy the Qt, Tiff, and Intel DLLs to
-# the install bin.
 #
 #
 # The install commands will build .1 and .html versions of all man pages and
@@ -307,31 +293,19 @@ clibs : configure
 	cd libdiaqt  ; $(MAKE) all
 	cd libcfft   ; $(MAKE) all
 
-libs : clibs
+libs : clibs 
 	cd flib; $(MAKE) $@
 
 #
-# Use these entries for old 32-bit build under irix to skip libdiaqt
+# These entries are no longer needed by the build script calls them
 #
-o32clibs : configure
-	cd libimod   ; $(MAKE) all
-	cd libiimod  ; $(MAKE) all
-	cd libcfft   ; $(MAKE) all
+o32libs : 
 
-o32libs : o32clibs
-	cd flib; $(MAKE) libs
+installo32libs : 
 
-installo32clibs : configure
-	cd libimod   ; $(MAKE) install
-	cd libiimod  ; $(MAKE) install
-	cd libcfft   ; $(MAKE) install
-
-installo32libs : installo32clibs
-	cd flib; $(MAKE) installlibs
-
-#CER
-#CER Shortcut for making FORTRAN libs only
-#CER
+#
+# Shortcut for making FORTRAN libs only
+#
 flibs: configure
 	cd flib; $(MAKE) libs
 
@@ -448,6 +422,9 @@ ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.52  2005/06/27 18:58:53  mast
+#  Fix cleanqt entry for sourcedoc
+#
 #  Revision 3.51  2005/05/12 00:31:50  mast
 #  Added 3dmodHelp and joinImages to src
 #
