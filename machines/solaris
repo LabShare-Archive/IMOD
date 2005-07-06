@@ -68,11 +68,6 @@ echo "CFLAGS  = $flags $optimization $defines $include_flags $c_includes" >> $co
 echo "FFLAGS  = $flags -erroff=WDECL_LOCAL_NOTUSED,WEXEC_EXIT,WSUB_NOT_SAFE $optimization  $include_flags" >> $configure
 echo "NOOPFFLAGS  = $flags -erroff=WDECL_LOCAL_NOTUSED $optimization  $include_flags -O0" >> $configure
 
-echo "CFALLBACK  = $flags $optimization $defines $include_flags" >> $configure
-echo "FFALLBACK  = $flags -erroff=WDECL_LOCAL_NOTUSED $optimization  $include_flags" >> $configure
-echo 'LDFALLBACK = $(LDFLAGS)'       >> $configure
-echo 'NOOPFFALLBACK = $(NOOPFFLAGS)' >> $configure
-
 # Pick whose floats the fortran code can swap
 if ($swap_ieee == true) then
     echo "#define SWAP_IEEE_FLOATS"                 >> $hconfigure
