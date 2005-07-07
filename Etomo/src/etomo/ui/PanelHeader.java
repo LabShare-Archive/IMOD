@@ -41,13 +41,15 @@ final class PanelHeader implements Expandable {
   private BaseManager manager = EtomoDirector.getInstance().getCurrentManager();
   private AxisID axisID;
   
-  PanelHeader(AxisID axisID, Expandable container, String title,
-      SpacedPanel openClosePanel, boolean useAdvancedBasic) {
-    this(axisID, container, title, openClosePanel.getJPanel(), useAdvancedBasic);
+  PanelHeader(AxisID axisID, String title, SpacedPanel openClosePanel) {
+    this(axisID, title, openClosePanel.getJPanel(), null);
   }
   
-  PanelHeader(AxisID axisID, Expandable container, String title,
-      JPanel openClosePanel, boolean useAdvancedBasic) {
+  PanelHeader(AxisID axisID, String title, SpacedPanel openClosePanel, Expandable container) {
+    this(axisID, title, openClosePanel.getJPanel(), container);
+  }
+  
+  PanelHeader(AxisID axisID, String title, JPanel openClosePanel, Expandable container) {
     this.openClosePanel = openClosePanel;
     this.axisID = axisID;
     //panels
@@ -69,7 +71,7 @@ final class PanelHeader implements Expandable {
       northPanel.add(btnOpenClose);
     }
     //title
-    if (!EtomoDirector.getInstance().isNewstuff() || !useAdvancedBasic) {
+    if (!EtomoDirector.getInstance().isNewstuff() || container == null) {
       constraints.gridwidth = GridBagConstraints.REMAINDER;
     }
     constraints.weightx = 1.0;
@@ -78,7 +80,7 @@ final class PanelHeader implements Expandable {
     cellTitle.setBorderPainted(false);
     cellTitle.add(northPanel, layout, constraints);
     //advanced/basic button
-    if (EtomoDirector.getInstance().isNewstuff() && useAdvancedBasic) {
+    if (EtomoDirector.getInstance().isNewstuff() && container != null) {
       constraints.weightx = 0.0;
       constraints.weighty = 0.0;
       constraints.gridwidth = GridBagConstraints.REMAINDER;
@@ -124,5 +126,17 @@ final class PanelHeader implements Expandable {
   }
 }
 /**
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2005/07/06 23:45:23  sueh
+* <p> bug# 437 Class to place a header panel on a JPanel.  The header panel
+* <p> uses the grid bag layout.  It can contain two buttons:  an open/close
+* <p> button whose functionality is encapsulated, and an advanced/basic
+* <p> button whose functionality is handled by a container which implements
+* <p> Expandable.  PanelHeader implements expandable for the open/close
+* <p> functionality.  Pass the panel to be made visible/invisible in the
+* <p> constructor for the open/close button to be displayed.  Construct the
+* <p> class with useAdvancedBasic to have an advanced/basic button
+* <p> displayed.  Since this class continues to function after it is placed in the
+* <p> dialog, it must not be sent to garbage collection until the dialog is gone.
+* <p> </p>
 */
