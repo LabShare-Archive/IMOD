@@ -52,7 +52,7 @@ import etomo.util.InvalidParameterException;
  * </p>
  * 
  * <p>
- * Copyright: Copyright (c) 2002
+ * Copyright: Copyright (c) 2002, 2003, 2004, 2005
  * </p>
  * 
  * <p>
@@ -66,6 +66,11 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.48  2005/07/07 00:00:30  sueh
+ * bug# 437 In PanelHeader: Removed unnecessary Constructor parameter
+ * useAdvancedBasic.  If the container is not passed then the
+ * advanced/basic button with not be used.
+ *
  * Revision 3.47  2005/07/06 23:51:57  sueh
  * bug# 437 Rewrote the layout functions to include panel headers in a
  * standard way.  Rewrote setAdvanced().  Added individual setAdvanced
@@ -380,9 +385,14 @@ import etomo.util.InvalidParameterException;
 public class TomogramGenerationDialog extends ProcessDialog
     implements
       ContextMenu,
-      FiducialessParams, Expandable {
+      FiducialessParams, Expandable, ParallelDialog {
   public static final String rcsid = "$Id$";
 
+  private  static final String RUN_TRIAL_BUTTON_TITLE = "Generate Trial Tomogram";
+  private  static final String START_TRIAL_BUTTON_TITLE = "Start Trial Tomogram Processes";
+  private  static final String RUN_TILT_BUTTON_TITLE = "Generate Tomogram";
+  private  static final String START_TILT_BUTTON_TITLE = "Start Tomogram Processes";
+  
   private JPanel pnlTilt = new JPanel();
 
   // Fiducialess parameters
@@ -431,8 +441,8 @@ public class TomogramGenerationDialog extends ProcessDialog
   private JLabel lblTrialTomogramName = new JLabel("Trial tomogram filename: ");
   private JComboBox cmboTrialTomogramName = new JComboBox();
   private Vector trialTomogramList = new Vector();
-  private MultiLineButton btnTrial = new MultiLineButton(
-      "<html><b>Generate Trial Tomogram</b>");
+  private MultiLineButton btnTrial = new MultiLineButton(RUN_TRIAL_BUTTON_TITLE);
+  private MultiLineToggleButton btnSplitTrial = new MultiLineToggleButton("Save & Split Trial Tilt");
   private MultiLineButton btn3dmodTrial = new MultiLineButton(
       "<html><b>View Trial in 3dmod</b>");
   private MultiLineToggleButton btnUseTrial = new MultiLineToggleButton(
@@ -459,8 +469,8 @@ public class TomogramGenerationDialog extends ProcessDialog
   boolean enableFiltering = false;
 
   //  Tomogram generation buttons
-  private MultiLineToggleButton btnTilt = new MultiLineToggleButton(
-      "<html><b>Generate Tomogram</b>");
+  private MultiLineToggleButton btnTilt = new MultiLineToggleButton(RUN_TILT_BUTTON_TITLE);
+  private MultiLineToggleButton btnSplitTilt = new MultiLineToggleButton("Save & Split Tilt");
   private MultiLineButton btn3dmodTomogram = new MultiLineButton(
       "<html><b>View Tomogram In 3dmod</b>");
   private MultiLineToggleButton btnDeleteStacks = new MultiLineToggleButton(
@@ -477,6 +487,7 @@ public class TomogramGenerationDialog extends ProcessDialog
   //panels that are changed in setAdvanced()
   private SpacedPanel inverseParamsPanel;
   private JPanel trialPanel;
+  private ParallelPanel parallelPanel;
 
   
   //backward compatibility functionality - if the metadata binning is missing
@@ -488,10 +499,11 @@ public class TomogramGenerationDialog extends ProcessDialog
     fixRootPanel(rootSize);
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     btnExecute.setText("Done");
-    
+    parallelPanel = new ParallelPanel(this, axisID);
     // Layout the main panel (and sub panels) and add it to the root panel
     pnlTilt.setBorder(new BeveledBorder("Tomogram Generation").getBorder());
     pnlTilt.setLayout(new BoxLayout(pnlTilt, BoxLayout.Y_AXIS));
+    UIUtilities.addWithYSpace(pnlTilt, parallelPanel.getRootPanel());
     UIUtilities.addWithYSpace(pnlTilt, layoutNewstPanel());
     UIUtilities.addWithYSpace(pnlTilt, layoutFilterPanel());
     UIUtilities.addWithYSpace(pnlTilt, layoutTiltPanel());
@@ -518,6 +530,8 @@ public class TomogramGenerationDialog extends ProcessDialog
         .addKeyListener(new StartingAndEndingZKeyListener(this));
     cbFiducialess.addActionListener(tomogramGenerationListener);
     cbParallelProcess.addActionListener(tomogramGenerationListener);
+    btnSplitTilt.addActionListener(tomogramGenerationListener);
+    btnSplitTrial.addActionListener(tomogramGenerationListener);
 
     //  Mouse adapter for context menu
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
@@ -894,19 +908,47 @@ public class TomogramGenerationDialog extends ProcessDialog
 
     applicationManager.packMainWindow(axisID);
   }
+  
+  public void signalTiltCompleted() {
+    parallelPanel.setEnabledResume(false);
+  }
+  
+  public void signalTiltError() {
+    parallelPanel.setEnabledResume(false);
+  }
+  
+  public void signalTiltKilled() {
+    parallelPanel.setEnabledResume(true);
+  }
+  
+  private void updateParallelProcess() {
+    boolean parallelProcess = cbParallelProcess.isSelected();
+    parallelPanel.setVisible(parallelProcess);
+    btnSplitTilt.setVisible(parallelProcess);
+    btnSplitTrial.setVisible(parallelProcess);
+    if (parallelProcess) {
+      btnTilt.setText(START_TILT_BUTTON_TITLE);
+      btnTrial.setText(START_TRIAL_BUTTON_TITLE);
+    }
+    else {
+      btnTilt.setText(RUN_TILT_BUTTON_TITLE);
+      btnTrial.setText(RUN_TRIAL_BUTTON_TITLE);
+    }
+    applicationManager.packMainWindow(axisID);
+  }
 
   /**
    * Layout the newstack panel
    */
-  private JPanel layoutNewstPanel() {//TODO
+  private JPanel layoutNewstPanel() {
     //panels
     JPanel newstPanel = new JPanel();
     newstPanel.setLayout(new BoxLayout(newstPanel, BoxLayout.Y_AXIS));
     newstPanel.setBorder(BorderFactory.createEtchedBorder());
     SpacedPanel newstBodyPanel = new SpacedPanel();
     newstBodyPanel.setBoxLayout(BoxLayout.Y_AXIS);
-    SpacedPanel buttonPanel = new SpacedPanel();
-    buttonPanel.setBoxLayout(BoxLayout.X_AXIS);
+    JPanel buttonPanel = new JPanel();
+    buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.X_AXIS));
     //header
     if (applicationManager.getMetaData().getViewType() == ViewType.MONTAGE) {
       newstHeader = new PanelHeader(axisID, "Blendmont", newstBodyPanel);
@@ -918,9 +960,11 @@ public class TomogramGenerationDialog extends ProcessDialog
     SpinnerModel integerModel = new SpinnerNumberModel(1, 1, 50, 1);
     spinBinning = new LabeledSpinner("Aligned image stack binning ", integerModel);
     //buttonPanel
+    buttonPanel.add(Box.createHorizontalStrut(50));
     buttonPanel.add(btnNewst);
+    buttonPanel.add(Box.createHorizontalGlue());
     buttonPanel.add(btn3dmodFull);
-    buttonPanel.alignComponentsX(Component.LEFT_ALIGNMENT);
+    buttonPanel.add(Box.createHorizontalStrut(50));
     //newstBodyPanel
     newstBodyPanel.add(cbBoxUseLinearInterpolation);
     newstBodyPanel.add(spinBinning);
@@ -934,7 +978,8 @@ public class TomogramGenerationDialog extends ProcessDialog
     UIUtilities.alignComponentsX(newstPanel, Component.LEFT_ALIGNMENT);
     //configure
     newstHeader.setOpen(true);
-
+    ButtonHelper.setStandardSize(btnNewst);
+    ButtonHelper.setStandardSize(btn3dmodFull);
     return newstPanel;
   }
 
@@ -1019,6 +1064,7 @@ public class TomogramGenerationDialog extends ProcessDialog
     //header
     tiltHeader = new PanelHeader(axisID, "Tilt", tiltBodyPanel, this);
     //buttonPanel
+    buttonPanel.add(btnSplitTilt);
     buttonPanel.add(btnTilt);
     buttonPanel.add(btn3dmodTomogram);
     buttonPanel.add(btnDeleteStacks);
@@ -1033,7 +1079,9 @@ public class TomogramGenerationDialog extends ProcessDialog
     //checkBoxPanel
     checkBoxPanel.add(westCheckBoxPanel);
     checkBoxPanel.add(Box.createHorizontalStrut(125));
-    checkBoxPanel.add(cbParallelProcess);
+    if (EtomoDirector.getInstance().isNewstuff()) {
+      checkBoxPanel.add(cbParallelProcess);
+    }
     UIUtilities.alignComponentsX(checkBoxPanel, Component.LEFT_ALIGNMENT);
     //radialPanel
     radialPanel.add(ltfRadialMax.getContainer());
@@ -1098,6 +1146,7 @@ public class TomogramGenerationDialog extends ProcessDialog
     //header
     trialHeader = new PanelHeader(axisID, "Trial Tilt", trialBodyPanel);
     //buttonPanel
+    buttonPanel.add(btnSplitTrial);
     buttonPanel.add(btnTrial);
     buttonPanel.add(btn3dmodTrial);
     buttonPanel.add(btnUseTrial);
@@ -1114,6 +1163,7 @@ public class TomogramGenerationDialog extends ProcessDialog
     //configure
     trialHeader.setOpen(true);
     cmboTrialTomogramName.setEditable(true);
+    updateParallelProcess();
     return trialPanel;
   }
 
@@ -1229,6 +1279,10 @@ public class TomogramGenerationDialog extends ProcessDialog
     super.buttonAdvancedAction(event);
     updateAdvanced();
   }
+  
+  public void resume() {
+    applicationManager.parallelProcessResumeTiltDemo(axisID, parallelPanel);
+  }
 
   //  Button handler function
   void buttonAction(ActionEvent event) {
@@ -1265,7 +1319,12 @@ public class TomogramGenerationDialog extends ProcessDialog
         trialTomogramList.add(trialTomogramName);
         cmboTrialTomogramName.addItem(trialTomogramName);
       }
-      applicationManager.trialTilt(axisID);
+      if (cbParallelProcess.isSelected()) {
+        applicationManager.parallelProcessTiltDemo(axisID, parallelPanel);
+      }
+      else {
+        applicationManager.trialTilt(axisID);
+      }
     }
     else if (command.equals(btn3dmodTrial.getActionCommand())) {
       applicationManager.imodTestVolume(axisID);
@@ -1275,7 +1334,8 @@ public class TomogramGenerationDialog extends ProcessDialog
     }
     else if (command.equals(btnTilt.getActionCommand())) {
       if (cbParallelProcess.isSelected()) {
-        applicationManager.parallelProcess(this.dialogType, axisID);
+        parallelPanel.resetResults();
+        applicationManager.parallelProcessTiltDemo(axisID, parallelPanel);
       }
       else {
         applicationManager.tilt(axisID);
@@ -1289,6 +1349,17 @@ public class TomogramGenerationDialog extends ProcessDialog
     }
     else if (command.equals(cbFiducialess.getActionCommand())) {
       updateFiducialess();
+    }
+    else if (command.equals(cbParallelProcess.getActionCommand())) {
+      updateParallelProcess();
+    }
+    else if (command.equals(btnSplitTilt.getActionCommand())) {
+      parallelPanel.resetResults();
+      applicationManager.splitParallelProcessTilt(axisID, true);
+    }
+    else if (command.equals(btnSplitTrial.getActionCommand())) {
+      parallelPanel.resetResults();
+      applicationManager.splitParallelProcessTilt(axisID, false);
     }
   }
 
