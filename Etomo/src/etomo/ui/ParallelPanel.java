@@ -1,13 +1,15 @@
 package etomo.ui;
 
-import java.awt.Component;
 import java.awt.Container;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Date;
+import java.util.ArrayList;
+import java.util.Random;
 
+import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
-import javax.swing.JLabel;
-import javax.swing.JScrollPane;
+import javax.swing.JPanel;
 
 import etomo.ApplicationManager;
 import etomo.EtomoDirector;
@@ -19,7 +21,7 @@ import etomo.type.DialogType;
  * 
  * <p>Copyright: Copyright (c) 2005</p>
  *
- *<p>Organization:
+ * <p>Organization:
  * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
  * University of Colorado</p>
  * 
@@ -27,128 +29,144 @@ import etomo.type.DialogType;
  * 
  * @version $Revision$
  */
-final class ParallelPanel {
+final class ParallelPanel implements ParallelProgressDisplay {
   public static final String rcsid = "$Id$";
 
-  private SpacedPanel rootPanel = new SpacedPanel();
+  private JPanel rootPanel;
   private ProcessorTable processorTable = new ProcessorTable(this);
-  private MultiLineButton btnSplit = new MultiLineButton(
-      "Save & Split Command Files");
-  private MultiLineButton btnStart = new MultiLineButton("Start");
-  private MultiLineButton btnKill = new MultiLineButton("Kill / Pause");
   private MultiLineButton btnResume = new MultiLineButton("Resume");
-  private MultiLineButton btnSaveDefaults = new MultiLineButton("Save Defaults");
-  private LabeledTextField ltfCpusSelected = new LabeledTextField("CPUs selected: ");
-  private LabeledTextField ltfChunksFinished = new LabeledTextField("Chunks finished: ");
-  
+  private MultiLineButton btnSaveDefaults = new MultiLineButton("Save As Defaults");
+  private LabeledTextField ltfCpusSelected = new LabeledTextField(
+      "CPUs selected: ");
+  private LabeledTextField ltfChunksFinished = new LabeledTextField(
+      "Chunks finished: ");
+  private ArrayList randomRestarts = new ArrayList();
+  private ArrayList randomSuccesses = new ArrayList();
+  private Random random = new Random(new Date().getTime());
+
   private AxisID axisID = null;
+  private ParallelDialog parent = null;
   private DialogType dialogType = null;
   private ParallelPanelActionListener actionListener = new ParallelPanelActionListener(
       this);
+  private PanelHeader header;
 
-  ParallelPanel(AxisID axisID) {
+  ParallelPanel(ParallelDialog parent, AxisID axisID) {
+    this.parent = parent;
     this.axisID = axisID;
     //set listeners
-    btnSplit.addActionListener(actionListener);
-    btnStart.addActionListener(actionListener);
-    btnKill.addActionListener(actionListener);
     btnResume.addActionListener(actionListener);
-    //panels and panes
-    rootPanel.setBoxLayout(BoxLayout.X_AXIS);
-    SpacedPanel westPanel = new SpacedPanel();
-    westPanel.setBoxLayout(BoxLayout.Y_AXIS);
-    SpacedPanel eastPanel = new SpacedPanel();
-    eastPanel.setBoxLayout(BoxLayout.Y_AXIS);
-    SpacedPanel centerWestPanel = new SpacedPanel();
-    centerWestPanel.setBoxLayout(BoxLayout.Y_AXIS);
-    JScrollPane scrollPane = new JScrollPane(centerWestPanel.getContainer());
-    SpacedPanel southWestPanel = new SpacedPanel();
-    southWestPanel.setBoxLayout(BoxLayout.X_AXIS);
-    //southWestPanel
-    southWestPanel.add(btnSplit);
-    southWestPanel.add(btnStart);
-    southWestPanel.add(btnResume);
-    southWestPanel.add(btnSaveDefaults);
-    //centerWestPanel
-    centerWestPanel.add(processorTable.getRootPanel());
-    //eastPanel
-    eastPanel.add(ltfChunksFinished);
-    eastPanel.add(ltfCpusSelected);
-    eastPanel.add(btnKill);
-    //westPanel
-    JLabel label = new JLabel("Processor Table");
-    label.setAlignmentX(Component.CENTER_ALIGNMENT);
-    westPanel.add(label);
-    westPanel.add(scrollPane);
-    westPanel.add(southWestPanel);
+    //panels
+    rootPanel = new JPanel();
+    rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
+    rootPanel.setBorder(BorderFactory.createEtchedBorder());
+    SpacedPanel bodyPanel = new SpacedPanel();
+    bodyPanel.setBoxLayout(BoxLayout.Y_AXIS);
+    SpacedPanel southPanel = new SpacedPanel();
+    southPanel.setBoxLayout(BoxLayout.X_AXIS);
+    //header
+    header = new PanelHeader(axisID, "Parallel Processing", bodyPanel);
+    //southPanel;
+    southPanel.add(ltfCpusSelected);
+    southPanel.add(btnResume);
+    southPanel.add(btnSaveDefaults);
+    //bodyPanel
+    bodyPanel.addRigidArea();
+    bodyPanel.add(processorTable.getContainer());
+    bodyPanel.add(southPanel);
     //rootPanel
-    rootPanel.add(westPanel);
-    rootPanel.add(eastPanel);
+    rootPanel.add(header.getContainer());
+    rootPanel.add(bodyPanel.getContainer());
     //configure fields
-    btnStart.setEnabled(false);
-    btnResume.setEnabled(false);
+    header.setOpen(true);
     ltfChunksFinished.setTextPreferredWidth(FixedDim.fourDigitWidth);
     ltfChunksFinished.setEditable(false);
     ltfCpusSelected.setTextPreferredWidth(FixedDim.fourDigitWidth);
     ltfCpusSelected.setEditable(false);
     processorTable.signalCpusSelectedChanged();
-    btnKill.setEnabled(false);
+    btnResume.setEnabled(false);
   }
 
-  private void totalResults() {
-    ltfChunksFinished.setText(processorTable.getTotalSuccesses());
-  }
-  
-  void signalCpusSelectedChanged(int cpusSelected) {
+  public final void signalCpusSelectedChanged(int cpusSelected) {
     ltfCpusSelected.setText(cpusSelected);
   }
 
-  void setDialogType(DialogType dialogType) {
+  final void setDialogType(DialogType dialogType) {
     this.dialogType = dialogType;
   }
 
-  Container getRootPanel() {
-    return rootPanel.getContainer();
+  final Container getRootPanel() {
+    return rootPanel;
   }
 
-  private void performAction(ActionEvent event) {
+  private final void performAction(ActionEvent event) {
     String command = event.getActionCommand();
     ApplicationManager mgr = EtomoDirector.getInstance()
         .getCurrentReconManager();
-    if (command == btnSplit.getText() && mgr.dummySplitParallelProcess(axisID)) {
-      btnSplit.setEnabled(true);
-      btnStart.setEnabled(true);
-      btnKill.setEnabled(false);
-      btnResume.setEnabled(false);
-      processorTable.resetResults();
-      totalResults();
-    }
-    else if (command == btnStart.getText() && mgr.dummyParallelProcess(axisID)) {
-      btnSplit.setEnabled(false);
-      btnStart.setEnabled(false);
-      btnKill.setEnabled(true);
-      btnResume.setEnabled(false);
-      processorTable.resetResults();
-      processorTable.showResults();
-      totalResults();
-    }
-    else if (command == btnKill.getText()) {
-      btnSplit.setEnabled(true);
-      btnStart.setEnabled(true);
-      btnKill.setEnabled(false);
-      btnResume.setEnabled(true);
-    }
-    else if (command == btnResume.getText() && mgr.dummyParallelProcess(axisID)) {
-      btnSplit.setEnabled(false);
-      btnStart.setEnabled(false);
-      btnKill.setEnabled(true);
-      btnResume.setEnabled(false);
-      processorTable.showResults();
-      totalResults();
+    if (command == btnResume.getText()) {
+      parent.resume();
     }
   }
 
-  private class ParallelPanelActionListener implements ActionListener {
+  final void setVisible(boolean visible) {
+    rootPanel.setVisible(visible);
+    processorTable.setSize();
+  }
+
+  public final int getCpusSelected() {
+    return processorTable.getCpusSelected();
+  }
+  
+  public final void signalStartProgress() {
+    buildRandomizerLists();
+  }
+
+  private final void buildRandomizerLists() {
+    int index = processorTable.getFirstSelectedIndex();
+    while (index != -1) {
+      for (int i = 0; i < processorTable.getRestartFactor(index); i++) {
+        randomRestarts.add(new Integer(index));
+      }
+      for (int i = 0; i < processorTable.getSuccessFactor(index); i++) {
+        randomSuccesses.add(new Integer(index));
+      }
+      index = processorTable.getNextSelectedIndex(index);
+    }
+  }
+
+  public final void signalRandomRestart() {
+    if (randomRestarts == null) {
+      return;
+    }
+    int randomRestartsSize = randomRestarts.size();
+    if (randomRestartsSize == 0) {
+      return;
+    }
+    int randomIndex = random.nextInt(randomRestarts.size());
+    processorTable.signalRestart(((Integer) randomRestarts.get(randomIndex)).intValue());
+  }
+
+  public final void signalRandomSuccess() {
+    if (randomSuccesses == null) {
+      return;
+    }
+    int randomSuccessesSize = randomSuccesses.size();
+    if (randomSuccessesSize == 0) {
+      return;
+    }
+    int randomIndex = random.nextInt(randomSuccesses.size());
+    processorTable.signalSuccess(((Integer) randomSuccesses.get(randomIndex)).intValue());
+  }
+  
+  final void resetResults() {
+    processorTable.resetResults();
+  }
+  
+  public final void setEnabledResume(boolean enabled) {
+    btnResume.setEnabled(enabled);
+  }
+
+  private final class ParallelPanelActionListener implements ActionListener {
     ParallelPanel adaptee;
 
     ParallelPanelActionListener(ParallelPanel adaptee) {
@@ -163,6 +181,11 @@ final class ParallelPanel {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.3  2005/07/06 23:45:38  sueh
+ * <p> bug# 619 Removed DoubleSpacedPanel and FormattedPanel.  Placed
+ * <p> their functionality in SpacedPanel.  Simplified the construction of
+ * <p> SpacedPanel.
+ * <p>
  * <p> Revision 1.2  2005/07/01 23:04:26  sueh
  * <p> bug# 619 removed parent dialog from constructor
  * <p>
