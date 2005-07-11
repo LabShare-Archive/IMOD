@@ -24,6 +24,11 @@ import etomo.type.EtomoNumber;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.12  2005/04/16 01:53:28  sueh
+ * <p> bug# 615 Made some panels protected so there color could be changed.
+ * <p> Added a rigid area to the bottom of panelRoot so that the color would wrap
+ * <p> around the process buttons.
+ * <p>
  * <p> Revision 3.11  2005/04/12 19:36:14  sueh
  * <p> bug# 615 Made a newstuff version with the split pane and a very simple
  * <p> fitting algorithm.
@@ -140,6 +145,9 @@ public abstract class AxisProcessPanel implements ContextMenu {
   public static final String rcsid =
     "$Id$";
 
+  private static final String KILL_BUTTON_LABEL = "Kill Process";
+  private static final String KILL_PAUSE_BUTTON_LABEL = "Kill / Pause";
+  
   protected AxisID axisID;
 
   protected JPanel panelRoot = new JPanel();
@@ -150,7 +158,7 @@ public abstract class AxisProcessPanel implements ContextMenu {
 
   //  Progress panel
   ProgressPanel progressPanel = new ProgressPanel("No process");
-  JButton buttonKillProcess = new JButton("Kill Process");
+  JButton buttonKillProcess = new JButton(KILL_BUTTON_LABEL);
 
   //  Process select panel
   protected JPanel panelProcessSelect = new JPanel();
@@ -271,11 +279,28 @@ public abstract class AxisProcessPanel implements ContextMenu {
    * @param nSteps
    */
   public void setProgressBar(String label, int nSteps) {
+    setProgressBar(label, nSteps, false);
+  }
+  
+  /**
+   * Setup the progress bar for a determinate
+   * @param label
+   * @param nSteps
+   * @param allowPause changes label text to "Kill / Pause "
+   */
+  public void setProgressBar(String label, int nSteps, boolean allowPause) {
     progressPanel.setLabel(label);
     progressPanel.setMinimum(0);
     progressPanel.setMaximum(nSteps);
     buttonKillProcess.setEnabled(true);
+    if (allowPause) {
+      buttonKillProcess.setText(KILL_PAUSE_BUTTON_LABEL);
+    }
+    else {
+      buttonKillProcess.setText(KILL_BUTTON_LABEL);
+    }
   }
+
 
   /**
    * 
@@ -296,12 +321,28 @@ public abstract class AxisProcessPanel implements ContextMenu {
   /**
    * 
    * @param label
+   * @param allowPause changes label text to "Kill / Pause "
    */
-  public void startProgressBar(String label) {
+  public void startProgressBar(String label, boolean allowPause) {
     progressPanel.setLabel(label);
     progressPanel.start();
     buttonKillProcess.setEnabled(true);
+    if (allowPause) {
+      buttonKillProcess.setText(KILL_PAUSE_BUTTON_LABEL);
+    }
+    else {
+      buttonKillProcess.setText(KILL_BUTTON_LABEL);
+    }
   }
+  
+  /**
+   * 
+   * @param label
+   */
+  public void startProgressBar(String label) {
+    startProgressBar(label, false);
+  }
+ 
 
   /**
    * 
