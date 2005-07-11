@@ -5,6 +5,8 @@ import java.awt.Component;
 import javax.swing.BorderFactory;
 import javax.swing.JTextField;
 
+import etomo.type.EtomoNumber;
+
 /**
  * <p>Description: </p>
  * 
@@ -19,6 +21,9 @@ import javax.swing.JTextField;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2005/07/01 23:03:33  sueh
+ * <p> bug# 619 added getIntValue
+ * <p>
  * <p> Revision 1.3  2005/07/01 21:16:07  sueh
  * <p> bug# 619 Pulled an ancestor class (InputCell) out of FieldCell because we
  * <p>  need several typs of input cells.  Added setHideValue().  Changed
@@ -111,7 +116,7 @@ class FieldCell extends InputCell {
       return Integer.parseInt(textField.getText());
     }
     catch (NumberFormatException e) {
-      return 0;
+      return EtomoNumber.INTEGER_NULL_VALUE;
     }
   }
   
