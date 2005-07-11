@@ -29,6 +29,10 @@ import javax.swing.border.BevelBorder;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2005/07/06 23:34:57  sueh
+ * <p> bug# 619 Removed the member variablesdoubleSpacePanelContainer and
+ * <p> jpanelContainer, since they don't seem to be in use.
+ * <p>
  * <p> Revision 1.2  2004/11/19 23:52:24  sueh
  * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
  * <p>
@@ -59,8 +63,6 @@ public class ExpandButton extends MultiLineButton {
 
   private boolean expanded = false;
   private Expandable container = null;
-  //private JPanel jpanelContainer = null;
-  //private SpacedPanel spacePanelContainer = null;
 
   /**
    * Create a button with ">" if expanded is false, or "<" expanded is true.
@@ -128,8 +130,6 @@ public class ExpandButton extends MultiLineButton {
   void add(JPanel panel, GridBagLayout layout, GridBagConstraints constraints) {
     layout.setConstraints(this, constraints);
     panel.add(this);
-    //jpanelContainer = panel;
-    //doubleSpacePanelContainer = null;
   }
 
   /**
@@ -170,6 +170,9 @@ public class ExpandButton extends MultiLineButton {
     else {
       expanded = true;
       super.setText(contractSymbol);
+    }
+    if (container == null) {
+      return;
     }
     container.expand(this);
   }
