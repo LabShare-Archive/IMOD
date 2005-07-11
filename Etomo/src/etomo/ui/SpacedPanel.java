@@ -33,6 +33,11 @@ import javax.swing.border.Border;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.6  2005/07/06 23:49:19  sueh
+* <p> bug# 619 Removed DoubleSpacedPanel and FormattedPanel.  Placed
+* <p> their functionality in SpacedPanel.  Simplified the construction of
+* <p> SpacedPanel.
+* <p>
 * <p> Revision 1.5  2005/07/01 21:23:27  sueh
 * <p> bug# 619 Added getRootPanel() to return the JPanel in panel.
 * <p>
@@ -139,6 +144,13 @@ final class SpacedPanel {
     if (previousComponentWasSpaced) {
       previousComponentWasSpaced = false;
     }
+  }
+  
+  final void add(Container container) {
+    addSpacing();
+    panel.add(container);
+    xDescription.append("Container,");
+    yDescription.append("Container,");
   }
   
   final void add(SpacedPanel spacedPanel) {
