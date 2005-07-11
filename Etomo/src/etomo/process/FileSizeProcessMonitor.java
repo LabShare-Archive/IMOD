@@ -24,6 +24,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.8  2004/11/19 23:19:40  sueh
+ * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+ * <p>
  * <p> Revision 3.7.4.1  2004/09/29 17:54:02  sueh
  * <p> bug# 520 Removing pass-through function calls.
  * <p>
@@ -222,7 +225,7 @@ public abstract class FileSizeProcessMonitor implements Runnable {
   /**
    * Attempt to close the watched channel file.
    */
-  private void closeChannel() {
+  protected void closeChannel() {
     try {
       watchedChannel.close();
     }
