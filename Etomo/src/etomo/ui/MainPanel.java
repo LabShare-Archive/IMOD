@@ -32,6 +32,11 @@ import etomo.type.BaseMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.22  2005/05/17 19:38:40  sueh
+ * <p> bug# 663 Renamed updateDataParameters() to setStatusBarText() and
+ * <p> moved the common functionality to MainPanel.setStatusBarText().  Add
+ * <p> functionality to prevent the status bar text from becoming too long.
+ * <p>
  * <p> Revision 1.21  2005/04/26 17:40:36  sueh
  * <p> bug# 615 Made MainFrame a package-level class.  All MainFrame
  * <p> functionality is handled through UIHarness to make Etomo more
@@ -303,6 +308,18 @@ public abstract class MainPanel extends JPanel {
     UIHarness.INSTANCE.fitWindow(axisID);
   }
 
+  /**
+   * Set the progress bar to the beginning of determinant sequence
+   * @param label
+   * @param nSteps
+   * @param allowPause changes label text to "Kill / Pause "
+   */
+  public void setProgressBar(String label, int nSteps, AxisID axisID, boolean allowPause) {
+    AxisProcessPanel axisPanel = mapBaseAxis(axisID);
+    axisPanel.setProgressBar(label, nSteps, allowPause);
+    axisPanel.setProgressBarValue(0);
+  }
+  
   /**
    * Set the progress bar to the beginning of determinant sequence
    * @param label
