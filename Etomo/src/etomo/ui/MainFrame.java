@@ -6,7 +6,6 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
-import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
@@ -31,6 +30,11 @@ import etomo.util.UniqueKey;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.33  2005/06/01 21:27:21  sueh
+ * <p> bug# 667 Removing the Controller classes.  Trying make meta data and
+ * <p> app manager equals didn't work very well.  Meta data is created by and
+ * <p> managed by app mgr and the class structure should reflect that.
+ * <p>
  * <p> Revision 3.32  2005/05/12 22:14:55  sueh
  * <p> bug# 615 Change setCurrentManager() to handle a null currentManager.
  * <p> Hide the second window.  Remove the axis and the dataset from the title.
@@ -366,7 +370,6 @@ import etomo.util.UniqueKey;
 final class MainFrame extends EtomoFrame implements ContextMenu {
   public static final String rcsid = "$Id$";
   
-  private static final int estimatedMenuHeight = 60;
   private static final int extraScreenWidthMultiplier = 2;
   private static final Dimension frameBorder = new Dimension(10, 48);
   private static final String aAxisTitle = "A Axis - ";
@@ -387,9 +390,7 @@ final class MainFrame extends EtomoFrame implements ContextMenu {
   MainFrame() {
     register();
     enableEvents(AWTEvent.WINDOW_EVENT_MASK);
-    Toolkit toolkit = Toolkit.getDefaultToolkit();
-    Dimension screenSize = toolkit.getScreenSize();
-    screenSize.height -= estimatedMenuHeight;
+    Dimension screenSize = UIUtilities.getScreenSize();
     screenSize.width *= extraScreenWidthMultiplier;
     Dimension rootPanelSize = new Dimension(screenSize);
     rootPanelSize.height -= frameBorder.height;
