@@ -22,6 +22,10 @@ import javax.swing.JPanel;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.3  2005/07/06 23:36:09  sueh
+* <p> bug# 619 Added setBorderPainted() so that a borderless header cell can
+* <p> be created.
+* <p>
 * <p> Revision 1.2  2004/11/19 23:55:38  sueh
 * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
 * <p>
@@ -82,10 +86,11 @@ class HeaderCell {
     cell.setBorderPainted(borderPainted);
   }
   
-  void add(JPanel panel, GridBagLayout layout, GridBagConstraints constraints) {
+  HeaderCell add(JPanel panel, GridBagLayout layout, GridBagConstraints constraints) {
     layout.setConstraints(cell, constraints);
     panel.add(cell);
     jpanelContainer = panel;
+    return this;
   }
   
   void remove() {
@@ -105,4 +110,11 @@ class HeaderCell {
     cell.setText(htmlText);
   }
   
+  final int getHeight() {
+    return cell.getHeight();
+  }
+  
+  final int getBorderHeight() {
+    return cell.getBorder().getBorderInsets(cell).bottom;
+  }
 }
