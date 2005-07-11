@@ -20,6 +20,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.66  2005/05/18 22:35:45  sueh
+ * bug# 662 Utilities.fileExists() is getting metaData from EtomoDirector,
+ * instead of receiving it as a parameter.
+ *
  * Revision 3.65  2005/05/10 17:33:03  sueh
  * bug# 660 Popping up warnings from setup combine.
  *
@@ -645,6 +649,7 @@ import etomo.ApplicationManager;
 import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.type.ConstMetaData;
+import etomo.ui.ParallelProgressDisplay;
 import etomo.ui.TextPageWindow;
 import etomo.ui.UIHarness;
 import etomo.util.InvalidParameterException;
@@ -1201,6 +1206,45 @@ public class ProcessManager extends BaseProcessManager {
     ComScriptProcess comScriptProcess = startComScript(command, mtffilterProcessMonitor, axisID);
     return comScriptProcess.getName();
   }
+  
+  public String tiltParallelProcessDemo(AxisID axisID,
+      ParallelProgressDisplay parallelProgressDisplay)
+      throws SystemProcessException {
+    //
+    //  Create the required tilt command
+    //
+    String command = "tilt" + axisID.getExtension() + ".com";
+
+    //  Instantiate the process monitor
+    TiltParallelProcessDemoMonitor tiltProcessMonitor = TiltParallelProcessDemoMonitor
+        .getNewInstance(appManager, axisID, parallelProgressDisplay);
+
+    //  Start the com script in the background
+    ComScriptProcess comScriptProcess = startComScript(command,
+        tiltProcessMonitor, axisID);
+
+    return comScriptProcess.getName();
+  }
+  
+  public String resumeTiltParallelProcessDemo(AxisID axisID,
+      ParallelProgressDisplay parallelProgressDisplay)
+      throws SystemProcessException {
+    //
+    //  Create the required tilt command
+    //
+    String command = "tilt" + axisID.getExtension() + ".com";
+
+    //  Instantiate the process monitor
+    TiltParallelProcessDemoMonitor tiltProcessMonitor = TiltParallelProcessDemoMonitor
+        .getExistingInstance(appManager, axisID, parallelProgressDisplay);
+
+    //  Start the com script in the background
+    ComScriptProcess comScriptProcess = startComScript(command,
+        tiltProcessMonitor, axisID);
+
+    return comScriptProcess.getName();
+  }
+
 
   /**
    * Run the appropriate tilt com file for the given axis ID
@@ -1520,8 +1564,6 @@ public class ProcessManager extends BaseProcessManager {
   }
   
   protected void postProcess(ComScriptProcess script) {
-    // TODO: Should this script specific processing be handled by the
-    // nextProcess attribute of the application manager.
     // Script specific post processing
     ProcessName processName = script.getProcessName();
     Command command = script.getCommand();
@@ -1550,10 +1592,24 @@ public class ProcessManager extends BaseProcessManager {
     else if (processName == ProcessName.UNDISTORT) {
       appManager.setEnabledFixEdgesWithMidas(script.getAxisID());
     }
+    else if (processName == ProcessName.TILT) {
+      appManager.signalTiltCompleted(script.getAxisID());
+    }
   }
   
   protected void errorProcess(ComScriptProcess script) {
-
+    ProcessName processName = script.getProcessName();
+    Command command = script.getCommand();
+    TomogramState state = appManager.getState();
+    AxisID axisID = script.getAxisID();
+    if (processName == ProcessName.TILT) {
+      if (script.isKilled()) {
+        appManager.signalTiltKilled(script.getAxisID());
+      }
+      else {
+       appManager.signalTiltError(script.getAxisID());
+      }
+    }
   }
   
   protected void postProcess(BackgroundProcess process) {
