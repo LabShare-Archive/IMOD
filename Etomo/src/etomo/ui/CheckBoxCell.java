@@ -22,7 +22,7 @@ import etomo.type.EtomoBoolean2;
  * 
  * @version $Revision$
  */
-class CheckBoxCell extends InputCell {
+final class CheckBoxCell extends InputCell {
   public static final String rcsid = "$Id$";
 
   private JCheckBox checkBox = new JCheckBox();
@@ -72,11 +72,11 @@ class CheckBoxCell extends InputCell {
     return checkBox.isSelected();
   }
 
-  public void addActionListener(ActionListener actionListener) {
+  public final void addActionListener(ActionListener actionListener) {
     checkBox.addActionListener(actionListener);
   }
 
-  protected void setForeground() {
+  protected final void setForeground() {
     if (error) {
       setHtmlLabel(errorForeground);
     }
@@ -84,7 +84,19 @@ class CheckBoxCell extends InputCell {
       setHtmlLabel(foreground);
     }
   }
+  
+  final int getHeight() {
+    return checkBox.getHeight();
+  }
+  
+  final int getBorderHeight() {
+    return checkBox.getBorder().getBorderInsets(checkBox).bottom;
+  }
 }
 /**
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2005/07/01 21:08:54  sueh
+ * <p> bug# 619 CheckBoxCell is a writable table cell that inherits InputCell and
+ * <p> contains a JCheckBoxCell.
+ * <p> </p>
  */
