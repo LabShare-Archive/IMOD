@@ -9,6 +9,8 @@ import javax.swing.JPanel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import etomo.type.EtomoNumber;
+
 /**
  * <p>Description: </p>
  * 
@@ -57,8 +59,8 @@ final class ProcessorTableRow {
     this.load5 = load5;
     this.load15 = load15;
     if (computerName.equals("monalisa")) {
-      restarts = 7;
-      successes = 1;
+      restarts = 80;
+      successes = 0;
       return;
     }
     double load = (load1 + load5 + load15) / 3;
@@ -67,7 +69,7 @@ final class ProcessorTableRow {
       successes = Math.round(3 - load);
     }
     else {
-      successes = Math.round((3 - load) * 3);
+      successes = Math.round((3 - load) * 2);
     }
   }
 
@@ -125,7 +127,7 @@ final class ProcessorTableRow {
       initRow();
     }
     //create row
-    JPanel panel = table.getRootPanel();
+    JPanel panel = table.getTablePanel();
     GridBagLayout layout = table.getTableLayout();
     GridBagConstraints constraints = table.getTableConstraints();
     constraints.weighty = 0.0;
@@ -165,40 +167,77 @@ final class ProcessorTableRow {
     }
     table.signalCpusSelectedChanged();
   }
+  
+  final boolean isSelected() {
+    return cellComputer.isSelected();
+  }
 
-  void resetResults() {
+  final void resetResults() {
     cellRestarts.setValueEmpty();
     cellSuccesses.setValueEmpty();
   }
-
-  void showResults() {
-    if (cellComputer.isSelected()) {
-      //set cellRestarts
-      long currentValue = cellRestarts.getLongValue();
-      cellRestarts.setValue(Math.max(currentValue, restarts));
-      //set cellSuccesses
-      currentValue = cellSuccesses.getLongValue();
-      long newValue;
-      if (cellCpusSelected instanceof SpinnerCell) {
-        newValue = successes
-            * ((SpinnerCell) cellCpusSelected).getValue();
-      }
-      else {
-        newValue = successes;
-      }
-      cellSuccesses.setValue(Math.max(currentValue, newValue));
+  
+  final long getRestartFactor() {
+    if (!isSelected()) {
+      return 0;
+    }
+    if (cellCpusSelected instanceof SpinnerCell) {
+      return restarts * ((SpinnerCell) cellCpusSelected).getValue();
+    }
+    else {
+      return restarts;
     }
   }
   
-  long getSuccesses() {
+  final long getSuccessFactor() {
+    if (!isSelected()) {
+      return 0;
+    }
+    if (cellCpusSelected instanceof SpinnerCell) {
+      return successes * ((SpinnerCell) cellCpusSelected).getValue();
+    }
+    else {
+      return successes;
+    }
+  }
+  
+  final long getSuccesses() {
     return cellSuccesses.getLongValue();
   }
   
-  int getCpusSelected() {
+  final int getCpusSelected() {
     if (cellCpusSelected instanceof SpinnerCell) {
       return ((SpinnerCell) cellCpusSelected).getValue();
     }
-    return ((FieldCell) cellCpusSelected).getIntValue();
+    int cpusSelected = ((FieldCell) cellCpusSelected).getIntValue();
+    if (cpusSelected == EtomoNumber.INTEGER_NULL_VALUE) {
+      cpusSelected = 0;
+    }
+    return cpusSelected;
+  }
+  
+  final void signalRestart() {
+    int restarts = cellRestarts.getIntValue();
+    if (restarts == EtomoNumber.INTEGER_NULL_VALUE) {
+      restarts = 0;
+    }
+    cellRestarts.setValue(restarts + 1);
+  }
+  
+  final void signalSuccess() {
+    int successes = cellSuccesses.getIntValue();
+    if (successes == EtomoNumber.INTEGER_NULL_VALUE) {
+      successes = 0;
+    }
+    cellSuccesses.setValue(successes + 1);
+  }
+  
+  final int getHeight() {
+    return cellComputer.getHeight();
+  }
+  
+  final int getBorderHeight() {
+    return cellComputer.getBorderHeight();
   }
 
   private class ProcessorTableRowActionListener implements ActionListener {
@@ -227,6 +266,9 @@ final class ProcessorTableRow {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.2  2005/07/01 23:06:06  sueh
+ * <p> bug# 619 Added getCpusSelected, setSuccesses, stateChanged
+ * <p>
  * <p> Revision 1.1  2005/07/01 21:22:02  sueh
  * <p> bug# 619 A row in a table containing a list of computers and CPUs
  * <p> </p>
