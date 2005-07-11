@@ -19,6 +19,11 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.22  2005/04/25 20:45:18  sueh
+ * bug# 615 Passing the axis where a command originates to the message
+ * functions so that the message will be popped up in the correct window.
+ * This requires adding AxisID to many objects.
+ *
  * Revision 3.21  2005/01/06 18:10:09  sueh
  * bug# 578 Added getCommand().
  *
@@ -314,6 +319,7 @@ public class ComScriptProcess
   protected AxisID axisID;
   protected String watchedFileName;
   private Command command = null;
+  private boolean killed = false;
 
   private boolean started = false;
   private boolean done = false;
@@ -816,9 +822,13 @@ public class ComScriptProcess
   }
   
   /**
-   * nothing to do
+   * set killed to true
    */
   public void notifyKill() {
-    
+    killed = true;
+  }
+  
+  boolean isKilled() {
+    return killed;
   }
 }
