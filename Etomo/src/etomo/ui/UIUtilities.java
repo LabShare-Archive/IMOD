@@ -1,7 +1,7 @@
 /**
  * <p>Description: UI utility static functions </p>
  * 
- * <p>Copyright: Copyright (c) 2002-2004</p>
+ * <p>Copyright: Copyright (c) 2002-2005</p>
  *
  *<p>Organization:
  * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
@@ -12,6 +12,11 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2005/04/22 00:21:06  sueh
+ * <p> bug# 615 Fix bug in getDefaultUIResource().  The function assumed that
+ * <p> the parameter target was the same type as value, which is retrieved by
+ * <p> the UIManager.  Fixed it so that the function also accepts a child class.
+ * <p>
  * <p> Revision 1.4  2004/11/20 00:07:51  sueh
  * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
  * <p>
@@ -38,6 +43,7 @@ package etomo.ui;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
+import java.awt.Toolkit;
 
 import javax.swing.AbstractButton;
 import javax.swing.Box;
@@ -49,6 +55,13 @@ import javax.swing.plaf.ColorUIResource;
 public class UIUtilities {
   public static final String rcsid = "$Id$";
 
+  private static final int estimatedMenuHeight = 60;
+  
+  private static Dimension screenSize = null;
+
+  private UIUtilities() {
+  }
+  
   /**
    * Add a component to a container followed by the default value of x space
    * @param panel
@@ -151,5 +164,14 @@ public class UIUtilities {
       }
     }
     return null;
+  }
+  
+  public static Dimension getScreenSize() {
+    if (screenSize == null) {
+      Toolkit toolkit = Toolkit.getDefaultToolkit();
+      screenSize = toolkit.getScreenSize();
+      screenSize.height -= estimatedMenuHeight;
+    }
+    return screenSize;
   }
 }
