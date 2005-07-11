@@ -1,5 +1,6 @@
 package etomo.ui;
 
+import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
@@ -66,7 +67,6 @@ final class PanelHeader implements Expandable {
     //open/close button
     if (EtomoDirector.getInstance().isNewstuff() && openClosePanel != null) {
       btnOpenClose = new ExpandButton(this, "-", "+");
-
       layout.setConstraints(btnOpenClose, constraints);
       northPanel.add(btnOpenClose);
     }
@@ -91,6 +91,7 @@ final class PanelHeader implements Expandable {
     //rootPanel
     rootPanel.add(northPanel);
     separator.setMaximumSize(new Dimension(100, 1));
+    separator.setAlignmentX(Component.CENTER_ALIGNMENT);
     rootPanel.add(separator);
   }
   
@@ -116,17 +117,22 @@ final class PanelHeader implements Expandable {
     btnOpenClose.setExpanded(open);
   }
   
-  public void expand(ExpandButton button) {
+  public final void expand(ExpandButton button) {
     if (openClosePanel == null || button != btnOpenClose) {
       return;
     }
     openClosePanel.setVisible(btnOpenClose.isExpanded());
     separator.setVisible(btnOpenClose.isExpanded());
     manager.packMainWindow(axisID);
-  }
+  }  
 }
 /**
 * <p> $Log$
+* <p> Revision 1.2  2005/07/07 00:00:04  sueh
+* <p> bug# 437 Removed unnecessary Constructor parameter
+* <p> useAdvancedBasic.  If the container is not passed then the
+* <p> advanced/basic button with not be used.
+* <p>
 * <p> Revision 1.1  2005/07/06 23:45:23  sueh
 * <p> bug# 437 Class to place a header panel on a JPanel.  The header panel
 * <p> uses the grid bag layout.  It can contain two buttons:  an open/close
