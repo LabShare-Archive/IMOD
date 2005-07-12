@@ -55,7 +55,8 @@ echo 'MAKELIB   = $(AR) $(ARFLAGS)' >> $configure
 echo 'MAKELIBCPP = $(ARCPP) $(ARFLAGS)' >> $configure
 
 # No longer needed 5/12/05, and needs to be gone for gcc 4
-#set fort_cpplibs = -lstdc++
+# 7/12/05: But needed on 10.4 with gcc 3.3
+set fort_cpplibs = -lstdc++
 
 echo "CLIBS   = -lc -lm" >> $configure
 echo 'LIBS    = $(CLIBS)'  >> $configure
