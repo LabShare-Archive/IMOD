@@ -12,6 +12,10 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.11  2005/03/11 01:37:43  sueh
+ * <p> bug# 533 Change title of panel to Blendmont Parameters when montage is
+ * <p> set.
+ * <p>
  * <p> Revision 1.10  2005/03/02 00:12:45  sueh
  * <p> bug# 533 disabled binning for montaging.
  * <p>
@@ -60,9 +64,11 @@ import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
 
 import etomo.ApplicationManager;
+import etomo.comscript.BlendmontParam;
 import etomo.comscript.ConstNewstParam;
 import etomo.comscript.NewstParam;
 import etomo.type.AxisID;
+import etomo.type.ConstEtomoNumber;
 import etomo.type.ViewType;
 
 public class PrenewstPanel implements ContextMenu {
@@ -81,13 +87,13 @@ public class PrenewstPanel implements ContextMenu {
     pnlPrenewst.setLayout(new BoxLayout(pnlPrenewst, BoxLayout.Y_AXIS));
 
     //  Construct the binning spinner
-    SpinnerModel integerModel = new SpinnerNumberModel(1, 1, 50, 1);
+    SpinnerModel integerModel = new SpinnerNumberModel(1, 1, 8, 1);
     spinBinning = new LabeledSpinner("Coarse aligned image stack binning ",
       integerModel);
     spinBinning.setTextMaxmimumSize(UIParameters.getSpinnerDimension());
-    if (applicationManager.getMetaData().getViewType() == ViewType.MONTAGE) {
-      spinBinning.setEnabled(false);
-    }
+    //if (applicationManager.getMetaData().getViewType() == ViewType.MONTAGE) {
+    //  spinBinning.setEnabled(false);
+    //}
     if (applicationManager.getMetaData().getViewType() == ViewType.MONTAGE) {
       pnlPrenewst.setBorder(new EtchedBorder("Blendmont Parameters").getBorder());
     }
@@ -118,6 +124,13 @@ public class PrenewstPanel implements ContextMenu {
       spinBinning.setValue(binning);
     }
   }
+  
+  public void setParameters(BlendmontParam blendmontParams) {
+    ConstEtomoNumber binning = blendmontParams.getBinByFactor();
+    if (!binning.isNull()) {
+      spinBinning.setValue(binning);
+    }
+  }
 
   public void getParameters(NewstParam prenewstParams) {
     int binning = ((Integer) spinBinning.getValue()).intValue();
@@ -130,6 +143,10 @@ public class PrenewstPanel implements ContextMenu {
     else {
       prenewstParams.setBinByFactor(Integer.MIN_VALUE);
     }
+  }
+  
+  public void getParameters(BlendmontParam blendmontParam) {
+    blendmontParam.setBinByFactor(((Integer) spinBinning.getValue()).intValue());
   }
 
   /**
