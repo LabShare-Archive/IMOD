@@ -11,6 +11,7 @@ import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
 
 import etomo.ApplicationManager;
+import etomo.comscript.BlendmontParam;
 import etomo.comscript.ConstNewstParam;
 import etomo.comscript.ConstTiltParam;
 import etomo.comscript.ConstTiltalignParam;
@@ -24,7 +25,6 @@ import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstMetaData;
 import etomo.type.DialogType;
 import etomo.type.MetaData;
-import etomo.type.ViewType;
 
 /**
  * <p>Description: Tomogram Positioning User Interface</p>
@@ -39,6 +39,10 @@ import etomo.type.ViewType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.31  2005/06/13 23:40:13  sueh
+ * <p> bug# 675 Using NamedCheckBox instead of JCheckBox to try out
+ * <p> jfcUnit.  Bug# 583 Always save the screen value of binning in metaData.
+ * <p>
  * <p> Revision 3.30  2005/06/11 03:01:20  sueh
  * <p> bug# 583, bug# 682, bug# 677, bug# 584  Moved binning calculation to
  * <p> ApplicationManager.  Storing screen binning for Tomo Pos and Tomo
@@ -277,16 +281,16 @@ public class TomogramPositioningDialog extends ProcessDialog
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     btnExecute.setText("Done");
     //  Construct the binning spinner
-    SpinnerModel integerModel = new SpinnerNumberModel(1, 1, 50, 1);
+    SpinnerModel integerModel = new SpinnerNumberModel(1, 1, 8, 1);
     spinBinning = new LabeledSpinner("   Binning ", integerModel);
     spinBinning.setTextMaxmimumSize(UIParameters.getSpinnerDimension());
 
     //  Create the primary panels
     pnlWholeTomogram
       .setLayout(new BoxLayout(pnlWholeTomogram, BoxLayout.X_AXIS));
-    if (appMgr.getMetaData().getViewType() == ViewType.MONTAGE) {
-      cbWholeTomogram.setEnabled(false);
-    }
+    //if (appMgr.getMetaData().getViewType() == ViewType.MONTAGE) {
+    //  cbWholeTomogram.setEnabled(false);
+    //}
     pnlWholeTomogram.add(cbWholeTomogram.getContainer());
     pnlWholeTomogram.add(spinBinning.getContainer());
 
@@ -397,7 +401,7 @@ public class TomogramPositioningDialog extends ProcessDialog
    * Set the tilt.com parameters in the dialog
    * @param tiltParam
    */
-  public void setTiltParams(ConstTiltParam tiltParam) {;
+  public void setTiltParams(ConstTiltParam tiltParam) {
     ltfSampleTomoThickness.setText(tiltParam.getThickness());
   }
 
@@ -443,6 +447,16 @@ public class TomogramPositioningDialog extends ProcessDialog
     }
   }
   
+  /**
+   * Set the blend.com parameters in the dialog
+   * @param param
+   */
+  public void setParameters(BlendmontParam param) {
+    if (getBinningFromNewst) {
+      spinBinning.setValue(param.getBinByFactor());
+    }
+  }
+  
   public void setTomopitchParams(ConstTomopitchParam tomopitchParam) {
     //temp test
     //System.out.println("In setTomopitchParams:" + tomopitchParam.toString());
@@ -465,6 +479,16 @@ public class TomogramPositioningDialog extends ProcessDialog
     }
     updateMetaData();
   }
+  
+  /**
+   * Get the newst.com parameters from the dialog
+   * @param newstParam
+   */
+  public void getParams(BlendmontParam blendmontParam) {
+    blendmontParam.setBinByFactor(getBinning());
+    updateMetaData();
+  }
+
   
   /**
    * Set the whole tomogram sampling state
