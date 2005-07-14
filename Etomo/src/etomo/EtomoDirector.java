@@ -44,6 +44,13 @@ import etomo.util.Utilities;
  * 
  * <p>
  * $Log$
+ * Revision 1.23  2005/06/21 20:32:26  sueh
+ * bug# 671 Setting currentManagerKey after all .edf files on the command
+ * line are processed.  Since the first one is set to current and the axis type
+ * retrieved from EtomoDirector comes from the current manager, an
+ * incorrect axis type would be retrieved if the current manager was set
+ * before the processing of incoming .edf files was finished.
+ *
  * Revision 1.22  2005/06/21 00:40:44  sueh
  * bug# 522 In order to get a current manager when --test is set, moved call
  * to EtomoDirector.setCurrentManager() out of WindowSwitch.setWindow().
@@ -734,7 +741,7 @@ public class EtomoDirector {
       if (args[i].equals("--newstuff")) {
         newstuff = true;
         //--newstuff can be used alone, or followed by a 1 or 0 (default).
-        if (!args[i+1].startsWith("--")) {
+        if (i+1 < args.length && !args[i+1].startsWith("--")) {
           try {
             newstuffNum = Integer.parseInt(args[++i]);
           }
