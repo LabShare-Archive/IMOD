@@ -105,6 +105,14 @@ import etomo.util.Utilities;
  * 
  *
  * <p> $Log$
+ * <p> Revision 3.159  2005/07/11 22:42:37  sueh
+ * <p> bug# 619 Placed the parallel processing panel on the tomogram
+ * <p> generation screen.  Aded functions:  parallelProcessTiltDemo,
+ * <p> signalTiltCompleted, signalTiltError, signalTiltKilled, and
+ * <p> splitParallelProcessTilt.  Removed functions:
+ * <p> dummySplitParallelProcess, dummySplitParallelProcess,
+ * <p> getParallelDialog, and parallelProcess.
+ * <p>
  * <p> Revision 3.158  2005/07/01 21:07:01  sueh
  * <p> bug 619 Added demo functions to open a parallel processing JDialog.
  * <p>
@@ -2242,7 +2250,8 @@ public class ApplicationManager extends BaseManager {
     }
     
     if (metaData.getViewType() == ViewType.MONTAGE) {
-      
+      BlendmontParam blendmontParam = comScriptMgr.getPreblendParam(axisID);
+      coarseAlignDialog.setParams(blendmontParam);
     }
     else {
       NewstParam prenewstParam = comScriptMgr.getPrenewstParam(axisID);
@@ -2554,7 +2563,9 @@ public class ApplicationManager extends BaseManager {
    * @return
    */
   private void updatePreblendCom(AxisID axisID) {
+    CoarseAlignDialog coarseAlignDialog = mapCoarseAlignDialog(axisID);
     BlendmontParam preblendParam = comScriptMgr.getPreblendParam(axisID);
+    coarseAlignDialog.getParams(preblendParam);
     preblendParam.setBlendmontState();
     comScriptMgr.savePreblend(preblendParam, axisID);
   }
@@ -2565,12 +2576,14 @@ public class ApplicationManager extends BaseManager {
    * @param axisID
    * @return
    */
-  private void updateBlendCom(AxisID axisID) {
+  private BlendmontParam updateBlendCom(AxisID axisID) {
     TomogramGenerationDialog tomogramGenerationDialog = mapGenerationDialog(axisID);
     BlendmontParam blendParam = comScriptMgr.getBlendParam(axisID);
     tomogramGenerationDialog.getBlendParams(blendParam);
+    blendParam.setMode(BlendmontParam.BLEND_MODE);
     blendParam.setBlendmontState();
     comScriptMgr.saveBlend(blendParam, axisID);
+    return blendParam;
   }
 
 
@@ -3515,8 +3528,15 @@ public class ApplicationManager extends BaseManager {
     // before reading the tilt paramers below so that the GUI knows how to
     // correctly scale the dimensions
     tomogramPositioningDialog.setParameters(metaData);
-    comScriptMgr.loadNewst(axisID);
-    tomogramPositioningDialog.setParameters(comScriptMgr.getNewstComNewstParam(axisID));
+    if (metaData.getViewType() != ViewType.MONTAGE) {
+      comScriptMgr.loadNewst(axisID);
+      tomogramPositioningDialog.setParameters(comScriptMgr.getNewstComNewstParam(axisID));
+    }
+    else {
+      comScriptMgr.loadBlend(axisID);
+      tomogramPositioningDialog.setParameters(comScriptMgr.getBlendParam(axisID));
+    }
+
     // Get the align{|a|b}.com parameters
     comScriptMgr.loadAlign(axisID);
     TiltalignParam tiltalignParam = comScriptMgr.getTiltalignParam(axisID);
@@ -3699,9 +3719,19 @@ public class ApplicationManager extends BaseManager {
     if (!updateFiducialessParams(tomogramPositioningDialog, axisID)) {
       return;
     }
-    ConstNewstParam newstParam = updateNewstCom(tomogramPositioningDialog, axisID); 
-    if (newstParam == null) {
-      return;
+    ConstNewstParam newstParam = null;
+    BlendmontParam blendmontParam = null;
+    if (metaData.getViewType() != ViewType.MONTAGE) {
+      newstParam = updateNewstCom(tomogramPositioningDialog, axisID);
+      if (newstParam == null) {
+        return;
+      }
+    }
+    else {
+      blendmontParam = updateBlendCom(tomogramPositioningDialog, axisID);
+      if (blendmontParam == null) {
+        return;
+      }
     }
     if (!updateSampleTiltCom(axisID)) {
       return;
@@ -3731,7 +3761,12 @@ public class ApplicationManager extends BaseManager {
     setNextProcess(axisID, "tilt");
     String threadName;
     try {
-      threadName = processMgr.newst(newstParam, axisID);
+      if (metaData.getViewType() != ViewType.MONTAGE) {
+        threadName = processMgr.newst(newstParam, axisID);
+      }
+      else {
+        threadName = processMgr.blend(blendmontParam, axisID);
+      }
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
@@ -4021,6 +4056,28 @@ public class ApplicationManager extends BaseManager {
     }
     comScriptMgr.saveNewst(newstParam, axisID);
     return newstParam;
+  }
+  
+  /**
+   * Update the blend{|a|b}.com scripts with the parameters from the tomogram
+   * positioning dialog. The positioning dialog is passed so that the
+   * signature is different from the standard method.
+   * 
+   * @param tomogramPositioningDialog
+   * @param axisID
+   * @return
+   */
+  private BlendmontParam updateBlendCom(
+      TomogramPositioningDialog tomogramPositioningDialog, AxisID axisID) {
+    //  Get the whole tomogram positions state
+    metaData.setWholeTomogramSample(axisID, tomogramPositioningDialog
+        .isWholeTomogramSampling());
+    BlendmontParam blendmontParam = comScriptMgr.getBlendParam(axisID);
+    tomogramPositioningDialog.getParams(blendmontParam);
+    blendmontParam.setMode(BlendmontParam.WHOLE_TOMOGRAM_SAMPLE_MODE);
+    blendmontParam.setBlendmontState();
+    comScriptMgr.saveBlend(blendmontParam, axisID);
+    return blendmontParam;
   }
   
   /**
@@ -4481,8 +4538,9 @@ public class ApplicationManager extends BaseManager {
       return;
     }
     ConstNewstParam newstParam = null;
+    BlendmontParam blendmontParam = null;
     if (metaData.getViewType() == ViewType.MONTAGE) {
-      updateBlendCom(axisID);
+      blendmontParam = updateBlendCom(axisID);
     }
     else {
       newstParam = updateNewstCom(axisID); 
@@ -4515,8 +4573,7 @@ public class ApplicationManager extends BaseManager {
     String threadName;
     try {
       if (metaData.getViewType() == ViewType.MONTAGE) {
-        threadName = processMgr.blend(axisID);
-        
+        threadName = processMgr.blend(blendmontParam, axisID);
       }
       else {
         threadName = processMgr.newst(newstParam, axisID);
