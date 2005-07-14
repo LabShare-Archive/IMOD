@@ -11,6 +11,11 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.21  2005/07/06 23:32:15  sueh
+ * <p> bug# 619 Removed DoubleSpacedPanel and FormattedPanel.  Placed
+ * <p> their functionality in SpacedPanel.  Simplified the construction of
+ * <p> SpacedPanel.
+ * <p>
  * <p> Revision 3.20  2005/04/22 00:16:59  sueh
  * <p> bug# 615 Removed unnecessary imports.
  * <p>
@@ -289,6 +294,14 @@ public class CoarseAlignDialog extends ProcessDialog
   public void setPrenewstParams(ConstNewstParam prenewstParam) {
     pnlPrenewst.setParameters(prenewstParam);
   }
+  
+  /**
+   * Set the blendmont params of the prenewst panel
+   * @param prenewstParam
+   */
+  public void setParams(BlendmontParam blendmontParam) {
+    pnlPrenewst.setParameters(blendmontParam);
+  }
 
   /**
    * Get thre prenewst params from the prenewst panel
@@ -296,6 +309,14 @@ public class CoarseAlignDialog extends ProcessDialog
    */
   public void getPrenewstParams(NewstParam prenewstParam) {
     pnlPrenewst.getParameters(prenewstParam);
+  }
+  
+  /**
+   * Get the preblend params from the prenewst panel
+   * @param BlendmontParam
+   */
+  public void getParams(BlendmontParam blendmontParam) {
+    pnlPrenewst.getParameters(blendmontParam);
   }
 
   public void setFiducialessAlignment(boolean state) {
