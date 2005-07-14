@@ -66,6 +66,13 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.49  2005/07/11 23:31:34  sueh
+ * bug# 619 Added a "save & split" button for parallel processing tilt and trial
+ *  tilt.  Receiving signal about how parallel tilt completed so resume can be
+ * turned on and   off.  Switch tilt gen and trial tilt gen titles based on the
+ * parallel processing check box.  Added functions: resume, signalTiltCompleted,
+ * signTiltError, signalTiltKilled, updateParallelProcess.
+ *
  * Revision 3.48  2005/07/07 00:00:30  sueh
  * bug# 437 In PanelHeader: Removed unnecessary Constructor parameter
  * useAdvancedBasic.  If the container is not passed then the
@@ -663,6 +670,7 @@ public class TomogramGenerationDialog extends ProcessDialog
 
   public void getBlendParams(BlendmontParam blendmontParam) {
     blendmontParam.setLinearInterpolation(cbBoxUseLinearInterpolation.isSelected());
+    blendmontParam.setBinByFactor(((Integer) spinBinning.getValue()).intValue());
   }
 
   /**
@@ -957,7 +965,7 @@ public class TomogramGenerationDialog extends ProcessDialog
       newstHeader = new PanelHeader(axisID, "Newstack", newstBodyPanel);
     }
     //initialization
-    SpinnerModel integerModel = new SpinnerNumberModel(1, 1, 50, 1);
+    SpinnerModel integerModel = new SpinnerNumberModel(1, 1, 8, 1);
     spinBinning = new LabeledSpinner("Aligned image stack binning ", integerModel);
     //buttonPanel
     buttonPanel.add(Box.createHorizontalStrut(50));
