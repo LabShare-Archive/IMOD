@@ -46,6 +46,9 @@ public class BlendmontProcessMonitor extends LogFileProcessMonitor {
     case BlendmontParam.UNDISTORT_MODE:
       title = "Distortion correction";
       break;
+    case BlendmontParam.WHOLE_TOMOGRAM_SAMPLE_MODE:
+      title = "Whole tomogram";
+      break;
     }
   }
   
@@ -67,7 +70,7 @@ public class BlendmontProcessMonitor extends LogFileProcessMonitor {
         //set currentSection - section in log starts from 0
         currentSection = Integer.parseInt(strings[4]) + 1;
       }
-      else if (mode == BlendmontParam.BLEND_MODE) {
+      else if (mode == BlendmontParam.BLEND_MODE || mode == BlendmontParam.WHOLE_TOMOGRAM_SAMPLE_MODE) {
         if (line.startsWith("Doing section #") && !doingMrctaper) {
           doingMrctaper = true;
           applicationManager.getMainPanel().setProgressBar(title + ": mrctaper", 1, axisID);
@@ -78,7 +81,8 @@ public class BlendmontProcessMonitor extends LogFileProcessMonitor {
       }
     }
     //Start timeout on last section
-    if (currentSection >= nSections && (mode != BlendmontParam.BLEND_MODE || lastLineFound)) {
+    if (currentSection >= nSections
+        && ((mode != BlendmontParam.BLEND_MODE && mode != BlendmontParam.WHOLE_TOMOGRAM_SAMPLE_MODE) || lastLineFound)) {
       waitingForExit++;
     }
   }
@@ -99,6 +103,11 @@ public class BlendmontProcessMonitor extends LogFileProcessMonitor {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.8  2005/06/21 00:44:42  sueh
+* <p> bug# 522 findNSections():  simplifying Montagesize.getInstance().
+* <p> Directory and dataset information can be retrieved when the stack is
+* <p> constructed.
+* <p>
 * <p> Revision 1.7  2005/06/20 16:46:32  sueh
 * <p> bug# 522 Changed  Montagesize so that read() is not called
 * <p> automatically.
