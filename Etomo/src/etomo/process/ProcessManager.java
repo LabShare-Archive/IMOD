@@ -20,6 +20,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.67  2005/07/11 22:48:51  sueh
+ * bug# 619 Added functions resumeTiltParallelProcessDemo and
+ * tiltParallelProcessDemo.
+ *
  * Revision 3.66  2005/05/18 22:35:45  sueh
  * bug# 662 Utilities.fileExists() is getting metaData from EtomoDirector,
  * instead of receiving it as a parameter.
@@ -857,14 +861,14 @@ public class ProcessManager extends BaseProcessManager {
    * @return
    * @throws SystemProcessException
    */
-  public String blend(AxisID axisID) throws SystemProcessException {
+  public String blend(BlendmontParam blendmontParam, AxisID axisID)
+      throws SystemProcessException {
     //  Create the required tiltalign command
-    String command = BlendmontParam
-        .getCommandFileName(BlendmontParam.BLEND_MODE)
+    String command = blendmontParam.getCommandFileName()
         + axisID.getExtension() + ".com";
     //  Start the com script in the background
     BlendmontProcessMonitor blendmontProcessMonitor = new BlendmontProcessMonitor(
-      appManager, axisID, BlendmontParam.BLEND_MODE);
+        appManager, axisID, blendmontParam.getMode());
 
     //  Start the com script in the background
     ComScriptProcess comScriptProcess = startComScript(command,
