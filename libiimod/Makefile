@@ -9,6 +9,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.11  2005/01/27 05:56:56  mast
+#  Added anisotropic diffusion
+#
 #  Revision 3.10  2005/01/18 22:08:30  mast
 #  Needed to add / after INCDIR
 #
@@ -44,7 +47,7 @@ all : $(LIBS)
 
 $(LIBI) : $(OBJS)
 	$(FIND) . -type f -name $(LIBI) -exec rm "{}" \;
-	$(MAKELIB)$(LIBI) $(LIBIIMODDEF) $(OBJS)
+	$(MAKELIB)$(LIBI) $(OBJS) $(LIBIIMODDEF)
 	$(RANLIB) $(LIBI)
 	$(CP) libiimod.$(LIBEXT) $(LIBDIR)
 
