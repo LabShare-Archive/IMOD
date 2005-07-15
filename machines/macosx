@@ -42,7 +42,7 @@ if ($shared_libs != false) then
             set far = "g77"
             set makenondll = "ar -sruv "
             set nmcarext = "a"
-            echo 'LIBIIMODDEF = -ltiff' >> $configure
+            if ($tifflibs == true) echo 'LIBIIMODDEF = -ltiff' >> $configure
         endif
 else
 	echo "AR      = ar"                 >> $configure
