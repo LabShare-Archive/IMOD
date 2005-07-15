@@ -3,6 +3,7 @@ package etomo.ui;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.util.Vector;
 
 import javax.swing.JPanel;
@@ -29,7 +30,7 @@ final class ProcessorTable {
   private JScrollPane scrollPane;
   private JPanel tablePanel;
 
-  private TableLayout layout = new TableLayout();
+  private GridBagLayout layout = new GridBagLayout();
   private GridBagConstraints constraints = new GridBagConstraints();
   private boolean tableCreated = false;
   private int width = 0;
@@ -46,7 +47,6 @@ final class ProcessorTable {
     createTable();
     //scrollPane
     scrollPane = new JScrollPane(tablePanel);
-    //scrollPane.setColumnHeaderView(tablePanel);
     //configure
     setMaximumSize(tableHeight);
   }
@@ -138,7 +138,7 @@ final class ProcessorTable {
     return tablePanel;
   }
 
-  final TableLayout getTableLayout() {
+  final GridBagLayout getTableLayout() {
     return layout;
   }
 
@@ -272,6 +272,10 @@ final class ProcessorTable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.4  2005/07/14 22:14:40  sueh
+ * <p> bug# 532 Experimenting with extending GridBagLayout to make a header
+ * <p> in the scroll pane.
+ * <p>
  * <p> Revision 1.3  2005/07/11 23:19:33  sueh
  * <p> bug# 619 Added scrolling and sized table.  Added functions:
  * <p> getContainer, getCpusSelected, getFirstSelectedIndex,

@@ -1,6 +1,7 @@
 package etomo.ui;
 
 import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -127,7 +128,7 @@ final class ProcessorTableRow {
     }
     //create row
     JPanel panel = table.getTablePanel();
-    TableLayout layout = table.getTableLayout();
+    GridBagLayout layout = table.getTableLayout();
     GridBagConstraints constraints = table.getTableConstraints();
     constraints.weighty = 0.0;
     constraints.weightx = 1.0;
@@ -265,6 +266,10 @@ final class ProcessorTableRow {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.4  2005/07/14 22:15:01  sueh
+ * <p> bug# 532 Experimenting with extending GridBagLayout to make a header
+ * <p> in the scroll pane.
+ * <p>
  * <p> Revision 1.3  2005/07/11 23:22:56  sueh
  * <p> bug# 619 Showing results when signals rather then all at once.  Add
  * <p> functions:  getBorderHeight, getHeight, getSuccessFactor, isSelected,
