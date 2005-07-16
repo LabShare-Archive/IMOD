@@ -79,11 +79,13 @@ the job is started again.  Initially the job will tend to be restarted on the
 same machine where it failed, but near the end when there are other machines
 free, it will be sent to another machine.
 
-If you type Ctrl C, the program will give you a choice of terminating,
-attempting to restart with the current list of machines, or just continuing.
+If you type Ctrl C, the program will give you four choices: killing any
+running jobs and terminating, stopping after letting any running jobs finish,
+attempting to restart with the current list of machines, or 
+just continuing.
 If you choose to terminate or restart, existing jobs will first be killed
-to avoid having the same job running twice at the same time.  When you restart,
-be sure to use the 
+to avoid having the same job running twice at the same time.  When you rerun
+this program after stopping in this way, be sure to use the 
 .B -r
 option so that existing results will be retained.
 
@@ -104,17 +106,55 @@ confirmation from the user.
 Run jobs with "niceness" set to the given value, which can range from 0 for
 no reduction in priority to 19 for maximum reduction.  The default nice value
 is reported by the program's usage statement.
+.TP
+.B -d <value>
+Drop a machine from the list if it fails this number of times in a row.  The
+default criterion is reported by the program's usage statement.
 .SH FILES
 Log files will be generated for all command files that are run.  The C-shell
 script produced by Vmstocsh for rootname-nnn.com is saved to rootname-nnn.csh
 and the process ID is saved to rootname-nnn.pid.  Both of these files are
 removed after the command file exits.
 .SH BUGS
+Under Fedora/Red Hat Linux before Fedora Core 4, the environment is not set
+correctly in the ssh remote execution calls for users whose login shell is
+bash.  To fix this, edit /etc/bashrc on each affected machine.  At the end of
+an "if" block starting with
+
+# are we an interactive shell?
+.br
+if [ "$PS1" ]; then
+
+and ending with
+
+    fi
+.br
+fi
+.br
+# vim:ts=4:sw=4
+
+insert the following before the final "fi":
+
+else
+    if ! shopt -q login_shell ; then # We're not a login shell
+        for i in /etc/profile.d/*.sh; do
+            if [ -r "$i" ]; then
+                . $i
+            fi
+            done
+            unset i
+    fi
+
+
+Under Mac OS X, a similar problem occurs.  A workaround for csh users is to
+copy the line sourcing the IMOD-mac.csh from /etc/csh.login to /etc/csh.cshrc.
+
 The command for probing machine status and loads uses w, which is not in
 Cygwin.  If your machine list includes Windows machines, either run with the
 .B -g
 option, or make a link on each Windows machine, such as:
    ln -s /usr/bin/users /usr/bin/w
+
 .SH AUTHOR
 David Mastronarde  <mast@colorado.edu>
 .SH SEE ALSO
