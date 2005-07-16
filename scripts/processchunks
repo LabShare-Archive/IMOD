@@ -8,6 +8,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.9  2005/06/30 18:13:03  mast
+#  Added finished on machine message, changed failed message, reduce sleep
+#
 #  Revision 3.8  2005/06/28 23:33:20  mast
 #  Made it work with spaces in the directory path
 #
@@ -36,6 +39,7 @@
 nohup
 set pn = processchunks
 set nice = 18
+set dropcrit = 5
 
 if ($#argv < 2) then
 cat <<EOF
@@ -49,6 +53,7 @@ Will process multiple command files on multiple processors or machines
              all log files and redo everything)
     -g     Go process, without asking for confirmation after probing machines
     -n #   Set the "nice" value to the given number (default $nice, range 0-19)
+    -d #   Drop a machine after given number of failures in a row (default $dropcrit)
 EOF
 exit 0
 endif
@@ -74,6 +79,11 @@ while ($#argv > 2)
 
     case -n:
       set nice = $argv[2]
+      shift ; shift
+      breaksw
+
+    case -d:
+      @ dropcrit = $argv[2]
       shift ; shift
       breaksw
 
@@ -168,11 +178,34 @@ end
 
 set assigned = ()
 set startcount = ()
+set failed = ()
+set namelist = ()
+set nameind = ()
 @ num = 0
 while ($num < $#machines)
     @ num++
     set assigned = ($assigned 0)
     set startcount = ($startcount 0)
+
+
+    # Build a list of unique names and an index to the name and failure list
+    #
+    @ name = 0
+    set index = 0
+    while ($name < $#namelist)
+        @ name++
+        if ($namelist[$name] == $machines[$num]) then
+            set index = $name
+            break;
+        endif
+    end
+
+    if ($index == 0) then
+        set namelist = ($namelist $machines[$num])
+        set index = $#namelist
+        set failed = ($failed 0)
+    endif
+    set nameind = ($nameind $index)
 end
 
 # remove logs if not restarting, and run starting file
@@ -213,19 +246,55 @@ onintr report
 @ lastdone = 0
 @ count = 0
 @ nextsync = $#comlist + 2
+set anydone = 0
+@ holdcrit = ($#machines + 1) / 2
+set pausing = 0
 
 continue:
 
 while ($numdone < $#comlist)
-    @ proc = 0
     @ count++
-    
+
+    # Count failures and assignments
+    #
+    @ proc = 0
+    @ failtot = 0
+    @ assigntot =0
+    @ minfail = $dropcrit
+    while ($proc < $#machines)
+        @ proc++
+        if ($assigned[$proc] != 0) @ assigntot++
+        @ failcount = $failed[$nameind[$proc]]
+        if ($failcount != 0) @ failtot++
+        if ($failcount < $minfail) @ minfail = $failcount
+    end
+
+    # Stop if all have now been dropped out or all have failed and none done
+    #
+    if ($minfail >= $dropcrit) then
+        echo "ERROR: ALL MACHINES HAVE FAILED ON THEIR LAST $dropcrit TRIES"
+        exit 1
+    endif
+
+    if ($failtot == $#machines && $assigntot == 0) then
+        echo "ERROR: NO CHUNKS HAVE WORKED AND EVERY MACHINE HAS FAILED"
+        exit 1
+    endif
+
+    if ($pausing != 0 && $assigntot == 0) then
+        echo "All previously running chunks are done - exiting as requested"
+        echo "Rerun with -r to resume and retain existing results"
+        exit 2
+    endif
+
     # Loop on machines, if they have an assignment check if it is done
     #
+    @ proc = 0
     while ($proc < $#machines)
         @ proc++
         @ ind =$assigned[$proc]
         set dropout = 0
+        set name = $nameind[$proc]
         if ($ind != 0) then
             set logname = $comlist[$ind]:r.log
             set cshname = $comlist[$ind]:r.csh
@@ -237,7 +306,9 @@ while ($numdone < $#comlist)
                     #
                     set flags[$ind] = 2
                     set assigned[$proc] = 0
+                    set failed[$name] = 0
                     @ numdone++
+                    set anydone = 1
                     echo "$comlist[$ind] finished on $machines[$proc]"
                 else if (! -e $cshname) then
 
@@ -261,8 +332,20 @@ while ($numdone < $#comlist)
                 echo "$comlist[$ind] failed on $machines[$proc] - need to restart"
                 set flags[$ind] = 0
                 set assigned[$proc] = 0
+                @ failcount = $failed[$name]
+                @ failcount++
+                set failed[$name] = $failcount
+                if ($failcount >= $dropcrit) echo \
+        "Dropping $machines[$proc] - it has failed $failcount times in a row"
             endif
         endif
+
+        # Drop a machine if it has failed more than given number of times
+        # Institute hold if none done and failure count is above criterion
+        #
+        @ failcount = $failed[$name]
+        if ($failcount >= $dropcrit || $pausing != 0 || \
+            ($anydone == 0 && $failtot >= $holdcrit)) set dropout = 1
 
         # If the current machine is unassigned, find next com to do and run it
         # Move current log out of way so non-existence of log can be sign of
@@ -321,6 +404,7 @@ while ($numdone < $#comlist)
     sleep 2
 end
 
+onintr finishkilled
 echo "ALL DONE - going to run $rootname-finish to reassemble"
 vmstocsh $rootname-finish.log < $rootname-finish.com | csh -ef
 exit
@@ -329,16 +413,20 @@ report:
 @ undone = $#comlist - $numdone
 echo  " $undone chunks are still undone"
 set ans = 0
-while ("$ans" != "R" && "$ans" != "Q" && "$ans" != "C")
-    echo "Enter R to try to redo them with the current list of machines,"
-    echo " Q to kill all jobs and quit, or C to continue waiting: "
+while ("$ans" != "R" && "$ans" != "Q" && "$ans" != "C" && "$ans" != "P")
+    echo "Enter R to kill and restart with the current list of machines,"
+    echo " Q to kill all jobs and quit, P to finish running jobs then exit,"
+    echo " or C to continue waiting: "
     set ans = "$<"
     if ($ans == "r") set ans = R
     if ($ans == "q") set ans = Q
+    if ($ans == "p") set ans = P
     if ($ans == "c") set ans = C
 end
 
-if ("$ans" == "C") goto continue
+set pausing = 0
+if ("$ans" == "P") set pausing = 1
+if ("$ans" == "C" || "$ans" == "P") goto continue
 
 # now try to kill jobs
 @ proc = 0
@@ -365,4 +453,10 @@ if ("$ans" == "R") goto restart
 echo ""
 echo "When you rerun with a different set of machines, be sure to use"
 echo "the -r flag to retain the existing results"
-exit
+exit 2
+
+finishkilled:
+echo ""
+echo "$rootname-finish was interrupted and the data have not been reassembled."
+echo "Rerun with -r or use subm $rootname-finish to reassemble."
+exit 3
