@@ -1,5 +1,17 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/15/05: IMOD_3-6-10
+7/15/05: In Processchunks, added ability to let running jobs finish before
+stopping.  Started counting failures so that it will quit if nothing ever
+starts working after trying all machines, and so that it can drop out a machine
+if it fails too many times in a row.
+
+7/15/05: eTomo changes at various times: Implemented montage binning and
+building of whole tomograms with montages; fixed ability to generate whole
+tomograms with single-axis sets; fixed warnings when changing coarse aligned
+stack binning; and stopped running header over again on files that have not
+changed.
+
 7/6/05: Eliminated unneeded repack_mod routine which was breaking Beadtrack
 and a few other programs on the SGI.  (In 3.5)
 
