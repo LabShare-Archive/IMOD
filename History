@@ -1,5 +1,13 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/18/05:
+Fixed a montage bug which caused Calculate Cross-Correlation to build a .dcst
+file instead of a .bl file after running Make Distortion Corrected Stack.
+
+7/18/05:
+Fixed a bug which caused Etomo to hang when a filename without an extension was
+past to it.
+
 7/15/05: IMOD_3-6-10
 7/15/05: In Processchunks, added ability to let running jobs finish before
 stopping.  Started counting failures so that it will quit if nothing ever
