@@ -11,6 +11,11 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.7  2005/06/03 20:12:48  sueh
+ * <p> bug# 671 the groupString for the first axis should have an "a" on the end,
+ * <p> even when axis type is single.  To avoid triggering a self test exception,
+ * <p> call AxisID.getStorageExtension() instead of getExtension().
+ * <p>
  * <p> Revision 3.6  2005/06/01 21:26:51  sueh
  * <p> bug# 667 Removing the Controller classes.  Trying make meta data and
  * <p> app manager equals didn't work very well.  Meta data is created by and
@@ -145,7 +150,7 @@ public class TransferfidParam implements Storable {
     if (axisID == AxisID.ONLY) {
       axisID = AxisID.FIRST;
     }
-    groupString = group + axisID.getStorageExtension();
+    groupString = group + axisID.getExtension();
     searchDirection.setValidValues(new int[] {-1,1});
     numberViews.setDisplayValue(5);
     reset();
