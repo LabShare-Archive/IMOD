@@ -35,6 +35,7 @@ public class BlendmontParam implements CommandParam {
   public static final int LINEAR_INTERPOLATION_ORDER = 1;
   public static final String OUTPUT_FILE_EXTENSION = ".ali";
   public static final String DISTORTION_CORRECTED_STACK_EXTENSION = ".dcst";
+  public static final String BLENDMONT_STACK_EXTENSION = ".bl";
 
   public static final String IMAGE_OUTPUT_FILE_KEY = "ImageOutputFile";
 
@@ -124,6 +125,11 @@ public class BlendmontParam implements CommandParam {
       justUndistort.set(true);
       return true;
     }
+    else {
+      imageOutputFile = datasetName + axisID.getExtension()
+          + BLENDMONT_STACK_EXTENSION;
+      justUndistort.set(false);
+    }
     File ecdFile = new File(EtomoDirector.getInstance()
         .getCurrentPropertyUserDir(), datasetName + axisID.getExtension()
         + ".ecd");
@@ -138,7 +144,7 @@ public class BlendmontParam implements CommandParam {
         + ".st");
     File blendFile = new File(EtomoDirector.getInstance()
         .getCurrentPropertyUserDir(), datasetName + axisID.getExtension()
-        + ".bl");
+        + BLENDMONT_STACK_EXTENSION);
     //Read in xcorr output if it exists.  Turn on for preblend and blend.
     readInXcorrs.set(mode == PREBLEND_MODE || mode == BLEND_MODE
         || mode == WHOLE_TOMOGRAM_SAMPLE_MODE || ecdFile.exists());
@@ -208,6 +214,10 @@ public final void setBinByFactor(int binByFactor) {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.8  2005/07/14 21:58:42  sueh
+ * <p> bug# 626 Added binByFactor, defaulted to 1.
+ * <p> Added WHOLE_TOMOGRAM_SAMPLE_MODE.
+ * <p>
  * <p> Revision 1.7  2005/05/09 22:43:39  sueh
  * <p> bug# 658 Changed ScriptParameter. and EtomoBoolean2.setInScript() to
  * <p> updateComScript() to standardize function names.
