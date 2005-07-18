@@ -105,6 +105,12 @@ import etomo.util.Utilities;
  * 
  *
  * <p> $Log$
+ * <p> Revision 3.160  2005/07/14 21:55:23  sueh
+ * <p> bug# 626 Added montaged views to wholeTomogram().  Added
+ * <p> updateBlendCom(TomogramPostioningDialog, AxisID).  Passing back
+ * <p> BlendmontParam from both updateBlendCom()'s because they are being
+ * <p> updated from the screen..
+ * <p>
  * <p> Revision 3.159  2005/07/11 22:42:37  sueh
  * <p> bug# 619 Placed the parallel processing panel on the tomogram
  * <p> generation screen.  Aded functions:  parallelProcessTiltDemo,
@@ -6691,6 +6697,29 @@ public class ApplicationManager extends BaseManager {
     return true;
   }
   
+  public boolean parallelProcessTilt(AxisID axisID,
+      ParallelProgressDisplay parallelProgressDisplay) {
+    processTrack.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
+    mainPanel.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
+    resetNextProcess(axisID);
+    String threadName;
+    try {
+      threadName = processMgr.tiltParallelProcessDemo(axisID,
+          parallelProgressDisplay);
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Can not execute tilt" + axisID.getExtension() + ".com";
+      message[1] = e.getMessage();
+      uiHarness.openMessageDialog(message, "Unable to execute com script",
+          axisID);
+      return false;
+    }
+    setThreadName(threadName, axisID);
+    return true;
+  }
+
   public boolean parallelProcessResumeTiltDemo(AxisID axisID,
       ParallelProgressDisplay parallelProgressDisplay) {
     processTrack.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
