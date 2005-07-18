@@ -1,8 +1,5 @@
 package etomo.type;
 
-import etomo.EtomoDirector;
-import etomo.util.Utilities;
-
 /**
  * <p>Description: </p>
  *
@@ -16,6 +13,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.6  2005/06/21 00:46:31  sueh
+ * <p> bug# 962 selfTestGetExtension() can be private.
+ * <p>
  * <p> Revision 3.5  2005/06/20 16:51:04  sueh
  * <p> bug# 692 Moved selftest convenience variable to util.Utilities.  Make
  * <p> selfTest function level.
@@ -82,15 +82,6 @@ public class AxisID {
    * creating file names.
    */
   public String getExtension() {
-    selfTestGetExtension();
-    return getStorageExtension();
-  }
-  
-  /**
-   * Returns the extension associated with the specific AxisID.  Should not be
-   * used for creating file names.
-   */
-  public String getStorageExtension() {
     if (this == ONLY) {
       return "";
     }
@@ -119,25 +110,5 @@ public class AxisID {
     }
 
     return null;
-  }
-  
-  private void selfTestGetExtension() {
-    if (!Utilities.isSelfTest()) {
-      return;
-    }
-    //make sure that the extension is correct, or the file name will be wrong
-    AxisType axisType = null;
-    try {
-      axisType = EtomoDirector.getInstance().getCurrentManager()
-          .getBaseMetaData().getAxisType();
-    }
-    catch (IllegalStateException e) {
-      return;
-    }
-    if (axisType == AxisType.SINGLE_AXIS && !name.equals(ONLY_AXIS_NAME)) {
-      throw new IllegalStateException(
-          "AxisID should be 'Only' when AxisType is single.  AxisID = "
-              + name);
-    }
-  }
+  }  
 }
