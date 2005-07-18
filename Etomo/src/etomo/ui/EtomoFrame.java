@@ -554,6 +554,9 @@ public abstract class EtomoFrame extends JFrame {
     if (!main) {
       return AxisID.SECOND;
     }
+    if (mainPanel == null) {
+      return null;
+    }
     if (mainPanel.getAxisType() == AxisType.SINGLE_AXIS
         || mainPanel.isShowingSetup()) {
       return AxisID.ONLY;
@@ -593,6 +596,9 @@ public abstract class EtomoFrame extends JFrame {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.8  2005/07/01 21:13:17  sueh
+* <p> bug# 619 temporary changes to pass the frame to the demo JDialog.
+* <p>
 * <p> Revision 1.7  2005/05/18 22:46:55  sueh
 * <p> bug# 662 Changed high-level open message dialog function names from
 * <p> open...Dialog (the same as the low level functions()) to
