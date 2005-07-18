@@ -1,5 +1,12 @@
 package etomo.type;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+
+import etomo.storage.ParameterStore;
+import etomo.storage.Storable;
 import junit.framework.TestCase;
 /**
 * <p>Description: </p>
@@ -23,8 +30,12 @@ public class ConstEtomoNumberTest extends TestCase {
   private static final float smallFloat = -99999999999999999999999999999999999999.0893F;
   private static final long bigLong = 999999999999999999L;
   private static final long smallLong = -999999999999999999L;
-  private static int bigInteger = 999999999;
-  private static int smallInteger = -999999999;
+  private static final int bigInteger = 999999999;
+  private static final int smallInteger = -999999999;
+  
+  private File testDir = new File(TypeTests.testRoot, "ConstEtomoNumber");
+  private File propertiesFile = new File(testDir, "properties");
+  
   /*
    * @see TestCase#setUp()
    */
@@ -45,6 +56,8 @@ public class ConstEtomoNumberTest extends TestCase {
    */
   public ConstEtomoNumberTest(String arg0) {
     super(arg0);
+    testDir.mkdir();
+    propertiesFile.delete();
   }
   
   final public void testConstEtomoNumber() {
@@ -352,7 +365,24 @@ public class ConstEtomoNumberTest extends TestCase {
     test.selfTestInvariants();
   }
   
-  public final void testStore_Properties() {
+  public final void testStore_Properties() throws IOException {
+    String name = "TestStore_PropertiesName";
+    EtomoNumber test = new EtomoNumber(name);
+    test.set(smallInteger);
+    ParameterStore properties = new ParameterStore(propertiesFile);
+    Storable storable[] = new Storable[1];
+    storable[0] = test;
+    //test: no IOException thrown on save
+    properties.save(storable);
+    //test: write parameter to file
+    BufferedReader logFileReader = new BufferedReader(new FileReader(propertiesFile));
+    String line;
+    while ((line = logFileReader.readLine()) != null) {
+      if (line.trim().equals(name + "=" + smallInteger)) {
+        return;
+      }
+    }
+    fail("write parameter to file test failed");
   }
   
   public final void testStore_Properties_String() {
@@ -873,6 +903,9 @@ public class ConstEtomoNumberTest extends TestCase {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.5  2005/06/22 23:36:05  sueh
+* <p> bug# 692 Add empty tests to fill in later.  Test private functions separately.
+* <p>
 * <p> Revision 1.4  2005/06/21 16:34:09  sueh
 * <p> bug# 692 Make constants member variables.  Don't test validate
 * <p> functions twice.  Test to make sure that the validate function is called
