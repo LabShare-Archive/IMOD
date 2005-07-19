@@ -8,6 +8,11 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.10  2005/07/16 00:26:25  mast
+#  Added failure counting, machine dropping, a pause option to let jobs finish,
+#  exiting if all machines have failed and no chunks have finished, and
+#  exiting if all machines have dropped out.
+#
 #  Revision 3.9  2005/06/30 18:13:03  mast
 #  Added finished on machine message, changed failed message, reduce sleep
 #
@@ -54,6 +59,7 @@ Will process multiple command files on multiple processors or machines
     -g     Go process, without asking for confirmation after probing machines
     -n #   Set the "nice" value to the given number (default $nice, range 0-19)
     -d #   Drop a machine after given number of failures in a row (default $dropcrit)
+    -P     Output process ID
 EOF
 exit 0
 endif
@@ -64,6 +70,7 @@ endif
 
 set retain = 0
 set justgo = 0
+set skipprobe = 0
 
 while ($#argv > 2)
   switch ($argv[1])
@@ -85,6 +92,12 @@ while ($#argv > 2)
     case -d:
       @ dropcrit = $argv[2]
       shift ; shift
+      breaksw
+
+    case -P:
+      echo2 Shell PID: $$
+      set skipprobe = 1
+      shift
       breaksw
 
     default:
@@ -124,37 +137,39 @@ set thishost = `hostname`
 set hostroot = $thishost:r:r:r
 set curdir = `pwd | sed -e "/localscratch/s//scratch\/$hostroot/" -e "/ /s//\\ /g"`
 
-# probe machines and get all the verifications
+# probe machines and get all the verifications unless etomo is running it
 #
-echo "Probing machine connections and loads..."
-@ num = 0
-set newlist = ()
-while ($num < $#machines)
-    @ num++ 
-    set machname = $machines[$num]
-    set checkit = 1
-    if ($num > 1) then
-        @ last = $num - 1
-        if ( "$machname" == "$machines[$last]" ) set checkit = 0
-    endif
-    if ($checkit == 1) then
-        if ("$machname" == $hostroot || $machname == localhost) then
-            echo $machname
-            w | head -n 1
-            set laststat = 0
-        else
-            ssh -x $machname "hostname ; w | head -n 1"
-            set laststat = $status
-            if ($laststat != 0) then
-                echo "Dropping $machname from list because it does not respond"
-                echo ""
+if ($skipprobe == 0 || $justgo == 0) then
+    echo "Probing machine connections and loads..."
+    @ num = 0
+    set newlist = ()
+    while ($num < $#machines)
+        @ num++ 
+        set machname = $machines[$num]
+        set checkit = 1
+        if ($num > 1) then
+            @ last = $num - 1
+            if ( "$machname" == "$machines[$last]" ) set checkit = 0
+        endif
+        if ($checkit == 1) then
+            if ("$machname" == $hostroot || $machname == localhost) then
+                echo $machname
+                w | head -n 1
+                set laststat = 0
+            else
+                ssh -x $machname "hostname ; w | head -n 1"
+                set laststat = $status
+                if ($laststat != 0) then
+                    echo "Dropping $machname from list because it does not respond"
+                    echo ""
+                endif
             endif
         endif
-    endif
-    if ($laststat == 0) set newlist = ($newlist $machname)
-end 
+        if ($laststat == 0) set newlist = ($newlist $machname)
+    end 
 
-set machines = ($newlist)
+    set machines = ($newlist)
+endif
 
 if ($justgo == 0) then
     echo -n "Enter Y to proceed with the current set of machines: "
@@ -378,7 +393,7 @@ while ($numdone < $#comlist)
                 if ("$machname" == $hostroot || "$machname" == localhost) then
                     csh -ef < $cshname >& $pidname ; \rm -f $cshname $pidname &
                 else
-                    ssh -x $machname "cd $curdir ; nice csh -ef < $cshname >& $pidname ; \rm -f $cshname $pidname" &
+                    ssh -x $machname bash -l -c \'"cd $curdir ; nice csh -ef < $cshname >& $pidname ; \rm -f $cshname $pidname"\' &
                 endif
             endif
         end 
