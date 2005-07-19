@@ -26,17 +26,22 @@ abstract class InputCell {
 
   private static boolean colorInitialized = false;
   protected static ColorUIResource foreground = null;
-  protected static ColorUIResource errorForeground = null;
+  protected static ColorUIResource notInUseForeground = null;
   private static ColorUIResource background = null;
   private static ColorUIResource disabledBackground = null;
   private static ColorUIResource highlightedBackground = null;
   private static ColorUIResource disabledhighlightedBackground = null;
+  private static ColorUIResource warningBackground = null;
+  private static ColorUIResource disabledWarningBackground = null;
+  private static ColorUIResource errorBackground = null;
+  private static ColorUIResource disabledErrorBackground = null;
   private static ColorUIResource headerBackground = null;
 
-  private boolean inUse = true;
+  protected boolean inUse = true;
   protected boolean enabled = true;
   private boolean highlighted = false;
-  protected boolean error = false;
+  private boolean warning = false;
+  private boolean error = false;
   private Font plainFont = null;
   private Font italicFont = null;
   private JPanel jpanelContainer = null;
@@ -89,12 +94,7 @@ abstract class InputCell {
 
   final void setInUse(boolean inUse) {
     this.inUse = inUse;
-    if (inUse) {
-      getComponent().setFont(plainFont);
-    }
-    else {
-      getComponent().setFont(italicFont);
-    }
+    setForeground();
   }
 
   final protected void setBackground() {
@@ -104,6 +104,22 @@ abstract class InputCell {
       }
       else {
         setBackground(disabledhighlightedBackground);
+      }
+    }
+    else if (warning) {
+      if (enabled) {
+        setBackground(warningBackground);
+      }
+      else {
+        setBackground(disabledWarningBackground);
+      }
+    }
+    else if (error) {
+      if (enabled) {
+        setBackground(errorBackground);
+      }
+      else {
+        setBackground(disabledErrorBackground);
       }
     }
     else if (enabled) {
@@ -118,54 +134,51 @@ abstract class InputCell {
     getComponent().setBackground(color);
   }
 
+  final void setWarning(boolean warning) {
+    this.warning = warning;
+    setBackground();
+  }
+  
   final void setError(boolean error) {
     this.error = error;
-    setForeground();
+    setBackground();
   }
 
+  private final static ColorUIResource subtract(ColorUIResource color, ColorUIResource subtractColor) {
+    return new ColorUIResource(color.getRed() - subtractColor.getRed(),
+                               color.getGreen() - subtractColor.getGreen(),
+                               color.getBlue() - subtractColor.getBlue());
+  }
+  
+  private final static ColorUIResource add(ColorUIResource color, ColorUIResource subtractColor) {
+    return new ColorUIResource(color.getRed() + subtractColor.getRed(),
+                               color.getGreen() + subtractColor.getGreen(),
+                               color.getBlue() + subtractColor.getBlue());
+  }
+  
   private final static void initializeColor() {
     if (colorInitialized) {
       return;
     }
     colorInitialized = true;
+    ColorUIResource greyout = new ColorUIResource(25, 25, 25);
     foreground = new ColorUIResource(0, 0, 0);
-
-    errorForeground = new ColorUIResource(153, 0, 0);
-
-    background = UIUtilities.getDefaultUIColor("Table.backgroundvalue");
-    if (background == null) {
-      background = new ColorUIResource(255, 255, 255);
-    }
-
-    highlightedBackground = UIUtilities
-        .getDefaultUIColor("Table.selectionBackgroundvalue");
-    if (highlightedBackground == null) {
-      highlightedBackground = new ColorUIResource(204, 255, 255);
-    }
-
-    headerBackground = UIUtilities
-        .getDefaultUIColor("TableHeader.backgroundvalue");
-    if (headerBackground == null) {
-      headerBackground = new ColorUIResource(204, 204, 204);
-    }
-
-    int backgroundRed = background.getRed();
-    int backgroundGreen = background.getGreen();
-    int backgroundBlue = background.getBlue();
-    int red = backgroundRed - headerBackground.getRed();
-    int green = backgroundGreen - headerBackground.getGreen();
-    int blue = backgroundBlue - headerBackground.getBlue();
-    int greyoutValue = (red + green + blue) / 6;
-
-    disabledBackground = new ColorUIResource(backgroundRed - greyoutValue,
-        backgroundGreen - greyoutValue, backgroundBlue - greyoutValue);
-
-    disabledhighlightedBackground = new ColorUIResource(highlightedBackground
-        .getRed()
-        - greyoutValue, highlightedBackground.getGreen() - greyoutValue,
-        highlightedBackground.getBlue() - greyoutValue);
+    notInUseForeground = new ColorUIResource(102, 102, 102);
+    background = new ColorUIResource(255, 255, 255);
+    disabledBackground = subtract(background, greyout);
+    highlightedBackground = new ColorUIResource(204, 255, 255);
+    disabledhighlightedBackground = subtract(highlightedBackground, greyout);
+    warningBackground = new ColorUIResource(255, 255, 204);
+    disabledWarningBackground = subtract(warningBackground, greyout);
+    errorBackground = new ColorUIResource(255, 204, 204);
+    disabledErrorBackground = subtract(errorBackground, greyout);
   }
 }
 /**
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2005/07/01 21:20:08  sueh
+ * <p> bug# 619 Pulled an ancestor class (InputCell) out of FieldCell because we
+ * <p> need several types of input cells.  InputCell handles states and colors
+ * <p> but not display fields.
+ * <p> </p>
  */
