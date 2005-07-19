@@ -117,7 +117,6 @@ final class ProcessorTableRow {
     cellLoad15.setEnabled(false);
     cellLoad15.setValue(load15);
     cellRestarts.setEnabled(false);
-    cellRestarts.setError(true);
     cellSuccesses.setEnabled(false);
     setSelected(false);
   }
@@ -266,6 +265,9 @@ final class ProcessorTableRow {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.5  2005/07/15 16:32:05  sueh
+ * <p> bug# 532 Removed experiment about not scrolling headers
+ * <p>
  * <p> Revision 1.4  2005/07/14 22:15:01  sueh
  * <p> bug# 532 Experimenting with extending GridBagLayout to make a header
  * <p> in the scroll pane.
