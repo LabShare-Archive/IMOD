@@ -91,13 +91,13 @@ class SpinnerCell extends InputCell {
 
   protected final void setForeground() {
     JFormattedTextField textField = getTextField();
-    if (error) {
-      textField.setForeground(errorForeground);
-      textField.setDisabledTextColor(errorForeground);
-    }
-    else {
+    if (inUse) {
       textField.setForeground(foreground);
       textField.setDisabledTextColor(foreground);
+    }
+    else {
+      textField.setForeground(notInUseForeground);
+      textField.setDisabledTextColor(notInUseForeground);
     }
   }
   
@@ -107,6 +107,9 @@ class SpinnerCell extends InputCell {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.2  2005/07/01 23:06:30  sueh
+ * <p> bug# 619 added addChangeListener
+ * <p>
  * <p> Revision 1.1  2005/07/01 21:24:32  sueh
  * <p> bug# 619 A writable table cell that extends InputCell and contains a
  * <p> JSpinner.  Only contains integers.

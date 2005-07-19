@@ -21,6 +21,10 @@ import etomo.type.EtomoNumber;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2005/07/11 22:57:04  sueh
+ * <p> bug# 619 Don't assume that a blank value is 0, return a null value from
+ * <p> getIntValue().
+ * <p>
  * <p> Revision 1.4  2005/07/01 23:03:33  sueh
  * <p> bug# 619 added getIntValue
  * <p>
@@ -130,13 +134,13 @@ class FieldCell extends InputCell {
   }
 
   protected final void setForeground() {
-    if (error) {
-      textField.setForeground(errorForeground);
-      textField.setDisabledTextColor(errorForeground);
-    }
-    else {
+    if (inUse) {
       textField.setForeground(foreground);
       textField.setDisabledTextColor(foreground);
+    }
+    else {
+      textField.setForeground(notInUseForeground);
+      textField.setDisabledTextColor(notInUseForeground);
     }
   }
 }
