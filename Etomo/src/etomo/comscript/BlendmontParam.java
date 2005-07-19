@@ -126,9 +126,19 @@ public class BlendmontParam implements CommandParam {
       return true;
     }
     else {
-      imageOutputFile = datasetName + axisID.getExtension()
-          + BLENDMONT_STACK_EXTENSION;
       justUndistort.set(false);
+      if (mode == XCORR_MODE) {
+        imageOutputFile = datasetName + axisID.getExtension()
+        + BLENDMONT_STACK_EXTENSION;
+      }
+      else if (mode == PREBLEND_MODE) {
+        imageOutputFile = datasetName + axisID.getExtension()
+        + ".preali";
+      }
+      else if (mode == BLEND_MODE || mode == WHOLE_TOMOGRAM_SAMPLE_MODE) {
+        imageOutputFile = datasetName + axisID.getExtension()
+        + ".ali";
+      }
     }
     File ecdFile = new File(EtomoDirector.getInstance()
         .getCurrentPropertyUserDir(), datasetName + axisID.getExtension()
@@ -214,6 +224,10 @@ public final void setBinByFactor(int binByFactor) {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.9  2005/07/18 22:02:17  sueh
+ * <p> bug# 688 Setting imageOutputFile and justUndistort when mode is not
+ * <p> undistort.
+ * <p>
  * <p> Revision 1.8  2005/07/14 21:58:42  sueh
  * <p> bug# 626 Added binByFactor, defaulted to 1.
  * <p> Added WHOLE_TOMOGRAM_SAMPLE_MODE.
