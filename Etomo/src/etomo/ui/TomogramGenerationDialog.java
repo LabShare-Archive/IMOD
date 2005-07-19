@@ -66,6 +66,10 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.50  2005/07/14 22:16:26  sueh
+ * bug# 626 Enabling binning for montage view.  Setting binning in
+ * set and getParameters(BlendmontParam).
+ *
  * Revision 3.49  2005/07/11 23:31:34  sueh
  * bug# 619 Added a "save & split" button for parallel processing tilt and trial
  *  tilt.  Receiving signal about how parallel tilt completed so resume can be
@@ -396,9 +400,7 @@ public class TomogramGenerationDialog extends ProcessDialog
   public static final String rcsid = "$Id$";
 
   private  static final String RUN_TRIAL_BUTTON_TITLE = "Generate Trial Tomogram";
-  private  static final String START_TRIAL_BUTTON_TITLE = "Start Trial Tomogram Processes";
   private  static final String RUN_TILT_BUTTON_TITLE = "Generate Tomogram";
-  private  static final String START_TILT_BUTTON_TITLE = "Start Tomogram Processes";
   
   private JPanel pnlTilt = new JPanel();
 
@@ -449,7 +451,6 @@ public class TomogramGenerationDialog extends ProcessDialog
   private JComboBox cmboTrialTomogramName = new JComboBox();
   private Vector trialTomogramList = new Vector();
   private MultiLineButton btnTrial = new MultiLineButton(RUN_TRIAL_BUTTON_TITLE);
-  private MultiLineToggleButton btnSplitTrial = new MultiLineToggleButton("Save & Split Trial Tilt");
   private MultiLineButton btn3dmodTrial = new MultiLineButton(
       "<html><b>View Trial in 3dmod</b>");
   private MultiLineToggleButton btnUseTrial = new MultiLineToggleButton(
@@ -477,7 +478,6 @@ public class TomogramGenerationDialog extends ProcessDialog
 
   //  Tomogram generation buttons
   private MultiLineToggleButton btnTilt = new MultiLineToggleButton(RUN_TILT_BUTTON_TITLE);
-  private MultiLineToggleButton btnSplitTilt = new MultiLineToggleButton("Save & Split Tilt");
   private MultiLineButton btn3dmodTomogram = new MultiLineButton(
       "<html><b>View Tomogram In 3dmod</b>");
   private MultiLineToggleButton btnDeleteStacks = new MultiLineToggleButton(
@@ -537,8 +537,6 @@ public class TomogramGenerationDialog extends ProcessDialog
         .addKeyListener(new StartingAndEndingZKeyListener(this));
     cbFiducialess.addActionListener(tomogramGenerationListener);
     cbParallelProcess.addActionListener(tomogramGenerationListener);
-    btnSplitTilt.addActionListener(tomogramGenerationListener);
-    btnSplitTrial.addActionListener(tomogramGenerationListener);
 
     //  Mouse adapter for context menu
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
@@ -932,16 +930,6 @@ public class TomogramGenerationDialog extends ProcessDialog
   private void updateParallelProcess() {
     boolean parallelProcess = cbParallelProcess.isSelected();
     parallelPanel.setVisible(parallelProcess);
-    btnSplitTilt.setVisible(parallelProcess);
-    btnSplitTrial.setVisible(parallelProcess);
-    if (parallelProcess) {
-      btnTilt.setText(START_TILT_BUTTON_TITLE);
-      btnTrial.setText(START_TRIAL_BUTTON_TITLE);
-    }
-    else {
-      btnTilt.setText(RUN_TILT_BUTTON_TITLE);
-      btnTrial.setText(RUN_TRIAL_BUTTON_TITLE);
-    }
     applicationManager.packMainWindow(axisID);
   }
 
@@ -1072,7 +1060,6 @@ public class TomogramGenerationDialog extends ProcessDialog
     //header
     tiltHeader = new PanelHeader(axisID, "Tilt", tiltBodyPanel, this);
     //buttonPanel
-    buttonPanel.add(btnSplitTilt);
     buttonPanel.add(btnTilt);
     buttonPanel.add(btn3dmodTomogram);
     buttonPanel.add(btnDeleteStacks);
@@ -1087,9 +1074,7 @@ public class TomogramGenerationDialog extends ProcessDialog
     //checkBoxPanel
     checkBoxPanel.add(westCheckBoxPanel);
     checkBoxPanel.add(Box.createHorizontalStrut(125));
-    if (EtomoDirector.getInstance().isNewstuff()) {
-      checkBoxPanel.add(cbParallelProcess);
-    }
+    checkBoxPanel.add(cbParallelProcess);
     UIUtilities.alignComponentsX(checkBoxPanel, Component.LEFT_ALIGNMENT);
     //radialPanel
     radialPanel.add(ltfRadialMax.getContainer());
@@ -1130,6 +1115,7 @@ public class TomogramGenerationDialog extends ProcessDialog
     tiltPanel.add(tiltBodyPanel);
     UIUtilities.alignComponentsX(tiltPanel, Component.LEFT_ALIGNMENT);
     //configure
+    cbParallelProcess.setVisible(EtomoDirector.getInstance().isNewstuff());
     tiltHeader.setOpen(true);
     ButtonHelper.setStandardSize(btnTilt);
     ButtonHelper.setStandardSize(btn3dmodTomogram);
@@ -1154,7 +1140,6 @@ public class TomogramGenerationDialog extends ProcessDialog
     //header
     trialHeader = new PanelHeader(axisID, "Trial Tilt", trialBodyPanel);
     //buttonPanel
-    buttonPanel.add(btnSplitTrial);
     buttonPanel.add(btnTrial);
     buttonPanel.add(btn3dmodTrial);
     buttonPanel.add(btnUseTrial);
@@ -1328,7 +1313,7 @@ public class TomogramGenerationDialog extends ProcessDialog
         cmboTrialTomogramName.addItem(trialTomogramName);
       }
       if (cbParallelProcess.isSelected()) {
-        applicationManager.parallelProcessTiltDemo(axisID, parallelPanel);
+        applicationManager.parallelProcessTilt(axisID, parallelPanel);
       }
       else {
         applicationManager.trialTilt(axisID);
@@ -1343,7 +1328,7 @@ public class TomogramGenerationDialog extends ProcessDialog
     else if (command.equals(btnTilt.getActionCommand())) {
       if (cbParallelProcess.isSelected()) {
         parallelPanel.resetResults();
-        applicationManager.parallelProcessTiltDemo(axisID, parallelPanel);
+        applicationManager.parallelProcessTilt(axisID, parallelPanel);
       }
       else {
         applicationManager.tilt(axisID);
@@ -1360,14 +1345,6 @@ public class TomogramGenerationDialog extends ProcessDialog
     }
     else if (command.equals(cbParallelProcess.getActionCommand())) {
       updateParallelProcess();
-    }
-    else if (command.equals(btnSplitTilt.getActionCommand())) {
-      parallelPanel.resetResults();
-      applicationManager.splitParallelProcessTilt(axisID, true);
-    }
-    else if (command.equals(btnSplitTrial.getActionCommand())) {
-      parallelPanel.resetResults();
-      applicationManager.splitParallelProcessTilt(axisID, false);
     }
   }
 
