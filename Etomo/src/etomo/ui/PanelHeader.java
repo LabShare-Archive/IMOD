@@ -65,13 +65,13 @@ final class PanelHeader implements Expandable {
     constraints.gridheight = 1;
     constraints.gridwidth = 1;
     //open/close button
-    if (EtomoDirector.getInstance().isNewstuff() && openClosePanel != null) {
+    if (openClosePanel != null) {
       btnOpenClose = new ExpandButton(this, "-", "+");
       layout.setConstraints(btnOpenClose, constraints);
       northPanel.add(btnOpenClose);
     }
     //title
-    if (!EtomoDirector.getInstance().isNewstuff() || container == null) {
+    if (container == null) {
       constraints.gridwidth = GridBagConstraints.REMAINDER;
     }
     constraints.weightx = 1.0;
@@ -80,7 +80,7 @@ final class PanelHeader implements Expandable {
     cellTitle.setBorderPainted(false);
     cellTitle.add(northPanel, layout, constraints);
     //advanced/basic button
-    if (EtomoDirector.getInstance().isNewstuff() && container != null) {
+    if (container != null) {
       constraints.weightx = 0.0;
       constraints.weighty = 0.0;
       constraints.gridwidth = GridBagConstraints.REMAINDER;
@@ -93,6 +93,14 @@ final class PanelHeader implements Expandable {
     separator.setMaximumSize(new Dimension(100, 1));
     separator.setAlignmentX(Component.CENTER_ALIGNMENT);
     rootPanel.add(separator);
+    if (!EtomoDirector.getInstance().isNewstuff()) {
+      if (btnOpenClose != null) {
+        btnOpenClose.setVisible(false);
+      }
+      if (btnAdvancedBasic != null) {
+        btnAdvancedBasic.setVisible(false);
+      }
+    } 
   }
   
   final Container getContainer() {
@@ -128,6 +136,9 @@ final class PanelHeader implements Expandable {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.3  2005/07/11 23:04:59  sueh
+* <p> bug# 619 Attempting to center the separator.
+* <p>
 * <p> Revision 1.2  2005/07/07 00:00:04  sueh
 * <p> bug# 437 Removed unnecessary Constructor parameter
 * <p> useAdvancedBasic.  If the container is not passed then the
