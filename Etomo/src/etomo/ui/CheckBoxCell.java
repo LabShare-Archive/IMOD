@@ -44,13 +44,8 @@ final class CheckBoxCell extends InputCell {
   }
 
   final void setLabel(String label) {
-    this.unformattedLabel = label;
-    if (error) {
-      setHtmlLabel(errorForeground);
-    }
-    else {
-      setHtmlLabel(foreground);
-    }
+    unformattedLabel = label;
+    setForeground();
   }
 
   private final void setHtmlLabel(ColorUIResource color) {
@@ -77,11 +72,14 @@ final class CheckBoxCell extends InputCell {
   }
 
   protected final void setForeground() {
-    if (error) {
-      setHtmlLabel(errorForeground);
+    checkBox.setForeground(foreground);
+    if (inUse) {
+      checkBox.setForeground(foreground);
+      setHtmlLabel(foreground);
     }
     else {
-      setHtmlLabel(foreground);
+      checkBox.setForeground(notInUseForeground);
+      setHtmlLabel(notInUseForeground);
     }
   }
   
@@ -95,6 +93,10 @@ final class CheckBoxCell extends InputCell {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.2  2005/07/11 22:55:40  sueh
+ * <p> bug# 619 Added functions:  getBorderHeight and getHeight so that the
+ * <p> height of the processor table can be calculated.
+ * <p>
  * <p> Revision 1.1  2005/07/01 21:08:54  sueh
  * <p> bug# 619 CheckBoxCell is a writable table cell that inherits InputCell and
  * <p> contains a JCheckBoxCell.
