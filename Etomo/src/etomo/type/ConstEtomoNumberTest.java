@@ -5,24 +5,26 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 
+import etomo.EtomoDirector;
 import etomo.storage.ParameterStore;
 import etomo.storage.Storable;
 import junit.framework.TestCase;
+
 /**
-* <p>Description: </p>
-* 
-* <p>Copyright: Copyright (c) 2005</p>
-*
-*<p>Organization:
-* Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
-* University of Colorado</p>
-* 
-* @author $Author$
-* 
-* @version $Revision$
-*/
+ * <p>Description: </p>
+ * 
+ * <p>Copyright: Copyright (c) 2005</p>
+ *
+ *<p>Organization:
+ * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
+ * University of Colorado</p>
+ * 
+ * @author $Author$
+ * 
+ * @version $Revision$
+ */
 public class ConstEtomoNumberTest extends TestCase {
-  public static  final String  rcsid =  "$Id$";
+  public static final String rcsid = "$Id$";
 
   private static final double bigDouble = 999999999999999999999999999999999999999.3421D;
   private static final double smallDouble = -999999999999999999999999999999999999999.8793D;
@@ -32,10 +34,11 @@ public class ConstEtomoNumberTest extends TestCase {
   private static final long smallLong = -999999999999999999L;
   private static final int bigInteger = 999999999;
   private static final int smallInteger = -999999999;
-  
-  private File testDir = new File(TypeTests.testRoot, "ConstEtomoNumber");
+
+  private File testDir = new File(new File(EtomoDirector.getInstance()
+      .getCurrentPropertyUserDir(), TypeTests.testRoot), "ConstEtomoNumber");
   private File propertiesFile = new File(testDir, "properties");
-  
+
   /*
    * @see TestCase#setUp()
    */
@@ -59,12 +62,12 @@ public class ConstEtomoNumberTest extends TestCase {
     testDir.mkdir();
     propertiesFile.delete();
   }
-  
+
   final public void testConstEtomoNumber() {
     EtomoNumber test = new EtomoNumber();
     test.selfTestInvariants();
   }
-  
+
   final public void testConstEtomoNumber_String() {
     String name = "ConstEtomoNumberTest";
     EtomoNumber test = new EtomoNumber(name);
@@ -74,7 +77,7 @@ public class ConstEtomoNumberTest extends TestCase {
     //test description
     assertTrue(name.equals(test.getDescription()));
   }
-  
+
   final public void testConstEtomoNumber_int() {
     //double
     EtomoNumber test = new EtomoNumber(EtomoNumber.DOUBLE_TYPE);
@@ -89,7 +92,7 @@ public class ConstEtomoNumberTest extends TestCase {
     test = new EtomoNumber(EtomoNumber.LONG_TYPE);
     test.selfTestInvariants();
   }
-  
+
   final public void testConstEtomoNumber_int_String() {
     //double
     String name = "ConstEtomoNumberTest";
@@ -110,7 +113,7 @@ public class ConstEtomoNumberTest extends TestCase {
     test = new EtomoNumber(EtomoNumber.LONG_TYPE, name);
     test.selfTestInvariants();
   }
-  
+
   final public void testConstEtomoNumber_ConstEtomoNumber() {
     String name = "ConstEtomoNumberTest";
     String description = "testConstEtomoNumber_ConstEtomoNumber";
@@ -134,7 +137,7 @@ public class ConstEtomoNumberTest extends TestCase {
     test.selfTestInvariants();
     copy.selfTestInvariants();
   }
-  
+
   public final void testValidateReturnTypeInteger() {
     int displayValue = 2;
     //double
@@ -173,7 +176,7 @@ public class ConstEtomoNumberTest extends TestCase {
     }
     test.selfTestInvariants();
   }
-  
+
   public final void testGetDisplayInteger() {
     //test: validateReturnTypeInteger() is being called
     EtomoNumber test = new EtomoNumber(EtomoNumber.DOUBLE_TYPE);
@@ -186,7 +189,7 @@ public class ConstEtomoNumberTest extends TestCase {
     }
     test.selfTestInvariants();
   }
- 
+
   public final void testSetInvalidReason() {
     EtomoNumber test = new EtomoNumber(EtomoNumber.FLOAT_TYPE);
     //test nullIsValid == true
@@ -204,12 +207,12 @@ public class ConstEtomoNumberTest extends TestCase {
     assertTrue(test.isValid());
     //test validValues
     test.resetInvalidReason();
-    test.setValidValues(new int[] {2,3});
+    test.setValidValues(new int[] { 2, 3 });
     test.setInvalidReason();
     assertFalse(test.isValid());
     test.selfTestInvariants();
   }
-  
+
   public final void testApplyCeilingValue() {
     int lowValue = 2;
     int ceilingValue = 3;
@@ -227,7 +230,7 @@ public class ConstEtomoNumberTest extends TestCase {
         ceilingValue);
     test.selfTestInvariants();
   }
-  
+
   public final void testApplyFloorValue() {
     int lowValue = 2;
     int floorValue = 3;
@@ -245,8 +248,9 @@ public class ConstEtomoNumberTest extends TestCase {
         floorValue);
     test.selfTestInvariants();
   }
-  
-  public final void testValidate_String_String_AxisID() throws InvalidEtomoNumberException {
+
+  public final void testValidate_String_String_AxisID()
+      throws InvalidEtomoNumberException {
     String errorTitle = "testValidate_String_String_AxisID";
     EtomoNumber test = new EtomoNumber();
     //test valid
@@ -262,24 +266,28 @@ public class ConstEtomoNumberTest extends TestCase {
     }
     test.selfTestInvariants();
   }
-  
+
   public final void testIsValid_boolean_String_String_AxisID() {
     String errorTitle = "testIsValid_boolean_String_String_AxisID";
     EtomoNumber test = new EtomoNumber();
     //test valid with print
-    assertTrue(test.isValid(true, errorTitle, "test valid failed", AxisID.FIRST));
+    assertTrue(test
+        .isValid(true, errorTitle, "test valid failed", AxisID.FIRST));
     //test valid without print
-    assertTrue(test.isValid(false, errorTitle, "test valid failed", AxisID.FIRST));
+    assertTrue(test.isValid(false, errorTitle, "test valid failed",
+        AxisID.FIRST));
     //test invalid
     test.setNullIsValid(false);
     test.setInvalidReason();
     ///with print
-    assertFalse(test.isValid(true, errorTitle, "test valid succeeded", AxisID.FIRST));
+    assertFalse(test.isValid(true, errorTitle, "test valid succeeded",
+        AxisID.FIRST));
     //without print
-    assertFalse(test.isValid(false, errorTitle, "test valid succeeded", AxisID.FIRST));
+    assertFalse(test.isValid(false, errorTitle, "test valid succeeded",
+        AxisID.FIRST));
     test.selfTestInvariants();
   }
-  
+
   public final void testGetInvalidReason() {
     EtomoNumber test = new EtomoNumber();
     test.setNullIsValid(false);
@@ -292,7 +300,7 @@ public class ConstEtomoNumberTest extends TestCase {
         test.getDescription()) != -1);
     test.selfTestInvariants();
   }
-  
+
   public final void testValidateFloorAndCeiling() {
     EtomoNumber test = new EtomoNumber(EtomoNumber.FLOAT_TYPE);
     //test: floor > ceiling throws IllegalStateException
@@ -309,7 +317,7 @@ public class ConstEtomoNumberTest extends TestCase {
     test.setCeiling(bigInteger);
     test.selfTestInvariants();
   }
-  
+
   public final void testSetCeiling() {
     EtomoNumber test = new EtomoNumber(EtomoNumber.LONG_TYPE);
     //test: validateFloorAndCeiling() was called
@@ -321,7 +329,7 @@ public class ConstEtomoNumberTest extends TestCase {
     catch (IllegalStateException e) {
     }
   }
-  
+
   public final void testSetFloor() {
     EtomoNumber test = new EtomoNumber(EtomoNumber.DOUBLE_TYPE);
     //test: validateFloorAndCeiling() was called
@@ -333,7 +341,7 @@ public class ConstEtomoNumberTest extends TestCase {
     catch (IllegalStateException e) {
     }
   }
-  
+
   public final void testSetDescription() {
     String name = "ConstEtomoNumberTest";
     String description = "testSetDescription";
@@ -350,7 +358,8 @@ public class ConstEtomoNumberTest extends TestCase {
   public final void testSetValidValues_intArray() {
     int validNumber = 3;
     EtomoNumber test = new EtomoNumber();
-    test.setValidValues(new int[] { 1, EtomoNumber.INTEGER_NULL_VALUE, validNumber, 5 });
+    test.setValidValues(new int[] { 1, EtomoNumber.INTEGER_NULL_VALUE,
+        validNumber, 5 });
     //test nulls are ignored in valid value
     test.setInvalidReason();
     assertTrue(test.isValid());
@@ -364,7 +373,7 @@ public class ConstEtomoNumberTest extends TestCase {
     assertFalse(test.isValid());
     test.selfTestInvariants();
   }
-  
+
   public final void testStore_Properties() throws IOException {
     String name = "TestStore_PropertiesName";
     EtomoNumber test = new EtomoNumber(name);
@@ -375,7 +384,8 @@ public class ConstEtomoNumberTest extends TestCase {
     //test: no IOException thrown on save
     properties.save(storable);
     //test: write parameter to file
-    BufferedReader logFileReader = new BufferedReader(new FileReader(propertiesFile));
+    BufferedReader logFileReader = new BufferedReader(new FileReader(
+        propertiesFile));
     String line;
     while ((line = logFileReader.readLine()) != null) {
       if (line.trim().equals(name + "=" + smallInteger)) {
@@ -384,16 +394,16 @@ public class ConstEtomoNumberTest extends TestCase {
     }
     fail("write parameter to file test failed");
   }
-  
+
   public final void testStore_Properties_String() {
   }
-  
+
   public final void testRemove_Properties() {
   }
-  
+
   public final void testRemove_Properties_prepend() {
   }
-  
+
   public final void testToString() {
   }
 
@@ -415,7 +425,7 @@ public class ConstEtomoNumberTest extends TestCase {
     assertFalse(test.is());
     test.selfTestInvariants();
   }
-  
+
   public final void testIsPositive() {
     EtomoNumber test = new EtomoNumber();
     //test null is not positive
@@ -431,7 +441,7 @@ public class ConstEtomoNumberTest extends TestCase {
     assertFalse(test.isPositive());
     test.selfTestInvariants();
   }
-  
+
   public final void testIsNegative() {
     EtomoNumber test = new EtomoNumber();
     //test null is not negative
@@ -447,31 +457,31 @@ public class ConstEtomoNumberTest extends TestCase {
     assertFalse(test.isNegative());
     test.selfTestInvariants();
   }
-  
+
   public final void testValidateReturnTypeLong() {
   }
-  
+
   public final void testGetLong() {
   }
-  
+
   public final void validateReturnTypeDouble() {
   }
-  
+
   public final void testGetDouble() {
   }
-  
+
   public final void testGetNumber() {
   }
-  
+
   public final void testEquals_Number() {
   }
 
   public final void testEquals_String() {
   }
-  
+
   public final void testIsNamed_String() {
   }
-  
+
   public final void testGetValue() {
     int displayValue = 2;
     int currentValue = 3;
@@ -486,7 +496,7 @@ public class ConstEtomoNumberTest extends TestCase {
     assertTrue(test.getValue().intValue() == currentValue);
     test.selfTestInvariants();
   }
-  
+
   public final void toString_Number() {
     Integer nullValue = new Integer(EtomoNumber.INTEGER_NULL_VALUE);
     Integer value = new Integer(3);
@@ -497,10 +507,10 @@ public class ConstEtomoNumberTest extends TestCase {
     assertTrue(test.toString(value).equals(value.toString()));
     test.selfTestInvariants();
   }
-  
+
   public final void testToString_Vector() {
   }
-  
+
   public final void testAddInvalidReason() {
     String msg1 = "message 1";
     String msg2 = "message 2";
@@ -512,10 +522,11 @@ public class ConstEtomoNumberTest extends TestCase {
     //test: add to existing message
     test.addInvalidReason(msg2);
     String invalidReason = test.getInvalidReason();
-    assertTrue(invalidReason.indexOf(msg1) != -1 && invalidReason.indexOf(msg2) != -1);
+    assertTrue(invalidReason.indexOf(msg1) != -1
+        && invalidReason.indexOf(msg2) != -1);
     test.selfTestInvariants();
   }
-  
+
   public final void testNewNumber() {
     //test: returns null value
     ///double
@@ -535,10 +546,10 @@ public class ConstEtomoNumberTest extends TestCase {
     assertTrue(test.newNumber().longValue() == EtomoNumber.LONG_NULL_VALUE);
     test.selfTestInvariants();
   }
-  
+
   public final void testValidateInputType_Number() {
   }
-  
+
   public final void testNewNumber_Number() {
     //double
     EtomoNumber test = new EtomoNumber(EtomoNumber.DOUBLE_TYPE);
@@ -592,7 +603,7 @@ public class ConstEtomoNumberTest extends TestCase {
     assertTrue(test.newNumber(new Long(bigLong)).longValue() == bigLong);
     test.selfTestInvariants();
   }
-  
+
   public final void testNewNumber_String_StringBuffer() {
     StringBuffer invalidBuffer = new StringBuffer();
     String goodInteger = new Integer(smallInteger).toString();
@@ -619,11 +630,11 @@ public class ConstEtomoNumberTest extends TestCase {
     assertTrue(invalidBuffer.length() != 0);
     test.selfTestInvariants();
   }
-  
+
   public final void testValidateInputType_int() {
     //nothing to do
   }
-  
+
   public final void testNewNumber_int() {
     //test: validateInputType(int) is called - nothing to do
     //test: convert int to Number
@@ -644,17 +655,17 @@ public class ConstEtomoNumberTest extends TestCase {
     assertTrue(test.newNumber(smallInteger).longValue() == smallInteger);
     test.selfTestInvariants();
   }
-  
+
   public final void testNewNumber_boolean() {
     EtomoNumber test = new EtomoNumber(EtomoNumber.DOUBLE_TYPE);
     assertTrue(test.newNumber(true).doubleValue() == 1);
     assertTrue(test.newNumber(false).doubleValue() == 0);
     test.selfTestInvariants();
   }
-  
+
   public final void testValidateInputType_double() {
   }
-  
+
   public final void testNewNumber_double() {
     //double
     ///test: convert double to Double
@@ -676,7 +687,7 @@ public class ConstEtomoNumberTest extends TestCase {
     //long
     ///test: convert double to Long - see testValidateInputType_double
   }
-  
+
   public final void testValidateInputType_long() {
   }
 
@@ -704,7 +715,7 @@ public class ConstEtomoNumberTest extends TestCase {
     assertTrue(test.newNumber(smallLong).longValue() == smallLong);
     test.selfTestInvariants();
   }
-  
+
   public final void testIsNull_Number() {
     EtomoNumber test = new EtomoNumber(EtomoNumber.LONG_TYPE);
     //test: null
@@ -740,7 +751,7 @@ public class ConstEtomoNumberTest extends TestCase {
     assertFalse(test.isNull(new Short(Byte.MIN_VALUE)));
     test.selfTestInvariants();
   }
-  
+
   public final void testIsNull_int() {
     //test: the int null value is always null when its type is int
     ///double
@@ -760,7 +771,7 @@ public class ConstEtomoNumberTest extends TestCase {
     assertTrue(test.isNull(EtomoNumber.INTEGER_NULL_VALUE));
     test.selfTestInvariants();
   }
-  
+
   public final void testGt_Number_Number() {
     //double
     EtomoNumber test = new EtomoNumber(EtomoNumber.DOUBLE_TYPE);
@@ -894,31 +905,34 @@ public class ConstEtomoNumberTest extends TestCase {
     assertTrue(test.lt(new Integer(smallInteger), new Integer(bigInteger)));
     test.selfTestInvariants();
   }
-  
+
   public final void testEquals_Number_Number() {
   }
-  
+
   public final void testEquals_Number_int() {
   }
 }
 /**
-* <p> $Log$
-* <p> Revision 1.5  2005/06/22 23:36:05  sueh
-* <p> bug# 692 Add empty tests to fill in later.  Test private functions separately.
-* <p>
-* <p> Revision 1.4  2005/06/21 16:34:09  sueh
-* <p> bug# 692 Make constants member variables.  Don't test validate
-* <p> functions twice.  Test to make sure that the validate function is called
-* <p> and then test the fuctionality of the validate function in testValidate...
-* <p> function.
-* <p>
-* <p> Revision 1.3  2005/06/20 16:53:59  sueh
-* <p> bug# 692 Changed ConstEtomoNumber.selfTest() to selfTestInvariants().
-* <p>
-* <p> Revision 1.2  2005/06/17 17:48:47  sueh
-* <p> bug# 692 Added test for isNull(Number).
-* <p>
-* <p> Revision 1.1  2005/06/16 20:00:36  sueh
-* <p> bug# 692 Added unit tests for ConstEtomoNumber.
-* <p> </p>
-*/
+ * <p> $Log$
+ * <p> Revision 1.6  2005/07/18 22:03:18  sueh
+ * <p> bug# 692 Added tests for store(Properties).
+ * <p>
+ * <p> Revision 1.5  2005/06/22 23:36:05  sueh
+ * <p> bug# 692 Add empty tests to fill in later.  Test private functions separately.
+ * <p>
+ * <p> Revision 1.4  2005/06/21 16:34:09  sueh
+ * <p> bug# 692 Make constants member variables.  Don't test validate
+ * <p> functions twice.  Test to make sure that the validate function is called
+ * <p> and then test the fuctionality of the validate function in testValidate...
+ * <p> function.
+ * <p>
+ * <p> Revision 1.3  2005/06/20 16:53:59  sueh
+ * <p> bug# 692 Changed ConstEtomoNumber.selfTest() to selfTestInvariants().
+ * <p>
+ * <p> Revision 1.2  2005/06/17 17:48:47  sueh
+ * <p> bug# 692 Added test for isNull(Number).
+ * <p>
+ * <p> Revision 1.1  2005/06/16 20:00:36  sueh
+ * <p> bug# 692 Added unit tests for ConstEtomoNumber.
+ * <p> </p>
+ */
