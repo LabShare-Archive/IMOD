@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/20/05:
+Fixed a problem in Tomogram Combination where a X, Y, or Z value that is too big
+for the current tomogram causes Etomo to hang.
+
 7/19/05:
 Fixed a montage bug which caused Calculate Cross-Correlation to build a .dcst
 file instead of a .bl file after running Make Distortion Corrected Stack.
