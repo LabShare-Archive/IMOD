@@ -1,9 +1,13 @@
 package etomo.comscript;
 
+import java.io.IOException;
 import java.util.ArrayList;
 
+import etomo.type.AxisID;
 import etomo.type.CombinePatchSize;
 import etomo.type.FiducialMatch;
+import etomo.util.DatasetFiles;
+import etomo.util.MRCHeader;
 
 /**
  * <p>Description: A read only model of the parameter interface for the
@@ -19,6 +23,9 @@ import etomo.type.FiducialMatch;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.1  2004/03/06 00:26:37  sueh
+ * <p> bug# 318 add maxPatchZMax - get, use to validate patchZMax
+ * <p>
  * <p> Revision 3.0  2003/11/07 23:19:00  rickg
  * <p> Version 1.0.0
  * <p>
@@ -161,11 +168,10 @@ public class ConstCombineParams {
    * @return true if all entries are valid, otherwise the reasons are 
    * available through the method getInvalidReasons.
    */
-  public boolean isValid() {
+  public boolean isValid(boolean YAndZflipped) {
     boolean valid = true;
     //  Clear any previous reasons from the list
     invalidReasons.clear();
-
     if (patchXMin < 1) {
       valid = false;
       invalidReasons.add("X min value is less than 1");
@@ -210,6 +216,52 @@ public class ConstCombineParams {
     if (patchZMin > patchZMax) {
       valid = false;
       invalidReasons.add("Z min value is greater than the Z max value");
+    }
+    //get the tomogram header to check x, y, and z
+    AxisID axisID;
+    if (matchBtoA) {
+      axisID = AxisID.FIRST;
+    }
+    else {
+      axisID = AxisID.SECOND;
+    }
+    MRCHeader header = MRCHeader.getInstance(DatasetFiles.getTomogram(axisID)
+        .getAbsolutePath(), axisID);
+    try {
+      header.read();
+    }
+    catch (IOException e) {
+      valid = false;
+      invalidReasons.add("Unable to read tomogram header");
+    }
+    catch (Exception e) {
+      e.printStackTrace();
+      valid = false;
+      invalidReasons.add("Unable to read tomogram header");
+    }
+    int x = header.getNColumns();
+    if (x < patchXMin || x < patchXMax) {
+      valid = false;
+      invalidReasons.add("X values cannot be greater then " + x);
+    }
+    int y;
+    int z;
+    if (YAndZflipped) {
+      y = header.getNSections();
+      z = header.getNRows();
+    }
+    else {
+      y = header.getNRows();
+      z = header.getNSections();
+    }
+    if (y < patchYMin || y < patchYMax) {
+      valid = false;
+      invalidReasons.add("Y values cannot be greater then " + y);
+    }
+
+    if (z < patchZMin || z < patchZMax) {
+      valid = false;
+      invalidReasons.add("Z values cannot be greater then " + z);
     }
     return valid;
   }
