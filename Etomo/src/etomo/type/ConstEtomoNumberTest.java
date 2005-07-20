@@ -59,7 +59,7 @@ public class ConstEtomoNumberTest extends TestCase {
    */
   public ConstEtomoNumberTest(String arg0) {
     super(arg0);
-    testDir.mkdir();
+    testDir.mkdirs();
     propertiesFile.delete();
   }
 
@@ -914,6 +914,9 @@ public class ConstEtomoNumberTest extends TestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.7  2005/07/19 21:20:56  sueh
+ * <p> bug# 692 fixed testStore_Properties()
+ * <p>
  * <p> Revision 1.6  2005/07/18 22:03:18  sueh
  * <p> bug# 692 Added tests for store(Properties).
  * <p>
