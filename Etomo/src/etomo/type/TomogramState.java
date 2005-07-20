@@ -1,6 +1,7 @@
 package etomo.type;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Properties;
 
 import etomo.ApplicationManager;
@@ -23,6 +24,10 @@ import etomo.util.MRCHeader;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.12  2005/06/20 16:54:26  sueh
+* <p> bug# 522 Made MRCHeader an n'ton.  Getting instance instead of
+* <p> constructing in setBackwardCompatibleTrimvolFlipped().
+* <p>
 * <p> Revision 1.11  2005/06/11 02:43:22  sueh
 * <p> Changed initialize() to not require a parameter.
 * <p>
@@ -260,6 +265,9 @@ public class TomogramState implements BaseState {
     MRCHeader header = MRCHeader.getInstance(trimvolFile.getAbsolutePath(), AxisID.ONLY);
     try {
       header.read();
+    }
+    catch (IOException e) {
+      return false;
     }
     catch (Exception e) {
       e.printStackTrace();

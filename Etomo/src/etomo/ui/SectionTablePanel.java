@@ -51,6 +51,11 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.10  2005/07/06 23:46:35  sueh
+* <p> bug# 619 Removed DoubleSpacedPanel and FormattedPanel.  Placed
+* <p> their functionality in SpacedPanel.  Simplified the construction of
+* <p> SpacedPanel.
+* <p>
 * <p> Revision 1.9  2005/06/20 16:55:55  sueh
 * <p> bug# 522 Made MRCHeader an n'ton.  Getting instance instead of
 * <p> constructing in addSection().
@@ -904,7 +909,6 @@ public class SectionTablePanel implements ContextMenu, Expandable {
       }
     }
     catch (IOException e) {
-      e.printStackTrace();
       if (header.getNRows() == -1 || header.getNSections() == -1) {
         String msgIOException[] = {
             "The header command returned an error (IOException).",
@@ -968,7 +972,6 @@ public class SectionTablePanel implements ContextMenu, Expandable {
       e.printStackTrace();
     }
     catch (IOException e) {
-      e.printStackTrace();
     }
     if (rows == null) {
       rows = new ArrayList();
