@@ -105,6 +105,9 @@ import etomo.util.Utilities;
  * 
  *
  * <p> $Log$
+ * <p> Revision 3.161  2005/07/18 22:01:20  sueh
+ * <p> bug# 532 Added parallelProcessTilt().
+ * <p>
  * <p> Revision 3.160  2005/07/14 21:55:23  sueh
  * <p> bug# 626 Added montaged views to wholeTomogram().  Added
  * <p> updateBlendCom(TomogramPostioningDialog, AxisID).  Passing back
@@ -4163,7 +4166,6 @@ public class ApplicationManager extends BaseManager {
       }
     }
     catch (IOException except) {
-      except.printStackTrace();
       String[] message = new String[2];
       message[0] = "Unable to create " + rawtlt.getAbsolutePath();
       message[1] = except.getMessage();
@@ -4902,7 +4904,6 @@ public class ApplicationManager extends BaseManager {
           return;
         }
         catch (IOException except) {
-          except.printStackTrace();
           uiHarness.openMessageDialog(except.getMessage(), "IO Error: "
             + recFileName, AxisID.ONLY);
           //Delete the dialog
@@ -5216,7 +5217,7 @@ public class ApplicationManager extends BaseManager {
     CombineParams combineParams = new CombineParams();
     try {
       tomogramCombinationDialog.getCombineParams(combineParams);
-      if (!combineParams.isValid()) {
+      if (!combineParams.isValid(true)) {
         uiHarness.openMessageDialog(combineParams.getInvalidReasons(),
           "Invalid combine parameters", AxisID.ONLY);
         return;
@@ -5837,7 +5838,6 @@ public class ApplicationManager extends BaseManager {
         return;
       }
       catch (IOException except) {
-        except.printStackTrace();
         uiHarness.openMessageDialog(except.getMessage(), "IO Error: "
           + trimvolParam.getInputFileName(), AxisID.ONLY);
         //      Delete the dialog
@@ -6314,7 +6314,6 @@ public class ApplicationManager extends BaseManager {
       rawstackHeader.read();
     }
     catch (IOException except) {
-      except.printStackTrace();
       return;
     }
     catch (InvalidParameterException except) {
@@ -6461,7 +6460,6 @@ public class ApplicationManager extends BaseManager {
       return 1;
     }
     catch (IOException e) {
-      e.printStackTrace();
       return 1;
     }
     int binning = 1;
@@ -6513,7 +6511,6 @@ public class ApplicationManager extends BaseManager {
       return defaultValue;
     }
     catch (IOException e) {
-      e.printStackTrace();
       return defaultValue;
     }
     long binning = defaultValue;
@@ -6550,7 +6547,6 @@ public class ApplicationManager extends BaseManager {
       return 1;
     }
     catch (IOException e) {
-      e.printStackTrace();
       return 1;
     }
     FidXyz fidXyz = getFidXyz(axisID);
