@@ -11,6 +11,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.12  2005/06/21 01:02:04  sueh
+ * <p> bug# 522 Simplified Montagesize.Montagesize().  The director and
+ * <p> dataset can be found when the File for the stack is being constructed.
+ * <p>
  * <p> Revision 3.11  2005/06/20 16:40:53  sueh
  * <p> bug# 522 Made MRCHeader an n'ton.  Getting instance instead of
  * <p> constructing in setMontageFullImage().
@@ -576,7 +580,6 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
       e.printStackTrace();
     }
     catch (IOException e) {
-      e.printStackTrace();
     }
     //If the .ali file is not available, use the .st file and adjust it with
     //goodframe

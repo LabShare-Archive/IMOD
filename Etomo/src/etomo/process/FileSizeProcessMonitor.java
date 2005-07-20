@@ -24,6 +24,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.9  2005/07/11 22:47:18  sueh
+ * <p> bug# 619 Made closeChannel() protected so it can be called by
+ * <p> overridden functions.
+ * <p>
  * <p> Revision 3.8  2004/11/19 23:19:40  sueh
  * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
  * <p>
@@ -125,7 +129,6 @@ public abstract class FileSizeProcessMonitor implements Runnable {
       return;
     }
     catch (IOException except) {
-      except.printStackTrace();
       closeChannel();
       return;
     }
