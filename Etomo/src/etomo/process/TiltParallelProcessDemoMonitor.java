@@ -72,7 +72,7 @@ public class TiltParallelProcessDemoMonitor extends TiltProcessMonitor {
   void calcFileSize() throws InvalidParameterException, IOException {
     super.calcFileSize();
     applicationManager.getMainPanel().setProgressBar("Calculating tomogram",
-        nKBytes, axisID, true);
+        nKBytes, axisID);
     if (chunks == 0) {
       //new demo process
       long chunkFactor = Math.round(nKBytes / 20000);
@@ -149,5 +149,9 @@ public class TiltParallelProcessDemoMonitor extends TiltProcessMonitor {
   }
 }
 /**
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2005/07/11 22:50:41  sueh
+ * <p> bug# 619 Monitor which watches tilt.com and pretends that it is watching
+ * <p> processchunks tilt.
+ * <p> </p>
  */
