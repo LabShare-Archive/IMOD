@@ -10,6 +10,8 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.border.LineBorder;
 
+import etomo.type.AxisID;
+
 /**
  * <p>Description: </p>
  * 
@@ -34,13 +36,17 @@ final class ProcessorTable {
   private GridBagConstraints constraints = new GridBagConstraints();
   private boolean tableCreated = false;
   private int width = 0;
-  private HeaderCell unweightedHeaderCell = null;
+  private HeaderCell hdrComputer = null;
+  private HeaderCell hdrNumberCpus = null;
+  private HeaderCell hdrNumberCpusUsed = null;
 
   private Vector rows = new Vector();
   private ParallelPanel parent = null;
+  private AxisID axisID;
 
-  ProcessorTable(ParallelPanel parent) {
+  ProcessorTable(ParallelPanel parent, AxisID axisID) {
     this.parent = parent;
+    this.axisID = axisID;
     //panels
     tablePanel = new JPanel();
     //tablePanel
@@ -61,10 +67,12 @@ final class ProcessorTable {
     constraints.weighty = 1.0;
     constraints.gridheight = 1;
     constraints.gridwidth = 1;
-    new HeaderCell("Computer").add(tablePanel, layout, constraints);
+    hdrComputer = new HeaderCell("Computer");
+    hdrComputer.add(tablePanel, layout, constraints);
     constraints.weightx = 0.0;
     constraints.gridwidth = 2;
-    new HeaderCell("Number CPUs").add(tablePanel, layout, constraints);
+    hdrNumberCpus = new HeaderCell("Number CPUs");
+    hdrNumberCpus.add(tablePanel, layout, constraints);
     constraints.gridwidth = 3;
     new HeaderCell("Load Average").add(tablePanel, layout, constraints);
     constraints.gridwidth = 1;
@@ -81,8 +89,8 @@ final class ProcessorTable {
     constraints.gridheight = 1;
     constraints.gridwidth = 1;
     new HeaderCell().add(tablePanel, layout, constraints);
-    unweightedHeaderCell = new HeaderCell("Used");
-    unweightedHeaderCell.add(tablePanel, layout, constraints);
+    hdrNumberCpusUsed = new HeaderCell("Used");
+    hdrNumberCpusUsed.add(tablePanel, layout, constraints);
     new HeaderCell("Max.").add(tablePanel, layout, constraints);
     new HeaderCell("1 Min.").add(tablePanel, layout, constraints);
     new HeaderCell("5 Min.").add(tablePanel, layout, constraints);
@@ -195,14 +203,14 @@ final class ProcessorTable {
       if (rowsSize > 0) {
         ProcessorTableRow row = (ProcessorTableRow) rows.get(0);
         int cellHeight = row.getHeight();
-        int headerCellHeight = unweightedHeaderCell.getHeight();
+        int headerCellHeight = hdrNumberCpusUsed.getHeight();
         //table height is the sum of the height of the cells plus the bottom
         //borders.  Subtract 1 from each of the borders because the cells are
         //next to each other
         if (cellHeight > 0 && headerCellHeight > 0) {
           int calcTableHeight = (cellHeight + row.getBorderHeight() - 1)
               * rowsSize
-              + (unweightedHeaderCell.getHeight() + unweightedHeaderCell
+              + (hdrNumberCpusUsed.getHeight() + hdrNumberCpusUsed
                   .getBorderHeight() - 1) * 2;
           if (calcTableHeight < tableHeight) {
             tableHeight = calcTableHeight;
@@ -269,9 +277,18 @@ final class ProcessorTable {
   final void signalSuccess(int index) {
     ((ProcessorTableRow) rows.get(index)).signalSuccess();
   }
+  
+  final String getHelpMessage() {
+    return "Click on check boxes in the " + hdrComputer.getText()
+        + " column and use the spinner in the " + hdrNumberCpus.getText() + " "
+        + hdrNumberCpusUsed.getText() + " column where available.";
+  }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.5  2005/07/15 16:31:49  sueh
+ * <p> bug# 532 Removed experiment about not scrolling headers
+ * <p>
  * <p> Revision 1.4  2005/07/14 22:14:40  sueh
  * <p> bug# 532 Experimenting with extending GridBagLayout to make a header
  * <p> in the scroll pane.
