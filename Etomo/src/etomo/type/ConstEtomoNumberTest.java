@@ -190,6 +190,7 @@ public class ConstEtomoNumberTest extends TestCase {
     test.selfTestInvariants();
   }
 
+  //TODO test validFloor
   public final void testSetInvalidReason() {
     EtomoNumber test = new EtomoNumber(EtomoNumber.FLOAT_TYPE);
     //test nullIsValid == true
@@ -266,6 +267,9 @@ public class ConstEtomoNumberTest extends TestCase {
     }
     test.selfTestInvariants();
   }
+  
+  public final void testIsValid_String_String_AxisID() {
+  }
 
   public final void testIsValid_boolean_String_String_AxisID() {
     String errorTitle = "testIsValid_boolean_String_String_AxisID";
@@ -288,19 +292,6 @@ public class ConstEtomoNumberTest extends TestCase {
     test.selfTestInvariants();
   }
 
-  public final void testGetInvalidReason() {
-    EtomoNumber test = new EtomoNumber();
-    test.setNullIsValid(false);
-    test.setInvalidReason();
-    test.setDescription("invalid reason format test");
-    //test invalid reason format
-    assertTrue("invalid reason format test failed: test.getInvalidReason()="
-        + test.getInvalidReason() + ",test.getDescription()="
-        + test.getDescription(), test.getInvalidReason().indexOf(
-        test.getDescription()) != -1);
-    test.selfTestInvariants();
-  }
-
   public final void testValidateFloorAndCeiling() {
     EtomoNumber test = new EtomoNumber(EtomoNumber.FLOAT_TYPE);
     //test: floor > ceiling throws IllegalStateException
@@ -318,6 +309,7 @@ public class ConstEtomoNumberTest extends TestCase {
     test.selfTestInvariants();
   }
 
+  //TODO test function can modify currentValue
   public final void testSetCeiling() {
     EtomoNumber test = new EtomoNumber(EtomoNumber.LONG_TYPE);
     //test: validateFloorAndCeiling() was called
@@ -329,7 +321,13 @@ public class ConstEtomoNumberTest extends TestCase {
     catch (IllegalStateException e) {
     }
   }
+  
+  //TODO
+  public final void testSetNullIsValid_boolean() {
+    
+  }
 
+  //TODO test function can modify currentValue
   public final void testSetFloor() {
     EtomoNumber test = new EtomoNumber(EtomoNumber.DOUBLE_TYPE);
     //test: validateFloorAndCeiling() was called
@@ -355,6 +353,7 @@ public class ConstEtomoNumberTest extends TestCase {
     test.selfTestInvariants();
   }
 
+  //TODO test that invalidReason is set when function called
   public final void testSetValidValues_intArray() {
     int validNumber = 3;
     EtomoNumber test = new EtomoNumber();
@@ -372,6 +371,11 @@ public class ConstEtomoNumberTest extends TestCase {
     test.setInvalidReason();
     assertFalse(test.isValid());
     test.selfTestInvariants();
+  }
+  
+  //TODO
+  public final void testSetValidFloor_int() {
+    
   }
 
   public final void testStore_Properties() throws IOException {
@@ -838,6 +842,11 @@ public class ConstEtomoNumberTest extends TestCase {
     assertFalse(test.gt(new Integer(smallInteger), new Integer(bigInteger)));
     test.selfTestInvariants();
   }
+  
+  //TODO
+  public final void  testGe_Number_Number() {
+    
+  }
 
   public final void testLt_Number_Number() {
     //double
@@ -914,6 +923,9 @@ public class ConstEtomoNumberTest extends TestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.8  2005/07/20 17:53:17  sueh
+ * <p> bug# 706 Fix testStore_Properties().  Make all the test directories.
+ * <p>
  * <p> Revision 1.7  2005/07/19 21:20:56  sueh
  * <p> bug# 692 fixed testStore_Properties()
  * <p>
