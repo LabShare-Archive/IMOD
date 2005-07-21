@@ -20,6 +20,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.68  2005/07/14 22:00:44  sueh
+ * bug# 626 Passing BlendmontParam to blend() because BlendmontParam
+ * can either be in blend mode or whole tomogram mode.
+ *
  * Revision 3.67  2005/07/11 22:48:51  sueh
  * bug# 619 Added functions resumeTiltParallelProcessDemo and
  * tiltParallelProcessDemo.
@@ -669,6 +673,7 @@ import etomo.comscript.CopyTomoComs;
 import etomo.comscript.BadComScriptException;
 import etomo.comscript.NewstParam;
 import etomo.comscript.SetupCombine;
+import etomo.comscript.SplittiltParam;
 import etomo.comscript.SqueezevolParam;
 import etomo.comscript.TiltalignParam;
 import etomo.comscript.TransferfidParam;
@@ -1230,6 +1235,25 @@ public class ProcessManager extends BaseProcessManager {
     return comScriptProcess.getName();
   }
   
+  public String tiltParallelProcess(AxisID axisID,
+      ParallelProgressDisplay parallelProgressDisplay)
+      throws SystemProcessException {
+    //
+    //  Create the required tilt command
+    //
+    String command = "tilt" + axisID.getExtension() + ".com";
+
+    //  Instantiate the process monitor
+    TiltParallelProcessMonitor tiltProcessMonitor = TiltParallelProcessMonitor
+        .getInstance(axisID, parallelProgressDisplay);
+
+    //  Start the com script in the background
+    ComScriptProcess comScriptProcess = startComScript(command,
+        tiltProcessMonitor, axisID);
+
+    return comScriptProcess.getName();
+  }
+  
   public String resumeTiltParallelProcessDemo(AxisID axisID,
       ParallelProgressDisplay parallelProgressDisplay)
       throws SystemProcessException {
@@ -1272,6 +1296,15 @@ public class ProcessManager extends BaseProcessManager {
 
     return comScriptProcess.getName();
 
+  }
+  
+  /**
+   * Run splittilt
+   */
+  public String splittilt(SplittiltParam param, AxisID axisID)
+      throws SystemProcessException {
+    BackgroundProcess backgroundProcess = startBackgroundProcess(param.getCommand(), AxisID.ONLY);
+    return backgroundProcess.getName();
   }
 
   /**
