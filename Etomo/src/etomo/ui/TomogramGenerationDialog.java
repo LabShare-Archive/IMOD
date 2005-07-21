@@ -32,6 +32,7 @@ import etomo.comscript.BlendmontParam;
 import etomo.comscript.ConstMTFFilterParam;
 import etomo.comscript.ConstTiltParam;
 import etomo.comscript.MTFFilterParam;
+import etomo.comscript.SplittiltParam;
 import etomo.comscript.TiltParam;
 import etomo.comscript.ConstNewstParam;
 import etomo.comscript.NewstParam;
@@ -66,6 +67,9 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.51  2005/07/19 22:38:39  sueh
+ * bug# 532 Removed save and split buttons
+ *
  * Revision 3.50  2005/07/14 22:16:26  sueh
  * bug# 626 Enabling binning for montage view.  Setting binning in
  * set and getParameters(BlendmontParam).
@@ -591,6 +595,10 @@ public class TomogramGenerationDialog extends ProcessDialog
     metaData.setTomoGenBinning(axisID, ((Integer) spinBinning.getValue()).intValue());
   }
   
+  public final boolean getParameters(SplittiltParam param) {
+    return parallelPanel.getParameters(param);
+  }
+  
   public void setBlendParams(BlendmontParam blendmontParam) {
     cbBoxUseLinearInterpolation.setSelected(blendmontParam.isLinearInterpolation());
   }
@@ -1050,9 +1058,7 @@ public class TomogramGenerationDialog extends ProcessDialog
     JPanel radialPanel = new JPanel();
     radialPanel.setLayout(new BoxLayout(radialPanel, BoxLayout.X_AXIS));
     JPanel checkBoxPanel = new JPanel();
-    checkBoxPanel.setLayout(new BoxLayout(checkBoxPanel, BoxLayout.X_AXIS));
-    JPanel westCheckBoxPanel = new JPanel();
-    westCheckBoxPanel.setLayout(new BoxLayout(westCheckBoxPanel, BoxLayout.Y_AXIS));
+    checkBoxPanel.setLayout(new BoxLayout(checkBoxPanel, BoxLayout.Y_AXIS));
     SpacedPanel trialPanel = new SpacedPanel();
     trialPanel.setBoxLayout(BoxLayout.X_AXIS);
     SpacedPanel buttonPanel = new SpacedPanel(true);
@@ -1067,14 +1073,9 @@ public class TomogramGenerationDialog extends ProcessDialog
     //trialPanel
     trialPanel.add(layoutTrialPanel());
     trialPanel.alignComponentsX(Component.LEFT_ALIGNMENT);
-    //westCheckBoxPanel
-    westCheckBoxPanel.add(cbBoxUseLocalAlignment);
-    westCheckBoxPanel.add(cbUseZFactors);
-    UIUtilities.alignComponentsX(westCheckBoxPanel, Component.LEFT_ALIGNMENT);
     //checkBoxPanel
-    checkBoxPanel.add(westCheckBoxPanel);
-    checkBoxPanel.add(Box.createHorizontalStrut(125));
-    checkBoxPanel.add(cbParallelProcess);
+    checkBoxPanel.add(cbBoxUseLocalAlignment);
+    checkBoxPanel.add(cbUseZFactors);
     UIUtilities.alignComponentsX(checkBoxPanel, Component.LEFT_ALIGNMENT);
     //radialPanel
     radialPanel.add(ltfRadialMax.getContainer());
@@ -1095,6 +1096,7 @@ public class TomogramGenerationDialog extends ProcessDialog
     UIUtilities.alignComponentsX(densityPanel, Component.LEFT_ALIGNMENT);
     //tiltBodyPanel
     tiltBodyPanel.add(Box.createRigidArea(FixedDim.x0_y5));
+    tiltBodyPanel.add(cbParallelProcess);
     tiltBodyPanel.add(ltfLogOffset.getContainer());
     tiltBodyPanel.add(densityPanel);
     tiltBodyPanel.add(ltfTomoWidth.getContainer());
@@ -1313,7 +1315,7 @@ public class TomogramGenerationDialog extends ProcessDialog
         cmboTrialTomogramName.addItem(trialTomogramName);
       }
       if (cbParallelProcess.isSelected()) {
-        applicationManager.parallelProcessTilt(axisID, parallelPanel);
+        applicationManager.splittilt(axisID, parallelPanel, true);
       }
       else {
         applicationManager.trialTilt(axisID);
@@ -1328,7 +1330,7 @@ public class TomogramGenerationDialog extends ProcessDialog
     else if (command.equals(btnTilt.getActionCommand())) {
       if (cbParallelProcess.isSelected()) {
         parallelPanel.resetResults();
-        applicationManager.parallelProcessTilt(axisID, parallelPanel);
+        applicationManager.splittilt(axisID, parallelPanel);
       }
       else {
         applicationManager.tilt(axisID);
