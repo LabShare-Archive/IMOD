@@ -24,6 +24,11 @@ import etomo.type.EtomoNumber;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.13  2005/07/11 22:53:42  sueh
+ * <p> bug# 619 Allow the kill process button label to be changed to
+ * <p> "Kill / Pause".  Added setProgressBar(String, int, boolean) and
+ * <p> startProgressBar(String, boolean).
+ * <p>
  * <p> Revision 3.12  2005/04/16 01:53:28  sueh
  * <p> bug# 615 Made some panels protected so there color could be changed.
  * <p> Added a rigid area to the bottom of panelRoot so that the color would wrap
@@ -146,7 +151,6 @@ public abstract class AxisProcessPanel implements ContextMenu {
     "$Id$";
 
   private static final String KILL_BUTTON_LABEL = "Kill Process";
-  private static final String KILL_PAUSE_BUTTON_LABEL = "Kill / Pause";
   
   protected AxisID axisID;
 
@@ -155,10 +159,12 @@ public abstract class AxisProcessPanel implements ContextMenu {
   protected JPanel panelStatus = new JPanel();
   protected JPanel panelDialog = new JPanel();
   private EtomoNumber lastWidth = new EtomoNumber(EtomoNumber.INTEGER_TYPE);
+  private KillButtonActionListener actionListener;
 
   //  Progress panel
   ProgressPanel progressPanel = new ProgressPanel("No process");
   JButton buttonKillProcess = new JButton(KILL_BUTTON_LABEL);
+  AbstractButton buttonPauseProcess = null;
 
   //  Process select panel
   protected JPanel panelProcessSelect = new JPanel();
@@ -175,7 +181,8 @@ public abstract class AxisProcessPanel implements ContextMenu {
     axisID = axis;
 
     //  Create the status panel
-    buttonKillProcess.addActionListener(new KillButtonActionListener(this));
+    actionListener = new KillButtonActionListener(this);
+    buttonKillProcess.addActionListener(actionListener);
     buttonKillProcess.setEnabled(false);
     buttonKillProcess.setAlignmentY(Component.BOTTOM_ALIGNMENT);
     panelStatus.add(Box.createRigidArea(FixedDim.x5_y0));
@@ -279,28 +286,38 @@ public abstract class AxisProcessPanel implements ContextMenu {
    * @param nSteps
    */
   public void setProgressBar(String label, int nSteps) {
-    setProgressBar(label, nSteps, false);
-  }
-  
-  /**
-   * Setup the progress bar for a determinate
-   * @param label
-   * @param nSteps
-   * @param allowPause changes label text to "Kill / Pause "
-   */
-  public void setProgressBar(String label, int nSteps, boolean allowPause) {
     progressPanel.setLabel(label);
     progressPanel.setMinimum(0);
     progressPanel.setMaximum(nSteps);
     buttonKillProcess.setEnabled(true);
-    if (allowPause) {
-      buttonKillProcess.setText(KILL_PAUSE_BUTTON_LABEL);
-    }
-    else {
-      buttonKillProcess.setText(KILL_BUTTON_LABEL);
+    if (buttonPauseProcess != null) {
+      buttonPauseProcess.setEnabled(true);
     }
   }
-
+  
+  /**
+   * manage a pause button
+   * @param pauseButton
+   */
+  final void setPauseButton(AbstractButton pauseButton) {
+    buttonPauseProcess = pauseButton;
+    if (buttonPauseProcess != null) {
+      buttonPauseProcess.addActionListener(actionListener);
+      buttonPauseProcess.setEnabled(false);
+    }
+  }
+  
+  /**
+   * stop managing a pause button
+   * @param pauseButton
+   */
+  final void deletePauseButton(AbstractButton pauseButton) {
+    if (buttonPauseProcess != null && buttonPauseProcess == pauseButton) {
+      buttonPauseProcess.removeActionListener(actionListener);
+      buttonPauseProcess.setEnabled(false);
+      buttonPauseProcess = null;
+    }
+  }
 
   /**
    * 
@@ -321,28 +338,15 @@ public abstract class AxisProcessPanel implements ContextMenu {
   /**
    * 
    * @param label
-   * @param allowPause changes label text to "Kill / Pause "
    */
-  public void startProgressBar(String label, boolean allowPause) {
+  public void startProgressBar(String label) {
     progressPanel.setLabel(label);
     progressPanel.start();
     buttonKillProcess.setEnabled(true);
-    if (allowPause) {
-      buttonKillProcess.setText(KILL_PAUSE_BUTTON_LABEL);
-    }
-    else {
-      buttonKillProcess.setText(KILL_BUTTON_LABEL);
+    if (buttonPauseProcess != null) {
+      buttonPauseProcess.setEnabled(true);
     }
   }
-  
-  /**
-   * 
-   * @param label
-   */
-  public void startProgressBar(String label) {
-    startProgressBar(label, false);
-  }
- 
 
   /**
    * 
@@ -351,6 +355,9 @@ public abstract class AxisProcessPanel implements ContextMenu {
   public void stopProgressBar() {
     progressPanel.stop();
     buttonKillProcess.setEnabled(false);
+    if (buttonPauseProcess != null) {
+      buttonPauseProcess.setEnabled(false);
+    }
   }
 
   /**
