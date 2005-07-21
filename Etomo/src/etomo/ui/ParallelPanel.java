@@ -13,7 +13,9 @@ import javax.swing.JPanel;
 
 import etomo.ApplicationManager;
 import etomo.EtomoDirector;
+import etomo.comscript.SplittiltParam;
 import etomo.type.AxisID;
+import etomo.type.ConstEtomoNumber;
 import etomo.type.DialogType;
 
 /**
@@ -33,8 +35,9 @@ final class ParallelPanel implements ParallelProgressDisplay {
   public static final String rcsid = "$Id$";
 
   private JPanel rootPanel;
-  private ProcessorTable processorTable = new ProcessorTable(this);
+  private ProcessorTable processorTable;
   private MultiLineButton btnResume = new MultiLineButton("Resume");
+  private MultiLineButton btnPause = new MultiLineButton("Pause");
   private MultiLineButton btnSaveDefaults = new MultiLineButton("Save As Defaults");
   private LabeledTextField ltfCpusSelected = new LabeledTextField(
       "CPUs selected: ");
@@ -54,6 +57,7 @@ final class ParallelPanel implements ParallelProgressDisplay {
   ParallelPanel(ParallelDialog parent, AxisID axisID) {
     this.parent = parent;
     this.axisID = axisID;
+    processorTable = new ProcessorTable(this, axisID);
     //set listeners
     btnResume.addActionListener(actionListener);
     //panels
@@ -68,6 +72,7 @@ final class ParallelPanel implements ParallelProgressDisplay {
     header = new PanelHeader(axisID, "Parallel Processing", bodyPanel);
     //southPanel;
     southPanel.add(ltfCpusSelected);
+    southPanel.add(btnPause);
     southPanel.add(btnResume);
     southPanel.add(btnSaveDefaults);
     //bodyPanel
@@ -85,6 +90,7 @@ final class ParallelPanel implements ParallelProgressDisplay {
     ltfCpusSelected.setEditable(false);
     processorTable.signalCpusSelectedChanged();
     btnResume.setEnabled(false);
+    btnPause.setEnabled(false);
   }
 
   public final void signalCpusSelectedChanged(int cpusSelected) {
@@ -119,6 +125,23 @@ final class ParallelPanel implements ParallelProgressDisplay {
   
   public final void signalStartProgress() {
     buildRandomizerLists();
+  }
+  
+  /**
+   * pass the pause button to the axis process panel, to be managed like the
+   * kill process button
+   */
+  public final void setupParallelProgressDisplay() {
+    EtomoDirector.getInstance().getCurrentManager().getMainPanel()
+        .setPauseButton(btnPause, axisID);
+  }
+  
+  /**
+   * remove the pause button from the axis process panel
+   */
+  public final void teardownParallelProgressDisplay() {
+    EtomoDirector.getInstance().getCurrentManager().getMainPanel()
+        .deletePauseButton(btnPause, axisID);
   }
 
   private final void buildRandomizerLists() {
@@ -165,6 +188,18 @@ final class ParallelPanel implements ParallelProgressDisplay {
   public final void setEnabledResume(boolean enabled) {
     btnResume.setEnabled(enabled);
   }
+  
+  final boolean getParameters(SplittiltParam param) {
+    ConstEtomoNumber numMachines = param.setNumMachines(ltfCpusSelected
+        .getText());
+    if (!numMachines.isValid()) {
+      UIHarness.INSTANCE.openMessageDialog(ltfCpusSelected.getLabel() + " "
+          + numMachines.getInvalidReason() + "\n"
+          + processorTable.getHelpMessage(), "Table Error", axisID);
+      return false;
+    }
+    return true;
+  }
 
   private final class ParallelPanelActionListener implements ActionListener {
     ParallelPanel adaptee;
@@ -177,10 +212,17 @@ final class ParallelPanel implements ParallelProgressDisplay {
       adaptee.performAction(event);
     }
   }
-
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.4  2005/07/11 23:12:20  sueh
+ * <p> bug# 619 Removed the split, start, and kill buttons.  Split and start are
+ * <p> now handled by the parent dialog.  Kill is handled by progress panel.
+ * <p> Added randomization to be used by the demo monitor.  Added functions:
+ * <p> buildRandomizerLists, getCpusSelected, resetResults,
+ * <p> setEnabledResume, setVisible, signalRandomRestart,
+ * <p> signalRandomSuccess, signalStartProgress.  Removed totalResults().
+ * <p>
  * <p> Revision 1.3  2005/07/06 23:45:38  sueh
  * <p> bug# 619 Removed DoubleSpacedPanel and FormattedPanel.  Placed
  * <p> their functionality in SpacedPanel.  Simplified the construction of
