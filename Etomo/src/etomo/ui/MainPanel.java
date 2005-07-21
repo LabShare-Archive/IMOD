@@ -7,6 +7,7 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.io.File;
 
+import javax.swing.AbstractButton;
 import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -32,6 +33,11 @@ import etomo.type.BaseMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.23  2005/07/11 23:03:21  sueh
+ * <p> bug# 619 Allow the kill process button label to be changed to
+ * <p> "Kill / Pause".  Added setProgressBar(String, int, boolean) and
+ * <p> startProgressBar(String, boolean).
+ * <p>
  * <p> Revision 1.22  2005/05/17 19:38:40  sueh
  * <p> bug# 663 Renamed updateDataParameters() to setStatusBarText() and
  * <p> moved the common functionality to MainPanel.setStatusBarText().  Add
@@ -312,23 +318,31 @@ public abstract class MainPanel extends JPanel {
    * Set the progress bar to the beginning of determinant sequence
    * @param label
    * @param nSteps
-   * @param allowPause changes label text to "Kill / Pause "
-   */
-  public void setProgressBar(String label, int nSteps, AxisID axisID, boolean allowPause) {
-    AxisProcessPanel axisPanel = mapBaseAxis(axisID);
-    axisPanel.setProgressBar(label, nSteps, allowPause);
-    axisPanel.setProgressBarValue(0);
-  }
-  
-  /**
-   * Set the progress bar to the beginning of determinant sequence
-   * @param label
-   * @param nSteps
    */
   public void setProgressBar(String label, int nSteps, AxisID axisID) {
     AxisProcessPanel axisPanel = mapBaseAxis(axisID);
     axisPanel.setProgressBar(label, nSteps);
     axisPanel.setProgressBarValue(0);
+  }
+  
+  /**
+   * manage a pause button
+   * @param pauseButton
+   * @param axisID
+   */
+  final void setPauseButton(AbstractButton pauseButton, AxisID axisID) {
+    AxisProcessPanel axisPanel = mapBaseAxis(axisID);
+    axisPanel.setPauseButton(pauseButton);
+  }
+  
+  /**
+   * stop managing a pause button
+   * @param pauseButton
+   * @param axisID
+   */
+  final void deletePauseButton(AbstractButton pauseButton, AxisID axisID) {
+    AxisProcessPanel axisPanel = mapBaseAxis(axisID);
+    axisPanel.deletePauseButton(pauseButton);
   }
 
   /**
