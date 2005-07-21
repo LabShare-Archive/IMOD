@@ -22,6 +22,10 @@ import javax.swing.JPanel;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.4  2005/07/11 23:00:57  sueh
+* <p> bug# 619 Added functions:  getBorderHeight and getHeight so that the
+* <p> height of the processor table can be calculated.
+* <p>
 * <p> Revision 1.3  2005/07/06 23:36:09  sueh
 * <p> bug# 619 Added setBorderPainted() so that a borderless header cell can
 * <p> be created.
@@ -66,12 +70,12 @@ class HeaderCell {
   }
   
   HeaderCell(String text, int width) {
+    this.text = text;
     if (text == null) {
       cell = new JButton();
     }
     else {
-      String htmlText = "<html><b>" + text + "</b>";
-      cell = new JButton(htmlText);
+      cell = new JButton("<html><b>" + text + "</b>");
     }
     cell.setBorder(BorderFactory.createEtchedBorder());
     cell.setEnabled(false);
@@ -106,8 +110,7 @@ class HeaderCell {
   
   void setText(String text) {
     this.text = text;
-    String htmlText = "<html><b>" + text + "</b>";
-    cell.setText(htmlText);
+    cell.setText("<html><b>" + text + "</b>");
   }
   
   final int getHeight() {
