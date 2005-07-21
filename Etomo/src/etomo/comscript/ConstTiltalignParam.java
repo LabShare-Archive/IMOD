@@ -329,37 +329,37 @@ public class ConstTiltalignParam implements Command {
   protected String validate() {
     StringBuffer invalidReason = new StringBuffer();
     if (!rotOption.isValid()) {
-      invalidReason.append(rotOption.getInvalidReason() + "\n");
+      invalidReason.append(rotOption.getDescription() + ": " + rotOption.getInvalidReason() + "\n");
     }
     if (!localRotOption.isValid()) {
-      invalidReason.append(localRotOption.getInvalidReason() + "\n");
+      invalidReason.append(localRotOption.getDescription() + ": " + localRotOption.getInvalidReason() + "\n");
     }
     if (!tiltOption.isValid()) {
-      invalidReason.append(tiltOption.getInvalidReason() + "\n");
+      invalidReason.append(tiltOption.getDescription() + ": " + tiltOption.getInvalidReason() + "\n");
     }
     if (!localTiltOption.isValid()) {
-      invalidReason.append(localTiltOption.getInvalidReason() + "\n");
+      invalidReason.append(localTiltOption.getDescription() + ": " + localTiltOption.getInvalidReason() + "\n");
     }
     if (!magOption.isValid()) {
-      invalidReason.append(magOption.getInvalidReason() + "\n");
+      invalidReason.append(magOption.getDescription() + ": " + magOption.getInvalidReason() + "\n");
     }
     if (!localMagOption.isValid()) {
-      invalidReason.append(localMagOption.getInvalidReason() + "\n");
+      invalidReason.append(localMagOption.getDescription() + ": " + localMagOption.getInvalidReason() + "\n");
     }
     if (!xStretchOption.isValid()) {
-      invalidReason.append(xStretchOption.getInvalidReason() + "\n");
+      invalidReason.append(xStretchOption.getDescription() + ": " + xStretchOption.getInvalidReason() + "\n");
     }
     if (!localXStretchOption.isValid()) {
-      invalidReason.append(localXStretchOption.getInvalidReason() + "\n");
+      invalidReason.append(localXStretchOption.getDescription() + ": " + localXStretchOption.getInvalidReason() + "\n");
     }
     if (!skewOption.isValid()) {
-      invalidReason.append(skewOption.getInvalidReason() + "\n");
+      invalidReason.append(skewOption.getDescription() + ": " + skewOption.getInvalidReason() + "\n");
     }
     if (!localSkewOption.isValid()) {
-      invalidReason.append(localSkewOption.getInvalidReason() + "\n");
+      invalidReason.append(localSkewOption.getDescription() + ": " + localSkewOption.getInvalidReason() + "\n");
     }
     if (!surfacesToAnalyze.isValid()) {
-      invalidReason.append(surfacesToAnalyze.getInvalidReason() + "\n");
+      invalidReason.append(surfacesToAnalyze.getDescription() + ": " + surfacesToAnalyze.getInvalidReason() + "\n");
     }
     return invalidReason.toString();
   }
@@ -787,6 +787,9 @@ public class ConstTiltalignParam implements Command {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.20  2005/06/14 21:54:21  sueh
+ * <p> bug# 681 Changed fiXYZCoordinates to displayAsInteger.
+ * <p>
  * <p> Revision 3.19  2005/06/10 22:48:44  sueh
  * <p> bug# 583, bug# 682 Moved binning calculation to ApplicationManager.
  * <p> Upgraded align.com to have all unbinned parameters and a binning value.

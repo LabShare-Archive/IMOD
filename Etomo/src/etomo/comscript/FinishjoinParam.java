@@ -26,6 +26,11 @@ import etomo.type.SectionTableRowData;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.11  2005/04/25 20:39:41  sueh
+* <p> bug# 615 Passing the axis where a command originates to the message
+* <p> functions so that the message will be popped up in the correct window.
+* <p> This requires adding AxisID to many objects.
+* <p>
 * <p> Revision 1.10  2005/01/25 21:40:41  sueh
 * <p> Converting EtomoNumbers to ScriptParameters.
 * <p>
@@ -193,7 +198,7 @@ public class FinishjoinParam implements Command {
     if (offsetNumber.set(offset).isValid()) {
       return offsetNumber.getInteger() * -1;
     }
-    throw new IllegalArgumentException(offsetNumber.getInvalidReason());
+    throw new IllegalArgumentException(offsetNumber.getDescription() + ": " + offsetNumber.getInvalidReason());
   }
   
   public File getCommandOutputFile() {
