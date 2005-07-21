@@ -7,6 +7,8 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
+import javax.swing.AbstractButton;
+
 import etomo.comscript.ArchiveorigParam;
 import etomo.comscript.BadComScriptException;
 import etomo.comscript.BeadtrackParam;
@@ -33,6 +35,7 @@ import etomo.comscript.SetParam;
 import etomo.comscript.SolvematchParam;
 import etomo.comscript.SolvematchmodParam;
 import etomo.comscript.SolvematchshiftParam;
+import etomo.comscript.SplittiltParam;
 import etomo.comscript.SqueezevolParam;
 import etomo.comscript.TiltParam;
 import etomo.comscript.TiltalignParam;
@@ -105,6 +108,11 @@ import etomo.util.Utilities;
  * 
  *
  * <p> $Log$
+ * <p> Revision 3.162  2005/07/20 16:56:55  sueh
+ * <p> bug# 705 Stop printing the stack trace for IOException bugs coming from
+ * <p> MRCHeader, because its filling up the error log with exceptions that are
+ * <p> related to real problems.
+ * <p>
  * <p> Revision 3.161  2005/07/18 22:01:20  sueh
  * <p> bug# 532 Added parallelProcessTilt().
  * <p>
@@ -6652,24 +6660,6 @@ public class ApplicationManager extends BaseManager {
     }
   }
   
-  public boolean splitParallelProcessTilt(AxisID axisID, boolean useDefaultRec) {
-    if (!updateTiltCom(axisID, useDefaultRec)) {
-      return false;
-    }
-    try {
-      processMgr.isAxisBusy(axisID);
-    }
-    catch (SystemProcessException e) {
-      e.printStackTrace();
-      String[] message = new String[2];
-      message[0] = "Can not execute splitParallelProcessTilt on " + axisID.getExtension();
-      message[1] = e.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to execute dummy process", axisID);
-      return false;
-    }
-    return true;
-  }
-  
   public boolean parallelProcessTiltDemo(AxisID axisID,
       ParallelProgressDisplay parallelProgressDisplay) {
     processTrack.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
@@ -6693,26 +6683,50 @@ public class ApplicationManager extends BaseManager {
     return true;
   }
   
-  public boolean parallelProcessTilt(AxisID axisID,
+  private final SplittiltParam updateSplittiltParam(AxisID axisID) {
+    TomogramGenerationDialog dialog = (TomogramGenerationDialog) getDialog(
+        DialogType.TOMOGRAM_GENERATION, axisID);
+    if (dialog == null) {
+      return null;
+    }
+    SplittiltParam param = new SplittiltParam(axisID);
+    if (!dialog.getParameters(param)) {
+      return null;
+    }
+    return param;
+  }
+  
+  public boolean splittilt(AxisID axisID,
       ParallelProgressDisplay parallelProgressDisplay) {
+    return splittilt(axisID, parallelProgressDisplay, false);
+  }
+  
+  public boolean splittilt(AxisID axisID,
+      ParallelProgressDisplay parallelProgressDisplay, boolean trialMode) {
+    if (!updateTiltCom(axisID, !trialMode)) {
+      return false;
+    }
+    SplittiltParam splittiltParam = updateSplittiltParam(axisID);
+    if (splittiltParam == null) {
+      return false;
+    }
     processTrack.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
     mainPanel.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
     resetNextProcess(axisID);
     String threadName;
     try {
-      threadName = processMgr.tiltParallelProcessDemo(axisID,
-          parallelProgressDisplay);
+      threadName = processMgr.splittilt(splittiltParam, axisID);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
       String[] message = new String[2];
-      message[0] = "Can not execute tilt" + axisID.getExtension() + ".com";
+      message[0] = "Can not execute " + SplittiltParam.COMMAND_NAME;
       message[1] = e.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to execute com script",
-          axisID);
+      uiHarness.openMessageDialog(message, "Unable to execute command", axisID);
       return false;
     }
     setThreadName(threadName, axisID);
+    mainPanel.startProgressBar("Running " + SplittiltParam.COMMAND_NAME, axisID);
     return true;
   }
 
@@ -6761,5 +6775,9 @@ public class ApplicationManager extends BaseManager {
       return;
     }
     tomogramGenerationDialog.signalTiltKilled();
+  }
+  
+  final void setPauseButton(AbstractButton pauseButton) {
+    
   }
 }
