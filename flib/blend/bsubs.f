@@ -27,6 +27,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.9  2005/06/03 19:39:04  mast
+c	  Added routine for writing binned output
+c	
 c	  Revision 3.8  2005/03/18 23:38:30  mast
 c	  Improved error message from read_list
 c	
@@ -1394,7 +1397,11 @@ c
      &	    legacy)
 	real*4 crray(*),drray(*)
 	integer*4 nxy(*),noverlap(*)
-	parameter (idimt=400*800, idimc=512*1024)
+c	  
+c	  idimt must be (max overlap)**2 * aspectmax; idimc must be 
+c	  1.9**2 times that unless padding is reduced
+c
+	parameter (idimt=600*1200, idimc=1150*2300)
 	real*4 trray(idimt)
 	complex*8 array(idimc/2), brray(idimc/2)
 	integer*4 nxybox(2),ind0(2),ind1(2),idispl(2)
