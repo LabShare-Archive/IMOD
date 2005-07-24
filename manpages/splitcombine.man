@@ -17,8 +17,12 @@ produce sum27.rec), and volcombine-finish.com to reassemble the pieces and
 clean up intermediate files.
 .P
 The program will modify the components of volcombine.com to place temporary
-files other than sum*.rec in a local temporary directory such as /usr/tmp.
-This is important for reducing network traffic and access of all machines to
+files other than sum*.rec in a local temporary directory appropriate for
+the machine running the command file.  If you do not specify such a directory 
+as an optional second argument, it will either be one
+defined by the environment variable IMOD_TMPDIR, or /usr/tmp if it exists,
+or /tmp.  The local temporary directory is important for reducing network
+traffic and access of all machines to
 the same working directory.  This temporary directory need not be accessible
 to all machines, and is distinct from the
 temporary directory that you can set up to do the combine operation in, which
@@ -36,7 +40,8 @@ machines.
 .P
 The first optional argument can be used to specify a command file name other
 than volcombine.com.  The second optional argument can be used to specify
-a local temporary directory other than the default for the operating system.
+a local temporary directory other than the default for 
+each individual remote machine.
 There is one other option: "-h" to get a usage statement from the program.
 .SH FILES
 The finishing command file deletes the sum*.rec, as well as all
