@@ -13,6 +13,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.4  2004/06/29 03:30:48  mast
+c	  Fixed path-setting command, added nohup at front
+c	
 c	  Revision 3.3  2003/11/18 04:13:33  mast
 c	  add ability to output a true continuation line ending in \
 c	
@@ -114,7 +117,14 @@ c
 		  logfile(indarrow:indarrow)='>'
 		  iffirst=1
 		endif
-		write(6,101)linein(1:lenin)
+c		  
+c		  Remove escape of leading $ so variables can be passed in
+c
+		if (linein(1:2) .eq. '\\$') then
+		  write(6,101)linein(2:lenin)
+		else
+		  write(6,101)linein(1:lenin)
+		endif
 	      endif
 	    endif
 	  endif
