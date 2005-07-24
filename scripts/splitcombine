@@ -7,6 +7,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.4  2004/11/30 04:43:43  mast
+#  Changed to fit new combinefft_reduce variable
+#
 #  Revision 3.3  2004/09/29 16:07:40  mast
 #  Added check for ability to write to directory where sum*.rec are placed
 #
@@ -20,10 +23,7 @@
 
 set pn = splitcombine
 
-set tmpdir = /usr/tmp
-if ($?IMOD_DIR) then
-    if (-e $IMOD_DIR/bin/settmpdir) source $IMOD_DIR/bin/settmpdir
-endif
+set tmpdir = ""
 
 set comname = volcombine.com
 if ($#argv > 0) then
@@ -41,13 +41,12 @@ EOF
 endif
 
 if ($#argv > 1) then
-    set tmpdir = $argv[2]
+    set tmpdir = `echo $argv[2] | sed '/\//s//\\\//g'`
 endif
 
-set tmpdir = `echo $tmpdir | sed '/\//s//\\\//g'`
 
-set tmprec = $tmpdir\\/rec.
-set tmpmat = $tmpdir\\/mat.
+set tmprec = \$tmpdir\\/rec.
+set tmpmat = \$tmpdir\\/mat.
 
 set rootname = $comname:r
 set comname = $rootname.com
@@ -109,6 +108,19 @@ while ($num < $numpieces)
     cat <<EOF >! $thiscom
 \$set tmpext = \`hostname\`.\$\$
 EOF
+    if ($tmpdir == "") then
+        cat <<EOF >> $thiscom
+\$set tmpdir = /usr/tmp
+\$if (\$?IMOD_DIR) then
+\$if (-e \$IMOD_DIR/bin/settmpdir) source \$IMOD_DIR/bin/settmpdir
+\$endif
+EOF
+    else
+        cat <<EOF >> $thiscom
+\$set tmpdir = $tmpdir
+EOF
+    endif
+    
     if ("$optionline" != "") echo $optionline >> $thiscom
     @ nextnum = $num + 1
     set tmpname = $rootname.tmp.$$
@@ -120,14 +132,18 @@ EOF
 
     # doctor the filenames.  Need to replace all leading paths before rec. and
     # mat. to get rid of temporary directory.  Match all back to space or tab
+    # But need to put escapes in front of the $tmpdir entries at start of line
     sed -e '/STATUS:/d' \
         -e "/localscratch/s//scratch\/$hostroot/g" \
         -e '/rec\.st/s//rec.st.\$tmpext/g' \
         -e '/mat\.st/s//mat.st.\$tmpext/g' \
         -e '/rec\.fft/s//rec.fft.\$tmpext/g' \
         -e '/mat\.fft/s//mat.fft.\$tmpext/g' \
-        -e "/[^ 	]*rec\./s//$tmprec/g" \
-        -e "/[^ 	]*mat\./s//$tmpmat/g" < $tmpname >> $thiscom
+        -e "/^[^ 	]*rec\./s//\\$tmprec/g" \
+        -e "/^[^ 	]*mat\./s//\\$tmpmat/g" \
+        -e "/[ 	][^ 	]*rec\./s// $tmprec/g" \
+        -e "/[ 	][^ 	]*mat\./s// $tmpmat/g" \
+        < $tmpname >> $thiscom
     \rm -r $tmpname
     cat <<EOF >> $thiscom
 \$echo CHUNK DONE
