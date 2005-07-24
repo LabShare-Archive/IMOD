@@ -23,6 +23,13 @@ DDEESSCCRRIIPPTTIIOONN
   that point will be output with the \\ converted to a \, and next line
   will be output on a separate line.  In either case, the continuation 
   lines should not start with a $ or %.
+
+  Many C shell commands can be included in the command file as long as they
+  are prefixed by $ or %.  Specifically, variables may be defined with set 
+  and accessed with $variable.  If a variable needs to appear at the 
+  beginning of a line that is an entry to a program, the line should start
+  with \$ and this will be converted to $ instead of interpreted as a 
+  command line.  This conversion happens only at the beginning of a line.
   
   If there is a command-line argument, that argument will be set up
   as a log file: the text output of each command will be directed
