@@ -42,6 +42,9 @@ Squeeze "size" pixels in the Z dimension, centered on the middle in Z.
 .B -l
 Use linear interpolation when transforming the volume, instead of the default
 quadratic interpolation.
+.TP 
+.B -P
+Output process ID.
 .TP
 .B -t <temporary directory>
 Path name of directory into which matchvol can place temporary files.
