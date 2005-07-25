@@ -24,6 +24,9 @@ removed stack (setname.st) must be present to perform this operation.
 .B -d
 Delete setname_orig.st after successfully producing setname_xray.st.gz.  By
 default, the file is left for the user to delete.
+.TP 
+.B -P
+Output process ID.
 .SH FILES
 If the final output file already exists a backup image
 of the original is created
