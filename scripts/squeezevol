@@ -7,6 +7,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.6  2005/05/11 19:44:51  mast
+#  Eliminated tail -1 to get progress output.
+#
 #  Revision 3.5  2004/12/02 18:17:53  mast
 #  Standardized error messages
 #
@@ -42,6 +45,7 @@ if ($#argv == 0)then
   echo "    -iy y_size :  input size in Y dimension, default is full Y size of volume"
   echo "    -iz z_size :  input size in Z dimension, default is full Z size of volume"
   echo "    -l         :  use linear interpolation; default is quadratic"  
+  echo "    -P         :  Output process ID"
   exit 0
 endif
 
@@ -86,6 +90,10 @@ while ($#argv > 2)
     case -t*:
       set tempdir = "TemporaryDirectory $argv[2]"
       shift; shift
+      breaksw
+    case -P:
+      echo2 Shell PID: $$
+      shift
       breaksw
     default:
       echo "ERROR: ${pn} - bad argument $argv[1]"
