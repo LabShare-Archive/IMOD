@@ -8,6 +8,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.1  2005/04/22 23:09:02  mast
+#  Addition to package
+#
 #
 
 nohup
@@ -20,6 +23,7 @@ Usage: $pn [-r | -d] setname.st
     Options:
        -r    Restore setname_orig.st from setname.st and setname_xray.st.gz
        -d    Delete setname_orig.st after computing difference
+       -P    Output process ID
 EOCAT
 exit 1
 endif
@@ -34,6 +38,10 @@ while ($#argv > 1)
       breaksw
     case -r:
       set restore = 1
+      shift
+      breaksw
+    case -P:
+      echo2 Shell PID: $$
       shift
       breaksw
     default:
