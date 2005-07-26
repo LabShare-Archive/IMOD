@@ -268,6 +268,7 @@ public class ConstEtomoNumberTest extends TestCase {
     test.selfTestInvariants();
   }
   
+  //TODO
   public final void testIsValid_String_String_AxisID() {
   }
 
@@ -309,7 +310,6 @@ public class ConstEtomoNumberTest extends TestCase {
     test.selfTestInvariants();
   }
 
-  //TODO test function can modify currentValue
   public final void testSetCeiling() {
     EtomoNumber test = new EtomoNumber(EtomoNumber.LONG_TYPE);
     //test: validateFloorAndCeiling() was called
@@ -320,11 +320,19 @@ public class ConstEtomoNumberTest extends TestCase {
     }
     catch (IllegalStateException e) {
     }
+    //test: setCeiling can modify current value
+    test = new EtomoNumber();
+    test.set(bigInteger);
+    test.setCeiling(smallInteger);
+    assertEquals(test.getInteger(), smallInteger);
   }
   
   //TODO
   public final void testSetNullIsValid_boolean() {
-    
+    EtomoNumber test = new EtomoNumber(EtomoNumber.LONG_TYPE);
+    //test: failed validation does not cause an exception to be thrown without a
+    //validation call
+    test.setNullIsValid(true);
   }
 
   //TODO test function can modify currentValue
@@ -399,18 +407,23 @@ public class ConstEtomoNumberTest extends TestCase {
     fail("write parameter to file test failed");
   }
 
+  //TODO
   public final void testStore_Properties_String() {
   }
 
+  //TODO
   public final void testRemove_Properties() {
   }
 
+  //TODO
   public final void testRemove_Properties_prepend() {
   }
 
+  //TODO
   public final void testToString() {
   }
 
+  //TODO
   public final void testGetInteger() {
   }
 
@@ -462,27 +475,35 @@ public class ConstEtomoNumberTest extends TestCase {
     test.selfTestInvariants();
   }
 
+  //TODO
   public final void testValidateReturnTypeLong() {
   }
 
+  //TODO
   public final void testGetLong() {
   }
 
+  //TODO
   public final void validateReturnTypeDouble() {
   }
 
+  //TODO
   public final void testGetDouble() {
   }
 
+  //TODO
   public final void testGetNumber() {
   }
 
+  //TODO
   public final void testEquals_Number() {
   }
 
+  //TODO
   public final void testEquals_String() {
   }
 
+  //TODO
   public final void testIsNamed_String() {
   }
 
@@ -512,6 +533,7 @@ public class ConstEtomoNumberTest extends TestCase {
     test.selfTestInvariants();
   }
 
+  //TODO
   public final void testToString_Vector() {
   }
 
@@ -551,6 +573,7 @@ public class ConstEtomoNumberTest extends TestCase {
     test.selfTestInvariants();
   }
 
+  //TODO
   public final void testValidateInputType_Number() {
   }
 
@@ -667,6 +690,7 @@ public class ConstEtomoNumberTest extends TestCase {
     test.selfTestInvariants();
   }
 
+  //TODO
   public final void testValidateInputType_double() {
   }
 
@@ -692,6 +716,7 @@ public class ConstEtomoNumberTest extends TestCase {
     ///test: convert double to Long - see testValidateInputType_double
   }
 
+  //TODO
   public final void testValidateInputType_long() {
   }
 
@@ -915,14 +940,19 @@ public class ConstEtomoNumberTest extends TestCase {
     test.selfTestInvariants();
   }
 
+  //TODO
   public final void testEquals_Number_Number() {
   }
 
+  //TODO
   public final void testEquals_Number_int() {
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.9  2005/07/21 22:01:11  sueh
+ * <p> bug# 532 Added validFloor.  Keepting tests up to date
+ * <p>
  * <p> Revision 1.8  2005/07/20 17:53:17  sueh
  * <p> bug# 706 Fix testStore_Properties().  Make all the test directories.
  * <p>

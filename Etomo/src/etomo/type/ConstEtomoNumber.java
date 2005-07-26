@@ -21,6 +21,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.27  2005/07/21 22:00:51  sueh
+ * <p> bug# 532 Added validFloor.
+ * <p>
  * <p> Revision 1.26  2005/06/21 16:32:03  sueh
  * <p> bug# 692 Added getType().
  * <p>
@@ -194,9 +197,9 @@ public abstract class ConstEtomoNumber implements Storable {
   private static final byte byteNullValue = Byte.MIN_VALUE;
   
   //type
-  protected int type = INTEGER_TYPE;//requred, defaults to integer, can't be changed once it is set
+  protected final int type;//defaults to integer, can't be changed once it is set
   //name and description
-  protected String name;//optional, defaults to Object.toString(), can't be changed once it is set
+  protected final String name;//defaults to Object.toString(), can't be changed once it is set
   protected String description;//optional, defaults to name
   //value of the instance
   protected Number currentValue;//optional, defaults to newNumber()
@@ -223,6 +226,7 @@ public abstract class ConstEtomoNumber implements Storable {
    *
    */
   protected ConstEtomoNumber() {
+    type = INTEGER_TYPE;
     name = super.toString();
     description = name;
     initialize();
@@ -233,6 +237,7 @@ public abstract class ConstEtomoNumber implements Storable {
    * @param name the name of the instance
    */
   protected ConstEtomoNumber(String name) {
+    type = INTEGER_TYPE;
     this.name = name;
     description = name;
     initialize();
@@ -254,12 +259,12 @@ public abstract class ConstEtomoNumber implements Storable {
 
   protected ConstEtomoNumber(ConstEtomoNumber that) {
     super();
+    type = that.type;
+    name = that.name;
     if (that == null) {
       return;
     }
-    type = that.type;
-    name = that.name;
-    description = that.description;
+    description = new String(that.description);
     currentValue = newNumber(that.currentValue);
     displayValue = newNumber(that.displayValue);
     ceilingValue = newNumber(that.ceilingValue);
@@ -1273,7 +1278,9 @@ public abstract class ConstEtomoNumber implements Storable {
       return;
     }
     //deep copy test
+    //ok for name to be the same instance because it is final
     if (this == original
+        || description == original.description
         || currentValue == original.currentValue
         || displayValue == original.displayValue
         || ceilingValue == original.ceilingValue
