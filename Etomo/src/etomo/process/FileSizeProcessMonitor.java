@@ -8,6 +8,7 @@ import java.nio.channels.FileChannel;
 
 import etomo.ApplicationManager;
 import etomo.type.AxisID;
+import etomo.type.ProcessEndState;
 import etomo.util.InvalidParameterException;
 import etomo.util.Utilities;
 
@@ -24,6 +25,11 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.10  2005/07/20 17:44:06  sueh
+ * <p> bug# 705 Stop printing the stack trace for IOException bugs coming from
+ * <p> MRCHeader, because its filling up the error log with exceptions that are
+ * <p> related to real problems.
+ * <p>
  * <p> Revision 3.9  2005/07/11 22:47:18  sueh
  * <p> bug# 619 Made closeChannel() protected so it can be called by
  * <p> overridden functions.
@@ -79,7 +85,7 @@ import etomo.util.Utilities;
  * <p> </p>
  */
 
-public abstract class FileSizeProcessMonitor implements Runnable {
+public abstract class FileSizeProcessMonitor implements ProcessMonitor {
   public static final String rcsid = "$Id$";
   ApplicationManager applicationManager;
   AxisID axisID;
@@ -87,6 +93,7 @@ public abstract class FileSizeProcessMonitor implements Runnable {
   long scriptStartTime;
   File watchedFile;
   FileChannel watchedChannel;
+  private ProcessEndState endState = null;
 
   int nKBytes;
 
@@ -120,21 +127,35 @@ public abstract class FileSizeProcessMonitor implements Runnable {
     }
     //  Interrupted ???  kill the thread by exiting
     catch (InterruptedException except) {
+      setProcessEndState(ProcessEndState.DONE);
       closeChannel();
       return;
     }
     catch (InvalidParameterException except) {
+      setProcessEndState(ProcessEndState.DONE);
       except.printStackTrace();
       closeChannel();
       return;
     }
     catch (IOException except) {
+      setProcessEndState(ProcessEndState.DONE);
       closeChannel();
       return;
     }
-
+    setProcessEndState(ProcessEndState.DONE);
     // Periodically update the process bar by checking the size of the file
     updateProgressBar();
+  }
+  
+  /**
+   * set end state
+   */
+  public synchronized final void setProcessEndState(ProcessEndState endState) {
+    this.endState = ProcessEndState.precedence(this.endState, endState);
+  }
+  
+  public synchronized final ProcessEndState getProcessEndState() {
+    return endState;
   }
 
   /**
@@ -229,6 +250,9 @@ public abstract class FileSizeProcessMonitor implements Runnable {
    * Attempt to close the watched channel file.
    */
   protected void closeChannel() {
+    if (watchedChannel == null) {
+      return;
+    }
     try {
       watchedChannel.close();
     }
