@@ -21,6 +21,7 @@ import etomo.type.AxisTypeException;
 import etomo.type.BaseMetaData;
 import etomo.type.BaseProcessTrack;
 import etomo.type.BaseState;
+import etomo.type.ProcessEndState;
 import etomo.type.ProcessName;
 import etomo.type.UserConfiguration;
 import etomo.ui.MainPanel;
@@ -42,6 +43,11 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.19  2005/06/21 00:03:37  sueh
+* <p> bug# 522 Added pass-through function call to
+* <p> BaseProcessManager.touch() for MRCHeaderTest.  Added toString()
+* <p> overide.
+* <p>
 * <p> Revision 1.18  2005/06/03 20:09:18  sueh
 * <p> bug# 671 processDone():  Removed code changing the axisID because it
 * <p> doesn't seem be necessary and it causes single axis file names to have
@@ -633,8 +639,8 @@ public abstract class BaseManager {
    * @param axisID
    */
   public void processDone(String threadName, int exitValue,
-      ProcessName processName, AxisID axisID) {
-    processDone(threadName, exitValue, processName, axisID, false);
+      ProcessName processName, AxisID axisID, ProcessEndState endState) {
+    processDone(threadName, exitValue, processName, axisID, false, endState);
   }
   
   /**
@@ -644,16 +650,16 @@ public abstract class BaseManager {
    *            The name of the thread that has finished
    */
   public void processDone(String threadName, int exitValue,
-    ProcessName processName, AxisID axisID, boolean forceNextProcess) {
+    ProcessName processName, AxisID axisID, boolean forceNextProcess, ProcessEndState endState) {
     if (threadName.equals(threadNameA)) {
-      getMainPanel().stopProgressBar(AxisID.FIRST);
+      getMainPanel().stopProgressBar(AxisID.FIRST, endState);
       threadNameA = "none";
       backgroundProcessA = false;
       backgroundProcessNameA = null;
       //axisID = AxisID.FIRST;
     }
     else if (threadName.equals(threadNameB)) {
-      getMainPanel().stopProgressBar(AxisID.SECOND);
+      getMainPanel().stopProgressBar(AxisID.SECOND, endState);
       threadNameB = "none";
       //axisID = AxisID.SECOND;
     }
@@ -665,7 +671,7 @@ public abstract class BaseManager {
       updateDialog(processName, axisID);
     }
     //  Start the next process if one exists and the exit value was equal zero
-    if (isNextProcessSet(axisID)) {
+    if (endState != ProcessEndState.KILLED && isNextProcessSet(axisID)) {
       if (exitValue == 0 || forceNextProcess) {
         startNextProcess(axisID);
       }
