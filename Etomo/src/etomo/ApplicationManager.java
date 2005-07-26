@@ -65,6 +65,7 @@ import etomo.type.EtomoNumber;
 import etomo.type.FiducialMatch;
 import etomo.type.InvalidEtomoNumberException;
 import etomo.type.MetaData;
+import etomo.type.ProcessEndState;
 import etomo.type.ProcessName;
 import etomo.type.ProcessTrack;
 import etomo.type.TiltAngleSpec;
@@ -108,6 +109,11 @@ import etomo.util.Utilities;
  * 
  *
  * <p> $Log$
+ * <p> Revision 3.163  2005/07/21 21:25:16  sueh
+ * <p> bug# 532 added splittilt() and updateSplittiltParam().  Added
+ * <p> setPauseButton to let the main panel manage the pause button the same
+ * <p> way as it manages the kill button.
+ * <p>
  * <p> Revision 3.162  2005/07/20 16:56:55  sueh
  * <p> bug# 705 Stop printing the stack trace for IOException bugs coming from
  * <p> MRCHeader, because its filling up the error log with exceptions that are
@@ -2814,7 +2820,7 @@ public class ApplicationManager extends BaseManager {
   }
 
   /**
-   * Replace the raw stack with the fixed stack created from eraser
+   * Using Fiducial Model as Seed
    * @param axisID
    */
   public void makeFiducialModelSeedModel(AxisID axisID) {
@@ -6187,8 +6193,8 @@ public class ApplicationManager extends BaseManager {
   /**
    * @param axisID
    */
-  public void progressBarDone(AxisID axisID) {
-    mainPanel.stopProgressBar(axisID);
+  public void progressBarDone(AxisID axisID, ProcessEndState processEndState) {
+    mainPanel.stopProgressBar(axisID, processEndState);
   }
 
   /**
