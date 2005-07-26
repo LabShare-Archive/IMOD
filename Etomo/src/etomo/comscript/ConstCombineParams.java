@@ -23,6 +23,10 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.2  2005/07/20 17:30:52  sueh
+ * <p> bug# 700  In isValid() validate the x, y, z values against the tomogram
+ * <p> header.  Pass YAndZFlipped.  Get the tomogram file from DatasetFile.
+ * <p>
  * <p> Revision 3.1  2004/03/06 00:26:37  sueh
  * <p> bug# 318 add maxPatchZMax - get, use to validate patchZMax
  * <p>
@@ -231,13 +235,11 @@ public class ConstCombineParams {
       header.read();
     }
     catch (IOException e) {
-      valid = false;
-      invalidReasons.add("Unable to read tomogram header");
+      return true;
     }
     catch (Exception e) {
       e.printStackTrace();
-      valid = false;
-      invalidReasons.add("Unable to read tomogram header");
+      return true;
     }
     int x = header.getNColumns();
     if (x < patchXMin || x < patchXMax) {
