@@ -19,6 +19,11 @@ import etomo.type.AxisID;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.3  2005/04/25 20:43:27  sueh
+ * <p> $bug# 615 Passing the axis where a command originates to the message
+ * <p> $functions so that the message will be popped up in the correct window.
+ * <p> $This requires adding AxisID to many objects.
+ * <p> $
  * <p> $Revision 1.2  2004/08/23 23:32:42  sueh
  * <p> $bug# 508 changed setKilled(boolean) to kill().  changed isDone()
  * <p> $to isSuccessful
@@ -27,7 +32,7 @@ import etomo.type.AxisID;
  * <p> $bug# 508 Generic interface for CombineProcessMonitor.
  * <p> $$ </p>
  */
-public interface BackgroundProcessMonitor {
+public interface BackgroundProcessMonitor extends ProcessMonitor {
   public static final String rcsid = "$$Id$$";
   
   abstract public boolean isSuccessful();
