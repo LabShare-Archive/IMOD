@@ -4,6 +4,7 @@ import java.io.File;
 
 import etomo.comscript.Command;
 import etomo.type.AxisID;
+import etomo.type.ProcessEndState;
 /**
  * <p>Description: </p>
  * 
@@ -17,6 +18,11 @@ import etomo.type.AxisID;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.7  2005/05/18 22:34:07  sueh
+ * <p> bug# 662 Added member variable boolean forceNextProcess to force
+ * <p> BaseManager.startNextProcess() to be run regardless of the value of
+ * <p> exitValue.
+ * <p>
  * <p> Revision 3.6  2005/04/25 20:43:03  sueh
  * <p> bug# 615 Passing the axis where a command originates to the message
  * <p> functions so that the message will be popped up in the correct window.
@@ -126,6 +132,7 @@ public class BackgroundProcess
 
   private boolean started = false;
   private boolean done = false;
+  private ProcessEndState endState = null;
 
   public BackgroundProcess(String commandLine, BaseProcessManager processManager, AxisID axisID) {
     this.axisID = axisID;
@@ -345,8 +352,18 @@ public class BackgroundProcess
   /**
    * nothing to do
    */
-  public void notifyKill() {
-    
+  public void notifyKilled() {
   }
-
+  
+  /**
+   * set end state
+   * @param endState
+   */
+  public synchronized final void setProcessEndState(ProcessEndState endState) {
+    this.endState = ProcessEndState.precedence(this.endState, endState);
+  }
+  
+  public final ProcessEndState getProcessEndState() {
+    return endState;
+  }
 }
