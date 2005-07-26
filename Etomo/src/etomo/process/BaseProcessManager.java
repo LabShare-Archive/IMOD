@@ -9,6 +9,7 @@ import etomo.EtomoDirector;
 import etomo.comscript.Command;
 import etomo.comscript.ComscriptState;
 import etomo.type.AxisID;
+import etomo.type.ProcessEndState;
 import etomo.ui.UIHarness;
 import etomo.util.Utilities;
 
@@ -26,6 +27,9 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.14  2005/07/01 21:08:00  sueh
+* <p> bug# 619 demo:  temporarily made isAxisBusy public
+* <p>
 * <p> Revision 1.13  2005/06/21 00:42:24  sueh
 * <p> bug# 522 Added moved touch() from JoinProcessManager to
 * <p> BaseProcessManager for MRCHeaderTest.
@@ -168,11 +172,11 @@ public abstract class BaseProcessManager {
    */
   protected ComScriptProcess startComScript(
     String command,
-    Runnable processMonitor,
+    ProcessMonitor processMonitor,
     AxisID axisID)
     throws SystemProcessException {
     return startComScript(
-      new ComScriptProcess(command, this, axisID, null),
+      new ComScriptProcess(command, this, axisID, null, processMonitor),
       command,
       processMonitor,
       axisID);
@@ -187,8 +191,8 @@ public abstract class BaseProcessManager {
    * @throws SystemProcessException
    */
   protected ComScriptProcess startComScript(Command command,
-      Runnable processMonitor, AxisID axisID) throws SystemProcessException {
-    return startComScript(new ComScriptProcess(command, this, axisID, null),
+      ProcessMonitor processMonitor, AxisID axisID) throws SystemProcessException {
+    return startComScript(new ComScriptProcess(command, this, axisID, null, processMonitor),
         command.getCommandLine(), processMonitor, axisID);
   }
   
@@ -220,12 +224,12 @@ public abstract class BaseProcessManager {
    */
   protected ComScriptProcess startComScript(
     String command,
-    Runnable processMonitor,
+    ProcessMonitor processMonitor,
     AxisID axisID,
     String watchedFileName)
     throws SystemProcessException {
     return startComScript(
-      new ComScriptProcess(command, this, axisID, watchedFileName),
+      new ComScriptProcess(command, this, axisID, watchedFileName, processMonitor),
       command,
       processMonitor,
       axisID);
@@ -357,14 +361,16 @@ public abstract class BaseProcessManager {
     else {
       thread = threadAxisA;
     }
-    if (thread != null) {
-      processID = thread.getShellProcessID();
+    if (thread == null) {
+      return;
     }
+    thread.setProcessEndState(ProcessEndState.KILLED);
     
+    processID = thread.getShellProcessID();  
     killProcessGroup(processID, axisID);
     killProcessAndDescendants(processID, axisID);
     
-    thread.notifyKill();
+    thread.notifyKilled();
 
     /*
     //  Loop over killing the children until there are none left
@@ -617,7 +623,7 @@ public abstract class BaseProcessManager {
         stdError = new String[0];
       }
       if (stdError != null && stdError.length > 0
-        && stdError[stdError.length - 1].trim().equals("Killed")) {
+          && stdError[stdError.length - 1].trim().equals("Killed")) {
         combined = new String[1];
         combined[0] = "<html>Terminated: " + script.getScriptName();
       }
@@ -638,8 +644,13 @@ public abstract class BaseProcessManager {
           combined[j] = stdError[i];
         }
       }
-      uiHarness.openMessageDialog(combined,
-          script.getScriptName() + " terminated", script.getAxisID());
+      if (script.getProcessEndState() != ProcessEndState.KILLED
+          && script.getProcessEndState() != ProcessEndState.PAUSED) {
+        uiHarness.openMessageDialog(combined, script.getScriptName()
+            + " terminated", script.getAxisID());
+        //make sure script knows about failure
+        script.setProcessEndState(ProcessEndState.FAILED);
+      }
       errorProcess(script);
     }
     else {
@@ -680,7 +691,7 @@ public abstract class BaseProcessManager {
 
     //  Inform the app manager that this process is complete
     getManager().processDone(script.getName(), exitValue,
-      script.getProcessName(), script.getAxisID());
+      script.getProcessName(), script.getAxisID(), script.getProcessEndState());
   }
   
   /**
@@ -819,8 +830,13 @@ public abstract class BaseProcessManager {
           message[j] = stdError[i];
         }
       }
-      uiHarness.openMessageDialog(message,
-          process.getCommandName() + " terminated", process.getAxisID());
+      if (process.getProcessEndState() != ProcessEndState.KILLED
+          && process.getProcessEndState() != ProcessEndState.PAUSED) {
+        uiHarness.openMessageDialog(message,
+            process.getCommandName() + " terminated", process.getAxisID());
+        //make sure script knows about failure
+        process.setProcessEndState(ProcessEndState.FAILED);
+      }
     }
 
     // Another possible error message source is ERROR: in the stdout stream
@@ -870,7 +886,7 @@ public abstract class BaseProcessManager {
 
     //  Inform the app manager that this process is complete
     getManager().processDone(process.getName(), exitValue, null, null,
-        process.isForceNextProcess());
+        process.isForceNextProcess(), process.getProcessEndState());
   }
   
   public void msgInteractiveSystemProgramDone(InteractiveSystemProgram program, int exitValue) {
