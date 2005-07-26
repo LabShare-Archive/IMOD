@@ -27,6 +27,11 @@ import etomo.type.EtomoNumber;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.7  2005/04/25 20:38:57  sueh
+* <p> bug# 615 Passing the axis where a command originates to the message
+* <p> functions so that the message will be popped up in the correct window.
+* <p> This requires adding AxisID to many objects.
+* <p>
 * <p> Revision 1.6  2005/01/25 21:27:05  sueh
 * <p> Renaming EtomoNumber.resetValue to displayValue.
 * <p>
@@ -98,6 +103,7 @@ public abstract class ConstSqueezevolParam implements Command, Storable {
     if (linearInterpolation) {
       options.add("-l");
     }
+    options.add("-P");
     //create input file name
     String inputFileName;
     ApplicationManager manager = (ApplicationManager) EtomoDirector
