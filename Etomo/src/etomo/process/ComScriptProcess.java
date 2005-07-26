@@ -19,6 +19,11 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.23  2005/07/11 22:44:20  sueh
+ * bug#  619 Added isKilled() so Etomo can respond differently to a
+ * process that was killed by the user then it does to a process that ended
+ * withed an error.
+ *
  * Revision 3.22  2005/04/25 20:45:18  sueh
  * bug# 615 Passing the axis where a command originates to the message
  * functions so that the message will be popped up in the correct window.
@@ -294,6 +299,7 @@ import java.util.ArrayList;
 import etomo.ApplicationManager;
 import etomo.comscript.Command;
 import etomo.type.AxisID;
+import etomo.type.ProcessEndState;
 import etomo.type.ProcessName;
 import etomo.util.Utilities;
 
@@ -319,35 +325,38 @@ public class ComScriptProcess
   protected AxisID axisID;
   protected String watchedFileName;
   private Command command = null;
-  private boolean killed = false;
 
   private boolean started = false;
   private boolean done = false;
   private boolean error = false;
+  private final ProcessMonitor processMonitor;
+  private ProcessEndState endState = null;//used when processMonitor is null
 
   public ComScriptProcess(
     String comScript,
     BaseProcessManager processManager,
       AxisID axisID,
-      String watchedFileName) {
+      String watchedFileName, ProcessMonitor processMonitor) {
     this.name = comScript;
     this.processManager = processManager;
     cshProcessID = new StringBuffer("");
     this.axisID = axisID;
     this.watchedFileName = watchedFileName;
+    this.processMonitor = processMonitor;
   }
   
   public ComScriptProcess(
       Command comScriptCommand,
       BaseProcessManager processManager,
         AxisID axisID,
-        String watchedFileName) {
+        String watchedFileName, ProcessMonitor processMonitor) {
       this.name = comScriptCommand.getCommandLine();
       this.processManager = processManager;
       cshProcessID = new StringBuffer("");
       this.axisID = axisID;
       this.watchedFileName = watchedFileName;
       command = comScriptCommand;
+      this.processMonitor = processMonitor;
     }
 
   /**
@@ -822,13 +831,24 @@ public class ComScriptProcess
   }
   
   /**
-   * set killed to true
+   * nothing to do
    */
-  public void notifyKill() {
-    killed = true;
+  public void notifyKilled() {
   }
   
-  boolean isKilled() {
-    return killed;
+  public final void setProcessEndState(ProcessEndState endState) {
+    if (processMonitor == null) {
+      this.endState = endState;
+    }
+    else {
+      processMonitor.setProcessEndState(endState);
+    }
+  }
+  
+  final ProcessEndState getProcessEndState() {
+    if (processMonitor == null) {
+      return endState;
+    }
+    return processMonitor.getProcessEndState();
   }
 }
