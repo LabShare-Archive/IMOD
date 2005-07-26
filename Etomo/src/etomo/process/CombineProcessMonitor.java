@@ -10,6 +10,7 @@ import etomo.ApplicationManager;
 import etomo.EtomoDirector;
 import etomo.comscript.CombineComscriptState;
 import etomo.type.AxisID;
+import etomo.type.ProcessEndState;
 import etomo.util.Utilities;
 
 
@@ -30,6 +31,11 @@ import etomo.util.Utilities;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.9  2005/04/25 20:44:53  sueh
+ * <p> $bug# 615 Passing the axis where a command originates to the message
+ * <p> $functions so that the message will be popped up in the correct window.
+ * <p> $This requires adding AxisID to many objects.
+ * <p> $
  * <p> $Revision 1.8  2005/01/26 23:41:20  sueh
  * <p> $bug# 83 Added matchvol1 and matchorwarp process monitors.
  * <p> $
@@ -93,7 +99,7 @@ import etomo.util.Utilities;
  * <p> $process.
  * <p> $$ </p>
  */
-public class CombineProcessMonitor implements Runnable, BackgroundProcessMonitor {
+public class CombineProcessMonitor implements BackgroundProcessMonitor {
   public static final String rcsid = "$$Id$$";
   public static final String COMBINE_LABEL = "Combine";
   private static final long SLEEP = 100;
@@ -102,6 +108,7 @@ public class CombineProcessMonitor implements Runnable, BackgroundProcessMonitor
   private AxisID axisID = null;
   private BufferedReader logFileReader = null;
   private long sleepCount = 0;
+  private ProcessEndState endState = null;
   
   //if processRunning is false at any time before the process ends, it can
   //cause wait loops to end prematurely.  This is because the wait loop can
@@ -121,7 +128,6 @@ public class CombineProcessMonitor implements Runnable, BackgroundProcessMonitor
   private static final int RAN_STATE = 3;
   private boolean selfTest = false;
   private Thread runThread = null;
-  
   
   /**
    * @param applicationManager
@@ -168,7 +174,20 @@ public class CombineProcessMonitor implements Runnable, BackgroundProcessMonitor
    * called when the process is killed by the user
    */
   public void kill() {
+    setProcessEndState(ProcessEndState.KILLED);
     endMonitor();
+  }
+  
+  /**
+   * set end state
+   * @param endState
+   */
+  public synchronized final void setProcessEndState(ProcessEndState endState) {
+    this.endState = ProcessEndState.precedence(this.endState, endState);
+  }
+  
+  public final ProcessEndState getProcessEndState() {
+    return endState;
   }
   
   private void initializeProgressBar() {
@@ -199,11 +218,13 @@ public class CombineProcessMonitor implements Runnable, BackgroundProcessMonitor
         }
       }
       else if (line.startsWith("ERROR:")) {
+        setProcessEndState(ProcessEndState.FAILED);
         endMonitor();
       }
       else if (
         line.startsWith(CombineComscriptState.getSuccessText())) {
         success = true;
+        setProcessEndState(ProcessEndState.DONE);
         endMonitor();
 
       }
@@ -218,7 +239,7 @@ public class CombineProcessMonitor implements Runnable, BackgroundProcessMonitor
   private void setCurrentChildCommand(String comscriptName) {
     String childCommandName =
       comscriptName.substring(0, comscriptName.indexOf(".com"));
-    applicationManager.progressBarDone(axisID);
+    applicationManager.progressBarDone(axisID, ProcessEndState.DONE);
 
     if (childCommandName.equals(combineComscriptState.getCommand(
         CombineComscriptState.PATCHCORR_INDEX))) {
@@ -290,7 +311,7 @@ public class CombineProcessMonitor implements Runnable, BackgroundProcessMonitor
    */
   private void endMonitor() {
     endCurrentChildMonitor();
-    applicationManager.progressBarDone(axisID);
+    applicationManager.progressBarDone(axisID, endState);
     if (runThread != null) {
       runThread.interrupt();
       runThread = null;
@@ -350,6 +371,7 @@ public class CombineProcessMonitor implements Runnable, BackgroundProcessMonitor
     catch (IOException e) {
       e.printStackTrace();
     }
+    setProcessEndState(ProcessEndState.DONE);
 
     //  Close the log file reader
     try {
@@ -366,7 +388,7 @@ public class CombineProcessMonitor implements Runnable, BackgroundProcessMonitor
     endMonitor();
     runSelfTest(RAN_STATE);
   }
-
+  
   /**
    * Wait for the process to start and the appropriate log file to be created 
    * @return a buffered reader of the log file
