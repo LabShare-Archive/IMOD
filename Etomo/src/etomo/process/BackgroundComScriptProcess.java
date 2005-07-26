@@ -30,6 +30,9 @@ import etomo.util.Utilities;
  * @version $$Revision$$
  * 
  * <p> $Log$
+ * <p> Revision 1.14  2005/04/25 20:42:44  sueh
+ * <p> *** empty log message ***
+ * <p>
  * <p> Revision 1.13  2005/02/09 18:40:00  sueh
  * <p> Removing print statements.
  * <p>
@@ -138,7 +141,7 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
     BaseProcessManager processManager, AxisID axisID, String watchedFileName,
     BackgroundProcessMonitor backgroundProcessMonitor, 
     ComscriptState comscriptState) {
-    super(comScript, processManager, axisID, watchedFileName);
+    super(comScript, processManager, axisID, watchedFileName, backgroundProcessMonitor);
     this.backgroundProcessMonitor = backgroundProcessMonitor;
     this.comscriptState = comscriptState;
   }
@@ -305,9 +308,9 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
   }
   
   /**
-   * kill monitor when notified of a kill request
+   * kill monitor when notified that a kill was done
    */
-  public void notifyKill() {
+  public void notifyKilled() {
     killMonitor();
   }
   
@@ -393,7 +396,4 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
       e.printStackTrace();
     }
   }
-
-
- 
 }
