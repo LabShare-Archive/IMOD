@@ -20,6 +20,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.69  2005/07/21 21:41:05  sueh
+ * bug# 532 added splittilt
+ *
  * Revision 3.68  2005/07/14 22:00:44  sueh
  * bug# 626 Passing BlendmontParam to blend() because BlendmontParam
  * can either be in blend mode or whole tomogram mode.
@@ -1235,25 +1238,6 @@ public class ProcessManager extends BaseProcessManager {
     return comScriptProcess.getName();
   }
   
-  public String tiltParallelProcess(AxisID axisID,
-      ParallelProgressDisplay parallelProgressDisplay)
-      throws SystemProcessException {
-    //
-    //  Create the required tilt command
-    //
-    String command = "tilt" + axisID.getExtension() + ".com";
-
-    //  Instantiate the process monitor
-    TiltParallelProcessMonitor tiltProcessMonitor = TiltParallelProcessMonitor
-        .getInstance(axisID, parallelProgressDisplay);
-
-    //  Start the com script in the background
-    ComScriptProcess comScriptProcess = startComScript(command,
-        tiltProcessMonitor, axisID);
-
-    return comScriptProcess.getName();
-  }
-  
   public String resumeTiltParallelProcessDemo(AxisID axisID,
       ParallelProgressDisplay parallelProgressDisplay)
       throws SystemProcessException {
@@ -1639,14 +1623,6 @@ public class ProcessManager extends BaseProcessManager {
     Command command = script.getCommand();
     TomogramState state = appManager.getState();
     AxisID axisID = script.getAxisID();
-    if (processName == ProcessName.TILT) {
-      if (script.isKilled()) {
-        appManager.signalTiltKilled(script.getAxisID());
-      }
-      else {
-       appManager.signalTiltError(script.getAxisID());
-      }
-    }
   }
   
   protected void postProcess(BackgroundProcess process) {
