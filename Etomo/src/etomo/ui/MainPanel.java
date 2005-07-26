@@ -19,6 +19,7 @@ import etomo.storage.DataFileFilter;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.BaseMetaData;
+import etomo.type.ProcessEndState;
 
 /**
  * <p>Description: </p>
@@ -33,6 +34,12 @@ import etomo.type.BaseMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.24  2005/07/21 22:19:58  sueh
+ * <p> bug# 532 removed "kill / pause" label from kill process button.  Pause
+ * <p> button with be managed by separately by AxisProcessPanel, which
+ * <p> receives a pointer to the button through setPauseButton().  No longer
+ * <p> changing the kill process button label.
+ * <p>
  * <p> Revision 1.23  2005/07/11 23:03:21  sueh
  * <p> bug# 619 Allow the kill process button label to be changed to
  * <p> "Kill / Pause".  Added setProgressBar(String, int, boolean) and
@@ -374,13 +381,16 @@ public abstract class MainPanel extends JPanel {
     axisPanel.startProgressBar(name);
   }
 
+  public void stopProgressBar(AxisID axisID) {
+    stopProgressBar(axisID, ProcessEndState.DONE);
+  }
   /**
    * Stop the specified progress bar
    * @param axisID
    */
-  public void stopProgressBar(AxisID axisID) {
+  public void stopProgressBar(AxisID axisID, ProcessEndState processEndState) {
     AxisProcessPanel axisPanel = mapBaseAxis(axisID);
-    axisPanel.stopProgressBar();
+    axisPanel.stopProgressBar(processEndState);
   }
 
   /**

@@ -12,6 +12,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.6  2005/04/16 02:03:56  sueh
+ * <p> bug# 615 Added setBackground(Color).
+ * <p>
  * <p> Revision 3.5  2004/08/19 02:55:12  sueh
  * <p> bug# 508 Fixed a bug where a stop would be overridden by an event
  * <p> that caused IncrementLater.run() to run.  This happened when the
@@ -71,6 +74,7 @@ import javax.swing.JProgressBar;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 
+import etomo.type.ProcessEndState;
 import etomo.util.Utilities;
 
 public class ProgressPanel {
@@ -142,19 +146,28 @@ public class ProgressPanel {
     }
   }
 
-  public void stop() {
+  public void stop(ProcessEndState state) {
     stopped = true;
     counter = 0;
-    SwingUtilities.invokeLater(new StopLater());
+    if (state == null) {
+      state = ProcessEndState.DONE;
+    }
+    SwingUtilities.invokeLater(new StopLater(state));
   }
 
   private class StopLater implements Runnable {
+    private final ProcessEndState state;
+    
+    public StopLater(ProcessEndState state) {
+      this.state = state;
+    }
+    
     public void run() {
       //System.out.println("StopLater.run()");
       timer.stop();
       progressBar.setValue(counter);
       progressBar.setIndeterminate(false);
-      progressBar.setString("done");
+      progressBar.setString(state.toString());
       progressBar.setStringPainted(true);
     }
   }

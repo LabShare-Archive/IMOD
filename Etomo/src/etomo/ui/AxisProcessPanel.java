@@ -10,6 +10,7 @@ import java.awt.Rectangle;
 
 import etomo.type.AxisID;
 import etomo.type.EtomoNumber;
+import etomo.type.ProcessEndState;
 
 /**
  * <p>Description: </p>
@@ -24,6 +25,11 @@ import etomo.type.EtomoNumber;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.14  2005/07/21 22:18:35  sueh
+ * <p> bug# 532 removed "kill / pause" label from kill process button.  Pause
+ * <p> button with be managed by separately by AxisProcessPanel, which
+ * <p> receives a pointer to the button through setPauseButton().
+ * <p>
  * <p> Revision 3.13  2005/07/11 22:53:42  sueh
  * <p> bug# 619 Allow the kill process button label to be changed to
  * <p> "Kill / Pause".  Added setProgressBar(String, int, boolean) and
@@ -352,8 +358,8 @@ public abstract class AxisProcessPanel implements ContextMenu {
    * 
    *
    */
-  public void stopProgressBar() {
-    progressPanel.stop();
+  public void stopProgressBar(ProcessEndState processEndState) {
+    progressPanel.stop(processEndState);
     buttonKillProcess.setEnabled(false);
     if (buttonPauseProcess != null) {
       buttonPauseProcess.setEnabled(false);
