@@ -9,6 +9,7 @@ import java.io.IOException;
 
 import etomo.ApplicationManager;
 import etomo.type.AxisID;
+import etomo.type.ProcessEndState;
 import etomo.util.Utilities;
 
 /**
@@ -24,6 +25,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.15  2005/03/11 01:33:42  sueh
+ * <p> bug# 533 correcting a comment.
+ * <p>
  * <p> Revision 3.14  2005/03/09 22:29:00  sueh
  * <p> bug# 533 Reducing the timeout count to 10 so blendmont monitor
  * <p> finishes faster.
@@ -124,7 +128,7 @@ import etomo.util.Utilities;
  * <p> </p>
  */
 
-public abstract class LogFileProcessMonitor implements Runnable {
+public abstract class LogFileProcessMonitor implements ProcessMonitor {
   public static final String rcsid =
      "$Id$";
   protected ApplicationManager applicationManager;
@@ -143,6 +147,7 @@ public abstract class LogFileProcessMonitor implements Runnable {
   protected boolean lastProcess = true;
 
   boolean standardLogFileName = true;
+  private ProcessEndState endState = null;
 
   //  This needs to be set in the concrete class constructor
   protected String logFileBasename;
@@ -200,6 +205,7 @@ public abstract class LogFileProcessMonitor implements Runnable {
     catch (IOException e) {
       e.printStackTrace();
     }
+    setProcessEndState(ProcessEndState.DONE);
 
     //  Close the log file reader
     try {
@@ -214,10 +220,23 @@ public abstract class LogFileProcessMonitor implements Runnable {
       e1.printStackTrace();
     }
     if (lastProcess) {
-      applicationManager.progressBarDone(axisID);
+      applicationManager.progressBarDone(axisID, endState);
     }
     done = true;
   }
+  
+  /**
+   * set end state
+   * @param endState
+   */
+  public synchronized final void setProcessEndState(ProcessEndState endState) {
+    this.endState = ProcessEndState.precedence(this.endState, endState);
+  }
+  
+  public final ProcessEndState getProcessEndState() {
+    return endState;
+  }
+
   
   boolean isDone() {
     return done;
