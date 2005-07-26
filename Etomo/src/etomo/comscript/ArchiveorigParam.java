@@ -39,7 +39,7 @@ public class ArchiveorigParam implements Command {
       mode = AXIS_B_MODE;
     }
     File stack = Utilities.getFile(false, axisID, ".st", "");
-    commandArray = new String[] { COMMAND_NAME, stack.getName() };
+    commandArray = new String[] { COMMAND_NAME, "-P", stack.getName() };
     outputFile = Utilities.getFile(false, axisID, "_xray.st.gz", "");
   }
   
@@ -83,5 +83,8 @@ public class ArchiveorigParam implements Command {
   }
 }
 /**
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2005/05/18 22:31:38  sueh
+* <p> bug# 662 A param object for archiveorig.
+* <p> </p>
 */
