@@ -15,13 +15,15 @@ package etomo.process;
 import etomo.ApplicationManager;
 import etomo.comscript.BlendmontParam;
 import etomo.type.AxisID;
+import etomo.type.ProcessEndState;
 
-public class XcorrProcessWatcher implements Runnable {
+public class XcorrProcessWatcher implements ProcessMonitor {
   public static final String rcsid = "$Id$";
 
   private ApplicationManager applicationManager = null;
   private AxisID axisID = null;
   private boolean blendmont = false;
+  private ProcessEndState endState = null;
 
   /**
    * Construct a xcorr process watcher
@@ -47,6 +49,7 @@ public class XcorrProcessWatcher implements Runnable {
           Thread.sleep(100);
         }
         catch (Exception e) {
+          setProcessEndState(ProcessEndState.DONE);
           //not expecting any exception here
           e.printStackTrace();
           //send an interrupt to the monitor so it can clean up
@@ -72,10 +75,27 @@ public class XcorrProcessWatcher implements Runnable {
         tiltxcorrThread.interrupt();
       }
     }
+    setProcessEndState(ProcessEndState.DONE);
+  }
+  
+  /**
+   * set end state
+   * @param endState
+   */
+  public synchronized final void setProcessEndState(ProcessEndState endState) {
+    this.endState = ProcessEndState.precedence(this.endState, endState);
+  }
+  
+  public synchronized final ProcessEndState getProcessEndState() {
+    return endState;
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.8  2005/03/11 01:35:08  sueh
+ * <p> bug# 533 Setting BlendmontProcessMonitor.lastProcess to false, so it
+ * <p> doesn't display "done".
+ * <p>
  * <p> Revision 3.7  2005/03/09 22:31:26  sueh
  * <p> bug# 533 Catching the interrupt exception sent by ComScriptProcess.
  * <p> If it is sent while blendmont is running, there is a problem.  Pass the
