@@ -1,13 +1,16 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/26/05: IMOD_3-6-11
+7/26/05: Increased extra header array limits in Newstack and Edmont.
+
 7/26/05: Made squeezevol and archiveorig killable from Etomo.  
 
 7/26/05: Removed the error message in Etomo that comes up after a process is
 killed.  Changed message on the progress bar to reflect the ending state of the
 process (done, killed, or failed).
 
-7/26/05: Fixed a bug which caused Etomo to hang when out of range Z values where
-used in Tomogram Combination.
+7/26/05: Fixed a bug which caused Etomo to hang when out of range Z values 
+were used in Tomogram Combination setup.
 
 7/24/05: Increased array sizes in Blendmont to allow overlaps up to 600 pixels.
 
