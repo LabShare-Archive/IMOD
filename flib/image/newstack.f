@@ -20,7 +20,7 @@ c
 	implicit none
 	integer maxdim,maxtemp,lmfil,lmsec,maxchunks,maxextra,lmGrid
 	parameter (maxdim=20000000,lmfil=1000,lmsec=50000,maxchunks=20)
-	parameter (maxextra=1000000, maxtemp=1000000)
+	parameter (maxextra=1500000, maxtemp=1000000)
 	parameter (lmGrid = 200)
 	integer*4 nx,ny,nz
 	COMMON //NX,NY,NZ
@@ -1681,6 +1681,9 @@ c
 ************************************************************************
 *	  
 c	  $Log$
+c	  Revision 3.31  2005/06/13 22:37:47  mast
+c	  Gave a specific error message when transform file is empty
+c	
 c	  Revision 3.30  2005/06/03 16:32:04  mast
 c	  Moved getbinnedsize to library
 c	

@@ -105,9 +105,16 @@
 *	  sections sequentially.
 *   
 ************************************************************************
+c	  $Author$
+c
+c	  $Date$
+c
+c	  $Revision$
+c
+c	  $Log$
 *   
 	parameter (idim=2100,lmfil=100,lmsec=1024,limpcl=50000)
-	parameter (maxextra=1000000)
+	parameter (maxextra=1500000)
 	COMMON //NX,NY,NZ
 C   
 	DIMENSION NXYZ(3),MXYZ(3),NXYZST(3),
