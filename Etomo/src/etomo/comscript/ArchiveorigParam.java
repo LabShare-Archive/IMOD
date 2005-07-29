@@ -2,6 +2,7 @@ package etomo.comscript;
 
 import java.io.File;
 
+import etomo.BaseManager;
 import etomo.type.AxisID;
 import etomo.type.EtomoNumber;
 import etomo.util.Utilities;
@@ -30,17 +31,19 @@ public class ArchiveorigParam implements Command {
   private String[] commandArray;
   private int mode = AXIS_ONLY_MODE;
   private File outputFile;
+  private final BaseManager manager;
   
-  public ArchiveorigParam(AxisID axisID) {
+  public ArchiveorigParam(BaseManager manager, AxisID axisID) {
+    this.manager = manager;
     if (axisID == AxisID.FIRST) {
       mode = AXIS_A_MODE;
     }
     else if (axisID == AxisID.SECOND) {
       mode = AXIS_B_MODE;
     }
-    File stack = Utilities.getFile(false, axisID, ".st", "");
+    File stack = Utilities.getFile(manager, false, axisID, ".st", "");
     commandArray = new String[] { COMMAND_NAME, "-P", stack.getName() };
-    outputFile = Utilities.getFile(false, axisID, "_xray.st.gz", "");
+    outputFile = Utilities.getFile(manager, false, axisID, "_xray.st.gz", "");
   }
   
   public String[] getCommandArray() {
@@ -84,6 +87,9 @@ public class ArchiveorigParam implements Command {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.2  2005/07/26 17:08:27  sueh
+* <p> bug# 701 Get the PID from archiveorig
+* <p>
 * <p> Revision 1.1  2005/05/18 22:31:38  sueh
 * <p> bug# 662 A param object for archiveorig.
 * <p> </p>
