@@ -15,7 +15,11 @@ import java.util.Properties;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2004/12/14 21:47:35  sueh
+* <p> bug# 572 Represents the state of the join.  Contains items saved after
+* <p> processes are run.
+* <p> </p>
 */
 public class JoinState implements BaseState {
   public static  final String  rcsid =  "$Id$";
@@ -96,13 +100,13 @@ public class JoinState implements BaseState {
   }
   
   public int getNewShiftInX(int min, int max) {
-    return trialShiftInX.getInteger()
-        + (trialSizeInX.getInteger() + 1) / 2 - (max + min) / 2;
+    return trialShiftInX.getInt()
+        + (trialSizeInX.getInt() + 1) / 2 - (max + min) / 2;
   }
 
   public int getNewShiftInY(int min, int max) {
-    return trialShiftInY.getInteger()
-        + (trialSizeInY.getInteger() + 1) / 2 - (max + min) / 2;
+    return trialShiftInY.getInt()
+        + (trialSizeInY.getInt() + 1) / 2 - (max + min) / 2;
   }
   
   public ConstEtomoNumber getTrialBinning() {

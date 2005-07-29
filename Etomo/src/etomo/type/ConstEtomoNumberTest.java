@@ -132,7 +132,7 @@ public class ConstEtomoNumberTest extends TestCase {
     //test description copy
     assertTrue(copy.getDescription().equals(description));
     //test currentValue copy
-    assertEquals(copy.getInteger(), currentValue);
+    assertEquals(copy.getInt(), currentValue);
     //test displayValue copy
     assertEquals(copy.getDisplayInteger(), displayValue);
     test.selfTestInvariants();
@@ -191,7 +191,6 @@ public class ConstEtomoNumberTest extends TestCase {
     test.selfTestInvariants();
   }
 
-  //TODO test validFloor
   public final void testSetInvalidReason() {
     EtomoNumber test = new EtomoNumber(EtomoNumber.FLOAT_TYPE);
     //test nullIsValid == true
@@ -200,17 +199,19 @@ public class ConstEtomoNumberTest extends TestCase {
     //test nullIsValid == false
     test.setNullIsValid(false);
     ///null
-    test.setInvalidReason();
     assertFalse(test.isValid());
     ///not null
     test.resetInvalidReason();
     test.set(1);
-    test.setInvalidReason();
     assertTrue(test.isValid());
     //test validValues
     test.resetInvalidReason();
     test.setValidValues(new int[] { 2, 3 });
-    test.setInvalidReason();
+    assertFalse(test.isValid());
+    //test validFloor
+    test = new EtomoNumber(EtomoNumber.DOUBLE_TYPE);
+    test.set(smallInteger);
+    test.setValidFloor(bigInteger);
     assertFalse(test.isValid());
     test.selfTestInvariants();
   }
@@ -268,10 +269,6 @@ public class ConstEtomoNumberTest extends TestCase {
     }
     test.selfTestInvariants();
   }
-  
-  //TODO
-  public final void testIsValid_String_String_AxisID() {
-  }
 
   public final void testIsValid_boolean_String_String_AxisID() {
     String errorTitle = "testIsValid_boolean_String_String_AxisID";
@@ -325,18 +322,18 @@ public class ConstEtomoNumberTest extends TestCase {
     test = new EtomoNumber();
     test.set(bigInteger);
     test.setCeiling(smallInteger);
-    assertEquals(test.getInteger(), smallInteger);
+    assertEquals(test.getInt(), smallInteger);
+    test.selfTestInvariants();
   }
   
-  //TODO
   public final void testSetNullIsValid_boolean() {
     EtomoNumber test = new EtomoNumber(EtomoNumber.LONG_TYPE);
-    //test: failed validation does not cause an exception to be thrown without a
-    //validation call
-    test.setNullIsValid(true);
+    //test: setNullIsValid sets invalidReason
+    test.setNullIsValid(false);
+    assertFalse(test.isValid());
+    test.selfTestInvariants();
   }
 
-  //TODO test function can modify currentValue
   public final void testSetFloor() {
     EtomoNumber test = new EtomoNumber(EtomoNumber.DOUBLE_TYPE);
     //test: validateFloorAndCeiling() was called
@@ -347,6 +344,17 @@ public class ConstEtomoNumberTest extends TestCase {
     }
     catch (IllegalStateException e) {
     }
+    //test: setFloor does not change a larger currentValue
+    test = new EtomoNumber();
+    test.set(3);
+    test.setFloor(-50);
+    assertEquals(test.getInt(), 3);
+    //test: setFloor does change a smaller currentValue
+    test = new EtomoNumber();
+    test.set(3);
+    test.setFloor(50);
+    assertEquals(test.getInt(), 50);
+    test.selfTestInvariants();
   }
 
   public final void testSetDescription() {
@@ -362,29 +370,29 @@ public class ConstEtomoNumberTest extends TestCase {
     test.selfTestInvariants();
   }
 
-  //TODO test that invalidReason is set when function called
   public final void testSetValidValues_intArray() {
     int validNumber = 3;
     EtomoNumber test = new EtomoNumber();
     test.setValidValues(new int[] { 1, EtomoNumber.INTEGER_NULL_VALUE,
         validNumber, 5 });
     //test nulls are ignored in valid value
-    test.setInvalidReason();
     assertTrue(test.isValid());
     //test valid value
     test.set(validNumber);
-    test.setInvalidReason();
     assertTrue(test.isValid());
     //test invalid value
     test.set(7);
-    test.setInvalidReason();
     assertFalse(test.isValid());
     test.selfTestInvariants();
   }
   
   //TODO
   public final void testSetValidFloor_int() {
-    
+    EtomoNumber test = new EtomoNumber(EtomoNumber.DOUBLE_TYPE);
+    test.set(smallInteger);
+    test.setValidFloor(bigInteger);
+    assertFalse(test.isValid());
+    test.selfTestInvariants();
   }
 
   public final void testStore_Properties() throws IOException {
@@ -951,6 +959,11 @@ public class ConstEtomoNumberTest extends TestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.11  2005/07/29 00:53:09  sueh
+ * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
+ * <p> because the current manager changes when the user changes the tab.
+ * <p> Passing the manager where its needed.
+ * <p>
  * <p> Revision 1.10  2005/07/26 23:00:21  sueh
  * <p> bug# 692
  * <p>
