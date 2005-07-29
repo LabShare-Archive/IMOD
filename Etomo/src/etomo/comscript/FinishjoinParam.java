@@ -26,6 +26,11 @@ import etomo.type.SectionTableRowData;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.13  2005/07/29 00:47:49  sueh
+* <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
+* <p> because the current manager changes when the user changes the tab.
+* <p> Passing the manager where its needed.
+* <p>
 * <p> Revision 1.12  2005/07/21 21:32:26  sueh
 * <p> bug# 532 ConstEtomoNumber.getInvalidReason() is no longer returning
 * <p> the description.
@@ -202,7 +207,7 @@ public class FinishjoinParam implements Command {
   public static int getShift(String offset) {
     EtomoNumber offsetNumber = new EtomoNumber(EtomoNumber.INTEGER_TYPE);
     if (offsetNumber.set(offset).isValid()) {
-      return offsetNumber.getInteger() * -1;
+      return offsetNumber.getInt() * -1;
     }
     throw new IllegalArgumentException(offsetNumber.getDescription() + ": " + offsetNumber.getInvalidReason());
   }
@@ -225,8 +230,8 @@ public class FinishjoinParam implements Command {
     //Add optional size
     ScriptParameter sizeInX = metaData.getSizeInXParameter();
     ScriptParameter sizeInY = metaData.getSizeInYParameter();
-    this.sizeInX = sizeInX.getInteger();
-    this.sizeInY = sizeInY.getInteger();
+    this.sizeInX = sizeInX.getInt();
+    this.sizeInY = sizeInY.getInt();
     if (sizeInX.isUseInScript() || sizeInY.isUseInScript()) {
       options.add("-s");
       //both numbers must exist
@@ -235,13 +240,13 @@ public class FinishjoinParam implements Command {
     //Add optional offset
     ScriptParameter shiftInX = metaData.getShiftInXParameter();
     ScriptParameter shiftInY = metaData.getShiftInYParameter();
-    this.shiftInX = shiftInX.getInteger();
-    this.shiftInY = shiftInY.getInteger();
+    this.shiftInX = shiftInX.getInt();
+    this.shiftInY = shiftInY.getInt();
     if (shiftInX.isUseInScript() || shiftInY.isUseInScript()) {
       options.add("-o");
       //both numbers must exist
       //offset is a negative shift
-      options.add(Integer.toString(shiftInX.getInteger() * -1) + "," + Integer.toString(shiftInY.getInteger() * -1));
+      options.add(Integer.toString(shiftInX.getInt() * -1) + "," + Integer.toString(shiftInY.getInt() * -1));
     }
     if (mode == MAX_SIZE_MODE) {
       options.add("-m");
@@ -250,7 +255,7 @@ public class FinishjoinParam implements Command {
       options.add("-t");
       options.add(metaData.getUseEveryNSlices().toString());
       ScriptParameter binning = metaData.getTrialBinningParameter();
-      this.binning = binning.getInteger();
+      this.binning = binning.getInt();
       if (binning.isUseInScript()) {
         options.add("-b");
         options.add(binning.toString());

@@ -30,6 +30,10 @@ import etomo.util.MRCHeader;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.7  2005/07/01 21:22:48  sueh
+* <p> bug# 619 Changed FieldCell.getText() and setText() to getValue() and
+* <p> setValue().
+* <p>
 * <p> Revision 1.6  2005/04/25 21:38:33  sueh
 * <p> bug# 615 Passing the axis where a command originates to the message
 * <p> functions so that the message will be popped up in the correct window.
@@ -250,7 +254,7 @@ public class SectionTableRow {
   }
   
   void configureFields() {
-    int rowNumber = data.getRowNumber().getInteger();
+    int rowNumber = data.getRowNumber().getInt();
     boolean bottomInUse = rowNumber > 1;
     boolean topInUse = rowNumber < table.getTableSize();
     boolean finalInuse = curTab == JoinDialog.JOIN_TAB;
@@ -348,7 +352,7 @@ public class SectionTableRow {
     //Set align display only fields
     if (curTab == JoinDialog.ALIGN_TAB) {
       int start;
-      int chunkSize = data.getChunkSize(table.getTableSize()).getInteger();
+      int chunkSize = data.getChunkSize(table.getTableSize()).getInt();
       if (chunkSize > 0) {
         start = prevSlice + 1;
         prevSlice += chunkSize;
@@ -371,7 +375,7 @@ public class SectionTableRow {
       }
       else {
         ConstEtomoNumber rowNumber = data.getRowNumber();
-        currentChunk.setText(Integer.toString(rowNumber.getInteger() + 1));
+        currentChunk.setText(Integer.toString(rowNumber.getInt() + 1));
         int start;
         int sampleTopNumberSlices = data.getSampleTopNumberSlices();
         if (sampleTopNumberSlices > 0) {
@@ -627,11 +631,11 @@ public class SectionTableRow {
   }
   
   int getXMax() {
-    return data.getXMax().getInteger();
+    return data.getXMax().getInt();
   }
   
   int getYMax() {
-    return data.getYMax().getInteger();
+    return data.getYMax().getInt();
   }
   
   int getZMax() {

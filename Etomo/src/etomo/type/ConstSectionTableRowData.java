@@ -19,6 +19,10 @@ import etomo.storage.Storable;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.9  2005/06/16 20:03:06  sueh
+* <p> bug# 692 Fixed getChunkSize, which was setting the type instead of the
+* <p> value.
+* <p>
 * <p> Revision 1.8  2005/05/10 02:34:51  sueh
 * <p> bug#658 Removed ScriptParameter.setUseScreenDisplayValue()
 * <p> because it is confusing to turn ConstEtomoNumber.displayValue off and
@@ -336,10 +340,10 @@ public abstract class ConstSectionTableRowData implements Storable {
   }
 
   public int getRowIndex() {
-    if (rowNumber.getInteger() < 0) {
+    if (rowNumber.getInt() < 0) {
       return -1;
     }
-    return rowNumber.getInteger() - 1;
+    return rowNumber.getInt() - 1;
   }
   
   public File getSection() {
@@ -375,8 +379,8 @@ public abstract class ConstSectionTableRowData implements Storable {
   }
   
   public int getSampleBottomNumberSlices() {
-    int sampleBottomEnd = this.sampleBottomEnd.getInteger();
-    int sampleBottomStart = this.sampleBottomStart.getInteger();
+    int sampleBottomEnd = this.sampleBottomEnd.getInt();
+    int sampleBottomStart = this.sampleBottomStart.getInt();
     if (sampleBottomEnd >= sampleBottomStart) {
       return sampleBottomEnd - sampleBottomStart + 1;
     }
@@ -384,8 +388,8 @@ public abstract class ConstSectionTableRowData implements Storable {
   }
   
   public int getSampleTopNumberSlices() {
-    int sampleTopEnd = this.sampleTopEnd.getInteger();
-    int sampleTopStart = this.sampleTopStart.getInteger();
+    int sampleTopEnd = this.sampleTopEnd.getInt();
+    int sampleTopStart = this.sampleTopStart.getInt();
     if (sampleTopEnd >= sampleTopStart) {
       return sampleTopEnd - sampleTopStart + 1;
     }

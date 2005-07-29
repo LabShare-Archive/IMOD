@@ -206,7 +206,7 @@ public class BlendmontParam implements CommandParam {
   }
 
   public boolean isLinearInterpolation() {
-    return interpolationOrder.getInteger() == LINEAR_INTERPOLATION_ORDER;
+    return interpolationOrder.getInt() == LINEAR_INTERPOLATION_ORDER;
   }
 
   public void setLinearInterpolation(boolean linearInterpolation) {
@@ -226,6 +226,11 @@ public final void setBinByFactor(int binByFactor) {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.11  2005/07/29 00:42:53  sueh
+ * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
+ * <p> because the current manager changes when the user changes the tab.
+ * <p> Passing the manager where its needed.
+ * <p>
  * <p> Revision 1.10  2005/07/19 20:19:18  sueh
  * <p> bug# 688 Correct file name for the different modes.
  * <p>

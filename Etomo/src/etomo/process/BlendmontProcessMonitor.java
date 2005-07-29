@@ -98,11 +98,16 @@ public class BlendmontProcessMonitor extends LogFileProcessMonitor {
       e.printStackTrace();
       throw new IOException(e.getMessage());
     }
-    nSections = montagesize.getZ().getInteger();
+    nSections = montagesize.getZ().getInt();
   }
 }
 /**
 * <p> $Log$
+* <p> Revision 1.10  2005/07/29 00:51:22  sueh
+* <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
+* <p> because the current manager changes when the user changes the tab.
+* <p> Passing the manager where its needed.
+* <p>
 * <p> Revision 1.9  2005/07/14 21:59:41  sueh
 * <p> bug# 626 Handling WHOLE_TOMOGRAM_SAMPLE_MODE.
 * <p>

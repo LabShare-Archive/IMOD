@@ -21,6 +21,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.28  2005/07/26 23:00:07  sueh
+ * <p> bug# 692
+ * <p>
  * <p> Revision 1.27  2005/07/21 22:00:51  sueh
  * <p> bug# 532 Added validFloor.
  * <p>
@@ -774,7 +777,7 @@ public abstract class ConstEtomoNumber implements Storable {
     return toString(getValue());
   }
 
-  public int getInteger() {
+  public int getInt() {
     validateReturnTypeInteger();
     return getValue().intValue();
   }

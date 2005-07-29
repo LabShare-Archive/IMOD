@@ -78,7 +78,7 @@ class SpinnerCell extends InputCell {
   }
 
   final void setValue(String value) {
-    setValue(new EtomoNumber(EtomoNumber.INTEGER_TYPE).set(value).getInteger());
+    setValue(new EtomoNumber(EtomoNumber.INTEGER_TYPE).set(value).getInt());
   }
 
   final int getValue() {
@@ -107,6 +107,10 @@ class SpinnerCell extends InputCell {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.3  2005/07/19 22:35:48  sueh
+ * <p> bug# 532 changing the look of inUse == false to greyed out text.
+ * <p> Changing the look of error == true to red background.
+ * <p>
  * <p> Revision 1.2  2005/07/01 23:06:30  sueh
  * <p> bug# 619 added addChangeListener
  * <p>

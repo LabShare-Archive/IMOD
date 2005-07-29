@@ -21,6 +21,11 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.7  2005/05/10 02:24:23  sueh
+* <p> bug# 658 Added ScriptParameter.useDefaultAsDisplayValue() to set
+* <p> displayValue equal to defaultValue.  When default is used, these are
+* <p> usually the same.
+* <p>
 * <p> Revision 1.6  2005/01/25 21:58:38  sueh
 * <p> Converting EtomoNumbers parameters to ScriptParameters.
 * <p>
@@ -406,7 +411,7 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
   }
   
   public int getCoordinate(ConstEtomoNumber coordinate, JoinState state) {
-    return coordinate.getInteger() * state.getTrialBinning().getInteger();
+    return coordinate.getInt() * state.getTrialBinning().getInt();
   }
   
   public boolean isFullLinearTransformation() {

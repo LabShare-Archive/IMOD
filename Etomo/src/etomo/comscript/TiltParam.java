@@ -11,6 +11,11 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.14  2005/07/29 00:50:04  sueh
+ * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
+ * <p> because the current manager changes when the user changes the tab.
+ * <p> Passing the manager where its needed.
+ * <p>
  * <p> Revision 3.13  2005/07/20 17:43:18  sueh
  * <p> bug# 705 Stop printing the stack trace for IOException bugs coming from
  * <p> MRCHeader, because its filling up the error log with exceptions that are
@@ -594,10 +599,10 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
       if (montagesize.isFileExists()) {
         Goodframe goodframe = new Goodframe(manager.getPropertyUserDir(),
             axisID);
-        goodframe.run(montagesize.getX().getInteger(), montagesize.getY()
-            .getInteger());
-        fullImageX = goodframe.getFirstOutput().getInteger() / binning;
-        fullImageY = goodframe.getSecondOutput().getInteger() / binning;
+        goodframe.run(montagesize.getX().getInt(), montagesize.getY()
+            .getInt());
+        fullImageX = goodframe.getFirstOutput().getInt() / binning;
+        fullImageY = goodframe.getSecondOutput().getInt() / binning;
       }
     }
     catch (InvalidParameterException e) {

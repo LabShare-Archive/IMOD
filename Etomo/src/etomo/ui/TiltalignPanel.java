@@ -266,7 +266,7 @@ public class TiltalignPanel {
    */
   public void setParameters(ConstTiltalignParam params) {
     //  General panel parameters
-    if (params.getSurfacesToAnalyze().getInteger() == 2) {
+    if (params.getSurfacesToAnalyze().getInt() == 2) {
       rbDualFiducialSurfaces.setSelected(true);
     }
     else {
@@ -304,7 +304,7 @@ public class TiltalignPanel {
     cbFixXYZCoordinates.setSelected(params.getFixXYZCoordinates().is());
 
     //  Tilt angle solution parameters
-    int solutionType = params.getTiltOption().getInteger();
+    int solutionType = params.getTiltOption().getInt();
     if (solutionType == 0) {
       rbTiltAngleFixed.setSelected(true);
     }
@@ -322,7 +322,7 @@ public class TiltalignPanel {
     //  below
     ltfMagnificationReferenceView.setText(params.getMagReferenceView()
         .toString());
-    solutionType = params.getMagOption().getInteger();
+    solutionType = params.getMagOption().getInt();
     if (solutionType == 0) {
       rbMagnificationFixed.setSelected(true);
     }
@@ -337,7 +337,7 @@ public class TiltalignPanel {
     ltfMagnificationNonDefaultGroups.setText(params.getMagNondefaultGroup());
 
     //  Rotation solution parameters
-    solutionType = params.getRotOption().getInteger();
+    solutionType = params.getRotOption().getInt();
     if (solutionType == 0) {
       rbRotationNone.setSelected(true);
     }
@@ -372,8 +372,8 @@ public class TiltalignPanel {
      }
      */
     //  Global distortion solution type
-    int xStretchSolutionType = params.getXStretchOption().getInteger();
-    int skewSolutionType = params.getSkewOption().getInteger();
+    int xStretchSolutionType = params.getXStretchOption().getInt();
+    int skewSolutionType = params.getSkewOption().getInt();
     if (xStretchSolutionType == 0 && skewSolutionType == 0) {
       rbDistortionDisabled.setSelected(true);
     }
@@ -395,7 +395,7 @@ public class TiltalignPanel {
     // Local rotation solution parameters
     // NOTE this is brittle since we are mapping a numeric value to a boolean
     // at David's request
-    solutionType = params.getLocalRotOption().getInteger();
+    solutionType = params.getLocalRotOption().getInt();
     if (solutionType == 0) {
       cbLocalRotation.setSelected(false);
     }
@@ -408,7 +408,7 @@ public class TiltalignPanel {
         .getLocalRotNondefaultGroup());
 
     // Local tilt angle solution parameters
-    solutionType = params.getLocalTiltOption().getInteger();
+    solutionType = params.getLocalTiltOption().getInt();
     if (solutionType == 0) {
       cbLocalTiltAngle.setSelected(false);
     }
@@ -421,7 +421,7 @@ public class TiltalignPanel {
         .getLocalTiltNondefaultGroup());
 
     //  Local magnification solution parameters
-    solutionType = params.getLocalMagOption().getInteger();
+    solutionType = params.getLocalMagOption().getInt();
     if (solutionType == 0) {
       cbLocalMagnification.setSelected(false);
     }
@@ -434,8 +434,8 @@ public class TiltalignPanel {
         .getLocalMagNondefaultGroup());
 
     //  Local distortion solution type
-    xStretchSolutionType = params.getLocalXStretchOption().getInteger();
-    skewSolutionType = params.getLocalSkewOption().getInteger();
+    xStretchSolutionType = params.getLocalXStretchOption().getInt();
+    skewSolutionType = params.getLocalSkewOption().getInt();
     if (xStretchSolutionType == 0 && skewSolutionType == 0) {
       rbLocalDistortionDisabled.setSelected(true);
     }
@@ -1525,6 +1525,11 @@ private void setToolTipText() {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.27  2005/07/06 23:50:30  sueh
+ * <p> bug# 619 Removed DoubleSpacedPanel and FormattedPanel.  Placed
+ * <p> their functionality in SpacedPanel.  Simplified the construction of
+ * <p> SpacedPanel.
+ * <p>
  * <p> Revision 3.26  2005/06/14 23:07:19  sueh
  * <p> bug# 687 Fixed setParameters(ConstTiltalignParam), which was setting
  * <p> RotOptions with MagOptions.

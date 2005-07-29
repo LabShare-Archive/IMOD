@@ -109,6 +109,11 @@ import etomo.util.Utilities;
  * 
  *
  * <p> $Log$
+ * <p> Revision 3.165  2005/07/29 00:31:20  sueh
+ * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
+ * <p> because the current manager changes when the user changes the tab.
+ * <p> Passing the manager where its needed.
+ * <p>
  * <p> Revision 3.164  2005/07/26 16:57:09  sueh
  * <p> bug# 701 Pass ProcessEndState to the progress bar when stopping it.
  * <p>
@@ -2181,7 +2186,7 @@ public class ApplicationManager extends BaseManager {
         newFileNumber.set(xrayStackArchives[i].substring(xrayStackArchives[i]
             .lastIndexOf('.') + 1));        
         if (newFileNumber.isValid() && !newFileNumber.isNull()) {
-          fileNumber = Math.max(fileNumber, newFileNumber.getInteger());
+          fileNumber = Math.max(fileNumber, newFileNumber.getInt());
         }
       }
     }

@@ -25,6 +25,9 @@ import etomo.type.ProcessEndState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.15  2005/07/26 23:07:11  sueh
+ * <p> bug# 701 When stopping the progress bar, pass the process end state.
+ * <p>
  * <p> Revision 3.14  2005/07/21 22:18:35  sueh
  * <p> bug# 532 removed "kill / pause" label from kill process button.  Pause
  * <p> button with be managed by separately by AxisProcessPanel, which
@@ -246,7 +249,7 @@ public abstract class AxisProcessPanel implements ContextMenu {
    */
   public int getWidth() {
     if (!lastWidth.isNull()) {
-      int width = lastWidth.getInteger();
+      int width = lastWidth.getInt();
       lastWidth.reset();
       return width;
     }

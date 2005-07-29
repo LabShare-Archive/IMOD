@@ -35,6 +35,11 @@ import etomo.type.JoinState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.15  2005/07/29 00:54:10  sueh
+ * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
+ * <p> because the current manager changes when the user changes the tab.
+ * <p> Passing the manager where its needed.
+ * <p>
  * <p> Revision 1.14  2005/07/06 23:36:29  sueh
  * <p> bug# 619 Removed DoubleSpacedPanel and FormattedPanel.  Placed
  * <p> their functionality in SpacedPanel.  Simplified the construction of
@@ -772,13 +777,13 @@ public class JoinDialog implements ContextMenu {
     EtomoNumber spinnerValue = new EtomoNumber(EtomoNumber.INTEGER_TYPE);
     spinnerValue.set(spinDensityRefSection.getValue());
     spinnerValue.setDisplayValue(1);
-    SpinnerModel spinnerModel = new SpinnerNumberModel(spinnerValue.getInteger(),
+    SpinnerModel spinnerModel = new SpinnerNumberModel(spinnerValue.getInt(),
         1, numSections < 1 ? 1 : numSections, 1);
     spinDensityRefSection.setModel(spinnerModel);
     //align
     spinnerValue.set((Integer) spinAlignmentRefSection.getValue());
     spinnerModel = new SpinnerNumberModel(spinnerValue
-        .getInteger(), 1,
+        .getInt(), 1,
         numSections < 1 ? 1 : numSections, 1);
     spinAlignmentRefSection.setModel(spinnerModel);
     //every n sections
@@ -791,17 +796,17 @@ public class JoinDialog implements ContextMenu {
       spinnerValue.set((Integer) spinUseEveryNSlices.getValue());
     }
     spinnerValue.setDisplayValue(zMax < 1 ? 1 : zMax < 10 ? zMax : 10);
-    spinnerModel = new SpinnerNumberModel(spinnerValue.getInteger(), 1,
+    spinnerModel = new SpinnerNumberModel(spinnerValue.getInt(), 1,
         zMax < 1 ? 1 : zMax, 1);
     spinUseEveryNSlices.setModel(spinnerModel);
     //update size in X and Y defaults
     ConstJoinMetaData metaData = joinManager.getConstMetaData();
     ConstEtomoNumber size = metaData.getSizeInX();
     size.setDisplayValue(pnlSectionTable.getXMax());
-    ltfSizeInX.setText(size.getInteger());
+    ltfSizeInX.setText(size.getInt());
     size = metaData.getSizeInY();
     size.setDisplayValue(pnlSectionTable.getYMax());
-    ltfSizeInY.setText(size.getInteger());
+    ltfSizeInY.setText(size.getInt());
   }
   
   public ConstEtomoNumber getSizeInX() {
@@ -873,7 +878,7 @@ public class JoinDialog implements ContextMenu {
   
   public void setMetaData(ConstJoinMetaData metaData) {
     ltfRootName.setText(metaData.getRootName());
-    spinDensityRefSection.setValue(metaData.getDensityRefSection().getInteger());
+    spinDensityRefSection.setValue(metaData.getDensityRefSection().getInt());
     ltfSigmaLowFrequency.setText(metaData.getSigmaLowFrequency().toString());
     ltfCutoffHighFrequency.setText(metaData.getCutoffHighFrequency().toString());
     ltfSigmaHighFrequency.setText(metaData.getSigmaHighFrequency().toString());

@@ -25,6 +25,10 @@ import etomo.ui.Autodoc;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.10  2005/05/17 19:13:48  sueh
+ * <p> bug# 658 Passing a HashMap of required values from the autodoc to
+ * <p> ScriptParameter constructors.
+ * <p>
  * <p> Revision 3.9  2005/05/14 00:59:34  sueh
  * <p> bug# 658 When converting to PIP, set roundsOfTracking to 2 (to match
  * <p> copytomocoms).
@@ -324,7 +328,7 @@ public class BeadtrackParam extends OldBeadtrackParam
   }
   
   public int getMagnificationGroupSize() {
-    return magDefaultGrouping.getInteger();
+    return magDefaultGrouping.getInt();
   }
   
   public ConstEtomoNumber getMinViewsForTiltalign() {
