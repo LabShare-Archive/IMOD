@@ -14,6 +14,9 @@ package etomo.comscript;
 * @version $Revision$
 *
 * <p> $Log$
+* <p> Revision 3.3  2004/08/31 16:46:25  sueh
+* <p> bug# 508 removing JUnit tests that require an X server
+* <p>
 * <p> Revision 3.2  2004/08/20 21:38:42  sueh
 * <p> bug# 508 Added CombineComscriptStateTest and log.
 * <p> </p>
@@ -26,7 +29,6 @@ public class ComScriptTests {
 
   public static Test suite() {
     TestSuite suite = new TestSuite("Test for etomo.comscript");
-    suite.addTestSuite(SetupCombineTest.class);
     suite.addTestSuite(StringListTest.class);
     suite.addTestSuite(NewstParamTest.class);
     suite.addTestSuite(FortranInputStringTest.class);
