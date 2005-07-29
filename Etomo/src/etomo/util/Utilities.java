@@ -12,6 +12,10 @@
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.23  2005/06/21 20:34:03  sueh
+ * <p> $bug# 522 Changed getFile(String) to handle absolute filenames from
+ * <p> $windows which contain the drive letter.
+ * <p> $
  * <p> $Revision 3.22  2005/06/21 00:56:52  sueh
  * <p> $bug# 522 Added isWindowsOS().  Added getFile(AxisID, String extension),
  * <p> $Added getFile(String filename).
@@ -145,6 +149,7 @@ import java.nio.channels.FileChannel;
 import java.text.DecimalFormat;
 import java.util.Date;
 
+import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.type.AxisID;
 import etomo.ui.UIHarness;
@@ -189,10 +194,8 @@ public class Utilities {
    * @param axisID
    * @return true if the file exist
    */
-  public static boolean fileExists(String extension, AxisID axisID) {
-    EtomoDirector director = EtomoDirector.getInstance();
-    String workingDirectory = director.getCurrentPropertyUserDir();
-    File file = new File(workingDirectory, director.getCurrentName()
+  public static boolean fileExists(BaseManager manager, String extension, AxisID axisID) {
+    File file = new File(manager.getPropertyUserDir(), manager.getBaseMetaData().getName()
         + axisID.getExtension() + extension);
     if (file.exists()) {
       return true;
@@ -209,11 +212,10 @@ public class Utilities {
    * @param fileType A string used in the error dialog
    * @return
    */
-  public static File getFile(boolean mustExist, AxisID axisID,
+  public static File getFile(BaseManager manager, boolean mustExist, AxisID axisID,
       String extension, String fileDescription) {
-    EtomoDirector director = EtomoDirector.getInstance();
-    File file = new File(director.getCurrentPropertyUserDir(), director
-        .getCurrentName()
+    File file = new File(manager.getPropertyUserDir(), manager
+        .getBaseMetaData().getName()
         + axisID.getExtension() + extension);
     if (!file.exists() && mustExist) {
       UIHarness.INSTANCE.openMessageDialog("The " + fileDescription + " file: "
@@ -224,18 +226,18 @@ public class Utilities {
     return file;
   }
   
-  public static File getFile(AxisID axisID, String extension) {
-    EtomoDirector director = EtomoDirector.getInstance();
-    File file = new File(director.getCurrentPropertyUserDir(), director
-        .getCurrentName()
+  public static File getFile(BaseManager manager, AxisID axisID,
+      String extension) {
+    File file = new File(manager.getPropertyUserDir(), manager
+        .getBaseMetaData().getName()
         + axisID.getExtension() + extension);
     return file;
   }
-  
-  public static File getFile(String filename) {
+
+  public static File getFile(String propertyUserDir, String filename) {
     filename = filename.trim();
     if (filename == null || filename.matches("\\s*")) {
-      return new File(EtomoDirector.getInstance().getCurrentPropertyUserDir());
+      return new File(propertyUserDir);
     }
     if (filename.charAt(0) == File.separatorChar) {
       return new File(filename);
@@ -247,11 +249,10 @@ public class Utilities {
         return new File(filename);
       }
     }
-    return new File(EtomoDirector.getInstance().getCurrentPropertyUserDir(),
-        filename);
+    return new File(propertyUserDir, filename);
   }
 
-	/**
+  /**
    * Rename a file working around the Windows bug
    * This need serious work arounds because of the random failure bugs on
    * windows.  See sun java bugs: 4017593, 4017593, 4042592
@@ -306,23 +307,23 @@ public class Utilities {
     }
   }
   
-  public static File mostRecentFile(String file1Name, String file2Name, String file3Name, String file4Name) {
-    String workingDir = EtomoDirector.getInstance().getCurrentPropertyUserDir();
+  public static File mostRecentFile(String propertyUserDir, String file1Name,
+      String file2Name, String file3Name, String file4Name) {
     File file1 = null;
     File file2 = null;
     File file3 = null;
     File file4 = null;
     if (file1Name != null) {
-      file1 = new File(workingDir, file1Name);
+      file1 = new File(propertyUserDir, file1Name);
     }
     if (file2Name != null) {
-      file2 = new File(workingDir, file2Name);
+      file2 = new File(propertyUserDir, file2Name);
     }
     if (file3Name != null) {
-      file3 = new File(workingDir, file3Name);
+      file3 = new File(propertyUserDir, file3Name);
     }
     if (file4Name != null) {
-      file4 = new File(workingDir, file4Name);
+      file4 = new File(propertyUserDir, file4Name);
     }
     long file1Time = 0;
     long file2Time = 0;
@@ -423,15 +424,16 @@ public class Utilities {
    * @param varName
    * @return String
    */
-  static public String getEnvironmentVariable(String varName, AxisID axisID) {
+  static public String getEnvironmentVariable(String propertyUserDir,
+      String varName, AxisID axisID) {
     //  There is not a real good way to access the system environment variables
     //  since the primary method was deprecated
     SystemProgram readEnvVar;
     String osName = System.getProperty("os.name");
 
     if (osName.startsWith("Windows")) {
-      readEnvVar = new SystemProgram("cmd.exe /C echo %" + varName + "%",
-          axisID);
+      readEnvVar = new SystemProgram(propertyUserDir, "cmd.exe /C echo %" + varName
+          + "%", axisID);
       try {
         readEnvVar.run();
       }
@@ -461,7 +463,7 @@ public class Utilities {
     //  Non windows environment
     else {
 
-      readEnvVar = new SystemProgram("env", axisID);
+      readEnvVar = new SystemProgram(propertyUserDir, "env", axisID);
       try {
         readEnvVar.run();
       }

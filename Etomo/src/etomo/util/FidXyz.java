@@ -5,8 +5,6 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 
-import etomo.EtomoDirector;
-
 /**
  * <p>Description: An interface to the fid.xyz file.</p>
  *
@@ -21,6 +19,10 @@ import etomo.EtomoDirector;
 * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.6  2005/06/22 23:37:15  sueh
+ * <p> $bug# 694 Changed FidXyz to work with old and new fid.xyz formats.
+ * <p> $Added setPixelSize().
+ * <p> $
  * <p> $Revision 1.5  2005/06/17 20:03:27  sueh
  * <p> $bug# 685 Added timestamps to read().
  * <p> $
@@ -60,8 +62,10 @@ public class FidXyz {
   private boolean exists = false;
   private boolean empty = false;
   private double pixelSize = Double.NaN;
+  private final String propertyUserDir;
 
-  public FidXyz(String name) {
+  public FidXyz(String propertyUserDir, String name) {
+    this.propertyUserDir = propertyUserDir;
     filename = new String(name);
   }
 
@@ -71,7 +75,7 @@ public class FidXyz {
     }
     Utilities.timestamp("read", filename, 0);
     
-    File fidXyzFile = new File(EtomoDirector.getInstance().getCurrentPropertyUserDir(), filename);
+    File fidXyzFile = new File(propertyUserDir, filename);
     if (!fidXyzFile.exists() || fidXyzFile.isDirectory()) {
       Utilities.timestamp("read", filename, -1);
       return;

@@ -9,6 +9,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import etomo.BaseManager;
 import etomo.comscript.ComscriptState;
 import etomo.type.AxisID;
 import etomo.util.Utilities;
@@ -30,6 +31,10 @@ import etomo.util.Utilities;
  * @version $$Revision$$
  * 
  * <p> $Log$
+ * <p> Revision 1.15  2005/07/26 17:33:24  sueh
+ * <p> bug# 701 Passing the monitor to ComScriptProcess so that
+ * <p> ProcessEndState can be recorded
+ * <p>
  * <p> Revision 1.14  2005/04/25 20:42:44  sueh
  * <p> *** empty log message ***
  * <p>
@@ -137,11 +142,11 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
    * @param axisID
    * @param watchedFileName
    */
-  public BackgroundComScriptProcess(String comScript,
+  public BackgroundComScriptProcess(BaseManager manager, String comScript,
     BaseProcessManager processManager, AxisID axisID, String watchedFileName,
     BackgroundProcessMonitor backgroundProcessMonitor, 
     ComscriptState comscriptState) {
-    super(comScript, processManager, axisID, watchedFileName, backgroundProcessMonitor);
+    super(manager, comScript, processManager, axisID, watchedFileName, backgroundProcessMonitor);
     this.backgroundProcessMonitor = backgroundProcessMonitor;
     this.comscriptState = comscriptState;
   }
@@ -168,11 +173,13 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
       groupPid = parsePIDString(pidFile);
     }
     if (groupPid == null) {
-      lsof = new SystemProgram("/usr/sbin/lsof -w -S -l -M -L", axisID);     
+      lsof = new SystemProgram(manager.getPropertyUserDir(),
+          "/usr/sbin/lsof -w -S -l -M -L", axisID);     
     }
     else {
       lsof =
-          new SystemProgram("/usr/sbin/lsof -w -S -l -M -L -g " + groupPid, axisID);
+          new SystemProgram(manager.getPropertyUserDir(),
+          "/usr/sbin/lsof -w -S -l -M -L -g " + groupPid, axisID);
     }
     lsof.run();
     String[] stdout = lsof.getStdOutput();
@@ -251,7 +258,7 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
     // of commands and then report appropriately.  The exception to this is the
     // com scripts which require the -e flag.  RJG: 2003-11-06 
     String[] command = { "tcsh", "-f", runCshFile.getAbsolutePath() };
-    csh = new BackgroundSystemProgram(command, backgroundProcessMonitor);
+    csh = new BackgroundSystemProgram(manager, command, backgroundProcessMonitor);
     csh.setWorkingDirectory(workingDirectory);
     csh.setDebug(debug);
     

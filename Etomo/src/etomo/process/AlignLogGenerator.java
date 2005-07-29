@@ -1,7 +1,7 @@
 /**
  * <p>Description: </p>
  * 
- * <p>Copyright: Copyright (c) 2002</p>
+ * <p>Copyright: Copyright (c) 2002 - 2005</p>
  * 
  * <p>Organization: Boulder Laboratory for 3D Fine Structure,
  * University of Colorado</p>
@@ -10,7 +10,7 @@
  * 
  * @version $Revision$
  * 
- * <p> $Log: 
+ * <p> $Log$ 
  * </p>
  */
 
@@ -22,15 +22,17 @@ import java.io.FileWriter;
 import java.io.IOException;
 
 import etomo.ApplicationManager;
-import etomo.EtomoDirector;
+import etomo.BaseManager;
 import etomo.type.AxisID;
 
 public class AlignLogGenerator {
 
   AxisID axisID;
   String alignLogCommand;
+  private final BaseManager manager;
 
-  public AlignLogGenerator(AxisID id) {
+  public AlignLogGenerator(BaseManager manager, AxisID id) {
+    this.manager = manager;
     axisID = id;
     // Do not use the -e flag for tcsh since David's scripts handle the failure 
     // of commands and then report appropriately.  The exception to this is the
@@ -50,8 +52,8 @@ public class AlignLogGenerator {
   }
 
   private void runArgument(String argument, String logFile) throws IOException {
-    SystemProgram alignlog = new SystemProgram(alignLogCommand + argument + " "
-        + axisID.getExtension(), axisID);
+    SystemProgram alignlog = new SystemProgram(manager.getPropertyUserDir(),
+        alignLogCommand + argument + " " + axisID.getExtension(), axisID);
 
     alignlog.run();
 
@@ -59,7 +61,7 @@ public class AlignLogGenerator {
     String[] stdError = alignlog.getStdError();
 
     BufferedWriter fileBuffer;
-    fileBuffer = new BufferedWriter(new FileWriter(EtomoDirector.getInstance().getCurrentPropertyUserDir()
+    fileBuffer = new BufferedWriter(new FileWriter(manager.getPropertyUserDir()
         + File.separator + logFile + axisID.getExtension() + ".log"));
 
     if (stdOutput == null) {

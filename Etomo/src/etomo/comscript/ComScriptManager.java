@@ -32,6 +32,12 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.34  2005/06/17 20:03:06  sueh
+ * <p> bug# 685 Added timestamp functions for ComScript and File types.
+ * <p> Added code to the main timestamp function to strip the path from a file
+ * <p> name.  These changes reduces the amount of timestamp related code
+ * <p> being executed when debug is off.
+ * <p>
  * <p> Revision 3.33  2005/06/17 00:32:14  sueh
  * <p> bug# 685 Added timestamp to deleteCommand(), initialize(),
  * <p> loadComScript(), updateComScript(), and useTemplate().
@@ -554,7 +560,7 @@ public class ComScriptManager {
     }
 
     // Initialize a BlendmontParam object from the com script command object
-    BlendmontParam preblendParam = new BlendmontParam(appManager.getMetaData()
+    BlendmontParam preblendParam = new BlendmontParam(appManager, appManager.getMetaData()
         .getDatasetName(), axisID, BlendmontParam.PREBLEND_MODE);
     initialize(preblendParam, scriptPreblend, BlendmontParam.COMMAND_NAME, axisID);
     return preblendParam;
@@ -571,7 +577,7 @@ public class ComScriptManager {
     }
 
     // Initialize a BlendmontParam object from the com script command object
-    BlendmontParam blendParam = new BlendmontParam(appManager.getMetaData()
+    BlendmontParam blendParam = new BlendmontParam(appManager, appManager.getMetaData()
         .getDatasetName(), axisID, BlendmontParam.BLEND_MODE);
     initialize(blendParam, scriptBlend, BlendmontParam.COMMAND_NAME, axisID);
     return blendParam;
@@ -896,7 +902,7 @@ public class ComScriptManager {
     }
 
     // Initialize a TiltParam object from the com script command object
-    TiltParam tiltParam = new TiltParam(appManager.getMetaData().getDatasetName(), axisID);
+    TiltParam tiltParam = new TiltParam(appManager, appManager.getMetaData().getDatasetName(), axisID);
     initialize(tiltParam, tilt, "tilt", axisID);
     return tiltParam;
   }
@@ -1104,7 +1110,7 @@ public class ComScriptManager {
     }
 
     // Initialize a TiltxcorrParam object from the com script command object
-    BlendmontParam blendmontParam = new BlendmontParam(appManager.getMetaData()
+    BlendmontParam blendmontParam = new BlendmontParam(appManager, appManager.getMetaData()
         .getDatasetName(), axisID);
     initialize(blendmontParam, xcorr, BlendmontParam.COMMAND_NAME, axisID);
     return blendmontParam;

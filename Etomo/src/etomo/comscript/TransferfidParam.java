@@ -11,6 +11,12 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.8  2005/07/18 17:53:10  sueh
+ * <p> bug# 692 Removed selftest function in axis id because there are too many
+ * <p> situations where it is valid for it to fail.  Remove
+ * <p> AxisID.getStorageExtension() because it is the same as getExtension
+ * <p> without the call to the selftest function.
+ * <p>
  * <p> Revision 3.7  2005/06/03 20:12:48  sueh
  * <p> bug# 671 the groupString for the first axis should have an "a" on the end,
  * <p> even when axis type is single.  To avoid triggering a self test exception,
@@ -111,7 +117,6 @@ package etomo.comscript;
 import java.util.Properties;
 
 import etomo.ApplicationManager;
-import etomo.EtomoDirector;
 import etomo.storage.Storable;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
@@ -143,8 +148,10 @@ public class TransferfidParam implements Storable {
   private ConstMetaData metaData = null;
   boolean createLog = false;
   private String groupString;
+  private final ApplicationManager manager;
 
-  public TransferfidParam(AxisID axisID) {
+  public TransferfidParam(ApplicationManager manager, AxisID axisID) {
+    this.manager = manager;
     //MetaData always uses FIRST and SECOND to store, so create groupString with
     //FIRST or SECOND
     if (axisID == AxisID.ONLY) {
@@ -187,16 +194,14 @@ public class TransferfidParam implements Storable {
   
   private void setCenterViewAResetValue() {
     if (metaData == null) {
-      metaData = EtomoDirector.getInstance().getCurrentReconManager()
-          .getConstMetaData();
+      metaData = manager.getConstMetaData();
     }
     setCenterViewResetValue(centerViewA, metaData.getTiltAngleSpecA());
   }
 
   private void setCenterViewBResetValue() {
     if (metaData == null) {
-      metaData = EtomoDirector.getInstance().getCurrentReconManager()
-          .getConstMetaData();
+      metaData = manager.getConstMetaData();
     }
     setCenterViewResetValue(centerViewB, metaData.getTiltAngleSpecB());
   }

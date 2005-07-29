@@ -26,6 +26,11 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.11  2005/05/10 03:26:54  sueh
+ * <p> bug# 658 Using BeadtrackParam in place of ConstBeadtrackParam in
+ * <p> setBeadtrackParams().  Throwing InvalidEtomoNumberException in
+ * <p> getBeadtrackParams().
+ * <p>
  * <p> Revision 3.10  2005/04/21 20:33:55  sueh
  * <p> bug# 615 Pass axisID to packMainWindow so it can pack only the frame
  * <p> that requires it.
@@ -197,7 +202,7 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu {
     pnlFiducialModel.setBorder(border.getBorder());
 
     if (applicationManager.isDualAxis()) {
-      pnlTransferfid = new TransferfidPanel(axisID, true);
+      pnlTransferfid = new TransferfidPanel(applicationManager, axisID, true);
       pnlFiducialModel.add(pnlTransferfid.getContainer());
       pnlFiducialModel.add(Box.createRigidArea(FixedDim.x0_y5));
     }

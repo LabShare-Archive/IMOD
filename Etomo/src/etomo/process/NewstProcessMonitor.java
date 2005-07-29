@@ -11,6 +11,10 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.9  2005/06/20 16:47:14  sueh
+ * <p> bug# 522 Made MRCHeader an n'ton.  Getting instance instead of
+ * <p> constructing in calcFileSize().
+ * <p>
  * <p> Revision 3.8  2005/04/25 20:48:32  sueh
  * <p> bug# 615 Passing the axis where a command originates to the message
  * <p> functions so that the message will be popped up in the correct window.
@@ -94,7 +98,8 @@ public class NewstProcessMonitor extends FileSizeProcessMonitor {
     // Get the header from the raw stack to calculate the aligned stack stize
     String rawStackFilename = applicationManager.getPropertyUserDir() + "/"
       + newstParam.getInputFile();
-    MRCHeader rawStack = MRCHeader.getInstance(rawStackFilename, axisID);
+    MRCHeader rawStack = MRCHeader.getInstance(applicationManager
+        .getPropertyUserDir(), rawStackFilename, axisID);
     rawStack.read();
     nX = rawStack.getNRows();
     nY = rawStack.getNColumns();

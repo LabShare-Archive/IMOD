@@ -11,6 +11,11 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.13  2005/07/20 17:43:18  sueh
+ * <p> bug# 705 Stop printing the stack trace for IOException bugs coming from
+ * <p> MRCHeader, because its filling up the error log with exceptions that are
+ * <p> related to real problems.
+ * <p>
  * <p> Revision 3.12  2005/06/21 01:02:04  sueh
  * <p> bug# 522 Simplified Montagesize.Montagesize().  The director and
  * <p> dataset can be found when the File for the stack is being constructed.
@@ -115,7 +120,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
-import etomo.EtomoDirector;
+import etomo.ApplicationManager;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoNumber;
@@ -128,8 +133,8 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
   public static final String rcsid = 
   "$Id$";
 
-  public TiltParam(String datasetName, AxisID axisID) {
-    super(datasetName, axisID);
+  public TiltParam(ApplicationManager manager, String datasetName, AxisID axisID) {
+    super(manager, datasetName, axisID);
   }
   /**
    * Get the parameters from the ComScriptCommand
@@ -532,8 +537,7 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
    */
   public ConstEtomoNumber setImageBinned() {
     EtomoNumber currentBinning = new EtomoNumber(EtomoNumber.LONG_TYPE);
-    currentBinning.set(EtomoDirector.getInstance()
-        .getCurrentReconManager().getStackBinning(axisID, ".ali", true));
+    currentBinning.set(manager.getStackBinning(axisID, ".ali", true));
     if (!currentBinning.isNull()) {
       imageBinned.set(currentBinning);
     }
@@ -569,7 +573,8 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
       File aliFile = new File(userDir, datasetName + axisID.getExtension()
           + BlendmontParam.OUTPUT_FILE_EXTENSION);
       if (aliFile.exists()) {
-        MRCHeader header = MRCHeader.getInstance(aliFile.getAbsolutePath(), axisID);
+        MRCHeader header = MRCHeader.getInstance(manager.getPropertyUserDir(),
+            aliFile.getAbsolutePath(), axisID);
         header.read();
         fullImageX = header.getNColumns();
         fullImageY = header.getNRows();
@@ -583,12 +588,14 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
     }
     //If the .ali file is not available, use the .st file and adjust it with
     //goodframe
-    Montagesize montagesize = Montagesize.getInstance(axisID);
+    Montagesize montagesize = Montagesize.getInstance(manager, axisID);
     try {
       montagesize.read();
       if (montagesize.isFileExists()) {
-        Goodframe goodframe = new Goodframe(axisID);
-        goodframe.run(montagesize.getX().getInteger(), montagesize.getY().getInteger());
+        Goodframe goodframe = new Goodframe(manager.getPropertyUserDir(),
+            axisID);
+        goodframe.run(montagesize.getX().getInteger(), montagesize.getY()
+            .getInteger());
         fullImageX = goodframe.getFirstOutput().getInteger() / binning;
         fullImageY = goodframe.getSecondOutput().getInteger() / binning;
       }

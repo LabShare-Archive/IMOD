@@ -11,8 +11,7 @@ import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 
-import etomo.ApplicationManager;
-import etomo.EtomoDirector;
+import etomo.BaseManager;
 import etomo.comscript.SplittiltParam;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
@@ -53,8 +52,10 @@ final class ParallelPanel implements ParallelProgressDisplay {
   private ParallelPanelActionListener actionListener = new ParallelPanelActionListener(
       this);
   private PanelHeader header;
+  private final BaseManager manager;
 
-  ParallelPanel(ParallelDialog parent, AxisID axisID) {
+  ParallelPanel(BaseManager manager, ParallelDialog parent, AxisID axisID) {
+    this.manager = manager;
     this.parent = parent;
     this.axisID = axisID;
     processorTable = new ProcessorTable(this, axisID);
@@ -69,7 +70,7 @@ final class ParallelPanel implements ParallelProgressDisplay {
     SpacedPanel southPanel = new SpacedPanel();
     southPanel.setBoxLayout(BoxLayout.X_AXIS);
     //header
-    header = new PanelHeader(axisID, "Parallel Processing", bodyPanel);
+    header = new PanelHeader(manager, axisID, "Parallel Processing", bodyPanel);
     //southPanel;
     southPanel.add(ltfCpusSelected);
     southPanel.add(btnPause);
@@ -107,8 +108,6 @@ final class ParallelPanel implements ParallelProgressDisplay {
 
   private final void performAction(ActionEvent event) {
     String command = event.getActionCommand();
-    ApplicationManager mgr = EtomoDirector.getInstance()
-        .getCurrentReconManager();
     if (command == btnResume.getText()) {
       parent.resume();
     }
@@ -132,16 +131,14 @@ final class ParallelPanel implements ParallelProgressDisplay {
    * kill process button
    */
   public final void setupParallelProgressDisplay() {
-    EtomoDirector.getInstance().getCurrentManager().getMainPanel()
-        .setPauseButton(btnPause, axisID);
+    manager.getMainPanel().setPauseButton(btnPause, axisID);
   }
   
   /**
    * remove the pause button from the axis process panel
    */
   public final void teardownParallelProgressDisplay() {
-    EtomoDirector.getInstance().getCurrentManager().getMainPanel()
-        .deletePauseButton(btnPause, axisID);
+    manager.getMainPanel().deletePauseButton(btnPause, axisID);
   }
 
   private final void buildRandomizerLists() {
@@ -215,6 +212,11 @@ final class ParallelPanel implements ParallelProgressDisplay {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.5  2005/07/21 22:21:07  sueh
+ * <p> bug# 532 Implementing setup and teardownParallelProgressDisplay() for
+ * <p> ParallelProgressDisplay so that the pause button can function like a kill
+ * <p> button.
+ * <p>
  * <p> Revision 1.4  2005/07/11 23:12:20  sueh
  * <p> bug# 619 Removed the split, start, and kill buttons.  Split and start are
  * <p> now handled by the parent dialog.  Kill is handled by progress panel.

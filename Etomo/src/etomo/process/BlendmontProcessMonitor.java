@@ -90,7 +90,7 @@ public class BlendmontProcessMonitor extends LogFileProcessMonitor {
   protected void findNSections() throws InterruptedException,
       NumberFormatException, IOException {
     Montagesize montagesize = null;
-    montagesize = Montagesize.getInstance(axisID);
+    montagesize = Montagesize.getInstance(applicationManager, axisID);
     try {
       montagesize.read();
     }
@@ -103,6 +103,9 @@ public class BlendmontProcessMonitor extends LogFileProcessMonitor {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.9  2005/07/14 21:59:41  sueh
+* <p> bug# 626 Handling WHOLE_TOMOGRAM_SAMPLE_MODE.
+* <p>
 * <p> Revision 1.8  2005/06/21 00:44:42  sueh
 * <p> bug# 522 findNSections():  simplifying Montagesize.getInstance().
 * <p> Directory and dataset information can be retrieved when the stack is

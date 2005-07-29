@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 
 import etomo.ApplicationManager;
+import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.process.SystemProgram;
 import etomo.type.AxisID;
@@ -46,14 +47,16 @@ public class Montagesize {
   private EtomoNumber y = new EtomoNumber(EtomoNumber.INTEGER_TYPE);
   private EtomoNumber z = new EtomoNumber(EtomoNumber.INTEGER_TYPE);
   AxisID axisID;
-
+  private final String propertyUserDir;
+  
   //
   //n'ton functions
   //
   /**
    * private constructor
    */
-  private Montagesize(File file, AxisID axisID) {
+  private Montagesize(String propertyUserDir, File file, AxisID axisID) {
+    this.propertyUserDir = propertyUserDir;
     filename = file.getAbsolutePath();
     this.axisID = axisID;
     modifiedFlag = new FileModifiedFlag(file);
@@ -65,12 +68,12 @@ public class Montagesize {
    * @param axisID
    * @return
    */
-  public static Montagesize getInstance(AxisID axisID) {
-    File keyFile = Utilities.getFile(axisID, fileExtension);
+  public static Montagesize getInstance(BaseManager manager, AxisID axisID) {
+    File keyFile = Utilities.getFile(manager, axisID, fileExtension);
     String key = makeKey(keyFile);
     Montagesize montagesize = (Montagesize) instances.get(key);
     if (montagesize == null) {
-      return createInstance(key, keyFile, axisID);
+      return createInstance(manager.getPropertyUserDir(), key, keyFile, axisID);
     }
     return montagesize;
   }
@@ -82,13 +85,13 @@ public class Montagesize {
    * @param axisID
    * @return
    */
-  private static synchronized Montagesize createInstance(String key,
-      File file, AxisID axisID) {
+  private static synchronized Montagesize createInstance(String propertyUserDir,
+      String key, File file, AxisID axisID) {
     Montagesize montagesize = (Montagesize) instances.get(key);
     if (montagesize != null) {
       return montagesize;
     }
-    montagesize = new Montagesize(file, axisID);
+    montagesize = new Montagesize(propertyUserDir, file, axisID);
     instances.put(key, montagesize);
     montagesize.selfTestInvariants();
     return montagesize;
@@ -109,7 +112,7 @@ public class Montagesize {
    * @return
    */
   private File makePieceListFile() {
-    File file = Utilities.getFile(filename);
+    File file = Utilities.getFile(propertyUserDir, filename);
     String filePath = file.getAbsolutePath();
     int extensionIndex = filePath.lastIndexOf(fileExtension);
     if (extensionIndex == -1) {
@@ -136,7 +139,7 @@ public class Montagesize {
    * @returns true if attempted to read
    */
   public synchronized boolean read() throws IOException, InvalidParameterException {
-    File file = Utilities.getFile(filename);
+    File file = Utilities.getFile(propertyUserDir, filename);
     if (filename == null || filename.matches("\\s*") || file.isDirectory()) {
       throw new IOException("No stack specified.");
     }
@@ -165,7 +168,8 @@ public class Montagesize {
     if (pieceListFile.exists()) {
       commandArray[2] = pieceListFile.getAbsolutePath();
     }
-    SystemProgram montagesize = new SystemProgram(commandArray, axisID);
+    SystemProgram montagesize = new SystemProgram(propertyUserDir,
+        commandArray, axisID);
     montagesize.setDebug(EtomoDirector.getInstance().isDebug());
     modifiedFlag.setReadingNow();
     montagesize.run();
@@ -277,7 +281,7 @@ public class Montagesize {
     if (filename == null || filename.matches("\\s*")) {
       throw new IllegalStateException("file is null");
     }
-    String key = makeKey(Utilities.getFile(filename));
+    String key = makeKey(Utilities.getFile(propertyUserDir, filename));
     if (key == null || key.matches("\\s*")) {
       throw new IllegalStateException("unable to make key: filename=" + filename);
     }
@@ -298,6 +302,11 @@ public class Montagesize {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.6  2005/06/21 00:54:03  sueh
+ * <p> bug# 522 Changed File file to String filename.  Avoid holding on to the file
+ * <p> in case that would make problems in Windows.  Read() returns true if it
+ * <p> attempts to read.  Overiding toString().
+ * <p>
  * <p> Revision 1.5  2005/06/20 17:05:36  sueh
  * <p> bug# 522 Changed  Montagesize so that read() is not called
  * <p> automatically.

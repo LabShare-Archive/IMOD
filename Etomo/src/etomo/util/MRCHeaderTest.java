@@ -4,7 +4,8 @@ package etomo.util;
 import java.io.File;
 import java.io.IOException;
 
-import etomo.EtomoDirector;
+import etomo.BaseManager;
+import etomo.EtomoDirectorTestHarness;
 import etomo.process.SystemProcessException;
 import etomo.type.AxisID;
 
@@ -23,6 +24,9 @@ import junit.framework.TestCase;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.16  2005/06/22 23:39:48  sueh
+ * <p> bug# 522 New tests are failing - will fix later.  changed testRead().
+ * <p>
  * <p> Revision 3.15  2005/06/21 00:55:45  sueh
  * <p> bug# 522 Used touch to change the last modified date on the test file and
  * <p> check whether MRCHeader will re-read it.
@@ -99,13 +103,12 @@ public class MRCHeaderTest extends TestCase {
   private static final String testDirectory1 = new String("Test");
   private static final String testDirectory2 = new String("With Spaces");
   private static final String headerTestStack = "headerTest.st";
-  MRCHeader emptyFilename = MRCHeader.getInstance("", AxisID.ONLY);
-  MRCHeader badFilename = MRCHeader.getInstance(UtilTests.testRoot + testDirectory1
-      + "/non_existant_image_file", AxisID.ONLY);
-  MRCHeader mrcHeader = MRCHeader.getInstance(UtilTests.testRoot + testDirectory1
-      + "/headerTest.st", AxisID.ONLY);
-  MRCHeader mrcWithSpaces = MRCHeader.getInstance(UtilTests.testRoot + testDirectory2
-      + "/headerTest.st", AxisID.ONLY);
+  private final MRCHeader emptyFilename;
+  private final MRCHeader badFilename;
+  private final MRCHeader mrcHeader;
+  private final MRCHeader mrcWithSpaces;
+  
+  private final BaseManager manager;
 
   /**
    * Constructor for MRCHeaderTest.
@@ -113,6 +116,14 @@ public class MRCHeaderTest extends TestCase {
    */
   public MRCHeaderTest(String arg0) {
     super(arg0);
+    manager = EtomoDirectorTestHarness.getCurrentManager();
+    emptyFilename = MRCHeader.getInstance(manager.getPropertyUserDir(), "", AxisID.ONLY);
+    badFilename = MRCHeader.getInstance(manager.getPropertyUserDir(), UtilTests.testRoot + testDirectory1
+        + "/non_existant_image_file", AxisID.ONLY);
+    mrcHeader = MRCHeader.getInstance(manager.getPropertyUserDir(), UtilTests.testRoot + testDirectory1
+        + "/headerTest.st", AxisID.ONLY);
+    mrcWithSpaces = MRCHeader.getInstance(manager.getPropertyUserDir(), UtilTests.testRoot + testDirectory2
+        + "/headerTest.st", AxisID.ONLY);
   }
 
   /**
@@ -155,13 +166,12 @@ public class MRCHeaderTest extends TestCase {
 
   public void testRead() throws IOException, InvalidParameterException {
     //  Create the test directory
-    TestUtilites.makeDirectories(UtilTests.testRoot + testDirectory1);
+    TestUtilites.makeDirectories(manager.getPropertyUserDir(), UtilTests.testRoot + testDirectory1);
 
     // Check out the test header stack into the required directories
-    File testDir = new File(EtomoDirector.getInstance()
-        .getCurrentPropertyUserDir(), UtilTests.testRoot);
+    File testDir = new File(manager.getPropertyUserDir(), UtilTests.testRoot);
     try {
-      TestUtilites.checkoutVector(testDir.getAbsolutePath(), testDirectory1,
+      TestUtilites.checkoutVector(manager, testDir.getAbsolutePath(), testDirectory1,
           headerTestStack);
     }
     catch (SystemProcessException except) {
@@ -198,12 +208,12 @@ public class MRCHeaderTest extends TestCase {
 
   public void testWithSpaces() throws IOException, InvalidParameterException {
     //  Create the test directory
-    TestUtilites.makeDirectories(UtilTests.testRoot + testDirectory2);
+    TestUtilites.makeDirectories(manager.getPropertyUserDir(),
+        UtilTests.testRoot + testDirectory2);
 
     // Check out the test header stack into the required directories
     try {
-      TestUtilites.checkoutVector(EtomoDirector.getInstance()
-          .getCurrentPropertyUserDir()
+      TestUtilites.checkoutVector(manager, manager.getPropertyUserDir()
           + File.separator + UtilTests.testRoot, testDirectory2,
           "headerTest.st");
     }

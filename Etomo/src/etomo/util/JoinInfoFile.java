@@ -6,8 +6,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 
-import etomo.EtomoDirector;
-
 /**
 * <p>Description: </p>
 * 
@@ -22,6 +20,9 @@ import etomo.EtomoDirector;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.3  2005/06/17 20:04:00  sueh
+* <p> bug# 685 Added timestamps to read().
+* <p>
 * <p> Revision 1.2  2004/11/20 00:11:39  sueh
 * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
 * <p>
@@ -35,8 +36,10 @@ public class JoinInfoFile {
   
   private String rootName;
   private ArrayList fileNameArray = null;
+  private final String propertyUserDir;
   
-  public JoinInfoFile(String rootName) {
+  public JoinInfoFile(String propertyUserDir, String rootName) {
+    this.propertyUserDir = propertyUserDir;
     this.rootName = rootName;
   }
   
@@ -44,7 +47,7 @@ public class JoinInfoFile {
     String joinInfoFileName = rootName + ".info";
     Utilities.timestamp("read", joinInfoFileName, 0);
     fileNameArray = new ArrayList(numberFileNames);
-    File joinInfoFile = new File(EtomoDirector.getInstance().getCurrentPropertyUserDir(), joinInfoFileName);
+    File joinInfoFile = new File(propertyUserDir, joinInfoFileName);
     if (!joinInfoFile.exists()) {
       Utilities.timestamp("read", joinInfoFileName, -1);
       return false;

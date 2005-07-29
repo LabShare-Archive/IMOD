@@ -13,6 +13,11 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.9  2005/04/25 21:44:13  sueh
+ * <p> bug# 615 Passing the axis where a command originates to the message
+ * <p> functions so that the message will be popped up in the correct window.
+ * <p> This requires adding AxisID to many objects.
+ * <p>
  * <p> Revision 1.8  2005/02/10 18:57:35  sueh
  * <p> bug# 599 String.matches() isn't handling the Windows file separator "\",
  * <p> since its an escape charactor.  Using String.indexOf() instead.
@@ -50,7 +55,8 @@ package etomo.util;
 import java.io.File;
 import java.io.IOException;
 
-import etomo.EtomoDirector;
+import etomo.BaseManager;
+import etomo.EtomoDirectorTestHarness;
 import etomo.process.SystemProcessException;
 import etomo.process.SystemProgram;
 import etomo.type.AxisID;
@@ -65,14 +71,14 @@ public class TestUtilites {
    * EtomoDirector. 
    * @param newDirectory
    */
-  public static void makeDirectories(String newDirectory) throws IOException {
+  public static void makeDirectories(String propertyUserDir, String newDirectory) throws IOException {
     //  Create the test directories
     File directory;
     if (newDirectory.startsWith(File.separator)) {
       directory = new File(newDirectory);
     }
     else {
-      directory = new File(EtomoDirector.getInstance().getCurrentPropertyUserDir(), newDirectory);
+      directory = new File(propertyUserDir, newDirectory);
     }
     if (!directory.exists()) {
       if (!directory.mkdirs()) {
@@ -91,13 +97,13 @@ public class TestUtilites {
    * @param dirName - Directory name with no path.
    * @param vector - File to be added to the dirName directory.
    */
-  public static void checkoutVector(String workingDirName, String dirName,
-      String vector) throws SystemProcessException, InvalidParameterException {
+  public static void checkoutVector(BaseManager manager, String workingDirName,
+      String dirName, String vector) throws SystemProcessException,
+      InvalidParameterException {
     //set working directory
-    EtomoDirector director = EtomoDirector.getInstance();
     File workingDir = new File(workingDirName);
-    String originalDirName = director.setCurrentPropertyUserDir(workingDir
-        .getAbsolutePath());
+    String originalDirName = EtomoDirectorTestHarness
+        .setCurrentPropertyUserDir(workingDir.getAbsolutePath());
     //check vector
     if (vector.indexOf(File.separator) != -1) {
       throw new InvalidParameterException(
@@ -107,7 +113,7 @@ public class TestUtilites {
     File checkoutDir = new File(workingDir, dirName);
     File fileVector = new File(checkoutDir, vector);
     if (fileVector.exists() && !fileVector.delete()) {
-      director.setCurrentPropertyUserDir(originalDirName);
+      EtomoDirectorTestHarness.setCurrentPropertyUserDir(originalDirName);
       throw new SystemProcessException("Cannot delete vector: " + vector);
     }
     String[] cvsCommand = new String[7];
@@ -118,7 +124,8 @@ public class TestUtilites {
     cvsCommand[4] = "-d";
     cvsCommand[5] = dirName;
     cvsCommand[6] = "ImodTests/EtomoTests/vectors/" + vector;
-    SystemProgram cvs = new SystemProgram(cvsCommand, AxisID.ONLY);
+    SystemProgram cvs = new SystemProgram(manager.getPropertyUserDir(), cvsCommand,
+        AxisID.ONLY);
     cvs.setDebug(true);
     cvs.run();
     for (int i = 0; i < cvsCommand.length; i++) {
@@ -126,11 +133,12 @@ public class TestUtilites {
     }
     System.err.println();
     if (cvs.getExitValue() > 0) {
-      String message = cvs.getStdErrorString() + "\nCVSROOT="
-          + Utilities.getEnvironmentVariable("CVSROOT", AxisID.ONLY)
-          + "\nworkingDirName=" + director.getCurrentPropertyUserDir()
+      String message = cvs.getStdErrorString()
+          + "\nCVSROOT="
+          + Utilities.getEnvironmentVariable(manager.getPropertyUserDir(), "CVSROOT",
+              AxisID.ONLY) + "\nworkingDirName=" + manager.getPropertyUserDir()
           + "\ndirName=" + dirName + "\nvector=" + vector;
-      director.setCurrentPropertyUserDir(originalDirName);
+      EtomoDirectorTestHarness.setCurrentPropertyUserDir(originalDirName);
       throw new SystemProcessException(message);
     }
     // NOTE: some version of cvs (1.11.2) have bug that results in a checkout
@@ -142,10 +150,11 @@ public class TestUtilites {
       rmCommand[0] = "rm";
       rmCommand[1] = "-rf";
       rmCommand[2] = badDirectory.getAbsolutePath();
-      SystemProgram rm = new SystemProgram(rmCommand, AxisID.ONLY);
+      SystemProgram rm = new SystemProgram(manager.getPropertyUserDir(),
+          rmCommand, AxisID.ONLY);
       rm.run();
     }
-    director.setCurrentPropertyUserDir(originalDirName);
+    EtomoDirectorTestHarness.setCurrentPropertyUserDir(originalDirName);
   }
 
 }

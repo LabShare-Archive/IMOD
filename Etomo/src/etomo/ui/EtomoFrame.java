@@ -170,7 +170,8 @@ public abstract class EtomoFrame extends JFrame {
     }
 
     if (event.getActionCommand().equals(menu.getActionCommandHelpAbout())) {
-      MainFrame_AboutBox dlg = new MainFrame_AboutBox(this, axisID);
+      MainFrame_AboutBox dlg = new MainFrame_AboutBox(currentManager, this,
+          axisID);
       Dimension dlgSize = dlg.getPreferredSize();
       Dimension frmSize = getSize();
       Point loc = getLocation();
@@ -596,6 +597,9 @@ public abstract class EtomoFrame extends JFrame {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.9  2005/07/18 17:54:48  sueh
+* <p> bug# 697 In getAxisID() handle null mainPanel.
+* <p>
 * <p> Revision 1.8  2005/07/01 21:13:17  sueh
 * <p> bug# 619 temporary changes to pass the frame to the demo JDialog.
 * <p>

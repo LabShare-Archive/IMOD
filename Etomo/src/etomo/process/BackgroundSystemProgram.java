@@ -1,5 +1,7 @@
 package etomo.process;
 
+import etomo.BaseManager;
+
 /**
  * <p>
  * Description: Provides an interface to a threadable class to execute IMOD com
@@ -17,6 +19,11 @@ package etomo.process;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.5  2005/04/25 20:43:44  sueh
+ * <p> $bug# 615 Passing the axis where a command originates to the message
+ * <p> $functions so that the message will be popped up in the correct window.
+ * <p> $This requires adding AxisID to many objects.
+ * <p> $
  * <p> $Revision 1.4  2004/12/04 00:39:59  sueh
  * <p> $bug# 569 Handling directory paths with spaces:  converting from a
  * <p> $command line to a command array to prevent the command line from
@@ -45,15 +52,17 @@ public class BackgroundSystemProgram extends SystemProgram {
   /**
    * 
    */
-  public BackgroundSystemProgram(String command,
+  public BackgroundSystemProgram(BaseManager manager, String command,
     BackgroundProcessMonitor backgroundProcessMonitor) {
-    super(command, backgroundProcessMonitor.getAxisID());
+    super(manager.getPropertyUserDir(), command, backgroundProcessMonitor
+        .getAxisID());
     this.backgroundProcessMonitor = backgroundProcessMonitor;
   }
   
-  public BackgroundSystemProgram(String[] command,
+  public BackgroundSystemProgram(BaseManager manager, String[] command,
       BackgroundProcessMonitor backgroundProcessMonitor) {
-      super(command, backgroundProcessMonitor.getAxisID());
+      super(manager.getPropertyUserDir(), command, backgroundProcessMonitor
+        .getAxisID());
       this.backgroundProcessMonitor = backgroundProcessMonitor;
     }
 

@@ -43,6 +43,9 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.20  2005/07/26 17:03:16  sueh
+* <p> bug# 701 Pass ProcessEndState to the progress bar when stopping it.
+* <p>
 * <p> Revision 1.19  2005/06/21 00:03:37  sueh
 * <p> bug# 522 Added pass-through function call to
 * <p> BaseProcessManager.touch() for MRCHeaderTest.  Added toString()
@@ -628,7 +631,7 @@ public abstract class BaseManager {
   //create functions
   
   private void createImodManager() {
-    imodManager = new ImodManager();
+    imodManager = new ImodManager(this);
   }
   
   /**

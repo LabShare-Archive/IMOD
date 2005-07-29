@@ -67,6 +67,10 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.52  2005/07/21 22:23:43  sueh
+ * bug# 532 Calling ApplicationManager.splittilt().  Moved parallel process
+ * checkbox to the top of the tilt panel.
+ *
  * Revision 3.51  2005/07/19 22:38:39  sueh
  * bug# 532 Removed save and split buttons
  *
@@ -510,7 +514,7 @@ public class TomogramGenerationDialog extends ProcessDialog
     fixRootPanel(rootSize);
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     btnExecute.setText("Done");
-    parallelPanel = new ParallelPanel(this, axisID);
+    parallelPanel = new ParallelPanel(applicationManager, this, axisID);
     // Layout the main panel (and sub panels) and add it to the root panel
     pnlTilt.setBorder(new BeveledBorder("Tomogram Generation").getBorder());
     pnlTilt.setLayout(new BoxLayout(pnlTilt, BoxLayout.Y_AXIS));
@@ -955,10 +959,10 @@ public class TomogramGenerationDialog extends ProcessDialog
     buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.X_AXIS));
     //header
     if (applicationManager.getMetaData().getViewType() == ViewType.MONTAGE) {
-      newstHeader = new PanelHeader(axisID, "Blendmont", newstBodyPanel);
+      newstHeader = new PanelHeader(applicationManager, axisID, "Blendmont", newstBodyPanel);
     }
     else {
-      newstHeader = new PanelHeader(axisID, "Newstack", newstBodyPanel);
+      newstHeader = new PanelHeader(applicationManager, axisID, "Newstack", newstBodyPanel);
     }
     //initialization
     SpinnerModel integerModel = new SpinnerNumberModel(1, 1, 8, 1);
@@ -1008,7 +1012,7 @@ public class TomogramGenerationDialog extends ProcessDialog
     SpacedPanel buttonPanel = new SpacedPanel(true);
     buttonPanel.setBoxLayout(BoxLayout.X_AXIS);
     //header
-    filterHeader = new PanelHeader(axisID, "2D Filtering (optional)", filterBodyPanel, this);
+    filterHeader = new PanelHeader(applicationManager, axisID, "2D Filtering (optional)", filterBodyPanel, this);
     //buttonPanel
     buttonPanel.add(btnFilter);
     buttonPanel.add(btnViewFilter);
@@ -1064,7 +1068,7 @@ public class TomogramGenerationDialog extends ProcessDialog
     SpacedPanel buttonPanel = new SpacedPanel(true);
     buttonPanel.setBoxLayout(BoxLayout.X_AXIS);
     //header
-    tiltHeader = new PanelHeader(axisID, "Tilt", tiltBodyPanel, this);
+    tiltHeader = new PanelHeader(applicationManager, axisID, "Tilt", tiltBodyPanel, this);
     //buttonPanel
     buttonPanel.add(btnTilt);
     buttonPanel.add(btn3dmodTomogram);
@@ -1140,7 +1144,7 @@ public class TomogramGenerationDialog extends ProcessDialog
     SpacedPanel buttonPanel = new SpacedPanel();
     buttonPanel.setBoxLayout(BoxLayout.X_AXIS);
     //header
-    trialHeader = new PanelHeader(axisID, "Trial Tilt", trialBodyPanel);
+    trialHeader = new PanelHeader(applicationManager, axisID, "Trial Tilt", trialBodyPanel);
     //buttonPanel
     buttonPanel.add(btnTrial);
     buttonPanel.add(btn3dmodTrial);

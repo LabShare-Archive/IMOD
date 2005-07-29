@@ -3,6 +3,7 @@ package etomo.comscript;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import etomo.BaseManager;
 import etomo.type.AxisID;
 import etomo.type.CombinePatchSize;
 import etomo.type.FiducialMatch;
@@ -23,6 +24,10 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.3  2005/07/26 17:09:59  sueh
+ * <p> bug# 700 Don't respond to MRCHeader exceptions in isValid() because it
+ * <p> is run without the user directly requesting it.
+ * <p>
  * <p> Revision 3.2  2005/07/20 17:30:52  sueh
  * <p> bug# 700  In isValid() validate the x, y, z values against the tomogram
  * <p> header.  Pass YAndZFlipped.  Get the tomogram file from DatasetFile.
@@ -92,11 +97,17 @@ public class ConstCombineParams {
   protected String tempDirectory = "";
   protected boolean manualCleanup = false;
   protected boolean modelBased = false;
+  
+  protected final BaseManager manager;
 
   protected ArrayList invalidReasons = new ArrayList();
 
-  public ConstCombineParams() {
-
+  public ConstCombineParams(BaseManager manager) {
+    this.manager = manager;
+  }
+  
+  public ConstCombineParams(ConstCombineParams src) {
+    manager = src.manager;
   }
 
   public boolean equals(ConstCombineParams cmp) {
@@ -229,8 +240,8 @@ public class ConstCombineParams {
     else {
       axisID = AxisID.SECOND;
     }
-    MRCHeader header = MRCHeader.getInstance(DatasetFiles.getTomogram(axisID)
-        .getAbsolutePath(), axisID);
+    MRCHeader header = MRCHeader.getInstance(manager.getPropertyUserDir(),
+        DatasetFiles.getTomogram(manager, axisID).getAbsolutePath(), axisID);
     try {
       header.read();
     }

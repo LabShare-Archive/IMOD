@@ -438,7 +438,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
   }
   
   public MetaData getDataset() {
-    MetaData metaData = new MetaData();
+    MetaData metaData = new MetaData(applicationManager);
     metaData.setAxisType(getAxisType());
 
     //  The dataset name needs to be set after the axis type so the metadata
@@ -733,7 +733,8 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
 
     // Run header on the dataset to the extract whatever information is
     // available
-    MRCHeader header = MRCHeader.getInstance(datasetName, AxisID.ONLY);
+    MRCHeader header = MRCHeader.getInstance(applicationManager
+        .getPropertyUserDir(), datasetName, AxisID.ONLY);
     try {
       header.read();
     }
@@ -1028,6 +1029,10 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.30  2005/06/20 16:58:00  sueh
+ * <p> bug# 522 Made MRCHeader an n'ton.  Getting instance instead of
+ * <p> constructing in btnScanHeaderAction().
+ * <p>
  * <p> Revision 3.29  2005/04/26 17:41:39  sueh
  * <p> bug# 615 Change the name of the UIHarness member variable to
  * <p> uiHarness.

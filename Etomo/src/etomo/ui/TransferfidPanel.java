@@ -10,7 +10,7 @@ import javax.swing.JCheckBox;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 
-import etomo.EtomoDirector;
+import etomo.ApplicationManager;
 import etomo.comscript.TransferfidParam;
 import etomo.type.AxisID;
 import etomo.type.MetaData;
@@ -50,10 +50,13 @@ public class TransferfidPanel {
   private JRadioButton rbSearchMinus90 = new JRadioButton("-90 (CW) only");
   private MetaData metaData;
   private AxisID axisID;
+  private final ApplicationManager manager;
 
-  public TransferfidPanel(AxisID axisID, boolean inclButton) {
+  public TransferfidPanel(ApplicationManager manager, AxisID axisID,
+      boolean inclButton) {
+    this.manager = manager;
     this.axisID = axisID;
-    metaData = EtomoDirector.getInstance().getCurrentReconManager().getMetaData();
+    metaData = manager.getMetaData();
     includeButton = inclButton;
     setup();
   }
@@ -103,7 +106,7 @@ public class TransferfidPanel {
    * object
    */
   public void setParameters() {
-    TransferfidParam params = new TransferfidParam(axisID);
+    TransferfidParam params = new TransferfidParam(manager, axisID);
     params.initialize();
     if (axisID == AxisID.SECOND) {
       metaData.getTransferfidBFields(params);
@@ -128,7 +131,7 @@ public class TransferfidPanel {
   }
   
   public void getParameters() {
-    getParameters(new TransferfidParam(axisID));
+    getParameters(new TransferfidParam(manager, axisID));
   }
 
   /**
@@ -223,6 +226,9 @@ public class TransferfidPanel {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.3  2005/06/01 21:28:58  sueh
+ * <p> bug# 667 Getting meta data from the manager instead of EtomoDirector.
+ * <p>
  * <p> Revision 3.2  2005/01/26 00:07:10  sueh
  * <p> Removed script oriented functionality from EtomoNumber.
  * <p>

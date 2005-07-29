@@ -2,6 +2,7 @@ package etomo.comscript;
 
 import java.util.Properties;
 
+import etomo.ApplicationManager;
 import etomo.type.ConstEtomoNumber;
 
 /**
@@ -18,6 +19,9 @@ import etomo.type.ConstEtomoNumber;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.4  2004/12/16 02:12:44  sueh
+* <p> bug# 564 Saved flipped status.
+* <p>
 * <p> Revision 1.3  2004/12/14 21:32:55  sueh
 * <p> bug# 557 Made separate variables for x and y reduction factors to handle
 * <p> an unflipped tomogram.
@@ -33,6 +37,9 @@ import etomo.type.ConstEtomoNumber;
 public class SqueezevolParam extends ConstSqueezevolParam {
   public static  final String  rcsid =  "$Id$";
 
+  public SqueezevolParam(ApplicationManager manager) {
+    super(manager);
+  }
   /**
    *  Get the objects attributes from the properties object.
    */

@@ -18,6 +18,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.11  2005/05/10 17:31:04  sueh
+ * bug# 660 Added comment.
+ *
  * Revision 3.10  2005/05/10 16:57:09  sueh
  * bug# 660 Added getWarnings() to get an array of warnings from standard
  * error.
@@ -165,6 +168,7 @@ import java.util.ArrayList;
 import java.util.Vector;
 
 import etomo.ApplicationManager;
+import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.process.SystemProgram;
 import etomo.type.AxisID;
@@ -183,10 +187,11 @@ public class CopyTomoComs {
   ConstMetaData metaData;
   Vector options;
   boolean debug;
+  private final BaseManager manager;
 
-  public CopyTomoComs(ConstMetaData metaData) {
-
-    this.metaData = metaData;
+  public CopyTomoComs(ApplicationManager manager) {
+    this.manager = manager;
+    metaData = manager.getConstMetaData();
     debug = EtomoDirector.getInstance().isDebug();
 
     // Create a new SystemProgram object for copytomocom, set the
@@ -194,12 +199,14 @@ public class CopyTomoComs {
     // Do not use the -e flag for tcsh since David's scripts handle the failure 
     // of commands and then report appropriately.  The exception to this is the
     // com scripts which require the -e flag.  RJG: 2003-11-06  
-    commandLine = new StringBuffer("tcsh -f " + ApplicationManager.getIMODBinPath() + "copytomocoms");
+    commandLine = new StringBuffer("tcsh -f "
+        + ApplicationManager.getIMODBinPath() + "copytomocoms");
     genOptions();
     for (int i = 0; i < options.size(); i++) {
       commandLine.append(" " + options.get(i));
     }
-    copytomocoms = new SystemProgram(commandLine.toString(), AxisID.ONLY);
+    copytomocoms = new SystemProgram(manager.getPropertyUserDir(), commandLine
+        .toString(), AxisID.ONLY);
     //genStdInputSequence();
   }
 
@@ -500,7 +507,7 @@ public class CopyTomoComs {
    * consistent in the sequence of responses expected.
    */
   private void checkTiltAngleFiles() {
-    String workingDirectory = EtomoDirector.getInstance().getCurrentPropertyUserDir();
+    String workingDirectory = manager.getPropertyUserDir();
     if (metaData.getAxisType() == AxisType.SINGLE_AXIS) {
       if (metaData.getTiltAngleSpecA().getType() != TiltAngleType.FILE) {
         File rawTiltFile = new File(workingDirectory, metaData.getDatasetName()

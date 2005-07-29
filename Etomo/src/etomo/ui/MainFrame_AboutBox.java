@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.4  2005/06/16 22:46:59  sueh
+ * <p> bug# 676 Getting the Etomo version from code.
+ * <p>
  * <p> Revision 3.3  2005/04/25 21:06:51  sueh
  * <p> bug# 615 Passing the axis where a command originates to the message
  * <p> functions so that the message will be popped up in the correct window.
@@ -74,6 +77,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import etomo.ApplicationManager;
+import etomo.BaseManager;
 import etomo.process.SystemProgram;
 import etomo.type.AxisID;
 import etomo.type.ImodVersion;
@@ -88,9 +92,11 @@ public class MainFrame_AboutBox extends JDialog {
 	JPanel pnlAbout = new JPanel();
 
 	JButton btnOK = new JButton("OK");
+  private final BaseManager manager;
 
-	public MainFrame_AboutBox(Frame parent, AxisID axisID) {
+	public MainFrame_AboutBox(BaseManager manager, Frame parent, AxisID axisID) {
 		super(parent);
+    this.manager = manager;
 		getImodVersion(axisID);
 		JPanel pnlRoot = (JPanel) getContentPane();
 		JPanel pnlText = new JPanel();
@@ -157,7 +163,8 @@ public class MainFrame_AboutBox extends JDialog {
 	 */
 	private void getImodVersion(AxisID axisID) {
 		String command = ApplicationManager.getIMODBinPath() + "imodinfo";
-		SystemProgram threeDmod_h = new SystemProgram(command, axisID);
+		SystemProgram threeDmod_h = new SystemProgram(manager.getPropertyUserDir(),
+        command, axisID);
 
 		threeDmod_h.run();
 

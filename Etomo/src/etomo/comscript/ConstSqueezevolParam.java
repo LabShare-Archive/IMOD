@@ -6,7 +6,6 @@ import java.util.Properties;
 
 import etomo.ApplicationManager;
 import etomo.BaseManager;
-import etomo.EtomoDirector;
 import etomo.storage.Storable;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
@@ -27,6 +26,9 @@ import etomo.type.EtomoNumber;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.8  2005/07/26 17:27:25  sueh
+* <p> bug# 701 Get the PID from squeezevol
+* <p>
 * <p> Revision 1.7  2005/04/25 20:38:57  sueh
 * <p> bug# 615 Passing the axis where a command originates to the message
 * <p> functions so that the message will be popped up in the correct window.
@@ -73,8 +75,10 @@ public abstract class ConstSqueezevolParam implements Command, Storable {
   protected boolean flipped = false;
   private String[] commandArray = null;
   private File outputFile;
+  private final ApplicationManager manager;
 
-  public ConstSqueezevolParam() {
+  public ConstSqueezevolParam(ApplicationManager manager) {
+    this.manager = manager;
     reductionFactorX.setDisplayValue(1.25);
     reductionFactorY.setDisplayValue(1.25);
     reductionFactorZ.setDisplayValue(1.25);
@@ -106,8 +110,6 @@ public abstract class ConstSqueezevolParam implements Command, Storable {
     options.add("-P");
     //create input file name
     String inputFileName;
-    ApplicationManager manager = (ApplicationManager) EtomoDirector
-        .getInstance().getCurrentManager();
     ConstMetaData metaData = manager.getMetaData();
     String datasetName = metaData.getDatasetName();
     //try to take the trimvol output file as input
@@ -120,7 +122,7 @@ public abstract class ConstSqueezevolParam implements Command, Storable {
     }*/
     options.add(inputFileName);
     //output is dataset.sqz
-    outputFile = new File(EtomoDirector.getInstance().getCurrentPropertyUserDir(), datasetName + ".sqz");
+    outputFile = new File(manager.getPropertyUserDir(), datasetName + ".sqz");
     options.add(outputFile.getName());
     return options;
   }

@@ -4,7 +4,7 @@ import java.io.File;
 import java.util.ArrayList;
 
 import etomo.BaseManager;
-import etomo.EtomoDirector;
+import etomo.JoinManager;
 import etomo.type.AxisID;
 import etomo.type.ConstJoinMetaData;
 import etomo.type.ConstSectionTableRowData;
@@ -26,6 +26,10 @@ import etomo.type.SectionTableRowData;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.12  2005/07/21 21:32:26  sueh
+* <p> bug# 532 ConstEtomoNumber.getInvalidReason() is no longer returning
+* <p> the description.
+* <p>
 * <p> Revision 1.11  2005/04/25 20:39:41  sueh
 * <p> bug# 615 Passing the axis where a command originates to the message
 * <p> functions so that the message will be popped up in the correct window.
@@ -132,12 +136,14 @@ public class FinishjoinParam implements Command {
   private int sizeInY = Integer.MIN_VALUE;
   private int shiftInX = Integer.MIN_VALUE;
   private int shiftInY = Integer.MIN_VALUE;
+  private final BaseManager manager;
   
-  public FinishjoinParam(ConstJoinMetaData metaData, int mode) {
-    this.metaData = metaData;
+  public FinishjoinParam(JoinManager manager, int mode) {
+    this.manager = manager;
+    metaData = manager.getConstMetaData();
     this.mode = mode;
     rootName = metaData.getRootName();
-    outputFile = new File(EtomoDirector.getInstance().getCurrentPropertyUserDir(), rootName + ".join");
+    outputFile = new File(manager.getPropertyUserDir(), rootName + ".join");
     ArrayList options = genOptions();
     commandArray = new String[options.size() + 3];
     commandArray[0] = "tcsh";

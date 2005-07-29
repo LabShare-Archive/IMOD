@@ -4,7 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Properties;
 
-import etomo.ApplicationManager;
+import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.comscript.TiltalignParam;
 import etomo.comscript.TrimvolParam;
@@ -24,6 +24,11 @@ import etomo.util.MRCHeader;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.13  2005/07/20 17:53:43  sueh
+* <p> bug# 705 Stop printing the stack trace for IOException bugs coming from
+* <p> MRCHeader, because its filling up the error log with exceptions that are
+* <p> related to real problems.
+* <p>
 * <p> Revision 1.12  2005/06/20 16:54:26  sueh
 * <p> bug# 522 Made MRCHeader an n'ton.  Getting instance instead of
 * <p> constructing in setBackwardCompatibleTrimvolFlipped().
@@ -90,8 +95,10 @@ public class TomogramState implements BaseState {
   EtomoState newstFiducialessAlignmentB = new EtomoState("NewstFiducialessAlignmentB");
   EtomoState usedLocalAlignmentsA = new EtomoState("UsedLocalAlignmentsA");
   EtomoState usedLocalAlignmentsB = new EtomoState("UsedLocalAlignmentsB");
+  private final BaseManager manager;
   
-  public TomogramState() {
+  public TomogramState(BaseManager manager) {
+    this.manager = manager;
     reset();
   }
   
@@ -254,15 +261,14 @@ public class TomogramState implements BaseState {
     //If trimvol has not been run, then assume that the tomogram has not been
     //flipped.
     EtomoDirector etomoDirector = EtomoDirector.getInstance();
-    ApplicationManager manager = (ApplicationManager) etomoDirector
-        .getCurrentManager();
-    String datasetName = manager.getMetaData().getDatasetName();
-    File trimvolFile = new File(etomoDirector.getCurrentPropertyUserDir(),
+    String datasetName = manager.getBaseMetaData().getName();
+    File trimvolFile = new File(manager.getPropertyUserDir(),
         TrimvolParam.getOutputFileName(datasetName));
     if (!trimvolFile.exists()) {
       return false;
     }
-    MRCHeader header = MRCHeader.getInstance(trimvolFile.getAbsolutePath(), AxisID.ONLY);
+    MRCHeader header = MRCHeader.getInstance(manager.getPropertyUserDir(),
+        trimvolFile.getAbsolutePath(), AxisID.ONLY);
     try {
       header.read();
     }
@@ -290,10 +296,8 @@ public class TomogramState implements BaseState {
    * @return
    */
   public boolean getBackwardCompatibleUsedLocalAlignments(AxisID axisID) {
-    String userDir = EtomoDirector.getInstance().getCurrentPropertyUserDir();
-    ApplicationManager manager = (ApplicationManager) EtomoDirector.getInstance()
-        .getCurrentManager();
-    String datasetName = manager.getMetaData().getDatasetName();
+    String userDir = manager.getPropertyUserDir();
+    String datasetName = manager.getBaseMetaData().getName();
     File localXfFile = new File(userDir,
         datasetName + axisID.getExtension() + "local.xf");
     File transformFile = new File(userDir,
@@ -328,10 +332,8 @@ public class TomogramState implements BaseState {
    */
   public boolean getBackwardCompatibleMadeZFactors(AxisID axisID) {
     EtomoDirector etomoDirector = EtomoDirector.getInstance();
-    String userDir = etomoDirector.getCurrentPropertyUserDir();
-    ApplicationManager manager = (ApplicationManager) etomoDirector
-        .getCurrentManager();
-    String datasetName = manager.getMetaData().getDatasetName();
+    String userDir = manager.getPropertyUserDir();
+    String datasetName = manager.getBaseMetaData().getName();
     File zFactorFile = new File(userDir, TiltalignParam.getOutputZFactorFileName(datasetName, axisID));
     File tltxfFile = new File(userDir, datasetName + axisID.getExtension() + ".tltxf");
     if (!zFactorFile.exists()) {

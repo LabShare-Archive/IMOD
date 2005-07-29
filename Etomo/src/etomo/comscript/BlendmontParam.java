@@ -2,7 +2,7 @@ package etomo.comscript;
 
 import java.io.File;
 
-import etomo.EtomoDirector;
+import etomo.BaseManager;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoBoolean2;
@@ -48,12 +48,14 @@ public class BlendmontParam implements CommandParam {
   private String imageOutputFile;
   private int mode = XCORR_MODE;
   private ScriptParameter binByFactor;
+  private final BaseManager manager;
 
-  public BlendmontParam(String datasetName, AxisID axisID) {
-    this(datasetName, axisID, XCORR_MODE);
+  public BlendmontParam(BaseManager manager, String datasetName, AxisID axisID) {
+    this(manager, datasetName, axisID, XCORR_MODE);
   }
 
-  public BlendmontParam(String datasetName, AxisID axisID, int mode) {
+  public BlendmontParam(BaseManager manager, String datasetName, AxisID axisID, int mode) {
+    this.manager = manager;
     this.datasetName = datasetName;
     this.axisID = axisID;
     this.mode = mode;
@@ -140,20 +142,20 @@ public class BlendmontParam implements CommandParam {
         + ".ali";
       }
     }
-    File ecdFile = new File(EtomoDirector.getInstance()
-        .getCurrentPropertyUserDir(), datasetName + axisID.getExtension()
+    File ecdFile = new File(manager
+        .getPropertyUserDir(), datasetName + axisID.getExtension()
         + ".ecd");
-    File xefFile = new File(EtomoDirector.getInstance()
-        .getCurrentPropertyUserDir(), datasetName + axisID.getExtension()
+    File xefFile = new File(manager
+        .getPropertyUserDir(), datasetName + axisID.getExtension()
         + ".xef");
-    File yefFile = new File(EtomoDirector.getInstance()
-        .getCurrentPropertyUserDir(), datasetName + axisID.getExtension()
+    File yefFile = new File(manager
+        .getPropertyUserDir(), datasetName + axisID.getExtension()
         + ".yef");
-    File stackFile = new File(EtomoDirector.getInstance()
-        .getCurrentPropertyUserDir(), datasetName + axisID.getExtension()
+    File stackFile = new File(manager
+        .getPropertyUserDir(), datasetName + axisID.getExtension()
         + ".st");
-    File blendFile = new File(EtomoDirector.getInstance()
-        .getCurrentPropertyUserDir(), datasetName + axisID.getExtension()
+    File blendFile = new File(manager
+        .getPropertyUserDir(), datasetName + axisID.getExtension()
         + BLENDMONT_STACK_EXTENSION);
     //Read in xcorr output if it exists.  Turn on for preblend and blend.
     readInXcorrs.set(mode == PREBLEND_MODE || mode == BLEND_MODE
@@ -224,6 +226,9 @@ public final void setBinByFactor(int binByFactor) {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.10  2005/07/19 20:19:18  sueh
+ * <p> bug# 688 Correct file name for the different modes.
+ * <p>
  * <p> Revision 1.9  2005/07/18 22:02:17  sueh
  * <p> bug# 688 Setting imageOutputFile and justUndistort when mode is not
  * <p> undistort.

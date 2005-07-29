@@ -12,6 +12,9 @@
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.2  2004/11/19 22:42:48  sueh
+* <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+* <p>
 * <p> Revision 1.1.4.2  2004/10/08 15:45:57  sueh
 * <p> bug# 520 Since EtomoDirector is a singleton, made all functions and
 * <p> member variables non-static.
@@ -27,8 +30,9 @@ package etomo.comscript;
 
 import java.io.IOException;
 
-import etomo.ApplicationManager;
+import etomo.BaseManager;
 import etomo.EtomoDirector;
+import etomo.EtomoDirectorTestHarness;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
 import junit.framework.TestCase;
@@ -41,11 +45,9 @@ public class ComScriptManagerTest extends TestCase {
   public void testUseTemplate() {
     //  Need an application manger to get the IMOD_DIR environment
     // variable
-    String[] args = {"--test"};
-    EtomoDirector.createInstance(args);
-    ApplicationManager appManager = (ApplicationManager) EtomoDirector.getInstance().getCurrentManager();
+    BaseManager manager = EtomoDirectorTestHarness.getCurrentManager();
     System.out.println(EtomoDirector.getInstance().getIMODDirectory().getAbsolutePath());
-    ComScriptManager comScriptManager = appManager.getComScriptManager();
+    ComScriptManager comScriptManager = manager.getComScriptManager();
     try {
       comScriptManager.useTemplate("mtffilter", "datasetName", AxisType.SINGLE_AXIS, AxisID.ONLY);
       comScriptManager.useTemplate("eraser", "datasetName", AxisType.DUAL_AXIS, AxisID.SECOND);

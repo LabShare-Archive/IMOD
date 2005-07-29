@@ -47,6 +47,10 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.17  2005/06/21 00:41:13  sueh
+* <p> bug# 522 Added pass-through function call to
+* <p> BaseProcessManager.touch() for MRCHeaderTest.
+* <p>
 * <p> Revision 1.16  2005/06/01 21:25:16  sueh
 * <p> bug# 667 Removing the Controller classes.  Trying make meta data and
 * <p> app manager equals didn't work very well.  Meta data is created by and
@@ -541,7 +545,7 @@ public class JoinManager extends BaseManager {
     if (!updateMetaDataFromJoinDialog(AxisID.ONLY)) {
       return;
     }
-    MidasParam midasParam = new MidasParam(metaData, AxisID.ONLY);
+    MidasParam midasParam = new MidasParam(this, AxisID.ONLY);
     if (!copyMostRecentXfFile(JoinDialog.MIDAS_TEXT)) {
       return;
     }
@@ -560,7 +564,7 @@ public class JoinManager extends BaseManager {
     if (!updateMetaDataFromJoinDialog(AxisID.ONLY)) {
       return;
     }
-    XfalignParam xfalignParam = new XfalignParam(metaData,
+    XfalignParam xfalignParam = new XfalignParam(this,
         XfalignParam.INITIAL_MODE);
     try {
       threadNameA = processMgr.xfalign(xfalignParam);
@@ -568,18 +572,18 @@ public class JoinManager extends BaseManager {
     catch (SystemProcessException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog("Can't run initial xfalign\n"
-        + except.getMessage(), "SystemProcessException", AxisID.ONLY);
+          + except.getMessage(), "SystemProcessException", AxisID.ONLY);
       joinDialog.enableMidas();
-      return; 
+      return;
     }
     mainPanel.startProgressBar("Initial xfalign", AxisID.ONLY);
   }
-  
+
   public void xfalignRefine() {
     if (!updateMetaDataFromJoinDialog(AxisID.ONLY)) {
       return;
     }
-    XfalignParam xfalignParam = new XfalignParam(metaData, XfalignParam.REFINE_MODE);
+    XfalignParam xfalignParam = new XfalignParam(this, XfalignParam.REFINE_MODE);
     if (!copyMostRecentXfFile(JoinDialog.REFINE_AUTO_ALIGNMENT_TEXT)) {
       return;
     }
@@ -588,18 +592,19 @@ public class JoinManager extends BaseManager {
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog("Can't run "+ JoinDialog.REFINE_AUTO_ALIGNMENT_TEXT + "\n"
-        + except.getMessage(), "SystemProcessException", AxisID.ONLY);
+      uiHarness.openMessageDialog("Can't run "
+          + JoinDialog.REFINE_AUTO_ALIGNMENT_TEXT + "\n" + except.getMessage(),
+          "SystemProcessException", AxisID.ONLY);
       joinDialog.enableMidas();
-      return; 
+      return;
     }
     mainPanel.startProgressBar("Refine xfalign", AxisID.ONLY);
   }
-  
+
   private boolean copyMostRecentXfFile(String commandDescription) {
     String rootName = metaData.getRootName();
     String xfFileName = rootName + ".xf";
-    File newXfFile = Utilities.mostRecentFile(xfFileName, rootName
+    File newXfFile = Utilities.mostRecentFile(propertyUserDir, xfFileName, rootName
         + MidasParam.getOutputFileExtension(), rootName
         + XfalignParam.getOutputFileExtension(), rootName + "_empty.xf");
     //If the most recent .xf file is not root.xf, copy it to root.xf
@@ -738,7 +743,7 @@ public class JoinManager extends BaseManager {
     if (!updateMetaDataFromJoinDialog(AxisID.ONLY)) {
       return;
     }
-    FinishjoinParam finishjoinParam = new FinishjoinParam(metaData, mode);
+    FinishjoinParam finishjoinParam = new FinishjoinParam(this, mode);
     if (!copyMostRecentXfFile(buttonText)) {
       return;
     }
@@ -827,7 +832,7 @@ public class JoinManager extends BaseManager {
     
   }
   
-  public ConstJoinMetaData getMetaData() {
+  public ConstJoinMetaData getConstMetaData() {
     return (ConstJoinMetaData) metaData;
   }
   

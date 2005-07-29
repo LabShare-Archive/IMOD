@@ -24,6 +24,10 @@ import etomo.util.MRCHeader;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.3  2005/06/20 16:46:56  sueh
+* <p> bug# 522 Made MRCHeader an n'ton.  Getting instance instead of
+* <p> constructing in calcFileSize().
+* <p>
 * <p> Revision 1.2  2005/04/25 20:48:19  sueh
 * <p> bug# 615 Passing the axis where a command originates to the message
 * <p> functions so that the message will be popped up in the correct window.
@@ -58,7 +62,8 @@ public class MtffilterProcessMonitor extends FileSizeProcessMonitor {
     // Get the header from the raw stack to calculate the aligned stack stize
     String newstOutputFilename = applicationManager.getPropertyUserDir() + "/"
       + newstParam.getOutputFile();
-    MRCHeader newstOutputHeader = MRCHeader.getInstance(newstOutputFilename, axisID);
+    MRCHeader newstOutputHeader = MRCHeader.getInstance(applicationManager
+        .getPropertyUserDir(), newstOutputFilename, axisID);
     newstOutputHeader.read();
     nX = newstOutputHeader.getNRows();
     nY = newstOutputHeader.getNColumns();
@@ -90,8 +95,8 @@ public class MtffilterProcessMonitor extends FileSizeProcessMonitor {
     // the input file 
     long fileSize = 1024 + nX * nY * nZ * modeBytes;
     nKBytes = (int) (fileSize / 1024);
-    applicationManager.getMainPanel()
-      .setProgressBar("Running MTF filter", nKBytes, axisID);
+    applicationManager.getMainPanel().setProgressBar("Running MTF filter",
+        nKBytes, axisID);
 
     // Create a file object describing the file to be monitored
     comScriptManager.loadMTFFilter(axisID);

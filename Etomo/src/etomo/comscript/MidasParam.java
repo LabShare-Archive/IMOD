@@ -4,7 +4,7 @@ import java.io.File;
 import java.util.ArrayList;
 
 import etomo.BaseManager;
-import etomo.EtomoDirector;
+import etomo.JoinManager;
 import etomo.process.SystemProgram;
 import etomo.type.AxisID;
 import etomo.type.ConstJoinMetaData;
@@ -25,6 +25,11 @@ import etomo.type.SectionTableRowData;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.5  2005/04/25 20:40:31  sueh
+* <p> bug# 615 Passing the axis where a command originates to the message
+* <p> functions so that the message will be popped up in the correct window.
+* <p> This requires adding AxisID to many objects.
+* <p>
 * <p> Revision 1.4  2005/01/08 01:39:53  sueh
 * <p> bug# 578 Updated Command interface.
 * <p>
@@ -77,11 +82,13 @@ public class MidasParam implements Command {
   private String rootName = null;
   private String outputFileName = null;
   private AxisID axisID;
+  private final BaseManager manager;
   
-  public MidasParam(ConstJoinMetaData metaData, AxisID axisID) {
-    this.metaData = metaData;
+  public MidasParam(JoinManager manager, AxisID axisID) {
+    this.manager = manager;
+    metaData = manager.getConstMetaData();
     this.axisID = axisID;
-    workingDir = EtomoDirector.getInstance().getCurrentPropertyUserDir();
+    workingDir = manager.getPropertyUserDir();
     rootName = metaData.getRootName();
     outputFileName = rootName + outputFileExtension;
     outputFile = new File(workingDir, outputFileName);
@@ -91,7 +98,8 @@ public class MidasParam implements Command {
     for (int i = 0; i < options.size(); i++) {
       commandArray[i + commandSize] = (String) options.get(i);
     }
-    program = new SystemProgram(commandArray, axisID);
+    program = new SystemProgram(manager.getPropertyUserDir(), commandArray,
+        axisID);
     program.setWorkingDirectory(new File(workingDir));
   }
   

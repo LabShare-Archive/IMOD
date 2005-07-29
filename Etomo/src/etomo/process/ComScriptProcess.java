@@ -19,6 +19,11 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.24  2005/07/26 18:42:07  sueh
+ * bug# 701 Added a ProcessMonitor member variable.  Added a
+ * ProcessendState member variable for when the ProcessMonitor variable
+ * is null.
+ *
  * Revision 3.23  2005/07/11 22:44:20  sueh
  * bug#  619 Added isKilled() so Etomo can respond differently to a
  * process that was killed by the user then it does to a process that ended
@@ -297,6 +302,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 
 import etomo.ApplicationManager;
+import etomo.BaseManager;
 import etomo.comscript.Command;
 import etomo.type.AxisID;
 import etomo.type.ProcessEndState;
@@ -331,12 +337,12 @@ public class ComScriptProcess
   private boolean error = false;
   private final ProcessMonitor processMonitor;
   private ProcessEndState endState = null;//used when processMonitor is null
+  protected final BaseManager manager;
 
-  public ComScriptProcess(
-    String comScript,
-    BaseProcessManager processManager,
-      AxisID axisID,
-      String watchedFileName, ProcessMonitor processMonitor) {
+  public ComScriptProcess(BaseManager manager, String comScript,
+      BaseProcessManager processManager, AxisID axisID, String watchedFileName,
+      ProcessMonitor processMonitor) {
+    this.manager = manager;
     this.name = comScript;
     this.processManager = processManager;
     cshProcessID = new StringBuffer("");
@@ -344,20 +350,19 @@ public class ComScriptProcess
     this.watchedFileName = watchedFileName;
     this.processMonitor = processMonitor;
   }
-  
-  public ComScriptProcess(
-      Command comScriptCommand,
-      BaseProcessManager processManager,
-        AxisID axisID,
-        String watchedFileName, ProcessMonitor processMonitor) {
-      this.name = comScriptCommand.getCommandLine();
-      this.processManager = processManager;
-      cshProcessID = new StringBuffer("");
-      this.axisID = axisID;
-      this.watchedFileName = watchedFileName;
-      command = comScriptCommand;
-      this.processMonitor = processMonitor;
-    }
+
+  public ComScriptProcess(BaseManager manager, Command comScriptCommand,
+      BaseProcessManager processManager, AxisID axisID, String watchedFileName,
+      ProcessMonitor processMonitor) {
+    this.manager = manager;
+    this.name = comScriptCommand.getCommandLine();
+    this.processManager = processManager;
+    cshProcessID = new StringBuffer("");
+    this.axisID = axisID;
+    this.watchedFileName = watchedFileName;
+    command = comScriptCommand;
+    this.processMonitor = processMonitor;
+  }
 
   /**
    * Set the working directory in which the com script is to be run.
@@ -375,7 +380,7 @@ public class ComScriptProcess
     if (demoMode) {
       try {
         started = true;
-        csh = new SystemProgram("nothing", axisID);
+        csh = new SystemProgram(manager.getPropertyUserDir(), "nothing", axisID);
         csh.setExitValue(0);
         sleep(demoTime);
       }
@@ -581,7 +586,7 @@ public class ComScriptProcess
     // Do not use the -e flag for tcsh since David's scripts handle the failure 
     // of commands and then report appropriately.  The exception to this is the
     // com scripts which require the -e flag.  RJG: 2003-11-06  
-    csh = new SystemProgram("tcsh -ef", axisID);
+    csh = new SystemProgram(manager.getPropertyUserDir(), "tcsh -ef", axisID);
     csh.setWorkingDirectory(workingDirectory);
     csh.setStdInput(commands);
     csh.setDebug(debug);
@@ -609,7 +614,8 @@ public class ComScriptProcess
     String[] comSequence = loadFile();
     String commandLine = ApplicationManager.getIMODBinPath() + "vmstocsh "
         + parseBaseName(name, ".com") + ".log";
-    vmstocsh = new SystemProgram(commandLine, axisID);
+    vmstocsh = new SystemProgram(manager.getPropertyUserDir(), commandLine,
+        axisID);
     vmstocsh.setWorkingDirectory(workingDirectory);
     vmstocsh.setStdInput(comSequence);
     vmstocsh.setDebug(debug);

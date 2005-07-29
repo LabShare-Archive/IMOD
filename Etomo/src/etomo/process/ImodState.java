@@ -4,6 +4,7 @@ package etomo.process;
 import java.util.Vector;
 import java.io.File;
 
+import etomo.BaseManager;
 import etomo.type.AxisID;
 
 /**
@@ -172,6 +173,11 @@ import etomo.type.AxisID;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.25  2005/04/25 20:47:08  sueh
+ * <p> $bug# 615 Passing the axis where a command originates to the message
+ * <p> $functions so that the message will be popped up in the correct window.
+ * <p> $This requires adding AxisID to many objects.
+ * <p> $
  * <p> $Revision 1.24  2005/03/04 00:14:51  sueh
  * <p> $bug# 533 Added setPieceListFileName() to set the -p command line
  * <p> $option in the 3dmod call.
@@ -322,6 +328,7 @@ public class ImodState {
   //initial state information
   boolean initialModeSet = false;
   boolean initialSwapYZSet = false;
+  private final BaseManager manager;
 
   //constructors
   //they can set final state variables
@@ -331,9 +338,10 @@ public class ImodState {
    * Use this constructor to create an instance of ImodProcess using
    * ImodProcess().
    */
-  public ImodState(AxisID axisID) {
+  public ImodState(BaseManager manager, AxisID axisID) {
+    this.manager = manager;
     this.axisID = axisID;
-    process = new ImodProcess(axisID);
+    process = new ImodProcess(manager, axisID);
     reset();
   }
   
@@ -341,9 +349,10 @@ public class ImodState {
    * Use this constructor to create an instance of ImodProcess using
    * ImodProcess() and set either model view or imodv.
    */
-  public ImodState(int modelViewType, AxisID axisID) {
+  public ImodState(BaseManager manager, int modelViewType, AxisID axisID) {
+    this.manager = manager;
     this.axisID = axisID;
-    process = new ImodProcess(axisID);
+    process = new ImodProcess(manager, axisID);
     setModelViewType(modelViewType);
     reset();
   }
@@ -352,10 +361,11 @@ public class ImodState {
    * Use this constructor to create an instance of ImodProcess using
    * ImodProcess(String dataset).
    */
-  public ImodState(String datasetName, AxisID axisID) {
+  public ImodState(BaseManager manager, String datasetName, AxisID axisID) {
+    this.manager = manager;
     this.axisID = axisID;
     this.datasetName = datasetName;
-    process = new ImodProcess(datasetName, axisID);
+    process = new ImodProcess(manager, datasetName, axisID);
     reset();
   }
   
@@ -363,10 +373,12 @@ public class ImodState {
    * Use this constructor to create an instance of ImodProcess using
    * ImodProcess(String dataset) and set either model view or imodv.
    */
-  public ImodState(String datasetName, int modelViewType, AxisID axisID) {
+  public ImodState(BaseManager manager, String datasetName, int modelViewType,
+      AxisID axisID) {
+    this.manager = manager;
     this.axisID = axisID;
     this.datasetName = datasetName;
-    process = new ImodProcess(datasetName, axisID);
+    process = new ImodProcess(manager, datasetName, axisID);
     setModelViewType(modelViewType);
     reset();
   }
@@ -376,17 +388,20 @@ public class ImodState {
    * Use this constructor to create an instance of ImodProcess using
    * ImodProcess(String dataset, String model).
    */
-  public ImodState(String datasetName, String modelName, AxisID axisID) {
+  public ImodState(BaseManager manager, String datasetName, String modelName,
+      AxisID axisID) {
+    this.manager = manager;
     this.axisID = axisID;
     this.datasetName = datasetName;
     initialModelName = modelName;
-    process = new ImodProcess(datasetName, modelName);
+    process = new ImodProcess(manager, datasetName, modelName);
     reset();
   }
   
-  public ImodState(File file, AxisID axisID) {
+  public ImodState(BaseManager manager, File file, AxisID axisID) {
+    this.manager = manager;
     this.axisID = axisID;
-    process = new ImodProcess(file.getAbsolutePath(), axisID);
+    process = new ImodProcess(manager, file.getAbsolutePath(), axisID);
     reset();
   }
 
@@ -403,14 +418,16 @@ public class ImodState {
    * ImodProcess("dataseta_fixed.st");
    * ImodProcess("datasetb_fixed.st");
    */
-  public ImodState(AxisID axisID, String datasetName, String datasetExt) {
+  public ImodState(BaseManager manager, AxisID axisID, String datasetName,
+      String datasetExt) {
+    this.manager = manager;
     this.axisID = axisID;
     String axisExtension = axisID.getExtension();
     if (axisExtension == "ERROR") {
       throw new IllegalArgumentException(axisID.toString());
     }
     this.datasetName = datasetName + axisExtension + datasetExt;
-    process = new ImodProcess(this.datasetName, axisID);
+    process = new ImodProcess(manager, this.datasetName, axisID);
     reset();
   }
   
@@ -426,14 +443,10 @@ public class ImodState {
    * ImodProcess("topa.rec mida.rec bota.rec", "tomopitcha.mod");
    * ImodProcess("topb.rec midb.rec botb.rec", "tomopitchb.mod");
    */
-  public ImodState(
-    AxisID tempAxisID,
-    String datasetName1,
-    String datasetName2,
-    String datasetName3,
-    String datasetExt,
-    String modelName,
-    String modelExt) {
+  public ImodState(BaseManager manager, AxisID tempAxisID, String datasetName1,
+      String datasetName2, String datasetName3, String datasetExt,
+      String modelName, String modelExt) {
+    this.manager = manager;
     axisID = tempAxisID;
     String axisExtension = tempAxisID.getExtension();
     if (axisExtension == "ERROR") {
@@ -445,7 +458,7 @@ public class ImodState {
     datasetName = datasetNameArray[0] + " " + datasetNameArray[1] + " "
         + datasetNameArray[2];
     initialModelName = modelName + axisExtension + modelExt;
-    process = new ImodProcess(datasetNameArray, modelName);
+    process = new ImodProcess(manager, datasetNameArray, modelName);
     reset();
   }
 

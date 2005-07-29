@@ -3,7 +3,7 @@ package etomo.type;
 import java.io.File;
 import java.util.Properties;
 
-import etomo.EtomoDirector;
+import etomo.ApplicationManager;
 import etomo.comscript.ConstCombineParams;
 import etomo.comscript.CombineParams;
 import etomo.comscript.SqueezevolParam;
@@ -28,6 +28,8 @@ public abstract class ConstMetaData extends BaseMetaData {
 
   private static final String latestRevisionNumber = "1.7";
   private static final String newTomogramTitle = "Setup Tomogram";
+  
+  private final ApplicationManager manager;
   
   protected String datasetName = "";
   protected String backupDirectory = "";
@@ -71,16 +73,22 @@ public abstract class ConstMetaData extends BaseMetaData {
 
   protected boolean comScriptsCreated = false;
 
-  protected CombineParams combineParams = new CombineParams();
-  protected TrimvolParam trimvolParam = new TrimvolParam();
-  protected SqueezevolParam squeezevolParam = new SqueezevolParam();
-  protected TransferfidParam transferfidParamA = new TransferfidParam(AxisID.FIRST);
-  protected TransferfidParam transferfidParamB = new TransferfidParam(AxisID.SECOND);
+  protected CombineParams combineParams;
+  protected final TrimvolParam trimvolParam;
+  protected final SqueezevolParam squeezevolParam;
+  protected final TransferfidParam transferfidParamA;
+  protected final TransferfidParam transferfidParamB;
 
   public abstract void load(Properties props);
   public abstract void load(Properties props, String prepend);
     
-  public ConstMetaData() {
+  public ConstMetaData(ApplicationManager manager) {
+    this.manager = manager;
+    squeezevolParam = new SqueezevolParam(manager);
+    combineParams = new CombineParams(manager);
+    trimvolParam = new TrimvolParam(manager.getPropertyUserDir());
+    transferfidParamA = new TransferfidParam(manager, AxisID.FIRST);
+    transferfidParamB = new TransferfidParam(manager, AxisID.SECOND);
     fileExtension = ".edf";
     useZFactorsA.setDisplayValue(true);
     useZFactorsB.setDisplayValue(true);
@@ -364,7 +372,7 @@ public abstract class ConstMetaData extends BaseMetaData {
       return false;
     }
     if (paramFile == null) {
-      if (getValidDatasetDirectory(EtomoDirector.getInstance().getCurrentPropertyUserDir()) != null) {
+      if (getValidDatasetDirectory(manager.getPropertyUserDir()) != null) {
         return true;
       }
     }
@@ -611,6 +619,12 @@ public abstract class ConstMetaData extends BaseMetaData {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.25  2005/06/10 23:24:38  sueh
+ * <p> bug# 583, bug# 677, bug# 584, bug# 679, bug# 683  Storing
+ * <p> screen binning for Tomo Pos and Tomo Gen in MetaData separately.
+ * <p> Added member variables:  tomoGenBinningA, tomoGenBinningB,
+ * <p> tomoPosBinningA, tomoPosBinningB.
+ * <p>
  * <p> Revision 3.24  2005/04/07 21:58:02  sueh
  * <p> bug# 626 Added isDistortionCorrection(), which returns true if magGradient
  * <p> or image distortion files are set.

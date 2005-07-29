@@ -4,7 +4,7 @@ import java.io.File;
 import java.util.ArrayList;
 
 import etomo.BaseManager;
-import etomo.EtomoDirector;
+import etomo.JoinManager;
 import etomo.type.AxisID;
 import etomo.type.ConstJoinMetaData;
 import etomo.type.ScriptParameter;
@@ -23,6 +23,11 @@ import etomo.type.ScriptParameter;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.9  2005/04/25 20:41:52  sueh
+* <p> bug# 615 Passing the axis where a command originates to the message
+* <p> functions so that the message will be popped up in the correct window.
+* <p> This requires adding AxisID to many objects.
+* <p>
 * <p> Revision 1.8  2005/01/25 21:51:47  sueh
 * <p> Converting EtomoNumbers parameters to ScriptParameters.
 * <p>
@@ -102,11 +107,13 @@ public class XfalignParam implements Command {
   private String outputFileName = null;
   private File outputFile = null;
   private int mode;
+  private final BaseManager manager;
   
-  public XfalignParam(ConstJoinMetaData metaData, int mode) {
-    this.metaData = metaData;
+  public XfalignParam(JoinManager manager, int mode) {
+    this.manager = manager;
+    metaData = manager.getConstMetaData();
     this.mode = mode;
-    workingDir = EtomoDirector.getInstance().getCurrentPropertyUserDir();
+    workingDir = manager.getPropertyUserDir();
     rootName = metaData.getRootName();
     outputFileName = rootName + outputFileExtension;
     outputFile = new File(workingDir, outputFileName);

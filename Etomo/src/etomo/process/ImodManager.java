@@ -6,6 +6,7 @@ import java.util.Set;
 import java.util.Iterator;
 import java.io.File;
 
+import etomo.BaseManager;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.AxisTypeException;
@@ -28,6 +29,17 @@ import etomo.type.ConstMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.31  2005/04/25 20:45:39  sueh
+ * <p> bug# 615 Passing the axis where a command originates to the message
+ * <p> functions so that the message will be popped up in the correct window.
+ * <p> This requires adding AxisID to many objects.  Move the interface for
+ * <p> popping up message dialogs to UIHarness.  It prevents headless
+ * <p> exceptions during a test execution.  It also allows logging of dialog
+ * <p> messages during a test.  It also centralizes the dialog interface and
+ * <p> allows the dialog functions to be synchronized to prevent dialogs popping
+ * <p> up in both windows at once.  All Frame functions will use UIHarness as a
+ * <p> public interface.
+ * <p>
  * <p> Revision 3.30  2005/03/04 00:13:03  sueh
  * <p> bug# 533 Added setPieceListFileName() to set the -p command line
  * <p> option in the 3dmod call.
@@ -393,12 +405,14 @@ public class ImodManager {
   private static final String squeezedVolumeKey = SQUEEZED_VOLUME_KEY;
 
   private boolean useMap = true;
+  private final BaseManager manager;
 
   //constructors
 
   /**
    */
-  public ImodManager() {
+  public ImodManager(BaseManager manager) {
+    this.manager = manager;
     imodMap = new HashMap();
   }
 
@@ -1061,24 +1075,24 @@ public class ImodManager {
   }
 
   protected ImodState newRawStack(AxisID axisID) {
-    ImodState imodState = new ImodState(axisID, datasetName, ".st");
+    ImodState imodState = new ImodState(manager, axisID, datasetName, ".st");
     return imodState;
   }
   protected ImodState newErasedStack(AxisID axisID) {
-    ImodState imodState = new ImodState(axisID, datasetName, "_fixed.st");
+    ImodState imodState = new ImodState(manager, axisID, datasetName, "_fixed.st");
     return imodState;
   }
   protected ImodState newCoarseAligned(AxisID axisID) {
-    ImodState imodState = new ImodState(axisID, datasetName, ".preali");
+    ImodState imodState = new ImodState(manager, axisID, datasetName, ".preali");
     return imodState;
   }
   protected ImodState newFineAligned(AxisID axisID) {
-    ImodState imodState = new ImodState(axisID, datasetName, ".ali");
+    ImodState imodState = new ImodState(manager, axisID, datasetName, ".ali");
     return imodState;
   }
   protected ImodState newSample(AxisID axisID) {
     ImodState imodState =
-      new ImodState(axisID, "top", "mid", "bot",
+      new ImodState(manager, axisID, "top", "mid", "bot",
         ".rec", "tomopitch", ".mod");
     imodState.setInitialMode(ImodState.MODEL_MODE);
     return imodState;
@@ -1086,77 +1100,77 @@ public class ImodManager {
   protected ImodState newFullVolume(AxisID axisID) {
     ImodState imodState;
     if (axisType == AxisType.SINGLE_AXIS) {
-      imodState = new ImodState(datasetName + "_full.rec", axisID);
+      imodState = new ImodState(manager, datasetName + "_full.rec", axisID);
     }
     else {
-      imodState = new ImodState(axisID, datasetName, ".rec");
+      imodState = new ImodState(manager, axisID, datasetName, ".rec");
     }
     imodState.setInitialSwapYZ(true);
     return imodState;
   }
   protected ImodState newCombinedTomogram() {
-    ImodState imodState = new ImodState("sum.rec", AxisID.ONLY);
+    ImodState imodState = new ImodState(manager, "sum.rec", AxisID.ONLY);
     imodState.setInitialSwapYZ(true);
     return imodState;
   }
   protected ImodState newPatchVectorModel() {
-    ImodState imodState = new ImodState("patch_vector.mod",
+    ImodState imodState = new ImodState(manager, "patch_vector.mod",
         ImodState.MODEL_VIEW, AxisID.ONLY);
     imodState.setInitialMode(ImodState.MODEL_MODE);
     return imodState;
   }
   protected ImodState newMatchCheck() {
-    ImodState imodState = new ImodState("matchcheck.mat matchcheck.rec", AxisID.ONLY);
+    ImodState imodState = new ImodState(manager, "matchcheck.mat matchcheck.rec", AxisID.ONLY);
     imodState.setInitialSwapYZ(true);
     return imodState;
   }
   protected ImodState newFiducialModel(AxisID axisID) {
-    ImodState imodState = new ImodState(ImodState.MODV, axisID);
+    ImodState imodState = new ImodState(manager, ImodState.MODV, axisID);
     return imodState;
   }
   protected ImodState newTrimmedVolume() {
-    ImodState imodState = new ImodState(datasetName + ".rec", AxisID.ONLY);
+    ImodState imodState = new ImodState(manager, datasetName + ".rec", AxisID.ONLY);
     return imodState;
   }
   protected ImodState newTrialTomogram(AxisID axisID, String datasetName) {
-    ImodState imodState = new ImodState(datasetName, axisID);
+    ImodState imodState = new ImodState(manager, datasetName, axisID);
     imodState.setInitialSwapYZ(true);
     return imodState;
   }
   protected ImodState newMtfFilter(AxisID axisID) {
-    ImodState imodState = new ImodState(axisID, datasetName, "_filt.ali");
+    ImodState imodState = new ImodState(manager, axisID, datasetName, "_filt.ali");
     return imodState;
   }
   protected ImodState newPreview(AxisID axisID) {
-    ImodState imodState = new ImodState(axisID, datasetName, ".st");
+    ImodState imodState = new ImodState(manager, axisID, datasetName, ".st");
     return imodState;
   }
   protected ImodState newTomogram(File file, AxisID axisID) {
-    ImodState imodState = new ImodState(file, axisID);
+    ImodState imodState = new ImodState(manager, file, axisID);
     return imodState;
   }
   protected ImodState newJoinSamples() {
-    ImodState imodState = new ImodState(datasetName + ".sample", AxisID.ONLY);
+    ImodState imodState = new ImodState(manager, datasetName + ".sample", AxisID.ONLY);
     return imodState;
   }
   protected ImodState newJoinSampleAverages() {
-    ImodState imodState = new ImodState(datasetName + ".sampavg", AxisID.ONLY);
+    ImodState imodState = new ImodState(manager, datasetName + ".sampavg", AxisID.ONLY);
     return imodState;
   }
   protected ImodState newJoin() {
-    ImodState imodState = new ImodState(datasetName + ".join", AxisID.ONLY);
+    ImodState imodState = new ImodState(manager, datasetName + ".join", AxisID.ONLY);
     return imodState;
   }
   protected ImodState newRotTomogram(File file) {
-    ImodState imodState = new ImodState(file, AxisID.ONLY);
+    ImodState imodState = new ImodState(manager, file, AxisID.ONLY);
     return imodState;
   }
   protected ImodState newTrialJoin() {
-    ImodState imodState = new ImodState(datasetName + "_trial.join", AxisID.ONLY);
+    ImodState imodState = new ImodState(manager, datasetName + "_trial.join", AxisID.ONLY);
     return imodState;
   }
   private ImodState newSqueezedVolume() {
-    ImodState imodState = new ImodState(datasetName + ".sqz", AxisID.ONLY);
+    ImodState imodState = new ImodState(manager, datasetName + ".sqz", AxisID.ONLY);
     return imodState;
   }
   

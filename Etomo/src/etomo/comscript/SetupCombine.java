@@ -18,6 +18,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.6  2005/05/10 17:31:32  sueh
+ * bug# 660 Added getWarnings() to get an array of warnings from standard
+ * error.
+ *
  * Revision 3.5  2005/04/25 20:40:46  sueh
  * bug# 615 Passing the axis where a command originates to the message
  * functions so that the message will be popped up in the correct window.
@@ -145,6 +149,7 @@ import java.util.ArrayList;
 import java.util.Vector;
 
 import etomo.ApplicationManager;
+import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.process.SystemProgram;
 import etomo.type.AxisID;
@@ -162,10 +167,11 @@ public class SetupCombine {
   ConstMetaData metaData;
   Vector warningMessage;
   boolean debug;
+  private final BaseManager manager;
 
-  public SetupCombine(ConstMetaData metaData) {
-
-    this.metaData = metaData;
+  public SetupCombine(ApplicationManager manager) {
+    this.manager = manager;
+    metaData = manager.getConstMetaData();
     debug = EtomoDirector.getInstance().isDebug();
 
     //  Create a new SystemProgram object for setupcombine, set the
@@ -175,7 +181,8 @@ public class SetupCombine {
     // com scripts which require the -e flag.  RJG: 2003-11-06  
     commandLine = "tcsh -f " + ApplicationManager.getIMODBinPath()
         + "setupcombine";
-    setupcombine = new SystemProgram(commandLine, AxisID.ONLY);
+    setupcombine = new SystemProgram(manager.getPropertyUserDir(), commandLine,
+        AxisID.ONLY);
     genStdInputSequence();
   }
 

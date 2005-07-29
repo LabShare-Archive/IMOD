@@ -44,6 +44,9 @@ import etomo.util.Utilities;
  * 
  * <p>
  * $Log$
+ * Revision 1.24  2005/07/14 21:55:57  sueh
+ * Fixed bug in parseCommandLine().  Newstuff number parse was wrong.
+ *
  * Revision 1.23  2005/06/21 20:32:26  sueh
  * bug# 671 Setting currentManagerKey after all .edf files on the command
  * line are processed.  Since the first one is set to current and the axis type
@@ -367,7 +370,7 @@ public class EtomoDirector {
     // Otherwise check to see if we can get it from the environment
     String imodDirectoryName = System.getProperty("IMOD_DIR");
     if (imodDirectoryName == null) {
-      imodDirectoryName = Utilities.getEnvironmentVariable("IMOD_DIR",
+      imodDirectoryName = Utilities.getEnvironmentVariable(null, "IMOD_DIR",
           AxisID.ONLY);
       if (imodDirectoryName.equals("")) {
         String[] message = new String[3];
@@ -393,7 +396,7 @@ public class EtomoDirector {
     // Otherwise check to see if we can get it from the environment
     String imodCalibDirectoryName = System.getProperty("IMOD_CALIB_DIR");
     if (imodCalibDirectoryName == null) {
-      imodCalibDirectoryName = Utilities.getEnvironmentVariable(
+      imodCalibDirectoryName = Utilities.getEnvironmentVariable(null,
           "IMOD_CALIB_DIR", AxisID.ONLY);
       if (!imodCalibDirectoryName.equals("")) {
         if (debug) {
@@ -434,40 +437,29 @@ public class EtomoDirector {
     setUserPreferences();
   }
 
-  public BaseManager getCurrentManager() {
+  /**
+   * Gets the current manager.  It is important that
+   * this function remain package level because the current manager changes when
+   * the user switches tabs, which would change the functionality of code
+   * executed after a process is finished.
+   * @return the current manager
+   */
+  BaseManager getCurrentManager() {
     if (currentManagerKey == null) {
       throw new IllegalStateException("No current manager");
     }
     return (BaseManager) managerList.get(currentManagerKey);
   }
-  
-  public ApplicationManager getCurrentReconManager() {
-    if (currentManagerKey == null) {
-      throw new IllegalStateException("No current manager");
-    }
-    BaseManager manager = (BaseManager) managerList.get(currentManagerKey);
-    if (manager instanceof ApplicationManager) {
-      return (ApplicationManager) manager;
-    }
-    throw new IllegalStateException("Wrong type of current manager requested.");
-  }
-  
-  public String getCurrentName() {
-    if (currentManagerKey == null) {
-      throw new IllegalStateException("No current manager");
-    }
-    return ((BaseManager) managerList.get(currentManagerKey))
-        .getBaseMetaData().getName();
-  }
-  
-  public String getCurrentPropertyUserDir() {
-    if (currentManagerKey == null) {
-      return System.getProperty("user.dir");
-    }
-    return ((BaseManager) managerList.get(currentManagerKey)).getPropertyUserDir();
-  }
-  
-  public String setCurrentPropertyUserDir(String propertyUserDir) {
+
+  /**
+   * Sets the property user dir for the current manager.  It is important that
+   * this function remain package level because the current manager changes when
+   * the user switches tabs, which would change the functionality of code
+   * executed after a process is finished.  Used only by test.
+   * @param propertyUserDir
+   * @return the old property user dir
+   */
+  String setCurrentPropertyUserDir(String propertyUserDir) {
     if (currentManagerKey == null) {
       return System.setProperty("user.dir", propertyUserDir);
     }

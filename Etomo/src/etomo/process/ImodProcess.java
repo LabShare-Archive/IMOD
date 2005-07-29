@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Vector;
 
 import etomo.ApplicationManager;
+import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.type.AxisID;
 
@@ -24,6 +25,11 @@ import etomo.type.AxisID;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.24  2005/04/25 20:46:30  sueh
+ * <p> bug# 615 Passing the axis where a command originates to the message
+ * <p> functions so that the message will be popped up in the correct window.
+ * <p> This requires adding AxisID to many objects.
+ * <p>
  * <p> Revision 3.23  2005/03/04 00:14:40  sueh
  * <p> bug# 533 Added setPieceListFileName() to set the -p command line
  * <p> option in the 3dmod call.
@@ -260,12 +266,14 @@ public class ImodProcess {
   private AxisID axisID;
 
   private Thread imodThread;
+  private final BaseManager manager;
 
   /**
    * Constructor for using imodv
    * 
    */
-  public ImodProcess(AxisID axisID) {
+  public ImodProcess(BaseManager manager, AxisID axisID) {
+    this.manager = manager;
     this.axisID = axisID;
   }
 
@@ -274,7 +282,8 @@ public class ImodProcess {
    * 
    * @param A string specifying the path to the projection stack file
    */
-  public ImodProcess(String dataset, AxisID axisID) {
+  public ImodProcess(BaseManager manager, String dataset, AxisID axisID) {
+    this.manager = manager;
     this.axisID = axisID;
     datasetName = dataset;
   }
@@ -285,7 +294,8 @@ public class ImodProcess {
    * @param dataset A string specifying the path to the projection stack file
    * @param model A string specifying the path to the IMOD model file
    */
-  public ImodProcess(String dataset, String model) {
+  public ImodProcess(BaseManager manager, String dataset, String model) {
+    this.manager = manager;
     datasetName = dataset;
     modelName = model;
   }
@@ -296,7 +306,8 @@ public class ImodProcess {
    * @param datasetArray A string array specifying the path to the projection stack file
    * @param model A string specifying the path to the IMOD model file
    */
-  public ImodProcess(String[] datasetArray, String model) {
+  public ImodProcess(BaseManager manager, String[] datasetArray, String model) {
+    this.manager = manager;
     datasetNameArray = datasetArray;
     modelName = model;
   }
@@ -419,7 +430,7 @@ public class ImodProcess {
     if (EtomoDirector.getInstance().isDebug()) {
       System.err.println();
     }
-    imod = new InteractiveSystemProgram(commandArray, axisID);
+    imod = new InteractiveSystemProgram(manager, commandArray, axisID);
     if (workingDirectory != null) {
       imod.setWorkingDirectory(workingDirectory);
     }
@@ -778,7 +789,7 @@ public class ImodProcess {
       System.err.print(command);
     }
     InteractiveSystemProgram imodSendEvent = new InteractiveSystemProgram(
-      command, axisID);
+        manager, command, axisID);
 
     //  Start the imodSendEvent program thread and wait for it to finish
     Thread sendEventThread = new Thread(imodSendEvent);

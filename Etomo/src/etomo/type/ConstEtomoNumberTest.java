@@ -5,7 +5,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 
-import etomo.EtomoDirector;
+import etomo.EtomoDirectorTestHarness;
 import etomo.storage.ParameterStore;
 import etomo.storage.Storable;
 import junit.framework.TestCase;
@@ -35,8 +35,9 @@ public class ConstEtomoNumberTest extends TestCase {
   private static final int bigInteger = 999999999;
   private static final int smallInteger = -999999999;
 
-  private File testDir = new File(new File(EtomoDirector.getInstance()
-      .getCurrentPropertyUserDir(), TypeTests.testRoot), "ConstEtomoNumber");
+  private File testDir = new File(new File(EtomoDirectorTestHarness
+      .getCurrentManager().getPropertyUserDir(), TypeTests.testRoot),
+      "ConstEtomoNumber");
   private File propertiesFile = new File(testDir, "properties");
 
   /*
@@ -950,6 +951,9 @@ public class ConstEtomoNumberTest extends TestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.10  2005/07/26 23:00:21  sueh
+ * <p> bug# 692
+ * <p>
  * <p> Revision 1.9  2005/07/21 22:01:11  sueh
  * <p> bug# 532 Added validFloor.  Keepting tests up to date
  * <p>

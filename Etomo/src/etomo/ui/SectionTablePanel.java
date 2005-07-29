@@ -51,6 +51,11 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.11  2005/07/20 17:54:05  sueh
+* <p> bug# 705 Stop printing the stack trace for IOException bugs coming from
+* <p> MRCHeader, because its filling up the error log with exceptions that are
+* <p> related to real problems.
+* <p>
 * <p> Revision 1.10  2005/07/06 23:46:35  sueh
 * <p> bug# 619 Removed DoubleSpacedPanel and FormattedPanel.  Placed
 * <p> their functionality in SpacedPanel.  Simplified the construction of
@@ -869,7 +874,9 @@ public class SectionTablePanel implements ContextMenu, Expandable {
       if (isDuplicate(tomogram)) {
         return;
       }
-      MRCHeader header = MRCHeader.getInstance(tomogram.getAbsolutePath(), AxisID.ONLY);
+      MRCHeader header = MRCHeader.getInstance(
+          joinManager.getPropertyUserDir(), tomogram.getAbsolutePath(),
+          AxisID.ONLY);
       if (!readHeader(header)) {
         return;
       }
@@ -964,7 +971,8 @@ public class SectionTablePanel implements ContextMenu, Expandable {
           tomogram.getAbsolutePath() + " is not a file.", "File Error", AxisID.ONLY);
       return;
     }
-    MRCHeader header = MRCHeader.getInstance(tomogram.getAbsolutePath(), AxisID.ONLY);
+    MRCHeader header = MRCHeader.getInstance(joinManager.getPropertyUserDir(),
+        tomogram.getAbsolutePath(), AxisID.ONLY);
     try {
       header.read();
     }
@@ -1046,7 +1054,8 @@ public class SectionTablePanel implements ContextMenu, Expandable {
     File sectionFile = row.getSectionFile();
     //if join tab, open .rot file, if it exists and is listed in .info file
     if (curTab == JoinDialog.JOIN_TAB) {
-      JoinInfoFile infoFile = new JoinInfoFile(joinDialog.getRootName());
+      JoinInfoFile infoFile = new JoinInfoFile(
+          joinManager.getPropertyUserDir(), joinDialog.getRootName());
       if (infoFile.read(rows.size())) {
         String infoFileSectionName = infoFile.getFileName(rowIndex);
         if (infoFileSectionName.substring(infoFileSectionName.lastIndexOf("."))

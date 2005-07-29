@@ -1,7 +1,7 @@
 package etomo.process;
 import java.io.*;
 
-import etomo.EtomoDirector;
+import etomo.BaseManager;
 import etomo.comscript.Command;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
@@ -21,6 +21,11 @@ import etomo.type.EtomoNumber;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.4  2005/04/25 20:47:39  sueh
+ * <p> bug# 615 Passing the axis where a command originates to the message
+ * <p> functions so that the message will be popped up in the correct window.
+ * <p> This requires adding AxisID to many objects.
+ * <p>
  * <p> Revision 3.3  2005/01/08 01:48:02  sueh
  * <p> bug# 578 Command interface has changed - update calls.
  * <p>
@@ -85,6 +90,7 @@ public class InteractiveSystemProgram implements Runnable {
   private BaseProcessManager processManager = null;
   private String threadName = null;
   private EtomoNumber outputFileLastModified = new EtomoNumber(EtomoNumber.LONG_TYPE, "");
+  private final BaseManager manager;
   
   /**
    * The exit value of the command
@@ -115,7 +121,8 @@ public class InteractiveSystemProgram implements Runnable {
    * argument <i>command</i>
    * @param command The string containng the command to run
    */
-  public InteractiveSystemProgram(String command, AxisID axisID) {
+  public InteractiveSystemProgram(BaseManager manager, String command, AxisID axisID) {
+    this.manager = manager;
     this.axisID = axisID;
     this.command = command;
   }
@@ -125,13 +132,15 @@ public class InteractiveSystemProgram implements Runnable {
    * argument <i>command</i>
    * @param command The string containng the command to run
    */
-  public InteractiveSystemProgram(String[] commandArray, AxisID axisID) {
+  public InteractiveSystemProgram(BaseManager manager, String[] commandArray, AxisID axisID) {
+    this.manager = manager;
     this.axisID = axisID;
     this.commandArray = commandArray;
   }
   
-  public InteractiveSystemProgram(Command commandParam,
+  public InteractiveSystemProgram(BaseManager manager, Command commandParam,
       BaseProcessManager processManager, AxisID axisID) {
+    this.manager = manager;
     this.axisID = axisID;
     this.processManager = processManager;
     this.commandParam = commandParam;
@@ -185,8 +194,8 @@ public class InteractiveSystemProgram implements Runnable {
     }
     try {
       if (workingDirectory == null) {
-        File currentUserDirectory = new File(EtomoDirector.getInstance()
-            .getCurrentPropertyUserDir());
+        File currentUserDirectory = new File(manager
+            .getPropertyUserDir());
         if (commandArray != null) {
           process = Runtime.getRuntime().exec(commandArray, null,
               currentUserDirectory);

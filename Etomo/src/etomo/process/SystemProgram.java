@@ -17,6 +17,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.16  2005/06/21 00:45:52  sueh
+ * <p> bug# 522 Fixed debug message which didn't show the space between
+ * <p> each element of the commandArray.
+ * <p>
  * <p> Revision 3.15  2005/05/10 17:36:04  sueh
  * <p> bug# 660 Added comment.
  * <p>
@@ -172,7 +176,6 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
 
-import etomo.EtomoDirector;
 import etomo.type.AxisID;
 
 
@@ -193,6 +196,7 @@ public class SystemProgram implements Runnable {
   private ArrayList warningList = new ArrayList();
   private Date runTimestamp = null;
   private AxisID axisID;
+  private final String propertyUserDir;
 
   /**
    * Creates a SystemProgram object to execute the program specified by the
@@ -204,7 +208,8 @@ public class SystemProgram implements Runnable {
    * that SystemProgram(String[] arg) for be used so that spaces are not
    * accidentally lost in path or arguments. 
    */
-  public SystemProgram(String command, AxisID axisID) {
+  public SystemProgram(String propertyUserDir, String command, AxisID axisID) {
+    this.propertyUserDir = propertyUserDir;
     this.axisID = axisID;
     commandArray = command.split("\\s+");
   }
@@ -216,7 +221,8 @@ public class SystemProgram implements Runnable {
    *  run.
    * 	
    */
-  public SystemProgram(String[] cmdArray, AxisID axisID) {
+  public SystemProgram(String propertyUserDir, String[] cmdArray, AxisID axisID) {
+    this.propertyUserDir = propertyUserDir;
     this.axisID = axisID;
     commandArray = cmdArray;
   }
@@ -234,7 +240,9 @@ public class SystemProgram implements Runnable {
    * that SystemProgram(String[] arg) for be used so that spaces are not
    * accidentally lost in path or arguments. 
    */
-  public SystemProgram(String command, String[] programInput, AxisID axisID) {
+  public SystemProgram(String propertyUserDir, String command,
+      String[] programInput, AxisID axisID) {
+    this.propertyUserDir = propertyUserDir;
     this.axisID = axisID;
 		commandArray = command.split("\\s+");
     stdInput = programInput;
@@ -272,9 +280,8 @@ public class SystemProgram implements Runnable {
       System.err.print("SystemProgram: working directory: ");
       if (workingDirectory == null) {
         System.err.println("null");
-        System.err.println(
-          "SystemProgram: using current user.dir "
-            + EtomoDirector.getInstance().getCurrentPropertyUserDir());
+        System.err.println("SystemProgram: using current user.dir "
+            + propertyUserDir);
       }
       else {
         System.err.println(workingDirectory.getAbsoluteFile());
@@ -287,11 +294,16 @@ public class SystemProgram implements Runnable {
       if (debug)
         System.err.print("SystemProgram: Exec'ing process...");
 
-      if (workingDirectory == null) {
-        workingDirectory = new File(EtomoDirector.getInstance().getCurrentPropertyUserDir());
+      if (workingDirectory == null && propertyUserDir != null && propertyUserDir.matches("\\S+")) {
+        workingDirectory = new File(propertyUserDir);
       }
       runTimestamp = new Date();
-      process = Runtime.getRuntime().exec(commandArray, null, workingDirectory);
+      if (workingDirectory == null) {
+        process = Runtime.getRuntime().exec(commandArray, null);
+      }
+      else {
+        process = Runtime.getRuntime().exec(commandArray, null, workingDirectory);
+      }
       waitForProcess();
       if (debug)
         System.err.println("returned, process started");

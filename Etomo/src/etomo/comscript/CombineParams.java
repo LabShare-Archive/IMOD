@@ -3,6 +3,7 @@ package etomo.comscript;
 import java.io.IOException;
 import java.util.Properties;
 
+import etomo.BaseManager;
 import etomo.storage.Storable;
 import etomo.type.AxisID;
 import etomo.type.CombinePatchSize;
@@ -23,6 +24,10 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.5  2005/06/20 16:40:15  sueh
+ * <p> bug# 522 Made MRCHeader an n'ton.  Getting instance instead of
+ * <p> constructing in setDefaultPatchBoundardies().
+ * <p>
  * <p> Revision 3.4  2005/04/25 20:35:19  sueh
  * <p> bug# 615 Passing the axis where the command originated to the message
  * <p> functions so that the message will be popped up in the correct window.
@@ -94,20 +99,20 @@ import etomo.util.MRCHeader;
  */
 
 public class CombineParams extends ConstCombineParams implements Storable {
-  public static final String rcsid =
-    "$Id$";
+  public static final String rcsid = "$Id$";
 
   /**
    * Default constructor
    */
-  public CombineParams() {
-    super();
+  public CombineParams(BaseManager manager) {
+    super(manager);
   }
 
   /**
    * Copy constructor
    */
   public CombineParams(ConstCombineParams src) {
+    super(src);
     matchBtoA = src.matchBtoA;
     fiducialMatch = src.fiducialMatch;
     fiducialMatchListA = new StringList(src.fiducialMatchListA);
@@ -134,7 +139,8 @@ public class CombineParams extends ConstCombineParams implements Storable {
 
   public void setFiducialMatch(FiducialMatch match) {
     fiducialMatch = match;
-    if (match == FiducialMatch.USE_MODEL || match == FiducialMatch.USE_MODEL_ONLY) {
+    if (match == FiducialMatch.USE_MODEL
+        || match == FiducialMatch.USE_MODEL_ONLY) {
       modelBased = true;
     }
     else {
@@ -166,7 +172,7 @@ public class CombineParams extends ConstCombineParams implements Storable {
   public void setDefaultPatchRegionModel() {
     patchRegionModel = ConstMatchorwarpParam.getDefaultPatchRegionModel();
   }
-  
+
   /**
    * Sets the patchXMax.
    * @param patchXMax The patchXMax to set
@@ -214,7 +220,7 @@ public class CombineParams extends ConstCombineParams implements Storable {
   public void setPatchZMin(int patchZMin) {
     this.patchZMin = patchZMin;
   }
-  
+
   public void setMaxPatchZMax(int maxPatchZMax) {
     this.maxPatchZMax = maxPatchZMax;
   }
@@ -253,6 +259,7 @@ public class CombineParams extends ConstCombineParams implements Storable {
   public void store(Properties props) {
     store(props, "");
   }
+
   public void store(Properties props, String prepend) {
     String group;
     if (prepend == "") {
@@ -264,12 +271,10 @@ public class CombineParams extends ConstCombineParams implements Storable {
     props.setProperty(group + "RevisionNumber", revisionNumber);
     props.setProperty(group + "MatchBtoA", String.valueOf(matchBtoA));
     props.setProperty(group + "FiducialMatch", fiducialMatch.toString());
-    props.setProperty(
-      group + "FiducialMatchListA",
-      fiducialMatchListA.toString());
-    props.setProperty(
-      group + "FiducialMatchListB",
-      fiducialMatchListB.toString());
+    props.setProperty(group + "FiducialMatchListA", fiducialMatchListA
+        .toString());
+    props.setProperty(group + "FiducialMatchListB", fiducialMatchListB
+        .toString());
     props.setProperty(group + "PatchSize", patchSize.toString());
     props.setProperty(group + "PatchBoundaryXMin", String.valueOf(patchXMin));
     props.setProperty(group + "PatchBoundaryXMax", String.valueOf(patchXMax));
@@ -281,9 +286,8 @@ public class CombineParams extends ConstCombineParams implements Storable {
     props.setProperty(group + "TempDirectory", tempDirectory);
     props.setProperty(group + "ManualCleanup", String.valueOf(manualCleanup));
     props.setProperty(group + "ModelBased", String.valueOf(modelBased));
-    props.setProperty(
-      group + "MaxPatchBoundaryZMax",
-      String.valueOf(maxPatchZMax));
+    props.setProperty(group + "MaxPatchBoundaryZMax", String
+        .valueOf(maxPatchZMax));
   }
 
   /**
@@ -292,6 +296,7 @@ public class CombineParams extends ConstCombineParams implements Storable {
   public void load(Properties props) {
     load(props, "");
   }
+
   public void load(Properties props, String prepend) {
     String group;
     if (prepend == "") {
@@ -306,99 +311,62 @@ public class CombineParams extends ConstCombineParams implements Storable {
 
     revisionNumber = props.getProperty(group + "RevisionNumber", "1.0");
 
-    matchBtoA =
-      Boolean
-        .valueOf(
-          props.getProperty(group + "MatchBtoA", Boolean.toString(matchBtoA)))
+    matchBtoA = Boolean.valueOf(
+        props.getProperty(group + "MatchBtoA", Boolean.toString(matchBtoA)))
         .booleanValue();
 
-    fiducialMatch =
-      FiducialMatch.fromString(
-        props.getProperty(group + "FiducialMatch", fiducialMatch.toString()));
+    fiducialMatch = FiducialMatch.fromString(props.getProperty(group
+        + "FiducialMatch", fiducialMatch.toString()));
 
-    fiducialMatchListA.parseString(
-      props.getProperty(
-        group + "FiducialMatchListA",
-        fiducialMatchListA.toString()));
+    fiducialMatchListA.parseString(props.getProperty(group
+        + "FiducialMatchListA", fiducialMatchListA.toString()));
 
-    fiducialMatchListB.parseString(
-      props.getProperty(
-        group + "FiducialMatchListB",
-        fiducialMatchListB.toString()));
+    fiducialMatchListB.parseString(props.getProperty(group
+        + "FiducialMatchListB", fiducialMatchListB.toString()));
 
-    patchSize =
-      CombinePatchSize.fromString(
-        props.getProperty(group + "PatchSize", patchSize.toString()));
+    patchSize = CombinePatchSize.fromString(props.getProperty(group
+        + "PatchSize", patchSize.toString()));
 
-    patchRegionModel =
-      props.getProperty(group + "PatchRegionModel", patchRegionModel);
+    patchRegionModel = props.getProperty(group + "PatchRegionModel",
+        patchRegionModel);
 
-    patchXMin =
-      Integer.parseInt(
-        props.getProperty(
-          group + "PatchBoundaryXMin",
-          String.valueOf(patchXMin)));
+    patchXMin = Integer.parseInt(props.getProperty(group + "PatchBoundaryXMin",
+        String.valueOf(patchXMin)));
 
-    patchXMax =
-      Integer.parseInt(
-        props.getProperty(
-          group + "PatchBoundaryXMax",
-          String.valueOf(patchXMax)));
+    patchXMax = Integer.parseInt(props.getProperty(group + "PatchBoundaryXMax",
+        String.valueOf(patchXMax)));
 
-    patchYMin =
-      Integer.parseInt(
-        props.getProperty(
-          group + "PatchBoundaryYMin",
-          String.valueOf(patchYMin)));
+    patchYMin = Integer.parseInt(props.getProperty(group + "PatchBoundaryYMin",
+        String.valueOf(patchYMin)));
 
-    patchYMax =
-      Integer.parseInt(
-        props.getProperty(
-          group + "PatchBoundaryYMax",
-          String.valueOf(patchYMax)));
+    patchYMax = Integer.parseInt(props.getProperty(group + "PatchBoundaryYMax",
+        String.valueOf(patchYMax)));
 
-    patchZMin =
-      Integer.parseInt(
-        props.getProperty(
-          group + "PatchBoundaryZMin",
-          String.valueOf(patchZMin)));
+    patchZMin = Integer.parseInt(props.getProperty(group + "PatchBoundaryZMin",
+        String.valueOf(patchZMin)));
 
-    patchZMax =
-      Integer.parseInt(
-        props.getProperty(
-          group + "PatchBoundaryZMax",
-          String.valueOf(patchZMax)));
+    patchZMax = Integer.parseInt(props.getProperty(group + "PatchBoundaryZMax",
+        String.valueOf(patchZMax)));
 
     tempDirectory = props.getProperty(group + "TempDirectory", tempDirectory);
 
-    manualCleanup =
-      Boolean
-        .valueOf(
-          props.getProperty(
-            group + "ManualCleanup",
-            Boolean.toString(manualCleanup)))
+    manualCleanup = Boolean.valueOf(
+        props.getProperty(group + "ManualCleanup", Boolean
+            .toString(manualCleanup))).booleanValue();
+
+    modelBased = Boolean.valueOf(
+        props.getProperty(group + "ModelBased", Boolean.toString(modelBased)))
         .booleanValue();
 
-    modelBased =
-      Boolean
-        .valueOf(
-          props.getProperty(
-            group + "ModelBased",
-            Boolean.toString(modelBased)))
-        .booleanValue();
-        
     if (fiducialMatch == FiducialMatch.USE_MODEL) {
       modelBased = true;
     }
     else {
       modelBased = false;
     }
-    
-    maxPatchZMax =
-      Integer.parseInt(
-        props.getProperty(
-          group + "MaxPatchBoundaryZMax",
-          String.valueOf(maxPatchZMax)));
+
+    maxPatchZMax = Integer.parseInt(props.getProperty(group
+        + "MaxPatchBoundaryZMax", String.valueOf(maxPatchZMax)));
   }
 
   /**
@@ -408,10 +376,11 @@ public class CombineParams extends ConstCombineParams implements Storable {
    * boundaries.
    */
   public void setDefaultPatchBoundaries(String fileName)
-    throws InvalidParameterException, IOException {
+      throws InvalidParameterException, IOException {
 
     // Get the data size limits from the image stack
-    MRCHeader mrcHeader = MRCHeader.getInstance(fileName, AxisID.ONLY);
+    MRCHeader mrcHeader = MRCHeader.getInstance(manager.getPropertyUserDir(),
+        fileName, AxisID.ONLY);
     mrcHeader.read();
 
     // Logic from setupcombine to provide the default border size, the variable

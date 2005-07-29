@@ -11,6 +11,10 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.6  2005/06/20 16:47:22  sueh
+ * <p> bug# 522 Made MRCHeader an n'ton.  Getting instance instead of
+ * <p> constructing in calcFileSize().
+ * <p>
  * <p> Revision 3.5  2005/04/25 20:48:47  sueh
  * <p> bug# 615 Passing the axis where a command originates to the message
  * <p> functions so that the message will be popped up in the correct window.
@@ -85,7 +89,8 @@ public class PrenewstProcessMonitor extends FileSizeProcessMonitor {
     String dataSetPath = applicationManager.getPropertyUserDir() + "/"
       + applicationManager.getMetaData().getDatasetName() + axisID.getExtension();
 
-    MRCHeader rawStack = MRCHeader.getInstance(dataSetPath + ".st", axisID);
+    MRCHeader rawStack = MRCHeader.getInstance(applicationManager
+        .getPropertyUserDir(), dataSetPath + ".st", axisID);
     rawStack.read();
 
     nX = rawStack.getNRows();

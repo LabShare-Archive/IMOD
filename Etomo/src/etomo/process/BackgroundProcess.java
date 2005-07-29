@@ -2,6 +2,7 @@ package etomo.process;
 
 import java.io.File;
 
+import etomo.BaseManager;
 import etomo.comscript.Command;
 import etomo.type.AxisID;
 import etomo.type.ProcessEndState;
@@ -18,6 +19,9 @@ import etomo.type.ProcessEndState;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.8  2005/07/26 17:35:05  sueh
+ * <p> bug# 701 Added ProcessEndState to record how the process ended.
+ * <p>
  * <p> Revision 3.7  2005/05/18 22:34:07  sueh
  * <p> bug# 662 Added member variable boolean forceNextProcess to force
  * <p> BaseManager.startNextProcess() to be run regardless of the value of
@@ -133,15 +137,20 @@ public class BackgroundProcess
   private boolean started = false;
   private boolean done = false;
   private ProcessEndState endState = null;
-
-  public BackgroundProcess(String commandLine, BaseProcessManager processManager, AxisID axisID) {
+  private final BaseManager manager;
+  
+  public BackgroundProcess(BaseManager manager, String commandLine,
+      BaseProcessManager processManager, AxisID axisID) {
+    this.manager = manager;
     this.axisID = axisID;
     this.commandLine = commandLine.trim();
     this.processManager = processManager;
     commandProcessID = new StringBuffer("");
   }
-  
-  public BackgroundProcess(Command command, BaseProcessManager processManager, AxisID axisID) {
+
+  public BackgroundProcess(BaseManager manager, Command command,
+      BaseProcessManager processManager, AxisID axisID) {
+    this.manager = manager;
     this.axisID = axisID;
     this.command = command;
     this.commandArray = command.getCommandArray();
@@ -149,9 +158,10 @@ public class BackgroundProcess
     this.processManager = processManager;
     commandProcessID = new StringBuffer("");
   }
-  
-  public BackgroundProcess(Command command, BaseProcessManager processManager,
-      AxisID axisID, boolean forceNextProcess) {
+
+  public BackgroundProcess(BaseManager manager, Command command,
+      BaseProcessManager processManager, AxisID axisID, boolean forceNextProcess) {
+    this.manager = manager;
     this.axisID = axisID;
     this.command = command;
     this.commandArray = command.getCommandArray();
@@ -160,8 +170,10 @@ public class BackgroundProcess
     this.forceNextProcess = forceNextProcess;
     commandProcessID = new StringBuffer("");
   }
-  
-  public BackgroundProcess(String[] commandArray, BaseProcessManager processManager, AxisID axisID) {
+
+  public BackgroundProcess(BaseManager manager, String[] commandArray,
+      BaseProcessManager processManager, AxisID axisID) {
+    this.manager = manager;
     this.axisID = axisID;
     this.commandArray = commandArray;
     this.processManager = processManager;
@@ -272,13 +284,16 @@ public class BackgroundProcess
     started = true;
     SystemProgram program;
     if (commandArray != null) {
-      program = new SystemProgram(commandArray, axisID);
+      program = new SystemProgram(manager.getPropertyUserDir(), commandArray,
+          axisID);
     }
     else if (command != null) {
-      program = new SystemProgram(command.getCommandArray(), axisID);
+      program = new SystemProgram(manager.getPropertyUserDir(), command
+          .getCommandArray(), axisID);
     }
     else if (commandLine != null) {
-      program = new SystemProgram(commandLine, axisID);
+      program = new SystemProgram(manager.getPropertyUserDir(), commandLine,
+          axisID);
     }
     else {
       processManager.msgBackgroundProcessDone(this, 1);

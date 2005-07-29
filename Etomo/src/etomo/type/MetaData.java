@@ -3,6 +3,7 @@ package etomo.type;
 import java.io.File;
 import java.util.Properties;
 
+import etomo.ApplicationManager;
 import etomo.comscript.CombineParams;
 import etomo.comscript.TransferfidParam;
 
@@ -19,6 +20,10 @@ import etomo.comscript.TransferfidParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.20  2005/06/11 02:42:26  sueh
+ * <p> bug# 583, bug# 584  Storing screen binning for Tomo Pos and Tomo Gen
+ * <p> in MetaData separately (Tomo Pos default is 3).
+ * <p>
  * <p> Revision 3.19  2005/05/10 03:16:51  sueh
  * <p> bug# 659 Default useLocalAlignmentsA and B to true.
  * <p>
@@ -149,8 +154,8 @@ import etomo.comscript.TransferfidParam;
 public class MetaData extends ConstMetaData {
   public static final String rcsid = "$Id$";
   
-  public MetaData() {
-    super();
+  public MetaData(ApplicationManager manager) {
+    super(manager);
     resetToDefault();
   }
 

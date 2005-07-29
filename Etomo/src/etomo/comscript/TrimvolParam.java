@@ -11,6 +11,10 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.8  2005/06/20 16:41:16  sueh
+ * <p> bug# 522 Made MRCHeader an n'ton.  Getting instance instead of
+ * <p> constructing in setDefaultRange().
+ * <p>
  * <p> Revision 3.7  2005/04/25 20:41:32  sueh
  * <p> bug# 615 Passing the axis where a command originates to the message
  * <p> functions so that the message will be popped up in the correct window.
@@ -139,8 +143,10 @@ public class TrimvolParam implements Command {
   private String outputFile = "";
   private String[] commandArray;
   private AxisID axisID;
+  private final String propertyUserDir;
   
-  public TrimvolParam(AxisID axisID) {
+  public TrimvolParam(String propertyUserDir, AxisID axisID) {
+    this.propertyUserDir = propertyUserDir;
     this.axisID = axisID;
   }
   
@@ -302,7 +308,8 @@ public class TrimvolParam implements Command {
     this.convertToBytes = convertToBytes;
   }
 
-  public TrimvolParam() {
+  public TrimvolParam(String propertyUserDir) {
+    this.propertyUserDir = propertyUserDir;
   }
   
   private void createCommand() {
@@ -557,7 +564,7 @@ public class TrimvolParam implements Command {
       return;
     }
     // Get the data size limits from the image stack
-    MRCHeader mrcHeader = MRCHeader.getInstance(fileName, AxisID.ONLY);
+    MRCHeader mrcHeader = MRCHeader.getInstance(propertyUserDir, fileName, AxisID.ONLY);
     mrcHeader.read();
 
     xMin = 1;

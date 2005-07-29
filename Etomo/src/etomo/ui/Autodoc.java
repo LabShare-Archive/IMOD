@@ -304,13 +304,13 @@ public class Autodoc implements AttributeCollection {
 
   private Autodoc(String name, AxisID axisID) {
     fileName = new String(name + fileExt);
-    String dirName = new String(Utilities.getEnvironmentVariable(AUTODOC_DIR,
+    String dirName = new String(Utilities.getEnvironmentVariable(null, AUTODOC_DIR,
         axisID));
     file = new File(dirName, fileName);
     if (file.exists()) {
       return;
     }
-    dirName = new String(Utilities.getEnvironmentVariable(IMOD_DIR, axisID));
+    dirName = new String(Utilities.getEnvironmentVariable(null, IMOD_DIR, axisID));
     File dir = new File(dirName, DEFAULT_AUTODOC_DIR);
     if (dir.exists()) {
       file = new File(dir, fileName);
@@ -367,6 +367,12 @@ public class Autodoc implements AttributeCollection {
 }
 /**
 *<p> $$Log$
+*<p> $Revision 1.15  2005/05/17 19:35:44  sueh
+*<p> $bug# 658 Added getSection(SectionLocation) to return a section based on
+*<p> $SectionLocation.  Added getAttributeValues() to get a HashMap of
+*<p> $attribute values based on section type and attribute name.  This is being
+*<p> $used to get the values of all attributes called "required" in field sections.
+*<p> $
 *<p> $Revision 1.14  2005/05/12 01:30:37  sueh
 *<p> $bug# 658 Added beadtrack.
 *<p> $

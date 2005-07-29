@@ -29,8 +29,10 @@ public class Goodframe {
   private EtomoNumber firstOutput = new EtomoNumber(EtomoNumber.INTEGER_TYPE);
   private EtomoNumber secondOutput = new EtomoNumber(EtomoNumber.INTEGER_TYPE);
   private AxisID axisID;
+  private final String propertyUserDir;
 
-  public Goodframe(AxisID axisID) {
+  public Goodframe(String propertyUserDir, AxisID axisID) {
+    this.propertyUserDir = propertyUserDir;
     this.axisID = axisID;
   }
   /**
@@ -46,7 +48,8 @@ public class Goodframe {
     commandArray[0] = ApplicationManager.getIMODBinPath() + "goodframe";
     commandArray[1] = Integer.toString(firstInput);
     commandArray[2] = Integer.toString(secondInput);
-    SystemProgram groupframe = new SystemProgram(commandArray, axisID);
+    SystemProgram groupframe = new SystemProgram(propertyUserDir, commandArray,
+        axisID);
     groupframe.setDebug(EtomoDirector.getInstance().isDebug());
     groupframe.run();
 
@@ -122,6 +125,9 @@ public class Goodframe {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.3  2005/06/17 20:03:42  sueh
+* <p> bug# 685 Added timestamps to run().
+* <p>
 * <p> Revision 1.2  2005/04/25 21:42:34  sueh
 * <p> bug# 615 Passing the axis where a command originates to the message
 * <p> functions so that the message will be popped up in the correct window.

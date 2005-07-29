@@ -1,13 +1,11 @@
-/*
- * Created on Nov 17, 2003
- *
- * To change the template for this generated file go to
- * Window - Preferences - Java - Code Generation - Code and Comments
- */
 package etomo.process;
 
 import junit.framework.TestCase;
 
+import etomo.ApplicationManager;
+import etomo.BaseManager;
+import etomo.EtomoDirector;
+import etomo.EtomoDirectorTestHarness;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.AxisTypeException;
@@ -39,15 +37,13 @@ public class ImodManagerTest extends TestCase {
   private static final String mtfFilter = "mtf filter";
   private static final String trialTomogram = "trial tomogram";
   private static final String preview = "preview";
+  private final BaseManager manager;
 
   /*
    * @see TestCase#setUp()
    */
   protected void setUp() throws Exception {
     super.setUp();
-    String[] args = new String[1];
-    args[0] = new String("--test");
-    metaData = new MetaData();
   }
 
   /*
@@ -63,6 +59,9 @@ public class ImodManagerTest extends TestCase {
    */
   public ImodManagerTest(String arg0) {
     super(arg0);
+    manager = EtomoDirectorTestHarness.getCurrentManager();
+    EtomoDirector.createInstance(new String[] {"--test"});
+    metaData = new MetaData((ApplicationManager) manager);
   }
 
   //Regression test
@@ -72,7 +71,7 @@ public class ImodManagerTest extends TestCase {
     ImodState tester;
     //Test single axis
     setUpSingle();
-    imodManager = new ImodManager();
+    imodManager = new ImodManager(manager);
     imodManager.setMetaData(metaData);
     //rawStack
     tester = newTester(rawStack);
@@ -145,7 +144,7 @@ public class ImodManagerTest extends TestCase {
         trimmedVolume = new ImodProcess(datasetName + ".rec");
     */
     setUpDual();
-    imodManager = new ImodManager();
+    imodManager = new ImodManager(manager);
     imodManager.setMetaData(metaData);
     AxisID a = AxisID.FIRST;
     AxisID b = AxisID.SECOND;
@@ -264,44 +263,44 @@ public class ImodManagerTest extends TestCase {
           trimmedVolume = new ImodProcess(datasetName + ".rec");
       */
       if (name.equals(rawStack)) {
-        return new ImodState(datasetName + ".st", axisID);
+        return new ImodState(manager, datasetName + ".st", axisID);
       }
       if (name.equals(erasedStack)) {
-        return new ImodState(datasetName + "_fixed.st", axisID);
+        return new ImodState(manager, datasetName + "_fixed.st", axisID);
       }
       if (name.equals(coarseAligned)) {
-        return new ImodState(datasetName + ".preali", axisID);
+        return new ImodState(manager, datasetName + ".preali", axisID);
       }
       if (name.equals(fineAligned)) {
-        return new ImodState(datasetName + ".ali", axisID);
+        return new ImodState(manager, datasetName + ".ali", axisID);
       }
       if (name.equals(sample)) {
-        tester = new ImodState("top.rec mid.rec bot.rec", "tomopitch.mod", axisID);
+        tester = new ImodState(manager, "top.rec mid.rec bot.rec", "tomopitch.mod", axisID);
         tester.setInitialMode(ImodState.MODEL_MODE);
         return tester;
       }
       if (name.equals(fullVolume)) {
-        tester = new ImodState(datasetName + "_full.rec", axisID);
+        tester = new ImodState(manager, datasetName + "_full.rec", axisID);
         tester.setInitialSwapYZ(true);
         return tester;
       }
       if (name.equals(fiducialModel)) {
-        tester = new ImodState(ImodState.MODV, axisID);
+        tester = new ImodState(manager, ImodState.MODV, axisID);
         return tester;
       }
       if (name.equals(trimmedVolume)) {
-        return new ImodState(datasetName + ".rec", axisID);
+        return new ImodState(manager, datasetName + ".rec", axisID);
       }
       if (name.equals(trialTomogram)) {
-        tester = new ImodState(datasetName, axisID);
+        tester = new ImodState(manager, datasetName, axisID);
         tester.setInitialSwapYZ(true);
         return tester;
       }
       if (name.equals(mtfFilter)) {
-        return new ImodState(datasetName + "_filt.ali", axisID);
+        return new ImodState(manager, datasetName + "_filt.ali", axisID);
       }
       if (name.equals(preview)) {
-        return new ImodState(datasetName + ".st", axisID);
+        return new ImodState(manager, datasetName + ".st", axisID);
       }
       return null;
     }
@@ -336,45 +335,45 @@ public class ImodManagerTest extends TestCase {
       */
       if (name == rawStack) {
         if (axisID == AxisID.FIRST) {
-          return new ImodState(datasetName + "a.st", axisID);
+          return new ImodState(manager, datasetName + "a.st", axisID);
         }
         else {
-          return new ImodState(datasetName + "b.st", axisID);
+          return new ImodState(manager, datasetName + "b.st", axisID);
         }
       }
       if (name.equals(erasedStack)) {
         if (axisID == AxisID.FIRST) {
-          return new ImodState(datasetName + "a_fixed.st", axisID);
+          return new ImodState(manager, datasetName + "a_fixed.st", axisID);
         }
         else {
-          return new ImodState(datasetName + "b_fixed.st", axisID);
+          return new ImodState(manager, datasetName + "b_fixed.st", axisID);
         }
       }
       if (name.equals(coarseAligned)) {
         if (axisID == AxisID.FIRST) {
-          return new ImodState(datasetName + "a.preali", axisID);
+          return new ImodState(manager, datasetName + "a.preali", axisID);
         }
         else {
-          return new ImodState(datasetName + "b.preali", axisID);
+          return new ImodState(manager, datasetName + "b.preali", axisID);
         }
       }
       if (name.equals(fineAligned)) {
         if (axisID == AxisID.FIRST) {
-          return new ImodState(datasetName + "a.ali", axisID);
+          return new ImodState(manager, datasetName + "a.ali", axisID);
         }
         else {
-          return new ImodState(datasetName + "b.ali", axisID);
+          return new ImodState(manager, datasetName + "b.ali", axisID);
         }
       }
       if (name.equals(sample)) {
         if (axisID == AxisID.FIRST) {
-          tester = new ImodState("topa.rec mida.rec bota.rec",
+          tester = new ImodState(manager, "topa.rec mida.rec bota.rec",
               "tomopitcha.mod", axisID);
           tester.setInitialMode(ImodState.MODEL_MODE);
           return tester;
         }
         else {
-          tester = new ImodState("topb.rec midb.rec botb.rec",
+          tester = new ImodState(manager, "topb.rec midb.rec botb.rec",
               "tomopitchb.mod", axisID);
           tester.setInitialMode(ImodState.MODEL_MODE);
           return tester;
@@ -382,64 +381,64 @@ public class ImodManagerTest extends TestCase {
       }
       if (name.equals(fullVolume)) {
         if (axisID == AxisID.FIRST) {
-          tester = new ImodState(datasetName + "a.rec", AxisID.ONLY);
+          tester = new ImodState(manager, datasetName + "a.rec", AxisID.ONLY);
           tester.setInitialSwapYZ(true);
           return tester;
         }
         else {
-          tester = new ImodState(datasetName + "b.rec", AxisID.ONLY);
+          tester = new ImodState(manager, datasetName + "b.rec", AxisID.ONLY);
           tester.setInitialSwapYZ(true);
           return tester;
         }
       }
       if (name.equals(combinedTomogram)) {
-        tester = new ImodState("sum.rec", AxisID.ONLY);
+        tester = new ImodState(manager, "sum.rec", AxisID.ONLY);
         tester.setSwapYZ(true);
         return tester;
       }
       if (name.equals(patchVectorModel)) {
-        tester = new ImodState("patch_vector.mod", ImodState.MODEL_VIEW,
+        tester = new ImodState(manager, "patch_vector.mod", ImodState.MODEL_VIEW,
             AxisID.ONLY);
         tester.setInitialMode(ImodState.MODEL_MODE);
         return tester;
       }
       if (name.equals(matchCheck)) {
-        tester = new ImodState("matchcheck.mat matchcheck.rec", AxisID.ONLY);
+        tester = new ImodState(manager, "matchcheck.mat matchcheck.rec", AxisID.ONLY);
         tester.setInitialSwapYZ(true);
         return tester;
       }
       if (name.equals(fiducialModel)) {
         if (axisID == AxisID.FIRST) {
-          tester = new ImodState(ImodState.MODV, axisID);
+          tester = new ImodState(manager, ImodState.MODV, axisID);
           return tester;
         }
         else {
-          tester = new ImodState(ImodState.MODV, axisID);
+          tester = new ImodState(manager, ImodState.MODV, axisID);
           return tester;
         }
       }
       if (name.equals(trimmedVolume)) {
-        return new ImodState(datasetName + ".rec", axisID);
+        return new ImodState(manager, datasetName + ".rec", axisID);
       }
       if (name.equals(trialTomogram)) {
-        tester = new ImodState(datasetName, axisID);
+        tester = new ImodState(manager, datasetName, axisID);
         tester.setInitialSwapYZ(true);
         return tester;
       }
       if (name.equals(mtfFilter)) {
         if (axisID == AxisID.FIRST) {
-          return new ImodState(datasetName + "a_filt.ali", axisID);
+          return new ImodState(manager, datasetName + "a_filt.ali", axisID);
         }
         else {
-          return new ImodState(datasetName + "b_filt.ali", axisID);
+          return new ImodState(manager, datasetName + "b_filt.ali", axisID);
         }
       }
       if (name == preview) {
         if (axisID == AxisID.FIRST) {
-          return new ImodState(datasetName + "a.st", axisID);
+          return new ImodState(manager, datasetName + "a.st", axisID);
         }
         else {
-          return new ImodState(datasetName + "b.st", axisID);
+          return new ImodState(manager, datasetName + "b.st", axisID);
         }
       }
       return null;

@@ -39,18 +39,19 @@ final class PanelHeader implements Expandable {
   private ExpandButton btnAdvancedBasic = null;
   private JSeparator separator = new JSeparator();
   private JPanel openClosePanel = null;
-  private BaseManager manager = EtomoDirector.getInstance().getCurrentManager();
+  private final BaseManager manager;
   private AxisID axisID;
   
-  PanelHeader(AxisID axisID, String title, SpacedPanel openClosePanel) {
-    this(axisID, title, openClosePanel.getJPanel(), null);
+  PanelHeader(BaseManager manager, AxisID axisID, String title, SpacedPanel openClosePanel) {
+    this(manager, axisID, title, openClosePanel.getJPanel(), null);
   }
   
-  PanelHeader(AxisID axisID, String title, SpacedPanel openClosePanel, Expandable container) {
-    this(axisID, title, openClosePanel.getJPanel(), container);
+  PanelHeader(BaseManager manager, AxisID axisID, String title, SpacedPanel openClosePanel, Expandable container) {
+    this(manager, axisID, title, openClosePanel.getJPanel(), container);
   }
   
-  PanelHeader(AxisID axisID, String title, JPanel openClosePanel, Expandable container) {
+  PanelHeader(BaseManager manager, AxisID axisID, String title, JPanel openClosePanel, Expandable container) {
+    this.manager = manager;
     this.openClosePanel = openClosePanel;
     this.axisID = axisID;
     //panels
@@ -136,6 +137,9 @@ final class PanelHeader implements Expandable {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.4  2005/07/19 22:33:43  sueh
+* <p> bug# 532 creating the buttons and hiding them when new stuff is true
+* <p>
 * <p> Revision 1.3  2005/07/11 23:04:59  sueh
 * <p> bug# 619 Attempting to center the separator.
 * <p>

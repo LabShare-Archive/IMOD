@@ -35,6 +35,11 @@ import etomo.type.JoinState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.14  2005/07/06 23:36:29  sueh
+ * <p> bug# 619 Removed DoubleSpacedPanel and FormattedPanel.  Placed
+ * <p> their functionality in SpacedPanel.  Simplified the construction of
+ * <p> SpacedPanel.
+ * <p>
  * <p> Revision 1.13  2005/04/26 17:39:37  sueh
  * <p> bug# 615 Made MainFrame a package-level class.  All MainFrame
  * <p> functionality is handled through UIHarness to make Etomo more
@@ -427,7 +432,7 @@ public class JoinDialog implements ContextMenu {
     }
     int min;
     int max;
-    ConstJoinMetaData metaData = joinManager.getMetaData();
+    ConstJoinMetaData metaData = joinManager.getConstMetaData();
     JoinState state = joinManager.getState();
     if (!estXMin.isNull() && !estXMax.isNull()) {
       min = metaData.getCoordinate(estXMin, state);
@@ -790,7 +795,7 @@ public class JoinDialog implements ContextMenu {
         zMax < 1 ? 1 : zMax, 1);
     spinUseEveryNSlices.setModel(spinnerModel);
     //update size in X and Y defaults
-    ConstJoinMetaData metaData = joinManager.getMetaData();
+    ConstJoinMetaData metaData = joinManager.getConstMetaData();
     ConstEtomoNumber size = metaData.getSizeInX();
     size.setDisplayValue(pnlSectionTable.getXMax());
     ltfSizeInX.setText(size.getInteger());
@@ -1108,12 +1113,12 @@ public class JoinDialog implements ContextMenu {
       setMode(JoinDialog.CHANGING_SAMPLE_MODE);
     }
     else if (command.equals(btnRevertToLastSetup.getActionCommand())) {
-      ConstJoinMetaData metaData = joinManager.getMetaData();
+      ConstJoinMetaData metaData = joinManager.getConstMetaData();
       if (!joinManager.getState().isSampleProduced()) {
         throw new IllegalStateException("sample produced is false but Revert to Last Setup is enabled");
       }
       pnlSectionTable.deleteSections();
-      setMetaData(joinManager.getMetaData());
+      setMetaData(joinManager.getConstMetaData());
       setMode(SAMPLE_PRODUCED_MODE);
     }
     else {

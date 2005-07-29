@@ -3,7 +3,9 @@ package etomo.type;
 import java.io.File;
 import java.io.IOException;
 
+import etomo.ApplicationManager;
 import etomo.EtomoDirector;
+import etomo.EtomoDirectorTestHarness;
 import etomo.process.SystemProcessException;
 import etomo.storage.ParameterStore;
 import etomo.storage.Storable;
@@ -25,6 +27,9 @@ import junit.framework.TestCase;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.12  2004/12/09 04:58:13  sueh
+ * <p> bug# 520 Removed unnecessary import.
+ * <p>
  * <p> Revision 3.11  2004/12/08 21:31:41  sueh
  * <p> bug# 520 Setting the working directory in TestUtilities.checkoutVector().
  * <p> Also setting the fail message for SystemProcessException in
@@ -76,12 +81,18 @@ public class MetaDataTest extends TestCase {
       "setup_revision_1_5.edf"};
   
   private File testDir;
+  private final ApplicationManager manager;
+  
+  public MetaDataTest() {
+    EtomoDirector.createInstance(new String[] {"--test"});
+    manager = (ApplicationManager) EtomoDirectorTestHarness.getCurrentManager();
+  }
 
   protected void setUp() throws Exception {
     super.setUp();
     EtomoDirector etomoDirector = EtomoDirector.getInstance();
-    File checkoutDirectory = new File(
-        etomoDirector.getCurrentPropertyUserDir(), TypeTests.testRoot);
+    File checkoutDirectory = new File(manager.getPropertyUserDir(),
+        TypeTests.testRoot);
     testDir = new File(checkoutDirectory, testDirectory);
     if (!testDir.exists()) {
       assertTrue(testDir.mkdirs());
@@ -91,7 +102,8 @@ public class MetaDataTest extends TestCase {
     //  Check out the test vectors from the CVS repository
     for (int i = 0; i < edfList.length; i++) {
       try {
-        TestUtilites.checkoutVector(checkoutDirectory.getAbsolutePath(), testDirectory, edfList[i]);
+        TestUtilites.checkoutVector(manager, checkoutDirectory
+            .getAbsolutePath(), testDirectory, edfList[i]);
       }
       catch (SystemProcessException except) {
         System.err.println(except.getMessage());
@@ -105,9 +117,9 @@ public class MetaDataTest extends TestCase {
    */
   public void testStoreProperties() throws IOException {
     Storable[] storable = new Storable[1];
-
+    
     for (int i = 0; i < edfList.length; i++) {
-      MetaData origMetaData = new MetaData();
+      MetaData origMetaData = new MetaData(manager);
       storable[0] = origMetaData;
 
       //  Load in the original etomo data file
@@ -123,7 +135,7 @@ public class MetaDataTest extends TestCase {
       paramStore.save(storable);
 
       //  Load in the new file
-      MetaData newMetaData = new MetaData();
+      MetaData newMetaData = new MetaData(manager);
       storable[0] = newMetaData;
       paramStore.load(storable);
 
@@ -141,7 +153,7 @@ public class MetaDataTest extends TestCase {
 
     Storable[] storable = new Storable[1];
     for (int i = 0; i < edfList.length; i++) {
-      MetaData metaData = new MetaData();
+      MetaData metaData = new MetaData(manager);
       storable[0] = metaData;
       ParameterStore paramStore = new ParameterStore(new File(testDir, edfList[i]));
       paramStore.load(storable);

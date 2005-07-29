@@ -11,6 +11,12 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.6  2005/06/10 22:49:57  sueh
+ * <p> bug# 583, bug# 682 Moved binning calculation to ApplicationManager.
+ * <p> Upgraded tilt.com to have all unbinned parameters and a binning value.
+ * <p> Added member variables:  imageBinned, loadedFromFile.  Added
+ * <p> function:  isOldVersion.
+ * <p>
  * <p> Revision 3.5  2005/01/12 18:33:43  sueh
  * <p> bug# 505 Added excludeList2.
  * <p>
@@ -60,6 +66,7 @@
  */
 package etomo.comscript;
 
+import etomo.ApplicationManager;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoNumber;
@@ -165,8 +172,11 @@ public class ConstTiltParam {
   protected boolean loadedFromFile = false;
   protected String datasetName;
   protected AxisID axisID;
+  
+  protected final ApplicationManager manager;
 
-  public ConstTiltParam(String datasetName, AxisID axisID) {
+  public ConstTiltParam(ApplicationManager manager, String datasetName, AxisID axisID) {
+    this.manager = manager;
     this.datasetName = datasetName;
     this.axisID = axisID;
     //do not default imageBinned
