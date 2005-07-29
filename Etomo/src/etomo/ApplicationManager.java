@@ -109,6 +109,9 @@ import etomo.util.Utilities;
  * 
  *
  * <p> $Log$
+ * <p> Revision 3.164  2005/07/26 16:57:09  sueh
+ * <p> bug# 701 Pass ProcessEndState to the progress bar when stopping it.
+ * <p>
  * <p> Revision 3.163  2005/07/21 21:25:16  sueh
  * <p> bug# 532 added splittilt() and updateSplittiltParam().  Added
  * <p> setPauseButton to let the main panel manage the pause button the same
@@ -1395,7 +1398,7 @@ public class ApplicationManager extends BaseManager {
    */
   public ApplicationManager(String paramFileName, AxisID axisID) {
     super();
-    this.metaData = new MetaData();
+    this.metaData = new MetaData(this);
     initializeUIParameters(paramFileName, axisID);
     initializeAdvanced();
     // Open the etomo data file if one was found on the command line
@@ -1566,7 +1569,7 @@ public class ApplicationManager extends BaseManager {
     //where one is done on A and the other is done on B, would be considered
     //sharing a directory.
     for (int i = 0; i < edfFiles.length; i++) {
-      MetaData savedMetaData = new MetaData();
+      MetaData savedMetaData = new MetaData(this);
       ParameterStore paramStore = new ParameterStore(edfFiles[i]);
       Storable[] storable = new Storable[1];
       storable[0] = savedMetaData;
@@ -1959,7 +1962,7 @@ public class ApplicationManager extends BaseManager {
    * Open 3dmod to view the erased stack
    */
   public void imodErasedStack(AxisID axisID) {
-    if (Utilities.getFile(true, axisID, "_fixed.st", "erased stack") == null) {
+    if (Utilities.getFile(this, true, axisID, "_fixed.st", "erased stack") == null) {
       return;
     }
     try {
@@ -2007,7 +2010,7 @@ public class ApplicationManager extends BaseManager {
       resetNextProcess(AxisID.ONLY);
     }
     //check for original stack
-    File originalStack = Utilities.getFile(false, stackAxisID, "_orig.st",
+    File originalStack = Utilities.getFile(this, false, stackAxisID, "_orig.st",
         "original stack");
     if (!originalStack.exists()) {
       if (stackAxisID == AxisID.FIRST) {
@@ -2025,7 +2028,7 @@ public class ApplicationManager extends BaseManager {
     processTrack.setCleanUpState(ProcessState.INPROGRESS);
     mainPanel.setCleanUpState(ProcessState.INPROGRESS);
     //create param
-    ArchiveorigParam param = new ArchiveorigParam(stackAxisID);
+    ArchiveorigParam param = new ArchiveorigParam(this, stackAxisID);
     //run process
     try {
       setThreadName(processMgr.archiveOrig(param), AxisID.ONLY);
@@ -2056,7 +2059,7 @@ public class ApplicationManager extends BaseManager {
     else {
       return;
     }
-    File originalStack = Utilities.getFile(false, axisID, "_orig.st", "");
+    File originalStack = Utilities.getFile(this, false, axisID, "_orig.st", "");
     //This function is only run is archiveorig succeeds so this "if" statement
     //should always fail.
     if (!originalStack.exists()
@@ -2085,9 +2088,9 @@ public class ApplicationManager extends BaseManager {
   }
   
   public String getArchiveInfo(AxisID axisID) {
-    File stack = Utilities.getFile(false, axisID, ".st", "");
-    File originalStack = Utilities.getFile(false, axisID, "_orig.st", "");
-    File xrayStack = Utilities.getFile(false, axisID, "_xray.st.gz", "");
+    File stack = Utilities.getFile(this, false, axisID, ".st", "");
+    File originalStack = Utilities.getFile(this, false, axisID, "_orig.st", "");
+    File xrayStack = Utilities.getFile(this, false, axisID, "_xray.st.gz", "");
     if (stack == null && originalStack == null || xrayStack == null) {
       throw new IllegalStateException("Unable to get file information");
     }
@@ -2110,7 +2113,7 @@ public class ApplicationManager extends BaseManager {
     String rawStackRename = propertyUserDir + File.separator
     + metaData.getDatasetName() + axisID.getExtension() + "_orig.st";
     File rawRename = new File(rawStackRename);
-    File fixedStack = Utilities.getFile(true, axisID, "_fixed.st", "erased stack");
+    File fixedStack = Utilities.getFile(this, true, axisID, "_fixed.st", "erased stack");
     if (fixedStack == null) {
       return;
     }
@@ -3407,7 +3410,7 @@ public class ApplicationManager extends BaseManager {
       fiducialModelDialog = fiducialModelDialogA;
     }
     if (destAxisID != AxisID.ONLY
-      && !Utilities.fileExists("fid.xyz", (destAxisID == AxisID.FIRST
+      && !Utilities.fileExists(this, "fid.xyz", (destAxisID == AxisID.FIRST
         ? AxisID.SECOND
         : AxisID.FIRST))) {
       uiHarness.openMessageDialog(
@@ -3416,7 +3419,7 @@ public class ApplicationManager extends BaseManager {
         "Warning", destAxisID);
     }
     if (fiducialModelDialog != null) {
-      TransferfidParam transferfidParam = new TransferfidParam(destAxisID);
+      TransferfidParam transferfidParam = new TransferfidParam(this, destAxisID);
       // Setup the default parameters depending upon the axis to transfer
       // the fiducials from
       String datasetName = metaData.getDatasetName();
@@ -5228,7 +5231,7 @@ public class ApplicationManager extends BaseManager {
         "Program logic error", AxisID.ONLY);
       return;
     }
-    CombineParams combineParams = new CombineParams();
+    CombineParams combineParams = new CombineParams(this);
     try {
       tomogramCombinationDialog.getCombineParams(combineParams);
       if (!combineParams.isValid(true)) {
@@ -5987,7 +5990,7 @@ public class ApplicationManager extends BaseManager {
    * Open the trimmed volume in 3dmod
    */
   public void imodTrimmedVolume() {
-    TrimvolParam trimvolParam = new TrimvolParam();
+    TrimvolParam trimvolParam = new TrimvolParam(propertyUserDir);
     postProcessingDialog.getTrimvolParams(trimvolParam);
     try {
       imodManager.setSwapYZ(ImodManager.TRIMMED_VOLUME_KEY,
@@ -6099,7 +6102,7 @@ public class ApplicationManager extends BaseManager {
    */
   protected TrimvolParam updateTrimvolParam() {
     //Get trimvol param data from dialog.
-    TrimvolParam dialogTrimvolParam = new TrimvolParam();
+    TrimvolParam dialogTrimvolParam = new TrimvolParam(propertyUserDir);
     postProcessingDialog.getTrimvolParams(dialogTrimvolParam);
     //Get the metadata trimvol param.
     TrimvolParam trimvolParam = metaData.getTrimvolParam();
@@ -6251,15 +6254,15 @@ public class ApplicationManager extends BaseManager {
     if (dialog == null || axisID == AxisID.ONLY) {
       return;
     }
-    boolean prealisExist = Utilities.fileExists(".preali",
+    boolean prealisExist = Utilities.fileExists(this, ".preali",
       AxisID.FIRST)
-      && Utilities.fileExists(".preali", AxisID.SECOND);
+      && Utilities.fileExists(this, ".preali", AxisID.SECOND);
     boolean fidExists = false;
     if (axisID == AxisID.FIRST) {
-      fidExists = Utilities.fileExists(".fid", AxisID.SECOND);
+      fidExists = Utilities.fileExists(this, ".fid", AxisID.SECOND);
     }
     else {
-      fidExists = Utilities.fileExists(".fid", AxisID.FIRST);
+      fidExists = Utilities.fileExists(this, ".fid", AxisID.FIRST);
     }
     dialog.setTransferfidEnabled(prealisExist && fidExists);
     dialog.updateEnabled();
@@ -6269,7 +6272,7 @@ public class ApplicationManager extends BaseManager {
     if (dialog == null) {
       return;
     }
-    dialog.updateFilter(Utilities.fileExists(".ali", axisID));
+    dialog.updateFilter(Utilities.fileExists(this, ".ali", axisID));
   }
 
   /**
@@ -6360,14 +6363,14 @@ public class ApplicationManager extends BaseManager {
   }
   
   public FidXyz getFidXyz(AxisID axisID) {
-    return new FidXyz(
-      metaData.getDatasetName() + axisID.getExtension() + "fid.xyz");
+    return new FidXyz(propertyUserDir, metaData.getDatasetName()
+        + axisID.getExtension() + "fid.xyz");
   }
   
   public MRCHeader getMrcHeader(AxisID axisID, String filename) {
     File file = new File(propertyUserDir, metaData.getDatasetName()
         + axisID.getExtension() + filename);
-    return MRCHeader.getInstance(file.getAbsolutePath(), axisID);
+    return MRCHeader.getInstance(propertyUserDir, file.getAbsolutePath(), axisID);
   }
   
   protected void createComScriptManager() {
@@ -6403,7 +6406,7 @@ public class ApplicationManager extends BaseManager {
   }
   
   protected void createState() {
-    state = new TomogramState();
+    state = new TomogramState(this);
   }
   
   public TomogramState getState() {
@@ -6469,6 +6472,7 @@ public class ApplicationManager extends BaseManager {
     try {
       rawstackHeader.read();
     }
+    
     catch (InvalidParameterException e) {
       e.printStackTrace();
       return 1;
