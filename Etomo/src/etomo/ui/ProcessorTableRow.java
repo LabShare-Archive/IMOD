@@ -9,6 +9,7 @@ import javax.swing.JPanel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import etomo.comscript.ProcesschunksParam;
 import etomo.type.EtomoNumber;
 
 /**
@@ -38,6 +39,7 @@ final class ProcessorTableRow {
   private FieldCell cellLoad15 = new FieldCell();
   private FieldCell cellRestarts = new FieldCell();
   private FieldCell cellSuccesses = new FieldCell();
+  private FieldCell cellFailureReason = new FieldCell();
   private String computerName;
   private String os = "Linux";
   private String cpuType = "";
@@ -118,6 +120,7 @@ final class ProcessorTableRow {
     cellLoad15.setValue(load15);
     cellRestarts.setEnabled(false);
     cellSuccesses.setEnabled(false);
+    cellFailureReason.setEnabled(false);
     setSelected(false);
   }
 
@@ -143,8 +146,9 @@ final class ProcessorTableRow {
     cellCpuType.add(panel, layout, constraints);
     cellOs.add(panel, layout, constraints);
     cellRestarts.add(panel, layout, constraints);
-    constraints.gridwidth = GridBagConstraints.REMAINDER;
     cellSuccesses.add(panel, layout, constraints);
+    constraints.gridwidth = GridBagConstraints.REMAINDER;
+    cellFailureReason.add(panel, layout, constraints);
   }
 
   private void performAction(ActionEvent event) {
@@ -170,8 +174,16 @@ final class ProcessorTableRow {
   final boolean isSelected() {
     return cellComputer.isSelected();
   }
+  
+  final void getParameters(ProcesschunksParam param) {
+    int numCpus = getCpusSelected();
+    for (int i = 0; i < numCpus; i++) {
+      param.addMachineName(cellComputer.getLabel());
+    }
+  }
 
   final void resetResults() {
+    cellRestarts.setWarning(false);
     cellRestarts.setValueEmpty();
     cellSuccesses.setValueEmpty();
   }
@@ -205,6 +217,9 @@ final class ProcessorTableRow {
   }
   
   final int getCpusSelected() {
+    if (!isSelected()) {
+      return 0;
+    }
     if (cellCpusSelected instanceof SpinnerCell) {
       return ((SpinnerCell) cellCpusSelected).getValue();
     }
@@ -215,12 +230,27 @@ final class ProcessorTableRow {
     return cpusSelected;
   }
   
-  final void signalRestart() {
+  final void addRestart() {
     int restarts = cellRestarts.getIntValue();
     if (restarts == EtomoNumber.INTEGER_NULL_VALUE) {
       restarts = 0;
     }
+    if (restarts == 0) {
+      cellRestarts.setWarning(true);
+    }
     cellRestarts.setValue(restarts + 1);
+  }
+  
+  final void setLoad(double load1, double load5, double load15) {
+    int numberCpus = cellNumberCpus.getIntValue();
+    setLoad(cellLoad1, load1, numberCpus);
+    setLoad(cellLoad5, load5, numberCpus);
+    setLoad(cellLoad15, load15, numberCpus);
+  }
+  
+  private final void setLoad(FieldCell cellLoad, double load, int numberCpus) {
+    cellLoad1.setWarning(load >= numberCpus);
+    cellLoad.setValue(load);
   }
   
   final void signalSuccess() {
@@ -265,6 +295,10 @@ final class ProcessorTableRow {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.6  2005/07/19 22:35:28  sueh
+ * <p> bug# 532 Since the error setting affects the background, don't set error
+ * <p> == true for CellRestarts automatically.
+ * <p>
  * <p> Revision 1.5  2005/07/15 16:32:05  sueh
  * <p> bug# 532 Removed experiment about not scrolling headers
  * <p>
