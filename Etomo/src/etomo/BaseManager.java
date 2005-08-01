@@ -43,6 +43,11 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.21  2005/07/29 00:38:52  sueh
+* <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
+* <p> because the current manager changes when the user changes the tab.
+* <p> Passing the manager where its needed.
+* <p>
 * <p> Revision 1.20  2005/07/26 17:03:16  sueh
 * <p> bug# 701 Pass ProcessEndState to the progress bar when stopping it.
 * <p>
@@ -548,7 +553,6 @@ public abstract class BaseManager {
    * Return the test parameter file as a File object
    * @return a File object specifying the data set parameter file.
    */
-  //FIXME this may not have to be visible
   public File getTestParamFile() {
     return paramFile;
   }
