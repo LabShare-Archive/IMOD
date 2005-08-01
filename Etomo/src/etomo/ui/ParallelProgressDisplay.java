@@ -13,6 +13,11 @@ package etomo.ui;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.2  2005/07/21 22:21:29  sueh
+* <p> bug# 532 Added setup and teardownParallelProgressDisplay() for
+* <p> ParallelProgressDisplay so that the pause button can function like a kill
+* <p> button.
+* <p>
 * <p> Revision 1.1  2005/07/11 23:13:46  sueh
 * <p> bug# 619 Added an interface that provides a way for a parallel process
 * <p> monitor to communicate with the parallel process panel without knowing
@@ -28,6 +33,6 @@ public interface ParallelProgressDisplay {
   
   //TEMP demo functions
   public void signalStartProgress();
-  public void signalRandomRestart();
+  public void addRandomRestart();
   public void signalRandomSuccess();
 }
