@@ -31,6 +31,7 @@ import etomo.comscript.MatchorwarpParam;
 import etomo.comscript.MatchshiftsParam;
 import etomo.comscript.NewstParam;
 import etomo.comscript.Patchcrawl3DParam;
+import etomo.comscript.ProcesschunksParam;
 import etomo.comscript.SetParam;
 import etomo.comscript.SolvematchParam;
 import etomo.comscript.SolvematchmodParam;
@@ -109,6 +110,9 @@ import etomo.util.Utilities;
  * 
  *
  * <p> $Log$
+ * <p> Revision 3.166  2005/07/29 19:43:43  sueh
+ * <p> bug# 692 Changed ConstEtomoNumber.getInteger() to getInt.
+ * <p>
  * <p> Revision 3.165  2005/07/29 00:31:20  sueh
  * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
  * <p> because the current manager changes when the user changes the tab.
@@ -6212,30 +6216,15 @@ public class ApplicationManager extends BaseManager {
     if (getNextProcess(axisID).equals("tilt")) {
       tiltProcess(axisID);
     }
-    /*if (nextProcess.equals("matchvol1")) {
-      matchvol1();
-      return;
-    }
-    if (nextProcess.equals("patchcorr")) {
-      patchcorr();
-      return;
-    }
-    if (nextProcess.equals("matchorwarp")) {
-      matchorwarp("volcombine");
-      return;
-    }
-    if (nextProcess.equals("volcombine")) {
-      if (tomogramCombinationDialog != null && tomogramCombinationDialog.isRunVolcombine()) {
-        volcombine();
-      }
-      return;
-    }*/
     else if (getNextProcess(axisID).equals("checkUpdateFiducialModel")) {
       checkUpdateFiducialModel(axisID);
       return;
     }
     else if (getNextProcess(axisID).equals(ArchiveorigParam.COMMAND_NAME)) {
       archiveOriginalStack(AxisID.SECOND);
+    }
+    else if (getNextProcess(axisID).equals(ProcesschunksParam.COMMAND_NAME)) {
+      processchunks(axisID);
     }
   }
 
@@ -6727,7 +6716,7 @@ public class ApplicationManager extends BaseManager {
     }
     processTrack.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
     mainPanel.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
-    resetNextProcess(axisID);
+    setNextProcess(axisID, ProcesschunksParam.COMMAND_NAME);
     String threadName;
     try {
       threadName = processMgr.splittilt(splittiltParam, axisID);
@@ -6743,6 +6732,36 @@ public class ApplicationManager extends BaseManager {
     setThreadName(threadName, axisID);
     mainPanel.startProgressBar("Running " + SplittiltParam.COMMAND_NAME, axisID);
     return true;
+  }
+  
+  /**
+   * Run processchunks.  Function can be public.
+   * @param axisID
+   */
+  private final void processchunks(AxisID axisID) {
+    resetNextProcess(axisID);
+    TomogramGenerationDialog dialog = mapGenerationDialog(axisID);
+    if (dialog == null) {
+      return;
+    }
+    ProcesschunksParam param = new ProcesschunksParam(axisID);
+    dialog.getParameters(param);
+    processTrack.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
+    mainPanel.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
+    String threadName;
+    try {
+      threadName = processMgr.processchunks(axisID, param);
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Can not execute " + ProcesschunksParam.COMMAND_NAME;
+      message[1] = e.getMessage();
+      uiHarness.openMessageDialog(message, "Unable to execute command", axisID);
+      return;
+    }
+    setThreadName(threadName, axisID);
+    mainPanel.startProgressBar("Running " + ProcesschunksParam.COMMAND_NAME, axisID);
   }
 
   public boolean parallelProcessResumeTiltDemo(AxisID axisID,
