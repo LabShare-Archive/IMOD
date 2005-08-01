@@ -8,10 +8,14 @@ import java.util.ArrayList;
 import java.util.Random;
 
 import javax.swing.BorderFactory;
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
+import javax.swing.SpinnerModel;
+import javax.swing.SpinnerNumberModel;
 
 import etomo.BaseManager;
+import etomo.comscript.ProcesschunksParam;
 import etomo.comscript.SplittiltParam;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
@@ -42,6 +46,7 @@ final class ParallelPanel implements ParallelProgressDisplay {
       "CPUs selected: ");
   private LabeledTextField ltfChunksFinished = new LabeledTextField(
       "Chunks finished: ");
+  private LabeledSpinner nice;
   private ArrayList randomRestarts = new ArrayList();
   private ArrayList randomSuccesses = new ArrayList();
   private Random random = new Random(new Date().getTime());
@@ -67,18 +72,29 @@ final class ParallelPanel implements ParallelProgressDisplay {
     rootPanel.setBorder(BorderFactory.createEtchedBorder());
     SpacedPanel bodyPanel = new SpacedPanel();
     bodyPanel.setBoxLayout(BoxLayout.Y_AXIS);
+    JPanel tablePanel = new JPanel();
+    tablePanel.setLayout(new BoxLayout(tablePanel, BoxLayout.X_AXIS));
     SpacedPanel southPanel = new SpacedPanel();
     southPanel.setBoxLayout(BoxLayout.X_AXIS);
     //header
     header = new PanelHeader(manager, axisID, "Parallel Processing", bodyPanel);
     //southPanel;
     southPanel.add(ltfCpusSelected);
+    SpinnerModel model = new SpinnerNumberModel(
+        ProcesschunksParam.NICE_DEFAULT, ProcesschunksParam.NICE_FLOOR,
+        ProcesschunksParam.NICE_CEILING, 1);
+    nice = new LabeledSpinner("Nice: ", model);
+    southPanel.add(nice);
     southPanel.add(btnPause);
     southPanel.add(btnResume);
     southPanel.add(btnSaveDefaults);
+    //tablePanel
+    tablePanel.add(Box.createHorizontalGlue());
+    tablePanel.add(processorTable.getContainer());
+    tablePanel.add(Box.createHorizontalGlue());
     //bodyPanel
     bodyPanel.addRigidArea();
-    bodyPanel.add(processorTable.getContainer());
+    bodyPanel.add(tablePanel);
     bodyPanel.add(southPanel);
     //rootPanel
     rootPanel.add(header.getContainer());
@@ -154,7 +170,7 @@ final class ParallelPanel implements ParallelProgressDisplay {
     }
   }
 
-  public final void signalRandomRestart() {
+  public final void addRandomRestart() {
     if (randomRestarts == null) {
       return;
     }
@@ -163,7 +179,7 @@ final class ParallelPanel implements ParallelProgressDisplay {
       return;
     }
     int randomIndex = random.nextInt(randomRestarts.size());
-    processorTable.signalRestart(((Integer) randomRestarts.get(randomIndex)).intValue());
+    processorTable.addRestart(((Integer) randomRestarts.get(randomIndex)).intValue());
   }
 
   public final void signalRandomSuccess() {
@@ -197,6 +213,11 @@ final class ParallelPanel implements ParallelProgressDisplay {
     }
     return true;
   }
+  
+  final void getParameters(ProcesschunksParam param) {
+     param.setNice(nice.getValue());
+     processorTable.getParameters(param);
+  }
 
   private final class ParallelPanelActionListener implements ActionListener {
     ParallelPanel adaptee;
@@ -212,6 +233,11 @@ final class ParallelPanel implements ParallelProgressDisplay {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.6  2005/07/29 00:54:29  sueh
+ * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
+ * <p> because the current manager changes when the user changes the tab.
+ * <p> Passing the manager where its needed.
+ * <p>
  * <p> Revision 1.5  2005/07/21 22:21:07  sueh
  * <p> bug# 532 Implementing setup and teardownParallelProgressDisplay() for
  * <p> ParallelProgressDisplay so that the pause button can function like a kill
