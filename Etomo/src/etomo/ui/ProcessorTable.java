@@ -10,6 +10,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.border.LineBorder;
 
+import etomo.comscript.ProcesschunksParam;
 import etomo.type.AxisID;
 
 /**
@@ -80,8 +81,9 @@ final class ProcessorTable {
     new HeaderCell("OS").add(tablePanel, layout, constraints);
     constraints.gridwidth = 1;
     new HeaderCell("Restarts").add(tablePanel, layout, constraints);
-    constraints.gridwidth = GridBagConstraints.REMAINDER;
     new HeaderCell("Finished").add(tablePanel, layout, constraints);
+    constraints.gridwidth = GridBagConstraints.REMAINDER;
+    new HeaderCell("Failure").add(tablePanel, layout, constraints);
     //header row 2
     constraints.anchor = GridBagConstraints.CENTER;
     constraints.weightx = 0.0;
@@ -98,8 +100,9 @@ final class ProcessorTable {
     new HeaderCell().add(tablePanel, layout, constraints);
     new HeaderCell().add(tablePanel, layout, constraints);
     new HeaderCell().add(tablePanel, layout, constraints);
-    constraints.gridwidth = GridBagConstraints.REMAINDER;
     new HeaderCell("Chunks").add(tablePanel, layout, constraints);
+    constraints.gridwidth = GridBagConstraints.REMAINDER;
+    new HeaderCell("Reason").add(tablePanel, layout, constraints);
     //rows
     ProcessorTableRow row = new ProcessorTableRow(this, "bebop", 0.20, 0.19,
         0.18);
@@ -252,6 +255,15 @@ final class ProcessorTable {
     }
     return -1;
   }
+  
+  final void getParameters(ProcesschunksParam param) {
+    if (rows == null) {
+      return;
+    }
+    for (int i = 0; i < rows.size(); i++) {
+      ((ProcessorTableRow) rows.get(i)).getParameters(param);
+    }
+  }
 
   final long getRestartFactor(int index) {
     if (rows == null) {
@@ -267,11 +279,11 @@ final class ProcessorTable {
     return ((ProcessorTableRow) rows.get(index)).getSuccessFactor();
   }
 
-  final void signalRestart(int index) {
+  final void addRestart(int index) {
     if (!((ProcessorTableRow) rows.get(2)).isSelected()) {
       return;
     }
-    ((ProcessorTableRow) rows.get(index)).signalRestart();
+    ((ProcessorTableRow) rows.get(index)).addRestart();
   }
 
   final void signalSuccess(int index) {
@@ -286,6 +298,10 @@ final class ProcessorTable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.6  2005/07/21 22:22:30  sueh
+ * <p> bug# 532 Added getHelpMessage so that the parallel panel can complain
+ * <p> when no CPUs are selected.
+ * <p>
  * <p> Revision 1.5  2005/07/15 16:31:49  sueh
  * <p> bug# 532 Removed experiment about not scrolling headers
  * <p>
