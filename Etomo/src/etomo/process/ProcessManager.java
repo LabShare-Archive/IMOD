@@ -20,6 +20,11 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.71  2005/07/29 00:52:48  sueh
+ * bug# 709 Going to EtomoDirector to get the current manager is unreliable
+ * because the current manager changes when the user changes the tab.
+ * Passing the manager where its needed.
+ *
  * Revision 3.70  2005/07/26 21:40:14  sueh
  * bug# 532 removed unnecessary function: tiltPArallelProcess()
  *
@@ -678,6 +683,7 @@ import etomo.comscript.ConstTiltalignParam;
 import etomo.comscript.CopyTomoComs;
 import etomo.comscript.BadComScriptException;
 import etomo.comscript.NewstParam;
+import etomo.comscript.ProcesschunksParam;
 import etomo.comscript.SetupCombine;
 import etomo.comscript.SplittiltParam;
 import etomo.comscript.SqueezevolParam;
@@ -1293,7 +1299,21 @@ public class ProcessManager extends BaseProcessManager {
   public String splittilt(SplittiltParam param, AxisID axisID)
       throws SystemProcessException {
     BackgroundProcess backgroundProcess = startBackgroundProcess(param
-        .getCommand(), AxisID.ONLY);
+        .getCommand(), axisID);
+    return backgroundProcess.getName();
+  }
+  
+  /**
+   * run processchunks
+   * @param axisID
+   * @param param
+   * @return
+   * @throws SystemProcessException
+   */
+  public final String processchunks(AxisID axisID, ProcesschunksParam param)
+  throws SystemProcessException {
+    BackgroundProcess backgroundProcess = startBackgroundProcess(param
+        .getCommand(), axisID);
     return backgroundProcess.getName();
   }
 
