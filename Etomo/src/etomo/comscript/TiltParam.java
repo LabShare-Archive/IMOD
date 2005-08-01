@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.15  2005/07/29 19:45:43  sueh
+ * <p> bug# 692 Changed ConstEtomoNumber.getInteger() to getInt.
+ * <p>
  * <p> Revision 3.14  2005/07/29 00:50:04  sueh
  * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
  * <p> because the current manager changes when the user changes the tab.
@@ -138,6 +141,7 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
   public static final String rcsid = 
   "$Id$";
 
+  public static final String COMMAND_NAME = "tilt";
   public TiltParam(ApplicationManager manager, String datasetName, AxisID axisID) {
     super(manager, datasetName, axisID);
   }
