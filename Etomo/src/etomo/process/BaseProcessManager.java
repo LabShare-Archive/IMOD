@@ -27,6 +27,11 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.16  2005/07/29 00:51:13  sueh
+* <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
+* <p> because the current manager changes when the user changes the tab.
+* <p> Passing the manager where its needed.
+* <p>
 * <p> Revision 1.15  2005/07/26 17:57:12  sueh
 * <p> bug# 701 Changing all comscript monitors to implement ProcessMonitor
 * <p> so that they call all be passed to the ComScriptProcess constructor.
@@ -906,7 +911,7 @@ public abstract class BaseProcessManager {
     }
 
     //  Inform the app manager that this process is complete
-    getManager().processDone(process.getName(), exitValue, null, null,
+    getManager().processDone(process.getName(), exitValue, null, process.getAxisID(),
         process.isForceNextProcess(), process.getProcessEndState());
   }
   
