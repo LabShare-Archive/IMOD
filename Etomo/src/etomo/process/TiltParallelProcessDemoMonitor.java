@@ -125,7 +125,7 @@ public class TiltParallelProcessDemoMonitor extends TiltProcessMonitor {
       long curChunksDone = Math.round(fractionDone * chunks);
       if (curChunksDone > chunksDone) {
         if (.80 < random.nextDouble()) {
-          progressDisplay.signalRandomRestart();
+          progressDisplay.addRandomRestart();
         }
         for (int i = 0; i < curChunksDone - chunksDone; i++) {
           progressDisplay.signalRandomSuccess();
@@ -150,6 +150,10 @@ public class TiltParallelProcessDemoMonitor extends TiltProcessMonitor {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.2  2005/07/21 21:41:53  sueh
+ * <p> bug# removed "kill / pause" label from kill process button.  Pause button
+ * <p> with be separate.
+ * <p>
  * <p> Revision 1.1  2005/07/11 22:50:41  sueh
  * <p> bug# 619 Monitor which watches tilt.com and pretends that it is watching
  * <p> processchunks tilt.
