@@ -32,6 +32,7 @@ import etomo.comscript.BlendmontParam;
 import etomo.comscript.ConstMTFFilterParam;
 import etomo.comscript.ConstTiltParam;
 import etomo.comscript.MTFFilterParam;
+import etomo.comscript.ProcesschunksParam;
 import etomo.comscript.SplittiltParam;
 import etomo.comscript.TiltParam;
 import etomo.comscript.ConstNewstParam;
@@ -67,6 +68,11 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.53  2005/07/29 00:54:46  sueh
+ * bug# 709 Going to EtomoDirector to get the current manager is unreliable
+ * because the current manager changes when the user changes the tab.
+ * Passing the manager where its needed.
+ *
  * Revision 3.52  2005/07/21 22:23:43  sueh
  * bug# 532 Calling ApplicationManager.splittilt().  Moved parallel process
  * checkbox to the top of the tilt panel.
@@ -503,11 +509,11 @@ public class TomogramGenerationDialog extends ProcessDialog
   private SpacedPanel inverseParamsPanel;
   private JPanel trialPanel;
   private ParallelPanel parallelPanel;
-
   
   //backward compatibility functionality - if the metadata binning is missing
   //get binning from newst
   private boolean getBinningFromNewst = true;
+  private boolean resume = false;
 
   public TomogramGenerationDialog(ApplicationManager appMgr, AxisID axisID) {
     super(appMgr, axisID, DialogType.TOMOGRAM_GENERATION);
@@ -867,6 +873,12 @@ public class TomogramGenerationDialog extends ProcessDialog
       trialTomogramName = "";
     }
     return trialTomogramName;
+  }
+  
+  public final void getParameters(ProcesschunksParam param) {
+    param.setResume(resume);
+    param.setRootName(TiltParam.COMMAND_NAME);
+    parallelPanel.getParameters(param);
   }
   
   
@@ -1280,6 +1292,7 @@ public class TomogramGenerationDialog extends ProcessDialog
   }
   
   public void resume() {
+    resume = true;
     applicationManager.parallelProcessResumeTiltDemo(axisID, parallelPanel);
   }
 
@@ -1304,6 +1317,7 @@ public class TomogramGenerationDialog extends ProcessDialog
       applicationManager.useMtfFilter(axisID);
     }
     else if (command.equals(btnTrial.getActionCommand())) {
+      resume = false;
       String trialTomogramName = getTrialTomogramName();
       if (trialTomogramName == "") {
         String[] errorMessage = new String[2];
@@ -1332,6 +1346,7 @@ public class TomogramGenerationDialog extends ProcessDialog
       applicationManager.commitTestVolume(axisID);
     }
     else if (command.equals(btnTilt.getActionCommand())) {
+      resume = false;
       if (cbParallelProcess.isSelected()) {
         parallelPanel.resetResults();
         applicationManager.splittilt(axisID, parallelPanel);
