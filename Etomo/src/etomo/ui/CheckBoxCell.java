@@ -56,7 +56,7 @@ final class CheckBoxCell extends InputCell {
   }
 
   final String getLabel() {
-    return checkBox.getText();
+    return unformattedLabel;
   }
 
   final void setValue(String value) {
@@ -93,6 +93,9 @@ final class CheckBoxCell extends InputCell {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.3  2005/07/19 22:31:03  sueh
+ * <p> bug# 532 changing the look of inUse == false to greyed out text.
+ * <p>
  * <p> Revision 1.2  2005/07/11 22:55:40  sueh
  * <p> bug# 619 Added functions:  getBorderHeight and getHeight so that the
  * <p> height of the processor table can be calculated.
