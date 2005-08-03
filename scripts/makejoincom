@@ -152,6 +152,11 @@ if ($interactive == 0) then
           shift; shift
           breaksw
 
+        case -mi*:
+          set MIDASLIMIT = "$argv[2]"
+          shift; shift
+          breaksw
+
         case -re*:
           @ scaleref = "$argv[2]"
           shift; shift
@@ -572,8 +577,8 @@ if ($xymax > $MIDASLIMIT) then
     set ifsquoze = "1"
     set squeeze = `echo $xymax ${MIDASLIMIT}'.' | awk '{print $2 / $1}'`
     set expand = `echo $xymax ${MIDASLIMIT}'.' | awk '{print $1 / $2}'`
-    set newx = `echo $nxmax $squeeze | awk '{print int($1 * $2)}'`
-    set newy = `echo $nymax $squeeze | awk '{print int($1 * $2)}'`
+    set newx = `echo $nxmax $squeeze | awk '{print int($1 * $2)}' | goodframe`
+    set newy = `echo $nymax $squeeze | awk '{print int($1 * $2)}' | goodframe`
     set newsize = "$newx,$newy"
     if (-e $joinroot.sqzxf) \mv $joinroot.sqzxf $joinroot.sqzxf~
     if (-e $joinroot.xpndxf) \mv $joinroot.xpndxf $joinroot.xpndxf~
@@ -729,10 +734,15 @@ Usage: makejoincom [options] tomogram1 [options] tomogram2 ... root_name
     -tmpext ext     Set the default extension for temporary tomograms (flipped
                        or rotated) to "ext"
     -reference #    Use given tomogram as reference for density scaling
+    -midaslim #     Set the size to which samples will be squeezed if they
+                       are bigger than this (default $MIDASLIMIT)
 EOF
 
 #
 #  $Log$
+#  Revision 3.8  2005/02/11 23:15:18  mast
+#  Fixed handling of Windows filenames if in c:\cygwin or spaces on path
+#
 #  Revision 3.7  2004/12/06 02:56:55  mast
 #  Fixed bug in converting backslashes in input files
 #
