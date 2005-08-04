@@ -8,6 +8,7 @@ import java.util.Vector;
 
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.SwingUtilities;
 import javax.swing.border.LineBorder;
 
 import etomo.comscript.ProcesschunksParam;
@@ -29,14 +30,18 @@ import etomo.type.AxisID;
 final class ProcessorTable {
   public static final String rcsid = "$Id$";
 
-  private int tableHeight = 300;
+  private static final int maxRows = 15;
+  private static final double initialHeight = (maxRows + 2) * 20;//initially estimate the row height to be 20 pixels
+  private static final double maxWidth = UIUtilities.getScreenSize().getWidth();
+  private double maxHeight = 0;
+  private double lastWidth = 0;
+  private int scrollBarWidth = 0;
   private JScrollPane scrollPane;
   private JPanel tablePanel;
 
   private GridBagLayout layout = new GridBagLayout();
   private GridBagConstraints constraints = new GridBagConstraints();
   private boolean tableCreated = false;
-  private int width = 0;
   private HeaderCell hdrComputer = null;
   private HeaderCell hdrNumberCpus = null;
   private HeaderCell hdrNumberCpusUsed = null;
@@ -55,7 +60,8 @@ final class ProcessorTable {
     //scrollPane
     scrollPane = new JScrollPane(tablePanel);
     //configure
-    setMaximumSize(tableHeight);
+    scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+    setMaximumSize(initialHeight);
   }
 
   private final void createTable() {
@@ -64,8 +70,10 @@ final class ProcessorTable {
     constraints.fill = GridBagConstraints.BOTH;
     //header row 1
     constraints.anchor = GridBagConstraints.CENTER;
-    constraints.weightx = 1.0;
-    constraints.weighty = 1.0;
+    //constraints.weightx = 1.0;
+    constraints.weightx = 0.0;
+    //constraints.weighty = 1.0;
+    constraints.weighty = 0.0;
     constraints.gridheight = 1;
     constraints.gridwidth = 1;
     hdrComputer = new HeaderCell("Computer");
@@ -189,45 +197,82 @@ final class ProcessorTable {
     return cpusSelected;
   }
 
-  private final void setMaximumSize(int height) {
-    Dimension screenSize = UIUtilities.getScreenSize();
-    Dimension paneSize = new Dimension();
-    paneSize.setSize(screenSize.getWidth(), new Integer(height).doubleValue());
-    scrollPane.setMaximumSize(paneSize);
-  }
-
-  final void setSize() {
-    if (scrollPane == null) {
+  private final void setMaximumSize(double height) {
+    if (height == 0) {
       return;
     }
-    //correct maximum height if table is too small for the the current tableHeight
-    if (rows != null) {
-      int rowsSize = rows.size();
-      if (rowsSize > 0) {
-        ProcessorTableRow row = (ProcessorTableRow) rows.get(0);
-        int cellHeight = row.getHeight();
-        int headerCellHeight = hdrNumberCpusUsed.getHeight();
-        //table height is the sum of the height of the cells plus the bottom
-        //borders.  Subtract 1 from each of the borders because the cells are
-        //next to each other
-        if (cellHeight > 0 && headerCellHeight > 0) {
-          int calcTableHeight = (cellHeight + row.getBorderHeight() - 1)
-              * rowsSize
-              + (hdrNumberCpusUsed.getHeight() + hdrNumberCpusUsed
-                  .getBorderHeight() - 1) * 2;
-          if (calcTableHeight < tableHeight) {
-            tableHeight = calcTableHeight;
-            setMaximumSize(calcTableHeight);
-          }
+    Dimension maxSize = new Dimension();
+    maxSize.setSize(maxWidth, height);
+    scrollPane.setMaximumSize(maxSize);
+  }
+  
+  private final void setPreferredSize(double width, double height) {
+    if (width == 0 || height == 0) {
+      return;
+    }
+    Dimension maxSize = new Dimension();
+    maxSize.setSize(width, height);
+    scrollPane.setPreferredSize(maxSize);
+    lastWidth = width;
+  }
+  
+  private class RunPack implements Runnable {
+    public void run() {
+      if (scrollPane == null) {
+        return;
+      }
+      //set maximum height
+      if (maxHeight == 0) {
+        calcMaximumHeight();
+      }
+      //reset maximum height if table is too small for the the current tableHeight
+      int height = getMinimumHeight();
+      if (height < maxHeight) {
+        setMaximumSize(height);
+      }
+      //to prevent an empty space at the bottom of the parallel panel when the
+      //vertical scroll bar is used, set the preferred size
+      double width = getWidth();
+      if (width > 0) {
+        //add scroll bar width to width
+        if (scrollBarWidth == 0) {
+          scrollBarWidth = scrollBarWidth = scrollPane.getVerticalScrollBar().getWidth() + 1;
         }
+        width += scrollBarWidth;
+        setPreferredSize(width, Math.min(height, maxHeight));
       }
     }
-    //set preferred size when we know a good width
-    int currentWidth = scrollPane.getWidth();
-    if (currentWidth > width) {
-      width = currentWidth;
-      scrollPane.setPreferredSize(new Dimension(width, tableHeight));
+  }
+
+  final void pack() {
+    SwingUtilities.invokeLater(new RunPack());
+  }
+  
+  private final int getMinimumHeight() {
+    if (hdrNumberCpusUsed == null) {
+      return 0;
     }
+    int height = 0;
+    int fieldHeight = hdrNumberCpusUsed.getHeight();
+    height = fieldHeight * 2;
+    if (rows != null) {
+      height += fieldHeight * rows.size();
+    }
+    return height;
+  }
+  
+  private final void calcMaximumHeight() {
+    if (hdrNumberCpusUsed == null) {
+      maxHeight = 0;
+    }
+    maxHeight = hdrNumberCpusUsed.getHeight() * (2 + maxRows);
+  }
+  
+  private final double getWidth() {
+    if (rows == null || rows.size() == 0) {
+      return 0;
+    }
+    return ((ProcessorTableRow) rows.get(0)).getWidth();
   }
 
   final int getFirstSelectedIndex() {
@@ -264,30 +309,42 @@ final class ProcessorTable {
       ((ProcessorTableRow) rows.get(i)).getParameters(param);
     }
   }
-
-  final long getRestartFactor(int index) {
+  
+  private final ProcessorTableRow getRow(String computer) {
     if (rows == null) {
-      return 0;
+      return null;
     }
-    return ((ProcessorTableRow) rows.get(index)).getRestartFactor();
+    for (int i = 0; i < rows.size(); i++) {
+      ProcessorTableRow row = (ProcessorTableRow) rows.get(i);
+      if (row.equals(computer)) {
+        return row;
+      }
+    }
+    return null;
   }
 
-  final long getSuccessFactor(int index) {
-    if (rows == null) {
-      return 0;
-    }
-    return ((ProcessorTableRow) rows.get(index)).getSuccessFactor();
-  }
-
-  final void addRestart(int index) {
-    if (!((ProcessorTableRow) rows.get(2)).isSelected()) {
+  final void addRestart(String computer) {
+    ProcessorTableRow row = getRow(computer);
+    if (row == null) {
       return;
     }
-    ((ProcessorTableRow) rows.get(index)).addRestart();
+    row.addRestart();
   }
-
-  final void signalSuccess(int index) {
-    ((ProcessorTableRow) rows.get(index)).signalSuccess();
+  
+  final void addSuccess(String computer) {
+    ProcessorTableRow row = getRow(computer);
+    if (row == null) {
+      return;
+    }
+    row.addSuccess();
+  }
+  
+  final void drop(String computer) {
+    ProcessorTableRow row = getRow(computer);
+    if (row == null) {
+      return;
+    }
+    row.drop();
   }
   
   final String getHelpMessage() {
@@ -298,6 +355,10 @@ final class ProcessorTable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.7  2005/08/01 18:13:12  sueh
+ * <p> bug# 532 Changed ProcessorTableRow.signalRestart() to addRestart.
+ * <p> Added Failure Reason column.
+ * <p>
  * <p> Revision 1.6  2005/07/21 22:22:30  sueh
  * <p> bug# 532 Added getHelpMessage so that the parallel panel can complain
  * <p> when no CPUs are selected.
