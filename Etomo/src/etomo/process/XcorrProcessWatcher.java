@@ -89,9 +89,20 @@ public class XcorrProcessWatcher implements ProcessMonitor {
   public synchronized final ProcessEndState getProcessEndState() {
     return endState;
   }
+  
+  public void setProcess(SystemProcessInterface process) {
+    //process is not required
+  }
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.9  2005/07/26 21:47:32  sueh
+ * <p> bug# 701 Implementing ProcessMonitor, which extends Runnable.
+ * <p> Added a ProcessEndState member variable.  Set it to DONE when the
+ * <p> end of the process is detected.  In the future, will set the
+ * <p> ProcessEndState variable to FAILED, if necessary to get the correct
+ * <p> progress bar behavior.
+ * <p>
  * <p> Revision 3.8  2005/03/11 01:35:08  sueh
  * <p> bug# 533 Setting BlendmontProcessMonitor.lastProcess to false, so it
  * <p> doesn't display "done".
