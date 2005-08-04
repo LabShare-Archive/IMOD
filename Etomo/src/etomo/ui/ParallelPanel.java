@@ -58,6 +58,7 @@ final class ParallelPanel implements ParallelProgressDisplay {
       this);
   private PanelHeader header;
   private final BaseManager manager;
+  private boolean visible = false;
 
   ParallelPanel(BaseManager manager, ParallelDialog parent, AxisID axisID) {
     this.manager = manager;
@@ -130,16 +131,12 @@ final class ParallelPanel implements ParallelProgressDisplay {
   }
 
   final void setVisible(boolean visible) {
+    this.visible = visible;
     rootPanel.setVisible(visible);
-    processorTable.setSize();
   }
 
   public final int getCpusSelected() {
     return processorTable.getCpusSelected();
-  }
-  
-  public final void signalStartProgress() {
-    buildRandomizerLists();
   }
   
   /**
@@ -157,41 +154,16 @@ final class ParallelPanel implements ParallelProgressDisplay {
     manager.getMainPanel().deletePauseButton(btnPause, axisID);
   }
 
-  private final void buildRandomizerLists() {
-    int index = processorTable.getFirstSelectedIndex();
-    while (index != -1) {
-      for (int i = 0; i < processorTable.getRestartFactor(index); i++) {
-        randomRestarts.add(new Integer(index));
-      }
-      for (int i = 0; i < processorTable.getSuccessFactor(index); i++) {
-        randomSuccesses.add(new Integer(index));
-      }
-      index = processorTable.getNextSelectedIndex(index);
-    }
+  public final void addRestart(String computer) {
+    processorTable.addRestart(computer);
+  }
+  
+  public final void drop(String computer) {
+    processorTable.drop(computer);
   }
 
-  public final void addRandomRestart() {
-    if (randomRestarts == null) {
-      return;
-    }
-    int randomRestartsSize = randomRestarts.size();
-    if (randomRestartsSize == 0) {
-      return;
-    }
-    int randomIndex = random.nextInt(randomRestarts.size());
-    processorTable.addRestart(((Integer) randomRestarts.get(randomIndex)).intValue());
-  }
-
-  public final void signalRandomSuccess() {
-    if (randomSuccesses == null) {
-      return;
-    }
-    int randomSuccessesSize = randomSuccesses.size();
-    if (randomSuccessesSize == 0) {
-      return;
-    }
-    int randomIndex = random.nextInt(randomSuccesses.size());
-    processorTable.signalSuccess(((Integer) randomSuccesses.get(randomIndex)).intValue());
+  public final void addSuccess(String computer) {
+    processorTable.addSuccess(computer);
   }
   
   final void resetResults() {
@@ -218,6 +190,13 @@ final class ParallelPanel implements ParallelProgressDisplay {
      param.setNice(nice.getValue());
      processorTable.getParameters(param);
   }
+  
+  final void pack() {
+    if (!visible) {
+      return;
+    }
+    processorTable.pack();
+  }
 
   private final class ParallelPanelActionListener implements ActionListener {
     ParallelPanel adaptee;
@@ -233,6 +212,10 @@ final class ParallelPanel implements ParallelProgressDisplay {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.7  2005/08/01 18:11:31  sueh
+ * <p> bug# 532 Changed ProcessorTableRow.signalRestart() to addRestart.
+ * <p> Added nice spinner.  Added getParameters(ProcesschunksParam).
+ * <p>
  * <p> Revision 1.6  2005/07/29 00:54:29  sueh
  * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
  * <p> because the current manager changes when the user changes the tab.
