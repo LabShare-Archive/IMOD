@@ -38,6 +38,10 @@ import etomo.type.DialogType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.20  2005/04/21 20:55:02  sueh
+ * <p> bug# 615 Pass axisID to packMainWindow so it can pack only the frame
+ * <p> that requires it.
+ * <p>
  * <p> Revision 3.19  2005/04/16 02:05:04  sueh
  * <p> bug# 615 Moved the adding of exit buttons to the base class.
  * <p>
@@ -492,7 +496,7 @@ public class TomogramCombinationDialog
   private void updateAdvanced(boolean isAdvanced) {
     pnlInitial.setAdvanced(isAdvanced);
     pnlFinal.setAdvanced(isAdvanced);
-    applicationManager.packMainWindow(axisID);
+    UIHarness.INSTANCE.pack(axisID, applicationManager);
   }
 
   /**

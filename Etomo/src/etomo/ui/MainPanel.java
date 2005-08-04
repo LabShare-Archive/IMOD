@@ -34,6 +34,9 @@ import etomo.type.ProcessEndState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.25  2005/07/26 23:07:25  sueh
+ * <p> bug# 701 When stopping the progress bar, pass the process end state.
+ * <p>
  * <p> Revision 1.24  2005/07/21 22:19:58  sueh
  * <p> bug# 532 removed "kill / pause" label from kill process button.  Pause
  * <p> button with be managed by separately by AxisProcessPanel, which
@@ -318,7 +321,7 @@ public abstract class MainPanel extends JPanel {
   public void showProcess(Container processPanel, AxisID axisID) {
     AxisProcessPanel axisPanel = mapBaseAxis(axisID);
     axisPanel.replaceDialogPanel(processPanel);
-    UIHarness.INSTANCE.fitWindow(axisID);
+    UIHarness.INSTANCE.pack(axisID, manager);
   }
 
   /**

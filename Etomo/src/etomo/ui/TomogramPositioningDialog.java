@@ -39,6 +39,10 @@ import etomo.type.MetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.32  2005/07/14 22:16:51  sueh
+ * <p> bug# 626 Enabling whole tomogram for montage view.  Setting binning in
+ * <p> set and getParameters(BlendmontParam).
+ * <p>
  * <p> Revision 3.31  2005/06/13 23:40:13  sueh
  * <p> bug# 675 Using NamedCheckBox instead of JCheckBox to try out
  * <p> jfcUnit.  Bug# 583 Always save the screen value of binning in metaData.
@@ -605,7 +609,7 @@ public class TomogramPositioningDialog extends ProcessDialog
   }
 
   private void updateAdvanced() {
-    applicationManager.packMainWindow(axisID);
+    UIHarness.INSTANCE.pack(axisID, applicationManager);
   }
 
   //

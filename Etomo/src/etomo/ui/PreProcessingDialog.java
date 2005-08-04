@@ -22,6 +22,9 @@ import etomo.comscript.CCDEraserParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.5  2005/06/17 00:33:19  sueh
+ * <p> bug# 685 Changed buttonExecuteAction() so it calls its super function.
+ * <p>
  * <p> Revision 3.4  2005/04/21 20:46:07  sueh
  * <p> bug# 615 Pass axisID to packMainWindow so it can pack only the frame
  * <p> that requires it.
@@ -155,7 +158,7 @@ public class PreProcessingDialog extends ProcessDialog {
    */
   private void updateAdvanced() {
     panelCCDEraser.setAdvanced(isAdvanced);
-    applicationManager.packMainWindow(axisID);
+    UIHarness.INSTANCE.pack(axisID, applicationManager);
   }
 
   private void disableDM2MRC() {

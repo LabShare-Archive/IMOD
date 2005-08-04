@@ -26,6 +26,11 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.12  2005/07/29 00:54:05  sueh
+ * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
+ * <p> because the current manager changes when the user changes the tab.
+ * <p> Passing the manager where its needed.
+ * <p>
  * <p> Revision 3.11  2005/05/10 03:26:54  sueh
  * <p> bug# 658 Using BeadtrackParam in place of ConstBeadtrackParam in
  * <p> setBeadtrackParams().  Throwing InvalidEtomoNumberException in
@@ -260,8 +265,7 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu {
     if (applicationManager.isDualAxis()) {
       pnlTransferfid.setAdvanced(state);
     }
-
-    applicationManager.packMainWindow(axisID);
+    UIHarness.INSTANCE.pack(axisID, applicationManager);
   }
 
   public void updateEnabled() {

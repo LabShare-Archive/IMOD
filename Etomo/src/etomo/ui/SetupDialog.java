@@ -161,7 +161,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     UIUtilities.setButtonSizeAll(pnlExitButtons, UIParameters.getButtonDimension());
     
     // Calcute the necessary window size
-    applicationManager.packMainWindow(axisID);
+    uiHarness.pack(axisID, applicationManager);
   }
 
   private void createDatasetPanel() {
@@ -1029,6 +1029,11 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.31  2005/07/29 00:54:40  sueh
+ * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
+ * <p> because the current manager changes when the user changes the tab.
+ * <p> Passing the manager where its needed.
+ * <p>
  * <p> Revision 3.30  2005/06/20 16:58:00  sueh
  * <p> bug# 522 Made MRCHeader an n'ton.  Getting instance instead of
  * <p> constructing in btnScanHeaderAction().

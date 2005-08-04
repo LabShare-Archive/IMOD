@@ -132,11 +132,16 @@ final class PanelHeader implements Expandable {
     }
     openClosePanel.setVisible(btnOpenClose.isExpanded());
     separator.setVisible(btnOpenClose.isExpanded());
-    manager.packMainWindow(axisID);
+    UIHarness.INSTANCE.pack(axisID, manager);
   }  
 }
 /**
 * <p> $Log$
+* <p> Revision 1.5  2005/07/29 00:54:23  sueh
+* <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
+* <p> because the current manager changes when the user changes the tab.
+* <p> Passing the manager where its needed.
+* <p>
 * <p> Revision 1.4  2005/07/19 22:33:43  sueh
 * <p> bug# 532 creating the buttons and hiding them when new stuff is true
 * <p>

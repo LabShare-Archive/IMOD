@@ -128,7 +128,7 @@ public class CleanUpDialog extends ProcessDialog implements ContextMenu {
    * Update the dialog with the current advanced state
    */
   private void updateAdvanced() {
-    applicationManager.packMainWindow(axisID);
+    UIHarness.INSTANCE.pack(axisID, applicationManager);
   }
   
   //
@@ -190,6 +190,11 @@ public class CleanUpDialog extends ProcessDialog implements ContextMenu {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.4  2005/05/18 22:38:15  sueh
+ * <p> bug# 662 Added btnArchiveStack, archiveInfoA, and archiveInfoB.
+ * <p> Added setArchiveFields() to set text and display archiveInfoA and B.
+ * <p> Added setToolTipText() and ButtonActionListener.
+ * <p>
  * <p> Revision 1.3  2005/04/21 20:31:35  sueh
  * <p> bug# 615 Pass axisID to packMainWindow so it can pack only the frame
  * <p> that requires it.

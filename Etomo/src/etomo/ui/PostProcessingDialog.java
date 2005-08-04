@@ -195,7 +195,7 @@ public class PostProcessingDialog
    * Update the dialog with the current advanced state
    */
   private void updateAdvanced() {
-    applicationManager.packMainWindow(axisID);
+    UIHarness.INSTANCE.pack(axisID, applicationManager);
   }
   
   private void action(ActionEvent event) {
@@ -267,6 +267,11 @@ public class PostProcessingDialog
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.18  2005/07/06 23:46:25  sueh
+ * <p> bug# 619 Removed DoubleSpacedPanel and FormattedPanel.  Placed
+ * <p> their functionality in SpacedPanel.  Simplified the construction of
+ * <p> SpacedPanel.
+ * <p>
  * <p> Revision 3.17  2005/04/21 20:45:54  sueh
  * <p> bug# 615 Pass axisID to packMainWindow so it can pack only the frame
  * <p> that requires it.

@@ -51,6 +51,11 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.12  2005/07/29 00:54:35  sueh
+* <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
+* <p> because the current manager changes when the user changes the tab.
+* <p> Passing the manager where its needed.
+* <p>
 * <p> Revision 1.11  2005/07/20 17:54:05  sueh
 * <p> bug# 705 Stop printing the stack trace for IOException bugs coming from
 * <p> MRCHeader, because its filling up the error log with exceptions that are
@@ -896,7 +901,7 @@ public class SectionTablePanel implements ContextMenu, Expandable {
         }
       }
       addSection(tomogram);
-      joinManager.packMainWindow(AxisID.ONLY);
+      uiHarness.pack(AxisID.ONLY, joinManager);
     }
   }
   

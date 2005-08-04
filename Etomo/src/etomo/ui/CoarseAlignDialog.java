@@ -11,6 +11,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.22  2005/07/14 22:04:15  sueh
+ * <p> bug# 626 Added getParams(BlendmontParam) and
+ * <p> setParams(BlendmontParam).
+ * <p>
  * <p> Revision 3.21  2005/07/06 23:32:15  sueh
  * <p> bug# 619 Removed DoubleSpacedPanel and FormattedPanel.  Placed
  * <p> their functionality in SpacedPanel.  Simplified the construction of
@@ -343,7 +347,7 @@ public class CoarseAlignDialog extends ProcessDialog
   void updateAdvanced() {
     pnlCrossCorrelation.setAdvanced(isAdvanced);
     pnlPrenewst.getPanel().setVisible(isAdvanced);
-    applicationManager.packMainWindow(axisID);
+    UIHarness.INSTANCE.pack(axisID, applicationManager);
   }
 
   /**

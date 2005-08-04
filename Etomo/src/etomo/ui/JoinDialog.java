@@ -35,6 +35,9 @@ import etomo.type.JoinState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.16  2005/07/29 19:47:42  sueh
+ * <p> bug# 692 Changed ConstEtomoNumber.getInteger() to getInt.
+ * <p>
  * <p> Revision 1.15  2005/07/29 00:54:10  sueh
  * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
  * <p> because the current manager changes when the user changes the tab.
@@ -351,7 +354,7 @@ public class JoinDialog implements ContextMenu {
     axisID = AxisID.ONLY;
     this.joinManager = joinManager;
     createRootPanel(workingDirName);
-    joinManager.packMainWindow(axisID);
+    UIHarness.INSTANCE.pack(axisID, joinManager);
   }
 
   /**
@@ -470,7 +473,7 @@ public class JoinDialog implements ContextMenu {
     removePanelComponents(curTab);
     curTab = tabPane.getSelectedIndex();
     addPanelComponents(curTab);
-    UIHarness.INSTANCE.fitWindow();
+    UIHarness.INSTANCE.pack(joinManager);
   }
   
   public void setMode(int mode) {

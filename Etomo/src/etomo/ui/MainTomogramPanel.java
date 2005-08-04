@@ -26,6 +26,10 @@ import etomo.type.ProcessTrack;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.14  2005/05/17 19:38:51  sueh
+* <p> bug# 663 Renamed updateDataParameters() to setStatusBarText() and
+* <p> moved the common functionality to MainPanel.setStatusBarText().
+* <p>
 * <p> Revision 1.13  2005/04/26 17:40:53  sueh
 * <p> bug# 615 Made MainFrame a package-level class.  All MainFrame
 * <p> functionality is handled through UIHarness to make Etomo more
@@ -131,7 +135,7 @@ public class MainTomogramPanel extends MainPanel {
   
   void showAxisA() {
     if (showingSetup || axisType == AxisType.SINGLE_AXIS) {
-      UIHarness.INSTANCE.fitWindow(true);
+      UIHarness.INSTANCE.pack(true, manager);
     }
     else {
       axisPanelA.showAxisA();
@@ -203,7 +207,7 @@ public class MainTomogramPanel extends MainPanel {
     panelCenter.removeAll();
     panelCenter.add(setupDialog.getContainer());
     revalidate();
-    UIHarness.INSTANCE.pack();
+    UIHarness.INSTANCE.pack(manager);
   }
 
   /**

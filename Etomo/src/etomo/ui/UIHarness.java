@@ -132,30 +132,40 @@ public class UIHarness {
     }
   }
   
-  public void fitWindow() {
+  public void pack(BaseManager manager) {
     if (isHead()) {
-      mainFrame.fitWindow();
+      manager.packDialogs();
+      mainFrame.repaint();
+      mainFrame.pack();
     }
   }
   
-  public void fitWindow(boolean force) {
+  public void pack(boolean force, BaseManager manager) {
     if (isHead()) {
-      mainFrame.fitWindow(force);
+      manager.packDialogs();
+      mainFrame.repaint();
+      mainFrame.pack(force);
     }
   }
   
-  public void fitWindow(AxisID axisID) {
+  public void pack(AxisID axisID, BaseManager manager) {
     if (isHead()) {
-      mainFrame.fitWindow(axisID);
-    }
-  }
-  
-  public void repaint(AxisID axisID) {
-    if (isHead()) {
+      manager.packDialogs(axisID);
       mainFrame.repaint(axisID);
+      mainFrame.pack(axisID);
+
     }
   }
+  
+  public void pack(AxisID axisID, boolean force, BaseManager manager) {
+    if (isHead()) {
+      manager.packDialogs(axisID);
+      mainFrame.repaint(axisID);
+      mainFrame.pack(axisID, force);
 
+    }
+  }
+  
   public void setEnabledNewTomogramMenuItem(boolean enable) {
     if (isHead()) {
       mainFrame.setEnabledNewTomogramMenuItem(enable);
@@ -167,12 +177,12 @@ public class UIHarness {
       mainFrame.setMRUFileLabels(mRUList);
     }
   }
-  
+  /*
   public void pack() {
     if (isHead()) {
       mainFrame.pack();
     }
-  }
+  }*/
   
   public void doLayout() {
     if (isHead()) {
@@ -204,13 +214,6 @@ public class UIHarness {
       return mainFrame.getLocation();
     }
     return new Point(0,0);
-  }
-  //TEMP
-  public EtomoFrame getFrame(AxisID axisID) {
-    if (isHead()) {
-      return mainFrame.getFrame(axisID);
-    }
-    return null;
   }
   
   public void setCurrentManager(BaseManager currentManager,
@@ -380,6 +383,9 @@ public class UIHarness {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.11  2005/07/01 21:26:47  sueh
+* <p> bug# 619 Temporality getting the frame to use with the demo
+* <p>
 * <p> Revision 1.10  2005/06/21 00:49:13  sueh
 * <p> bug# 522 Added comment
 * <p>
