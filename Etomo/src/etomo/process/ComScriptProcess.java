@@ -19,6 +19,11 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.25  2005/07/29 00:51:29  sueh
+ * bug# 709 Going to EtomoDirector to get the current manager is unreliable
+ * because the current manager changes when the user changes the tab.
+ * Passing the manager where its needed.
+ *
  * Revision 3.24  2005/07/26 18:42:07  sueh
  * bug# 701 Added a ProcessMonitor member variable.  Added a
  * ProcessendState member variable for when the ProcessMonitor variable
@@ -525,6 +530,14 @@ public class ComScriptProcess
     else {
       return null;
     }
+  }
+  
+  /**
+   * Get the standard output while the process is running
+   * getStdOutput() is already doing this
+   */
+  public String[] getCurrentStdOutput() {
+    return getStdOutput();
   }
 
   /**
