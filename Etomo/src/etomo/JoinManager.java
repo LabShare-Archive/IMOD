@@ -47,6 +47,11 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.18  2005/07/29 00:42:27  sueh
+* <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
+* <p> because the current manager changes when the user changes the tab.
+* <p> Passing the manager where its needed.
+* <p>
 * <p> Revision 1.17  2005/06/21 00:41:13  sueh
 * <p> bug# 522 Added pass-through function call to
 * <p> BaseProcessManager.touch() for MRCHeaderTest.
@@ -894,5 +899,10 @@ public class JoinManager extends BaseManager {
   public void kill(AxisID axisID) {
     processMgr.kill(axisID);
   }
-
+  
+  public final void packDialogs(AxisID axisID) {
+  }
+  
+  public final void packDialogs() {
+  }
 }

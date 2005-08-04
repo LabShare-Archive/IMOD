@@ -110,6 +110,10 @@ import etomo.util.Utilities;
  * 
  *
  * <p> $Log$
+ * <p> Revision 3.167  2005/08/01 17:56:08  sueh
+ * <p> bug# 532 Added processchunks().  Added processchunks to
+ * <p> startNextProcess().
+ * <p>
  * <p> Revision 3.166  2005/07/29 19:43:43  sueh
  * <p> bug# 692 Changed ConstEtomoNumber.getInteger() to getInt.
  * <p>
@@ -4317,6 +4321,24 @@ public class ApplicationManager extends BaseManager {
 
     mainPanel.showProcess(tomogramGenerationDialog.getContainer(), axisID);
   }
+  
+  public final void packDialogs(AxisID axisID) {
+    if (axisID  == AxisID.SECOND) {
+      if (tomogramGenerationDialogB != null) {
+        tomogramGenerationDialogB.pack();
+      }
+    }
+    else {
+      if (tomogramGenerationDialogA != null) {
+        tomogramGenerationDialogA.pack();
+      }
+    }
+  }
+  
+  public final void packDialogs() {
+    packDialogs(AxisID.FIRST);
+    packDialogs(AxisID.SECOND);
+  }
 
   /**
    *  
@@ -6664,29 +6686,6 @@ public class ApplicationManager extends BaseManager {
     }
   }
   
-  public boolean parallelProcessTiltDemo(AxisID axisID,
-      ParallelProgressDisplay parallelProgressDisplay) {
-    processTrack.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
-    mainPanel.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
-    resetNextProcess(axisID);
-    String threadName;
-    try {
-      threadName = processMgr.tiltParallelProcessDemo(axisID,
-          parallelProgressDisplay);
-    }
-    catch (SystemProcessException e) {
-      e.printStackTrace();
-      String[] message = new String[2];
-      message[0] = "Can not execute tilt" + axisID.getExtension() + ".com";
-      message[1] = e.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to execute com script",
-          axisID);
-      return false;
-    }
-    setThreadName(threadName, axisID);
-    return true;
-  }
-  
   private final SplittiltParam updateSplittiltParam(AxisID axisID) {
     TomogramGenerationDialog dialog = (TomogramGenerationDialog) getDialog(
         DialogType.TOMOGRAM_GENERATION, axisID);
@@ -6750,7 +6749,7 @@ public class ApplicationManager extends BaseManager {
     mainPanel.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
     String threadName;
     try {
-      threadName = processMgr.processchunks(axisID, param);
+      threadName = processMgr.processchunks(axisID, param, dialog.getParallelProgressDisplay());
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
@@ -6761,32 +6760,9 @@ public class ApplicationManager extends BaseManager {
       return;
     }
     setThreadName(threadName, axisID);
-    mainPanel.startProgressBar("Running " + ProcesschunksParam.COMMAND_NAME, axisID);
+    //mainPanel.startProgressBar("Running " + ProcesschunksParam.COMMAND_NAME, axisID);
   }
 
-  public boolean parallelProcessResumeTiltDemo(AxisID axisID,
-      ParallelProgressDisplay parallelProgressDisplay) {
-    processTrack.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
-    mainPanel.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
-    resetNextProcess(axisID);
-    String threadName;
-    try {
-      threadName = processMgr.resumeTiltParallelProcessDemo(axisID,
-          parallelProgressDisplay);
-    }
-    catch (SystemProcessException e) {
-      e.printStackTrace();
-      String[] message = new String[2];
-      message[0] = "Can not execute tilt" + axisID.getExtension() + ".com";
-      message[1] = e.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to execute com script",
-          axisID);
-      return false;
-    }
-    setThreadName(threadName, axisID);
-    return true;
-  }
-  
   public void signalTiltCompleted(AxisID axisID) {
     TomogramGenerationDialog tomogramGenerationDialog = mapGenerationDialog(axisID);
     if (tomogramGenerationDialog == null) {
