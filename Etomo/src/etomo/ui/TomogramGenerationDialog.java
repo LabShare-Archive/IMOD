@@ -68,6 +68,10 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.54  2005/08/01 18:17:54  sueh
+ * bug# 532 Added getParameters(ProcesschunksParam).  Add resume
+ * boolean (a parameter in ProcesschunksParam).
+ *
  * Revision 3.53  2005/07/29 00:54:46  sueh
  * bug# 709 Going to EtomoDirector to get the current manager is unreliable
  * because the current manager changes when the user changes the tab.
@@ -514,6 +518,7 @@ public class TomogramGenerationDialog extends ProcessDialog
   //get binning from newst
   private boolean getBinningFromNewst = true;
   private boolean resume = false;
+  private boolean trialTilt = false;
 
   public TomogramGenerationDialog(ApplicationManager appMgr, AxisID axisID) {
     super(appMgr, axisID, DialogType.TOMOGRAM_GENERATION);
@@ -561,8 +566,12 @@ public class TomogramGenerationDialog extends ProcessDialog
     updateAdvanced();
     setToolTipText();
   }
+  
+  public final ParallelProgressDisplay getParallelProgressDisplay() {
+    return parallelPanel;
+  }
 
- public void updateFilter(boolean enable) {
+  public void updateFilter(boolean enable) {
     enableFiltering = enable;
     btnFilter.setEnabled(enableFiltering);
     btnViewFilter.setEnabled(enableFiltering);
@@ -611,6 +620,10 @@ public class TomogramGenerationDialog extends ProcessDialog
   
   public void setBlendParams(BlendmontParam blendmontParam) {
     cbBoxUseLinearInterpolation.setSelected(blendmontParam.isLinearInterpolation());
+  }
+  
+  public final void pack() {
+    parallelPanel.pack();
   }
 
   /**
@@ -892,7 +905,7 @@ public class TomogramGenerationDialog extends ProcessDialog
     else {
       return;
     }
-    applicationManager.packMainWindow(axisID);
+    UIHarness.INSTANCE.pack(axisID, applicationManager);
   }
   
   private void updateAdvancedFilter(boolean advanced) {
@@ -936,7 +949,7 @@ public class TomogramGenerationDialog extends ProcessDialog
     filterHeader.setAdvanced(isAdvanced);
     tiltHeader.setAdvanced(isAdvanced);
 
-    applicationManager.packMainWindow(axisID);
+    UIHarness.INSTANCE.pack(axisID, applicationManager);
   }
   
   public void signalTiltCompleted() {
@@ -954,7 +967,7 @@ public class TomogramGenerationDialog extends ProcessDialog
   private void updateParallelProcess() {
     boolean parallelProcess = cbParallelProcess.isSelected();
     parallelPanel.setVisible(parallelProcess);
-    applicationManager.packMainWindow(axisID);
+    UIHarness.INSTANCE.pack(axisID, applicationManager);
   }
 
   /**
@@ -1293,7 +1306,7 @@ public class TomogramGenerationDialog extends ProcessDialog
   
   public void resume() {
     resume = true;
-    applicationManager.parallelProcessResumeTiltDemo(axisID, parallelPanel);
+    runTilt();
   }
 
   //  Button handler function
@@ -1318,6 +1331,36 @@ public class TomogramGenerationDialog extends ProcessDialog
     }
     else if (command.equals(btnTrial.getActionCommand())) {
       resume = false;
+      trialTilt = true;
+      runTilt();
+    }
+    else if (command.equals(btn3dmodTrial.getActionCommand())) {
+      applicationManager.imodTestVolume(axisID);
+    }
+    else if (command.equals(btnUseTrial.getActionCommand())) {
+      applicationManager.commitTestVolume(axisID);
+    }
+    else if (command.equals(btnTilt.getActionCommand())) {
+      resume = false;
+      trialTilt = false;
+      runTilt();
+    }
+    else if (command.equals(btn3dmodTomogram.getActionCommand())) {
+      applicationManager.imodFullVolume(axisID);
+    }
+    else if (command.equals(btnDeleteStacks.getActionCommand())) {
+      applicationManager.deleteAlignedStacks(axisID);
+    }
+    else if (command.equals(cbFiducialess.getActionCommand())) {
+      updateFiducialess();
+    }
+    else if (command.equals(cbParallelProcess.getActionCommand())) {
+      updateParallelProcess();
+    }
+  }
+  
+  private final void runTilt() {
+    if (trialTilt) {
       String trialTomogramName = getTrialTomogramName();
       if (trialTomogramName == "") {
         String[] errorMessage = new String[2];
@@ -1339,14 +1382,7 @@ public class TomogramGenerationDialog extends ProcessDialog
         applicationManager.trialTilt(axisID);
       }
     }
-    else if (command.equals(btn3dmodTrial.getActionCommand())) {
-      applicationManager.imodTestVolume(axisID);
-    }
-    else if (command.equals(btnUseTrial.getActionCommand())) {
-      applicationManager.commitTestVolume(axisID);
-    }
-    else if (command.equals(btnTilt.getActionCommand())) {
-      resume = false;
+    else {
       if (cbParallelProcess.isSelected()) {
         parallelPanel.resetResults();
         applicationManager.splittilt(axisID, parallelPanel);
@@ -1354,18 +1390,6 @@ public class TomogramGenerationDialog extends ProcessDialog
       else {
         applicationManager.tilt(axisID);
       }
-    }
-    else if (command.equals(btn3dmodTomogram.getActionCommand())) {
-      applicationManager.imodFullVolume(axisID);
-    }
-    else if (command.equals(btnDeleteStacks.getActionCommand())) {
-      applicationManager.deleteAlignedStacks(axisID);
-    }
-    else if (command.equals(cbFiducialess.getActionCommand())) {
-      updateFiducialess();
-    }
-    else if (command.equals(cbParallelProcess.getActionCommand())) {
-      updateParallelProcess();
     }
   }
 
