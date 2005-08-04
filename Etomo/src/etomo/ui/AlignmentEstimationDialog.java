@@ -31,6 +31,11 @@ import etomo.type.DialogType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.12  2005/07/06 23:31:12  sueh
+ * <p> bug# 619 Removed DoubleSpacedPanel and FormattedPanel.  Placed
+ * <p> their functionality in SpacedPanel.  Simplified the construction of
+ * <p> SpacedPanel.
+ * <p>
  * <p> Revision 3.11  2005/06/11 02:47:25  sueh
  * <p> bug# 583, bug# 682, bug# 679  Moved binning calculation to
  * <p> ApplicationManager.  Upgraded align.com and tilt.com to have all
@@ -367,7 +372,7 @@ public class AlignmentEstimationDialog extends ProcessDialog
   //  as well as from the button action above
   private void updateAdvanced(boolean state) {
     pnlTiltalign.setAdvanced(isAdvanced);
-    applicationManager.packMainWindow(axisID);
+    UIHarness.INSTANCE.pack(axisID, applicationManager);
   }
 
   //  Event handler for panel buttons
