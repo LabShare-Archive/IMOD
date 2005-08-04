@@ -47,8 +47,6 @@ final class ProcessorTableRow {
   private double load1;
   private double load5;
   private double load15;
-  private long restarts = 0;
-  private long successes = 0;
   private boolean rowInitialized = false;
 
   ProcessorTableRow(ProcessorTable table, String computerName, String cpuType,
@@ -60,19 +58,7 @@ final class ProcessorTableRow {
     this.load1 = load1;
     this.load5 = load5;
     this.load15 = load15;
-    if (computerName.equals("monalisa")) {
-      restarts = 80;
-      successes = 0;
-      return;
-    }
     double load = (load1 + load5 + load15) / 3;
-    restarts = Math.round(load);
-    if (cpuType.equals("")) {
-      successes = Math.round(3 - load);
-    }
-    else {
-      successes = Math.round((3 - load) * 2);
-    }
   }
 
   ProcessorTableRow(ProcessorTable table, String computerName, double load1,
@@ -133,7 +119,8 @@ final class ProcessorTableRow {
     GridBagLayout layout = table.getTableLayout();
     GridBagConstraints constraints = table.getTableConstraints();
     constraints.weighty = 0.0;
-    constraints.weightx = 1.0;
+    //constraints.weightx = 1.0;
+    constraints.weightx = 0.0;
     constraints.gridheight = 1;
     constraints.gridwidth = 1;
     cellComputer.add(panel, layout, constraints);
@@ -158,8 +145,19 @@ final class ProcessorTableRow {
   private void stateChanged(ChangeEvent event) {
     table.signalCpusSelectedChanged();
   }
+  
+  final void drop() {
+    cellComputer.setSelected(false);
+    setSelected(false);
+    cellRestarts.setError(true);
+    cellFailureReason.setValue("dropped");
+    cellFailureReason.setError(true);
+  }
 
   private void setSelected(boolean selected) {
+    if (selected) {
+      cellRestarts.setError(false);
+    }
     if (cellCpusSelected instanceof SpinnerCell) {
       SpinnerCell cell = (SpinnerCell) cellCpusSelected;
       cell.setEnabled(selected);
@@ -186,30 +184,8 @@ final class ProcessorTableRow {
     cellRestarts.setWarning(false);
     cellRestarts.setValueEmpty();
     cellSuccesses.setValueEmpty();
-  }
-  
-  final long getRestartFactor() {
-    if (!isSelected()) {
-      return 0;
-    }
-    if (cellCpusSelected instanceof SpinnerCell) {
-      return restarts * ((SpinnerCell) cellCpusSelected).getValue();
-    }
-    else {
-      return restarts;
-    }
-  }
-  
-  final long getSuccessFactor() {
-    if (!isSelected()) {
-      return 0;
-    }
-    if (cellCpusSelected instanceof SpinnerCell) {
-      return successes * ((SpinnerCell) cellCpusSelected).getValue();
-    }
-    else {
-      return successes;
-    }
+    cellFailureReason.setValue("");
+    cellFailureReason.setError(false);
   }
   
   final long getSuccesses() {
@@ -230,15 +206,36 @@ final class ProcessorTableRow {
     return cpusSelected;
   }
   
+  final boolean equals(String computer) {
+    if (cellComputer.getLabel().equals(computer)) {
+      return true;
+    }
+    return false;
+  }
+  
+  final void addSuccess() {
+    int successes = cellSuccesses.getIntValue();
+    if (successes == EtomoNumber.INTEGER_NULL_VALUE) {
+      successes = 1;
+    }
+    else {
+      successes++;
+    }
+    cellSuccesses.setValue(successes);
+  }
+  
   final void addRestart() {
     int restarts = cellRestarts.getIntValue();
     if (restarts == EtomoNumber.INTEGER_NULL_VALUE) {
-      restarts = 0;
+      restarts = 1;
     }
-    if (restarts == 0) {
+    else {
+      restarts++;
+    }
+    if (restarts > 0) {
       cellRestarts.setWarning(true);
     }
-    cellRestarts.setValue(restarts + 1);
+    cellRestarts.setValue(restarts);
   }
   
   final void setLoad(double load1, double load5, double load15) {
@@ -253,22 +250,48 @@ final class ProcessorTableRow {
     cellLoad.setValue(load);
   }
   
-  final void signalSuccess() {
-    int successes = cellSuccesses.getIntValue();
-    if (successes == EtomoNumber.INTEGER_NULL_VALUE) {
-      successes = 0;
-    }
-    cellSuccesses.setValue(successes + 1);
-  }
-  
   final int getHeight() {
     return cellComputer.getHeight();
   }
   
-  final int getBorderHeight() {
-    return cellComputer.getBorderHeight();
+  final int getWidth() {
+    int width = 0;
+    if (cellComputer != null) {
+      width += cellComputer.getWidth();
+    }
+    if (cellCpusSelected != null) {
+      width += cellCpusSelected.getWidth();
+    }
+    if (cellNumberCpus != null) {
+      width += cellNumberCpus.getWidth();
+    }
+    if (cellLoad1 != null) {
+      width += cellLoad1.getWidth();
+    }
+    if (cellLoad5 != null) {
+      width += cellLoad5.getWidth();
+    }
+    if (cellLoad15 != null) {
+      width += cellLoad15.getWidth();
+    }
+    if (cellCpuType != null) {
+      width += cellCpuType.getWidth();
+    }
+    if (cellOs != null) {
+      width += cellOs.getWidth();
+    }
+    if (cellRestarts != null) {
+      width += cellRestarts.getWidth();
+    }
+    if (cellSuccesses != null) {
+      width += cellSuccesses.getWidth();
+    }
+    if (cellFailureReason != null) {
+      width += cellFailureReason.getWidth();
+    }
+    return width + 2;
   }
-
+  
   private class ProcessorTableRowActionListener implements ActionListener {
     ProcessorTableRow adaptee;
 
@@ -295,6 +318,13 @@ final class ProcessorTableRow {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.7  2005/08/01 18:15:40  sueh
+ * <p> bug# 532 Changed ProcessorTableRow.signalRestart() to addRestart.
+ * <p> Added Failure Reason Column.  Added
+ * <p> getParameters(ProcesschunksParam).  Changed getCpusSelected() to
+ * <p> take the selection state into account.  Changed resetResults() to reset
+ * <p> error and warning states.  Added setLoad().
+ * <p>
  * <p> Revision 1.6  2005/07/19 22:35:28  sueh
  * <p> bug# 532 Since the error setting affects the background, don't set error
  * <p> == true for CellRestarts automatically.
