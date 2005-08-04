@@ -101,12 +101,20 @@ class SpinnerCell extends InputCell {
     }
   }
   
+  final int getWidth() {
+    return spinner.getWidth();
+     //   + spinner.getBorder().getBorderInsets(spinner).right / 2;
+  }
+  
   final void addChangeListener(ChangeListener changeListener) {
     spinner.addChangeListener(changeListener);
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.4  2005/07/29 19:48:02  sueh
+ * <p> bug# 692 Changed ConstEtomoNumber.getInteger() to getInt.
+ * <p>
  * <p> Revision 1.3  2005/07/19 22:35:48  sueh
  * <p> bug# 532 changing the look of inUse == false to greyed out text.
  * <p> Changing the look of error == true to red background.
