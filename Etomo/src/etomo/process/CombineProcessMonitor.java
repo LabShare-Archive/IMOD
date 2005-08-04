@@ -31,6 +31,11 @@ import etomo.util.Utilities;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.10  2005/07/26 18:09:18  sueh
+ * <p> $bug# 701 Implementing ProcessMonitor, which extends Runnable.
+ * <p> $Added a ProcessEndState member variable.  Set it to DONE or FAILED
+ * <p> $when detect the end of the process.
+ * <p> $
  * <p> $Revision 1.9  2005/04/25 20:44:53  sueh
  * <p> $bug# 615 Passing the axis where a command originates to the message
  * <p> $functions so that the message will be popped up in the correct window.
@@ -473,5 +478,8 @@ public class CombineProcessMonitor implements BackgroundProcessMonitor {
         throw new IllegalStateException("Unknown state.  state=" + state);
     }
   }
-
+  
+  public void setProcess(SystemProcessInterface process) {
+    //process is not required
+  }
 }

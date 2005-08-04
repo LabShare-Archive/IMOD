@@ -25,6 +25,13 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.11  2005/07/26 18:46:04  sueh
+ * <p> bug# 701 Implementing ProcessMonitor, which extends Runnable.
+ * <p> Added a ProcessEndState member variable.  Set it to DONE when the
+ * <p> end of the process is detected.  In the future, will set the
+ * <p> ProcessEndState variable to FAILED, if necessary to get the correct
+ * <p> progress bar behavior.
+ * <p>
  * <p> Revision 3.10  2005/07/20 17:44:06  sueh
  * <p> bug# 705 Stop printing the stack trace for IOException bugs coming from
  * <p> MRCHeader, because its filling up the error log with exceptions that are
@@ -260,5 +267,9 @@ public abstract class FileSizeProcessMonitor implements ProcessMonitor {
       e1.printStackTrace();
     }
 
+  }
+  
+  public void setProcess(SystemProcessInterface process) {
+    //process is not required
   }
 }

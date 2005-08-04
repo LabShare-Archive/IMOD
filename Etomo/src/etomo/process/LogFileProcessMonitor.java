@@ -25,6 +25,13 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.16  2005/07/26 21:34:41  sueh
+ * <p> bug# 701 Implementing ProcessMonitor, which extends Runnable.
+ * <p> Added a ProcessEndState member variable.  Set it to DONE when the
+ * <p> end of the process is detected.  In the future, will set the
+ * <p> ProcessEndState variable to FAILED, if necessary to get the correct
+ * <p> progress bar behavior.
+ * <p>
  * <p> Revision 3.15  2005/03/11 01:33:42  sueh
  * <p> bug# 533 correcting a comment.
  * <p>
@@ -352,5 +359,9 @@ public abstract class LogFileProcessMonitor implements ProcessMonitor {
     double fractionDone = (double) currentSection / nSections;
     long elapsedTime = System.currentTimeMillis() - processStartTime;
     remainingTime = (int) (elapsedTime / fractionDone - elapsedTime);
+  }
+  
+  public void setProcess(SystemProcessInterface process) {
+    //process is not required
   }
 }
