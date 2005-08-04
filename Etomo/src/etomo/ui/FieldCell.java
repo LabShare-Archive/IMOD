@@ -21,6 +21,10 @@ import etomo.type.EtomoNumber;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.6  2005/07/19 22:31:38  sueh
+ * <p> bug# 532 changing the look of inUse == false to greyed out text.
+ * <p> Changing the look of error == true to red background.
+ * <p>
  * <p> Revision 1.5  2005/07/11 22:57:04  sueh
  * <p> bug# 619 Don't assume that a blank value is 0, return a null value from
  * <p> getIntValue().
@@ -142,5 +146,14 @@ class FieldCell extends InputCell {
       textField.setForeground(notInUseForeground);
       textField.setDisabledTextColor(notInUseForeground);
     }
+  }
+  
+  final int getWidth() {
+    return textField.getWidth();
+        //+ textField.getBorder().getBorderInsets(textField).right / 2;
+  }
+  
+  final int getRightBorder() {
+    return textField.getBorder().getBorderInsets(textField).right;
   }
 }
