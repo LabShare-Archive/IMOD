@@ -66,6 +66,10 @@ final class CheckBoxCell extends InputCell {
   final boolean isSelected() {
     return checkBox.isSelected();
   }
+  
+  final void setSelected(boolean selected) {
+    checkBox.setSelected(selected);
+  }
 
   public final void addActionListener(ActionListener actionListener) {
     checkBox.addActionListener(actionListener);
@@ -84,15 +88,24 @@ final class CheckBoxCell extends InputCell {
   }
   
   final int getHeight() {
-    return checkBox.getHeight();
+    return checkBox.getHeight() + checkBox.getBorder().getBorderInsets(checkBox).bottom - 1;
   }
   
-  final int getBorderHeight() {
-    return checkBox.getBorder().getBorderInsets(checkBox).bottom;
+  final int getWidth() {
+    return checkBox.getWidth();
+       // + checkBox.getBorder().getBorderInsets(checkBox).right / 2;
+  }
+  
+  final int getLeftBorder() {
+    return checkBox.getBorder().getBorderInsets(checkBox).left;
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.4  2005/08/01 18:07:07  sueh
+ * <p> bug# 532 fixed getLabel(), which was returning the checkbox text instead
+ * <p> of the unformatted label.
+ * <p>
  * <p> Revision 1.3  2005/07/19 22:31:03  sueh
  * <p> bug# 532 changing the look of inUse == false to greyed out text.
  * <p>
