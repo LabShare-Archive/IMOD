@@ -20,6 +20,11 @@ public interface SystemProcessInterface {
   public static  final String  rcsid =  "$Id$";
   
   public String[] getStdOutput();
+  /**
+   * Get standard output while the process is running
+   * @return
+   */
+  public String[] getCurrentStdOutput();
   public String[] getStdError();
   public boolean isStarted();
   public boolean isDone();
@@ -28,5 +33,9 @@ public interface SystemProcessInterface {
   public void setProcessEndState(ProcessEndState endState);
 }
 /**
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 3.2  2005/07/26 21:46:49  sueh
+* <p> bug# 701 Changed notifyKill() to notifyKilled().  Added
+* <p> setProcessendState().
+* <p> </p>
 */
