@@ -22,6 +22,9 @@ import javax.swing.JPanel;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.5  2005/07/21 22:19:07  sueh
+* <p> bug# 532 Fixed test.  It wasn't being set on construction
+* <p>
 * <p> Revision 1.4  2005/07/11 23:00:57  sueh
 * <p> bug# 619 Added functions:  getBorderHeight and getHeight so that the
 * <p> height of the processor table can be calculated.
@@ -114,10 +117,6 @@ class HeaderCell {
   }
   
   final int getHeight() {
-    return cell.getHeight();
-  }
-  
-  final int getBorderHeight() {
-    return cell.getBorder().getBorderInsets(cell).bottom;
+    return cell.getHeight() + cell.getBorder().getBorderInsets(cell).bottom - 1;
   }
 }
