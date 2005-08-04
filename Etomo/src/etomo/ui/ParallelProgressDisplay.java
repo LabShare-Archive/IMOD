@@ -13,6 +13,9 @@ package etomo.ui;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.3  2005/08/01 18:11:50  sueh
+* <p> bug# 532 Changed ProcessorTableRow.signalRestart() to addRestart.
+* <p>
 * <p> Revision 1.2  2005/07/21 22:21:29  sueh
 * <p> bug# 532 Added setup and teardownParallelProgressDisplay() for
 * <p> ParallelProgressDisplay so that the pause button can function like a kill
@@ -30,9 +33,7 @@ public interface ParallelProgressDisplay {
   public int getCpusSelected();
   public void setupParallelProgressDisplay();
   public void teardownParallelProgressDisplay();
-  
-  //TEMP demo functions
-  public void signalStartProgress();
-  public void addRandomRestart();
-  public void signalRandomSuccess();
+  public void addSuccess(String computer);
+  public void addRestart(String computer);
+  public void drop(String computer);
 }
