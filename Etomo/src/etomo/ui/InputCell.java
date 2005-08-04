@@ -48,6 +48,7 @@ abstract class InputCell {
 
   abstract protected Component getComponent();
   abstract protected void setForeground();
+  abstract int getWidth();
 
   /**
    * constructor should not call any overridable or abstract function
@@ -80,7 +81,7 @@ abstract class InputCell {
       jpanelContainer = null;
     }
   }
-
+  
   void setEnabled(boolean enabled) {
     this.enabled = enabled;
     getComponent().setEnabled(enabled);
@@ -135,11 +136,21 @@ abstract class InputCell {
   }
 
   final void setWarning(boolean warning) {
+    //if switching from error to warning, turn off error first
+    if (warning && error) {
+      this.warning = false;//prevent recursion
+      setError(false);
+    }
     this.warning = warning;
     setBackground();
   }
   
   final void setError(boolean error) {
+    //if switching from warning to error, turn off warning first
+    if (error && warning) {
+      this.error = false;//prevent recursion
+      setWarning(false);
+    }
     this.error = error;
     setBackground();
   }
@@ -176,6 +187,11 @@ abstract class InputCell {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.2  2005/07/19 22:32:40  sueh
+ * <p> bug# 532 changing the look of inUse == false to greyed out text.
+ * <p> Changing the look of error == true to red background.  Added warning
+ * <p> boolean.  Setting color internally instead of relying on UI color.
+ * <p>
  * <p> Revision 1.1  2005/07/01 21:20:08  sueh
  * <p> bug# 619 Pulled an ancestor class (InputCell) out of FieldCell because we
  * <p> need several types of input cells.  InputCell handles states and colors
