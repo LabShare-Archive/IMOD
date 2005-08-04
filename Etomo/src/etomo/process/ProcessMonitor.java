@@ -20,7 +20,12 @@ public interface ProcessMonitor extends Runnable {
   
   public void setProcessEndState(ProcessEndState endState);
   public ProcessEndState getProcessEndState();
+  public void setProcess(SystemProcessInterface process);
 }
 /**
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2005/07/26 21:41:12  sueh
+* <p> bug# 701 interface for all comscript monitors so they can be passed to
+* <p> ComScriptProcess.
+* <p> </p>
 */
