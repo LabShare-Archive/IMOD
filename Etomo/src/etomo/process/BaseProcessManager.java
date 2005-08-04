@@ -27,6 +27,10 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.17  2005/08/01 18:00:42  sueh
+* <p> bug# 532 In msgBackgroundProcessDone() passed process.axisID
+* <p> instead of null to processDone().
+* <p>
 * <p> Revision 1.16  2005/07/29 00:51:13  sueh
 * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
 * <p> because the current manager changes when the user changes the tab.
@@ -730,7 +734,7 @@ public abstract class BaseProcessManager {
 
     BackgroundProcess backgroundProcess = new BackgroundProcess(getManager(),
         commandLine, this, axisID);
-    return startBackgroundProcess(backgroundProcess, commandLine, axisID);
+    return startBackgroundProcess(backgroundProcess, commandLine, axisID, null);
   }
   
   protected BackgroundProcess startBackgroundProcess(String[] commandArray,
@@ -741,7 +745,18 @@ public abstract class BaseProcessManager {
     BackgroundProcess backgroundProcess = new BackgroundProcess(getManager(),
         commandArray, this, axisID);
     return startBackgroundProcess(backgroundProcess, commandArray.toString(),
-        axisID);
+        axisID, null);
+  }
+  
+  protected BackgroundProcess startBackgroundProcess(String[] commandArray,
+      AxisID axisID, ProcessMonitor monitor) throws SystemProcessException {
+
+    isAxisBusy(axisID);
+
+    BackgroundProcess backgroundProcess = new BackgroundProcess(getManager(),
+        commandArray, this, axisID, monitor);
+    return startBackgroundProcess(backgroundProcess, commandArray.toString(),
+        axisID, monitor);
   }
 
   protected BackgroundProcess startBackgroundProcess(Command command,
@@ -750,7 +765,7 @@ public abstract class BaseProcessManager {
     BackgroundProcess backgroundProcess = new BackgroundProcess(getManager(),
         command, this, axisID);
     return startBackgroundProcess(backgroundProcess, command.getCommandLine(),
-        axisID);
+        axisID, null);
   }
   
   protected BackgroundProcess startBackgroundProcess(Command command,
@@ -759,11 +774,11 @@ public abstract class BaseProcessManager {
     BackgroundProcess backgroundProcess = new BackgroundProcess(getManager(), command, this,
         axisID, forceNextProcess);
     return startBackgroundProcess(backgroundProcess, command.getCommandLine(),
-        axisID);
+        axisID, null);
   }
 
   private BackgroundProcess startBackgroundProcess(
-      BackgroundProcess backgroundProcess, String commandLine, AxisID axisID)
+      BackgroundProcess backgroundProcess, String commandLine, AxisID axisID, Runnable processMonitor)
       throws SystemProcessException {
     backgroundProcess.setWorkingDirectory(new File(getManager().getPropertyUserDir()));
     backgroundProcess.setDemoMode(etomoDirector.isDemo());
@@ -775,6 +790,22 @@ public abstract class BaseProcessManager {
       System.err.println("  Name: " + backgroundProcess.getName());
     }
     mapAxisThread(backgroundProcess, axisID);
+    //  Start the process monitor thread if a runnable process is provided
+    if (processMonitor != null) {
+      // Wait for the started flag within the backgroundProcess
+      while (!backgroundProcess.isStarted()) {
+        try {
+          Thread.sleep(100);
+        }
+        catch (InterruptedException e) {
+          break;
+        }
+      }
+      Thread processMonitorThread = new Thread(processMonitor);
+      processMonitorThread.start();
+      mapAxisProcessMonitor(processMonitorThread, axisID);
+    }
+
     return backgroundProcess;
   }
   
