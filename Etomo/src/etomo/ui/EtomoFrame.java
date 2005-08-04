@@ -194,10 +194,10 @@ public abstract class EtomoFrame extends JFrame {
     }
     //Run fitWindow on both frames.
     else if (command.equals(menu.getActionCommandFitWindow())) {
-      fitWindow(true);
+      UIHarness.INSTANCE.pack(true, currentManager);
       EtomoFrame frame = getOtherFrame();
       if (frame != null) {
-        frame.fitWindow();
+        UIHarness.INSTANCE.pack(AxisID.SECOND, true, currentManager);
       }
     }
     else {
@@ -250,10 +250,6 @@ public abstract class EtomoFrame extends JFrame {
   
   void repaint(AxisID axisID) {
     getFrame(axisID).repaint();
-  }
-  
-  void fitWindow(AxisID axisID) {
-    getFrame(axisID).fitWindow();
   }
 
   /**
@@ -448,24 +444,6 @@ public abstract class EtomoFrame extends JFrame {
     }
     return messageArray;
   }
-
-    
-  void fitWindow() {
-    fitWindow(false);
-  }
-  
-  /**
-   * fit window to its components and to the screen
-   *
-   */
-  void fitWindow(boolean force) {
-    if (!force && !EtomoDirector.getInstance().getUserConfiguration().isAutoFit()) {
-      setVisible(true);
-    }
-    else {
-      pack();
-    }
-  }
     
   /**
    * Open a file chooser to get an .edf or .ejf file.
@@ -504,18 +482,33 @@ public abstract class EtomoFrame extends JFrame {
     return true;
   }
 
+  void pack(AxisID axisID) {
+    getFrame(axisID).pack();
+  }
   
+  void pack(AxisID axisID, boolean force) {
+    getFrame(axisID).pack(force);
+  }
 
   /**
    * Increase the bounds by one pixel before packing.  This preserves the
    * scrollbar when the window size doesn't change.
    */
   public void pack() {
-    Rectangle bounds = getBounds();
-    bounds.height++;
-    bounds.width++;
-    setBounds(bounds);
-    super.pack();
+    pack(false);
+  }
+  
+  void pack(boolean force) {
+    if (!force && !EtomoDirector.getInstance().getUserConfiguration().isAutoFit()) {
+      setVisible(true);
+    }
+    else {
+      Rectangle bounds = getBounds();
+      bounds.height++;
+      bounds.width++;
+      setBounds(bounds);
+      super.pack();
+    }
   }
   
   /**
@@ -580,8 +573,7 @@ public abstract class EtomoFrame extends JFrame {
    * @param axisID
    * @return
    */
-  //TEMP should be private
-  EtomoFrame getFrame(AxisID axisID) {
+  private EtomoFrame getFrame(AxisID axisID) {
     if (mainFrame == null) {
       throw new NullPointerException("MainFrame instance was not registered.");
     }
@@ -597,6 +589,11 @@ public abstract class EtomoFrame extends JFrame {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.10  2005/07/29 00:54:00  sueh
+* <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
+* <p> because the current manager changes when the user changes the tab.
+* <p> Passing the manager where its needed.
+* <p>
 * <p> Revision 1.9  2005/07/18 17:54:48  sueh
 * <p> bug# 697 In getAxisID() handle null mainPanel.
 * <p>
