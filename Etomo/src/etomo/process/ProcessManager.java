@@ -20,6 +20,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.72  2005/08/01 18:03:35  sueh
+ * bug# 532 Added processchunks().
+ *
  * Revision 3.71  2005/07/29 00:52:48  sueh
  * bug# 709 Going to EtomoDirector to get the current manager is unreliable
  * because the current manager changes when the user changes the tab.
@@ -722,7 +725,6 @@ public class ProcessManager extends BaseProcessManager {
    */
   public void setupComScripts(ConstMetaData metaData, AxisID axisID)
       throws BadComScriptException, IOException {
-    System.out.println("setupComScripts");
     CopyTomoComs copyTomoComs = new CopyTomoComs(appManager);
 
     if (EtomoDirector.getInstance().isDebug()) {
@@ -1231,44 +1233,6 @@ public class ProcessManager extends BaseProcessManager {
     return comScriptProcess.getName();
   }
 
-  public String tiltParallelProcessDemo(AxisID axisID,
-      ParallelProgressDisplay parallelProgressDisplay)
-      throws SystemProcessException {
-    //
-    //  Create the required tilt command
-    //
-    String command = "tilt" + axisID.getExtension() + ".com";
-
-    //  Instantiate the process monitor
-    TiltParallelProcessDemoMonitor tiltProcessMonitor = TiltParallelProcessDemoMonitor
-        .getNewInstance(appManager, axisID, parallelProgressDisplay);
-
-    //  Start the com script in the background
-    ComScriptProcess comScriptProcess = startComScript(command,
-        tiltProcessMonitor, axisID);
-
-    return comScriptProcess.getName();
-  }
-
-  public String resumeTiltParallelProcessDemo(AxisID axisID,
-      ParallelProgressDisplay parallelProgressDisplay)
-      throws SystemProcessException {
-    //
-    //  Create the required tilt command
-    //
-    String command = "tilt" + axisID.getExtension() + ".com";
-
-    //  Instantiate the process monitor
-    TiltParallelProcessDemoMonitor tiltProcessMonitor = TiltParallelProcessDemoMonitor
-        .getExistingInstance(appManager, axisID, parallelProgressDisplay);
-
-    //  Start the com script in the background
-    ComScriptProcess comScriptProcess = startComScript(command,
-        tiltProcessMonitor, axisID);
-
-    return comScriptProcess.getName();
-  }
-
   /**
    * Run the appropriate tilt com file for the given axis ID
    * 
@@ -1310,11 +1274,19 @@ public class ProcessManager extends BaseProcessManager {
    * @return
    * @throws SystemProcessException
    */
-  public final String processchunks(AxisID axisID, ProcesschunksParam param)
+  public final String processchunks(AxisID axisID, ProcesschunksParam param,
+      ParallelProgressDisplay parallelProgressDisplay)
   throws SystemProcessException {
-    BackgroundProcess backgroundProcess = startBackgroundProcess(param
-        .getCommand(), axisID);
-    return backgroundProcess.getName();
+ //   BackgroundProcess backgroundProcess = startBackgroundProcess(param
+ //       .getCommand(), axisID);
+    //  Instantiate the process monitor
+    ProcesschunksProcessMonitor monitor = new ProcesschunksProcessMonitor(appManager,
+        axisID, parallelProgressDisplay);
+
+    //  Start the com script in the background
+    BackgroundProcess process = startBackgroundProcess(param.getCommand(),
+        axisID, monitor);
+    return process.getName();
   }
 
   /**
