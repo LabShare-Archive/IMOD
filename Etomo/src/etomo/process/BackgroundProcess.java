@@ -19,6 +19,11 @@ import etomo.type.ProcessEndState;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.9  2005/07/29 00:50:56  sueh
+ * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
+ * <p> because the current manager changes when the user changes the tab.
+ * <p> Passing the manager where its needed.
+ * <p>
  * <p> Revision 3.8  2005/07/26 17:35:05  sueh
  * <p> bug# 701 Added ProcessEndState to record how the process ended.
  * <p>
@@ -138,6 +143,8 @@ public class BackgroundProcess
   private boolean done = false;
   private ProcessEndState endState = null;
   private final BaseManager manager;
+  private SystemProgram program = null;
+  private ProcessMonitor monitor = null;
   
   public BackgroundProcess(BaseManager manager, String commandLine,
       BaseProcessManager processManager, AxisID axisID) {
@@ -177,6 +184,16 @@ public class BackgroundProcess
     this.axisID = axisID;
     this.commandArray = commandArray;
     this.processManager = processManager;
+    commandProcessID = new StringBuffer("");
+  }
+  
+  public BackgroundProcess(BaseManager manager, String[] commandArray,
+      BaseProcessManager processManager, AxisID axisID, ProcessMonitor monitor) {
+    this.manager = manager;
+    this.axisID = axisID;
+    this.commandArray = commandArray;
+    this.processManager = processManager;
+    this.monitor = monitor;
     commandProcessID = new StringBuffer("");
   }
   
@@ -281,8 +298,10 @@ public class BackgroundProcess
    * Execute the command and notify the ProcessManager when it is done
    */
   public void run() {
+    if (monitor != null) {
+      monitor.setProcess(this);
+    }
     started = true;
-    SystemProgram program;
     if (commandArray != null) {
       program = new SystemProgram(manager.getPropertyUserDir(), commandArray,
           axisID);
@@ -343,6 +362,13 @@ public class BackgroundProcess
    */
   public String[] getStdOutput() {
     return stdOutput;
+  }
+  
+  public String[] getCurrentStdOutput() {
+    if (program == null) {
+      return null;
+    }
+    return program.getStdOutput();
   }
   
   public boolean isStarted() {
