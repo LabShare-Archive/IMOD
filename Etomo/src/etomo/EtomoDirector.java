@@ -44,6 +44,11 @@ import etomo.util.Utilities;
  * 
  * <p>
  * $Log$
+ * Revision 1.25  2005/07/29 00:39:11  sueh
+ * bug# 709 Going to EtomoDirector to get the current manager is unreliable
+ * because the current manager changes when the user changes the tab.
+ * Passing the manager where its needed.
+ *
  * Revision 1.24  2005/07/14 21:55:57  sueh
  * Fixed bug in parseCommandLine().  Newstuff number parse was wrong.
  *
@@ -323,7 +328,7 @@ public class EtomoDirector {
     uiHarness.selectWindowMenuItem(currentManagerKey);
     setCurrentManager(currentManagerKey, false);
     uiHarness.setMRUFileLabels(userConfig.getMRUFileList());
-    uiHarness.pack();
+    uiHarness.pack(manager);
     uiHarness.setVisible(true);
   }
   

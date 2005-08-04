@@ -43,6 +43,9 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.22  2005/08/01 17:57:59  sueh
+* <p> Removed unnecessary FIXME
+* <p>
 * <p> Revision 1.21  2005/07/29 00:38:52  sueh
 * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
 * <p> because the current manager changes when the user changes the tab.
@@ -283,6 +286,8 @@ public abstract class BaseManager {
   public abstract void kill(AxisID axisID);
   protected abstract int getNumStorables();
   public abstract void touch(File file);
+  public abstract void packDialogs();
+  public abstract void packDialogs(AxisID axisID);
 
   //FIXME needs to be public?
   public abstract boolean isNewManager();
@@ -301,7 +306,6 @@ public abstract class BaseManager {
       createMainPanel();
       //mainFrame = EtomoDirector.getInstance().getMainFrame();
     }
-    //imodManager should be created only once.
     createImodManager();
     initProgram();
   }
@@ -519,7 +523,7 @@ public abstract class BaseManager {
 
 
   protected void setPanel() {
-    uiHarness.pack();
+    uiHarness.pack(this);
     //  Resize to the users preferrred window dimensions
     getMainPanel().setSize(new Dimension(userConfig.getMainWindowWidth(),
         userConfig.getMainWindowHeight()));
@@ -719,11 +723,12 @@ public abstract class BaseManager {
     }
     return !nextProcessA.equals("");
   }
-  
+  /*
   public void packMainWindow(AxisID axisID) {
     uiHarness.repaint(axisID);
     uiHarness.fitWindow(axisID);
-  }
+    packDialogs(axisID);
+  }*/
   
   public String toString() {
     return getClass().getName() + "[" + super.toString() + paramString() + "]";

@@ -20,6 +20,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.10  2005/06/16 19:52:31  sueh
+ * <p> bug# 692 Added self test to command line in DataFlowTests.
+ * <p>
  * <p> Revision 3.9  2005/04/27 02:10:10  sueh
  * <p> bug# 615 Showing both axes for dual axis.
  * <p>
@@ -250,7 +253,7 @@ public class DataFlowTests {
 
   private static void preProcessing(AxisID axisID) {
     applicationManager.openPreProcDialog(axisID);
-    uiHarness.pack();
+    uiHarness.pack(applicationManager);
     applicationManager.findXrays(axisID);
     waitForThread(axisID);
     applicationManager.eraser(axisID);
@@ -261,7 +264,7 @@ public class DataFlowTests {
 
   private static void coarseAlignment(AxisID axisID) {
     applicationManager.openCoarseAlignDialog(axisID);
-    uiHarness.pack();
+    uiHarness.pack(applicationManager);
     applicationManager.crossCorrelate(axisID);
     waitForThread(axisID);
     if(!applicationManager.getMetaData().isFiducialessAlignment(axisID)) {
@@ -273,7 +276,7 @@ public class DataFlowTests {
 
   private static void transferfid(AxisID destAxisID) {
     applicationManager.openFiducialModelDialog(destAxisID);
-    uiHarness.pack();
+    uiHarness.pack(applicationManager);
     applicationManager.transferfid(destAxisID);
     waitForThread(destAxisID);
 
@@ -289,7 +292,7 @@ public class DataFlowTests {
       }
     }
     applicationManager.openFiducialModelDialog(axisID);
-    uiHarness.pack();
+    uiHarness.pack(applicationManager);
     applicationManager.fiducialModelTrack(axisID);
     waitForThread(axisID);
     applicationManager.doneFiducialModelDialog(axisID);
@@ -304,7 +307,7 @@ public class DataFlowTests {
       return;
     }
     applicationManager.openFineAlignmentDialog(axisID);
-    uiHarness.pack();
+    uiHarness.pack(applicationManager);
     applicationManager.fineAlignment(axisID);
     waitForThread(axisID);
     applicationManager.doneAlignmentEstimationDialog(axisID);
@@ -312,7 +315,7 @@ public class DataFlowTests {
 
   private static void tomogramPositioning(AxisID axisID) {
     applicationManager.openTomogramPositioningDialog(axisID);
-    uiHarness.pack();
+    uiHarness.pack(applicationManager);
     applicationManager.createSample(axisID);
     waitForThread(axisID);
     try {
@@ -339,7 +342,7 @@ public class DataFlowTests {
 
   private static void tomogramGeneration(AxisID axisID) {
     applicationManager.openTomogramGenerationDialog(axisID);
-    uiHarness.pack();
+    uiHarness.pack(applicationManager);
     applicationManager.newst(axisID);
     waitForThread(axisID);
     //applicationManager.mtffilter(axisID);
@@ -351,7 +354,7 @@ public class DataFlowTests {
 
   private static void tomogramCombination() {
     applicationManager.openTomogramCombinationDialog();
-    uiHarness.pack();
+    uiHarness.pack(applicationManager);
     applicationManager.createCombineScripts();
     waitForThread(AxisID.ONLY);
     applicationManager.combine();
