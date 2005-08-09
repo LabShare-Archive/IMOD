@@ -25,6 +25,9 @@ import etomo.type.ProcessEndState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.16  2005/07/29 19:47:36  sueh
+ * <p> bug# 692 Changed ConstEtomoNumber.getInteger() to getInt.
+ * <p>
  * <p> Revision 3.15  2005/07/26 23:07:11  sueh
  * <p> bug# 701 When stopping the progress bar, pass the process end state.
  * <p>
@@ -173,7 +176,7 @@ public abstract class AxisProcessPanel implements ContextMenu {
   //  Progress panel
   ProgressPanel progressPanel = new ProgressPanel("No process");
   JButton buttonKillProcess = new JButton(KILL_BUTTON_LABEL);
-  AbstractButton buttonPauseProcess = null;
+  MultiLineButton buttonPauseProcess = null;
 
   //  Process select panel
   protected JPanel panelProcessSelect = new JPanel();
@@ -308,7 +311,7 @@ public abstract class AxisProcessPanel implements ContextMenu {
    * manage a pause button
    * @param pauseButton
    */
-  final void setPauseButton(AbstractButton pauseButton) {
+  final void setPauseButton(MultiLineButton pauseButton) {
     buttonPauseProcess = pauseButton;
     if (buttonPauseProcess != null) {
       buttonPauseProcess.addActionListener(actionListener);
@@ -320,7 +323,7 @@ public abstract class AxisProcessPanel implements ContextMenu {
    * stop managing a pause button
    * @param pauseButton
    */
-  final void deletePauseButton(AbstractButton pauseButton) {
+  final void deletePauseButton(MultiLineButton pauseButton) {
     if (buttonPauseProcess != null && buttonPauseProcess == pauseButton) {
       buttonPauseProcess.removeActionListener(actionListener);
       buttonPauseProcess.setEnabled(false);
