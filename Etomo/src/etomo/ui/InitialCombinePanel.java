@@ -14,6 +14,7 @@ import etomo.comscript.ConstSolvematchParam;
 import etomo.comscript.SolvematchParam;
 import etomo.comscript.CombineParams;
 import etomo.type.FiducialMatch;
+import etomo.type.Run3dmodMenuOption;
 
 /**
  * <p>Description: </p>
@@ -28,6 +29,10 @@ import etomo.type.FiducialMatch;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.16  2004/12/02 20:39:50  sueh
+ * <p> bug# 566 ContextPopup can specify an anchor in both the tomo guide and
+ * <p> the join guide.  Need to specify the guide to anchor.
+ * <p>
  * <p> Revision 3.15  2004/11/19 23:56:16  sueh
  * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
  * <p>
@@ -127,7 +132,7 @@ import etomo.type.FiducialMatch;
  * <p>
  * <p> </p>
  */
-public class InitialCombinePanel implements ContextMenu, InitialCombineFields {
+public class InitialCombinePanel implements ContextMenu, InitialCombineFields, Run3dmodButtonContainer {
   public static final String rcsid = "$Id$";
 
   private TomogramCombinationDialog tomogramCombinationDialog;
@@ -138,8 +143,8 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields {
   private SolvematchPanel pnlSolvematch;
 
   private JPanel pnlButton = new JPanel();
-  private MultiLineButton btnMatchcheck = new MultiLineButton(
-    "<html><b>View Match Check Volume</b>");
+  private Run3dmodButton btnMatchcheck = new Run3dmodButton(
+    "<html><b>View Match Check Volume</b>", this);
   private MultiLineButton btnRestart = new MultiLineButton(
     "<html><b>Restart Combine</b>");
   private MultiLineToggleButton btnMatchvolRestart = new MultiLineToggleButton(
@@ -163,9 +168,9 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields {
     //  Layout the button panel
     pnlButton.setLayout(new BoxLayout(pnlButton, BoxLayout.X_AXIS));
     pnlButton.add(Box.createHorizontalGlue());
-    pnlButton.add(btnMatchcheck);
+    pnlButton.add(btnMatchcheck.getComponent());
     pnlButton.add(Box.createHorizontalGlue());
-    pnlButton.add(btnRestart);
+    pnlButton.add(btnRestart.getComponent());
     pnlButton.add(Box.createHorizontalGlue());
     pnlButton.add(btnMatchvolRestart);
     pnlButton.add(Box.createHorizontalGlue());
@@ -267,6 +272,12 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields {
       logFile, applicationManager);
   }
 
+  public void run3dmod(Run3dmodButton button, Run3dmodMenuOption menuOption) {
+    if (button.equals(btnMatchcheck)) {
+      applicationManager.imodMatchCheck(menuOption);
+    }
+  }
+  
   /**
    * Respond to button actions
    * @param event
@@ -278,7 +289,7 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields {
 
     String command = event.getActionCommand();
     if (command.equals(btnMatchcheck.getActionCommand())) {
-      applicationManager.imodMatchCheck();
+      applicationManager.imodMatchCheck(Run3dmodMenuOption.NONE);
     }
     if (command.equals(btnRestart.getActionCommand())) {
       applicationManager.combine();

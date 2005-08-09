@@ -9,6 +9,7 @@ import etomo.ApplicationManager;
 import etomo.type.AxisID;
 import etomo.type.DialogType;
 import etomo.type.InvalidEtomoNumberException;
+import etomo.type.Run3dmodMenuOption;
 import etomo.comscript.BeadtrackParam;
 import etomo.comscript.TransferfidParam;
 import etomo.comscript.FortranInputSyntaxException;
@@ -26,6 +27,11 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.13  2005/08/04 20:09:47  sueh
+ * <p> bug# 532  Centralizing fit window functionality by placing fitting functions
+ * <p> in UIHarness.  Removing packMainWindow from the manager.  Sending
+ * <p> the manager to UIHarness.pack() so that packDialogs() can be called.
+ * <p>
  * <p> Revision 3.12  2005/07/29 00:54:05  sueh
  * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
  * <p> because the current manager changes when the user changes the tab.
@@ -149,7 +155,7 @@ import etomo.comscript.FortranInputSyntaxException;
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
  */
-public class FiducialModelDialog extends ProcessDialog implements ContextMenu {
+public class FiducialModelDialog extends ProcessDialog implements ContextMenu, Run3dmodButtonContainer {
   public static final String rcsid =
     "$Id$";
 
@@ -157,8 +163,8 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu {
 
   private BeveledBorder border = new BeveledBorder("Fiducial Model Generation");
   private MultiLineToggleButton btnTransferFiducials = null;
-  private MultiLineToggleButton btnSeed =
-    new MultiLineToggleButton("<html><b>Seed Fiducial Model</b>");
+  private Run3dmodButton btnSeed =
+    Run3dmodButton.getToggleButtonInstance("<html><b>Seed Fiducial Model</b>", this);
 
   private TransferfidPanel pnlTransferfid = null;
   private BeadtrackPanel pnlBeadtrack;
@@ -169,8 +175,8 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu {
   private MultiLineButton btnUseModel =
     new MultiLineButton("<html><b>Use Fiducial Model as Seed</b>");
 
-  private MultiLineToggleButton btnFixModel =
-    new MultiLineToggleButton("<html><b>Fix Fiducial Model</b>");
+  private Run3dmodButton btnFixModel =
+    Run3dmodButton.getToggleButtonInstance("<html><b>Fix Fiducial Model</b>", this);
     
   private JPanel pnlTrack = new JPanel();
 
@@ -211,7 +217,7 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu {
       pnlFiducialModel.add(pnlTransferfid.getContainer());
       pnlFiducialModel.add(Box.createRigidArea(FixedDim.x0_y5));
     }
-    pnlFiducialModel.add(btnSeed);    
+    pnlFiducialModel.add(btnSeed.getComponent());    
     pnlFiducialModel.add(Box.createRigidArea(FixedDim.x0_y5));
 
     pnlFiducialModel.add(pnlBeadtrack.getContainer());
@@ -221,12 +227,12 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu {
     pnlTrack.setAlignmentX(Component.CENTER_ALIGNMENT);
     pnlTrack.add(btnTrack);
     pnlTrack.add(Box.createRigidArea(FixedDim.x5_y0));
-    pnlTrack.add(btnUseModel);
+    pnlTrack.add(btnUseModel.getComponent());
     pnlFiducialModel.add(pnlTrack);
     
     pnlFiducialModel.add(Box.createRigidArea(FixedDim.x0_y5));
 
-    pnlFiducialModel.add(btnFixModel);
+    pnlFiducialModel.add(btnFixModel.getComponent());
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     rootPanel.add(pnlFiducialModel);
     addExitButtons();
@@ -355,13 +361,22 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu {
     text = "Load fiducial model into 3dmod.";
     btnFixModel.setToolTipText(tooltipFormatter.setText(text).format());
   }
+  
+  public void run3dmod(Run3dmodButton button, Run3dmodMenuOption menuOption) {
+    if (button.equals(btnSeed)) {
+      applicationManager.imodSeedFiducials(axisID, menuOption);
+    }
+    else if (button.equals(btnFixModel)) {
+      applicationManager.imodFixFiducials(axisID, menuOption);
+    }
+  }
 
   //  Action function for buttons
   private void buttonAction(ActionEvent event) {
     String command = event.getActionCommand();
 
     if (command.equals(btnSeed.getActionCommand())) {
-      applicationManager.imodSeedFiducials(axisID);
+      applicationManager.imodSeedFiducials(axisID, Run3dmodMenuOption.NONE);
     }
 
     else if (command.equals(btnTrack.getActionCommand())) {
@@ -376,7 +391,7 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu {
     }
 
     else if (command.equals(btnFixModel.getActionCommand())) {
-      applicationManager.imodFixFiducials(axisID);
+      applicationManager.imodFixFiducials(axisID, Run3dmodMenuOption.NONE);
     }
 
     else if (command.equals(btnTransferFiducials.getActionCommand())) {

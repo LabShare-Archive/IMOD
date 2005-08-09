@@ -24,6 +24,7 @@ import etomo.comscript.CombineParams;
 import etomo.comscript.SetParam;
 import etomo.type.AxisID;
 import etomo.type.EtomoAutodoc;
+import etomo.type.Run3dmodMenuOption;
 
 /**
  * <p>
@@ -49,6 +50,11 @@ import etomo.type.EtomoAutodoc;
  * 
  * <p>
  * $Log$
+ * Revision 3.23  2005/04/25 21:06:01  sueh
+ * bug# 615 Passing the axis where a command originates to the message
+ * functions so that the message will be popped up in the correct window.
+ * This requires adding AxisID to many objects.
+ *
  * Revision 3.22  2005/02/11 16:45:39  sueh
  * bug# 600 Getting tooltips using EtomoAutodoc instead of TooltipFormatter.
  *
@@ -190,7 +196,7 @@ import etomo.type.EtomoAutodoc;
  * <p>
  * </p>
  */
-public class FinalCombinePanel implements ContextMenu, FinalCombineFields {
+public class FinalCombinePanel implements ContextMenu, FinalCombineFields, Run3dmodButtonContainer {
   public static final String rcsid = "$Id$";
 
   private TomogramCombinationDialog tomogramCombinationDialog;
@@ -236,8 +242,8 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields {
   private JPanel pnlPatchRegionModel = new JPanel();
   private JCheckBox cbUsePatchRegionModel = new JCheckBox(
     "Use patch region model");
-  private MultiLineButton btnPatchRegionModel = new MultiLineButton(
-    "<html><b>Create/Edit Patch Region Model</b>");
+  private Run3dmodButton btnPatchRegionModel = new Run3dmodButton(
+    "<html><b>Create/Edit Patch Region Model</b>", this);
   private LabeledTextField ltfWarpLimit = new LabeledTextField(
     "Warping residual limits: ");
   private LabeledTextField ltfRefineLimit = new LabeledTextField(
@@ -266,10 +272,10 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields {
     "<html><b>Examine Patch Vector Model</b>");
   private MultiLineButton btnReplacePatchOut = new MultiLineButton(
     "<html><b>Replace Patch Vectors</b>");
-  private MultiLineButton btnImodMatchedTo = new MultiLineButton(
-    "<html><b>Open Volume Being Matched To</b>");
-  private MultiLineButton btnImodCombined = new MultiLineButton(
-    "<html><b>Open Combined Volume</b>");
+  private Run3dmodButton btnImodMatchedTo = new Run3dmodButton(
+    "<html><b>Open Volume Being Matched To</b>", this);
+  private Run3dmodButton btnImodCombined = new Run3dmodButton(
+    "<html><b>Open Combined Volume</b>", this);
   private JCheckBox cbNoVolcombine = new JCheckBox("Stop before running volcombine");
   private LabeledTextField ltfReductionFactor = new LabeledTextField(
       "Reduction factor for matching amplitudes in combined FFT: ");
@@ -293,10 +299,9 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields {
       .getBorder());
     pnlPatchRegionModel.add(cbUsePatchRegionModel);
     pnlPatchRegionModel.add(Box.createRigidArea(FixedDim.x10_y0));
-    pnlPatchRegionModel.add(btnPatchRegionModel);
+    pnlPatchRegionModel.add(btnPatchRegionModel.getComponent());
     pnlPatchRegionModel.add(Box.createHorizontalGlue());
-    UIUtilities.setButtonSize(btnPatchRegionModel, UIParameters
-      .getButtonDimension());
+    btnPatchRegionModel.setSize();
 
     // Layout the Patchcorr panel
     pnlPatchcorr.setLayout(new BoxLayout(pnlPatchcorr, BoxLayout.Y_AXIS));
@@ -305,9 +310,9 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields {
 
     pnlPatchsizeButtons.setLayout(new BoxLayout(pnlPatchsizeButtons,
       BoxLayout.Y_AXIS));
-    pnlPatchsizeButtons.add(btnPatchsizeIncrease);
+    pnlPatchsizeButtons.add(btnPatchsizeIncrease.getComponent());
     pnlPatchsizeButtons.add(Box.createRigidArea(FixedDim.x0_y5));
-    pnlPatchsizeButtons.add(btnPatchsizeDecrease);
+    pnlPatchsizeButtons.add(btnPatchsizeDecrease.getComponent());
     UIUtilities.setButtonSizeAll(pnlPatchsizeButtons, UIParameters
       .getButtonDimension());
 
@@ -343,7 +348,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields {
     pnlPatchcorr.add(Box.createRigidArea(FixedDim.x0_y5));
     btnPatchcorrRestart.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-    pnlPatchcorr.add(btnPatchcorrRestart);
+    pnlPatchcorr.add(btnPatchcorrRestart.getComponent());
     pnlPatchcorr.add(Box.createRigidArea(FixedDim.x0_y5));
     UIUtilities.setButtonSizeAll(pnlPatchcorr, UIParameters
       .getButtonDimension());
@@ -373,9 +378,9 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields {
     pnlMatchorwarpButtons.setLayout(new BoxLayout(pnlMatchorwarpButtons,
       BoxLayout.X_AXIS));
     pnlMatchorwarpButtons.add(Box.createHorizontalGlue());
-    pnlMatchorwarpButtons.add(btnMatchorwarpRestart);
+    pnlMatchorwarpButtons.add(btnMatchorwarpRestart.getComponent());
     pnlMatchorwarpButtons.add(Box.createHorizontalGlue());
-    pnlMatchorwarpButtons.add(btnMatchorwarpTrial);
+    pnlMatchorwarpButtons.add(btnMatchorwarpTrial.getComponent());
     pnlMatchorwarpButtons.add(Box.createHorizontalGlue());
     UIUtilities.setButtonSizeAll(pnlMatchorwarpButtons, UIParameters
       .getButtonDimension());
@@ -387,7 +392,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields {
     pnlVolcombine.add(cbNoVolcombine);
     pnlVolcombine.add(ltfReductionFactor.getContainer());
     pnlVolcombine.add(Box.createRigidArea(FixedDim.x0_y5));
-    pnlVolcombine.add(btnVolcombineRestart);
+    pnlVolcombine.add(btnVolcombineRestart.getComponent());
     cbNoVolcombine.setAlignmentX(Component.CENTER_ALIGNMENT);
     btnVolcombineRestart.setAlignmentX(Component.CENTER_ALIGNMENT);
     UIUtilities.setButtonSizeAll(pnlVolcombine, UIParameters
@@ -396,13 +401,13 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields {
     //  Create the button panel
     pnlButton.setLayout(new BoxLayout(pnlButton, BoxLayout.X_AXIS));
     pnlButton.add(Box.createHorizontalGlue());
-    pnlButton.add(btnPatchVectorModel);
+    pnlButton.add(btnPatchVectorModel.getComponent());
     pnlButton.add(Box.createHorizontalGlue());
-    pnlButton.add(btnReplacePatchOut);
+    pnlButton.add(btnReplacePatchOut.getComponent());
     pnlButton.add(Box.createHorizontalGlue());
-    pnlButton.add(btnImodMatchedTo);
+    pnlButton.add(btnImodMatchedTo.getComponent());
     pnlButton.add(Box.createHorizontalGlue());
-    pnlButton.add(btnImodCombined);
+    pnlButton.add(btnImodCombined.getComponent());
     pnlButton.add(Box.createHorizontalGlue());
     UIUtilities.setButtonSizeAll(pnlButton, UIParameters.getButtonDimension());
 
@@ -732,6 +737,18 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields {
       "Patch Problems in Combining", ContextPopup.TOMO_GUIDE, manPagelabel, manPage, logFileLabel,
       logFile, applicationManager);
   }
+  
+  public void run3dmod(Run3dmodButton button, Run3dmodMenuOption menuOption) {
+    if (button.equals(btnPatchRegionModel)) {
+      applicationManager.imodPatchRegionModel(menuOption);
+    }
+    else if (button.equals(btnImodMatchedTo)) {
+      applicationManager.imodMatchedToTomogram(menuOption);
+    }
+    else if (button.equals(btnImodCombined)) {
+      applicationManager.imodCombinedTomogram(menuOption);
+    }
+  }
 
   private void buttonAction(ActionEvent event) {
     // Synchronize this panel with the others
@@ -769,7 +786,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields {
     }
 
     if (command.equals(btnPatchRegionModel.getActionCommand())) {
-      applicationManager.imodPatchRegionModel();
+      applicationManager.imodPatchRegionModel(Run3dmodMenuOption.NONE);
     }
 
     if (command.equals(btnMatchorwarpRestart.getActionCommand())) {
@@ -793,11 +810,11 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields {
     }
 
     if (command.equals(btnImodMatchedTo.getActionCommand())) {
-      applicationManager.imodMatchedToTomogram();
+      applicationManager.imodMatchedToTomogram(Run3dmodMenuOption.NONE);
     }
 
     if (command.equals(btnImodCombined.getActionCommand())) {
-      applicationManager.imodCombinedTomogram();
+      applicationManager.imodCombinedTomogram(Run3dmodMenuOption.NONE);
     }
   }
 
