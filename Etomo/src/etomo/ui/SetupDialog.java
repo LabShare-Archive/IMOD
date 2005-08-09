@@ -42,11 +42,12 @@ import etomo.type.AxisType;
 import etomo.type.ConstMetaData;
 import etomo.type.DialogType;
 import etomo.type.MetaData;
+import etomo.type.Run3dmodMenuOption;
 import etomo.type.ViewType;
 import etomo.util.InvalidParameterException;
 import etomo.util.MRCHeader;
 
-public class SetupDialog extends ProcessDialog implements ContextMenu {
+public class SetupDialog extends ProcessDialog implements ContextMenu, Run3dmodButtonContainer {
   public static final String rcsid = "$Id$";
 
   private JPanel pnlDataParameters = new JPanel();
@@ -76,10 +77,10 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
   private JRadioButton rbMontage = new JRadioButton("Montage");
   private ButtonGroup bgViewType = new ButtonGroup();
 
-  private MultiLineButton btnViewRawStackA = new MultiLineButton(
-    "View Raw Image Stack");
-  private MultiLineButton btnViewRawStackB = new MultiLineButton(
-    "View Raw Image Stack");
+  private Run3dmodButton btnViewRawStackA = new Run3dmodButton(
+    "View Raw Image Stack", this);
+  private Run3dmodButton btnViewRawStackB = new Run3dmodButton(
+    "View Raw Image Stack", this);
 
   //  Image parameter objects
   private JPanel pnlImageParams = new JPanel();
@@ -142,7 +143,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
 
     // There are no advanced settings for this dialog, remove the advanced
     // button
-    pnlExitButtons.remove(btnAdvanced);
+    pnlExitButtons.remove(btnAdvanced.getComponent());
 
     //  Add the panes to the dialog box
     rootPanel.add(pnlDataParameters);
@@ -250,7 +251,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     btnScanHeader.setAlignmentY(Component.CENTER_ALIGNMENT);
     pnlStackInfo.add(Box.createRigidArea(FixedDim.x5_y0));
     pnlStackInfo.add(Box.createHorizontalGlue());
-    pnlStackInfo.add(btnScanHeader);
+    pnlStackInfo.add(btnScanHeader.getComponent());
     pnlStackInfo.add(Box.createRigidArea(FixedDim.x10_y0));
     pnlStackInfo.add(Box.createRigidArea(FixedDim.x10_y0));
     pnlStackInfo.add(ltfPixelSize.getContainer());
@@ -323,7 +324,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     pnlAxisInfoA.add(Box.createRigidArea(FixedDim.x0_y10));
     pnlAxisInfoA.add(ltfExcludeListA.getContainer());
     pnlAxisInfoA.add(Box.createRigidArea(FixedDim.x0_y10));
-    pnlAxisInfoA.add(btnViewRawStackA);
+    pnlAxisInfoA.add(btnViewRawStackA.getComponent());
     //Add adjusted focus checkbox
     pnlAdjustedFocusA.add(cbAdjustedFocusA);
     pnlAdjustedFocusA.setLayout(new BoxLayout(pnlAdjustedFocusA, BoxLayout.X_AXIS));
@@ -340,7 +341,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     pnlAxisInfoB.add(Box.createRigidArea(FixedDim.x0_y10));
     pnlAxisInfoB.add(ltfExcludeListB.getContainer());
     pnlAxisInfoB.add(Box.createRigidArea(FixedDim.x0_y10));
-    pnlAxisInfoB.add(btnViewRawStackB);
+    pnlAxisInfoB.add(btnViewRawStackB.getComponent());
     cbAdjustedFocusB.setAlignmentX(Component.RIGHT_ALIGNMENT);
     //Add adjusted focus checkbox
     pnlAdjustedFocusB.add(cbAdjustedFocusB);
@@ -784,17 +785,26 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     spnBinning.setValue(new Integer(binning));
   }
 
-  private void btnViewRawStackAAction(ActionEvent event) {
+  public void run3dmod(Run3dmodButton button, Run3dmodMenuOption menuOption) {
+    if (button.equals(btnViewRawStackA)) {
+      btnViewRawStackAAction(menuOption);
+    }
+    else if (button.equals(btnViewRawStackB)) {
+      btnViewRawStackBAction(menuOption);
+    }
+  }
+  
+  private void btnViewRawStackAAction(Run3dmodMenuOption menuOption) {
     if (getAxisType() == AxisType.SINGLE_AXIS) {
-      applicationManager.imodPreview(AxisID.ONLY);
+      applicationManager.imodPreview(AxisID.ONLY, menuOption);
     }
     else {
-      applicationManager.imodPreview(AxisID.FIRST);
+      applicationManager.imodPreview(AxisID.FIRST, menuOption);
     }
   }
 
-  private void btnViewRawStackBAction(ActionEvent event) {
-    applicationManager.imodPreview(AxisID.SECOND);
+  private void btnViewRawStackBAction(Run3dmodMenuOption menuOption) {
+    applicationManager.imodPreview(AxisID.SECOND, menuOption);
   }
 
   /**
@@ -1010,7 +1020,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     }
 
     public void actionPerformed(ActionEvent event) {
-      adaptee.btnViewRawStackAAction(event);
+      adaptee.btnViewRawStackAAction(Run3dmodMenuOption.NONE);
     }
   }
 
@@ -1022,13 +1032,18 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     }
 
     public void actionPerformed(ActionEvent event) {
-      adaptee.btnViewRawStackBAction(event);
+      adaptee.btnViewRawStackBAction(Run3dmodMenuOption.NONE);
     }
   }
 
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.32  2005/08/04 20:17:02  sueh
+ * <p> bug# 532  Centralizing fit window functionality by placing fitting functions
+ * <p> in UIHarness.  Removing packMainWindow from the manager.  Sending
+ * <p> the manager to UIHarness.pack() so that packDialogs() can be called.
+ * <p>
  * <p> Revision 3.31  2005/07/29 00:54:40  sueh
  * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
  * <p> because the current manager changes when the user changes the tab.

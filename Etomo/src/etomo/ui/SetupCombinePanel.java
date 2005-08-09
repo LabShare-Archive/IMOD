@@ -21,6 +21,7 @@ import etomo.comscript.ConstCombineParams;
 import etomo.type.AxisID;
 import etomo.type.CombinePatchSize;
 import etomo.type.FiducialMatch;
+import etomo.type.Run3dmodMenuOption;
 
 /**
  * <p>
@@ -42,6 +43,10 @@ import etomo.type.FiducialMatch;
  * 
  * <p>
  * $Log$
+ * Revision 3.16  2004/12/02 20:42:08  sueh
+ * bug# 566 ContextPopup can specify an anchor in both the tomo guide and
+ * the join guide.  Need to specify the guide to anchor.
+ *
  * Revision 3.15  2004/11/20 00:04:03  sueh
  * bug# 520 merging Etomo_3-4-6_JOIN branch to head.
  *
@@ -234,7 +239,7 @@ import etomo.type.FiducialMatch;
  * </p>
  */
 public class SetupCombinePanel
-  implements ContextMenu, InitialCombineFields, FinalCombineFields {
+  implements ContextMenu, InitialCombineFields, FinalCombineFields, Run3dmodButtonContainer {
   public static final String rcsid = "$Id$";
 
   private TomogramCombinationDialog tomogramCombinationDialog;
@@ -263,8 +268,8 @@ public class SetupCombinePanel
   private ButtonGroup bgPatchSize = new ButtonGroup();
   private JPanel pnlPatchRegionModel = new JPanel();
   private JCheckBox cbPatchRegionModel = new JCheckBox("Use patch region model");
-  private MultiLineButton btnPatchRegionModel = new MultiLineButton(
-    "<html><b>Create/Edit Patch Region Model</b>");
+  private Run3dmodButton btnPatchRegionModel = new Run3dmodButton(
+    "<html><b>Create/Edit Patch Region Model</b>", this);
 
   private JPanel pnlPatchRegion = new JPanel();
   private LabeledTextField ltfXMin = new LabeledTextField("X axis min: ");
@@ -281,10 +286,10 @@ public class SetupCombinePanel
   private JCheckBox cbManualCleanup = new JCheckBox("Manual cleanup");
 
   private JPanel pnlButton = new JPanel();
-  private MultiLineButton btnImodVolumeA = new MultiLineButton(
-    "<html><b>3dmod Volume A</b>");
-  private MultiLineButton btnImodVolumeB = new MultiLineButton(
-    "<html><b>3dmod Volume B</b>");
+  private Run3dmodButton btnImodVolumeA = new Run3dmodButton(
+    "<html><b>3dmod Volume A</b>", this);
+  private Run3dmodButton btnImodVolumeB = new Run3dmodButton(
+    "<html><b>3dmod Volume B</b>", this);
   private MultiLineToggleButton btnCreate = new MultiLineToggleButton(
     "<html><b>Create Combine Scripts</b>");
   private MultiLineToggleButton btnCombine = new MultiLineToggleButton(
@@ -342,12 +347,12 @@ public class SetupCombinePanel
     pnlPatchRegionModel.add(Box.createRigidArea(FixedDim.x20_y0));
     pnlPatchRegionModel.add(Box.createRigidArea(FixedDim.x20_y0));
     pnlPatchRegionModel.add(cbPatchRegionModel);
-    pnlPatchRegionModel.add(btnPatchRegionModel);
+    pnlPatchRegionModel.add(btnPatchRegionModel.getComponent());
     pnlPatchParams.add(pnlPatchRegionModel);
     pnlPatchParams.add(Box.createRigidArea(FixedDim.x0_y10));
     binningWarning.setAlignmentX(Component.CENTER_ALIGNMENT);
     pnlPatchParams.add(binningWarning);
-    UIUtilities.setButtonSize(btnPatchRegionModel, UIParameters.dimButton);
+    btnPatchRegionModel.setSize();
 
     //  Patch boundary
     pnlPatchRegion.setLayout(new GridLayout(2, 3, 10, 10));
@@ -389,15 +394,15 @@ public class SetupCombinePanel
     //  Button panel
     pnlButton.setLayout(new BoxLayout(pnlButton, BoxLayout.X_AXIS));
     pnlButton.add(Box.createHorizontalGlue());
-    pnlButton.add(btnImodVolumeA);
+    pnlButton.add(btnImodVolumeA.getComponent());
     pnlButton.add(Box.createHorizontalGlue());
-    pnlButton.add(btnImodVolumeB);
+    pnlButton.add(btnImodVolumeB.getComponent());
     pnlButton.add(Box.createHorizontalGlue());
     pnlButton.add(btnCreate);
     pnlButton.add(Box.createHorizontalGlue());
     pnlButton.add(btnCombine);
     pnlButton.add(Box.createHorizontalGlue());
-    UIUtilities.setButtonSizeAll(pnlButton, UIParameters.dimButton);
+    UIUtilities.setButtonSizeAll(pnlButton, UIParameters.getButtonDimension());
 
     pnlToSelector.setAlignmentX(Component.CENTER_ALIGNMENT);
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
@@ -622,6 +627,17 @@ public class SetupCombinePanel
     return pnlSolvematch.getFiducialMatchListB();
   }
 
+  public void run3dmod(Run3dmodButton button, Run3dmodMenuOption menuOption) {
+    if (button.equals(btnPatchRegionModel)) {
+      applicationManager.imodPatchRegionModel(menuOption);
+    }
+    else if (button.equals(btnImodVolumeA)) {
+      applicationManager.imodFullVolume(AxisID.FIRST, menuOption);
+    }
+    else if (button.equals(btnImodVolumeB)) {
+      applicationManager.imodFullVolume(AxisID.SECOND, menuOption);
+    }
+  }
   //  Action functions for setup panel buttons
   private void buttonAction(ActionEvent event) {
     //  Synchronize this panel with the others
@@ -630,13 +646,13 @@ public class SetupCombinePanel
 
     String command = event.getActionCommand();
     if (command.equals(btnPatchRegionModel.getActionCommand())) {
-      applicationManager.imodPatchRegionModel();
+      applicationManager.imodPatchRegionModel(Run3dmodMenuOption.NONE);
     }
     if (command.equals(btnImodVolumeA.getActionCommand())) {
-      applicationManager.imodFullVolume(AxisID.FIRST);
+      applicationManager.imodFullVolume(AxisID.FIRST, Run3dmodMenuOption.NONE);
     }
     if (command.equals(btnImodVolumeB.getActionCommand())) {
-      applicationManager.imodFullVolume(AxisID.SECOND);
+      applicationManager.imodFullVolume(AxisID.SECOND, Run3dmodMenuOption.NONE);
     }
     if (command.equals(btnCreate.getActionCommand())) {
       applicationManager.createCombineScripts();
