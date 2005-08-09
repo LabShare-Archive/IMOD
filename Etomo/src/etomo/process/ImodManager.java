@@ -12,6 +12,7 @@ import etomo.type.AxisType;
 import etomo.type.AxisTypeException;
 import etomo.type.ConstJoinMetaData;
 import etomo.type.ConstMetaData;
+import etomo.type.Run3dmodMenuOption;
 
 /*p
  * <p>Description: This class manages the opening, closing and sending of 
@@ -29,6 +30,11 @@ import etomo.type.ConstMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.32  2005/07/29 00:51:36  sueh
+ * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
+ * <p> because the current manager changes when the user changes the tab.
+ * <p> Passing the manager where its needed.
+ * <p>
  * <p> Revision 3.31  2005/04/25 20:45:39  sueh
  * <p> bug# 615 Passing the axis where a command originates to the message
  * <p> functions so that the message will be popped up in the correct window.
@@ -714,6 +720,27 @@ public class ImodManager {
     imodState.setSwapYZ(swapYZ);
   }
   
+  public void setRun3dmodMenuOption(String key, AxisID axisID,
+      Run3dmodMenuOption run3dmodMenuOption) throws AxisTypeException,
+      SystemProcessException {
+    key = getPrivateKey(key);
+    ImodState imodState = get(key, axisID);
+    if (imodState == null) {
+      return;
+    }
+    imodState.setRun3dmodMenuOption(run3dmodMenuOption);
+  }
+
+  public void setRun3dmodMenuOption(String key,
+      Run3dmodMenuOption run3dmodMenuOption) throws AxisTypeException,
+      SystemProcessException {
+    key = getPrivateKey(key);
+    ImodState imodState = get(key);
+    if (imodState == null) {
+      return;
+    }
+    imodState.setRun3dmodMenuOption(run3dmodMenuOption);
+  }
   
   public void setOpenBeadFixer(String key, AxisID axisID, boolean openBeadFixer)
     throws AxisTypeException, SystemProcessException {
@@ -1120,7 +1147,7 @@ public class ImodManager {
     return imodState;
   }
   protected ImodState newMatchCheck() {
-    ImodState imodState = new ImodState(manager, "matchcheck.mat matchcheck.rec", AxisID.ONLY);
+    ImodState imodState = new ImodState(manager, "matchcheck.mat", "matchcheck.rec", AxisID.ONLY);
     imodState.setInitialSwapYZ(true);
     return imodState;
   }
