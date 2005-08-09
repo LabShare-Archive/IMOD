@@ -38,6 +38,10 @@ import etomo.type.AxisID;
  * 
  * <p>
  * $Log$
+ * Revision 3.9  2005/06/16 22:08:49  sueh
+ * bug# 625 Changed deleteSelected() to not remove the file names from the
+ * File Name field if the delete failed.
+ *
  * Revision 3.8  2005/06/16 22:05:39  sueh
  * bug# 625 Changed deleteSelected() to remove the file names from the
  * File Name field after the files have been deleted.
@@ -178,9 +182,9 @@ public class CleanupPanel {
 
     pnlButton.setLayout(new BoxLayout(pnlButton, BoxLayout.X_AXIS));
     pnlButton.add(Box.createHorizontalGlue());
-    pnlButton.add(btnDelete);
+    pnlButton.add(btnDelete.getComponent());
     pnlButton.add(Box.createHorizontalGlue());
-    pnlButton.add(btnRescanDir);
+    pnlButton.add(btnRescanDir.getComponent());
     pnlButton.add(Box.createHorizontalGlue());
     pnlCleanup.add(Box.createRigidArea(FixedDim.x0_y10));
     pnlCleanup.add(pnlButton);
