@@ -35,6 +35,11 @@ import etomo.type.JoinState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.17  2005/08/04 20:11:40  sueh
+ * <p> bug# 532  Centralizing fit window functionality by placing fitting functions
+ * <p> in UIHarness.  Removing packMainWindow from the manager.  Sending
+ * <p> the manager to UIHarness.pack() so that packDialogs() can be called.
+ * <p>
  * <p> Revision 1.16  2005/07/29 19:47:42  sueh
  * <p> bug# 692 Changed ConstEtomoNumber.getInteger() to getInt.
  * <p>
@@ -268,7 +273,6 @@ public class JoinDialog implements ContextMenu {
   
   private static ImageIcon iconFolder = new ImageIcon(ClassLoader
       .getSystemResource("images/openFile.gif"));
-  private static Dimension dimButton = UIParameters.getButtonDimension();
   private static Dimension dimSpinner = UIParameters.getSpinnerDimension();
 
   private JPanel rootPanel;
@@ -556,7 +560,7 @@ public class JoinDialog implements ContextMenu {
     //sixth component
     btnMakeSamples = new MultiLineButton("Make Samples");
     btnMakeSamples.addActionListener(joinActionListener);
-    UIUtilities.setButtonSize(btnMakeSamples, dimButton);
+    btnMakeSamples.setSize();
     btnMakeSamples.setAlignmentX(Component.CENTER_ALIGNMENT);
   }
   
