@@ -17,6 +17,7 @@ import etomo.comscript.FortranInputSyntaxException;
 import etomo.comscript.TiltalignParam;
 import etomo.type.AxisID;
 import etomo.type.DialogType;
+import etomo.type.Run3dmodMenuOption;
 
 /**
  * <p>Description: </p>
@@ -31,6 +32,11 @@ import etomo.type.DialogType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.13  2005/08/04 19:54:59  sueh
+ * <p> bug# 532  Centralizing fit window functionality by placing fitting functions
+ * <p> in UIHarness.  Removing packMainWindow from the manager.  Sending
+ * <p> the manager to UIHarness.pack() so that packDialogs() can be called.
+ * <p>
  * <p> Revision 3.12  2005/07/06 23:31:12  sueh
  * <p> bug# 619 Removed DoubleSpacedPanel and FormattedPanel.  Placed
  * <p> their functionality in SpacedPanel.  Simplified the construction of
@@ -200,7 +206,7 @@ import etomo.type.DialogType;
  */
 
 public class AlignmentEstimationDialog extends ProcessDialog
-  implements ContextMenu {
+  implements ContextMenu, Run3dmodButtonContainer {
 
   public static final String rcsid = "$Id$";
 
@@ -215,14 +221,14 @@ public class AlignmentEstimationDialog extends ProcessDialog
   private MultiLineToggleButton btnComputeAlignment = new MultiLineToggleButton(
     "<html><b>Compute Alignment</b>");
 
-  private MultiLineButton btnImod = new MultiLineButton(
-    "<html><b>View/Edit Fiducial Model</b>");
+  private Run3dmodButton btnImod = new Run3dmodButton(
+    "<html><b>View/Edit Fiducial Model</b>", this);
 
   private MultiLineButton btnView3DModel = new MultiLineButton(
     "<html><b>View 3D Model</b>");
 
-  private MultiLineButton btnViewResiduals = new MultiLineButton(
-    "<html><b>View Residual Vectors</b>");
+  private Run3dmodButton btnViewResiduals = new Run3dmodButton(
+    "<html><b>View Residual Vectors</b>", this);
 
   public AlignmentEstimationDialog(ApplicationManager appMgr, AxisID axisID) {
     super(appMgr, axisID, DialogType.FINE_ALIGNMENT);
@@ -375,6 +381,15 @@ public class AlignmentEstimationDialog extends ProcessDialog
     UIHarness.INSTANCE.pack(axisID, applicationManager);
   }
 
+  public void run3dmod(Run3dmodButton button, Run3dmodMenuOption menuOption) {
+    if (button.equals(btnImod)) {
+      applicationManager.imodFixFiducials(axisID, menuOption);
+    }
+    else if (button.equals(btnViewResiduals)) {
+      applicationManager.imodViewResiduals(axisID, menuOption);
+    }
+  }
+  
   //  Event handler for panel buttons
   private void buttonAction(ActionEvent event) {
     String command = event.getActionCommand();
@@ -384,7 +399,7 @@ public class AlignmentEstimationDialog extends ProcessDialog
     }
 
     else if (command.equals(btnImod.getActionCommand())) {
-      applicationManager.imodFixFiducials(axisID);
+      applicationManager.imodFixFiducials(axisID, Run3dmodMenuOption.NONE);
     }
 
     else if (command.equals(btnView3DModel.getActionCommand())) {
@@ -392,7 +407,7 @@ public class AlignmentEstimationDialog extends ProcessDialog
     }
 
     else if (command.equals(btnViewResiduals.getActionCommand())) {
-      applicationManager.imodViewResiduals(axisID);
+      applicationManager.imodViewResiduals(axisID, Run3dmodMenuOption.NONE);
     }
   }
 

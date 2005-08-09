@@ -31,8 +31,9 @@ import etomo.comscript.CCDEraserParam;
 import etomo.comscript.ConstCCDEraserParam;
 import etomo.type.AxisID;
 import etomo.type.EtomoAutodoc;
+import etomo.type.Run3dmodMenuOption;
 
-public class CCDEraserPanel implements ContextMenu {
+public class CCDEraserPanel implements ContextMenu, Run3dmodButtonContainer {
   public static final String rcsid = "$Id$";
 
   private ApplicationManager applicationManager;
@@ -65,16 +66,16 @@ public class CCDEraserPanel implements ContextMenu {
     "Scan criterion:");
   private MultiLineToggleButton btnFindXRays = new MultiLineToggleButton(
     "<html><b>Find X-rays (Trial Mode)</b>");
-  private MultiLineButton btnViewXRayModel = new MultiLineButton(
-    "<html><b>View X-ray Model</b>");
+  private Run3dmodButton btnViewXRayModel = new Run3dmodButton(
+    "<html><b>View X-ray Model</b>", this);
 
   private JCheckBox cbManualReplacement = new JCheckBox("Manual replacement");
   private LabeledTextField ltfGlobalReplacementList = new LabeledTextField(
     "All section replacement list: ");
   private LabeledTextField ltfLocalReplacementList = new LabeledTextField(
     "Line replacement list: ");
-  private MultiLineButton btnCreateModel = new MultiLineButton(
-    "<html><b>Create Manual Replacement Model</b>");
+  private Run3dmodButton btnCreateModel = new Run3dmodButton(
+    "<html><b>Create Manual Replacement Model</b>", this);
 
   private LabeledTextField ltfInputImage = new LabeledTextField("Input file: ");
   private LabeledTextField ltfOutputImage = new LabeledTextField(
@@ -88,8 +89,8 @@ public class CCDEraserPanel implements ContextMenu {
 
   private MultiLineToggleButton btnErase = new MultiLineToggleButton(
     "<html><b>Create Fixed Stack</b>");
-  private MultiLineButton btnViewErased = new MultiLineButton(
-    "<html><b>View Fixed Stack</b>");
+  private Run3dmodButton btnViewErased = new Run3dmodButton(
+    "<html><b>View Fixed Stack</b>", this);
   private MultiLineToggleButton btnReplaceRawStack = new MultiLineToggleButton(
     "<html><b>Use Fixed Stack</b>");
 
@@ -129,9 +130,9 @@ public class CCDEraserPanel implements ContextMenu {
     pnlXRayButtons.add(Box.createHorizontalGlue());
     pnlXRayButtons.add(btnFindXRays);
     pnlXRayButtons.add(Box.createHorizontalGlue());
-    pnlXRayButtons.add(btnViewXRayModel);
+    pnlXRayButtons.add(btnViewXRayModel.getComponent());
     pnlXRayButtons.add(Box.createHorizontalGlue());
-    UIUtilities.setButtonSizeAll(pnlXRayButtons, UIParameters.dimButton);
+    UIUtilities.setButtonSizeAll(pnlXRayButtons, UIParameters.getButtonDimension());
     
     UIUtilities.addWithYSpace(pnlXRayReplacement, pnlXRayButtons);
         
@@ -148,9 +149,9 @@ public class CCDEraserPanel implements ContextMenu {
     pnlManualButtons
       .setLayout(new BoxLayout(pnlManualButtons, BoxLayout.X_AXIS));
     pnlManualButtons.add(Box.createHorizontalGlue());
-    pnlManualButtons.add(btnCreateModel);
+    pnlManualButtons.add(btnCreateModel.getComponent());
     pnlManualButtons.add(Box.createHorizontalGlue());
-    UIUtilities.setButtonSizeAll(pnlManualButtons, UIParameters.dimButton);
+    UIUtilities.setButtonSizeAll(pnlManualButtons, UIParameters.getButtonDimension());
     
     UIUtilities.addWithYSpace(pnlManualReplacement, pnlManualButtons);
 
@@ -168,11 +169,11 @@ public class CCDEraserPanel implements ContextMenu {
     pnlEraseButtons.add(Box.createHorizontalGlue());
     pnlEraseButtons.add(btnErase);
     pnlEraseButtons.add(Box.createHorizontalGlue());
-    pnlEraseButtons.add(btnViewErased);
+    pnlEraseButtons.add(btnViewErased.getComponent());
     pnlEraseButtons.add(Box.createHorizontalGlue());
     pnlEraseButtons.add(btnReplaceRawStack);
     pnlEraseButtons.add(Box.createHorizontalGlue());
-    UIUtilities.setButtonSizeAll(pnlEraseButtons, UIParameters.dimButton);
+    UIUtilities.setButtonSizeAll(pnlEraseButtons, UIParameters.getButtonDimension());
     
     UIUtilities.addWithYSpace(pnlCCDEraser, pnlEraseButtons);
 
@@ -298,6 +299,18 @@ public class CCDEraserPanel implements ContextMenu {
     ltfOutputImage.setVisible(state);
   }
 
+  public void run3dmod(Run3dmodButton button, Run3dmodMenuOption menuOption) {
+    if (button.equals(btnViewXRayModel)) {
+      applicationManager.imodXrayModel(axisID, menuOption);
+    }
+    else if (button.equals(btnCreateModel)) {
+      applicationManager.imodManualErase(axisID, menuOption);
+    }
+    else if (button.equals(btnViewErased)) {
+      applicationManager.imodErasedStack(axisID, menuOption);
+    }
+  }
+  
   //  Button action method
   void buttonAction(ActionEvent event) {
     String command = event.getActionCommand();
@@ -306,16 +319,16 @@ public class CCDEraserPanel implements ContextMenu {
       applicationManager.findXrays(axisID);
     }
     else if (command.equals(btnViewXRayModel.getActionCommand())) {
-      applicationManager.imodXrayModel(axisID);
+      applicationManager.imodXrayModel(axisID, Run3dmodMenuOption.NONE);
     }
     else if (command.equals(btnCreateModel.getActionCommand())) {
-      applicationManager.imodManualErase(axisID);
+      applicationManager.imodManualErase(axisID, Run3dmodMenuOption.NONE);
     }
     else if (command.equals(btnErase.getActionCommand())) {
       applicationManager.eraser(axisID);
     }
     else if (command.equals(btnViewErased.getActionCommand())) {
-      applicationManager.imodErasedStack(axisID);
+      applicationManager.imodErasedStack(axisID, Run3dmodMenuOption.NONE);
     }
     else if (command.equals(btnReplaceRawStack.getActionCommand())) {
       applicationManager.replaceRawStack(axisID);
@@ -450,6 +463,11 @@ public class CCDEraserPanel implements ContextMenu {
 
 /**
 * <p> $Log$
+* <p> Revision 3.9  2005/04/25 20:53:48  sueh
+* <p> bug# 615 Passing the axis where a command originates to the message
+* <p> functions so that the message will be popped up in the correct window.
+* <p> This requires adding AxisID to many objects.
+* <p>
 * <p> Revision 3.8  2005/02/22 20:57:49  sueh
 * <p> bug# 600 Converting tooltips to autodoc.
 * <p>
