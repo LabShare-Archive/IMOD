@@ -22,6 +22,7 @@ import etomo.comscript.SolvematchParam;
 import etomo.type.AxisID;
 import etomo.type.EtomoAutodoc;
 import etomo.type.FiducialMatch;
+import etomo.type.Run3dmodMenuOption;
 
 /**
  * <p>Description: </p>
@@ -37,6 +38,11 @@ import etomo.type.FiducialMatch;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.9  2005/04/25 21:39:05  sueh
+ * <p> bug# 615 Passing the axis where a command originates to the message
+ * <p> functions so that the message will be popped up in the correct window.
+ * <p> This requires adding AxisID to many objects.
+ * <p>
  * <p> Revision 3.8  2005/03/01 20:59:58  sueh
  * <p> Removed print statement.
  * <p>
@@ -64,7 +70,7 @@ import etomo.type.FiducialMatch;
  * <p> </p>
  */
 
-public class SolvematchPanel implements InitialCombineFields {
+public class SolvematchPanel implements InitialCombineFields, Run3dmodButtonContainer {
 
   private ApplicationManager applicationManager;
 
@@ -84,8 +90,8 @@ public class SolvematchPanel implements InitialCombineFields {
 
   private JPanel pnlImodMatchModels = new JPanel();
   private JCheckBox cbBinBy2 = new JCheckBox("Load binned by 2");
-  private MultiLineButton btnImodMatchModels = new MultiLineButton(
-    "<html><b>Create Matching Models in 3dmod</b>");
+  private Run3dmodButton btnImodMatchModels = new Run3dmodButton(
+    "<html><b>Create Matching Models in 3dmod</b>", this);
   private LabeledTextField ltfFiducialMatchListA = new LabeledTextField(
     "Corresponding fiducial list A: ");
   private LabeledTextField ltfFiducialMatchListB = new LabeledTextField(
@@ -125,8 +131,8 @@ public class SolvematchPanel implements InitialCombineFields {
     pnlImodMatchModels.setLayout(new BoxLayout(pnlImodMatchModels,
       BoxLayout.Y_AXIS));
     pnlImodMatchModels.add(cbBinBy2);
-    pnlImodMatchModels.add(btnImodMatchModels);
-    UIUtilities.setButtonSizeAll(pnlImodMatchModels, UIParameters.dimButton);
+    pnlImodMatchModels.add(btnImodMatchModels.getComponent());
+    UIUtilities.setButtonSizeAll(pnlImodMatchModels, UIParameters.getButtonDimension());
 
     pnlFiducialSelect.setLayout(new BoxLayout(pnlFiducialSelect,
       BoxLayout.X_AXIS));
@@ -324,6 +330,12 @@ public class SolvematchPanel implements InitialCombineFields {
     return ltfFiducialMatchListB.getText();
   }
 
+  public void run3dmod(Run3dmodButton button, Run3dmodMenuOption menuOption) {
+    if (button.equals(btnImodMatchModels)) {
+      applicationManager.imodMatchingModel(cbBinBy2.isSelected(), menuOption);
+    }
+  }
+  
   //  Action functions for setup panel buttons
   private void buttonAction(ActionEvent event) {
     //  Synchronize this panel with the others
@@ -332,7 +344,7 @@ public class SolvematchPanel implements InitialCombineFields {
 
     String command = event.getActionCommand();
     if (event.getActionCommand().equals(btnImodMatchModels.getActionCommand())) {
-      applicationManager.imodMatchingModel(cbBinBy2.isSelected());
+      applicationManager.imodMatchingModel(cbBinBy2.isSelected(), Run3dmodMenuOption.NONE);
     }
     else if (event.getActionCommand().equals(cbBinBy2.getActionCommand())) {
       if (!binningWarning && cbBinBy2.isSelected()) {
