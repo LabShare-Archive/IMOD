@@ -6,6 +6,7 @@ import java.io.File;
 
 import etomo.BaseManager;
 import etomo.type.AxisID;
+import etomo.type.Run3dmodMenuOption;
 
 /**
  * <p>Description:
@@ -173,6 +174,11 @@ import etomo.type.AxisID;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.26  2005/07/29 00:51:53  sueh
+ * <p> $bug# 709 Going to EtomoDirector to get the current manager is unreliable
+ * <p> $because the current manager changes when the user changes the tab.
+ * <p> $Passing the manager where its needed.
+ * <p> $
  * <p> $Revision 1.25  2005/04/25 20:47:08  sueh
  * <p> $bug# 615 Passing the axis where a command originates to the message
  * <p> $functions so that the message will be popped up in the correct window.
@@ -752,6 +758,9 @@ public class ImodState {
     this.openBeadFixer = openBeadFixer;
   }
 
+  public void setRun3dmodMenuOption(Run3dmodMenuOption run3dmodMenuOption) {
+    process.setRun3dmodMenuOption(run3dmodMenuOption);
+  }
 
   //initial state information
   /**
