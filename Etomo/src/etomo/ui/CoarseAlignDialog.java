@@ -11,6 +11,11 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.23  2005/08/04 20:08:25  sueh
+ * <p> bug# 532  Centralizing fit window functionality by placing fitting functions
+ * <p> in UIHarness.  Removing packMainWindow from the manager.  Sending
+ * <p> the manager to UIHarness.pack() so that packDialogs() can be called.
+ * <p>
  * <p> Revision 3.22  2005/07/14 22:04:15  sueh
  * <p> bug# 626 Added getParams(BlendmontParam) and
  * <p> setParams(BlendmontParam).
@@ -159,10 +164,11 @@ import etomo.comscript.TiltxcorrParam;
 import etomo.type.AxisID;
 import etomo.type.ConstMetaData;
 import etomo.type.DialogType;
+import etomo.type.Run3dmodMenuOption;
 import etomo.type.ViewType;
 
 public class CoarseAlignDialog extends ProcessDialog
-    implements ContextMenu, FiducialessParams {
+    implements ContextMenu, FiducialessParams, Run3dmodButtonContainer {
   public static final String rcsid = "$Id$";
 
   private JPanel pnlCoarseAlign = new JPanel();
@@ -177,8 +183,8 @@ public class CoarseAlignDialog extends ProcessDialog
   private MultiLineToggleButton btnCoarseAlign = new MultiLineToggleButton(
     "Generate Coarse Aligned Stack");
 
-  private MultiLineToggleButton btnImod = new MultiLineToggleButton(
-    "View Aligned<br>Stack In 3dmod");
+  private Run3dmodButton btnImod = new Run3dmodButton(
+    "View Aligned<br>Stack In 3dmod", this);
 
   private JPanel pnlFiducialess = new JPanel();
   private JCheckBox cbFiducialess = new JCheckBox("Fiducialless alignment");
@@ -230,13 +236,13 @@ public class CoarseAlignDialog extends ProcessDialog
     UIUtilities.addWithSpace(pnlCoarseAlign, pnlPrenewst.getPanel(),
       FixedDim.x0_y10);
     UIUtilities.addWithSpace(pnlCoarseAlign, btnCoarseAlign, FixedDim.x0_y10);
-    UIUtilities.addWithSpace(pnlCoarseAlign, btnImod, FixedDim.x0_y10);
+    UIUtilities.addWithSpace(pnlCoarseAlign, btnImod.getComponent(), FixedDim.x0_y10);
     UIUtilities.addWithSpace(pnlCoarseAlign, pnlFiducialess, FixedDim.x0_y10);
     UIUtilities.addWithSpace(pnlCoarseAlign, btnMidas, FixedDim.x0_y10);
 
     // Set the alignment and size of the UI objects
     UIUtilities.alignComponentsX(pnlCoarseAlign, Component.CENTER_ALIGNMENT);
-    UIUtilities.setButtonSizeAll(pnlCoarseAlign, UIParameters.dimButton);
+    UIUtilities.setButtonSizeAll(pnlCoarseAlign, UIParameters.getButtonDimension());
 
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     UIUtilities.addWithSpace(rootPanel, pnlCoarseAlign, FixedDim.x0_y10);
@@ -401,6 +407,12 @@ public class CoarseAlignDialog extends ProcessDialog
     ltfRotation.setToolTipText(tooltipFormatter.setText(text).format());
   }
 
+  public void run3dmod(Run3dmodButton button, Run3dmodMenuOption menuOption) {
+    if (button.equals(btnImod)) {
+      applicationManager.imodCoarseAlign(axisID, menuOption);
+    }
+  }
+  
   /**
    * Action function for process buttons
    * @param event
@@ -414,7 +426,7 @@ public class CoarseAlignDialog extends ProcessDialog
       applicationManager.coarseAlign(axisID);
     }
     else if (command.equals(btnImod.getActionCommand())) {
-      applicationManager.imodCoarseAlign(axisID);
+      applicationManager.imodCoarseAlign(axisID, Run3dmodMenuOption.NONE);
     }
     else if (command.equals(btnMidas.getActionCommand())) {
       applicationManager.midasRawStack(axisID);
