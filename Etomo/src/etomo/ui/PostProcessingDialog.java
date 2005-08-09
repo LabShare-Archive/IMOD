@@ -12,6 +12,7 @@ import etomo.comscript.SqueezevolParam;
 import etomo.comscript.TrimvolParam;
 import etomo.type.AxisID;
 import etomo.type.DialogType;
+import etomo.type.Run3dmodMenuOption;
 import etomo.type.TomogramState;
 
 /**
@@ -28,7 +29,7 @@ import etomo.type.TomogramState;
  */
 public class PostProcessingDialog
   extends ProcessDialog
-  implements ContextMenu {
+  implements ContextMenu, Run3dmodButtonContainer {
   public static final String rcsid =
     "$Id$";
   
@@ -39,7 +40,7 @@ public class PostProcessingDialog
   private JCheckBox cbLinearInterpolation;
   
   private MultiLineToggleButton btnSqueezeVolume;
-  private MultiLineButton btnImodSqueezedVolume;
+  private Run3dmodButton btnImodSqueezedVolume;
   
   private PostProcessingDialogActionListener actionListener = new PostProcessingDialogActionListener(this);
   
@@ -90,7 +91,7 @@ public class PostProcessingDialog
     btnSqueezeVolume.addActionListener(actionListener);
     squeezeVolPanel2.add(btnSqueezeVolume);
     squeezeVolPanel2.addHorizontalGlue();
-    btnImodSqueezedVolume = new MultiLineButton("Open Squeezed Volume in 3dmod");
+    btnImodSqueezedVolume = new Run3dmodButton("Open Squeezed Volume in 3dmod", this);
     btnImodSqueezedVolume.addActionListener(actionListener);
     squeezeVolPanel2.add(btnImodSqueezedVolume);
     squeezeVolPanel.add(squeezeVolPanel2);
@@ -198,13 +199,19 @@ public class PostProcessingDialog
     UIHarness.INSTANCE.pack(axisID, applicationManager);
   }
   
+  public void run3dmod(Run3dmodButton button, Run3dmodMenuOption menuOption) {
+    if (button.equals(btnImodSqueezedVolume)) {
+      applicationManager.imodSqueezedVolume(menuOption);
+    }
+  }
+  
   private void action(ActionEvent event) {
     String command = event.getActionCommand();
     if (command.equals(btnSqueezeVolume.getActionCommand())) {
       applicationManager.squeezevol();
     }
     else if (command.equals(btnImodSqueezedVolume.getActionCommand())) {
-      applicationManager.imodSqueezedVolume();
+      applicationManager.imodSqueezedVolume(Run3dmodMenuOption.NONE);
     }
     else {
       throw new IllegalStateException("Unknown command " + command);
@@ -267,6 +274,11 @@ public class PostProcessingDialog
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.19  2005/08/04 20:14:57  sueh
+ * <p> bug# 532  Centralizing fit window functionality by placing fitting functions
+ * <p> in UIHarness.  Removing packMainWindow from the manager.  Sending
+ * <p> the manager to UIHarness.pack() so that packDialogs() can be called.
+ * <p>
  * <p> Revision 3.18  2005/07/06 23:46:25  sueh
  * <p> bug# 619 Removed DoubleSpacedPanel and FormattedPanel.  Placed
  * <p> their functionality in SpacedPanel.  Simplified the construction of
