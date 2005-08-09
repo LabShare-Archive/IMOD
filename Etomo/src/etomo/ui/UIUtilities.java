@@ -12,6 +12,10 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.6  2005/07/11 23:32:26  sueh
+ * <p> bug# 619 Moved code to get the screen size to UIUtilities so it can be
+ * <p> used in ProcessorTable.
+ * <p>
  * <p> Revision 1.5  2005/04/22 00:21:06  sueh
  * <p> bug# 615 Fix bug in getDefaultUIResource().  The function assumed that
  * <p> the parameter target was the same type as value, which is retrieved by
@@ -127,24 +131,6 @@ public class UIUtilities {
     }
   }
   
-  /**
-   * Set the button sizes (preferred and maximum) of a button
-   * @param container
-   * @param size
-   */
-  public static void setButtonSize(AbstractButton button, Dimension size) {
-    setButtonSize(button, size, false);
-  }
-  
-  public static void setButtonSize(AbstractButton button, Dimension size,
-      boolean setMinimum) {
-    button.setPreferredSize(size);
-    button.setMaximumSize(size);
-    if (setMinimum) {
-      button.setMinimumSize(size);
-    }
-  }
-
   public static ColorUIResource getDefaultUIColor(String property) {
     ColorUIResource color = new ColorUIResource(0, 0, 0);
     color = (ColorUIResource) getDefaultUIResource(color, property);

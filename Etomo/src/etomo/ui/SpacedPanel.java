@@ -33,6 +33,9 @@ import javax.swing.border.Border;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.7  2005/07/11 23:23:46  sueh
+* <p> bug# 619 Added add(container).
+* <p>
 * <p> Revision 1.6  2005/07/06 23:49:19  sueh
 * <p> bug# 619 Removed DoubleSpacedPanel and FormattedPanel.  Placed
 * <p> their functionality in SpacedPanel.  Simplified the construction of
@@ -255,11 +258,11 @@ final class SpacedPanel {
   
   final void add(MultiLineButton multiLineButton) {
     addSpacing();
-    ButtonHelper.setStandardSize(multiLineButton);
+    multiLineButton.setSize();
     if (componentAlignmentX != null) {
       multiLineButton.setAlignmentX(componentAlignmentX.floatValue());
     }
-    panel.add(multiLineButton);
+    panel.add(multiLineButton.getComponent());
     xDescription.append("MultiLineButton,");
     yDescription.append("MultiLineButton,");
   }
