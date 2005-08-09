@@ -5,6 +5,7 @@ import javax.swing.Icon;
 import javax.swing.JToggleButton;
 import javax.swing.plaf.ColorUIResource;
 
+import java.awt.Dimension;
 import java.awt.Insets;
 import java.lang.String;
 
@@ -30,6 +31,9 @@ import java.lang.String;
 * @version $Revision$
 *
 * <p> $Log$
+* <p> Revision 3.3  2004/11/19 23:59:27  sueh
+* <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+* <p>
 * <p> Revision 3.2.4.1  2004/09/17 21:38:10  sueh
 * <p> bug# 520 getDefaultUIColor() was moved to UIUtilities
 * <p>
@@ -117,6 +121,11 @@ final public class MultiLineToggleButton extends JToggleButton {
   public MultiLineToggleButton(String text, Icon icon, boolean selected) {
     super(ButtonHelper.format(text), icon, selected);
     init();
+  }
+  
+  public void setSize(Dimension size) {
+    setPreferredSize(size);
+    setMaximumSize(size);
   }
 
   public void setEnabled(boolean isEnabled) {
