@@ -51,6 +51,11 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.13  2005/08/04 20:16:50  sueh
+* <p> bug# 532  Centralizing fit window functionality by placing fitting functions
+* <p> in UIHarness.  Removing packMainWindow from the manager.  Sending
+* <p> the manager to UIHarness.pack() so that packDialogs() can be called.
+* <p>
 * <p> Revision 1.12  2005/07/29 00:54:35  sueh
 * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
 * <p> because the current manager changes when the user changes the tab.
@@ -534,11 +539,11 @@ public class SectionTablePanel implements ContextMenu, Expandable {
     pnlButtonsComponent1 = new SpacedPanel();
     pnlButtonsComponent1.setBoxLayout(BoxLayout.Y_AXIS);
     btnMoveSectionUp = new MultiLineButton("Move Section Up");
-    UIUtilities.setButtonSize(btnMoveSectionUp, buttonDimension, true);
+    btnMoveSectionUp.setSize(true);
     btnMoveSectionUp.addActionListener(sectionTableActionListener);
     pnlButtonsComponent1.add(btnMoveSectionUp);
     btnAddSection = new MultiLineButton("Add Section");
-    UIUtilities.setButtonSize(btnAddSection, buttonDimension, true);
+    btnAddSection.setSize(true);
     btnAddSection.addActionListener(sectionTableActionListener);
     pnlButtonsComponent1.add(btnAddSection);
     UIUtilities.setButtonSizeAll(pnlButtonsComponent1.getContainer(), buttonDimension);
@@ -546,11 +551,11 @@ public class SectionTablePanel implements ContextMenu, Expandable {
     pnlButtonsComponent2 = new SpacedPanel();
     pnlButtonsComponent2.setBoxLayout(BoxLayout.Y_AXIS);
     btnMoveSectionDown = new MultiLineButton("Move Section Down");
-    UIUtilities.setButtonSize(btnMoveSectionDown, buttonDimension, true);
+    btnMoveSectionDown.setSize(true);
     btnMoveSectionDown.addActionListener(sectionTableActionListener);
     pnlButtonsComponent2.add(btnMoveSectionDown);
     btnDeleteSection = new MultiLineButton("Delete Section");
-    UIUtilities.setButtonSize(btnDeleteSection, buttonDimension, true);
+    btnDeleteSection.setSize(true);
     btnDeleteSection.addActionListener(sectionTableActionListener);
     pnlButtonsComponent2.add(btnDeleteSection);
     //third component
@@ -562,7 +567,7 @@ public class SectionTablePanel implements ContextMenu, Expandable {
     //createImodPanel();
     //fourth component
     btnGetAngles = new MultiLineButton("Get Angles from Slicer");
-    UIUtilities.setButtonSize(btnGetAngles, buttonDimension, true);
+    btnGetAngles.setSize(true);
     btnGetAngles.addActionListener(sectionTableActionListener);
   }
   
