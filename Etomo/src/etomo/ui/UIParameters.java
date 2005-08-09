@@ -12,6 +12,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.3  2004/04/26 03:17:17  rickg
+ * <p> Add a norrow button dimension
+ * <p>
  * <p> Revision 3.2  2004/03/24 03:02:31  rickg
  * <p> Changed spinner size to only specify spinner region.  The
  * <p> panel and label should be handled automatically
@@ -35,35 +38,41 @@ import javax.swing.JCheckBox;
 public class UIParameters {
 	public static final String rcsid = "$Id$";
 	
-	static Dimension dimButton = new Dimension();
-	static Dimension dimNarrowButton = new Dimension();
-  static Dimension dimSpinner = new Dimension();
-  static Dimension dimFileField = new Dimension();
-	
-	/**
-	 * Default constructor
-	 */
-	public UIParameters(){
-	  recalc();
-	}
-	
+	private static Dimension dimButton = new Dimension();
+	private static Dimension dimNarrowButton = new Dimension();
+  private static Dimension dimSpinner = new Dimension();
+  private static Dimension dimFileField = new Dimension();
+  private static boolean recalcRun = false;
+  
 	/**
 	 * Return the size of a standard button
 	 * @return
 	 */
-	public static Dimension getButtonDimension(){
+  static Dimension getButtonDimension() {
+    if (!recalcRun) {
+      recalc();
+    }
 	  //  Return a safe copy of the Dimension
 	  return new Dimension(dimButton);
 	}
-	public static Dimension getNarrowButtonDimension(){
+  static Dimension getNarrowButtonDimension() {
+    if (!recalcRun) {
+      recalc();
+    }
 	  //  Return a safe copy of the Dimension
 	  return new Dimension(dimNarrowButton);
 	}
-  public static Dimension getSpinnerDimension() {
+  static Dimension getSpinnerDimension() {
+    if (!recalcRun) {
+      recalc();
+    }
     return new Dimension(dimSpinner);
   }
   
-  public static Dimension getFileFieldDimension() {
+  static Dimension getFileFieldDimension() {
+    if (!recalcRun) {
+      recalc();
+    }
     return new Dimension(dimFileField);
   }
 
@@ -73,6 +82,7 @@ public class UIParameters {
 	 *
 	 */
 	public static void recalc() {
+    recalcRun = true;
 	  //  Create a temporary check box and get its height
 	  JCheckBox temp = new JCheckBox();
 		double height = temp.getPreferredSize().getHeight();
