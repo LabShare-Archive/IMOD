@@ -13,6 +13,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.9  2005/06/17 19:18:13  sueh
+ * <p> bug# 685 Put all timestamp functionality into one function.  Added
+ * <p> buttonTimestamp to provide an interface to the main timestamp function.
+ * <p>
  * <p> Revision 3.8  2005/06/17 00:34:21  sueh
  * <p> bug# 685 Timestamped cancel, execute, and postpone button presses.
  * <p>
@@ -86,7 +90,7 @@ import etomo.type.DialogExitState;
 import etomo.type.DialogType;
 import etomo.util.Utilities;
 
-public class ProcessDialog implements ExitButtons {
+public abstract class ProcessDialog implements ExitButtons {
   public static final String rcsid = "$Id$";
 
   protected ApplicationManager applicationManager;
@@ -132,13 +136,13 @@ public class ProcessDialog implements ExitButtons {
     pnlExitButtons.setLayout(new BoxLayout(pnlExitButtons, BoxLayout.X_AXIS));
 
     pnlExitButtons.add(Box.createHorizontalGlue());
-    pnlExitButtons.add(btnCancel);
+    pnlExitButtons.add(btnCancel.getComponent());
     pnlExitButtons.add(Box.createHorizontalGlue());
-    pnlExitButtons.add(btnPostpone);
+    pnlExitButtons.add(btnPostpone.getComponent());
     pnlExitButtons.add(Box.createHorizontalGlue());
-    pnlExitButtons.add(btnExecute);
+    pnlExitButtons.add(btnExecute.getComponent());
     pnlExitButtons.add(Box.createHorizontalGlue());
-    pnlExitButtons.add(btnAdvanced);
+    pnlExitButtons.add(btnAdvanced.getComponent());
     pnlExitButtons.add(Box.createHorizontalGlue());
 
     UIUtilities.setButtonSizeAll(pnlExitButtons, UIParameters

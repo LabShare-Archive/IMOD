@@ -29,6 +29,9 @@ import javax.swing.border.BevelBorder;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2005/07/11 22:56:16  sueh
+ * <p> bug# 619 Handled null container in buttonAction().
+ * <p>
  * <p> Revision 1.3  2005/07/06 23:34:57  sueh
  * <p> bug# 619 Removed the member variablesdoubleSpacePanelContainer and
  * <p> jpanelContainer, since they don't seem to be in use.
@@ -128,8 +131,8 @@ public class ExpandButton extends MultiLineButton {
   }
 
   void add(JPanel panel, GridBagLayout layout, GridBagConstraints constraints) {
-    layout.setConstraints(this, constraints);
-    panel.add(this);
+    layout.setConstraints(getComponent(), constraints);
+    panel.add(getComponent());
   }
 
   /**

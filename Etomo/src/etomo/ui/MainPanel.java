@@ -7,7 +7,6 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.io.File;
 
-import javax.swing.AbstractButton;
 import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -34,6 +33,11 @@ import etomo.type.ProcessEndState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.26  2005/08/04 20:12:03  sueh
+ * <p> bug# 532  Centralizing fit window functionality by placing fitting functions
+ * <p> in UIHarness.  Removing packMainWindow from the manager.  Sending
+ * <p> the manager to UIHarness.pack() so that packDialogs() can be called.
+ * <p>
  * <p> Revision 1.25  2005/07/26 23:07:25  sueh
  * <p> bug# 701 When stopping the progress bar, pass the process end state.
  * <p>
@@ -340,7 +344,7 @@ public abstract class MainPanel extends JPanel {
    * @param pauseButton
    * @param axisID
    */
-  final void setPauseButton(AbstractButton pauseButton, AxisID axisID) {
+  final void setPauseButton(MultiLineButton pauseButton, AxisID axisID) {
     AxisProcessPanel axisPanel = mapBaseAxis(axisID);
     axisPanel.setPauseButton(pauseButton);
   }
@@ -350,7 +354,7 @@ public abstract class MainPanel extends JPanel {
    * @param pauseButton
    * @param axisID
    */
-  final void deletePauseButton(AbstractButton pauseButton, AxisID axisID) {
+  final void deletePauseButton(MultiLineButton pauseButton, AxisID axisID) {
     AxisProcessPanel axisPanel = mapBaseAxis(axisID);
     axisPanel.deletePauseButton(pauseButton);
   }

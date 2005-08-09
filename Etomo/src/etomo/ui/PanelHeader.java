@@ -68,8 +68,8 @@ final class PanelHeader implements Expandable {
     //open/close button
     if (openClosePanel != null) {
       btnOpenClose = new ExpandButton(this, "-", "+");
-      layout.setConstraints(btnOpenClose, constraints);
-      northPanel.add(btnOpenClose);
+      layout.setConstraints(btnOpenClose.getComponent(), constraints);
+      northPanel.add(btnOpenClose.getComponent());
     }
     //title
     if (container == null) {
@@ -86,8 +86,8 @@ final class PanelHeader implements Expandable {
       constraints.weighty = 0.0;
       constraints.gridwidth = GridBagConstraints.REMAINDER;
       btnAdvancedBasic = new ExpandButton(container, "B", "A");
-      layout.setConstraints(btnAdvancedBasic, constraints);
-      northPanel.add(btnAdvancedBasic);
+      layout.setConstraints(btnAdvancedBasic.getComponent(), constraints);
+      northPanel.add(btnAdvancedBasic.getComponent());
     }
     //rootPanel
     rootPanel.add(northPanel);
@@ -137,6 +137,11 @@ final class PanelHeader implements Expandable {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.6  2005/08/04 20:12:54  sueh
+* <p> bug# 532  Centralizing fit window functionality by placing fitting functions
+* <p> in UIHarness.  Removing packMainWindow from the manager.  Sending
+* <p> the manager to UIHarness.pack() so that packDialogs() can be called.
+* <p>
 * <p> Revision 1.5  2005/07/29 00:54:23  sueh
 * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
 * <p> because the current manager changes when the user changes the tab.
