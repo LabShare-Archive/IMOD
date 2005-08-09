@@ -9,6 +9,7 @@ import etomo.ApplicationManager;
 import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.type.AxisID;
+import etomo.type.Run3dmodMenuOption;
 
 /**
  * <p> Description: ImodProcess opens an instance of imod with the specfied stack
@@ -25,6 +26,11 @@ import etomo.type.AxisID;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.25  2005/07/29 00:51:48  sueh
+ * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
+ * <p> because the current manager changes when the user changes the tab.
+ * <p> Passing the manager where its needed.
+ * <p>
  * <p> Revision 3.24  2005/04/25 20:46:30  sueh
  * <p> bug# 615 Passing the axis where a command originates to the message
  * <p> functions so that the message will be popped up in the correct window.
@@ -264,6 +270,7 @@ public class ImodProcess {
   private boolean frames = false;
   private String pieceListFileName = null;
   private AxisID axisID;
+  private Run3dmodMenuOption run3dmodMenuOption = Run3dmodMenuOption.NONE;
 
   private Thread imodThread;
   private final BaseManager manager;
@@ -357,6 +364,21 @@ public class ImodProcess {
   public void setOpenWithModel(boolean openWithModel) {
     this.openWithModel = openWithModel; 
   }
+  
+  private final int calcCurrentBinning(int binning) {
+    int currentBinning;
+    if (binning == defaultBinning) {
+      currentBinning = 0;
+    }
+    else {
+      currentBinning = binning;
+    }
+    if (run3dmodMenuOption == Run3dmodMenuOption.BIN_BY_2
+        || run3dmodMenuOption == Run3dmodMenuOption.BIN_BY_2_XY) {
+      currentBinning += 2;
+    }
+    return currentBinning;
+  }
 
   /**
    * Open the 3dmod process if is not already open.
@@ -396,14 +418,18 @@ public class ImodProcess {
       commandOptions.add("-view");
     }
     
-    if (binning > defaultBinning) {
+    if (binning > defaultBinning || run3dmodMenuOption == Run3dmodMenuOption.BIN_BY_2) {
       commandOptions.add("-B");
-      commandOptions.add(Integer.toString(binning));
+      commandOptions.add(Integer.toString(calcCurrentBinning(binning)));
     }
     
-    if (binningXY > defaultBinning) {
+    if (binningXY > defaultBinning || run3dmodMenuOption == Run3dmodMenuOption.BIN_BY_2_XY) {
       commandOptions.add("-b");
-      commandOptions.add(Integer.toString(binningXY));
+      commandOptions.add(Integer.toString(calcCurrentBinning(binningXY)));
+    }
+    
+    if (run3dmodMenuOption == Run3dmodMenuOption.STARTUP_WINDOW) {
+      commandOptions.add("-O");
     }
     
     if (!datasetName.equals("")) {
@@ -420,16 +446,20 @@ public class ImodProcess {
       commandOptions.add(modelName);
     }
     
+    run3dmodMenuOption = Run3dmodMenuOption.NONE;
+    
     String[] commandArray = new String[commandOptions.size()];
     for (int i = 0; i < commandOptions.size(); i++) {
       commandArray[i] = (String) commandOptions.get(i);
       if (EtomoDirector.getInstance().isDebug()) {
         System.err.print(commandArray[i] + " ");
       }
+      //System.out.print(commandArray[i] + " ");
     }
     if (EtomoDirector.getInstance().isDebug()) {
       System.err.println();
     }
+    //System.out.println();
     imod = new InteractiveSystemProgram(manager, commandArray, axisID);
     if (workingDirectory != null) {
       imod.setWorkingDirectory(workingDirectory);
@@ -927,6 +957,10 @@ public class ImodProcess {
     else {
       this.binning = binning;
     }
+  }
+  
+  public void setRun3dmodMenuOption(Run3dmodMenuOption run3dmodMenuOption) {
+    this.run3dmodMenuOption = run3dmodMenuOption;
   }
   
   public void setBinningXY(int binningXY) {
