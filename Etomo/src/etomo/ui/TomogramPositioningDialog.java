@@ -25,6 +25,7 @@ import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstMetaData;
 import etomo.type.DialogType;
 import etomo.type.MetaData;
+import etomo.type.Run3dmodMenuOption;
 
 /**
  * <p>Description: Tomogram Positioning User Interface</p>
@@ -39,6 +40,11 @@ import etomo.type.MetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.33  2005/08/04 20:17:32  sueh
+ * <p> bug# 532  Centralizing fit window functionality by placing fitting functions
+ * <p> in UIHarness.  Removing packMainWindow from the manager.  Sending
+ * <p> the manager to UIHarness.pack() so that packDialogs() can be called.
+ * <p>
  * <p> Revision 3.32  2005/07/14 22:16:51  sueh
  * <p> bug# 626 Enabling whole tomogram for montage view.  Setting binning in
  * <p> set and getParameters(BlendmontParam).
@@ -230,7 +236,7 @@ import etomo.type.MetaData;
  */
 
 public class TomogramPositioningDialog extends ProcessDialog
-    implements ContextMenu, FiducialessParams {
+    implements ContextMenu, FiducialessParams, Run3dmodButtonContainer {
   public static final String rcsid = "$Id$";
 
   private JPanel pnlPosition = new JPanel();
@@ -255,8 +261,8 @@ public class TomogramPositioningDialog extends ProcessDialog
   private MultiLineToggleButton btnSample = new MultiLineToggleButton(
     "Create Sample Tomograms");
 
-  private MultiLineToggleButton btnCreateBoundary = new MultiLineToggleButton(
-    "<html><b>Create Boundary Model</b>");
+  private Run3dmodButton btnCreateBoundary = new Run3dmodButton(
+    "<html><b>Create Boundary Model</b>", this);
 
   private MultiLineToggleButton btnTomopitch = new MultiLineToggleButton(
     "<html><b>Compute Z Shift & Pitch Angles</b>");
@@ -317,7 +323,7 @@ public class TomogramPositioningDialog extends ProcessDialog
 
     UIUtilities.addWithYSpace(pnlPosition, pnlTomoParams);
     UIUtilities.addWithSpace(pnlPosition, btnSample, FixedDim.x0_y10);
-    UIUtilities.addWithSpace(pnlPosition, btnCreateBoundary, FixedDim.x0_y10);
+    UIUtilities.addWithSpace(pnlPosition, btnCreateBoundary.getComponent(), FixedDim.x0_y10);
     UIUtilities.addWithSpace(pnlPosition, btnTomopitch, FixedDim.x0_y10);
     UIUtilities.addWithYSpace(pnlPosition, pnlFinalAlign);
     UIUtilities.addWithSpace(pnlPosition, btnAlign, FixedDim.x0_y10);
@@ -526,6 +532,12 @@ public class TomogramPositioningDialog extends ProcessDialog
     ContextPopup contextPopup = new ContextPopup(rootPanel, mouseEvent,
       "TOMOGRAM POSITIONING", ContextPopup.TOMO_GUIDE, manPagelabel, manPage, logFileLabel, logFile, applicationManager);
   }
+  
+  public void run3dmod(Run3dmodButton button, Run3dmodMenuOption menuOption) {
+    if (button.equals(btnCreateBoundary)) {
+      createBoundary(menuOption);
+    }
+  }
 
   //  Button action handler methods
   private void buttonAction(ActionEvent event) {
@@ -539,16 +551,11 @@ public class TomogramPositioningDialog extends ProcessDialog
         applicationManager.createSample(axisID);
       }
     }
-
+    
     else if (command.equals(btnCreateBoundary.getActionCommand())) {
-      if (cbWholeTomogram.isSelected()) {
-        applicationManager.imodFullSample(axisID);
-      }
-      else {
-        applicationManager.imodSample(axisID);
-      }
+      createBoundary(Run3dmodMenuOption.NONE);
     }
-
+    
     else if (command.equals(btnTomopitch.getActionCommand())) {
       applicationManager.tomopitch(axisID);
     }
@@ -562,6 +569,15 @@ public class TomogramPositioningDialog extends ProcessDialog
     }
     else if (command.equals(cbWholeTomogram.getActionCommand())) {
       updateUIState();
+    }
+  }
+  
+  private void createBoundary(Run3dmodMenuOption menuOption) {
+    if (cbWholeTomogram.isSelected()) {
+      applicationManager.imodFullSample(axisID, menuOption);
+    }
+    else {
+      applicationManager.imodSample(axisID, menuOption);
     }
   }
 

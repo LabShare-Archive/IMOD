@@ -20,6 +20,7 @@ import etomo.comscript.TrimvolParam;
 import etomo.process.ImodManager;
 import etomo.process.ImodProcess;
 import etomo.type.AxisID;
+import etomo.type.Run3dmodMenuOption;
 /**
  * <p>Description: </p>
  * 
@@ -33,6 +34,11 @@ import etomo.type.AxisID;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.6  2005/04/25 21:41:51  sueh
+ * <p> bug# 615 Passing the axis where a command originates to the message
+ * <p> functions so that the message will be popped up in the correct window.
+ * <p> This requires adding AxisID to many objects.
+ * <p>
  * <p> Revision 3.5  2005/03/24 17:55:44  sueh
  * <p> bug# 621 Set a preferred text width for fields that where too small.
  * <p>
@@ -92,7 +98,7 @@ import etomo.type.AxisID;
  * <p> </p>
  */
 
-public class TrimvolPanel {
+public class TrimvolPanel implements Run3dmodButtonContainer {
   public static final String rcsid =
     "$Id$";
 
@@ -126,10 +132,10 @@ public class TrimvolPanel {
   private JCheckBox cbSwapYZ = new JCheckBox("Swap Y and Z dimensions");
 
   private JPanel pnlButton = new JPanel();
-  private MultiLineButton btnImodFull = new MultiLineButton("<html><b>3dmod Full Volume</b>");
+  private Run3dmodButton btnImodFull = new Run3dmodButton("<html><b>3dmod Full Volume</b>", this);
   private MultiLineButton btnTrimvol = new MultiLineButton("<html><b>Trim Volume</b>");
-  private MultiLineButton btnImodTrim =
-    new MultiLineButton("<html><b>3dmod Trimmed Volume</b>");
+  private Run3dmodButton btnImodTrim =
+    new Run3dmodButton("<html><b>3dmod Trimmed Volume</b>", this);
   private MultiLineButton btnGetCoordinates =
     new MultiLineButton("Get XY Volume Range From 3dmod");
   private JPanel pnlImodFull = new JPanel();
@@ -191,9 +197,9 @@ public class TrimvolPanel {
 
     pnlButton.setLayout(new BoxLayout(pnlButton, BoxLayout.X_AXIS));
     pnlButton.add(Box.createHorizontalGlue());
-    pnlButton.add(btnTrimvol);
+    pnlButton.add(btnTrimvol.getComponent());
     pnlButton.add(Box.createHorizontalGlue());
-    pnlButton.add(btnImodTrim);
+    pnlButton.add(btnImodTrim.getComponent());
     pnlButton.add(Box.createHorizontalGlue());
 
     pnlTrimvol.setLayout(new BoxLayout(pnlTrimvol, BoxLayout.Y_AXIS));
@@ -201,9 +207,9 @@ public class TrimvolPanel {
 
     pnlImodFull.setLayout(new BoxLayout(pnlImodFull, BoxLayout.X_AXIS));
     pnlImodFull.add(Box.createHorizontalGlue());
-    pnlImodFull.add(btnImodFull);
+    pnlImodFull.add(btnImodFull.getComponent());
     pnlImodFull.add(Box.createHorizontalGlue());
-    pnlImodFull.add(btnGetCoordinates);
+    pnlImodFull.add(btnGetCoordinates.getComponent());
     pnlImodFull.add(Box.createHorizontalGlue());
     pnlTrimvol.add(pnlImodFull);
     pnlTrimvol.add(pnlRange);
@@ -353,10 +359,20 @@ public class TrimvolPanel {
   private void scaleAction(ActionEvent event) {
     setScaleState();
   }
+  
+  public void run3dmod(Run3dmodButton button, Run3dmodMenuOption menuOption) {
+    if (button.equals(btnImodFull)) {
+      applicationManager.imodCombinedTomogram(menuOption);
+    }
+    else if (button.equals(btnImodTrim)) {
+      applicationManager.imodTrimmedVolume(menuOption);
+    }
+
+  }
 
   private void buttonAction(ActionEvent event) {
     if (event.getActionCommand() == btnImodFull.getActionCommand()) {
-      applicationManager.imodCombinedTomogram();
+      applicationManager.imodCombinedTomogram(Run3dmodMenuOption.NONE);
     }
 
     if (event.getActionCommand() == btnTrimvol.getActionCommand()) {
@@ -364,7 +380,7 @@ public class TrimvolPanel {
     }
 
     if (event.getActionCommand() == btnImodTrim.getActionCommand()) {
-      applicationManager.imodTrimmedVolume();
+      applicationManager.imodTrimmedVolume(Run3dmodMenuOption.NONE);
     }
     if (event.getActionCommand() == btnGetCoordinates.getActionCommand()) {
       setXYMinAndMax(

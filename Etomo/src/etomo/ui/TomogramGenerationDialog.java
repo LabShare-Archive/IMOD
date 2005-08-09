@@ -45,6 +45,7 @@ import etomo.type.ConstMetaData;
 import etomo.type.DialogType;
 import etomo.type.EtomoAutodoc;
 import etomo.type.MetaData;
+import etomo.type.Run3dmodMenuOption;
 import etomo.type.ViewType;
 import etomo.util.InvalidParameterException;
 
@@ -68,6 +69,10 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.55  2005/08/04 20:21:06  sueh
+ * bug# 532  Added runTilt() to figure out whether trial or regular tilt is being
+ * run and run it.  Calling runTilt() from resume and button action.
+ *
  * Revision 3.54  2005/08/01 18:17:54  sueh
  * bug# 532 Added getParameters(ProcesschunksParam).  Add resume
  * boolean (a parameter in ProcesschunksParam).
@@ -414,7 +419,7 @@ import etomo.util.InvalidParameterException;
 public class TomogramGenerationDialog extends ProcessDialog
     implements
       ContextMenu,
-      FiducialessParams, Expandable, ParallelDialog {
+      FiducialessParams, Expandable, ParallelDialog, Run3dmodButtonContainer {
   public static final String rcsid = "$Id$";
 
   private  static final String RUN_TRIAL_BUTTON_TITLE = "Generate Trial Tomogram";
@@ -435,8 +440,8 @@ public class TomogramGenerationDialog extends ProcessDialog
   //  Aligned stack buttons
   private MultiLineToggleButton btnNewst = new MultiLineToggleButton(
       "<html><b>Create Full<br>Aligned Stack</b>");
-  private MultiLineButton btn3dmodFull = new MultiLineButton(
-      "<html><b>View Full<br>Aligned Stack</b>");
+  private Run3dmodButton btn3dmodFull = new Run3dmodButton(
+      "<html><b>View Full<br>Aligned Stack</b>", this);
 
   //  Tilt objects
   private SpacedTextField ltfXOffset = new SpacedTextField("X offset:");
@@ -469,8 +474,8 @@ public class TomogramGenerationDialog extends ProcessDialog
   private JComboBox cmboTrialTomogramName = new JComboBox();
   private Vector trialTomogramList = new Vector();
   private MultiLineButton btnTrial = new MultiLineButton(RUN_TRIAL_BUTTON_TITLE);
-  private MultiLineButton btn3dmodTrial = new MultiLineButton(
-      "<html><b>View Trial in 3dmod</b>");
+  private Run3dmodButton btn3dmodTrial = new Run3dmodButton(
+      "<html><b>View Trial in 3dmod</b>", this);
   private MultiLineToggleButton btnUseTrial = new MultiLineToggleButton(
       "<html><b>Use Current Trial Tomogram</b>");
 
@@ -486,9 +491,9 @@ public class TomogramGenerationDialog extends ProcessDialog
   private LabeledTextField ltfInverseRolloffRadiusSigma = new LabeledTextField(
       "Rolloff (radius,sigma): ");
   private MultiLineToggleButton btnFilter = new MultiLineToggleButton("Filter");
-  private MultiLineButton btnViewFilter = new MultiLineButton(
-      "View Filtered Stack");
-  private MultiLineToggleButton btnUseFilter = new MultiLineToggleButton(
+  private Run3dmodButton btnViewFilter = new Run3dmodButton(
+      "View Filtered Stack", this);
+  private MultiLineButton btnUseFilter = MultiLineButton.getToggleButtonInstance(
       "Use Filtered Stack");
   private SpacedTextField ltfStartingAndEndingZ = new SpacedTextField(
       "Starting and ending views: ");
@@ -496,8 +501,8 @@ public class TomogramGenerationDialog extends ProcessDialog
 
   //  Tomogram generation buttons
   private MultiLineToggleButton btnTilt = new MultiLineToggleButton(RUN_TILT_BUTTON_TITLE);
-  private MultiLineButton btn3dmodTomogram = new MultiLineButton(
-      "<html><b>View Tomogram In 3dmod</b>");
+  private Run3dmodButton btn3dmodTomogram = new Run3dmodButton(
+      "<html><b>View Tomogram In 3dmod</b>", this);
   private MultiLineToggleButton btnDeleteStacks = new MultiLineToggleButton(
       "<html><b>Delete Aligned Image Stack</b>");
   private JCheckBox cbUseZFactors = new JCheckBox("Use Z factors");
@@ -996,7 +1001,7 @@ public class TomogramGenerationDialog extends ProcessDialog
     buttonPanel.add(Box.createHorizontalStrut(50));
     buttonPanel.add(btnNewst);
     buttonPanel.add(Box.createHorizontalGlue());
-    buttonPanel.add(btn3dmodFull);
+    buttonPanel.add(btn3dmodFull.getComponent());
     buttonPanel.add(Box.createHorizontalStrut(50));
     //newstBodyPanel
     newstBodyPanel.add(cbBoxUseLinearInterpolation);
@@ -1012,7 +1017,7 @@ public class TomogramGenerationDialog extends ProcessDialog
     //configure
     newstHeader.setOpen(true);
     ButtonHelper.setStandardSize(btnNewst);
-    ButtonHelper.setStandardSize(btn3dmodFull);
+    btn3dmodFull.setSize();
     return newstPanel;
   }
 
@@ -1063,8 +1068,8 @@ public class TomogramGenerationDialog extends ProcessDialog
     //configure
     filterHeader.setOpen(true);
     ButtonHelper.setStandardSize(btnFilter);
-    ButtonHelper.setStandardSize(btnViewFilter);
-    ButtonHelper.setStandardSize(btnUseFilter);
+    btnViewFilter.setSize();
+    btnUseFilter.setSize();
     return filterPanel;
   }
 
@@ -1149,7 +1154,7 @@ public class TomogramGenerationDialog extends ProcessDialog
     cbParallelProcess.setVisible(EtomoDirector.getInstance().isNewstuff());
     tiltHeader.setOpen(true);
     ButtonHelper.setStandardSize(btnTilt);
-    ButtonHelper.setStandardSize(btn3dmodTomogram);
+    btn3dmodTomogram.setSize();
     ButtonHelper.setStandardSize(btnDeleteStacks);
     return tiltPanel;
   }
@@ -1308,6 +1313,21 @@ public class TomogramGenerationDialog extends ProcessDialog
     resume = true;
     runTilt();
   }
+  
+  public void run3dmod(Run3dmodButton button, Run3dmodMenuOption menuOption) {
+    if (button.equals(btn3dmodFull)) {
+      applicationManager.imodFineAlign(axisID, menuOption);
+    }
+    else if (button.equals(btn3dmodTrial)) {
+      applicationManager.imodTestVolume(axisID, menuOption);
+    }
+    else if (button.equals(btn3dmodTomogram)) {
+      applicationManager.imodFullVolume(axisID, menuOption);
+    }
+    else if (button.equals(btnViewFilter)) {
+      applicationManager.imodMTFFilter(axisID, menuOption);
+    }
+  }
 
   //  Button handler function
   void buttonAction(ActionEvent event) {
@@ -1316,7 +1336,7 @@ public class TomogramGenerationDialog extends ProcessDialog
       applicationManager.newst(axisID);
     }
     else if (command.equals(btn3dmodFull.getActionCommand())) {
-      applicationManager.imodFineAlign(axisID);
+      applicationManager.imodFineAlign(axisID, Run3dmodMenuOption.NONE);
     }
     else if (command.equals(btnFilter.getActionCommand())) {
       applicationManager.mtffilter(axisID);
@@ -1324,7 +1344,7 @@ public class TomogramGenerationDialog extends ProcessDialog
       btnUseFilter.setSelected(false);
     }
     else if (command.equals(btnViewFilter.getActionCommand())) {
-      applicationManager.imodMTFFilter(axisID);
+      applicationManager.imodMTFFilter(axisID, Run3dmodMenuOption.NONE);
     }
     else if (command.equals(btnUseFilter.getActionCommand())) {
       applicationManager.useMtfFilter(axisID);
@@ -1335,7 +1355,7 @@ public class TomogramGenerationDialog extends ProcessDialog
       runTilt();
     }
     else if (command.equals(btn3dmodTrial.getActionCommand())) {
-      applicationManager.imodTestVolume(axisID);
+      applicationManager.imodTestVolume(axisID, Run3dmodMenuOption.NONE);
     }
     else if (command.equals(btnUseTrial.getActionCommand())) {
       applicationManager.commitTestVolume(axisID);
@@ -1346,7 +1366,7 @@ public class TomogramGenerationDialog extends ProcessDialog
       runTilt();
     }
     else if (command.equals(btn3dmodTomogram.getActionCommand())) {
-      applicationManager.imodFullVolume(axisID);
+      applicationManager.imodFullVolume(axisID, Run3dmodMenuOption.NONE);
     }
     else if (command.equals(btnDeleteStacks.getActionCommand())) {
       applicationManager.deleteAlignedStacks(axisID);
