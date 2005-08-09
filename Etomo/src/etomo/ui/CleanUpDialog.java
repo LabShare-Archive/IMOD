@@ -54,8 +54,7 @@ public class CleanUpDialog extends ProcessDialog implements ContextMenu {
     ButtonActionListener listener = new ButtonActionListener(this);
     btnArchiveStack.addActionListener(listener);
     btnArchiveStack.setAlignmentX(Component.CENTER_ALIGNMENT);
-    UIUtilities.setButtonSize(btnArchiveStack, UIParameters
-        .getButtonDimension());
+    btnArchiveStack.setSize(UIParameters.getButtonDimension());
     archiveInfoA.setAlignmentX(Component.CENTER_ALIGNMENT);
     archiveInfoB.setAlignmentX(Component.CENTER_ALIGNMENT);
     rootPanel.add(btnArchiveStack);
@@ -190,6 +189,11 @@ public class CleanUpDialog extends ProcessDialog implements ContextMenu {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.5  2005/08/04 20:08:10  sueh
+ * <p> bug# 532  Centralizing fit window functionality by placing fitting functions
+ * <p> in UIHarness.  Removing packMainWindow from the manager.  Sending
+ * <p> the manager to UIHarness.pack() so that packDialogs() can be called.
+ * <p>
  * <p> Revision 1.4  2005/05/18 22:38:15  sueh
  * <p> bug# 662 Added btnArchiveStack, archiveInfoA, and archiveInfoB.
  * <p> Added setArchiveFields() to set text and display archiveInfoA and B.
