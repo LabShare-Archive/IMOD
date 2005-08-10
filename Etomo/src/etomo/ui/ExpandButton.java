@@ -29,6 +29,9 @@ import javax.swing.border.BevelBorder;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2005/08/09 20:21:09  sueh
+ * <p> bug# 711  No longer inheriting JButton in MultiLineButton.
+ * <p>
  * <p> Revision 1.4  2005/07/11 22:56:16  sueh
  * <p> bug# 619 Handled null container in buttonAction().
  * <p>
@@ -118,8 +121,7 @@ public class ExpandButton extends MultiLineButton {
     if (size.width < size.height) {
       size.width = size.height;
     }
-    setPreferredSize(size);
-    setMaximumSize(size);
+    setSize(size);
   }
 
   /**
