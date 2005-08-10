@@ -12,6 +12,10 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.4  2005/08/09 21:13:30  sueh
+ * <p> bug# 711 Making sure that recalc() is called at least once before getting
+ * <p> a dimension.
+ * <p>
  * <p> Revision 3.3  2004/04/26 03:17:17  rickg
  * <p> Add a norrow button dimension
  * <p>
@@ -35,6 +39,8 @@ import java.awt.Dimension;
 
 import javax.swing.JCheckBox;
 
+import etomo.EtomoDirector;
+
 public class UIParameters {
 	public static final String rcsid = "$Id$";
 	
@@ -43,6 +49,9 @@ public class UIParameters {
   private static Dimension dimSpinner = new Dimension();
   private static Dimension dimFileField = new Dimension();
   private static boolean recalcRun = false;
+  
+  private UIParameters() {
+  }
   
 	/**
 	 * Return the size of a standard button
@@ -83,6 +92,9 @@ public class UIParameters {
 	 */
 	public static void recalc() {
     recalcRun = true;
+    if (EtomoDirector.getInstance().isTest()) {
+      return;
+    }
 	  //  Create a temporary check box and get its height
 	  JCheckBox temp = new JCheckBox();
 		double height = temp.getPreferredSize().getHeight();
