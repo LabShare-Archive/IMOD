@@ -27,6 +27,12 @@ import java.lang.String;
 * @version $Revision$
 *
 * <p> $Log$
+* <p> Revision 3.4  2005/08/09 20:25:15  sueh
+* <p> bug# 711  No longer inheriting JButton in MultiLineButton.  This allows
+* <p> MultiLineButton to treate toggling as an attribute.  Then we can get rid of
+* <p> MultiLineToggleButton.  Then we can have one Run3dmodButton which
+* <p> can be toggle or non-toggle.
+* <p>
 * <p> Revision 3.3  2005/07/06 23:37:05  sueh
 * <p> bug# 619 removed unused constructors
 * <p>
@@ -78,6 +84,10 @@ public class MultiLineButton {
     return new MultiLineButton(text, true);
   }
   
+  static MultiLineButton getToggleButtonInstance() {
+    return new MultiLineButton(null, true);
+  }
+  
   public void setEnabled(boolean isEnabled) {
     button.setEnabled(isEnabled);
     button.setForeground(
@@ -103,59 +113,51 @@ public class MultiLineButton {
     return getClass().getName() + "[" + paramString() + "]";
   }
   
-  void setPreferredSize(Dimension preferredSize) {
-    button.setPreferredSize(preferredSize);
-  }
-  
-  void setMaximumSize(Dimension maximumSize) {
-    button.setMaximumSize(maximumSize);
-  }
-  
-  void addActionListener(ActionListener actionListener) {
+  final void addActionListener(ActionListener actionListener) {
     button.addActionListener(actionListener);
   }
   
-  String getActionCommand() {
+  final String getActionCommand() {
     return button.getActionCommand();
   }
   
-  Component getComponent() {
+  final Component getComponent() {
     return button;
   }
   
-  void setVisible(boolean visible) {
+  final void setVisible(boolean visible) {
     button.setVisible(visible);
   }
   
-  void setBorder(Border border) {
+  final void setBorder(Border border) {
     button.setBorder(border);
   }
   
-  void setToolTipText(String toolTip) {
+  final void setToolTipText(String toolTip) {
     button.setToolTipText(toolTip);
   }
   
-  Dimension getPreferredSize() {
+  final Dimension getPreferredSize() {
     return button.getPreferredSize();
   }
   
-  void setAlignmentX(float alignmentX) {
+  final void setAlignmentX(float alignmentX) {
     button.setAlignmentX(alignmentX);
   }
   
-  void setAlignmentY(float alignmentY) {
+  final void setAlignmentY(float alignmentY) {
     button.setAlignmentY(alignmentY);
   }
 
-  String getText() {
+  final String getText() {
     return button.getText();
   }
   
-  void addMouseListener(MouseListener mouseListener) {
+  final void addMouseListener(MouseListener mouseListener) {
     button.addMouseListener(mouseListener);
   }
   
-  void removeActionListener(ActionListener actionListener) {
+  final void removeActionListener(ActionListener actionListener) {
     button.removeActionListener(actionListener);
   }
   /**
@@ -163,11 +165,11 @@ public class MultiLineButton {
    * @param container
    * @param size
    */
-  void setSize() {
+  final void setSize() {
     setSize(false);
   }
   
-  void setSize(boolean setMinimum) {
+  final void setSize(boolean setMinimum) {
     Dimension size = UIParameters.getButtonDimension();
     button.setPreferredSize(size);
     button.setMaximumSize(size);
@@ -176,8 +178,21 @@ public class MultiLineButton {
     }
   }
   
-  void setSelected(boolean selected) {
+  final void setSize(Dimension size) {
+    button.setPreferredSize(size);
+    button.setMaximumSize(size);
+  }
+  
+  final void setSelected(boolean selected) {
     button.setSelected(selected);
+  }
+  
+  final boolean isSelected() {
+    return button.isSelected();
+  }
+  
+  final boolean isEnabled() {
+    return button.isEnabled();
   }
 
   //protected methods
