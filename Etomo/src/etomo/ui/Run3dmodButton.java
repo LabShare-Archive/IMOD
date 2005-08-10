@@ -26,8 +26,8 @@ class Run3dmodButton extends MultiLineButton implements ContextMenu {
   public static  final String  rcsid =  "$Id$";
   
   private final JPopupMenu contextMenu = new JPopupMenu("3dmod Options");;
-  private final JMenuItem startupWindow = new JMenuItem("Open With Startup Window");
-  private final JMenuItem binBy2 = new JMenuItem("Open Binned By 2");
+  private final JMenuItem startupWindow = new JMenuItem("Open with start up window");
+  private final JMenuItem binBy2 = new JMenuItem("Open binned by 2");
   private final Run3dmodButtonContainer container;
   
   Run3dmodButton(String text, Run3dmodButtonContainer container) {
@@ -77,5 +77,9 @@ class Run3dmodButton extends MultiLineButton implements ContextMenu {
   }
 }
 /**
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2005/08/09 20:32:45  sueh
+* <p> bug# 711  Class to add a 3dmod context menu to a multi line button.
+* <p> Runs run3dmod in container class when context menu is used.
+* <p> </p>
 */
