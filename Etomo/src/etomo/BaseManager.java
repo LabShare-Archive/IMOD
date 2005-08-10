@@ -26,7 +26,6 @@ import etomo.type.ProcessName;
 import etomo.type.UserConfiguration;
 import etomo.ui.MainPanel;
 import etomo.ui.UIHarness;
-import etomo.ui.UIParameters;
 import etomo.util.Utilities;
 
 /**
@@ -43,6 +42,10 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.23  2005/08/04 19:05:42  sueh
+* <p> bug# 532  Sending the manager to UIHarness.pack() so that
+* <p> packDialogs() can be called.
+* <p>
 * <p> Revision 1.22  2005/08/01 17:57:59  sueh
 * <p> Removed unnecessary FIXME
 * <p>
@@ -326,8 +329,6 @@ public abstract class BaseManager {
   
   protected void initializeUIParameters(String paramFileName, AxisID axisID) {
     if (!test) {
-      //  Initialize the static UIParameter object
-      UIParameters uiparameters = new UIParameters();
       // Open the etomo data file if one was found on the command line
       if (!paramFileName.equals("")) {
         File etomoDataFile = new File(paramFileName);
