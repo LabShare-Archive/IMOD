@@ -1,5 +1,6 @@
 package etomo.ui;
 
+import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
@@ -14,7 +15,6 @@ import java.util.ArrayList;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
-import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JPanel;
 import javax.swing.SpinnerModel;
@@ -51,6 +51,10 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.14  2005/08/09 20:36:07  sueh
+* <p> bug# 711 Moving button sizing from UIUtilities to the multi line button
+* <p> classes.  default setSize() sets the standard button dimension.
+* <p>
 * <p> Revision 1.13  2005/08/04 20:16:50  sueh
 * <p> bug# 532  Centralizing fit window functionality by placing fitting functions
 * <p> in UIHarness.  Removing packMainWindow from the manager.  Sending
@@ -1225,12 +1229,12 @@ public class SectionTablePanel implements ContextMenu, Expandable {
    * Add a JComponent to the table.
    * @param cell
    */
-  public void addCell(JComponent cell) {
+  public void addCell(Component cell) {
     layout.setConstraints(cell, constraints);
     pnlTable.add(cell);
   }
 
-  public void removeCell(JComponent cell) {
+  public void removeCell(Component cell) {
     pnlTable.remove(cell);
   }
 
@@ -1249,12 +1253,12 @@ public class SectionTablePanel implements ContextMenu, Expandable {
    * @param width
    * @return button created
    */
-  MultiLineToggleButton createToggleButton(String text, int width) {
-    MultiLineToggleButton button = new MultiLineToggleButton(text);
+  MultiLineButton createToggleButton(String text, int width) {
+    MultiLineButton button = MultiLineButton.getToggleButtonInstance(text);
     button.setBorder(BorderFactory.createBevelBorder(BevelBorder.RAISED));
     Dimension size = button.getPreferredSize();
     size.width = width;
-    button.setPreferredSize(size);
+    button.setSize(size);
     return button;
   }
 

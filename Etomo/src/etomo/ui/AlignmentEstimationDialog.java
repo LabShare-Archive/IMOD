@@ -1,7 +1,6 @@
 package etomo.ui;
 
 import java.awt.BorderLayout;
-import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
@@ -32,6 +31,10 @@ import etomo.type.Run3dmodMenuOption;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.14  2005/08/09 20:09:45  sueh
+ * <p> bug# 711  Implemented Run3dmodButtonContainer:  added run3dmod().
+ * <p> Changed 3dmod buttons to Run3dmodButton.
+ * <p>
  * <p> Revision 3.13  2005/08/04 19:54:59  sueh
  * <p> bug# 532  Centralizing fit window functionality by placing fitting functions
  * <p> in UIHarness.  Removing packMainWindow from the manager.  Sending
@@ -218,7 +221,7 @@ public class AlignmentEstimationDialog extends ProcessDialog
 
   private JPanel panelButton = new JPanel();
 
-  private MultiLineToggleButton btnComputeAlignment = new MultiLineToggleButton(
+  private MultiLineButton btnComputeAlignment = MultiLineButton.getToggleButtonInstance(
     "<html><b>Compute Alignment</b>");
 
   private Run3dmodButton btnImod = new Run3dmodButton(
@@ -240,15 +243,10 @@ public class AlignmentEstimationDialog extends ProcessDialog
     //  Create the first tiltalign panel
     panelButton.setLayout(new BoxLayout(panelButton, BoxLayout.Y_AXIS));
 
-    Dimension dimButton = UIParameters.getButtonDimension();
-    btnComputeAlignment.setPreferredSize(dimButton);
-    btnComputeAlignment.setMaximumSize(dimButton);
-    btnImod.setPreferredSize(dimButton);
-    btnImod.setMaximumSize(dimButton);
-    btnViewResiduals.setPreferredSize(dimButton);
-    btnViewResiduals.setMaximumSize(dimButton);
-    btnView3DModel.setPreferredSize(dimButton);
-    btnView3DModel.setMaximumSize(dimButton);
+    btnComputeAlignment.setSize();
+    btnImod.setSize();
+    btnViewResiduals.setSize();
+    btnView3DModel.setSize();
     
     SpacedPanel topButtonPanel = new SpacedPanel();
     topButtonPanel.setBoxLayout(BoxLayout.X_AXIS);

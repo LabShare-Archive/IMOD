@@ -1,7 +1,6 @@
 package etomo.ui;
 
 import java.awt.Component;
-import java.awt.Dimension;
 import java.awt.event.*;
 import javax.swing.*;
 
@@ -27,6 +26,11 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.14  2005/08/09 20:22:13  sueh
+ * <p> bug# 711  Implemented Run3dmodButtonContainer:  added run3dmod().
+ * <p> Changed 3dmod buttons to Run3dmodButton.  No longer inheriting
+ * <p> MultiLineButton from JButton.
+ * <p>
  * <p> Revision 3.13  2005/08/04 20:09:47  sueh
  * <p> bug# 532  Centralizing fit window functionality by placing fitting functions
  * <p> in UIHarness.  Removing packMainWindow from the manager.  Sending
@@ -162,15 +166,15 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu, R
   private JPanel pnlFiducialModel = new JPanel();
 
   private BeveledBorder border = new BeveledBorder("Fiducial Model Generation");
-  private MultiLineToggleButton btnTransferFiducials = null;
+  private MultiLineButton btnTransferFiducials = null;
   private Run3dmodButton btnSeed =
     Run3dmodButton.getToggleButtonInstance("<html><b>Seed Fiducial Model</b>", this);
 
   private TransferfidPanel pnlTransferfid = null;
   private BeadtrackPanel pnlBeadtrack;
 
-  private MultiLineToggleButton btnTrack =
-    new MultiLineToggleButton("<html><b>Track Fiducial Seed Model</b>");
+  private MultiLineButton btnTrack =
+    MultiLineButton.getToggleButtonInstance("<html><b>Track Fiducial Seed Model</b>");
 
   private MultiLineButton btnUseModel =
     new MultiLineButton("<html><b>Use Fiducial Model as Seed</b>");
@@ -191,21 +195,13 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu, R
 
     btnExecute.setText("Done");
 
-    Dimension dimButton = UIParameters.getButtonDimension();
     btnSeed.setAlignmentX(Component.CENTER_ALIGNMENT);
-    btnSeed.setPreferredSize(dimButton);
-    btnSeed.setMaximumSize(dimButton);
-
+    btnSeed.setSize();
     btnTrack.setAlignmentX(Component.CENTER_ALIGNMENT);
-    btnTrack.setPreferredSize(dimButton);
-    btnTrack.setMaximumSize(dimButton);
-    
-    btnUseModel.setPreferredSize(dimButton);
-    btnUseModel.setMaximumSize(dimButton);
-
+    btnTrack.setSize();
+    btnUseModel.setSize();
     btnFixModel.setAlignmentX(Component.CENTER_ALIGNMENT);
-    btnFixModel.setPreferredSize(dimButton);
-    btnFixModel.setMaximumSize(dimButton);
+    btnFixModel.setSize();
 
     pnlFiducialModel.setLayout(
       new BoxLayout(pnlFiducialModel, BoxLayout.Y_AXIS));
@@ -225,7 +221,7 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu, R
     
     pnlTrack.setLayout(new BoxLayout(pnlTrack, BoxLayout.X_AXIS));
     pnlTrack.setAlignmentX(Component.CENTER_ALIGNMENT);
-    pnlTrack.add(btnTrack);
+    pnlTrack.add(btnTrack.getComponent());
     pnlTrack.add(Box.createRigidArea(FixedDim.x5_y0));
     pnlTrack.add(btnUseModel.getComponent());
     pnlFiducialModel.add(pnlTrack);

@@ -32,7 +32,7 @@ public class TransferfidPanel {
     "$Id$";
 
   private JPanel panelTransferfid = new JPanel();
-  MultiLineToggleButton buttonTransferfid = null;
+  MultiLineButton buttonTransferfid = null;
   private boolean includeButton = false;
 
   private JCheckBox cbRunMidas = new JCheckBox("Run midas");
@@ -91,11 +91,10 @@ public class TransferfidPanel {
     
     if (includeButton) {
       buttonTransferfid =
-        new MultiLineToggleButton("Transfer Fiducials From Other Axis");
+        MultiLineButton.getToggleButtonInstance("Transfer Fiducials From Other Axis");
       buttonTransferfid.setAlignmentX(Component.CENTER_ALIGNMENT);
-      buttonTransferfid.setPreferredSize(FixedDim.button2Line);
-      buttonTransferfid.setMaximumSize(FixedDim.button2Line);
-      panelTransferfid.add(buttonTransferfid);  
+      buttonTransferfid.setSize();
+      panelTransferfid.add(buttonTransferfid.getComponent());  
       panelTransferfid.add(Box.createRigidArea(FixedDim.x0_y5));   
     }
     
@@ -181,7 +180,7 @@ public class TransferfidPanel {
     rbSearchMinus90.setEnabled(isEnabled);
   }
   
-  public MultiLineToggleButton getButton() {
+  public MultiLineButton getButton() {
     if (includeButton) {
       return buttonTransferfid;
     }
@@ -226,6 +225,11 @@ public class TransferfidPanel {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.4  2005/07/29 00:54:52  sueh
+ * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
+ * <p> because the current manager changes when the user changes the tab.
+ * <p> Passing the manager where its needed.
+ * <p>
  * <p> Revision 3.3  2005/06/01 21:28:58  sueh
  * <p> bug# 667 Getting meta data from the manager instead of EtomoDirector.
  * <p>

@@ -43,6 +43,11 @@ import etomo.type.Run3dmodMenuOption;
  * 
  * <p>
  * $Log$
+ * Revision 3.17  2005/08/09 20:53:08  sueh
+ * bug# 711  Implemented Run3dmodButtonContainer:  added run3dmod().
+ * Changed 3dmod buttons to Run3dmodButton.  No longer inheriting
+ * MultiLineButton from JButton.
+ *
  * Revision 3.16  2004/12/02 20:42:08  sueh
  * bug# 566 ContextPopup can specify an anchor in both the tomo guide and
  * the join guide.  Need to specify the guide to anchor.
@@ -290,9 +295,9 @@ public class SetupCombinePanel
     "<html><b>3dmod Volume A</b>", this);
   private Run3dmodButton btnImodVolumeB = new Run3dmodButton(
     "<html><b>3dmod Volume B</b>", this);
-  private MultiLineToggleButton btnCreate = new MultiLineToggleButton(
+  private MultiLineButton btnCreate = MultiLineButton.getToggleButtonInstance(
     "<html><b>Create Combine Scripts</b>");
-  private MultiLineToggleButton btnCombine = new MultiLineToggleButton(
+  private MultiLineButton btnCombine = MultiLineButton.getToggleButtonInstance(
     "<html><b>Start Combine</b>");
   private JLabel binningWarning = new JLabel();
 
@@ -398,9 +403,9 @@ public class SetupCombinePanel
     pnlButton.add(Box.createHorizontalGlue());
     pnlButton.add(btnImodVolumeB.getComponent());
     pnlButton.add(Box.createHorizontalGlue());
-    pnlButton.add(btnCreate);
+    pnlButton.add(btnCreate.getComponent());
     pnlButton.add(Box.createHorizontalGlue());
-    pnlButton.add(btnCombine);
+    pnlButton.add(btnCombine.getComponent());
     pnlButton.add(Box.createHorizontalGlue());
     UIUtilities.setButtonSizeAll(pnlButton, UIParameters.getButtonDimension());
 

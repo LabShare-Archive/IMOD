@@ -40,6 +40,11 @@ import etomo.type.Run3dmodMenuOption;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.34  2005/08/09 21:11:23  sueh
+ * <p> bug# 711  Implemented Run3dmodButtonContainer:  added run3dmod().
+ * <p> Changed 3dmod buttons to Run3dmodButton.  No longer inheriting
+ * <p> MultiLineButton from JButton.
+ * <p>
  * <p> Revision 3.33  2005/08/04 20:17:32  sueh
  * <p> bug# 532  Centralizing fit window functionality by placing fitting functions
  * <p> in UIHarness.  Removing packMainWindow from the manager.  Sending
@@ -258,13 +263,13 @@ public class TomogramPositioningDialog extends ProcessDialog
 
   private JPanel pnlPositionButtons = new JPanel();
 
-  private MultiLineToggleButton btnSample = new MultiLineToggleButton(
+  private MultiLineButton btnSample = MultiLineButton.getToggleButtonInstance(
     "Create Sample Tomograms");
 
   private Run3dmodButton btnCreateBoundary = new Run3dmodButton(
     "<html><b>Create Boundary Model</b>", this);
 
-  private MultiLineToggleButton btnTomopitch = new MultiLineToggleButton(
+  private MultiLineButton btnTomopitch = MultiLineButton.getToggleButtonInstance(
     "<html><b>Compute Z Shift & Pitch Angles</b>");
 
   private JPanel pnlFinalAlign = new JPanel();
@@ -275,7 +280,7 @@ public class TomogramPositioningDialog extends ProcessDialog
   private LabeledTextField ltfTiltAxisZShift = new LabeledTextField(
     "Total Z shift: ");
 
-  private MultiLineToggleButton btnAlign = new MultiLineToggleButton(
+  private MultiLineButton btnAlign = MultiLineButton.getToggleButtonInstance(
     "<html><b>Create Final Alignment</b>");
   
   private static final String SAMPLE_TOMOGRAMS_TOOLTIP =
@@ -322,11 +327,11 @@ public class TomogramPositioningDialog extends ProcessDialog
     pnlPosition.setLayout(new BoxLayout(pnlPosition, BoxLayout.Y_AXIS));
 
     UIUtilities.addWithYSpace(pnlPosition, pnlTomoParams);
-    UIUtilities.addWithSpace(pnlPosition, btnSample, FixedDim.x0_y10);
+    UIUtilities.addWithSpace(pnlPosition, btnSample.getComponent(), FixedDim.x0_y10);
     UIUtilities.addWithSpace(pnlPosition, btnCreateBoundary.getComponent(), FixedDim.x0_y10);
-    UIUtilities.addWithSpace(pnlPosition, btnTomopitch, FixedDim.x0_y10);
+    UIUtilities.addWithSpace(pnlPosition, btnTomopitch.getComponent(), FixedDim.x0_y10);
     UIUtilities.addWithYSpace(pnlPosition, pnlFinalAlign);
-    UIUtilities.addWithSpace(pnlPosition, btnAlign, FixedDim.x0_y10);
+    UIUtilities.addWithSpace(pnlPosition, btnAlign.getComponent(), FixedDim.x0_y10);
     UIUtilities.alignComponentsX(pnlPosition, Component.CENTER_ALIGNMENT);
     UIUtilities
       .setButtonSizeAll(pnlPosition, UIParameters.getButtonDimension());

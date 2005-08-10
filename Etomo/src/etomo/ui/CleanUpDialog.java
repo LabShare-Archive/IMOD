@@ -30,7 +30,7 @@ public class CleanUpDialog extends ProcessDialog implements ContextMenu {
   public static  final String  rcsid =  "$Id$";
   
   private CleanupPanel cleanupPanel;
-  private MultiLineToggleButton btnArchiveStack = new MultiLineToggleButton();
+  private MultiLineButton btnArchiveStack = MultiLineButton.getToggleButtonInstance();
   private JLabel archiveInfoA = new JLabel();
   private JLabel archiveInfoB = new JLabel();
   
@@ -54,10 +54,10 @@ public class CleanUpDialog extends ProcessDialog implements ContextMenu {
     ButtonActionListener listener = new ButtonActionListener(this);
     btnArchiveStack.addActionListener(listener);
     btnArchiveStack.setAlignmentX(Component.CENTER_ALIGNMENT);
-    btnArchiveStack.setSize(UIParameters.getButtonDimension());
+    btnArchiveStack.setSize();
     archiveInfoA.setAlignmentX(Component.CENTER_ALIGNMENT);
     archiveInfoB.setAlignmentX(Component.CENTER_ALIGNMENT);
-    rootPanel.add(btnArchiveStack);
+    rootPanel.add(btnArchiveStack.getComponent());
     rootPanel.add(archiveInfoA);
     rootPanel.add(archiveInfoB);
 
@@ -189,6 +189,10 @@ public class CleanUpDialog extends ProcessDialog implements ContextMenu {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.6  2005/08/09 20:19:48  sueh
+ * <p> bug# 711 Moving button sizing from UIUtilities to the multi line button
+ * <p> classes.
+ * <p>
  * <p> Revision 1.5  2005/08/04 20:08:10  sueh
  * <p> bug# 532  Centralizing fit window functionality by placing fitting functions
  * <p> in UIHarness.  Removing packMainWindow from the manager.  Sending

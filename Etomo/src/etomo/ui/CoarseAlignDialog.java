@@ -11,6 +11,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.24  2005/08/09 20:20:33  sueh
+ * <p> bug# 711  Implemented Run3dmodButtonContainer:  added run3dmod().
+ * <p> Changed 3dmod buttons to Run3dmodButton.
+ * <p>
  * <p> Revision 3.23  2005/08/04 20:08:25  sueh
  * <p> bug# 532  Centralizing fit window functionality by placing fitting functions
  * <p> in UIHarness.  Removing packMainWindow from the manager.  Sending
@@ -175,12 +179,12 @@ public class CoarseAlignDialog extends ProcessDialog
 
   private CrossCorrelationPanel pnlCrossCorrelation;
 
-  private MultiLineToggleButton btnCrossCorrelate = new MultiLineToggleButton(
+  private MultiLineButton btnCrossCorrelate = MultiLineButton.getToggleButtonInstance(
     "Calculate Cross- Correlation");
 
   private PrenewstPanel pnlPrenewst;
 
-  private MultiLineToggleButton btnCoarseAlign = new MultiLineToggleButton(
+  private MultiLineButton btnCoarseAlign = MultiLineButton.getToggleButtonInstance(
     "Generate Coarse Aligned Stack");
 
   private Run3dmodButton btnImod = new Run3dmodButton(
@@ -191,13 +195,13 @@ public class CoarseAlignDialog extends ProcessDialog
   private LabeledTextField ltfRotation = new LabeledTextField(
     "Tilt axis rotation:");
 
-  private MultiLineToggleButton btnMidas = new MultiLineToggleButton(
+  private MultiLineButton btnMidas = MultiLineButton.getToggleButtonInstance(
     "<html><b>Fix Alignment<br>With Midas</b>");
   
   //Montaging
-  private MultiLineToggleButton btnFixEdgesMidas = new MultiLineToggleButton(
+  private MultiLineButton btnFixEdgesMidas = MultiLineButton.getToggleButtonInstance(
   "Fix Edges With Midas");
-  private MultiLineToggleButton btnDistortionCorrectedStack = new MultiLineToggleButton(
+  private MultiLineButton btnDistortionCorrectedStack = MultiLineButton.getToggleButtonInstance(
   "Make Distortion Corrected Stack");
 
 
@@ -220,7 +224,7 @@ public class CoarseAlignDialog extends ProcessDialog
     UIUtilities.addWithSpace(pnlCoarseAlign, pnlCrossCorrelation.getPanel(),
       FixedDim.x0_y10);
     UIUtilities
-      .addWithSpace(pnlCoarseAlign, btnCrossCorrelate, FixedDim.x0_y10);
+      .addWithSpace(pnlCoarseAlign, btnCrossCorrelate.getComponent(), FixedDim.x0_y10);
     if (metaData.getViewType() == ViewType.MONTAGE) {
       SpacedPanel pnlFixEdges = new SpacedPanel();
       pnlFixEdges.setBoxLayout(BoxLayout.Y_AXIS);
@@ -235,10 +239,10 @@ public class CoarseAlignDialog extends ProcessDialog
     }
     UIUtilities.addWithSpace(pnlCoarseAlign, pnlPrenewst.getPanel(),
       FixedDim.x0_y10);
-    UIUtilities.addWithSpace(pnlCoarseAlign, btnCoarseAlign, FixedDim.x0_y10);
+    UIUtilities.addWithSpace(pnlCoarseAlign, btnCoarseAlign.getComponent(), FixedDim.x0_y10);
     UIUtilities.addWithSpace(pnlCoarseAlign, btnImod.getComponent(), FixedDim.x0_y10);
     UIUtilities.addWithSpace(pnlCoarseAlign, pnlFiducialess, FixedDim.x0_y10);
-    UIUtilities.addWithSpace(pnlCoarseAlign, btnMidas, FixedDim.x0_y10);
+    UIUtilities.addWithSpace(pnlCoarseAlign, btnMidas.getComponent(), FixedDim.x0_y10);
 
     // Set the alignment and size of the UI objects
     UIUtilities.alignComponentsX(pnlCoarseAlign, Component.CENTER_ALIGNMENT);

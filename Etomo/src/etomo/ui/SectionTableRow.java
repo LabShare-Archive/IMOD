@@ -30,6 +30,9 @@ import etomo.util.MRCHeader;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.8  2005/07/29 19:47:55  sueh
+* <p> bug# 692 Changed ConstEtomoNumber.getInteger() to getInt.
+* <p>
 * <p> Revision 1.7  2005/07/01 21:22:48  sueh
 * <p> bug# 619 Changed FieldCell.getText() and setText() to getValue() and
 * <p> setValue().
@@ -157,7 +160,7 @@ public class SectionTableRow {
   //ui
   SectionTablePanel table = null;
   private HeaderCell rowNumber = null;
-  private MultiLineToggleButton highlighterButton = null;
+  private MultiLineButton highlighterButton = null;
   private FieldCell section = null;
   private FieldCell sampleBottomStart = null;
   private FieldCell sampleBottomEnd = null;
@@ -284,7 +287,7 @@ public class SectionTableRow {
   
   private void removeSetup() {
     rowNumber.remove();
-    table.removeCell(highlighterButton);
+    table.removeCell(highlighterButton.getComponent());
     section.remove();
     sampleBottomStart.remove();
     sampleBottomEnd.remove();
@@ -308,7 +311,7 @@ public class SectionTableRow {
   
   private void removeJoin() {
     rowNumber.remove();
-    table.removeCell(highlighterButton);
+    table.removeCell(highlighterButton.getComponent());
     section.remove();
     finalStart.remove();
     finalEnd.remove();
@@ -423,7 +426,7 @@ public class SectionTableRow {
     constraints.gridwidth = 1;
     rowNumber.add(panel, layout, constraints);
     constraints.weightx = 0.0;
-    table.addCell(highlighterButton);
+    table.addCell(highlighterButton.getComponent());
     constraints.gridwidth = 2;
     section.add(panel, layout, constraints);
     constraints.gridwidth = 1;
@@ -464,7 +467,7 @@ public class SectionTableRow {
     rowNumber.add(panel, layout, constraints);
     constraints.weightx = 0.0;
     constraints.weighty = 0.0;
-    table.addCell(highlighterButton);
+    table.addCell(highlighterButton.getComponent());
     constraints.gridwidth = 2;
     section.add(panel, layout, constraints);
     constraints.gridwidth = 1;

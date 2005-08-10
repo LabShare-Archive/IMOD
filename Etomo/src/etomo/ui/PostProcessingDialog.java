@@ -39,7 +39,7 @@ public class PostProcessingDialog
   private LabeledTextField ltfReductionFactorZ;
   private JCheckBox cbLinearInterpolation;
   
-  private MultiLineToggleButton btnSqueezeVolume;
+  private MultiLineButton btnSqueezeVolume;
   private Run3dmodButton btnImodSqueezedVolume;
   
   private PostProcessingDialogActionListener actionListener = new PostProcessingDialogActionListener(this);
@@ -87,7 +87,7 @@ public class PostProcessingDialog
     //third component
     SpacedPanel squeezeVolPanel2 = new SpacedPanel();
     squeezeVolPanel2.setBoxLayout(BoxLayout.X_AXIS);
-    btnSqueezeVolume = new MultiLineToggleButton("Squeeze Volume");
+    btnSqueezeVolume = MultiLineButton.getToggleButtonInstance("Squeeze Volume");
     btnSqueezeVolume.addActionListener(actionListener);
     squeezeVolPanel2.add(btnSqueezeVolume);
     squeezeVolPanel2.addHorizontalGlue();
@@ -274,6 +274,10 @@ public class PostProcessingDialog
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.20  2005/08/09 20:27:18  sueh
+ * <p> bug# 711  Implemented Run3dmodButtonContainer:  added run3dmod().
+ * <p> Changed 3dmod buttons to Run3dmodButton.
+ * <p>
  * <p> Revision 3.19  2005/08/04 20:14:57  sueh
  * <p> bug# 532  Centralizing fit window functionality by placing fitting functions
  * <p> in UIHarness.  Removing packMainWindow from the manager.  Sending

@@ -69,6 +69,11 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.56  2005/08/09 21:10:34  sueh
+ * bug# 711  Implemented Run3dmodButtonContainer:  added run3dmod().
+ * Changed 3dmod buttons to Run3dmodButton.  No longer inheriting
+ * MultiLineButton from JButton.
+ *
  * Revision 3.55  2005/08/04 20:21:06  sueh
  * bug# 532  Added runTilt() to figure out whether trial or regular tilt is being
  * run and run it.  Calling runTilt() from resume and button action.
@@ -438,7 +443,7 @@ public class TomogramGenerationDialog extends ProcessDialog
   private LabeledSpinner spinBinning;
 
   //  Aligned stack buttons
-  private MultiLineToggleButton btnNewst = new MultiLineToggleButton(
+  private MultiLineButton btnNewst = MultiLineButton.getToggleButtonInstance(
       "<html><b>Create Full<br>Aligned Stack</b>");
   private Run3dmodButton btn3dmodFull = new Run3dmodButton(
       "<html><b>View Full<br>Aligned Stack</b>", this);
@@ -476,7 +481,7 @@ public class TomogramGenerationDialog extends ProcessDialog
   private MultiLineButton btnTrial = new MultiLineButton(RUN_TRIAL_BUTTON_TITLE);
   private Run3dmodButton btn3dmodTrial = new Run3dmodButton(
       "<html><b>View Trial in 3dmod</b>", this);
-  private MultiLineToggleButton btnUseTrial = new MultiLineToggleButton(
+  private MultiLineButton btnUseTrial = MultiLineButton.getToggleButtonInstance(
       "<html><b>Use Current Trial Tomogram</b>");
 
   // MTF Filter objects
@@ -490,7 +495,7 @@ public class TomogramGenerationDialog extends ProcessDialog
       "Maximum Inverse: ");
   private LabeledTextField ltfInverseRolloffRadiusSigma = new LabeledTextField(
       "Rolloff (radius,sigma): ");
-  private MultiLineToggleButton btnFilter = new MultiLineToggleButton("Filter");
+  private MultiLineButton btnFilter = MultiLineButton.getToggleButtonInstance("Filter");
   private Run3dmodButton btnViewFilter = new Run3dmodButton(
       "View Filtered Stack", this);
   private MultiLineButton btnUseFilter = MultiLineButton.getToggleButtonInstance(
@@ -500,10 +505,10 @@ public class TomogramGenerationDialog extends ProcessDialog
   boolean enableFiltering = false;
 
   //  Tomogram generation buttons
-  private MultiLineToggleButton btnTilt = new MultiLineToggleButton(RUN_TILT_BUTTON_TITLE);
+  private MultiLineButton btnTilt = MultiLineButton.getToggleButtonInstance(RUN_TILT_BUTTON_TITLE);
   private Run3dmodButton btn3dmodTomogram = new Run3dmodButton(
       "<html><b>View Tomogram In 3dmod</b>", this);
-  private MultiLineToggleButton btnDeleteStacks = new MultiLineToggleButton(
+  private MultiLineButton btnDeleteStacks = MultiLineButton.getToggleButtonInstance(
       "<html><b>Delete Aligned Image Stack</b>");
   private JCheckBox cbUseZFactors = new JCheckBox("Use Z factors");
   private SpacedTextField ltfExtraExcludeList = new SpacedTextField(
@@ -999,7 +1004,7 @@ public class TomogramGenerationDialog extends ProcessDialog
     spinBinning = new LabeledSpinner("Aligned image stack binning ", integerModel);
     //buttonPanel
     buttonPanel.add(Box.createHorizontalStrut(50));
-    buttonPanel.add(btnNewst);
+    buttonPanel.add(btnNewst.getComponent());
     buttonPanel.add(Box.createHorizontalGlue());
     buttonPanel.add(btn3dmodFull.getComponent());
     buttonPanel.add(Box.createHorizontalStrut(50));
@@ -1016,7 +1021,7 @@ public class TomogramGenerationDialog extends ProcessDialog
     UIUtilities.alignComponentsX(newstPanel, Component.LEFT_ALIGNMENT);
     //configure
     newstHeader.setOpen(true);
-    ButtonHelper.setStandardSize(btnNewst);
+    btnNewst.setSize();
     btn3dmodFull.setSize();
     return newstPanel;
   }
@@ -1067,7 +1072,7 @@ public class TomogramGenerationDialog extends ProcessDialog
     filterPanel.add(filterBodyPanel);
     //configure
     filterHeader.setOpen(true);
-    ButtonHelper.setStandardSize(btnFilter);
+    btnFilter.setSize();
     btnViewFilter.setSize();
     btnUseFilter.setSize();
     return filterPanel;
@@ -1153,9 +1158,9 @@ public class TomogramGenerationDialog extends ProcessDialog
     //configure
     cbParallelProcess.setVisible(EtomoDirector.getInstance().isNewstuff());
     tiltHeader.setOpen(true);
-    ButtonHelper.setStandardSize(btnTilt);
+    btnTilt.setSize();
     btn3dmodTomogram.setSize();
-    ButtonHelper.setStandardSize(btnDeleteStacks);
+    btnDeleteStacks.setSize();
     return tiltPanel;
   }
 

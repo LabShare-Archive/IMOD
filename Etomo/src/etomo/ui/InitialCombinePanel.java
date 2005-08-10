@@ -29,6 +29,11 @@ import etomo.type.Run3dmodMenuOption;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.17  2005/08/09 20:23:02  sueh
+ * <p> bug# 711  Implemented Run3dmodButtonContainer:  added run3dmod().
+ * <p> Changed 3dmod buttons to Run3dmodButton.  No longer inheriting
+ * <p> MultiLineButton from JButton.
+ * <p>
  * <p> Revision 3.16  2004/12/02 20:39:50  sueh
  * <p> bug# 566 ContextPopup can specify an anchor in both the tomo guide and
  * <p> the join guide.  Need to specify the guide to anchor.
@@ -147,7 +152,7 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields, R
     "<html><b>View Match Check Volume</b>", this);
   private MultiLineButton btnRestart = new MultiLineButton(
     "<html><b>Restart Combine</b>");
-  private MultiLineToggleButton btnMatchvolRestart = new MultiLineToggleButton(
+  private MultiLineButton btnMatchvolRestart = MultiLineButton.getToggleButtonInstance(
     "<html><b>Restart at Matchvol1</b>");
 
   /**
@@ -172,7 +177,7 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields, R
     pnlButton.add(Box.createHorizontalGlue());
     pnlButton.add(btnRestart.getComponent());
     pnlButton.add(Box.createHorizontalGlue());
-    pnlButton.add(btnMatchvolRestart);
+    pnlButton.add(btnMatchvolRestart.getComponent());
     pnlButton.add(Box.createHorizontalGlue());
     UIUtilities.setButtonSizeAll(pnlButton, UIParameters.getButtonDimension());
 

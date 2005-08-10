@@ -64,7 +64,7 @@ public class CCDEraserPanel implements ContextMenu, Run3dmodButtonContainer {
     "XY scan size:");
   private LabeledTextField ltfScanCriterion = new LabeledTextField(
     "Scan criterion:");
-  private MultiLineToggleButton btnFindXRays = new MultiLineToggleButton(
+  private MultiLineButton btnFindXRays = MultiLineButton.getToggleButtonInstance(
     "<html><b>Find X-rays (Trial Mode)</b>");
   private Run3dmodButton btnViewXRayModel = new Run3dmodButton(
     "<html><b>View X-ray Model</b>", this);
@@ -87,11 +87,11 @@ public class CCDEraserPanel implements ContextMenu, Run3dmodButtonContainer {
   private JCheckBox cbIncludeAdjacentPoints = new JCheckBox(
     "Include adjacent points");
 
-  private MultiLineToggleButton btnErase = new MultiLineToggleButton(
+  private MultiLineButton btnErase = MultiLineButton.getToggleButtonInstance(
     "<html><b>Create Fixed Stack</b>");
   private Run3dmodButton btnViewErased = new Run3dmodButton(
     "<html><b>View Fixed Stack</b>", this);
-  private MultiLineToggleButton btnReplaceRawStack = new MultiLineToggleButton(
+  private MultiLineButton btnReplaceRawStack = MultiLineButton.getToggleButtonInstance(
     "<html><b>Use Fixed Stack</b>");
 
   /**
@@ -128,7 +128,7 @@ public class CCDEraserPanel implements ContextMenu, Run3dmodButtonContainer {
 
     pnlXRayButtons.setLayout(new BoxLayout(pnlXRayButtons, BoxLayout.X_AXIS));
     pnlXRayButtons.add(Box.createHorizontalGlue());
-    pnlXRayButtons.add(btnFindXRays);
+    pnlXRayButtons.add(btnFindXRays.getComponent());
     pnlXRayButtons.add(Box.createHorizontalGlue());
     pnlXRayButtons.add(btnViewXRayModel.getComponent());
     pnlXRayButtons.add(Box.createHorizontalGlue());
@@ -167,11 +167,11 @@ public class CCDEraserPanel implements ContextMenu, Run3dmodButtonContainer {
     pnlCCDEraser.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlEraseButtons.setLayout(new BoxLayout(pnlEraseButtons, BoxLayout.X_AXIS));
     pnlEraseButtons.add(Box.createHorizontalGlue());
-    pnlEraseButtons.add(btnErase);
+    pnlEraseButtons.add(btnErase.getComponent());
     pnlEraseButtons.add(Box.createHorizontalGlue());
     pnlEraseButtons.add(btnViewErased.getComponent());
     pnlEraseButtons.add(Box.createHorizontalGlue());
-    pnlEraseButtons.add(btnReplaceRawStack);
+    pnlEraseButtons.add(btnReplaceRawStack.getComponent());
     pnlEraseButtons.add(Box.createHorizontalGlue());
     UIUtilities.setButtonSizeAll(pnlEraseButtons, UIParameters.getButtonDimension());
     
@@ -463,6 +463,10 @@ public class CCDEraserPanel implements ContextMenu, Run3dmodButtonContainer {
 
 /**
 * <p> $Log$
+* <p> Revision 3.10  2005/08/09 20:13:08  sueh
+* <p> bug# 711  Implemented Run3dmodButtonContainer:  added run3dmod().
+* <p> Changed 3dmod buttons to Run3dmodButton.
+* <p>
 * <p> Revision 3.9  2005/04/25 20:53:48  sueh
 * <p> bug# 615 Passing the axis where a command originates to the message
 * <p> functions so that the message will be popped up in the correct window.

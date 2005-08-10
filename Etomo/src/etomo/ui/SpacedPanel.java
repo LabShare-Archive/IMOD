@@ -33,6 +33,10 @@ import javax.swing.border.Border;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.8  2005/08/09 21:09:55  sueh
+* <p> bug# 711 Moving button sizing from UIUtilities to the multi line button
+* <p> classes.
+* <p>
 * <p> Revision 1.7  2005/07/11 23:23:46  sueh
 * <p> bug# 619 Added add(container).
 * <p>
@@ -265,17 +269,6 @@ final class SpacedPanel {
     panel.add(multiLineButton.getComponent());
     xDescription.append("MultiLineButton,");
     yDescription.append("MultiLineButton,");
-  }
-  
-  final void add(MultiLineToggleButton multiLineToggleButton) {
-    addSpacing();
-    ButtonHelper.setStandardSize(multiLineToggleButton);
-    if (componentAlignmentX != null) {
-      multiLineToggleButton.setAlignmentX(componentAlignmentX.floatValue());
-    }
-    panel.add(multiLineToggleButton);
-    xDescription.append("MultiLineToggleButton,");
-    yDescription.append("MultiLineToggleButton,");
   }
   
   final void add(JButton button) {
