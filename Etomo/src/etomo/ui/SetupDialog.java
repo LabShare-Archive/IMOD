@@ -243,8 +243,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu, Run3dmodB
     ltfPixelSize.setColumns(5);
     ltfFiducialDiameter.setColumns(5);
     ltfImageRotation.setColumns(5);
-    btnScanHeader.setPreferredSize(UIParameters.getButtonDimension());
-    btnScanHeader.setMaximumSize(UIParameters.getButtonDimension());
+    btnScanHeader.setSize();
     spnBinning.setTextMaxmimumSize(UIParameters.getSpinnerDimension());
     
     pnlStackInfo.setLayout(new BoxLayout(pnlStackInfo, BoxLayout.X_AXIS));
@@ -309,10 +308,8 @@ public class SetupDialog extends ProcessDialog implements ContextMenu, Run3dmodB
 
   private void createPerAxisInfoPanel() {
     // Set the button size
-    btnViewRawStackA.setPreferredSize(UIParameters.getButtonDimension());
-    btnViewRawStackA.setMaximumSize(UIParameters.getButtonDimension());
-    btnViewRawStackB.setPreferredSize(UIParameters.getButtonDimension());
-    btnViewRawStackB.setMaximumSize(UIParameters.getButtonDimension());
+    btnViewRawStackA.setSize();
+    btnViewRawStackB.setSize();
 
     //  Tilt angle specification panels
     pnlAxisInfoA.setBorder(borderAxisInfoA.getBorder());
@@ -1039,6 +1036,11 @@ public class SetupDialog extends ProcessDialog implements ContextMenu, Run3dmodB
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.33  2005/08/09 20:53:31  sueh
+ * <p> bug# 711  Implemented Run3dmodButtonContainer:  added run3dmod().
+ * <p> Changed 3dmod buttons to Run3dmodButton.  No longer inheriting
+ * <p> MultiLineButton from JButton.
+ * <p>
  * <p> Revision 3.32  2005/08/04 20:17:02  sueh
  * <p> bug# 532  Centralizing fit window functionality by placing fitting functions
  * <p> in UIHarness.  Removing packMainWindow from the manager.  Sending

@@ -2,7 +2,6 @@ package etomo.ui;
 
 import java.awt.Component;
 import java.awt.Container;
-import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -34,6 +33,11 @@ import etomo.type.Run3dmodMenuOption;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.7  2005/08/09 21:11:46  sueh
+ * <p> bug# 711  Implemented Run3dmodButtonContainer:  added run3dmod().
+ * <p> Changed 3dmod buttons to Run3dmodButton.  No longer inheriting
+ * <p> MultiLineButton from JButton.
+ * <p>
  * <p> Revision 3.6  2005/04/25 21:41:51  sueh
  * <p> bug# 615 Passing the axis where a command originates to the message
  * <p> functions so that the message will be popped up in the correct window.
@@ -148,15 +152,10 @@ public class TrimvolPanel implements Run3dmodButtonContainer {
     applicationManager = appMgr;
 
     //  Set the button sizes
-    Dimension dimButton = UIParameters.getButtonDimension();
-    btnImodFull.setPreferredSize(dimButton);
-    btnImodFull.setMaximumSize(dimButton);
-    btnTrimvol.setPreferredSize(dimButton);
-    btnTrimvol.setMaximumSize(dimButton);
-    btnImodTrim.setPreferredSize(dimButton);
-    btnImodTrim.setMaximumSize(dimButton);
-    btnGetCoordinates.setPreferredSize(dimButton);
-    btnGetCoordinates.setMaximumSize(dimButton);
+    btnImodFull.setSize();
+    btnTrimvol.setSize();
+    btnImodTrim.setSize();
+    btnGetCoordinates.setSize();
 
     //  Layout the range panel
     pnlRange.setLayout(new GridLayout(3, 2));
