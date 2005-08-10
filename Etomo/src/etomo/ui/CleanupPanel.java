@@ -2,7 +2,6 @@ package etomo.ui;
 
 import java.awt.Component;
 import java.awt.Container;
-import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -38,6 +37,12 @@ import etomo.type.AxisID;
  * 
  * <p>
  * $Log$
+ * Revision 3.10  2005/08/09 20:20:15  sueh
+ * bug# 711  No longer inheriting JButton in MultiLineButton.  This allows
+ * MultiLineButton to treate toggling as an attribute.  Then we can get rid of
+ * MultiLineToggleButton.  Then we can have one Run3dmodButton which
+ * can be toggle or non-toggle.
+ *
  * Revision 3.9  2005/06/16 22:08:49  sueh
  * bug# 625 Changed deleteSelected() to not remove the file names from the
  * File Name field if the delete failed.
@@ -144,15 +149,9 @@ public class CleanupPanel {
   public CleanupPanel(ApplicationManager appMgr) {
     applicationManager = appMgr;
 
-    double height = instructions.getPreferredSize().getHeight();
-
     //  Set the button sizes
-    Dimension dimButton = new Dimension();
-    dimButton.setSize(12 * height, 3 * height);
-    btnDelete.setPreferredSize(dimButton);
-    btnDelete.setMaximumSize(dimButton);
-    btnRescanDir.setPreferredSize(dimButton);
-    btnRescanDir.setMaximumSize(dimButton);
+    btnDelete.setSize();
+    btnRescanDir.setSize();
 
     //  Create the filechooser
     String datasetName = applicationManager.getMetaData().getDatasetName();
