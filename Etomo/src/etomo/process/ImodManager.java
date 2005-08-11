@@ -12,7 +12,7 @@ import etomo.type.AxisType;
 import etomo.type.AxisTypeException;
 import etomo.type.ConstJoinMetaData;
 import etomo.type.ConstMetaData;
-import etomo.type.Run3dmodMenuOption;
+import etomo.type.Run3dmodMenuOptions;
 
 /*p
  * <p>Description: This class manages the opening, closing and sending of 
@@ -30,6 +30,11 @@ import etomo.type.Run3dmodMenuOption;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.33  2005/08/09 19:56:31  sueh
+ * <p> bug# 711 Added setRun3dmodMenuOption functions.
+ * <p> bug# 712 In newMatchCheck(), passed matchcheck.mat and
+ * <p> matchcheck.rec separatedly.
+ * <p>
  * <p> Revision 3.32  2005/07/29 00:51:36  sueh
  * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
  * <p> because the current manager changes when the user changes the tab.
@@ -492,38 +497,48 @@ public class ImodManager {
     return vector.lastIndexOf(imodState);
   }
   
-  public int newImod(String key, File file) throws AxisTypeException, SystemProcessException {
-  Vector vector;
-  ImodState imodState;
-  key = getPrivateKey(key);
-  vector = getVector(key);
-  if (vector == null) {
-    vector = newVector(key, file);
-    imodMap.put(key, vector);
-    return 0;
+  public int newImod(String key, File file) throws AxisTypeException,
+      SystemProcessException {
+    Vector vector;
+    ImodState imodState;
+    key = getPrivateKey(key);
+    vector = getVector(key);
+    if (vector == null) {
+      vector = newVector(key, file);
+      imodMap.put(key, vector);
+      return 0;
+    }
+    imodState = newImodState(key, file);
+    vector.add(imodState);
+    return vector.lastIndexOf(imodState);
   }
-  imodState = newImodState(key, file);
-  vector.add(imodState);
-  return vector.lastIndexOf(imodState);
-}
+  
+  public void open(String key) throws AxisTypeException, SystemProcessException {
+    open(key, null, null, new Run3dmodMenuOptions());
+  }
 
-  public void open(String key)
+  public void open(String key, Run3dmodMenuOptions menuOptions)
     throws AxisTypeException, SystemProcessException {
-    open(key, null, null);
+    open(key, null, null, menuOptions);
     //used for:
     //openCombinedTomogram
   }
 
-  public void open(String key, AxisID axisID)
+  public void open(String key, AxisID axisID, Run3dmodMenuOptions menuOptions)
     throws AxisTypeException, SystemProcessException {
-    open(key, axisID, null);
+    open(key, axisID, null, menuOptions);
     //used for:
     //openCoarseAligned
     //openErasedStack
     //openFineAligned
   }
-
+  
   public void open(String key, AxisID axisID, String model)
+  throws AxisTypeException, SystemProcessException {
+    open(key, axisID, model, new Run3dmodMenuOptions());
+  }
+
+  public void open(String key, AxisID axisID, String model, Run3dmodMenuOptions menuOptions)
     throws AxisTypeException, SystemProcessException {
     key = getPrivateKey(key);
     ImodState imodState = get(key, axisID);
@@ -533,10 +548,10 @@ public class ImodManager {
     }
     if (imodState != null) {
       if (model == null) {
-        imodState.open();
+        imodState.open(menuOptions);
       }
       else {
-        imodState.open(model);
+        imodState.open(model, menuOptions);
       }
     }
     //used for:
@@ -552,7 +567,7 @@ public class ImodManager {
    * @throws AxisTypeException
    * @throws SystemProcessException
    */
-  public void open(String key, AxisID axisID, String model, boolean modelMode)
+  public void open(String key, AxisID axisID, String model, boolean modelMode, Run3dmodMenuOptions menuOptions)
     throws AxisTypeException, SystemProcessException {
     key = getPrivateKey(key);
     ImodState imodState = get(key, axisID);
@@ -561,7 +576,7 @@ public class ImodManager {
       imodState = get(key, axisID);
     }
     if (imodState != null) {
-      imodState.open(model, modelMode);
+      imodState.open(model, modelMode, menuOptions);
     }
     //    rawStack.model(modelName, modelMode);
   }
@@ -574,7 +589,7 @@ public class ImodManager {
    * @throws AxisTypeException
    * @throws SystemProcessException
    */
-  public void open(String key, AxisID axisID, int vectorIndex)
+  public void open(String key, AxisID axisID, int vectorIndex, Run3dmodMenuOptions menuOptions)
     throws AxisTypeException, SystemProcessException {
     key = getPrivateKey(key);
     ImodState imodState = get(key, axisID, vectorIndex);
@@ -588,10 +603,10 @@ public class ImodManager {
           + " at index "
           + vectorIndex);
     }
-    imodState.open();
+    imodState.open(menuOptions);
   }
   
-  public void open(String key, int vectorIndex, File file)
+  public void open(String key, int vectorIndex, File file, Run3dmodMenuOptions menuOptions)
       throws AxisTypeException, SystemProcessException {
     key = getPrivateKey(key);
     ImodState imodState = get(key, vectorIndex);
@@ -599,7 +614,7 @@ public class ImodManager {
       throw new IllegalArgumentException(key + " was not created in "
           + axisType.toString() + " at index " + vectorIndex);
     }
-    imodState.open();
+    imodState.open(menuOptions);
   }
   
   public void delete(String key, int vectorIndex)
@@ -718,28 +733,6 @@ public class ImodManager {
       newImod(key);
     }
     imodState.setSwapYZ(swapYZ);
-  }
-  
-  public void setRun3dmodMenuOption(String key, AxisID axisID,
-      Run3dmodMenuOption run3dmodMenuOption) throws AxisTypeException,
-      SystemProcessException {
-    key = getPrivateKey(key);
-    ImodState imodState = get(key, axisID);
-    if (imodState == null) {
-      return;
-    }
-    imodState.setRun3dmodMenuOption(run3dmodMenuOption);
-  }
-
-  public void setRun3dmodMenuOption(String key,
-      Run3dmodMenuOption run3dmodMenuOption) throws AxisTypeException,
-      SystemProcessException {
-    key = getPrivateKey(key);
-    ImodState imodState = get(key);
-    if (imodState == null) {
-      return;
-    }
-    imodState.setRun3dmodMenuOption(run3dmodMenuOption);
   }
   
   public void setOpenBeadFixer(String key, AxisID axisID, boolean openBeadFixer)
@@ -1132,11 +1125,13 @@ public class ImodManager {
     else {
       imodState = new ImodState(manager, axisID, datasetName, ".rec");
     }
+    imodState.setAllowMenuBinningInZ(true);
     imodState.setInitialSwapYZ(true);
     return imodState;
   }
   protected ImodState newCombinedTomogram() {
     ImodState imodState = new ImodState(manager, "sum.rec", AxisID.ONLY);
+    imodState.setAllowMenuBinningInZ(true);
     imodState.setInitialSwapYZ(true);
     return imodState;
   }
@@ -1144,23 +1139,28 @@ public class ImodManager {
     ImodState imodState = new ImodState(manager, "patch_vector.mod",
         ImodState.MODEL_VIEW, AxisID.ONLY);
     imodState.setInitialMode(ImodState.MODEL_MODE);
+    imodState.setNoMenuOptions(true);
     return imodState;
   }
   protected ImodState newMatchCheck() {
     ImodState imodState = new ImodState(manager, "matchcheck.mat", "matchcheck.rec", AxisID.ONLY);
+    imodState.setAllowMenuBinningInZ(true);
     imodState.setInitialSwapYZ(true);
     return imodState;
   }
   protected ImodState newFiducialModel(AxisID axisID) {
     ImodState imodState = new ImodState(manager, ImodState.MODV, axisID);
+    imodState.setNoMenuOptions(true);
     return imodState;
   }
   protected ImodState newTrimmedVolume() {
     ImodState imodState = new ImodState(manager, datasetName + ".rec", AxisID.ONLY);
+    imodState.setAllowMenuBinningInZ(true);
     return imodState;
   }
   protected ImodState newTrialTomogram(AxisID axisID, String datasetName) {
     ImodState imodState = new ImodState(manager, datasetName, axisID);
+    imodState.setAllowMenuBinningInZ(true);
     imodState.setInitialSwapYZ(true);
     return imodState;
   }
@@ -1198,6 +1198,7 @@ public class ImodManager {
   }
   private ImodState newSqueezedVolume() {
     ImodState imodState = new ImodState(manager, datasetName + ".sqz", AxisID.ONLY);
+    imodState.setAllowMenuBinningInZ(true);
     return imodState;
   }
   
