@@ -14,7 +14,7 @@ import etomo.comscript.ConstSolvematchParam;
 import etomo.comscript.SolvematchParam;
 import etomo.comscript.CombineParams;
 import etomo.type.FiducialMatch;
-import etomo.type.Run3dmodMenuOption;
+import etomo.type.Run3dmodMenuOptions;
 
 /**
  * <p>Description: </p>
@@ -29,6 +29,10 @@ import etomo.type.Run3dmodMenuOption;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.18  2005/08/10 20:43:50  sueh
+ * <p> bug# 711 Removed MultiLineToggleButton.  Making toggling an attribute
+ * <p> of MultiLineButton.
+ * <p>
  * <p> Revision 3.17  2005/08/09 20:23:02  sueh
  * <p> bug# 711  Implemented Run3dmodButtonContainer:  added run3dmod().
  * <p> Changed 3dmod buttons to Run3dmodButton.  No longer inheriting
@@ -277,9 +281,13 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields, R
       logFile, applicationManager);
   }
 
-  public void run3dmod(Run3dmodButton button, Run3dmodMenuOption menuOption) {
-    if (button.equals(btnMatchcheck)) {
-      applicationManager.imodMatchCheck(menuOption);
+  public void run3dmod(Run3dmodButton button, Run3dmodMenuOptions menuOptions) {
+    run3dmod(button.getActionCommand(), menuOptions);
+  }
+  
+  private void run3dmod(String command, Run3dmodMenuOptions menuOptions) {
+    if (command.equals(btnMatchcheck.getActionCommand())) {
+      applicationManager.imodMatchCheck(menuOptions);
     }
   }
   
@@ -293,14 +301,15 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields, R
       true, TomogramCombinationDialog.ALL_FIELDS);
 
     String command = event.getActionCommand();
-    if (command.equals(btnMatchcheck.getActionCommand())) {
-      applicationManager.imodMatchCheck(Run3dmodMenuOption.NONE);
-    }
+
     if (command.equals(btnRestart.getActionCommand())) {
       applicationManager.combine();
     }
-    if (command.equals(btnMatchvolRestart.getActionCommand())) {
+    else if (command.equals(btnMatchvolRestart.getActionCommand())) {
       applicationManager.matchvol1Combine();
+    }
+    else {
+      run3dmod(command, new Run3dmodMenuOptions());
     }
   }
 

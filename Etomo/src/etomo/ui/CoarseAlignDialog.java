@@ -11,6 +11,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.25  2005/08/10 20:41:54  sueh
+ * <p> bug# 711 Removed MultiLineToggleButton.  Making toggling an attribute
+ * <p> of MultiLineButton.
+ * <p>
  * <p> Revision 3.24  2005/08/09 20:20:33  sueh
  * <p> bug# 711  Implemented Run3dmodButtonContainer:  added run3dmod().
  * <p> Changed 3dmod buttons to Run3dmodButton.
@@ -168,7 +172,7 @@ import etomo.comscript.TiltxcorrParam;
 import etomo.type.AxisID;
 import etomo.type.ConstMetaData;
 import etomo.type.DialogType;
-import etomo.type.Run3dmodMenuOption;
+import etomo.type.Run3dmodMenuOptions;
 import etomo.type.ViewType;
 
 public class CoarseAlignDialog extends ProcessDialog
@@ -411,9 +415,13 @@ public class CoarseAlignDialog extends ProcessDialog
     ltfRotation.setToolTipText(tooltipFormatter.setText(text).format());
   }
 
-  public void run3dmod(Run3dmodButton button, Run3dmodMenuOption menuOption) {
-    if (button.equals(btnImod)) {
-      applicationManager.imodCoarseAlign(axisID, menuOption);
+  public void run3dmod(Run3dmodButton button, Run3dmodMenuOptions menuOptions) {
+    run3dmod(button.getActionCommand(), menuOptions);
+  }
+  
+  private void run3dmod(String command, Run3dmodMenuOptions menuOptions) {
+    if (command.equals(btnImod.getActionCommand())) {
+      applicationManager.imodCoarseAlign(axisID, menuOptions);
     }
   }
   
@@ -429,9 +437,6 @@ public class CoarseAlignDialog extends ProcessDialog
     else if (command.equals(btnCoarseAlign.getActionCommand())) {
       applicationManager.coarseAlign(axisID);
     }
-    else if (command.equals(btnImod.getActionCommand())) {
-      applicationManager.imodCoarseAlign(axisID, Run3dmodMenuOption.NONE);
-    }
     else if (command.equals(btnMidas.getActionCommand())) {
       applicationManager.midasRawStack(axisID);
     }
@@ -440,6 +445,9 @@ public class CoarseAlignDialog extends ProcessDialog
     }
     else if (command.equals(btnDistortionCorrectedStack.getActionCommand())) {
       applicationManager.makeDistortionCorrectedStack(axisID);
+    }
+    else {
+      run3dmod(command, new Run3dmodMenuOptions());
     }
   }
 

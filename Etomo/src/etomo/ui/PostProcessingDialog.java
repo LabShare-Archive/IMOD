@@ -12,7 +12,7 @@ import etomo.comscript.SqueezevolParam;
 import etomo.comscript.TrimvolParam;
 import etomo.type.AxisID;
 import etomo.type.DialogType;
-import etomo.type.Run3dmodMenuOption;
+import etomo.type.Run3dmodMenuOptions;
 import etomo.type.TomogramState;
 
 /**
@@ -199,10 +199,16 @@ public class PostProcessingDialog
     UIHarness.INSTANCE.pack(axisID, applicationManager);
   }
   
-  public void run3dmod(Run3dmodButton button, Run3dmodMenuOption menuOption) {
-    if (button.equals(btnImodSqueezedVolume)) {
-      applicationManager.imodSqueezedVolume(menuOption);
+  public void run3dmod(Run3dmodButton button, Run3dmodMenuOptions menuOptions) {
+    run3dmod(button.getActionCommand(), menuOptions);
+  }
+  
+  private boolean run3dmod(String command, Run3dmodMenuOptions menuOptions) {
+    if (command.equals(btnImodSqueezedVolume.getActionCommand())) {
+      applicationManager.imodSqueezedVolume(menuOptions);
+      return true;
     }
+    return false;
   }
   
   private void action(ActionEvent event) {
@@ -210,10 +216,7 @@ public class PostProcessingDialog
     if (command.equals(btnSqueezeVolume.getActionCommand())) {
       applicationManager.squeezevol();
     }
-    else if (command.equals(btnImodSqueezedVolume.getActionCommand())) {
-      applicationManager.imodSqueezedVolume(Run3dmodMenuOption.NONE);
-    }
-    else {
+    else if (!run3dmod(command, new Run3dmodMenuOptions())) {
       throw new IllegalStateException("Unknown command " + command);
     }
   }
@@ -274,6 +277,10 @@ public class PostProcessingDialog
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.21  2005/08/10 20:45:24  sueh
+ * <p> bug# 711 Removed MultiLineToggleButton.  Making toggling an attribute
+ * <p> of MultiLineButton.
+ * <p>
  * <p> Revision 3.20  2005/08/09 20:27:18  sueh
  * <p> bug# 711  Implemented Run3dmodButtonContainer:  added run3dmod().
  * <p> Changed 3dmod buttons to Run3dmodButton.

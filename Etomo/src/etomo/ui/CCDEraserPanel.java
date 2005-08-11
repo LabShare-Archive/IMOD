@@ -31,7 +31,7 @@ import etomo.comscript.CCDEraserParam;
 import etomo.comscript.ConstCCDEraserParam;
 import etomo.type.AxisID;
 import etomo.type.EtomoAutodoc;
-import etomo.type.Run3dmodMenuOption;
+import etomo.type.Run3dmodMenuOptions;
 
 public class CCDEraserPanel implements ContextMenu, Run3dmodButtonContainer {
   public static final String rcsid = "$Id$";
@@ -299,15 +299,19 @@ public class CCDEraserPanel implements ContextMenu, Run3dmodButtonContainer {
     ltfOutputImage.setVisible(state);
   }
 
-  public void run3dmod(Run3dmodButton button, Run3dmodMenuOption menuOption) {
-    if (button.equals(btnViewXRayModel)) {
-      applicationManager.imodXrayModel(axisID, menuOption);
+  public void run3dmod(Run3dmodButton button, Run3dmodMenuOptions menuOptions) {
+    run3dmod(button.getActionCommand(), menuOptions);
+  }
+  
+  private void run3dmod(String command, Run3dmodMenuOptions menuOptions) {
+    if (command.equals(btnViewXRayModel.getActionCommand())) {
+      applicationManager.imodXrayModel(axisID, menuOptions);
     }
-    else if (button.equals(btnCreateModel)) {
-      applicationManager.imodManualErase(axisID, menuOption);
+    else if (command.equals(btnCreateModel.getActionCommand())) {
+      applicationManager.imodManualErase(axisID, menuOptions);
     }
-    else if (button.equals(btnViewErased)) {
-      applicationManager.imodErasedStack(axisID, menuOption);
+    else if (command.equals(btnViewErased.getActionCommand())) {
+      applicationManager.imodErasedStack(axisID, menuOptions);
     }
   }
   
@@ -318,17 +322,8 @@ public class CCDEraserPanel implements ContextMenu, Run3dmodButtonContainer {
     if (command.equals(btnFindXRays.getActionCommand())) {
       applicationManager.findXrays(axisID);
     }
-    else if (command.equals(btnViewXRayModel.getActionCommand())) {
-      applicationManager.imodXrayModel(axisID, Run3dmodMenuOption.NONE);
-    }
-    else if (command.equals(btnCreateModel.getActionCommand())) {
-      applicationManager.imodManualErase(axisID, Run3dmodMenuOption.NONE);
-    }
     else if (command.equals(btnErase.getActionCommand())) {
       applicationManager.eraser(axisID);
-    }
-    else if (command.equals(btnViewErased.getActionCommand())) {
-      applicationManager.imodErasedStack(axisID, Run3dmodMenuOption.NONE);
     }
     else if (command.equals(btnReplaceRawStack.getActionCommand())) {
       applicationManager.replaceRawStack(axisID);
@@ -338,6 +333,9 @@ public class CCDEraserPanel implements ContextMenu, Run3dmodButtonContainer {
     }
     else if (command.equals(cbManualReplacement.getActionCommand())) {
       enableManualReplacement();
+    }
+    else {
+      run3dmod(command, new Run3dmodMenuOptions());
     }
   }
 
@@ -463,6 +461,10 @@ public class CCDEraserPanel implements ContextMenu, Run3dmodButtonContainer {
 
 /**
 * <p> $Log$
+* <p> Revision 3.11  2005/08/10 20:40:19  sueh
+* <p> bug# 711 Removed MultiLineToggleButton.  Making toggling an attribute
+* <p> of MultiLineButton.
+* <p>
 * <p> Revision 3.10  2005/08/09 20:13:08  sueh
 * <p> bug# 711  Implemented Run3dmodButtonContainer:  added run3dmod().
 * <p> Changed 3dmod buttons to Run3dmodButton.

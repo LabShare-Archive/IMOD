@@ -8,7 +8,7 @@ import etomo.ApplicationManager;
 import etomo.type.AxisID;
 import etomo.type.DialogType;
 import etomo.type.InvalidEtomoNumberException;
-import etomo.type.Run3dmodMenuOption;
+import etomo.type.Run3dmodMenuOptions;
 import etomo.comscript.BeadtrackParam;
 import etomo.comscript.TransferfidParam;
 import etomo.comscript.FortranInputSyntaxException;
@@ -26,6 +26,10 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.15  2005/08/10 20:42:49  sueh
+ * <p> bug# 711 Removed MultiLineToggleButton.  Making toggling an attribute
+ * <p> of MultiLineButton.
+ * <p>
  * <p> Revision 3.14  2005/08/09 20:22:13  sueh
  * <p> bug# 711  Implemented Run3dmodButtonContainer:  added run3dmod().
  * <p> Changed 3dmod buttons to Run3dmodButton.  No longer inheriting
@@ -358,40 +362,36 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu, R
     btnFixModel.setToolTipText(tooltipFormatter.setText(text).format());
   }
   
-  public void run3dmod(Run3dmodButton button, Run3dmodMenuOption menuOption) {
-    if (button.equals(btnSeed)) {
-      applicationManager.imodSeedFiducials(axisID, menuOption);
+  public void run3dmod(Run3dmodButton button, Run3dmodMenuOptions menuOptions) {
+    run3dmod(button.getActionCommand(), menuOptions);
+  }
+  
+  private void run3dmod(String command, Run3dmodMenuOptions menuOptions) {
+    if (command.equals(btnSeed.getActionCommand())) {
+      applicationManager.imodSeedFiducials(axisID, menuOptions);
     }
-    else if (button.equals(btnFixModel)) {
-      applicationManager.imodFixFiducials(axisID, menuOption);
+    else if (command.equals(btnFixModel.getActionCommand())) {
+      applicationManager.imodFixFiducials(axisID, menuOptions);
     }
   }
 
   //  Action function for buttons
   private void buttonAction(ActionEvent event) {
     String command = event.getActionCommand();
-
-    if (command.equals(btnSeed.getActionCommand())) {
-      applicationManager.imodSeedFiducials(axisID, Run3dmodMenuOption.NONE);
-    }
-
-    else if (command.equals(btnTrack.getActionCommand())) {
+    if (command.equals(btnTrack.getActionCommand())) {
       applicationManager.fiducialModelTrack(axisID);
     }
-
     else if (command.equals(btnUseModel.getActionCommand())) {
       applicationManager.makeFiducialModelSeedModel(axisID);
       if (btnTrack.isSelected()) {
         btnTrack.setSelected(false);
       }
     }
-
-    else if (command.equals(btnFixModel.getActionCommand())) {
-      applicationManager.imodFixFiducials(axisID, Run3dmodMenuOption.NONE);
-    }
-
     else if (command.equals(btnTransferFiducials.getActionCommand())) {
       applicationManager.transferfid(axisID);
+    }
+    else {
+      run3dmod(command, new Run3dmodMenuOptions());
     }
   }
 

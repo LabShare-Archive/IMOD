@@ -24,7 +24,7 @@ import etomo.comscript.CombineParams;
 import etomo.comscript.SetParam;
 import etomo.type.AxisID;
 import etomo.type.EtomoAutodoc;
-import etomo.type.Run3dmodMenuOption;
+import etomo.type.Run3dmodMenuOptions;
 
 /**
  * <p>
@@ -50,6 +50,11 @@ import etomo.type.Run3dmodMenuOption;
  * 
  * <p>
  * $Log$
+ * Revision 3.24  2005/08/09 20:22:37  sueh
+ * bug# 711  Implemented Run3dmodButtonContainer:  added run3dmod().
+ * Changed 3dmod buttons to Run3dmodButton.  No longer inheriting
+ * MultiLineButton from JButton.
+ *
  * Revision 3.23  2005/04/25 21:06:01  sueh
  * bug# 615 Passing the axis where a command originates to the message
  * functions so that the message will be popped up in the correct window.
@@ -738,15 +743,19 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields, Run3d
       logFile, applicationManager);
   }
   
-  public void run3dmod(Run3dmodButton button, Run3dmodMenuOption menuOption) {
-    if (button.equals(btnPatchRegionModel)) {
-      applicationManager.imodPatchRegionModel(menuOption);
+  public void run3dmod(Run3dmodButton button, Run3dmodMenuOptions menuOptions) {
+    run3dmod(button.getActionCommand(), menuOptions);
+  }
+  
+  private void run3dmod(String command, Run3dmodMenuOptions menuOptions) {
+    if (command.equals(btnPatchRegionModel.getActionCommand())) {
+      applicationManager.imodPatchRegionModel(menuOptions);
     }
-    else if (button.equals(btnImodMatchedTo)) {
-      applicationManager.imodMatchedToTomogram(menuOption);
+    if (command.equals(btnImodMatchedTo.getActionCommand())) {
+      applicationManager.imodMatchedToTomogram(menuOptions);
     }
-    else if (button.equals(btnImodCombined)) {
-      applicationManager.imodCombinedTomogram(menuOption);
+    if (command.equals(btnImodCombined.getActionCommand())) {
+      applicationManager.imodCombinedTomogram(menuOptions);
     }
   }
 
@@ -768,11 +777,10 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields, Run3d
       ltfZPatchSize.setText(Math.round(Integer
         .parseInt(ltfZPatchSize.getText()) / 1.2f));
     }
-
     //  Increase patch sizes by 20% and then round to ints since they are
     // in
     // pixels
-    if (command.equals(btnPatchsizeIncrease.getActionCommand())) {
+    else if (command.equals(btnPatchsizeIncrease.getActionCommand())) {
       ltfXPatchSize.setText(Math.round(Integer
         .parseInt(ltfXPatchSize.getText()) * 1.2f));
       ltfYPatchSize.setText(Math.round(Integer
@@ -780,41 +788,26 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields, Run3d
       ltfZPatchSize.setText(Math.round(Integer
         .parseInt(ltfZPatchSize.getText()) * 1.2f));
     }
-
-    if (command.equals(btnPatchcorrRestart.getActionCommand())) {
+    else if (command.equals(btnPatchcorrRestart.getActionCommand())) {
       applicationManager.patchcorrCombine();
     }
-
-    if (command.equals(btnPatchRegionModel.getActionCommand())) {
-      applicationManager.imodPatchRegionModel(Run3dmodMenuOption.NONE);
-    }
-
-    if (command.equals(btnMatchorwarpRestart.getActionCommand())) {
+    else if (command.equals(btnMatchorwarpRestart.getActionCommand())) {
       applicationManager.matchorwarpCombine();
     }
-
-    if (command.equals(btnMatchorwarpTrial.getActionCommand())) {
+    else if (command.equals(btnMatchorwarpTrial.getActionCommand())) {
       applicationManager.matchorwarpTrial();
     }
-
-    if (command.equals(btnVolcombineRestart.getActionCommand())) {
+    else if (command.equals(btnVolcombineRestart.getActionCommand())) {
       applicationManager.volcombine();
     }
-
-    if (command.equals(btnPatchVectorModel.getActionCommand())) {
+    else if (command.equals(btnPatchVectorModel.getActionCommand())) {
       applicationManager.imodPatchVectorModel();
     }
-
-    if (command.equals(btnReplacePatchOut.getActionCommand())) {
+    else if (command.equals(btnReplacePatchOut.getActionCommand())) {
       applicationManager.modelToPatch();
     }
-
-    if (command.equals(btnImodMatchedTo.getActionCommand())) {
-      applicationManager.imodMatchedToTomogram(Run3dmodMenuOption.NONE);
-    }
-
-    if (command.equals(btnImodCombined.getActionCommand())) {
-      applicationManager.imodCombinedTomogram(Run3dmodMenuOption.NONE);
+    else {
+      run3dmod(command, new Run3dmodMenuOptions());
     }
   }
 
