@@ -21,7 +21,7 @@ import etomo.comscript.ConstCombineParams;
 import etomo.type.AxisID;
 import etomo.type.CombinePatchSize;
 import etomo.type.FiducialMatch;
-import etomo.type.Run3dmodMenuOption;
+import etomo.type.Run3dmodMenuOptions;
 
 /**
  * <p>
@@ -43,6 +43,10 @@ import etomo.type.Run3dmodMenuOption;
  * 
  * <p>
  * $Log$
+ * Revision 3.18  2005/08/10 20:47:01  sueh
+ * bug# 711 Removed MultiLineToggleButton.  Making toggling an attribute
+ * of MultiLineButton.
+ *
  * Revision 3.17  2005/08/09 20:53:08  sueh
  * bug# 711  Implemented Run3dmodButtonContainer:  added run3dmod().
  * Changed 3dmod buttons to Run3dmodButton.  No longer inheriting
@@ -632,17 +636,22 @@ public class SetupCombinePanel
     return pnlSolvematch.getFiducialMatchListB();
   }
 
-  public void run3dmod(Run3dmodButton button, Run3dmodMenuOption menuOption) {
-    if (button.equals(btnPatchRegionModel)) {
-      applicationManager.imodPatchRegionModel(menuOption);
+  public void run3dmod(Run3dmodButton button, Run3dmodMenuOptions menuOptions) {
+    run3dmod(button.getActionCommand(), menuOptions);
+  }
+  
+  private void run3dmod(String command, Run3dmodMenuOptions menuOptions) {
+    if (command.equals(btnPatchRegionModel.getActionCommand())) {
+      applicationManager.imodPatchRegionModel(menuOptions);
     }
-    else if (button.equals(btnImodVolumeA)) {
-      applicationManager.imodFullVolume(AxisID.FIRST, menuOption);
+    else if (command.equals(btnImodVolumeA.getActionCommand())) {
+      applicationManager.imodFullVolume(AxisID.FIRST, menuOptions);
     }
-    else if (button.equals(btnImodVolumeB)) {
-      applicationManager.imodFullVolume(AxisID.SECOND, menuOption);
+    else if (command.equals(btnImodVolumeB.getActionCommand())) {
+      applicationManager.imodFullVolume(AxisID.SECOND, menuOptions);
     }
   }
+  
   //  Action functions for setup panel buttons
   private void buttonAction(ActionEvent event) {
     //  Synchronize this panel with the others
@@ -650,20 +659,15 @@ public class SetupCombinePanel
       true, TomogramCombinationDialog.ALL_FIELDS);
 
     String command = event.getActionCommand();
-    if (command.equals(btnPatchRegionModel.getActionCommand())) {
-      applicationManager.imodPatchRegionModel(Run3dmodMenuOption.NONE);
-    }
-    if (command.equals(btnImodVolumeA.getActionCommand())) {
-      applicationManager.imodFullVolume(AxisID.FIRST, Run3dmodMenuOption.NONE);
-    }
-    if (command.equals(btnImodVolumeB.getActionCommand())) {
-      applicationManager.imodFullVolume(AxisID.SECOND, Run3dmodMenuOption.NONE);
-    }
+
     if (command.equals(btnCreate.getActionCommand())) {
       applicationManager.createCombineScripts();
     }
-    if (command.equals(btnCombine.getActionCommand())) {
+    else if (command.equals(btnCombine.getActionCommand())) {
       applicationManager.combine();
+    }
+    else {
+      run3dmod(command, new Run3dmodMenuOptions());
     }
     //  Check the combine scripts state and set the start button accordingly
     updateStartCombine();
