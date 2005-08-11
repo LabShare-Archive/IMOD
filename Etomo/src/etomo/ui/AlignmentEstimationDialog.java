@@ -16,7 +16,7 @@ import etomo.comscript.FortranInputSyntaxException;
 import etomo.comscript.TiltalignParam;
 import etomo.type.AxisID;
 import etomo.type.DialogType;
-import etomo.type.Run3dmodMenuOption;
+import etomo.type.Run3dmodMenuOptions;
 
 /**
  * <p>Description: </p>
@@ -31,6 +31,10 @@ import etomo.type.Run3dmodMenuOption;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.15  2005/08/10 20:40:06  sueh
+ * <p> bug# 711 Removed MultiLineToggleButton.  Making toggling an attribute
+ * <p> of MultiLineButton.
+ * <p>
  * <p> Revision 3.14  2005/08/09 20:09:45  sueh
  * <p> bug# 711  Implemented Run3dmodButtonContainer:  added run3dmod().
  * <p> Changed 3dmod buttons to Run3dmodButton.
@@ -379,33 +383,30 @@ public class AlignmentEstimationDialog extends ProcessDialog
     UIHarness.INSTANCE.pack(axisID, applicationManager);
   }
 
-  public void run3dmod(Run3dmodButton button, Run3dmodMenuOption menuOption) {
-    if (button.equals(btnImod)) {
-      applicationManager.imodFixFiducials(axisID, menuOption);
+  public void run3dmod(Run3dmodButton button, Run3dmodMenuOptions menuOptions) {
+    run3dmod(button.getActionCommand(), menuOptions);
+  }
+  
+  private void run3dmod(String command, Run3dmodMenuOptions menuOptions) {
+    if (command.equals(btnImod.getActionCommand())) {
+      applicationManager.imodFixFiducials(axisID, menuOptions);
     }
-    else if (button.equals(btnViewResiduals)) {
-      applicationManager.imodViewResiduals(axisID, menuOption);
+    else if (command.equals(btnViewResiduals.getActionCommand())) {
+      applicationManager.imodViewResiduals(axisID, menuOptions);
     }
   }
   
   //  Event handler for panel buttons
   private void buttonAction(ActionEvent event) {
     String command = event.getActionCommand();
-
     if (command.equals(btnComputeAlignment.getActionCommand())) {
       applicationManager.fineAlignment(axisID);
     }
-
-    else if (command.equals(btnImod.getActionCommand())) {
-      applicationManager.imodFixFiducials(axisID, Run3dmodMenuOption.NONE);
-    }
-
     else if (command.equals(btnView3DModel.getActionCommand())) {
       applicationManager.imodView3DModel(axisID);
     }
-
-    else if (command.equals(btnViewResiduals.getActionCommand())) {
-      applicationManager.imodViewResiduals(axisID, Run3dmodMenuOption.NONE);
+    else {
+      run3dmod(command, new Run3dmodMenuOptions());
     }
   }
 
