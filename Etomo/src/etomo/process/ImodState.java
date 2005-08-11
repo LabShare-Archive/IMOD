@@ -6,7 +6,7 @@ import java.io.File;
 
 import etomo.BaseManager;
 import etomo.type.AxisID;
-import etomo.type.Run3dmodMenuOption;
+import etomo.type.Run3dmodMenuOptions;
 
 /**
  * <p>Description:
@@ -174,6 +174,9 @@ import etomo.type.Run3dmodMenuOption;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.27  2005/08/09 20:07:07  sueh
+ * <p> $bug# 711  Added setRun3dmodMenuOption().
+ * <p> $
  * <p> $Revision 1.26  2005/07/29 00:51:53  sueh
  * <p> $bug# 709 Going to EtomoDirector to get the current manager is unreliable
  * <p> $because the current manager changes when the user changes the tab.
@@ -314,6 +317,10 @@ public class ImodState {
   //signals that a state variable has been changed at least once, so the
   //corrosponding message must always be sent
   private boolean usingMode = false;
+  
+  //don't reset
+  private boolean allowMenuBinningInZ = false;
+  private boolean noMenuOptions = false;
   
   //reset values
   //initial state information
@@ -473,11 +480,15 @@ public class ImodState {
    * 
    * @throws SystemProcessException
    */
-  public void open() throws SystemProcessException, NullPointerException{
+  public void open(Run3dmodMenuOptions menuOptions)
+      throws SystemProcessException, NullPointerException {
+    menuOptions.setNoOptions(noMenuOptions);
+    menuOptions.getOptions();
+    menuOptions.setAllowBinningInZ(allowMenuBinningInZ);
     //process is not running
     if (!process.isRunning()) {
       //open
-      process.open();
+      process.open(menuOptions);
       warnedStaleFile = false;
       //open bead fixer
       if (openBeadFixer) {
@@ -540,15 +551,15 @@ public class ImodState {
    * @param modelName
    * @throws SystemProcessException
    */
-  public void open(String modelName) throws SystemProcessException {
+  public void open(String modelName, Run3dmodMenuOptions menuOptions) throws SystemProcessException {
     setModelName(modelName);
-    open();
+    open(menuOptions);
   } 
   
-  public void open(String modelName, boolean modelMode) throws SystemProcessException {
+  public void open(String modelName, boolean modelMode, Run3dmodMenuOptions menuOptions) throws SystemProcessException {
     setModelName(modelName);
     setModelMode(modelMode);
-    open();
+    open(menuOptions);
   } 
 
   public Vector getRubberbandCoordinates() throws SystemProcessException {
@@ -758,10 +769,6 @@ public class ImodState {
     this.openBeadFixer = openBeadFixer;
   }
 
-  public void setRun3dmodMenuOption(Run3dmodMenuOption run3dmodMenuOption) {
-    process.setRun3dmodMenuOption(run3dmodMenuOption);
-  }
-
   //initial state information
   /**
    * @return initialModelName
@@ -822,6 +829,14 @@ public class ImodState {
    */
   public boolean isOpen() {
     return process.isRunning();
+  }
+  
+  final void setAllowMenuBinningInZ(boolean allowMenuBinningInZ) {
+    this.allowMenuBinningInZ = allowMenuBinningInZ;
+  }
+  
+  final void setNoMenuOptions(boolean noMenuOptions) {
+    this.noMenuOptions = noMenuOptions;
   }
   
   /**
