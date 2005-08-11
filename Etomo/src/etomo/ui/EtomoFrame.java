@@ -59,6 +59,22 @@ public abstract class EtomoFrame extends JFrame {
     createMenus();
   }
   
+  final boolean isMenu3dmodStartupWindow() {
+    return menu.isMenu3dmodStartupWindow();
+  }
+  
+  final boolean isMenu3dmodBinBy2() {
+    return menu.isMenu3dmodBinBy2();
+  }
+  
+  final void setMenu3dmodStartupWindow(boolean menu3dmodStartupWindow) {
+    menu.setMenu3dmodStartupWindow(menu3dmodStartupWindow);
+  }
+  
+  final void setMenu3dmodBinBy2(boolean menu3dmodBinBy2) {
+    menu.setMenu3dmodBinBy2(menu3dmodBinBy2);
+  }
+  
   /**
    * Handle File menu actions
    * @param event
@@ -195,9 +211,20 @@ public abstract class EtomoFrame extends JFrame {
     //Run fitWindow on both frames.
     else if (command.equals(menu.getActionCommandFitWindow())) {
       UIHarness.INSTANCE.pack(true, currentManager);
+      if (getOtherFrame() != null) {
+        UIHarness.INSTANCE.pack(AxisID.SECOND, true, currentManager);
+      }
+    }
+    else if (command.equals(menu.getActionCommand3dmodStartUpWindow())) {
       EtomoFrame frame = getOtherFrame();
       if (frame != null) {
-        UIHarness.INSTANCE.pack(AxisID.SECOND, true, currentManager);
+        frame.setMenu3dmodStartupWindow(isMenu3dmodStartupWindow());
+      }
+    }
+    else if (command.equals(menu.getActionCommand3dmodBinBy2())) {
+      EtomoFrame frame = getOtherFrame();
+      if (frame != null) {
+        frame.setMenu3dmodBinBy2(isMenu3dmodBinBy2());
       }
     }
     else {
@@ -589,6 +616,10 @@ public abstract class EtomoFrame extends JFrame {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.11  2005/08/04 20:09:36  sueh
+* <p> bug# 532 renaming fitWindow to pack.  Getting dialogs to size by calling
+* <p> UIHarness.pack instead of EtomoFrame.pack
+* <p>
 * <p> Revision 1.10  2005/07/29 00:54:00  sueh
 * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
 * <p> because the current manager changes when the user changes the tab.
