@@ -27,6 +27,7 @@ import etomo.type.EtomoNumber;
 import etomo.type.JoinMetaData;
 import etomo.type.JoinState;
 import etomo.type.ProcessName;
+import etomo.type.Run3dmodMenuOptions;
 import etomo.type.SlicerAngles;
 import etomo.ui.JoinDialog;
 import etomo.ui.MainJoinPanel;
@@ -47,6 +48,10 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.19  2005/08/04 19:07:52  sueh
+* <p> bug# 532 added packDialogs() to request sizing functionality that is not
+* <p> performed by pack().
+* <p>
 * <p> Revision 1.18  2005/07/29 00:42:27  sueh
 * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
 * <p> because the current manager changes when the user changes the tab.
@@ -319,10 +324,10 @@ public class JoinManager extends BaseManager {
   /**
    * Open 3dmod with binning 
    */
-  public void imodOpen(String imodKey, int binning) {
+  public void imodOpen(String imodKey, int binning, Run3dmodMenuOptions menuOptions) {
     try {
       imodManager.setBinningXY(imodKey, binning);
-      imodManager.open(imodKey);
+      imodManager.open(imodKey, menuOptions);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
@@ -338,9 +343,9 @@ public class JoinManager extends BaseManager {
   /**
    * Open 3dmod
    */
-  public void imodOpen(String imodKey) {
+  public void imodOpen(String imodKey, Run3dmodMenuOptions menuOptions) {
     try {
-      imodManager.open(imodKey);
+      imodManager.open(imodKey, menuOptions);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
@@ -358,13 +363,13 @@ public class JoinManager extends BaseManager {
    * Or open a new 3dmod.
    * Return the index of the 3dmod opened or raised.
    */
-  public int imodOpen(String imodKey, int imodIndex, File file, int binning) {
+  public int imodOpen(String imodKey, int imodIndex, File file, int binning, Run3dmodMenuOptions menuOptions) {
     try {
       if (imodIndex == -1) {
         imodIndex = imodManager.newImod(imodKey, file);
       }
       imodManager.setBinningXY(imodKey, imodIndex, binning);
-      imodManager.open(imodKey, imodIndex, file);
+      imodManager.open(imodKey, imodIndex, file, menuOptions);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
