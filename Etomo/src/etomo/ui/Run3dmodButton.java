@@ -7,7 +7,7 @@ import java.awt.event.MouseEvent;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 
-import etomo.type.Run3dmodMenuOption;
+import etomo.type.Run3dmodMenuOptions;
 
 /**
 * <p>Description: </p>
@@ -51,16 +51,22 @@ class Run3dmodButton extends MultiLineButton implements ContextMenu {
   }
 
   public final void popUpContextMenu(MouseEvent mouseEvent) {
+    if (!isEnabled()) {
+      return;
+    }
     contextMenu.show(getComponent(), mouseEvent.getX(), mouseEvent.getY());
     contextMenu.setVisible(true);
   }
   
   private final void performMenuAction(ActionEvent event) {
+    Run3dmodMenuOptions menuOptions = new Run3dmodMenuOptions();
     if (event.getActionCommand().equals(startupWindow.getText())) {
-      container.run3dmod(this, Run3dmodMenuOption.STARTUP_WINDOW);
+      menuOptions.setStartupWindow(true);
+      container.run3dmod(this, menuOptions);
     }
     else if (event.getActionCommand().equals(binBy2.getText())) {
-      container.run3dmod(this, Run3dmodMenuOption.BIN_BY_2);
+      menuOptions.setBinBy2(true);
+      container.run3dmod(this, menuOptions);
     }
   }
   
@@ -78,6 +84,9 @@ class Run3dmodButton extends MultiLineButton implements ContextMenu {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.2  2005/08/10 20:46:10  sueh
+* <p> bug# 711 Changed context menu to starting caps instead of all caps.
+* <p>
 * <p> Revision 1.1  2005/08/09 20:32:45  sueh
 * <p> bug# 711  Class to add a 3dmod context menu to a multi line button.
 * <p> Runs run3dmod in container class when context menu is used.
