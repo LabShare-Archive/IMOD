@@ -21,6 +21,7 @@ import etomo.type.ConstJoinMetaData;
 import etomo.type.EtomoNumber;
 import etomo.type.JoinMetaData;
 import etomo.type.JoinState;
+import etomo.type.Run3dmodMenuOptions;
 
 /**
  * <p>Description: The dialog box for creating the fiducial model(s).</p>
@@ -35,6 +36,10 @@ import etomo.type.JoinState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.18  2005/08/09 20:24:07  sueh
+ * <p> bug# 711 Moving button sizing from UIUtilities to the multi line button
+ * <p> classes.  default setSize() sets the standard button dimension.
+ * <p>
  * <p> Revision 1.17  2005/08/04 20:11:40  sueh
  * <p> bug# 532  Centralizing fit window functionality by placing fitting functions
  * <p> in UIHarness.  Removing packMainWindow from the manager.  Sending
@@ -247,7 +252,7 @@ import etomo.type.JoinState;
  * <p> bug# 520 added create panel functions
  * <p> </p>
  */
-public class JoinDialog implements ContextMenu {
+public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
   public static final String rcsid = "$Id$";
 
   public static final int SETUP_TAB = 0;
@@ -290,8 +295,8 @@ public class JoinDialog implements ContextMenu {
   
   private JButton btnWorkingDir;
   private MultiLineButton btnMakeSamples;
-  private MultiLineButton btnOpenSample;
-  private MultiLineButton btnOpenSampleAverages;
+  private Run3dmodButton btnOpenSample;
+  private Run3dmodButton btnOpenSampleAverages;
   private MultiLineButton btnInitialAutoAlignment;
   private MultiLineButton btnMidas;
   private MultiLineButton btnRefineAutoAlignment;
@@ -299,10 +304,10 @@ public class JoinDialog implements ContextMenu {
   private MultiLineButton btnRevertToEmpty;
   private MultiLineButton btnGetMaxSize;
   private MultiLineButton btnTrialJoin;
-  private MultiLineButton btnOpenTrialIn3dmod;
+  private Run3dmodButton btnOpenTrialIn3dmod;
   private MultiLineButton btnGetSubarea;
   private MultiLineButton btnFinishJoin;
-  private MultiLineButton btnOpenIn3dmod;
+  private Run3dmodButton btnOpenIn3dmod;
   private MultiLineButton btnChangeSetup;
   private MultiLineButton btnRevertToLastSetup;
 
@@ -581,9 +586,9 @@ public class JoinDialog implements ContextMenu {
     //second component
     alignPanel1 = new SpacedPanel();
     alignPanel1.setBoxLayout(BoxLayout.X_AXIS);
-    btnOpenSample = new MultiLineButton("Open Sample in 3dmod");
+    btnOpenSample = new Run3dmodButton("Open Sample in 3dmod", this);
     btnOpenSample.addActionListener(joinActionListener);
-    btnOpenSampleAverages = new MultiLineButton("Open Sample Averages in 3dmod");
+    btnOpenSampleAverages = new Run3dmodButton("Open Sample Averages in 3dmod", this);
     btnOpenSampleAverages.addActionListener(joinActionListener);
     alignPanel1.add(btnOpenSample);
     alignPanel1.add(btnOpenSampleAverages);
@@ -711,7 +716,7 @@ public class JoinDialog implements ContextMenu {
     //seventh component
     spinnerModel = new SpinnerNumberModel(1, 1, 50, 1);
     spinOpenBinnedBy = new LabeledSpinner(OPEN_BINNED_BY, spinnerModel);
-    btnOpenIn3dmod = new MultiLineButton(OPEN_IN_3DMOD);
+    btnOpenIn3dmod = new Run3dmodButton(OPEN_IN_3DMOD, this);
     btnOpenIn3dmod.addActionListener(joinActionListener);
     pnlFinishJoin.add(createOpen3dmodPanel(spinOpenBinnedBy, btnOpenIn3dmod));
   }
@@ -743,7 +748,7 @@ public class JoinDialog implements ContextMenu {
     btnTrialJoin.addActionListener(joinActionListener);
     pnlTrialJoin.add(btnTrialJoin);
     //fourth component
-    btnOpenTrialIn3dmod = new MultiLineButton("Open Trial in 3dmod");
+    btnOpenTrialIn3dmod = new Run3dmodButton("Open Trial in 3dmod", this);
     btnOpenTrialIn3dmod.addActionListener(joinActionListener);
     spinnerModel = new SpinnerNumberModel(1, 1, 50, 1);
     spinOpenTrialBinnedBy = new LabeledSpinner(
@@ -1074,12 +1079,6 @@ public class JoinDialog implements ContextMenu {
     if (command.equals(btnMakeSamples.getActionCommand())) {
       joinManager.makejoincom();
     }
-    else if (command.equals(btnOpenSample.getActionCommand())) {
-      joinManager.imodOpen(ImodManager.JOIN_SAMPLES_KEY);
-    }
-    else if (command.equals(btnOpenSampleAverages.getActionCommand())) {
-      joinManager.imodOpen(ImodManager.JOIN_SAMPLE_AVERAGES_KEY);
-    }
     else if (command.equals(btnInitialAutoAlignment.getActionCommand())) {
       btnMidas.setEnabled(false);
       joinManager.xfalignInitial();
@@ -1100,19 +1099,11 @@ public class JoinDialog implements ContextMenu {
     else if (command.equals(btnFinishJoin.getActionCommand())) {
       joinManager.runFinishjoin(FinishjoinParam.FINISH_JOIN_MODE, FINISH_JOIN_TEXT);
     }
-    else if (command.equals(btnOpenIn3dmod.getActionCommand())) {
-      joinManager.imodOpen(ImodManager.JOIN_KEY, ((Integer) spinOpenBinnedBy
-          .getValue()).intValue());
-    }
     else if (command.equals(btnGetMaxSize.getActionCommand())) {
       joinManager.runFinishjoin(FinishjoinParam.MAX_SIZE_MODE, GET_MAX_SIZE_TEXT);
     }
     else if (command.equals(btnTrialJoin.getActionCommand())) {
       joinManager.runFinishjoin(FinishjoinParam.TRIAL_MODE, TRIAL_JOIN_TEXT);
-    }
-    else if (command.equals(btnOpenTrialIn3dmod.getActionCommand())) {
-      joinManager.imodOpen(ImodManager.TRIAL_JOIN_KEY,
-          ((Integer) this.spinOpenTrialBinnedBy.getValue()).intValue());
     }
     else if (command.equals(btnGetSubarea.getActionCommand())) {
       setSizeAndShift(joinManager
@@ -1133,10 +1124,37 @@ public class JoinDialog implements ContextMenu {
       setMetaData(joinManager.getConstMetaData());
       setMode(SAMPLE_PRODUCED_MODE);
     }
-    else {
+    else if (!run3dmod(command, new Run3dmodMenuOptions())) {
       throw new IllegalStateException("Unknown command " + command);
     }
   }
+  
+  public void run3dmod(Run3dmodButton button, Run3dmodMenuOptions menuOptions) {
+    run3dmod(button.getActionCommand(), menuOptions);
+  }
+  
+  private boolean run3dmod(String command, Run3dmodMenuOptions menuOptions) {
+    if (command.equals(btnOpenSample.getActionCommand())) {
+      joinManager.imodOpen(ImodManager.JOIN_SAMPLES_KEY, menuOptions);
+      return true;
+    }
+    if (command.equals(btnOpenSampleAverages.getActionCommand())) {
+      joinManager.imodOpen(ImodManager.JOIN_SAMPLE_AVERAGES_KEY, menuOptions);
+      return true;
+    }
+    if (command.equals(btnOpenIn3dmod.getActionCommand())) {
+      joinManager.imodOpen(ImodManager.JOIN_KEY, ((Integer) spinOpenBinnedBy
+          .getValue()).intValue(), menuOptions);
+      return true;
+    }
+    if (command.equals(btnOpenTrialIn3dmod.getActionCommand())) {
+      joinManager.imodOpen(ImodManager.TRIAL_JOIN_KEY,
+          ((Integer) this.spinOpenTrialBinnedBy.getValue()).intValue(), menuOptions);
+      return true;
+    }
+    return false;
+  }
+
 
   private void workingDirAction() {
     //  Open up the file chooser in the current working directory

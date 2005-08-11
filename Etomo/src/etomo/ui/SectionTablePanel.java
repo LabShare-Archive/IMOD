@@ -29,6 +29,7 @@ import etomo.type.AxisID;
 import etomo.type.ConstJoinMetaData;
 import etomo.type.ConstSectionTableRowData;
 import etomo.type.JoinMetaData;
+import etomo.type.Run3dmodMenuOptions;
 import etomo.type.SectionTableRowData;
 import etomo.type.SlicerAngles;
 import etomo.util.InvalidParameterException;
@@ -51,6 +52,10 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.15  2005/08/10 20:46:30  sueh
+* <p> bug# 711 Removed MultiLineToggleButton.  Making toggling an attribute
+* <p> of MultiLineButton.
+* <p>
 * <p> Revision 1.14  2005/08/09 20:36:07  sueh
 * <p> bug# 711 Moving button sizing from UIUtilities to the multi line button
 * <p> classes.  default setSize() sets the standard button dimension.
@@ -252,7 +257,7 @@ import etomo.util.Utilities;
 * <p> bug# 520 creates the Sections table for JoinDialog.
 * <p> </p>
 */
-public class SectionTablePanel implements ContextMenu, Expandable {
+public class SectionTablePanel implements ContextMenu, Expandable, Run3dmodButtonContainer {
   public static final String rcsid = "$Id$";
 
   private static final Dimension buttonDimension = UIParameters
@@ -275,7 +280,7 @@ public class SectionTablePanel implements ContextMenu, Expandable {
   private MultiLineButton btnAddSection;
   private MultiLineButton btnDeleteSection;
   private LabeledSpinner spinBinning;
-  private MultiLineButton btnOpen3dmod;
+  private Run3dmodButton btnOpen3dmod;
   private MultiLineButton btnGetAngles;
   
   private HeaderCell hdrOrder;
@@ -563,7 +568,7 @@ public class SectionTablePanel implements ContextMenu, Expandable {
     btnDeleteSection.addActionListener(sectionTableActionListener);
     pnlButtonsComponent2.add(btnDeleteSection);
     //third component
-    btnOpen3dmod = new MultiLineButton("Open in 3dmod");
+    btnOpen3dmod = new Run3dmodButton("Open in 3dmod", this);
     btnOpen3dmod.addActionListener(sectionTableActionListener);
     SpinnerModel spinnerModel = new SpinnerNumberModel(1, 1, 50, 1);
     spinBinning = new LabeledSpinner(JoinDialog.OPEN_BINNED_BY, spinnerModel);
@@ -1080,7 +1085,7 @@ public class SectionTablePanel implements ContextMenu, Expandable {
             //open rotTomogram 3dmod and keep track of it
             row.setImodRotIndex(joinManager.imodOpen(
                 ImodManager.ROT_TOMOGRAM_KEY, row.getImodRotIndex(),
-                rotSectionFile, binning));
+                rotSectionFile, binning, new Run3dmodMenuOptions()));
             return;
           }
         }
@@ -1088,7 +1093,7 @@ public class SectionTablePanel implements ContextMenu, Expandable {
     }
     //open tomogram 3dmod and keep track of it
     row.setImodIndex(joinManager.imodOpen(ImodManager.TOMOGRAM_KEY, row
-        .getImodIndex(), sectionFile, binning));
+        .getImodIndex(), sectionFile, binning, new Run3dmodMenuOptions()));
   }
 
   private void imodGetAngles() {
@@ -1275,6 +1280,16 @@ public class SectionTablePanel implements ContextMenu, Expandable {
   JPanel getRootPanel() {
     return rootPanel;
   }
+  
+  public void run3dmod(Run3dmodButton button, Run3dmodMenuOptions menuOptions) {
+    run3dmod(button.getActionCommand(), menuOptions);
+  }
+  
+  private void run3dmod(String command, Run3dmodMenuOptions menuOptions) {
+    if (command.equals(btnOpen3dmod.getActionCommand())) {
+      imodSection();
+    }
+  }
 
   /**
    * Handle actions
@@ -1295,11 +1310,11 @@ public class SectionTablePanel implements ContextMenu, Expandable {
     else if (command.equals(btnDeleteSection.getActionCommand())) {
       deleteSection();
     }
-    else if (command.equals(btnOpen3dmod.getActionCommand())) {
-      imodSection();
-    }
     else if (command.equals(btnGetAngles.getActionCommand())) {
       imodGetAngles();
+    }
+    else {
+      run3dmod(command, new Run3dmodMenuOptions());
     }
   }
 
