@@ -69,7 +69,7 @@ import etomo.type.MetaData;
 import etomo.type.ProcessEndState;
 import etomo.type.ProcessName;
 import etomo.type.ProcessTrack;
-import etomo.type.Run3dmodMenuOption;
+import etomo.type.Run3dmodMenuOptions;
 import etomo.type.TiltAngleSpec;
 import etomo.type.TomogramState;
 import etomo.type.ViewType;
@@ -111,6 +111,10 @@ import etomo.util.Utilities;
  * 
  *
  * <p> $Log$
+ * <p> Revision 3.169  2005/08/09 19:52:07  sueh
+ * <p> bug# 711 Pass Run3dmodMenuOption to all imod functions, except the
+ * <p> ones that use modv.
+ * <p>
  * <p> Revision 3.168  2005/08/04 19:04:39  sueh
  * <p> bug# 532 added packDialogs() to request sizing functionality that is not
  * <p> performed by pack().
@@ -1859,21 +1863,14 @@ public class ApplicationManager extends BaseManager {
   /**
    * Open 3dmod to create the manual erase model
    */
-  public void imodManualErase(AxisID axisID, Run3dmodMenuOption run3dmodMenuOption) {
+  public void imodManualErase(AxisID axisID, Run3dmodMenuOptions menuOptions) {
     String eraseModelName = metaData.getDatasetName() + axisID.getExtension()
       + ".erase";
-    //stacks should only be binned in x and y
-    if (run3dmodMenuOption == Run3dmodMenuOption.BIN_BY_2) {
-      run3dmodMenuOption = Run3dmodMenuOption.BIN_BY_2_XY;
-    }
     try {
-      if (run3dmodMenuOption != Run3dmodMenuOption.NONE) {
-        imodManager.setRun3dmodMenuOption(ImodManager.RAW_STACK_KEY, axisID, run3dmodMenuOption);
-      }
       if (metaData.getViewType() == ViewType.MONTAGE) {
         imodManager.setFrames(ImodManager.RAW_STACK_KEY, axisID, true);
       }
-      imodManager.open(ImodManager.RAW_STACK_KEY, axisID, eraseModelName, true);
+      imodManager.open(ImodManager.RAW_STACK_KEY, axisID, eraseModelName, true, menuOptions);
       processTrack.setPreProcessingState(ProcessState.INPROGRESS, axisID);
       mainPanel.setPreProcessingState(ProcessState.INPROGRESS, axisID);
     }
@@ -1962,22 +1959,15 @@ public class ApplicationManager extends BaseManager {
   /**
    * Open 3dmod to view the xray model on the raw stack
    */
-  public void imodXrayModel(AxisID axisID, Run3dmodMenuOption run3dmodMenuOption) {
+  public void imodXrayModel(AxisID axisID, Run3dmodMenuOptions menuOptions) {
     String xRayModel = metaData.getDatasetName() + axisID.getExtension()
       + "_peak.mod";
-    //stacks should only be binned in x and y
-    if (run3dmodMenuOption == Run3dmodMenuOption.BIN_BY_2) {
-      run3dmodMenuOption = Run3dmodMenuOption.BIN_BY_2_XY;
-    }
     try {
-      if (run3dmodMenuOption != Run3dmodMenuOption.NONE) {
-        imodManager.setRun3dmodMenuOption(ImodManager.RAW_STACK_KEY, axisID, run3dmodMenuOption);
-      }
       imodManager.setPreserveContrast(ImodManager.RAW_STACK_KEY, axisID, true);
       if (metaData.getViewType() == ViewType.MONTAGE) {
         imodManager.setFrames(ImodManager.RAW_STACK_KEY, axisID, true);
       }
-      imodManager.open(ImodManager.RAW_STACK_KEY, axisID, xRayModel);
+      imodManager.open(ImodManager.RAW_STACK_KEY, axisID, xRayModel, menuOptions);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
@@ -1993,23 +1983,16 @@ public class ApplicationManager extends BaseManager {
   /**
    * Open 3dmod to view the erased stack
    */
-  public void imodErasedStack(AxisID axisID, Run3dmodMenuOption run3dmodMenuOption) {
+  public void imodErasedStack(AxisID axisID, Run3dmodMenuOptions menuOptions) {
     if (Utilities.getFile(this, true, axisID, "_fixed.st", "erased stack") == null) {
       return;
     }
-    //stacks should only be binned in x and y
-    if (run3dmodMenuOption == Run3dmodMenuOption.BIN_BY_2) {
-      run3dmodMenuOption = Run3dmodMenuOption.BIN_BY_2_XY;
-    }
     try {
-      if (run3dmodMenuOption != Run3dmodMenuOption.NONE) {
-        imodManager.setRun3dmodMenuOption(ImodManager.ERASED_STACK_KEY, axisID, run3dmodMenuOption);
-      }
       if (metaData.getViewType() == ViewType.MONTAGE) {
         imodManager.setPieceListFileName(ImodManager.ERASED_STACK_KEY, axisID,
             metaData.getDatasetName() + axisID.getExtension() + ".pl");
       }
-      imodManager.open(ImodManager.ERASED_STACK_KEY, axisID);
+      imodManager.open(ImodManager.ERASED_STACK_KEY, axisID, menuOptions);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
@@ -2249,7 +2232,7 @@ public class ApplicationManager extends BaseManager {
    * Bring up a preview 3dmod.
    * @param axisID
    */
-  public void imodPreview(AxisID axisID, Run3dmodMenuOption run3dmodMenuOption) {
+  public void imodPreview(AxisID axisID, Run3dmodMenuOptions menuOptions) {
     if (setupDialog == null) {
       return;
     }
@@ -2264,18 +2247,11 @@ public class ApplicationManager extends BaseManager {
         "Raw Image Stack", axisID);
       return;
     }
-    //stacks should only be binned in x and y
-    if (run3dmodMenuOption == Run3dmodMenuOption.BIN_BY_2) {
-      run3dmodMenuOption = Run3dmodMenuOption.BIN_BY_2_XY;
-    }
     try {
       int previewNumber = imodManager.newImod(key, axisID);
-      if (run3dmodMenuOption != Run3dmodMenuOption.NONE) {
-        imodManager.setRun3dmodMenuOption(key, axisID, run3dmodMenuOption);
-      }
       imodManager.setWorkingDirectory(key, axisID, previewNumber,
         previewWorkingDir);
-      imodManager.open(key, axisID, previewNumber);
+      imodManager.open(key, axisID, previewNumber, menuOptions);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
@@ -2501,16 +2477,9 @@ public class ApplicationManager extends BaseManager {
   /**
    * Open 3dmod to view the coarsely aligned stack
    */
-  public void imodCoarseAlign(AxisID axisID, Run3dmodMenuOption run3dmodMenuOption) {
-    //stacks should only be binned in x and y
-    if (run3dmodMenuOption == Run3dmodMenuOption.BIN_BY_2) {
-      run3dmodMenuOption = Run3dmodMenuOption.BIN_BY_2_XY;
-    }
+  public void imodCoarseAlign(AxisID axisID, Run3dmodMenuOptions menuOptions) {
     try {
-      if (run3dmodMenuOption != Run3dmodMenuOption.NONE) {
-        imodManager.setRun3dmodMenuOption(ImodManager.COARSE_ALIGNED_KEY, axisID, run3dmodMenuOption);
-      }
-      imodManager.open(ImodManager.COARSE_ALIGNED_KEY, axisID);
+      imodManager.open(ImodManager.COARSE_ALIGNED_KEY, axisID, menuOptions);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
@@ -2828,21 +2797,14 @@ public class ApplicationManager extends BaseManager {
   /**
    * Open 3dmod with the seed model
    */
-  public void imodSeedFiducials(AxisID axisID, Run3dmodMenuOption run3dmodMenuOption) {
-    //stacks should only be binned in x and y
-    if (run3dmodMenuOption == Run3dmodMenuOption.BIN_BY_2) {
-      run3dmodMenuOption = Run3dmodMenuOption.BIN_BY_2_XY;
-    }
+  public void imodSeedFiducials(AxisID axisID, Run3dmodMenuOptions menuOptions) {
     String seedModel = metaData.getDatasetName() + axisID.getExtension()
       + ".seed";
     try {
-      if (run3dmodMenuOption != Run3dmodMenuOption.NONE) {
-        imodManager.setRun3dmodMenuOption(ImodManager.COARSE_ALIGNED_KEY, axisID, run3dmodMenuOption);
-      }
       imodManager.setPreserveContrast(ImodManager.COARSE_ALIGNED_KEY, axisID,
         true);
       imodManager.open(ImodManager.COARSE_ALIGNED_KEY, axisID, seedModel,
-        true);
+        true, menuOptions);
       processTrack.setFiducialModelState(ProcessState.INPROGRESS, axisID);
       mainPanel.setFiducialModelState(ProcessState.INPROGRESS, axisID);
     }
@@ -2957,20 +2919,13 @@ public class ApplicationManager extends BaseManager {
   /**
    * Open 3dmod with the new fidcuial model
    */
-  public void imodFixFiducials(AxisID axisID, Run3dmodMenuOption run3dmodMenuOption) {
-    //stacks should only be binned in x and y
-    if (run3dmodMenuOption == Run3dmodMenuOption.BIN_BY_2) {
-      run3dmodMenuOption = Run3dmodMenuOption.BIN_BY_2_XY;
-    }
+  public void imodFixFiducials(AxisID axisID, Run3dmodMenuOptions menuOptions) {
     String fiducialModel = metaData.getDatasetName() + axisID.getExtension()
       + ".fid";
     try {
-      if (run3dmodMenuOption != Run3dmodMenuOption.NONE) {
-        imodManager.setRun3dmodMenuOption(ImodManager.COARSE_ALIGNED_KEY, axisID, run3dmodMenuOption);
-      }
       imodManager.setOpenBeadFixer(ImodManager.COARSE_ALIGNED_KEY, axisID, true);
       imodManager.open(ImodManager.COARSE_ALIGNED_KEY, axisID, fiducialModel,
-        true);
+        true, menuOptions);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
@@ -3379,20 +3334,13 @@ public class ApplicationManager extends BaseManager {
   /**
    * Open 3dmod with the new fidcuial model
    */
-  public void imodViewResiduals(AxisID axisID, Run3dmodMenuOption run3dmodMenuOption) {
-    //stacks should only be binned in x and y
-    if (run3dmodMenuOption == Run3dmodMenuOption.BIN_BY_2) {
-      run3dmodMenuOption = Run3dmodMenuOption.BIN_BY_2_XY;
-    }
+  public void imodViewResiduals(AxisID axisID, Run3dmodMenuOptions menuOptions) {
     String fiducialModel = metaData.getDatasetName() + axisID.getExtension()
       + ".resmod";
     try {
-      if (run3dmodMenuOption != Run3dmodMenuOption.NONE) {
-        imodManager.setRun3dmodMenuOption(ImodManager.COARSE_ALIGNED_KEY, axisID, run3dmodMenuOption);
-      }
       imodManager.setPreserveContrast(ImodManager.COARSE_ALIGNED_KEY, axisID,
           true);
-      imodManager.open(ImodManager.COARSE_ALIGNED_KEY, axisID, fiducialModel);
+      imodManager.open(ImodManager.COARSE_ALIGNED_KEY, axisID, fiducialModel, menuOptions);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
@@ -3431,16 +3379,9 @@ public class ApplicationManager extends BaseManager {
    * @param axisID
    *            the AxisID to coarse align.
    */
-  public void imodFineAlign(AxisID axisID, Run3dmodMenuOption run3dmodMenuOption) {
-    //stacks should only be binned in x and y
-    if (run3dmodMenuOption == Run3dmodMenuOption.BIN_BY_2) {
-      run3dmodMenuOption = Run3dmodMenuOption.BIN_BY_2_XY;
-    }
+  public void imodFineAlign(AxisID axisID, Run3dmodMenuOptions menuOptions) {
     try {
-      if (run3dmodMenuOption != Run3dmodMenuOption.NONE) {
-        imodManager.setRun3dmodMenuOption(ImodManager.FINE_ALIGNED_KEY, axisID, run3dmodMenuOption);
-      }
-      imodManager.open(ImodManager.FINE_ALIGNED_KEY, axisID);
+      imodManager.open(ImodManager.FINE_ALIGNED_KEY, axisID, menuOptions);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
@@ -3459,16 +3400,9 @@ public class ApplicationManager extends BaseManager {
    * @param axisID
    *            the AxisID to coarse align.
    */
-  public void imodMTFFilter(AxisID axisID, Run3dmodMenuOption run3dmodMenuOption) {
-    //stacks should only be binned in x and y
-    if (run3dmodMenuOption == Run3dmodMenuOption.BIN_BY_2) {
-      run3dmodMenuOption = Run3dmodMenuOption.BIN_BY_2_XY;
-    }
+  public void imodMTFFilter(AxisID axisID, Run3dmodMenuOptions menuOptions) {
     try {
-      if (run3dmodMenuOption != Run3dmodMenuOption.NONE) {
-        imodManager.setRun3dmodMenuOption(ImodManager.MTF_FILTER_KEY, axisID, run3dmodMenuOption);
-      }
-      imodManager.open(ImodManager.MTF_FILTER_KEY, axisID);
+      imodManager.open(ImodManager.MTF_FILTER_KEY, axisID, menuOptions);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
@@ -3897,18 +3831,11 @@ public class ApplicationManager extends BaseManager {
    * 
    * @param axisID
    */
-  public void imodSample(AxisID axisID, Run3dmodMenuOption run3dmodMenuOption) {
-    //sample is only 10 slices and should only be binned in x and y
-    if (run3dmodMenuOption == Run3dmodMenuOption.BIN_BY_2) {
-      run3dmodMenuOption = Run3dmodMenuOption.BIN_BY_2_XY;
-    }
+  public void imodSample(AxisID axisID, Run3dmodMenuOptions menuOptions) {
     try {
-      if (run3dmodMenuOption != Run3dmodMenuOption.NONE) {
-        imodManager.setRun3dmodMenuOption(ImodManager.SAMPLE_KEY, axisID, run3dmodMenuOption);
-      }
       //It is safe to use open contours in all cases.
       imodManager.setOpenContours(ImodManager.SAMPLE_KEY, axisID, true);
-      imodManager.open(ImodManager.SAMPLE_KEY, axisID);
+      imodManager.open(ImodManager.SAMPLE_KEY, axisID, menuOptions);
       processTrack.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
       mainPanel.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
     }
@@ -3928,14 +3855,11 @@ public class ApplicationManager extends BaseManager {
    * 
    * @param axisID
    */
-  public void imodFullSample(AxisID axisID, Run3dmodMenuOption run3dmodMenuOption) {
+  public void imodFullSample(AxisID axisID, Run3dmodMenuOptions menuOptions) {
     String tomopitchModelName = "tomopitch" + axisID.getExtension() + ".mod";
     try {
-      if (run3dmodMenuOption != Run3dmodMenuOption.NONE) {
-        imodManager.setRun3dmodMenuOption(ImodManager.FULL_VOLUME_KEY, axisID, run3dmodMenuOption);
-      }
       imodManager.setOpenContours(ImodManager.FULL_VOLUME_KEY, axisID, true);
-      imodManager.open(ImodManager.FULL_VOLUME_KEY, axisID, tomopitchModelName, true);
+      imodManager.open(ImodManager.FULL_VOLUME_KEY, axisID, tomopitchModelName, true, menuOptions);
       processTrack.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
       mainPanel.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
     }
@@ -4861,12 +4785,9 @@ public class ApplicationManager extends BaseManager {
    * @param axisID
    *            the AxisID of the tomogram to open.
    */
-  public void imodFullVolume(AxisID axisID, Run3dmodMenuOption run3dmodMenuOption) {
+  public void imodFullVolume(AxisID axisID, Run3dmodMenuOptions menuOptions) {
     try {
-      if (run3dmodMenuOption != Run3dmodMenuOption.NONE) {
-        imodManager.setRun3dmodMenuOption(ImodManager.FULL_VOLUME_KEY, axisID, run3dmodMenuOption);
-      }
-      imodManager.open(ImodManager.FULL_VOLUME_KEY, axisID);
+      imodManager.open(ImodManager.FULL_VOLUME_KEY, axisID, menuOptions);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
@@ -4884,7 +4805,7 @@ public class ApplicationManager extends BaseManager {
    * 
    * @param axisID
    */
-  public void imodTestVolume(AxisID axisID, Run3dmodMenuOption run3dmodMenuOption) {
+  public void imodTestVolume(AxisID axisID, Run3dmodMenuOptions menuOptions) {
     //  Set a reference to the correct object
     TomogramGenerationDialog tomogramGenerationDialog;
     if (axisID == AxisID.SECOND) {
@@ -4897,10 +4818,7 @@ public class ApplicationManager extends BaseManager {
     try {
       imodManager.newImod(ImodManager.TRIAL_TOMOGRAM_KEY, axisID,
         trialTomogramName);
-      if (run3dmodMenuOption != Run3dmodMenuOption.NONE) {
-        imodManager.setRun3dmodMenuOption(ImodManager.TRIAL_TOMOGRAM_KEY, axisID, run3dmodMenuOption);
-      }
-      imodManager.open(ImodManager.TRIAL_TOMOGRAM_KEY, axisID);
+      imodManager.open(ImodManager.TRIAL_TOMOGRAM_KEY, axisID, menuOptions);
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
@@ -5098,7 +5016,7 @@ public class ApplicationManager extends BaseManager {
   /**
    * Open the matching models in the 3dmod reconstruction instances
    */
-  public void imodMatchingModel(boolean binBy2, Run3dmodMenuOption run3dmodMenuOption) {
+  public void imodMatchingModel(boolean binBy2, Run3dmodMenuOptions menuOptions) {
     if (tomogramCombinationDialog == null) {
       return;
     }
@@ -5111,20 +5029,16 @@ public class ApplicationManager extends BaseManager {
         imodManager.setBinning(ImodManager.FULL_VOLUME_KEY, AxisID.FIRST, 2);
         imodManager.setBinning(ImodManager.FULL_VOLUME_KEY, AxisID.SECOND, 2);
       }
-      if (run3dmodMenuOption != Run3dmodMenuOption.NONE) {
-        imodManager.setRun3dmodMenuOption(ImodManager.FULL_VOLUME_KEY, AxisID.FIRST, run3dmodMenuOption);
-        imodManager.setRun3dmodMenuOption(ImodManager.FULL_VOLUME_KEY, AxisID.SECOND, run3dmodMenuOption);
-      }
       imodManager.setOpenContours(ImodManager.FULL_VOLUME_KEY, AxisID.FIRST,
           true);
       imodManager.setOpenContours(ImodManager.FULL_VOLUME_KEY, AxisID.SECOND,
           true);
       imodManager.open(ImodManager.FULL_VOLUME_KEY, AxisID.FIRST, metaData
           .getDatasetName()
-          + AxisID.FIRST.getExtension() + ".matmod", true);
+          + AxisID.FIRST.getExtension() + ".matmod", true, menuOptions);
       imodManager.open(ImodManager.FULL_VOLUME_KEY, AxisID.SECOND, metaData
           .getDatasetName()
-          + AxisID.SECOND.getExtension() + ".matmod", true);
+          + AxisID.SECOND.getExtension() + ".matmod", true, menuOptions);
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
@@ -5140,12 +5054,9 @@ public class ApplicationManager extends BaseManager {
   /**
    * Open the matchcheck results in 3dmod
    */
-  public void imodMatchCheck(Run3dmodMenuOption run3dmodMenuOption) {
+  public void imodMatchCheck(Run3dmodMenuOptions menuOptions) {
     try {
-      if (run3dmodMenuOption != Run3dmodMenuOption.NONE) {
-        imodManager.setRun3dmodMenuOption(ImodManager.MATCH_CHECK_KEY, run3dmodMenuOption);
-      }
-      imodManager.open(ImodManager.MATCH_CHECK_KEY);
+      imodManager.open(ImodManager.MATCH_CHECK_KEY, menuOptions);
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
@@ -5161,7 +5072,7 @@ public class ApplicationManager extends BaseManager {
   /**
    * Open the patch region models in tomogram being matched to
    */
-  public void imodPatchRegionModel(Run3dmodMenuOption run3dmodMenuOption) {
+  public void imodPatchRegionModel(Run3dmodMenuOptions menuOptions) {
     // FIXME do we want to be updating here break model
     // Get the latest combine parameters from the dialog
     updateCombineParams();
@@ -5175,12 +5086,8 @@ public class ApplicationManager extends BaseManager {
       axisID = AxisID.SECOND;
     }
     try {
-      if (run3dmodMenuOption != Run3dmodMenuOption.NONE) {
-        imodManager.setRun3dmodMenuOption(ImodManager.FULL_VOLUME_KEY, axisID,
-            run3dmodMenuOption);
-      }
       imodManager.open(ImodManager.FULL_VOLUME_KEY, axisID, "patch_region.mod",
-          true);
+          true, menuOptions);
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
@@ -5215,7 +5122,7 @@ public class ApplicationManager extends BaseManager {
   /**
    * Open the tomogram being matched to
    */
-  public void imodMatchedToTomogram(Run3dmodMenuOption run3dmodMenuOption) {
+  public void imodMatchedToTomogram(Run3dmodMenuOptions menuOptions) {
     AxisID axisID;
     if (metaData.getCombineParams().getMatchBtoA()) {
       axisID = AxisID.FIRST;
@@ -5224,10 +5131,7 @@ public class ApplicationManager extends BaseManager {
       axisID = AxisID.SECOND;
     }
     try {
-      if (run3dmodMenuOption != Run3dmodMenuOption.NONE) {
-        imodManager.setRun3dmodMenuOption(ImodManager.FINE_ALIGNED_KEY, axisID, run3dmodMenuOption);
-      }
-      imodManager.open(ImodManager.FULL_VOLUME_KEY, axisID);
+      imodManager.open(ImodManager.FULL_VOLUME_KEY, axisID, menuOptions);
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
@@ -6087,12 +5991,9 @@ public class ApplicationManager extends BaseManager {
   /**
    * Open the combined (or full) volume in 3dmod
    */
-  public void imodCombinedTomogram(Run3dmodMenuOption run3dmodMenuOption) {
+  public void imodCombinedTomogram(Run3dmodMenuOptions menuOptions) {
     try {
-      if (run3dmodMenuOption != Run3dmodMenuOption.NONE) {
-        imodManager.setRun3dmodMenuOption(ImodManager.COMBINED_TOMOGRAM_KEY, run3dmodMenuOption);
-      }
-      imodManager.open(ImodManager.COMBINED_TOMOGRAM_KEY);
+      imodManager.open(ImodManager.COMBINED_TOMOGRAM_KEY, menuOptions);
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
@@ -6130,16 +6031,13 @@ public class ApplicationManager extends BaseManager {
   /**
    * Open the trimmed volume in 3dmod
    */
-  public void imodTrimmedVolume(Run3dmodMenuOption run3dmodMenuOption) {
+  public void imodTrimmedVolume(Run3dmodMenuOptions menuOptions) {
     TrimvolParam trimvolParam = new TrimvolParam(propertyUserDir);
     postProcessingDialog.getTrimvolParams(trimvolParam);
     try {
-      if (run3dmodMenuOption != Run3dmodMenuOption.NONE) {
-        imodManager.setRun3dmodMenuOption(ImodManager.TRIMMED_VOLUME_KEY, run3dmodMenuOption);
-      }
       imodManager.setSwapYZ(ImodManager.TRIMMED_VOLUME_KEY,
         !trimvolParam.isSwapYZ());
-      imodManager.open(ImodManager.TRIMMED_VOLUME_KEY);
+      imodManager.open(ImodManager.TRIMMED_VOLUME_KEY, menuOptions);
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
@@ -6155,7 +6053,7 @@ public class ApplicationManager extends BaseManager {
   /**
    * Open the squeezed volume in 3dmod
    */
-  public void imodSqueezedVolume(Run3dmodMenuOption run3dmodMenuOption) {
+  public void imodSqueezedVolume(Run3dmodMenuOptions menuOptions) {
     // Make sure that the post processing panel is open
     if (postProcessingDialog == null) {
       uiHarness.openMessageDialog("Post processing dialog not open",
@@ -6163,12 +6061,9 @@ public class ApplicationManager extends BaseManager {
       return;
     }
     try {
-      if (run3dmodMenuOption != Run3dmodMenuOption.NONE) {
-        imodManager.setRun3dmodMenuOption(ImodManager.SQUEEZED_VOLUME_KEY, run3dmodMenuOption);
-      }
       imodManager.setSwapYZ(ImodManager.SQUEEZED_VOLUME_KEY,
           !postProcessingDialog.isSqueezevolFlipped());
-      imodManager.open(ImodManager.SQUEEZED_VOLUME_KEY);
+      imodManager.open(ImodManager.SQUEEZED_VOLUME_KEY, menuOptions);
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
