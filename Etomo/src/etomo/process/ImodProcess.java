@@ -9,7 +9,7 @@ import etomo.ApplicationManager;
 import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.type.AxisID;
-import etomo.type.Run3dmodMenuOption;
+import etomo.type.Run3dmodMenuOptions;
 
 /**
  * <p> Description: ImodProcess opens an instance of imod with the specfied stack
@@ -26,6 +26,10 @@ import etomo.type.Run3dmodMenuOption;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.26  2005/08/09 19:58:15  sueh
+ * <p> bug# 711 Added Run3dmodMenuOption processing to open().  Added
+ * <p> calcCurrentBinning().
+ * <p>
  * <p> Revision 3.25  2005/07/29 00:51:48  sueh
  * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
  * <p> because the current manager changes when the user changes the tab.
@@ -270,7 +274,6 @@ public class ImodProcess {
   private boolean frames = false;
   private String pieceListFileName = null;
   private AxisID axisID;
-  private Run3dmodMenuOption run3dmodMenuOption = Run3dmodMenuOption.NONE;
 
   private Thread imodThread;
   private final BaseManager manager;
@@ -365,7 +368,7 @@ public class ImodProcess {
     this.openWithModel = openWithModel; 
   }
   
-  private final int calcCurrentBinning(int binning) {
+  private final int calcCurrentBinning(int binning, Run3dmodMenuOptions menuOptions) {
     int currentBinning;
     if (binning == defaultBinning) {
       currentBinning = 0;
@@ -373,8 +376,7 @@ public class ImodProcess {
     else {
       currentBinning = binning;
     }
-    if (run3dmodMenuOption == Run3dmodMenuOption.BIN_BY_2
-        || run3dmodMenuOption == Run3dmodMenuOption.BIN_BY_2_XY) {
+    if (menuOptions.isBinBy2()) {
       currentBinning += 2;
     }
     return currentBinning;
@@ -383,7 +385,7 @@ public class ImodProcess {
   /**
    * Open the 3dmod process if is not already open.
    */
-  public void open() throws SystemProcessException {
+  public void open(Run3dmodMenuOptions menuOptions) throws SystemProcessException {
     if (isRunning()) {
       raise3dmod();
       return;
@@ -418,17 +420,17 @@ public class ImodProcess {
       commandOptions.add("-view");
     }
     
-    if (binning > defaultBinning || run3dmodMenuOption == Run3dmodMenuOption.BIN_BY_2) {
+    if (binning > defaultBinning || (menuOptions.isBinBy2() && menuOptions.isAllowBinningInZ())) {
       commandOptions.add("-B");
-      commandOptions.add(Integer.toString(calcCurrentBinning(binning)));
+      commandOptions.add(Integer.toString(calcCurrentBinning(binning, menuOptions)));
     }
     
-    if (binningXY > defaultBinning || run3dmodMenuOption == Run3dmodMenuOption.BIN_BY_2_XY) {
+    if (binningXY > defaultBinning || (menuOptions.isBinBy2() && !menuOptions.isAllowBinningInZ())) {
       commandOptions.add("-b");
-      commandOptions.add(Integer.toString(calcCurrentBinning(binningXY)));
+      commandOptions.add(Integer.toString(calcCurrentBinning(binningXY, menuOptions)));
     }
     
-    if (run3dmodMenuOption == Run3dmodMenuOption.STARTUP_WINDOW) {
+    if (menuOptions.isStartupWindow()) {
       commandOptions.add("-O");
     }
     
@@ -446,20 +448,18 @@ public class ImodProcess {
       commandOptions.add(modelName);
     }
     
-    run3dmodMenuOption = Run3dmodMenuOption.NONE;
-    
     String[] commandArray = new String[commandOptions.size()];
     for (int i = 0; i < commandOptions.size(); i++) {
       commandArray[i] = (String) commandOptions.get(i);
       if (EtomoDirector.getInstance().isDebug()) {
         System.err.print(commandArray[i] + " ");
       }
-      //System.out.print(commandArray[i] + " ");
+      System.out.print(commandArray[i] + " ");
     }
     if (EtomoDirector.getInstance().isDebug()) {
       System.err.println();
     }
-    //System.out.println();
+    System.out.println();
     imod = new InteractiveSystemProgram(manager, commandArray, axisID);
     if (workingDirectory != null) {
       imod.setWorkingDirectory(workingDirectory);
@@ -957,10 +957,6 @@ public class ImodProcess {
     else {
       this.binning = binning;
     }
-  }
-  
-  public void setRun3dmodMenuOption(Run3dmodMenuOption run3dmodMenuOption) {
-    this.run3dmodMenuOption = run3dmodMenuOption;
   }
   
   public void setBinningXY(int binningXY) {
