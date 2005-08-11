@@ -4,6 +4,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -49,7 +50,9 @@ public class EtomoMenu {
   private JMenuItem menuAxisBoth = new JMenuItem("Both Axes", KeyEvent.VK_2);
   private JMenuItem menuSettings = new JMenuItem("Settings", KeyEvent.VK_S);
   private JMenuItem menuFitWindow = new JMenuItem("Fit Window", KeyEvent.VK_F);
-
+  private JCheckBoxMenuItem menu3dmodStartupWindow = new JCheckBoxMenuItem("Open 3dmod with Startup Window");
+  private JCheckBoxMenuItem menu3dmodBinBy2 = new JCheckBoxMenuItem("Open 3dmod Binned by 2");
+  
   private JMenu menuHelp = new JMenu("Help");
   private JMenuItem menuTomoGuide = new JMenuItem("Tomography Guide",
       KeyEvent.VK_T);
@@ -100,7 +103,9 @@ public class EtomoMenu {
     menuAxisA.addActionListener(optionsActionListener);
     menuAxisB.addActionListener(optionsActionListener);
     menuAxisBoth.addActionListener(optionsActionListener);
-
+    menu3dmodStartupWindow.addActionListener(optionsActionListener);
+    menu3dmodBinBy2.addActionListener(optionsActionListener);
+    
     HelpActionListener helpActionListener = new HelpActionListener(frame);
     menuTomoGuide.addActionListener(helpActionListener);
     menuImodGuide.addActionListener(helpActionListener);
@@ -131,6 +136,8 @@ public class EtomoMenu {
 
     // Options menu
     menuOptions.add(menuSettings);
+    menuOptions.add(menu3dmodStartupWindow);
+    menuOptions.add(menu3dmodBinBy2);
     menuOptions.add(menuAxisA);
     menuOptions.add(menuAxisB);
     menuOptions.add(menuAxisBoth);
@@ -213,6 +220,22 @@ public class EtomoMenu {
     }
   }
   
+  final boolean isMenu3dmodStartupWindow() {
+    return menu3dmodStartupWindow.isSelected();
+  }
+  
+  final boolean isMenu3dmodBinBy2() {
+    return menu3dmodBinBy2.isSelected();
+  }
+  
+  final void setMenu3dmodStartupWindow(boolean menu3dmodStartupWindow) {
+    this.menu3dmodStartupWindow.setSelected(menu3dmodStartupWindow);
+  }
+  
+  final void setMenu3dmodBinBy2(boolean menu3dmodBinBy2) {
+    this.menu3dmodBinBy2.setSelected(menu3dmodBinBy2);
+  }
+  
   void doClickFileExit() {
     menuFileExit.doClick();
   }
@@ -267,6 +290,14 @@ public class EtomoMenu {
   
   String getActionCommandAxisBoth() {
     return menuAxisBoth.getActionCommand();
+  }
+  
+  String getActionCommand3dmodStartUpWindow() {
+    return menu3dmodStartupWindow.getActionCommand();
+  }
+  
+  String getActionCommand3dmodBinBy2 () {
+    return menu3dmodBinBy2.getActionCommand();
   }
   
   String getActionCommandFitWindow() {
@@ -351,6 +382,10 @@ public class EtomoMenu {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.4  2005/05/12 22:13:01  sueh
+* <p> bug# 615 Change setEnabled(BaseManager) to handle a null
+* <p> BaseManager.
+* <p>
 * <p> Revision 1.3  2005/04/27 02:15:39  sueh
 * <p> bug# 615 Added setEnabled(EtomoMenu) to match the enabled settings
 * <p> of one EtomoMenu against another.
