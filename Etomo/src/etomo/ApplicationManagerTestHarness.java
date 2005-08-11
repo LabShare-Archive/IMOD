@@ -10,7 +10,7 @@ import etomo.ui.TomogramCombinationDialog;
 * constructed with an args[] parameter which contains the "--test" option.
 * This option prevents ApplicationManager from displaying a window.</p>
 *
-* <p>Copyright: Copyright 2004 </p>
+* <p>Copyright: Copyright 2004 - 2005 </p>
 *
 * <p>Organization:
 * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
@@ -19,8 +19,40 @@ import etomo.ui.TomogramCombinationDialog;
 * @author $Author$
 *
 * @version $Revision$
-*
+*/
+public class ApplicationManagerTestHarness extends ApplicationManager {
+  public static final String rcsid = "$$Id$$";
+
+  public static ApplicationManagerTestHarness getApplicationManagerTestHarness(
+      String[] args) {
+    for (int i = 0; i < args.length; i++) {
+      if (args[i].equals("--test")) {
+        return new ApplicationManagerTestHarness(args);
+      }
+    }
+    return null;
+  }
+
+  /**
+   * @param args
+   */
+  private ApplicationManagerTestHarness(String[] args) {
+    super("", AxisID.ONLY);
+  }
+
+  public CombineComscriptState runUpdateCombineComscriptState(int startCommand) {
+    return updateCombineComscriptState(startCommand);
+  }
+
+  public TomogramCombinationDialog getTomogramCombinationDialog() {
+    return tomogramCombinationDialog;
+  }
+}
+/**
 * <p> $Log$
+* <p> Revision 1.5  2005/06/01 21:22:22  sueh
+* <p> bug# 667 Removed controller classes.
+* <p>
 * <p> Revision 1.4  2005/04/25 20:29:24  sueh
 * <p> bug# 615 Passing the axis where the command originated to the message
 * <p> functions so that the message will be popped up in the correct window.
@@ -40,33 +72,3 @@ import etomo.ui.TomogramCombinationDialog;
 * <p> bug# 508 tests loading, updateing , and saving combine.com
 * <p> </p>
 */
-public class ApplicationManagerTestHarness extends ApplicationManager {
-  public static final String rcsid = "$$Id$$";
-
-  public static ApplicationManagerTestHarness getApplicationManagerTestHarness(
-      String[] args) {
-    for (int i = 0; i < args.length; i++) {
-      if (args[i].equals("--test")) {
-        return new ApplicationManagerTestHarness(args);
-      }
-    }
-    return null;
-  }
-  
-  /**
-   * @param args
-   */
-  private ApplicationManagerTestHarness(String[] args) {
-    super("", AxisID.ONLY);
-  }
-  
-  public CombineComscriptState runUpdateCombineComscriptState(
-      int startCommand) {
-    return updateCombineComscriptState(startCommand);
-  }
-  
-  public TomogramCombinationDialog getTomogramCombinationDialog() {
-    return tomogramCombinationDialog;
-  }
-  
-}
