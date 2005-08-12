@@ -177,12 +177,20 @@ public class UIHarness {
       mainFrame.setMRUFileLabels(mRUList);
     }
   }
-  /*
-  public void pack() {
-    if (isHead()) {
-      mainFrame.pack();
+
+  public boolean is3dmodStartUpWindow() {
+    if (!isHead()) {
+      return false;
     }
-  }*/
+    return mainFrame.isMenu3dmodStartupWindow();
+  }
+  
+  public boolean is3dmodBinBy2() {
+    if (!isHead()) {
+      return false;
+    }
+    return mainFrame.isMenu3dmodBinBy2();
+  }
   
   public void doLayout() {
     if (isHead()) {
@@ -383,6 +391,11 @@ public class UIHarness {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.12  2005/08/04 20:18:10  sueh
+* <p> bug# 532  Centralizing fit window functionality by placing fitting functions
+* <p> in UIHarness.  Removing packMainWindow from the manager.  Sending
+* <p> the manager to UIHarness.pack() so that packDialogs() can be called.
+* <p>
 * <p> Revision 1.11  2005/07/01 21:26:47  sueh
 * <p> bug# 619 Temporality getting the frame to use with the demo
 * <p>
