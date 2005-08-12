@@ -45,7 +45,7 @@ import etomo.type.ConstMetaData;
 import etomo.type.DialogType;
 import etomo.type.EtomoAutodoc;
 import etomo.type.MetaData;
-import etomo.type.Run3dmodMenuOption;
+import etomo.type.Run3dmodMenuOptions;
 import etomo.type.ViewType;
 import etomo.util.InvalidParameterException;
 
@@ -69,6 +69,10 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.57  2005/08/10 20:48:01  sueh
+ * bug# 711 Removed MultiLineToggleButton.  Making toggling an attribute
+ * of MultiLineButton.
+ *
  * Revision 3.56  2005/08/09 21:10:34  sueh
  * bug# 711  Implemented Run3dmodButtonContainer:  added run3dmod().
  * Changed 3dmod buttons to Run3dmodButton.  No longer inheriting
@@ -1319,18 +1323,22 @@ public class TomogramGenerationDialog extends ProcessDialog
     runTilt();
   }
   
-  public void run3dmod(Run3dmodButton button, Run3dmodMenuOption menuOption) {
-    if (button.equals(btn3dmodFull)) {
-      applicationManager.imodFineAlign(axisID, menuOption);
+  public void run3dmod(Run3dmodButton button, Run3dmodMenuOptions menuOptions) {
+    run3dmod(button.getActionCommand(), menuOptions);
+  }
+  
+  private void run3dmod(String command, Run3dmodMenuOptions menuOptions) {
+    if (command.equals(btn3dmodFull.getActionCommand())) {
+      applicationManager.imodFineAlign(axisID, menuOptions);
     }
-    else if (button.equals(btn3dmodTrial)) {
-      applicationManager.imodTestVolume(axisID, menuOption);
+    else if (command.equals(btn3dmodTrial.getActionCommand())) {
+      applicationManager.imodTestVolume(axisID, menuOptions);
     }
-    else if (button.equals(btn3dmodTomogram)) {
-      applicationManager.imodFullVolume(axisID, menuOption);
+    else if (command.equals(btn3dmodTomogram.getActionCommand())) {
+      applicationManager.imodFullVolume(axisID, menuOptions);
     }
-    else if (button.equals(btnViewFilter)) {
-      applicationManager.imodMTFFilter(axisID, menuOption);
+    else if (command.equals(btnViewFilter.getActionCommand())) {
+      applicationManager.imodMTFFilter(axisID, menuOptions);
     }
   }
 
@@ -1340,16 +1348,10 @@ public class TomogramGenerationDialog extends ProcessDialog
     if (command.equals(btnNewst.getActionCommand())) {
       applicationManager.newst(axisID);
     }
-    else if (command.equals(btn3dmodFull.getActionCommand())) {
-      applicationManager.imodFineAlign(axisID, Run3dmodMenuOption.NONE);
-    }
     else if (command.equals(btnFilter.getActionCommand())) {
       applicationManager.mtffilter(axisID);
       btnFilter.setSelected(true);
       btnUseFilter.setSelected(false);
-    }
-    else if (command.equals(btnViewFilter.getActionCommand())) {
-      applicationManager.imodMTFFilter(axisID, Run3dmodMenuOption.NONE);
     }
     else if (command.equals(btnUseFilter.getActionCommand())) {
       applicationManager.useMtfFilter(axisID);
@@ -1359,9 +1361,6 @@ public class TomogramGenerationDialog extends ProcessDialog
       trialTilt = true;
       runTilt();
     }
-    else if (command.equals(btn3dmodTrial.getActionCommand())) {
-      applicationManager.imodTestVolume(axisID, Run3dmodMenuOption.NONE);
-    }
     else if (command.equals(btnUseTrial.getActionCommand())) {
       applicationManager.commitTestVolume(axisID);
     }
@@ -1369,9 +1368,6 @@ public class TomogramGenerationDialog extends ProcessDialog
       resume = false;
       trialTilt = false;
       runTilt();
-    }
-    else if (command.equals(btn3dmodTomogram.getActionCommand())) {
-      applicationManager.imodFullVolume(axisID, Run3dmodMenuOption.NONE);
     }
     else if (command.equals(btnDeleteStacks.getActionCommand())) {
       applicationManager.deleteAlignedStacks(axisID);
@@ -1381,6 +1377,9 @@ public class TomogramGenerationDialog extends ProcessDialog
     }
     else if (command.equals(cbParallelProcess.getActionCommand())) {
       updateParallelProcess();
+    }
+    else {
+      run3dmod(command, new Run3dmodMenuOptions());
     }
   }
   

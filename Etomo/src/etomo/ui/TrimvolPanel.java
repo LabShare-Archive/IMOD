@@ -19,7 +19,7 @@ import etomo.comscript.TrimvolParam;
 import etomo.process.ImodManager;
 import etomo.process.ImodProcess;
 import etomo.type.AxisID;
-import etomo.type.Run3dmodMenuOption;
+import etomo.type.Run3dmodMenuOptions;
 /**
  * <p>Description: </p>
  * 
@@ -33,6 +33,10 @@ import etomo.type.Run3dmodMenuOption;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.8  2005/08/10 20:48:56  sueh
+ * <p> bug# 711 Moved button sizing to MultiLineButton.  SetSize() sets the
+ * <p> standard button size.
+ * <p>
  * <p> Revision 3.7  2005/08/09 21:11:46  sueh
  * <p> bug# 711  Implemented Run3dmodButtonContainer:  added run3dmod().
  * <p> Changed 3dmod buttons to Run3dmodButton.  No longer inheriting
@@ -359,33 +363,32 @@ public class TrimvolPanel implements Run3dmodButtonContainer {
     setScaleState();
   }
   
-  public void run3dmod(Run3dmodButton button, Run3dmodMenuOption menuOption) {
-    if (button.equals(btnImodFull)) {
-      applicationManager.imodCombinedTomogram(menuOption);
+  public void run3dmod(Run3dmodButton button, Run3dmodMenuOptions menuOptions) {
+    run3dmod(button.getActionCommand(), menuOptions);
+  }
+  
+  private void run3dmod(String command, Run3dmodMenuOptions menuOptions) {
+    if (command == btnImodFull.getActionCommand()) {
+      applicationManager.imodCombinedTomogram(menuOptions);
     }
-    else if (button.equals(btnImodTrim)) {
-      applicationManager.imodTrimmedVolume(menuOption);
+    if (command == btnImodTrim.getActionCommand()) {
+      applicationManager.imodTrimmedVolume(menuOptions);
     }
-
   }
 
   private void buttonAction(ActionEvent event) {
-    if (event.getActionCommand() == btnImodFull.getActionCommand()) {
-      applicationManager.imodCombinedTomogram(Run3dmodMenuOption.NONE);
-    }
-
-    if (event.getActionCommand() == btnTrimvol.getActionCommand()) {
+    String command = event.getActionCommand();
+    if (command == btnTrimvol.getActionCommand()) {
       applicationManager.trimVolume();
     }
-
-    if (event.getActionCommand() == btnImodTrim.getActionCommand()) {
-      applicationManager.imodTrimmedVolume(Run3dmodMenuOption.NONE);
-    }
-    if (event.getActionCommand() == btnGetCoordinates.getActionCommand()) {
+    if (command == btnGetCoordinates.getActionCommand()) {
       setXYMinAndMax(
         applicationManager.imodGetRubberbandCoordinates(
           ImodManager.COMBINED_TOMOGRAM_KEY, AxisID.ONLY));
-    }   
+    } 
+    else {
+      run3dmod(command, new Run3dmodMenuOptions());
+    }
   }
 
   private void cbConvertToBytesAction(ActionEvent event) {

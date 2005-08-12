@@ -25,7 +25,7 @@ import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstMetaData;
 import etomo.type.DialogType;
 import etomo.type.MetaData;
-import etomo.type.Run3dmodMenuOption;
+import etomo.type.Run3dmodMenuOptions;
 
 /**
  * <p>Description: Tomogram Positioning User Interface</p>
@@ -40,6 +40,10 @@ import etomo.type.Run3dmodMenuOption;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.35  2005/08/10 20:48:26  sueh
+ * <p> bug# 711 Removed MultiLineToggleButton.  Making toggling an attribute
+ * <p> of MultiLineButton.
+ * <p>
  * <p> Revision 3.34  2005/08/09 21:11:23  sueh
  * <p> bug# 711  Implemented Run3dmodButtonContainer:  added run3dmod().
  * <p> Changed 3dmod buttons to Run3dmodButton.  No longer inheriting
@@ -538,16 +542,19 @@ public class TomogramPositioningDialog extends ProcessDialog
       "TOMOGRAM POSITIONING", ContextPopup.TOMO_GUIDE, manPagelabel, manPage, logFileLabel, logFile, applicationManager);
   }
   
-  public void run3dmod(Run3dmodButton button, Run3dmodMenuOption menuOption) {
-    if (button.equals(btnCreateBoundary)) {
-      createBoundary(menuOption);
+  public void run3dmod(Run3dmodButton button, Run3dmodMenuOptions menuOptions) {
+    run3dmod(button.getActionCommand(), menuOptions);
+  }
+  
+  private void run3dmod(String command, Run3dmodMenuOptions menuOptions) {
+    if (command.equals(btnCreateBoundary.getActionCommand())) {
+      createBoundary(menuOptions);
     }
   }
 
   //  Button action handler methods
   private void buttonAction(ActionEvent event) {
     String command = event.getActionCommand();
-
     if (command.equals(btnSample.getActionCommand())) {
       if (cbWholeTomogram.isSelected()) {
         applicationManager.wholeTomogram(axisID);
@@ -556,33 +563,29 @@ public class TomogramPositioningDialog extends ProcessDialog
         applicationManager.createSample(axisID);
       }
     }
-    
-    else if (command.equals(btnCreateBoundary.getActionCommand())) {
-      createBoundary(Run3dmodMenuOption.NONE);
-    }
-    
     else if (command.equals(btnTomopitch.getActionCommand())) {
       applicationManager.tomopitch(axisID);
     }
-
     else if (command.equals(btnAlign.getActionCommand())) {
       applicationManager.finalAlign(axisID);
     }
-
     else if (command.equals(cbFiducialess.getActionCommand())) {
       updateUIState();
     }
     else if (command.equals(cbWholeTomogram.getActionCommand())) {
       updateUIState();
     }
+    else {
+      run3dmod(command, new Run3dmodMenuOptions());
+    }
   }
   
-  private void createBoundary(Run3dmodMenuOption menuOption) {
+  private void createBoundary(Run3dmodMenuOptions menuOptions) {
     if (cbWholeTomogram.isSelected()) {
-      applicationManager.imodFullSample(axisID, menuOption);
+      applicationManager.imodFullSample(axisID, menuOptions);
     }
     else {
-      applicationManager.imodSample(axisID, menuOption);
+      applicationManager.imodSample(axisID, menuOptions);
     }
   }
 

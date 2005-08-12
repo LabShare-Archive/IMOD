@@ -22,7 +22,7 @@ import etomo.comscript.SolvematchParam;
 import etomo.type.AxisID;
 import etomo.type.EtomoAutodoc;
 import etomo.type.FiducialMatch;
-import etomo.type.Run3dmodMenuOption;
+import etomo.type.Run3dmodMenuOptions;
 
 /**
  * <p>Description: </p>
@@ -38,6 +38,11 @@ import etomo.type.Run3dmodMenuOption;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.10  2005/08/09 21:00:01  sueh
+ * <p> bug# 711  Implemented Run3dmodButtonContainer:  added run3dmod().
+ * <p> Changed 3dmod buttons to Run3dmodButton.  No longer inheriting
+ * <p> MultiLineButton from JButton.
+ * <p>
  * <p> Revision 3.9  2005/04/25 21:39:05  sueh
  * <p> bug# 615 Passing the axis where a command originates to the message
  * <p> functions so that the message will be popped up in the correct window.
@@ -330,9 +335,13 @@ public class SolvematchPanel implements InitialCombineFields, Run3dmodButtonCont
     return ltfFiducialMatchListB.getText();
   }
 
-  public void run3dmod(Run3dmodButton button, Run3dmodMenuOption menuOption) {
-    if (button.equals(btnImodMatchModels)) {
-      applicationManager.imodMatchingModel(cbBinBy2.isSelected(), menuOption);
+  public void run3dmod(Run3dmodButton button, Run3dmodMenuOptions menuOptions) {
+    run3dmod(button.getActionCommand(), menuOptions);
+  }
+  
+  public void run3dmod(String command, Run3dmodMenuOptions menuOptions) {
+    if (command.equals(btnImodMatchModels.getActionCommand())) {
+      applicationManager.imodMatchingModel(cbBinBy2.isSelected(), menuOptions);
     }
   }
   
@@ -343,14 +352,14 @@ public class SolvematchPanel implements InitialCombineFields, Run3dmodButtonCont
       TomogramCombinationDialog.ALL_FIELDS);
 
     String command = event.getActionCommand();
-    if (event.getActionCommand().equals(btnImodMatchModels.getActionCommand())) {
-      applicationManager.imodMatchingModel(cbBinBy2.isSelected(), Run3dmodMenuOption.NONE);
-    }
-    else if (event.getActionCommand().equals(cbBinBy2.getActionCommand())) {
+    if (command.equals(cbBinBy2.getActionCommand())) {
       if (!binningWarning && cbBinBy2.isSelected()) {
         tomogramCombinationDialog.setBinningWarning(true);
         binningWarning = true;
       }
+    }
+    else {
+      run3dmod(command, new Run3dmodMenuOptions());
     }
   }
 
