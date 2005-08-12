@@ -42,7 +42,7 @@ import etomo.type.AxisType;
 import etomo.type.ConstMetaData;
 import etomo.type.DialogType;
 import etomo.type.MetaData;
-import etomo.type.Run3dmodMenuOption;
+import etomo.type.Run3dmodMenuOptions;
 import etomo.type.ViewType;
 import etomo.util.InvalidParameterException;
 import etomo.util.MRCHeader;
@@ -782,26 +782,26 @@ public class SetupDialog extends ProcessDialog implements ContextMenu, Run3dmodB
     spnBinning.setValue(new Integer(binning));
   }
 
-  public void run3dmod(Run3dmodButton button, Run3dmodMenuOption menuOption) {
+  public void run3dmod(Run3dmodButton button, Run3dmodMenuOptions menuOptions) {
     if (button.equals(btnViewRawStackA)) {
-      btnViewRawStackAAction(menuOption);
+      btnViewRawStackAAction(menuOptions);
     }
     else if (button.equals(btnViewRawStackB)) {
-      btnViewRawStackBAction(menuOption);
+      btnViewRawStackBAction(menuOptions);
     }
   }
   
-  private void btnViewRawStackAAction(Run3dmodMenuOption menuOption) {
+  private void btnViewRawStackAAction(Run3dmodMenuOptions menuOptions) {
     if (getAxisType() == AxisType.SINGLE_AXIS) {
-      applicationManager.imodPreview(AxisID.ONLY, menuOption);
+      applicationManager.imodPreview(AxisID.ONLY, menuOptions);
     }
     else {
-      applicationManager.imodPreview(AxisID.FIRST, menuOption);
+      applicationManager.imodPreview(AxisID.FIRST, menuOptions);
     }
   }
 
-  private void btnViewRawStackBAction(Run3dmodMenuOption menuOption) {
-    applicationManager.imodPreview(AxisID.SECOND, menuOption);
+  private void btnViewRawStackBAction(Run3dmodMenuOptions menuOptions) {
+    applicationManager.imodPreview(AxisID.SECOND, menuOptions);
   }
 
   /**
@@ -1017,7 +1017,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu, Run3dmodB
     }
 
     public void actionPerformed(ActionEvent event) {
-      adaptee.btnViewRawStackAAction(Run3dmodMenuOption.NONE);
+      adaptee.btnViewRawStackAAction(new Run3dmodMenuOptions());
     }
   }
 
@@ -1029,13 +1029,17 @@ public class SetupDialog extends ProcessDialog implements ContextMenu, Run3dmodB
     }
 
     public void actionPerformed(ActionEvent event) {
-      adaptee.btnViewRawStackBAction(Run3dmodMenuOption.NONE);
+      adaptee.btnViewRawStackBAction(new Run3dmodMenuOptions());
     }
   }
 
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.34  2005/08/10 20:47:31  sueh
+ * <p> bug# 711 Moved button sizing to MultiLineButton.  SetSize() sets the
+ * <p> standard button size.
+ * <p>
  * <p> Revision 3.33  2005/08/09 20:53:31  sueh
  * <p> bug# 711  Implemented Run3dmodButtonContainer:  added run3dmod().
  * <p> Changed 3dmod buttons to Run3dmodButton.  No longer inheriting
