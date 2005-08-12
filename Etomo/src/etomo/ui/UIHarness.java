@@ -178,7 +178,7 @@ public class UIHarness {
     }
   }
 
-  public boolean is3dmodStartUpWindow() {
+  public boolean is3dmodStartupWindow() {
     if (!isHead()) {
       return false;
     }
@@ -391,6 +391,10 @@ public class UIHarness {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.13  2005/08/12 00:02:43  sueh
+* <p> bug# 711  Add is3dmodStartUpWindow() and 3dmodBinBy2() to get the
+* <p> menu settings.
+* <p>
 * <p> Revision 1.12  2005/08/04 20:18:10  sueh
 * <p> bug# 532  Centralizing fit window functionality by placing fitting functions
 * <p> in UIHarness.  Removing packMainWindow from the manager.  Sending

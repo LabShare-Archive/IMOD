@@ -41,7 +41,7 @@ public class Run3dmodMenuOptions {
     if (noOptions) {
       return;
     }
-    boolean startupWindow = UIHarness.INSTANCE.is3dmodStartUpWindow();
+    boolean startupWindow = UIHarness.INSTANCE.is3dmodStartupWindow();
     if (startupWindow) {
       this.startupWindow  = true;
     }
@@ -82,5 +82,11 @@ public class Run3dmodMenuOptions {
   }
 }
 /**
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2005/08/11 23:41:31  sueh
+* <p> bug# 711  Class to store menu options for running 3dmod.  Change enum
+* <p> Run3dmodMenuOption to Run3dmodMenuOptions, which can turn on
+* <p> multiple options at once.  This allows ImodState to combine input from
+* <p> the context menu and the pulldown menu.
+* <p> </p>
 */
