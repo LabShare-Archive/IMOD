@@ -60,7 +60,7 @@ public class ProcesschunksProcessMonitor implements ProcessMonitor {
     try {
       while (process == null || !process.isDone()) {
         Thread.sleep(500);
-        if (updateState(process.getCurrentStdOutput())) {
+        if (updateState()) {
           updateProgressBar();
         }
       }
@@ -73,7 +73,8 @@ public class ProcesschunksProcessMonitor implements ProcessMonitor {
     setProcessEndState(ProcessEndState.DONE);
   }
   
-  protected boolean updateState(String stdOutput[]) {
+  protected boolean updateState() {
+    String stdOutput[] = process.getCurrentStdOutput();
     boolean returnValue = false;
     if (stdOutput == null || lastOutputLine >= stdOutput.length) {
       return returnValue;
@@ -81,28 +82,42 @@ public class ProcesschunksProcessMonitor implements ProcessMonitor {
     for (int i = lastOutputLine + 1; i < stdOutput.length; i++) {
       lastOutputLine = i;
       String line = stdOutput[i].trim();
-      String[] strings = line.split("\\s+");
-      if (strings[1].equals("finished")) {
-        parallelProgressDisplay.addSuccess(strings[3]);
-      }
-      else if (strings[1].equals("failed")) {
-        parallelProgressDisplay.addRestart(strings[3]);
-      }
-      else if (line.startsWith("Dropping")) {
-        parallelProgressDisplay.drop(strings[1]);
-      }
-      else if (line.endsWith("DONE SO FAR")) {
-        if (!nChunks.equals(strings[2])) {
-          nChunks.set(strings[2]);
-          setProgressBarTitle = true;
+      System.out.println(line);
+      if (line
+          .equals("Q to kill all jobs and quit, P to finish running jobs then exit,")) {
+        if (endState == ProcessEndState.KILLED) {
+          process.setCurrentStdInput("Q");
         }
-        lastChunkFinished.set(strings[0]);
-        returnValue = true;
+        else if (endState == ProcessEndState.PAUSED) {
+          process.setCurrentStdInput("P");
+        }
       }
       else if (line.endsWith("to reassemble")) {
         reassembling = true;
         setProgressBarTitle = true;
         returnValue = true;
+      }
+      else {
+        String[] strings = line.split("\\s+");
+        if (strings.length > 2 && line.endsWith("DONE SO FAR")) {
+          if (!nChunks.equals(strings[2])) {
+            nChunks.set(strings[2]);
+            setProgressBarTitle = true;
+          }
+          lastChunkFinished.set(strings[0]);
+          returnValue = true;
+        }
+        else if (strings.length > 1) {
+          if (line.startsWith("Dropping")) {
+            parallelProgressDisplay.drop(strings[1]);
+          }
+          else if (strings[1].equals("finished")) {
+            parallelProgressDisplay.addSuccess(strings[3]);
+          }
+          else if (strings[1].equals("failed")) {
+            parallelProgressDisplay.addRestart(strings[3]);
+          }
+        }
       }
     }
     return returnValue;
@@ -144,7 +159,21 @@ public class ProcesschunksProcessMonitor implements ProcessMonitor {
     }
     manager.getMainPanel().setProgressBar(title.toString(), nChunks.getInt(), axisID);
   }
+  
+  public void kill(SystemProcessInterface process, AxisID axisID) {
+    endState = ProcessEndState.KILLED;
+    process.signalInterrupt(axisID);
+  }
+  
+  public void pause(SystemProcessInterface process, AxisID axisID) {
+    endState = ProcessEndState.PAUSED;
+    process.signalInterrupt(axisID);
+  }
 }
 /**
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2005/08/04 19:46:15  sueh
+* <p> bug# 532 Class to monitor processchunks.  Monitors the standard output.
+* <p> Sends updates to the progress panel and to a parallel process display.
+* <p> </p>
 */
