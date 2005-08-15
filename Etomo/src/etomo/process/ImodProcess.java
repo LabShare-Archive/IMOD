@@ -26,6 +26,13 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.27  2005/08/11 23:38:42  sueh
+ * <p> bug# 711  Pass Run3dmodMenuOptions to ImodManager.open(),
+ * <p> ImodState.open(), and ImodProcess.open().  It should not be saved,
+ * <p> because it needs to be refreshed each time 3dmod is run.  In
+ * <p> ImodState.open() add the menu options from the pulldown menu to the
+ * <p> existing menu options.
+ * <p>
  * <p> Revision 3.26  2005/08/09 19:58:15  sueh
  * <p> bug# 711 Added Run3dmodMenuOption processing to open().  Added
  * <p> calcCurrentBinning().
@@ -454,12 +461,12 @@ public class ImodProcess {
       if (EtomoDirector.getInstance().isDebug()) {
         System.err.print(commandArray[i] + " ");
       }
-      System.out.print(commandArray[i] + " ");
+      //System.out.print(commandArray[i] + " ");
     }
     if (EtomoDirector.getInstance().isDebug()) {
       System.err.println();
     }
-    System.out.println();
+    //System.out.println();
     imod = new InteractiveSystemProgram(manager, commandArray, axisID);
     if (workingDirectory != null) {
       imod.setWorkingDirectory(workingDirectory);
