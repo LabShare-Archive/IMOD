@@ -19,6 +19,11 @@ import etomo.type.ProcessEndState;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.10  2005/08/04 19:41:21  sueh
+ * <p> bug# 532 passing monitor to constructor when necessary.  Added
+ * <p> getCurrentStdOutput() to get the standard output without waiting for the
+ * <p> process to be finished.
+ * <p>
  * <p> Revision 3.9  2005/07/29 00:50:56  sueh
  * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
  * <p> because the current manager changes when the user changes the tab.
@@ -125,7 +130,7 @@ public class BackgroundProcess
   private String commandLine = null;
   private String[] commandArray = null;
   private File workingDirectory = null;
-  private BaseProcessManager processManager;
+  private final BaseProcessManager processManager;
   private boolean demoMode = false;
   private boolean debug = false;
   private String[] stdOutput;
@@ -406,5 +411,37 @@ public class BackgroundProcess
   
   public final ProcessEndState getProcessEndState() {
     return endState;
+  }
+  
+  public void kill(AxisID axisID) {
+    if (monitor != null) {
+      monitor.kill(this, axisID);
+    }
+    else {
+      processManager.signalKill(this, axisID);
+    }
+  }
+  
+  public void pause(AxisID axisID) {
+    if (monitor != null) {
+      monitor.pause(this, axisID);
+    }
+    else {
+      processManager.signalInterrupt(this, axisID);
+    }
+  }
+  
+  public void signalKill(AxisID axisID) {
+    processManager.signalKill(this, axisID);
+  }
+  
+  public void signalInterrupt(AxisID axisID) {
+    processManager.signalInterrupt(this, axisID);
+  }
+  
+  public void setCurrentStdInput(String input) {
+    if (program != null) {
+      program.setCurrentStdInput(input);
+    }
   }
 }
