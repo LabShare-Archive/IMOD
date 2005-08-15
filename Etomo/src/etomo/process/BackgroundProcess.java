@@ -19,6 +19,20 @@ import etomo.type.ProcessEndState;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.11  2005/08/15 18:06:28  sueh
+ * <p> bug# 532   Processchunks needs to be killed with an interrupt instead of
+ * <p> a kill, so a processchunks specific class has to make the decision of
+ * <p> what type of signal to send.  BaseProcessManager.kill calls
+ * <p> BackgroundProcess.kill.  If the monitor is set then
+ * <p> BackgroundProcess.kill calls monitor.kill so that the processchunks
+ * <p> monitor can ask for an interrupt instead of a kill.  Otherwise a kill is sent.
+ * <p> The pause function always sends an interrupt, but it should only be used
+ * <p> by processchunks.
+ * <p> The processchunks monitor needs to be able to write to standard input
+ * <p> after the interrupt is received.
+ * <p> Added functions:  kill, paused, signalKill, signalInterrupt, and
+ * <p> setCurrentStdInput.
+ * <p>
  * <p> Revision 3.10  2005/08/04 19:41:21  sueh
  * <p> bug# 532 passing monitor to constructor when necessary.  Added
  * <p> getCurrentStdOutput() to get the standard output without waiting for the
@@ -427,7 +441,7 @@ public class BackgroundProcess
       monitor.pause(this, axisID);
     }
     else {
-      processManager.signalInterrupt(this, axisID);
+      throw new IllegalStateException("pause is only used by processchunks, which must set a monitor");
     }
   }
   
