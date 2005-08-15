@@ -1,5 +1,6 @@
 package etomo.process;
 
+import etomo.type.AxisID;
 import etomo.type.ProcessEndState;
 
 /**
@@ -21,9 +22,14 @@ public interface ProcessMonitor extends Runnable {
   public void setProcessEndState(ProcessEndState endState);
   public ProcessEndState getProcessEndState();
   public void setProcess(SystemProcessInterface process);
+  public void kill(SystemProcessInterface process, AxisID axisID);
+  public void pause(SystemProcessInterface process, AxisID axisID);
 }
 /**
 * <p> $Log$
+* <p> Revision 1.2  2005/08/04 19:48:42  sueh
+* <p> bug# 532 Added setProcess() for the processchunks process monitor.
+* <p>
 * <p> Revision 1.1  2005/07/26 21:41:12  sueh
 * <p> bug# 701 interface for all comscript monitors so they can be passed to
 * <p> ComScriptProcess.
