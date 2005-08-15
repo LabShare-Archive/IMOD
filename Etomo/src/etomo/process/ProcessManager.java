@@ -20,6 +20,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.73  2005/08/04 19:47:32  sueh
+ * bug# 532 Removed demo functions and added a monitor to
+ * processchunks.
+ *
  * Revision 3.72  2005/08/01 18:03:35  sueh
  * bug# 532 Added processchunks().
  *
@@ -1277,8 +1281,6 @@ public class ProcessManager extends BaseProcessManager {
   public final String processchunks(AxisID axisID, ProcesschunksParam param,
       ParallelProgressDisplay parallelProgressDisplay)
   throws SystemProcessException {
- //   BackgroundProcess backgroundProcess = startBackgroundProcess(param
- //       .getCommand(), axisID);
     //  Instantiate the process monitor
     ProcesschunksProcessMonitor monitor = new ProcesschunksProcessMonitor(appManager,
         axisID, parallelProgressDisplay);
