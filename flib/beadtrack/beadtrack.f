@@ -24,7 +24,7 @@ c
 	integer liminside,limedge
 	parameter (maxbox=64,maxstor=10,npad=8)
 	parameter (maxarr=(maxbox+2*npad)*(maxbox+2*npad+2))
-	parameter (limpcl=50000,maxnbox=500,maxarea=400,limgaps=20000)
+	parameter (limpcl=50000,maxnbox=2000,maxarea=1000,limgaps=20000)
 	parameter (liminside=10000,limedge=3000)
 c
 c 7/7/00 CER: remove the encode's; titlech is the temp space
@@ -1641,6 +1641,9 @@ c
 c	
 c
 c	  $Log$
+c	  Revision 3.17  2005/07/06 20:42:15  mast
+c	  Removed unneeded repack calls and a ;
+c	
 c	  Revision 3.16  2005/05/12 23:53:52  mast
 c	  Increased limit for pixels inside centroid radius to allow ~100 pixel
 c	  beads
