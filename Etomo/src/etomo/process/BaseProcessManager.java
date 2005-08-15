@@ -27,6 +27,9 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.18  2005/08/04 19:42:50  sueh
+* <p> bug# 532 Passing monitor to BackgroundProcess when necessary.
+* <p>
 * <p> Revision 1.17  2005/08/01 18:00:42  sueh
 * <p> bug# 532 In msgBackgroundProcessDone() passed process.axisID
 * <p> instead of null to processDone().
@@ -372,11 +375,7 @@ public abstract class BaseProcessManager {
     }
   }
   
-  /**
-   * Kill the thread for the specified axis
-   */
-  public void kill(AxisID axisID) {
-    String processID = "";
+  private SystemProcessInterface getThread(AxisID axisID) {
     SystemProcessInterface thread = null;
     if (axisID == AxisID.SECOND) {
       thread = threadAxisB;
@@ -384,9 +383,34 @@ public abstract class BaseProcessManager {
     else {
       thread = threadAxisA;
     }
+    return thread;
+  }
+  
+  public void pause(AxisID axisID) {
+    SystemProcessInterface thread = getThread(axisID);
     if (thread == null) {
       return;
     }
+    thread.pause(axisID);
+  }
+  
+  public void kill(AxisID axisID) {
+    SystemProcessInterface thread = getThread(axisID);
+    if (thread == null) {
+      return;
+    }
+    thread.kill(axisID);
+  }
+
+  void signalInterrupt(SystemProcessInterface thread, AxisID axisID) { 
+    interruptProcess(thread.getShellProcessID(), axisID);
+  }
+  
+  /**
+   * Kill the thread for the specified axis
+   */
+  void signalKill(SystemProcessInterface thread, AxisID axisID) {
+    String processID = "";
     thread.setProcessEndState(ProcessEndState.KILLED);
     
     processID = thread.getShellProcessID();  
@@ -394,24 +418,6 @@ public abstract class BaseProcessManager {
     killProcessAndDescendants(processID, axisID);
     
     thread.notifyKilled();
-
-    /*
-    //  Loop over killing the children until there are none left
-    if (!processID.equals("")) {
-      String[] children;
-      while ((children = getChildProcessList(processID)) != null) {
-        String killCommand = "kill ";
-        for (int i = 0; i < children.length; i++) {
-          killCommand = killCommand + children[i] + " ";
-        }
-
-        SystemProgram kill = new SystemProgram(killCommand);
-        kill.run();
-      }
-
-      SystemProgram killShell = new SystemProgram("kill " + processID);
-      killShell.run();
-    }*/
   }
 
   protected void killProcessGroup(String processID, AxisID axisID) {
@@ -426,6 +432,17 @@ public abstract class BaseProcessManager {
     String groupProcessID = Long.toString(groupPid);
     kill("-19", groupProcessID, axisID);
     kill("-9", groupProcessID, axisID);
+  }
+  
+  protected void interruptProcess(String processID, AxisID axisID) {
+    if (processID == null || processID.equals("")) {
+      return;
+    }
+    long pid = Long.parseLong(processID);
+    if (pid == 0 || pid == 1) {
+      return;
+    }
+    kill("-2", processID, axisID);
   }
   
   /**
