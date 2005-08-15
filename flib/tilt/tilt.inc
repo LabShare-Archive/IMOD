@@ -31,7 +31,7 @@ c
 c        parameter (limstack=2200000)
 	parameter (limmask=4096)
 	parameter (limview=720,limwidth=20000)
-	parameter (limwpos=400,limwarp=40000)
+	parameter (limwpos=1600,limwarp=192000)
 c
 	integer*4 NSTACK,maxstack
 	real*4 ARRAY(limstack)
