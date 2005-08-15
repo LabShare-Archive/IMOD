@@ -17,6 +17,11 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.17  2005/07/29 00:52:55  sueh
+ * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
+ * <p> because the current manager changes when the user changes the tab.
+ * <p> Passing the manager where its needed.
+ * <p>
  * <p> Revision 3.16  2005/06/21 00:45:52  sueh
  * <p> bug# 522 Fixed debug message which didn't show the space between
  * <p> each element of the commandArray.
@@ -197,6 +202,8 @@ public class SystemProgram implements Runnable {
   private Date runTimestamp = null;
   private AxisID axisID;
   private final String propertyUserDir;
+  private OutputStream cmdInputStream = null;
+  private BufferedWriter cmdInBuffer = null;
 
   /**
    * Creates a SystemProgram object to execute the program specified by the
@@ -256,6 +263,22 @@ public class SystemProgram implements Runnable {
   public void setStdInput(String[] programInput) {
     stdInput = programInput;
   }
+  
+  public void setCurrentStdInput(String input) {
+    try {
+      if (cmdInBuffer != null) {
+        cmdInBuffer.write(input);
+        cmdInBuffer.newLine();
+        cmdInBuffer.flush();
+      }
+      if (cmdInputStream != null) {
+        cmdInputStream.flush();
+      }
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
 
   /**
    * Specify the directory in which the program should be run.  If the working
@@ -310,9 +333,8 @@ public class SystemProgram implements Runnable {
 
       //  Create a buffered writer to handle the stdin, stdout and stderr
       //  streams of the process
-      OutputStream cmdInputStream = process.getOutputStream();
-      BufferedWriter cmdInBuffer =
-        new BufferedWriter(new OutputStreamWriter(cmdInputStream));
+      cmdInputStream = process.getOutputStream();
+      cmdInBuffer = new BufferedWriter(new OutputStreamWriter(cmdInputStream));
 
       InputStream cmdOutputStream = process.getInputStream();
       BufferedReader cmdOutputBuffer =
@@ -344,7 +366,6 @@ public class SystemProgram implements Runnable {
           cmdInputStream.flush();
         }
       }
-      cmdInputStream.close();
 
       if (debug) {
         System.err.println("Done writing to process stdin");
@@ -468,6 +489,12 @@ public class SystemProgram implements Runnable {
     }
 
     //  Set the done flag for the thread
+    try {
+      cmdInputStream.close();
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+    }
     done = true;
   }
 
