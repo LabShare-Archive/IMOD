@@ -1,5 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/14/05: Increased array limits in Beadtrack to allow 48x48 boxes for 500 
+beads.
+
+8/14/05: Increased array limits in Tilt to allow up to 40x40 local areas for
+120 tilts.
+
 8/14/05: Fixed model scaling in 3dmod when opening an externally created model
 (e.g. .resmod) on binned data.
 
