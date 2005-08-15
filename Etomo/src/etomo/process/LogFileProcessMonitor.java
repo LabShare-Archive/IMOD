@@ -25,6 +25,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.17  2005/08/04 19:45:07  sueh
+ * <p> bug# 532 Added empty setProcess() to implement ProcessMonitor.
+ * <p>
  * <p> Revision 3.16  2005/07/26 21:34:41  sueh
  * <p> bug# 701 Implementing ProcessMonitor, which extends Runnable.
  * <p> Added a ProcessEndState member variable.  Set it to DONE when the
@@ -363,5 +366,14 @@ public abstract class LogFileProcessMonitor implements ProcessMonitor {
   
   public void setProcess(SystemProcessInterface process) {
     //process is not required
+  }
+  
+  public void kill(SystemProcessInterface process, AxisID axisID) {
+    endState = ProcessEndState.KILLED;
+    process.signalKill(axisID);
+  }
+  
+  public void pause(SystemProcessInterface process, AxisID axisID) {
+    throw new IllegalStateException("can't pause process");
   }
 }
