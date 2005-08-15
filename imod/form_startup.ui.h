@@ -26,7 +26,7 @@ void StartupForm::init()
     mFilesChanged = false;
     mArgv = NULL;
     mArgc = 0;
-    mJoinedWithSpace = true;
+    mJoinedWithSpace = false;
 }
 
 void StartupForm::manageForModView()
@@ -159,16 +159,16 @@ void StartupForm::imageSelectClicked()
                      (mModvMode ? "Model files (*.*mod)" : 
                       "MRC files (*.*st *.*ali *.*rec *.*mrc);;Tiff files (*.tif);;All files (*)",
                       QString::null, 0, 0, 
-		      mModvMode ? "Select model file(s) to load" :
-		      "Select image file(s) to load");
+        mModvMode ? "Select model file(s) to load" :
+        "Select image file(s) to load");
     enableButtons(true);
     
     // Join the list with ; and see if there are any spaces.  If not rejoin with spaces
     mImageFiles = mImageFileList.join(";");
     mJoinedWithSpace = false;
     if (mImageFiles.find(' ') < 0) {
-	mImageFiles = mImageFileList.join(" ");
-	mJoinedWithSpace = true;
+ mImageFiles = mImageFileList.join(" ");
+ mJoinedWithSpace = true;
     }
     mFilesChanged = false;
     imageFilesEdit->setText(mImageFiles);
@@ -208,16 +208,16 @@ void StartupForm::enableButtons( bool enable )
 void StartupForm::addArg( const char *arg )
 {
     if (mArgc)
-	mArgv = (char **)realloc(mArgv, sizeof(char *) * (mArgc + 1));
+ mArgv = (char **)realloc(mArgv, sizeof(char *) * (mArgc + 1));
     else 
-	mArgv = (char **)malloc(sizeof(char *));
+ mArgv = (char **)malloc(sizeof(char *));
     if (!mArgv) {
-	mArgc = 0;
-	return;
+ mArgc = 0;
+ return;
     }
     mArgv[mArgc] = strdup(arg);
     if (mArgv[mArgc])
-	mArgc++;
+ mArgc++;
 }
 
 // Return all arguments to the program in an argument vector
@@ -226,47 +226,47 @@ char ** StartupForm::getArguments( int & argc )
     char numstr[32];
     int fromVal, toVal, xybin, zbin;
     if (mModvMode) {
-	
-	// Model mode: add v for it, then size options
-	addArg("3dmodv");
-	if (mModvSizeOption == 1)
-	    addArg("-f");
-	else if (mModvSizeOption == 2) {
-	    addArg("-s");
-	    sprintf(numstr, "%d,%d", xSizeSpinBox->value(), ySizeSpinBox->value());
-	    addArg(numstr);
-	}
-	
-	// Add the "image" files and return options
-	addImageFiles();
-	argc = mArgc;
-	return mArgv;
+ 
+ // Model mode: add v for it, then size options
+ addArg("3dmodv");
+ if (mModvSizeOption == 1)
+     addArg("-f");
+ else if (mModvSizeOption == 2) {
+     addArg("-s");
+     sprintf(numstr, "%d,%d", xSizeSpinBox->value(), ySizeSpinBox->value());
+     addArg(numstr);
+ }
+ 
+ // Add the "image" files and return options
+ addImageFiles();
+ argc = mArgc;
+ return mArgv;
     }
     
     // Do all the easy ones first
     addArg("3dmod");
     if (openZapBox->isChecked())
-	addArg("-Z");
+ addArg("-Z");
     if (openXYZBox->isChecked())
-	addArg("-xyz");
+ addArg("-xyz");
     if (openSlicerBox->isChecked())
-	addArg("-S");
+ addArg("-S");
     if (openModvBox->isChecked())
-	addArg("-V");
+ addArg("-V");
     if (flipCheckBox->isChecked())
-	addArg("-Y");
+ addArg("-Y");
     if (fillCacheBox->isChecked())
-	addArg("-F");
+ addArg("-F");
     if (showRGBGrayBox->isChecked())
-	addArg("-G");
+ addArg("-G");
     if (loadFramesBox->isChecked())
-	addArg("-f");
+ addArg("-f");
     if (loadSepTimesBox->isChecked())
-	addArg("-T");
+ addArg("-T");
     if (loadUnscaledBox->isChecked())
-	addArg("-m");
+ addArg("-m");
     if (loadNoMirrorBox->isChecked())
-	addArg("-M");
+ addArg("-M");
     
     // Binning
     xybin = binXYSpinBox->value();
@@ -279,68 +279,68 @@ char ** StartupForm::getArguments( int & argc )
     
     // Montage and overlap
     if (showMontageBox->isChecked()) {
-	addArg("-P");
-	sprintf(numstr, "%d,%d", xMontageSpinBox->value(), yMontageSpinBox->value());
-	addArg(numstr);
-	addArg("-o");
-	sprintf(numstr, "%d,%d", xOverlapSpinBox->value(), yOverlapSpinBox->value());
-	addArg(numstr);
+ addArg("-P");
+ sprintf(numstr, "%d,%d", xMontageSpinBox->value(), yMontageSpinBox->value());
+ addArg(numstr);
+ addArg("-o");
+ sprintf(numstr, "%d,%d", xOverlapSpinBox->value(), yOverlapSpinBox->value());
+ addArg(numstr);
     }
     
     // Cache
     if (!cacheSizeEdit->text().isEmpty()) {
-	int cacheSize = cacheSizeEdit->text().toInt();
-	if (cacheSize > 0) {
-	    addArg("-C");
-	    sprintf(numstr, "%d%s", cacheSize, mCacheOption ? "M" : "");
-	    addArg(numstr);
-	}
+ int cacheSize = cacheSizeEdit->text().toInt();
+ if (cacheSize > 0) {
+     addArg("-C");
+     sprintf(numstr, "%d%s", cacheSize, mCacheOption ? "M" : "");
+     addArg(numstr);
+ }
     }
     
     // Subsets
     if (!xFromEdit->text().isEmpty() || !xToEdit->text().isEmpty()) {
-	fromVal = xFromEdit->text().isEmpty() ? -999 : xFromEdit->text().toInt();
-	toVal = xToEdit->text().isEmpty() ? 65535 : xToEdit->text().toInt();
-	addArg("-x");
-	sprintf(numstr, "%d,%d", fromVal, toVal);
-	addArg(numstr);
+ fromVal = xFromEdit->text().isEmpty() ? -999 : xFromEdit->text().toInt();
+ toVal = xToEdit->text().isEmpty() ? 65535 : xToEdit->text().toInt();
+ addArg("-x");
+ sprintf(numstr, "%d,%d", fromVal, toVal);
+ addArg(numstr);
     }
     
     if (!yFromEdit->text().isEmpty() || !yToEdit->text().isEmpty()) {
-	fromVal = yFromEdit->text().isEmpty() ? -999 : yFromEdit->text().toInt();
-	toVal = yToEdit->text().isEmpty() ? 65535 : yToEdit->text().toInt();
-	addArg("-y");
-	sprintf(numstr, "%d,%d", fromVal, toVal);
-	addArg(numstr); 
+ fromVal = yFromEdit->text().isEmpty() ? -999 : yFromEdit->text().toInt();
+ toVal = yToEdit->text().isEmpty() ? 65535 : yToEdit->text().toInt();
+ addArg("-y");
+ sprintf(numstr, "%d,%d", fromVal, toVal);
+ addArg(numstr); 
     }
  
     if (!zFromEdit->text().isEmpty() || !zToEdit->text().isEmpty()) {
-	fromVal = zFromEdit->text().isEmpty() ? -999 : zFromEdit->text().toInt();
-	toVal = zToEdit->text().isEmpty() ? 65535 : zToEdit->text().toInt();
-	addArg("-z");
-	sprintf(numstr, "%d,%d",  fromVal, toVal);
-	addArg(numstr);
+ fromVal = zFromEdit->text().isEmpty() ? -999 : zFromEdit->text().toInt();
+ toVal = zToEdit->text().isEmpty() ? 65535 : zToEdit->text().toInt();
+ addArg("-z");
+ sprintf(numstr, "%d,%d",  fromVal, toVal);
+ addArg(numstr);
     }
 
     // Intensities.  This is the one that requires both for now - need to fix this
     if (!scaleFromEdit->text().isEmpty() && !scaleToEdit->text().isEmpty()) {
-	fromVal = scaleFromEdit->text().toInt();
-	toVal = scaleToEdit->text().toInt();
-	addArg("-s");
-	sprintf(numstr, "%d,%d",  fromVal, toVal);
-	addArg(numstr);
+ fromVal = scaleFromEdit->text().toInt();
+ toVal = scaleToEdit->text().toInt();
+ addArg("-s");
+ sprintf(numstr, "%d,%d",  fromVal, toVal);
+ addArg(numstr);
     }
     
     // Piece list file
     if (!pieceFileEdit->text().isEmpty()) {
-	addArg("-p");
-	addArg(pieceFileEdit->text().latin1());
+ addArg("-p");
+ addArg(pieceFileEdit->text().latin1());
     }
     
     // Image files and model file
     addImageFiles();
      if (!modelFileEdit->text().isEmpty())
-	addArg(modelFileEdit->text().latin1());
+ addArg(modelFileEdit->text().latin1());
      argc = mArgc;
      return mArgv;
 }
@@ -350,10 +350,10 @@ void StartupForm::addImageFiles()
     // If text box was changed, need to recreate a string list
     // If they were joined with ; or contain a ;, split with that
     if (mFilesChanged) {
-	if (mJoinedWithSpace && mImageFiles.find(';') < 0)
-	    mImageFileList = QStringList::split(" ", mImageFiles);
- 	else 
-	    mImageFileList = QStringList::split(";", mImageFiles);
+ if (mJoinedWithSpace && mImageFiles.find(';') < 0)
+     mImageFileList = QStringList::split(" ", mImageFiles);
+  else 
+     mImageFileList = QStringList::split(";", mImageFiles);
      }
     
     //Process list by the book
@@ -376,11 +376,15 @@ void StartupForm::setValues( ImodView *vi, char * *argv, int firstfile, int argc
     startAsGroup->setButton(doImodv);
     mModvMode = doImodv != 0;
     
-    // Files
+    // Files. Join with ; then if there are no spaces, convert to space join
     if (firstfile && firstfile < argc) {
         mImageFiles = "";
         for (int i = firstfile; i < argc; i++)
-            mImageFiles += QString(argv[i]) + " ";
+            mImageFiles += QString(argv[i]) + ";";
+        if (mImageFiles.find(' ') < 0) {
+          mImageFiles.replace(';', " ");
+          mJoinedWithSpace = true;
+        }
         imageFilesEdit->setText(mImageFiles);
     }
     if (plistfname)
