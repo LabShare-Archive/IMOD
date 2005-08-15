@@ -108,9 +108,5559 @@ import etomo.util.Utilities;
  * @author $Author$
  *
  * @version $Revision$
- * 
- *
+ */
+public class ApplicationManager extends BaseManager {
+  public static final String rcsid = "$Id$";
+
+  //  Process dialog references
+  private SetupDialog setupDialog = null;
+
+  private PreProcessingDialog preProcDialogA = null;
+
+  private PreProcessingDialog preProcDialogB = null;
+
+  private CoarseAlignDialog coarseAlignDialogA = null;
+
+  private CoarseAlignDialog coarseAlignDialogB = null;
+
+  private FiducialModelDialog fiducialModelDialogA = null;
+
+  private FiducialModelDialog fiducialModelDialogB = null;
+
+  private AlignmentEstimationDialog fineAlignmentDialogA = null;
+
+  private AlignmentEstimationDialog fineAlignmentDialogB = null;
+
+  private TomogramPositioningDialog tomogramPositioningDialogA = null;
+
+  private TomogramPositioningDialog tomogramPositioningDialogB = null;
+
+  private TomogramGenerationDialog tomogramGenerationDialogA = null;
+
+  private TomogramGenerationDialog tomogramGenerationDialogB = null;
+
+  protected TomogramCombinationDialog tomogramCombinationDialog = null;
+
+  private PostProcessingDialog postProcessingDialog = null;
+
+  private CleanUpDialog cleanUpDialog = null;
+
+  private MetaData metaData = null;
+  private MainTomogramPanel mainPanel;
+  private ProcessTrack processTrack;
+  private ProcessManager processMgr;
+  private TomogramState state;
+  private boolean[] advancedA = new boolean[DialogType.TOTAL];
+  private boolean[] advancedB = new boolean[DialogType.TOTAL];
+  private DialogType currentDialogTypeA = null;
+  private DialogType currentDialogTypeB = null;
+
+  /**
+   * Does initialization and loads the .edf file.  Opens the setup dialog
+   * if there is no .edf file.
+   */
+  public ApplicationManager(String paramFileName, AxisID axisID) {
+    super();
+    this.metaData = new MetaData(this);
+    initializeUIParameters(paramFileName, axisID);
+    initializeAdvanced();
+    // Open the etomo data file if one was found on the command line
+    if (!test) {
+      if (!paramFileName.equals("")) {
+        if (loadedTestParamFile) {
+          openProcessingPanel();
+          mainPanel.setStatusBarText(paramFile, metaData);
+        }
+        else {
+          openSetupDialog();
+        }
+      }
+      else {
+        openSetupDialog();
+      }
+    }
+  }
+
+  /**
+   * Initialize advancedA and advancedB, which remember the advanced state of
+   * dialogs when the user switches from one to another.  This is necessary
+   * because the done function is run each time a user switches dialogs.
+   *
+   */
+  private void initializeAdvanced() {
+    boolean isAdvanced = EtomoDirector.getInstance().getAdvanced();
+    for (int i = 0; i < DialogType.TOTAL; i++) {
+      advancedA[i] = isAdvanced;
+      advancedB[i] = isAdvanced;
+    }
+  }
+
+  /**
+   * Checks the advanced state of a dialog.
+   * @param dialogType
+   * @param axisID
+   * @return
+   */
+  public boolean isAdvanced(DialogType dialogType, AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return advancedB[dialogType.toIndex()];
+    }
+    return advancedA[dialogType.toIndex()];
+  }
+
+  /**
+   * Sets the advanced state of a dialog.
+   * @param dialogType
+   * @param axisID
+   * @param advanced
+   */
+  public void setAdvanced(DialogType dialogType, AxisID axisID, boolean advanced) {
+    if (axisID == AxisID.SECOND) {
+      advancedB[dialogType.toIndex()] = advanced;
+    }
+    advancedA[dialogType.toIndex()] = advanced;
+  }
+
+  /**
+   * Sets the advanced state of a dialog.  Assumes the A axis (or single axis).
+   * @param dialogType
+   * @param advanced
+   */
+  public void setAdvanced(DialogType dialogType, boolean advanced) {
+    advancedA[dialogType.toIndex()] = advanced;
+  }
+
+  /**
+   * Finds out whether the manager is new, which means that it has no .edf file.
+   * If setupDialog is not null, then the manager is new.
+   */
+  public boolean isNewManager() {
+    return setupDialog != null;
+  }
+
+  /**
+   * Check if setup dialog has been modified by the user.
+   * Return true if there is text in the dataset field.
+   * @return
+   */
+  public boolean isSetupChanged() {
+    if (setupDialog == null) {
+      return false;
+    }
+    if (setupDialog.getDatasetString() == null
+        || setupDialog.getDatasetString().matches("\\s*")) {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Open the setup dialog
+   */
+  public void openSetupDialog() {
+    //  Open the dialog in the appropriate mode for the current state of
+    //  processing
+    setCurrentDialogType(DialogType.SETUP, AxisID.ONLY);
+    if (setupDialog == null) {
+      setupDialog = new SetupDialog(this);
+      setupDialog.initializeFields((ConstMetaData) metaData);
+    }
+    mainPanel.openSetupPanel(setupDialog);
+    Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+    Dimension frameSize = mainPanel.getSize();
+    mainPanel.setLocation((screenSize.width - frameSize.width) / 2,
+        (screenSize.height - frameSize.height) / 2);
+  }
+
+  /**
+   * Checks for an existing reconstruction on a different stack in the current
+   * directory.  Assumes that the new .edf file for this instance has not been
+   * created yet.
+   * Since .com file names are not stack specific, it is necessary
+   * to prevent interference by doing only one reconstruction per directory.  A
+   * secondary goal is to have only one tilt series per directory.  Multiple
+   * .edf files accessing the same stacks are allowed so that the user can back
+   * up their .edf file or start a fresh .edf file.  The user may also have one
+   * single and one dual reconstruction in a directory, as long as they have a
+   * stack in common.
+   * @return True if there is already an .edf file in the propertyUserDir and
+   * it is referencing a stack other then the one(s) specified in the setup
+   * dialog.  True if the new .edf file and the existing .edf file are both
+   * single axis, even if one file is accessing the A stack and the other is
+   * accessing the B stack.  False if no existing .edf file is found.  False if
+   * the new .edf file and the existing .edf file are single and dual axis, as
+   * long as they have a stack in common.  False if there is a conflict, but the
+   * stacks that one of .edf files references don't exist.
+   */
+  private boolean checkForSharedDirectory() {
+    if (setupDialog == null) {
+      throw new IllegalStateException(
+          "Function can only be run during setup phase,\nbefore the .edf file has been created.");
+    }
+    File directory = new File(propertyUserDir);
+    //Get all the edf files in propertyUserDir.
+    File[] edfFiles = directory.listFiles(new EtomoFileFilter());
+    if (edfFiles == null) {
+      return false;
+    }
+    String datasetName = metaData.getDatasetName();
+    AxisType axisType = metaData.getAxisType();
+    String extension = metaData.getFileExtension();
+    File firstStack = null;
+    File secondStack = null;
+    String firstStackName = null;
+    String secondStackName = null;
+    //Create File instances based on the stacks specified in the setup dialog
+    if (axisType == AxisType.DUAL_AXIS) {
+      firstStack = new File(propertyUserDir, datasetName
+          + AxisID.FIRST.getExtension() + ".st");
+      firstStackName = firstStack.getName();
+      secondStack = new File(propertyUserDir, datasetName
+          + AxisID.SECOND.getExtension() + ".st");
+      secondStackName = secondStack.getName();
+    }
+    else if (axisType == AxisType.SINGLE_AXIS) {
+      firstStack = new File(propertyUserDir, datasetName
+          + AxisID.ONLY.getExtension() + ".st");
+      firstStackName = firstStack.getName();
+    }
+    //open any .edf files in propertyUserDir - assuming the .edf file for this
+    //instance hasn't been created yet.
+    //If there is at least one .edf file that references existing stacks that
+    //are not the stacks the will be used in this instance, then the directory
+    //is already in use.
+    //Doing a dual and single axis on the same stack is not sharing a directory.
+    //However doing two single axis reconstructions on the same tilt series,
+    //where one is done on A and the other is done on B, would be considered
+    //sharing a directory.
+    for (int i = 0; i < edfFiles.length; i++) {
+      MetaData savedMetaData = new MetaData(this);
+      ParameterStore paramStore = new ParameterStore(edfFiles[i]);
+      Storable[] storable = new Storable[1];
+      storable[0] = savedMetaData;
+      try {
+        paramStore.load(storable);
+      }
+      catch (IOException e) {
+        e.printStackTrace();
+        continue;
+      }
+      //Create File instances based on the stacks specified in the edf file
+      //found in propertyUserDir.
+      AxisType savedAxisType = savedMetaData.getAxisType();
+      String savedDatasetName = savedMetaData.getDatasetName();
+      File savedFirstStack;
+      File savedSecondStack;
+      String savedFirstStackName;
+      String savedSecondStackName;
+      if (savedAxisType == AxisType.DUAL_AXIS) {
+        savedFirstStack = new File(propertyUserDir, savedDatasetName
+            + AxisID.FIRST.getExtension() + ".st");
+        savedFirstStackName = savedFirstStack.getName();
+        savedSecondStack = new File(propertyUserDir, savedDatasetName
+            + AxisID.SECOND.getExtension() + ".st");
+        savedSecondStackName = savedSecondStack.getName();
+        if (axisType == AxisType.DUAL_AXIS) {
+          //compare dual axis A against saved dual axis A
+          if (savedFirstStack.exists()
+              && !firstStackName.equals(savedFirstStackName)) {
+            return true;
+          }
+          //compare dual axis B against saved dual axis B
+          if (savedSecondStack.exists()
+              && !secondStackName.equals(savedSecondStackName)) {
+            return true;
+          }
+        }
+        else if (axisType == AxisType.SINGLE_AXIS) {
+          //compare single axis against saved dual axis A
+          //compare single axis against saved dual axis B
+          if (savedFirstStack.exists()
+              && !firstStackName.equals(savedFirstStackName)
+              && (!savedSecondStack.exists() || (savedSecondStack.exists() && !firstStackName
+                  .equals(savedSecondStackName)))) {
+            return true;
+          }
+        }
+      }
+      else if (savedAxisType == AxisType.SINGLE_AXIS) {
+        savedFirstStack = new File(propertyUserDir, savedDatasetName
+            + AxisID.ONLY.getExtension() + ".st");
+        savedFirstStackName = savedFirstStack.getName();
+        if (axisType == AxisType.DUAL_AXIS) {
+          //compare dual axis A against saved single axis
+          //compare dual axis B against saved single axis
+          if (savedFirstStack.exists()
+              && !firstStackName.equals(savedFirstStackName)
+              && !secondStackName.equals(savedFirstStackName)) {
+            return true;
+          }
+        }
+        else if (axisType == AxisType.SINGLE_AXIS) {
+          //compare single axis against saved single axis
+          if (savedFirstStack.exists()
+              && !firstStackName.equals(savedFirstStackName)) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Close message from the setup dialog window
+   */
+  public void doneSetupDialog() {
+    if (setupDialog == null) {
+      uiHarness.openMessageDialog(
+          "Can not update metadata parameters without an active setup dialog",
+          "Program logic error", AxisID.ONLY);
+      return;
+    }
+    //  Get the selected exit button
+    DialogExitState exitState = setupDialog.getExitState();
+    if (exitState != DialogExitState.CANCEL) {
+      if (!setupDialog.isValid()) {
+        return;
+      }
+      // Set the current working directory for the application saving the
+      // old user.dir property until the meta data is valid
+      String oldUserDir = propertyUserDir;
+      propertyUserDir = setupDialog.getWorkingDirectory().getAbsolutePath();
+      metaData = setupDialog.getFields();
+      metaData.initialize();
+      if (metaData == null) {
+        return;
+      }
+      if (metaData.isValid()) {
+        if (checkForSharedDirectory()) {
+          uiHarness.openMessageDialog("This directory (" + propertyUserDir
+              + ") is already being used by an .edf file.  Either open the "
+              + "existing .edf file or create a new directory for the new "
+              + "reconstruction.", "WARNING:  CANNOT PROCEED", AxisID.ONLY);
+          return;
+        }
+        processTrack.setSetupState(ProcessState.INPROGRESS);
+        //final initialization of IMOD manager
+        imodManager.setMetaData(metaData);
+        //set paramFile so meta data can be saved
+        paramFile = new File(propertyUserDir, metaData.getMetaDataFileName());
+        mainPanel.setStatusBarText(paramFile, metaData);
+        userConfig.putDataFile(paramFile.getAbsolutePath());
+        loadedTestParamFile = true;
+        state.initialize();
+      }
+      else {
+        String[] errorMessage = new String[2];
+        errorMessage[0] = "Setup Parameter Error";
+        errorMessage[1] = metaData.getInvalidReason();
+        uiHarness.openMessageDialog(errorMessage, "Setup Parameter Error",
+            AxisID.ONLY);
+        propertyUserDir = oldUserDir;
+        return;
+      }
+      // This is really the method to use the existing com scripts
+      if (exitState == DialogExitState.EXECUTE) {
+        try {
+          processMgr.setupComScripts(metaData, AxisID.ONLY);
+        }
+        catch (BadComScriptException except) {
+          except.printStackTrace();
+          uiHarness.openMessageDialog(except.getMessage(),
+              "Can't run copytomocoms", AxisID.ONLY);
+          return;
+        }
+        catch (IOException except) {
+          uiHarness.openMessageDialog("Can't run copytomocoms\n"
+              + except.getMessage(), "Copytomocoms IOException", AxisID.ONLY);
+          return;
+        }
+      }
+      processTrack.setSetupState(ProcessState.COMPLETE);
+      metaData.setComScriptCreated(true);
+      EtomoDirector.getInstance().renameCurrentManager(
+          metaData.getDatasetName());
+    }
+    //  Switch the main window to the procesing panel
+    openProcessingPanel();
+    //  Free the dialog
+    setupDialog = null;
+    saveTestParamFile(AxisID.ONLY);
+  }
+
+  /**
+   * Open the main window in processing mode
+   */
+  private void openProcessingPanel() {
+    mainPanel.showProcessingPanel(metaData.getAxisType());
+    mainPanel.updateAllProcessingStates(processTrack);
+    setPanel();
+  }
+
+  /**
+   * Open the pre-processing dialog
+   */
+  public void openPreProcDialog(AxisID axisID) {
+    //  Check to see if the com files are present otherwise pop up a dialog
+    //  box informing the user to run the setup process
+    if (!metaData.getComScriptCreated()) {
+      setupRequestDialog(axisID);
+      return;
+    }
+    setCurrentDialogType(DialogType.PRE_PROCESSING, axisID);
+    mainPanel.selectButton(axisID, "Pre-processing");
+    // TODO: When a panel is overwriten by another should it be nulled and
+    // closed or left and and reshown when needed?
+    // Problem with stale data for align and tilt info since they are on
+    // multiple panels
+    // Check to see if the dialog panel is already open
+    if (showIfExists(preProcDialogA, preProcDialogB, axisID)) {
+      return;
+    }
+    PreProcessingDialog preProcDialog = new PreProcessingDialog(this, axisID);
+    if (axisID == AxisID.SECOND) {
+      preProcDialogB = preProcDialog;
+    }
+    else {
+      preProcDialogA = preProcDialog;
+    }
+    // Load the required ccderaser{|a|b}.com files
+    // Fill in the parameters and set it to the appropriate state
+    comScriptMgr.loadEraser(axisID);
+    preProcDialog.setCCDEraserParams(comScriptMgr.getCCDEraserParam(axisID));
+    mainPanel.showProcess(preProcDialog.getContainer(), axisID);
+  }
+
+  /**
+   * Closes preprocessing dialog.  Updates comscripts and edf file and deletes
+   * dialog.
+   */
+  public void donePreProcDialog(AxisID axisID) {
+    PreProcessingDialog preProcDialog;
+    if (axisID == AxisID.SECOND) {
+      preProcDialog = preProcDialogB;
+    }
+    else {
+      preProcDialog = preProcDialogA;
+    }
+    if (preProcDialog == null) {
+      uiHarness.openMessageDialog(
+          "Can not update preprocessing parameters without an active "
+              + "preprocessing dialog", "Program logic error", axisID);
+      return;
+    }
+    setAdvanced(preProcDialog.getDialogType(), axisID, preProcDialog
+        .isAdvanced());
+
+    //  Keep dialog box open until we get good info or it is cancelled
+    DialogExitState exitState = preProcDialog.getExitState();
+    if (exitState == DialogExitState.CANCEL) {
+      mainPanel.showBlankProcess(axisID);
+    }
+    else {
+      updateEraserCom(axisID, false);
+      // If there are raw stack imod processes open ask the user if they
+      // should be closed.
+      try {
+        if (exitState != DialogExitState.SAVE
+            && imodManager.isOpen(ImodManager.RAW_STACK_KEY, axisID)) {
+          String[] message = new String[2];
+          message[0] = "The raw stack is open in 3dmod";
+          message[1] = "Should it be closed?";
+          if (uiHarness.openYesNoDialog(message, axisID)) {
+            imodManager.quit(ImodManager.RAW_STACK_KEY, axisID);
+          }
+        }
+      }
+      catch (AxisTypeException except) {
+        except.printStackTrace();
+        uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
+            axisID);
+      }
+      catch (SystemProcessException except) {
+        except.printStackTrace();
+        uiHarness.openMessageDialog(except.getMessage(),
+            "Problem closing raw stack", axisID);
+      }
+      if (exitState == DialogExitState.EXECUTE) {
+        processTrack.setPreProcessingState(ProcessState.COMPLETE, axisID);
+        mainPanel.setPreProcessingState(ProcessState.COMPLETE, axisID);
+        //  Go to the coarse align dialog by default
+        openCoarseAlignDialog(axisID);
+      }
+      else if (exitState != DialogExitState.SAVE) {
+        processTrack.setPreProcessingState(ProcessState.INPROGRESS, axisID);
+        mainPanel.setPreProcessingState(ProcessState.INPROGRESS, axisID);
+        //  Go to the coarse align dialog by default
+        mainPanel.showBlankProcess(axisID);
+      }
+      saveTestParamFile(axisID);
+    }
+    //  Clean up the existing dialog
+    if (axisID == AxisID.SECOND) {
+      preProcDialogB = null;
+    }
+    else {
+      preProcDialogA = null;
+    }
+    preProcDialog = null;
+  }
+
+  /**
+   * Open 3dmod to create the manual erase model
+   */
+  public void imodManualErase(AxisID axisID, Run3dmodMenuOptions menuOptions) {
+    String eraseModelName = metaData.getDatasetName() + axisID.getExtension()
+        + ".erase";
+    try {
+      if (metaData.getViewType() == ViewType.MONTAGE) {
+        imodManager.setFrames(ImodManager.RAW_STACK_KEY, axisID, true);
+      }
+      imodManager.open(ImodManager.RAW_STACK_KEY, axisID, eraseModelName, true,
+          menuOptions);
+      processTrack.setPreProcessingState(ProcessState.INPROGRESS, axisID);
+      mainPanel.setPreProcessingState(ProcessState.INPROGRESS, axisID);
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(),
+          "Can't open 3dmod on raw stack", axisID);
+    }
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(),
+          "Axis type problem in 3dmod erase", axisID);
+    }
+  }
+
+  /**
+   * Get the eraser script parameters from the CCD eraser panel and
+   * write them out the eraser{|a|b}.com script
+   * @param axisID    The axisID to process
+   * @param trialMode Set to trial mode if true
+   */
+  private void updateEraserCom(AxisID axisID, boolean trialMode) {
+    PreProcessingDialog preProcDialog;
+    if (axisID == AxisID.SECOND) {
+      preProcDialog = preProcDialogB;
+    }
+    else {
+      preProcDialog = preProcDialogA;
+    }
+    //  Get the user input data from the dialog box. The CCDEraserParam
+    //  is first initialized from the currently loaded com script to
+    //  provide deafault values for those not handled by the dialog box
+    //  get function needs some error checking
+    CCDEraserParam ccdEraserParam = comScriptMgr.getCCDEraserParam(axisID);
+    preProcDialog.getCCDEraserParams(ccdEraserParam);
+    ccdEraserParam.setTrialMode(trialMode);
+    comScriptMgr.saveEraser(ccdEraserParam, axisID);
+  }
+
+  /**
+   * Run the eraser script for the specified axis
+   * @param axisID
+   */
+  public void eraser(AxisID axisID) {
+    updateEraserCom(axisID, false);
+    processTrack.setPreProcessingState(ProcessState.INPROGRESS, axisID);
+    mainPanel.setPreProcessingState(ProcessState.INPROGRESS, axisID);
+    String threadName;
+    try {
+      threadName = processMgr.eraser(axisID);
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Can not execute eraser" + axisID.getExtension() + ".com";
+      message[1] = e.getMessage();
+      uiHarness.openMessageDialog(message, "Unable to execute com script",
+          axisID);
+      return;
+    }
+    setThreadName(threadName, axisID);
+  }
+
+  /**
+   * Run CCDeraser in trial mode
+   * @param axisID
+   */
+  public void findXrays(AxisID axisID) {
+    updateEraserCom(axisID, true);
+    processTrack.setPreProcessingState(ProcessState.INPROGRESS, axisID);
+    mainPanel.setPreProcessingState(ProcessState.INPROGRESS, axisID);
+    String threadName;
+    try {
+      threadName = processMgr.eraser(axisID);
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Can not execute eraser" + axisID.getExtension() + ".com";
+      message[1] = e.getMessage();
+      uiHarness.openMessageDialog(message, "Unable to execute com script",
+          axisID);
+      return;
+    }
+    setThreadName(threadName, axisID);
+  }
+
+  /**
+   * Open 3dmod to view the xray model on the raw stack
+   */
+  public void imodXrayModel(AxisID axisID, Run3dmodMenuOptions menuOptions) {
+    String xRayModel = metaData.getDatasetName() + axisID.getExtension()
+        + "_peak.mod";
+    try {
+      imodManager.setPreserveContrast(ImodManager.RAW_STACK_KEY, axisID, true);
+      if (metaData.getViewType() == ViewType.MONTAGE) {
+        imodManager.setFrames(ImodManager.RAW_STACK_KEY, axisID, true);
+      }
+      imodManager.open(ImodManager.RAW_STACK_KEY, axisID, xRayModel,
+          menuOptions);
+    }
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
+          axisID);
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(),
+          "Problem opening coarse stack", axisID);
+    }
+  }
+
+  /**
+   * Open 3dmod to view the erased stack
+   */
+  public void imodErasedStack(AxisID axisID, Run3dmodMenuOptions menuOptions) {
+    if (Utilities.getFile(this, true, axisID, "_fixed.st", "erased stack") == null) {
+      return;
+    }
+    try {
+      if (metaData.getViewType() == ViewType.MONTAGE) {
+        imodManager.setPieceListFileName(ImodManager.ERASED_STACK_KEY, axisID,
+            metaData.getDatasetName() + axisID.getExtension() + ".pl");
+      }
+      imodManager.open(ImodManager.ERASED_STACK_KEY, axisID, menuOptions);
+    }
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
+          axisID);
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(),
+          "Problem opening erased stack", axisID);
+    }
+  }
+
+  public void archiveOriginalStack() {
+    archiveOriginalStack(null);
+  }
+
+  /**
+   * Archive the orginal stacks during clean up.
+   * @param axisID
+   */
+  private void archiveOriginalStack(AxisID currentAxisID) {
+    //figure out which original stack to archive
+    AxisID stackAxisID = currentAxisID;
+    if (stackAxisID == null) {
+      if (metaData.getAxisType() == AxisType.DUAL_AXIS) {
+        stackAxisID = AxisID.FIRST;
+      }
+      else {
+        stackAxisID = AxisID.ONLY;
+      }
+    }
+    //set next process to archiveorig so that the second axis can be done
+    if (stackAxisID == AxisID.FIRST) {
+      setNextProcess(AxisID.ONLY, ArchiveorigParam.COMMAND_NAME);
+    }
+    else {
+      resetNextProcess(AxisID.ONLY);
+    }
+    //check for original stack
+    File originalStack = Utilities.getFile(this, false, stackAxisID,
+        "_orig.st", "original stack");
+    if (!originalStack.exists()) {
+      if (stackAxisID == AxisID.FIRST) {
+        //Nothing to do on the first axis, so move on to the second axis
+        startNextProcess(AxisID.ONLY);
+        return;
+      }
+      else {
+        return;
+      }
+    }
+    //set progress bar and process state
+    mainPanel.startProgressBar("Archiving " + stackAxisID + " stack",
+        AxisID.ONLY);
+    processTrack.setCleanUpState(ProcessState.INPROGRESS);
+    mainPanel.setCleanUpState(ProcessState.INPROGRESS);
+    //create param
+    ArchiveorigParam param = new ArchiveorigParam(this, stackAxisID);
+    //run process
+    try {
+      setThreadName(processMgr.archiveOrig(param), AxisID.ONLY);
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Can not execute " + ArchiveorigParam.COMMAND_NAME
+          + " command";
+      message[1] = e.getMessage();
+      uiHarness.openMessageDialog(message, "Unable to execute command",
+          AxisID.ONLY);
+    }
+  }
+
+  public void deleteOriginalStack(Command archiveorigParam, String[] output) {
+    AxisID axisID;
+    int mode = archiveorigParam.getCommandMode();
+    if (mode == ArchiveorigParam.AXIS_A_MODE) {
+      axisID = AxisID.FIRST;
+    }
+    else if (mode == ArchiveorigParam.AXIS_B_MODE) {
+      axisID = AxisID.SECOND;
+    }
+    else if (mode == ArchiveorigParam.AXIS_ONLY_MODE) {
+      axisID = AxisID.ONLY;
+    }
+    else {
+      return;
+    }
+    File originalStack = Utilities.getFile(this, false, axisID, "_orig.st", "");
+    //This function is only run is archiveorig succeeds so this "if" statement
+    //should always fail.
+    if (!originalStack.exists()
+        || output == null
+        || output.length != 6
+        || !output[4].equals("It is now safe to delete "
+            + originalStack.getName())) {
+      throw new IllegalStateException(
+          "Unexpected result from running archiveorig" + output.toString());
+    }
+    String[] message = new String[output.length - 2 + 3];
+    message[0] = "Result of " + archiveorigParam.getCommandLine() + ":\n";
+    int messageIndex = 1;
+    for (int i = 2; i < output.length; i++) {
+      message[messageIndex++] = output[i] + "\n";
+    }
+    message[messageIndex++] = "\n";
+    message[messageIndex] = "Delete " + originalStack.getAbsolutePath() + "?";
+    if (uiHarness.openDeleteDialog(message, AxisID.ONLY)) {
+      System.err.println("Deleting " + originalStack.getAbsolutePath());
+      originalStack.delete();
+      if (cleanUpDialog != null) {
+        cleanUpDialog.setArchiveFields();
+      }
+    }
+  }
+
+  public String getArchiveInfo(AxisID axisID) {
+    File stack = Utilities.getFile(this, false, axisID, ".st", "");
+    File originalStack = Utilities.getFile(this, false, axisID, "_orig.st", "");
+    File xrayStack = Utilities.getFile(this, false, axisID, "_xray.st.gz", "");
+    if (stack == null && originalStack == null || xrayStack == null) {
+      throw new IllegalStateException("Unable to get file information");
+    }
+    if (stack.exists() && !originalStack.exists() && xrayStack.exists()) {
+      return stack.getName();
+    }
+    return null;
+  }
+
+  /**
+   * Replace the raw stack with the fixed stack created from eraser
+   * @param axisID
+   */
+  public void replaceRawStack(AxisID axisID) {
+    mainPanel.setProgressBar("Using fixed stack", 1, axisID);
+    // Instantiate file objects for the original raw stack and the fixed stack
+    String rawStackFilename = propertyUserDir + File.separator
+        + metaData.getDatasetName() + axisID.getExtension() + ".st";
+    File rawStack = new File(rawStackFilename);
+    String rawStackRename = propertyUserDir + File.separator
+        + metaData.getDatasetName() + axisID.getExtension() + "_orig.st";
+    File rawRename = new File(rawStackRename);
+    File fixedStack = Utilities.getFile(this, true, axisID, "_fixed.st",
+        "erased stack");
+    if (fixedStack == null) {
+      return;
+    }
+    processTrack.setPreProcessingState(ProcessState.INPROGRESS, axisID);
+    mainPanel.setPreProcessingState(ProcessState.INPROGRESS, axisID);
+
+    // Rename the fixed stack to the raw stack file name and save the orginal
+    // raw stack to _orig.st if that does not already exist
+    try {
+      if (!rawRename.exists()) {
+        Utilities.renameFile(rawStack, rawRename);
+      }
+      if (renameXrayStack(axisID)) {
+        Utilities.renameFile(fixedStack, rawStack);
+      }
+    }
+    catch (IOException except) {
+      uiHarness.openMessageDialog(except.getMessage(), "File Rename Error",
+          axisID);
+    }
+    try {
+      if (imodManager.isOpen(ImodManager.RAW_STACK_KEY, axisID)) {
+        String[] message = new String[2];
+        message[0] = "The replaced raw stack is open in 3dmod";
+        message[1] = "Should it be closed?";
+        if (uiHarness.openYesNoDialog(message, axisID)) {
+          imodManager.quit(ImodManager.RAW_STACK_KEY, axisID);
+        }
+      }
+    }
+    catch (AxisTypeException e) {
+      e.printStackTrace();
+      System.err.println("Axis type exception in replaceRawStack");
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      System.err.println("System process exception in replaceRawStack");
+    }
+    //An _orig.st file may have been created, so refresh the Clean Up dialog's
+    //archive fields.
+    if (cleanUpDialog != null) {
+      cleanUpDialog.setArchiveFields();
+    }
+    mainPanel.stopProgressBar(axisID);
+  }
+
+  /**
+   * Renames the _xray.st.gz file to {dataset}{axisID}_xray.st.gz.{number}.
+   * Numbers start at 1 and go up.
+   * @param axisID
+   * @return false if rename fails
+   */
+  private boolean renameXrayStack(AxisID axisID) {
+    File xrayStack = new File(propertyUserDir, metaData.getDatasetName()
+        + axisID.getExtension() + "_xray.st.gz");
+    if (!xrayStack.exists()) {
+      return true;
+    }
+    File userDir = new File(propertyUserDir);
+    String[] xrayStackArchives = userDir.list(new XrayStackArchiveFilter());
+    int fileNumber = 0;
+    if (xrayStackArchives != null) {
+      EtomoNumber newFileNumber = new EtomoNumber(EtomoNumber.INTEGER_TYPE);
+      for (int i = 0; i < xrayStackArchives.length; i++) {
+        newFileNumber.set(xrayStackArchives[i].substring(xrayStackArchives[i]
+            .lastIndexOf('.') + 1));
+        if (newFileNumber.isValid() && !newFileNumber.isNull()) {
+          fileNumber = Math.max(fileNumber, newFileNumber.getInt());
+        }
+      }
+    }
+    File xrayStackArchive = new File(propertyUserDir, metaData.getDatasetName()
+        + axisID.getExtension() + "_xray.st.gz" + "."
+        + Integer.toString(fileNumber + 1));
+    if (xrayStackArchive.exists()) {
+      throw new IllegalStateException(xrayStackArchive.getName()
+          + " should not exist.");
+    }
+    try {
+      Utilities.renameFile(xrayStack, xrayStackArchive);
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog(e.getMessage(), "Unable to move "
+          + xrayStack.getName() + " to " + xrayStackArchive.getName()
+          + ".\nCannot continue.\nFirst run \"mv " + xrayStack.getName() + " "
+          + xrayStackArchive.getName() + "\" from the command line.", axisID);
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Bring up a preview 3dmod.
+   * @param axisID
+   */
+  public void imodPreview(AxisID axisID, Run3dmodMenuOptions menuOptions) {
+    if (setupDialog == null) {
+      return;
+    }
+    String key = ImodManager.PREVIEW_KEY;
+    MetaData previewMetaData = setupDialog.getDataset();
+    imodManager.setPreviewMetaData(previewMetaData);
+    File previewWorkingDir = previewMetaData
+        .getValidDatasetDirectory(setupDialog.getWorkingDirectory()
+            .getAbsolutePath());
+    if (previewWorkingDir == null) {
+      uiHarness.openMessageDialog(previewMetaData.getInvalidReason(),
+          "Raw Image Stack", axisID);
+      return;
+    }
+    try {
+      int previewNumber = imodManager.newImod(key, axisID);
+      imodManager.setWorkingDirectory(key, axisID, previewNumber,
+          previewWorkingDir);
+      imodManager.open(key, axisID, previewNumber, menuOptions);
+    }
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
+          axisID);
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(),
+          "Problem opening raw stack", axisID);
+    }
+  }
+
+  /**
+   * Open the coarse alignment dialog
+   */
+  public void openCoarseAlignDialog(AxisID axisID) {
+    //  Check to see if the com files are present otherwise pop up a dialog
+    //  box informing the user to run the setup process
+    if (!metaData.getComScriptCreated()) {
+      setupRequestDialog(axisID);
+      return;
+    }
+    setCurrentDialogType(DialogType.COARSE_ALIGNMENT, axisID);
+    mainPanel.selectButton(axisID, "Coarse Alignment");
+    if (showIfExists(coarseAlignDialogA, coarseAlignDialogB, axisID)) {
+      return;
+    }
+    CoarseAlignDialog coarseAlignDialog = new CoarseAlignDialog(this, axisID);
+    if (axisID == AxisID.SECOND) {
+      coarseAlignDialogB = coarseAlignDialog;
+    }
+    else {
+      coarseAlignDialogA = coarseAlignDialog;
+    }
+    //  Create the dialog box
+    comScriptMgr.loadXcorr(axisID);
+    comScriptMgr.loadUndistort(axisID);
+    coarseAlignDialog.setCrossCorrelationParams(comScriptMgr
+        .getTiltxcorrParam(axisID));
+    if (metaData.getViewType() == ViewType.MONTAGE) {
+      comScriptMgr.loadPreblend(axisID);
+    }
+    else {
+      comScriptMgr.loadPrenewst(axisID);
+    }
+
+    if (metaData.getViewType() == ViewType.MONTAGE) {
+      BlendmontParam blendmontParam = comScriptMgr.getPreblendParam(axisID);
+      coarseAlignDialog.setParams(blendmontParam);
+    }
+    else {
+      NewstParam prenewstParam = comScriptMgr.getPrenewstParam(axisID);
+      coarseAlignDialog.setPrenewstParams(prenewstParam);
+    }
+
+    coarseAlignDialog.setFiducialessAlignment(metaData
+        .isFiducialessAlignment(axisID));
+    coarseAlignDialog.setTiltAxisAngle(metaData.getImageRotation(axisID));
+    mainPanel.showProcess(coarseAlignDialog.getContainer(), axisID);
+  }
+
+  /**
+   * Get the parameters from the coarse align process dialog box
+   */
+  public void doneCoarseAlignDialog(AxisID axisID) {
+    //  Set a reference to the correct object
+    CoarseAlignDialog coarseAlignDialog = mapCoarseAlignDialog(axisID);
+    if (coarseAlignDialog == null) {
+      uiHarness.openMessageDialog(
+          "Can not update coarse align without an active coarse align dialog",
+          "Program logic error", axisID);
+      return;
+    }
+    setAdvanced(coarseAlignDialog.getDialogType(), axisID, coarseAlignDialog
+        .isAdvanced());
+    DialogExitState exitState = coarseAlignDialog.getExitState();
+    if (exitState == DialogExitState.CANCEL) {
+      mainPanel.showBlankProcess(axisID);
+    }
+    else {
+      //  Get the user input data from the dialog box
+      if (!updateXcorrCom(axisID)) {
+        return;
+      }
+      if (metaData.getViewType() != ViewType.MONTAGE
+          && !updatePrenewstCom(axisID)) {
+        return;
+      }
+      if (!updateFiducialessParams(coarseAlignDialog, axisID)) {
+        return;
+      }
+      if (exitState == DialogExitState.EXECUTE) {
+        processTrack.setCoarseAlignmentState(ProcessState.COMPLETE, axisID);
+        mainPanel.setCoarseAlignState(ProcessState.COMPLETE, axisID);
+        //  Go to the fiducial model dialog by default
+        if (metaData.isFiducialessAlignment(axisID)) {
+          openTomogramPositioningDialog(axisID);
+          // Check to see if the user wants to keep any coarse aligned imods
+          // open
+          try {
+            if (imodManager.isOpen(ImodManager.COARSE_ALIGNED_KEY, axisID)) {
+              String[] message = new String[2];
+              message[0] = "The coarsely aligned stack is open in 3dmod";
+              message[1] = "Should it be closed?";
+              if (uiHarness.openYesNoDialog(message, axisID)) {
+                imodManager.quit(ImodManager.COARSE_ALIGNED_KEY, axisID);
+              }
+            }
+          }
+          catch (AxisTypeException except) {
+            except.printStackTrace();
+            uiHarness.openMessageDialog(except.getMessage(),
+                "AxisType problem", axisID);
+          }
+          catch (SystemProcessException except) {
+            except.printStackTrace();
+            uiHarness.openMessageDialog(except.getMessage(),
+                "Problem closing coarse stack", axisID);
+          }
+        }
+        else {
+          openFiducialModelDialog(axisID);
+        }
+      }
+      else if (exitState != DialogExitState.SAVE) {
+        processTrack.setCoarseAlignmentState(ProcessState.INPROGRESS, axisID);
+        mainPanel.setCoarseAlignState(ProcessState.INPROGRESS, axisID);
+        mainPanel.showBlankProcess(axisID);
+      }
+      saveTestParamFile(axisID);
+    }
+    //  Clean up the existing dialog
+    if (axisID == AxisID.SECOND) {
+      coarseAlignDialogB = null;
+    }
+    else {
+      coarseAlignDialogA = null;
+    }
+    coarseAlignDialog = null;
+  }
+
+  /**
+   * Get the parameters from dialog box and run the cross correlation script
+   */
+  public void crossCorrelate(AxisID axisID) {
+    // Get the parameters from the dialog box
+    if (updateXcorrCom(axisID)) {
+      processTrack.setCoarseAlignmentState(ProcessState.INPROGRESS, axisID);
+      mainPanel.setCoarseAlignState(ProcessState.INPROGRESS, axisID);
+      String threadName;
+      try {
+        threadName = processMgr.crossCorrelate(axisID,
+            updateBlendmontInXcorrCom(axisID));
+      }
+      catch (SystemProcessException e) {
+        e.printStackTrace();
+        String[] message = new String[2];
+        message[0] = "Can not execute xcorr" + axisID.getExtension() + ".com";
+        message[1] = e.getMessage();
+        uiHarness.openMessageDialog(message, "Unable to execute com script",
+            axisID);
+        return;
+      }
+      setThreadName(threadName, axisID);
+    }
+  }
+
+  /**
+   * run undistort.com
+   * @param axisID
+   */
+  public void makeDistortionCorrectedStack(AxisID axisID) {
+    updateUndistortCom(axisID);
+    processTrack.setCoarseAlignmentState(ProcessState.INPROGRESS, axisID);
+    mainPanel.setCoarseAlignState(ProcessState.INPROGRESS, axisID);
+    String threadName;
+    try {
+      threadName = processMgr.makeDistortionCorrectedStack(axisID);
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Can not execute undistort" + axisID.getExtension() + ".com";
+      message[1] = e.getMessage();
+      uiHarness.openMessageDialog(message, "Unable to execute com script",
+          axisID);
+      return;
+    }
+    setThreadName(threadName, axisID);
+  }
+
+  /**
+   * Run the coarse alignment script
+   */
+  public void coarseAlign(AxisID axisID) {
+    String commandName;
+    if (metaData.getViewType() == ViewType.MONTAGE) {
+      updatePreblendCom(axisID);
+      commandName = BlendmontParam
+          .getCommandFileName(BlendmontParam.PREBLEND_MODE);
+    }
+    else {
+      if (!updatePrenewstCom(axisID)) {
+        return;
+      }
+      commandName = "prenewst";
+    }
+    processTrack.setCoarseAlignmentState(ProcessState.INPROGRESS, axisID);
+    mainPanel.setCoarseAlignState(ProcessState.INPROGRESS, axisID);
+    setNextProcess(axisID, "checkUpdateFiducialModel");
+    String threadName;
+    try {
+      if (metaData.getViewType() == ViewType.MONTAGE) {
+        threadName = processMgr.preblend(axisID);
+      }
+      else {
+        threadName = processMgr.coarseAlign(axisID);
+      }
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Can not execute " + commandName + axisID.getExtension()
+          + ".com";
+      message[1] = e.getMessage();
+      uiHarness.openMessageDialog(message, "Unable to execute com script",
+          axisID);
+      return;
+    }
+    setThreadName(threadName, axisID);
+  }
+
+  /**
+   * Open 3dmod to view the coarsely aligned stack
+   */
+  public void imodCoarseAlign(AxisID axisID, Run3dmodMenuOptions menuOptions) {
+    try {
+      imodManager.open(ImodManager.COARSE_ALIGNED_KEY, axisID, menuOptions);
+    }
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
+          axisID);
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(),
+          "Problem opening coarse stack", axisID);
+    }
+  }
+
+  /**
+   * Run midas on the raw stack
+   */
+  public void midasRawStack(AxisID axisID) {
+    if (!updateFiducialessParams(mapCoarseAlignDialog(axisID), axisID)) {
+      return;
+    }
+    if (metaData.getViewType() == ViewType.MONTAGE) {
+      processMgr.midasBlendStack(axisID, metaData.getImageRotation(axisID));
+    }
+    else {
+      processMgr.midasRawStack(axisID, metaData.getImageRotation(axisID));
+    }
+    processTrack.setCoarseAlignmentState(ProcessState.INPROGRESS, axisID);
+    mainPanel.setCoarseAlignState(ProcessState.INPROGRESS, axisID);
+  }
+
+  /**
+   * Run fix  edges in Midas
+   */
+  public void midasFixEdges(AxisID axisID) {
+    processMgr.midasFixEdges(axisID);
+    processTrack.setCoarseAlignmentState(ProcessState.INPROGRESS, axisID);
+    mainPanel.setCoarseAlignState(ProcessState.INPROGRESS, axisID);
+  }
+
+  /**
+   * Get the required parameters from the dialog box and update the xcorr.com
+   * script
+   * @return true if successful in getting the parameters and saving the com
+   *         script
+   */
+  private boolean updateXcorrCom(AxisID axisID) {
+    CoarseAlignDialog coarseAlignDialog = mapCoarseAlignDialog(axisID);
+    try {
+      TiltxcorrParam tiltXcorrParam = comScriptMgr.getTiltxcorrParam(axisID);
+      coarseAlignDialog.getCrossCorrelationParams(tiltXcorrParam);
+      comScriptMgr.saveXcorr(tiltXcorrParam, axisID);
+    }
+    catch (FortranInputSyntaxException except) {
+      except.printStackTrace();
+      String[] errorMessage = new String[3];
+      errorMessage[0] = "Xcorr Parameter Syntax Error";
+      errorMessage[1] = except.getMessage();
+      errorMessage[2] = "New value: " + except.getNewString();
+      uiHarness.openMessageDialog(errorMessage, "Xcorr Parameter Syntax Error",
+          axisID);
+      return false;
+    }
+    catch (NumberFormatException except) {
+      except.printStackTrace();
+      String[] errorMessage = new String[3];
+      errorMessage[0] = "Xcorr Align Parameter Syntax Error";
+      errorMessage[1] = axisID.getExtension();
+      errorMessage[2] = except.getMessage();
+      uiHarness.openMessageDialog(errorMessage, "Xcorr Parameter Syntax Error",
+          axisID);
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Update the blendmont command in the xcorr comscript.  if blendmont does not
+   * have to be run, update the goto param to skip blendmont.
+   * @param axisID
+   * @return
+   */
+  private boolean updateBlendmontInXcorrCom(AxisID axisID) {
+    boolean runningBlendmont = false;
+    //handle montaging
+    if (metaData.getViewType() == ViewType.MONTAGE) {
+      BlendmontParam blendmontParam = comScriptMgr
+          .getBlendmontParamFromTiltxcorr(axisID);
+      GotoParam gotoParam = comScriptMgr.getGotoParamFromTiltxcorr(axisID);
+      runningBlendmont = blendmontParam.setBlendmontState();
+      if (runningBlendmont) {
+        gotoParam.setLabel(BlendmontParam.GOTO_LABEL);
+      }
+      else {
+        gotoParam.setLabel(TiltxcorrParam.GOTO_LABEL);
+      }
+      comScriptMgr.saveXcorr(gotoParam, axisID);
+      comScriptMgr.saveXcorr(blendmontParam, axisID);
+    }
+    return runningBlendmont;
+  }
+
+  /**
+   * update undistort.com from xcorr.com
+   * @param axisID
+   */
+  private void updateUndistortCom(AxisID axisID) {
+    BlendmontParam blendmontParam = comScriptMgr
+        .getBlendmontParamFromTiltxcorr(axisID);
+    blendmontParam.setMode(BlendmontParam.UNDISTORT_MODE);
+    blendmontParam.setBlendmontState();
+    comScriptMgr.saveXcorrToUndistort(blendmontParam, axisID);
+  }
+
+  /**
+   * Get the prenewst parameters from the dialog box and update the prenewst
+   * com script as well as the align com script since binning of the pre-aligned
+   * stack has an affect on the scaling of the fiducial model.
+   * @param axisID
+   * @return
+   */
+  private boolean updatePrenewstCom(AxisID axisID) {
+    CoarseAlignDialog coarseAlignDialog = mapCoarseAlignDialog(axisID);
+    NewstParam prenewstParam = comScriptMgr.getPrenewstParam(axisID);
+    coarseAlignDialog.getPrenewstParams(prenewstParam);
+    comScriptMgr.savePrenewst(prenewstParam, axisID);
+    return true;
+  }
+
+  /**
+   * Get the set the blendmont parameters and update the preblend com script.
+   * @param axisID
+   * @return
+   */
+  private void updatePreblendCom(AxisID axisID) {
+    CoarseAlignDialog coarseAlignDialog = mapCoarseAlignDialog(axisID);
+    BlendmontParam preblendParam = comScriptMgr.getPreblendParam(axisID);
+    coarseAlignDialog.getParams(preblendParam);
+    preblendParam.setBlendmontState();
+    comScriptMgr.savePreblend(preblendParam, axisID);
+  }
+
+  /**
+   * Get the set the blendmont parameters and update the blend com script.
+   * @param axisID
+   * @return
+   */
+  private BlendmontParam updateBlendCom(AxisID axisID) {
+    TomogramGenerationDialog tomogramGenerationDialog = mapGenerationDialog(axisID);
+    BlendmontParam blendParam = comScriptMgr.getBlendParam(axisID);
+    tomogramGenerationDialog.getBlendParams(blendParam);
+    blendParam.setMode(BlendmontParam.BLEND_MODE);
+    blendParam.setBlendmontState();
+    comScriptMgr.saveBlend(blendParam, axisID);
+    return blendParam;
+  }
+
+  /**
+   * Get the fiducialess parameters from the specified dialog and set the
+   * metaData and rotationXF script
+   * 
+   * @param axisID
+   * @param dialog
+   * @return
+   */
+  private boolean updateFiducialessParams(FiducialessParams dialog,
+      AxisID axisID) {
+    float tiltAxisAngle;
+    try {
+      tiltAxisAngle = dialog.getTiltAxisAngle();
+    }
+    catch (NumberFormatException except) {
+      String[] errorMessage = new String[2];
+      errorMessage[0] = "Tilt axis rotation format error";
+      errorMessage[1] = except.getMessage();
+      uiHarness.openMessageDialog(errorMessage,
+          "Tilt axis rotation syntax error", axisID);
+      return false;
+    }
+    metaData.setFiducialessAlignment(axisID, dialog.isFiducialessAlignment());
+    metaData.setImageRotation(tiltAxisAngle, axisID);
+    updateRotationXF(tiltAxisAngle, axisID);
+    return true;
+  }
+
+  /**
+   * Return the CoarseAlignDialog associated the specified AxisID
+   * 
+   * @param axisID
+   * @return
+   */
+  private CoarseAlignDialog mapCoarseAlignDialog(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return coarseAlignDialogB;
+    }
+    return coarseAlignDialogA;
+  }
+
+  /**
+   * Write out the rotation transform for the specified axis
+   * 
+   * @param axisID
+   */
+  private void updateRotationXF(float angle, AxisID axisID) {
+    //  Open the appropriate rotation file
+    String fnRotationXF = propertyUserDir + File.separator + "rotation"
+        + axisID.getExtension() + ".xf";
+    File rotationXF = new File(fnRotationXF);
+    try {
+      BufferedWriter out = new BufferedWriter(new FileWriter(rotationXF));
+      //  Write out the transform to perform the rotation
+      double rads = -1 * angle * Math.PI / 180;
+      out.write(String.valueOf(Math.cos(rads)) + "   "
+          + String.valueOf(Math.sin(-rads)) + "   "
+          + String.valueOf(Math.sin(rads)) + "   "
+          + String.valueOf(Math.cos(rads)) + "   0   0");
+      out.newLine();
+      //  Close the file
+      out.close();
+    }
+    catch (IOException except) {
+      String[] errorMessage = new String[3];
+      errorMessage[0] = "Rotation Transform IO Exception";
+      errorMessage[1] = except.getMessage();
+      errorMessage[2] = fnRotationXF;
+      uiHarness.openMessageDialog(errorMessage,
+          "Rotation Transform IO Exception", axisID);
+    }
+  }
+
+  /**
+   * Open the fiducial model generation dialog
+   */
+  public void openFiducialModelDialog(AxisID axisID) {
+    //  Check to see if the com files are present otherwise pop up a dialog
+    //  box informing the user to run the setup process
+    if (!metaData.getComScriptCreated()) {
+      setupRequestDialog(axisID);
+      return;
+    }
+    setCurrentDialogType(DialogType.FIDUCIAL_MODEL, axisID);
+    mainPanel.selectButton(axisID, "Fiducial Model Gen.");
+    if (showIfExists(fiducialModelDialogA, fiducialModelDialogB, axisID)) {
+      return;
+    }
+    // Create a new dialog panel and map it the generic reference
+    FiducialModelDialog fiducialModelDialog = new FiducialModelDialog(this,
+        axisID);
+    if (axisID == AxisID.SECOND) {
+      fiducialModelDialogB = fiducialModelDialog;
+    }
+    else {
+      fiducialModelDialogA = fiducialModelDialog;
+    }
+    updateDialog(fiducialModelDialog, axisID);
+    //  Load the required track{|a|b}.com files, fill in the dialog box
+    // params
+    //  and set it to the appropriate state
+    comScriptMgr.loadTrack(axisID);
+    //  Create a default transferfid object to populate the alignment dialog
+    fiducialModelDialog.setTransferFidParams();
+    fiducialModelDialog.setBeadtrackParams(comScriptMgr
+        .getBeadtrackParam(axisID));
+    mainPanel.showProcess(fiducialModelDialog.getContainer(), axisID);
+  }
+
+  /**
+   * Save comscripts and the .edf file and delete the dialog.
+   */
+  public void doneFiducialModelDialog(AxisID axisID) {
+    //  Set a reference to the correct object
+    FiducialModelDialog fiducialModelDialog;
+    if (axisID == AxisID.SECOND) {
+      fiducialModelDialog = fiducialModelDialogB;
+    }
+    else {
+      fiducialModelDialog = fiducialModelDialogA;
+    }
+    if (fiducialModelDialog == null) {
+      uiHarness
+          .openMessageDialog(
+              "Can not update fiducial model without an active fiducial model dialog",
+              "Program logic error", axisID);
+      return;
+    }
+    setAdvanced(fiducialModelDialog.getDialogType(), axisID,
+        fiducialModelDialog.isAdvanced());
+    DialogExitState exitState = fiducialModelDialog.getExitState();
+    if (exitState == DialogExitState.CANCEL) {
+      mainPanel.showBlankProcess(axisID);
+    }
+    else {
+      fiducialModelDialog.getTransferFidParams();
+      //  Get the user input data from the dialog box
+      if (!updateTrackCom(axisID)) {
+        return;
+      }
+      if (exitState == DialogExitState.EXECUTE) {
+        processTrack.setFiducialModelState(ProcessState.COMPLETE, axisID);
+        mainPanel.setFiducialModelState(ProcessState.COMPLETE, axisID);
+        openFineAlignmentDialog(axisID);
+      }
+      else if (exitState != DialogExitState.SAVE) {
+        processTrack.setFiducialModelState(ProcessState.INPROGRESS, axisID);
+        mainPanel.setFiducialModelState(ProcessState.INPROGRESS, axisID);
+        mainPanel.showBlankProcess(axisID);
+      }
+      saveTestParamFile(axisID);
+    }
+    //  Clean up the existing dialog
+    if (axisID == AxisID.SECOND) {
+      fiducialModelDialogB = null;
+    }
+    else {
+      fiducialModelDialogA = null;
+    }
+    fiducialModelDialog = null;
+  }
+
+  /**
+   * Open 3dmod with the seed model
+   */
+  public void imodSeedFiducials(AxisID axisID, Run3dmodMenuOptions menuOptions) {
+    String seedModel = metaData.getDatasetName() + axisID.getExtension()
+        + ".seed";
+    try {
+      imodManager.setPreserveContrast(ImodManager.COARSE_ALIGNED_KEY, axisID,
+          true);
+      imodManager.open(ImodManager.COARSE_ALIGNED_KEY, axisID, seedModel, true,
+          menuOptions);
+      processTrack.setFiducialModelState(ProcessState.INPROGRESS, axisID);
+      mainPanel.setFiducialModelState(ProcessState.INPROGRESS, axisID);
+    }
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
+          axisID);
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(),
+          "Can't open 3dmod on coarse aligned stack with model: " + seedModel,
+          axisID);
+    }
+  }
+
+  /**
+   * Get the beadtrack parameters from the fiducial model dialog and run the
+   * track com script
+   */
+  public void fiducialModelTrack(AxisID axisID) {
+    if (updateTrackCom(axisID)) {
+      processTrack.setFiducialModelState(ProcessState.INPROGRESS, axisID);
+      mainPanel.setFiducialModelState(ProcessState.INPROGRESS, axisID);
+      String threadName;
+      try {
+        threadName = processMgr.fiducialModelTrack(axisID);
+      }
+      catch (SystemProcessException e) {
+        e.printStackTrace();
+        String[] message = new String[2];
+        message[0] = "Can not execute track" + axisID.getExtension() + ".com";
+        message[1] = e.getMessage();
+        uiHarness.openMessageDialog(message, "Unable to execute com script",
+            axisID);
+        return;
+      }
+      setThreadName(threadName, axisID);
+      mainPanel.startProgressBar("Tracking fiducials", axisID);
+    }
+  }
+
+  /**
+   * Using Fiducial Model as Seed
+   * @param axisID
+   */
+  public void makeFiducialModelSeedModel(AxisID axisID) {
+    String seedModelFilename = propertyUserDir + File.separator
+        + metaData.getDatasetName() + axisID.getExtension() + ".seed";
+    File seedModel = new File(seedModelFilename);
+    String fiducialModelFilename = propertyUserDir + File.separator
+        + metaData.getDatasetName() + axisID.getExtension() + ".fid";
+    File fiducialModel = new File(fiducialModelFilename);
+    if (seedModel.exists()
+        && seedModel.lastModified() > fiducialModel.lastModified()) {
+      String[] message = new String[3];
+      message[0] = "WARNING: The seed model file is more recent the fiducial model file";
+      message[1] = "To avoid losing your changes to the seed model file,";
+      message[2] = "track fiducials before pressing Use Fiducial Model as Seed.";
+      uiHarness.openMessageDialog(message, "Use Fiducial Model as Seed Failed",
+          axisID);
+      return;
+    }
+    mainPanel.setProgressBar("Using Fiducial Model as Seed", 1, axisID);
+    processTrack.setFiducialModelState(ProcessState.INPROGRESS, axisID);
+    mainPanel.setFiducialModelState(ProcessState.INPROGRESS, axisID);
+    String origSeedModelFilename = propertyUserDir + File.separator
+        + metaData.getDatasetName() + axisID.getExtension() + "_orig.seed";
+    File origSeedModel = new File(origSeedModelFilename);
+    //backup original seed model file
+    if (seedModel.exists() && origSeedModel.exists()) {
+      backupFile(seedModel, axisID);
+    }
+    try {
+      if (seedModel.exists() && !origSeedModel.exists()) {
+        Utilities.renameFile(seedModel, origSeedModel);
+      }
+      //rename fiducial model file to seed model file
+      Utilities.renameFile(fiducialModel, seedModel);
+    }
+    catch (IOException except) {
+      uiHarness.openMessageDialog(except.getMessage(), "File Rename Error",
+          axisID);
+    }
+    try {
+      if (imodManager.isOpen(ImodManager.COARSE_ALIGNED_KEY, axisID)) {
+        if (seedModel.getName().equals(
+            imodManager.getModelName(ImodManager.COARSE_ALIGNED_KEY, axisID))) {
+          String[] message = new String[2];
+          message[0] = "The old seed model file is open in 3dmod";
+          message[1] = "Should it be closed?";
+          if (uiHarness.openYesNoDialog(message, axisID)) {
+            imodManager.quit(ImodManager.COARSE_ALIGNED_KEY, axisID);
+          }
+        }
+      }
+    }
+    catch (AxisTypeException e) {
+      e.printStackTrace();
+      System.err.println("Axis type exception in replaceRawStack");
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      System.err.println("System process exception in replaceRawStack");
+    }
+    mainPanel.stopProgressBar(axisID);
+    if (axisID == AxisID.SECOND) {
+      updateDialog(fiducialModelDialogA, AxisID.FIRST);
+    }
+    else {
+      updateDialog(fiducialModelDialogB, AxisID.SECOND);
+    }
+  }
+
+  /**
+   * Open 3dmod with the new fidcuial model
+   */
+  public void imodFixFiducials(AxisID axisID, Run3dmodMenuOptions menuOptions) {
+    String fiducialModel = metaData.getDatasetName() + axisID.getExtension()
+        + ".fid";
+    try {
+      imodManager
+          .setOpenBeadFixer(ImodManager.COARSE_ALIGNED_KEY, axisID, true);
+      imodManager.open(ImodManager.COARSE_ALIGNED_KEY, axisID, fiducialModel,
+          true, menuOptions);
+    }
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
+          axisID);
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(),
+          "Can't open 3dmod on coarse aligned stack with model: "
+              + fiducialModel, axisID);
+    }
+  }
+
+  /**
+   * Update the specified track com script
+   */
+  private boolean updateTrackCom(AxisID axisID) {
+    //  Set a reference to the correct object
+    FiducialModelDialog fiducialModelDialog;
+    if (axisID == AxisID.SECOND) {
+      fiducialModelDialog = fiducialModelDialogB;
+    }
+    else {
+      fiducialModelDialog = fiducialModelDialogA;
+    }
+    if (fiducialModelDialog == null) {
+      uiHarness.openMessageDialog(
+          "Can not update track?.com without an active fiducial model dialog",
+          "Program logic error", axisID);
+      return false;
+    }
+    try {
+      BeadtrackParam beadtrackParam = comScriptMgr.getBeadtrackParam(axisID);
+      fiducialModelDialog.getBeadtrackParams(beadtrackParam);
+      comScriptMgr.saveTrack(beadtrackParam, axisID);
+    }
+    catch (FortranInputSyntaxException except) {
+      except.printStackTrace();
+      String[] errorMessage = new String[3];
+      errorMessage[0] = "Beadtrack Parameter Syntax Error";
+      errorMessage[1] = except.getMessage();
+      errorMessage[2] = "New value: " + except.getNewString();
+      uiHarness.openMessageDialog(errorMessage,
+          "Beadtrack Parameter Syntax Error", axisID);
+      return false;
+    }
+    catch (NumberFormatException except) {
+      except.printStackTrace();
+      String[] errorMessage = new String[3];
+      errorMessage[0] = "Beadtrack Parameter Syntax Error";
+      errorMessage[1] = axisID.getExtension();
+      errorMessage[2] = except.getMessage();
+      uiHarness.openMessageDialog(errorMessage,
+          "Beadtrack Parameter Syntax Error", axisID);
+      return false;
+    }
+    catch (InvalidEtomoNumberException e) {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Open the alignment estimation dialog
+   */
+  public void openFineAlignmentDialog(AxisID axisID) {
+    //  Check to see if the com files are present otherwise pop up a dialog
+    //  box informing the user to run the setup process
+    if (!metaData.getComScriptCreated()) {
+      setupRequestDialog(axisID);
+      return;
+    }
+    setCurrentDialogType(DialogType.FINE_ALIGNMENT, axisID);
+    mainPanel.selectButton(axisID, "Fine Alignment");
+    if (showIfExists(fineAlignmentDialogA, fineAlignmentDialogB, axisID)) {
+      return;
+    }
+    // Create a new dialog panel and map it the generic reference
+    AlignmentEstimationDialog fineAlignmentDialog = new AlignmentEstimationDialog(
+        this, axisID);
+    if (axisID == AxisID.SECOND) {
+      fineAlignmentDialogB = fineAlignmentDialog;
+    }
+    else {
+      fineAlignmentDialogA = fineAlignmentDialog;
+    }
+
+    // Load the required align{|a|b}.com files, fill in the dialog box
+    // params and set it to the appropriate state
+    comScriptMgr.loadAlign(axisID);
+    TiltalignParam tiltalignParam = comScriptMgr.getTiltalignParam(axisID);
+    //If this is a montage, then binning can only be 1, so no need to upgrade
+    if (metaData.getViewType() != ViewType.MONTAGE) {
+      //upgrade and save param to comscript
+      upgradeOldAlignCom(axisID, tiltalignParam);
+    }
+    fineAlignmentDialog.setTiltalignParams(tiltalignParam);
+
+    //  Create a default transferfid object to populate the alignment dialog
+    mainPanel.showProcess(fineAlignmentDialog.getContainer(), axisID);
+  }
+
+  /**
+   * Calls done function for the dialog type, if the dialog exit state is SAVE.
+   * This is the default and means that no exit button was pressed.
+   * @param dialogType
+   * @param axisID
+   */
+  public void saveCurrentDialog(AxisID axisID) {
+    DialogType currentDialogType = getCurrentDialogType(axisID);
+    ProcessDialog dialog = getDialog(currentDialogType, axisID);
+    if (dialog == null || dialog.getExitState() != DialogExitState.SAVE) {
+      return;
+    }
+    if (currentDialogType == DialogType.PRE_PROCESSING) {
+      donePreProcDialog(axisID);
+    }
+    else if (currentDialogType == DialogType.COARSE_ALIGNMENT) {
+      doneCoarseAlignDialog(axisID);
+    }
+    else if (currentDialogType == DialogType.FIDUCIAL_MODEL) {
+      doneFiducialModelDialog(axisID);
+    }
+    else if (currentDialogType == DialogType.FINE_ALIGNMENT) {
+      doneAlignmentEstimationDialog(axisID);
+    }
+    else if (currentDialogType == DialogType.TOMOGRAM_POSITIONING) {
+      doneTomogramPositioningDialog(axisID);
+    }
+    else if (currentDialogType == DialogType.TOMOGRAM_GENERATION) {
+      doneTomogramGenerationDialog(axisID);
+    }
+    else if (currentDialogType == DialogType.TOMOGRAM_COMBINATION) {
+      doneTomogramCombinationDialog();
+    }
+    else if (currentDialogType == DialogType.POST_PROCESSING) {
+      donePostProcessing();
+    }
+    else if (currentDialogType == DialogType.CLEAN_UP) {
+      doneCleanUp();
+    }
+  }
+
+  /**
+   * Set the current dialog type.  This function is called from open functions and
+   * from showBlankPRocess().  It allows Etomo to call the done function when
+   * the user switches to another dialog.
+   * @param dialogType
+   * @param axisID
+   */
+  public void setCurrentDialogType(DialogType dialogType, AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      currentDialogTypeB = dialogType;
+    }
+    else {
+      currentDialogTypeA = dialogType;
+    }
+  }
+
+  /**
+   * Gets the current dialog type.
+   * @param axisID
+   * @return
+   */
+  private DialogType getCurrentDialogType(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return currentDialogTypeB;
+    }
+    return currentDialogTypeA;
+  }
+
+  /**
+   * Call BaseManager.exitProgram().  Call saveDialog.   Return the value of
+   * BaseManager.exitProgram().  To guarantee that etomo can always exit, catch
+   * all unrecognized Exceptions and Errors and return true.  This function
+   * should be called exitManager, since individual managers are closed
+   * inpendently of the program.
+   */
+  public boolean exitProgram(AxisID axisID) {
+    try {
+      if (super.exitProgram(axisID)) {
+        saveDialog();
+        return true;
+      }
+      return false;
+    }
+    catch (Throwable e) {
+      e.printStackTrace();
+      return true;
+    }
+  }
+
+  /**
+   * Saves all dialogs that are not set to null.  Called by exitProgram().
+   *
+   */
+  public void saveDialog() {
+    AxisID firstAxisID = metaData.getAxisType() == AxisType.DUAL_AXIS ? AxisID.FIRST
+        : AxisID.ONLY;
+    if (preProcDialogA != null) {
+      donePreProcDialog(firstAxisID);
+    }
+    if (preProcDialogB != null) {
+      donePreProcDialog(AxisID.SECOND);
+    }
+    if (coarseAlignDialogA != null) {
+      doneCoarseAlignDialog(firstAxisID);
+    }
+    if (coarseAlignDialogB != null) {
+      doneCoarseAlignDialog(AxisID.SECOND);
+    }
+    if (fiducialModelDialogA != null) {
+      doneFiducialModelDialog(firstAxisID);
+    }
+    if (fiducialModelDialogB != null) {
+      doneFiducialModelDialog(AxisID.SECOND);
+    }
+    if (fineAlignmentDialogA != null) {
+      doneAlignmentEstimationDialog(firstAxisID);
+    }
+    if (fineAlignmentDialogB != null) {
+      doneAlignmentEstimationDialog(AxisID.SECOND);
+    }
+    if (tomogramPositioningDialogA != null) {
+      doneTomogramPositioningDialog(firstAxisID);
+    }
+    if (tomogramPositioningDialogB != null) {
+      doneTomogramPositioningDialog(AxisID.SECOND);
+    }
+    if (tomogramGenerationDialogA != null) {
+      doneTomogramGenerationDialog(firstAxisID);
+    }
+    if (tomogramGenerationDialogB != null) {
+      doneTomogramGenerationDialog(AxisID.SECOND);
+    }
+    if (tomogramCombinationDialog != null) {
+      doneTomogramCombinationDialog();
+    }
+    if (postProcessingDialog != null) {
+      donePostProcessing();
+    }
+    if (cleanUpDialog != null) {
+      doneCleanUp();
+    }
+  }
+
+  /**
+   * @param dialogType
+   * @param axisID
+   * @return a dialog
+   */
+  private ProcessDialog getDialog(DialogType dialogType, AxisID axisID) {
+    if (dialogType == null) {
+      return null;
+    }
+    if (dialogType == DialogType.PRE_PROCESSING) {
+      if (axisID == AxisID.SECOND) {
+        return preProcDialogB;
+      }
+      else {
+        return preProcDialogA;
+      }
+    }
+    else if (dialogType == DialogType.COARSE_ALIGNMENT) {
+      return mapCoarseAlignDialog(axisID);
+    }
+    else if (dialogType == DialogType.FIDUCIAL_MODEL) {
+      if (axisID == AxisID.SECOND) {
+        return fiducialModelDialogB;
+      }
+      else {
+        return fiducialModelDialogA;
+      }
+    }
+    else if (dialogType == DialogType.FINE_ALIGNMENT) {
+      if (axisID == AxisID.SECOND) {
+        return fineAlignmentDialogB;
+      }
+      else {
+        return fineAlignmentDialogA;
+      }
+    }
+    else if (dialogType == DialogType.TOMOGRAM_POSITIONING) {
+      return mapPositioningDialog(axisID);
+    }
+    else if (dialogType == DialogType.TOMOGRAM_GENERATION) {
+      return mapGenerationDialog(axisID);
+    }
+    else if (dialogType == DialogType.TOMOGRAM_COMBINATION) {
+      return tomogramCombinationDialog;
+    }
+    else if (dialogType == DialogType.POST_PROCESSING) {
+      return postProcessingDialog;
+    }
+    else if (dialogType == DialogType.CLEAN_UP) {
+      return cleanUpDialog;
+    }
+    return null;
+  }
+
+  /**
+   * 
+   */
+  public void doneAlignmentEstimationDialog(AxisID axisID) {
+    //  Set a reference to the correct object
+    AlignmentEstimationDialog fineAlignmentDialog;
+    if (axisID == AxisID.SECOND) {
+      fineAlignmentDialog = fineAlignmentDialogB;
+    }
+    else {
+      fineAlignmentDialog = fineAlignmentDialogA;
+    }
+    if (fineAlignmentDialog == null) {
+      uiHarness.openMessageDialog(
+          "Can not update align?.com without an active alignment dialog",
+          "Program logic error", axisID);
+      return;
+    }
+    setAdvanced(fineAlignmentDialog.getDialogType(), axisID,
+        fineAlignmentDialog.isAdvanced());
+    DialogExitState exitState = fineAlignmentDialog.getExitState();
+    if (exitState == DialogExitState.CANCEL) {
+      mainPanel.showBlankProcess(axisID);
+    }
+    else {
+      //  Get the user input data from the dialog box
+      if (updateAlignCom(axisID) == null) {
+        return;
+      }
+      if (exitState == DialogExitState.POSTPONE) {
+        processTrack.setFineAlignmentState(ProcessState.INPROGRESS, axisID);
+        mainPanel.setFineAlignmentState(ProcessState.INPROGRESS, axisID);
+        mainPanel.showBlankProcess(axisID);
+      }
+      else if (exitState != DialogExitState.SAVE) {
+        processTrack.setFineAlignmentState(ProcessState.COMPLETE, axisID);
+        mainPanel.setFineAlignmentState(ProcessState.COMPLETE, axisID);
+        openTomogramPositioningDialog(axisID);
+
+        // Check to see if the user wants to keep any coarse aligned imods
+        // open
+        try {
+          if (imodManager.isOpen(ImodManager.COARSE_ALIGNED_KEY, axisID)) {
+            String[] message = new String[2];
+            message[0] = "The coarsely aligned stack is open in 3dmod";
+            message[1] = "Should it be closed?";
+            if (uiHarness.openYesNoDialog(message, axisID)) {
+              imodManager.quit(ImodManager.COARSE_ALIGNED_KEY, axisID);
+            }
+          }
+        }
+        catch (AxisTypeException except) {
+          except.printStackTrace();
+          uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
+              axisID);
+        }
+        catch (SystemProcessException except) {
+          except.printStackTrace();
+          uiHarness.openMessageDialog(except.getMessage(),
+              "Problem closing coarse stack", axisID);
+        }
+      }
+      saveTestParamFile(axisID);
+    }
+    //  Clean up the existing dialog
+    if (axisID == AxisID.SECOND) {
+      fineAlignmentDialogB = null;
+    }
+    else {
+      fineAlignmentDialogA = null;
+    }
+    fineAlignmentDialog = null;
+  }
+
+  /**
+   * Execute the fine alignment script (align.com) for the appropriate axis
+   * This will also reset the fiducialess alignment flag, setFiducialAlign
+   * does not need to be called because the necessary copies are called at the
+   * end of the align script.
+   * 
+   * @param the
+   *            AxisID identifying the axis to align.
+   */
+  public void fineAlignment(AxisID axisID) {
+    ConstTiltalignParam tiltalignParam = updateAlignCom(axisID);
+    if (tiltalignParam == null) {
+      return;
+    }
+    processTrack.setFineAlignmentState(ProcessState.INPROGRESS, axisID);
+    mainPanel.setFineAlignmentState(ProcessState.INPROGRESS, axisID);
+    String threadName;
+    try {
+      threadName = processMgr.fineAlignment(tiltalignParam, axisID);
+      metaData.setFiducialessAlignment(axisID, false);
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Can not execute align" + axisID.getExtension() + ".com";
+      message[1] = e.getMessage();
+      uiHarness.openMessageDialog(message, "Unable to execute com script",
+          axisID);
+      return;
+    }
+    setThreadName(threadName, axisID);
+    mainPanel.startProgressBar("Aligning stack", axisID);
+  }
+
+  /**
+   * Open 3dmod with the new fidcuial model
+   */
+  public void imodViewResiduals(AxisID axisID, Run3dmodMenuOptions menuOptions) {
+    String fiducialModel = metaData.getDatasetName() + axisID.getExtension()
+        + ".resmod";
+    try {
+      imodManager.setPreserveContrast(ImodManager.COARSE_ALIGNED_KEY, axisID,
+          true);
+      imodManager.open(ImodManager.COARSE_ALIGNED_KEY, axisID, fiducialModel,
+          menuOptions);
+    }
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
+          axisID);
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(),
+          "Can't open 3dmod on coarse aligned stack with model: "
+              + fiducialModel, axisID);
+    }
+  }
+
+  /**
+   * Open 3dmodv with the new fidcuial model
+   */
+  public void imodView3DModel(AxisID axisID) {
+    String fiducialModel = metaData.getDatasetName() + axisID.getExtension()
+        + ".3dmod";
+    try {
+      imodManager.open(ImodManager.FIDUCIAL_MODEL_KEY, axisID, fiducialModel);
+    }
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
+          axisID);
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(),
+          "Can't open 3dmod on fine aligned stack", axisID);
+    }
+  }
+
+  /**
+   * Open 3dmod to view the coarsely aligned stack
+   * 
+   * @param axisID
+   *            the AxisID to coarse align.
+   */
+  public void imodFineAlign(AxisID axisID, Run3dmodMenuOptions menuOptions) {
+    try {
+      imodManager.open(ImodManager.FINE_ALIGNED_KEY, axisID, menuOptions);
+    }
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
+          axisID);
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(),
+          "Can't open 3dmod on fine aligned stack", axisID);
+    }
+  }
+
+  /**
+   * Open 3dmod to view the MTF filter results
+   * 
+   * @param axisID
+   *            the AxisID to coarse align.
+   */
+  public void imodMTFFilter(AxisID axisID, Run3dmodMenuOptions menuOptions) {
+    try {
+      imodManager.open(ImodManager.MTF_FILTER_KEY, axisID, menuOptions);
+    }
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
+          axisID);
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(),
+          "Can't open 3dmod on MTF filter results", axisID);
+    }
+  }
+
+  /**
+   * Transfer the fiducial to the specified axis
+   * 
+   * @param destAxisID
+   */
+  public void transferfid(AxisID destAxisID) {
+    //  Set a reference to the correct object
+    FiducialModelDialog fiducialModelDialog;
+    if (destAxisID == AxisID.SECOND) {
+      fiducialModelDialog = fiducialModelDialogB;
+    }
+    else {
+      fiducialModelDialog = fiducialModelDialogA;
+    }
+    if (destAxisID != AxisID.ONLY
+        && !Utilities.fileExists(this, "fid.xyz",
+            (destAxisID == AxisID.FIRST ? AxisID.SECOND : AxisID.FIRST))) {
+      uiHarness.openMessageDialog(
+          "It is recommended that you run Fine Alignment on axis "
+              + (destAxisID == AxisID.FIRST ? "B" : "A") + " at least once",
+          "Warning", destAxisID);
+    }
+    if (fiducialModelDialog != null) {
+      TransferfidParam transferfidParam = new TransferfidParam(this, destAxisID);
+      // Setup the default parameters depending upon the axis to transfer
+      // the fiducials from
+      String datasetName = metaData.getDatasetName();
+      transferfidParam.setDatasetName(datasetName);
+      if (destAxisID == AxisID.FIRST) {
+        transferfidParam.setBToA(true);
+      }
+      else {
+        transferfidParam.setBToA(false);
+      }
+      // Get any user specified changes
+      fiducialModelDialog.getTransferFidParams(transferfidParam);
+      String threadName;
+      try {
+        threadName = processMgr.transferFiducials(transferfidParam);
+      }
+      catch (SystemProcessException e) {
+        e.printStackTrace();
+        String[] message = new String[2];
+        message[0] = "Can not execute transferfid command";
+        message[1] = e.getMessage();
+        uiHarness.openMessageDialog(message, "Unable to execute command",
+            destAxisID);
+        return;
+      }
+      setThreadName(threadName, destAxisID);
+      mainPanel.startProgressBar("Transferring fiducials", destAxisID);
+      updateDialog(fiducialModelDialog, destAxisID);
+    }
+  }
+
+  /**
+   * updateAlignCom updates the align{|a|b}.com scripts with the parameters
+   * from the alignment estimation dialog. This also updates the local
+   * alignment state of the appropriate tilt files.
+   */
+  private ConstTiltalignParam updateAlignCom(AxisID axisID) {
+    //  Set a reference to the correct object
+    AlignmentEstimationDialog fineAlignmentDialog;
+    if (axisID == AxisID.SECOND) {
+      fineAlignmentDialog = fineAlignmentDialogB;
+    }
+    else {
+      fineAlignmentDialog = fineAlignmentDialogA;
+    }
+    if (fineAlignmentDialog == null) {
+      uiHarness.openMessageDialog(
+          "Can not update align?.com without an active alignment dialog",
+          "Program logic error", axisID);
+      return null;
+    }
+    TiltalignParam tiltalignParam;
+    try {
+      tiltalignParam = comScriptMgr.getTiltalignParam(axisID);
+      fineAlignmentDialog.getTiltalignParams(tiltalignParam);
+      comScriptMgr.saveAlign(tiltalignParam, axisID);
+      //  Update the tilt.com script with the dependent parameters
+      updateTiltCom(tiltalignParam, axisID);
+      //update xfproduct in align.com
+      XfproductParam xfproductParam = comScriptMgr.getXfproductInAlign(axisID);
+      xfproductParam.setScaleShifts(getStackBinning(axisID, ".preali"));
+      comScriptMgr.saveXfproductInAlign(xfproductParam, axisID);
+      if (fineAlignmentDialog.getExitState() != DialogExitState.SAVE) {
+        mainPanel.setFineAlignmentState(ProcessState.INPROGRESS, axisID);
+      }
+    }
+    catch (FortranInputSyntaxException except) {
+      String[] errorMessage = new String[3];
+      errorMessage[0] = "Tiltalign Parameter Syntax Error";
+      errorMessage[1] = except.getNewString();
+      errorMessage[2] = except.getMessage();
+      uiHarness.openMessageDialog(errorMessage,
+          "Tiltalign Parameter Syntax Error", axisID);
+      return null;
+    }
+    catch (NumberFormatException except) {
+      String[] errorMessage = new String[2];
+      errorMessage[0] = "Tiltalign Parameter Syntax Error";
+      errorMessage[1] = except.getMessage();
+      uiHarness.openMessageDialog(errorMessage,
+          "Tiltalign Parameter Syntax Error", axisID);
+      return null;
+    }
+    return tiltalignParam;
+  }
+
+  /**
+   * Update the tilt parameters dependent on the align script - local
+   * alignments file - the exclude list
+   */
+  private void updateTiltCom(ConstTiltalignParam tiltalignParam,
+      AxisID currentAxis) {
+    comScriptMgr.loadTilt(currentAxis);
+    TiltParam tiltParam = comScriptMgr.getTiltParam(currentAxis);
+    String alignFileExtension = currentAxis.getExtension() + "local.xf";
+    if (tiltalignParam.getLocalAlignments().is()) {
+      tiltParam.setLocalAlignFile(metaData.getDatasetName()
+          + alignFileExtension);
+    }
+    else {
+      tiltParam.setLocalAlignFile("");
+    }
+    tiltParam.setExcludeList(tiltalignParam.getExcludeList());
+    comScriptMgr.saveTilt(tiltParam, currentAxis);
+  }
+
+  /**
+   * Open the tomogram positioning dialog for the specified axis
+   * @param axisID
+   */
+  public void openTomogramPositioningDialog(AxisID axisID) {
+    //  Check to see if the com files are present otherwise pop up a dialog
+    //  box informing the user to run the setup process
+    if (!metaData.getComScriptCreated()) {
+      setupRequestDialog(axisID);
+      return;
+    }
+    setCurrentDialogType(DialogType.TOMOGRAM_POSITIONING, axisID);
+    mainPanel.selectButton(axisID, "Tomogram Positioning");
+    if (showIfExists(tomogramPositioningDialogA, tomogramPositioningDialogB,
+        axisID)) {
+      return;
+    }
+    // Create a new dialog panel and map it the generic reference
+    TomogramPositioningDialog tomogramPositioningDialog = new TomogramPositioningDialog(
+        this, axisID);
+    if (axisID == AxisID.SECOND) {
+      tomogramPositioningDialogB = tomogramPositioningDialog;
+    }
+    else {
+      tomogramPositioningDialogA = tomogramPositioningDialog;
+    }
+    // Read in the meta data parameters. WARNING this needs to be done
+    // before reading the tilt paramers below so that the GUI knows how to
+    // correctly scale the dimensions
+    tomogramPositioningDialog.setParameters(metaData);
+    if (metaData.getViewType() != ViewType.MONTAGE) {
+      comScriptMgr.loadNewst(axisID);
+      tomogramPositioningDialog.setParameters(comScriptMgr
+          .getNewstComNewstParam(axisID));
+    }
+    else {
+      comScriptMgr.loadBlend(axisID);
+      tomogramPositioningDialog.setParameters(comScriptMgr
+          .getBlendParam(axisID));
+    }
+
+    // Get the align{|a|b}.com parameters
+    comScriptMgr.loadAlign(axisID);
+    TiltalignParam tiltalignParam = comScriptMgr.getTiltalignParam(axisID);
+    if (metaData.getViewType() != ViewType.MONTAGE) {
+      //upgrade and save param to comscript
+      upgradeOldAlignCom(axisID, tiltalignParam);
+    }
+    tomogramPositioningDialog.setAlignParams(tiltalignParam);
+
+    // Get the tilt{|a|b}.com parameters
+    comScriptMgr.loadTilt(axisID);
+    TiltParam tiltParam = comScriptMgr.getTiltParam(axisID);
+    //If this is a montage, then binning can only be 1, so no need to upgrade
+    if (metaData.getViewType() != ViewType.MONTAGE) {
+      //upgrade and save param to comscript
+      upgradeOldTiltCom(axisID, tiltParam);
+    }
+    tomogramPositioningDialog.setTiltParams(tiltParam);
+
+    // Get the tomopitch{|a|b}.com parameters
+    comScriptMgr.loadTomopitch(axisID);
+    tomogramPositioningDialog.setTomopitchParams(comScriptMgr
+        .getTomopitchParam(axisID));
+
+    // Set the whole tomogram sampling state, fidcialess state, and tilt axis
+    // angle
+    tomogramPositioningDialog.setWholeTomogramSampling(metaData
+        .isWholeTomogramSample(axisID));
+
+    tomogramPositioningDialog.setFiducialessAlignment(metaData
+        .isFiducialessAlignment(axisID));
+    tomogramPositioningDialog.setTiltAxisAngle(metaData
+        .getImageRotation(axisID));
+
+    // Open the dialog panel
+    mainPanel.showProcess(tomogramPositioningDialog.getContainer(), axisID);
+  }
+
+  /**
+   *  
+   */
+  public void doneTomogramPositioningDialog(AxisID axisID) {
+    //  Set a reference to the correct object
+    TomogramPositioningDialog tomogramPositioningDialog = mapPositioningDialog(axisID);
+    if (tomogramPositioningDialog == null) {
+      uiHarness.openMessageDialog(
+          "Can not update sample.com without an active positioning dialog",
+          "Program logic error", axisID);
+      return;
+    }
+    setAdvanced(tomogramPositioningDialog.getDialogType(), axisID,
+        tomogramPositioningDialog.isAdvanced());
+    DialogExitState exitState = tomogramPositioningDialog.getExitState();
+    if (exitState == DialogExitState.CANCEL) {
+      mainPanel.showBlankProcess(axisID);
+    }
+    else {
+      //  Get all of the parameters from the panel
+      if (updateAlignCom(tomogramPositioningDialog, axisID) == null) {
+        return;
+      }
+      if (!updateSampleTiltCom(axisID)) {
+        return;
+      }
+      if (!updateTomopitchCom(axisID)) {
+        return;
+      }
+      if (!updateFiducialessParams(tomogramPositioningDialog, axisID)) {
+        return;
+      }
+      if (metaData.getViewType() != ViewType.MONTAGE
+          && updateNewstCom(tomogramPositioningDialog, axisID) == null) {
+        return;
+      }
+
+      if (exitState == DialogExitState.POSTPONE) {
+        processTrack.setTomogramPositioningState(ProcessState.INPROGRESS,
+            axisID);
+        mainPanel.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
+        mainPanel.showBlankProcess(axisID);
+      }
+      else if (exitState != DialogExitState.SAVE) {
+        processTrack.setTomogramPositioningState(ProcessState.COMPLETE, axisID);
+        mainPanel.setTomogramPositioningState(ProcessState.COMPLETE, axisID);
+        openTomogramGenerationDialog(axisID);
+        try {
+          if (imodManager.isOpen(ImodManager.SAMPLE_KEY, axisID)) {
+            String[] message = new String[2];
+            message[0] = "The sample reconstruction is open in 3dmod";
+            message[1] = "Should it be closed?";
+            if (uiHarness.openYesNoDialog(message, axisID)) {
+              imodManager.quit(ImodManager.SAMPLE_KEY, axisID);
+            }
+          }
+        }
+        catch (AxisTypeException except) {
+          except.printStackTrace();
+          uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
+              axisID);
+        }
+        catch (SystemProcessException except) {
+          except.printStackTrace();
+          uiHarness.openMessageDialog(except.getMessage(),
+              "Problem closing sample reconstruction", axisID);
+        }
+      }
+      saveTestParamFile(axisID);
+    }
+
+    //  Clean up the existing dialog
+    if (axisID == AxisID.SECOND) {
+      tomogramPositioningDialogB = null;
+    }
+    else {
+      tomogramPositioningDialogA = null;
+    }
+    tomogramPositioningDialog = null;
+  }
+
+  /**
+   * Run the sample com script
+   */
+  public void createSample(AxisID axisID) {
+    //  Set a reference to the correct object
+    TomogramPositioningDialog tomogramPositioningDialog = mapPositioningDialog(axisID);
+    // Make sure that we have an active positioning dialog
+    if (tomogramPositioningDialog == null) {
+      uiHarness.openMessageDialog(
+          "Can not update sample.com without an active positioning dialog",
+          "Program logic error", axisID);
+      return;
+    }
+    //  Get the user input data from the dialog box
+    if (!updateFiducialessParams(tomogramPositioningDialog, axisID)) {
+      return;
+    }
+    if (!updateSampleTiltCom(axisID)) {
+      return;
+    }
+    processTrack.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
+    mainPanel.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
+
+    // Make sure we have a current prexg and _nonfid.xf if fiducialess is
+    // selected
+    if (metaData.isFiducialessAlignment(axisID)) {
+      generateFiducialessTransforms(axisID);
+    }
+    else {
+      try {
+        processMgr.setupFiducialAlign(axisID);
+      }
+      catch (IOException except) {
+        except.printStackTrace();
+        String[] message = new String[2];
+        message[0] = "Problem copying fiducial alignment files";
+        message[1] = except.getMessage();
+        uiHarness.openMessageDialog(message,
+            "Unable to copy fiducial alignment files", axisID);
+      }
+    }
+
+    String threadName;
+    try {
+      threadName = processMgr.createSample(axisID);
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Can not execute sample" + axisID.getExtension() + ".com";
+      message[1] = e.getMessage();
+      uiHarness.openMessageDialog(message, "Unable to execute com script",
+          axisID);
+      return;
+    }
+    setThreadName(threadName, axisID);
+    mainPanel.startProgressBar("Creating sample tomogram", axisID);
+  }
+
+  /**
+   * Create a whole tomogram for positioning the tomogram in the volume
+   * 
+   * @param axisID
+   */
+  public void wholeTomogram(AxisID axisID) {
+    //  Set a reference to the correct object
+    TomogramPositioningDialog tomogramPositioningDialog = mapPositioningDialog(axisID);
+    // Get the user input from the dialog
+    if (!updateFiducialessParams(tomogramPositioningDialog, axisID)) {
+      return;
+    }
+    ConstNewstParam newstParam = null;
+    BlendmontParam blendmontParam = null;
+    if (metaData.getViewType() != ViewType.MONTAGE) {
+      newstParam = updateNewstCom(tomogramPositioningDialog, axisID);
+      if (newstParam == null) {
+        return;
+      }
+    }
+    else {
+      blendmontParam = updateBlendCom(tomogramPositioningDialog, axisID);
+      if (blendmontParam == null) {
+        return;
+      }
+    }
+    if (!updateSampleTiltCom(axisID)) {
+      return;
+    }
+    processTrack.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
+    mainPanel.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
+
+    // Make sure we have a current prexg and _nonfid.xf if fiducialess is
+    // selected
+    if (metaData.isFiducialessAlignment(axisID)) {
+      generateFiducialessTransforms(axisID);
+    }
+    else {
+      try {
+        processMgr.setupFiducialAlign(axisID);
+      }
+      catch (IOException except) {
+        except.printStackTrace();
+        String[] message = new String[2];
+        message[0] = "Problem copying fiducial alignment files";
+        message[1] = except.getMessage();
+        uiHarness.openMessageDialog(message,
+            "Unable to copy fiducial alignment files", axisID);
+      }
+    }
+
+    setNextProcess(axisID, "tilt");
+    String threadName;
+    try {
+      if (metaData.getViewType() != ViewType.MONTAGE) {
+        threadName = processMgr.newst(newstParam, axisID);
+      }
+      else {
+        threadName = processMgr.blend(blendmontParam, axisID);
+      }
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Can not execute newst" + axisID.getExtension() + ".com";
+      message[1] = e.getMessage();
+      uiHarness.openMessageDialog(message, "Unable to execute com script",
+          axisID);
+      return;
+    }
+    setThreadName(threadName, axisID);
+  }
+
+  /**
+   * Open 3dmod on the sample volume for the specified axis along with the
+   * tomopitch model
+   * 
+   * @param axisID
+   */
+  public void imodSample(AxisID axisID, Run3dmodMenuOptions menuOptions) {
+    try {
+      //It is safe to use open contours in all cases.
+      imodManager.setOpenContours(ImodManager.SAMPLE_KEY, axisID, true);
+      imodManager.open(ImodManager.SAMPLE_KEY, axisID, menuOptions);
+      processTrack.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
+      mainPanel.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
+    }
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
+          axisID);
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(),
+          "Problem opening sample reconstruction", axisID);
+    }
+  }
+
+  /**
+   * Open 3dmod on the full volume along with the tomopitch model
+   * 
+   * @param axisID
+   */
+  public void imodFullSample(AxisID axisID, Run3dmodMenuOptions menuOptions) {
+    String tomopitchModelName = "tomopitch" + axisID.getExtension() + ".mod";
+    try {
+      imodManager.setOpenContours(ImodManager.FULL_VOLUME_KEY, axisID, true);
+      imodManager.open(ImodManager.FULL_VOLUME_KEY, axisID, tomopitchModelName,
+          true, menuOptions);
+      processTrack.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
+      mainPanel.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
+    }
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
+          axisID);
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(),
+          "Problem opening sample reconstruction", axisID);
+    }
+  }
+
+  /**
+   *  
+   */
+  public void tomopitch(AxisID axisID) {
+    if (updateTomopitchCom(axisID)) {
+      processTrack.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
+      mainPanel.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
+      String threadName;
+      try {
+        threadName = processMgr.tomopitch(axisID);
+      }
+      catch (SystemProcessException e) {
+        e.printStackTrace();
+        String[] message = new String[2];
+        message[0] = "Can not execute tomopitch" + axisID.getExtension()
+            + ".com";
+        message[1] = e.getMessage();
+        uiHarness.openMessageDialog(message, "Unable to execute com script",
+            axisID);
+        return;
+      }
+      setThreadName(threadName, axisID);
+      mainPanel.startProgressBar("Finding sample position", axisID);
+    }
+  }
+
+  /**
+   * Open the tomopitch log file
+   * 
+   * @param axisID
+   */
+  public void openTomopitchLog(AxisID axisID) {
+    String logFileName = "tomopitch" + axisID.getExtension() + ".log";
+    TextPageWindow logFileWindow = new TextPageWindow();
+    logFileWindow.setVisible(logFileWindow.setFile(propertyUserDir
+        + File.separator + logFileName));
+  }
+
+  /**
+   * Compute the final alignment from the updated parameters in the
+   * positioning dialog.
+   * 
+   * @param axisID
+   */
+  public void finalAlign(AxisID axisID) {
+    //  Set a reference to the correct object
+    TomogramPositioningDialog tomogramPositioningDialog = mapPositioningDialog(axisID);
+    ConstTiltalignParam tiltalignParam = updateAlignCom(
+        tomogramPositioningDialog, axisID);
+    if (tiltalignParam != null) {
+      processTrack.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
+      mainPanel.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
+      String threadName;
+      try {
+        threadName = processMgr.fineAlignment(tiltalignParam, axisID);
+        metaData.setFiducialessAlignment(axisID, false);
+      }
+      catch (SystemProcessException e) {
+        e.printStackTrace();
+        String[] message = new String[2];
+        message[0] = "Can not execute align" + axisID.getExtension() + ".com";
+        message[1] = e.getMessage();
+        uiHarness.openMessageDialog(message, "Unable to execute com script",
+            axisID);
+        return;
+      }
+      setThreadName(threadName, axisID);
+      mainPanel.startProgressBar("Calculating final alignment", axisID);
+    }
+  }
+
+  /**
+   * Update the tilt{|a|b}.com file with sample parameters for the specified
+   * axis
+   */
+  private boolean updateSampleTiltCom(AxisID axisID) {
+    //  Set a reference to the correct object
+    TomogramPositioningDialog tomogramPositioningDialog = mapPositioningDialog(axisID);
+    // Make sure that we have an active positioning dialog
+    if (tomogramPositioningDialog == null) {
+      uiHarness.openMessageDialog(
+          "Can not update sample.com without an active positioning dialog",
+          "Program logic error", axisID);
+      return false;
+    }
+    // Get the current tilt parameters, make any user changes and save the
+    // parameters back to the tilt{|a|b}.com
+    try {
+      TiltParam tiltParam = comScriptMgr.getTiltParam(axisID);
+      tomogramPositioningDialog.getTiltParams(tiltParam);
+      String outputFileName;
+      if (metaData.getAxisType() == AxisType.SINGLE_AXIS) {
+        outputFileName = metaData.getDatasetName() + "_full.rec";
+      }
+      else {
+        outputFileName = metaData.getDatasetName() + axisID.getExtension()
+            + ".rec";
+      }
+      tiltParam.setOutputFile(outputFileName);
+      if (metaData.getViewType() == ViewType.MONTAGE) {
+        //binning is currently always 1 and correct size should be coming from
+        //copytomocoms
+        //tiltParam.setMontageFullImage(propertyUserDir, tomogramPositioningDialog.getBinning());
+      }
+      comScriptMgr.saveTilt(tiltParam, axisID);
+    }
+    catch (NumberFormatException except) {
+      String[] errorMessage = new String[3];
+      errorMessage[0] = "Tilt Parameter Syntax Error";
+      errorMessage[1] = "Axis: " + axisID.getExtension();
+      errorMessage[2] = except.getMessage();
+      uiHarness.openMessageDialog(errorMessage, "Tilt Parameter Syntax Error",
+          axisID);
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Update the tomopitch{|a|b}.com file with sample parameters for the
+   * specified axis
+   */
+  private boolean updateTomopitchCom(AxisID axisID) {
+    //  Set a reference to the correct object
+    TomogramPositioningDialog tomogramPositioningDialog = mapPositioningDialog(axisID);
+    // Make sure that we have an active positioning dialog
+    if (tomogramPositioningDialog == null) {
+      uiHarness.openMessageDialog(
+          "Can not update tomopitch.com without an active positioning dialog",
+          "Program logic error", axisID);
+      return false;
+    }
+    // Get the current tilt parameters, make any user changes and save the
+    // parameters back to the tilt{|a|b}.com
+    try {
+      TomopitchParam tomopitchParam = comScriptMgr.getTomopitchParam(axisID);
+      tomogramPositioningDialog.getTomopitchParams(tomopitchParam);
+      comScriptMgr.saveTomopitch(tomopitchParam, axisID);
+    }
+    catch (NumberFormatException except) {
+      String[] errorMessage = new String[3];
+      errorMessage[0] = "Tomopitch Parameter Syntax Error";
+      errorMessage[1] = "Axis: " + axisID.getExtension();
+      errorMessage[2] = except.getMessage();
+      uiHarness.openMessageDialog(errorMessage,
+          "Tomopitch Parameter Syntax Error", axisID);
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Return the TomogramPositioningDialog associated the specified AxisID
+   * 
+   * @param axisID
+   * @return
+   */
+  private TomogramPositioningDialog mapPositioningDialog(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return tomogramPositioningDialogB;
+    }
+    return tomogramPositioningDialogA;
+  }
+
+  /**
+   * updateAlignCom updates the align{|a|b}.com scripts with the parameters
+   * from the tomogram positioning dialog. The positioning dialog is passed so
+   * that the signature is different from the standard method.
+   */
+  private ConstTiltalignParam updateAlignCom(
+      TomogramPositioningDialog tomogramPositioningDialog, AxisID axisID) {
+    TiltalignParam tiltalignParam;
+    try {
+      tiltalignParam = comScriptMgr.getTiltalignParam(axisID);
+      tomogramPositioningDialog.getAlignParams(tiltalignParam);
+      comScriptMgr.saveAlign(tiltalignParam, axisID);
+      //update xfproduct in align.com
+      XfproductParam xfproductParam = comScriptMgr.getXfproductInAlign(axisID);
+      xfproductParam.setScaleShifts(getStackBinning(axisID, ".preali"));
+      comScriptMgr.saveXfproductInAlign(xfproductParam, axisID);
+    }
+    catch (NumberFormatException except) {
+      String[] errorMessage = new String[3];
+      errorMessage[0] = "Tiltalign Parameter Syntax Error";
+      errorMessage[1] = "Axis: " + axisID.getExtension();
+      errorMessage[2] = except.getMessage();
+      uiHarness.openMessageDialog(errorMessage,
+          "Tiltalign Parameter Syntax Error", axisID);
+      return null;
+    }
+    catch (FortranInputSyntaxException except) {
+      except.printStackTrace();
+      String[] errorMessage = new String[3];
+      errorMessage[0] = "Xfproduct Parameter Syntax Error";
+      errorMessage[1] = "Axis: " + axisID.getExtension();
+      errorMessage[2] = except.getMessage();
+      uiHarness.openMessageDialog(errorMessage,
+          "Xfproduct Parameter Syntax Error", axisID);
+      return null;
+    }
+    return tiltalignParam;
+  }
+
+  /**
+   * Update the newst{|a|b}.com scripts with the parameters from the tomogram
+   * positioning dialog. The positioning dialog is passed so that the
+   * signature is different from the standard method.
+   * 
+   * @param tomogramPositioningDialog
+   * @param axisID
+   * @return
+   */
+  private ConstNewstParam updateNewstCom(
+      TomogramPositioningDialog tomogramPositioningDialog, AxisID axisID) {
+
+    //  Get the whole tomogram positions state
+    metaData.setWholeTomogramSample(axisID, tomogramPositioningDialog
+        .isWholeTomogramSampling());
+
+    NewstParam newstParam = comScriptMgr.getNewstComNewstParam(axisID);
+    tomogramPositioningDialog.getNewstParamst(newstParam);
+    try {
+      // Make sure the size output is removed, it was only there as a 
+      // copytomocoms template
+      newstParam.setCommandMode(NewstParam.WHOLE_TOMOGRAM_SAMPLE_MODE);
+      newstParam.setSizeToOutputInXandY("/");
+    }
+    catch (FortranInputSyntaxException e) {
+      e.printStackTrace();
+    }
+    comScriptMgr.saveNewst(newstParam, axisID);
+    return newstParam;
+  }
+
+  /**
+   * Update the blend{|a|b}.com scripts with the parameters from the tomogram
+   * positioning dialog. The positioning dialog is passed so that the
+   * signature is different from the standard method.
+   * 
+   * @param tomogramPositioningDialog
+   * @param axisID
+   * @return
+   */
+  private BlendmontParam updateBlendCom(
+      TomogramPositioningDialog tomogramPositioningDialog, AxisID axisID) {
+    //  Get the whole tomogram positions state
+    metaData.setWholeTomogramSample(axisID, tomogramPositioningDialog
+        .isWholeTomogramSampling());
+    BlendmontParam blendmontParam = comScriptMgr.getBlendParam(axisID);
+    tomogramPositioningDialog.getParams(blendmontParam);
+    blendmontParam.setMode(BlendmontParam.WHOLE_TOMOGRAM_SAMPLE_MODE);
+    blendmontParam.setBlendmontState();
+    comScriptMgr.saveBlend(blendmontParam, axisID);
+    return blendmontParam;
+  }
+
+  /**
+   * Generate the prexg and _nonfid.xf for the specified axis and setup the 
+   * transform files for fiducialless mode
+   * @param axisID
+   */
+  private void generateFiducialessTransforms(AxisID axisID) {
+    try {
+      processMgr.generatePreXG(axisID);
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Unable to generate prexg";
+      message[1] = except.getMessage();
+      uiHarness.openMessageDialog(message, "Unable to generate prexg", axisID);
+    }
+    try {
+      processMgr.generateNonFidXF(axisID);
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Unable to generate _nonfid.xf";
+      message[1] = except.getMessage();
+      uiHarness.openMessageDialog(message, "Unable to generate _nonfid.xf",
+          axisID);
+    }
+    try {
+      processMgr.setupNonFiducialAlign(axisID);
+    }
+    catch (IOException except) {
+      except.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Unable to setup fiducialless align files";
+      message[1] = except.getMessage();
+      uiHarness.openMessageDialog(message,
+          "Unable to setup fiducialless align files", axisID);
+    }
+    catch (InvalidParameterException except) {
+      String[] message = new String[2];
+      message[0] = "Unable to setup fiducialless align files";
+      message[1] = except.getMessage();
+      uiHarness.openMessageDialog(message,
+          "Unable to setup fiducialless align files", axisID);
+    }
+  }
+
+  public void makeRawtltFile(AxisID axisID) throws IOException,
+      InvalidParameterException {
+    File rawtlt = new File(propertyUserDir, metaData.getDatasetName()
+        + axisID.getExtension() + ".rawtlt");
+    //backing up .rawtlt, which is currently unnecessary because this function
+    //is only called when .rawtlt doesn't exist
+    Utilities.renameFile(rawtlt, new File(propertyUserDir, metaData
+        .getDatasetName()
+        + axisID.getExtension() + ".rawtlt~"));
+
+    BufferedWriter bufferedWriter = null;
+    try {
+      bufferedWriter = new BufferedWriter(new FileWriter(rawtlt));
+      TiltAngleSpec tiltAngleSpec = null;
+      if (axisID == AxisID.SECOND) {
+        tiltAngleSpec = metaData.getTiltAngleSpecB();
+      }
+      else {
+        tiltAngleSpec = metaData.getTiltAngleSpecA();
+      }
+      double startingAngle = tiltAngleSpec.getRangeMin();
+      double step = tiltAngleSpec.getRangeStep();
+      MRCHeader rawStackHeader = getMrcHeader(axisID, ".st");
+      rawStackHeader.read();
+      int sections = rawStackHeader.getNSections();
+      for (int curSection = 0; curSection < sections; curSection++) {
+        bufferedWriter.write(Double.toString(startingAngle
+            + (step * curSection)));
+        bufferedWriter.newLine();
+      }
+    }
+    catch (IOException except) {
+      String[] message = new String[2];
+      message[0] = "Unable to create " + rawtlt.getAbsolutePath();
+      message[1] = except.getMessage();
+      uiHarness.openMessageDialog(message, "Unable to create raw tilt file",
+          axisID);
+      throw except;
+    }
+    catch (InvalidParameterException except) {
+      except.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Unable to create " + rawtlt.getAbsolutePath();
+      message[1] = except.getMessage();
+      uiHarness.openMessageDialog(message, "Unable to create raw tilt file",
+          axisID);
+      throw except;
+    }
+
+    if (bufferedWriter != null) {
+      bufferedWriter.close();
+    }
+  }
+
+  public void setEnabledFixEdgesWithMidas(AxisID axisID) {
+    CoarseAlignDialog coarseAlignDialog = mapCoarseAlignDialog(axisID);
+    if (coarseAlignDialog == null) {
+      return;
+    }
+    coarseAlignDialog.setEnabledFixEdgesMidasButton();
+  }
+
+  public void setEnabledTiltParameters(AxisID axisID) {
+    TomogramGenerationDialog tomogramGenerationDialog = mapGenerationDialog(axisID);
+    if (tomogramGenerationDialog == null) {
+      return;
+    }
+    boolean madeZFactors = false;
+    boolean newstFiducialessAlignment = false;
+    boolean usedLocalAlignments = false;
+    //madeZFactors
+    if (!state.getMadeZFactors(axisID).isNull()) {
+      madeZFactors = state.getMadeZFactors(axisID).is();
+    }
+    else {
+      madeZFactors = state.getBackwardCompatibleMadeZFactors(axisID);
+    }
+    //newstFiducialessAlignment
+    if (!state.getNewstFiducialessAlignment(axisID).isNull()) {
+      newstFiducialessAlignment = state.getNewstFiducialessAlignment(axisID)
+          .is();
+    }
+    else {
+      newstFiducialessAlignment = tomogramGenerationDialog
+          .isFiducialessAlignment();
+    }
+    //usedLocalAlignments
+    if (!state.getUsedLocalAlignments(axisID).isNull()) {
+      usedLocalAlignments = state.getUsedLocalAlignments(axisID).is();
+    }
+    else {
+      usedLocalAlignments = state
+          .getBackwardCompatibleUsedLocalAlignments(axisID);
+    }
+    //enable parameters
+    tomogramGenerationDialog.enableUseZFactors(madeZFactors
+        && !newstFiducialessAlignment);
+    tomogramGenerationDialog.enableUseLocalAlignment(usedLocalAlignments
+        && !newstFiducialessAlignment);
+  }
+
+  /**
+   * Open the tomogram generation dialog
+   */
+  public void openTomogramGenerationDialog(AxisID axisID) {
+    //  Check to see if the com files are present otherwise pop up a dialog
+    //  box informing the user to run the setup process
+    if (!metaData.getComScriptCreated()) {
+      setupRequestDialog(axisID);
+      return;
+    }
+    //
+    setCurrentDialogType(DialogType.TOMOGRAM_GENERATION, axisID);
+    mainPanel.selectButton(axisID, "Tomogram Generation");
+    if (showIfExists(tomogramGenerationDialogA, tomogramGenerationDialogB,
+        axisID)) {
+      return;
+    }
+    // Create a new dialog panel and map it the generic reference
+    TomogramGenerationDialog tomogramGenerationDialog = new TomogramGenerationDialog(
+        this, axisID);
+    if (axisID == AxisID.SECOND) {
+      tomogramGenerationDialogB = tomogramGenerationDialog;
+    }
+    else {
+      tomogramGenerationDialogA = tomogramGenerationDialog;
+    }
+    //no longer managing image size
+
+    // Read in the newst{|a|b}.com parameters. WARNING this needs to be done
+    // before reading the tilt paramers below so that the GUI knows how to
+    // correctly scale the dimensions
+    if (metaData.getViewType() == ViewType.MONTAGE) {
+      comScriptMgr.loadBlend(axisID);
+      tomogramGenerationDialog.setBlendParams(comScriptMgr
+          .getBlendParam(axisID));
+    }
+    else {
+      comScriptMgr.loadNewst(axisID);
+      tomogramGenerationDialog.setNewstParams(comScriptMgr
+          .getNewstComNewstParam(axisID));
+    }
+    tomogramGenerationDialog.setParameters(metaData);
+    // Read in the tilt{|a|b}.com parameters and display the dialog panel
+    comScriptMgr.loadTilt(axisID);
+    comScriptMgr.loadMTFFilter(axisID);
+    TiltParam tiltParam = comScriptMgr.getTiltParam(axisID);
+    //If this is a montage, then binning can only be 1, so no need to upgrade
+    if (metaData.getViewType() != ViewType.MONTAGE) {
+      //upgrade and save param to comscript
+      upgradeOldTiltCom(axisID, tiltParam);
+    }
+    tomogramGenerationDialog.setTiltParams(tiltParam);
+    tomogramGenerationDialog.setMTFFilterParam(comScriptMgr
+        .getMTFFilterParam(axisID));
+    updateDialog(tomogramGenerationDialog, axisID);
+
+    //  Set the fidcialess state and tilt axis angle
+    tomogramGenerationDialog.setFiducialessAlignment(metaData
+        .isFiducialessAlignment(axisID));
+    tomogramGenerationDialog
+        .setTiltAxisAngle(metaData.getImageRotation(axisID));
+    setEnabledTiltParameters(axisID);
+
+    mainPanel.showProcess(tomogramGenerationDialog.getContainer(), axisID);
+  }
+
+  public final void packDialogs(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      if (tomogramGenerationDialogB != null) {
+        tomogramGenerationDialogB.pack();
+      }
+    }
+    else {
+      if (tomogramGenerationDialogA != null) {
+        tomogramGenerationDialogA.pack();
+      }
+    }
+  }
+
+  public final void packDialogs() {
+    packDialogs(AxisID.FIRST);
+    packDialogs(AxisID.SECOND);
+  }
+
+  /**
+   *  
+   */
+  public void doneTomogramGenerationDialog(AxisID axisID) {
+    //  Set a reference to the correct object
+    TomogramGenerationDialog tomogramGenerationDialog = mapGenerationDialog(axisID);
+    if (tomogramGenerationDialog == null) {
+      uiHarness
+          .openMessageDialog(
+              "Can not update tilt?.com without an active tomogram generation dialog",
+              "Program logic error", axisID);
+      return;
+    }
+    setAdvanced(tomogramGenerationDialog.getDialogType(), axisID,
+        tomogramGenerationDialog.isAdvanced());
+    DialogExitState exitState = tomogramGenerationDialog.getExitState();
+    if (exitState == DialogExitState.CANCEL) {
+      mainPanel.showBlankProcess(axisID);
+    }
+    else {
+      //  Get the user input data from the dialog box
+      tomogramGenerationDialog.getParameters(metaData);
+      if (!updateFiducialessParams(tomogramGenerationDialog, axisID)) {
+        return;
+      }
+      if (metaData.getViewType() == ViewType.MONTAGE) {
+        updateBlendCom(axisID);
+      }
+      else {
+        if (updateNewstCom(axisID) == null) {
+          return;
+        }
+      }
+      if (!updateTiltCom(axisID, true)) {
+        return;
+      }
+      if (!updateMTFFilterCom(axisID)) {
+        return;
+      }
+
+      if (exitState == DialogExitState.POSTPONE) {
+        processTrack
+            .setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
+        mainPanel.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
+        mainPanel.showBlankProcess(axisID);
+      }
+      else if (exitState != DialogExitState.SAVE) {
+        processTrack.setTomogramGenerationState(ProcessState.COMPLETE, axisID);
+        mainPanel.setTomogramGenerationState(ProcessState.COMPLETE, axisID);
+        if (isDualAxis()) {
+          openTomogramCombinationDialog();
+          if (axisID == AxisID.SECOND) {
+            mainPanel.showBlankProcess(axisID);
+          }
+        }
+        else {
+          openPostProcessingDialog();
+        }
+      }
+      saveTestParamFile(axisID);
+    }
+    //  Clean up the existing dialog
+    if (axisID == AxisID.SECOND) {
+      tomogramGenerationDialogB = null;
+    }
+    else {
+      tomogramGenerationDialogA = null;
+    }
+    tomogramGenerationDialog = null;
+  }
+
+  /**
+   * Update the tilt.com from the TomogramGenerationDialog
+   * 
+   * @param axisID
+   * @param useDefaultRec
+   *            If true set the reconstruction output filename to what is
+   *            expected of the com scripts. If false use the trial tomogram
+   *            filename specified in the TomogramGenerationDialog
+   * @return true if successful
+   */
+  private boolean updateTiltCom(AxisID axisID, boolean useDefaultRec) {
+    //  Set a reference to the correct object
+    TomogramGenerationDialog tomogramGenerationDialog = mapGenerationDialog(axisID);
+    if (tomogramGenerationDialog == null) {
+      uiHarness
+          .openMessageDialog(
+              "Can not update tilt?.com without an active tomogram generation dialog",
+              "Program logic error", axisID);
+      return false;
+    }
+    try {
+      TiltParam tiltParam = comScriptMgr.getTiltParam(axisID);
+      tomogramGenerationDialog.getTiltParams(tiltParam);
+      if (useDefaultRec) {
+        String outputFileName;
+        if (metaData.getAxisType() == AxisType.SINGLE_AXIS) {
+          outputFileName = metaData.getDatasetName() + "_full.rec";
+        }
+        else {
+          outputFileName = metaData.getDatasetName() + axisID.getExtension()
+              + ".rec";
+        }
+        tiltParam.setOutputFile(outputFileName);
+      }
+      else {
+        String trialTomogramName = tomogramGenerationDialog
+            .getTrialTomogramName();
+        tiltParam.setOutputFile(trialTomogramName);
+      }
+      if (metaData.getViewType() == ViewType.MONTAGE) {
+        //binning is currently always 1 and correct size should be coming from
+        //copytomocoms
+        //tiltParam.setMontageFullImage(propertyUserDir, tomogramGenerationDialog.getBinning());
+      }
+      comScriptMgr.saveTilt(tiltParam, axisID);
+    }
+    catch (NumberFormatException except) {
+      String[] errorMessage = new String[3];
+      errorMessage[0] = "Tilt Parameter Syntax Error";
+      errorMessage[1] = "Axis: " + axisID.getExtension();
+      errorMessage[2] = except.getMessage();
+      uiHarness.openMessageDialog(errorMessage, "Tilt Parameter Syntax Error",
+          axisID);
+      return false;
+    }
+    catch (InvalidParameterException except) {
+      String[] errorMessage = new String[3];
+      errorMessage[0] = "Tilt Parameter Syntax Error";
+      errorMessage[1] = "Axis: " + axisID.getExtension();
+      errorMessage[2] = except.getMessage();
+      uiHarness.openMessageDialog(errorMessage, "Tilt Parameter Syntax Error",
+          axisID);
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Update the mtffilter.com from the TomogramGenerationDialog
+   * 
+   * @param axisID
+   * @return true if successful
+   */
+  private boolean updateMTFFilterCom(AxisID axisID) {
+    //  Set a reference to the correct object
+    TomogramGenerationDialog tomogramGenerationDialog = mapGenerationDialog(axisID);
+    if (tomogramGenerationDialog == null) {
+      uiHarness
+          .openMessageDialog(
+              "Can not update mtffilter?.com without an active tomogram generation dialog",
+              "Program logic error", axisID);
+      return false;
+    }
+    try {
+      MTFFilterParam mtfFilterParam = comScriptMgr.getMTFFilterParam(axisID);
+      tomogramGenerationDialog.getMTFFilterParam(mtfFilterParam);
+      String inputFileName;
+      String outputFileName;
+      if (metaData.getAxisType() == AxisType.SINGLE_AXIS) {
+        inputFileName = metaData.getDatasetName() + AxisID.ONLY.getExtension()
+            + ".ali";
+        outputFileName = metaData.getDatasetName() + AxisID.ONLY.getExtension()
+            + "_filt.ali";
+      }
+      else {
+        inputFileName = metaData.getDatasetName() + axisID.getExtension()
+            + ".ali";
+        outputFileName = metaData.getDatasetName() + axisID.getExtension()
+            + "_filt.ali";
+      }
+      mtfFilterParam.setInputFile(inputFileName);
+      mtfFilterParam.setOutputFile(outputFileName);
+      comScriptMgr.saveMTFFilter(mtfFilterParam, axisID);
+    }
+    catch (NumberFormatException except) {
+      String[] errorMessage = new String[3];
+      errorMessage[0] = "MTF Filter Parameter Syntax Error";
+      errorMessage[1] = "Axis: " + axisID.getExtension();
+      errorMessage[2] = except.getMessage();
+      uiHarness.openMessageDialog(errorMessage,
+          "MTF Filter Parameter Syntax Error", axisID);
+      return false;
+    }
+    catch (FortranInputSyntaxException except) {
+      String[] errorMessage = new String[3];
+      errorMessage[0] = "MTF Filter Parameter Syntax Error";
+      errorMessage[1] = "Axis: " + axisID.getExtension();
+      errorMessage[2] = except.getMessage();
+      uiHarness.openMessageDialog(errorMessage,
+          "MTF Filter Parameter Syntax Error", axisID);
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Update the newst.com from the TomogramGenerationDialog
+   * reads metaData
+   * 
+   * @param axisID
+   * @return true if successful
+   */
+  private ConstNewstParam updateNewstCom(AxisID axisID) {
+    //  Set a reference to the correct object
+    TomogramGenerationDialog tomogramGenerationDialog = mapGenerationDialog(axisID);
+    if (tomogramGenerationDialog == null) {
+      uiHarness
+          .openMessageDialog(
+              "Can not update newst?.com without an active tomogram generation dialog",
+              "Program logic error", axisID);
+      return null;
+    }
+    NewstParam newstParam = null;
+    try {
+      newstParam = comScriptMgr.getNewstComNewstParam(axisID);
+      // Make sure the size output is removed, it was only there for a
+      // copytomocoms template
+      newstParam.setSizeToOutputInXandY("/");
+      newstParam.setCommandMode(NewstParam.FULL_ALIGNED_STACK_MODE);
+      newstParam.setFiducialessAlignment(metaData
+          .isFiducialessAlignment(axisID));
+      tomogramGenerationDialog.getNewstParams(newstParam);
+      comScriptMgr.saveNewst(newstParam, axisID);
+    }
+    catch (NumberFormatException except) {
+      String[] errorMessage = new String[3];
+      errorMessage[0] = "newst Parameter Syntax Error";
+      errorMessage[1] = "Axis: " + axisID.getExtension();
+      errorMessage[2] = except.getMessage();
+      uiHarness.openMessageDialog(errorMessage, "Newst Parameter Syntax Error",
+          axisID);
+      return null;
+    }
+    catch (FortranInputSyntaxException except) {
+      except.printStackTrace();
+    }
+    return newstParam;
+  }
+
+  /**
+   * Return the TomogramGenerationDialog associated with the specified AxisID
+   * 
+   * @param axisID
+   * @return
+   */
+  private TomogramGenerationDialog mapGenerationDialog(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return tomogramGenerationDialogB;
+    }
+    return tomogramGenerationDialogA;
+  }
+
+  /**
+   *  
+   */
+  public void newst(AxisID axisID) {
+    //  Set a reference to the correct object
+    TomogramGenerationDialog tomogramGenerationDialog = mapGenerationDialog(axisID);
+
+    // Get the user input from the dialog
+    if (!updateFiducialessParams(tomogramGenerationDialog, axisID)) {
+      return;
+    }
+    ConstNewstParam newstParam = null;
+    BlendmontParam blendmontParam = null;
+    if (metaData.getViewType() == ViewType.MONTAGE) {
+      blendmontParam = updateBlendCom(axisID);
+    }
+    else {
+      newstParam = updateNewstCom(axisID);
+      if (newstParam == null) {
+        return;
+      }
+    }
+
+    processTrack.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
+    mainPanel.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
+
+    // Make sure we have a current prexg and _nonfid.xf if fiducialess is
+    // selected
+    if (metaData.isFiducialessAlignment(axisID)) {
+      generateFiducialessTransforms(axisID);
+    }
+    else {
+      try {
+        processMgr.setupFiducialAlign(axisID);
+      }
+      catch (IOException except) {
+        except.printStackTrace();
+        String[] message = new String[2];
+        message[0] = "Problem copying fiducial alignment files";
+        message[1] = except.getMessage();
+        uiHarness.openMessageDialog(message,
+            "Unable to copy fiducial alignment files", axisID);
+      }
+    }
+
+    String threadName;
+    try {
+      if (metaData.getViewType() == ViewType.MONTAGE) {
+        threadName = processMgr.blend(blendmontParam, axisID);
+      }
+      else {
+        threadName = processMgr.newst(newstParam, axisID);
+      }
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Can not execute newst" + axisID.getExtension() + ".com";
+      message[1] = e.getMessage();
+      uiHarness.openMessageDialog(message, "Unable to execute com script",
+          axisID);
+      return;
+    }
+    setThreadName(threadName, axisID);
+  }
+
+  /**
+   * Replace the full aligned stack with the filtered full aligned stack
+   * created from mtffilter
+   * 
+   * @param axisID
+   */
+  public void useMtfFilter(AxisID axisID) {
+    mainPanel.setProgressBar("Using filtered full aligned stack", 1, axisID);
+    // Instantiate file objects for the original raw stack and the fixed
+    // stack
+    String fullAlignedStackFilename = propertyUserDir + File.separator
+        + metaData.getDatasetName() + axisID.getExtension() + ".ali";
+    File fullAlignedStack = new File(fullAlignedStackFilename);
+    String filteredFullAlignedStackFilename = propertyUserDir + File.separator
+        + metaData.getDatasetName() + axisID.getExtension() + "_filt.ali";
+    File filteredFullAlignedStack = new File(filteredFullAlignedStackFilename);
+    if (!filteredFullAlignedStack.exists()) {
+      uiHarness
+          .openMessageDialog(
+              "The filtered full aligned stack doesn't exist.  Create the filtered full aligned stack first",
+              "Filtered full aligned stack missing", axisID);
+      return;
+    }
+    processTrack.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
+    mainPanel.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
+    //don't have to rename full aligned stack because it is a generated
+    // file
+    try {
+      Utilities.renameFile(filteredFullAlignedStack, fullAlignedStack);
+    }
+    catch (IOException except) {
+      uiHarness.openMessageDialog(except.getMessage(), "File Rename Error",
+          axisID);
+    }
+    try {
+      if (imodManager.isOpen(ImodManager.FINE_ALIGNED_KEY, axisID)) {
+        String[] message = new String[2];
+        message[0] = "The original full aligned stack is open in 3dmod";
+        message[1] = "Should it be closed?";
+        if (uiHarness.openYesNoDialog(message, axisID)) {
+          imodManager.quit(ImodManager.FINE_ALIGNED_KEY, axisID);
+        }
+      }
+    }
+    catch (AxisTypeException e) {
+      e.printStackTrace();
+      System.err.println("Axis type exception in useMtfFilter");
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      System.err.println("System process exception in useMtfFilter");
+    }
+    mainPanel.stopProgressBar(axisID);
+  }
+
+  /**
+   */
+  public void mtffilter(AxisID axisID) {
+    if (updateMTFFilterCom(axisID)) {
+      processTrack.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
+      mainPanel.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
+      String threadName;
+      try {
+        threadName = processMgr.mtffilter(axisID);
+      }
+      catch (SystemProcessException e) {
+        e.printStackTrace();
+        String[] message = new String[2];
+        message[0] = "Can not execute mtffilter" + axisID.getExtension()
+            + ".com";
+        message[1] = e.getMessage();
+        uiHarness.openMessageDialog(message, "Unable to execute com script",
+            axisID);
+        return;
+      }
+      setThreadName(threadName, axisID);
+    }
+  }
+
+  /**
+   * Start a tilt process in trial mode
+   * 
+   * @param axisID
+   */
+  public void trialTilt(AxisID axisID) {
+    if (updateTiltCom(axisID, false)) {
+      processTrack.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
+      mainPanel.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
+      tiltProcess(axisID);
+    }
+  }
+
+  /**
+   * Run the tilt command script for the specified axis
+   */
+  public void tilt(AxisID axisID) {
+    if (updateTiltCom(axisID, true)) {
+      processTrack.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
+      mainPanel.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
+      tiltProcess(axisID);
+    }
+  }
+
+  /**
+   * Tilt process initiator. Since tilt can be started from multiple points in
+   * the process chain we need separate the execution from the parameter
+   * collection and state updating
+   * 
+   * @param axisID
+   */
+  private void tiltProcess(AxisID axisID) {
+    resetNextProcess(axisID);
+    String threadName;
+    try {
+      threadName = processMgr.tilt(axisID);
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Can not execute tilt" + axisID.getExtension() + ".com";
+      message[1] = e.getMessage();
+      uiHarness.openMessageDialog(message, "Unable to execute com script",
+          axisID);
+      return;
+    }
+    setThreadName(threadName, axisID);
+  }
+
+  /**
+   * Open 3dmod to view the tomogram
+   * 
+   * @param axisID
+   *            the AxisID of the tomogram to open.
+   */
+  public void imodFullVolume(AxisID axisID, Run3dmodMenuOptions menuOptions) {
+    try {
+      imodManager.open(ImodManager.FULL_VOLUME_KEY, axisID, menuOptions);
+    }
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
+          axisID);
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(),
+          "Can't open 3dmod with the tomogram", axisID);
+    }
+  }
+
+  /**
+   * Open 3dmod on the current test volume
+   * 
+   * @param axisID
+   */
+  public void imodTestVolume(AxisID axisID, Run3dmodMenuOptions menuOptions) {
+    //  Set a reference to the correct object
+    TomogramGenerationDialog tomogramGenerationDialog;
+    if (axisID == AxisID.SECOND) {
+      tomogramGenerationDialog = tomogramGenerationDialogB;
+    }
+    else {
+      tomogramGenerationDialog = tomogramGenerationDialogA;
+    }
+    String trialTomogramName = tomogramGenerationDialog.getTrialTomogramName();
+    try {
+      imodManager.newImod(ImodManager.TRIAL_TOMOGRAM_KEY, axisID,
+          trialTomogramName);
+      imodManager.open(ImodManager.TRIAL_TOMOGRAM_KEY, axisID, menuOptions);
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      String message[] = new String[2];
+      message[0] = "Unable to open specified tomogram:" + trialTomogramName;
+      message[1] = "Does it exist in the working directory?";
+      uiHarness.openMessageDialog(except.getMessage(),
+          "Can't open 3dmod with the tomogram", axisID);
+    }
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
+          axisID);
+    }
+  }
+
+  public void commitTestVolume(AxisID axisID) {
+    //  Set a reference to the correct object
+    TomogramGenerationDialog tomogramGenerationDialog;
+    if (axisID == AxisID.SECOND) {
+      tomogramGenerationDialog = tomogramGenerationDialogB;
+    }
+    else {
+      tomogramGenerationDialog = tomogramGenerationDialogA;
+    }
+    String trialTomogramName = tomogramGenerationDialog.getTrialTomogramName();
+    //  Check to see if the trial tomogram exist
+    File trialTomogramFile = new File(propertyUserDir, trialTomogramName);
+    if (!trialTomogramFile.exists()) {
+      String message[] = new String[2];
+      message[0] = "The specified tomogram does not exist:" + trialTomogramName;
+      message[1] = "It must be calculated before commiting";
+      uiHarness.openMessageDialog(message, "Can't rename tomogram", axisID);
+    }
+    // rename the trial tomogram to the output filename of appropriate
+    // tilt.com
+    File outputFile;
+    if (metaData.getAxisType() == AxisType.SINGLE_AXIS) {
+      outputFile = new File(propertyUserDir, metaData.getDatasetName()
+          + "_full.rec");
+    }
+    else {
+      outputFile = new File(propertyUserDir, metaData.getDatasetName()
+          + axisID.getExtension() + ".rec");
+    }
+    mainPanel.setProgressBar("Using trial tomogram: " + trialTomogramName, 1,
+        axisID);
+    try {
+      Utilities.renameFile(trialTomogramFile, outputFile);
+    }
+    catch (IOException except) {
+      uiHarness.openMessageDialog(except.getMessage(), "File Rename Error",
+          axisID);
+    }
+    mainPanel.stopProgressBar(axisID);
+  }
+
+  /**
+   * Delete the pre-aligned and aligned stack for the specified axis
+   * 
+   * @param axisID
+   */
+  public void deleteAlignedStacks(AxisID axisID) {
+    mainPanel.setProgressBar("Deleting aligned image stacks", 1, axisID);
+    //
+    // Don't do preali now because users may do upto generation before
+    // transfering
+    // the fiducials
+    //
+    //     File preali =
+    //      new File(
+    //        System.getProperty("user.dir"),
+    //        metaData.getDatasetName() + axisID.getExtension() + ".preali");
+    //    if (preali.exists()) {
+    //      if (!preali.delete()) {
+    //        mainFrame.openMessageDialog(
+    //          "Unable to delete pre-aligned stack: " + preali.getAbsolutePath(),
+    //          "Can not delete file");
+    //      }
+    //    }
+    File aligned = new File(propertyUserDir, metaData.getDatasetName()
+        + axisID.getExtension() + ".ali");
+    if (aligned.exists()) {
+      if (!aligned.delete()) {
+        uiHarness.openMessageDialog("Unable to delete aligned stack: "
+            + aligned.getAbsolutePath(), "Can not delete file", axisID);
+      }
+    }
+    mainPanel.stopProgressBar(axisID);
+  }
+
+  /**
+   * Open the tomogram combination dialog
+   */
+  public void openTomogramCombinationDialog() {
+    //  Check to see if the com files are present otherwise pop up a dialog
+    //  box informing the user to run the setup process
+    if (!metaData.getComScriptCreated()) {
+      setupRequestDialog(AxisID.ONLY);
+      return;
+    }
+    // Verify that this process is applicable
+    if (metaData.getAxisType() == AxisType.SINGLE_AXIS) {
+      uiHarness.openMessageDialog(
+          "This step is valid only for a dual axis tomogram",
+          "Invalid tomogram combination selection", AxisID.ONLY);
+      return;
+    }
+    setCurrentDialogType(DialogType.TOMOGRAM_COMBINATION, AxisID.FIRST);
+    mainPanel.selectButton(AxisID.FIRST, "Tomogram Combination");
+    if (tomogramCombinationDialog == null) {
+      tomogramCombinationDialog = new TomogramCombinationDialog(this);
+      // Get the setupcombine parameters and set the default patch
+      // boundaries if
+      // they have not already been set
+      CombineParams combineParams = new CombineParams(metaData
+          .getCombineParams());
+      if (!combineParams.isPatchBoundarySet()) {
+        String recFileName;
+        if (combineParams.getMatchBtoA()) {
+          recFileName = metaData.getDatasetName() + "a.rec";
+        }
+        else {
+          recFileName = metaData.getDatasetName() + "b.rec";
+        }
+        try {
+          combineParams.setDefaultPatchBoundaries(recFileName);
+        }
+        catch (InvalidParameterException except) {
+          String[] detailedMessage = new String[4];
+          detailedMessage[0] = "Unable to set default patch boundaries";
+          detailedMessage[1] = "Are both tomograms computed and available?";
+          detailedMessage[2] = "";
+          detailedMessage[3] = except.getMessage();
+          uiHarness.openMessageDialog(detailedMessage, "Invalid parameter: "
+              + recFileName, AxisID.ONLY);
+          // Delete the dialog
+          tomogramCombinationDialog = null;
+          return;
+        }
+        catch (IOException except) {
+          uiHarness.openMessageDialog(except.getMessage(), "IO Error: "
+              + recFileName, AxisID.ONLY);
+          //Delete the dialog
+          tomogramCombinationDialog = null;
+          return;
+        }
+      }
+      // Fill in the dialog box params and set it to the appropriate state
+      tomogramCombinationDialog.setCombineParams(combineParams);
+
+      // If setupcombine has been run load the com scripts, otherwise disable the
+      // apropriate panels in the tomogram combination dialog
+      tomogramCombinationDialog.enableCombineTabs(combineScriptsExist());
+      if (combineScriptsExist()) {
+        // Check to see if a solvematch.com file exists and load it if so
+        //otherwise load the correct old solvematch* file
+        File solvematch = new File(propertyUserDir, "solvematch.com");
+        if (solvematch.exists()) {
+          loadSolvematch();
+        }
+        else {
+          //For backward compatibility using fiducialMatch instead of
+          //modelBased.  ModelBased was not updated when fiducialMatch was
+          //changed and ficucialMatch wasn't update when modelBased was changed.
+          //But it looks like modelBased was never changed.  In version 3.2.6
+          //CombineParam.setModelBased() was never called.  So fiducialMatch is
+          //probably correct in earlier versions.
+          boolean modelBased = false;
+          ConstCombineParams metaDataCombineParams = metaData
+              .getCombineParams();
+          if (metaDataCombineParams.getFiducialMatch() == FiducialMatch.USE_MODEL
+              || metaDataCombineParams.getFiducialMatch() == FiducialMatch.USE_MODEL_ONLY) {
+            modelBased = true;
+          }
+          loadSolvematch(modelBased);
+        }
+        loadPatchcorr();
+        loadMatchorwarp();
+        loadVolcombine();
+        loadCombineComscript();
+        tomogramCombinationDialog.synchronize(
+            TomogramCombinationDialog.lblSetup, false,
+            TomogramCombinationDialog.ALL_FIELDS);
+        updateCombineParams();
+      }
+    }
+    //  Show the process panel
+    mainPanel.showProcess(tomogramCombinationDialog.getContainer(),
+        AxisID.FIRST);
+  }
+
+  /**
+   * Open the matching models in the 3dmod reconstruction instances
+   */
+  public void imodMatchingModel(boolean binBy2, Run3dmodMenuOptions menuOptions) {
+    if (tomogramCombinationDialog == null) {
+      return;
+    }
+    // FIXME do we want to be updating here break model (maybe it is saving
+    // the bin by 2 state?
+    updateCombineParams();
+
+    try {
+      if (binBy2) {
+        imodManager.setBinning(ImodManager.FULL_VOLUME_KEY, AxisID.FIRST, 2);
+        imodManager.setBinning(ImodManager.FULL_VOLUME_KEY, AxisID.SECOND, 2);
+      }
+      imodManager.setOpenContours(ImodManager.FULL_VOLUME_KEY, AxisID.FIRST,
+          true);
+      imodManager.setOpenContours(ImodManager.FULL_VOLUME_KEY, AxisID.SECOND,
+          true);
+      imodManager.open(ImodManager.FULL_VOLUME_KEY, AxisID.FIRST, metaData
+          .getDatasetName()
+          + AxisID.FIRST.getExtension() + ".matmod", true, menuOptions);
+      imodManager.open(ImodManager.FULL_VOLUME_KEY, AxisID.SECOND, metaData
+          .getDatasetName()
+          + AxisID.SECOND.getExtension() + ".matmod", true, menuOptions);
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(),
+          "Can't open 3dmod on tomograms for matching models", AxisID.ONLY);
+    }
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
+          AxisID.ONLY);
+    }
+  }
+
+  /**
+   * Open the matchcheck results in 3dmod
+   */
+  public void imodMatchCheck(Run3dmodMenuOptions menuOptions) {
+    try {
+      imodManager.open(ImodManager.MATCH_CHECK_KEY, menuOptions);
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(),
+          "Can't open 3dmod on matchcheck.mat or matchcheck.rec", AxisID.ONLY);
+    }
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
+          AxisID.ONLY);
+    }
+  }
+
+  /**
+   * Open the patch region models in tomogram being matched to
+   */
+  public void imodPatchRegionModel(Run3dmodMenuOptions menuOptions) {
+    // FIXME do we want to be updating here break model
+    // Get the latest combine parameters from the dialog
+    updateCombineParams();
+
+    // FIXME axis should be a parameter to the call
+    AxisID axisID;
+    if (metaData.getCombineParams().getMatchBtoA()) {
+      axisID = AxisID.FIRST;
+    }
+    else {
+      axisID = AxisID.SECOND;
+    }
+    try {
+      imodManager.open(ImodManager.FULL_VOLUME_KEY, axisID, "patch_region.mod",
+          true, menuOptions);
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(),
+          "Can't open 3dmod on tomogram for patch region models", AxisID.ONLY);
+    }
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
+          AxisID.ONLY);
+    }
+  }
+
+  /**
+   * Open the patch vector models in 3dmod
+   */
+  public void imodPatchVectorModel() {
+    try {
+      imodManager.open(ImodManager.PATCH_VECTOR_MODEL_KEY);
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(),
+          "Can't open 3dmod on tomogram for patch vector model", AxisID.ONLY);
+    }
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
+          AxisID.ONLY);
+    }
+  }
+
+  /**
+   * Open the tomogram being matched to
+   */
+  public void imodMatchedToTomogram(Run3dmodMenuOptions menuOptions) {
+    AxisID axisID;
+    if (metaData.getCombineParams().getMatchBtoA()) {
+      axisID = AxisID.FIRST;
+    }
+    else {
+      axisID = AxisID.SECOND;
+    }
+    try {
+      imodManager.open(ImodManager.FULL_VOLUME_KEY, axisID, menuOptions);
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(),
+          "Can't open 3dmod on tomogram being matched to", AxisID.ONLY);
+    }
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
+          AxisID.ONLY);
+    }
+  }
+
+  /**
+   * Tomogram combination done method, move on to the post processing window
+   */
+  public void doneTomogramCombinationDialog() {
+    if (tomogramCombinationDialog == null) {
+      uiHarness
+          .openMessageDialog(
+              "Can not update combine.com without an active tomogram combination dialog",
+              "Program logic error", AxisID.ONLY);
+      return;
+    }
+    setAdvanced(tomogramCombinationDialog.getDialogType(),
+        tomogramCombinationDialog.isAdvanced());
+    DialogExitState exitState = tomogramCombinationDialog.getExitState();
+    if (exitState == DialogExitState.CANCEL) {
+      mainPanel.showBlankProcess(AxisID.ONLY);
+    }
+    else {
+      // Update the com script and metadata info from the tomogram
+      // combination dialog box. Since there are multiple pages and scripts
+      // associated with the postpone button get the ones that are appropriate
+      updateCombineParams();
+      if (tomogramCombinationDialog.isCombinePanelEnabled()) {
+        if (!updateSolvematchCom()) {
+          return;
+        }
+        if (!updatePatchcorrCom()) {
+          return;
+        }
+        if (!updateMatchorwarpCom(false)) {
+          return;
+        }
+        if (!updateVolcombineCom()) {
+          return;
+        }
+      }
+      if (exitState == DialogExitState.POSTPONE) {
+        processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
+        mainPanel.setTomogramCombinationState(ProcessState.INPROGRESS);
+        mainPanel.showBlankProcess(AxisID.ONLY);
+      }
+      else if (exitState != DialogExitState.SAVE) {
+        processTrack.setTomogramCombinationState(ProcessState.COMPLETE);
+        mainPanel.setTomogramCombinationState(ProcessState.COMPLETE);
+        openPostProcessingDialog();
+      }
+      saveTestParamFile(AxisID.ONLY);
+    }
+  }
+
+  /**
+   * Check to see if the combine scripts exist
+   * 
+   * @return true if the combine scripts exist
+   */
+  public boolean combineScriptsExist() {
+    File solvematchshift = new File(propertyUserDir, "solvematchshift.com");
+    File solvematchmod = new File(propertyUserDir, "solvematchmod.com");
+    File solvematch = new File(propertyUserDir, "solvematch.com");
+    File matchvol1 = new File(propertyUserDir, "matchvol1.com");
+    File matchorwarp = new File(propertyUserDir, "matchorwarp.com");
+    File patchcorr = new File(propertyUserDir, "patchcorr.com");
+    File volcombine = new File(propertyUserDir, "volcombine.com");
+    File warpvol = new File(propertyUserDir, "warpvol.com");
+    return (solvematch.exists() || (solvematchshift.exists() && solvematchmod
+        .exists()))
+        && matchvol1.exists()
+        && matchorwarp.exists()
+        && patchcorr.exists()
+        && volcombine.exists() && warpvol.exists();
+  }
+
+  /**
+   * Run the setupcombine script with the current combine parameters stored in
+   * metaData object. updateCombineCom is called first to get the currect
+   * parameters from the dialog.
+   * 
+   * @param tomogramCombinationDialog
+   *            the calling dialog.
+   */
+  public void createCombineScripts() {
+    mainPanel.setProgressBar("Creating combine scripts", 1, AxisID.ONLY);
+    updateCombineParams();
+    try {
+      processMgr.setupCombineScripts(metaData);
+      processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
+      mainPanel.setTomogramCombinationState(ProcessState.INPROGRESS);
+    }
+    catch (BadComScriptException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(),
+          "Can't run setupcombine", AxisID.ONLY);
+      return;
+    }
+    catch (IOException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog("Can't run setupcombine\n"
+          + except.getMessage(), "Setupcombine IOException", AxisID.ONLY);
+      return;
+    }
+
+    // Reload the initial and final match paramaters from the newly created
+    // scripts
+
+    //  Reload all of the parameters into the ComScriptManager
+    loadSolvematch();
+    loadPatchcorr();
+    loadMatchorwarp();
+    loadVolcombine();
+    loadCombineComscript();
+
+    tomogramCombinationDialog.enableCombineTabs(true);
+    mainPanel.stopProgressBar(AxisID.ONLY);
+  }
+
+  /**
+   * Update the combine parameters from the a specified tab of the calling
+   * dialog assumes that the dialog is synchronized
+   * 
+   * @param tomogramCombinationDialog
+   *            the calling dialog.
+   */
+  private void updateCombineParams() {
+    if (tomogramCombinationDialog == null) {
+      uiHarness
+          .openMessageDialog(
+              "Can not update combine.com without an active tomogram combination dialog",
+              "Program logic error", AxisID.ONLY);
+      return;
+    }
+    CombineParams combineParams = new CombineParams(this);
+    try {
+      tomogramCombinationDialog.getCombineParams(combineParams);
+      if (!combineParams.isValid(true)) {
+        uiHarness.openMessageDialog(combineParams.getInvalidReasons(),
+            "Invalid combine parameters", AxisID.ONLY);
+        return;
+      }
+    }
+    catch (NumberFormatException except) {
+      uiHarness.openMessageDialog(except.getMessage(), "Number format error",
+          AxisID.ONLY);
+      return;
+    }
+    CombineParams originalCombineParams = metaData.getCombineParams();
+    if (!originalCombineParams.equals(combineParams)) {
+      metaData.setCombineParams(combineParams);
+      saveTestParamFile(AxisID.ONLY);
+    }
+    return;
+  }
+
+  /**
+   * Load the solvematch com script into the tomogram combination dialog
+   */
+  public void loadSolvematch() {
+    comScriptMgr.loadSolvematch();
+    tomogramCombinationDialog.setSolvematchParams(comScriptMgr.getSolvematch());
+  }
+
+  /**
+   * Merge solvematchshift and solvematchmod com scripts in solvematch and
+   * load solvematchinto the tomogram
+   * combination dialog
+   */
+  public void loadSolvematch(boolean modelBased) {
+    //get solvematchshift param
+    comScriptMgr.loadSolvematchshift();
+    SolvematchshiftParam solvematchshiftParam = comScriptMgr
+        .getSolvematchshift();
+    //get solvematchmod param
+    comScriptMgr.loadSolvematchmod();
+    SolvematchmodParam solvematchmodParam = comScriptMgr.getSolvematchmod();
+    //merge shift and mod into solvematch param
+    SolvematchParam solvematchParam = new SolvematchParam();
+    solvematchParam.mergeSolvematchshift(solvematchshiftParam, modelBased);
+    solvematchParam.mergeSolvematchmod(solvematchmodParam, modelBased);
+    //update the dialog from the same source
+    tomogramCombinationDialog.setSolvematchParams(solvematchParam);
+    //create the new solvematch com script
+    comScriptMgr.loadSolvematch();
+    comScriptMgr.saveSolvematch(solvematchParam);
+    //add matchshifts to the solvematch com script
+    MatchshiftsParam matchshiftsParam = comScriptMgr
+        .getMatchshiftsFromSolvematchshifts();
+    comScriptMgr.saveSolvematch(matchshiftsParam);
+  }
+
+  /**
+   * Update the solvematch com file from the tomogramCombinationDialog
+   * @return true if successful, false if not
+   */
+  public boolean updateSolvematchCom() {
+    if (tomogramCombinationDialog == null) {
+      uiHarness
+          .openMessageDialog(
+              "Can not update solvematch.com without an active tomogram generation dialog",
+              "Program logic error", AxisID.ONLY);
+      return false;
+    }
+    try {
+      comScriptMgr.loadSolvematch();
+      SolvematchParam solvematchParam = comScriptMgr.getSolvematch();
+      tomogramCombinationDialog.getSolvematchParams(solvematchParam);
+      comScriptMgr.saveSolvematch(solvematchParam);
+    }
+    catch (NumberFormatException except) {
+      String[] errorMessage = new String[2];
+      errorMessage[0] = "Solvematch Parameter Syntax Error";
+      errorMessage[1] = except.getMessage();
+      uiHarness.openMessageDialog(errorMessage,
+          "Solvematch Parameter Syntax Error", AxisID.ONLY);
+      return false;
+    }
+    return true;
+  }
+
+  private void createNewSolvematch(SolvematchParam solvematchParam) {
+    try {
+      comScriptMgr.useTemplate("solvematch", metaData.getDatasetName(),
+          AxisType.DUAL_AXIS, AxisID.ONLY);
+    }
+    catch (Exception e) {
+      e.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Unable to create solvematch com script";
+      message[1] = "Check file and directory permissions";
+      uiHarness.openMessageDialog(message, "Can't create solvematch.com",
+          AxisID.ONLY);
+      return;
+    }
+    //  Write it out the converted object disk
+    comScriptMgr.loadSolvematch();
+    comScriptMgr.saveSolvematch(solvematchParam);
+    tomogramCombinationDialog.setSolvematchParams(solvematchParam);
+  }
+
+  /**
+   * Load the patchcorr com script into the tomogram combination dialog
+   */
+  private void loadPatchcorr() {
+    comScriptMgr.loadPatchcorr();
+    tomogramCombinationDialog.setPatchcrawl3DParams(comScriptMgr
+        .getPatchcrawl3D());
+  }
+
+  private void loadVolcombine() {
+    comScriptMgr.loadVolcombine();
+    ConstSetParam setParam = comScriptMgr.getSetParamFromVolcombine();
+    tomogramCombinationDialog.setVolcombineParams(setParam);
+
+    tomogramCombinationDialog.enableReductionFactor(setParam != null
+        && setParam.isValid());
+  }
+
+  /**
+   * Update the patchcorr.com script from the information in the tomogram
+   * combination dialog box
+   * 
+   * @return boolean
+   */
+  private boolean updatePatchcorrCom() {
+    //  Set a reference to the correct object
+    if (tomogramCombinationDialog == null) {
+      uiHarness
+          .openMessageDialog(
+              "Can not update patchcorr.com without an active tomogram generation dialog",
+              "Program logic error", AxisID.ONLY);
+      return false;
+    }
+    try {
+      Patchcrawl3DParam patchcrawl3DParam = comScriptMgr.getPatchcrawl3D();
+      tomogramCombinationDialog.getPatchcrawl3DParams(patchcrawl3DParam);
+      comScriptMgr.savePatchcorr(patchcrawl3DParam);
+    }
+    catch (NumberFormatException except) {
+      String[] errorMessage = new String[2];
+      errorMessage[0] = "Patchcorr Parameter Syntax Error";
+      errorMessage[1] = except.getMessage();
+      uiHarness.openMessageDialog(errorMessage,
+          "Patchcorr Parameter Syntax Error", AxisID.ONLY);
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Update the volcombine.com script from the information in the tomogram
+   * combination dialog box
+   * 
+   * @return boolean
+   */
+  private boolean updateVolcombineCom() {
+    //  Set a reference to the correct object
+    if (tomogramCombinationDialog == null) {
+      uiHarness
+          .openMessageDialog(
+              "Can not update volcombine.com without an active tomogram generation dialog",
+              "Program logic error", AxisID.ONLY);
+      return false;
+    }
+    try {
+      SetParam setParam = comScriptMgr.getSetParamFromVolcombine();
+      boolean setParamIsValid = setParam != null && setParam.isValid();
+      tomogramCombinationDialog.enableReductionFactor(setParamIsValid);
+      tomogramCombinationDialog.getVolcombineParams(setParam);
+      if (setParamIsValid) {
+        comScriptMgr.saveVolcombine(setParam);
+      }
+    }
+    catch (NumberFormatException except) {
+      String[] errorMessage = new String[2];
+      errorMessage[0] = "Volcombine Parameter Syntax Error";
+      errorMessage[1] = except.getMessage();
+      uiHarness.openMessageDialog(errorMessage,
+          "Volcombine Parameter Syntax Error", AxisID.ONLY);
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Load the matchorwarp com script into the tomogram combination dialog
+   */
+  private void loadMatchorwarp() {
+    comScriptMgr.loadMatchorwarp();
+    tomogramCombinationDialog.setMatchorwarpParams(comScriptMgr
+        .getMatchorwarParam());
+  }
+
+  private CombineComscriptState getCombineComscript() {
+    CombineComscriptState combineComscriptState = comScriptMgr
+        .getCombineComscript();
+    if (combineComscriptState == null) {
+      try {
+        comScriptMgr.useTemplate(CombineComscriptState.COMSCRIPT_NAME,
+            AxisType.DUAL_AXIS, AxisID.ONLY, true);
+      }
+      catch (Exception e) {
+        e.printStackTrace();
+        String[] message = new String[2];
+        message[0] = "Unable to copy combine com script";
+        message[1] = "Check file and directory permissions";
+        uiHarness.openMessageDialog(message, "Can't create a new combine.com",
+            AxisID.ONLY);
+        return null;
+      }
+      comScriptMgr.loadCombine();
+      combineComscriptState = comScriptMgr.getCombineComscript();
+    }
+    return combineComscriptState;
+  }
+
+  /**
+   * Load the combine com script
+   */
+  private void loadCombineComscript() {
+    comScriptMgr.loadCombine();
+    CombineComscriptState combineComscriptState = getCombineComscript();
+    if (combineComscriptState == null) {
+      return;
+    }
+    tomogramCombinationDialog.setRunVolcombine(combineComscriptState
+        .isRunVolcombine());
+  }
+
+  /**
+   * 
+   * @return boolean
+   */
+  protected CombineComscriptState updateCombineComscriptState(int startCommand) {
+    if (tomogramCombinationDialog == null) {
+      uiHarness
+          .openMessageDialog(
+              "Can not update combine.com without an active tomogram generation dialog",
+              "Program logic error", AxisID.ONLY);
+      return null;
+    }
+    //set goto a the start of combine
+    CombineComscriptState combineComscriptState = getCombineComscript();
+    if (combineComscriptState == null) {
+      return null;
+    }
+    //set first command to run
+    combineComscriptState.setStartCommand(startCommand, comScriptMgr);
+    //set last command to run:
+    //last command is based on the "don't run volcombine checkbox" and whether
+    //the "Restart at volcombine" was pressed
+    if (startCommand == CombineComscriptState.VOLCOMBINE_INDEX
+        || tomogramCombinationDialog.isRunVolcombine()) {
+      combineComscriptState.setEndCommand(
+          CombineComscriptState.VOLCOMBINE_INDEX, comScriptMgr);
+    }
+    else {
+      combineComscriptState.setEndCommand(
+          CombineComscriptState.VOLCOMBINE_INDEX - 1, comScriptMgr);
+    }
+    return combineComscriptState;
+  }
+
+  /**
+   * Update the matchorwarp.com script from the information in the tomogram
+   * combination dialog box
+   * 
+   * @return boolean
+   */
+  private boolean updateMatchorwarpCom(boolean trialMode) {
+    //  Set a reference to the correct object
+    if (tomogramCombinationDialog == null) {
+      uiHarness
+          .openMessageDialog(
+              "Can not update matchorwarp.com without an active tomogram generation dialog",
+              "Program logic error", AxisID.ONLY);
+      return false;
+    }
+    try {
+      MatchorwarpParam matchorwarpParam = comScriptMgr.getMatchorwarParam();
+      tomogramCombinationDialog.getMatchorwarpParams(matchorwarpParam);
+      matchorwarpParam.setTrial(trialMode);
+      comScriptMgr.saveMatchorwarp(matchorwarpParam);
+    }
+    catch (NumberFormatException except) {
+      String[] errorMessage = new String[2];
+      errorMessage[0] = "Matchorwarp Parameter Syntax Error";
+      errorMessage[1] = except.getMessage();
+      uiHarness.openMessageDialog(errorMessage,
+          "Matchorwarp Parameter Syntax Error", AxisID.ONLY);
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Initiate the combine process from the beginning
+   */
+  public void combine() {
+    //  FIXME: what are the necessary updates
+    //  Update the scripts from the dialog panel
+    updateCombineParams();
+    CombineComscriptState combineComscriptState = updateCombineComscriptState(CombineComscriptState.SOLVEMATCH_INDEX);
+    if (combineComscriptState == null) {
+      return;
+    }
+    if (!updateSolvematchCom()) {
+      return;
+    }
+    if (!updatePatchcorrCom()) {
+      return;
+    }
+    if (!updateMatchorwarpCom(false)) {
+      return;
+    }
+    if (!updateVolcombineCom()) {
+      return;
+    }
+
+    processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
+    mainPanel.setTomogramCombinationState(ProcessState.INPROGRESS);
+    warnStaleFile(ImodManager.PATCH_VECTOR_MODEL_KEY, true);
+    //  Set the next process to execute when this is finished
+    //nextProcess = "matchvol1";
+    String threadName;
+    try {
+      //threadName = processMgr.solvematch();
+      threadName = processMgr.combine(combineComscriptState);
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Can not execute combine.com";
+      message[1] = e.getMessage();
+      uiHarness.openMessageDialog(message, "Unable to execute com script",
+          AxisID.ONLY);
+      return;
+    }
+    setBackgroundThreadName(threadName, AxisID.FIRST,
+        CombineComscriptState.COMSCRIPT_NAME);
+  }
+
+  public void showPane(String comscript, String pane) {
+    if (comscript.equals(CombineComscriptState.COMSCRIPT_NAME)) {
+      tomogramCombinationDialog.showPane(pane);
+    }
+  }
+
+  /**
+   * Execute the matchvol1 com script and put patchcorr in the execution queue
+   */
+  public void matchvol1Combine() {
+    //  FIXME: what are the necessary updates
+    //  Update the scripts from the dialog panel
+    updateCombineParams();
+    if (!updatePatchcorrCom()) {
+      return;
+    }
+    if (!updateMatchorwarpCom(false)) {
+      return;
+    }
+    if (!updateVolcombineCom()) {
+      return;
+    }
+    updateCombineParams();
+    CombineComscriptState combineComscriptState = updateCombineComscriptState(CombineComscriptState.MATCHVOL1_INDEX);
+    if (combineComscriptState == null) {
+      return;
+    }
+    processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
+    mainPanel.setTomogramCombinationState(ProcessState.INPROGRESS);
+    warnStaleFile(ImodManager.PATCH_VECTOR_MODEL_KEY, true);
+    //  Check to see if solve.xf exists first
+    File solveXf = new File(propertyUserDir, "solve.xf");
+    if (!solveXf.exists()) {
+      //nextProcess = "";
+      String[] message = new String[2];
+      message[0] = "Can not execute combine.com";
+      message[1] = "solve.xf must exist in the working";
+      uiHarness.openMessageDialog(message, "Unable to execute com script",
+          AxisID.ONLY);
+      return;
+    }
+    //  Set the next process to execute when this is finished
+    //nextProcess = "patchcorr";
+    String threadName;
+    try {
+      threadName = processMgr.combine(combineComscriptState);
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Can not execute combine.com";
+      message[1] = e.getMessage();
+      uiHarness.openMessageDialog(message, "Unable to execute com script",
+          AxisID.ONLY);
+      return;
+    }
+    setBackgroundThreadName(threadName, AxisID.FIRST,
+        CombineComscriptState.COMSCRIPT_NAME);
+  }
+
+  /**
+   * Initiate the combine process from patchcorr step
+   */
+  public void patchcorrCombine() {
+    updateCombineParams();
+    CombineComscriptState combineComscriptState = updateCombineComscriptState(CombineComscriptState.PATCHCORR_INDEX);
+    if (combineComscriptState == null) {
+      return;
+    }
+    if (!updatePatchcorrCom()) {
+      return;
+    }
+    if (!updateMatchorwarpCom(false)) {
+      return;
+    }
+    if (!updateVolcombineCom()) {
+      return;
+    }
+
+    processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
+    mainPanel.setTomogramCombinationState(ProcessState.INPROGRESS);
+    warnStaleFile(ImodManager.PATCH_VECTOR_MODEL_KEY, true);
+    //  Set the next process to execute when this is finished
+    //nextProcess = "matchorwarp";
+    String threadName;
+    try {
+      threadName = processMgr.combine(combineComscriptState);
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Can not execute patchcorr.com";
+      message[1] = e.getMessage();
+      uiHarness.openMessageDialog(message, "Unable to execute com script",
+          AxisID.ONLY);
+      return;
+    }
+    setBackgroundThreadName(threadName, AxisID.FIRST,
+        CombineComscriptState.COMSCRIPT_NAME);
+  }
+
+  protected void warnStaleFile(String key, boolean future) {
+    warnStaleFile(key, null, future);
+  }
+
+  protected void warnStaleFile(String key, AxisID axisID) {
+    warnStaleFile(key, axisID, false);
+  }
+
+  protected void warnStaleFile(String key, AxisID axisID, boolean future) {
+    try {
+      if (imodManager.warnStaleFile(key, axisID)) {
+        String[] message = new String[4];
+        if (future) {
+          message[0] = "3dmod is open to the existing " + key + ".";
+          message[1] = "A new " + key + " will be created on disk.";
+        }
+        else {
+          message[0] = "3dmod is open to the old " + key + ".";
+          message[1] = "A new " + key + " has been created on disk.";
+        }
+        message[2] = "You will not be able to see the new version of " + key
+            + " until you close this 3dmod.";
+        message[3] = "Do you wish to quit this 3dmod now?";
+        if (uiHarness.openYesNoDialog(message, axisID)) {
+          imodManager.quit(key, axisID);
+        }
+      }
+    }
+    catch (AxisTypeException e) {
+      e.printStackTrace();
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+    }
+  }
+
+  /**
+   * Initiate the combine process from matchorwarp step
+   */
+  public void matchorwarpCombine() {
+    CombineComscriptState combineComscriptState = updateCombineComscriptState(CombineComscriptState.MATCHORWARP_INDEX);
+    if (combineComscriptState == null) {
+      return;
+    }
+    if (!updateMatchorwarpCom(false)) {
+      return;
+    }
+    if (!updateVolcombineCom()) {
+      return;
+    }
+    processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
+    mainPanel.setTomogramCombinationState(ProcessState.INPROGRESS);
+
+    //  Set the next process to execute when this is finished
+    //nextProcess = next;
+    String threadName;
+    try {
+      threadName = processMgr.combine(combineComscriptState);
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Can not execute combine.com";
+      message[1] = e.getMessage();
+      uiHarness.openMessageDialog(message, "Unable to execute com script",
+          AxisID.ONLY);
+      return;
+    }
+    setBackgroundThreadName(threadName, AxisID.FIRST,
+        CombineComscriptState.COMSCRIPT_NAME);
+  }
+
+  /**
+   * Initiate the combine process from matchorwarp step
+   */
+  public void matchorwarpTrial() {
+    if (updateMatchorwarpCom(true)) {
+      processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
+      mainPanel.setTomogramCombinationState(ProcessState.INPROGRESS);
+      //  Set the next process to execute when this is finished
+      //nextProcess = next;
+      String threadName;
+      try {
+        threadName = processMgr.matchorwarp();
+      }
+      catch (SystemProcessException e) {
+        e.printStackTrace();
+        String[] message = new String[2];
+        message[0] = "Can not execute matchorwarp.com";
+        message[1] = e.getMessage();
+        uiHarness.openMessageDialog(message, "Unable to execute com script",
+            AxisID.ONLY);
+        return;
+      }
+      setThreadName(threadName, AxisID.FIRST);
+      tomogramCombinationDialog.showPane(TomogramCombinationDialog.lblFinal);
+      mainPanel.startProgressBar("matchorwarp", AxisID.FIRST);
+    }
+  }
+
+  /**
+   * Execute the combine script starting at volcombine
+   */
+  public void volcombine() {
+    CombineComscriptState combineComscriptState = updateCombineComscriptState(CombineComscriptState.VOLCOMBINE_INDEX);
+    updateCombineParams();
+    if (!updateVolcombineCom()) {
+      return;
+    }
+    processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
+    mainPanel.setTomogramCombinationState(ProcessState.INPROGRESS);
+    //  Set the next process to execute when this is finished
+    //nextProcess = "";
+    String threadName;
+    try {
+      threadName = processMgr.combine(combineComscriptState);
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Can not execute combine.com";
+      message[1] = e.getMessage();
+      uiHarness.openMessageDialog(message, "Unable to execute com script",
+          AxisID.ONLY);
+      return;
+    }
+    setBackgroundThreadName(threadName, AxisID.FIRST,
+        CombineComscriptState.COMSCRIPT_NAME);
+  }
+
+  /**
+   * Convert the patch.mod to patch.out
+   *  
+   */
+  public void modelToPatch() {
+    try {
+      processMgr.modelToPatch(AxisID.ONLY);
+    }
+    catch (SystemProcessException except) {
+      String[] errorMessage = new String[2];
+      errorMessage[0] = "Unable to convert patch_vector.mod to patch.out";
+      errorMessage[1] = except.getMessage();
+      uiHarness.openMessageDialog(errorMessage, "Patch vector model error",
+          AxisID.ONLY);
+      return;
+    }
+  }
+
+  /**
+   * Open the post processing dialog
+   */
+  public void openPostProcessingDialog() {
+    //  Check to see if the com files are present otherwise pop up a dialog
+    //  box informing the user to run the setup process
+    if (!metaData.getComScriptCreated()) {
+      setupRequestDialog(AxisID.ONLY);
+      return;
+    }
+    //  Open the dialog in the appropriate mode for the current state of
+    //  processing
+    setCurrentDialogType(DialogType.POST_PROCESSING, AxisID.ONLY);
+    mainPanel.selectButton(AxisID.ONLY, DialogType.POST_PROCESSING.toString());
+    if (postProcessingDialog == null) {
+      postProcessingDialog = new PostProcessingDialog(this);
+      //  Set the appropriate input and output files
+      TrimvolParam trimvolParam = metaData.getTrimvolParam();
+      try {
+        trimvolParam.setDefaultRange(TrimvolParam.getInputFileName(metaData
+            .getAxisType(), metaData.getDatasetName()));
+      }
+      catch (InvalidParameterException except) {
+        String[] detailedMessage = new String[4];
+        detailedMessage[0] = "Unable to set trimvol range";
+        detailedMessage[1] = "Does the reconstruction file exist yet?";
+        detailedMessage[2] = "";
+        detailedMessage[3] = except.getMessage();
+        uiHarness.openMessageDialog(detailedMessage, "Invalid parameter: "
+            + trimvolParam.getInputFileName(), AxisID.ONLY);
+        //    Delete the dialog
+        postProcessingDialog = null;
+        return;
+      }
+      catch (IOException except) {
+        uiHarness.openMessageDialog(except.getMessage(), "IO Error: "
+            + trimvolParam.getInputFileName(), AxisID.ONLY);
+        //      Delete the dialog
+        postProcessingDialog = null;
+        return;
+      }
+      postProcessingDialog.setTrimvolParams(trimvolParam);
+      postProcessingDialog.setParameters(metaData.getSqueezevolParam());
+    }
+    mainPanel.showProcess(postProcessingDialog.getContainer(), AxisID.ONLY);
+  }
+
+  /**
+   * Open the clean up dialog
+   */
+  public void openCleanUpDialog() {
+    //  Check to see if the com files are present otherwise pop up a dialog
+    //  box informing the user to run the setup process
+    if (!metaData.getComScriptCreated()) {
+      setupRequestDialog(AxisID.ONLY);
+      return;
+    }
+    //  Open the dialog in the appropriate mode for the current state of
+    //  processing
+    setCurrentDialogType(DialogType.CLEAN_UP, AxisID.ONLY);
+    mainPanel.selectButton(AxisID.ONLY, "Clean Up");
+    if (cleanUpDialog == null) {
+      cleanUpDialog = new CleanUpDialog(this);
+    }
+    mainPanel.showProcess(cleanUpDialog.getContainer(), AxisID.ONLY);
+  }
+
+  /**
+   * Close the post processing dialog panel
+   */
+  public void donePostProcessing() {
+    if (postProcessingDialog == null) {
+      uiHarness.openMessageDialog("Post processing dialog not open",
+          "Program logic error", AxisID.ONLY);
+      return;
+    }
+    setAdvanced(postProcessingDialog.getDialogType(), postProcessingDialog
+        .isAdvanced());
+    DialogExitState exitState = postProcessingDialog.getExitState();
+    if (exitState == DialogExitState.CANCEL) {
+      mainPanel.showBlankProcess(AxisID.ONLY);
+    }
+    else {
+      updateTrimvolParam();
+      updateSqueezevolParam();
+      if (exitState == DialogExitState.POSTPONE) {
+        processTrack.setPostProcessingState(ProcessState.INPROGRESS);
+        mainPanel.setPostProcessingState(ProcessState.INPROGRESS);
+        mainPanel.showBlankProcess(AxisID.ONLY);
+      }
+      else if (exitState != DialogExitState.SAVE) {
+        processTrack.setPostProcessingState(ProcessState.COMPLETE);
+        mainPanel.setPostProcessingState(ProcessState.COMPLETE);
+        openCleanUpDialog();
+      }
+      saveTestParamFile(AxisID.ONLY);
+    }
+    postProcessingDialog = null;
+  }
+
+  /**
+   * Close the clean up dialog panel
+   */
+  public void doneCleanUp() {
+    if (cleanUpDialog == null) {
+      uiHarness.openMessageDialog("Clean Up dialog not open",
+          "Program logic error", AxisID.ONLY);
+      return;
+    }
+    setAdvanced(cleanUpDialog.getDialogType(), cleanUpDialog.isAdvanced());
+    DialogExitState exitState = cleanUpDialog.getExitState();
+    if (exitState != DialogExitState.CANCEL) {
+      if (exitState == DialogExitState.POSTPONE) {
+        processTrack.setCleanUpState(ProcessState.INPROGRESS);
+        mainPanel.setCleanUpState(ProcessState.INPROGRESS);
+      }
+      else if (exitState != DialogExitState.SAVE) {
+        processTrack.setCleanUpState(ProcessState.COMPLETE);
+        mainPanel.setCleanUpState(ProcessState.COMPLETE);
+      }
+      saveTestParamFile(AxisID.ONLY);
+    }
+    cleanUpDialog = null;
+    mainPanel.showBlankProcess(AxisID.ONLY);
+  }
+
+  /**
+   * Open the combined (or full) volume in 3dmod
+   */
+  public void imodCombinedTomogram(Run3dmodMenuOptions menuOptions) {
+    try {
+      imodManager.open(ImodManager.COMBINED_TOMOGRAM_KEY, menuOptions);
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(),
+          "Can't open 3dmod on the trimmed tomogram", AxisID.ONLY);
+    }
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
+          AxisID.ONLY);
+    }
+  }
+
+  /**
+   * calls ProcessManager.generateAlignLogs() when the ta files are out of date
+   * @param commandName
+   * @param axisID
+   * @return true if any log files where changed
+   */
+  public boolean updateLog(String commandName, AxisID axisID) {
+    String alignLogName = "align" + axisID.getExtension() + ".log";
+    File alignLog = new File(propertyUserDir, alignLogName);
+    String taErrorLogName = "taError" + axisID.getExtension() + ".log";
+    File taErrorLog = new File(propertyUserDir, taErrorLogName);
+    if (!alignLog.exists()) {
+      return false;
+    }
+    if (!taErrorLog.exists()
+        || taErrorLog.lastModified() < alignLog.lastModified()) {
+      processMgr.generateAlignLogs(axisID);
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Open the trimmed volume in 3dmod
+   */
+  public void imodTrimmedVolume(Run3dmodMenuOptions menuOptions) {
+    TrimvolParam trimvolParam = new TrimvolParam(propertyUserDir);
+    postProcessingDialog.getTrimvolParams(trimvolParam);
+    try {
+      imodManager.setSwapYZ(ImodManager.TRIMMED_VOLUME_KEY, !trimvolParam
+          .isSwapYZ());
+      imodManager.open(ImodManager.TRIMMED_VOLUME_KEY, menuOptions);
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(),
+          "Can't open 3dmod on the trimmed tomogram", AxisID.ONLY);
+    }
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
+          AxisID.ONLY);
+    }
+  }
+
+  /**
+   * Open the squeezed volume in 3dmod
+   */
+  public void imodSqueezedVolume(Run3dmodMenuOptions menuOptions) {
+    // Make sure that the post processing panel is open
+    if (postProcessingDialog == null) {
+      uiHarness.openMessageDialog("Post processing dialog not open",
+          "Program logic error", AxisID.ONLY);
+      return;
+    }
+    try {
+      imodManager.setSwapYZ(ImodManager.SQUEEZED_VOLUME_KEY,
+          !postProcessingDialog.isSqueezevolFlipped());
+      imodManager.open(ImodManager.SQUEEZED_VOLUME_KEY, menuOptions);
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(),
+          "Can't open 3dmod on the squeezed tomogram", AxisID.ONLY);
+    }
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
+          AxisID.ONLY);
+    }
+  }
+
+  /**
+   * Execute trimvol
+   */
+  public void trimVolume() {
+    // Make sure that the post processing panel is open
+    if (postProcessingDialog == null) {
+      uiHarness.openMessageDialog("Post processing dialog not open",
+          "Program logic error", AxisID.ONLY);
+      return;
+    }
+    TrimvolParam trimvolParam = updateTrimvolParam();
+    // Start the trimvol process
+    processTrack.setPostProcessingState(ProcessState.INPROGRESS);
+    mainPanel.setPostProcessingState(ProcessState.INPROGRESS);
+    String threadName;
+    try {
+      threadName = processMgr.trimVolume(trimvolParam);
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Can not execute trimvol command";
+      message[1] = e.getMessage();
+      uiHarness.openMessageDialog(message, "Unable to execute command",
+          AxisID.ONLY);
+      return;
+    }
+    setThreadName(threadName, AxisID.ONLY);
+    mainPanel.startProgressBar("Trimming volume", AxisID.ONLY);
+  }
+
+  /**
+   * Execute squeezevol
+   */
+  public void squeezevol() {
+    // Make sure that the post processing panel is open
+    if (postProcessingDialog == null) {
+      uiHarness.openMessageDialog("Post processing dialog not open",
+          "Program logic error", AxisID.ONLY);
+      return;
+    }
+    ConstSqueezevolParam squeezevolParam = updateSqueezevolParam();
+    // Start the trimvol process
+    processTrack.setPostProcessingState(ProcessState.INPROGRESS);
+    mainPanel.setPostProcessingState(ProcessState.INPROGRESS);
+    String threadName;
+    try {
+      threadName = processMgr.squeezeVolume(squeezevolParam);
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Can not execute squeezevol command";
+      message[1] = e.getMessage();
+      uiHarness.openMessageDialog(message, "Unable to execute command",
+          AxisID.ONLY);
+      return;
+    }
+    setThreadName(threadName, AxisID.ONLY);
+    mainPanel.startProgressBar("Squeezing volume", AxisID.ONLY);
+  }
+
+  /**
+   * updates ConstMetaData.trimvolParam with data from postProcessingDialog.
+   * Sets isDataParamDirty if necessary
+   * @return the updated TrimvolParam
+   *
+   */
+  protected TrimvolParam updateTrimvolParam() {
+    //Get trimvol param data from dialog.
+    TrimvolParam dialogTrimvolParam = new TrimvolParam(propertyUserDir);
+    postProcessingDialog.getTrimvolParams(dialogTrimvolParam);
+    //Get the metadata trimvol param.
+    TrimvolParam trimvolParam = metaData.getTrimvolParam();
+    postProcessingDialog.getTrimvolParams(trimvolParam);
+    //Add input and output files.
+    trimvolParam.setInputFileName(metaData.getAxisType(), metaData
+        .getDatasetName());
+    trimvolParam.setOutputFileName(metaData.getDatasetName());
+    return trimvolParam;
+  }
+
+  /**
+   * updates ConstMetaData.squeezevolParam with data from postProcessingDialog.
+   * Sets isDataParamDirty if necessary
+   * @return the updated SqueezevolParam
+   *
+   */
+  protected ConstSqueezevolParam updateSqueezevolParam() {
+    //Get the metadata trimvol param.
+    SqueezevolParam squeezevolParam = metaData.getSqueezevolParam();
+    postProcessingDialog.getParameters(squeezevolParam);
+    return squeezevolParam;
+  }
+
+  //
+  //  Utility functions
+  //
+  private boolean showIfExists(ProcessDialog panelA, ProcessDialog panelB,
+      AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      if (panelB == null) {
+        return false;
+      }
+      else {
+        mainPanel.showProcess(panelB.getContainer(), axisID);
+        return true;
+      }
+    }
+    else {
+      if (panelA == null) {
+        return false;
+      }
+      else {
+        mainPanel.showProcess(panelA.getContainer(), axisID);
+        return true;
+      }
+    }
+  }
+
+  /**
+   *  
+   */
+  private void setupRequestDialog(AxisID axisID) {
+    String[] message = new String[2];
+    message[0] = "The setup process has not been completed";
+    message[1] = "Complete the Setup process before opening other process dialogs";
+    uiHarness.openMessageDialog(message, "Program Operation Error", axisID);
+    return;
+  }
+
+  /**
+   * Run the specified command as a background process with a indeterminate
+   * progress bar.
+   */
+  public void backgroundProcess(String commandLine, AxisID axisID) {
+    processMgr.test(commandLine, axisID);
+  }
+
+  /**
+   * Start generic progress bar
+   * @param value
+   * @param axisID
+   */
+  public void startProgressBar(String label, AxisID axisID) {
+    mainPanel.startProgressBar(label, axisID);
+  }
+
+  /**
+   * Set the progress bar to the specified value
+   * 
+   * @param value
+   * @param axisID
+   */
+  public void setProgressBarValue(int value, AxisID axisID) {
+    mainPanel.setProgressBarValue(value, axisID);
+  }
+
+  /**
+   * @param axisID
+   */
+  public void progressBarDone(AxisID axisID, ProcessEndState processEndState) {
+    mainPanel.stopProgressBar(axisID, processEndState);
+  }
+
+  /**
+   * Start the next process specified by the nextProcess string
+   */
+  protected void startNextProcess(AxisID axisID) {
+    if (getNextProcess(axisID).equals("tilt")) {
+      tiltProcess(axisID);
+    }
+    else if (getNextProcess(axisID).equals("checkUpdateFiducialModel")) {
+      checkUpdateFiducialModel(axisID);
+      return;
+    }
+    else if (getNextProcess(axisID).equals(ArchiveorigParam.COMMAND_NAME)) {
+      archiveOriginalStack(AxisID.SECOND);
+    }
+    else if (getNextProcess(axisID).equals(ProcesschunksParam.COMMAND_NAME)) {
+      processchunks(axisID);
+    }
+  }
+
+  protected void updateDialog(ProcessName processName, AxisID axisID) {
+    if (axisID != AxisID.ONLY
+        && (processName == ProcessName.PRENEWST || processName == ProcessName.TRACK)) {
+      updateDialog(fiducialModelDialogB, AxisID.SECOND);
+      updateDialog(fiducialModelDialogA, AxisID.FIRST);
+    }
+    if (processName == ProcessName.NEWST) {
+      if (axisID == AxisID.SECOND) {
+        updateDialog(tomogramGenerationDialogB, axisID);
+      }
+      else {
+        updateDialog(tomogramGenerationDialogA, axisID);
+      }
+    }
+  }
+
+  private void updateDialog(FiducialModelDialog dialog, AxisID axisID) {
+    if (dialog == null || axisID == AxisID.ONLY) {
+      return;
+    }
+    boolean prealisExist = Utilities.fileExists(this, ".preali", AxisID.FIRST)
+        && Utilities.fileExists(this, ".preali", AxisID.SECOND);
+    boolean fidExists = false;
+    if (axisID == AxisID.FIRST) {
+      fidExists = Utilities.fileExists(this, ".fid", AxisID.SECOND);
+    }
+    else {
+      fidExists = Utilities.fileExists(this, ".fid", AxisID.FIRST);
+    }
+    dialog.setTransferfidEnabled(prealisExist && fidExists);
+    dialog.updateEnabled();
+  }
+
+  private void updateDialog(TomogramGenerationDialog dialog, AxisID axisID) {
+    if (dialog == null) {
+      return;
+    }
+    dialog.updateFilter(Utilities.fileExists(this, ".ali", axisID));
+  }
+
+  /**
+   * Map the thread name to the correct axis
+   * 
+   * @param name
+   *            The name of the thread to assign to the axis
+   * @param axisID
+   *            The axis of the thread to be mapped
+   */
+  private void setThreadName(String name, AxisID axisID) {
+    if (name == null) {
+      name = "none";
+    }
+    if (axisID == AxisID.SECOND) {
+      threadNameB = name;
+    }
+    else {
+      threadNameA = name;
+    }
+  }
+
+  private void setBackgroundThreadName(String name, AxisID axisID,
+      String processName) {
+    setThreadName(name, axisID);
+    if (axisID == AxisID.SECOND) {
+      throw new IllegalStateException("No Axis B background processes exist.");
+    }
+    else {
+      backgroundProcessA = true;
+      backgroundProcessNameA = processName;
+    }
+  }
+
+  //  Test helper functions
+  /**
+   * Return the currently executing thread name for the specified axis
+   * @param axisID
+   * @return
+   */
+  String getThreadName(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return threadNameB;
+    }
+    return threadNameA;
+  }
+
+  protected void checkUpdateFiducialModel(AxisID axisID) {
+    resetNextProcess(axisID);
+    FidXyz fidXyz = getFidXyz(axisID);
+    MRCHeader prealiHeader = getMrcHeader(axisID, ".preali");
+    MRCHeader rawstackHeader = getMrcHeader(axisID, ".st");
+    try {
+      fidXyz.read();
+      prealiHeader.read();
+      rawstackHeader.read();
+    }
+    catch (IOException except) {
+      return;
+    }
+    catch (InvalidParameterException except) {
+      except.printStackTrace();
+      return;
+    }
+    if (!fidXyz.exists()) {
+      return;
+    }
+    //if fidXyz.getPixelSize() is 1, then the binning used in align.com must
+    //have been 1, if the preali binning is also 1, then no error message should
+    //be sent.  preali binning is preali pixel spacing / .st pixel spacing
+    boolean fidXyzPixelSizeSet = fidXyz.isPixelSizeSet();
+    if (!fidXyzPixelSizeSet) {
+      if (Math.round(prealiHeader.getXPixelSpacing()
+          / rawstackHeader.getXPixelSpacing()) == 1) {
+        return;
+      }
+    }
+    if (!fidXyzPixelSizeSet
+        || fidXyz.getPixelSize() != prealiHeader.getXPixelSpacing()) {
+      //if (getStackBinning(axisID, ".preali") != getBackwardCompatibleAlignBinning(axisID)) {
+      uiHarness
+          .openMessageDialog(
+              "The prealigned image stack binning has changed.  You must:\n    1. Go "
+                  + "to Fiducial Model Gen. and Press Fix Fiducial Model to open the "
+                  + "fiducial model.\n    2. Save the fiducial model by pressing "
+                  + "\"s\".\n    3. Go to Fine Alignment and press Compute Alignment to"
+                  + " rerun align" + axisID.getExtension() + ".com.",
+              "Prealigned image stack binning has changed", axisID);
+      return;
+    }
+  }
+
+  public FidXyz getFidXyz(AxisID axisID) {
+    return new FidXyz(propertyUserDir, metaData.getDatasetName()
+        + axisID.getExtension() + "fid.xyz");
+  }
+
+  public MRCHeader getMrcHeader(AxisID axisID, String filename) {
+    File file = new File(propertyUserDir, metaData.getDatasetName()
+        + axisID.getExtension() + filename);
+    return MRCHeader.getInstance(propertyUserDir, file.getAbsolutePath(),
+        axisID);
+  }
+
+  protected void createComScriptManager() {
+    comScriptMgr = new ComScriptManager(this);
+  }
+
+  protected void createProcessManager() {
+    processMgr = new ProcessManager(this);
+  }
+
+  protected void createMainPanel() {
+    mainPanel = new MainTomogramPanel(this);
+    mainPanel = (MainTomogramPanel) mainPanel;
+  }
+
+  /**
+   * Set the data set parameter file. This also updates the mainframe data
+   * parameters.
+   * @param paramFile a File object specifying the data set parameter file.
+   */
+  public void setTestParamFile(File paramFile) {
+    this.paramFile = paramFile;
+    //  Update main window information and status bar
+    mainPanel.setStatusBarText(paramFile, metaData);
+  }
+
+  protected void createProcessTrack() {
+    processTrack = new ProcessTrack();
+  }
+
+  protected int getNumStorables() {
+    return 3;
+  }
+
+  protected void createState() {
+    state = new TomogramState(this);
+  }
+
+  public TomogramState getState() {
+    return state;
+  }
+
+  protected BaseState getBaseState() {
+    return state;
+  }
+
+  public MetaData getMetaData() {
+    return metaData;
+  }
+
+  public ConstMetaData getConstMetaData() {
+    return (ConstMetaData) metaData;
+  }
+
+  public BaseMetaData getBaseMetaData() {
+    return (BaseMetaData) metaData;
+  }
+
+  protected void setMetaData(ImodManager imodManager) {
+    imodManager.setMetaData(metaData);
+  }
+
+  public MainPanel getMainPanel() {
+    return mainPanel;
+  }
+
+  protected void getProcessTrack(Storable[] storable, int index) {
+    if (storable == null) {
+      return;
+    }
+    storable[index] = processTrack;
+  }
+
+  protected BaseProcessTrack getProcessTrack() {
+    return processTrack;
+  }
+
+  /**
+   * Interrupt the currently running thread for this axis
+   * 
+   * @param axisID
+   */
+  public void kill(AxisID axisID) {
+    processMgr.kill(axisID);
+  }
+
+  /**
+   * Gets the binning that can be used to repair a older tilt.com file.  Older
+   * tilt.com file contain parameters, including full image size, which have
+   * been binned.  And they do not contain the binning.  Function calculates the
+   * binning from the raw stack full image size and the full image size in 
+   * tilt.com.
+   * @param axisID
+   * @param tiltParam
+   * @return
+   */
+  private int getBackwardCompatibleTiltBinning(AxisID axisID,
+      ConstTiltParam tiltParam) {
+    MRCHeader rawstackHeader = getMrcHeader(axisID, ".st");
+    try {
+      rawstackHeader.read();
+    }
+
+    catch (InvalidParameterException e) {
+      e.printStackTrace();
+      return 1;
+    }
+    catch (IOException e) {
+      return 1;
+    }
+    int binning = 1;
+    int tiltFullImageX = tiltParam.getFullImageX();
+    //defaults to Integer.MIN_VALUE in ConstTiltParam
+    if (tiltFullImageX > 0) {
+      binning = Math.round(rawstackHeader.getNColumns() / tiltFullImageX);
+    }
+    if (binning < 1) {
+      return 1;
+    }
+    return binning;
+  }
+
+  /**
+   * Gets the binning that can be used to run tilt against a stack (.preali or
+   * .ali).  Function calculates the binning from the stack's pixel spacing and
+   * the raw stack's pixel spacing.
+   * @param axisID
+   * @param stackExtension
+   * @return
+   */
+  public long getStackBinning(AxisID axisID, String stackExtension) {
+    return getStackBinning(axisID, stackExtension, false);
+  }
+
+  /**
+   * Gets the binning that can be used to run tilt against a stack (.preali or
+   * .ali).  Function calculates the binning from the stack's pixel spacing and
+   * the raw stack's pixel spacing.
+   * @param axisID
+   * @param stackExtension .ali or .preali
+   * @param nullIfFailed when true returns null on failure, otherwise returns 1
+   * on failure.
+   * @return
+   */
+  public long getStackBinning(AxisID axisID, String stackExtension,
+      boolean nullIfFailed) {
+    MRCHeader rawstackHeader = getMrcHeader(axisID, ".st");
+    MRCHeader stackHeader = getMrcHeader(axisID, stackExtension);
+    long defaultValue = nullIfFailed ? EtomoNumber.LONG_NULL_VALUE : 1;
+    try {
+      rawstackHeader.read();
+      stackHeader.read();
+    }
+    catch (InvalidParameterException e) {
+      //missing file
+      e.printStackTrace();
+      return defaultValue;
+    }
+    catch (IOException e) {
+      return defaultValue;
+    }
+    long binning = defaultValue;
+    double rawstackXPixelSpacing = rawstackHeader.getXPixelSpacing();
+    if (rawstackXPixelSpacing > 0) {
+      binning = Math.round(stackHeader.getXPixelSpacing()
+          / rawstackXPixelSpacing);
+    }
+    if (binning != defaultValue && binning < 1) {
+      return 1;
+    }
+    return binning;
+  }
+
+  /**
+   * Gets the binning that can be used to repair a older align.com file.  Older
+   * align.com file contain a binned zshift parameter.  And they do not contain
+   * the binning.  Function calculates the binning from the raw stack pixel
+   * spacing and the fid.xyz pixel spacing (if it exists) or the .preali pixel
+   * spacing.  The fid.xyz pixel spacing is more accurate because the file is
+   * created by align when align succeeds.  If align fails, then the .preali
+   * pixel spacing will be inaccurate if the binning has changed since an
+   * the last time the .preali was built.
+   * @param axisID
+   * @param tiltParam
+   * @return
+   */
+  private long getBackwardCompatibleAlignBinning(AxisID axisID) {
+    MRCHeader rawstackHeader = getMrcHeader(axisID, ".st");
+    try {
+      rawstackHeader.read();
+    }
+    catch (InvalidParameterException e) {
+      e.printStackTrace();
+      return 1;
+    }
+    catch (IOException e) {
+      return 1;
+    }
+    FidXyz fidXyz = getFidXyz(axisID);
+    boolean fidXyzFailed = false;
+    try {
+      fidXyz.read();
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+      fidXyzFailed = true;
+    }
+    if (!fidXyzFailed) {
+      //Another layer of backward compatibility.  Handle the time before fid.xyz
+      //files where created.  This also handles the situation where align.com has
+      //not been run and has the original values from copytomocoms.
+      if (!fidXyz.exists()) {
+        return 1;
+      }
+      //Align.com must have failed.  The fallback is to use pixel spacing from
+      //.preali.
+      if (fidXyz.isEmpty()) {
+        fidXyzFailed = true;
+      }
+      //Another layer of backward compatibility.  There was a small period of
+      //time when binning existed but the pixel spacing was not added to fid.xyz
+      //(3.2.7 (3/16/04) - 3.2.20 (6/19/04).  If this fid.xyz was created before
+      //binning we could return 1, but we don't know that and we can't trust
+      //change times on old files that could have been copied, so we need to use
+      //the fallback in this case.
+      else if (!fidXyz.isPixelSizeSet()) {
+        fidXyzFailed = true;
+      }
+    }
+    double rawstackXPixelSpacing = rawstackHeader.getXPixelSpacing();
+    //Unable to calculate binning
+    if (rawstackXPixelSpacing <= 0) {
+      return 1;
+    }
+    //calculate binning from fid.xyz
+    if (!fidXyzFailed) {
+      long binning = Math.round(fidXyz.getPixelSize() / rawstackXPixelSpacing);
+      if (binning < 1) {
+        return 1;
+      }
+      return binning;
+    }
+    //fallback to .preali
+    MRCHeader stackHeader = getMrcHeader(axisID, ".preali");
+    try {
+      stackHeader.read();
+    }
+    catch (InvalidParameterException e) {
+      e.printStackTrace();
+      return 1;
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+      return 1;
+    }
+    long binning = Math.round(stackHeader.getXPixelSpacing()
+        / rawstackXPixelSpacing);
+    if (binning < 1) {
+      return 1;
+    }
+    return binning;
+  }
+
+  public void touch(File file) {
+    processMgr.touch(file);
+  }
+
+  /**
+   * If tiltParam is an old version, upgrade it to the new version and save it
+   * to tilt.com.
+   * @param axisID
+   * @param tiltParam
+   */
+  private void upgradeOldTiltCom(AxisID axisID, TiltParam tiltParam) {
+    if (!tiltParam.isOldVersion()) {
+      return;
+    }
+    int correctionBinning = getBackwardCompatibleTiltBinning(axisID, tiltParam);
+    long currentBinning = getStackBinning(axisID, ".ali");
+    if (tiltParam.upgradeOldVersion(correctionBinning, currentBinning)) {
+      comScriptMgr.saveTilt(tiltParam, axisID);
+    }
+  }
+
+  /**
+   * If tiltalignParam is an old version, upgrade it to the new version and save
+   * it to align.com.
+   * @param axisID
+   * @param tiltalignParam
+   */
+  private void upgradeOldAlignCom(AxisID axisID, TiltalignParam tiltalignParam) {
+    if (!tiltalignParam.isOldVersion()) {
+      return;
+    }
+    long correctionBinning = getBackwardCompatibleAlignBinning(axisID);
+    long currentBinning = getStackBinning(axisID, ".preali");
+    if (tiltalignParam.upgradeOldVersion(correctionBinning, currentBinning)) {
+      comScriptMgr.saveAlign(tiltalignParam, axisID);
+    }
+  }
+
+  private final SplittiltParam updateSplittiltParam(AxisID axisID) {
+    TomogramGenerationDialog dialog = (TomogramGenerationDialog) getDialog(
+        DialogType.TOMOGRAM_GENERATION, axisID);
+    if (dialog == null) {
+      return null;
+    }
+    SplittiltParam param = new SplittiltParam(axisID);
+    if (!dialog.getParameters(param)) {
+      return null;
+    }
+    return param;
+  }
+
+  public boolean splittilt(AxisID axisID,
+      ParallelProgressDisplay parallelProgressDisplay) {
+    return splittilt(axisID, parallelProgressDisplay, false);
+  }
+
+  public boolean splittilt(AxisID axisID,
+      ParallelProgressDisplay parallelProgressDisplay, boolean trialMode) {
+    if (!updateTiltCom(axisID, !trialMode)) {
+      return false;
+    }
+    SplittiltParam splittiltParam = updateSplittiltParam(axisID);
+    if (splittiltParam == null) {
+      return false;
+    }
+    processTrack.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
+    mainPanel.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
+    setNextProcess(axisID, ProcesschunksParam.COMMAND_NAME);
+    String threadName;
+    try {
+      threadName = processMgr.splittilt(splittiltParam, axisID);
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Can not execute " + SplittiltParam.COMMAND_NAME;
+      message[1] = e.getMessage();
+      uiHarness.openMessageDialog(message, "Unable to execute command", axisID);
+      return false;
+    }
+    setThreadName(threadName, axisID);
+    mainPanel
+        .startProgressBar("Running " + SplittiltParam.COMMAND_NAME, axisID);
+    return true;
+  }
+
+  /**
+   * Run processchunks.  Function can be public.
+   * @param axisID
+   */
+  private final void processchunks(AxisID axisID) {
+    resetNextProcess(axisID);
+    TomogramGenerationDialog dialog = mapGenerationDialog(axisID);
+    if (dialog == null) {
+      return;
+    }
+    ProcesschunksParam param = new ProcesschunksParam(axisID);
+    dialog.getParameters(param);
+    processTrack.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
+    mainPanel.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
+    String threadName;
+    try {
+      threadName = processMgr.processchunks(axisID, param, dialog
+          .getParallelProgressDisplay());
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Can not execute " + ProcesschunksParam.COMMAND_NAME;
+      message[1] = e.getMessage();
+      uiHarness.openMessageDialog(message, "Unable to execute command", axisID);
+      return;
+    }
+    setThreadName(threadName, axisID);
+    //mainPanel.startProgressBar("Running " + ProcesschunksParam.COMMAND_NAME, axisID);
+  }
+
+  public void signalTiltCompleted(AxisID axisID) {
+    TomogramGenerationDialog tomogramGenerationDialog = mapGenerationDialog(axisID);
+    if (tomogramGenerationDialog == null) {
+      return;
+    }
+    tomogramGenerationDialog.signalTiltCompleted();
+  }
+
+  public void signalTiltError(AxisID axisID) {
+    TomogramGenerationDialog tomogramGenerationDialog = mapGenerationDialog(axisID);
+    if (tomogramGenerationDialog == null) {
+      return;
+    }
+    tomogramGenerationDialog.signalTiltError();
+  }
+
+  public void signalTiltKilled(AxisID axisID) {
+    TomogramGenerationDialog tomogramGenerationDialog = mapGenerationDialog(axisID);
+    if (tomogramGenerationDialog == null) {
+      return;
+    }
+    tomogramGenerationDialog.signalTiltKilled();
+  }
+
+  final void setPauseButton(AbstractButton pauseButton) {
+
+  }
+}
+/**
  * <p> $Log$
+ * <p> Revision 3.170  2005/08/11 23:20:47  sueh
+ * <p> bug# 711  Change enum Run3dmodMenuOption to
+ * <p> Run3dmodMenuOptions, which can turn on multiple options at once.
+ * <p> This allows ImodState to combine input from the context menu and the
+ * <p> pulldown menu.  Move setting about whether a type of 3dmod run can be
+ * <p> binned in Z to ImodManager.
+ * <p>
  * <p> Revision 3.169  2005/08/09 19:52:07  sueh
  * <p> bug# 711 Pass Run3dmodMenuOption to all imod functions, except the
  * <p> ones that use modv.
@@ -1368,5437 +6918,4 @@ import etomo.util.Utilities;
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
  */
-public class ApplicationManager extends BaseManager {
-  public static final String rcsid = "$Id$";
 
-  //  Process dialog references
-  private SetupDialog setupDialog = null;
-
-  private PreProcessingDialog preProcDialogA = null;
-
-  private PreProcessingDialog preProcDialogB = null;
-
-  private CoarseAlignDialog coarseAlignDialogA = null;
-
-  private CoarseAlignDialog coarseAlignDialogB = null;
-
-  private FiducialModelDialog fiducialModelDialogA = null;
-
-  private FiducialModelDialog fiducialModelDialogB = null;
-
-  private AlignmentEstimationDialog fineAlignmentDialogA = null;
-
-  private AlignmentEstimationDialog fineAlignmentDialogB = null;
-
-  private TomogramPositioningDialog tomogramPositioningDialogA = null;
-
-  private TomogramPositioningDialog tomogramPositioningDialogB = null;
-
-  private TomogramGenerationDialog tomogramGenerationDialogA = null;
-
-  private TomogramGenerationDialog tomogramGenerationDialogB = null;
-
-  protected TomogramCombinationDialog tomogramCombinationDialog = null;
-
-  private PostProcessingDialog postProcessingDialog = null;
-  
-  private CleanUpDialog cleanUpDialog = null;
-  
-  private MetaData metaData = null;
-  private MainTomogramPanel mainPanel;
-  private ProcessTrack processTrack;
-  private ProcessManager processMgr;
-  private TomogramState state;
-  private boolean[] advancedA = new boolean[DialogType.TOTAL];
-  private boolean[] advancedB = new boolean[DialogType.TOTAL];
-  private DialogType currentDialogTypeA = null;
-  private DialogType currentDialogTypeB = null;
-  
-  /**
-   * Does initialization and loads the .edf file.  Opens the setup dialog
-   * if there is no .edf file.
-   */
-  public ApplicationManager(String paramFileName, AxisID axisID) {
-    super();
-    this.metaData = new MetaData(this);
-    initializeUIParameters(paramFileName, axisID);
-    initializeAdvanced();
-    // Open the etomo data file if one was found on the command line
-    if (!test) {
-      if (!paramFileName.equals("")) {
-        if (loadedTestParamFile) {
-          openProcessingPanel();
-          mainPanel.setStatusBarText(paramFile, metaData);
-        }
-        else {
-          openSetupDialog();
-        }
-      }
-      else {
-        openSetupDialog();
-      }
-    }
-  }
-  
-  /**
-   * Initialize advancedA and advancedB, which remember the advanced state of
-   * dialogs when the user switches from one to another.  This is necessary
-   * because the done function is run each time a user switches dialogs.
-   *
-   */
-  private void initializeAdvanced() {
-    boolean isAdvanced = EtomoDirector.getInstance().getAdvanced();
-    for (int i = 0; i < DialogType.TOTAL; i++) {
-      advancedA[i] = isAdvanced;
-      advancedB[i] = isAdvanced;
-    }
-  }
-  
-  /**
-   * Checks the advanced state of a dialog.
-   * @param dialogType
-   * @param axisID
-   * @return
-   */
-  public boolean isAdvanced(DialogType dialogType, AxisID axisID) {
-    if (axisID == AxisID.SECOND) {
-      return advancedB[dialogType.toIndex()];
-    }
-    return advancedA[dialogType.toIndex()];    
-  }
-  
-  /**
-   * Sets the advanced state of a dialog.
-   * @param dialogType
-   * @param axisID
-   * @param advanced
-   */
-  public void setAdvanced(DialogType dialogType, AxisID axisID, boolean advanced) {
-    if (axisID == AxisID.SECOND) {
-      advancedB[dialogType.toIndex()] = advanced;
-    }
-    advancedA[dialogType.toIndex()] = advanced;   
-  }
-
-  /**
-   * Sets the advanced state of a dialog.  Assumes the A axis (or single axis).
-   * @param dialogType
-   * @param advanced
-   */
-  public void setAdvanced(DialogType dialogType, boolean advanced) {
-    advancedA[dialogType.toIndex()] = advanced;   
-  }
-  
-  /**
-   * Finds out whether the manager is new, which means that it has no .edf file.
-   * If setupDialog is not null, then the manager is new.
-   */
-  public boolean isNewManager() {
-    return setupDialog != null;
-  }
-
-   /**
-   * Check if setup dialog has been modified by the user.
-   * Return true if there is text in the dataset field.
-   * @return
-   */
-  public boolean isSetupChanged() {
-    if (setupDialog == null) {
-      return false;
-    }
-    if (setupDialog.getDatasetString() == null || setupDialog.getDatasetString().matches("\\s*")) {
-      return false;
-    }
-    return true;
-  }
-  
-  /**
-   * Open the setup dialog
-   */
-  public void openSetupDialog() {
-    //  Open the dialog in the appropriate mode for the current state of
-    //  processing
-    setCurrentDialogType(DialogType.SETUP, AxisID.ONLY);
-    if (setupDialog == null) {
-      setupDialog = new SetupDialog(this);
-      setupDialog.initializeFields((ConstMetaData) metaData);
-    }
-    mainPanel.openSetupPanel(setupDialog);
-    Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-    Dimension frameSize = mainPanel.getSize();
-    mainPanel.setLocation((screenSize.width - frameSize.width) / 2,
-      (screenSize.height - frameSize.height) / 2);
-  }
-  
-  /**
-   * Checks for an existing reconstruction on a different stack in the current
-   * directory.  Assumes that the new .edf file for this instance has not been
-   * created yet.
-   * Since .com file names are not stack specific, it is necessary
-   * to prevent interference by doing only one reconstruction per directory.  A
-   * secondary goal is to have only one tilt series per directory.  Multiple
-   * .edf files accessing the same stacks are allowed so that the user can back
-   * up their .edf file or start a fresh .edf file.  The user may also have one
-   * single and one dual reconstruction in a directory, as long as they have a
-   * stack in common.
-   * @return True if there is already an .edf file in the propertyUserDir and
-   * it is referencing a stack other then the one(s) specified in the setup
-   * dialog.  True if the new .edf file and the existing .edf file are both
-   * single axis, even if one file is accessing the A stack and the other is
-   * accessing the B stack.  False if no existing .edf file is found.  False if
-   * the new .edf file and the existing .edf file are single and dual axis, as
-   * long as they have a stack in common.  False if there is a conflict, but the
-   * stacks that one of .edf files references don't exist.
-   */
-  private boolean checkForSharedDirectory() {
-    if (setupDialog == null) {
-      throw new IllegalStateException("Function can only be run during setup phase,\nbefore the .edf file has been created.");
-    }
-    File directory = new File(propertyUserDir);
-    //Get all the edf files in propertyUserDir.
-    File[] edfFiles = directory.listFiles(new EtomoFileFilter());
-    if (edfFiles == null) {
-      return false;
-    }
-    String datasetName = metaData.getDatasetName();
-    AxisType axisType = metaData.getAxisType();
-    String extension = metaData.getFileExtension();
-    File firstStack = null;
-    File secondStack = null;
-    String firstStackName = null;
-    String secondStackName = null;
-    //Create File instances based on the stacks specified in the setup dialog
-    if (axisType == AxisType.DUAL_AXIS) {
-      firstStack = new File(propertyUserDir, datasetName
-          + AxisID.FIRST.getExtension() + ".st");
-      firstStackName = firstStack.getName();
-      secondStack = new File(propertyUserDir, datasetName
-          + AxisID.SECOND.getExtension() + ".st");
-      secondStackName = secondStack.getName();
-    }
-    else if (axisType == AxisType.SINGLE_AXIS) {
-      firstStack = new File(propertyUserDir, datasetName
-          +  AxisID.ONLY.getExtension() + ".st");
-      firstStackName = firstStack.getName();
-    }
-    //open any .edf files in propertyUserDir - assuming the .edf file for this
-    //instance hasn't been created yet.
-    //If there is at least one .edf file that references existing stacks that
-    //are not the stacks the will be used in this instance, then the directory
-    //is already in use.
-    //Doing a dual and single axis on the same stack is not sharing a directory.
-    //However doing two single axis reconstructions on the same tilt series,
-    //where one is done on A and the other is done on B, would be considered
-    //sharing a directory.
-    for (int i = 0; i < edfFiles.length; i++) {
-      MetaData savedMetaData = new MetaData(this);
-      ParameterStore paramStore = new ParameterStore(edfFiles[i]);
-      Storable[] storable = new Storable[1];
-      storable[0] = savedMetaData;
-      try {
-        paramStore.load(storable);
-      }
-      catch (IOException e) {
-        e.printStackTrace();
-        continue;
-      }
-      //Create File instances based on the stacks specified in the edf file
-      //found in propertyUserDir.
-      AxisType savedAxisType = savedMetaData.getAxisType();
-      String savedDatasetName = savedMetaData.getDatasetName(); 
-      File savedFirstStack;
-      File savedSecondStack;
-      String savedFirstStackName;
-      String savedSecondStackName;
-      if (savedAxisType == AxisType.DUAL_AXIS) {
-        savedFirstStack = new File(propertyUserDir, savedDatasetName
-            + AxisID.FIRST.getExtension() + ".st");
-        savedFirstStackName = savedFirstStack.getName();
-        savedSecondStack = new File(propertyUserDir, savedDatasetName
-            + AxisID.SECOND.getExtension() + ".st");
-        savedSecondStackName = savedSecondStack.getName();
-        if (axisType == AxisType.DUAL_AXIS) {
-          //compare dual axis A against saved dual axis A
-          if (savedFirstStack.exists()
-              && !firstStackName.equals(savedFirstStackName)) {
-            return true;
-          }
-          //compare dual axis B against saved dual axis B
-          if (savedSecondStack.exists()
-              && !secondStackName.equals(savedSecondStackName)) {
-            return true;
-          }
-        }
-        else if (axisType == AxisType.SINGLE_AXIS) {
-          //compare single axis against saved dual axis A
-          //compare single axis against saved dual axis B
-          if (savedFirstStack.exists()
-              && !firstStackName.equals(savedFirstStackName) &&
-              (!savedSecondStack.exists() || (savedSecondStack.exists()
-                  && !firstStackName.equals(savedSecondStackName)))) {
-            return true;
-          }
-        }
-      }
-      else if (savedAxisType == AxisType.SINGLE_AXIS) {
-        savedFirstStack = new File(propertyUserDir, savedDatasetName + AxisID.ONLY.getExtension() + ".st");
-        savedFirstStackName = savedFirstStack.getName();
-        if (axisType == AxisType.DUAL_AXIS) {
-          //compare dual axis A against saved single axis
-          //compare dual axis B against saved single axis
-          if (savedFirstStack.exists()
-              && !firstStackName.equals(savedFirstStackName)
-              && !secondStackName.equals(savedFirstStackName)) {
-            return true;
-          }
-        }
-        else if (axisType == AxisType.SINGLE_AXIS) {
-          //compare single axis against saved single axis
-          if (savedFirstStack.exists()
-              && !firstStackName.equals(savedFirstStackName)) {
-            return true;
-          }
-        }
-      }
-    }
-    return false;
-  }
-  
-  /**
-   * Close message from the setup dialog window
-   */
-  public void doneSetupDialog() {
-    if (setupDialog == null) {
-      uiHarness.openMessageDialog(
-        "Can not update metadata parameters without an active setup dialog",
-        "Program logic error", AxisID.ONLY);
-      return;
-    }
-    //  Get the selected exit button
-    DialogExitState exitState = setupDialog.getExitState();
-    if (exitState != DialogExitState.CANCEL) {
-      if (!setupDialog.isValid()) {
-        return;
-      }
-      // Set the current working directory for the application saving the
-      // old user.dir property until the meta data is valid
-      String oldUserDir = propertyUserDir;
-      propertyUserDir = setupDialog.getWorkingDirectory().getAbsolutePath();
-      metaData = setupDialog.getFields();
-      metaData.initialize();
-      if (metaData == null) {
-        return;
-      }
-      if (metaData.isValid()) {
-        if (checkForSharedDirectory()) {
-          uiHarness.openMessageDialog("This directory (" + propertyUserDir
-              + ") is already being used by an .edf file.  Either open the "
-              + "existing .edf file or create a new directory for the new "
-              + "reconstruction.", "WARNING:  CANNOT PROCEED", AxisID.ONLY);
-          return;
-        }
-        processTrack.setSetupState(ProcessState.INPROGRESS);
-        //final initialization of IMOD manager
-        imodManager.setMetaData(metaData);
-        //set paramFile so meta data can be saved
-        paramFile = new File(propertyUserDir, metaData.getMetaDataFileName());
-        mainPanel.setStatusBarText(paramFile, metaData);
-        userConfig.putDataFile(paramFile.getAbsolutePath());
-        loadedTestParamFile = true;
-        state.initialize();
-      }
-      else {
-        String[] errorMessage = new String[2];
-        errorMessage[0] = "Setup Parameter Error";
-        errorMessage[1] = metaData.getInvalidReason();
-        uiHarness.openMessageDialog(errorMessage, "Setup Parameter Error", AxisID.ONLY);
-        propertyUserDir = oldUserDir;
-        return;
-      }
-      // This is really the method to use the existing com scripts
-      if (exitState == DialogExitState.EXECUTE) {
-        try {
-          processMgr.setupComScripts(metaData, AxisID.ONLY);
-        }
-        catch (BadComScriptException except) {
-          except.printStackTrace();
-          uiHarness.openMessageDialog(except.getMessage(),
-            "Can't run copytomocoms", AxisID.ONLY);
-          return;
-        }
-        catch (IOException except) {
-          uiHarness.openMessageDialog("Can't run copytomocoms\n"
-            + except.getMessage(), "Copytomocoms IOException", AxisID.ONLY);
-          return;
-        }
-      }
-      processTrack.setSetupState(ProcessState.COMPLETE);
-      metaData.setComScriptCreated(true);
-      EtomoDirector.getInstance().renameCurrentManager(
-          metaData.getDatasetName());
-    }
-    //  Switch the main window to the procesing panel
-    openProcessingPanel();
-    //  Free the dialog
-    setupDialog = null;
-    saveTestParamFile(AxisID.ONLY);
-  }
-
-  /**
-   * Open the main window in processing mode
-   */
-  private void openProcessingPanel() {
-    mainPanel.showProcessingPanel(metaData.getAxisType());
-    mainPanel.updateAllProcessingStates(processTrack);
-    setPanel();
-  }
-
-  /**
-   * Open the pre-processing dialog
-   */
-  public void openPreProcDialog(AxisID axisID) {
-    //  Check to see if the com files are present otherwise pop up a dialog
-    //  box informing the user to run the setup process
-    if (!metaData.getComScriptCreated()) {
-      setupRequestDialog(axisID);
-      return;
-    }
-    setCurrentDialogType(DialogType.PRE_PROCESSING, axisID);
-    mainPanel.selectButton(axisID, "Pre-processing");
-    // TODO: When a panel is overwriten by another should it be nulled and
-    // closed or left and and reshown when needed?
-    // Problem with stale data for align and tilt info since they are on
-    // multiple panels
-    // Check to see if the dialog panel is already open
-    if (showIfExists(preProcDialogA, preProcDialogB, axisID)) {
-      return;
-    }
-    PreProcessingDialog preProcDialog = new PreProcessingDialog(this, axisID);
-    if (axisID == AxisID.SECOND) {
-      preProcDialogB = preProcDialog;
-    }
-    else {
-      preProcDialogA = preProcDialog;
-    }
-    // Load the required ccderaser{|a|b}.com files
-    // Fill in the parameters and set it to the appropriate state
-    comScriptMgr.loadEraser(axisID);
-    preProcDialog.setCCDEraserParams(comScriptMgr.getCCDEraserParam(axisID));
-    mainPanel.showProcess(preProcDialog.getContainer(), axisID);
-  }
-
-  /**
-   * Closes preprocessing dialog.  Updates comscripts and edf file and deletes
-   * dialog.
-   */
-  public void donePreProcDialog(AxisID axisID) {
-    PreProcessingDialog preProcDialog;
-    if (axisID == AxisID.SECOND) {
-      preProcDialog = preProcDialogB;
-    }
-    else {
-      preProcDialog = preProcDialogA;
-    }
-    if (preProcDialog == null) {
-      uiHarness.openMessageDialog(
-        "Can not update preprocessing parameters without an active "
-          + "preprocessing dialog", "Program logic error", axisID);
-      return;
-    }
-    setAdvanced(preProcDialog.getDialogType(), axisID, preProcDialog.isAdvanced());
-    
-    //  Keep dialog box open until we get good info or it is cancelled
-    DialogExitState exitState = preProcDialog.getExitState();
-    if (exitState == DialogExitState.CANCEL) {
-      mainPanel.showBlankProcess(axisID);
-    }
-    else {
-      updateEraserCom(axisID, false);
-      // If there are raw stack imod processes open ask the user if they
-      // should be closed.
-      try {
-        if (exitState != DialogExitState.SAVE
-            && imodManager.isOpen(ImodManager.RAW_STACK_KEY, axisID)) {
-          String[] message = new String[2];
-          message[0] = "The raw stack is open in 3dmod";
-          message[1] = "Should it be closed?";
-          if (uiHarness.openYesNoDialog(message, axisID)) {
-            imodManager.quit(ImodManager.RAW_STACK_KEY, axisID);
-          }
-        }
-      }
-      catch (AxisTypeException except) {
-        except.printStackTrace();
-        uiHarness.openMessageDialog(except.getMessage(), "AxisType problem", axisID);
-      }
-      catch (SystemProcessException except) {
-        except.printStackTrace();
-        uiHarness.openMessageDialog(except.getMessage(),
-          "Problem closing raw stack", axisID);
-      }
-      if (exitState == DialogExitState.EXECUTE) {
-        processTrack.setPreProcessingState(ProcessState.COMPLETE, axisID);
-        mainPanel.setPreProcessingState(ProcessState.COMPLETE, axisID);
-        //  Go to the coarse align dialog by default
-        openCoarseAlignDialog(axisID);
-      }
-      else if (exitState != DialogExitState.SAVE){
-        processTrack.setPreProcessingState(ProcessState.INPROGRESS, axisID);
-        mainPanel.setPreProcessingState(ProcessState.INPROGRESS, axisID);
-        //  Go to the coarse align dialog by default
-        mainPanel.showBlankProcess(axisID);
-      }
-      saveTestParamFile(axisID);
-    }
-    //  Clean up the existing dialog
-    if (axisID == AxisID.SECOND) {
-      preProcDialogB = null;
-    }
-    else {
-      preProcDialogA = null;
-    }
-    preProcDialog = null;
-  }
-
-  /**
-   * Open 3dmod to create the manual erase model
-   */
-  public void imodManualErase(AxisID axisID, Run3dmodMenuOptions menuOptions) {
-    String eraseModelName = metaData.getDatasetName() + axisID.getExtension()
-      + ".erase";
-    try {
-      if (metaData.getViewType() == ViewType.MONTAGE) {
-        imodManager.setFrames(ImodManager.RAW_STACK_KEY, axisID, true);
-      }
-      imodManager.open(ImodManager.RAW_STACK_KEY, axisID, eraseModelName, true, menuOptions);
-      processTrack.setPreProcessingState(ProcessState.INPROGRESS, axisID);
-      mainPanel.setPreProcessingState(ProcessState.INPROGRESS, axisID);
-    }
-    catch (SystemProcessException except) {
-      except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(),
-        "Can't open 3dmod on raw stack", axisID);
-    }
-    catch (AxisTypeException except) {
-      except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(),
-        "Axis type problem in 3dmod erase", axisID);
-    }
-  }
-
-  /**
-   * Get the eraser script parameters from the CCD eraser panel and
-   * write them out the eraser{|a|b}.com script
-   * @param axisID    The axisID to process
-   * @param trialMode Set to trial mode if true
-   */
-  private void updateEraserCom(AxisID axisID, boolean trialMode) {
-    PreProcessingDialog preProcDialog;
-    if (axisID == AxisID.SECOND) {
-      preProcDialog = preProcDialogB;
-    }
-    else {
-      preProcDialog = preProcDialogA;
-    }
-    //  Get the user input data from the dialog box. The CCDEraserParam
-    //  is first initialized from the currently loaded com script to
-    //  provide deafault values for those not handled by the dialog box
-    //  get function needs some error checking
-    CCDEraserParam ccdEraserParam = comScriptMgr.getCCDEraserParam(axisID);
-    preProcDialog.getCCDEraserParams(ccdEraserParam);
-    ccdEraserParam.setTrialMode(trialMode);
-    comScriptMgr.saveEraser(ccdEraserParam, axisID);
-  }
-
-  /**
-   * Run the eraser script for the specified axis
-   * @param axisID
-   */
-  public void eraser(AxisID axisID) {
-    updateEraserCom(axisID, false);
-    processTrack.setPreProcessingState(ProcessState.INPROGRESS, axisID);
-    mainPanel.setPreProcessingState(ProcessState.INPROGRESS, axisID);
-    String threadName;
-    try {
-      threadName = processMgr.eraser(axisID);
-    }
-    catch (SystemProcessException e) {
-      e.printStackTrace();
-      String[] message = new String[2];
-      message[0] = "Can not execute eraser" + axisID.getExtension() + ".com";
-      message[1] = e.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to execute com script", axisID);
-      return;
-    }
-    setThreadName(threadName, axisID);
-  }
-
-  /**
-   * Run CCDeraser in trial mode
-   * @param axisID
-   */
-  public void findXrays(AxisID axisID) {
-    updateEraserCom(axisID, true);
-    processTrack.setPreProcessingState(ProcessState.INPROGRESS, axisID);
-    mainPanel.setPreProcessingState(ProcessState.INPROGRESS, axisID);
-    String threadName;
-    try {
-      threadName = processMgr.eraser(axisID);
-    }
-    catch (SystemProcessException e) {
-      e.printStackTrace();
-      String[] message = new String[2];
-      message[0] = "Can not execute eraser" + axisID.getExtension() + ".com";
-      message[1] = e.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to execute com script",axisID);
-      return;
-    }
-    setThreadName(threadName, axisID);
-  }
-
-  /**
-   * Open 3dmod to view the xray model on the raw stack
-   */
-  public void imodXrayModel(AxisID axisID, Run3dmodMenuOptions menuOptions) {
-    String xRayModel = metaData.getDatasetName() + axisID.getExtension()
-      + "_peak.mod";
-    try {
-      imodManager.setPreserveContrast(ImodManager.RAW_STACK_KEY, axisID, true);
-      if (metaData.getViewType() == ViewType.MONTAGE) {
-        imodManager.setFrames(ImodManager.RAW_STACK_KEY, axisID, true);
-      }
-      imodManager.open(ImodManager.RAW_STACK_KEY, axisID, xRayModel, menuOptions);
-    }
-    catch (AxisTypeException except) {
-      except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem", axisID);
-    }
-    catch (SystemProcessException except) {
-      except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(),
-        "Problem opening coarse stack", axisID);
-    }
-  }
-
-  /**
-   * Open 3dmod to view the erased stack
-   */
-  public void imodErasedStack(AxisID axisID, Run3dmodMenuOptions menuOptions) {
-    if (Utilities.getFile(this, true, axisID, "_fixed.st", "erased stack") == null) {
-      return;
-    }
-    try {
-      if (metaData.getViewType() == ViewType.MONTAGE) {
-        imodManager.setPieceListFileName(ImodManager.ERASED_STACK_KEY, axisID,
-            metaData.getDatasetName() + axisID.getExtension() + ".pl");
-      }
-      imodManager.open(ImodManager.ERASED_STACK_KEY, axisID, menuOptions);
-    }
-    catch (AxisTypeException except) {
-      except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem", axisID);
-    }
-    catch (SystemProcessException except) {
-      except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(),
-        "Problem opening erased stack", axisID);
-    }
-  }
-  
-  public void archiveOriginalStack() {
-    archiveOriginalStack(null);
-  }
-  
-  /**
-   * Archive the orginal stacks during clean up.
-   * @param axisID
-   */
-  private void archiveOriginalStack(AxisID currentAxisID) {
-    //figure out which original stack to archive
-    AxisID stackAxisID = currentAxisID;
-    if (stackAxisID == null) {
-      if (metaData.getAxisType() == AxisType.DUAL_AXIS) {
-        stackAxisID = AxisID.FIRST;
-      }
-      else {
-        stackAxisID = AxisID.ONLY;
-      }
-    }
-    //set next process to archiveorig so that the second axis can be done
-    if (stackAxisID == AxisID.FIRST) {
-      setNextProcess(AxisID.ONLY, ArchiveorigParam.COMMAND_NAME);
-    }
-    else {
-      resetNextProcess(AxisID.ONLY);
-    }
-    //check for original stack
-    File originalStack = Utilities.getFile(this, false, stackAxisID, "_orig.st",
-        "original stack");
-    if (!originalStack.exists()) {
-      if (stackAxisID == AxisID.FIRST) {
-        //Nothing to do on the first axis, so move on to the second axis
-        startNextProcess(AxisID.ONLY);
-        return;
-      }
-      else {
-        return;
-      }
-    }
-    //set progress bar and process state
-    mainPanel.startProgressBar("Archiving " + stackAxisID + " stack",
-        AxisID.ONLY);
-    processTrack.setCleanUpState(ProcessState.INPROGRESS);
-    mainPanel.setCleanUpState(ProcessState.INPROGRESS);
-    //create param
-    ArchiveorigParam param = new ArchiveorigParam(this, stackAxisID);
-    //run process
-    try {
-      setThreadName(processMgr.archiveOrig(param), AxisID.ONLY);
-    }
-    catch (SystemProcessException e) {
-      e.printStackTrace();
-      String[] message = new String[2];
-      message[0] = "Can not execute " + ArchiveorigParam.COMMAND_NAME
-          + " command";
-      message[1] = e.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to execute command",
-          AxisID.ONLY);
-    }
-  }
-  
-  public void deleteOriginalStack(Command archiveorigParam, String[] output) {
-    AxisID axisID;
-    int mode = archiveorigParam.getCommandMode();
-    if (mode == ArchiveorigParam.AXIS_A_MODE) {
-      axisID = AxisID.FIRST;
-    }
-    else if (mode == ArchiveorigParam.AXIS_B_MODE) {
-      axisID = AxisID.SECOND;
-    }
-    else if (mode == ArchiveorigParam.AXIS_ONLY_MODE) {
-      axisID = AxisID.ONLY;
-    }
-    else {
-      return;
-    }
-    File originalStack = Utilities.getFile(this, false, axisID, "_orig.st", "");
-    //This function is only run is archiveorig succeeds so this "if" statement
-    //should always fail.
-    if (!originalStack.exists()
-        || output == null
-        || output.length != 6
-        || !output[4].equals("It is now safe to delete "
-            + originalStack.getName())) {
-      throw new IllegalStateException(
-          "Unexpected result from running archiveorig" + output.toString());
-    }
-    String[] message = new String[output.length - 2 + 3];
-    message[0] = "Result of " + archiveorigParam.getCommandLine() + ":\n";
-    int messageIndex = 1;
-    for (int i = 2; i < output.length; i++) {
-      message[messageIndex++] = output[i] + "\n";
-    }
-    message[messageIndex++] = "\n";
-    message[messageIndex] = "Delete " + originalStack.getAbsolutePath() + "?";
-    if (uiHarness.openDeleteDialog(message, AxisID.ONLY)) {
-      System.err.println("Deleting " + originalStack.getAbsolutePath());
-      originalStack.delete();
-      if (cleanUpDialog != null) {
-        cleanUpDialog.setArchiveFields();
-      }
-    }
-  }
-  
-  public String getArchiveInfo(AxisID axisID) {
-    File stack = Utilities.getFile(this, false, axisID, ".st", "");
-    File originalStack = Utilities.getFile(this, false, axisID, "_orig.st", "");
-    File xrayStack = Utilities.getFile(this, false, axisID, "_xray.st.gz", "");
-    if (stack == null && originalStack == null || xrayStack == null) {
-      throw new IllegalStateException("Unable to get file information");
-    }
-    if (stack.exists() && !originalStack.exists() && xrayStack.exists()) {
-      return stack.getName();
-    }
-    return null;
-  }
-  
-  /**
-   * Replace the raw stack with the fixed stack created from eraser
-   * @param axisID
-   */
-  public void replaceRawStack(AxisID axisID) {
-    mainPanel.setProgressBar("Using fixed stack", 1, axisID);
-    // Instantiate file objects for the original raw stack and the fixed stack
-    String rawStackFilename = propertyUserDir + File.separator
-    + metaData.getDatasetName() + axisID.getExtension() + ".st";
-    File rawStack = new File(rawStackFilename);
-    String rawStackRename = propertyUserDir + File.separator
-    + metaData.getDatasetName() + axisID.getExtension() + "_orig.st";
-    File rawRename = new File(rawStackRename);
-    File fixedStack = Utilities.getFile(this, true, axisID, "_fixed.st", "erased stack");
-    if (fixedStack == null) {
-      return;
-    }
-    processTrack.setPreProcessingState(ProcessState.INPROGRESS, axisID);
-    mainPanel.setPreProcessingState(ProcessState.INPROGRESS, axisID);
-
-    // Rename the fixed stack to the raw stack file name and save the orginal
-    // raw stack to _orig.st if that does not already exist
-    try {
-      if (!rawRename.exists()) {
-        Utilities.renameFile(rawStack, rawRename);
-      }
-      if (renameXrayStack(axisID)) {
-        Utilities.renameFile(fixedStack, rawStack);
-      }
-    }
-    catch (IOException except) {
-      uiHarness.openMessageDialog(except.getMessage(), "File Rename Error",
-          axisID);
-    }
-    try {
-      if (imodManager.isOpen(ImodManager.RAW_STACK_KEY, axisID)) {
-        String[] message = new String[2];
-        message[0] = "The replaced raw stack is open in 3dmod";
-        message[1] = "Should it be closed?";
-        if (uiHarness.openYesNoDialog(message, axisID)) {
-          imodManager.quit(ImodManager.RAW_STACK_KEY, axisID);
-        }
-      }
-    }
-    catch (AxisTypeException e) {
-      e.printStackTrace();
-      System.err.println("Axis type exception in replaceRawStack");
-    }
-    catch (SystemProcessException e) {
-      e.printStackTrace();
-      System.err.println("System process exception in replaceRawStack");
-    }
-    //An _orig.st file may have been created, so refresh the Clean Up dialog's
-    //archive fields.
-    if (cleanUpDialog != null) {
-      cleanUpDialog.setArchiveFields();
-    }
-    mainPanel.stopProgressBar(axisID);
-  }
-  
-  /**
-   * Renames the _xray.st.gz file to {dataset}{axisID}_xray.st.gz.{number}.
-   * Numbers start at 1 and go up.
-   * @param axisID
-   * @return false if rename fails
-   */
-  private boolean renameXrayStack(AxisID axisID) {
-    File xrayStack = new File(propertyUserDir, metaData.getDatasetName()
-        + axisID.getExtension() + "_xray.st.gz");
-    if (!xrayStack.exists()) {
-      return true;
-    }
-    File userDir = new File(propertyUserDir);
-    String[] xrayStackArchives = userDir.list(new XrayStackArchiveFilter());
-    int fileNumber = 0;
-    if (xrayStackArchives != null) {
-      EtomoNumber newFileNumber = new EtomoNumber(EtomoNumber.INTEGER_TYPE);
-      for (int i = 0; i < xrayStackArchives.length; i++) {
-        newFileNumber.set(xrayStackArchives[i].substring(xrayStackArchives[i]
-            .lastIndexOf('.') + 1));        
-        if (newFileNumber.isValid() && !newFileNumber.isNull()) {
-          fileNumber = Math.max(fileNumber, newFileNumber.getInt());
-        }
-      }
-    }
-    File xrayStackArchive = new File(propertyUserDir, metaData.getDatasetName()
-        + axisID.getExtension() + "_xray.st.gz" + "."
-        + Integer.toString(fileNumber + 1));
-    if (xrayStackArchive.exists()) {
-      throw new IllegalStateException(xrayStackArchive.getName()
-          + " should not exist.");
-    }
-    try {
-      Utilities.renameFile(xrayStack, xrayStackArchive);
-    }
-    catch (IOException e) {
-      e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(), "Unable to move "
-          + xrayStack.getName() + " to " + xrayStackArchive.getName()
-          + ".\nCannot continue.\nFirst run \"mv " + xrayStack.getName() + " "
-          + xrayStackArchive.getName() + "\" from the command line.", axisID);
-      return false;
-    }
-    return true;
-  }
-
-  /**
-   * Bring up a preview 3dmod.
-   * @param axisID
-   */
-  public void imodPreview(AxisID axisID, Run3dmodMenuOptions menuOptions) {
-    if (setupDialog == null) {
-      return;
-    }
-    String key = ImodManager.PREVIEW_KEY;
-    MetaData previewMetaData = setupDialog.getDataset();
-    imodManager.setPreviewMetaData(previewMetaData);
-    File previewWorkingDir =
-      previewMetaData.getValidDatasetDirectory(
-        setupDialog.getWorkingDirectory().getAbsolutePath());
-    if (previewWorkingDir == null) {
-      uiHarness.openMessageDialog(previewMetaData.getInvalidReason(),
-        "Raw Image Stack", axisID);
-      return;
-    }
-    try {
-      int previewNumber = imodManager.newImod(key, axisID);
-      imodManager.setWorkingDirectory(key, axisID, previewNumber,
-        previewWorkingDir);
-      imodManager.open(key, axisID, previewNumber, menuOptions);
-    }
-    catch (AxisTypeException except) {
-      except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem", axisID);
-    }
-    catch (SystemProcessException except) {
-      except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(),
-        "Problem opening raw stack", axisID);
-    }
-  }
-
-  /**
-   * Open the coarse alignment dialog
-   */
-  public void openCoarseAlignDialog(AxisID axisID) {
-    //  Check to see if the com files are present otherwise pop up a dialog
-    //  box informing the user to run the setup process
-    if (!metaData.getComScriptCreated()) {
-      setupRequestDialog(axisID);
-      return;
-    }
-    setCurrentDialogType(DialogType.COARSE_ALIGNMENT, axisID);
-    mainPanel.selectButton(axisID, "Coarse Alignment");
-    if (showIfExists(coarseAlignDialogA, coarseAlignDialogB, axisID)) {
-      return;
-    }
-    CoarseAlignDialog coarseAlignDialog = new CoarseAlignDialog(this, axisID);
-    if (axisID == AxisID.SECOND) {
-      coarseAlignDialogB = coarseAlignDialog;
-    }
-    else {
-      coarseAlignDialogA = coarseAlignDialog;
-    }
-    //  Create the dialog box
-    comScriptMgr.loadXcorr(axisID);
-    comScriptMgr.loadUndistort(axisID);
-    coarseAlignDialog.setCrossCorrelationParams(comScriptMgr.getTiltxcorrParam(axisID));
-    if (metaData.getViewType() == ViewType.MONTAGE) {
-      comScriptMgr.loadPreblend(axisID);
-    }
-    else {
-      comScriptMgr.loadPrenewst(axisID);
-    }
-    
-    if (metaData.getViewType() == ViewType.MONTAGE) {
-      BlendmontParam blendmontParam = comScriptMgr.getPreblendParam(axisID);
-      coarseAlignDialog.setParams(blendmontParam);
-    }
-    else {
-      NewstParam prenewstParam = comScriptMgr.getPrenewstParam(axisID);
-      coarseAlignDialog.setPrenewstParams(prenewstParam);
-    }
-
-    coarseAlignDialog.setFiducialessAlignment(metaData.isFiducialessAlignment(axisID));
-    coarseAlignDialog.setTiltAxisAngle(metaData.getImageRotation(axisID));
-    mainPanel.showProcess(coarseAlignDialog.getContainer(), axisID);
-  }
-
-  /**
-   * Get the parameters from the coarse align process dialog box
-   */
-  public void doneCoarseAlignDialog(AxisID axisID) {
-    //  Set a reference to the correct object
-    CoarseAlignDialog coarseAlignDialog = mapCoarseAlignDialog(axisID);
-    if (coarseAlignDialog == null) {
-      uiHarness.openMessageDialog(
-        "Can not update coarse align without an active coarse align dialog",
-        "Program logic error", axisID);
-      return;
-    }
-    setAdvanced(coarseAlignDialog.getDialogType(), axisID, coarseAlignDialog.isAdvanced());
-    DialogExitState exitState = coarseAlignDialog.getExitState();
-    if (exitState == DialogExitState.CANCEL) {
-      mainPanel.showBlankProcess(axisID);
-    }
-    else {
-      //  Get the user input data from the dialog box
-      if (!updateXcorrCom(axisID)) {
-        return;
-      }
-      if (metaData.getViewType() != ViewType.MONTAGE && !updatePrenewstCom(axisID)) {
-        return;
-      }
-      if (!updateFiducialessParams(coarseAlignDialog, axisID)) {
-        return;
-      }
-      if (exitState == DialogExitState.EXECUTE) {
-        processTrack.setCoarseAlignmentState(ProcessState.COMPLETE, axisID);
-        mainPanel.setCoarseAlignState(ProcessState.COMPLETE, axisID);
-        //  Go to the fiducial model dialog by default
-        if (metaData.isFiducialessAlignment(axisID)) {
-          openTomogramPositioningDialog(axisID);
-          // Check to see if the user wants to keep any coarse aligned imods
-          // open
-          try {
-            if (imodManager.isOpen(ImodManager.COARSE_ALIGNED_KEY, axisID)) {
-              String[] message = new String[2];
-              message[0] = "The coarsely aligned stack is open in 3dmod";
-              message[1] = "Should it be closed?";
-              if (uiHarness.openYesNoDialog(message, axisID)) {
-                imodManager.quit(ImodManager.COARSE_ALIGNED_KEY, axisID);
-              }
-            }
-          }
-          catch (AxisTypeException except) {
-            except.printStackTrace();
-            uiHarness.openMessageDialog(except.getMessage(), "AxisType problem", axisID);
-          }
-          catch (SystemProcessException except) {
-            except.printStackTrace();
-            uiHarness.openMessageDialog(except.getMessage(),
-              "Problem closing coarse stack", axisID);
-          }
-        }
-        else {
-          openFiducialModelDialog(axisID);
-        }
-      }
-      else if (exitState != DialogExitState.SAVE) {
-        processTrack.setCoarseAlignmentState(ProcessState.INPROGRESS, axisID);
-        mainPanel.setCoarseAlignState(ProcessState.INPROGRESS, axisID);
-        mainPanel.showBlankProcess(axisID);
-      }
-      saveTestParamFile(axisID);
-    }
-    //  Clean up the existing dialog
-    if (axisID == AxisID.SECOND) {
-      coarseAlignDialogB = null;
-    }
-    else {
-      coarseAlignDialogA = null;
-    }
-    coarseAlignDialog = null;
-  }
-
-  /**
-   * Get the parameters from dialog box and run the cross correlation script
-   */
-  public void crossCorrelate(AxisID axisID) {
-    // Get the parameters from the dialog box
-    if (updateXcorrCom(axisID)) {
-      processTrack.setCoarseAlignmentState(ProcessState.INPROGRESS, axisID);
-      mainPanel.setCoarseAlignState(ProcessState.INPROGRESS, axisID);
-      String threadName;
-      try {
-        threadName = processMgr.crossCorrelate(axisID, updateBlendmontInXcorrCom(axisID));
-      }
-      catch (SystemProcessException e) {
-        e.printStackTrace();
-        String[] message = new String[2];
-        message[0] = "Can not execute xcorr" + axisID.getExtension() + ".com";
-        message[1] = e.getMessage();
-        uiHarness.openMessageDialog(message, "Unable to execute com script", axisID);
-        return;
-      }
-      setThreadName(threadName, axisID);
-    }
-  }
-  
-  /**
-   * run undistort.com
-   * @param axisID
-   */
-  public void makeDistortionCorrectedStack(AxisID axisID) {
-    updateUndistortCom(axisID);
-    processTrack.setCoarseAlignmentState(ProcessState.INPROGRESS, axisID);
-    mainPanel.setCoarseAlignState(ProcessState.INPROGRESS, axisID);
-    String threadName;
-    try {
-      threadName = processMgr.makeDistortionCorrectedStack(axisID);
-    }
-    catch (SystemProcessException e) {
-      e.printStackTrace();
-      String[] message = new String[2];
-      message[0] = "Can not execute undistort" + axisID.getExtension() + ".com";
-      message[1] = e.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to execute com script", axisID);
-      return;
-    }
-    setThreadName(threadName, axisID);
-  }
-
-
-  /**
-   * Run the coarse alignment script
-   */
-  public void coarseAlign(AxisID axisID) {
-    String commandName;
-    if (metaData.getViewType() == ViewType.MONTAGE) {
-      updatePreblendCom(axisID);
-      commandName = BlendmontParam.getCommandFileName(BlendmontParam.PREBLEND_MODE);
-    }
-    else {
-      if (!updatePrenewstCom(axisID)) {
-        return;
-      }
-      commandName = "prenewst";
-    }
-    processTrack.setCoarseAlignmentState(ProcessState.INPROGRESS, axisID);
-    mainPanel.setCoarseAlignState(ProcessState.INPROGRESS, axisID);
-    setNextProcess(axisID, "checkUpdateFiducialModel");
-    String threadName;
-    try {
-      if (metaData.getViewType() == ViewType.MONTAGE) {
-        threadName = processMgr.preblend(axisID);
-      }
-      else {
-        threadName = processMgr.coarseAlign(axisID);
-      }
-    }
-    catch (SystemProcessException e) {
-      e.printStackTrace();
-      String[] message = new String[2];
-      message[0] = "Can not execute " + commandName + axisID.getExtension() + ".com";
-      message[1] = e.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to execute com script", axisID);
-      return;
-    }
-    setThreadName(threadName, axisID);
-  }
-
-  /**
-   * Open 3dmod to view the coarsely aligned stack
-   */
-  public void imodCoarseAlign(AxisID axisID, Run3dmodMenuOptions menuOptions) {
-    try {
-      imodManager.open(ImodManager.COARSE_ALIGNED_KEY, axisID, menuOptions);
-    }
-    catch (AxisTypeException except) {
-      except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem", axisID);
-    }
-    catch (SystemProcessException except) {
-      except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(),
-        "Problem opening coarse stack", axisID);
-    }
-  }
-
-  /**
-   * Run midas on the raw stack
-   */
-  public void midasRawStack(AxisID axisID) {
-    if (!updateFiducialessParams(mapCoarseAlignDialog(axisID), axisID)) {
-      return;
-    }
-    if (metaData.getViewType() == ViewType.MONTAGE) {
-      processMgr.midasBlendStack(axisID, metaData.getImageRotation(axisID));
-    }
-    else {
-      processMgr.midasRawStack(axisID, metaData.getImageRotation(axisID));
-    }
-    processTrack.setCoarseAlignmentState(ProcessState.INPROGRESS, axisID);
-    mainPanel.setCoarseAlignState(ProcessState.INPROGRESS, axisID);
-  }
-  
-  /**
-   * Run fix  edges in Midas
-   */
-  public void midasFixEdges(AxisID axisID) {
-    processMgr.midasFixEdges(axisID);
-    processTrack.setCoarseAlignmentState(ProcessState.INPROGRESS, axisID);
-    mainPanel.setCoarseAlignState(ProcessState.INPROGRESS, axisID);
-  }
-
-  /**
-   * Get the required parameters from the dialog box and update the xcorr.com
-   * script
-   * @return true if successful in getting the parameters and saving the com
-   *         script
-   */
-  private boolean updateXcorrCom(AxisID axisID) {
-    CoarseAlignDialog coarseAlignDialog = mapCoarseAlignDialog(axisID);
-    try {
-      TiltxcorrParam tiltXcorrParam = comScriptMgr.getTiltxcorrParam(axisID);
-      coarseAlignDialog.getCrossCorrelationParams(tiltXcorrParam);
-      comScriptMgr.saveXcorr(tiltXcorrParam, axisID);
-    }
-    catch (FortranInputSyntaxException except) {
-      except.printStackTrace();
-      String[] errorMessage = new String[3];
-      errorMessage[0] = "Xcorr Parameter Syntax Error";
-      errorMessage[1] = except.getMessage();
-      errorMessage[2] = "New value: " + except.getNewString();
-      uiHarness.openMessageDialog(errorMessage, "Xcorr Parameter Syntax Error", axisID);
-      return false;
-    }
-    catch (NumberFormatException except) {
-      except.printStackTrace();
-      String[] errorMessage = new String[3];
-      errorMessage[0] = "Xcorr Align Parameter Syntax Error";
-      errorMessage[1] = axisID.getExtension();
-      errorMessage[2] = except.getMessage();
-      uiHarness.openMessageDialog(errorMessage, "Xcorr Parameter Syntax Error", axisID);
-      return false;
-    }
-    return true;
-  }
-  
-  /**
-   * Update the blendmont command in the xcorr comscript.  if blendmont does not
-   * have to be run, update the goto param to skip blendmont.
-   * @param axisID
-   * @return
-   */
-  private boolean updateBlendmontInXcorrCom(AxisID axisID) {
-    boolean runningBlendmont = false;
-    //handle montaging
-    if (metaData.getViewType() == ViewType.MONTAGE) {
-      BlendmontParam blendmontParam = comScriptMgr
-          .getBlendmontParamFromTiltxcorr(axisID);
-      GotoParam gotoParam = comScriptMgr.getGotoParamFromTiltxcorr(axisID);
-      runningBlendmont = blendmontParam.setBlendmontState();
-      if (runningBlendmont) {
-        gotoParam.setLabel(BlendmontParam.GOTO_LABEL);
-      }
-      else {
-        gotoParam.setLabel(TiltxcorrParam.GOTO_LABEL);
-      }
-      comScriptMgr.saveXcorr(gotoParam, axisID);
-      comScriptMgr.saveXcorr(blendmontParam, axisID);
-    }
-    return runningBlendmont;
-  }
-  
-  /**
-   * update undistort.com from xcorr.com
-   * @param axisID
-   */
-  private void updateUndistortCom(AxisID axisID) {
-    BlendmontParam blendmontParam = comScriptMgr
-        .getBlendmontParamFromTiltxcorr(axisID);
-    blendmontParam.setMode(BlendmontParam.UNDISTORT_MODE);
-    blendmontParam.setBlendmontState();
-    comScriptMgr.saveXcorrToUndistort(blendmontParam, axisID);
-  }
-
-  /**
-   * Get the prenewst parameters from the dialog box and update the prenewst
-   * com script as well as the align com script since binning of the pre-aligned
-   * stack has an affect on the scaling of the fiducial model.
-   * @param axisID
-   * @return
-   */
-  private boolean updatePrenewstCom(AxisID axisID) {
-    CoarseAlignDialog coarseAlignDialog = mapCoarseAlignDialog(axisID);
-    NewstParam prenewstParam = comScriptMgr.getPrenewstParam(axisID);
-    coarseAlignDialog.getPrenewstParams(prenewstParam);
-    comScriptMgr.savePrenewst(prenewstParam, axisID);
-    return true;
-  }
-  
-  /**
-   * Get the set the blendmont parameters and update the preblend com script.
-   * @param axisID
-   * @return
-   */
-  private void updatePreblendCom(AxisID axisID) {
-    CoarseAlignDialog coarseAlignDialog = mapCoarseAlignDialog(axisID);
-    BlendmontParam preblendParam = comScriptMgr.getPreblendParam(axisID);
-    coarseAlignDialog.getParams(preblendParam);
-    preblendParam.setBlendmontState();
-    comScriptMgr.savePreblend(preblendParam, axisID);
-  }
-  
-  
-  /**
-   * Get the set the blendmont parameters and update the blend com script.
-   * @param axisID
-   * @return
-   */
-  private BlendmontParam updateBlendCom(AxisID axisID) {
-    TomogramGenerationDialog tomogramGenerationDialog = mapGenerationDialog(axisID);
-    BlendmontParam blendParam = comScriptMgr.getBlendParam(axisID);
-    tomogramGenerationDialog.getBlendParams(blendParam);
-    blendParam.setMode(BlendmontParam.BLEND_MODE);
-    blendParam.setBlendmontState();
-    comScriptMgr.saveBlend(blendParam, axisID);
-    return blendParam;
-  }
-
-
-  /**
-   * Get the fiducialess parameters from the specified dialog and set the
-   * metaData and rotationXF script
-   * 
-   * @param axisID
-   * @param dialog
-   * @return
-   */
-  private boolean updateFiducialessParams(FiducialessParams dialog,
-    AxisID axisID) {
-    float tiltAxisAngle;
-    try {
-      tiltAxisAngle = dialog.getTiltAxisAngle();
-    }
-    catch (NumberFormatException except) {
-      String[] errorMessage = new String[2];
-      errorMessage[0] = "Tilt axis rotation format error";
-      errorMessage[1] = except.getMessage();
-      uiHarness.openMessageDialog(errorMessage,
-        "Tilt axis rotation syntax error", axisID);
-      return false;
-    }
-    metaData.setFiducialessAlignment(axisID, dialog.isFiducialessAlignment());
-    metaData.setImageRotation(tiltAxisAngle, axisID);
-    updateRotationXF(tiltAxisAngle, axisID);
-    return true;
-  }
-
-  /**
-   * Return the CoarseAlignDialog associated the specified AxisID
-   * 
-   * @param axisID
-   * @return
-   */
-  private CoarseAlignDialog mapCoarseAlignDialog(AxisID axisID) {
-    if (axisID == AxisID.SECOND) {
-      return coarseAlignDialogB;
-    }
-    return coarseAlignDialogA;
-  }
-
-  /**
-   * Write out the rotation transform for the specified axis
-   * 
-   * @param axisID
-   */
-  private void updateRotationXF(float angle, AxisID axisID) {
-    //  Open the appropriate rotation file
-    String fnRotationXF = propertyUserDir + File.separator
-    + "rotation" + axisID.getExtension() + ".xf";
-    File rotationXF = new File(fnRotationXF);
-    try {
-      BufferedWriter out = new BufferedWriter(new FileWriter(rotationXF));
-      //  Write out the transform to perform the rotation
-      double rads = -1 * angle * Math.PI / 180;
-      out.write(String.valueOf(Math.cos(rads)) + "   "
-        + String.valueOf(Math.sin(-rads)) + "   "
-        + String.valueOf(Math.sin(rads)) + "   "
-        + String.valueOf(Math.cos(rads)) + "   0   0");
-      out.newLine();
-      //  Close the file
-      out.close();
-    }
-    catch (IOException except) {
-      String[] errorMessage = new String[3];
-      errorMessage[0] = "Rotation Transform IO Exception";
-      errorMessage[1] = except.getMessage();
-      errorMessage[2] = fnRotationXF;
-      uiHarness.openMessageDialog(errorMessage,
-        "Rotation Transform IO Exception", axisID);
-    }
-  }
-
-  /**
-   * Open the fiducial model generation dialog
-   */
-  public void openFiducialModelDialog(AxisID axisID) {
-    //  Check to see if the com files are present otherwise pop up a dialog
-    //  box informing the user to run the setup process
-    if (!metaData.getComScriptCreated()) {
-      setupRequestDialog(axisID);
-      return;
-    }
-    setCurrentDialogType(DialogType.FIDUCIAL_MODEL, axisID);
-    mainPanel.selectButton(axisID, "Fiducial Model Gen.");
-    if (showIfExists(fiducialModelDialogA, fiducialModelDialogB, axisID)) {
-      return;
-    }
-    // Create a new dialog panel and map it the generic reference
-    FiducialModelDialog fiducialModelDialog = new FiducialModelDialog(this,
-      axisID);
-    if (axisID == AxisID.SECOND) {
-      fiducialModelDialogB = fiducialModelDialog;
-    }
-    else {
-      fiducialModelDialogA = fiducialModelDialog;
-    }
-    updateDialog(fiducialModelDialog, axisID);
-    //  Load the required track{|a|b}.com files, fill in the dialog box
-    // params
-    //  and set it to the appropriate state
-    comScriptMgr.loadTrack(axisID);
-    //  Create a default transferfid object to populate the alignment dialog
-    fiducialModelDialog.setTransferFidParams();
-    fiducialModelDialog.setBeadtrackParams(comScriptMgr.getBeadtrackParam(axisID));
-    mainPanel.showProcess(fiducialModelDialog.getContainer(), axisID);
-  }
-
-  /**
-   * Save comscripts and the .edf file and delete the dialog.
-   */
-  public void doneFiducialModelDialog(AxisID axisID) {
-    //  Set a reference to the correct object
-    FiducialModelDialog fiducialModelDialog;
-    if (axisID == AxisID.SECOND) {
-      fiducialModelDialog = fiducialModelDialogB;
-    }
-    else {
-      fiducialModelDialog = fiducialModelDialogA;
-    }
-    if (fiducialModelDialog == null) {
-      uiHarness.openMessageDialog(
-        "Can not update fiducial model without an active fiducial model dialog",
-        "Program logic error", axisID);
-      return;
-    }
-    setAdvanced(fiducialModelDialog.getDialogType(), axisID, fiducialModelDialog.isAdvanced());
-    DialogExitState exitState = fiducialModelDialog.getExitState();
-    if (exitState == DialogExitState.CANCEL) {
-      mainPanel.showBlankProcess(axisID);
-    }
-    else {
-      fiducialModelDialog.getTransferFidParams();
-      //  Get the user input data from the dialog box
-      if (!updateTrackCom(axisID)) {
-        return;
-      }
-      if (exitState == DialogExitState.EXECUTE) {
-        processTrack.setFiducialModelState(ProcessState.COMPLETE, axisID);
-        mainPanel.setFiducialModelState(ProcessState.COMPLETE, axisID);
-        openFineAlignmentDialog(axisID);
-      }
-      else if (exitState != DialogExitState.SAVE) {
-        processTrack.setFiducialModelState(ProcessState.INPROGRESS, axisID);
-        mainPanel.setFiducialModelState(ProcessState.INPROGRESS, axisID);
-        mainPanel.showBlankProcess(axisID);
-      }
-      saveTestParamFile(axisID);
-    }
-    //  Clean up the existing dialog
-    if (axisID == AxisID.SECOND) {
-      fiducialModelDialogB = null;
-    }
-    else {
-      fiducialModelDialogA = null;
-    }
-    fiducialModelDialog = null;
-  }
-
-  /**
-   * Open 3dmod with the seed model
-   */
-  public void imodSeedFiducials(AxisID axisID, Run3dmodMenuOptions menuOptions) {
-    String seedModel = metaData.getDatasetName() + axisID.getExtension()
-      + ".seed";
-    try {
-      imodManager.setPreserveContrast(ImodManager.COARSE_ALIGNED_KEY, axisID,
-        true);
-      imodManager.open(ImodManager.COARSE_ALIGNED_KEY, axisID, seedModel,
-        true, menuOptions);
-      processTrack.setFiducialModelState(ProcessState.INPROGRESS, axisID);
-      mainPanel.setFiducialModelState(ProcessState.INPROGRESS, axisID);
-    }
-    catch (AxisTypeException except) {
-      except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem", axisID);
-    }
-    catch (SystemProcessException except) {
-      except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(),
-        "Can't open 3dmod on coarse aligned stack with model: " + seedModel, axisID);
-    }
-  }
-
-  /**
-   * Get the beadtrack parameters from the fiducial model dialog and run the
-   * track com script
-   */
-  public void fiducialModelTrack(AxisID axisID) {
-    if (updateTrackCom(axisID)) {
-      processTrack.setFiducialModelState(ProcessState.INPROGRESS, axisID);
-      mainPanel.setFiducialModelState(ProcessState.INPROGRESS, axisID);
-      String threadName;
-      try {
-        threadName = processMgr.fiducialModelTrack(axisID);
-      }
-      catch (SystemProcessException e) {
-        e.printStackTrace();
-        String[] message = new String[2];
-        message[0] = "Can not execute track" + axisID.getExtension() + ".com";
-        message[1] = e.getMessage();
-        uiHarness.openMessageDialog(message, "Unable to execute com script", axisID);
-        return;
-      }
-      setThreadName(threadName, axisID);
-      mainPanel.startProgressBar("Tracking fiducials", axisID);
-    }
-  }
-
-  /**
-   * Using Fiducial Model as Seed
-   * @param axisID
-   */
-  public void makeFiducialModelSeedModel(AxisID axisID) {
-    String seedModelFilename = propertyUserDir + File.separator
-      + metaData.getDatasetName() + axisID.getExtension() + ".seed";
-    File seedModel = new File(seedModelFilename);
-    String fiducialModelFilename = propertyUserDir
-      + File.separator + metaData.getDatasetName() + axisID.getExtension()
-      + ".fid";
-    File fiducialModel = new File(fiducialModelFilename);
-    if (seedModel.exists()
-      && seedModel.lastModified() > fiducialModel.lastModified()) {
-      String[] message = new String[3];
-      message[0] = "WARNING: The seed model file is more recent the fiducial model file";
-      message[1] = "To avoid losing your changes to the seed model file,";
-      message[2] = "track fiducials before pressing Use Fiducial Model as Seed.";
-      uiHarness.openMessageDialog(message, "Use Fiducial Model as Seed Failed", axisID);
-      return;
-    }
-    mainPanel.setProgressBar("Using Fiducial Model as Seed", 1, axisID);
-    processTrack.setFiducialModelState(ProcessState.INPROGRESS, axisID);
-    mainPanel.setFiducialModelState(ProcessState.INPROGRESS, axisID);
-    String origSeedModelFilename = propertyUserDir
-      + File.separator + metaData.getDatasetName() + axisID.getExtension()
-      + "_orig.seed";
-    File origSeedModel = new File(origSeedModelFilename);
-    //backup original seed model file
-    if (seedModel.exists() && origSeedModel.exists()) {
-      backupFile(seedModel, axisID);
-    }
-    try {
-      if (seedModel.exists() && !origSeedModel.exists()) {
-        Utilities.renameFile(seedModel, origSeedModel);
-      }
-      //rename fiducial model file to seed model file
-      Utilities.renameFile(fiducialModel, seedModel);
-    }
-    catch (IOException except) {
-      uiHarness.openMessageDialog(except.getMessage(), "File Rename Error", axisID);
-    }
-    try {
-      if (imodManager.isOpen(ImodManager.COARSE_ALIGNED_KEY, axisID)) {
-        if (seedModel.getName().equals(
-          imodManager.getModelName(ImodManager.COARSE_ALIGNED_KEY, axisID))) {
-          String[] message = new String[2];
-          message[0] = "The old seed model file is open in 3dmod";
-          message[1] = "Should it be closed?";
-          if (uiHarness.openYesNoDialog(message, axisID)) {
-            imodManager.quit(ImodManager.COARSE_ALIGNED_KEY, axisID);
-          }
-        }
-      }
-    }
-    catch (AxisTypeException e) {
-      e.printStackTrace();
-      System.err.println("Axis type exception in replaceRawStack");
-    }
-    catch (SystemProcessException e) {
-      e.printStackTrace();
-      System.err.println("System process exception in replaceRawStack");
-    }
-    mainPanel.stopProgressBar(axisID);
-    if (axisID == AxisID.SECOND) {
-      updateDialog(fiducialModelDialogA, AxisID.FIRST);
-    }
-    else {
-      updateDialog(fiducialModelDialogB, AxisID.SECOND);
-    }
-  }
-
-  /**
-   * Open 3dmod with the new fidcuial model
-   */
-  public void imodFixFiducials(AxisID axisID, Run3dmodMenuOptions menuOptions) {
-    String fiducialModel = metaData.getDatasetName() + axisID.getExtension()
-      + ".fid";
-    try {
-      imodManager.setOpenBeadFixer(ImodManager.COARSE_ALIGNED_KEY, axisID, true);
-      imodManager.open(ImodManager.COARSE_ALIGNED_KEY, axisID, fiducialModel,
-        true, menuOptions);
-    }
-    catch (AxisTypeException except) {
-      except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem", axisID);
-    }
-    catch (SystemProcessException except) {
-      except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(),
-        "Can't open 3dmod on coarse aligned stack with model: " + fiducialModel, axisID);
-    }
-  }
-
-  /**
-   * Update the specified track com script
-   */
-  private boolean updateTrackCom(AxisID axisID) {
-    //  Set a reference to the correct object
-    FiducialModelDialog fiducialModelDialog;
-    if (axisID == AxisID.SECOND) {
-      fiducialModelDialog = fiducialModelDialogB;
-    }
-    else {
-      fiducialModelDialog = fiducialModelDialogA;
-    }
-    if (fiducialModelDialog == null) {
-      uiHarness.openMessageDialog(
-        "Can not update track?.com without an active fiducial model dialog",
-        "Program logic error", axisID);
-      return false;
-    }
-    try {
-      BeadtrackParam beadtrackParam = comScriptMgr.getBeadtrackParam(axisID);
-      fiducialModelDialog.getBeadtrackParams(beadtrackParam);
-      comScriptMgr.saveTrack(beadtrackParam, axisID);
-    }
-    catch (FortranInputSyntaxException except) {
-      except.printStackTrace();
-      String[] errorMessage = new String[3];
-      errorMessage[0] = "Beadtrack Parameter Syntax Error";
-      errorMessage[1] = except.getMessage();
-      errorMessage[2] = "New value: " + except.getNewString();
-      uiHarness.openMessageDialog(errorMessage,
-        "Beadtrack Parameter Syntax Error", axisID);
-      return false;
-    }
-    catch (NumberFormatException except) {
-      except.printStackTrace();
-      String[] errorMessage = new String[3];
-      errorMessage[0] = "Beadtrack Parameter Syntax Error";
-      errorMessage[1] = axisID.getExtension();
-      errorMessage[2] = except.getMessage();
-      uiHarness.openMessageDialog(errorMessage,
-        "Beadtrack Parameter Syntax Error", axisID);
-      return false;
-    }
-    catch (InvalidEtomoNumberException e) {
-      return false;
-    }
-    return true;
-  }
-
-  /**
-   * Open the alignment estimation dialog
-   */
-  public void openFineAlignmentDialog(AxisID axisID) {
-    //  Check to see if the com files are present otherwise pop up a dialog
-    //  box informing the user to run the setup process
-    if (!metaData.getComScriptCreated()) {
-      setupRequestDialog(axisID);
-      return;
-    }
-    setCurrentDialogType(DialogType.FINE_ALIGNMENT, axisID);
-    mainPanel.selectButton(axisID, "Fine Alignment");
-    if (showIfExists(fineAlignmentDialogA, fineAlignmentDialogB, axisID)) {
-      return;
-    }
-    // Create a new dialog panel and map it the generic reference
-    AlignmentEstimationDialog fineAlignmentDialog = new AlignmentEstimationDialog(
-      this, axisID);
-    if (axisID == AxisID.SECOND) {
-      fineAlignmentDialogB = fineAlignmentDialog;
-    }
-    else {
-      fineAlignmentDialogA = fineAlignmentDialog;
-    }
-    
-    // Load the required align{|a|b}.com files, fill in the dialog box
-    // params and set it to the appropriate state
-    comScriptMgr.loadAlign(axisID);
-    TiltalignParam tiltalignParam = comScriptMgr.getTiltalignParam(axisID);
-    //If this is a montage, then binning can only be 1, so no need to upgrade
-    if (metaData.getViewType() != ViewType.MONTAGE) {
-      //upgrade and save param to comscript
-      upgradeOldAlignCom(axisID, tiltalignParam);
-    }
-    fineAlignmentDialog.setTiltalignParams(tiltalignParam);
-
-    //  Create a default transferfid object to populate the alignment dialog
-    mainPanel.showProcess(fineAlignmentDialog.getContainer(), axisID);
-  }
-
-  /**
-   * Calls done function for the dialog type, if the dialog exit state is SAVE.
-   * This is the default and means that no exit button was pressed.
-   * @param dialogType
-   * @param axisID
-   */
-  public void saveCurrentDialog(AxisID axisID) {
-    DialogType currentDialogType = getCurrentDialogType(axisID);
-    ProcessDialog dialog = getDialog(currentDialogType, axisID);
-    if (dialog == null || dialog.getExitState() != DialogExitState.SAVE) {
-      return;
-    }
-    if (currentDialogType == DialogType.PRE_PROCESSING) {
-      donePreProcDialog(axisID);
-    }
-    else if (currentDialogType == DialogType.COARSE_ALIGNMENT) {
-      doneCoarseAlignDialog(axisID);
-    }
-    else if (currentDialogType == DialogType.FIDUCIAL_MODEL) {
-      doneFiducialModelDialog(axisID);
-    }
-    else if (currentDialogType == DialogType.FINE_ALIGNMENT) {
-      doneAlignmentEstimationDialog(axisID);
-    }
-    else if (currentDialogType == DialogType.TOMOGRAM_POSITIONING) {
-      doneTomogramPositioningDialog(axisID);
-    }
-    else if (currentDialogType == DialogType.TOMOGRAM_GENERATION) {
-      doneTomogramGenerationDialog(axisID);
-    }
-    else if (currentDialogType == DialogType.TOMOGRAM_COMBINATION) {
-      doneTomogramCombinationDialog();
-    }
-    else if (currentDialogType == DialogType.POST_PROCESSING) {
-      donePostProcessing();
-    }
-    else if (currentDialogType == DialogType.CLEAN_UP) {
-      doneCleanUp();
-    }
-  }
-  
-  /**
-   * Set the current dialog type.  This function is called from open functions and
-   * from showBlankPRocess().  It allows Etomo to call the done function when
-   * the user switches to another dialog.
-   * @param dialogType
-   * @param axisID
-   */
-  public void setCurrentDialogType(DialogType dialogType, AxisID axisID) {
-    if (axisID == AxisID.SECOND) {
-      currentDialogTypeB = dialogType;
-    }
-    else {
-      currentDialogTypeA = dialogType;
-    }
-  }
-  
-  /**
-   * Gets the current dialog type.
-   * @param axisID
-   * @return
-   */
-  private DialogType getCurrentDialogType(AxisID axisID) {
-    if (axisID == AxisID.SECOND) {
-      return currentDialogTypeB;
-    }
-    return currentDialogTypeA;
-  }
-  
-  /**
-   * Call BaseManager.exitProgram().  Call saveDialog.   Return the value of
-   * BaseManager.exitProgram().  To guarantee that etomo can always exit, catch
-   * all unrecognized Exceptions and Errors and return true.  This function
-   * should be called exitManager, since individual managers are closed
-   * inpendently of the program.
-   */
-  public boolean exitProgram(AxisID axisID) {
-    try {
-      if (super.exitProgram(axisID)) {
-        saveDialog();
-        return true;
-      }
-      return false;
-    }
-    catch (Throwable e) {
-      e.printStackTrace();
-      return true;
-    }
-  }
-  
-  /**
-   * Saves all dialogs that are not set to null.  Called by exitProgram().
-   *
-   */
-  public void saveDialog() {
-    AxisID firstAxisID = metaData.getAxisType() == AxisType.DUAL_AXIS ? AxisID.FIRST
-        : AxisID.ONLY;
-    if (preProcDialogA != null) {
-      donePreProcDialog(firstAxisID);
-    }
-    if (preProcDialogB != null) {
-      donePreProcDialog(AxisID.SECOND);
-    }
-    if (coarseAlignDialogA != null) {
-      doneCoarseAlignDialog(firstAxisID);
-    }
-    if (coarseAlignDialogB != null) {
-      doneCoarseAlignDialog(AxisID.SECOND);
-    }
-    if (fiducialModelDialogA != null) {
-      doneFiducialModelDialog(firstAxisID);
-    }
-    if (fiducialModelDialogB != null) {
-      doneFiducialModelDialog(AxisID.SECOND);
-    }
-    if (fineAlignmentDialogA != null) {
-      doneAlignmentEstimationDialog(firstAxisID);
-    }
-    if (fineAlignmentDialogB != null) {
-      doneAlignmentEstimationDialog(AxisID.SECOND);
-    }
-    if (tomogramPositioningDialogA != null) {
-      doneTomogramPositioningDialog(firstAxisID);
-    }
-    if (tomogramPositioningDialogB != null) {
-      doneTomogramPositioningDialog(AxisID.SECOND);
-    }
-    if (tomogramGenerationDialogA != null) {
-      doneTomogramGenerationDialog(firstAxisID);
-    }
-    if (tomogramGenerationDialogB != null) {
-      doneTomogramGenerationDialog(AxisID.SECOND);
-    }
-    if (tomogramCombinationDialog != null) {
-      doneTomogramCombinationDialog();
-    }
-    if (postProcessingDialog != null) {
-      donePostProcessing();
-    }
-    if (cleanUpDialog != null) {
-      doneCleanUp();
-    }
-  }
-  
-  /**
-   * @param dialogType
-   * @param axisID
-   * @return a dialog
-   */
-  private ProcessDialog getDialog(DialogType dialogType, AxisID axisID) {
-    if (dialogType == null) {
-      return null;
-    }
-    if (dialogType == DialogType.PRE_PROCESSING) {
-      if (axisID == AxisID.SECOND) {
-        return preProcDialogB;
-      }
-      else {
-        return preProcDialogA;
-      }
-    }
-    else if (dialogType == DialogType.COARSE_ALIGNMENT) {
-      return mapCoarseAlignDialog(axisID);
-    }
-    else if (dialogType == DialogType.FIDUCIAL_MODEL) {
-      if (axisID == AxisID.SECOND) {
-        return fiducialModelDialogB;
-      }
-      else {
-        return fiducialModelDialogA;
-      }
-    }
-    else if (dialogType == DialogType.FINE_ALIGNMENT) {
-      if (axisID == AxisID.SECOND) {
-        return fineAlignmentDialogB;
-      }
-      else {
-        return fineAlignmentDialogA;
-      }
-    }
-    else if (dialogType == DialogType.TOMOGRAM_POSITIONING) {
-      return mapPositioningDialog(axisID);
-    }
-    else if (dialogType == DialogType.TOMOGRAM_GENERATION) {
-      return mapGenerationDialog(axisID);
-    }
-    else if (dialogType == DialogType.TOMOGRAM_COMBINATION) {
-      return tomogramCombinationDialog;
-    }
-    else if (dialogType == DialogType.POST_PROCESSING) {
-      return postProcessingDialog;
-    }
-    else if (dialogType == DialogType.CLEAN_UP) {
-      return cleanUpDialog;
-    }
-    return null;
-  }
-
-  
-  /**
-   * 
-   */
-  public void doneAlignmentEstimationDialog(AxisID axisID) {
-    //  Set a reference to the correct object
-    AlignmentEstimationDialog fineAlignmentDialog;
-    if (axisID == AxisID.SECOND) {
-      fineAlignmentDialog = fineAlignmentDialogB;
-    }
-    else {
-      fineAlignmentDialog = fineAlignmentDialogA;
-    }
-    if (fineAlignmentDialog == null) {
-      uiHarness.openMessageDialog(
-        "Can not update align?.com without an active alignment dialog",
-        "Program logic error", axisID);
-      return;
-    }
-    setAdvanced(fineAlignmentDialog.getDialogType(), axisID, fineAlignmentDialog.isAdvanced());
-    DialogExitState exitState = fineAlignmentDialog.getExitState();
-    if (exitState == DialogExitState.CANCEL) {
-      mainPanel.showBlankProcess(axisID);
-    }
-    else {
-      //  Get the user input data from the dialog box
-      if (updateAlignCom(axisID) == null) {
-        return;
-      }
-      if (exitState == DialogExitState.POSTPONE) {
-        processTrack.setFineAlignmentState(ProcessState.INPROGRESS, axisID);
-        mainPanel.setFineAlignmentState(ProcessState.INPROGRESS, axisID);
-        mainPanel.showBlankProcess(axisID);
-      }
-      else if (exitState != DialogExitState.SAVE) {
-        processTrack.setFineAlignmentState(ProcessState.COMPLETE, axisID);
-        mainPanel.setFineAlignmentState(ProcessState.COMPLETE, axisID);
-        openTomogramPositioningDialog(axisID);
-
-        // Check to see if the user wants to keep any coarse aligned imods
-        // open
-        try {
-          if (imodManager.isOpen(ImodManager.COARSE_ALIGNED_KEY, axisID)) {
-            String[] message = new String[2];
-            message[0] = "The coarsely aligned stack is open in 3dmod";
-            message[1] = "Should it be closed?";
-            if (uiHarness.openYesNoDialog(message, axisID)) {
-              imodManager.quit(ImodManager.COARSE_ALIGNED_KEY, axisID);
-            }
-          }
-        }
-        catch (AxisTypeException except) {
-          except.printStackTrace();
-          uiHarness.openMessageDialog(except.getMessage(), "AxisType problem", axisID);
-        }
-        catch (SystemProcessException except) {
-          except.printStackTrace();
-          uiHarness.openMessageDialog(except.getMessage(),
-            "Problem closing coarse stack", axisID);
-        }
-      }
-      saveTestParamFile(axisID);
-    }
-    //  Clean up the existing dialog
-    if (axisID == AxisID.SECOND) {
-      fineAlignmentDialogB = null;
-    }
-    else {
-      fineAlignmentDialogA = null;
-    }
-    fineAlignmentDialog = null;
-  }
-
-  /**
-   * Execute the fine alignment script (align.com) for the appropriate axis
-   * This will also reset the fiducialess alignment flag, setFiducialAlign
-   * does not need to be called because the necessary copies are called at the
-   * end of the align script.
-   * 
-   * @param the
-   *            AxisID identifying the axis to align.
-   */
-  public void fineAlignment(AxisID axisID) {
-    ConstTiltalignParam tiltalignParam = updateAlignCom(axisID);
-    if (tiltalignParam == null) {
-      return;
-    }
-    processTrack.setFineAlignmentState(ProcessState.INPROGRESS, axisID);
-    mainPanel.setFineAlignmentState(ProcessState.INPROGRESS, axisID);
-    String threadName;
-    try {
-      threadName = processMgr.fineAlignment(tiltalignParam, axisID);
-      metaData.setFiducialessAlignment(axisID, false);
-    }
-    catch (SystemProcessException e) {
-      e.printStackTrace();
-      String[] message = new String[2];
-      message[0] = "Can not execute align" + axisID.getExtension() + ".com";
-      message[1] = e.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to execute com script", axisID);
-      return;
-    }
-    setThreadName(threadName, axisID);
-    mainPanel.startProgressBar("Aligning stack", axisID);
-  }
-
-  /**
-   * Open 3dmod with the new fidcuial model
-   */
-  public void imodViewResiduals(AxisID axisID, Run3dmodMenuOptions menuOptions) {
-    String fiducialModel = metaData.getDatasetName() + axisID.getExtension()
-      + ".resmod";
-    try {
-      imodManager.setPreserveContrast(ImodManager.COARSE_ALIGNED_KEY, axisID,
-          true);
-      imodManager.open(ImodManager.COARSE_ALIGNED_KEY, axisID, fiducialModel, menuOptions);
-    }
-    catch (AxisTypeException except) {
-      except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem", axisID);
-    }
-    catch (SystemProcessException except) {
-      except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(),
-        "Can't open 3dmod on coarse aligned stack with model: " + fiducialModel, axisID);
-    }
-  }
-
-  /**
-   * Open 3dmodv with the new fidcuial model
-   */
-  public void imodView3DModel(AxisID axisID) {
-    String fiducialModel = metaData.getDatasetName() + axisID.getExtension()
-      + ".3dmod";
-    try {
-      imodManager.open(ImodManager.FIDUCIAL_MODEL_KEY, axisID, fiducialModel);
-    }
-    catch (AxisTypeException except) {
-      except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem", axisID);
-    }
-    catch (SystemProcessException except) {
-      except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(),
-        "Can't open 3dmod on fine aligned stack", axisID);
-    }
-  }
-
-  /**
-   * Open 3dmod to view the coarsely aligned stack
-   * 
-   * @param axisID
-   *            the AxisID to coarse align.
-   */
-  public void imodFineAlign(AxisID axisID, Run3dmodMenuOptions menuOptions) {
-    try {
-      imodManager.open(ImodManager.FINE_ALIGNED_KEY, axisID, menuOptions);
-    }
-    catch (AxisTypeException except) {
-      except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem", axisID);
-    }
-    catch (SystemProcessException except) {
-      except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(),
-        "Can't open 3dmod on fine aligned stack", axisID);
-    }
-  }
-
-  /**
-   * Open 3dmod to view the MTF filter results
-   * 
-   * @param axisID
-   *            the AxisID to coarse align.
-   */
-  public void imodMTFFilter(AxisID axisID, Run3dmodMenuOptions menuOptions) {
-    try {
-      imodManager.open(ImodManager.MTF_FILTER_KEY, axisID, menuOptions);
-    }
-    catch (AxisTypeException except) {
-      except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem", axisID);
-    }
-    catch (SystemProcessException except) {
-      except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(),
-        "Can't open 3dmod on MTF filter results", axisID);
-    }
-  }
-
-  /**
-   * Transfer the fiducial to the specified axis
-   * 
-   * @param destAxisID
-   */
-  public void transferfid(AxisID destAxisID) {
-    //  Set a reference to the correct object
-    FiducialModelDialog fiducialModelDialog;
-    if (destAxisID == AxisID.SECOND) {
-      fiducialModelDialog = fiducialModelDialogB;
-    }
-    else {
-      fiducialModelDialog = fiducialModelDialogA;
-    }
-    if (destAxisID != AxisID.ONLY
-      && !Utilities.fileExists(this, "fid.xyz", (destAxisID == AxisID.FIRST
-        ? AxisID.SECOND
-        : AxisID.FIRST))) {
-      uiHarness.openMessageDialog(
-        "It is recommended that you run Fine Alignment on axis "
-          + (destAxisID == AxisID.FIRST ? "B" : "A") + " at least once",
-        "Warning", destAxisID);
-    }
-    if (fiducialModelDialog != null) {
-      TransferfidParam transferfidParam = new TransferfidParam(this, destAxisID);
-      // Setup the default parameters depending upon the axis to transfer
-      // the fiducials from
-      String datasetName = metaData.getDatasetName();
-      transferfidParam.setDatasetName(datasetName);
-      if (destAxisID == AxisID.FIRST) {
-        transferfidParam.setBToA(true);
-      }
-      else {
-        transferfidParam.setBToA(false);
-      }
-      // Get any user specified changes
-      fiducialModelDialog.getTransferFidParams(transferfidParam);
-      String threadName;
-      try {
-        threadName = processMgr.transferFiducials(transferfidParam);
-      }
-      catch (SystemProcessException e) {
-        e.printStackTrace();
-        String[] message = new String[2];
-        message[0] = "Can not execute transferfid command";
-        message[1] = e.getMessage();
-        uiHarness.openMessageDialog(message, "Unable to execute command", destAxisID);
-        return;
-      }
-      setThreadName(threadName, destAxisID);
-      mainPanel.startProgressBar("Transferring fiducials", destAxisID);
-      updateDialog(fiducialModelDialog, destAxisID);
-    }
-  }
-
-  /**
-   * updateAlignCom updates the align{|a|b}.com scripts with the parameters
-   * from the alignment estimation dialog. This also updates the local
-   * alignment state of the appropriate tilt files.
-   */
-  private ConstTiltalignParam updateAlignCom(AxisID axisID) {
-    //  Set a reference to the correct object
-    AlignmentEstimationDialog fineAlignmentDialog;
-    if (axisID == AxisID.SECOND) {
-      fineAlignmentDialog = fineAlignmentDialogB;
-    }
-    else {
-      fineAlignmentDialog = fineAlignmentDialogA;
-    }
-    if (fineAlignmentDialog == null) {
-      uiHarness.openMessageDialog(
-        "Can not update align?.com without an active alignment dialog",
-        "Program logic error", axisID);
-      return null;
-    }
-    TiltalignParam tiltalignParam;
-    try {
-      tiltalignParam = comScriptMgr.getTiltalignParam(axisID);
-      fineAlignmentDialog.getTiltalignParams(tiltalignParam);
-      comScriptMgr.saveAlign(tiltalignParam, axisID);
-      //  Update the tilt.com script with the dependent parameters
-      updateTiltCom(tiltalignParam, axisID);
-      //update xfproduct in align.com
-      XfproductParam xfproductParam = comScriptMgr.getXfproductInAlign(axisID);
-      xfproductParam.setScaleShifts(getStackBinning(axisID, ".preali"));
-      comScriptMgr.saveXfproductInAlign(xfproductParam, axisID);
-      if (fineAlignmentDialog.getExitState() != DialogExitState.SAVE) {
-        mainPanel.setFineAlignmentState(ProcessState.INPROGRESS, axisID);
-      }
-    }
-    catch (FortranInputSyntaxException except) {
-      String[] errorMessage = new String[3];
-      errorMessage[0] = "Tiltalign Parameter Syntax Error";
-      errorMessage[1] = except.getNewString();
-      errorMessage[2] = except.getMessage();
-      uiHarness.openMessageDialog(errorMessage,
-        "Tiltalign Parameter Syntax Error", axisID);
-      return null;
-    }
-    catch (NumberFormatException except) {
-      String[] errorMessage = new String[2];
-      errorMessage[0] = "Tiltalign Parameter Syntax Error";
-      errorMessage[1] = except.getMessage();
-      uiHarness.openMessageDialog(errorMessage,
-        "Tiltalign Parameter Syntax Error", axisID);
-      return null;
-    }
-    return tiltalignParam;
-  }
-
-  /**
-   * Update the tilt parameters dependent on the align script - local
-   * alignments file - the exclude list
-   */
-  private void updateTiltCom(ConstTiltalignParam tiltalignParam,
-    AxisID currentAxis) {
-    comScriptMgr.loadTilt(currentAxis);
-    TiltParam tiltParam = comScriptMgr.getTiltParam(currentAxis);
-    String alignFileExtension = currentAxis.getExtension() + "local.xf";
-    if (tiltalignParam.getLocalAlignments().is()) {
-      tiltParam.setLocalAlignFile(metaData.getDatasetName() + alignFileExtension);
-    }
-    else {
-      tiltParam.setLocalAlignFile("");
-    }
-    tiltParam.setExcludeList(tiltalignParam.getExcludeList());
-    comScriptMgr.saveTilt(tiltParam, currentAxis);
-  }
-
-  /**
-   * Open the tomogram positioning dialog for the specified axis
-   * @param axisID
-   */
-  public void openTomogramPositioningDialog(AxisID axisID) {
-    //  Check to see if the com files are present otherwise pop up a dialog
-    //  box informing the user to run the setup process
-    if (!metaData.getComScriptCreated()) {
-      setupRequestDialog(axisID);
-      return;
-    }
-    setCurrentDialogType(DialogType.TOMOGRAM_POSITIONING, axisID);
-    mainPanel.selectButton(axisID, "Tomogram Positioning");
-    if (showIfExists(tomogramPositioningDialogA, tomogramPositioningDialogB,
-      axisID)) {
-      return;
-    }
-    // Create a new dialog panel and map it the generic reference
-    TomogramPositioningDialog tomogramPositioningDialog = new TomogramPositioningDialog(
-      this, axisID);
-    if (axisID == AxisID.SECOND) {
-      tomogramPositioningDialogB = tomogramPositioningDialog;
-    }
-    else {
-      tomogramPositioningDialogA = tomogramPositioningDialog;
-    }
-    // Read in the meta data parameters. WARNING this needs to be done
-    // before reading the tilt paramers below so that the GUI knows how to
-    // correctly scale the dimensions
-    tomogramPositioningDialog.setParameters(metaData);
-    if (metaData.getViewType() != ViewType.MONTAGE) {
-      comScriptMgr.loadNewst(axisID);
-      tomogramPositioningDialog.setParameters(comScriptMgr.getNewstComNewstParam(axisID));
-    }
-    else {
-      comScriptMgr.loadBlend(axisID);
-      tomogramPositioningDialog.setParameters(comScriptMgr.getBlendParam(axisID));
-    }
-
-    // Get the align{|a|b}.com parameters
-    comScriptMgr.loadAlign(axisID);
-    TiltalignParam tiltalignParam = comScriptMgr.getTiltalignParam(axisID);
-    if (metaData.getViewType() != ViewType.MONTAGE) {
-      //upgrade and save param to comscript
-      upgradeOldAlignCom(axisID, tiltalignParam);
-    }
-    tomogramPositioningDialog.setAlignParams(tiltalignParam);
-
-    // Get the tilt{|a|b}.com parameters
-    comScriptMgr.loadTilt(axisID);
-    TiltParam tiltParam = comScriptMgr.getTiltParam(axisID);
-    //If this is a montage, then binning can only be 1, so no need to upgrade
-    if (metaData.getViewType() != ViewType.MONTAGE) {
-      //upgrade and save param to comscript
-      upgradeOldTiltCom(axisID, tiltParam);
-    }
-    tomogramPositioningDialog.setTiltParams(tiltParam);
-
-    // Get the tomopitch{|a|b}.com parameters
-    comScriptMgr.loadTomopitch(axisID);
-    tomogramPositioningDialog.setTomopitchParams(comScriptMgr.getTomopitchParam(axisID));
-
-    // Set the whole tomogram sampling state, fidcialess state, and tilt axis
-    // angle
-    tomogramPositioningDialog.setWholeTomogramSampling(metaData.isWholeTomogramSample(axisID));
-
-    tomogramPositioningDialog.setFiducialessAlignment(metaData.isFiducialessAlignment(axisID));
-    tomogramPositioningDialog.setTiltAxisAngle(metaData.getImageRotation(axisID));
-
-    // Open the dialog panel
-    mainPanel.showProcess(tomogramPositioningDialog.getContainer(), axisID);
-  }
-
-  /**
-   *  
-   */
-  public void doneTomogramPositioningDialog(AxisID axisID) {
-    //  Set a reference to the correct object
-    TomogramPositioningDialog tomogramPositioningDialog = mapPositioningDialog(axisID);
-    if (tomogramPositioningDialog == null) {
-      uiHarness.openMessageDialog(
-        "Can not update sample.com without an active positioning dialog",
-        "Program logic error", axisID);
-      return;
-    }
-    setAdvanced(tomogramPositioningDialog.getDialogType(), axisID, tomogramPositioningDialog.isAdvanced());
-    DialogExitState exitState = tomogramPositioningDialog.getExitState();
-    if (exitState == DialogExitState.CANCEL) {
-      mainPanel.showBlankProcess(axisID);
-    }
-    else {
-      //  Get all of the parameters from the panel
-      if (updateAlignCom(tomogramPositioningDialog, axisID) == null) {
-        return;
-      }
-      if (!updateSampleTiltCom(axisID)) {
-        return;
-      }
-      if (!updateTomopitchCom(axisID)) {
-        return;
-      }
-      if (!updateFiducialessParams(tomogramPositioningDialog, axisID)) {
-        return;
-      }
-      if (metaData.getViewType() != ViewType.MONTAGE
-          && updateNewstCom(tomogramPositioningDialog, axisID) == null) {
-        return;
-      }
-
-      if (exitState == DialogExitState.POSTPONE) {
-        processTrack.setTomogramPositioningState(ProcessState.INPROGRESS,
-          axisID);
-        mainPanel.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
-        mainPanel.showBlankProcess(axisID);
-      }
-      else if (exitState != DialogExitState.SAVE) {
-        processTrack.setTomogramPositioningState(ProcessState.COMPLETE, axisID);
-        mainPanel.setTomogramPositioningState(ProcessState.COMPLETE, axisID);
-        openTomogramGenerationDialog(axisID);
-        try {
-          if (imodManager.isOpen(ImodManager.SAMPLE_KEY, axisID)) {
-            String[] message = new String[2];
-            message[0] = "The sample reconstruction is open in 3dmod";
-            message[1] = "Should it be closed?";
-            if (uiHarness.openYesNoDialog(message, axisID)) {
-              imodManager.quit(ImodManager.SAMPLE_KEY, axisID);
-            }
-          }
-        }
-        catch (AxisTypeException except) {
-          except.printStackTrace();
-          uiHarness.openMessageDialog(except.getMessage(), "AxisType problem", axisID);
-        }
-        catch (SystemProcessException except) {
-          except.printStackTrace();
-          uiHarness.openMessageDialog(except.getMessage(),
-            "Problem closing sample reconstruction", axisID);
-        }
-      }
-      saveTestParamFile(axisID);
-    }
-
-    //  Clean up the existing dialog
-    if (axisID == AxisID.SECOND) {
-      tomogramPositioningDialogB = null;
-    }
-    else {
-      tomogramPositioningDialogA = null;
-    }
-    tomogramPositioningDialog = null;
-  }
-
-  /**
-   * Run the sample com script
-   */
-  public void createSample(AxisID axisID) {
-    //  Set a reference to the correct object
-    TomogramPositioningDialog tomogramPositioningDialog = mapPositioningDialog(axisID);
-    // Make sure that we have an active positioning dialog
-    if (tomogramPositioningDialog == null) {
-      uiHarness.openMessageDialog(
-        "Can not update sample.com without an active positioning dialog",
-        "Program logic error", axisID);
-      return;
-    }
-    //  Get the user input data from the dialog box
-    if (!updateFiducialessParams(tomogramPositioningDialog, axisID)) {
-      return;
-    }
-    if (!updateSampleTiltCom(axisID)) {
-      return;
-    }
-    processTrack.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
-    mainPanel.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
-    
-    // Make sure we have a current prexg and _nonfid.xf if fiducialess is
-    // selected
-    if(metaData.isFiducialessAlignment(axisID)) {
-      generateFiducialessTransforms(axisID);
-    }
-    else {
-      try {
-        processMgr.setupFiducialAlign(axisID);
-      }
-      catch (IOException except) {
-        except.printStackTrace();
-        String[] message = new String[2];
-        message[0] = "Problem copying fiducial alignment files";
-        message[1] = except.getMessage();
-        uiHarness.openMessageDialog(message, "Unable to copy fiducial alignment files", axisID);
-      }
-    }
-    
-    String threadName;
-    try {
-      threadName = processMgr.createSample(axisID);
-    }
-    catch (SystemProcessException e) {
-      e.printStackTrace();
-      String[] message = new String[2];
-      message[0] = "Can not execute sample" + axisID.getExtension() + ".com";
-      message[1] = e.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to execute com script", axisID);
-      return;
-    }
-    setThreadName(threadName, axisID);
-    mainPanel.startProgressBar("Creating sample tomogram", axisID);
-  }
-
-  /**
-   * Create a whole tomogram for positioning the tomogram in the volume
-   * 
-   * @param axisID
-   */
-  public void wholeTomogram(AxisID axisID) {
-    //  Set a reference to the correct object
-    TomogramPositioningDialog tomogramPositioningDialog = mapPositioningDialog(axisID);
-    // Get the user input from the dialog
-    if (!updateFiducialessParams(tomogramPositioningDialog, axisID)) {
-      return;
-    }
-    ConstNewstParam newstParam = null;
-    BlendmontParam blendmontParam = null;
-    if (metaData.getViewType() != ViewType.MONTAGE) {
-      newstParam = updateNewstCom(tomogramPositioningDialog, axisID);
-      if (newstParam == null) {
-        return;
-      }
-    }
-    else {
-      blendmontParam = updateBlendCom(tomogramPositioningDialog, axisID);
-      if (blendmontParam == null) {
-        return;
-      }
-    }
-    if (!updateSampleTiltCom(axisID)) {
-      return;
-    }
-    processTrack.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
-    mainPanel.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
-
-    // Make sure we have a current prexg and _nonfid.xf if fiducialess is
-    // selected
-    if(metaData.isFiducialessAlignment(axisID)) {
-      generateFiducialessTransforms(axisID);
-    }
-    else {
-      try {
-        processMgr.setupFiducialAlign(axisID);
-      }
-      catch (IOException except) {
-        except.printStackTrace();
-        String[] message = new String[2];
-        message[0] = "Problem copying fiducial alignment files";
-        message[1] = except.getMessage();
-        uiHarness.openMessageDialog(message,
-            "Unable to copy fiducial alignment files", axisID);
-      }
-    }
-
-    setNextProcess(axisID, "tilt");
-    String threadName;
-    try {
-      if (metaData.getViewType() != ViewType.MONTAGE) {
-        threadName = processMgr.newst(newstParam, axisID);
-      }
-      else {
-        threadName = processMgr.blend(blendmontParam, axisID);
-      }
-    }
-    catch (SystemProcessException e) {
-      e.printStackTrace();
-      String[] message = new String[2];
-      message[0] = "Can not execute newst" + axisID.getExtension() + ".com";
-      message[1] = e.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to execute com script", axisID);
-      return;
-    }
-    setThreadName(threadName, axisID);
-  }
-
-  /**
-   * Open 3dmod on the sample volume for the specified axis along with the
-   * tomopitch model
-   * 
-   * @param axisID
-   */
-  public void imodSample(AxisID axisID, Run3dmodMenuOptions menuOptions) {
-    try {
-      //It is safe to use open contours in all cases.
-      imodManager.setOpenContours(ImodManager.SAMPLE_KEY, axisID, true);
-      imodManager.open(ImodManager.SAMPLE_KEY, axisID, menuOptions);
-      processTrack.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
-      mainPanel.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
-    }
-    catch (AxisTypeException except) {
-      except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem", axisID);
-    }
-    catch (SystemProcessException except) {
-      except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(),
-        "Problem opening sample reconstruction", axisID);
-    }
-  }
-
-  /**
-   * Open 3dmod on the full volume along with the tomopitch model
-   * 
-   * @param axisID
-   */
-  public void imodFullSample(AxisID axisID, Run3dmodMenuOptions menuOptions) {
-    String tomopitchModelName = "tomopitch" + axisID.getExtension() + ".mod";
-    try {
-      imodManager.setOpenContours(ImodManager.FULL_VOLUME_KEY, axisID, true);
-      imodManager.open(ImodManager.FULL_VOLUME_KEY, axisID, tomopitchModelName, true, menuOptions);
-      processTrack.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
-      mainPanel.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
-    }
-    catch (AxisTypeException except) {
-      except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem", axisID);
-    }
-    catch (SystemProcessException except) {
-      except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(),
-        "Problem opening sample reconstruction", axisID);
-    }
-  }
-
-  /**
-   *  
-   */
-  public void tomopitch(AxisID axisID) {
-    if (updateTomopitchCom(axisID)) {
-      processTrack.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
-      mainPanel.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
-      String threadName;
-      try {
-        threadName = processMgr.tomopitch(axisID);
-      }
-      catch (SystemProcessException e) {
-        e.printStackTrace();
-        String[] message = new String[2];
-        message[0] = "Can not execute tomopitch" + axisID.getExtension()
-          + ".com";
-        message[1] = e.getMessage();
-        uiHarness.openMessageDialog(message, "Unable to execute com script", axisID);
-        return;
-      }
-      setThreadName(threadName, axisID);
-      mainPanel.startProgressBar("Finding sample position", axisID);
-    }
-  }
-
-  /**
-   * Open the tomopitch log file
-   * 
-   * @param axisID
-   */
-  public void openTomopitchLog(AxisID axisID) {
-    String logFileName = "tomopitch" + axisID.getExtension() + ".log";
-    TextPageWindow logFileWindow = new TextPageWindow();
-    logFileWindow.setVisible(logFileWindow.setFile(propertyUserDir
-      + File.separator + logFileName));
-  }
-  
-  /**
-   * Compute the final alignment from the updated parameters in the
-   * positioning dialog.
-   * 
-   * @param axisID
-   */
-  public void finalAlign(AxisID axisID) {
-    //  Set a reference to the correct object
-    TomogramPositioningDialog tomogramPositioningDialog = mapPositioningDialog(axisID);
-    ConstTiltalignParam tiltalignParam = updateAlignCom(tomogramPositioningDialog, axisID);
-    if (tiltalignParam != null) {
-      processTrack.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
-      mainPanel.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
-      String threadName;
-      try {
-        threadName = processMgr.fineAlignment(tiltalignParam, axisID);
-        metaData.setFiducialessAlignment(axisID, false);
-      }
-      catch (SystemProcessException e) {
-        e.printStackTrace();
-        String[] message = new String[2];
-        message[0] = "Can not execute align" + axisID.getExtension() + ".com";
-        message[1] = e.getMessage();
-        uiHarness.openMessageDialog(message, "Unable to execute com script", axisID);
-        return;
-      }
-      setThreadName(threadName, axisID);
-      mainPanel.startProgressBar("Calculating final alignment", axisID);
-    }
-  }
-
-  /**
-   * Update the tilt{|a|b}.com file with sample parameters for the specified
-   * axis
-   */
-  private boolean updateSampleTiltCom(AxisID axisID) {
-    //  Set a reference to the correct object
-    TomogramPositioningDialog tomogramPositioningDialog = mapPositioningDialog(axisID);
-    // Make sure that we have an active positioning dialog
-    if (tomogramPositioningDialog == null) {
-      uiHarness.openMessageDialog(
-        "Can not update sample.com without an active positioning dialog",
-        "Program logic error", axisID);
-      return false;
-    }
-    // Get the current tilt parameters, make any user changes and save the
-    // parameters back to the tilt{|a|b}.com
-    try {
-      TiltParam tiltParam = comScriptMgr.getTiltParam(axisID);
-      tomogramPositioningDialog.getTiltParams(tiltParam);
-      String outputFileName;
-      if (metaData.getAxisType() == AxisType.SINGLE_AXIS) {
-        outputFileName = metaData.getDatasetName() + "_full.rec";
-      }
-      else {
-        outputFileName = metaData.getDatasetName() + axisID.getExtension()
-          + ".rec";
-      }
-      tiltParam.setOutputFile(outputFileName);
-      if (metaData.getViewType() == ViewType.MONTAGE) {
-        //binning is currently always 1 and correct size should be coming from
-        //copytomocoms
-        //tiltParam.setMontageFullImage(propertyUserDir, tomogramPositioningDialog.getBinning());
-      }
-      comScriptMgr.saveTilt(tiltParam, axisID);
-    }
-    catch (NumberFormatException except) {
-      String[] errorMessage = new String[3];
-      errorMessage[0] = "Tilt Parameter Syntax Error";
-      errorMessage[1] = "Axis: " + axisID.getExtension();
-      errorMessage[2] = except.getMessage();
-      uiHarness.openMessageDialog(errorMessage, "Tilt Parameter Syntax Error", axisID);
-      return false;
-    }
-    return true;
-  }
-
-  /**
-   * Update the tomopitch{|a|b}.com file with sample parameters for the
-   * specified axis
-   */
-  private boolean updateTomopitchCom(AxisID axisID) {
-    //  Set a reference to the correct object
-    TomogramPositioningDialog tomogramPositioningDialog = mapPositioningDialog(axisID);
-    // Make sure that we have an active positioning dialog
-    if (tomogramPositioningDialog == null) {
-      uiHarness.openMessageDialog(
-        "Can not update tomopitch.com without an active positioning dialog",
-        "Program logic error", axisID);
-      return false;
-    }
-    // Get the current tilt parameters, make any user changes and save the
-    // parameters back to the tilt{|a|b}.com
-    try {
-      TomopitchParam tomopitchParam = comScriptMgr.getTomopitchParam(axisID);
-      tomogramPositioningDialog.getTomopitchParams(tomopitchParam);
-      comScriptMgr.saveTomopitch(tomopitchParam, axisID);
-    }
-    catch (NumberFormatException except) {
-      String[] errorMessage = new String[3];
-      errorMessage[0] = "Tomopitch Parameter Syntax Error";
-      errorMessage[1] = "Axis: " + axisID.getExtension();
-      errorMessage[2] = except.getMessage();
-      uiHarness.openMessageDialog(errorMessage,
-        "Tomopitch Parameter Syntax Error", axisID);
-      return false;
-    }
-    return true;
-  }
-
-  /**
-   * Return the TomogramPositioningDialog associated the specified AxisID
-   * 
-   * @param axisID
-   * @return
-   */
-  private TomogramPositioningDialog mapPositioningDialog(AxisID axisID) {
-    if (axisID == AxisID.SECOND) {
-      return tomogramPositioningDialogB;
-    }
-    return tomogramPositioningDialogA;
-  }
-
-  /**
-   * updateAlignCom updates the align{|a|b}.com scripts with the parameters
-   * from the tomogram positioning dialog. The positioning dialog is passed so
-   * that the signature is different from the standard method.
-   */
-  private ConstTiltalignParam updateAlignCom(
-    TomogramPositioningDialog tomogramPositioningDialog, AxisID axisID) {
-    TiltalignParam tiltalignParam;
-    try {
-      tiltalignParam = comScriptMgr.getTiltalignParam(axisID);
-      tomogramPositioningDialog.getAlignParams(tiltalignParam);
-      comScriptMgr.saveAlign(tiltalignParam, axisID);
-      //update xfproduct in align.com
-      XfproductParam xfproductParam = comScriptMgr.getXfproductInAlign(axisID);
-      xfproductParam.setScaleShifts(getStackBinning(axisID, ".preali"));
-      comScriptMgr.saveXfproductInAlign(xfproductParam, axisID);
-    }
-    catch (NumberFormatException except) {
-      String[] errorMessage = new String[3];
-      errorMessage[0] = "Tiltalign Parameter Syntax Error";
-      errorMessage[1] = "Axis: " + axisID.getExtension();
-      errorMessage[2] = except.getMessage();
-      uiHarness.openMessageDialog(errorMessage,
-        "Tiltalign Parameter Syntax Error", axisID);
-      return null;
-    }
-    catch (FortranInputSyntaxException except) {
-      except.printStackTrace();
-      String[] errorMessage = new String[3];
-      errorMessage[0] = "Xfproduct Parameter Syntax Error";
-      errorMessage[1] = "Axis: " + axisID.getExtension();
-      errorMessage[2] = except.getMessage();
-      uiHarness.openMessageDialog(errorMessage,
-        "Xfproduct Parameter Syntax Error", axisID);
-      return null;
-    }
-    return tiltalignParam;
-  }
-
-  /**
-   * Update the newst{|a|b}.com scripts with the parameters from the tomogram
-   * positioning dialog. The positioning dialog is passed so that the
-   * signature is different from the standard method.
-   * 
-   * @param tomogramPositioningDialog
-   * @param axisID
-   * @return
-   */
-  private ConstNewstParam updateNewstCom(
-      TomogramPositioningDialog tomogramPositioningDialog, AxisID axisID) {
-
-    //  Get the whole tomogram positions state
-    metaData.setWholeTomogramSample(axisID, tomogramPositioningDialog
-        .isWholeTomogramSampling());
-
-    NewstParam newstParam = comScriptMgr.getNewstComNewstParam(axisID);
-    tomogramPositioningDialog.getNewstParamst(newstParam);
-    try {
-      // Make sure the size output is removed, it was only there as a 
-      // copytomocoms template
-      newstParam.setCommandMode(NewstParam.WHOLE_TOMOGRAM_SAMPLE_MODE);
-      newstParam.setSizeToOutputInXandY("/");
-    }
-    catch (FortranInputSyntaxException e) {
-      e.printStackTrace();
-    }
-    comScriptMgr.saveNewst(newstParam, axisID);
-    return newstParam;
-  }
-  
-  /**
-   * Update the blend{|a|b}.com scripts with the parameters from the tomogram
-   * positioning dialog. The positioning dialog is passed so that the
-   * signature is different from the standard method.
-   * 
-   * @param tomogramPositioningDialog
-   * @param axisID
-   * @return
-   */
-  private BlendmontParam updateBlendCom(
-      TomogramPositioningDialog tomogramPositioningDialog, AxisID axisID) {
-    //  Get the whole tomogram positions state
-    metaData.setWholeTomogramSample(axisID, tomogramPositioningDialog
-        .isWholeTomogramSampling());
-    BlendmontParam blendmontParam = comScriptMgr.getBlendParam(axisID);
-    tomogramPositioningDialog.getParams(blendmontParam);
-    blendmontParam.setMode(BlendmontParam.WHOLE_TOMOGRAM_SAMPLE_MODE);
-    blendmontParam.setBlendmontState();
-    comScriptMgr.saveBlend(blendmontParam, axisID);
-    return blendmontParam;
-  }
-  
-  /**
-   * Generate the prexg and _nonfid.xf for the specified axis and setup the 
-   * transform files for fiducialless mode
-   * @param axisID
-   */
-  private void generateFiducialessTransforms(AxisID axisID) {
-    try {
-      processMgr.generatePreXG(axisID);
-    }
-    catch (SystemProcessException except) {
-      except.printStackTrace();
-      String[] message = new String[2];
-      message[0] = "Unable to generate prexg";
-      message[1] = except.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to generate prexg", axisID);
-    }
-    try {
-      processMgr.generateNonFidXF(axisID);
-    }
-    catch (SystemProcessException except) {
-      except.printStackTrace();
-      String[] message = new String[2];
-      message[0] = "Unable to generate _nonfid.xf";
-      message[1] = except.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to generate _nonfid.xf", axisID);
-    }
-    try {
-      processMgr.setupNonFiducialAlign(axisID);
-    }
-    catch (IOException except) {
-      except.printStackTrace();
-      String[] message = new String[2];
-      message[0] = "Unable to setup fiducialless align files";
-      message[1] = except.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to setup fiducialless align files", axisID);
-    }
-    catch (InvalidParameterException except) {
-      String[] message = new String[2];
-      message[0] = "Unable to setup fiducialless align files";
-      message[1] = except.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to setup fiducialless align files", axisID);
-    }
-  }
-  
-  public void makeRawtltFile(AxisID axisID) throws IOException,
-    InvalidParameterException {
-    File rawtlt =
-      new File(
-          propertyUserDir,
-        metaData.getDatasetName() + axisID.getExtension() + ".rawtlt");
-    //backing up .rawtlt, which is currently unnecessary because this function
-    //is only called when .rawtlt doesn't exist
-    Utilities.renameFile(rawtlt, new File(propertyUserDir,
-      metaData.getDatasetName() + axisID.getExtension() + ".rawtlt~"));
-    
-    BufferedWriter bufferedWriter = null;
-    try {
-      bufferedWriter = new BufferedWriter(new FileWriter(rawtlt));
-      TiltAngleSpec tiltAngleSpec = null;
-      if (axisID == AxisID.SECOND) {
-        tiltAngleSpec = metaData.getTiltAngleSpecB();
-      }
-      else {
-        tiltAngleSpec = metaData.getTiltAngleSpecA();
-      }
-      double startingAngle = tiltAngleSpec.getRangeMin();
-      double step = tiltAngleSpec.getRangeStep();
-      MRCHeader rawStackHeader = getMrcHeader(axisID, ".st");
-      rawStackHeader.read();
-      int sections = rawStackHeader.getNSections();
-      for (int curSection = 0; curSection < sections; curSection++) {
-        bufferedWriter.write(
-          Double.toString(startingAngle + (step * curSection)));
-        bufferedWriter.newLine();
-      }
-    }
-    catch (IOException except) {
-      String[] message = new String[2];
-      message[0] = "Unable to create " + rawtlt.getAbsolutePath();
-      message[1] = except.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to create raw tilt file", axisID); 
-      throw except;
-    }
-    catch (InvalidParameterException except) {
-      except.printStackTrace();
-      String[] message = new String[2];
-      message[0] = "Unable to create " + rawtlt.getAbsolutePath();
-      message[1] = except.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to create raw tilt file", axisID);
-      throw except;
-    }
-
-    if (bufferedWriter != null) {
-      bufferedWriter.close();
-    }
-  }
-  
-  public void setEnabledFixEdgesWithMidas(AxisID axisID) {
-    CoarseAlignDialog coarseAlignDialog = mapCoarseAlignDialog(axisID);
-    if (coarseAlignDialog == null) {
-      return;
-    }
-    coarseAlignDialog.setEnabledFixEdgesMidasButton();
-  }
-  
-  public void setEnabledTiltParameters(AxisID axisID) {
-    TomogramGenerationDialog tomogramGenerationDialog = mapGenerationDialog(axisID);
-    if (tomogramGenerationDialog == null) {
-      return;
-    }
-    boolean madeZFactors = false;
-    boolean newstFiducialessAlignment = false;
-    boolean usedLocalAlignments = false;
-    //madeZFactors
-    if (!state.getMadeZFactors(axisID).isNull()) {
-      madeZFactors = state.getMadeZFactors(axisID).is();
-    }
-    else {
-      madeZFactors = state.getBackwardCompatibleMadeZFactors(axisID);
-    }
-    //newstFiducialessAlignment
-    if (!state.getNewstFiducialessAlignment(axisID).isNull()) {
-      newstFiducialessAlignment = state.getNewstFiducialessAlignment(axisID).is();
-    }
-    else {
-      newstFiducialessAlignment = tomogramGenerationDialog.isFiducialessAlignment();
-    }
-    //usedLocalAlignments
-    if (!state.getUsedLocalAlignments(axisID).isNull()) {
-      usedLocalAlignments = state.getUsedLocalAlignments(axisID).is();
-    }
-    else {
-      usedLocalAlignments = state
-          .getBackwardCompatibleUsedLocalAlignments(axisID);
-    }
-    //enable parameters
-    tomogramGenerationDialog.enableUseZFactors(madeZFactors
-        && !newstFiducialessAlignment);
-    tomogramGenerationDialog.enableUseLocalAlignment(usedLocalAlignments
-        && !newstFiducialessAlignment);
-  }
-
-  /**
-   * Open the tomogram generation dialog
-   */
-  public void openTomogramGenerationDialog(AxisID axisID) {
-    //  Check to see if the com files are present otherwise pop up a dialog
-    //  box informing the user to run the setup process
-    if (!metaData.getComScriptCreated()) {
-      setupRequestDialog(axisID);
-      return;
-    }
-    //
-    setCurrentDialogType(DialogType.TOMOGRAM_GENERATION, axisID);
-    mainPanel.selectButton(axisID, "Tomogram Generation");
-    if (showIfExists(tomogramGenerationDialogA, tomogramGenerationDialogB,
-      axisID)) {
-      return;
-    }
-    // Create a new dialog panel and map it the generic reference
-    TomogramGenerationDialog tomogramGenerationDialog = new TomogramGenerationDialog(
-      this, axisID);
-    if (axisID == AxisID.SECOND) {
-      tomogramGenerationDialogB = tomogramGenerationDialog;
-    }
-    else {
-      tomogramGenerationDialogA = tomogramGenerationDialog;
-    }
-    //no longer managing image size
-
-    // Read in the newst{|a|b}.com parameters. WARNING this needs to be done
-    // before reading the tilt paramers below so that the GUI knows how to
-    // correctly scale the dimensions
-    if (metaData.getViewType() == ViewType.MONTAGE) {
-      comScriptMgr.loadBlend(axisID);
-      tomogramGenerationDialog.setBlendParams(comScriptMgr.getBlendParam(axisID));
-    }
-    else {
-      comScriptMgr.loadNewst(axisID);
-      tomogramGenerationDialog.setNewstParams(comScriptMgr.getNewstComNewstParam(axisID));
-    }
-    tomogramGenerationDialog.setParameters(metaData);
-    // Read in the tilt{|a|b}.com parameters and display the dialog panel
-    comScriptMgr.loadTilt(axisID);
-    comScriptMgr.loadMTFFilter(axisID);
-    TiltParam tiltParam = comScriptMgr.getTiltParam(axisID);
-    //If this is a montage, then binning can only be 1, so no need to upgrade
-    if (metaData.getViewType() != ViewType.MONTAGE) {
-      //upgrade and save param to comscript
-      upgradeOldTiltCom(axisID, tiltParam);
-    }
-    tomogramGenerationDialog.setTiltParams(tiltParam);
-    tomogramGenerationDialog.setMTFFilterParam(comScriptMgr.getMTFFilterParam(axisID));
-    updateDialog(tomogramGenerationDialog, axisID);
-
-    //  Set the fidcialess state and tilt axis angle
-    tomogramGenerationDialog.setFiducialessAlignment(metaData.isFiducialessAlignment(axisID));
-    tomogramGenerationDialog.setTiltAxisAngle(metaData.getImageRotation(axisID));
-    setEnabledTiltParameters(axisID);
-
-    mainPanel.showProcess(tomogramGenerationDialog.getContainer(), axisID);
-  }
-  
-  public final void packDialogs(AxisID axisID) {
-    if (axisID  == AxisID.SECOND) {
-      if (tomogramGenerationDialogB != null) {
-        tomogramGenerationDialogB.pack();
-      }
-    }
-    else {
-      if (tomogramGenerationDialogA != null) {
-        tomogramGenerationDialogA.pack();
-      }
-    }
-  }
-  
-  public final void packDialogs() {
-    packDialogs(AxisID.FIRST);
-    packDialogs(AxisID.SECOND);
-  }
-
-  /**
-   *  
-   */
-  public void doneTomogramGenerationDialog(AxisID axisID) {
-    //  Set a reference to the correct object
-    TomogramGenerationDialog tomogramGenerationDialog = mapGenerationDialog(axisID);
-    if (tomogramGenerationDialog == null) {
-      uiHarness.openMessageDialog(
-        "Can not update tilt?.com without an active tomogram generation dialog",
-        "Program logic error", axisID);
-      return;
-    }
-    setAdvanced(tomogramGenerationDialog.getDialogType(), axisID, tomogramGenerationDialog.isAdvanced());
-    DialogExitState exitState = tomogramGenerationDialog.getExitState();
-    if (exitState == DialogExitState.CANCEL) {
-      mainPanel.showBlankProcess(axisID);
-    }
-    else {
-      //  Get the user input data from the dialog box
-      tomogramGenerationDialog.getParameters(metaData);
-      if (!updateFiducialessParams(tomogramGenerationDialog, axisID)) {
-        return;
-      }
-      if (metaData.getViewType() == ViewType.MONTAGE) {
-        updateBlendCom(axisID);
-      }
-      else {
-        if (updateNewstCom(axisID) == null) {
-          return;
-        }
-      }
-      if (!updateTiltCom(axisID, true)) {
-        return;
-      }
-      if (!updateMTFFilterCom(axisID)) {
-        return;
-      }
-
-      if (exitState == DialogExitState.POSTPONE) {
-        processTrack.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
-        mainPanel.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
-        mainPanel.showBlankProcess(axisID);
-      }
-      else if (exitState != DialogExitState.SAVE) {
-        processTrack.setTomogramGenerationState(ProcessState.COMPLETE, axisID);
-        mainPanel.setTomogramGenerationState(ProcessState.COMPLETE, axisID);
-        if (isDualAxis()) {
-          openTomogramCombinationDialog();
-          if (axisID == AxisID.SECOND) {
-            mainPanel.showBlankProcess(axisID);
-          }
-        }
-        else {
-          openPostProcessingDialog();
-        }
-      }
-      saveTestParamFile(axisID);
-    }
-    //  Clean up the existing dialog
-    if (axisID == AxisID.SECOND) {
-      tomogramGenerationDialogB = null;
-    }
-    else {
-      tomogramGenerationDialogA = null;
-    }
-    tomogramGenerationDialog = null;
-  }
-
-  /**
-   * Update the tilt.com from the TomogramGenerationDialog
-   * 
-   * @param axisID
-   * @param useDefaultRec
-   *            If true set the reconstruction output filename to what is
-   *            expected of the com scripts. If false use the trial tomogram
-   *            filename specified in the TomogramGenerationDialog
-   * @return true if successful
-   */
-  private boolean updateTiltCom(AxisID axisID, boolean useDefaultRec) {
-    //  Set a reference to the correct object
-    TomogramGenerationDialog tomogramGenerationDialog = mapGenerationDialog(axisID);
-    if (tomogramGenerationDialog == null) {
-      uiHarness.openMessageDialog(
-        "Can not update tilt?.com without an active tomogram generation dialog",
-        "Program logic error", axisID);
-      return false;
-    }
-    try {
-      TiltParam tiltParam = comScriptMgr.getTiltParam(axisID);
-      tomogramGenerationDialog.getTiltParams(tiltParam);
-      if (useDefaultRec) {
-        String outputFileName;
-        if (metaData.getAxisType() == AxisType.SINGLE_AXIS) {
-          outputFileName = metaData.getDatasetName() + "_full.rec";
-        }
-        else {
-          outputFileName = metaData.getDatasetName() + axisID.getExtension()
-            + ".rec";
-        }
-        tiltParam.setOutputFile(outputFileName);
-      }
-      else {
-        String trialTomogramName = tomogramGenerationDialog.getTrialTomogramName();
-        tiltParam.setOutputFile(trialTomogramName);
-      }
-      if (metaData.getViewType() == ViewType.MONTAGE) {
-        //binning is currently always 1 and correct size should be coming from
-        //copytomocoms
-        //tiltParam.setMontageFullImage(propertyUserDir, tomogramGenerationDialog.getBinning());
-      }
-      comScriptMgr.saveTilt(tiltParam, axisID);
-    }
-    catch (NumberFormatException except) {
-      String[] errorMessage = new String[3];
-      errorMessage[0] = "Tilt Parameter Syntax Error";
-      errorMessage[1] = "Axis: " + axisID.getExtension();
-      errorMessage[2] = except.getMessage();
-      uiHarness.openMessageDialog(errorMessage, "Tilt Parameter Syntax Error", axisID);
-      return false;
-    }
-    catch (InvalidParameterException except) {
-      String[] errorMessage = new String[3];
-      errorMessage[0] = "Tilt Parameter Syntax Error";
-      errorMessage[1] = "Axis: " + axisID.getExtension();
-      errorMessage[2] = except.getMessage();
-      uiHarness.openMessageDialog(errorMessage, "Tilt Parameter Syntax Error", axisID);
-      return false;
-    }
-    return true;
-  }
-
-  /**
-   * Update the mtffilter.com from the TomogramGenerationDialog
-   * 
-   * @param axisID
-   * @return true if successful
-   */
-  private boolean updateMTFFilterCom(AxisID axisID) {
-    //  Set a reference to the correct object
-    TomogramGenerationDialog tomogramGenerationDialog = mapGenerationDialog(axisID);
-    if (tomogramGenerationDialog == null) {
-      uiHarness.openMessageDialog(
-        "Can not update mtffilter?.com without an active tomogram generation dialog",
-        "Program logic error", axisID);
-      return false;
-    }
-    try {
-      MTFFilterParam mtfFilterParam = comScriptMgr.getMTFFilterParam(axisID);
-      tomogramGenerationDialog.getMTFFilterParam(mtfFilterParam);
-      String inputFileName;
-      String outputFileName;
-      if (metaData.getAxisType() == AxisType.SINGLE_AXIS) {
-        inputFileName = metaData.getDatasetName() + AxisID.ONLY.getExtension()
-          + ".ali";
-        outputFileName = metaData.getDatasetName() + AxisID.ONLY.getExtension()
-          + "_filt.ali";
-      }
-      else {
-        inputFileName = metaData.getDatasetName() + axisID.getExtension()
-          + ".ali";
-        outputFileName = metaData.getDatasetName() + axisID.getExtension()
-          + "_filt.ali";
-      }
-      mtfFilterParam.setInputFile(inputFileName);
-      mtfFilterParam.setOutputFile(outputFileName);
-      comScriptMgr.saveMTFFilter(mtfFilterParam, axisID);
-    }
-    catch (NumberFormatException except) {
-      String[] errorMessage = new String[3];
-      errorMessage[0] = "MTF Filter Parameter Syntax Error";
-      errorMessage[1] = "Axis: " + axisID.getExtension();
-      errorMessage[2] = except.getMessage();
-      uiHarness.openMessageDialog(errorMessage,
-        "MTF Filter Parameter Syntax Error", axisID);
-      return false;
-    }
-    catch (FortranInputSyntaxException except) {
-      String[] errorMessage = new String[3];
-      errorMessage[0] = "MTF Filter Parameter Syntax Error";
-      errorMessage[1] = "Axis: " + axisID.getExtension();
-      errorMessage[2] = except.getMessage();
-      uiHarness.openMessageDialog(errorMessage,
-        "MTF Filter Parameter Syntax Error", axisID);
-      return false;
-    }
-    return true;
-  }
-
-  /**
-   * Update the newst.com from the TomogramGenerationDialog
-   * reads metaData
-   * 
-   * @param axisID
-   * @return true if successful
-   */
-  private ConstNewstParam updateNewstCom(AxisID axisID) {
-    //  Set a reference to the correct object
-    TomogramGenerationDialog tomogramGenerationDialog = mapGenerationDialog(axisID);
-    if (tomogramGenerationDialog == null) {
-      uiHarness.openMessageDialog(
-        "Can not update newst?.com without an active tomogram generation dialog",
-        "Program logic error", axisID);
-      return null;
-    }
-    NewstParam newstParam = null;
-    try {
-      newstParam = comScriptMgr.getNewstComNewstParam(axisID);
-      // Make sure the size output is removed, it was only there for a
-      // copytomocoms template
-      newstParam.setSizeToOutputInXandY("/");
-      newstParam.setCommandMode(NewstParam.FULL_ALIGNED_STACK_MODE);
-      newstParam.setFiducialessAlignment(metaData.isFiducialessAlignment(axisID));
-      tomogramGenerationDialog.getNewstParams(newstParam);
-      comScriptMgr.saveNewst(newstParam, axisID);
-    }
-    catch (NumberFormatException except) {
-      String[] errorMessage = new String[3];
-      errorMessage[0] = "newst Parameter Syntax Error";
-      errorMessage[1] = "Axis: " + axisID.getExtension();
-      errorMessage[2] = except.getMessage();
-      uiHarness.openMessageDialog(errorMessage, "Newst Parameter Syntax Error", axisID);
-      return null;
-    }
-    catch (FortranInputSyntaxException except) {
-      except.printStackTrace();
-    }
-    return newstParam;
-  }
-
-  /**
-   * Return the TomogramGenerationDialog associated with the specified AxisID
-   * 
-   * @param axisID
-   * @return
-   */
-  private TomogramGenerationDialog mapGenerationDialog(AxisID axisID) {
-    if (axisID == AxisID.SECOND) {
-      return tomogramGenerationDialogB;
-    }
-    return tomogramGenerationDialogA;
-  }
-
-  /**
-   *  
-   */
-  public void newst(AxisID axisID) {
-    //  Set a reference to the correct object
-    TomogramGenerationDialog tomogramGenerationDialog = mapGenerationDialog(axisID);
-
-    // Get the user input from the dialog
-    if (!updateFiducialessParams(tomogramGenerationDialog, axisID)) {
-      return;
-    }
-    ConstNewstParam newstParam = null;
-    BlendmontParam blendmontParam = null;
-    if (metaData.getViewType() == ViewType.MONTAGE) {
-      blendmontParam = updateBlendCom(axisID);
-    }
-    else {
-      newstParam = updateNewstCom(axisID); 
-      if (newstParam == null) {
-        return;
-      }
-    }
-
-    processTrack.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
-    mainPanel.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
-
-    // Make sure we have a current prexg and _nonfid.xf if fiducialess is
-    // selected
-    if(metaData.isFiducialessAlignment(axisID)) {
-      generateFiducialessTransforms(axisID);
-    }
-    else {
-      try {
-        processMgr.setupFiducialAlign(axisID);
-      }
-      catch (IOException except) {
-        except.printStackTrace();
-        String[] message = new String[2];
-        message[0] = "Problem copying fiducial alignment files";
-        message[1] = except.getMessage();
-        uiHarness.openMessageDialog(message, "Unable to copy fiducial alignment files", axisID);
-      }
-    }
-
-    String threadName;
-    try {
-      if (metaData.getViewType() == ViewType.MONTAGE) {
-        threadName = processMgr.blend(blendmontParam, axisID);
-      }
-      else {
-        threadName = processMgr.newst(newstParam, axisID);
-      }
-    }
-    catch (SystemProcessException e) {
-      e.printStackTrace();
-      String[] message = new String[2];
-      message[0] = "Can not execute newst" + axisID.getExtension() + ".com";
-      message[1] = e.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to execute com script", axisID);
-      return;
-    }
-    setThreadName(threadName, axisID);
-  }
-
-  /**
-   * Replace the full aligned stack with the filtered full aligned stack
-   * created from mtffilter
-   * 
-   * @param axisID
-   */
-  public void useMtfFilter(AxisID axisID) {
-    mainPanel.setProgressBar("Using filtered full aligned stack", 1, axisID);
-    // Instantiate file objects for the original raw stack and the fixed
-    // stack
-    String fullAlignedStackFilename = propertyUserDir
-      + File.separator + metaData.getDatasetName() + axisID.getExtension()
-      + ".ali";
-    File fullAlignedStack = new File(fullAlignedStackFilename);
-    String filteredFullAlignedStackFilename = propertyUserDir
-      + File.separator + metaData.getDatasetName() + axisID.getExtension()
-      + "_filt.ali";
-    File filteredFullAlignedStack = new File(filteredFullAlignedStackFilename);
-    if (!filteredFullAlignedStack.exists()) {
-      uiHarness.openMessageDialog(
-        "The filtered full aligned stack doesn't exist.  Create the filtered full aligned stack first",
-        "Filtered full aligned stack missing", axisID);
-      return;
-    }
-    processTrack.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
-    mainPanel.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
-    //don't have to rename full aligned stack because it is a generated
-    // file
-    try {
-      Utilities.renameFile(filteredFullAlignedStack, fullAlignedStack);
-    }
-    catch (IOException except) {
-      uiHarness.openMessageDialog(except.getMessage(), "File Rename Error", axisID);
-    }
-    try {
-      if (imodManager.isOpen(ImodManager.FINE_ALIGNED_KEY, axisID)) {
-        String[] message = new String[2];
-        message[0] = "The original full aligned stack is open in 3dmod";
-        message[1] = "Should it be closed?";
-        if (uiHarness.openYesNoDialog(message, axisID)) {
-          imodManager.quit(ImodManager.FINE_ALIGNED_KEY, axisID);
-        }
-      }
-    }
-    catch (AxisTypeException e) {
-      e.printStackTrace();
-      System.err.println("Axis type exception in useMtfFilter");
-    }
-    catch (SystemProcessException e) {
-      e.printStackTrace();
-      System.err.println("System process exception in useMtfFilter");
-    }
-    mainPanel.stopProgressBar(axisID);
-  }
-
-  /**
-   */
-  public void mtffilter(AxisID axisID) {
-    if (updateMTFFilterCom(axisID)) {
-      processTrack.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
-      mainPanel.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
-      String threadName;
-      try {
-        threadName = processMgr.mtffilter(axisID);
-      }
-      catch (SystemProcessException e) {
-        e.printStackTrace();
-        String[] message = new String[2];
-        message[0] = "Can not execute mtffilter" + axisID.getExtension()
-          + ".com";
-        message[1] = e.getMessage();
-        uiHarness.openMessageDialog(message, "Unable to execute com script", axisID);
-        return;
-      }
-      setThreadName(threadName, axisID);
-    }
-  }
-
-  /**
-   * Start a tilt process in trial mode
-   * 
-   * @param axisID
-   */
-  public void trialTilt(AxisID axisID) {
-    if (updateTiltCom(axisID, false)) {
-      processTrack.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
-      mainPanel.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
-      tiltProcess(axisID);
-    }
-  }
-
-  /**
-   * Run the tilt command script for the specified axis
-   */
-  public void tilt(AxisID axisID) {
-    if (updateTiltCom(axisID, true)) {
-      processTrack.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
-      mainPanel.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
-      tiltProcess(axisID);
-    }
-  }
-
-  /**
-   * Tilt process initiator. Since tilt can be started from multiple points in
-   * the process chain we need separate the execution from the parameter
-   * collection and state updating
-   * 
-   * @param axisID
-   */
-  private void tiltProcess(AxisID axisID) {
-    resetNextProcess(axisID);
-    String threadName;
-    try {
-      threadName = processMgr.tilt(axisID);
-    }
-    catch (SystemProcessException e) {
-      e.printStackTrace();
-      String[] message = new String[2];
-      message[0] = "Can not execute tilt" + axisID.getExtension() + ".com";
-      message[1] = e.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to execute com script", axisID);
-      return;
-    }
-    setThreadName(threadName, axisID);
-  }
-
-  /**
-   * Open 3dmod to view the tomogram
-   * 
-   * @param axisID
-   *            the AxisID of the tomogram to open.
-   */
-  public void imodFullVolume(AxisID axisID, Run3dmodMenuOptions menuOptions) {
-    try {
-      imodManager.open(ImodManager.FULL_VOLUME_KEY, axisID, menuOptions);
-    }
-    catch (AxisTypeException except) {
-      except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem", axisID);
-    }
-    catch (SystemProcessException except) {
-      except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(),
-        "Can't open 3dmod with the tomogram", axisID);
-    }
-  }
-
-  /**
-   * Open 3dmod on the current test volume
-   * 
-   * @param axisID
-   */
-  public void imodTestVolume(AxisID axisID, Run3dmodMenuOptions menuOptions) {
-    //  Set a reference to the correct object
-    TomogramGenerationDialog tomogramGenerationDialog;
-    if (axisID == AxisID.SECOND) {
-      tomogramGenerationDialog = tomogramGenerationDialogB;
-    }
-    else {
-      tomogramGenerationDialog = tomogramGenerationDialogA;
-    }
-    String trialTomogramName = tomogramGenerationDialog.getTrialTomogramName();
-    try {
-      imodManager.newImod(ImodManager.TRIAL_TOMOGRAM_KEY, axisID,
-        trialTomogramName);
-      imodManager.open(ImodManager.TRIAL_TOMOGRAM_KEY, axisID, menuOptions);
-    }
-    catch (SystemProcessException except) {
-      except.printStackTrace();
-      String message[] = new String[2];
-      message[0] = "Unable to open specified tomogram:" + trialTomogramName;
-      message[1] = "Does it exist in the working directory?";
-      uiHarness.openMessageDialog(except.getMessage(),
-        "Can't open 3dmod with the tomogram", axisID);
-    }
-    catch (AxisTypeException except) {
-      except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem", axisID);
-    }
-  }
-
-  public void commitTestVolume(AxisID axisID) {
-    //  Set a reference to the correct object
-    TomogramGenerationDialog tomogramGenerationDialog;
-    if (axisID == AxisID.SECOND) {
-      tomogramGenerationDialog = tomogramGenerationDialogB;
-    }
-    else {
-      tomogramGenerationDialog = tomogramGenerationDialogA;
-    }
-    String trialTomogramName = tomogramGenerationDialog.getTrialTomogramName();
-    //  Check to see if the trial tomogram exist
-    File trialTomogramFile = new File(propertyUserDir,
-      trialTomogramName);
-    if (!trialTomogramFile.exists()) {
-      String message[] = new String[2];
-      message[0] = "The specified tomogram does not exist:" + trialTomogramName;
-      message[1] = "It must be calculated before commiting";
-      uiHarness.openMessageDialog(message, "Can't rename tomogram", axisID);
-    }
-    // rename the trial tomogram to the output filename of appropriate
-    // tilt.com
-    File outputFile;
-    if (metaData.getAxisType() == AxisType.SINGLE_AXIS) {
-      outputFile = new File(propertyUserDir,
-        metaData.getDatasetName() + "_full.rec");
-    }
-    else {
-      outputFile = new File(propertyUserDir,
-        metaData.getDatasetName() + axisID.getExtension() + ".rec");
-    }
-    mainPanel.setProgressBar("Using trial tomogram: " + trialTomogramName, 1,
-      axisID);
-    try {
-      Utilities.renameFile(trialTomogramFile, outputFile);
-    }
-    catch (IOException except) {
-      uiHarness.openMessageDialog(except.getMessage(), "File Rename Error", axisID);
-    }
-    mainPanel.stopProgressBar(axisID);
-  }
-
-  /**
-   * Delete the pre-aligned and aligned stack for the specified axis
-   * 
-   * @param axisID
-   */
-  public void deleteAlignedStacks(AxisID axisID) {
-    mainPanel.setProgressBar("Deleting aligned image stacks", 1, axisID);
-    //
-    // Don't do preali now because users may do upto generation before
-    // transfering
-    // the fiducials
-    //
-    //     File preali =
-    //      new File(
-    //        System.getProperty("user.dir"),
-    //        metaData.getDatasetName() + axisID.getExtension() + ".preali");
-    //    if (preali.exists()) {
-    //      if (!preali.delete()) {
-    //        mainFrame.openMessageDialog(
-    //          "Unable to delete pre-aligned stack: " + preali.getAbsolutePath(),
-    //          "Can not delete file");
-    //      }
-    //    }
-    File aligned = new File(propertyUserDir,
-      metaData.getDatasetName() + axisID.getExtension() + ".ali");
-    if (aligned.exists()) {
-      if (!aligned.delete()) {
-        uiHarness.openMessageDialog("Unable to delete aligned stack: "
-          + aligned.getAbsolutePath(), "Can not delete file", axisID);
-      }
-    }
-    mainPanel.stopProgressBar(axisID);
-  }
-
-  /**
-   * Open the tomogram combination dialog
-   */
-  public void openTomogramCombinationDialog() {
-    //  Check to see if the com files are present otherwise pop up a dialog
-    //  box informing the user to run the setup process
-    if (!metaData.getComScriptCreated()) {
-      setupRequestDialog(AxisID.ONLY);
-      return;
-    }
-    // Verify that this process is applicable
-    if (metaData.getAxisType() == AxisType.SINGLE_AXIS) {
-      uiHarness.openMessageDialog(
-        "This step is valid only for a dual axis tomogram",
-        "Invalid tomogram combination selection", AxisID.ONLY);
-      return;
-    }
-    setCurrentDialogType(DialogType.TOMOGRAM_COMBINATION, AxisID.FIRST);
-    mainPanel.selectButton(AxisID.FIRST, "Tomogram Combination");
-    if (tomogramCombinationDialog == null) {
-      tomogramCombinationDialog = new TomogramCombinationDialog(this);
-      // Get the setupcombine parameters and set the default patch
-      // boundaries if
-      // they have not already been set
-      CombineParams combineParams = new CombineParams(
-        metaData.getCombineParams());
-      if (!combineParams.isPatchBoundarySet()) {
-        String recFileName;
-        if (combineParams.getMatchBtoA()) {
-          recFileName = metaData.getDatasetName() + "a.rec";
-        }
-        else {
-          recFileName = metaData.getDatasetName() + "b.rec";
-        }
-        try {
-          combineParams.setDefaultPatchBoundaries(recFileName);
-        }
-        catch (InvalidParameterException except) {
-          String[] detailedMessage = new String[4];
-          detailedMessage[0] = "Unable to set default patch boundaries";
-          detailedMessage[1] = "Are both tomograms computed and available?";
-          detailedMessage[2] = "";
-          detailedMessage[3] = except.getMessage();
-          uiHarness.openMessageDialog(detailedMessage, "Invalid parameter: "
-            + recFileName, AxisID.ONLY);
-          // Delete the dialog
-          tomogramCombinationDialog = null;
-          return;
-        }
-        catch (IOException except) {
-          uiHarness.openMessageDialog(except.getMessage(), "IO Error: "
-            + recFileName, AxisID.ONLY);
-          //Delete the dialog
-          tomogramCombinationDialog = null;
-          return;
-        }
-      }
-      // Fill in the dialog box params and set it to the appropriate state
-      tomogramCombinationDialog.setCombineParams(combineParams);
-
-      // If setupcombine has been run load the com scripts, otherwise disable the
-      // apropriate panels in the tomogram combination dialog
-      tomogramCombinationDialog.enableCombineTabs(combineScriptsExist());
-      if (combineScriptsExist()) {
-        // Check to see if a solvematch.com file exists and load it if so
-        //otherwise load the correct old solvematch* file
-        File solvematch = new File(propertyUserDir,
-          "solvematch.com");
-        if (solvematch.exists()) {
-          loadSolvematch();
-        }
-        else {
-          //For backward compatibility using fiducialMatch instead of
-          //modelBased.  ModelBased was not updated when fiducialMatch was
-          //changed and ficucialMatch wasn't update when modelBased was changed.
-          //But it looks like modelBased was never changed.  In version 3.2.6
-          //CombineParam.setModelBased() was never called.  So fiducialMatch is
-          //probably correct in earlier versions.
-          boolean modelBased = false;
-          ConstCombineParams metaDataCombineParams = metaData.getCombineParams();
-          if (metaDataCombineParams.getFiducialMatch()
-            == FiducialMatch.USE_MODEL
-            || metaDataCombineParams.getFiducialMatch()
-              == FiducialMatch.USE_MODEL_ONLY) {
-            modelBased = true;
-          } 
-          loadSolvematch(modelBased);
-        }
-        loadPatchcorr();
-        loadMatchorwarp();
-        loadVolcombine();
-        loadCombineComscript();
-        tomogramCombinationDialog.synchronize(
-          TomogramCombinationDialog.lblSetup,
-          false,
-          TomogramCombinationDialog.ALL_FIELDS);
-        updateCombineParams();
-      }
-    }
-    //  Show the process panel
-    mainPanel.showProcess(tomogramCombinationDialog.getContainer(),
-      AxisID.FIRST);
-  }
-
-  /**
-   * Open the matching models in the 3dmod reconstruction instances
-   */
-  public void imodMatchingModel(boolean binBy2, Run3dmodMenuOptions menuOptions) {
-    if (tomogramCombinationDialog == null) {
-      return;
-    }
-    // FIXME do we want to be updating here break model (maybe it is saving
-    // the bin by 2 state?
-    updateCombineParams();
-
-    try {
-      if (binBy2) {
-        imodManager.setBinning(ImodManager.FULL_VOLUME_KEY, AxisID.FIRST, 2);
-        imodManager.setBinning(ImodManager.FULL_VOLUME_KEY, AxisID.SECOND, 2);
-      }
-      imodManager.setOpenContours(ImodManager.FULL_VOLUME_KEY, AxisID.FIRST,
-          true);
-      imodManager.setOpenContours(ImodManager.FULL_VOLUME_KEY, AxisID.SECOND,
-          true);
-      imodManager.open(ImodManager.FULL_VOLUME_KEY, AxisID.FIRST, metaData
-          .getDatasetName()
-          + AxisID.FIRST.getExtension() + ".matmod", true, menuOptions);
-      imodManager.open(ImodManager.FULL_VOLUME_KEY, AxisID.SECOND, metaData
-          .getDatasetName()
-          + AxisID.SECOND.getExtension() + ".matmod", true, menuOptions);
-    }
-    catch (SystemProcessException except) {
-      except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(),
-        "Can't open 3dmod on tomograms for matching models", AxisID.ONLY);
-    }
-    catch (AxisTypeException except) {
-      except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem", AxisID.ONLY);
-    }
-  }
-
-  /**
-   * Open the matchcheck results in 3dmod
-   */
-  public void imodMatchCheck(Run3dmodMenuOptions menuOptions) {
-    try {
-      imodManager.open(ImodManager.MATCH_CHECK_KEY, menuOptions);
-    }
-    catch (SystemProcessException except) {
-      except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(),
-        "Can't open 3dmod on matchcheck.mat or matchcheck.rec", AxisID.ONLY);
-    }
-    catch (AxisTypeException except) {
-      except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem", AxisID.ONLY);
-    }
-  }
-
-  /**
-   * Open the patch region models in tomogram being matched to
-   */
-  public void imodPatchRegionModel(Run3dmodMenuOptions menuOptions) {
-    // FIXME do we want to be updating here break model
-    // Get the latest combine parameters from the dialog
-    updateCombineParams();
-
-    // FIXME axis should be a parameter to the call
-    AxisID axisID;
-    if (metaData.getCombineParams().getMatchBtoA()) {
-      axisID = AxisID.FIRST;
-    }
-    else {
-      axisID = AxisID.SECOND;
-    }
-    try {
-      imodManager.open(ImodManager.FULL_VOLUME_KEY, axisID, "patch_region.mod",
-          true, menuOptions);
-    }
-    catch (SystemProcessException except) {
-      except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(),
-          "Can't open 3dmod on tomogram for patch region models", AxisID.ONLY);
-    }
-    catch (AxisTypeException except) {
-      except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
-          AxisID.ONLY);
-    }
-  }
-
-  /**
-   * Open the patch vector models in 3dmod
-   */
-  public void imodPatchVectorModel() {
-    try {
-      imodManager.open(ImodManager.PATCH_VECTOR_MODEL_KEY);
-    }
-    catch (SystemProcessException except) {
-      except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(),
-        "Can't open 3dmod on tomogram for patch vector model", AxisID.ONLY);
-    }
-    catch (AxisTypeException except) {
-      except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem", AxisID.ONLY);
-    }
-  }
-
-  /**
-   * Open the tomogram being matched to
-   */
-  public void imodMatchedToTomogram(Run3dmodMenuOptions menuOptions) {
-    AxisID axisID;
-    if (metaData.getCombineParams().getMatchBtoA()) {
-      axisID = AxisID.FIRST;
-    }
-    else {
-      axisID = AxisID.SECOND;
-    }
-    try {
-      imodManager.open(ImodManager.FULL_VOLUME_KEY, axisID, menuOptions);
-    }
-    catch (SystemProcessException except) {
-      except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(),
-        "Can't open 3dmod on tomogram being matched to", AxisID.ONLY);
-    }
-    catch (AxisTypeException except) {
-      except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem", AxisID.ONLY);
-    }
-  }
-
-  /**
-   * Tomogram combination done method, move on to the post processing window
-   */
-  public void doneTomogramCombinationDialog() {
-    if (tomogramCombinationDialog == null) {
-      uiHarness.openMessageDialog(
-        "Can not update combine.com without an active tomogram combination dialog",
-        "Program logic error", AxisID.ONLY);
-      return;
-    }
-    setAdvanced(tomogramCombinationDialog.getDialogType(), tomogramCombinationDialog.isAdvanced());
-    DialogExitState exitState = tomogramCombinationDialog.getExitState();
-    if (exitState == DialogExitState.CANCEL) {
-      mainPanel.showBlankProcess(AxisID.ONLY);
-    }
-    else {
-      // Update the com script and metadata info from the tomogram
-      // combination dialog box. Since there are multiple pages and scripts
-      // associated with the postpone button get the ones that are appropriate
-      updateCombineParams();
-      if (tomogramCombinationDialog.isCombinePanelEnabled()) {
-        if (!updateSolvematchCom()) {
-          return;
-        }
-        if (!updatePatchcorrCom()) {
-          return;
-        }
-        if (!updateMatchorwarpCom(false)) {
-          return;
-        }
-        if (!updateVolcombineCom()) {
-          return;
-        }
-      }
-      if (exitState == DialogExitState.POSTPONE) {
-        processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
-        mainPanel.setTomogramCombinationState(ProcessState.INPROGRESS);
-        mainPanel.showBlankProcess(AxisID.ONLY);
-      }
-      else if (exitState != DialogExitState.SAVE) {
-        processTrack.setTomogramCombinationState(ProcessState.COMPLETE);
-        mainPanel.setTomogramCombinationState(ProcessState.COMPLETE);
-        openPostProcessingDialog();
-      }
-      saveTestParamFile(AxisID.ONLY);
-    }
-  }
-
-  /**
-   * Check to see if the combine scripts exist
-   * 
-   * @return true if the combine scripts exist
-   */
-  public boolean combineScriptsExist() {
-    File solvematchshift = new File(propertyUserDir, "solvematchshift.com");
-    File solvematchmod = new File(propertyUserDir, "solvematchmod.com");
-    File solvematch = new File(propertyUserDir, "solvematch.com");
-    File matchvol1 = new File(propertyUserDir, "matchvol1.com");
-    File matchorwarp = new File(propertyUserDir,
-      "matchorwarp.com");
-    File patchcorr = new File(propertyUserDir, "patchcorr.com");
-    File volcombine = new File(propertyUserDir, "volcombine.com");
-    File warpvol = new File(propertyUserDir, "warpvol.com");
-    return (
-      solvematch.exists()
-        || (solvematchshift.exists() && solvematchmod.exists()))
-      && matchvol1.exists()
-      && matchorwarp.exists()
-      && patchcorr.exists()
-      && volcombine.exists()
-      && warpvol.exists();
-  }
-
-  /**
-   * Run the setupcombine script with the current combine parameters stored in
-   * metaData object. updateCombineCom is called first to get the currect
-   * parameters from the dialog.
-   * 
-   * @param tomogramCombinationDialog
-   *            the calling dialog.
-   */
-  public void createCombineScripts() {
-    mainPanel.setProgressBar("Creating combine scripts", 1, AxisID.ONLY);
-    updateCombineParams();
-    try {
-      processMgr.setupCombineScripts(metaData);
-      processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
-      mainPanel.setTomogramCombinationState(ProcessState.INPROGRESS);
-    }
-    catch (BadComScriptException except) {
-      except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(), "Can't run setupcombine", AxisID.ONLY);
-      return;
-    }
-    catch (IOException except) {
-      except.printStackTrace();
-      uiHarness.openMessageDialog("Can't run setupcombine\n"
-        + except.getMessage(), "Setupcombine IOException", AxisID.ONLY);
-      return;
-    }
-
-    // Reload the initial and final match paramaters from the newly created
-    // scripts
-
-    //  Reload all of the parameters into the ComScriptManager
-    loadSolvematch();
-    loadPatchcorr();
-    loadMatchorwarp();
-    loadVolcombine();
-    loadCombineComscript();
-    
-    tomogramCombinationDialog.enableCombineTabs(true);
-    mainPanel.stopProgressBar(AxisID.ONLY);
-  }
-
-  /**
-   * Update the combine parameters from the a specified tab of the calling
-   * dialog assumes that the dialog is synchronized
-   * 
-   * @param tomogramCombinationDialog
-   *            the calling dialog.
-   */
-  private void updateCombineParams() {
-    if (tomogramCombinationDialog == null) {
-      uiHarness.openMessageDialog(
-        "Can not update combine.com without an active tomogram combination dialog",
-        "Program logic error", AxisID.ONLY);
-      return;
-    }
-    CombineParams combineParams = new CombineParams(this);
-    try {
-      tomogramCombinationDialog.getCombineParams(combineParams);
-      if (!combineParams.isValid(true)) {
-        uiHarness.openMessageDialog(combineParams.getInvalidReasons(),
-          "Invalid combine parameters", AxisID.ONLY);
-        return;
-      }
-    }
-    catch (NumberFormatException except) {
-      uiHarness.openMessageDialog(except.getMessage(), "Number format error", AxisID.ONLY);
-      return;
-    }
-    CombineParams originalCombineParams = metaData.getCombineParams();
-    if (!originalCombineParams.equals(combineParams)) {
-      metaData.setCombineParams(combineParams);
-      saveTestParamFile(AxisID.ONLY);
-    }
-    return;
-  }
-
-  /**
-   * Load the solvematch com script into the tomogram combination dialog
-   */
-  public void loadSolvematch() {
-    comScriptMgr.loadSolvematch();
-    tomogramCombinationDialog.setSolvematchParams(comScriptMgr.getSolvematch());
-  }
-  /**
-   * Merge solvematchshift and solvematchmod com scripts in solvematch and
-   * load solvematchinto the tomogram
-   * combination dialog
-   */
-  public void loadSolvematch(boolean modelBased) {
-    //get solvematchshift param
-    comScriptMgr.loadSolvematchshift();
-    SolvematchshiftParam solvematchshiftParam =
-      comScriptMgr.getSolvematchshift();
-    //get solvematchmod param
-    comScriptMgr.loadSolvematchmod();
-    SolvematchmodParam solvematchmodParam = comScriptMgr.getSolvematchmod();
-    //merge shift and mod into solvematch param
-    SolvematchParam solvematchParam = new SolvematchParam();
-    solvematchParam.mergeSolvematchshift(solvematchshiftParam, modelBased);
-    solvematchParam.mergeSolvematchmod(solvematchmodParam, modelBased);
-    //update the dialog from the same source
-    tomogramCombinationDialog.setSolvematchParams(solvematchParam);
-    //create the new solvematch com script
-    comScriptMgr.loadSolvematch();
-    comScriptMgr.saveSolvematch(solvematchParam);
-    //add matchshifts to the solvematch com script
-    MatchshiftsParam matchshiftsParam =
-      comScriptMgr.getMatchshiftsFromSolvematchshifts();
-    comScriptMgr.saveSolvematch(matchshiftsParam);
-  }
-
-  /**
-   * Update the solvematch com file from the tomogramCombinationDialog
-   * @return true if successful, false if not
-   */
-  public boolean updateSolvematchCom() {
-    if (tomogramCombinationDialog == null) {
-      uiHarness.openMessageDialog(
-        "Can not update solvematch.com without an active tomogram generation dialog",
-        "Program logic error", AxisID.ONLY);
-      return false;
-    }
-    try {
-      comScriptMgr.loadSolvematch();
-      SolvematchParam solvematchParam = comScriptMgr.getSolvematch();
-      tomogramCombinationDialog.getSolvematchParams(solvematchParam);
-      comScriptMgr.saveSolvematch(solvematchParam);
-    }
-    catch (NumberFormatException except) {
-      String[] errorMessage = new String[2];
-      errorMessage[0] = "Solvematch Parameter Syntax Error";
-      errorMessage[1] = except.getMessage();
-      uiHarness.openMessageDialog(errorMessage,
-        "Solvematch Parameter Syntax Error", AxisID.ONLY);
-      return false;
-    }
-    return true;
-  }
-
-  private void createNewSolvematch(SolvematchParam solvematchParam) {
-    try {
-      comScriptMgr.useTemplate("solvematch", metaData.getDatasetName(), AxisType.DUAL_AXIS, AxisID.ONLY);
-    }
-    catch (Exception e) {
-      e.printStackTrace();
-      String[] message = new String[2];
-      message[0] = "Unable to create solvematch com script";
-      message[1] = "Check file and directory permissions";
-      uiHarness.openMessageDialog(message, "Can't create solvematch.com", AxisID.ONLY);
-      return;
-    }
-    //  Write it out the converted object disk
-    comScriptMgr.loadSolvematch();
-    comScriptMgr.saveSolvematch(solvematchParam);
-    tomogramCombinationDialog.setSolvematchParams(solvematchParam);
-  }
-
-  /**
-   * Load the patchcorr com script into the tomogram combination dialog
-   */
-  private void loadPatchcorr() {
-    comScriptMgr.loadPatchcorr();
-    tomogramCombinationDialog.setPatchcrawl3DParams(comScriptMgr.getPatchcrawl3D());
-  }
-  
-  private void loadVolcombine() {
-    comScriptMgr.loadVolcombine();
-    ConstSetParam setParam = comScriptMgr.getSetParamFromVolcombine();
-    tomogramCombinationDialog.setVolcombineParams(setParam);
-    
-    tomogramCombinationDialog.enableReductionFactor(setParam != null && setParam.isValid());
-  }
-
-  /**
-   * Update the patchcorr.com script from the information in the tomogram
-   * combination dialog box
-   * 
-   * @return boolean
-   */
-  private boolean updatePatchcorrCom() {
-    //  Set a reference to the correct object
-    if (tomogramCombinationDialog == null) {
-      uiHarness.openMessageDialog(
-        "Can not update patchcorr.com without an active tomogram generation dialog",
-        "Program logic error", AxisID.ONLY);
-      return false;
-    }
-    try {
-      Patchcrawl3DParam patchcrawl3DParam = comScriptMgr.getPatchcrawl3D();
-      tomogramCombinationDialog.getPatchcrawl3DParams(patchcrawl3DParam);
-      comScriptMgr.savePatchcorr(patchcrawl3DParam);
-    }
-    catch (NumberFormatException except) {
-      String[] errorMessage = new String[2];
-      errorMessage[0] = "Patchcorr Parameter Syntax Error";
-      errorMessage[1] = except.getMessage();
-      uiHarness.openMessageDialog(errorMessage,
-        "Patchcorr Parameter Syntax Error", AxisID.ONLY);
-      return false;
-    }
-    return true;
-  }
-  
-  /**
-   * Update the volcombine.com script from the information in the tomogram
-   * combination dialog box
-   * 
-   * @return boolean
-   */
-  private boolean updateVolcombineCom() {
-    //  Set a reference to the correct object
-    if (tomogramCombinationDialog == null) {
-      uiHarness.openMessageDialog(
-        "Can not update volcombine.com without an active tomogram generation dialog",
-        "Program logic error", AxisID.ONLY);
-      return false;
-    }
-    try {
-      SetParam setParam = comScriptMgr.getSetParamFromVolcombine();
-      boolean setParamIsValid = setParam != null && setParam.isValid();
-      tomogramCombinationDialog.enableReductionFactor(setParamIsValid);
-      tomogramCombinationDialog.getVolcombineParams(setParam);
-      if (setParamIsValid) {
-        comScriptMgr.saveVolcombine(setParam);
-      }
-    }
-    catch (NumberFormatException except) {
-      String[] errorMessage = new String[2];
-      errorMessage[0] = "Volcombine Parameter Syntax Error";
-      errorMessage[1] = except.getMessage();
-      uiHarness.openMessageDialog(errorMessage,
-        "Volcombine Parameter Syntax Error", AxisID.ONLY);
-      return false;
-    }
-    return true;
-  }
-
-
-  /**
-   * Load the matchorwarp com script into the tomogram combination dialog
-   */
-  private void loadMatchorwarp() {
-    comScriptMgr.loadMatchorwarp();
-    tomogramCombinationDialog.setMatchorwarpParams(comScriptMgr.getMatchorwarParam());
-  }
-  
-  private CombineComscriptState getCombineComscript() {
-    CombineComscriptState combineComscriptState =
-      comScriptMgr.getCombineComscript();
-    if (combineComscriptState == null) {
-      try {
-        comScriptMgr.useTemplate(CombineComscriptState.COMSCRIPT_NAME, 
-          AxisType.DUAL_AXIS, AxisID.ONLY, true);
-      }
-      catch (Exception e) {
-        e.printStackTrace();
-        String[] message = new String[2];
-        message[0] = "Unable to copy combine com script";
-        message[1] = "Check file and directory permissions";
-        uiHarness.openMessageDialog(message, "Can't create a new combine.com", AxisID.ONLY);
-        return null;
-      }
-      comScriptMgr.loadCombine();
-      combineComscriptState = comScriptMgr.getCombineComscript();
-    }
-    return combineComscriptState;
-  }
-
-  /**
-   * Load the combine com script
-   */
-  private void loadCombineComscript() {
-    comScriptMgr.loadCombine();
-    CombineComscriptState combineComscriptState = getCombineComscript();
-    if (combineComscriptState == null) {
-      return;
-    }
-    tomogramCombinationDialog.setRunVolcombine(
-      combineComscriptState.isRunVolcombine());
-  }
-
-  /**
-  * 
-  * @return boolean
-  */
-  protected CombineComscriptState updateCombineComscriptState(int startCommand) {
-    if (tomogramCombinationDialog == null) {
-      uiHarness.openMessageDialog(
-        "Can not update combine.com without an active tomogram generation dialog",
-        "Program logic error", AxisID.ONLY);
-      return null;
-    }
-    //set goto a the start of combine
-    CombineComscriptState combineComscriptState = getCombineComscript();
-    if (combineComscriptState == null) {
-      return null;
-    }
-    //set first command to run
-    combineComscriptState.setStartCommand(startCommand, comScriptMgr);
-    //set last command to run:
-    //last command is based on the "don't run volcombine checkbox" and whether
-    //the "Restart at volcombine" was pressed
-    if (startCommand == CombineComscriptState.VOLCOMBINE_INDEX
-      || tomogramCombinationDialog.isRunVolcombine()) {
-      combineComscriptState.setEndCommand(
-        CombineComscriptState.VOLCOMBINE_INDEX,
-        comScriptMgr);
-    }
-      else {
-        combineComscriptState.setEndCommand(
-          CombineComscriptState.VOLCOMBINE_INDEX - 1,
-          comScriptMgr);
-    }
-    return combineComscriptState;
-  }
-
-
-  /**
-   * Update the matchorwarp.com script from the information in the tomogram
-   * combination dialog box
-   * 
-   * @return boolean
-   */
-  private boolean updateMatchorwarpCom(boolean trialMode) {
-    //  Set a reference to the correct object
-    if (tomogramCombinationDialog == null) {
-      uiHarness.openMessageDialog(
-        "Can not update matchorwarp.com without an active tomogram generation dialog",
-        "Program logic error", AxisID.ONLY);
-      return false;
-    }
-    try {
-      MatchorwarpParam matchorwarpParam = comScriptMgr.getMatchorwarParam();
-      tomogramCombinationDialog.getMatchorwarpParams(matchorwarpParam);
-      matchorwarpParam.setTrial(trialMode);
-      comScriptMgr.saveMatchorwarp(matchorwarpParam);
-    }
-    catch (NumberFormatException except) {
-      String[] errorMessage = new String[2];
-      errorMessage[0] = "Matchorwarp Parameter Syntax Error";
-      errorMessage[1] = except.getMessage();
-      uiHarness.openMessageDialog(errorMessage,
-        "Matchorwarp Parameter Syntax Error", AxisID.ONLY);
-      return false;
-    }
-    return true;
-  }
-  
-
-
-  /**
-   * Initiate the combine process from the beginning
-   */
-  public void combine() {
-    //  FIXME: what are the necessary updates
-    //  Update the scripts from the dialog panel
-    updateCombineParams();
-    CombineComscriptState combineComscriptState = 
-      updateCombineComscriptState(CombineComscriptState.SOLVEMATCH_INDEX);
-    if (combineComscriptState == null) {
-      return;
-    }
-    if (!updateSolvematchCom()) {
-      return;
-    }
-    if (!updatePatchcorrCom()) {
-      return;
-    }
-    if (!updateMatchorwarpCom(false)) {
-      return;
-    }
-    if (!updateVolcombineCom()) {
-      return;
-    }
-
-    processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
-    mainPanel.setTomogramCombinationState(ProcessState.INPROGRESS);
-    warnStaleFile(ImodManager.PATCH_VECTOR_MODEL_KEY, true);
-    //  Set the next process to execute when this is finished
-    //nextProcess = "matchvol1";
-    String threadName;
-    try {
-      //threadName = processMgr.solvematch();
-      threadName = processMgr.combine(combineComscriptState);
-    }
-    catch (SystemProcessException e) {
-      e.printStackTrace();
-      String[] message = new String[2];
-      message[0] = "Can not execute combine.com";
-      message[1] = e.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to execute com script", AxisID.ONLY);
-      return;
-    }
-    setBackgroundThreadName(threadName, AxisID.FIRST, 
-        CombineComscriptState.COMSCRIPT_NAME);
-  }
-  
-  public void showPane(String comscript, String pane) {
-    if (comscript.equals(CombineComscriptState.COMSCRIPT_NAME)) {
-      tomogramCombinationDialog.showPane(pane);
-    }
-  }
-
-  /**
-   * Execute the matchvol1 com script and put patchcorr in the execution queue
-   */
-  public void matchvol1Combine() {
-    //  FIXME: what are the necessary updates
-    //  Update the scripts from the dialog panel
-    updateCombineParams();
-    if (!updatePatchcorrCom()) {
-      return;
-    }
-    if (!updateMatchorwarpCom(false)) {
-      return;
-    }
-    if (!updateVolcombineCom()) {
-      return;
-    }
-    updateCombineParams();
-    CombineComscriptState combineComscriptState = 
-      updateCombineComscriptState(CombineComscriptState.MATCHVOL1_INDEX);
-    if (combineComscriptState == null) {
-      return;
-    }
-    processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
-    mainPanel.setTomogramCombinationState(ProcessState.INPROGRESS);
-    warnStaleFile(ImodManager.PATCH_VECTOR_MODEL_KEY, true);
-    //  Check to see if solve.xf exists first
-    File solveXf = new File(propertyUserDir, "solve.xf");
-    if (!solveXf.exists()) {
-      //nextProcess = "";
-      String[] message = new String[2];
-      message[0] = "Can not execute combine.com";
-      message[1] = "solve.xf must exist in the working";
-      uiHarness.openMessageDialog(message, "Unable to execute com script", AxisID.ONLY);
-      return;
-    }
-    //  Set the next process to execute when this is finished
-    //nextProcess = "patchcorr";
-    String threadName;
-    try {
-      threadName = processMgr.combine(combineComscriptState);
-    }
-    catch (SystemProcessException e) {
-      e.printStackTrace();
-      String[] message = new String[2];
-      message[0] = "Can not execute combine.com";
-      message[1] = e.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to execute com script", AxisID.ONLY);
-      return;
-    }
-    setBackgroundThreadName(threadName, AxisID.FIRST, 
-      CombineComscriptState.COMSCRIPT_NAME);
-  }
-
-  /**
-   * Initiate the combine process from patchcorr step
-   */
-  public void patchcorrCombine() {
-    updateCombineParams();
-    CombineComscriptState combineComscriptState =
-      updateCombineComscriptState(CombineComscriptState.PATCHCORR_INDEX);
-    if (combineComscriptState == null) {
-      return;
-    }
-    if (!updatePatchcorrCom()) {
-      return;
-    }
-    if (!updateMatchorwarpCom(false)) {
-      return;
-    }
-    if (!updateVolcombineCom()) {
-      return;
-    }
-
-    processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
-    mainPanel.setTomogramCombinationState(ProcessState.INPROGRESS);
-    warnStaleFile(ImodManager.PATCH_VECTOR_MODEL_KEY, true);
-    //  Set the next process to execute when this is finished
-    //nextProcess = "matchorwarp";
-    String threadName;
-    try {
-      threadName = processMgr.combine(combineComscriptState);
-    }
-    catch (SystemProcessException e) {
-      e.printStackTrace();
-      String[] message = new String[2];
-      message[0] = "Can not execute patchcorr.com";
-      message[1] = e.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to execute com script", AxisID.ONLY);
-      return;
-    }
-    setBackgroundThreadName(threadName, AxisID.FIRST, 
-      CombineComscriptState.COMSCRIPT_NAME);
-  }
-
-  protected void warnStaleFile(String key, boolean future) {
-    warnStaleFile(key, null, future);
-  }
-
-  protected void warnStaleFile(String key, AxisID axisID) {
-    warnStaleFile(key, axisID, false);
-  }
-
-  protected void warnStaleFile(String key, AxisID axisID, boolean future) {
-    try {
-      if (imodManager.warnStaleFile(key, axisID)) {
-        String[] message = new String[4];
-        if (future) {
-          message[0] = "3dmod is open to the existing " + key + ".";
-          message[1] = "A new " + key + " will be created on disk.";
-        }
-        else {
-          message[0] = "3dmod is open to the old " + key + ".";
-          message[1] = "A new " + key + " has been created on disk.";
-        }
-        message[2] = "You will not be able to see the new version of " + key
-          + " until you close this 3dmod.";
-        message[3] = "Do you wish to quit this 3dmod now?";
-        if (uiHarness.openYesNoDialog(message, axisID)) {
-          imodManager.quit(key, axisID);
-        }
-      }
-    }
-    catch (AxisTypeException e) {
-      e.printStackTrace();
-    }
-    catch (SystemProcessException e) {
-      e.printStackTrace();
-    }
-  }
-
-  /**
-   * Initiate the combine process from matchorwarp step
-   */
-  public void matchorwarpCombine() {
-    CombineComscriptState combineComscriptState = updateCombineComscriptState(CombineComscriptState.MATCHORWARP_INDEX);
-    if (combineComscriptState == null) {
-      return;
-    }
-    if (!updateMatchorwarpCom(false)) {
-      return;
-    }
-    if (!updateVolcombineCom()) {
-      return;
-    }
-    processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
-    mainPanel.setTomogramCombinationState(ProcessState.INPROGRESS);
-
-    //  Set the next process to execute when this is finished
-    //nextProcess = next;
-    String threadName;
-    try {
-      threadName = processMgr.combine(combineComscriptState);
-    }
-    catch (SystemProcessException e) {
-      e.printStackTrace();
-      String[] message = new String[2];
-      message[0] = "Can not execute combine.com";
-      message[1] = e.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to execute com script", AxisID.ONLY);
-      return;
-    }
-    setBackgroundThreadName(threadName, AxisID.FIRST,
-        CombineComscriptState.COMSCRIPT_NAME);
-  }
-
-  /**
-   * Initiate the combine process from matchorwarp step
-   */
-  public void matchorwarpTrial() {
-    if (updateMatchorwarpCom(true)) {
-      processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
-      mainPanel.setTomogramCombinationState(ProcessState.INPROGRESS);
-      //  Set the next process to execute when this is finished
-      //nextProcess = next;
-      String threadName;
-      try {
-        threadName = processMgr.matchorwarp();
-      }
-      catch (SystemProcessException e) {
-        e.printStackTrace();
-        String[] message = new String[2];
-        message[0] = "Can not execute matchorwarp.com";
-        message[1] = e.getMessage();
-        uiHarness.openMessageDialog(message, "Unable to execute com script", AxisID.ONLY);
-        return;
-      }
-      setThreadName(threadName, AxisID.FIRST);
-      tomogramCombinationDialog.showPane(TomogramCombinationDialog.lblFinal);
-      mainPanel.startProgressBar("matchorwarp", AxisID.FIRST);
-    }
-  }
-
-  /**
-   * Execute the combine script starting at volcombine
-   */
-  public void volcombine() {
-    CombineComscriptState combineComscriptState = 
-      updateCombineComscriptState(CombineComscriptState.VOLCOMBINE_INDEX);
-    updateCombineParams();
-    if (!updateVolcombineCom()) {
-      return;
-    }
-    processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
-    mainPanel.setTomogramCombinationState(ProcessState.INPROGRESS);
-    //  Set the next process to execute when this is finished
-    //nextProcess = "";
-    String threadName;
-    try {
-      threadName = processMgr.combine(combineComscriptState);
-    }
-    catch (SystemProcessException e) {
-      e.printStackTrace();
-      String[] message = new String[2];
-      message[0] = "Can not execute combine.com";
-      message[1] = e.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to execute com script", AxisID.ONLY);
-      return;
-    }
-    setBackgroundThreadName(threadName, AxisID.FIRST, 
-      CombineComscriptState.COMSCRIPT_NAME);
-  }
-
-  /**
-   * Convert the patch.mod to patch.out
-   *  
-   */
-  public void modelToPatch() {
-    try {
-      processMgr.modelToPatch(AxisID.ONLY);
-    }
-    catch (SystemProcessException except) {
-      String[] errorMessage = new String[2];
-      errorMessage[0] = "Unable to convert patch_vector.mod to patch.out";
-      errorMessage[1] = except.getMessage();
-      uiHarness.openMessageDialog(errorMessage, "Patch vector model error", AxisID.ONLY);
-      return;
-    }
-  }
-
-  /**
-   * Open the post processing dialog
-   */
-  public void openPostProcessingDialog() {
-    //  Check to see if the com files are present otherwise pop up a dialog
-    //  box informing the user to run the setup process
-    if (!metaData.getComScriptCreated()) {
-      setupRequestDialog(AxisID.ONLY);
-      return;
-    }
-    //  Open the dialog in the appropriate mode for the current state of
-    //  processing
-    setCurrentDialogType(DialogType.POST_PROCESSING, AxisID.ONLY);
-    mainPanel.selectButton(AxisID.ONLY, DialogType.POST_PROCESSING.toString());
-    if (postProcessingDialog == null) {
-      postProcessingDialog = new PostProcessingDialog(this);
-      //  Set the appropriate input and output files
-      TrimvolParam trimvolParam = metaData.getTrimvolParam();
-      try {
-        trimvolParam.setDefaultRange(
-          TrimvolParam.getInputFileName(
-            metaData.getAxisType(),
-            metaData.getDatasetName()));
-      }
-      catch (InvalidParameterException except) {
-        String[] detailedMessage = new String[4];
-        detailedMessage[0] = "Unable to set trimvol range";
-        detailedMessage[1] = "Does the reconstruction file exist yet?";
-        detailedMessage[2] = "";
-        detailedMessage[3] = except.getMessage();
-        uiHarness.openMessageDialog(detailedMessage, "Invalid parameter: "
-          + trimvolParam.getInputFileName(), AxisID.ONLY);
-        //    Delete the dialog
-        postProcessingDialog = null;
-        return;
-      }
-      catch (IOException except) {
-        uiHarness.openMessageDialog(except.getMessage(), "IO Error: "
-          + trimvolParam.getInputFileName(), AxisID.ONLY);
-        //      Delete the dialog
-        postProcessingDialog = null;
-        return;
-      }
-      postProcessingDialog.setTrimvolParams(trimvolParam);
-      postProcessingDialog.setParameters(metaData.getSqueezevolParam());
-    }
-    mainPanel.showProcess(postProcessingDialog.getContainer(), AxisID.ONLY);
-  }
-
-  /**
-   * Open the clean up dialog
-   */
-  public void openCleanUpDialog() {
-    //  Check to see if the com files are present otherwise pop up a dialog
-    //  box informing the user to run the setup process
-    if (!metaData.getComScriptCreated()) {
-      setupRequestDialog(AxisID.ONLY);
-      return;
-    }
-    //  Open the dialog in the appropriate mode for the current state of
-    //  processing
-    setCurrentDialogType(DialogType.CLEAN_UP, AxisID.ONLY);
-    mainPanel.selectButton(AxisID.ONLY, "Clean Up");
-    if (cleanUpDialog == null) {
-      cleanUpDialog = new CleanUpDialog(this);
-    }
-    mainPanel.showProcess(cleanUpDialog.getContainer(), AxisID.ONLY);
-  }
-
-  /**
-   * Close the post processing dialog panel
-   */
-  public void donePostProcessing() {
-    if (postProcessingDialog == null) {
-      uiHarness.openMessageDialog("Post processing dialog not open",
-          "Program logic error", AxisID.ONLY);
-      return;
-    }
-    setAdvanced(postProcessingDialog.getDialogType(), postProcessingDialog.isAdvanced());
-    DialogExitState exitState = postProcessingDialog.getExitState();
-    if (exitState == DialogExitState.CANCEL) {
-      mainPanel.showBlankProcess(AxisID.ONLY);
-    }
-    else {
-      updateTrimvolParam();
-      updateSqueezevolParam();
-      if (exitState == DialogExitState.POSTPONE) {
-        processTrack.setPostProcessingState(ProcessState.INPROGRESS);
-        mainPanel.setPostProcessingState(ProcessState.INPROGRESS);
-        mainPanel.showBlankProcess(AxisID.ONLY);
-      }
-      else if (exitState != DialogExitState.SAVE) {
-        processTrack.setPostProcessingState(ProcessState.COMPLETE);
-        mainPanel.setPostProcessingState(ProcessState.COMPLETE);
-        openCleanUpDialog();
-      }
-      saveTestParamFile(AxisID.ONLY);
-    }
-    postProcessingDialog = null;
-  }
-  
-  /**
-   * Close the clean up dialog panel
-   */
-  public void doneCleanUp() {
-    if (cleanUpDialog == null) {
-      uiHarness.openMessageDialog("Clean Up dialog not open",
-          "Program logic error", AxisID.ONLY);
-      return;
-    }
-    setAdvanced(cleanUpDialog.getDialogType(), cleanUpDialog.isAdvanced());
-    DialogExitState exitState = cleanUpDialog.getExitState();
-    if (exitState != DialogExitState.CANCEL) {
-      if (exitState == DialogExitState.POSTPONE) {
-        processTrack.setCleanUpState(ProcessState.INPROGRESS);
-        mainPanel.setCleanUpState(ProcessState.INPROGRESS);
-      }
-      else if (exitState != DialogExitState.SAVE) {
-        processTrack.setCleanUpState(ProcessState.COMPLETE);
-        mainPanel.setCleanUpState(ProcessState.COMPLETE);
-      }
-      saveTestParamFile(AxisID.ONLY);
-    }
-    cleanUpDialog = null;
-    mainPanel.showBlankProcess(AxisID.ONLY);
-  }
-
-
-  /**
-   * Open the combined (or full) volume in 3dmod
-   */
-  public void imodCombinedTomogram(Run3dmodMenuOptions menuOptions) {
-    try {
-      imodManager.open(ImodManager.COMBINED_TOMOGRAM_KEY, menuOptions);
-    }
-    catch (SystemProcessException except) {
-      except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(),
-        "Can't open 3dmod on the trimmed tomogram", AxisID.ONLY);
-    }
-    catch (AxisTypeException except) {
-      except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem", AxisID.ONLY);
-    }
-  }
-
-  /**
-   * calls ProcessManager.generateAlignLogs() when the ta files are out of date
-   * @param commandName
-   * @param axisID
-   * @return true if any log files where changed
-   */
-  public boolean updateLog(String commandName, AxisID axisID) {
-    String alignLogName = "align" + axisID.getExtension() + ".log";
-    File alignLog = new File(propertyUserDir, alignLogName);
-    String taErrorLogName = "taError" + axisID.getExtension() + ".log";
-    File taErrorLog = new File(propertyUserDir, taErrorLogName);
-    if (!alignLog.exists()) {
-      return false;
-    }
-    if (!taErrorLog.exists()
-      || taErrorLog.lastModified() < alignLog.lastModified()) {
-      processMgr.generateAlignLogs(axisID);
-      return true;
-    }
-    return false;
-  }
-
-  /**
-   * Open the trimmed volume in 3dmod
-   */
-  public void imodTrimmedVolume(Run3dmodMenuOptions menuOptions) {
-    TrimvolParam trimvolParam = new TrimvolParam(propertyUserDir);
-    postProcessingDialog.getTrimvolParams(trimvolParam);
-    try {
-      imodManager.setSwapYZ(ImodManager.TRIMMED_VOLUME_KEY,
-        !trimvolParam.isSwapYZ());
-      imodManager.open(ImodManager.TRIMMED_VOLUME_KEY, menuOptions);
-    }
-    catch (SystemProcessException except) {
-      except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(),
-        "Can't open 3dmod on the trimmed tomogram", AxisID.ONLY);
-    }
-    catch (AxisTypeException except) {
-      except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem", AxisID.ONLY);
-    }
-  }
-  
-  /**
-   * Open the squeezed volume in 3dmod
-   */
-  public void imodSqueezedVolume(Run3dmodMenuOptions menuOptions) {
-    // Make sure that the post processing panel is open
-    if (postProcessingDialog == null) {
-      uiHarness.openMessageDialog("Post processing dialog not open",
-        "Program logic error", AxisID.ONLY);
-      return;
-    }
-    try {
-      imodManager.setSwapYZ(ImodManager.SQUEEZED_VOLUME_KEY,
-          !postProcessingDialog.isSqueezevolFlipped());
-      imodManager.open(ImodManager.SQUEEZED_VOLUME_KEY, menuOptions);
-    }
-    catch (SystemProcessException except) {
-      except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(),
-        "Can't open 3dmod on the squeezed tomogram", AxisID.ONLY);
-    }
-    catch (AxisTypeException except) {
-      except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem", AxisID.ONLY);
-    }
-  }
-
-  /**
-   * Execute trimvol
-   */
-  public void trimVolume() {
-    // Make sure that the post processing panel is open
-    if (postProcessingDialog == null) {
-      uiHarness.openMessageDialog("Post processing dialog not open",
-        "Program logic error", AxisID.ONLY);
-      return;
-    }
-    TrimvolParam trimvolParam = updateTrimvolParam();
-    // Start the trimvol process
-    processTrack.setPostProcessingState(ProcessState.INPROGRESS);
-    mainPanel.setPostProcessingState(ProcessState.INPROGRESS);
-    String threadName;
-    try {
-      threadName = processMgr.trimVolume(trimvolParam);
-    }
-    catch (SystemProcessException e) {
-      e.printStackTrace();
-      String[] message = new String[2];
-      message[0] = "Can not execute trimvol command";
-      message[1] = e.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to execute command", AxisID.ONLY);
-      return;
-    }
-    setThreadName(threadName, AxisID.ONLY);
-    mainPanel.startProgressBar("Trimming volume", AxisID.ONLY);
-  }
-  
-  /**
-   * Execute squeezevol
-   */
-  public void squeezevol() {
-    // Make sure that the post processing panel is open
-    if (postProcessingDialog == null) {
-      uiHarness.openMessageDialog("Post processing dialog not open",
-        "Program logic error", AxisID.ONLY);
-      return;
-    }
-    ConstSqueezevolParam squeezevolParam = updateSqueezevolParam();
-    // Start the trimvol process
-    processTrack.setPostProcessingState(ProcessState.INPROGRESS);
-    mainPanel.setPostProcessingState(ProcessState.INPROGRESS);
-    String threadName;
-    try {
-      threadName = processMgr.squeezeVolume(squeezevolParam);
-    }
-    catch (SystemProcessException e) {
-      e.printStackTrace();
-      String[] message = new String[2];
-      message[0] = "Can not execute squeezevol command";
-      message[1] = e.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to execute command", AxisID.ONLY);
-      return;
-    }
-    setThreadName(threadName, AxisID.ONLY);
-    mainPanel.startProgressBar("Squeezing volume", AxisID.ONLY);
-  }
-  
-  /**
-   * updates ConstMetaData.trimvolParam with data from postProcessingDialog.
-   * Sets isDataParamDirty if necessary
-   * @return the updated TrimvolParam
-   *
-   */
-  protected TrimvolParam updateTrimvolParam() {
-    //Get trimvol param data from dialog.
-    TrimvolParam dialogTrimvolParam = new TrimvolParam(propertyUserDir);
-    postProcessingDialog.getTrimvolParams(dialogTrimvolParam);
-    //Get the metadata trimvol param.
-    TrimvolParam trimvolParam = metaData.getTrimvolParam();
-    postProcessingDialog.getTrimvolParams(trimvolParam);
-    //Add input and output files.
-    trimvolParam.setInputFileName(
-      metaData.getAxisType(),
-      metaData.getDatasetName());
-    trimvolParam.setOutputFileName(metaData.getDatasetName());
-    return trimvolParam;
-  }
-  
-  /**
-   * updates ConstMetaData.squeezevolParam with data from postProcessingDialog.
-   * Sets isDataParamDirty if necessary
-   * @return the updated SqueezevolParam
-   *
-   */
-  protected ConstSqueezevolParam updateSqueezevolParam() {
-    //Get the metadata trimvol param.
-    SqueezevolParam squeezevolParam = metaData.getSqueezevolParam();
-    postProcessingDialog.getParameters(squeezevolParam);
-    return squeezevolParam;
-  }
-
-
-  //
-  //  Utility functions
-  //
-  private boolean showIfExists(ProcessDialog panelA, ProcessDialog panelB,
-    AxisID axisID) {
-    if (axisID == AxisID.SECOND) {
-      if (panelB == null) {
-        return false;
-      }
-      else {
-        mainPanel.showProcess(panelB.getContainer(), axisID);
-        return true;
-      }
-    }
-    else {
-      if (panelA == null) {
-        return false;
-      }
-      else {
-        mainPanel.showProcess(panelA.getContainer(), axisID);
-        return true;
-      }
-    }
-  }
-
-  /**
-   *  
-   */
-  private void setupRequestDialog(AxisID axisID) {
-    String[] message = new String[2];
-    message[0] = "The setup process has not been completed";
-    message[1] = "Complete the Setup process before opening other process dialogs";
-    uiHarness.openMessageDialog(message, "Program Operation Error", axisID);
-    return;
-  }
-  
-
-/**
-   * Run the specified command as a background process with a indeterminate
-   * progress bar.
-   */
-  public void backgroundProcess(String commandLine, AxisID axisID) {
-    processMgr.test(commandLine, axisID);
-  }
-
-  /**
-   * Start generic progress bar
-   * @param value
-   * @param axisID
-   */
-  public void startProgressBar(String label, AxisID axisID) {
-    mainPanel.startProgressBar(label, axisID);
-  }
-
-  /**
-   * Set the progress bar to the specified value
-   * 
-   * @param value
-   * @param axisID
-   */
-  public void setProgressBarValue(int value, AxisID axisID) {
-    mainPanel.setProgressBarValue(value, axisID);
-  }
-
-  /**
-   * @param axisID
-   */
-  public void progressBarDone(AxisID axisID, ProcessEndState processEndState) {
-    mainPanel.stopProgressBar(axisID, processEndState);
-  }
-
-  /**
-   * Start the next process specified by the nextProcess string
-   */
-  protected void startNextProcess(AxisID axisID) {
-    if (getNextProcess(axisID).equals("tilt")) {
-      tiltProcess(axisID);
-    }
-    else if (getNextProcess(axisID).equals("checkUpdateFiducialModel")) {
-      checkUpdateFiducialModel(axisID);
-      return;
-    }
-    else if (getNextProcess(axisID).equals(ArchiveorigParam.COMMAND_NAME)) {
-      archiveOriginalStack(AxisID.SECOND);
-    }
-    else if (getNextProcess(axisID).equals(ProcesschunksParam.COMMAND_NAME)) {
-      processchunks(axisID);
-    }
-  }
-
-  protected void updateDialog(ProcessName processName, AxisID axisID) {
-    if (axisID != AxisID.ONLY
-      && (processName == ProcessName.PRENEWST || processName == ProcessName.TRACK)) {
-      updateDialog(fiducialModelDialogB, AxisID.SECOND);
-      updateDialog(fiducialModelDialogA, AxisID.FIRST);
-    }
-    if (processName == ProcessName.NEWST) {
-      if (axisID == AxisID.SECOND) {
-        updateDialog(tomogramGenerationDialogB, axisID);
-      }
-      else {
-        updateDialog(tomogramGenerationDialogA, axisID);
-      }
-    }
-  }
-
-  private void updateDialog(FiducialModelDialog dialog, AxisID axisID) {
-    if (dialog == null || axisID == AxisID.ONLY) {
-      return;
-    }
-    boolean prealisExist = Utilities.fileExists(this, ".preali",
-      AxisID.FIRST)
-      && Utilities.fileExists(this, ".preali", AxisID.SECOND);
-    boolean fidExists = false;
-    if (axisID == AxisID.FIRST) {
-      fidExists = Utilities.fileExists(this, ".fid", AxisID.SECOND);
-    }
-    else {
-      fidExists = Utilities.fileExists(this, ".fid", AxisID.FIRST);
-    }
-    dialog.setTransferfidEnabled(prealisExist && fidExists);
-    dialog.updateEnabled();
-  }
-
-  private void updateDialog(TomogramGenerationDialog dialog, AxisID axisID) {
-    if (dialog == null) {
-      return;
-    }
-    dialog.updateFilter(Utilities.fileExists(this, ".ali", axisID));
-  }
-
-  /**
-   * Map the thread name to the correct axis
-   * 
-   * @param name
-   *            The name of the thread to assign to the axis
-   * @param axisID
-   *            The axis of the thread to be mapped
-   */
-  private void setThreadName(String name, AxisID axisID) {
-    if (name == null) {
-      name = "none";
-    }
-    if (axisID == AxisID.SECOND) {
-      threadNameB = name;
-    }
-    else {
-      threadNameA = name;
-    }
-  }
-  
-  private void setBackgroundThreadName(String name, AxisID axisID, 
-      String processName) {
-    setThreadName(name, axisID);
-    if (axisID == AxisID.SECOND) {
-      throw new IllegalStateException("No Axis B background processes exist.");
-    }
-    else {
-      backgroundProcessA = true;
-      backgroundProcessNameA = processName;
-    }
-  }
-
-  //  Test helper functions
-  /**
-   * Return the currently executing thread name for the specified axis
-   * @param axisID
-   * @return
-   */
-  String getThreadName(AxisID axisID) {
-    if (axisID == AxisID.SECOND) {
-      return threadNameB;
-    }
-    return threadNameA;
-  }
-  
-  protected void checkUpdateFiducialModel(AxisID axisID) {
-    resetNextProcess(axisID);
-    FidXyz fidXyz = getFidXyz(axisID);
-    MRCHeader prealiHeader = getMrcHeader(axisID, ".preali");
-    MRCHeader rawstackHeader = getMrcHeader(axisID, ".st");
-    try {
-      fidXyz.read();
-      prealiHeader.read();
-      rawstackHeader.read();
-    }
-    catch (IOException except) {
-      return;
-    }
-    catch (InvalidParameterException except) {
-      except.printStackTrace();
-      return;
-    }
-    if (!fidXyz.exists()) {
-      return;
-    }
-    //if fidXyz.getPixelSize() is 1, then the binning used in align.com must
-    //have been 1, if the preali binning is also 1, then no error message should
-    //be sent.  preali binning is preali pixel spacing / .st pixel spacing
-    boolean fidXyzPixelSizeSet = fidXyz.isPixelSizeSet();
-    if (!fidXyzPixelSizeSet) {
-      if (Math.round(prealiHeader.getXPixelSpacing() / rawstackHeader.getXPixelSpacing()) == 1) {
-        return;
-      }
-    }
-    if (!fidXyzPixelSizeSet || fidXyz.getPixelSize() != prealiHeader.getXPixelSpacing()) {
-    //if (getStackBinning(axisID, ".preali") != getBackwardCompatibleAlignBinning(axisID)) {
-      uiHarness.openMessageDialog(
-        "The prealigned image stack binning has changed.  You must:\n    1. Go "
-        + "to Fiducial Model Gen. and Press Fix Fiducial Model to open the "
-        + "fiducial model.\n    2. Save the fiducial model by pressing "
-        + "\"s\".\n    3. Go to Fine Alignment and press Compute Alignment to"
-        + " rerun align" + axisID.getExtension() + ".com.",
-        "Prealigned image stack binning has changed", axisID);
-      return;
-    }
-  }
-  
-  public FidXyz getFidXyz(AxisID axisID) {
-    return new FidXyz(propertyUserDir, metaData.getDatasetName()
-        + axisID.getExtension() + "fid.xyz");
-  }
-  
-  public MRCHeader getMrcHeader(AxisID axisID, String filename) {
-    File file = new File(propertyUserDir, metaData.getDatasetName()
-        + axisID.getExtension() + filename);
-    return MRCHeader.getInstance(propertyUserDir, file.getAbsolutePath(), axisID);
-  }
-  
-  protected void createComScriptManager() {
-    comScriptMgr = new ComScriptManager(this);
-  }
-  
-  protected void createProcessManager() {
-    processMgr = new ProcessManager(this);
-  }
-  
-  protected void createMainPanel() {
-    mainPanel = new MainTomogramPanel(this);
-    mainPanel = (MainTomogramPanel) mainPanel;
-  }
-  
-  /**
-   * Set the data set parameter file. This also updates the mainframe data
-   * parameters.
-   * @param paramFile a File object specifying the data set parameter file.
-   */
-  public void setTestParamFile(File paramFile) {
-    this.paramFile = paramFile;
-    //  Update main window information and status bar
-    mainPanel.setStatusBarText(paramFile, metaData);
-  }
-  
-  protected void createProcessTrack() {
-    processTrack = new ProcessTrack();
-  }
-  
-  protected int getNumStorables() {
-    return 3;
-  }
-  
-  protected void createState() {
-    state = new TomogramState(this);
-  }
-  
-  public TomogramState getState() {
-    return state;
-  }
-  
-  protected BaseState getBaseState() {
-    return state;
-  }
-  
-  public MetaData getMetaData() {
-    return metaData;
-  }
-  
-  public ConstMetaData getConstMetaData() {
-    return (ConstMetaData) metaData;
-  }
-  
-  public BaseMetaData getBaseMetaData() {
-    return (BaseMetaData) metaData;
-  }
-  
-  protected void setMetaData(ImodManager imodManager) {
-    imodManager.setMetaData(metaData);
-  }
-  
-  public MainPanel getMainPanel() {
-    return mainPanel;
-  }
-    
-  protected void getProcessTrack(Storable[] storable, int index) {
-    if (storable == null) {
-      return;
-    }
-    storable[index] = processTrack;
-  }
-  
-  protected BaseProcessTrack getProcessTrack() {
-    return processTrack;
-  }
-  
-  /**
-   * Interrupt the currently running thread for this axis
-   * 
-   * @param axisID
-   */
-  public void kill(AxisID axisID) {
-    processMgr.kill(axisID);
-  }
-  
-  /**
-   * Gets the binning that can be used to repair a older tilt.com file.  Older
-   * tilt.com file contain parameters, including full image size, which have
-   * been binned.  And they do not contain the binning.  Function calculates the
-   * binning from the raw stack full image size and the full image size in 
-   * tilt.com.
-   * @param axisID
-   * @param tiltParam
-   * @return
-   */
-  private int getBackwardCompatibleTiltBinning(AxisID axisID, ConstTiltParam tiltParam) {
-    MRCHeader rawstackHeader = getMrcHeader(axisID, ".st");
-    try {
-      rawstackHeader.read();
-    }
-    
-    catch (InvalidParameterException e) {
-      e.printStackTrace();
-      return 1;
-    }
-    catch (IOException e) {
-      return 1;
-    }
-    int binning = 1;
-    int tiltFullImageX = tiltParam.getFullImageX();
-    //defaults to Integer.MIN_VALUE in ConstTiltParam
-    if (tiltFullImageX > 0) {
-      binning = Math.round(rawstackHeader.getNColumns() / tiltFullImageX);
-    }
-    if (binning < 1) {
-      return 1;
-    }
-    return binning;
-  }
-  
-  /**
-   * Gets the binning that can be used to run tilt against a stack (.preali or
-   * .ali).  Function calculates the binning from the stack's pixel spacing and
-   * the raw stack's pixel spacing.
-   * @param axisID
-   * @param stackExtension
-   * @return
-   */
-  public long getStackBinning(AxisID axisID, String stackExtension) {
-    return getStackBinning(axisID, stackExtension, false);
-  }
-  
-  /**
-   * Gets the binning that can be used to run tilt against a stack (.preali or
-   * .ali).  Function calculates the binning from the stack's pixel spacing and
-   * the raw stack's pixel spacing.
-   * @param axisID
-   * @param stackExtension .ali or .preali
-   * @param nullIfFailed when true returns null on failure, otherwise returns 1
-   * on failure.
-   * @return
-   */
-  public long getStackBinning(AxisID axisID, String stackExtension,
-      boolean nullIfFailed) {
-    MRCHeader rawstackHeader = getMrcHeader(axisID, ".st");
-    MRCHeader stackHeader = getMrcHeader(axisID, stackExtension);
-    long defaultValue = nullIfFailed ? EtomoNumber.LONG_NULL_VALUE : 1;
-    try {
-      rawstackHeader.read();
-      stackHeader.read();
-    }
-    catch (InvalidParameterException e) {
-      //missing file
-      e.printStackTrace();
-      return defaultValue;
-    }
-    catch (IOException e) {
-      return defaultValue;
-    }
-    long binning = defaultValue;
-    double rawstackXPixelSpacing = rawstackHeader.getXPixelSpacing();
-    if (rawstackXPixelSpacing > 0) {
-      binning = Math.round(stackHeader.getXPixelSpacing() / rawstackXPixelSpacing);
-    }
-    if (binning != defaultValue && binning < 1) {
-      return 1;
-    }
-    return binning;
-  }
-  
-  /**
-   * Gets the binning that can be used to repair a older align.com file.  Older
-   * align.com file contain a binned zshift parameter.  And they do not contain
-   * the binning.  Function calculates the binning from the raw stack pixel
-   * spacing and the fid.xyz pixel spacing (if it exists) or the .preali pixel
-   * spacing.  The fid.xyz pixel spacing is more accurate because the file is
-   * created by align when align succeeds.  If align fails, then the .preali
-   * pixel spacing will be inaccurate if the binning has changed since an
-   * the last time the .preali was built.
-   * @param axisID
-   * @param tiltParam
-   * @return
-   */
-  private long getBackwardCompatibleAlignBinning(AxisID axisID) {
-    MRCHeader rawstackHeader = getMrcHeader(axisID, ".st");
-    try {
-      rawstackHeader.read();
-    }
-    catch (InvalidParameterException e) {
-      e.printStackTrace();
-      return 1;
-    }
-    catch (IOException e) {
-      return 1;
-    }
-    FidXyz fidXyz = getFidXyz(axisID);
-    boolean fidXyzFailed = false;
-    try {
-      fidXyz.read();
-    }
-    catch (IOException e) {
-      e.printStackTrace();
-      fidXyzFailed = true;
-    }
-    if (!fidXyzFailed) {
-      //Another layer of backward compatibility.  Handle the time before fid.xyz
-      //files where created.  This also handles the situation where align.com has
-      //not been run and has the original values from copytomocoms.
-      if (!fidXyz.exists()) {
-        return 1;
-      }
-      //Align.com must have failed.  The fallback is to use pixel spacing from
-      //.preali.
-      if (fidXyz.isEmpty()) {
-        fidXyzFailed = true;
-      }
-      //Another layer of backward compatibility.  There was a small period of
-      //time when binning existed but the pixel spacing was not added to fid.xyz
-      //(3.2.7 (3/16/04) - 3.2.20 (6/19/04).  If this fid.xyz was created before
-      //binning we could return 1, but we don't know that and we can't trust
-      //change times on old files that could have been copied, so we need to use
-      //the fallback in this case.
-      else if (!fidXyz.isPixelSizeSet()) {
-        fidXyzFailed = true;
-      }
-    }
-    double rawstackXPixelSpacing = rawstackHeader.getXPixelSpacing();
-    //Unable to calculate binning
-    if (rawstackXPixelSpacing <= 0) {
-      return 1;
-    }
-    //calculate binning from fid.xyz
-    if (!fidXyzFailed) {
-      long binning = Math.round(fidXyz.getPixelSize() / rawstackXPixelSpacing);
-      if (binning < 1) {
-        return 1;
-      }
-      return binning;
-    }
-    //fallback to .preali
-    MRCHeader stackHeader = getMrcHeader(axisID, ".preali");
-    try {
-      stackHeader.read();
-    }
-    catch (InvalidParameterException e) {
-      e.printStackTrace();
-      return 1;
-    }
-    catch (IOException e) {
-      e.printStackTrace();
-      return 1;
-    }
-    long binning = Math.round(stackHeader.getXPixelSpacing()
-        / rawstackXPixelSpacing);
-    if (binning < 1) {
-      return 1;
-    }
-    return binning;
-  }
-  
-  public void touch(File file) {
-    processMgr.touch(file);
-  }
-  
-  /**
-   * If tiltParam is an old version, upgrade it to the new version and save it
-   * to tilt.com.
-   * @param axisID
-   * @param tiltParam
-   */
-  private void upgradeOldTiltCom(AxisID axisID, TiltParam tiltParam) {
-    if (!tiltParam.isOldVersion()) {
-      return;
-    }
-    int correctionBinning = getBackwardCompatibleTiltBinning(axisID, tiltParam);
-    long currentBinning = getStackBinning(axisID, ".ali");
-    if (tiltParam.upgradeOldVersion(correctionBinning, currentBinning)) {
-      comScriptMgr.saveTilt(tiltParam, axisID);
-    }
-  }
-  
-  /**
-   * If tiltalignParam is an old version, upgrade it to the new version and save
-   * it to align.com.
-   * @param axisID
-   * @param tiltalignParam
-   */
-  private void upgradeOldAlignCom(AxisID axisID, TiltalignParam tiltalignParam) {
-    if (!tiltalignParam.isOldVersion()) {
-      return;
-    }
-    long correctionBinning = getBackwardCompatibleAlignBinning(axisID);
-    long currentBinning = getStackBinning(axisID, ".preali");
-    if (tiltalignParam.upgradeOldVersion(correctionBinning, currentBinning)) {
-      comScriptMgr.saveAlign(tiltalignParam, axisID);
-    }
-  }
-  
-  private final SplittiltParam updateSplittiltParam(AxisID axisID) {
-    TomogramGenerationDialog dialog = (TomogramGenerationDialog) getDialog(
-        DialogType.TOMOGRAM_GENERATION, axisID);
-    if (dialog == null) {
-      return null;
-    }
-    SplittiltParam param = new SplittiltParam(axisID);
-    if (!dialog.getParameters(param)) {
-      return null;
-    }
-    return param;
-  }
-  
-  public boolean splittilt(AxisID axisID,
-      ParallelProgressDisplay parallelProgressDisplay) {
-    return splittilt(axisID, parallelProgressDisplay, false);
-  }
-  
-  public boolean splittilt(AxisID axisID,
-      ParallelProgressDisplay parallelProgressDisplay, boolean trialMode) {
-    if (!updateTiltCom(axisID, !trialMode)) {
-      return false;
-    }
-    SplittiltParam splittiltParam = updateSplittiltParam(axisID);
-    if (splittiltParam == null) {
-      return false;
-    }
-    processTrack.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
-    mainPanel.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
-    setNextProcess(axisID, ProcesschunksParam.COMMAND_NAME);
-    String threadName;
-    try {
-      threadName = processMgr.splittilt(splittiltParam, axisID);
-    }
-    catch (SystemProcessException e) {
-      e.printStackTrace();
-      String[] message = new String[2];
-      message[0] = "Can not execute " + SplittiltParam.COMMAND_NAME;
-      message[1] = e.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to execute command", axisID);
-      return false;
-    }
-    setThreadName(threadName, axisID);
-    mainPanel.startProgressBar("Running " + SplittiltParam.COMMAND_NAME, axisID);
-    return true;
-  }
-  
-  /**
-   * Run processchunks.  Function can be public.
-   * @param axisID
-   */
-  private final void processchunks(AxisID axisID) {
-    resetNextProcess(axisID);
-    TomogramGenerationDialog dialog = mapGenerationDialog(axisID);
-    if (dialog == null) {
-      return;
-    }
-    ProcesschunksParam param = new ProcesschunksParam(axisID);
-    dialog.getParameters(param);
-    processTrack.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
-    mainPanel.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
-    String threadName;
-    try {
-      threadName = processMgr.processchunks(axisID, param, dialog.getParallelProgressDisplay());
-    }
-    catch (SystemProcessException e) {
-      e.printStackTrace();
-      String[] message = new String[2];
-      message[0] = "Can not execute " + ProcesschunksParam.COMMAND_NAME;
-      message[1] = e.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to execute command", axisID);
-      return;
-    }
-    setThreadName(threadName, axisID);
-    //mainPanel.startProgressBar("Running " + ProcesschunksParam.COMMAND_NAME, axisID);
-  }
-
-  public void signalTiltCompleted(AxisID axisID) {
-    TomogramGenerationDialog tomogramGenerationDialog = mapGenerationDialog(axisID);
-    if (tomogramGenerationDialog == null) {
-      return;
-    }
-    tomogramGenerationDialog.signalTiltCompleted();
-  }
-  
-  public void signalTiltError(AxisID axisID) {
-    TomogramGenerationDialog tomogramGenerationDialog = mapGenerationDialog(axisID);
-    if (tomogramGenerationDialog == null) {
-      return;
-    }
-    tomogramGenerationDialog.signalTiltError();
-  }
-  
-  public void signalTiltKilled(AxisID axisID) {
-    TomogramGenerationDialog tomogramGenerationDialog = mapGenerationDialog(axisID);
-    if (tomogramGenerationDialog == null) {
-      return;
-    }
-    tomogramGenerationDialog.signalTiltKilled();
-  }
-  
-  final void setPauseButton(AbstractButton pauseButton) {
-    
-  }
-}
