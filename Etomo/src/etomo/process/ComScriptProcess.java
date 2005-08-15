@@ -19,6 +19,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.26  2005/08/04 19:44:27  sueh
+ * bug# 532 Added getCurrentStdOutput to implement interface.
+ *
  * Revision 3.25  2005/07/29 00:51:29  sueh
  * bug# 709 Going to EtomoDirector to get the current manager is unreliable
  * because the current manager changes when the user changes the tab.
@@ -869,5 +872,25 @@ public class ComScriptProcess
       return endState;
     }
     return processMonitor.getProcessEndState();
+  }
+  
+  public void kill(AxisID axisID) {
+    processManager.signalKill(this, axisID);
+  }
+  
+  public void pause(AxisID axisID) {
+    throw new IllegalStateException("pause is not used by any ComScriptProcess");
+  }
+  
+  public void signalKill(AxisID axisID) {
+    processManager.signalKill(this, axisID);
+  }
+  
+  public void signalInterrupt(AxisID axisID) {
+    throw new IllegalStateException("signalInterrupt is not used by any ComScriptProcess");
+  }
+  
+  public void setCurrentStdInput(String input) {
+    throw new IllegalStateException("no ComScriptProcess writes to standard input while the process is running");
   }
 }
