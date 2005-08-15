@@ -16,13 +16,16 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 1.2  2004/06/19 21:12:54  mast
+c	  Added ability to filter a 3D FFT, with no new options
+c	
 c	  Revision 1.1  2004/03/30 18:55:42  mast
 c	  Addition to package
 c	
 c
 	implicit none
 	integer idim,limmtf,limstockcurves,limstockpoints
-	parameter (idim=4150*4150,limmtf=8193)
+	parameter (idim=8192*8192,limmtf=8193)
 	parameter (limstockcurves=1,limstockpoints=36)
 	COMMON //NX,NY,NZ
 C
