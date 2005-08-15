@@ -1372,12 +1372,13 @@ void ivwCheckWildFlag(Imod *imod)
 
 
 /*
- * Return the current image coordinate system.
+ * Return the current image coordinate system into members of an IrefImage
  * This will take into account the transformations
  * in the MRC header along with the command line
  * sub area options.
  *
  * Fixed 3-17-96 Transform for the -Y command line option.
+ * 8/14/05: changed to fill the c... members instead of the o... members
  *
  */
 IrefImage *ivwGetImageRef(ImodView *vi)
@@ -1387,7 +1388,8 @@ IrefImage *ivwGetImageRef(ImodView *vi)
   float xtrans, ytrans, ztrans;
   float xrot, yrot, zrot;
      
-  if (!ref) return(NULL);
+  if (!ref) 
+    return(NULL);
 
   xscale = vi->image->xscale;
   yscale = vi->image->yscale;
@@ -1399,54 +1401,58 @@ IrefImage *ivwGetImageRef(ImodView *vi)
   yrot = vi->image->yrot;
   zrot = vi->image->zrot;
 
-  ref->oscale.x = xscale;
-  ref->oscale.y = yscale;
-  ref->oscale.z = zscale;
+  ref->cscale.x = xscale;
+  ref->cscale.y = yscale;
+  ref->cscale.z = zscale;
 
   /* DNM 11/5/98: need to scale the load-in offsets before adding them */
-  ref->otrans.x = xtrans - xscale * vi->li->xmin * vi->xybin;
-  ref->otrans.y = ytrans - yscale * vi->li->ymin * vi->xybin;
-  ref->otrans.z = ztrans - zscale * vi->li->zmin * vi->zbin;
+  ref->ctrans.x = xtrans - xscale * vi->li->xmin * vi->xybin;
+  ref->ctrans.y = ytrans - yscale * vi->li->ymin * vi->xybin;
+  ref->ctrans.z = ztrans - zscale * vi->li->zmin * vi->zbin;
 
   /* DNM 12/19/98: if using piece lists, need to subtract the minimum
      values as well */
   if(vi->li->plist) {
-    ref->otrans.x -= xscale * vi->li->opx * vi->xybin;
-    ref->otrans.y -= yscale * vi->li->opy * vi->xybin;
-    ref->otrans.z -= zscale * vi->li->opz;
+    ref->ctrans.x -= xscale * vi->li->opx * vi->xybin;
+    ref->ctrans.y -= yscale * vi->li->opy * vi->xybin;
+    ref->ctrans.z -= zscale * vi->li->opz;
   }
 
   /* DNM 11/5/98: tilt angles were not being passed back.  Start passing
      them through so that they will start being saved in model IrefImage */
-  ref->orot.x = xrot;
-  ref->orot.y = yrot;
-  ref->orot.z = zrot;
+  ref->crot.x = xrot;
+  ref->crot.y = yrot;
+  ref->crot.z = zrot;
   return(ref);
 }
 
-
-
+/*
+ * Set up the IrefImage structure specifying the model transformation
+ * ctrans, cscale, crot are set to values based upon the current image load.
+ * otrans is set with the image header origin values.
+ * orot and oscale are irrelevant and not maintained
+ */
 void ivwSetModelTrans(ImodView *vi)
 {
   Imod *imod = vi->imod;
   IrefImage *ref, *iref;
 
+  // If there is not an existing refImage, get a new one
   if (!imod->refImage){
     imod->refImage = (IrefImage *) malloc (sizeof(IrefImage));
-    if (!imod->refImage) return;
-    ref  = imod->refImage;
-    iref = ivwGetImageRef(vi);
-    ref->oscale = iref->oscale;
-    ref->otrans = iref->otrans;
-    ref->orot   = iref->orot;
-  }else{
-    ref  = imod->refImage;
-    iref = ivwGetImageRef(vi);
+    if (!imod->refImage) 
+      return;
   }
 
-  ref->cscale = iref->oscale;
-  ref->ctrans = iref->otrans;
-  ref->crot   = iref->orot;
+  // Get the current image transformation data and copy to model structure
+  ref  = imod->refImage;
+  iref = ivwGetImageRef(vi);
+  if (!iref)
+    return;
+
+  ref->cscale = iref->cscale;
+  ref->ctrans = iref->ctrans;
+  ref->crot   = iref->crot;
 
   if (vi->li->axis == 2)
     imod->flags |= IMODF_FLIPYZ;
@@ -1492,7 +1498,7 @@ void ivwFlipModel(ImodView *vi)
   return;
 }
 
-/* Transformes model so that it matches image coordinate system.
+/* Transforms model so that it matches image coordinate system.
  */
 void ivwTransModel(ImodView *vi)
 {
@@ -1504,28 +1510,30 @@ void ivwTransModel(ImodView *vi)
   Imat  *mat;
   int    ob, co, pt;
   int    me, i;
-  float  sizeScale;
   Imesh *mesh;
 
   /* If model doesn't have a reference coordinate system
    * from an image, then use this image's coordinate
-   * system and return;
+   * system and return, unless there is binning;
    */
-  if ((!ImodTrans) || (!vi->imod->refImage)){
+  if ((!ImodTrans) || (!vi->imod->refImage)) {
     ivwSetModelTrans(vi);
-    return;
+    if ((!ImodTrans) || (!vi->imod->refImage) || (vi->xybin * vi->zbin == 1))
+      return;
   }
 
   /* Try and get the coordinate system that we will
    * transform the model to match.
+   * Set the old members if iref to the model's current members
    */
   iref = ivwGetImageRef(vi);
-  if (!iref) return;
+  if (!iref) 
+    return;
 
   mat = imodMatNew(3);
-  iref->crot   = vi->imod->refImage->crot;
-  iref->ctrans = vi->imod->refImage->ctrans;
-  iref->cscale = vi->imod->refImage->cscale;
+  iref->orot   = vi->imod->refImage->crot;
+  iref->otrans = vi->imod->refImage->ctrans;
+  iref->oscale = vi->imod->refImage->cscale;
 
   /* transform model to new coords */
 
@@ -1538,11 +1546,11 @@ void ivwTransModel(ImodView *vi)
   /* First transform to "absolute" image coords using old reference 
      image data */
   imodMatId(mat);
-  imodMatScale(mat, &iref->cscale);
+  imodMatScale(mat, &iref->oscale);
   
-  pnt.x =  - iref->ctrans.x;
-  pnt.y =  - iref->ctrans.y;
-  pnt.z =  - iref->ctrans.z;
+  pnt.x =  - iref->otrans.x;
+  pnt.y =  - iref->otrans.y;
+  pnt.z =  - iref->otrans.z;
   imodMatTrans(mat, &pnt);
 
 
@@ -1553,27 +1561,26 @@ void ivwTransModel(ImodView *vi)
   if (imod->flags & IMODF_TILTOK && (iref->crot.x != iref->orot.x || 
                                      iref->crot.y != iref->orot.y || 
                                      iref->crot.z != iref->orot.z )) {
-    imodMatRot(mat, - iref->crot.x, b3dX);
-    imodMatRot(mat, - iref->crot.y, b3dY);
-    imodMatRot(mat, - iref->crot.z, b3dZ);
+    imodMatRot(mat, - iref->orot.x, b3dX);
+    imodMatRot(mat, - iref->orot.y, b3dY);
+    imodMatRot(mat, - iref->orot.z, b3dZ);
 
     /* Next transform from these "absolute" coords to new reference
        image coords */
 
-    imodMatRot(mat, iref->orot.z, b3dZ);
-    imodMatRot(mat, iref->orot.y, b3dY);
-    imodMatRot(mat, iref->orot.x, b3dX);
+    imodMatRot(mat, iref->crot.z, b3dZ);
+    imodMatRot(mat, iref->crot.y, b3dY);
+    imodMatRot(mat, iref->crot.x, b3dX);
   }
 
-  imodMatTrans(mat, &iref->otrans);
+  imodMatTrans(mat, &iref->ctrans);
 
-  pnt.x = 1. / (iref->oscale.x * vi->xybin);
-  pnt.y = 1. / (iref->oscale.y * vi->xybin);
-  pnt.z = 1. / (iref->oscale.z * vi->zbin);
+  pnt.x = 1. / (iref->cscale.x * vi->xybin);
+  pnt.y = 1. / (iref->cscale.y * vi->xybin);
+  pnt.z = 1. / (iref->cscale.z * vi->zbin);
   imodMatScale(mat, &pnt);
 
-  sizeScale = (float)(sqrt((iref->cscale.x * iref->cscale.y) / 
-                           (iref->oscale.x * iref->oscale.y)) / vi->xybin);
+  // DNM 8/14/05: eliminated sizeScale
           
   for (ob = 0; ob < imod->objsize; ob++){
     obj = &(imod->obj[ob]);
@@ -2493,6 +2500,9 @@ void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin,
 
 /*
 $Log$
+Revision 4.35  2005/03/20 19:55:36  mast
+Eliminating duplicate functions
+
 Revision 4.34  2005/02/19 01:29:38  mast
 Added function to clear extra object
 
