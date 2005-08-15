@@ -1,8 +1,14 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-8/11/05: Added a context menu for the 3dmod buttons with options Open in startup
-window and Bin by 2.  Added the same options with checkboxes to the Options
-pulldown menu.
+8/14/05: Fixed model scaling in 3dmod when opening an externally created model
+(e.g. .resmod) on binned data.
+
+8/14/05: Fixed opening 3dmod with startup dialog when an image file argument
+has spaces in the path.
+
+8/11/05: Added a context menu when right-clicking on the 3dmod buttons in
+eTomo with options Open in startup window and Bin by 2.  Added the same
+options with checkboxes to the Options pulldown menu.
 
 8/9/05: Fixed View Match Check Volume button in Combine Tomograms, which was
 failing.
