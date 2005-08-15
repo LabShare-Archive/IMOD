@@ -1,5 +1,6 @@
 package etomo.process;
 
+import etomo.type.AxisID;
 import etomo.type.ProcessEndState;
 
 /**
@@ -31,9 +32,17 @@ public interface SystemProcessInterface {
   public String getShellProcessID();
   public void notifyKilled();
   public void setProcessEndState(ProcessEndState endState);
+  public void pause(AxisID axisID);
+  public void kill(AxisID axisID);
+  public void signalKill(AxisID axisID);
+  public void signalInterrupt(AxisID axisID);
+  public void setCurrentStdInput(String input);
 }
 /**
 * <p> $Log$
+* <p> Revision 3.3  2005/08/04 19:52:07  sueh
+* <p> bug# 532 Added getCurrentStdOutput() for processchunks monitor.
+* <p>
 * <p> Revision 3.2  2005/07/26 21:46:49  sueh
 * <p> bug# 701 Changed notifyKill() to notifyKilled().  Added
 * <p> setProcessendState().
