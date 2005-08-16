@@ -17,6 +17,11 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.18  2005/08/15 18:27:07  sueh
+ * <p> bug# 532 Added setCurrentStdInput() to allow a string to be sent to the
+ * <p> process while it is running.  Changes run() to close the standard input
+ * <p> stream after the process is done.
+ * <p>
  * <p> Revision 3.17  2005/07/29 00:52:55  sueh
  * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
  * <p> because the current manager changes when the user changes the tab.
@@ -334,7 +339,8 @@ public class SystemProgram implements Runnable {
       //  Create a buffered writer to handle the stdin, stdout and stderr
       //  streams of the process
       cmdInputStream = process.getOutputStream();
-      cmdInBuffer = new BufferedWriter(new OutputStreamWriter(cmdInputStream));
+      cmdInBuffer =
+        new BufferedWriter(new OutputStreamWriter(cmdInputStream));
 
       InputStream cmdOutputStream = process.getInputStream();
       BufferedReader cmdOutputBuffer =
@@ -366,6 +372,7 @@ public class SystemProgram implements Runnable {
           cmdInputStream.flush();
         }
       }
+      cmdInputStream.close();
 
       if (debug) {
         System.err.println("Done writing to process stdin");
@@ -489,12 +496,6 @@ public class SystemProgram implements Runnable {
     }
 
     //  Set the done flag for the thread
-    try {
-      cmdInputStream.close();
-    }
-    catch (IOException e) {
-      e.printStackTrace();
-    }
     done = true;
   }
 
