@@ -352,14 +352,15 @@ EOF
     echo 'DLLSTOCOPY1 = libCEPCF90MD.dll libF90MD.dll libIEPCF90MD.dll libPCEPCF90MD.dll libintrinsMD.dll libmmd.dll' >> $configure
     echo 'DLLSOURCEDIR2 = C:/Program Files/GnuWin32/bin' >> $configure
     echo 'DLLSTOCOPY2 = libtiff.dll libjpeg.dll zlib.dll' >> $configure
+
+    # Build imodwincpu
+    #
+    echo 'IMODWINCPU = imodwincpu.exe' >> $configure
 else
     set makefile_ext = dummy
     set makefile_dirs = ($midas_dir $imod_dir $sendevent_dir $libdiaqt_dir $plugsrc_dir $qtassist_dir $sourcedoc_dir)
     set sourcedoc_exe = '$(VCEXEDIR)/sourcedoc'
 
-    # Build imodwincpu
-    #
-    echo 'IMODWINCPU = imodwincpu.exe' >> $configure
 endif
 
 
