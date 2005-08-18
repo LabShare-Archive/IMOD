@@ -8,6 +8,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.9  2005/07/06 20:54:20  mast
+#  Removed fallback for imodtrans; regular n32 build now works
+#
 #  Revision 3.8  2004/09/28 22:18:46  mast
 #  Removed parselist entries since it is libimod now
 #
@@ -42,7 +45,7 @@ IILIBS    = $(LIMOD) $(LIIMOD) $(TIFFLIBS)
 PROGS = imodauto$(E) imodinfo$(E) imodmesh$(E) imodtrans$(E) imodmop$(E) \
  imodcmopp$(E) rec2imod$(E) imod2rib$(E) imod2vrml$(E) imod2meta$(E) \
  wmod2imod$(E) imodjoin$(E) imodextract$(E) imodsortsurf$(E) imodexplode$(E) \
- patch2imod$(E) imod2patch$(E) echo2$(E) imodfillin$(E)
+ patch2imod$(E) imod2patch$(E) echo2$(E) imodfillin$(E) $(IMODWINCPU)
 
 all : $(PROGS)
 
@@ -105,6 +108,9 @@ echo2$(E) : echo2.$(O)
 
 imodfillin$(E) : imodfillin.$(O)
 	$(CC) -o imodfillin imodfillin.$(O) $(LDFLAGS) $(LIMOD) $(CLIBS)
+
+imodwincpu.exe : imodwincpu.obj
+	$(CC) -o imodwincpu imodwincpu.obj $(LDFLAGS)
 
 install : $(PROGS)
 	strip $(PROGS)
