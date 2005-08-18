@@ -356,6 +356,10 @@ else
     set makefile_ext = dummy
     set makefile_dirs = ($midas_dir $imod_dir $sendevent_dir $libdiaqt_dir $plugsrc_dir $qtassist_dir $sourcedoc_dir)
     set sourcedoc_exe = '$(VCEXEDIR)/sourcedoc'
+
+    # Build imodwincpu
+    #
+    echo 'IMODWINCPU = imodwincpu.exe' >> $configure
 endif
 
 
