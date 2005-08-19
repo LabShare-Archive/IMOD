@@ -1154,7 +1154,7 @@ unsigned char **mrc_read_byte(FILE *fin,
 {
   int  i, j, k;
   unsigned int ui;
-  int  pindex;
+  int  pindex, bytesRead;
   unsigned int xysize;               /* Size of each image.       */
   int xsize, ysize, zsize;  /* Size needed to be loaded. */
   int xoff,  yoff,  zoff;   /* Offsets into image data.  */
@@ -1186,6 +1186,9 @@ unsigned char **mrc_read_byte(FILE *fin,
   unsigned char *map = NULL;
   int freeMap = 0;
   b3dUInt16 *usdata;
+
+  /* Max # of bytes in full lines before reiterating the status output */
+  int statusLimit = 4000000;   
 
   /* check input */
   if (!fin)
@@ -1373,6 +1376,7 @@ unsigned char **mrc_read_byte(FILE *fin,
       (*func)(statstr);
     }
     pindex = 0;
+    bytesRead = 0;
     if (seek_row)
       fseek(fin, seek_row, SEEK_CUR);
 
@@ -1480,12 +1484,25 @@ unsigned char **mrc_read_byte(FILE *fin,
         break;
       }
 
+      /* Keep track of total number of bytes on full lines that were probably
+         read from disk and report status more frequently for large images so 
+         3dmod can process messages */
+      if (func != ( void (*)() ) NULL) {
+        bytesRead += dsize * hdata->nx;
+        if (bytesRead > statusLimit) {
+          (*func)(statstr);
+          bytesRead = 0;
+        }
+      }
+
       /* Finish line, section, free memory */
       if (seek_endline)
         fseek(fin, seek_endline, SEEK_CUR);
     }
     if (seek_endrow)
       fseek(fin, seek_endrow, SEEK_CUR);
+
+
   }
   free(bdata);
   if (freeMap)
@@ -2043,6 +2060,9 @@ void mrc_swap_floats(float *data, int amt)
 
 /*
 $Log$
+Revision 3.24  2005/05/09 15:16:05  mast
+Documentation - not finished
+
 Revision 3.23  2005/02/11 01:42:33  mast
 Warning cleanup: implicit declarations, main return type, parentheses, etc.
 
