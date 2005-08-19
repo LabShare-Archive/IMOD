@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/19/05: Made image loading routine allow 3dmod to respond to messages
+periodically while reading a large section.
+
 8/15/05: Increased array limits in Mtffilter to allow 8K x 8K image.
 
 8/14/05: Increased array limits in Beadtrack to allow 48x48 boxes for 500 
