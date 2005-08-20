@@ -27,6 +27,10 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.10  2005/07/24 17:33:15  mast
+c	  Increased allowed overlap in xcorredge up to 600 pixels but kept arrays
+c	  on stack
+c	
 c	  Revision 3.9  2005/06/03 19:39:04  mast
 c	  Added routine for writing binned output
 c	
@@ -800,7 +804,7 @@ c
 	integer*4 intxgrid,intygrid,nmult,intscan,ipclo,ipcup,ipc,mltco
 	integer*4 i,j,itmp,midcoord,mindiff,imult,imid,middone,indlow
 	integer*4 indup,ixdisp,iydisp,ixdispmid,iydispmid,lastedge
-	integer*4 lastxdisp,lastydisp,idiff,jedge,nxgr,nygr,ix,iy
+	integer*4 lastxdisp,lastydisp,idiff,jedge,nxgr,nygr,ix,iy,indentXcorr
 	real*4 xdisp,ydisp,theta,dxedge,dyedge,dxmid,dymid,xdispl,ydispl
 	real*4 costh,sinth,xrel,yrel,thetamid,delIndent(2)
 	integer*4 memlow,memup,indentUse(2)
@@ -906,8 +910,10 @@ c
 		xdisp=edgedispx(jedge,ixy)
 		ydisp=edgedispy(jedge,ixy)
 	      else
+		call getXcorrBorder(ipiecelower(jedge,ixy),
+     &		    ipieceupper(jedge,ixy), indentXcorr)
 		call xcorredge(array(indlow),array(indup),
-     &		    nxyzin, noverlap,ixy,xdisp,ydisp,xclegacy)
+     &		    nxyzin, noverlap,ixy,xdisp,ydisp,xclegacy,indentXcorr)
 		edgedispx(jedge,ixy)=xdisp
 		edgedispy(jedge,ixy)=ydisp
 	      endif
@@ -1394,7 +1400,7 @@ c
 
 
 	subroutine xcorredge(crray,drray,nxy,noverlap,ixy,xdisp,ydisp,
-     &	    legacy)
+     &	    legacy, indentXC)
 	real*4 crray(*),drray(*)
 	integer*4 nxy(*),noverlap(*)
 c	  
@@ -1404,12 +1410,12 @@ c
 	parameter (idimt=600*1200, idimc=1150*2300)
 	real*4 trray(idimt)
 	complex*8 array(idimc/2), brray(idimc/2)
-	integer*4 nxybox(2),ind0(2),ind1(2),idispl(2)
+	integer*4 nxybox(2),ind0(2),ind1(2),idispl(2), indentXC
 	real*4 ctf(8193),rdispl(2)
 	logical legacy
 
 	aspectmax=2.0				!maximum aspect ratio of block
-	indent=5				!indent for sdsearch
+	indent=5+indentXC				!indent for sdsearch
 	overfrac=0.9				!fraction of overlap to use
 	niter=4					!iterations for sdsearch
 	limstep=10				!limiting distance
@@ -1417,13 +1423,13 @@ c
 c	  find size and limits of box in overlap zone to cut out
 c
 	iyx=3-ixy
-	nxybox(ixy)=noverlap(ixy)
+	nxybox(ixy)=noverlap(ixy) - indentXC * 2
 	nxybox(iyx)=min(nxy(iyx), int(aspectmax*noverlap(ixy)))
 c	nxybox(iyx)=nxy(iyx)
 	ind0(iyx)=nxy(iyx)/2 - nxybox(iyx)/2 
 	ind1(iyx)=nxy(iyx)/2 + nxybox(iyx)/2 - 1
-	ind0(ixy)=nxy(ixy)-noverlap(ixy)
-	ind1(ixy)=nxy(ixy)-1
+	ind0(ixy)=nxy(ixy) - noverlap(ixy) + indentXC
+	ind1(ixy)=nxy(ixy) - 1 - indentXC
 c	  
 c	  get the padded size and the taper extents
 c
@@ -1448,8 +1454,8 @@ c
 c
 c	  get the second image, upper piece
 c
-	ind0(ixy)=0
-	ind1(ixy)=noverlap(ixy)-1
+	ind0(ixy)=indentXC
+	ind1(ixy)=noverlap(ixy) - 1 - indentXC
 c
 	call irepak(trray, drray,nxy(1),nxy(2),ind0(1),ind1(1),ind0(2),
      &	    ind1(2))
@@ -1842,6 +1848,40 @@ c
 	    dsum8 = dsum8 + brray(ix)
 	  enddo
 	  call iwrlin(iunit, brray)
+	enddo
+	return
+	end
+
+
+c	  getXcorrBorder computes a border or indent for cross-correlations
+c	  when there are distortion corrections, based upon the maximum 
+c	  distortion vector along any edge of the two pieces, whose numbers
+c	  are given by IPCLOW and IPCUP.  The indent is returned in indentXC.
+
+	subroutine getXcorrBorder(ipclow, ipcup, indentXC)
+	implicit none
+	include 'blend.inc'
+	integer*4 ipclow, ipcup, indentXC, ind, j, ix, iy
+
+	indentXC = 0
+	if (.not. doFields) return
+	ind = memIndex(ipclow)
+c	  
+c	  Field vectors pointing negative on the bottom and left or positive
+c	  on the top and right move pixels into the interior and create an
+c	  edge in the undistorted image
+c
+	do j = 1, 2
+	  do ix = 1, nxField
+	    indentXC = max(indentXC, int(-fieldDy(ix, 1, ind)) + 1)
+	    indentXC = max(indentXC, int(fieldDy(ix, nyField, ind)) + 1)
+	  enddo
+	  do iy = 1, nyField
+	    indentXC = max(indentXC, int(-fieldDx(1, iy, ind)) + 1)
+	    indentXC = max(indentXC, int(fieldDx(nxField, iy, ind)) + 1)
+	  enddo
+	  ind = memIndex(ipcup)
+c	  print *,'indent', j, indentXC
 	enddo
 	return
 	end

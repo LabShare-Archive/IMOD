@@ -130,7 +130,7 @@ c
 	real*4 dy3,dx3,bx,by,emin,w4,f4b11,f4b12,f4b21,f4b22,dden14,dden43
 	integer*4 ipiece3,ipiece4,nxgr,nygr,indbray1,indbray2,jndp4
 	real*4 x4,y4,dx4,dy4,f34,xg,yg, delDmagPerUm, delRotPerUm
-	integer*4 iBinning, nyWrite, nlineTot
+	integer*4 iBinning, nyWrite, nlineTot,indentXC
 	integer*4 lineOffset, ixOffset, iyOffset, linesBuffered, iBufferBase
 	integer*4 imodBackupFile
 	real*4 sind,cosd,oneintrp
@@ -1266,8 +1266,10 @@ c		      if they aren't already available
 c		      
 		    call shuffler(ipiecelower(iedge,ixy),indlo)
 		    call shuffler(ipieceupper(iedge,ixy),indup)
+		    call getXcorrBorder(ipiecelower(iedge,ixy), 
+     &			ipieceupper(iedge,ixy),indentXC)
 		    call xcorredge(array(indlo),array(indup),
-     &			nxyzin, noverlap,ixy,xdisp,ydisp,xclegacy)
+     &			nxyzin, noverlap,ixy,xdisp,ydisp,xclegacy,indentXC)
 		    edgedispx(iedge,ixy)=xdisp
 		    edgedispy(iedge,ixy)=ydisp
 		  endif
@@ -2452,6 +2454,9 @@ c
 
 c
 c	  $Log$
+c	  Revision 3.16  2005/06/03 19:38:48  mast
+c	  Added ability to bin output when single frame only
+c	
 c	  Revision 3.15  2005/04/07 14:18:46  mast
 c	  Fixed line length on error message
 c	
