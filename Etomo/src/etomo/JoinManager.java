@@ -11,6 +11,7 @@ import etomo.comscript.FlipyzParam;
 import etomo.comscript.MakejoincomParam;
 import etomo.comscript.MidasParam;
 import etomo.comscript.XfalignParam;
+import etomo.process.BaseProcessManager;
 import etomo.process.ImodManager;
 import etomo.process.ImodProcess;
 import etomo.process.JoinProcessManager;
@@ -48,6 +49,10 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.20  2005/08/11 23:23:19  sueh
+* <p> bug# 711  Change join 3dmod buttons to Run3dmodButton.  These
+* <p> 3dmod configurations should not be binned in Z.
+* <p>
 * <p> Revision 1.19  2005/08/04 19:07:52  sueh
 * <p> bug# 532 added packDialogs() to request sizing functionality that is not
 * <p> performed by pack().
@@ -905,9 +910,22 @@ public class JoinManager extends BaseManager {
     processMgr.kill(axisID);
   }
   
+  /**
+   * Interrupt the currently running thread for this axis
+   * 
+   * @param axisID
+   */
+  public void pause(AxisID axisID) {
+    throw new IllegalStateException("pause is not available in join");
+  }
+  
   public final void packDialogs(AxisID axisID) {
   }
   
   public final void packDialogs() {
+  }
+  
+  protected BaseProcessManager getProcessManager() {
+    return processMgr;
   }
 }
