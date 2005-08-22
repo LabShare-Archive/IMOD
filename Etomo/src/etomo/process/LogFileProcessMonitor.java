@@ -25,6 +25,11 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.18  2005/08/15 18:21:38  sueh
+ * <p> bug# 532  Added kill and pause functions to implement ProcessMonitor.
+ * <p> Only kill is valid to use with this class.  Allows processchunks to signal
+ * <p> interrupt instead of kill.
+ * <p>
  * <p> Revision 3.17  2005/08/04 19:45:07  sueh
  * <p> bug# 532 Added empty setProcess() to implement ProcessMonitor.
  * <p>
@@ -375,5 +380,9 @@ public abstract class LogFileProcessMonitor implements ProcessMonitor {
   
   public void pause(SystemProcessInterface process, AxisID axisID) {
     throw new IllegalStateException("can't pause process");
+  }
+  
+  public String getStatusString() {
+    return null;
   }
 }
