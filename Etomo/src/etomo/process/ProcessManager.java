@@ -20,6 +20,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.74  2005/08/15 18:24:24  sueh
+ * bug# 532 deleted commented out code in processchunks().
+ *
  * Revision 3.73  2005/08/04 19:47:32  sueh
  * bug# 532 Removed demo functions and added a monitor to
  * processchunks.
@@ -775,7 +778,6 @@ public class ProcessManager extends BaseProcessManager {
    *          the AxisID to erase.
    */
   public String eraser(AxisID axisID) throws SystemProcessException {
-
     // Create the process monitor
     CCDEraserProcessMonitor ccdEraserProcessMonitor = new CCDEraserProcessMonitor(
         appManager, axisID);
@@ -1280,17 +1282,16 @@ public class ProcessManager extends BaseProcessManager {
    */
   public final String processchunks(AxisID axisID, ProcesschunksParam param,
       ParallelProgressDisplay parallelProgressDisplay)
-  throws SystemProcessException {
+      throws SystemProcessException {
     //  Instantiate the process monitor
-    ProcesschunksProcessMonitor monitor = new ProcesschunksProcessMonitor(appManager,
-        axisID, parallelProgressDisplay);
+    ProcesschunksProcessMonitor monitor = new ProcesschunksProcessMonitor(
+        appManager, axisID, parallelProgressDisplay, param.getRootName());
 
-    //  Start the com script in the background
-    BackgroundProcess process = startBackgroundProcess(param.getCommand(),
-        axisID, monitor);
+    BackgroundProcess process = startInteractiveBackgroundProcess(param.getCommand(), axisID,
+        monitor);
     return process.getName();
   }
-
+  
   /**
    * Execute the setupcombine script
    * 
@@ -1621,9 +1622,6 @@ public class ProcessManager extends BaseProcessManager {
     }
     else if (processName == ProcessName.UNDISTORT) {
       appManager.setEnabledFixEdgesWithMidas(script.getAxisID());
-    }
-    else if (processName == ProcessName.TILT) {
-      appManager.signalTiltCompleted(script.getAxisID());
     }
   }
 
