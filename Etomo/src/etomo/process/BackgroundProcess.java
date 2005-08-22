@@ -19,6 +19,9 @@ import etomo.type.ProcessEndState;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.12  2005/08/15 18:16:20  sueh
+ * <p> bug# 532 Changed pause() to throw an exception if the monitor isn't set.
+ * <p>
  * <p> Revision 3.11  2005/08/15 18:06:28  sueh
  * <p> bug# 532   Processchunks needs to be killed with an interrupt instead of
  * <p> a kill, so a processchunks specific class has to make the decision of
@@ -164,6 +167,7 @@ public class BackgroundProcess
   private final BaseManager manager;
   private SystemProgram program = null;
   private ProcessMonitor monitor = null;
+  private boolean acceptInputWhileRunning = false;
   
   public BackgroundProcess(BaseManager manager, String commandLine,
       BaseProcessManager processManager, AxisID axisID) {
@@ -337,6 +341,7 @@ public class BackgroundProcess
       processManager.msgBackgroundProcessDone(this, 1);
       return;
     }
+    program.setAcceptInputWhileRunning(acceptInputWhileRunning);
     program.setWorkingDirectory(workingDirectory);
     program.setDebug(debug);
 
@@ -423,8 +428,11 @@ public class BackgroundProcess
     this.endState = ProcessEndState.precedence(this.endState, endState);
   }
   
-  public final ProcessEndState getProcessEndState() {
-    return endState;
+  final ProcessEndState getProcessEndState() {
+    if (monitor == null) {
+      return endState;
+    }
+    return monitor.getProcessEndState();
   }
   
   public void kill(AxisID axisID) {
@@ -457,5 +465,16 @@ public class BackgroundProcess
     if (program != null) {
       program.setCurrentStdInput(input);
     }
+  }
+  
+  void setAcceptInputWhileRunning(boolean acceptInputWhileRunning) {
+    this.acceptInputWhileRunning = acceptInputWhileRunning;
+  }
+  
+  String getStatusString() {
+    if (monitor == null) {
+      return null;
+    }
+    return monitor.getStatusString();
   }
 }
