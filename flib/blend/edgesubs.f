@@ -11,6 +11,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.1  2003/12/12 20:46:48  mast
+c	  Split off from bsubs.f for finddistort to use
+c	
 
 c	  FINDEDGEFUNC finds the edge function relating a piece in ARRAY to a
 c	  piece in BRRAY (dimensions NX by NY).  I[XY]GRIDSTR is the coordinate
@@ -174,13 +177,14 @@ c	  length of overlap in long direction: reduce by displacement
 	len(iyx)=nxy(iyx)-abs(idispl(iyx))
 c
 c	  calculate extent usable within box, # gridpoints, indent to 1st point
+c	  but keep extent from getting negative
 c
 	isl=ixy					!index to short-long variables
 	do i=1,2
-	  nextent=len(i)-iboxsiz(isl)-2*indent(isl)
+	  indentUse = min(indent(isl), (len(i)-iboxsiz(isl)) / 2)
+	  nextent=len(i)-iboxsiz(isl)- 2 * indentUse
 	  ngrid(i)=1+nextent/intgrid(isl)
-	  jndent(i)=indent(isl)
-     &	      +(iboxsiz(isl)+mod(nextent,intgrid(isl)))/2
+	  jndent(i)=indentUse + (iboxsiz(isl)+mod(nextent,intgrid(isl)))/2
 	  isl=iyx
 	enddo
 c

@@ -129,7 +129,8 @@ c
 	real*4 f3b11,f3b12,f3b21,f3b22,dden,dden12,dden13,dden23,x3,y3,x3t,y3t
 	real*4 dy3,dx3,bx,by,emin,w4,f4b11,f4b12,f4b21,f4b22,dden14,dden43
 	integer*4 ipiece3,ipiece4,nxgr,nygr,indbray1,indbray2,jndp4
-	real*4 x4,y4,dx4,dy4,f34,xg,yg, delDmagPerUm, delRotPerUm
+	real*4 x4,y4,dx4,dy4,f34,xg,yg, delDmagPerUm, delRotPerUm, delIndent(2)
+	real*4 dmagnew,rotnew
 	integer*4 iBinning, nyWrite, nlineTot,indentXC
 	integer*4 lineOffset, ixOffset, iyOffset, linesBuffered, iBufferBase
 	integer*4 imodBackupFile
@@ -1266,8 +1267,12 @@ c		      if they aren't already available
 c		      
 		    call shuffler(ipiecelower(iedge,ixy),indlo)
 		    call shuffler(ipieceupper(iedge,ixy),indup)
-		    call getXcorrBorder(ipiecelower(iedge,ixy), 
-     &			ipieceupper(iedge,ixy),indentXC)
+
+		    call getExtraIndents(ipiecelower(iedge,ixy), 
+     &			ipieceupper(iedge,ixy), ixy, delIndent)
+		    indentXC = 0
+		    if (delIndent(ixy) .gt. 0.)
+     &			indentXC = int(delIndent(ixy)) + 1
 		    call xcorredge(array(indlo),array(indup),
      &			nxyzin, noverlap,ixy,xdisp,ydisp,xclegacy,indentXC)
 		    edgedispx(iedge,ixy)=xdisp
@@ -1312,10 +1317,22 @@ c
      &		' edges, mean, max error before:', beforemean,beforemax,
      &		', after from ', edgexcorrtext(indbest),
      &		aftermean(indbest),aftermax(indbest)
-	    if (testMode)write(*,'(a,i4,a,2f8.3,a,2f8.3)')' section:',
+	    if (testMode)then
+	      write(*,'(a,i4,a,2f8.3,a,2f9.4)')' section:',
      &		izsect,'  gradient:',dmagPerUm(min(ilistz, numMagGrad)),
      &		rotPerUm(min(ilistz, numMagGrad)),
-     &		'  mean, max error:', aftermean(indbest),aftermax(indbest)
+     &		  '  mean, max error:', aftermean(indbest),aftermax(indbest)
+	      if (indbest .eq. 1) then
+		call findBestGradient(edgedispx,edgedispy,-1,izsect,h,
+     &		    dmagnew,rotnew)
+	      else
+		call findBestGradient(dxgridmean,dygridmean,1,izsect,h,
+     &		    dmagnew,rotnew)
+	      endif
+	      write(*,'(a,2f9.4)')' Implied total gradient:',
+     &		  dmagPerUm(min(ilistz, numMagGrad))+dmagnew,
+     &		  rotPerUm(min(ilistz, numMagGrad))+rotnew
+	    endif
 	  endif
 c		
 c	    if doing g transforms, get inverse and recenter it from center
@@ -2454,6 +2471,9 @@ c
 
 c
 c	  $Log$
+c	  Revision 3.17  2005/08/20 05:10:48  mast
+c	  Excluded a border region from correlations with distortion corrections
+c	
 c	  Revision 3.16  2005/06/03 19:38:48  mast
 c	  Added ability to bin output when single frame only
 c	

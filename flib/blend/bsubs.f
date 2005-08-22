@@ -18,6 +18,7 @@ c	  XCORREDGE
 c	  PEAKFIND
 c	  FIND_BEST_SHIFTS
 c	  IWRBINNED
+c	  GETEXTRAINDENTS
 c
 c
 c	  $Author$
@@ -27,6 +28,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.11  2005/08/20 05:10:48  mast
+c	  Excluded a border region from correlations with distortion corrections
+c	
 c	  Revision 3.10  2005/07/24 17:33:15  mast
 c	  Increased allowed overlap in xcorredge up to 600 pixels but kept arrays
 c	  on stack
@@ -910,8 +914,11 @@ c
 		xdisp=edgedispx(jedge,ixy)
 		ydisp=edgedispy(jedge,ixy)
 	      else
-		call getXcorrBorder(ipiecelower(jedge,ixy),
-     &		    ipieceupper(jedge,ixy), indentXcorr)
+		call getExtraIndents(ipiecelower(jedge,ixy),
+     &		    ipieceupper(jedge,ixy), ixy, delIndent)
+		indentXcorr = 0
+		if (delIndent(ixy) .gt. 0.)
+     &		    indentXcorr = int(delIndent(ixy)) + 1
 		call xcorredge(array(indlow),array(indup),
      &		    nxyzin, noverlap,ixy,xdisp,ydisp,xclegacy,indentXcorr)
 		edgedispx(jedge,ixy)=xdisp
@@ -969,40 +976,13 @@ c	      displacement of this frame
 c	    
 c	    Determine extra indentation if distortion corrections
 c
-	  delIndent(1) = 0.
-	  delIndent(2) = 0.
-	  if (doFields) then
-	    memlow = memIndex(ipiecelower(jedge,ixy))
-	    memup = memIndex(ipieceupper(jedge,ixy))
-c	      
-c	      The undistorted image moves in the direction opposite to the
-c	      field vector, so positive vectors at the right edge of the lower
-c	      piece move the border in to left and require more indent in
-c	      short direction.
-c
-	    if (ixy .eq. 1) then
-	      do iy = 1, nyField
-		delIndent(1) = max(delIndent(1), fieldDx(nxField, iy, memlow),
-     &		    -fieldDx(1, iy, memup))
-	      enddo
-	      delIndent(2) = max(0., -fieldDy(nxField, 1, memlow),
-     &		  -fieldDy(1, 1, memup), fieldDy(nxField, nyField, memlow),
-     &		  fieldDy(1, nyField, memup))
-	    else
-	      do ix = 1, nxField
-		delIndent(1) = max(delIndent(1), fieldDy(ix, nyField, memlow),
-     &		    -fieldDy(ix, 1, memup))
-	      enddo
-	      delIndent(2) = max(0., -fieldDx(1, nyField, memlow),
-     &		  -fieldDx(1, 1, memup), fieldDx(nxField, nyField, memlow),
-     &		  fieldDx(nxField, 1, memup))
-	    endif
-c	    write(*,'(1x,a,2i4,a,2f5.1)')
-c     &		char(ixy+ichar('W'))//' edge, pieces'
-c     &		,ipiecelower(jedge,ixy),ipieceupper(jedge,ixy),
-c     &		'  extra indents:',delIndent(1),delIndent(2)
-	  endif
-c
+	  call getExtraIndents(ipiecelower(jedge,ixy), ipieceupper(jedge,ixy),
+     &	      ixy, delIndent)
+c	  if (doFields) write(*,'(1x,a,2i4,a,2f5.1)')
+c     &	      char(ixy+ichar('W'))//' edge, pieces'
+c     &	      ,ipiecelower(jedge,ixy),ipieceupper(jedge,ixy),
+c     &	      '  extra indents:',delIndent(1),delIndent(2)
+c	    
 	  indentUse(1) = indent(1) + nint(delIndent(1))
 	  indentUse(2) = indent(2) + nint(delIndent(2))
 	  call setgridchars(nxyzin,noverlap,iboxsiz,indentUse,intgrid,
@@ -1010,7 +990,7 @@ c
 	  lastxdisp=ixdisp
 	  lastydisp=iydisp
 c
-c	  write(*,'(1x,a,2i4,a,2i4,a,2i4,a,2i3)')
+c	  write(*,'(1x,a,2i4,a,2i4,a,2i5,a,2i4)')
 c     &	      char(ixy+ichar('W'))//' edge, pieces'
 c     &	      ,ipiecelower(jedge,ixy),ipieceupper(jedge,ixy),
 c     &	      '  ngrid:',nxgr,nygr,'  start lower:',igrstr,
@@ -1410,12 +1390,12 @@ c
 	parameter (idimt=600*1200, idimc=1150*2300)
 	real*4 trray(idimt)
 	complex*8 array(idimc/2), brray(idimc/2)
-	integer*4 nxybox(2),ind0(2),ind1(2),idispl(2), indentXC
+	integer*4 nxybox(2),ind0(2),ind1(2),idispl(2), indentXC, indentUse
 	real*4 ctf(8193),rdispl(2)
 	logical legacy
 
 	aspectmax=2.0				!maximum aspect ratio of block
-	indent=5+indentXC				!indent for sdsearch
+	indent=5				!indent for sdsearch
 	overfrac=0.9				!fraction of overlap to use
 	niter=4					!iterations for sdsearch
 	limstep=10				!limiting distance
@@ -1423,13 +1403,15 @@ c
 c	  find size and limits of box in overlap zone to cut out
 c
 	iyx=3-ixy
-	nxybox(ixy)=noverlap(ixy) - indentXC * 2
+	indentUse = min(indentXC, (noverlap(ixy) - 8) / 2)
+	indent = indent + indentUse
+	nxybox(ixy)=noverlap(ixy) - indentUse * 2
 	nxybox(iyx)=min(nxy(iyx), int(aspectmax*noverlap(ixy)))
 c	nxybox(iyx)=nxy(iyx)
 	ind0(iyx)=nxy(iyx)/2 - nxybox(iyx)/2 
 	ind1(iyx)=nxy(iyx)/2 + nxybox(iyx)/2 - 1
-	ind0(ixy)=nxy(ixy) - noverlap(ixy) + indentXC
-	ind1(ixy)=nxy(ixy) - 1 - indentXC
+	ind0(ixy)=nxy(ixy) - noverlap(ixy) + indentUse
+	ind1(ixy)=nxy(ixy) - 1 - indentUse
 c	  
 c	  get the padded size and the taper extents
 c
@@ -1454,8 +1436,8 @@ c
 c
 c	  get the second image, upper piece
 c
-	ind0(ixy)=indentXC
-	ind1(ixy)=noverlap(ixy) - 1 - indentXC
+	ind0(ixy)=indentUse
+	ind1(ixy)=noverlap(ixy) - 1 - indentUse
 c
 	call irepak(trray, drray,nxy(1),nxy(2),ind0(1),ind1(1),ind0(2),
      &	    ind1(2))
@@ -1792,6 +1774,205 @@ c
 	end
 
 
+	subroutine findBestGradient(dxgridmean,dygridmean,idir,izsect,h,
+     &	    gradnew,rotnew)
+	implicit none
+	include 'blend.inc'
+	integer*4 idir,izsect
+	real*4 h(2,3,*),gradnew,rotnew
+	real*4 dxgridmean(limedge,2),dygridmean(limedge,2),bavg,bmax
+c	  
+c	  Stuff for amoeba: ftol2 and ptol2 are used the FIRST time
+c
+	integer nvar
+	parameter (nvar = 2)
+	real*4 pp(nvar+1,nvar+1),yy(nvar+1),ptmp(nvar),ptol(nvar), da(nvar)
+	real*4 ptol1, ftol1,ptol2,ftol2,delfac,var(nvar)
+	data da/0.5,0.2/
+	integer*4 jmin, iter, i, j
+	real*4 gradfunc
+	external gradfunc
+c
+	integer*4 nedg, ifTrace, nTrial
+	real*4 residx(limvar),residy(limvar),errMin
+	real*4 gradXcenLo(limvar),gradXcenHi(limvar)
+	real*4 gradYcenLo(limvar),gradYcenHi(limvar)
+	real*4 overXcenLo(limvar),overXcenHi(limvar)
+	real*4 overYcenLo(limvar),overYcenHi(limvar)
+	common /funccom/nedg, ifTrace, nTrial, errMin, residx, residy,
+     &	    gradXcenLo, gradXcenHi, gradYcenLo, gradYcenHi, overXcenLo,
+     &	    overXcenHi, overYcenLo, overYcenHi
+c
+	integer*4 ipc,ipclo,ixy,iedge
+
+	ifTrace = 0
+	ptol1 = 1.e-5
+	ftol1 = 1.e-5
+	ptol2 = 1.e-3
+	ftol2 = 1.e-3
+	delfac = 2.
+
+	nedg = 0
+	do ipc=1,npclist
+	  if (izpclist(ipc).eq.izsect .and. (iedgelower(ipc,1).gt.0.or.
+     &		iedgelower(ipc,2).gt.0)) then
+	    do ixy=1,2
+	      iedge=iedgelower(ipc,ixy)
+	      if (iedge.gt.0) then
+		nedg=nedg+1
+		ipclo=ipiecelower(iedge,ixy)
+c		  
+c		  Get the residual at the edge: the amount the upper piece
+c		  is still displaced away from alignment with lower
+c
+		residx(nedg)=idir*dxgridmean(iedge,ixy)+h(1,3,ipc)-h(1,3,ipclo)
+		residy(nedg)=idir*dygridmean(iedge,ixy)+h(2,3,ipc)-h(2,3,ipclo)
+c		  
+c		  Get center for gradient in each piece
+c
+		if (focusAdjusted) then
+		  gradXcenLo(nedg) = nxin / 2.
+		  gradYcenLo(nedg) = nyin / 2.
+		  gradXcenHi(nedg) = nxin / 2.
+		  gradYcenHi(nedg) = nyin / 2.
+		else
+		  gradXcenLo(nedg) = (minxpiece + nxpieces * (nxin - nxoverlap)
+     &		      + nxoverlap) / 2. - ixpclist(ipclo)
+		  gradYcenLo(nedg) = (minypiece + nypieces * (nyin - nyoverlap)
+     &		      + nyoverlap) / 2. - iypclist(ipclo)
+		  gradXcenHi(nedg) = (minxpiece + nxpieces * (nxin - nxoverlap)
+     &		      + nxoverlap) / 2. - ixpclist(ipc)
+		  gradYcenHi(nedg) = (minypiece + nypieces * (nyin - nyoverlap)
+     &		      + nyoverlap) / 2. - iypclist(ipc)
+		endif
+c		  
+c		  Get center point of overlap zone in each piece
+c
+		if (ixy .eq. 1) then
+		  overXcenLo(nedg) = nxin - nxoverlap/2
+		  overXcenHi(nedg) = nxoverlap/2
+		  overYcenLo(nedg) = nyin/2
+		  overYcenHi(nedg) = nyin/2
+		else
+		  overYcenLo(nedg) = nyin - nyoverlap/2
+		  overYcenHi(nedg) = nyoverlap/2
+		  overXcenLo(nedg) = nxin/2
+		  overXcenHi(nedg) = nxin/2
+		endif
+
+c		write(*, '(i2,2i4,2f6.1, 8f7.0)'),ixy,ipclo,ipc,residx(nedg),
+c     &		    residy(nedg), overXcenLo(nedg),overYcenLo(nedg),
+c     &		    overXcenHi(nedg),overYcenHi(nedg),gradXcenLo(nedg),
+c     &		    gradYcenLo(nedg),gradXcenHi(nedg),gradYcenHi(nedg)
+	      endif
+	    enddo
+	  endif
+	enddo		
+
+c	    
+c	  set up for minimization
+c	  
+	errMin = 1.e30
+	nTrial = 0
+	var(1) = 0.
+	var(2) = 0.
+	do j = 1, nvar+1
+	  do i = 1, nvar
+	    pp(j,i) = var(i)
+	    if(j.gt.1.and.i.eq.j-1)pp(j,i)=var(i)+delfac*da(i)
+	    ptmp(i)=pp(j,i)
+	    ptol(i)=da(i)*ptol2
+	  enddo
+	  yy(j)=gradfunc(ptmp)
+	enddo
+	call amoeba(pp,yy,nvar+1,nvar+1,nvar,ftol2,gradfunc,iter,ptol,jmin)
+c	  
+c	  per Press et al. recommendation, just restart at current location
+c	  
+	do i=1,nvar
+	  pp(1,i)=pp(jmin,i)
+	enddo
+	do j=1,nvar+1
+	  do i=1,nvar
+	    pp(j,i)=pp(1,i)
+	    if(j.gt.1.and.i.eq.j-1)pp(j,i)=pp(1,i)+delfac*da(i) / 4.
+	    ptmp(i)=pp(j,i)
+	    ptol(i)=da(i)*ptol1
+	  enddo
+	  yy(j)=gradfunc(ptmp)
+	enddo
+	call amoeba(pp,yy,nvar+1,nvar+1,nvar,ftol1,gradfunc,iter,ptol,jmin)
+c	    
+c	  recover result
+c	    
+	do i = 1, nvar
+	  var(i) = pp(jmin, i)
+	enddo
+	errMin = gradfunc(var) - 0.001
+	write(*,73)var(1),var(2),errMin
+73	format(' Implied added gradient:',2f9.4,'  mean error:',f10.4)
+	call flush(6)
+	gradnew = var(1)
+	rotnew = var(2)
+	return
+	end
+
+
+	real*4 function gradfunc(p)
+	implicit none
+	real*4 p(*)
+	include 'blend.inc'
+	integer*4 nedg, ifTrace, nTrial
+	real*4 residx(limvar),residy(limvar),errMin
+	real*4 gradXcenLo(limvar),gradXcenHi(limvar)
+	real*4 gradYcenLo(limvar),gradYcenHi(limvar)
+	real*4 overXcenLo(limvar),overXcenHi(limvar)
+	real*4 overYcenLo(limvar),overYcenHi(limvar)
+	common /funccom/nedg, ifTrace, nTrial, errMin, residx, residy,
+     &	    gradXcenLo, gradXcenHi, gradYcenLo, gradYcenHi, overXcenLo,
+     &	    overXcenHi, overYcenLo, overYcenHi
+	real*4 tiltang,errSum,dxlo,dxhi,dylo,dyhi
+	integer*4 ied
+	character*1 starout
+
+	tiltang = tiltAngles(min(ilistz, numMagGrad))
+	nTrial = nTrial + 1
+	errSum =0.
+
+	do ied = 1, nedg
+	  call magGradientShift(overXcenLo(ied), overYcenLo(ied), nxin, nyin,
+     &	      gradXcenLo(ied), gradYcenLo(ied), pixelMagGrad, axisRot,
+     &	      tiltang, p(1), p(2), dxlo, dylo)
+	  call magGradientShift(overXcenHi(ied), overYcenHi(ied), nxin, nyin,
+     &	      gradXcenHi(ied), gradYcenHi(ied), pixelMagGrad, axisRot,
+     &	      tiltang, p(1), p(2), dxhi, dyhi)
+c	    
+c	    Point moves by negative of shift to getto undistorted image
+c	    Displacement changes by negative of upper shift and positive of 
+c	    lower shift
+c
+	  errSum = errSum + sqrt((residx(ied) + dxlo - dxhi)**2 +
+     &	      (residy(ied) + dylo - dyhi)**2)
+	enddo
+	gradfunc = errSum / nedg
+	if (ifTrace .gt. 0) then
+	  starout=' '
+	  if(gradfunc.lt.errMin)then
+	    starout='*'
+	    errMin=gradfunc
+	  endif
+	  if(iftrace.gt.1.or.starout.eq.'*')
+     &	      write(*,72)starout,nTrial,gradfunc, (p(ied), ied = 1,2)
+72	  format(1x,a1,i4,f15.5, 2f9.4)
+	  call flush(6)
+	endif
+c	  
+c	  Amoeba flails on hard zeros so add something
+c
+	gradfunc = gradfunc + 0.001
+	return
+	end
+
 c	  iwrBinned writes the data in ARRAY to unit IUNIT, with binning
 c	  given by IBINNING, using BRRAY as a scratch line.  The data in ARRAY
 c	  are NY lines of length NX.  The output will consist of NYOUT lines
@@ -1853,35 +2034,46 @@ c
 	end
 
 
-c	  getXcorrBorder computes a border or indent for cross-correlations
-c	  when there are distortion corrections, based upon the maximum 
-c	  distortion vector along any edge of the two pieces, whose numbers
-c	  are given by IPCLOW and IPCUP.  The indent is returned in indentXC.
-
-	subroutine getXcorrBorder(ipclow, ipcup, indentXC)
+c	  getExtraIndents computes a border or indent for correlations and
+c	  edge functions when there are distortion corrections, based upon the
+c	  maximum  distortion vector along any edge of the two pieces, whose
+c	  numbers are given by IPCLOW and IPCUP.  IXY specifies the direction
+c	  of the overlap zone.  The indents in X and Y are returned in
+c	  delIndent.
+c
+	subroutine getExtraIndents(ipclow, ipcup, ixy, delIndent)
 	implicit none
 	include 'blend.inc'
-	integer*4 ipclow, ipcup, indentXC, ind, j, ix, iy
-
-	indentXC = 0
-	if (.not. doFields) return
-	ind = memIndex(ipclow)
-c	  
-c	  Field vectors pointing negative on the bottom and left or positive
-c	  on the top and right move pixels into the interior and create an
-c	  edge in the undistorted image
+	integer*4 ipclow, ipcup, ixy, ind, ix, memlow, memup, iy
+	real*4 delIndent(2)
 c
-	do j = 1, 2
-	  do ix = 1, nxField
-	    indentXC = max(indentXC, int(-fieldDy(ix, 1, ind)) + 1)
-	    indentXC = max(indentXC, int(fieldDy(ix, nyField, ind)) + 1)
-	  enddo
+	delIndent(1) = 0.
+	delIndent(2) = 0.
+	if (.not. doFields) return
+	memlow = memIndex(ipclow)
+	memup = memIndex(ipcup)
+c	  
+c	  The undistorted image moves in the direction opposite to the
+c	  field vector, so positive vectors at the right edge of the lower
+c	  piece move the border in to left and require more indent in
+c	  short direction.
+c	  
+	if (ixy .eq. 1) then
 	  do iy = 1, nyField
-	    indentXC = max(indentXC, int(-fieldDx(1, iy, ind)) + 1)
-	    indentXC = max(indentXC, int(fieldDx(nxField, iy, ind)) + 1)
+	    delIndent(1) = max(delIndent(1), fieldDx(nxField, iy, memlow),
+     &		-fieldDx(1, iy, memup))
 	  enddo
-	  ind = memIndex(ipcup)
-c	  print *,'indent', j, indentXC
-	enddo
+	  delIndent(2) = max(0., -fieldDy(nxField, 1, memlow),
+     &	      -fieldDy(1, 1, memup), fieldDy(nxField, nyField, memlow),
+     &	      fieldDy(1, nyField, memup))
+	else
+	  do ix = 1, nxField
+	    delIndent(1) = max(delIndent(1), fieldDy(ix, nyField, memlow),
+     &		-fieldDy(ix, 1, memup))
+	  enddo
+	  delIndent(2) = max(0., -fieldDx(1, nyField, memlow),
+     &	      -fieldDx(1, 1, memup), fieldDx(nxField, nyField, memlow),
+     &	      fieldDx(nxField, 1, memup))
+	endif
 	return
 	end
