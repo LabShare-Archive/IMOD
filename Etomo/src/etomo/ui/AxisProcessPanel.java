@@ -25,6 +25,12 @@ import etomo.type.ProcessEndState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.17  2005/08/09 20:12:51  sueh
+ * <p> bug# 711  No longer inheriting JButton in MultiLineButton.  This allows
+ * <p> MultiLineButton to treate toggling as an attribute.  Then we can get rid of
+ * <p> MultiLineToggleButton.  Then we can have one Run3dmodButton which
+ * <p> can be toggle or non-toggle.
+ * <p>
  * <p> Revision 3.16  2005/07/29 19:47:36  sueh
  * <p> bug# 692 Changed ConstEtomoNumber.getInteger() to getInt.
  * <p>
@@ -176,7 +182,7 @@ public abstract class AxisProcessPanel implements ContextMenu {
   //  Progress panel
   ProgressPanel progressPanel = new ProgressPanel("No process");
   JButton buttonKillProcess = new JButton(KILL_BUTTON_LABEL);
-  MultiLineButton buttonPauseProcess = null;
+  ParallelProgressDisplay parallelProgressDisplay = null;
 
   //  Process select panel
   protected JPanel panelProcessSelect = new JPanel();
@@ -297,13 +303,13 @@ public abstract class AxisProcessPanel implements ContextMenu {
    * @param label
    * @param nSteps
    */
-  public void setProgressBar(String label, int nSteps) {
+  public void setProgressBar(String label, int nSteps, boolean enablePause) {
     progressPanel.setLabel(label);
     progressPanel.setMinimum(0);
     progressPanel.setMaximum(nSteps);
     buttonKillProcess.setEnabled(true);
-    if (buttonPauseProcess != null) {
-      buttonPauseProcess.setEnabled(true);
+    if (parallelProgressDisplay != null) {
+      parallelProgressDisplay.setPauseEnabled(enablePause);
     }
   }
   
@@ -311,24 +317,8 @@ public abstract class AxisProcessPanel implements ContextMenu {
    * manage a pause button
    * @param pauseButton
    */
-  final void setPauseButton(MultiLineButton pauseButton) {
-    buttonPauseProcess = pauseButton;
-    if (buttonPauseProcess != null) {
-      buttonPauseProcess.addActionListener(actionListener);
-      buttonPauseProcess.setEnabled(false);
-    }
-  }
-  
-  /**
-   * stop managing a pause button
-   * @param pauseButton
-   */
-  final void deletePauseButton(MultiLineButton pauseButton) {
-    if (buttonPauseProcess != null && buttonPauseProcess == pauseButton) {
-      buttonPauseProcess.removeActionListener(actionListener);
-      buttonPauseProcess.setEnabled(false);
-      buttonPauseProcess = null;
-    }
+  final void setParallelProgressDisplay(ParallelProgressDisplay parallelProgressDisplay) {
+    this.parallelProgressDisplay = parallelProgressDisplay;
   }
 
   /**
@@ -355,20 +345,17 @@ public abstract class AxisProcessPanel implements ContextMenu {
     progressPanel.setLabel(label);
     progressPanel.start();
     buttonKillProcess.setEnabled(true);
-    if (buttonPauseProcess != null) {
-      buttonPauseProcess.setEnabled(true);
-    }
   }
 
   /**
    * 
    *
    */
-  public void stopProgressBar(ProcessEndState processEndState) {
-    progressPanel.stop(processEndState);
+  public void stopProgressBar(ProcessEndState processEndState, String statusString) {
+    progressPanel.stop(processEndState, statusString);
     buttonKillProcess.setEnabled(false);
-    if (buttonPauseProcess != null) {
-      buttonPauseProcess.setEnabled(false);
+    if (parallelProgressDisplay != null) {
+      parallelProgressDisplay.setPauseEnabled(false);
     }
   }
 

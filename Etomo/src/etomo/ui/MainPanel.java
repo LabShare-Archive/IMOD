@@ -33,6 +33,9 @@ import etomo.type.ProcessEndState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.27  2005/08/09 20:24:50  sueh
+ * <p> bug# 711  No longer inheriting JButton in MultiLineButton.
+ * <p>
  * <p> Revision 1.26  2005/08/04 20:12:03  sueh
  * <p> bug# 532  Centralizing fit window functionality by placing fitting functions
  * <p> in UIHarness.  Removing packMainWindow from the manager.  Sending
@@ -328,38 +331,29 @@ public abstract class MainPanel extends JPanel {
     UIHarness.INSTANCE.pack(axisID, manager);
   }
 
+  public void setProgressBar(String label, int nSteps, AxisID axisID) {
+    setProgressBar(label, nSteps, axisID, false);
+  }
   /**
    * Set the progress bar to the beginning of determinant sequence
    * @param label
    * @param nSteps
    */
-  public void setProgressBar(String label, int nSteps, AxisID axisID) {
+  public void setProgressBar(String label, int nSteps, AxisID axisID, boolean pauseEnabled) {
     AxisProcessPanel axisPanel = mapBaseAxis(axisID);
-    axisPanel.setProgressBar(label, nSteps);
+    axisPanel.setProgressBar(label, nSteps, pauseEnabled);
     axisPanel.setProgressBarValue(0);
   }
   
   /**
-   * manage a pause button
+   * set the parallel progress display
    * @param pauseButton
    * @param axisID
    */
-  final void setPauseButton(MultiLineButton pauseButton, AxisID axisID) {
+  final void setParallelProgressDisplay(ParallelProgressDisplay parallelProgressDisplay, AxisID axisID) {
     AxisProcessPanel axisPanel = mapBaseAxis(axisID);
-    axisPanel.setPauseButton(pauseButton);
-  }
-  
-  /**
-   * stop managing a pause button
-   * @param pauseButton
-   * @param axisID
-   */
-  final void deletePauseButton(MultiLineButton pauseButton, AxisID axisID) {
-    AxisProcessPanel axisPanel = mapBaseAxis(axisID);
-    axisPanel.deletePauseButton(pauseButton);
-  }
-
-  /**
+    axisPanel.setParallelProgressDisplay(parallelProgressDisplay);
+  }  /**
    * Set the progress bar to the specified value
    * @param value
    * @param axisID
@@ -389,15 +383,20 @@ public abstract class MainPanel extends JPanel {
   }
 
   public void stopProgressBar(AxisID axisID) {
-    stopProgressBar(axisID, ProcessEndState.DONE);
+    stopProgressBar(axisID, ProcessEndState.DONE, null);
+  }
+  
+  public void stopProgressBar(AxisID axisID, ProcessEndState processEndState) {
+    stopProgressBar(axisID, processEndState, null);
   }
   /**
    * Stop the specified progress bar
    * @param axisID
    */
-  public void stopProgressBar(AxisID axisID, ProcessEndState processEndState) {
+  public void stopProgressBar(AxisID axisID, ProcessEndState processEndState,
+      String statusString) {
     AxisProcessPanel axisPanel = mapBaseAxis(axisID);
-    axisPanel.stopProgressBar(processEndState);
+    axisPanel.stopProgressBar(processEndState, statusString);
   }
 
   /**
