@@ -44,6 +44,10 @@ import etomo.util.Utilities;
  * 
  * <p>
  * $Log$
+ * Revision 1.27  2005/08/22 16:01:56  sueh
+ * bug# 532 Moved HashedArray to UniqueHashedArray and created a new
+ * version of HashedArray which is simpler and doesn't use UniqueKey.
+ *
  * Revision 1.26  2005/08/04 19:07:30  sueh
  * bug# 532  Sending the manager to UIHarness.pack() so that
  * packDialogs() can be called.
@@ -264,6 +268,7 @@ public class EtomoDirector {
   private boolean isAdvanced = false;
   private SettingsDialog settingsDialog = null;
   private boolean outOfMemoryMessage = false;
+  private String originalUserDir = null;
 
   public static void main(String[] args) {
     createInstance(args);
@@ -340,6 +345,7 @@ public class EtomoDirector {
    *  
    */
   private void initProgram() {
+    originalUserDir = System.getProperty("user.dir");
     System.err.println("java.version:  " + System.getProperty("java.version"));
     System.err.println("java.vendor:  " + System.getProperty("java.vendor"));
     System.err.println("java.home:  " + System.getProperty("java.home"));
@@ -363,7 +369,7 @@ public class EtomoDirector {
     System.err.println("os.version:  " + System.getProperty("os.version"));
     System.err.println("user.name:  " + System.getProperty("user.name"));
     System.err.println("user.home:  " + System.getProperty("user.home"));
-    System.err.println("user.dir:  " + System.getProperty("user.dir"));
+    System.err.println("user.dir:  " + originalUserDir);
     // Get the HOME directory environment variable to find the program
     // configuration file
     homeDirectory = System.getProperty("user.home");
@@ -473,6 +479,14 @@ public class EtomoDirector {
       return System.setProperty("user.dir", propertyUserDir);
     }
     return ((BaseManager) managerList.get(currentManagerKey)).setPropertyUserDir(propertyUserDir);
+  }
+  
+  public final void makeCurrent() {
+    System.setProperty("user.dir", originalUserDir);
+  }
+  
+  public final String getOriginalUserDir() {
+    return originalUserDir;
   }
   
   public UniqueKey getManagerKey(int index) {
