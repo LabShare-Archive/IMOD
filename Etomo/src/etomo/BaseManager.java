@@ -45,6 +45,10 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.25  2005/08/22 15:57:13  sueh
+* <p> bug# 532 Added start and stop GetLoadAverage() to send load
+* <p> information to a LoadAverageDisplay.
+* <p>
 * <p> Revision 1.24  2005/08/10 20:38:29  sueh
 * <p> bug# 711 Made UIParameters constructor private.  Can't force it no be
 * <p> called since this is mostly static functions.
@@ -765,5 +769,14 @@ public abstract class BaseManager {
   public final void stopGetLoadAverage(LoadAverageDisplay display, String computer) {
     LoadAverageParam param = new LoadAverageParam(computer);
     getProcessManager().stopGetLoadAverage(param, display.getLoadAverageMonitor());
+  }
+  
+  public final void makeCurrent() {
+    if (propertyUserDir == null) {
+      EtomoDirector.getInstance().makeCurrent();
+    }
+    else {
+      System.setProperty("user.dir", propertyUserDir);
+    }
   }
 }
