@@ -17,6 +17,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.19  2005/08/16 00:19:36  sueh
+ * <p> bug# 532 standard input most be closed for com scripts to run.
+ * <p>
  * <p> Revision 3.18  2005/08/15 18:27:07  sueh
  * <p> bug# 532 Added setCurrentStdInput() to allow a string to be sent to the
  * <p> process while it is running.  Changes run() to close the standard input
@@ -209,6 +212,7 @@ public class SystemProgram implements Runnable {
   private final String propertyUserDir;
   private OutputStream cmdInputStream = null;
   private BufferedWriter cmdInBuffer = null;
+  private boolean acceptInputWhileRunning = false;
 
   /**
    * Creates a SystemProgram object to execute the program specified by the
@@ -372,7 +376,9 @@ public class SystemProgram implements Runnable {
           cmdInputStream.flush();
         }
       }
-      cmdInputStream.close();
+      if (!acceptInputWhileRunning) {
+        cmdInputStream.close();
+      }
 
       if (debug) {
         System.err.println("Done writing to process stdin");
@@ -495,6 +501,16 @@ public class SystemProgram implements Runnable {
       }
     }
 
+    //close standard input if it wasn't closed before
+    if (acceptInputWhileRunning) {
+      try {
+        cmdInputStream.close();
+      }
+      catch (IOException e) {
+        e.printStackTrace();
+      }
+    }
+    
     //  Set the done flag for the thread
     done = true;
   }
@@ -603,7 +619,7 @@ public class SystemProgram implements Runnable {
     return new Timestamp(runTimestamp.getTime());
   }
  
- public static ArrayList parseError(String[] output) {  
+  public static ArrayList parseError(String[] output) {  
    ArrayList errors = new ArrayList();
    for (int i = 0; i < output.length; i++) {
      int index = output[i].indexOf("ERROR:");
@@ -632,7 +648,7 @@ public class SystemProgram implements Runnable {
   * @param multiLine
   * @return
   */
- public static ArrayList parseWarning(String[] output, boolean multiLine) {
+  public static ArrayList parseWarning(String[] output, boolean multiLine) {
    ArrayList warnings = new ArrayList();
    boolean found = false;
    StringBuffer warning = null;
@@ -669,6 +685,14 @@ public class SystemProgram implements Runnable {
    } while (!done);
    return warnings;
  }
+ 
+  /**
+   * 
+   * @param acceptInputWhileRunning
+   */
+  void setAcceptInputWhileRunning(boolean acceptInputWhileRunning) {
+    this.acceptInputWhileRunning = acceptInputWhileRunning;
+  }
 
   /**
    * Runnable class to keep the output buffers of the child process from filling
