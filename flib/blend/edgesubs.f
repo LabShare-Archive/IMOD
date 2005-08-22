@@ -11,6 +11,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.2  2005/08/22 16:15:59  mast
+c	  Prevented negative extents when distortion limits size of field
+c	
 c	  Revision 3.1  2003/12/12 20:46:48  mast
 c	  Split off from bsubs.f for finddistort to use
 c	
