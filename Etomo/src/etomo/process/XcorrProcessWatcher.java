@@ -102,9 +102,19 @@ public class XcorrProcessWatcher implements ProcessMonitor {
   public void pause(SystemProcessInterface process, AxisID axisID) {
     throw new IllegalStateException("can't pause an xcorr process");
   }
+  
+  public String getStatusString() {
+    return null;
+  }
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.11  2005/08/15 18:27:58  sueh
+ * <p> bug# 532  Added kill and pause functions to implement ProcessMonitor.
+ * <p> Both kill and pause signal interrupt.  Change updateState to handle the
+ * <p> interrupt message and send the correct string, based on whether a kill or
+ * <p> a pause was requested.
+ * <p>
  * <p> Revision 3.10  2005/08/04 19:52:53  sueh
  * <p> bug# 532 Added empty setProcess() to implement ProcessMonitor.
  * <p>

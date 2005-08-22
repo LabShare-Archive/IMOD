@@ -24,9 +24,14 @@ public interface ProcessMonitor extends Runnable {
   public void setProcess(SystemProcessInterface process);
   public void kill(SystemProcessInterface process, AxisID axisID);
   public void pause(SystemProcessInterface process, AxisID axisID);
+  public String getStatusString();
 }
 /**
 * <p> $Log$
+* <p> Revision 1.3  2005/08/15 18:25:21  sueh
+* <p> bug# 532 Adding kill and pause functions to all process monitors to allow
+* <p> processchunks to kill with an interrupt signal instead of a kill signal.
+* <p>
 * <p> Revision 1.2  2005/08/04 19:48:42  sueh
 * <p> bug# 532 Added setProcess() for the processchunks process monitor.
 * <p>
