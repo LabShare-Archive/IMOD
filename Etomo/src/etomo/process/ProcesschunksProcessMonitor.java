@@ -1,6 +1,7 @@
 package etomo.process;
 
 import etomo.BaseManager;
+import etomo.EtomoDirector;
 import etomo.type.AxisID;
 import etomo.type.EtomoNumber;
 import etomo.type.ProcessEndState;
@@ -29,12 +30,12 @@ public class ProcesschunksProcessMonitor implements ProcessMonitor {
   
   private SystemProcessInterface process = null;
   private EtomoNumber nChunks = new EtomoNumber();
-  private EtomoNumber lastChunkFinished = new EtomoNumber();
+  private EtomoNumber chunksFinished = new EtomoNumber();
   private int lastOutputLine = -1;
-  private boolean setProgressBarTitle = false;
+  private boolean setProgressBarTitle = false;//turn on to changed the progress bar title
   private boolean reassembling = false;
   private ProcessEndState endState = null;
-  private String rootName = null;
+  private final String rootName;
 
   /**
    * Default constructor
@@ -43,10 +44,11 @@ public class ProcesschunksProcessMonitor implements ProcessMonitor {
    * @param process
    */
   public ProcesschunksProcessMonitor(BaseManager manager, AxisID axisID,
-      ParallelProgressDisplay parallelProgressDisplay) {
+      ParallelProgressDisplay parallelProgressDisplay, String rootName) {
     this.manager = manager;
     this.axisID = axisID;
     this.parallelProgressDisplay = parallelProgressDisplay;
+    this.rootName = rootName;
   }
   
   public final void setProcess(SystemProcessInterface process) {
@@ -55,7 +57,7 @@ public class ProcesschunksProcessMonitor implements ProcessMonitor {
   
   public void run() {
     nChunks.set(0);
-    lastChunkFinished.set(0);
+    chunksFinished.set(0);
     initializeProgressBar();
     try {
       while (process == null || !process.isDone()) {
@@ -82,38 +84,51 @@ public class ProcesschunksProcessMonitor implements ProcessMonitor {
     for (int i = lastOutputLine + 1; i < stdOutput.length; i++) {
       lastOutputLine = i;
       String line = stdOutput[i].trim();
-      System.out.println(line);
-      if (line
-          .equals("Q to kill all jobs and quit, P to finish running jobs then exit,")) {
+      if (EtomoDirector.getInstance().isDebug()) {
+        System.err.println(line);
+      }
+      //handle pause and kill
+      if (line.startsWith("Q to kill all jobs and quit")) {
         if (endState == ProcessEndState.KILLED) {
           process.setCurrentStdInput("Q");
         }
         else if (endState == ProcessEndState.PAUSED) {
           process.setCurrentStdInput("P");
         }
+        setProgressBarTitle = true;
+        returnValue = true;
       }
+      //handle all chunks finished, starting the reassemble
       else if (line.endsWith("to reassemble")) {
+        //all chunks finished, turn off pause
+        if (endState == ProcessEndState.PAUSED) {
+          endState = null;
+        }
         reassembling = true;
         setProgressBarTitle = true;
         returnValue = true;
       }
       else {
         String[] strings = line.split("\\s+");
+        //set nChunks and chunksFinished
         if (strings.length > 2 && line.endsWith("DONE SO FAR")) {
           if (!nChunks.equals(strings[2])) {
             nChunks.set(strings[2]);
             setProgressBarTitle = true;
           }
-          lastChunkFinished.set(strings[0]);
+          chunksFinished.set(strings[0]);
           returnValue = true;
         }
+        //handle a dropped CPU
         else if (strings.length > 1) {
           if (line.startsWith("Dropping")) {
             parallelProgressDisplay.drop(strings[1]);
           }
+          //handle a finished chunk
           else if (strings[1].equals("finished")) {
             parallelProgressDisplay.addSuccess(strings[3]);
           }
+          //handle a failed chunk
           else if (strings[1].equals("failed")) {
             parallelProgressDisplay.addRestart(strings[3]);
           }
@@ -137,7 +152,7 @@ public class ProcesschunksProcessMonitor implements ProcessMonitor {
 
   private void initializeProgressBar() {
     setProgressBarTitle();
-    manager.getMainPanel().setProgressBarValue(lastChunkFinished.getInt(), "Starting...", axisID);
+    manager.getMainPanel().setProgressBarValue(chunksFinished.getInt(), "Starting...", axisID);
   }
   
   private void updateProgressBar() {
@@ -145,8 +160,8 @@ public class ProcesschunksProcessMonitor implements ProcessMonitor {
       setProgressBarTitle = false;
       setProgressBarTitle();
     }
-    manager.getMainPanel().setProgressBarValue(lastChunkFinished.getInt(),
-        lastChunkFinished + " of " + nChunks + " completed", axisID);
+    manager.getMainPanel().setProgressBarValue(chunksFinished.getInt(),
+        getStatusString(), axisID);
  }
   
   private void setProgressBarTitle() {
@@ -155,23 +170,38 @@ public class ProcesschunksProcessMonitor implements ProcessMonitor {
       title.append(" " + rootName);
     }
     if (reassembling) {
-      title.append(": reassembling");
+      title.append(":  reassembling");
     }
-    manager.getMainPanel().setProgressBar(title.toString(), nChunks.getInt(), axisID);
+    if (endState == ProcessEndState.PAUSED) {
+      title.append(" - pausing");
+    }
+    manager.getMainPanel().setProgressBar(title.toString(), nChunks.getInt(), axisID, !reassembling);
   }
   
   public void kill(SystemProcessInterface process, AxisID axisID) {
     endState = ProcessEndState.KILLED;
     process.signalInterrupt(axisID);
+    parallelProgressDisplay.msgInterruptingProcess();
   }
   
   public void pause(SystemProcessInterface process, AxisID axisID) {
     endState = ProcessEndState.PAUSED;
     process.signalInterrupt(axisID);
+    parallelProgressDisplay.msgInterruptingProcess();
+  }
+  
+  public String getStatusString() {
+    return chunksFinished + " of " + nChunks + " completed";
   }
 }
 /**
 * <p> $Log$
+* <p> Revision 1.2  2005/08/15 18:23:54  sueh
+* <p> bug# 532  Added kill and pause functions to implement ProcessMonitor.
+* <p> Both kill and pause signal interrupt.  Change updateState to handle the
+* <p> interrupt message and send the correct string, based on whether a kill or
+* <p> a pause was requested.
+* <p>
 * <p> Revision 1.1  2005/08/04 19:46:15  sueh
 * <p> bug# 532 Class to monitor processchunks.  Monitors the standard output.
 * <p> Sends updates to the progress panel and to a parallel process display.
