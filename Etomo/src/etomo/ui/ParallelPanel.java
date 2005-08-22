@@ -17,6 +17,7 @@ import javax.swing.SpinnerNumberModel;
 import etomo.BaseManager;
 import etomo.comscript.ProcesschunksParam;
 import etomo.comscript.SplittiltParam;
+import etomo.process.LoadAverageMonitor;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.DialogType;
@@ -34,15 +35,16 @@ import etomo.type.DialogType;
  * 
  * @version $Revision$
  */
-final class ParallelPanel implements ParallelProgressDisplay {
+final class ParallelPanel implements ParallelProgressDisplay, Expandable, LoadAverageDisplay {
   public static final String rcsid = "$Id$";
 
   private JPanel rootPanel;
+  private final SpacedPanel bodyPanel;
   private ProcessorTable processorTable;
   private MultiLineButton btnResume = new MultiLineButton("Resume");
   private MultiLineButton btnPause = new MultiLineButton("Pause");
   private MultiLineButton btnSaveDefaults = new MultiLineButton("Save As Defaults");
-  private LabeledTextField ltfCpusSelected = new LabeledTextField(
+  private LabeledTextField ltfCPUsSelected = new LabeledTextField(
       "CPUs selected: ");
   private LabeledTextField ltfChunksFinished = new LabeledTextField(
       "Chunks finished: ");
@@ -59,28 +61,61 @@ final class ParallelPanel implements ParallelProgressDisplay {
   private PanelHeader header;
   private final BaseManager manager;
   private boolean visible = false;
+  private boolean pauseEnabled = false;
+  private static ParallelPanel INSTANCEA = null;
+  private static ParallelPanel INSTANCEB = null;
+  private LoadAverageMonitor monitor = null;
+  
+  static final ParallelPanel getInstance(BaseManager manager,
+      ParallelDialog parent, AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      if (INSTANCEB == null) {
+        return createInstance(manager, parent, axisID);
+      }
+      return INSTANCEB;
+    }
+    if (INSTANCEA == null) {
+      return createInstance(manager, parent, axisID);
+    }
+    return INSTANCEA;
+  }
 
-  ParallelPanel(BaseManager manager, ParallelDialog parent, AxisID axisID) {
+  private static final synchronized ParallelPanel createInstance(
+      BaseManager manager, ParallelDialog parent, AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      if (INSTANCEB == null) {
+        INSTANCEB = new ParallelPanel(manager, parent, axisID);
+      }
+      return INSTANCEB;
+    }
+    if (INSTANCEA == null) {
+      INSTANCEA = new ParallelPanel(manager, parent, axisID);
+    }
+    return INSTANCEA;
+  }
+  
+  private ParallelPanel(BaseManager manager, ParallelDialog parent, AxisID axisID) {
     this.manager = manager;
     this.parent = parent;
     this.axisID = axisID;
     processorTable = new ProcessorTable(this, axisID);
     //set listeners
     btnResume.addActionListener(actionListener);
+    btnPause.addActionListener(actionListener);
     //panels
     rootPanel = new JPanel();
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     rootPanel.setBorder(BorderFactory.createEtchedBorder());
-    SpacedPanel bodyPanel = new SpacedPanel();
+    bodyPanel = new SpacedPanel();
     bodyPanel.setBoxLayout(BoxLayout.Y_AXIS);
     JPanel tablePanel = new JPanel();
     tablePanel.setLayout(new BoxLayout(tablePanel, BoxLayout.X_AXIS));
     SpacedPanel southPanel = new SpacedPanel();
     southPanel.setBoxLayout(BoxLayout.X_AXIS);
     //header
-    header = new PanelHeader(manager, axisID, "Parallel Processing", bodyPanel);
+    header = PanelHeader.getInstance(axisID, "Parallel Processing", this);
     //southPanel;
-    southPanel.add(ltfCpusSelected);
+    southPanel.add(ltfCPUsSelected);
     SpinnerModel model = new SpinnerNumberModel(
         ProcesschunksParam.NICE_DEFAULT, ProcesschunksParam.NICE_FLOOR,
         ProcesschunksParam.NICE_CEILING, 1);
@@ -104,15 +139,53 @@ final class ParallelPanel implements ParallelProgressDisplay {
     header.setOpen(true);
     ltfChunksFinished.setTextPreferredWidth(FixedDim.fourDigitWidth);
     ltfChunksFinished.setEditable(false);
-    ltfCpusSelected.setTextPreferredWidth(FixedDim.fourDigitWidth);
-    ltfCpusSelected.setEditable(false);
-    processorTable.signalCpusSelectedChanged();
-    btnResume.setEnabled(false);
-    btnPause.setEnabled(false);
+    ltfCPUsSelected.setTextPreferredWidth(FixedDim.fourDigitWidth);
+    ltfCPUsSelected.setEditable(false);
+    processorTable.signalCPUsSelectedChanged();
+    btnPause.setEnabled(pauseEnabled);
+    manager.getMainPanel().setParallelProgressDisplay(this, axisID);
   }
-
-  public final void signalCpusSelectedChanged(int cpusSelected) {
-    ltfCpusSelected.setText(cpusSelected);
+  
+  final void start() {
+    processorTable.startGetLoadAverage(this);
+  }
+  
+  final void stop() {
+    processorTable.stopGetLoadAverage(this);
+  }
+  
+  final void startGetLoadAverage(String computer) {
+    manager.startGetLoadAverage(this, computer);
+  }
+  
+  final void stopGetLoadAverage(String computer) {
+    if (monitor != null) {
+      manager.stopGetLoadAverage(this, computer);
+    }
+  }
+  
+  public final LoadAverageMonitor getLoadAverageMonitor() {
+    if (monitor == null) {
+      monitor = new LoadAverageMonitor(this);
+      new Thread(monitor).start();
+    }
+    return monitor;
+  }
+  
+  public final void setLoadAverage(String computer, double load1, double load5, double load15) {
+    processorTable.setLoadAverage(computer, load1, load5, load15);
+  }
+  
+  public final void setPauseEnabled(boolean pauseEnabled) {
+    this.pauseEnabled = pauseEnabled;
+    if (btnPause == null) {
+      return;
+    }
+    btnPause.setEnabled(pauseEnabled);
+  }
+  
+  public final void signalCPUsSelectedChanged(int cpusSelected) {
+    ltfCPUsSelected.setText(cpusSelected);
   }
 
   final void setDialogType(DialogType dialogType) {
@@ -128,6 +201,9 @@ final class ParallelPanel implements ParallelProgressDisplay {
     if (command == btnResume.getText()) {
       parent.resume();
     }
+    else if (command == btnPause.getText()) {
+      manager.pause(axisID);
+    }
   }
 
   final void setVisible(boolean visible) {
@@ -135,23 +211,8 @@ final class ParallelPanel implements ParallelProgressDisplay {
     rootPanel.setVisible(visible);
   }
 
-  public final int getCpusSelected() {
-    return processorTable.getCpusSelected();
-  }
-  
-  /**
-   * pass the pause button to the axis process panel, to be managed like the
-   * kill process button
-   */
-  public final void setupParallelProgressDisplay() {
-    manager.getMainPanel().setPauseButton(btnPause, axisID);
-  }
-  
-  /**
-   * remove the pause button from the axis process panel
-   */
-  public final void teardownParallelProgressDisplay() {
-    manager.getMainPanel().deletePauseButton(btnPause, axisID);
+  public final int getCPUsSelected() {
+    return processorTable.getCPUsSelected();
   }
 
   public final void addRestart(String computer) {
@@ -170,15 +231,15 @@ final class ParallelPanel implements ParallelProgressDisplay {
     processorTable.resetResults();
   }
   
-  public final void setEnabledResume(boolean enabled) {
-    btnResume.setEnabled(enabled);
+  public final void msgInterruptingProcess() {
+    btnResume.setEnabled(true);
   }
   
   final boolean getParameters(SplittiltParam param) {
-    ConstEtomoNumber numMachines = param.setNumMachines(ltfCpusSelected
+    ConstEtomoNumber numMachines = param.setNumMachines(ltfCPUsSelected
         .getText());
     if (!numMachines.isValid()) {
-      UIHarness.INSTANCE.openMessageDialog(ltfCpusSelected.getLabel() + " "
+      UIHarness.INSTANCE.openMessageDialog(ltfCPUsSelected.getLabel() + " "
           + numMachines.getInvalidReason() + "\n"
           + processorTable.getHelpMessage(), "Table Error", axisID);
       return false;
@@ -197,6 +258,17 @@ final class ParallelPanel implements ParallelProgressDisplay {
     }
     processorTable.pack();
   }
+  
+  /**
+   * set the visible boolean based on whether the panel is visible
+   * the body panel setVisible function was called by the header panel
+   */
+  public final void expand(ExpandButton button) {
+    if (header.equalsOpenClose(button)) {
+      visible = button.isExpanded();
+      bodyPanel.setVisible(visible);
+    }
+  }
 
   private final class ParallelPanelActionListener implements ActionListener {
     ParallelPanel adaptee;
@@ -212,6 +284,9 @@ final class ParallelPanel implements ParallelProgressDisplay {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.8  2005/08/04 20:13:54  sueh
+ * <p> bug# 532  Removed demo functions.  Added pack().
+ * <p>
  * <p> Revision 1.7  2005/08/01 18:11:31  sueh
  * <p> bug# 532 Changed ProcessorTableRow.signalRestart() to addRestart.
  * <p> Added nice spinner.  Added getParameters(ProcesschunksParam).
