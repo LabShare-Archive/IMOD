@@ -14,7 +14,7 @@ import javax.swing.event.ChangeListener;
 
 import etomo.BaseManager;
 import etomo.EtomoDirector;
-import etomo.util.HashedArray;
+import etomo.util.UniqueHashedArray;
 import etomo.util.UniqueKey;
 
 /**
@@ -61,8 +61,8 @@ public class WindowSwitch {
   private static final String menuItemDivider = menuItemDividerChar + " ";
   
   private JMenu menu = new JMenu("Window");
-  private HashedArray menuList = null;
-  private HashedArray mainPanelList = null;
+  private UniqueHashedArray menuList = null;
+  private UniqueHashedArray mainPanelList = null;
   private JTabbedPane tabbedPane = null;
   private MenuActionListener menuActionListener;
   private TabChangeListener tabChangeListener;
@@ -84,8 +84,8 @@ public class WindowSwitch {
       return;
     }
     if (menuList == null) {
-      menuList = new HashedArray();
-      mainPanelList = new HashedArray();
+      menuList = new UniqueHashedArray();
+      mainPanelList = new UniqueHashedArray();
       tabbedPane = new JTabbedPane();
     }
     JCheckBoxMenuItem menuItem = new JCheckBoxMenuItem();
@@ -306,6 +306,12 @@ public class WindowSwitch {
 
 /**
  * <p>$Log$
+ * <p>Revision 1.8  2005/06/21 00:50:23  sueh
+ * <p>bug# 522 In order to get a current manager when --test is set, moved call
+ * <p>to EtomoDirector.setCurrentManager() out of WindowSwitch.setWindow().
+ * <p>Now the call follows all the calls to UIHarness.selectWindowMenuItem().
+ * <p>Delete selectWindow(UniqueKey), since its not being used.
+ * <p>
  * <p>Revision 1.7  2005/06/01 21:29:30  sueh
  * <p>bug# 667 Removing the Controller classes.  Trying make meta data and
  * <p>app manager equals didn't work very well.  Meta data is created by and

@@ -1,5 +1,6 @@
 package etomo.util;
 
+import java.util.Hashtable;
 import java.util.Vector;
 
 /**
@@ -17,6 +18,11 @@ import java.util.Vector;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.4  2005/02/07 23:00:03  sueh
+* <p> bug# 594 Fixed rekey to preserve array order.  Added add(UniqueKey, Object),
+* <p> to add with an existing key.  Added rekey(UniqueKey, UniqueKey) to
+* <p> rekey to an existing key.
+* <p>
 * <p> Revision 1.3  2005/01/22 04:09:01  sueh
 * <p> bug# 509, bug# 591  Commenting functions.
 * <p>
@@ -35,15 +41,15 @@ import java.util.Vector;
 * <p> for an existing HashedArray, but no values.  Can remove elements.
 * <p> </p>
 */
-public class HashedArray extends ConstHashedArray {
+public class HashedArray {
   public static  final String  rcsid =  "$Id$";
   
-  public HashedArray() {
-    super();
-  }
+  Hashtable map = null;
+  Vector keyArray = null;
   
-  protected HashedArray(Vector keyArray) {
-    super(keyArray);
+  public HashedArray() {
+    map = new Hashtable();
+    keyArray = new Vector();
   }
   
   /**
@@ -52,62 +58,37 @@ public class HashedArray extends ConstHashedArray {
    * @param value
    * @return
    */
-  public synchronized UniqueKey add(String keyName, Object value) {
-    UniqueKey key = new UniqueKey(keyName, this);
+  public synchronized void add(String key, Object value) {
     keyArray.add(key);
     map.put(key, value);
-    return key;
   }
   
-  
-  /**
-   * Adds a new value and key.
-   * @param key
-   * @param value
-   * @throws IllegalStateException if key is not unique in the HashedArray
-   * instance.
-   * @return
-   */
-  public synchronized UniqueKey add(UniqueKey key, Object value) {
-    if (get(key) != null) {
-      throw new IllegalStateException("Key, " + key + ", is not unique.");
+  public Object get(Object key) {
+    if (key == null) {
+      return null;
     }
-    keyArray.add(key);
-    map.put(key, value);
-    return key;
+    return map.get(key);
   }
   
-  /**
-   * Set an existing UniqueKey to a new value by index
-   * @param keyIndex
-   * @param value
-   * @return
-   */
-  public synchronized UniqueKey set(int keyIndex, Object value) {
-    UniqueKey key = (UniqueKey) keyArray.get(keyIndex);
-    map.remove(key);
-    map.put(key, value);
-    return key;
-  }
-  
-  public synchronized Object remove(UniqueKey key) {
-    for (int i = 0; i < keyArray.size(); i++) {
-      if (keyArray.get(i).equals(key)) {
-        keyArray.remove(i);
-      }
+  public Object get(int index) {
+    if (index < 0) {
+      return null;
     }
-    return map.remove(key);
+    if (index >= keyArray.size()) {
+      return null;
+    }
+    Object key = keyArray.get(index);
+    if (key == null) {
+      return null;
+    }
+    return map.get(key);
   }
   
-  public synchronized UniqueKey rekey(UniqueKey oldKey, String newKeyName) {
-    return rekey(oldKey, new UniqueKey(newKeyName, this));
+  public int size() {
+    return keyArray.size();
   }
   
-  public synchronized UniqueKey rekey(UniqueKey oldKey, UniqueKey newKey) {
-    int index = getIndex(oldKey);
-    Object value = map.remove(oldKey);
-    map.put(newKey, value);
-    keyArray.set(index, newKey);
-    return newKey;
+  public boolean contains(Object value) {
+    return map.contains(value);
   }
 }

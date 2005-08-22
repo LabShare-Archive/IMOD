@@ -14,6 +14,9 @@ package etomo.util;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.3  2004/12/04 01:01:54  sueh
+* <p> Added comments.
+* <p>
 * <p> Revision 1.2  2004/11/20 00:15:20  sueh
 * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
 * <p>
@@ -31,12 +34,12 @@ public class UniqueKey {
   private final String name;
   private long count = 0;
   
-  UniqueKey(String name, HashedArray keyedStorage) {
+  UniqueKey(String name, UniqueHashedArray keyedStorage) {
     this.name = name;
     makeUnique(keyedStorage);
   }
   
-  private void makeUnique(HashedArray keyedStorage) {
+  private void makeUnique(UniqueHashedArray keyedStorage) {
     //make instance unique in keyedStorage by making count one more then the
     //largest stored key with the same name
     for (int i = 0; i < keyedStorage.size(); i++) {
