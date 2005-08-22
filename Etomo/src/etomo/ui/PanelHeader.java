@@ -10,7 +10,6 @@ import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
 
-import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.type.AxisID;
 
@@ -38,21 +37,22 @@ final class PanelHeader implements Expandable {
   private ExpandButton btnOpenClose = null;
   private ExpandButton btnAdvancedBasic = null;
   private JSeparator separator = new JSeparator();
-  private JPanel openClosePanel = null;
-  private final BaseManager manager;
   private AxisID axisID;
+  private final Expandable container;
   
-  PanelHeader(BaseManager manager, AxisID axisID, String title, SpacedPanel openClosePanel) {
-    this(manager, axisID, title, openClosePanel.getJPanel(), null);
+  static final PanelHeader getInstance(AxisID axisID, String title,
+      Expandable container) {
+    return new PanelHeader(axisID, title, container, false);
   }
-  
-  PanelHeader(BaseManager manager, AxisID axisID, String title, SpacedPanel openClosePanel, Expandable container) {
-    this(manager, axisID, title, openClosePanel.getJPanel(), container);
+
+  static final PanelHeader getAdvancedBasicInstance(AxisID axisID,
+      String title, Expandable container) {
+    return new PanelHeader(axisID, title, container, true);
   }
-  
-  PanelHeader(BaseManager manager, AxisID axisID, String title, JPanel openClosePanel, Expandable container) {
-    this.manager = manager;
-    this.openClosePanel = openClosePanel;
+
+  private PanelHeader(AxisID axisID, String title, Expandable container,
+      boolean advancedBasic) {
+    this.container = container;
     this.axisID = axisID;
     //panels
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
@@ -66,11 +66,9 @@ final class PanelHeader implements Expandable {
     constraints.gridheight = 1;
     constraints.gridwidth = 1;
     //open/close button
-    if (openClosePanel != null) {
-      btnOpenClose = new ExpandButton(this, "-", "+");
-      layout.setConstraints(btnOpenClose.getComponent(), constraints);
-      northPanel.add(btnOpenClose.getComponent());
-    }
+    btnOpenClose = new ExpandButton(this, "-", "+");
+    layout.setConstraints(btnOpenClose.getComponent(), constraints);
+    northPanel.add(btnOpenClose.getComponent());
     //title
     if (container == null) {
       constraints.gridwidth = GridBagConstraints.REMAINDER;
@@ -81,7 +79,7 @@ final class PanelHeader implements Expandable {
     cellTitle.setBorderPainted(false);
     cellTitle.add(northPanel, layout, constraints);
     //advanced/basic button
-    if (container != null) {
+    if (advancedBasic) {
       constraints.weightx = 0.0;
       constraints.weighty = 0.0;
       constraints.gridwidth = GridBagConstraints.REMAINDER;
@@ -112,6 +110,10 @@ final class PanelHeader implements Expandable {
     return button == btnAdvancedBasic;
   }
   
+  final boolean equalsOpenClose(ExpandButton button) {
+    return button == btnOpenClose;
+  }
+  
   final void setAdvanced(boolean advanced) {
     if (btnAdvancedBasic == null) {
       return;
@@ -127,16 +129,17 @@ final class PanelHeader implements Expandable {
   }
   
   public final void expand(ExpandButton button) {
-    if (openClosePanel == null || button != btnOpenClose) {
-      return;
+    if (button == btnOpenClose) {
+      separator.setVisible(button.isExpanded());
+      container.expand(button);
     }
-    openClosePanel.setVisible(btnOpenClose.isExpanded());
-    separator.setVisible(btnOpenClose.isExpanded());
-    UIHarness.INSTANCE.pack(axisID, manager);
-  }  
+  } 
 }
 /**
 * <p> $Log$
+* <p> Revision 1.7  2005/08/09 20:26:42  sueh
+* <p> bug# 711  No longer inheriting JButton in MultiLineButton.
+* <p>
 * <p> Revision 1.6  2005/08/04 20:12:54  sueh
 * <p> bug# 532  Centralizing fit window functionality by placing fitting functions
 * <p> in UIHarness.  Removing packMainWindow from the manager.  Sending
