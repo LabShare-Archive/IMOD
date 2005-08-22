@@ -31,6 +31,10 @@ import etomo.util.Utilities;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.12  2005/08/15 18:09:57  sueh
+ * <p> $bug# 532 Added kill and paused functions to implement ProcessMonitor.
+ * <p> $Pause is invalid for this monitor.
+ * <p> $
  * <p> $Revision 1.11  2005/08/04 19:43:51  sueh
  * <p> $bug# 532 Added empty setProcess() to implement ProcessMonitor.
  * <p> $
@@ -493,5 +497,9 @@ public class CombineProcessMonitor implements BackgroundProcessMonitor {
   
   public void pause(SystemProcessInterface process, AxisID axisID) {
     throw new IllegalStateException("can't pause a combine process");
+  }
+  
+  public String getStatusString() {
+    return null;
   }
 }
