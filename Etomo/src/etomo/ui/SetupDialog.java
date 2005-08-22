@@ -578,7 +578,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu, Run3dmodB
   //
   private void btnDatasetAction(ActionEvent event) {
     //  Open up the file chooser in the working directory
-    JFileChooser chooser = new JFileChooser(new File(applicationManager.getPropertyUserDir()));
+    JFileChooser chooser = new JFileChooser(new File(EtomoDirector.getInstance().getOriginalUserDir()));
     StackFileFilter stackFilter = new StackFileFilter();
     chooser.setFileFilter(stackFilter);
     chooser.setPreferredSize(new Dimension(400, 400));
@@ -600,7 +600,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu, Run3dmodB
     //  Open up the file chooser in the working directory
     String currentBackupDirectory = ltfBackupDirectory.getText();
     if (currentBackupDirectory.equals("")) {
-      currentBackupDirectory = applicationManager.getPropertyUserDir();
+      currentBackupDirectory = EtomoDirector.getInstance().getOriginalUserDir();
     }
     JFileChooser chooser = new JFileChooser(new File(currentBackupDirectory));
     chooser.setPreferredSize(new Dimension(400, 400));
@@ -1036,6 +1036,12 @@ public class SetupDialog extends ProcessDialog implements ContextMenu, Run3dmodB
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.35  2005/08/12 00:00:10  sueh
+ * <p> bug# 711  Change enum Run3dmodMenuOption to
+ * <p> Run3dmodMenuOptions, which can turn on multiple options at once.
+ * <p> This allows ImodState to combine input from the context menu and the
+ * <p> pulldown menu.
+ * <p>
  * <p> Revision 3.34  2005/08/10 20:47:31  sueh
  * <p> bug# 711 Moved button sizing to MultiLineButton.  SetSize() sets the
  * <p> standard button size.
