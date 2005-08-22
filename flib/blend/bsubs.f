@@ -28,12 +28,15 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.12  2005/08/22 16:15:59  mast
+c	
 c	  Revision 3.11  2005/08/20 05:10:48  mast
-c	  Excluded a border region from correlations with distortion corrections
+c	  Excluded a border region from correlations with distortion
+c	  corrections
 c	
 c	  Revision 3.10  2005/07/24 17:33:15  mast
-c	  Increased allowed overlap in xcorredge up to 600 pixels but kept arrays
-c	  on stack
+c	  Increased allowed overlap in xcorredge up to 600 pixels but kept
+c	  arrays on stack
 c	
 c	  Revision 3.9  2005/06/03 19:39:04  mast
 c	  Added routine for writing binned output

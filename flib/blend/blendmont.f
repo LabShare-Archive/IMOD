@@ -2471,8 +2471,11 @@ c
 
 c
 c	  $Log$
+c	  Revision 3.18  2005/08/22 16:15:59  mast
+c	
 c	  Revision 3.17  2005/08/20 05:10:48  mast
-c	  Excluded a border region from correlations with distortion corrections
+c	  Excluded a border region from correlations with distortion 
+c	  corrections
 c	
 c	  Revision 3.16  2005/06/03 19:38:48  mast
 c	  Added ability to bin output when single frame only
