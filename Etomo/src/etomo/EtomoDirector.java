@@ -20,7 +20,7 @@ import etomo.type.ConstMetaData;
 import etomo.type.UserConfiguration;
 import etomo.ui.SettingsDialog;
 import etomo.ui.UIHarness;
-import etomo.util.HashedArray;
+import etomo.util.UniqueHashedArray;
 import etomo.util.UniqueKey;
 import etomo.util.Utilities;
 
@@ -44,6 +44,10 @@ import etomo.util.Utilities;
  * 
  * <p>
  * $Log$
+ * Revision 1.26  2005/08/04 19:07:30  sueh
+ * bug# 532  Sending the manager to UIHarness.pack() so that
+ * packDialogs() can be called.
+ *
  * Revision 1.25  2005/07/29 00:39:11  sueh
  * bug# 709 Going to EtomoDirector to get the current manager is unreliable
  * because the current manager changes when the user changes the tab.
@@ -248,7 +252,7 @@ public class EtomoDirector {
   private boolean selfTest = false;
   private boolean newstuff = false;
   private int newstuffNum = 0;
-  private HashedArray managerList = null;
+  private UniqueHashedArray managerList = null;
   private UniqueKey currentManagerKey = null;
   private String homeDirectory;
   private boolean defaultWindow = false;
@@ -297,7 +301,7 @@ public class EtomoDirector {
     uiHarness.createMainFrame();
     int paramFileNameListSize = paramFileNameList.size();
     String paramFileName = null;
-    managerList = new HashedArray();
+    managerList = new UniqueHashedArray();
     //if no param file is found bring up AppMgr.SetupDialog
     if (paramFileNameListSize == 0) {
       defaultWindow = true;
