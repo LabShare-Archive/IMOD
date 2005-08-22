@@ -31,8 +31,8 @@ final class ProcessorTableRow {
   private ProcessorTable table = null;
   private CheckBoxCell cellComputer = new CheckBoxCell();
   private FieldCell cellOs = new FieldCell();
-  private FieldCell cellCpuType = new FieldCell();
-  private InputCell cellCpusSelected = null;
+  private FieldCell cellCPUType = new FieldCell();
+  private InputCell cellCPUsSelected = null;
   private FieldCell cellNumberCpus = new FieldCell();
   private FieldCell cellLoad1 = new FieldCell();
   private FieldCell cellLoad5 = new FieldCell();
@@ -44,36 +44,26 @@ final class ProcessorTableRow {
   private String os = "Linux";
   private String cpuType = "";
   private int numCpus = 1;
-  private double load1;
-  private double load5;
-  private double load15;
   private boolean rowInitialized = false;
 
   ProcessorTableRow(ProcessorTable table, String computerName, String cpuType,
-      int numCpus, double load1, double load5, double load15) {
+      int numCpus) {
     this.table = table;
     this.computerName = computerName;
     this.cpuType = cpuType;
     this.numCpus = numCpus;
-    this.load1 = load1;
-    this.load5 = load5;
-    this.load15 = load15;
-    double load = (load1 + load5 + load15) / 3;
   }
 
-  ProcessorTableRow(ProcessorTable table, String computerName, double load1,
-      double load5, double load15) {
-    this(table, computerName, "", 1, load1, load5, load15);
+  ProcessorTableRow(ProcessorTable table, String computerName) {
+    this(table, computerName, "", 1);
   }
 
-  ProcessorTableRow(ProcessorTable table, String computerName, int numCpus,
-      double load1, double load5, double load15) {
-    this(table, computerName, "", numCpus, load1, load5, load15);
+  ProcessorTableRow(ProcessorTable table, String computerName, int numCpus) {
+    this(table, computerName, "", numCpus);
   }
 
-  ProcessorTableRow(ProcessorTable table, String computerName, String cpuType,
-      double load1, double load5, double load15) {
-    this(table, computerName, cpuType, 1, load1, load5, load15);
+  ProcessorTableRow(ProcessorTable table, String computerName, String cpuType) {
+    this(table, computerName, cpuType, 1);
   }
   
   private void initRow() {
@@ -82,28 +72,25 @@ final class ProcessorTableRow {
     cellComputer.addActionListener(new ProcessorTableRowActionListener(this));
     cellOs.setValue(os);
     cellOs.setEnabled(false);
-    cellCpuType.setValue(cpuType);
-    cellCpuType.setEnabled(false);
+    cellCPUType.setValue(cpuType);
+    cellCPUType.setEnabled(false);
     if (numCpus > 1) {
-      cellCpusSelected = new SpinnerCell(0, numCpus);
-      SpinnerCell spinnerCell = (SpinnerCell) cellCpusSelected;
+      cellCPUsSelected = new SpinnerCell(0, numCpus);
+      SpinnerCell spinnerCell = (SpinnerCell) cellCPUsSelected;
       spinnerCell.addChangeListener(new ProcessorTableRowChangeListener(this));
       spinnerCell.setValue(1);
       spinnerCell.setDisabledValue(0);
     }
     else {
-      cellCpusSelected = new FieldCell();
-      ((FieldCell) cellCpusSelected).setValue(1);
-      cellCpusSelected.setEnabled(false);
+      cellCPUsSelected = new FieldCell();
+      ((FieldCell) cellCPUsSelected).setValue(1);
+      cellCPUsSelected.setEnabled(false);
     }
     cellNumberCpus.setValue(numCpus);
     cellNumberCpus.setEnabled(false);
     cellLoad1.setEnabled(false);
-    cellLoad1.setValue(load1);
     cellLoad5.setEnabled(false);
-    cellLoad5.setValue(load5);
     cellLoad15.setEnabled(false);
-    cellLoad15.setValue(load15);
     cellRestarts.setEnabled(false);
     cellSuccesses.setEnabled(false);
     cellFailureReason.setEnabled(false);
@@ -125,12 +112,12 @@ final class ProcessorTableRow {
     constraints.gridwidth = 1;
     cellComputer.add(panel, layout, constraints);
     constraints.weightx = 0.0;
-    cellCpusSelected.add(panel, layout, constraints);
+    cellCPUsSelected.add(panel, layout, constraints);
     cellNumberCpus.add(panel, layout, constraints);
     cellLoad1.add(panel, layout, constraints);
     cellLoad5.add(panel, layout, constraints);
     cellLoad15.add(panel, layout, constraints);
-    cellCpuType.add(panel, layout, constraints);
+    cellCPUType.add(panel, layout, constraints);
     cellOs.add(panel, layout, constraints);
     cellRestarts.add(panel, layout, constraints);
     cellSuccesses.add(panel, layout, constraints);
@@ -143,7 +130,7 @@ final class ProcessorTableRow {
   }
   
   private void stateChanged(ChangeEvent event) {
-    table.signalCpusSelectedChanged();
+    table.signalCPUsSelectedChanged();
   }
   
   final void drop() {
@@ -158,15 +145,15 @@ final class ProcessorTableRow {
     if (selected) {
       cellRestarts.setError(false);
     }
-    if (cellCpusSelected instanceof SpinnerCell) {
-      SpinnerCell cell = (SpinnerCell) cellCpusSelected;
+    if (cellCPUsSelected instanceof SpinnerCell) {
+      SpinnerCell cell = (SpinnerCell) cellCPUsSelected;
       cell.setEnabled(selected);
     }
     else {
-      FieldCell cell = (FieldCell) cellCpusSelected;
+      FieldCell cell = (FieldCell) cellCPUsSelected;
       cell.setHideValue(!selected);
     }
-    table.signalCpusSelectedChanged();
+    table.signalCPUsSelectedChanged();
   }
   
   final boolean isSelected() {
@@ -174,7 +161,7 @@ final class ProcessorTableRow {
   }
   
   final void getParameters(ProcesschunksParam param) {
-    int numCpus = getCpusSelected();
+    int numCpus = getCPUsSelected();
     for (int i = 0; i < numCpus; i++) {
       param.addMachineName(cellComputer.getLabel());
     }
@@ -192,14 +179,14 @@ final class ProcessorTableRow {
     return cellSuccesses.getLongValue();
   }
   
-  final int getCpusSelected() {
+  final int getCPUsSelected() {
     if (!isSelected()) {
       return 0;
     }
-    if (cellCpusSelected instanceof SpinnerCell) {
-      return ((SpinnerCell) cellCpusSelected).getValue();
+    if (cellCPUsSelected instanceof SpinnerCell) {
+      return ((SpinnerCell) cellCPUsSelected).getValue();
     }
-    int cpusSelected = ((FieldCell) cellCpusSelected).getIntValue();
+    int cpusSelected = ((FieldCell) cellCPUsSelected).getIntValue();
     if (cpusSelected == EtomoNumber.INTEGER_NULL_VALUE) {
       cpusSelected = 0;
     }
@@ -238,7 +225,7 @@ final class ProcessorTableRow {
     cellRestarts.setValue(restarts);
   }
   
-  final void setLoad(double load1, double load5, double load15) {
+  final void setLoadAverage(double load1, double load5, double load15) {
     int numberCpus = cellNumberCpus.getIntValue();
     setLoad(cellLoad1, load1, numberCpus);
     setLoad(cellLoad5, load5, numberCpus);
@@ -246,7 +233,7 @@ final class ProcessorTableRow {
   }
   
   private final void setLoad(FieldCell cellLoad, double load, int numberCpus) {
-    cellLoad1.setWarning(load >= numberCpus);
+    cellLoad.setWarning(load >= numberCpus);
     cellLoad.setValue(load);
   }
   
@@ -254,13 +241,17 @@ final class ProcessorTableRow {
     return cellComputer.getHeight();
   }
   
+  final String getComputer() {
+    return cellComputer.getLabel();
+  }
+  
   final int getWidth() {
     int width = 0;
     if (cellComputer != null) {
       width += cellComputer.getWidth();
     }
-    if (cellCpusSelected != null) {
-      width += cellCpusSelected.getWidth();
+    if (cellCPUsSelected != null) {
+      width += cellCPUsSelected.getWidth();
     }
     if (cellNumberCpus != null) {
       width += cellNumberCpus.getWidth();
@@ -274,8 +265,8 @@ final class ProcessorTableRow {
     if (cellLoad15 != null) {
       width += cellLoad15.getWidth();
     }
-    if (cellCpuType != null) {
-      width += cellCpuType.getWidth();
+    if (cellCPUType != null) {
+      width += cellCPUType.getWidth();
     }
     if (cellOs != null) {
       width += cellOs.getWidth();
@@ -318,6 +309,10 @@ final class ProcessorTableRow {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.8  2005/08/04 20:19:33  sueh
+ * <p> bug# 532  Removed demo fields and functions.  Added functions:
+ * <p> getWidth, addSuccess, and drop.
+ * <p>
  * <p> Revision 1.7  2005/08/01 18:15:40  sueh
  * <p> bug# 532 Changed ProcessorTableRow.signalRestart() to addRestart.
  * <p> Added Failure Reason Column.  Added
