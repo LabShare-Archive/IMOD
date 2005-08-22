@@ -8,6 +8,7 @@ import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.comscript.Command;
 import etomo.comscript.ComscriptState;
+import etomo.comscript.LoadAverageParam;
 import etomo.type.AxisID;
 import etomo.type.ProcessEndState;
 import etomo.ui.UIHarness;
@@ -27,6 +28,16 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.19  2005/08/15 17:55:29  sueh
+* <p> bug# 532   Processchunks needs to be killed with an interrupt instead of
+* <p> a kill, so a processchunks specific class has to make the decision of
+* <p> what type of signal to send.  Change BaseProcessManager.kill() to call
+* <p> SystemProcessInterface.kill().  When the correct signal is chosen,
+* <p> SystemProcessInterface will call either signalInterrupt or signalKill.  Also
+* <p> added pause(), which will be associaated with the Pause button and will
+* <p> work like kill.  Added functions:  getThread, interruptProcess, pause,
+* <p> signalInterrupt, signalKill.
+* <p>
 * <p> Revision 1.18  2005/08/04 19:42:50  sueh
 * <p> bug# 532 Passing monitor to BackgroundProcess when necessary.
 * <p>
@@ -179,6 +190,15 @@ public abstract class BaseProcessManager {
   public BaseProcessManager() {
   }
   
+
+  public final void startGetLoadAverage(LoadAverageParam param, LoadAverageMonitor monitor) {
+    IntermittentSystemProgram.startInstance(getManager(), param, monitor);
+  }
+  
+  public final void stopGetLoadAverage(LoadAverageParam param, LoadAverageMonitor monitor) {
+    IntermittentSystemProgram.stopInstance(getManager(), param, monitor);
+  }
+  
   /**
    * run touch command on file
    * @param file
@@ -327,8 +347,7 @@ public abstract class BaseProcessManager {
    * @param axisID
    * @throws SystemProcessException
    */
-//TEMP should be protected
-  public void isAxisBusy(AxisID axisID) throws SystemProcessException {
+  protected void isAxisBusy(AxisID axisID) throws SystemProcessException {
     // Check to make sure there is not another process already running on this
     // axis.
     if (axisID == AxisID.SECOND) {
@@ -775,6 +794,18 @@ public abstract class BaseProcessManager {
     return startBackgroundProcess(backgroundProcess, commandArray.toString(),
         axisID, monitor);
   }
+  
+  protected BackgroundProcess startInteractiveBackgroundProcess(String[] commandArray,
+      AxisID axisID, ProcessMonitor monitor) throws SystemProcessException {
+
+    isAxisBusy(axisID);
+
+    BackgroundProcess backgroundProcess = new BackgroundProcess(getManager(),
+        commandArray, this, axisID, monitor);
+    backgroundProcess.setAcceptInputWhileRunning(true);
+    return startBackgroundProcess(backgroundProcess, commandArray.toString(),
+        axisID, monitor);
+  }
 
   protected BackgroundProcess startBackgroundProcess(Command command,
       AxisID axisID) throws SystemProcessException {
@@ -883,6 +914,7 @@ public abstract class BaseProcessManager {
    *          the exit value for the process
    */
   public void msgBackgroundProcessDone(BackgroundProcess process, int exitValue) {
+    String statusString = null;
     //  Check to see if the exit value is non-zero
     if (exitValue != 0) {
       String[] stdError = process.getStdError();
@@ -904,12 +936,16 @@ public abstract class BaseProcessManager {
           message[j] = stdError[i];
         }
       }
-      if (process.getProcessEndState() != ProcessEndState.KILLED
-          && process.getProcessEndState() != ProcessEndState.PAUSED) {
+      ProcessEndState endState = process.getProcessEndState();
+      if (endState != ProcessEndState.KILLED
+          && endState != ProcessEndState.PAUSED) {
         uiHarness.openMessageDialog(message,
             process.getCommandName() + " terminated", process.getAxisID());
         //make sure script knows about failure
         process.setProcessEndState(ProcessEndState.FAILED);
+      }
+      else if (process.getProcessEndState() == ProcessEndState.PAUSED) {
+        statusString = process.getStatusString();
       }
     }
 
@@ -960,7 +996,7 @@ public abstract class BaseProcessManager {
 
     //  Inform the app manager that this process is complete
     getManager().processDone(process.getName(), exitValue, null, process.getAxisID(),
-        process.isForceNextProcess(), process.getProcessEndState());
+        process.isForceNextProcess(), process.getProcessEndState(), statusString);
   }
   
   public void msgInteractiveSystemProgramDone(InteractiveSystemProgram program, int exitValue) {
