@@ -13,6 +13,7 @@ import java.awt.event.WindowEvent;
 import javax.swing.JPanel;
 
 import etomo.BaseManager;
+import etomo.EtomoDirector;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.util.UniqueKey;
@@ -30,6 +31,10 @@ import etomo.util.UniqueKey;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.34  2005/07/11 23:02:24  sueh
+ * <p> bug# 619 Moved code to get the screen size to UIUtilities so it can be
+ * <p> used in ProcessorTable.
+ * <p>
  * <p> Revision 3.33  2005/06/01 21:27:21  sueh
  * <p> bug# 667 Removing the Controller classes.  Trying make meta data and
  * <p> app manager equals didn't work very well.  Meta data is created by and
@@ -418,6 +423,12 @@ final class MainFrame extends EtomoFrame implements ContextMenu {
   void setCurrentManager(BaseManager currentManager, UniqueKey managerKey,
       boolean newWindow) {
     this.currentManager = currentManager;
+    if (currentManager == null) {
+      EtomoDirector.getInstance().makeCurrent();
+    }
+    else {
+      currentManager.makeCurrent();
+    }
     if (mainPanel != null) {
       rootPanel.removeAll();
     }
