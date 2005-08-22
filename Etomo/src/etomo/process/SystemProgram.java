@@ -17,6 +17,11 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.20  2005/08/22 17:07:29  sueh
+ * <p> bug# 532 Added boolean acceptInputWhileRunning to prevent the closing
+ * <p> of the standard in too early.  AcceptInputWhileRunning defaults to false
+ * <p> because it prevents several types of processes from running.
+ * <p>
  * <p> Revision 3.19  2005/08/16 00:19:36  sueh
  * <p> bug# 532 standard input most be closed for com scripts to run.
  * <p>
@@ -326,7 +331,7 @@ public class SystemProgram implements Runnable {
       if (debug)
         System.err.print("SystemProgram: Exec'ing process...");
 
-      if (workingDirectory == null && propertyUserDir != null && propertyUserDir.matches("\\S+")) {
+      if (workingDirectory == null && propertyUserDir != null && !propertyUserDir.matches("\\s*+")) {
         workingDirectory = new File(propertyUserDir);
       }
       runTimestamp = new Date();
