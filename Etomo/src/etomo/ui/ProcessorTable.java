@@ -4,7 +4,6 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.util.Vector;
 
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -13,6 +12,7 @@ import javax.swing.border.LineBorder;
 
 import etomo.comscript.ProcesschunksParam;
 import etomo.type.AxisID;
+import etomo.util.HashedArray;
 
 /**
  * <p>Description: </p>
@@ -41,12 +41,11 @@ final class ProcessorTable {
 
   private GridBagLayout layout = new GridBagLayout();
   private GridBagConstraints constraints = new GridBagConstraints();
-  private boolean tableCreated = false;
   private HeaderCell hdrComputer = null;
   private HeaderCell hdrNumberCpus = null;
   private HeaderCell hdrNumberCpusUsed = null;
 
-  private Vector rows = new Vector();
+  private HashedArray rows = new HashedArray();
   private ParallelPanel parent = null;
   private AxisID axisID;
 
@@ -112,43 +111,41 @@ final class ProcessorTable {
     constraints.gridwidth = GridBagConstraints.REMAINDER;
     new HeaderCell("Reason").add(tablePanel, layout, constraints);
     //rows
-    ProcessorTableRow row = new ProcessorTableRow(this, "bebop", 0.20, 0.19,
-        0.18);
+    ProcessorTableRow row = new ProcessorTableRow(this, "bebop");
     row.addRow();
-    rows.add(row);
-    row = new ProcessorTableRow(this, "mustang", 2, 0.67, 0.61, 0.70);
+    rows.add("bebop", row);
+    row = new ProcessorTableRow(this, "mustang", 2);
     row.addRow();
-    rows.add(row);
-    row = new ProcessorTableRow(this, "monalisa", 2, 1.22, 1.27, 1.08);
+    rows.add("mustang", row);
+    row = new ProcessorTableRow(this, "monalisa", 2);
     row.addRow();
-    rows.add(row);
-    row = new ProcessorTableRow(this, "wanderer", 0.00, 0.00, 0.00);
+    rows.add("monalisa", row);
+    row = new ProcessorTableRow(this, "wanderer");
     row.addRow();
-    rows.add(row);
-    row = new ProcessorTableRow(this, "shrek", "Opteron", 2, 1.00, 1.02, 1.34);
+    rows.add("wanderer", row);
+    row = new ProcessorTableRow(this, "shrek", "Opteron", 2);
     row.addRow();
-    rows.add(row);
-    row = new ProcessorTableRow(this, "druid", 0.24, 0.05, 0.02);
+    rows.add("shrek", row);
+    row = new ProcessorTableRow(this, "druid");
     row.addRow();
-    rows.add(row);
-    row = new ProcessorTableRow(this, "tubule", "Opteron", 2.00, 2.00, 1.91);
+    rows.add("druid", row);
+    row = new ProcessorTableRow(this, "tubule", "Opteron");
     row.addRow();
-    rows.add(row);
-    row = new ProcessorTableRow(this, "bigfoot", 2, 0.00, 0.00, 0.00);
+    rows.add("tubule", row);
+    row = new ProcessorTableRow(this, "bigfoot", 2);
     row.addRow();
-    rows.add(row);
-    row = new ProcessorTableRow(this, "blkbox2", 0.00, 0.00, 0.09);
+    rows.add("bigfoot", row);
+    row = new ProcessorTableRow(this, "blkbox2");
     row.addRow();
-    rows.add(row);
-    row = new ProcessorTableRow(this, "sanguine", 0.60, 0.29, 0.19);
+    rows.add("blkbox2", row);
+    row = new ProcessorTableRow(this, "sanguine");
     row.addRow();
-    rows.add(row);
-    row = new ProcessorTableRow(this, "thot", 0.00, 0.00, 0.00);
+    rows.add("sanguine", row);
+    row = new ProcessorTableRow(this, "thot");
     row.addRow();
-    rows.add(row);
-    tableCreated = true;
+    rows.add("thot", row);
   }
-
+  
   final Container getContainer() {
     return scrollPane;
   }
@@ -179,24 +176,24 @@ final class ProcessorTable {
     return successes;
   }
 
-  final void signalCpusSelectedChanged() {
-    if (!tableCreated) {
+  final void signalCPUsSelectedChanged() {
+    if (rows == null) {
       return;
     }
-    parent.signalCpusSelectedChanged(getCpusSelected());
+    parent.signalCPUsSelectedChanged(getCPUsSelected());
   }
 
-  final int getCpusSelected() {
-    if (!tableCreated) {
+  final int getCPUsSelected() {
+    if (rows == null) {
       return 0;
     }
     int cpusSelected = 0;
     for (int i = 0; i < rows.size(); i++) {
-      cpusSelected += ((ProcessorTableRow) rows.get(i)).getCpusSelected();
+      cpusSelected += ((ProcessorTableRow) rows.get(i)).getCPUsSelected();
     }
     return cpusSelected;
   }
-
+  
   private final void setMaximumSize(double height) {
     if (height == 0) {
       return;
@@ -352,9 +349,38 @@ final class ProcessorTable {
         + " column and use the spinner in the " + hdrNumberCpus.getText() + " "
         + hdrNumberCpusUsed.getText() + " column where available.";
   }
+  
+  final void startGetLoadAverage(ParallelPanel display) {
+    if (rows == null) {
+      return;
+    }
+    for (int i = 0; i < rows.size(); i++) {
+      display.startGetLoadAverage(((ProcessorTableRow) rows.get(i)).getComputer());
+    }
+  }
+  
+  final void stopGetLoadAverage(ParallelPanel display) {
+    if (rows == null) {
+      return;
+    }
+    for (int i = 0; i < rows.size(); i++) {
+      display.stopGetLoadAverage(((ProcessorTableRow) rows.get(i)).getComputer());
+    }
+  }
+  
+  final void setLoadAverage(String computer, double load1, double load5, double load15) {
+    if (rows == null) {
+      return;
+    }
+    ((ProcessorTableRow) rows.get(computer)).setLoadAverage(load1, load5, load15);
+  }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.8  2005/08/04 20:16:24  sueh
+ * <p> bug# 532  Fixed table resizing problems.  Added RunPack() to use with
+ * <p> invoke later.  Added functions to calculate height and width of the table.
+ * <p>
  * <p> Revision 1.7  2005/08/01 18:13:12  sueh
  * <p> bug# 532 Changed ProcessorTableRow.signalRestart() to addRestart.
  * <p> Added Failure Reason column.
