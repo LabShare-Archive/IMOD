@@ -20,6 +20,11 @@ import etomo.comscript.TransferfidParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.21  2005/07/29 00:53:36  sueh
+ * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
+ * <p> because the current manager changes when the user changes the tab.
+ * <p> Passing the manager where its needed.
+ * <p>
  * <p> Revision 3.20  2005/06/11 02:42:26  sueh
  * <p> bug# 583, bug# 584  Storing screen binning for Tomo Pos and Tomo Gen
  * <p> in MetaData separately (Tomo Pos default is 3).
@@ -176,6 +181,8 @@ public class MetaData extends ConstMetaData {
     tomoPosBinningB.reset();
     tomoGenBinningA.reset();
     tomoGenBinningB.reset();
+    tomoGenParallelProcessA = false;
+    tomoGenParallelProcessB = false;
   }
   
   public void initialize() {
@@ -287,6 +294,15 @@ public class MetaData extends ConstMetaData {
     }
     else {
       tomoGenBinningA.set(tomoGenBinning);
+    }
+  }
+  
+  public void setTomoGenParallelProcess(AxisID axisID, boolean parallelProcess) {
+    if (axisID == AxisID.SECOND) {
+      tomoGenParallelProcessB = parallelProcess;
+    }
+    else {
+      tomoGenParallelProcessA = parallelProcess;
     }
   }
   

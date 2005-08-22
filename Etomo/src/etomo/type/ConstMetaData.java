@@ -78,6 +78,8 @@ public abstract class ConstMetaData extends BaseMetaData {
   protected final SqueezevolParam squeezevolParam;
   protected final TransferfidParam transferfidParamA;
   protected final TransferfidParam transferfidParamB;
+  protected boolean tomoGenParallelProcessA = false;
+  protected boolean tomoGenParallelProcessB = false;
 
   public abstract void load(Properties props);
   public abstract void load(Properties props, String prepend);
@@ -246,6 +248,13 @@ public abstract class ConstMetaData extends BaseMetaData {
       return tomoGenBinningB;
     }
     return tomoGenBinningA;
+  }
+  
+  public boolean getTomoGenParallelProcess(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return tomoGenParallelProcessB;
+    }
+    return tomoGenParallelProcessA;
   }
   
   public ConstEtomoNumber getUseZFactors(AxisID axisID) {
@@ -619,6 +628,11 @@ public abstract class ConstMetaData extends BaseMetaData {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.26  2005/07/29 00:53:15  sueh
+ * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
+ * <p> because the current manager changes when the user changes the tab.
+ * <p> Passing the manager where its needed.
+ * <p>
  * <p> Revision 3.25  2005/06/10 23:24:38  sueh
  * <p> bug# 583, bug# 677, bug# 584, bug# 679, bug# 683  Storing
  * <p> screen binning for Tomo Pos and Tomo Gen in MetaData separately.
