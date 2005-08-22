@@ -12,6 +12,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.7  2005/07/26 23:08:12  sueh
+ * <p> bug# 701 When stopping the progress bar, pass the process end state.
+ * <p>
  * <p> Revision 3.6  2005/04/16 02:03:56  sueh
  * <p> bug# 615 Added setBackground(Color).
  * <p>
@@ -146,20 +149,22 @@ public class ProgressPanel {
     }
   }
 
-  public void stop(ProcessEndState state) {
+  public void stop(ProcessEndState state, String statusString) {
     stopped = true;
     counter = 0;
     if (state == null) {
       state = ProcessEndState.DONE;
     }
-    SwingUtilities.invokeLater(new StopLater(state));
+    SwingUtilities.invokeLater(new StopLater(state, statusString));
   }
 
   private class StopLater implements Runnable {
     private final ProcessEndState state;
+    private final String statusString;
     
-    public StopLater(ProcessEndState state) {
+    public StopLater(ProcessEndState state, String statusString) {
       this.state = state;
+      this.statusString = statusString;
     }
     
     public void run() {
@@ -167,7 +172,11 @@ public class ProgressPanel {
       timer.stop();
       progressBar.setValue(counter);
       progressBar.setIndeterminate(false);
-      progressBar.setString(state.toString());
+      StringBuffer message = new StringBuffer(state.toString());
+      if (statusString != null) {
+        message.append(":  " + statusString);
+      }
+      progressBar.setString(message.toString());
       progressBar.setStringPainted(true);
     }
   }
