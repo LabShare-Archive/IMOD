@@ -10,6 +10,8 @@ import java.util.Iterator;
 import java.util.Vector;
 
 import etomo.comscript.ComScriptManager;
+import etomo.comscript.LoadAverageParam;
+import etomo.process.BaseProcessManager;
 import etomo.process.ImodManager;
 import etomo.process.ImodProcess;
 import etomo.process.SystemProcessException;
@@ -24,6 +26,7 @@ import etomo.type.BaseState;
 import etomo.type.ProcessEndState;
 import etomo.type.ProcessName;
 import etomo.type.UserConfiguration;
+import etomo.ui.LoadAverageDisplay;
 import etomo.ui.MainPanel;
 import etomo.ui.UIHarness;
 import etomo.util.Utilities;
@@ -42,6 +45,10 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.24  2005/08/10 20:38:29  sueh
+* <p> bug# 711 Made UIParameters constructor private.  Can't force it no be
+* <p> called since this is mostly static functions.
+* <p>
 * <p> Revision 1.23  2005/08/04 19:05:42  sueh
 * <p> bug# 532  Sending the manager to UIHarness.pack() so that
 * <p> packDialogs() can be called.
@@ -287,10 +294,12 @@ public abstract class BaseManager {
   protected abstract BaseProcessTrack getProcessTrack();
   protected abstract BaseState getBaseState();
   public abstract void kill(AxisID axisID);
+  public abstract void pause(AxisID axisID);
   protected abstract int getNumStorables();
   public abstract void touch(File file);
   public abstract void packDialogs();
   public abstract void packDialogs(AxisID axisID);
+  protected abstract BaseProcessManager getProcessManager();
 
   //FIXME needs to be public?
   public abstract boolean isNewManager();
@@ -652,7 +661,7 @@ public abstract class BaseManager {
    */
   public void processDone(String threadName, int exitValue,
       ProcessName processName, AxisID axisID, ProcessEndState endState) {
-    processDone(threadName, exitValue, processName, axisID, false, endState);
+    processDone(threadName, exitValue, processName, axisID, false, endState, null);
   }
   
   /**
@@ -662,9 +671,10 @@ public abstract class BaseManager {
    *            The name of the thread that has finished
    */
   public void processDone(String threadName, int exitValue,
-    ProcessName processName, AxisID axisID, boolean forceNextProcess, ProcessEndState endState) {
+      ProcessName processName, AxisID axisID, boolean forceNextProcess,
+      ProcessEndState endState, String statusString) {
     if (threadName.equals(threadNameA)) {
-      getMainPanel().stopProgressBar(AxisID.FIRST, endState);
+      getMainPanel().stopProgressBar(AxisID.FIRST, endState, statusString);
       threadNameA = "none";
       backgroundProcessA = false;
       backgroundProcessNameA = null;
@@ -745,5 +755,15 @@ public abstract class BaseManager {
         + ",\nbackgroundProcessA=" + backgroundProcessA
         + ",\nbackgroundProcessNameA=" + backgroundProcessNameA
         + ",\npropertyUserDir=" + propertyUserDir + ",debug=" + debug;
+  }
+  
+  public final void startGetLoadAverage(LoadAverageDisplay display, String computer) {
+    LoadAverageParam param = new LoadAverageParam(computer);
+    getProcessManager().startGetLoadAverage(param, display.getLoadAverageMonitor());
+  }
+  
+  public final void stopGetLoadAverage(LoadAverageDisplay display, String computer) {
+    LoadAverageParam param = new LoadAverageParam(computer);
+    getProcessManager().stopGetLoadAverage(param, display.getLoadAverageMonitor());
   }
 }
