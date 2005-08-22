@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/22/05: Fixed Blendmont's computation of excluded border regions so that
+cross-correlations are not thrown off by edges in distortion corrected images.
+
 8/19/05: Made image loading routine allow 3dmod to respond to messages
 periodically while reading a large section.
 
