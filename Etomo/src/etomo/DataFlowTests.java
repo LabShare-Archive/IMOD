@@ -1,82 +1,3 @@
-/**
- * <p>Description: This application and class runs through a preconfigured
- * tomogram generation sequence excerises much of the com script and program
- * execution code.
- * 
- * It requires the raw stack(s), the completed seed model(s), fiducial model(s)
- * and tomopitch model(s), com scripts and, if necessary the raw tilt files,
- * to exist in the subdirectory DataSource of the working directory.  It also
- * requires the .edf file named the same as the dataset name to exist in the
- * DataSource directory.</p>
- * 
- * <p>Copyright: Copyright (c) 2002, 2003</p>
- *
- *<p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
- * 
- * <p> $Log$
- * <p> Revision 3.10  2005/06/16 19:52:31  sueh
- * <p> bug# 692 Added self test to command line in DataFlowTests.
- * <p>
- * <p> Revision 3.9  2005/04/27 02:10:10  sueh
- * <p> bug# 615 Showing both axes for dual axis.
- * <p>
- * <p> Revision 3.8  2005/04/26 17:35:00  sueh
- * <p> bug# 615 Made MainFrame a package-level class.  All MainFrame
- * <p> functionality is handled through UIHarness to make Etomo more
- * <p> compatible with JUnit.  Removing the mainFrame member variable.
- * <p>
- * <p> Revision 3.7  2005/03/15 01:03:16  sueh
- * <p> bug# 533 Added montaging
- * <p>
- * <p> Revision 3.6  2005/02/18 23:59:29  sueh
- * <p> bug# 606 Removed MetaData (Setup) zfactors, fiducialess, wholetomogram,
- * <p> and localalignments.  Add them for A and B.
- * <p>
- * <p> Revision 3.5  2004/11/19 22:34:12  sueh
- * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
- * <p>
- * <p> Revision 3.4.2.3  2004/10/08 15:41:59  sueh
- * <p> bug# 520 Since EtomoDirector is a singleton, made all functions and
- * <p> member variables non-static.
- * <p>
- * <p> Revision 3.4.2.2  2004/09/07 17:51:30  sueh
- * <p> bug# 520 getting mainFrame from ETomoDirector
- * <p>
- * <p> Revision 3.4.2.1  2004/09/03 20:57:52  sueh
- * <p> bug# 520 getting app mgr from EtomoDirector
- * <p>
- * <p> Revision 3.4  2004/06/30 17:36:46  rickg
- * <p> Added fiducialless capability and partial single axis handling
- * <p>
- * <p> Revision 3.3.2.1  2004/06/30 17:32:39  rickg
- * <p> Added fiducialless capability and partial single axis handling
- * <p>
- * <p> Revision 3.3  2004/04/26 23:41:37  rickg
- * <p> Use copy from Utilities class
- * <p>
- * <p> Revision 3.2  2004/04/26 22:45:17  rickg
- * <p> Copy a seed in from data source directory at beginning
- * <p>
- * <p> Revision 3.1  2004/03/29 21:01:52  sueh
- * <p> bug# 409 added commented out mtffilter code
- * <p>
- * <p> Revision 3.0  2003/11/07 23:19:00  rickg
- * <p> Version 1.0.0
- * <p>
- * <p> Revision 1.2  2003/11/07 23:15:03  rickg
- * <p> Comments and command line args added
- * <p>
- * <p> Revision 1.1  2003/11/07 00:53:09  rickg
- * <p> *** empty log message ***
- * <p> </p>
- */
-
 package etomo;
 
 import java.io.File;
@@ -90,6 +11,27 @@ import etomo.type.ViewType;
 import etomo.ui.UIHarness;
 import etomo.util.Utilities;
 
+/**
+ * <p>Description: This application and class runs through a preconfigured
+ * tomogram generation sequence excerises much of the com script and program
+ * execution code.
+ * 
+ * It requires the raw stack(s), the completed seed model(s), fiducial model(s)
+ * and tomopitch model(s), com scripts and, if necessary the raw tilt files,
+ * to exist in the subdirectory DataSource of the working directory.  It also
+ * requires the .edf file named the same as the dataset name to exist in the
+ * DataSource directory.</p>
+ * 
+ * <p>Copyright: Copyright (c) 2002 - 2005</p>
+ *
+ *<p>Organization:
+ * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
+ * University of Colorado</p>
+ * 
+ * @author $Author$
+ * 
+ * @version $Revision$
+ */
 public class DataFlowTests {
 
   static ApplicationManager applicationManager;
@@ -105,7 +47,7 @@ public class DataFlowTests {
     parseCommandLine(args);
 
     System.out.println("Current working directory: "
-      + System.getProperty("user.dir"));
+        + System.getProperty("user.dir"));
     System.out.println("Dataset name: " + datasetName);
 
     // Copy the EDF from the data source directory, also need a dataset for now
@@ -126,9 +68,10 @@ public class DataFlowTests {
     argsIn[0] = "--debug";
     argsIn[1] = "--selftest";
     argsIn[2] = System.getProperty("user.dir") + File.separator + datasetName
-      + ".edf";
+        + ".edf";
     EtomoDirector.createInstance(argsIn);
-    applicationManager = (ApplicationManager) EtomoDirector.getInstance().getCurrentManager();
+    applicationManager = (ApplicationManager) EtomoDirector.getInstance()
+        .getCurrentManager();
     //mainFrame = EtomoDirector.getInstance().getMainFrame();
     // A hack around the const object returned we really know is not const
     MetaData metaData = (MetaData) applicationManager.getMetaData();
@@ -203,7 +146,7 @@ public class DataFlowTests {
   }
 
   private static void copycoms(String axisExtension, boolean montage)
-    throws SystemProcessException {
+      throws SystemProcessException {
     copyFromDataSource("align" + axisExtension + ".com");
     copyFromDataSource("eraser" + axisExtension + ".com");
     copyFromDataSource("findsec" + axisExtension + ".com");
@@ -234,10 +177,10 @@ public class DataFlowTests {
   }
 
   private static void copyFromDataSource(String filename)
-    throws SystemProcessException {
+      throws SystemProcessException {
     System.out.println("Copying from DataSource directory: " + filename);
     File source = new File(System.getProperty("user.dir") + File.separator
-      + "DataSource", filename);
+        + "DataSource", filename);
     File dest = new File(System.getProperty("user.dir"), filename);
     try {
       Utilities.copyFile(source, dest);
@@ -245,7 +188,7 @@ public class DataFlowTests {
     catch (IOException e) {
       e.printStackTrace();
       System.err.println("Unable to copy " + source.getAbsolutePath() + " to "
-        + dest.getAbsolutePath());
+          + dest.getAbsolutePath());
       System.exit(-1);
     }
 
@@ -267,7 +210,7 @@ public class DataFlowTests {
     uiHarness.pack(applicationManager);
     applicationManager.crossCorrelate(axisID);
     waitForThread(axisID);
-    if(!applicationManager.getMetaData().isFiducialessAlignment(axisID)) {
+    if (!applicationManager.getMetaData().isFiducialessAlignment(axisID)) {
       applicationManager.coarseAlign(axisID);
       waitForThread(axisID);
     }
@@ -325,7 +268,7 @@ public class DataFlowTests {
       e.printStackTrace();
       return;
     }
-    if(applicationManager.getMetaData().isWholeTomogramSample(axisID)) {
+    if (applicationManager.getMetaData().isWholeTomogramSample(axisID)) {
       applicationManager.wholeTomogram(axisID);
     }
     else {
@@ -333,7 +276,7 @@ public class DataFlowTests {
     }
     waitForThread(axisID);
 
-    if(!applicationManager.getMetaData().isFiducialessAlignment(axisID)) {
+    if (!applicationManager.getMetaData().isFiducialessAlignment(axisID)) {
       applicationManager.finalAlign(axisID);
       waitForThread(axisID);
     }
@@ -371,10 +314,10 @@ public class DataFlowTests {
       System.err.println("");
       System.err.println("Options:");
       System.err
-        .println("--fiducial      Force a fiducial alignment (overide .edf)");
+          .println("--fiducial      Force a fiducial alignment (overide .edf)");
       System.err.println("");
       System.err
-        .println("--fiducialless  Force a fiducialless alignment (overide .edf)");
+          .println("--fiducialless  Force a fiducialless alignment (overide .edf)");
       System.err.println("");
       System.exit(1);
     }
@@ -398,3 +341,65 @@ public class DataFlowTests {
     }
   }
 }
+/**
+ * <p> $Log$
+ * <p> Revision 3.11  2005/08/04 19:07:18  sueh
+ * <p> bug# 532  Sending the manager to UIHarness.pack() so that
+ * <p> packDialogs() can be called.
+ * <p>
+ * <p> Revision 3.10  2005/06/16 19:52:31  sueh
+ * <p> bug# 692 Added self test to command line in DataFlowTests.
+ * <p>
+ * <p> Revision 3.9  2005/04/27 02:10:10  sueh
+ * <p> bug# 615 Showing both axes for dual axis.
+ * <p>
+ * <p> Revision 3.8  2005/04/26 17:35:00  sueh
+ * <p> bug# 615 Made MainFrame a package-level class.  All MainFrame
+ * <p> functionality is handled through UIHarness to make Etomo more
+ * <p> compatible with JUnit.  Removing the mainFrame member variable.
+ * <p>
+ * <p> Revision 3.7  2005/03/15 01:03:16  sueh
+ * <p> bug# 533 Added montaging
+ * <p>
+ * <p> Revision 3.6  2005/02/18 23:59:29  sueh
+ * <p> bug# 606 Removed MetaData (Setup) zfactors, fiducialess, wholetomogram,
+ * <p> and localalignments.  Add them for A and B.
+ * <p>
+ * <p> Revision 3.5  2004/11/19 22:34:12  sueh
+ * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+ * <p>
+ * <p> Revision 3.4.2.3  2004/10/08 15:41:59  sueh
+ * <p> bug# 520 Since EtomoDirector is a singleton, made all functions and
+ * <p> member variables non-static.
+ * <p>
+ * <p> Revision 3.4.2.2  2004/09/07 17:51:30  sueh
+ * <p> bug# 520 getting mainFrame from ETomoDirector
+ * <p>
+ * <p> Revision 3.4.2.1  2004/09/03 20:57:52  sueh
+ * <p> bug# 520 getting app mgr from EtomoDirector
+ * <p>
+ * <p> Revision 3.4  2004/06/30 17:36:46  rickg
+ * <p> Added fiducialless capability and partial single axis handling
+ * <p>
+ * <p> Revision 3.3.2.1  2004/06/30 17:32:39  rickg
+ * <p> Added fiducialless capability and partial single axis handling
+ * <p>
+ * <p> Revision 3.3  2004/04/26 23:41:37  rickg
+ * <p> Use copy from Utilities class
+ * <p>
+ * <p> Revision 3.2  2004/04/26 22:45:17  rickg
+ * <p> Copy a seed in from data source directory at beginning
+ * <p>
+ * <p> Revision 3.1  2004/03/29 21:01:52  sueh
+ * <p> bug# 409 added commented out mtffilter code
+ * <p>
+ * <p> Revision 3.0  2003/11/07 23:19:00  rickg
+ * <p> Version 1.0.0
+ * <p>
+ * <p> Revision 1.2  2003/11/07 23:15:03  rickg
+ * <p> Comments and command line args added
+ * <p>
+ * <p> Revision 1.1  2003/11/07 00:53:09  rickg
+ * <p> *** empty log message ***
+ * <p> </p>
+ */
