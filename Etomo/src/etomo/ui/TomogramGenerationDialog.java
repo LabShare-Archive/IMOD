@@ -1,4 +1,3 @@
-
 package etomo.ui;
 
 import java.awt.Component;
@@ -69,6 +68,16 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.58  2005/08/12 00:01:13  sueh
+ * bug# 711  Change enum Run3dmodMenuOption to
+ * Run3dmodMenuOptions, which can turn on multiple options at once.
+ * This allows ImodState to combine input from the context menu and the
+ * pulldown menu.  Prevent context menu from popping up when button is
+ * disabled.  Get rid of duplicate code by running the 3dmods from a private
+ * function called run3dmod(String, Run3dmodMenuOptions).  It can be
+ * called from run3dmod(Run3dmodButton, Run3dmodMenuOptions) and the
+ * action function.
+ *
  * Revision 3.57  2005/08/10 20:48:01  sueh
  * bug# 711 Removed MultiLineToggleButton.  Making toggling an attribute
  * of MultiLineButton.
@@ -519,14 +528,18 @@ public class TomogramGenerationDialog extends ProcessDialog
   "Extra views to exclude: ");
   private JCheckBox cbParallelProcess = new JCheckBox("Parallel Processing");
   //headers should not go into garbage collection
-  private PanelHeader newstHeader;
-  private PanelHeader tiltHeader;
-  private PanelHeader trialHeader;
-  private PanelHeader filterHeader;
+  private PanelHeader newstHeader = null;
+  private PanelHeader tiltHeader = null;
+  private PanelHeader trialHeader = null;
+  private PanelHeader filterHeader = null;
   //panels that are changed in setAdvanced()
   private SpacedPanel inverseParamsPanel;
   private JPanel trialPanel;
   private ParallelPanel parallelPanel;
+  private JPanel tiltBodyPanel;
+  private JPanel filterBodyPanel;
+  private SpacedPanel newstBodyPanel;
+  private SpacedPanel trialBodyPanel;
   
   //backward compatibility functionality - if the metadata binning is missing
   //get binning from newst
@@ -539,7 +552,7 @@ public class TomogramGenerationDialog extends ProcessDialog
     fixRootPanel(rootSize);
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     btnExecute.setText("Done");
-    parallelPanel = new ParallelPanel(applicationManager, this, axisID);
+    parallelPanel = ParallelPanel.getInstance(applicationManager, this, axisID);
     // Layout the main panel (and sub panels) and add it to the root panel
     pnlTilt.setBorder(new BeveledBorder("Tomogram Generation").getBorder());
     pnlTilt.setLayout(new BoxLayout(pnlTilt, BoxLayout.Y_AXIS));
@@ -622,10 +635,13 @@ public class TomogramGenerationDialog extends ProcessDialog
       getBinningFromNewst = false;
       spinBinning.setValue(binning);
     }
+    cbParallelProcess.setSelected(metaData.getTomoGenParallelProcess(axisID));
+    updateParallelProcess();
   }
   
   public void getParameters(MetaData metaData) {
     metaData.setTomoGenBinning(axisID, ((Integer) spinBinning.getValue()).intValue());
+    metaData.setTomoGenParallelProcess(axisID, cbParallelProcess.isSelected());
   }
   
   public final boolean getParameters(SplittiltParam param) {
@@ -910,11 +926,35 @@ public class TomogramGenerationDialog extends ProcessDialog
   
   
   public void expand(ExpandButton button) {
-    if (tiltHeader.equalsAdvancedBasic(button)) {
-      updateAdvancedTilt(button.isExpanded());
+    if (tiltHeader != null) {
+      if (tiltHeader.equalsOpenClose(button)) {
+        tiltBodyPanel.setVisible(button.isExpanded());
+        UIHarness.INSTANCE.pack(axisID, applicationManager);
+        return;
+      }
+      if (tiltHeader.equalsAdvancedBasic(button)) {
+        updateAdvancedTilt(button.isExpanded());
+        UIHarness.INSTANCE.pack(axisID, applicationManager);
+        return;
+      }
     }
-    else if (filterHeader.equalsAdvancedBasic(button)) {
-      updateAdvancedFilter(button.isExpanded());
+    if (filterHeader != null) {
+      if (filterHeader.equalsOpenClose(button)) {
+        filterBodyPanel.setVisible(button.isExpanded());
+        UIHarness.INSTANCE.pack(axisID, applicationManager);
+        return;
+      }
+      if (filterHeader.equalsAdvancedBasic(button)) {
+        updateAdvancedFilter(button.isExpanded());
+        UIHarness.INSTANCE.pack(axisID, applicationManager);
+        return;
+      }
+    }
+    if (newstHeader != null && newstHeader.equalsOpenClose(button)) {
+      newstBodyPanel.setVisible(button.isExpanded());
+    }
+    else if (trialHeader != null && trialHeader.equalsOpenClose(button)) {
+      trialBodyPanel.setVisible(button.isExpanded());
     }
     else {
       return;
@@ -966,22 +1006,21 @@ public class TomogramGenerationDialog extends ProcessDialog
     UIHarness.INSTANCE.pack(axisID, applicationManager);
   }
   
-  public void signalTiltCompleted() {
-    parallelPanel.setEnabledResume(false);
-  }
-  
-  public void signalTiltError() {
-    parallelPanel.setEnabledResume(false);
-  }
-  
-  public void signalTiltKilled() {
-    parallelPanel.setEnabledResume(true);
-  }
-  
   private void updateParallelProcess() {
+    System.out.println("updateParallelProcess");
     boolean parallelProcess = cbParallelProcess.isSelected();
     parallelPanel.setVisible(parallelProcess);
+    if (parallelProcess) {
+      parallelPanel.start();
+    }
+    else {
+      parallelPanel.stop();
+    }
     UIHarness.INSTANCE.pack(axisID, applicationManager);
+  }
+  
+  public void stopParallelPanel() {
+    parallelPanel.stop();
   }
 
   /**
@@ -992,16 +1031,16 @@ public class TomogramGenerationDialog extends ProcessDialog
     JPanel newstPanel = new JPanel();
     newstPanel.setLayout(new BoxLayout(newstPanel, BoxLayout.Y_AXIS));
     newstPanel.setBorder(BorderFactory.createEtchedBorder());
-    SpacedPanel newstBodyPanel = new SpacedPanel();
+    newstBodyPanel = new SpacedPanel();
     newstBodyPanel.setBoxLayout(BoxLayout.Y_AXIS);
     JPanel buttonPanel = new JPanel();
     buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.X_AXIS));
     //header
     if (applicationManager.getMetaData().getViewType() == ViewType.MONTAGE) {
-      newstHeader = new PanelHeader(applicationManager, axisID, "Blendmont", newstBodyPanel);
+      newstHeader = PanelHeader.getInstance(axisID, "Blendmont", this);
     }
     else {
-      newstHeader = new PanelHeader(applicationManager, axisID, "Newstack", newstBodyPanel);
+      newstHeader = PanelHeader.getInstance(axisID, "Newstack", this);
     }
     //initialization
     SpinnerModel integerModel = new SpinnerNumberModel(1, 1, 8, 1);
@@ -1039,7 +1078,7 @@ public class TomogramGenerationDialog extends ProcessDialog
     JPanel filterPanel = new JPanel();
     filterPanel.setLayout(new BoxLayout(filterPanel, BoxLayout.Y_AXIS));
     filterPanel.setBorder(BorderFactory.createEtchedBorder());
-    JPanel filterBodyPanel = new JPanel();
+    filterBodyPanel = new JPanel();
     filterBodyPanel.setLayout(new BoxLayout(filterBodyPanel, BoxLayout.Y_AXIS));
     inverseParamsPanel = new SpacedPanel(true);
     inverseParamsPanel.setBoxLayout(BoxLayout.Y_AXIS);
@@ -1051,7 +1090,7 @@ public class TomogramGenerationDialog extends ProcessDialog
     SpacedPanel buttonPanel = new SpacedPanel(true);
     buttonPanel.setBoxLayout(BoxLayout.X_AXIS);
     //header
-    filterHeader = new PanelHeader(applicationManager, axisID, "2D Filtering (optional)", filterBodyPanel, this);
+    filterHeader = PanelHeader.getAdvancedBasicInstance(axisID, "2D Filtering (optional)", this);
     //buttonPanel
     buttonPanel.add(btnFilter);
     buttonPanel.add(btnViewFilter);
@@ -1090,7 +1129,7 @@ public class TomogramGenerationDialog extends ProcessDialog
     JPanel tiltPanel = new JPanel();
     tiltPanel.setLayout(new BoxLayout(tiltPanel, BoxLayout.Y_AXIS));
     tiltPanel.setBorder(BorderFactory.createEtchedBorder());
-    JPanel tiltBodyPanel = new JPanel();
+    tiltBodyPanel = new JPanel();
     tiltBodyPanel.setLayout(new BoxLayout(tiltBodyPanel, BoxLayout.Y_AXIS));
     JPanel densityPanel = new JPanel();
     densityPanel.setLayout(new BoxLayout(densityPanel, BoxLayout.X_AXIS));
@@ -1107,7 +1146,7 @@ public class TomogramGenerationDialog extends ProcessDialog
     SpacedPanel buttonPanel = new SpacedPanel(true);
     buttonPanel.setBoxLayout(BoxLayout.X_AXIS);
     //header
-    tiltHeader = new PanelHeader(applicationManager, axisID, "Tilt", tiltBodyPanel, this);
+    tiltHeader = PanelHeader.getAdvancedBasicInstance(axisID, "Tilt", this);
     //buttonPanel
     buttonPanel.add(btnTilt);
     buttonPanel.add(btn3dmodTomogram);
@@ -1176,14 +1215,14 @@ public class TomogramGenerationDialog extends ProcessDialog
     trialPanel = new JPanel();
     trialPanel.setLayout(new BoxLayout(trialPanel, BoxLayout.Y_AXIS));
     trialPanel.setBorder(BorderFactory.createEtchedBorder());
-    SpacedPanel trialBodyPanel = new SpacedPanel();
+    trialBodyPanel = new SpacedPanel();
     trialBodyPanel.setBoxLayout(BoxLayout.Y_AXIS);
     SpacedPanel northPanel = new SpacedPanel();
     northPanel.setBoxLayout(BoxLayout.X_AXIS);
     SpacedPanel buttonPanel = new SpacedPanel();
     buttonPanel.setBoxLayout(BoxLayout.X_AXIS);
     //header
-    trialHeader = new PanelHeader(applicationManager, axisID, "Trial Tilt", trialBodyPanel);
+    trialHeader = PanelHeader.getInstance(axisID, "Trial Tilt", this);
     //buttonPanel
     buttonPanel.add(btnTrial);
     buttonPanel.add(btn3dmodTrial);
@@ -1201,7 +1240,6 @@ public class TomogramGenerationDialog extends ProcessDialog
     //configure
     trialHeader.setOpen(true);
     cmboTrialTomogramName.setEditable(true);
-    updateParallelProcess();
     return trialPanel;
   }
 
@@ -1400,7 +1438,13 @@ public class TomogramGenerationDialog extends ProcessDialog
         cmboTrialTomogramName.addItem(trialTomogramName);
       }
       if (cbParallelProcess.isSelected()) {
-        applicationManager.splittilt(axisID, parallelPanel, true);
+        if (resume) {
+          applicationManager.processchunks(axisID);
+        }
+        else {
+          parallelPanel.resetResults();
+          applicationManager.splittilt(axisID, parallelPanel, true);
+        }
       }
       else {
         applicationManager.trialTilt(axisID);
@@ -1408,8 +1452,13 @@ public class TomogramGenerationDialog extends ProcessDialog
     }
     else {
       if (cbParallelProcess.isSelected()) {
-        parallelPanel.resetResults();
-        applicationManager.splittilt(axisID, parallelPanel);
+        if (resume) {
+          applicationManager.processchunks(axisID);
+        }
+        else {
+          parallelPanel.resetResults();
+          applicationManager.splittilt(axisID, parallelPanel);
+        }
       }
       else {
         applicationManager.tilt(axisID);
