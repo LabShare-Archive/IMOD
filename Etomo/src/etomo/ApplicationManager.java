@@ -7,8 +7,6 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
-import javax.swing.AbstractButton;
-
 import etomo.comscript.ArchiveorigParam;
 import etomo.comscript.BadComScriptException;
 import etomo.comscript.BeadtrackParam;
@@ -45,6 +43,7 @@ import etomo.comscript.TomopitchParam;
 import etomo.comscript.TransferfidParam;
 import etomo.comscript.TrimvolParam;
 import etomo.comscript.XfproductParam;
+import etomo.process.BaseProcessManager;
 import etomo.process.ImodManager;
 import etomo.process.ProcessManager;
 import etomo.process.ProcessState;
@@ -3173,6 +3172,7 @@ public class ApplicationManager extends BaseManager {
               "Program logic error", axisID);
       return;
     }
+    tomogramGenerationDialog.stopParallelPanel();
     setAdvanced(tomogramGenerationDialog.getDialogType(), axisID,
         tomogramGenerationDialog.isAdvanced());
     DialogExitState exitState = tomogramGenerationDialog.getExitState();
@@ -5329,6 +5329,15 @@ public class ApplicationManager extends BaseManager {
   public void kill(AxisID axisID) {
     processMgr.kill(axisID);
   }
+  
+  /**
+   * Interrupt the currently running thread for this axis
+   * 
+   * @param axisID
+   */
+  public void pause(AxisID axisID) {
+    processMgr.pause(axisID);
+  }
 
   /**
    * Gets the binning that can be used to repair a older tilt.com file.  Older
@@ -5594,10 +5603,10 @@ public class ApplicationManager extends BaseManager {
   }
 
   /**
-   * Run processchunks.  Function can be public.
+   * Run processchunks.
    * @param axisID
    */
-  private final void processchunks(AxisID axisID) {
+  public final void processchunks(AxisID axisID) {
     resetNextProcess(axisID);
     TomogramGenerationDialog dialog = mapGenerationDialog(axisID);
     if (dialog == null) {
@@ -5621,39 +5630,17 @@ public class ApplicationManager extends BaseManager {
       return;
     }
     setThreadName(threadName, axisID);
-    //mainPanel.startProgressBar("Running " + ProcesschunksParam.COMMAND_NAME, axisID);
   }
-
-  public void signalTiltCompleted(AxisID axisID) {
-    TomogramGenerationDialog tomogramGenerationDialog = mapGenerationDialog(axisID);
-    if (tomogramGenerationDialog == null) {
-      return;
-    }
-    tomogramGenerationDialog.signalTiltCompleted();
-  }
-
-  public void signalTiltError(AxisID axisID) {
-    TomogramGenerationDialog tomogramGenerationDialog = mapGenerationDialog(axisID);
-    if (tomogramGenerationDialog == null) {
-      return;
-    }
-    tomogramGenerationDialog.signalTiltError();
-  }
-
-  public void signalTiltKilled(AxisID axisID) {
-    TomogramGenerationDialog tomogramGenerationDialog = mapGenerationDialog(axisID);
-    if (tomogramGenerationDialog == null) {
-      return;
-    }
-    tomogramGenerationDialog.signalTiltKilled();
-  }
-
-  final void setPauseButton(AbstractButton pauseButton) {
-
+  
+  protected BaseProcessManager getProcessManager() {
+    return processMgr;
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.171  2005/08/15 17:46:40  sueh
+ * <p> reformatting
+ * <p>
  * <p> Revision 3.170  2005/08/11 23:20:47  sueh
  * <p> bug# 711  Change enum Run3dmodMenuOption to
  * <p> Run3dmodMenuOptions, which can turn on multiple options at once.
