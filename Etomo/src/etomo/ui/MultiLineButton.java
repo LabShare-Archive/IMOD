@@ -27,6 +27,10 @@ import java.lang.String;
 * @version $Revision$
 *
 * <p> $Log$
+* <p> Revision 3.5  2005/08/10 20:44:42  sueh
+* <p> bug# 711  Added getToggleButtonInstance(), isEnabled(), and
+* <p> isSelected()
+* <p>
 * <p> Revision 3.4  2005/08/09 20:25:15  sueh
 * <p> bug# 711  No longer inheriting JButton in MultiLineButton.  This allows
 * <p> MultiLineButton to treate toggling as an attribute.  Then we can get rid of
@@ -110,7 +114,9 @@ public class MultiLineButton {
   }
 
   public String toString() {
-    return getClass().getName() + "[" + paramString() + "]";
+    return "[enabledTextColor=" + enabledTextColor + ",\n  disabledTextColor ="
+        + disabledTextColor + ",\n  button=" + button + ",\n "
+        + super.toString() + "]\n";
   }
   
   final void addActionListener(ActionListener actionListener) {
@@ -194,12 +200,9 @@ public class MultiLineButton {
   final boolean isEnabled() {
     return button.isEnabled();
   }
-
-  //protected methods
-
-  protected String paramString() {
-    return "[,enabledTextColor=" + enabledTextColor + ",disabledTextColor ="
-        + disabledTextColor + ",button =" + button + "]";
+  
+  final boolean isDisplayable() {
+    return button.isDisplayable();
   }
   
   //private implementation
