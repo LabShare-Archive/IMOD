@@ -75,7 +75,7 @@ public final class ProcesschunksParam {
       command.add(list.toString());
     }
     
-    command.add(rootName + axisID.getExtension());
+    command.add(rootName);
     int commandSize = command.size();
     commandArray = new String[commandSize];
     for (int i = 0; i < commandSize; i++) {
@@ -101,7 +101,11 @@ public final class ProcesschunksParam {
     if (commandArray != null) {
       throw new IllegalStateException("can't change parameter values after command is built");
     }
-    this.rootName = rootName;
+    this.rootName = rootName + axisID.getExtension();
+  }
+  
+  public final String getRootName() {
+    return rootName;
   }
   
   public final void addMachineName(String machineName) {
@@ -112,5 +116,8 @@ public final class ProcesschunksParam {
   }
 }
 /**
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2005/08/01 17:58:22  sueh
+* <p> Class to create a processchunks command line.
+* <p> </p>
 */
