@@ -20,6 +20,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.75  2005/08/22 17:06:51  sueh
+ * bug# 532 Added the root name to the processchunks monitor.
+ *
  * Revision 3.74  2005/08/15 18:24:24  sueh
  * bug# 532 deleted commented out code in processchunks().
  *
@@ -674,6 +677,7 @@ package etomo.process;
 import etomo.type.AxisID;
 import etomo.type.ProcessName;
 import etomo.type.TomogramState;
+import etomo.type.ViewType;
 import etomo.ApplicationManager;
 import etomo.BaseManager;
 import etomo.EtomoDirector;
@@ -690,6 +694,7 @@ import etomo.comscript.Command;
 import etomo.comscript.ConstNewstParam;
 import etomo.comscript.ConstSqueezevolParam;
 import etomo.comscript.ConstTiltalignParam;
+import etomo.comscript.ConstTiltxcorrParam;
 import etomo.comscript.CopyTomoComs;
 import etomo.comscript.BadComScriptException;
 import etomo.comscript.NewstParam;
@@ -802,25 +807,24 @@ public class ProcessManager extends BaseProcessManager {
    * @param axisID
    *          the AxisID to cross-correlate.
    */
-  public String crossCorrelate(AxisID axisID, boolean blendmont)
+  public String crossCorrelate(BlendmontParam param, AxisID axisID)
+      throws SystemProcessException {
+    //  Create the process monitor
+    XcorrProcessWatcher xcorrProcessWatcher = new XcorrProcessWatcher(
+        appManager, axisID, true);
+    //  Start the com script in the background
+    ComScriptProcess comScriptProcess = startComScript(param, xcorrProcessWatcher, axisID);
+    return comScriptProcess.getName();
+  }
+  
+  public String crossCorrelate(ConstTiltxcorrParam param, AxisID axisID)
       throws SystemProcessException {
     //  Create the required command string
-    String command = "xcorr" + axisID.getExtension() + ".com";
-    ComScriptProcess comScriptProcess = null;
     //  Create the process monitor
-    if (blendmont) {
-      XcorrProcessWatcher xcorrProcessWatcher = new XcorrProcessWatcher(
-          appManager, axisID, true);
-      //  Start the com script in the background
-      comScriptProcess = startComScript(command, xcorrProcessWatcher, axisID);
-    }
-    else {
-      TiltxcorrProcessWatcher tiltxcorrProcessWatcher = new TiltxcorrProcessWatcher(
-          appManager, axisID);
-      //  Start the com script in the background
-      comScriptProcess = startComScript(command, tiltxcorrProcessWatcher,
-          axisID);
-    }
+    TiltxcorrProcessWatcher tiltxcorrProcessWatcher = new TiltxcorrProcessWatcher(
+        appManager, axisID);
+    //  Start the com script in the background
+    ComScriptProcess comScriptProcess = startComScript(param, tiltxcorrProcessWatcher, axisID);
     return comScriptProcess.getName();
   }
 
@@ -828,8 +832,7 @@ public class ProcessManager extends BaseProcessManager {
       throws SystemProcessException {
     //  Create the required tiltalign command
     String command = BlendmontParam
-        .getCommandFileName(BlendmontParam.UNDISTORT_MODE)
-        + axisID.getExtension() + ".com";
+        .getProcessName(BlendmontParam.UNDISTORT_MODE).getCommand(axisID);
     //  Start the com script in the background
     BlendmontProcessMonitor blendmontProcessMonitor = new BlendmontProcessMonitor(
         appManager, axisID, BlendmontParam.UNDISTORT_MODE);
@@ -866,17 +869,13 @@ public class ProcessManager extends BaseProcessManager {
    * @return
    * @throws SystemProcessException
    */
-  public String preblend(AxisID axisID) throws SystemProcessException {
-    //  Create the required tiltalign command
-    String command = BlendmontParam
-        .getCommandFileName(BlendmontParam.PREBLEND_MODE)
-        + axisID.getExtension() + ".com";
+  public String preblend(BlendmontParam param, AxisID axisID) throws SystemProcessException {
     //  Start the com script in the background
     BlendmontProcessMonitor blendmontProcessMonitor = new BlendmontProcessMonitor(
         appManager, axisID, BlendmontParam.PREBLEND_MODE);
 
     //  Start the com script in the background
-    ComScriptProcess comScriptProcess = startComScript(command,
+    ComScriptProcess comScriptProcess = startComScript(param,
         blendmontProcessMonitor, axisID);
     return comScriptProcess.getName();
   }
@@ -890,8 +889,7 @@ public class ProcessManager extends BaseProcessManager {
   public String blend(BlendmontParam blendmontParam, AxisID axisID)
       throws SystemProcessException {
     //  Create the required tiltalign command
-    String command = blendmontParam.getCommandFileName()
-        + axisID.getExtension() + ".com";
+    String command = blendmontParam.getProcessName().getCommand(axisID);
     //  Start the com script in the background
     BlendmontProcessMonitor blendmontProcessMonitor = new BlendmontProcessMonitor(
         appManager, axisID, blendmontParam.getMode());
@@ -1623,13 +1621,32 @@ public class ProcessManager extends BaseProcessManager {
     else if (processName == ProcessName.UNDISTORT) {
       appManager.setEnabledFixEdgesWithMidas(script.getAxisID());
     }
+    else if (processName == ProcessName.XCORR) {
+      setInvalidEdgeFunctions(script.getCommand(), true);
+    }
+    else if (processName == ProcessName.PREBLEND) {
+      setInvalidEdgeFunctions(script.getCommand(), true);
+    }
   }
 
   protected void errorProcess(ComScriptProcess script) {
     ProcessName processName = script.getProcessName();
-    Command command = script.getCommand();
-    TomogramState state = appManager.getState();
-    AxisID axisID = script.getAxisID();
+    if (processName == ProcessName.XCORR) {
+        setInvalidEdgeFunctions(script.getCommand(), false);
+    }
+    else if (processName == ProcessName.PREBLEND) {
+      setInvalidEdgeFunctions(script.getCommand(), false);
+    }
+  }
+  
+  private void setInvalidEdgeFunctions(Command command, boolean succeeded) {
+    if (appManager.getConstMetaData().getViewType() == ViewType.MONTAGE
+        && command.getCommandName().equals(BlendmontParam.COMMAND_NAME)
+        && (command.getCommandMode() == BlendmontParam.XCORR_MODE || command
+            .getCommandMode() == BlendmontParam.PREBLEND_MODE)) {
+      appManager.getState().setInvalidEdgeFunctions(command.getAxisID(),
+          !succeeded);
+    }
   }
 
   protected void postProcess(BackgroundProcess process) {
