@@ -17,9 +17,14 @@ public interface IntermittentCommand {
   
   public String[] getCommand();
   public String getIntermittentCommand();
+  public String getEndCommand();
   public int getInterval();
   public String getKey();
 }
 /**
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2005/08/22 16:03:13  sueh
+* <p> bug# 532 Interface for a param which can be used by
+* <p> IntermittentSystemProgram.
+* <p> </p>
 */

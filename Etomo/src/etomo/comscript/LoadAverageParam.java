@@ -22,6 +22,7 @@ public class LoadAverageParam implements IntermittentCommand {
 
   private String[] commandArray = null;
   private String intermittentCommand = null;
+  private String endCommand = null;
   
   public LoadAverageParam(String computer) {
     this.computer = computer;
@@ -39,6 +40,13 @@ public class LoadAverageParam implements IntermittentCommand {
       buildIntermittentCommand();
     }
     return intermittentCommand;
+  }
+  
+  public String getEndCommand() {
+    if (endCommand == null) {
+      buildEndCommand();
+    }
+    return endCommand;
   }
   
   public int getInterval() {
@@ -60,11 +68,19 @@ public class LoadAverageParam implements IntermittentCommand {
   private final void buildIntermittentCommand() {
     intermittentCommand = "w";
   }
+  
+  private final void buildEndCommand() {
+    endCommand = "exit";
+  }
 
   public final String getKey() {
     return computer;
   }
 }
 /**
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2005/08/22 16:04:33  sueh
+* <p> bug# 532 Param object for getting this load average.  Currently tested
+* <p> only on Linux.  Needs to work for all three OSs.
+* <p> </p>
 */
