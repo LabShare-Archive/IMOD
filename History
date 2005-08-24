@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/24/05: Fixed processchunk's ability to kill jobs by adding a new script
+to kill the process group, using system-dependent ps commands, and got it
+working to run processes on an SGI also.
+
 8/22/05: Fixed Blendmont's computation of excluded border regions so that
 cross-correlations are not thrown off by edges in distortion corrected images.
 
