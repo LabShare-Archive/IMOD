@@ -12,6 +12,11 @@
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.24  2005/07/29 00:56:32  sueh
+ * <p> $bug# 709 Going to EtomoDirector to get the current manager is unreliable
+ * <p> $because the current manager changes when the user changes the tab.
+ * <p> $Passing the manager where its needed.
+ * <p> $
  * <p> $Revision 3.23  2005/06/21 20:34:03  sueh
  * <p> $bug# 522 Changed getFile(String) to handle absolute filenames from
  * <p> $windows which contain the drive letter.
@@ -152,6 +157,7 @@ import java.util.Date;
 import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.type.AxisID;
+import etomo.type.ProcessName;
 import etomo.ui.UIHarness;
 import etomo.comscript.ComScript;
 import etomo.process.SystemProgram;
@@ -600,6 +606,10 @@ public class Utilities {
    */
   public static void timestamp(String process, String container, int status) {
     timestamp(process, null, container, status);
+  }
+  
+  public static void timestamp(String process, ProcessName container, int status) {
+    timestamp(process, null, container.toString(), status);
   }
   
   /**
