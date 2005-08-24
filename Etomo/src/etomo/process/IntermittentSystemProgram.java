@@ -43,8 +43,7 @@ public class IntermittentSystemProgram implements Runnable {
   
   private static Hashtable instances = new Hashtable();//one instance per IntermittentCommand
   private final String key;
-  private boolean running = false;
-  private boolean stopped = false;
+  private boolean stopped = true;
   private HashSet monitors = new HashSet();
   private final IntermittentCommand command;
   private final BaseManager manager;
@@ -105,21 +104,23 @@ public class IntermittentSystemProgram implements Runnable {
         monitors.add(monitor);
       }
     }
-    //if the monitor is new, run it
+    //if the monitor is new || stopped, run it
     if (newMonitor) {
       monitor.setIntermittentSystemProgram(this);
       new Thread(monitor).start();
     }
-    //run the instance, if it is not running, make sure not to run it more then
-    //once per instance
+    //run the instance, if it is not running
+    //this is the only place that stopped should be set to false
     boolean startThreadNow = false;
     synchronized (monitors) {
-      if (!running) {
-        running = true;
+      if (stopped) {
+        stopped = false;
         startThreadNow = true;
       }
     }
-    //if running was just set to true, then run the instance
+    //StartThreadNow can only be true if stopped was true and then was set to
+    //false in synchronized code.  This way only one thread can call start() for
+    //this instance.
     if (startThreadNow) {
       new Thread(this).start();
     }
@@ -142,7 +143,6 @@ public class IntermittentSystemProgram implements Runnable {
     new Thread(program).start();
     int interval = command.getInterval();
     String intermittentCommand = command.getIntermittentCommand();
-    stopped = false;
     try {
       while (!stopped) {
         program.setCurrentStdInput(intermittentCommand);
@@ -152,7 +152,7 @@ public class IntermittentSystemProgram implements Runnable {
     catch (InterruptedException e) {
       e.printStackTrace();
     }
-    program.setCurrentStdInput("exit");
+    program.setCurrentStdInput(command.getEndCommand());
     program = null;
   }
   
@@ -184,5 +184,9 @@ public class IntermittentSystemProgram implements Runnable {
   }
 }
 /**
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2005/08/22 16:31:15  sueh
+* <p> bug# 532 Runs a command using SystemProgram.  Keeps standard
+* <p> input open.   Sends a string through standard input at intervals.
+* <p> </p>
 */
