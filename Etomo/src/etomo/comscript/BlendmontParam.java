@@ -2,11 +2,13 @@ package etomo.comscript;
 
 import java.io.File;
 
-import etomo.BaseManager;
+import etomo.ApplicationManager;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoBoolean2;
 import etomo.type.EtomoNumber;
+import etomo.type.EtomoState;
+import etomo.type.ProcessName;
 import etomo.type.ScriptParameter;
 
 /**
@@ -22,7 +24,7 @@ import etomo.type.ScriptParameter;
  * 
  * @version $Revision$
  */
-public class BlendmontParam implements CommandParam {
+public class BlendmontParam implements CommandParam, Command {
   public static final String rcsid = "$Id$";
 
   public static final String GOTO_LABEL = "doblend";
@@ -36,6 +38,7 @@ public class BlendmontParam implements CommandParam {
   public static final String OUTPUT_FILE_EXTENSION = ".ali";
   public static final String DISTORTION_CORRECTED_STACK_EXTENSION = ".dcst";
   public static final String BLENDMONT_STACK_EXTENSION = ".bl";
+  public static final int OLD_EDGE_FUNCTIONS_FIELD_NAME = 100;
 
   public static final String IMAGE_OUTPUT_FILE_KEY = "ImageOutputFile";
 
@@ -48,13 +51,13 @@ public class BlendmontParam implements CommandParam {
   private String imageOutputFile;
   private int mode = XCORR_MODE;
   private ScriptParameter binByFactor;
-  private final BaseManager manager;
+  private final ApplicationManager manager;
 
-  public BlendmontParam(BaseManager manager, String datasetName, AxisID axisID) {
+  public BlendmontParam(ApplicationManager manager, String datasetName, AxisID axisID) {
     this(manager, datasetName, axisID, XCORR_MODE);
   }
 
-  public BlendmontParam(BaseManager manager, String datasetName, AxisID axisID, int mode) {
+  public BlendmontParam(ApplicationManager manager, String datasetName, AxisID axisID, int mode) {
     this.manager = manager;
     this.datasetName = datasetName;
     this.axisID = axisID;
@@ -121,6 +124,7 @@ public class BlendmontParam implements CommandParam {
    * to be run
    */
   public boolean setBlendmontState() {
+    System.out.println("setBlendmontState:mode="+mode);
     if (mode == UNDISTORT_MODE) {
       imageOutputFile = datasetName + axisID.getExtension()
           + DISTORTION_CORRECTED_STACK_EXTENSION;
@@ -160,12 +164,15 @@ public class BlendmontParam implements CommandParam {
     //Read in xcorr output if it exists.  Turn on for preblend and blend.
     readInXcorrs.set(mode == PREBLEND_MODE || mode == BLEND_MODE
         || mode == WHOLE_TOMOGRAM_SAMPLE_MODE || ecdFile.exists());
-    //Use existing edge functions, if they are up to date.  Turn on for blend.
-    oldEdgeFunctions.set(mode == BLEND_MODE
-        || mode == WHOLE_TOMOGRAM_SAMPLE_MODE
-        || (xefFile.exists() && yefFile.exists()
-            && ecdFile.lastModified() <= xefFile.lastModified() && ecdFile
-            .lastModified() <= yefFile.lastModified()));
+    //Use existing edge functions, if they are up to date and valid.  Turn on for blend.
+    oldEdgeFunctions
+        .set(mode == BLEND_MODE
+            || mode == WHOLE_TOMOGRAM_SAMPLE_MODE
+            || (manager.getState().getInvalidEdgeFunctions(axisID).getInt() != EtomoState.TRUE_VALUE
+                && xefFile.exists()
+                && yefFile.exists()
+                && ecdFile.lastModified() <= xefFile.lastModified() && ecdFile
+                .lastModified() <= yefFile.lastModified()));
     //If xcorr output exists and the edge functions are up to date, then don't
     //run blendmont, as long as the blendmont output is more recent then the
     //stack.
@@ -177,26 +184,62 @@ public class BlendmontParam implements CommandParam {
       return true;
     }
   }
+  
+  public String getCommandName() {
+    return COMMAND_NAME;
+  }
+  
+  public String getCommandLine() {
+    return getProcessName().getCommand(axisID);
+  }
+  
+  public String[] getCommandArray() {
+    return getProcessName().getCommandArray(axisID);
+  }
+  
+  public int getCommandMode() {
+    return mode;
+  }
+  
+  public File getCommandOutputFile() {
+    return new File(manager.getPropertyUserDir(), imageOutputFile);
+  }
+  
+  public int getIntegerValue(int name) {
+    return EtomoNumber.INTEGER_NULL_VALUE;
+  }
+  
+  public boolean getBooleanValue(int name) {
+    switch (name) {
+    case OLD_EDGE_FUNCTIONS_FIELD_NAME:
+      return oldEdgeFunctions.is();
+    }
+    throw new IllegalArgumentException("name=" + name);
+  }
+  
+  public AxisID getAxisID() {
+    return axisID;
+  }
 
-  public static String getCommandFileName(int mode) {
+  public static ProcessName getProcessName(int mode) {
     switch (mode) {
     case PREBLEND_MODE:
-      return "preblend";
+      return ProcessName.PREBLEND;
     case BLEND_MODE:
-      return "blend";
+      return ProcessName.BLEND;
     case UNDISTORT_MODE:
-      return "undistort";
+      return ProcessName.UNDISTORT;
     case XCORR_MODE:
-      return "xcorr";
+      return ProcessName.XCORR;
     case WHOLE_TOMOGRAM_SAMPLE_MODE:
-      return "blend";
+      return ProcessName.BLEND;
     default:
       throw new IllegalArgumentException("mode=" + mode);
     }
   }
 
-  public String getCommandFileName() {
-    return getCommandFileName(mode);
+  public ProcessName getProcessName() {
+    return getProcessName(mode);
   }
 
   public static File getDistortionCorrectedFile(String workingDir,
@@ -226,6 +269,9 @@ public final void setBinByFactor(int binByFactor) {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.12  2005/07/29 19:45:21  sueh
+ * <p> bug# 692 Changed ConstEtomoNumber.getInteger() to getInt.
+ * <p>
  * <p> Revision 1.11  2005/07/29 00:42:53  sueh
  * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
  * <p> because the current manager changes when the user changes the tab.
