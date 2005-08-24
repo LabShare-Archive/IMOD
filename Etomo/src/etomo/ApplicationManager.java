@@ -22,6 +22,7 @@ import etomo.comscript.ConstSetParam;
 import etomo.comscript.ConstSqueezevolParam;
 import etomo.comscript.ConstTiltParam;
 import etomo.comscript.ConstTiltalignParam;
+import etomo.comscript.ConstTiltxcorrParam;
 import etomo.comscript.FortranInputSyntaxException;
 import etomo.comscript.GotoParam;
 import etomo.comscript.MTFFilterParam;
@@ -1087,7 +1088,7 @@ public class ApplicationManager extends BaseManager {
     }
     else {
       //  Get the user input data from the dialog box
-      if (!updateXcorrCom(axisID)) {
+      if (updateXcorrCom(axisID) == null) {
         return;
       }
       if (metaData.getViewType() != ViewType.MONTAGE
@@ -1152,13 +1153,19 @@ public class ApplicationManager extends BaseManager {
    */
   public void crossCorrelate(AxisID axisID) {
     // Get the parameters from the dialog box
-    if (updateXcorrCom(axisID)) {
+    ConstTiltxcorrParam tiltxcorrParam = updateXcorrCom(axisID);
+    if (tiltxcorrParam != null) {
       processTrack.setCoarseAlignmentState(ProcessState.INPROGRESS, axisID);
       mainPanel.setCoarseAlignState(ProcessState.INPROGRESS, axisID);
       String threadName;
       try {
-        threadName = processMgr.crossCorrelate(axisID,
-            updateBlendmontInXcorrCom(axisID));
+        BlendmontParam blendmontParam = updateBlendmontInXcorrCom(axisID);
+        if (blendmontParam == null) {
+          threadName = processMgr.crossCorrelate(tiltxcorrParam, axisID);
+        }
+        else {
+          threadName = processMgr.crossCorrelate(blendmontParam, axisID);
+        }
       }
       catch (SystemProcessException e) {
         e.printStackTrace();
@@ -1201,17 +1208,17 @@ public class ApplicationManager extends BaseManager {
    * Run the coarse alignment script
    */
   public void coarseAlign(AxisID axisID) {
-    String commandName;
+    ProcessName processName;
+    BlendmontParam blendmontParam = null;
     if (metaData.getViewType() == ViewType.MONTAGE) {
-      updatePreblendCom(axisID);
-      commandName = BlendmontParam
-          .getCommandFileName(BlendmontParam.PREBLEND_MODE);
+      blendmontParam = updatePreblendCom(axisID);
+      processName = BlendmontParam.getProcessName(BlendmontParam.PREBLEND_MODE);
     }
     else {
       if (!updatePrenewstCom(axisID)) {
         return;
       }
-      commandName = "prenewst";
+      processName = ProcessName.PRENEWST;
     }
     processTrack.setCoarseAlignmentState(ProcessState.INPROGRESS, axisID);
     mainPanel.setCoarseAlignState(ProcessState.INPROGRESS, axisID);
@@ -1219,7 +1226,7 @@ public class ApplicationManager extends BaseManager {
     String threadName;
     try {
       if (metaData.getViewType() == ViewType.MONTAGE) {
-        threadName = processMgr.preblend(axisID);
+        threadName = processMgr.preblend(blendmontParam, axisID);
       }
       else {
         threadName = processMgr.coarseAlign(axisID);
@@ -1228,7 +1235,7 @@ public class ApplicationManager extends BaseManager {
     catch (SystemProcessException e) {
       e.printStackTrace();
       String[] message = new String[2];
-      message[0] = "Can not execute " + commandName + axisID.getExtension()
+      message[0] = "Can not execute " + processName + axisID.getExtension()
           + ".com";
       message[1] = e.getMessage();
       uiHarness.openMessageDialog(message, "Unable to execute com script",
@@ -1289,10 +1296,11 @@ public class ApplicationManager extends BaseManager {
    * @return true if successful in getting the parameters and saving the com
    *         script
    */
-  private boolean updateXcorrCom(AxisID axisID) {
+  private ConstTiltxcorrParam updateXcorrCom(AxisID axisID) {
     CoarseAlignDialog coarseAlignDialog = mapCoarseAlignDialog(axisID);
+    TiltxcorrParam tiltXcorrParam = null;
     try {
-      TiltxcorrParam tiltXcorrParam = comScriptMgr.getTiltxcorrParam(axisID);
+      tiltXcorrParam = comScriptMgr.getTiltxcorrParam(axisID);
       coarseAlignDialog.getCrossCorrelationParams(tiltXcorrParam);
       comScriptMgr.saveXcorr(tiltXcorrParam, axisID);
     }
@@ -1304,7 +1312,7 @@ public class ApplicationManager extends BaseManager {
       errorMessage[2] = "New value: " + except.getNewString();
       uiHarness.openMessageDialog(errorMessage, "Xcorr Parameter Syntax Error",
           axisID);
-      return false;
+      return null;
     }
     catch (NumberFormatException except) {
       except.printStackTrace();
@@ -1314,9 +1322,9 @@ public class ApplicationManager extends BaseManager {
       errorMessage[2] = except.getMessage();
       uiHarness.openMessageDialog(errorMessage, "Xcorr Parameter Syntax Error",
           axisID);
-      return false;
+      return null;
     }
-    return true;
+    return tiltXcorrParam;
   }
 
   /**
@@ -1325,12 +1333,12 @@ public class ApplicationManager extends BaseManager {
    * @param axisID
    * @return
    */
-  private boolean updateBlendmontInXcorrCom(AxisID axisID) {
+  private BlendmontParam updateBlendmontInXcorrCom(AxisID axisID) {
     boolean runningBlendmont = false;
+    BlendmontParam blendmontParam = null;
     //handle montaging
     if (metaData.getViewType() == ViewType.MONTAGE) {
-      BlendmontParam blendmontParam = comScriptMgr
-          .getBlendmontParamFromTiltxcorr(axisID);
+      blendmontParam = comScriptMgr.getBlendmontParamFromTiltxcorr(axisID);
       GotoParam gotoParam = comScriptMgr.getGotoParamFromTiltxcorr(axisID);
       runningBlendmont = blendmontParam.setBlendmontState();
       if (runningBlendmont) {
@@ -1342,7 +1350,10 @@ public class ApplicationManager extends BaseManager {
       comScriptMgr.saveXcorr(gotoParam, axisID);
       comScriptMgr.saveXcorr(blendmontParam, axisID);
     }
-    return runningBlendmont;
+    if (!runningBlendmont) {
+      return null;
+    }
+    return blendmontParam;
   }
 
   /**
@@ -1377,12 +1388,13 @@ public class ApplicationManager extends BaseManager {
    * @param axisID
    * @return
    */
-  private void updatePreblendCom(AxisID axisID) {
+  private BlendmontParam updatePreblendCom(AxisID axisID) {
     CoarseAlignDialog coarseAlignDialog = mapCoarseAlignDialog(axisID);
     BlendmontParam preblendParam = comScriptMgr.getPreblendParam(axisID);
     coarseAlignDialog.getParams(preblendParam);
     preblendParam.setBlendmontState();
     comScriptMgr.savePreblend(preblendParam, axisID);
+    return preblendParam;
   }
 
   /**
@@ -5638,6 +5650,12 @@ public class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.172  2005/08/22 15:51:15  sueh
+ * <p> bug# 532 In doneTomgramGenartionDialog, call
+ * <p> TomogramGenerationDialog.stopParallelPanel() to stop parallel panel
+ * <p> from sampling the load average when the panal is not displayed.  Added
+ * <p> pause().
+ * <p>
  * <p> Revision 3.171  2005/08/15 17:46:40  sueh
  * <p> reformatting
  * <p>
