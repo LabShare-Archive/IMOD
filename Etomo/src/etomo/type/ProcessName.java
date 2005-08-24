@@ -13,6 +13,9 @@ package etomo.type;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.2  2005/04/07 21:58:25  sueh
+ * <p> $bug# 626 Added preblend, blend, and undistort.
+ * <p> $
  * <p> $Revision 1.1  2004/04/16 02:08:32  sueh
  * <p> $bug# 409 Enum-like class that can contain all known process names.  Can
  * <p> $derived a process name from a file name.  Contains strings that can be used
@@ -144,7 +147,7 @@ public class ProcessName {
     if (name.compareToIgnoreCase(undistort) == 0) {
       return UNDISTORT;
     }
-    return null;
+    throw new IllegalArgumentException("name="+name);
   }
   
   public static ProcessName fromFileName(
@@ -164,5 +167,13 @@ public class ProcessName {
       return fileName.substring(0, extensionIndex);
     }
     return fileName;
+  }
+  
+  public String getCommand(AxisID axisID) {
+    return name + axisID.getExtension() + ".com";
+  }
+  
+  public String[] getCommandArray(AxisID axisID) {
+    return new String[] { name + axisID.getExtension() + ".com" };
   }
 }
