@@ -14,6 +14,7 @@ import etomo.EtomoDirector;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.EtomoNumber;
+import etomo.type.ProcessName;
 import etomo.ui.UIHarness;
 import etomo.util.Utilities;
 
@@ -32,6 +33,11 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.35  2005/07/29 00:43:19  sueh
+ * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
+ * <p> because the current manager changes when the user changes the tab.
+ * <p> Passing the manager where its needed.
+ * <p>
  * <p> Revision 3.34  2005/06/17 20:03:06  sueh
  * <p> bug# 685 Added timestamp functions for ComScript and File types.
  * <p> Added code to the main timestamp function to strip the path from a file
@@ -379,11 +385,11 @@ public class ComScriptManager {
   public void loadUndistort(AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       scriptUndistortB = loadComScript(BlendmontParam
-          .getCommandFileName(BlendmontParam.UNDISTORT_MODE), axisID, true);
+          .getProcessName(BlendmontParam.UNDISTORT_MODE), axisID, true);
     }
     else {
       scriptUndistortA = loadComScript(BlendmontParam
-          .getCommandFileName(BlendmontParam.UNDISTORT_MODE), axisID, true);
+          .getProcessName(BlendmontParam.UNDISTORT_MODE), axisID, true);
     }
   }
 
@@ -404,7 +410,7 @@ public class ComScriptManager {
     }
 
     // Initialize a TiltxcorrParam object from the com script command object
-    TiltxcorrParam tiltXcorrParam = new TiltxcorrParam();
+    TiltxcorrParam tiltXcorrParam = new TiltxcorrParam(appManager, axisID);
     initialize(tiltXcorrParam, xcorr, "tiltxcorr", axisID);
     return tiltXcorrParam;
   }
@@ -434,6 +440,7 @@ public class ComScriptManager {
    * @param axisID
    */
   public void saveXcorr(BlendmontParam blendmontParam, AxisID axisID) {
+    System.out.println("saveXcorr:mode="+blendmontParam.getMode());
     //  Get a reference to the appropriate script object
     ComScript scriptXcorr;
     if (axisID == AxisID.SECOND) {
@@ -446,6 +453,7 @@ public class ComScriptManager {
   }
   
   public void saveXcorrToUndistort(BlendmontParam blendmontParam, AxisID axisID) {
+    System.out.println("saveXcorrToUndistort:mode="+blendmontParam.getMode());
     //  Get a reference to the appropriate script object
     ComScript scriptUndistort;
     ComScript scriptXcorr;
@@ -500,11 +508,11 @@ public class ComScriptManager {
     //  Assign the new ComScriptObject object to the appropriate reference
     if (axisID == AxisID.SECOND) {
       scriptPreblendB = loadComScript(BlendmontParam
-          .getCommandFileName(BlendmontParam.PREBLEND_MODE), axisID, true);
+          .getProcessName(BlendmontParam.PREBLEND_MODE), axisID, true);
     }
     else {
       scriptPreblendA = loadComScript(BlendmontParam
-          .getCommandFileName(BlendmontParam.PREBLEND_MODE), axisID, true);
+          .getProcessName(BlendmontParam.PREBLEND_MODE), axisID, true);
     }
   }
   
@@ -512,11 +520,11 @@ public class ComScriptManager {
     //  Assign the new ComScriptObject object to the appropriate reference
     if (axisID == AxisID.SECOND) {
       scriptBlendB = loadComScript(BlendmontParam
-          .getCommandFileName(BlendmontParam.BLEND_MODE), axisID, true);
+          .getProcessName(BlendmontParam.BLEND_MODE), axisID, true);
     }
     else {
       scriptBlendA = loadComScript(BlendmontParam
-          .getCommandFileName(BlendmontParam.BLEND_MODE), axisID, true);
+          .getProcessName(BlendmontParam.BLEND_MODE), axisID, true);
     }
   }
 
@@ -609,6 +617,7 @@ public class ComScriptManager {
   }
 
   public void savePreblend(BlendmontParam blendmontParam, AxisID axisID) {
+    System.out.println("savePreblend:mode="+blendmontParam.getMode());
     //  Get a reference to the appropriate script object
     ComScript scriptPreblend;
     if (axisID == AxisID.SECOND) {
@@ -621,6 +630,7 @@ public class ComScriptManager {
   }
   
   public void saveBlend(BlendmontParam blendmontParam, AxisID axisID) {
+    System.out.println("saveBlend:mode="+blendmontParam.getMode());
     //  Get a reference to the appropriate script object
     ComScript scriptBlend;
     if (axisID == AxisID.SECOND) {
@@ -631,20 +641,6 @@ public class ComScriptManager {
     }
     updateComScript(scriptBlend, blendmontParam, BlendmontParam.COMMAND_NAME, axisID);
   }
-  
-  public void savePrenewst(BlendmontParam preblendParam, AxisID axisID) {
-
-    //  Get a reference to the appropriate script object
-    ComScript scriptPreblend;
-    if (axisID == AxisID.SECOND) {
-      scriptPreblend = scriptPreblendB;
-    }
-    else {
-      scriptPreblend = scriptPreblendA;
-    }
-    updateComScript(scriptPreblend, preblendParam, BlendmontParam.COMMAND_NAME, axisID);
-  }
-
 
   /**
    * Load the specified track com script
@@ -1476,18 +1472,21 @@ public class ComScriptManager {
     Utilities.copyFile(template, script);
     Utilities.timestamp("copy from template", scriptName, 1);
   }
- 
-
+  
+  private ComScript loadComScript(String scriptName, AxisID axisID,
+      boolean parseComments) {
+    return loadComScript(ProcessName.fromString(scriptName), axisID, parseComments);
+  }
   /**
    * Load the specified Com script 
    * @param scriptName
    * @param axisID
    * @return ComScript
    */
-  private ComScript loadComScript(String scriptName, AxisID axisID,
+  private ComScript loadComScript(ProcessName processName, AxisID axisID,
     boolean parseComments) {
-    Utilities.timestamp("load", scriptName, 0);
-    String command = scriptName + axisID.getExtension() + ".com";
+    Utilities.timestamp("load", processName, 0);
+    String command = processName.getCommand(axisID);
     File comFile = new File(appManager.getPropertyUserDir(), command);
 
     ComScript comScript = new ComScript(comFile);
@@ -1502,12 +1501,12 @@ public class ComScriptManager {
       errorMessage[1] = except.getMessage();
 
       JOptionPane.showMessageDialog(null, errorMessage, "Can't parse "
-        + scriptName + axisID.getExtension() + ".com file: "
+        + processName + axisID.getExtension() + ".com file: "
         + comScript.getComFileName(), JOptionPane.ERROR_MESSAGE);
-      Utilities.timestamp("load", scriptName, -1);
+      Utilities.timestamp("load", processName, -1);
       return null;
     }
-    Utilities.timestamp("load", scriptName, 1);
+    Utilities.timestamp("load", processName, 1);
     return comScript;
   }
 
