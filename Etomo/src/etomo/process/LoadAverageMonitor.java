@@ -72,7 +72,7 @@ public class LoadAverageMonitor implements SystemProgramMonitor {
     }
     programState.outputIndex += output.length;
     for (int i = 0; i < output.length; i++) {
-      if (output[i].indexOf("load average:") != -1) {
+      if (output[i].indexOf("load average") != -1) {
         String[] array = output[i].trim().split("\\s+");
         display.setLoadAverage(programState.program.getKey(),
             getLoad(array[array.length - 3]), getLoad(array[array.length - 2]),
@@ -100,5 +100,12 @@ public class LoadAverageMonitor implements SystemProgramMonitor {
   }
 }
 /**
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2005/08/22 16:35:18  sueh
+* <p> bug# 532 Monitors a group of load average commands running in
+* <p> IntermittentSystemProgram instances.  Gets results from standard
+* <p> output.  Places results in a LoadAverageDisplay instance.   Runs until it
+* <p> receives a stop call associated with each of the
+* <p> IntermittentSystemProgram instances.
+* <p> </p>
 */
