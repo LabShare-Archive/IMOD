@@ -17,6 +17,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.21  2005/08/22 22:07:33  sueh
+ * <p> bug# 714 fixed the code that checks to see if anything is in
+ * <p> propertyUserDir.
+ * <p>
  * <p> Revision 3.20  2005/08/22 17:07:29  sueh
  * <p> bug# 532 Added boolean acceptInputWhileRunning to prevent the closing
  * <p> of the standard in too early.  AcceptInputWhileRunning defaults to false
@@ -279,6 +283,7 @@ public class SystemProgram implements Runnable {
   }
   
   public void setCurrentStdInput(String input) {
+    //System.out.println("standard in:"+input);
     try {
       if (cmdInBuffer != null) {
         cmdInBuffer.write(input);
@@ -308,6 +313,12 @@ public class SystemProgram implements Runnable {
    */
   public void run() {
     started = true;
+    /*if (commandArray != null) {
+      for (int i = 0; i < commandArray.length; i++) {
+        System.out.print(commandArray[i] + " ");
+      }
+      System.out.println();
+    }*/
     if (debug) {
       System.err.println("");
       System.err.println("SystemProgram: command array: ");
