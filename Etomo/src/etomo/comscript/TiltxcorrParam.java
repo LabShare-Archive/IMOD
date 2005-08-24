@@ -1,6 +1,9 @@
 package etomo.comscript;
 
 import java.util.StringTokenizer;
+
+import etomo.BaseManager;
+import etomo.type.AxisID;
 import etomo.type.TiltAngleType;
 
 /**
@@ -16,6 +19,9 @@ import etomo.type.TiltAngleType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.11  2004/06/13 17:03:23  rickg
+ * <p> Solvematch mid change
+ * <p>
  * <p> Revision 3.10  2004/06/09 21:18:12  rickg
  * <p> Changed upateParameter method to updateScriptParameter
  * <p>
@@ -96,6 +102,10 @@ public class TiltxcorrParam
   public static final String rcsid =
     "$Id$";
 
+  public TiltxcorrParam(BaseManager manager, AxisID axisID) {
+    super(manager, axisID);
+  }
+  
   /**
    * Get the parameters from the ComScriptCommand
    * @param scriptCommand the ComScriptCommand containg the tiltxcorr command

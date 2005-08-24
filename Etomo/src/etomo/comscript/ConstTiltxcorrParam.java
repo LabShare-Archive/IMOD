@@ -1,5 +1,10 @@
 package etomo.comscript;
 
+import java.io.File;
+
+import etomo.BaseManager;
+import etomo.type.AxisID;
+import etomo.type.EtomoNumber;
 import etomo.type.ProcessName;
 import etomo.type.TiltAngleSpec;
 
@@ -17,6 +22,9 @@ import etomo.type.TiltAngleSpec;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.9  2005/03/04 00:09:35  sueh
+ * <p> bug# 533 Added the label for the tiltxcorr command in the xcorr.com file.
+ * <p>
  * <p> Revision 3.8  2004/06/13 17:03:23  rickg
  * <p> Solvematch mid change
  * <p>
@@ -62,7 +70,7 @@ import etomo.type.TiltAngleSpec;
  * <p> </p>
  */
 
-public class ConstTiltxcorrParam implements ConstCommandParam {
+public class ConstTiltxcorrParam implements ConstCommandParam, Command {
   public static final String rcsid =
     "$Id$";
 
@@ -86,6 +94,8 @@ public class ConstTiltxcorrParam implements ConstCommandParam {
   protected FortranInputString startingEndingViews; //was viewRange
   private ProcessName processName = ProcessName.XCORR;
   private String command = "tiltxcorr";
+  private final AxisID axisID;
+  private final BaseManager manager;
 
   //PIP only
   //was tiltAngleSpec
@@ -103,8 +113,10 @@ public class ConstTiltxcorrParam implements ConstCommandParam {
   //sequential input only
   protected TiltAngleSpec tiltAngleSpec;
   protected FortranInputString filterParams;
-
-  public ConstTiltxcorrParam() {
+  
+  public ConstTiltxcorrParam(BaseManager manager, AxisID axisID) {
+    this.manager = manager;
+    this.axisID = axisID;
     tiltAngleSpec = new TiltAngleSpec();
     filterParams = new FortranInputString(4);
     bordersInXandY = new FortranInputString(2);
@@ -243,5 +255,36 @@ public class ConstTiltxcorrParam implements ConstCommandParam {
   }
   public String getTestOutput() {
     return testOutput;
+  }
+  
+  public String getCommandName() {
+    return command;
+  }
+  
+  public String getCommandLine() {
+    return processName.getCommand(axisID);
+  }
+  public String[] getCommandArray() {
+    return processName.getCommandArray(axisID);
+  }
+  
+  public int getCommandMode() {
+    return 0;
+  }
+  
+  public File getCommandOutputFile() {
+    return new File(manager.getPropertyUserDir(), outputFile);
+  }
+  
+  public int getIntegerValue(int name) {
+    return EtomoNumber.INTEGER_NULL_VALUE;
+  }
+  
+  public boolean getBooleanValue(int name) {
+    return false;
+  }
+  
+  public AxisID getAxisID() {
+    return axisID;
   }
 }
