@@ -24,6 +24,11 @@ import etomo.util.MRCHeader;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.14  2005/07/29 00:53:47  sueh
+* <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
+* <p> because the current manager changes when the user changes the tab.
+* <p> Passing the manager where its needed.
+* <p>
 * <p> Revision 1.13  2005/07/20 17:53:43  sueh
 * <p> bug# 705 Stop printing the stack trace for IOException bugs coming from
 * <p> MRCHeader, because its filling up the error log with exceptions that are
@@ -95,6 +100,8 @@ public class TomogramState implements BaseState {
   EtomoState newstFiducialessAlignmentB = new EtomoState("NewstFiducialessAlignmentB");
   EtomoState usedLocalAlignmentsA = new EtomoState("UsedLocalAlignmentsA");
   EtomoState usedLocalAlignmentsB = new EtomoState("UsedLocalAlignmentsB");
+  EtomoState invalidEdgeFunctionsA = new EtomoState("InvalidEdgeFunctionsA");
+  EtomoState invalidEdgeFunctionsB = new EtomoState("InvalidEdgeFunctionsB");
   private final BaseManager manager;
   
   public TomogramState(BaseManager manager) {
@@ -111,6 +118,8 @@ public class TomogramState implements BaseState {
     newstFiducialessAlignmentB.reset();
     usedLocalAlignmentsA.reset();
     usedLocalAlignmentsB.reset();
+    invalidEdgeFunctionsA.reset();
+    invalidEdgeFunctionsB.reset();
   }
   
   public void initialize() {
@@ -122,6 +131,8 @@ public class TomogramState implements BaseState {
     newstFiducialessAlignmentB.set(EtomoState.NO_RESULT_VALUE);
     usedLocalAlignmentsA.set(EtomoState.NO_RESULT_VALUE);
     usedLocalAlignmentsB.set(EtomoState.NO_RESULT_VALUE);
+    invalidEdgeFunctionsA.set(EtomoState.NO_RESULT_VALUE);
+    invalidEdgeFunctionsB.set(EtomoState.NO_RESULT_VALUE);
   }
   
   public void store(Properties props) {
@@ -139,6 +150,8 @@ public class TomogramState implements BaseState {
     newstFiducialessAlignmentB.store(props, prepend);
     usedLocalAlignmentsA.store(props, prepend);
     usedLocalAlignmentsB.store(props, prepend);
+    invalidEdgeFunctionsA.store(props, prepend);
+    invalidEdgeFunctionsB.store(props, prepend);
   }
 
   public boolean equals(TomogramState that) {
@@ -164,6 +177,12 @@ public class TomogramState implements BaseState {
       return false;
     }
     if (!usedLocalAlignmentsB.equals(that.usedLocalAlignmentsB)) {
+      return false;
+    }
+    if (!invalidEdgeFunctionsA.equals(that.invalidEdgeFunctionsA)) {
+      return false;
+    }
+    if (!invalidEdgeFunctionsB.equals(that.invalidEdgeFunctionsB)) {
       return false;
     }
     return true;
@@ -192,6 +211,8 @@ public class TomogramState implements BaseState {
     newstFiducialessAlignmentB.load(props, prepend);
     usedLocalAlignmentsA.load(props, prepend);
     usedLocalAlignmentsB.load(props, prepend);
+    invalidEdgeFunctionsA.load(props, prepend);
+    invalidEdgeFunctionsB.load(props, prepend);
   }
   
   public ConstEtomoNumber setTrimvolFlipped(boolean trimvolFlipped) {
@@ -207,6 +228,13 @@ public class TomogramState implements BaseState {
       return this.madeZFactorsB.set(madeZFactors);
     }
     return this.madeZFactorsA.set(madeZFactors);
+  }
+  
+  public ConstEtomoNumber setInvalidEdgeFunctions(AxisID axisID, boolean invalidEdgeFunctions) {
+    if (axisID == AxisID.SECOND) {
+      return this.invalidEdgeFunctionsB.set(invalidEdgeFunctions);
+    }
+    return this.invalidEdgeFunctionsA.set(invalidEdgeFunctions);
   }
   
   public ConstEtomoNumber setNewstFiducialessAlignment(AxisID axisID, boolean newstFiducialessAlignment) {
@@ -236,6 +264,13 @@ public class TomogramState implements BaseState {
       return madeZFactorsB;
     }
     return madeZFactorsA;
+  }
+  
+  public ConstEtomoNumber getInvalidEdgeFunctions(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return invalidEdgeFunctionsB;
+    }
+    return invalidEdgeFunctionsA;
   }
   
   public ConstEtomoNumber getNewstFiducialessAlignment(AxisID axisID) {
