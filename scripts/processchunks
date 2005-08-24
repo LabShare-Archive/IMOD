@@ -8,6 +8,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.11  2005/07/19 00:19:01  mast
+#  Switched to running bash -l -c and added PID output
+#
 #  Revision 3.10  2005/07/16 00:26:25  mast
 #  Added failure counting, machine dropping, a pause option to let jobs finish,
 #  exiting if all machines have failed and no chunks have finished, and
@@ -159,13 +162,16 @@ if ($skipprobe == 0 || $justgo == 0) then
             else
                 ssh -x $machname "hostname ; w | head -n 1"
                 set laststat = $status
-                if ($laststat != 0) then
+
+                # The SGI returns 141 for some strange reason so...
+                #
+                if ($laststat != 0 && $laststat != 141) then
                     echo "Dropping $machname from list because it does not respond"
                     echo ""
                 endif
             endif
         endif
-        if ($laststat == 0) set newlist = ($newlist $machname)
+        if ($laststat == 0 || $laststat == 141) set newlist = ($newlist $machname)
     end 
 
     set machines = ($newlist)
@@ -255,6 +261,7 @@ else
 endif
 
 onintr report
+echo $numdone OF $#comlist DONE SO FAR
 
 # Loop until all appear to be done
 #
@@ -393,7 +400,7 @@ while ($numdone < $#comlist)
                 if ("$machname" == $hostroot || "$machname" == localhost) then
                     csh -ef < $cshname >& $pidname ; \rm -f $cshname $pidname &
                 else
-                    ssh -x $machname bash -l -c \'"cd $curdir ; nice csh -ef < $cshname >& $pidname ; \rm -f $cshname $pidname"\' &
+                    ssh -x $machname bash --login -c \'"cd $curdir ; csh -ef < $cshname >& $pidname ; \rm -f $cshname $pidname"\' &
                 endif
             endif
         end 
@@ -451,14 +458,31 @@ while ($proc < $#machines)
     if ($ind != 0) then
         set pidname = $comlist[$ind]:r.pid
         if (-e $pidname) then
-            set pid = `cat $pidname | sed '/[^0-9]/s///g'`
+            set cshname = $comlist[$ind]:r.csh
             set machname = $machines[$proc]
             echo "Killing $comlist[$ind] on $machname"
-            if ("$machname" == $hostroot || "$machname" == localhost) then
-                kill $pid
-            else
-                ssh -x $machname "kill $pid"
+
+            # If the pid file is not really there yet, do a sync and wait for
+            # it to take effect
+            #
+            if (-z $pidname) then
+                if ("$machname" == $hostroot || "$machname" == localhost) then
+                    sync
+                else
+                    ssh -x $machname sync
+                endif
+                @ waited = 0
+                while (-z $pidname && $waited < 15)
+                    sleep 1
+                end
             endif
+            set pid = `cat $pidname | sed '/[^0-9]/s///g'`
+            if ("$machname" == $hostroot || "$machname" == localhost) then
+                imodkillgroup $pid
+            else
+                ssh -x $machname bash --login -c \'"imodkillgroup $pid"\'
+            endif
+            \rm -f $cshname $pidname
         endif
     endif
 end
