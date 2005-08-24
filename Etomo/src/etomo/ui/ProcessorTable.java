@@ -129,7 +129,7 @@ final class ProcessorTable {
     row = new ProcessorTableRow(this, "druid");
     row.addRow();
     rows.add("druid", row);
-    row = new ProcessorTableRow(this, "tubule", "Opteron");
+    row = new ProcessorTableRow(this, "tubule", "Opteron", 2);
     row.addRow();
     rows.add("tubule", row);
     row = new ProcessorTableRow(this, "bigfoot", 2);
@@ -144,6 +144,9 @@ final class ProcessorTable {
     row = new ProcessorTableRow(this, "thot");
     row.addRow();
     rows.add("thot", row);
+    row = new ProcessorTableRow(this, "ashtray", "G5");
+    row.addRow();
+    rows.add("ashtray", row);
   }
   
   final Container getContainer() {
@@ -377,6 +380,9 @@ final class ProcessorTable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.9  2005/08/22 18:14:27  sueh
+ * <p> bug# 532 Removed dummy load averages.  Added a key to each row,
+ * <p>
  * <p> Revision 1.8  2005/08/04 20:16:24  sueh
  * <p> bug# 532  Fixed table resizing problems.  Added RunPack() to use with
  * <p> invoke later.  Added functions to calculate height and width of the table.

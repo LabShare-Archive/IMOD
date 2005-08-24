@@ -68,6 +68,10 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.59  2005/08/22 18:20:32  sueh
+ * bug# 532  Handling opening and closing command from the header in the
+ * dialog instead of the header.
+ *
  * Revision 3.58  2005/08/12 00:01:13  sueh
  * bug# 711  Change enum Run3dmodMenuOption to
  * Run3dmodMenuOptions, which can turn on multiple options at once.
@@ -1007,7 +1011,6 @@ public class TomogramGenerationDialog extends ProcessDialog
   }
   
   private void updateParallelProcess() {
-    System.out.println("updateParallelProcess");
     boolean parallelProcess = cbParallelProcess.isSelected();
     parallelPanel.setVisible(parallelProcess);
     if (parallelProcess) {
