@@ -32,7 +32,7 @@ public class BlendmontProcessMonitor extends LogFileProcessMonitor {
   public BlendmontProcessMonitor(ApplicationManager appMgr, AxisID id, int mode) {
     super(appMgr, id);
     this.mode = mode;
-    logFileBasename = BlendmontParam.getCommandFileName(mode);
+    logFileBasename = BlendmontParam.getProcessName(mode).toString();
     switch (mode) {
     case BlendmontParam.XCORR_MODE:
       title = "Cross-correlation";
@@ -103,6 +103,9 @@ public class BlendmontProcessMonitor extends LogFileProcessMonitor {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.11  2005/07/29 19:46:04  sueh
+* <p> bug# 692 Changed ConstEtomoNumber.getInteger() to getInt.
+* <p>
 * <p> Revision 1.10  2005/07/29 00:51:22  sueh
 * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
 * <p> because the current manager changes when the user changes the tab.
