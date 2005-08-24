@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.8  2005/06/17 00:30:39  sueh
+ * <p> bug# 685 Added getName() to get the name of the file without the path.
+ * <p>
  * <p> Revision 3.7  2005/05/20 21:15:19  sueh
  * <p> bug# 664 writeComFile(): do not attempt to save to a file if the
  * <p> memory is very low.  If the save fails, the file could be truncated.
@@ -411,6 +414,7 @@ public class ComScript {
     if (!EtomoDirector.getInstance().isMemoryAvailable()) {
       return;
     }
+    System.out.println("write "+comFile.getName());
     // Open the com file for writing using a buffered writer
     BufferedWriter out = new BufferedWriter(new FileWriter(comFile));
 
