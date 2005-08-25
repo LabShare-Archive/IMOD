@@ -33,6 +33,11 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.36  2005/08/24 22:32:12  sueh
+ * <p> bug# 715 Added loadComScript(ProcessName...) to work with
+ * <p> BlendmontParam, which uses getProcessName() instead of
+ * <p> getCommandFileName().
+ * <p>
  * <p> Revision 3.35  2005/07/29 00:43:19  sueh
  * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
  * <p> because the current manager changes when the user changes the tab.
@@ -440,7 +445,6 @@ public class ComScriptManager {
    * @param axisID
    */
   public void saveXcorr(BlendmontParam blendmontParam, AxisID axisID) {
-    System.out.println("saveXcorr:mode="+blendmontParam.getMode());
     //  Get a reference to the appropriate script object
     ComScript scriptXcorr;
     if (axisID == AxisID.SECOND) {
@@ -453,7 +457,6 @@ public class ComScriptManager {
   }
   
   public void saveXcorrToUndistort(BlendmontParam blendmontParam, AxisID axisID) {
-    System.out.println("saveXcorrToUndistort:mode="+blendmontParam.getMode());
     //  Get a reference to the appropriate script object
     ComScript scriptUndistort;
     ComScript scriptXcorr;
