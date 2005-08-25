@@ -1091,6 +1091,7 @@ public class ApplicationManager extends BaseManager {
       if (updateXcorrCom(axisID) == null) {
         return;
       }
+      updateBlendmontInXcorrCom(axisID);
       if (metaData.getViewType() != ViewType.MONTAGE
           && !updatePrenewstCom(axisID)) {
         return;
@@ -1329,7 +1330,8 @@ public class ApplicationManager extends BaseManager {
 
   /**
    * Update the blendmont command in the xcorr comscript.  if blendmont does not
-   * have to be run, update the goto param to skip blendmont.
+   * have to be run, update the goto param to skip blendmont
+   * return blendmont param if blendmont has to be run.
    * @param axisID
    * @return
    */
@@ -5650,6 +5652,11 @@ public class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.173  2005/08/24 22:28:24  sueh
+ * <p> bug# 715 Passing the param to crossCorrelate() so it can be used in
+ * <p> postProcess() and errorProcess().  Use TiltxcorrParam when blendmont
+ * <p> will not run.  Use BlendmontParam when blendmont will run.
+ * <p>
  * <p> Revision 3.172  2005/08/22 15:51:15  sueh
  * <p> bug# 532 In doneTomgramGenartionDialog, call
  * <p> TomogramGenerationDialog.stopParallelPanel() to stop parallel panel
