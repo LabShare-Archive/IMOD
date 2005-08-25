@@ -20,6 +20,9 @@ import etomo.type.EtomoNumber;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.7  2005/06/10 22:45:08  sueh
+ * <p> Added GET_BINNING
+ * <p>
  * <p> Revision 3.6  2005/04/25 20:38:26  sueh
  * <p> bug# 615 Passing the axis where a command originates to the message
  * <p> functions so that the message will be popped up in the correct window.
@@ -249,6 +252,9 @@ public class ConstNewstParam implements Command {
    * @return Returns the inputFile.
    */
   public String getOutputFile() {
+    if (outputFile.size() == 0) {
+      return "";
+    }
     return (String) outputFile.get(0);
   }
   
