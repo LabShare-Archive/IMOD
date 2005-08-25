@@ -1,5 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/24/05: IMOD_3-6-12
 8/24/05: Fixed processchunk's ability to kill jobs by adding a new script
 to kill the process group, using system-dependent ps commands, and got it
 working to run processes on an SGI also.
