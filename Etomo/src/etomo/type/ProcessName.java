@@ -13,6 +13,11 @@ package etomo.type;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.3  2005/08/24 22:39:46  sueh
+ * <p> $bug# 715 Added getCommand() and getCommandArray() so that
+ * <p> $comscript commands can be built in one place.  ProcessName shouldn't
+ * <p> $contain anything but comscripts.
+ * <p> $
  * <p> $Revision 1.2  2005/04/07 21:58:25  sueh
  * <p> $bug# 626 Added preblend, blend, and undistort.
  * <p> $
@@ -45,6 +50,7 @@ public class ProcessName {
   private static final String preblend = "preblend";
   private static final String blend = "blend";
   private static final String undistort = "undistort";
+  private static final String solvematch = "solvematch";
   
   private final String name;
   
@@ -72,6 +78,7 @@ public class ProcessName {
   public static final ProcessName PREBLEND = new ProcessName(preblend);
   public static final ProcessName BLEND = new ProcessName(blend);
   public static final ProcessName UNDISTORT = new ProcessName(undistort);
+  public static final ProcessName SOLVEMATCH = new ProcessName(solvematch);
   
   /**
    * Returns a string representation of the object.
@@ -146,6 +153,9 @@ public class ProcessName {
     }
     if (name.compareToIgnoreCase(undistort) == 0) {
       return UNDISTORT;
+    }
+    if (name.compareToIgnoreCase(solvematch) == 0) {
+      return SOLVEMATCH;
     }
     throw new IllegalArgumentException("name="+name);
   }
