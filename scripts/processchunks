@@ -8,6 +8,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.13  2005/08/26 20:44:44  mast
+#  Added CHUNK ERROR reports when there is a nonempty log
+#
 #  Revision 3.12  2005/08/24 16:10:50  mast
 #  Implemented killing via calling a process group kill script, added a
 #  sync message in case pid file was not written by nfs yet, switched to
@@ -347,7 +350,7 @@ while ($numdone < $#comlist)
                     set dropout = 1
                     if (! -z $logname) then
                         set errormess = `awk '/ERROR:/, /EOF/' $logname`
-                        if (errormess = "") then
+                        if ("$errormess" == "") then
                             set errormess = `tail -n 1 $logname`
                             set errormess = "CHUNK ERROR: (last line) - $errormess"
                         else
@@ -368,7 +371,7 @@ while ($numdone < $#comlist)
             #
             if ($dropout == 1) then
                 echo "$comlist[$ind] failed on $machines[$proc] - need to restart"
-                if ($errormess != "") echo $errormess
+                if ("$errormess" != "") echo $errormess
                 set flags[$ind] = 0
                 set assigned[$proc] = 0
                 @ failcount = $failed[$name]
