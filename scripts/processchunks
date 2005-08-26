@@ -8,6 +8,12 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.12  2005/08/24 16:10:50  mast
+#  Implemented killing via calling a process group kill script, added a
+#  sync message in case pid file was not written by nfs yet, switched to
+#  bash --login and allowed exit code 145 from the w to get it to work on
+#  our SGI
+#
 #  Revision 3.11  2005/07/19 00:19:01  mast
 #  Switched to running bash -l -c and added PID output
 #
@@ -320,6 +326,7 @@ while ($numdone < $#comlist)
         if ($ind != 0) then
             set logname = $comlist[$ind]:r.log
             set cshname = $comlist[$ind]:r.csh
+            set errormess = ""
             if (-e $logname) then
                 set lastline = `tail -n 1 $logname | sed '/[[:cntrl:]]/s///g'`
                 if ("$lastline" == "CHUNK DONE") then
@@ -338,6 +345,15 @@ while ($numdone < $#comlist)
                     # set flag to redo it
                     #
                     set dropout = 1
+                    if (! -z $logname) then
+                        set errormess = `awk '/ERROR:/, /EOF/' $logname`
+                        if (errormess = "") then
+                            set errormess = `tail -n 1 $logname`
+                            set errormess = "CHUNK ERROR: (last line) - $errormess"
+                        else
+                            set errormess = "CHUNK $errormess"
+                        endif
+                    endif
                 endif
             else
             
@@ -352,6 +368,7 @@ while ($numdone < $#comlist)
             #
             if ($dropout == 1) then
                 echo "$comlist[$ind] failed on $machines[$proc] - need to restart"
+                if ($errormess != "") echo $errormess
                 set flags[$ind] = 0
                 set assigned[$proc] = 0
                 @ failcount = $failed[$name]
