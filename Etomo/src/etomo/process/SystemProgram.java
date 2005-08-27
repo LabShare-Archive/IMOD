@@ -17,6 +17,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.22  2005/08/24 00:24:03  sueh
+ * <p> bug# 532 added commented out print statements
+ * <p>
  * <p> Revision 3.21  2005/08/22 22:07:33  sueh
  * <p> bug# 714 fixed the code that checks to see if anything is in
  * <p> propertyUserDir.
@@ -199,6 +202,7 @@ import java.util.ArrayList;
 import java.util.Date;
 
 import etomo.type.AxisID;
+import etomo.util.Utilities;
 
 
 public class SystemProgram implements Runnable {
@@ -207,7 +211,7 @@ public class SystemProgram implements Runnable {
 
   private boolean debug = false;
   private int exitValue = Integer.MIN_VALUE;
-  private String[] commandArray;
+  private final String[] commandArray;
   private String[] stdInput = null;
   private ArrayList stdOutput = new ArrayList();
   private ArrayList stdError = new ArrayList();
@@ -282,20 +286,15 @@ public class SystemProgram implements Runnable {
     stdInput = programInput;
   }
   
-  public void setCurrentStdInput(String input) {
+  public void setCurrentStdInput(String input) throws IOException {
     //System.out.println("standard in:"+input);
-    try {
-      if (cmdInBuffer != null) {
-        cmdInBuffer.write(input);
-        cmdInBuffer.newLine();
-        cmdInBuffer.flush();
-      }
-      if (cmdInputStream != null) {
-        cmdInputStream.flush();
-      }
+    if (cmdInBuffer != null) {
+      cmdInBuffer.write(input);
+      cmdInBuffer.newLine();
+      cmdInBuffer.flush();
     }
-    catch (IOException e) {
-      e.printStackTrace();
+    if (cmdInputStream != null) {
+      cmdInputStream.flush();
     }
   }
 
@@ -313,12 +312,10 @@ public class SystemProgram implements Runnable {
    */
   public void run() {
     started = true;
-    /*if (commandArray != null) {
-      for (int i = 0; i < commandArray.length; i++) {
+    /*for (int i = 0; i < commandArray.length; i++) {
         System.out.print(commandArray[i] + " ");
       }
-      System.out.println();
-    }*/
+    System.out.println();*/
     if (debug) {
       System.err.println("");
       System.err.println("SystemProgram: command array: ");
@@ -345,7 +342,14 @@ public class SystemProgram implements Runnable {
       if (workingDirectory == null && propertyUserDir != null && !propertyUserDir.matches("\\s*+")) {
         workingDirectory = new File(propertyUserDir);
       }
+      //timestamp
+      StringBuffer timestampString = new StringBuffer(3);
+      for (int i = 0; i < Math.min(2, commandArray.length); i++) {
+        timestampString.append(commandArray[i] + " ");
+      }
+      Utilities.timestamp(timestampString.toString(), Utilities.STARTED_STATUS);
       runTimestamp = new Date();
+      
       if (workingDirectory == null) {
         process = Runtime.getRuntime().exec(commandArray, null);
       }
@@ -425,6 +429,7 @@ public class SystemProgram implements Runnable {
         System.err.println(
           "SystemProgram:: interrupted waiting for process to finish!");
       }
+      Utilities.timestamp(timestampString.toString(), Utilities.FINISHED_STATUS);
       // Inform the output manager threads that the process is done
       stdoutReaderMgr.setProcessDone(true);
       stderrReaderMgr.setProcessDone(true);
