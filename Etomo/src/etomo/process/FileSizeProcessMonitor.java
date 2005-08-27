@@ -25,6 +25,12 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.14  2005/08/22 16:20:49  sueh
+ * <p> bug# 532 Added getStatusString() to implement ProcessMonitor.  The
+ * <p> status string is used to add more information to the progress bar when
+ * <p> the process ends.  It is currently being used only for pausing
+ * <p> processchunks.
+ * <p>
  * <p> Revision 3.13  2005/08/15 18:20:54  sueh
  * <p> bug# 532  Added kill and pause functions to implement ProcessMonitor.
  * <p> Only kill is valid to use with this class.  Allows processchunks to signal
@@ -291,6 +297,10 @@ public abstract class FileSizeProcessMonitor implements ProcessMonitor {
   }
   
   public String getStatusString() {
+    return null;
+  }
+  
+  public final String getErrorMessage() {
     return null;
   }
 }

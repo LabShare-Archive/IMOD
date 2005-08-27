@@ -106,9 +106,19 @@ public class XcorrProcessWatcher implements ProcessMonitor {
   public String getStatusString() {
     return null;
   }
+  
+  public final String getErrorMessage() {
+    return null;
+  }
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.12  2005/08/22 17:09:28  sueh
+ * <p> bug# 532 Added getStatusString() to implement ProcessMonitor.  The
+ * <p> status string is used to add more information to the progress bar when
+ * <p> the process ends.  It is currently being used only for pausing
+ * <p> processchunks.
+ * <p>
  * <p> Revision 3.11  2005/08/15 18:27:58  sueh
  * <p> bug# 532  Added kill and pause functions to implement ProcessMonitor.
  * <p> Both kill and pause signal interrupt.  Change updateState to handle the
