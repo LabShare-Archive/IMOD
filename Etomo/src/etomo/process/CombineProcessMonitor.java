@@ -31,6 +31,12 @@ import etomo.util.Utilities;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.13  2005/08/22 16:20:10  sueh
+ * <p> $bug# 532 Added getStatusString() to implement ProcessMonitor.  The
+ * <p> $status string is used to add more information to the progress bar when
+ * <p> $the process ends.  It is currently being used only for pausing
+ * <p> $processchunks.
+ * <p> $
  * <p> $Revision 1.12  2005/08/15 18:09:57  sueh
  * <p> $bug# 532 Added kill and paused functions to implement ProcessMonitor.
  * <p> $Pause is invalid for this monitor.
@@ -500,6 +506,10 @@ public class CombineProcessMonitor implements BackgroundProcessMonitor {
   }
   
   public String getStatusString() {
+    return null;
+  }
+  
+  public final String getErrorMessage() {
     return null;
   }
 }
