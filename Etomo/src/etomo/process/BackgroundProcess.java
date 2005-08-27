@@ -1,6 +1,7 @@
 package etomo.process;
 
 import java.io.File;
+import java.io.IOException;
 
 import etomo.BaseManager;
 import etomo.comscript.Command;
@@ -19,6 +20,11 @@ import etomo.type.ProcessEndState;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.13  2005/08/22 16:15:26  sueh
+ * <p> bug# 532 Added boolean acceptInputWhileRunning to prevent the closing
+ * <p> of the standard in too early.  AcceptInputWhileRunning defaults to false
+ * <p> because it prevents several types of processes from running.
+ * <p>
  * <p> Revision 3.12  2005/08/15 18:16:20  sueh
  * <p> bug# 532 Changed pause() to throw an exception if the monitor isn't set.
  * <p>
@@ -371,6 +377,13 @@ public class BackgroundProcess
     processManager.msgBackgroundProcessDone(this, program.getExitValue());
     done = true;
   }
+  
+  final String getMonitorErrorMessage() {
+    if (monitor == null) {
+      return null;
+    }
+    return monitor.getErrorMessage();
+  }
 
   /**
    * Returns the stdError.
@@ -462,8 +475,13 @@ public class BackgroundProcess
   }
   
   public void setCurrentStdInput(String input) {
-    if (program != null) {
-      program.setCurrentStdInput(input);
+    try {
+      if (program != null) {
+        program.setCurrentStdInput(input);
+      }
+    }
+    catch (IOException e) {
+      e.printStackTrace();
     }
   }
   
