@@ -28,6 +28,9 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.20  2005/08/22 16:17:46  sueh
+* <p> bug# 532 Added start and stopGetLoadAverage().
+* <p>
 * <p> Revision 1.19  2005/08/15 17:55:29  sueh
 * <p> bug# 532   Processchunks needs to be killed with an interrupt instead of
 * <p> a kill, so a processchunks specific class has to make the decision of
@@ -172,6 +175,7 @@ import etomo.util.Utilities;
 public abstract class BaseProcessManager {
   public static  final String  rcsid =  "$Id$";
   
+  final static String CHUNK_ERROR_TAG = "CHUNK ERROR:";
   SystemProcessInterface threadAxisA = null;
   SystemProcessInterface threadAxisB = null;
   Thread processMonitorA = null;
@@ -918,28 +922,35 @@ public abstract class BaseProcessManager {
     //  Check to see if the exit value is non-zero
     if (exitValue != 0) {
       String[] stdError = process.getStdError();
-      String[] message;
+      ArrayList message = new ArrayList();
 
       // Is the last string "Killed"
       if ((stdError.length > 0)
         && (stdError[stdError.length - 1].trim().equals("Killed"))) {
-        message = new String[1];
-        message[0] = "<html>Terminated: " + process.getCommandLine();
+        message.add("<html>Terminated: " + process.getCommandLine());
       }
       else {
         int j = 0;
-        message = new String[stdError.length + 3];
-        message[j++] = "<html>Command failed: " + process.getCommandLine();
-        message[j++] = "  ";
-        message[j++] = "<html><U>Standard error output:</U>";
+        message.add("<html>Command failed: " + process.getCommandLine());
+        message.add("  ");
+        message.add("<html><U>Standard error output:</U>");
         for (int i = 0; i < stdError.length; i++, j++) {
-          message[j] = stdError[i];
+          message.add(stdError[i]);
         }
       }
       ProcessEndState endState = process.getProcessEndState();
       if (endState != ProcessEndState.KILLED
           && endState != ProcessEndState.PAUSED) {
-        uiHarness.openMessageDialog(message,
+        String monitorErrorMessage = process.getMonitorErrorMessage();
+        if (monitorErrorMessage != null) {
+          message.add(monitorErrorMessage);
+        }
+        int messageSize = message.size();
+        String[] messageArray = new String[messageSize];
+        for (int i = 0; i < messageSize; i++) {
+          messageArray[i] = (String) message.get(i);
+        }
+        uiHarness.openMessageDialog(messageArray,
             process.getCommandName() + " terminated", process.getAxisID());
         //make sure script knows about failure
         process.setProcessEndState(ProcessEndState.FAILED);
@@ -956,7 +967,8 @@ public abstract class BaseProcessManager {
     for (int i = 0; i < stdOutput.length; i++) {
       if (!foundError) {
         int index = stdOutput[i].indexOf("ERROR:");
-        if (index != -1) {
+        int chunkIndex = stdOutput[i].indexOf(CHUNK_ERROR_TAG);
+        if (index != -1 && chunkIndex == -1) {
           foundError = true;
           errors.add(stdOutput[i]);
         }
