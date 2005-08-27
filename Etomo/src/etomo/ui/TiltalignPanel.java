@@ -1412,7 +1412,7 @@ private void setToolTipText() {
     TooltipFormatter tooltipFormatter = new TooltipFormatter();
     Autodoc autodoc = null;
     try {
-      autodoc = Autodoc.get(Autodoc.TILTALIGN, axisID);
+      autodoc = Autodoc.getInstance(Autodoc.TILTALIGN, axisID);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();
@@ -1525,6 +1525,9 @@ private void setToolTipText() {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.28  2005/07/29 19:48:14  sueh
+ * <p> bug# 692 Changed ConstEtomoNumber.getInteger() to getInt.
+ * <p>
  * <p> Revision 3.27  2005/07/06 23:50:30  sueh
  * <p> bug# 619 Removed DoubleSpacedPanel and FormattedPanel.  Placed
  * <p> their functionality in SpacedPanel.  Simplified the construction of

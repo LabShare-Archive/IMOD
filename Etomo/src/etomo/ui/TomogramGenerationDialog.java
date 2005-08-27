@@ -68,6 +68,9 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.60  2005/08/24 00:25:00  sueh
+ * bug# 532 Added ashtray.  Made tubule a 2 cpu system
+ *
  * Revision 3.59  2005/08/22 18:20:32  sueh
  * bug# 532  Handling opening and closing command from the header in the
  * dialog instead of the header.
@@ -1520,7 +1523,7 @@ public class TomogramGenerationDialog extends ProcessDialog
     Autodoc autodoc = null;
 
     try {
-      autodoc = Autodoc.get(Autodoc.MTF_FILTER, axisID);
+      autodoc = Autodoc.getInstance(Autodoc.MTF_FILTER, axisID);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();

@@ -38,6 +38,16 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.11  2005/08/12 00:00:55  sueh
+ * <p> bug# 711  Change enum Run3dmodMenuOption to
+ * <p> Run3dmodMenuOptions, which can turn on multiple options at once.
+ * <p> This allows ImodState to combine input from the context menu and the
+ * <p> pulldown menu.  Prevent context menu from popping up when button is
+ * <p> disabled.  Get rid of duplicate code by running the 3dmods from a private
+ * <p> function called run3dmod(String, Run3dmodMenuOptions).  It can be
+ * <p> called from run3dmod(Run3dmodButton, Run3dmodMenuOptions) and the
+ * <p> action function.
+ * <p>
  * <p> Revision 3.10  2005/08/09 21:00:01  sueh
  * <p> bug# 711  Implemented Run3dmodButtonContainer:  added run3dmod().
  * <p> Changed 3dmod buttons to Run3dmodButton.  No longer inheriting
@@ -419,7 +429,7 @@ public class SolvematchPanel implements InitialCombineFields, Run3dmodButtonCont
     TooltipFormatter tooltipFormatter = new TooltipFormatter();
     Autodoc autodoc = null;
     try {
-      autodoc = Autodoc.get(Autodoc.SOLVEMATCH, AxisID.ONLY);
+      autodoc = Autodoc.getInstance(Autodoc.SOLVEMATCH, AxisID.ONLY);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();
