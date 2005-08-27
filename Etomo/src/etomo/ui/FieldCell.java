@@ -21,6 +21,9 @@ import etomo.type.EtomoNumber;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.7  2005/08/04 20:10:05  sueh
+ * <p> bug# 532 added getWidth().
+ * <p>
  * <p> Revision 1.6  2005/07/19 22:31:38  sueh
  * <p> bug# 532 changing the look of inUse == false to greyed out text.
  * <p> Changing the look of error == true to red background.
@@ -86,6 +89,11 @@ class FieldCell extends InputCell {
     else {
       textField.setText(hiddenValue);
     }
+  }
+  
+  final boolean isEmpty() {
+    String value = textField.getText();
+    return value == null || value.matches("\\s*");
   }
 
   protected final Component getComponent() {
