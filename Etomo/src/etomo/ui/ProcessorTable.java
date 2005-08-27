@@ -4,6 +4,8 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -12,6 +14,7 @@ import javax.swing.border.LineBorder;
 
 import etomo.comscript.ProcesschunksParam;
 import etomo.type.AxisID;
+import etomo.type.EtomoNumber;
 import etomo.util.HashedArray;
 
 /**
@@ -30,6 +33,8 @@ import etomo.util.HashedArray;
 final class ProcessorTable {
   public static final String rcsid = "$Id$";
 
+  private static final String SPEED_ADOC_KEY = "speed";
+  private static final String MEMORY_ADOC_KEY = "memory";
   private static final int maxRows = 15;
   private static final double initialHeight = (maxRows + 2) * 20;//initially estimate the row height to be 20 pixels
   private static final double maxWidth = UIUtilities.getScreenSize().getWidth();
@@ -64,6 +69,106 @@ final class ProcessorTable {
   }
 
   private final void createTable() {
+    boolean numberColumn = false;
+    boolean typeColumn = false;
+    boolean speedColumn = false;
+    boolean memoryColumn = false;
+    boolean osColumn = false;
+    String speedUnits = null;
+    String memoryUnits = null;
+    //build rows
+    //get autodoc
+    Autodoc autodoc = null;
+    try {
+      autodoc = Autodoc.getInstance(Autodoc.CPU, axisID);
+    }
+    catch (FileNotFoundException except) {
+      except.printStackTrace();
+    }
+    catch (IOException except) {
+      except.printStackTrace();
+    }
+    if (autodoc == null) {
+      System.out.println("autodoc null");
+      return;
+    }
+    //get units
+    Attribute unitsAttribute = autodoc.getAttribute("units");
+    //get speed units
+    try {
+      speedUnits = unitsAttribute.getAttribute(SPEED_ADOC_KEY).getUnformattedValue();
+    }
+    catch (NullPointerException e) {
+    }
+    //get memory units
+    try {
+      memoryUnits = unitsAttribute.getAttribute(MEMORY_ADOC_KEY).getUnformattedValue();
+    }
+    catch (NullPointerException e) {
+    }
+    //get first section
+    SectionLocation sectionLocation = autodoc
+        .getFirstSectionLocation("Computer");
+    Section computer = autodoc.getSection(sectionLocation);
+    EtomoNumber number = new EtomoNumber(EtomoNumber.INTEGER_TYPE);
+    //loop on sections
+    while (computer != null) {
+      //get name of the section
+      String computerName = computer.getName();
+      //get the number attribute
+      //set numberColumn to true if an number attribute is returned
+      number.set(1);
+      try {
+        number.set(computer.getAttribute("number").getUnformattedValue());
+        numberColumn = true;
+      }
+      catch (NullPointerException e) {
+      }
+      //get the type attribute
+      //set typeColumn to true if an type attribute is returned
+      String type = null;
+      try {
+        type = computer.getAttribute("type").getUnformattedValue();
+        typeColumn = true;
+      }
+      catch (NullPointerException e) {
+      }
+      //get the speed attribute
+      //set speedColumn to true if an speed attribute is returned
+      String speed = null;
+      try {
+        speed = computer.getAttribute(SPEED_ADOC_KEY).getUnformattedValue();
+        speedColumn = true;
+      }
+      catch (NullPointerException e) {
+      }
+      //get the memory attribute
+      //set memoryColumn to true if an memory attribute is returned
+      String memory = null;
+      try {
+        memory = computer.getAttribute(MEMORY_ADOC_KEY).getUnformattedValue();
+        memoryColumn = true;
+      }
+      catch (NullPointerException e) {
+      }
+      //get the os attribute
+      //set osColumn to true if an os attribute is returned
+      String os = null;
+      try {
+        os = computer.getAttribute("os").getUnformattedValue();
+        osColumn = true;
+      }
+      catch (NullPointerException e) {
+      }
+      //create the row
+      ProcessorTableRow row = new ProcessorTableRow(this, computerName, number
+          .getInt(), type, speed, memory, os);
+      //add the row to the rows HashedArray
+      rows.add(computerName, row);
+      //get the next section
+      computer = autodoc.nextSection(sectionLocation);
+    }
+    //build table
     tablePanel.setBorder(LineBorder.createBlackLineBorder());
     tablePanel.setLayout(layout);
     constraints.fill = GridBagConstraints.BOTH;
@@ -77,16 +182,26 @@ final class ProcessorTable {
     constraints.gridwidth = 1;
     hdrComputer = new HeaderCell("Computer");
     hdrComputer.add(tablePanel, layout, constraints);
-    constraints.weightx = 0.0;
-    constraints.gridwidth = 2;
-    hdrNumberCpus = new HeaderCell("Number CPUs");
+    if (numberColumn) {
+      constraints.gridwidth = 2;
+    }
+    hdrNumberCpus = new HeaderCell("# CPUs");
     hdrNumberCpus.add(tablePanel, layout, constraints);
     constraints.gridwidth = 3;
     new HeaderCell("Load Average").add(tablePanel, layout, constraints);
     constraints.gridwidth = 1;
-    new HeaderCell("CPU Type").add(tablePanel, layout, constraints);
-    new HeaderCell("OS").add(tablePanel, layout, constraints);
-    constraints.gridwidth = 1;
+    if (typeColumn) {
+      new HeaderCell("CPU Type").add(tablePanel, layout, constraints);
+    }
+    if (speedColumn) {
+      new HeaderCell("Speed").add(tablePanel, layout, constraints);
+    }
+    if (memoryColumn) {
+      new HeaderCell("RAM").add(tablePanel, layout, constraints);
+    }
+    if (osColumn) {
+      new HeaderCell("OS").add(tablePanel, layout, constraints);
+    }
     new HeaderCell("Restarts").add(tablePanel, layout, constraints);
     new HeaderCell("Finished").add(tablePanel, layout, constraints);
     constraints.gridwidth = GridBagConstraints.REMAINDER;
@@ -100,17 +215,40 @@ final class ProcessorTable {
     new HeaderCell().add(tablePanel, layout, constraints);
     hdrNumberCpusUsed = new HeaderCell("Used");
     hdrNumberCpusUsed.add(tablePanel, layout, constraints);
-    new HeaderCell("Max.").add(tablePanel, layout, constraints);
+    if (numberColumn) {
+      new HeaderCell("Max.").add(tablePanel, layout, constraints);
+    }
     new HeaderCell("1 Min.").add(tablePanel, layout, constraints);
     new HeaderCell("5 Min.").add(tablePanel, layout, constraints);
     new HeaderCell("15 Min.").add(tablePanel, layout, constraints);
-    new HeaderCell().add(tablePanel, layout, constraints);
-    new HeaderCell().add(tablePanel, layout, constraints);
+    if (typeColumn) {
+      new HeaderCell().add(tablePanel, layout, constraints);
+    }
+    if (speedColumn) {
+      new HeaderCell(speedUnits).add(tablePanel, layout, constraints);
+    }
+    if (memoryColumn) {
+      new HeaderCell(memoryUnits).add(tablePanel, layout, constraints);
+    }
+    if (osColumn) {
+      new HeaderCell().add(tablePanel, layout, constraints);
+    }
     new HeaderCell().add(tablePanel, layout, constraints);
     new HeaderCell("Chunks").add(tablePanel, layout, constraints);
     constraints.gridwidth = GridBagConstraints.REMAINDER;
     new HeaderCell("Reason").add(tablePanel, layout, constraints);
-    //rows
+    //add rows to the table
+    //loop on rows
+    for (int i = 0; i < rows.size(); i++) {
+      ProcessorTableRow row = (ProcessorTableRow) rows.get(i);  
+      row.setNumberColumn(numberColumn);
+      row.setTypeColumn(typeColumn);
+      row.setSpeedColumn(speedColumn);
+      row.setMemoryColumn(memoryColumn);
+      row.setOSColumn(osColumn);
+      row.addRow();
+    }
+    /*
     ProcessorTableRow row = new ProcessorTableRow(this, "bebop");
     row.addRow();
     rows.add("bebop", row);
@@ -123,13 +261,13 @@ final class ProcessorTable {
     row = new ProcessorTableRow(this, "wanderer");
     row.addRow();
     rows.add("wanderer", row);
-    row = new ProcessorTableRow(this, "shrek", "Opteron", 2);
+    row = new ProcessorTableRow(this, "shrek", 2, "Opteron");
     row.addRow();
     rows.add("shrek", row);
     row = new ProcessorTableRow(this, "druid");
     row.addRow();
     rows.add("druid", row);
-    row = new ProcessorTableRow(this, "tubule", "Opteron", 2);
+    row = new ProcessorTableRow(this, "tubule", 2, "Opteron");
     row.addRow();
     rows.add("tubule", row);
     row = new ProcessorTableRow(this, "bigfoot", 2);
@@ -147,6 +285,7 @@ final class ProcessorTable {
     row = new ProcessorTableRow(this, "ashtray", "G5");
     row.addRow();
     rows.add("ashtray", row);
+    */
   }
   
   final Container getContainer() {
@@ -380,6 +519,9 @@ final class ProcessorTable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.10  2005/08/24 00:25:25  sueh
+ * <p> bug# 532 Added ashtray.  Made tubule a 2 cpu system
+ * <p>
  * <p> Revision 1.9  2005/08/22 18:14:27  sueh
  * <p> bug# 532 Removed dummy load averages.  Added a key to each row,
  * <p>
