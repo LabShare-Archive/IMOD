@@ -25,6 +25,9 @@ import etomo.ui.Autodoc;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.11  2005/07/29 19:43:59  sueh
+ * <p> bug# 692 Changed ConstEtomoNumber.getInteger() to getInt.
+ * <p>
  * <p> Revision 3.10  2005/05/17 19:13:48  sueh
  * <p> bug# 658 Passing a HashMap of required values from the autodoc to
  * <p> ScriptParameter constructors.
@@ -297,7 +300,7 @@ public class BeadtrackParam extends OldBeadtrackParam
   private HashMap getRequiredMap() {
     Autodoc autodoc = null;
     try {
-      autodoc = Autodoc.get(Autodoc.BEADTRACK, axisID);
+      autodoc = Autodoc.getInstance(Autodoc.BEADTRACK, axisID);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();
