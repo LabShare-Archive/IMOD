@@ -1,5 +1,6 @@
 package etomo.process;
 
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.Hashtable;
 
@@ -152,7 +153,15 @@ public class IntermittentSystemProgram implements Runnable {
     catch (InterruptedException e) {
       e.printStackTrace();
     }
-    program.setCurrentStdInput(command.getEndCommand());
+    catch (IOException e) {
+      e.printStackTrace();
+    }
+    try {
+      program.setCurrentStdInput(command.getEndCommand());
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+    }
     program = null;
   }
   
@@ -185,6 +194,10 @@ public class IntermittentSystemProgram implements Runnable {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.2  2005/08/24 00:20:47  sueh
+* <p> bug# 532 removed the running member variable.  Only needed the stopped
+* <p> member variable.
+* <p>
 * <p> Revision 1.1  2005/08/22 16:31:15  sueh
 * <p> bug# 532 Runs a command using SystemProgram.  Keeps standard
 * <p> input open.   Sends a string through standard input at intervals.
