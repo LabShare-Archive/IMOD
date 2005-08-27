@@ -383,7 +383,7 @@ public class CCDEraserPanel implements ContextMenu, Run3dmodButtonContainer {
     TooltipFormatter tooltipFormatter = new TooltipFormatter();
     Autodoc autodoc = null;
     try {
-      autodoc = Autodoc.get(Autodoc.CCDERASER, axisID);
+      autodoc = Autodoc.getInstance(Autodoc.CCDERASER, axisID);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();
@@ -461,6 +461,15 @@ public class CCDEraserPanel implements ContextMenu, Run3dmodButtonContainer {
 
 /**
 * <p> $Log$
+* <p> Revision 3.12  2005/08/11 23:45:28  sueh
+* <p> bug# 711  Change enum Run3dmodMenuOption to
+* <p> Run3dmodMenuOptions, which can turn on multiple options at once.
+* <p> This allows ImodState to combine input from the context menu and the
+* <p> pulldown menu.  Get rid of duplicate code by running the 3dmods from a
+* <p> private function called run3dmod(String, Run3dmodMenuOptions).  It can
+* <p> be called from run3dmod(Run3dmodButton, Run3dmodMenuOptions) and
+* <p> the action function.
+* <p>
 * <p> Revision 3.11  2005/08/10 20:40:19  sueh
 * <p> bug# 711 Removed MultiLineToggleButton.  Making toggling an attribute
 * <p> of MultiLineButton.

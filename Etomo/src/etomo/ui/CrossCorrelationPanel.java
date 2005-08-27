@@ -11,6 +11,11 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.13  2005/04/25 20:55:02  sueh
+ * <p> bug# 615 Passing the axis where a command originates to the message
+ * <p> functions so that the message will be popped up in the correct window.
+ * <p> This requires adding AxisID to many objects.
+ * <p>
  * <p> Revision 3.12  2005/02/11 16:45:29  sueh
  * <p> bug# 600 Getting tooltips using EtomoAutodoc instead of TooltipFormatter.
  * <p>
@@ -344,7 +349,7 @@ public class CrossCorrelationPanel implements ContextMenu {
     Autodoc autodoc = null;
 
     try {
-      autodoc = Autodoc.get(Autodoc.TILTXCORR, axisID);
+      autodoc = Autodoc.getInstance(Autodoc.TILTXCORR, axisID);
       //autodoc.print();
     }
     catch (FileNotFoundException except) {

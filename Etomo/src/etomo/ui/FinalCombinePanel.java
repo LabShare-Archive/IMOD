@@ -50,6 +50,15 @@ import etomo.type.Run3dmodMenuOptions;
  * 
  * <p>
  * $Log$
+ * Revision 3.25  2005/08/11 23:52:08  sueh
+ * bug# 711  Change enum Run3dmodMenuOption to
+ * Run3dmodMenuOptions, which can turn on multiple options at once.
+ * This allows ImodState to combine input from the context menu and the
+ * pulldown menu.  Get rid of duplicate code by running the 3dmods from a
+ * private function called run3dmod(String, Run3dmodMenuOptions).  It can
+ * be called from run3dmod(Run3dmodButton, Run3dmodMenuOptions) and
+ * the action function.
+ *
  * Revision 3.24  2005/08/09 20:22:37  sueh
  * bug# 711  Implemented Run3dmodButtonContainer:  added run3dmod().
  * Changed 3dmod buttons to Run3dmodButton.  No longer inheriting
@@ -832,7 +841,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields, Run3d
     Autodoc autodoc = null;
 
     try {
-      autodoc = Autodoc.get(Autodoc.COMBINE_FFT, AxisID.ONLY);
+      autodoc = Autodoc.getInstance(Autodoc.COMBINE_FFT, AxisID.ONLY);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();

@@ -27,6 +27,9 @@ import etomo.type.InvalidEtomoNumberException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.8  2005/05/17 19:36:41  sueh
+ * <p> bug# 658 Preventing null pointer exception by exiting if autodoc is null.
+ * <p>
  * <p> Revision 3.7  2005/05/13 19:11:05  sueh
  * <p> bug# 658 Moved setEnabled() call to setParameters().
  * <p>
@@ -494,7 +497,7 @@ public class BeadtrackPanel {
     TooltipFormatter tooltipFormatter = new TooltipFormatter();
     Autodoc autodoc = null;
     try {
-      autodoc = Autodoc.get(Autodoc.BEADTRACK, axisID);
+      autodoc = Autodoc.getInstance(Autodoc.BEADTRACK, axisID);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();
