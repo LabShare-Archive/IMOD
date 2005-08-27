@@ -6,51 +6,7 @@
 #  $Date$
 #
 #  $Revision$
-#
-#  $Log$
-#  Revision 3.13  2005/08/26 20:44:44  mast
-#  Added CHUNK ERROR reports when there is a nonempty log
-#
-#  Revision 3.12  2005/08/24 16:10:50  mast
-#  Implemented killing via calling a process group kill script, added a
-#  sync message in case pid file was not written by nfs yet, switched to
-#  bash --login and allowed exit code 145 from the w to get it to work on
-#  our SGI
-#
-#  Revision 3.11  2005/07/19 00:19:01  mast
-#  Switched to running bash -l -c and added PID output
-#
-#  Revision 3.10  2005/07/16 00:26:25  mast
-#  Added failure counting, machine dropping, a pause option to let jobs finish,
-#  exiting if all machines have failed and no chunks have finished, and
-#  exiting if all machines have dropped out.
-#
-#  Revision 3.9  2005/06/30 18:13:03  mast
-#  Added finished on machine message, changed failed message, reduce sleep
-#
-#  Revision 3.8  2005/06/28 23:33:20  mast
-#  Made it work with spaces in the directory path
-#
-#  Revision 3.7  2005/05/12 23:11:08  mast
-#  Fixed for windows, made .csh file before starting process
-#
-#  Revision 3.6  2005/05/12 21:24:09  mast
-#  Added ability to run with sync files
-#
-#  Revision 3.5  2004/08/27 05:46:48  mast
-#  Switched to using head -n and tail -n
-#
-#  Revision 3.4  2004/07/23 00:09:00  mast
-#  Set default nice to 18 per user request
-#
-#  Revision 3.3  2004/07/21 17:00:27  mast
-#  Output the all file list when it is used.
-#
-#  Revision 3.2  2004/06/29 03:41:48  mast
-#  Added nohup
-#
-#  Revision 3.1  2004/06/29 02:47:09  mast
-#  Initial addition to package
+#  Log at end of file
 #
 
 nohup
@@ -455,15 +411,24 @@ report:
 @ undone = $#comlist - $numdone
 echo  " $undone chunks are still undone"
 set ans = 0
-while ("$ans" != "R" && "$ans" != "Q" && "$ans" != "C" && "$ans" != "P")
+while ("$ans" != "R" && "$ans" != "Q" && "$ans" != "C" && "$ans" != "P" && "$ans" != "D")
     echo "Enter R to kill and restart with the current list of machines,"
     echo " Q to kill all jobs and quit, P to finish running jobs then exit,"
+    echo " D machine_list to kill jobs and drop given machines,"
     echo " or C to continue waiting: "
     set ans = "$<"
-    if ($ans == "r") set ans = R
-    if ($ans == "q") set ans = Q
-    if ($ans == "p") set ans = P
-    if ($ans == "c") set ans = C
+    set ans = ($ans)
+    if ("$ans" == "r") set ans = R
+    if ("$ans" == "q") set ans = Q
+    if ("$ans" == "p") set ans = P
+    if ("$ans" == "c") set ans = C
+    if ($#ans > 1) then
+        if ($ans[1] == "d" || $ans[1] == "D") then
+            shift ans
+            set drops = `echo $ans | sed '/,/s// /g'`
+            set ans = D
+        endif
+    endif
 end
 
 set pausing = 0
@@ -475,11 +440,25 @@ if ("$ans" == "C" || "$ans" == "P") goto continue
 while ($proc < $#machines)
     @ proc++
     @ ind =$assigned[$proc]
-    if ($ind != 0) then
+    set name = $nameind[$proc]
+    set machname = $machines[$proc]
+    set kill = 1
+    if ("$ans" == "D") then
+        set kill = 0
+        foreach i ($drops)
+            if ("$machname" == $i) then
+                set kill = 1
+                set failed[$name] = $dropcrit
+                set assigned[$proc] = 0
+                echo "Dropping $machname as requested"
+            endif
+        end
+    endif
+    if ($ind != 0 && $kill != 0) then
+        set flags[$ind] = 0
         set pidname = $comlist[$ind]:r.pid
         if (-e $pidname) then
             set cshname = $comlist[$ind]:r.csh
-            set machname = $machines[$proc]
             echo "Killing $comlist[$ind] on $machname"
 
             # If the pid file is not really there yet, do a sync and wait for
@@ -507,6 +486,11 @@ while ($proc < $#machines)
     endif
 end
 
+if ("$ans" == "D") then
+    echo "Resuming processing"
+    goto continue
+endif
+
 set retain = 1
 if ("$ans" == "R") goto restart
 echo ""
@@ -519,3 +503,52 @@ echo ""
 echo "$rootname-finish was interrupted and the data have not been reassembled."
 echo "Rerun with -r or use subm $rootname-finish to reassemble."
 exit 3
+
+#
+#  $Log$
+#  Revision 3.14  2005/08/26 23:11:23  mast
+#  Fixed dumb bugs
+#
+#  Revision 3.13  2005/08/26 20:44:44  mast
+#  Added CHUNK ERROR reports when there is a nonempty log
+#
+#  Revision 3.12  2005/08/24 16:10:50  mast
+#  Implemented killing via calling a process group kill script, added a
+#  sync message in case pid file was not written by nfs yet, switched to
+#  bash --login and allowed exit code 145 from the w to get it to work on
+#  our SGI
+#
+#  Revision 3.11  2005/07/19 00:19:01  mast
+#  Switched to running bash -l -c and added PID output
+#
+#  Revision 3.10  2005/07/16 00:26:25  mast
+#  Added failure counting, machine dropping, a pause option to let jobs finish,
+#  exiting if all machines have failed and no chunks have finished, and
+#  exiting if all machines have dropped out.
+#
+#  Revision 3.9  2005/06/30 18:13:03  mast
+#  Added finished on machine message, changed failed message, reduce sleep
+#
+#  Revision 3.8  2005/06/28 23:33:20  mast
+#  Made it work with spaces in the directory path
+#
+#  Revision 3.7  2005/05/12 23:11:08  mast
+#  Fixed for windows, made .csh file before starting process
+#
+#  Revision 3.6  2005/05/12 21:24:09  mast
+#  Added ability to run with sync files
+#
+#  Revision 3.5  2004/08/27 05:46:48  mast
+#  Switched to using head -n and tail -n
+#
+#  Revision 3.4  2004/07/23 00:09:00  mast
+#  Set default nice to 18 per user request
+#
+#  Revision 3.3  2004/07/21 17:00:27  mast
+#  Output the all file list when it is used.
+#
+#  Revision 3.2  2004/06/29 03:41:48  mast
+#  Added nohup
+#
+#  Revision 3.1  2004/06/29 02:47:09  mast
+#  Initial addition to package
