@@ -12,6 +12,9 @@
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.25  2005/08/24 22:41:03  sueh
+ * <p> $bug# 715 Added a version of timestamp() which uses ProcessName.
+ * <p> $
  * <p> $Revision 3.24  2005/07/29 00:56:32  sueh
  * <p> $bug# 709 Going to EtomoDirector to get the current manager is unreliable
  * <p> $because the current manager changes when the user changes the tab.
@@ -172,6 +175,9 @@ public class Utilities {
   private static boolean windowsOS = false;
   private static long startTime = 0;
   private static DecimalFormat timestampFormat = new DecimalFormat(".000");
+  public static final String STARTED_STATUS = " started";
+  public static final String FINISHED_STATUS = "finished";
+  public static final String FAILED_STATUS = "  failed";
   
   private Utilities() {
   }
@@ -586,7 +592,7 @@ public class Utilities {
    * @param command
    */
   public static void buttonTimestamp(String command) {
-    timestamp("PRESSED", command, (String) null, -100);
+    timestamp("PRESSED", command, (String) null, null);
   }
 
   /**
@@ -595,7 +601,7 @@ public class Utilities {
    * @param container
    */
   public static void buttonTimestamp(String command, String container) {
-    timestamp("PRESSED", command, container, -100);
+    timestamp("PRESSED", command, container, null);
   }
 
   /**
@@ -604,11 +610,11 @@ public class Utilities {
    * @param container
    * @param status
    */
-  public static void timestamp(String process, String container, int status) {
+  public static void timestamp(String process, String container, String status) {
     timestamp(process, null, container, status);
   }
   
-  public static void timestamp(String process, ProcessName container, int status) {
+  public static void timestamp(String process, ProcessName container, String status) {
     timestamp(process, null, container.toString(), status);
   }
   
@@ -620,7 +626,7 @@ public class Utilities {
    * @param status
    */
   public static void timestamp(String process, String command, File container,
-      int status) {
+      String status) {
     if (!isDebug()) {
       return;
     }
@@ -635,11 +641,15 @@ public class Utilities {
    * @param status
    */
   public static void timestamp(String process, String command, ComScript container,
-      int status) {
+      String status) {
     if (!isDebug()) {
       return;
     }
     timestamp(process, command, container.getName(), status);
+  }
+  
+  public static void timestamp(String command, String status) {
+    timestamp(null, command, (String) null, status);
   }
 
   /**
@@ -650,25 +660,9 @@ public class Utilities {
    * @param status 0 = started, 1 = finished, -1 = failed, or -100 = null
    */
   public static void timestamp(String process, String command,
-      String container, int status) {
+      String container, String status) {
     if (!isDebug()) {
       return;
-    }
-    String statusString = null;
-    switch (status) {
-    case 0:
-      statusString = " started";
-      break;
-    case 1:
-      statusString = "finished";
-      break;
-    case -1:
-      statusString = "  failed";
-      break;
-    case -100:
-      break;
-    default:
-      throw new IllegalStateException("bad status: status=" + status);
     }
     StringBuffer buffer = new StringBuffer("TIMESTAMP: ");
     if (process != null) {
@@ -687,8 +681,8 @@ public class Utilities {
       }
       buffer.append(container + " ");
     }
-    if (statusString != null) {
-      buffer.append(statusString + " ");
+    if (status != null) {
+      buffer.append(status + " ");
     }
     buffer.append("at " + getTimestamp());
     System.err.println(buffer);

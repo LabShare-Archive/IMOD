@@ -20,6 +20,11 @@ import java.util.ArrayList;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.4  2005/07/29 00:55:18  sueh
+* <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
+* <p> because the current manager changes when the user changes the tab.
+* <p> Passing the manager where its needed.
+* <p>
 * <p> Revision 1.3  2005/06/17 20:04:00  sueh
 * <p> bug# 685 Added timestamps to read().
 * <p>
@@ -45,11 +50,11 @@ public class JoinInfoFile {
   
   public boolean read(int numberFileNames) {
     String joinInfoFileName = rootName + ".info";
-    Utilities.timestamp("read", joinInfoFileName, 0);
+    Utilities.timestamp("read", joinInfoFileName, Utilities.STARTED_STATUS);
     fileNameArray = new ArrayList(numberFileNames);
     File joinInfoFile = new File(propertyUserDir, joinInfoFileName);
     if (!joinInfoFile.exists()) {
-      Utilities.timestamp("read", joinInfoFileName, -1);
+      Utilities.timestamp("read", joinInfoFileName, Utilities.FAILED_STATUS);
       return false;
     }
     BufferedReader reader;
@@ -58,7 +63,7 @@ public class JoinInfoFile {
     }
     catch (IOException e) {
       e.printStackTrace();
-      Utilities.timestamp("read", joinInfoFileName, -1);
+      Utilities.timestamp("read", joinInfoFileName, Utilities.FAILED_STATUS);
       return false;
     }
     String line;
@@ -71,7 +76,7 @@ public class JoinInfoFile {
     }
     catch (IOException e) {
       e.printStackTrace();
-      Utilities.timestamp("read", joinInfoFileName, -1);
+      Utilities.timestamp("read", joinInfoFileName, Utilities.FAILED_STATUS);
       return false;
     }
     int lineArraySize = lineArray.size();
@@ -82,7 +87,7 @@ public class JoinInfoFile {
         fileNameArray.add(object);
       }
     }
-    Utilities.timestamp("read", joinInfoFileName, 1);
+    Utilities.timestamp("read", joinInfoFileName, Utilities.FINISHED_STATUS);
     return true;
   }
   

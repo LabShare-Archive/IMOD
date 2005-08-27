@@ -19,6 +19,11 @@ import java.io.IOException;
 * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.7  2005/07/29 00:55:06  sueh
+ * <p> $bug# 709 Going to EtomoDirector to get the current manager is unreliable
+ * <p> $because the current manager changes when the user changes the tab.
+ * <p> $Passing the manager where its needed.
+ * <p> $
  * <p> $Revision 1.6  2005/06/22 23:37:15  sueh
  * <p> $bug# 694 Changed FidXyz to work with old and new fid.xyz formats.
  * <p> $Added setPixelSize().
@@ -73,17 +78,17 @@ public class FidXyz {
     if (filename == null || filename.length() == 0) {
       throw new IOException("No filename specified");
     }
-    Utilities.timestamp("read", filename, 0);
+    Utilities.timestamp("read", filename, Utilities.STARTED_STATUS);
     
     File fidXyzFile = new File(propertyUserDir, filename);
     if (!fidXyzFile.exists() || fidXyzFile.isDirectory()) {
-      Utilities.timestamp("read", filename, -1);
+      Utilities.timestamp("read", filename, Utilities.FAILED_STATUS);
       return;
     }
     exists = true;
     if (fidXyzFile.length() == 0) {
       empty = true;
-      Utilities.timestamp("read", filename, -1);
+      Utilities.timestamp("read", filename, Utilities.FAILED_STATUS);
       return;
     }
 
@@ -94,10 +99,10 @@ public class FidXyz {
     // The first line contains the pixel size
     if (!setPixelSize(line, NEW_PIXEL_SIZE_LABEL, NEW_PIXEL_SIZE_INDEX)) {
       if (!setPixelSize(line, OLD_PIXEL_SIZE_LABEL, OLD_PIXEL_SIZE_INDEX)) {
-        Utilities.timestamp("read", filename, -1);
+        Utilities.timestamp("read", filename, Utilities.FAILED_STATUS);
       }
     }
-    Utilities.timestamp("read", filename, 1);
+    Utilities.timestamp("read", filename, Utilities.FINISHED_STATUS);
   }
   
   /**
@@ -120,7 +125,7 @@ public class FidXyz {
       String[] tokens = line.split("\\s+");
       if (tokens.length < pixelSizeIndex + 1
           || !tokens[pixelSizeIndex - 1].equals(pixelSizeLabel)) {
-        Utilities.timestamp("read", filename, -1);
+        Utilities.timestamp("read", filename, Utilities.FAILED_STATUS);
         throw new IllegalStateException("bad fid.xyz format: " + ",\ntokens["
             + pixelSizeIndex + "]=" + tokens[pixelSizeIndex]
             + ",pixelSizeLabel=" + pixelSizeLabel + ",line=" + line);

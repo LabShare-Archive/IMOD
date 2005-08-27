@@ -23,6 +23,11 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.14  2005/07/29 00:55:29  sueh
+ * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
+ * <p> because the current manager changes when the user changes the tab.
+ * <p> Passing the manager where its needed.
+ * <p>
  * <p> Revision 3.13  2005/06/21 00:54:32  sueh
  * <p> bug# 522 Changed File file to String filename.  Avoid holding on to the file
  * <p> in case that would make problems in Windows.  Read() returns true if it
@@ -221,7 +226,7 @@ public class MRCHeader {
     if (!modifiedFlag.isModifiedSinceLastRead()) {
       return false;
     }
-    Utilities.timestamp("read", "header", filename, 0);
+    Utilities.timestamp("read", "header", filename, Utilities.STARTED_STATUS);
 
     // Run the header command on the filename, need to use a String[] here to
     // prevent the Runtime from breaking up the command and arguments at spaces.
@@ -243,7 +248,7 @@ public class MRCHeader {
           for (int i = 0; i < errorList.size(); i++) {
             message = message + errorList.get(i) + "\n";
           }
-          Utilities.timestamp("read", "header", filename, -1);
+          Utilities.timestamp("read", "header", filename, Utilities.FAILED_STATUS);
           throw new InvalidParameterException(message);
         }
       }
@@ -255,14 +260,14 @@ public class MRCHeader {
       for (int i = 0; i < stdError.length; i++) {
         message = message + stdError[i] + "\n";
       }
-      Utilities.timestamp("read", "header", filename, -1);
+      Utilities.timestamp("read", "header", filename, Utilities.FAILED_STATUS);
       throw new InvalidParameterException(message);
     }
 
     // Parse the output
     String[] stdOutput = header.getStdOutput();
     if (stdOutput.length < 1) {
-      Utilities.timestamp("read", "header", filename, -1);
+      Utilities.timestamp("read", "header", filename, Utilities.FAILED_STATUS);
       throw new IOException("header returned no data");
     }
 
@@ -272,7 +277,7 @@ public class MRCHeader {
       if (stdOutput[i].startsWith(" Number of columns, rows, section")) {
         String[] tokens = stdOutput[i].split("\\s+");
         if (tokens.length < 10) {
-          Utilities.timestamp("read", "header", filename, -1);
+          Utilities.timestamp("read", "header", filename, Utilities.FAILED_STATUS);
           throw new IOException("Header returned less than three parameters for image size");
         }
         nColumns = Integer.parseInt(tokens[7]);
@@ -282,7 +287,7 @@ public class MRCHeader {
         catch (NumberFormatException e) {
           e.printStackTrace();
           nRows = -1;
-          Utilities.timestamp("read", "header", filename, -1);
+          Utilities.timestamp("read", "header", filename, Utilities.FAILED_STATUS);
           throw new NumberFormatException("nRows not set, token is " + tokens[8]);
         }
         try {
@@ -291,7 +296,7 @@ public class MRCHeader {
         catch (NumberFormatException e) {
           e.printStackTrace();
           nSections = -1;
-          Utilities.timestamp("read", "header", filename, -1);
+          Utilities.timestamp("read", "header", filename, Utilities.FAILED_STATUS);
           throw new NumberFormatException("nSections not set, token is " + tokens[9]);
         }
       }
@@ -300,7 +305,7 @@ public class MRCHeader {
       if (stdOutput[i].startsWith(" Map mode")) {
         String[] tokens = stdOutput[i].split("\\s+");
         if (tokens.length < 5) {
-          Utilities.timestamp("read", "header", filename, -1);
+          Utilities.timestamp("read", "header", filename, Utilities.FAILED_STATUS);
           throw new IOException("Header returned less than one parameter for the mode");
         }
         mode = Integer.parseInt(tokens[4]);
@@ -310,7 +315,7 @@ public class MRCHeader {
       if (stdOutput[i].startsWith(" Pixel spacing")) {
         String[] tokens = stdOutput[i].split("\\s+");
         if (tokens.length < 7) {
-          Utilities.timestamp("read", "header", filename, -1);
+          Utilities.timestamp("read", "header", filename, Utilities.FAILED_STATUS);
           throw new IOException("Header returned less than three parameters for pixel size");
         }
         xPixelSize = Double.parseDouble(tokens[4]);
@@ -332,7 +337,7 @@ public class MRCHeader {
       parseTiltAxis(stdOutput[i]);
       parseBinning(stdOutput[i]);
     }
-    Utilities.timestamp("read", "header", filename, 1);
+    Utilities.timestamp("read", "header", filename, Utilities.FINISHED_STATUS);
     return true;
   }
   /**

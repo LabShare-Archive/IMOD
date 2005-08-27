@@ -153,7 +153,7 @@ public class Montagesize {
       return false;
     }
     //put first timestamp after decide to read
-    Utilities.timestamp("read", "montagesize", file, 0);
+    Utilities.timestamp("read", "montagesize", file, Utilities.STARTED_STATUS);
     //Run the montagesize command on the file.
     File pieceListFile = makePieceListFile();
     String[] commandArray;
@@ -183,7 +183,7 @@ public class Montagesize {
           for (int i = 0; i < errorList.size(); i++) {
             message = message + errorList.get(i) + "\n";
           }
-          Utilities.timestamp("read", "montagesize", file, -1);
+          Utilities.timestamp("read", "montagesize", file, Utilities.FAILED_STATUS);
           throw new InvalidParameterException(message);
         }
       }
@@ -195,14 +195,14 @@ public class Montagesize {
       for (int i = 0; i < stdError.length; i++) {
         message = message + stdError[i] + "\n";
       }
-      Utilities.timestamp("read", "montagesize", file, -1);
+      Utilities.timestamp("read", "montagesize", file, Utilities.FAILED_STATUS);
       throw new InvalidParameterException(message);
     }
 
     // Parse the output
     String[] stdOutput = montagesize.getStdOutput();
     if (stdOutput.length < 1) {
-      Utilities.timestamp("read", "montagesize", file, -1);
+      Utilities.timestamp("read", "montagesize", file, Utilities.FAILED_STATUS);
       throw new IOException("montagesize returned no data");
     }
 
@@ -213,7 +213,7 @@ public class Montagesize {
       if (outputLine.startsWith("Total NX, NY, NZ:")) {
         String[] tokens = outputLine.split("\\s+");
         if (tokens.length < 7) {
-          Utilities.timestamp("read", "montagesize", file, -1);
+          Utilities.timestamp("read", "montagesize", file, Utilities.FAILED_STATUS);
           throw new IOException(
               "Montagesize returned less than three parameters for image size");
         }
@@ -221,23 +221,23 @@ public class Montagesize {
         y.set(tokens[5]);
         z.set(tokens[6]);
         if (!x.isValid() || x.isNull()) {
-          Utilities.timestamp("read", "montagesize", file, -1);
+          Utilities.timestamp("read", "montagesize", file, Utilities.FAILED_STATUS);
           throw new NumberFormatException("NX is not set, token is "
               + tokens[4] + "\n" + x.getInvalidReason());
         }
         if (!y.isValid() || y.isNull()) {
-          Utilities.timestamp("read", "montagesize", file, -1);
+          Utilities.timestamp("read", "montagesize", file, Utilities.FAILED_STATUS);
           throw new NumberFormatException("NY is not set, token is "
               + tokens[5] + "\n" + y.getInvalidReason());
         }
         if (!z.isValid() || z.isNull()) {
-          Utilities.timestamp("read", "montagesize", file, -1);
+          Utilities.timestamp("read", "montagesize", file, Utilities.FAILED_STATUS);
           throw new NumberFormatException("NZ is not set, token is "
               + tokens[6] + "\n" + z.getInvalidReason());
         }
       }
     }
-    Utilities.timestamp("read", "montagesize", file, 1);
+    Utilities.timestamp("read", "montagesize", file, Utilities.FINISHED_STATUS);
     return true;
   }
   /**
@@ -302,6 +302,11 @@ public class Montagesize {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.7  2005/07/29 00:55:23  sueh
+ * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
+ * <p> because the current manager changes when the user changes the tab.
+ * <p> Passing the manager where its needed.
+ * <p>
  * <p> Revision 1.6  2005/06/21 00:54:03  sueh
  * <p> bug# 522 Changed File file to String filename.  Avoid holding on to the file
  * <p> in case that would make problems in Windows.  Read() returns true if it

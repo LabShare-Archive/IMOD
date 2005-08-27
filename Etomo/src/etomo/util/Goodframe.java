@@ -42,7 +42,7 @@ public class Goodframe {
    */
   public void run(int firstInput, int secondInput) throws IOException,
       InvalidParameterException {
-    Utilities.timestamp("run", "goodframe", 0);
+    Utilities.timestamp("run", "goodframe", Utilities.STARTED_STATUS);
     //Run the goodframe command.
     String[] commandArray = new String[3];
     commandArray[0] = ApplicationManager.getIMODBinPath() + "goodframe";
@@ -62,7 +62,7 @@ public class Goodframe {
           for (int i = 0; i < errorList.size(); i++) {
             message = message + errorList.get(i) + "\n";
           }
-          Utilities.timestamp("run", "goodframe", -1);
+          Utilities.timestamp("run", "goodframe", Utilities.FAILED_STATUS);
           throw new InvalidParameterException(message);
         }
       }
@@ -74,14 +74,14 @@ public class Goodframe {
       for (int i = 0; i < stdError.length; i++) {
         message = message + stdError[i] + "\n";
       }
-      Utilities.timestamp("run", "goodframe", -1);
+      Utilities.timestamp("run", "goodframe", Utilities.FAILED_STATUS);
       throw new InvalidParameterException(message);
     }
 
     // Parse the output
     String[] stdOutput = groupframe.getStdOutput();
     if (stdOutput.length < 1) {
-      Utilities.timestamp("run", "goodframe", -1);
+      Utilities.timestamp("run", "goodframe", Utilities.FAILED_STATUS);
       throw new IOException("groupframe returned no data");
     }
     //  Parse the size of the data
@@ -89,22 +89,22 @@ public class Goodframe {
     String outputLine = stdOutput[0].trim();
     String[] tokens = outputLine.split("\\s+");
     if (tokens.length < 2) {
-      Utilities.timestamp("run", "goodframe", -1);
+      Utilities.timestamp("run", "goodframe", Utilities.FAILED_STATUS);
       throw new IOException("groupframe returned less than two outputs");
     }
     firstOutput.set(tokens[0]);
     secondOutput.set(tokens[1]);
     if (!firstOutput.isValid() || firstOutput.isNull()) {
-      Utilities.timestamp("run", "goodframe", -1);
+      Utilities.timestamp("run", "goodframe", Utilities.FAILED_STATUS);
       throw new NumberFormatException("firstOutput is not set, token is "
           + tokens[0] + "\n" + firstOutput.getInvalidReason());
     }
     if (!secondOutput.isValid() || secondOutput.isNull()) {
-      Utilities.timestamp("run", "goodframe", -1);
+      Utilities.timestamp("run", "goodframe", Utilities.FAILED_STATUS);
       throw new NumberFormatException("secondOutput is not set, token is "
           + tokens[1] + "\n" + secondOutput.getInvalidReason());
     }
-    Utilities.timestamp("run", "goodframe", 1);
+    Utilities.timestamp("run", "goodframe", Utilities.FINISHED_STATUS);
   }
   
   /**
@@ -125,6 +125,11 @@ public class Goodframe {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.4  2005/07/29 00:55:12  sueh
+* <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
+* <p> because the current manager changes when the user changes the tab.
+* <p> Passing the manager where its needed.
+* <p>
 * <p> Revision 1.3  2005/06/17 20:03:42  sueh
 * <p> bug# 685 Added timestamps to run().
 * <p>
