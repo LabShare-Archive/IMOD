@@ -62,17 +62,18 @@ public class Autodoc implements AttributeCollection {
   public static final String rcsid =
     "$$Id$$";
 
-  public static final String AUTODOC_DIR = new String("AUTODOC_DIR");
-  public static final String IMOD_DIR = new String("IMOD_DIR");
-  public static final String DEFAULT_AUTODOC_DIR = new String("autodoc");
-  public static final String TILTXCORR = new String("tiltxcorr");
-  public static final String MTF_FILTER = new String("mtffilter");
-  public static final String COMBINE_FFT = new String("combinefft");
-  public static final String TILTALIGN = new String("tiltalign");
-  public static final String CCDERASER = new String("ccderaser");
-  public static final String SOLVEMATCH = new String("solvematch");
-  public static final String BEADTRACK = new String("beadtrack");
-  public static final String TEST = new String("test");
+  public static final String AUTODOC_DIR = "AUTODOC_DIR";
+  public static final String IMOD_DIR = "IMOD_DIR";
+  public static final String DEFAULT_AUTODOC_DIR = "autodoc";
+  public static final String TILTXCORR = "tiltxcorr";
+  public static final String MTF_FILTER = "mtffilter";
+  public static final String COMBINE_FFT = "combinefft";
+  public static final String TILTALIGN = "tiltalign";
+  public static final String CCDERASER = "ccderaser";
+  public static final String SOLVEMATCH = "solvematch";
+  public static final String BEADTRACK = "beadtrack";
+  public static final String TEST = "test";
+  public static final String CPU = "cpu";
 
   private static final String fileExt = new String(".adoc");
 
@@ -84,6 +85,7 @@ public class Autodoc implements AttributeCollection {
   private static Autodoc ccderaser = null;
   private static Autodoc solvematch = null;
   private static Autodoc beadtrack = null;
+  private static Autodoc cpu = null;
 
   private String fileName = null;
   private File file = null;
@@ -101,7 +103,7 @@ public class Autodoc implements AttributeCollection {
   //then once.
   private HashMap attributeValuesCache = null;
 
-  public static Autodoc get(String name, AxisID axisID)
+  public static Autodoc getInstance(String name, AxisID axisID)
     throws FileNotFoundException, IOException {
     if (name == null) {
       throw new IllegalArgumentException("name is null.");
@@ -137,6 +139,10 @@ public class Autodoc implements AttributeCollection {
     if (name.equals(BEADTRACK)) {
       beadtrack = getAutodoc(beadtrack, name, axisID);
       return beadtrack;
+    }
+    if (name.equals(CPU)) {
+      cpu = getAutodoc(cpu, name, axisID);
+      return cpu;
     }
     throw new IllegalArgumentException("Illegal autodoc name: " + name + ".");
   }
@@ -179,6 +185,15 @@ public class Autodoc implements AttributeCollection {
       return newMetaDataElement;
     }
     return existingMetaDataElement;
+  }
+  
+  public final Attribute getAttribute(String name) {
+    if (metaData == null) {
+      return null;
+    }
+    String key = Attribute.getKey(name);
+    Attribute attribute = (Attribute) metaData.get(key);
+    return attribute;
   }
 
   public final Section getSection(String type, String name) {
@@ -367,6 +382,11 @@ public class Autodoc implements AttributeCollection {
 }
 /**
 *<p> $$Log$
+*<p> $Revision 1.16  2005/07/29 00:53:55  sueh
+*<p> $bug# 709 Going to EtomoDirector to get the current manager is unreliable
+*<p> $because the current manager changes when the user changes the tab.
+*<p> $Passing the manager where its needed.
+*<p> $
 *<p> $Revision 1.15  2005/05/17 19:35:44  sueh
 *<p> $bug# 658 Added getSection(SectionLocation) to return a section based on
 *<p> $SectionLocation.  Added getAttributeValues() to get a HashMap of
