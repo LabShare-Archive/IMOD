@@ -25,9 +25,16 @@ public interface ProcessMonitor extends Runnable {
   public void kill(SystemProcessInterface process, AxisID axisID);
   public void pause(SystemProcessInterface process, AxisID axisID);
   public String getStatusString();
+  public String getErrorMessage();
 }
 /**
 * <p> $Log$
+* <p> Revision 1.4  2005/08/22 17:07:03  sueh
+* <p> bug# 532 Added getStatusString() to implement ProcessMonitor.  The
+* <p> status string is used to add more information to the progress bar when
+* <p> the process ends.  It is currently being used only for pausing
+* <p> processchunks.
+* <p>
 * <p> Revision 1.3  2005/08/15 18:25:21  sueh
 * <p> bug# 532 Adding kill and pause functions to all process monitors to allow
 * <p> processchunks to kill with an interrupt signal instead of a kill signal.
