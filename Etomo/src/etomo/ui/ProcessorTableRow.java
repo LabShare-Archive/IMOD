@@ -30,7 +30,6 @@ final class ProcessorTableRow {
 
   private ProcessorTable table = null;
   private CheckBoxCell cellComputer = new CheckBoxCell();
-  private FieldCell cellOs = new FieldCell();
   private FieldCell cellCPUType = new FieldCell();
   private InputCell cellCPUsSelected = null;
   private FieldCell cellNumberCpus = new FieldCell();
@@ -40,39 +39,52 @@ final class ProcessorTableRow {
   private FieldCell cellRestarts = new FieldCell();
   private FieldCell cellSuccesses = new FieldCell();
   private FieldCell cellFailureReason = new FieldCell();
+  private FieldCell cellSpeed = new FieldCell();
+  private FieldCell cellMemory = new FieldCell();
+  private FieldCell cellOS = new FieldCell();
   private String computerName;
-  private String os = "Linux";
-  private String cpuType = "";
+  private String cpuType = null;
   private int numCpus = 1;
+  private String speed = null;
+  private String memory = null;
+  private String os = null;
   private boolean rowInitialized = false;
-
-  ProcessorTableRow(ProcessorTable table, String computerName, String cpuType,
-      int numCpus) {
+  private boolean numberColumn = false;
+  private boolean typeColumn = false;
+  private boolean speedColumn = false;
+  private boolean memoryColumn = false;
+  private boolean osColumn = false;
+  
+  ProcessorTableRow(ProcessorTable table, String computerName, int numCpus,
+      String cpuType, String speed, String memory, String os) {
     this.table = table;
     this.computerName = computerName;
     this.cpuType = cpuType;
     this.numCpus = numCpus;
+    this.speed = speed;
+    this.memory = memory;
+    this.os = os;
   }
 
   ProcessorTableRow(ProcessorTable table, String computerName) {
-    this(table, computerName, "", 1);
+    this(table, computerName, 1, null, null, null, null);
   }
 
   ProcessorTableRow(ProcessorTable table, String computerName, int numCpus) {
-    this(table, computerName, "", numCpus);
+    this(table, computerName, numCpus, null, null, null, null);
   }
 
   ProcessorTableRow(ProcessorTable table, String computerName, String cpuType) {
-    this(table, computerName, cpuType, 1);
+    this(table, computerName, 1, cpuType, null, null, null);
   }
   
   private void initRow() {
     rowInitialized = true;
     cellComputer.setLabel(computerName);
     cellComputer.addActionListener(new ProcessorTableRowActionListener(this));
-    cellOs.setValue(os);
-    cellOs.setEnabled(false);
-    cellCPUType.setValue(cpuType);
+    if (cpuType != null) {
+      cellCPUType.setValue(cpuType);
+    }
     cellCPUType.setEnabled(false);
     if (numCpus > 1) {
       cellCPUsSelected = new SpinnerCell(0, numCpus);
@@ -94,7 +106,33 @@ final class ProcessorTableRow {
     cellRestarts.setEnabled(false);
     cellSuccesses.setEnabled(false);
     cellFailureReason.setEnabled(false);
+    cellSpeed.setEnabled(false);
+    cellSpeed.setValue(speed);
+    cellMemory.setEnabled(false);
+    cellMemory.setValue(memory);
+    cellOS.setEnabled(false);
+    cellOS.setValue(os);
     setSelected(false);
+  }
+  
+  final void setNumberColumn(boolean numberColumn) {
+    this.numberColumn = numberColumn;
+  }
+  
+  final void setTypeColumn(boolean typeColumn) {
+    this.typeColumn = typeColumn;
+  }
+  
+  final void setSpeedColumn(boolean speedColumn) {
+    this.speedColumn = speedColumn;
+  }
+  
+  final void setMemoryColumn(boolean memoryColumn) {
+    this.memoryColumn = memoryColumn;
+  }
+  
+  final void setOSColumn(boolean osColumn) {
+    this.osColumn = osColumn;
   }
 
   void addRow() {
@@ -113,12 +151,24 @@ final class ProcessorTableRow {
     cellComputer.add(panel, layout, constraints);
     constraints.weightx = 0.0;
     cellCPUsSelected.add(panel, layout, constraints);
-    cellNumberCpus.add(panel, layout, constraints);
+    if (numberColumn) {
+      cellNumberCpus.add(panel, layout, constraints);
+    }
     cellLoad1.add(panel, layout, constraints);
     cellLoad5.add(panel, layout, constraints);
     cellLoad15.add(panel, layout, constraints);
-    cellCPUType.add(panel, layout, constraints);
-    cellOs.add(panel, layout, constraints);
+    if (typeColumn) {
+      cellCPUType.add(panel, layout, constraints);
+    }
+    if (speedColumn) {
+      cellSpeed.add(panel, layout, constraints);
+    }
+    if (memoryColumn) {
+      cellMemory.add(panel, layout, constraints);
+    }
+    if (osColumn) {
+      cellOS.add(panel, layout, constraints);
+    }
     cellRestarts.add(panel, layout, constraints);
     cellSuccesses.add(panel, layout, constraints);
     constraints.gridwidth = GridBagConstraints.REMAINDER;
@@ -153,6 +203,8 @@ final class ProcessorTableRow {
       FieldCell cell = (FieldCell) cellCPUsSelected;
       cell.setHideValue(!selected);
     }
+    cellComputer.setError(selected && cellLoad1.isEmpty()
+        && cellLoad5.isEmpty() && cellLoad15.isEmpty());
     table.signalCPUsSelectedChanged();
   }
   
@@ -235,6 +287,7 @@ final class ProcessorTableRow {
   private final void setLoad(FieldCell cellLoad, double load, int numberCpus) {
     cellLoad.setWarning(load >= numberCpus);
     cellLoad.setValue(load);
+    cellComputer.setError(false);
   }
   
   final int getHeight() {
@@ -253,7 +306,7 @@ final class ProcessorTableRow {
     if (cellCPUsSelected != null) {
       width += cellCPUsSelected.getWidth();
     }
-    if (cellNumberCpus != null) {
+    if (cellNumberCpus != null && numberColumn) {
       width += cellNumberCpus.getWidth();
     }
     if (cellLoad1 != null) {
@@ -265,11 +318,17 @@ final class ProcessorTableRow {
     if (cellLoad15 != null) {
       width += cellLoad15.getWidth();
     }
-    if (cellCPUType != null) {
+    if (cellCPUType != null && typeColumn) {
       width += cellCPUType.getWidth();
     }
-    if (cellOs != null) {
-      width += cellOs.getWidth();
+    if (cellSpeed != null && speedColumn) {
+      width += cellSpeed.getWidth();
+    }
+    if (cellMemory != null && memoryColumn) {
+      width += cellMemory.getWidth();
+    }
+    if (cellOS != null && osColumn) {
+      width += cellOS.getWidth();
     }
     if (cellRestarts != null) {
       width += cellRestarts.getWidth();
@@ -280,7 +339,7 @@ final class ProcessorTableRow {
     if (cellFailureReason != null) {
       width += cellFailureReason.getWidth();
     }
-    return width + 2;
+    return width + 3;
   }
   
   private class ProcessorTableRowActionListener implements ActionListener {
@@ -309,6 +368,9 @@ final class ProcessorTableRow {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.9  2005/08/22 18:15:05  sueh
+ * <p> bug# 532 Removed dummy load averages.
+ * <p>
  * <p> Revision 1.8  2005/08/04 20:19:33  sueh
  * <p> bug# 532  Removed demo fields and functions.  Added functions:
  * <p> getWidth, addSuccess, and drop.
