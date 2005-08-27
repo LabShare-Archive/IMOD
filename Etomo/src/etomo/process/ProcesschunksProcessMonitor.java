@@ -6,6 +6,7 @@ import etomo.type.AxisID;
 import etomo.type.EtomoNumber;
 import etomo.type.ProcessEndState;
 import etomo.ui.ParallelProgressDisplay;
+import etomo.util.Utilities;
 
 /**
 * <p>Description: </p>
@@ -36,6 +37,7 @@ public class ProcesschunksProcessMonitor implements ProcessMonitor {
   private boolean reassembling = false;
   private ProcessEndState endState = null;
   private final String rootName;
+  private String lastChunkError = null;
 
   /**
    * Default constructor
@@ -84,11 +86,11 @@ public class ProcesschunksProcessMonitor implements ProcessMonitor {
     for (int i = lastOutputLine + 1; i < stdOutput.length; i++) {
       lastOutputLine = i;
       String line = stdOutput[i].trim();
-      if (EtomoDirector.getInstance().isDebug()) {
+      //if (EtomoDirector.getInstance().isDebug()) {
         System.err.println(line);
-      }
-      //handle pause and kill
+      //}
       if (line.startsWith("Q to kill all jobs and quit")) {
+        //handle pause and kill
         if (endState == ProcessEndState.KILLED) {
           process.setCurrentStdInput("Q");
         }
@@ -98,8 +100,12 @@ public class ProcesschunksProcessMonitor implements ProcessMonitor {
         setProgressBarTitle = true;
         returnValue = true;
       }
-      //handle all chunks finished, starting the reassemble
+      else if (line.startsWith(BaseProcessManager.CHUNK_ERROR_TAG)) {
+        lastChunkError = line;
+      }
       else if (line.endsWith("to reassemble")) {
+        //handle all chunks finished, starting the reassemble
+        Utilities.timestamp(TITLE, rootName, "reassembling");
         //all chunks finished, turn off pause
         if (endState == ProcessEndState.PAUSED) {
           endState = null;
@@ -193,9 +199,20 @@ public class ProcesschunksProcessMonitor implements ProcessMonitor {
   public String getStatusString() {
     return chunksFinished + " of " + nChunks + " completed";
   }
+  
+  public final String getErrorMessage() {
+    return "Last chunk error received:\n" + lastChunkError;
+  }
 }
 /**
 * <p> $Log$
+* <p> Revision 1.3  2005/08/22 17:03:43  sueh
+* <p> bug# 532 Added getStatusString() to implement ProcessMonitor.  The
+* <p> status string is used to add more information to the progress bar when
+* <p> the process ends.  It is currently being used only for pausing
+* <p> processchunks.  Added "pausing" string to progress title as soon as a
+* <p> pause is detected since pausing takes a lot of time.
+* <p>
 * <p> Revision 1.2  2005/08/15 18:23:54  sueh
 * <p> bug# 532  Added kill and pause functions to implement ProcessMonitor.
 * <p> Both kill and pause signal interrupt.  Change updateState to handle the
