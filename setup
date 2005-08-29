@@ -1,4 +1,4 @@
-#!/bin/csh
+#!/bin/csh -f
 #############################################################################
 # $Id$
 # Set up initialization file for building BL3DEMC Software.
@@ -10,6 +10,9 @@
 #
 #  $Revision$
 #  $Log$
+#  Revision 3.53  2005/02/11 04:58:25  mast
+#  Split into two files so the bulk of it can be converted to unix endings
+#
 #
 
 #
