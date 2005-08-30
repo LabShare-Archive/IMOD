@@ -126,30 +126,20 @@ echo " (ranges may be entered)."
 echo "Or just Return if the points are in one-to-one correspondence"
 echo "   or if there are no fiducial points"
 #
-# Need to strip spaces out of these lists
+# Need to strip spaces out of these lists and convert a / to \/
 #
 set corrlistin = "$<"
 set corrlistin = ($corrlistin)
-set corrlist1 = ""
-while ($#corrlistin > 0)
-    set corrlist1 = ${corrlist1}$corrlistin[1]
-    shift corrlistin
-end
+set corrlist1 = `echo $corrlistin | sed -e '/ /s///g' -e '/\//s//\\\//g'`
 
 set corrlist2 = "\/"
-if ($corrlist1 != "") then
+if ("$corrlist1" != "") then
     echo "Enter a list of the corresponding points in tilt series $fromlet"
     set corrlistin = "$<"
-    set corrlistin = ($corrlistin)
-    set corrlist2 = ""
-    while ($#corrlistin > 0)
-        set corrlist2 = ${corrlist2}$corrlistin[1]
-        shift corrlistin
-    end
+    set corrlist2 = `echo $corrlistin | sed -e '/ /s///g' -e '/\//s//\\\//g'`
 else
     set corrlist1 = "\/"
 endif
-
 
 set modsurf = "z"
 while ($modsurf != "0" && $modsurf != "1" && $modsurf != "-1" && $modsurf != "2" && $modsurf != "-2")
@@ -625,6 +615,10 @@ echo '$'"if (-e $backupname) $backupname" | cat >> $volcombine
 
 #
 #  $Log$
+#  Revision 3.28  2004/11/30 04:43:22  mast
+#  Switched from combinefft_options command-line to combinefft_reduce entered
+#  through standard input
+#
 #  Revision 3.27  2004/10/27 22:25:01  mast
 #  Switched to using fftrans
 #
