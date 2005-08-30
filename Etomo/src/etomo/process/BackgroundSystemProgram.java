@@ -19,6 +19,11 @@ import etomo.BaseManager;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.6  2005/07/29 00:51:04  sueh
+ * <p> $bug# 709 Going to EtomoDirector to get the current manager is unreliable
+ * <p> $because the current manager changes when the user changes the tab.
+ * <p> $Passing the manager where its needed.
+ * <p> $
  * <p> $Revision 1.5  2005/04/25 20:43:44  sueh
  * <p> $bug# 615 Passing the axis where a command originates to the message
  * <p> $functions so that the message will be popped up in the correct window.
@@ -47,23 +52,22 @@ public class BackgroundSystemProgram extends SystemProgram {
   
   private static final int SLEEP = 100;
   
-  BackgroundProcessMonitor backgroundProcessMonitor = null;
+  BackgroundComScriptMonitor monitor = null;
   
   /**
    * 
    */
   public BackgroundSystemProgram(BaseManager manager, String command,
-    BackgroundProcessMonitor backgroundProcessMonitor) {
-    super(manager.getPropertyUserDir(), command, backgroundProcessMonitor
+    BackgroundComScriptMonitor monitor) {
+    super(manager.getPropertyUserDir(), command, monitor
         .getAxisID());
-    this.backgroundProcessMonitor = backgroundProcessMonitor;
+    this.monitor = monitor;
   }
   
   public BackgroundSystemProgram(BaseManager manager, String[] command,
-      BackgroundProcessMonitor backgroundProcessMonitor) {
-      super(manager.getPropertyUserDir(), command, backgroundProcessMonitor
-        .getAxisID());
-      this.backgroundProcessMonitor = backgroundProcessMonitor;
+      BackgroundComScriptMonitor monitor) {
+      super(manager.getPropertyUserDir(), command, monitor.getAxisID());
+      this.monitor = monitor;
     }
 
   /**
@@ -73,7 +77,7 @@ public class BackgroundSystemProgram extends SystemProgram {
   protected void waitForProcess() {
     //wait until process is finished
     try {
-      while (backgroundProcessMonitor.isProcessRunning()) {
+      while (monitor.isProcessRunning()) {
         Thread.sleep(SLEEP);
       }
     }
@@ -87,11 +91,11 @@ public class BackgroundSystemProgram extends SystemProgram {
    * @return
    */
   protected int getProcessExitValue(Process process) {
-    if (backgroundProcessMonitor.isProcessRunning()) {
+    if (monitor.isProcessRunning()) {
       throw new IllegalStateException(
         "getExitValue() called while process is running.");
     }
-    if (backgroundProcessMonitor.isSuccessful()) {
+    if (monitor.isSuccessful()) {
       return 0;
     }
     return 1;
