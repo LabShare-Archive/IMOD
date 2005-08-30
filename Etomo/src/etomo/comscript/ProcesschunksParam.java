@@ -35,6 +35,7 @@ public final class ProcesschunksParam {
   private EtomoNumber nice = new EtomoNumber();
   private ArrayList machineNames = new ArrayList();
   private String rootName;
+  private StringBuffer computerList = new StringBuffer();
   
   public ProcesschunksParam(AxisID axisID) {
     this.axisID = axisID;
@@ -67,12 +68,13 @@ public final class ProcesschunksParam {
     //add machine names
     int size = machineNames.size();
     if (size > 0) {
-      StringBuffer list = new StringBuffer((String) machineNames.get(0));
-      for (int i = 1; i < size; i++) {
-        list.append(',');
-        list.append(machineNames.get(i));
+      for (int i = 0; i < size; i++) {
+        if (i > 0) {
+          computerList.append(',');
+        }
+        computerList.append(machineNames.get(i));
       }
-      command.add(list.toString());
+      command.add(computerList.toString());
     }
     
     command.add(rootName);
@@ -108,6 +110,10 @@ public final class ProcesschunksParam {
     return rootName;
   }
   
+  public final String getComputerList() {
+    return computerList.toString();
+  }
+  
   public final void addMachineName(String machineName) {
     if (commandArray != null) {
       throw new IllegalStateException("can't change parameter values after command is built");
@@ -117,6 +123,9 @@ public final class ProcesschunksParam {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.2  2005/08/22 16:05:56  sueh
+* <p> bug# 532 Added the extension to the rootName and getRootName().
+* <p>
 * <p> Revision 1.1  2005/08/01 17:58:22  sueh
 * <p> Class to create a processchunks command line.
 * <p> </p>
