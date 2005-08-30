@@ -31,6 +31,11 @@ import etomo.util.Utilities;
  * @version $$Revision$$
  * 
  * <p> $Log$
+ * <p> Revision 1.16  2005/07/29 00:50:48  sueh
+ * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
+ * <p> because the current manager changes when the user changes the tab.
+ * <p> Passing the manager where its needed.
+ * <p>
  * <p> Revision 1.15  2005/07/26 17:33:24  sueh
  * <p> bug# 701 Passing the monitor to ComScriptProcess so that
  * <p> ProcessEndState can be recorded
@@ -133,7 +138,6 @@ import etomo.util.Utilities;
 public class BackgroundComScriptProcess extends ComScriptProcess {
   public static final String rcsid = "$$Id$$";
   
-  private BackgroundProcessMonitor backgroundProcessMonitor = null;
   private ComscriptState comscriptState;
 
   /**
@@ -144,10 +148,9 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
    */
   public BackgroundComScriptProcess(BaseManager manager, String comScript,
     BaseProcessManager processManager, AxisID axisID, String watchedFileName,
-    BackgroundProcessMonitor backgroundProcessMonitor, 
+    BackgroundComScriptMonitor monitor, 
     ComscriptState comscriptState) {
-    super(manager, comScript, processManager, axisID, watchedFileName, backgroundProcessMonitor);
-    this.backgroundProcessMonitor = backgroundProcessMonitor;
+    super(manager, comScript, processManager, axisID, watchedFileName, monitor);
     this.comscriptState = comscriptState;
   }
   
@@ -258,7 +261,7 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
     // of commands and then report appropriately.  The exception to this is the
     // com scripts which require the -e flag.  RJG: 2003-11-06 
     String[] command = { "tcsh", "-f", runCshFile.getAbsolutePath() };
-    csh = new BackgroundSystemProgram(manager, command, backgroundProcessMonitor);
+    csh = new BackgroundSystemProgram(manager, command, (BackgroundComScriptMonitor) processMonitor);
     csh.setWorkingDirectory(workingDirectory);
     csh.setDebug(debug);
     
@@ -309,8 +312,8 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
    * @param killed
    */
   private void killMonitor() {
-    if (backgroundProcessMonitor != null) {
-      backgroundProcessMonitor.kill();
+    if (processMonitor != null) {
+      ((BackgroundComScriptMonitor) processMonitor).kill();
     }
   }
   
