@@ -9,6 +9,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.12  2005/07/15 03:43:44  mast
+#  Put LIBIIMODDEF at end of link line so -ltiff on Mac will work
+#
 #  Revision 3.11  2005/01/27 05:56:56  mast
 #  Added anisotropic diffusion
 #
@@ -32,7 +35,7 @@ include ../configure
 
 O      = $(OBJEXT)
 LIBI   = libiimod.$(DLLEXT)
-LIBD   = $(DUMMYTIFF)
+LIBD   = $(DUMMYTIFF).$(DLLEXT)
 LIBS   = $(LIBI) $(LIBD)
 CFLAGS = $(LIBCFLAGS)
 
