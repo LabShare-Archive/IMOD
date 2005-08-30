@@ -437,6 +437,9 @@ if ("$ans" == "C" || "$ans" == "P") goto continue
 
 # now try to kill jobs
 @ proc = 0
+set machkills = ()
+set comkills = ()
+set pidkills = ()
 while ($proc < $#machines)
     @ proc++
     @ ind =$assigned[$proc]
@@ -472,17 +475,52 @@ while ($proc < $#machines)
                 endif
                 @ waited = 0
                 while (-z $pidname && $waited < 15)
+                    @ waited++
                     sleep 1
                 end
             endif
             set pid = `cat $pidname | sed '/[^0-9]/s///g'`
             if ("$machname" == $hostroot || "$machname" == localhost) then
                 imodkillgroup $pid
+                \rm -f $pidname
             else
-                ssh -x $machname bash --login -c \'"imodkillgroup $pid"\'
+
+                # Kill a remote job in background and have this command clean
+                # up the PID file
+                #
+                ssh -x $machname bash --login -c \'"imodkillgroup $pid ; \rm -f $curdir/$pidname"\' &
             endif
-            \rm -f $cshname $pidname
+            set machkills = ($machkills $machname)
+            set comkills = ($comkills $comlist[$ind])
+            set pidkills = ($pidkills $pidname)
+            \rm -f $cshname
         endif
+    endif
+end
+
+# Loop until all pid's disappear or it times out
+#
+@ waited = 0
+@ undone = 1
+while ($waited < 15 && $undone > 0)
+    @ waited++
+    sleep 1
+    @ ind = 0
+    @ undone = 0
+    while ($ind < $#pidkills)
+        @ ind++
+        if (-e $pidkills[$ind]) @ undone++
+    end
+end
+
+# Loop again to clean up and report if anybody didn't clean up
+#
+@ ind = 0
+while ($ind < $#pidkills)
+    @ ind++
+    if (-e $pidkills[$ind]) then
+        \rm -f $pidkills[$ind]
+        echo "Failed to kill $comkills[$ind] on $machkills[$ind] (no problem if machine is dead)"
     endif
 end
 
@@ -506,6 +544,9 @@ exit 3
 
 #
 #  $Log$
+#  Revision 3.15  2005/08/27 22:27:16  mast
+#  Added ability to enter machines to drop after interrupt
+#
 #  Revision 3.14  2005/08/26 23:11:23  mast
 #  Fixed dumb bugs
 #
