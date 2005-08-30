@@ -1,7 +1,6 @@
 package etomo.process;
 
 import etomo.BaseManager;
-import etomo.EtomoDirector;
 import etomo.type.AxisID;
 import etomo.type.EtomoNumber;
 import etomo.type.ProcessEndState;
@@ -21,7 +20,7 @@ import etomo.util.Utilities;
 * 
 * @version $Revision$
 */
-public class ProcesschunksProcessMonitor implements ProcessMonitor {
+public class ProcesschunksProcessMonitor implements ParallelProcessMonitor {
   public static  final String  rcsid =  "$Id$";
   
   private final static String TITLE = "Processchunks";
@@ -37,7 +36,9 @@ public class ProcesschunksProcessMonitor implements ProcessMonitor {
   private boolean reassembling = false;
   private ProcessEndState endState = null;
   private final String rootName;
+  private final String computerList;
   private String lastChunkError = null;
+  private String dropComputer = null;
 
   /**
    * Default constructor
@@ -46,11 +47,14 @@ public class ProcesschunksProcessMonitor implements ProcessMonitor {
    * @param process
    */
   public ProcesschunksProcessMonitor(BaseManager manager, AxisID axisID,
-      ParallelProgressDisplay parallelProgressDisplay, String rootName) {
+      ParallelProgressDisplay parallelProgressDisplay, String rootName,
+      String computerList) {
     this.manager = manager;
     this.axisID = axisID;
     this.parallelProgressDisplay = parallelProgressDisplay;
     this.rootName = rootName;
+    this.computerList = computerList;
+    parallelProgressDisplay.setParallelProcessMonitor(this);
   }
   
   public final void setProcess(SystemProcessInterface process) {
@@ -74,6 +78,7 @@ public class ProcesschunksProcessMonitor implements ProcessMonitor {
     catch (Exception e) {
       e.printStackTrace();
     }
+    parallelProgressDisplay.setParallelProcessMonitor(null);
     setProcessEndState(ProcessEndState.DONE);
   }
   
@@ -90,6 +95,12 @@ public class ProcesschunksProcessMonitor implements ProcessMonitor {
         System.err.println(line);
       //}
       if (line.startsWith("Q to kill all jobs and quit")) {
+        if (dropComputer != null) {
+          //
+          String computer = dropComputer;
+          dropComputer = null;
+          process.setCurrentStdInput("D " + computer);
+        }
         //handle pause and kill
         if (endState == ProcessEndState.KILLED) {
           process.setCurrentStdInput("Q");
@@ -203,9 +214,20 @@ public class ProcesschunksProcessMonitor implements ProcessMonitor {
   public final String getErrorMessage() {
     return "Last chunk error received:\n" + lastChunkError;
   }
+  
+  public final void drop(String computer) {
+    if (computerList.indexOf(computer) != -1) {
+      dropComputer = computer;
+    }
+  }
 }
 /**
 * <p> $Log$
+* <p> Revision 1.4  2005/08/27 22:31:47  sueh
+* <p> bug# 532 In updateState() look for CHUNK ERROR: and save the most
+* <p> recent one found.  Return the last chunk error message with
+* <p> getErrorMessage().
+* <p>
 * <p> Revision 1.3  2005/08/22 17:03:43  sueh
 * <p> bug# 532 Added getStatusString() to implement ProcessMonitor.  The
 * <p> status string is used to add more information to the progress bar when
