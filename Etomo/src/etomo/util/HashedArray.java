@@ -18,6 +18,10 @@ import java.util.Vector;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.5  2005/08/22 18:22:41  sueh
+* <p> bug# 532 Moved HashedArray to UniqueHashedArray.  Added a simpler
+* <p> HashedArray class which does not use UniqueKey.
+* <p>
 * <p> Revision 1.4  2005/02/07 23:00:03  sueh
 * <p> bug# 594 Fixed rekey to preserve array order.  Added add(UniqueKey, Object),
 * <p> to add with an existing key.  Added rekey(UniqueKey, UniqueKey) to
@@ -44,13 +48,8 @@ import java.util.Vector;
 public class HashedArray {
   public static  final String  rcsid =  "$Id$";
   
-  Hashtable map = null;
-  Vector keyArray = null;
-  
-  public HashedArray() {
-    map = new Hashtable();
-    keyArray = new Vector();
-  }
+  private final Hashtable indexMap = new Hashtable();
+  private final Vector valueArray = new Vector();
   
   /**
    * Add a new value with unique key is creates from keyName
@@ -58,37 +57,44 @@ public class HashedArray {
    * @param value
    * @return
    */
-  public synchronized void add(String key, Object value) {
-    keyArray.add(key);
-    map.put(key, value);
+  public synchronized void add(Object key, Object value) {
+    if (key == null) {
+      return;
+    }
+    valueArray.add(value);
+    indexMap.put(key, new Integer(valueArray.size() - 1));
   }
   
-  public Object get(Object key) {
+  public synchronized void add(Object key) {
+    add(key, key);
+  }
+  
+  public synchronized void remove(Object key) {
+    if (key == null) {
+      return;
+    }
+    valueArray.remove(((Integer) indexMap.remove(key)).intValue());
+  }
+  
+  public synchronized Object get(Object key) {
     if (key == null) {
       return null;
     }
-    return map.get(key);
+    return valueArray.get(((Integer) indexMap.get(key)).intValue());
   }
   
   public Object get(int index) {
     if (index < 0) {
       return null;
     }
-    if (index >= keyArray.size()) {
-      return null;
-    }
-    Object key = keyArray.get(index);
-    if (key == null) {
-      return null;
-    }
-    return map.get(key);
+    return valueArray.get(index);
   }
   
   public int size() {
-    return keyArray.size();
+    return valueArray.size();
   }
   
-  public boolean contains(Object value) {
-    return map.contains(value);
+  public boolean containsKey(Object key) {
+    return indexMap.containsKey(key);
   }
 }
