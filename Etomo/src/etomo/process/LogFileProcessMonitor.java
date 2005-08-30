@@ -25,6 +25,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.20  2005/08/27 22:30:04  sueh
+ * <p> bug# 532 Add an empty getErrorMessage() to implement ProcessMonitor.
+ * <p> This is used by ProcesschunksProcessMonitor.
+ * <p>
  * <p> Revision 3.19  2005/08/22 16:35:34  sueh
  * <p> bug# 532 Added getStatusString() to implement ProcessMonitor.  The
  * <p> status string is used to add more information to the progress bar when
@@ -375,24 +379,8 @@ public abstract class LogFileProcessMonitor implements ProcessMonitor {
     remainingTime = (int) (elapsedTime / fractionDone - elapsedTime);
   }
   
-  public void setProcess(SystemProcessInterface process) {
-    //process is not required
-  }
-  
   public void kill(SystemProcessInterface process, AxisID axisID) {
     endState = ProcessEndState.KILLED;
     process.signalKill(axisID);
-  }
-  
-  public void pause(SystemProcessInterface process, AxisID axisID) {
-    throw new IllegalStateException("can't pause process");
-  }
-  
-  public String getStatusString() {
-    return null;
-  }
-  
-  public String getErrorMessage() {
-    return null;
   }
 }
