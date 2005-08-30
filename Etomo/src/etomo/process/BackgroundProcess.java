@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 
 import etomo.BaseManager;
+import etomo.EtomoDirector;
 import etomo.comscript.Command;
 import etomo.type.AxisID;
 import etomo.type.ProcessEndState;
@@ -20,6 +21,12 @@ import etomo.type.ProcessEndState;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.15  2005/08/30 18:32:20  sueh
+ * <p> bug# 532 ProcessMonitor had too many functions in it that where only
+ * <p> used by ProcesschunkProcessMonitor.  Using
+ * <p> BackgroundProcessMonitor with BackgroundProcess's which need a
+ * <p> monitor.
+ * <p>
  * <p> Revision 3.14  2005/08/27 22:20:32  sueh
  * <p> bug# 532 Added getMonitorErrorMessage() to get an error message from
  * <p> the monitor.  Changed SystemProgram.setCurrentStdInput() to throw
@@ -481,6 +488,9 @@ public class BackgroundProcess
   }
   
   public void setCurrentStdInput(String input) {
+    if (EtomoDirector.getInstance().isDebug()) {
+      System.err.println(input);
+    }
     try {
       if (program != null) {
         program.setCurrentStdInput(input);
