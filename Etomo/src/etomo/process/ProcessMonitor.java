@@ -21,14 +21,14 @@ public interface ProcessMonitor extends Runnable {
   
   public void setProcessEndState(ProcessEndState endState);
   public ProcessEndState getProcessEndState();
-  public void setProcess(SystemProcessInterface process);
   public void kill(SystemProcessInterface process, AxisID axisID);
-  public void pause(SystemProcessInterface process, AxisID axisID);
-  public String getStatusString();
-  public String getErrorMessage();
 }
 /**
 * <p> $Log$
+* <p> Revision 1.5  2005/08/27 22:32:12  sueh
+* <p> bug# 532 Add getErrorMessage().  This is used by
+* <p> ProcesschunksProcessMonitor.
+* <p>
 * <p> Revision 1.4  2005/08/22 17:07:03  sueh
 * <p> bug# 532 Added getStatusString() to implement ProcessMonitor.  The
 * <p> status string is used to add more information to the progress bar when
