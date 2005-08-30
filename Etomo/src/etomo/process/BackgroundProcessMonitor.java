@@ -19,6 +19,11 @@ import etomo.type.AxisID;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.4  2005/07/26 17:36:50  sueh
+ * <p> $bug# 701 Changed BackgroundProcessMonitor to extend ProcessMonitor
+ * <p> $so that a class that implements BackgroundProcessMonitor can be
+ * <p> $passed to ComScriptProcess.
+ * <p> $
  * <p> $Revision 1.3  2005/04/25 20:43:27  sueh
  * <p> $bug# 615 Passing the axis where a command originates to the message
  * <p> $functions so that the message will be popped up in the correct window.
@@ -35,8 +40,8 @@ import etomo.type.AxisID;
 public interface BackgroundProcessMonitor extends ProcessMonitor {
   public static final String rcsid = "$$Id$$";
   
-  abstract public boolean isSuccessful();
-  abstract public void kill();
-  abstract public boolean isProcessRunning();
-  abstract public AxisID getAxisID();
+  public void setProcess(SystemProcessInterface process);
+  public void pause(SystemProcessInterface process, AxisID axisID);
+  public String getStatusString();
+  public String getErrorMessage();
 }
