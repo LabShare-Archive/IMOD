@@ -1,4 +1,7 @@
 package etomo.ui;
+
+import etomo.process.ParallelProcessMonitor;
+
 /**
 * <p>Description: </p>
 * 
@@ -13,6 +16,10 @@ package etomo.ui;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.5  2005/08/22 18:09:55  sueh
+* <p> bug# 532 Added setPausedEnabled, to control pause button.  Added
+* <p> msgInterruptingProcess().
+* <p>
 * <p> Revision 1.4  2005/08/04 20:14:44  sueh
 * <p> bug# 532  Removed demo functions.  Added functions:  addSuccess,
 * <p> addRestart, and drop.
@@ -40,5 +47,5 @@ public interface ParallelProgressDisplay {
   public void drop(String computer);
   public void setPauseEnabled(boolean pauseEnabled);
   public void msgInterruptingProcess();
-  
+  public void setParallelProcessMonitor(ParallelProcessMonitor monitor);
 }
