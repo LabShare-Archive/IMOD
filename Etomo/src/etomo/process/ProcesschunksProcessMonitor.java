@@ -1,6 +1,7 @@
 package etomo.process;
 
 import etomo.BaseManager;
+import etomo.EtomoDirector;
 import etomo.type.AxisID;
 import etomo.type.EtomoNumber;
 import etomo.type.ProcessEndState;
@@ -216,13 +217,24 @@ public class ProcesschunksProcessMonitor implements ParallelProcessMonitor {
   }
   
   public final void drop(String computer) {
+    if (EtomoDirector.getInstance().isDebug()) {
+      System.err.println("drop " + computer);
+    }
     if (computerList.indexOf(computer) != -1) {
       dropComputer = computer;
     }
+    process.signalInterrupt(axisID);
   }
 }
 /**
 * <p> $Log$
+* <p> Revision 1.5  2005/08/30 18:50:23  sueh
+* <p> bug# 532 Added drop(String computer).  Added dropComputer which is set
+* <p> while waiting for the interrupt to happen.  Added computerList so that
+* <p> the monitor can avoid interrupting for computers that processchunks isn't
+* <p> using.  Added code to updateState() to send "D computer_name" to
+* <p> processchunks.
+* <p>
 * <p> Revision 1.4  2005/08/27 22:31:47  sueh
 * <p> bug# 532 In updateState() look for CHUNK ERROR: and save the most
 * <p> recent one found.  Return the last chunk error message with
