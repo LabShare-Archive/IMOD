@@ -18,6 +18,7 @@ import etomo.BaseManager;
 import etomo.comscript.ProcesschunksParam;
 import etomo.comscript.SplittiltParam;
 import etomo.process.LoadAverageMonitor;
+import etomo.process.ParallelProcessMonitor;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.DialogType;
@@ -64,7 +65,8 @@ final class ParallelPanel implements ParallelProgressDisplay, Expandable, LoadAv
   private boolean pauseEnabled = false;
   private static ParallelPanel INSTANCEA = null;
   private static ParallelPanel INSTANCEB = null;
-  private LoadAverageMonitor monitor = null;
+  private LoadAverageMonitor loadAverageMonitor = null;
+  private ParallelProcessMonitor parallelProcessMonitor = null;
   
   static final ParallelPanel getInstance(BaseManager manager,
       ParallelDialog parent, AxisID axisID) {
@@ -159,17 +161,17 @@ final class ParallelPanel implements ParallelProgressDisplay, Expandable, LoadAv
   }
   
   final void stopGetLoadAverage(String computer) {
-    if (monitor != null) {
+    if (loadAverageMonitor != null) {
       manager.stopGetLoadAverage(this, computer);
     }
   }
   
   public final LoadAverageMonitor getLoadAverageMonitor() {
-    if (monitor == null) {
-      monitor = new LoadAverageMonitor(this);
-      new Thread(monitor).start();
+    if (loadAverageMonitor == null) {
+      loadAverageMonitor = new LoadAverageMonitor(this);
+      new Thread(loadAverageMonitor).start();
     }
-    return monitor;
+    return loadAverageMonitor;
   }
   
   public final void setLoadAverage(String computer, double load1, double load5, double load15) {
@@ -269,6 +271,21 @@ final class ParallelPanel implements ParallelProgressDisplay, Expandable, LoadAv
       bodyPanel.setVisible(visible);
     }
   }
+  
+  public final void loadAverageFailed(String computer) {
+    if (parallelProcessMonitor != null) {
+      parallelProcessMonitor.drop(computer);
+    }
+  }
+  
+  /**
+   * sets parallelProcessMonitor with a monitor which is monitoring a parallel
+   * process associated with this ParallelProgressDisplay
+   * @param ParallelProcessMonitor
+   */
+  public final void setParallelProcessMonitor(ParallelProcessMonitor parallelProcessMonitor) {
+    this.parallelProcessMonitor = parallelProcessMonitor;
+  }
 
   private final class ParallelPanelActionListener implements ActionListener {
     ParallelPanel adaptee;
@@ -284,6 +301,10 @@ final class ParallelPanel implements ParallelProgressDisplay, Expandable, LoadAv
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.9  2005/08/22 18:08:08  sueh
+ * <p> bug# 532 Made ParallelPane a doubleton.  Added start and
+ * <p> stopLoadAverages
+ * <p>
  * <p> Revision 1.8  2005/08/04 20:13:54  sueh
  * <p> bug# 532  Removed demo functions.  Added pack().
  * <p>
