@@ -1,12 +1,12 @@
 package etomo.process;
 
 import java.io.IOException;
-import java.util.HashSet;
 import java.util.Hashtable;
 
 import etomo.BaseManager;
 import etomo.comscript.IntermittentCommand;
 import etomo.type.AxisID;
+import etomo.util.HashedArray;
 
 /**
 * <p>Description:  This class runs a command and then intermittently sends
@@ -45,7 +45,7 @@ public class IntermittentSystemProgram implements Runnable {
   private static Hashtable instances = new Hashtable();//one instance per IntermittentCommand
   private final String key;
   private boolean stopped = true;
-  private HashSet monitors = new HashSet();
+  private HashedArray monitors = new HashedArray();
   private final IntermittentCommand command;
   private final BaseManager manager;
   private SystemProgram program = null;
@@ -100,7 +100,7 @@ public class IntermittentSystemProgram implements Runnable {
     boolean newMonitor = false;
     //add the monitor if it is new, make sure not to add it more then once
     synchronized (monitors) {
-      newMonitor = !monitors.contains(monitor);
+      newMonitor = !monitors.containsKey(monitor);
       if (newMonitor) {
         monitors.add(monitor);
       }
@@ -154,7 +154,11 @@ public class IntermittentSystemProgram implements Runnable {
       e.printStackTrace();
     }
     catch (IOException e) {
-      e.printStackTrace();
+      if (monitors != null) {
+        for (int i = 0; i < monitors.size(); i++) {
+          ((SystemProgramMonitor) monitors.get(i)).intermittentCommandFailed(key);
+        }
+      }
     }
     try {
       program.setCurrentStdInput(command.getEndCommand());
@@ -194,6 +198,10 @@ public class IntermittentSystemProgram implements Runnable {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.3  2005/08/27 22:29:31  sueh
+* <p> bug# 532 Handle IOException from SystemProgram.setCurrentStdInput()
+* <p> so that failed intermittent commands can halted.
+* <p>
 * <p> Revision 1.2  2005/08/24 00:20:47  sueh
 * <p> bug# 532 removed the running member variable.  Only needed the stopped
 * <p> member variable.
