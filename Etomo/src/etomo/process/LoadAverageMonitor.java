@@ -43,8 +43,9 @@ public class LoadAverageMonitor implements SystemProgramMonitor {
   
   public void setIntermittentSystemProgram(
       IntermittentSystemProgram program) {
-    if (!programs.contains(program)) {
-      programs.add(program.getKey(), new ProgramState(program));
+    String key = program.getKey();
+    if (!programs.containsKey(key)) {
+      programs.add(key, new ProgramState(program));
     }
   }
   
@@ -89,6 +90,12 @@ public class LoadAverageMonitor implements SystemProgramMonitor {
     return Double.parseDouble(load);
   }
   
+  public final void intermittentCommandFailed(String key) {
+    if (programs.containsKey(key)) {
+      display.loadAverageFailed(key);
+    }
+  }
+  
   private final class ProgramState {
     private final IntermittentSystemProgram program;
     private int outputIndex = 0;
@@ -101,6 +108,10 @@ public class LoadAverageMonitor implements SystemProgramMonitor {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.2  2005/08/24 00:21:58  sueh
+* <p> bug# 532  In processData() changed string used to find the load average
+* <p> line so it would both for Linux and Mac.
+* <p>
 * <p> Revision 1.1  2005/08/22 16:35:18  sueh
 * <p> bug# 532 Monitors a group of load average commands running in
 * <p> IntermittentSystemProgram instances.  Gets results from standard
