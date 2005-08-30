@@ -20,6 +20,12 @@ import etomo.type.ProcessEndState;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.14  2005/08/27 22:20:32  sueh
+ * <p> bug# 532 Added getMonitorErrorMessage() to get an error message from
+ * <p> the monitor.  Changed SystemProgram.setCurrentStdInput() to throw
+ * <p> IOException instead of handling it.  This allows
+ * <p> IntermittentSystemProgram to handle a failed intermittent command.
+ * <p>
  * <p> Revision 3.13  2005/08/22 16:15:26  sueh
  * <p> bug# 532 Added boolean acceptInputWhileRunning to prevent the closing
  * <p> of the standard in too early.  AcceptInputWhileRunning defaults to false
@@ -172,7 +178,7 @@ public class BackgroundProcess
   private ProcessEndState endState = null;
   private final BaseManager manager;
   private SystemProgram program = null;
-  private ProcessMonitor monitor = null;
+  private BackgroundProcessMonitor monitor = null;
   private boolean acceptInputWhileRunning = false;
   
   public BackgroundProcess(BaseManager manager, String commandLine,
@@ -217,7 +223,7 @@ public class BackgroundProcess
   }
   
   public BackgroundProcess(BaseManager manager, String[] commandArray,
-      BaseProcessManager processManager, AxisID axisID, ProcessMonitor monitor) {
+      BaseProcessManager processManager, AxisID axisID, BackgroundProcessMonitor monitor) {
     this.manager = manager;
     this.axisID = axisID;
     this.commandArray = commandArray;
