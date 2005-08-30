@@ -10,7 +10,6 @@ import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
 
-import etomo.EtomoDirector;
 import etomo.type.AxisID;
 
 /**
@@ -92,14 +91,6 @@ final class PanelHeader implements Expandable {
     separator.setMaximumSize(new Dimension(100, 1));
     separator.setAlignmentX(Component.CENTER_ALIGNMENT);
     rootPanel.add(separator);
-    if (!EtomoDirector.getInstance().isNewstuff()) {
-      if (btnOpenClose != null) {
-        btnOpenClose.setVisible(false);
-      }
-      if (btnAdvancedBasic != null) {
-        btnAdvancedBasic.setVisible(false);
-      }
-    } 
   }
   
   final Container getContainer() {
@@ -137,6 +128,10 @@ final class PanelHeader implements Expandable {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.8  2005/08/22 18:00:37  sueh
+* <p> bug# 532 Remove openClosePanel.  When handling the open/close
+* <p> button, call container.expand() to do the expansion.
+* <p>
 * <p> Revision 1.7  2005/08/09 20:26:42  sueh
 * <p> bug# 711  No longer inheriting JButton in MultiLineButton.
 * <p>
