@@ -31,6 +31,10 @@ import etomo.util.Utilities;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.14  2005/08/27 22:25:19  sueh
+ * <p> $bug# 532 Add empty getErrorMessage() to implement ProcessMonitor.
+ * <p> $This is used by ProcesschunksProcessMonitor.
+ * <p> $
  * <p> $Revision 1.13  2005/08/22 16:20:10  sueh
  * <p> $bug# 532 Added getStatusString() to implement ProcessMonitor.  The
  * <p> $status string is used to add more information to the progress bar when
@@ -117,7 +121,7 @@ import etomo.util.Utilities;
  * <p> $process.
  * <p> $$ </p>
  */
-public class CombineProcessMonitor implements BackgroundProcessMonitor {
+public class CombineProcessMonitor implements BackgroundComScriptMonitor {
   public static final String rcsid = "$$Id$$";
   public static final String COMBINE_LABEL = "Combine";
   private static final long SLEEP = 100;
