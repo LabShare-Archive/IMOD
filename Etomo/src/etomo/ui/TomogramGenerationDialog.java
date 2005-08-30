@@ -68,6 +68,9 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.61  2005/08/27 22:42:44  sueh
+ * bug# 532 Changed Autodoc.get() to getInstance().
+ *
  * Revision 3.60  2005/08/24 00:25:00  sueh
  * bug# 532 Added ashtray.  Made tubule a 2 cpu system
  *
@@ -1205,7 +1208,6 @@ public class TomogramGenerationDialog extends ProcessDialog
     tiltPanel.add(tiltBodyPanel);
     UIUtilities.alignComponentsX(tiltPanel, Component.LEFT_ALIGNMENT);
     //configure
-    cbParallelProcess.setVisible(EtomoDirector.getInstance().isNewstuff());
     tiltHeader.setOpen(true);
     btnTilt.setSize();
     btn3dmodTomogram.setSize();
