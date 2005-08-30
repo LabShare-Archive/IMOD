@@ -19,6 +19,12 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.27  2005/08/15 18:19:34  sueh
+ * bug# 532 Added kill, pause, setCurrentStdInput, signalInterrupt, and
+ * signalKill to implement SystemProcessInterface.  Only kill and signalKill
+ * are valid to use in ComScriptProcess.  They allow processchunks (a
+ * background process) to choose to signal interrupt instead of kill.
+ *
  * Revision 3.26  2005/08/04 19:44:27  sueh
  * bug# 532 Added getCurrentStdOutput to implement interface.
  *
@@ -343,7 +349,7 @@ public class ComScriptProcess
   private boolean started = false;
   private boolean done = false;
   private boolean error = false;
-  private final ProcessMonitor processMonitor;
+  protected final ProcessMonitor processMonitor;
   private ProcessEndState endState = null;//used when processMonitor is null
   protected final BaseManager manager;
 
