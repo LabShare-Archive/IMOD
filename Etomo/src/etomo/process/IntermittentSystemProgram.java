@@ -147,6 +147,11 @@ public class IntermittentSystemProgram implements Runnable {
     try {
       while (!stopped) {
         program.setCurrentStdInput(intermittentCommand);
+        if (monitors != null) {
+          for (int i = 0; i < monitors.size(); i++) {
+            ((SystemProgramMonitor) monitors.get(i)).msgSentIntermittentCommand(key);
+          }
+        }
         Thread.sleep(interval);
       }
     }
@@ -156,7 +161,7 @@ public class IntermittentSystemProgram implements Runnable {
     catch (IOException e) {
       if (monitors != null) {
         for (int i = 0; i < monitors.size(); i++) {
-          ((SystemProgramMonitor) monitors.get(i)).intermittentCommandFailed(key);
+          ((SystemProgramMonitor) monitors.get(i)).msgIntermittentCommandFailed(key);
         }
       }
     }
@@ -198,6 +203,10 @@ public class IntermittentSystemProgram implements Runnable {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.4  2005/08/30 18:43:20  sueh
+* <p> bug# 532 When the intermitent command throughs a IOException.  Call
+* <p> intermittentCommandFailed in all monitors.
+* <p>
 * <p> Revision 1.3  2005/08/27 22:29:31  sueh
 * <p> bug# 532 Handle IOException from SystemProgram.setCurrentStdInput()
 * <p> so that failed intermittent commands can halted.
