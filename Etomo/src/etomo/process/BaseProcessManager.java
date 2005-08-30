@@ -28,6 +28,13 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.21  2005/08/27 22:23:50  sueh
+* <p> bug# 532 In msgBackgroundPRocessDone() exclude errors starting with
+* <p> "CHUNK ERROR:".  These error may be repeats many times and should
+* <p> be handled by the monitor.  Also try to append an error string from the
+* <p> monitor.  This allows the processchunks monitor to supply the last chunk
+* <p> error it found.
+* <p>
 * <p> Revision 1.20  2005/08/22 16:17:46  sueh
 * <p> bug# 532 Added start and stopGetLoadAverage().
 * <p>
@@ -255,11 +262,11 @@ public abstract class BaseProcessManager {
    * @throws SystemProcessException
    */
   protected ComScriptProcess startBackgroundComScript(String command, 
-    Runnable processMonitor, AxisID axisID, 
+      BackgroundComScriptMonitor processMonitor, AxisID axisID, 
     ComscriptState comscriptState, String watchedFileName)
     throws SystemProcessException {
     return startComScript(new BackgroundComScriptProcess(getManager(), command, this, axisID,
-      watchedFileName, (BackgroundProcessMonitor) processMonitor, comscriptState),
+      watchedFileName, processMonitor, comscriptState),
       command, processMonitor, axisID);
   }
 
@@ -788,19 +795,8 @@ public abstract class BaseProcessManager {
         axisID, null);
   }
   
-  protected BackgroundProcess startBackgroundProcess(String[] commandArray,
-      AxisID axisID, ProcessMonitor monitor) throws SystemProcessException {
-
-    isAxisBusy(axisID);
-
-    BackgroundProcess backgroundProcess = new BackgroundProcess(getManager(),
-        commandArray, this, axisID, monitor);
-    return startBackgroundProcess(backgroundProcess, commandArray.toString(),
-        axisID, monitor);
-  }
-  
   protected BackgroundProcess startInteractiveBackgroundProcess(String[] commandArray,
-      AxisID axisID, ProcessMonitor monitor) throws SystemProcessException {
+      AxisID axisID, BackgroundProcessMonitor monitor) throws SystemProcessException {
 
     isAxisBusy(axisID);
 
