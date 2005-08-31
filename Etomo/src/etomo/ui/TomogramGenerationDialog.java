@@ -68,6 +68,9 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.62  2005/08/30 19:22:41  sueh
+ * bug# 532 Remove the newstuff limit from the parallel processing checkbox.
+ *
  * Revision 3.61  2005/08/27 22:42:44  sueh
  * bug# 532 Changed Autodoc.get() to getInstance().
  *
@@ -1208,6 +1211,9 @@ public class TomogramGenerationDialog extends ProcessDialog
     tiltPanel.add(tiltBodyPanel);
     UIUtilities.alignComponentsX(tiltPanel, Component.LEFT_ALIGNMENT);
     //configure
+    if (!EtomoDirector.getInstance().isNewstuff()) {
+      cbParallelProcess.setVisible(false);
+    }
     tiltHeader.setOpen(true);
     btnTilt.setSize();
     btn3dmodTomogram.setSize();
