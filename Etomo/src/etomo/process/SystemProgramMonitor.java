@@ -17,10 +17,15 @@ public interface SystemProgramMonitor extends Runnable {
   
   public void setIntermittentSystemProgram(IntermittentSystemProgram intermittentSystemProgram);
   public void stop(String computer);
-  public void intermittentCommandFailed(String key);
+  public void msgIntermittentCommandFailed(String key);
+  public void msgSentIntermittentCommand(String key);
 }
 /**
 * <p> $Log$
+* <p> Revision 1.2  2005/08/30 18:52:53  sueh
+* <p> bug# 532 Added intermittentCommandFailed() to handle a failed w
+* <p> command.
+* <p>
 * <p> Revision 1.1  2005/08/22 17:08:27  sueh
 * <p> bug# 532 Interface for a monitor which can use
 * <p> IntermittentSystemProgram and can receive a stop message.

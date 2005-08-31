@@ -31,8 +31,14 @@ public class LoadAverageMonitor implements SystemProgramMonitor {
     try {
       while (!isStopped()) {
         for (int i = 0; i < programs.size(); i++) {
-          processData((ProgramState) programs.get(i));
+          ProgramState programState = (ProgramState) programs.get(i);
+          processData(programState);
+          if (programState.waitForCommand > 12) {
+            msgIntermittentCommandFailed(programState.program.getKey());
+            programState.program.stop(this);
+          }
         }
+        
         Thread.sleep(500);
       }
     }
@@ -67,12 +73,13 @@ public class LoadAverageMonitor implements SystemProgramMonitor {
   
   private void processData(ProgramState programState) {
     String[] output = programState.program
-        .getStdOutput(programState.outputIndex);
+        .getStdOutput(programState.stdOutputIndex);
     if (output == null) {
       return;
     }
-    programState.outputIndex += output.length;
+    programState.stdOutputIndex += output.length;
     for (int i = 0; i < output.length; i++) {
+      programState.waitForCommand--;
       if (output[i].indexOf("load average") != -1) {
         String[] array = output[i].trim().split("\\s+");
         display.setLoadAverage(programState.program.getKey(),
@@ -90,16 +97,21 @@ public class LoadAverageMonitor implements SystemProgramMonitor {
     return Double.parseDouble(load);
   }
   
-  public final void intermittentCommandFailed(String key) {
+  public final void msgIntermittentCommandFailed(String key) {
     if (programs.containsKey(key)) {
       display.loadAverageFailed(key);
     }
   }
   
+  public final void msgSentIntermittentCommand(String key) {
+    ((ProgramState) programs.get(key)).waitForCommand++;
+  }
+  
   private final class ProgramState {
     private final IntermittentSystemProgram program;
-    private int outputIndex = 0;
+    private int stdOutputIndex = 0;
     private boolean stopped = false;
+    private int waitForCommand = 0;
     
     private ProgramState(IntermittentSystemProgram program) {
       this.program = program;
@@ -108,6 +120,10 @@ public class LoadAverageMonitor implements SystemProgramMonitor {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.3  2005/08/30 18:44:36  sueh
+* <p> bug# 532 Added intermittentCommandFailed() to handle a failed w
+* <p> command.
+* <p>
 * <p> Revision 1.2  2005/08/24 00:21:58  sueh
 * <p> bug# 532  In processData() changed string used to find the load average
 * <p> line so it would both for Linux and Mac.
