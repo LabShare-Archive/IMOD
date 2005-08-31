@@ -127,7 +127,7 @@ public class IntermittentSystemProgram implements Runnable {
     }
   }
   
-  private final void stop(SystemProgramMonitor monitor) {
+  final void stop(SystemProgramMonitor monitor) {
     monitor.stop(key);
     synchronized (monitors) {
       monitors.remove(monitor);
@@ -203,6 +203,9 @@ public class IntermittentSystemProgram implements Runnable {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.5  2005/08/30 23:33:50  sueh
+* <p> bug# 532 Telling monitors that intermittent command was sent.
+* <p>
 * <p> Revision 1.4  2005/08/30 18:43:20  sueh
 * <p> bug# 532 When the intermitent command throughs a IOException.  Call
 * <p> intermittentCommandFailed in all monitors.
