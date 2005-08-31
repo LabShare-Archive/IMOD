@@ -13,6 +13,9 @@ package etomo.type;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.4  2005/08/25 01:49:04  sueh
+ * <p> $bug# 715 added solvematch to ProcessName.
+ * <p> $
  * <p> $Revision 1.3  2005/08/24 22:39:46  sueh
  * <p> $bug# 715 Added getCommand() and getCommandArray() so that
  * <p> $comscript commands can be built in one place.  ProcessName shouldn't
@@ -51,6 +54,7 @@ public class ProcessName {
   private static final String blend = "blend";
   private static final String undistort = "undistort";
   private static final String solvematch = "solvematch";
+  private static final String startjoin = "startjoin";
   
   private final String name;
   
@@ -79,6 +83,7 @@ public class ProcessName {
   public static final ProcessName BLEND = new ProcessName(blend);
   public static final ProcessName UNDISTORT = new ProcessName(undistort);
   public static final ProcessName SOLVEMATCH = new ProcessName(solvematch);
+  public static final ProcessName STARTJOIN = new ProcessName(startjoin);
   
   /**
    * Returns a string representation of the object.
@@ -156,6 +161,9 @@ public class ProcessName {
     }
     if (name.compareToIgnoreCase(solvematch) == 0) {
       return SOLVEMATCH;
+    }
+    if (name.compareToIgnoreCase(startjoin) == 0) {
+      return STARTJOIN;
     }
     throw new IllegalArgumentException("name="+name);
   }
