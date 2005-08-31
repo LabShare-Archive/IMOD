@@ -18,6 +18,11 @@ import java.util.Vector;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.6  2005/08/30 19:24:34  sueh
+* <p> bug# 532 Changed class so a remove(Object key) function could be added.
+* <p> Using valueArray (an array of values) and indexMap (a hashtable to the
+* <p> index of valueArray) allows more functionality.
+* <p>
 * <p> Revision 1.5  2005/08/22 18:22:41  sueh
 * <p> bug# 532 Moved HashedArray to UniqueHashedArray.  Added a simpler
 * <p> HashedArray class which does not use UniqueKey.
@@ -49,7 +54,7 @@ public class HashedArray {
   public static  final String  rcsid =  "$Id$";
   
   private final Hashtable indexMap = new Hashtable();
-  private final Vector valueArray = new Vector();
+  private final Vector elementArray = new Vector();
   
   /**
    * Add a new value with unique key is creates from keyName
@@ -61,8 +66,8 @@ public class HashedArray {
     if (key == null) {
       return;
     }
-    valueArray.add(value);
-    indexMap.put(key, new Integer(valueArray.size() - 1));
+    elementArray.add(new Element(key, value));
+    indexMap.put(key, new Integer(elementArray.size() - 1));
   }
   
   public synchronized void add(Object key) {
@@ -73,28 +78,45 @@ public class HashedArray {
     if (key == null) {
       return;
     }
-    valueArray.remove(((Integer) indexMap.remove(key)).intValue());
+    int index = ((Integer) indexMap.remove(key)).intValue();
+    elementArray.remove(index);
+    //reindex
+    for (int i = index; i < elementArray.size(); i++) {
+      Object currentKey = ((Element) elementArray.get(i)).key;
+      indexMap.remove(currentKey);
+      indexMap.put(currentKey, new Integer(i));
+    }
   }
   
   public synchronized Object get(Object key) {
     if (key == null) {
       return null;
     }
-    return valueArray.get(((Integer) indexMap.get(key)).intValue());
+    return ((Element) elementArray.get(((Integer) indexMap.get(key)).intValue())).value;
   }
   
   public Object get(int index) {
     if (index < 0) {
       return null;
     }
-    return valueArray.get(index);
+    return ((Element) elementArray.get(index)).value;
   }
   
   public int size() {
-    return valueArray.size();
+    return elementArray.size();
   }
   
   public boolean containsKey(Object key) {
     return indexMap.containsKey(key);
+  }
+  
+  private class Element {
+    private Object key = null;
+    private Object value = null;
+    
+    private Element(Object key, Object value) {
+      this.key = key;
+      this.value = value;
+    }
   }
 }
