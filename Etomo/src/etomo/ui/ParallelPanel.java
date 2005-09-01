@@ -36,7 +36,7 @@ import etomo.type.DialogType;
  * 
  * @version $Revision$
  */
-final class ParallelPanel implements ParallelProgressDisplay, Expandable, LoadAverageDisplay {
+public final class ParallelPanel implements ParallelProgressDisplay, Expandable, LoadAverageDisplay {
   public static final String rcsid = "$Id$";
 
   private JPanel rootPanel;
@@ -63,40 +63,10 @@ final class ParallelPanel implements ParallelProgressDisplay, Expandable, LoadAv
   private final BaseManager manager;
   private boolean visible = false;
   private boolean pauseEnabled = false;
-  private static ParallelPanel INSTANCEA = null;
-  private static ParallelPanel INSTANCEB = null;
   private LoadAverageMonitor loadAverageMonitor = null;
   private ParallelProcessMonitor parallelProcessMonitor = null;
   
-  static final ParallelPanel getInstance(BaseManager manager,
-      ParallelDialog parent, AxisID axisID) {
-    if (axisID == AxisID.SECOND) {
-      if (INSTANCEB == null) {
-        return createInstance(manager, parent, axisID);
-      }
-      return INSTANCEB;
-    }
-    if (INSTANCEA == null) {
-      return createInstance(manager, parent, axisID);
-    }
-    return INSTANCEA;
-  }
-
-  private static final synchronized ParallelPanel createInstance(
-      BaseManager manager, ParallelDialog parent, AxisID axisID) {
-    if (axisID == AxisID.SECOND) {
-      if (INSTANCEB == null) {
-        INSTANCEB = new ParallelPanel(manager, parent, axisID);
-      }
-      return INSTANCEB;
-    }
-    if (INSTANCEA == null) {
-      INSTANCEA = new ParallelPanel(manager, parent, axisID);
-    }
-    return INSTANCEA;
-  }
-  
-  private ParallelPanel(BaseManager manager, ParallelDialog parent, AxisID axisID) {
+  public ParallelPanel(BaseManager manager, ParallelDialog parent, AxisID axisID) {
     this.manager = manager;
     this.parent = parent;
     this.axisID = axisID;
@@ -306,6 +276,10 @@ final class ParallelPanel implements ParallelProgressDisplay, Expandable, LoadAv
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.11  2005/09/01 18:02:10  sueh
+ * <p> bug# 532 Added clearLoadAverage() to clear the load averages when the
+ * <p> load average command fails.  Added a drop reason.
+ * <p>
  * <p> Revision 1.10  2005/08/30 19:21:23  sueh
  * <p> bug# 532 Added parallel process monitor.  Added loadAverageFailed() to
  * <p> handle the failure of a w command.
