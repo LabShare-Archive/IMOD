@@ -1,32 +1,32 @@
-#Descriptions of computers and CPUs to use in Etomo parallel processing
-#This file should be placed in the calibration directory (env|grep IMOD_CALIB_DIR)
+# Descriptions of computers and CPUs to use in Etomo parallel processing
+# This file should be placed in the calibration directory (env|grep IMOD_CALIB_DIR)
 
-#Optional cpu.adoc attributes (can be placed in any order):
-#units.speed:  Column subheader for processor speed
-#units.memory:  Column subheader for amount of RAM
+# Optional cpu.adoc attributes (can be placed in any order):
+# units.speed:  Column subheader for processor speed
+# units.memory:  Column subheader for amount of RAM
 
-#Computer names should be placed in brackets [Computer = name]
+# Computer names should be placed in brackets [Computer = name]
 
-#Computer attributes (can be placed in any order):
+# Computer attributes (can be placed in any order):
 
-#number:  number of CPUs (defaults to 1)
-#Required on a multi-processor system
+# number:  number of CPUs (defaults to 1)
+# Required on a multi-processor system
 
-#For a standalone two-processor system, all that is needed is:
-#[Computer = localhost]
-#number = 2
+# For a standalone two-processor system, all that is needed is:
+# [Computer = localhost]
+# number = 2
 
-#Optional computer attributes:
-#type:  cpu type
-#speed:  processor speed
-#memory:  amount of RAM
-#os:  operating system
+# Optional computer attributes:
+# type:  cpu type
+# speed:  processor speed
+# memory:  amount of RAM
+# os:  operating system
 
-#The column will be omitted from the eTomo table if an attribute is never used
+# The column will be omitted from the eTomo table if an attribute is never used
 
 #
 #
-#Example of cpu.adoc
+# Example of cpu.adoc
 #
 #
 
