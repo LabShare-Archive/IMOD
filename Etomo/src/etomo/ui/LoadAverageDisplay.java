@@ -20,10 +20,15 @@ public interface LoadAverageDisplay {
   
   public LoadAverageMonitor getLoadAverageMonitor();
   public void setLoadAverage(String computer, double load1, double load5, double load15);
+  public void clearLoadAverage(String computer);
   public void loadAverageFailed(String computer);
 }
 /**
 * <p> $Log$
+* <p> Revision 1.2  2005/08/30 19:18:36  sueh
+* <p> bug# 532 Provide a way to tell the load average display that a load average
+* <p> commmand failed.
+* <p>
 * <p> Revision 1.1  2005/08/22 17:55:06  sueh
 * <p> bug# 532 Interface for a display that can communicate with a
 * <p> LoadAverageMonitor and can set the load average.
