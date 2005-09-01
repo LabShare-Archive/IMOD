@@ -68,6 +68,9 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.63  2005/08/31 19:16:28  sueh
+ * bug# 532 need to do an install and parallel processing is not ready
+ *
  * Revision 3.62  2005/08/30 19:22:41  sueh
  * bug# 532 Remove the newstuff limit from the parallel processing checkbox.
  *
@@ -565,7 +568,7 @@ public class TomogramGenerationDialog extends ProcessDialog
     fixRootPanel(rootSize);
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     btnExecute.setText("Done");
-    parallelPanel = ParallelPanel.getInstance(applicationManager, this, axisID);
+    parallelPanel = applicationManager.getParallelPanel(this, axisID);
     // Layout the main panel (and sub panels) and add it to the root panel
     pnlTilt.setBorder(new BeveledBorder("Tomogram Generation").getBorder());
     pnlTilt.setLayout(new BoxLayout(pnlTilt, BoxLayout.Y_AXIS));
@@ -1211,9 +1214,9 @@ public class TomogramGenerationDialog extends ProcessDialog
     tiltPanel.add(tiltBodyPanel);
     UIUtilities.alignComponentsX(tiltPanel, Component.LEFT_ALIGNMENT);
     //configure
-    if (!EtomoDirector.getInstance().isNewstuff()) {
-      cbParallelProcess.setVisible(false);
-    }
+    //if (!EtomoDirector.getInstance().isNewstuff()) {
+    //  cbParallelProcess.setVisible(false);
+    //}
     tiltHeader.setOpen(true);
     btnTilt.setSize();
     btn3dmodTomogram.setSize();
