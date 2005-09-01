@@ -11,6 +11,11 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.9  2005/08/24 23:06:13  sueh
+ * <p> bug# 715 Temporarily adding print statement to writeComFile() in case
+ * <p> problem with xcorr.com having arguments meant for undistort.com comes
+ * <p> up again.
+ * <p>
  * <p> Revision 3.8  2005/06/17 00:30:39  sueh
  * <p> bug# 685 Added getName() to get the name of the file without the path.
  * <p>
@@ -414,7 +419,8 @@ public class ComScript {
     if (!EtomoDirector.getInstance().isMemoryAvailable()) {
       return;
     }
-    System.out.println("write "+comFile.getName());
+    //TEMP
+    System.err.println("write "+comFile.getName());
     // Open the com file for writing using a buffered writer
     BufferedWriter out = new BufferedWriter(new FileWriter(comFile));
 

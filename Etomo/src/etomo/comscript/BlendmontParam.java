@@ -124,7 +124,8 @@ public class BlendmontParam implements CommandParam, Command {
    * to be run
    */
   public boolean setBlendmontState() {
-    System.out.println("setBlendmontState:mode="+mode);
+    //TEMP
+    System.err.println("setBlendmontState:mode="+mode);
     if (mode == UNDISTORT_MODE) {
       imageOutputFile = datasetName + axisID.getExtension()
           + DISTORTION_CORRECTED_STACK_EXTENSION;
@@ -269,6 +270,11 @@ public final void setBinByFactor(int binByFactor) {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.13  2005/08/24 22:30:00  sueh
+ * <p> bug# 715 Implementing Command so BlendmontParam it can be used in
+ * <p> postProcess() and errorProcess().  Change setBlendmontState() to check
+ * <p> TomogramState.invalidEdgeFunctions.
+ * <p>
  * <p> Revision 1.12  2005/07/29 19:45:21  sueh
  * <p> bug# 692 Changed ConstEtomoNumber.getInteger() to getInt.
  * <p>

@@ -33,6 +33,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.38  2005/08/27 22:17:01  sueh
+ * <p> bug# 532 changed Utilities.timestamp to take a string status instead of
+ * <p> integer
+ * <p>
  * <p> Revision 3.37  2005/08/25 01:45:18  sueh
  * <p> removed print statement
  * <p>
@@ -623,7 +627,8 @@ public class ComScriptManager {
   }
 
   public void savePreblend(BlendmontParam blendmontParam, AxisID axisID) {
-    System.out.println("savePreblend:mode="+blendmontParam.getMode());
+    //TEMP
+    System.err.println("savePreblend:mode="+blendmontParam.getMode());
     //  Get a reference to the appropriate script object
     ComScript scriptPreblend;
     if (axisID == AxisID.SECOND) {
@@ -636,7 +641,8 @@ public class ComScriptManager {
   }
   
   public void saveBlend(BlendmontParam blendmontParam, AxisID axisID) {
-    System.out.println("saveBlend:mode="+blendmontParam.getMode());
+    //TEMP
+    System.err.println("saveBlend:mode="+blendmontParam.getMode());
     //  Get a reference to the appropriate script object
     ComScript scriptBlend;
     if (axisID == AxisID.SECOND) {
