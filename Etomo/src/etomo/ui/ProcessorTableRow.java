@@ -54,6 +54,7 @@ final class ProcessorTableRow {
   private boolean speedColumn = false;
   private boolean memoryColumn = false;
   private boolean osColumn = false;
+  private int restartsError = 10000;
   
   ProcessorTableRow(ProcessorTable table, String computerName, int numCpus,
       String cpuType, String speed, String memory, String os) {
@@ -134,6 +135,10 @@ final class ProcessorTableRow {
   final void setOSColumn(boolean osColumn) {
     this.osColumn = osColumn;
   }
+  
+  final void setRestartsError(int restartsError) {
+    this.restartsError= restartsError;
+  }
 
   void addRow() {
     if (!rowInitialized) {
@@ -180,14 +185,14 @@ final class ProcessorTableRow {
   }
   
   private void stateChanged(ChangeEvent event) {
-    table.signalCPUsSelectedChanged();
+    table.msgCPUsSelectedChanged();
   }
   
-  final void drop() {
+  final void msgDropped(String reason) {
     cellComputer.setSelected(false);
     setSelected(false);
     cellRestarts.setError(true);
-    cellFailureReason.setValue("dropped");
+    cellFailureReason.setValue(reason);
     cellFailureReason.setError(true);
   }
 
@@ -203,9 +208,13 @@ final class ProcessorTableRow {
       FieldCell cell = (FieldCell) cellCPUsSelected;
       cell.setHideValue(!selected);
     }
-    cellComputer.setError(selected && cellLoad1.isEmpty()
+    setSelectedError();
+    table.msgCPUsSelectedChanged();
+  }
+  
+  private void setSelectedError() {
+    cellComputer.setError(cellComputer.isSelected() && cellLoad1.isEmpty()
         && cellLoad5.isEmpty() && cellLoad15.isEmpty());
-    table.signalCPUsSelectedChanged();
   }
   
   final boolean isSelected() {
@@ -220,11 +229,7 @@ final class ProcessorTableRow {
   }
 
   final void resetResults() {
-    cellRestarts.setWarning(false);
-    cellRestarts.setValueEmpty();
-    cellSuccesses.setValueEmpty();
-    cellFailureReason.setValue("");
-    cellFailureReason.setError(false);
+    cellSuccesses.setValue();
   }
   
   final long getSuccesses() {
@@ -271,10 +276,14 @@ final class ProcessorTableRow {
     else {
       restarts++;
     }
-    if (restarts > 0) {
+    System.out.println("restarts="+restarts);
+    cellRestarts.setValue(restarts);
+    if (restarts >= restartsError) {
+      cellRestarts.setError(true);
+    }
+    else if (restarts > 0) {
       cellRestarts.setWarning(true);
     }
-    cellRestarts.setValue(restarts);
   }
   
   final void setLoadAverage(double load1, double load5, double load15) {
@@ -282,6 +291,17 @@ final class ProcessorTableRow {
     setLoad(cellLoad1, load1, numberCpus);
     setLoad(cellLoad5, load5, numberCpus);
     setLoad(cellLoad15, load15, numberCpus);
+  }
+  
+  final void clearLoadAverage() {
+    int numberCpus = cellNumberCpus.getIntValue();
+    cellLoad1.setValue();
+    cellLoad1.setWarning(false);
+    cellLoad5.setValue();
+    cellLoad5.setWarning(false);
+    cellLoad15.setValue();
+    cellLoad15.setWarning(false);
+    setSelectedError();
   }
   
   private final void setLoad(FieldCell cellLoad, double load, int numberCpus) {
@@ -368,6 +388,12 @@ final class ProcessorTableRow {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.10  2005/08/27 22:42:07  sueh
+ * <p> bug# 532 Added cells for speed and memory.  Displaying columns based
+ * <p> on booleans:  memoryColumn, numberColumn, etc.  Changed cellOs to
+ * <p> cellOS.  In setSelected() set cellComputer.error to true if the load fields
+ * <p> are empty.  Turn off cellComputer.error when load fields are set.
+ * <p>
  * <p> Revision 1.9  2005/08/22 18:15:05  sueh
  * <p> bug# 532 Removed dummy load averages.
  * <p>

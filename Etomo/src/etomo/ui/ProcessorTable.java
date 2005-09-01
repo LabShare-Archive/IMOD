@@ -53,6 +53,7 @@ final class ProcessorTable {
   private HashedArray rows = new HashedArray();
   private ParallelPanel parent = null;
   private AxisID axisID;
+  private int restartsError = -1;
 
   ProcessorTable(ParallelPanel parent, AxisID axisID) {
     this.parent = parent;
@@ -163,6 +164,9 @@ final class ProcessorTable {
       //create the row
       ProcessorTableRow row = new ProcessorTableRow(this, computerName, number
           .getInt(), type, speed, memory, os);
+      if (restartsError != -1) {
+        row.setRestartsError(restartsError);
+      }
       //add the row to the rows HashedArray
       rows.add(computerName, row);
       //get the next section
@@ -288,6 +292,10 @@ final class ProcessorTable {
     */
   }
   
+  final void setRestartsError(int restartsError) {
+    this.restartsError = restartsError;
+  }
+  
   final Container getContainer() {
     return scrollPane;
   }
@@ -318,11 +326,11 @@ final class ProcessorTable {
     return successes;
   }
 
-  final void signalCPUsSelectedChanged() {
+  final void msgCPUsSelectedChanged() {
     if (rows == null) {
       return;
     }
-    parent.signalCPUsSelectedChanged(getCPUsSelected());
+    parent.msgCPUsSelectedChanged(getCPUsSelected());
   }
 
   final int getCPUsSelected() {
@@ -478,12 +486,12 @@ final class ProcessorTable {
     row.addSuccess();
   }
   
-  final void drop(String computer) {
+  final void msgDropped(String computer, String reason) {
     ProcessorTableRow row = getRow(computer);
     if (row == null) {
       return;
     }
-    row.drop();
+    row.msgDropped(reason);
   }
   
   final String getHelpMessage() {
@@ -516,9 +524,21 @@ final class ProcessorTable {
     }
     ((ProcessorTableRow) rows.get(computer)).setLoadAverage(load1, load5, load15);
   }
+  
+  final void clearLoadAverage(String computer) {
+    if (rows == null) {
+      return;
+    }
+    ((ProcessorTableRow) rows.get(computer)).clearLoadAverage();
+  }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.11  2005/08/27 22:38:40  sueh
+ * <p> bug# 532 Populating the table from cpu.adoc:  getting the rows of the
+ * <p> table, the units of speed and memory, and whether a column needs to be
+ * <p> displayed.
+ * <p>
  * <p> Revision 1.10  2005/08/24 00:25:25  sueh
  * <p> bug# 532 Added ashtray.  Made tubule a 2 cpu system
  * <p>
