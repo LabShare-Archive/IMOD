@@ -34,8 +34,10 @@ public class LoadAverageMonitor implements SystemProgramMonitor {
           ProgramState programState = (ProgramState) programs.get(i);
           processData(programState);
           if (programState.waitForCommand > 12) {
+            programState.waitForCommand = 0;
             msgIntermittentCommandFailed(programState.program.getKey());
             programState.program.stop(this);
+            display.clearLoadAverage(programState.program.getKey());
           }
         }
         
@@ -79,12 +81,15 @@ public class LoadAverageMonitor implements SystemProgramMonitor {
     }
     programState.stdOutputIndex += output.length;
     for (int i = 0; i < output.length; i++) {
-      programState.waitForCommand--;
       if (output[i].indexOf("load average") != -1) {
+        programState.waitForCommand--;
         String[] array = output[i].trim().split("\\s+");
         display.setLoadAverage(programState.program.getKey(),
             getLoad(array[array.length - 3]), getLoad(array[array.length - 2]),
             getLoad(array[array.length - 1]));
+      }
+      else if (output[i].indexOf("authenticity of host") != -1) {
+        programState.program.setCurrentStdInput("yes");
       }
     }
   }
@@ -100,6 +105,7 @@ public class LoadAverageMonitor implements SystemProgramMonitor {
   public final void msgIntermittentCommandFailed(String key) {
     if (programs.containsKey(key)) {
       display.loadAverageFailed(key);
+      display.clearLoadAverage(key);
     }
   }
   
@@ -120,6 +126,10 @@ public class LoadAverageMonitor implements SystemProgramMonitor {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.4  2005/08/31 17:18:24  sueh
+* <p> bug# 532 Handle an unresponsive computer by dropping from
+* <p> processchunks after 12 unresponses.
+* <p>
 * <p> Revision 1.3  2005/08/30 18:44:36  sueh
 * <p> bug# 532 Added intermittentCommandFailed() to handle a failed w
 * <p> command.
