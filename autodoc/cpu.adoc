@@ -12,11 +12,17 @@
 #number:  number of CPUs (defaults to 1)
 #Required on a multi-processor system
 
+#For a standalone two-processor system, all that is needed is:
+#[Computer = localhost]
+#number = 2
+
 #Optional computer attributes:
 #type:  cpu type
 #speed:  processor speed
 #memory:  amount of RAM
 #os:  operating system
+
+#The column will be omitted from the eTomo table if an attribute is never used
 
 #
 #
