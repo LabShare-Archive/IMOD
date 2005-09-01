@@ -143,9 +143,10 @@ final class ParallelPanel implements ParallelProgressDisplay, Expandable, LoadAv
     ltfChunksFinished.setEditable(false);
     ltfCPUsSelected.setTextPreferredWidth(FixedDim.fourDigitWidth);
     ltfCPUsSelected.setEditable(false);
-    processorTable.signalCPUsSelectedChanged();
+    processorTable.msgCPUsSelectedChanged();
     btnPause.setEnabled(pauseEnabled);
     manager.getMainPanel().setParallelProgressDisplay(this, axisID);
+    processorTable.setRestartsError(ProcesschunksParam.DROP_VALUE);
   }
   
   final void start() {
@@ -178,6 +179,10 @@ final class ParallelPanel implements ParallelProgressDisplay, Expandable, LoadAv
     processorTable.setLoadAverage(computer, load1, load5, load15);
   }
   
+  public final void clearLoadAverage(String computer) {
+    processorTable.clearLoadAverage(computer);
+  }
+  
   public final void setPauseEnabled(boolean pauseEnabled) {
     this.pauseEnabled = pauseEnabled;
     if (btnPause == null) {
@@ -186,7 +191,7 @@ final class ParallelPanel implements ParallelProgressDisplay, Expandable, LoadAv
     btnPause.setEnabled(pauseEnabled);
   }
   
-  public final void signalCPUsSelectedChanged(int cpusSelected) {
+  public final void msgCPUsSelectedChanged(int cpusSelected) {
     ltfCPUsSelected.setText(cpusSelected);
   }
 
@@ -221,8 +226,8 @@ final class ParallelPanel implements ParallelProgressDisplay, Expandable, LoadAv
     processorTable.addRestart(computer);
   }
   
-  public final void drop(String computer) {
-    processorTable.drop(computer);
+  public final void msgDropped(String computer, String reason) {
+    processorTable.msgDropped(computer, reason);
   }
 
   public final void addSuccess(String computer) {
@@ -301,6 +306,10 @@ final class ParallelPanel implements ParallelProgressDisplay, Expandable, LoadAv
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.10  2005/08/30 19:21:23  sueh
+ * <p> bug# 532 Added parallel process monitor.  Added loadAverageFailed() to
+ * <p> handle the failure of a w command.
+ * <p>
  * <p> Revision 1.9  2005/08/22 18:08:08  sueh
  * <p> bug# 532 Made ParallelPane a doubleton.  Added start and
  * <p> stopLoadAverages
