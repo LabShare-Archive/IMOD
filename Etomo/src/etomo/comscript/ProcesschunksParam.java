@@ -28,6 +28,7 @@ public final class ProcesschunksParam {
   public static final int NICE_DEFAULT = 15;
   public static final int NICE_FLOOR = 0;
   public static final int NICE_CEILING = 19;
+  public static final int DROP_VALUE = 5;
   
   private String[] commandArray = null;
   private final AxisID axisID;
@@ -35,7 +36,7 @@ public final class ProcesschunksParam {
   private EtomoNumber nice = new EtomoNumber();
   private ArrayList machineNames = new ArrayList();
   private String rootName;
-  private StringBuffer computerList = new StringBuffer();
+  private StringBuffer machineList = null;
   
   public ProcesschunksParam(AxisID axisID) {
     this.axisID = axisID;
@@ -63,18 +64,12 @@ public final class ProcesschunksParam {
     command.add("-n");
     command.add(nice.toString());
     command.add("-d");
-    command.add(String.valueOf(5));
+    command.add(String.valueOf(DROP_VALUE));
     command.add("-P");
     //add machine names
-    int size = machineNames.size();
-    if (size > 0) {
-      for (int i = 0; i < size; i++) {
-        if (i > 0) {
-          computerList.append(',');
-        }
-        computerList.append(machineNames.get(i));
-      }
-      command.add(computerList.toString());
+    buildMachineList();
+    if (machineList != null) {
+      command.add(machineList.toString());
     }
     
     command.add(rootName);
@@ -82,6 +77,17 @@ public final class ProcesschunksParam {
     commandArray = new String[commandSize];
     for (int i = 0; i < commandSize; i++) {
       commandArray[i] = (String) command.get(i);
+    }
+  }
+  
+  private final void buildMachineList() {
+    int size = machineNames.size();
+    if (size > 0) {
+      machineList = new StringBuffer((String) machineNames.get(0));
+      for (int i = 1; i < size; i++) {
+        machineList.append(',');
+        machineList.append(machineNames.get(i));
+      }
     }
   }
   
@@ -110,8 +116,14 @@ public final class ProcesschunksParam {
     return rootName;
   }
   
-  public final String getComputerList() {
-    return computerList.toString();
+  public final String getMachineList() {
+    if (machineList == null) {
+      buildMachineList();
+    }
+    if (machineList != null) {
+      return machineList.toString();
+    }
+    return "";
   }
   
   public final void addMachineName(String machineName) {
@@ -123,6 +135,10 @@ public final class ProcesschunksParam {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.3  2005/08/30 18:29:09  sueh
+* <p> bug# 532 Added getComputerList() so ProcesschunksProcessMonitor
+* <p> can figure out which computers it is monitoring.
+* <p>
 * <p> Revision 1.2  2005/08/22 16:05:56  sueh
 * <p> bug# 532 Added the extension to the rootName and getRootName().
 * <p>
