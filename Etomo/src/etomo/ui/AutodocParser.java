@@ -17,7 +17,8 @@ import java.util.Vector;
 * AutodocParser is not case sensitive.  It stores all text in the original case.
 * It retains the original whitespace, except for end of line.  It substitute one
 * space for each end of line character in a multi-line value.  Comments are not
-* stored.  Messages about syntax errors are sent to System.err.
+* stored.  Messages about syntax errors are sent to System.err.  It is extremely
+* important to keep the language definition up to date.
 *
 * To Use:
 * Construct the class with an Autodoc.
@@ -54,7 +55,7 @@ import java.util.Vector;
 * comment => (startOfLine) {1 WHITESPACE 1} COMMENT { \EOL\ } EOL
 * 
 * section => (startOfLine && delimiterInLine) {1 WHITESPACE 1} OPEN 
-*            sectionHeader CLOSE { EmptyLine | attribute }
+*            sectionHeader CLOSE { EmptyLine | comment | attribute }
 * 
 * sectionHeader => (!startOfLine && delimiterInLine) WORD {1 WHITESPACE 1}
 *                  DELIMITER {1 WHITESPACE 1} sectionName
@@ -100,6 +101,13 @@ import java.util.Vector;
 * @version $$Revision$$
 *
 * <p> $$Log$
+* <p> $Revision 1.6  2005/02/15 19:51:54  sueh
+* <p> $bug# 602 Preprocessor:  Converting BREAK token to WORD when it is
+* <p> $not at the beginning of a line.  Converting the spaces following a BREAK
+* <p> $to an INDENT.
+* <p> $Parcer:  Saving BREAKS and INDENTS.  In value(), ignoring
+* <p> $WHITESPACE that preceeds a BREAK.
+* <p> $
 * <p> $Revision 1.5  2004/01/01 00:45:17  sueh
 * <p> $bug# 372 correcting interface name
 * <p> $
@@ -187,16 +195,19 @@ public class AutodocParser {
    * @throws IOException
    */
   public void parse() throws IOException {
+    //System.out.println("0token="+token);
     if (parsed) {
       return;
     }
     parsed = true;
     testStartFunction("parse");
     nextToken();
+    //System.out.println("1token="+token);
     while (!token.is(Token.EOF)) {
       error = false;
       if (emptyLine) {
         nextToken();
+        //System.out.println("2token="+token);
         continue;
       }
       if (testEndFunction(comment())) {
@@ -247,6 +258,7 @@ public class AutodocParser {
    * @throws IOException
    */
   private boolean section() throws IOException {
+    //System.out.println("0token="+token);
     AttributeCollection section = null;
     testStartFunction("section");
     if (!startOfLine) {
@@ -254,6 +266,7 @@ public class AutodocParser {
     }
     if (token.is(Token.WHITESPACE)) {
       nextToken();
+      //System.out.println("1token="+token);
     }
     if (!token.is(Token.OPEN)) {
       return false;
@@ -266,6 +279,7 @@ public class AutodocParser {
       return false;
     }
     nextToken();
+    //System.out.println("2token="+token);
     section = sectionHeader();
     if (testEndFunction(section == null)) {
       return false;
@@ -278,11 +292,13 @@ public class AutodocParser {
       return false;
     }
     nextToken();
+    //System.out.println("3token="+token);
     while (!token.is(Token.EOF)) {
       if (token.is(Token.WHITESPACE) || token.is(Token.EOL) || emptyLine) {
         nextToken();
+        //System.out.println("4token="+token);
       }
-      else {
+      else if (!testEndFunction(comment())) {
         if (!testEndFunction(attribute(section))) {
           return true;
         }
@@ -384,6 +400,7 @@ public class AutodocParser {
    * @throws IOException
    */
   private boolean attribute(AttributeCollection attributeCollection) throws IOException {
+    //System.out.println("0token="+token);
     Attribute attribute = null;
     testStartFunction("attribute");
     if (!delimiterInLine) {
@@ -391,23 +408,29 @@ public class AutodocParser {
         "A multi-line value cannot contain embedded empty lines or comments starting with '"
           + AutodocTokenizer.COMMENT_CHAR
           + "'.");
+      //System.out.println("1return false");
       return false;
     }
     if (!token.is(Token.WORD) && !token.is(Token.KEYWORD)) {
+      //System.out.println("2return false");
+      //new Exception().printStackTrace();
       return false;
     }
     attributeNameStart = token;
     attributeNameEnd = attributeNameStart;
     attribute = (Attribute) attributeCollection.addAttribute(attributeNameStart);
     nextToken();
+    //System.out.println("1token="+token);
     if (token.is(Token.SEPARATOR)) {
       while (token.is(Token.SEPARATOR)) {
         nextToken();
+        //System.out.println("2token="+token);
         if (!testEndFunction(attribute(attribute))) {
           reportError(
             "An attribute names cannot end with a separator ('"
               + AutodocTokenizer.SEPARATOR_CHAR
               + "').");
+          //System.out.println("3return false");
           return false;
         }
       }
@@ -415,17 +438,21 @@ public class AutodocParser {
     else {
       if (token.is(Token.WHITESPACE)) {
         nextToken();
+        //System.out.println("3token="+token);
       }
       if (!token.is(Token.DELIMITER)) {
         reportError(
           "A full-line value cannot contain the delimiter string (\""
             + tokenizer.getDelimiterString()
             + "\").");
+        //System.out.println("4return false");
         return false;
       }
       nextToken();
+      //System.out.println("4token="+token);
       if (token.is(Token.WHITESPACE)) {
         nextToken();
+        //System.out.println("5token="+token);
       }
       boolean oneLine =
         attributeNameStart.equals(
@@ -433,7 +460,6 @@ public class AutodocParser {
           AutodocTokenizer.DELIMITER_KEYWORD);
       testEndFunction(value(attribute, oneLine));
     }
-
     return true;
   }
 
@@ -447,6 +473,7 @@ public class AutodocParser {
    */
   private boolean value(Attribute attribute, boolean oneLine)
     throws IOException {
+    //System.out.println("attribute="+attribute+",oneLine="+oneLine+",token="+token);
     testStartFunction("value");
     valueStart = token;
     valueEnd = valueStart;
@@ -455,6 +482,7 @@ public class AutodocParser {
     while (!token.is(Token.EOL) && !token.is(Token.EOF)) {
       found = true;
       nextToken();
+      //System.out.println("1token="+token);
       valueEnd = valueEnd.setNext(token);
     }
     //{ (!delimiterInLine && !emptyLine && !comment)
@@ -463,6 +491,7 @@ public class AutodocParser {
     //}
     if (!oneLine) {
       nextToken();
+      //System.out.println("2token="+token);
       while (!delimiterInLine
         && !emptyLine
         && !token.is(Token.EOF)
@@ -474,6 +503,7 @@ public class AutodocParser {
           if (token.is(Token.WHITESPACE)) {
             valueEnd = valueEnd.dropFromList();
             nextToken();
+            //System.out.println("3token="+token);
           }
           if (!token.is(Token.BREAK)) {
             reportError("breakInLine is true, but BREAK is missing (" + token + ").");
@@ -481,10 +511,12 @@ public class AutodocParser {
           }
           //found break
           nextToken();
+          //System.out.println("4token="+token);
           valueEnd = valueEnd.setNext(token);
           //find optional indent
           if (token.is(Token.INDENT)) {
             nextToken();
+            //System.out.println("5token="+token);
             valueEnd = valueEnd.setNext(token);
           }
         }
@@ -493,6 +525,7 @@ public class AutodocParser {
           && !token.is(Token.EOF)) {
           found = true;
           nextToken();
+          //System.out.println("6token="+token);
           valueEnd = valueEnd.setNext(token);
         }
         if (token.is(Token.DELIMITER)) {
@@ -504,6 +537,7 @@ public class AutodocParser {
           return false;
         }
         nextToken();
+        //System.out.println("7token="+token);
       }
     }
     if (found) {
@@ -515,6 +549,7 @@ public class AutodocParser {
           tokenizer.setDelimiterString(valueStart.getValue(true));
         }
         nextToken();
+        System.out.println("8token="+token);
       }
 
     }
@@ -579,11 +614,11 @@ public class AutodocParser {
    */
   private void nextToken() throws IOException {
     if (line == null || tokenIndex == line.size()) {
+      if (test && line != null) {
+        printTestLine();
+      }
       preprocess();
       tokenIndex = 0;
-    }
-    if (test && tokenIndex == 0) {
-      printTestLine();
     }
     prevToken = token;
     token = (Token) line.get(tokenIndex);
@@ -688,11 +723,6 @@ public class AutodocParser {
     if (!versionFound) {
       System.err.println();
       System.err.println("Missing meta data:  Version not found.");
-      System.err.println();
-    }
-    if (!pipFound) {
-      System.err.println();
-      System.err.println("Missing meta data:  Pip not found.");
       System.err.println();
     }
   }
