@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/31/05: IMOD_3-6-13
+8/31/05: Various eTomo bugs fixed.
+
 8/24/05: IMOD_3-6-12
 8/24/05: Fixed processchunk's ability to kill jobs by adding a new script
 to kill the process group, using system-dependent ps commands, and got it
