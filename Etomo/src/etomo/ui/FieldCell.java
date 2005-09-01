@@ -21,6 +21,10 @@ import etomo.type.EtomoNumber;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.8  2005/08/27 22:36:43  sueh
+ * <p> bug# 532 Added isEmpty(), which returns true for a field that is empty or
+ * <p> only contains whitespace.
+ * <p>
  * <p> Revision 1.7  2005/08/04 20:10:05  sueh
  * <p> bug# 532 added getWidth().
  * <p>
@@ -106,6 +110,14 @@ class FieldCell extends InputCell {
       textField.setText(value);
     }
   }
+  
+  final void setValue() {
+    String value = "";
+    hiddenValue = value;
+    if (!hideValue) {
+      textField.setText(value);
+    }
+  }
 
   final void setValue(int value) {
     setValue(new Integer(value).toString());
@@ -117,10 +129,6 @@ class FieldCell extends InputCell {
   
   final void setValue(long value) {
     setValue(new Long(value).toString());
-  }
-
-  final void setValueEmpty() {
-    setValue("");
   }
 
   final String getValue() {
