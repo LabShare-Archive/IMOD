@@ -18,6 +18,10 @@ import java.util.Vector;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.7  2005/08/31 17:19:36  sueh
+* <p> bug# 532 Ack!  Have to reindex the hashtable when remove an element
+* <p> from the array.
+* <p>
 * <p> Revision 1.6  2005/08/30 19:24:34  sueh
 * <p> bug# 532 Changed class so a remove(Object key) function could be added.
 * <p> Using valueArray (an array of values) and indexMap (a hashtable to the
@@ -56,6 +60,29 @@ public class HashedArray {
   private final Hashtable indexMap = new Hashtable();
   private final Vector elementArray = new Vector();
   
+  void selfTestInvariants() {
+    if (!Utilities.isSelfTest()) {
+      return;
+    }
+    //collections should be the same size
+    if (indexMap.size() != elementArray.size()) {
+      throw new IllegalStateException("sizes are different:" + "indexMap="
+          + indexMap.size() + ",elementArray=" + elementArray.size());
+    }
+    for (int i = 0; i < elementArray.size(); i++) {
+      Element element = (Element) elementArray.get(i);
+      if (!indexMap.containsKey(element.key)) {
+        throw new IllegalStateException(
+            "a key in elementArray is not in indexMap:" + "element=" + element);
+      }
+      Integer index = (Integer) indexMap.get(element.key);
+      if (index.intValue() != i) {
+        throw new IllegalStateException("indexMap contains the wrong index:"
+            + "element=" + element + "index=" + index + "i=" + i);
+      }
+    }
+  }
+  
   /**
    * Add a new value with unique key is creates from keyName
    * @param keyName
@@ -68,6 +95,7 @@ public class HashedArray {
     }
     elementArray.add(new Element(key, value));
     indexMap.put(key, new Integer(elementArray.size() - 1));
+    selfTestInvariants();
   }
   
   public synchronized void add(Object key) {
@@ -78,6 +106,9 @@ public class HashedArray {
     if (key == null) {
       return;
     }
+    if (!indexMap.containsKey(key)) {
+      return;
+    }
     int index = ((Integer) indexMap.remove(key)).intValue();
     elementArray.remove(index);
     //reindex
@@ -86,6 +117,7 @@ public class HashedArray {
       indexMap.remove(currentKey);
       indexMap.put(currentKey, new Integer(i));
     }
+    selfTestInvariants();
   }
   
   public synchronized Object get(Object key) {
@@ -117,6 +149,10 @@ public class HashedArray {
     private Element(Object key, Object value) {
       this.key = key;
       this.value = value;
+    }
+    
+    public String toString() {
+      return "[key=" + key + ",value=" + value + "]";
     }
   }
 }
