@@ -28,6 +28,8 @@ import etomo.type.ProcessName;
 import etomo.type.UserConfiguration;
 import etomo.ui.LoadAverageDisplay;
 import etomo.ui.MainPanel;
+import etomo.ui.ParallelDialog;
+import etomo.ui.ParallelPanel;
 import etomo.ui.UIHarness;
 import etomo.util.Utilities;
 
@@ -45,6 +47,10 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.26  2005/08/22 22:04:35  sueh
+* <p> bug# 714 Added makeCurrent() to set the user.dir property when the
+* <p> manager is switched.
+* <p>
 * <p> Revision 1.25  2005/08/22 15:57:13  sueh
 * <p> bug# 532 Added start and stop GetLoadAverage() to send load
 * <p> information to a LoadAverageDisplay.
@@ -279,8 +285,9 @@ public abstract class BaseManager {
   protected boolean backgroundProcessA = false;
   protected String backgroundProcessNameA = null;
   protected String propertyUserDir = null;//working directory for this manager
+  protected ParallelPanel parallelPanelA = null;
+  protected ParallelPanel parallelPanelB = null;
 
-  
   //private static variables
   private static boolean debug = false;
 
@@ -778,5 +785,18 @@ public abstract class BaseManager {
     else {
       System.setProperty("user.dir", propertyUserDir);
     }
+  }
+  
+  public final ParallelPanel getParallelPanel(ParallelDialog parent, AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      if (parallelPanelB == null) {
+        parallelPanelB = new ParallelPanel(this, parent, axisID);
+      }
+      return parallelPanelB;
+    }
+    if (parallelPanelA == null) {
+      parallelPanelA = new ParallelPanel(this, parent, axisID);
+    }
+    return parallelPanelA;
   }
 }
