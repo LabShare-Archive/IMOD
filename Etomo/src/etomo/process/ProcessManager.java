@@ -20,6 +20,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.77  2005/08/30 18:51:33  sueh
+ * bug# 532 Added computerList to ProcesschunksProcessMonitor
+ * constructor.
+ *
  * Revision 3.76  2005/08/24 22:36:29  sueh
  * bug# 715 Passing the param to crossCorrelate() and preblend() so it can
  * be used in postProcess() and errorProcess().  Use TiltxcorrParam when
@@ -1288,7 +1292,7 @@ public class ProcessManager extends BaseProcessManager {
       throws SystemProcessException {
     //  Instantiate the process monitor
     ProcesschunksProcessMonitor monitor = new ProcesschunksProcessMonitor(
-        appManager, axisID, parallelProgressDisplay, param.getRootName(), param.getComputerList());
+        appManager, axisID, parallelProgressDisplay, param.getRootName(), param.getMachineList());
 
     BackgroundProcess process = startInteractiveBackgroundProcess(param.getCommand(), axisID,
         monitor);
