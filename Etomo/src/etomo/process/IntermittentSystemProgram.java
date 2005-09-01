@@ -200,9 +200,24 @@ public class IntermittentSystemProgram implements Runnable {
     }
     return outputSection;
   }
+  
+  final void setCurrentStdInput(String input) {
+    if (program == null || stopped) {
+      return;
+    }
+    try {
+      program.setCurrentStdInput(input);
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
 }
 /**
 * <p> $Log$
+* <p> Revision 1.6  2005/08/31 17:16:33  sueh
+* <p> bug# 532 Allow monitor to call the stop(SystemProgramMonitor).
+* <p>
 * <p> Revision 1.5  2005/08/30 23:33:50  sueh
 * <p> bug# 532 Telling monitors that intermittent command was sent.
 * <p>
