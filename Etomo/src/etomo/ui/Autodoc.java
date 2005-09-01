@@ -141,7 +141,7 @@ public class Autodoc implements AttributeCollection {
       return beadtrack;
     }
     if (name.equals(CPU)) {
-      cpu = getAutodoc(cpu, name, axisID);
+      cpu = getAutodoc(cpu, name, axisID, "IMOD_CALIB_DIR");
       return cpu;
     }
     throw new IllegalArgumentException("Illegal autodoc name: " + name + ".");
@@ -309,17 +309,29 @@ public class Autodoc implements AttributeCollection {
   }
 
   private static Autodoc getAutodoc(Autodoc autodoc, String name, AxisID axisID)
+  throws FileNotFoundException, IOException {
+    return getAutodoc(autodoc, name, axisID, null);
+  }
+  
+  private static Autodoc getAutodoc(Autodoc autodoc, String name, AxisID axisID, String envVariable)
     throws FileNotFoundException, IOException {
     if (autodoc == null) {
-      autodoc = new Autodoc(name, axisID);
+      autodoc = new Autodoc(name, axisID, envVariable);
       autodoc.initialize();
     }
     return autodoc;
   }
-
-  private Autodoc(String name, AxisID axisID) {
+  
+  private Autodoc(String name, AxisID axisID, String envVariable) {
     fileName = new String(name + fileExt);
-    String dirName = new String(Utilities.getEnvironmentVariable(null, AUTODOC_DIR,
+    String dirName = new String(Utilities.getEnvironmentVariable(null, envVariable,
+        axisID));
+    file = new File(dirName, fileName);
+    if (file.exists()) {
+      return;
+    }
+    fileName = new String(name + fileExt);
+    dirName = new String(Utilities.getEnvironmentVariable(null, AUTODOC_DIR,
         axisID));
     file = new File(dirName, fileName);
     if (file.exists()) {
@@ -382,6 +394,10 @@ public class Autodoc implements AttributeCollection {
 }
 /**
 *<p> $$Log$
+*<p> $Revision 1.17  2005/08/27 22:34:44  sueh
+*<p> $bug# 532 Added cpu.adoc.  Added getAttribute(String name) to get the
+*<p> $file level attributes.
+*<p> $
 *<p> $Revision 1.16  2005/07/29 00:53:55  sueh
 *<p> $bug# 709 Going to EtomoDirector to get the current manager is unreliable
 *<p> $because the current manager changes when the user changes the tab.
