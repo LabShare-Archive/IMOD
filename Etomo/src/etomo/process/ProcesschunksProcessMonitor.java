@@ -137,10 +137,17 @@ public class ProcesschunksProcessMonitor implements ParallelProcessMonitor {
           chunksFinished.set(strings[0]);
           returnValue = true;
         }
-        //handle a dropped CPU
         else if (strings.length > 1) {
           if (line.startsWith("Dropping")) {
-            parallelProgressDisplay.drop(strings[1]);
+            //handle a dropped CPU
+            String reason;
+            if (line.indexOf("as requested") != -1) {
+              reason = "not responding";
+            }
+            else {
+              reason = "timeouts";
+            }
+            parallelProgressDisplay.msgDropped(strings[1], reason);
           }
           //handle a finished chunk
           else if (strings[1].equals("finished")) {
@@ -217,17 +224,20 @@ public class ProcesschunksProcessMonitor implements ParallelProcessMonitor {
   }
   
   public final void drop(String computer) {
-    if (EtomoDirector.getInstance().isDebug()) {
-      System.err.println("drop " + computer);
-    }
     if (computerList.indexOf(computer) != -1) {
+      if (EtomoDirector.getInstance().isDebug()) {
+        System.err.println("try to drop " + computer);
+      }
       dropComputer = computer;
+      process.signalInterrupt(axisID);
     }
-    process.signalInterrupt(axisID);
   }
 }
 /**
 * <p> $Log$
+* <p> Revision 1.6  2005/08/30 22:41:45  sueh
+* <p> bug# 532 Added error log print statement to drop().
+* <p>
 * <p> Revision 1.5  2005/08/30 18:50:23  sueh
 * <p> bug# 532 Added drop(String computer).  Added dropComputer which is set
 * <p> while waiting for the interrupt to happen.  Added computerList so that
