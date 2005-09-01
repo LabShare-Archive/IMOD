@@ -16,6 +16,9 @@ import etomo.process.ParallelProcessMonitor;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.6  2005/08/30 19:22:08  sueh
+* <p> bug# 532 Added setParallelProcessMonitor() to set a monitor in the display.
+* <p>
 * <p> Revision 1.5  2005/08/22 18:09:55  sueh
 * <p> bug# 532 Added setPausedEnabled, to control pause button.  Added
 * <p> msgInterruptingProcess().
@@ -44,7 +47,7 @@ public interface ParallelProgressDisplay {
   public int getCPUsSelected();
   public void addSuccess(String computer);
   public void addRestart(String computer);
-  public void drop(String computer);
+  public void msgDropped(String computer, String reason);
   public void setPauseEnabled(boolean pauseEnabled);
   public void msgInterruptingProcess();
   public void setParallelProcessMonitor(ParallelProcessMonitor monitor);
