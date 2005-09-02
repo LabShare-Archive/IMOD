@@ -166,7 +166,9 @@ public class IntermittentSystemProgram implements Runnable {
       }
     }
     try {
-      program.setCurrentStdInput(command.getEndCommand());
+      if (program != null && command != null) {
+        program.setCurrentStdInput(command.getEndCommand());
+      }
     }
     catch (IOException e) {
       e.printStackTrace();
@@ -215,6 +217,10 @@ public class IntermittentSystemProgram implements Runnable {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.7  2005/09/01 17:50:10  sueh
+* <p> bug# 532 Added setCurrentStdInput() to allow load average monitor to
+* <p> confirm the connect, the first time a connect between computers is made.
+* <p>
 * <p> Revision 1.6  2005/08/31 17:16:33  sueh
 * <p> bug# 532 Allow monitor to call the stop(SystemProgramMonitor).
 * <p>
