@@ -4888,7 +4888,7 @@ public class ApplicationManager extends BaseManager {
    * Open the trimmed volume in 3dmod
    */
   public void imodTrimmedVolume(Run3dmodMenuOptions menuOptions) {
-    TrimvolParam trimvolParam = new TrimvolParam(propertyUserDir);
+    TrimvolParam trimvolParam = new TrimvolParam(this);
     postProcessingDialog.getTrimvolParams(trimvolParam);
     try {
       imodManager.setSwapYZ(ImodManager.TRIMMED_VOLUME_KEY, !trimvolParam
@@ -5004,7 +5004,7 @@ public class ApplicationManager extends BaseManager {
    */
   protected TrimvolParam updateTrimvolParam() {
     //Get trimvol param data from dialog.
-    TrimvolParam dialogTrimvolParam = new TrimvolParam(propertyUserDir);
+    TrimvolParam dialogTrimvolParam = new TrimvolParam(this);
     postProcessingDialog.getTrimvolParams(dialogTrimvolParam);
     //Get the metadata trimvol param.
     TrimvolParam trimvolParam = metaData.getTrimvolParam();
@@ -5652,6 +5652,10 @@ public class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.174  2005/08/25 01:43:45  sueh
+ * <p> bug# 688 calling updateBlendmontInXcorr from doneCoarseAlignment to
+ * <p> make sure that xcorr is properly updated
+ * <p>
  * <p> Revision 3.173  2005/08/24 22:28:24  sueh
  * <p> bug# 715 Passing the param to crossCorrelate() so it can be used in
  * <p> postProcess() and errorProcess().  Use TiltxcorrParam when blendmont
