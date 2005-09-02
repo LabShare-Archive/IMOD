@@ -11,6 +11,11 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.9  2005/01/08 01:40:34  sueh
+ * <p> bug# 578 Create 2 modes - whole tomo sample and full aligned stack.
+ * <p> Implement Command.  Add fiducialessAlignment variable and make it
+ * <p> available through the Command interface.
+ * <p>
  * <p> Revision 3.8  2004/06/24 22:22:59  sueh
  * <p> bug# 451 switching to short param names
  * <p>
@@ -207,6 +212,10 @@ public class NewstParam extends ConstNewstParam implements CommandParam {
           i++;
           testLimits.validateAndSet(cmdLineArgs[i]);
         }
+        else if (cmdLineArgs[i].toLowerCase().startsWith("-grad")) {
+          i++;
+          magGradientFile = cmdLineArgs[i];
+        }
         else {
           String message = "Unknown argument: " + cmdLineArgs[i];
           throw new InvalidParameterException(message);
@@ -323,6 +332,10 @@ public class NewstParam extends ConstNewstParam implements CommandParam {
     if (!parameterFile.equals("")) {
       cmdLineArgs.add("-param");
       cmdLineArgs.add(parameterFile);
+    }
+    if (magGradientFile != null && !magGradientFile.matches("\\s*+")) {
+      cmdLineArgs.add("-grad");
+      cmdLineArgs.add(magGradientFile);
     }
     int nArgs = cmdLineArgs.size();
     scriptCommand.setCommandLineArgs((String[]) cmdLineArgs

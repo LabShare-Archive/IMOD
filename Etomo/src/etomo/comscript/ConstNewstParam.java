@@ -20,6 +20,9 @@ import etomo.type.EtomoNumber;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.8  2005/08/25 01:47:18  sueh
+ * <p> bug# 716 preventing index error in getOutputFile()
+ * <p>
  * <p> Revision 3.7  2005/06/10 22:45:08  sueh
  * <p> Added GET_BINNING
  * <p>
@@ -123,6 +126,7 @@ public class ConstNewstParam implements Command {
   protected String parameterFile;
   protected boolean fiducialessAlignment;
   protected int commandMode;
+  protected String magGradientFile;
   
   private AxisID axisID;
   
@@ -351,6 +355,7 @@ public class ConstNewstParam implements Command {
     testLimits.setIntegerType(bothTrue);
     parameterFile = "";
     fiducialessAlignment = false;
+    magGradientFile = null;
   }
   
   public static String getCommandFileName(AxisID axisID) {
