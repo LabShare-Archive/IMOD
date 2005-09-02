@@ -11,6 +11,11 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.9  2005/07/29 00:50:21  sueh
+ * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
+ * <p> because the current manager changes when the user changes the tab.
+ * <p> Passing the manager where its needed.
+ * <p>
  * <p> Revision 3.8  2005/06/20 16:41:16  sueh
  * <p> bug# 522 Made MRCHeader an n'ton.  Getting instance instead of
  * <p> constructing in setDefaultRange().
@@ -143,11 +148,10 @@ public class TrimvolParam implements Command {
   private String outputFile = "";
   private String[] commandArray;
   private AxisID axisID;
-  private final String propertyUserDir;
+  private final BaseManager manager;
   
-  public TrimvolParam(String propertyUserDir, AxisID axisID) {
-    this.propertyUserDir = propertyUserDir;
-    this.axisID = axisID;
+  public TrimvolParam(BaseManager manager) {
+    this.manager = manager;
   }
   
   public AxisID getAxisID() {
@@ -306,10 +310,6 @@ public class TrimvolParam implements Command {
    */
   public void setConvertToBytes(boolean convertToBytes) {
     this.convertToBytes = convertToBytes;
-  }
-
-  public TrimvolParam(String propertyUserDir) {
-    this.propertyUserDir = propertyUserDir;
   }
   
   private void createCommand() {
@@ -564,7 +564,7 @@ public class TrimvolParam implements Command {
       return;
     }
     // Get the data size limits from the image stack
-    MRCHeader mrcHeader = MRCHeader.getInstance(propertyUserDir, fileName, AxisID.ONLY);
+    MRCHeader mrcHeader = MRCHeader.getInstance(manager.getPropertyUserDir(), fileName, AxisID.ONLY);
     mrcHeader.read();
 
     xMin = 1;

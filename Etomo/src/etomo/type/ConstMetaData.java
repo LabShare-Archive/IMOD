@@ -88,7 +88,7 @@ public abstract class ConstMetaData extends BaseMetaData {
     this.manager = manager;
     squeezevolParam = new SqueezevolParam(manager);
     combineParams = new CombineParams(manager);
-    trimvolParam = new TrimvolParam(manager.getPropertyUserDir());
+    trimvolParam = new TrimvolParam(manager);
     transferfidParamA = new TransferfidParam(manager, AxisID.FIRST);
     transferfidParamB = new TransferfidParam(manager, AxisID.SECOND);
     fileExtension = ".edf";
@@ -628,6 +628,10 @@ public abstract class ConstMetaData extends BaseMetaData {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.27  2005/08/22 17:10:27  sueh
+ * <p> bug# 532 Added a member variable to save the setting of the gen tomo
+ * <p> parallel process checkbox.
+ * <p>
  * <p> Revision 3.26  2005/07/29 00:53:15  sueh
  * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
  * <p> because the current manager changes when the user changes the tab.
