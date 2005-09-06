@@ -17,13 +17,13 @@ DDEESSCCRRIIPPTTIIOONN
   high Z end, so that the length calculation will include the
   thickness of every section in which a contour appears.
   
-  If the sections were significantly tilted during microscopy, the
-  program can adjust for these tilts given the proper information.
-  Prepare a file in which the first line shows the Z value and the
-  tilt of the first tilted section (or of the first section, if that
-  one was tilted), and each successive line shows the Z value and tilt
-  for each section on which tilt was changed.  Z values should occur in
-  ascending order.
+  If the reconstruction is from serial sections that were significantly tilted
+  during microscopy, the program can adjust for these tilts given the proper
+  information.  Prepare a file in which the first line shows the Z value and
+  the tilt of the first tilted section (or of the first section, if that one
+  was tilted), and each successive line shows the Z value and tilt for each
+  section on which tilt was changed.  Z values should occur in ascending
+  order.
 
   If the contours are mainly perpendicular in the model (e.g.,
   microtubules in good cross-section in tilted images), then this simple
@@ -48,6 +48,9 @@ DDEESSCCRRIIPPTTIIOONN
   in the tilt file, and the fraction of segments that are longer with the
   angles as specified will be greater than 0.5.
 
+  These adjustments for tilting are irrelevant for a tomographic
+  reconstruction.
+
   The program can also be provided with an object containing a contour
   that serves as a length marker.  It will report the length of this
   contour both without and with the correction for obliqueness, and with
@@ -67,11 +70,10 @@ DDEESSCCRRIIPPTTIIOONN
   necessary, the desired lengths will be in the fourth column.
 
   Mtlengths uses the PIP package for input (see the manual page for pip(1))
-  and can take input interactively only for specifying manual replacement
-  with a model file, to maintain compatibility with old command files.  The
-  following options can be specified either as command line arguments (with
-  the -) or one per line in a command file or parameter file (without 
-  the -):
+  and can take input interactively if correction for obliqueness is not
+  required.  The following options can be specified either as command line
+  arguments (with the -) or one per line in a command file or parameter file
+  (without the -):
 
 INSERT OPTION TEXT HERE
 
