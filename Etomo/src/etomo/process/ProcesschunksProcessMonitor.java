@@ -1,11 +1,17 @@
 package etomo.process;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+
 import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.type.AxisID;
 import etomo.type.EtomoNumber;
 import etomo.type.ProcessEndState;
 import etomo.ui.ParallelProgressDisplay;
+import etomo.util.DatasetFiles;
 import etomo.util.Utilities;
 
 /**
@@ -39,7 +45,9 @@ public class ProcesschunksProcessMonitor implements ParallelProcessMonitor {
   private final String rootName;
   private final String computerList;
   private String lastChunkError = null;
-  private String dropComputer = null;
+  private File commandsPipe = null;
+  private BufferedWriter commandsWriter = null;
+  private boolean useCommandsPipe = true;
 
   /**
    * Default constructor
@@ -63,13 +71,15 @@ public class ProcesschunksProcessMonitor implements ParallelProcessMonitor {
   }
   
   public void run() {
+    //make sure commmandsPipe is deleted and enable its use
+    deleteCommandsPipe(true);
     nChunks.set(0);
     chunksFinished.set(0);
     initializeProgressBar();
     try {
       while (process == null || !process.isDone()) {
-        Thread.sleep(500);
-        if (updateState()) {
+        Thread.sleep(2000);
+        if (updateState() || setProgressBarTitle) {
           updateProgressBar();
         }
       }
@@ -81,9 +91,11 @@ public class ProcesschunksProcessMonitor implements ParallelProcessMonitor {
     }
     parallelProgressDisplay.setParallelProcessMonitor(null);
     setProcessEndState(ProcessEndState.DONE);
+    //make sure commmandsPipe is deleted and disable its use
+    deleteCommandsPipe(false);
   }
   
-  protected boolean updateState() {
+  protected final boolean updateState() {
     String stdOutput[] = process.getCurrentStdOutput();
     boolean returnValue = false;
     if (stdOutput == null || lastOutputLine >= stdOutput.length) {
@@ -92,27 +104,10 @@ public class ProcesschunksProcessMonitor implements ParallelProcessMonitor {
     for (int i = lastOutputLine + 1; i < stdOutput.length; i++) {
       lastOutputLine = i;
       String line = stdOutput[i].trim();
-      //if (EtomoDirector.getInstance().isDebug()) {
+      if (EtomoDirector.getInstance().isDebug()) {
         System.err.println(line);
-      //}
-      if (line.startsWith("Q to kill all jobs and quit")) {
-        if (dropComputer != null) {
-          //
-          String computer = dropComputer;
-          dropComputer = null;
-          process.setCurrentStdInput("D " + computer);
-        }
-        //handle pause and kill
-        if (endState == ProcessEndState.KILLED) {
-          process.setCurrentStdInput("Q");
-        }
-        else if (endState == ProcessEndState.PAUSED) {
-          process.setCurrentStdInput("P");
-        }
-        setProgressBarTitle = true;
-        returnValue = true;
       }
-      else if (line.startsWith(BaseProcessManager.CHUNK_ERROR_TAG)) {
+      if (line.startsWith(BaseProcessManager.CHUNK_ERROR_TAG)) {
         lastChunkError = line;
       }
       else if (line.endsWith("to reassemble")) {
@@ -198,21 +193,36 @@ public class ProcesschunksProcessMonitor implements ParallelProcessMonitor {
       title.append(":  reassembling");
     }
     if (endState == ProcessEndState.PAUSED) {
-      title.append(" - pausing");
+      title.append(" - finishing current chunks");
     }
     manager.getMainPanel().setProgressBar(title.toString(), nChunks.getInt(), axisID, !reassembling);
   }
   
   public void kill(SystemProcessInterface process, AxisID axisID) {
+    //will write to commands pipe, so must check done
     endState = ProcessEndState.KILLED;
-    process.signalInterrupt(axisID);
-    parallelProgressDisplay.msgInterruptingProcess();
+    //process.signalInterrupt(axisID);
+    try {
+      writeCommand("Q");
+      parallelProgressDisplay.msgInterruptingProcess();
+      setProgressBarTitle = true;
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+    }
   }
   
   public void pause(SystemProcessInterface process, AxisID axisID) {
     endState = ProcessEndState.PAUSED;
-    process.signalInterrupt(axisID);
-    parallelProgressDisplay.msgInterruptingProcess();
+    //process.signalInterrupt(axisID);
+    try {
+      writeCommand("P");
+      parallelProgressDisplay.msgInterruptingProcess();
+      setProgressBarTitle = true;
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+    }
   }
   
   public String getStatusString() {
@@ -228,13 +238,84 @@ public class ProcesschunksProcessMonitor implements ParallelProcessMonitor {
       if (EtomoDirector.getInstance().isDebug()) {
         System.err.println("try to drop " + computer);
       }
-      dropComputer = computer;
-      process.signalInterrupt(axisID);
+      //dropComputer = computer;
+      //process.signalInterrupt(axisID);
+      try {
+        writeCommand("D " + computer);
+        setProgressBarTitle = true;
+      }
+      catch (IOException e) {
+        e.printStackTrace();
+      }
     }
+  }
+  
+  /**
+   * make sure the commandsPipe file is deleted and enable/disable its use
+   * synchronized with createCommandsWriter
+   * synchronization is for useCommandsPipe and commmandsPipe
+   * @param startup
+   */
+  private synchronized final void deleteCommandsPipe(boolean enable) {
+    if (!enable) {
+      //turn off useCommandsPipe to prevent use of commandsPipe
+      useCommandsPipe = false;
+    }
+    //delete the commands pipe even if it was never created (just to be sure)
+    if (commandsPipe == null) {
+      commandsPipe = DatasetFiles.getCommandsFile(manager, rootName);
+    }
+    commandsPipe.delete();
+    if (enable) {
+      //turn on useCommandsPipe to enable use of commandsPipe
+      useCommandsPipe = true;
+    }
+  }
+  
+  /**
+   * creates commandsWriter and, if necessary, commandsPipe and the commandsPipe
+   * file.
+   * synchronized with deleteCommandsPipe
+   * synchronization is for useCommandsPipe and commmandsPipe
+   * @return true if commandsWriter can be used
+   * @throws IOException
+   */
+  private synchronized final boolean createCommandsWriter() throws IOException {
+    if (!useCommandsPipe) {
+      commandsWriter = null;
+      return false;
+    }
+    if (commandsWriter != null) {
+      return true;
+    }
+    if (commandsPipe == null) {
+      commandsPipe = DatasetFiles.getCommandsFile(manager, rootName); 
+    }
+    commandsPipe.createNewFile();
+    commandsWriter = new BufferedWriter(new FileWriter(commandsPipe));
+    return true;
+  }
+  
+  /**
+   * create commandsWriter if necessary, write command, add newline, flush
+   * @param command
+   * @throws IOException
+   */
+  private final void writeCommand(String command) throws IOException {
+    if (!createCommandsWriter()) {
+      return;
+    }
+    commandsWriter.write(command);
+    commandsWriter.newLine();
+    commandsWriter.flush();
   }
 }
 /**
 * <p> $Log$
+* <p> Revision 1.7  2005/09/01 17:54:58  sueh
+* <p> bug# 532 handle multiple drop reasons.  Fix drop function:  use interrupt
+* <p> signal only when the computer is recognized.
+* <p>
 * <p> Revision 1.6  2005/08/30 22:41:45  sueh
 * <p> bug# 532 Added error log print statement to drop().
 * <p>
