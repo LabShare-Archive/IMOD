@@ -49,9 +49,22 @@ public final class DatasetFiles {
     }
     return Utilities.getFile(manager.getPropertyUserDir(), ".rec");
   }
+  
+  public final static File getCommandsFile(BaseManager manager, String rootName) {
+    return new File(manager.getPropertyUserDir(), getCommandsFileName(rootName));
+  }
+  
+  public final static String getCommandsFileName(String rootName) {
+    return rootName + ".cmds";
+  }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.2  2005/07/29 00:55:00  sueh
+ * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
+ * <p> because the current manager changes when the user changes the tab.
+ * <p> Passing the manager where its needed.
+ * <p>
  * <p> Revision 1.1  2005/07/20 17:55:37  sueh
  * <p> bug# 700 Class containing static functions which can return all the
  * <p> different files of files in a dataset by description and encapsulates the
