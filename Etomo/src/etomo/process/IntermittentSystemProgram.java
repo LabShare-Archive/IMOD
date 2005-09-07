@@ -184,23 +184,11 @@ public class IntermittentSystemProgram implements Runnable {
     return key;
   }
   
-  final String[] getStdOutput(int index) {
+  final String[] getStdOutput() {
     if (program == null) {
       return null;
     }
-    String[] output = program.getStdOutput();
-    if (output == null) {
-      return null;
-    }
-    if (index >= output.length) {
-      return null;
-    }
-    String[] outputSection = new String[output.length - index];
-    int sectionIndex = 0;
-    for (int i = index; i < output.length; i++) {
-      outputSection[sectionIndex++] = output[i];
-    }
-    return outputSection;
+    return program.getStdOutput();
   }
   
   final void setCurrentStdInput(String input) {
@@ -217,6 +205,9 @@ public class IntermittentSystemProgram implements Runnable {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.8  2005/09/02 18:58:42  sueh
+* <p> bug# 532 removed a null pointer exception problem from run().
+* <p>
 * <p> Revision 1.7  2005/09/01 17:50:10  sueh
 * <p> bug# 532 Added setCurrentStdInput() to allow load average monitor to
 * <p> confirm the connect, the first time a connect between computers is made.
