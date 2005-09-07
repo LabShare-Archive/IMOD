@@ -6,6 +6,7 @@ import etomo.BaseManager;
 import etomo.type.AxisID;
 import etomo.type.EtomoBoolean2;
 import etomo.type.EtomoNumber;
+import etomo.util.DatasetFiles;
 
 /**
 * <p>Description: Command line for processchunks.  Assumes that it will be run
@@ -65,6 +66,8 @@ public final class ProcesschunksParam {
     command.add(nice.toString());
     command.add("-d");
     command.add(String.valueOf(DROP_VALUE));
+    command.add("-c");
+    command.add(DatasetFiles.getCommandsFileName(rootName));
     command.add("-P");
     //add machine names
     buildMachineList();
@@ -135,6 +138,10 @@ public final class ProcesschunksParam {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.4  2005/09/01 17:46:56  sueh
+* <p> bug# 532 Make the drop value available publicly.  Change
+* <p> getComputerList() to getMachineList and fix it.
+* <p>
 * <p> Revision 1.3  2005/08/30 18:29:09  sueh
 * <p> bug# 532 Added getComputerList() so ProcesschunksProcessMonitor
 * <p> can figure out which computers it is monitoring.
