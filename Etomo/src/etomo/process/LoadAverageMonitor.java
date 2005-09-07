@@ -74,22 +74,25 @@ public class LoadAverageMonitor implements SystemProgramMonitor {
   }
   
   private void processData(ProgramState programState) {
-    String[] output = programState.program
-        .getStdOutput(programState.stdOutputIndex);
+    String[] output = programState.program.getStdOutput();
     if (output == null) {
       return;
     }
-    programState.stdOutputIndex += output.length;
-    for (int i = 0; i < output.length; i++) {
-      if (output[i].indexOf("load average") != -1) {
-        programState.waitForCommand--;
-        String[] array = output[i].trim().split("\\s+");
-        display.setLoadAverage(programState.program.getKey(),
-            getLoad(array[array.length - 3]), getLoad(array[array.length - 2]),
-            getLoad(array[array.length - 1]));
-      }
-      else if (output[i].indexOf("authenticity of host") != -1) {
-        programState.program.setCurrentStdInput("yes");
+    if (programState.lastStdOutputLength < output.length) {
+      int outputStart = programState.lastStdOutputLength;
+      programState.lastStdOutputLength = output.length;
+      for (int i = outputStart; i < output.length; i++) {
+        if (output[i].indexOf("load average") != -1) {
+          programState.waitForCommand--;
+          String[] array = output[i].trim().split("\\s+");
+          display.setLoadAverage(programState.program.getKey(),
+              getLoad(array[array.length - 3]),
+              getLoad(array[array.length - 2]),
+              getLoad(array[array.length - 1]));
+        }
+        else if (output[i].indexOf("authenticity of host") != -1) {
+          programState.program.setCurrentStdInput("yes");
+        }
       }
     }
   }
@@ -115,7 +118,7 @@ public class LoadAverageMonitor implements SystemProgramMonitor {
   
   private final class ProgramState {
     private final IntermittentSystemProgram program;
-    private int stdOutputIndex = 0;
+    private int lastStdOutputLength = 0;
     private boolean stopped = false;
     private int waitForCommand = 0;
     
@@ -126,6 +129,11 @@ public class LoadAverageMonitor implements SystemProgramMonitor {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.5  2005/09/01 17:52:43  sueh
+* <p> bug# 532 Set waitForCommand to 0 after the problem is found.  Clear the
+* <p> load averages on the display when the connection is cut.  Handle first time
+* <p> connections between computers.
+* <p>
 * <p> Revision 1.4  2005/08/31 17:18:24  sueh
 * <p> bug# 532 Handle an unresponsive computer by dropping from
 * <p> processchunks after 12 unresponses.
