@@ -27,6 +27,7 @@ Will process multiple command files on multiple processors or machines
     -g     Go process, without asking for confirmation after probing machines
     -n #   Set the "nice" value to the given number (default $nice, range 0-19)
     -d #   Drop a machine after given number of failures in a row (default $dropcrit)
+    -c name  Check file "name" for commands P, Q, and D
     -P     Output process ID
 EOF
 exit 0
@@ -39,6 +40,7 @@ endif
 set retain = 0
 set justgo = 0
 set skipprobe = 0
+set checkfile = ""
 
 while ($#argv > 2)
   switch ($argv[1])
@@ -66,6 +68,11 @@ while ($#argv > 2)
       echo2 Shell PID: $$
       set skipprobe = 1
       shift
+      breaksw
+
+    case -c:
+      set checkfile = $argv[2]
+      shift ; shift
       breaksw
 
     default:
@@ -108,6 +115,7 @@ set curdir = `pwd | sed -e "/localscratch/s//scratch\/$hostroot/" -e "/ /s//\\ /
 # probe machines and get all the verifications unless etomo is running it
 #
 if ($skipprobe == 0 || $justgo == 0) then
+    if ("$checkfile" != "" && -e "$checkfile") \rm -f $checkfile
     echo "Probing machine connections and loads..."
     @ num = 0
     set newlist = ()
@@ -236,6 +244,7 @@ echo $numdone OF $#comlist DONE SO FAR
 set anydone = 0
 @ holdcrit = ($#machines + 1) / 2
 set pausing = 0
+@ checkline = 0
 
 continue:
 
@@ -399,12 +408,38 @@ while ($numdone < $#comlist)
         @ nextsync = $#comlist + 2
         @ numdone++
     endif
+    
+    # Check the check file now
+    #
+    if ("$checkfile" != "" && -r "$checkfile") then
+        set checkwc = `wc -l $checkfile`
+        @ checklen = $checkwc[1]
+        if ($checklen > $checkline) then
+            @ checkline++
+            set comline = `tail -n +$checkline $checkfile | head -n 1`
+            if ($#comline > 0) then
+                set ans = $comline[1]
+                if ("$ans" == "P" || "$ans" == "Q" || \
+                    ("$ans" == "D" && $#comline > 1)) then
+                    if ("$ans" == "D") then
+                        shift comline
+                        set drops = `echo $comline | sed '/,/s// /g'`
+                    endif
+                    goto command
+                else
+                    echo "BAD COMMAND IGNORED: $comline"
+                endif
+            endif
+        endif
+    endif
+
     sleep 2
 end
 
 onintr finishkilled
 echo "ALL DONE - going to run $rootname-finish to reassemble"
 vmstocsh $rootname-finish.log < $rootname-finish.com | csh -ef
+if ("$checkfile" != "" && -e "$checkfile") \rm -f $checkfile
 exit
 
 report:
@@ -431,6 +466,7 @@ while ("$ans" != "R" && "$ans" != "Q" && "$ans" != "C" && "$ans" != "P" && "$ans
     endif
 end
 
+command:
 set pausing = 0
 if ("$ans" == "P") set pausing = 1
 if ("$ans" == "C" || "$ans" == "P") goto continue
@@ -544,6 +580,9 @@ exit 3
 
 #
 #  $Log$
+#  Revision 3.16  2005/08/30 22:03:13  mast
+#  Kill remote jobs with background ssh calls that can time out
+#
 #  Revision 3.15  2005/08/27 22:27:16  mast
 #  Added ability to enter machines to drop after interrupt
 #
