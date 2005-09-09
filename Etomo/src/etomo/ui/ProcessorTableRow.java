@@ -191,9 +191,12 @@ final class ProcessorTableRow {
   final void msgDropped(String reason) {
     cellComputer.setSelected(false);
     setSelected(false);
-    cellRestarts.setError(true);
+    setFailureReason(reason);
+  }
+  
+  private final void setFailureReason(String reason) {
     cellFailureReason.setValue(reason);
-    cellFailureReason.setError(true);
+    cellFailureReason.setError(reason != null && !reason.matches("\\s+"));
   }
 
   private void setSelected(boolean selected) {
@@ -276,7 +279,6 @@ final class ProcessorTableRow {
     else {
       restarts++;
     }
-    System.out.println("restarts="+restarts);
     cellRestarts.setValue(restarts);
     if (restarts >= restartsError) {
       cellRestarts.setError(true);
@@ -293,7 +295,7 @@ final class ProcessorTableRow {
     setLoad(cellLoad15, load15, numberCpus);
   }
   
-  final void clearLoadAverage() {
+  final void clearLoadAverage(String reason) {
     int numberCpus = cellNumberCpus.getIntValue();
     cellLoad1.setValue();
     cellLoad1.setWarning(false);
@@ -302,6 +304,7 @@ final class ProcessorTableRow {
     cellLoad15.setValue();
     cellLoad15.setWarning(false);
     setSelectedError();
+    setFailureReason(reason);
   }
   
   private final void setLoad(FieldCell cellLoad, double load, int numberCpus) {
@@ -388,6 +391,11 @@ final class ProcessorTableRow {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.11  2005/09/01 18:03:33  sueh
+ * <p> bug# 532 Added clearLoadAverage() to clear the load averages when the
+ * <p> load average command fails.  Added a drop reason.  Added a error level
+ * <p> for the restarts column.
+ * <p>
  * <p> Revision 1.10  2005/08/27 22:42:07  sueh
  * <p> bug# 532 Added cells for speed and memory.  Displaying columns based
  * <p> on booleans:  memoryColumn, numberColumn, etc.  Changed cellOs to
