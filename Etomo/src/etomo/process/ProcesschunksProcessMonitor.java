@@ -121,6 +121,9 @@ public class ProcesschunksProcessMonitor implements ParallelProcessMonitor {
         setProgressBarTitle = true;
         returnValue = true;
       }
+      else if (line.indexOf("BAD COMMAND IGNORED") != -1) {
+        throw new IllegalStateException("Bad command sent to processchunks\n" + line);
+      }
       else {
         String[] strings = line.split("\\s+");
         //set nChunks and chunksFinished
@@ -312,6 +315,10 @@ public class ProcesschunksProcessMonitor implements ParallelProcessMonitor {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.8  2005/09/07 20:51:06  sueh
+* <p> bug# 532 Added commandsPipe and commandsWriter to send commands
+* <p> for processchunks to a file.
+* <p>
 * <p> Revision 1.7  2005/09/01 17:54:58  sueh
 * <p> bug# 532 handle multiple drop reasons.  Fix drop function:  use interrupt
 * <p> signal only when the computer is recognized.
