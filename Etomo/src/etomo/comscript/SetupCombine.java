@@ -18,6 +18,11 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.7  2005/07/29 00:49:34  sueh
+ * bug# 709 Going to EtomoDirector to get the current manager is unreliable
+ * because the current manager changes when the user changes the tab.
+ * Passing the manager where its needed.
+ *
  * Revision 3.6  2005/05/10 17:31:32  sueh
  * bug# 660 Added getWarnings() to get an array of warnings from standard
  * error.
@@ -306,10 +311,6 @@ public class SetupCombine {
     return setupcombine.getStdError();
   }
 
-  public String[] getStdOutput() {
-    return setupcombine.getStdOutput();
-  }
-
   public String[] getWarningMessage() {
     return (String[]) warningMessage.toArray(new String[warningMessage.size()]);
 }  
@@ -329,28 +330,29 @@ public class SetupCombine {
     warningMessage = new Vector();
     warningMessage.add("SetupCombine Warnings");
     warningMessage.add("Standard error output:");
-    for (int i = 0; i < stdError.length; i++) {
-      int index = stdError[i].indexOf("WARNING:");
-      if (index != -1) {
-        nextLineIsWarning = false;
-        int trimIndex = stdError[i].trim().indexOf("PIP WARNING:");
-        if (trimIndex != -1
-          && stdError[i].trim().length()
-            <= trimIndex + 1 + "PIP WARNING:".length()) {
-          nextLineIsWarning = true;
+    if (stdError != null) {
+      for (int i = 0; i < stdError.length; i++) {
+        int index = stdError[i].indexOf("WARNING:");
+        if (index != -1) {
+          nextLineIsWarning = false;
+          int trimIndex = stdError[i].trim().indexOf("PIP WARNING:");
+          if (trimIndex != -1
+              && stdError[i].trim().length() <= trimIndex + 1
+                  + "PIP WARNING:".length()) {
+            nextLineIsWarning = true;
+          }
+          warningMessage.add(stdError[i].substring(index));
         }
-        warningMessage.add(stdError[i].substring(index));
-      }
-      else if (nextLineIsWarning) {
-        if (!stdError[i].matches("\\s+")) {
-          warningMessage.add(stdError[i].trim());
-          if (stdError[i].indexOf("Using fallback options in Fortran code")
-            != -1) {
+        else if (nextLineIsWarning) {
+          if (!stdError[i].matches("\\s+")) {
+            warningMessage.add(stdError[i].trim());
+            if (stdError[i].indexOf("Using fallback options in Fortran code") != -1) {
+              nextLineIsWarning = false;
+            }
+          }
+          else {
             nextLineIsWarning = false;
           }
-        }
-        else {
-          nextLineIsWarning = false;
         }
       }
     }

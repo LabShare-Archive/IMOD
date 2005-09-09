@@ -28,6 +28,11 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.22  2005/08/30 18:37:38  sueh
+* <p> bug# 532 Changing monitor interfaces for
+* <p> startInteractiveBackgroundProcess() because the combine monitor now
+* <p> implements BackgroundComScriptMonitor.
+* <p>
 * <p> Revision 1.21  2005/08/27 22:23:50  sueh
 * <p> bug# 532 In msgBackgroundPRocessDone() exclude errors starting with
 * <p> "CHUNK ERROR:".  These error may be repeats many times and should
@@ -545,6 +550,9 @@ public abstract class BaseProcessManager {
     //System.out.println("ps axl date=" +  ps.getRunTimestamp());
     //  Find the index of the Parent ID and ProcessID
     String[] stdout = ps.getStdOutput();
+    if (stdout == null) {
+      return null;
+    }
     String header = stdout[0].trim();
     String[] labels = header.split("\\s+");
     int idxPID = -1;
@@ -628,6 +636,9 @@ public abstract class BaseProcessManager {
 
     //  Find the index of the Parent ID and ProcessID
     String[] stdout = ps.getStdOutput();
+    if (stdout == null) {
+      return null;
+    }
     String header = stdout[0].trim();
     String[] labels = header.split("\\s+");
     int idxPID = -1;
@@ -921,7 +932,7 @@ public abstract class BaseProcessManager {
       ArrayList message = new ArrayList();
 
       // Is the last string "Killed"
-      if ((stdError.length > 0)
+      if ((stdError != null && stdError.length > 0)
         && (stdError[stdError.length - 1].trim().equals("Killed"))) {
         message.add("<html>Terminated: " + process.getCommandLine());
       }
@@ -960,17 +971,19 @@ public abstract class BaseProcessManager {
     String[] stdOutput = process.getStdOutput();
     ArrayList errors = new ArrayList();
     boolean foundError = false;
-    for (int i = 0; i < stdOutput.length; i++) {
-      if (!foundError) {
-        int index = stdOutput[i].indexOf("ERROR:");
-        int chunkIndex = stdOutput[i].indexOf(CHUNK_ERROR_TAG);
-        if (index != -1 && chunkIndex == -1) {
-          foundError = true;
+    if (stdOutput != null) {
+      for (int i = 0; i < stdOutput.length; i++) {
+        if (!foundError) {
+          int index = stdOutput[i].indexOf("ERROR:");
+          int chunkIndex = stdOutput[i].indexOf(CHUNK_ERROR_TAG);
+          if (index != -1 && chunkIndex == -1) {
+            foundError = true;
+            errors.add(stdOutput[i]);
+          }
+        }
+        else {
           errors.add(stdOutput[i]);
         }
-      }
-      else {
-        errors.add(stdOutput[i]);
       }
     }
     String[] errorMessage = (String[]) errors
