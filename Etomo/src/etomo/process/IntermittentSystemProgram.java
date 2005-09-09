@@ -42,13 +42,16 @@ import etomo.util.HashedArray;
 public class IntermittentSystemProgram implements Runnable {
   public static  final String  rcsid =  "$Id$";
   
-  private static Hashtable instances = new Hashtable();//one instance per IntermittentCommand
-  private final String key;
+  private static Hashtable instances = new Hashtable();//one instance per IntermittentCommand instance
   private boolean stopped = true;
   private HashedArray monitors = new HashedArray();
   private final IntermittentCommand command;
   private final BaseManager manager;
   private SystemProgram program = null;
+  
+  public String toString() {
+    return "[stopped=" + stopped + "," + super.toString() + "]";
+  }
   
   static final void startInstance(BaseManager manager,
       IntermittentCommand command, SystemProgramMonitor monitor) {
@@ -57,99 +60,92 @@ public class IntermittentSystemProgram implements Runnable {
 
   static final void stopInstance(BaseManager manager,
       IntermittentCommand command, SystemProgramMonitor monitor) {
-    IntermittentSystemProgram program = getInstance(command);
-    if (program != null) {
-      program.stop(monitor);
+    IntermittentSystemProgram intermittentSystemProgram = getInstance(command);
+    if (intermittentSystemProgram != null) {
+      intermittentSystemProgram.stop(monitor);
     }
   }
 
   private static final IntermittentSystemProgram getInstance(
       BaseManager manager, IntermittentCommand command,
       SystemProgramMonitor monitor) {
-    IntermittentSystemProgram program = getInstance(command);
-    if (program == null) {
+    IntermittentSystemProgram intermittentSystemProgram = getInstance(command);
+    if (intermittentSystemProgram == null) {
       return createInstance(manager, command, monitor);
     }
-    return program;
+    return intermittentSystemProgram;
   }
 
   private static final IntermittentSystemProgram getInstance(
       IntermittentCommand command) {
-    return (IntermittentSystemProgram) instances.get(command.getKey());
+    return (IntermittentSystemProgram) instances.get(command);
   }
 
   private static synchronized final IntermittentSystemProgram createInstance(
       BaseManager manager, IntermittentCommand command,
       SystemProgramMonitor monitor) {
-    IntermittentSystemProgram program = getInstance(command);
-    if (program == null) {
-      program = new IntermittentSystemProgram(manager, command, monitor);
-      instances.put(program.key, program);
+    IntermittentSystemProgram intermittentSystemProgram = getInstance(command);
+    if (intermittentSystemProgram == null) {
+      intermittentSystemProgram = new IntermittentSystemProgram(manager, command, monitor);
+      instances.put(intermittentSystemProgram.command, intermittentSystemProgram);
     }
-    return program;
+    return intermittentSystemProgram;
   }
 
   private IntermittentSystemProgram(BaseManager manager,
       IntermittentCommand command, SystemProgramMonitor monitor) {
     this.command = command;
-    this.key = command.getKey();
     this.manager = manager;
   }
 
-  private final void start(SystemProgramMonitor monitor) {
+  private synchronized final void start(SystemProgramMonitor monitor) {
     boolean newMonitor = false;
-    //add the monitor if it is new, make sure not to add it more then once
-    synchronized (monitors) {
-      newMonitor = !monitors.containsKey(monitor);
-      if (newMonitor) {
-        monitors.add(monitor);
-      }
-    }
-    //if the monitor is new || stopped, run it
-    if (newMonitor) {
-      monitor.setIntermittentSystemProgram(this);
-      new Thread(monitor).start();
-    }
     //run the instance, if it is not running
     //this is the only place that stopped should be set to false
-    boolean startThreadNow = false;
-    synchronized (monitors) {
-      if (stopped) {
-        stopped = false;
-        startThreadNow = true;
-      }
-    }
-    //StartThreadNow can only be true if stopped was true and then was set to
-    //false in synchronized code.  This way only one thread can call start() for
-    //this instance.
-    if (startThreadNow) {
+    if (stopped) {
+      stopped = false;
       new Thread(this).start();
+    }
+    //Once the thread is started, add the monitor if it is new, make sure not to
+    //add it more then once
+    if (!monitors.containsKey(monitor)) {
+      monitors.add(monitor);
+      monitor.setIntermittentSystemProgram(this);
     }
   }
   
-  final void stop(SystemProgramMonitor monitor) {
-    monitor.stop(key);
-    synchronized (monitors) {
-      monitors.remove(monitor);
-    }
+  synchronized final void stop(SystemProgramMonitor monitor) {
+    monitors.remove(monitor);
     if (monitors.size() == 0) {
       stopped = true;
     }
   }
   
+  final boolean isStopped() {
+    return stopped;
+  }
+  
   public final void run() {
-    program = new SystemProgram(manager.getPropertyUserDir(),
+    //use a local SystemProgram because stops and starts may overlap
+    SystemProgram localProgram = new SystemProgram(manager.getPropertyUserDir(),
         command.getCommand(), AxisID.ONLY);
-    program.setAcceptInputWhileRunning(true);
-    new Thread(program).start();
+    //place the most recent local SystemProgram in the member SystemProgram
+    //non-local request (getting and setting standard input and output) will go
+    //to the most recent local SystemProgram.
+    program = localProgram;
+    localProgram.setAcceptInputWhileRunning(true);
+    localProgram.setCollectOutput(false);
+    new Thread(localProgram).start();
     int interval = command.getInterval();
     String intermittentCommand = command.getIntermittentCommand();
     try {
-      while (!stopped) {
-        program.setCurrentStdInput(intermittentCommand);
+      //see load average requests while the program is not stopped and this
+      //
+      while (!stopped && localProgram == program) {
+        localProgram.setCurrentStdInput(intermittentCommand);
         if (monitors != null) {
           for (int i = 0; i < monitors.size(); i++) {
-            ((SystemProgramMonitor) monitors.get(i)).msgSentIntermittentCommand(key);
+            ((SystemProgramMonitor) monitors.get(i)).msgSentIntermittentCommand(command);
           }
         }
         Thread.sleep(interval);
@@ -161,27 +157,19 @@ public class IntermittentSystemProgram implements Runnable {
     catch (IOException e) {
       if (monitors != null) {
         for (int i = 0; i < monitors.size(); i++) {
-          ((SystemProgramMonitor) monitors.get(i)).msgIntermittentCommandFailed(key);
+          ((SystemProgramMonitor) monitors.get(i)).msgIntermittentCommandFailed(command);
         }
       }
     }
     try {
-      if (program != null && command != null) {
-        program.setCurrentStdInput(command.getEndCommand());
-      }
+      localProgram.setCurrentStdInput(command.getEndCommand());
     }
     catch (IOException e) {
-      e.printStackTrace();
     }
-    program = null;
   }
   
-  final SystemProgram getSystemProgram() {
-    return program;
-  }
-  
-  final String getKey() {
-    return key;
+  final IntermittentCommand getCommand() {
+    return command;
   }
   
   final String[] getStdOutput() {
@@ -189,6 +177,13 @@ public class IntermittentSystemProgram implements Runnable {
       return null;
     }
     return program.getStdOutput();
+  }
+  
+  final String[] getStdError() {
+    if (program == null) {
+      return null;
+    }
+    return program.getStdError();
   }
   
   final void setCurrentStdInput(String input) {
@@ -205,6 +200,9 @@ public class IntermittentSystemProgram implements Runnable {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.9  2005/09/07 20:34:24  sueh
+* <p> bug# 532 In getStdOutput() return the entire stdOutput structure.
+* <p>
 * <p> Revision 1.8  2005/09/02 18:58:42  sueh
 * <p> bug# 532 removed a null pointer exception problem from run().
 * <p>
