@@ -140,17 +140,12 @@ public final class ParallelPanel implements ParallelProgressDisplay, Expandable,
   public final LoadAverageMonitor getLoadAverageMonitor() {
     if (loadAverageMonitor == null) {
       loadAverageMonitor = new LoadAverageMonitor(this);
-      new Thread(loadAverageMonitor).start();
     }
     return loadAverageMonitor;
   }
   
   public final void setLoadAverage(String computer, double load1, double load5, double load15) {
     processorTable.setLoadAverage(computer, load1, load5, load15);
-  }
-  
-  public final void clearLoadAverage(String computer) {
-    processorTable.clearLoadAverage(computer);
   }
   
   public final void setPauseEnabled(boolean pauseEnabled) {
@@ -247,10 +242,11 @@ public final class ParallelPanel implements ParallelProgressDisplay, Expandable,
     }
   }
   
-  public final void loadAverageFailed(String computer) {
+  public final void msgLoadAverageFailed(String computer, String reason) {
     if (parallelProcessMonitor != null) {
       parallelProcessMonitor.drop(computer);
     }
+    processorTable.clearLoadAverage(computer, reason);
   }
   
   /**
@@ -276,6 +272,10 @@ public final class ParallelPanel implements ParallelProgressDisplay, Expandable,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.12  2005/09/01 18:35:20  sueh
+ * <p> bug# 532 ParallelPanel is no longer a doubleton.  It needs to be manager
+ * <p> level.
+ * <p>
  * <p> Revision 1.11  2005/09/01 18:02:10  sueh
  * <p> bug# 532 Added clearLoadAverage() to clear the load averages when the
  * <p> load average command fails.  Added a drop reason.
