@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/9/05: Fixed bug in writing meshes from a model loaded onto binned data.
+
 8/31/05: IMOD_3-6-13
 8/31/05: Various eTomo bugs fixed.
 
