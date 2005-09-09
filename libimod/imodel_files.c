@@ -425,8 +425,10 @@ static int imodel_write_mesh(Imesh *mesh, FILE *fout, Ipoint *scale)
   if (scale->x == 1.0 && scale->y == 1.0 && scale->z == 1.0) {
     imodPutFloats(fout, (float *)mesh->vert, mesh->vsize * 3);
   } else {
-    for (i = 0; i < mesh->vsize; i += 2)
+    for (i = 0; i < mesh->vsize; i += 2) {
       imodPutScaledPoints(fout, &mesh->vert[i], 1, scale);
+      imodPutFloats(fout, (float *)(&mesh->vert[i + 1]), 3);
+    }
   }
   imodPutInts(fout, mesh->list, mesh->lsize);
   if ((id = imodWriteStore(mesh->store, ID_MEST, fout)))
@@ -1579,6 +1581,9 @@ int imodPutByte(FILE *fp, unsigned char *dat)
 
 /*
   $Log$
+  Revision 3.19  2005/06/20 22:24:58  mast
+  Added calls to read/write general storage
+
   Revision 3.18  2005/04/23 23:37:31  mast
   Documented functions
 
