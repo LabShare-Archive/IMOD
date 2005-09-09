@@ -23,6 +23,10 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.15  2005/08/27 22:44:10  sueh
+ * <p> bug# 532 In Utilities.timestamp() change the int status to String status,
+ * <p> since it doesn't have to be compared.
+ * <p>
  * <p> Revision 3.14  2005/07/29 00:55:29  sueh
  * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
  * <p> because the current manager changes when the user changes the tab.
@@ -241,7 +245,7 @@ public class MRCHeader {
 
     if (header.getExitValue() != 0) {
       String[] stdOutput = header.getStdOutput();
-      if (stdOutput.length > 0) {
+      if (stdOutput != null && stdOutput.length > 0) {
         ArrayList errorList = SystemProgram.parseError(stdOutput);
         if (errorList.size() > 0) {
           String message = "header returned an error:\n";
@@ -255,7 +259,7 @@ public class MRCHeader {
     }
     // Throw an exception if the file can not be read
     String[] stdError = header.getStdError();
-    if (stdError.length > 0) {
+    if (stdError != null && stdError.length > 0) {
       String message = "header returned an error:\n";
       for (int i = 0; i < stdError.length; i++) {
         message = message + stdError[i] + "\n";
@@ -266,7 +270,7 @@ public class MRCHeader {
 
     // Parse the output
     String[] stdOutput = header.getStdOutput();
-    if (stdOutput.length < 1) {
+    if (stdOutput == null || stdOutput.length < 1) {
       Utilities.timestamp("read", "header", filename, Utilities.FAILED_STATUS);
       throw new IOException("header returned no data");
     }

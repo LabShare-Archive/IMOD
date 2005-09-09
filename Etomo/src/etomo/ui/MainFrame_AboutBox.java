@@ -11,6 +11,11 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.5  2005/07/29 00:54:18  sueh
+ * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
+ * <p> because the current manager changes when the user changes the tab.
+ * <p> Passing the manager where its needed.
+ * <p>
  * <p> Revision 3.4  2005/06/16 22:46:59  sueh
  * <p> bug# 676 Getting the Etomo version from code.
  * <p>
@@ -169,7 +174,7 @@ public class MainFrame_AboutBox extends JDialog {
 		threeDmod_h.run();
 
 		String[] stdout = threeDmod_h.getStdOutput();
-		if (stdout.length >= 1) {
+		if (stdout != null && stdout.length >= 1) {
 			int idxVersion = stdout[0].indexOf("Version");
 			if (idxVersion > 0) {
 				String noPath = stdout[0].substring(idxVersion);

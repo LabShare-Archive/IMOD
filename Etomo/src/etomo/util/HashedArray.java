@@ -18,6 +18,10 @@ import java.util.Vector;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.8  2005/09/01 18:07:25  sueh
+* <p> bug# 532  Added invariant self testing.  In remove(), return if the key isn't
+* <p> found.
+* <p>
 * <p> Revision 1.7  2005/08/31 17:19:36  sueh
 * <p> bug# 532 Ack!  Have to reindex the hashtable when remove an element
 * <p> from the array.
@@ -57,29 +61,43 @@ import java.util.Vector;
 public class HashedArray {
   public static  final String  rcsid =  "$Id$";
   
-  private final Hashtable indexMap = new Hashtable();
-  private final Vector elementArray = new Vector();
+  private final Hashtable valueMap = new Hashtable();
+  private final Vector keyArray = new Vector();
   
   void selfTestInvariants() {
     if (!Utilities.isSelfTest()) {
       return;
     }
     //collections should be the same size
-    if (indexMap.size() != elementArray.size()) {
-      throw new IllegalStateException("sizes are different:" + "indexMap="
-          + indexMap.size() + ",elementArray=" + elementArray.size());
+    if (valueMap.size() != keyArray.size()) {
+      throw new IllegalStateException("sizes are different:" + "valueMap="
+          + valueMap.size() + ",keyArray=" + keyArray.size());
     }
-    for (int i = 0; i < elementArray.size(); i++) {
-      Element element = (Element) elementArray.get(i);
-      if (!indexMap.containsKey(element.key)) {
+    //a key in keyArray must exist in valueMap
+    for (int i = 0; i < keyArray.size(); i++) {
+      if (!valueMap.containsKey(keyArray.get(i))) {
         throw new IllegalStateException(
-            "a key in elementArray is not in indexMap:" + "element=" + element);
+            "a key in keyArray is not in valueMap:" + "key=" + keyArray.get(i));
       }
-      Integer index = (Integer) indexMap.get(element.key);
-      if (index.intValue() != i) {
-        throw new IllegalStateException("indexMap contains the wrong index:"
-            + "element=" + element + "index=" + index + "i=" + i);
-      }
+    }
+  }
+  
+  void selfTestAdd(Object key, Object value) {
+    if (!Utilities.isSelfTest()) {
+      return;
+    }
+    if (!valueMap.containsKey(key)) {
+      throw new IllegalStateException("The added key is not in valueMap:"
+          + "key=" + key + ",value=" + value);
+    }
+    if (valueMap.get(key) != value) {
+      throw new IllegalStateException("valueMap is mapped to the wrong value:"
+          + "key=" + key + ",value=" + value + ",valueMap.get(key)="
+          + valueMap.get(key));
+    }
+    if (!keyArray.contains(key)) {
+      throw new IllegalStateException("The added key is not in keyArray:"
+          + "key=" + key + ",value=" + value);
     }
   }
   
@@ -93,9 +111,11 @@ public class HashedArray {
     if (key == null) {
       return;
     }
-    elementArray.add(new Element(key, value));
-    indexMap.put(key, new Integer(elementArray.size() - 1));
+    if (valueMap.put(key, value) == null) {
+      keyArray.add(key);
+    }
     selfTestInvariants();
+    selfTestAdd(key, value);
   }
   
   public synchronized void add(Object key) {
@@ -106,16 +126,14 @@ public class HashedArray {
     if (key == null) {
       return;
     }
-    if (!indexMap.containsKey(key)) {
+    if (!valueMap.containsKey(key)) {
       return;
     }
-    int index = ((Integer) indexMap.remove(key)).intValue();
-    elementArray.remove(index);
-    //reindex
-    for (int i = index; i < elementArray.size(); i++) {
-      Object currentKey = ((Element) elementArray.get(i)).key;
-      indexMap.remove(currentKey);
-      indexMap.put(currentKey, new Integer(i));
+    valueMap.remove(key);
+    for (int i = 0; i < keyArray.size(); i++) {
+      if (keyArray.get(i).hashCode() == key.hashCode()) {
+        keyArray.remove(i);
+      }
     }
     selfTestInvariants();
   }
@@ -124,35 +142,25 @@ public class HashedArray {
     if (key == null) {
       return null;
     }
-    return ((Element) elementArray.get(((Integer) indexMap.get(key)).intValue())).value;
+    return valueMap.get(key);
   }
   
   public Object get(int index) {
     if (index < 0) {
       return null;
     }
-    return ((Element) elementArray.get(index)).value;
+    Object key = keyArray.get(index);
+    if (key == null) {
+      return null;
+    }
+    return valueMap.get(key);
   }
   
   public int size() {
-    return elementArray.size();
+    return valueMap.size();
   }
   
   public boolean containsKey(Object key) {
-    return indexMap.containsKey(key);
-  }
-  
-  private class Element {
-    private Object key = null;
-    private Object value = null;
-    
-    private Element(Object key, Object value) {
-      this.key = key;
-      this.value = value;
-    }
-    
-    public String toString() {
-      return "[key=" + key + ",value=" + value + "]";
-    }
-  }
+    return valueMap.containsKey(key);
+  }  
 }

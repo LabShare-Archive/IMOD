@@ -20,6 +20,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.78  2005/09/01 17:55:42  sueh
+ * bug# 532  Change ProcesschunksParam.computerList() to machineList.
+ *
  * Revision 3.77  2005/08/30 18:51:33  sueh
  * bug# 532 Added computerList to ProcesschunksProcessMonitor
  * constructor.
@@ -760,7 +763,7 @@ public class ProcessManager extends BaseProcessManager {
 
       //  Compile the exception message from the stderr stream
       String[] stdError = copyTomoComs.getStdError();
-      if (stdError.length < 1) {
+      if (stdError == null || stdError.length < 1) {
         stdError = new String[1];
         stdError[0] = "Get David to add some std error reporting to copytomocoms";
       }
@@ -1318,7 +1321,7 @@ public class ProcessManager extends BaseProcessManager {
 
       //  Compile the exception message from the stderr stream
       String[] stdError = setupCombine.getStdError();
-      if (stdError.length < 1) {
+      if (stdError == null || stdError.length < 1) {
         stdError = new String[1];
         stdError[0] = "Get David to add some std error reporting to setupCombine";
       }
@@ -1525,9 +1528,11 @@ public class ProcessManager extends BaseProcessManager {
           .getPropertyUserDir()
           + "/transferfid.log"));
 
-      for (int i = 0; i < stdOutput.length; i++) {
-        fileBuffer.write(stdOutput[i]);
-        fileBuffer.newLine();
+      if (stdOutput != null) {
+        for (int i = 0; i < stdOutput.length; i++) {
+          fileBuffer.write(stdOutput[i]);
+          fileBuffer.newLine();
+        }
       }
       fileBuffer.close();
 
@@ -1550,8 +1555,9 @@ public class ProcessManager extends BaseProcessManager {
     System.out.println("ps axl date=" + ps.getRunTimestamp());
     //  Find the index of the Parent ID and ProcessID
     String[] stdout = ps.getStdOutput();
-
-    System.out.println(stdout[0]);
+    if (stdout != null) {
+      System.out.println(stdout[0]);
+    }
     for (int i = 1; i < stdout.length; i++) {
       System.out.println(stdout[i]);
     }
@@ -1576,23 +1582,27 @@ public class ProcessManager extends BaseProcessManager {
       String message = "";
       // Copy any stderr output to the message
       String[] stderr = systemProgram.getStdError();
-      for (int i = 0; i < stderr.length; i++) {
-        message = message + stderr[i] + "\n";
+      if (stderr != null) {
+        for (int i = 0; i < stderr.length; i++) {
+          message = message + stderr[i] + "\n";
+        }
       }
 
       // Also scan stdout for ERROR: lines
       String[] stdOutput = systemProgram.getStdOutput();
       boolean foundError = false;
-      for (int i = 0; i < stdOutput.length; i++) {
-        if (!foundError) {
-          int index = stdOutput[i].indexOf("ERROR:");
-          if (index != -1) {
-            foundError = true;
+      if (stdOutput != null) {
+        for (int i = 0; i < stdOutput.length; i++) {
+          if (!foundError) {
+            int index = stdOutput[i].indexOf("ERROR:");
+            if (index != -1) {
+              foundError = true;
+              message = message + stdOutput[i];
+            }
+          }
+          else {
             message = message + stdOutput[i];
           }
-        }
-        else {
-          message = message + stdOutput[i];
         }
       }
       throw new SystemProcessException(message);

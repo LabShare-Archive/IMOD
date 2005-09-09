@@ -16,6 +16,9 @@ package etomo.process;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.2  2004/08/24 23:08:56  sueh
+ * <p> bug# 508 place the pid found in the err log
+ * <p>
  * <p> Revision 3.1  2004/08/23 23:39:08  sueh
  * <p> bug#  508 allow ParseBackgroundPID to override parsePIDString
  * <p>
@@ -72,6 +75,9 @@ public class ParsePID implements Runnable {
    */
   protected void parsePIDString() {
     String[] stderr = csh.getStdError();
+    if (stderr == null) {
+      return;
+    }
     for (int i = 0; i < stderr.length; i++) {
       if (stderr[i].startsWith("Shell PID:")) {
         String[] tokens = stderr[i].split("\\s+");

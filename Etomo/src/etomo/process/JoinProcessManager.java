@@ -27,6 +27,10 @@ import etomo.type.JoinState;
 * @version $Revision$
 *
 * <p> $Log$
+* <p> Revision 1.12  2005/06/21 00:45:12  sueh
+* <p> bug# 522 Moved touch() from JoinProcessManager to
+* <p> BaseProcessManager for MRCHeaderTest.
+* <p>
 * <p> Revision 1.11  2005/04/25 20:48:05  sueh
 * <p> bug# 615 Passing the axis where a command originates to the message
 * <p> functions so that the message will be popped up in the correct window.
@@ -224,20 +228,22 @@ public class JoinProcessManager extends BaseProcessManager {
       int mode = command.getCommandMode();
       if (mode == FinishjoinParam.MAX_SIZE_MODE) {
         String[] stdOutput = process.getStdOutput();
-        for (int i = 0; i < stdOutput.length; i++) {
-          String line = stdOutput[i];
-          String[] lineArray;
-          if (line.indexOf(FinishjoinParam.SIZE_TAG) != -1) {
-            lineArray = line.split("\\s+");
-            joinManager.setSize(lineArray[FinishjoinParam.SIZE_IN_X_INDEX],
-                lineArray[FinishjoinParam.SIZE_IN_Y_INDEX]);
-          }
-          else if (line.indexOf(FinishjoinParam.OFFSET_TAG) != -1) {
-            lineArray = line.split("\\s+");
-            joinManager.setShift(FinishjoinParam
-                .getShift(lineArray[FinishjoinParam.OFFSET_IN_X_INDEX]),
-                FinishjoinParam
-                    .getShift(lineArray[FinishjoinParam.OFFSET_IN_Y_INDEX]));
+        if (stdOutput != null) {
+          for (int i = 0; i < stdOutput.length; i++) {
+            String line = stdOutput[i];
+            String[] lineArray;
+            if (line.indexOf(FinishjoinParam.SIZE_TAG) != -1) {
+              lineArray = line.split("\\s+");
+              joinManager.setSize(lineArray[FinishjoinParam.SIZE_IN_X_INDEX],
+                  lineArray[FinishjoinParam.SIZE_IN_Y_INDEX]);
+            }
+            else if (line.indexOf(FinishjoinParam.OFFSET_TAG) != -1) {
+              lineArray = line.split("\\s+");
+              joinManager.setShift(FinishjoinParam
+                  .getShift(lineArray[FinishjoinParam.OFFSET_IN_X_INDEX]),
+                  FinishjoinParam
+                      .getShift(lineArray[FinishjoinParam.OFFSET_IN_Y_INDEX]));
+            }
           }
         }
         return;

@@ -55,7 +55,7 @@ public class Goodframe {
 
     if (groupframe.getExitValue() != 0) {
       String[] stdOutput = groupframe.getStdOutput();
-      if (stdOutput.length > 0) {
+      if (stdOutput != null && stdOutput.length > 0) {
         ArrayList errorList = SystemProgram.parseError(stdOutput);
         if (errorList.size() > 0) {
           String message = "groupframe returned an error:\n";
@@ -69,7 +69,7 @@ public class Goodframe {
     }
     // Throw an exception if the file can not be read
     String[] stdError = groupframe.getStdError();
-    if (stdError.length > 0) {
+    if (stdError != null && stdError.length > 0) {
       String message = "groupframe returned an error:\n";
       for (int i = 0; i < stdError.length; i++) {
         message = message + stdError[i] + "\n";
@@ -80,7 +80,7 @@ public class Goodframe {
 
     // Parse the output
     String[] stdOutput = groupframe.getStdOutput();
-    if (stdOutput.length < 1) {
+    if (stdOutput != null && stdOutput.length < 1) {
       Utilities.timestamp("run", "goodframe", Utilities.FAILED_STATUS);
       throw new IOException("groupframe returned no data");
     }
@@ -125,6 +125,10 @@ public class Goodframe {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.5  2005/08/27 22:43:40  sueh
+* <p> bug# 532 In Utilities.timestamp() change the int status to String status,
+* <p> since it doesn't have to be compared.
+* <p>
 * <p> Revision 1.4  2005/07/29 00:55:12  sueh
 * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
 * <p> because the current manager changes when the user changes the tab.

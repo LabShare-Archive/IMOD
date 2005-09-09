@@ -12,6 +12,10 @@
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.26  2005/08/27 22:44:21  sueh
+ * <p> $bug# 532 In Utilities.timestamp() change the int status to String status,
+ * <p> $since it doesn't have to be compared.
+ * <p> $
  * <p> $Revision 3.25  2005/08/24 22:41:03  sueh
  * <p> $bug# 715 Added a version of timestamp() which uses ProcessName.
  * <p> $
@@ -458,7 +462,7 @@ public class Utilities {
         return "";
       }
       String[] stderr = readEnvVar.getStdError();
-      if (stderr.length > 0) {
+      if (stderr != null && stderr.length > 0) {
         System.err.println("Error running 'cmd.exe' command");
         for (int i = 0; i < stderr.length; i++) {
           System.err.println(stderr[i]);
@@ -467,7 +471,7 @@ public class Utilities {
 
       // Return the first line from the command
       String[] stdout = readEnvVar.getStdOutput();
-      if (stdout.length > 0) {
+      if (stdout != null && stdout.length > 0) {
         return stdout[0];
       }
     }
