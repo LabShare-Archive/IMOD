@@ -1,5 +1,6 @@
 package etomo.process;
 
+import etomo.comscript.IntermittentCommand;
 import etomo.ui.LoadAverageDisplay;
 import etomo.util.HashedArray;
 
@@ -22,6 +23,7 @@ public class LoadAverageMonitor implements SystemProgramMonitor {
   
   private HashedArray programs = new HashedArray();
   private final LoadAverageDisplay display;
+  private boolean running = false;
   
   public LoadAverageMonitor(LoadAverageDisplay display) {
     this.display = display;
@@ -32,33 +34,40 @@ public class LoadAverageMonitor implements SystemProgramMonitor {
       while (!isStopped()) {
         for (int i = 0; i < programs.size(); i++) {
           ProgramState programState = (ProgramState) programs.get(i);
-          processData(programState);
-          if (programState.waitForCommand > 12) {
-            programState.waitForCommand = 0;
-            msgIntermittentCommandFailed(programState.program.getKey());
-            programState.program.stop(this);
-            display.clearLoadAverage(programState.program.getKey());
+          if (!programState.program.isStopped()) {
+            processData(programState);
+            if (programState.waitForCommand > 12) {
+              programState.waitForCommand = 0;
+              msgIntermittentCommandFailed(programState.program.getCommand());
+              programState.program.stop(this);
+            }
           }
         }
-        
-        Thread.sleep(500);
+        Thread.sleep(1000);
       }
     }
     catch (InterruptedException e) {
       e.printStackTrace();
     }
+    running = false;
   }
   
   public void setIntermittentSystemProgram(
       IntermittentSystemProgram program) {
-    String key = program.getKey();
-    if (!programs.containsKey(key)) {
+    String key = program.getCommand().getKey();
+    ProgramState programState = (ProgramState) programs.get(key);
+    if (programState == null) {
       programs.add(key, new ProgramState(program));
     }
-  }
-  
-  public void stop(String computer) {
-    ((ProgramState) programs.get(computer)).stopped = true;
+    else {
+      programState.waitForCommand = 0;
+    }
+    synchronized (programs) {
+      if (!running) {
+        running = true;
+        new Thread(this).start();
+      }
+    }
   }
   
   private boolean isStopped() {
@@ -66,7 +75,7 @@ public class LoadAverageMonitor implements SystemProgramMonitor {
       return false;
     }
     for (int i = 0; i < programs.size(); i++) {
-      if(!((ProgramState) programs.get(i)).stopped) {
+      if(!((ProgramState) programs.get(i)).program.isStopped()) {
         return false;
       }
     }
@@ -74,25 +83,18 @@ public class LoadAverageMonitor implements SystemProgramMonitor {
   }
   
   private void processData(ProgramState programState) {
-    String[] output = programState.program.getStdOutput();
-    if (output == null) {
+    //process standard out
+    String[] stdout = programState.program.getStdOutput();
+    if (stdout == null) {
       return;
     }
-    if (programState.lastStdOutputLength < output.length) {
-      int outputStart = programState.lastStdOutputLength;
-      programState.lastStdOutputLength = output.length;
-      for (int i = outputStart; i < output.length; i++) {
-        if (output[i].indexOf("load average") != -1) {
-          programState.waitForCommand--;
-          String[] array = output[i].trim().split("\\s+");
-          display.setLoadAverage(programState.program.getKey(),
-              getLoad(array[array.length - 3]),
-              getLoad(array[array.length - 2]),
-              getLoad(array[array.length - 1]));
-        }
-        else if (output[i].indexOf("authenticity of host") != -1) {
-          programState.program.setCurrentStdInput("yes");
-        }
+    for (int i = 0; i < stdout.length; i++) {
+      if (stdout[i].indexOf("load average") != -1) {
+        programState.waitForCommand = 0;
+        String[] array = stdout[i].trim().split("\\s+");
+        display.setLoadAverage(programState.program.getCommand().getKey(),
+            getLoad(array[array.length - 3]), getLoad(array[array.length - 2]),
+            getLoad(array[array.length - 1]));
       }
     }
   }
@@ -105,30 +107,42 @@ public class LoadAverageMonitor implements SystemProgramMonitor {
     return Double.parseDouble(load);
   }
   
-  public final void msgIntermittentCommandFailed(String key) {
+  public final void msgIntermittentCommandFailed(IntermittentCommand command) {
+    String key = command.getKey();
     if (programs.containsKey(key)) {
-      display.loadAverageFailed(key);
-      display.clearLoadAverage(key);
+      display.msgLoadAverageFailed(key, "load timeout");
     }
   }
   
-  public final void msgSentIntermittentCommand(String key) {
-    ((ProgramState) programs.get(key)).waitForCommand++;
+  public final void msgSentIntermittentCommand(IntermittentCommand command) {
+    ProgramState programState = (ProgramState) programs.get(command.getKey());
+    if (programState == null) {
+      return;
+    }
+    programState.waitForCommand++;
   }
   
   private final class ProgramState {
     private final IntermittentSystemProgram program;
-    private int lastStdOutputLength = 0;
-    private boolean stopped = false;
     private int waitForCommand = 0;
     
     private ProgramState(IntermittentSystemProgram program) {
       this.program = program;
     }
+    
+    public String toString() {
+      return "[program=" + program + ",\nwaitForCommand="
+          + waitForCommand + "," + super.toString() + "]";
+    }
   }
 }
 /**
 * <p> $Log$
+* <p> Revision 1.6  2005/09/07 20:38:09  sueh
+* <p> bug# 532 ProcessData(): Looking at the subset of the stdoutput that hasn't
+* <p> been processed.  Handling the first time connection question by sending
+* <p> "yes".
+* <p>
 * <p> Revision 1.5  2005/09/01 17:52:43  sueh
 * <p> bug# 532 Set waitForCommand to 0 after the problem is found.  Clear the
 * <p> load averages on the display when the connection is cut.  Handle first time
