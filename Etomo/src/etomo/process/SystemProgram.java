@@ -17,6 +17,11 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.23  2005/08/27 22:33:40  sueh
+ * <p> bug# 532 In setCurrentStdInput, throwing IOException instead of handling
+ * <p> it.  This allows IntermittentSystemProgram to halt a failed intermittent
+ * <p> command.
+ * <p>
  * <p> Revision 3.22  2005/08/24 00:24:03  sueh
  * <p> bug# 532 added commented out print statements
  * <p>
@@ -213,8 +218,8 @@ public class SystemProgram implements Runnable {
   private int exitValue = Integer.MIN_VALUE;
   private final String[] commandArray;
   private String[] stdInput = null;
-  private ArrayList stdOutput = new ArrayList();
-  private ArrayList stdError = new ArrayList();
+  private OutputBufferManager stdout = null;
+  private OutputBufferManager stderr = null;
   private File workingDirectory = null;
   private String exceptionMessage = "";
   private boolean started = false;
@@ -226,6 +231,7 @@ public class SystemProgram implements Runnable {
   private OutputStream cmdInputStream = null;
   private BufferedWriter cmdInBuffer = null;
   private boolean acceptInputWhileRunning = false;
+  private boolean collectOutput = true;
 
   /**
    * Creates a SystemProgram object to execute the program specified by the
@@ -287,7 +293,6 @@ public class SystemProgram implements Runnable {
   }
   
   public void setCurrentStdInput(String input) throws IOException {
-    //System.out.println("standard in:"+input);
     if (cmdInBuffer != null) {
       cmdInBuffer.write(input);
       cmdInBuffer.newLine();
@@ -371,9 +376,8 @@ public class SystemProgram implements Runnable {
         new BufferedReader(new InputStreamReader(cmdOutputStream));
 
       // Set up a reader thread to keep the stdout buffers of the process empty
-      OutputBufferManager stdoutReaderMgr =
-        new OutputBufferManager(cmdOutputBuffer, stdOutput);
-      Thread stdoutReaderThread = new Thread(stdoutReaderMgr);
+      stdout = new OutputBufferManager(cmdOutputBuffer);
+      Thread stdoutReaderThread = new Thread(stdout);
       stdoutReaderThread.start();
 
       InputStream cmdErrorStream = process.getErrorStream();
@@ -381,9 +385,8 @@ public class SystemProgram implements Runnable {
         new BufferedReader(new InputStreamReader(cmdErrorStream));
 
       // Set up a reader thread to keep the stdout buffers of the process empty
-      OutputBufferManager stderrReaderMgr =
-        new OutputBufferManager(cmdErrorBuffer, stdError);
-      Thread stderrReaderThread = new Thread(stderrReaderMgr);
+      stderr = new OutputBufferManager(cmdErrorBuffer);
+      Thread stderrReaderThread = new Thread(stderr);
       stderrReaderThread.start();
 
       //  Write out to the program's stdin pipe each line of the
@@ -431,8 +434,8 @@ public class SystemProgram implements Runnable {
       }
       Utilities.timestamp(timestampString.toString(), Utilities.FINISHED_STATUS);
       // Inform the output manager threads that the process is done
-      stdoutReaderMgr.setProcessDone(true);
-      stderrReaderMgr.setProcessDone(true);
+      stdout.setProcessDone(true);
+      stderr.setProcessDone(true);
 
       if (debug)
         System.err.println("done");
@@ -457,7 +460,7 @@ public class SystemProgram implements Runnable {
         System.err.print("SystemProgram: Reading from process stdout: ");
       cmdOutputStream.close();
 
-      int cntStdOutput = stdOutput.size();
+      int cntStdOutput = stdout.size();
       if (debug)
         System.err.println(String.valueOf(cntStdOutput) + " lines");
 
@@ -466,7 +469,7 @@ public class SystemProgram implements Runnable {
 
       cmdErrorStream.close();
 
-      int cntStdError = stdError.size();
+      int cntStdError = stderr.size();
       if (debug)
         System.err.println(String.valueOf(cntStdError) + " lines");
 
@@ -479,19 +482,19 @@ public class SystemProgram implements Runnable {
       exceptionMessage = except.getMessage();
     }
 
-    if (stdOutput.size() > 0) {
-      for (int i = 0; i < stdOutput.size(); i++) {
-        String output = (String) stdOutput.get(i);
+    if (stdout.size() > 0) {
+      for (int i = 0; i < stdout.size(); i++) {
+        String output = (String) stdout.get(i);
         if (output.startsWith("WARNING:")) {
           warningList.add(output);
           //System.out.println("warning=" + warningList.get(warningList.size() - 1));
         }
       }
     }
-    if (stdError.size() > 0) {
+    if (stderr.size() > 0) {
       //System.out.println("stderr");
-      for (int i = 0; i < stdError.size(); i++) {
-        String error = (String) stdError.get(i);
+      for (int i = 0; i < stderr.size(); i++) {
+        String error = (String) stderr.get(i);
         //System.out.println(error);
         if (error.startsWith("WARNING:")) {
           warningList.add(error);
@@ -501,22 +504,22 @@ public class SystemProgram implements Runnable {
     }
 
     if (debug) {
-      if (stdOutput.size() > 0) {
+      if (stdout.size() > 0) {
         System.err.println("SystemProgram: Read from process stdout:");
         System.err.println(
           "------------------------------------------------------------");
-        for (int i = 0; i < stdOutput.size(); i++) {
-          System.err.println(stdOutput.get(i));
+        for (int i = 0; i < stdout.size(); i++) {
+          System.err.println(stdout.get(i));
         }
 
         System.err.println("");
       }
-      if (stdError.size() > 0) {
+      if (stderr.size() > 0) {
         System.err.println("SystemProgram: Read from process stderr:");
         System.err.println(
           "------------------------------------------------------------");
-        for (int i = 0; i < stdError.size(); i++) {
-          System.err.println(stdError.get(i));
+        for (int i = 0; i < stderr.size(); i++) {
+          System.err.println(stderr.get(i));
         }
         System.err.println("");
       }
@@ -563,15 +566,22 @@ public class SystemProgram implements Runnable {
    * the program.  Each line of standard out is stored in a String.
    */
   public String[] getStdOutput() {
-    return (String[]) stdOutput.toArray(new String[stdOutput.size()]);
+    if (stdout == null) {
+      return null;
+    }
+    String[] stdOutputArray  = stdout.get();
+    return stdOutputArray;
   }
 
   public String[] getStdError() {
-    return (String[]) stdError.toArray(new String[stdError.size()]);
+    if (stderr == null) {
+      return null;
+    }
+    return stderr.get();
   }
 
   public String getStdErrorString() {
-    String[] stdErrorArray = (String[]) stdError.toArray(new String[stdError.size()]);
+    String[] stdErrorArray = stderr.get();
     String stdErrorString = null;
     for (int i = 0; i < stdErrorArray.length; i++) {
       stdErrorString = stdErrorArray[i] + "\n";
@@ -675,6 +685,9 @@ public class SystemProgram implements Runnable {
    StringBuffer warning = null;
    boolean done = false;
    int index = 0;
+   if (output == null) {
+     return warnings;
+   }
    do {
      int labelIndex = -1;
      boolean emptyLine = true;
@@ -714,6 +727,10 @@ public class SystemProgram implements Runnable {
   void setAcceptInputWhileRunning(boolean acceptInputWhileRunning) {
     this.acceptInputWhileRunning = acceptInputWhileRunning;
   }
+  
+  void setCollectOutput(boolean collectOutput) {
+    this.collectOutput = collectOutput;
+  }
 
   /**
    * Runnable class to keep the output buffers of the child process from filling
@@ -721,13 +738,12 @@ public class SystemProgram implements Runnable {
    * See Java bugs #: 4750978, 4098442, etc
    */
   class OutputBufferManager implements Runnable {
-    BufferedReader outputReader;
-    ArrayList outputList;
-    boolean processDone = false;
+    private final BufferedReader outputReader;
+    private final ArrayList outputList = new ArrayList();
+    private boolean processDone = false;
 
-    public OutputBufferManager(BufferedReader reader, ArrayList output) {
+    public OutputBufferManager(BufferedReader reader) {
       outputReader = reader;
-      outputList = output;
     }
 
     public void run() {
@@ -735,12 +751,12 @@ public class SystemProgram implements Runnable {
       try {
         while (!processDone) {
           while ((line = outputReader.readLine()) != null) {
-            outputList.add(line);
+            add(line);
           }
           Thread.sleep(100);
         }
         while ((line = outputReader.readLine()) != null) {
-          outputList.add(line);
+          add(line);
         }
       }
       catch (IOException except) {
@@ -756,6 +772,26 @@ public class SystemProgram implements Runnable {
 
     public void setProcessDone(boolean state) {
       processDone = state;
+    }
+    
+    public int size() {
+      return outputList.size();
+    }
+    
+    public String get(int index) {
+      return (String) outputList.get(index);
+    }
+    
+    private synchronized void add(String line) {
+      outputList.add(line);
+    }
+    
+    public synchronized String[] get() {
+      String[] stringArray = (String[]) outputList.toArray(new String[outputList.size()]);
+      if (!collectOutput) {
+        //outputList.clear();
+      }
+      return stringArray;
     }
   }
 }
