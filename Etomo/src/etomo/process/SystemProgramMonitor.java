@@ -1,4 +1,7 @@
 package etomo.process;
+
+import etomo.comscript.IntermittentCommand;
+
 /**
 * <p>Description: </p>
 * 
@@ -16,12 +19,15 @@ public interface SystemProgramMonitor extends Runnable {
   public static  final String  rcsid =  "$Id$";
   
   public void setIntermittentSystemProgram(IntermittentSystemProgram intermittentSystemProgram);
-  public void stop(String computer);
-  public void msgIntermittentCommandFailed(String key);
-  public void msgSentIntermittentCommand(String key);
+  public void msgIntermittentCommandFailed(IntermittentCommand command);
+  public void msgSentIntermittentCommand(IntermittentCommand command);
 }
 /**
 * <p> $Log$
+* <p> Revision 1.3  2005/08/31 17:18:45  sueh
+* <p> bug# 532 Handle an unresponsive computer by dropping from
+* <p> processchunks after 12 unresponses.
+* <p>
 * <p> Revision 1.2  2005/08/30 18:52:53  sueh
 * <p> bug# 532 Added intermittentCommandFailed() to handle a failed w
 * <p> command.
