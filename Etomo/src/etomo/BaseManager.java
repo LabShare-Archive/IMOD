@@ -47,6 +47,11 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.27  2005/09/01 18:34:42  sueh
+* <p> bug# 532 Made the parallel panels manager level.  Added parallelPanelA
+* <p> and B.  Added getParallPanel(), which constructs the panel if necessary
+* <p> and returns it.
+* <p>
 * <p> Revision 1.26  2005/08/22 22:04:35  sueh
 * <p> bug# 714 Added makeCurrent() to set the user.dir property when the
 * <p> manager is switched.
@@ -769,12 +774,12 @@ public abstract class BaseManager {
   }
   
   public final void startGetLoadAverage(LoadAverageDisplay display, String computer) {
-    LoadAverageParam param = new LoadAverageParam(computer);
+    LoadAverageParam param = LoadAverageParam.getInstance(computer);
     getProcessManager().startGetLoadAverage(param, display.getLoadAverageMonitor());
   }
   
   public final void stopGetLoadAverage(LoadAverageDisplay display, String computer) {
-    LoadAverageParam param = new LoadAverageParam(computer);
+    LoadAverageParam param = LoadAverageParam.getInstance(computer);
     getProcessManager().stopGetLoadAverage(param, display.getLoadAverageMonitor());
   }
   
