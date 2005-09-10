@@ -17,7 +17,7 @@ import etomo.util.Utilities;
 /**
 * <p>Description: </p>
 * 
-* <p>Copyright: Copyright (c) 2002, 2003, 2004</p>
+* <p>Copyright: Copyright (c) 2002 - 2005</p>
 *
 *<p>Organization:
 * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
@@ -28,6 +28,9 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.23  2005/09/09 21:21:52  sueh
+* <p> bug# 532 Handling null from stderr and stdout.
+* <p>
 * <p> Revision 1.22  2005/08/30 18:37:38  sueh
 * <p> bug# 532 Changing monitor interfaces for
 * <p> startInteractiveBackgroundProcess() because the combine monitor now
@@ -208,11 +211,11 @@ public abstract class BaseProcessManager {
   
 
   public final void startGetLoadAverage(LoadAverageParam param, LoadAverageMonitor monitor) {
-    IntermittentSystemProgram.startInstance(getManager(), param, monitor);
+    IntermittentBackgroundProcess.startInstance(getManager(), param, monitor);
   }
   
   public final void stopGetLoadAverage(LoadAverageParam param, LoadAverageMonitor monitor) {
-    IntermittentSystemProgram.stopInstance(getManager(), param, monitor);
+    IntermittentBackgroundProcess.stopInstance(getManager(), param, monitor);
   }
   
   /**
