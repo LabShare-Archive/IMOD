@@ -138,14 +138,7 @@ public class ProcesschunksProcessMonitor implements ParallelProcessMonitor {
         else if (strings.length > 1) {
           if (line.startsWith("Dropping")) {
             //handle a dropped CPU
-            String reason;
-            if (line.indexOf("as requested") != -1) {
-              reason = "not responding";
-            }
-            else {
-              reason = "timeouts";
-            }
-            parallelProgressDisplay.msgDropped(strings[1], reason);
+            parallelProgressDisplay.msgDropped(strings[1], "not responding");
           }
           //handle a finished chunk
           else if (strings[1].equals("finished")) {
@@ -315,6 +308,10 @@ public class ProcesschunksProcessMonitor implements ParallelProcessMonitor {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.9  2005/09/09 21:42:22  sueh
+* <p> bug# 532 Throwing an exception if a command is sent that processchunks
+* <p> doesn't recognize.
+* <p>
 * <p> Revision 1.8  2005/09/07 20:51:06  sueh
 * <p> bug# 532 Added commandsPipe and commandsWriter to send commands
 * <p> for processchunks to a file.
