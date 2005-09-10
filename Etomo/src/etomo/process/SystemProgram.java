@@ -17,6 +17,17 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.25  2005/09/10 01:53:00  sueh
+ * <p> bug# 532 Changed IntermittentSystemProgram to
+ * <p> IntermittentBackgroundProcess.  Made intermittentSystemProgram a child
+ * <p> of SystemProgram.  Made OutputBufferManager in independent class
+ * <p> instead of being inside SystemProgram.  IntermittentSystemProgram can
+ * <p> use OutputBufferManager to do things only necessary for intermittent
+ * <p> programs, such as deleting standard output after it is processed,
+ * <p> keeping separate lists of standard output for separate monitors, and
+ * <p> setting a key phrase in OutputBufferManager so that only useful lines from
+ * <p> standard output will be saved.
+ * <p>
  * <p> Revision 3.24  2005/09/09 21:44:36  sueh
  * <p> bug# 532 Encaplulating the output array inside of OutputBufferManager.
  * <p>
@@ -377,7 +388,7 @@ public class SystemProgram implements Runnable {
           new InputStreamReader(cmdOutputStream));
 
       // Set up a reader thread to keep the stdout buffers of the process empty
-      stdout = createOutputBufferManager(cmdOutputBuffer);
+      stdout = newOutputBufferManager(cmdOutputBuffer);
       Thread stdoutReaderThread = new Thread(stdout);
       stdoutReaderThread.start();
 
@@ -386,7 +397,7 @@ public class SystemProgram implements Runnable {
           cmdErrorStream));
 
       // Set up a reader thread to keep the stdout buffers of the process empty
-      stderr = createOutputBufferManager(cmdErrorBuffer);
+      stderr = newErrorBufferManager(cmdErrorBuffer);
       Thread stderrReaderThread = new Thread(stderr);
       stderrReaderThread.start();
 
@@ -540,7 +551,11 @@ public class SystemProgram implements Runnable {
     done = true;
   }
   
-  protected OutputBufferManager createOutputBufferManager(BufferedReader cmdBuffer) {
+  protected OutputBufferManager newOutputBufferManager(BufferedReader cmdBuffer) {
+    return new OutputBufferManager(cmdBuffer);
+  }
+  
+  protected OutputBufferManager newErrorBufferManager(BufferedReader cmdBuffer) {
     return new OutputBufferManager(cmdBuffer);
   }
 
