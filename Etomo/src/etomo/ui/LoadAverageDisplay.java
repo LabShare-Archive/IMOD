@@ -21,9 +21,13 @@ public interface LoadAverageDisplay {
   public LoadAverageMonitor getLoadAverageMonitor();
   public void setLoadAverage(String computer, double load1, double load5, double load15);
   public void msgLoadAverageFailed(String computer, String reason);
+  public void clearFailureReason(String computer);
 }
 /**
 * <p> $Log$
+* <p> Revision 1.4  2005/09/09 21:46:52  sueh
+* <p> bug# 532 moved call to clearLoadAverage() to msgLoadAverageFailed().
+* <p>
 * <p> Revision 1.3  2005/09/01 18:01:17  sueh
 * <p> bug# 532 Added clearLoadAverage() to clear the load averages when the
 * <p> load average command fails.

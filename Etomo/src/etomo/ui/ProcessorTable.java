@@ -531,9 +531,19 @@ final class ProcessorTable {
     }
     ((ProcessorTableRow) rows.get(computer)).clearLoadAverage(reason);
   }
+  
+  final void clearFailureReason(String computer) {
+    if (rows == null) {
+      return;
+    }
+    ((ProcessorTableRow) rows.get(computer)).clearFailureReason();
+  }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.13  2005/09/09 21:47:45  sueh
+ * <p> bug# 532 Passed reason string to clearLoadAverage().
+ * <p>
  * <p> Revision 1.12  2005/09/01 18:03:19  sueh
  * <p> bug# 532 Added clearLoadAverage() to clear the load averages when the
  * <p> load average command fails.  Added a drop reason.  Added a error level

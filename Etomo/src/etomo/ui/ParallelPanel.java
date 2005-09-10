@@ -249,6 +249,10 @@ public final class ParallelPanel implements ParallelProgressDisplay, Expandable,
     processorTable.clearLoadAverage(computer, reason);
   }
   
+  public void clearFailureReason(String computer) {
+    processorTable.clearFailureReason(computer);
+  }
+  
   /**
    * sets parallelProcessMonitor with a monitor which is monitoring a parallel
    * process associated with this ParallelProgressDisplay
@@ -272,6 +276,9 @@ public final class ParallelPanel implements ParallelProgressDisplay, Expandable,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.13  2005/09/09 21:47:17  sueh
+ * <p> bug# 532 moved call to clearLoadAverage() to msgLoadAverageFailed().
+ * <p>
  * <p> Revision 1.12  2005/09/01 18:35:20  sueh
  * <p> bug# 532 ParallelPanel is no longer a doubleton.  It needs to be manager
  * <p> level.

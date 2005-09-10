@@ -191,12 +191,7 @@ final class ProcessorTableRow {
   final void msgDropped(String reason) {
     cellComputer.setSelected(false);
     setSelected(false);
-    setFailureReason(reason);
-  }
-  
-  private final void setFailureReason(String reason) {
     cellFailureReason.setValue(reason);
-    cellFailureReason.setError(reason != null && !reason.matches("\\s+"));
   }
 
   private void setSelected(boolean selected) {
@@ -304,7 +299,11 @@ final class ProcessorTableRow {
     cellLoad15.setValue();
     cellLoad15.setWarning(false);
     setSelectedError();
-    setFailureReason(reason);
+    cellFailureReason.setValue(reason);
+  }
+  
+  final void clearFailureReason() {
+    cellFailureReason.setValue();
   }
   
   private final void setLoad(FieldCell cellLoad, double load, int numberCpus) {
@@ -391,6 +390,9 @@ final class ProcessorTableRow {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.12  2005/09/09 21:47:55  sueh
+ * <p> bug# 532 Passed reason string to clearLoadAverage().
+ * <p>
  * <p> Revision 1.11  2005/09/01 18:03:33  sueh
  * <p> bug# 532 Added clearLoadAverage() to clear the load averages when the
  * <p> load average command fails.  Added a drop reason.  Added a error level
