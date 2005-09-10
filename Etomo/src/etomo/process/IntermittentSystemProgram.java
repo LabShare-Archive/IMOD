@@ -27,8 +27,14 @@ public class IntermittentSystemProgram extends SystemProgram {
     this.outputKeyPhrase = outputKeyPhrase;
   }
   
-  protected OutputBufferManager createOutputBufferManager(BufferedReader cmdBuffer) {
+  protected OutputBufferManager newOutputBufferManager(BufferedReader cmdBuffer) {
     OutputBufferManager bufferManager = new OutputBufferManager(cmdBuffer, outputKeyPhrase);
+    bufferManager.setCollectOutput(false);
+    return bufferManager;
+  }
+  
+  protected OutputBufferManager newErrorBufferManager(BufferedReader cmdBuffer) {
+    OutputBufferManager bufferManager = new OutputBufferManager(cmdBuffer);
     bufferManager.setCollectOutput(false);
     return bufferManager;
   }
@@ -48,6 +54,15 @@ public class IntermittentSystemProgram extends SystemProgram {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.11  2005/09/10 01:49:18  sueh
+* <p> bug# 532 Changed IntermittentSystemProgram to
+* <p> IntermittentBackgroundProcess.  Made intermittentSystemProgram a child
+* <p> of SystemProgram.  Made OutputBufferManager in independent class
+* <p> instead of being inside SystemProgram.  IntermittentSystemProgram can
+* <p> use OutputBufferManager to do things only necessary for intermittent
+* <p> programs, such as deleting standard output after it is processed and
+* <p> keeping separate lists of standard output for separate monitors.
+* <p>
 * <p> Revision 1.10  2005/09/09 21:25:16  sueh
 * <p> bug# 532 Made LoadAverageParam an n'ton (one for each computer) so
 * <p> that there aren't IntermittentSystemPrograms then computers.  This allows
