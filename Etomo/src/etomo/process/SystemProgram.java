@@ -7,7 +7,7 @@
  * <p> If the working directory is not explicitly set then the current working
  * directory for the command is set to the system property "user.dir"
  * 
- * <p>Copyright: Copyright (c) 2002</p
+ * <p>Copyright: Copyright (c) 2002 - 2005</p
  *
  * <p>Organization: Boulder Laboratory for 3D Fine Structure,
  * University of Colorado</p>
@@ -17,6 +17,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.24  2005/09/09 21:44:36  sueh
+ * <p> bug# 532 Encaplulating the output array inside of OutputBufferManager.
+ * <p>
  * <p> Revision 3.23  2005/08/27 22:33:40  sueh
  * <p> bug# 532 In setCurrentStdInput, throwing IOException instead of handling
  * <p> it.  This allows IntermittentSystemProgram to halt a failed intermittent
@@ -218,7 +221,7 @@ public class SystemProgram implements Runnable {
   private int exitValue = Integer.MIN_VALUE;
   private final String[] commandArray;
   private String[] stdInput = null;
-  private OutputBufferManager stdout = null;
+  protected OutputBufferManager stdout = null;
   private OutputBufferManager stderr = null;
   private File workingDirectory = null;
   private String exceptionMessage = "";
@@ -231,7 +234,6 @@ public class SystemProgram implements Runnable {
   private OutputStream cmdInputStream = null;
   private BufferedWriter cmdInBuffer = null;
   private boolean acceptInputWhileRunning = false;
-  private boolean collectOutput = true;
 
   /**
    * Creates a SystemProgram object to execute the program specified by the
@@ -368,24 +370,23 @@ public class SystemProgram implements Runnable {
       //  Create a buffered writer to handle the stdin, stdout and stderr
       //  streams of the process
       cmdInputStream = process.getOutputStream();
-      cmdInBuffer =
-        new BufferedWriter(new OutputStreamWriter(cmdInputStream));
+      cmdInBuffer = new BufferedWriter(new OutputStreamWriter(cmdInputStream));
 
       InputStream cmdOutputStream = process.getInputStream();
-      BufferedReader cmdOutputBuffer =
-        new BufferedReader(new InputStreamReader(cmdOutputStream));
+      BufferedReader cmdOutputBuffer = new BufferedReader(
+          new InputStreamReader(cmdOutputStream));
 
       // Set up a reader thread to keep the stdout buffers of the process empty
-      stdout = new OutputBufferManager(cmdOutputBuffer);
+      stdout = createOutputBufferManager(cmdOutputBuffer);
       Thread stdoutReaderThread = new Thread(stdout);
       stdoutReaderThread.start();
 
       InputStream cmdErrorStream = process.getErrorStream();
-      BufferedReader cmdErrorBuffer =
-        new BufferedReader(new InputStreamReader(cmdErrorStream));
+      BufferedReader cmdErrorBuffer = new BufferedReader(new InputStreamReader(
+          cmdErrorStream));
 
       // Set up a reader thread to keep the stdout buffers of the process empty
-      stderr = new OutputBufferManager(cmdErrorBuffer);
+      stderr = createOutputBufferManager(cmdErrorBuffer);
       Thread stderrReaderThread = new Thread(stderr);
       stderrReaderThread.start();
 
@@ -537,6 +538,10 @@ public class SystemProgram implements Runnable {
     
     //  Set the done flag for the thread
     done = true;
+  }
+  
+  protected OutputBufferManager createOutputBufferManager(BufferedReader cmdBuffer) {
+    return new OutputBufferManager(cmdBuffer);
   }
 
   /**
@@ -726,72 +731,5 @@ public class SystemProgram implements Runnable {
    */
   void setAcceptInputWhileRunning(boolean acceptInputWhileRunning) {
     this.acceptInputWhileRunning = acceptInputWhileRunning;
-  }
-  
-  void setCollectOutput(boolean collectOutput) {
-    this.collectOutput = collectOutput;
-  }
-
-  /**
-   * Runnable class to keep the output buffers of the child process from filling
-   * up and locking up the process.
-   * See Java bugs #: 4750978, 4098442, etc
-   */
-  class OutputBufferManager implements Runnable {
-    private final BufferedReader outputReader;
-    private final ArrayList outputList = new ArrayList();
-    private boolean processDone = false;
-
-    public OutputBufferManager(BufferedReader reader) {
-      outputReader = reader;
-    }
-
-    public void run() {
-      String line;
-      try {
-        while (!processDone) {
-          while ((line = outputReader.readLine()) != null) {
-            add(line);
-          }
-          Thread.sleep(100);
-        }
-        while ((line = outputReader.readLine()) != null) {
-          add(line);
-        }
-      }
-      catch (IOException except) {
-        //  Assume the stream is closed by the program exiting.  
-        processDone = true;
-        return;
-      }
-      catch (InterruptedException except) {
-        except.printStackTrace();
-        System.err.println("SystemProgram::OuputBufferManager interrupted!");
-      }
-    }
-
-    public void setProcessDone(boolean state) {
-      processDone = state;
-    }
-    
-    public int size() {
-      return outputList.size();
-    }
-    
-    public String get(int index) {
-      return (String) outputList.get(index);
-    }
-    
-    private synchronized void add(String line) {
-      outputList.add(line);
-    }
-    
-    public synchronized String[] get() {
-      String[] stringArray = (String[]) outputList.toArray(new String[outputList.size()]);
-      if (!collectOutput) {
-        //outputList.clear();
-      }
-      return stringArray;
-    }
   }
 }

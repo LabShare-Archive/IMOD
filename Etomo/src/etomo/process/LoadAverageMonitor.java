@@ -18,8 +18,10 @@ import etomo.util.HashedArray;
 * @version $Revision$
 */
 
-public class LoadAverageMonitor implements SystemProgramMonitor {
+public class LoadAverageMonitor implements IntermittentProcessMonitor {
   public static  final String  rcsid =  "$Id$";
+  
+  private static final String OUTPUT_KEY_PHRASE = "load average";
   
   private HashedArray programs = new HashedArray();
   private final LoadAverageDisplay display;
@@ -52,8 +54,7 @@ public class LoadAverageMonitor implements SystemProgramMonitor {
     running = false;
   }
   
-  public void setIntermittentSystemProgram(
-      IntermittentSystemProgram program) {
+  public void setProcess(IntermittentBackgroundProcess program) {
     String key = program.getCommand().getKey();
     ProgramState programState = (ProgramState) programs.get(key);
     if (programState == null) {
@@ -68,6 +69,7 @@ public class LoadAverageMonitor implements SystemProgramMonitor {
         new Thread(this).start();
       }
     }
+    display.clearFailureReason(key);
   }
   
   private boolean isStopped() {
@@ -84,12 +86,12 @@ public class LoadAverageMonitor implements SystemProgramMonitor {
   
   private void processData(ProgramState programState) {
     //process standard out
-    String[] stdout = programState.program.getStdOutput();
+    String[] stdout = programState.program.getStdOutput(this);
     if (stdout == null) {
       return;
     }
     for (int i = 0; i < stdout.length; i++) {
-      if (stdout[i].indexOf("load average") != -1) {
+      if (stdout[i].indexOf(OUTPUT_KEY_PHRASE) != -1) {
         programState.waitForCommand = 0;
         String[] array = stdout[i].trim().split("\\s+");
         display.setLoadAverage(programState.program.getCommand().getKey(),
@@ -97,6 +99,10 @@ public class LoadAverageMonitor implements SystemProgramMonitor {
             getLoad(array[array.length - 1]));
       }
     }
+  }
+
+  public final String getOutputKeyPhrase() {
+    return OUTPUT_KEY_PHRASE;
   }
   
   private final double getLoad(String load) {
@@ -110,7 +116,7 @@ public class LoadAverageMonitor implements SystemProgramMonitor {
   public final void msgIntermittentCommandFailed(IntermittentCommand command) {
     String key = command.getKey();
     if (programs.containsKey(key)) {
-      display.msgLoadAverageFailed(key, "load timeout");
+      display.msgLoadAverageFailed(key, "timeout");
     }
   }
   
@@ -123,10 +129,10 @@ public class LoadAverageMonitor implements SystemProgramMonitor {
   }
   
   private final class ProgramState {
-    private final IntermittentSystemProgram program;
+    private final IntermittentBackgroundProcess program;
     private int waitForCommand = 0;
     
-    private ProgramState(IntermittentSystemProgram program) {
+    private ProgramState(IntermittentBackgroundProcess program) {
       this.program = program;
     }
     
@@ -138,6 +144,12 @@ public class LoadAverageMonitor implements SystemProgramMonitor {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.7  2005/09/09 21:40:56  sueh
+* <p> bug# 532 Checked program.isStopped() before running processData().
+* <p> Set waitForCommand back to 0 everytime it succeeds and when it restarts.
+* <p> This prevents timeouts.  Send a reason to the display when the load
+* <p> average times out.
+* <p>
 * <p> Revision 1.6  2005/09/07 20:38:09  sueh
 * <p> bug# 532 ProcessData(): Looking at the subset of the stdoutput that hasn't
 * <p> been processed.  Handling the first time connection question by sending
