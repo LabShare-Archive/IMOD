@@ -16,7 +16,7 @@
 	logical cappoly(maxpoly)
 	real*4 xyrot(3,2,maxtri),zrot(maxtri),cbet(maxtri),sbet(maxtri)
 	real*4 cgam(maxtri),sgam(maxtri)
-	equivalence (modind,xyrot)
+c	equivalence (modind,xyrot)
 	equivalence (prtx,prtxyz(1)),(prty,prtxyz(2)),(prtz,prtxyz(3))
 	integer*4 in5
 	common /nmsinput/ in5
@@ -74,6 +74,7 @@ c
 	npoly=0
 	nvert=0
 	istartcode=-23
+	istartcode2=-25
 	iendcode=-22
 	idonecode=-1
 	areasum=0.
@@ -96,11 +97,20 @@ c
 c	    
 c	    advance to start of a polygon
 c
-	  do while(modind(ilist).ne.istartcode.and.
-     &	      modind(ilist).ne.idonecode)
+	  do while(modind(ilist).ne.istartcode.and.modind(ilist).ne.
+     &	      istartcode2.and. modind(ilist).ne.idonecode)
 	    ilist=ilist+1
 	  enddo
-	  if(modind(ilist).eq.istartcode)then
+	  if(modind(ilist).eq.istartcode.or.modind(ilist).eq.istartcode2)then
+	    if (modind(ilist).eq.istartcode) then
+	      ivbase = 1
+	      listinc = 2
+	      normadd = 0
+	    else
+	      ivbase = 0
+	      listinc = 1
+	      normadd = 1
+	    endif
 	    ilist=ilist+1
 	    npoly=npoly+1
 	    ninpoly(npoly)=0
@@ -108,9 +118,9 @@ c
 c	      
 c		start a new triangle: first check that its a triangle
 c
-	      i1=modind(ilist+1)+1
-	      i2=modind(ilist+3)+1
-	      i3=modind(ilist+5)+1
+	      i1=modind(ilist+ivbase)+1
+	      i2=modind(ilist+ivbase + listinc)+1
+	      i3=modind(ilist+ivbase + 2 * listinc)+1
 	      ifok=1
 	      if(i1.eq.i2.or.i2.eq.i3.or.i1.eq.i3)then
 		print *,'NON-TRIANGLE ignored',npoly,ntriang
@@ -137,7 +147,7 @@ c
 	      endif
 c
 	      if(ifok.eq.0)then
-		ilist=ilist+6
+		ilist=ilist+3*listinc
 	      else
 		ntriang=ntriang+1
 		if(ninpoly(npoly).eq.0)istrpoly(npoly)=ntriang
@@ -146,12 +156,12 @@ c
 c		get indexes to vectors and normals
 c
 		do i=1,3
-		  inorm=modind(ilist)+1		!IT NEEDS +1 because it's C
+		  inorm=modind(ilist)+normadd+1	!IT NEEDS +1 because it's C
 		  indnorm(i,ntriang)=inorm
-		  ivert=modind(ilist+1)+1
+		  ivert=modind(ilist+ivbase)+1
 		  indvert(i,ntriang)=ivert
 		  indedge(i,ntriang)=-1
-		  ilist=ilist+2
+		  ilist=ilist+listinc
 c		    
 c		    normalize normal, scale vertex
 c		  
