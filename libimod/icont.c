@@ -1593,6 +1593,8 @@ void imodContourReduce(Icont *cont, float tol)
           }
           if (distsq >= tolsq)
             ifout=1;
+          if (istoreRetainPoint(cont->store, its))
+            ifout = 1;
           its++;
         }
 
@@ -1613,21 +1615,20 @@ void imodContourReduce(Icont *cont, float tol)
   if (minseg[0] + 1 == npts)
     return;
 
-  tpt = (Ipoint *)malloc(sizeof(Ipoint) * (minseg[0] + 1));
-
+  /* npo is number of points already retained and index of points to delete
+     ipo is the index of a retained point in original contour */
   npo = 1;
   ipo = 0;
-  tpt[0] = cont->pts[0];
   while (nextpt[ipo] < npts) {
+
+    /* Delete any points between current and next point */
+    for (its = ipo + 1; its < nextpt[ipo]; its++)
+      imodPointDelete(cont, npo);
     ipo = nextpt[ipo];
-    tpt[npo++] = cont->pts[ipo];
+    npo++;
   }
-  if (minseg[0] + 1 != npo)
-    printf("OOPS minseg + 1 = %d, npo = %d\n",minseg[0] + 1, npo);
-  cont->psize = npo;
-  if (cont->pts)
-    free(cont->pts);
-  cont->pts = tpt;
+  /* if (minseg[0] + 1 != npo)
+     printf("OOPS minseg + 1 = %d, npo = %d\n",minseg[0] + 1, npo); */
   /*     printf ("%d to %d\n", npts, npo); */
 }
 
@@ -1648,16 +1649,14 @@ int imodContourShave(Icont *cont, double dist)
   for (i = 1; i < cont->psize - 1; i++){
     pdist = imodel_point_dist( &(cont->pts[i - 1]), &(cont->pts[i]));
     ndist = imodel_point_dist( &(cont->pts[i + 1]), &(cont->pts[i]));
-    if (dist > 0)
-      if ((pdist < dist) && (ndist < dist)){
-        imodPointDelete(cont, i);
-        i--;
-      }
-    if (dist < 0)
-      if (pdist > (-dist) && (ndist > (-dist))){
-        imodPointDelete(cont, i);
-        i--;
-      }
+    if ((pdist < dist) && (ndist < dist) && 
+        !istoreRetainPoint(cont->store, i)) {
+      imodPointDelete(cont, i);
+      i--;
+    }
+
+    /* DNM 7/4/05: removed code for negative dist that deleted point if it was
+       farther than -dist from both points! */
   }
   return(0);
 }
@@ -3158,6 +3157,10 @@ char *imodContourGetName(Icont *inContour)
 /* END_SECTION */
 /*
   $Log$
+  Revision 3.16  2005/06/26 19:19:35  mast
+  Rewrote break routine to be useful from 3dmod, and fixed join/splice
+  routine for joining storage lists
+
   Revision 3.15  2005/06/21 13:11:31  mast
   Needed to call istoreInvert with address of list
 
