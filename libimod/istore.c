@@ -14,6 +14,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.4  2005/06/29 05:36:38  mast
+Added copy cont/surf function, returned separate contour/surface state flags
+
 Revision 3.3  2005/06/26 19:33:18  mast
 Lots of changes upon use in 3dmod and testing
 
@@ -827,7 +830,7 @@ int istoreCountContSurfItems(Ilist *list, int index, int surfFlag)
  * Copies items having index [indFrom] from general store list [olist] to the
  * new list pointed to by [nlist], changing the index to [indTo] in the new
  * list.  Contour items are copied if [surfFlag] is 0, and surface items are
- * copied if [surfFlag is nonzero.  Returns 1 for error.
+ * copied if [surfFlag] is nonzero.  Returns 1 for error.
  */
 int istoreCopyContSurfItems(Ilist *olist, Ilist **nlistp, int indFrom,
                             int indTo, int surfFlag)
@@ -1250,9 +1253,9 @@ int istoreFirstChangeIndex(Ilist *list)
 * the point's drawing properties are returned in [ptProps].  The current
 * state of each type of change is returned in [stateFlags], which should be
 * zeroed by the caller at the start of a contour and maintained between calls.
-* Flags for which properties at this point are returned in [changeFlags], while
-* the return value is the point index of the next change in the list, or -1 if
-* there are no more changes.
+* Flags for which properties changed at this point are returned in 
+* [changeFlags], while the return value is the point index of the next change 
+* in the list, or -1 if there are no more changes.
 */
 int istoreNextChange(Ilist *list, DrawProps *defProps,
                      DrawProps *ptProps, int *stateFlags, int *changeFlags)
@@ -1399,7 +1402,7 @@ int istoreNextChange(Ilist *list, DrawProps *defProps,
 * Determines the drawing properties for point [pt] in contour [co] of object 
 * [obj].  Returns the default contour drawing properties in [contProps], the
 * point drawing properties in [ptProps], and the return value is the flags
-* for the state of various properties (changed versus default).
+* for the state of various properties (changed versus default for contour).
 */
 int istorePointDrawProps(Iobj *obj, DrawProps *contProps, DrawProps *ptProps,
                          int co, int pt)
@@ -1413,14 +1416,32 @@ int istorePointDrawProps(Iobj *obj, DrawProps *contProps, DrawProps *ptProps,
   istoreDefaultDrawProps(obj, &defProps);
   istoreContSurfDrawProps(obj->store, &defProps, contProps, co, 
                          obj->cont[co].surf, &contState, &surfState);
+  return (istoreListPointProps(obj->cont[co].store, contProps, ptProps, pt));
+}
+
+/*!
+* Determines the drawing properties for point [pt] from the changes in [list],
+* a list of changes for a contour.  The default contour drawing properties are 
+* supplied in [contProps], the point drawing properties are returned in 
+* [ptProps], and the return value is the flags
+* for the state of various properties (changed versus default).
+*/
+int istoreListPointProps(Ilist *list, DrawProps *contProps, DrawProps *ptProps,
+                         int pt)
+{
+  int stateFlags = 0;
+  int changeFlags, nextChange, lastChange;
   *ptProps = *contProps;
 
   /* Go through the changes until the point index is passed */
   nextChange = istoreFirstChangeIndex(list);
+  /* printf("pt %d firstChange %d  list size %d\n",pt, nextChange, 
+     ilistSize(list)); */
   while (nextChange >= 0 && nextChange <= pt) {
     lastChange = nextChange;
     nextChange = istoreNextChange(list, contProps, ptProps, &stateFlags,
                                   &changeFlags);
+    /* printf("nextChange %d  state %d\n", nextChange, stateFlags); */
   }
 
   /* If not ending exactly on the point, cancel gap and connect */
@@ -1428,9 +1449,11 @@ int istorePointDrawProps(Iobj *obj, DrawProps *contProps, DrawProps *ptProps,
     ptProps->gap = ptProps->connect = 0;
     stateFlags &= ~(CHANGED_GAP | CHANGED_CONNECT);
   }
-  /* printf("State flags at end of PointProps = %o\n", stateFlags); */
+  /* printf("State flags at end of PointProps = %o\n", stateFlags);*/
+  /* fflush(stdout); */
   return stateFlags;
 }
+
 
 /*!
  * Returns the number of items whose type is [type] in the [list], or just 
@@ -1484,4 +1507,166 @@ int istoreCountObjectItems(Iobj *obj, int type, int doCont, int doMesh,
   }
 }
 
+/*!
+ * Returns 1 if the storage list in [list] has a transparency change that
+ * matches [state], which should be 0 for trans of 0 and 1 for trans > 0,
+ * or returns 0 if there is no list or no such trans change.  A reversion to
+ * the default state is not counted.
+ */
+int istoreTransStateMatches(Ilist *list, int state)
+{
+  int i;
+  Istore *stp;
 
+  if (!ilistSize(list))
+    return 0;
+  for (i = 0; i < list->size; i++) {
+    stp = istoreItem(list, i);
+    if (stp->type == GEN_STORE_TRANS && !(stp->flags & GEN_STORE_REVERT) &&
+        (stp->value.i ? 1 : 0) == state)
+      return 1;
+  }
+  return 0;
+}
+
+/*!
+ * Returns 1 if a point should be retained in a shave or reduce operation
+ * because either it has an item, it is after a gap, or it precedes an end.
+ */
+int istoreRetainPoint(Ilist *list, int index)
+{
+  int lookup, after, i;
+  Istore *stp;
+
+  if (!ilistSize(list))
+    return 0;
+
+  /* If there is anything for this index, retain point */
+  lookup = istoreLookup(list, index, &after);
+  if (lookup >= 0)
+    return 1;
+  
+  /* Look forward for an end on next index */
+  for (i = after; i < list->size; i++) {
+    stp = istoreItem(list, i);
+    if ((stp->flags & (GEN_STORE_NOINDEX | 3)) || stp->index.i > index + 1)
+      break;
+    if (stp->flags & GEN_STORE_REVERT)
+      return 1;
+  }
+
+  /* Look backward for a gap on previous index */
+  for (i = after - 1; i >= 0; i--) {
+    stp = istoreItem(list, i);
+    if (stp->index.i < index - 1)
+      break;
+    if (stp->type == GEN_STORE_GAP)
+      return 1;
+  }
+  return 0;
+}
+
+/*!
+ * Adds {Istore} items to the list pointed to by [listp] for all properties in 
+ * [props] that are not in the default state, as indicated by [flags].
+ * Each item's index will be [index].  Only handles 3D items: color, fill 
+ * color, transparency, 3D width.  Returns 1 for error.
+ */
+int istoreGenerateItems(Ilist **listp, DrawProps *props, int stateFlags, 
+                        int index, int genFlags)
+{
+  Istore store;
+  store.index.i = index;
+  if (genFlags & stateFlags & CHANGED_COLOR) {
+    store.type = GEN_STORE_COLOR;
+    store.flags = (3 << 2);
+    store.value.b[0] = (int)(255. * props->red);
+    store.value.b[1] = (int)(255. * props->green);
+    store.value.b[2] = (int)(255. * props->blue);
+    if (istoreInsert(listp, &store))
+      return 1;
+  }
+    
+  if (genFlags & stateFlags & CHANGED_FCOLOR) {
+    store.type = GEN_STORE_FCOLOR;
+    store.flags = (3 << 2);
+    store.value.b[0] = (int)(255. * props->fillRed);
+    store.value.b[1] = (int)(255. * props->fillGreen);
+    store.value.b[2] = (int)(255. * props->fillBlue);
+    if (istoreInsert(listp, &store))
+      return 1;
+  }
+    
+  if (genFlags & stateFlags & CHANGED_TRANS) {
+    store.type = GEN_STORE_TRANS;
+    store.flags = 0;
+    store.value.i = props->trans;
+    if (istoreInsert(listp, &store))
+      return 1;
+  }
+    
+  if (genFlags & stateFlags & CHANGED_3DWIDTH) {
+    store.type = GEN_STORE_3DWIDTH;
+    store.flags = 0;
+    store.value.i = props->linewidth;
+    if (istoreInsert(listp, &store))
+      return 1;
+  }
+  return 0;
+}
+
+/*!
+ * Adds {Istore} items to the mesh storage list pointed to by [mlistp] for a
+ * single point with index [ptInd].  Its properties are determined from the 
+ * contour storage list in [clist], the contour properties in [contProps], and
+ * the state flags for the contour in [contState].  Items are added for
+ * non-default properties specified by [genFlags].
+ * Each item's index will be [meshInd].  Only handles 3D items: color, fill 
+ * color, transparency, 3D width.  Returns 1 for error.
+ */
+int istoreGenPointItems(Ilist *clist, DrawProps *contProps, int contState, 
+                        int ptInd, Ilist **mlistp, int meshInd, int genFlags)
+{
+  DrawProps ptProps;
+  int stateFlags = istoreListPointProps(clist, contProps, &ptProps, ptInd);
+  return (istoreGenerateItems(mlistp, &ptProps, stateFlags | contState,
+                              meshInd, genFlags));
+}
+
+/*!
+ * Returns 1 if an item in [list] with point index equal to [index] is a gap,
+ * or 0 if not.
+ */
+int istorePointIsGap(Ilist *list, int index)
+{
+  int lookup, after, i;
+  Istore *stp;
+  lookup = istoreLookup(list, index, &after);
+  if (lookup < 0)
+    return 0;
+  for (i = lookup; i < after; i++) {
+    stp = istoreItem(list, i);
+    if (stp->type == GEN_STORE_GAP)
+      return 1;
+  }
+  return 0;
+}
+
+/*!
+ * Skips to location in [list] where the item index is [index] or greater.
+ * Returns the index of the next item in the list, or -1 if there is none.
+ */
+int istoreSkipToIndex(Ilist *list, int index)
+{
+  int lookup, after, i;
+  Istore *stp;
+  lookup = istoreLookup(list, index, &after);
+  if (lookup < 0)
+    lookup = after;
+  if (lookup >= ilistSize(list))
+    return -1;
+  stp = istoreItem(list, lookup);
+  if (stp->flags & (GEN_STORE_NOINDEX | 3))
+    return -1;
+  return stp->index.i;
+}
