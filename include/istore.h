@@ -14,6 +14,9 @@ $Date$
 $Revision$
     
 $Log$
+Revision 3.4  2005/06/29 05:34:33  mast
+More fiddling
+
 Revision 3.3  2005/06/26 19:34:16  mast
 Added some functions
 
@@ -140,6 +143,12 @@ extern "C" {
   int istoreCountItems(Ilist *list, int type, int stop);
   int istoreCountObjectItems(Iobj *obj, int type, int doCont, int doMesh,
                                int stop);
+  int istoreTransStateMatches(Ilist *list, int state);
+  int istoreRetainPoint(Ilist *list, int index);
+  int istoreGenerateItems(Ilist **listp, DrawProps *props, int flags, 
+                          int index);
+  int istorePointIsGap(Ilist *list, int index);
+  int istoreSkipToIndex(Ilist *list, int index);
 
 #ifdef __cplusplus
 }
