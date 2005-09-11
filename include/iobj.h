@@ -44,6 +44,7 @@
 #define IMOD_OBJFLAG_TIME    (1l << 18) /* Contours contain time data.       */
 #define IMOD_OBJFLAG_TWO_SIDE   (1l << 19) /* Light both sides of surface    */
 #define IMOD_OBJFLAG_THICK_CONT (1l << 20) /* Draw current contour thicker   */
+#define IMOD_OBJFLAG_TEMPUSE    (1l << 31) /* For temporary use              */
 
 /* macros for testing above flags. */
 #define iobjConnect(flag) ( (~(flag)) & IMOD_OBJFLAG_SCAT)
@@ -147,6 +148,9 @@ extern "C" {
 
 /*
     $Log$
+    Revision 3.8  2005/06/06 17:27:23  mast
+    Dropped 2DPOINT and 3DPOINT flags and added FCOLOR_PNT flag
+
     Revision 3.7  2005/04/23 23:36:23  mast
     Moved some functions into imodel.c
 
