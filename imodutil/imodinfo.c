@@ -86,7 +86,7 @@ static int contourSubareaByScan(Icont *cont, Ipoint ptmin, Ipoint ptmax,
                                 Ipoint *pmax, float *area);
 static double clippedTriangleArea(Imesh *mesh, int i, float zs, Ipoint min,
                                   Ipoint max, int doclip, Iplane *plane,
-                                  int nPlanes);
+                                  int nPlanes, int listInc, int vertBase);
 static void imodinfo_surface(Imod *imod, int scaninside, Ipoint min,
                              Ipoint max, int useclip);
 
@@ -588,6 +588,7 @@ static void imodinfo_surface(Imod *imod, int scaninside, Ipoint min,
   Iplane plane[2 * IMOD_CLIPSIZE];
   int nPlanes = 0;
   int doclip;
+  int listInc, vertBase, normAdd;
   Iview *view = &imod->view[imod->cview];
 
 
@@ -695,8 +696,9 @@ static void imodinfo_surface(Imod *imod, int scaninside, Ipoint min,
         if (!mesh || !mesh->lsize || 
             imeshResol(mesh->flag) != resol)
           continue;
-        for(i = 0; i < mesh->lsize; i++){
-          if (mesh->list[i] == IMOD_MESH_BGNPOLYNORM) {
+        for (i = 0; i < mesh->lsize; i++) {
+          if (imodMeshPolyNormFactors(mesh->list[i], &listInc, &vertBase, 
+                                      &normAdd)) {
             i++;
 
             /* Get a total area for this polygon and find
@@ -706,12 +708,13 @@ static void imodinfo_surface(Imod *imod, int scaninside, Ipoint min,
             while(mesh->list[i] != IMOD_MESH_ENDPOLY){
 
               psa += clippedTriangleArea(mesh, i, zs, min, max, doclip,
-                                         plane, nPlanes);
-              p1 = &(mesh->vert[mesh->list[++i]]);
-              i+=2;
-              p2 = &(mesh->vert[mesh->list[i]]);
-              i+=2;
-              p3 = &(mesh->vert[mesh->list[i++]]);
+                                         plane, nPlanes, listInc, vertBase);
+              p1 = &(mesh->vert[mesh->list[i + vertBase]]);
+              i+=listInc;
+              p2 = &(mesh->vert[mesh->list[i + vertBase]]);
+              i+=listInc;
+              p3 = &(mesh->vert[mesh->list[i + vertBase]]);
+              i+=listInc;
                                    
               if (!found) {
                 /* Scan contours to find match */
@@ -1547,6 +1550,7 @@ static float contourVolumeFactor(Iobj *obj, Icont *cont, Ipoint min,
   float xx, yy, zz, zmin, zmax, diff;
   int resol;
   int ind1, ind2, ind3, num1, num2, num3, numTri, indStart;
+  int listInc, vertBase, normAdd;
 
   imodMeshNearestRes(obj->mesh, obj->meshsize, 0, &resol);
 
@@ -1563,16 +1567,18 @@ static float contourVolumeFactor(Iobj *obj, Icont *cont, Ipoint min,
           imeshResol(mesh->flag) != resol)
         continue;
       for (i = 0; i < mesh->lsize; i++){
-        if (mesh->list[i] == IMOD_MESH_BGNPOLYNORM) {
+        if (imodMeshPolyNormFactors(mesh->list[i], &listInc, &vertBase, 
+                                    &normAdd)) {
           i++;
           indStart = i;
           while (mesh->list[i] != IMOD_MESH_ENDPOLY){
           
-            p1 = &(mesh->vert[mesh->list[++i]]);
-            i+=2;
-            p2 = &(mesh->vert[mesh->list[i]]);
-            i+=2;
-            p3 = &(mesh->vert[mesh->list[i++]]);
+            p1 = &(mesh->vert[mesh->list[i + vertBase]]);
+            i+=listInc;
+            p2 = &(mesh->vert[mesh->list[i + vertBase]]);
+            i+=listInc;
+            p3 = &(mesh->vert[mesh->list[i + vertBase]]);
+            i+=listInc;
 
             /* Find an exactly matching point */
             if ((xx == p1->x && yy == p1->y && zz == p1->z) ||
@@ -1609,22 +1615,24 @@ static float contourVolumeFactor(Iobj *obj, Icont *cont, Ipoint min,
 
               /* Go through the whole polygon checking for cap */
               i = indStart;
-              ind1 = mesh->list[i + 1];
-              ind2 = mesh->list[i + 3];
-              ind3 = mesh->list[i + 5];
+              ind1 = mesh->list[i + vertBase];
+              ind2 = mesh->list[i + listInc + vertBase];
+              ind3 = mesh->list[i + 2 * listInc + vertBase];
               num1 = 0;
               num2 = 0;
               num3 = 0;
               numTri = 0;
               while (mesh->list[i] != IMOD_MESH_ENDPOLY){
-                if (mesh->list[i + 1] == ind1)
+                if (mesh->list[i + vertBase] == ind1)
                   num1++;
-                if (mesh->list[i + 3] == ind2)
+                i += listInc;
+                if (mesh->list[i + vertBase] == ind2)
                   num2++;
-                if (mesh->list[i + 5] == ind3)
+                i += listInc;
+                if (mesh->list[i + vertBase] == ind3)
                   num3++;
                 numTri++;
-                i += 6;
+                i += listInc;
               }
               /* printf("Triangles: %d  shared indices: %d %d %d\n", numTri, 
                      num1, num2, num3); */
@@ -1755,6 +1763,7 @@ float imeshSurfaceSubarea(Imesh *mesh, Ipoint *scale, Ipoint min, Ipoint max,
                           int doclip, Iplane *plane, int nPlanes)
 {
   int i;
+  int listInc, vertBase, normAdd;
   double tsa = 0.0f;
   float zs = 1.0f;
 
@@ -1766,11 +1775,13 @@ float imeshSurfaceSubarea(Imesh *mesh, Ipoint *scale, Ipoint min, Ipoint max,
   for(i = 0; i < mesh->lsize; i++){
     switch(mesh->list[i]){
     case IMOD_MESH_BGNPOLYNORM:
+    case IMOD_MESH_BGNPOLYNORM2:
+      imodMeshPolyNormFactors(mesh->list[i], &listInc, &vertBase, &normAdd);
       i++;
       while(mesh->list[i] != IMOD_MESH_ENDPOLY){
         tsa += clippedTriangleArea(mesh, i, zs, min, max, doclip, plane, 
-                                   nPlanes);
-        i += 6;
+                                   nPlanes, listInc, vertBase);
+        i += 3 * listInc;
       }
       break;
                
@@ -1788,7 +1799,7 @@ float imeshSurfaceSubarea(Imesh *mesh, Ipoint *scale, Ipoint min, Ipoint max,
    limits and clipping planes.  Arguments are as above, except zs is Z scale */
 static double clippedTriangleArea(Imesh *mesh, int i, float zs, Ipoint min,
                                   Ipoint max, int doclip, Iplane *plane,
-                                  int nPlanes)
+                                  int nPlanes, int listInc, int vertBase)
 {
   int inside1, inside2, inside3;
      
@@ -1796,11 +1807,9 @@ static double clippedTriangleArea(Imesh *mesh, int i, float zs, Ipoint min,
   Ipoint n, n1, n2;
   float clipfrac;
 
-  p1 = &(mesh->vert[mesh->list[++i]]);
-  i+=2;
-  p2 = &(mesh->vert[mesh->list[i]]);
-  i+=2;
-  p3 = &(mesh->vert[mesh->list[i++]]);
+  p1 = &(mesh->vert[mesh->list[i + vertBase]]);
+  p2 = &(mesh->vert[mesh->list[i + listInc + vertBase]]);
+  p3 = &(mesh->vert[mesh->list[i + 2 * listInc + vertBase]]);
                     
   /* Count the number of vertices that are inside the defined volume
      first evaluate their relation to the clipping plane */
@@ -2198,6 +2207,9 @@ static void trim_scan_contour(Icont *cont, Ipoint min, Ipoint max, int doclip,
 
 /*
 $Log$
+Revision 3.14  2005/04/04 22:41:32  mast
+Fixed problem with argument order to imdContourGetBBox
+
 Revision 3.13  2005/03/20 19:56:05  mast
 Eliminating duplicate functions
 

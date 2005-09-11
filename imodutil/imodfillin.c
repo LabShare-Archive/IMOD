@@ -1,30 +1,12 @@
-/*  IMOD VERSION 2.6.2
- *
+/*
  *  imodfillin.c --  Fills in missing contours based on mesh data
  *
  *  Author: David Mastronarde   email: mast@colorado.edu
+ *
+ *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
+ *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  */
-
-/*****************************************************************************
- *   Copyright (C) 1995-2001 by Boulder Laboratory for 3-Dimensional Fine    *
- *   Structure ("BL3DFS") and the Regents of the University of Colorado.     *
- *                                                                           *
- *   BL3DFS reserves the exclusive rights of preparing derivative works,     *
- *   distributing copies for sale, lease or lending and displaying this      *
- *   software and documentation.                                             *
- *   Users may reproduce the software and documentation as long as the       *
- *   copyright notice and other notices are preserved.                       *
- *   Neither the software nor the documentation may be distributed for       *
- *   profit, either in original form or in derivative works.                 *
- *                                                                           *
- *   THIS SOFTWARE AND/OR DOCUMENTATION IS PROVIDED WITH NO WARRANTY,        *
- *   EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTY OF          *
- *   MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.       *
- *                                                                           *
- *   This work is supported by NIH biotechnology grant #RR00592,             *
- *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
- *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
- *****************************************************************************/
 
 /*  $Author$
 
@@ -33,6 +15,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.9  2005/02/11 01:42:33  mast
+Warning cleanup: implicit declarations, main return type, parentheses, etc.
+
 Revision 3.8  2004/11/05 19:05:29  mast
 Include local files with quotes, not brackets
 
@@ -219,6 +204,7 @@ void fillin_from_mesh(Imod *imod, int ob, int newobj, int zinc, float tol)
   float z1, z2;      /* z values of two candidate vertices */
   float frac;        /* interpolation fraction */
   float red, green, blue;
+  int listInc, vertBase, normAdd;
 
   imodMeshNearestRes(obj->mesh, obj->meshsize, 0, &resol);
   for (me = 0; me < obj->meshsize; me++) {
@@ -229,16 +215,17 @@ void fillin_from_mesh(Imod *imod, int ob, int newobj, int zinc, float tol)
     vertp = obj->mesh[me].vert;
     i = 0;
     while (i < obj->mesh[me].lsize) {
-      if (listp[i++] == IMOD_MESH_BGNPOLYNORM) {
+      if (imodMeshPolyNormFactors(listp[i++], &listInc, &vertBase, &normAdd)) {
                     
         /* Find min and max Z in polygon, first vertex index and
            number of vertices */
-        zmin = vertp[listp[i + 1]].z;
+        firstv = i + vertBase;   /* first vertex index */
+        zmin = vertp[listp[firstv]].z;
         zmax = zmin;
-        firstv = i + 1;   /* first vertex index */
         ninpoly = 0;
-        while (listp[i++] != IMOD_MESH_ENDPOLY) {
-          ind = listp[i++];
+        while (listp[i] != IMOD_MESH_ENDPOLY) {
+          ind = listp[i + vertBase];
+          i += listInc;
           if (vertp[ind].z < zmin)
             zmin = vertp[ind].z;
           if (vertp[ind].z > zmax)
@@ -293,13 +280,13 @@ void fillin_from_mesh(Imod *imod, int ob, int newobj, int zinc, float tol)
                          
           /* loop on triangles */
           for (itri = 0; itri < ntriang; itri++) {
-            indv = firstv + itri * 6;
+            indv = firstv + itri * 3 * listInc;
                               
             /* Look at the three pairs of vertices in 
                triangle, see if any bracket zadd */
             for (j = 0; j < 3; j++) {
-              ind1 = listp[indv + j * 2];
-              ind2 = listp[indv + (j * 2 + 2) % 6];
+              ind1 = listp[indv + j * listInc];
+              ind2 = listp[indv + ((j + 1) % 3) * listInc];
               z1 = vertp[ind1].z;
               z2 = vertp[ind2].z;
               if (!((z1 > zadd && z2 < zadd) ||
@@ -311,10 +298,10 @@ void fillin_from_mesh(Imod *imod, int ob, int newobj, int zinc, float tol)
                  already */
               done = 0;
               for (jtri = itri - 1; jtri >= 0; jtri--) {
-                jndv = firstv + jtri * 6;
+                jndv = firstv + jtri * 3 * listInc;
                 jnd1 = listp[jndv];
-                jnd2 = listp[jndv + 2];
-                jnd3 = listp[jndv + 4];
+                jnd2 = listp[jndv + listInc];
+                jnd3 = listp[jndv + 2 * listInc];
                 if ((ind1 == jnd1 && ind2 == jnd2) ||
                     (ind2 == jnd1 && ind1 == jnd2) ||
                     (ind1 == jnd2 && ind2 == jnd3) ||

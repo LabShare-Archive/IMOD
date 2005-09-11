@@ -16,6 +16,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.4  2005/02/03 17:25:09  mast
+Prevented incorrect output for empty polygons
+
 Revision 3.3  2005/01/26 22:28:40  mast
 Made all points with sizes be displayed as spheres
 
@@ -414,6 +417,7 @@ static void printMesh(Imod *imod, int ob, FILE *fout)
   Ipoint norm;
   int lastuse = -1;
   int resol;
+  int listInc, vertBase, normAdd;
 
   imodMeshNearestRes(obj->mesh, obj->meshsize, lowres, &resol);
 
@@ -459,24 +463,20 @@ static void printMesh(Imod *imod, int ob, FILE *fout)
 
     if (iobjFill(obj->flags) || iobjLine(obj->flags)) {
       for(i = 0; i < mesh->lsize; i++){
-          
         if (mesh->list[i] == IMOD_MESH_END)
           break;
                
-        if (mesh->list[i] == IMOD_MESH_BGNPOLYNORM){
+        if (imodMeshPolyNormFactors(mesh->list[i], &listInc, &vertBase, 
+                                    &normAdd)) {
           lsize = 0;
           i++;
-          while(mesh->list[i] != IMOD_MESH_ENDPOLY){
-            i++;
-            ilist[lsize] = mesh->list[i]/2;
-            lsize++;
-            i+=2;
-            ilist[lsize] = mesh->list[i]/2;
-            lsize++;
-            i+=2;
-            ilist[lsize] = mesh->list[i]/2;
-            lsize++;
-            i++;
+          while (mesh->list[i] != IMOD_MESH_ENDPOLY) {
+            ilist[lsize++] = mesh->list[i + vertBase]/2;
+            i += listInc;
+            ilist[lsize++] = mesh->list[i + vertBase]/2;
+            i += listInc;
+            ilist[lsize++] = mesh->list[i + vertBase]/2;
+            i += listInc;
           }
 
           if (!lsize)
