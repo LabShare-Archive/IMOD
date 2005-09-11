@@ -84,6 +84,7 @@ static void zapDrawCurrentPoint(ZapStruct *zap);
 static void zapDrawExtraObject(ZapStruct *zap);
 static int  zapDrawAuto(ZapStruct *zap);
 static void zapDrawGhost(ZapStruct *zap);
+static void zapSetGhostColor(ZapStruct *zap, float obr, float obg, float obb);
 static void zapDrawTools(ZapStruct *zap);
 static void zapSetCursor(ZapStruct *zap, int mode);
 static int  zapXpos(ZapStruct *zap, float x);
@@ -3347,12 +3348,15 @@ static void zapDrawCurrentPoint(ZapStruct *zap)
 
 static void zapDrawGhost(ZapStruct *zap)
 {
-  int co, i, base, ob;
-  int red, green, blue;
+  int co, i, ob;
   struct Mod_Object *obj;
   struct Mod_Contour *cont;
   Imod *mod = zap->vi->imod;
+  DrawProps contProps, ptProps;
   int nextz, prevz, iz;
+  int pt, npt, lastX, lastY, thisX, thisY;
+  int nextChange, stateFlags, changeFlags;
+  int handleFlags = HANDLE_2DWIDTH;
 
   if (!mod)
     return;
@@ -3369,26 +3373,17 @@ static void zapDrawGhost(ZapStruct *zap)
     if(iobjScat(obj->flags))
       continue;
 
-    // Set base to 2 to make color get brighter instead of darker
-    base = (zap->vi->ghostmode & IMOD_GHOST_LIGHTER) ? 2 : 0;
-    red = (int)(((base + obj->red) * 255.0) / 3.0);
-    green = (int)(((base + obj->green) * 255.0) / 3.0);
-    blue = (int)(((base + obj->blue) * 255.0) / 3.0);
-    
-    mapcolor(App->ghost, red, green, blue); 
-    b3dColorIndex(App->ghost);  
-    b3dLineWidth(obj->linewidth2);
-    
-    /* DNM: if it's RGB, just have to set the color here */
-    if (App->rgba)
-      glColor3f(red/255., green/255., blue/255.);
-
     /* DNM 6/16/01: need to be based on zap->section, not zmouse */
     nextz = zap->section + zap->vi->ghostdist;
     prevz = zap->section - zap->vi->ghostdist;
      
     for (co = 0; co < obj->contsize; co++) {
       cont = &(obj->cont[co]);
+      nextChange = ifgHandleContChange(obj, co, &contProps, &ptProps, 
+                                       &stateFlags, handleFlags, 0);
+      if (contProps.gap)
+        continue;
+      zapSetGhostColor(zap, contProps.red, contProps.green, contProps.blue);
       
       /* DNM: don't display wild contours, only coplanar ones */
       /* By popular demand, display ghosts from lower and upper sections */
@@ -3397,18 +3392,48 @@ static void zapDrawGhost(ZapStruct *zap)
         if ((iz > zap->section && iz <= nextz && 
              (zap->vi->ghostmode & IMOD_GHOST_PREVSEC)) ||
             (iz < zap->section && iz >= prevz && 
-             (zap->vi->ghostmode & IMOD_GHOST_NEXTSEC))){
-          b3dBeginLine();
-          for (i = 0; i < cont->psize; i++) {
-            b3dVertex2i(zapXpos(zap, cont->pts[i].x),
-                        zapYpos(zap, cont->pts[i].y));
-          }
+             (zap->vi->ghostmode & IMOD_GHOST_NEXTSEC))) {
+
+          if (nextChange < 0) {
+            b3dBeginLine();
+            for (i = 0; i < cont->psize; i++) {
+              b3dVertex2i(zapXpos(zap, cont->pts[i].x),
+                          zapYpos(zap, cont->pts[i].y));
+            }
           
-          /* DNM: connect back to start only if closed contour */
-          if (iobjClose(obj->flags) && !(cont->flags & ICONT_OPEN))
-            b3dVertex2i(zapXpos(zap, cont->pts->x),
-                        zapYpos(zap, cont->pts->y));
-          b3dEndLine();
+            /* DNM: connect back to start only if closed contour */
+            if (iobjClose(obj->flags) && !(cont->flags & ICONT_OPEN))
+              b3dVertex2i(zapXpos(zap, cont->pts->x),
+                          zapYpos(zap, cont->pts->y));
+            b3dEndLine();
+          } else {
+
+            // If there are changes in contour, then draw only needed lines
+            lastX = zapXpos(zap, cont->pts[0].x);
+            lastY = zapYpos(zap, cont->pts[0].y);
+            for (pt = 0; pt < cont->psize; pt++) {
+              ptProps.gap = 0;
+              if (pt == nextChange) {
+                nextChange = ifgHandleNextChange(obj, cont->store, &contProps, 
+                                                 &ptProps, &stateFlags,
+                                                 &changeFlags, handleFlags, 0);
+                if (changeFlags & CHANGED_COLOR)
+                  zapSetGhostColor(zap, ptProps.red, ptProps.green, 
+                                   ptProps.blue);
+              }
+
+              // Skip gap or last point if open
+              npt = (pt + 1) % cont->psize;
+              thisX = zapXpos(zap, cont->pts[npt].x);
+              thisY = zapYpos(zap, cont->pts[npt].y);
+              if ((pt < cont->psize - 1 || 
+                   (iobjClose(obj->flags) && !(cont->flags & ICONT_OPEN)))
+                  && !ptProps.gap)
+                b3dDrawLine(lastX, lastY, thisX, thisY);
+              lastX = thisX;
+              lastY = thisY;
+            }
+          }
         }
       }
     }
@@ -3416,6 +3441,23 @@ static void zapDrawGhost(ZapStruct *zap)
   return;
 }
 
+static void zapSetGhostColor(ZapStruct *zap, float obr, float obg, float obb)
+{
+  int red, green, blue, base;
+
+  // Set base to 2 to make color get brighter instead of darker
+  base = (zap->vi->ghostmode & IMOD_GHOST_LIGHTER) ? 2 : 0;
+  red = (int)(((base + obr) * 255.0) / 3.0);
+  green = (int)(((base + obg) * 255.0) / 3.0);
+  blue = (int)(((base + obb) * 255.0) / 3.0);
+    
+  mapcolor(App->ghost, red, green, blue); 
+  b3dColorIndex(App->ghost);  
+  
+  /* DNM: if it's RGB, just have to set the color here */
+  if (App->rgba)
+    glColor3f(red/255., green/255., blue/255.);
+}
 
 static int zapDrawAuto(ZapStruct *zap)
 {
@@ -3557,6 +3599,9 @@ static int zapPointVisable(ZapStruct *zap, Ipoint *pnt)
 
 /*
 $Log$
+Revision 4.71  2005/06/29 05:41:03  mast
+Register changes properly on drag additions with fine grain storage
+
 Revision 4.70  2005/06/26 19:38:10  mast
 Added logic for fine-grained changes
 
