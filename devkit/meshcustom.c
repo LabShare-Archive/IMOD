@@ -59,17 +59,17 @@ int main(int argc, char **argv)
     }while(0); /* While there is nodes to add. */
 
 
-    imodMeshAddIndex(theMesh, IMOD_MESH_BGNTRINORM);
+    imodMeshAddIndex(theMesh, IMOD_MESH_BGNPOLYNORM);
     do {
-	 imodMeshAddIndex(theMesh, index);   /* Node or vertex. */
 	 imodMeshAddIndex(theMesh, index+1); /* Normal index */
+	 imodMeshAddIndex(theMesh, index);   /* Node or vertex. */
 
 	 /* index = next vertex in triangle. */
-	 imodMeshAddIndex(theMesh, index);
 	 imodMeshAddIndex(theMesh, index +1);
+	 imodMeshAddIndex(theMesh, index);
 
 	 /* index = last vertex in triangle. */
-	 imodMeshAddIndex(theMesh, index);
+	 imodMeshAddIndex(theMesh, index + 1);
 	 imodMeshAddIndex(theMesh, index);
     }while(0); /* While there are mesh triangles to add. */    
     imodMeshAddIndex(theMesh, IMOD_MESH_ENDPOLY);
