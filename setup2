@@ -683,8 +683,8 @@ endif
 #
 \find $imod_dir -name imodhelp.h -size 0 -exec \rm -f '{}' \;
 
-\find $imod_dir -name imod.o ! -newer .version -exec \rm -f '{}' \;
-\find $imod_dir -name 'imod*_menu.o' ! -newer .version -exec \rm -f '{}' \;
+\find $imod_dir -name 'imod.o*' ! -newer .version -exec \rm -f '{}' \;
+\find $imod_dir -name 'imod*_menu.o*' ! -newer .version -exec \rm -f '{}' \;
 
 echo "RGBPROGS = $rgbprogs" >> $configure
 echo "LDFFLAGS = $ldfflags" >> $configure
@@ -796,6 +796,9 @@ exit
 
 #
 #  $Log$
+#  Revision 1.6  2005/06/10 05:57:45  mast
+#  New variables for fortran libs on mac
+#
 #  Revision 1.5  2005/05/12 05:13:28  mast
 #  Added strip variable
 #
