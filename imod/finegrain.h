@@ -8,6 +8,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1  2005/06/26 19:36:13  mast
+Addition to program
+
 */
 #ifndef FINEGRAIN_H
 #define FINEGRAIN_H
@@ -51,5 +54,14 @@ int ifgHandleNextChange(Iobj *obj, Ilist *list, DrawProps *defProps,
 int ifgHandleContChange(Iobj *obj, int co, DrawProps *contProps, 
                         DrawProps *ptProps, int *stateFlags, int handleFlags,
                         int selected);
-
+void ifgHandleSurfChange(Iobj *obj, int surf, DrawProps *contProps, 
+                         DrawProps *ptProps, int *stateFlags, int handleFlags);
+int ifgHandleMeshChange(Iobj *obj, Ilist *list, DrawProps *defProps, 
+                        DrawProps *curProps, int *nextItemIndex, int curIndex, 
+                        int *stateFlags, int *changeFlags, int handleFlags);
+void ifgHandleColorTrans(Iobj *obj, float r, float g, float b, int trans);
+int ifgMeshTransMatch(Imesh *mesh, int defTrans, int drawTrans, int *meshInd);
+int ifgContTransMatch(Iobj *obj, Icont *cont, int *matchPt, int drawTrans,
+                      DrawProps *contProps, DrawProps *ptProps,
+                      int *stateFlags, int *allChanges, int handleFlags);
 #endif
