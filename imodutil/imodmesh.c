@@ -14,38 +14,7 @@
 $Date$
 
 $Revision$
-
-$Log$
-Revision 3.10  2005/04/04 22:37:06  mast
-Fixed clipping of model in Z due to float to integer truncation
-
-Revision 3.9  2005/03/20 19:56:05  mast
-Eliminating duplicate functions
-
-Revision 3.8  2005/02/11 01:42:33  mast
-Warning cleanup: implicit declarations, main return type, parentheses, etc.
-
-Revision 3.7  2005/01/25 01:42:04  mast
-Fixed problem with extending cap exclusion list
-
-Revision 3.6  2004/09/10 21:34:01  mast
-Eliminated long variables
-
-Revision 3.4.4.1  2004/07/07 19:26:21  mast
-Changed exit(-1) to exit(3) for Cygwin
-
-Revision 3.4  2003/10/26 14:46:41  mast
-fixed problem in eliminating getopt
-
-Revision 3.3  2003/10/24 03:05:24  mast
-open as binary, strip program name and/or use routine for backup file
-
-Revision 3.2  2003/08/26 03:51:50  mast
-Fix usage statement for -E option
-
-Revision 3.1  2003/08/26 03:49:52  mast
-Added option to cap tubes
-
+Log at end
 */
 
 #include <stdlib.h>
@@ -55,8 +24,6 @@ Added option to cap tubes
 
 #include "imodel.h"
 #include "mkmesh.h"
-
-int *parselist (char *line, int *nlist);
 
 void switchskin(Imod *imod, Imod *simod, int append, int list[], int nlist,
                 Ipoint *scale);
@@ -106,14 +73,16 @@ static int imodmesh_usage(char *prog, int retcode)
           "at a z increment.\n");
   fprintf(stderr, "\t-l \tMark new meshes as low-resolution and keep "
           "high res meshes.\n");
+  fprintf(stderr, "\t-x #,#\tClip mesh outside given lower and upper limits in X.\n");
+  fprintf(stderr, "\t-y #,#\tClip mesh outside given lower and upper limits in Y.\n");
 
   fprintf(stderr, "\t-a \tAppend mesh data to object, replacing mesh"
           " in same z range.\n");
   fprintf(stderr, "\t-e  \tErase meshes, overrides other options.\n");
   fprintf(stderr, "\t-n \tRescale normals using the -Z value "
           "for existing meshes.\n");
-  fprintf(stderr,
-          "\t-Z #\tNormal scaling z multiplier.\n");
+  fprintf(stderr, "\t-Z #\tNormal scaling z multiplier.\n");
+  fprintf(stderr, "\t-B  \tMake mesh backward-compatible to IMOD before 3.6.14.\n");
   if (retcode)
     exit(retcode);
   return(retcode);
@@ -159,8 +128,11 @@ int main(int argc, char **argv)
   int append = 0;
   Imesh *tmsh;
   int    tmshsize, m;
-    
+  Ipoint triMin = {-1.e30, -1.e30, -1.e30};
+  Ipoint triMax = {1.e30, 1.e30, 1.e30};
+  
   extern double meshDiameterSize;
+  extern int newPolyNorm;
 
   int nlist = 0;
   int *list;
@@ -170,7 +142,7 @@ int main(int argc, char **argv)
   int ntube_list = 0;
   int *tube_list;
   char *progname = imodProgName(argv[0]);
-
+  newPolyNorm = 1;
 
   if (argc < 1){
     imodVersion(progname);
@@ -270,6 +242,12 @@ int main(int argc, char **argv)
         if (incz < 1)
           incz = 1;
         break;
+      case 'x':
+        sscanf(argv[++i], "%f%*c%f", &triMin.x, &triMax.x);
+        break;
+      case 'y':
+        sscanf(argv[++i], "%f%*c%f", &triMin.y, &triMax.y);
+        break;
       case 'Z':
         zscale = atof(argv[++i]);
         break;
@@ -286,6 +264,9 @@ int main(int argc, char **argv)
         passes = atoi(argv[++i]);
         if (passes < 1)
           passes =1;
+        break;
+      case 'B':
+        newPolyNorm = 0;
         break;
         
       case '?':
@@ -449,7 +430,7 @@ int main(int argc, char **argv)
             reresobj(obj, res);
             SkinObject(obj, &spnt, overlap, cap,
                        cap_skip_zlist, cap_skip_nz, incz,
-                       flags, passes, NULL);
+                       flags, passes, triMin, triMax, NULL);
             /* set resolution flag now */
             for(m = 0; m < obj->meshsize; m++) {
               obj->mesh[m].flag |= (resol << 
@@ -740,7 +721,8 @@ static void imodMeshDeleteZRange(Imesh *mesh, int minz, int maxz)
 
     case IMOD_MESH_BGNPOLYNORM:
       while(mesh->list[++i] != IMOD_MESH_ENDPOLY){
-        if ((i + 7) > mesh->lsize) break;
+        if ((i + 7) > mesh->lsize) 
+          break;
         pt[0] = mesh->vert[mesh->list[i++]];
         pt[1] = mesh->vert[mesh->list[i++]];
         pt[2] = mesh->vert[mesh->list[i++]];
@@ -753,15 +735,29 @@ static void imodMeshDeleteZRange(Imesh *mesh, int minz, int maxz)
             (deletez(pt[5], minz, maxz))
             ){
           i -= 5;
-          /*                 imodMeshDeleteIndex(mesh, i);
-                             imodMeshDeleteIndex(mesh, i);
-                             imodMeshDeleteIndex(mesh, i);
-                             imodMeshDeleteIndex(mesh, i);
-                             imodMeshDeleteIndex(mesh, i);
-                             imodMeshDeleteIndex(mesh, i);  */
           mesh->list[i++] = DELETE_INDEX;
           mesh->list[i++] = DELETE_INDEX;
           mesh->list[i++] = DELETE_INDEX;
+          mesh->list[i++] = DELETE_INDEX;
+          mesh->list[i++] = DELETE_INDEX;
+          mesh->list[i] = DELETE_INDEX;
+        }
+      }
+      break;
+
+    case IMOD_MESH_BGNPOLYNORM2:
+      while(mesh->list[++i] != IMOD_MESH_ENDPOLY){
+        if ((i + 4) > mesh->lsize) 
+          break;
+        pt[1] = mesh->vert[mesh->list[i++]];
+        pt[3] = mesh->vert[mesh->list[i++]];
+        pt[5] = mesh->vert[mesh->list[i]];
+
+        if ((deletez(pt[1], minz, maxz)) &&
+            (deletez(pt[3], minz, maxz)) &&
+            (deletez(pt[5], minz, maxz))
+            ){
+          i -= 2;
           mesh->list[i++] = DELETE_INDEX;
           mesh->list[i++] = DELETE_INDEX;
           mesh->list[i] = DELETE_INDEX;
@@ -831,7 +827,8 @@ static void imodMeshesRescaleNormal
 (Imesh *inMesh, int *meshsize, Ipoint *spnt)
 {
   int m;
-  int i, lsize;
+  int i, j, ind, lsize;
+  int listInc, vertBase, normAdd;
   Imesh *mesh;
     
   if ((!inMesh) || (*meshsize < 1)) return;
@@ -859,24 +856,18 @@ static void imodMeshesRescaleNormal
         break;
                 
       case IMOD_MESH_BGNPOLYNORM:
-        while(mesh->list[++i] != IMOD_MESH_ENDPOLY){
-          mesh->vert[mesh->list[i]].x *= spnt->x;
-          mesh->vert[mesh->list[i]].y *= spnt->y;
-          mesh->vert[mesh->list[i]].z *= spnt->z;
-          imodPointNormalize(&mesh->vert[mesh->list[i]]);
-          i++;
-          i++;
-          mesh->vert[mesh->list[i]].x *= spnt->x;
-          mesh->vert[mesh->list[i]].y *= spnt->y;
-          mesh->vert[mesh->list[i]].z *= spnt->z;
-          imodPointNormalize(&mesh->vert[mesh->list[i]]);
-          i++;
-          i++;
-          mesh->vert[mesh->list[i]].x *= spnt->x;
-          mesh->vert[mesh->list[i]].y *= spnt->y;
-          mesh->vert[mesh->list[i]].z *= spnt->z;
-          imodPointNormalize(&mesh->vert[mesh->list[i]]);
-          i++;
+      case IMOD_MESH_BGNPOLYNORM2:
+        imodMeshPolyNormFactors(mesh->list[i++], &listInc, &vertBase,
+                                &normAdd);
+        while (mesh->list[i] != IMOD_MESH_ENDPOLY) {
+          for (j = 0; j < 3; j++) {
+            ind = mesh->list[i] + normAdd;
+            mesh->vert[ind].x *= spnt->x;
+            mesh->vert[ind].y *= spnt->y;
+            mesh->vert[ind].z *= spnt->z;
+            imodPointNormalize(&mesh->vert[ind]);
+            i += listInc;
+          }
         }
         break;
                 
@@ -907,3 +898,39 @@ int ObjOnList(int ob, int list[], int nlist)
   return 0;
 }
 
+/*
+$Log$
+Revision 3.11  2005/05/31 00:55:18  mast
+Flush after skinning message for Windows
+
+Revision 3.10  2005/04/04 22:37:06  mast
+Fixed clipping of model in Z due to float to integer truncation
+
+Revision 3.9  2005/03/20 19:56:05  mast
+Eliminating duplicate functions
+
+Revision 3.8  2005/02/11 01:42:33  mast
+Warning cleanup: implicit declarations, main return type, parentheses, etc.
+
+Revision 3.7  2005/01/25 01:42:04  mast
+Fixed problem with extending cap exclusion list
+
+Revision 3.6  2004/09/10 21:34:01  mast
+Eliminated long variables
+
+Revision 3.4.4.1  2004/07/07 19:26:21  mast
+Changed exit(-1) to exit(3) for Cygwin
+
+Revision 3.4  2003/10/26 14:46:41  mast
+fixed problem in eliminating getopt
+
+Revision 3.3  2003/10/24 03:05:24  mast
+open as binary, strip program name and/or use routine for backup file
+
+Revision 3.2  2003/08/26 03:51:50  mast
+Fix usage statement for -E option
+
+Revision 3.1  2003/08/26 03:49:52  mast
+Added option to cap tubes
+
+*/
