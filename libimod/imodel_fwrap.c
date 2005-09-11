@@ -527,7 +527,7 @@ int  getimodmesh(int *objnum, float *verts, int *index, int *limverts,
 int  getimodverts(int *objnum, float *verts, int *index, int *limverts, 
                    int *limindex, int *nverts, int *nindex)
 {
-  int i, j, mi, resol, vsum, m;
+  int i, j, mi, resol, vsum, m, normAdd, vertBase, listInc;
   Iobj *obj;
   Imesh *mesh;
 
@@ -573,9 +573,11 @@ int  getimodverts(int *objnum, float *verts, int *index, int *limverts,
     i = 0;
     while (mesh->list[i] != IMOD_MESH_END && i < mi) {
       while (mesh->list[i] != IMOD_MESH_END && 
-             mesh->list[i] != IMOD_MESH_BGNPOLYNORM && i < mi)
+             !imodMeshPolyNormFactors(mesh->list[i], &listInc, &vertBase,
+                                      &normAdd) && i < mi)
         i++;
-      if (mesh->list[i] == IMOD_MESH_BGNPOLYNORM) {
+      if (imodMeshPolyNormFactors(mesh->list[i], &listInc, &vertBase,
+                                  &normAdd)) {
         index[j++] = IMOD_MESH_BGNPOLYNORM;
         i++;
         while (mesh->list[i] != IMOD_MESH_ENDPOLY && i < mi) {
@@ -585,10 +587,10 @@ int  getimodverts(int *objnum, float *verts, int *index, int *limverts,
                     " in mesh for Fortran program\n");
             return(FWRAP_ERROR_FILE_TO_BIG);
           }
-          index[j++] = mesh->list[i+1] / 2;
-          index[j++] = mesh->list[i+3] / 2;
-          index[j++] = mesh->list[i+5] / 2;
-          i += 6;
+          index[j++] = mesh->list[i+vertBase] / 2;
+          index[j++] = mesh->list[i+vertBase + listInc] / 2;
+          index[j++] = mesh->list[i+vertBase + 2 * listInc] / 2;
+          i += 3 * listInc;
         }
 
         index[j++] = IMOD_MESH_ENDPOLY;
@@ -1543,6 +1545,9 @@ int getimodnesting(int *ob, int *inOnly, int *level, int *inIndex,
 
 /*
 $Log$
+Revision 3.22  2005/05/26 20:10:55  mast
+Fixed problem of not calling with pointers, added some declarations
+
 Revision 3.21  2005/05/25 15:28:13  mast
 Fixed use of *ninList
 
