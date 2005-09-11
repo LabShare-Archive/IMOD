@@ -15,6 +15,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.10  2005/06/29 05:35:32  mast
+Changed a store function call
+
 Revision 3.9  2005/06/26 19:32:22  mast
 Manage storage lists when inserting or removing contours
 
@@ -304,6 +307,7 @@ int imodObjectSort(Iobj *obj)
 {
   Icont *cont;
   Icont  tcont;
+  Istore *stp;
   int i, j, sz, z, sindex;
   int st, t;
 
@@ -369,7 +373,22 @@ int imodObjectSort(Iobj *obj)
     cont[i]      = cont[sindex];
     cont[sindex] = tcont;
 
+    /* Swap any contour general store information in place */
+    for (j = 0; j < ilistSize(obj->store); j++) {
+      stp = istoreItem(obj->store, j);
+      if (stp->flags & (GEN_STORE_NOINDEX | 3))
+        break;
+      if (stp->flags & GEN_STORE_SURFACE)
+        continue;
+      if (stp->index.i == i)
+        stp->index.i = sindex;
+      else if (stp->index.i == sindex)
+        stp->index.i = i;
+    }
   }
+
+  /* Sort the storage list at the end */
+  istoreSort(obj->store);
   return(0);
 }
 
