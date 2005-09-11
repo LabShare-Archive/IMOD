@@ -1,31 +1,13 @@
-/*  IMOD VERSION 2.10
- *
- *  imodel_to.c --  Converts imodel files to other formats.
+/*  imodel_to.c --  Converts imodel files to other formats.
  *
  *  Original Author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
+ *
+ *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
+ *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  */
 
-/*****************************************************************************
- *   Copyright (C) 1995-1998 by Boulder Laboratory for 3-Dimensional Fine    *
- *   Structure ("BL3DFS") and the Regents of the University of Colorado.     *
- *                                                                           *
- *   BL3DFS reserves the exclusive rights of preparing derivative works,     *
- *   distributing copies for sale, lease or lending and displaying this      *
- *   software and documentation.                                             *
- *   Users may reproduce the software and documentation as long as the       *
- *   copyright notice and other notices are preserved.                       *
- *   Neither the software nor the documentation may be distributed for       *
- *   profit, either in original form or in derivative works.                 *
- *                                                                           *
- *   THIS SOFTWARE AND/OR DOCUMENTATION IS PROVIDED WITH NO WARRANTY,        *
- *   EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTY OF          *
- *   MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.       *
- *                                                                           *
- *   This work is supported by NIH biotechnology grant #RR00592,             *
- *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
- *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
- *****************************************************************************/
 /*  $Author$
 
 $Date$
@@ -33,6 +15,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.3  2004/10/13 05:45:29  mast
+Fixed bug in writing mesh to nff file
+
 Revision 3.2  2004/09/10 21:33:46  mast
 Eliminated long variables
 
@@ -125,11 +110,12 @@ int imod_to_nff(struct Mod_Model *mod, FILE *fout)
   struct Mod_Contour *cont;
   int objnum;
   int contnum;
-  int i;
+  int i, j;
   int useMesh;
     
   float xo = 0, yo = 0, zo = 0;  /* x,y,z offsets. */
   float xs = 1, ys = 1, zs = 1;  /* x,y,z scale.   */
+  int listInc, vertBase, normAdd;
     
   xo = mod->xoffset;
     
@@ -159,33 +145,23 @@ int imod_to_nff(struct Mod_Model *mod, FILE *fout)
             break;
          
           case IMOD_MESH_BGNPOLYNORM:
-            while(mesh->list[++i] != IMOD_MESH_ENDPOLY){
+          case IMOD_MESH_BGNPOLYNORM2:
+            imodMeshPolyNormFactors(mesh->list[i++], &listInc, &vertBase,
+                                    &normAdd);
+            while (mesh->list[i] != IMOD_MESH_ENDPOLY) {
               fprintf(fout, "pp 3\n");
-              fprintf(fout, "%g %g %g %g %g %g\n",
-                      mesh->vert[mesh->list[i+1]].x * mod->xscale,
-                      mesh->vert[mesh->list[i+1]].y * mod->yscale,
-                      mesh->vert[mesh->list[i+1]].z * mod->zscale,
-                      mesh->vert[mesh->list[i]].x * mod->xscale,
-                      mesh->vert[mesh->list[i]].y * mod->yscale,
-                      mesh->vert[mesh->list[i]].z * mod->zscale);
-              i+=2;
-              fprintf(fout, "%g %g %g %g %g %g\n",
-                      mesh->vert[mesh->list[i+1]].x * mod->xscale,
-                      mesh->vert[mesh->list[i+1]].y * mod->yscale,
-                      mesh->vert[mesh->list[i+1]].z * mod->zscale,
-                      mesh->vert[mesh->list[i]].x * mod->xscale,
-                      mesh->vert[mesh->list[i]].y * mod->yscale,
-                      mesh->vert[mesh->list[i]].z * mod->zscale);
-              i+=2;
-              fprintf(fout, "%g %g %g %g %g %g\n",
-                      mesh->vert[mesh->list[i+1]].x * mod->xscale,
-                      mesh->vert[mesh->list[i+1]].y * mod->yscale,
-                      mesh->vert[mesh->list[i+1]].z * mod->zscale,
-                      mesh->vert[mesh->list[i]].x * mod->xscale,
-                      mesh->vert[mesh->list[i]].y * mod->yscale,
-                      mesh->vert[mesh->list[i]].z * mod->zscale);
-              i++;
+              for (j = 0; j < 3; j++) {
+                fprintf(fout, "%g %g %g %g %g %g\n",
+                        mesh->vert[mesh->list[i+vertBase]].x* mod->xscale,
+                        mesh->vert[mesh->list[i+vertBase]].y* mod->yscale,
+                        mesh->vert[mesh->list[i+vertBase]].z* mod->zscale,
+                        mesh->vert[mesh->list[i] + normAdd].x * mod->xscale,
+                        mesh->vert[mesh->list[i] + normAdd].y * mod->yscale,
+                        mesh->vert[mesh->list[i] + normAdd].z * mod->zscale);
+                i+=listInc;
+              }
             }
+            break;
           }
         }
       }
@@ -665,10 +641,11 @@ static int pRIB_mesh(FILE *fout, Imesh *mesh, double zscale)
   Ipoint cndat;
   Ipoint *cnormal;
   unsigned int i, lsize;
-  int first;
+  int first, j;
   Ipoint norm[3];
   Ipoint vert[3];
   float z = zscale;
+  int listInc, vertBase, normAdd;
 
   if (!mesh)
     return -1;
@@ -700,14 +677,14 @@ static int pRIB_mesh(FILE *fout, Imesh *mesh, double zscale)
       break;
 
     case IMOD_MESH_BGNPOLYNORM:
-      while(mesh->list[++i] != IMOD_MESH_ENDPOLY){
-
-        norm[0] = mesh->vert[mesh->list[i]]; i++;
-        vert[0] = mesh->vert[mesh->list[i]]; i++;
-        norm[1] = mesh->vert[mesh->list[i]]; i++;
-        vert[1] = mesh->vert[mesh->list[i]]; i++;
-        norm[2] = mesh->vert[mesh->list[i]]; i++;
-        vert[2] = mesh->vert[mesh->list[i]];
+    case IMOD_MESH_BGNPOLYNORM2:
+      imodMeshPolyNormFactors(mesh->list[i++], &listInc, &vertBase, &normAdd);
+      while (mesh->list[i] != IMOD_MESH_ENDPOLY){
+        for (j = 0; j < 3; j++) {
+          norm[j] = mesh->vert[mesh->list[i + vertBase]];
+          vert[j] = mesh->vert[mesh->list[i] + normAdd];
+          i += listInc;
+        }
 
         fprintf(fout, "Polygon \"P\" [");
         fprintf(fout, " %g %g %g ", 
