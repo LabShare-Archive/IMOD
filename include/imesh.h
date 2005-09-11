@@ -58,10 +58,11 @@
 
 /* Most common drawing command used by imodmesh.
  * Data is sets of triangles.
- * Normal, Vertex, Normal, Vertex, Normal, Vertex.
+ * Old version: indexes are to Normal, Vertex, Normal, Vertex, Normal, Vertex.
+ * New version: indexes are to vertices; each normal assumed to follow vertex.
  */
-#define IMOD_MESH_BGNPOLYNORM -23  /* vertex, normal pairs                 */
-#define IMOD_MESH_BGNTRINORM  -23  /* vertex, normal pairs                 */
+#define IMOD_MESH_BGNPOLYNORM  -23  /* normal, vertex index pairs           */
+#define IMOD_MESH_BGNPOLYNORM2 -25  /* vertex indices only                  */
 
 /****************************************************************************/
 /* mesh flags */
@@ -103,6 +104,8 @@ extern "C" {
   int     imodMeshAddNormal(Imesh *mesh, Ipoint *normal);
 
   int     imodMeshNearestRes(Imesh *mesh, int size, int inres, int *outres);
+  int     imodMeshPolyNormFactors(int startCode, int *listInc, int *vertBase, 
+                                  int *normAdd);
 
   Imesh *imodel_mesh_add(Imesh *nmesh, Imesh *mray, int *size);
 
