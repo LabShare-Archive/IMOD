@@ -14,6 +14,7 @@ EXPORTS
 	imodel_contour_overlap
 	imodDeleteObject
 	imodMeshNearestRes
+	imodMeshPolyNormFactors
 	imodReadAscii
 	parselist
 	imodObjectCleanSurf
@@ -30,6 +31,8 @@ EXPORTS
 	imodPointSetSize
 	imodPointAreaScale
 	istoreShiftIndex
+	istoreTransStateMatches
+	istoreSkipToIndex
 	imodContourJoin
 	PipGetInteger
 	imodel_object_centroid
@@ -136,6 +139,10 @@ EXPORTS
 	PIPALLOWCOMMADEFAULTS
 	imodMeshGetMaxIndex
 	istoreFirstChangeIndex
+	istoreRetainPoint
+	istoreGenerateItems
+	istoreGenPointItems
+	istorePointIsGap
 	imodContourGetTimeIndex
 	imodPrevPoint
 	ilistSwap
@@ -250,6 +257,7 @@ EXPORTS
 	imodObjectGetMaxContour
 	PIPGETTHREEINTEGERS
 	istorePointDrawProps
+	istoreListPointProps
 	imodIMNXRead
 	imodPointGetNext
 	PipGetTwoIntegers
