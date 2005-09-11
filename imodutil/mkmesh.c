@@ -34,20 +34,34 @@ Log at end of file
 #define connectBoth(f)   ((connectTop(f)) && (connectBottom(f)))
 
 double meshDiameterSize = 0.0;
+int newPolyNorm = 1;
+
+typedef struct connect_struct {
+  int b1;
+  int t1;
+  int b2;
+  int t2;
+  int gap;
+  int connect;
+} Connector;
 
 static void report_time(char *string);
+static int getnextz(int *zlist, int zlsize, int cz);
 static int    imeshDefaultCallback(int inStatus);
 
-static Imesh *imeshContours(Icont *bc, Icont *tc, Ipoint *scale);
-static Imesh *imeshContoursCost(Icont *bc, Icont *tc, Ipoint *scale, 
-                                int inside, int openobj);
+static Imesh *imeshContoursCost(Iobj *obj, Icont *bc, Icont *tc, Ipoint *scale,
+                                int inside, int bco, int tco);
 
-static Imesh *imeshContourCap(Icont *cont, int side, int inside, 
-                              Ipoint *scale);
-static Imesh *makeCapMesh(Icont *cont, Ipoint *cm, int meshdir);
+static Imesh *imeshContourCap(Iobj *obj, Icont *cont, int co, int side,
+                              int inside, Ipoint *scale);
+static Imesh *makeCapMesh(Icont *cont, Ipoint *cm, int meshdir, 
+                          DrawProps *props, int state, int stateTest);
 
+static float segment_separation(float l1, float u1, float l2, float u2);
 static int mesh_open_tube_obj(Iobj *obj, Ipoint *scale, unsigned int flags);
-static Imesh *joinTubeCont(Icont *c1, Icont *c2, Ipoint *norm);
+static Imesh *joinTubeCont(Icont *c1, Icont *c2, Ipoint *norm, 
+                           DrawProps *props1, int state1, DrawProps *props2,
+                           int state2);
 static int mkTubeCont(Icont *cont, Ipoint *loc, Ipoint *n, Ipoint *scale,
                   float tubeDiameter, int slices);
 static int mesh_open_obj(Iobj *obj, Ipoint *scale, int incz, 
@@ -59,11 +73,14 @@ static int mesh_open_obj(Iobj *obj, Ipoint *scale, int incz,
 static int inside_cont(Icont *cont, Ipoint pt);
 static int eliminate_overlap(Icont *c1, Icont *c2);
 static void cost_from_area_matrices(float *up, float *down, float *cost,
-                                    char *path, int bdim, int tdim,
-                                    int bsize, int sb, int st, float curmin);
+                                    char *path, int bdim, int tdim, int bsize,
+                                    int sb, int st, int bmax,
+                                    int tmax, float curmin);
 static void build_area_matrices(Icont *bc, int bdir,
                                 Icont *tc, int tdir, Ipoint *scale,
                                 float *up, float *down);
+static Connector *makeConnectors(Icont *bc, Icont *tc, int *numCon, 
+                                 int closedObj, int dirProduct);
 static Icont *connect_orphans(Iobj *obj, Icont *cout, int *list, int *used,
                               int *justinl, int njustin, int *inlist, 
                               int joindir,
@@ -82,11 +99,41 @@ static Icont *join_all_contours(Iobj *obj, int *list, int ncont,
 static int chunkMeshAddIndex(Imesh *mesh, int index, int *maxlist);
 static void subtract_scan_contours(Icont *cs1, Icont *cs2);
 static int mesh_contours(Iobj *obj, Icont *bcont, Icont *tcont, int surf,
-                         int time, Ipoint *scale, int inside);
+                         int time, Ipoint *scale, int inside, int bco, 
+                         int tco);
 static int break_contour_inout(Icont *cin, int st1, int st2,  int fill,
                                Icont **cout1, Icont **cout2);
+static void segment_mm(Icont *cont, int ptst, int ptnd, float *xmin, 
+                       float *xmax, float *ymin, float *ymax);
+static void scan_points_to_segments(Icont *c1, Icont *c2, double *legalmin,
+                                    double *dsqrmin, int *pt1, int *pt2, 
+                                    float *tbest, Ipoint *close,
+                                    int docheck, int samelevel, Iobj *obj,
+                                    int *olist, int nother, int nothersame,
+                                    Icont *other);
+static int find_closest_contour(Icont *tcont, Icont *onecont, Iobj *obj, 
+                                int *list, int ncont,
+                                int *used, int *pt1min, int *pt2min, 
+                                int *firstbest, float *tbest, Ipoint *close,
+                                int *olist, int nother, int nothersame, 
+                                Icont *other, int nsamelevel);
+static int check_legal_joiner(Ipoint pt1, Ipoint pt2, Icont *c1, Icont *c2,
+                              int samelevel, Iobj *obj, int *olist,
+                              int nother, int nothersame, Icont *other);
+static int circle_top_and_direction(Icont *cont, Imat *mat, int *ptop);
+static int cross_cont(Icont *cout, float x1s, float y1s, float x1e, float y1e,
+                      int st1, int st2);
+static int outsideMeshLimits(Ipoint *p1, Ipoint *p2, Ipoint *p3);
+static int ptcompare(const void *v1, const void *v2);
+static void backoff_overlap(Icont *c1, Icont *c2);
+static void interpolate_point(Ipoint pt1, Ipoint pt2, float frac, Ipoint *pt3);
+static void invertConnectors(Connector *connects, int numCon, 
+                             int direction[2]);
+static void chunkAddTriangle(Imesh *mesh, int i1, int i2, int i3, int *maxsize,
+                             int inside);
 
 static int fastmesh = 0;
+static Ipoint meshMin, meshMax;
 
 static int    imeshDefaultCallback(int inStatus)
 {
@@ -111,7 +158,7 @@ static int getnextz(int *zlist, int zlsize, int cz)
 {
   int z;
 
-  for(z = 0; z < zlsize - 1; z++){
+  for (z = 0; z < zlsize - 1; z++) {
     if (cz == zlist[z])
       return(zlist[z+1]);
   }
@@ -122,118 +169,948 @@ static int getnextz(int *zlist, int zlsize, int cz)
 }
 
 
-static int mesh_open_tube_obj(Iobj *obj, Ipoint *scale, unsigned int flags)
+/*
+ * Build the matrices of areas for up and down triangles
+ */
+static void build_area_matrices(Icont *bc, int bdir,
+                                Icont *tc, int tdir, Ipoint *scale,
+                                float *up, float *down)
 {
-  Imesh *nmesh;
-  Icont *cont;
-  Icont *clst;
-  Ipoint nrot;
-  int co, pt, npt, ppt, slices;
-  float tubeDiameter = obj->linewidth;
+  int k, l, i, j, ni, nj, lbase, bsize, tsize, tdim, bdim;
+  Ipoint *bpt, *tpt;
 
-  /* DNM 8/25/03: Set tube diameter here instead of in mkTubeCont and make 
-     number of segments variable within limits */
-  if (meshDiameterSize > 0.0) 
-    tubeDiameter = meshDiameterSize;
-
-  slices = tubeDiameter / 2;
-  if (slices < 12) 
-    slices = 12;
-  if (slices > 50)
-    slices = 50;
-
-  obj->meshsize = 0;
-  obj->mesh = NULL;
-     
-  for(co = 0; co < obj->contsize; co++){
-    cont = &obj->cont[co];
-    if (cont->psize < 2)
-      continue;
-    clst = imodContoursNew(cont->psize);
-          
-    for(pt = 0; pt < cont->psize; pt++){
-
-      /* DNM: simplify and include scale in normal calculation */
-               
-      ppt = pt - 1;
-      if (ppt < 0)
-        ppt = 0;
-      npt = pt + 1;
-      if (npt == cont->psize)
-        npt = pt;
-
-      nrot.x = scale->x * (cont->pts[npt].x - cont->pts[ppt].x);
-      nrot.y = scale->y * (cont->pts[npt].y - cont->pts[ppt].y);
-      nrot.z = scale->z * (cont->pts[npt].z - cont->pts[ppt].z);
-
-      imodPointNormalize(&nrot);
-      mkTubeCont(&clst[pt], &cont->pts[pt], &nrot, scale,
-             tubeDiameter, slices);
-
-    }
-          
-    for(pt = 0; pt < cont->psize - 1; pt++){
-      nrot.x = scale->x * (cont->pts[pt+1].x - cont->pts[pt].x);
-      nrot.y = scale->y * (cont->pts[pt+1].y - cont->pts[pt].y);
-      nrot.z = scale->z * (cont->pts[pt+1].z - cont->pts[pt].z);
-
-      imodPointNormalize(&nrot);
-      nmesh = joinTubeCont(&clst[pt], &clst[pt+1], &nrot);
-      if (nmesh){
-        obj->mesh = imodel_mesh_add(nmesh, obj->mesh, &(obj->meshsize));
-        free(nmesh);
-      }
-    }
-
-    /* DNM 8/25/02: cap if flag is set*/
-    if (flags & IMESH_CAP_TUBE) {
-      nmesh = makeCapMesh(&clst[0], &cont->pts[0], 1);
-      if (nmesh){
-        obj->mesh = imodel_mesh_add(nmesh, obj->mesh, &(obj->meshsize));
-        free(nmesh);
-      }
-      nmesh = makeCapMesh(&clst[cont->psize - 1], &cont->pts[cont->psize - 1], 
-                          0);
-      if (nmesh){
-        obj->mesh = imodel_mesh_add(nmesh, obj->mesh, &(obj->meshsize));
-        free(nmesh);
-      }
-    }
-          
-    imodContoursDelete(clst, cont->psize);
+  bsize = bc->psize;
+  tsize = tc->psize;
+  bpt = bc->pts;
+  tpt = tc->pts;
+  bdim = bsize;
+  tdim = tsize;
+  if ((bc->flags & ICONT_OPEN) && (tc->flags & ICONT_OPEN)) {
+    bdim--;
+    tdim--;
   }
-     
-    
-  obj->mesh = imeshReMeshNormal(obj->mesh, &(obj->meshsize), scale, 0);
-  if (!obj->mesh)
-    obj->meshsize = 0;
-     
-  return(0);
+
+  i = 0;
+  if (bdir < 0)
+    i = bsize - 1;
+  j = 0;
+  if (tdir < 0)
+    j = tsize - 1;
+
+  for (l = 0; l < tsize; l++) {
+    nj = j + tdir;
+    if (nj == tsize)
+      nj = 0;
+    if (nj < 0)
+      nj = tsize - 1;
+    lbase = l * bsize;
+    for (k = 0; k < bsize; k++) {
+      ni = i + bdir;
+      if (ni == bsize)
+        ni = 0;
+      if (ni < 0)
+        ni = bsize - 1;
+      if (k == bdim)
+        up[k + lbase] = 0.;
+      else
+        up[k + lbase] = imodPointAreaScale(&tpt[j], &bpt[i], 
+                                           &bpt[ni], scale);
+      if (l == tdim)
+        down[k + lbase] = 0.;
+      else
+        down[k + lbase] = imodPointAreaScale(&tpt[j], &tpt[nj], 
+                                             &bpt[i], scale);
+      i = ni;
+    }
+    j = nj;
+  }
 }
 
-static float segment_separation(float l1, float u1, float l2, float u2)
+/*
+ * Compute the minimum area path to every possible connection, thus allowing
+ * one to follow a minimum area path from ending to starting connection
+ */
+static void cost_from_area_matrices(float *up, float *down, float *cost,
+                                    char *path, int bdim, int tdim, int bsize,
+                                    int sb, int st, int bmax,
+                                    int tmax, float curmin)
 {
-  int minlen;
-  minlen = u1 - l1;
-  if (u2 - l2 < minlen)
-    minlen = u2 - l2;
-  if ((l1 >= l2 && u1 <= u2) || (l2 >= l1 && u2 <= u1))
-    return (0.);
-  if (l1 > u2)
-    return (minlen + l1 - u2);
-  if (l2 > u1)
-    return (minlen + l2 - u1);
-          
-  if (u1 > u2) {
-    minlen = u1 - u2;
-    if (l1 - l2 < minlen)
-      minlen = l1 - l2;
-  } else {
-    minlen = u2 - u1;
-    if (l2 - l1 < minlen)
-      minlen = l2 - l1;
+  int i, j, k, l, jl, il, ind, lbase;
+  float rowmin, costup, costdown;
+
+  cost[0] = 0;
+  j = st;
+  if (j == tdim)
+    j = 0;
+  rowmin = 0.0;
+  for (l = 0; l <= tmax; l ++) {
+    lbase = l * (bdim + 1);
+    i = sb;
+    if (i == bdim)
+      i = 0;
+    for (k = 0; k <= bmax; k++) {
+      ind = k + lbase;
+      if (!k) {
+
+        /* If in first column, add area of down triangles */
+        if (l) {
+          cost[ind] = cost[ind - (bdim + 1)] + 
+            down[i + jl * bsize];
+          path[ind] = 0;
+          rowmin = cost[ind];
+        }
+      } else {
+        if (!l) {
+
+          /* If in first row, add area of up triangles */
+          cost[ind] = cost[ind - 1] + up[il + j * bsize];
+          path[ind] = 1;
+        } else {
+
+          /* Otherwise figure out which is smaller and add area
+             and save path direction for that */
+          costdown = cost[ind - (bdim + 1)] + 
+            down[i + jl * bsize];
+          costup = cost[ind - 1] + up[il + j * bsize];
+
+          if (costdown < costup) {
+            cost[ind] = costdown;
+            path[ind] = 0;
+          } else {
+            cost[ind] = costup;
+            path[ind] = 1;
+          }
+          /* keep track of minimum along the row */
+          if (cost[ind] < rowmin)
+            rowmin = cost[ind];
+        }
+      }
+
+      /* adjust row index into area matrices */
+      il = i;
+      i++;
+      if (i == bdim)
+        i = 0;
+    }
+
+    /* adjust column index into area matrices */
+    jl = j;
+    j++;
+    if (j == tdim)
+      j = 0;
+
+    /* If there is a current minimum and row min exceeds it, abort */
+    if (curmin >= 0.0 && rowmin > curmin) {
+      cost[bmax + tmax * (bdim + 1)] = rowmin;
+      return;
+    }
   }
-  return (minlen);
+}
+
+/*
+ * Analyze contour stores for connectors and encode them in an array of
+ * structures with the bottom and top indices.
+ */
+static Connector *makeConnectors(Icont *bc, Icont *tc, int *numCon, 
+                                 int closedObj, int dirProduct)
+{
+  int maxCon, maxTop, i, j, used, index, k, bothOpen, tsize, start, last, mid;
+  Istore *stp, *stp2;
+  Connector *conn, *connp;
+  *numCon = 0;
+  maxCon = istoreCountItems(bc->store, GEN_STORE_CONNECT, 0);
+  maxTop = istoreCountItems(tc->store, GEN_STORE_CONNECT, 0);
+  maxCon = B3DMIN(maxCon, maxTop);
+  if (!maxCon)
+    return NULL;
+  conn = (Connector *)malloc(maxCon * sizeof(Connector));
+  if (!conn)
+    return NULL;
+
+  bothOpen = ((bc->flags & ICONT_OPEN) && (tc->flags & ICONT_OPEN)) ? 1 : 0; 
+  tsize = tc->psize;
+
+  for (i = 0; i < ilistSize(bc->store); i++) {
+    stp = istoreItem(bc->store, i);
+    if (stp->type == GEN_STORE_CONNECT) {
+
+      /* First see if the connect # is used already */
+      used = 0;
+      for (j = 0; j < *numCon; j++)
+        if (stp->value.i == conn[j].connect)
+          used = 1;
+      if (used)
+        continue;
+
+      /* Next look for connect in top contour */
+      used = 0;
+      for (j = 0; j < ilistSize(tc->store); j++) {
+        stp2 = istoreItem(tc->store, j);
+        if (stp2->type == GEN_STORE_CONNECT && stp2->value.i == stp->value.i) {
+          used = 1;
+          break;
+        }
+      }
+  
+      if (!used)
+        continue;
+
+
+      /* Check for direction consistency */
+      if (*numCon) {
+        start = conn[0].t1;
+        last = conn[*numCon - 1].t1;
+        mid = stp2->index.i;
+
+        if (closedObj && bothOpen) {
+          
+          /* For open contours of closed object, direction is set, any one 
+             point is OK but the next point must be in the right direction */
+          if (dirProduct * (mid - start) < 0)
+            continue;
+        } else if (closedObj) {
+
+          /* For closed contours, direction is set, any two points are OK but
+             the next point must be between the last and the end.  This is 
+             assessed by making sure sum of distances from last to next and 
+             next to start is the same as distance from last to start */
+          if (*numCon > 1 &&
+              (dirProduct * (mid - last) + tsize) % tsize + 
+              (dirProduct * (start - mid) + tsize) % tsize !=
+              (dirProduct * (start - last) + tsize) % tsize)
+            continue;
+        } else {
+          
+          /* For open object, direction 1 can flip so any two points are OK, 
+             but next point must change in same direction as the last */
+          if (*numCon > 1 && (mid - last) * (last - start) < 0)
+            continue;
+        }
+      }
+
+
+      /* Define the connector */
+      connp = &conn[(*numCon)++];
+      connp->b1 = stp->index.i;
+      connp->t1 = stp2->index.i;
+      connp->b2 = stp->index.i;
+      connp->t2 = stp2->index.i;
+      connp->gap = 0;
+      connp->connect = stp->value.i;
+
+      /* Look for explicit neighboring 3rd point in bottom */
+      used = 0;
+      for (k = 0; !used && k < ilistSize(bc->store); k++) {
+        stp = istoreItem(bc->store, k);
+        if (stp->flags & (GEN_STORE_NOINDEX | 3))
+          break;
+        if (stp->type == GEN_STORE_CONNECT && stp->value.i == connp->connect) {
+          if  (stp->index.i == connp->b1 + 1) {
+            connp->b2++;
+            used = 1;
+          }
+          
+          /* If connector is at zero and this is an end of cont, back off
+             the starting index to the end of the cont */
+          if (stp->index.i == bc->psize - 1 && connp->b1 == 0 && !bothOpen) {
+            connp->b1 = bc->psize - 1;
+            used = 1;
+          }
+        }
+      }
+             
+      /* Look for explicit neighboring 3rd point in top */
+      for (k = 0; !used && k < ilistSize(tc->store); k++) {
+        stp = istoreItem(tc->store, k);
+        if (stp->flags & (GEN_STORE_NOINDEX | 3))
+          break;
+        if (stp->type == GEN_STORE_CONNECT && stp->value.i == connp->connect) {
+          if  (stp->index.i == connp->t1 + 1) {
+            connp->t2++;
+            used = 1;
+          }
+          if (stp->index.i == tc->psize - 1 && connp->t1 == 0 && !bothOpen) {
+            connp->t1 = tc->psize - 1;
+            used = 1;
+          }
+        }
+      }
+
+      /* If a third point was found, check for gap */
+      if ((connp->b1 != connp->b2 && istorePointIsGap(bc->store, connp->b1)) ||
+          (connp->t1 != connp->t2 && istorePointIsGap(tc->store, connp->t1)))
+          connp->gap = 1;
+
+      /* printf("%d %d %d %d %d %d\n", connp->connect, connp->b1, connp->b2, 
+         connp->t1, connp->t2, connp->gap); */
+    }
+  }
+
+  /* Now that all connectors are gotten, check for gaps before and after 
+     each point and introduce an implied third point on other side of the 
+     gap as long as the point does not appear in another connector */
+  for (j = 0; j < *numCon; j++) {
+    connp = &conn[j];
+    
+    /* Skip if there are already three points and it is NOT a gap */
+    if (!connp->gap && (connp->b1 != connp->b2 || connp->t1 != connp->t2))
+      continue;
+    
+    /* Look forward on bottom.  Extend if not already extended and there is
+       not another connector with this point */
+    index = (connp->b1 + 1) % bc->psize;
+    if (connp->b1 == connp->b2 && istorePointIsGap(bc->store, connp->b1) &&
+        !(connp->b1 == bc->psize - 1 && bothOpen)) {
+      used = 0;
+      for (i = 0; i < *numCon; i++) {
+        if ((i != j) && (conn[i].b1 == index || conn[i].b2 == index))
+          used = 1;
+      }
+      if (!used) {
+        connp->b2 = index;
+        connp->gap = 1;
+      }
+    }
+    
+    /* Look backward on bottom */
+    index = (bc->psize + connp->b1 - 1) % bc->psize;
+    if (connp->b1 == connp->b2 && istorePointIsGap(bc->store, index) && 
+        !(index == bc->psize - 1 && bothOpen)) {
+      used = 0;
+      for (i = 0; i < *numCon; i++) {
+        if ((i != j) && (conn[i].b1 == index || conn[i].b2 == index))
+          used = 1;
+      }
+      if (!used) {
+        connp->b1 = index;
+        connp->gap = 1;
+      } 
+    }         
+      
+    /* Look forward on top */
+    index = (connp->t1 + 1) % tc->psize;
+    if (connp->t1 == connp->t2 && istorePointIsGap(tc->store, connp->t1) &&
+        !(connp->t1 == tc->psize - 1 && bothOpen)) {
+      used = 0;
+      for (i = 0; i < *numCon; i++) {
+        if ((i != j) && (conn[i].t1 == index || conn[i].t2 == index))
+          used = 1;
+      }
+      if (!used) {
+        connp->t2 = index;
+        connp->gap = 1;
+      }
+    }
+    
+    /* Look backward on top */
+    index = (tc->psize + connp->t1 - 1) % tc->psize;
+    if (connp->t1 == connp->t2 && istorePointIsGap(tc->store, index) && 
+        !(index == tc->psize - 1 && bothOpen)) {
+      used = 0;
+      for (i = 0; i < *numCon; i++) {
+        if ((i != j) && (conn[i].t1 == index || conn[i].t2 == index))
+          used = 1;
+      }
+      if (!used) {
+        connp->t1 = index;
+        connp->gap = 1;
+      }
+    }
+  }
+  
+  /*  for (i = 0; i < *numCon; i++)
+    printf("%d %d %d %d %d %d\n", conn[i].connect, conn[i].b1, conn[i].b2, 
+           conn[i].t1, conn[i].t2, conn[i].gap);
+           fflush(stdout); */
+  return conn;
+}
+
+/* If bottom direction is negative, this reverses the order of the connectors
+   in the array and exchanges b1 and b2.  If top direction is negative, it
+   exchanges t1 and t2 */
+static void invertConnectors(Connector *connects, int numCon, int direction[2])
+{
+  int i, tmp;
+  Connector connTmp;
+  if (direction[0] < 0) {
+    for (i = 0; i < numCon / 2; i++) {
+      connTmp = connects[i];
+      connects[i] = connects[numCon - 1 - i];
+      connects[numCon - 1 - i] = connTmp;
+    }
+    for (i = 0; i < numCon; i++) {
+      tmp = connects[i].b1;
+      connects[i].b1 = connects[i].b2;
+      connects[i].b2 = tmp;
+    }
+  }
+  if (direction[1] < 0) {
+    for (i = 0; i < numCon; i++) {
+      tmp = connects[i].t1;
+      connects[i].t1 = connects[i].t2;
+      connects[i].t2 = tmp;
+    }
+  }
+}
+
+/* Tests for whether a triangle is entirely outside the limit */
+static int outsideMeshLimits(Ipoint *p1, Ipoint *p2, Ipoint *p3)
+{
+  if ((p1->x < meshMin.x || p1->x > meshMax.x || 
+       p1->y < meshMin.y || p1->y > meshMax.y) &&
+      (p2->x < meshMin.x || p2->x > meshMax.x || 
+       p2->y < meshMin.y || p2->y > meshMax.y) &&
+      (p3->x < meshMin.x || p3->x > meshMax.x || 
+       p3->y < meshMin.y || p3->y > meshMax.y))
+    return 1;
+  return 0;
+}
+
+/* Adds one triangle to the mesh, exchanging second and third points if inside
+   is set */
+static void chunkAddTriangle(Imesh *mesh, int i1, int i2, int i3, int *maxsize,
+                             int inside)
+{
+  int o2 = i2;
+  int o3 = i3;
+  if (inside) {
+    o2 = i3;
+    o3 = i2;
+  }
+
+  if (!mesh->lsize)
+    chunkMeshAddIndex(mesh, IMOD_MESH_BGNPOLY, maxsize);
+  chunkMeshAddIndex(mesh, i1, maxsize);
+  chunkMeshAddIndex(mesh, o2, maxsize);
+  chunkMeshAddIndex(mesh, o3, maxsize);
+}
+
+
+/* Create a mesh between two contours using a minimum area
+ * cost analysis.
+ */
+static Imesh *imeshContoursCost(Iobj *obj, Icont *bc, Icont *tc, Ipoint *scale,
+                                int inside, int bco, int tco)
+{
+  Imesh *mesh;
+  int i, j, k, pt, jo, io, pt1, pt2, pt3;
+  int tdim, bdim, tlen, blen;
+  int bsize, tsize, csize, totind;
+  int dofast;
+  int bsi, tsi, li, lj, step, iskip, jskip, endb, endt, jobase;
+  int maxsize;
+  float mincost, ccost;
+  float *up, *down, *cost;
+  char *path;
+  Ipoint minp, maxp;
+  float dista, distb;
+  DrawProps objProps, bcProps, tcProps, ptProps;
+  DrawProps *props3;
+  Ilist *store3;
+  int surfState, bcState, tcState, state3, anyTrans, transMax;
+  int  p1State, p2State, p3State, k2, k3, trans1, trans2, trans3;
+  int stateTest = CHANGED_COLOR | CHANGED_FCOLOR | CHANGED_3DWIDTH;
+  Connector *connects;
+  int numCon, curCon, nextCon, startedAtCon = 0, bothOpen;
+  int startsConnected = 0, endsConnected = 0;
+
+  /* Index [0] is bottom contour, Index [1] is top contour. */
+  int si[2];                /* start index */
+  int direction[2];        /* contour direction. */
+  int siFirst[2], siCopy[2];
+     
+  /* Check input data. */
+  if ((bc == NULL) || (!bc->psize) || (tc == NULL) || (!tc->psize))
+    return(NULL);
+
+  /* Init internal data. */
+  mesh = imodMeshNew();
+  if (!mesh) 
+    return(NULL);
+  maxsize = 0;
+
+  bothOpen = ((bc->flags & ICONT_OPEN) && (tc->flags & ICONT_OPEN)) ? 1 : 0;
+  tsize = tc->psize;
+  tdim = tsize;
+  bsize = bc->psize;
+  bdim = bsize;
+  if (bothOpen) {
+    tdim--;
+    bdim--;
+  }
+  csize = (tdim + 1) * (bdim + 1);
+  totind = csize - 1;
+
+  up = (float *)malloc(sizeof(float) * bsize * tsize);
+  down = (float *)malloc(sizeof(float) * tsize * bsize);
+  cost = (float *)malloc(sizeof(float) * csize);
+  path = (char *)malloc(sizeof(char) * csize);
+  if (!down || !up || !cost || !path) {
+    free(mesh);
+    if (up)
+      free(up);
+    if (down)
+      free(down);
+    if (cost)
+      free(cost);
+    if (path)
+      free(path);
+    return(NULL);
+  }
+
+  /* Get default drawing properties for each contour, and flags for what is
+     already changed from default */
+  istoreDefaultDrawProps(obj, &objProps);
+  i = istoreContSurfDrawProps(obj->store, &objProps, &bcProps, bco, bc->surf, 
+                          &bcState, &surfState);
+  j = istoreContSurfDrawProps(obj->store, &objProps, &tcProps, tco, tc->surf, 
+                          &tcState, &surfState);
+  anyTrans = (bcState & CHANGED_TRANS) | (tcState & CHANGED_TRANS) | 
+    istoreCountItems(bc->store, GEN_STORE_TRANS, 1) |
+    istoreCountItems(tc->store, GEN_STORE_TRANS, 1);
+  /* printf("bco %d state %d %d tco %d state %d %d\n", bco, bcState, i, tco,
+     tcState, j);
+     istoreDump(obj->store); */
+
+  /* Find direction of each contour.
+   * If contours aren't flat in a Z plane, they must already be
+   * in the correct orientation.
+   */
+  direction[0] = imodContZDirection(bc);
+  direction[1] = imodContZDirection(tc);
+  if (!direction[0])
+    direction[0] = 1;
+  if (!direction[1])
+    direction[1] = 1;
+
+  si[0] = si[1] = 0;
+  dofast = 1;
+
+  /* Get connectors if any */
+  connects = makeConnectors(bc, tc, &numCon, iobjClose(obj->flags), 
+                            direction[0] * direction[1]);
+  curCon = 0;
+
+  /* Set starting index for both contours. */
+  if (bothOpen) {
+    dofast = fastmesh;
+
+    /* If both contours open, then the starting points are endpoints 
+       regardless of connectors */
+    /* If the object type is open contour, then ignore the
+       computed contour directions; set directions to +, and
+       invert the second one if that makes them match up better */
+    if (!iobjClose(obj->flags)) {
+      direction[1] = direction[0] = 1;
+
+      /* But first see if starts or ends are connected and use that to set
+       the polarity.  Also set polarity if there is more than 1 connector */
+      if (numCon) {
+        startsConnected = !connects[0].b1 &&
+          (!connects[0].t1 || connects[0].t2 == tsize - 1) ? 1 : 0;
+        endsConnected = connects[numCon - 1].b2 == bsize - 1 && 
+          (!connects[numCon - 1].t1 || connects[numCon - 1].t2 == tsize - 1) 
+          ? 1 : 0;
+      }
+
+      if (startsConnected || endsConnected || numCon > 1) {
+        if ((startsConnected && connects[0].t2 == tsize - 1) ||
+            (endsConnected && !connects[0].t1) ||
+            (numCon > 1 && connects[1].t1 < connects[0].t1))
+          direction[1] = -1;
+
+      } else {
+        dista = imodPointDistance(bc->pts, &tc->pts[0]) + imodPointDistance
+          (&bc->pts[bsize - 1], &tc->pts[tsize - 1]);
+        distb = imodPointDistance(bc->pts, &tc->pts[tsize-1]) + 
+          imodPointDistance(&bc->pts[bsize - 1], &tc->pts[0]);
+        if (distb < dista)
+          direction[1] = -1;
+
+      }
+    }
+
+    /* Invert the direction of connections if bottom is reversed */
+    invertConnectors(connects, numCon, direction);
+
+    /* Invert the starting points for reversed directions and (re-)evaluate 
+       if starts or ends are connected */
+    if (direction[0] < 0)
+      si[0] = bsize - 1;
+    if (direction[1] < 0)
+      si[1] = tsize - 1;
+
+    if (numCon) {
+      startsConnected = connects[0].b1 == si[0] && 
+        connects[0].t1 == si[1] ? 1 : 0;
+      endsConnected = connects[numCon - 1].b2 ==  bsize - 1 - si[0] && 
+        connects[numCon - 1].t2 ==  tsize - 1 - si[1] ? 1 : 0;
+
+      /* Finally, if the starts are connected, use those to set indexes */
+      if (startsConnected) {
+        si[0] = connects[0].b2;
+        si[1] = connects[0].t2;
+        curCon = 1;
+      }
+    }
+
+  } else {
+
+    /* Otherwise start at the first connector and set flag,
+       but reverse connectors if bottom is inverted */
+    if (numCon) {
+      invertConnectors(connects, numCon, direction);
+      si[0] = connects[0].b2;
+      si[1] = connects[0].t2;
+      startedAtCon = 1;
+      curCon = 1;
+
+    } else if (bc->flags & ICONT_OPEN) {
+      si[1] = imodContourNearest(tc, bc->pts);
+
+    } else if (tc->flags & ICONT_OPEN) {
+      si[0] = imodContourNearest(bc, tc->pts);
+
+    } else {
+      dofast = fastmesh;
+                    
+      /* Try to have all mesh start at about the same place
+       * so it looks better with fake transparency.
+       */
+      imodContourGetBBox(bc, &minp, &maxp);
+      si[0] = imodContourNearest(bc, &minp);
+                    
+      /* Now find a similar point in the top contour. */
+                    
+      imodContourGetBBox(tc, &minp, &maxp);
+      si[1] = imodContourNearest(tc,  &minp); 
+
+      /* DNM: deleted attempt to get nearest points; it doesn't work any 
+         better than going for corner points: basically, need to do two 
+         passes to have a good starting connector  */
+    }
+  }
+     
+  /*
+   * Build the matrices of areas for up and down triangles
+   */
+  build_area_matrices(bc, direction[0], tc, direction[1], scale, up, down);
+
+  siFirst[0] = si[0];
+  siFirst[1] = si[1];
+
+  for (; curCon <= numCon - endsConnected; curCon++) {
+
+    blen = bdim;
+    tlen = tdim;
+
+    /* If there are connectors, need to revise the endpoints */
+    if (numCon) {
+
+      /* index for endpoints is the current connector index, unless at the end.
+         In that case it is the first connector or the other end of both open
+         contours */
+      nextCon = curCon;
+      if (curCon >= numCon)
+        nextCon = startedAtCon ? 0 : -1;
+      if (nextCon >= 0) {
+        endb = connects[nextCon].b1;
+        endt = connects[nextCon].t1;
+      } else {
+        endb = bsize - 1 - siFirst[0];
+        endt = tsize - 1 - siFirst[1];
+      }
+
+      /* get the extent to mesh; routine will mesh 0 to dim inclusive.
+         If both open contours, length can be zero and zero must not wrap */
+      blen = direction[0] > 0 ? endb - si[0] : si[0] - endb;
+      if (blen < 0 || (!bothOpen && blen == 0))
+        blen += bsize;
+      tlen = direction[1] > 0 ? endt - si[1] : si[1] - endt;
+      if (tlen < 0 || (!bothOpen && tlen == 0))
+        tlen += tsize;
+
+      /* printf("%d %d %d %d %d %d %d %d %d %d\n", bdim, direction[0], si[0], 
+             endb, blen, tdim, direction[1], si[1],  endt, tlen);
+             fflush(stdout);*/
+    }
+
+    /* flip starting indexes if directions are reversed */
+    bsi = si[0];
+    if (direction[0] < 0)
+      bsi = bsize - 1 - bsi;
+    tsi = si[1];
+    if (direction[1] < 0)
+      tsi = tsize - 1 - tsi;
+
+
+    /* Get the cost and path matrices for these starting points */
+    
+    cost_from_area_matrices(up, down, cost, path, bdim, tdim,
+                            bsize, bsi, tsi, blen, tlen, -1.0);
+       
+    /* optimize connections only if there are no connectors */
+    if (!numCon) {
+      if (dofast) {
+        
+        if (!(bc->flags & ICONT_OPEN) && 
+            !(tc->flags & ICONT_OPEN)) {
+          
+          /* If both closed contours, go halfway around to find a
+             new starting point, and use that instead */
+          i = bdim;
+          j = tdim;
+          for (step = 0; step < (bdim + tdim) / 2; step++) {
+            if (path[i + j * (bdim + 1)])
+              i--;
+            else
+              j--;
+          }
+          bsi = (bsi + i) % bsize;
+          tsi = (tsi + j) % tsize;
+          cost_from_area_matrices(up, down, cost, path, bdim, tdim,
+                              bsize, bsi, tsi, bdim, tdim, -1.0);
+        } 
+      } else {
+        
+        /* Time-consuming: find starting point that gives minimum  area */
+     
+        mincost = cost[totind];
+        
+        if (tc->flags & ICONT_OPEN  || bc->flags & ICONT_OPEN) {
+          /* For open contours, just do reverse direction */
+          
+          build_area_matrices(bc, direction[0], tc, -direction[1],
+                              scale, up, down);
+          cost_from_area_matrices(up, down, cost, path, bdim, tdim,
+                                  bsize, bsi, tsi, bdim, tdim, mincost);
+
+          /* If it's better, flip direction; otherwise rebuild areas */
+          if (cost[totind] < mincost)
+            direction[1] *= -1;
+          else
+            build_area_matrices(bc, direction[0], tc, direction[1],
+                                scale, up, down);
+        } else {
+          
+          for (i = 0; i < tsize; i++) {
+            cost_from_area_matrices(up, down, cost, path, bdim, tdim,
+                                bsize, bsi, i, bdim, tdim, mincost);
+                 
+            ccost = cost[totind];
+            
+            if (ccost < mincost) {
+              mincost = ccost;
+              tsi = i;
+              /*             printf ("* "); */
+            }
+            /*           printf("%d %d %g\n",si[0], i, ccost); */
+          }
+        }
+
+        /* Redo path from final starting indices and direction */
+        cost_from_area_matrices(up, down, cost, path, bdim, tdim,
+                                bsize, bsi, tsi, bdim, tdim, -1.0);
+      }
+    }
+
+    /* get back the starting indexes in terms of unreversed data */
+    if (direction[0] < 0)
+      bsi = bsize - 1 - bsi;
+    if (direction[1] < 0)
+      tsi = tsize - 1 - tsi;
+
+    if (!mesh->vsize) {
+
+      /*
+       * first time through, copy contour points to mesh vert array
+       */
+      siCopy[0] = bsi;
+      siCopy[1] = tsi;
+      mesh->vsize = bsize + tsize + 2;
+      mesh->vert = (Ipoint *)malloc(mesh->vsize * sizeof(Ipoint));
+      if (mesh->vert == NULL) {
+        free(cost);
+        free(up);
+        free(down);
+        free(mesh);
+        free(path);
+        return(NULL);
+      }
+      
+      /* copy bottom contour data to mesh array. */
+      pt = siCopy[0];
+      for (i = 0; i < bsize; i++) {
+        mesh->vert[i] = bc->pts[pt];
+        pt += direction[0];
+        if (pt == bsize) {
+          pt = 0;
+          iskip = i;
+        } else if (pt < 0) {
+          pt = bsize - 1;
+          iskip = i;
+        }
+      }
+      mesh->vert[bsize] = bc->pts[siCopy[0]];
+     
+      /* copy top contour data to mesh vert array. */
+      for (i = bsize + 1, pt = siCopy[1]; i < mesh->vsize - 1; i++) {
+        mesh->vert[i] = tc->pts[pt];
+        pt += direction[1];
+        if (pt == tsize) {
+          pt = 0;
+          jskip = i - (bsize + 1);
+        } else if (pt < 0) {
+          pt = tsize - 1;
+          jskip = i - (bsize + 1);
+        }
+      }
+      mesh->vert[mesh->vsize - 1] = tc->pts[siCopy[1]];
+    }
+
+    /* The connection loop.  Set starting indexes and offsets  */
+    i = blen;
+    j = tlen;
+    io = (direction[0] * (bsi - siCopy[0]) + bsize) % bsize;
+    jobase = (direction[1] * (tsi - siCopy[1]) + tsize) % tsize;
+    jo = jobase + bsize + 1;
+
+    /* Do we need to add a triangle at the terminal connector? */
+    if (numCon && nextCon >= 0 && !connects[nextCon].gap) {
+      if (connects[nextCon].b2 != connects[nextCon].b1) {
+        i++;
+        path[i + j * (bdim + 1)] = 1;
+      } else if (connects[nextCon].t2 != connects[nextCon].t1) {
+        j++;
+        path[i + j * (bdim + 1)] = 0;
+      }
+    }
+    /* printf("%d %d %d %d\n", bsi, siCopy[0], tsi, siCopy[1]);
+    printf("%d %d %d %d\n", i, io, j, jobase);
+    fflush(stdout); */
+
+    /* Now make the mesh by following the path. */
+    while( (i) || (j) ) {
+      
+      k = mesh->lsize;
+      if (path[i + j * (bdim + 1)]) {
+        li = i - 1;
+        pt3 = (bsi + direction[0] * i + bsize) % bsize;
+        pt2 = (bsi + direction[0] * li + bsize) % bsize;
+        pt1 = (tsi + direction[1] * j + tsize) % tsize;
+        if (!(((bc->flags & ICONT_OPEN) && li + io == iskip) || 
+              istorePointIsGap(bc->store, B3DMIN(pt2, pt3)) ||
+              outsideMeshLimits(&tc->pts[pt1], &bc->pts[pt2], &bc->pts[pt3]))){
+          chunkAddTriangle(mesh, j+jo, li+io, i+io, &maxsize, inside);
+          state3 = bcState;
+          props3 = &bcProps;
+          store3 = bc->store;
+        }
+        i--;
+
+      } else {
+        lj = j - 1;
+        pt3 = (tsi + direction[1] * j + tsize) % tsize;
+        pt1 = (tsi + direction[1] * lj + tsize) % tsize;
+        pt2 = (bsi + direction[0] * i + bsize) % bsize;
+        if (!(((tc->flags & ICONT_OPEN) && lj + jobase == jskip) ||
+              istorePointIsGap(tc->store, B3DMIN(pt1, pt3)) ||
+              outsideMeshLimits(&tc->pts[pt1], &bc->pts[pt2], &tc->pts[pt3]))){
+
+          chunkAddTriangle(mesh, lj+jo, i+io, j+jo, &maxsize, inside);
+          state3 = tcState;
+          props3 = &tcProps;
+          store3 = tc->store;
+        }
+        j--;
+      }
+      
+      if (mesh->lsize > k) {
+        if (!k)
+          k++;
+        k2 = inside ? k + 2 : k + 1;
+        k3 = inside ? k + 1 : k + 2;
+        if ((tcState & stateTest) || tc->store)
+          istoreGenPointItems(tc->store, &tcProps, tcState, pt1, &mesh->store,
+                              k, stateTest);
+        if ((state3 & stateTest) || store3)
+          istoreGenPointItems(store3, props3, state3, pt3, &mesh->store,
+                              k3, stateTest);
+        if ((bcState & stateTest) || bc->store)
+          istoreGenPointItems(bc->store, &bcProps, bcState, pt2, &mesh->store,
+                              k2, stateTest);
+
+        /* Handle trans states - if any point has a positive trans, set all
+           trans to at least 1 so triangle is recognized as trans */
+        if (anyTrans) {
+          p1State = istoreListPointProps(tc->store, &tcProps, &ptProps, pt1);
+          trans1 = transMax = ptProps.trans;
+          p2State = istoreListPointProps(bc->store, &bcProps, &ptProps, pt2);
+          trans2 = ptProps.trans;
+          transMax = B3DMAX(transMax,ptProps.trans);
+          p3State = istoreListPointProps(store3, props3, &ptProps, pt3);
+          trans3 = ptProps.trans;
+          transMax = B3DMAX(transMax,ptProps.trans);
+          if ((tcState | bcState | p1State | p2State | p3State) & 
+              CHANGED_TRANS) {
+            if (transMax && !trans1)
+              trans1 = 1;
+            if (transMax && !trans2)
+              trans2 = 1;
+            if (transMax && !trans3)
+              trans3 = 1;
+            ptProps.trans = trans1;
+            istoreGenerateItems(&mesh->store, &ptProps, CHANGED_TRANS, k, 
+                                CHANGED_TRANS);
+            ptProps.trans = trans2;
+            istoreGenerateItems(&mesh->store, &ptProps, CHANGED_TRANS, k2, 
+                                CHANGED_TRANS);
+            ptProps.trans = trans3;
+            istoreGenerateItems(&mesh->store, &ptProps, CHANGED_TRANS, k3, 
+                                CHANGED_TRANS);
+          }
+        }
+      }
+    }
+
+    /* Set starting indexes for next round */
+    if (curCon < numCon) {
+      si[0] = connects[curCon].b2;
+      si[1] = connects[curCon].t2;
+    }
+  }
+
+  /* istoreDump(mesh->store); */
+  if (numCon)
+    free(connects);
+  free(path);
+  free(cost);
+  free(up);
+  free(down);
+
+  if (mesh->lsize)
+    chunkMeshAddIndex(mesh, IMOD_MESH_ENDPOLY, &maxsize);
+  imodMeshAddIndex(mesh, IMOD_MESH_END);
+  return(mesh);
+}
+
+static void dump_lists(char *message, int *blist, int nb, int *tlist, int nt,
+                       int *blook, int *tlook)
+{
+  int i;
+  printf("%s:\nbottom: ", message);
+  for (i = 0; i < nb; i++)
+    if (blook)
+      printf(" %d", blook[blist[i]]+1);
+    else
+      printf(" %d", blist[i]+1);
+  printf("\ntop: ");
+  for (i = 0; i < nt; i++)
+    if (tlook)
+      printf(" %d", tlook[tlist[i]]+1);
+    else
+      printf(" %d", tlist[i]+1);
+  printf("\n");
 }
 
 /* connect open contours like a surface. */
@@ -267,7 +1144,7 @@ static int mesh_open_obj(Iobj *obj, Ipoint *scale, int incz,
     for (iz = 0; iz < zmax - zmin; iz++) {
       nextz = iz + zmin;
       for (i = 0; i < zpass; i++) {
-        if (flags & IMESH_MK_SKIP){
+        if (flags & IMESH_MK_SKIP) {
           nextz = getnextz(zlist, zlsize, nextz);
         } else {
           nextz += incz;
@@ -339,8 +1216,8 @@ static int mesh_open_obj(Iobj *obj, Ipoint *scale, int incz,
         econt = &(obj->cont[eco]);
         cont->flags |= (ICONT_OPEN | CONNECT_TOP);
         econt->flags |= (ICONT_OPEN |  CONNECT_BOTTOM);
-        nmesh = imeshContoursCost(cont, econt, scale, inside, 1);
-        if (nmesh){
+        nmesh = imeshContoursCost(obj, cont, econt, scale, inside, co, eco);
+        if (nmesh) {
           nmesh->pad = cont->surf;
           if (!(flags & IMESH_MK_SURF))
             nmesh->pad = 0;
@@ -370,6 +1247,152 @@ static int mesh_open_obj(Iobj *obj, Ipoint *scale, int incz,
   free(sepmat);
   free(pmin);
   free(pmax);
+  return(0);
+}
+
+
+static float segment_separation(float l1, float u1, float l2, float u2)
+{
+  int minlen;
+  minlen = u1 - l1;
+  if (u2 - l2 < minlen)
+    minlen = u2 - l2;
+  if ((l1 >= l2 && u1 <= u2) || (l2 >= l1 && u2 <= u1))
+    return (0.);
+  if (l1 > u2)
+    return (minlen + l1 - u2);
+  if (l2 > u1)
+    return (minlen + l2 - u1);
+          
+  if (u1 > u2) {
+    minlen = u1 - u2;
+    if (l1 - l2 < minlen)
+      minlen = l1 - l2;
+  } else {
+    minlen = u2 - u1;
+    if (l2 - l1 < minlen)
+      minlen = l2 - l1;
+  }
+  return (minlen);
+}
+
+/* Mesh an open object as tubes */
+static int mesh_open_tube_obj(Iobj *obj, Ipoint *scale, unsigned int flags)
+{
+  Imesh *nmesh;
+  Icont *cont;
+  Icont *clst;
+  Ipoint nrot;
+  DrawProps defProps, contProps, ptProps, lastProps;
+  int nextChange, stateFlags, changeFlags, lastState;
+  int stateTest = CHANGED_COLOR | CHANGED_FCOLOR | CHANGED_TRANS;
+  int co, pt, npt, ppt, slices;
+  float tubeDiameter;
+
+  istoreDefaultDrawProps(obj, &defProps);
+
+  obj->meshsize = 0;
+  obj->mesh = NULL;
+     
+  for (co = 0; co < obj->contsize; co++) {
+    cont = &obj->cont[co];
+    if (cont->psize < 2)
+      continue;
+    clst = imodContoursNew(cont->psize);
+          
+    istoreContSurfDrawProps(obj->store, &defProps, &contProps, co, cont->surf,
+                            &stateFlags, &changeFlags);
+    ptProps = contProps;
+    nextChange = istoreFirstChangeIndex(cont->store);
+
+    /* DNM 8/25/03: Set tube diameter here instead of in mkTubeCont and make 
+       number of segments variable within limits */
+    tubeDiameter = ptProps.linewidth;
+    if (meshDiameterSize > 0.0) 
+      tubeDiameter = meshDiameterSize;
+      
+    for (pt = 0; pt < cont->psize; pt++) {
+
+      slices = tubeDiameter / 2;
+      if (slices < 12) 
+        slices = 12;
+      if (slices > 50)
+        slices = 50;
+
+      /* DNM: simplify and include scale in normal calculation */
+               
+      ppt = pt - 1;
+      if (ppt < 0)
+        ppt = 0;
+      npt = pt + 1;
+      if (npt == cont->psize)
+        npt = pt;
+
+      nrot.x = scale->x * (cont->pts[npt].x - cont->pts[ppt].x);
+      nrot.y = scale->y * (cont->pts[npt].y - cont->pts[ppt].y);
+      nrot.z = scale->z * (cont->pts[npt].z - cont->pts[ppt].z);
+
+      imodPointNormalize(&nrot);
+      mkTubeCont(&clst[pt], &cont->pts[pt], &nrot, scale,
+             tubeDiameter, slices);
+
+    }
+          
+    ptProps.gap = 0;
+    if (!nextChange)
+      nextChange = istoreNextChange(cont->store, &contProps, &ptProps, 
+                                      &stateFlags, &changeFlags);
+
+    /* DNM 8/25/02: cap if flag is set*/
+    if (flags & IMESH_CAP_TUBE) {
+      nmesh = makeCapMesh(&clst[0], &cont->pts[0], 1, &ptProps, stateFlags, 
+                          stateTest);
+      if (nmesh) {
+        obj->mesh = imodel_mesh_add(nmesh, obj->mesh, &(obj->meshsize));
+        free(nmesh);
+      }
+    }
+
+    for (pt = 0; pt < cont->psize - 1; pt++) {
+      lastState = stateFlags;
+      lastProps = ptProps;
+      ptProps.gap = 0;
+      if (pt + 1 == nextChange)
+        nextChange = istoreNextChange(cont->store, &contProps, &ptProps, 
+                                      &stateFlags, &changeFlags);
+      if (lastProps.gap)
+        continue;
+      
+      nrot.x = scale->x * (cont->pts[pt+1].x - cont->pts[pt].x);
+      nrot.y = scale->y * (cont->pts[pt+1].y - cont->pts[pt].y);
+      nrot.z = scale->z * (cont->pts[pt+1].z - cont->pts[pt].z);
+
+      imodPointNormalize(&nrot);
+      nmesh = joinTubeCont(&clst[pt], &clst[pt+1], &nrot, &lastProps, 
+                           lastState, &ptProps, stateFlags);
+      if (nmesh) {
+        obj->mesh = imodel_mesh_add(nmesh, obj->mesh, &(obj->meshsize));
+        free(nmesh);
+      }
+    }
+
+    if (flags & IMESH_CAP_TUBE) {
+      nmesh = makeCapMesh(&clst[cont->psize - 1], &cont->pts[cont->psize - 1], 
+                          0, &ptProps, stateFlags, stateTest);
+      if (nmesh) {
+        obj->mesh = imodel_mesh_add(nmesh, obj->mesh, &(obj->meshsize));
+        free(nmesh);
+      }
+    }
+          
+    imodContoursDelete(clst, cont->psize);
+  }
+     
+    
+  obj->mesh = imeshReMeshNormal(obj->mesh, &(obj->meshsize), scale, 0);
+  if (!obj->mesh)
+    obj->meshsize = 0;
+     
   return(0);
 }
 
@@ -412,7 +1435,7 @@ static int mkTubeCont(Icont *cont, Ipoint *loc, Ipoint *n, Ipoint *scale,
   spt.z = 0.0f;
 
   imodMatScale(mat, &rscale);  /* DNM: Move this outside the loop */
-  for(sl = 0; sl < slices; sl++){
+  for (sl = 0; sl < slices; sl++) {
     imodMatRot(rmat, astep, b3dZ);
     imodMatTransform(rmat, &spt, &tpt);
     imodMatTransform(mat, &tpt, &cpt);
@@ -457,14 +1480,17 @@ static int circle_top_and_direction(Icont *cont, Imat *mat, int *ptop)
 }
                
 /* join two tube contours together. */
-static Imesh *joinTubeCont(Icont *c1, Icont *c2, Ipoint *norm)
+static Imesh *joinTubeCont(Icont *c1, Icont *c2, Ipoint *norm, 
+                           DrawProps *props1, int state1, DrawProps *props2,
+                           int state2)
 {
-  int pt, mpt, npt, pt2, pt1, idir2;
+  int pt, mpt, npt, pt2, pt1, idir2, k;
   Imat *mat = imodMatNew(3);
   Imesh *mesh = imodMeshNew();
   Ipoint tpt, lpt;
   double a, b;
   int invert1 = 0, invert2 = 0, reverse1 = 0, reverse2 = 0;
+  int stateTest = CHANGED_COLOR | CHANGED_FCOLOR | CHANGED_TRANS;
 
   mpt = c1->psize;
 
@@ -486,7 +1512,18 @@ static Imesh *joinTubeCont(Icont *c1, Icont *c2, Ipoint *norm)
 
   idir2 = (reverse1 == reverse2) ? 1 : -1;
 
-  for (pt = 0 ; pt < mpt; pt++){
+  /* If either trans change flag is set, set both and make sure trans state
+     is the same (both 0 or both non-zero) */
+  if ((state1 | state2) & CHANGED_TRANS) {
+    if (props1->trans && !props2->trans)
+      props2->trans = 1;
+    if (props2->trans && !props1->trans)
+      props1->trans = 1;
+    state1 |= CHANGED_TRANS;
+    state2 |= CHANGED_TRANS;
+  }
+
+  for (pt = 0 ; pt < mpt; pt++) {
 
     imodMeshAddVert(mesh, &c1->pts[pt1]);
     imodMeshAddVert(mesh, &c2->pts[pt2]);
@@ -506,6 +1543,7 @@ static Imesh *joinTubeCont(Icont *c1, Icont *c2, Ipoint *norm)
       npt = 0;
 
     imodMeshAddIndex(mesh, IMOD_MESH_BGNPOLY);
+    k = mesh->lsize;
 
     imodMeshAddIndex(mesh, (pt*2) + 1);
     imodMeshAddIndex(mesh, pt*2);
@@ -518,505 +1556,27 @@ static Imesh *joinTubeCont(Icont *c1, Icont *c2, Ipoint *norm)
     imodMeshAddIndex(mesh, (npt*2)+1);
     imodMeshAddIndex(mesh, IMOD_MESH_ENDPOLY);
 
+    if ((state1 | state2) & stateTest) {
+      istoreGenerateItems(&mesh->store, props2, state2, k, stateTest);
+      istoreGenerateItems(&mesh->store, props1, state1, k + 1, stateTest);
+      istoreGenerateItems(&mesh->store, props1, state1, k + 2, stateTest);
+      istoreGenerateItems(&mesh->store, props2, state2, k + 5, stateTest);
+      istoreGenerateItems(&mesh->store, props1, state1, k + 6, stateTest);
+      istoreGenerateItems(&mesh->store, props2, state2, k + 7, stateTest);
+    }
+
   }
   imodMeshAddIndex(mesh, IMOD_MESH_END);
 
   imodMatDelete(mat);
-
+  /* istoreDump(mesh->store); */
   return(mesh);
 }
 
 
-
 /*
- * Build the matrices of areas for up and down triangles
+ * The main meshing routine for closed contours
  */
-static void build_area_matrices(Icont *bc, int bdir,
-                                Icont *tc, int tdir, Ipoint *scale,
-                                float *up, float *down)
-{
-  int k, l, i, j, ni, nj, lbase, bsize, tsize, tdim, bdim;
-  Ipoint *bpt, *tpt;
-
-  bsize = bc->psize;
-  tsize = tc->psize;
-  bpt = bc->pts;
-  tpt = tc->pts;
-  bdim = bsize;
-  tdim = tsize;
-  if ((bc->flags & ICONT_OPEN) && (tc->flags & ICONT_OPEN)) {
-    bdim--;
-    tdim--;
-  }
-
-  i = 0;
-  if (bdir < 0)
-    i = bsize - 1;
-  j = 0;
-  if (tdir < 0)
-    j = tsize - 1;
-
-  for (l = 0; l < tsize; l++) {
-    nj = j + tdir;
-    if (nj == tsize)
-      nj = 0;
-    if (nj < 0)
-      nj = tsize - 1;
-    lbase = l * bsize;
-    for (k = 0; k < bsize; k++) {
-      ni = i + bdir;
-      if (ni == bsize)
-        ni = 0;
-      if (ni < 0)
-        ni = bsize - 1;
-      if (k == bdim)
-        up[k + lbase] = 0.;
-      else
-        up[k + lbase] = imodPointAreaScale(&tpt[j], &bpt[i], 
-                                           &bpt[ni], scale);
-      if (l == tdim)
-        down[k + lbase] = 0.;
-      else
-        down[k + lbase] = imodPointAreaScale(&tpt[j], &tpt[nj], 
-                                             &bpt[i], scale);
-      i = ni;
-    }
-    j = nj;
-  }
-}
-
-/*
- * Compute the minimum area path to every possible connection, thus allowing
- * one to follow a minimum area path from ending to starting connection
- */
-static void cost_from_area_matrices(float *up, float *down, float *cost,
-                                    char *path, int bdim, int tdim,
-                                    int bsize, int sb, int st, float curmin)
-{
-  int i, j, k, l, jl, il, ind, lbase;
-  float rowmin, costup, costdown;
-
-  cost[0] = 0;
-  j = st;
-  if (j == tdim)
-    j = 0;
-  rowmin = 0.0;
-  for (l = 0; l <= tdim; l ++) {
-    lbase = l * (bdim + 1);
-    i = sb;
-    if (i == bdim)
-      i = 0;
-    for (k = 0; k <= bdim; k++) {
-      ind = k + lbase;
-      if (!k) {
-
-        /* If in first column, add area of down triangles */
-        if (l) {
-          cost[ind] = cost[ind - (bdim + 1)] + 
-            down[i + jl * bsize];
-          path[ind] = 0;
-          rowmin = cost[ind];
-        }
-      } else {
-        if (!l) {
-
-          /* If in first row, add area of up triangles */
-          cost[ind] = cost[ind - 1] + up[il + j * bsize];
-          path[ind] = 1;
-        } else {
-
-          /* Otherwise figure out which is smaller and add area
-             and save path direction for that */
-          costdown = cost[ind - (bdim + 1)] + 
-            down[i + jl * bsize];
-          costup = cost[ind - 1] + up[il + j * bsize];
-
-          if (costdown < costup) {
-            cost[ind] = costdown;
-            path[ind] = 0;
-          } else {
-            cost[ind] = costup;
-            path[ind] = 1;
-          }
-          /* keep track of minimum along the row */
-          if (cost[ind] < rowmin)
-            rowmin = cost[ind];
-        }
-      }
-
-      /* adjust row index into area matrices */
-      il = i;
-      i++;
-      if (i == bdim)
-        i = 0;
-    }
-
-    /* adjust column index into area matrices */
-    jl = j;
-    j++;
-    if (j == tdim)
-      j = 0;
-
-    /* If there is a current minimum and row min exceeds it, abort */
-    if (curmin >= 0.0 && rowmin > curmin) {
-      cost[bdim + tdim * (bdim + 1)] = rowmin;
-      return;
-    }
-  }
-}
-
-static void chunkAddTriangle(Imesh *mesh, int i1, int i2, int i3, int *maxsize,
-                             int inside)
-{
-  int o2 = i2;
-  int o3 = i3;
-  if (inside) {
-    o2 = i3;
-    o3 = i2;
-  }
-  chunkMeshAddIndex(mesh, IMOD_MESH_BGNPOLY, maxsize);
-  chunkMeshAddIndex(mesh, i1, maxsize);
-  chunkMeshAddIndex(mesh, o2, maxsize);
-  chunkMeshAddIndex(mesh, o3, maxsize);
-  chunkMeshAddIndex(mesh, IMOD_MESH_ENDPOLY, maxsize);
-}
-
-/* Create a mesh between two contours using a minimum area
- * cost analysis.
- */
-static Imesh *imeshContoursCost(Icont *bc, Icont *tc, Ipoint *scale, 
-                                int inside, int openobj)
-{
-  Imesh *mesh;
-  int i, j, pt, jo;
-  int tdim, bdim;
-  int bsize, tsize, csize, totind;
-  int dofast;
-  int bsi, tsi, li, lj, step, iskip, jskip, bothsame;
-  int maxsize;
-  float mincost, ccost;
-  float *up, *down, *cost;
-  char *path;
-
-  /* Index [0] is bottom contour, Index [1] is top contour. */
-  int si[2];                /* start index */
-  int direction[2];        /* contour direction. */
-     
-  /* Check input data. */
-  if ((bc == NULL) || (!bc->psize) || (tc == NULL) || (!tc->psize))
-    return(NULL);
-
-  /* Init internal data. */
-  mesh = imodMeshNew();
-  if (!mesh) return(NULL);
-  maxsize = 0;
-
-  tsize = tc->psize;
-  tdim = tsize;
-  bsize = bc->psize;
-  bdim = bsize;
-  if (tc->flags & ICONT_OPEN && bc->flags & ICONT_OPEN) {
-    tdim--;
-    bdim--;
-  }
-  csize = (tdim + 1) * (bdim + 1);
-  totind = csize - 1;
-
-  up = (float *)malloc(sizeof(float) * bsize * tsize);
-  down = (float *)malloc(sizeof(float) * tsize * bsize);
-  cost = (float *)malloc(sizeof(float) * csize);
-  path = (char *)malloc(sizeof(char) * csize);
-  if (!down || !up || !cost || !path) {
-    free(mesh);
-    if (up) free(up);
-    if (down) free(down);
-    if (cost) free(cost);
-    if (path) free(path);
-    return(NULL);
-  }
-
-     
-  /* Find direction of each contour.
-   * If contours aren't flat in a Z plane, they must already be
-   * in the correct orientation.
-   */
-
-  direction[0] = imodContZDirection(bc);
-  direction[1] = imodContZDirection(tc);
-  if (!direction[0]) direction[0] = 1;
-  if (!direction[1]) direction[1] = 1;
-
-
-  si[0] = si[1] = 0;
-  dofast = 1;
-  bothsame = 1;
-
-  /* Set starting index for both contours. */
-  {
-    Ipoint minp, maxp;
-    int ti, mti = 0;
-    float mdist = imodPointDistance(bc->pts, tc->pts);
-    float dist;
-
-    if ((bc->flags & ICONT_OPEN)){
-      si[0] = 0;
-
-      if ((tc->flags & ICONT_OPEN)){
-        float dista, distb;
-        si[1] = 0;
-        dofast = fastmesh;
-        /* If the object type is open contour, then ignore the
-           computed contour directions; set directions to +, and
-           invert the second one if that makes them match up 
-           better */
-        if (openobj) {
-          direction[1] = direction[0] = 1;
-          dista = imodPointDistance(bc->pts, &tc->pts[0]);
-          distb = imodPointDistance(bc->pts, 
-                                    &tc->pts[tc->psize-1]);
-          if (distb < dista){
-            si[1] = tc->psize-1;
-            direction[1] = -1;
-          }
-        }
-      }else {
-        si[1] = imodContourNearest(tc, bc->pts);
-        bothsame = 0;
-      }
-               
-    }else{
-               
-      if ((tc->flags & ICONT_OPEN)){
-        si[1] = 0;
-        si[0] = imodContourNearest(bc, tc->pts);
-        bothsame = 0;
-      }else{
-        dofast = fastmesh;
-                    
-        /* Try to have all mesh start at about the same place
-         * so it looks better with fake transperentcy.
-         */
-        imodContourGetBBox(bc, &minp, &maxp);
-        si[0] = imodContourNearest(bc, &minp);
-                    
-        /* Now find a similar point in the top contour. */
-                    
-        imodContourGetBBox(tc, &minp, &maxp);
-        si[1] = imodContourNearest(tc,  &minp); 
-
-        /* DNM: this won't work any better than going for corner
-           points: basically, need to do two passes to have a good
-           starting connector  */
-        /*   mti = 0;
-             mdist = imodPoint3DScaleDistance
-             (&bc->pts[si[0]], tc->pts, scale);
-                    
-             for(ti = 0; ti < tc->psize; ti++){
-             dist = imodPoint3DScaleDistance
-             (&bc->pts[si[0]], &tc->pts[ti], scale);
-             if (dist < mdist){
-             mti = ti;
-             mdist = dist;
-             }
-             }
-             si[1] = mti;
-        */
-      }
-    }
-  }
-     
-  /*
-   * Build the matrices of areas for up and down triangles
-   */
-  build_area_matrices(bc, direction[0], tc, direction[1], scale, up, down);
-
-  /* flip starting indexes if directions are reversed */
-  bsi = si[0];
-  if (direction[0] < 0)
-    bsi = bsize - 1 - bsi;
-  tsi = si[1];
-  if (direction[1] < 0)
-    tsi = tsize - 1 - tsi;
-
-
-  /* Get the cost and path matrices for these starting points */
-
-  cost_from_area_matrices(up, down, cost, path, bdim, tdim,
-                          bsize, bsi, tsi, -1.0);
-       
-  if (dofast) {
-
-    if (!(bc->flags & ICONT_OPEN) && 
-        !(tc->flags & ICONT_OPEN)) {
-
-      /* If both closed contours, go halfway around to find a
-         new starting point, and use that instead */
-      i = bdim;
-      j = tdim;
-      for (step = 0; step < (bdim + tdim) / 2; step++) {
-        if (path[i + j * (bdim + 1)])
-          i--;
-        else
-          j--;
-      }
-      bsi = (bsi + i) % bsize;
-      tsi = (tsi + j) % tsize;
-      cost_from_area_matrices(up, down, cost, path, bdim, tdim,
-                              bsize, bsi, tsi, -1.0);
-    } 
-  } else {
-       
-    /* Time-consuming: find starting point that gives minimum  area */
-     
-    mincost = cost[totind];
-
-    if (tc->flags & ICONT_OPEN  || bc->flags & ICONT_OPEN){
-      /* For open contours, just do reverse direction */
-
-      build_area_matrices(bc, direction[0], tc, -direction[1],
-                          scale, up, down);
-      cost_from_area_matrices(up, down, cost, path, bdim, tdim,
-                              bsize, bsi, tsi, mincost);
-
-      /* If it's better, flip direction; otherwise rebuild areas */
-      if (cost[totind] < mincost)
-        direction[1] *= -1;
-      else
-        build_area_matrices(bc, direction[0], tc, direction[1],
-                            scale, up, down);
-    } else {
-          
-      for(i = 0; i < tc->psize; i++){
-        cost_from_area_matrices(up, down, cost, path, bdim, tdim,
-                                bsize, bsi, i, mincost);
-                 
-        ccost = cost[totind];
-                    
-        if (ccost < mincost){
-          mincost = ccost;
-          tsi = i;
-          /*             printf ("* "); */
-        }
-        /*           printf("%d %d %g\n",si[0], i, ccost); */
-      }
-    }
-
-    /* Redo path from final starting indices and direction */
-    cost_from_area_matrices(up, down, cost, path, bdim, tdim,
-                            bsize, bsi, tsi, -1.0);
-  }
-
-  /* get back the starting indexes in terms of unreversed data, unless 
-     they're both open contours, where we want to start at the high end */
-  if (!((bc->flags & ICONT_OPEN) && (tc->flags & ICONT_OPEN))) {
-    if (direction[0] < 0)
-      bsi = bsize - 1 - bsi;
-    if (direction[1] < 0)
-      tsi = tsize - 1 - tsi;
-  }
-  si[0] = bsi;
-  si[1] = tsi;
-
-  free(cost);
-  free(up);
-  free(down);
-
-  /*
-   * copy contour points to mesh vert array
-   */
-  mesh->vsize = bc->psize + tc->psize + 2;
-  mesh->vert = (Ipoint *)malloc(mesh->vsize * sizeof(Ipoint));
-  if (mesh->vert == NULL){
-    free(mesh);
-    free(path);
-    return(NULL);
-  }
-  /* copy bottom contour data to mesh array. */
-  pt = si[0];
-  for(i = 0; i < bsize; i++){
-    mesh->vert[i] = bc->pts[pt];
-    pt += direction[0];
-    if (pt == bsize) {
-      pt = 0;
-      iskip = i;
-    } else if (pt < 0) {
-      pt = bsize - 1;
-      iskip = i;
-    }
-  }
-  mesh->vert[bsize] = bc->pts[si[0]];
-     
-  /* copy top contour data to mesh vert array. */
-  for (i = bsize + 1, pt = si[1]; i < mesh->vsize - 1; i++){
-    mesh->vert[i] = tc->pts[pt];
-    pt += direction[1];
-    if (pt == tsize) {
-      pt = 0;
-      jskip = i - (bsize + 1);
-    } else if (pt < 0) {
-      pt = tsize - 1;
-      jskip = i - (bsize + 1);
-    }
-  }
-  mesh->vert[mesh->vsize - 1] = tc->pts[si[1]];
-
-  /*     if (bothsame)
-         jskip = iskip = -1; */
-     
-  /* The connection loop.             */
-  /* Now make the mesh by following the path. */
-  i = bdim;
-  j = tdim;
-  jo = bsize + 1;
-
-  while( (i) || (j) ){
-
-    if (path[i + j * (bdim + 1)]){
-      li = i - 1;
-      if (li < 0)
-        li = bsize - 1;
-      if (!(bc->flags & ICONT_OPEN) || li != iskip)
-        chunkAddTriangle(mesh, j+jo, li, i, &maxsize, inside);
-      i--;
-    }else{
-      lj = j - 1;
-      if (lj < 0)
-        lj = tsize - 1;
-      if (!(tc->flags & ICONT_OPEN) || lj != jskip)
-        chunkAddTriangle(mesh, lj+jo, i, j+jo, &maxsize, inside);
-      j--;
-    }
-          
-  }
-
-  free(path);
-
-  imodMeshAddIndex(mesh, IMOD_MESH_END);
-  return(mesh);
-}
-static void dump_lists(char *message, int *blist, int nb, int *tlist, int nt,
-                       int *blook, int *tlook)
-{
-  int i;
-  printf("%s:\nbottom: ", message);
-  for (i = 0; i < nb; i++)
-    if (blook)
-      printf(" %d", blook[blist[i]]+1);
-    else
-      printf(" %d", blist[i]+1);
-  printf("\ntop: ");
-  for (i = 0; i < nt; i++)
-    if (tlook)
-      printf(" %d", tlook[tlist[i]]+1);
-    else
-      printf(" %d", tlist[i]+1);
-  printf("\n");
-}
-
-
-
-static int numwarn = 0;
-
 int SkinObject
 (Iobj *obj,      /* The object to be skinned.            */
  Ipoint *scale,  /* Scaling used for normal calculation. */
@@ -1027,6 +1587,8 @@ int SkinObject
  int incz,             /* increment in z values */
  unsigned int flags,
  int skipPasses,      /* Number of passes for skipped sections */
+ Ipoint triMin,  /* Minimum and maximum for triangle output */
+ Ipoint triMax,
  int (*inCB)(int))
 {
   int co, tco, m;
@@ -1058,6 +1620,7 @@ int SkinObject
   Nesting *nest, *nests;
   int *nestind;
   int nind, zpass;
+  static int numwarn = 0;
 
   /* start the timer if doing reports */
   timeval1 = clock();
@@ -1076,6 +1639,9 @@ int SkinObject
     fastmesh = 0;
   else
     fastmesh = 1;
+
+  meshMin = triMin;
+  meshMax = triMax;
 
   if (!obj->contsize)
     return(-1);
@@ -1117,7 +1683,7 @@ int SkinObject
    */
   scancont = (Icont **)malloc(obj->contsize * sizeof (Icont *)); 
   if (!scancont) return(-1);
-  for(co = 0; co < obj->contsize; co++)
+  for (co = 0; co < obj->contsize; co++)
     scancont[co] = imodel_contour_scan(&(obj->cont[co]));
 
   report_time("Got scan contours");
@@ -1189,7 +1755,7 @@ int SkinObject
   for (zpass = 1; zpass <= skipPasses; zpass++) {
 
     /* go through all contours and find connections */
-    for (co = 0; co < obj->contsize; co++){
+    for (co = 0; co < obj->contsize; co++) {
       cont = &(obj->cont[co]);
       if (!cont->psize)
         continue;
@@ -1218,7 +1784,7 @@ int SkinObject
          in Z for each pass */
       nextz = contz[co];
       for (inl = 0; inl < zpass; inl++) {
-        if (flags & IMESH_MK_SKIP){
+        if (flags & IMESH_MK_SKIP) {
           nextz = getnextz(zlist, zlsize, nextz);
         }else{
           nextz += incz;
@@ -1246,7 +1812,7 @@ int SkinObject
        * we may have to join contours to the one we just found.
        */
 
-      while(found_data){
+      while(found_data) {
         found_data = 0;
                
         for (lis = 0; lis < numatz[nextz - zmin]; lis++) {
@@ -1275,7 +1841,7 @@ int SkinObject
             lind = blist[inl];
             if (imodel_scans_overlap(scancont[lind], pmin[lind], pmax[lind],
                                      scancont[tco], pmin[tco], pmax[tco])) {
-              if (overlap != 0.0){
+              if (overlap != 0.0) {
                 /* contours must overlap by given fraction*/
                 imodel_overlap_fractions(&scancont[lind], pmin[lind], 
                                          pmax[lind], &scancont[tco],
@@ -1330,7 +1896,7 @@ int SkinObject
             if (imodel_scans_overlap(scancont[lind], pmin[lind], pmax[lind],
                                      scancont[tco], pmin[tco], pmax[tco])) {
 
-              if (overlap != 0.0){
+              if (overlap != 0.0) {
                 /* contours must overlap by given fraction*/
                 imodel_overlap_fractions(&scancont[lind], pmin[lind],
                                          pmax[lind], &scancont[tco],
@@ -1354,12 +1920,13 @@ int SkinObject
         }
       }
           
-      if (ntop && !foundInside){
+      if (ntop && !foundInside) {
         bcont = join_all_contours(obj, blist, nbot, nbot, 1, tlist,
                                   ntop, ntop, NULL);
         tcont = join_all_contours(obj, tlist, ntop, ntop, -1, blist,
                                   nbot, nbot, NULL);
-        if (mesh_contours(obj, bcont, tcont, cont->surf, cont->type, scale, 0))
+        if (mesh_contours(obj, bcont, tcont, cont->surf, cont->type, scale, 0,
+                          blist[0], tlist[0]))
           return (-1);
       } else if (ntop) {
         /* There are inside contours to resolve */
@@ -1685,7 +2252,7 @@ int SkinObject
                 tcont = join_all_contours(obj, tinlist, ntopin, ntopsame,
                                           -1, binlist, nbotin, nbotsame, NULL);
                 if (mesh_contours(obj, bcont, tcont, cont->surf, cont->type,
-                                  scale, oddeven))
+                                  scale, oddeven, binlist[0], tinlist[0]))
                   return (-1);
               } else
                 bused[bjustinl[istr]] = 0;
@@ -1717,8 +2284,8 @@ int SkinObject
                                      scale, scancont, pmin, pmax);
           /* finally ready to mesh the outside contours, possibly
              changed by orphan handling */
-          if (mesh_contours(obj, boutcont, toutcont, cont->surf,
-                            cont->type, scale, 1 - oddeven))
+          if (mesh_contours(obj, boutcont, toutcont, cont->surf, cont->type,
+                            scale, 1 - oddeven, boutlist[0], toutlist[0]))
             return (-1);
 
           /* All of this continues until no more overlapping outside
@@ -1758,7 +2325,7 @@ int SkinObject
      
   /* force connection of stray contours to nearest contour */
   if (flags & IMESH_MK_STRAY)
-    for (co = 0; co < obj->contsize; co++){
+    for (co = 0; co < obj->contsize; co++) {
       cont = &(obj->cont[co]);
       if (!cont->psize)
         continue;
@@ -1767,13 +2334,13 @@ int SkinObject
 
       tcont = NULL;
       bcont = imodContourDup(cont);
-      if (!bcont){
+      if (!bcont) {
         fprintf(stderr, "Fatal Error: couldn't get contour.\n");
         return(-1);
       }
                
       /* define z-sections that connections will be made to. */
-      if (flags & IMESH_MK_SKIP){
+      if (flags & IMESH_MK_SKIP) {
         nextz = getnextz(zlist, zlsize, contz[co]);
       }else{
         nextz = contz[co] + incz;
@@ -1799,20 +2366,20 @@ int SkinObject
           if (bcont->type != jcont->type)
             continue;
 
-        if (tcont){
+        if (tcont) {
           /* todo: grab the nearer contour */
         }else{
           tcont = jcont;
         }
       }
-      if (tcont){
+      if (tcont) {
         int intmp = 0;
         if (obj->flags & IMOD_OBJFLAG_OUT)
           intmp = 1 - intmp;
         if (bcont->psize == 1) imodPointAppend(bcont, bcont->pts);
         if (tcont->psize == 1) imodPointAppend(tcont, tcont->pts);
-        nmesh = imeshContoursCost(bcont, tcont, scale, intmp, 0);
-        if (nmesh){
+        nmesh = imeshContoursCost(obj, bcont, tcont, scale, intmp, co, tco);
+        if (nmesh) {
           obj->mesh = imodel_mesh_add
             (nmesh, obj->mesh, &(obj->meshsize));
           free(nmesh);
@@ -1829,7 +2396,7 @@ int SkinObject
   /*
    * Clean up scan conversions.
    */
-  for(co = 0; co < obj->contsize; co++){
+  for (co = 0; co < obj->contsize; co++) {
     if (scancont[co])
       imodContourDelete(scancont[co]);
   }
@@ -1841,10 +2408,10 @@ int SkinObject
 
 
   /*     printf(".");fflush(stdout); */
-  if (cap){
+  if (cap) {
     int skipz;
     int inside;
-    for(co = 0; co < obj->contsize; co++){
+    for (co = 0; co < obj->contsize; co++) {
       cont = &(obj->cont[co]);
       inside = 0;
 
@@ -1852,7 +2419,7 @@ int SkinObject
        * surface must already be capped. Only cap if contour
        * isn't connected on top or bottom.
        */
-      if ((cont->psize > 2) && (!connectBoth(cont->flags))){
+      if ((cont->psize > 2) && (!connectBoth(cont->flags))) {
 
         /* But don't cap if the thickness is nil, this was already
            meshed as a complex cap */
@@ -1882,33 +2449,33 @@ int SkinObject
         if (skipz)
           continue;
 
-        if ((cap == IMESH_CAP_ALL) || (cap == IMESH_CAP_ALL_FLAT)){
+        if ((cap == IMESH_CAP_ALL) || (cap == IMESH_CAP_ALL_FLAT)) {
 
           if (connectBottom(cont->flags))
             direction = 1;
           if (connectTop(cont->flags))
             direction = -1;
           if (cap == IMESH_CAP_ALL_FLAT)
-            nmesh = imeshContourCap(cont, direction, inside, scale);
+            nmesh = imeshContourCap(obj, cont, co, direction, inside, scale);
           else
-            nmesh = imeshContourCap(cont, direction, inside, scale);
-          if (nmesh){
+            nmesh = imeshContourCap(obj, cont, co, direction, inside, scale);
+          if (nmesh) {
             obj->mesh = imodel_mesh_add (nmesh, obj->mesh, &(obj->meshsize));
             free(nmesh);
           }
           continue;
         }
 
-        if (cont->pts->z == zmin){
-          nmesh = imeshContourCap(cont, -1, inside, scale); 
-          if (nmesh){
+        if (cont->pts->z == zmin) {
+          nmesh = imeshContourCap(obj, cont, co, -1, inside, scale); 
+          if (nmesh) {
             obj->mesh = imodel_mesh_add (nmesh, obj->mesh, &(obj->meshsize));
             free(nmesh);
           }
         }
-        if (cont->pts->z == zmax){
-          nmesh = imeshContourCap(cont, 1, inside, scale); 
-          if (nmesh){
+        if (cont->pts->z == zmax) {
+          nmesh = imeshContourCap(obj, cont, co, 1, inside, scale); 
+          if (nmesh) {
             obj->mesh = imodel_mesh_add (nmesh, obj->mesh, &(obj->meshsize));
             free(nmesh);
           }
@@ -1920,14 +2487,14 @@ int SkinObject
           
                
   report_time("Capped");
-  for(m = 0; m < obj->meshsize; m++) {
+  for (m = 0; m < obj->meshsize; m++) {
     if (!(flags & IMESH_MK_SURF))
       obj->mesh[m].pad = 0;
     if (!(flags & IMESH_MK_TIME))
       obj->mesh[m].type = 0;
   }
      
-  if (flags & IMESH_MK_NORM){
+  if (flags & IMESH_MK_NORM) {
     obj->mesh = imeshReMeshNormal(obj->mesh, &(obj->meshsize), scale,
                                   0); 
     if (!obj->mesh)
@@ -2083,8 +2650,7 @@ static Icont *connect_orphans(Iobj *obj, Icont *cout, int *list, int *used,
         if (ddist > nextlen || next == inend) {
           nextlen += seglen / (NSECT - 2);
           inmatch[ncand] = next;
-          outcand[ncand++] = imodContourNearest(cout, 
-                                                &pts[next]);
+          outcand[ncand++] = imodContourNearest(cout, &pts[next]);
           if (outcand[ncand - 1] > outcand[ncand - 2])
             nforward++;
           if (ncand == NSECT)
@@ -2159,9 +2725,8 @@ static Icont *connect_orphans(Iobj *obj, Icont *cout, int *list, int *used,
       for (i = 0; i < norder; i++) {
         st1 = outcand[indorder[i] / ncand];
         st2 = outcand[indorder[i] % ncand];
-        ratio = evaluate_break(cout, list, used,
-                               justinl, njustin, scancont,
-                               pmin, pmax, st1, st2, maxarea,
+        ratio = evaluate_break(cout, list, used, justinl, njustin, scancont,
+                               pmin, pmax, st1, st2, maxarea, 
                                pathlen[indorder[i]], fullarea,
                                joindir, 1, &innerarea);
         if (ratio > 1.e25)
@@ -2210,18 +2775,15 @@ static Icont *connect_orphans(Iobj *obj, Icont *cout, int *list, int *used,
         pt = st1;
         for (j = 0; j < dstdir * dst1[i]; j++) {
           next = (pt + dstdir * sweepdir + outsize) % outsize;
-          curpath += dstdir * imodPointDistance
-            (&pts[pt], &pts[next]);
+          curpath += dstdir * imodPointDistance(&pts[pt], &pts[next]);
           pt = next;
         }
-        st2 = (st2min - dst2[i] * sweepdir + outsize) % 
-          outsize;
+        st2 = (st2min - dst2[i] * sweepdir + outsize) % outsize;
         dstdir = dst2[i] > 0 ? 1 : -1;
         pt = st2min;
         for (j = 0; j < dstdir * dst2[i]; j++) {
           next = (pt + dstdir * sweepdir + outsize) % outsize;
-          curpath += dstdir * imodPointDistance
-            (&pts[pt], &pts[next]);
+          curpath += dstdir * imodPointDistance(&pts[pt], &pts[next]);
           pt = next;
         }
 
@@ -2237,11 +2799,9 @@ static Icont *connect_orphans(Iobj *obj, Icont *cout, int *list, int *used,
             break;
           }
         if (!found) {
-          ratio = evaluate_break(cout, list, used,
-                                 justinl, njustin, scancont,
-                                 pmin, pmax, st1, st2,
-                                 minratio, curpath, fullarea,
-                                 joindir, 0, &innerarea);
+          ratio = evaluate_break(cout, list, used, justinl, njustin, scancont,
+                                 pmin, pmax, st1, st2, minratio, curpath,
+                                 fullarea, joindir, 0, &innerarea);
           if (ratio > 1.e25)
             return NULL;
           st1test[nexttest] = st1;
@@ -2263,8 +2823,7 @@ static Icont *connect_orphans(Iobj *obj, Icont *cout, int *list, int *used,
     } while(found_data);
 
     if (minratio < 1.e20) {
-      if(break_contour_inout(cout, st1min, st2min, -joindir, &c1,
-                             &c2))
+      if (break_contour_inout(cout, st1min, st2min, -joindir, &c1, &c2))
         return NULL;
       area1 = imodContourArea(c1);
       area2 = imodContourArea(c2);
@@ -2304,7 +2863,10 @@ static Icont *connect_orphans(Iobj *obj, Icont *cout, int *list, int *used,
         c1 = cinmin;
         cinmin = c2;
       }
-      if (mesh_contours(obj, c1, cinmin, surf, time, scale, oddeven))
+
+      // TODO: get a contour number from cout and manage it
+      if (mesh_contours(obj, c1, cinmin, surf, time, scale, oddeven, inlist[0],
+                        inlist[0]))
         return NULL;
       imodContourDelete(cout);
       cout = coutmin;
@@ -2386,12 +2948,12 @@ static float evaluate_break(Icont *cout, int *list, int *used,
   y1e = cout->pts[st2].y;
 
   *innerarea = 0.;
-  if(cross_cont(cout, x1s, y1s, x1e, y1e, st1, st2))
+  if (cross_cont(cout, x1s, y1s, x1e, y1e, st1, st2))
     return (1.e20);
 
   /* Make two new contours, require that one be bigger than
      the original; take the other as test inner one */
-  if(break_contour_inout(cout, st1, st2, -joindir, &c1, &c2))
+  if (break_contour_inout(cout, st1, st2, -joindir, &c1, &c2))
     return (1.e30);
   area1 = imodContourArea(c1);
   area2 = imodContourArea(c2);
@@ -2450,17 +3012,21 @@ static float evaluate_break(Icont *cout, int *list, int *used,
 
 /*
  * Creates a cap mesh on a contour.
- * scale is passed to imodMeshContours.
  * side has two values: 1 cap on top, -1 cap on bottom.
  *
  */
-static Imesh *imeshContourCap(Icont *cont, int side, int inside, Ipoint *scale)
+static Imesh *imeshContourCap(Iobj *obj, Icont *cont, int coNum, int side,
+                              int inside, Ipoint *scale)
 {
   int     pt;
   int     meshdir = 0;
   /* IMOD_CONTOUR_CLOCKWISE, IMOD_CONTOUR_COUNTER_CLOCKWISE */
   int     direction; 
   int     failedcm = 0;
+  DrawProps contProps, objProps;
+  int contState, surfState;
+  int stateTest = CHANGED_COLOR | CHANGED_FCOLOR | CHANGED_3DWIDTH | 
+    CHANGED_TRANS;
 
   Ipoint  cm, ll, ur;
   Imesh  *m;
@@ -2518,62 +3084,54 @@ static Imesh *imeshContourCap(Icont *cont, int side, int inside, Ipoint *scale)
     imodContourRotateZ(ncont, -rotation);
 
     if (side == 1)
-      m = imeshContoursCost(cont, ncont, scale, inside, 0);
+      m = imeshContoursCost(obj, cont, ncont, scale, inside, coNum, coNum);
     else
-      m = imeshContoursCost(ncont, cont, scale, inside, 0);
+      m = imeshContoursCost(obj, ncont, cont, scale, inside, coNum, coNum);
 
     imodContourDelete(ncont);
     imodContourDelete(scont);
     return (m);
   }
 
-
+  /* ccw on top , cw on bottom (unless inside!)*/
   if (( (side < 0) && (direction == IMOD_CONTOUR_COUNTER_CLOCKWISE)) ||
       ( (side > 0) && (direction == IMOD_CONTOUR_CLOCKWISE)))
     meshdir = 1;
   if (inside)
     meshdir = 1 - meshdir;
 
-  /* ccw on top , cw on bottom (unless inside!)*/
+  istoreContSurfDrawProps(obj->store, &objProps, &contProps, coNum, cont->surf,
+                          &contState, &surfState);
 
-  return(makeCapMesh(cont, &cm, meshdir));
+  return(makeCapMesh(cont, &cm, meshdir, &contProps, contState, stateTest));
 }
 
 /* make a cap mesh connecting a contour to a point in the given direction */
-static Imesh *makeCapMesh(Icont *cont, Ipoint *cm, int meshdir)
+static Imesh *makeCapMesh(Icont *cont, Ipoint *cm, int meshdir, 
+                          DrawProps *props, int state, int stateTest)
 {
   int pt, npt;
   Imesh *m = imodMeshNew();
   if (!m) 
     return(m);
 
-  if (meshdir){
-    imodMeshAddVert(m, cm);
-          
-    for(pt = 0; pt < cont->psize; pt++){
-      npt = pt+1;
-      if (npt == cont->psize) npt = 0;
-      imodMeshAddVert(m, &cont->pts[pt]);
-      imodMeshAddIndex(m, IMOD_MESH_BGNPOLY);
-      imodMeshAddIndex(m, 0);
-      imodMeshAddIndex(m, npt+1);
-      imodMeshAddIndex(m, pt+1);
-      imodMeshAddIndex(m, IMOD_MESH_ENDPOLY);
+  imodMeshAddVert(m, cm);
+  
+  for (pt = 0; pt < cont->psize; pt++) {
+    npt = (pt + 1) % cont->psize;
+    imodMeshAddVert(m, &cont->pts[pt]);
+    if (outsideMeshLimits(cm,  &cont->pts[pt],  &cont->pts[npt]))
+      continue;
+    if (state & stateTest) {
+      istoreGenerateItems(&m->store, props, state, m->lsize + 1, stateTest);
+      istoreGenerateItems(&m->store, props, state, m->lsize + 2, stateTest);
+      istoreGenerateItems(&m->store, props, state, m->lsize + 3, stateTest);
     }
-  }else{
-    imodMeshAddVert(m, cm);
-          
-    for(pt = 0; pt < cont->psize; pt++){
-      npt = pt+1;
-      if (npt == cont->psize) npt = 0;
-      imodMeshAddVert(m, &cont->pts[pt]);
-               
-      imodMeshAddIndex(m, IMOD_MESH_BGNPOLY);
-      imodMeshAddIndex(m, pt+1);
-      imodMeshAddIndex(m, npt+1);
-      imodMeshAddIndex(m, 0);
-      imodMeshAddIndex(m, IMOD_MESH_ENDPOLY);
-    }
+    imodMeshAddIndex(m, IMOD_MESH_BGNPOLY);
+    imodMeshAddIndex(m, meshdir ? 0 : pt + 1);
+    imodMeshAddIndex(m, npt+1);
+    imodMeshAddIndex(m, meshdir ? pt + 1 : 0);
+    imodMeshAddIndex(m, IMOD_MESH_ENDPOLY);
   }
 
   imodMeshAddIndex(m, IMOD_MESH_END);
@@ -2593,7 +3151,7 @@ void imesh_normal(Ipoint *n, Ipoint *p1, Ipoint *p2, Ipoint *p3, Ipoint *sp)
   v2.x = p1->x - p2->x;
   v2.y = p1->y - p2->y;
   v2.z = p1->z - p2->z;
-  if (sp){
+  if (sp) {
     v1.x *= sp->x;
     v1.y *= sp->y;
     v1.z *= sp->z;
@@ -2610,7 +3168,7 @@ void imesh_normal(Ipoint *n, Ipoint *p1, Ipoint *p2, Ipoint *p3, Ipoint *sp)
      
   sdist = (n->x * n->x) + (n->y * n->y) + (n->z * n->z);
   dist = sqrt(sdist);
-  if (dist == 0.0){
+  if (dist == 0.0) {
     n->x = 0;
     n->y = 0;
     n->z = -1;
@@ -2666,7 +3224,7 @@ Imesh *imeshReMeshNormal(Imesh *meshes, int *size, Ipoint *scale, int resol)
   int time, timesize = 0;
   int meshsize = 0;
   unsigned int msize = *size;
-  int linc, l1, l2;
+  int linc, l1, l2, vBase, nAdd, lastPolyNorm;
   char *gotit;
   int ivt, indvert;
   int zmin, zmax, intz, dup;
@@ -2677,17 +3235,20 @@ Imesh *imeshReMeshNormal(Imesh *meshes, int *size, Ipoint *scale, int resol)
   float xmin, xmax, delx;
   int indx, tablesize, maxlist;
   int ptmp[3];
+  int outCode;
     
   if (!msize)
     return NULL;
 
-  for(m = 0; m < msize; m++) {
+  for (m = 0; m < msize; m++) {
     /* count only the meshes where the resolution value matches */
     if (imeshResol(meshes[m].flag) == resol) {
       if (meshes[m].pad > surfsize)
         surfsize = meshes[m].pad;
       if (meshes[m].type > timesize)
         timesize = meshes[m].type;
+      if (ilistSize(meshes[m].store))
+        newPolyNorm = 1;
     } else {
       /* otherwise, move the mesh to the output mesh */
       nm = &meshes[m];
@@ -2700,13 +3261,14 @@ Imesh *imeshReMeshNormal(Imesh *meshes, int *size, Ipoint *scale, int resol)
   }
   surfsize++;
   timesize++;
+  outCode = newPolyNorm ? IMOD_MESH_BGNPOLYNORM2 : IMOD_MESH_BGNPOLYNORM;
         
   report_time("Starting ReMesh");
     
   /*    lsize = 0;
         l1 = 0;
         l2 = 0;
-        for(m = 0; m < msize; m++) {
+        for (m = 0; m < msize; m++) {
         lsize += meshes[m].vsize * 12 + meshes[m].lsize * 4 + 32;
         l1 += meshes[m].vsize;
         l2 += meshes[m].lsize;
@@ -2714,19 +3276,19 @@ Imesh *imeshReMeshNormal(Imesh *meshes, int *size, Ipoint *scale, int resol)
         printf("Incoming mesh vertices = %d, indexes = %d, memory = %d\n",
         l1, l2, lsize); */
 
-  for(surf = 0; surf < surfsize; surf++){
-    if (surfsize > 1){
+  for (surf = 0; surf < surfsize; surf++) {
+    if (surfsize > 1) {
       printf("\rnormals surface %d", surf);
       fflush(stdout);
     }
-    for(time = 0; time < timesize; time++){
+    for (time = 0; time < timesize; time++) {
       nm = imodMeshNew();
-      if (!nm){
+      if (!nm) {
         *size = 0;
         return(NULL);
       }
 
-      /* DNM 6/20/01: in the xcourse of adding time support, had it transfer
+      /* DNM 6/20/01: in the course of adding time support, had it transfer
          surface number to the mesh also */
       maxlist = 0;
       nm->pad = surf;
@@ -2737,31 +3299,30 @@ Imesh *imeshReMeshNormal(Imesh *meshes, int *size, Ipoint *scale, int resol)
       zmin = 10000000;
       xmax = -1.e30;
       xmin = 1.e30;
-      for(m = 0; m < *size; m++){
+      for (m = 0; m < *size; m++) {
         if (meshes[m].pad == surf && meshes[m].type == time) {
           mesh = &(meshes[m]);
-          for(l = 0; l < mesh->lsize; l++) {
+          for (l = 0; l < mesh->lsize; l++) {
+            linc = 1;
+            vBase = 0;
             if (mesh->list[l] == IMOD_MESH_BGNPOLY || 
-                mesh->list[l] == IMOD_MESH_BGNPOLYNORM){
-              linc = 1;
-              if (mesh->list[l++] == IMOD_MESH_BGNPOLYNORM)
-                linc = 2;
+                imodMeshPolyNormFactors(mesh->list[l], &linc, &vBase, &nAdd)) {
+              l++;
               while (mesh->list[l] != IMOD_MESH_ENDPOLY) {
-                l += (linc - 1);
                 for (ivt = 0; ivt < 3; ivt++) {
-                  intz = mesh->vert[mesh->list[l]].z;
+                  intz = (int)floor((double)
+                                    mesh->vert[mesh->list[l + vBase]].z);
                   if (intz > zmax)
                     zmax = intz;
                   if (intz < zmin)
                     zmin = intz;
-                  vecx = mesh->vert[mesh->list[l]].x;
+                  vecx = mesh->vert[mesh->list[l + vBase]].x;
                   if (vecx > xmax)
                     xmax = vecx;
                   if (vecx < xmin)
                     xmin = vecx;
                   l += linc;                                 
                 }
-                l -= (linc - 1);
               }
             }
           }
@@ -2784,25 +3345,24 @@ Imesh *imeshReMeshNormal(Imesh *meshes, int *size, Ipoint *scale, int resol)
       }
       for (l = 0; l < tablesize; l++)
         numatz[l] = 0;
-      for(m = 0; m < *size; m++){
+      for (m = 0; m < *size; m++) {
         if (meshes[m].pad == surf && meshes[m].type == time) {
           mesh = &(meshes[m]);
-          for(l = 0; l < mesh->lsize; l++) {
+          for (l = 0; l < mesh->lsize; l++) {
+            linc = 1;
+            vBase = 0;
             if (mesh->list[l] == IMOD_MESH_BGNPOLY || 
-                mesh->list[l] == IMOD_MESH_BGNPOLYNORM){
-              linc = 1;
-              if (mesh->list[l++] == IMOD_MESH_BGNPOLYNORM)
-                linc = 2;
+                imodMeshPolyNormFactors(mesh->list[l], &linc, &vBase, &nAdd)) {
+              l++;
               while (mesh->list[l] != IMOD_MESH_ENDPOLY) {
-                l += (linc - 1);
                 for (ivt = 0; ivt < 3; ivt++) {
-                  intz = mesh->vert[mesh->list[l]].z;
-                  vecx = mesh->vert[mesh->list[l]].x;
+                  intz = (int)floor((double)
+                                    mesh->vert[mesh->list[l + vBase]].z);
+                  vecx = mesh->vert[mesh->list[l + vBase]].x;
                   indx = (vecx - xmin) / delx;
                   numatz[indx + XDIV *(intz - zmin)]++;
                   l += linc;
                 }
-                l -= (linc - 1);
               }
             }
           }
@@ -2824,7 +3384,7 @@ Imesh *imeshReMeshNormal(Imesh *meshes, int *size, Ipoint *scale, int resol)
 
 
       /* Put points into arrays, eliminating duplicates as we go */
-      for(m = 0; m < *size; m++){
+      for (m = 0; m < *size; m++) {
         mesh = &(meshes[m]);
         if (mesh->pad == surf && mesh->type == time && mesh->vsize > 0) {
           gotit = (char *)malloc(mesh->vsize);
@@ -2835,19 +3395,18 @@ Imesh *imeshReMeshNormal(Imesh *meshes, int *size, Ipoint *scale, int resol)
           for (l = 0; l < mesh->vsize; l++)
             gotit[l] = 0;
 
-          for(l = 0; l < mesh->lsize; l++) {
+          for (l = 0; l < mesh->lsize; l++) {
+            linc = 1;
+            vBase = 0;
             if (mesh->list[l] == IMOD_MESH_BGNPOLY || 
-                mesh->list[l] == IMOD_MESH_BGNPOLYNORM){
-              linc = 1;
-              if (mesh->list[l++] == IMOD_MESH_BGNPOLYNORM)
-                linc = 2;
+                imodMeshPolyNormFactors(mesh->list[l], &linc, &vBase, &nAdd)) {
+              l++;
               while (mesh->list[l] != IMOD_MESH_ENDPOLY) {
-                l += (linc - 1);
                 for (ivt = 0; ivt < 3; ivt++) {
-                  indvert = mesh->list[l];
+                  indvert = mesh->list[l + vBase];
                   if (!gotit[indvert]) {
                     gotit[indvert] = 1;
-                    intz = mesh->vert[indvert].z;
+                    intz = (int)floor((double)mesh->vert[indvert].z);
                     vecx = mesh->vert[indvert].x;
                     vecy = mesh->vert[indvert].y;
                     indx = (vecx - xmin) / delx;
@@ -2871,7 +3430,6 @@ Imesh *imeshReMeshNormal(Imesh *meshes, int *size, Ipoint *scale, int resol)
                   }
                   l += linc;
                 }
-                l -= (linc - 1);
               }
             }
           }
@@ -2915,32 +3473,36 @@ Imesh *imeshReMeshNormal(Imesh *meshes, int *size, Ipoint *scale, int resol)
       report_time("Built tables");
 
       /* add normals to mesh */
-      for(m = 0; m < msize; m++){
+      for (m = 0; m < msize; m++) {
         if (meshes[m].pad != surf || meshes[m].type != time)
           continue;
         mesh = &(meshes[m]);
         if (!mesh->lsize)
           continue;
-        chunkMeshAddIndex(nm, IMOD_MESH_BGNPOLYNORM, &maxlist);
-        linc = 0;
-        for(l = 0; l < mesh->lsize; l++) {
+        chunkMeshAddIndex(nm, outCode, &maxlist);
+        lastPolyNorm = -1;
+        for (l = 0; l < mesh->lsize; l++) {
+          linc = 1;
+          vBase = 0;
           if (mesh->list[l] == IMOD_MESH_BGNPOLY || 
-              mesh->list[l] == IMOD_MESH_BGNPOLYNORM){
+              imodMeshPolyNormFactors(mesh->list[l], &linc, &vBase, &nAdd)) {
 
             /* Preserve polynorms polygons: start a new polygon if this is a 
-               polynorm or if the last one was - use linc to indicate this */
-            if ((linc && mesh->list[l] == IMOD_MESH_BGNPOLYNORM) || linc == 2) {
+               polynorm or if the last one was */
+            if ((lastPolyNorm >= 0 && 
+                 imodMeshPolyNormFactors(mesh->list[l], &linc, &vBase, &nAdd))
+                || lastPolyNorm > 0) {
               chunkMeshAddIndex(nm, IMOD_MESH_ENDPOLY, &maxlist);
-              chunkMeshAddIndex(nm, IMOD_MESH_BGNPOLYNORM, &maxlist);
+              chunkMeshAddIndex(nm, outCode, &maxlist);
             }
-            linc = 1;
-            if (mesh->list[l++] == IMOD_MESH_BGNPOLYNORM)
-              linc = 2;
+            lastPolyNorm = imodMeshPolyNormFactors(mesh->list[l], &linc, 
+                                                   &vBase, &nAdd);
+            l++;
             while (mesh->list[l] != IMOD_MESH_ENDPOLY) {
-              l += (linc - 1);
               for (ivt = 0; ivt < 3; ivt++) {
-                intz = mesh->vert[mesh->list[l]].z;
-                vecx = mesh->vert[mesh->list[l]].x;
+                indvert = mesh->list[l + vBase];
+                intz = (int)floor((double)mesh->vert[indvert].z);
+                vecx = mesh->vert[indvert].x;
                 /*  vecy = mesh->vert[mesh->list[l]].y; */
                 indx = (vecx - xmin) / delx;
                 intz = indx + XDIV * (intz - zmin);
@@ -2953,11 +3515,9 @@ Imesh *imeshReMeshNormal(Imesh *meshes, int *size, Ipoint *scale, int resol)
                    break;
                    } */
                                 
-                iptz = (Ipoint *)bsearch
-                  (&mesh->vert[mesh->list[l]],
-                   &nm->vert[cumatz[intz]],
-                   numatz[intz], 2 * sizeof(Ipoint),
-                   ptcompare);
+                iptz = (Ipoint *)bsearch(&mesh->vert[indvert],
+                                         &nm->vert[cumatz[intz]], numatz[intz],
+                                         2 * sizeof(Ipoint), ptcompare);
                 if (iptz)
                   pt = iptz - nm->vert;
                 else {
@@ -2972,14 +3532,14 @@ Imesh *imeshReMeshNormal(Imesh *meshes, int *size, Ipoint *scale, int resol)
               /* Save only if it is truly a triangle */
               if (ptmp[1] != ptmp[2] && ptmp[0] != ptmp[2] &&
                   ptmp[0] != ptmp[1]) {
-                chunkMeshAddIndex(nm, ptmp[0] + 1, &maxlist);
-                chunkMeshAddIndex(nm, ptmp[0], &maxlist);
-                chunkMeshAddIndex(nm, ptmp[1] + 1, &maxlist);
-                chunkMeshAddIndex(nm, ptmp[1], &maxlist);
-                chunkMeshAddIndex(nm, ptmp[2] + 1, &maxlist);
-                chunkMeshAddIndex(nm, ptmp[2], &maxlist);
+                for (ivt = 0; ivt < 3; ivt++) {
+                  if (!newPolyNorm)
+                    chunkMeshAddIndex(nm, ptmp[ivt] + 1, &maxlist);
+                  chunkMeshAddIndex(nm, ptmp[ivt], &maxlist);
+                  istoreCopyContSurfItems(mesh->store, &nm->store, l + ivt - 3,
+                                          nm->lsize - 1, 0);
+                }
               }
-              l -= (linc - 1);
             }
           }
         }
@@ -2994,25 +3554,22 @@ Imesh *imeshReMeshNormal(Imesh *meshes, int *size, Ipoint *scale, int resol)
         
       /* calculate normals for all points. */
       mesh = nm;
-      for(l = 0; l < mesh->lsize; l++) {
-        if (mesh->list[l] == IMOD_MESH_BGNPOLYNORM){
+      for (l = 0; l < mesh->lsize; l++) {
+        if (imodMeshPolyNormFactors(mesh->list[l], &linc, &vBase, &nAdd)) {
           l++;
           while (mesh->list[l] != IMOD_MESH_ENDPOLY) {
             imesh_normal(&npt, 
-                         &(mesh->vert[mesh->list[l+5]]),
-                         &(mesh->vert[mesh->list[l+1]]), 
-                         &(mesh->vert[mesh->list[l+3]]), 
+                         &(mesh->vert[mesh->list[l + vBase + 2 * linc]]),
+                         &(mesh->vert[mesh->list[l + vBase]]), 
+                         &(mesh->vert[mesh->list[l + vBase + linc]]), 
                          scale);
-            mesh->vert[mesh->list[l]].x += npt.x;
-            mesh->vert[mesh->list[l]].y += npt.y;
-            mesh->vert[mesh->list[l]].z += npt.z;
-            mesh->vert[mesh->list[l+2]].x += npt.x;
-            mesh->vert[mesh->list[l+2]].y += npt.y;
-            mesh->vert[mesh->list[l+2]].z += npt.z;
-            mesh->vert[mesh->list[l+4]].x += npt.x;
-            mesh->vert[mesh->list[l+4]].y += npt.y;
-            mesh->vert[mesh->list[l+4]].z += npt.z;
-            l += 6;
+            for (ivt = 0; ivt < 3; ivt++) {
+              indvert = mesh->list[l] + nAdd;
+              mesh->vert[indvert].x += npt.x;
+              mesh->vert[indvert].y += npt.y;
+              mesh->vert[indvert].z += npt.z;
+              l += linc;
+            }
           }
         }
       }
@@ -3025,11 +3582,10 @@ Imesh *imeshReMeshNormal(Imesh *meshes, int *size, Ipoint *scale, int resol)
       free(cumatz);
 
         
-      if (nm){
+      if (nm) {
         nm->flag |= (resol << IMESH_FLAG_RES_SHIFT);
         if ((nm->vsize) && (nm->lsize))
-          remesh = imodel_mesh_add
-            (nm, remesh, &meshsize);
+          remesh = imodel_mesh_add(nm, remesh, &meshsize);
             
         free(nm);
       }
@@ -3068,7 +3624,7 @@ static int inside_cont(Icont *cont, Ipoint pt)
   yp = pts[np - 1].y;
   j = 0;
   while(j < np) {
-    if(yp < y) {
+    if (yp < y) {
               
       /* if last point below y, search for first that is not below */
                
@@ -3086,7 +3642,7 @@ static int inside_cont(Icont *cont, Ipoint pt)
 
     if (j < np) {
       jl=j-1;
-      if(jl < 0)
+      if (jl < 0)
         jl=np - 1;
       xp=pts[jl].x;
       yp=pts[jl].y;
@@ -3102,14 +3658,14 @@ static int inside_cont(Icont *cont, Ipoint pt)
 
       rstrad=(yc > y) != (yp > y);
       lstrad=(yc < y) != (yp < y);
-      if(lstrad || rstrad) {
+      if (lstrad || rstrad) {
               
         /* if so, compute the crossing of the ray, add up crossings */
 
         xcross=xp+(y-yp)*(xc-xp)/(yc-yp);
-        if(rstrad && (xcross > x))
+        if (rstrad && (xcross > x))
           nrcross++;
-        if(lstrad && (xcross < x))
+        if (lstrad && (xcross < x))
           nlcross++;
       }
       yp=yc;
@@ -3119,7 +3675,7 @@ static int inside_cont(Icont *cont, Ipoint pt)
   
   /*  if left and right crossings don't match, it's on an edge
       otherwise, inside iff crossings are odd */
-  if(nrcross % 2 !=  nlcross % 2)
+  if (nrcross % 2 !=  nlcross % 2)
     return 1;
   return((nrcross % 2) > 0);
 }
@@ -3229,7 +3785,7 @@ static int eliminate_overlap(Icont *c1, Icont *c2)
   Icont *c1cp;
   int i;
   for (i = 0; i < 2; i++) {
-    if(!imodel_contour_overlap(c1, c2))
+    if (!imodel_contour_overlap(c1, c2))
       return i;
     c1cp = imodContourDup(c1);
     backoff_overlap(c1, c2);
@@ -3266,9 +3822,9 @@ static int check_legal_joiner(Ipoint pt1, Ipoint pt2, Icont *c1, Icont *c2,
 
     xs2 = (1. - frac) * pt2.x + frac * pt1.x;
     ys2 = (1. - frac) * pt2.y + frac * pt1.y;
-    if(cross_cont(c1, xs1, ys1, xs2, ys2, -1, -1))
+    if (cross_cont(c1, xs1, ys1, xs2, ys2, -1, -1))
       return 0;
-    if(cross_cont(c2, xs1, ys1, xs2, ys2, -1, -1))
+    if (cross_cont(c2, xs1, ys1, xs2, ys2, -1, -1))
       return 0;
   }
 
@@ -3563,7 +4119,7 @@ static int find_closest_contour(Icont *tcont, Icont *onecont, Iobj *obj,
     if (jmin >= nsamelevel)
       samelevel = 0;
   }
-  if(!check_legal_joiner(testpt1, testpt2, tcont, jcont, samelevel,
+  if (!check_legal_joiner(testpt1, testpt2, tcont, jcont, samelevel,
                          obj, olist, nother, nothersame, other)) {
 
     /* if first pass didn't give legal connector, then find closest
@@ -3736,9 +4292,9 @@ static void subtract_scan_contours(Icont *cs1, Icont *cs2)
   if (!cs2) return;
 
   jstrt = 0;
-  for(i = 0; i < cs1->psize - 1; i+=2)
-    for(j = jstrt; j < cs2->psize - 1; j+=2){
-      if (cs1->pts[i].y == cs2->pts[j].y){
+  for (i = 0; i < cs1->psize - 1; i+=2)
+    for (j = jstrt; j < cs2->psize - 1; j+=2) {
+      if (cs1->pts[i].y == cs2->pts[j].y) {
 
         s1 = cs1->pts[i].x;
         e1 = cs1->pts[i+1].x;
@@ -3771,10 +4327,10 @@ static void subtract_scan_contours(Icont *cs1, Icont *cs2)
 }     
 
 static int mesh_contours(Iobj *obj, Icont *bcont, Icont *tcont, int surf,
-                         int time, Ipoint *scale, int inside)
+                         int time, Ipoint *scale, int inside, int bco, int tco)
 {
   Imesh *nmesh;
-  if (!tcont || !bcont){
+  if (!tcont || !bcont) {
     fprintf(stderr, "Fatal Error: "
             "Not enough memory to get new contour.\n");
     return(-1);
@@ -3786,8 +4342,8 @@ static int mesh_contours(Iobj *obj, Icont *bcont, Icont *tcont, int surf,
   if (obj->flags & IMOD_OBJFLAG_OUT)
     inside = 1 - inside;
 
-  nmesh = imeshContoursCost(bcont, tcont, scale, inside, 0);
-  if (nmesh){
+  nmesh = imeshContoursCost(obj, bcont, tcont, scale, inside, bco, tco);
+  if (nmesh) {
     nmesh->pad = surf;
     nmesh->type = time;
     obj->mesh = imodel_mesh_add
@@ -3852,16 +4408,16 @@ static int break_contour_inout(Icont *cin, int st1, int st2,  int fill,
 
   /* add points to new contours */
   pto = 0;
-  for(pt = 0; pt <= st1; pt++)
+  for (pt = 0; pt <= st1; pt++)
     c1->pts[pto++] = cin->pts[pt];
   if (fill)
     c1->pts[pto++] = point;
-  for(pt = st2; pt < cin->psize; pt++)
+  for (pt = st2; pt < cin->psize; pt++)
     c1->pts[pto++] = cin->pts[pt];
   pto = 0;
   if (fill)
     c2->pts[pto++] = point;
-  for(pt = st1; pt <= st2; pt++)
+  for (pt = st1; pt <= st2; pt++)
     c2->pts[pto++] = cin->pts[pt];
   *cout1 = c1;
   *cout2 = c2;
@@ -3874,6 +4430,9 @@ static int break_contour_inout(Icont *cin, int st1, int st2,  int fill,
 
 /*
 $Log$
+Revision 3.14  2005/05/26 20:11:24  mast
+Fixed properly for reaching end of range with -P for open contours
+
 Revision 3.13  2005/05/22 05:26:50  mast
 Implemented multiple passes for open contour objects
 
