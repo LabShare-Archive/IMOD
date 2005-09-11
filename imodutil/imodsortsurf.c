@@ -15,6 +15,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.9  2005/06/03 20:07:50  mast
+Copied many object properties to new objecta
+
 Revision 3.8  2005/05/27 04:54:17  mast
 Added clean surf call to end of sorting routine
 
@@ -193,8 +196,8 @@ int main(int argc, char **argv)
 int imodObjSortSurf(Iobj *obj)
 {
   int npoly, me, i, j, poly, ninpoly, iwork, nwork, scan, found;
-  int refvert, work, nsurfs, co, pt, ind, resol;
-  int *listp, *surfs, *meshes, *nverts, *towork, *refp, *scanp;
+  int refvert, work, nsurfs, co, pt, ind, resol, vertBase, normAdd;
+  int *listp, *surfs, *meshes, *nverts, *towork, *refp, *scanp, *lincs;
   int **starts;
   float *zmins, *zmaxs;
   Ipoint *vertp;
@@ -208,9 +211,12 @@ int imodObjSortSurf(Iobj *obj)
   for (me = 0; me < obj->meshsize; me++) {
     if (imeshResol(obj->mesh[me].flag) == resol) {
       listp = obj->mesh[me].list;
-      for (i = 0; i < obj->mesh[me].lsize; i++)
-        if (*listp++ == IMOD_MESH_BGNPOLYNORM)
+      for (i = 0; i < obj->mesh[me].lsize; i++) {
+        if (*listp == IMOD_MESH_BGNPOLYNORM || 
+            *listp == IMOD_MESH_BGNPOLYNORM2)
           npoly++;
+        listp++;
+      }
     }
   }
 
@@ -228,9 +234,10 @@ int imodObjSortSurf(Iobj *obj)
   starts = (int **)malloc (npoly * sizeof(int *));
   nverts = (int *)malloc (npoly * sizeof(int));
   towork = (int *)malloc (npoly * sizeof(int));
+  lincs = (int *)malloc ((npoly + 2) * sizeof(int));
      
   if (!zmins || !zmaxs || !surfs || !meshes || !starts || !nverts || 
-      !towork) {
+      !towork || !lincs) {
     if (zmins) free(zmins);
     if (zmaxs) free(zmaxs);
     if (meshes) free(meshes);
@@ -238,6 +245,7 @@ int imodObjSortSurf(Iobj *obj)
     if (starts) free(starts);
     if (nverts) free(nverts);
     if (towork) free(towork);
+    if (lincs) free(lincs);
 
     return (2);
   }
@@ -252,15 +260,17 @@ int imodObjSortSurf(Iobj *obj)
     vertp = obj->mesh[me].vert;
     i = 0;
     while (i < obj->mesh[me].lsize) {
-      if (listp[i++] == IMOD_MESH_BGNPOLYNORM) {
-        zmin = vertp[listp[i + 1]].z;
+      if (imodMeshPolyNormFactors(listp[i++], &lincs[poly], &vertBase,
+                                  &normAdd)) {
+        zmin = vertp[listp[i + vertBase]].z;
         zmax = zmin;
         surfs[poly] = 0;
         meshes[poly] = me;
-        starts[poly] = listp + i + 1;    /* point to first vertex index */
+        starts[poly] = listp + i + vertBase; /* point to first vert ind */
         ninpoly = 0;
-        while (listp[i++] != IMOD_MESH_ENDPOLY) {
-          ind = listp[i++];
+        while (listp[i] != IMOD_MESH_ENDPOLY) {
+          ind = listp[i + vertBase];
+          i += lincs[poly];
           if (vertp[ind].z < zmin)
             zmin = vertp[ind].z;
           if (vertp[ind].z > zmax)
@@ -301,15 +311,15 @@ int imodObjSortSurf(Iobj *obj)
             found = 0;
             i = 0;
             while (i < nverts[work] && !found) {
-              refvert = *refp++;
-              refp++;
+              refvert = *refp;
+              refp += lincs[work];
               scanp = starts[scan];
               for (j = 0; j < nverts[scan]; j++) {
-                if (*scanp++ == refvert) {
+                if (*scanp == refvert) {
                   found = 1;
                   break;
                 }
-                scanp++;
+                scanp += lincs[scan];
               }
               i++;
             }
@@ -343,7 +353,7 @@ int imodObjSortSurf(Iobj *obj)
           vertp = obj->mesh[meshes[poly]].vert;
           scanp = starts[poly];
           for (j = 0; j < nverts[poly]; j++) {
-            ind = *scanp++;
+            ind = *scanp;
             if (vertp[ind].x == ptx && vertp[ind].y == pty && 
                 vertp[ind].z == ptz) {
               found = 1;
@@ -352,7 +362,7 @@ int imodObjSortSurf(Iobj *obj)
                 obj->surfsize = surfs[poly];
               break;
             }
-            scanp++;
+            scanp += lincs[poly];
           }
         }
       }
@@ -365,6 +375,7 @@ int imodObjSortSurf(Iobj *obj)
   free(starts);
   free(nverts);
   free(towork);
+  free(lincs);
   imodObjectCleanSurf(obj);
   return (0);
 }
@@ -421,22 +432,38 @@ int imodSplitSurfsToObjs(Imod *mod, int ob, int keepColor, int keepSurf)
           cont = &obj->cont[co];
           if (cont->surf == surf) {
             /* Just add contour to new object then remove from old; this will
-               transfer all the pointers to data */
+               transfer all the pointers to data.  Copy contour store items
+               after adding contour.  */
             if (!keepSurf)
               cont->surf = 0;
             if (imodObjectAddContour(newObj, cont) < 0)
+              return 1;
+            if (istoreCopyContSurfItems(obj->store, &newObj->store, co,
+                                        newObj->contsize - 1, 0))
               return 1;
             if (imodObjectRemoveContour(obj, co))
               return 1;
           }
         }
+
+        /* Now copy store items for surface # and remove from object */
+        if (istoreCountContSurfItems(obj->store, surf, 1)) {
+          if (istoreCopyContSurfItems(obj->store, &newObj->store, 
+                                      surf, keepSurf ? surf : 0, 1))
+            return 1;
+          istoreDeleteContSurf(obj->store, surf, 1);
+        }
+
         imodObjectCleanSurf(newObj);
 
       } else if (!keepSurf) {
 
-        /* For the first surface, eliminate surface # there too */
-        for (co = 0; co < obj->contsize; co++)
-          obj->cont[co].surf == 0;
+        /* For the first surface, eliminate surface # there too if there are
+           no surface store items */
+        if (!istoreCountContSurfItems(obj->store, surf, 1))
+          for (co = 0; co < obj->contsize; co++)
+            if (obj->cont[co].surf == surf)
+              obj->cont[co].surf = 0;
       }
       first = 1;
     }
