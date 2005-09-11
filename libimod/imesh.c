@@ -62,6 +62,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.1  2004/11/20 04:15:14  mast
+Added duplicate function
+
 */
 
 #include <limits.h>
@@ -69,13 +72,6 @@ $Log$
 #include <string.h>
 #include "imodel.h"
 
-
-void imodel_normal(struct Mod_Point *n,
-                   struct Mod_Point *p1,
-                   struct Mod_Point *p2,
-                   struct Mod_Point *p3, double z);
-
-void imesh_normal(Ipoint *n, Ipoint *p1, Ipoint *p2, Ipoint *p3, Ipoint *sp);
 
 /*#define SKIN_DEBUG     */
 
@@ -218,6 +214,7 @@ int imodMeshAddIndex(Imesh *mesh, int index)
   return(0);
 }
 
+/* Unused 7/4/05 */
 void imodMeshDeleteIndex(Imesh *mesh, int index)
 {
   int i;
@@ -250,6 +247,7 @@ int imodMeshAddVert(Imesh *mesh, Ipoint *vert)
   return(0);
 }
 
+/* Unused 7/4/05 */
 int imodMeshAddNormal(Imesh *mesh, Ipoint *normal)
 {
   if (!mesh)
@@ -263,7 +261,7 @@ int imodMeshAddNormal(Imesh *mesh, Ipoint *normal)
 }
 
 
-
+/* Unused 7/4/05 */
 void imodMeshInsertIndex(Imesh *mesh, int val, int place)
 {
   int l;
@@ -307,10 +305,37 @@ int imodMeshNearestRes(Imesh *mesh, int size, int inres, int *outres)
   }
   return ndiff;
 }
+
+/*!
+ * Returns values for indexing the mesh list for an old or new style POLYNORM
+ * into [listInc], [vertBase], and [normAdd].  The return value is 1 if 
+ * [startCode] is IMOD_MESH_BGNPOLYNORM or IMOD_MESH_BGNPOLYNORM2, otherwise it
+ * is 0.  If {i} is the index of the start of a triangle, then: ^
+ *    index of vertex {j} is mesh->list\[i + vertBase + j * listInc\] ^
+ *    index of normal {j} is mesh->list\[i + j * listInc\] + normAdd
+ */
+int imodMeshPolyNormFactors(int startCode, int *listInc, int *vertBase,
+                            int *normAdd)
+{
+  if (startCode != IMOD_MESH_BGNPOLYNORM && 
+      startCode != IMOD_MESH_BGNPOLYNORM2)
+    return 0;
+  if (startCode == IMOD_MESH_BGNPOLYNORM) {
+    *listInc = 2;
+    *vertBase = 1;
+    *normAdd = 0;
+  } else {
+    *listInc = 1;
+    *vertBase = 0;
+    *normAdd = 1;
+  }
+  return 1;
+}
             
       
 /***************************internal functions********************************/
 
+/* Unused 7/4/05 */
 int imodel_mesh_addlist(struct Mod_Mesh *mesh, int val)
 {
   int *tmp;
@@ -330,6 +355,7 @@ int imodel_mesh_addlist(struct Mod_Mesh *mesh, int val)
   return(0);
 }
 
+/* Unused 7/4/05 */
 int imodel_mesh_addvert(struct Mod_Mesh *mesh, struct Mod_Point *pt)
 {
   struct Mod_Point *tmp;
@@ -402,6 +428,7 @@ float imeshSurfaceArea(Imesh *mesh, Ipoint *scale)
 {
   int i;
   float tsa = 0.0f, sa = 0.0f;
+  int listInc, vertBase, normAdd;
 
   Ipoint *p1, *p2, *p3, *p;
   Ipoint n, n1, n2;
@@ -440,15 +467,17 @@ float imeshSurfaceArea(Imesh *mesh, Ipoint *scale)
       tsa += (float)(sqrt(n.x*n.x + n.y*n.y + n.z*n.z) * 0.5f); 
       break;
 
+    case IMOD_MESH_BGNPOLYNORM2:
     case IMOD_MESH_BGNPOLYNORM:
-      i++;
+      imodMeshPolyNormFactors(mesh->list[i++], &listInc, &vertBase, &normAdd);
       while(mesh->list[i] != IMOD_MESH_ENDPOLY){
         n.x = n.y = n.z = 0.0f;
-        p1 = &(mesh->vert[mesh->list[++i]]);
-        i+=2;
-        p2 = &(mesh->vert[mesh->list[i]]);
-        i+=2;
-        p3 = &(mesh->vert[mesh->list[i++]]);
+        p1 = &(mesh->vert[mesh->list[i + vertBase]]);
+        i+=listInc;
+        p2 = &(mesh->vert[mesh->list[i + vertBase]]);
+        i+=listInc;
+        p3 = &(mesh->vert[mesh->list[i + vertBase]]);
+        i+=listInc;
 
         n1.x = p1->x - p2->x;
         n1.y = p1->y - p2->y;
