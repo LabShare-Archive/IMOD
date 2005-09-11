@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.2  2005/06/29 05:39:26  mast
+    Fixes for surface vs. contour states
+
     Revision 1.1  2005/06/26 19:36:13  mast
     Addition to program
 
@@ -49,8 +52,12 @@ static FgData fgd = {NULL, NULL, NULL, NULL, 0, -1, -1, -1, -1, 0};
 
 static int getLoadedObjCont();
 static void insertAndUpdate(int type);
-static void handleColorTrans(Iobj *obj, float r, float g, float b, int trans);
-
+static void handleContChange(Iobj *obj, int co, int surf, DrawProps *contProps,
+                             DrawProps *ptProps, int *stateFlags, 
+                             int handleFlags, int selected);
+static void ifgHandleStateChange(Iobj *obj, DrawProps *ptProps,
+                                 int *changeFlags, int handleFlags,
+                                 int selected);
 /*
  * Open or raise the window
  */
@@ -438,6 +445,13 @@ static void insertAndUpdate(int type)
   fineGrainUpdate();
 }
 
+/*
+ * FUNCTIONS TO HANDLE DISPLAY PROPERTIES, CALLED FROM ELSEWHERE
+ */
+
+/* 
+ * Modifies the width value up or down if selected is non-zero
+ */
 int ifgSelectedLineWidth(int width, int selected)
 {
   if (selected)
@@ -445,9 +459,38 @@ int ifgSelectedLineWidth(int width, int selected)
   return width;
 }
 
+/* 
+ * Sets up display properties for surface surf
+ */
+void ifgHandleSurfChange(Iobj *obj, int surf, DrawProps *contProps, 
+                         DrawProps *ptProps, int *stateFlags, int handleFlags)
+{
+  handleContChange(obj, -1, surf, contProps, ptProps, stateFlags, handleFlags,
+                   0);  
+}
+
+/* 
+ * Sets up display properties for contour co
+ */
 int ifgHandleContChange(Iobj *obj, int co, DrawProps *contProps, 
                         DrawProps *ptProps, int *stateFlags, int handleFlags,
                         int selected)
+{
+  handleContChange(obj, co, obj->cont[co].surf, contProps, ptProps, stateFlags,
+                   handleFlags, selected);
+  return (istoreFirstChangeIndex(obj->cont[co].store));
+}
+
+/* 
+ * Sets up display properties for a contour (co and surf set) or just a 
+ * surface (surf set, co < 0).  contProps and ptProps are returned with the
+ * properties; stateFlags is returned with flags for which are changes from the
+ * object default, handleFlags indicates which to handle, and selected is 1
+ * for a selected contour.
+ */
+static void handleContChange(Iobj *obj, int co, int surf, DrawProps *contProps,
+                             DrawProps *ptProps, int *stateFlags, 
+                             int handleFlags, int selected)
 {
   int contState, surfState;
   DrawProps defProps;
@@ -455,7 +498,7 @@ int ifgHandleContChange(Iobj *obj, int co, DrawProps *contProps,
   /* Get the properties for the contour */
   istoreDefaultDrawProps(obj, &defProps);
   *stateFlags = istoreContSurfDrawProps(obj->store, &defProps, contProps, co, 
-                         obj->cont[co].surf, &contState, &surfState);
+                         surf, &contState, &surfState);
   *ptProps = *contProps;
   ptProps->gap = 0;
 
@@ -465,12 +508,12 @@ int ifgHandleContChange(Iobj *obj, int co, DrawProps *contProps,
   }
 
   if (handleFlags & HANDLE_MESH_COLOR) {
-    handleColorTrans(obj, ptProps->red, ptProps->green, ptProps->blue, 
+    ifgHandleColorTrans(obj, ptProps->red, ptProps->green, ptProps->blue, 
                  ptProps->trans);
   }
 
   if (handleFlags & HANDLE_MESH_FCOLOR) {
-    handleColorTrans(obj, ptProps->fillRed, ptProps->fillGreen, 
+    ifgHandleColorTrans(obj, ptProps->fillRed, ptProps->fillGreen, 
                      ptProps->fillBlue, ptProps->trans);
   }
 
@@ -483,16 +526,38 @@ int ifgHandleContChange(Iobj *obj, int co, DrawProps *contProps,
     glPointSize(ptProps->linewidth);
   }
       
-  return (istoreFirstChangeIndex(obj->cont[co].store));
 }
 
 
+/* 
+ * Handles the next change in the display.  Returns the index of the next
+ * point at which a change occurs or 1- if none.  defProps has the default 
+ * display properties.  ptProps and stateFlags are managed with the current
+ * properties and flags for which are changed from the default, changeFlags 
+ * is returned with flags for which are changed on this call.
+ * handleFlags specifies which to handle and selected is 1 for the current 
+ * contour.
+ */
 int ifgHandleNextChange(Iobj *obj, Ilist *list, DrawProps *defProps, 
                         DrawProps *ptProps, int *stateFlags, int *changeFlags,
                         int handleFlags, int selected)
 {
   int nextChange = istoreNextChange(list, defProps, ptProps, stateFlags,
                                     changeFlags);
+  ifgHandleStateChange(obj, ptProps, changeFlags, handleFlags, selected);
+  return  nextChange;
+}
+
+/* 
+ * Handles state changes in a display.  ptProps specifies the current
+ * properties, changeFlags has flags for which are changed and need setting,
+ * handleFlags specifies which to handle and selected is 1 for the current 
+ * contour.
+ */
+static void ifgHandleStateChange(Iobj *obj, DrawProps *ptProps,
+                                 int *changeFlags, int handleFlags,
+                                 int selected)
+ {
   if ((handleFlags & HANDLE_LINE_COLOR) && (*changeFlags & CHANGED_COLOR)) {
     if (App->rgba)
       glColor3f(ptProps->red, ptProps->green, ptProps->blue);
@@ -500,17 +565,13 @@ int ifgHandleNextChange(Iobj *obj, Ilist *list, DrawProps *defProps,
 
   if ((handleFlags & HANDLE_MESH_COLOR) && 
       (*changeFlags & (CHANGED_COLOR | CHANGED_TRANS))) {
-    glColor4f(ptProps->red, ptProps->green, ptProps->blue, 
-              1.0f - (ptProps->trans * 0.01f));
-    handleColorTrans(obj, ptProps->red, ptProps->green, ptProps->blue, 
+    ifgHandleColorTrans(obj, ptProps->red, ptProps->green, ptProps->blue, 
                  ptProps->trans);
   }
 
   if ((handleFlags & HANDLE_MESH_FCOLOR) && 
       (*changeFlags & (CHANGED_FCOLOR | CHANGED_TRANS))) {
-    glColor4f(ptProps->fillRed, ptProps->fillGreen, ptProps->fillBlue,
-              1.0f - (ptProps->trans * 0.01f));
-    handleColorTrans(obj, ptProps->fillRed, ptProps->fillGreen, 
+    ifgHandleColorTrans(obj, ptProps->fillRed, ptProps->fillGreen, 
                      ptProps->fillBlue, ptProps->trans);
   }
 
@@ -522,22 +583,245 @@ int ifgHandleNextChange(Iobj *obj, Ilist *list, DrawProps *defProps,
   if ((handleFlags & HANDLE_2DWIDTH) && (*changeFlags & CHANGED_2DWIDTH)) {
     b3dLineWidth(ifgSelectedLineWidth(ptProps->linewidth2, selected));
   }
-      
-  return  nextChange;
 }
 
-static void handleColorTrans(Iobj *obj, float r, float g, float b, int trans)
+/* 
+ * Takes care of color and lighting calls for a new color and/or trans value
+ */
+void ifgHandleColorTrans(Iobj *obj, float r, float g, float b, int trans)
 {
   glColor4f(r, g, b, 1.0f - (trans * 0.01f));
   light_adjust(obj, r, g, b, trans);
-  if (trans) {
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    if (!(obj->flags & IMOD_OBJFLAG_TWO_SIDE))
-      glEnable(GL_CULL_FACE);
+}
+
+/* 
+ * Handles the next change in the mesh display properties.  defProps provides
+ * the default properties.  curProps, stateFlags, and nextItemIndex are
+ * managed from cal to call with the current properties, flags for which are
+ * non-default, and the index of the next item with an actual change from the
+ * the default.  The return value is the index at which the next change in
+ * properties must be made (which can include a return to default).  curIndex
+ * is the current mesh index, handleFlags indicates which properties to handle,
+ * and changeFlags is returned with falgs for ones changed on this call.
+ */
+int ifgHandleMeshChange(Iobj *obj, Ilist *list, DrawProps *defProps, 
+                        DrawProps *curProps, int *nextItemIndex, int curIndex, 
+                        int *stateFlags, int *changeFlags, int handleFlags)
+{
+  int nextChange;
+  int needChange = *stateFlags;
+  DrawProps lastProps;
+  *stateFlags = 0;
+
+  // If this index is the next one with items, then get the changes
+  if (curIndex == *nextItemIndex) {
+
+    // reset the properties to the default but save them first
+    lastProps = *curProps;
+    *curProps = *defProps;
+    *nextItemIndex = istoreNextChange(list, defProps, curProps, stateFlags,
+                                  changeFlags);
+
+    // Change items are the original items or'd with the new items
+    *changeFlags |= needChange;
+
+    // But if a state is set and the value has not changed, clear the change
+    if ((*stateFlags & CHANGED_COLOR) && curProps->red == lastProps.red &&
+        curProps->green == lastProps.green && curProps->blue == lastProps.blue)
+      *changeFlags &= ~CHANGED_COLOR;
+    if ((*stateFlags & CHANGED_FCOLOR) && 
+        curProps->fillRed == lastProps.fillRed &&
+        curProps->fillGreen == lastProps.fillGreen && 
+        curProps->fillBlue == lastProps.fillBlue)
+      *changeFlags &= ~CHANGED_FCOLOR;
+    if ((*stateFlags & CHANGED_TRANS) && curProps->trans == lastProps.trans)
+      *changeFlags &= ~CHANGED_TRANS;
+    if ((*stateFlags & CHANGED_3DWIDTH) && 
+        curProps->linewidth == lastProps.linewidth)
+      *changeFlags &= ~CHANGED_3DWIDTH;
   } else {
-    glDisable(GL_BLEND);
-    if (!(obj->flags & IMOD_OBJFLAG_TWO_SIDE))
-      glDisable(GL_CULL_FACE);
+
+    // If no new items yet, restore all to default
+    *changeFlags = needChange;
+    *curProps = *defProps;
   }
+
+  // Handle desired changes and returns to default.
+  if ((handleFlags & HANDLE_MESH_COLOR) && 
+      (*changeFlags & (CHANGED_COLOR | CHANGED_TRANS))) {
+    ifgHandleColorTrans(obj, curProps->red, curProps->green, curProps->blue, 
+                 curProps->trans);
+  }
+
+  if ((handleFlags & HANDLE_MESH_FCOLOR) && 
+      (*changeFlags & (CHANGED_FCOLOR | CHANGED_TRANS))) {
+    ifgHandleColorTrans(obj, curProps->fillRed, curProps->fillGreen, 
+                     curProps->fillBlue, curProps->trans);
+  }
+
+  if ((handleFlags & HANDLE_3DWIDTH) && (*changeFlags & CHANGED_3DWIDTH)) {
+    glLineWidth((GLfloat)curProps->linewidth);
+    glPointSize((GLfloat)curProps->linewidth);
+  }
+
+  // Return next index if anything is non default, otherwise next item index
+  if (*stateFlags)
+    nextChange = curIndex + 1;  // 2?
+  else
+    nextChange = *nextItemIndex;
+  return nextChange;
+}
+
+/* 
+ * Advances within a contour to the next point that matches the desired
+ * trans state in drawTrans.  contProps and stateFlags are input with the
+ * contour properties and current state.  matchPt is returned with the point 
+ * index or psize if there is none, ptProps is returned with the properties
+ * at that point, and handleFlags specifies the properties to handle.
+ */
+int ifgContTransMatch(Iobj *obj, Icont *cont, int *matchPt, int drawTrans,
+                      DrawProps *contProps, DrawProps *ptProps,
+                      int *stateFlags, int *allChanges, int handleFlags)
+{
+  Istore *stp;
+  Ilist *list = cont->store;
+  int changeFlags, current, i, nextChange, revert;
+  *matchPt = cont->psize;
+  *allChanges = 0;
+
+  if (!ilistSize(list))
+    return -1;
+  current = list->current;
+
+  // Search forward for a store item that sets trans to matching state
+  for (i = current; i < ilistSize(list); i++) {
+    stp = istoreItem(list, i);
+    if (stp->flags & (GEN_STORE_NOINDEX | 3) || stp->index.i >= cont->psize)
+      break;
+
+    // If find point, return index, reset list pointer and get state there
+    revert = stp->flags & GEN_STORE_REVERT;
+    if (stp->type == GEN_STORE_TRANS && 
+        (!revert && (stp->value.i ? 1 : 0) == drawTrans) 
+        || (revert && (contProps->trans ? 1 : 0) == drawTrans)) {
+      *matchPt = stp->index.i;
+      list->current = current;
+      nextChange = 0;
+      while (nextChange >= 0 && nextChange <= *matchPt) {
+        nextChange = istoreNextChange(list, contProps, ptProps, stateFlags,
+                                  &changeFlags);
+        *allChanges |= changeFlags;
+      }
+
+      // Now set display properties based on current state
+      ifgHandleStateChange(obj, ptProps, allChanges, handleFlags, 0);
+      return nextChange;
+    }
+  }
+  return -1;
+}
+
+/* 
+ * Advances to the next mesh item whose trans state matches the desired state.
+ * meshInd has an input value of the current mesh index (pointing to a 
+ * non-matching item) and is set to the index of the matching value, or to the
+ * index of an end code if there is none.  defTrans is the default trans state
+ * and drawTrans is the state currently being drawn.
+ */
+int ifgMeshTransMatch(Imesh *mesh, int defTrans, int drawTrans, int *meshInd)
+{
+  Istore *stp;
+  int index = -1;
+  int current, i, transSet;
+  Ilist *list = mesh->store;
+  
+  if (!ilistSize(list))
+    return -1;
+
+  if (defTrans != drawTrans) {
+
+    // If default trans state does not match the draw state, then search for a
+    // trans change that matches the draw state and return -1 if reach end
+    for (i = list->current; i < ilistSize(list); i++) {
+      stp = istoreItem(list, i);
+      if (stp->flags & (GEN_STORE_NOINDEX | 3))
+        break;
+        
+      // Record current mesh index when it changes and set list pointer to
+      // current list index so caller can pick up at the right place
+      if (stp->index.i != index) {
+        index = stp->index.i;
+        current = i;
+      }
+      if (stp->type == GEN_STORE_TRANS && 
+          (stp->value.i ? 1 : 0) == drawTrans) {
+        *meshInd = index;
+        list->current = current;
+        return index;
+      }
+    }
+    *meshInd = mesh->lsize - 2;
+  } else {
+    
+    // If default state matches draw state, need to search for a mesh item
+    // that does not have trans set, or that has trans matching state
+    transSet = 1;
+    for (i = list->current; i < ilistSize(list); i++) {
+      stp = istoreItem(list, i);
+
+      // If done with store list, then go to tests after loop
+      if (stp->flags & (GEN_STORE_NOINDEX | 3))
+        break;
+
+      // When done processing an index, test if trans was set for that index
+      // and if not, it is the place to start
+      if (stp->index.i != index) {
+        if (!transSet) {
+          list->current = current;
+          return index;
+        }
+
+        // Set new index and save list pointer at this place
+        index = stp->index.i;
+        current = i;
+        transSet = 0;
+
+        // If trans was set for previous index, now advance the mesh index to 
+        // the next candidate and test whether this is now the next index being
+        // examined.  Return if not, but skip over start/end codes
+        (*meshInd)++;
+        while (*meshInd < index && *meshInd < mesh->lsize - 2) {
+          if (mesh->list[*meshInd] >= 0)
+            return index;
+          (*meshInd)++;
+        }
+        
+        // If at end of mesh, set to end codes and return
+        if (*meshInd >= mesh->lsize - 2) {
+          *meshInd = mesh->lsize - 2;
+          return -1;
+        }
+      }
+
+      // If the current point matches the trans state, then it is done
+      if (stp->type == GEN_STORE_TRANS && 
+          (stp->value.i ? 1 : 0) == drawTrans) {
+        list->current = current;
+        return index;
+      }
+    }
+
+    // Got to end of list, if there was a previous point with no trans, all set
+    if (!transSet) {
+      list->current = current;
+      return index;
+    }
+      
+    // If previous point had trans set, advance, make sure not to go past
+    // end codes, and return -1 for no more items
+    (*meshInd)++;
+    if (*meshInd >= mesh->lsize - 2) 
+      *meshInd = mesh->lsize - 2;
+  }
+  return -1;
 }
