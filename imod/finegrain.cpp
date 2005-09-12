@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.3  2005/09/11 19:54:05  mast
+    New functions and changes for trans matching
+
     Revision 1.2  2005/06/29 05:39:26  mast
     Fixes for surface vs. contour states
 
@@ -27,10 +30,12 @@
 #include "form_finegrain.h"
 #include "finegrain.h"
 #include "imod.h"
+#include "imod_edit.h"
 #include "imod_display.h"
 #include "control.h"
 #include "undoredo.h"
 #include "b3dgfx.h"
+#include "xzap.h"
 #include "imodv_light.h"
 
 typedef struct fg_data_struct {
@@ -44,13 +49,14 @@ typedef struct fg_data_struct {
   int objLoaded;
   int surfLoaded;
   int stateFlags;
+  int rangeEnd;
   DrawProps contProps;
   Istore store;
 } FgData;
 
 static FgData fgd = {NULL, NULL, NULL, NULL, 0, -1, -1, -1, -1, 0};
 
-static int getLoadedObjCont();
+static int getLoadedObjCont(int addType);
 static void insertAndUpdate(int type);
 static void handleContChange(Iobj *obj, int co, int surf, DrawProps *contProps,
                              DrawProps *ptProps, int *stateFlags, 
@@ -143,9 +149,11 @@ void ifgPtContSurfSelected(int which)
  */
 void ifgLineColorChanged(int r, int g, int b)
 {
-  if (fgd.contProps.red == (int)(255. * r + 0.5) &&
-      fgd.contProps.green == (int)(255. * g + 0.5) && 
-      fgd.contProps.blue == (int)(255. * b + 0.5)) {
+  if (getLoadedObjCont(GEN_STORE_COLOR))
+    return;
+  if (r == (int)(255. * fgd.contProps.red + 0.5) &&
+      g == (int)(255. * fgd.contProps.green + 0.5) && 
+      b == (int)(255. * fgd.contProps.blue + 0.5)) {
     if (!fgd.ptContSurf && (fgd.stateFlags & CHANGED_COLOR))
       ifgEndChange(GEN_STORE_COLOR);
     return;
@@ -155,9 +163,11 @@ void ifgLineColorChanged(int r, int g, int b)
 
 void ifgFillColorChanged(int r, int g, int b)
 {
-  if (fgd.contProps.fillRed == (int)(255. * r + 0.5) &&
-      fgd.contProps.fillGreen == (int)(255. * g + 0.5) && 
-      fgd.contProps.fillBlue == (int)(255. * b + 0.5)) {
+  if (getLoadedObjCont(GEN_STORE_FCOLOR))
+    return;
+  if (r == (int)(255. * fgd.contProps.fillRed + 0.5) &&
+      g == (int)(255. * fgd.contProps.fillGreen + 0.5) && 
+      b == (int)(255. * fgd.contProps.fillBlue + 0.5)) {
     if (!fgd.ptContSurf && (fgd.stateFlags & CHANGED_FCOLOR))
       ifgEndChange(GEN_STORE_FCOLOR);
     return;
@@ -170,8 +180,6 @@ void ifgFillColorChanged(int r, int g, int b)
  */
 void ifgColorChanged(int type, int r, int g, int b)
 {
-  if (getLoadedObjCont())
-    return;
   fgd.store.value.b[0] = r;
   fgd.store.value.b[1] = g;
   fgd.store.value.b[2] = b;
@@ -184,6 +192,8 @@ void ifgColorChanged(int type, int r, int g, int b)
  */
 void ifgTransChanged(int value)
 {
+  if (getLoadedObjCont(GEN_STORE_TRANS))
+    return;
   if (fgd.contProps.trans == value) {
     if (!fgd.ptContSurf && (fgd.stateFlags & CHANGED_TRANS))
       ifgEndChange(GEN_STORE_TRANS);
@@ -194,6 +204,8 @@ void ifgTransChanged(int value)
 
 void ifgWidth2DChanged(int value)
 {
+  if (getLoadedObjCont(GEN_STORE_2DWIDTH))
+    return;
   if (fgd.contProps.linewidth2 == value) {
     if (!fgd.ptContSurf && (fgd.stateFlags & CHANGED_2DWIDTH))
       ifgEndChange(GEN_STORE_2DWIDTH);
@@ -204,6 +216,8 @@ void ifgWidth2DChanged(int value)
 
 void ifgWidth3DChanged(int value)
 {
+  if (getLoadedObjCont(GEN_STORE_3DWIDTH))
+    return;
   if (fgd.contProps.linewidth == value) {
     if (!fgd.ptContSurf && (fgd.stateFlags & CHANGED_3DWIDTH))
       ifgEndChange(GEN_STORE_3DWIDTH);
@@ -214,6 +228,8 @@ void ifgWidth3DChanged(int value)
 
 void ifgSymsizeChanged(int value)
 {
+  if (getLoadedObjCont(GEN_STORE_SYMSIZE))
+    return;
   if (fgd.contProps.symsize == value) {
     if (!fgd.ptContSurf && (fgd.stateFlags & CHANGED_SYMSIZE))
       ifgEndChange(GEN_STORE_SYMSIZE);
@@ -227,9 +243,6 @@ void ifgSymsizeChanged(int value)
  */
 void ifgIntChanged(int type, int value)
 {
-  if (getLoadedObjCont())
-    return;
-
   fgd.store.value.i = value;
   fgd.store.flags = 0;
   insertAndUpdate(type);
@@ -241,7 +254,7 @@ void ifgIntChanged(int type, int value)
 void ifgSymtypeChanged(int symtype, bool filled)
 {
   int contFilled = fgd.contProps.symflags & IOBJ_SYMF_FILL;
-  if (getLoadedObjCont())
+  if (getLoadedObjCont(GEN_STORE_SYMTYPE))
     return;
 
   if (fgd.contProps.symtype == symtype && 
@@ -263,7 +276,7 @@ void ifgSymtypeChanged(int symtype, bool filled)
  */
 void ifgEndChange(int type)
 {
-  if (getLoadedObjCont())
+  if (getLoadedObjCont(-1))
     return;
   fgd.vw->undo->contourDataChg();
   if (istoreEndChange(fgd.cont->store, type, fgd.ptLoaded))
@@ -271,7 +284,7 @@ void ifgEndChange(int type)
   fgd.vw->undo->finishUnit();
   if (imodDebug('g'))
     istoreDump(fgd.cont->store);
-  imodDraw(App->cvi, IMOD_DRAW_MOD);
+  imod_setxyzmouse();
   fineGrainUpdate();
 }
 
@@ -282,7 +295,7 @@ void ifgEndChange(int type)
 void ifgClearChange(int type)
 {
   int err;
-  if (getLoadedObjCont())
+  if (getLoadedObjCont(-1))
     return;
   if (fgd.ptContSurf) {
     fgd.vw->undo->objectPropChg();
@@ -310,7 +323,7 @@ void ifgClearChange(int type)
  */
 void ifgGapChanged(bool state)
 {
-  if (getLoadedObjCont())
+  if (getLoadedObjCont(-1))
     return;
   fgd.vw->undo->contourDataChg();
   if (fgd.ptContSurf) {
@@ -332,7 +345,7 @@ void ifgGapChanged(bool state)
   fgd.vw->undo->finishUnit();
   if (imodDebug('g'))
     istoreDump(fgd.cont->store);
-  imodDraw(App->cvi, IMOD_DRAW_MOD);
+  imod_setxyzmouse();
   fineGrainUpdate();
 }
 
@@ -341,7 +354,7 @@ void ifgGapChanged(bool state)
  */
 void ifgConnectChanged(int value)
 {
-  if (getLoadedObjCont())
+  if (getLoadedObjCont(-1))
     return;
   fgd.vw->undo->contourDataChg();
   if (value) {
@@ -362,7 +375,7 @@ void ifgConnectChanged(int value)
 
 void ifgDump()
 {
-  if (getLoadedObjCont())
+  if (getLoadedObjCont(-1))
     return;
   if (fgd.ptContSurf)
     istoreDump(fgd.obj->store);
@@ -386,9 +399,13 @@ void ifgClosing()
  * Check validity of the loaded contour/point and set the object and
  * contour pointers
  */
-static int getLoadedObjCont()
+static int getLoadedObjCont(int addType)
 {
+  float rbX0, rbX1, rbY0, rbY1;
+  int i, start;
+  Ipoint *pts;
   Imod *imod = fgd.vw->imod;
+  fgd.rangeEnd = -1;
   if (fgd.objLoaded >= imod->objsize) {
     wprint("\aObject last loaded into Fine Grain dialog is no longer valid\n");
     fineGrainUpdate();
@@ -409,10 +426,54 @@ static int getLoadedObjCont()
     fineGrainUpdate();
     return 1;
   }
-  if (!fgd.ptContSurf && fgd.ptLoaded >= fgd.cont->psize) {
-    wprint("\aPoint last loaded into Fine Grain dialog is no longer valid\n");
-    fineGrainUpdate();
-    return 1;
+  if (!fgd.ptContSurf) {
+    if (addType >= 0 && zapRubberbandCoords(rbX0, rbX1, rbY0, rbY1)) {
+
+      // Find first point inside contour
+      start = -1;
+      pts = fgd.cont->pts;
+      for (i = 0; i < fgd.cont->psize; i++) {
+        if (pts[i].x >= rbX0 && pts[i].x <= rbX1 && pts[i].y >= rbY0 && 
+            pts[i].y <= rbY1) {
+          start = i;
+          break;
+        }
+      }
+      if (start < 0) {
+        wprint("\aNo points in the current contour are inside the rubber band"
+               ".\n");
+        return 1;
+      }
+
+      // Find last point inside contour
+      for (i = start + 1; i < fgd.cont->psize; i++) {
+        if (!(pts[i].x >= rbX0 && pts[i].x <= rbX1 && pts[i].y >= rbY0 && 
+            pts[i].y <= rbY1)) {
+          fgd.rangeEnd = i - 1;
+          break;
+        }
+      }
+      if (fgd.rangeEnd < 0) {
+        if (!start) {
+          wprint("\aCurrent contour is entirely inside rubber band; turn off "
+                 "rubber band to operate on current point.\n");
+          fineGrainUpdate();
+          return 1;
+        }
+        fgd.rangeEnd = fgd.cont->psize - 1;
+      }
+
+      // Clear the range
+      fgd.ptLoaded = start;
+      fgd.vw->undo->contourDataChg();
+      istoreClearRange(fgd.cont->store, addType, start, fgd.rangeEnd);
+
+    } else if (fgd.ptLoaded >= fgd.cont->psize) {
+      wprint("\aPoint last loaded into Fine Grain dialog is no longer "
+             "valid\n");
+      fineGrainUpdate();
+      return 1;
+    }
   }
   return 0;
 }
@@ -432,16 +493,26 @@ static void insertAndUpdate(int type)
     if (imodDebug('g'))
       istoreDump(fgd.obj->store);
   } else {
-    fgd.vw->undo->contourDataChg();
+
+    // Point change: start undo unit unless range clear did already, insert
+    // the change, then insert an end if doing range
+    if (fgd.rangeEnd < 0)
+      fgd.vw->undo->contourDataChg();
     fgd.store.index.i = fgd.ptLoaded;
     err = istoreInsertChange(&fgd.cont->store, &fgd.store);
+    if (!err && fgd.rangeEnd >= 0) {
+      if (istoreEndChange(fgd.cont->store, type, fgd.rangeEnd))
+        wprint("\aError modifying storage list to end change\n");
+      imodSetIndex(fgd.vw->imod, fgd.objLoaded, fgd.contLoaded, fgd.ptLoaded);
+    }
     if (imodDebug('g'))
       istoreDump(fgd.cont->store);
   }
+
   if (err)
     wprint("\aError inserting change into general storage list\n");
   fgd.vw->undo->finishUnit();
-  imodDraw(App->cvi, IMOD_DRAW_MOD);
+  imod_setxyzmouse();
   fineGrainUpdate();
 }
 
@@ -597,7 +668,7 @@ void ifgHandleColorTrans(Iobj *obj, float r, float g, float b, int trans)
 /* 
  * Handles the next change in the mesh display properties.  defProps provides
  * the default properties.  curProps, stateFlags, and nextItemIndex are
- * managed from cal to call with the current properties, flags for which are
+ * managed from call to call with the current properties, flags for which are
  * non-default, and the index of the next item with an actual change from the
  * the default.  The return value is the index at which the next change in
  * properties must be made (which can include a return to default).  curIndex
@@ -802,6 +873,9 @@ int ifgMeshTransMatch(Imesh *mesh, int defTrans, int drawTrans, int *meshInd)
           return -1;
         }
       }
+
+      if (stp->type == GEN_STORE_TRANS)
+        transSet = 1;
 
       // If the current point matches the trans state, then it is done
       if (stp->type == GEN_STORE_TRANS && 
