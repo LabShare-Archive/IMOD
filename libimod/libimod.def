@@ -33,6 +33,7 @@ EXPORTS
 	istoreShiftIndex
 	istoreTransStateMatches
 	istoreSkipToIndex
+	istoreClearRange
 	imodContourJoin
 	PipGetInteger
 	imodel_object_centroid
