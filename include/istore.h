@@ -14,6 +14,9 @@ $Date$
 $Revision$
     
 $Log$
+Revision 3.5  2005/09/11 19:19:27  mast
+Added various functions
+
 Revision 3.4  2005/06/29 05:34:33  mast
 More fiddling
 
@@ -128,6 +131,7 @@ extern "C" {
   int istoreInsertChange(Ilist **listp, Istore *store);
   int istoreEndChange(Ilist *list, int type, int index);
   int istoreClearChange(Ilist *list, int type, int index);
+  void istoreClearRange(Ilist *list, int type, int start, int end);
   int istoreAddOneIndexItem(Ilist **listp, Istore *store);
   int istoreClearOneIndexItem(Ilist *list, int type, int index, int surfFlag);
 
@@ -146,7 +150,7 @@ extern "C" {
   int istoreTransStateMatches(Ilist *list, int state);
   int istoreRetainPoint(Ilist *list, int index);
   int istoreGenerateItems(Ilist **listp, DrawProps *props, int flags, 
-                          int index);
+                          int index, int genFlags);
   int istorePointIsGap(Ilist *list, int index);
   int istoreSkipToIndex(Ilist *list, int index);
 

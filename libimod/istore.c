@@ -14,6 +14,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.5  2005/09/11 19:16:46  mast
+Additions while implementing solid/trans drawing
+
 Revision 3.4  2005/06/29 05:36:38  mast
 Added copy cont/surf function, returned separate contour/surface state flags
 
@@ -481,7 +484,7 @@ int istoreDeletePoint(Ilist *list, int index, int psize)
   Istore store;
   Istore *stp;
   if (!ilistSize(list))
-    return;
+    return 0;
     
   lookup = istoreLookup(list, index, &after);
   if (lookup < 0) {
@@ -1018,6 +1021,7 @@ int istoreEndChange(Ilist *list, int type, int index)
  * Clears a whole change sequence in [list] with the type given by [type] and 
  * containing the point at [index].  All changes of the given type are removed
  * from the starting change to an end, if any.  Returns 1 for an empty list.
+ * This must be called only if the given point is contained in a change.
  */
 int istoreClearChange(Ilist *list, int type, int index)
 {
@@ -1051,6 +1055,76 @@ int istoreClearChange(Ilist *list, int type, int index)
     }
   }
   return 0;
+}
+
+/*!
+ * Clears a change sequence of the given [type] from the [list] for all points
+ * from [start] to [end], removing starts before the range and an end after the
+ * range if necessary.  This may be called even if there is no change.
+ */
+void istoreClearRange(Ilist *list, int type, int start, int end)
+{
+  Istore *stp;
+  int i, lookup, after, flags, index, ended, hasChange = 0;
+  if (!ilistSize(list))
+    return;
+  lookup = istoreLookup(list, start, &after);
+
+  /* Search forward from after the start for an end or a start */
+  for (i = after; i < list->size; i++) {
+    stp = istoreItem(list, i);
+    if ((stp->flags & (GEN_STORE_NOINDEX | 3)) || stp->index.i > end)
+      break;
+    if (stp->type == type) {
+      hasChange = 1;
+      break;
+    }
+  }
+
+  /* If none found within range, search back for a start before an end */
+  if (!hasChange) {
+    for (i = after - 1; i >= 0; i--) {
+      stp = istoreItem(list, i);
+      if (stp->type == type) {
+        if (!(stp->flags & GEN_STORE_REVERT))
+          hasChange = 1;
+        break;
+      }
+    }
+  }
+  
+  if (!hasChange)
+    return;
+
+  /* Search forward to end, removing all matching changes until an end past
+     the end index is found*/
+  ended = 0;
+  for (i = after; i < list->size; i++) {
+    stp = istoreItem(list, i);
+    if (stp->flags & (GEN_STORE_NOINDEX | 3))
+      break;
+    if (stp->type == type) {
+      flags = stp->flags;
+      index = stp->index.i;
+      if (ended && index > end)
+        break;
+      ilistRemove(list, i);
+      i--;
+      ended = flags & GEN_STORE_REVERT;
+      if (ended && index >= end)
+        break;
+    }
+  }
+
+  /* Search backward, deleting all matching changes unless an end is found */
+  for (i = after - 1; i >= 0; i--) {
+    stp = istoreItem(list, i);
+    if (stp->type == type) {
+      if (stp->flags & GEN_STORE_REVERT)
+        break;
+      ilistRemove(list, i);
+    }
+  }
 }
 
 /*!
