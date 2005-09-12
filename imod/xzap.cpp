@@ -2877,6 +2877,27 @@ void zapReportRubberband()
   imodPrintStderr("ERROR: No Zap window has usable rubberband coordinates\n");
 }
 
+// Return coordinates of first rubber band; return value 1 if any, 0 if none
+int zapRubberbandCoords(float &rbX0, float &rbX1, float &rbY0, float &rbY1)
+{
+  QObjectList objList;
+  ZapStruct *zap;
+  int i;
+
+  imodDialogManager.windowList(&objList, -1, ZAP_WINDOW_TYPE);
+
+  for (i = 0; i < objList.count(); i++) {
+    zap = ((ZapWindow *)objList.at(i))->mZap;
+    if (zap->rubberband) {
+      rbX0 = zap->rbImageX0;
+      rbX1 = zap->rbImageX1;
+      rbY0 = zap->rbImageY0;
+      rbY1 = zap->rbImageY1;
+      return 1;
+    }
+  }
+  return 0;
+}
 
 /****************************************************************************/
 /* drawing routines.                                                        */
@@ -3599,6 +3620,9 @@ static int zapPointVisable(ZapStruct *zap, Ipoint *pnt)
 
 /*
 $Log$
+Revision 4.72  2005/09/11 19:29:23  mast
+Added fine-grained display properties to ghost display
+
 Revision 4.71  2005/06/29 05:41:03  mast
 Register changes properly on drag additions with fine grain storage
 

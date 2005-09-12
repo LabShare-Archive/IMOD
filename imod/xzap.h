@@ -121,9 +121,13 @@ void zapLimitWindowPos(int neww, int newh, int &newdx, int &newdy);
 int zapSubsetLimits(ViewInfo *vi, int &ixStart, int &iyStart, int &nxUse, 
                     int &nyUse);
 void zapReportRubberband();
+int zapRubberbandCoords(float &rbX0, float &rbX1, float &rbY0, float &rbY1);
 
 /*
 $Log$
+Revision 3.16  2005/03/08 02:28:46  mast
+Added flag to set upon resize so that new subarea gets recorded
+
 Revision 3.15  2005/02/19 01:31:05  mast
 Added variables for center of rotation
 
