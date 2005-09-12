@@ -44,6 +44,10 @@ import etomo.util.Utilities;
  * 
  * <p>
  * $Log$
+ * Revision 1.28  2005/08/22 22:05:45  sueh
+ * bug# 714 Added makeCurrent() to set the user.dir property from
+ * originalUserDir
+ *
  * Revision 1.27  2005/08/22 16:01:56  sueh
  * bug# 532 Moved HashedArray to UniqueHashedArray and created a new
  * version of HashedArray which is simpler and doesn't use UniqueKey.
@@ -245,6 +249,8 @@ public class EtomoDirector {
   public static final String rcsid = "$Id$";
   
   public static final double MIN_AVAILABLE_MEMORY = 0.75;
+  public static final int NUMBER_STORABLES = 2;
+  
   private static final EtomoDirector theEtomoDirector = new EtomoDirector();
   private File IMODDirectory;
   private File IMODCalibDirectory;
@@ -426,16 +432,7 @@ public class EtomoDirector {
     }
     IMODCalibDirectory = new File(imodCalibDirectoryName);
     //  Create a File object specifying the user configuration file
-    File userConfigFile = new File(homeDirectory, ".etomo");
-    //  Make sure the config file exists, create it if it doesn't
-    try {
-      userConfigFile.createNewFile();
-    }
-    catch (IOException except) {
-      System.err.println("Could not create file:"
-        + userConfigFile.getAbsolutePath());
-      System.err.println(except.getMessage());
-    }
+    File userConfigFile = getUserConfigFile();
     // Load in the user configuration
     ParameterStore userParams = new ParameterStore(userConfigFile);
     Storable storable[] = new Storable[1];
@@ -645,7 +642,8 @@ public class EtomoDirector {
   }
   
   /**
-   * To guarantee that etomo can always exit, catch all unrecognized Exceptions
+   * Close all the managers.
+   * Then exit.  To guarantee that etomo can always exit, catch all unrecognized Exceptions
    * and Errors and return true.
    * @return
    */
@@ -663,43 +661,78 @@ public class EtomoDirector {
         userConfig.setMainWindowWidth(size.width);
         userConfig.setMainWindowHeight(size.height);
         //  Write out the user configuration data
-        File userConfigFile = new File(homeDirectory, ".etomo");
-        //  Make sure the config file exists, create it if it doesn't
-        try {
-          userConfigFile.createNewFile();
-        }
-        catch (IOException except) {
-          System.err.println("IOException: Could not create file:"
-              + userConfigFile.getAbsolutePath() + "\n" + except.getMessage());
-          System.err.println(except.getMessage());
-          return true;
-        }
+        File userConfigFile = getUserConfigFile();
         ParameterStore userParams = new ParameterStore(userConfigFile);
         Storable storable[] = new Storable[1];
         storable[0] = userConfig;
-        if (!userConfigFile.canWrite()) {
-          uiHarness.openMessageDialog(
-              "Change permissions of $HOME/.etomo to allow writing",
-              "Unable to save user configuration file", axisID);
-        }
-        if (userConfigFile.canWrite()) {
-          try {
-            userParams.save(storable);
-          }
-          catch (IOException excep) {
-            excep.printStackTrace();
-            uiHarness.openMessageDialog(
-                "IOException: unable to save user parameters\n"
-                    + excep.getMessage(), "Unable to save user parameters",
-                axisID);
-          }
-        }
+        savePreferences(storable, axisID);
         return true;
       }
     }
     catch (Throwable e) {
       e.printStackTrace();
       return true;
+    }
+    return true;
+  }
+  
+  public final void loadPreferences(Storable storable, AxisID axisID) {
+    //  Create a File object specifying the user configuration file
+    File userConfigFile = getUserConfigFile();
+    // Load in the user configuration
+    ParameterStore userParams = new ParameterStore(userConfigFile);
+    try {
+      userParams.load(storable);
+    }
+    catch (IOException except) {
+      uiHarness.openMessageDialog(except.getMessage(),
+        "IO Exception: Can't load user configuration"
+          + userConfigFile.getAbsolutePath(), AxisID.ONLY);
+    }
+  }
+  
+  private final File getUserConfigFile() {
+    File userConfigFile = new File(homeDirectory, ".etomo");
+    //  Make sure the config file exists, create it if it doesn't
+    try {
+      userConfigFile.createNewFile();
+    }
+    catch (IOException except) {
+      System.err.println("Could not create file:"
+        + userConfigFile.getAbsolutePath());
+      System.err.println(except.getMessage());
+    }
+    return userConfigFile;
+  }
+  
+  public final boolean savePreferences(Storable storable, AxisID axisID) {
+    Storable storableArray[] = new Storable[2];
+    storableArray[0] = userConfig;
+    storableArray[1] = storable;
+    return savePreferences(storableArray, axisID);
+  }
+  
+  private synchronized final boolean savePreferences(Storable[] storable, AxisID axisID) {
+    File userConfigFile = getUserConfigFile();
+    ParameterStore userParams = new ParameterStore(userConfigFile);
+    if (!userConfigFile.canWrite()) {
+      uiHarness.openMessageDialog(
+          "Change permissions of $HOME/.etomo to allow writing",
+          "Unable to save user configuration file", axisID);
+      return false;
+    }
+    if (userConfigFile.canWrite()) {
+      try {
+        userParams.save(storable, NUMBER_STORABLES);
+      }
+      catch (IOException excep) {
+        excep.printStackTrace();
+        uiHarness.openMessageDialog(
+            "IOException: unable to save user parameters\n"
+                + excep.getMessage(), "Unable to save user parameters",
+            axisID);
+        return false;
+      }
     }
     return true;
   }
