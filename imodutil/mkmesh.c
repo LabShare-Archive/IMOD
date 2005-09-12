@@ -134,6 +134,7 @@ static void chunkAddTriangle(Imesh *mesh, int i1, int i2, int i3, int *maxsize,
 
 static int fastmesh = 0;
 static Ipoint meshMin, meshMax;
+static unsigned int skinFlags;
 
 static int    imeshDefaultCallback(int inStatus)
 {
@@ -659,12 +660,19 @@ static Imesh *imeshContoursCost(Iobj *obj, Icont *bc, Icont *tc, Ipoint *scale,
   }
 
   /* Get default drawing properties for each contour, and flags for what is
-     already changed from default */
+     already changed from default.  If connecting by surface, leave the surface
+     properties out of the contour flags, but otherwise use the whole set of
+     flags to incorporate surface info into the mesh. */
   istoreDefaultDrawProps(obj, &objProps);
   i = istoreContSurfDrawProps(obj->store, &objProps, &bcProps, bco, bc->surf, 
                           &bcState, &surfState);
   j = istoreContSurfDrawProps(obj->store, &objProps, &tcProps, tco, tc->surf, 
                           &tcState, &surfState);
+  if (!(skinFlags & IMESH_MK_SURF)) {
+    bcState = i;
+    tcState = j;
+  }
+
   anyTrans = (bcState & CHANGED_TRANS) | (tcState & CHANGED_TRANS) | 
     istoreCountItems(bc->store, GEN_STORE_TRANS, 1) |
     istoreCountItems(tc->store, GEN_STORE_TRANS, 1);
@@ -1642,6 +1650,7 @@ int SkinObject
 
   meshMin = triMin;
   meshMax = triMax;
+  skinFlags = flags;
 
   if (!obj->contsize)
     return(-1);
@@ -4430,6 +4439,10 @@ static int break_contour_inout(Icont *cin, int st1, int st2,  int fill,
 
 /*
 $Log$
+Revision 3.15  2005/09/11 19:28:01  mast
+Incorporated fine-grained state into mesh, added clipping of triangle output,
+implemented new vertex-normal index list without redundant vertices
+
 Revision 3.14  2005/05/26 20:11:24  mast
 Fixed properly for reaching end of range with -P for open contours
 
