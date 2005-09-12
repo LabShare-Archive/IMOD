@@ -1541,6 +1541,8 @@ static void imodvDraw_mesh(Imesh *mesh, int style, Iobj *obj, int drawTrans)
     obj->flags |= IMOD_OBJFLAG_TEMPUSE;
     return;
   }
+  if (imodDebug('v'))
+    imodPrintStderr("draw mesh lines %s\n", drawTrans ? "trans" : "solid");
 
   stateFlags = 0;
   nextItemIndex = nextChange = istoreFirstChangeIndex(mesh->store);
@@ -1595,6 +1597,8 @@ static void imodvDraw_mesh(Imesh *mesh, int style, Iobj *obj, int drawTrans)
         nextChange = nextItemIndex = ifgMeshTransMatch(mesh, defTrans, 
                                                        drawTrans, &i);
         obj->flags |= IMOD_OBJFLAG_TEMPUSE;
+        if (imodDebug('v'))
+          imodPrintStderr("Skipped from start to %d\n", i);
       }
       while (mesh->list[i] != IMOD_MESH_ENDPOLY) {
         if (nextChange < i || nextChange > i + 2) {
@@ -1611,6 +1615,8 @@ static void imodvDraw_mesh(Imesh *mesh, int style, Iobj *obj, int drawTrans)
               (obj, mesh->store, &defProps, &curProps, &nextItemIndex, i,
                &stateFlags, &changeFlags, handleFlags);
             if ((curProps.trans ? 1 : 0) != drawTrans) {
+              if (imodDebug('v'))
+                imodPrintStderr("Drew to %d\n", i);
               if (stateFlags)
                 ifgHandleMeshChange(obj, mesh->store, &defProps, &curProps, 
                                     &nextItemIndex, 0, &stateFlags,
@@ -1618,6 +1624,8 @@ static void imodvDraw_mesh(Imesh *mesh, int style, Iobj *obj, int drawTrans)
               nextChange = nextItemIndex = ifgMeshTransMatch(mesh, defTrans,
                                                           drawTrans, &i);
               obj->flags |= IMOD_OBJFLAG_TEMPUSE;
+              if (imodDebug('v'))
+                imodPrintStderr("Skipping to %d\n", i);
               continue;
             }
           }
@@ -1684,9 +1692,13 @@ static void imodvDraw_mesh(Imesh *mesh, int style, Iobj *obj, int drawTrans)
                &stateFlags, &changeFlags, handleFlags);
             if (mesh->list[i] != IMOD_MESH_ENDPOLY && 
                 (curProps.trans ? 1 : 0) != drawTrans) {
+              if (imodDebug('v'))
+                imodPrintStderr("Drew to %d\n", i);
               nextChange = nextItemIndex = ifgMeshTransMatch(mesh, defTrans,
                                                           drawTrans, &i);
               obj->flags |= IMOD_OBJFLAG_TEMPUSE;
+              if (imodDebug('v'))
+                imodPrintStderr("Skipping to %d\n", i);
             }
           }
         }
@@ -1754,6 +1766,8 @@ static void imodvDraw_filled_mesh(Imesh *mesh, double zscale, Iobj *obj,
     obj->flags |= IMOD_OBJFLAG_TEMPUSE;
     return;
   }
+  if (imodDebug('v'))
+    imodPrintStderr("draw mesh %s\n", drawTrans ? "trans" : "solid");
 
   stateFlags = 0;
   nextItemIndex = nextChange = istoreFirstChangeIndex(mesh->store);
@@ -1827,6 +1841,8 @@ static void imodvDraw_filled_mesh(Imesh *mesh, double zscale, Iobj *obj,
         nextChange = nextItemIndex = ifgMeshTransMatch(mesh, defTrans, 
                                                        drawTrans, &i);
         obj->flags |= IMOD_OBJFLAG_TEMPUSE;
+        if (imodDebug('v'))
+          imodPrintStderr("Skipped from start to %d\n", i);
       }
 
       while (mesh->list[i] != IMOD_MESH_ENDPOLY) {
@@ -1846,7 +1862,6 @@ static void imodvDraw_filled_mesh(Imesh *mesh, double zscale, Iobj *obj,
           glNormal3fv((float *)&(vert[li + 1])); 
           glVertex3f(vert[li].x, vert[li].y, vert[li].z * z);
         } else {
-          glEnd();
           
           // Get the next change for the first point
           if (stateFlags || i == nextChange) {
@@ -1857,6 +1872,8 @@ static void imodvDraw_filled_mesh(Imesh *mesh, double zscale, Iobj *obj,
             // If trans state does not match draw state, return to default
             // and skip to next matching triangle
             if ((curProps.trans ? 1 : 0) != drawTrans) {
+              if (imodDebug('v'))
+                imodPrintStderr("Drew to %d\n", i);
               if (stateFlags)
                 ifgHandleMeshChange(obj, mesh->store, &defProps, &curProps, 
                                     &nextItemIndex, 0, &stateFlags,
@@ -1864,11 +1881,12 @@ static void imodvDraw_filled_mesh(Imesh *mesh, double zscale, Iobj *obj,
               nextChange = nextItemIndex = ifgMeshTransMatch(mesh, defTrans,
                                                           drawTrans, &i);
               obj->flags |= IMOD_OBJFLAG_TEMPUSE;
+              if (imodDebug('v'))
+                imodPrintStderr("Skipping to %d\n", i);
               continue;
             }
           }
 
-          glBegin(GL_TRIANGLES);
           for (j = 0; j < 3; j++) {
             if (j && (stateFlags || i == nextChange))
               nextChange = ifgHandleMeshChange
@@ -1884,18 +1902,20 @@ static void imodvDraw_filled_mesh(Imesh *mesh, double zscale, Iobj *obj,
           // not be in the next triangle
           if (stateFlags && (nextItemIndex < i || nextItemIndex > i + 2 ||
                              list[i] == IMOD_MESH_ENDPOLY)) {
-            glEnd();
             /* imodPrintStderr("resetting, state %d\n", stateFlags); */
             nextChange = ifgHandleMeshChange
               (obj, mesh->store, &defProps, &curProps, &nextItemIndex, i,
                &stateFlags, &changeFlags, handleFlags);
             if (list[i] != IMOD_MESH_ENDPOLY && 
                 (curProps.trans ? 1 : 0) != drawTrans) {
+              if (imodDebug('v'))
+                imodPrintStderr("Drew to %d\n", i);
               nextChange = nextItemIndex = ifgMeshTransMatch(mesh, defTrans,
                                                           drawTrans, &i);
               obj->flags |= IMOD_OBJFLAG_TEMPUSE;
+              if (imodDebug('v'))
+                imodPrintStderr("Skipping to %d\n", i);
             }
-            glBegin(GL_TRIANGLES);
           }
         }
         
@@ -2316,6 +2336,9 @@ static int skipNonCurrentSurface(Imesh *mesh, int *ip, Iobj *obj)
 
 /*
 $Log$
+Revision 4.21  2005/09/11 19:54:53  mast
+Implemented drawing of fine-grained properties from new mesh structure
+
 Revision 4.20  2005/06/26 19:38:36  mast
 Added logic for fine-grained changes to line and sphere drawing
 
