@@ -14,6 +14,7 @@ import etomo.comscript.LoadAverageParam;
 import etomo.process.BaseProcessManager;
 import etomo.process.ImodManager;
 import etomo.process.ImodProcess;
+import etomo.process.ProcessState;
 import etomo.process.SystemProcessException;
 import etomo.storage.ParameterStore;
 import etomo.storage.Storable;
@@ -47,6 +48,13 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.28  2005/09/09 21:20:24  sueh
+* <p> bug# 532 Made LoadAverageParam an n'ton (one for each computer) so
+* <p> that there aren't IntermittentSystemPrograms then computers.  This allows
+* <p> IntermittentSystemProgram to be used for other things and conforms to
+* <p> it definition of having one instance per IntermittentCommand, instead of
+* <p> one instance per computer.
+* <p>
 * <p> Revision 1.27  2005/09/01 18:34:42  sueh
 * <p> bug# 532 Made the parallel panels manager level.  Added parallelPanelA
 * <p> and B.  Added getParallPanel(), which constructs the panel if necessary
@@ -804,4 +812,16 @@ public abstract class BaseManager {
     }
     return parallelPanelA;
   }
+  
+  public final void savePreferences(AxisID axisID, Storable storable) {
+    MainPanel mainPanel = getMainPanel();
+    mainPanel.setProgressBar("Saving defaults", 1, axisID);
+    if (!EtomoDirector.getInstance().savePreferences(storable, axisID)) {
+      mainPanel.stopProgressBar(axisID, ProcessEndState.FAILED);
+    }
+    else {
+      mainPanel.stopProgressBar(axisID);
+    }
+  }
+
 }
