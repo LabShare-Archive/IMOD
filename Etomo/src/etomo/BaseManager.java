@@ -48,6 +48,10 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.29  2005/09/12 23:56:50  sueh
+* <p> bug# 532 Added savePreferences() to save a Storable class to the .etomo
+* <p> file without overwriting preference entries from other Storable classes.
+* <p>
 * <p> Revision 1.28  2005/09/09 21:20:24  sueh
 * <p> bug# 532 Made LoadAverageParam an n'ton (one for each computer) so
 * <p> that there aren't IntermittentSystemPrograms then computers.  This allows
@@ -814,6 +818,13 @@ public abstract class BaseManager {
   }
   
   public final void savePreferences(AxisID axisID, Storable storable) {
+    try {
+      getProcessManager().isAxisBusy(axisID);
+    }
+    catch (SystemProcessException e) {
+      UIHarness.INSTANCE.openMessageDialog(e.getMessage(), "Cannot Save Preferences");
+      return;
+    }
     MainPanel mainPanel = getMainPanel();
     mainPanel.setProgressBar("Saving defaults", 1, axisID);
     if (!EtomoDirector.getInstance().savePreferences(storable, axisID)) {
