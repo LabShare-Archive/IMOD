@@ -142,6 +142,7 @@ int main(int argc, char **argv)
   int ntube_list = 0;
   int *tube_list;
   char *progname = imodProgName(argv[0]);
+  char oldvar[] = "IMODMESH_OLDMESH";
   newPolyNorm = 1;
 
   if (argc < 1){
@@ -309,6 +310,12 @@ int main(int argc, char **argv)
   }
   if (incz < 1)
     incz = 1;
+
+  if (newPolyNorm && (getenv(oldvar) != NULL)) {
+    newPolyNorm = 0;
+    printf("Making backward-compatible meshes because "
+           "%s is set in environment\n", oldvar);
+  }
 
   /* Skin multiple models in serial. */
   while(i < argc){
@@ -900,6 +907,9 @@ int ObjOnList(int ob, int list[], int nlist)
 
 /*
 $Log$
+Revision 3.12  2005/09/11 19:23:55  mast
+Changed for new style of mesh, added options to clip triangle output
+
 Revision 3.11  2005/05/31 00:55:18  mast
 Flush after skinning message for Windows
 
