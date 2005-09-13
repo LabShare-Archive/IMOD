@@ -14,7 +14,6 @@ import etomo.comscript.LoadAverageParam;
 import etomo.process.BaseProcessManager;
 import etomo.process.ImodManager;
 import etomo.process.ImodProcess;
-import etomo.process.ProcessState;
 import etomo.process.SystemProcessException;
 import etomo.storage.ParameterStore;
 import etomo.storage.Storable;
@@ -48,6 +47,9 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.30  2005/09/13 00:13:46  sueh
+* <p> bug# 532 Modified savePreferences() to check whether the axis is busy.
+* <p>
 * <p> Revision 1.29  2005/09/12 23:56:50  sueh
 * <p> bug# 532 Added savePreferences() to save a Storable class to the .etomo
 * <p> file without overwriting preference entries from other Storable classes.
