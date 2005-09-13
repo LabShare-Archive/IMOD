@@ -12,6 +12,9 @@
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.27  2005/09/09 21:48:44  sueh
+ * <p> $bug# 532 Handling null from stderr and stdout.
+ * <p> $
  * <p> $Revision 3.26  2005/08/27 22:44:21  sueh
  * <p> $bug# 532 In Utilities.timestamp() change the int status to String status,
  * <p> $since it doesn't have to be compared.
@@ -175,6 +178,8 @@ public class Utilities {
   private static boolean debug = false;
   private static boolean retrievedSelfTest = false;
   private static boolean selfTest = false;
+  private static boolean retrievedTimestamp = false;
+  private static boolean timestamp = false;
   private static boolean retrievedOS = false;
   private static boolean windowsOS = false;
   private static long startTime = 0;
@@ -615,10 +620,16 @@ public class Utilities {
    * @param status
    */
   public static void timestamp(String process, String container, String status) {
+    if (!isTimestamp()) {
+      return;
+    }
     timestamp(process, null, container, status);
   }
   
   public static void timestamp(String process, ProcessName container, String status) {
+    if (!isTimestamp()) {
+      return;
+    }
     timestamp(process, null, container.toString(), status);
   }
   
@@ -631,7 +642,7 @@ public class Utilities {
    */
   public static void timestamp(String process, String command, File container,
       String status) {
-    if (!isDebug()) {
+    if (!isTimestamp()) {
       return;
     }
     timestamp(process, command, container.getName(), status);
@@ -646,13 +657,16 @@ public class Utilities {
    */
   public static void timestamp(String process, String command, ComScript container,
       String status) {
-    if (!isDebug()) {
+    if (!isTimestamp()) {
       return;
     }
     timestamp(process, command, container.getName(), status);
   }
   
   public static void timestamp(String command, String status) {
+    if (!isTimestamp()) {
+      return;
+    }
     timestamp(null, command, (String) null, status);
   }
 
@@ -665,7 +679,7 @@ public class Utilities {
    */
   public static void timestamp(String process, String command,
       String container, String status) {
-    if (!isDebug()) {
+    if (!isTimestamp()) {
       return;
     }
     StringBuffer buffer = new StringBuffer("TIMESTAMP: ");
@@ -693,6 +707,21 @@ public class Utilities {
   }
 
   public static boolean isDebug() {
+    if (!retrievedDebug) {
+      debug = EtomoDirector.getInstance().isDebug();
+      retrievedDebug = true;
+    }
+    return debug;
+  }
+  
+  public static boolean isTimestamp() {
+    if (!retrievedTimestamp) {
+      timestamp = EtomoDirector.getInstance().isTimestamp();
+      retrievedTimestamp = true;
+    }
+    if (timestamp) {
+      return true;
+    }
     if (!retrievedDebug) {
       debug = EtomoDirector.getInstance().isDebug();
       retrievedDebug = true;
