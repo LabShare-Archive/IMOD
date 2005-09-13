@@ -1,5 +1,18 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/12/05: IMOD_3-6-14
+9/12/05: Added parallel processing interface to eTomo for tomogram generation.
+The interface is enabled by a file named cpu.adoc in IMOD_CALIB_DIR; a sample
+file is included in the IMOD autodoc directory.
+
+9/12/05: Modified Imodmesh to incorporate fine-grained display properties into
+the mesh, including color and transparency changes and gaps.  It now puts out
+a more efficient mesh that is not backward-compatible; an option is provided
+for generating a backward-compatible mesh.  3dmod can now display all of this
+information and handles transparency by drawing all solid elements of all
+objects first, then all transparent elements.  Added ability to use the
+rubberband to specify starting and ending points for a property change.
+
 9/9/05: Fixed bug in writing meshes from a model loaded onto binned data.
 
 8/31/05: IMOD_3-6-13
