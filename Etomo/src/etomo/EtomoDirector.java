@@ -44,6 +44,12 @@ import etomo.util.Utilities;
  * 
  * <p>
  * $Log$
+ * Revision 1.29  2005/09/12 23:57:32  sueh
+ * bug# 532 Added savePreferences() to save a Storable class to the .etomo
+ * file without overwriting preference entries from other Storable classes.
+ * Added loadPreferences() to load a single storable class from the .etomo
+ * file.
+ *
  * Revision 1.28  2005/08/22 22:05:45  sueh
  * bug# 714 Added makeCurrent() to set the user.dir property from
  * originalUserDir
@@ -261,6 +267,7 @@ public class EtomoDirector {
   private boolean test = false;
   private boolean selfTest = false;
   private boolean newstuff = false;
+  private boolean displayMemory = false;
   private int newstuffNum = 0;
   private UniqueHashedArray managerList = null;
   private UniqueKey currentManagerKey = null;
@@ -786,6 +793,9 @@ public class EtomoDirector {
       if (args[i].equals("--selftest")) {
         selfTest = true;
       }
+      if (args[i].equals("--memory")) {
+        displayMemory = true;
+      }
       if (args[i].equals("--newstuff")) {
         newstuff = true;
         //--newstuff can be used alone, or followed by a 1 or 0 (default).
@@ -988,7 +998,7 @@ public class EtomoDirector {
     //System.out.println("Available memory = " + availableMemory);
     //System.out.println("Memory in use    = " + usedMemory);
     //System.out.println();
-    if (debug) {
+    if (debug || displayMemory) {
       System.err.println("Available memory = " + availableMemory);
       System.err.println("Memory in use    = " + usedMemory);
     }
