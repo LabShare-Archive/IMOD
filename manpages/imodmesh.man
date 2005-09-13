@@ -109,6 +109,20 @@ the contour will be divided into two) be close together.  Finally, a branch
 may emerge from the inside of an inside contour just as it may from a normal,
 outside contour.
 
+.SS Fine-grained display information
+Imodmesh will encoded some fine-grained display information into the mesh,
+specifically, color, transparency, and 3D width changes.  Contour-specific and
+point-specific properties will always be encoded into the mesh.  This means
+that you cannot see changes in these properties without remeshing the model.
+The treatment of surface-specific properties depends on whether the 
+.B -S
+option is entered to connect contours only within surfaces.  If this option
+is not given, then surface-specific properties are encoded in the mesh as
+well, and changes in these properties will not be seen unless the model is
+remeshed.  If the option is given, then the surface-specific properties are
+not included in the mesh but are applied during display and can be changed
+dynamically.
+
 .SS Options
 .TP
 .B -c
@@ -245,6 +259,13 @@ maximum value will be skipped. An optional increment value
 will cause only z-values that are a multiple of the given
 increment to be meshed.
 .TP
+.B -x <minimum>,<maximum>
+.B -y <minimum>,<maximum>
+Exclude triangles from the mesh if they are outside the given limits in X or
+in Y.  This is an alternative to using clipping planes to chop off surfaces at
+the edge of the data set, although the result will be more ragged than using a
+clipping plane.
+.TP
 .B -l
 Form a low resolution mesh.  Any new mesh data created by this run of the
 program will be marked as low resolution mesh.  Existing low resolution mesh
@@ -275,12 +296,20 @@ option.
 .B -Z <scale>
 A scaling multiplier applied to the z values of normals.  The
 default value is 1.0.
+.TP
+.B -B
+Make mesh output backward-compatible to IMOD before 3.6.14 if possible.  
+Regardless of this option, if a
+mesh contains fine-grained display changes, then it will be encoded in a 
+new-style mesh, which results in a 20% smaller model file.  This option can
+be set automatically for all runs of imodmesh by setting the environment
+variable IMODMESH_OLDMESH.
 
 .SH FILES
 A backup file of the original model is created with the 
 ~ extension.
-.SH AUTHOR
-Jim Kremer, modified by David Mastronarde <mast@colorado.edu>
+.SH AUTHORS
+Jim Kremer and David Mastronarde <mast@colorado.edu>
 .SH SEE ALSO
 3dmod(1), 3dmodv(1), reducecont(1)
 
