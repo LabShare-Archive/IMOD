@@ -44,6 +44,9 @@ import etomo.util.Utilities;
  * 
  * <p>
  * $Log$
+ * Revision 1.30  2005/09/13 00:14:15  sueh
+ * bug# 532 Added --memory option to display memory usage.
+ *
  * Revision 1.29  2005/09/12 23:57:32  sueh
  * bug# 532 Added savePreferences() to save a Storable class to the .etomo
  * file without overwriting preference entries from other Storable classes.
@@ -268,6 +271,7 @@ public class EtomoDirector {
   private boolean selfTest = false;
   private boolean newstuff = false;
   private boolean displayMemory = false;
+  private boolean timestamp = false;
   private int newstuffNum = 0;
   private UniqueHashedArray managerList = null;
   private UniqueKey currentManagerKey = null;
@@ -796,6 +800,9 @@ public class EtomoDirector {
       if (args[i].equals("--memory")) {
         displayMemory = true;
       }
+      if (args[i].equals("--timestamp")) {
+        timestamp = true;
+      }
       if (args[i].equals("--newstuff")) {
         newstuff = true;
         //--newstuff can be used alone, or followed by a 1 or 0 (default).
@@ -904,6 +911,10 @@ public class EtomoDirector {
 
   public boolean isDebug() {
     return debug;
+  }
+  
+  public boolean isTimestamp() {
+    return timestamp;
   }
 
   public boolean isSelfTest() {
