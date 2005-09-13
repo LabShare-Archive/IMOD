@@ -12,6 +12,10 @@
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.28  2005/09/13 00:28:36  sueh
+ * <p> $Prevent logging timestamp unless either the debug or timestamp option is
+ * <p> $on.
+ * <p> $
  * <p> $Revision 3.27  2005/09/09 21:48:44  sueh
  * <p> $bug# 532 Handling null from stderr and stdout.
  * <p> $
@@ -722,11 +726,7 @@ public class Utilities {
     if (timestamp) {
       return true;
     }
-    if (!retrievedDebug) {
-      debug = EtomoDirector.getInstance().isDebug();
-      retrievedDebug = true;
-    }
-    return debug;
+    return isDebug();
   }
   
   public static boolean isSelfTest() {
