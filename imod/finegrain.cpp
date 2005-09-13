@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.4  2005/09/12 14:23:17  mast
+    Added rubberband selection and fixed problem with mesh trans matching
+
     Revision 1.3  2005/09/11 19:54:05  mast
     New functions and changes for trans matching
 
@@ -628,7 +631,7 @@ int ifgHandleNextChange(Iobj *obj, Ilist *list, DrawProps *defProps,
 static void ifgHandleStateChange(Iobj *obj, DrawProps *ptProps,
                                  int *changeFlags, int handleFlags,
                                  int selected)
- {
+{
   if ((handleFlags & HANDLE_LINE_COLOR) && (*changeFlags & CHANGED_COLOR)) {
     if (App->rgba)
       glColor3f(ptProps->red, ptProps->green, ptProps->blue);
