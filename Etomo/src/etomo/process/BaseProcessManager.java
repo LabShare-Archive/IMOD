@@ -28,6 +28,15 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.24  2005/09/10 01:48:39  sueh
+* <p> bug# 532 Changed IntermittentSystemProgram to
+* <p> IntermittentBackgroundProcess.  Made intermittentSystemProgram a child
+* <p> of SystemProgram.  Made OutputBufferManager in independent class
+* <p> instead of being inside SystemProgram.  IntermittentSystemProgram can
+* <p> use OutputBufferManager to do things only necessary for intermittent
+* <p> programs, such as deleting standard output after it is processed and
+* <p> keeping separate lists of standard output for separate monitors.
+* <p>
 * <p> Revision 1.23  2005/09/09 21:21:52  sueh
 * <p> bug# 532 Handling null from stderr and stdout.
 * <p>
@@ -366,7 +375,7 @@ public abstract class BaseProcessManager {
    * @param axisID
    * @throws SystemProcessException
    */
-  protected void isAxisBusy(AxisID axisID) throws SystemProcessException {
+  public void isAxisBusy(AxisID axisID) throws SystemProcessException {
     // Check to make sure there is not another process already running on this
     // axis.
     if (axisID == AxisID.SECOND) {
