@@ -6,6 +6,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Properties;
 
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -13,6 +14,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.border.LineBorder;
 
 import etomo.comscript.ProcesschunksParam;
+import etomo.storage.Storable;
 import etomo.type.AxisID;
 import etomo.type.EtomoNumber;
 import etomo.util.HashedArray;
@@ -30,11 +32,13 @@ import etomo.util.HashedArray;
  * 
  * @version $Revision$
  */
-final class ProcessorTable {
+final class ProcessorTable implements Storable {
   public static final String rcsid = "$Id$";
 
   private static final String SPEED_ADOC_KEY = "speed";
   private static final String MEMORY_ADOC_KEY = "memory";
+  private static final String STORE_PREPEND = "ProcessorTable";
+  
   private static final int maxRows = 15;
   private static final double initialHeight = (maxRows + 2) * 20;//initially estimate the row height to be 20 pixels
   private static final double maxWidth = UIUtilities.getScreenSize().getWidth();
@@ -90,7 +94,7 @@ final class ProcessorTable {
       except.printStackTrace();
     }
     if (autodoc == null) {
-      System.out.println("autodoc null");
+      System.err.println("Unable to display the rows of the processor table.  Missing cpu.adoc file.");
       return;
     }
     //get units
@@ -538,9 +542,56 @@ final class ProcessorTable {
     }
     ((ProcessorTableRow) rows.get(computer)).clearFailureReason();
   }
+  
+  public void store(Properties props) {
+    store(props, "");
+  }
+
+  public void store(Properties props, String prepend) {
+    if (rows == null) {
+      return;
+    }
+    String group;
+    if (prepend == "") {
+      prepend = STORE_PREPEND;
+    }
+    else {
+      prepend += "." + STORE_PREPEND;
+    }
+    for (int i = 0; i < rows.size(); i++) {
+      ((ProcessorTableRow) rows.get(i)).store(props, prepend);
+    }
+  }
+
+  /**
+   *  Get the objects attributes from the properties object.
+   */
+  public void load(Properties props) {
+    load(props, "");
+  }
+
+  public void load(Properties props, String prepend) {
+    if (rows == null) {
+      return;
+    }
+    String group;
+    if (prepend == "") {
+      prepend = STORE_PREPEND;
+    }
+    else {
+      prepend += "." + STORE_PREPEND;
+    }
+    for (int i = 0; i < rows.size(); i++) {
+      ((ProcessorTableRow) rows.get(i)).load(props, prepend);
+    }
+  }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.14  2005/09/10 01:54:59  sueh
+ * <p> bug# 532 Added clearFailureReason() so that the failure reason can be
+ * <p> cleared when a new connection to the computer is attempted.
+ * <p>
  * <p> Revision 1.13  2005/09/09 21:47:45  sueh
  * <p> bug# 532 Passed reason string to clearLoadAverage().
  * <p>
