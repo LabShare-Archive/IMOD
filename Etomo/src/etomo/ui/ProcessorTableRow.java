@@ -4,12 +4,14 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Properties;
 
 import javax.swing.JPanel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import etomo.comscript.ProcesschunksParam;
+import etomo.storage.Storable;
 import etomo.type.EtomoNumber;
 
 /**
@@ -25,8 +27,12 @@ import etomo.type.EtomoNumber;
  * 
  * @version $Revision$
  */
-final class ProcessorTableRow {
+final class ProcessorTableRow implements Storable {
   public static final String rcsid = "$Id$";
+  
+  private static final String STORE_SELECTED = "Selected";
+  private static final String STORE_CPUS_SELECTED = "CPUsSelected";
+  private static final int DEFAULT_CPUS_SELECTED = 1;
 
   private ProcessorTable table = null;
   private CheckBoxCell cellComputer = new CheckBoxCell();
@@ -79,6 +85,60 @@ final class ProcessorTableRow {
     this(table, computerName, 1, cpuType, null, null, null);
   }
   
+  public void store(Properties props) {
+    store(props, "");
+  }
+
+  public void store(Properties props, String prepend) {
+    String group;
+    if (prepend == "") {
+      prepend = cellComputer.getLabel();
+    }
+    else {
+      prepend += "." + cellComputer.getLabel();
+    }
+    group = prepend + ".";
+    props.setProperty(group + STORE_SELECTED, String.valueOf(isSelected()));
+    if (cellCPUsSelected == null) {
+      return;
+    }
+    if (numCpus == 1) {
+      props.setProperty(group + STORE_CPUS_SELECTED, String
+          .valueOf(((FieldCell) cellCPUsSelected).getValue()));
+    }
+    else if (cellCPUsSelected != null) {
+      props.setProperty(group + STORE_CPUS_SELECTED, String
+          .valueOf(((SpinnerCell) cellCPUsSelected).getValue()));
+    }
+  }
+
+  /**
+   *  Get the objects attributes from the properties object.
+   */
+  public void load(Properties props) {
+    load(props, "");
+  }
+
+  public void load(Properties props, String prepend) {
+    String group;
+    if (prepend == "") {
+      prepend = cellComputer.getLabel();
+    }
+    else {
+      prepend += "." + cellComputer.getLabel();
+    }
+    group = prepend + ".";
+    boolean selected = Boolean.valueOf(
+        props.getProperty(group + STORE_SELECTED, "false")).booleanValue();
+    cellComputer.setSelected(selected);
+    setSelected(selected);
+    if (numCpus > 1 && isSelected() && cellCPUsSelected != null) {
+      ((SpinnerCell) cellCPUsSelected).setValue(Integer.parseInt(props
+          .getProperty(group + STORE_CPUS_SELECTED, Integer
+              .toString(DEFAULT_CPUS_SELECTED))));
+    }
+  }
+  
   private void initRow() {
     rowInitialized = true;
     cellComputer.setLabel(computerName);
@@ -91,7 +151,7 @@ final class ProcessorTableRow {
       cellCPUsSelected = new SpinnerCell(0, numCpus);
       SpinnerCell spinnerCell = (SpinnerCell) cellCPUsSelected;
       spinnerCell.addChangeListener(new ProcessorTableRowChangeListener(this));
-      spinnerCell.setValue(1);
+      spinnerCell.setValue(DEFAULT_CPUS_SELECTED);
       spinnerCell.setDisabledValue(0);
     }
     else {
@@ -195,9 +255,6 @@ final class ProcessorTableRow {
   }
 
   private void setSelected(boolean selected) {
-    if (selected) {
-      cellRestarts.setError(false);
-    }
     if (cellCPUsSelected instanceof SpinnerCell) {
       SpinnerCell cell = (SpinnerCell) cellCPUsSelected;
       cell.setEnabled(selected);
@@ -390,6 +447,10 @@ final class ProcessorTableRow {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.13  2005/09/10 01:55:15  sueh
+ * <p> bug# 532 Added clearFailureReason() so that the failure reason can be
+ * <p> cleared when a new connection to the computer is attempted.
+ * <p>
  * <p> Revision 1.12  2005/09/09 21:47:55  sueh
  * <p> bug# 532 Passed reason string to clearLoadAverage().
  * <p>
