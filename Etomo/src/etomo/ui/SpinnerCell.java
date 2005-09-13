@@ -43,6 +43,9 @@ class SpinnerCell extends InputCell {
   }
 
   void setEnabled(boolean enabled) {
+    if (this.enabled == enabled) {
+      return;
+    }
     super.setEnabled(enabled);
     if (!disabledValue.isNull()) {
       if (enabled) {
@@ -112,6 +115,9 @@ class SpinnerCell extends InputCell {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.5  2005/08/04 20:19:46  sueh
+ * <p> bug# 532 added getWidth().
+ * <p>
  * <p> Revision 1.4  2005/07/29 19:48:02  sueh
  * <p> bug# 692 Changed ConstEtomoNumber.getInteger() to getInt.
  * <p>
