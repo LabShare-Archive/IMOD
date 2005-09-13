@@ -39,12 +39,32 @@ Once you have set a property, the <B>Last</B> button is enabled so
 that you can conveniently apply the same change to other items, for
 example points in a corresponding position on another contour.
 <P>
+If the rubberband is on in the Zap window and positioned over the
+current contour, then pressing a <B>Set</B> button will apply the
+property change to all the points and line segments within the
+rubberband.  This feature should 
+make it easy to change several properties in tandem, and to apply
+similar changes on successive sections.  If any of the included points
+already has this property set, then those changes will be cleared out
+first, as if the <B>Clear</B> button were pressed for every point in
+the range.
+<P>
 Most property changes will show up immediately in the image or model
-view windows.  However, some of the properties are designed to be
+view windows.  However, properties that affect a mesh display will
+have an effect only after being
 incorporated into the mesh, and you will not see any change in the
-display of the mesh until the model is saved, remeshed with imodmesh,
-and reloaded.  Indeed, even that won't do any good until imodmesh is
-modified to incorporate these changes into the mesh!
+display of the mesh until the model is saved, remeshed with 
+<A HREF = "../man/imodmesh.html">Imodmesh</A>,
+and reloaded.  Changes in surface properties are a potential exception
+to this rule.  Ordinarily, <A HREF="../man/imodmesh.html">Imodmesh</A>
+encodes surface information into the mesh
+just like the lower levels of information.  However, if surfaces are
+meshed separately with the <B>-S</B> option to 
+<A HREF = "../man/imodmesh.html">Imodmesh</A>, then surface
+properties are not encoded in the mesh.  Instead, they are applied
+during model display, because in this case each mesh can be identified
+by surface number.  As a result, surface properties can be changed
+dynamically and visualized immediately.
 <P>
 A final general note before descriptions of individual properties: the
 ability to make these fine grained changes in the model represents a
@@ -52,7 +72,7 @@ big change in the potential content of IMOD models.  Many programs
 outside of 3dmod will ignore, discard, or garble this information
 until they are modified to handle it properly.  Even some operations
 within 3dmod will not deal with the fine grained data correctly,
-notably sorting of contours and points, and use of the line tracker.
+notably sorting of points and use of the line tracker.
 <UL>
 <LI><B>Line color</B> is the color of lines in image and model views,
 and the default color for mesh displays in model view.  Pressing the
@@ -77,13 +97,19 @@ default values are set in the 3dmod Object Edit window.
 <LI><B>3D line width</B> governs the width of lines displayed in the
 model view.
 <LI><B>Gap to next point</B> introduces an opening in the contour after
-the current point, so that contours can have multiple openings.  When
+the current point, so that contours can have multiple openings.  These
+gaps are introduced into the mesh when 
+<A HREF = "../man/imodmesh.html">Imodmesh</A> is run on the model. When
 contour or surface properties are being shown, this button mutates to
 <B>Turn off drawing</B>, which lets you turn off an individual contour or
 surface.
-<LI><B>Mesh connection #</B> will be used to force particular points
+<LI><B>Mesh connection #</B> can be used to force particular points
 in adjacent contours to be connected in a mesh, such as the points at
-the start of a gap.  The points to be connected would be assigned the
-same unique connection number.
+the start of a gap.  The points to be connected need to be assigned the
+same unique connection number.  It may be necessary to connect three
+points rather than two to guarantee that a gap connects correctly
+between contours.  If there are more than three points with the same
+connection number, points after the third one will be silently ignored
+by <A HREF = "../man/imodmesh.html">Imodmesh</A>.
 <P>
 <A HREF="index.html">Help Index<A>
