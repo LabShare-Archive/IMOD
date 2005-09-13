@@ -15,6 +15,7 @@ import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
 
 import etomo.BaseManager;
+import etomo.EtomoDirector;
 import etomo.comscript.ProcesschunksParam;
 import etomo.comscript.SplittiltParam;
 import etomo.process.LoadAverageMonitor;
@@ -74,6 +75,7 @@ public final class ParallelPanel implements ParallelProgressDisplay, Expandable,
     //set listeners
     btnResume.addActionListener(actionListener);
     btnPause.addActionListener(actionListener);
+    btnSaveDefaults.addActionListener(actionListener);
     //panels
     rootPanel = new JPanel();
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
@@ -117,6 +119,7 @@ public final class ParallelPanel implements ParallelProgressDisplay, Expandable,
     btnPause.setEnabled(pauseEnabled);
     manager.getMainPanel().setParallelProgressDisplay(this, axisID);
     processorTable.setRestartsError(ProcesschunksParam.DROP_VALUE);
+    EtomoDirector.getInstance().loadPreferences(processorTable, axisID);
   }
   
   final void start() {
@@ -175,6 +178,9 @@ public final class ParallelPanel implements ParallelProgressDisplay, Expandable,
     }
     else if (command == btnPause.getText()) {
       manager.pause(axisID);
+    }
+    else if (command == btnSaveDefaults.getText()) {
+      manager.savePreferences(axisID, processorTable);
     }
   }
 
@@ -276,6 +282,10 @@ public final class ParallelPanel implements ParallelProgressDisplay, Expandable,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.14  2005/09/10 01:54:49  sueh
+ * <p> bug# 532 Added clearFailureReason() so that the failure reason can be
+ * <p> cleared when a new connection to the computer is attempted.
+ * <p>
  * <p> Revision 1.13  2005/09/09 21:47:17  sueh
  * <p> bug# 532 moved call to clearLoadAverage() to msgLoadAverageFailed().
  * <p>
