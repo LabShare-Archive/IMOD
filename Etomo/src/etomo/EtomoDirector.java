@@ -5,6 +5,7 @@ import java.awt.Point;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 
 import javax.swing.ToolTipManager;
 import javax.swing.UIManager;
@@ -44,6 +45,9 @@ import etomo.util.Utilities;
  * 
  * <p>
  * $Log$
+ * Revision 1.31  2005/09/13 00:27:50  sueh
+ * bug# 532 Added timestamp option.
+ *
  * Revision 1.30  2005/09/13 00:14:15  sueh
  * bug# 532 Added --memory option to display memory usage.
  *
@@ -271,6 +275,7 @@ public class EtomoDirector {
   private boolean selfTest = false;
   private boolean newstuff = false;
   private boolean displayMemory = false;
+  private int displayMemoryInterval = 0;
   private boolean timestamp = false;
   private int newstuffNum = 0;
   private UniqueHashedArray managerList = null;
@@ -286,6 +291,7 @@ public class EtomoDirector {
   private SettingsDialog settingsDialog = null;
   private boolean outOfMemoryMessage = false;
   private String originalUserDir = null;
+  private MemoryThread memoryThread = null;
 
   public static void main(String[] args) {
     createInstance(args);
@@ -458,6 +464,8 @@ public class EtomoDirector {
     }
     //  Set the user preferences
     setUserPreferences();
+    memoryThread = new MemoryThread();
+    new Thread(memoryThread).start();
   }
 
   /**
@@ -659,6 +667,7 @@ public class EtomoDirector {
    * @return
    */
   public boolean exitProgram(AxisID axisID) {
+    memoryThread.stop = true;
     try {
       while (managerList.size() != 0) {
         if (!closeCurrentManager(axisID)) {
@@ -799,6 +808,19 @@ public class EtomoDirector {
       }
       if (args[i].equals("--memory")) {
         displayMemory = true;
+        //--memory can be used alone, or followed by an integer
+        //(displayMemoryInterval).  If displayMemoryInterval is set, then the
+        //memory usage will be sent to etomo_err.log every displayMemoryInterval
+        //minutes.
+        if (i+1 < args.length && !args[i+1].startsWith("--")) {
+          try {
+            displayMemoryInterval = Integer.parseInt(args[++i]);
+          }
+          catch (NumberFormatException e) {
+            displayMemoryInterval = 0;
+            i--;
+          }
+        }
       }
       if (args[i].equals("--timestamp")) {
         timestamp = true;
@@ -1044,4 +1066,26 @@ public class EtomoDirector {
     isAdvanced = state;
   }
 
+  class MemoryThread implements Runnable {
+
+    public boolean stop = false;
+    
+    public void run() {
+      if (!displayMemory || displayMemoryInterval < 1) {
+        return;
+      }
+      try {
+        System.err.println(new Date());
+        EtomoDirector.getInstance().isMemoryAvailable();
+        while (!stop) {
+          Thread.sleep(1000 * 60 * displayMemoryInterval);
+          System.err.println(new Date());
+          EtomoDirector.getInstance().isMemoryAvailable();
+        }
+      }
+      catch (InterruptedException e) {
+        e.printStackTrace();
+      }
+    }
+  }
 }
