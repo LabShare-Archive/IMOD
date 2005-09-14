@@ -160,7 +160,25 @@ class OutputBufferManager implements Runnable {
     }
     return stringArray;
   }
+  
+  final synchronized void drop(Object listenerKey) {
+    if (listenerList == null) {
+      return;
+    }
+    listenerList.remove(listenerKey);
+  }
 }
 /**
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2005/09/10 01:51:08  sueh
+* <p> bug# 532 Changed IntermittentSystemProgram to
+* <p> IntermittentBackgroundProcess.  Made intermittentSystemProgram a child
+* <p> of SystemProgram.  Made OutputBufferManager in independent class
+* <p> instead of being inside SystemProgram.  IntermittentSystemProgram can
+* <p> use OutputBufferManager to do things only necessary for intermittent
+* <p> programs, such as deleting standard output after it is processed,
+* <p> keeping separate lists of standard output for separate monitors, and
+* <p> setting a key phrase in OutputBufferManager so that only useful lines from
+* <p> standard output will be saved.
+* <p> </p>
 */

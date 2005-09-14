@@ -133,6 +133,7 @@ public class IntermittentBackgroundProcess implements Runnable {
     if (monitors.size() == 0) {
       stopped = true;
     }
+    program.msgDroppedMonitor(monitor);
   }
   
   final boolean isStopped() {
@@ -153,10 +154,10 @@ public class IntermittentBackgroundProcess implements Runnable {
     String intermittentCommand = command.getIntermittentCommand();
     try {
       //see load average requests while the program is not stopped and this
-      //
+      //program is the same as the most recent program run
       while (!stopped && localProgram == program) {
         localProgram.setCurrentStdInput(intermittentCommand);
-        if (monitors != null) {
+        if (command.notifySentIntermittentCommand() && monitors != null) {
           for (int i = 0; i < monitors.size(); i++) {
             ((IntermittentProcessMonitor) monitors.get(i)).msgSentIntermittentCommand(command);
           }
@@ -186,7 +187,9 @@ public class IntermittentBackgroundProcess implements Runnable {
   }
   
   final String[] getStdOutput(IntermittentProcessMonitor monitor) {
-    if (program == null) {
+    //don't get output for a stopped monitor because this would make
+    //OutputBufferManager start saving output for the monitor
+    if (program == null || monitors == null || !monitors.containsKey(monitor)) {
       return null;
     }
     return program.getStdOutput(monitor);
@@ -206,5 +209,14 @@ public class IntermittentBackgroundProcess implements Runnable {
 
 }
 /**
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2005/09/10 01:48:53  sueh
+* <p> bug# 532 Changed IntermittentSystemProgram to
+* <p> IntermittentBackgroundProcess.  Made intermittentSystemProgram a child
+* <p> of SystemProgram.  Made OutputBufferManager in independent class
+* <p> instead of being inside SystemProgram.  IntermittentSystemProgram can
+* <p> use OutputBufferManager to do things only necessary for intermittent
+* <p> programs, such as deleting standard output after it is processed and
+* <p> keeping separate lists of standard output for separate monitors.
+* <p> </p>
 */

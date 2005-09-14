@@ -51,9 +51,17 @@ public class IntermittentSystemProgram extends SystemProgram {
     String[] stdOutputArray  = stdout.get(monitor);
     return stdOutputArray;
   }
+  
+  public void msgDroppedMonitor(IntermittentProcessMonitor monitor) {
+    stdout.drop(monitor);
+  }
 }
 /**
 * <p> $Log$
+* <p> Revision 1.12  2005/09/10 02:12:40  sueh
+* <p> bug# 532 Handling stderr differently from stdout.  Stderr does not filter on
+* <p> key phrase.
+* <p>
 * <p> Revision 1.11  2005/09/10 01:49:18  sueh
 * <p> bug# 532 Changed IntermittentSystemProgram to
 * <p> IntermittentBackgroundProcess.  Made intermittentSystemProgram a child
