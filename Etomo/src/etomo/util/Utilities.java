@@ -12,6 +12,9 @@
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.29  2005/09/13 00:38:44  sueh
+ * <p> $bug# 532 call isDebug() in isTimestamp().
+ * <p> $
  * <p> $Revision 3.28  2005/09/13 00:28:36  sueh
  * <p> $Prevent logging timestamp unless either the debug or timestamp option is
  * <p> $on.
@@ -709,6 +712,11 @@ public class Utilities {
     buffer.append("at " + getTimestamp());
     System.err.println(buffer);
   }
+  
+  public static void timestamp() {
+    System.err.println("TIMESTAMP:  " + getTimestamp());
+  }
+
 
   public static boolean isDebug() {
     if (!retrievedDebug) {
@@ -741,7 +749,7 @@ public class Utilities {
     startTime = new Date().getTime();
   }
 
-  public static String getTimestamp() {
+  private static String getTimestamp() {
     return timestampFormat.format((new Date().getTime() - startTime) / 1000.0);
   }
 
