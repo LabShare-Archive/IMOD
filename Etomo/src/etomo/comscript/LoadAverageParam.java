@@ -88,6 +88,10 @@ public class LoadAverageParam implements IntermittentCommand {
     }
   }
   
+  public boolean notifySentIntermittentCommand() {
+    return true;
+  }
+  
   private final void buildIntermittentCommand() {
     intermittentCommand = "w";
   }
@@ -102,6 +106,13 @@ public class LoadAverageParam implements IntermittentCommand {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.3  2005/09/09 21:21:01  sueh
+* <p> bug# 532 Made LoadAverageParam an n'ton (one for each computer) so
+* <p> that there aren't IntermittentSystemPrograms then computers.  This allows
+* <p> IntermittentSystemProgram to be used for other things and conforms to
+* <p> it definition of having one instance per IntermittentCommand, instead of
+* <p> one instance per computer.
+* <p>
 * <p> Revision 1.2  2005/08/24 00:19:36  sueh
 * <p> bug #532 Added getEndCommand().  The exit command used in
 * <p> IntermittentSystemProgram should be generic.
