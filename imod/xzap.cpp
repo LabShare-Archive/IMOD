@@ -99,6 +99,11 @@ static void setControlAndLimits(ZapStruct *zap);
 static void zapToggleRubberband(ZapStruct *zap);
 static void zapBandImageToMouse(ZapStruct *zap, int ifclip); 
 static void zapBandMouseToImage(ZapStruct *zap, int ifclip);
+static void montageSnapshot(ZapStruct *zap);
+static void getMontageShifts(ZapStruct *zap, int factor, int imStart, 
+                             int border, int imSize, int winSize,
+                             int &transStart, int &transDelta, int &copyDelta,
+                             int &fullSize);
 
 static int dragRegisterSize = 10;
 
@@ -1054,6 +1059,13 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
   case Qt::Key_S:
     if (shifted || 
         (event->state() & Qt::ControlButton)){
+
+      // Take a montage snapshot if selected and no rubberband is on
+      if (!shifted && !zap->rubberband && imcGetMontageFactor() > 1) {
+        montageSnapshot(zap);
+        handled = 1;
+        break;
+      }
       zapDraw(zap);
       limits = NULL;
       if (zap->rubberband) {
@@ -2899,6 +2911,100 @@ int zapRubberbandCoords(float &rbX0, float &rbX1, float &rbY0, float &rbY1)
   return 0;
 }
 
+// Take a snapshot by montaging at higher zoom
+static void montageSnapshot(ZapStruct *zap)
+{
+  int ix, iy, xFullSize, yFullSize, xTransStart, yTransStart, xTransDelta;
+  int yTransDelta, xCopyDelta, yCopyDelta, xTransSave, yTransSave;
+  int limits[4];
+  unsigned char *framePix, *fullPix, **linePtrs;
+  double zoomSave;
+  char fname[256];
+  int fileno = 0;
+  int factor = imcGetMontageFactor();
+
+  // Get coordinates and offsets and buffers
+  setAreaLimits(zap);
+  getMontageShifts(zap, factor, zap->xstart, zap->xborder,
+                   zap->vi->xsize, zap->winx,
+                   xTransStart, xTransDelta, xCopyDelta, xFullSize);
+  getMontageShifts(zap, factor, zap->ystart, zap->yborder, 
+                   zap->vi->ysize, zap->winy,
+                   yTransStart, yTransDelta, yCopyDelta, yFullSize);
+  framePix = (unsigned char *)malloc(4 * zap->winx * zap->winy);
+  fullPix = (unsigned char *)malloc(4 * xFullSize * yFullSize);
+  linePtrs = (unsigned char **)malloc(yFullSize * sizeof(unsigned char *));
+  if (!framePix || !fullPix || !linePtrs) {
+    if (framePix)
+      free(framePix);
+    if (fullPix)
+      free(fullPix);
+    if (linePtrs)
+      free(linePtrs);
+    wprint("\aFailed to get memory for snapshot buffers.\n");
+    return;
+  }
+
+  // Save translations and loop on frames, getting pixels and copying them
+  xTransSave = zap->xtrans;
+  yTransSave = zap->ytrans;
+  zoomSave = zap->zoom;
+  zap->zoom *= factor;
+  for (iy = 0; iy < factor; iy++) {
+    for (ix = 0; ix < factor; ix++) {
+      zap->xtrans = -(xTransStart + ix * xTransDelta);
+      zap->ytrans = -(yTransStart + iy * yTransDelta);
+      zapDraw(zap);
+      glReadPixels(0, 0, zap->winx, zap->winy, GL_RGBA, GL_UNSIGNED_BYTE, 
+                   framePix);
+      glFlush();
+      memreccpy(fullPix, framePix, zap->winx, zap->winy, 4,
+                xFullSize - zap->winx, ix * xCopyDelta, iy * yCopyDelta,
+                0, 0, 0);
+    }
+  }
+
+  // Save the image then restore display
+  for (iy = 0; iy < yFullSize; iy++)
+    linePtrs[iy] = fullPix + 4 * xFullSize * iy;
+  limits[0] = limits[1] = 0;
+  limits[2] = xFullSize;
+  limits[3] = yFullSize;
+  b3dGetSnapshotName(fname, "zap", SnapShot_TIF, 3, fileno);
+  imodPrintStderr("3dmod: Saving zap montage to %s", fname);
+  b3dSnapshot_TIF(fname, 4, limits, linePtrs);
+  imodPuts("");
+
+  zap->xtrans = xTransSave;
+  zap->ytrans = yTransSave;
+  zap->zoom = zoomSave;
+  zapDraw(zap);
+    
+  free(framePix);
+  free(fullPix);
+  free(linePtrs);
+}
+
+// Compute shifts and increments for the montage snapshot
+static void getMontageShifts(ZapStruct *zap, int factor, int imStart, 
+                             int border, int imSize, int winSize,
+                             int &transStart, int &transDelta, int &copyDelta,
+                             int &fullSize)
+{
+  int inWin, overlap, imEnd;
+  imEnd = B3DMIN(imStart + (int)((winSize - border)/ zap->zoom), imSize);
+  inWin = (int)(winSize / (zap->zoom * factor));
+  overlap = (factor * inWin + imStart - imEnd) / (factor - 1);
+  transDelta = inWin - overlap;
+  transStart = imStart + (inWin - imSize) / 2;
+  copyDelta = zap->zoom * factor * transDelta;
+  fullSize = (factor - 1) * copyDelta + winSize;
+  if (imodDebug('z'))
+    imodPrintStderr("im %d - %d  bord %d win %d  inwin %d overlap %d start %d delta %d  copy %d  "
+                    "full %d\n", imStart, imEnd, border, winSize, inWin, overlap, transStart, 
+                    transDelta, copyDelta, fullSize);
+}
+
 /****************************************************************************/
 /* drawing routines.                                                        */
 
@@ -3620,6 +3726,9 @@ static int zapPointVisable(ZapStruct *zap, Ipoint *pnt)
 
 /*
 $Log$
+Revision 4.73  2005/09/12 14:24:06  mast
+Added function to get rubber band coordinates
+
 Revision 4.72  2005/09/11 19:29:23  mast
 Added fine-grained display properties to ghost display
 
