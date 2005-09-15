@@ -43,6 +43,7 @@ static int movieCount = 0;
 static int starterCtrlID;    /* Ctrl ID of window that started movie */
 static int specialAxis = -1;      /* Axis on which to use special limits */
 static int movieCurrent, movieStart, movieLast;
+static int montageFac;
 
 #define BASEINT 50.0
 #define RATEFAC 1.25992
@@ -167,6 +168,11 @@ float imcGetInterval()
   return realint;
 }
 
+int imcGetMontageFactor()
+{
+  return montageFac;
+}
+
 void imcSetSpecialLimits(int axis, int inStart, int inEnd)
 {
   specialAxis = axis;
@@ -236,6 +242,7 @@ void imodMovieConDialog(ImodView *vw)
 
   view = vw;
   imcResetAll(view);
+  montageFac = 0;
 
   dia = new MovieController(imodDialogManager.parent(IMOD_DIALOG), NULL, 
 			    Qt::WType_TopLevel | Qt::WDestructiveClose);
@@ -348,8 +355,16 @@ void imcIncrementRate(int dir)
   imcSetMovierate(view, view->movierate + dir);
 }
 
+void imcSetMontageFactor(int val)
+{
+  montageFac = val;
+}
+
 /*
 $Log$
+Revision 4.6  2004/11/29 19:25:21  mast
+Changes to do QImage instead of RGB snapshots
+
 Revision 4.5  2003/12/18 22:43:50  mast
 Changes for keeping track of which window started movie and for doing
 movie from current point

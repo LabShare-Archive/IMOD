@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.3  2004/11/29 19:25:21  mast
+Changes to do QImage instead of RGB snapshots
+
 Revision 4.2  2003/12/18 22:44:23  mast
 New functions for starting at current point and slicer movies
 
@@ -34,6 +37,7 @@ int imcGetIncrement(ImodView *vw, int xyzt);
 void imcGetStartEnd(ImodView *vw, int xyzt, int *stout, int *endout);
 void imodMovieConDialog(ImodView *vw);
 float imcGetInterval(void);
+int imcGetMontageFactor();
 void imcSetMovierate(ImodView *vw, int newrate);
 void imcResetAll(ImodView *vw);
 void imcUpdateDialog();
@@ -56,6 +60,6 @@ void imcStartHereSelected(int which);
 void imcSnapSelected(int which);;
 void imcRateEntered(float value);
 void imcIncrementRate(int dir);
-
+void imcSetMontageFactor(int val);
 
 #endif
