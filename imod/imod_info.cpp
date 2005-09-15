@@ -388,6 +388,8 @@ void InfoWindow::openSelectedWindows(char *keys)
     return;
   if (strchr(keys, 'G'))
     editSlot(EDIT_MENU_GRAIN);
+  if (strchr(keys, 'n'))
+    editSlot(EDIT_MENU_MOVIES);
   if (strchr(keys, 't'))
     editObjectSlot(EOBJECT_MENU_TYPE);
   if (strchr(keys, 'l'))
@@ -523,6 +525,9 @@ static char *truncate_name(char *name, int limit)
 
 /*
     $Log$
+    Revision 4.31  2005/06/26 19:37:06  mast
+    cleanup
+
     Revision 4.30  2005/02/12 01:29:33  mast
     Prevented image processing and reload from being opened from menus when
     there is no image data; prevented these and other windows from being
