@@ -4,7 +4,9 @@
 <H3>Image Movie Control</H3>
 This window allows you to control the starting and ending 
 coordinates within which a movie will run, the increment between 
-successive frames, and the frame rate.
+successive frames, and the frame rate.  There are also controls for
+automatically taking snapshots through the range of movie, and for
+taking a high-resolution (montaged) snapshot of the Zap window.
 <P>
 Use the axis radio buttons to select whether the sliders will adjust 
 the start, end, and increment for X, Y, Z or Time.  The initial 
@@ -57,6 +59,16 @@ will not give useful results.
 If you stop the movie before it is done, 
 then another mouse click in that or a different window will 
 start a completely new movie.
-
+<P>
+If <B>Zap montage by</B> is selected, then a TIFF snapshot of a Zap
+window (via Ctrl-S) will be taken as a montage of frames at a higher zoom, as
+selected by the spin box.  The montage is assembled in memory and
+saved as a single TIFF image.  In this way, you can get a snapshot
+bigger than the size of the screen.  You may need to set the thickness of model
+lines so that they will display appropriately at the higher zoom, and
+you need to turn on high-resolution display in the zap window to get
+an interpolated image.  Just the area of the image showing in the Zap
+window will be captured.  The rubberband must be off, otherwise an
+ordinary snaphot of the enclosed subarea will be taken.
 <P>
 <A HREF="index.html">Help Index<A>

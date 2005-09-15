@@ -25,6 +25,7 @@ void MovieController::init()
     QToolTip::add(mSliders->getSlider(2), 
 		  "Set spacing between sections shown during movie");
     setNonTifLabel();
+    montageSpinBox->setEnabled(false);
 }
 
 void MovieController::setFontDependentWidths()
@@ -77,6 +78,17 @@ void MovieController::extentSelected( int which )
 void MovieController::startHereSelected( int which )
 {
     imcStartHereSelected(which);
+}
+
+void MovieController::montageToggled(int state )
+{
+    montageSpinBox->setEnabled(state != 0);
+    imcSetMontageFactor(state ? montageSpinBox->value() : 0);
+}
+
+void MovieController::newMontageValue( int value )
+{
+    imcSetMontageFactor(value);
 }
 
 void MovieController::donePressed()

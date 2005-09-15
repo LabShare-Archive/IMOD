@@ -9,7 +9,7 @@
             <x>0</x>
             <y>0</y>
             <width>200</width>
-            <height>309</height>
+            <height>328</height>
         </rect>
     </property>
     <property name="caption">
@@ -378,6 +378,44 @@
                 </widget>
             </hbox>
         </widget>
+        <widget class="QLayoutWidget">
+            <property name="name">
+                <cstring>layout4</cstring>
+            </property>
+            <hbox>
+                <property name="name">
+                    <cstring>unnamed</cstring>
+                </property>
+                <widget class="QCheckBox">
+                    <property name="name">
+                        <cstring>montageCheckBox</cstring>
+                    </property>
+                    <property name="text">
+                        <string>Zap montage by</string>
+                    </property>
+                    <property name="toolTip" stdset="0">
+                        <string>Make TIFF snapshot of Zap window that is montage of zoomed image</string>
+                    </property>
+                </widget>
+                <widget class="QSpinBox">
+                    <property name="name">
+                        <cstring>montageSpinBox</cstring>
+                    </property>
+                    <property name="focusPolicy">
+                        <enum>ClickFocus</enum>
+                    </property>
+                    <property name="maxValue">
+                        <number>10</number>
+                    </property>
+                    <property name="minValue">
+                        <number>2</number>
+                    </property>
+                    <property name="toolTip" stdset="0">
+                        <string>Factor to zoom by in composing montage snapshot</string>
+                    </property>
+                </widget>
+            </hbox>
+        </widget>
         <widget class="QFrame">
             <property name="name">
                 <cstring>Frame16</cstring>
@@ -549,6 +587,18 @@
         <receiver>MovieController</receiver>
         <slot>startHereSelected(int)</slot>
     </connection>
+    <connection>
+        <sender>montageCheckBox</sender>
+        <signal>stateChanged(int)</signal>
+        <receiver>MovieController</receiver>
+        <slot>montageToggled(int)</slot>
+    </connection>
+    <connection>
+        <sender>montageSpinBox</sender>
+        <signal>valueChanged(int)</signal>
+        <receiver>MovieController</receiver>
+        <slot>newMontageValue(int)</slot>
+    </connection>
 </connections>
 <includes>
     <include location="global" impldecl="in implementation">qslider.h</include>
@@ -576,6 +626,8 @@
     <slot>snapshotSelected( int which )</slot>
     <slot>extentSelected( int which )</slot>
     <slot>startHereSelected( int which )</slot>
+    <slot>montageToggled( int state )</slot>
+    <slot>newMontageValue( int value )</slot>
     <slot>donePressed()</slot>
     <slot>helpPressed()</slot>
     <slot>resetPressed()</slot>
