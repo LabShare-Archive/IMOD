@@ -1,6 +1,7 @@
 package etomo.comscript;
 
 import etomo.EtomoDirector;
+import etomo.type.ProcessName;
 import etomo.ui.TomogramCombinationDialog;
 
 /**
@@ -19,6 +20,9 @@ import etomo.ui.TomogramCombinationDialog;
 * @version $$Revision$$
 *
 * <p> $Log$
+* <p> Revision 1.6  2004/11/19 22:39:07  sueh
+* <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+* <p>
 * <p> Revision 1.5.2.2  2004/10/08 15:45:16  sueh
 * <p> bug# 520 Since EtomoDirector is a singleton, made all functions and
 * <p> member variables non-static.
@@ -72,13 +76,9 @@ public class CombineComscriptState implements ComscriptState {
   public static final String COMSCRIPT_NAME = "combine";
   public static final String COMSCRIPT_WATCHED_FILE = "combine.out";
   
-  private static final String COMMANDS[] =
-    {
-      "solvematch",
-      "matchvol1",
-      "patchcorr",
-      "matchorwarp",
-      "volcombine" };
+  private static final String COMMANDS[] = { ProcessName.SOLVEMATCH.toString(),
+      ProcessName.MATCHVOL1.toString(), ProcessName.PATCHCORR.toString(),
+      ProcessName.MATCHORWARP.toString(), ProcessName.VOLCOMBINE.toString() };
   
   private static final String WATCHED_FILES[] =
     {
