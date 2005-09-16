@@ -3185,6 +3185,7 @@ public class ApplicationManager extends BaseManager {
           .openMessageDialog(
               "Can not update tilt?.com without an active tomogram generation dialog",
               "Program logic error", axisID);
+      new IllegalStateException("intermittent bug").printStackTrace();
       return;
     }
     tomogramGenerationDialog.stopParallelPanel();
@@ -3264,6 +3265,7 @@ public class ApplicationManager extends BaseManager {
           .openMessageDialog(
               "Can not update tilt?.com without an active tomogram generation dialog",
               "Program logic error", axisID);
+      new IllegalStateException("intermittent bug").printStackTrace();
       return false;
     }
     try {
@@ -4381,10 +4383,12 @@ public class ApplicationManager extends BaseManager {
     //set first command to run
     combineComscriptState.setStartCommand(startCommand, comScriptMgr);
     //set last command to run:
-    //last command is based on the "don't run volcombine checkbox" and whether
-    //the "Restart at volcombine" was pressed
-    if (startCommand == CombineComscriptState.VOLCOMBINE_INDEX
-        || tomogramCombinationDialog.isRunVolcombine()) {
+    //Volcombine is the last command to run in the combine script if parallel
+    //processing is not used and either the the "stop before running volcombine"
+    //checkbox is off or "Restart at volcombine" was pressed.
+    if (!tomogramCombinationDialog.isParallelProcessSelected()
+        && (startCommand == CombineComscriptState.VOLCOMBINE_INDEX || tomogramCombinationDialog
+            .isRunVolcombine())) {
       combineComscriptState.setEndCommand(
           CombineComscriptState.VOLCOMBINE_INDEX, comScriptMgr);
     }
@@ -4431,6 +4435,7 @@ public class ApplicationManager extends BaseManager {
    * Initiate the combine process from the beginning
    */
   public void combine() {
+    resetNextProcess(AxisID.ONLY);
     //  FIXME: what are the necessary updates
     //  Update the scripts from the dialog panel
     updateCombineParams();
@@ -4455,13 +4460,16 @@ public class ApplicationManager extends BaseManager {
     mainPanel.setTomogramCombinationState(ProcessState.INPROGRESS);
     warnStaleFile(ImodManager.PATCH_VECTOR_MODEL_KEY, true);
     //  Set the next process to execute when this is finished
-    //nextProcess = "matchvol1";
+    if (tomogramCombinationDialog.isParallelProcessSelected()
+        && tomogramCombinationDialog.isRunVolcombine()) {
+      setNextProcess(AxisID.ONLY, SplitcombineParam.COMMAND_NAME);
+    }
     String threadName;
     try {
-      //threadName = processMgr.solvematch();
       threadName = processMgr.combine(combineComscriptState);
     }
     catch (SystemProcessException e) {
+      resetNextProcess(AxisID.ONLY);
       e.printStackTrace();
       String[] message = new String[2];
       message[0] = "Can not execute combine.com";
@@ -4484,6 +4492,7 @@ public class ApplicationManager extends BaseManager {
    * Execute the matchvol1 com script and put patchcorr in the execution queue
    */
   public void matchvol1Combine() {
+    resetNextProcess(AxisID.ONLY);
     //  FIXME: what are the necessary updates
     //  Update the scripts from the dialog panel
     updateCombineParams();
@@ -4516,12 +4525,16 @@ public class ApplicationManager extends BaseManager {
       return;
     }
     //  Set the next process to execute when this is finished
-    //nextProcess = "patchcorr";
+    if (tomogramCombinationDialog.isParallelProcessSelected()
+        && tomogramCombinationDialog.isRunVolcombine()) {
+      setNextProcess(AxisID.ONLY, SplitcombineParam.COMMAND_NAME);
+    }
     String threadName;
     try {
       threadName = processMgr.combine(combineComscriptState);
     }
     catch (SystemProcessException e) {
+      resetNextProcess(AxisID.ONLY);
       e.printStackTrace();
       String[] message = new String[2];
       message[0] = "Can not execute combine.com";
@@ -4538,6 +4551,7 @@ public class ApplicationManager extends BaseManager {
    * Initiate the combine process from patchcorr step
    */
   public void patchcorrCombine() {
+    resetNextProcess(AxisID.ONLY);
     updateCombineParams();
     CombineComscriptState combineComscriptState = updateCombineComscriptState(CombineComscriptState.PATCHCORR_INDEX);
     if (combineComscriptState == null) {
@@ -4557,12 +4571,16 @@ public class ApplicationManager extends BaseManager {
     mainPanel.setTomogramCombinationState(ProcessState.INPROGRESS);
     warnStaleFile(ImodManager.PATCH_VECTOR_MODEL_KEY, true);
     //  Set the next process to execute when this is finished
-    //nextProcess = "matchorwarp";
+    if (tomogramCombinationDialog.isParallelProcessSelected()
+        && tomogramCombinationDialog.isRunVolcombine()) {
+      setNextProcess(AxisID.ONLY, SplitcombineParam.COMMAND_NAME);
+    }
     String threadName;
     try {
       threadName = processMgr.combine(combineComscriptState);
     }
     catch (SystemProcessException e) {
+      resetNextProcess(AxisID.ONLY);
       e.printStackTrace();
       String[] message = new String[2];
       message[0] = "Can not execute patchcorr.com";
@@ -4615,6 +4633,7 @@ public class ApplicationManager extends BaseManager {
    * Initiate the combine process from matchorwarp step
    */
   public void matchorwarpCombine() {
+    resetNextProcess(AxisID.ONLY);
     CombineComscriptState combineComscriptState = updateCombineComscriptState(CombineComscriptState.MATCHORWARP_INDEX);
     if (combineComscriptState == null) {
       return;
@@ -4627,14 +4646,17 @@ public class ApplicationManager extends BaseManager {
     }
     processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
     mainPanel.setTomogramCombinationState(ProcessState.INPROGRESS);
-
     //  Set the next process to execute when this is finished
-    //nextProcess = next;
+    if (tomogramCombinationDialog.isParallelProcessSelected()
+        && tomogramCombinationDialog.isRunVolcombine()) {
+      setNextProcess(AxisID.ONLY, SplitcombineParam.COMMAND_NAME);
+    }
     String threadName;
     try {
       threadName = processMgr.combine(combineComscriptState);
     }
     catch (SystemProcessException e) {
+      resetNextProcess(AxisID.ONLY);
       e.printStackTrace();
       String[] message = new String[2];
       message[0] = "Can not execute combine.com";
@@ -5109,23 +5131,27 @@ public class ApplicationManager extends BaseManager {
    * Start the next process specified by the nextProcess string
    */
   protected void startNextProcess(AxisID axisID) {
-    if (getNextProcess(axisID).equals("tilt")) {
+    String nextProcess = getNextProcess(axisID);
+    if (nextProcess.equals("tilt")) {
       tiltProcess(axisID);
     }
-    else if (getNextProcess(axisID).equals("checkUpdateFiducialModel")) {
+    else if (nextProcess.equals("checkUpdateFiducialModel")) {
       checkUpdateFiducialModel(axisID);
       return;
     }
-    else if (getNextProcess(axisID).equals(ArchiveorigParam.COMMAND_NAME)) {
+    else if (nextProcess.equals(ArchiveorigParam.COMMAND_NAME)) {
       archiveOriginalStack(AxisID.SECOND);
     }
-    else if (getNextProcess(axisID).equals(
-        ProcesschunksParam.COMMAND_NAME + " " + ProcessName.TILT)) {
+    else if (nextProcess
+        .equals(getNextProcessProcesschunksString(ProcessName.TILT))) {
       processchunksTilt(axisID);
     }
-    else if (getNextProcess(axisID).equals(
-        ProcesschunksParam.COMMAND_NAME + " " + ProcessName.VOLCOMBINE)) {
+    else if (nextProcess
+        .equals(getNextProcessProcesschunksString(ProcessName.VOLCOMBINE))) {
       processchunksVolcombine();
+    }
+    else if (nextProcess.equals(SplitcombineParam.COMMAND_NAME)) {
+      splitcombine();
     }
   }
 
@@ -5606,7 +5632,7 @@ public class ApplicationManager extends BaseManager {
     }
     processTrack.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
     mainPanel.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
-    setNextProcess(axisID, ProcesschunksParam.COMMAND_NAME + " " + ProcessName.TILT);
+    setNextProcess(axisID, getNextProcessProcesschunksString(ProcessName.TILT));
     String threadName;
     try {
       threadName = processMgr.splittilt(param, axisID);
@@ -5644,7 +5670,7 @@ public class ApplicationManager extends BaseManager {
     }
     processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
     mainPanel.setTomogramCombinationState(ProcessState.INPROGRESS);
-    setNextProcess(AxisID.ONLY, ProcesschunksParam.COMMAND_NAME + " " + ProcessName.VOLCOMBINE);
+    setNextProcess(AxisID.ONLY, getNextProcessProcesschunksString(ProcessName.VOLCOMBINE));
     String threadName;
     try {
       threadName = processMgr.splitcombine(param);
@@ -5661,6 +5687,10 @@ public class ApplicationManager extends BaseManager {
     mainPanel
         .startProgressBar("Running " + SplitcombineParam.COMMAND_NAME, AxisID.ONLY);
     return;
+  }
+  
+  private final String getNextProcessProcesschunksString(ProcessName processName) {
+    return ProcesschunksParam.COMMAND_NAME + " " + processName;
   }
 
   
@@ -5685,6 +5715,9 @@ public class ApplicationManager extends BaseManager {
     dialog.getParameters(param);
     processTrack.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
     mainPanel.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
+    if (!param.getResume().is()) {
+      dialog.resetParallelPanel();
+    }
     String threadName;
     try {
       threadName = processMgr.processchunks(axisID, param, dialog
@@ -5707,6 +5740,13 @@ public class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.176  2005/09/16 17:14:07  sueh
+ * <p> bug# 532 Added processchunksTilt() and processchunksVolcombine(), so
+ * <p> startNextProcess() can distinguish between the two processchunks calls.
+ * <p> Stopped passing the dialog to processchunks; getting it in
+ * <p> processchunksTilt() and processchunkVolcombine().  Added functions
+ * <p> updateSplitcombine and splitcombine.
+ * <p>
  * <p> Revision 3.175  2005/09/02 18:51:05  sueh
  * <p> bug# 720 Pass the manager to TrimvolParam instead of propertyUserDir
  * <p> because TrimvolParam is constructed by MetaData before
