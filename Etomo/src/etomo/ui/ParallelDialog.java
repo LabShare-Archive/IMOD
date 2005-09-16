@@ -21,9 +21,13 @@ public interface ParallelDialog {
   public void resume();
   public ParallelProgressDisplay getParallelProgressDisplay();
   public void getParameters(ParallelParam param);
+  public void resetParallelPanel();
 }
 /**
 * <p> $Log$
+* <p> Revision 1.4  2005/09/16 18:10:37  sueh
+* <p> bug# 532 Added getParallelProgressDisplay() and getParameters().
+* <p>
 * <p> Revision 1.3  2005/07/11 23:08:20  sueh
 * <p> bug# 619 Deleted the ParallelDialog class which extends JDialog and was
 * <p> used for showing the parallel panel in a demo because it isn't needed.

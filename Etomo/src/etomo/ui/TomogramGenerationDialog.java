@@ -69,6 +69,10 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.65  2005/09/16 18:20:47  sueh
+ * bug# 532 Implemented changes in ParallelDialog:  changed
+ * getParameters(ProcesschunksParam) to getParameters(ParallelParam).
+ *
  * Revision 3.64  2005/09/01 18:35:42  sueh
  * bug# 532 Getting the parallel panel from the manager.
  *
@@ -1438,6 +1442,10 @@ public class TomogramGenerationDialog extends ProcessDialog
     else {
       run3dmod(command, new Run3dmodMenuOptions());
     }
+  }
+  
+  public final void resetParallelPanel() {
+    parallelPanel.resetResults();
   }
   
   private final void runTilt() {

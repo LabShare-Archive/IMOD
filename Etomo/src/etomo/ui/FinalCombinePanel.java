@@ -55,6 +55,12 @@ import etomo.type.Run3dmodMenuOptions;
  * 
  * <p>
  * $Log$
+ * Revision 3.27  2005/09/16 18:09:54  sueh
+ * bug# 532 Added cbParallelProcess and resume.  Added functions:
+ * resume, getParameters(MetaData),
+ * getParameters(ProcesschunksParam), isParallelProcessSelected,
+ * runVolcombine, and setParameters(ConstMetaData).
+ *
  * Revision 3.26  2005/08/27 22:36:53  sueh
  * bug# 532 Changed Autodoc.get() to getInstance().
  *
@@ -814,7 +820,6 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
         applicationManager.processchunksVolcombine();  
       }
       else {
-        tomogramCombinationDialog.resetParallelPanel();
         applicationManager.splitcombine();
       }
   }
