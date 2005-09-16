@@ -35,6 +35,7 @@ import etomo.comscript.SetParam;
 import etomo.comscript.SolvematchParam;
 import etomo.comscript.SolvematchmodParam;
 import etomo.comscript.SolvematchshiftParam;
+import etomo.comscript.SplitcombineParam;
 import etomo.comscript.SplittiltParam;
 import etomo.comscript.SqueezevolParam;
 import etomo.comscript.TiltParam;
@@ -80,7 +81,7 @@ import etomo.ui.FiducialModelDialog;
 import etomo.ui.FiducialessParams;
 import etomo.ui.MainPanel;
 import etomo.ui.MainTomogramPanel;
-import etomo.ui.ParallelProgressDisplay;
+import etomo.ui.ParallelDialog;
 import etomo.ui.PostProcessingDialog;
 import etomo.ui.PreProcessingDialog;
 import etomo.ui.ProcessDialog;
@@ -3812,7 +3813,7 @@ public class ApplicationManager extends BaseManager {
       }
       // Fill in the dialog box params and set it to the appropriate state
       tomogramCombinationDialog.setCombineParams(combineParams);
-
+      
       // If setupcombine has been run load the com scripts, otherwise disable the
       // apropriate panels in the tomogram combination dialog
       tomogramCombinationDialog.enableCombineTabs(combineScriptsExist());
@@ -3849,6 +3850,10 @@ public class ApplicationManager extends BaseManager {
         updateCombineParams();
       }
     }
+    else {
+      tomogramCombinationDialog.restartDialog();
+    }
+    tomogramCombinationDialog.setParameters(metaData);
     //  Show the process panel
     mainPanel.showProcess(tomogramCombinationDialog.getContainer(),
         AxisID.FIRST);
@@ -4011,6 +4016,7 @@ public class ApplicationManager extends BaseManager {
       // combination dialog box. Since there are multiple pages and scripts
       // associated with the postpone button get the ones that are appropriate
       updateCombineParams();
+      tomogramCombinationDialog.getParameters(metaData);
       if (tomogramCombinationDialog.isCombinePanelEnabled()) {
         if (!updateSolvematchCom()) {
           return;
@@ -5113,8 +5119,13 @@ public class ApplicationManager extends BaseManager {
     else if (getNextProcess(axisID).equals(ArchiveorigParam.COMMAND_NAME)) {
       archiveOriginalStack(AxisID.SECOND);
     }
-    else if (getNextProcess(axisID).equals(ProcesschunksParam.COMMAND_NAME)) {
-      processchunks(axisID);
+    else if (getNextProcess(axisID).equals(
+        ProcesschunksParam.COMMAND_NAME + " " + ProcessName.TILT)) {
+      processchunksTilt(axisID);
+    }
+    else if (getNextProcess(axisID).equals(
+        ProcesschunksParam.COMMAND_NAME + " " + ProcessName.VOLCOMBINE)) {
+      processchunksVolcombine();
     }
   }
 
@@ -5581,26 +5592,24 @@ public class ApplicationManager extends BaseManager {
     return param;
   }
 
-  public boolean splittilt(AxisID axisID,
-      ParallelProgressDisplay parallelProgressDisplay) {
-    return splittilt(axisID, parallelProgressDisplay, false);
+  public void splittilt(AxisID axisID) {
+    splittilt(axisID, false);
   }
 
-  public boolean splittilt(AxisID axisID,
-      ParallelProgressDisplay parallelProgressDisplay, boolean trialMode) {
+  public void splittilt(AxisID axisID, boolean trialMode) {
     if (!updateTiltCom(axisID, !trialMode)) {
-      return false;
+      return;
     }
-    SplittiltParam splittiltParam = updateSplittiltParam(axisID);
-    if (splittiltParam == null) {
-      return false;
+    SplittiltParam param = updateSplittiltParam(axisID);
+    if (param == null) {
+      return;
     }
     processTrack.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
     mainPanel.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
-    setNextProcess(axisID, ProcesschunksParam.COMMAND_NAME);
+    setNextProcess(axisID, ProcesschunksParam.COMMAND_NAME + " " + ProcessName.TILT);
     String threadName;
     try {
-      threadName = processMgr.splittilt(splittiltParam, axisID);
+      threadName = processMgr.splittilt(param, axisID);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
@@ -5608,21 +5617,67 @@ public class ApplicationManager extends BaseManager {
       message[0] = "Can not execute " + SplittiltParam.COMMAND_NAME;
       message[1] = e.getMessage();
       uiHarness.openMessageDialog(message, "Unable to execute command", axisID);
-      return false;
+      return;
     }
     setThreadName(threadName, axisID);
     mainPanel
         .startProgressBar("Running " + SplittiltParam.COMMAND_NAME, axisID);
-    return true;
+    return;
+  }
+  
+  private final SplitcombineParam updateSplitcombineParam() {
+    if (tomogramCombinationDialog == null) {
+      return null;
+    }
+    SplitcombineParam param = new SplitcombineParam();
+    tomogramCombinationDialog.getParameters(param);
+    return param;
+  }
+  
+  public void splitcombine() {
+    if (!updateVolcombineCom()) {
+      return;
+    }
+    SplitcombineParam param = updateSplitcombineParam();
+    if (param == null) {
+      return;
+    }
+    processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
+    mainPanel.setTomogramCombinationState(ProcessState.INPROGRESS);
+    setNextProcess(AxisID.ONLY, ProcesschunksParam.COMMAND_NAME + " " + ProcessName.VOLCOMBINE);
+    String threadName;
+    try {
+      threadName = processMgr.splitcombine(param);
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Can not execute " + SplitcombineParam.COMMAND_NAME;
+      message[1] = e.getMessage();
+      uiHarness.openMessageDialog(message, "Unable to execute command", AxisID.ONLY);
+      return;
+    }
+    setThreadName(threadName, AxisID.ONLY);
+    mainPanel
+        .startProgressBar("Running " + SplitcombineParam.COMMAND_NAME, AxisID.ONLY);
+    return;
+  }
+
+  
+  public final void processchunksTilt(AxisID axisID) {
+    processchunks(axisID, mapGenerationDialog(axisID));
+  }
+  
+  public final void processchunksVolcombine() {
+    processchunks(AxisID.ONLY, tomogramCombinationDialog);
   }
 
   /**
    * Run processchunks.
    * @param axisID
    */
-  public final void processchunks(AxisID axisID) {
+  private final void processchunks(AxisID axisID, ParallelDialog dialog) {
     resetNextProcess(axisID);
-    TomogramGenerationDialog dialog = mapGenerationDialog(axisID);
     if (dialog == null) {
       return;
     }
@@ -5652,6 +5707,11 @@ public class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.175  2005/09/02 18:51:05  sueh
+ * <p> bug# 720 Pass the manager to TrimvolParam instead of propertyUserDir
+ * <p> because TrimvolParam is constructed by MetaData before
+ * <p> propertyUserDir is set.
+ * <p>
  * <p> Revision 3.174  2005/08/25 01:43:45  sueh
  * <p> bug# 688 calling updateBlendmontInXcorr from doneCoarseAlignment to
  * <p> make sure that xcorr is properly updated
