@@ -6,6 +6,7 @@ import java.awt.event.MouseEvent;
 
 import javax.swing.BoxLayout;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -17,13 +18,18 @@ import etomo.comscript.ConstMatchorwarpParam;
 import etomo.comscript.ConstPatchcrawl3DParam;
 import etomo.comscript.ConstSetParam;
 import etomo.comscript.ConstSolvematchParam;
+import etomo.comscript.ParallelParam;
+import etomo.comscript.ProcesschunksParam;
 import etomo.comscript.SetParam;
+import etomo.comscript.SplitcombineParam;
 
 import etomo.comscript.MatchorwarpParam;
 import etomo.comscript.Patchcrawl3DParam;
 import etomo.comscript.SolvematchParam;
 import etomo.type.AxisID;
+import etomo.type.ConstMetaData;
 import etomo.type.DialogType;
+import etomo.type.MetaData;
 
 /**
  * <p>Description: </p>
@@ -38,6 +44,11 @@ import etomo.type.DialogType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.21  2005/08/04 20:17:17  sueh
+ * <p> bug# 532  Centralizing fit window functionality by placing fitting functions
+ * <p> in UIHarness.  Removing packMainWindow from the manager.  Sending
+ * <p> the manager to UIHarness.pack() so that packDialogs() can be called.
+ * <p>
  * <p> Revision 3.20  2005/04/21 20:55:02  sueh
  * <p> bug# 615 Pass axisID to packMainWindow so it can pack only the frame
  * <p> that requires it.
@@ -192,7 +203,7 @@ import etomo.type.DialogType;
  */
 public class TomogramCombinationDialog
   extends ProcessDialog
-  implements ContextMenu {
+  implements ContextMenu, ParallelDialog {
   public static final String rcsid =
     "$Id$";
   public static final String lblSetup = "Setup";
@@ -205,6 +216,8 @@ public class TomogramCombinationDialog
   private InitialCombinePanel pnlInitial;
   private FinalCombinePanel pnlFinal;
   private boolean combinePanelEnabled;
+  private ParallelPanel parallelPanel;
+  private JPanel parallelPanelContainer = new JPanel();
 
   private JTabbedPane tabbedPane = new JTabbedPane();
   /**
@@ -221,10 +234,11 @@ public class TomogramCombinationDialog
     pnlInitial = new InitialCombinePanel(this,  applicationManager);
     pnlFinal = new FinalCombinePanel(this,  applicationManager);
 
+    parallelPanel = applicationManager.getParallelPanel(this, AxisID.ONLY);
     fixRootPanel(rootSize);
 
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
-    
+    rootPanel.add(parallelPanelContainer);
     //  Construct the main panel for this dialog panel
     tabbedPane.add(lblSetup, pnlSetup.getContainer());
     tabbedPane.add(lblInitial, pnlInitial.getContainer());
@@ -246,6 +260,12 @@ public class TomogramCombinationDialog
     updateAdvanced(isAdvanced);
     
     idxLastTab = tabbedPane.getSelectedIndex();
+    restartDialog();
+  }
+  
+  public final void restartDialog() {
+    parallelPanelContainer.add(parallelPanel.getRootPanel());
+    updateParallelProcess();
   }
   
   /**
@@ -284,6 +304,49 @@ public class TomogramCombinationDialog
    */
   public void setSolvematchParams(ConstSolvematchParam solvematchParams) {
     pnlInitial.setSolvematchParams(solvematchParams);
+  }
+  
+  public void resume() {
+    pnlFinal.resume();
+  }
+  
+  public final ParallelProgressDisplay getParallelProgressDisplay() {
+    return parallelPanel;
+  }
+  
+  public final void getParameters(ParallelParam param) {
+    ProcesschunksParam processchunksParam = (ProcesschunksParam) param;
+    pnlFinal.getParameters(processchunksParam);
+    parallelPanel.getParameters(processchunksParam);
+  }
+  
+  final void resetParallelPanel() {
+    parallelPanel.resetResults();
+  }
+  
+  public final void getParameters(MetaData metaData) {
+    pnlFinal.getParameters(metaData);
+  }
+  
+  public final void getParameters(SplitcombineParam param) {
+    pnlSetup.setParameters(param);
+  }
+  
+  public final void setParameters(ConstMetaData metaData) {
+    pnlFinal.setParameters(metaData);
+    updateParallelProcess();
+  }
+  
+  final void updateParallelProcess() {
+    boolean parallelProcess = pnlFinal.isParallelProcessSelected();
+    parallelPanel.setVisible(parallelProcess);
+    if (parallelProcess) {
+      parallelPanel.start();
+    }
+    else {
+      parallelPanel.stop();
+    }
+    UIHarness.INSTANCE.pack(AxisID.ONLY, applicationManager);
   }
   
   /**
