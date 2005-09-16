@@ -1,4 +1,7 @@
 package etomo.ui;
+
+import etomo.comscript.ParallelParam;
+
 /**
 * <p>Description: </p>
 * 
@@ -16,7 +19,15 @@ public interface ParallelDialog {
   public static  final String  rcsid =  "$Id$";
   
   public void resume();
+  public ParallelProgressDisplay getParallelProgressDisplay();
+  public void getParameters(ParallelParam param);
 }
 /**
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.3  2005/07/11 23:08:20  sueh
+* <p> bug# 619 Deleted the ParallelDialog class which extends JDialog and was
+* <p> used for showing the parallel panel in a demo because it isn't needed.
+* <p> Added interface ParallelDialog to provide a generic parent for
+* <p> ParallelPanel.  Gives a generic way to call a resume function.
+* <p> </p>
 */
