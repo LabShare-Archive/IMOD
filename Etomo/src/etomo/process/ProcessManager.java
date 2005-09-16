@@ -20,6 +20,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.79  2005/09/09 21:43:36  sueh
+ * bug# 532 Handling null from stderr and stdout.
+ *
  * Revision 3.78  2005/09/01 17:55:42  sueh
  * bug# 532  Change ProcesschunksParam.computerList() to machineList.
  *
@@ -712,6 +715,7 @@ import etomo.comscript.BadComScriptException;
 import etomo.comscript.NewstParam;
 import etomo.comscript.ProcesschunksParam;
 import etomo.comscript.SetupCombine;
+import etomo.comscript.SplitcombineParam;
 import etomo.comscript.SplittiltParam;
 import etomo.comscript.SqueezevolParam;
 import etomo.comscript.TiltalignParam;
@@ -1280,6 +1284,15 @@ public class ProcessManager extends BaseProcessManager {
       throws SystemProcessException {
     BackgroundProcess backgroundProcess = startBackgroundProcess(param
         .getCommand(), axisID);
+    return backgroundProcess.getName();
+  }
+  
+  /**
+   * Run splitcombine
+   */
+  public String splitcombine(SplitcombineParam param) throws SystemProcessException {
+    BackgroundProcess backgroundProcess = startBackgroundProcess(param
+        .getCommand(), AxisID.ONLY);
     return backgroundProcess.getName();
   }
   
