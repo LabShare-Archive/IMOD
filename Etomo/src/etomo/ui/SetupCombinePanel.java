@@ -18,6 +18,7 @@ import javax.swing.JRadioButton;
 import etomo.ApplicationManager;
 import etomo.comscript.CombineParams;
 import etomo.comscript.ConstCombineParams;
+import etomo.comscript.SplitcombineParam;
 import etomo.type.AxisID;
 import etomo.type.CombinePatchSize;
 import etomo.type.FiducialMatch;
@@ -43,6 +44,12 @@ import etomo.type.Run3dmodMenuOptions;
  * 
  * <p>
  * $Log$
+ * Revision 3.19  2005/08/11 23:59:39  sueh
+ * bug# 711  Get rid of duplicate code by running the 3dmods from a private
+ * function called run3dmod(String, Run3dmodMenuOptions).  It can be
+ * called from run3dmod(Run3dmodButton, Run3dmodMenuOptions) and the
+ * action function.
+ *
  * Revision 3.18  2005/08/10 20:47:01  sueh
  * bug# 711 Removed MultiLineToggleButton.  Making toggling an attribute
  * of MultiLineButton.
@@ -438,6 +445,10 @@ public class SetupCombinePanel
 
   public Container getContainer() {
     return pnlRoot;
+  }
+  
+  public final void setParameters(SplitcombineParam param) {
+    param.setTempDirectory(ltfTempDirectory.getText());
   }
 
   /**
