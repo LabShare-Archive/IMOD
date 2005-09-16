@@ -20,6 +20,10 @@ import etomo.comscript.TransferfidParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.22  2005/08/22 17:10:37  sueh
+ * <p> bug# 532 Added a member variable to save the setting of the gen tomo
+ * <p> parallel process checkbox.
+ * <p>
  * <p> Revision 3.21  2005/07/29 00:53:36  sueh
  * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
  * <p> because the current manager changes when the user changes the tab.
@@ -295,6 +299,10 @@ public class MetaData extends ConstMetaData {
     else {
       tomoGenBinningA.set(tomoGenBinning);
     }
+  }
+  
+  public void setCombineParallelProcess(boolean combineParallelProcess) {
+    this.combineParallelProcess = combineParallelProcess;
   }
   
   public void setTomoGenParallelProcess(AxisID axisID, boolean parallelProcess) {

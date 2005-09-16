@@ -80,6 +80,7 @@ public abstract class ConstMetaData extends BaseMetaData {
   protected final TransferfidParam transferfidParamB;
   protected boolean tomoGenParallelProcessA = false;
   protected boolean tomoGenParallelProcessB = false;
+  protected boolean combineParallelProcess = false;
 
   public abstract void load(Properties props);
   public abstract void load(Properties props, String prepend);
@@ -248,6 +249,10 @@ public abstract class ConstMetaData extends BaseMetaData {
       return tomoGenBinningB;
     }
     return tomoGenBinningA;
+  }
+  
+  public boolean getCombineParallelProcess() {
+    return combineParallelProcess;
   }
   
   public boolean getTomoGenParallelProcess(AxisID axisID) {
@@ -628,6 +633,11 @@ public abstract class ConstMetaData extends BaseMetaData {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.28  2005/09/02 18:58:55  sueh
+ * <p> bug# 720 Pass the manager to TrimvolParam instead of propertyUserDir
+ * <p> because TrimvolParam is constructed by MetaData before
+ * <p> propertyUserDir is set.
+ * <p>
  * <p> Revision 3.27  2005/08/22 17:10:27  sueh
  * <p> bug# 532 Added a member variable to save the setting of the gen tomo
  * <p> parallel process checkbox.
