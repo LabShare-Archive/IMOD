@@ -44,6 +44,18 @@ import etomo.type.MetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.22  2005/09/16 18:18:21  sueh
+ * <p> bug# 532 Added parallelPanel.  Add parallelPanelContainer; which is a
+ * <p> JPanel to keep parallelPanel in the same place, even though it can be
+ * <p> removed and re-added.  Added functions getParallelProgressDisplay,
+ * <p> getParameters(MetaData), getParameters(ParallelParam).  Added
+ * <p> resetParallelPanel(), which is used when the user returns to the
+ * <p> Combine dialog; parallelPanel may have been placed on another dialog,
+ * <p> so it has to be added again.  Added resume() and
+ * <p> setParameters(ConstMetaData).  Added updateParallelProcess(), which
+ * <p> displays/hides the parallel process panel depending on whether the
+ * <p> parallel process checkbox on the final tab has been checked.
+ * <p>
  * <p> Revision 3.21  2005/08/04 20:17:17  sueh
  * <p> bug# 532  Centralizing fit window functionality by placing fitting functions
  * <p> in UIHarness.  Removing packMainWindow from the manager.  Sending
@@ -320,7 +332,7 @@ public class TomogramCombinationDialog
     parallelPanel.getParameters(processchunksParam);
   }
   
-  final void resetParallelPanel() {
+  public final void resetParallelPanel() {
     parallelPanel.resetResults();
   }
   
@@ -335,6 +347,10 @@ public class TomogramCombinationDialog
   public final void setParameters(ConstMetaData metaData) {
     pnlFinal.setParameters(metaData);
     updateParallelProcess();
+  }
+  
+  public final boolean isParallelProcessSelected() {
+    return pnlFinal.isParallelProcessSelected();
   }
   
   final void updateParallelProcess() {
