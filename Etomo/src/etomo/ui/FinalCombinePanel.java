@@ -15,15 +15,20 @@ import javax.swing.JCheckBox;
 import javax.swing.JPanel;
 
 import etomo.ApplicationManager;
+import etomo.EtomoDirector;
 import etomo.comscript.ConstMatchorwarpParam;
 import etomo.comscript.ConstPatchcrawl3DParam;
 import etomo.comscript.ConstSetParam;
 import etomo.comscript.MatchorwarpParam;
 import etomo.comscript.Patchcrawl3DParam;
 import etomo.comscript.CombineParams;
+import etomo.comscript.ProcesschunksParam;
 import etomo.comscript.SetParam;
 import etomo.type.AxisID;
+import etomo.type.ConstMetaData;
 import etomo.type.EtomoAutodoc;
+import etomo.type.MetaData;
+import etomo.type.ProcessName;
 import etomo.type.Run3dmodMenuOptions;
 
 /**
@@ -50,6 +55,9 @@ import etomo.type.Run3dmodMenuOptions;
  * 
  * <p>
  * $Log$
+ * Revision 3.26  2005/08/27 22:36:53  sueh
+ * bug# 532 Changed Autodoc.get() to getInstance().
+ *
  * Revision 3.25  2005/08/11 23:52:08  sueh
  * bug# 711  Change enum Run3dmodMenuOption to
  * Run3dmodMenuOptions, which can turn on multiple options at once.
@@ -210,7 +218,8 @@ import etomo.type.Run3dmodMenuOptions;
  * <p>
  * </p>
  */
-public class FinalCombinePanel implements ContextMenu, FinalCombineFields, Run3dmodButtonContainer {
+public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
+    Run3dmodButtonContainer {
   public static final String rcsid = "$Id$";
 
   private TomogramCombinationDialog tomogramCombinationDialog;
@@ -293,6 +302,8 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields, Run3d
   private JCheckBox cbNoVolcombine = new JCheckBox("Stop before running volcombine");
   private LabeledTextField ltfReductionFactor = new LabeledTextField(
       "Reduction factor for matching amplitudes in combined FFT: ");
+  private JCheckBox cbParallelProcess = new JCheckBox("Parallel Processing");
+  private boolean resume = false;
   /**
    * Default constructor
    * 
@@ -403,6 +414,9 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields, Run3d
     pnlMatchorwarp.add(Box.createRigidArea(FixedDim.x0_y5));
 
     pnlVolcombine.setLayout(new BoxLayout(pnlVolcombine, BoxLayout.Y_AXIS));
+    pnlVolcombine.add(cbParallelProcess);
+    //TEMP
+    cbParallelProcess.setVisible(EtomoDirector.getInstance().isNewstuff());
     pnlVolcombine.add(cbNoVolcombine);
     pnlVolcombine.add(ltfReductionFactor.getContainer());
     pnlVolcombine.add(Box.createRigidArea(FixedDim.x0_y5));
@@ -448,6 +462,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields, Run3d
     btnReplacePatchOut.addActionListener(actionListener);
     btnImodMatchedTo.addActionListener(actionListener);
     btnImodCombined.addActionListener(actionListener);
+    cbParallelProcess.addActionListener(actionListener);
 
     // Mouse listener for context menu
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
@@ -533,6 +548,21 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields, Run3d
   
   void setRunVolcombine(boolean runVolcombine) {
     cbNoVolcombine.setSelected(!runVolcombine);
+  }
+  
+  final void getParameters(MetaData metaData) {
+    //TEMP
+    if (EtomoDirector.getInstance().isNewstuff()) {
+      metaData.setCombineParallelProcess(cbParallelProcess.isSelected());
+    }
+  }
+  
+  final void setParameters(ConstMetaData metaData) {
+    cbParallelProcess.setSelected(metaData.getCombineParallelProcess());
+  }
+  
+  final boolean isParallelProcessSelected() {
+    return cbParallelProcess.isSelected();
   }
 
   /**
@@ -767,6 +797,32 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields, Run3d
       applicationManager.imodCombinedTomogram(menuOptions);
     }
   }
+  
+  public void resume() {
+    resume = true;
+    runVolcombine();
+  }
+  
+  public final void getParameters(ProcesschunksParam param) {
+    param.setResume(resume);
+    param.setRootName(ProcessName.VOLCOMBINE.toString());
+  }
+  
+  private final void runVolcombine() {
+    if (cbParallelProcess.isSelected()) {
+      if (resume) {
+        applicationManager.processchunksVolcombine();  
+      }
+      else {
+        tomogramCombinationDialog.resetParallelPanel();
+        applicationManager.splitcombine();
+      }
+  }
+    else {
+      applicationManager.volcombine();
+    }
+  }
+
 
   private void buttonAction(ActionEvent event) {
     // Synchronize this panel with the others
@@ -807,13 +863,17 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields, Run3d
       applicationManager.matchorwarpTrial();
     }
     else if (command.equals(btnVolcombineRestart.getActionCommand())) {
-      applicationManager.volcombine();
+      resume = false;
+      runVolcombine();
     }
     else if (command.equals(btnPatchVectorModel.getActionCommand())) {
       applicationManager.imodPatchVectorModel();
     }
     else if (command.equals(btnReplacePatchOut.getActionCommand())) {
       applicationManager.modelToPatch();
+    }
+    else if (command.equals(cbParallelProcess.getActionCommand())) {
+      tomogramCombinationDialog.updateParallelProcess();
     }
     else {
       run3dmod(command, new Run3dmodMenuOptions());
