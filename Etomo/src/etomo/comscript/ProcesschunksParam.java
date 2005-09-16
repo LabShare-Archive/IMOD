@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import etomo.BaseManager;
 import etomo.type.AxisID;
+import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoBoolean2;
 import etomo.type.EtomoNumber;
 import etomo.util.DatasetFiles;
@@ -119,6 +120,10 @@ public final class ProcesschunksParam implements ParallelParam {
     return rootName;
   }
   
+  public final ConstEtomoNumber getResume() {
+    return resume;
+  }
+  
   public final String getMachineList() {
     if (machineList == null) {
       buildMachineList();
@@ -138,6 +143,9 @@ public final class ProcesschunksParam implements ParallelParam {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.6  2005/09/16 17:19:29  sueh
+* <p> bug# 532 Implementing ParallelParam.
+* <p>
 * <p> Revision 1.5  2005/09/07 20:31:15  sueh
 * <p> bug# 532 Adding commands file option.
 * <p>
