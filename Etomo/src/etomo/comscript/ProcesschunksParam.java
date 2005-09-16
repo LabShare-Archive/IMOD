@@ -22,7 +22,7 @@ import etomo.util.DatasetFiles;
 * 
 * @version $Revision$
 */
-public final class ProcesschunksParam {
+public final class ProcesschunksParam implements ParallelParam {
   public static  final String  rcsid =  "$Id$";
   
   public static final String COMMAND_NAME = "processchunks";
@@ -138,6 +138,9 @@ public final class ProcesschunksParam {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.5  2005/09/07 20:31:15  sueh
+* <p> bug# 532 Adding commands file option.
+* <p>
 * <p> Revision 1.4  2005/09/01 17:46:56  sueh
 * <p> bug# 532 Make the drop value available publicly.  Change
 * <p> getComputerList() to getMachineList and fix it.
