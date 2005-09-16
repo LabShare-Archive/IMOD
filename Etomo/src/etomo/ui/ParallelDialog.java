@@ -21,10 +21,15 @@ public interface ParallelDialog {
   public void resume();
   public ParallelProgressDisplay getParallelProgressDisplay();
   public void getParameters(ParallelParam param);
-  public void resetParallelPanel();
+  public void resetParallelProgressDisplay();
 }
 /**
 * <p> $Log$
+* <p> Revision 1.5  2005/09/16 20:56:43  sueh
+* <p> bug# 532 Moved call to resetParallelPanel() to
+* <p> ApplicationManager.processchunks().  Added resetParallelPanel() to
+* <p> ParallelDialog.
+* <p>
 * <p> Revision 1.4  2005/09/16 18:10:37  sueh
 * <p> bug# 532 Added getParallelProgressDisplay() and getParameters().
 * <p>

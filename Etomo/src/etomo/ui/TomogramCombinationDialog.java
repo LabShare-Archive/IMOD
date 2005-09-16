@@ -44,6 +44,11 @@ import etomo.type.MetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.23  2005/09/16 20:57:40  sueh
+ * <p> bug# 532 Moved call to resetParallelPanel() to
+ * <p> ApplicationManager.processchunks().  Added resetParallelPanel() to
+ * <p> ParallelDialog.  Added isParallelProcessSelected().
+ * <p>
  * <p> Revision 3.22  2005/09/16 18:18:21  sueh
  * <p> bug# 532 Added parallelPanel.  Add parallelPanelContainer; which is a
  * <p> JPanel to keep parallelPanel in the same place, even though it can be
@@ -332,7 +337,7 @@ public class TomogramCombinationDialog
     parallelPanel.getParameters(processchunksParam);
   }
   
-  public final void resetParallelPanel() {
+  public final void resetParallelProgressDisplay() {
     parallelPanel.resetResults();
   }
   

@@ -5716,7 +5716,7 @@ public class ApplicationManager extends BaseManager {
     processTrack.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
     mainPanel.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
     if (!param.getResume().is()) {
-      dialog.resetParallelPanel();
+      dialog.resetParallelProgressDisplay();
     }
     String threadName;
     try {
@@ -5740,6 +5740,10 @@ public class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.177  2005/09/16 20:52:14  sueh
+ * <p> bug# 532 When parallel processing checkbox is on, using nextProcess to
+ * <p> run processchunks after combine finishes everything but volcombine.
+ * <p>
  * <p> Revision 3.176  2005/09/16 17:14:07  sueh
  * <p> bug# 532 Added processchunksTilt() and processchunksVolcombine(), so
  * <p> startNextProcess() can distinguish between the two processchunks calls.

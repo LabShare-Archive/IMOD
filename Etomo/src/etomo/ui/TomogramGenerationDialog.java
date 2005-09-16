@@ -69,6 +69,11 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.66  2005/09/16 20:57:51  sueh
+ * bug# 532 Moved call to resetParallelPanel() to
+ * ApplicationManager.processchunks().  Added resetParallelPanel() to
+ * ParallelDialog.
+ *
  * Revision 3.65  2005/09/16 18:20:47  sueh
  * bug# 532 Implemented changes in ParallelDialog:  changed
  * getParameters(ProcesschunksParam) to getParameters(ParallelParam).
@@ -1444,7 +1449,7 @@ public class TomogramGenerationDialog extends ProcessDialog
     }
   }
   
-  public final void resetParallelPanel() {
+  public final void resetParallelProgressDisplay() {
     parallelPanel.resetResults();
   }
   
