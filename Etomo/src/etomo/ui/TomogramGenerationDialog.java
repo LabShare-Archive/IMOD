@@ -31,6 +31,7 @@ import etomo.comscript.BlendmontParam;
 import etomo.comscript.ConstMTFFilterParam;
 import etomo.comscript.ConstTiltParam;
 import etomo.comscript.MTFFilterParam;
+import etomo.comscript.ParallelParam;
 import etomo.comscript.ProcesschunksParam;
 import etomo.comscript.SplittiltParam;
 import etomo.comscript.TiltParam;
@@ -68,6 +69,9 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.64  2005/09/01 18:35:42  sueh
+ * bug# 532 Getting the parallel panel from the manager.
+ *
  * Revision 3.63  2005/08/31 19:16:28  sueh
  * bug# 532 need to do an install and parallel processing is not ready
  *
@@ -934,10 +938,11 @@ public class TomogramGenerationDialog extends ProcessDialog
     return trialTomogramName;
   }
   
-  public final void getParameters(ProcesschunksParam param) {
-    param.setResume(resume);
-    param.setRootName(TiltParam.COMMAND_NAME);
-    parallelPanel.getParameters(param);
+  public final void getParameters(ParallelParam param) {
+    ProcesschunksParam processchunksParam = (ProcesschunksParam) param;
+    processchunksParam.setResume(resume);
+    processchunksParam.setRootName(TiltParam.COMMAND_NAME);
+    parallelPanel.getParameters(processchunksParam);
   }
   
   
@@ -1214,9 +1219,6 @@ public class TomogramGenerationDialog extends ProcessDialog
     tiltPanel.add(tiltBodyPanel);
     UIUtilities.alignComponentsX(tiltPanel, Component.LEFT_ALIGNMENT);
     //configure
-    //if (!EtomoDirector.getInstance().isNewstuff()) {
-    //  cbParallelProcess.setVisible(false);
-    //}
     tiltHeader.setOpen(true);
     btnTilt.setSize();
     btn3dmodTomogram.setSize();
@@ -1456,11 +1458,11 @@ public class TomogramGenerationDialog extends ProcessDialog
       }
       if (cbParallelProcess.isSelected()) {
         if (resume) {
-          applicationManager.processchunks(axisID);
+          applicationManager.processchunksTilt(axisID);
         }
         else {
           parallelPanel.resetResults();
-          applicationManager.splittilt(axisID, parallelPanel, true);
+          applicationManager.splittilt(axisID, true);
         }
       }
       else {
@@ -1470,11 +1472,11 @@ public class TomogramGenerationDialog extends ProcessDialog
     else {
       if (cbParallelProcess.isSelected()) {
         if (resume) {
-          applicationManager.processchunks(axisID);
+          applicationManager.processchunksTilt(axisID);
         }
         else {
           parallelPanel.resetResults();
-          applicationManager.splittilt(axisID, parallelPanel);
+          applicationManager.splittilt(axisID);
         }
       }
       else {
