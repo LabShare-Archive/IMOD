@@ -56,7 +56,7 @@ public final class ParallelPanel implements ParallelProgressDisplay, Expandable,
   private Random random = new Random(new Date().getTime());
 
   private AxisID axisID = null;
-  private ParallelDialog parent = null;
+  private ParallelDialog container = null;
   private DialogType dialogType = null;
   private ParallelPanelActionListener actionListener = new ParallelPanelActionListener(
       this);
@@ -67,9 +67,8 @@ public final class ParallelPanel implements ParallelProgressDisplay, Expandable,
   private LoadAverageMonitor loadAverageMonitor = null;
   private ParallelProcessMonitor parallelProcessMonitor = null;
   
-  public ParallelPanel(BaseManager manager, ParallelDialog parent, AxisID axisID) {
+  public ParallelPanel(BaseManager manager, AxisID axisID) {
     this.manager = manager;
-    this.parent = parent;
     this.axisID = axisID;
     processorTable = new ProcessorTable(this, axisID);
     //set listeners
@@ -87,7 +86,7 @@ public final class ParallelPanel implements ParallelProgressDisplay, Expandable,
     SpacedPanel southPanel = new SpacedPanel();
     southPanel.setBoxLayout(BoxLayout.X_AXIS);
     //header
-    header = PanelHeader.getInstance(axisID, "Parallel Processing", this);
+    header = PanelHeader.getMoreLessInstance(axisID, "Parallel Processing", this);
     //southPanel;
     southPanel.add(ltfCPUsSelected);
     SpinnerModel model = new SpinnerNumberModel(
@@ -170,11 +169,15 @@ public final class ParallelPanel implements ParallelProgressDisplay, Expandable,
   final Container getRootPanel() {
     return rootPanel;
   }
+  
+  public final void setContainer(ParallelDialog container) {
+    this.container = container;
+  }
 
   private final void performAction(ActionEvent event) {
     String command = event.getActionCommand();
     if (command == btnResume.getText()) {
-      parent.resume();
+      container.resume();
     }
     else if (command == btnPause.getText()) {
       manager.pause(axisID);
@@ -282,6 +285,11 @@ public final class ParallelPanel implements ParallelProgressDisplay, Expandable,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.15  2005/09/13 00:00:38  sueh
+ * <p> bug# 532 Added a call to BaseManager.loadPreferences() to load defaults
+ * <p> into the processor table.  Implemented Save Defaults button by adding a
+ * <p> call to BaseManager.savePreferences() in performAction().
+ * <p>
  * <p> Revision 1.14  2005/09/10 01:54:49  sueh
  * <p> bug# 532 Added clearFailureReason() so that the failure reason can be
  * <p> cleared when a new connection to the computer is attempted.
