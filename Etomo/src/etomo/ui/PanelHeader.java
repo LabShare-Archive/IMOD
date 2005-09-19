@@ -35,22 +35,28 @@ final class PanelHeader implements Expandable {
   private HeaderCell cellTitle = null;
   private ExpandButton btnOpenClose = null;
   private ExpandButton btnAdvancedBasic = null;
+  private ExpandButton btnMoreLess = null;
   private JSeparator separator = new JSeparator();
   private AxisID axisID;
   private final Expandable container;
   
   static final PanelHeader getInstance(AxisID axisID, String title,
       Expandable container) {
-    return new PanelHeader(axisID, title, container, false);
+    return new PanelHeader(axisID, title, container, false, false);
   }
 
   static final PanelHeader getAdvancedBasicInstance(AxisID axisID,
       String title, Expandable container) {
-    return new PanelHeader(axisID, title, container, true);
+    return new PanelHeader(axisID, title, container, true, false);
+  }
+  
+  static final PanelHeader getMoreLessInstance(AxisID axisID,
+      String title, Expandable container) {
+    return new PanelHeader(axisID, title, container, false, true);
   }
 
   private PanelHeader(AxisID axisID, String title, Expandable container,
-      boolean advancedBasic) {
+      boolean advancedBasic, boolean moreLess) {
     this.container = container;
     this.axisID = axisID;
     //panels
@@ -81,10 +87,20 @@ final class PanelHeader implements Expandable {
     if (advancedBasic) {
       constraints.weightx = 0.0;
       constraints.weighty = 0.0;
-      constraints.gridwidth = GridBagConstraints.REMAINDER;
+      if (!moreLess) {
+        constraints.gridwidth = GridBagConstraints.REMAINDER;
+      }
       btnAdvancedBasic = new ExpandButton(container, "B", "A");
       layout.setConstraints(btnAdvancedBasic.getComponent(), constraints);
       northPanel.add(btnAdvancedBasic.getComponent());
+    }
+    //more/less button
+    if (moreLess) {
+      constraints.weightx = 0.0;
+      constraints.weighty = 0.0;
+      btnMoreLess = new ExpandButton(container, "<", ">");
+      layout.setConstraints(btnMoreLess.getComponent(), constraints);
+      northPanel.add(btnMoreLess.getComponent());
     }
     //rootPanel
     rootPanel.add(northPanel);
@@ -101,6 +117,10 @@ final class PanelHeader implements Expandable {
     return button == btnAdvancedBasic;
   }
   
+  final boolean equalsMoreLess(ExpandButton button) {
+    return button == btnMoreLess;
+  }
+  
   final boolean equalsOpenClose(ExpandButton button) {
     return button == btnOpenClose;
   }
@@ -110,6 +130,13 @@ final class PanelHeader implements Expandable {
       return;
     }
     btnAdvancedBasic.setExpanded(advanced);
+  }
+  
+  final void setMore(boolean more) {
+    if (btnMoreLess == null) {
+      return;
+    }
+    btnMoreLess.setExpanded(more);
   }
   
   final void setOpen(boolean open) {
@@ -128,6 +155,9 @@ final class PanelHeader implements Expandable {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.9  2005/08/30 19:20:15  sueh
+* <p> bug# 437 Remove newstuff limit from panel headers.
+* <p>
 * <p> Revision 1.8  2005/08/22 18:00:37  sueh
 * <p> bug# 532 Remove openClosePanel.  When handling the open/close
 * <p> button, call container.expand() to do the expansion.
