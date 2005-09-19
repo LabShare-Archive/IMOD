@@ -47,6 +47,9 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.31  2005/09/13 00:27:25  sueh
+* <p> bug# 532 Removed unecessary import.
+* <p>
 * <p> Revision 1.30  2005/09/13 00:13:46  sueh
 * <p> bug# 532 Modified savePreferences() to check whether the axis is busy.
 * <p>
@@ -806,16 +809,18 @@ public abstract class BaseManager {
     }
   }
   
-  public final ParallelPanel getParallelPanel(ParallelDialog parent, AxisID axisID) {
+  public final ParallelPanel getParallelPanel(ParallelDialog container, AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       if (parallelPanelB == null) {
-        parallelPanelB = new ParallelPanel(this, parent, axisID);
+        parallelPanelB = new ParallelPanel(this, axisID);
       }
+      parallelPanelB.setContainer(container);
       return parallelPanelB;
     }
     if (parallelPanelA == null) {
-      parallelPanelA = new ParallelPanel(this, parent, axisID);
+      parallelPanelA = new ParallelPanel(this, axisID);
     }
+    parallelPanelA.setContainer(container);
     return parallelPanelA;
   }
   
