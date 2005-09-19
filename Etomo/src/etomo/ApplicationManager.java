@@ -3185,7 +3185,6 @@ public class ApplicationManager extends BaseManager {
           .openMessageDialog(
               "Can not update tilt?.com without an active tomogram generation dialog",
               "Program logic error", axisID);
-      new IllegalStateException("intermittent bug").printStackTrace();
       return;
     }
     tomogramGenerationDialog.stopParallelPanel();
@@ -3265,7 +3264,6 @@ public class ApplicationManager extends BaseManager {
           .openMessageDialog(
               "Can not update tilt?.com without an active tomogram generation dialog",
               "Program logic error", axisID);
-      new IllegalStateException("intermittent bug").printStackTrace();
       return false;
     }
     try {
@@ -5740,6 +5738,10 @@ public class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.178  2005/09/16 21:20:26  sueh
+ * <p> bug# 532 Changed ParallelDialog.resetParallelPanel() to
+ * <p> resetParallelProgressDisplay() because ParallelDialog is generic.
+ * <p>
  * <p> Revision 3.177  2005/09/16 20:52:14  sueh
  * <p> bug# 532 When parallel processing checkbox is on, using nextProcess to
  * <p> run processchunks after combine finishes everything but volcombine.
