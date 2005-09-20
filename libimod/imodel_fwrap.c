@@ -1532,7 +1532,7 @@ int getimodnesting(int *ob, int *inOnly, int *level, int *inIndex,
   /* clean up everything */
   imodContourFreeNests(nests, numnests);
   for (co = 0; co < obj->contsize; co++)
-    if (scancont[co]->flags & ICONT_SCANLINE)
+    if (obj->cont[co].psize && (scancont[co]->flags & ICONT_SCANLINE))
       imodContourDelete(scancont[co]);
   imodContourFreeZTables(numatz, contatz, contz, zlist, zmin, zmax);
   free(nestind);
@@ -1545,6 +1545,9 @@ int getimodnesting(int *ob, int *inOnly, int *level, int *inIndex,
 
 /*
 $Log$
+Revision 3.23  2005/09/11 19:11:54  mast
+Changed getimodverts for new mesh style
+
 Revision 3.22  2005/05/26 20:10:55  mast
 Fixed problem of not calling with pointers, added some declarations
 
