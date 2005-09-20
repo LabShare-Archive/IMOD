@@ -69,6 +69,10 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.67  2005/09/16 21:21:02  sueh
+ * bug# 532 Changed ParallelDialog.resetParallelPanel() to
+ * resetParallelProgressDisplay() because ParallelDialog is generic.
+ *
  * Revision 3.66  2005/09/16 20:57:51  sueh
  * bug# 532 Moved call to resetParallelPanel() to
  * ApplicationManager.processchunks().  Added resetParallelPanel() to
@@ -959,25 +963,17 @@ public class TomogramGenerationDialog extends ProcessDialog
     if (tiltHeader != null) {
       if (tiltHeader.equalsOpenClose(button)) {
         tiltBodyPanel.setVisible(button.isExpanded());
-        UIHarness.INSTANCE.pack(axisID, applicationManager);
-        return;
       }
       if (tiltHeader.equalsAdvancedBasic(button)) {
         updateAdvancedTilt(button.isExpanded());
-        UIHarness.INSTANCE.pack(axisID, applicationManager);
-        return;
       }
     }
     if (filterHeader != null) {
       if (filterHeader.equalsOpenClose(button)) {
         filterBodyPanel.setVisible(button.isExpanded());
-        UIHarness.INSTANCE.pack(axisID, applicationManager);
-        return;
       }
-      if (filterHeader.equalsAdvancedBasic(button)) {
+      else if (filterHeader.equalsAdvancedBasic(button)) {
         updateAdvancedFilter(button.isExpanded());
-        UIHarness.INSTANCE.pack(axisID, applicationManager);
-        return;
       }
     }
     if (newstHeader != null && newstHeader.equalsOpenClose(button)) {
@@ -985,9 +981,6 @@ public class TomogramGenerationDialog extends ProcessDialog
     }
     else if (trialHeader != null && trialHeader.equalsOpenClose(button)) {
       trialBodyPanel.setVisible(button.isExpanded());
-    }
-    else {
-      return;
     }
     UIHarness.INSTANCE.pack(axisID, applicationManager);
   }
@@ -1092,7 +1085,7 @@ public class TomogramGenerationDialog extends ProcessDialog
     newstPanel.add(newstBodyPanel.getContainer());
     UIUtilities.alignComponentsX(newstPanel, Component.LEFT_ALIGNMENT);
     //configure
-    newstHeader.setOpen(true);
+    //newstHeader.setOpen(true);
     btnNewst.setSize();
     btn3dmodFull.setSize();
     return newstPanel;
@@ -1143,7 +1136,6 @@ public class TomogramGenerationDialog extends ProcessDialog
     filterPanel.add(filterHeader.getContainer());
     filterPanel.add(filterBodyPanel);
     //configure
-    filterHeader.setOpen(true);
     btnFilter.setSize();
     btnViewFilter.setSize();
     btnUseFilter.setSize();
@@ -1228,7 +1220,7 @@ public class TomogramGenerationDialog extends ProcessDialog
     tiltPanel.add(tiltBodyPanel);
     UIUtilities.alignComponentsX(tiltPanel, Component.LEFT_ALIGNMENT);
     //configure
-    tiltHeader.setOpen(true);
+    //tiltHeader.setOpen(true);
     btnTilt.setSize();
     btn3dmodTomogram.setSize();
     btnDeleteStacks.setSize();
@@ -1266,7 +1258,7 @@ public class TomogramGenerationDialog extends ProcessDialog
     trialPanel.add(trialHeader.getContainer());
     trialPanel.add(trialBodyPanel.getContainer());
     //configure
-    trialHeader.setOpen(true);
+    //trialHeader.setOpen(true);
     cmboTrialTomogramName.setEditable(true);
     return trialPanel;
   }
