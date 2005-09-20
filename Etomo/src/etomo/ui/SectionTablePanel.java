@@ -52,6 +52,16 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.16  2005/08/11 23:58:38  sueh
+* <p> bug# 711  Change 3dmod buttons to Run3dmodButton.  Implement
+* <p> Run3dmodButtonContainer.  Change enum Run3dmodMenuOption to
+* <p> Run3dmodMenuOptions, which can turn on multiple options at once.
+* <p> This allows ImodState to combine input from the context menu and the
+* <p> pulldown menu.  Get rid of duplicate code by running the 3dmods from a
+* <p> private function called run3dmod(String, Run3dmodMenuOptions).  It can
+* <p> be called from run3dmod(Run3dmodButton, Run3dmodMenuOptions) and
+* <p> the action function.
+* <p>
 * <p> Revision 1.15  2005/08/10 20:46:30  sueh
 * <p> bug# 711 Removed MultiLineToggleButton.  Making toggling an attribute
 * <p> of MultiLineButton.
@@ -377,7 +387,7 @@ public class SectionTablePanel implements ContextMenu, Expandable, Run3dmodButto
     //First row
     hdrOrder = new HeaderCell("Order");
     hdrSections = new HeaderCell("Sections", FixedDim.sectionsWidth);
-    btnExpandSections = new ExpandButton(this);
+    btnExpandSections = ExpandButton.getMoreLessInstance(this);
     hdrSampleSlices = new HeaderCell("Sample Slices");
     hdrSlicesInSample1 = new HeaderCell("Slices in");
     hdrCurrentChunk1 = new HeaderCell("Current");
