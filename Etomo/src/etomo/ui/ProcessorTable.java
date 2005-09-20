@@ -50,37 +50,70 @@ final class ProcessorTable implements Storable {
 
   private GridBagLayout layout = new GridBagLayout();
   private GridBagConstraints constraints = new GridBagConstraints();
-  private HeaderCell hdrComputer = null;
-  private HeaderCell hdrNumberCpus = null;
-  private HeaderCell hdrNumberCpusUsed = null;
+  private HeaderCell header1Computer = null;
+  private HeaderCell header1NumberCPUs = null;
+  private HeaderCell header1Load = null;
+  private HeaderCell header1CPUType = null;
+  private HeaderCell header1Speed = null;
+  private HeaderCell header1RAM = null;
+  private HeaderCell header1OS = null;
+  private HeaderCell header1Restarts = null;
+  private HeaderCell header1Finished = null;
+  private HeaderCell header1Failure = null;
+  private HeaderCell header2Computer = null;
+  private HeaderCell header2NumberCPUsUsed = null;
+  private HeaderCell header2NumberCPUsMax = null;
+  private HeaderCell header2Load1 = null;
+  private HeaderCell header2Load5 = null;
+  private HeaderCell header2Load15 = null;
+  private HeaderCell header2CPUType = null;
+  private HeaderCell header2Speed = null;
+  private HeaderCell header2RAM = null;
+  private HeaderCell header2OS = null;
+  private HeaderCell header2Restarts = null;
+  private HeaderCell header2Finished = null;
+  private HeaderCell header2Failure = null;
 
   private HashedArray rows = new HashedArray();
   private ParallelPanel parent = null;
   private AxisID axisID;
   private int restartsError = -1;
+  private boolean expanded = true;
+  
+  private boolean numberColumn = false;
+  private boolean typeColumn = false;
+  private boolean speedColumn = false;
+  private boolean memoryColumn = false;
+  private boolean osColumn = false;
+  private String speedUnits = null;
+  private String memoryUnits = null;
 
   ProcessorTable(ParallelPanel parent, AxisID axisID) {
     this.parent = parent;
     this.axisID = axisID;
-    //panels
-    tablePanel = new JPanel();
-    //tablePanel
-    createTable();
+    initTable();
+    buildScrollPane(initialHeight);
+  }
+  
+  final void setExpanded(boolean expanded) {
+    if (this.expanded == expanded) {
+      return;
+    }
+    this.expanded = expanded;
+    buildScrollPane(getMinimumHeight());
+  }
+  
+  final void buildScrollPane(double height) {
+    buildTable();
     //scrollPane
     scrollPane = new JScrollPane(tablePanel);
     //configure
     scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
-    setMaximumSize(initialHeight);
+    setMaximumSize(height);
+    UIHarness.INSTANCE.repaintWindow();
   }
-
-  private final void createTable() {
-    boolean numberColumn = false;
-    boolean typeColumn = false;
-    boolean speedColumn = false;
-    boolean memoryColumn = false;
-    boolean osColumn = false;
-    String speedUnits = null;
-    String memoryUnits = null;
+  
+  private final void initTable() {
     //build rows
     //get autodoc
     Autodoc autodoc = null;
@@ -94,7 +127,7 @@ final class ProcessorTable implements Storable {
       except.printStackTrace();
     }
     if (autodoc == null) {
-      System.err.println("Unable to display the rows of the processor table.  Missing cpu.adoc file.");
+      System.err.println("Unable to display the rows of the processor table./nMissing $IMOD_CALIB_DIR/cpu.adoc file./nSee $IMOD_DIR/autodoc/cpu.adoc.");
       return;
     }
     //get units
@@ -176,6 +209,57 @@ final class ProcessorTable implements Storable {
       //get the next section
       computer = autodoc.nextSection(sectionLocation);
     }
+    //create headers
+    //header 1
+    header1Computer = new HeaderCell("Computer");
+    header1NumberCPUs = new HeaderCell("# CPUs");
+    header1Load = new HeaderCell("Load Average");
+    if (typeColumn) {
+      header1CPUType = new HeaderCell("CPU Type");
+    }
+    if (speedColumn) {
+      header1Speed = new HeaderCell("Speed");
+    }
+    if (memoryColumn) {
+      header1RAM = new HeaderCell("RAM");
+    }
+    if (osColumn) {
+      header1OS = new HeaderCell("OS");
+    }
+    header1Restarts = new HeaderCell("Restarts");
+    header1Finished = new HeaderCell("Finished");
+    header1Failure = new HeaderCell("Failure");
+    //header row 2
+    header2Computer = new HeaderCell();
+    header2NumberCPUsUsed = new HeaderCell("Used");
+    if (numberColumn) {
+      header2NumberCPUsMax = new HeaderCell("Max.");
+    }
+    header2Load1 = new HeaderCell("1 Min.");
+    header2Load5 = new HeaderCell("5 Min.");
+    header2Load15 = new HeaderCell("15 Min.");
+    if (typeColumn) {
+      header2CPUType = new HeaderCell();
+    }
+    if (speedColumn) {
+      header2Speed = new HeaderCell(speedUnits);
+    }
+    if (memoryColumn) {
+      header2RAM = new HeaderCell(memoryUnits);
+    }
+    if (osColumn) {
+      header2OS = new HeaderCell();
+    }
+    header2Restarts = new HeaderCell();
+    header2Finished = new HeaderCell("Chunks");
+    header2Failure = new HeaderCell("Reason");
+  }
+
+
+  private final void buildTable() {
+    tablePanel = new JPanel();
+    layout = new GridBagLayout();
+    constraints = new GridBagConstraints();
     //build table
     tablePanel.setBorder(LineBorder.createBlackLineBorder());
     tablePanel.setLayout(layout);
@@ -188,112 +272,73 @@ final class ProcessorTable implements Storable {
     constraints.weighty = 0.0;
     constraints.gridheight = 1;
     constraints.gridwidth = 1;
-    hdrComputer = new HeaderCell("Computer");
-    hdrComputer.add(tablePanel, layout, constraints);
-    if (numberColumn) {
+    header1Computer.add(tablePanel, layout, constraints);
+    if (numberColumn && expanded) {
       constraints.gridwidth = 2;
     }
-    hdrNumberCpus = new HeaderCell("# CPUs");
-    hdrNumberCpus.add(tablePanel, layout, constraints);
+    header1NumberCPUs.add(tablePanel, layout, constraints);
     constraints.gridwidth = 3;
-    new HeaderCell("Load Average").add(tablePanel, layout, constraints);
+    header1Load.add(tablePanel, layout, constraints);
     constraints.gridwidth = 1;
-    if (typeColumn) {
-      new HeaderCell("CPU Type").add(tablePanel, layout, constraints);
+    if (typeColumn && expanded) {
+      header1CPUType.add(tablePanel, layout, constraints);
     }
-    if (speedColumn) {
-      new HeaderCell("Speed").add(tablePanel, layout, constraints);
+    if (speedColumn && expanded) {
+      header1Speed.add(tablePanel, layout, constraints);
     }
-    if (memoryColumn) {
-      new HeaderCell("RAM").add(tablePanel, layout, constraints);
+    if (memoryColumn && expanded) {
+      header1RAM.add(tablePanel, layout, constraints);
     }
-    if (osColumn) {
-      new HeaderCell("OS").add(tablePanel, layout, constraints);
+    if (osColumn && expanded) {
+      header1OS.add(tablePanel, layout, constraints);
     }
-    new HeaderCell("Restarts").add(tablePanel, layout, constraints);
-    new HeaderCell("Finished").add(tablePanel, layout, constraints);
+    header1Restarts.add(tablePanel, layout, constraints);
+    header1Finished.add(tablePanel, layout, constraints);
     constraints.gridwidth = GridBagConstraints.REMAINDER;
-    new HeaderCell("Failure").add(tablePanel, layout, constraints);
+    header1Failure.add(tablePanel, layout, constraints);
     //header row 2
     constraints.anchor = GridBagConstraints.CENTER;
     constraints.weightx = 0.0;
     constraints.weighty = 0.0;
     constraints.gridheight = 1;
     constraints.gridwidth = 1;
-    new HeaderCell().add(tablePanel, layout, constraints);
-    hdrNumberCpusUsed = new HeaderCell("Used");
-    hdrNumberCpusUsed.add(tablePanel, layout, constraints);
-    if (numberColumn) {
-      new HeaderCell("Max.").add(tablePanel, layout, constraints);
+    header2Computer.add(tablePanel, layout, constraints);
+    header2NumberCPUsUsed.add(tablePanel, layout, constraints);
+    if (numberColumn && expanded) {
+      header2NumberCPUsMax.add(tablePanel, layout, constraints);
     }
-    new HeaderCell("1 Min.").add(tablePanel, layout, constraints);
-    new HeaderCell("5 Min.").add(tablePanel, layout, constraints);
-    new HeaderCell("15 Min.").add(tablePanel, layout, constraints);
-    if (typeColumn) {
-      new HeaderCell().add(tablePanel, layout, constraints);
+    header2Load1.add(tablePanel, layout, constraints);
+    header2Load5.add(tablePanel, layout, constraints);
+    header2Load15.add(tablePanel, layout, constraints);
+    if (typeColumn && expanded) {
+      header2CPUType.add(tablePanel, layout, constraints);
     }
-    if (speedColumn) {
-      new HeaderCell(speedUnits).add(tablePanel, layout, constraints);
+    if (speedColumn && expanded) {
+      header2Speed.add(tablePanel, layout, constraints);
     }
-    if (memoryColumn) {
-      new HeaderCell(memoryUnits).add(tablePanel, layout, constraints);
+    if (memoryColumn && expanded) {
+      header2RAM.add(tablePanel, layout, constraints);
     }
-    if (osColumn) {
-      new HeaderCell().add(tablePanel, layout, constraints);
+    if (osColumn && expanded) {
+      header2OS.add(tablePanel, layout, constraints);
     }
-    new HeaderCell().add(tablePanel, layout, constraints);
-    new HeaderCell("Chunks").add(tablePanel, layout, constraints);
+    header2Restarts.add(tablePanel, layout, constraints);
+    header2Finished.add(tablePanel, layout, constraints);
     constraints.gridwidth = GridBagConstraints.REMAINDER;
-    new HeaderCell("Reason").add(tablePanel, layout, constraints);
+    header2Failure.add(tablePanel, layout, constraints);
     //add rows to the table
     //loop on rows
     for (int i = 0; i < rows.size(); i++) {
-      ProcessorTableRow row = (ProcessorTableRow) rows.get(i);  
-      row.setNumberColumn(numberColumn);
-      row.setTypeColumn(typeColumn);
-      row.setSpeedColumn(speedColumn);
-      row.setMemoryColumn(memoryColumn);
-      row.setOSColumn(osColumn);
-      row.addRow();
+      ProcessorTableRow row = (ProcessorTableRow) rows.get(i);
+      if (expanded || row.isSelected()) {
+        row.setNumberColumn(numberColumn && expanded);
+        row.setTypeColumn(typeColumn && expanded);
+        row.setSpeedColumn(speedColumn && expanded);
+        row.setMemoryColumn(memoryColumn && expanded);
+        row.setOSColumn(osColumn && expanded);
+        row.addRow();
+      }
     }
-    /*
-    ProcessorTableRow row = new ProcessorTableRow(this, "bebop");
-    row.addRow();
-    rows.add("bebop", row);
-    row = new ProcessorTableRow(this, "mustang", 2);
-    row.addRow();
-    rows.add("mustang", row);
-    row = new ProcessorTableRow(this, "monalisa", 2);
-    row.addRow();
-    rows.add("monalisa", row);
-    row = new ProcessorTableRow(this, "wanderer");
-    row.addRow();
-    rows.add("wanderer", row);
-    row = new ProcessorTableRow(this, "shrek", 2, "Opteron");
-    row.addRow();
-    rows.add("shrek", row);
-    row = new ProcessorTableRow(this, "druid");
-    row.addRow();
-    rows.add("druid", row);
-    row = new ProcessorTableRow(this, "tubule", 2, "Opteron");
-    row.addRow();
-    rows.add("tubule", row);
-    row = new ProcessorTableRow(this, "bigfoot", 2);
-    row.addRow();
-    rows.add("bigfoot", row);
-    row = new ProcessorTableRow(this, "blkbox2");
-    row.addRow();
-    rows.add("blkbox2", row);
-    row = new ProcessorTableRow(this, "sanguine");
-    row.addRow();
-    rows.add("sanguine", row);
-    row = new ProcessorTableRow(this, "thot");
-    row.addRow();
-    rows.add("thot", row);
-    row = new ProcessorTableRow(this, "ashtray", "G5");
-    row.addRow();
-    rows.add("ashtray", row);
-    */
   }
   
   final void setRestartsError(int restartsError) {
@@ -400,23 +445,33 @@ final class ProcessorTable implements Storable {
   }
   
   private final int getMinimumHeight() {
-    if (hdrNumberCpusUsed == null) {
+    if (header2NumberCPUsUsed == null) {
       return 0;
     }
     int height = 0;
-    int fieldHeight = hdrNumberCpusUsed.getHeight();
+    int fieldHeight = header2NumberCPUsUsed.getHeight();
     height = fieldHeight * 2;
-    if (rows != null) {
+    if (rows == null) {
+      return height;
+    }
+    if (expanded) {
       height += fieldHeight * rows.size();
     }
-    return height;
+    else {
+      for (int i = 0; i < rows.size(); i++) {
+        if (((ProcessorTableRow) rows.get(i)).isSelected()) {
+          height += fieldHeight;
+        }
+      }
+    }
+    return height; 
   }
   
   private final void calcMaximumHeight() {
-    if (hdrNumberCpusUsed == null) {
+    if (header2NumberCPUsUsed == null) {
       maxHeight = 0;
     }
-    maxHeight = hdrNumberCpusUsed.getHeight() * (2 + maxRows);
+    maxHeight = header2NumberCPUsUsed.getHeight() * (2 + maxRows);
   }
   
   private final double getWidth() {
@@ -499,9 +554,9 @@ final class ProcessorTable implements Storable {
   }
   
   final String getHelpMessage() {
-    return "Click on check boxes in the " + hdrComputer.getText()
-        + " column and use the spinner in the " + hdrNumberCpus.getText() + " "
-        + hdrNumberCpusUsed.getText() + " column where available.";
+    return "Click on check boxes in the " + header1Computer.getText()
+        + " column and use the spinner in the " + header1NumberCPUs.getText() + " "
+        + header2NumberCPUsUsed.getText() + " column where available.";
   }
   
   final void startGetLoadAverage(ParallelPanel display) {
@@ -588,6 +643,9 @@ final class ProcessorTable implements Storable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.15  2005/09/13 00:01:26  sueh
+ * <p> bug# 532 Implemented Storable.
+ * <p>
  * <p> Revision 1.14  2005/09/10 01:54:59  sueh
  * <p> bug# 532 Added clearFailureReason() so that the failure reason can be
  * <p> cleared when a new connection to the computer is attempted.
