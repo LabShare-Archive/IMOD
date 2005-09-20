@@ -66,10 +66,12 @@ public final class ParallelPanel implements ParallelProgressDisplay, Expandable,
   private boolean pauseEnabled = false;
   private LoadAverageMonitor loadAverageMonitor = null;
   private ParallelProcessMonitor parallelProcessMonitor = null;
+  private final JPanel tablePanel = new JPanel();
   
   public ParallelPanel(BaseManager manager, AxisID axisID) {
     this.manager = manager;
     this.axisID = axisID;
+    //initialize table
     processorTable = new ProcessorTable(this, axisID);
     //set listeners
     btnResume.addActionListener(actionListener);
@@ -79,14 +81,11 @@ public final class ParallelPanel implements ParallelProgressDisplay, Expandable,
     rootPanel = new JPanel();
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     rootPanel.setBorder(BorderFactory.createEtchedBorder());
+    tablePanel.setLayout(new BoxLayout(tablePanel, BoxLayout.X_AXIS));
     bodyPanel = new SpacedPanel();
     bodyPanel.setBoxLayout(BoxLayout.Y_AXIS);
-    JPanel tablePanel = new JPanel();
-    tablePanel.setLayout(new BoxLayout(tablePanel, BoxLayout.X_AXIS));
     SpacedPanel southPanel = new SpacedPanel();
     southPanel.setBoxLayout(BoxLayout.X_AXIS);
-    //header
-    header = PanelHeader.getMoreLessInstance(axisID, "Parallel Processing", this);
     //southPanel;
     southPanel.add(ltfCPUsSelected);
     SpinnerModel model = new SpinnerNumberModel(
@@ -98,18 +97,18 @@ public final class ParallelPanel implements ParallelProgressDisplay, Expandable,
     southPanel.add(btnResume);
     southPanel.add(btnSaveDefaults);
     //tablePanel
-    tablePanel.add(Box.createHorizontalGlue());
-    tablePanel.add(processorTable.getContainer());
-    tablePanel.add(Box.createHorizontalGlue());
+    buildTablePanel();
     //bodyPanel
     bodyPanel.addRigidArea();
     bodyPanel.add(tablePanel);
     bodyPanel.add(southPanel);
+    //header
+    header = PanelHeader.getExpandedMoreLessInstance(axisID, "Parallel Processing", this);
     //rootPanel
     rootPanel.add(header.getContainer());
     rootPanel.add(bodyPanel.getContainer());
     //configure fields
-    header.setOpen(true);
+    //header.setOpen(true);
     ltfChunksFinished.setTextPreferredWidth(FixedDim.fourDigitWidth);
     ltfChunksFinished.setEditable(false);
     ltfCPUsSelected.setTextPreferredWidth(FixedDim.fourDigitWidth);
@@ -119,6 +118,13 @@ public final class ParallelPanel implements ParallelProgressDisplay, Expandable,
     manager.getMainPanel().setParallelProgressDisplay(this, axisID);
     processorTable.setRestartsError(ProcesschunksParam.DROP_VALUE);
     EtomoDirector.getInstance().loadPreferences(processorTable, axisID);
+  }
+  
+  private final void buildTablePanel() {
+    tablePanel.removeAll();
+    tablePanel.add(Box.createHorizontalGlue());
+    tablePanel.add(processorTable.getContainer());
+    tablePanel.add(Box.createHorizontalGlue());
   }
   
   final void start() {
@@ -249,6 +255,19 @@ public final class ParallelPanel implements ParallelProgressDisplay, Expandable,
       visible = button.isExpanded();
       bodyPanel.setVisible(visible);
     }
+    else if (header.equalsMoreLess(button)) {
+      if (processorTable == null) {
+        return;
+      }
+      boolean expanded = button.isExpanded();
+      btnSaveDefaults.setVisible(expanded);
+      processorTable.setExpanded(expanded);
+      buildTablePanel();
+    }
+    else {
+      return;
+    }
+    UIHarness.INSTANCE.pack(axisID, manager);
   }
   
   public final void msgLoadAverageFailed(String computer, String reason) {
@@ -285,6 +304,11 @@ public final class ParallelPanel implements ParallelProgressDisplay, Expandable,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.16  2005/09/19 16:40:21  sueh
+ * <p> bug# 532 Changed member variables ParallelDialog parent to container.
+ * <p> Added setContainer() to change the container each time the panel is
+ * <p> placed on a dialog.
+ * <p>
  * <p> Revision 1.15  2005/09/13 00:00:38  sueh
  * <p> bug# 532 Added a call to BaseManager.loadPreferences() to load defaults
  * <p> into the processor table.  Implemented Save Defaults button by adding a
