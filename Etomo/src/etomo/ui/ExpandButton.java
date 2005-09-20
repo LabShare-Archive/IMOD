@@ -29,6 +29,10 @@ import javax.swing.border.BevelBorder;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.6  2005/08/10 20:42:32  sueh
+ * <p> bug# 711 To set a non-standard button size in MultLineButton, call
+ * <p> setSize(Dimension).
+ * <p>
  * <p> Revision 1.5  2005/08/09 20:21:09  sueh
  * <p> bug# 711  No longer inheriting JButton in MultiLineButton.
  * <p>
@@ -64,11 +68,41 @@ import javax.swing.border.BevelBorder;
  */
 public class ExpandButton extends MultiLineButton {
   public static final String rcsid = "$Id$";
-  private String contractSymbol = "<html><big>&lt</big>";
-  private String expandSymbol = "<html><big>&gt</big>";
+  private String contractSymbol = "<html>&lt";
+  private String expandSymbol = "<html>&gt";
 
   private boolean expanded = false;
   private Expandable container = null;
+  
+  final static ExpandButton getMoreLessInstance(Expandable container) {
+    ExpandButton instance = new ExpandButton(container);
+    instance.initialize();
+    return instance;
+  }
+
+  final static ExpandButton getExpandedMoreLessInstance(Expandable container) {
+    ExpandButton instance = new ExpandButton(container);
+    instance.expanded = true;
+    instance.initialize();
+    return instance;
+  }
+
+  final static ExpandButton getInstance(Expandable container,
+      String contractSymbol, String expandSymbol) {
+    ExpandButton instance = new ExpandButton(container, contractSymbol,
+        expandSymbol);
+    instance.initialize();
+    return instance;
+  }
+
+  final static ExpandButton getExpandedInstance(Expandable container,
+      String contractSymbol, String expandSymbol) {
+    ExpandButton instance = new ExpandButton(container, contractSymbol,
+        expandSymbol);
+    instance.expanded = true;
+    instance.initialize();
+    return instance;
+  }
 
   /**
    * Create a button with ">" if expanded is false, or "<" expanded is true.
@@ -76,32 +110,18 @@ public class ExpandButton extends MultiLineButton {
    * size so that it is square, unless the width needs to be greater then the
    * height.  The button remembers the expanded state and keeps track of it.
    * The button can be used on any ui.
-   * @param expanded Current state of the component.
-   * @param component Exandable component displaying the button.
-   */
-  ExpandButton(boolean expanded, Expandable container) {
-    super();
-    this.expanded = expanded;
-    this.container = container;
-    initialize();
-  }
-
-  /**
-   * Create a button where the current state of the component is not expanded.
    * @param component
    */
-  ExpandButton(Expandable container) {
+  private ExpandButton(Expandable container) {
     super();
     this.container = container;
-    initialize();
   }
 
-  ExpandButton(Expandable container, String contractSymbol, String expandSymbol) {
+  private ExpandButton(Expandable container, String contractSymbol, String expandSymbol) {
     super();
     this.container = container;
     this.contractSymbol = contractSymbol;
     this.expandSymbol = expandSymbol;
-    initialize();
   }
 
   /**
