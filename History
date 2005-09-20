@@ -1,5 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/19/05: Fixed bug in Sumdensity when there are empty contours.
+
+9/15/05: Added ability to generate a high-resolution internally montaged 
+snaphot of the Zap window, available in the Movie control dialog.
+
 9/12/05: IMOD_3-6-14
 9/12/05: Added parallel processing interface to eTomo for tomogram generation.
 The interface is enabled by a file named cpu.adoc in IMOD_CALIB_DIR; a sample
