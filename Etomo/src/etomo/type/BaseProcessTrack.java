@@ -1,6 +1,8 @@
 package etomo.type;
 
+import etomo.process.ProcessState;
 import etomo.storage.Storable;
+import etomo.ui.ParallelDialog;
 
 /**
 * <p>Description: </p>
@@ -16,6 +18,10 @@ import etomo.storage.Storable;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.3  2004/12/14 21:40:21  sueh
+* <p> bug # 565 Removing JoinProcessTrack so there is no commom code.
+* <p> Use BaseProcessTrack as an interface because BaseManager is using it.
+* <p>
 * <p> Revision 1.2  2004/11/19 23:31:43  sueh
 * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
 * <p>
@@ -30,4 +36,6 @@ public interface BaseProcessTrack extends Storable {
   public String getRevisionNumber();
   public boolean isModified();
   public void resetModified();
+  public void setState(ProcessState processState, AxisID axisID,
+      ParallelDialog parallelDialog);
 }
