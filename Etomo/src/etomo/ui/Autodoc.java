@@ -88,7 +88,7 @@ public class Autodoc implements AttributeCollection {
   private static Autodoc cpu = null;
 
   private String fileName = null;
-  private File file = null;
+  private File autodocFile = null;
   private AutodocParser parser = null;
   private boolean testMode = false;
 
@@ -151,8 +151,8 @@ public class Autodoc implements AttributeCollection {
     return fileName;
   }
   
-  public File getFile() {
-    return file;
+  final File getAutodocFile() {
+    return autodocFile;
   }
 
   public Section addSection(Token type, Token name) {
@@ -309,67 +309,107 @@ public class Autodoc implements AttributeCollection {
   }
 
   private static Autodoc getAutodoc(Autodoc autodoc, String name, AxisID axisID)
-  throws FileNotFoundException, IOException {
+      throws IOException, FileNotFoundException {
     return getAutodoc(autodoc, name, axisID, null);
   }
-  
-  private static Autodoc getAutodoc(Autodoc autodoc, String name, AxisID axisID, String envVariable)
-    throws FileNotFoundException, IOException {
+
+  private static Autodoc getAutodoc(Autodoc autodoc, String name,
+      AxisID axisID, String envVariable) throws IOException,
+      FileNotFoundException {
     if (autodoc == null) {
-      autodoc = new Autodoc(name, axisID, envVariable);
-      autodoc.initialize();
+      autodoc = new Autodoc();
+      autodoc.initialize(name, axisID, envVariable);
     }
     return autodoc;
   }
-  
-  private Autodoc(String name, AxisID axisID, String envVariable) {
-    fileName = new String(name + fileExt);
-    String dirName = new String(Utilities.getEnvironmentVariable(null, envVariable,
-        axisID));
-    file = new File(dirName, fileName);
-    if (file.exists()) {
-      return;
-    }
-    fileName = new String(name + fileExt);
-    dirName = new String(Utilities.getEnvironmentVariable(null, AUTODOC_DIR,
-        axisID));
-    file = new File(dirName, fileName);
-    if (file.exists()) {
-      return;
-    }
-    dirName = new String(Utilities.getEnvironmentVariable(null, IMOD_DIR, axisID));
-    File dir = new File(dirName, DEFAULT_AUTODOC_DIR);
-    if (dir.exists()) {
-      file = new File(dir, fileName);
-    }
-    if (file.exists()) {
-      return;
-    }
-    file = new File(fileName);
+
+  private Autodoc() {
   }
 
-  private void initialize() throws FileNotFoundException, IOException {
-    String errorMessage = null;
-    if (file == null) {
-      errorMessage =
-        "Can't find "
-          + fileName
-          + ".  Set the environment variable "
-          + AUTODOC_DIR;
+  /**
+   * sets the autodoc file
+   * @param name
+   * @param axisID
+   * @param envVariable
+   */
+  private final void setAutodocFile(String name, AxisID axisID, String envVariable) {
+    File newAutodocFile = null;
+    fileName = new String(name + fileExt);
+    String dirName;
+    //if envVariable is set, then it points to the only valid directory for this
+    //autodoc
+    if (envVariable != null) {
+      dirName = new String(Utilities.getEnvironmentVariable(null, envVariable,
+          axisID));
+      if (dirName == null || dirName.equals("")) {
+        System.err.println("\nWarning:  The environment variable $" + envVariable
+            + " is not set.\n");
+        return;
+      }
+      newAutodocFile = new File(dirName, fileName);
+      if (newAutodocFile == null || !newAutodocFile.exists()) {
+        System.err.println("\nWarning:  Unable to find the autodoc file " + fileName
+            + " in " + dirName + ".\nPlease check the environment variable $"
+            + envVariable + ".\n");
+        return;
+      }
+      if (!newAutodocFile.canRead()) {
+        System.err.println("\nWarning:  The autodoc file "
+            + newAutodocFile.getAbsolutePath() + " cannot be read.\n");
+        return;
+      }
+      autodocFile = newAutodocFile;
+      return;
     }
-    else if (!file.exists()) {
-      errorMessage =
-        "Can't find "
-          + file.getAbsolutePath()
-          + ".  Set the environment variable "
-          + AUTODOC_DIR;
+    //$AUTODOC_DIR overides $IMOD_DIR/autodoc, so check it first
+    dirName = new String(Utilities.getEnvironmentVariable(null, AUTODOC_DIR,
+        axisID));
+    if (!dirName.equals("")) {
+      newAutodocFile = new File(dirName, fileName);
+      if (newAutodocFile.exists()) {
+        if (!newAutodocFile.canRead()) {
+          System.err.println("\nWarning:  The autodoc file "
+              + newAutodocFile.getAbsolutePath() + " cannot be read.\n");
+          return;
+        }
+        autodocFile = newAutodocFile;
+        return;
+      }
     }
+    //look for the autodoc in $IMOD_DIR/autodoc
+    String imodDirName = new String(Utilities.getEnvironmentVariable(null,
+        IMOD_DIR, axisID));
+    if (imodDirName == null || imodDirName.equals("")) {
+      System.err.println("\nFatal Error:  The environment variable $" + IMOD_DIR
+          + " is not set.\n");
+      return;
+    }
+    File dir = new File(imodDirName, DEFAULT_AUTODOC_DIR);
+    if (dir == null || !dir.exists()) {
+      System.err
+          .println("\nWarning:  Unable to use autodocs.\nPlease create the directory "
+              + DEFAULT_AUTODOC_DIR + " in the directory " + imodDirName + ".\n");
+      return;
+    }
+    newAutodocFile = new File(dir, fileName);
+    if (newAutodocFile == null || !newAutodocFile.exists()) {
+      System.err.println("\nWarning:  Unable to find the autodoc file " + fileName + " in "
+          + dir.getAbsolutePath() + ".\n");
+      return;
+    }
+    if (!newAutodocFile.canRead()) {
+      System.err.println("\nWarning:  The autodoc file " + newAutodocFile.getAbsolutePath()
+          + " cannot be read.\n");
+      return;
+    }
+    autodocFile = newAutodocFile;
+  }
 
-    else if (!file.canRead()) {
-      errorMessage = "Can't read " + file.getAbsolutePath() + ".";
-    }
-    if (errorMessage != null) {
-      throw new FileNotFoundException(errorMessage);
+  private final void initialize(String name, AxisID axisID, String envVariable)
+      throws IOException, FileNotFoundException {
+    setAutodocFile(name, axisID, envVariable);
+    if (autodocFile == null) {
+      return;
     }
     parser = new AutodocParser(this);
     if (testMode) {
@@ -394,6 +434,11 @@ public class Autodoc implements AttributeCollection {
 }
 /**
 *<p> $$Log$
+*<p> $Revision 1.18  2005/09/01 17:58:14  sueh
+*<p> $bug# 532  Change getAutodoc() to allow specification of the autodoc
+*<p> $location environment variable for each autodoc.  Get the cpu autodoc from
+*<p> $the calibration directory.
+*<p> $
 *<p> $Revision 1.17  2005/08/27 22:34:44  sueh
 *<p> $bug# 532 Added cpu.adoc.  Added getAttribute(String name) to get the
 *<p> $file level attributes.
