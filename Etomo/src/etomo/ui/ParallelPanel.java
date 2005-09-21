@@ -3,9 +3,8 @@ package etomo.ui;
 import java.awt.Container;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.Date;
-import java.util.ArrayList;
-import java.util.Random;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -22,7 +21,9 @@ import etomo.process.LoadAverageMonitor;
 import etomo.process.ParallelProcessMonitor;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
-import etomo.type.DialogType;
+import etomo.type.EtomoNumber;
+import etomo.type.ProcessName;
+import etomo.util.HashedArray;
 
 /**
  * <p>Description: </p>
@@ -40,34 +41,35 @@ import etomo.type.DialogType;
 public final class ParallelPanel implements ParallelProgressDisplay, Expandable, LoadAverageDisplay {
   public static final String rcsid = "$Id$";
 
-  private JPanel rootPanel;
-  private final SpacedPanel bodyPanel;
-  private ProcessorTable processorTable;
-  private MultiLineButton btnResume = new MultiLineButton("Resume");
-  private MultiLineButton btnPause = new MultiLineButton("Pause");
-  private MultiLineButton btnSaveDefaults = new MultiLineButton("Save As Defaults");
-  private LabeledTextField ltfCPUsSelected = new LabeledTextField(
-      "CPUs selected: ");
-  private LabeledTextField ltfChunksFinished = new LabeledTextField(
-      "Chunks finished: ");
-  private LabeledSpinner nice;
-  private ArrayList randomRestarts = new ArrayList();
-  private ArrayList randomSuccesses = new ArrayList();
-  private Random random = new Random(new Date().getTime());
-
-  private AxisID axisID = null;
-  private ParallelDialog container = null;
-  private DialogType dialogType = null;
-  private ParallelPanelActionListener actionListener = new ParallelPanelActionListener(
+  private static final String TITLE = "Parallel Processing";
+  
+  private static HashedArray maxCPUList = null;
+  
+  private final JPanel tablePanel = new JPanel();
+  private final ParallelPanelActionListener actionListener = new ParallelPanelActionListener(
       this);
-  private PanelHeader header;
+  private final LabeledTextField ltfCPUsSelected = new LabeledTextField(
+  "CPUs selected: ");
+  private final LabeledTextField ltfChunksFinished = new LabeledTextField(
+  "Chunks finished: ");
+  private final MultiLineButton btnResume = new MultiLineButton("Resume");
+  private final MultiLineButton btnPause = new MultiLineButton("Pause");
+  private final MultiLineButton btnSaveDefaults = new MultiLineButton("Save As Defaults");
+  private final SpacedPanel bodyPanel = new SpacedPanel();
+  private final JPanel rootPanel = new JPanel();
+  
   private final BaseManager manager;
-  private boolean visible = false;
-  private boolean pauseEnabled = false;
+  private final AxisID axisID;
+  private final ProcessorTable processorTable;
+  private final LabeledSpinner nice;
+  private final PanelHeader header;
+  
   private LoadAverageMonitor loadAverageMonitor = null;
   private ParallelProcessMonitor parallelProcessMonitor = null;
-  private final JPanel tablePanel = new JPanel();
-  
+  private boolean visible = false;
+  private boolean pauseEnabled = false;
+  private ProcesschunksParam processchunksParam = null;
+
   public ParallelPanel(BaseManager manager, AxisID axisID) {
     this.manager = manager;
     this.axisID = axisID;
@@ -78,11 +80,9 @@ public final class ParallelPanel implements ParallelProgressDisplay, Expandable,
     btnPause.addActionListener(actionListener);
     btnSaveDefaults.addActionListener(actionListener);
     //panels
-    rootPanel = new JPanel();
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     rootPanel.setBorder(BorderFactory.createEtchedBorder());
     tablePanel.setLayout(new BoxLayout(tablePanel, BoxLayout.X_AXIS));
-    bodyPanel = new SpacedPanel();
     bodyPanel.setBoxLayout(BoxLayout.Y_AXIS);
     SpacedPanel southPanel = new SpacedPanel();
     southPanel.setBoxLayout(BoxLayout.X_AXIS);
@@ -103,7 +103,7 @@ public final class ParallelPanel implements ParallelProgressDisplay, Expandable,
     bodyPanel.add(tablePanel);
     bodyPanel.add(southPanel);
     //header
-    header = PanelHeader.getExpandedMoreLessInstance(axisID, "Parallel Processing", this);
+    header = PanelHeader.getExpandedMoreLessInstance(axisID, TITLE, this);
     //rootPanel
     rootPanel.add(header.getContainer());
     rootPanel.add(bodyPanel.getContainer());
@@ -168,22 +168,21 @@ public final class ParallelPanel implements ParallelProgressDisplay, Expandable,
     ltfCPUsSelected.setText(cpusSelected);
   }
 
-  final void setDialogType(DialogType dialogType) {
-    this.dialogType = dialogType;
-  }
-
   final Container getRootPanel() {
     return rootPanel;
   }
   
-  public final void setContainer(ParallelDialog container) {
-    this.container = container;
+  public final void setProcesschunksParam(ProcesschunksParam processchunksParam) {
+    this.processchunksParam = processchunksParam;
+    if (processchunksParam != null) {
+      header.setText(TITLE + " - " + processchunksParam.getRootName());
+    }
   }
 
   private final void performAction(ActionEvent event) {
     String command = event.getActionCommand();
     if (command == btnResume.getText()) {
-      container.resume();
+      manager.resume(axisID, processchunksParam);
     }
     else if (command == btnPause.getText()) {
       manager.pause(axisID);
@@ -196,6 +195,68 @@ public final class ParallelPanel implements ParallelProgressDisplay, Expandable,
   final void setVisible(boolean visible) {
     this.visible = visible;
     rootPanel.setVisible(visible);
+  }
+  
+  /**
+   * get cpu autodoc
+   * @param axisID
+   * @return
+   */
+  static final Autodoc getAutodoc(AxisID axisID) {
+    Autodoc autodoc = null;
+    try {
+      autodoc = Autodoc.getInstance(Autodoc.CPU, axisID);
+    }
+    catch (FileNotFoundException except) {
+      except.printStackTrace();
+    }
+    catch (IOException except) {
+      except.printStackTrace();
+    }
+    if (autodoc == null) {
+      System.err
+          .println("Unable to display the rows of the processor table./nMissing $IMOD_CALIB_DIR/cpu.adoc file./nSee $IMOD_DIR/autodoc/cpu.adoc.");
+    }
+    return autodoc;
+  }
+  
+  /**
+   * get the maximum recommended CPUs for the process
+   * 
+   * saves the value in a hashed array if it is found
+   * @param axisID
+   * @param process
+   * @return
+   */
+  static final ConstEtomoNumber getMaxCPUs(AxisID axisID, ProcessName processName) {
+    String process = processName.toString();
+    EtomoNumber maxCPUs = null;
+    //look for maxCPUs in maxCPUList
+    if (maxCPUList != null) {
+      maxCPUs = (EtomoNumber) maxCPUList.get(process);
+    }
+    if (maxCPUs != null) {
+      return maxCPUs;
+    }
+    //look for maxCPUs in cpu.adoc
+    maxCPUs = new EtomoNumber();
+    Autodoc autodoc = getAutodoc(axisID);
+    if (autodoc == null) {
+      return maxCPUs;
+    }
+    Attribute maxAttribute = autodoc.getAttribute("max");
+    try {
+      maxAttribute.getAttribute(process).getUnformattedValue(maxCPUs);
+    }
+    catch (NullPointerException e) {
+    }
+    //add maxCPUs to maxCPUList
+    if (maxCPUs != null && !maxCPUs.isNull()) {
+      if (maxCPUList != null) {
+        maxCPUList.add(process, maxCPUs);
+      }
+    }
+    return maxCPUs;
   }
 
   public final int getCPUsSelected() {
@@ -214,7 +275,7 @@ public final class ParallelPanel implements ParallelProgressDisplay, Expandable,
     processorTable.addSuccess(computer);
   }
   
-  final void resetResults() {
+  public final void resetResults() {
     processorTable.resetResults();
   }
   
@@ -233,6 +294,13 @@ public final class ParallelPanel implements ParallelProgressDisplay, Expandable,
     }
     return true;
   }
+  
+  public final void getResumeParameters(ProcesschunksParam param) {
+    param.setResume(true);
+    param.setNice(nice.getValue());
+    param.resetMachineName();
+    processorTable.getParameters(param);
+ }
   
   final void getParameters(ProcesschunksParam param) {
      param.setNice(nice.getValue());
@@ -304,6 +372,12 @@ public final class ParallelPanel implements ParallelProgressDisplay, Expandable,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.17  2005/09/20 19:03:11  sueh
+ * <p> bug# 532 Added code to expand() to handle the more/less button.  Moved
+ * <p> the code to put padding around the processor table and add it to
+ * <p> tablePanel into buildTablePanel() so it could be call from two places.  It is
+ * <p> necessary to call buildTablePanel() when the more/less button is pressed.
+ * <p>
  * <p> Revision 1.16  2005/09/19 16:40:21  sueh
  * <p> bug# 532 Changed member variables ParallelDialog parent to container.
  * <p> Added setContainer() to change the container each time the panel is
