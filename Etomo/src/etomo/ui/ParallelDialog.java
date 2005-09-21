@@ -1,6 +1,7 @@
 package etomo.ui;
 
 import etomo.comscript.ParallelParam;
+import etomo.type.DialogType;
 
 /**
 * <p>Description: </p>
@@ -18,13 +19,15 @@ import etomo.comscript.ParallelParam;
 public interface ParallelDialog {
   public static  final String  rcsid =  "$Id$";
   
-  public void resume();
-  public ParallelProgressDisplay getParallelProgressDisplay();
   public void getParameters(ParallelParam param);
-  public void resetParallelProgressDisplay();
+  public DialogType getDialogType();
 }
 /**
 * <p> $Log$
+* <p> Revision 1.6  2005/09/16 21:20:41  sueh
+* <p> bug# 532 Changed ParallelDialog.resetParallelPanel() to
+* <p> resetParallelProgressDisplay() because ParallelDialog is generic.
+* <p>
 * <p> Revision 1.5  2005/09/16 20:56:43  sueh
 * <p> bug# 532 Moved call to resetParallelPanel() to
 * <p> ApplicationManager.processchunks().  Added resetParallelPanel() to
