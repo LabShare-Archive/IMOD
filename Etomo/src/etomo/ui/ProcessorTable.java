@@ -4,8 +4,6 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.Properties;
 
 import javax.swing.JPanel;
@@ -116,18 +114,8 @@ final class ProcessorTable implements Storable {
   private final void initTable() {
     //build rows
     //get autodoc
-    Autodoc autodoc = null;
-    try {
-      autodoc = Autodoc.getInstance(Autodoc.CPU, axisID);
-    }
-    catch (FileNotFoundException except) {
-      except.printStackTrace();
-    }
-    catch (IOException except) {
-      except.printStackTrace();
-    }
+    Autodoc autodoc = ParallelPanel.getAutodoc(axisID);
     if (autodoc == null) {
-      System.err.println("Unable to display the rows of the processor table./nMissing $IMOD_CALIB_DIR/cpu.adoc file./nSee $IMOD_DIR/autodoc/cpu.adoc.");
       return;
     }
     //get units
@@ -478,7 +466,18 @@ final class ProcessorTable implements Storable {
     if (rows == null || rows.size() == 0) {
       return 0;
     }
-    return ((ProcessorTableRow) rows.get(0)).getWidth();
+    if (expanded) {
+      return ((ProcessorTableRow) rows.get(0)).getWidth();
+    }
+    else {
+      for (int i = 0; i < rows.size(); i++) {
+        ProcessorTableRow row = (ProcessorTableRow) rows.get(i);
+        if (row.isSelected()) {
+          return row.getWidth();
+        }
+      }
+      return ((ProcessorTableRow) rows.get(0)).getWidth();
+    }
   }
 
   final int getFirstSelectedIndex() {
@@ -643,6 +642,15 @@ final class ProcessorTable implements Storable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.16  2005/09/20 19:12:40  sueh
+ * <p> bug# 532  Implementing setExpanded(boolean).  Add boolean expanded.
+ * <p> When expanded is false, only display fields and rows which the user
+ * <p> would look at while running a process.  Divide createTable() into initTable()
+ * <p> and buildTable().  Create fields and get audodoc data in initTable().  Then
+ * <p> use buildTable() to build the table according to the autodoc data and
+ * <p> expanded.  Change getMinimumHeight() to use expanded.  SetExpanded()
+ * <p> runs buildTable().  All table fields are member variables.
+ * <p>
  * <p> Revision 1.15  2005/09/13 00:01:26  sueh
  * <p> bug# 532 Implemented Storable.
  * <p>
