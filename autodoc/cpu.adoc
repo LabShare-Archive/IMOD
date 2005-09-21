@@ -4,6 +4,8 @@
 # Optional cpu.adoc attributes (can be placed in any order):
 # units.speed:  Column subheader for processor speed
 # units.memory:  Column subheader for amount of RAM
+# max.tilt:  Maximum number of CPUs recommended for running processchunks tilt
+# max.volcombine:  Maximum number of CPUs recommended for running processchunks volcombine
 
 # Computer names should be placed in brackets [Computer = name]
 
@@ -22,7 +24,8 @@
 # memory:  amount of RAM
 # os:  operating system
 
-# The column will be omitted from the eTomo table if an attribute is never used
+# If an attribute is never used, the corresponding column will be omitted from
+# parallel processing table in eTomo.
 
 #
 #
@@ -33,6 +36,8 @@
 Version = 1.0
 units.speed = GHz
 units.memory = GB
+max.tilt = 12
+max.volcombine = 8
 
 [Computer = frodo]
 [Computer = sam]
