@@ -81,7 +81,6 @@ import etomo.ui.FiducialModelDialog;
 import etomo.ui.FiducialessParams;
 import etomo.ui.MainPanel;
 import etomo.ui.MainTomogramPanel;
-import etomo.ui.ParallelDialog;
 import etomo.ui.PostProcessingDialog;
 import etomo.ui.PreProcessingDialog;
 import etomo.ui.ProcessDialog;
@@ -5193,26 +5192,6 @@ public class ApplicationManager extends BaseManager {
     dialog.updateFilter(Utilities.fileExists(this, ".ali", axisID));
   }
 
-  /**
-   * Map the thread name to the correct axis
-   * 
-   * @param name
-   *            The name of the thread to assign to the axis
-   * @param axisID
-   *            The axis of the thread to be mapped
-   */
-  private void setThreadName(String name, AxisID axisID) {
-    if (name == null) {
-      name = "none";
-    }
-    if (axisID == AxisID.SECOND) {
-      threadNameB = name;
-    }
-    else {
-      threadNameA = name;
-    }
-  }
-
   private void setBackgroundThreadName(String name, AxisID axisID,
       String processName) {
     setThreadName(name, axisID);
@@ -5690,7 +5669,6 @@ public class ApplicationManager extends BaseManager {
   private final String getNextProcessProcesschunksString(ProcessName processName) {
     return ProcesschunksParam.COMMAND_NAME + " " + processName;
   }
-
   
   public final void processchunksTilt(AxisID axisID) {
     processchunks(axisID, mapGenerationDialog(axisID));
@@ -5699,38 +5677,6 @@ public class ApplicationManager extends BaseManager {
   public final void processchunksVolcombine() {
     processchunks(AxisID.ONLY, tomogramCombinationDialog);
   }
-
-  /**
-   * Run processchunks.
-   * @param axisID
-   */
-  private final void processchunks(AxisID axisID, ParallelDialog dialog) {
-    resetNextProcess(axisID);
-    if (dialog == null) {
-      return;
-    }
-    ProcesschunksParam param = new ProcesschunksParam(axisID);
-    dialog.getParameters(param);
-    processTrack.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
-    mainPanel.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
-    if (!param.getResume().is()) {
-      dialog.resetParallelProgressDisplay();
-    }
-    String threadName;
-    try {
-      threadName = processMgr.processchunks(axisID, param, dialog
-          .getParallelProgressDisplay());
-    }
-    catch (SystemProcessException e) {
-      e.printStackTrace();
-      String[] message = new String[2];
-      message[0] = "Can not execute " + ProcesschunksParam.COMMAND_NAME;
-      message[1] = e.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to execute command", axisID);
-      return;
-    }
-    setThreadName(threadName, axisID);
-  }
   
   protected BaseProcessManager getProcessManager() {
     return processMgr;
@@ -5738,6 +5684,10 @@ public class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.179  2005/09/19 16:33:22  sueh
+ * <p> bug# 532 removed code to find an intermittent bug from
+ * <p> doneTomgramGeneration() and updateTiltCom().
+ * <p>
  * <p> Revision 3.178  2005/09/16 21:20:26  sueh
  * <p> bug# 532 Changed ParallelDialog.resetParallelPanel() to
  * <p> resetParallelProgressDisplay() because ParallelDialog is generic.

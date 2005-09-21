@@ -11,9 +11,11 @@ import java.util.Vector;
 
 import etomo.comscript.ComScriptManager;
 import etomo.comscript.LoadAverageParam;
+import etomo.comscript.ProcesschunksParam;
 import etomo.process.BaseProcessManager;
 import etomo.process.ImodManager;
 import etomo.process.ImodProcess;
+import etomo.process.ProcessState;
 import etomo.process.SystemProcessException;
 import etomo.storage.ParameterStore;
 import etomo.storage.Storable;
@@ -47,6 +49,10 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.32  2005/09/19 16:38:29  sueh
+* <p> bug# 532 In getParallelPanel(), calling
+* <p> ParallelPanel.setContainer(ParallelDialog).
+* <p>
 * <p> Revision 1.31  2005/09/13 00:27:25  sueh
 * <p> bug# 532 Removed unecessary import.
 * <p>
@@ -809,18 +815,16 @@ public abstract class BaseManager {
     }
   }
   
-  public final ParallelPanel getParallelPanel(ParallelDialog container, AxisID axisID) {
+  public final ParallelPanel getParallelPanel(AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       if (parallelPanelB == null) {
         parallelPanelB = new ParallelPanel(this, axisID);
       }
-      parallelPanelB.setContainer(container);
       return parallelPanelB;
     }
     if (parallelPanelA == null) {
       parallelPanelA = new ParallelPanel(this, axisID);
     }
-    parallelPanelA.setContainer(container);
     return parallelPanelA;
   }
   
@@ -841,5 +845,81 @@ public abstract class BaseManager {
       mainPanel.stopProgressBar(axisID);
     }
   }
+  
+  /**
+   * Map the thread name to the correct axis
+   * 
+   * @param name
+   *            The name of the thread to assign to the axis
+   * @param axisID
+   *            The axis of the thread to be mapped
+   */
+  protected void setThreadName(String name, AxisID axisID) {
+    if (name == null) {
+      name = "none";
+    }
+    if (axisID == AxisID.SECOND) {
+      threadNameB = name;
+    }
+    else {
+      threadNameA = name;
+    }
+  }
 
+  public final void resume(AxisID axisID, ProcesschunksParam param) {
+    resetNextProcess(axisID);
+    if (param == null) {
+      uiHarness.openMessageDialog("No command to resume", "Resume");
+      return;
+    }
+    ParallelPanel parallelPanel = getParallelPanel(axisID);
+    parallelPanel.getResumeParameters(param);
+    String threadName;
+    try {
+      threadName = getProcessManager().processchunks(axisID, param, parallelPanel);
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Can not execute " + ProcesschunksParam.COMMAND_NAME;
+      message[1] = e.getMessage();
+      uiHarness.openMessageDialog(message, "Unable to execute command", axisID);
+      return;
+    }
+    setThreadName(threadName, axisID);
+
+  }
+
+  /**
+   * Run processchunks.
+   * @param axisID
+   */
+  protected final void processchunks(AxisID axisID, ParallelDialog dialog) {
+    resetNextProcess(axisID);
+    if (dialog == null) {
+      return;
+    }
+    ProcesschunksParam param = new ProcesschunksParam(axisID);
+    ParallelPanel parallelPanel = getParallelPanel(axisID);
+    dialog.getParameters(param);
+    getProcessTrack().setState(ProcessState.INPROGRESS, axisID, dialog);
+    getMainPanel().setState(ProcessState.INPROGRESS, axisID, dialog);
+    //param should never be set to resume
+    parallelPanel.resetResults();
+    String threadName;
+    try {
+      threadName = getProcessManager().processchunks(axisID, param, parallelPanel);
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Can not execute " + ProcesschunksParam.COMMAND_NAME;
+      message[1] = e.getMessage();
+      uiHarness.openMessageDialog(message, "Unable to execute command", axisID);
+      return;
+    }
+    //set param in parallel panel so it can do a resume
+    parallelPanel.setProcesschunksParam(param);
+    setThreadName(threadName, axisID);
+  }
 }
