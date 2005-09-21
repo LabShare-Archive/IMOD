@@ -101,6 +101,10 @@ import java.util.Vector;
 * @version $$Revision$$
 *
 * <p> $$Log$
+* <p> $Revision 1.7  2005/09/01 17:59:47  sueh
+* <p> $bug# 532 Allow a comment inside a section.  Changed the language
+* <p> $definition and section().
+* <p> $
 * <p> $Revision 1.6  2005/02/15 19:51:54  sueh
 * <p> $bug# 602 Preprocessor:  Converting BREAK token to WORD when it is
 * <p> $not at the beginning of a line.  Converting the spaces following a BREAK
@@ -181,7 +185,7 @@ public class AutodocParser {
     }
     this.autodoc = autodoc;
     name = new String(autodoc.getName());
-    file = autodoc.getFile();
+    file = autodoc.getAutodocFile();
     tokenizer = new AutodocTokenizer(file);
   }
 
