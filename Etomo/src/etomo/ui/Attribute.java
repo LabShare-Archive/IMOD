@@ -4,6 +4,8 @@ import java.util.HashMap;
 import java.util.Collection;
 import java.util.Iterator;
 
+import etomo.type.EtomoNumber;
+
 /**
 * <p>Description:</p>
 *
@@ -18,6 +20,10 @@ import java.util.Iterator;
 * @version $$Revision$$
 *
 * <p> $$Log$
+* <p> $Revision 1.4  2005/05/17 19:31:59  sueh
+* <p> $bug# 372 Reducing the visibility of functions and member variables.
+* <p> $Removing unused function getValue().
+* <p> $
 * <p> $Revision 1.3  2005/02/15 19:30:44  sueh
 * <p> $bug# 602 Added getUnformattedValue() and getFormattedValue() to get the
 * <p> $value either ignoring or using the BREAK and INDENT tokens.
@@ -129,6 +135,10 @@ public class Attribute implements AttributeCollection {
   
   String getName() {
     return name.getValue(true);
+  }
+  
+  public void getUnformattedValue(EtomoNumber unformattedValue) {
+    unformattedValue.set(getUnformattedValue());
   }
  
   public String getUnformattedValue() {
