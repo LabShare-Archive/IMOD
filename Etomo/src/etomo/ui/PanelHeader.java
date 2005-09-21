@@ -119,6 +119,10 @@ final class PanelHeader implements Expandable {
     rootPanel.add(separator);
   }
   
+  final void setText(String text) {
+    cellTitle.setText(text);
+  }
+  
   final Container getContainer() {
     return rootPanel;
   }
@@ -151,6 +155,12 @@ final class PanelHeader implements Expandable {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.11  2005/09/20 19:00:18  sueh
+* <p> bug# 532 Allowing control of whether buttons start in expanded or
+* <p> contracted state.  OpenClose is always expanded.  The other can be
+* <p> controlled.  Adeed getExpandedMoreLessInstance() to get a header with
+* <p> a more/less button with an expanded initial state.  The default is contracted.
+* <p>
 * <p> Revision 1.10  2005/09/19 16:38:57  sueh
 * <p> bug# 532 Added more/less button.
 * <p>
