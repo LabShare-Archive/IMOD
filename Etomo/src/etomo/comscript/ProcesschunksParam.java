@@ -32,12 +32,14 @@ public final class ProcesschunksParam implements ParallelParam {
   public static final int NICE_CEILING = 19;
   public static final int DROP_VALUE = 5;
   
-  private String[] commandArray = null;
+  private final EtomoBoolean2 resume = new EtomoBoolean2();
+  private final EtomoNumber nice = new EtomoNumber();
+  private final ArrayList machineNames = new ArrayList();
+  
   private final AxisID axisID;
-  private EtomoBoolean2 resume = new EtomoBoolean2();
-  private EtomoNumber nice = new EtomoNumber();
-  private ArrayList machineNames = new ArrayList();
-  private String rootName;
+  
+  private String[] commandArray = null;
+  private String rootName = null;
   private StringBuffer machineList = null;
   
   public ProcesschunksParam(AxisID axisID) {
@@ -95,17 +97,33 @@ public final class ProcesschunksParam implements ParallelParam {
     }
   }
   
+  /**
+   * Set resume.  This value can be set after the command is built because it
+   * comes from the parallel panel and can be changed for a resume.
+   * 
+   * Causes commandArray to be set to null.
+   * @param resume
+   */
   public final void setResume(boolean resume) {
-    if (commandArray != null) {
-      throw new IllegalStateException("can't change parameter values after command is built");
+    if (this.resume.equals(resume)) {
+      return;
     }
+    commandArray = null;
     this.resume.set(resume);
   }
   
+  /**
+   * Set nice.  This value can be set after the command is built because it
+   * comes from the parallel panel and can be changed for a resume.
+   * 
+   * Causes commandArray to be set to null.
+   * @param nice
+   */
   public final void setNice(Number nice) {
-    if (commandArray != null) {
-      throw new IllegalStateException("can't change parameter values after command is built");
+    if (this.nice.equals(nice)) {
+      return;
     }
+    commandArray = null;
     this.nice.set(nice);
   }
   
@@ -134,6 +152,20 @@ public final class ProcesschunksParam implements ParallelParam {
     return "";
   }
   
+  /**
+   * Clears macinesNames.  This value can be set after the command is built because it
+   * comes from the parallel panel and can be changed for a resume.
+   * 
+   * Causes commandArray to be set to null.
+   */
+  public final void resetMachineName() {
+    if (machineNames.size() == 0) {
+      return;
+    }
+    commandArray = null;
+    machineNames.clear();
+  }
+  
   public final void addMachineName(String machineName) {
     if (commandArray != null) {
       throw new IllegalStateException("can't change parameter values after command is built");
@@ -143,6 +175,9 @@ public final class ProcesschunksParam implements ParallelParam {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.7  2005/09/16 20:52:37  sueh
+* <p> bug# 532 Added getResume().
+* <p>
 * <p> Revision 1.6  2005/09/16 17:19:29  sueh
 * <p> bug# 532 Implementing ParallelParam.
 * <p>
