@@ -14,6 +14,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 
 import etomo.BaseManager;
+import etomo.process.ProcessState;
 import etomo.storage.DataFileFilter;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
@@ -33,6 +34,12 @@ import etomo.type.ProcessEndState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.28  2005/08/22 17:55:47  sueh
+ * <p> bug# 532  Add status string, remove pause button and add parallel
+ * <p> progress display instead so that the button will be managed indirectly.
+ * <p> The pause button should only be turned on for processes that can be
+ * <p> paused.
+ * <p>
  * <p> Revision 1.27  2005/08/09 20:24:50  sueh
  * <p> bug# 711  No longer inheriting JButton in MultiLineButton.
  * <p>
@@ -243,6 +250,8 @@ public abstract class MainPanel extends JPanel {
   public abstract void saveDisplayState();
   protected abstract AxisProcessPanel getAxisPanelA();
   protected abstract AxisProcessPanel getAxisPanelB();
+  public abstract void setState(ProcessState processState, AxisID axisID,
+      ParallelDialog parallelDialog);
 
   /**
    * Main window constructor.  This sets up the menus and status line.
