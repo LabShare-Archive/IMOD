@@ -55,6 +55,11 @@ import etomo.type.Run3dmodMenuOptions;
  * 
  * <p>
  * $Log$
+ * Revision 3.28  2005/09/16 20:56:15  sueh
+ * bug# 532 Moved call to resetParallelPanel() to
+ * ApplicationManager.processchunks().  Added resetParallelPanel() to
+ * ParallelDialog.
+ *
  * Revision 3.27  2005/09/16 18:09:54  sueh
  * bug# 532 Added cbParallelProcess and resume.  Added functions:
  * resume, getParameters(MetaData),
@@ -309,7 +314,6 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
   private LabeledTextField ltfReductionFactor = new LabeledTextField(
       "Reduction factor for matching amplitudes in combined FFT: ");
   private JCheckBox cbParallelProcess = new JCheckBox("Parallel Processing");
-  private boolean resume = false;
   /**
    * Default constructor
    * 
@@ -804,30 +808,9 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     }
   }
   
-  public void resume() {
-    resume = true;
-    runVolcombine();
-  }
-  
   public final void getParameters(ProcesschunksParam param) {
-    param.setResume(resume);
     param.setRootName(ProcessName.VOLCOMBINE.toString());
   }
-  
-  private final void runVolcombine() {
-    if (cbParallelProcess.isSelected()) {
-      if (resume) {
-        applicationManager.processchunksVolcombine();  
-      }
-      else {
-        applicationManager.splitcombine();
-      }
-  }
-    else {
-      applicationManager.volcombine();
-    }
-  }
-
 
   private void buttonAction(ActionEvent event) {
     // Synchronize this panel with the others
@@ -868,8 +851,12 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
       applicationManager.matchorwarpTrial();
     }
     else if (command.equals(btnVolcombineRestart.getActionCommand())) {
-      resume = false;
-      runVolcombine();
+      if (cbParallelProcess.isSelected()) {
+          applicationManager.splitcombine();
+      }
+      else {
+        applicationManager.volcombine();
+      }
     }
     else if (command.equals(btnPatchVectorModel.getActionCommand())) {
       applicationManager.imodPatchVectorModel();
