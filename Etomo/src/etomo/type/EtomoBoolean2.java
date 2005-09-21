@@ -19,6 +19,10 @@ import etomo.comscript.InvalidParameterException;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.12  2005/06/16 20:06:08  sueh
+* <p> bug# 692 EtomoBoolean2 is supposed to be a boolean which allows nulls.
+* <p> It should have nullIsValid = true.
+* <p>
 * <p> Revision 1.11  2005/06/14 22:03:10  sueh
 * <p> bug# 681 Fixed toString(Number).  It was always returning true.  Fixed
 * <p> parse().  It was not overriding
@@ -208,6 +212,13 @@ public class EtomoBoolean2 extends ScriptParameter {
   
   public boolean isUseInScript() {
     return true;
+  }
+  
+  public boolean equals(boolean value) {
+    if (value) {
+      return equals(trueValue);
+    }
+    return equals(falseValue);
   }
     
   /**
