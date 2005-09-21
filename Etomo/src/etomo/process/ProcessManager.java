@@ -20,6 +20,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.80  2005/09/16 17:49:35  sueh
+ * Added splitcombine().
+ *
  * Revision 3.79  2005/09/09 21:43:36  sueh
  * bug# 532 Handling null from stderr and stdout.
  *
@@ -697,7 +700,6 @@ import etomo.ApplicationManager;
 import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.type.ConstMetaData;
-import etomo.ui.ParallelProgressDisplay;
 import etomo.ui.TextPageWindow;
 import etomo.ui.UIHarness;
 import etomo.util.InvalidParameterException;
@@ -713,7 +715,6 @@ import etomo.comscript.ConstTiltxcorrParam;
 import etomo.comscript.CopyTomoComs;
 import etomo.comscript.BadComScriptException;
 import etomo.comscript.NewstParam;
-import etomo.comscript.ProcesschunksParam;
 import etomo.comscript.SetupCombine;
 import etomo.comscript.SplitcombineParam;
 import etomo.comscript.SplittiltParam;
@@ -1294,25 +1295,6 @@ public class ProcessManager extends BaseProcessManager {
     BackgroundProcess backgroundProcess = startBackgroundProcess(param
         .getCommand(), AxisID.ONLY);
     return backgroundProcess.getName();
-  }
-  
-  /**
-   * run processchunks
-   * @param axisID
-   * @param param
-   * @return
-   * @throws SystemProcessException
-   */
-  public final String processchunks(AxisID axisID, ProcesschunksParam param,
-      ParallelProgressDisplay parallelProgressDisplay)
-      throws SystemProcessException {
-    //  Instantiate the process monitor
-    ProcesschunksProcessMonitor monitor = new ProcesschunksProcessMonitor(
-        appManager, axisID, parallelProgressDisplay, param.getRootName(), param.getMachineList());
-
-    BackgroundProcess process = startInteractiveBackgroundProcess(param.getCommand(), axisID,
-        monitor);
-    return process.getName();
   }
   
   /**

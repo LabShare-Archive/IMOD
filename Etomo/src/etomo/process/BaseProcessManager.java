@@ -9,8 +9,10 @@ import etomo.EtomoDirector;
 import etomo.comscript.Command;
 import etomo.comscript.ComscriptState;
 import etomo.comscript.LoadAverageParam;
+import etomo.comscript.ProcesschunksParam;
 import etomo.type.AxisID;
 import etomo.type.ProcessEndState;
+import etomo.ui.ParallelProgressDisplay;
 import etomo.ui.UIHarness;
 import etomo.util.Utilities;
 
@@ -28,6 +30,9 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.25  2005/09/13 00:14:46  sueh
+* <p> bug# 532 Made isAxisBusy() public so that BaseManager can use it.
+* <p>
 * <p> Revision 1.24  2005/09/10 01:48:39  sueh
 * <p> bug# 532 Changed IntermittentSystemProgram to
 * <p> IntermittentBackgroundProcess.  Made intermittentSystemProgram a child
@@ -225,6 +230,25 @@ public abstract class BaseProcessManager {
   
   public final void stopGetLoadAverage(LoadAverageParam param, LoadAverageMonitor monitor) {
     IntermittentBackgroundProcess.stopInstance(getManager(), param, monitor);
+  }
+  
+  /**
+   * run processchunks
+   * @param axisID
+   * @param param
+   * @return
+   * @throws SystemProcessException
+   */
+  public final String processchunks(AxisID axisID, ProcesschunksParam param,
+      ParallelProgressDisplay parallelProgressDisplay)
+      throws SystemProcessException {
+    //  Instantiate the process monitor
+    ProcesschunksProcessMonitor monitor = new ProcesschunksProcessMonitor(
+        getManager(), axisID, parallelProgressDisplay, param.getRootName(), param.getMachineList());
+
+    BackgroundProcess process = startInteractiveBackgroundProcess(param.getCommand(), axisID,
+        monitor);
+    return process.getName();
   }
   
   /**
