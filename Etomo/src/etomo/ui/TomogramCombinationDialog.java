@@ -44,6 +44,10 @@ import etomo.type.MetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.24  2005/09/16 21:20:50  sueh
+ * <p> bug# 532 Changed ParallelDialog.resetParallelPanel() to
+ * <p> resetParallelProgressDisplay() because ParallelDialog is generic.
+ * <p>
  * <p> Revision 3.23  2005/09/16 20:57:40  sueh
  * <p> bug# 532 Moved call to resetParallelPanel() to
  * <p> ApplicationManager.processchunks().  Added resetParallelPanel() to
@@ -251,7 +255,7 @@ public class TomogramCombinationDialog
     pnlInitial = new InitialCombinePanel(this,  applicationManager);
     pnlFinal = new FinalCombinePanel(this,  applicationManager);
 
-    parallelPanel = applicationManager.getParallelPanel(this, AxisID.ONLY);
+    parallelPanel = applicationManager.getParallelPanel(AxisID.ONLY);
     fixRootPanel(rootSize);
 
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
@@ -323,22 +327,10 @@ public class TomogramCombinationDialog
     pnlInitial.setSolvematchParams(solvematchParams);
   }
   
-  public void resume() {
-    pnlFinal.resume();
-  }
-  
-  public final ParallelProgressDisplay getParallelProgressDisplay() {
-    return parallelPanel;
-  }
-  
   public final void getParameters(ParallelParam param) {
     ProcesschunksParam processchunksParam = (ProcesschunksParam) param;
     pnlFinal.getParameters(processchunksParam);
     parallelPanel.getParameters(processchunksParam);
-  }
-  
-  public final void resetParallelProgressDisplay() {
-    parallelPanel.resetResults();
   }
   
   public final void getParameters(MetaData metaData) {
