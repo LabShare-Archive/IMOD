@@ -45,6 +45,7 @@ import etomo.type.ConstMetaData;
 import etomo.type.DialogType;
 import etomo.type.EtomoAutodoc;
 import etomo.type.MetaData;
+import etomo.type.ProcessName;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.ViewType;
 import etomo.util.InvalidParameterException;
@@ -69,6 +70,10 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.68  2005/09/20 19:14:26  sueh
+ * bug# 532 Simplify expand().  Remove PanelHeader.setOpen() calls, since
+ * the panel and the button both start open.
+ *
  * Revision 3.67  2005/09/16 21:21:02  sueh
  * bug# 532 Changed ParallelDialog.resetParallelPanel() to
  * resetParallelProgressDisplay() because ParallelDialog is generic.
@@ -473,8 +478,9 @@ public class TomogramGenerationDialog extends ProcessDialog
       FiducialessParams, Expandable, ParallelDialog, Run3dmodButtonContainer {
   public static final String rcsid = "$Id$";
 
-  private  static final String RUN_TRIAL_BUTTON_TITLE = "Generate Trial Tomogram";
-  private  static final String RUN_TILT_BUTTON_TITLE = "Generate Tomogram";
+  private static final String RUN_TRIAL_BUTTON_TITLE = "Generate Trial Tomogram";
+  private static final String RUN_TILT_BUTTON_TITLE = "Generate Tomogram";
+  private static final String PARALLEL_PROCESS_CHECKBOX_LABEL = "Parallel Processing";
   
   private JPanel pnlTilt = new JPanel();
 
@@ -559,7 +565,7 @@ public class TomogramGenerationDialog extends ProcessDialog
   private JCheckBox cbUseZFactors = new JCheckBox("Use Z factors");
   private SpacedTextField ltfExtraExcludeList = new SpacedTextField(
   "Extra views to exclude: ");
-  private JCheckBox cbParallelProcess = new JCheckBox("Parallel Processing");
+  private JCheckBox cbParallelProcess;
   //headers should not go into garbage collection
   private PanelHeader newstHeader = null;
   private PanelHeader tiltHeader = null;
@@ -577,7 +583,6 @@ public class TomogramGenerationDialog extends ProcessDialog
   //backward compatibility functionality - if the metadata binning is missing
   //get binning from newst
   private boolean getBinningFromNewst = true;
-  private boolean resume = false;
   private boolean trialTilt = false;
 
   public TomogramGenerationDialog(ApplicationManager appMgr, AxisID axisID) {
@@ -585,7 +590,7 @@ public class TomogramGenerationDialog extends ProcessDialog
     fixRootPanel(rootSize);
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     btnExecute.setText("Done");
-    parallelPanel = applicationManager.getParallelPanel(this, axisID);
+    parallelPanel = applicationManager.getParallelPanel(axisID);
     // Layout the main panel (and sub panels) and add it to the root panel
     pnlTilt.setBorder(new BeveledBorder("Tomogram Generation").getBorder());
     pnlTilt.setLayout(new BoxLayout(pnlTilt, BoxLayout.Y_AXIS));
@@ -625,10 +630,6 @@ public class TomogramGenerationDialog extends ProcessDialog
     // Set the default advanced dialog state
     updateAdvanced();
     setToolTipText();
-  }
-  
-  public final ParallelProgressDisplay getParallelProgressDisplay() {
-    return parallelPanel;
   }
 
   public void updateFilter(boolean enable) {
@@ -953,7 +954,6 @@ public class TomogramGenerationDialog extends ProcessDialog
   
   public final void getParameters(ParallelParam param) {
     ProcesschunksParam processchunksParam = (ProcesschunksParam) param;
-    processchunksParam.setResume(resume);
     processchunksParam.setRootName(TiltParam.COMMAND_NAME);
     parallelPanel.getParameters(processchunksParam);
   }
@@ -1146,6 +1146,16 @@ public class TomogramGenerationDialog extends ProcessDialog
    * Layout the tilt panel
    */
   private Container layoutTiltPanel() {
+    //fields
+    ConstEtomoNumber maxCPUs = ParallelPanel.getMaxCPUs(axisID,
+        ProcessName.TILT);
+    if (maxCPUs != null && !maxCPUs.isNull()) {
+      cbParallelProcess = new JCheckBox(PARALLEL_PROCESS_CHECKBOX_LABEL
+          + ":  Maximum number of CPUs recommended is " + maxCPUs.toString());
+    }
+    else {
+      cbParallelProcess = new JCheckBox(PARALLEL_PROCESS_CHECKBOX_LABEL);
+    }
     //panels
     JPanel tiltPanel = new JPanel();
     tiltPanel.setLayout(new BoxLayout(tiltPanel, BoxLayout.Y_AXIS));
@@ -1376,11 +1386,6 @@ public class TomogramGenerationDialog extends ProcessDialog
     updateAdvanced();
   }
   
-  public void resume() {
-    resume = true;
-    runTilt();
-  }
-  
   public void run3dmod(Run3dmodButton button, Run3dmodMenuOptions menuOptions) {
     run3dmod(button.getActionCommand(), menuOptions);
   }
@@ -1415,38 +1420,6 @@ public class TomogramGenerationDialog extends ProcessDialog
       applicationManager.useMtfFilter(axisID);
     }
     else if (command.equals(btnTrial.getActionCommand())) {
-      resume = false;
-      trialTilt = true;
-      runTilt();
-    }
-    else if (command.equals(btnUseTrial.getActionCommand())) {
-      applicationManager.commitTestVolume(axisID);
-    }
-    else if (command.equals(btnTilt.getActionCommand())) {
-      resume = false;
-      trialTilt = false;
-      runTilt();
-    }
-    else if (command.equals(btnDeleteStacks.getActionCommand())) {
-      applicationManager.deleteAlignedStacks(axisID);
-    }
-    else if (command.equals(cbFiducialess.getActionCommand())) {
-      updateFiducialess();
-    }
-    else if (command.equals(cbParallelProcess.getActionCommand())) {
-      updateParallelProcess();
-    }
-    else {
-      run3dmod(command, new Run3dmodMenuOptions());
-    }
-  }
-  
-  public final void resetParallelProgressDisplay() {
-    parallelPanel.resetResults();
-  }
-  
-  private final void runTilt() {
-    if (trialTilt) {
       String trialTomogramName = getTrialTomogramName();
       if (trialTomogramName == "") {
         String[] errorMessage = new String[2];
@@ -1462,34 +1435,39 @@ public class TomogramGenerationDialog extends ProcessDialog
         cmboTrialTomogramName.addItem(trialTomogramName);
       }
       if (cbParallelProcess.isSelected()) {
-        if (resume) {
-          applicationManager.processchunksTilt(axisID);
-        }
-        else {
-          parallelPanel.resetResults();
-          applicationManager.splittilt(axisID, true);
-        }
+        parallelPanel.resetResults();
+        applicationManager.splittilt(axisID, true);
       }
       else {
         applicationManager.trialTilt(axisID);
       }
     }
-    else {
+    else if (command.equals(btnUseTrial.getActionCommand())) {
+      applicationManager.commitTestVolume(axisID);
+    }
+    else if (command.equals(btnTilt.getActionCommand())) {
       if (cbParallelProcess.isSelected()) {
-        if (resume) {
-          applicationManager.processchunksTilt(axisID);
-        }
-        else {
-          parallelPanel.resetResults();
-          applicationManager.splittilt(axisID);
-        }
+        parallelPanel.resetResults();
+        applicationManager.splittilt(axisID);
       }
       else {
         applicationManager.tilt(axisID);
       }
     }
+    else if (command.equals(btnDeleteStacks.getActionCommand())) {
+      applicationManager.deleteAlignedStacks(axisID);
+    }
+    else if (command.equals(cbFiducialess.getActionCommand())) {
+      updateFiducialess();
+    }
+    else if (command.equals(cbParallelProcess.getActionCommand())) {
+      updateParallelProcess();
+    }
+    else {
+      run3dmod(command, new Run3dmodMenuOptions());
+    }
   }
-
+  
   private class ButtonListener implements ActionListener {
     TomogramGenerationDialog adaptee;
 
