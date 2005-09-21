@@ -5,6 +5,7 @@ import java.io.File;
 import javax.swing.JPanel;
 
 import etomo.JoinManager;
+import etomo.process.ProcessState;
 import etomo.storage.DataFileFilter;
 import etomo.storage.JoinFileFilter;
 import etomo.type.AxisID;
@@ -24,6 +25,11 @@ import etomo.type.BaseMetaData;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.8  2005/08/04 20:11:52  sueh
+* <p> bug# 532  Centralizing fit window functionality by placing fitting functions
+* <p> in UIHarness.  Removing packMainWindow from the manager.  Sending
+* <p> the manager to UIHarness.pack() so that packDialogs() can be called.
+* <p>
 * <p> Revision 1.7  2005/05/17 19:37:56  sueh
 * <p> bug# 663 Renamed updateDataParameters() to setStatusBarText() and
 * <p> moved the common functionality to MainPanel.setStatusBarText().
@@ -178,5 +184,9 @@ public class MainJoinPanel extends MainPanel {
       return axisPanelB;
     }
     return axisPanelA;
+  }
+
+  public final void setState(ProcessState processState, AxisID axisID,
+      ParallelDialog parallelDialog) {
   }
 }
