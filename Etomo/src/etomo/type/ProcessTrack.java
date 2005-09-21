@@ -1,6 +1,7 @@
 package etomo.type;
 
 import etomo.process.ProcessState;
+import etomo.ui.ParallelDialog;
 
 import java.util.Properties;
 
@@ -17,6 +18,9 @@ import java.util.Properties;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.3  2005/03/24 17:49:08  sueh
+ * <p> bug# 621 Added Clean Up dialog state.
+ * <p>
  * <p> Revision 3.2  2004/12/14 21:48:28  sueh
  * <p> bug# 565 Turning base class into an interface.
  * <p>
@@ -295,6 +299,45 @@ public class ProcessTrack implements BaseProcessTrack {
 
   public ProcessState getSetupState() {
     return setup;
+  }
+  
+  public final void setState(ProcessState processState, AxisID axisID,
+      ParallelDialog parallelDialog) {
+    setState(processState, axisID, parallelDialog.getDialogType());
+  }
+
+  private final void setState(ProcessState processState, AxisID axisID,
+      DialogType dialogType) {
+    if (dialogType == DialogType.CLEAN_UP) {
+      setCleanUpState(processState);
+    }
+    else if (dialogType == DialogType.COARSE_ALIGNMENT) {
+      setCoarseAlignmentState(processState, axisID);
+    }
+    else if (dialogType == DialogType.FIDUCIAL_MODEL) {
+      setFiducialModelState(processState, axisID);
+    }
+    else if (dialogType == DialogType.FINE_ALIGNMENT) {
+      setFineAlignmentState(processState, axisID);
+    }
+    else if (dialogType == DialogType.POST_PROCESSING) {
+      setPostProcessingState(processState);
+    }
+    else if (dialogType == DialogType.PRE_PROCESSING) {
+      setPreProcessingState(processState, axisID);
+    }
+    else if (dialogType == DialogType.SETUP) {
+      setSetupState(processState);
+    }
+    else if (dialogType == DialogType.TOMOGRAM_COMBINATION) {
+      setTomogramCombinationState(processState);
+    }
+    else if (dialogType == DialogType.TOMOGRAM_GENERATION) {
+      setTomogramGenerationState(processState, axisID);
+    }
+    else if (dialogType == DialogType.TOMOGRAM_POSITIONING) {
+      setTomogramPositioningState(processState, axisID);
+    }
   }
 
   public void setPreProcessingState(ProcessState state, AxisID axisID) {
