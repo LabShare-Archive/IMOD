@@ -11,6 +11,7 @@ import etomo.storage.EtomoFileFilter;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.BaseMetaData;
+import etomo.type.DialogType;
 import etomo.type.ProcessTrack;
 /**
 * <p>Description: </p>
@@ -26,6 +27,11 @@ import etomo.type.ProcessTrack;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.15  2005/08/04 20:12:43  sueh
+* <p> bug# 532  Centralizing fit window functionality by placing fitting functions
+* <p> in UIHarness.  Removing packMainWindow from the manager.  Sending
+* <p> the manager to UIHarness.pack() so that packDialogs() can be called.
+* <p>
 * <p> Revision 1.14  2005/05/17 19:38:51  sueh
 * <p> bug# 663 Renamed updateDataParameters() to setStatusBarText() and
 * <p> moved the common functionality to MainPanel.setStatusBarText().
@@ -217,6 +223,42 @@ public class MainTomogramPanel extends MainPanel {
    */
   public void selectButton(AxisID axisID, String name) {
     mapAxis(axisID).selectButton(name);
+  }
+
+  public final void setState(ProcessState processState, AxisID axisID,
+      ParallelDialog parallelDialog) {
+    setState(processState, axisID, parallelDialog.getDialogType());
+  }
+
+  private final void setState(ProcessState processState, AxisID axisID,
+      DialogType dialogType) {
+    if (dialogType == DialogType.CLEAN_UP) {
+      setCleanUpState(processState);
+    }
+    else if (dialogType == DialogType.COARSE_ALIGNMENT) {
+      setCoarseAlignState(processState, axisID);
+    }
+    else if (dialogType == DialogType.FIDUCIAL_MODEL) {
+      setFiducialModelState(processState, axisID);
+    }
+    else if (dialogType == DialogType.FINE_ALIGNMENT) {
+      setFineAlignmentState(processState, axisID);
+    }
+    else if (dialogType == DialogType.POST_PROCESSING) {
+      setPostProcessingState(processState);
+    }
+    else if (dialogType == DialogType.PRE_PROCESSING) {
+      setPreProcessingState(processState, axisID);
+    }
+    else if (dialogType == DialogType.TOMOGRAM_COMBINATION) {
+      setTomogramCombinationState(processState);
+    }
+    else if (dialogType == DialogType.TOMOGRAM_GENERATION) {
+      setTomogramGenerationState(processState, axisID);
+    }
+    else if (dialogType == DialogType.TOMOGRAM_POSITIONING) {
+      setTomogramPositioningState(processState, axisID);
+    }
   }
   
   /**
