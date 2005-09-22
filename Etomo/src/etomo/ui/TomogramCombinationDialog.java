@@ -44,6 +44,11 @@ import etomo.type.MetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.25  2005/09/21 17:06:30  sueh
+ * <p> bug# 532 Removed all resume functionality from the dialogs.  Removed
+ * <p> resume().  Removed getParallelProgressDisplay() because the parallel
+ * <p> panel can be gotten from the manager.
+ * <p>
  * <p> Revision 3.24  2005/09/16 21:20:50  sueh
  * <p> bug# 532 Changed ParallelDialog.resetParallelPanel() to
  * <p> resetParallelProgressDisplay() because ParallelDialog is generic.
@@ -237,7 +242,6 @@ public class TomogramCombinationDialog
   private InitialCombinePanel pnlInitial;
   private FinalCombinePanel pnlFinal;
   private boolean combinePanelEnabled;
-  private ParallelPanel parallelPanel;
   private JPanel parallelPanelContainer = new JPanel();
 
   private JTabbedPane tabbedPane = new JTabbedPane();
@@ -255,7 +259,6 @@ public class TomogramCombinationDialog
     pnlInitial = new InitialCombinePanel(this,  applicationManager);
     pnlFinal = new FinalCombinePanel(this,  applicationManager);
 
-    parallelPanel = applicationManager.getParallelPanel(AxisID.ONLY);
     fixRootPanel(rootSize);
 
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
@@ -281,12 +284,6 @@ public class TomogramCombinationDialog
     updateAdvanced(isAdvanced);
     
     idxLastTab = tabbedPane.getSelectedIndex();
-    restartDialog();
-  }
-  
-  public final void restartDialog() {
-    parallelPanelContainer.add(parallelPanel.getRootPanel());
-    updateParallelProcess();
   }
   
   /**
@@ -330,7 +327,6 @@ public class TomogramCombinationDialog
   public final void getParameters(ParallelParam param) {
     ProcesschunksParam processchunksParam = (ProcesschunksParam) param;
     pnlFinal.getParameters(processchunksParam);
-    parallelPanel.getParameters(processchunksParam);
   }
   
   public final void getParameters(MetaData metaData) {
@@ -351,15 +347,8 @@ public class TomogramCombinationDialog
   }
   
   final void updateParallelProcess() {
-    boolean parallelProcess = pnlFinal.isParallelProcessSelected();
-    parallelPanel.setVisible(parallelProcess);
-    if (parallelProcess) {
-      parallelPanel.start();
-    }
-    else {
-      parallelPanel.stop();
-    }
-    UIHarness.INSTANCE.pack(AxisID.ONLY, applicationManager);
+    applicationManager.showParallelStatus(axisID, dialogType, pnlFinal
+        .getVolcombineButtonName(), isParallelProcessSelected());
   }
   
   /**

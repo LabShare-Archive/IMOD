@@ -41,7 +41,8 @@ import etomo.util.HashedArray;
 public final class ParallelPanel implements ParallelProgressDisplay, Expandable, LoadAverageDisplay {
   public static final String rcsid = "$Id$";
 
-  private static final String TITLE = "Parallel Processing";
+  static final String TITLE = "Parallel Processing";
+  static final String MAX_CPUS_STRING = ":  Maximum number of CPUs recommended is ";
   
   private static HashedArray maxCPUList = null;
   
@@ -108,15 +109,12 @@ public final class ParallelPanel implements ParallelProgressDisplay, Expandable,
     rootPanel.add(header.getContainer());
     rootPanel.add(bodyPanel.getContainer());
     //configure fields
-    //header.setOpen(true);
     ltfChunksFinished.setTextPreferredWidth(FixedDim.fourDigitWidth);
     ltfChunksFinished.setEditable(false);
     ltfCPUsSelected.setTextPreferredWidth(FixedDim.fourDigitWidth);
     ltfCPUsSelected.setEditable(false);
     processorTable.msgCPUsSelectedChanged();
     btnPause.setEnabled(pauseEnabled);
-    manager.getMainPanel().setParallelProgressDisplay(this, axisID);
-    processorTable.setRestartsError(ProcesschunksParam.DROP_VALUE);
     EtomoDirector.getInstance().loadPreferences(processorTable, axisID);
   }
   
@@ -127,11 +125,11 @@ public final class ParallelPanel implements ParallelProgressDisplay, Expandable,
     tablePanel.add(Box.createHorizontalGlue());
   }
   
-  final void start() {
+  public final void start() {
     processorTable.startGetLoadAverage(this);
   }
   
-  final void stop() {
+  public final void stop() {
     processorTable.stopGetLoadAverage(this);
   }
   
@@ -168,7 +166,7 @@ public final class ParallelPanel implements ParallelProgressDisplay, Expandable,
     ltfCPUsSelected.setText(cpusSelected);
   }
 
-  final Container getRootPanel() {
+  public final Container getContainer() {
     return rootPanel;
   }
   
@@ -283,7 +281,7 @@ public final class ParallelPanel implements ParallelProgressDisplay, Expandable,
     btnResume.setEnabled(true);
   }
   
-  final boolean getParameters(SplittiltParam param) {
+  public final boolean getParameters(SplittiltParam param) {
     ConstEtomoNumber numMachines = param.setNumMachines(ltfCPUsSelected
         .getText());
     if (!numMachines.isValid()) {
@@ -302,12 +300,12 @@ public final class ParallelPanel implements ParallelProgressDisplay, Expandable,
     processorTable.getParameters(param);
  }
   
-  final void getParameters(ProcesschunksParam param) {
+  public final void getParameters(ProcesschunksParam param) {
      param.setNice(nice.getValue());
      processorTable.getParameters(param);
   }
   
-  final void pack() {
+  public final void pack() {
     if (!visible) {
       return;
     }
@@ -372,6 +370,19 @@ public final class ParallelPanel implements ParallelProgressDisplay, Expandable,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.18  2005/09/21 16:59:11  sueh
+ * <p> bug# 532 Added member variable ProcesschunksParam to store the most
+ * <p> recently used ProcesschunksParam.  Change the header title to show the
+ * <p> root name of the ProcesschunksParam being run.  Remove the
+ * <p> ParallelDialog dialog member variable.  Call manager.resume() instead of
+ * <p> dialog.resume().  Add static function getAutodoc() to get the cpu autodoc.
+ * <p> Add static function getMaxCPUs() to get and store the maximum
+ * <p> recommend CPU for a process.  Make resetResults() public, so it can be
+ * <p> called by ApplicationManager.  Added
+ * <p> getResumeParameters(ProcesschunksParam) to update a used
+ * <p> ProcesschunksParam from the parallel panel and set its resume option to
+ * <p> true.
+ * <p>
  * <p> Revision 1.17  2005/09/20 19:03:11  sueh
  * <p> bug# 532 Added code to expand() to handle the more/less button.  Moved
  * <p> the code to put padding around the processor table and add it to

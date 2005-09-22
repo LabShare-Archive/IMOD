@@ -1,5 +1,7 @@
 package etomo.ui;
 
+import java.awt.Container;
+
 import etomo.process.ParallelProcessMonitor;
 
 /**
@@ -16,6 +18,9 @@ import etomo.process.ParallelProcessMonitor;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.7  2005/09/01 18:02:33  sueh
+* <p> bug# 532 Added a drop reason.
+* <p>
 * <p> Revision 1.6  2005/08/30 19:22:08  sueh
 * <p> bug# 532 Added setParallelProcessMonitor() to set a monitor in the display.
 * <p>
@@ -51,4 +56,8 @@ public interface ParallelProgressDisplay {
   public void setPauseEnabled(boolean pauseEnabled);
   public void msgInterruptingProcess();
   public void setParallelProcessMonitor(ParallelProcessMonitor monitor);
+  public Container getContainer();
+  public void pack();
+  public void start();
+  public void stop();
 }

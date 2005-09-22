@@ -31,6 +31,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.16  2005/06/17 19:18:26  sueh
+ * <p> bug# 685 Put all timestamp functionality into one function.  Added
+ * <p> buttonTimestamp to provide an interface to the main timestamp function.
+ * <p>
  * <p> Revision 1.15  2005/06/17 00:34:58  sueh
  * <p> bug# 685 Timestamped process panel button presses.
  * <p>
@@ -134,16 +138,15 @@ public class TomogramProcessPanel extends AxisProcessPanel {
   private String axisATooltip = null;
   private String axisBTooltip = null;
   private UIHarness uiHarness = UIHarness.INSTANCE;
-  
-  private ApplicationManager applicationManager;
+  private final ApplicationManager applicationManager;
 
   /**
    * @param appManager
    * @param axis
    */
   public TomogramProcessPanel(ApplicationManager appManager, AxisID axis) {
-    super(axis);
-    applicationManager = appManager;
+    super(axis, appManager);
+    applicationManager = (ApplicationManager) manager;
     //  Create the process control panel    
     createProcessControlPanel();
     initializePanels();
@@ -154,7 +157,7 @@ public class TomogramProcessPanel extends AxisProcessPanel {
    * @param event
    */
   protected void buttonKillAction(ActionEvent event) {
-    applicationManager.kill(axisID);
+    manager.kill(axisID);
   }
   
   private void buttonAxisAction(ActionEvent event) {
@@ -338,7 +341,9 @@ public class TomogramProcessPanel extends AxisProcessPanel {
   
   private void setBackground(Color color) {
     panelRoot.setBackground(color);
-    panelStatus.setBackground(color);
+    outerStatusPanel.setBackground(color);
+    innerStatusPanel.setBackground(color);
+    parallelStatusPanel.setBackground(color);
     panelDialog.setBackground(color);
     panelProcessSelect.setBackground(color);
     axisButtonPanel.setBackground(color);

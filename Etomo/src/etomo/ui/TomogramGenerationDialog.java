@@ -33,7 +33,6 @@ import etomo.comscript.ConstTiltParam;
 import etomo.comscript.MTFFilterParam;
 import etomo.comscript.ParallelParam;
 import etomo.comscript.ProcesschunksParam;
-import etomo.comscript.SplittiltParam;
 import etomo.comscript.TiltParam;
 import etomo.comscript.ConstNewstParam;
 import etomo.comscript.NewstParam;
@@ -70,6 +69,12 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.69  2005/09/21 17:07:19  sueh
+ * bug# 532 Removed all resume functionality from the dialogs.  Removed
+ * resume().  Removed getParallelProgressDisplay() because the parallel
+ * panel can be gotten from the manager.  Removed runTilt() because it was
+ * necessary only because tilt was being run from two functions.
+ *
  * Revision 3.68  2005/09/20 19:14:26  sueh
  * bug# 532 Simplify expand().  Remove PanelHeader.setOpen() calls, since
  * the panel and the button both start open.
@@ -480,7 +485,6 @@ public class TomogramGenerationDialog extends ProcessDialog
 
   private static final String RUN_TRIAL_BUTTON_TITLE = "Generate Trial Tomogram";
   private static final String RUN_TILT_BUTTON_TITLE = "Generate Tomogram";
-  private static final String PARALLEL_PROCESS_CHECKBOX_LABEL = "Parallel Processing";
   
   private JPanel pnlTilt = new JPanel();
 
@@ -574,7 +578,6 @@ public class TomogramGenerationDialog extends ProcessDialog
   //panels that are changed in setAdvanced()
   private SpacedPanel inverseParamsPanel;
   private JPanel trialPanel;
-  private ParallelPanel parallelPanel;
   private JPanel tiltBodyPanel;
   private JPanel filterBodyPanel;
   private SpacedPanel newstBodyPanel;
@@ -590,11 +593,9 @@ public class TomogramGenerationDialog extends ProcessDialog
     fixRootPanel(rootSize);
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     btnExecute.setText("Done");
-    parallelPanel = applicationManager.getParallelPanel(axisID);
     // Layout the main panel (and sub panels) and add it to the root panel
     pnlTilt.setBorder(new BeveledBorder("Tomogram Generation").getBorder());
     pnlTilt.setLayout(new BoxLayout(pnlTilt, BoxLayout.Y_AXIS));
-    UIUtilities.addWithYSpace(pnlTilt, parallelPanel.getRootPanel());
     UIUtilities.addWithYSpace(pnlTilt, layoutNewstPanel());
     UIUtilities.addWithYSpace(pnlTilt, layoutFilterPanel());
     UIUtilities.addWithYSpace(pnlTilt, layoutTiltPanel());
@@ -678,16 +679,8 @@ public class TomogramGenerationDialog extends ProcessDialog
     metaData.setTomoGenParallelProcess(axisID, cbParallelProcess.isSelected());
   }
   
-  public final boolean getParameters(SplittiltParam param) {
-    return parallelPanel.getParameters(param);
-  }
-  
   public void setBlendParams(BlendmontParam blendmontParam) {
     cbBoxUseLinearInterpolation.setSelected(blendmontParam.isLinearInterpolation());
-  }
-  
-  public final void pack() {
-    parallelPanel.pack();
   }
 
   /**
@@ -955,7 +948,6 @@ public class TomogramGenerationDialog extends ProcessDialog
   public final void getParameters(ParallelParam param) {
     ProcesschunksParam processchunksParam = (ProcesschunksParam) param;
     processchunksParam.setRootName(TiltParam.COMMAND_NAME);
-    parallelPanel.getParameters(processchunksParam);
   }
   
   
@@ -1030,19 +1022,8 @@ public class TomogramGenerationDialog extends ProcessDialog
   }
   
   private void updateParallelProcess() {
-    boolean parallelProcess = cbParallelProcess.isSelected();
-    parallelPanel.setVisible(parallelProcess);
-    if (parallelProcess) {
-      parallelPanel.start();
-    }
-    else {
-      parallelPanel.stop();
-    }
-    UIHarness.INSTANCE.pack(axisID, applicationManager);
-  }
-  
-  public void stopParallelPanel() {
-    parallelPanel.stop();
+    applicationManager.showParallelStatus(axisID, dialogType, ProcessName.TILT
+        .toString(), cbParallelProcess.isSelected());
   }
 
   /**
@@ -1150,11 +1131,11 @@ public class TomogramGenerationDialog extends ProcessDialog
     ConstEtomoNumber maxCPUs = ParallelPanel.getMaxCPUs(axisID,
         ProcessName.TILT);
     if (maxCPUs != null && !maxCPUs.isNull()) {
-      cbParallelProcess = new JCheckBox(PARALLEL_PROCESS_CHECKBOX_LABEL
-          + ":  Maximum number of CPUs recommended is " + maxCPUs.toString());
+      cbParallelProcess = new JCheckBox(ParallelPanel.TITLE
+          + ParallelPanel.MAX_CPUS_STRING + maxCPUs.toString());
     }
     else {
-      cbParallelProcess = new JCheckBox(PARALLEL_PROCESS_CHECKBOX_LABEL);
+      cbParallelProcess = new JCheckBox(ParallelPanel.TITLE);
     }
     //panels
     JPanel tiltPanel = new JPanel();
@@ -1435,7 +1416,6 @@ public class TomogramGenerationDialog extends ProcessDialog
         cmboTrialTomogramName.addItem(trialTomogramName);
       }
       if (cbParallelProcess.isSelected()) {
-        parallelPanel.resetResults();
         applicationManager.splittilt(axisID, true);
       }
       else {
@@ -1447,7 +1427,6 @@ public class TomogramGenerationDialog extends ProcessDialog
     }
     else if (command.equals(btnTilt.getActionCommand())) {
       if (cbParallelProcess.isSelected()) {
-        parallelPanel.resetResults();
         applicationManager.splittilt(axisID);
       }
       else {
