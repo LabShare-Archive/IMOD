@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/22/05: Fixed model view display of multicolored mesh for Linux.  Made
+Imodmesh produce caps of the right colors when there are surface colors and
+take contour/surface properties into account when joining contours laterally.
+
 9/19/05: Fixed bug in Sumdensity when there are empty contours.
 
 9/15/05: Added ability to generate a high-resolution internally montaged 
