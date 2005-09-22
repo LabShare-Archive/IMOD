@@ -3155,24 +3155,6 @@ public class ApplicationManager extends BaseManager {
     mainPanel.showProcess(tomogramGenerationDialog.getContainer(), axisID);
   }
 
-  public final void packDialogs(AxisID axisID) {
-    if (axisID == AxisID.SECOND) {
-      if (tomogramGenerationDialogB != null) {
-        tomogramGenerationDialogB.pack();
-      }
-    }
-    else {
-      if (tomogramGenerationDialogA != null) {
-        tomogramGenerationDialogA.pack();
-      }
-    }
-  }
-
-  public final void packDialogs() {
-    packDialogs(AxisID.FIRST);
-    packDialogs(AxisID.SECOND);
-  }
-
   /**
    *  
    */
@@ -3186,7 +3168,6 @@ public class ApplicationManager extends BaseManager {
               "Program logic error", axisID);
       return;
     }
-    tomogramGenerationDialog.stopParallelPanel();
     setAdvanced(tomogramGenerationDialog.getDialogType(), axisID,
         tomogramGenerationDialog.isAdvanced());
     DialogExitState exitState = tomogramGenerationDialog.getExitState();
@@ -3848,9 +3829,6 @@ public class ApplicationManager extends BaseManager {
             TomogramCombinationDialog.ALL_FIELDS);
         updateCombineParams();
       }
-    }
-    else {
-      tomogramCombinationDialog.restartDialog();
     }
     tomogramCombinationDialog.setParameters(metaData);
     //  Show the process panel
@@ -5589,9 +5567,7 @@ public class ApplicationManager extends BaseManager {
       return null;
     }
     SplittiltParam param = new SplittiltParam(axisID);
-    if (!dialog.getParameters(param)) {
-      return null;
-    }
+    getParallelPanel(axisID).getParameters(param);
     return param;
   }
 
@@ -5684,6 +5660,9 @@ public class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.180  2005/09/21 16:03:47  sueh
+ * <p> bug# 532 Moved processchunks() and setThreadName() to BaseManager.
+ * <p>
  * <p> Revision 3.179  2005/09/19 16:33:22  sueh
  * <p> bug# 532 removed code to find an intermittent bug from
  * <p> doneTomgramGeneration() and updateTiltCom().
