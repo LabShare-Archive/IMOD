@@ -576,9 +576,10 @@ void imodContEditJoin(ImodView *vw)
   Icont *cont1, *cont2, *jcont;
   Imod *imod = vw->imod;
   Iobj *obj;
-  Ipoint scale = {1., 1., 100.};
+  Ipoint scale = {1., 1., 1.};
   bool useSetPoints;
   int iflabel = 0;
+  scale.z = imod->zscale;
 
   // Get an array for the indices
   numJoin = B3DMAX(2, ilistSize(vw->selectionList));
@@ -2003,6 +2004,9 @@ void ContourFrame::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.24  2005/06/29 05:38:40  mast
+Changes to manipulate fine grain properties and do undos correctly
+
 Revision 4.23  2005/06/26 19:40:38  mast
 Changed break routine to call library routine and handle storage lists
 
