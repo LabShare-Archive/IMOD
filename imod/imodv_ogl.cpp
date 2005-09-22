@@ -1865,6 +1865,7 @@ static void imodvDraw_filled_mesh(Imesh *mesh, double zscale, Iobj *obj,
           
           // Get the next change for the first point
           if (stateFlags || i == nextChange) {
+            glEnd();
             nextChange = ifgHandleMeshChange
               (obj, mesh->store, &defProps, &curProps, &nextItemIndex, i,
                &stateFlags, &changeFlags, handleFlags);
@@ -1881,10 +1882,12 @@ static void imodvDraw_filled_mesh(Imesh *mesh, double zscale, Iobj *obj,
               nextChange = nextItemIndex = ifgMeshTransMatch(mesh, defTrans,
                                                           drawTrans, &i);
               obj->flags |= IMOD_OBJFLAG_TEMPUSE;
+              glBegin(GL_TRIANGLES);
               if (imodDebug('v'))
                 imodPrintStderr("Skipping to %d\n", i);
               continue;
             }
+            glBegin(GL_TRIANGLES);
           }
 
           for (j = 0; j < 3; j++) {
@@ -1903,6 +1906,7 @@ static void imodvDraw_filled_mesh(Imesh *mesh, double zscale, Iobj *obj,
           if (stateFlags && (nextItemIndex < i || nextItemIndex > i + 2 ||
                              list[i] == IMOD_MESH_ENDPOLY)) {
             /* imodPrintStderr("resetting, state %d\n", stateFlags); */
+            glEnd();
             nextChange = ifgHandleMeshChange
               (obj, mesh->store, &defProps, &curProps, &nextItemIndex, i,
                &stateFlags, &changeFlags, handleFlags);
@@ -1916,6 +1920,7 @@ static void imodvDraw_filled_mesh(Imesh *mesh, double zscale, Iobj *obj,
               if (imodDebug('v'))
                 imodPrintStderr("Skipping to %d\n", i);
             }
+            glBegin(GL_TRIANGLES);
           }
         }
         
@@ -2336,6 +2341,9 @@ static int skipNonCurrentSurface(Imesh *mesh, int *ip, Iobj *obj)
 
 /*
 $Log$
+Revision 4.22  2005/09/12 14:24:42  mast
+Fixed problem with ending and starting triangles in mesh draw
+
 Revision 4.21  2005/09/11 19:54:53  mast
 Implemented drawing of fine-grained properties from new mesh structure
 
