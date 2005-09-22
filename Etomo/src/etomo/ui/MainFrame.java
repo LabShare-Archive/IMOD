@@ -31,6 +31,9 @@ import etomo.util.UniqueKey;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.35  2005/08/22 22:08:41  sueh
+ * <p> bug# 714 Adding call to makeCurrent() when setCurrentManager is called.
+ * <p>
  * <p> Revision 3.34  2005/07/11 23:02:24  sueh
  * <p> bug# 619 Moved code to get the screen size to UIUtilities so it can be
  * <p> used in ProcessorTable.
@@ -555,7 +558,7 @@ final class MainFrame extends EtomoFrame implements ContextMenu {
       subFrame.setVisible(false);
     }
     mainPanel.showAxisA();
-    pack();
+    UIHarness.INSTANCE.pack(AxisID.FIRST, currentManager);
   }
   
   void showAxisB() {
@@ -564,7 +567,7 @@ final class MainFrame extends EtomoFrame implements ContextMenu {
       subFrame.setVisible(false);
     }
     mainPanel.showAxisB();
-    pack();
+    UIHarness.INSTANCE.pack(AxisID.SECOND, currentManager);
   }
   
   void showBothAxis() {
@@ -577,7 +580,7 @@ final class MainFrame extends EtomoFrame implements ContextMenu {
     else {
       subFrame.setVisible(true);
     }
-    pack();
+    UIHarness.INSTANCE.pack(currentManager);
     subFrame.pack();
   }
 
