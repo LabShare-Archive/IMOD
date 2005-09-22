@@ -8,6 +8,7 @@ import java.awt.event.MouseEvent;
 import javax.swing.*;
 import java.awt.Rectangle;
 
+import etomo.BaseManager;
 import etomo.type.AxisID;
 import etomo.type.EtomoNumber;
 import etomo.type.ProcessEndState;
@@ -25,6 +26,12 @@ import etomo.type.ProcessEndState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.18  2005/08/22 17:53:59  sueh
+ * <p> bug# 532  Add status string, remove pause button and add parallel
+ * <p> progress display instead so that the button will be managed indirectly.
+ * <p> The pause button should only be turned on for processes that can be
+ * <p> paused.
+ * <p>
  * <p> Revision 3.17  2005/08/09 20:12:51  sueh
  * <p> bug# 711  No longer inheriting JButton in MultiLineButton.  This allows
  * <p> MultiLineButton to treate toggling as an attribute.  Then we can get rid of
@@ -170,12 +177,15 @@ public abstract class AxisProcessPanel implements ContextMenu {
 
   private static final String KILL_BUTTON_LABEL = "Kill Process";
   
-  protected AxisID axisID;
+  protected final BaseManager manager;
+  protected final AxisID axisID;
 
   protected JPanel panelRoot = new JPanel();
   private JPanel panelProcessInfo = new JPanel();
-  protected JPanel panelStatus = new JPanel();
+  protected final JPanel outerStatusPanel = new JPanel();
+  protected final JPanel innerStatusPanel = new JPanel();
   protected JPanel panelDialog = new JPanel();
+  protected final JPanel parallelStatusPanel = new JPanel();
   private EtomoNumber lastWidth = new EtomoNumber(EtomoNumber.INTEGER_TYPE);
   private KillButtonActionListener actionListener;
 
@@ -195,20 +205,24 @@ public abstract class AxisProcessPanel implements ContextMenu {
    * @param appManager
    * @param axis
    */
-  public AxisProcessPanel(AxisID axis) {
+  public AxisProcessPanel(AxisID axis, BaseManager manager) {
     axisID = axis;
-
+    this.manager = manager;
     //  Create the status panel
     actionListener = new KillButtonActionListener(this);
     buttonKillProcess.addActionListener(actionListener);
     buttonKillProcess.setEnabled(false);
     buttonKillProcess.setAlignmentY(Component.BOTTOM_ALIGNMENT);
-    panelStatus.add(Box.createRigidArea(FixedDim.x5_y0));
-    panelStatus.add(progressPanel.getContainer());
-    panelStatus.add(Box.createRigidArea(FixedDim.x5_y0));
-    panelStatus.add(buttonKillProcess);
-    panelStatus.add(Box.createRigidArea(FixedDim.x0_y5));
-    panelStatus.setLayout(new BoxLayout(panelStatus, BoxLayout.X_AXIS));
+    outerStatusPanel.setLayout(new BoxLayout(outerStatusPanel, BoxLayout.Y_AXIS));
+    outerStatusPanel.add(innerStatusPanel);
+    parallelStatusPanel.setVisible(false);
+    outerStatusPanel.add(parallelStatusPanel);
+    innerStatusPanel.add(Box.createRigidArea(FixedDim.x5_y0));
+    innerStatusPanel.add(progressPanel.getContainer());
+    innerStatusPanel.add(Box.createRigidArea(FixedDim.x5_y0));
+    innerStatusPanel.add(buttonKillProcess);
+    innerStatusPanel.add(Box.createRigidArea(FixedDim.x0_y5));
+    innerStatusPanel.setLayout(new BoxLayout(innerStatusPanel, BoxLayout.X_AXIS));
   }
   
   protected void initializePanels() {
@@ -216,7 +230,7 @@ public abstract class AxisProcessPanel implements ContextMenu {
     panelProcessInfo.setAlignmentY(Component.TOP_ALIGNMENT);
 
     panelProcessInfo.setLayout(new BorderLayout());
-    panelProcessInfo.add(panelStatus, BorderLayout.NORTH);
+    panelProcessInfo.add(outerStatusPanel, BorderLayout.NORTH);
     panelProcessInfo.add(panelDialog, BorderLayout.CENTER);
 
     panelRoot.setLayout(new BoxLayout(panelRoot, BoxLayout.X_AXIS));
@@ -238,6 +252,35 @@ public abstract class AxisProcessPanel implements ContextMenu {
     hide = true;
     panelRoot.setVisible(false);
     return hide;
+  }
+  
+  /**
+   * build parallelStatusPanel if necessary
+   * show or hide parallelStatusPanel
+   * @param showParallelStatus
+   */
+  public void showParallelStatus(boolean showParallelStatus) {
+    if (showParallelStatus && parallelProgressDisplay == null) {
+      parallelProgressDisplay = manager.getParallelProgressDisplay(axisID);
+      parallelStatusPanel.add(Box.createRigidArea(FixedDim.x5_y0));
+      parallelStatusPanel.add(parallelProgressDisplay.getContainer());
+    }
+    if (showParallelStatus) {
+      parallelProgressDisplay.start();
+    }
+    else if (parallelProgressDisplay != null) {
+      {
+        parallelProgressDisplay.stop();
+      }
+    }
+    parallelStatusPanel.setVisible(showParallelStatus);
+    UIHarness.INSTANCE.pack(axisID, manager);
+  }
+  
+  public void pack() {
+    if (parallelProgressDisplay != null && parallelStatusPanel.isVisible()) {
+      parallelProgressDisplay.pack();
+    }
   }
   
   /**
@@ -311,14 +354,6 @@ public abstract class AxisProcessPanel implements ContextMenu {
     if (parallelProgressDisplay != null) {
       parallelProgressDisplay.setPauseEnabled(enablePause);
     }
-  }
-  
-  /**
-   * manage a pause button
-   * @param pauseButton
-   */
-  final void setParallelProgressDisplay(ParallelProgressDisplay parallelProgressDisplay) {
-    this.parallelProgressDisplay = parallelProgressDisplay;
   }
 
   /**
