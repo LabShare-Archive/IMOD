@@ -6,6 +6,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Vector;
 
@@ -25,6 +26,7 @@ import etomo.type.AxisTypeException;
 import etomo.type.BaseMetaData;
 import etomo.type.BaseProcessTrack;
 import etomo.type.BaseState;
+import etomo.type.DialogType;
 import etomo.type.ProcessEndState;
 import etomo.type.ProcessName;
 import etomo.type.UserConfiguration;
@@ -32,6 +34,7 @@ import etomo.ui.LoadAverageDisplay;
 import etomo.ui.MainPanel;
 import etomo.ui.ParallelDialog;
 import etomo.ui.ParallelPanel;
+import etomo.ui.ParallelProgressDisplay;
 import etomo.ui.UIHarness;
 import etomo.util.Utilities;
 
@@ -49,6 +52,9 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.33  2005/09/21 16:04:34  sueh
+* <p> bug# 532 Moved processchunks() and setThreadName() to BaseManager.
+* <p>
 * <p> Revision 1.32  2005/09/19 16:38:29  sueh
 * <p> bug# 532 In getParallelPanel(), calling
 * <p> ParallelPanel.setContainer(ParallelDialog).
@@ -315,6 +321,8 @@ public abstract class BaseManager {
   protected String propertyUserDir = null;//working directory for this manager
   protected ParallelPanel parallelPanelA = null;
   protected ParallelPanel parallelPanelB = null;
+  private HashSet currentParallelDialogsA = null;
+  private HashSet currentParallelDialogsB = null;
 
   //private static variables
   private static boolean debug = false;
@@ -336,8 +344,6 @@ public abstract class BaseManager {
   public abstract void pause(AxisID axisID);
   protected abstract int getNumStorables();
   public abstract void touch(File file);
-  public abstract void packDialogs();
-  public abstract void packDialogs(AxisID axisID);
   protected abstract BaseProcessManager getProcessManager();
 
   //FIXME needs to be public?
@@ -720,7 +726,7 @@ public abstract class BaseManager {
       //axisID = AxisID.FIRST;
     }
     else if (threadName.equals(threadNameB)) {
-      getMainPanel().stopProgressBar(AxisID.SECOND, endState);
+      getMainPanel().stopProgressBar(AxisID.SECOND, endState, statusString);
       threadNameB = "none";
       //axisID = AxisID.SECOND;
     }
@@ -815,7 +821,11 @@ public abstract class BaseManager {
     }
   }
   
-  public final ParallelPanel getParallelPanel(AxisID axisID) {
+  public final ParallelProgressDisplay getParallelProgressDisplay(AxisID axisID) {
+    return getParallelPanel(axisID);
+  }
+  
+  protected final ParallelPanel getParallelPanel(AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       if (parallelPanelB == null) {
         parallelPanelB = new ParallelPanel(this, axisID);
@@ -902,6 +912,7 @@ public abstract class BaseManager {
     ProcesschunksParam param = new ProcesschunksParam(axisID);
     ParallelPanel parallelPanel = getParallelPanel(axisID);
     dialog.getParameters(param);
+    parallelPanel.getParameters(param);
     getProcessTrack().setState(ProcessState.INPROGRESS, axisID, dialog);
     getMainPanel().setState(ProcessState.INPROGRESS, axisID, dialog);
     //param should never be set to resume
@@ -921,5 +932,62 @@ public abstract class BaseManager {
     //set param in parallel panel so it can do a resume
     parallelPanel.setProcesschunksParam(param);
     setThreadName(threadName, axisID);
+  }
+  
+  /**
+   * Creates currentParallelRequestsA or B, if necessary.
+   * CurrentParallelRequests HashSets keep track of the parallel process
+   * checkboxes which are turned on.  It adds or a deletes a String element
+   * created from dialogType and parallelRequestID.  After this is done, the
+   * size of the currentParallelRequests HashSet is checked.  If the size is 1
+   * and showParallelStatus is true, then mainPanel is asked to show the
+   * parallel status panel.  If the size is 0 and showParallelStatus is false,
+   * then mainPanel is asked to hide the parallel status panel.
+   * @param axisID
+   * @param dialogType
+   * @param parallelProcessID Name of the parallel process (unique to the dialog)
+   * @param parallelProcess
+   */
+  public final void showParallelStatus(AxisID axisID, DialogType dialogType,
+      String parallelRequestID, boolean showParallelStatus) {
+    HashSet currentParallelDialogs = null;
+    //Get the currentParallelDialogs for this axis.
+    //DialogTypes and panelNames stored in currentParallelDialogs have parallel
+    //processing turned on.
+    if (axisID == AxisID.SECOND) {
+      if (currentParallelDialogsB == null) {
+        currentParallelDialogsB = new HashSet();
+      }
+      currentParallelDialogs = currentParallelDialogsB;
+    }
+    else {
+      if (currentParallelDialogsA == null) {
+        currentParallelDialogsA = new HashSet();
+      }
+      currentParallelDialogs = currentParallelDialogsA;
+    }
+    //Add or remove elements from currentParallelDialogs
+    String uniqueParallelRequestID = dialogType.toString() + parallelRequestID;
+    if (showParallelStatus && !currentParallelDialogs.contains(uniqueParallelRequestID)) {
+      currentParallelDialogs.add(uniqueParallelRequestID);
+      if (currentParallelDialogs.size() == 1) {
+        getMainPanel().showParallelStatus(axisID, true);
+      }
+    }
+    else if (!showParallelStatus && currentParallelDialogs.contains(uniqueParallelRequestID)) {
+      currentParallelDialogs.remove(uniqueParallelRequestID);
+      if (currentParallelDialogs.size() == 0) {
+        getMainPanel().showParallelStatus(axisID, false);
+      }
+    }
+  }
+  
+  public final void packPanel(AxisID axisID) {
+    getMainPanel().pack(axisID);
+  }
+
+  public final void packPanel() {
+    packPanel(AxisID.FIRST);
+    packPanel(AxisID.SECOND);
   }
 }
