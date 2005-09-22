@@ -134,7 +134,7 @@ public class UIHarness {
   
   public void pack(BaseManager manager) {
     if (isHead()) {
-      manager.packDialogs();
+      manager.packPanel();
       mainFrame.repaint();
       mainFrame.pack();
     }
@@ -142,7 +142,7 @@ public class UIHarness {
   
   public void pack(boolean force, BaseManager manager) {
     if (isHead()) {
-      manager.packDialogs();
+      manager.packPanel();
       mainFrame.repaint();
       mainFrame.pack(force);
     }
@@ -150,7 +150,7 @@ public class UIHarness {
   
   public void pack(AxisID axisID, BaseManager manager) {
     if (isHead()) {
-      manager.packDialogs(axisID);
+      manager.packPanel(axisID);
       mainFrame.repaint(axisID);
       mainFrame.pack(axisID);
 
@@ -159,7 +159,7 @@ public class UIHarness {
   
   public void pack(AxisID axisID, boolean force, BaseManager manager) {
     if (isHead()) {
-      manager.packDialogs(axisID);
+      manager.packPanel(axisID);
       mainFrame.repaint(axisID);
       mainFrame.pack(axisID, force);
 
@@ -391,6 +391,9 @@ public class UIHarness {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.14  2005/08/12 00:21:26  sueh
+* <p> bug# 711 changed StartUpWindow to StartupWindow.
+* <p>
 * <p> Revision 1.13  2005/08/12 00:02:43  sueh
 * <p> bug# 711  Add is3dmodStartUpWindow() and 3dmodBinBy2() to get the
 * <p> menu settings.
