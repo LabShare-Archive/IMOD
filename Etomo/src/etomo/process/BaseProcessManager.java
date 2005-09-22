@@ -30,6 +30,11 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.26  2005/09/21 16:09:30  sueh
+* <p> bug# 532 moved processchunks() from processManager to
+* <p> BaseProcessManager.  This allows BaseManager to handle
+* <p> processchunks.
+* <p>
 * <p> Revision 1.25  2005/09/13 00:14:46  sueh
 * <p> bug# 532 Made isAxisBusy() public so that BaseManager can use it.
 * <p>
@@ -998,11 +1003,10 @@ public abstract class BaseProcessManager {
         //make sure script knows about failure
         process.setProcessEndState(ProcessEndState.FAILED);
       }
-      else if (process.getProcessEndState() == ProcessEndState.PAUSED) {
+      else {
         statusString = process.getStatusString();
       }
     }
-
     // Another possible error message source is ERROR: in the stdout stream
     String[] stdOutput = process.getStdOutput();
     ArrayList errors = new ArrayList();
