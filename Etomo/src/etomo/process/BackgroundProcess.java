@@ -21,6 +21,9 @@ import etomo.type.ProcessEndState;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.16  2005/08/30 22:40:53  sueh
+ * <p> bug# 532 Added error log print statement to setCurrentStdInput().
+ * <p>
  * <p> Revision 3.15  2005/08/30 18:32:20  sueh
  * <p> bug# 532 ProcessMonitor had too many functions in it that where only
  * <p> used by ProcesschunkProcessMonitor.  Using
@@ -452,6 +455,9 @@ public class BackgroundProcess
    */
   public synchronized final void setProcessEndState(ProcessEndState endState) {
     this.endState = ProcessEndState.precedence(this.endState, endState);
+    if (monitor != null) {
+      monitor.setProcessEndState(endState);
+    }
   }
   
   final ProcessEndState getProcessEndState() {
