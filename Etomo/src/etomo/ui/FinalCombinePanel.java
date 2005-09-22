@@ -25,6 +25,7 @@ import etomo.comscript.CombineParams;
 import etomo.comscript.ProcesschunksParam;
 import etomo.comscript.SetParam;
 import etomo.type.AxisID;
+import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstMetaData;
 import etomo.type.EtomoAutodoc;
 import etomo.type.MetaData;
@@ -55,6 +56,9 @@ import etomo.type.Run3dmodMenuOptions;
  * 
  * <p>
  * $Log$
+ * Revision 3.29  2005/09/21 16:37:39  sueh
+ * bug# 532 Removed all resume functionality from the dialogs.
+ *
  * Revision 3.28  2005/09/16 20:56:15  sueh
  * bug# 532 Moved call to resetParallelPanel() to
  * ApplicationManager.processchunks().  Added resetParallelPanel() to
@@ -300,7 +304,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     "<html><b>Matchorwarp Trial Run</b>");
   private JPanel pnlVolcombine = new JPanel();
   private MultiLineButton btnVolcombineRestart = new MultiLineButton(
-    "<html><b>Restart at Volcombine</b>");
+      "Restart at Volcombine");
   private JPanel pnlButton = new JPanel();
   private MultiLineButton btnPatchVectorModel = new MultiLineButton(
     "<html><b>Examine Patch Vector Model</b>");
@@ -313,7 +317,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
   private JCheckBox cbNoVolcombine = new JCheckBox("Stop before running volcombine");
   private LabeledTextField ltfReductionFactor = new LabeledTextField(
       "Reduction factor for matching amplitudes in combined FFT: ");
-  private JCheckBox cbParallelProcess = new JCheckBox("Parallel Processing");
+  private JCheckBox cbParallelProcess;
   /**
    * Default constructor
    * 
@@ -424,9 +428,16 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     pnlMatchorwarp.add(Box.createRigidArea(FixedDim.x0_y5));
 
     pnlVolcombine.setLayout(new BoxLayout(pnlVolcombine, BoxLayout.Y_AXIS));
+    ConstEtomoNumber maxCPUs = ParallelPanel.getMaxCPUs(AxisID.ONLY,
+        ProcessName.VOLCOMBINE);
+    if (maxCPUs != null && !maxCPUs.isNull()) {
+      cbParallelProcess = new JCheckBox(ParallelPanel.TITLE
+          + ParallelPanel.MAX_CPUS_STRING + maxCPUs.toString());
+    }
+    else {
+      cbParallelProcess = new JCheckBox(ParallelPanel.TITLE);
+    }
     pnlVolcombine.add(cbParallelProcess);
-    //TEMP
-    cbParallelProcess.setVisible(EtomoDirector.getInstance().isNewstuff());
     pnlVolcombine.add(cbNoVolcombine);
     pnlVolcombine.add(ltfReductionFactor.getContainer());
     pnlVolcombine.add(Box.createRigidArea(FixedDim.x0_y5));
@@ -435,6 +446,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     btnVolcombineRestart.setAlignmentX(Component.CENTER_ALIGNMENT);
     UIUtilities.setButtonSizeAll(pnlVolcombine, UIParameters
       .getButtonDimension());
+    UIUtilities.alignComponentsX(pnlVolcombine, Component.CENTER_ALIGNMENT);
 
     //  Create the button panel
     pnlButton.setLayout(new BoxLayout(pnlButton, BoxLayout.X_AXIS));
@@ -573,6 +585,10 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
   
   final boolean isParallelProcessSelected() {
     return cbParallelProcess.isSelected();
+  }
+  
+  final String getVolcombineButtonName() {
+    return ProcessName.VOLCOMBINE.toString();
   }
 
   /**
