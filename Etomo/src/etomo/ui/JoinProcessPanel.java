@@ -18,6 +18,9 @@ import etomo.type.AxisID;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.3  2005/04/16 01:55:45  sueh
+* <p> bug# 615 Add empty showBothAxis() to implement abstract function.
+* <p>
 * <p> Revision 1.2  2004/11/19 23:56:48  sueh
 * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
 * <p>
@@ -41,15 +44,12 @@ import etomo.type.AxisID;
 
 public class JoinProcessPanel extends AxisProcessPanel {
   public static  final String  rcsid =  "$Id$";
-  
-  JoinManager joinManager;
   /**
    * @param joinManager
    * @param axis
    */
   public JoinProcessPanel(JoinManager joinManager, AxisID axis) {
-    super(axis);
-    this.joinManager = joinManager;
+    super(axis, joinManager);
     createProcessControlPanel();
     initializePanels();
   }
@@ -62,6 +62,6 @@ public class JoinProcessPanel extends AxisProcessPanel {
    * @param event
    */
   protected void buttonKillAction(ActionEvent event) {
-    joinManager.kill(axisID);
+    manager.kill(axisID);
   }
 }
