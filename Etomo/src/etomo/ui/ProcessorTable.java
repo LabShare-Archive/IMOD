@@ -75,7 +75,6 @@ final class ProcessorTable implements Storable {
   private HashedArray rows = new HashedArray();
   private ParallelPanel parent = null;
   private AxisID axisID;
-  private int restartsError = -1;
   private boolean expanded = true;
   
   private boolean numberColumn = false;
@@ -189,9 +188,6 @@ final class ProcessorTable implements Storable {
       //create the row
       ProcessorTableRow row = new ProcessorTableRow(this, computerName, number
           .getInt(), type, speed, memory, os);
-      if (restartsError != -1) {
-        row.setRestartsError(restartsError);
-      }
       //add the row to the rows HashedArray
       rows.add(computerName, row);
       //get the next section
@@ -327,10 +323,6 @@ final class ProcessorTable implements Storable {
         row.addRow();
       }
     }
-  }
-  
-  final void setRestartsError(int restartsError) {
-    this.restartsError = restartsError;
   }
   
   final Container getContainer() {
@@ -642,6 +634,11 @@ final class ProcessorTable implements Storable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.17  2005/09/21 17:04:33  sueh
+ * <p> bug# 532 getting autodoc from ParallelPanel.getAutodoc().  Fix getWidth()
+ * <p> so that it gets the width from a row which is currently displayed (rows that
+ * <p> are not selected are not displayed when the table is contracted).
+ * <p>
  * <p> Revision 1.16  2005/09/20 19:12:40  sueh
  * <p> bug# 532  Implementing setExpanded(boolean).  Add boolean expanded.
  * <p> When expanded is false, only display fields and rows which the user

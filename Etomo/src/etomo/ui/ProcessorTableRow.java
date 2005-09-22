@@ -60,7 +60,6 @@ final class ProcessorTableRow implements Storable {
   private boolean speedColumn = false;
   private boolean memoryColumn = false;
   private boolean osColumn = false;
-  private int restartsError = 10000;
   
   ProcessorTableRow(ProcessorTable table, String computerName, int numCpus,
       String cpuType, String speed, String memory, String os) {
@@ -195,10 +194,6 @@ final class ProcessorTableRow implements Storable {
   final void setOSColumn(boolean osColumn) {
     this.osColumn = osColumn;
   }
-  
-  final void setRestartsError(int restartsError) {
-    this.restartsError= restartsError;
-  }
 
   void addRow() {
     if (!rowInitialized) {
@@ -332,7 +327,7 @@ final class ProcessorTableRow implements Storable {
       restarts++;
     }
     cellRestarts.setValue(restarts);
-    if (restarts >= restartsError) {
+    if (restarts >= ProcesschunksParam.DROP_VALUE) {
       cellRestarts.setError(true);
     }
     else if (restarts > 0) {
@@ -447,6 +442,10 @@ final class ProcessorTableRow implements Storable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.14  2005/09/13 00:02:07  sueh
+ * <p> bug# 532 Implemented storable to store whether cellComputer is selected
+ * <p> and how many CPUs are selected.
+ * <p>
  * <p> Revision 1.13  2005/09/10 01:55:15  sueh
  * <p> bug# 532 Added clearFailureReason() so that the failure reason can be
  * <p> cleared when a new connection to the computer is attempted.
