@@ -676,8 +676,8 @@ static Imesh *imeshContoursCost(Iobj *obj, Icont *bc, Icont *tc, Ipoint *scale,
   anyTrans = (bcState & CHANGED_TRANS) | (tcState & CHANGED_TRANS) | 
     istoreCountItems(bc->store, GEN_STORE_TRANS, 1) |
     istoreCountItems(tc->store, GEN_STORE_TRANS, 1);
-  /* printf("bco %d state %d %d tco %d state %d %d\n", bco, bcState, i, tco,
-     tcState, j);
+  /*printf("bco %d surf %d state %d %d tco %d surf %d state %d %d\n", bco,
+          bc->surf, bcState, i, tco, tc->surf, tcState, j);
      istoreDump(obj->store); */
 
   /* Find direction of each contour.
@@ -1308,8 +1308,10 @@ static int mesh_open_tube_obj(Iobj *obj, Ipoint *scale, unsigned int flags)
       continue;
     clst = imodContoursNew(cont->psize);
           
-    istoreContSurfDrawProps(obj->store, &defProps, &contProps, co, cont->surf,
-                            &stateFlags, &changeFlags);
+    lastState = istoreContSurfDrawProps(obj->store, &defProps, &contProps, co,
+                                        cont->surf, &stateFlags, &changeFlags);
+    if (!(skinFlags & IMESH_MK_SURF))
+      stateFlags = lastState;
     ptProps = contProps;
     nextChange = istoreFirstChangeIndex(cont->store);
 
@@ -3074,6 +3076,8 @@ static Imesh *imeshContourCap(Iobj *obj, Icont *cont, int coNum, int side,
       return NULL;
     imodContourDelete(ncont);
     ncont = imodContourNew();
+    if (!ncont)
+      return NULL;
     dely = length / ratio;
     nexty = scont->pts->y + dely / 2.;
 
@@ -3092,6 +3096,7 @@ static Imesh *imeshContourCap(Iobj *obj, Icont *cont, int coNum, int side,
 
     imodContourRotateZ(ncont, -rotation);
 
+    ncont->surf = cont->surf;
     if (side == 1)
       m = imeshContoursCost(obj, cont, ncont, scale, inside, coNum, coNum);
     else
@@ -3109,8 +3114,10 @@ static Imesh *imeshContourCap(Iobj *obj, Icont *cont, int coNum, int side,
   if (inside)
     meshdir = 1 - meshdir;
 
-  istoreContSurfDrawProps(obj->store, &objProps, &contProps, coNum, cont->surf,
-                          &contState, &surfState);
+  pt = istoreContSurfDrawProps(obj->store, &objProps, &contProps, coNum,
+                               cont->surf, &contState, &surfState);
+  if (!(skinFlags & IMESH_MK_SURF))
+    contState = pt;
 
   return(makeCapMesh(cont, &cm, meshdir, &contProps, contState, stateTest));
 }
@@ -4195,6 +4202,10 @@ static Icont *join_all_contours(Iobj *obj, int *list, int ncont,
   int *used;
   float tbest;
   Ipoint close;
+  DrawProps contProps, objProps, ptProps;
+  int contState, surfState;
+  int genFlags = CHANGED_COLOR | CHANGED_FCOLOR | CHANGED_3DWIDTH | 
+    CHANGED_TRANS;
 
   /* start with first contour */
   tcont = imodContourDup(&(obj->cont[list[0]]));
@@ -4202,6 +4213,18 @@ static Icont *join_all_contours(Iobj *obj, int *list, int ncont,
     return(NULL);
   if (ncont < 2)
     return(tcont);
+
+  /* If there are contour or surface properties, convert them to a property
+     for the first point of the contour */
+  j = istoreContSurfDrawProps(obj->store, &objProps, &contProps, list[0],
+                               tcont->surf, &contState, &surfState);
+  if (!(skinFlags & IMESH_MK_SURF))
+    contState = j;
+  if (contState) {
+    j = istoreListPointProps(tcont->store, &contProps, &ptProps, 0);
+    contState &= ~j;
+    istoreGenerateItems(&tcont->store, &contProps, contState, 0, genFlags);
+  }
 
   used = (int *)malloc(ncont * sizeof(int));
   if (!used)
@@ -4221,6 +4244,17 @@ static Icont *join_all_contours(Iobj *obj, int *list, int ncont,
     if (!jcont)
       return(NULL);
     used[jmin] = 1;
+
+  /* Transfer contour or surface properties to the first point of contour */
+    j = istoreContSurfDrawProps(obj->store, &objProps, &contProps, list[jmin],
+                                jcont->surf, &contState, &surfState);
+    if (!(skinFlags & IMESH_MK_SURF))
+      contState = j;
+    if (contState) {
+      j = istoreListPointProps(jcont->store, &contProps, &ptProps, 0);
+      contState &= ~j;
+      istoreGenerateItems(&jcont->store, &contProps, contState, 0, genFlags);
+    }
 
     /* eliminate overlap for contours on the basic level.
        If eliminating overlap actually moved some points, reevaluate
@@ -4439,6 +4473,9 @@ static int break_contour_inout(Icont *cin, int st1, int st2,  int fill,
 
 /*
 $Log$
+Revision 3.16  2005/09/12 14:27:07  mast
+Made it incorporate surface fine-grained info if run w/o -S option
+
 Revision 3.15  2005/09/11 19:28:01  mast
 Incorporated fine-grained state into mesh, added clipping of triangle output,
 implemented new vertex-normal index list without redundant vertices
