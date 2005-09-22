@@ -34,6 +34,11 @@ import etomo.type.ProcessEndState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.29  2005/09/21 16:39:52  sueh
+ * <p> bug# 532 Added abstract setState(ProcessState, AxisID, ParallelDialog)
+ * <p> so that one processchunks function in BaseManager can handle multiple
+ * <p> dialogs.
+ * <p>
  * <p> Revision 1.28  2005/08/22 17:55:47  sueh
  * <p> bug# 532  Add status string, remove pause button and add parallel
  * <p> progress display instead so that the button will be managed indirectly.
@@ -354,15 +359,15 @@ public abstract class MainPanel extends JPanel {
     axisPanel.setProgressBarValue(0);
   }
   
+  public void showParallelStatus(AxisID axisID, boolean showParallelStatus) {
+    mapBaseAxis(axisID).showParallelStatus(showParallelStatus);
+  }
+  
+  public void pack(AxisID axisID) {
+    mapBaseAxis(axisID).pack();
+  }
+  
   /**
-   * set the parallel progress display
-   * @param pauseButton
-   * @param axisID
-   */
-  final void setParallelProgressDisplay(ParallelProgressDisplay parallelProgressDisplay, AxisID axisID) {
-    AxisProcessPanel axisPanel = mapBaseAxis(axisID);
-    axisPanel.setParallelProgressDisplay(parallelProgressDisplay);
-  }  /**
    * Set the progress bar to the specified value
    * @param value
    * @param axisID
