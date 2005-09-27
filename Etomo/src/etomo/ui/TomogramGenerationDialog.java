@@ -45,6 +45,7 @@ import etomo.type.DialogType;
 import etomo.type.EtomoAutodoc;
 import etomo.type.MetaData;
 import etomo.type.ProcessName;
+import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.ViewType;
 import etomo.util.InvalidParameterException;
@@ -69,6 +70,9 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.70  2005/09/22 21:33:23  sueh
+ * bug# 532 Moved the parallel process panel to AxisProcessPanel.
+ *
  * Revision 3.69  2005/09/21 17:07:19  sueh
  * bug# 532 Removed all resume functionality from the dialogs.  Removed
  * resume().  Removed getParallelProgressDisplay() because the parallel
@@ -587,9 +591,11 @@ public class TomogramGenerationDialog extends ProcessDialog
   //get binning from newst
   private boolean getBinningFromNewst = true;
   private boolean trialTilt = false;
+  private final ReconScreenState screenState;
 
   public TomogramGenerationDialog(ApplicationManager appMgr, AxisID axisID) {
     super(appMgr, axisID, DialogType.TOMOGRAM_GENERATION);
+    screenState = appMgr.getScreenState(axisID);
     fixRootPanel(rootSize);
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     btnExecute.setText("Done");
@@ -1040,11 +1046,14 @@ public class TomogramGenerationDialog extends ProcessDialog
     buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.X_AXIS));
     //header
     if (applicationManager.getMetaData().getViewType() == ViewType.MONTAGE) {
-      newstHeader = PanelHeader.getInstance(axisID, "Blendmont", this);
+      newstHeader = PanelHeader.getInstance(
+          ReconScreenState.TOMO_GEN_NEWST_HEADER_GROUP, "Blendmont", this);
     }
     else {
-      newstHeader = PanelHeader.getInstance(axisID, "Newstack", this);
+      newstHeader = PanelHeader.getInstance(
+          ReconScreenState.TOMO_GEN_NEWST_HEADER_GROUP, "Newstack", this);
     }
+    newstHeader.setState(screenState.getTomoGenNewstHeaderState());
     //initialization
     SpinnerModel integerModel = new SpinnerNumberModel(1, 1, 8, 1);
     spinBinning = new LabeledSpinner("Aligned image stack binning ", integerModel);
@@ -1093,7 +1102,10 @@ public class TomogramGenerationDialog extends ProcessDialog
     SpacedPanel buttonPanel = new SpacedPanel(true);
     buttonPanel.setBoxLayout(BoxLayout.X_AXIS);
     //header
-    filterHeader = PanelHeader.getAdvancedBasicInstance(axisID, "2D Filtering (optional)", this);
+    filterHeader = PanelHeader.getAdvancedBasicInstance(
+        ReconScreenState.TOMO_GEN_MTFFILTER_HEADER_GROUP,
+        "2D Filtering (optional)", this);
+    filterHeader.setState(screenState.getTomoGenMtffilterHeaderState());
     //buttonPanel
     buttonPanel.add(btnFilter);
     buttonPanel.add(btnViewFilter);
@@ -1158,7 +1170,8 @@ public class TomogramGenerationDialog extends ProcessDialog
     SpacedPanel buttonPanel = new SpacedPanel(true);
     buttonPanel.setBoxLayout(BoxLayout.X_AXIS);
     //header
-    tiltHeader = PanelHeader.getAdvancedBasicInstance(axisID, "Tilt", this);
+    tiltHeader = PanelHeader.getAdvancedBasicInstance(ReconScreenState.TOMO_GEN_TILT_HEADER_GROUP, "Tilt", this);
+    tiltHeader.setState(screenState.getTomoGenTiltHeaderState());
     //buttonPanel
     buttonPanel.add(btnTilt);
     buttonPanel.add(btn3dmodTomogram);
@@ -1233,7 +1246,8 @@ public class TomogramGenerationDialog extends ProcessDialog
     SpacedPanel buttonPanel = new SpacedPanel();
     buttonPanel.setBoxLayout(BoxLayout.X_AXIS);
     //header
-    trialHeader = PanelHeader.getInstance(axisID, "Trial Tilt", this);
+    trialHeader = PanelHeader.getInstance(ReconScreenState.TOMO_GEN_TRIAL_TILT_HEADER_GROUP, "Trial Tilt", this);
+    trialHeader.setState(screenState.getTomoGenTrialTiltHeaderState());
     //buttonPanel
     buttonPanel.add(btnTrial);
     buttonPanel.add(btn3dmodTrial);
