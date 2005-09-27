@@ -1,7 +1,5 @@
 package etomo.ui;
 
-import java.awt.Container;
-
 import etomo.process.ParallelProcessMonitor;
 
 /**
@@ -18,6 +16,9 @@ import etomo.process.ParallelProcessMonitor;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.8  2005/09/22 21:28:49  sueh
+* <p> bug# 532 Moved the parallel process panel to AxisProcessPanel.
+* <p>
 * <p> Revision 1.7  2005/09/01 18:02:33  sueh
 * <p> bug# 532 Added a drop reason.
 * <p>
@@ -49,15 +50,17 @@ import etomo.process.ParallelProcessMonitor;
 public interface ParallelProgressDisplay {
   public static  final String  rcsid =  "$Id$";
   
-  public int getCPUsSelected();
+  public void setParallelProcessMonitor(ParallelProcessMonitor monitor);
+  public void msgDropped(String computer, String reason);
   public void addSuccess(String computer);
   public void addRestart(String computer);
-  public void msgDropped(String computer, String reason);
-  public void setPauseEnabled(boolean pauseEnabled);
   public void msgInterruptingProcess();
-  public void setParallelProcessMonitor(ParallelProcessMonitor monitor);
+  /*
+  public int getCPUsSelected();
+  public void setPauseEnabled(boolean pauseEnabled);
   public Container getContainer();
   public void pack();
   public void start();
   public void stop();
+  public Storable getHeader();*/
 }
