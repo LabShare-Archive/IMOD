@@ -13,6 +13,9 @@ package etomo.type;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.2  2005/03/24 17:48:38  sueh
+* <p> bug# 621 Added Clean Up dialog.
+* <p>
 * <p> Revision 1.1  2005/01/14 03:06:31  sueh
 * <p> bug# 511 An enumerator class the identifies the dialogs in the
 * <p> tomogram reconstruction side of Etomo.  Contains a string to be used as
@@ -54,6 +57,10 @@ public class DialogType {
     return name;
   }
   
+  public String getStorableName() {
+    return getStorableName(index);
+  }
+  
   public int toIndex() {
     return index;
   }
@@ -92,6 +99,32 @@ public class DialogType {
       return "Post-processing";
     case cleanUpIndex:
       return "Clean Up";
+    }
+    return "";
+  }
+  
+  private String getStorableName(int index) {
+    switch (index) {
+    case setupIndex:
+      return "Setup";
+    case preProcessingIndex:
+      return "PreProc";
+    case coarseAlignmentIndex:
+      return "CoarseAlign";
+    case fiducialModelIndex:
+      return "FidModelGen";
+    case fineAlignmentIndex:
+      return "FineAlign";
+    case tomogramPositioningIndex:
+      return "TomoPos";
+    case tomogramGenerationIndex:
+      return "TomoGen";
+    case tomogramCombinationIndex:
+      return "TomoCombine";
+    case postProcessingIndex:
+      return "PostProc";
+    case cleanUpIndex:
+      return "CleanUp";
     }
     return "";
   }
