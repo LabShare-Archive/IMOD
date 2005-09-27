@@ -11,6 +11,7 @@ import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
 import javax.swing.border.LineBorder;
 
+import etomo.EtomoDirector;
 import etomo.comscript.ProcesschunksParam;
 import etomo.storage.Storable;
 import etomo.type.AxisID;
@@ -46,8 +47,8 @@ final class ProcessorTable implements Storable {
   private JScrollPane scrollPane;
   private JPanel tablePanel;
 
-  private GridBagLayout layout = new GridBagLayout();
-  private GridBagConstraints constraints = new GridBagConstraints();
+  private GridBagLayout layout = null;
+  private GridBagConstraints constraints = null;
   private HeaderCell header1Computer = null;
   private HeaderCell header1NumberCPUs = null;
   private HeaderCell header1Load = null;
@@ -72,10 +73,10 @@ final class ProcessorTable implements Storable {
   private HeaderCell header2Finished = null;
   private HeaderCell header2Failure = null;
 
-  private HashedArray rows = new HashedArray();
-  private ParallelPanel parent = null;
-  private AxisID axisID;
-  private boolean expanded = true;
+  private final HashedArray rows = new HashedArray();
+  private final ParallelPanel parent;
+  private final AxisID axisID;
+  private boolean expanded;
   
   private boolean numberColumn = false;
   private boolean typeColumn = false;
@@ -85,9 +86,10 @@ final class ProcessorTable implements Storable {
   private String speedUnits = null;
   private String memoryUnits = null;
 
-  ProcessorTable(ParallelPanel parent, AxisID axisID) {
+  ProcessorTable(ParallelPanel parent, AxisID axisID){//, boolean expanded) {
     this.parent = parent;
     this.axisID = axisID;
+    this.expanded = true;//expanded;
     initTable();
     buildScrollPane(initialHeight);
   }
@@ -237,6 +239,7 @@ final class ProcessorTable implements Storable {
     header2Restarts = new HeaderCell();
     header2Finished = new HeaderCell("Chunks");
     header2Failure = new HeaderCell("Reason");
+    EtomoDirector.getInstance().loadPreferences(this, axisID);
   }
 
 
@@ -634,6 +637,10 @@ final class ProcessorTable implements Storable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.18  2005/09/22 21:29:36  sueh
+ * <p> bug# 532 Removed restartsError.  Taking error level from ParallelPanel in
+ * <p> ProcessorTableRow.
+ * <p>
  * <p> Revision 1.17  2005/09/21 17:04:33  sueh
  * <p> bug# 532 getting autodoc from ParallelPanel.getAutodoc().  Fix getWidth()
  * <p> so that it gets the width from a row which is currently displayed (rows that
