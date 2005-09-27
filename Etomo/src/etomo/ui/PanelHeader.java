@@ -10,14 +10,14 @@ import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
 
-import etomo.type.AxisID;
+import etomo.type.PanelHeaderState;
 
 /**
 * <p>Description: </p>
 * 
 * <p>Copyright: Copyright (c) 2005</p>
 *
-*<p>Organization:
+* <p>Organization:
 * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
 * University of Colorado</p>
 * 
@@ -26,39 +26,52 @@ import etomo.type.AxisID;
 * @version $Revision$
 */
 final class PanelHeader implements Expandable {
-  public static  final String  rcsid =  "$Id$";
-  
+  public static final String rcsid = "$Id$";
+
   private GridBagLayout layout = new GridBagLayout();
   private GridBagConstraints constraints = new GridBagConstraints();
-  
-  private JPanel rootPanel = new JPanel();
-  private HeaderCell cellTitle = null;
-  private ExpandButton btnOpenClose = null;
+
+  private final JPanel rootPanel = new JPanel();
+  private final JSeparator separator = new JSeparator();
+
+  private final Expandable panel;
+  private final ExpandButton btnOpenClose;
+  private final HeaderCell cellTitle;
+
+  private final String group;
+
   private ExpandButton btnAdvancedBasic = null;
   private ExpandButton btnMoreLess = null;
-  private JSeparator separator = new JSeparator();
-  private AxisID axisID;
-  private final Expandable container;
-  
-  static final PanelHeader getInstance(AxisID axisID, String title,
-      Expandable container) {
-    return new PanelHeader(axisID, title, container, false, false, false);
+
+  static final PanelHeader getInstance(String group, String title,
+      Expandable panel) {
+    return new PanelHeader(group, title, panel, false, false);
   }
 
-  static final PanelHeader getAdvancedBasicInstance(AxisID axisID,
-      String title, Expandable container) {
-    return new PanelHeader(axisID, title, container, true, false, false);
+  static final PanelHeader getAdvancedBasicInstance(String group, String title,
+      Expandable panel) {
+    return new PanelHeader(group, title, panel, true, false);
   }
 
-  static final PanelHeader getExpandedMoreLessInstance(AxisID axisID,
-      String title, Expandable container) {
-    return new PanelHeader(axisID, title, container, false, true, true);
+  static final PanelHeader getMoreLessInstance(String group, String title,
+      Expandable panel) {
+    return new PanelHeader(group, title, panel, false, true);
   }
 
-  private PanelHeader(AxisID axisID, String title, Expandable container,
-      boolean advancedBasic, boolean moreLess, boolean expanded) {
-    this.container = container;
-    this.axisID = axisID;
+  /**
+   * creates a panel header
+   * default creates only the open/close button
+   * the open/close button's initial state is always open
+   * 
+   * @param title - original header string, also used to store state - required
+   * @param panel - expandable panel this instances is the header of - required
+   * @param advancedBasic - true if an advance/basic button should be created
+   * @param moreLess - true if an more/less button should be created
+   */
+  private PanelHeader(String group, String title, Expandable panel,
+      boolean advancedBasic, boolean moreLess) {
+    this.group = group;
+    this.panel = panel;
     //panels
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     JPanel northPanel = new JPanel();
@@ -70,45 +83,34 @@ final class PanelHeader implements Expandable {
     constraints.weighty = 0.0;
     constraints.gridheight = 1;
     constraints.gridwidth = 1;
-    //open/close button
-    btnOpenClose = ExpandButton.getExpandedInstance(this, "-", "+");
+    //open/close button - default: open
+    btnOpenClose = ExpandButton.getInstance(this, "-", "+", "closed", "open", true);
     layout.setConstraints(btnOpenClose.getComponent(), constraints);
     northPanel.add(btnOpenClose.getComponent());
     //title
-    if (container == null) {
-      constraints.gridwidth = GridBagConstraints.REMAINDER;
-    }
     constraints.weightx = 1.0;
     constraints.weighty = 1.0;
     cellTitle = new HeaderCell(title);
     cellTitle.setBorderPainted(false);
     cellTitle.add(northPanel, layout, constraints);
-    //advanced/basic button
+    boolean expanded;
+    //advanced/basic button - default: basic
     if (advancedBasic) {
       constraints.weightx = 0.0;
       constraints.weighty = 0.0;
       if (!moreLess) {
         constraints.gridwidth = GridBagConstraints.REMAINDER;
       }
-      if (expanded) {
-        btnAdvancedBasic = ExpandButton.getExpandedInstance(container, "B", "A");
-      }
-      else {
-        btnAdvancedBasic = ExpandButton.getInstance(container, "B", "A");
-      }
+      btnAdvancedBasic = ExpandButton.getInstance(panel, "B", "A", "basic",
+          "advanced");
       layout.setConstraints(btnAdvancedBasic.getComponent(), constraints);
       northPanel.add(btnAdvancedBasic.getComponent());
     }
-    //more/less button
+    //more/less button - default: more
     if (moreLess) {
       constraints.weightx = 0.0;
       constraints.weighty = 0.0;
-      if (expanded) {
-        btnMoreLess = ExpandButton.getExpandedMoreLessInstance(container);
-      }
-      else {
-        btnMoreLess = ExpandButton.getMoreLessInstance(container);
-      }
+      btnMoreLess = ExpandButton.getMoreLessInstance(panel, true);
       layout.setConstraints(btnMoreLess.getComponent(), constraints);
       northPanel.add(btnMoreLess.getComponent());
     }
@@ -118,43 +120,74 @@ final class PanelHeader implements Expandable {
     separator.setAlignmentX(Component.CENTER_ALIGNMENT);
     rootPanel.add(separator);
   }
-  
+
   final void setText(String text) {
     cellTitle.setText(text);
   }
-  
+
   final Container getContainer() {
     return rootPanel;
   }
-  
+
   final boolean equalsOpenClose(ExpandButton button) {
     return button == btnOpenClose;
   }
-  
+
   final boolean equalsAdvancedBasic(ExpandButton button) {
     return button == btnAdvancedBasic;
   }
-  
+
   final boolean equalsMoreLess(ExpandButton button) {
     return button == btnMoreLess;
   }
-  
+
   final void setAdvanced(boolean advanced) {
     if (btnAdvancedBasic == null) {
       return;
     }
     btnAdvancedBasic.setExpanded(advanced);
   }
-  
+
   public final void expand(ExpandButton button) {
     if (button == btnOpenClose) {
       separator.setVisible(button.isExpanded());
-      container.expand(button);
+      panel.expand(button);
     }
-  } 
+  }
+
+  public final void getState(PanelHeaderState state) {
+    state.setOpenCloseState(btnOpenClose.getState());
+    if (btnAdvancedBasic != null) {
+      state.setAdvancedBasicState(btnAdvancedBasic.getState());
+    }
+    if (btnMoreLess != null) {
+      state.setMoreLessState(btnMoreLess.getState());
+    }
+  }
+
+  /**
+   * Change the state of the buttons, which causes calls to expanded() for each
+   * button for which there is a valid state.
+   * @param state
+   */
+  public final void setState(PanelHeaderState state) {
+    if (state == null) {
+      return;
+    }
+    btnOpenClose.setState(state.getOpenCloseState());
+    if (btnAdvancedBasic != null) {
+      btnAdvancedBasic.setState(state.getAdvancedBasicState());
+    }
+    if (btnMoreLess != null) {
+      btnMoreLess.setState(state.getMoreLessState());
+    }
+  }
 }
 /**
 * <p> $Log$
+* <p> Revision 1.12  2005/09/21 16:45:01  sueh
+* <p> bug# 532 Added setText() to change the header's title.
+* <p>
 * <p> Revision 1.11  2005/09/20 19:00:18  sueh
 * <p> bug# 532 Allowing control of whether buttons start in expanded or
 * <p> contracted state.  OpenClose is always expanded.  The other can be
