@@ -14,14 +14,15 @@ import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
 
 import etomo.BaseManager;
-import etomo.EtomoDirector;
 import etomo.comscript.ProcesschunksParam;
 import etomo.comscript.SplittiltParam;
 import etomo.process.LoadAverageMonitor;
 import etomo.process.ParallelProcessMonitor;
 import etomo.type.AxisID;
+import etomo.type.BaseScreenState;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoNumber;
+import etomo.type.PanelHeaderState;
 import etomo.type.ProcessName;
 import etomo.util.HashedArray;
 
@@ -41,7 +42,7 @@ import etomo.util.HashedArray;
 public final class ParallelPanel implements ParallelProgressDisplay, Expandable, LoadAverageDisplay {
   public static final String rcsid = "$Id$";
 
-  static final String TITLE = "Parallel Processing";
+  static final String TITLE = "ParallelProcessing";
   static final String MAX_CPUS_STRING = ":  Maximum number of CPUs recommended is ";
   
   private static HashedArray maxCPUList = null;
@@ -67,15 +68,17 @@ public final class ParallelPanel implements ParallelProgressDisplay, Expandable,
   
   private LoadAverageMonitor loadAverageMonitor = null;
   private ParallelProcessMonitor parallelProcessMonitor = null;
-  private boolean visible = false;
+  private boolean visible = true;
+  private boolean open = true;
   private boolean pauseEnabled = false;
   private ProcesschunksParam processchunksParam = null;
 
-  public ParallelPanel(BaseManager manager, AxisID axisID) {
+  public ParallelPanel(BaseManager manager, AxisID axisID, PanelHeaderState state) {
     this.manager = manager;
     this.axisID = axisID;
     //initialize table
-    processorTable = new ProcessorTable(this, axisID);
+    //boolean expanded = PanelHeader.isMoreLessExpanded(state);
+    processorTable = new ProcessorTable(this, axisID);//, expanded);
     //set listeners
     btnResume.addActionListener(actionListener);
     btnPause.addActionListener(actionListener);
@@ -104,18 +107,18 @@ public final class ParallelPanel implements ParallelProgressDisplay, Expandable,
     bodyPanel.add(tablePanel);
     bodyPanel.add(southPanel);
     //header
-    header = PanelHeader.getExpandedMoreLessInstance(axisID, TITLE, this);
+    header = PanelHeader.getMoreLessInstance(
+        BaseScreenState.PARALLEL_HEADER_GROUP, TITLE, this);
     //rootPanel
     rootPanel.add(header.getContainer());
     rootPanel.add(bodyPanel.getContainer());
-    //configure fields
     ltfChunksFinished.setTextPreferredWidth(FixedDim.fourDigitWidth);
     ltfChunksFinished.setEditable(false);
     ltfCPUsSelected.setTextPreferredWidth(FixedDim.fourDigitWidth);
     ltfCPUsSelected.setEditable(false);
     processorTable.msgCPUsSelectedChanged();
     btnPause.setEnabled(pauseEnabled);
-    EtomoDirector.getInstance().loadPreferences(processorTable, axisID);
+    header.setState(state);
   }
   
   private final void buildTablePanel() {
@@ -191,6 +194,9 @@ public final class ParallelPanel implements ParallelProgressDisplay, Expandable,
   }
 
   final void setVisible(boolean visible) {
+    if (this.visible == visible) {
+      return;
+    }
     this.visible = visible;
     rootPanel.setVisible(visible);
   }
@@ -306,7 +312,7 @@ public final class ParallelPanel implements ParallelProgressDisplay, Expandable,
   }
   
   public final void pack() {
-    if (!visible) {
+    if (!visible || !open) {
       return;
     }
     processorTable.pack();
@@ -318,8 +324,8 @@ public final class ParallelPanel implements ParallelProgressDisplay, Expandable,
    */
   public final void expand(ExpandButton button) {
     if (header.equalsOpenClose(button)) {
-      visible = button.isExpanded();
-      bodyPanel.setVisible(visible);
+      open = button.isExpanded();
+      bodyPanel.setVisible(open);
     }
     else if (header.equalsMoreLess(button)) {
       if (processorTable == null) {
@@ -355,6 +361,15 @@ public final class ParallelPanel implements ParallelProgressDisplay, Expandable,
   public final void setParallelProcessMonitor(ParallelProcessMonitor parallelProcessMonitor) {
     this.parallelProcessMonitor = parallelProcessMonitor;
   }
+  
+  public final void getHeaderState(PanelHeaderState headerState) {
+    header.getState(headerState);
+  }
+  
+  public final void setHeaderState(PanelHeaderState headerState) {
+    header.setState(headerState);
+  }
+  
 
   private final class ParallelPanelActionListener implements ActionListener {
     ParallelPanel adaptee;
@@ -370,6 +385,9 @@ public final class ParallelPanel implements ParallelProgressDisplay, Expandable,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.19  2005/09/22 21:25:11  sueh
+ * <p> bug# 532 Moved the parallel process panel to AxisProcessPanel.
+ * <p>
  * <p> Revision 1.18  2005/09/21 16:59:11  sueh
  * <p> bug# 532 Added member variable ProcesschunksParam to store the most
  * <p> recently used ProcesschunksParam.  Change the header title to show the
