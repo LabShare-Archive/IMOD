@@ -70,6 +70,7 @@ final class ProcessorTableRow implements Storable {
     this.speed = speed;
     this.memory = memory;
     this.os = os;
+    initRow();
   }
 
   ProcessorTableRow(ProcessorTable table, String computerName) {
@@ -196,9 +197,6 @@ final class ProcessorTableRow implements Storable {
   }
 
   void addRow() {
-    if (!rowInitialized) {
-      initRow();
-    }
     //create row
     JPanel panel = table.getTablePanel();
     GridBagLayout layout = table.getTableLayout();
@@ -442,6 +440,10 @@ final class ProcessorTableRow implements Storable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.15  2005/09/22 21:32:55  sueh
+ * <p> bug# 532 Removed restartsError.  Taking error level from ParallelPanel in
+ * <p> ProcessorTableRow.
+ * <p>
  * <p> Revision 1.14  2005/09/13 00:02:07  sueh
  * <p> bug# 532 Implemented storable to store whether cellComputer is selected
  * <p> and how many CPUs are selected.
