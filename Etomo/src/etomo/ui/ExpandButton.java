@@ -29,6 +29,12 @@ import javax.swing.border.BevelBorder;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.7  2005/09/20 18:35:21  sueh
+ * <p> bug# 532 Using static get instance functions instead of the constructor
+ * <p> because the options that must be passed to the constructor are getting
+ * <p> too complicated.  Made the join expanding button the same size as the
+ * <p> other expander buttons.
+ * <p>
  * <p> Revision 1.6  2005/08/10 20:42:32  sueh
  * <p> bug# 711 To set a non-standard button size in MultLineButton, call
  * <p> setSize(Dimension).
@@ -68,6 +74,9 @@ import javax.swing.border.BevelBorder;
  */
 public class ExpandButton extends MultiLineButton {
   public static final String rcsid = "$Id$";
+  
+  private String contractedState = "less";
+  private String expandedState = "more";
   private String contractSymbol = "<html>&lt";
   private String expandSymbol = "<html>&gt";
 
@@ -80,26 +89,28 @@ public class ExpandButton extends MultiLineButton {
     return instance;
   }
 
-  final static ExpandButton getExpandedMoreLessInstance(Expandable container) {
+  final static ExpandButton getMoreLessInstance(Expandable container, boolean expanded) {
     ExpandButton instance = new ExpandButton(container);
-    instance.expanded = true;
+    instance.expanded = expanded;
     instance.initialize();
     return instance;
   }
 
   final static ExpandButton getInstance(Expandable container,
-      String contractSymbol, String expandSymbol) {
+      String contractSymbol, String expandSymbol, String contractedState,
+      String expandedState) {
     ExpandButton instance = new ExpandButton(container, contractSymbol,
-        expandSymbol);
+        expandSymbol, contractedState, expandedState);
     instance.initialize();
     return instance;
   }
 
-  final static ExpandButton getExpandedInstance(Expandable container,
-      String contractSymbol, String expandSymbol) {
+  final static ExpandButton getInstance(Expandable container,
+      String contractSymbol, String expandSymbol, String contractedState,
+      String expandedState, boolean expanded) {
     ExpandButton instance = new ExpandButton(container, contractSymbol,
-        expandSymbol);
-    instance.expanded = true;
+        expandSymbol, contractedState, expandedState);
+    instance.expanded = expanded;
     instance.initialize();
     return instance;
   }
@@ -117,11 +128,14 @@ public class ExpandButton extends MultiLineButton {
     this.container = container;
   }
 
-  private ExpandButton(Expandable container, String contractSymbol, String expandSymbol) {
+  private ExpandButton(Expandable container, String contractSymbol,
+      String expandSymbol, String contractedState, String expandedState) {
     super();
     this.container = container;
     this.contractSymbol = contractSymbol;
     this.expandSymbol = expandSymbol;
+    this.contractedState = contractedState;
+    this.expandedState = expandedState;
   }
 
   /**
@@ -150,6 +164,25 @@ public class ExpandButton extends MultiLineButton {
    */
   boolean isExpanded() {
     return expanded;
+  }
+  
+  final String getState() {
+    if (expanded) {
+      return expandedState;
+    }
+    return contractedState;
+  }
+  
+  final void setState(String state) {
+    if (state == null) {
+      return;
+    }
+    if (state.equals(expandedState) && !expanded) {
+      setExpanded(true);
+    }
+    else if (state.equals(contractedState) && expanded) {
+      setExpanded(false);
+    }
   }
 
   void add(JPanel panel, GridBagLayout layout, GridBagConstraints constraints) {
