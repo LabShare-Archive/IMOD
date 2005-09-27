@@ -26,6 +26,13 @@ import etomo.type.ProcessEndState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.19  2005/09/22 20:55:14  sueh
+ * <p> bug# 532 Managing the parallel process panel (ParallelProgressDisplay).
+ * <p> Added parallelStatusPanel to hold the parallel process panel.  Added
+ * <p> showParallelStatus() to signal when to show the panel.  Removed
+ * <p> setParallelProgressDisplay() so that the parallel process panel could be
+ * <p> set by showParallelStatus().
+ * <p>
  * <p> Revision 3.18  2005/08/22 17:53:59  sueh
  * <p> bug# 532  Add status string, remove pause button and add parallel
  * <p> progress display instead so that the button will be managed indirectly.
@@ -192,7 +199,7 @@ public abstract class AxisProcessPanel implements ContextMenu {
   //  Progress panel
   ProgressPanel progressPanel = new ProgressPanel("No process");
   JButton buttonKillProcess = new JButton(KILL_BUTTON_LABEL);
-  ParallelProgressDisplay parallelProgressDisplay = null;
+  ParallelPanel parallelPanel = null;
 
   //  Process select panel
   protected JPanel panelProcessSelect = new JPanel();
@@ -259,27 +266,38 @@ public abstract class AxisProcessPanel implements ContextMenu {
    * show or hide parallelStatusPanel
    * @param showParallelStatus
    */
-  public void showParallelStatus(boolean showParallelStatus) {
-    if (showParallelStatus && parallelProgressDisplay == null) {
-      parallelProgressDisplay = manager.getParallelProgressDisplay(axisID);
+  final void showParallelPanel(boolean showParallelStatus) {
+    if (showParallelStatus && parallelPanel == null) {
+      parallelPanel = new ParallelPanel(manager, axisID, manager
+          .getBaseScreenState(axisID).getParallelHeaderState());
       parallelStatusPanel.add(Box.createRigidArea(FixedDim.x5_y0));
-      parallelStatusPanel.add(parallelProgressDisplay.getContainer());
+      parallelStatusPanel.add(parallelPanel.getContainer());
     }
     if (showParallelStatus) {
-      parallelProgressDisplay.start();
+      parallelPanel.start();
     }
-    else if (parallelProgressDisplay != null) {
+    else if (parallelPanel != null) {
       {
-        parallelProgressDisplay.stop();
+        parallelPanel.stop();
       }
     }
     parallelStatusPanel.setVisible(showParallelStatus);
     UIHarness.INSTANCE.pack(axisID, manager);
   }
   
-  public void pack() {
-    if (parallelProgressDisplay != null && parallelStatusPanel.isVisible()) {
-      parallelProgressDisplay.pack();
+  final void pack() {
+    if (parallelPanel != null && parallelStatusPanel.isVisible()) {
+      parallelPanel.pack();
+    }
+  }
+  
+  final ParallelPanel getParallelPanel() {
+    return parallelPanel;
+  }
+  
+  final void done() {
+    if (parallelPanel != null) {
+      parallelPanel.getHeaderState(manager.getBaseScreenState(axisID).getParallelHeaderState());
     }
   }
   
@@ -351,8 +369,8 @@ public abstract class AxisProcessPanel implements ContextMenu {
     progressPanel.setMinimum(0);
     progressPanel.setMaximum(nSteps);
     buttonKillProcess.setEnabled(true);
-    if (parallelProgressDisplay != null) {
-      parallelProgressDisplay.setPauseEnabled(enablePause);
+    if (parallelPanel != null) {
+      parallelPanel.setPauseEnabled(enablePause);
     }
   }
 
@@ -389,8 +407,8 @@ public abstract class AxisProcessPanel implements ContextMenu {
   public void stopProgressBar(ProcessEndState processEndState, String statusString) {
     progressPanel.stop(processEndState, statusString);
     buttonKillProcess.setEnabled(false);
-    if (parallelProgressDisplay != null) {
-      parallelProgressDisplay.setPauseEnabled(false);
+    if (parallelPanel != null) {
+      parallelPanel.setPauseEnabled(false);
     }
   }
 
