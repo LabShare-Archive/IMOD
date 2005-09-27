@@ -59,6 +59,7 @@ import etomo.type.AxisType;
 import etomo.type.AxisTypeException;
 import etomo.type.BaseMetaData;
 import etomo.type.BaseProcessTrack;
+import etomo.type.BaseScreenState;
 import etomo.type.BaseState;
 import etomo.type.ConstMetaData;
 import etomo.type.DialogExitState;
@@ -70,6 +71,7 @@ import etomo.type.MetaData;
 import etomo.type.ProcessEndState;
 import etomo.type.ProcessName;
 import etomo.type.ProcessTrack;
+import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.TiltAngleSpec;
 import etomo.type.TomogramState;
@@ -154,6 +156,8 @@ public class ApplicationManager extends BaseManager {
   private boolean[] advancedB = new boolean[DialogType.TOTAL];
   private DialogType currentDialogTypeA = null;
   private DialogType currentDialogTypeB = null;
+  private ReconScreenState screenStateA = null;
+  private ReconScreenState screenStateB = null;
 
   /**
    * Does initialization and loads the .edf file.  Opens the setup dialog
@@ -1894,6 +1898,7 @@ public class ApplicationManager extends BaseManager {
   public boolean exitProgram(AxisID axisID) {
     try {
       if (super.exitProgram(axisID)) {
+        mainPanel.done();
         saveDialog();
         return true;
       }
@@ -3901,8 +3906,6 @@ public class ApplicationManager extends BaseManager {
     // FIXME do we want to be updating here break model
     // Get the latest combine parameters from the dialog
     updateCombineParams();
-
-    // FIXME axis should be a parameter to the call
     AxisID axisID;
     if (metaData.getCombineParams().getMatchBtoA()) {
       axisID = AxisID.FIRST;
@@ -5280,10 +5283,6 @@ public class ApplicationManager extends BaseManager {
     processTrack = new ProcessTrack();
   }
 
-  protected int getNumStorables() {
-    return 3;
-  }
-
   protected void createState() {
     state = new TomogramState(this);
   }
@@ -5567,7 +5566,7 @@ public class ApplicationManager extends BaseManager {
       return null;
     }
     SplittiltParam param = new SplittiltParam(axisID);
-    getParallelPanel(axisID).getParameters(param);
+    mainPanel.getParallelPanel(axisID).getParameters(param);
     return param;
   }
 
@@ -5657,9 +5656,51 @@ public class ApplicationManager extends BaseManager {
   protected BaseProcessManager getProcessManager() {
     return processMgr;
   }
+  
+  protected final Storable[] getParamFileStorableArray() {
+    boolean dualAxis = true;
+    int arraySize = 5;
+    if (metaData.getAxisType() == AxisType.SINGLE_AXIS) {
+      dualAxis = false;
+      arraySize--;
+    }
+    Storable[] storable = new Storable[arraySize];
+    storable[0] = metaData;
+    storable[1] = state;
+    storable[2] = processTrack;
+    storable[3] = getScreenState(AxisID.FIRST);
+    if (dualAxis) {
+      storable[4] = getScreenState(AxisID.SECOND);
+    }
+    return storable;
+  }
+  
+  public final ReconScreenState getScreenState(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      if (screenStateB == null) {
+        screenStateB = new ReconScreenState(axisID);
+      }
+      return screenStateB;
+    }
+    if (screenStateA == null) {
+      screenStateA = new ReconScreenState(axisID);
+    }
+    return screenStateA;
+  }
+  
+  public final BaseScreenState getBaseScreenState(AxisID axisID) {
+    return (BaseScreenState) getScreenState(axisID);
+  }
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.181  2005/09/22 20:40:56  sueh
+ * <p> bug# 532 changed packDialogs to packPanel and move them to
+ * <p> BaseManager.  The packs done in packDialog where for the processor
+ * <p> table and where sent through dialogs.  The processor table is no longer
+ * <p> associated with the dialogs.  So packing the processor table is done
+ * <p> through the main panel.
+ * <p>
  * <p> Revision 3.180  2005/09/21 16:03:47  sueh
  * <p> bug# 532 Moved processchunks() and setThreadName() to BaseManager.
  * <p>
