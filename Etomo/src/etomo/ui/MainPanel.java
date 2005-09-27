@@ -34,6 +34,10 @@ import etomo.type.ProcessEndState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.30  2005/09/22 21:24:06  sueh
+ * <p> bug# 532 Moved the parallel process panel to AxisProcessPanel.  Added
+ * <p> pack() and showParallelStatus().  Removed setParallelProgressDisplay().
+ * <p>
  * <p> Revision 1.29  2005/09/21 16:39:52  sueh
  * <p> bug# 532 Added abstract setState(ProcessState, AxisID, ParallelDialog)
  * <p> so that one processchunks function in BaseManager can handle multiple
@@ -355,16 +359,45 @@ public abstract class MainPanel extends JPanel {
    */
   public void setProgressBar(String label, int nSteps, AxisID axisID, boolean pauseEnabled) {
     AxisProcessPanel axisPanel = mapBaseAxis(axisID);
+    if (axisPanel == null) {
+      return;
+    }
     axisPanel.setProgressBar(label, nSteps, pauseEnabled);
     axisPanel.setProgressBarValue(0);
   }
   
-  public void showParallelStatus(AxisID axisID, boolean showParallelStatus) {
-    mapBaseAxis(axisID).showParallelStatus(showParallelStatus);
+  public void showParallelPanel(AxisID axisID, boolean showParallelPanel) {
+    AxisProcessPanel axisPanel = mapBaseAxis(axisID);
+    if (axisPanel == null) {
+      return;
+    }
+    axisPanel.showParallelPanel(showParallelPanel);
+  }
+  
+  public ParallelPanel getParallelPanel(AxisID axisID) {
+    AxisProcessPanel axisPanel = mapBaseAxis(axisID);
+    if (axisPanel == null) {
+      return null;
+    }
+    return axisPanel.getParallelPanel();
   }
   
   public void pack(AxisID axisID) {
-    mapBaseAxis(axisID).pack();
+    AxisProcessPanel axisPanel = mapBaseAxis(axisID);
+    if (axisPanel != null) {
+      axisPanel.pack();
+    }
+  }
+  
+  public void done() {
+    AxisProcessPanel axisPanel = mapBaseAxis(AxisID.FIRST);
+    if (axisPanel != null) {
+      axisPanel.done();
+    }
+    axisPanel = mapBaseAxis(AxisID.SECOND);
+    if (axisPanel != null) {
+      axisPanel.done();
+    }
   }
   
   /**
