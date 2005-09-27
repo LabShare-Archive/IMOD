@@ -104,9 +104,10 @@ public class ProcesschunksProcessMonitor implements ParallelProcessMonitor {
     for (int i = lastOutputLine + 1; i < stdOutput.length; i++) {
       lastOutputLine = i;
       String line = stdOutput[i].trim();
-      if (EtomoDirector.getInstance().isDebug()) {
+      //TEMP
+      //if (EtomoDirector.getInstance().isDebug()) {
         System.err.println(line);
-      }
+      //}
       if (line.startsWith(BaseProcessManager.CHUNK_ERROR_TAG)) {
         lastChunkError = line;
       }
@@ -308,6 +309,10 @@ public class ProcesschunksProcessMonitor implements ParallelProcessMonitor {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.10  2005/09/10 01:52:41  sueh
+* <p> bug# 532 Setting the reason for all dropped computers to "not responding"
+* <p> to distinguish it from load average timeouts.
+* <p>
 * <p> Revision 1.9  2005/09/09 21:42:22  sueh
 * <p> bug# 532 Throwing an exception if a command is sent that processchunks
 * <p> doesn't recognize.
