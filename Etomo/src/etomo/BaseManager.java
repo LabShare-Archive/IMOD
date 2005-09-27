@@ -25,6 +25,7 @@ import etomo.type.AxisType;
 import etomo.type.AxisTypeException;
 import etomo.type.BaseMetaData;
 import etomo.type.BaseProcessTrack;
+import etomo.type.BaseScreenState;
 import etomo.type.BaseState;
 import etomo.type.DialogType;
 import etomo.type.ProcessEndState;
@@ -34,7 +35,6 @@ import etomo.ui.LoadAverageDisplay;
 import etomo.ui.MainPanel;
 import etomo.ui.ParallelDialog;
 import etomo.ui.ParallelPanel;
-import etomo.ui.ParallelProgressDisplay;
 import etomo.ui.UIHarness;
 import etomo.util.Utilities;
 
@@ -43,7 +43,7 @@ import etomo.util.Utilities;
 * 
 * <p>Copyright: Copyright (c) 2002, 2003, 2004</p>
 *
-*<p>Organization:
+* <p>Organization:
 * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
 * University of Colorado</p>
 * 
@@ -52,6 +52,10 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.34  2005/09/22 20:43:38  sueh
+* <p> bug# 532 Added showParallelStatus(), which is called when a parallel
+* <p> processing checkbox is checked.
+* <p>
 * <p> Revision 1.33  2005/09/21 16:04:34  sueh
 * <p> bug# 532 Moved processchunks() and setThreadName() to BaseManager.
 * <p>
@@ -319,8 +323,8 @@ public abstract class BaseManager {
   protected boolean backgroundProcessA = false;
   protected String backgroundProcessNameA = null;
   protected String propertyUserDir = null;//working directory for this manager
-  protected ParallelPanel parallelPanelA = null;
-  protected ParallelPanel parallelPanelB = null;
+  //protected ParallelPanel parallelPanelA = null;
+  //protected ParallelPanel parallelPanelB = null;
   private HashSet currentParallelDialogsA = null;
   private HashSet currentParallelDialogsB = null;
 
@@ -342,9 +346,10 @@ public abstract class BaseManager {
   protected abstract BaseState getBaseState();
   public abstract void kill(AxisID axisID);
   public abstract void pause(AxisID axisID);
-  protected abstract int getNumStorables();
+  protected abstract Storable[] getParamFileStorableArray();
   public abstract void touch(File file);
   protected abstract BaseProcessManager getProcessManager();
+  public abstract BaseScreenState getBaseScreenState(AxisID axisID);
 
   //FIXME needs to be public?
   public abstract boolean isNewManager();
@@ -403,11 +408,7 @@ public abstract class BaseManager {
     if (paramFile == null || !EtomoDirector.getInstance().isMemoryAvailable()) {
       return;
     }
-    Storable[] storable = new Storable[getNumStorables()];
-    storable[0] = getBaseMetaData();
-    storable[1] = getBaseState();
-    getProcessTrack(storable, 2);
-    save(storable, axisID);
+    save(getParamFileStorableArray(), axisID);
     //  Update the MRU test data filename list
     userConfig.putDataFile(paramFile.getAbsolutePath());
     uiHarness.setMRUFileLabels(userConfig.getMRUFileList());
@@ -627,10 +628,7 @@ public abstract class BaseManager {
     try {
       // Read in the test parameter data file
       ParameterStore paramStore = new ParameterStore(paramFile);
-      Storable[] storable = new Storable[this.getNumStorables()];
-      storable[0] = getBaseMetaData();
-      storable[1] = getBaseState();
-      getProcessTrack(storable, 2);
+      Storable[] storable = getParamFileStorableArray();
       paramStore.load(storable);
 
       // Set the current working directory for the application, this is the
@@ -821,23 +819,6 @@ public abstract class BaseManager {
     }
   }
   
-  public final ParallelProgressDisplay getParallelProgressDisplay(AxisID axisID) {
-    return getParallelPanel(axisID);
-  }
-  
-  protected final ParallelPanel getParallelPanel(AxisID axisID) {
-    if (axisID == AxisID.SECOND) {
-      if (parallelPanelB == null) {
-        parallelPanelB = new ParallelPanel(this, axisID);
-      }
-      return parallelPanelB;
-    }
-    if (parallelPanelA == null) {
-      parallelPanelA = new ParallelPanel(this, axisID);
-    }
-    return parallelPanelA;
-  }
-  
   public final void savePreferences(AxisID axisID, Storable storable) {
     try {
       getProcessManager().isAxisBusy(axisID);
@@ -882,7 +863,7 @@ public abstract class BaseManager {
       uiHarness.openMessageDialog("No command to resume", "Resume");
       return;
     }
-    ParallelPanel parallelPanel = getParallelPanel(axisID);
+    ParallelPanel parallelPanel = getMainPanel().getParallelPanel(axisID);
     parallelPanel.getResumeParameters(param);
     String threadName;
     try {
@@ -910,7 +891,7 @@ public abstract class BaseManager {
       return;
     }
     ProcesschunksParam param = new ProcesschunksParam(axisID);
-    ParallelPanel parallelPanel = getParallelPanel(axisID);
+    ParallelPanel parallelPanel = getMainPanel().getParallelPanel(axisID);
     dialog.getParameters(param);
     parallelPanel.getParameters(param);
     getProcessTrack().setState(ProcessState.INPROGRESS, axisID, dialog);
@@ -971,13 +952,13 @@ public abstract class BaseManager {
     if (showParallelStatus && !currentParallelDialogs.contains(uniqueParallelRequestID)) {
       currentParallelDialogs.add(uniqueParallelRequestID);
       if (currentParallelDialogs.size() == 1) {
-        getMainPanel().showParallelStatus(axisID, true);
+        getMainPanel().showParallelPanel(axisID, true);
       }
     }
     else if (!showParallelStatus && currentParallelDialogs.contains(uniqueParallelRequestID)) {
       currentParallelDialogs.remove(uniqueParallelRequestID);
       if (currentParallelDialogs.size() == 0) {
-        getMainPanel().showParallelStatus(axisID, false);
+        getMainPanel().showParallelPanel(axisID, false);
       }
     }
   }
