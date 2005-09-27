@@ -22,6 +22,7 @@ import etomo.type.AxisType;
 import etomo.type.AxisTypeException;
 import etomo.type.BaseMetaData;
 import etomo.type.BaseProcessTrack;
+import etomo.type.BaseScreenState;
 import etomo.type.BaseState;
 import etomo.type.ConstJoinMetaData;
 import etomo.type.EtomoNumber;
@@ -49,6 +50,9 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.21  2005/08/22 16:02:23  sueh
+* <p> bug# 532 Added pause().
+* <p>
 * <p> Revision 1.20  2005/08/11 23:23:19  sueh
 * <p> bug# 711  Change join 3dmod buttons to Run3dmodButton.  These
 * <p> 3dmod configurations should not be binned in Z.
@@ -844,7 +848,6 @@ public class JoinManager extends BaseManager {
   }
   
   protected void updateDialog(ProcessName processName, AxisID axisID) {
-    
   }
   
   public ConstJoinMetaData getConstMetaData() {
@@ -896,8 +899,8 @@ public class JoinManager extends BaseManager {
     return state;
   }
   
-  protected int getNumStorables() {
-    return 2;
+  public final BaseScreenState getBaseScreenState(AxisID axisID) {
+    return null;
   }
 
   
@@ -927,5 +930,26 @@ public class JoinManager extends BaseManager {
   
   protected BaseProcessManager getProcessManager() {
     return processMgr;
+  }
+  
+  protected final Storable[] getParamFileStorableArray() {
+    Storable[] storable = new Storable[2];
+    storable[0] = metaData;
+    storable[1] = state;
+    return storable;
+  }
+  
+  public boolean exitProgram(AxisID axisID) {
+    try {
+      if (super.exitProgram(axisID)) {
+        mainPanel.done();
+        return true;
+      }
+      return false;
+    }
+    catch (Throwable e) {
+      e.printStackTrace();
+      return true;
+    }
   }
 }
