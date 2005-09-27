@@ -21,7 +21,7 @@ import etomo.storage.Storable;;
 public class BaseScreenState implements Storable {
   public static  final String  rcsid =  "$Id$";
   
-  public static final String PARALLEL_HEADER_GROUP = "ParallelHeader";
+  public static final String PARALLEL_HEADER_GROUP = "Parallel.Header";
   
   
   private final String group;
@@ -66,5 +66,9 @@ public class BaseScreenState implements Storable {
   }
 }
 /**
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2005/09/27 21:19:02  sueh
+* <p> bug# 532 This is a top level Storable object that should be written to the
+* <p> .edf and .ejf files.  One instance per axis is created.
+* <p> </p>
 */
