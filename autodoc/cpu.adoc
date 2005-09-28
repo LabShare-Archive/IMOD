@@ -72,7 +72,8 @@
 # is not important.
 
 # Version = 1.0
-# The Version attribute is currently required.
+# The Version attribute is required.  It refers to the syntax used in .adoc
+# files and should always be set to 1.0.
 
 # Optional global attributes:
 
