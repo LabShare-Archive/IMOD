@@ -1,36 +1,182 @@
-# Descriptions of computers and CPUs to use in Etomo parallel processing
-# This file should be placed in the calibration directory (env|grep IMOD_CALIB_DIR)
+# The cpu.adoc file contains descriptions of the computers you wish to use when
+# running parallel processes with processchunks.  It affects the parallel
+# processing table in Etomo and is used to run processchunks.  The cpu.adoc file
+# must be placed in the calibration directory.  Change directory to
+# $IMOD_CALIB_DIR to see the calibration directory.
 
-# Optional cpu.adoc attributes (can be placed in any order):
-# units.speed:  Column subheader for processor speed
-# units.memory:  Column subheader for amount of RAM
-# max.tilt:  Maximum number of CPUs recommended for running processchunks tilt
-# max.volcombine:  Maximum number of CPUs recommended for running processchunks volcombine
-
-# Computer names should be placed in brackets [Computer = name]
-
-# Computer attributes (can be placed in any order):
-
-# number:  number of CPUs (defaults to 1)
-# Required on a multi-processor system
-
-# For a standalone two-processor system, all that is needed is:
-# [Computer = localhost]
-# number = 2
-
-# Optional computer attributes:
-# type:  cpu type
-# speed:  processor speed
-# memory:  amount of RAM
-# os:  operating system
-
-# If an attribute is never used, the corresponding column will be omitted from
-# parallel processing table in eTomo.
+# See below for definitions of the elements contained in a cpu.adoc file and
+# many examples.
 
 #
 #
-# Example of cpu.adoc
+# DEFINITIONS
 #
+#
+
+#
+# Computer Sections:
+#
+
+# Each section describes one computer.  A section must have the following syntax:
+# [Computer = {computer name}].  The computer name will be used by Etomo and IMOD
+# to contact the computer.
+
+#
+# Computer Attributes:
+#
+
+# Computer attributes are name/value pairs found under a computer section, they
+# have the following syntax:  name = value.  The order of the attributes in not
+# important.
+
+# The number attribute:
+# number = {number of cpus}
+# The number attribute is necessary if you have a computer with multiple
+# processors.  If you don't use this attribute, a single processor is assumed.
+
+# The optional attributes:
+# The other attributes are descriptive and completely optional.  Since the these
+# attributes are just descriptive, you can put anything in them that you want.
+# However, any attribute you do not use will be omitted from the table, so not
+# using attributes can save screen space in Etomo.  If all of the users are
+# familiar with the attributes of the computers or you are planning to use all
+# of the computers every time you run a parallel process, then you don't really
+# need to use anything but the number attribute.  
+
+# Optional attributes details:
+
+# type = {CPU type}
+# This attribute goes into the table under the heading "CPU Type" and can
+# contain a description of the computer's processor.
+
+# speed = {CPU speed}
+# This attribute goes into the table under the heading "Speed" and can contain
+# the speed of the computer.  If you want to put units for this attribute in the
+# column header, see the Global Attributes section below.
+
+# memory = {the amount of RAM}
+# This attribute goes into the table under the heading "RAM" and can contain the
+# amount of memory the computer has.  If you want to put units for this
+# attribute in the column header, see the Global Attributes section below.
+
+# os = {operating system}
+# This attribute goes into the table under the heading "OS" and can contain a
+# description of the operating system the computer is using.
+
+#
+# Global Attributes:
+#
+
+# Global attributes are name/value pairs found at the top of the file, they
+# have the following syntax:  nameA.nameB = value.  The order of the attributes
+# is not important.
+
+# Version = 1.0
+# The Version attribute is currently required.
+
+# Optional global attributes:
+
+# units.speed = {the units for the speed attributes}
+# The value appears in sub-heading row in the Etomo parallel processing table
+# under the heading "Speed".
+
+# units.memory = {the units for the memory attributes}
+# The value appears in sub-heading row in the Etomo parallel processing table
+# under the heading "RAM".
+
+# max.tilt = {the maximum number of CPUs users should use for tilt}
+# When this attribute is in use, a reminder not to use too many CPUs will appear
+# next to the tilt parallel processing checkbox.  This number must be a whole
+# number.  The purpose of this attribute is to both prevent users from using too
+# many CPUs and to prevent them from experiencing diminishing returns because
+# of bottlenecks.  We are currently setting max.tilt to 12, but your mileage
+# will vary.
+
+# max.volcombine = {the maximum number of CPUs users should use for volcombine}
+# See max.tilt.  We are currently setting max.volcombine to 8.
+
+#
+# Limitations:
+#
+ 
+# Windows computers cannot be placed in a cpu.adoc parallel processing table
+# with Linux and Macintosh computers.
+
+# All computers in the cpu.adoc will be loaded into a scrollable table in Etomo.
+# A cpu.adoc with hundreds of computers may slow down Etomo too much.
+
+#
+#
+# EXAMPLES
+#
+#
+
+#
+# An example of cpu.adoc for a standalone two-processor system:
+#
+
+[Computer = localhost]
+number = 2
+
+#
+# An example of cpu.adoc for 4 computers with the same operating system and type
+# of processor:
+#
+
+Version = 1.0
+units.speed = GHz
+units.memory = GB
+
+[Computer = frodo]
+number = 2
+speed = 2.3
+memory = 5.0
+
+[Computer = sam]
+speed = 2.5
+memory = 2.0
+
+[Computer = pippin]
+speed = 2.4
+memory = 2.0
+
+[Computer = merry]
+speed = 2.3
+memory 2.0
+number = 2
+
+# If the resulting table in Etomo is too wide, the cpu.adoc can be changed to
+# this:
+
+Version = 1.0
+
+[Computer = frodo]
+number = 2
+
+[Computer = sam]
+
+[Computer = pippin]
+
+[Computer = merry]
+number = 2
+
+#
+# An example of a cpu.adoc for identical, single processor computers:
+#
+
+Version = 1.0
+
+[Computer = frodo]
+
+[Computer = sam]
+
+[Computer = pippin]
+
+[Computer = merry]
+
+#
+# An example of a cpu.adoc for a larger group of computers that are mostly using
+# Linux:
 #
 
 Version = 1.0
@@ -40,18 +186,94 @@ max.tilt = 12
 max.volcombine = 8
 
 [Computer = frodo]
+type = AMD 64
+number = 2
+speed = 2.4
+memory = 2.0
+
 [Computer = sam]
-type = Xeon
-speed = 2.8
-memory = 4.0
-os = Linux
+type = Opteron
+speed = 2.4
+memory = 8.0
+number = 2
+
+[Computer = pippin]
+number = 2
+speed = 2.3
+memory = 5.0
+type = G5 - OSX
+
+[Computer = merry]
+type = P4
+speed = 3.0
+memory = 2.0
+.
+.
+.
+
+#
+# An example of cpu.adoc for Linux computers with different types of processors:
+#
+
+Version = 1.0
+units.speed = GHz
+units.memory = GB
+
+[Computer = frodo]
+type = AMD 64
+number = 2
+speed = 2.4
+memory = 2.0
+
+[Computer = sam]
+type = Opteron
+speed = 2.4
+memory = 8.0
 number = 2
 
 [Computer = pippin]
 speed = 2.8
-type = P4
-memory = 2.0
-os = Linux
+type = Xeon
+memory = 4.0
+number = 2
 
 [Computer = merry]
+type = P4
+speed = 3.0
+memory = 2.0
+
+#
+# An example of cpu.adoc for computers with different operating systems and
+# types of processor:
+#
+
+Version = 1.0
+units.speed = GHz
+units.memory = GB
+
+[Computer = frodo]
+type = AMD 64
 number = 2
+speed = 2.4
+memory = 2.0
+os = linux
+
+[Computer = sam]
+type = Opteron
+speed = 2.4
+memory = 8.0
+number = 2
+os = linux
+
+[Computer = pippin]
+number = 2
+speed = 2.3
+memory = 5.0
+os = OSX
+type = G5
+
+[Computer = merry]
+type = P4
+speed = 3.0
+memory = 2.0
+os = linux
