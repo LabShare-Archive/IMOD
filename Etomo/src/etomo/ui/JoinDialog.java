@@ -36,6 +36,16 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.19  2005/08/11 23:56:49  sueh
+ * <p> bug# 711  Change 3dmod buttons to Run3dmodButton.  Implement
+ * <p> Run3dmodButtonContainer.  Change enum Run3dmodMenuOption to
+ * <p> Run3dmodMenuOptions, which can turn on multiple options at once.
+ * <p> This allows ImodState to combine input from the context menu and the
+ * <p> pulldown menu.  Get rid of duplicate code by running the 3dmods from a
+ * <p> private function called run3dmod(String, Run3dmodMenuOptions).  It can
+ * <p> be called from run3dmod(Run3dmodButton, Run3dmodMenuOptions) and
+ * <p> the action function.
+ * <p>
  * <p> Revision 1.18  2005/08/09 20:24:07  sueh
  * <p> bug# 711 Moving button sizing from UIUtilities to the multi line button
  * <p> classes.  default setSize() sets the standard button dimension.
@@ -1112,7 +1122,7 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     else if (command.equals(btnChangeSetup.getActionCommand())) {
       //Prepare for Revert:  meta data file should match the screen
       getMetaData(joinManager.getJoinMetaData());
-      joinManager.saveTestParamFile(AxisID.ONLY);
+      joinManager.saveIntermediateParamFile(AxisID.ONLY);
       setMode(JoinDialog.CHANGING_SAMPLE_MODE);
     }
     else if (command.equals(btnRevertToLastSetup.getActionCommand())) {
