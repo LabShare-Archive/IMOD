@@ -70,6 +70,10 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.71  2005/09/27 23:49:03  sueh
+ * bug# 532 When creating headers, set the group name for storing.  Set the
+ * state in each header.
+ *
  * Revision 3.70  2005/09/22 21:33:23  sueh
  * bug# 532 Moved the parallel process panel to AxisProcessPanel.
  *
@@ -670,19 +674,34 @@ public class TomogramGenerationDialog extends ProcessDialog
     }
   }
   
+  public final void setParameters(ReconScreenState screenState) {
+    newstHeader.setState(screenState.getTomoGenNewstHeaderState());
+    filterHeader.setState(screenState.getTomoGenMtffilterHeaderState());
+    tiltHeader.setState(screenState.getTomoGenTiltHeaderState());
+    trialHeader.setState(screenState.getTomoGenTrialTiltHeaderState());
+    setAdvanced();
+  }
+  
+  public final void getParameters(ReconScreenState screenState) {
+    newstHeader.getState(screenState.getTomoGenNewstHeaderState());
+    filterHeader.getState(screenState.getTomoGenMtffilterHeaderState());
+    tiltHeader.getState(screenState.getTomoGenTiltHeaderState());
+    trialHeader.getState(screenState.getTomoGenTrialTiltHeaderState());
+  }
+  
   public void setParameters(ConstMetaData metaData) {
     ConstEtomoNumber binning = metaData.getTomoGenBinning(axisID);
     if (!binning.isNull()) {
       getBinningFromNewst = false;
       spinBinning.setValue(binning);
     }
-    cbParallelProcess.setSelected(metaData.getTomoGenParallelProcess(axisID));
+    cbParallelProcess.setSelected(metaData.getTomoGenTiltParallel(axisID));
     updateParallelProcess();
   }
   
   public void getParameters(MetaData metaData) {
     metaData.setTomoGenBinning(axisID, ((Integer) spinBinning.getValue()).intValue());
-    metaData.setTomoGenParallelProcess(axisID, cbParallelProcess.isSelected());
+    metaData.setTomoGenTiltParallel(axisID, cbParallelProcess.isSelected());
   }
   
   public void setBlendParams(BlendmontParam blendmontParam) {
@@ -1017,6 +1036,15 @@ public class TomogramGenerationDialog extends ProcessDialog
     //btn3dmodTomogram
     //btnDeleteStacks
   }
+  
+  private final void setAdvanced() {
+    boolean headerAdvanced = filterHeader.isAdvancedBasicExpanded();
+    if (headerAdvanced != isAdvanced
+        && headerAdvanced == tiltHeader.isAdvancedBasicExpanded()) {
+      super.setAdvanced(headerAdvanced);
+    }
+  }
+  
   /**
    * Update the dialog with the current advanced state
    */
@@ -1053,7 +1081,6 @@ public class TomogramGenerationDialog extends ProcessDialog
       newstHeader = PanelHeader.getInstance(
           ReconScreenState.TOMO_GEN_NEWST_HEADER_GROUP, "Newstack", this);
     }
-    newstHeader.setState(screenState.getTomoGenNewstHeaderState());
     //initialization
     SpinnerModel integerModel = new SpinnerNumberModel(1, 1, 8, 1);
     spinBinning = new LabeledSpinner("Aligned image stack binning ", integerModel);
@@ -1105,7 +1132,6 @@ public class TomogramGenerationDialog extends ProcessDialog
     filterHeader = PanelHeader.getAdvancedBasicInstance(
         ReconScreenState.TOMO_GEN_MTFFILTER_HEADER_GROUP,
         "2D Filtering (optional)", this);
-    filterHeader.setState(screenState.getTomoGenMtffilterHeaderState());
     //buttonPanel
     buttonPanel.add(btnFilter);
     buttonPanel.add(btnViewFilter);
@@ -1171,7 +1197,6 @@ public class TomogramGenerationDialog extends ProcessDialog
     buttonPanel.setBoxLayout(BoxLayout.X_AXIS);
     //header
     tiltHeader = PanelHeader.getAdvancedBasicInstance(ReconScreenState.TOMO_GEN_TILT_HEADER_GROUP, "Tilt", this);
-    tiltHeader.setState(screenState.getTomoGenTiltHeaderState());
     //buttonPanel
     buttonPanel.add(btnTilt);
     buttonPanel.add(btn3dmodTomogram);
@@ -1247,7 +1272,6 @@ public class TomogramGenerationDialog extends ProcessDialog
     buttonPanel.setBoxLayout(BoxLayout.X_AXIS);
     //header
     trialHeader = PanelHeader.getInstance(ReconScreenState.TOMO_GEN_TRIAL_TILT_HEADER_GROUP, "Trial Tilt", this);
-    trialHeader.setState(screenState.getTomoGenTrialTiltHeaderState());
     //buttonPanel
     buttonPanel.add(btnTrial);
     buttonPanel.add(btn3dmodTrial);
