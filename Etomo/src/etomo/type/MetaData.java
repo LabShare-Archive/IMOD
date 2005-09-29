@@ -20,6 +20,9 @@ import etomo.comscript.TransferfidParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.23  2005/09/16 17:50:45  sueh
+ * <p> bug# 532 Added combineParallelProcess.
+ * <p>
  * <p> Revision 3.22  2005/08/22 17:10:37  sueh
  * <p> bug# 532 Added a member variable to save the setting of the gen tomo
  * <p> parallel process checkbox.
@@ -185,8 +188,8 @@ public class MetaData extends ConstMetaData {
     tomoPosBinningB.reset();
     tomoGenBinningA.reset();
     tomoGenBinningB.reset();
-    tomoGenParallelProcessA = false;
-    tomoGenParallelProcessB = false;
+    tomoGenTiltParallelA = false;
+    tomoGenTiltParallelB = false;
   }
   
   public void initialize() {
@@ -301,16 +304,16 @@ public class MetaData extends ConstMetaData {
     }
   }
   
-  public void setCombineParallelProcess(boolean combineParallelProcess) {
-    this.combineParallelProcess = combineParallelProcess;
+  public void setCombineVolcombineParallel(boolean combineVolcombineParallel) {
+    this.combineVolcombineParallel = combineVolcombineParallel;
   }
   
-  public void setTomoGenParallelProcess(AxisID axisID, boolean parallelProcess) {
+  public void setTomoGenTiltParallel(AxisID axisID, boolean tomoGenTiltParallel) {
     if (axisID == AxisID.SECOND) {
-      tomoGenParallelProcessB = parallelProcess;
+      tomoGenTiltParallelB = tomoGenTiltParallel;
     }
     else {
-      tomoGenParallelProcessA = parallelProcess;
+      tomoGenTiltParallelA = tomoGenTiltParallel;
     }
   }
   
@@ -474,5 +477,14 @@ public class MetaData extends ConstMetaData {
     tomoPosBinningB.load(props, prepend);
     tomoGenBinningA.load(props, prepend);
     tomoGenBinningB.load(props, prepend);
+    tomoGenTiltParallelA = Boolean.valueOf(
+        props.getProperty(group + TOMO_GEN_A_TILT_PARALLEL_GROUP, "false"))
+        .booleanValue();
+    tomoGenTiltParallelB = Boolean.valueOf(
+        props.getProperty(group + TOMO_GEN_B_TILT_PARALLEL_GROUP, "false"))
+        .booleanValue();
+    combineVolcombineParallel = Boolean.valueOf(
+        props.getProperty(group + COMBINE_VOLCOMBINE_PARALLEL_GROUP, "false"))
+        .booleanValue();
   }
 }

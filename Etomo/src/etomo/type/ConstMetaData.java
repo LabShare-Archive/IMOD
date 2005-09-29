@@ -29,6 +29,16 @@ public abstract class ConstMetaData extends BaseMetaData {
   private static final String latestRevisionNumber = "1.7";
   private static final String newTomogramTitle = "Setup Tomogram";
   
+  protected static final String TOMO_GEN_A_TILT_PARALLEL_GROUP = DialogType.TOMOGRAM_GENERATION
+      .getStorableName()
+      + AxisID.FIRST.getExtension().toUpperCase() + ".Tilt.Parallel";
+  protected static final String TOMO_GEN_B_TILT_PARALLEL_GROUP = DialogType.TOMOGRAM_GENERATION
+      .getStorableName()
+      + AxisID.SECOND.getExtension().toUpperCase() + ".Tilt.Parallel";
+  protected static final String COMBINE_VOLCOMBINE_PARALLEL_GROUP = DialogType.TOMOGRAM_COMBINATION
+      .getStorableName() + ".Volcombine.Parallel";
+
+  
   private final ApplicationManager manager;
   
   protected String datasetName = "";
@@ -78,9 +88,9 @@ public abstract class ConstMetaData extends BaseMetaData {
   protected final SqueezevolParam squeezevolParam;
   protected final TransferfidParam transferfidParamA;
   protected final TransferfidParam transferfidParamB;
-  protected boolean tomoGenParallelProcessA = false;
-  protected boolean tomoGenParallelProcessB = false;
-  protected boolean combineParallelProcess = false;
+  protected boolean tomoGenTiltParallelA = false;
+  protected boolean tomoGenTiltParallelB = false;
+  protected boolean combineVolcombineParallel = false;
 
   public abstract void load(Properties props);
   public abstract void load(Properties props, String prepend);
@@ -158,6 +168,12 @@ public abstract class ConstMetaData extends BaseMetaData {
     tomoPosBinningB.store(props, prepend);
     tomoGenBinningA.store(props, prepend);
     tomoGenBinningB.store(props, prepend);
+    props.setProperty(group + TOMO_GEN_A_TILT_PARALLEL_GROUP, String
+        .valueOf(tomoGenTiltParallelA));
+    props.setProperty(group + TOMO_GEN_B_TILT_PARALLEL_GROUP, String
+        .valueOf(tomoGenTiltParallelB));
+    props.setProperty(group + COMBINE_VOLCOMBINE_PARALLEL_GROUP, String
+        .valueOf(combineVolcombineParallel));
   }
 
   public TrimvolParam getTrimvolParam() {
@@ -251,15 +267,15 @@ public abstract class ConstMetaData extends BaseMetaData {
     return tomoGenBinningA;
   }
   
-  public boolean getCombineParallelProcess() {
-    return combineParallelProcess;
+  public boolean getCombineVolcombineParallel() {
+    return combineVolcombineParallel;
   }
   
-  public boolean getTomoGenParallelProcess(AxisID axisID) {
+  public boolean getTomoGenTiltParallel(AxisID axisID) {
     if (axisID == AxisID.SECOND) {
-      return tomoGenParallelProcessB;
+      return tomoGenTiltParallelB;
     }
-    return tomoGenParallelProcessA;
+    return tomoGenTiltParallelA;
   }
   
   public ConstEtomoNumber getUseZFactors(AxisID axisID) {
@@ -633,6 +649,9 @@ public abstract class ConstMetaData extends BaseMetaData {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.29  2005/09/16 17:50:23  sueh
+ * <p> bug# 532 Added combineParallelProcess.
+ * <p>
  * <p> Revision 3.28  2005/09/02 18:58:55  sueh
  * <p> bug# 720 Pass the manager to TrimvolParam instead of propertyUserDir
  * <p> because TrimvolParam is constructed by MetaData before
