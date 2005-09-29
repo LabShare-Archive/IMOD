@@ -7,6 +7,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 
+import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
@@ -22,6 +23,7 @@ import etomo.comscript.SplitcombineParam;
 import etomo.type.AxisID;
 import etomo.type.CombinePatchSize;
 import etomo.type.FiducialMatch;
+import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
 
 /**
@@ -44,6 +46,9 @@ import etomo.type.Run3dmodMenuOptions;
  * 
  * <p>
  * $Log$
+ * Revision 3.20  2005/09/16 18:11:40  sueh
+ * bug# 532 Added setParameters(SplitcombineParam).
+ *
  * Revision 3.19  2005/08/11 23:59:39  sueh
  * bug# 711  Get rid of duplicate code by running the 3dmods from a private
  * function called run3dmod(String, Run3dmodMenuOptions).  It can be
@@ -255,7 +260,7 @@ import etomo.type.Run3dmodMenuOptions;
  * </p>
  */
 public class SetupCombinePanel
-  implements ContextMenu, InitialCombineFields, FinalCombineFields, Run3dmodButtonContainer {
+  implements ContextMenu, InitialCombineFields, FinalCombineFields, Run3dmodButtonContainer, Expandable {
   public static final String rcsid = "$Id$";
 
   private TomogramCombinationDialog tomogramCombinationDialog;
@@ -278,6 +283,7 @@ public class SetupCombinePanel
   private SolvematchPanel pnlSolvematch;
 
   private JPanel pnlPatchParams = new JPanel();
+  private JPanel pnlPatchParamsBody = new JPanel();
   private JRadioButton rbSmallPatch = new JRadioButton("Small patches");
   private JRadioButton rbMediumPatch = new JRadioButton("Medium patches");
   private JRadioButton rbLargePatch = new JRadioButton("Large patches");
@@ -297,6 +303,7 @@ public class SetupCombinePanel
   private int maxZMax = 0;
 
   private JPanel pnlTempDirectory = new JPanel();
+  private JPanel pnlTempDirectoryBody = new JPanel();
   private LabeledTextField ltfTempDirectory = new LabeledTextField(
     "Temporary directory: ");
   private JCheckBox cbManualCleanup = new JCheckBox("Manual cleanup");
@@ -311,6 +318,9 @@ public class SetupCombinePanel
   private MultiLineButton btnCombine = MultiLineButton.getToggleButtonInstance(
     "<html><b>Start Combine</b>");
   private JLabel binningWarning = new JLabel();
+  private final PanelHeader toSelectorHeader;
+  private final PanelHeader patchParamsHeader;
+  private final PanelHeader tempDirectoryHeader;
 
   /**
    * Default constructor
@@ -327,18 +337,21 @@ public class SetupCombinePanel
     rbBtoA.setAlignmentX(Component.LEFT_ALIGNMENT);
     bgToSelector.add(rbAtoB);
     bgToSelector.add(rbBtoA);
-    pnlToSelector.setBorder(new EtchedBorder("Tomogram Matching Relationship")
-      .getBorder());
-    pnlToSelector.setLayout(new BoxLayout(pnlToSelector, BoxLayout.X_AXIS));
+    pnlToSelector.setBorder(BorderFactory.createEtchedBorder());
+    toSelectorHeader = PanelHeader.getInstance(
+        ReconScreenState.COMBINE_SETUP_TO_SELECTOR_HEADER_GROUP,
+        "Tomogram Matching Relationship", this);
+    pnlToSelector.setLayout(new BoxLayout(pnlToSelector, BoxLayout.Y_AXIS));
     pnlRBToSelector.setLayout(new BoxLayout(pnlRBToSelector, BoxLayout.Y_AXIS));
     pnlRBToSelector.add(rbBtoA);
     pnlRBToSelector.add(rbAtoB);
+    pnlToSelector.add(toSelectorHeader.getContainer());
     pnlToSelector.add(pnlRBToSelector);
     pnlToSelector.add(Box.createHorizontalGlue());
 
     // Create the solvematch panel
     pnlSolvematch = new SolvematchPanel(tomogramCombinationDialog,
-      TomogramCombinationDialog.lblSetup, appMgr);
+      TomogramCombinationDialog.lblSetup, appMgr, ReconScreenState.COMBINE_SETUP_SOLVEMATCH_HEADER_GROUP);
     pnlSolvematch.visibleResidual(false);
 
     //  Create the patch parmeters panel
@@ -348,9 +361,7 @@ public class SetupCombinePanel
     bgPatchSize.add(rbSmallPatch);
     bgPatchSize.add(rbMediumPatch);
     bgPatchSize.add(rbLargePatch);
-    pnlPatchParams.setBorder(new EtchedBorder(
-      "Patch Parameters for Refining Alignment").getBorder());
-    pnlPatchParams.setLayout(new BoxLayout(pnlPatchParams, BoxLayout.Y_AXIS));
+    pnlPatchParamsBody.setLayout(new BoxLayout(pnlPatchParamsBody, BoxLayout.Y_AXIS));
     JPanel pnlPatchRB = new JPanel();
     pnlPatchRB.setLayout(new BoxLayout(pnlPatchRB, BoxLayout.Y_AXIS));
     pnlPatchRB.add(rbSmallPatch);
@@ -364,10 +375,9 @@ public class SetupCombinePanel
     pnlPatchRegionModel.add(Box.createRigidArea(FixedDim.x20_y0));
     pnlPatchRegionModel.add(cbPatchRegionModel);
     pnlPatchRegionModel.add(btnPatchRegionModel.getComponent());
-    pnlPatchParams.add(pnlPatchRegionModel);
-    pnlPatchParams.add(Box.createRigidArea(FixedDim.x0_y10));
+    pnlPatchParamsBody.add(pnlPatchRegionModel);
     binningWarning.setAlignmentX(Component.CENTER_ALIGNMENT);
-    pnlPatchParams.add(binningWarning);
+    pnlPatchParamsBody.add(binningWarning);
     btnPatchRegionModel.setSize();
 
     //  Patch boundary
@@ -378,16 +388,30 @@ public class SetupCombinePanel
     pnlPatchRegion.add(ltfXMax.getContainer());
     pnlPatchRegion.add(ltfYMax.getContainer());
     pnlPatchRegion.add(ltfZMax.getContainer());
-    pnlPatchParams.add(Box.createRigidArea(FixedDim.x0_y10));
-    pnlPatchParams.add(pnlPatchRegion);
+    pnlPatchParamsBody.add(pnlPatchRegion);
+    pnlPatchParams.setBorder(BorderFactory.createEtchedBorder());
+    patchParamsHeader = PanelHeader.getInstance(
+        ReconScreenState.COMBINE_SETUP_PATCHCORR_HEADER_GROUP,
+        "Patch Parameters for Refining Alignment", this);
+    pnlPatchParams.setLayout(new BoxLayout(pnlPatchParams, BoxLayout.Y_AXIS));
+    pnlPatchParams.add(patchParamsHeader.getContainer());
+    pnlPatchParams.add(pnlPatchParamsBody);
 
     //  Create the temporary storage panel
-    pnlTempDirectory.setBorder(new EtchedBorder("Intermediate Data Storage")
-      .getBorder());
+    pnlTempDirectoryBody
+      .setLayout(new BoxLayout(pnlTempDirectoryBody, BoxLayout.Y_AXIS));
+    pnlTempDirectoryBody.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlTempDirectoryBody.add(ltfTempDirectory.getContainer());
+    pnlTempDirectoryBody.add(cbManualCleanup);
+    
+    pnlTempDirectory.setBorder(BorderFactory.createEtchedBorder());
+    tempDirectoryHeader = PanelHeader.getInstance(
+        ReconScreenState.COMBINE_SETUP_TEMP_DIR_HEADER_GROUP,
+        "Intermediate Data Storage", this);
     pnlTempDirectory
-      .setLayout(new BoxLayout(pnlTempDirectory, BoxLayout.Y_AXIS));
-    pnlTempDirectory.add(ltfTempDirectory.getContainer());
-    pnlTempDirectory.add(cbManualCleanup);
+        .setLayout(new BoxLayout(pnlTempDirectory, BoxLayout.Y_AXIS));
+    pnlTempDirectory.add(tempDirectoryHeader.getContainer());
+    pnlTempDirectory.add(pnlTempDirectoryBody);
 
     //  Bind the buttons to the action listener
     SetupCombineActionListener actionListener = new SetupCombineActionListener(
@@ -424,14 +448,12 @@ public class SetupCombinePanel
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
     pnlRoot.setBorder(brdrContent.getBorder());
 
-    UIUtilities.addWithSpace(pnlRoot, lblEffectWarning, FixedDim.x0_y10);
-    UIUtilities.addWithSpace(pnlRoot, pnlToSelector, FixedDim.x0_y10);
-    UIUtilities.addWithSpace(pnlRoot, pnlSolvematch.getContainer(),
-      FixedDim.x0_y10);
-    UIUtilities.addWithSpace(pnlRoot, pnlPatchParams, FixedDim.x0_y10);
-    UIUtilities.addWithSpace(pnlRoot, pnlTempDirectory, FixedDim.x0_y10);
+    pnlRoot.add(lblEffectWarning);
+    pnlRoot.add(pnlToSelector);
+    pnlRoot.add(pnlSolvematch.getContainer());
+    pnlRoot.add(pnlPatchParams);
+    pnlRoot.add(pnlTempDirectory);
     pnlRoot.add(Box.createVerticalGlue());
-    pnlRoot.add(Box.createRigidArea(FixedDim.x0_y20));
     UIUtilities.addWithYSpace(pnlRoot, pnlButton);
 
     // Mouse listener for context menu
@@ -445,6 +467,41 @@ public class SetupCombinePanel
 
   public Container getContainer() {
     return pnlRoot;
+  }
+  
+  final void setParameters(ReconScreenState screenState) {
+    toSelectorHeader.setState(screenState.getCombineSetupToSelectorHeaderState());
+    pnlSolvematch.getHeader().setState(screenState.getCombineSetupSolvematchHeaderState());
+    patchParamsHeader.setState(screenState.getCombineSetupPatchcorrHeaderState());
+    tempDirectoryHeader.setState(screenState.getCombineSetupTempDirHeaderState());
+  }
+  
+  final void getParameters(ReconScreenState screenState) {
+    toSelectorHeader.getState(screenState.getCombineSetupToSelectorHeaderState());
+    pnlSolvematch.getHeader().getState(screenState.getCombineSetupSolvematchHeaderState());
+    patchParamsHeader.getState(screenState.getCombineSetupPatchcorrHeaderState());
+    tempDirectoryHeader.getState(screenState.getCombineSetupTempDirHeaderState());
+  }
+  
+  final void setVisible(boolean visible) {
+    lblEffectWarning.setVisible(visible);
+    pnlToSelector.setVisible(visible);
+    pnlSolvematch.setVisible(visible);
+    pnlPatchParams.setVisible(visible);
+    pnlTempDirectory.setVisible(visible);
+  }
+  
+  public void expand(ExpandButton button) {
+    if (toSelectorHeader.equalsOpenClose(button)) {
+      pnlRBToSelector.setVisible(button.isExpanded());
+    }
+    else if (patchParamsHeader.equalsOpenClose(button)) {
+      pnlPatchParamsBody.setVisible(button.isExpanded());
+    }
+    else if (tempDirectoryHeader.equalsOpenClose(button)) {
+      pnlTempDirectoryBody.setVisible(button.isExpanded());
+    }
+    UIHarness.INSTANCE.pack(AxisID.ONLY, applicationManager);
   }
   
   public final void setParameters(SplitcombineParam param) {

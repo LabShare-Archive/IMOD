@@ -14,6 +14,7 @@ import etomo.comscript.ConstSolvematchParam;
 import etomo.comscript.SolvematchParam;
 import etomo.comscript.CombineParams;
 import etomo.type.FiducialMatch;
+import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
 
 /**
@@ -29,6 +30,15 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.19  2005/08/11 23:52:30  sueh
+ * <p> bug# 711  Change enum Run3dmodMenuOption to
+ * <p> Run3dmodMenuOptions, which can turn on multiple options at once.
+ * <p> This allows ImodState to combine input from the context menu and the
+ * <p> pulldown menu.  Get rid of duplicate code by running the 3dmods from a
+ * <p> private function called run3dmod(String, Run3dmodMenuOptions).  It can
+ * <p> be called from run3dmod(Run3dmodButton, Run3dmodMenuOptions) and
+ * <p> the action function.
+ * <p>
  * <p> Revision 3.18  2005/08/10 20:43:50  sueh
  * <p> bug# 711 Removed MultiLineToggleButton.  Making toggling an attribute
  * <p> of MultiLineButton.
@@ -172,7 +182,7 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields, R
 
     //  Create the solvematch panel
     pnlSolvematch = new SolvematchPanel(tomogramCombinationDialog,
-      TomogramCombinationDialog.lblInitial, appMgr);
+      TomogramCombinationDialog.lblInitial, appMgr, ReconScreenState.COMBINE_INITIAL_SOLVEMATCH_HEADER_GROUP);
 
     //  Layout the button panel
     pnlButton.setLayout(new BoxLayout(pnlButton, BoxLayout.X_AXIS));
@@ -207,7 +217,10 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields, R
   }
 
   public void setAdvanced(boolean state) {
-
+  }
+  
+  final void setVisible(boolean visible) {
+    pnlSolvematch.setVisible(visible);
   }
 
   /**
@@ -224,6 +237,12 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields, R
    */
   public void getSolvematchParams(SolvematchParam solvematchParam) {
     pnlSolvematch.getParameters(solvematchParam);
+  }
+  
+  final void setParameters(ReconScreenState screenState) {
+  }
+  
+  final void getParameters(ReconScreenState screenState) {
   }
 
   /**

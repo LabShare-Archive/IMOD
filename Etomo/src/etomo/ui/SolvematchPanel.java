@@ -7,6 +7,7 @@ import java.awt.event.ActionListener;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
+import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
@@ -38,6 +39,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.12  2005/08/27 22:42:22  sueh
+ * <p> bug# 532 Changed Autodoc.get() to getInstance().
+ * <p>
  * <p> Revision 3.11  2005/08/12 00:00:55  sueh
  * <p> bug# 711  Change enum Run3dmodMenuOption to
  * <p> Run3dmodMenuOptions, which can turn on multiple options at once.
@@ -84,12 +88,12 @@ import etomo.type.Run3dmodMenuOptions;
  * <p> Solvematch mid change
  * <p> </p>
  */
-
-public class SolvematchPanel implements InitialCombineFields, Run3dmodButtonContainer {
+public class SolvematchPanel implements InitialCombineFields, Run3dmodButtonContainer, Expandable {
 
   private ApplicationManager applicationManager;
 
   private JPanel pnlRoot = new JPanel();
+  private JPanel pnlBody = new JPanel();
   private JPanel pnlFiducialRadio = new JPanel();
   private JPanel pnlFiducialSelect = new JPanel();
   private ButtonGroup bgFiducialParams = new ButtonGroup();
@@ -118,12 +122,15 @@ public class SolvematchPanel implements InitialCombineFields, Run3dmodButtonCont
   private TomogramCombinationDialog tomogramCombinationDialog;
   private String parentTitle;
   private boolean binningWarning = false;
+  private final PanelHeader header;
+  private final String headerGroup;
 
   public SolvematchPanel(TomogramCombinationDialog parent, String title,
-    ApplicationManager appMgr) {
+    ApplicationManager appMgr, String headerGroup) {
     tomogramCombinationDialog = parent;
     parentTitle = title;
     applicationManager = appMgr;
+    this.headerGroup = headerGroup;
     //  Create the fiducial relationship panel
     pnlFiducialRadio
       .setLayout(new BoxLayout(pnlFiducialRadio, BoxLayout.Y_AXIS));
@@ -160,12 +167,16 @@ public class SolvematchPanel implements InitialCombineFields, Run3dmodButtonCont
     pnlFiducialSelect.add(Box.createRigidArea(FixedDim.x20_y0));
     pnlFiducialSelect.add(pnlImodMatchModels);
 
-    pnlRoot.setBorder(new EtchedBorder("Solvematch Parameters").getBorder());
+    pnlBody.setLayout(new BoxLayout(pnlBody, BoxLayout.Y_AXIS));
+    UIUtilities.addWithSpace(pnlBody, pnlFiducialSelect, FixedDim.x0_y10);
+    UIUtilities.addWithYSpace(pnlBody, ltfFiducialMatchListA.getContainer());
+    UIUtilities.addWithYSpace(pnlBody, ltfFiducialMatchListB.getContainer());
+    UIUtilities.addWithYSpace(pnlBody, ltfResidulThreshold.getContainer());
+    pnlRoot.setBorder(BorderFactory.createEtchedBorder());
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
-    UIUtilities.addWithSpace(pnlRoot, pnlFiducialSelect, FixedDim.x0_y10);
-    UIUtilities.addWithYSpace(pnlRoot, ltfFiducialMatchListA.getContainer());
-    UIUtilities.addWithYSpace(pnlRoot, ltfFiducialMatchListB.getContainer());
-    UIUtilities.addWithYSpace(pnlRoot, ltfResidulThreshold.getContainer());
+    header = PanelHeader.getInstance(headerGroup, "Solvematch Parameters", this);
+    pnlRoot.add(header.getContainer());
+    pnlRoot.add(pnlBody);
 
     //  Bind the ui elements to their listeners
     SolvematchPanelActionListener actionListener = new SolvematchPanelActionListener(
@@ -207,6 +218,21 @@ public class SolvematchPanel implements InitialCombineFields, Run3dmodButtonCont
     }
     ltfFiducialMatchListA.setText(combineParams.getFiducialMatchListA());
     ltfFiducialMatchListB.setText(combineParams.getFiducialMatchListB());
+  }
+  
+  public void expand(ExpandButton button) {
+    if (header != null && header.equalsOpenClose(button)) {
+      pnlBody.setVisible(button.isExpanded());
+    }
+    UIHarness.INSTANCE.pack(AxisID.ONLY, applicationManager);
+  }
+  
+  public void setVisible(boolean visible) {
+    pnlRoot.setVisible(visible);
+  }
+  
+  final PanelHeader getHeader() {
+    return header;
   }
 
   /**
