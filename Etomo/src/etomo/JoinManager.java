@@ -50,6 +50,12 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.22  2005/09/27 21:14:55  sueh
+* <p> Added exitProgram to call mainPanel.done() and save the state of the
+* <p> parallel processing dialog.  Added getParamFileStorableArray(), which
+* <p> creates, fills, and returns storable array for the .edf file.  Removed
+* <p> getNumStorables().
+* <p>
 * <p> Revision 1.21  2005/08/22 16:02:23  sueh
 * <p> bug# 532 Added pause().
 * <p>
@@ -548,7 +554,7 @@ public class JoinManager extends BaseManager {
     }
     // Be sure the file saving was successful
     if (paramFile != null) {
-      saveTestParamFile(axisID);
+      saveIntermediateParamFile(axisID);
     }
   }
   
@@ -786,7 +792,7 @@ public class JoinManager extends BaseManager {
       uiHarness.openMessageDialog(metaData.getInvalidReason(), "Invalid Data", axisID);
       return false;
     }
-    saveTestParamFile(axisID);
+    saveIntermediateParamFile(axisID);
     return true;
   }
   
@@ -932,10 +938,17 @@ public class JoinManager extends BaseManager {
     return processMgr;
   }
   
-  protected final Storable[] getParamFileStorableArray() {
-    Storable[] storable = new Storable[2];
-    storable[0] = metaData;
-    storable[1] = state;
+  protected final Storable[] getParamFileStorableArray(boolean includeMetaData) {
+    int arraySize = 2;
+    if (!includeMetaData) {
+      arraySize--;
+    }
+    Storable[] storable = new Storable[arraySize];
+    int index = 0;
+    if (includeMetaData) {
+      storable[index++] = metaData;
+    }
+    storable[index] = state;
     return storable;
   }
   
@@ -943,6 +956,7 @@ public class JoinManager extends BaseManager {
     try {
       if (super.exitProgram(axisID)) {
         mainPanel.done();
+        saveParamFile(axisID);
         return true;
       }
       return false;

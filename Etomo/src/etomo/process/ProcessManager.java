@@ -20,6 +20,11 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.81  2005/09/21 16:09:49  sueh
+ * bug# 532 moved processchunks() from processManager to
+ * BaseProcessManager.  This allows BaseManager to handle
+ * processchunks.
+ *
  * Revision 3.80  2005/09/16 17:49:35  sueh
  * Added splitcombine().
  *
@@ -760,7 +765,7 @@ public class ProcessManager extends BaseProcessManager {
       System.err.println("copytomocoms command line: "
           + copyTomoComs.getCommandLine());
     }
-    appManager.saveTestParamFile(axisID);
+    appManager.saveIntermediateParamFile(axisID);
     int exitValue = copyTomoComs.run();
 
     if (exitValue != 0) {
@@ -1308,7 +1313,7 @@ public class ProcessManager extends BaseProcessManager {
       throws BadComScriptException, IOException {
 
     SetupCombine setupCombine = new SetupCombine(appManager);
-    appManager.saveTestParamFile(AxisID.ONLY);
+    appManager.saveIntermediateParamFile(AxisID.ONLY);
     int exitValue = setupCombine.run();
 
     if (exitValue != 0) {

@@ -490,7 +490,7 @@ public class ApplicationManager extends BaseManager {
     openProcessingPanel();
     //  Free the dialog
     setupDialog = null;
-    saveTestParamFile(AxisID.ONLY);
+    saveIntermediateParamFile(AxisID.ONLY);
   }
 
   /**
@@ -599,7 +599,7 @@ public class ApplicationManager extends BaseManager {
         //  Go to the coarse align dialog by default
         mainPanel.showBlankProcess(axisID);
       }
-      saveTestParamFile(axisID);
+      saveIntermediateParamFile(axisID);
     }
     //  Clean up the existing dialog
     if (axisID == AxisID.SECOND) {
@@ -1141,7 +1141,7 @@ public class ApplicationManager extends BaseManager {
         mainPanel.setCoarseAlignState(ProcessState.INPROGRESS, axisID);
         mainPanel.showBlankProcess(axisID);
       }
-      saveTestParamFile(axisID);
+      saveIntermediateParamFile(axisID);
     }
     //  Clean up the existing dialog
     if (axisID == AxisID.SECOND) {
@@ -1568,7 +1568,7 @@ public class ApplicationManager extends BaseManager {
         mainPanel.setFiducialModelState(ProcessState.INPROGRESS, axisID);
         mainPanel.showBlankProcess(axisID);
       }
-      saveTestParamFile(axisID);
+      saveIntermediateParamFile(axisID);
     }
     //  Clean up the existing dialog
     if (axisID == AxisID.SECOND) {
@@ -1900,6 +1900,7 @@ public class ApplicationManager extends BaseManager {
       if (super.exitProgram(axisID)) {
         mainPanel.done();
         saveDialog();
+        saveParamFile(axisID);
         return true;
       }
       return false;
@@ -2080,7 +2081,7 @@ public class ApplicationManager extends BaseManager {
               "Problem closing coarse stack", axisID);
         }
       }
-      saveTestParamFile(axisID);
+      saveIntermediateParamFile(axisID);
     }
     //  Clean up the existing dialog
     if (axisID == AxisID.SECOND) {
@@ -2493,7 +2494,7 @@ public class ApplicationManager extends BaseManager {
               "Problem closing sample reconstruction", axisID);
         }
       }
-      saveTestParamFile(axisID);
+      saveIntermediateParamFile(axisID);
     }
 
     //  Clean up the existing dialog
@@ -3136,6 +3137,7 @@ public class ApplicationManager extends BaseManager {
           .getNewstComNewstParam(axisID));
     }
     tomogramGenerationDialog.setParameters(metaData);
+    tomogramGenerationDialog.setParameters(getScreenState(axisID));
     // Read in the tilt{|a|b}.com parameters and display the dialog panel
     comScriptMgr.loadTilt(axisID);
     comScriptMgr.loadMTFFilter(axisID);
@@ -3182,6 +3184,7 @@ public class ApplicationManager extends BaseManager {
     else {
       //  Get the user input data from the dialog box
       tomogramGenerationDialog.getParameters(metaData);
+      tomogramGenerationDialog.getParameters(getScreenState(axisID));
       if (!updateFiducialessParams(tomogramGenerationDialog, axisID)) {
         return;
       }
@@ -3219,7 +3222,7 @@ public class ApplicationManager extends BaseManager {
           openPostProcessingDialog();
         }
       }
-      saveTestParamFile(axisID);
+      saveIntermediateParamFile(axisID);
     }
     //  Clean up the existing dialog
     if (axisID == AxisID.SECOND) {
@@ -3836,6 +3839,7 @@ public class ApplicationManager extends BaseManager {
       }
     }
     tomogramCombinationDialog.setParameters(metaData);
+    tomogramCombinationDialog.setParameters(getScreenState(AxisID.ONLY));
     //  Show the process panel
     mainPanel.showProcess(tomogramCombinationDialog.getContainer(),
         AxisID.FIRST);
@@ -3997,6 +4001,7 @@ public class ApplicationManager extends BaseManager {
       // associated with the postpone button get the ones that are appropriate
       updateCombineParams();
       tomogramCombinationDialog.getParameters(metaData);
+      tomogramCombinationDialog.getParameters(getScreenState(AxisID.ONLY));
       if (tomogramCombinationDialog.isCombinePanelEnabled()) {
         if (!updateSolvematchCom()) {
           return;
@@ -4021,7 +4026,7 @@ public class ApplicationManager extends BaseManager {
         mainPanel.setTomogramCombinationState(ProcessState.COMPLETE);
         openPostProcessingDialog();
       }
-      saveTestParamFile(AxisID.ONLY);
+      saveIntermediateParamFile(AxisID.ONLY);
     }
   }
 
@@ -4122,7 +4127,7 @@ public class ApplicationManager extends BaseManager {
     CombineParams originalCombineParams = metaData.getCombineParams();
     if (!originalCombineParams.equals(combineParams)) {
       metaData.setCombineParams(combineParams);
-      saveTestParamFile(AxisID.ONLY);
+      saveIntermediateParamFile(AxisID.ONLY);
     }
     return;
   }
@@ -4818,7 +4823,7 @@ public class ApplicationManager extends BaseManager {
         mainPanel.setPostProcessingState(ProcessState.COMPLETE);
         openCleanUpDialog();
       }
-      saveTestParamFile(AxisID.ONLY);
+      saveIntermediateParamFile(AxisID.ONLY);
     }
     postProcessingDialog = null;
   }
@@ -4843,7 +4848,7 @@ public class ApplicationManager extends BaseManager {
         processTrack.setCleanUpState(ProcessState.COMPLETE);
         mainPanel.setCleanUpState(ProcessState.COMPLETE);
       }
-      saveTestParamFile(AxisID.ONLY);
+      saveIntermediateParamFile(AxisID.ONLY);
     }
     cleanUpDialog = null;
     mainPanel.showBlankProcess(AxisID.ONLY);
@@ -5657,20 +5662,26 @@ public class ApplicationManager extends BaseManager {
     return processMgr;
   }
   
-  protected final Storable[] getParamFileStorableArray() {
+  protected final Storable[] getParamFileStorableArray(boolean includeMetaData) {
     boolean dualAxis = true;
     int arraySize = 5;
     if (metaData.getAxisType() == AxisType.SINGLE_AXIS) {
       dualAxis = false;
       arraySize--;
     }
+    if (!includeMetaData) {
+      arraySize--;
+    }
     Storable[] storable = new Storable[arraySize];
-    storable[0] = metaData;
-    storable[1] = state;
-    storable[2] = processTrack;
-    storable[3] = getScreenState(AxisID.FIRST);
+    int index = 0;
+    if (includeMetaData) {
+      storable[index++] = metaData;
+    }
+    storable[index++] = state;
+    storable[index++] = processTrack;
+    storable[index++] = getScreenState(AxisID.FIRST);
     if (dualAxis) {
-      storable[4] = getScreenState(AxisID.SECOND);
+      storable[index] = getScreenState(AxisID.SECOND);
     }
     return storable;
   }
@@ -5678,12 +5689,12 @@ public class ApplicationManager extends BaseManager {
   public final ReconScreenState getScreenState(AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       if (screenStateB == null) {
-        screenStateB = new ReconScreenState(axisID);
+        screenStateB = new ReconScreenState(axisID, metaData.getAxisType());
       }
       return screenStateB;
     }
     if (screenStateA == null) {
-      screenStateA = new ReconScreenState(axisID);
+      screenStateA = new ReconScreenState(axisID, metaData.getAxisType());
     }
     return screenStateA;
   }
@@ -5694,6 +5705,14 @@ public class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.182  2005/09/27 21:08:25  sueh
+ * <p> bug# 532 Added ReconScreenState screenStateA and B to hold screen
+ * <p> state information that is not saved in the comscripts and not used to run
+ * <p> processes.  Calling mainPanel.done() during exit to save the state of the
+ * <p> parallel processing dialog.  Added getParamFileStorableArray(), which
+ * <p> creates, fills, and returns storable array for the .edf file.  Removed
+ * <p> getNumStorables().
+ * <p>
  * <p> Revision 3.181  2005/09/22 20:40:56  sueh
  * <p> bug# 532 changed packDialogs to packPanel and move them to
  * <p> BaseManager.  The packs done in packDialog where for the processor

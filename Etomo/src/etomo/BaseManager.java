@@ -52,6 +52,11 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.35  2005/09/27 21:12:38  sueh
+* <p> bug# 532 Moved the creation of the the .edf file Storable array to the child
+* <p> classes because the classes the go into the array vary.  Moved the
+* <p> parallel panels to the axis level panels.
+* <p>
 * <p> Revision 1.34  2005/09/22 20:43:38  sueh
 * <p> bug# 532 Added showParallelStatus(), which is called when a parallel
 * <p> processing checkbox is checked.
@@ -330,6 +335,7 @@ public abstract class BaseManager {
 
   //private static variables
   private static boolean debug = false;
+  private boolean exiting = false;
 
   protected abstract void createComScriptManager();
   protected abstract void createProcessManager();
@@ -346,7 +352,7 @@ public abstract class BaseManager {
   protected abstract BaseState getBaseState();
   public abstract void kill(AxisID axisID);
   public abstract void pause(AxisID axisID);
-  protected abstract Storable[] getParamFileStorableArray();
+  protected abstract Storable[] getParamFileStorableArray(boolean includeMetaData);
   public abstract void touch(File file);
   protected abstract BaseProcessManager getProcessManager();
   public abstract BaseScreenState getBaseScreenState(AxisID axisID);
@@ -400,15 +406,22 @@ public abstract class BaseManager {
     return true;
   }
   
+  public final void saveIntermediateParamFile(AxisID axisID) {
+    if (exiting) {
+      return;
+    }
+    saveParamFile(axisID);
+  }
+  
   /**
    * A message asking the ApplicationManager to save the test parameter
    * information to a file.
    */
-  public void saveTestParamFile(AxisID axisID) {
+  protected final void saveParamFile(AxisID axisID) {
     if (paramFile == null || !EtomoDirector.getInstance().isMemoryAvailable()) {
       return;
     }
-    save(getParamFileStorableArray(), axisID);
+    save(getParamFileStorableArray(true), axisID);
     //  Update the MRU test data filename list
     userConfig.putDataFile(paramFile.getAbsolutePath());
     uiHarness.setMRUFileLabels(userConfig.getMRUFileList());
@@ -451,6 +464,7 @@ public abstract class BaseManager {
    * unrecognized Exceptions and Errors and return true.
    */
   public boolean exitProgram(AxisID axisID) {
+    exiting = true;
     try {
       //  Check to see if any processes are still running
       ArrayList messageArray = new ArrayList();
@@ -477,10 +491,10 @@ public abstract class BaseManager {
         messageArray.add("Do you still wish to exit the program?");
         if (!uiHarness.openYesNoDialog((String[]) messageArray
             .toArray(new String[messageArray.size()]), axisID)) {
+          exiting = false;
           return false;
         }
       }
-      saveTestParamOnExit(axisID);
       //  Should we close the 3dmod windows
       try {
         if (imodManager.isOpen()) {
@@ -507,12 +521,6 @@ public abstract class BaseManager {
     catch (Throwable e) {
       e.printStackTrace();
       return true;
-    }
-  }
-  
-  protected void saveTestParamOnExit(AxisID axisID) {
-    if (paramFile != null) {
-      saveTestParamFile(axisID);
     }
   }
   
@@ -628,7 +636,8 @@ public abstract class BaseManager {
     try {
       // Read in the test parameter data file
       ParameterStore paramStore = new ParameterStore(paramFile);
-      Storable[] storable = getParamFileStorableArray();
+      paramStore.load(getBaseMetaData());
+      Storable[] storable = getParamFileStorableArray(false);
       paramStore.load(storable);
 
       // Set the current working directory for the application, this is the

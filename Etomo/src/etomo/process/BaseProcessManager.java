@@ -30,6 +30,10 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.27  2005/09/22 20:52:25  sueh
+* <p> bug# 532 for processchunks, added the status string to "killed", which can
+* <p> be resumed just like "paused".
+* <p>
 * <p> Revision 1.26  2005/09/21 16:09:30  sueh
 * <p> bug# 532 moved processchunks() from processManager to
 * <p> BaseProcessManager.  This allows BaseManager to handle
@@ -359,7 +363,7 @@ public abstract class BaseProcessManager {
     comScriptProcess.setWorkingDirectory(new File(getManager().getPropertyUserDir()));
     comScriptProcess.setDebug(etomoDirector.isDebug());
     comScriptProcess.setDemoMode(etomoDirector.isDemo());
-    getManager().saveTestParamFile(axisID);
+    getManager().saveIntermediateParamFile(axisID);
     comScriptProcess.start();
 
     // Map the thread to the correct axis
@@ -796,7 +800,7 @@ public abstract class BaseProcessManager {
       }
 
     }
-    getManager().saveTestParamFile(script.getAxisID());
+    getManager().saveIntermediateParamFile(script.getAxisID());
     //  Null out the correct thread
     // Interrupt the process monitor and nulll out the appropriate references
     if (threadAxisA == script) {
@@ -883,7 +887,7 @@ public abstract class BaseProcessManager {
     backgroundProcess.setWorkingDirectory(new File(getManager().getPropertyUserDir()));
     backgroundProcess.setDemoMode(etomoDirector.isDemo());
     backgroundProcess.setDebug(etomoDirector.isDebug());
-    getManager().saveTestParamFile(axisID);
+    getManager().saveIntermediateParamFile(axisID);
     backgroundProcess.start();
     if (etomoDirector.isDebug()) {
       System.err.println("Started " + commandLine);
@@ -915,7 +919,7 @@ public abstract class BaseProcessManager {
         getManager(), commandParam, this, commandParam.getAxisID());
     program.setWorkingDirectory(new File(getManager().getPropertyUserDir()));
     Thread thread = new Thread(program);
-    getManager().saveTestParamFile(commandParam.getAxisID());
+    getManager().saveIntermediateParamFile(commandParam.getAxisID());
     thread.start();
     program.setName(thread.getName());
     if (etomoDirector.isDebug()) {
@@ -948,7 +952,7 @@ public abstract class BaseProcessManager {
 
     //  Start the system program thread
     Thread sysProgThread = new Thread(sysProgram);
-    getManager().saveTestParamFile(sysProgram.getAxisID());
+    getManager().saveIntermediateParamFile(sysProgram.getAxisID());
     sysProgThread.start();
     if (etomoDirector.isDebug()) {
       System.err.println("Started " + sysProgram.getCommandLine());
@@ -1044,7 +1048,7 @@ public abstract class BaseProcessManager {
       else {
         postProcess(process);
       }
-      getManager().saveTestParamFile(process.getAxisID());
+      getManager().saveIntermediateParamFile(process.getAxisID());
     }
 
     // Null the reference to the appropriate thread
@@ -1062,7 +1066,7 @@ public abstract class BaseProcessManager {
   
   public void msgInteractiveSystemProgramDone(InteractiveSystemProgram program, int exitValue) {
     postProcess(program);
-    getManager().saveTestParamFile(program.getAxisID());
+    getManager().saveIntermediateParamFile(program.getAxisID());
   }
 
 }
