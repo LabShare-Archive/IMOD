@@ -30,6 +30,7 @@ import etomo.type.AxisID;
 import etomo.type.ConstMetaData;
 import etomo.type.DialogType;
 import etomo.type.MetaData;
+import etomo.type.ReconScreenState;
 
 /**
  * <p>Description: </p>
@@ -44,6 +45,9 @@ import etomo.type.MetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.26  2005/09/22 21:33:11  sueh
+ * <p> bug# 532 Moved the parallel process panel to AxisProcessPanel.
+ * <p>
  * <p> Revision 3.25  2005/09/21 17:06:30  sueh
  * <p> bug# 532 Removed all resume functionality from the dialogs.  Removed
  * <p> resume().  Removed getParallelProgressDisplay() because the parallel
@@ -284,6 +288,7 @@ public class TomogramCombinationDialog
     updateAdvanced(isAdvanced);
     
     idxLastTab = tabbedPane.getSelectedIndex();
+    setVisible(lblSetup);
   }
   
   /**
@@ -327,6 +332,18 @@ public class TomogramCombinationDialog
   public final void getParameters(ParallelParam param) {
     ProcesschunksParam processchunksParam = (ProcesschunksParam) param;
     pnlFinal.getParameters(processchunksParam);
+  }
+  
+  public final void setParameters(ReconScreenState screenState) {
+    pnlSetup.setParameters(screenState);
+    pnlInitial.setParameters(screenState);
+    pnlFinal.setParameters(screenState);
+  }
+  
+  public final void getParameters(ReconScreenState screenState) {
+    pnlSetup.getParameters(screenState);
+    pnlInitial.getParameters(screenState);
+    pnlFinal.getParameters(screenState);
   }
   
   public final void getParameters(MetaData metaData) {
@@ -596,11 +613,32 @@ public class TomogramCombinationDialog
    * Handle tab state changes 
    * @param event
    */
-  void tabStateChange(ChangeEvent event){
+  void tabStateChange(ChangeEvent event) {
+    int idxNewTab = tabbedPane.getSelectedIndex();
     synchronize(tabbedPane.getTitleAt(idxLastTab), true, ALL_FIELDS);
+    setVisible(tabbedPane.getTitleAt(idxNewTab));
     //  Set the last tab index to current tab so that we are ready for tab
     // change
     idxLastTab = tabbedPane.getSelectedIndex();
+  }
+  
+  final void setVisible(String showTabTitle) {
+    if (showTabTitle.equals(lblSetup)) {
+      pnlSetup.setVisible(true);
+      pnlInitial.setVisible(false);
+      pnlFinal.setVisible(false);
+    }
+    else if (showTabTitle.equals(lblInitial)) {
+      pnlSetup.setVisible(false);
+      pnlInitial.setVisible(true);
+      pnlFinal.setVisible(false);
+    }
+    else if (showTabTitle.equals(lblFinal)) {
+      pnlSetup.setVisible(false);
+      pnlInitial.setVisible(false);
+      pnlFinal.setVisible(true);
+    }
+    UIHarness.INSTANCE.pack(AxisID.ONLY, applicationManager);
   }
   
   /**
