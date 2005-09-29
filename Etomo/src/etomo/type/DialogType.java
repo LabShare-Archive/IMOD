@@ -13,6 +13,10 @@ package etomo.type;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.3  2005/09/27 23:18:39  sueh
+* <p> bug# 532 Added getStorableName() to return standard names to use in the
+* <p> .edf file.
+* <p>
 * <p> Revision 1.2  2005/03/24 17:48:38  sueh
 * <p> bug# 621 Added Clean Up dialog.
 * <p>
@@ -112,7 +116,7 @@ public class DialogType {
     case coarseAlignmentIndex:
       return "CoarseAlign";
     case fiducialModelIndex:
-      return "FidModelGen";
+      return "FidModel";
     case fineAlignmentIndex:
       return "FineAlign";
     case tomogramPositioningIndex:
@@ -120,7 +124,7 @@ public class DialogType {
     case tomogramGenerationIndex:
       return "TomoGen";
     case tomogramCombinationIndex:
-      return "TomoCombine";
+      return "Combine";
     case postProcessingIndex:
       return "PostProc";
     case cleanUpIndex:
