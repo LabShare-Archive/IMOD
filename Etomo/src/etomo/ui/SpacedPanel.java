@@ -33,6 +33,10 @@ import javax.swing.border.Border;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.9  2005/08/10 20:47:49  sueh
+* <p> bug# 711 Removed MultiLineToggleButton.  Making toggling an attribute
+* <p> of MultiLineButton.
+* <p>
 * <p> Revision 1.8  2005/08/09 21:09:55  sueh
 * <p> bug# 711 Moving button sizing from UIUtilities to the multi line button
 * <p> classes.
@@ -100,6 +104,10 @@ final class SpacedPanel {
     this(false);
   }
   
+  /**
+   * 
+   * @param yAxisPadding - add a rigid area at the top of the panel
+   */
   SpacedPanel(boolean yAxisPadding) {
     //panels
     outerPanel = new JPanel();
