@@ -147,6 +147,13 @@ final class PanelHeader implements Expandable {
     }
     btnAdvancedBasic.setExpanded(advanced);
   }
+  
+  final boolean isAdvancedBasicExpanded() {
+    if (btnAdvancedBasic == null) {
+      return false;
+    }
+    return btnAdvancedBasic.isExpanded();
+  }
 
   public final void expand(ExpandButton button) {
     if (button == btnOpenClose) {
@@ -185,6 +192,10 @@ final class PanelHeader implements Expandable {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.13  2005/09/27 23:33:09  sueh
+* <p> bug# 532 Simplified PanelHeader and added a way to get and set the
+* <p> state.  Removed axisID because it was not being used.
+* <p>
 * <p> Revision 1.12  2005/09/21 16:45:01  sueh
 * <p> bug# 532 Added setText() to change the header's title.
 * <p>
