@@ -104,14 +104,14 @@ public abstract class EtomoFrame extends JFrame {
         haveTestParamFilename = getTestParamFilename();
       }
       if (haveTestParamFilename) {
-        currentManager.saveTestParamFile(axisID);
+        currentManager.saveIntermediateParamFile(axisID);
       }
     }
 
     if (event.getActionCommand().equals(menu.getActionCommandFileSaveAs())) {
       boolean haveTestParamFilename = getTestParamFilename();
       if (haveTestParamFilename) {
-        currentManager.saveTestParamFile(axisID);
+        currentManager.saveIntermediateParamFile(axisID);
       }
     }
 
@@ -616,6 +616,11 @@ public abstract class EtomoFrame extends JFrame {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.12  2005/08/11 23:48:28  sueh
+* <p> bug# 711  Add is and set functions from menu3dmodStartupWindow and
+* <p> menu3dmodBinBy2.  In menuOptionsAction() handle the coordination of
+* <p> the two frame menus.
+* <p>
 * <p> Revision 1.11  2005/08/04 20:09:36  sueh
 * <p> bug# 532 renaming fitWindow to pack.  Getting dialogs to size by calling
 * <p> UIHarness.pack instead of EtomoFrame.pack
