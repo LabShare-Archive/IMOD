@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/29/05: IMOD_3-6-15
+9/29/05: Added parallel processing interface to eTomo for volcombine, moved
+the monitor table to the progress bar.
+
 9/22/05: Fixed joining of contours by concatenation when their ends are
 at different Z levels.
 
