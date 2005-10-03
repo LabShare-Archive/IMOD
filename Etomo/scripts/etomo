@@ -28,6 +28,16 @@ if ! which java 2>&1 > /dev/null ; then
   echo "There is no java runtime in the current search path.  A Java runtime"
   echo "environment needs to be installed and the command search path needs"
   echo "to be defined to locate the java command."
+  exit
+fi
+
+if java -version 2>&1 | grep GNU > /dev/null ; then
+  echo "eTomo will not work with GNU java.  You should install a Sun version"
+  echo "of the Java runtime environment and put it on your command search path"
+  if [ ! -z "$IMOD_JAVADIR" ]; then
+      echo "or make a link to it from $IMOD_JAVADIR"
+  fi
+  exit
 fi
 
 #  Workaround for java 1.4.0 / new threading library clash
@@ -90,6 +100,9 @@ java -Xmx${javaMemLim} -cp ${IMOD_DIR}/bin/etomo \
 
 
 # $Log$
+# Revision 1.13  2005/05/19 23:00:33  mast
+# Added variable for setting memory limit higher, default 128 now
+#
 # Revision 1.12  2005/01/19 00:56:05  mast
 # Made the purging of log files safer
 #
