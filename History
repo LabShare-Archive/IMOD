@@ -1,5 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/5/05: Fixed Copytomocoms to get actual size of B axis instead of assuming
+it is a transpose of size of X axis.
+
+10/4/05: Made tomosnapshot collect all *.com, *.log, *.com~, *.log~.
+
 9/29/05: IMOD_3-6-15
 9/29/05: Added parallel processing interface to eTomo for volcombine, moved
 the monitor table to the progress bar.
