@@ -427,39 +427,23 @@ if ($backup) then
 endif
 set backuplist = ""
 
-# GET X AND Y SIZE FROM STACK IF IT EXISTS AND IS NOT MONTAGE
+# GET X AND Y SIZE IF STACK DOES NOT EXIST, OR MAKE SURE IT WAS ENTERED
+#
+if (! -e $stackname) then
+    if ($interactive) then
 
-set sizevar = "0"
-if ((-e $stackname) && ($montage == "0")) then
-    set sizevar = `header $stackname | sed -n '/rows, sections/p'| awk '{print $7, $8, $9}'`
-else if ((-e $stackname) && ((-e $piecename) || ($filmccd != "F"))) then
-    if (-e $piecename) then
-	set sizevar = `montagesize $stackname $piecename | sed -n '/Total/s/Total.*://p'`
+        set sayaset = ":"
+        if ($naxis == "2") set sayaset = ' in the first ("a") set:'
+
+        echo -n "Enter X dimension of tilt images$sayaset "
+            set xsize = $<
+        echo -n "Enter Y dimension of tilt images$sayaset "
+        set ysize = $<
     else
-	set sizevar = `montagesize $stackname | sed -n '/Total/s/Total.*://p'`
-    endif
-endif
-
-set xysize = ($sizevar)
-if ($#xysize == 3) then
-    @ xsize = $xysize[1]
-    @ ysize = $xysize[2]
-
-else if ($interactive) then
-
-    # OTHERWISE ASK THE USER FOR THE SIZES
-
-    set sayaset = ":"
-    if ($naxis == "2") set sayaset = ' in the first ("a") set:'
-
-    echo -n "Enter X dimension of tilt images$sayaset "
-    set xsize = $<
-    echo -n "Enter Y dimension of tilt images$sayaset "
-    set ysize = $<
-else
-    if (! ($?xsize && $?ysize)) then
-        echo "ERROR: $pn - Stack not is present; you must enter -xsize and -ysize"
-        exit 1
+        if (! ($?xsize && $?ysize)) then
+            echo "ERROR: $pn - Stack is not present; you must enter -xsize and -ysize"
+            exit 1
+        endif
     endif
 endif
 
@@ -550,6 +534,43 @@ while ($iaxis < $numax)
 
     set dstname = $setname
     set stackname = $setname".st"
+    set piecename = $setname".pl"
+
+    # GET X AND Y SIZE FROM STACK IF IT EXISTS
+
+    set xysize = "0"
+    if (-e $stackname) then
+
+        if ($montage == "0") then
+            set xysize = `header $stackname | sed -n '/rows, sections/p'| awk '{print $7, $8, $9}'`
+        else if ((-e $piecename) || ($filmccd != "F")) then
+            if (-e $piecename) then
+                set xysize = `montagesize $stackname $piecename | sed -n '/Total/s/Total.*://p'`
+            else
+                set xysize = `montagesize $stackname | sed -n '/Total/s/Total.*://p'`
+            endif
+        endif
+        if ("$xysize" != "0") then
+            if ($#xysize == 3) then
+                @ xsize = $xysize[1]
+                @ ysize = $xysize[2]
+            else
+                echo "ERROR: $pn - extracting image size from stack header"
+                exit 1
+            endif
+        endif
+
+    else if ($iaxis == 1) then
+        echo ""
+        echo "WARNING: $stackname does not exist yet, assuming size $xsize x $ysize"
+        echo "   If the size is different, you will need to fix FULLIMAGE in tiltb.com"
+        echo "   in order to use parallel processing"
+        if ($montage == "1") then
+            echo '   Run   "montagesize' $stackname'"    to get the raw image size (NX, NY, and NZ)'
+            echo '   Then run   "goodframe NX NY"   to get the numbers to put in tiltb.com'
+        endif
+        echo ""
+    endif
 
     # GET TILT ANGLE AND AXIS INFORMATION
 
@@ -1331,6 +1352,10 @@ exit 0
 
 #
 #  $Log$
+#  Revision 3.40  2005/06/08 20:10:48  mast
+#  Leave fid.xyz in align.com for single axis, set FixXYZCoordinates to
+#  1 for dual and 0 for single axis
+#
 #  Revision 3.39  2005/05/11 05:35:42  mast
 #  Changes for PIP style track.com
 #
