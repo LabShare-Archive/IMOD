@@ -8,6 +8,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.7  2005/06/30 20:25:53  mast
+#  Fixed for SGI (no tar -z) and for spaces in path
+#
 #  Revision 3.6  2005/05/08 14:47:57  mast
 #  Added files for montage
 #
@@ -38,10 +41,6 @@ set axistype = ""
 
 # The file lists
 #
-set oneAxisComLog = (eraser xcorr prenewst track align sample newst tomopitch \
-tilt preblend blend)
-set combineComLog = (solvematch solvematchshift solvematchmod matchvol1 \
-patchcorr matchorwarp volcombine combine)
 set oneAxisSetFiles = (.rawtlt _peak.mod .prexf .prexg .seed .fid .3dmod .tlt \
 fid.xyz .resid .resmod .tltxf _fid.xf local.xf .matmod .pl .ecd)
 set oneAxisHeaders = (_orig.st .st .preali .ali .rec .mat _full.rec)
@@ -162,13 +161,17 @@ if (-w .) then
 endif
 set list = ($edffile)
 
+# Get all com and log files and backups except the ta*.log
+#
+set comlist = `\find . -name '*.com' -print`
+set comlistb = `\find . -name '*.com~' -print`
+set loglist = `\find . -name '*.log' -print | grep -v '\./ta'`
+set loglistb = `\find . -name '*.log~' -print | grep -v '\./ta'`
+set list = ($list $comlist $comlistb $loglist $loglistb)
+
 # Loop on axis files, adding files if they exist
 #
 while ($axnum <= $naxis)
-    foreach i ($oneAxisComLog)
-        if (-e $i$axislet.com) set list = ($list $i$axislet.com)
-        if (-e $i$axislet.log) set list = ($list $i$axislet.log)
-    end
     foreach i ($oneAxisSetFiles)
         if (-e $setname$axislet$i) set list = ($list $setname$axislet$i)
     end
@@ -185,10 +188,6 @@ end
 
 # Add combine files and other files
 #
-foreach i ($combineComLog)
-    if (-e $i.com) set list = ($list $i.com)
-    if (-e $i.log) set list = ($list $i.log)
-end
 foreach i ($singleFiles)
     if (-e $i) set list = ($list $i)
 end
