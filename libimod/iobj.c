@@ -15,6 +15,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.11  2005/09/11 19:15:26  mast
+Managed contour store info when sorting contours
+
 Revision 3.10  2005/06/29 05:35:32  mast
 Changed a store function call
 
@@ -482,6 +485,8 @@ int imodObjectInsertContour(Iobj *obj, Icont *ncont, int index)
   imodContourCopy(ncont, cont);
   if (index < obj->contsize - 1)
     istoreShiftIndex(obj->store, index, -1, 1);
+  if (obj->surfsize < cont->surf)
+    obj->surfsize = cont->surf;
      
   return(index);
 }
