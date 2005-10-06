@@ -976,7 +976,7 @@ void imodContEditMove(void)
   ImodView *vi = App->cvi;
   Imod *imod = vi->imod;
   int surf, ob, co, pt;
-  int nsurf, fromReg, toReg;
+  int nsurf, fromReg, toReg, didMove;
   float firstz, size, delz;
   double weight;
   Ipoint ccent;
@@ -1214,8 +1214,6 @@ void imodContEditMove(void)
       /* Assign them the first free surface # in destination object */
       surf = cont->surf;
       nsurf = imodel_unused_surface(tobj);
-      //vi->undo->objectPropChg();
-      //vi->undo->objectPropChg(vi->obj_moveto - 1);
       if (tobj->surfsize < nsurf)
         tobj->surfsize = nsurf;
 
@@ -1223,8 +1221,17 @@ void imodContEditMove(void)
       if (obj->label)
         surfLabel = imodLabelItemGet(obj->label, surf);
 
+      didMove = 0;
       for (co = 0; co < obj->contsize; co++) {
         if (obj->cont[co].surf == surf){
+
+          // This seems to be needed to get surfsize dealt with properly
+          if (!didMove) {
+            vi->undo->objectPropChg();
+            vi->undo->objectPropChg(vi->obj_moveto - 1);
+            didMove = 1;
+          }
+
           cont = &(obj->cont[co]);
           vi->undo->contourPropChg(ob, co);
           cont->surf = nsurf;
@@ -2004,6 +2011,10 @@ void ContourFrame::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.25  2005/09/22 17:44:36  mast
+Applied proper Z scale when assessing distance between ends for
+concatenating contours
+
 Revision 4.24  2005/06/29 05:38:40  mast
 Changes to manipulate fine grain properties and do undos correctly
 
