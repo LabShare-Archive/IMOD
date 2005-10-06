@@ -12,7 +12,8 @@
 nohup
 set pn = processchunks
 set nice = 18
-set dropcrit = 5
+@ dropcrit = 5
+@ maxchunkerr = 5
 
 if ($#argv < 2) then
 cat <<EOF
@@ -27,7 +28,9 @@ Will process multiple command files on multiple processors or machines
     -g     Go process, without asking for confirmation after probing machines
     -n #   Set the "nice" value to the given number (default $nice, range 0-19)
     -d #   Drop a machine after given number of failures in a row (default $dropcrit)
+    -e #   Quit after the given # of processing errors for a chunk (default $maxchunkerr)
     -c name  Check file "name" for commands P, Q, and D
+    -w path  Full path to working directory on remote machines
     -P     Output process ID
 EOF
 exit 0
@@ -64,6 +67,11 @@ while ($#argv > 2)
       shift ; shift
       breaksw
 
+    case -e:
+      @ maxchunkerr = $argv[2]
+      shift ; shift
+      breaksw
+
     case -P:
       echo2 Shell PID: $$
       set skipprobe = 1
@@ -72,6 +80,11 @@ while ($#argv > 2)
 
     case -c:
       set checkfile = $argv[2]
+      shift ; shift
+      breaksw
+
+    case -w:
+      set curdir = "$argv[2]"
       shift ; shift
       breaksw
 
@@ -102,7 +115,7 @@ endif
 
 set rootname = $argv[2]
 set comlist = `ls $rootname-[0-9]*.com`
-
+v
 if ($#comlist < 1) then
     echo "ERROR: $pn - There are no command files matching $rootname-nnn.com"
     exit 1
@@ -110,7 +123,14 @@ endif
 
 set thishost = `hostname`
 set hostroot = $thishost:r:r:r
-set curdir = `pwd | sed -e "/localscratch/s//scratch\/$hostroot/" -e "/ /s//\\ /g"`
+
+# Get current directory if not entered, escape the spaces
+#
+if ($?curdir) then
+    set curdir = `echo $curdir | sed '/ /s//\\ /g'`
+else
+    set curdir = `pwd | sed -e "/^\/localscratch/s//\/scratch\/$hostroot/" -e "/ /s//\\ /g"`
+endif
 
 # probe machines and get all the verifications unless etomo is running it
 #
@@ -161,6 +181,7 @@ restart:
 # set up flag list and list of assignments
 #
 set flags = ()
+set numchunkerr = ()
 @ num = 0
 while ($num < $#comlist)
     @ num++
@@ -168,6 +189,7 @@ while ($num < $#comlist)
     set test = `echo $comlist[$num] | grep -i '[0-9]-sync.com'`
     if (! $status) set sync = -1
     set flags = ($flags $sync)
+    set numchunkerr = ($numchunkerr 0)
 end
 
 set assigned = ()
@@ -175,6 +197,7 @@ set startcount = ()
 set failed = ()
 set namelist = ()
 set nameind = ()
+set chunkerred = ()
 @ num = 0
 while ($num < $#machines)
     @ num++
@@ -198,6 +221,7 @@ while ($num < $#machines)
         set namelist = ($namelist $machines[$num])
         set index = $#namelist
         set failed = ($failed 0)
+        set chunkerred = ($chunkerred 0)
     endif
     set nameind = ($nameind $index)
 end
@@ -257,12 +281,14 @@ while ($numdone < $#comlist)
     @ failtot = 0
     @ assigntot =0
     @ minfail = $dropcrit
+    @ chunkerrtot = 0
     while ($proc < $#machines)
         @ proc++
         if ($assigned[$proc] != 0) @ assigntot++
         @ failcount = $failed[$nameind[$proc]]
         if ($failcount != 0) @ failtot++
         if ($failcount < $minfail) @ minfail = $failcount
+        if ($chunkerred[$nameind[$proc]] != 0) @ chunkerrtot++
     end
 
     # Stop if all have now been dropped out or all have failed and none done
@@ -272,7 +298,7 @@ while ($numdone < $#comlist)
         exit 1
     endif
 
-    if ($failtot == $#machines && $assigntot == 0) then
+    if ($failtot == $#machines && $assigntot == 0 && $numdone == 0) then
         echo "ERROR: NO CHUNKS HAVE WORKED AND EVERY MACHINE HAS FAILED"
         exit 1
     endif
@@ -295,19 +321,22 @@ while ($numdone < $#comlist)
             set logname = $comlist[$ind]:r.log
             set cshname = $comlist[$ind]:r.csh
             set errormess = ""
-            if (-e $logname) then
+            if ((-e $logname) && (! -e $cshname)) then
                 set lastline = `tail -n 1 $logname | sed '/[[:cntrl:]]/s///g'`
                 if ("$lastline" == "CHUNK DONE") then
 
                     # If it is DONE, then set flag to done and deassign
+                    # Exonerate the machine from chunk errors if this chunk 
+                    # gave a previous chunk error
                     #
                     set flags[$ind] = 2
                     set assigned[$proc] = 0
                     set failed[$name] = 0
+                    if ($numchunkerr[$ind] != 0) set chunkerred[$name] = 0
                     @ numdone++
                     set anydone = 1
                     echo "$comlist[$ind] finished on $machines[$proc]"
-                else if (! -e $cshname) then
+                else
 
                     # If the log file exists but the .csh is gone, 
                     # set flag to redo it
@@ -321,9 +350,20 @@ while ($numdone < $#comlist)
                         else
                             set errormess = "CHUNK $errormess"
                         endif
+                        @ numerr = $numchunkerr[$ind]
+                        @ numerr++
+                        set numchunkerr[$ind] = $numerr
+                        set chunkerred[$name] = 1
+                        if ($numerr >= $maxchunkerr) then
+                            echo \
+        "$comlist[$ind] has given processing error $numerr times - giving up"
+                            echo $errormess
+                            set ans = "E"
+                            goto command
+                        endif
                     endif
                 endif
-            else
+            else if (! -e $logname) then
             
                 # Similarly if log file doesn't exist after timeout, give up
                 #
@@ -368,7 +408,15 @@ while ($numdone < $#comlist)
                 @ nextsync = $num
                 break
             endif
-            if ($flags[$num] == 0) then
+
+            # Skip a chunk if it has errored, if this machine has given chunk 
+            # error, and not all machines have done so
+            #
+            set chunkok = 1
+            if ($numchunkerr[$num] > 0 && $chunkerred[$name] == 1 && \
+                $chunkerrtot < $#machines) set chunkok = 0
+
+            if ($flags[$num] == 0 && $chunkok == 1) then
                 set assigned[$proc] = $num
                 set flags[$num] = 1
                 set startcount[$proc] = $count
@@ -560,6 +608,11 @@ while ($ind < $#pidkills)
     endif
 end
 
+if ("$ans" == "E") then
+    echo "ERROR: A CHUNK HAS FAILED $maxchunkerr TIMES"
+    exit 4
+endif
+
 if ("$ans" == "D") then
     echo "Resuming processing"
     goto continue
@@ -580,6 +633,10 @@ exit 3
 
 #
 #  $Log$
+#  Revision 3.17  2005/09/08 00:14:50  mast
+#  Made it take commands from a file since the interrupts don't work
+#  from inside etomo
+#
 #  Revision 3.16  2005/08/30 22:03:13  mast
 #  Kill remote jobs with background ssh calls that can time out
 #
