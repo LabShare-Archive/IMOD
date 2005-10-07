@@ -644,20 +644,21 @@ endif
 
 #
 # Get the bead radius and light/dark
+# WATCH FOR THE TABS IN THE SED CONVERSIONS PRIOR TO THE cntrl REMOVAL
 #
 set boxsize = 48
 if ($radius == "") then
     set test = `grep 'beadtrack.*-StandardInput' tracka.com`
     if ($status) then
 
-        # Old style command file
+        # Old style command file: have to convert tabs to spaces!
         #
         @ topline  = `vmstocsh < tracka.com | awk '/beadtrack/{print NR}'`
         @ reshootline = $topline + $BEADTRACK_RESHOOT_LINE
-        set reshoots = `vmstocsh < tracka.com | awk '{if (NR==LINE) print}' LINE=$reshootline | sed '/[[:cntrl:]]/s///g'`
+        set reshoots = `vmstocsh < tracka.com | awk '{if (NR==LINE) print}' LINE=$reshootline | sed -e '/	/s// /g' -e '/[[:cntrl:]]/s///g'`
         @ reshootnum = $reshoots[1]
         @ radline = $topline + $BEADTRACK_RADIUS_LINE + $reshootnum
-        set radiusdark = `vmstocsh < tracka.com | awk '{if (NR==LINE) print}' LINE=$radline | sed -e '/[[:cntrl:]]/s///g' -e '/,/s// /g'`
+        set radiusdark = `vmstocsh < tracka.com | awk '{if (NR==LINE) print}' LINE=$radline | sed -e '/[,	]/s// /g' -e '/[[:cntrl:]]/s///g'`
         set radius = $radiusdark[1]
         if ($#radiusdark > 1) then
             set lightdark = $radiusdark[2]
@@ -666,14 +667,14 @@ if ($radius == "") then
 
         # PIP command file
         #
-        set radiusline = `sed -n '/^CentroidRadius/s/CentroidRadius[ 	*]//p' tracka.com | sed '/[[:cntrl:]]/s///g'`
+        set radiusline = `sed -n '/^CentroidRadius/s/CentroidRadius[ 	]*//p' tracka.com | sed '/[[:cntrl:]]/s///g'`
         if ($#radiusline < 1) then
             echo "ERROR: Transferfid - Cannot extract radius from tracka.com"
             goto clean
         endif
         set radius = $radiusline[1]
 
-        set lightline = `sed -n '/^LightBeads/p' tracka.com | sed '/[[:cntrl:]]/s///g'`
+        set lightline = `sed -n '/^LightBeads/p' tracka.com | sed -e '/	/s// /g' -e '/[[:cntrl:]]/s///g'`
         if ("$lightline" != "") then
             if ($#lightline == 1) then
                 set lightdark = 1
@@ -682,7 +683,7 @@ if ($radius == "") then
             endif
         endif
 
-        set boxline = `sed -n '/^BoxSizeXandY/p' tracka.com | sed '/[[:cntrl:]]/s///g'`
+        set boxline = `sed -n '/^BoxSizeXandY/p' tracka.com | sed -e '/	/s// /g' -e '/[[:cntrl:]]/s///g'`
         if ($#boxline > 1) then
             set boxsize = $boxline[2]
         endif
@@ -809,6 +810,9 @@ exit 1
 
 #
 #  $Log$
+#  Revision 3.21  2005/05/11 15:05:02  mast
+#  Fixed bugs with light beads
+#
 #  Revision 3.20  2005/05/11 06:02:33  mast
 #  Changes for PIP version of track.com
 #
