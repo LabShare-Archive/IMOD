@@ -1947,7 +1947,8 @@ c
 	  if (ifSliceIn .ne. 0) then
 	    islice = max(1, min(npxyz(2),
      &		(islice + imageBinned - 1) / imageBinned))
-	    jslice = max(1, min(npxyz(2), jslice / imageBinned))
+	    jslice = max(1, min(npxyz(2), 
+     &		(jslice + imageBinned - 1) / imageBinned))
 	  endif
 	  if (ifThickIn .ne. 0) ithick = ithick / imageBinned
 	  delxx = delxx / imageBinned
@@ -2727,6 +2728,9 @@ c	    print *,iv,xpmin,xpmax,ofstretch(iv),nstretch(iv),indstretch(iv)
 
 c
 c	  $Log$
+c	  Revision 3.23  2005/06/07 22:12:42  mast
+c	  Added IMAGEBINNED option so dimensions can be scaled automatically
+c	
 c	  Revision 3.22  2004/10/22 13:39:14  mast
 c	  Declared lnblnk for SGI
 c	
