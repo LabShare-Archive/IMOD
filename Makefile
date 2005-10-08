@@ -158,6 +158,7 @@ default : all
 # Make all the fortran programs then all the C programs.
 #
 all : configure clibs
+	cd Etomo     ; $(MAKE) all
 	cd flib      ; $(MAKE) all
 	cd imod      ; $(MAKE) all
 	cd imodutil  ; $(MAKE) all
@@ -167,7 +168,6 @@ all : configure clibs
 	cd clip      ; $(MAKE) all
 	cd midas     ; $(MAKE) all
 	cd plugs     ; $(MAKE) all
-	cd Etomo     ; $(MAKE) all
 
 ##############################################################################
 # If a setup gets run automatically, it uses the last options
@@ -422,6 +422,9 @@ ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.53  2005/07/06 21:12:13  mast
+#  Cleaned up because 032 no longer needed on SGI
+#
 #  Revision 3.52  2005/06/27 18:58:53  mast
 #  Fix cleanqt entry for sourcedoc
 #
