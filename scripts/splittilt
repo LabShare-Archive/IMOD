@@ -8,6 +8,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.3  2004/07/22 20:51:47  mast
+#  Added exit statement to unrecognized option error point
+#
 #  Revision 3.2  2004/07/22 18:16:56  mast
 #  Change to better sed command for stripping Ctrl M
 #
@@ -106,8 +109,9 @@ set fullimage = `grep -i fullimage $comname | sed '/[^ 0-9\.]/s///g'`
 set thickness = `grep -i thickness $comname | sed '/[^0-9\.]/s///g'`
 set slices = `grep -i slice $comname | sed '/[^ 0-9\.]/s///g'`
 set local = `grep -i localfile $comname`
+set binning = `grep -i imagebinned $comname | sed '/[^0-9\.]/s///g'`
 
-if ("$fullimage" == "" && "$slices" == "") then
+if ($#fullimage == 0 && "$slices" == "") then
     echo "ERROR: $pn - Command file has neither a SLICES nor a FULLIMAGE entry"
     exit 1
 endif
@@ -117,6 +121,11 @@ if ($thickness == "") then
     exit 1
 endif
 
+# Divide thickness and slice entries by the binning for computations
+#
+if ("$binning" != "") @ binval = $binning[1]
+@ thickness /= $binval
+
 # Remove any previous files now in case the number has changed
 #
 \find . -type f -name  "$rootname-[0-9]*.*" -exec rm -f "{}" \;
@@ -124,12 +133,14 @@ endif
 if ($#fullimage > 1) then
     @ firstslice = 0
     @ numslices = $fullimage[2]
+    @ numslices = ($numslices + $binval - 1) / $binval
 endif
 
 if ($#slices > 1) then
     @ firstslice = $slices[1]
+    @ firstslice /= $binval
     @ numslices = $slices[2]
-    @ numslices = $numslices + 1 - $firstslice
+    @ numslices = ($numslices / $binval) + 1 - $firstslice
 endif
 
 # Start with target size, make sure bigger than minimum
@@ -208,6 +219,11 @@ while ($num < $numslabs)
     @ lastslice = $firstslice + $slabsize - 1
     if ($num <= $remainder) @ lastslice++
 
+    # Get unbinned first and last slices for output
+    #
+    @ ubfirst = $firstslice * $binval
+    @ ublast = $lastslice * $binval
+
     # Modify the command file: delete existing slice, get rid of savework,
     # Set the new slice command and the xtiltinterp control, and turn off
     # FBP for consistency
@@ -216,7 +232,7 @@ while ($num < $numslabs)
         -e "/SLICE/d" \
         -e '/savework/d' \
         -e "/THICKNESS/a\\
-SLICE $firstslice $lastslice\
+SLICE $ubfirst $ublast\
 " \
         -e "/THICKNESS/a\\
 $oldstyle\
