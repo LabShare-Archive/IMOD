@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/8/05: Made Makejoincom adjust sample slice numbers properly when volume
+is turned upside down by a rotation.
+
 10/8/05: Fixed Splittilt and Tilt so parallel reconstruction from binned image
 would work.
 
