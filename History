@@ -1,5 +1,18 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/8/05: Fixed Splittilt and Tilt so parallel reconstruction from binned image
+would work.
+
+10/7/05: Fixed Transferfid, which was failing on old-style tracka.com that
+had never been run through etomo.
+
+10/6/05: Fixed problems with undo/redo when moving all contours in a surface
+to another object.
+
+10/6/05: Added option to Processchunks to give path to directory that is
+needed on remote machines; after a chunk processing failure it will now try
+it on other machines and quit if the same chunk fails many times.
+
 10/5/05: Fixed Copytomocoms to get actual size of B axis instead of assuming
 it is a transpose of size of X axis.
 
