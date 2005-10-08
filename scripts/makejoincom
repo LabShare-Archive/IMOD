@@ -452,11 +452,18 @@ while ($itomo <= $ntomo)
 		else
 
 		    # IF USING ROTATEVOL, NEED TO ADJUST SLICE NUMBERS
-
-		    if ($ifflip == "2" && $bigrot == 1) then
-			@ zst = `echo "$rotangle $nz $newnz $zst" | awk '{print int((cos(0.01745329 * $1) * sin(0.01745329 * $2) * sin(0.01745329 * $3) + sin(0.01745329 * $1) * cos(0.01745329 * $3)) * ($6 - 0.5 * ($4 - 1)) + 0.5 * $5)}'`
-			@ znd = `echo "$rotangle $nz $newnz $znd" | awk '{print int((cos(0.01745329 * $1) * sin(0.01745329 * $2) * sin(0.01745329 * $3) + sin(0.01745329 * $1) * cos(0.01745329 * $3)) * ($6 - 0.5 * ($4 - 1)) + 0.5 * $5)}'`
-#			echo rotated z: $zst  $znd 
+                    # bigrot case rotates the Y axis of an unflipped volume
+                    # Other case is needed for rotation of Z in flipped vol
+                    #
+		    if ($ifflip == "2") then
+                        if ($bigrot == 1) then
+                            @ zst = `echo "$rotangle $nz $newnz $zst" | awk '{print int((cos(0.0174533 * $1) * sin(0.0174533 * $2) * sin(0.0174533 * $3) + sin(0.0174533 * $1) * cos(0.0174533 * $3)) * ($6 - 0.5 * ($4 - 1)) + 0.5 * $5)}'`
+                            @ znd = `echo "$rotangle $nz $newnz $znd" | awk '{print int((cos(0.0174533 * $1) * sin(0.0174533 * $2) * sin(0.0174533 * $3) + sin(0.0174533 * $1) * cos(0.0174533 * $3)) * ($6 - 0.5 * ($4 - 1)) + 0.5 * $5)}'`
+                        else
+                            @ zst = `echo "$rotangle $nz $newnz $zst" | awk '{print int(cos(0.0174533 * $1) * cos(0.0174533 * $2) * ($6 - 0.5 * ($4 - 1)) + 0.5 * $5)}'`
+                            @ znd = `echo "$rotangle $nz $newnz $znd" | awk '{print int(cos(0.0174533 * $1) * cos(0.0174533 * $2) * ($6 - 0.5 * ($4 - 1)) + 0.5 * $5)}'`
+                        endif
+#			echo rotated z: $zst  $znd
                     endif
 		    
 		    # FIGURE OUT IF INVERTING, AND PROPER ORDER FOR EXTRACTION
@@ -515,9 +522,14 @@ while ($itomo <= $ntomo)
 
 		    # IF USING ROTATEVOL, NEED TO ADJUST SLICE NUMBERS
 
-		    if ($ifflip == "2" && $bigrot == 1) then
-			@ zst = `echo "$rotangle $nz $newnz $zst" | awk '{print int((cos(0.01745329 * $1) * sin(0.01745329 * $2) * sin(0.01745329 * $3) + sin(0.01745329 * $1) * cos(0.01745329 * $3)) * ($6 - 0.5 * ($4 - 1)) + 0.5 * $5)}'`
-			@ znd = `echo "$rotangle $nz $newnz $znd" | awk '{print int((cos(0.01745329 * $1) * sin(0.01745329 * $2) * sin(0.01745329 * $3) + sin(0.01745329 * $1) * cos(0.01745329 * $3)) * ($6 - 0.5 * ($4 - 1)) + 0.5 * $5)}'`
+		    if ($ifflip == "2") then
+                        if ($bigrot == 1) then
+                            @ zst = `echo "$rotangle $nz $newnz $zst" | awk '{print int((cos(0.0174533 * $1) * sin(0.0174533 * $2) * sin(0.0174533 * $3) + sin(0.0174533 * $1) * cos(0.0174533 * $3)) * ($6 - 0.5 * ($4 - 1)) + 0.5 * $5)}'`
+                            @ znd = `echo "$rotangle $nz $newnz $znd" | awk '{print int((cos(0.0174533 * $1) * sin(0.0174533 * $2) * sin(0.0174533 * $3) + sin(0.0174533 * $1) * cos(0.0174533 * $3)) * ($6 - 0.5 * ($4 - 1)) + 0.5 * $5)}'`
+                        else
+                            @ zst = `echo "$rotangle $nz $newnz $zst" | awk '{print int(cos(0.0174533 * $1) * cos(0.0174533 * $2) * ($6 - 0.5 * ($4 - 1)) + 0.5 * $5)}'`
+                            @ znd = `echo "$rotangle $nz $newnz $znd" | awk '{print int(cos(0.0174533 * $1) * cos(0.0174533 * $2) * ($6 - 0.5 * ($4 - 1)) + 0.5 * $5)}'`
+                        endif
 #			echo rotated z: $zst  $znd
 		    endif
 		    
@@ -740,6 +752,10 @@ EOF
 
 #
 #  $Log$
+#  Revision 3.9  2005/08/03 23:22:01  mast
+#  Made sample sizes be suitable for filtering in enhance using goodframe,
+#  and add option to modify MIDASLIMT
+#
 #  Revision 3.8  2005/02/11 23:15:18  mast
 #  Fixed handling of Windows filenames if in c:\cygwin or spaces on path
 #
