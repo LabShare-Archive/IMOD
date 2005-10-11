@@ -43,7 +43,7 @@ C
 	character*20 floatxt/' '/,xftext/' '/,trunctxt/' '/
 	real*4 f(2,3,lmsec), frot(2,3), fexp(2,3), fprod(2,3)
 	integer*4 inlist(lmsec),nlist(lmfil),listind(lmfil)
-     &      ,nsecout(lmfil),lineuse(lmsec)
+     &      ,nsecout(lmfil),lineuse(lmsec),linetmp(lmfil)
 	real*4 xcen(lmsec),ycen(lmsec),optmax(16),secmean(lmsec)
 	integer*4 lineOutSt(maxchunks+1),nLinesOut(maxchunks)
 	integer*4 lineInSt(maxchunks+1),nLinesIn(maxchunks)
@@ -91,7 +91,7 @@ c
 	integer*4 numOutValues, numOutEntries, ierr, ierr2, i, kti, iy
 	integer*4 maxFieldY, inputBinning, nxFirst, nyFirst, nxBin, nyBin
 	integer*4 ixOffset, iyOffset, lenTemp, limdim, ierr3, applyFirst
-	integer*4 nLineTemp
+	integer*4 nLineTemp,ifOnePerFile
 	real*4 fieldMaxY, binRatio, rotateAngle, expandFactor
 	real*8 dsum,dsumsq,tsum,tsumsq
 	real*4 cosd, sind
@@ -106,20 +106,21 @@ c
 c	  fallbacks from ../../manpages/autodoc2man -2 2  newstack
 c
 	integer numOptions
-	parameter (numOptions = 26)
+	parameter (numOptions = 27)
 	character*(40 * numOptions) options(1)
 	options(1) =
-     &      'input:InputFile:FN:@output:OutputFile:FN:@'//
+     &      'input:InputFile:FNM:@output:OutputFile:FNM:@'//
      &      'fileinlist:FileOfInputs:FN:@'//
-     &      'fileoutlist:FileOfOutputs:FN:@secs:SectionsToRead:LI:@'//
-     &      'numout:NumberToOutput:IA:@size:SizeToOutputInXandY:IP:@'//
-     &      'mode:ModeToOutput:I:@offset:OffsetsInXandY:FA:@'//
+     &      'fileoutlist:FileOfOutputs:FN:@secs:SectionsToRead:LIM:@'//
+     &      'numout:NumberToOutput:IAM:@size:SizeToOutputInXandY:IP:@'//
+     &      'mode:ModeToOutput:I:@offset:OffsetsInXandY:FAM:@'//
      &      'applyfirst:ApplyOffsetsFirst:B:@xform:TransformFile:FN:@'//
-     &      'uselines:UseTransformLines:LI:@rotate:RotateByAngle:F:@'//
+     &      'uselines:UseTransformLines:LIM:@'//
+     &      'onexform:OneTransformPerFile:B:@rotate:RotateByAngle:F:@'//
      &      'expand:ExpandByFactor:F:@bin:BinByFactor:I:@'//
      &      'linear:LinearInterpolation:B:@float:FloatDensities:I:@'//
      &      'contrast:ContrastBlackWhite:IP:@'//
-     &      'scale:ScaleMinAndMax:FP:@multadd:MultiplyAndAdd:FP:@'//
+     &      'scale:ScaleMinAndMax:FP:@multadd:MultiplyAndAdd:FPM:@'//
      &      'distort:DistortionField:FN:@'//
      &      'imagebinned:ImagesAreBinned:I:@'//
      &      'gradient:GradientFile:FN:@test:TestLimits:IP:@'//
@@ -139,6 +140,7 @@ c
 	numInputFiles = 0
 	numOutputFiles = 0
 	numSecLists = 0
+	ifOnePerFile = 0
 	ifDistort = 0
 	ifMagGrad = 0
 	maxFieldY = 0
@@ -466,7 +468,37 @@ c
      &		    'TOO MANY TRANSFORM LINE NUMBERS FOR ARRAYS')
 	      enddo
 	    endif
+
+	    ierr = PipGetBoolean('OneTransformPerFile', ifOnePerFile)
+	    if (ifOnePerFile .gt. 0) then
+c		
+c		If doing one transform per file, make default list 0 to n-1
+c
+	      if (numXfLines .eq. 0) then
+		nLineUse = nfilein
+		do iy = 1, nfilein
+		  lineuse(iy) = iy - 1
+		enddo
+	      endif
+c		
+	      if (nLineUse .lt. nfilein) call errorexit(
+     &		  'NOT ENOUGH TRANSFORMS SPECIFIED FOR THE INPUT FILES')
+c		
+c		Copy list to temp array and build list with line for each sec
+c
+	      do iy = 1, nfilein
+		linetmp(iy) = lineUse(iy)
+	      enddo
+	      nLineUse = 0
+	      do iy = 1, nfilein
+		do i = 1, nlist(iy)
+		  nLineUse = nLineUse + 1
+		  lineUse(nLineUse) = linetmp(iy)
+		enddo
+	      enddo
+	    endif
 	  else
+c
 	    print *,'Enter list of lines to use in file, or a single ',
      &		'line number to apply that'
 	    print *,' transform to all sections',
@@ -1681,6 +1713,9 @@ c
 ************************************************************************
 *	  
 c	  $Log$
+c	  Revision 3.32  2005/07/27 03:29:51  mast
+c	  Redimensioned maxextra to handle mistakenly large extra header
+c	
 c	  Revision 3.31  2005/06/13 22:37:47  mast
 c	  Gave a specific error message when transform file is empty
 c	
