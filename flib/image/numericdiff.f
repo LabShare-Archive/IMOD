@@ -7,6 +7,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.2  2005/04/17 15:25:12  mast
+c	  Had to declare lnblnk
+c	
 c	  Revision 3.1  2005/04/16 05:38:25  mast
 c	  Addition to package
 c	
@@ -33,7 +36,7 @@ c
 	character*(40 * numOptions) options(1)
 	options(1) =
      &      'ainput:AInputFile:FN:@binput:BInputFile:FN:@'//
-     &      'max:MaxDifferences:FA:@general:GeneralFormat:B:@'//
+     &      'max:MaxDifferences:FAM:@general:GeneralFormat:B:@'//
      &      'strip:StripLinesWith:B:@big:BigDifferenceOutput:B:@'//
      &      'help:usage:B:'
 c

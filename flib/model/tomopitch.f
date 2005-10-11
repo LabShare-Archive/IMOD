@@ -19,6 +19,10 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.11  2005/02/03 17:23:38  mast
+c	  Stopped swapping Y and Z of Y was long dimension, this made it fail
+c	  for very thick whole tomogram
+c	
 c	  Revision 3.10  2004/06/15 05:44:33  mast
 c	  Generated an error messagewith more than 2 points per contour for
 c	  whole tomogram
@@ -86,7 +90,7 @@ c
        parameter (numOptions = 6)
        character*(40 * numOptions) options(1)
        options(1) =
-     &      'model:ModelFile:FN:@extra:ExtraThickness::@'//
+     &      'model:ModelFile:FNM:@extra:ExtraThickness::@'//
      &      'spacing:SpacingInY::@scale:ScaleFactor::@'//
      &      'param:ParameterFile:PF:@help:usage:B:'
 
