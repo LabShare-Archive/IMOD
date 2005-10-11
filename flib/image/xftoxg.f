@@ -13,6 +13,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.2  2004/01/27 05:37:33  mast
+c	  Needed to split print line for SGI
+c	
 c	  Revision 3.1  2004/01/27 03:33:12  mast
 c	  Converted to PIP input, and fixed hybrid option for eliminating
 c	  trends in rotation and magnification.
@@ -28,32 +31,35 @@ C	end structure
 	real*4 natav(2,3),ginv(2,3),prod(2,3),
      &	    slope(2,3,10),intcp(2,3),natpr(2,3)
 	real*4 x(lmsc),y(lmsc),slop(10)
+	integer*4 igroup(lmsc)
 	character*120 infil,outfil
 c	  
 	integer*4 nhybrid, ifshift, iorder, nlist, kl, i, ilist, kllo, klhi
-	integer*4 j, ipow, nfit, ierr, lnblnk
-	real*4 deltang, angdiff, bint
+	integer*4 j, ipow, nfit, ierr, lnblnk,numGroups, numInFirst,iordUse
+	real*4 deltang, angdiff, bint, angleRange
 c
 	logical pipinput
 	integer*4 numOptArg, numNonOptArg
-	integer*4 PipGetInteger
+	integer*4 PipGetInteger,PipGetFloat
 	integer*4 PipGetInOutFile
 c	  
 c         fallbacks from ../../manpages/autodoc2man -2 2  xftoxg
 c	  
 	integer numOptions
-	parameter (numOptions = 6)
+	parameter (numOptions = 7)
 	character*(40 * numOptions) options(1)
 	options(1) =
      &      'input:InputFile:FN:@goutput:GOutputFile:FN:@'//
      &      'nfit:NumberToFit:I:@order:OrderOfPolynomialFit:I:@'//
-     &      'mixed:HybridFits:I:@help:usage:B:'
+     &      'mixed:HybridFits:I:@range:RangeOfAnglesInAverage:F:@'//
+     &      'help:usage:B:'
 c	  
 c	  defaults
 c	  
 	ifshift = 7
 	nhybrid = 0
 	iorder = 1
+	angleRange = 999.
 c	  
 c	  initialize
 c
@@ -79,6 +85,8 @@ c
      &		'A negative value for hybrid alignment is not allowed')
 	    nhybrid=max(2,min(4,nhybrid))
 	  endif
+
+	  ierr = PipGetFloat('RangeOfAnglesInAverage', angleRange)
 	else
 
 	  print *,'Enter 0 to align all sections to a single'
@@ -122,7 +130,6 @@ c
 	  outfil = infil
 	  outfil(i:i) = 'g'
 	endif
-
 c
 c	  open files, read the whole list of f's
 c
@@ -160,11 +167,17 @@ c	  call xfwrite(6,nat(1,1,kl),*97)
 	enddo
 c
 c	  average natural g's, convert back to xform, take inverse of average;
-c	  ginv is used if no linear fits
+c	  ginv is used if no linear fits, natav is used in hybrid cases
+c	  First get group with restricted rotation range
 c
+	call groupRotations(nat, 1, nlist, angleRange, igroup, numGroups,
+     &	    numInFirst)
+	print *,numGroups,' groups, first has', numInFirst
+	print *,(igroup(kl),kl=1,nlist)
 	call xfunit(natav,0.)
 	do kl=1,nlist
-	  call xflincom(natav,1.,nat(1,1,kl),1./nlist,natav)
+	  if (igroup(kl) .eq. 1)
+     &	      call xflincom(natav,1.,nat(1,1,kl),1./numInFirst,natav)
 	enddo
 	call rotmag_to_amat(natav(1,1),natav(1,2)
      &	      ,natav(2,1),natav(2,2),gav)
@@ -193,16 +206,24 @@ c
 c		do line fit to each component of the natural parameters
 c		first time only if doing all sections, or each time for N
 c
+	      call groupRotations(nat, kllo, klhi, angleRange, igroup,
+     &		  numGroups, numInFirst)
+	      iordUse = max(1, min(iorder, numInFirst - 2))
 	      do i=1,2
 		do j=1,3
 		  nfit=0
 		  do kl=kllo,klhi
-		    nfit=nfit+1
-		    x(nfit)=kl
-		    y(nfit)=nat(i,j,kl)
+		    if (igroup(kl) .eq. 1) then
+		      nfit=nfit+1
+		      x(nfit)=kl
+		      y(nfit)=nat(i,j,kl)
+		    endif
 		  enddo
-		  call polyfit(x,y,nfit,iorder,slop,bint)
-		  do ipow=1,iorder
+c
+		  if (nfit .lt. 2) call errorexit('Only 1 point in fit; '//
+     &		      'increase NumberToFit or RangeOfAngles')
+		  call polyfit(x,y,nfit,iordUse,slop,bint)
+		  do ipow=1,iordUse
 		    slope(i,j,ipow)=slop(ipow)
 		  enddo
 		  intcp(i,j)=bint
@@ -213,14 +234,16 @@ c
 	      print *,'constants and coefficients of fit to',nfit
      &		  ,' natural parameters'
 	      call xfwrite(6,intcp,*97)
-	      do ipow=1,iorder
+	      do ipow=1,iordUse
 		call xfwrite(6,slope(1,1,ipow),*99)
 99	      enddo
 	    endif
+c
 c	      calculate the g transform at this position along the linear fit
 c	      and take its inverse
+c
 	    call xfcopy(intcp,natpr)
-	    do ipow=1,iorder
+	    do ipow=1,iordUse
 	      call xflincom(natpr,1.,slope(1,1,ipow),float(ilist)**ipow
      &		  ,natpr)
 	    enddo
@@ -256,6 +279,98 @@ c
 	call exit(0)
 96	call errorexit('reading file')
 97	call errorexit('writing file')
+	end
+
+c	  
+c	  groupRotations finds groups of sections whose rotation angles are
+c	  all within the range given by RANGE.  The angles are assumed to be
+c	  the first element of the trasnforms in F.  Only sections from KSTART
+c	  to KEND are considered.  IGROUP is returned with a group number for
+c	  each section; numGroups with the number of groups, and numInFirst
+c	  with the number of sections in the first (i.e., largest) group.
+c
+	subroutine groupRotations(f, kStart, kEnd, range, igroup, numGroups,
+     &	    numInFirst)
+	implicit none
+	real*4 f(2,3,*), range
+	integer*4 igroup(*), kStart, kEnd, numGroups, numInFirst
+	real*4 diff, angMin, angMax, angleDiff
+	integer*4 numFree, i, j, numInGroup, maxInGroup, iMax
+c	  
+	numFree = kEnd + 1 - kStart
+	numGroups = 0
+	angMin = 1.e10
+	angMax = -1.e10
+	do i = kStart, kEnd
+	  igroup(i) = 0
+	  angMin = min(angMin, f(1,1,i))
+	  angMax = max(angMax, f(1,1,i))
+	enddo
+c	  
+c	  If the angles all fit within the range, we are all set
+c
+	if (angMax - angMin .le. range) then
+	  do i = kStart, kEnd
+	    igroup(i) = 1
+	  enddo
+	  numGroups = 1
+	  numInFirst = numFree
+	  return
+	endif
+c
+	do while (numFree .gt. 0)
+c	    
+c	    Find biggest group of angles that fit within range
+c
+	  i = kStart
+	  maxInGroup = 0
+	  do while (i .le. kEnd .and. maxInGroup .lt. numFree)
+	    if (igroup(i) .eq. 0) then
+c		
+c		For each ungrouped item, count up number of items that would
+c		fit within a range starting at this item
+c
+	      numInGroup = 0
+	      do j = kStart, kEnd
+		if (igroup(j) .eq. 0) then
+		  diff = angleDiff(f(1,1,i), f(1,1,j))
+		  if (diff .ge. 0. .and. diff .le. range)
+     &		      numInGroup = numInGroup + 1
+		endif
+	      enddo
+	      if (numInGroup .gt. maxInGroup) then
+		maxInGroup = numInGroup
+		iMax = i
+	      endif
+	    endif
+	    i = i + 1
+	  enddo
+c	    
+c	    Now assign the angles within range to the group
+c
+	  numGroups = numGroups + 1
+	  do j = kStart, kEnd
+	    if (igroup(j) .eq. 0) then
+	      diff = angleDiff(f(1,1,iMax), f(1,1,j))
+	      if (diff .ge. 0. .and. diff .le. range) igroup(j) = numGroups
+	    endif
+	  enddo
+	  if (numGroups .eq. 1) numInFirst = maxInGroup
+	  numFree = numFree - maxInGroup
+	enddo
+	return
+	end
+
+	real*4 function angleDiff(ang1, ang2)
+	real*4 ang1, ang2
+	angleDiff = ang2 - ang1
+	do while (angleDiff .gt. 180.)
+	  angleDiff = angleDiff - 360.
+	enddo
+	do while (angleDiff .le. -180.)
+	  angleDiff = angleDiff + 360.
+	enddo
+	return
 	end
 
 	subroutine errorexit(message)
