@@ -20,6 +20,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.6  2005/10/11 21:35:57  mast
+c	  Fixed fallback params
+c	
 c	  Revision 3.5  2004/11/10 02:06:27  mast
 c	  Added argument to call to setup cubes
 c	
@@ -241,6 +244,11 @@ c       ENCODE(80,302,TITLE)dat,tim
 302     FORMAT('MATCHVOL: 3-D transformation of tomogram:',t57,a9,2x,a8)
 	call irttlt(5,tiltold)
 	call ialtlt(6,tiltold)
+c	  
+c	  Preserve origin in case of volume scaling
+c
+	call irtorg(5, delta(1), delta(2), delta(3))
+	call ialorg(6, delta(1), delta(2), delta(3))
 c	  
 c	  find maximum extent in input volume occupied by a back-transformed
 c	  unit cube in output volume
