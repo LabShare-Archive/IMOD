@@ -10,6 +10,8 @@
 
 nohup
 set pn = "finishjoin"
+set anglerange = 50
+
 if ($#argv < 3) then
 echo "Usage: $pn [options]  root_name  slice_range1  slice_range2  ..."
 cat <<EOF
@@ -27,6 +29,9 @@ cat <<EOF
                       the point which should end up in the center of the new
                       images.  A positive X offset will shift images to the
                       left.
+        -a[ngle] #    Compute the average rotation angle using only the
+                      tomograms whose angles fall in the given range
+                      (default $anglerange)
         -t[rial] #    Build trial joined file, using slices at the given 
                       interval (output will be "root_name"_trial.join)
         -b[in] #      Bin images by the given number in a trial joined file.
@@ -47,7 +52,6 @@ endif
 
 set retval = 0
 set rangelist = ""
-set xflist = ""
 set joinroot = ""
 set newsize = ""
 set ref = ""
@@ -72,6 +76,10 @@ while ($#argv > 2 && $joinroot == "")
       breaksw
     case -o*:
       set offset = $argv[2]
+      shift; shift
+      breaksw
+    case -a*:
+      set anglerange = $argv[2]
       shift; shift
       breaksw
     case -t*:
@@ -202,9 +210,7 @@ if ($binning > 1) then
     endif
 endif
 
-
-
-#  Get Z ranges and make up xflist
+#  Get Z ranges
 #
 @ itomo = 1
 while ($itomo <= $ntomo)
@@ -263,23 +269,6 @@ while ($itomo <= $ntomo)
 
     set rangelist = ($rangelist $zrange)
 
-    # Now set up the xflist with the right number of entries for this tomo
-    #
-    @ zmin = $zst
-    @ zmax = $znd
-    if ($zst > $znd) then
-	@ zmin = $znd
-	@ zmax = $zst
-    endif
-    @ xfline = $itomo - 1
-    @ iz = $zmin + $interval
-    set xftomo = $xfline
-    while ($iz <= $zmax)
-	set xftomo = $xftomo,$xfline
-	@ iz += $interval
-    end
-    if ($iz - $interval != $zmax) set xftomo = $xftomo,$xfline
-    set xflist = ($xflist $xftomo)
     @ itomo++
 end
 
@@ -310,27 +299,10 @@ else
     endif
 endif
 
-# Now check for big transformations if no reference
+# 10/11/05: stop checking for big transformation if no reference, since
+# we now have range option to ignore them
 #
-@ ind = 0
-while ($ind < $ntomo && $ref == "")
-    @ ind++
-    set xfline = `head -n $ind $joinroot.tomoxf | tail -n 1`
-    set ratiotext = 10000
-    set denom = `echo $xfline[1] | awk '{print int($1 * 1000)}'`
-    if ($denom != "0") set ratiotext = `echo $xfline[1] $xfline[2] | \
-        awk '{print int(1000 * $2 / $1)}'`
-    @ ratio = $ratiotext
-    if ($ratio >= 1000 || $ratio <= -1000) then
-        echo "WARNING: YOU HAVE A BIG ROTATION WHICH COULD SCREW UP THE FINAL ORIENTATION"
-        echo "WARNING: YOU PROBABLY NEED TO USE ONE SECTION AS A REFERENCE (-ref OPTION) "
-        sleep 5
-        break
-    endif
-end
-
-
-xftoxg -nfit 0 $joinroot.tomoxf $joinroot.tomoxg
+xftoxg -range $anglerange -nfit 0 $joinroot.tomoxf $joinroot.tomoxg
 if ($status) goto error
 
 if ($ifsquoze == "1") then
@@ -372,7 +344,6 @@ echo -n >! $newstin
 while ($itomo <= $ntomo)
     echo "InputFile $matlist[$itomo]" >> $newstin
     echo "SectionsToRead $rangelist[$itomo]" >> $newstin
-    echo "UseTransformLines $xflist[$itomo]" >> $newstin
     if ("$scalelist" != "") then
         echo "MultiplyAndAdd $scalelist[$itomo]" >> $newstin
     endif
@@ -381,6 +352,7 @@ end
 if ($newsize != "") echo "SizeToOutputInXandY $newsize" >> $newstin
 if ($newmode != "") echo "ModeToOutput $newmode" >> $newstin
 cat >> $newstin <<EOF
+OneTransformPerFile
 BinByFactor $binning
 OutputFile $joinroot$trial.join
 OffsetsInXandY $offset
@@ -409,6 +381,10 @@ exit 1
 
 #
 #  $Log$
+#  Revision 3.12  2005/05/27 15:46:08  mast
+#  Changed to output transform line numbers on multiple lines to avoid
+#  line length limits in shell
+#
 #  Revision 3.11  2004/11/29 05:29:59  mast
 #  Set the output mode if one is provided in the info file
 #
