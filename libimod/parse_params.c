@@ -653,8 +653,8 @@ int PipPrintHelp(char *progName, int useStdErr, int inputFiles,
           fprintf(out, "'//\n     &      '");
           linePos = 13;
         }
-        fprintf(out, "%s:%s:%s:%s", sname, lname, optTable[i].type,
-                lastOpt ? "'\n" : "@");
+        fprintf(out, "%s:%s:%s%s%s", sname, lname, optTable[i].type, 
+                optTable[i].multiple ? "M:" : ":", lastOpt ? "'\n" : "@");
         linePos += optLen;
         numOut++;
         continue;
@@ -1598,6 +1598,10 @@ static int CheckKeyword(char *line, char *keyword, char **copyto, int *gotit,
 
 /*
 $Log$
+Revision 3.14  2005/05/14 00:59:29  mast
+Implemented field value as default long option, allowed multiple entries of
+keyword to override previous entry, restricted to Field and SectionHeader
+
 Revision 3.13  2005/04/16 00:08:21  mast
 Added ability to have section headers for usage and man page output
 
