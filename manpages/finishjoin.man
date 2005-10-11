@@ -22,7 +22,13 @@ Options may be abbreviated to a single letter.
 Make the given tomogram be the reference for alignment, in which case slices
 from it will not be transformed, and other tomograms will be transformed into
 alignment with it.  By default, all tomograms will be transformed into
-alignment to a position averaged over all tomograms.
+alignment to a position averaged over all tomograms with similar orientations.
+.TP -angle <range>
+Base the average alignment on tomograms whose rotation angles fall within
+the given range of each other (default 50 degrees).  If a minority of the
+tomograms are rotated by large angles like 90 or 180 degrees relative to the
+rest, then they will be excluded when determining the average alignment.  This
+prevents all of the sections from being rotated to an intermediate orientation.
 .TP
 .B -size <X,Y>
 Set the size of the output slices to X by Y pixels.  The default size will

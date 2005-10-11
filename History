@@ -1,5 +1,17 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/11/05: Made Finishjoin base the average alignment on tomograms with
+similar rotation angles, so tomograms with 90 or 180 degree rotations do not
+need special handling (i.e., initial rotation, or making one section be the 
+reference).  It also uses the new Newstack option to avoid long lines of
+transform numbers.
+
+10/11/05: Added option to Newstack to have it apply the same transform for
+all sections in a file and just have one transform per file.
+
+10/11/05: Added option to Xftoxg to exclude sections with very different
+rotation angles from the computation of the average rotation.
+
 10/8/05: Made Makejoincom adjust sample slice numbers properly when volume
 is turned upside down by a rotation.
 
