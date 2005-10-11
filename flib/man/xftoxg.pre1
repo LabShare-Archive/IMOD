@@ -19,8 +19,8 @@ DDEESSCCRRIIPPTTIIOONN
   the series.	 Here "position" refers to the entire set of parameters
   describing the transformation, i.e. not just the x,y coordinates but
   the rotation and stretch as well.  This mode will remove any consistent
-  trends in the data stack, such a progressive rotation, compression or
-  shift.  This mode, sometimes referred as giving a gloabl alignment, can be
+  trends in the data stack, such as a progressive rotation, compression or
+  shift.  This mode, sometimes referred as giving a global alignment, can be
   invoked with the option "-n 0".
 
   In the second mode, the "center" position is allowed to change progressively
@@ -51,6 +51,15 @@ DDEESSCCRRIIPPTTIIOONN
   the rotation trends in the data are meaningful and should be preserved.
   This hybrid method can be used with either local or global polynomial fits
   (the second or third mode of operation).
+
+  Sometimes a small minority of sections are rotated at a large angle from
+  the rest.  Including such sections in the computation of the "center"
+  position would skew the average rotation.  In such cases, the "-range"
+  option can be used to exclude sections whose rotation angles fall outside
+  of the given range from the averaging and fitting procedures.  For example,
+  if a range of 45 degrees is given, then the program will find the largest
+  group of sections whose angles span a range of 45 degrees or less, and use
+  only these sections to compute the global average alignment.
 
   To do the averaging and fitting, the program converts the A matrix of the
   g transforms to the "semi-natural" parameters: global rotation and

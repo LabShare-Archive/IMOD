@@ -3,7 +3,6 @@ Pip = 1
 
 [Field = InputFile]
 short = input
-long = InputFile
 type = FN
 usage = Input file with f transforms 
 tooltip = 
@@ -11,7 +10,6 @@ manpage =
 
 [Field = GOutputFile]
 short = goutput
-long = GOutputFile
 type = FN
 usage = Output file for g transforms (optional if input name ends in xf)
 tooltip = 
@@ -21,7 +19,6 @@ with the last letter converted from f to g.
 
 [Field = NumberToFit]
 short = nfit
-long = NumberToFit
 type = I
 usage = Number of adjacent sections to fit, 0 for global alignment, or 1 for
 fit to all sections
@@ -30,7 +27,6 @@ manpage =
 
 [Field = OrderOfPolynomialFit]
 short = order
-long = OrderOfPolynomialFit
 type = I
 usage = Order of the polynomial fit to the data. The default is 1 (linear fit).
 tooltip = 
@@ -38,12 +34,20 @@ manpage =
 
 [Field = HybridFits]
 short = mixed
-long = HybridFits
 type = I
 usage = Number of parameters to eliminate trends for with a hybrid alignment
-tooltip = Number of parameters to eliminate trends for with a hybrid alignment:
-2 for translations only, 3 for rotations also, 4 for size changes also
-manpage = 
+tooltip = 
+manpage = Number of parameters to eliminate trends for with a hybrid alignment:
+2 for translations only, 3 for rotations also, 4 for size changes also.
+
+[Field = RangeOfAnglesInAverage]
+short = range
+type = F
+usage = Range of rotation angles for sections to include in average and fits
+tooltip = 
+manpage = Compute the global average center position, and the center position
+for local fits, using the largest group of sections whose rotation angles fall
+within the given range.
 
 [Field = usage]
 short = help
