@@ -20,6 +20,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.5  2004/11/10 02:06:27  mast
+c	  Added argument to call to setup cubes
+c	
 c	  Revision 3.4  2003/10/10 20:37:53  mast
 c	  Changed to use subroutines in rotmatwarpsubs.f and include file.
 c	  Converted to PIP/autodoc input and added linear interpolation option
@@ -67,14 +70,15 @@ c
 c	  fallbacks from ../../manpages/autodoc2man -2 2  matchvol
 c
 	integer numOptions
-	parameter (numOptions = 10)
+	parameter (numOptions = 11)
 	character*(40 * numOptions) options(1)
 	options(1) =
      &      'input:InputFile:FN:@output:OutputFile:FN:@'//
      &      'inverse:InverseFile:FN:@tempdir:TemporaryDirectory:CH:@'//
      &      'size:OutputSizeXYZ:IT:@center:CenterXYZ:FT:@'//
-     &      'xffile:TransformFile:FN:@3dxform:3DTransform:FN:@'//
-     &      'order:InterpolationOrder:I:@help:usage:B:'
+     &      'xffile:TransformFile:FNM:@3dxform:3DTransform:FAM:@'//
+     &      'order:InterpolationOrder:I:@param:ParameterFile:PF:@'//
+     &      'help:usage:B:'
 c	  
 c	  set defaults here
 c	  
