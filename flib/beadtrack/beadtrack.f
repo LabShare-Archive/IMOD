@@ -118,17 +118,17 @@ c
 c	  fallbacks from ../../manpages/autodoc2man -2 2  beadtrack
 c
 	integer numOptions
-	parameter (numOptions = 48)
+	parameter (numOptions = 49)
 	character*(40 * numOptions) options(1)
 	options(1) =
      &      ':InputSeedModel:FN:@:OutputModel:FN:@:ImageFile:FN:@'//
      &      ':PieceListFile:FN:@:SkipViews:LI:@:RotationAngle:F:@'//
-     &      ':SeparateGroup:LI:@first:FirstTiltAngle:F:@'//
+     &      ':SeparateGroup:LIM:@first:FirstTiltAngle:F:@'//
      &      'increment:TiltIncrement:F:@tiltfile:TiltFile:FN:@'//
-     &      'angles:TiltAngles:FA:@:TiltDefaultGrouping:I:@'//
-     &      ':TiltNondefaultGroup:IT:@:MagDefaultGrouping:I:@'//
-     &      ':MagNondefaultGroup:IT:@:RotDefaultGrouping:I:@'//
-     &      ':RotNondefaultGroup:IT:@:MinViewsForTiltalign:I:@'//
+     &      'angles:TiltAngles:FAM:@:TiltDefaultGrouping:I:@'//
+     &      ':TiltNondefaultGroup:ITM:@:MagDefaultGrouping:I:@'//
+     &      ':MagNondefaultGroup:ITM:@:RotDefaultGrouping:I:@'//
+     &      ':RotNondefaultGroup:ITM:@:MinViewsForTiltalign:I:@'//
      &      ':CentroidRadius:F:@:LightBeads:B:@:FillGaps:B:@'//
      &      ':MaxGapSize:I:@:MinTiltRangeToFindAxis:F:@'//
      &      ':MinTiltRangeToFindAngles:F:@:BoxSizeXandY:IP:@'//
@@ -142,9 +142,9 @@ c
      &      ':RescueRelaxationDensityAndDistance:FP:@'//
      &      ':PostFitRescueResidual:F:@:DensityRelaxationPostFit:F:@'//
      &      ':MaxRescueDistance:F:@:ResidualsToAnalyzeMaxAndMin:IP:@'//
-     &      ':DeletionCriterionMinAndSD:FP:@:BoxOutputFile:FN:@'//
-     &      ':SnapshotViews:LI:@:SaveAllPointsAreaRound:IP:@'//
-     &      'param:ParameterFile:PF:@help:usage:B:'
+     &      ':DeletionCriterionMinAndSD:FP:@param:ParameterFile:PF:@'//
+     &      'help:usage:B:@:BoxOutputFile:FN:@:SnapshotViews:LI:@'//
+     &      ':SaveAllPointsAreaRound:IP:'
 c
 	maxwavg=15
 	limpstr=16
@@ -1641,6 +1641,9 @@ c
 c	
 c
 c	  $Log$
+c	  Revision 3.18  2005/08/15 05:00:38  mast
+c	  Increased limit for box array to allow 500 beads at 48x48
+c	
 c	  Revision 3.17  2005/07/06 20:42:15  mast
 c	  Removed unneeded repack calls and a ;
 c	
