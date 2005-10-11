@@ -92,60 +92,60 @@ c
 c	  fallbacks from ../../manpages/autodoc2man -2 2  tiltalign
 c
 	integer numOptions
-	parameter (numOptions = 100)
+	parameter (numOptions = 108)
 	character*(40 * numOptions) options(1)
 	options(1) =
      &      ':ModelFile:FN:@:ImageFile:FN:@:ImageSizeXandY:IP:@'//
      &      ':ImageOriginXandY:FP:@:ImagePixelSizeXandY:FP:@'//
-     &      ':OutputModelFile:FN:@:OutputResidualFile:FN:@'//
-     &      ':OutputModelAndResidual:FN:@:OutputTopBotResiduals:FN:@'//
-     &      ':OutputFidXYZFile:FN:@:OutputTiltFile:FN:@'//
-     &      ':OutputXAxisTiltFile:FN:@:OutputTransformFile:FN:@'//
-     &      ':OutputZFactorFile:FN:@:IncludeStartEndInc:IT:@'//
-     &      ':IncludeList:LI:@:ExcludeList:LI:@:RotationAngle:F:@'//
-     &      ':SeparateGroup:LI:@first:FirstTiltAngle:F:@'//
-     &      'increment:TiltIncrement:F:@tiltfile:TiltFile:FN:@'//
-     &      'angles:TiltAngles:FA:@:AngleOffset:F:@'//
-     &      ':ProjectionStretch:B:@:RotOption:I:@'//
-     &      ':RotDefaultGrouping:I:@:RotNondefaultGroup:IT:@'//
+     &      ':ImagesAreBinned:I:@:OutputModelFile:FN:@'//
+     &      ':OutputResidualFile:FN:@:OutputModelAndResidual:FN:@'//
+     &      ':OutputTopBotResiduals:FN:@:OutputFidXYZFile:FN:@'//
+     &      ':OutputTiltFile:FN:@:OutputXAxisTiltFile:FN:@'//
+     &      ':OutputTransformFile:FN:@:OutputZFactorFile:FN:@'//
+     &      ':IncludeStartEndInc:IT:@:IncludeList:LI:@'//
+     &      ':ExcludeList:LI:@:RotationAngle:F:@:SeparateGroup:LIM:@'//
+     &      'first:FirstTiltAngle:F:@increment:TiltIncrement:F:@'//
+     &      'tiltfile:TiltFile:FN:@angles:TiltAngles:FAM:@'//
+     &      ':AngleOffset:F:@:ProjectionStretch:B:@:RotOption:I:@'//
+     &      ':RotDefaultGrouping:I:@:RotNondefaultGroup:ITM:@'//
      &      ':RotationFixedView:I:@:LocalRotOption:I:@'//
      &      ':LocalRotDefaultGrouping:I:@'//
-     &      ':LocalRotNondefaultGroup:IT:@:TiltOption:I:@'//
+     &      ':LocalRotNondefaultGroup:ITM:@:TiltOption:I:@'//
      &      ':TiltFixedView:I:@:TiltSecondFixedView:I:@'//
-     &      ':TiltDefaultGrouping:I:@:TiltNondefaultGroup:IT:@'//
+     &      ':TiltDefaultGrouping:I:@:TiltNondefaultGroup:ITM:@'//
      &      ':LocalTiltOption:I:@:LocalTiltFixedView:I:@'//
      &      ':LocalTiltSecondFixedView:I:@'//
      &      ':LocalTiltDefaultGrouping:I:@'//
-     &      ':LocalTiltNondefaultGroup:IT:@:MagReferenceView:I:@'//
+     &      ':LocalTiltNondefaultGroup:ITM:@:MagReferenceView:I:@'//
      &      ':MagOption:I:@:MagDefaultGrouping:I:@'//
-     &      ':MagNondefaultGroup:IT:@:LocalMagReferenceView:I:@'//
+     &      ':MagNondefaultGroup:ITM:@:LocalMagReferenceView:I:@'//
      &      ':LocalMagOption:I:@:LocalMagDefaultGrouping:I:@'//
-     &      ':LocalMagNondefaultGroup:IT:@:CompReferenceView:I:@'//
+     &      ':LocalMagNondefaultGroup:ITM:@:CompReferenceView:I:@'//
      &      ':CompOption:I:@:CompDefaultGrouping:I:@'//
-     &      ':CompNondefaultGroup:IT:@:XStretchOption:I:@'//
+     &      ':CompNondefaultGroup:ITM:@:XStretchOption:I:@'//
      &      ':XStretchDefaultGrouping:I:@'//
-     &      ':XStretchNondefaultGroup:IT:@:LocalXStretchOption:I:@'//
+     &      ':XStretchNondefaultGroup:ITM:@:LocalXStretchOption:I:@'//
      &      ':LocalXStretchDefaultGrouping:I:@'//
-     &      ':LocalXStretchNondefaultGroup:IT:@:SkewOption:I:@'//
-     &      ':SkewDefaultGrouping:I:@:SkewNondefaultGroup:IT:@'//
+     &      ':LocalXStretchNondefaultGroup:ITM:@:SkewOption:I:@'//
+     &      ':SkewDefaultGrouping:I:@:SkewNondefaultGroup:ITM:@'//
      &      ':LocalSkewOption:I:@:LocalSkewDefaultGrouping:I:@'//
-     &      ':LocalSkewNondefaultGroup:IT:@:XTiltOption:I:@'//
-     &      ':XTiltDefaultGrouping:I:@:XTiltNondefaultGroup:IT:@'//
+     &      ':LocalSkewNondefaultGroup:ITM:@:XTiltOption:I:@'//
+     &      ':XTiltDefaultGrouping:I:@:XTiltNondefaultGroup:ITM:@'//
      &      ':LocalXTiltOption:I:@:LocalXTiltDefaultGrouping:I:@'//
-     &      ':LocalXTiltNondefaultGroup:IT:@'//
+     &      ':LocalXTiltNondefaultGroup:ITM:@'//
      &      ':ResidualReportCriterion:F:@:SurfacesToAnalyze:I:@'//
      &      ':MetroFactor:F:@:MaximumCycles:I:@:AxisZShift:F:@'//
      &      ':AxisXShift:F:@:LocalAlignments:B:@:OutputLocalFile:FN:@'//
      &      ':NumberOfLocalPatchesXandY:IP:@'//
      &      ':MinSizeOrOverlapXandY:FP:@'//
      &      ':MinFidsTotalAndEachSurface:IP:@:FixXYZCoordinates:B:@'//
-     &      ':LocalOutputOptions:IT:@:RotMapping:IA:@'//
-     &      ':LocalRotMapping:IA:@:TiltMapping:IA:@'//
-     &      ':LocalTiltMapping:IA:@:MagMapping:IA:@'//
-     &      ':LocalMagMapping:IA:@:CompMapping:IA:@'//
-     &      ':XStretchMapping:IA:@:LocalXStretchMapping:IA:@'//
-     &      ':SkewMapping:IA:@:LocalSkewMapping:IA:@'//
-     &      ':XTiltMapping:IA:@:LocalXTiltMapping:IA:@'//
+     &      ':LocalOutputOptions:IT:@:RotMapping:IAM:@'//
+     &      ':LocalRotMapping:IAM:@:TiltMapping:IAM:@'//
+     &      ':LocalTiltMapping:IAM:@:MagMapping:IAM:@'//
+     &      ':LocalMagMapping:IAM:@:CompMapping:IAM:@'//
+     &      ':XStretchMapping:IAM:@:LocalXStretchMapping:IAM:@'//
+     &      ':SkewMapping:IAM:@:LocalSkewMapping:IAM:@'//
+     &      ':XTiltMapping:IAM:@:LocalXTiltMapping:IAM:@'//
      &      'param:ParameterFile:PF:@help:usage:B:'
 c
 	nlocalres=50
@@ -1352,6 +1352,9 @@ c
 
 c
 c	  $Log$
+c	  Revision 3.28  2005/07/01 19:45:27  mast
+c	  Chnaged formats to allow bigger variable/measurement totals
+c	
 c	  Revision 3.27  2005/07/01 19:34:35  mast
 c	  Added correct ratio of measurements to unknowns
 c	
