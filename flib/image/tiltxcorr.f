@@ -91,7 +91,7 @@ c
      &      'input:InputFile:FN:@piece:PieceListFile:FN:@'//
      &      'output:OutputFile:FN:@rotation:RotationAngle:F:@'//
      &      'first:FirstTiltAngle:F:@increment:TiltIncrement:F:@'//
-     &      'tiltfile:TiltFile:FN:@angles:TiltAngles:FA:@'//
+     &      'tiltfile:TiltFile:FN:@angles:TiltAngles:FAM:@'//
      &      'radius1:FilterRadius1:F:@radius2:FilterRadius2:F:@'//
      &      'sigma1:FilterSigma1:F:@sigma2:FilterSigma2:F:@'//
      &      'exclude:ExcludeCentralPeak:B:@border:BordersInXandY:IP:@'//
@@ -832,6 +832,9 @@ c	print *,xpeak,ypeak
 
 c
 c	  $Log$
+c	  Revision 3.20  2005/04/26 22:01:13  mast
+c	  Needed to test on size of image being used, not whole image
+c	
 c	  Revision 3.19  2005/04/26 21:11:57  mast
 c	  Redimensioned to 5000x5000
 c	
