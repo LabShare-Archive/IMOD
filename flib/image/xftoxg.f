@@ -13,6 +13,10 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.3  2005/10/11 15:45:50  mast
+c	  Added option to based average center position on restricted range of
+c	  rotation angles
+c	
 c	  Revision 3.2  2004/01/27 05:37:33  mast
 c	  Needed to split print line for SGI
 c	
@@ -172,8 +176,8 @@ c	  First get group with restricted rotation range
 c
 	call groupRotations(nat, 1, nlist, angleRange, igroup, numGroups,
      &	    numInFirst)
-	print *,numGroups,' groups, first has', numInFirst
-	print *,(igroup(kl),kl=1,nlist)
+c	print *,numGroups,' groups, first has', numInFirst
+c	print *,(igroup(kl),kl=1,nlist)
 	call xfunit(natav,0.)
 	do kl=1,nlist
 	  if (igroup(kl) .eq. 1)
