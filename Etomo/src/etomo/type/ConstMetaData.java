@@ -88,9 +88,9 @@ public abstract class ConstMetaData extends BaseMetaData {
   protected final SqueezevolParam squeezevolParam;
   protected final TransferfidParam transferfidParamA;
   protected final TransferfidParam transferfidParamB;
-  protected boolean tomoGenTiltParallelA = false;
-  protected boolean tomoGenTiltParallelB = false;
-  protected boolean combineVolcombineParallel = false;
+  protected EtomoBoolean2 tomoGenTiltParallelA = null;
+  protected EtomoBoolean2 tomoGenTiltParallelB = null;
+  protected EtomoBoolean2 combineVolcombineParallel = null;
 
   public abstract void load(Properties props);
   public abstract void load(Properties props, String prepend);
@@ -168,12 +168,15 @@ public abstract class ConstMetaData extends BaseMetaData {
     tomoPosBinningB.store(props, prepend);
     tomoGenBinningA.store(props, prepend);
     tomoGenBinningB.store(props, prepend);
-    props.setProperty(group + TOMO_GEN_A_TILT_PARALLEL_GROUP, String
-        .valueOf(tomoGenTiltParallelA));
-    props.setProperty(group + TOMO_GEN_B_TILT_PARALLEL_GROUP, String
-        .valueOf(tomoGenTiltParallelB));
-    props.setProperty(group + COMBINE_VOLCOMBINE_PARALLEL_GROUP, String
-        .valueOf(combineVolcombineParallel));
+    if (tomoGenTiltParallelA != null) {
+      tomoGenTiltParallelA.store(props, prepend);
+    }
+    if (tomoGenTiltParallelB != null) {
+      tomoGenTiltParallelB.store(props, prepend);
+    }
+    if (combineVolcombineParallel != null) {
+      combineVolcombineParallel.store(props, prepend);
+    }
   }
 
   public TrimvolParam getTrimvolParam() {
@@ -267,11 +270,11 @@ public abstract class ConstMetaData extends BaseMetaData {
     return tomoGenBinningA;
   }
   
-  public boolean getCombineVolcombineParallel() {
+  public ConstEtomoNumber getCombineVolcombineParallel() {
     return combineVolcombineParallel;
   }
   
-  public boolean getTomoGenTiltParallel(AxisID axisID) {
+  public ConstEtomoNumber getTomoGenTiltParallel(AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       return tomoGenTiltParallelB;
     }
@@ -649,6 +652,9 @@ public abstract class ConstMetaData extends BaseMetaData {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.30  2005/09/29 18:45:29  sueh
+ * <p> bug# 532 Saving the state of the parallel checkbox states.
+ * <p>
  * <p> Revision 3.29  2005/09/16 17:50:23  sueh
  * <p> bug# 532 Added combineParallelProcess.
  * <p>
