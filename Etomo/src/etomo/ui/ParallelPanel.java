@@ -21,6 +21,7 @@ import etomo.process.ParallelProcessMonitor;
 import etomo.type.AxisID;
 import etomo.type.BaseScreenState;
 import etomo.type.ConstEtomoNumber;
+import etomo.type.EtomoBoolean2;
 import etomo.type.EtomoNumber;
 import etomo.type.PanelHeaderState;
 import etomo.type.ProcessName;
@@ -46,6 +47,7 @@ public final class ParallelPanel implements ParallelProgressDisplay, Expandable,
   static final String MAX_CPUS_STRING = ":  Maximum number of CPUs recommended is ";
   
   private static HashedArray maxCPUList = null;
+  private static EtomoBoolean2 validAutodoc = null;
   
   private final JPanel tablePanel = new JPanel();
   private final ParallelPanelActionListener actionListener = new ParallelPanelActionListener(
@@ -199,6 +201,18 @@ public final class ParallelPanel implements ParallelProgressDisplay, Expandable,
     }
     this.visible = visible;
     rootPanel.setVisible(visible);
+  }
+  
+  static final boolean isValidAutodoc(AxisID axisID) {
+    if (validAutodoc != null) {
+      return validAutodoc.is();
+    }
+    validAutodoc = new EtomoBoolean2();
+    Autodoc autodoc = getAutodoc(axisID);
+    if (autodoc != null && autodoc.isSectionExists(ProcessorTable.SECTION_TYPE)) {
+      validAutodoc.set(true);
+    }
+    return validAutodoc.is();
   }
   
   /**
@@ -385,6 +399,11 @@ public final class ParallelPanel implements ParallelProgressDisplay, Expandable,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.20  2005/09/27 23:39:52  sueh
+ * <p> bug# 532 Added boolean open to distinguish between making the panel
+ * <p> visible and opening and closing it.  Added PanelHeaderState to the
+ * <p> constructor.
+ * <p>
  * <p> Revision 1.19  2005/09/22 21:25:11  sueh
  * <p> bug# 532 Moved the parallel process panel to AxisProcessPanel.
  * <p>
