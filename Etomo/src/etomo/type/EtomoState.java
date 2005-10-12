@@ -16,6 +16,9 @@ import java.util.Properties;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.5  2005/06/11 02:38:25  sueh
+* <p> Overrode store functions.  Added isResultSet().
+* <p>
 * <p> Revision 1.4  2005/05/10 02:58:30  sueh
 * <p> bug# 658 Changed ConstEtomoNumber.validate() to
 * <p> ConstEtomoNumber.setInvalidReason.
@@ -52,7 +55,7 @@ public class EtomoState extends EtomoNumber {
   private static final String trueString = "true";
 
   public EtomoState(String name) {
-    super(EtomoNumber.INTEGER_TYPE, name);
+    super(name);
     setValidValues(new int[] { NO_RESULT_VALUE, FALSE_VALUE, TRUE_VALUE });
   }
   
