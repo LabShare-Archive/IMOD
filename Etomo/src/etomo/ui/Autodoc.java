@@ -204,6 +204,10 @@ public class Autodoc implements AttributeCollection {
     Section section = (Section) sectionMap.get(key);
     return section;
   }
+  
+  final boolean isSectionExists(String type) {
+    return getFirstSectionLocation(type) != null;
+  }
 
   public final SectionLocation getFirstSectionLocation(String type) {
     if (sectionList == null) {
@@ -434,6 +438,13 @@ public class Autodoc implements AttributeCollection {
 }
 /**
 *<p> $$Log$
+*<p> $Revision 1.19  2005/09/21 16:36:26  sueh
+*<p> $bug# 532 Removed initialization from constructor.  Calling initialization
+*<p> $from getAutodoc().  Removed getFile().  Added
+*<p> $setAutodocFile(String name, AxisID, String envVariable), which is called
+*<p> $by initialize().  It sets autodocFile (was file).  SetAutodocFile() reports all
+*<p> $problems it finds to the error log.
+*<p> $
 *<p> $Revision 1.18  2005/09/01 17:58:14  sueh
 *<p> $bug# 532  Change getAutodoc() to allow specification of the autodoc
 *<p> $location environment variable for each autodoc.  Get the cpu autodoc from
