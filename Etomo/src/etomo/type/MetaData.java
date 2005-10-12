@@ -20,6 +20,9 @@ import etomo.comscript.TransferfidParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.24  2005/09/29 18:46:24  sueh
+ * <p> bug# 532 Saving the state of the parallel checkbox states.
+ * <p>
  * <p> Revision 3.23  2005/09/16 17:50:45  sueh
  * <p> bug# 532 Added combineParallelProcess.
  * <p>
@@ -188,8 +191,15 @@ public class MetaData extends ConstMetaData {
     tomoPosBinningB.reset();
     tomoGenBinningA.reset();
     tomoGenBinningB.reset();
-    tomoGenTiltParallelA = false;
-    tomoGenTiltParallelB = false;
+    if (tomoGenTiltParallelA != null) {
+      tomoGenTiltParallelA.reset();
+    }
+    if (tomoGenTiltParallelB != null) {
+      tomoGenTiltParallelB.reset();
+    }
+    if (combineVolcombineParallel != null) {
+      combineVolcombineParallel.reset();
+    }
   }
   
   public void initialize() {
@@ -305,15 +315,48 @@ public class MetaData extends ConstMetaData {
   }
   
   public void setCombineVolcombineParallel(boolean combineVolcombineParallel) {
-    this.combineVolcombineParallel = combineVolcombineParallel;
+    if (this.combineVolcombineParallel == null) {
+      this.combineVolcombineParallel = new EtomoBoolean2(
+          COMBINE_VOLCOMBINE_PARALLEL_GROUP);
+    }
+    this.combineVolcombineParallel.set(combineVolcombineParallel);
   }
   
+  public void setCombineVolcombineParallel(String combineVolcombineParallel) {
+    if (this.combineVolcombineParallel == null) {
+      this.combineVolcombineParallel = new EtomoBoolean2(
+          COMBINE_VOLCOMBINE_PARALLEL_GROUP);
+    }
+    this.combineVolcombineParallel.set(combineVolcombineParallel);
+  }
+
   public void setTomoGenTiltParallel(AxisID axisID, boolean tomoGenTiltParallel) {
     if (axisID == AxisID.SECOND) {
-      tomoGenTiltParallelB = tomoGenTiltParallel;
+      if (tomoGenTiltParallelB == null) {
+        tomoGenTiltParallelB = new EtomoBoolean2(TOMO_GEN_B_TILT_PARALLEL_GROUP);
+      }
+      tomoGenTiltParallelB.set(tomoGenTiltParallel);
     }
     else {
-      tomoGenTiltParallelA = tomoGenTiltParallel;
+      if (tomoGenTiltParallelA == null) {
+        tomoGenTiltParallelA = new EtomoBoolean2(TOMO_GEN_A_TILT_PARALLEL_GROUP);
+      }
+      tomoGenTiltParallelA.set(tomoGenTiltParallel);
+    }
+  }
+  
+  public void setTomoGenTiltParallel(AxisID axisID, String tomoGenTiltParallel) {
+    if (axisID == AxisID.SECOND) {
+      if (tomoGenTiltParallelB == null) {
+        tomoGenTiltParallelB = new EtomoBoolean2(TOMO_GEN_B_TILT_PARALLEL_GROUP);
+      }
+      tomoGenTiltParallelB.set(tomoGenTiltParallel);
+    }
+    else {
+      if (tomoGenTiltParallelA == null) {
+        tomoGenTiltParallelA = new EtomoBoolean2(TOMO_GEN_A_TILT_PARALLEL_GROUP);
+      }
+      tomoGenTiltParallelA.set(tomoGenTiltParallel);
     }
   }
   
@@ -477,14 +520,17 @@ public class MetaData extends ConstMetaData {
     tomoPosBinningB.load(props, prepend);
     tomoGenBinningA.load(props, prepend);
     tomoGenBinningB.load(props, prepend);
-    tomoGenTiltParallelA = Boolean.valueOf(
-        props.getProperty(group + TOMO_GEN_A_TILT_PARALLEL_GROUP, "false"))
-        .booleanValue();
-    tomoGenTiltParallelB = Boolean.valueOf(
-        props.getProperty(group + TOMO_GEN_B_TILT_PARALLEL_GROUP, "false"))
-        .booleanValue();
-    combineVolcombineParallel = Boolean.valueOf(
-        props.getProperty(group + COMBINE_VOLCOMBINE_PARALLEL_GROUP, "false"))
-        .booleanValue();
+    String propertyValue = props.getProperty(group + TOMO_GEN_A_TILT_PARALLEL_GROUP);
+    if (propertyValue != null) {
+      setTomoGenTiltParallel(AxisID.FIRST, propertyValue);
+    }
+    propertyValue = props.getProperty(group + TOMO_GEN_B_TILT_PARALLEL_GROUP);
+    if (propertyValue != null) {
+      setTomoGenTiltParallel(AxisID.SECOND, propertyValue);
+    }
+    propertyValue = props.getProperty(group + COMBINE_VOLCOMBINE_PARALLEL_GROUP);
+    if (propertyValue != null) {
+      setCombineVolcombineParallel(propertyValue);
+    }
   }
 }
