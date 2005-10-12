@@ -70,6 +70,16 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.72  2005/09/29 19:13:05  sueh
+ * bug# 532 Add panel headers to all of the sections in Combine.  Hide the
+ * sections in the tabs that are not visible so that the visible tab can become
+ * small.  Added an expand() function to each tab to handle the
+ * expand/contract requests of the panel header buttons.  Added set and get
+ * parameters for ReconScreenState to set and get the state of the panel
+ * headers.  Added functionality to set the advanced/basic button to match
+ * the panel advanced/basic buttons, when all of the panel buttons have the
+ * same state.
+ *
  * Revision 3.71  2005/09/27 23:49:03  sueh
  * bug# 532 When creating headers, set the group name for storing.  Set the
  * state in each header.
@@ -695,7 +705,16 @@ public class TomogramGenerationDialog extends ProcessDialog
       getBinningFromNewst = false;
       spinBinning.setValue(binning);
     }
-    cbParallelProcess.setSelected(metaData.getTomoGenTiltParallel(axisID));
+    boolean validAutodoc = ParallelPanel.isValidAutodoc(AxisID.ONLY);
+    ConstEtomoNumber tomoGenTiltParallel = metaData
+        .getTomoGenTiltParallel(axisID);
+    cbParallelProcess.setEnabled(validAutodoc);
+    if (tomoGenTiltParallel == null) {
+      cbParallelProcess.setSelected(validAutodoc);
+    }
+    else {
+      cbParallelProcess.setSelected(tomoGenTiltParallel.is());
+    }
     updateParallelProcess();
   }
   

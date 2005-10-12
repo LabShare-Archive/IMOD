@@ -57,6 +57,14 @@ import etomo.type.Run3dmodMenuOptions;
  * 
  * <p>
  * $Log$
+ * Revision 3.31  2005/09/29 18:52:54  sueh
+ * bug# 532 Add panel headers to all of the sections in Combine.  Hide the
+ * sections in the tabs that are not visible so that the visible tab can become
+ * small.  Added an expand() function to each tab to handle the
+ * expand/contract requests of the panel header buttons.  Added set and get
+ * parameters for ReconScreenState to set and get the state of the panel
+ * headers.
+ *
  * Revision 3.30  2005/09/22 21:02:45  sueh
  * bug# 532 Added maxCPUs to the parallel processing checkbox.
  *
@@ -632,7 +640,16 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
   }
   
   final void setParameters(ConstMetaData metaData) {
-    cbParallelProcess.setSelected(metaData.getCombineVolcombineParallel());
+    boolean validAutodoc = ParallelPanel.isValidAutodoc(AxisID.ONLY);
+    ConstEtomoNumber combineVolcombineParallel = metaData
+        .getCombineVolcombineParallel();
+    cbParallelProcess.setEnabled(validAutodoc);
+    if (combineVolcombineParallel == null) {
+      cbParallelProcess.setSelected(validAutodoc);
+    }
+    else {
+      cbParallelProcess.setSelected(combineVolcombineParallel.is());
+    }
     tomogramCombinationDialog.updateParallelProcess();
   }
   
