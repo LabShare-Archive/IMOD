@@ -34,6 +34,8 @@ import etomo.util.HashedArray;
 final class ProcessorTable implements Storable {
   public static final String rcsid = "$Id$";
 
+  public static final String SECTION_TYPE = "Computer";
+  
   private static final String SPEED_ADOC_KEY = "speed";
   private static final String MEMORY_ADOC_KEY = "memory";
   private static final String STORE_PREPEND = "ProcessorTable";
@@ -135,7 +137,7 @@ final class ProcessorTable implements Storable {
     }
     //get first section
     SectionLocation sectionLocation = autodoc
-        .getFirstSectionLocation("Computer");
+        .getFirstSectionLocation(SECTION_TYPE);
     Section computer = autodoc.getSection(sectionLocation);
     EtomoNumber number = new EtomoNumber(EtomoNumber.INTEGER_TYPE);
     //loop on sections
@@ -637,6 +639,10 @@ final class ProcessorTable implements Storable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.19  2005/09/27 23:44:29  sueh
+ * <p> bug# 532 Moved loading prefererences to the end of initTable() from
+ * <p> ParallelPanel.
+ * <p>
  * <p> Revision 1.18  2005/09/22 21:29:36  sueh
  * <p> bug# 532 Removed restartsError.  Taking error level from ParallelPanel in
  * <p> ProcessorTableRow.
