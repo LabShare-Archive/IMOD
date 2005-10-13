@@ -5,6 +5,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 
 import javax.swing.BoxLayout;
+import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
@@ -27,9 +28,11 @@ import etomo.comscript.MatchorwarpParam;
 import etomo.comscript.Patchcrawl3DParam;
 import etomo.comscript.SolvematchParam;
 import etomo.type.AxisID;
+import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstMetaData;
 import etomo.type.DialogType;
 import etomo.type.MetaData;
+import etomo.type.ProcessName;
 import etomo.type.ReconScreenState;
 
 /**
@@ -45,6 +48,11 @@ import etomo.type.ReconScreenState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.27  2005/09/29 19:12:38  sueh
+ * <p> bug# 532 Added functionality to set the advanced/basic button to match
+ * <p> the panel advanced/basic buttons, when all of the panel buttons have the
+ * <p> same state.
+ * <p>
  * <p> Revision 3.26  2005/09/22 21:33:11  sueh
  * <p> bug# 532 Moved the parallel process panel to AxisProcessPanel.
  * <p>
@@ -240,8 +248,6 @@ public class TomogramCombinationDialog
   public static final String lblInitial = "Initial Match";
   public static final String lblFinal = "Final Match";
   public static final int ALL_FIELDS = 10;
-  public static final int MATCHING_MODEL_FIELDS = 11;
-  public static final int PATCH_REGION_MODEL_FIELDS = 12;
   private SetupCombinePanel pnlSetup;
   private InitialCombinePanel pnlInitial;
   private FinalCombinePanel pnlFinal;
@@ -249,6 +255,7 @@ public class TomogramCombinationDialog
   private JPanel parallelPanelContainer = new JPanel();
 
   private JTabbedPane tabbedPane = new JTabbedPane();
+  final String parallelProcessCheckBoxText;
   /**
    * This is the index of the last tab to keep track of what to sync from when
    * switching tabs
@@ -258,6 +265,15 @@ public class TomogramCombinationDialog
   public TomogramCombinationDialog(ApplicationManager appMgr) {
     super(appMgr, AxisID.FIRST, DialogType.TOMOGRAM_COMBINATION);
 
+    ConstEtomoNumber maxCPUs = ParallelPanel.getMaxCPUs(AxisID.ONLY,
+        ProcessName.VOLCOMBINE);
+    if (maxCPUs != null && !maxCPUs.isNull()) {
+      parallelProcessCheckBoxText = ParallelPanel.TITLE
+          + ParallelPanel.MAX_CPUS_STRING + maxCPUs.toString();
+    }
+    else {
+      parallelProcessCheckBoxText = ParallelPanel.TITLE;
+    }
     // Instantiate the tab pane contents
     pnlSetup = new SetupCombinePanel(this, applicationManager);
     pnlInitial = new InitialCombinePanel(this,  applicationManager);
@@ -289,6 +305,21 @@ public class TomogramCombinationDialog
     
     idxLastTab = tabbedPane.getSelectedIndex();
     setVisible(lblSetup);
+  }
+  
+  
+  static final JCheckBox getParallelProcessCheckBox() {
+    ConstEtomoNumber maxCPUs = ParallelPanel.getMaxCPUs(AxisID.ONLY,
+        ProcessName.VOLCOMBINE);
+    JCheckBox parallelProcessCheckBox;
+    if (maxCPUs != null && !maxCPUs.isNull()) {
+      parallelProcessCheckBox = new JCheckBox(ParallelPanel.TITLE
+          + ParallelPanel.MAX_CPUS_STRING + maxCPUs.toString());
+    }
+    else {
+      parallelProcessCheckBox = new JCheckBox(ParallelPanel.TITLE);
+    }
+    return parallelProcessCheckBox;
   }
   
   /**
@@ -347,7 +378,8 @@ public class TomogramCombinationDialog
   }
   
   public final void getParameters(MetaData metaData) {
-    pnlFinal.getParameters(metaData);
+    synchronize(lblSetup, false);
+    pnlSetup.getParameters(metaData);
   }
   
   public final void getParameters(SplitcombineParam param) {
@@ -355,7 +387,8 @@ public class TomogramCombinationDialog
   }
   
   public final void setParameters(ConstMetaData metaData) {
-    pnlFinal.setParameters(metaData);
+    pnlSetup.setParameters(metaData);
+    synchronize(lblSetup, true);
     updateParallelProcess();
   }
   
@@ -427,34 +460,33 @@ public class TomogramCombinationDialog
    * to the other tab(s).  False when copying data into the current tab (when
    * running combine on the setup tab).
    */
-  public void synchronize(String tabTitle,
-    boolean copyFromCurrentTab,
-    int fieldSet) {
+  public void synchronize(String tabTitle, boolean copyFromCurrentTab) {
     if (tabTitle.equals(lblSetup)) {
       if (copyFromCurrentTab) {
-        synchronize(pnlSetup, pnlInitial, fieldSet);
-        synchronize(pnlSetup, pnlFinal, fieldSet);
-        return;
+        synchronize(pnlSetup, pnlInitial);
+        synchronize(pnlSetup, pnlFinal);
       }
-      synchronize(pnlInitial, pnlSetup, fieldSet);
-      synchronize(pnlFinal, pnlSetup, fieldSet);
-      return;
+      else {
+        synchronize(pnlInitial, pnlSetup);
+        synchronize(pnlFinal, pnlSetup);
+      }
     }
-    if (tabTitle.equals(lblInitial)) {
+    else if (tabTitle.equals(lblInitial)) {
       if (copyFromCurrentTab) {
-        synchronize(pnlInitial, pnlSetup, fieldSet);
-        return;
+        synchronize(pnlInitial, pnlSetup);
       }
-      synchronize(pnlSetup, pnlInitial, fieldSet);
-      return;      
+      else {
+        synchronize(pnlSetup, pnlInitial);
+      }
+      ;
     }
-    if (tabTitle.equals(lblFinal)) {
+    else if (tabTitle.equals(lblFinal)) {
       if (copyFromCurrentTab) {
-        synchronize(pnlFinal, pnlSetup, fieldSet);
-        return;
+        synchronize(pnlFinal, pnlSetup);
       }
-      synchronize(pnlSetup, pnlFinal, fieldSet);
-      return;      
+      else {
+        synchronize(pnlSetup, pnlFinal);
+      }
     }
   }
   
@@ -464,22 +496,12 @@ public class TomogramCombinationDialog
    * @param toPanel
    * @param fieldSet
    */
-  private void synchronize(
-    InitialCombineFields fromPanel,
-    InitialCombineFields toPanel,
-    int fieldSet) {
-    if (fieldSet == ALL_FIELDS) {
-      toPanel.setSurfacesOrModels(fromPanel.getSurfacesOrModels());
-      toPanel.setBinBy2(fromPanel.isBinBy2());
-      toPanel.setFiducialMatchListA(fromPanel.getFiducialMatchListA());
-      toPanel.setFiducialMatchListB(fromPanel.getFiducialMatchListB());
-      return;
-    }
-    if (fieldSet == MATCHING_MODEL_FIELDS) {
-      toPanel.setSurfacesOrModels(fromPanel.getSurfacesOrModels());
-      toPanel.setBinBy2(fromPanel.isBinBy2());
-      return;
-    }
+  private void synchronize(InitialCombineFields fromPanel,
+      InitialCombineFields toPanel) {
+    toPanel.setSurfacesOrModels(fromPanel.getSurfacesOrModels());
+    toPanel.setBinBy2(fromPanel.isBinBy2());
+    toPanel.setFiducialMatchListA(fromPanel.getFiducialMatchListA());
+    toPanel.setFiducialMatchListB(fromPanel.getFiducialMatchListB());
   }
 
   /**
@@ -488,24 +510,17 @@ public class TomogramCombinationDialog
    * @param toPanel
    * @param fieldSet
    */
-  private void synchronize(
-    FinalCombineFields fromPanel,
-    FinalCombineFields toPanel,
-    int fieldSet) {
-    if (fieldSet == ALL_FIELDS) {
-      toPanel.setUsePatchRegionModel(fromPanel.isUsePatchRegionModel());
-      toPanel.setXMin(fromPanel.getXMin());
-      toPanel.setXMax(fromPanel.getXMax());
-      toPanel.setYMin(fromPanel.getYMin());
-      toPanel.setYMax(fromPanel.getYMax());
-      toPanel.setZMin(fromPanel.getZMin());
-      toPanel.setZMax(fromPanel.getZMax());
-      return;
-    }
-    if (fieldSet == PATCH_REGION_MODEL_FIELDS) {
-      toPanel.setUsePatchRegionModel(fromPanel.isUsePatchRegionModel());
-      return;
-    }
+  private void synchronize(FinalCombineFields fromPanel,
+      FinalCombineFields toPanel) {
+    toPanel.setUsePatchRegionModel(fromPanel.isUsePatchRegionModel());
+    toPanel.setXMin(fromPanel.getXMin());
+    toPanel.setXMax(fromPanel.getXMax());
+    toPanel.setYMin(fromPanel.getYMin());
+    toPanel.setYMax(fromPanel.getYMax());
+    toPanel.setZMin(fromPanel.getZMin());
+    toPanel.setZMax(fromPanel.getZMax());
+    toPanel.setParallelProcess(fromPanel.isParallelProcess());
+    toPanel.setNoVolcombine(fromPanel.isNoVolcombine());
   }
 
   /**
@@ -557,13 +572,13 @@ public class TomogramCombinationDialog
 
   public void buttonPostponeAction(ActionEvent event) {
     super.buttonPostponeAction(event);
-    synchronize(tabbedPane.getTitleAt(idxLastTab), true, ALL_FIELDS);
+    synchronize(tabbedPane.getTitleAt(idxLastTab), true);
     applicationManager.doneTomogramCombinationDialog();
   }
 
   public void buttonExecuteAction(ActionEvent event) {
     super.buttonExecuteAction(event);
-    synchronize(tabbedPane.getTitleAt(idxLastTab), true, ALL_FIELDS);
+    synchronize(tabbedPane.getTitleAt(idxLastTab), true);
     applicationManager.doneTomogramCombinationDialog();
   }
 
@@ -615,7 +630,7 @@ public class TomogramCombinationDialog
    */
   void tabStateChange(ChangeEvent event) {
     int idxNewTab = tabbedPane.getSelectedIndex();
-    synchronize(tabbedPane.getTitleAt(idxLastTab), true, ALL_FIELDS);
+    synchronize(tabbedPane.getTitleAt(idxLastTab), true);
     setVisible(tabbedPane.getTitleAt(idxNewTab));
     //  Set the last tab index to current tab so that we are ready for tab
     // change
