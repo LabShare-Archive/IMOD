@@ -1,6 +1,6 @@
-# IMOD 3.5.2
+# IMOD 3.6.16
 #
-# Startup file for bash users of IMOD under Linux
+# Startup file for bash users of IMOD under Cygwin
 #
 # It assumes that IMOD is located in /usr/local - if not, modify IMOD_DIR here
 # or set IMOD_DIR before sourcing this file
@@ -11,7 +11,15 @@
 #
 # Set IMOD_DIR if it is not set already; use Windows path format with double \
 #
-export IMOD_DIR=${IMOD_DIR:=`/usr/bin/cygpath -w /usr/local/IMOD`}
+if [ -z "$IMOD_DIR" ]; then
+    export IMOD_DIR=`/usr/bin/cygpath -w /usr/local/IMOD`
+else
+    /usr/bin/echo "$IMOD_DIR" | grep ' $' > /dev/null
+    if [ ! -z $? ] ; then
+        echo "Environment variable IMOD_DIR has a space at the end.  You should fix this."
+        export IMOD_DIR=`/usr/bin/cygpath -w "$IMOD_DIR"`
+    fi
+fi
 
 # Put the IMOD programs on the path
 #
