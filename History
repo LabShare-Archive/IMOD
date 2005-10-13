@@ -1,5 +1,12 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/13/05: Fixed 3dmod's scaling of clip plane information when model is
+read in on subset, flipped, squeezed or binned data.  Fixed Z-scale problems
+in model display when data are read in with anisotropic binning.
+
+10/13/05: Added fine-grained display info to the model checksum so model 
+changes are detected.
+
 10/11/05: Made Matchvol preserve origin values so if Squeezevol is used on a
 volume with non-zero origin, a model will display in the correct place.
 
