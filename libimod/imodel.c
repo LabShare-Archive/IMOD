@@ -22,6 +22,9 @@ Log at end
 #include "imodel.h"
 #include "b3dutil.h"
 
+static void flipClips(IclipPlanes *clips);
+static void transClips(IclipPlanes *clips, Imat *mat, Imat *mat2);
+
 /*!
  * Allocates a new model structure and returns a pointer to it, or NULL if 
  * there is an error.  Initializes the model with @imodDefault 
@@ -1490,6 +1493,7 @@ int imodChecksum(Imod *imod)
     }
     osum += obj->mat1 + obj->mat1b1 + obj->mat1b2 + obj->mat1b3;
     osum += obj->mat3 + obj->mat3b1 + obj->mat3b2 + obj->mat3b3;
+    osum += istoreChecksum(obj->store);
     for(co = 0; co < obj->contsize; co++){
       cont = &(obj->cont[co]);
       psum += cont->surf;
@@ -1499,6 +1503,7 @@ int imodChecksum(Imod *imod)
         psum += cont->pts[pt].y;
         psum += cont->pts[pt].z;
       }
+      psum += istoreChecksum(cont->store);
       if (cont->sizes)
         for(pt = 0; pt < cont->psize; pt++)
           psum += cont->sizes[pt];
@@ -1586,7 +1591,7 @@ void  imodFlipYZ(Imod *imod)
   Icont *cont;
   Imesh *mesh;
   float tmp;
-  int    ob, co, pt;
+  int    ob, co, pt, i;
 
   for(ob = 0; ob < imod->objsize; ob++){
     obj = &(imod->obj[ob]);
@@ -1598,6 +1603,8 @@ void  imodFlipYZ(Imod *imod)
         cont->pts[pt].z = tmp;
       }
     }
+
+    flipClips(&obj->clips);
     for(co = 0; co < obj->meshsize; co++){
       mesh = &(obj->mesh[co]);
       for(pt = 0; pt < mesh->vsize; pt++){
@@ -1607,11 +1614,180 @@ void  imodFlipYZ(Imod *imod)
       }
     }
   }
+
+  for (i = 0; i < imod->viewsize; i++) {
+    flipClips(&imod->view[i].clips);
+    for (ob = 0; ob < imod->view[i].objvsize; ob++) {
+      flipClips(&imod->view[i].objview[ob].clips);
+    }
+  }
+
   tmp = imod->ymax;
   imod->ymax = imod->zmax;
   imod->zmax = tmp;
   return;
 }
+
+/*!
+ * Transforms the model in [imod] according the old and current shift, scale,
+ * and rotation in [iref], with the additional scaling required for binning in
+ * each dimension specified in [binScale].  Returns 1 for memory errors.
+ */
+int imodTransModel(Imod *imod, IrefImage *iref, Ipoint binScale)
+{
+  Iobj  *obj;
+  Icont *cont;
+  Ipoint pnt;
+  Imat  *mat, *mat2;
+  int    ob, co, pt;
+  int    me, i;
+  Imesh *mesh;
+  IclipPlanes *clips;
+
+  /* Before any transforming, unflip a flipped model */
+  if (imod->flags & IMODF_FLIPYZ) {
+    imodFlipYZ(imod);
+    imod->flags &= ~IMODF_FLIPYZ;
+  }
+
+  /* First transform to "absolute" image coords using old reference 
+     image data */
+  /* Compute separate matrices for point and clip plane normal transforms */
+  mat = imodMatNew(3);
+  mat2 = imodMatNew(3);
+  if (!mat || !mat2)
+    return 1;
+
+  imodMatScale(mat, &iref->oscale);
+  pnt.x = 1. / iref->oscale.x;
+  pnt.y = 1. / iref->oscale.y;
+  pnt.z = 1. / iref->oscale.z;
+  imodMatScale(mat2, &pnt);
+  
+  pnt.x =  - iref->otrans.x;
+  pnt.y =  - iref->otrans.y;
+  pnt.z =  - iref->otrans.z;
+  imodMatTrans(mat, &pnt);
+
+
+  /* DNM 11/5/98: because tilt angles were not properly set into the
+     model data when IrefImage was created, do rotations
+     only if the flag is set that tilts have been stored properly */
+  /* DNM 1/3/04: and skip it if there is no rotation change */
+  if (imod->flags & IMODF_TILTOK && (iref->crot.x != iref->orot.x || 
+                                     iref->crot.y != iref->orot.y || 
+                                     iref->crot.z != iref->orot.z )) {
+    imodMatRot(mat, - iref->orot.x, b3dX);
+    imodMatRot(mat, - iref->orot.y, b3dY);
+    imodMatRot(mat, - iref->orot.z, b3dZ);
+
+    imodMatRot(mat2, - iref->orot.x, b3dX);
+    imodMatRot(mat2, - iref->orot.y, b3dY);
+    imodMatRot(mat2, - iref->orot.z, b3dZ);
+
+    /* Next transform from these "absolute" coords to new reference
+       image coords */
+
+    imodMatRot(mat, iref->crot.z, b3dZ);
+    imodMatRot(mat, iref->crot.y, b3dY);
+    imodMatRot(mat, iref->crot.x, b3dX);
+
+    imodMatRot(mat2, iref->crot.z, b3dZ);
+    imodMatRot(mat2, iref->crot.y, b3dY);
+    imodMatRot(mat2, iref->crot.x, b3dX);
+  }
+
+  imodMatTrans(mat, &iref->ctrans);
+
+  pnt.x = 1. / (iref->cscale.x * binScale.x);
+  pnt.y = 1. / (iref->cscale.y * binScale.y);
+  pnt.z = 1. / (iref->cscale.z * binScale.z);
+  imodMatScale(mat, &pnt);
+
+  pnt.x = iref->cscale.x * binScale.x;
+  pnt.y = iref->cscale.y * binScale.y;
+  pnt.z = iref->cscale.z * binScale.z;
+  imodMatScale(mat2, &pnt);
+
+  // DNM 8/14/05: eliminated sizeScale
+          
+  for (ob = 0; ob < imod->objsize; ob++){
+    obj = &(imod->obj[ob]);
+    for (co = 0; co < obj->contsize; co++){
+      cont = &(obj->cont[co]);
+      for (pt = 0; pt < cont->psize; pt++){
+        imodMatTransform(mat, &cont->pts[pt], &pnt);
+        cont->pts[pt] = pnt;
+      }
+    }
+
+    transClips(&obj->clips, mat, mat2);
+    
+    /* Just translate the meshes as necessary */
+    /* DNM 1/3/04: switch to transforming the mesh */
+    for (me = 0; me < obj->meshsize; me++) {
+      mesh = &obj->mesh[me];
+      if (!mesh || !mesh->vsize)
+        continue;
+      for (i = 0; i < mesh->vsize; i += 2){
+        imodMatTransform(mat, &mesh->vert[i], &pnt);
+        mesh->vert[i] = pnt;
+      }
+    }
+  }
+
+  /* Now transform clip points in views and object views */
+  for (i = 0; i < imod->viewsize; i++) {
+    transClips(&imod->view[i].clips, mat, mat2);
+    for (ob = 0; ob < imod->view[i].objvsize; ob++) {
+      transClips(&imod->view[i].objview[ob].clips, mat, mat2);
+    }
+  }
+
+  imodMatDelete(mat);
+  imodMatDelete(mat2);
+  return 0;
+}
+
+/* Transform clipping planes; mat has point transform and mat2 has normal */
+static void transClips(IclipPlanes *clips, Imat *mat, Imat *mat2)
+{
+  int i;
+  Ipoint pnt, pnt2;
+  for (i = 0; i < clips->count; i++) {
+
+    /* The clipping point is maintained as the negative of an actual location
+     so it needs to be inverted, transformed, then reinverted */
+    pnt2.x = -clips->point[i].x;
+    pnt2.y = -clips->point[i].y;
+    pnt2.z = -clips->point[i].z;
+    imodMatTransform(mat, &pnt2, &pnt);
+    clips->point[i].x = -pnt.x;
+    clips->point[i].y = -pnt.y;
+    clips->point[i].z = -pnt.z;
+
+    /* Transform and renormalize the normal */
+    imodMatTransform(mat2, &clips->normal[i], &pnt);
+    imodPointNormalize(&pnt);
+    clips->normal[i] = pnt;
+  }
+}
+
+/* Flip clipping planes */
+static void flipClips(IclipPlanes *clips)
+{
+  int i;
+  float tmp;
+  for (i = 0; i < clips->count; i++) {
+    tmp = clips->point[i].y;
+    clips->point[i].y = clips->point[i].z;
+    clips->point[i].z = tmp;
+    tmp = clips->normal[i].y;
+    clips->normal[i].y = clips->normal[i].z;
+    clips->normal[i].z = tmp;
+  }
+}
+
 
 /*! Get the number of objects in model [imod] (not the maximum object index).
  */
@@ -1632,6 +1808,9 @@ int   imodGetFlipped(Imod *imod)
 
 /*
 $Log$
+Revision 3.20  2005/06/29 05:35:32  mast
+Changed a store function call
+
 Revision 3.19  2005/06/26 19:21:09  mast
 Added storage handling to contour deletion routine
 
