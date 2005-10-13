@@ -8,6 +8,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.10  2005/08/18 04:16:35  mast
+#  Added imodwincpu via a flag
+#
 #  Revision 3.9  2005/07/06 20:54:20  mast
 #  Removed fallback for imodtrans; regular n32 build now works
 #
@@ -86,7 +89,7 @@ wmod2imod$(E) : wmod2imod.$(O)
 	$(CC) -o wmod2imod wmod2imod.$(O) $(LDFLAGS) $(LIMOD) $(CLIBS)
 
 imodjoin$(E) :  imodjoin.$(O)
-	$(CC) -o imodjoin imodjoin.$(O) $(LDFLAGS) $(LIMOD) $(CLIBS)
+	$(CC) -o imodjoin imodjoin.$(O) $(LDFLAGS) $(IILIBS) $(CLIBS)
 
 imodextract$(E) : imodextract.$(O)
 	$(CC) -o imodextract imodextract.$(O) $(LDFLAGS) $(LIMOD) $(CLIBS)
