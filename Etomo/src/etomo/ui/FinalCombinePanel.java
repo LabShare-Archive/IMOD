@@ -25,10 +25,7 @@ import etomo.comscript.CombineParams;
 import etomo.comscript.ProcesschunksParam;
 import etomo.comscript.SetParam;
 import etomo.type.AxisID;
-import etomo.type.ConstEtomoNumber;
-import etomo.type.ConstMetaData;
 import etomo.type.EtomoAutodoc;
-import etomo.type.MetaData;
 import etomo.type.ProcessName;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
@@ -57,6 +54,10 @@ import etomo.type.Run3dmodMenuOptions;
  * 
  * <p>
  * $Log$
+ * Revision 3.32  2005/10/12 22:44:39  sueh
+ * bug# 532 If parallel is not set in meta data, then the default for the parallel
+ * checkboxes is based on the existance and validity of cpu.adoc.
+ *
  * Revision 3.31  2005/09/29 18:52:54  sueh
  * bug# 532 Add panel headers to all of the sections in Combine.  Hide the
  * sections in the tabs that are not visible so that the visible tab can become
@@ -249,6 +250,8 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     Run3dmodButtonContainer, Expandable {
   public static final String rcsid = "$Id$";
 
+  public static final String NO_VOLCOMBINE_TITLE = "Stop before running volcombine";
+  
   private TomogramCombinationDialog tomogramCombinationDialog;
   private ApplicationManager applicationManager;
 
@@ -330,7 +333,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     "<html><b>Open Volume Being Matched To</b>", this);
   private Run3dmodButton btnImodCombined = new Run3dmodButton(
     "<html><b>Open Combined Volume</b>", this);
-  private JCheckBox cbNoVolcombine = new JCheckBox("Stop before running volcombine");
+  private JCheckBox cbNoVolcombine = new JCheckBox(NO_VOLCOMBINE_TITLE);
   private LabeledTextField ltfReductionFactor = new LabeledTextField(
       "Reduction factor for matching amplitudes in combined FFT: ");
   private JCheckBox cbParallelProcess;
@@ -462,15 +465,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     pnlMatchorwarp.add(pnlMatchorwarpBody);
     
     pnlVolcombineBody.setLayout(new BoxLayout(pnlVolcombineBody, BoxLayout.Y_AXIS));
-    ConstEtomoNumber maxCPUs = ParallelPanel.getMaxCPUs(AxisID.ONLY,
-        ProcessName.VOLCOMBINE);
-    if (maxCPUs != null && !maxCPUs.isNull()) {
-      cbParallelProcess = new JCheckBox(ParallelPanel.TITLE
-          + ParallelPanel.MAX_CPUS_STRING + maxCPUs.toString());
-    }
-    else {
-      cbParallelProcess = new JCheckBox(ParallelPanel.TITLE);
-    }
+    cbParallelProcess = new JCheckBox(tomogramCombinationDialog.parallelProcessCheckBoxText);
     pnlVolcombineBody.add(cbParallelProcess);
     pnlVolcombineBody.add(cbNoVolcombine);
     pnlVolcombineBody.add(ltfReductionFactor.getContainer());
@@ -635,24 +630,6 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     cbNoVolcombine.setSelected(!runVolcombine);
   }
   
-  final void getParameters(MetaData metaData) {
-    metaData.setCombineVolcombineParallel(cbParallelProcess.isSelected());
-  }
-  
-  final void setParameters(ConstMetaData metaData) {
-    boolean validAutodoc = ParallelPanel.isValidAutodoc(AxisID.ONLY);
-    ConstEtomoNumber combineVolcombineParallel = metaData
-        .getCombineVolcombineParallel();
-    cbParallelProcess.setEnabled(validAutodoc);
-    if (combineVolcombineParallel == null) {
-      cbParallelProcess.setSelected(validAutodoc);
-    }
-    else {
-      cbParallelProcess.setSelected(combineVolcombineParallel.is());
-    }
-    tomogramCombinationDialog.updateParallelProcess();
-  }
-  
   final void setParameters(ReconScreenState screenState) {
     patchRegionModelHeader.setState(screenState.getCombineFinalPatchRegionHeaderState());
     patchcorrHeader.setState(screenState.getCombineFinalPatchcorrHeaderState());
@@ -735,6 +712,22 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
       return;
     }
     ltfReductionFactor.setText(setParam.getValue());
+  }
+  
+  public final void setNoVolcombine(boolean noVolcombine) {
+    cbNoVolcombine.setSelected(noVolcombine);
+  }
+  
+  public final boolean isNoVolcombine() {
+    return cbNoVolcombine.isSelected();
+  }
+  
+  public final void setParallelProcess(boolean parallelProcess) {
+    cbParallelProcess.setSelected(parallelProcess);
+  }
+  
+  public final boolean isParallelProcess() {
+    return cbParallelProcess.isSelected();
   }
   
   void getVolcombineParams(SetParam setParam) {
@@ -948,7 +941,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
   private void buttonAction(ActionEvent event) {
     // Synchronize this panel with the others
     tomogramCombinationDialog.synchronize(TomogramCombinationDialog.lblFinal,
-      true, TomogramCombinationDialog.ALL_FIELDS);
+      true);
 
     String command = event.getActionCommand();
     // Decrease patch sizes by 20%

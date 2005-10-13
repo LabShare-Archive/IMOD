@@ -22,7 +22,10 @@ import etomo.comscript.ConstCombineParams;
 import etomo.comscript.SplitcombineParam;
 import etomo.type.AxisID;
 import etomo.type.CombinePatchSize;
+import etomo.type.ConstEtomoNumber;
+import etomo.type.ConstMetaData;
 import etomo.type.FiducialMatch;
+import etomo.type.MetaData;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
 
@@ -46,6 +49,14 @@ import etomo.type.Run3dmodMenuOptions;
  * 
  * <p>
  * $Log$
+ * Revision 3.21  2005/09/29 19:10:49  sueh
+ * bug# 532 Add panel headers to all of the sections in Combine.  Hide the
+ * sections in the tabs that are not visible so that the visible tab can become
+ * small.  Added an expand() function to each tab to handle the
+ * expand/contract requests of the panel header buttons.  Added set and get
+ * parameters for ReconScreenState to set and get the state of the panel
+ * headers.
+ *
  * Revision 3.20  2005/09/16 18:11:40  sueh
  * bug# 532 Added setParameters(SplitcombineParam).
  *
@@ -294,6 +305,8 @@ public class SetupCombinePanel
     "<html><b>Create/Edit Patch Region Model</b>", this);
 
   private JPanel pnlPatchRegion = new JPanel();
+  private final JPanel pnlVolcombineControls = new JPanel();
+  private final JPanel pnlVolcombineControlsBody = new JPanel();
   private LabeledTextField ltfXMin = new LabeledTextField("X axis min: ");
   private LabeledTextField ltfXMax = new LabeledTextField("X axis max: ");
   private LabeledTextField ltfYMin = new LabeledTextField("Y axis min: ");
@@ -321,6 +334,9 @@ public class SetupCombinePanel
   private final PanelHeader toSelectorHeader;
   private final PanelHeader patchParamsHeader;
   private final PanelHeader tempDirectoryHeader;
+  private final PanelHeader volcombineHeader;
+  private final JCheckBox cbNoVolcombine = new JCheckBox(FinalCombinePanel.NO_VOLCOMBINE_TITLE);
+  private final JCheckBox cbParallelProcess;
 
   /**
    * Default constructor
@@ -397,6 +413,20 @@ public class SetupCombinePanel
     pnlPatchParams.add(patchParamsHeader.getContainer());
     pnlPatchParams.add(pnlPatchParamsBody);
 
+    //  Create the volcombine controls panel
+    pnlVolcombineControls.setLayout(new BoxLayout(pnlVolcombineControls, BoxLayout.Y_AXIS));
+    pnlVolcombineControls.setBorder(BorderFactory.createEtchedBorder());
+    volcombineHeader = PanelHeader.getInstance(
+        ReconScreenState.COMBINE_SETUP_VOLCOMBINE_HEADER_GROUP,
+        "Volcombine Controls", this);
+    pnlVolcombineControls.add(volcombineHeader.getContainer());
+    pnlVolcombineControlsBody.setLayout(new BoxLayout(pnlVolcombineControlsBody, BoxLayout.Y_AXIS));
+    cbParallelProcess = new JCheckBox(tomogramCombinationDialog.parallelProcessCheckBoxText);
+    pnlVolcombineControlsBody.add(cbParallelProcess);
+    pnlVolcombineControlsBody.add(cbNoVolcombine);
+    UIUtilities.alignComponentsX(pnlVolcombineControlsBody, Component.CENTER_ALIGNMENT);
+    pnlVolcombineControls.add(pnlVolcombineControlsBody);
+    
     //  Create the temporary storage panel
     pnlTempDirectoryBody
       .setLayout(new BoxLayout(pnlTempDirectoryBody, BoxLayout.Y_AXIS));
@@ -421,6 +451,7 @@ public class SetupCombinePanel
     btnImodVolumeB.addActionListener(actionListener);
     btnCreate.addActionListener(actionListener);
     btnCombine.addActionListener(actionListener);
+    cbParallelProcess.addActionListener(actionListener);
 
     //  Bind the radio buttons to the action listener
     RBMatchToListener rbMatchToListener = new RBMatchToListener(this);
@@ -452,6 +483,7 @@ public class SetupCombinePanel
     pnlRoot.add(pnlToSelector);
     pnlRoot.add(pnlSolvematch.getContainer());
     pnlRoot.add(pnlPatchParams);
+    pnlRoot.add(pnlVolcombineControls);
     pnlRoot.add(pnlTempDirectory);
     pnlRoot.add(Box.createVerticalGlue());
     UIUtilities.addWithYSpace(pnlRoot, pnlButton);
@@ -473,13 +505,48 @@ public class SetupCombinePanel
     toSelectorHeader.setState(screenState.getCombineSetupToSelectorHeaderState());
     pnlSolvematch.getHeader().setState(screenState.getCombineSetupSolvematchHeaderState());
     patchParamsHeader.setState(screenState.getCombineSetupPatchcorrHeaderState());
+    volcombineHeader.setState(screenState.getCombineSetupVolcombineHeaderState());
     tempDirectoryHeader.setState(screenState.getCombineSetupTempDirHeaderState());
+  }
+  
+  final void getParameters(MetaData metaData) {
+    metaData.setCombineVolcombineParallel(cbParallelProcess.isSelected());
+  }
+  
+  final void setParameters(ConstMetaData metaData) {
+    boolean validAutodoc = ParallelPanel.isValidAutodoc(AxisID.ONLY);
+    ConstEtomoNumber combineVolcombineParallel = metaData
+        .getCombineVolcombineParallel();
+    cbParallelProcess.setEnabled(validAutodoc);
+    if (combineVolcombineParallel == null) {
+      cbParallelProcess.setSelected(validAutodoc);
+    }
+    else {
+      cbParallelProcess.setSelected(combineVolcombineParallel.is());
+    }
+  }
+  
+  public final void setNoVolcombine(boolean noVolcombine) {
+    cbNoVolcombine.setSelected(noVolcombine);
+  }
+  
+  public final boolean isNoVolcombine() {
+    return cbNoVolcombine.isSelected();
+  }
+  
+  public final void setParallelProcess(boolean parallelProcess) {
+    cbParallelProcess.setSelected(parallelProcess);
+  }
+  
+  public final boolean isParallelProcess() {
+    return cbParallelProcess.isSelected();
   }
   
   final void getParameters(ReconScreenState screenState) {
     toSelectorHeader.getState(screenState.getCombineSetupToSelectorHeaderState());
     pnlSolvematch.getHeader().getState(screenState.getCombineSetupSolvematchHeaderState());
     patchParamsHeader.getState(screenState.getCombineSetupPatchcorrHeaderState());
+    volcombineHeader.getState(screenState.getCombineSetupVolcombineHeaderState());
     tempDirectoryHeader.getState(screenState.getCombineSetupTempDirHeaderState());
   }
   
@@ -488,6 +555,7 @@ public class SetupCombinePanel
     pnlToSelector.setVisible(visible);
     pnlSolvematch.setVisible(visible);
     pnlPatchParams.setVisible(visible);
+    pnlVolcombineControls.setVisible(visible);
     pnlTempDirectory.setVisible(visible);
   }
   
@@ -497,6 +565,9 @@ public class SetupCombinePanel
     }
     else if (patchParamsHeader.equalsOpenClose(button)) {
       pnlPatchParamsBody.setVisible(button.isExpanded());
+    }
+    else if (volcombineHeader.equalsOpenClose(button)) {
+      pnlVolcombineControlsBody.setVisible(button.isExpanded());
     }
     else if (tempDirectoryHeader.equalsOpenClose(button)) {
       pnlTempDirectoryBody.setVisible(button.isExpanded());
@@ -724,7 +795,7 @@ public class SetupCombinePanel
   private void buttonAction(ActionEvent event) {
     //  Synchronize this panel with the others
     tomogramCombinationDialog.synchronize(TomogramCombinationDialog.lblSetup,
-      true, TomogramCombinationDialog.ALL_FIELDS);
+      true);
 
     String command = event.getActionCommand();
 
@@ -733,6 +804,9 @@ public class SetupCombinePanel
     }
     else if (command.equals(btnCombine.getActionCommand())) {
       applicationManager.combine();
+    }
+    else if (command.equals(cbParallelProcess.getActionCommand())) {
+      tomogramCombinationDialog.updateParallelProcess();
     }
     else {
       run3dmod(command, new Run3dmodMenuOptions());
