@@ -14,6 +14,9 @@ $Date$
 $Revision$
     
 $Log$
+Revision 3.6  2005/09/12 14:17:04  mast
+Fixed return value, added function to clear range
+
 Revision 3.5  2005/09/11 19:19:27  mast
 Added various functions
 
@@ -114,6 +117,7 @@ extern "C" {
   int istoreInsert(Ilist **listp, Istore *store);
   int istoreLookup(Ilist *list, int index, int *after);
   void istoreDump(Ilist *list);
+  double istoreChecksum(Ilist *list);
   int istoreBreakChanges(Ilist *list, int index, int psize);
   int istoreFindBreak(Ilist *list, int index);
   void istoreShiftIndex(Ilist *list, int ptIndex, int startScan, int amount);

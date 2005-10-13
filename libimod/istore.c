@@ -14,6 +14,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.6  2005/09/12 14:16:54  mast
+Fixed return value, added function to clear range
+
 Revision 3.5  2005/09/11 19:16:46  mast
 Additions while implementing solid/trans drawing
 
@@ -330,6 +333,47 @@ void istoreDump(Ilist *list)
     printf("\n");
   }    
 }
+
+/*!
+ * Computes a checksum from the elements in the list, adding all types, flags,
+ * indexes and values.
+ */
+double istoreChecksum(Ilist *list)
+{
+  int i, j, dtype;
+  Istore *store;
+  StoreUnion *item;
+  double sum = 0.;
+
+  for (i = 0; i < ilistSize(list); i++) {
+    store = istoreItem(list, i);
+    dtype = store->flags & 3;
+    sum += store->flags + store->type;
+    item = &store->index;
+
+    for (j = 0; j < 2; j++) {
+      switch (dtype ) {
+      case GEN_STORE_INT:
+        sum += item->i;
+        break;
+      case GEN_STORE_FLOAT:
+        sum += item->f;
+        break;
+      case GEN_STORE_SHORT:
+        sum += item->s[0] + item->s[1];
+        break;
+      case GEN_STORE_BYTE:
+        sum += item->b[0] + item->b[1] + item->b[2] + item->b[3];
+        break;
+      }
+
+      dtype = (store->flags >> 2) & 3;
+      item = &store->value;
+    }
+  }    
+  return sum;
+}
+
 
 /*!
  * Breaks all changes in [list] at the point index given by [index]; namely 
