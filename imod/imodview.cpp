@@ -1498,19 +1498,14 @@ void ivwFlipModel(ImodView *vi)
   return;
 }
 
+
 /* Transforms model so that it matches image coordinate system.
  */
 void ivwTransModel(ImodView *vi)
 {
   IrefImage *iref;
   Imod  *imod = vi->imod;
-  Iobj  *obj;
-  Icont *cont;
-  Ipoint pnt;
-  Imat  *mat;
-  int    ob, co, pt;
-  int    me, i;
-  Imesh *mesh;
+  Ipoint binScale;
 
   /* If model doesn't have a reference coordinate system
    * from an image, then use this image's coordinate
@@ -1530,93 +1525,14 @@ void ivwTransModel(ImodView *vi)
   if (!iref) 
     return;
 
-  mat = imodMatNew(3);
   iref->orot   = vi->imod->refImage->crot;
   iref->otrans = vi->imod->refImage->ctrans;
   iref->oscale = vi->imod->refImage->cscale;
+  binScale.x = binScale.y = vi->xybin;
+  binScale.z = vi->zbin;
 
-  /* transform model to new coords */
-
-  /* But first, unflip a flipped model */
-  if (imod->flags & IMODF_FLIPYZ) {
-    imodFlipYZ(imod);
-    imod->flags &= ~IMODF_FLIPYZ;
-  }
-
-  /* First transform to "absolute" image coords using old reference 
-     image data */
-  imodMatId(mat);
-  imodMatScale(mat, &iref->oscale);
-  
-  pnt.x =  - iref->otrans.x;
-  pnt.y =  - iref->otrans.y;
-  pnt.z =  - iref->otrans.z;
-  imodMatTrans(mat, &pnt);
-
-
-  /* DNM 11/5/98: because tilt angles were not properly set into the
-     model data when IrefImage was created, do rotations
-     only if the flag is set that tilts have been stored properly */
-  /* DNM 1/3/04: and skip it if there is no rotation change */
-  if (imod->flags & IMODF_TILTOK && (iref->crot.x != iref->orot.x || 
-                                     iref->crot.y != iref->orot.y || 
-                                     iref->crot.z != iref->orot.z )) {
-    imodMatRot(mat, - iref->orot.x, b3dX);
-    imodMatRot(mat, - iref->orot.y, b3dY);
-    imodMatRot(mat, - iref->orot.z, b3dZ);
-
-    /* Next transform from these "absolute" coords to new reference
-       image coords */
-
-    imodMatRot(mat, iref->crot.z, b3dZ);
-    imodMatRot(mat, iref->crot.y, b3dY);
-    imodMatRot(mat, iref->crot.x, b3dX);
-  }
-
-  imodMatTrans(mat, &iref->ctrans);
-
-  pnt.x = 1. / (iref->cscale.x * vi->xybin);
-  pnt.y = 1. / (iref->cscale.y * vi->xybin);
-  pnt.z = 1. / (iref->cscale.z * vi->zbin);
-  imodMatScale(mat, &pnt);
-
-  // DNM 8/14/05: eliminated sizeScale
-          
-  for (ob = 0; ob < imod->objsize; ob++){
-    obj = &(imod->obj[ob]);
-    for (co = 0; co < obj->contsize; co++){
-      cont = &(obj->cont[co]);
-      for (pt = 0; pt < cont->psize; pt++){
-        imodMatTransform(mat, &cont->pts[pt], &pnt);
-        cont->pts[pt] = pnt;
-      }
-
-      /* imodMatTransform(mat, &obj->clip_point, &pnt);
-      obj->clip_point = pnt; */
-    }
-
-    /* Just translate the meshes as necessary */
-    /* DNM 1/3/04: switch to transforming the mesh */
-    for (me = 0; me < obj->meshsize; me++) {
-      mesh = &obj->mesh[me];
-      if (!mesh || !mesh->vsize)
-        continue;
-      for (i = 0; i < mesh->vsize; i += 2){
-        imodMatTransform(mat, &mesh->vert[i], &pnt);
-        mesh->vert[i] = pnt;
-      }
-    }
-  }
-
-  /* Now transform clip points in object views */
-  /*  for (i = 0; i < imod->viewsize; i++) {
-    for (ob = 0; ob < imod->view[i].objvsize; ob++) {
-      imodMatTransform(mat, &imod->view[i].objview[ob].clip_point, &pnt);
-      imod->view[i].objview[ob].clip_point = pnt;
-    }
-    } */
-
-  imodMatDelete(mat);
+  /* transform model to new coords (it will be unflipped if necessary) */
+  imodTransModel(imod, iref, binScale);
 
   ivwFlipModel(vi);
   ivwSetModelTrans(vi);
@@ -2500,6 +2416,9 @@ void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin,
 
 /*
 $Log$
+Revision 4.36  2005/08/15 02:07:58  mast
+Fixed scaling when a model with no refImage is displayed on binned data
+
 Revision 4.35  2005/03/20 19:55:36  mast
 Eliminating duplicate functions
 
