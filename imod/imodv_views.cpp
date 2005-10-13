@@ -382,7 +382,7 @@ void imodvViewsInitialize(Imod *imod)
 
   // Correct the scaling for the current view if it is 1:
   if (imod->view[imod->cview].rad == 1.)
-    imodViewDefaultScale(imod, &imod->view[imod->cview], &imageMax);
+    imodViewDefaultScale(imod, &imod->view[imod->cview], &imageMax, 1.);
 
   // Put the current view into use
   imodViewUse(imod);
@@ -406,6 +406,9 @@ static void build_list(ImodvApp *a)
 /*
 
     $Log$
+    Revision 4.9  2004/11/21 06:07:49  mast
+    Changes for undo/redo
+
     Revision 4.8  2003/11/01 18:12:17  mast
     changed to put out virtually all error messages to a window
 
