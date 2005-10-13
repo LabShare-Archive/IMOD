@@ -53,7 +53,7 @@ Log at end of file
 #define IMODEL_FILES_VERSION_12
 #define IMODEL_FILES_VERSION 12   /* imod 1.2 */
 
-/* #define IMODEL_FILES_DEBUG */
+/*#define IMODEL_FILES_DEBUG*/
 
 static int imodel_read_v01(Imod *mod, FILE *fin);
 static int imodel_read(Imod *imod, int version);
@@ -291,7 +291,7 @@ static int imodel_write(Imod *mod, FILE *fout)
       return(error);
      
   mod->file = fout;
-  imodViewModelWrite(mod);
+  imodViewModelWrite(mod, &scale);
   imodIMNXWrite(mod);
   if ((id = imodWriteStore(mod->store, ID_MOST, fout)))
     return(id);
@@ -310,6 +310,7 @@ static int imodel_write_object(Iobj *obj, FILE *fout,
   int id;
   b3dUByte clipOut;
   IclipPlanes *clips;
+  Ipoint normScale;
 
   id = ID_OBJT;
   imodPutInt(fout, &id);
@@ -354,8 +355,13 @@ static int imodel_write_object(Iobj *obj, FILE *fout,
         clipOut = 0;
       imodPutBytes(fout, &clipOut, 1);
       imodPutBytes(fout, &clips->flags, 3);
-      imodPutFloats(fout, (float *)&clips->normal[0], 3 * clips->count);
-      imodPutFloats(fout, (float *)&clips->point[0], 3 * clips->count);
+      normScale.x = 1. / scale->x;
+      normScale.y = 1. / scale->y;
+      normScale.z = 1. / scale->z;
+      imodPutScaledPoints(fout, (float *)&clips->normal[0], clips->count, 
+                          &normScale);
+      imodPutScaledPoints(fout, (float *)&clips->point[0], clips->count,
+                          scale);
     }
 	  
     /* Matierial data. */
@@ -479,6 +485,8 @@ static int imodel_read(Imod *imod, int version)
   int error;
   int ieof = FALSE;
   int id;
+  char badid[8];
+  int *badp = (int *)badid;
 
   if (version == IMOD_01){
     error = imodel_read_v01(imod, imod->file);
@@ -678,8 +686,10 @@ static int imodel_read(Imod *imod, int version)
 
     default:
 #ifdef IMODEL_FILES_DEBUG
-      fprintf(stderr, "imodel_read: unknown data. %x, %s\n", 
-              id, &id);
+      *badp = id;
+      badid[4] = 0;
+      fprintf(stderr, "imodel_read: unknown data. %x, %f\n%s\n", 
+              id, (float)id,badid);
 #endif
       id = imodGetInt(fin);
       if (fseek(fin, id, SEEK_CUR)){
@@ -1581,6 +1591,9 @@ int imodPutByte(FILE *fp, unsigned char *dat)
 
 /*
   $Log$
+  Revision 3.20  2005/09/09 18:38:04  mast
+  Fixed fatal bug in writing mesh from model loaded on binned data
+
   Revision 3.19  2005/06/20 22:24:58  mast
   Added calls to read/write general storage
 
