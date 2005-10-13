@@ -3833,8 +3833,7 @@ public class ApplicationManager extends BaseManager {
         loadVolcombine();
         loadCombineComscript();
         tomogramCombinationDialog.synchronize(
-            TomogramCombinationDialog.lblSetup, false,
-            TomogramCombinationDialog.ALL_FIELDS);
+            TomogramCombinationDialog.lblSetup, false);
         updateCombineParams();
       }
     }
@@ -5705,6 +5704,14 @@ public class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.183  2005/09/29 18:38:21  sueh
+ * <p> bug# 532 Preventing Etomo from saving to the .edf or .ejf file over and
+ * <p> over during exit.  Added BaseManager.exiting and
+ * <p> saveIntermediateParamFile(), which will not save when exiting it true.
+ * <p> Setting exiting to true in BaseManager.exitProgram().  Moved call to
+ * <p> saveParamFile() to the child exitProgram functions so that the param file
+ * <p> is saved after all the done functions are run.
+ * <p>
  * <p> Revision 3.182  2005/09/27 21:08:25  sueh
  * <p> bug# 532 Added ReconScreenState screenStateA and B to hold screen
  * <p> state information that is not saved in the comscripts and not used to run
