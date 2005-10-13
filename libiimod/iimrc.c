@@ -14,6 +14,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.10  2004/11/05 18:53:04  mast
+Include local files with quotes, not brackets
+
 Revision 3.9  2004/11/04 17:10:27  mast
 libiimod.def
 
@@ -50,7 +53,7 @@ Added protections against non-Boulder files being recognized as montages
 int iiMRCreadSection(ImodImageFile *inFile, char *buf, int inSection)
 {
   struct LoadInfo li;
-  struct MRCheader *h = (struct MRCheader *)inFile->header;
+  MrcHeader *h = (MrcHeader *)inFile->header;
 
   li.xmin = inFile->llx;
   li.ymin = inFile->lly;
@@ -84,7 +87,7 @@ int iiMRCreadSection(ImodImageFile *inFile, char *buf, int inSection)
 int iiMRCreadSectionByte(ImodImageFile *inFile, char *buf, int inSection)
 {
   struct LoadInfo li;
-  struct MRCheader *h = (struct MRCheader *)inFile->header;
+  MrcHeader *h = (MrcHeader *)inFile->header;
   li.xmin   = inFile->llx;
   li.ymin   = inFile->lly;
   li.zmin = inFile->llz;
@@ -120,12 +123,12 @@ void iiMRCdelete(ImodImageFile *inFile)
 int iiMRCCheck(ImodImageFile *i)
 {
   FILE *fp;
-  struct MRCheader *hdr;
+  MrcHeader *hdr;
   if (!i) return -1;
   fp = i->fp;
   if (!fp) return 1;
 
-  hdr = (struct MRCheader *)malloc(sizeof(struct MRCheader));
+  hdr = (MrcHeader *)malloc(sizeof(MrcHeader));
   if (mrc_head_read(fp, hdr)){
     free(hdr);
     return(1);
@@ -167,13 +170,15 @@ int iiMRCCheck(ImodImageFile *i)
   i->smin  = i->amin;
   i->smax  = i->amax;
   i->amean = hdr->amean;
+  i->xscale = i->yscale = i->zscale = 1.;
+
   /* DNM 11/5/98: inverted these expressions to give proper usage */
   /* DNM 9/13/02: needed to divide by mx, ny, nz, not nx, ny, nz */
-  if (hdr->xlen)
+  if (hdr->xlen && hdr->mx)
     i->xscale = hdr->xlen/(float)hdr->mx;
-  if (hdr->ylen)
+  if (hdr->ylen && hdr->my)
     i->yscale = hdr->ylen/(float)hdr->my;
-  if (hdr->xlen)
+  if (hdr->xlen && hdr->mz)
     i->zscale = hdr->zlen/(float)hdr->mz;
   i->xtrans = hdr->xorg;
   i->ytrans = hdr->yorg;
@@ -204,7 +209,7 @@ int iiMRCLoadPCoord(ImodImageFile *inFile, struct LoadInfo *li, int nx, int ny,
   int extratot = 0;
   int offset=1024;
   int nread = nz;
-  struct MRCheader *hdr = (struct MRCheader *)inFile->header;     
+  MrcHeader *hdr = (MrcHeader *)inFile->header;     
   int iflag = hdr->nreal;
   int nbytes = hdr->nint;
   int nextra = hdr->next;
