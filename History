@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/11/05: Made Matchvol preserve origin values so if Squeezevol is used on a
+volume with non-zero origin, a model will display in the correct place.
+
 10/11/05: Made Finishjoin base the average alignment on tomograms with
 similar rotation angles, so tomograms with 90 or 180 degree rotations do not
 need special handling (i.e., initial rotation, or making one section be the 
