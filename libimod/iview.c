@@ -69,7 +69,8 @@ void imodViewDefault(Iview *vw)
 }
 
 /* Set the default scaling for a view based on current model dimensions */
-void imodViewDefaultScale(Imod *imod, Iview *vw, Ipoint *imageMax)
+void imodViewDefaultScale(Imod *imod, Iview *vw, Ipoint *imageMax, 
+                          float binScale)
 {
   Ipoint maxp, minp;
   int i;
@@ -89,14 +90,14 @@ void imodViewDefaultScale(Imod *imod, Iview *vw, Ipoint *imageMax)
     maxp.z = imageMax->z;
   }
 
-  maxp.z *= imod->zscale;
-  minp.z *= imod->zscale;
+  maxp.z *= binScale * imod->zscale;
+  minp.z *= binScale * imod->zscale;
 
   vw->trans.x = (minp.x + maxp.x)  * -0.5f;
   vw->trans.y = (minp.y + maxp.y)  * -0.5f;
   vw->trans.z = (minp.z + maxp.z)  * -0.5f;
   if (imod->zscale)
-    vw->trans.z /= imod->zscale;
+    vw->trans.z /= binScale * imod->zscale;
 
   maxp.x -= minp.x;
   maxp.y -= minp.y;
@@ -119,7 +120,7 @@ void imodViewModelDefault(Imod *imod, Iview *vw, Ipoint *imageMax)
   if (!imod || !vw)
     return; 
   imodViewDefault(vw);
-  imodViewDefaultScale(imod, vw, imageMax);
+  imodViewDefaultScale(imod, vw, imageMax, 1.);
 }
 
 
@@ -131,7 +132,7 @@ void imodViewModelDefault(Imod *imod, Iview *vw, Ipoint *imageMax)
    For backward compatibility, need to add all new elements at end of write
    so the array elements after the first have to be written at end */
 
-int imodViewWrite(Iview *vw, FILE *fout)
+int imodViewWrite(Iview *vw, FILE *fout, Ipoint *scale)
 {
   unsigned int id;
   int i, j;
@@ -139,6 +140,7 @@ int imodViewWrite(Iview *vw, FILE *fout)
   Iobjview *ov;
   IclipPlanes *clips;
   b3dUByte clipOut;
+  Ipoint normScale;
 
   id = ID_VIEW;
   imodPutInt(fout, &id);
@@ -151,6 +153,11 @@ int imodViewWrite(Iview *vw, FILE *fout)
   imodPutInt(fout, &vw->world);
   imodPutBytes(fout, (unsigned char *)vw->label, 32);
   imodPutFloats(fout, &vw->dcstart, 5);
+
+  normScale.x = 1. / scale->x;
+  normScale.y = 1. / scale->y;
+  normScale.z = 1. / scale->z;
+  
   if (vw->objvsize) {
     imodPutInt(fout, &vw->objvsize);
     imodPutInt(fout, &nbwrite);
@@ -169,14 +176,16 @@ int imodViewWrite(Iview *vw, FILE *fout)
         clipOut = 0;
       imodPutBytes(fout, &clipOut, 1);
       imodPutBytes(fout, &clips->flags, 3);
-      imodPutFloats(fout, (float *)&clips->normal[0], 3);
-      imodPutFloats(fout, (float *)&clips->point[0], 3);
+      imodPutScaledPoints(fout, (float *)&clips->normal[0], 1, &normScale);
+      imodPutScaledPoints(fout, (float *)&clips->point[0], 1, scale);
       imodPutBytes(fout, &ov->ambient, 4);
       imodPutBytes(fout, (unsigned char *)&ov->mat1, 4);
       imodPutInts(fout, (int *)&ov->mat2, 1);
       imodPutBytes(fout, (unsigned char *)&ov->mat3, 4);
-      imodPutFloats(fout, (float *)&clips->normal[1], 3 * (IMOD_CLIPSIZE - 1));
-      imodPutFloats(fout, (float *)&clips->point[1], 3 * (IMOD_CLIPSIZE - 1));
+      imodPutScaledPoints(fout, (float *)&clips->normal[1], IMOD_CLIPSIZE - 1,
+        &normScale);
+      imodPutScaledPoints(fout, (float *)&clips->point[1], IMOD_CLIPSIZE - 1,
+                          scale);
     }
   }
 
@@ -187,8 +196,10 @@ int imodViewWrite(Iview *vw, FILE *fout)
     id = 4 + 24 * vw->clips.count;
     imodPutInt(fout, &id);
     imodPutBytes(fout, &vw->clips.count, 4);
-    imodPutFloats(fout, (float *)&vw->clips.normal[0], 3 * vw->clips.count);
-    imodPutFloats(fout, (float *)&vw->clips.point[0], 3 * vw->clips.count);
+    imodPutScaledPoints(fout, (float *)&vw->clips.normal[0], vw->clips.count,
+                        &normScale);
+    imodPutScaledPoints(fout, (float *)&vw->clips.point[0], vw->clips.count,
+                        scale);
   }
 
   if (ferror(fout))
@@ -197,7 +208,7 @@ int imodViewWrite(Iview *vw, FILE *fout)
     return(0);
 }
 
-int imodViewModelWrite(Imod *imod)
+int imodViewModelWrite(Imod *imod, Ipoint *scale)
 {
   int i, id, bsize;
      
@@ -211,7 +222,7 @@ int imodViewModelWrite(Imod *imod)
   imodPutInt(imod->file, &(imod->cview));
 
   for(i = 1; i < imod->viewsize; i++){
-    imodViewWrite(&(imod->view[i]), imod->file);
+    imodViewWrite(&(imod->view[i]), imod->file, scale);
   }
   return(0);
 }
@@ -565,6 +576,9 @@ int imodIMNXWrite(Imod *imod)
 
 /*
 $Log$
+Revision 3.10  2005/02/11 01:42:34  mast
+Warning cleanup: implicit declarations, main return type, parentheses, etc.
+
 Revision 3.9  2004/12/23 22:31:54  mast
 Fixed bug in reading image translations
 
