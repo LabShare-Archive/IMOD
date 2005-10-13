@@ -174,6 +174,7 @@ static int imodv_init(ImodvApp *a, struct Mod_Draw *md)
 static void initstruct(ImodView *vw, ImodvApp *a)
 {
   Ipoint imageMax;
+  float binScale;
 
   imodv_init(a, &Imodv_mdraw);
 
@@ -197,13 +198,14 @@ static void initstruct(ImodView *vw, ImodvApp *a)
   a->texTrans = 0;
   a->vi = vw;
 
-  // Recompute scale and shift of operating view and current view - replaces
+  // Recompute scale and shift of all views to take care of binning - replaces
   // old method of setting up views
   imageMax.x = vw->xsize;
   imageMax.y = vw->ysize;
   imageMax.z = vw->zsize;
-  imodViewDefaultScale(a->imod, a->imod->view, &imageMax);
-  imodViewDefaultScale(a->imod, &a->imod->view[a->imod->cview], &imageMax);
+  binScale = ((float)vw->zbin) / ((float)vw->xybin);
+  for (int i = 0; i < a->imod->viewsize; i++)
+    imodViewDefaultScale(a->imod, &a->imod->view[i], &imageMax, binScale);
   return;
 }
 
@@ -382,7 +384,7 @@ static int load_models(int n, char **fname, ImodvApp *a)
        6/26/03: switch to new method, just initialize views in each model */
     /* 7/17/03: trouble.  Restore default scaling of current view if exists */
     if (mod->cview)
-      imodViewDefaultScale(mod, &mod->view[mod->cview], &imageMax);
+      imodViewDefaultScale(mod, &mod->view[mod->cview], &imageMax, 1.);
 
     imodvViewsInitialize(mod);
   }
@@ -559,6 +561,7 @@ void imodv_draw()
 void imodv_new_model(Imod *mod)
 {
   Ipoint imageMax;
+  float binScale;
 
   if (ImodvClosed)
     return;
@@ -566,13 +569,14 @@ void imodv_new_model(Imod *mod)
   Imodv->imod = mod;
   Imodv->mod[0] = mod;
 
-  // Recompute scale and shift of operating view and current view - replaces
-  // earlier method of setting up views
+  // Recompute scale and shift of all views (needed to take care of binning 
+  // replaces earlier method of setting up views
   imageMax.x = Imodv->vi->xsize;
   imageMax.y = Imodv->vi->ysize;
   imageMax.z = Imodv->vi->zsize;
-  imodViewDefaultScale(mod, mod->view, &imageMax);
-  imodViewDefaultScale(mod, &mod->view[mod->cview], &imageMax);
+  binScale = ((float)Imodv->vi->zbin) / ((float)Imodv->vi->xybin);
+  for (int i = 0; i < mod->viewsize; i++)
+    imodViewDefaultScale(mod, &mod->view[i], &imageMax, binScale);
 
   imodvSelectModel(Imodv, 0);
 }
@@ -664,6 +668,9 @@ void imodvQuit()
 
 /*
 $Log$
+Revision 4.24  2004/11/22 00:24:46  mast
+Added deletion of ImodHelp on exit
+
 Revision 4.23  2004/11/21 06:02:17  mast
 Provided window opening by key letter and routines for undo calls
 
