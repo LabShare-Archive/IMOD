@@ -12,6 +12,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.2  2004/01/27 03:34:04  mast
+c	  Convert to PIP input and add option for scaling translations
+c	
 c	  Revision 3.1  2003/08/02 22:32:14  mast
 c	  Standardize error output and exit
 c	
@@ -53,6 +56,7 @@ c
      &	    .ne. 0) call errorexit('NO FIRST INPUT FILE SPECIFIED')
 	call dopen(1,gfile,'ro','f')
 	call xfrdall(1,f,nfirst,*92)
+	if (nfirst .eq. 0) call errorexit('NO TRANSFORMS IN FIRST INPUT FILE')
 	print *,nfirst,' transforms in first file'
 c
 	if (PipGetInOutFile('InputFile2', 2,
@@ -60,6 +64,8 @@ c
      &	    .ne. 0) call errorexit('NO SECOND INPUT FILE SPECIFIED')
 	call dopen(2,gfile,'ro','f')
 	call xfrdall(2,g,nsecond,*92)
+	if (nsecond .eq. 0)
+     &	    call errorexit('NO TRANSFORMS IN SECOND INPUT FILE')
 	print *,nsecond,' transforms in second file'
 c	  
 	if (nfirst.gt.nflimit.or.nsecond.gt.nflimit)
@@ -89,7 +95,7 @@ c
 	    print *,'Single first transform applied to all',
      &		' second transforms'
 	  else
-	    print *,'Number of transforms does not match'
+	    print *,'WARNING: XFPRODUCT - Number of transforms does not match'
 	  endif
 	endif
 c	  
