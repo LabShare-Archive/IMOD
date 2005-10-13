@@ -43,7 +43,7 @@ import etomo.util.HashedArray;
 public final class ParallelPanel implements ParallelProgressDisplay, Expandable, LoadAverageDisplay {
   public static final String rcsid = "$Id$";
 
-  static final String TITLE = "ParallelProcessing";
+  static final String TITLE = "Parallel Processing";
   static final String MAX_CPUS_STRING = ":  Maximum number of CPUs recommended is ";
   
   private static HashedArray maxCPUList = null;
@@ -399,6 +399,9 @@ public final class ParallelPanel implements ParallelProgressDisplay, Expandable,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.21  2005/10/12 22:45:24  sueh
+ * <p> bug# Added validAutodoc and isValidAutodoc().
+ * <p>
  * <p> Revision 1.20  2005/09/27 23:39:52  sueh
  * <p> bug# 532 Added boolean open to distinguish between making the panel
  * <p> visible and opening and closing it.  Added PanelHeaderState to the
