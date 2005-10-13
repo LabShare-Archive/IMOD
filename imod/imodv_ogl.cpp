@@ -58,8 +58,7 @@ static void set_curcontsurf(int ob, Imod* imod);
 static void imodvUnsetObject(Iobj *obj);
 static int load_cmap(unsigned char table[3][256], int *rampData);
 static void mapfalsecolor(int gray, int *red, int *green, int *blue);
-static int clip_obj(Imod *imod, Iobj *obj, int flag, double zscale,
-                    double zoom);
+static int clip_obj(Imod *imod, Iobj *obj, int flag);
 static int skipNonCurrentSurface(Imesh *mesh, int *ip, Iobj *obj);
 
 static int CTime = -1;
@@ -177,6 +176,9 @@ static void imodvSetDepthCue(Imod *imod)
   float bgcolor[4];
   float fstart, fend;
   float drange;
+  double zscale = imod->zscale;
+  if (!Imodv->standalone)
+    zscale = (imod->zscale * Imodv->vi->zbin) / Imodv->vi->xybin;
  
   depthShift = 0.0f;
 
@@ -203,8 +205,8 @@ static void imodvSetDepthCue(Imod *imod)
     maxp.z = Imodv->vi->zsize;
   }
 
-  maxp.z *= imod->zscale;
-  minp.z *= imod->zscale;
+  maxp.z *= zscale;
+  minp.z *= zscale;
   drange = (maxp.x - minp.x) * (maxp.x - minp.x) +
     (maxp.y - minp.y) * (maxp.y - minp.y) +
     (maxp.z - minp.z) * (maxp.z - minp.z);
@@ -230,7 +232,12 @@ static void imodvSetDepthCue(Imod *imod)
 static void imodvSetModelTrans(Imod *imod)
 {
   Iview *vw;
+  float zscale;
   if (!imod) return; 
+
+  zscale = imod->zscale;
+  if (!Imodv->standalone)
+    zscale = (imod->zscale * Imodv->vi->zbin) / Imodv->vi->xybin;
 
   vw = imod->view;
   glMatrixMode(GL_MODELVIEW);
@@ -250,8 +257,8 @@ static void imodvSetModelTrans(Imod *imod)
   glRotatef(vw->rot.y, 0.0f, 1.0f, 0.0f); 
   glRotatef(vw->rot.z, 0.0f, 0.0f, 1.0f); 
      
-  glTranslatef(vw->trans.x, vw->trans.y, (vw->trans.z * imod->zscale));
-  glScalef(vw->scale.x, vw->scale.y, vw->scale.z * imod->zscale);
+  glTranslatef(vw->trans.x, vw->trans.y, (vw->trans.z * zscale));
+  glScalef(vw->scale.x, vw->scale.y, vw->scale.z * zscale);
 
   return;
 }
@@ -439,9 +446,9 @@ void imodvDraw_model(ImodvApp *a, Imod *imod)
         set_curcontsurf(ob, imod);
         glLoadName(ob);
         curTessObj = ob;
-        clip_obj(imod, obj, 1, imod->zscale, Imodv->md->zoom);
+        clip_obj(imod, obj, 1);
         imodvDraw_object( obj , imod, drawTrans);
-        clip_obj(imod, obj, 0, imod->zscale, Imodv->md->zoom);
+        clip_obj(imod, obj, 0);
         glFinish();
       }
     }
@@ -454,11 +461,9 @@ void imodvDraw_model(ImodvApp *a, Imod *imod)
   return;
 }
 
-static int clip_obj(Imod *imod, Iobj *obj, int flag, double zscale, 
-                    double zoom)
+static int clip_obj(Imod *imod, Iobj *obj, int flag)
 {
   GLdouble params[4];
-  float z = zscale;
   int cpn = 0, clipSet, ip;
   IclipPlanes *clips = &obj->clips;
   GLint maxPlanes;
@@ -476,6 +481,10 @@ static int clip_obj(Imod *imod, Iobj *obj, int flag, double zscale,
           params[0] = clips->normal[ip].x;
           params[1] = clips->normal[ip].y;
           params[2] = clips->normal[ip].z;
+
+          /* DNM 10/13/05: this parameter is evidently supposed to be the
+             negative of this product for the plane equation Ax+By+Cz+D=0,
+             which is why clip points are all maintained as negative values */
           params[3] = (clips->normal[ip].x * clips->point[ip].x) +
             (clips->normal[ip].y * clips->point[ip].y) +
             (clips->normal[ip].z * clips->point[ip].z);
@@ -622,6 +631,10 @@ static void imodvDraw_object(Iobj *obj, Imod *imod, int drawTrans)
   if (!obj->contsize)
     return;
 
+  zscale = imod->zscale;
+  if (!Imodv->standalone)
+    zscale = (imod->zscale * Imodv->vi->zbin) / Imodv->vi->xybin;
+
   // Check for individual point sizes if not scattered and no sphere size
   if (!hasSpheres) {
     for (co = 0; co < obj->contsize; co++) {
@@ -640,8 +653,6 @@ static void imodvDraw_object(Iobj *obj, Imod *imod, int drawTrans)
      instead of testing this flag to avoid confusion */
 
   if (hasSpheres){
-    /* DNM: has to be the model being drawn, not the current one */
-    zscale = imod->zscale;
     /* scattered points: if they are filled, draw as fill; then draw the
        lines on top if "Fill outline" is selected
        Also draw points non-scattered point objects as filled */
@@ -700,15 +711,15 @@ static void imodvDraw_object(Iobj *obj, Imod *imod, int drawTrans)
     if (iobjFill(obj->flags)){
       glMatrixMode(GL_MODELVIEW);
       glPushMatrix();
-      glScalef(1.0f, 1.0f, 1.0f/imod->zscale);
+      glScalef(1.0f, 1.0f, 1.0f/zscale);
       imodvSetObject(obj, DRAW_FILL, drawTrans);
       for (co = 0; co < obj->meshsize; co++){
         mesh = &(obj->mesh[co]);
         if (check_mesh_draw(mesh, checkTime, resol)) {
           if (obj->flags & IMOD_OBJFLAG_SCALAR)
-            imodvDrawScalarMesh (mesh, imod->zscale, obj, drawTrans);
+            imodvDrawScalarMesh (mesh, zscale, obj, drawTrans);
           else
-            imodvDraw_filled_mesh (mesh, imod->zscale, obj, drawTrans);
+            imodvDraw_filled_mesh (mesh, zscale, obj, drawTrans);
         }
       }
       glPopMatrix();
@@ -732,7 +743,7 @@ static void imodvDraw_object(Iobj *obj, Imod *imod, int drawTrans)
           mesh = &(obj->mesh[co]);
           if (check_mesh_draw(mesh, checkTime, resol)) {
             if (obj->flags & IMOD_OBJFLAG_SCALAR){
-              imodvDrawScalarMesh(mesh, imod->zscale, obj, drawTrans);
+              imodvDrawScalarMesh(mesh, zscale, obj, drawTrans);
             }else{
               imodvDraw_mesh(mesh, DRAW_LINES, obj, drawTrans);
             }
@@ -745,7 +756,7 @@ static void imodvDraw_object(Iobj *obj, Imod *imod, int drawTrans)
           mesh = &(obj->mesh[co]);
           if (check_mesh_draw(mesh, checkTime, resol)) {
             if (obj->flags & IMOD_OBJFLAG_SCALAR){
-              imodvDrawScalarMesh(mesh, imod->zscale, obj, drawTrans);
+              imodvDrawScalarMesh(mesh, zscale, obj, drawTrans);
             }else{
               /*  if (iobjLine(obj->flags))
                   imodvDraw_mesh(&(obj->mesh[co]),
@@ -2341,6 +2352,9 @@ static int skipNonCurrentSurface(Imesh *mesh, int *ip, Iobj *obj)
 
 /*
 $Log$
+Revision 4.23  2005/09/22 15:11:18  mast
+Had to end and restart triangles for mesh triangles in Linux
+
 Revision 4.22  2005/09/12 14:24:42  mast
 Fixed problem with ending and starting triangles in mesh draw
 
