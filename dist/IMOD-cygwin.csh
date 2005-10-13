@@ -1,4 +1,4 @@
-# IMOD 3.5.2
+# IMOD 3.6.16
 #
 # Startup file for tcsh users of IMOD under Cygwin
 #
@@ -10,7 +10,15 @@
 #
 # Set IMOD_DIR if it is not set already, use Windows path format with double \
 #
-if (! $?IMOD_DIR) setenv IMOD_DIR `/usr/bin/cygpath -w /usr/local/IMOD`
+if (! $?IMOD_DIR) then
+    setenv IMOD_DIR `/usr/bin/cygpath -w /usr/local/IMOD`
+else
+    /usr/bin/echo "$IMOD_DIR" | grep ' $' > /dev/null
+    if (! $?) then
+        echo "Environment variable IMOD_DIR has a space at the end.  You should fix this."
+        setenv IMOD_DIR `/usr/bin/cygpath -w "$IMOD_DIR"`
+    endif
+endif
 
 # Put the IMOD programs on the path
 #
