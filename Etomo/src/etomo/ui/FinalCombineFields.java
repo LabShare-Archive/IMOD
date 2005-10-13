@@ -14,6 +14,10 @@ package etomo.ui;
 * @version $$Revision$$
 *
 * <p> $$Log$
+* <p> $Revision 1.2  2004/05/11 21:46:29  sueh
+* <p> $bug# 302 making FinalCombineFields interface local to the
+* <p> $ui package
+* <p> $
 * <p> $Revision 1.1  2004/05/11 20:48:38  sueh
 * <p> $bug #302 interface to final combine screen fields.  Used by
 * <p> $setup panel and final panel.
@@ -36,4 +40,8 @@ interface FinalCombineFields {
   public String getZMin();
   public void setZMax(String zMax);
   public String getZMax();
+  public void setParallelProcess(boolean parallelProcess);
+  public boolean isParallelProcess();
+  public void setNoVolcombine(boolean noVolcombine);
+  public boolean isNoVolcombine();
 }
