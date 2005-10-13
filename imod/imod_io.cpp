@@ -504,9 +504,8 @@ static void initModelData(Imod *newModel, bool keepBW) {
   if (!App->rgba)
     imod_cmap(App->cvi->imod);	  
 
-  /* set up model name and notify imodv about the model */
+  /* set up model name */
   MaintainModelName(App->cvi->imod);
-  imodv_new_model(newModel);
 
   /* DNM: select the first color ramp; call xcramp_setlevels, 
      not xcramp_ramp, and set the sliders too */
@@ -515,8 +514,10 @@ static void initModelData(Imod *newModel, bool keepBW) {
                    App->cvi->white);
   imod_info_setbw(App->cvi->black, App->cvi->white);
 
+  /* Scale model then notify imodv about the model */
   if (!App->cvi->fakeImage)
     ivwTransModel(App->cvi);
+  imodv_new_model(newModel);
 
   /* DNM: check wild flags here, after any changes in model */
   ivwCheckWildFlag(newModel);
@@ -600,9 +601,6 @@ int createNewModel(char *modelFilename) {
   }
   MaintainModelName(App->cvi->imod);
 
-  /* DNM: notify imodv of new model */
-  imodv_new_model(Model);
-
   App->cvi->imod->xmax = App->cvi->xUnbinSize;
   App->cvi->imod->ymax = App->cvi->yUnbinSize;
   App->cvi->imod->zmax = App->cvi->zUnbinSize;
@@ -624,6 +622,9 @@ int createNewModel(char *modelFilename) {
   imod_info_setocp();
   ivwSetModelTrans(App->cvi);
   imod_cmap(App->cvi->imod);
+
+  /* DNM: notify imodv of new model after scaling*/
+  imodv_new_model(Model);
 
   /* Set the checksum to avoid save requests */
   App->cvi->imod->csum = imodChecksum(App->cvi->imod);
@@ -821,6 +822,9 @@ int WriteImage(FILE *fout, struct ViewInfo *vi, struct LoadInfo *li)
 
 /*
 $Log$
+Revision 4.18  2005/03/27 20:32:44  mast
+Change filter to any extension ending in seed or fid
+
 Revision 4.17  2005/03/23 16:52:12  mast
 Add seed to filter
 
