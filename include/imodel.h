@@ -501,6 +501,7 @@ extern "C" {
   int   imodDefault(Imod *imod);
   void  imodCleanSurf(Imod *imod);
   void  imodFlipYZ(Imod *imod);
+  int imodTransModel(Imod *imod, IrefImage *iref, Ipoint binScale);
 
   int   imodNewContour(Imod *imod);
   int   imodPrevContour(Imod *imod);
@@ -619,92 +620,11 @@ extern "C" {
 }
 #endif
 
-
-
-/*****************************************************************************/
-/* Imod Binary File Format. Version 0.1                                      */
-/*****************************************************************************/
-/******************************************************************************
-
-Bytes  Data
------------------
-4      IMOD                 
-4      V0.1
-184    Mod_Model structure data.
-*          (repeat for each object in model)
-4          OBJT
-124        Mod_Object structure data.
-*              (repeat for each contour in object )
-4              CONT
-16             Mod_Contour structure data.
-4              PNTS 
-12...          repeat for each Mod_Point array data.
-               
-Future support for optional extra data.
-----------------------------------------------------------------------------
-Optional chunks can be put at the end of any data structure that the
-information is intended for, or at the end of the file.
-If you can't understand the data just skip it.
-(optional chunks)
-4    (Chunk ID)   4 bytes
-4    (Chunk Size) long
-     (Chunk Data) lengh of (Chunk Size) bytes.
-List of future reserved optional chunks.
-
-MESH  Mesh data array in object.
-DRAW  Model Draw structure.
-VOXL  List of voxels.
-******************************************************************************/
-
-/*****************************************************************************/
-/* imod ascii file format version 1.0                                        */
-/*
-
-# comments begin with '#', blank lines are skipped.
-# () mean substitute numerical value.
-
-# first data line
-imod (number of objects)
-
-# next lines optional, they change default model values.
-# they can be in any order anywhere in the file, (exept inside of contour
-# and mesh directives).
-offsets (x) (y) (z)
-max     (x) (y) (z)
-scale   (x) (y) (z)
-angle   (x) (y) (z)
-
-# initialize and select current object
-object (index) (number of contours in object) (number of meshes in object)
-
-# optional object directives
-color (red) (green) (blue) (trans)
-open
-closed
-scattered
-wild
-fill
-nodraw
-
-# contour directive for each contour in current object.
-# point data follows contour directive.
-contour (index) (surface) (number of points in contour)
-(x) (y) (z)
-(x) (y) (z) ...
-
-# mesh directive for each mesh in current object.
-mesh (index) (vert size) (list size)
-(x) (y) (z)
-(x) (y) (z)
-(x) (y) (z) ...
-(list index 1)
-(list index 2)
-(list index 3) ...
-*/
-/*****************************************************************************/
-
 /*    
     $Log$
+    Revision 3.26  2005/06/29 05:34:20  mast
+    Added istore include
+
     Revision 3.25  2005/06/20 22:23:15  mast
     Changes for new istore
 
