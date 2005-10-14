@@ -663,11 +663,7 @@ int main( int argc, char *argv[])
 
   /* set the model filename, or get a new model with null name */
   if (Model) {
-    nChars = strlen((curdir->cleanDirPath(QString(argv[argc - 1]))).latin1());
-    if (nChars >= IMOD_FILENAME_SIZE)
-      nChars = IMOD_FILENAME_SIZE - 1;
-    strncpy(Imod_filename,
-      (curdir->cleanDirPath(QString(argv[argc - 1]))).latin1(), nChars);
+    setImod_filename((curdir->cleanDirPath(QString(argv[argc - 1]))).latin1());
   } else {
     Model = imodNew();
     Imod_filename[0] = 0x00;
@@ -1057,6 +1053,9 @@ int imodColorValue(int inColor)
 
 /*
 $Log$
+Revision 4.51  2004/12/24 02:18:52  mast
+Removed absolute argument from call to show help page
+
 Revision 4.50  2004/12/06 04:39:54  mast
 Changed call to ImodAssistant constructor
 
