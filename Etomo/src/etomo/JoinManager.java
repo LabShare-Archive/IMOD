@@ -50,6 +50,14 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.23  2005/09/29 18:39:00  sueh
+* <p> bug# 532 Preventing Etomo from saving to the .edf or .ejf file over and
+* <p> over during exit.  Added BaseManager.exiting and
+* <p> saveIntermediateParamFile(), which will not save when exiting it true.
+* <p> Setting exiting to true in BaseManager.exitProgram().  Moved call to
+* <p> saveParamFile() to the child exitProgram functions so that the param file
+* <p> is saved after all the done functions are run.
+* <p>
 * <p> Revision 1.22  2005/09/27 21:14:55  sueh
 * <p> Added exitProgram to call mainPanel.done() and save the state of the
 * <p> parallel processing dialog.  Added getParamFileStorableArray(), which
@@ -280,7 +288,7 @@ public class JoinManager extends BaseManager {
   //variables cast from base class variables
   //initialized in create function
   private MainJoinPanel mainPanel;
-  private JoinMetaData metaData;
+  private final JoinMetaData metaData;
   private JoinProcessManager processMgr;
   private JoinState state;
   
@@ -288,7 +296,7 @@ public class JoinManager extends BaseManager {
     super();
     this.metaData = new JoinMetaData();
     initializeUIParameters(paramFileName, axisID);
-    if (!paramFileName.equals("") && loadedTestParamFile) {
+    if (!paramFileName.equals("") && loadedParamFile) {
       mainPanel.setStatusBarText(paramFile, metaData);
     }
     if (!test) {
@@ -318,7 +326,7 @@ public class JoinManager extends BaseManager {
   public void openJoinDialog() {
     openProcessingPanel();
     if (joinDialog == null) {
-      if (loadedTestParamFile) {
+      if (loadedParamFile) {
         joinDialog = new JoinDialog(this, propertyUserDir);
       }
       else {
@@ -326,10 +334,26 @@ public class JoinManager extends BaseManager {
       }
       joinDialog.setMetaData(metaData);
     }
-    if (loadedTestParamFile) {
+    if (loadedParamFile) {
       createEmptyXfFile(metaData.getRootName());
     }
     mainPanel.showProcess(joinDialog.getContainer(), AxisID.ONLY);
+  }
+  
+  private void doneJoinDialog() {
+    if (joinDialog == null) {
+      return;
+    }
+    String workingDir = joinDialog.getWorkingDirName();
+    if (!loadedParamFile && workingDir != null && !workingDir.matches("\\s*+")) {
+      propertyUserDir = workingDir;
+    }
+    String rootName = joinDialog.getRootName();
+    if (!loadedParamFile && rootName != null && !rootName.matches("\\s*+")) {
+      paramFile = new File(propertyUserDir, rootName + metaData.getFileExtension());
+      loadedParamFile = true;
+    }
+    joinDialog.getMetaData(metaData);
   }
   
   protected void createMainPanel() {
@@ -538,7 +562,7 @@ public class JoinManager extends BaseManager {
     propertyUserDir = workingDirName;
     imodManager.setMetaData(metaData);
     paramFile = new File(propertyUserDir, metaData.getRootName() + metaData.getFileExtension());
-    loadedTestParamFile = true;
+    loadedParamFile = true;
     mainPanel.setStatusBarText(paramFile, metaData);
     return true;
   }
@@ -955,6 +979,7 @@ public class JoinManager extends BaseManager {
   public boolean exitProgram(AxisID axisID) {
     try {
       if (super.exitProgram(axisID)) {
+        doneJoinDialog();
         mainPanel.done();
         saveParamFile(axisID);
         return true;
