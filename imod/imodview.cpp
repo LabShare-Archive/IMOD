@@ -100,6 +100,7 @@ void ivwInit(ImodView *vi)
   vi->zbin = 1;
   vi->flippable = 1;
   vi->grayRGBs = 0;
+  vi->reloadable = 0;
   vi->undo = new UndoRedo(vi);
 }
 
@@ -2071,12 +2072,9 @@ static int ivwManageInitialFlips(ImodView *vi)
       return (retcode);
   }
 
-  /* set model max values */
-  vi->imod->xmax = vi->xUnbinSize;
-  vi->imod->ymax = vi->yUnbinSize;
-  vi->imod->zmax = vi->zUnbinSize;
-  vi->imod->xybin = vi->xybin;
-  vi->imod->zbin = vi->zbin;
+  /* 10/14/05: Eliminated setting model max values and binning since they are
+     not needed as runtime values and it was confusing when and whether they
+     were being handled for loaded and new models */
 
   vi->imod->csum = imodChecksum(vi->imod);
 
@@ -2416,6 +2414,9 @@ void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin,
 
 /*
 $Log$
+Revision 4.37  2005/10/13 20:08:44  mast
+Handle clip plane scaling then move sclae function to libimod
+
 Revision 4.36  2005/08/15 02:07:58  mast
 Fixed scaling when a model with no refImage is displayed on binned data
 
