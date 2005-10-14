@@ -176,15 +176,15 @@ int imodViewWrite(Iview *vw, FILE *fout, Ipoint *scale)
         clipOut = 0;
       imodPutBytes(fout, &clipOut, 1);
       imodPutBytes(fout, &clips->flags, 3);
-      imodPutScaledPoints(fout, (float *)&clips->normal[0], 1, &normScale);
-      imodPutScaledPoints(fout, (float *)&clips->point[0], 1, scale);
+      imodPutScaledPoints(fout, &clips->normal[0], 1, &normScale);
+      imodPutScaledPoints(fout, &clips->point[0], 1, scale);
       imodPutBytes(fout, &ov->ambient, 4);
       imodPutBytes(fout, (unsigned char *)&ov->mat1, 4);
       imodPutInts(fout, (int *)&ov->mat2, 1);
       imodPutBytes(fout, (unsigned char *)&ov->mat3, 4);
-      imodPutScaledPoints(fout, (float *)&clips->normal[1], IMOD_CLIPSIZE - 1,
+      imodPutScaledPoints(fout,  &clips->normal[1], IMOD_CLIPSIZE - 1,
         &normScale);
-      imodPutScaledPoints(fout, (float *)&clips->point[1], IMOD_CLIPSIZE - 1,
+      imodPutScaledPoints(fout, &clips->point[1], IMOD_CLIPSIZE - 1,
                           scale);
     }
   }
@@ -196,9 +196,9 @@ int imodViewWrite(Iview *vw, FILE *fout, Ipoint *scale)
     id = 4 + 24 * vw->clips.count;
     imodPutInt(fout, &id);
     imodPutBytes(fout, &vw->clips.count, 4);
-    imodPutScaledPoints(fout, (float *)&vw->clips.normal[0], vw->clips.count,
+    imodPutScaledPoints(fout, &vw->clips.normal[0], vw->clips.count,
                         &normScale);
-    imodPutScaledPoints(fout, (float *)&vw->clips.point[0], vw->clips.count,
+    imodPutScaledPoints(fout, &vw->clips.point[0], vw->clips.count,
                         scale);
   }
 
@@ -576,6 +576,9 @@ int imodIMNXWrite(Imod *imod)
 
 /*
 $Log$
+Revision 3.11  2005/10/13 20:04:45  mast
+Set scaling from a bin scaling together with z-scale
+
 Revision 3.10  2005/02/11 01:42:34  mast
 Warning cleanup: implicit declarations, main return type, parentheses, etc.
 
