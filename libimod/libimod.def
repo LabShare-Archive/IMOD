@@ -52,6 +52,7 @@ EXPORTS
 	PIPNEXTARG
 	imodReadFile
 	istoreChecksum
+	imodClipsTrans
 	imodObjectDelete
 	imodViewStore
 	imodGetPixelSize
