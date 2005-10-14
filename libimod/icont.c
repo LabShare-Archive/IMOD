@@ -1041,6 +1041,7 @@ Icont *imodContourJoin(Icont *c1, Icont *c2, int st1, int st2, int fill,
   int pt, pt2;
   int dir1, dir2;
   int lst2, lst3, lst4;
+  Istore item;
 
   if (!c1)
     if (c2)
@@ -1057,6 +1058,14 @@ Icont *imodContourJoin(Icont *c1, Icont *c2, int st1, int st2, int fill,
     pt = st1;
     st1 = st2;
     st2 = pt;
+  }
+
+  /* If second contour is open, insert a gap at its end */
+  if ((c2->flags & ICONT_OPEN) && !istorePointIsGap(c2->store, c2->psize - 1)){
+      item.type = GEN_STORE_GAP;
+      item.flags = GEN_STORE_ONEPOINT;
+      item.index.i = c2->psize - 1;
+      istoreAddOneIndexItem(&c2->store, &item);
   }
 
   dir1 = imodContZDirection(c1);
@@ -1126,7 +1135,7 @@ Icont *imodContourJoin(Icont *c1, Icont *c2, int st1, int st2, int fill,
       return(NULL);
     }
   }
-  
+
   /* add points to new contour */
   for(pt = 0; pt <= st1; pt++)
     imodPointAppend(cont, &(c1->pts[pt]));
@@ -3157,6 +3166,9 @@ char *imodContourGetName(Icont *inContour)
 /* END_SECTION */
 /*
   $Log$
+  Revision 3.17  2005/09/11 19:18:18  mast
+  Retained points with general store info when reducing and shaving
+
   Revision 3.16  2005/06/26 19:19:35  mast
   Rewrote break routine to be useful from 3dmod, and fixed join/splice
   routine for joining storage lists
