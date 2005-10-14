@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/14/05: Changed Setup join so it will create an .ejf file and save if the user
+exits before running Make Samples.
+
 10/13/05: Fixed 3dmod's scaling of clip plane information when model is
 read in on subset, flipped, squeezed or binned data.  Fixed Z-scale problems
 in model display when data are read in with anisotropic binning.
