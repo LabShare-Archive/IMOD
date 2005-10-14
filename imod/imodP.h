@@ -183,6 +183,7 @@ typedef struct ViewInfo
   int     grayRGBs;       /* Flag to load MRC RGBs as gray scale */
   int     multiFileZ;     /* Flag that multiple single-image files are sections
                              in Z (if > 0) or to be treated as times (< 0) */
+  int     reloadable;     /* Model file exists and can be reloaded */
 
   FILE   *fp;                /* current image file pointer.    */
 
@@ -258,6 +259,9 @@ bool imodDebug(char key);
 
 /*
 $Log$
+Revision 3.30  2004/12/04 02:10:16  mast
+Moved declaration of ImodHelp into here
+
 Revision 3.29  2004/11/20 05:05:27  mast
 Changes for undo/redo capability
 
