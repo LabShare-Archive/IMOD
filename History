@@ -1,7 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-10/14/05: Changed Setup join so it will create an .ejf file and save if the user
-exits before running Make Samples.
+10/14/05: Added Reload model menu entry to 3dmod.
+
+10/14/05: Fixed Rotatevol's setting of header origin to account for pixel size.
+
+10/14/05: Changed Setup join so it will create an .ejf file and save if the 
+user exits before running Make Samples.
 
 10/13/05: Fixed 3dmod's scaling of clip plane information when model is
 read in on subset, flipped, squeezed or binned data.  Fixed Z-scale problems
