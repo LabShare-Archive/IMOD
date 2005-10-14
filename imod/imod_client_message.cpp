@@ -256,7 +256,7 @@ bool ImodClipboard::executeMessage()
 
         // DNM 6/3/04: switch to keeping BW values in the first place
         returnValue = openModel((char *)convName.latin1(), 
-                                message_action == MESSAGE_OPEN_KEEP_BW);
+                                message_action == MESSAGE_OPEN_KEEP_BW, false);
         if(returnValue == IMOD_IO_SUCCESS) {
           wprint("%s loaded.\n", 
                  (QDir::convertSeparators(QString(Imod_filename))).latin1());
@@ -485,6 +485,9 @@ unsigned int ImodClipboard::ourWindowID()
 
 /*
 $Log$
+Revision 4.21  2004/09/24 18:08:59  mast
+Added message for passing message to plugins
+
 Revision 4.20  2004/08/12 17:15:02  mast
 Added message to get slicer angles
 

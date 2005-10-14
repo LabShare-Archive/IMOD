@@ -89,13 +89,20 @@ void InfoWindow::fileSlot(int item)
     createNewModel(NULL);
     break;
           
+  case FILE_MENU_RELOAD:  /* reload - fall through to open */
+    if (Imod_filename[0] == 0x00)
+      break;
+
   case FILE_MENU_OPEN: /* open */
     //  forbid input during file dialog; swallow any pending events
     imod_info_forbid();
     imod_info_input();
 
     releaseKeyboard();
-    returnValue = openModel(NULL, false);
+    if (item == FILE_MENU_OPEN) 
+      returnValue = openModel(NULL, false, false);
+    else
+      returnValue = openModel(Imod_filename, false, true);
     imod_info_enable();
 
     if(returnValue == IMOD_IO_SUCCESS) {
@@ -118,8 +125,6 @@ void InfoWindow::fileSlot(int item)
   case FILE_MENU_SAVE: /* save */
     imod_info_forbid();
     imod_info_input();
-    App->cvi->imod->blacklevel = App->cvi->black;
-    App->cvi->imod->whitelevel = App->cvi->white;
     releaseKeyboard();
     if (SaveModel(App->cvi->imod));
     /*         wprint("Error Saving Model."); DNM: it already has message*/
@@ -129,8 +134,6 @@ void InfoWindow::fileSlot(int item)
   case FILE_MENU_SAVEAS: /* save as */
     imod_info_forbid();
     imod_info_input();
-    App->cvi->imod->blacklevel = App->cvi->black;
-    App->cvi->imod->whitelevel = App->cvi->white;
     releaseKeyboard();
     SaveasModel(App->cvi->imod);
     imod_info_enable();
@@ -1185,6 +1188,9 @@ static Icont *imodContourBreakByZ(ImodView *vi, Iobj *obj, int ob, int co)
 
 /*
   $Log$
+  Revision 4.25  2005/06/29 05:38:40  mast
+  Changes to manipulate fine grain properties and do undos correctly
+
   Revision 4.24  2005/06/26 19:37:24  mast
   Added fine-grain entries
 

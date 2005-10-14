@@ -68,6 +68,7 @@ InfoWindow::InfoWindow(QWidget * parent, const char * name, WFlags f)
 
   mFileMenu->insertItem("&New Model", FILE_MENU_NEW);
   mFileMenu->insertItem("&Open Model", FILE_MENU_OPEN);
+  mFileMenu->insertItem("&Reload Model", FILE_MENU_RELOAD);
   mFileMenu->insertItem("&Save Model", FILE_MENU_SAVE);
   mFileMenu->setAccel(Key_S, FILE_MENU_SAVE);
   mFileMenu->insertItem("S&ave Model As...", FILE_MENU_SAVEAS);
@@ -346,6 +347,7 @@ void InfoWindow::manageMenus()
   // split into initial and runtime calls
   mEImageMenu->setItemEnabled(EIMAGE_MENU_FLIP, !iprocBusy());
   mEImageMenu->setItemEnabled(EIMAGE_MENU_RELOAD, !iprocBusy() && imageOK);
+  mFileMenu->setItemEnabled(FILE_MENU_RELOAD, App->cvi->reloadable != 0);
 }
 
 
@@ -501,6 +503,9 @@ void MaintainModelName(Imod *mod)
   mod->fileName = (char *)malloc(namelen);
   if (mod->fileName)
     memcpy(mod->fileName, Imod_filename, namelen);
+
+  // This is common path for most changes of reloadable flag
+  ImodInfoWin->manageMenus();
 }
 
 static char *truncate_name(char *name, int limit)
@@ -525,6 +530,9 @@ static char *truncate_name(char *name, int limit)
 
 /*
     $Log$
+    Revision 4.32  2005/09/15 14:20:22  mast
+    Added image movie window
+
     Revision 4.31  2005/06/26 19:37:06  mast
     cleanup
 
