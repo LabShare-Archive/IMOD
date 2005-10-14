@@ -23,7 +23,6 @@ Log at end
 #include "b3dutil.h"
 
 static void flipClips(IclipPlanes *clips);
-static void transClips(IclipPlanes *clips, Imat *mat, Imat *mat2);
 
 /*!
  * Allocates a new model structure and returns a pointer to it, or NULL if 
@@ -1721,7 +1720,7 @@ int imodTransModel(Imod *imod, IrefImage *iref, Ipoint binScale)
       }
     }
 
-    transClips(&obj->clips, mat, mat2);
+    imodClipsTrans(&obj->clips, mat, mat2);
     
     /* Just translate the meshes as necessary */
     /* DNM 1/3/04: switch to transforming the mesh */
@@ -1738,9 +1737,9 @@ int imodTransModel(Imod *imod, IrefImage *iref, Ipoint binScale)
 
   /* Now transform clip points in views and object views */
   for (i = 0; i < imod->viewsize; i++) {
-    transClips(&imod->view[i].clips, mat, mat2);
+    imodClipsTrans(&imod->view[i].clips, mat, mat2);
     for (ob = 0; ob < imod->view[i].objvsize; ob++) {
-      transClips(&imod->view[i].objview[ob].clips, mat, mat2);
+      imodClipsTrans(&imod->view[i].objview[ob].clips, mat, mat2);
     }
   }
 
@@ -1749,29 +1748,6 @@ int imodTransModel(Imod *imod, IrefImage *iref, Ipoint binScale)
   return 0;
 }
 
-/* Transform clipping planes; mat has point transform and mat2 has normal */
-static void transClips(IclipPlanes *clips, Imat *mat, Imat *mat2)
-{
-  int i;
-  Ipoint pnt, pnt2;
-  for (i = 0; i < clips->count; i++) {
-
-    /* The clipping point is maintained as the negative of an actual location
-     so it needs to be inverted, transformed, then reinverted */
-    pnt2.x = -clips->point[i].x;
-    pnt2.y = -clips->point[i].y;
-    pnt2.z = -clips->point[i].z;
-    imodMatTransform(mat, &pnt2, &pnt);
-    clips->point[i].x = -pnt.x;
-    clips->point[i].y = -pnt.y;
-    clips->point[i].z = -pnt.z;
-
-    /* Transform and renormalize the normal */
-    imodMatTransform(mat2, &clips->normal[i], &pnt);
-    imodPointNormalize(&pnt);
-    clips->normal[i] = pnt;
-  }
-}
 
 /* Flip clipping planes */
 static void flipClips(IclipPlanes *clips)
@@ -1808,6 +1784,10 @@ int   imodGetFlipped(Imod *imod)
 
 /*
 $Log$
+Revision 3.21  2005/10/13 20:04:00  mast
+Added model transformation function from 3dmod, and proper flipping of
+clipping planes
+
 Revision 3.20  2005/06/29 05:35:32  mast
 Changed a store function call
 
