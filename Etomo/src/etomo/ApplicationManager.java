@@ -171,7 +171,7 @@ public class ApplicationManager extends BaseManager {
     // Open the etomo data file if one was found on the command line
     if (!test) {
       if (!paramFileName.equals("")) {
-        if (loadedTestParamFile) {
+        if (loadedParamFile) {
           openProcessingPanel();
           mainPanel.setStatusBarText(paramFile, metaData);
         }
@@ -452,7 +452,7 @@ public class ApplicationManager extends BaseManager {
         paramFile = new File(propertyUserDir, metaData.getMetaDataFileName());
         mainPanel.setStatusBarText(paramFile, metaData);
         userConfig.putDataFile(paramFile.getAbsolutePath());
-        loadedTestParamFile = true;
+        loadedParamFile = true;
         state.initialize();
       }
       else {
@@ -5704,6 +5704,9 @@ public class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.184  2005/10/13 22:08:48  sueh
+ * <p> Bug# 532 In synchronized(), always copying all fields
+ * <p>
  * <p> Revision 3.183  2005/09/29 18:38:21  sueh
  * <p> bug# 532 Preventing Etomo from saving to the .edf or .ejf file over and
  * <p> over during exit.  Added BaseManager.exiting and

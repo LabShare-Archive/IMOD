@@ -52,6 +52,14 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.36  2005/09/29 18:38:48  sueh
+* <p> bug# 532 Preventing Etomo from saving to the .edf or .ejf file over and
+* <p> over during exit.  Added BaseManager.exiting and
+* <p> saveIntermediateParamFile(), which will not save when exiting it true.
+* <p> Setting exiting to true in BaseManager.exitProgram().  Moved call to
+* <p> saveParamFile() to the child exitProgram functions so that the param file
+* <p> is saved after all the done functions are run.
+* <p>
 * <p> Revision 1.35  2005/09/27 21:12:38  sueh
 * <p> bug# 532 Moved the creation of the the .edf file Storable array to the child
 * <p> classes because the classes the go into the array vary.  Moved the
@@ -306,7 +314,7 @@ public abstract class BaseManager {
       .getUserConfiguration();
   
   //protected variables
-  protected boolean loadedTestParamFile = false;
+  protected boolean loadedParamFile = false;
   // imodManager manages the opening and closing closing of imod(s), message
   // passing for loading model
   protected ImodManager imodManager = null;
@@ -397,7 +405,7 @@ public abstract class BaseManager {
       // Open the etomo data file if one was found on the command line
       if (!paramFileName.equals("")) {
         File etomoDataFile = new File(paramFileName);
-        loadedTestParamFile = loadTestParamFile(etomoDataFile, axisID);
+        loadedParamFile = loadTestParamFile(etomoDataFile, axisID);
       }
     }
   }
@@ -799,7 +807,7 @@ public abstract class BaseManager {
 
   protected String paramString() {
     return ",\ntest=" + test + ",uiHarness=" + uiHarness + ",userConfig="
-        + userConfig + ",\nloadedTestParamFile=" + loadedTestParamFile
+        + userConfig + ",\nloadedParamFile=" + loadedParamFile
         + ",\nimodManager=" + imodManager + ",comScriptMgr=" + comScriptMgr
         + ",\nparamFile=" + paramFile + ",homeDirectory=" + homeDirectory
         + ",\nnextProcessA=" + nextProcessA + ",nextProcessB=" + nextProcessB
