@@ -557,7 +557,8 @@ void imodv_draw()
   return;
 }
 
-/* DNM: a routine for imod to notify imodv of a change in model */
+/* DNM: a routine for imod to notify imodv of a change in model.
+ Call it with NULL to disable access of model during change */
 void imodv_new_model(Imod *mod)
 {
   Ipoint imageMax;
@@ -568,6 +569,8 @@ void imodv_new_model(Imod *mod)
 
   Imodv->imod = mod;
   Imodv->mod[0] = mod;
+  if (!mod)
+    return;
 
   // Recompute scale and shift of all views (needed to take care of binning 
   // replaces earlier method of setting up views
@@ -668,6 +671,9 @@ void imodvQuit()
 
 /*
 $Log$
+Revision 4.25  2005/10/13 20:07:25  mast
+Scale all views upon startup or new model and provide bin scaling
+
 Revision 4.24  2004/11/22 00:24:46  mast
 Added deletion of ImodHelp on exit
 
