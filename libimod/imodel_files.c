@@ -358,9 +358,9 @@ static int imodel_write_object(Iobj *obj, FILE *fout,
       normScale.x = 1. / scale->x;
       normScale.y = 1. / scale->y;
       normScale.z = 1. / scale->z;
-      imodPutScaledPoints(fout, (float *)&clips->normal[0], clips->count, 
+      imodPutScaledPoints(fout, &clips->normal[0], clips->count, 
                           &normScale);
-      imodPutScaledPoints(fout, (float *)&clips->point[0], clips->count,
+      imodPutScaledPoints(fout, &clips->point[0], clips->count,
                           scale);
     }
 	  
@@ -1591,6 +1591,9 @@ int imodPutByte(FILE *fp, unsigned char *dat)
 
 /*
   $Log$
+  Revision 3.21  2005/10/13 20:05:43  mast
+  Handle clip plane writing properly from binned data
+
   Revision 3.20  2005/09/09 18:38:04  mast
   Fixed fatal bug in writing mesh from model loaded on binned data
 
