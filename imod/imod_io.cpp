@@ -1,12 +1,12 @@
 /*
  *  imod_io.c -- File I/O for imod.
  *
- *  The functions in imod_io provide an interface for load and saving imod
- *  models and images.  As models and images are loaded and save the global
+ *  The functions in imod_io provide an interface for loading and saving imod
+ *  models and images.  As models and images are loaded and saved the global
  *  App structure is maintained.
  *
  *  Original author: James Kremer
- *  Revised by: David Mastronarde   email: mast@colorado.edu
+ *  Revised by: Rcik Gaudette and David Mastronarde   email: mast@colorado.edu
  *
  *  Copyright (C) 1995-2004 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
@@ -50,7 +50,11 @@ static void initModelData(Imod *newModel, bool keepBW);
 static char *datetime(void);
 static void imod_undo_backup(void);
 static void imod_finish_backup(void);
+static void imod_make_backup(char *filename);
 static int mapErrno(int errorCode);
+static void setSavedModelState(Imod *mod);
+static int writeModel(Imod *mod, FILE *fout, QString qname);
+static Imod *LoadModelFile(char *filename) ;
 
 char Imod_filename[IMOD_FILENAME_SIZE] = {0x00};
 
@@ -153,7 +157,7 @@ void imod_cleanup_autosave(void)
 /* save autosave file */
 /* DNM 6/15/01: add directory environment variable to allow save to local disk,
    and save even if in movie mode */
-int imod_autosave(struct Mod_Model *mod)
+int imod_autosave(Imod *mod)
 {
   FILE *tfilep;
   int new_checksum, i;
@@ -202,10 +206,10 @@ int imod_autosave(struct Mod_Model *mod)
     return(-1);
   }
 
-
+  // Set variables for saved model and try to save
+  setSavedModelState(Model);
   if (imodWrite(Model, tfilep))
-    wprint("Error: Autosave model file not saved. %s\n", 
-           convname);
+    wprint("Error: Autosave model file not saved. %s\n", convname);
   else {
     timestr = datetime();
     wprint("Saved autosave file %s\n", timestr);
@@ -221,21 +225,18 @@ int imod_autosave(struct Mod_Model *mod)
 /* DNM 12/2/02: eliminated SaveModelQuit - SaveModel is fine and allows user
    to Save As if no model file is defined yet */
 
-
-int SaveModel(struct Mod_Model *mod)
+/*
+ * SaveModel - saves the given model to the established filename in 
+ * Imod_filename or calls SaveasModel if there is no name or there is an error
+ * opening the file under that name
+ */
+int SaveModel(Imod *mod)
 {
   FILE *fout = NULL;
   int retval;
-  char *timestr;
-     
+
   lastError = IMOD_IO_SUCCESS;
-
-  /* DNM 8./4/01: -> 6/26/03: Here and in next functions, if imodv window is 
-     closed, make sure Imodv->imod is set, and save the view if appropriate */
-  if (ImodvClosed)
-    Imodv->imod = mod;
-  imodvAutoStoreView(Imodv);
-
+     
   /* DNM 2/23/03: fopen crashes with empty filename in Windows, so just test 
      for that */
   if (Imod_filename[0] == 0x00) {
@@ -254,33 +255,24 @@ int SaveModel(struct Mod_Model *mod)
     return(retval);
   }
 
-  /* DNM: save the checksum and cleanup autosaves only if the save is
-     successful, otherwise leave double backups and autosaves all over the
-     the place */
+  retval = writeModel(mod, fout, QString(Imod_filename));
 
-  if (!imodWrite(mod, fout)){
-    timestr = datetime();
-    wprint("Done saving Model %s\n%s\n", timestr, (QDir::convertSeparators
-        (QString(Imod_filename))).latin1());
-    imod_finish_backup();
-    mod->csum = imodChecksum(mod);
-    imod_cleanup_autosave();
-  }
-  else {
-    wprint("3dmod: Error Saving Model.");
-    lastError = IMOD_IO_SAVE_ERROR;
-  }
+  // Need explicit call here to manage Reload Model; other places that change 
+  // reloadable all call MaintainModelName
+  if (!retval)
+    ImodInfoWin->manageMenus();
 
-  fclose(fout);
-     
-
-  return(lastError);
+  return(retval);
 }
 
 
 /* DNM 12/2/02: made this call dia_filename, which returns directly, and moved
    code from save_model into here after filename is gotten */
-int SaveasModel(struct Mod_Model *mod)
+
+/*
+ * SaveasModel saves the given model to a file after acquiring a name from user
+ */
+int SaveasModel(Imod *mod)
 {
   QString qname;
   FILE *fout = NULL;
@@ -299,10 +291,6 @@ int SaveasModel(struct Mod_Model *mod)
     return IMOD_IO_SAVE_CANCEL;
   }
 
-  if (ImodvClosed)
-    Imodv->imod = mod;
-  imodvAutoStoreView(Imodv);
-
   imod_make_backup((char *)qname.latin1());
   fout = fopen((QDir::convertSeparators(qname)).latin1(), "wb");
   if (fout == NULL){
@@ -312,37 +300,78 @@ int SaveasModel(struct Mod_Model *mod)
     return lastError;
   }
 
+  retval = writeModel(mod, fout, qname);
+
+  if (!retval) {
+    setImod_filename(qname.latin1());
+    MaintainModelName(mod);
+    imodvSetCaption();
+  }
+
+  return(retval);
+}
+
+/*
+ * Perform common functions pre and post writing of model for Save and Saveas
+ */
+static int writeModel(Imod *mod, FILE *fout, QString qname)
+{
+  char *timestr;
+  int retval;
+
+  /* DNM 8/4/01: -> 6/26/03: If imodv window is 
+     closed, make sure Imodv->imod is set, and save the view if appropriate */
+  if (ImodvClosed)
+    Imodv->imod = mod;
+  imodvAutoStoreView(Imodv);
+
+  // Save other state variables then write and close file
+  setSavedModelState(mod);
+  retval = imodWrite(mod, fout);
+  fclose(fout);
+
+  // Issue messages and perform post tasks
+  /* DNM: save the checksum and cleanup autosaves only if the save is
+     successful, otherwise leave double backups and autosaves all over the
+     the place */
+  if (!retval) {
+    timestr = datetime();
+    wprint("Done saving model %s\n%s\n", timestr,
+           (QDir::convertSeparators(qname)).latin1());
+    imod_finish_backup();
+    mod->csum = imodChecksum(mod);
+    imod_cleanup_autosave();
+    App->cvi->reloadable = 1;
+  } else {
+    wprint("\aError saving model.");
+    lastError = IMOD_IO_SAVE_ERROR;
+    return lastError;
+  }
+  return(0);
+}
+
+/*
+ * Set various items in the model before saving that are needed only in the 
+ * saved model, not while running 3dmod.  This should be called before every
+ * imodWrite.
+ */ 
+static void setSavedModelState(Imod *mod)
+{
+  mod->blacklevel = App->cvi->black;
+  mod->whitelevel = App->cvi->white;
   mod->xmax = App->cvi->xUnbinSize;
   mod->ymax = App->cvi->yUnbinSize;
   mod->zmax = App->cvi->zUnbinSize;
   mod->xybin = App->cvi->xybin;
   mod->zbin = App->cvi->zbin;
-     
-  retval = imodWrite(mod, fout);
-  fclose(fout);
-
-  strcpy(Imod_filename, qname.latin1());
-     
-  if (!retval) {
-    wprint("Done saving Model\n%s\n", 
-      (QDir::convertSeparators(qname)).latin1());
-    imod_finish_backup();
-    mod->csum = imodChecksum(mod);
-    imod_cleanup_autosave();
-  }
-  else {
-    wprint("\a3dmod: Error Saving Model.");
-    lastError = IMOD_IO_SAVE_ERROR;
-    return lastError;
-  }
-  MaintainModelName(mod);
-  imodvSetCaption();
-
-  return(0);
 }
 
-
-Imod *LoadModel(FILE *mfin) {
+/* 
+ * LoadModel  allocates a model structure and reads in a model once the file
+ * is opened on mfin.  Called by LoadModelFile and from imod on startup
+ */
+Imod *LoadModel(FILE *mfin)
+{
   Imod *imod;
      
   lastError = IMOD_IO_SUCCESS;
@@ -371,6 +400,7 @@ Imod *LoadModel(FILE *mfin) {
 
   imodvViewsInitialize(imod);
   imod_cleanup_autosave();
+  App->cvi->reloadable = 1;
 
   return(imod);
 }
@@ -390,8 +420,10 @@ Imod *LoadModel(FILE *mfin) {
 // If the load is unsucessful the return value is NULL, and the function cleans
 // up after itself.  The failure reason can be accessed through the
 // imod_io_error function.
+// 10/14/05: Called only from openModel
 
-Imod *LoadModelFile(char *filename) {
+static Imod *LoadModelFile(char *filename) 
+{
   FILE *fin;
   Imod *imod;
   int nChars;
@@ -429,11 +461,7 @@ Imod *LoadModelFile(char *filename) {
     error if unidentified */
   /* DNM 9/12/03: eliminate checksum, protect from overrunning filename */
   if (imod) {
-    nChars = strlen(qname.latin1());
-    if (nChars >= IMOD_FILENAME_SIZE)
-      nChars = IMOD_FILENAME_SIZE - 1;
-    strncpy(Imod_filename, qname.latin1(), nChars);
-    Imod_filename[nChars] = 0x00;
+    setImod_filename(qname.latin1());
   } else {
     lastError = mapErrno(errno);
     if (lastError == IMOD_IO_UNIMPLEMENTED_ERROR)
@@ -442,21 +470,32 @@ Imod *LoadModelFile(char *filename) {
   return(imod);
 }
 
-
 /* DNM 9/12/02: deleted old version of imod_io_image_reload */
-// openModel    opens a IMOD model specified by modeFilename
+
+// openModel    opens a IMOD model specified by modelFilename after checking
+//              whether the current model should be saved
+// set keepBW to retain existing black/white values 
+// set saveAs to call Saveas instead of Save if current model is being saved
 //
-int openModel(char *modelFilename, bool keepBW) {
+int openModel(char *modelFilename, bool keepBW, bool saveAs) 
+{
   Imod *tmod;
   int err;
   int answer;
 
   if (imod_model_changed(Model)){
-    answer = dia_choice("Save current model?", "Yes", "No", "Cancel");
+    answer = dia_choice
+      ((char *)(saveAs ? "The model has changed.  Save to new file before "
+                "reloading?" : "Save current model?"), "Yes", "No", "Cancel");
     if (answer == 1) {
-      if ((err = SaveModel(App->cvi->imod))){
-        return err;
+      if (saveAs) {
+        if ((err = SaveasModel(App->cvi->imod)))
+          return err;
+      } else {
+        if ((err = SaveModel(App->cvi->imod)))
+          return err;
       }
+      
     } else if (answer != 2)
       return IMOD_IO_SAVE_CANCEL;
   }
@@ -484,12 +523,14 @@ int openModel(char *modelFilename, bool keepBW) {
 //  Description:
 //  initModelData initializes the global ImodApp structure (App) with the new
 //  model information and frees the old model data structures
+//  10/14/05: called only from openModel
 //
-static void initModelData(Imod *newModel, bool keepBW) {
-	      
+static void initModelData(Imod *newModel, bool keepBW) 
+{
   /* DNM 1/23/03: no longer free or allocate object colors */
-  /* DNM: no longer causes a crash once we notify imodv of the
-     new model */
+  /* DNM: no longer causes a crash once we notify imodv of the new model.
+     10/13/05: but we have to invalidate imodv's model until all is ready */
+  imodv_new_model(NULL);
   imodDelete(App->cvi->imod);
 	       
   Model = App->cvi->imod = newModel;
@@ -531,11 +572,6 @@ static void initModelData(Imod *newModel, bool keepBW) {
 
   /* DNM: try eliminating this, since the setting of mode did it */
   /* imodDraw(App->cvi, IMOD_DRAW_MOD); */
-  App->cvi->imod->xmax = App->cvi->xUnbinSize;
-  App->cvi->imod->ymax = App->cvi->yUnbinSize;
-  App->cvi->imod->zmax = App->cvi->zUnbinSize;
-  App->cvi->imod->xybin = App->cvi->xybin;
-  App->cvi->imod->zbin = App->cvi->zbin;
 
 }
 
@@ -547,7 +583,10 @@ static void initModelData(Imod *newModel, bool keepBW) {
 //  and cleaned up.  A new model is then allocated, if the modelFilename
 //  argument is non-NULL then the filename for the model is set.  Finally, the
 //  App data structure is initialized for the new model.
-int createNewModel(char *modelFilename) {
+//  10/14/05: Called from imod_menu and imod_client_message
+//
+int createNewModel(char *modelFilename)
+{
   int mode;
   int nChars;
   int err, answer;
@@ -579,7 +618,7 @@ int createNewModel(char *modelFilename) {
   
   //  Allocate the new model
   Model = imodNew();
-  if(Model == NULL) {
+  if (Model == NULL) {
     lastError = IMOD_IO_NOMEM;
     return lastError;
   }
@@ -589,23 +628,14 @@ int createNewModel(char *modelFilename) {
 
   //  Copy the modelFilename into Imod_filename and then execute
   //  MaintainModelName to update the model structure and main window
-  if(modelFilename != NULL) {
-    nChars = strlen(modelFilename);
-    if (nChars >= IMOD_FILENAME_SIZE)
-      nChars = IMOD_FILENAME_SIZE - 1;
-    strncpy(Imod_filename, modelFilename, nChars);
-    Imod_filename[nChars] = '\0';
-  }
-  else {
+  if (modelFilename != NULL)
+    setImod_filename(modelFilename);
+  else
     Imod_filename[0] = '\0';
-  }
+  
+  App->cvi->reloadable = 0;
   MaintainModelName(App->cvi->imod);
 
-  App->cvi->imod->xmax = App->cvi->xUnbinSize;
-  App->cvi->imod->ymax = App->cvi->yUnbinSize;
-  App->cvi->imod->zmax = App->cvi->zUnbinSize;
-  App->cvi->imod->xybin = App->cvi->xybin;
-  App->cvi->imod->zbin = App->cvi->zbin;
   imodNewObject(App->cvi->imod);
 
   /* DNM 5/16/02: if multiple image files, set time flag by default */
@@ -696,13 +726,27 @@ unsigned char **imod_io_image_load(struct ViewInfo *vi)
   return(idata);
 }
 
+/*
+ * Copy given string into Imod_filename
+ */
+void setImod_filename(const char *name)
+{
+  int nChars = strlen(name);
+  if (nChars >= IMOD_FILENAME_SIZE)
+    nChars = IMOD_FILENAME_SIZE - 1;
+  strncpy(Imod_filename, name, nChars);
+  Imod_filename[nChars] = '\0';
+}
+
 
 // imodIOGetError   return the last error code
-int imodIOGetError() {
+int imodIOGetError() 
+{
   return lastError;
 }
 
-char *imodIOGetErrorString() {
+char *imodIOGetErrorString()
+{
   switch(lastError) {
   case IMOD_IO_SAVE_ERROR:
     return "Unable to save existing model";
@@ -719,7 +763,8 @@ char *imodIOGetErrorString() {
   }
 }
 //  Map the errno codes to the IMOD_IO error codes
-static int mapErrno(int errorCode) {
+static int mapErrno(int errorCode)
+{
   switch(errorCode) {
   case ENOMEM:
     return IMOD_IO_NOMEM;
@@ -736,92 +781,13 @@ static int mapErrno(int errorCode) {
   
 }
 
-/*************************************************************************/
-/* Testing : future code */
-
-#ifdef WHEN_IMAGE_IO_IS_ADDED
-
-int SaveImage(struct ViewInfo *vi)
-{
-  char filename[256];
-  FILE *fout = NULL;
-  int retval = -1;
-     
-  /* get file name */
-  filename[0] = 0x00;
-  imod_getline("Enter filename for saved image."  , filename);
-     
-  /* open file */
-  if (fout == NULL){
-    show_status("Couldn't open File.");
-    fprintf(stderr, "3dmod: couldn't open %s\n",filename);
-    return(-1);
-  }
-     
-     
-  retval = WriteImage(fout, vi, NULL);
-  if (retval)
-    show_status("Error saving image file.");
-  else
-    show_status("Done saving Image.");
-     
-  fclose( fout);
-  return(retval);
-}
-
-int WriteImage(FILE *fout, struct ViewInfo *vi, struct LoadInfo *li)
-{
-
-  struct MRCheader hdata;
-  double min, max, mean;
-  int i, j, k;
-  int error= -1;
-  int xmin, xmax, ymin, ymax, zmin, zmax;
-  int xsize, xoff;
-
-  xsize = li->xmax - li->xmin;
-
-  mrc_head_new(&hdata, vi->xsize, vi->ysize, vi->zsize, 0);
-  mrc_byte_mmm(&hdata, vi->idata);
-
-  if (li){
-    mrc_head_new(&hdata, xsize,
-                 li->ymax - li->ymin, li->zmax - li->zmin, 0);
-    xoff = li->xmin;
-    xsize = li->xmax - li->xmin - 1;
-    xmin = li->xmin;
-    xmax = li->xmax;
-    ymin = li->ymin;
-    ymax = li->ymax;
-    zmin = li->zmin;
-    zmax = li->zmax;
-  }else{
-    xsize = vi->xsize;
-    xmin = 0;
-    xmax = vi->xsize - 1;
-    ymin = 0;
-    ymax = vi->ysize - 1;
-    zmin = 0;
-    zmax = vi->zsize - 1;
-  }
-	  
-  mrc_head_label(&hdata, "3dmod: Wrote sub image.   ");
-  mrc_head_write(fout, &hdata);
-     
-  for (k = zmin; k <= zmax; k++){
-	  
-    for(j = ymin; j <= ymax; j++){
-	       
-      error = fwrite(&(vi->idata[k][(j * vi->xsize) + xmin]), 
-                     1, xsize, fout);
-    }
-  }
-  return(error);
-}
-#endif
+/* 10/14/05: Removed SaveImage and WriteImage (file version 4.19) */
 
 /*
 $Log$
+Revision 4.19  2005/10/13 00:55:23  mast
+Move notification of imodv to after model scaling
+
 Revision 4.18  2005/03/27 20:32:44  mast
 Change filter to any extension ending in seed or fid
 
