@@ -30,6 +30,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.6  2004/11/10 02:06:27  mast
+c	  Added argument to call to setup cubes
+c	
 c	  Revision 3.5  2004/10/29 20:00:07  mast
 c	  Added and allowed defaults for output size and angles
 c	
@@ -183,15 +186,15 @@ c
 	call irttlt(6,tiltnew)
 	call icalc_matrix(tiltnew,mnew)
 	call irtorg(5,orig(1),orig(2),orig(3))
-	xcen=cxin-orig(1)
-	ycen=cyin-orig(2)
-	zcen=czin-orig(3)
+	xcen=cxin-orig(1)/delta(1)
+	ycen=cyin-orig(2)/delta(2)
+	zcen=czin-orig(3)/delta(3)
 	do i=1,3
 	  xtmp(i)=moldinv(i,1)*xcen+moldinv(i,2)*ycen+moldinv(i,3)*zcen
 	enddo
 	do i=1,3
-	  orig(i)=cxyzout(i)-
-     &	      (mnew(i,1)*xtmp(1)+mnew(i,2)*xtmp(2)+mnew(i,3)*xtmp(3))
+	  orig(i)=delta(i) * (cxyzout(i)-
+     &	      (mnew(i,1)*xtmp(1)+mnew(i,2)*xtmp(2)+mnew(i,3)*xtmp(3)))
 	enddo
 	call ialorg(6,orig(1),orig(2),orig(3))
 c	  
