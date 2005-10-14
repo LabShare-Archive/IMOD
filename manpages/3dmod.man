@@ -540,6 +540,7 @@ dialog box, control window, or display window.
 .I File Menu
 New Model         Create a new model.
 Open Model...     Load a model from disk.
+Reload Model      Reload the current model from file.
 Save Model        Save model.  (s)
 Save Model as...  Save model with new name.
 Write Model as    Write model as Imod, wimp, NFF or Synu files.

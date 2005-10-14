@@ -5,6 +5,7 @@ char *Imod_menus_help[] = {
 "The File Menu:\n",
 "     New Model  \t\tClears current model and creates a new one.\n",
 "     Open Model \t\tLoads a new model file.\n",
+"     Reload Model\t\tReloads the current model from file.\n"
 "     Save Model \t\tSaves model file to current file name.\n",
 "     Save Model as...\tSaves model file, and prompts for a name.\n",
 "     Write Model as ---> Writes model to one of the following formats.\n",
