@@ -34,6 +34,11 @@ import etomo.type.ProcessEndState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.31  2005/09/27 23:30:56  sueh
+ * <p> bug# 532 Modified pass-through functions that control the axis panel.
+ * <p> Added getParallelPanel() and done().  Changed showParallelStatus() to
+ * <p> showParallelPanel().
+ * <p>
  * <p> Revision 1.30  2005/09/22 21:24:06  sueh
  * <p> bug# 532 Moved the parallel process panel to AxisProcessPanel.  Added
  * <p> pack() and showParallelStatus().  Removed setParallelProgressDisplay().
@@ -366,12 +371,12 @@ public abstract class MainPanel extends JPanel {
     axisPanel.setProgressBarValue(0);
   }
   
-  public void showParallelPanel(AxisID axisID, boolean showParallelPanel) {
+  public void setParallelDialog(AxisID axisID, boolean parallelDialog) {
     AxisProcessPanel axisPanel = mapBaseAxis(axisID);
     if (axisPanel == null) {
       return;
     }
-    axisPanel.showParallelPanel(showParallelPanel);
+    axisPanel.setParallelDialog(parallelDialog);
   }
   
   public ParallelPanel getParallelPanel(AxisID axisID) {
