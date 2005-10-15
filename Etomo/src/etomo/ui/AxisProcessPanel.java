@@ -26,6 +26,11 @@ import etomo.type.ProcessEndState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.20  2005/09/27 23:24:44  sueh
+ * <p> bug# 532 Saving the state of the parallel header.  Since
+ * <p> AxisProcessPanel is in the ui package, no longer refering to ParallelPanel
+ * <p> through the interface.  Adding done() to save the parallel header state.
+ * <p>
  * <p> Revision 3.19  2005/09/22 20:55:14  sueh
  * <p> bug# 532 Managing the parallel process panel (ParallelProgressDisplay).
  * <p> Added parallelStatusPanel to hold the parallel process panel.  Added
@@ -195,6 +200,9 @@ public abstract class AxisProcessPanel implements ContextMenu {
   protected final JPanel parallelStatusPanel = new JPanel();
   private EtomoNumber lastWidth = new EtomoNumber(EtomoNumber.INTEGER_TYPE);
   private KillButtonActionListener actionListener;
+  private boolean parallelShowing = false;
+  private boolean parallelDialog = false;
+  private boolean parallelInUse = false;
 
   //  Progress panel
   ProgressPanel progressPanel = new ProgressPanel("No process");
@@ -266,22 +274,52 @@ public abstract class AxisProcessPanel implements ContextMenu {
    * show or hide parallelStatusPanel
    * @param showParallelStatus
    */
-  final void showParallelPanel(boolean showParallelStatus) {
-    if (showParallelStatus && parallelPanel == null) {
+  final void setParallelDialog(boolean parallelDialog) {
+    this.parallelDialog = parallelDialog;
+    if (parallelDialog) {
+      createParallelPanel();
+    }
+    if (parallelDialog && !parallelShowing) {
+      startParallelPanel();
+    }
+    else if (parallelPanel != null && !parallelDialog && parallelShowing && !parallelInUse) {
+      stopParallelPanel();
+    }
+  }
+  
+  final void setParallelInUse(boolean parallelInUse) {
+    this.parallelInUse = parallelInUse;
+    if (parallelInUse) {
+      createParallelPanel();
+    }
+    if (parallelInUse && !parallelShowing) {
+      startParallelPanel();
+    }
+    else if (!parallelInUse && !parallelDialog && parallelShowing) {
+      stopParallelPanel();
+    }
+  }
+  
+  private final void createParallelPanel() {
+    if (parallelPanel == null) {
       parallelPanel = new ParallelPanel(manager, axisID, manager
-          .getBaseScreenState(axisID).getParallelHeaderState());
+          .getBaseScreenState(axisID).getParallelHeaderState(), this);
       parallelStatusPanel.add(Box.createRigidArea(FixedDim.x5_y0));
       parallelStatusPanel.add(parallelPanel.getContainer());
     }
-    if (showParallelStatus) {
-      parallelPanel.start();
-    }
-    else if (parallelPanel != null) {
-      {
-        parallelPanel.stop();
-      }
-    }
-    parallelStatusPanel.setVisible(showParallelStatus);
+  }
+  
+  private final void startParallelPanel() {
+    parallelShowing = true;
+    parallelPanel.start();
+    parallelStatusPanel.setVisible(true);
+    UIHarness.INSTANCE.pack(axisID, manager);
+  }
+  
+  private final void stopParallelPanel() {
+    parallelShowing = false;
+    parallelPanel.stop();
+    parallelStatusPanel.setVisible(false);
     UIHarness.INSTANCE.pack(axisID, manager);
   }
   
