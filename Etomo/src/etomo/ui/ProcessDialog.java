@@ -13,6 +13,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.10  2005/08/09 20:28:38  sueh
+ * <p> bug# 711  No longer inheriting JButton in MultiLineButton.
+ * <p>
  * <p> Revision 3.9  2005/06/17 19:18:13  sueh
  * <p> bug# 685 Put all timestamp functionality into one function.  Added
  * <p> buttonTimestamp to provide an interface to the main timestamp function.
@@ -85,12 +88,13 @@ import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 
 import etomo.ApplicationManager;
+import etomo.comscript.ParallelParam;
 import etomo.type.AxisID;
 import etomo.type.DialogExitState;
 import etomo.type.DialogType;
 import etomo.util.Utilities;
 
-public abstract class ProcessDialog implements ExitButtons {
+public abstract class ProcessDialog implements ExitButtons, ParallelDialog {
   public static final String rcsid = "$Id$";
 
   protected ApplicationManager applicationManager;
@@ -157,6 +161,13 @@ public abstract class ProcessDialog implements ExitButtons {
 
   public Container getContainer() {
     return rootPanel;
+  }
+  
+  public void getParameters(ParallelParam param) {
+  }
+  
+  public boolean isParallel() {
+    return false;
   }
   
   public void addExitButtons() {
