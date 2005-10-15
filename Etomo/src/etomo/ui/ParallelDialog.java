@@ -21,9 +21,15 @@ public interface ParallelDialog {
   
   public void getParameters(ParallelParam param);
   public DialogType getDialogType();
+  public boolean isParallel();
 }
 /**
 * <p> $Log$
+* <p> Revision 1.7  2005/09/21 16:46:16  sueh
+* <p> bug# 532 Removed all resume functionality from the dialogs.  Removed
+* <p> resume().  Removed getParallelProgressDisplay() because the parallel
+* <p> panel can be gotten from the manager.
+* <p>
 * <p> Revision 1.6  2005/09/16 21:20:41  sueh
 * <p> bug# 532 Changed ParallelDialog.resetParallelPanel() to
 * <p> resetParallelProgressDisplay() because ParallelDialog is generic.
