@@ -49,6 +49,11 @@ import etomo.type.Run3dmodMenuOptions;
  * 
  * <p>
  * $Log$
+ * Revision 3.22  2005/10/13 22:36:14  sueh
+ * bug# 532 parallel process check box and no volcombine check box are on
+ * both setup and final now.  Getting the text for no volcombine from final.
+ * Getting the text for parallel process from Tomo Gen dialog.
+ *
  * Revision 3.21  2005/09/29 19:10:49  sueh
  * bug# 532 Add panel headers to all of the sections in Combine.  Hide the
  * sections in the tabs that are not visible so that the visible tab can become
@@ -534,11 +539,11 @@ public class SetupCombinePanel
     return cbNoVolcombine.isSelected();
   }
   
-  public final void setParallelProcess(boolean parallelProcess) {
-    cbParallelProcess.setSelected(parallelProcess);
+  public final void setParallel(boolean parallel) {
+    cbParallelProcess.setSelected(parallel);
   }
   
-  public final boolean isParallelProcess() {
+  public final boolean isParallel() {
     return cbParallelProcess.isSelected();
   }
   

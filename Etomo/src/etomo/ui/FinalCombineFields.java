@@ -14,6 +14,9 @@ package etomo.ui;
 * @version $$Revision$$
 *
 * <p> $$Log$
+* <p> $Revision 1.3  2005/10/13 22:33:32  sueh
+* <p> $bug# 532 Added parallelProcess and noVolcombine
+* <p> $
 * <p> $Revision 1.2  2004/05/11 21:46:29  sueh
 * <p> $bug# 302 making FinalCombineFields interface local to the
 * <p> $ui package
@@ -40,8 +43,8 @@ interface FinalCombineFields {
   public String getZMin();
   public void setZMax(String zMax);
   public String getZMax();
-  public void setParallelProcess(boolean parallelProcess);
-  public boolean isParallelProcess();
+  public void setParallel(boolean parallel);
+  public boolean isParallel();
   public void setNoVolcombine(boolean noVolcombine);
   public boolean isNoVolcombine();
 }

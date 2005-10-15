@@ -48,6 +48,12 @@ import etomo.type.ReconScreenState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.28  2005/10/13 22:36:57  sueh
+ * <p> bug# 532 parallel process check box and no volcombine check box are on
+ * <p> both setup and final now.  Getting the text for no volcombine from final.
+ * <p> Getting the text for parallel process from Tomo Gen dialog.  In
+ * <p> synchronize() always copying all fields.
+ * <p>
  * <p> Revision 3.27  2005/09/29 19:12:38  sueh
  * <p> bug# 532 Added functionality to set the advanced/basic button to match
  * <p> the panel advanced/basic buttons, when all of the panel buttons have the
@@ -392,13 +398,13 @@ public class TomogramCombinationDialog
     updateParallelProcess();
   }
   
-  public final boolean isParallelProcessSelected() {
-    return pnlFinal.isParallelProcessSelected();
+  final void updateParallelProcess() {
+    applicationManager.setParallelDialog(axisID, this);
   }
   
-  final void updateParallelProcess() {
-    applicationManager.showParallelStatus(axisID, dialogType, pnlFinal
-        .getVolcombineButtonName(), isParallelProcessSelected());
+  public final boolean isParallel() {
+    synchronize(lblFinal, false);
+    return pnlSetup.isParallel();
   }
   
   /**
@@ -519,7 +525,7 @@ public class TomogramCombinationDialog
     toPanel.setYMax(fromPanel.getYMax());
     toPanel.setZMin(fromPanel.getZMin());
     toPanel.setZMax(fromPanel.getZMax());
-    toPanel.setParallelProcess(fromPanel.isParallelProcess());
+    toPanel.setParallel(fromPanel.isParallel());
     toPanel.setNoVolcombine(fromPanel.isNoVolcombine());
   }
 

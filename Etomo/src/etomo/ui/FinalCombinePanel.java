@@ -54,6 +54,11 @@ import etomo.type.Run3dmodMenuOptions;
  * 
  * <p>
  * $Log$
+ * Revision 3.33  2005/10/13 22:35:17  sueh
+ * bug# 532 parallel process check box and no volcombine check box are on
+ * both setup and final now.  Getting the text for no volcombine from final.
+ * Getting the text for parallel process from Tomo Gen dialog.
+ *
  * Revision 3.32  2005/10/12 22:44:39  sueh
  * bug# 532 If parallel is not set in meta data, then the default for the parallel
  * checkboxes is based on the existance and validity of cpu.adoc.
@@ -573,6 +578,10 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
   public boolean isUsePatchRegionModel() {
     return cbUsePatchRegionModel.isSelected();
   }
+  
+  public boolean isParallel() {
+    return cbParallelProcess.isSelected();
+  }
 
   public void setXMin(String xMin) {
     ltfXLow.setText(xMin);
@@ -677,10 +686,6 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     UIHarness.INSTANCE.pack(AxisID.ONLY, applicationManager);
   }
   
-  final boolean isParallelProcessSelected() {
-    return cbParallelProcess.isSelected();
-  }
-  
   final String getVolcombineButtonName() {
     return ProcessName.VOLCOMBINE.toString();
   }
@@ -722,12 +727,8 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     return cbNoVolcombine.isSelected();
   }
   
-  public final void setParallelProcess(boolean parallelProcess) {
-    cbParallelProcess.setSelected(parallelProcess);
-  }
-  
-  public final boolean isParallelProcess() {
-    return cbParallelProcess.isSelected();
+  public final void setParallel(boolean parallel) {
+    cbParallelProcess.setSelected(parallel);
   }
   
   void getVolcombineParams(SetParam setParam) {
