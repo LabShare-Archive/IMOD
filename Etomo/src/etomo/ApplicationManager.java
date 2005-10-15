@@ -534,6 +534,7 @@ public class ApplicationManager extends BaseManager {
     comScriptMgr.loadEraser(axisID);
     preProcDialog.setCCDEraserParams(comScriptMgr.getCCDEraserParam(axisID));
     mainPanel.showProcess(preProcDialog.getContainer(), axisID);
+    setParallelDialog(axisID, preProcDialog);
   }
 
   /**
@@ -1070,6 +1071,7 @@ public class ApplicationManager extends BaseManager {
         .isFiducialessAlignment(axisID));
     coarseAlignDialog.setTiltAxisAngle(metaData.getImageRotation(axisID));
     mainPanel.showProcess(coarseAlignDialog.getContainer(), axisID);
+    setParallelDialog(axisID, coarseAlignDialog);
   }
 
   /**
@@ -1525,6 +1527,7 @@ public class ApplicationManager extends BaseManager {
     fiducialModelDialog.setBeadtrackParams(comScriptMgr
         .getBeadtrackParam(axisID));
     mainPanel.showProcess(fiducialModelDialog.getContainer(), axisID);
+    setParallelDialog(axisID, fiducialModelDialog);
   }
 
   /**
@@ -1817,6 +1820,7 @@ public class ApplicationManager extends BaseManager {
 
     //  Create a default transferfid object to populate the alignment dialog
     mainPanel.showProcess(fineAlignmentDialog.getContainer(), axisID);
+    setParallelDialog(axisID, fineAlignmentDialog);
   }
 
   /**
@@ -2424,6 +2428,7 @@ public class ApplicationManager extends BaseManager {
 
     // Open the dialog panel
     mainPanel.showProcess(tomogramPositioningDialog.getContainer(), axisID);
+    setParallelDialog(axisID, tomogramPositioningDialog);
   }
 
   /**
@@ -3160,6 +3165,7 @@ public class ApplicationManager extends BaseManager {
     setEnabledTiltParameters(axisID);
 
     mainPanel.showProcess(tomogramGenerationDialog.getContainer(), axisID);
+    setParallelDialog(axisID, tomogramGenerationDialog);
   }
 
   /**
@@ -3801,7 +3807,6 @@ public class ApplicationManager extends BaseManager {
       }
       // Fill in the dialog box params and set it to the appropriate state
       tomogramCombinationDialog.setCombineParams(combineParams);
-      
       // If setupcombine has been run load the com scripts, otherwise disable the
       // apropriate panels in the tomogram combination dialog
       tomogramCombinationDialog.enableCombineTabs(combineScriptsExist());
@@ -3842,6 +3847,7 @@ public class ApplicationManager extends BaseManager {
     //  Show the process panel
     mainPanel.showProcess(tomogramCombinationDialog.getContainer(),
         AxisID.FIRST);
+    setParallelDialog(AxisID.FIRST, tomogramCombinationDialog);
   }
 
   /**
@@ -4368,7 +4374,7 @@ public class ApplicationManager extends BaseManager {
     //Volcombine is the last command to run in the combine script if parallel
     //processing is not used and either the the "stop before running volcombine"
     //checkbox is off or "Restart at volcombine" was pressed.
-    if (!tomogramCombinationDialog.isParallelProcessSelected()
+    if (!tomogramCombinationDialog.isParallel()
         && (startCommand == CombineComscriptState.VOLCOMBINE_INDEX || tomogramCombinationDialog
             .isRunVolcombine())) {
       combineComscriptState.setEndCommand(
@@ -4442,7 +4448,7 @@ public class ApplicationManager extends BaseManager {
     mainPanel.setTomogramCombinationState(ProcessState.INPROGRESS);
     warnStaleFile(ImodManager.PATCH_VECTOR_MODEL_KEY, true);
     //  Set the next process to execute when this is finished
-    if (tomogramCombinationDialog.isParallelProcessSelected()
+    if (tomogramCombinationDialog.isParallel()
         && tomogramCombinationDialog.isRunVolcombine()) {
       setNextProcess(AxisID.ONLY, SplitcombineParam.COMMAND_NAME);
     }
@@ -4507,7 +4513,7 @@ public class ApplicationManager extends BaseManager {
       return;
     }
     //  Set the next process to execute when this is finished
-    if (tomogramCombinationDialog.isParallelProcessSelected()
+    if (tomogramCombinationDialog.isParallel()
         && tomogramCombinationDialog.isRunVolcombine()) {
       setNextProcess(AxisID.ONLY, SplitcombineParam.COMMAND_NAME);
     }
@@ -4553,7 +4559,7 @@ public class ApplicationManager extends BaseManager {
     mainPanel.setTomogramCombinationState(ProcessState.INPROGRESS);
     warnStaleFile(ImodManager.PATCH_VECTOR_MODEL_KEY, true);
     //  Set the next process to execute when this is finished
-    if (tomogramCombinationDialog.isParallelProcessSelected()
+    if (tomogramCombinationDialog.isParallel()
         && tomogramCombinationDialog.isRunVolcombine()) {
       setNextProcess(AxisID.ONLY, SplitcombineParam.COMMAND_NAME);
     }
@@ -4629,7 +4635,7 @@ public class ApplicationManager extends BaseManager {
     processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
     mainPanel.setTomogramCombinationState(ProcessState.INPROGRESS);
     //  Set the next process to execute when this is finished
-    if (tomogramCombinationDialog.isParallelProcessSelected()
+    if (tomogramCombinationDialog.isParallel()
         && tomogramCombinationDialog.isRunVolcombine()) {
       setNextProcess(AxisID.ONLY, SplitcombineParam.COMMAND_NAME);
     }
@@ -4772,6 +4778,7 @@ public class ApplicationManager extends BaseManager {
       postProcessingDialog.setParameters(metaData.getSqueezevolParam());
     }
     mainPanel.showProcess(postProcessingDialog.getContainer(), AxisID.ONLY);
+    setParallelDialog(AxisID.ONLY, postProcessingDialog);
   }
 
   /**
@@ -4792,6 +4799,7 @@ public class ApplicationManager extends BaseManager {
       cleanUpDialog = new CleanUpDialog(this);
     }
     mainPanel.showProcess(cleanUpDialog.getContainer(), AxisID.ONLY);
+    setParallelDialog(AxisID.ONLY, cleanUpDialog);
   }
 
   /**
@@ -5704,6 +5712,9 @@ public class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.185  2005/10/14 21:04:37  sueh
+ * <p> bug# 730 Changed loadedTestParamFile to loadedParamFile.
+ * <p>
  * <p> Revision 3.184  2005/10/13 22:08:48  sueh
  * <p> Bug# 532 In synchronized(), always copying all fields
  * <p>
