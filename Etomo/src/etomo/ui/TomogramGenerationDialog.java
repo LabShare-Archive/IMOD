@@ -70,6 +70,10 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.73  2005/10/12 22:46:31  sueh
+ * bug# 532 If parallel is not set in meta data, then the default for the parallel
+ * checkboxes is based on the existance and validity of cpu.adoc.
+ *
  * Revision 3.72  2005/09/29 19:13:05  sueh
  * bug# 532 Add panel headers to all of the sections in Combine.  Hide the
  * sections in the tabs that are not visible so that the visible tab can become
@@ -1075,8 +1079,11 @@ public class TomogramGenerationDialog extends ProcessDialog
   }
   
   private void updateParallelProcess() {
-    applicationManager.showParallelStatus(axisID, dialogType, ProcessName.TILT
-        .toString(), cbParallelProcess.isSelected());
+    applicationManager.setParallelDialog(axisID, this);
+  }
+  
+  public boolean isParallel() {
+    return cbParallelProcess.isSelected();
   }
 
   /**
