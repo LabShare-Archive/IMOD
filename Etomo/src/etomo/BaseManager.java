@@ -6,7 +6,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Vector;
 
@@ -27,7 +26,6 @@ import etomo.type.BaseMetaData;
 import etomo.type.BaseProcessTrack;
 import etomo.type.BaseScreenState;
 import etomo.type.BaseState;
-import etomo.type.DialogType;
 import etomo.type.ProcessEndState;
 import etomo.type.ProcessName;
 import etomo.type.UserConfiguration;
@@ -52,6 +50,9 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.37  2005/10/14 21:04:57  sueh
+* <p> bug# 730 Changed loadedTestParamFile to loadedParamFile.
+* <p>
 * <p> Revision 1.36  2005/09/29 18:38:48  sueh
 * <p> bug# 532 Preventing Etomo from saving to the .edf or .ejf file over and
 * <p> over during exit.  Added BaseManager.exiting and
@@ -336,10 +337,6 @@ public abstract class BaseManager {
   protected boolean backgroundProcessA = false;
   protected String backgroundProcessNameA = null;
   protected String propertyUserDir = null;//working directory for this manager
-  //protected ParallelPanel parallelPanelA = null;
-  //protected ParallelPanel parallelPanelB = null;
-  private HashSet currentParallelDialogsA = null;
-  private HashSet currentParallelDialogsB = null;
 
   //private static variables
   private static boolean debug = false;
@@ -933,51 +930,12 @@ public abstract class BaseManager {
   }
   
   /**
-   * Creates currentParallelRequestsA or B, if necessary.
-   * CurrentParallelRequests HashSets keep track of the parallel process
-   * checkboxes which are turned on.  It adds or a deletes a String element
-   * created from dialogType and parallelRequestID.  After this is done, the
-   * size of the currentParallelRequests HashSet is checked.  If the size is 1
-   * and showParallelStatus is true, then mainPanel is asked to show the
-   * parallel status panel.  If the size is 0 and showParallelStatus is false,
-   * then mainPanel is asked to hide the parallel status panel.
+   * 
    * @param axisID
-   * @param dialogType
-   * @param parallelProcessID Name of the parallel process (unique to the dialog)
-   * @param parallelProcess
+   * @param dialog
    */
-  public final void showParallelStatus(AxisID axisID, DialogType dialogType,
-      String parallelRequestID, boolean showParallelStatus) {
-    HashSet currentParallelDialogs = null;
-    //Get the currentParallelDialogs for this axis.
-    //DialogTypes and panelNames stored in currentParallelDialogs have parallel
-    //processing turned on.
-    if (axisID == AxisID.SECOND) {
-      if (currentParallelDialogsB == null) {
-        currentParallelDialogsB = new HashSet();
-      }
-      currentParallelDialogs = currentParallelDialogsB;
-    }
-    else {
-      if (currentParallelDialogsA == null) {
-        currentParallelDialogsA = new HashSet();
-      }
-      currentParallelDialogs = currentParallelDialogsA;
-    }
-    //Add or remove elements from currentParallelDialogs
-    String uniqueParallelRequestID = dialogType.toString() + parallelRequestID;
-    if (showParallelStatus && !currentParallelDialogs.contains(uniqueParallelRequestID)) {
-      currentParallelDialogs.add(uniqueParallelRequestID);
-      if (currentParallelDialogs.size() == 1) {
-        getMainPanel().showParallelPanel(axisID, true);
-      }
-    }
-    else if (!showParallelStatus && currentParallelDialogs.contains(uniqueParallelRequestID)) {
-      currentParallelDialogs.remove(uniqueParallelRequestID);
-      if (currentParallelDialogs.size() == 0) {
-        getMainPanel().showParallelPanel(axisID, false);
-      }
-    }
+  public final void setParallelDialog(AxisID axisID, ParallelDialog dialog) {
+    getMainPanel().setParallelDialog(axisID, dialog.isParallel());
   }
   
   public final void packPanel(AxisID axisID) {
