@@ -67,6 +67,7 @@ public final class ParallelPanel implements ParallelProgressDisplay, Expandable,
   private final ProcessorTable processorTable;
   private final LabeledSpinner nice;
   private final PanelHeader header;
+  private final AxisProcessPanel parent;
   
   private LoadAverageMonitor loadAverageMonitor = null;
   private ParallelProcessMonitor parallelProcessMonitor = null;
@@ -75,9 +76,10 @@ public final class ParallelPanel implements ParallelProgressDisplay, Expandable,
   private boolean pauseEnabled = false;
   private ProcesschunksParam processchunksParam = null;
 
-  public ParallelPanel(BaseManager manager, AxisID axisID, PanelHeaderState state) {
+  public ParallelPanel(BaseManager manager, AxisID axisID, PanelHeaderState state, AxisProcessPanel parent) {
     this.manager = manager;
     this.axisID = axisID;
+    this.parent = parent;
     //initialize table
     //boolean expanded = PanelHeader.isMoreLessExpanded(state);
     processorTable = new ProcessorTable(this, axisID);//, expanded);
@@ -119,7 +121,7 @@ public final class ParallelPanel implements ParallelProgressDisplay, Expandable,
     ltfCPUsSelected.setTextPreferredWidth(FixedDim.fourDigitWidth);
     ltfCPUsSelected.setEditable(false);
     processorTable.msgCPUsSelectedChanged();
-    btnPause.setEnabled(pauseEnabled);
+    btnPause.setEnabled(false);
     header.setState(state);
   }
   
@@ -165,6 +167,12 @@ public final class ParallelPanel implements ParallelProgressDisplay, Expandable,
       return;
     }
     btnPause.setEnabled(pauseEnabled);
+    parent.setParallelInUse(pauseEnabled);
+  }
+  
+  public final boolean isInUse() {
+    System.out.println(btnPause.isEnabled());
+    return btnPause.isEnabled();
   }
   
   public final void msgCPUsSelectedChanged(int cpusSelected) {
@@ -399,6 +407,9 @@ public final class ParallelPanel implements ParallelProgressDisplay, Expandable,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.22  2005/10/13 22:35:59  sueh
+ * <p> bug# 532 Fixed parallel processing title.
+ * <p>
  * <p> Revision 1.21  2005/10/12 22:45:24  sueh
  * <p> bug# Added validAutodoc and isValidAutodoc().
  * <p>
