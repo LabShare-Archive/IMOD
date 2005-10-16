@@ -383,9 +383,10 @@ static int load_models(int n, char **fname, ImodvApp *a)
        the view to use set up 
        6/26/03: switch to new method, just initialize views in each model */
     /* 7/17/03: trouble.  Restore default scaling of current view if exists */
-    if (mod->cview)
-      imodViewDefaultScale(mod, &mod->view[mod->cview], &imageMax, 1.);
-
+    /* 10/16/05: Need to scale all views in case model saved from binned */
+    for (int i = 0; i < mod->viewsize; i++)
+      imodViewDefaultScale(mod, &mod->view[i], &imageMax, 1.);
+  
     imodvViewsInitialize(mod);
   }
 
@@ -671,6 +672,9 @@ void imodvQuit()
 
 /*
 $Log$
+Revision 4.26  2005/10/14 22:01:56  mast
+Allow imod to disable access to model while it is being replaced
+
 Revision 4.25  2005/10/13 20:07:25  mast
 Scale all views upon startup or new model and provide bin scaling
 
