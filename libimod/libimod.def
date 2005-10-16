@@ -130,9 +130,9 @@ EXPORTS
 	imodMatScale
 	imodNewPoint
 	imodContourGetFirst
-	imodTransModel
 	imodObjviewFromObject
 	imodLabelRead
+	imodTransFromMats
 	imodel_contour_sortz
 	imodWriteAscii
 	imodLabelDup
@@ -293,6 +293,7 @@ EXPORTS
 	imodMeshGetMaxVert
 	istoreDump
 	imodViewWrite
+	imodTransFromRefImage
 	imodMeshGetVert
 	imodContourDup
 	imodPlaneSetPN
