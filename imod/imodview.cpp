@@ -1533,7 +1533,7 @@ void ivwTransModel(ImodView *vi)
   binScale.z = vi->zbin;
 
   /* transform model to new coords (it will be unflipped if necessary) */
-  imodTransModel(imod, iref, binScale);
+  imodTransFromRefImage(imod, iref, binScale);
 
   ivwFlipModel(vi);
   ivwSetModelTrans(vi);
@@ -2414,6 +2414,9 @@ void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin,
 
 /*
 $Log$
+Revision 4.38  2005/10/14 22:03:56  mast
+Initialized reloadable, removed setting of maxes and bin values in model
+
 Revision 4.37  2005/10/13 20:08:44  mast
 Handle clip plane scaling then move sclae function to libimod
 
