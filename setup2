@@ -43,6 +43,7 @@ set packqt          = false
 set useqt           = false
 set qtthread        = true
 set m64bit          = false
+set use_etomo       =
 
 set inst_dir        = default
 set tifflibs        = default
@@ -177,6 +178,11 @@ while($#argv > 0)
                 case -useqt:
                         set useqt = true
                         breaksw
+
+		case -use_etomo:
+			shift
+			set use_etomo = $argv[1]
+			breaksw
 
 		case -h:
 		case -help:
@@ -748,7 +754,15 @@ if ($status) then
     \cp $etomo_dir/Makefile.dummy $etomo_dir/Makefile
 else
     echo "# THIS FILE WAS COPIED BY SETUP FROM Makefile.real - DO NOT EDIT" >! $etomo_dir/Makefile
-    cat $etomo_dir/Makefile.real >> $etomo_dir/Makefile
+    if ($use_etomo != "" && -e $use_etomo/etomo.jar) then
+        echo "Copying etomo.jar from $use_etomo and omitting etomo tests"
+        mkdir -p $etomo_dir/jar_dir
+        \cp -p $use_etomo/etomo.jar $etomo_dir/jar_dir
+        sed '/^tests:/s//realtests:/' $etomo_dir/Makefile.real >> $etomo_dir/Makefile
+        echo "tests:" >> $etomo_dir/Makefile
+    else
+        cat $etomo_dir/Makefile.real >> $etomo_dir/Makefile
+    endif
 endif
 
 # copy imodconfig.h unless it has not changed
@@ -791,11 +805,15 @@ echo "             -compiler    Use specified compilers (intel or gnu for rhlinu
 echo "             -packqt      Pack Qt library into distribution (Linux only)"
 echo "             -useqt       Use local Qt in startup script in distribution"
 echo "             -flags       Set flags for compilation"
+echo "             -use_etomo   Set directory to get etomo.jar from"
 exit
 
 
 #
 #  $Log$
+#  Revision 1.7  2005/09/11 05:44:26  mast
+#  Fixed removal of .version-dependent items for Windows
+#
 #  Revision 1.6  2005/06/10 05:57:45  mast
 #  New variables for fortran libs on mac
 #
