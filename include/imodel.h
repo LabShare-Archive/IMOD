@@ -501,7 +501,8 @@ extern "C" {
   int   imodDefault(Imod *imod);
   void  imodCleanSurf(Imod *imod);
   void  imodFlipYZ(Imod *imod);
-  int imodTransModel(Imod *imod, IrefImage *iref, Ipoint binScale);
+  int imodTransFromRefImage(Imod *imod, IrefImage *iref, Ipoint binScale);
+  void imodTransFromMats(Imod *imod, Imat *mat, Imat *matNorm, Imat *matClip);
 
   int   imodNewContour(Imod *imod);
   int   imodPrevContour(Imod *imod);
@@ -622,6 +623,9 @@ extern "C" {
 
 /*    
     $Log$
+    Revision 3.27  2005/10/13 20:01:41  mast
+    Added model transform function
+
     Revision 3.26  2005/06/29 05:34:20  mast
     Added istore include
 

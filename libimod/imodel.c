@@ -1632,16 +1632,10 @@ void  imodFlipYZ(Imod *imod)
  * and rotation in [iref], with the additional scaling required for binning in
  * each dimension specified in [binScale].  Returns 1 for memory errors.
  */
-int imodTransModel(Imod *imod, IrefImage *iref, Ipoint binScale)
+int imodTransFromRefImage(Imod *imod, IrefImage *iref, Ipoint binScale)
 {
-  Iobj  *obj;
-  Icont *cont;
   Ipoint pnt;
-  Imat  *mat, *mat2;
-  int    ob, co, pt;
-  int    me, i;
-  Imesh *mesh;
-  IclipPlanes *clips;
+  Imat  *mat, *matNorm, *matClip;
 
   /* Before any transforming, unflip a flipped model */
   if (imod->flags & IMODF_FLIPYZ) {
@@ -1653,15 +1647,16 @@ int imodTransModel(Imod *imod, IrefImage *iref, Ipoint binScale)
      image data */
   /* Compute separate matrices for point and clip plane normal transforms */
   mat = imodMatNew(3);
-  mat2 = imodMatNew(3);
-  if (!mat || !mat2)
+  matClip = imodMatNew(3);
+  matNorm = imodMatNew(3);
+  if (!mat || !matClip || !matNorm)
     return 1;
 
   imodMatScale(mat, &iref->oscale);
   pnt.x = 1. / iref->oscale.x;
   pnt.y = 1. / iref->oscale.y;
   pnt.z = 1. / iref->oscale.z;
-  imodMatScale(mat2, &pnt);
+  imodMatScale(matClip, &pnt);
   
   pnt.x =  - iref->otrans.x;
   pnt.y =  - iref->otrans.y;
@@ -1680,9 +1675,9 @@ int imodTransModel(Imod *imod, IrefImage *iref, Ipoint binScale)
     imodMatRot(mat, - iref->orot.y, b3dY);
     imodMatRot(mat, - iref->orot.z, b3dZ);
 
-    imodMatRot(mat2, - iref->orot.x, b3dX);
-    imodMatRot(mat2, - iref->orot.y, b3dY);
-    imodMatRot(mat2, - iref->orot.z, b3dZ);
+    imodMatRot(matClip, - iref->orot.x, b3dX);
+    imodMatRot(matClip, - iref->orot.y, b3dY);
+    imodMatRot(matClip, - iref->orot.z, b3dZ);
 
     /* Next transform from these "absolute" coords to new reference
        image coords */
@@ -1691,9 +1686,9 @@ int imodTransModel(Imod *imod, IrefImage *iref, Ipoint binScale)
     imodMatRot(mat, iref->crot.y, b3dY);
     imodMatRot(mat, iref->crot.x, b3dX);
 
-    imodMatRot(mat2, iref->crot.z, b3dZ);
-    imodMatRot(mat2, iref->crot.y, b3dY);
-    imodMatRot(mat2, iref->crot.x, b3dX);
+    imodMatRot(matClip, iref->crot.z, b3dZ);
+    imodMatRot(matClip, iref->crot.y, b3dY);
+    imodMatRot(matClip, iref->crot.x, b3dX);
   }
 
   imodMatTrans(mat, &iref->ctrans);
@@ -1703,15 +1698,44 @@ int imodTransModel(Imod *imod, IrefImage *iref, Ipoint binScale)
   pnt.z = 1. / (iref->cscale.z * binScale.z);
   imodMatScale(mat, &pnt);
 
+  // Mesh normals scaling does not need to include the binning scale because
+  // they already include Z-scaling and the model display will be adjusted to
+  // display with proper Z-scaling including the binning difference
+  // But clip normals do need the bin scaling included
+  imodMatCopy(matClip, matNorm);
+  imodMatScale(matNorm, &iref->cscale);
   pnt.x = iref->cscale.x * binScale.x;
   pnt.y = iref->cscale.y * binScale.y;
   pnt.z = iref->cscale.z * binScale.z;
-  imodMatScale(mat2, &pnt);
+  imodMatScale(matClip, &pnt);
 
-  // DNM 8/14/05: eliminated sizeScale
+  imodTransFromMats(imod, mat, matNorm, matClip);
           
+  imodMatDelete(mat);
+  imodMatDelete(matClip);
+  imodMatDelete(matNorm);
+  return 0;
+}
+
+/*!
+ * Transforms the model in [imod] given three matrices: [mat] for transforming
+ * points, [matNorm] for transforming the mesh normals, and [matClip] for
+ * transforming clip plane normals.
+ */
+void imodTransFromMats(Imod *imod, Imat *mat, Imat *matNorm, Imat *matClip)
+{
+  Iobj  *obj;
+  Icont *cont;
+  Ipoint pnt;
+  int    ob, co, pt;
+  int    me, i;
+  Imesh *mesh;
+  IclipPlanes *clips;
+
   for (ob = 0; ob < imod->objsize; ob++){
     obj = &(imod->obj[ob]);
+
+    /* Transform points in contours */
     for (co = 0; co < obj->contsize; co++){
       cont = &(obj->cont[co]);
       for (pt = 0; pt < cont->psize; pt++){
@@ -1720,10 +1744,9 @@ int imodTransModel(Imod *imod, IrefImage *iref, Ipoint binScale)
       }
     }
 
-    imodClipsTrans(&obj->clips, mat, mat2);
+    imodClipsTrans(&obj->clips, mat, matClip);
     
-    /* Just translate the meshes as necessary */
-    /* DNM 1/3/04: switch to transforming the mesh */
+    /* Transform the mesh points and the normals */
     for (me = 0; me < obj->meshsize; me++) {
       mesh = &obj->mesh[me];
       if (!mesh || !mesh->vsize)
@@ -1731,23 +1754,21 @@ int imodTransModel(Imod *imod, IrefImage *iref, Ipoint binScale)
       for (i = 0; i < mesh->vsize; i += 2){
         imodMatTransform(mat, &mesh->vert[i], &pnt);
         mesh->vert[i] = pnt;
+        imodMatTransform(matNorm, &mesh->vert[i + 1], &pnt);
+        imodPointNormalize(&pnt);
+        mesh->vert[i + 1] = pnt;
       }
     }
   }
 
   /* Now transform clip points in views and object views */
   for (i = 0; i < imod->viewsize; i++) {
-    imodClipsTrans(&imod->view[i].clips, mat, mat2);
+    imodClipsTrans(&imod->view[i].clips, mat, matClip);
     for (ob = 0; ob < imod->view[i].objvsize; ob++) {
-      imodClipsTrans(&imod->view[i].objview[ob].clips, mat, mat2);
+      imodClipsTrans(&imod->view[i].objview[ob].clips, mat, matClip);
     }
   }
-
-  imodMatDelete(mat);
-  imodMatDelete(mat2);
-  return 0;
 }
-
 
 /* Flip clipping planes */
 static void flipClips(IclipPlanes *clips)
@@ -1784,6 +1805,9 @@ int   imodGetFlipped(Imod *imod)
 
 /*
 $Log$
+Revision 3.22  2005/10/14 22:45:52  mast
+Moved clip transformation to iplane.c
+
 Revision 3.21  2005/10/13 20:04:00  mast
 Added model transformation function from 3dmod, and proper flipping of
 clipping planes
