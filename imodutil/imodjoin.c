@@ -1,5 +1,5 @@
 /*
- *  imodjoin.c  -  Program to extract a list of objects from a model
+ *  imodjoin.c  -  Joins selected objects from multiple models into one model
  *
  *  Authors: James Kremer and David Mastronarde   email: mast@colorado.edu
  *
@@ -15,6 +15,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.8  2005/03/20 19:56:05  mast
+Eliminating duplicate functions
+
 Revision 3.7  2004/11/05 19:05:29  mast
 Include local files with quotes, not brackets
 
@@ -42,43 +45,56 @@ Open output file in binary mode
 */
 
 #include "imodel.h"
-int *parselist (char *line, int *nlist);
+#include "mrcfiles.h"
 
 static void usage()
 {
-  fprintf(stderr, "Usage:\nimodjoin [-o list | -r list] model_1 [-o list]"
+  imodVersion("imodjoin");
+  imodCopyright();
+  fprintf(stderr, "Usage: imodjoin [options] model_1 [-o list]"
           " model_2 [more models] out_model\n");
-  fprintf(stderr, "       Each list of objects can include ranges, e.g. 1-3,6,9,13-15\n");
-  fprintf(stderr, "       -o will select particular objects from either model\n");
-  fprintf(stderr, "       -r will REPLACE listed objects from model 1 with objects from model 2\n");
+  fprintf(stderr, "Options (before first model):\n");
+  fprintf(stderr, "\t-o list\tList of objects to take from particular model "
+          "(default is all)\n");
+  fprintf(stderr, "\t-r list\tList of objects in model 1 to REPLACE with "
+          "objects from model 2\n");
+  fprintf(stderr, "\t-d\tModels are from different volumes\n");
+  fprintf(stderr, "\t-i file\tTransform all models to match this image file "
+          "(implies -d)\n");
+  fprintf(stderr, "\t-s\tIgnore scale differences between models from "
+          "different volumes\n");
+  fprintf(stderr, "\t-f\tRetain original flip state of each model\n");
+  fprintf(stderr, "\t-n\tDo not transforms models at all\n");
+  /*fprintf(stderr, "\t-\t\n");*/
   exit(3);
 }
 
 static void parserr(int mod)
 {
-  fprintf(stderr, "imodjoin: Error parsing object list before model %d\n", 
-          mod);
+  fprintf(stderr, "ERROR: imodjoin - Error parsing object list before "
+          "model %d\n", mod);
   usage();
 }
 static void optionerr(int mod)
 {
-  fprintf(stderr, "imodjoin: Invalid option before model %d\n", mod);
+  fprintf(stderr, "ERROR: imodjoin - Invalid option before model %d\n", mod);
   usage();
 }
 static void doublerr(void)
 {
-  fprintf(stderr, "imodjoin: You cannot use both -o and -r with model 1\n");
+  fprintf(stderr, "ERROR: imodjoin - You cannot use both -o and -r with "
+          "model 1\n");
   usage();
 }
 static void readerr(int mod)
 {
-  fprintf(stderr, "imodjoin: Error reading file for model %d\n", mod);
+  fprintf(stderr, "ERROR: imodjoin - Error reading file for model %d\n", mod);
   exit(1);
 }
 static void objerr(int ob, int mod)
 {
-  fprintf(stderr, "imodjoin: Invalid object number %d for model %d\n", ob, 
-          mod);
+  fprintf(stderr, "ERROR: imodjoin - Invalid object number %d for model %d\n",
+          ob, mod);
   exit (1);
 }
 
@@ -93,32 +109,187 @@ int main(int argc, char **argv)
   int nlist2;
   int njoin = 1;
   int replace = 0;
-  int iarg = 1;
+  int firstOlist = 0;
+  int diffVols = 0;
+  int iarg, flipState;
   char option;
+  int noRef1 = 0;
+  int suppress = 0;
+  int keepScale = 0;
+  int keepFlip = 0;
+  IrefImage useRef, outRef, *modRefp;
+  FILE *fin;
+  MrcHeader hdata;
+  Ipoint unitPt = {1., 1., 1.};
+  Ipoint zeroPt = {0., 0., 0.};
     
   if (argc < 4) usage();
 
-  if (*argv[iarg] == '-') {
-      
-    if ( (option = *(argv[iarg++] + 1)) == 'o' || option == 'r' ) {
-      list1 = parselist(argv[iarg++], &nlist1);
-      if (!list1)
-        parserr(1);
-      if (option == 'r')
-        replace = 1;
+  for (iarg = 1; iarg < argc ; iarg++) {
+    if (argv[iarg][0] == '-') {
+      switch (argv[iarg][1]) {
+
+      case 'r':
+      case 'o':
+        list1 = parselist(argv[++iarg], &nlist1);
+        if (!list1)
+          parserr(1);
+        if (argv[iarg - 1][1] == 'r')
+          replace = 1;
+        else
+          firstOlist = 1;
+        break;
+
+      case 'd':
+        diffVols = 1;
+        break;
+
+      case 's':
+        keepScale = 1;
+        break;
+
+      case 'n':
+        suppress = 1;
+        break;
+
+      case 'f':
+        keepFlip = 1;
+        break;
+
+      case 'i':
+        if (NULL == (fin = fopen(argv[++iarg], "rb"))){
+          fprintf(stderr, "ERROR: imodjoin - Couldn't open %s\n", argv[iarg]);
+          exit(3);
+        }
+
+        if (mrc_head_read(fin, &hdata)) {
+          fprintf(stderr, "ERROR: imodjoin - Reading header from %s.\n",
+                  argv[iarg]);
+          exit(3);
+        }
+        fclose(fin);
+        diffVols = 2;
+        break;
+
+      default:
+        optionerr(1);
+        break;
+
+      }
     } else
-      optionerr(1);
+      break;
   }
 
-  if (*argv[iarg] == '-') {
-    if ((option = *(argv[iarg] + 1)) == 'o' || option == 'r' )
-      doublerr();
-    else
-      optionerr(1);
+  if (replace && firstOlist)
+    doublerr();
+
+  if (suppress && diffVols) {
+    fprintf(stderr, "ERROR: imodjoin - it makes no sense to use -n with -d "
+            "or -i\n");
+    usage();
   }
 
-  inModel = imodRead(argv[iarg]); iarg++;
-  if (!inModel) readerr(1);
+  inModel = imodRead(argv[iarg++]);
+  if (!inModel) 
+    readerr(1);
+
+  /* If model has no refimage, set one up with null transformation */
+  modRefp = inModel->refImage;
+  if (!modRefp) {
+    noRef1 = 1;
+    inModel->refImage = (IrefImage *) malloc (sizeof(IrefImage));
+    if (!inModel->refImage) {
+      fprintf(stderr, "ERROR: imodjoin - Getting IrefImage structure for "
+              "output model.\n");
+      exit(3);
+    }
+
+    fprintf(stderr, "WARNING: Model 1 has no image reference data; "
+            "transformations may be wrong\n");
+    modRefp = inModel->refImage;
+    modRefp->otrans = zeroPt;
+    modRefp->ctrans = zeroPt;
+    modRefp->crot = zeroPt;
+    modRefp->cscale = unitPt;
+    inModel->flags |= IMODF_OTRANS_ORIGIN;
+  }
+
+  /* Set up transformations */
+  if (diffVols) {
+    if (diffVols > 1) {
+      
+      /* If reference image file, get the target transformation */
+      outRef.ctrans.x = hdata.xorg;
+      outRef.ctrans.y = hdata.yorg;
+      outRef.ctrans.z = hdata.zorg;
+      outRef.crot.x = hdata.tiltangles[3];
+      outRef.crot.y = hdata.tiltangles[4];
+      outRef.crot.z = hdata.tiltangles[5];
+      outRef.cscale = unitPt;
+      if (hdata.xlen && hdata.mx)
+        outRef.cscale.x = hdata.xlen/(float)hdata.mx;
+      if (hdata.ylen && hdata.my)
+        outRef.cscale.y = hdata.ylen/(float)hdata.my;
+      if (hdata.zlen && hdata.mz)
+        outRef.cscale.z = hdata.zlen/(float)hdata.mz;
+
+      /* If model had no refs, copy this into it to prevent transform */
+      if (noRef1) {
+        modRefp->ctrans = outRef.ctrans;
+        modRefp->otrans = outRef.ctrans;
+        modRefp->crot = outRef.crot;
+        modRefp->cscale = outRef.cscale;
+      }
+    } else {
+
+      /* No reference image, use model 1 as target with trans set to origin 
+         if possible */
+      if (inModel->flags | IMODF_OTRANS_ORIGIN)
+        outRef.ctrans = modRefp->otrans;
+      else
+        outRef.ctrans = modRefp->ctrans;
+      outRef.crot = modRefp->crot;
+      outRef.cscale = modRefp->cscale;
+    }
+
+    /* Set up to transform to the reference however it was gotten; namely
+       to a full image load coordinates, with rotations ignored */
+    useRef.ctrans = zeroPt;
+    useRef.cscale = outRef.cscale;
+    useRef.crot = zeroPt;
+    useRef.orot = zeroPt;
+    useRef.oscale = modRefp->cscale;
+    useRef.otrans = zeroPt;
+
+    /* Use origin information or give warning */
+    if (inModel->flags | IMODF_OTRANS_ORIGIN) {
+      useRef.otrans.x = modRefp->ctrans.x - modRefp->otrans.x;
+      useRef.otrans.y = modRefp->ctrans.y - modRefp->otrans.y;
+      useRef.otrans.z = modRefp->ctrans.z - modRefp->otrans.z;
+    } else
+      fprintf(stderr, "WARNING: Model 1 has no image origin data; "
+              "transformations may be wrong\n");
+
+    flipState = keepFlip ? (inModel->flags & IMODF_FLIPYZ) : 0;
+    if (keepScale)
+      useRef.cscale = useRef.oscale;
+    imodTransModel(inModel, &useRef, unitPt);
+    if (flipState) {
+      imodFlipYZ(inModel);
+      inModel->flags |= IMODF_FLIPYZ;
+    }
+
+    /* Set its refimage of the output model, set flags */
+    outRef.otrans = outRef.ctrans;
+    *modRefp = outRef;
+    inModel->flags |= (IMODF_OTRANS_ORIGIN | IMODF_TILTOK);
+
+  } else if (!suppress) {
+
+    /* Models are supposedly from congruent volumes.  Do nothing to model 1, 
+       it will be the full reference for current transform */
+    useRef = *modRefp;
+  }
 
   origsize = inModel->objsize;
   /* If there is a -o list on the first file, reorganize the retained 
@@ -171,7 +342,7 @@ int main(int argc, char **argv)
     if (iarg + 1 >= argc) usage();
 
     if (njoin > 2 && replace) {
-      fprintf(stderr, "imodjoin: You cannot use -r with more than 2 "
+      fprintf(stderr, "ERROR: imodjoin - You cannot use -r with more than 2 "
               "input models\n");
       exit(1);
     }
@@ -187,8 +358,55 @@ int main(int argc, char **argv)
         optionerr(njoin);
     }
 
-    joinModel = imodRead(argv[iarg]); iarg++;
-    if (!joinModel) readerr(njoin);
+    joinModel = imodRead(argv[iarg++]);
+    if (!joinModel) 
+      readerr(njoin);
+
+    /* Set desired flip state to original state or model 1 state */
+    flipState = (keepFlip ? joinModel->flags : inModel->flags) & IMODF_FLIPYZ;
+    modRefp = joinModel->refImage;
+
+    if (diffVols) {
+
+      /* Different volumes: translate to full image load and transform by
+         scaling differences only */
+      if (modRefp) {
+        useRef.otrans = zeroPt;
+
+        /* Use origin information or give warning */
+        if (joinModel->flags | IMODF_OTRANS_ORIGIN) {
+          useRef.otrans.x = modRefp->ctrans.x - modRefp->otrans.x;
+          useRef.otrans.y = modRefp->ctrans.y - modRefp->otrans.y;
+          useRef.otrans.z = modRefp->ctrans.z - modRefp->otrans.z;
+        } else
+          fprintf(stderr, "WARNING: Model %d has no image origin data; "
+                  "transformations may be wrong\n", njoin);
+        useRef.oscale = modRefp->cscale;
+        if (keepScale)
+          useRef.cscale = useRef.oscale;
+        imodTransModel(joinModel, &useRef, unitPt);
+      } else
+        fprintf(stderr, "WARNING: Model %d has no image reference data and "
+                "will not be transformed\n", njoin);
+      
+    } else if (!suppress) {
+
+      /* Same or congruent volumes: if model has refimage set its current
+         values to old in the transformation reference and transform; 
+         otherwise issue a warning */
+      if (modRefp) {
+        useRef.otrans = modRefp->ctrans;
+        useRef.orot = modRefp->crot;
+        useRef.oscale = modRefp->cscale;
+        imodTransModel(joinModel, &useRef, unitPt);
+      } else
+        fprintf(stderr, "WARNING: Model %d has no image reference data and "
+                "will not be transformed\n", njoin);
+    }
+
+    /* Set flip to match either the original state or model 1 */
+    if (flipState != (joinModel->flags & IMODF_FLIPYZ))
+      imodFlipYZ(joinModel);
 
     /* If no list for second model, make simple list of all objects */
     if (!nlist2) {
@@ -278,7 +496,7 @@ int main(int argc, char **argv)
 
   imodBackupFile(argv[argc - 1]);
   if (imodOpenFile(argv[argc - 1], "wb", inModel)) {
-    fprintf(stderr, "imodjoin: Fatal error opening new model\n");
+    fprintf(stderr, "ERROR: imodjoin - Fatal error opening new model\n");
     exit (1);
   }
   imodWriteFile(inModel);
