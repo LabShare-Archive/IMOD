@@ -17,6 +17,9 @@ import javax.swing.filechooser.FileFilter;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.2  2005/04/06 21:26:34  sueh
+ * <p> bug# 533 Added the .bl file to the clean up panel.
+ * <p>
  * <p> Revision 3.1  2005/03/29 23:50:39  sueh
  * <p> bug# 618 Added acceptPretrimmedTomograms boolean to configure
  * <p> whether the class will show sum.rec or _full.rec.
@@ -70,23 +73,37 @@ public class IntermediateFileFilter extends FileFilter {
         ".bl"};
     String[] pretrimmedTomograms = {"sum.rec","full.rec"};
     if (f.isFile()) {
+      String path = f.getAbsolutePath();
       for (int i = 0; i < endsWith.length; i++) {
-        if (f.getAbsolutePath().endsWith(endsWith[i])) {
+        if (path.endsWith(endsWith[i])) {
           return true;
         }
       }
       if (acceptPretrimmedTomograms) {
         for (int i = 0; i < pretrimmedTomograms.length; i++) {
-          if (f.getAbsolutePath().endsWith(pretrimmedTomograms[i])) {
+          if (path.endsWith(pretrimmedTomograms[i])) {
             return true;
           }
         }
       }
-      if (f.getAbsolutePath().endsWith(datasetName + "a.rec")) {
+      if (path.endsWith(datasetName + "a.rec")) {
         return true;
       }
-      if (f.getAbsolutePath().endsWith(datasetName + "b.rec")) {
+      if (path.endsWith(datasetName + "b.rec")) {
         return true;
+      }
+      //handle split... and processchunks files
+      if (path.indexOf('-') != -1) {
+        if (f.getName().startsWith(datasetName) && path.endsWith(".rec")) {
+          return true;
+        }
+        if (path.endsWith("-start.log") || path.endsWith("-finish.log")
+            || path.endsWith("-start.com") || path.endsWith("-finish.com")) {
+          return false;
+        }
+        if (path.endsWith(".log") || path.endsWith(".com")) {
+          return true;
+        }
       }
     }
     return false;
