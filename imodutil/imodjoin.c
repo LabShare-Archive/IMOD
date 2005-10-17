@@ -15,6 +15,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.9  2005/10/17 04:37:30  mast
+Added model transformation to common coordinate system
+
 Revision 3.8  2005/03/20 19:56:05  mast
 Eliminating duplicate functions
 
@@ -273,7 +276,7 @@ int main(int argc, char **argv)
     flipState = keepFlip ? (inModel->flags & IMODF_FLIPYZ) : 0;
     if (keepScale)
       useRef.cscale = useRef.oscale;
-    imodTransModel(inModel, &useRef, unitPt);
+    imodTransFromRefImage(inModel, &useRef, unitPt);
     if (flipState) {
       imodFlipYZ(inModel);
       inModel->flags |= IMODF_FLIPYZ;
@@ -384,7 +387,7 @@ int main(int argc, char **argv)
         useRef.oscale = modRefp->cscale;
         if (keepScale)
           useRef.cscale = useRef.oscale;
-        imodTransModel(joinModel, &useRef, unitPt);
+        imodTransFromRefImage(joinModel, &useRef, unitPt);
       } else
         fprintf(stderr, "WARNING: Model %d has no image reference data and "
                 "will not be transformed\n", njoin);
@@ -398,7 +401,7 @@ int main(int argc, char **argv)
         useRef.otrans = modRefp->ctrans;
         useRef.orot = modRefp->crot;
         useRef.oscale = modRefp->cscale;
-        imodTransModel(joinModel, &useRef, unitPt);
+        imodTransFromRefImage(joinModel, &useRef, unitPt);
       } else
         fprintf(stderr, "WARNING: Model %d has no image reference data and "
                 "will not be transformed\n", njoin);
