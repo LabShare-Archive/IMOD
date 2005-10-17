@@ -4,13 +4,47 @@
 .SH NAME
 imodjoin \- Combine two or more IMOD models into one.
 .SH SYNOPSIS
-imodjoin [-o list | -r list] model_1 [-o list] model_2 [[-o list] model_3 ...] <output model>
+imodjoin [options] model_1 [-o list] model_2 [[-o list] model_3 ...] out_model
 .SH DESCRIPTION
-Combines the contents of two or more models, or a subset of the objects from them, into
+Combines the contents of two or more models, or a subset of the objects from
+them, into
 a single model.  With no options, the program will produce a model with all
 of the objects from the first model, followed by all of the objects from the
 second model, then all of the objects from any additional models.
+.P
+The program will transform models if necessary to bring them to a common
+coordinate system, using image reference information stored in the model.
+The most common case requiring this is when the models
+have last been loaded on different subsets of the same image file.  The
+default assumption is that the models were loaded on either the same image
+file or image files with congruent coordinate systems.  For example, an image
+file produced by rotatevol(1) has its header entries adjusted so that its
+coordinate system is congruent with that of the original image file.
+Squeezevol(1) also produces a file with a congruent coordinate system.
+When joining models coming from such files, the program will take all
+coordinate differences between the models into account: shifts, rotations, and
+scaling.  This is not always appropriate, so the 
+.B -d
+option is available to indicate that models came from different volumes.  Some
+examples of different or non-congruent volumes are
+tomograms from serial sections, single and dual-axis tomograms of the same
+specimen, and two files of the same volume in which Y and Z are flipped.  In
+such cases, the program will simply shift each model, if necessary, to undo
+the effects of being loaded onto a subset of its respective image file; it
+will also scale all models to a common scale unless the 
+.B -s
+option is given.  The resulting model will be given image reference
+information so that it will display correctly on the volume
+that the first model came from, unless a specific image file is identified
+with the
+.B -i
+option, in which case the reference information will match that image.
 .SS Options
+All options except for
+.B -o
+must be entered before the first input model; 
+.B -o
+may be entered before each input model.
 .TP
 .B -o <list of objects>
 This option can be used before a model file to specify a list of objects that 
@@ -35,16 +69,41 @@ the
 option is used for the second model, then each of the objects in the 
 replacement list for the first model will be replaced by the corresponding
 object in the list for the second model.
+.TP
+.B -d
+Models are from different volumes rather than from the same volume or volumes
+with congruent coordinate systems (see above).
+.TP 
+.B -i <filename>
+With this option, the header information in the given image file will be
+taken as the reference for all models, and the resulting model will display
+correctly on this image file.  Otherwise, the first model is taken as the
+reference.  This option implies 
+.B -d.
+.TP
+.B -s
+Do not adjust for scale (pixel spacing) differences between models from
+different volumes.  This option might be appropriate either if the pixel
+size differences in the image file headers do not accurately reflect 
+different scalings between the images, or if the scale differences are being
+handled separately, such as by an alignment transformation.
+.TP
+.B -f
+Retain (or restore) the original Y-Z flipped state of each model.  Without this
+option, the program will put all models into the same flipped state before
+joining.  This option would be appropriate if one model was built on a
+tomogram that was not flipped (and thus is loaded into 3dmod with flipping)
+and another model was built on a flipped tomogram (no flipping needed in
+3dmod).
+.TP
+.B -n
+Do not transform models at all.  This option will prevent all of the behavior
+described above.
 .SH AUTHORS
 .nf
-Jim Kremer
-David Mastronarde,  mast@colorado.edu
+Jim Kremer and David Mastronarde
 .fi
 .SH SEE ALSO
 3dmod(1), imodextract(1)
 .SH BUGS
-If the models contain information about views saved in 3dmodv(1), the 
-information will not be dealt with properly.  If only one model has saved
-views, make it the first model in the imodjoin command.  The program does
-not release memory occupied by unneeded objects, so memory problems could
-be encountered if one is combining a few objects each from many large models.
+Email bug reports to mast@colorado.edu.
