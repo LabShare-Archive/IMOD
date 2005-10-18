@@ -782,13 +782,6 @@ public class ApplicationManager extends BaseManager {
         stackAxisID = AxisID.ONLY;
       }
     }
-    //set next process to archiveorig so that the second axis can be done
-    if (stackAxisID == AxisID.FIRST) {
-      setNextProcess(AxisID.ONLY, ArchiveorigParam.COMMAND_NAME);
-    }
-    else {
-      resetNextProcess(AxisID.ONLY);
-    }
     //check for original stack
     File originalStack = Utilities.getFile(this, false, stackAxisID,
         "_orig.st", "original stack");
@@ -821,6 +814,13 @@ public class ApplicationManager extends BaseManager {
       message[1] = e.getMessage();
       uiHarness.openMessageDialog(message, "Unable to execute command",
           AxisID.ONLY);
+    }
+    //set next process to archiveorig so that the second axis can be done
+    if (stackAxisID == AxisID.FIRST) {
+      setNextProcess(AxisID.ONLY, ArchiveorigParam.COMMAND_NAME);
+    }
+    else {
+      resetNextProcess(AxisID.ONLY);
     }
   }
 
@@ -1229,7 +1229,6 @@ public class ApplicationManager extends BaseManager {
     }
     processTrack.setCoarseAlignmentState(ProcessState.INPROGRESS, axisID);
     mainPanel.setCoarseAlignState(ProcessState.INPROGRESS, axisID);
-    setNextProcess(axisID, "checkUpdateFiducialModel");
     String threadName;
     try {
       if (metaData.getViewType() == ViewType.MONTAGE) {
@@ -1249,6 +1248,7 @@ public class ApplicationManager extends BaseManager {
           axisID);
       return;
     }
+    setNextProcess(axisID, "checkUpdateFiducialModel");
     setThreadName(threadName, axisID);
   }
 
@@ -2622,7 +2622,6 @@ public class ApplicationManager extends BaseManager {
       }
     }
 
-    setNextProcess(axisID, "tilt");
     String threadName;
     try {
       if (metaData.getViewType() != ViewType.MONTAGE) {
@@ -2641,6 +2640,7 @@ public class ApplicationManager extends BaseManager {
           axisID);
       return;
     }
+    setNextProcess(axisID, "tilt");
     setThreadName(threadName, axisID);
   }
 
@@ -3916,12 +3916,16 @@ public class ApplicationManager extends BaseManager {
     // Get the latest combine parameters from the dialog
     updateCombineParams();
     AxisID axisID;
-    if (metaData.getCombineParams().getMatchBtoA()) {
+    boolean matchBtoA = metaData.getCombineParams().getMatchBtoA();
+    //TEMP
+    System.err.println("matchBtoA="+matchBtoA);
+    if (matchBtoA) {
       axisID = AxisID.FIRST;
     }
     else {
       axisID = AxisID.SECOND;
     }
+    System.err.println("axisID="+axisID);
     try {
       imodManager.open(ImodManager.FULL_VOLUME_KEY, axisID, "patch_region.mod",
           true, menuOptions);
@@ -4447,11 +4451,6 @@ public class ApplicationManager extends BaseManager {
     processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
     mainPanel.setTomogramCombinationState(ProcessState.INPROGRESS);
     warnStaleFile(ImodManager.PATCH_VECTOR_MODEL_KEY, true);
-    //  Set the next process to execute when this is finished
-    if (tomogramCombinationDialog.isParallel()
-        && tomogramCombinationDialog.isRunVolcombine()) {
-      setNextProcess(AxisID.ONLY, SplitcombineParam.COMMAND_NAME);
-    }
     String threadName;
     try {
       threadName = processMgr.combine(combineComscriptState);
@@ -4465,6 +4464,11 @@ public class ApplicationManager extends BaseManager {
       uiHarness.openMessageDialog(message, "Unable to execute com script",
           AxisID.ONLY);
       return;
+    }
+    //  Set the next process to execute when this is finished
+    if (tomogramCombinationDialog.isParallel()
+        && tomogramCombinationDialog.isRunVolcombine()) {
+      setNextProcess(AxisID.ONLY, SplitcombineParam.COMMAND_NAME);
     }
     setBackgroundThreadName(threadName, AxisID.FIRST,
         CombineComscriptState.COMSCRIPT_NAME);
@@ -4512,11 +4516,6 @@ public class ApplicationManager extends BaseManager {
           AxisID.ONLY);
       return;
     }
-    //  Set the next process to execute when this is finished
-    if (tomogramCombinationDialog.isParallel()
-        && tomogramCombinationDialog.isRunVolcombine()) {
-      setNextProcess(AxisID.ONLY, SplitcombineParam.COMMAND_NAME);
-    }
     String threadName;
     try {
       threadName = processMgr.combine(combineComscriptState);
@@ -4530,6 +4529,11 @@ public class ApplicationManager extends BaseManager {
       uiHarness.openMessageDialog(message, "Unable to execute com script",
           AxisID.ONLY);
       return;
+    }
+    //  Set the next process to execute when this is finished
+    if (tomogramCombinationDialog.isParallel()
+        && tomogramCombinationDialog.isRunVolcombine()) {
+      setNextProcess(AxisID.ONLY, SplitcombineParam.COMMAND_NAME);
     }
     setBackgroundThreadName(threadName, AxisID.FIRST,
         CombineComscriptState.COMSCRIPT_NAME);
@@ -4558,11 +4562,7 @@ public class ApplicationManager extends BaseManager {
     processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
     mainPanel.setTomogramCombinationState(ProcessState.INPROGRESS);
     warnStaleFile(ImodManager.PATCH_VECTOR_MODEL_KEY, true);
-    //  Set the next process to execute when this is finished
-    if (tomogramCombinationDialog.isParallel()
-        && tomogramCombinationDialog.isRunVolcombine()) {
-      setNextProcess(AxisID.ONLY, SplitcombineParam.COMMAND_NAME);
-    }
+
     String threadName;
     try {
       threadName = processMgr.combine(combineComscriptState);
@@ -4576,6 +4576,11 @@ public class ApplicationManager extends BaseManager {
       uiHarness.openMessageDialog(message, "Unable to execute com script",
           AxisID.ONLY);
       return;
+    }
+    //  Set the next process to execute when this is finished
+    if (tomogramCombinationDialog.isParallel()
+        && tomogramCombinationDialog.isRunVolcombine()) {
+      setNextProcess(AxisID.ONLY, SplitcombineParam.COMMAND_NAME);
     }
     setBackgroundThreadName(threadName, AxisID.FIRST,
         CombineComscriptState.COMSCRIPT_NAME);
@@ -4634,11 +4639,6 @@ public class ApplicationManager extends BaseManager {
     }
     processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
     mainPanel.setTomogramCombinationState(ProcessState.INPROGRESS);
-    //  Set the next process to execute when this is finished
-    if (tomogramCombinationDialog.isParallel()
-        && tomogramCombinationDialog.isRunVolcombine()) {
-      setNextProcess(AxisID.ONLY, SplitcombineParam.COMMAND_NAME);
-    }
     String threadName;
     try {
       threadName = processMgr.combine(combineComscriptState);
@@ -4652,6 +4652,11 @@ public class ApplicationManager extends BaseManager {
       uiHarness.openMessageDialog(message, "Unable to execute com script",
           AxisID.ONLY);
       return;
+    }
+    //  Set the next process to execute when this is finished
+    if (tomogramCombinationDialog.isParallel()
+        && tomogramCombinationDialog.isRunVolcombine()) {
+      setNextProcess(AxisID.ONLY, SplitcombineParam.COMMAND_NAME);
     }
     setBackgroundThreadName(threadName, AxisID.FIRST,
         CombineComscriptState.COMSCRIPT_NAME);
@@ -5596,7 +5601,6 @@ public class ApplicationManager extends BaseManager {
     }
     processTrack.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
     mainPanel.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
-    setNextProcess(axisID, getNextProcessProcesschunksString(ProcessName.TILT));
     String threadName;
     try {
       threadName = processMgr.splittilt(param, axisID);
@@ -5609,6 +5613,7 @@ public class ApplicationManager extends BaseManager {
       uiHarness.openMessageDialog(message, "Unable to execute command", axisID);
       return;
     }
+    setNextProcess(axisID, getNextProcessProcesschunksString(ProcessName.TILT));
     setThreadName(threadName, axisID);
     mainPanel
         .startProgressBar("Running " + SplittiltParam.COMMAND_NAME, axisID);
@@ -5634,7 +5639,6 @@ public class ApplicationManager extends BaseManager {
     }
     processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
     mainPanel.setTomogramCombinationState(ProcessState.INPROGRESS);
-    setNextProcess(AxisID.ONLY, getNextProcessProcesschunksString(ProcessName.VOLCOMBINE));
     String threadName;
     try {
       threadName = processMgr.splitcombine(param);
@@ -5647,6 +5651,7 @@ public class ApplicationManager extends BaseManager {
       uiHarness.openMessageDialog(message, "Unable to execute command", AxisID.ONLY);
       return;
     }
+    setNextProcess(AxisID.ONLY, getNextProcessProcesschunksString(ProcessName.VOLCOMBINE));
     setThreadName(threadName, AxisID.ONLY);
     mainPanel
         .startProgressBar("Running " + SplitcombineParam.COMMAND_NAME, AxisID.ONLY);
@@ -5712,6 +5717,10 @@ public class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.186  2005/10/15 00:28:13  sueh
+ * <p> bug# 532 Called BaseManager.setParallelDialog() when opening each
+ * <p> dialog.
+ * <p>
  * <p> Revision 3.185  2005/10/14 21:04:37  sueh
  * <p> bug# 730 Changed loadedTestParamFile to loadedParamFile.
  * <p>
