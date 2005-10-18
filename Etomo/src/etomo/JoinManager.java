@@ -50,6 +50,10 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.24  2005/10/14 21:05:48  sueh
+* <p> bug# 730 Changed loadedTestParamFile to loadedParamFile.  Added
+* <p> doneJoinDialog(); calling it from exitProgram().
+* <p>
 * <p> Revision 1.23  2005/09/29 18:39:00  sueh
 * <p> bug# 532 Preventing Etomo from saving to the .edf or .ejf file over and
 * <p> over during exit.  Added BaseManager.exiting and
@@ -526,7 +530,6 @@ public class JoinManager extends BaseManager {
       uiHarness.openMessageDialog(metaData.getInvalidReason(), "Invalid Data", AxisID.ONLY);
       return;
     }
-    setNextProcess(AxisID.ONLY, "startjoin");
     String rootName = metaData.getRootName();
     EtomoDirector.getInstance().renameCurrentManager(rootName);
     createEmptyXfFile(rootName);
@@ -544,6 +547,7 @@ public class JoinManager extends BaseManager {
         + except.getMessage(), "SystemProcessException", AxisID.ONLY);
       return; 
     }
+    setNextProcess(AxisID.ONLY, "startjoin");
     mainPanel.startProgressBar("Makejoincom", AxisID.ONLY);
   }
   
@@ -892,6 +896,7 @@ public class JoinManager extends BaseManager {
    * Start the next process specified by the nextProcess string
    */
   protected void startNextProcess(AxisID axisID) {
+    System.out.println("nextProcess="+getNextProcess(axisID));
     if (getNextProcess(axisID).equals("startjoin")) {
       startjoin();
       return;
