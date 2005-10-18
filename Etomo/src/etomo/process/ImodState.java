@@ -174,6 +174,15 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.28  2005/08/11 23:39:38  sueh
+ * <p> $bug# 711  In ImodManager:  to be sure that the 3dmod -view
+ * <p> $configuration won't use -O, -B, or -b; prevent Run3dmodMenuOptions
+ * <p> $from being turned on by setting noOptions.  Pass
+ * <p> $Run3dmodMenuOptions to ImodManager.open(), ImodState.open(), and
+ * <p> $ImodProcess.open().  It should not be saved, because it needs to be
+ * <p> $refreshed each time 3dmod is run.  In ImodState.open() add the menu
+ * <p> $options from the pulldown menu to the existing menu options.
+ * <p> $
  * <p> $Revision 1.27  2005/08/09 20:07:07  sueh
  * <p> $bug# 711  Added setRun3dmodMenuOption().
  * <p> $
@@ -685,6 +694,10 @@ public class ImodState {
    */
   public void setOpenContours(boolean openContours){
     this.openContours = openContours;
+  }
+  
+  final AxisID getAxisID() {
+    return axisID;
   }
 
   /**

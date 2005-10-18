@@ -30,6 +30,20 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.34  2005/08/11 23:27:30  sueh
+ * <p> bug# 711  Add menu options for 3dmod startup window and bin by 2.
+ * <p> Update the menus in both frames when one is changed.  Change enum
+ * <p> Run3dmodMenuOption to Run3dmodMenuOptions, which can turn on
+ * <p> multiple options at once.  This allows ImodState to combine input from
+ * <p> the context menu and the pulldown menu.  Move setting about whether a
+ * <p> type of 3dmod run can be binned in Z to ImodManager.  In ImodManager:
+ * <p> to be sure that the 3dmod -view configuration won't use -O, -B, or -b;
+ * <p> prevent Run3dmodMenuOptions from being turned on by setting
+ * <p> noOptions.  Pass Run3dmodMenuOptions to ImodManager.open(),
+ * <p> ImodState.open(), and ImodProcess.open().  It does not have to be
+ * <p> saved.  In ImodState.open() add the menu options from the pulldown
+ * <p> menu to the existing menu options.
+ * <p>
  * <p> Revision 3.33  2005/08/09 19:56:31  sueh
  * <p> bug# 711 Added setRun3dmodMenuOption functions.
  * <p> bug# 712 In newMatchCheck(), passed matchcheck.mat and
@@ -575,6 +589,8 @@ public class ImodManager {
       newImod(key, axisID);
       imodState = get(key, axisID);
     }
+    //TEMP
+    System.err.println("key="+key+",imodState:dataset="+imodState.getDatasetName()+",axis="+imodState.getAxisID());
     if (imodState != null) {
       imodState.open(model, modelMode, menuOptions);
     }
