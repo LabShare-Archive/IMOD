@@ -1,6 +1,6 @@
 .na
 .nh
-.TH imodtrans 1 3.4.8 BL3DEMC
+.TH imodtrans 1 3.6.16 BL3DEMC
 .SH NAME
 imodtrans \- Transform an IMOD model file.
 .SH SYNOPSIS
@@ -22,17 +22,30 @@ then X.
 .P
 If you plan to display the transformed model on a different image file from
 the one that it was built on, the program will not be able to translate the
-modelto the correct location unless it knows the dimensions of the other
+model to the correct location unless it knows the dimensions of the other
 image file.  If these dimensions differ from those of the original image
 file, enter them with the
 .B -n
 option.
 .P
-For 3-D transformations, however they are specified, all model points are 
-transformed, as well as all mesh points and surface normals.  The mesh is
-transformed because contours that 
-have been rotated out of the X/Y plane cannot currently be remeshed.
-
+For 3-D transformations, however they are specified, all contour points are 
+transformed, as well as all mesh points, surface normals, and clipping
+planes.  The mesh is transformed because contours that have been rotated out
+of the X/Y plane cannot currently be remeshed.  For 2-D transformations, only
+contour points are transformed, so clipping planes are not preserved and the
+model will have to be remeshed.
+.P
+The program can also manipulate the flipped state of the model in Y and Z 
+either by actually flipping the Y and Z coordinates, or by simply toggling the
+flag that indicates whether the model was loaded on data that were flipped in
+3dmod.  Either way 
+may be used after flipping a volume with "clip flipyz" to change a model built 
+on the
+unflipped volume so that it will load onto the flipped volume.
+In addition, the model can be transformed to match a particular image
+file, just the same as if it were loaded onto that file in 3dmod.  The order
+of operations is: flipping, then transforming to match an image file, then 
+transforming either via transformations in a file or via the entered options.
 .SS Options
 .TP
 .B -tx <value>
@@ -82,12 +95,22 @@ rotate the model about the particular axis by the given value in degrees.
 Transform the model in 2-D sections using the given transform file
 as input.  One line is expected per section, and slices at Z values greater 
 than the
-number of lines will not be transformed.  This option is useful for 
+number of lines will not be transformed, unless the 
+.B -l
+option is given to apply one transform to the whole model.
+This option is useful for 
 transforming a model to match an
 image stack that has been aligned with Xfalign or Midas.
 This option cannot be entered with the translation, scaling, or rotation
 options, or with 
 .B -3.
+.TP
+.B -l <line #>
+Transform the whole model with the single 2D transformation at the given line
+number in the transform file entered with 
+.B -2.
+Lines are numbered from 0.  
+
 .TP
 .B -3 <transform file>
 Transform the model with the single 3-D transformation in the given file.
@@ -118,10 +141,24 @@ If the model was last displayed on images loaded into 3dmod with Y and Z
 flipped, use this option to apply the transformation to the flipped
 coordinates.  The default is to apply the transformation to native, unflipped
 coordinates, which will work with transformations obtained from Solvematch.
+.TP
+.B -i <image file>
+Transform the model coordinates as if the model were being loaded into 3dmod
+together with the given image file.
+.TP
+.B -Y
+Exchange Y and Z coordinates in the model file, without changing the flag
+indicating the model's flip state.
+.TP
+.B -T
+Toggle the flag indicating the model's flip state, without actually flipping
+the data.
+
 .SH AUTHOR
 Jim Kremer and David Mastronarde
 .SH SEE ALSO
-midas(1), xfalign(1), solvematch(1), matchvol(1), rotatevol(1)
+midas(1), xfalign(1), solvematch(1), matchvol(1), rotatevol(1), clip(1),
+3dmod(1)
 .SH BUGS
 
 Email bug reports to mast@colorado.edu.
