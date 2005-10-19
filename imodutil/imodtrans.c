@@ -1,31 +1,9 @@
-/*  IMOD VERSION 3.4.8
- *
+/*
  *  imodtrans.c -- Translate, scale and rotate imod model files.
  *
  *  Original Author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
  */
-
-/*****************************************************************************
- *   Copyright (C) 1995-2004 by Boulder Laboratory for 3-Dimensional Fine    *
- *   Structure ("BL3DFS") and the Regents of the University of Colorado.     *
- *                                                                           *
- *   BL3DFS reserves the exclusive rights of preparing derivative works,     *
- *   distributing copies for sale, lease or lending and displaying this      *
- *   software and documentation.                                             *
- *   Users may reproduce the software and documentation as long as the       *
- *   copyright notice and other notices are preserved.                       *
- *   Neither the software nor the documentation may be distributed for       *
- *   profit, either in original form or in derivative works.                 *
- *                                                                           *
- *   THIS SOFTWARE AND/OR DOCUMENTATION IS PROVIDED WITH NO WARRANTY,        *
- *   EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTY OF          *
- *   MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.       *
- *                                                                           *
- *   This work is supported by NIH biotechnology grant #RR00592,             *
- *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
- *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
- *****************************************************************************/
 
 /*  $Author$
 
@@ -34,6 +12,13 @@
     $Revision$
 
     $Log$
+    Revision 3.3  2004/09/17 16:27:13  mast
+    Rewrote to do a general 3D transformation from a file, to transform mesh
+    vertices and normals, to set up a transformation matrix as it reads in
+    option arguments, to take the arguments in any order and repeated if
+    desired, and to handle situations of flipped data, Z-scaled data, and
+    different destination image file size.
+
 */
 
 #include <stdio.h>
@@ -41,22 +26,25 @@
 #include <string.h>
 #include <math.h>
 #include "imodel.h"
+#include "mrcfiles.h"
 
 
-static int fgetline(FILE *fp, char s[],int limit);
-static int filetrans(char *filename, Imod *model, int mode, Ipoint newCen,
-                     float zscale, int doflip);
-static int trans_model_slice(struct Mod_Model *model, float *mat, int slice,
+static int filetrans(char *filename, Imod *model, int mode, int oneLine,
+                     Ipoint newCen, float zscale, int doflip);
+static int trans_model_slice(Imod *model, float *mat, int slice,
                              Ipoint newCen);
-static int trans_model_3d(Imod *model, Imat *mat, Ipoint newCen, float zscale,
-                          int doflip);
+static int trans_model_3d(Imod *model, Imat *mat, Imat *normMat, Ipoint newCen,
+                          float zscale, int doflip);
+static void exchangef(float *a, float *b);
+static void usage(char *progname);
 
 
 static void usage(char *progname)
 {
   imodVersion(progname);
   imodCopyright();
-  fprintf(stderr, "Usage: %s [options] <input file> <output file>\n", progname);
+  fprintf(stderr, "Usage: %s [options] <input file> <output file>\n", 
+          progname);
   fprintf(stderr, "Options:\n");
   fprintf(stderr, "\t-tx #\tTranslate in X by #\n");
   fprintf(stderr, "\t-ty #\tTranslate in Y by #\n");
@@ -69,18 +57,26 @@ static void usage(char *progname)
   fprintf(stderr, "\t-rz #\tRotate around Z axis by #\n");
   fprintf(stderr, "\t-2 file\tApply 2D transformations from file, one per"
           " section\n");
+  fprintf(stderr, "\t-l #\tLine number of single 2D transformation to apply"
+          " (from 0)\n");
   fprintf(stderr, "\t-3 file\tApply 3D transformation from file\n");
   fprintf(stderr, "\t-n #,#,#\tSet X,Y,Z size of transformed volume\n");
   fprintf(stderr, "\t-z\tTransform Z-scaled coordinates using model's Z-scale"
           "\n");
-  fprintf(stderr, "\t-f\tTransform flipped instead of native coordinates if Y-Z"
-          " flipped\n");
+  fprintf(stderr, "\t-f\tTransform flipped instead of native coordinates if "
+          "Y-Z flipped\n");
+  fprintf(stderr, "\t-i file\tTransform to match given image file coordinate"
+          " system\n");
+  fprintf(stderr, "\t-Y\tFlip model in Y and Z (without toggling flipped"
+          " flag)\n");
+  fprintf(stderr, "\t-T\tToggle flag that model is flipped in Y and Z\n");
+
   exit(3);
 }
 
 int main(int argc, char *argv[])
 {
-  struct Mod_Model   model;
+  Imod   model;
   FILE   *fin, *fout;
   char   *filename = NULL;
   int    i;
@@ -88,12 +84,20 @@ int main(int argc, char *argv[])
   int    useZscale = 0;
   int    doflip = 1;
   int    transopt = 0;
+  int    toImage = 0;
+  int    oneLine = -1;
+  int    toggleFlip = 0;
+  int    flipModel = 0;
   float  zscale = 1.;
   float  rx = 0., ry = 0., rz = 0.;
   int newNx = 0, newNy = 0, newNz = 0;
   char *progname = imodProgName(argv[0]);
   Ipoint newCen, tmpPt;
   Imat *mat = imodMatNew(3);
+  Imat *normMat = imodMatNew(3);
+  IrefImage useRef, *modRefp;
+  MrcHeader hdata;
+  Ipoint unitPt = {1., 1., 1.};
 
   if (argc < 3){
     usage(progname);
@@ -114,6 +118,21 @@ int main(int argc, char *argv[])
         mode += 3;
         break;
 
+      case 'i':
+        toImage = 1;
+        if (NULL == (fin = fopen(argv[++i], "rb"))){
+          fprintf(stderr, "ERROR: %s - Couldn't open %s\n", progname, 
+                  argv[i]);
+          exit(3);
+        }
+
+        if (mrc_head_read(fin, &hdata)) {
+          fprintf(stderr, "ERROR: %s - Reading header from %s.\n", progname,
+                  argv[i]);
+          exit(3);
+        }
+        fclose(fin);
+
       case 'z':
         useZscale = 1;
         break;
@@ -122,11 +141,23 @@ int main(int argc, char *argv[])
         doflip = 0;
         break;
 
+      case 'Y':
+        flipModel = 1;
+        break;
+
+      case 'T':
+        toggleFlip = 1;
+        break;
+
       case 'n':
         sscanf(argv[++i], "%d%*c%d%*c%d", &newNx, &newNy, &newNz);
         break;
             
-      case 't':
+      case 'l':
+        oneLine = atoi(argv[++i]);
+        break;
+
+      case 't':  /* Translations */
         tmpPt.x = tmpPt.y = tmpPt.z = 0.;
         transopt = 1;
         switch (argv[i][2]){
@@ -157,7 +188,7 @@ int main(int argc, char *argv[])
         imodMatTrans(mat, &tmpPt);
         break;
 
-      case 's':
+      case 's':  /* Scaling */
         tmpPt.x = tmpPt.y = tmpPt.z = 1.;
         transopt = 1;
         switch (argv[i][2]){
@@ -186,9 +217,13 @@ int main(int argc, char *argv[])
           break;
         }
         imodMatScale(mat, &tmpPt);
+        tmpPt.x = 1. / tmpPt.x;
+        tmpPt.y = 1. / tmpPt.y;
+        tmpPt.z = 1. / tmpPt.z;
+        imodMatScale(normMat, &tmpPt);
         break;
 
-      case 'r':
+      case 'r':  /* Rotations */
         transopt = 1;
         switch (argv[i][2]){
         case 'x':
@@ -197,6 +232,7 @@ int main(int argc, char *argv[])
           else
             sscanf(argv[++i], "%f", &rx);
           imodMatRot(mat, (double)rx, b3dX);
+          imodMatRot(normMat, (double)rx, b3dX);
           break;
         case 'y':
           if (argv[i][3] != 0x00)
@@ -204,6 +240,7 @@ int main(int argc, char *argv[])
           else
             sscanf(argv[++i], "%f", &ry);
           imodMatRot(mat, (double)ry, b3dY);
+          imodMatRot(normMat, (double)ry, b3dY);
           break;
         case 'z':
           if (argv[i][3] != 0x00)
@@ -211,6 +248,7 @@ int main(int argc, char *argv[])
           else
             sscanf(argv[++i], "%f", &rz);
           imodMatRot(mat, (double)rz, b3dZ);
+          imodMatRot(normMat, (double)rz, b3dZ);
           break;
         default:
           fprintf(stderr, "ERROR: %s - Invalid option %s\n", progname, 
@@ -235,13 +273,13 @@ int main(int argc, char *argv[])
     fprintf(stderr, "ERROR: %s - You cannot enter both -2 and -3\n", progname);
     exit(3);
   }
-
+  
   if (mode && transopt) { 
     fprintf(stderr, "ERROR: %s - You cannot enter -r, -s, or -t options with "
             "-2 and -3\n", progname);
     exit(3);
   }
-
+  
   if (i != argc - 2) {
     fprintf(stderr, "ERROR: %s - Command line should end with two non-option "
             "arguments\n", progname);
@@ -274,6 +312,55 @@ int main(int argc, char *argv[])
     exit(3);
   }
 
+  /* Do flipping operations first */
+  if (flipModel)
+    imodFlipYZ(&model);
+  if (toggleFlip) {
+    if (model.flags & IMODF_FLIPYZ)
+      model.flags &= ~IMODF_FLIPYZ;
+    else
+      model.flags |= IMODF_FLIPYZ;
+  }
+
+  /* Do scaling to image reference next */
+  if (toImage) {
+
+    if (!model.refImage) {
+      fprintf(stderr, "ERROR: %s - Model has no image scaling information; "
+              "-i option invalid\n", progname);
+      exit(3);
+    }
+
+    if (!(model.flags & IMODF_OTRANS_ORIGIN)) {
+      fprintf(stderr, "ERROR: %s - Model has no image origin information; "
+              "-i option invalid\n", progname);
+      exit(3);
+    }
+
+    /* get the target transformation */
+    useRef.ctrans.x = hdata.xorg;
+    useRef.ctrans.y = hdata.yorg;
+    useRef.ctrans.z = hdata.zorg;
+    useRef.crot.x = hdata.tiltangles[3];
+    useRef.crot.y = hdata.tiltangles[4];
+    useRef.crot.z = hdata.tiltangles[5];
+    useRef.cscale = unitPt;
+    if (hdata.xlen && hdata.mx)
+      useRef.cscale.x = hdata.xlen/(float)hdata.mx;
+    if (hdata.ylen && hdata.my)
+      useRef.cscale.y = hdata.ylen/(float)hdata.my;
+    if (hdata.zlen && hdata.mz)
+      useRef.cscale.z = hdata.zlen/(float)hdata.mz;
+    
+    modRefp = model.refImage;
+    useRef.otrans = modRefp->ctrans;
+    useRef.orot = modRefp->crot;
+    useRef.oscale = modRefp->cscale;
+    imodTransFromRefImage(&model, &useRef, unitPt);
+    *modRefp = useRef;
+    modRefp->otrans = useRef.ctrans;
+  }
+
   /* Use zscale if user indicated it */
   if (useZscale && model.zscale > 0.)
     zscale = model.zscale;
@@ -293,13 +380,13 @@ int main(int argc, char *argv[])
   newCen.z = (newNz ? newNz : model.zmax) * 0.5f;
 
   if (filename){
-    if (filetrans(filename, &model, mode, newCen, zscale, doflip)) {
+    if (filetrans(filename, &model, mode, oneLine, newCen, zscale, doflip)) {
       fprintf(stderr, "ERROR: %s - Error transforming model.\n", progname);
       exit(3);
     }
 
-  } else {
-    trans_model_3d(&model, mat, newCen, zscale, doflip);
+  } else if (transopt) {
+    trans_model_3d(&model, mat, normMat, newCen, zscale, doflip);
   }
 
   imodWrite(&model, fout);
@@ -311,11 +398,13 @@ int main(int argc, char *argv[])
  *  filename  has the name of the file with transforms
  *  model     is the model
  *  mode      is 2 for 2D, 3 for 3D transforms
+ *  oneLine   is line number for 2D applied to whole model
  *  newCen    has the new center coordinates of the volume
  *  zscale    is the z scale factor, or 1 not to use any
+ *  doflip    indicates transform native form of flipped data
  */
-static int filetrans(char *filename, Imod *model, int mode, Ipoint newCen,
-                     float zscale, int doflip)
+static int filetrans(char *filename, Imod *model, int mode, int oneLine,
+                     Ipoint newCen, float zscale, int doflip)
 {
   FILE *fin;
   char line[80];
@@ -338,19 +427,45 @@ static int filetrans(char *filename, Imod *model, int mode, Ipoint newCen,
              &(mat[0]), &(mat[1]), 
              &(mat[2]), &(mat[3]),
              &(mat[4]), &(mat[5]));
-      trans_model_slice(model, mat, k, newCen);
+      if (oneLine < 0) {
+        trans_model_slice(model, mat, k, newCen);
+      } else if (k == oneLine) {
+        mat3d->data[0] = mat[0];
+        mat3d->data[4] = mat[1];
+        mat3d->data[12] = mat[4];
+        mat3d->data[1] = mat[2];
+        mat3d->data[5] = mat[3];
+        mat3d->data[13] = mat[5];
+        mat3d->data[8] = 0.;
+        mat3d->data[9] = 0.;
+        mat3d->data[10] = 1.;
+        mat3d->data[2] = 0.;
+        mat3d->data[6] = 0.;
+        mat3d->data[14] = 0.;
+        mat3d->data[15] = 1.;
+        trans_model_3d(model, mat3d, NULL, newCen, zscale, doflip);
+        return(0);
+      }
       k++;
     }
+
+    if (oneLine >= 0) {
+      fprintf(stderr, "ERROR: imodtrans - End of file or error before line %d "
+              "of %s\n", oneLine, filename);
+      return(-1);
+    }
+
   } else {
     for (k = 0; k < 3; k++) {
       if (!fgetline(fin, line, 80)) {
-        fprintf(stderr, "ERROR: Reading line %d from  %s\n", k, filename);
+        fprintf(stderr, "ERROR: imodtrans - Reading line %d from  %s\n", k,
+                filename);
         return(-1);
       }
       sscanf(line, "%f %f %f %f", &mat3d->data[k], &mat3d->data[k + 4],
              &mat3d->data[k + 8], &mat3d->data[k + 12]);
     }
-    trans_model_3d(model, mat3d, newCen, zscale, doflip);
+    trans_model_3d(model, mat3d, NULL, newCen, zscale, doflip);
   }
   return(0);
 }
@@ -365,8 +480,8 @@ static int filetrans(char *filename, Imod *model, int mode, Ipoint newCen,
 static int trans_model_slice(Imod *model, float *mat, int slice, Ipoint newCen)
 {
   int ob, co, pt;
-  struct Mod_Object *obj;
-  struct Mod_Contour *cont;
+  Iobj *obj;
+  Icont *cont;
   int zval;
   float x, y;
 
@@ -407,19 +522,22 @@ static void exchangef(float *a, float *b)
 /*
  * Transform the model with the given 3D matrix 
  *  model  is the model 
- *  mat    is a 3D matrix inclusing translations
+ *  mat    is a 3D matrix including translations
+ *  normMat is a 3D matrix for normal transformations, or NULL if none
  *  newCen are the center coordinates of the new volume
  *  zscale is the z scale factor, or 1 to not apply any 
  */
-static int trans_model_3d(Imod *model, Imat *mat, Ipoint newCen, float zscale,
-                          int doflip)
+static int trans_model_3d(Imod *model, Imat *mat, Imat *normMat, Ipoint newCen,
+                          float zscale, int doflip)
 {
-  int ob, co, pt, me;
-  struct Mod_Object *obj;
-  struct Mod_Contour *cont;
+  int i, ob, co, pt, me;
+  Iobj *obj;
+  Icont *cont;
   Imesh *mesh;
   Imat *matWork = imodMatNew(3);
+  Imat *matWork2 = imodMatNew(3);
   Imat *matUse = imodMatNew(3);
+  Imat *clipMat = imodMatNew(3);
   Ipoint oldCen, tmpPt;
   oldCen.x = -model->xmax * 0.5f;
   oldCen.y = -model->ymax * 0.5f;
@@ -432,6 +550,13 @@ static int trans_model_3d(Imod *model, Imat *mat, Ipoint newCen, float zscale,
     exchangef(&mat->data[6], &mat->data[9]);
     exchangef(&mat->data[5], &mat->data[10]);
     exchangef(&mat->data[13], &mat->data[14]);
+    if (normMat) {
+      exchangef(&normMat->data[4], &normMat->data[8]);
+      exchangef(&normMat->data[1], &normMat->data[2]);
+      exchangef(&normMat->data[6], &normMat->data[9]);
+      exchangef(&normMat->data[5], &normMat->data[10]);
+      exchangef(&normMat->data[13], &normMat->data[14]);
+    }
   }
 
   /* Compute a transformation by translating to origin, applying the given
@@ -448,13 +573,26 @@ static int trans_model_3d(Imod *model, Imat *mat, Ipoint newCen, float zscale,
   imodMatScale(matUse, &tmpPt);
   imodMatTrans(matUse, &newCen);
 
-  /* Set up transform for normals as copy of original transform, no shifts*/
-  imodMatCopy(mat, matWork);
-  matWork->data[12] = 0.;
-  matWork->data[13] = 0.;
-  matWork->data[14] = 0.;
-  matWork->data[15] = 0.;
+  /* If no normal transform supplied, set up transform for normals as copy of 
+     original transform, no shifts, then take the inverse. */
+  if (!normMat) {
+    imodMatCopy(mat, matWork);
+    matWork->data[12] = 0.;
+    matWork->data[13] = 0.;
+    matWork->data[14] = 0.;
+    matWork->data[15] = 1.;
+    normMat = imodMatInverse(matWork);
+  }
 
+  /* The mesh normals already contain the Z scaling, but the clip normals 
+     require a matrix that is prescaled by 1/zscale and post-scaled by 
+     z-scale */
+  imodMatScale(matWork2, &tmpPt);
+  imodMatMult(matWork2, normMat, clipMat);
+  tmpPt.z = zscale;
+  imodMatScale(clipMat, &tmpPt);
+
+  imodTransFromMats(model, matUse, normMat, clipMat);
   for (ob = 0; ob < model->objsize; ob++) {
     obj = &(model->obj[ob]);
 
@@ -467,30 +605,28 @@ static int trans_model_3d(Imod *model, Imat *mat, Ipoint newCen, float zscale,
       }
     }
 
+    imodClipsTrans(&obj->clips, matUse, clipMat);
+
     /* Transform points and normals in meshes */
     for (me = 0; me < obj->meshsize; me++) {
       mesh = &obj->mesh[me];
       for (pt = 0; pt < mesh->vsize; pt++) {
         imodMatTransform(matUse, &mesh->vert[pt], &tmpPt);
         mesh->vert[pt++] = tmpPt;
-        imodMatTransform(matWork, &mesh->vert[pt], &tmpPt);
+        imodMatTransform(normMat, &mesh->vert[pt], &tmpPt);
         imodPointNormalize(&tmpPt);
         mesh->vert[pt] = tmpPt;
       }
     }
   }
-  return 0;
-}
 
-static int fgetline(FILE *fp, char s[],int limit)
-{
-  int c, i, length;
-     
-  for (i=0; (((c = getc(fp)) != EOF) &&(i < (limit-1)) && (c != '\n')); i++)
-    s[i]=c;
-     
-  s[i]='\0';
-  length = i;
-  if (c == EOF) return (length - (2 * length));
-  else return length;
+  /* Now transform clip points in views and object views */
+  for (i = 0; i < model->viewsize; i++) {
+    imodClipsTrans(&model->view[i].clips, matUse, clipMat);
+    for (ob = 0; ob < model->view[i].objvsize; ob++) {
+      imodClipsTrans(&model->view[i].objview[ob].clips, matUse, clipMat);
+    }
+  }
+
+  return 0;
 }
