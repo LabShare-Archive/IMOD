@@ -12,6 +12,11 @@
     $Revision$
 
     $Log$
+    Revision 3.4  2005/10/19 14:30:01  mast
+    Fixed handling of normals, and added options for transforming whole volume
+    with 2D transform, manipulating flip state, and transforming to match an
+    image file
+
     Revision 3.3  2004/09/17 16:27:13  mast
     Rewrote to do a general 3D transformation from a file, to transform mesh
     vertices and normals, to set up a transformation matrix as it reads in
@@ -574,7 +579,7 @@ static int trans_model_3d(Imod *model, Imat *mat, Imat *normMat, Ipoint newCen,
   imodMatTrans(matUse, &newCen);
 
   /* If no normal transform supplied, set up transform for normals as copy of 
-     original transform, no shifts, then take the inverse. */
+     original transform, no shifts, then take the inverse and transpose it. */
   if (!normMat) {
     imodMatCopy(mat, matWork);
     matWork->data[12] = 0.;
@@ -582,6 +587,9 @@ static int trans_model_3d(Imod *model, Imat *mat, Imat *normMat, Ipoint newCen,
     matWork->data[14] = 0.;
     matWork->data[15] = 1.;
     normMat = imodMatInverse(matWork);
+    exchangef(&normMat->data[1], &normMat->data[4]);
+    exchangef(&normMat->data[2], &normMat->data[8]);
+    exchangef(&normMat->data[6], &normMat->data[9]);
   }
 
   /* The mesh normals already contain the Z scaling, but the clip normals 
