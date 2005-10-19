@@ -30,7 +30,7 @@ public class CleanUpDialog extends ProcessDialog implements ContextMenu {
   public static  final String  rcsid =  "$Id$";
   
   private CleanupPanel cleanupPanel;
-  private MultiLineButton btnArchiveStack = MultiLineButton.getToggleButtonInstance();
+  private MultiLineButton btnArchiveStack = new MultiLineButton();
   private JLabel archiveInfoA = new JLabel();
   private JLabel archiveInfoB = new JLabel();
   
@@ -75,6 +75,13 @@ public class CleanUpDialog extends ProcessDialog implements ContextMenu {
     // Set the default advanced dialog state
     setToolTipText();
     updateAdvanced();
+  }
+  
+  public final void updateArchiveDisplay(boolean originalStacksExist) {
+    if (btnArchiveStack == null) {
+      return;
+    }
+    btnArchiveStack.setEnabled(originalStacksExist);
   }
   
   /**
@@ -189,6 +196,10 @@ public class CleanUpDialog extends ProcessDialog implements ContextMenu {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.7  2005/08/10 20:40:31  sueh
+ * <p> bug# 711 Removed MultiLineToggleButton.  Making toggling an attribute
+ * <p> of MultiLineButton.
+ * <p>
  * <p> Revision 1.6  2005/08/09 20:19:48  sueh
  * <p> bug# 711 Moving button sizing from UIUtilities to the multi line button
  * <p> classes.
