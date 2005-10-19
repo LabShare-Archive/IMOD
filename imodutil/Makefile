@@ -8,6 +8,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.11  2005/10/13 20:18:24  mast
+#  Switched imodjoin to using libiimod
+#
 #  Revision 3.10  2005/08/18 04:16:35  mast
 #  Added imodwincpu via a flag
 #
@@ -61,7 +64,7 @@ imodmesh$(E) : imodmesh.$(O) mkmesh.$(O)
 	$(LDFLAGS) $(LIMOD) $(CLIBS)
 
 imodtrans$(E) : imodtrans.$(O)
-	$(CC) -o imodtrans imodtrans.$(O) $(LDFLAGS) $(LIMOD) $(CLIBS)
+	$(CC) -o imodtrans imodtrans.$(O) $(LDFLAGS) $(IILIBS) $(CLIBS)
 
 imodmop$(E) : imodmop.$(O) moplib.$(O)
 	$(CC) -o imodmop imodmop.$(O) moplib.$(O) $(LDFLAGS) $(IILIBS) $(CLIBS)
