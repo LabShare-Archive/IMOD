@@ -5,6 +5,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.5  2005/03/27 18:57:00  mast
+c	  Moved erfcc to library
+c	
 c	  Revision 3.4  2004/06/10 00:36:15  mast
 c	  Restarted amoeba for second round as recommended
 c	
@@ -47,7 +50,7 @@ c
 	implicit none
         include 'statsize.inc'
 	integer maxerr
-	parameter (maxerr = 10000)
+	parameter (maxerr = 40000)
 	integer*4 idrop(*)
         real*4 xr(msiz,*)
         real*4 a(3,*),dxyz(3),devxyz(3),devxyzmax(3),cenloc(3),centmp(3)
