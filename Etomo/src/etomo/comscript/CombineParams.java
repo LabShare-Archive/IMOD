@@ -24,6 +24,11 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.6  2005/07/29 00:43:05  sueh
+ * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
+ * <p> because the current manager changes when the user changes the tab.
+ * <p> Passing the manager where its needed.
+ * <p>
  * <p> Revision 3.5  2005/06/20 16:40:15  sueh
  * <p> bug# 522 Made MRCHeader an n'ton.  Getting instance instead of
  * <p> constructing in setDefaultPatchBoundardies().
@@ -391,6 +396,8 @@ public class CombineParams extends ConstCombineParams implements Storable {
     //  Assume that Y and Z domains are swapped
     int minsize = Math.min(mrcHeader.getNColumns(), mrcHeader.getNSections());
     int borderindex = (int) (minsize / borderinc);
+    if (borderindex > 4)
+        borderindex = 4;
     int xyborder = xyborders[borderindex];
     patchXMin = xyborder;
     patchXMax = mrcHeader.getNColumns() - xyborder;
