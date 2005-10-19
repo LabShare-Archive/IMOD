@@ -91,6 +91,7 @@ import etomo.ui.TextPageWindow;
 import etomo.ui.TomogramCombinationDialog;
 import etomo.ui.TomogramGenerationDialog;
 import etomo.ui.TomogramPositioningDialog;
+import etomo.util.DatasetFiles;
 import etomo.util.FidXyz;
 import etomo.util.InvalidParameterException;
 import etomo.util.MRCHeader;
@@ -782,6 +783,13 @@ public class ApplicationManager extends BaseManager {
         stackAxisID = AxisID.ONLY;
       }
     }
+    //set next process to archiveorig so that the second axis can be done
+    if (stackAxisID == AxisID.FIRST) {
+      setNextProcess(AxisID.ONLY, ArchiveorigParam.COMMAND_NAME);
+    }
+    else {
+      resetNextProcess(AxisID.ONLY);
+    }
     //check for original stack
     File originalStack = Utilities.getFile(this, false, stackAxisID,
         "_orig.st", "original stack");
@@ -807,6 +815,7 @@ public class ApplicationManager extends BaseManager {
       setThreadName(processMgr.archiveOrig(param), AxisID.ONLY);
     }
     catch (SystemProcessException e) {
+      resetNextProcess(AxisID.ONLY);
       e.printStackTrace();
       String[] message = new String[2];
       message[0] = "Can not execute " + ArchiveorigParam.COMMAND_NAME
@@ -814,13 +823,6 @@ public class ApplicationManager extends BaseManager {
       message[1] = e.getMessage();
       uiHarness.openMessageDialog(message, "Unable to execute command",
           AxisID.ONLY);
-    }
-    //set next process to archiveorig so that the second axis can be done
-    if (stackAxisID == AxisID.FIRST) {
-      setNextProcess(AxisID.ONLY, ArchiveorigParam.COMMAND_NAME);
-    }
-    else {
-      resetNextProcess(AxisID.ONLY);
     }
   }
 
@@ -865,6 +867,7 @@ public class ApplicationManager extends BaseManager {
         cleanUpDialog.setArchiveFields();
       }
     }
+    updateArchiveDisplay();
   }
 
   public String getArchiveInfo(AxisID axisID) {
@@ -879,7 +882,21 @@ public class ApplicationManager extends BaseManager {
     }
     return null;
   }
-
+  
+  public final void updateArchiveDisplay() {
+    if (cleanUpDialog == null) {
+      return;
+    }
+    if (metaData.getAxisType() == AxisType.SINGLE_AXIS) {
+      cleanUpDialog.updateArchiveDisplay(DatasetFiles.getOriginalStack(this,
+          AxisID.ONLY).exists());
+    }
+    else {
+      cleanUpDialog.updateArchiveDisplay(DatasetFiles.getOriginalStack(this,
+          AxisID.FIRST).exists()
+          || DatasetFiles.getOriginalStack(this, AxisID.SECOND).exists());
+    }
+  }
   /**
    * Replace the raw stack with the fixed stack created from eraser
    * @param axisID
@@ -938,6 +955,7 @@ public class ApplicationManager extends BaseManager {
     if (cleanUpDialog != null) {
       cleanUpDialog.setArchiveFields();
     }
+    updateArchiveDisplay();
     mainPanel.stopProgressBar(axisID);
   }
 
@@ -4803,6 +4821,7 @@ public class ApplicationManager extends BaseManager {
     if (cleanUpDialog == null) {
       cleanUpDialog = new CleanUpDialog(this);
     }
+    updateArchiveDisplay();
     mainPanel.showProcess(cleanUpDialog.getContainer(), AxisID.ONLY);
     setParallelDialog(AxisID.ONLY, cleanUpDialog);
   }
@@ -5717,6 +5736,12 @@ public class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.187  2005/10/18 22:09:54  sueh
+ * <p> bug# 737 Setting nextProcess after running process, because the axis
+ * <p> busy test is run when running process.  bug# 727 Can't reproduce this
+ * <p> bug so added some prints to the error log to document it, if it appears
+ * <p> again.
+ * <p>
  * <p> Revision 3.186  2005/10/15 00:28:13  sueh
  * <p> bug# 532 Called BaseManager.setParallelDialog() when opening each
  * <p> dialog.
