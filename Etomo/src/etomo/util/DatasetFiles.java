@@ -6,6 +6,7 @@ import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
+import etomo.type.BaseMetaData;
 
 /**
  * <p>Description: </p>
@@ -57,9 +58,28 @@ public final class DatasetFiles {
   public final static String getCommandsFileName(String rootName) {
     return rootName + ".cmds";
   }
+  
+  public final static File getOriginalStack(BaseManager manager, AxisID axisID) {
+    BaseMetaData metaData = manager.getBaseMetaData();
+    AxisType axisType = metaData.getAxisType();
+    if (axisType == AxisType.DUAL_AXIS && axisID == AxisID.ONLY) {
+      axisID = AxisID.FIRST;
+    }
+    else if (axisType == AxisType.SINGLE_AXIS && axisID == AxisID.FIRST) {
+      axisID = AxisID.ONLY;
+    }
+    else if (axisType == AxisType.NOT_SET) {
+      return null;
+    }
+    return new File(manager.getPropertyUserDir(), metaData.getName()
+        + axisID.getExtension() + "_orig.st");
+  }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.3  2005/09/07 20:53:26  sueh
+ * <p> bug# 532 Added functions to get a commands file (.cmds).
+ * <p>
  * <p> Revision 1.2  2005/07/29 00:55:00  sueh
  * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
  * <p> because the current manager changes when the user changes the tab.
