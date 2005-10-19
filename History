@@ -3,14 +3,17 @@ IMOD History
 10/18/05: Disabled the archive button in the Clean Up dialog when it is not
 needed.
 
-10/14/05: Added Reload model menu entry to 3dmod.
+10/16/05: Added model transformations to imodjoin to bring all models to
+a common coordinate system before joining.
+
+10/14/05: Added Reload Model menu entry to 3dmod.
 
 10/14/05: Preserved both openings when two open-type contours in a
 closed-contour object are joined together.
 
 10/14/05: Fixed Rotatevol's setting of header origin to account for pixel size.
 
-10/14/05: Changed Setup join so it will create an .ejf file and save if the 
+10/14/05: Changed Setup Join so it will create an .ejf file and save if the 
 user exits before running Make Samples.
 
 10/13/05: Fixed 3dmod's scaling of clip plane information when model is

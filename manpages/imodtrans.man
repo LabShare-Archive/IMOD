@@ -33,7 +33,9 @@ transformed, as well as all mesh points, surface normals, and clipping
 planes.  The mesh is transformed because contours that have been rotated out
 of the X/Y plane cannot currently be remeshed.  For 2-D transformations, only
 contour points are transformed, so clipping planes are not preserved and the
-model will have to be remeshed.
+model will have to be remeshed.  However, if a single 2D transformation is 
+applied to the whole model it is converted to a 3D transformation and the
+entire model is properly transformed.
 .P
 The program can also manipulate the flipped state of the model in Y and Z 
 either by actually flipping the Y and Z coordinates, or by simply toggling the
