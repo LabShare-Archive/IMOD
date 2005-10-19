@@ -76,6 +76,10 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.9  2004/06/16 17:55:55  mast
+c	  Added some error checking on entries and logic to prevent patches
+c	  too large and patches too close together
+c	
 c	  Revision 3.8  2003/12/24 19:05:08  mast
 c	  Changed to fit new form of get_nxyz
 c	
@@ -105,14 +109,15 @@ c
 	implicit none
 	include 'model.inc'
 	integer idim,limvert,limcont,limpat,nadjlook
-	parameter (idim=16000000)
-	parameter (limvert=100000,limcont=1000,limpat=10000)
+	parameter (idim=32000000)
+	parameter (limvert=100000,limcont=1000,limpat=40000)
 	parameter (nadjlook=6)
 	integer*4 nx,ny,nz
 	COMMON //NX,NY,NZ
 C
 	integer*4 NXYZ(3),MXYZ(3),nxyzbsrc(3)
 	real*4 buf(idim)
+	common /bigarr/buf
 C
 	EQUIVALENCE (NX,NXYZ)
 c
