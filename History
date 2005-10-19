@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/18/05: Disabled the archive button in the Clean Up dialog when it is not
+needed.
+
 10/14/05: Added Reload model menu entry to 3dmod.
 
 10/14/05: Preserved both openings when two open-type contours in a
