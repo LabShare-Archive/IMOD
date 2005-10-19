@@ -1,5 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/19/05: Added options to Imodtrans for transforming a whole volume with one
+2D transform, manipulating the flipped state of a model, and transforming it to
+match an image file.  Made transformation of mesh normals and clip planes work
+for all cases except section-by-section 2D transformations.
+
 10/18/05: Disabled the archive button in the Clean Up dialog when it is not
 needed.
 
