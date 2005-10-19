@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/19/05: Increased limits on number of patches to 40000 in Corrsearch3d,
+Refinematch, and Findwarp.
+
 10/19/05: Added options to Imodtrans for transforming a whole volume with one
 2D transform, manipulating the flipped state of a model, and transforming it to
 match an image file.  Made transformation of mesh normals and clip planes work
