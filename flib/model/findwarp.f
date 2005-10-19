@@ -170,6 +170,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.7  2003/12/24 19:04:02  mast
+c	  Changed to fit new form of get_nxyz
+c	
 c	  Revision 3.6  2003/10/24 03:47:17  mast
 c	  fix bug of using maxdrop before setting it
 c	
@@ -204,7 +207,7 @@ c
         include 'statsize.inc'
 	include 'model.inc'
 	integer idim,limpatch,limvert,limaxis
-        parameter (idim=10000,limpatch=10000,limvert=100000)
+        parameter (idim=40000,limpatch=40000,limvert=100000)
 	parameter (limaxis=1000)
         real*4 xr(msiz,idim)
         real*4 cx(limpatch,3),dx(limpatch,3)

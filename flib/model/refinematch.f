@@ -69,6 +69,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.5  2004/06/11 00:13:39  mast
+c	  Added error exit if fewer than 4 data points for fit
+c	
 c	  Revision 3.4  2003/12/24 19:03:53  mast
 c	  Changed to fit new form of get_nxyz
 c	
@@ -89,7 +92,7 @@ c
         include 'statsize.inc'
 	include 'model.inc'
 	integer idim,limvert
-        parameter (idim=10000,limvert=100000)
+        parameter (idim=40000,limvert=100000)
         real*4 xr(msiz,idim)
         real*4 cx(idim),dx(idim),a(3,3),dxyz(3),devxyz(3)
 	real*4 devxyzmax(3),cenloc(3),cxlast(3)
