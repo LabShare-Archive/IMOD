@@ -343,10 +343,17 @@ while ($ifok == "0")
         set sedtempkey = "gibberish"
 	set ifok = "1"
     else
+        # WORKAROUND 10/20/05: need to just exit since etomo doesn't check
 	if (! -d $tmproot) then
-	    echo "$tmproot does not exist or is not a directory; try again"
+#	    echo "$tmproot does not exist or is not a directory; try again"
+            echo ""
+	    echo "ERROR: $tmproot does not exist or is not a directory"
+            exit 1
 	else if (! -w $tmproot) then
-	    echo "You do not have permission to write in $tmproot; try again"
+#	    echo "You do not have permission to write in $tmproot; try again"
+            echo ""
+	    echo "ERROR: You do not have permission to write in $tmproot"
+            exit 1
 	else
 	    set tmpdir = $tmproot/combine.$$
 	    set tmppath = $tmpdir/
@@ -615,6 +622,9 @@ echo '$'"if (-e $backupname) $backupname" | cat >> $volcombine
 
 #
 #  $Log$
+#  Revision 3.29  2005/08/30 01:55:48  mast
+#  Allowed / input to the correspondence list
+#
 #  Revision 3.28  2004/11/30 04:43:22  mast
 #  Switched from combinefft_options command-line to combinefft_reduce entered
 #  through standard input
