@@ -4,9 +4,11 @@ import java.io.File;
 import java.io.IOException;
 
 import etomo.ApplicationManager;
+import etomo.EtomoDirector;
 import etomo.comscript.ComScriptManager;
 import etomo.comscript.TiltParam;
 import etomo.type.AxisID;
+import etomo.type.ConstEtomoNumber;
 import etomo.util.InvalidParameterException;
 import etomo.util.MRCHeader;
 
@@ -23,6 +25,11 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.10  2005/07/29 00:53:02  sueh
+ * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
+ * <p> because the current manager changes when the user changes the tab.
+ * <p> Passing the manager where its needed.
+ * <p>
  * <p> Revision 3.9  2005/06/20 16:48:41  sueh
  * <p> bug# 522 Made MRCHeader an n'ton.  Getting instance instead of
  * <p> constructing in calcFileSize().
@@ -94,9 +101,9 @@ public class TiltProcessMonitor extends FileSizeProcessMonitor {
    * @see etomo.process.FileSizeProcessMonitor#calcFileSize()
    */
   void calcFileSize() throws InvalidParameterException, IOException {
-    int nX;
-    int nY;
-    int nZ;
+    long nX;
+    long nY;
+    long nZ;
     int modeBytes = 4;
 
     // Get the depth, mode, any mods to the X and Y size from the tilt 
@@ -115,23 +122,10 @@ public class TiltProcessMonitor extends FileSizeProcessMonitor {
         .getPropertyUserDir(), alignedFilename, axisID);
     alignedStack.read();
 
-    nX = alignedStack.getNRows();
-    nY = alignedStack.getNColumns();
+    nX = alignedStack.getNColumns();
+    nY = alignedStack.getNRows();
 
     nZ = tiltParam.getThickness();
-    if (tiltParam.hasWidth()) {
-      nX = tiltParam.getWidth();
-    }
-    if (tiltParam.hasSlice()) {
-      int sliceRange = tiltParam.getIdxSliceStop() - tiltParam.getIdxSliceStart();
-      // Divide by the step size if present
-      if(tiltParam.getIncrSlice() == Integer.MIN_VALUE) {
-        nY = sliceRange;
-      }
-      else {
-        nY = sliceRange / tiltParam.getIncrSlice();
-      }
-    }
     if (tiltParam.hasMode()) {
       switch (tiltParam.getMode()) {
         case 0 :
@@ -161,8 +155,34 @@ public class TiltProcessMonitor extends FileSizeProcessMonitor {
           throw new InvalidParameterException("Unknown mode parameter");
       }
     }
-    long fileSize = 1024 + (long) nX * nY * nZ * modeBytes;
+    // Get the imageBinned from prenewst.com script
+    long imageBinned = 1;
+    ConstEtomoNumber number = tiltParam.getImageBinned();
+    if (number != null) {
+      imageBinned = number.getLong();
+    }
+    //adjust x and y
+    if (tiltParam.hasWidth()) {
+      nX = tiltParam.getWidth() / imageBinned;
+    }
+    if (tiltParam.hasSlice()) {
+      int sliceRange = tiltParam.getIdxSliceStop() - tiltParam.getIdxSliceStart() + 1;
+      // Divide by the step size if present
+      if(tiltParam.getIncrSlice() == Integer.MIN_VALUE) {
+        nY = sliceRange / imageBinned;
+      }
+      else {
+        nY = sliceRange / tiltParam.getIncrSlice() / imageBinned;
+      }
+    }
+    long fileSize = 1024 + (long) nX * nY * (nZ / imageBinned) * modeBytes ;
     nKBytes = (int) (fileSize / 1024);
+    
+    if (EtomoDirector.getInstance().isDebug()) {
+      System.err.println("TiltProcessMonitor.calcFileSize:fileSize=" + fileSize
+          + ",nX=" + nX + ",nY=" + nY + ",nZ=" + nZ + ",imageBinned="
+          + imageBinned);
+    }
 
     applicationManager.getMainPanel().setProgressBar("Calculating tomogram", nKBytes, axisID);
 
