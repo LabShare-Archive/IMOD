@@ -952,7 +952,7 @@ static void processHits (ImodvApp *a, GLint hits, GLuint buffer[])
 
 static void imodvSelect(ImodvApp *a)
 {
-  static unsigned int buf[SELECT_BUFSIZE];
+  static GLuint buf[SELECT_BUFSIZE];
   GLint hits;
   int x, y;
 
@@ -1076,6 +1076,9 @@ void imodvMovieTimeout()
 
 /*
     $Log$
+    Revision 4.17  2004/11/21 06:07:49  mast
+    Changes for undo/redo
+
     Revision 4.16  2004/09/21 20:29:10  mast
     Changes to deal with new clipping plane structures
 

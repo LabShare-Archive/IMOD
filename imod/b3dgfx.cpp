@@ -190,7 +190,7 @@ void b3dDrawCircle(int x, int y, int radius)
   /*     glLineWidth(1.0f); */
   glPushMatrix();
   glTranslatef((float)x, (float)y, 0.0f);
-  glGetIntegerv(GL_LINE_WIDTH, &linewidth);
+  glGetIntegerv(GL_LINE_WIDTH, (GLint *)&linewidth);
   inrad = radius - linewidth;
   if (inrad < 0.)
     inrad = 0;
@@ -293,7 +293,7 @@ void b3dDrawBoxout(int llx, int lly, int urx, int ury)
 {
   int cur_color;
 
-  glGetIntegerv(GL_CURRENT_INDEX, &cur_color);
+  glGetIntegerv(GL_CURRENT_INDEX, (GLint *)&cur_color);
 
   b3dColorIndex(App->background);
      
@@ -1946,6 +1946,9 @@ int b3dSnapshot(char *fname)
 
 /*
 $Log$
+Revision 4.26  2005/03/26 00:39:50  mast
+Tested limits in HQ display to prevent crash
+
 Revision 4.25  2004/11/29 19:25:21  mast
 Changes to do QImage instead of RGB snapshots
 
