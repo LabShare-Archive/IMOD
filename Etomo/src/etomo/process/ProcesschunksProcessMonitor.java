@@ -31,19 +31,24 @@ public class ProcesschunksProcessMonitor implements ParallelProcessMonitor {
   public static  final String  rcsid =  "$Id$";
   
   private final static String TITLE = "Processchunks";
+  
+  private static boolean debug = false;
+  
+  private final EtomoNumber nChunks = new EtomoNumber();
+  private final EtomoNumber chunksFinished = new EtomoNumber();
+  
   private final BaseManager manager;
   private final AxisID axisID;
   private final ParallelProgressDisplay parallelProgressDisplay;
-  
+  private final String rootName;
+  private final String computerList;
+
   private SystemProcessInterface process = null;
-  private EtomoNumber nChunks = new EtomoNumber();
-  private EtomoNumber chunksFinished = new EtomoNumber();
   private int lastOutputLine = -1;
+  private int lastErrorLine = -1;
   private boolean setProgressBarTitle = false;//turn on to changed the progress bar title
   private boolean reassembling = false;
   private ProcessEndState endState = null;
-  private final String rootName;
-  private final String computerList;
   private String lastChunkError = null;
   private File commandsPipe = null;
   private BufferedWriter commandsWriter = null;
@@ -63,6 +68,7 @@ public class ProcesschunksProcessMonitor implements ParallelProcessMonitor {
     this.parallelProgressDisplay = parallelProgressDisplay;
     this.rootName = rootName;
     this.computerList = computerList;
+    debug = EtomoDirector.getInstance().isDebug();
     parallelProgressDisplay.setParallelProcessMonitor(this);
   }
   
@@ -105,7 +111,7 @@ public class ProcesschunksProcessMonitor implements ParallelProcessMonitor {
       lastOutputLine = i;
       String line = stdOutput[i].trim();
       //TEMP
-      //if (EtomoDirector.getInstance().isDebug()) {
+      //if (debug) {
         System.err.println(line);
       //}
       if (line.startsWith(BaseProcessManager.CHUNK_ERROR_TAG)) {
@@ -151,6 +157,18 @@ public class ProcesschunksProcessMonitor implements ParallelProcessMonitor {
           }
         }
       }
+    }
+    String stdError[] = process.getCurrentStdError();
+    if (stdError == null || lastErrorLine >= stdError.length) {
+      return returnValue;
+    }
+    for (int i = lastErrorLine + 1; i < stdError.length; i++) {
+      lastErrorLine = i;
+      String line = stdError[i].trim();
+      //TEMP
+      //if (debug()) {
+        System.err.println(line);
+      //}
     }
     return returnValue;
   }
@@ -309,6 +327,10 @@ public class ProcesschunksProcessMonitor implements ParallelProcessMonitor {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.11  2005/09/27 21:16:18  sueh
+* <p> bug# 532 Temporarily printing the processchunks output to the error log
+* <p> without the debug setting.
+* <p>
 * <p> Revision 1.10  2005/09/10 01:52:41  sueh
 * <p> bug# 532 Setting the reason for all dropped computers to "not responding"
 * <p> to distinguish it from load average timeouts.
