@@ -32,8 +32,6 @@ public class BaseScreenState implements Storable {
   private final String group;
 
   public BaseScreenState(AxisID axisID, AxisType axisType) {
-    this.axisID = axisID;
-    this.axisType = axisType;
     if (axisID == AxisID.ONLY && axisType == AxisType.DUAL_AXIS) {
       axisID = AxisID.FIRST;
     }
@@ -41,6 +39,8 @@ public class BaseScreenState implements Storable {
       axisID = AxisID.ONLY;
     }
     group =  "ScreenState" + axisID.getExtension().toUpperCase();
+    this.axisID = axisID;
+    this.axisType = axisType;
     selfTestInvariants();
   }
   
@@ -49,22 +49,33 @@ public class BaseScreenState implements Storable {
       return;
     }
     if (axisType == AxisType.NOT_SET) {
-      throw new IllegalStateException("AxisType must be set.");
+      throw new IllegalStateException("AxisType must be set; axisType="
+          + axisType + ".");
     }
     if (axisType == AxisType.SINGLE_AXIS && axisID == AxisID.SECOND) {
-      throw new IllegalStateException("AxisID cannot be B in a single axis dataset.");
+      throw new IllegalStateException(
+          "AxisID cannot be B in a single axis dataset; axisType=" + axisType
+              + ",axisID=" + axisID + ".");
     }
     if (axisType == AxisType.SINGLE_AXIS && axisID != AxisID.ONLY) {
-      throw new IllegalStateException("AxisID must be Only in a single axis dataset.");
+      throw new IllegalStateException(
+          "AxisID must be Only in a single axis dataset; axisType=" + axisType
+              + ",axisID=" + axisID + ".");
     }
     if (axisType == AxisType.DUAL_AXIS && axisID == AxisID.ONLY) {
-      throw new IllegalStateException("AxisID must be A or B in a dual axis dataset.");
+      throw new IllegalStateException(
+          "AxisID must be A or B in a dual axis dataset; axisType=" + axisType
+              + ",axisID=" + axisID + ".");
     }
     if (axisID == AxisID.FIRST && !group.endsWith("A")) {
-      throw new IllegalStateException("Group must end with A for the first axis.");
+      throw new IllegalStateException(
+          "Group must end with A for the first axis; group=" + group
+              + ",axisID=" + axisID + ".");
     }
     if (axisID == AxisID.SECOND && !group.endsWith("B")) {
-      throw new IllegalStateException("Group must end with B for the second axis.");
+      throw new IllegalStateException(
+          "Group must end with B for the second axis; group=" + group
+              + ",axisID=" + axisID + ".");
     }
   }
   
@@ -101,6 +112,15 @@ public class BaseScreenState implements Storable {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.3  2005/09/29 18:44:44  sueh
+* <p> bug# 532 Improved the handling of the different axis'.  Setting the axisID
+* <p> according to the axisType; so a single axis tomogram uses axis.ONLY
+* <p> and a dual axis used axis.FIRST.  Added member variables AxisID and
+* <p> AxisType.  Since axis.only and axis.first have different meanings, axisID
+* <p> can be used to decide if combine fields should be saved.  AxisType is
+* <p> used in selfTestInvarients() to make sure that the AxisID was set
+* <p> correctly.
+* <p>
 * <p> Revision 1.2  2005/09/27 23:12:40  sueh
 * <p> bug# 532 Separating the panel name (Parallel) from the element name
 * <p> (Header) in the .edf file.
