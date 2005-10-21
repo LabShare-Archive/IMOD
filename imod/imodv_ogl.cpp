@@ -1138,7 +1138,11 @@ static void myCombine( GLdouble coords[3], Ipoint *d[4],
 #ifdef _WIN32
 #define GLU_CALLBACK void (__stdcall *)(void)
 #else
+#ifdef Q_OS_MACX
+#define GLU_CALLBACK GLvoid (*)(...)
+#else
 #define GLU_CALLBACK GLvoid (*)()
+#endif
 #endif
 
 static void imodvDraw_filled_contours(Iobj *obj, int drawTrans)
@@ -1177,7 +1181,7 @@ static void imodvDraw_filled_contours(Iobj *obj, int drawTrans)
     tobj = gluNewTess();
     gluTessCallback(tobj, GLU_BEGIN, (GLU_CALLBACK)glBegin);
     gluTessCallback(tobj, GLU_VERTEX, (GLU_CALLBACK)glVertex3fv);
-    gluTessCallback(tobj, GLU_END, glEnd);
+    gluTessCallback(tobj, GLU_END, (GLU_CALLBACK)glEnd);
     /*        gluTessCallback(tobj, GLU_EDGE_FLAG, glEdgeFlag); */
 #ifdef TESS_HACK
     gluTessCallback(tobj, GLU_TESS_COMBINE, (GLU_CALLBACK)myCombine);
@@ -1947,7 +1951,7 @@ static void imodvDraw_filled_mesh(Imesh *mesh, double zscale, Iobj *obj,
       tobj = gluNewTess();
       gluTessCallback(tobj, GLU_BEGIN, (GLU_CALLBACK)glBegin);
       gluTessCallback(tobj, GLU_VERTEX, (GLU_CALLBACK)glVertex3fv);
-      gluTessCallback(tobj, GLU_END, glEnd);
+      gluTessCallback(tobj, GLU_END, (GLU_CALLBACK)glEnd);
       glPushMatrix();
       glScalef(1.0f, 1.0f, z);
       gluBeginPolygon(tobj);
@@ -2257,7 +2261,7 @@ static void imodvDrawScalarMesh(Imesh *mesh, double zscale,
       tobj = gluNewTess();
       gluTessCallback(tobj, GLU_BEGIN, (GLU_CALLBACK)glBegin);
       gluTessCallback(tobj, GLU_VERTEX, (GLU_CALLBACK)glVertex3fv);
-      gluTessCallback(tobj, GLU_END, glEnd);
+      gluTessCallback(tobj, GLU_END, (GLU_CALLBACK)glEnd);
       glPushMatrix();
       glScalef(1.0f, 1.0f, z);
       gluBeginPolygon(tobj);
@@ -2352,6 +2356,10 @@ static int skipNonCurrentSurface(Imesh *mesh, int *ip, Iobj *obj)
 
 /*
 $Log$
+Revision 4.24  2005/10/13 20:11:59  mast
+Handled model display correctly when data are read in binned, without
+requiring a change in user-specified Z-scale.
+
 Revision 4.23  2005/09/22 15:11:18  mast
 Had to end and restart triangles for mesh triangles in Linux
 
