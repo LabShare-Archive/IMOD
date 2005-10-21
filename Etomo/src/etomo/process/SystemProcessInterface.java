@@ -26,6 +26,7 @@ public interface SystemProcessInterface {
    * @return
    */
   public String[] getCurrentStdOutput();
+  public String[] getCurrentStdError();
   public String[] getStdError();
   public boolean isStarted();
   public boolean isDone();
@@ -40,6 +41,13 @@ public interface SystemProcessInterface {
 }
 /**
 * <p> $Log$
+* <p> Revision 3.4  2005/08/15 17:59:34  sueh
+* <p> bug# 532   Processchunks needs to be killed with an interrupt instead of
+* <p> a kill, so a processchunks specific class has to make the decision of
+* <p> what type of signal to send.  The processchunks monitor needs to be
+* <p> able to write to standard input after the interrupt.  Added functions:
+* <p> pause, signalInterrupt, signalKill, kill, and setCurrentStdInput.
+* <p>
 * <p> Revision 3.3  2005/08/04 19:52:07  sueh
 * <p> bug# 532 Added getCurrentStdOutput() for processchunks monitor.
 * <p>

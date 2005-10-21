@@ -19,6 +19,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.28  2005/08/30 18:41:15  sueh
+ * bug# 532 Made processMonitor protected so it can be used by the child
+ * class.
+ *
  * Revision 3.27  2005/08/15 18:19:34  sueh
  * bug# 532 Added kill, pause, setCurrentStdInput, signalInterrupt, and
  * signalKill to implement SystemProcessInterface.  Only kill and signalKill
@@ -547,6 +551,14 @@ public class ComScriptProcess
    */
   public String[] getCurrentStdOutput() {
     return getStdOutput();
+  }
+  
+  /**
+   * Get the standard error while the process is running
+   * getStdError() is already doing this
+   */
+  public String[] getCurrentStdError() {
+    return getStdError();
   }
 
   /**

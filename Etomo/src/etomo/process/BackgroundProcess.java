@@ -21,6 +21,10 @@ import etomo.type.ProcessEndState;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.17  2005/09/22 20:46:04  sueh
+ * <p> bug# 532 Fixed bug in setProcessEndState().  EndState may come from
+ * <p> the endState in the monitor, so it should be set there.
+ * <p>
  * <p> Revision 3.16  2005/08/30 22:40:53  sueh
  * <p> bug# 532 Added error log print statement to setCurrentStdInput().
  * <p>
@@ -422,6 +426,13 @@ public class BackgroundProcess
       return null;
     }
     return program.getStdOutput();
+  }
+  
+  public String[] getCurrentStdError() {
+    if (program == null) {
+      return null;
+    }
+    return program.getStdError();
   }
   
   public boolean isStarted() {
