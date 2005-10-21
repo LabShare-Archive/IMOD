@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/21/05: Fixed tilt progress monitor so that it works with binning, slices in
+Y, and thickness in X.
+
 10/19/05: Increased limits on number of patches to 40000 in Corrsearch3d,
 Refinematch, and Findwarp.
 
