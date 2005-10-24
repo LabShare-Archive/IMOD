@@ -106,6 +106,7 @@ Length Type  Name       Description
                         Bit 17 on : Draw normal maginitudes with false color
                         Bit 18 on : Time - contours have time indexes
                         Bit 19 on : Light both sides of surface
+                        Bit 31 reserved for temporary use
   
                         In 3dmodv, Draw Data Type - Contour = Mesh flag off,
                                                     Mesh    = Mesh flag on
@@ -171,7 +172,7 @@ Length    Type         Name    Description
                 	       Bits 20-23 are resolution : 0 for high, 
                                   1 for lower resolution, etc.
 2         short        type    Contains a time index or 0
-2         short        pad     Contains a surace number or 0
+2         short        pad     Contains a surface number or 0
                                 type and pad are stored as ints in the
                                 internal data structure but shorts in the file
 12*vsize  float * 3    vert    Array of points.
@@ -188,12 +189,14 @@ array plus negative index values with following meanings:
 	-20  next item on list is normal vector.
 	-21  begin concave polygon
         -22  end polygon
-	-23  begin vertex,normal polygon pairs.
+	-23  begin vertex,normal polygon pairs with normal,vertex indices
 	-24  begin large convex polygon with normals.
+	-25  begin vertex,normal polygon pairs with vertex indices
 
 </pre>
 Currently, meshes in model files consist only of polygons with vertex, normal
-pairs, starting with -23 and ending with -22.  In these polygons, each set
+pairs, starting with -23 or -25 and ending with -22.  In polygons starting
+with -23, each set
 of 6 indices describes a triangle as follows:
 <pre>
 <i>index to normal 1</i>
@@ -203,7 +206,13 @@ of 6 indices describes a triangle as follows:
 <i>index to normal 3</i>
 <i>index to vertex 3</i>
 </pre>
-
+In polygons starting with -25, each normal is assumed to follow its
+corresponding vertex, and each triangle is described by only 3 indices:
+<pre>
+<i>index to vertex 1</i>
+<i>index to vertex 2</i>
+<i>index to vertex 3</i>
+</pre>
 <HR>
 <H3>
 Optional extra data chunks.
@@ -436,5 +445,45 @@ Prior to IMOD 2.7.1, the 4 bytes of mat1 and the 4 bytes of mat3 were stored
 as a UINT.  If bit 13 of model flags is off, mat1 and mat3 are assumed to be
 UINTs.
 </pre>
-
+<HR>
+MOST  General storage information for model.   (Variable size)
+<Br>OBST  General storage information for object.   (Variable size)
+<br>COST  General storage information for contour.   (Variable size)
+<br>MEST  General storage information for mesh.   (Variable size)
+<BR>
+These chunks contain extra information for their respective entities.  They
+were designed to hold fine-grained display properties for objects, contours,
+and meshes, but could be used for any kind of additional information that
+will fit in the Store data structure.  The chunk consists of a series of 
+Store entries, each 12 bytes long:
+<pre>
+Length Type     Name    Description
+-------------------------------------------------------------------
+2      short    type    Type of information.  Currently defined types are:
+                          1  Color change
+                          2  Fill color change
+                          3  Transparency change
+                          4  Do not connect to next point or do not display
+                          5  A connection number for meshing
+                          6  3D line width change
+                          7  2D line width change
+                          8  Symbol type
+                          9  Symbol size
+2      short    flags   16 bits of flags.  Currently defined flags are:
+                          Bits 0 and 1 indicate type of "index" and 2 and 3
+                            indicate type of "value", with 0 for int, 1 for
+                            float, 2 for short and 3 for byte
+                          Bit 4 on : "index" is not really an index
+                          Bit 5 on : Revert to default value
+                          Bit 6 on : Index is surface number, not contour
+                          Bit 7 on : The change applies to only one point
+4      union    index   Can contain one int or float, 2 shorts, or 4 bytes,
+                          generally has index of point or contour, or surface #
+4      union    value   Can contain one int or float, 2 shorts, or 4 bytes
+                          For colors, 3 bytes hold red, green, and blue
+                          Transparency is stored as an int from 0 to 255
+                          Symbol type is 0, 2, 3 for open circles, squares, or
+                            triangles, -1, -3, -4 for closed circles, squares,
+                            or triangles
+</pre>
 </body></html>
