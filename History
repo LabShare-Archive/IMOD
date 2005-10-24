@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/24/05: Added option to Xfmodel to transform a model by applying one
+transform per chunk of Z values for a set of chunks.
+
 10/21/05: Fixed tilt progress monitor so that it works with binning, slices in
 Y, and thickness in X.
 
