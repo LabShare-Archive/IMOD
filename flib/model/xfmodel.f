@@ -6,68 +6,25 @@
 c	  
 c   For more details, see man page
 *
-*	  David Mastronarde 1988
-c	  DNM 7/20/89  changes for new model format
-c	  DNM 1/10/90  have it transform only existing model points, not all
-c	  points in p_coord array, to avoid bad Z values
-c	  DNM 5/28/90  fix bug in rounding 0.5 values, implement ability to
-c	  transform relative to a single section.
-c	  DNM 3/31/92  Implement translation only finding
-c	  DNM 5/1/92   Implement translation and rotation only finding
-c	  DNM 4/24/95 changed model reading/writing to be portable
-c	  DNM 9/23/97  Add translation, rotation, mag only finding
-c
 c	  $Author$
 c
 c	  $Date$
 c
 c	  $Revision$
-c
-c	  $Log$
-c	  Revision 3.9  2004/03/22 15:33:30  mast
-c	  Had to declare lnblnk
-c	
-c	  Revision 3.8  2004/03/22 05:37:17  mast
-c	  Added mag gradient corrections, resolved some problems with
-c	  back-transforming with distortion corrections.
-c	
-c	  Revision 3.7  2004/01/27 05:37:22  mast
-c	  Left a ; on a line
-c	
-c	  Revision 3.6  2004/01/20 00:07:37  mast
-c	  Added option to apply a single transform, fixed initialization and a
-c	  problem with back-transforming with -xf
-c	
-c	  Revision 3.5  2004/01/16 18:08:04  mast
-c	  Fixed problem with how it decided if it needed image binning entry
-c	
-c	  Revision 3.4  2003/12/27 19:42:45  mast
-c	  Work out some problems, finalized documentation and interface
-c	
-c	  Revision 3.3  2003/12/12 20:37:52  mast
-c	  Preliminary checkin with PIP conversion and distortion correction
-c	
-c	  Revision 3.2  2003/10/26 15:31:48  mast
-c	  switch from long prints to formatted writes for Intel compiler
-c	
-c	  Revision 3.1  2002/09/05 05:36:45  mast
-c	  Changes to take scaling information from model header and to scale
-c	  coordinates properly to index coordinates.  Also put in error
-c	  checks, standardize error outputs and made declarations for implicit
-c	  none
-c	
+c	  Log at end of file
 c
 	implicit none
 	include 'model.inc'
 	integer nflimit,limpcl,idim,lmGrid
-	parameter (nflimit=1001,limpcl=100000)
+	parameter (nflimit=10000,limpcl=100000)
 	real*4 f(2,3,nflimit),g(2,3,nflimit),gtmp(2,3)
 	integer*4 nxyz(3),mxyz(3),nx,ny,nz,mode
 	equivalence (nxyz(1),nx),(nxyz(2),ny),(nxyz(3),nz)
 c	real*4 delt(3)
 	integer*4 nsec(nflimit),listz(nflimit),indfl(nflimit)
+	integer*4 numInChunks(nflimit), numChunks
 	integer*4 ixpclist(limpcl),iypclist(limpcl),izpclist(limpcl)
-	parameter (idim=400)
+	parameter (idim=1000)
 	parameter (lmGrid = 200)
 	include 'statsize.inc'
 	real*4 xr(msiz,idim)
@@ -112,7 +69,7 @@ c
 c	  fallbacks from ../../manpages/autodoc2man -2 2  xfmodel
 c
 	integer numOptions
-	parameter (numOptions = 22)
+	parameter (numOptions = 23)
 	character*(40 * numOptions) options(1)
 	options(1) =
      &      'input:InputFile:FN:@output:OutputFile:FN:@'//
@@ -124,9 +81,10 @@ c
      &      'full:FullReportMeanAndMax:FP:@'//
      &      'prealign:PrealignTransforms:FN:@edit:EditTransforms:FN:@'//
      &      'xforms:XformsToApply:FN:@useline:UseTransformLine:I:@'//
-     &      'back:BackTransform:B:@distort:DistortionField:FN:@'//
-     &      'binning:BinningOfImages:I:@gradient:GradientFile:FN:@'//
-     &      'param:ParameterFile:PF:@help:usage:B:'
+     &      'chunks:ChunkSizes:LI:@back:BackTransform:B:@'//
+     &      'distort:DistortionField:FN:@binning:BinningOfImages:I:@'//
+     &      'gradient:GradientFile:FN:@param:ParameterFile:PF:@'//
+     &      'help:usage:B:'
 c	  
 c	  set defaults
 c	  
@@ -137,6 +95,7 @@ c
 	iBinning = 1
 	ifDistort = 0
 	ifMagGrad = 0
+	numChunks = 0
 c	  
 c	  Pip startup: set error, parse options, check help, set flag if used
 c
@@ -264,17 +223,35 @@ c
 c	  
 c	  make index from z values to transform list: index=0 for non-existent
 c
+	if (pipinput .and. PipGetString('ChunkSizes', stringList) .eq. 0)
+     &	    call parselist(stringList, numInChunks, numChunks)
 	do i=1,nflimit
 	  indfl(i)=0
 	enddo
-	do i=1,nlistz
-	  indf=listz(i)+1-listz(1)
-	  indval=i
-	  if(iffillgap.ne.0)indval=indf
-	  indfl(indf)=indval
-	enddo
-	if(nfout.gt.0)nfout=indfl(listz(nlistz)+1-listz(1))
-
+	if (numChunks .eq. 0) then
+	  do i=1,nlistz
+	    indf=listz(i)+1-listz(1)
+	    indval=i
+	    if(iffillgap.ne.0)indval=indf
+	    indfl(indf)=indval
+	  enddo
+	  if(nfout.gt.0)nfout=indfl(listz(nlistz)+1-listz(1))
+	else
+c	    
+c	    or fill index list 
+c
+	  print *,numChunks,(numInChunks(j),j=1,numChunks)
+	  indf = 1
+	  do j = 1, numChunks
+	    do i = 1, numInChunks(j)
+	      indfl(indf) = j
+	      indf = indf + 1
+	      if (indf .ge. nflimit) call errorexit(
+     &		  'TOO MANY SECTIONS IN CHUNKS FOR ARRAYS')
+	    enddo
+	  enddo
+	endif
+c	print *,(indfl(i), i=1,nlistz)
 c
 	ifxfmod = 0
 	ifprealign = 0
@@ -331,12 +308,15 @@ c
 	  if (ifrotrans .ne. 0) ifxfmod = 3
 	  if (ifmagrot .ne. 0) ifxfmod = 4
 
-	  if (lineUse .ge. 0 .and. .not.(ifxfmod .eq. -1 .or.
-     &	      (ifxfmod .eq. 1 .and. (oldxffile .ne. ' ' .or.
-     &	      oldxfgfile .ne. ' ')))) call errorexit(
-     &	      'You cannot enter -useline unless you are forward or '//
-     &	      'back transforming')
-
+	  if (.not.(ifxfmod .eq. -1 .or. (ifxfmod .eq. 1 .and. 
+     &	      (oldxffile .ne. ' ' .or. oldxfgfile .ne. ' '))))  then
+	    if (lineUse .ge. 0) call errorexit('You cannot enter -useline'//
+     &		' unless you are transforming a model')
+	    if (numChunks .gt. 0) call errorexit('You cannot enter -chunks'//
+     &		' unless you are transforming a model')
+	  endif
+	  if (lineuse .ge. 0 .and. numChunks .gt. 0) call errorexit('It is '//
+     &	      'meaningless to enter both -useline and -chunks')
 	else
 c
 	  write(*,'(1x,a,/,a,/,a/,a,$)') 'Enter 0 to find '//
@@ -572,7 +552,7 @@ c
 	  lineToUse = -1
 	  if (ifxfmod .lt. 0) then
 	    lineToUse = lineUse
-	    if (noldg .eq. 1) then
+	    if (noldg .eq. 1 .and. numChunks .eq. 0) then
 	      lineToUse = 0
 	      print *,'There is only one transform and it is being',
      &		  ' applied at all Z values'
@@ -602,7 +582,7 @@ c
      &	      'too many transforms for arrays')	
 	  close(1)
 	  lineToUse = lineUse
-	  if (nfgin .eq. 1) then
+	  if (nfgin .eq. 1 .and. numChunks .eq. 0) then
 	    lineToUse = 0
 	    print *,'There is only one transform and it is being',
      &		' applied at all Z values'
@@ -861,13 +841,6 @@ c
 94	call errorexit('writing out f file')
 	end
 
-	subroutine errorexit(message)
-	character*(*) message
-	print *
-	print *,'ERROR: XFMODEL - ',message
-	call exit(1)
-	end
-
 
 	subroutine transformModel(f, nfgin, nflimit, xcen, ycen,
      &	    indfl, listz, lineToUse, nundefine)
@@ -933,3 +906,59 @@ c
 	call write_wmod(newmodel)
 	return
 	end
+
+	subroutine errorexit(message)
+	character*(*) message
+	print *
+	print *,'ERROR: XFMODEL - ',message
+	call exit(1)
+	end
+c
+c
+c	  $Log$
+c	  Revision 3.10  2004/06/21 23:06:17  mast
+c	  Removed code calling multr/correl and called library function findxf
+c	
+c	  Revision 3.9  2004/03/22 15:33:30  mast
+c	  Had to declare lnblnk
+c	
+c	  Revision 3.8  2004/03/22 05:37:17  mast
+c	  Added mag gradient corrections, resolved some problems with
+c	  back-transforming with distortion corrections.
+c	
+c	  Revision 3.7  2004/01/27 05:37:22  mast
+c	  Left a ; on a line
+c	
+c	  Revision 3.6  2004/01/20 00:07:37  mast
+c	  Added option to apply a single transform, fixed initialization and a
+c	  problem with back-transforming with -xf
+c	
+c	  Revision 3.5  2004/01/16 18:08:04  mast
+c	  Fixed problem with how it decided if it needed image binning entry
+c	
+c	  Revision 3.4  2003/12/27 19:42:45  mast
+c	  Work out some problems, finalized documentation and interface
+c	
+c	  Revision 3.3  2003/12/12 20:37:52  mast
+c	  Preliminary checkin with PIP conversion and distortion correction
+c	
+c	  Revision 3.2  2003/10/26 15:31:48  mast
+c	  switch from long prints to formatted writes for Intel compiler
+c	
+c	  Revision 3.1  2002/09/05 05:36:45  mast
+c	  Changes to take scaling information from model header and to scale
+c	  coordinates properly to index coordinates.  Also put in error
+c	  checks, standardize error outputs and made declarations for implicit
+c	  none
+c
+*	  David Mastronarde 1988
+c	  DNM 7/20/89  changes for new model format
+c	  DNM 1/10/90  have it transform only existing model points, not all
+c	  points in p_coord array, to avoid bad Z values
+c	  DNM 5/28/90  fix bug in rounding 0.5 values, implement ability to
+c	  transform relative to a single section.
+c	  DNM 3/31/92  Implement translation only finding
+c	  DNM 5/1/92   Implement translation and rotation only finding
+c	  DNM 4/24/95 changed model reading/writing to be portable
+c	  DNM 9/23/97  Add translation, rotation, mag only finding
+c	
