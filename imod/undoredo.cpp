@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 4.5  2005/06/29 05:37:52  mast
+    Changes for fine grain properties
+
     Revision 4.4  2005/03/20 19:55:37  mast
     Eliminating duplicate functions
 
@@ -915,9 +918,11 @@ int UndoRedo::exchangeObjects(UndoChange *change, BackupItem *item)
     return NoBackupItem;
 
   if (imodDebug('u'))
-    imodPrintStderr("Exchanging to object %d, size %d, store size object %d, "
-                    "item %d\n", change->object, obj->contsize, 
-                    ilistSize(obj->store), ilistSize(item->p.obj->store));
+    imodPrintStderr("Exchanging to object %d, size %d, store size obj %d, "
+                    "item %d, maxsurf obj %d item %d\n",
+                    change->object, obj->contsize, 
+                    ilistSize(obj->store), ilistSize(item->p.obj->store),
+                    obj->surfsize, item->p.obj->surfsize);
 
   // Exchange the structures
   temp = *(item->p.obj);
