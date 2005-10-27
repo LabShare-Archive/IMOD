@@ -21,6 +21,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.29  2005/07/29 19:46:14  sueh
+ * <p> bug# 692 Changed ConstEtomoNumber.getInteger() to getInt.
+ * <p>
  * <p> Revision 1.28  2005/07/26 23:00:07  sueh
  * <p> bug# 692
  * <p>
@@ -1027,6 +1030,25 @@ public abstract class ConstEtomoNumber implements Storable {
     }
   }
   
+  protected Number newNumber(float value) {
+    validateInputType(value);
+    if (Double.isNaN(value)) {
+      return newNumber();
+    }
+    switch (type) {
+    case DOUBLE_TYPE:
+      return new Double(new Float(value).doubleValue());
+    case FLOAT_TYPE:
+      return new Float(value);
+    case INTEGER_TYPE:
+      return new Integer(new Float(value).intValue());
+    case LONG_TYPE:
+      return new Long(new Float(value).longValue());
+    default:
+      throw new IllegalStateException("type=" + type);
+    }
+  }
+  
   protected Number newNumber(long value) {
     validateInputType(value);
     if (value == LONG_NULL_VALUE) {
@@ -1227,6 +1249,16 @@ public abstract class ConstEtomoNumber implements Storable {
    * @param input
    */
   private void validateInputType(int input) {
+  }
+  
+  /**
+   * Validation to avoid data corruption
+   * @param input
+   */
+  private void validateInputType(float input) {
+    if (type != FLOAT_TYPE && type != DOUBLE_TYPE) {
+      throw new IllegalStateException("Cannot place a float into anything but a Double or Float.  Type=" + type);
+    }
   }
   
   /**
