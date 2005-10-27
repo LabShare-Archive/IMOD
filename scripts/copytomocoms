@@ -418,7 +418,7 @@ if ($backup) then
                 ln -s "$backupdir/$bname" .
             else
                 echo2 " "
-                echo2 "WARNING: $bname does not exist yet."
+                echo2 "INFO: $bname does not exist yet."
                 echo2 "  If you place it in the backup directory later, you will have to run:"
                 echo2 "  ln -s $backupdir/$bname ."
             endif
@@ -562,7 +562,7 @@ while ($iaxis < $numax)
 
     else if ($iaxis == 1) then
         echo ""
-        echo "WARNING: $stackname does not exist yet, assuming size $xsize x $ysize"
+        echo "INFO: $stackname does not exist yet, assuming size $xsize x $ysize"
         echo "   If the size is different, you will need to fix FULLIMAGE in tiltb.com"
         echo "   in order to use parallel processing"
         if ($montage == "1") then
@@ -600,7 +600,7 @@ while ($iaxis < $numax)
                     extracttilts $stackname $tiltspec | tail  -1
                 else
                     echo2 " "
-                    echo2 "WARNING: $stackname does not exist yet."
+                    echo2 "INFO: $stackname does not exist yet."
                     echo2 "  When it does, you will have to run:"
                     echo2 "  extracttilts $stackname $tiltspec"
                 endif
@@ -617,7 +617,7 @@ while ($iaxis < $numax)
                     extractpieces $stackname $plspec | tail -n 1
                 else
                     echo2 " "
-                    echo2 "WARNING: $stackname does not exist yet."
+                    echo2 "INFO: $stackname does not exist yet."
                     echo2 "  When it does, you will have to run:"
                     echo2 "  extractpieces $stackname $plspec"
                 endif
@@ -640,7 +640,7 @@ while ($iaxis < $numax)
                     endif
                 else
                     echo2 " "
-                    echo2 "WARNING: $stackname does not exist yet."
+                    echo2 "INFO: $stackname does not exist yet."
                     echo2 "  When it does, you will have to run:"
                     echo2 "  extractmagrad -rot $axisangle -grad $gradient $stackname $gradspec"
                 endif
@@ -1352,6 +1352,10 @@ exit 0
 
 #
 #  $Log$
+#  Revision 3.41  2005/10/05 17:46:37  mast
+#  Got b axis size from b axis data, gave warning about FULLIMAGE if no
+#  b axis yet
+#
 #  Revision 3.40  2005/06/08 20:10:48  mast
 #  Leave fid.xyz in align.com for single axis, set FixXYZCoordinates to
 #  1 for dual and 0 for single axis
