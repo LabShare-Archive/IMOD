@@ -20,6 +20,12 @@ import etomo.comscript.TransferfidParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.25  2005/10/12 21:27:02  sueh
+ * <p> bug# 532 Changed the parallel booleans to EtomoBoolean2 so that they
+ * <p> can remember whether they where set or not.  The default for the parallel
+ * <p> checkboxes is based on the existance and validity of cpu.adoc.  Use the
+ * <p> default when the parallel meta data variable is null.
+ * <p>
  * <p> Revision 3.24  2005/09/29 18:46:24  sueh
  * <p> bug# 532 Saving the state of the parallel checkbox states.
  * <p>
@@ -305,6 +311,20 @@ public class MetaData extends ConstMetaData {
     }
   }
   
+  public final void setBStackProcessed(boolean bStackProcessed) {
+    if (this.bStackProcessed == null) {
+      this.bStackProcessed = new EtomoBoolean2(B_STACK_PROCESSED_GROUP);
+    }
+    this.bStackProcessed.set(bStackProcessed);
+  }
+  
+  public final void setBStackProcessed(String bStackProcessed) {
+    if (this.bStackProcessed == null) {
+      this.bStackProcessed = new EtomoBoolean2(B_STACK_PROCESSED_GROUP);
+    }
+    this.bStackProcessed.set(bStackProcessed);
+  }
+  
   public void setTomoGenBinning(AxisID axisID, int tomoGenBinning) {
     if (axisID == AxisID.SECOND) {
       tomoGenBinningB.set(tomoGenBinning);
@@ -531,6 +551,10 @@ public class MetaData extends ConstMetaData {
     propertyValue = props.getProperty(group + COMBINE_VOLCOMBINE_PARALLEL_GROUP);
     if (propertyValue != null) {
       setCombineVolcombineParallel(propertyValue);
+    }
+    propertyValue = props.getProperty(group + B_STACK_PROCESSED_GROUP);
+    if (propertyValue != null) {
+      setBStackProcessed(propertyValue);
     }
   }
 }

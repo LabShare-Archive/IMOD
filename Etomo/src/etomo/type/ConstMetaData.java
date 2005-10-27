@@ -37,6 +37,7 @@ public abstract class ConstMetaData extends BaseMetaData {
       + AxisID.SECOND.getExtension().toUpperCase() + ".Tilt.Parallel";
   protected static final String COMBINE_VOLCOMBINE_PARALLEL_GROUP = DialogType.TOMOGRAM_COMBINATION
       .getStorableName() + ".Volcombine.Parallel";
+  protected static final String B_STACK_PROCESSED_GROUP = "BStackProcessed";
 
   
   private final ApplicationManager manager;
@@ -91,6 +92,7 @@ public abstract class ConstMetaData extends BaseMetaData {
   protected EtomoBoolean2 tomoGenTiltParallelA = null;
   protected EtomoBoolean2 tomoGenTiltParallelB = null;
   protected EtomoBoolean2 combineVolcombineParallel = null;
+  protected EtomoBoolean2 bStackProcessed = null;
 
   public abstract void load(Properties props);
   public abstract void load(Properties props, String prepend);
@@ -176,6 +178,9 @@ public abstract class ConstMetaData extends BaseMetaData {
     }
     if (combineVolcombineParallel != null) {
       combineVolcombineParallel.store(props, prepend);
+    }
+    if (bStackProcessed != null) {
+      bStackProcessed.store(props, prepend);
     }
   }
 
@@ -301,6 +306,10 @@ public abstract class ConstMetaData extends BaseMetaData {
 
   public int getBinning() {
     return binning;
+  }
+  
+  public ConstEtomoNumber getBStackProcessed() {
+    return bStackProcessed;
   }
 
   public TiltAngleSpec getTiltAngleSpecA() {
@@ -652,6 +661,11 @@ public abstract class ConstMetaData extends BaseMetaData {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.31  2005/10/12 21:24:16  sueh
+ * <p> bug# 532 Changed the parallel booleans to EtomoBoolean2 so that they
+ * <p> can remember whether they where set or not.  The default for the parallel
+ * <p> checkboxes is based on the existance and validity of cpu.adoc.
+ * <p>
  * <p> Revision 3.30  2005/09/29 18:45:29  sueh
  * <p> bug# 532 Saving the state of the parallel checkbox states.
  * <p>
