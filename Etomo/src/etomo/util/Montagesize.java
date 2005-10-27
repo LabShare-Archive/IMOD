@@ -41,13 +41,17 @@ public class Montagesize {
   //
   //other member variables
   //
-  private String filename = null;
-  private boolean fileExists = false;
   private EtomoNumber x = new EtomoNumber(EtomoNumber.INTEGER_TYPE);
   private EtomoNumber y = new EtomoNumber(EtomoNumber.INTEGER_TYPE);
   private EtomoNumber z = new EtomoNumber(EtomoNumber.INTEGER_TYPE);
-  AxisID axisID;
+  
+  private final File file;
   private final String propertyUserDir;
+  private final AxisID axisID;
+  
+  private boolean fileExists = false;
+  String[] commandArray = null;
+  
   
   //
   //n'ton functions
@@ -57,7 +61,7 @@ public class Montagesize {
    */
   private Montagesize(String propertyUserDir, File file, AxisID axisID) {
     this.propertyUserDir = propertyUserDir;
-    filename = file.getAbsolutePath();
+    this.file = file;
     this.axisID = axisID;
     modifiedFlag = new FileModifiedFlag(file);
   }
@@ -112,7 +116,6 @@ public class Montagesize {
    * @return
    */
   private File makePieceListFile() {
-    File file = Utilities.getFile(propertyUserDir, filename);
     String filePath = file.getAbsolutePath();
     int extensionIndex = filePath.lastIndexOf(fileExtension);
     if (extensionIndex == -1) {
@@ -131,7 +134,30 @@ public class Montagesize {
     x.reset();
     y.reset();
     z.reset();
+    commandArray = null;
   }
+  
+  private final void buildCommand() {
+    if (commandArray != null) {
+      return;
+    }
+    if (file == null) {
+      return;
+    }
+    File pieceListFile = makePieceListFile();
+    if (pieceListFile.exists()) {
+      commandArray = new String[3];
+    }
+    else {
+      commandArray = new String[2];
+    }
+    commandArray[0] = ApplicationManager.getIMODBinPath() + "montagesize";
+    commandArray[1] = file.getAbsolutePath();
+    if (pieceListFile.exists()) {
+      commandArray[2] = pieceListFile.getAbsolutePath();
+    }
+  }
+  
   /**
    * run montagesize on the file
    * @throws IOException
@@ -139,8 +165,7 @@ public class Montagesize {
    * @returns true if attempted to read
    */
   public synchronized boolean read() throws IOException, InvalidParameterException {
-    File file = Utilities.getFile(propertyUserDir, filename);
-    if (filename == null || filename.matches("\\s*") || file.isDirectory()) {
+    if (file.isDirectory()) {
       throw new IOException("No stack specified.");
     }
     if (!file.exists()) {
@@ -155,19 +180,7 @@ public class Montagesize {
     //put first timestamp after decide to read
     Utilities.timestamp("read", "montagesize", file, Utilities.STARTED_STATUS);
     //Run the montagesize command on the file.
-    File pieceListFile = makePieceListFile();
-    String[] commandArray;
-    if (pieceListFile.exists()) {
-      commandArray = new String[3];
-    }
-    else {
-      commandArray = new String[2];
-    }
-    commandArray[0] = ApplicationManager.getIMODBinPath() + "montagesize";
-    commandArray[1] = file.getAbsolutePath();
-    if (pieceListFile.exists()) {
-      commandArray[2] = pieceListFile.getAbsolutePath();
-    }
+    buildCommand();
     SystemProgram montagesize = new SystemProgram(propertyUserDir,
         commandArray, axisID);
     montagesize.setDebug(EtomoDirector.getInstance().isDebug());
@@ -278,12 +291,12 @@ public class Montagesize {
     if (instances == null) {
       throw new IllegalStateException("instances is null");
     }
-    if (filename == null || filename.matches("\\s*")) {
+    if (file == null || file.isDirectory()) {
       throw new IllegalStateException("file is null");
     }
-    String key = makeKey(Utilities.getFile(propertyUserDir, filename));
+    String key = makeKey(file);
     if (key == null || key.matches("\\s*")) {
-      throw new IllegalStateException("unable to make key: filename=" + filename);
+      throw new IllegalStateException("unable to make key: filename=" + file.getAbsolutePath());
     }
     Montagesize montagesize = (Montagesize) instances.get(key);
     if (montagesize == null) {
@@ -296,12 +309,15 @@ public class Montagesize {
   }
 
   protected String paramString() {
-    return ",filename=" + filename + ",fileExists=" + fileExists + ",x=" + x
+    return ",file=" + file + ",fileExists=" + fileExists + ",x=" + x
         + ",y=" + y + ",z=" + z + ",axisID=" + axisID;
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.9  2005/09/09 21:48:24  sueh
+ * <p> bug# 532 Handling null from stderr and stdout.
+ * <p>
  * <p> Revision 1.8  2005/08/27 22:44:01  sueh
  * <p> bug# 532 In Utilities.timestamp() change the int status to String status,
  * <p> since it doesn't have to be compared.
