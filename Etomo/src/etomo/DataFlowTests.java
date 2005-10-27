@@ -199,7 +199,7 @@ public class DataFlowTests {
     uiHarness.pack(applicationManager);
     applicationManager.findXrays(axisID);
     waitForThread(axisID);
-    applicationManager.eraser(axisID);
+    applicationManager.preEraser(axisID);
     waitForThread(axisID);
     applicationManager.replaceRawStack(axisID);
     applicationManager.donePreProcDialog(axisID);
@@ -208,7 +208,7 @@ public class DataFlowTests {
   private static void coarseAlignment(AxisID axisID) {
     applicationManager.openCoarseAlignDialog(axisID);
     uiHarness.pack(applicationManager);
-    applicationManager.crossCorrelate(axisID);
+    applicationManager.preCrossCorrelate(axisID);
     waitForThread(axisID);
     if (!applicationManager.getMetaData().isFiducialessAlignment(axisID)) {
       applicationManager.coarseAlign(axisID);
@@ -343,6 +343,9 @@ public class DataFlowTests {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.12  2005/08/22 15:57:55  sueh
+ * <p> reformatting
+ * <p>
  * <p> Revision 3.11  2005/08/04 19:07:18  sueh
  * <p> bug# 532  Sending the manager to UIHarness.pack() so that
  * <p> packDialogs() can be called.
