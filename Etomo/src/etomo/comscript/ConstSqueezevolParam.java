@@ -26,6 +26,11 @@ import etomo.type.EtomoNumber;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.9  2005/07/29 00:44:36  sueh
+* <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
+* <p> because the current manager changes when the user changes the tab.
+* <p> Passing the manager where its needed.
+* <p>
 * <p> Revision 1.8  2005/07/26 17:27:25  sueh
 * <p> bug# 701 Get the PID from squeezevol
 * <p>
@@ -113,18 +118,16 @@ public abstract class ConstSqueezevolParam implements Command, Storable {
     ConstMetaData metaData = manager.getMetaData();
     String datasetName = metaData.getDatasetName();
     //try to take the trimvol output file as input
-    inputFileName = TrimvolParam.getOutputFileName(datasetName);
-   /* if (!(new File(manager.getPropertyUserDir(), inputFileName).exists())) {
-      String[] message = { inputFileName + " does not exist.",
-          "Trim volume before running squeeze volume." };
-      manager.getMainPanel().openMessageDialog(message,
-          "Error Running Squeezevol");
-    }*/
+    inputFileName = getInputFileName(datasetName);
     options.add(inputFileName);
     //output is dataset.sqz
     outputFile = new File(manager.getPropertyUserDir(), datasetName + ".sqz");
     options.add(outputFile.getName());
     return options;
+  }
+  
+  private final String getInputFileName(String datasetName) {
+    return TrimvolParam.getOutputFileName(datasetName);
   }
   
   public void store(Properties props) {
