@@ -11,6 +11,15 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.26  2005/08/11 23:45:42  sueh
+ * <p> bug# 711  Change enum Run3dmodMenuOption to
+ * <p> Run3dmodMenuOptions, which can turn on multiple options at once.
+ * <p> This allows ImodState to combine input from the context menu and the
+ * <p> pulldown menu.  Get rid of duplicate code by running the 3dmods from a
+ * <p> private function called run3dmod(String, Run3dmodMenuOptions).  It can
+ * <p> be called from run3dmod(Run3dmodButton, Run3dmodMenuOptions) and
+ * <p> the action function.
+ * <p>
  * <p> Revision 3.25  2005/08/10 20:41:54  sueh
  * <p> bug# 711 Removed MultiLineToggleButton.  Making toggling an attribute
  * <p> of MultiLineButton.
@@ -432,7 +441,7 @@ public class CoarseAlignDialog extends ProcessDialog
   void buttonAction(ActionEvent event) {
     String command = event.getActionCommand();
     if (command.equals(btnCrossCorrelate.getActionCommand())) {
-      applicationManager.crossCorrelate(axisID);
+      applicationManager.preCrossCorrelate(axisID);
     }
     else if (command.equals(btnCoarseAlign.getActionCommand())) {
       applicationManager.coarseAlign(axisID);
