@@ -323,7 +323,7 @@ public class CCDEraserPanel implements ContextMenu, Run3dmodButtonContainer {
       applicationManager.findXrays(axisID);
     }
     else if (command.equals(btnErase.getActionCommand())) {
-      applicationManager.eraser(axisID);
+      applicationManager.preEraser(axisID);
     }
     else if (command.equals(btnReplaceRawStack.getActionCommand())) {
       applicationManager.replaceRawStack(axisID);
@@ -461,6 +461,9 @@ public class CCDEraserPanel implements ContextMenu, Run3dmodButtonContainer {
 
 /**
 * <p> $Log$
+* <p> Revision 3.13  2005/08/27 22:35:26  sueh
+* <p> bug# 532 Changed Autodoc.get() to getInstance().
+* <p>
 * <p> Revision 3.12  2005/08/11 23:45:28  sueh
 * <p> bug# 711  Change enum Run3dmodMenuOption to
 * <p> Run3dmodMenuOptions, which can turn on multiple options at once.
