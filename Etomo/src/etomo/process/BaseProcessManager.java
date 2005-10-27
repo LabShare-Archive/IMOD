@@ -30,6 +30,14 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.28  2005/09/29 18:39:17  sueh
+* <p> bug# 532 Preventing Etomo from saving to the .edf or .ejf file over and
+* <p> over during exit.  Added BaseManager.exiting and
+* <p> saveIntermediateParamFile(), which will not save when exiting it true.
+* <p> Setting exiting to true in BaseManager.exitProgram().  Moved call to
+* <p> saveParamFile() to the child exitProgram functions so that the param file
+* <p> is saved after all the done functions are run.
+* <p>
 * <p> Revision 1.27  2005/09/22 20:52:25  sueh
 * <p> bug# 532 for processchunks, added the status string to "killed", which can
 * <p> be resumed just like "paused".
@@ -847,6 +855,17 @@ public abstract class BaseProcessManager {
 
     BackgroundProcess backgroundProcess = new BackgroundProcess(getManager(),
         commandArray, this, axisID);
+    return startBackgroundProcess(backgroundProcess, commandArray.toString(),
+        axisID, null);
+  }
+  
+  protected BackgroundProcess startBackgroundProcess(String[] commandArray,
+      AxisID axisID, boolean forceNextProcess) throws SystemProcessException {
+
+    isAxisBusy(axisID);
+
+    BackgroundProcess backgroundProcess = new BackgroundProcess(getManager(),
+        commandArray, this, axisID, forceNextProcess);
     return startBackgroundProcess(backgroundProcess, commandArray.toString(),
         axisID, null);
   }
