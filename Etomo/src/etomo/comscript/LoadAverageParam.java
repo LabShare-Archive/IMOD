@@ -77,6 +77,7 @@ public class LoadAverageParam implements IntermittentCommand {
     //prevents ssh from waiting for an answer when connecting to a computer for
     //the first time
     //see man ssh_config
+    command.add("-x");
     command.add("-o");
     command.add("StrictHostKeyChecking=no");
     command.add(computer);
@@ -106,6 +107,10 @@ public class LoadAverageParam implements IntermittentCommand {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.4  2005/09/14 20:20:40  sueh
+* <p> bug# 532 Added notifySentIntermittentCommand() so that notifying the
+* <p> monitor that the intermittent command was sent can be optional.
+* <p>
 * <p> Revision 1.3  2005/09/09 21:21:01  sueh
 * <p> bug# 532 Made LoadAverageParam an n'ton (one for each computer) so
 * <p> that there aren't IntermittentSystemPrograms then computers.  This allows
