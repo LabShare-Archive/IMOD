@@ -18,6 +18,10 @@ import etomo.comscript.FortranInputString;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.11  2005/06/16 20:07:16  sueh
+* <p> bug# 692 Make integer the default type.  Move validation to
+* <p> ConstEtomoNumber.
+* <p>
 * <p> Revision 1.10  2005/06/11 02:33:55  sueh
 * <p> bug# 583 Added member variable:  floor.  Simplified load functions.
 * <p>
@@ -184,6 +188,10 @@ public class EtomoNumber extends ConstEtomoNumber {
   }
   
   public EtomoNumber set(long value) {
+    return set(newNumber(value));
+  }
+  
+  public EtomoNumber set(float value) {
     return set(newNumber(value));
   }
   
