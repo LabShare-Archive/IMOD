@@ -20,6 +20,14 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.82  2005/09/29 18:39:28  sueh
+ * bug# 532 Preventing Etomo from saving to the .edf or .ejf file over and
+ * over during exit.  Added BaseManager.exiting and
+ * saveIntermediateParamFile(), which will not save when exiting it true.
+ * Setting exiting to true in BaseManager.exitProgram().  Moved call to
+ * saveParamFile() to the child exitProgram functions so that the param file
+ * is saved after all the done functions are run.
+ *
  * Revision 3.81  2005/09/21 16:09:49  sueh
  * bug# 532 moved processchunks() from processManager to
  * BaseProcessManager.  This allows BaseManager to handle
@@ -719,6 +727,9 @@ import etomo.comscript.ConstTiltalignParam;
 import etomo.comscript.ConstTiltxcorrParam;
 import etomo.comscript.CopyTomoComs;
 import etomo.comscript.BadComScriptException;
+import etomo.comscript.ExtractmagradParam;
+import etomo.comscript.ExtractpiecesParam;
+import etomo.comscript.ExtracttiltsParam;
 import etomo.comscript.NewstParam;
 import etomo.comscript.SetupCombine;
 import etomo.comscript.SplitcombineParam;
@@ -1290,6 +1301,34 @@ public class ProcessManager extends BaseProcessManager {
       throws SystemProcessException {
     BackgroundProcess backgroundProcess = startBackgroundProcess(param
         .getCommand(), axisID);
+    return backgroundProcess.getName();
+  }
+  
+  /**
+   * Run extracttilts
+   */
+  public String extracttilts(AxisID axisID) throws SystemProcessException {
+    BackgroundProcess backgroundProcess = startBackgroundProcess(
+        new ExtracttiltsParam(appManager, axisID).getCommand(), axisID, true);
+    return backgroundProcess.getName();
+  }
+  
+  /**
+   * Run extractpieces
+   */
+  public String extractpieces(AxisID axisID) throws SystemProcessException {
+    BackgroundProcess backgroundProcess = startBackgroundProcess(
+        new ExtractpiecesParam(appManager, axisID).getCommand(), axisID, true);
+    return backgroundProcess.getName();
+  }
+  
+  /**
+   * Run extractmagrad
+   */
+  public String extractmagrad(ExtractmagradParam param, AxisID axisID)
+      throws SystemProcessException {
+    BackgroundProcess backgroundProcess = startBackgroundProcess(param
+        .getCommand(), axisID, true);
     return backgroundProcess.getName();
   }
   
