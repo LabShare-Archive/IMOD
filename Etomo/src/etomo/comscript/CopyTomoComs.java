@@ -18,6 +18,11 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.12  2005/07/29 00:44:59  sueh
+ * bug# 709 Going to EtomoDirector to get the current manager is unreliable
+ * because the current manager changes when the user changes the tab.
+ * Passing the manager where its needed.
+ *
  * Revision 3.11  2005/05/10 17:31:04  sueh
  * bug# 660 Added comment.
  *
@@ -487,6 +492,7 @@ public class CopyTomoComs {
   
   /**
    * returns a String array of warnings - one warning per element
+   * make sure that warnings get into the error log
    * @return
    */
   public String[] getWarnings() {
@@ -495,10 +501,20 @@ public class CopyTomoComs {
     if (warnings == null || warnings.size() == 0) {
       return null;
     }
-    if (warnings.size() == 1) {
-      return new String[] { (String) warnings.get(0) };
+    if (!debug) {
+      System.err.println("Copytomocoms warnings:");
     }
-    return (String[]) warnings.toArray(new String[warnings.size()]);
+    String[] warningStrings = new String[warnings.size()];
+    for (int i = 0; i < warnings.size(); i++) {
+      warningStrings[i] = (String) warnings.get(i);
+      if (!debug) {
+        System.err.println(warningStrings[i]);
+      }
+    }
+    if (!debug) {
+      System.err.println();
+    }
+    return warningStrings;
   }
 
   /**
